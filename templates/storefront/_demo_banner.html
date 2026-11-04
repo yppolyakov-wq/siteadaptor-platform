@@ -1,5 +1,5 @@
 {% load i18n %}{% if request.tenant.is_demo %}{% comment %}В1: витрина демо-бизнеса — честно говорим, что это пример.{% endcomment %}
 <div class="bg-amber-50 border-b border-amber-200 text-amber-900 text-sm" role="note" data-demo-banner>
-  <div class="max-w-7xl mx-auto px-4 py-2"><strong>{% trans "Demo-Geschäft" %}</strong> — {% trans "dies ist ein Beispiel-Shop zum Ausprobieren." %}</div>
+  <div class="{{ storefront_page_width|default:'max-w-screen-2xl' }} mx-auto px-4 py-2"><strong>{% trans "Demo-Geschäft" %}</strong> — {% trans "dies ist ein Beispiel-Shop zum Ausprobieren." %}</div>
 </div>
 {% endif %}

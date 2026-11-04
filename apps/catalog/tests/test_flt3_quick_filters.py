@@ -98,3 +98,36 @@ def test_sale_toggle_keeps_state_and_switches():
     assert href, "toggle «Nur reduziert» missing"
     qd = QueryDict(href.group(1).replace("&amp;", "&"))
     assert qd.get("sale") == "1" and qd.get("farbe") == "Blau"
+
+
+# --- ревью FLT-3 -------------------------------------------------------------------------
+
+
+def test_cursor_is_dropped_everywhere_and_search_view_sort_are_kept():
+    """Применение фильтра начинает выдачу с первой страницы, но не теряет q/вид/сорт."""
+    _shop()
+    body = _body("q=Kleid&ansicht=preisliste&sort=price_asc&cursor=abc123&farbe=Blau")
+    for key in ("preis", "groesse", "marke"):
+        sent = dict(_hidden(_pop(body, key)))
+        assert "cursor" not in sent, key
+        assert sent.get("q") == "Kleid" and sent.get("sort") == "price_asc", key
+        assert sent.get("ansicht") == "preisliste", key
+    i = body.index("data-quick-filters")
+    bar = body[i : body.index("</div>\n<script", i)]
+    assert 'name="cursor"' not in bar and "cursor=abc123" not in bar
+
+
+def test_hostile_query_values_are_escaped_in_hidden_fields():
+    _shop()
+    body = _body('groesse="><script>alert(1)</script>&q="><img src=x>')
+    pop = _pop(body, "preis")
+    assert "<script>alert(1)</script>" not in pop and "<img src=x>" not in pop
+    assert "&quot;&gt;&lt;script&gt;" in pop
+
+
+def test_brand_popover_does_not_carry_its_own_brand_as_hidden_field():
+    _shop()
+    body = _body("marke=Nord&farbe=Rot")
+    sent = _hidden(_pop(body, "marke"))
+    assert ("farbe", "Rot") in sent and not any(k == "marke" for k, _ in sent)
+    assert 'name="marke" value="Nord" checked' in _pop(body, "marke")

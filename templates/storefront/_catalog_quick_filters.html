@@ -7,14 +7,14 @@
 <div data-flt class="hidden sm:flex flex-wrap items-center gap-2" data-quick-filters>
   {% if show_price_filter %}
   <details data-flt-pop="preis" class="relative">
-    <summary class="list-none cursor-pointer inline-flex h-9 items-center gap-1 rounded-lg border px-3 text-sm {% if price_min_val or price_max_val %}border-gray-900 bg-gray-900 text-white{% else %}border-gray-300 bg-white text-gray-700 hover:border-gray-500{% endif %}">{% trans "Price" %} <span aria-hidden="true">▾</span></summary>
+    <summary class="list-none cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900 inline-flex h-9 items-center gap-1 rounded-lg border px-3 text-sm {% if price_min_val or price_max_val %}border-gray-900 bg-gray-900 text-white{% else %}border-gray-300 bg-white text-gray-700 hover:border-gray-500{% endif %}">{% trans "Price" %}{% if price_min_val or price_max_val %}<span class="sr-only"> {% trans "aktiv" %}</span>{% endif %} <span aria-hidden="true">▾</span></summary>
     <form method="get" class="absolute z-30 mt-2 w-72 rounded-xl bg-white border border-gray-200 shadow-lg p-3 space-y-3 text-gray-800">
       {% for k, v in quick_filters.price %}<input type="hidden" name="{{ k }}" value="{{ v }}">{% endfor %}
       <p class="text-xs text-gray-500">{{ price_lo|floatformat:0 }}–{{ price_hi|floatformat:0 }} €</p>
       <div class="flex items-end gap-2">
-        <label class="flex-1 text-sm">{% trans "from" %}<input type="text" inputmode="decimal" name="preis_von" value="{{ price_min_val }}" class="mt-1 w-full rounded-lg border border-gray-300 px-2 py-1.5"></label>
+        <label class="flex-1 text-sm">{% trans "Preis ab" %}<input type="text" inputmode="decimal" name="preis_von" value="{{ price_min_val }}" class="mt-1 w-full rounded-lg border border-gray-300 px-2 py-1.5"></label>
         <span class="pb-2" aria-hidden="true">–</span>
-        <label class="flex-1 text-sm">{% trans "to" %}<input type="text" inputmode="decimal" name="preis_bis" value="{{ price_max_val }}" class="mt-1 w-full rounded-lg border border-gray-300 px-2 py-1.5"></label>
+        <label class="flex-1 text-sm">{% trans "Preis bis" %}<input type="text" inputmode="decimal" name="preis_bis" value="{{ price_max_val }}" class="mt-1 w-full rounded-lg border border-gray-300 px-2 py-1.5"></label>
       </div>
       <button type="submit" class="w-full rounded-lg bg-gray-900 text-white text-sm font-medium px-4 py-2">{% trans "Apply" %}</button>
     </form>
@@ -22,12 +22,12 @@
   {% endif %}
   {% if size_chips %}
   <details data-flt-pop="groesse" class="relative">
-    <summary class="list-none cursor-pointer inline-flex h-9 items-center gap-1 rounded-lg border px-3 text-sm {% if active_groesse %}border-gray-900 bg-gray-900 text-white{% else %}border-gray-300 bg-white text-gray-700 hover:border-gray-500{% endif %}">{% trans "Größe" %}{% if active_groesse %} · {{ active_groesse|length }}{% endif %} <span aria-hidden="true">▾</span></summary>
+    <summary class="list-none cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900 inline-flex h-9 items-center gap-1 rounded-lg border px-3 text-sm {% if active_groesse %}border-gray-900 bg-gray-900 text-white{% else %}border-gray-300 bg-white text-gray-700 hover:border-gray-500{% endif %}">{% trans "Größe" %}{% if active_groesse %} · {{ active_groesse|length }}<span class="sr-only"> {% trans "ausgewählt" %}</span>{% endif %} <span aria-hidden="true">▾</span></summary>
     <form method="get" class="absolute z-30 mt-2 w-72 rounded-xl bg-white border border-gray-200 shadow-lg p-3 space-y-3 text-gray-800">
       {% for k, v in quick_filters.size %}<input type="hidden" name="{{ k }}" value="{{ v }}">{% endfor %}
       <fieldset><legend class="sr-only">{% trans "Größe" %}</legend>
         <div class="flex flex-wrap gap-1.5">
-          {% for g in size_chips %}<label class="cursor-pointer"><input type="checkbox" name="groesse" value="{{ g.value }}" {% if g.value in active_groesse %}checked{% endif %} class="sr-only peer"><span class="inline-flex items-center gap-1 rounded-lg border border-gray-300 px-2.5 py-1 text-sm peer-checked:border-gray-900 peer-checked:bg-gray-900 peer-checked:text-white peer-focus-visible:ring-2">{{ g.value }}<span class="text-[11px] opacity-60">{{ g.count }}</span></span></label>{% endfor %}
+          {% for g in size_chips %}<label class="cursor-pointer"><input type="checkbox" name="groesse" value="{{ g.value }}" {% if g.value in active_groesse %}checked{% endif %} class="sr-only peer"><span class="inline-flex items-center gap-1 rounded-lg border border-gray-300 px-2.5 py-1 text-sm peer-checked:border-gray-900 peer-checked:bg-gray-900 peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-gray-900 peer-focus-visible:ring-offset-2">{{ g.value }}<span class="text-[11px] opacity-60"><span class="sr-only">(</span>{{ g.count }}<span class="sr-only">)</span></span></span></label>{% endfor %}
         </div>
       </fieldset>
       <button type="submit" class="w-full rounded-lg bg-gray-900 text-white text-sm font-medium px-4 py-2">{% trans "Apply" %}</button>
@@ -36,12 +36,12 @@
   {% endif %}
   {% if color_chips %}
   <details data-flt-pop="farbe" class="relative">
-    <summary class="list-none cursor-pointer inline-flex h-9 items-center gap-1 rounded-lg border px-3 text-sm {% if active_farbe %}border-gray-900 bg-gray-900 text-white{% else %}border-gray-300 bg-white text-gray-700 hover:border-gray-500{% endif %}">{% trans "Colour" %}{% if active_farbe %} · {{ active_farbe|length }}{% endif %} <span aria-hidden="true">▾</span></summary>
+    <summary class="list-none cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900 inline-flex h-9 items-center gap-1 rounded-lg border px-3 text-sm {% if active_farbe %}border-gray-900 bg-gray-900 text-white{% else %}border-gray-300 bg-white text-gray-700 hover:border-gray-500{% endif %}">{% trans "Colour" %}{% if active_farbe %} · {{ active_farbe|length }}<span class="sr-only"> {% trans "ausgewählt" %}</span>{% endif %} <span aria-hidden="true">▾</span></summary>
     <form method="get" class="absolute z-30 mt-2 w-80 rounded-xl bg-white border border-gray-200 shadow-lg p-3 space-y-3 text-gray-800">
       {% for k, v in quick_filters.color %}<input type="hidden" name="{{ k }}" value="{{ v }}">{% endfor %}
       <fieldset><legend class="sr-only">{% trans "Colour" %}</legend>
         <div class="flex flex-wrap gap-1.5">
-          {% for c in color_chips %}<label class="cursor-pointer" title="{{ c.value }} ({{ c.count }})"><input type="checkbox" name="farbe" value="{{ c.value }}" {% if c.value in active_farbe %}checked{% endif %} class="sr-only peer"><span class="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 px-2 py-1 text-sm peer-checked:border-gray-900 peer-checked:ring-1 peer-checked:ring-gray-900 peer-focus-visible:ring-2">{% if c.hex %}<span class="inline-block h-3.5 w-3.5 rounded-full border border-black/10" style="background:{{ c.hex }}"></span>{% endif %}{{ c.value }}<span class="text-[11px] opacity-60">{{ c.count }}</span></span></label>{% endfor %}
+          {% for c in color_chips %}<label class="cursor-pointer" title="{{ c.value }} ({{ c.count }})"><input type="checkbox" name="farbe" value="{{ c.value }}" {% if c.value in active_farbe %}checked{% endif %} class="sr-only peer"><span class="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 px-2 py-1 text-sm peer-checked:border-gray-900 peer-checked:ring-2 peer-checked:ring-gray-900 peer-checked:font-semibold peer-focus-visible:ring-2 peer-focus-visible:ring-gray-900 peer-focus-visible:ring-offset-2">{% if c.hex %}<span aria-hidden="true" class="inline-block h-3.5 w-3.5 rounded-full border border-black/10" style="background:{{ c.hex }}"></span>{% endif %}{{ c.value }}<span class="text-[11px] opacity-60"><span class="sr-only">(</span>{{ c.count }}<span class="sr-only">)</span></span></span></label>{% endfor %}
         </div>
       </fieldset>
       <button type="submit" class="w-full rounded-lg bg-gray-900 text-white text-sm font-medium px-4 py-2">{% trans "Apply" %}</button>
@@ -50,12 +50,12 @@
   {% endif %}
   {% if brand_chips %}
   <details data-flt-pop="marke" class="relative">
-    <summary class="list-none cursor-pointer inline-flex h-9 items-center gap-1 rounded-lg border px-3 text-sm {% if active_marke %}border-gray-900 bg-gray-900 text-white{% else %}border-gray-300 bg-white text-gray-700 hover:border-gray-500{% endif %}">{% trans "Marke" %} <span aria-hidden="true">▾</span></summary>
+    <summary class="list-none cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900 inline-flex h-9 items-center gap-1 rounded-lg border px-3 text-sm {% if active_marke %}border-gray-900 bg-gray-900 text-white{% else %}border-gray-300 bg-white text-gray-700 hover:border-gray-500{% endif %}">{% trans "Marke" %}{% if active_marke %}<span class="sr-only"> {% trans "aktiv" %}</span>{% endif %} <span aria-hidden="true">▾</span></summary>
     <form method="get" class="absolute z-30 mt-2 w-72 max-h-80 overflow-y-auto rounded-xl bg-white border border-gray-200 shadow-lg p-3 space-y-2 text-gray-800">
       {% for k, v in quick_filters.brand %}<input type="hidden" name="{{ k }}" value="{{ v }}">{% endfor %}
       <fieldset><legend class="sr-only">{% trans "Marke" %}</legend>
-        <label class="flex items-center gap-2 py-1 text-sm"><input type="radio" name="marke" value="" {% if not active_marke %}checked{% endif %}>{% trans "All" %}</label>
-        {% for b in brand_chips %}<label class="flex items-center gap-2 py-1 text-sm"><input type="radio" name="marke" value="{{ b.value }}" {% if active_marke == b.value %}checked{% endif %}><span class="flex-1">{{ b.value }}</span><span class="text-gray-500">{{ b.count }}</span></label>{% endfor %}
+        <label class="flex items-center gap-2 py-1 text-sm"><input type="radio" class="w-4 h-4" name="marke" value="" {% if not active_marke %}checked{% endif %}>{% trans "All" %}</label>
+        {% for b in brand_chips %}<label class="flex items-center gap-2 py-1 text-sm"><input type="radio" class="w-4 h-4" name="marke" value="{{ b.value }}" {% if active_marke == b.value %}checked{% endif %}><span class="flex-1">{{ b.value }}</span><span class="text-gray-500"><span class="sr-only">(</span>{{ b.count }}<span class="sr-only">)</span></span></label>{% endfor %}
       </fieldset>
       <button type="submit" class="w-full rounded-lg bg-gray-900 text-white text-sm font-medium px-4 py-2">{% trans "Apply" %}</button>
     </form>
@@ -63,7 +63,7 @@
   {% endif %}
   {% if sale_count %}
   <a href="?{{ quick_filters.sale_qs }}" rel="nofollow"{% if only_sale %} data-flt-pill{% endif %}
-     class="inline-flex h-9 items-center gap-1 rounded-lg border px-3 text-sm {% if only_sale %}border-gray-900 bg-gray-900 text-white{% else %}border-gray-300 bg-white text-gray-700 hover:border-gray-500{% endif %}">{% trans "Reduced only" %}{% if only_sale %} <span aria-hidden="true">✕</span><span class="sr-only">{% trans "Remove filter" %}</span>{% endif %}</a>
+     class="focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900 inline-flex h-9 items-center gap-1 rounded-lg border px-3 text-sm {% if only_sale %}border-gray-900 bg-gray-900 text-white{% else %}border-gray-300 bg-white text-gray-700 hover:border-gray-500{% endif %}">{% trans "Reduced only" %}{% if only_sale %} <span aria-hidden="true">✕</span><span class="sr-only">{% trans "Remove filter" %}</span>{% endif %}</a>
   {% endif %}
 </div>
 <script src="{% static 'js/portal.js' %}" defer></script>
