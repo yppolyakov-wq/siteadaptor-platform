@@ -1,6 +1,7 @@
 {% load i18n %}{# H8b: поиск по датам на портале отелей #}
 {% if hotel_portal %}
 <form method="get" class="bg-white rounded-2xl shadow-sm p-4 md:p-5 mb-6">
+  {% for k, v in flt.hotel_hidden %}<input type="hidden" name="{{ k }}" value="{{ v }}">{% endfor %}{# FLT-1d: даты не сбрасывают фильтры #}
   <div class="grid sm:grid-cols-4 gap-3 items-end">
     <div>
       <label class="block text-sm font-medium mb-1" for="p_von">{% trans "Arrival" %}</label>

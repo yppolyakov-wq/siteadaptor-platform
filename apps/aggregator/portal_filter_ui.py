@@ -40,14 +40,39 @@ def state_params(request, *, scope, q, filters, area, point) -> list[tuple[str, 
         out.append(("kind", scope.kind_key))
     if scope.new_only:
         out.append(("neu", "1"))
-    out += [(k, v) for k, v in search_engine.carry(q, filters) if k != "stadtteil"]
+    # Сорт — только явно заданный: «naehe» по умолчанию при точке в ссылки не пишем.
+    explicit_sort = (request.GET.get("sort") or "").strip()
+    out += [
+        (k, v)
+        for k, v in search_engine.carry(q, filters)
+        if k != "stadtteil" and (k != "sort" or v == explicit_sort)
+    ]
     out += [("stadtteil", d) for d in area]
     if point is not None:
         out += geo.carry(*point)
     out += [("roh", v) for v in request.GET.getlist("roh") if v == "ort"]
     if request.GET.get("ansicht") == "karte":
         out.append(("ansicht", "karte"))
+    out += hotel_params(request)
     return out
+
+
+HOTEL_KEYS = ("von", "bis", "gaeste")
+
+
+def hotel_params(request) -> list[tuple[str, str]]:
+    """H8b: поиск отеля по датам переживает любой фильтр (ревью FLT-1d, F2)."""
+    from . import hotel_search
+
+    von = hotel_search.parse_date(request.GET.get("von"))
+    bis = hotel_search.parse_date(request.GET.get("bis"))
+    if not (von and bis and bis > von):
+        return []
+    try:
+        guests = max(1, min(int(request.GET.get("gaeste", "2")), 50))
+    except (TypeError, ValueError):
+        guests = 2
+    return [("von", von.isoformat()), ("bis", bis.isoformat()), ("gaeste", str(guests))]
 
 
 def _url(path: str, params) -> str:
@@ -184,6 +209,12 @@ def build(
         pills.append({"label": _("Nur verfügbar"), "url": without("verfuegbar")})
     if filters.size:
         pills.append({"label": _("Größe %(s)s") % {"s": filters.size}, "url": without("groesse")})
+    if filters.brand:  # F1: марку/компанию (ссылки «Alle von …») тоже можно снять
+        pills.append({"label": f"{_('Marke')}: {filters.brand}", "url": without("marke")})
+    if filters.business:
+        pills.append(
+            {"label": f"{_('Unternehmen')}: {filters.business}", "url": without("unternehmen")}
+        )
     if filters.radius_km:
         pills.append(
             {"label": _("≤ %(km)s km") % {"km": filters.radius_km}, "url": without("umkreis")}
@@ -235,7 +266,19 @@ def build(
         "radius_choices": geo.RADIUS_CHOICES,
         "branches": branches,
         "active_count": active_count,
-        "reset_url": _url(path, [p for p in params if p[0] not in drawer_keys]),
+        # Сброс — все фильтры (вкл. марку, компанию, размер, сорт, даты отеля); остаются
+        # запрос, вид, точка и вид-карта.
+        "reset_url": _url(
+            path,
+            [
+                p
+                for p in params
+                if p[0] not in drawer_keys
+                and p[0] not in search_engine.FILTER_PARAMS
+                and p[0] not in HOTEL_KEYS
+            ],
+        ),
+        "hotel_hidden": [p for p in params if p[0] not in HOTEL_KEYS],
         "hits": hits,
         "hits_capped": hits_capped,
         "area_label": ", ".join(p["label"] for p in pills[len(filters.kats) :][: len(area)]),

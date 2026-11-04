@@ -309,9 +309,7 @@ def test_filter_pill_removes_only_its_filter():
     req.portal = _portal()
     html = portal_views.portal_home(req).content.decode()
     bar = html.split("data-flt-bar", 1)[1].split("data-hit-count", 1)[0]
-    pills = re.findall(
-        r'<a href="([^"]+)" rel="nofollow"(?: aria-current="true"| data-flt-pill)', bar
-    )
+    pills = re.findall(r'<a href="([^"]+)" rel="nofollow" data-flt-pill', bar)
     pills = [h.replace("&amp;", "&") for h in pills]
     assert len(pills) == 2 and all("q=Pizza" in h for h in pills)
     assert {("stadtteil=" in h, "offen=" in h) for h in pills} == {(False, True), (True, False)}

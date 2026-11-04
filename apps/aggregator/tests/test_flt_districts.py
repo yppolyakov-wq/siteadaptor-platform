@@ -257,3 +257,45 @@ def test_filter_forms_have_no_csrf_token():
     html = _html(p, "/?q=Brot")
     bar = html.split("data-flt", 1)[1].split("</dialog>", 1)[0]
     assert "csrfmiddlewaretoken" not in bar and 'method="post"' not in bar.lower()
+
+
+# --- ревью FLT-1d ------------------------------------------------------------------------
+
+
+def test_brand_and_business_filters_can_be_removed_and_reset():
+    """F1: «Alle von Bosch» вела на /?marke=Bosch без ✕ — снять фильтр было нельзя."""
+    _seed()
+    p = _portal()
+    html = _html(p, "/?q=Brot&marke=Bosch&unternehmen=w1")
+    pills = [h.replace("&amp;", "&") for h in _pill_hrefs(html)]
+    assert "/?q=Brot&unternehmen=w1" in pills and "/?q=Brot&marke=Bosch" in pills
+    reset = html.split("flt-drawer", 1)[1].split("Zurücksetzen", 1)[0].rsplit('href="', 1)[1]
+    assert reset.split('"', 1)[0].replace("&amp;", "&") == "/?q=Brot"
+
+
+def test_hotel_dates_survive_filter_links():
+    """F2: поиск отеля по датам не сбрасывается фильтром района/сортировкой."""
+    from apps.aggregator import portal_filter_ui
+
+    req = RequestFactory().get("/?von=2030-05-01&bis=2030-05-03&gaeste=3&x=1")
+    assert portal_filter_ui.hotel_params(req) == [
+        ("von", "2030-05-01"),
+        ("bis", "2030-05-03"),
+        ("gaeste", "3"),
+    ]
+    bad = RequestFactory().get("/?von=2030-05-03&bis=2030-05-01")
+    assert portal_filter_ui.hotel_params(bad) == []
+
+
+def test_default_near_sort_is_not_written_into_links():
+    """F4: «рядом» по умолчанию при точке — не параметр ссылок."""
+    _seed()
+    p = _portal()
+    html = _html(p, "/?lat=51.17&lng=7.08&stadtteil=wald")
+    assert "sort=naehe" not in html.split("data-flt-bar", 1)[1].split("</dialog>", 1)[0]
+
+
+def _pill_hrefs(html):
+    import re
+
+    return re.findall(r'<a href="([^"]+)" rel="nofollow" data-flt-pill', html)
