@@ -18,6 +18,8 @@
 #   gunzip -c db-<дата>.sql.gz | psql -h <host> -U <user> <тестовая_бд>
 
 set -euo pipefail
+# Любая авария — видимой строкой (в cron-лог), а не молчаливым выходом.
+trap 'rc=$?; echo "[$(date -Is)] backup FAILED (line $LINENO, exit $rc)" >&2' ERR
 cd "$(dirname "$0")/.."
 
 MODE="${1:-}"
@@ -28,8 +30,12 @@ fi
 COMPOSE="docker compose --env-file .env.prod -f docker-compose.prod.yml $PROFILE_ARGS"
 
 # Нужные переменные .env.prod — без `source` (значения со спецсимволами не ломают shell).
+# Нет ключа в .env.prod — пустая строка, не ошибка: grep без совпадений возвращает 1,
+# и под `set -e -o pipefail` присваивание молча обрывало весь скрипт (необязательные
+# BACKUP_DIR/BACKUP_KEEP_DAYS/BACKUP_S3_BUCKET/DB_PORT обычно не заданы).
 envget() {
-	grep -E "^$1=" .env.prod | tail -n 1 | cut -d= -f2- | sed -e 's/^"//' -e 's/"$//' -e "s/^'//" -e "s/'$//"
+	{ grep -E "^$1=" .env.prod || true; } | tail -n 1 | cut -d= -f2- \
+		| sed -e 's/^"//' -e 's/"$//' -e "s/^'//" -e "s/'$//"
 }
 DB_NAME="$(envget DB_NAME)"
 DB_USER="$(envget DB_USER)"
