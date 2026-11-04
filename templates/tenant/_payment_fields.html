@@ -3,6 +3,9 @@
 & Vorkasse ③Lieferung) — сентинелы sec_stripe/sec_prepay/sec_vorkasse/sec_delivery
 (секция сохраняется только при своём). ОБЩИЙ партиал экрана «Zahlung & Versand» и слайда
 мастера; должен лежать ВНУТРИ <form method="post"> вызывающего шаблона.{% endcomment %}
+{% comment %}UX-D D9: экран раскладывает секции по вкладкам (`pay_tab`); мастер зовёт
+партиал без неё — видны все. Сентинелы sec_* сохраняют только присланные секции.{% endcomment %}
+{% if not pay_tab or pay_tab == "zahlung" %}
 {% comment %}① Online-Zahlung (Stripe Checkout methods) — сентинел sec_stripe{% endcomment %}
 {% if connect_configured %}
   <fieldset class="ui-card p-6">
@@ -85,11 +88,13 @@
   </div>
 </fieldset>
 
+{% endif %}
+
 {% comment %}③ Lieferung / Versand — сентинел sec_delivery. SH-24: блок больше не
 гейтится модулем «orders» — кейтеринг/Handwerker живут на jobs, а доставка нужна
 и им (вопрос «привезём или заберёте» стоит в заявке).{% endcomment %}
-{% if orders_active or jobs_active %}
-  <fieldset class="ui-card p-6 space-y-3">
+{% if orders_active or jobs_active %}{% if not pay_tab or pay_tab == "lieferung" %}
+  <fieldset class="ui-card p-6 space-y-3" data-pay-delivery>
     <input type="hidden" name="sec_delivery" value="1">
     <legend class="font-semibold mb-1">{% trans "Delivery (Versand)" %}</legend>
     <label class="flex items-center gap-2 text-sm font-medium">
@@ -114,6 +119,29 @@
       <label class="block"><span class="block text-xs text-gray-500 mb-1">{% trans "Delivery area (shown to customers, e.g. PLZ)" %}</span>
       <input name="delivery_area" type="text" value="{{ delivery_area }}" class="ui-input"></label>
     </div>
+    <div class="border-t border-gray-100 pt-3">
+      <p class="font-medium mb-1 text-sm">{% trans "Delivery zones by postal code" %}</p>
+      <p class="text-xs text-gray-400 mb-2">{% trans "Optional. A matching PLZ zone overrides the flat fee / free-from / min above." %}</p>
+      <div class="space-y-2">
+        {% for z in delivery_zone_rows %}
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <input name="zone_plz_{{ z.i }}" type="text" value="{{ z.plz }}" aria-label="{% trans "Postal code" %}" placeholder="{% trans 'PLZ e.g. 40, 41' %}" class="rounded-lg border border-gray-300 px-2 py-1.5">
+            <input name="zone_fee_{{ z.i }}" type="text" value="{{ z.fee_eur }}" aria-label="{% trans 'Fee €' %}" placeholder="{% trans 'Fee €' %}" class="rounded-lg border border-gray-300 px-2 py-1.5">
+            <input name="zone_free_{{ z.i }}" type="text" value="{{ z.free_eur }}" aria-label="{% trans 'Free from €' %}" placeholder="{% trans 'Free from €' %}" class="rounded-lg border border-gray-300 px-2 py-1.5">
+            <input name="zone_min_{{ z.i }}" type="text" value="{{ z.min_eur }}" aria-label="{% trans 'Min €' %}" placeholder="{% trans 'Min €' %}" class="rounded-lg border border-gray-300 px-2 py-1.5">
+          </div>
+        {% endfor %}
+      </div>
+      <label class="flex items-center gap-2 mt-2 text-xs">
+        <input type="checkbox" name="delivery_restrict_to_zones" {% if delivery_restrict_to_zones %}checked{% endif %}>
+        {% trans "Deliver only to the postal codes listed above" %}
+      </label>
+    </div>
+  </fieldset>
+  {% comment %}UX-D D9: самовывоз — своя карточка (поля те же, сохраняются сентинелами
+  sec_delivery/sec_pickup_slots первой карточки и своим).{% endcomment %}
+  <fieldset class="ui-card p-6 space-y-3" data-pay-pickup>
+    <legend class="font-semibold mb-1">{% trans "Abholung" %}</legend>
     <div>
       <label class="block"><span class="block text-xs text-gray-500 mb-1">{% trans "Min. order for pickup (€, 0=none)" %}</span>
       <input name="pickup_min_eur" type="text" value="{{ pickup_min_eur }}" class="ui-input sm:w-1/3"></label>
@@ -153,23 +181,5 @@
         </label>
       </div>
     </div>
-    <div class="border-t border-gray-100 pt-3">
-      <p class="font-medium mb-1 text-sm">{% trans "Delivery zones by postal code" %}</p>
-      <p class="text-xs text-gray-400 mb-2">{% trans "Optional. A matching PLZ zone overrides the flat fee / free-from / min above." %}</p>
-      <div class="space-y-2">
-        {% for z in delivery_zone_rows %}
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            <input name="zone_plz_{{ z.i }}" type="text" value="{{ z.plz }}" aria-label="{% trans "Postal code" %}" placeholder="{% trans 'PLZ e.g. 40, 41' %}" class="rounded-lg border border-gray-300 px-2 py-1.5">
-            <input name="zone_fee_{{ z.i }}" type="text" value="{{ z.fee_eur }}" aria-label="{% trans 'Fee €' %}" placeholder="{% trans 'Fee €' %}" class="rounded-lg border border-gray-300 px-2 py-1.5">
-            <input name="zone_free_{{ z.i }}" type="text" value="{{ z.free_eur }}" aria-label="{% trans 'Free from €' %}" placeholder="{% trans 'Free from €' %}" class="rounded-lg border border-gray-300 px-2 py-1.5">
-            <input name="zone_min_{{ z.i }}" type="text" value="{{ z.min_eur }}" aria-label="{% trans 'Min €' %}" placeholder="{% trans 'Min €' %}" class="rounded-lg border border-gray-300 px-2 py-1.5">
-          </div>
-        {% endfor %}
-      </div>
-      <label class="flex items-center gap-2 mt-2 text-xs">
-        <input type="checkbox" name="delivery_restrict_to_zones" {% if delivery_restrict_to_zones %}checked{% endif %}>
-        {% trans "Deliver only to the postal codes listed above" %}
-      </label>
-    </div>
   </fieldset>
-{% endif %}
+{% endif %}{% endif %}

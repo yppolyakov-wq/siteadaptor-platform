@@ -32040,3 +32040,6 @@ msgid "%(n)s nicht im Stadtportal"
 msgid_plural "%(n)s nicht im Stadtportal"
 msgstr[0] "%(n)s nicht im Stadtportal"
 msgstr[1] "%(n)s nicht im Stadtportal"
+
+msgid "Lieferung & Abholung"
+msgstr "Lieferung & Abholung"

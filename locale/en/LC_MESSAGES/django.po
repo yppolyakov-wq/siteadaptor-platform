@@ -31953,3 +31953,6 @@ msgid "%(n)s nicht im Stadtportal"
 msgid_plural "%(n)s nicht im Stadtportal"
 msgstr[0] "%(n)s not on the city portal"
 msgstr[1] "%(n)s not on the city portal"
+
+msgid "Lieferung & Abholung"
+msgstr "Delivery & pickup"

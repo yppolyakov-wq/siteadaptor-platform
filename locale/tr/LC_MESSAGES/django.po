@@ -32099,3 +32099,6 @@ msgid "%(n)s nicht im Stadtportal"
 msgid_plural "%(n)s nicht im Stadtportal"
 msgstr[0] "Şehir portalında değil: %(n)s"
 msgstr[1] "Şehir portalında değil: %(n)s"
+
+msgid "Lieferung & Abholung"
+msgstr "Teslimat ve gel-al"

@@ -12,20 +12,31 @@
 
   {% include "tenant/_settings_messages.html" %}
 
+  {% comment %}UX-D D9: вкладки рисует сервер (`?tab=`); у бизнеса без доставки — одна
+  вкладка, и полосы нет.{% endcomment %}
+  {% if has_delivery %}
+  <nav class="ui-tabs mb-4" aria-label="{% trans 'Payment & shipping' %}" data-pay-tabs>
+    <a href="{% url 'payment-settings' %}" class="ui-tab"{% if pay_tab == 'zahlung' %} aria-current="page"{% endif %}>{% trans "Zahlung" %}</a>
+    <a href="{% url 'payment-settings' %}?tab=lieferung" class="ui-tab"{% if pay_tab == 'lieferung' %} aria-current="page"{% endif %}>{% trans "Lieferung & Abholung" %}</a>
+  </nav>
+  {% endif %}
+
   {% comment %}W4-3: Stripe-Connect (OAuth) блок + секции формы — вынесены в партиалы
   `_payment_connect.html`/`_payment_fields.html` (общие со слайдом мастера «Zahlung»,
   AB6.2-payment). Здесь — обёртка экрана: одна форма, один Save.{% endcomment %}
-  {% include "tenant/_payment_connect.html" %}
+  {% if pay_tab == "zahlung" %}{% include "tenant/_payment_connect.html" %}{% endif %}
 
   <form method="post" class="space-y-4 xl:space-y-0 xl:grid xl:grid-cols-2 xl:gap-4 xl:items-start [&>fieldset]:min-w-0" data-payment-grid>
     {% csrf_token %}
+    <input type="hidden" name="tab" value="{{ pay_tab }}">
     {% include "tenant/_payment_fields.html" %}
 
-    {% if not connect_configured and not orders_active %}
+    {% if pay_tab == "zahlung" and not connect_configured and not orders_active %}
       <p class="ui-card text-sm text-gray-500 p-6 xl:col-span-2">{% trans "Enable the Orders module to configure delivery and bank transfer." %}</p>
-    {% else %}
-      <div class="xl:col-span-2"><button type="submit" class="ui-btn ui-btn-primary">{% trans "Save" %}</button></div>
     {% endif %}
+    {% comment %}UX-D D9: «Speichern» всегда — раньше без заказов кнопки не было вовсе, и
+    счёт фирме/доставку кейтеринга нельзя было сохранить.{% endcomment %}
+    <div class="xl:col-span-2"><button type="submit" class="ui-btn ui-btn-primary">{% trans "Save" %}</button></div>
   </form>
 </div>
 {% endblock %}

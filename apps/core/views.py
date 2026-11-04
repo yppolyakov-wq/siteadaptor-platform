@@ -8,6 +8,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.translation import gettext as _
@@ -1225,17 +1226,25 @@ def payment_settings(request):
     `save_payment_settings`; контекст — `payment_settings_context`. Оба переиспользуются
     в слайде мастера «Zahlung». Старые экраны billing-payments/orders-settings живы.
     """
+    ctx = payment_settings_context(request)
+    # UX-D D9: вкладки «Zahlung» и «Lieferung & Abholung» (одна форма на вкладку;
+    # сентинелы sec_* пишут только секции этой вкладки — другая не затирается).
+    has_delivery = ctx["orders_active"] or ctx["jobs_active"]
+    tab = (request.POST if request.method == "POST" else request.GET).get("tab", "")
+    if tab not in ("zahlung", "lieferung") or (tab == "lieferung" and not has_delivery):
+        tab = "zahlung"
     if request.method == "POST":
         errors = save_payment_settings(request)
         for error in errors:
             messages.error(request, error)
         if not errors:
             messages.success(request, _("Gespeichert."))
-        return redirect("payment-settings")
+        url = reverse("payment-settings")
+        return redirect(f"{url}?tab=lieferung" if tab == "lieferung" else url)
     return render(
         request,
         "tenant/payment_settings.html",
-        {"nav": "payments", **payment_settings_context(request)},
+        {"nav": "payments", "pay_tab": tab, "has_delivery": has_delivery, **ctx},
     )
 
 

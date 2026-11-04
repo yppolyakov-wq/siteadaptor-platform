@@ -39,9 +39,14 @@ def test_renders_orders_sections(settings):
     settings.ROOT_URLCONF = "config.urls_tenant"
     tenant = TenantFactory(disabled_modules=[])  # orders активен
     html = core_views.payment_settings(_req("get", _user("ps1"), tenant)).content.decode()
-    for name in ("delivery_enabled", "vorkasse_enabled", "bank_iban", "orders_prepay"):
+    for name in ("vorkasse_enabled", "bank_iban", "orders_prepay"):
         assert f'name="{name}"' in html
-    assert 'name="sec_delivery"' in html and 'name="sec_vorkasse"' in html
+    assert 'name="sec_vorkasse"' in html
+    # UX-D D9: доставка — на своей вкладке
+    html = core_views.payment_settings(
+        _req("get", _user("ps1b"), tenant, {"tab": "lieferung"})
+    ).content.decode()
+    assert 'name="delivery_enabled"' in html and 'name="sec_delivery"' in html
 
 
 def test_saves_all_orders_sections(settings):
@@ -110,6 +115,68 @@ def test_orders_sections_hidden_when_orders_off(settings):
     assert 'name="delivery_enabled"' not in html
 
     jobs_only = TenantFactory(schema_name="ps6b", slug="ps6b", disabled_modules=["orders"])
-    html2 = core_views.payment_settings(_req("get", _user("ps6b"), jobs_only)).content.decode()
+    html2 = core_views.payment_settings(
+        _req("get", _user("ps6b"), jobs_only, {"tab": "lieferung"})
+    ).content.decode()
     assert 'name="sec_delivery"' in html2 and 'name="delivery_enabled"' in html2
-    assert 'name="sec_prepay"' not in html2  # блок «Abholung & Vorkasse» остаётся за orders
+    html3 = core_views.payment_settings(_req("get", _user("ps6c"), jobs_only)).content.decode()
+    assert 'name="sec_prepay"' not in html3  # блок «Abholung & Vorkasse» остаётся за orders
+
+
+# --- UX-D D9: вкладки «Zahlung» и «Lieferung & Abholung» ---------------------------
+
+
+def test_tabs_split_payment_and_delivery(settings):
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    tenant = TenantFactory(schema_name="ps9a", slug="ps9a", disabled_modules=[])
+    pay = core_views.payment_settings(_req("get", _user("ps9a"), tenant)).content.decode()
+    assert "data-pay-tabs" in pay and 'aria-current="page">Zahlung' in pay
+    assert 'name="vorkasse_enabled"' in pay and 'name="invoice_b2b_enabled"' in pay
+    assert 'name="delivery_enabled"' not in pay and 'name="pickup_slots_on"' not in pay
+    deliv = core_views.payment_settings(
+        _req("get", _user("ps9b"), tenant, {"tab": "lieferung"})
+    ).content.decode()
+    assert "data-pay-delivery" in deliv and "data-pay-pickup" in deliv
+    assert 'name="pickup_slots_on"' in deliv and 'name="pickup_locations"' in deliv
+    assert 'name="vorkasse_enabled"' not in deliv and 'name="sec_invoice"' not in deliv
+    assert 'name="tab" value="lieferung"' in deliv
+
+
+def test_saving_one_tab_keeps_the_other(settings):
+    """Сентинелы sec_*: «Speichern» вкладки Zahlung не трогает доставку и наоборот."""
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    tenant = TenantFactory(
+        schema_name="ps9c",
+        slug="ps9c",
+        disabled_modules=[],
+        delivery_enabled=True,
+        delivery_fee_cents=390,
+    )
+    resp = core_views.payment_settings(
+        _req("post", _user("ps9c"), tenant, {"tab": "zahlung", "sec_invoice": "1"})
+    )
+    assert resp.status_code == 302 and resp.url == "/dashboard/settings/payments/"
+    tenant.refresh_from_db()
+    assert tenant.delivery_enabled is True and tenant.delivery_fee_cents == 390
+    resp = core_views.payment_settings(
+        _req(
+            "post",
+            _user("ps9d"),
+            tenant,
+            {"tab": "lieferung", "sec_delivery": "1", "delivery_fee_eur": "4,50"},
+        )
+    )
+    assert resp.url == "/dashboard/settings/payments/?tab=lieferung"
+    tenant.refresh_from_db()
+    assert tenant.delivery_fee_cents == 450
+
+
+def test_no_tabs_without_delivery_and_bad_tab_falls_back(settings):
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    tenant = TenantFactory(schema_name="ps9e", slug="ps9e", disabled_modules=["orders", "jobs"])
+    html = core_views.payment_settings(
+        _req("get", _user("ps9e"), tenant, {"tab": "lieferung"})
+    ).content.decode()
+    assert "data-pay-tabs" not in html  # одна вкладка — полосы нет
+    assert 'name="sec_invoice"' in html  # открылась Zahlung, а не пустая страница
+    assert 'type="submit"' in html  # счёт фирме можно сохранить и без заказов
