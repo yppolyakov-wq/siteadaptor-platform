@@ -17,11 +17,10 @@ def _int(raw, default, lo, hi) -> int:
 
 
 def _eur_to_cents(raw) -> int:
-    """«80» / «79,50» → центы (анти-кривой ввод → 0)."""
-    try:
-        return max(0, round(float(str(raw or "0").replace(",", ".")) * 100))
-    except (TypeError, ValueError, OverflowError):  # «1e999» → inf → OverflowError
-        return 0
+    """«80» / «79,50» / «1.234,50» → центы (кривой ввод → 0). UX-D D6.0b: общий разбор."""
+    from apps.core.money import lenient_cents
+
+    return lenient_cents(raw)
 
 
 _HOUR_RE = re.compile(r"[0-9]{1,2}")

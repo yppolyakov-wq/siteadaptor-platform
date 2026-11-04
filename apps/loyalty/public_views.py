@@ -50,12 +50,11 @@ def gutschein_buy(request):
     if ratelimit.hit("gift", ratelimit.client_ip(request), limit=RL_LIMIT, window=RL_WINDOW):
         return HttpResponse(status=429)
 
+    from apps.core.money import lenient_cents
     from apps.loyalty import gift
 
-    try:
-        amount_cents = round(float(request.POST.get("amount_eur", "0").replace(",", ".")) * 100)
-    except (TypeError, ValueError):
-        amount_cents = 0
+    # UX-D D6.0b: «1.234,50» → 1234,50 € (раньше 0 → «сумма вне диапазона»).
+    amount_cents = lenient_cents(request.POST.get("amount_eur"))
     try:
         gv = gift.create_gift_voucher(
             buyer_name=request.POST.get("name", ""),

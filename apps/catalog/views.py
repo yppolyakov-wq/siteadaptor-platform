@@ -4,7 +4,7 @@
 Все вьюхи требуют логина владельца (логин на субдомене своей схемы).
 """
 
-from decimal import Decimal, InvalidOperation
+from decimal import Decimal
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -90,15 +90,14 @@ def _save_product_overlays(product, request):
 
 
 def _parse_price(raw):
-    """«4,90» / «4.90» / пусто → Decimal или None (пусто/мусор/отрицательное)."""
-    raw = (raw or "").strip().replace(",", ".")
-    if not raw:
-        return None
+    """«4,90» / «4.90» / «1.234,50» / пусто → Decimal или None (пусто/мусор/отрицательное).
+    UX-D D6.0b: общий разбор — раньше «NaN» падал на сравнении, «Infinity» шёл в запись."""
+    from apps.core.money import parse_amount
+
     try:
-        value = Decimal(raw)
-    except (InvalidOperation, ValueError):
+        return parse_amount(raw)
+    except ValueError:
         return None
-    return value if value >= 0 else None
 
 
 def _parse_int(raw):
@@ -1305,14 +1304,13 @@ def _bulk_products(request):
 
 def _parse_signed(raw):
     """«−10», «-2,50», «+5» → Decimal (со знаком); пусто/мусор → None."""
-    raw = (raw or "").strip().replace(",", ".").replace("\u2212", "-").replace(" ", "")
-    if not raw:
+    from apps.core.money import parse_amount
+
+    raw = (raw or "").strip().replace("\u2212", "-").lstrip("+")
+    try:  # UX-D D6.0b: общий разбор со знаком
+        return parse_amount(raw, allow_negative=True)
+    except ValueError:
         return None
-    try:
-        value = Decimal(raw)
-    except (InvalidOperation, ValueError):
-        return None
-    return value if value.is_finite() else None
 
 
 def _is_uuid_str(value) -> bool:

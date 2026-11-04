@@ -168,10 +168,9 @@ def normalize_tiers(raw) -> list[dict]:
 
 
 def _eur_to_cents(value) -> int:
-    try:
-        return max(0, round(float(str(value or "0").replace(",", ".").strip()) * 100))
-    except (TypeError, ValueError):
-        return 0
+    from apps.core.money import lenient_cents
+
+    return lenient_cents(value)  # UX-D D6.0b: «1.234,50» больше не 0
 
 
 def _int(value) -> int:

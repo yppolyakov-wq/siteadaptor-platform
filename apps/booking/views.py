@@ -54,11 +54,11 @@ MAX_CENTS = 10_000_000  # 100 000 €
 
 
 def _eur_to_cents(raw) -> int:
-    """«5» / «5,50» → центы (анти-кривой ввод → 0, потолок MAX_CENTS)."""
-    try:
-        return min(MAX_CENTS, max(0, round(float(str(raw or "0").replace(",", ".")) * 100)))
-    except (TypeError, ValueError, OverflowError):
-        return 0
+    """«5» / «5,50» / «1.234,50» → центы (кривой ввод → 0, больше MAX_CENTS → потолок)."""
+    from apps.core.money import lenient_cents
+
+    # UX-D D6.0b: общий разбор; потолок — прежний кламп (не обнуление).
+    return min(MAX_CENTS, lenient_cents(raw, max_value=Decimal("1000000000")))
 
 
 def _uploaded_image_ref(request, field="image", folder="services") -> dict | None:
@@ -1753,10 +1753,9 @@ def passes_view(request):
             return default
 
     def _cents(raw):
-        try:
-            return max(0, round(float(str(raw or "0").replace(",", ".")) * 100))
-        except (TypeError, ValueError):
-            return 0
+        from apps.core.money import lenient_cents
+
+        return lenient_cents(raw)  # UX-D D6.0b
 
     def _vu(raw):  # valid_until: пусто/кривое → бессрочно (None)
         try:

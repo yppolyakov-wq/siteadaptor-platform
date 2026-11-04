@@ -19,6 +19,7 @@ from django.views.decorators.http import require_POST
 
 from apps.core import deal_links
 from apps.core.fsm import IllegalTransition, PaymentRequired
+from apps.core.money import parse_amount, to_cents
 
 from .models import Order
 from .services import OutOfStock
@@ -455,8 +456,8 @@ def order_edit(request, pk):
             raw = request.POST.get("part", "")
             title = (request.POST.get("title") or "").strip()
             qty = request.POST.get("qty") or 1
-            price_raw = (request.POST.get("price") or "").strip().replace(",", ".")
-            price = Decimal(price_raw) if price_raw else None
+            # UX-D D6.0b: общий разбор («1.234,50», «12,50 €»); NaN/∞ → ошибка формы.
+            price = parse_amount(request.POST.get("price"), allow_negative=True)
             products = {str(p.pk): p for p in Product.objects.all()} if raw else {}
             variants = {str(v.pk): v for v in ProductVariant.objects.all()} if raw else {}
             product, variant = _resolve_part(raw, products, variants)
@@ -481,19 +482,18 @@ def order_edit(request, pk):
                 )
                 messages.success(request, _("Position hinzugefügt."))
         elif action == "discount":
-            raw = (request.POST.get("discount") or "0").strip().replace(",", ".")
-            cents = int(Decimal(raw or "0") * 100)
+            cents = to_cents(parse_amount(request.POST.get("discount")) or Decimal("0"))
             editing.set_discount(
                 order, cents=cents, note=request.POST.get("discount_note", ""), tenant=tenant
             )
             messages.success(request, _("Rabatt gespeichert."))
         elif action == "delivery":
-            raw = (request.POST.get("shipping") or "").strip().replace(",", ".")
+            shipping = parse_amount(request.POST.get("shipping"))
             editing.update_delivery(
                 order,
                 fulfillment=request.POST.get("fulfillment"),
                 address=request.POST.get("shipping_address", ""),
-                shipping_cents=int(Decimal(raw) * 100) if raw else None,
+                shipping_cents=to_cents(shipping) if shipping is not None else None,
                 tenant=tenant,
             )
             messages.success(request, _("Lieferung gespeichert."))
@@ -700,10 +700,9 @@ def delivery_notes_pdf(request):
 
 
 def _eur_to_cents(raw) -> int:
-    try:
-        return max(0, round(float(str(raw or "0").replace(",", ".")) * 100))
-    except (TypeError, ValueError):
-        return 0
+    from apps.core.money import lenient_cents
+
+    return lenient_cents(raw)  # UX-D D6.0b: «1.234,50» больше не 0
 
 
 def _parse_pickup_locations(request) -> list[dict]:

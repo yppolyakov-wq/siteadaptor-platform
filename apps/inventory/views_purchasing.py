@@ -218,15 +218,12 @@ def _handle_post(request):
         if product is None:
             messages.error(request, _("Bitte einen Artikel wählen."))
             return _redirect(po)
-        raw_cost = (request.POST.get("unit_cost") or "").strip().replace(",", ".")
-        unit_cost = None
-        if raw_cost:
-            try:
-                from decimal import Decimal
+        from apps.core.money import parse_amount
 
-                unit_cost = Decimal(raw_cost)
-            except Exception:
-                unit_cost = None
+        try:  # UX-D D6.0b: общий разбор; NaN/∞/мусор → без EK (как раньше мусор)
+            unit_cost = parse_amount(request.POST.get("unit_cost"))
+        except ValueError:
+            unit_cost = None
         purchasing.add_po_line(
             po,
             product=product,

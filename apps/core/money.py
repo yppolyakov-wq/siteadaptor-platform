@@ -83,3 +83,17 @@ def parse_amount(raw, *, max_value=MAX_FORM_AMOUNT, allow_negative=False) -> Dec
 def to_cents(value: Decimal) -> int:
     """Сумма с ≤ 2 знаками → центы (без округления: знаки уже проверены)."""
     return int((value * 100).to_integral_value())
+
+
+def lenient_cents(raw, *, default: int = 0, max_value=MAX_FORM_AMOUNT) -> int:
+    """UX-D D6.0b: старые формы, где пусто/мусор = «суммы нет» (депозит, скидка → 0).
+
+    Разбор тот же, что у ``parse_amount`` (тысячи «1.234,50», запятая, «€»): раньше эти
+    формы читали ``float(raw.replace(",", "."))`` — «1.234,50» молча давало 0 €, а
+    «1e999» роняло страницу. Неконечное, отрицательное, больше потолка или с тремя и
+    более знаками после запятой → ``default`` (как прежнее «мусор = 0»)."""
+    try:
+        value = parse_amount(raw, max_value=max_value)
+    except ValueError:
+        return default
+    return default if value is None else to_cents(value)

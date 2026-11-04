@@ -193,10 +193,9 @@ def _safe_next(request) -> str:
 
 def _parse_deposit_cents(raw) -> int:
     """Anzahlung из формы (€ → центы). Пусто/мусор/минус → 0 («без депозита»)."""
-    try:
-        return max(0, round(float(str(raw or "0").replace(",", ".")) * 100))
-    except (TypeError, ValueError):
-        return 0
+    from apps.core.money import lenient_cents
+
+    return lenient_cents(raw)  # UX-D D6.0b: «1.234,50» больше не 0
 
 
 @login_required

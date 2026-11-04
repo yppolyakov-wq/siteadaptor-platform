@@ -5231,9 +5231,10 @@ def deal_discount_edit(request, kind, pk):
         )
         nxt = transactions.transaction_for(kind, obj).manage_url or reverse("verkaeufe")
         return redirect(nxt)
-    raw = (request.POST.get("discount") or "0").replace(",", ".").strip()
-    try:
-        cents = int(Decimal(raw or "0") * 100)
+    from apps.core.money import parse_amount, to_cents
+
+    try:  # UX-D D6.0b: общий разбор; NaN/∞/«1,234» — ошибка у поля
+        cents = to_cents(parse_amount(request.POST.get("discount")) or Decimal("0"))
     except (InvalidOperation, ValueError):
         messages.error(request, _("Bitte einen gültigen Betrag eingeben."))
         cents = None
