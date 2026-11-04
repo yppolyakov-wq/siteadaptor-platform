@@ -26,7 +26,8 @@ ROOT = Path(__file__).resolve().parents[3]
         ("inf", 0),
         ("1e999", 0),
         ("-5", 0),
-        ("1,234", 0),  # тысячи или дробь — не угадываем
+        ("19,999", 2000),  # как раньше: округление до цента (ревью D6.0b)
+        ("+5", 500),
         ("2000000", 0),  # выше потолка формы
     ],
 )
@@ -115,3 +116,12 @@ def test_catalog_parse_signed(raw, value):
     from apps.catalog import views
 
     assert views._parse_signed(raw) == value
+
+
+def test_catalog_content_amount_keeps_three_decimals():
+    """Ревью D6.0b (HIGH): объём для Grundpreis — три знака, не теряется."""
+    from apps.catalog import views
+
+    assert views._parse_price("0,125") == Decimal("0.125")
+    assert views._parse_price("0,750") == Decimal("0.750")
+    assert views._parse_price("4,995") == Decimal("4.995")

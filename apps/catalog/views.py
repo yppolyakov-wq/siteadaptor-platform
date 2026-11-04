@@ -91,13 +91,18 @@ def _save_product_overlays(product, request):
 
 def _parse_price(raw):
     """«4,90» / «4.90» / «1.234,50» / пусто → Decimal или None (пусто/мусор/отрицательное).
-    UX-D D6.0b: общий разбор — раньше «NaN» падал на сравнении, «Infinity» шёл в запись."""
-    from apps.core.money import parse_amount
+    UX-D D6.0b: общий разбор — раньше «NaN» падал на сравнении, «Infinity» шёл в запись.
+    Знаков после запятой может быть больше двух: тем же разбором читается и объём для
+    Grundpreis («0,125 kg», три знака — ревью D6.0b)."""
+    from apps.core.money import parse_money
 
     try:
-        return parse_amount(raw)
+        value = parse_money(raw)
     except ValueError:
         return None
+    if value is None or not value.is_finite() or value < 0 or value > Decimal("10000000"):
+        return None
+    return value
 
 
 def _parse_int(raw):
@@ -1304,13 +1309,14 @@ def _bulk_products(request):
 
 def _parse_signed(raw):
     """«−10», «-2,50», «+5» → Decimal (со знаком); пусто/мусор → None."""
-    from apps.core.money import parse_amount
+    from apps.core.money import parse_money
 
     raw = (raw or "").strip().replace("\u2212", "-").lstrip("+")
-    try:  # UX-D D6.0b: общий разбор со знаком
-        return parse_amount(raw, allow_negative=True)
+    try:  # UX-D D6.0b: общий разбор со знаком (знаков после запятой — сколько ввели)
+        value = parse_money(raw)
     except ValueError:
         return None
+    return value if value is not None and value.is_finite() else None
 
 
 def _is_uuid_str(value) -> bool:

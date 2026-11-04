@@ -13,7 +13,7 @@
 from __future__ import annotations
 
 import re
-from decimal import Decimal, InvalidOperation
+from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
 
 _THOUSANDS = re.compile(r"-?\d{1,3}(?:[ .]\d{3})+(?:,\d+)?")
 _PLAIN = re.compile(r"-?\d+(?:\.\d+)?")
@@ -88,12 +88,17 @@ def to_cents(value: Decimal) -> int:
 def lenient_cents(raw, *, default: int = 0, max_value=MAX_FORM_AMOUNT) -> int:
     """UX-D D6.0b: старые формы, где пусто/мусор = «суммы нет» (депозит, скидка → 0).
 
-    Разбор тот же, что у ``parse_amount`` (тысячи «1.234,50», запятая, «€»): раньше эти
-    формы читали ``float(raw.replace(",", "."))`` — «1.234,50» молча давало 0 €, а
-    «1e999» роняло страницу. Неконечное, отрицательное, больше потолка или с тремя и
-    более знаками после запятой → ``default`` (как прежнее «мусор = 0»)."""
+    Разбор тот же, что у ``parse_money`` (тысячи «1.234,50», запятая, «€», ведущий «+»):
+    раньше эти формы читали ``float(raw.replace(",", "."))`` — «1.234,50» молча давало
+    0 €, а «1e999» роняло страницу. Как и прежде, лишние знаки округляются до цента
+    («19,999» → 20,00 €, а не 0 — ревью D6.0b); неконечное, отрицательное, больше
+    потолка или мусор → ``default``."""
+    if isinstance(raw, str):
+        raw = raw.strip().lstrip("+")
     try:
-        value = parse_amount(raw, max_value=max_value)
+        value = parse_money(raw)
     except ValueError:
         return default
-    return default if value is None else to_cents(value)
+    if value is None or not value.is_finite() or value < 0 or value > max_value:
+        return default
+    return int((value * 100).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
