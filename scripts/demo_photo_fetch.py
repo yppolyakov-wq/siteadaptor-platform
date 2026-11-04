@@ -29,6 +29,7 @@ from pathlib import Path
 from urllib.parse import urlencode
 
 import requests
+from openverse_auth import auth_headers
 from PIL import Image
 
 API = "https://api.openverse.org/v1/images/"
@@ -56,9 +57,7 @@ def search(term: str, limit: int = 12, page: int = 1) -> list[dict]:
             "mature": "false",
         }
     )
-    r = requests.get(
-        f"{API}?{qs}", headers={"Accept": "application/json", "User-Agent": UA}, timeout=40
-    )
+    r = requests.get(f"{API}?{qs}", headers=auth_headers(UA), timeout=40)
     r.raise_for_status()
     out = []
     for item in r.json().get("results", []):

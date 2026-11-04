@@ -1,0 +1,387 @@
+gazpacho-soup:gazpacho|cold soup|tomato soup
+okroschka-suppe-essen:cold soup|okroshka|cucumber soup
+bulgur-grain:bulgur|bulgur wheat|grain bowl
+kitchari-essen:lentil rice|dal rice|indian dal
+buchweizen-essen:buckwheat|buckwheat groats|buckwheat bowl
+paneerragout-essen:paneer|indian curry|curry bowl
+kürbisragout-essen:pumpkin stew|pumpkin curry|squash stew
+mahabridschal-essen:indian rice|rice dish|pilaf
+minzsauce-essen:mint sauce|mint|herb sauce
+bolognese-soja-essen:pasta sauce|tomato sauce|spaghetti
+auberginenkaviar-essen:eggplant dip|eggplant|aubergine
+reisbratling-essen:rice cakes|rice patties|veggie burger
+schmorkohl-essen:braised cabbage|cabbage|red cabbage
+sauna-wellness:sauna|spa wellness|wellness spa
+fish-plate:fish platter|seafood platter|fish dish
+fingerfood-platter:finger food|appetizer platter|canapes
+buffet-vegetarian:buffet|vegetarian food|salad buffet
+massage-wellness:massage|spa massage|wellness
+shirt-ufer-streifen:striped shirt|striped top|shirt
+bluse-falte-viskose:blouse|pleated blouse|viscose blouse
+sweat-werft-rundhals:sweatshirt|crew neck sweatshirt|sweater
+hoodie-hafen-kapuze:hoodie|hooded sweatshirt|hoodie
+pullover-reet-zopf:cable knit sweater|knit sweater|knitwear
+hose-kies-cord:corduroy trousers|corduroy pants|trousers
+kleid-welle-jersey:jersey dress|dress|midi dress
+weste-warft-stepp:quilted vest|puffer vest|vest
+mantel-nordlicht-trench:trench coat|coat|raincoat
+sneaker-deich:sneakers|sneaker|canvas sneakers
+sneaker-moos:sneakers|sneaker|green sneakers
+stiefelette-kastanie:ankle boots|boots|leather boots
+loafer-kontor:loafers|loafer shoes|leather loafers
+espadrille-salz:espadrilles|espadrille|canvas shoes
+sandale-kiesbett:sandals|leather sandals|sandal
+sandale-ebbe:sandals|sandal|flat sandals
+backpack-canvas:canvas backpack|backpack|rucksack
+backpack-cycling:cycling backpack|bike backpack|backpack
+backpack-hiking:hiking backpack|hiking rucksack|backpack
+crossbody-leather:crossbody bag|leather bag|shoulder bag
+beltbag-nylon:belt bag|waist bag|fanny pack
+bucketbag-suede:bucket bag|suede bag|handbag
+netbag-cotton:string bag|net bag|shopping bag
+cardholder-slim:card holder|wallet|leather wallet
+washbag-canvas:toiletry bag|wash bag|cosmetic bag
+sleeve-felt:laptop sleeve|felt case|laptop case
+messenger-nylon:messenger bag|shoulder bag|bag
+ring-dorn:silver ring|ring jewelry|ring
+tuch-ahorn:scarf|silk scarf|wool scarf
+stirnband-salz:headband|hair band|headband
+guertel-saum:leather belt|belt|belt buckle
+haarspange-wolke:hair clip|hair accessory|barrette
+plaid-ebbe-waffel:waffle blanket|plaid blanket|blanket
+kissen-boucle-schlaufe:cushion|throw pillow|bouclé cushion
+laeufer-sanddorn-jute:jute rug|runner rug|rug
+badvorleger-tide-chenille:bath mat|bath rug|bathroom rug
+stumpenkerzen-werktag-set:pillar candles|candles|candle set
+windlicht-halm-glas:glass candle holder|candle lantern|tealight holder
+box-deckel-leinen:storage box|linen box|fabric box
+rahmen-kante-eiche:oak picture frame|wooden frame|picture frame
+wandhaken-reihe-messing:brass hooks|wall hooks|coat hooks
+servierplatte-lang-steinzeug:serving platter|stoneware platter|ceramic platter
+karaffe-hals-glas:glass carafe|water carafe|glass pitcher
+topf-alltag-edelstahl:stainless steel pot|cooking pot|saucepan
+vorratsglas-buegel-liter:glass storage jar|glass jar|kitchen jar
+brotkasten-laib-emaille:bread bin|bread box|enamel bread bin
+kaffee-probierpaket-drei:coffee beans|coffee bags|coffee
+thermobecher-weg-stahl:travel mug|thermos mug|steel mug
+milchkaennchen-guss-stahl:milk jug|milk pitcher|creamer
+karamellen-salzflor-dose:caramel tin|candy tin|caramel
+duschgel-zeder-nachfuell:shower gel bottle|shower gel|soap bottle
+seifenschale-rippe-eiche:soap dish|wooden soap dish|soap
+handcreme-werktag-tube:hand cream|cream tube|hand lotion
+haarbuerste-ahorn-holz:wooden hairbrush|hairbrush|hair brush
+rasierhobel-kante-messing:safety razor|razor|shaving razor
+zahnbuerste-halm-bambus:bamboo toothbrush|toothbrush|bamboo
+kulturbeutel-reise-canvas:toiletry bag|travel bag|wash bag
+gaestetuch-waffel-paar:guest towel|hand towel|kitchen towel
+tinte-nachtblau-glas:ink bottle|ink|glass bottle
+kugelschreiber-messing-stift:brass pen|fountain pen|pen
+tischkalender-woche-aufsteller:desk calendar|calendar|desk planner
+ablage-stapel-eiche:wooden tray|desk tray|wooden tray
+stiftebecher-rohr-messing:pen holder|pencil cup|desk organizer
+mappe-klapp-leder:leather folder|document folder|leather portfolio
+isolierflasche-doppelwand-halb:thermos bottle|vacuum flask|water bottle
+thermoskanne-lager-liter:thermos flask|thermos|vacuum jug
+brotdose-deckel-stahl:lunch box|steel lunch box|bento box
+yogablock-kork-paar:yoga block|cork block|yoga brick
+yogagurt-band-baumwolle:yoga strap|yoga belt|stretch strap
+faszienrolle-welle-schaum:foam roller|massage roller|fitness roller
+sporthandtuch-schnell-mikro:sports towel|gym towel|towel
+rucksack-pfad-tag:daypack|backpack|rucksack
+huefttasche-riegel-klein:hip bag|waist bag|fanny pack
+isomatte-boden-selbst:sleeping mat|sleeping pad|camping mat
+set-morgen-detail:breakfast set|morning table|tea set
+look-herbst-decke:autumn blanket|knit blanket|wool blanket
+look-herbst-tisch:autumn table|table setting|autumn decoration
+look-naturfaser-wolle:wool|wool fabric|natural fiber
+blog-grundpreis-etikett:price tag|shelf label|price label
+ol-gaming-laptop:gaming laptop|laptop|laptop computer
+ol-curved-monitor:curved monitor|computer monitor|monitor
+ol-portable-monitor:portable monitor|laptop screen|monitor
+ol-monitor-arm:monitor arm|monitor stand|desk mount
+ol-docking:docking station|laptop dock|usb hub
+ol-ssd:ssd drive|solid state drive|hard drive
+ol-tablet-hand:tablet in hand|tablet|tablet computer
+ol-phone-hand:smartphone in hand|phone in hand|smartphone
+ol-phone-wallet:phone wallet case|phone case|phone card holder
+ol-charger:phone charger|usb charger|charger
+ol-wireless-charger:wireless charger|charging pad|qi charger
+ol-phone-holder:phone holder|phone stand|desk phone stand
+ol-tv-65:flat screen tv|television|tv
+ol-headphones-kids:kids headphones|headphones|children headphones
+ol-speaker-shelf:bookshelf speaker|speaker|hifi speaker
+ol-airfryer:air fryer|fryer|kitchen appliance
+ol-mixer:kitchen mixer|stand mixer|hand mixer
+ol-microwave:microwave oven|microwave|kitchen appliance
+ol-vacuum-stick:cordless vacuum|stick vacuum|vacuum cleaner
+ol-steam-cleaner:steam cleaner|steam mop|steamer
+ol-hairdryer:hair dryer|hairdryer|blow dryer
+ol-hair-straightener:hair straightener|flat iron|hair iron
+ol-massage-gun:massage gun|percussion massager|massage
+ol-gaming-mouse:gaming mouse|computer mouse|mouse
+ol-gaming-chair:gaming chair|office chair|racing chair
+ol-gaming-pad:gaming keyboard|keyboard|mouse pad
+ol-doorbell:video doorbell|doorbell|door bell
+ol-camera-indoor:security camera|indoor camera|surveillance camera
+ol-sub-smarthome:smart home|smart home devices|home automation
+ol-led-strip:led strip|led lights|light strip
+ol-desk-lamp:desk lamp|table lamp|reading lamp
+ol-floor-lamp:floor lamp|standing lamp|lamp
+ol-night-light:night light|nightlight|plug in light
+ol-smart-lock:smart lock|door lock|digital lock
+ol-sensor-set:motion sensor|sensor|smart sensor
+ol-console-stand:console stand|game console|video game console
+ol-w-puffer:puffer jacket|down jacket|women jacket
+ol-w-trench:trench coat|women coat|raincoat
+ol-w-blazer:blazer|women blazer|suit jacket
+ol-w-blouse:blouse|women blouse|silk blouse
+ol-w-shirt:women shirt|shirt|cotton shirt
+ol-w-knit:knitted sweater|knit sweater|knitwear
+ol-w-trousers:trousers|women trousers|pants
+ol-sub-damen-hosen:trousers|women pants|jeans
+ol-w-lounge:loungewear|lounge wear|sweatpants
+ol-w-pyjama:pyjamas|pajamas|sleepwear
+ol-sub-damen-waesche:lingerie|underwear|women underwear
+ol-m-jacket:men jacket|jacket|bomber jacket
+ol-m-vest:vest|men vest|gilet
+ol-m-oxfordhemd:oxford shirt|button down shirt|men shirt
+ol-m-polo:polo shirt|polo|men polo
+ol-m-shorts:men shorts|shorts|bermuda shorts
+ol-m-cardigan:cardigan|men cardigan|knit cardigan
+ol-m-socks:socks|cotton socks|socks
+ol-sneaker-knit:knit sneakers|sneakers|sneaker
+ol-sneaker-kids:kids sneakers|children sneakers|sneakers
+ol-shoes-monk:monk strap shoes|leather shoes|dress shoes
+ol-shoes-care:shoe polish|shoe care|shoe cream
+ol-filzhausschuh:felt slippers|slippers|house shoes
+ol-sandals:sandals|leather sandals|sandal
+ol-s-shirt:t-shirt|cotton tee|tshirt
+ol-s-shorts:shorts|summer shorts|shorts
+ol-backpack:backpack|rucksack|travel backpack
+ol-suitcase:suitcase|luggage|travel suitcase
+ol-resistance:resistance bands|fitness bands|exercise bands
+ol-gym-bag:gym bag|sports bag|duffel bag
+ol-bag-crossbody:crossbody bag|shoulder bag|leather bag
+ol-bag-weekender:weekender bag|travel bag|duffel bag
+ol-watch-band:watch strap|watch band|leather strap
+ol-belt:leather belt|belt|belt
+ol-gloves:gloves|leather gloves|winter gloves
+ol-glasses-blue:blue light glasses|eyeglasses|glasses
+ol-cardholder:card holder|wallet|leather wallet
+ol-travel-organizer:travel organizer|packing cubes|travel bag
+kitchen-knife:kitchen knife|chef knife|knife
+knife-sharpening:knife sharpening|whetstone|sharpening
+chef-knife:chef knife|kitchen knife|knife
+bread-knife:bread knife|serrated knife|knife
+santoku-knife:santoku knife|japanese knife|kitchen knife
+pocket-knife:pocket knife|folding knife|knife
+scissors:scissors|shears|tailor scissors
+knife-gift:knife gift|knife set|knives
+smartphone-repair:phone repair|smartphone repair|phone screen
+battery:phone battery|battery|lithium battery
+smartphone:smartphone|mobile phone|phone
+android-phone:android phone|smartphone|phone
+screen-protector:screen protector|phone screen|glass screen
+phone-charger:phone charger|usb charger|charger
+phone-case:phone case|phone cover|smartphone case
+headphones:headphones|earphones|headset
+wooden-toys:wooden toys|toy blocks|wooden toy
+wooden-train:wooden train|toy train|wooden toy
+wooden-blocks:wooden blocks|building blocks|toy blocks
+dollhouse:dollhouse|doll house|toy house
+baby-toy:baby toy|baby rattle|toy
+music-box:music box|music box toy|jewelry box
+plush-fox:plush toy|stuffed animal|fox toy
+dog-shop:dog toys|pet store|dog
+cat-food:cat food|cat bowl|pet food
+dog-food:dog food|dog bowl|kibble
+dog-leash:dog leash|dog lead|leash
+dog-chew:dog chew|dog treats|pet chew
+cat-tree:cat tree|cat scratching post|cat tower
+dog-bed:dog bed|pet bed|dog blanket
+bicycle-shop:bicycle shop|bike shop|bicycles
+bicycle-repair:bicycle repair|bike repair|bicycle workshop
+e-bike:e-bike|electric bicycle|electric bike
+kids-bicycle:kids bicycle|children bicycle|kids bike
+bike-helmet:bike helmet|cycling helmet|helmet
+bike-lock:bike lock|bicycle lock|bike chain
+bike-bag:bike bag|bicycle bag|pannier
+bike-light:bike light|bicycle light|bike lamp
+home-decor:home decor|interior decor|interior
+monstera:monstera|monstera plant|houseplant
+table-lamp:table lamp|bedside lamp|lamp
+ceramic-vase:ceramic vase|vase|ceramics
+linen-cushion:linen cushion|linen pillow|cushion
+olive-tree:olive tree|olive plant|olive
+herb-pots:herb pots|herbs in pots|potted herbs
+delicatessen:delicatessen|deli counter|cheese shop
+mountain-cheese:cheese|alpine cheese|hard cheese
+olive-oil:olive oil|olive oil bottle|olive
+shoe-store:shoe store|shoe shop|shoes
+chelsea-boots:chelsea boots|leather boots|boots
+leather-sneaker:leather sneakers|white sneakers|sneakers
+kids-shoes:kids shoes|children shoes|kids boots
+leather-bag:leather bag|handbag|leather handbag
+canvas-backpack:canvas backpack|backpack|rucksack
+shoe-care:shoe care|shoe polish|shoe brush
+yoga-class:yoga class|yoga studio|yoga mat
+photo-studio:photo studio|photography studio|studio lights
+portrait-photo:camera lens|photography|camera
+sg-pizza-vegana:vegan pizza|pizza|pizza margherita
+sg-eiskugeln:ice cream scoops|ice cream|gelato
+sg-laptop:laptop|laptop computer|notebook
+sg-ssd:ssd drive|solid state drive|hard drive
+sg-laptop-refurbished:laptop|notebook computer|laptop keyboard
+sg-monitor:computer monitor|monitor|desktop monitor
+sg-tastatur:keyboard|computer keyboard|mechanical keyboard
+sg-lautsprecher:speaker|loudspeaker|bookshelf speaker
+sg-plattenspieler:record player|turntable|vinyl record player
+sg-verstaerker:amplifier|stereo amplifier|hifi amplifier
+sg-kopfhoerer:headphones|over ear headphones|headphones
+sg-fernseher-soundbar:soundbar|tv soundbar|flat screen tv
+sg-waschmaschine:washing machine|laundry machine|washer
+sg-geschirrspueler:dishwasher|dish washer|kitchen dishwasher
+sg-kuehlschrank:refrigerator|fridge|kitchen fridge
+sg-toaster:toaster|bread toaster|kitchen toaster
+sg-kabel:cables|usb cable|cable
+sg-ladegeraet:charger|phone charger|usb charger
+sg-powerbank:power bank|portable charger|battery pack
+sg-handyhuelle:phone case|phone cover|smartphone case
+sg-schutzfolie:screen protector|phone screen|glass screen
+sg-smartphone-refurbished:smartphone|mobile phone|phone
+sg-smartwatch:smartwatch|smart watch|fitness watch
+sg-tablet-refurbished:tablet|tablet computer|ipad
+sg-ohrhoerer:earbuds|wireless earbuds|earphones
+sg-akkutausch:phone battery|battery|lithium battery
+sg-regal-eiche:wooden shelf|oak shelf|bookshelf
+sg-pendelleuchte:pendant lamp|pendant light|ceiling lamp
+sg-leuchtmittel:light bulb|led bulb|light bulbs
+sg-stehleuchte:floor lamp|standing lamp|lamp
+sg-staude-beet:perennial bed|garden bed|flower bed
+sg-lavendel-pflanze:lavender|lavender plant|lavender flowers
+sg-kraeuter-pflanze:herb plant|herbs|potted herbs
+sg-tomaten-pflanze:tomato plant|tomatoes|tomato
+sg-staude-pflanze:perennial plant|perennial flowers|garden plant
+sg-blumenerde-sack:potting soil|soil|garden soil
+sg-blumenstrauss:bouquet|flower bouquet|flowers
+sg-zimmerpflanze:houseplant|indoor plant|potted plant
+sg-tulpen:tulips|tulip|spring flowers
+sg-hochzeitsstrauss:wedding bouquet|bridal bouquet|bouquet
+sg-blumen-lieferung:flower delivery|flowers|bouquet
+sg-kinderhaarschnitt:children haircut|hair cutting|barber
+sg-kosmetikstudio:cosmetic studio|beauty salon|spa
+sg-gesichtsbehandlung:facial treatment|facial|skin care
+sg-nagelstudio:nail salon|manicure|nail polish
+sg-manikuere:manicure|nail care|nail polish
+sg-massage:massage|massage table|spa massage
+sg-ruecken-massage:back massage|massage|massage oil
+sg-seife-sieden:soap making|handmade soap|soap
+sg-physiotherapie:physiotherapy|physical therapy|physio
+sg-kontaktlinsen:contact lenses|contact lens|lenses
+sg-kapseln-dose:supplement capsules|capsules|vitamins
+sg-sauna:sauna|wooden sauna|sauna room
+sg-spa-ruheraum:spa relaxation|spa|relaxation room
+sg-kino-saal:cinema|movie theater|cinema seats
+sg-kino-kinder:children cinema|kids movie|cinema
+sg-kino-piano:piano|grand piano|piano concert
+sg-kino-gespraech:panel discussion|discussion|talk
+sg-kino-karten:movie tickets|cinema tickets|tickets
+sg-kletterhalle:climbing gym|climbing wall|bouldering
+sg-boulder:bouldering|climbing|bouldering wall
+sg-toepferscheibe:pottery wheel|potter wheel|pottery
+sg-toepfer-becher:clay cup|ceramic cup|pottery
+sg-toepfer-schale:ceramic bowl|pottery bowl|clay bowl
+sg-toepfer-vase:ceramic vase|clay vase|pottery vase
+sg-toepfer-kinder:children pottery|clay|pottery
+sg-toepfer-werkstatt:pottery studio|pottery workshop|clay
+sg-buehne-keller:stage|concert stage|stage lights
+sg-konzert-jazz:jazz concert|jazz band|jazz
+sg-lesung:book reading|reading|author reading
+sg-buehne-mikro:microphone|stage microphone|concert microphone
+sg-kindergeburtstag-hof:children birthday|birthday party|party
+sg-laternen-hof:lantern|paper lantern|lanterns
+sg-holzofen-brot:wood oven bread|bread oven|sourdough bread
+sg-babybody:baby bodysuit|baby clothes|onesie
+sg-babyjacke-strick:knitted baby jacket|baby sweater|baby knitwear
+sg-tragehilfe:baby carrier|baby sling|carrier
+sg-kinderwagen:stroller|baby stroller|pram
+sg-kinderturnen:kids gymnastics|children gymnastics|gymnastics
+sg-kinder-bewegung:kids movement|children exercise|gymnastics
+sg-spielzeugladen:toy shop|toy store|toys
+sg-brettspiel:board game|board games|games
+sg-bauklotz:building blocks|wooden blocks|blocks
+sg-kugelbahn:marble run|marble track|wooden toy
+sg-puzzle:jigsaw puzzle|puzzle|puzzle pieces
+sg-puppe:doll|dolls|toy doll
+sg-kinderbuch-regal:children books|children bookshelf|picture books
+sg-kinderbuch-erstleser:picture book|children book|kids book
+sg-kinderbuch-bilder:picture book|children illustrated book|book
+sg-jugendbuch:young adult book|novel|paperback
+sg-secondhand-kinder:kids clothes|children clothing|kids clothing
+sg-kleiderpaket-kinder:kids clothes|children clothing|baby clothes
+sg-laufrad:balance bike|kids balance bike|bicycle
+sg-kinderwagen-gebraucht:stroller|pram|baby stroller
+sg-kinderbuch-paket:children books|books|picture books
+sg-mietwagen:rental car|car rental|car
+sg-transporter:van|delivery van|minivan
+sg-schuhreparatur:shoe repair|cobbler|shoe
+sg-schuhsohle:shoe sole|shoe repair|leather sole
+sg-uhrmacher-werkbank:watchmaker|watchmaker workbench|watch repair
+sg-armbanduhr:wristwatch|watch|wrist watch
+sg-uhrenband-leder:leather watch strap|watch strap|watch band
+sg-wecker:alarm clock|clock|alarm
+sg-it-service:computer repair|it service|computer
+sg-wlan-router:wifi router|router|wireless router
+sg-energieberatung:solar panels|energy|solar
+sg-textilreinigung:dry cleaning|laundry|clothes hanging
+sg-hemd-buegeln:ironing shirt|ironing|iron
+sg-daunenjacke:down jacket|puffer jacket|jacket
+sg-plakat-druck:poster print|printing|posters
+sg-kopierpapier:copy paper|printer paper|paper
+sg-naehmaschine:sewing machine|sewing|sewing tailor
+sg-hose-kuerzen:hemming trousers|tailor|trousers
+sg-familienzimmer:family room|hotel room|hotel bedroom
+sg-studio-dach:attic apartment|loft apartment|attic room
+sg-ausflugsbus:tour bus|coach bus|bus
+sg-weihnachtsmarkt:christmas market|christmas|market stall
+sg-eifel-see:lake|mountain lake|lake forest
+sg-landgasthof:country inn|guesthouse|countryside inn
+sg-zimmer-wald:guest room|hotel room|forest cabin
+sg-scheune-zimmer:barn|barn interior|country room
+sg-hundesalon:dog grooming|dog groomer|dog grooming salon
+sg-welpe:puppy|puppies|dog puppy
+sg-hundeschule-wiese:dog training|dog training field|dog agility
+sg-welpenkurs:puppy training|puppy class|puppy
+sg-hund-rueckruf:dog training|dog recall|dog walking
+sg-hundefutter-regal:dog food|pet food shelf|dog food
+sg-hundefutter-sack:dog food bag|dog food|pet food
+sg-hund-kauknochen:dog bone|dog chew|dog treats
+sg-hundefutter-dose:dog food can|pet food tin|dog food
+sg-katzenfutter:cat food|cat bowl|cat treats
+sg-katzenstreu:cat litter|cat litter box|litter
+sg-katze:cat|kitten|cats
+sg-aquarium:aquarium|fish tank|aquarium fish
+sg-aquarium-set:fish tank|aquarium|aquarium setup
+sg-aquarium-filter:aquarium filter|fish tank filter|aquarium
+sg-aquarium-pflanzen:aquarium plants|aquatic plants|underwater plants
+sg-fischfutter:fish food|aquarium fish|fish flakes
+sg-katze:cat|kitten|cats
+sg-hund-spaziergang:dog walking|dog walk|dog
+sg-katzenbesuch:cat|cat sitting|kitten
+sg-katzenbesuch-tuer:cat door|cat flap|cat
+sg-galerie-raum:art gallery|gallery room|gallery
+sg-bilderrahmen:picture frame|wooden frame|frame
+sg-linolschnitt:linocut|linocut print|block print
+sg-fotografie-wupper:photography|camera|photo
+sg-risograph:risograph print|print|screen print
+sg-radierung:etching|etching print|printmaking
+sg-tasse-solingen:coffee mug|ceramic mug|mug
+sg-gutschein-karte:gift card|gift voucher|gift
+sg-holzschale:wooden bowl|wood bowl|wooden dish
+sg-drechselbank:wood lathe|woodturning|lathe
+sg-regionalladen:farm shop|country shop|local market
+sg-geschenkkorb:gift basket|gift hamper|basket
+sg-senfglas:mustard jar|mustard|glass jar
+sg-likoerflasche:liqueur bottle|liquor bottle|bottle
+sg-taschenmesser:pocket knife|folding knife|knife
+sg-bildband:picture book|coffee table book|art book

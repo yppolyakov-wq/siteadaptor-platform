@@ -22,6 +22,7 @@ from pathlib import Path
 from urllib.parse import urlencode
 
 import requests
+from openverse_auth import auth_headers
 from PIL import Image, ImageDraw
 
 API = "https://api.openverse.org/v1/images/"
@@ -64,7 +65,7 @@ def _page(term: str, page: int, source: str = "") -> list[dict]:
     try:
         r = requests.get(
             f"{API}?{urlencode(params)}",
-            headers={"Accept": "application/json", "User-Agent": UA},
+            headers=auth_headers(UA),
             timeout=40,
         )
         r.raise_for_status()
