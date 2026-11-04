@@ -1,0 +1,84 @@
+{% load i18n static %}{% comment %}FLT-4b: строка фильтров списка кабинета (контекст `lf` — apps.core.list_filters.build).
+Поиск виден всегда; остальные фильтры — в шторке «Filter» (одна GET-форма). Сортировка — с кнопкой
+«OK», без отправки по change (WCAG 3.2.2). Без JS шторка — обычная форма под строкой.
+Поведение шторки — общий static/js/portal.js (тот же, что у портала).{% endcomment %}
+<div data-flt data-list-filters class="mb-4">
+  <div class="flex flex-wrap items-center gap-2">
+    <form method="get" role="search" class="flex items-center gap-2 flex-1 min-w-[12rem] sm:flex-none" data-lf-search>
+      {% for k, v in lf.search_hidden %}<input type="hidden" name="{{ k }}" value="{{ v }}">{% endfor %}
+      <input type="search" name="{{ lf.search_key }}" value="{{ lf.search_value }}" aria-label="{{ lf.search_label }}" placeholder="{{ lf.search_label }}" class="ui-input w-full sm:w-64">
+      <button type="submit" class="ui-btn ui-btn-secondary" aria-label="{% trans 'Suchen' %}">🔍</button>
+    </form>
+    {% if lf.fields %}
+    <a href="#flt-drawer" data-flt-open="" class="ui-btn {% if lf.active_count %}ui-btn-primary{% else %}ui-btn-secondary{% endif %}">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="4" y1="7" x2="20" y2="7"></line><line x1="4" y1="12" x2="20" y2="12"></line><line x1="4" y1="17" x2="20" y2="17"></line></svg>
+      {% trans "Filter" %}{% if lf.active_count %} · {{ lf.active_count }}<span class="sr-only"> {% trans "aktiv" %}</span>{% endif %}
+    </a>
+    {% endif %}
+    {% if lf.sort_options %}
+    <form method="get" class="flex items-center gap-2 sm:ml-auto text-sm" data-lf-sort>
+      {% for k, v in lf.sort_hidden %}<input type="hidden" name="{{ k }}" value="{{ v }}">{% endfor %}
+      <label for="lf-sort" class="ui-muted">{% trans "Sortieren" %}:</label>
+      <select id="lf-sort" name="{{ lf.sort_key }}" class="ui-input w-auto">
+        <option value="">{% trans "Standard-Reihenfolge" %}</option>
+        {% for value, label in lf.sort_options %}<option value="{{ value }}"{% if lf.sort_value == value %} selected{% endif %}>{{ label }}</option>{% endfor %}
+      </select>
+      <button type="submit" class="ui-btn ui-btn-secondary">{% trans "OK" %}</button>
+    </form>
+    {% endif %}
+  </div>
+
+  {% if lf.total is not None or lf.pills %}
+  <div class="mt-2 flex flex-wrap items-center gap-2 text-sm">
+    {% if lf.total is not None %}<p role="status" class="font-semibold text-gray-900 mr-1" data-hit-count>{% blocktrans count n=lf.total %}{{ n }} Treffer{% plural %}{{ n }} Treffer{% endblocktrans %}</p>{% endif %}
+    {% for p in lf.pills %}
+      <a href="{{ p.url }}" data-flt-pill class="inline-flex items-center gap-1.5 rounded-full bg-gray-900 text-white px-3 py-1.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900">{{ p.label }} <span aria-hidden="true">✕</span><span class="sr-only">{% trans "Filter entfernen" %}</span></a>
+    {% endfor %}
+    {% if lf.any_active %}<a href="{{ lf.reset_url }}" class="text-gray-500 hover:text-gray-800 underline-offset-2 hover:underline">{% trans "Filter zurücksetzen" %}</a>{% endif %}
+  </div>
+  {% endif %}
+
+  {% if lf.fields %}
+  <noscript><style>#flt-drawer{display:block;position:static;width:auto;height:auto;max-height:none;margin-top:1rem;box-shadow:none;border-radius:var(--ui-r-card)}</style></noscript>
+  <dialog id="flt-drawer" class="ui-drawer" aria-labelledby="flt-drawer-title">
+    <form method="get" class="flex flex-col flex-1 min-h-0" data-lf-drawer>
+      {% for k, v in lf.drawer_hidden %}<input type="hidden" name="{{ k }}" value="{{ v }}">{% endfor %}
+      <div class="ui-drawer-head">
+        <h2 id="flt-drawer-title" class="ui-drawer-title">{% trans "Filter" %}</h2>
+        <button type="button" class="ui-drawer-close" data-flt-close aria-label="{% trans 'Schließen' %}">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+        </button>
+      </div>
+      <div class="ui-drawer-body">
+        {% for f in lf.fields %}
+        <div data-flt-sec="{{ f.key }}" class="py-3 border-b border-gray-100">
+          {% if f.kind == "date" %}
+            <label class="block text-sm font-medium">{{ f.label }}<input type="date" name="{{ f.key }}" value="{{ f.value }}" class="ui-input mt-1"></label>
+          {% elif f.options|length <= 8 %}
+            <fieldset>
+              <legend class="text-sm font-medium mb-2">{{ f.label }}</legend>
+              <div class="flex flex-wrap gap-2">
+                <label class="inline-flex items-center gap-2 px-3 py-2 rounded-full border border-gray-300 text-sm cursor-pointer has-[:checked]:bg-gray-900 has-[:checked]:text-white has-[:checked]:border-gray-900 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-gray-900"><input type="radio" name="{{ f.key }}" value="" class="sr-only"{% if not f.value %} checked{% endif %}>{{ f.empty_label|default:_("Alle") }}</label>
+                {% for value, label in f.options %}<label class="inline-flex items-center gap-2 px-3 py-2 rounded-full border border-gray-300 text-sm cursor-pointer has-[:checked]:bg-gray-900 has-[:checked]:text-white has-[:checked]:border-gray-900 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-gray-900"><input type="radio" name="{{ f.key }}" value="{{ value }}" class="sr-only"{% if f.value == value %} checked{% endif %}>{{ label }}</label>{% endfor %}
+              </div>
+            </fieldset>
+          {% else %}
+            <label class="block text-sm font-medium">{{ f.label }}
+              <select name="{{ f.key }}" class="ui-input mt-1">
+                <option value="">{{ f.empty_label|default:_("Alle") }}</option>
+                {% for value, label in f.options %}<option value="{{ value }}"{% if f.value == value %} selected{% endif %}>{{ label }}</option>{% endfor %}
+              </select>
+            </label>
+          {% endif %}
+        </div>
+        {% endfor %}
+        <div class="ui-drawer-foot">
+          <button type="submit" class="ui-btn ui-btn-primary">{% trans "Anzeigen" %}</button>
+          <a href="{{ lf.reset_url }}" class="ui-btn ui-btn-secondary">{% trans "Filter zurücksetzen" %}</a>
+        </div>
+      </div>
+    </form>
+  </dialog>
+  <script src="{% static 'js/portal.js' %}" defer></script>
+  {% endif %}
+</div>

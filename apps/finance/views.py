@@ -528,6 +528,30 @@ def invoices(request):
     full_search = has_perm(request.user, "finanzen.korrektur")
     qs, filters = invoice_list.filtered(base_qs, request.GET, full_search)
     page = paginate_queryset(qs, page_raw=request.GET.get("seite"))
+    from apps.core import list_filters as lfm
+
+    # FLT-4b: поиск + «Filter» (вид документа, период) + сортировка одной строкой;
+    # статус остаётся чипами со счётчиками над строкой.
+    lf = lfm.build(
+        request,
+        [
+            lfm.Field(
+                "art",
+                _("Dokumentart"),
+                options=tuple(Invoice.KINDS),
+                value=filters["art"],
+                empty_label=_("Alle Dokumente"),
+            ),
+            lfm.Field("von", _("Von"), kind="date", value=filters["von"]),
+            lfm.Field("bis", _("Bis"), kind="date", value=filters["bis"]),
+        ],
+        search_value=filters["q"],
+        search_label=_("Nummer, Empfänger, Kunde"),
+        sort_value=filters["sort"],
+        sort_options=invoice_list.sort_options(),
+        total=page.total,
+        keep=(),
+    )
     return render(
         request,
         "finance/invoices.html",
@@ -535,6 +559,7 @@ def invoices(request):
             "nav": "finance",
             "invoices": page.items,
             "page": page,
+            "inv_lf": lf,
             "inv_filters": filters,
             "inv_chips": invoice_list.chips(
                 invoice_list.status_counts(base_qs, request.GET, full_search)
