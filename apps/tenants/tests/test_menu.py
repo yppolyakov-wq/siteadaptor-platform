@@ -398,3 +398,24 @@ def test_category_children_carry_description_for_submenu():
     )
     kid = menu.resolve_menu(tenant, "top")[0]["children"][0]
     assert kid["desc"] == "Warm und kalt, ab 10 Personen"
+
+
+@pytest.mark.parametrize(
+    "btype,expected",
+    [
+        ("restaurant", True),
+        ("cafe", True),
+        ("catering", True),
+        ("bakery", False),
+        ("butcher", False),
+        ("grocery", False),
+        ("shop", False),
+    ],
+)
+def test_speisekarte_heading_only_for_kitchens(btype, expected):
+    """SF-11: «Speisekarte» над каталогом — у кухни; у пекарни/мясной — ассортимент."""
+    from types import SimpleNamespace
+
+    from apps.tenants.templatetags.siteui import is_menu_business
+
+    assert is_menu_business(SimpleNamespace(business_type=btype)) is expected

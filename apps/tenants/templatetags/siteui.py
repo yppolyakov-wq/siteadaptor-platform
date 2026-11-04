@@ -980,3 +980,15 @@ def is_food_business(tenant) -> bool:
     from apps.core.archetypes import FOOD_BUSINESS_TYPES
 
     return getattr(tenant, "business_type", "") in FOOD_BUSINESS_TYPES
+
+
+@register.filter(name="is_menu_business")
+def is_menu_business(tenant) -> bool:
+    """SF-11: «Speisekarte» как заголовок каталога — только у кухни с меню.
+
+    У пекарни, мясной и продуктового каталог — ассортимент, а не меню; реестр
+    кухонь один — `core.nav_registry.KITCHEN_TYPES` (кафе, ресторан, кейтеринг).
+    """
+    from apps.core.nav_registry import KITCHEN_TYPES
+
+    return getattr(tenant, "business_type", "") in KITCHEN_TYPES

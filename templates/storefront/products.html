@@ -3,7 +3,7 @@
 {% comment %}O-9: у направления и полки — своё имя во вкладке и в выдаче поиска.
 Раньше все страницы каталога звались одинаково («Unsere Produkte»): десять
 открытых вкладок были неразличимы, а поисковик видел дубли.{% endcomment %}
-{% block title %}{% if current_category %}{{ current_category }}{% elif request.tenant|is_food_business %}{% trans "Speisekarte" %}{% else %}{% trans "Our products" %}{% endif %} — {{ request.tenant.name }}{% endblock %}
+{% block title %}{% if current_category %}{{ current_category }}{% elif request.tenant|is_menu_business %}{% trans "Speisekarte" %}{% else %}{% trans "Our products" %}{% endif %} — {{ request.tenant.name }}{% endblock %}
 
 {% comment %}UB1-3: каталог на каркасе listing.html. Разметка блоков перенесена без
 изменений (замки — apps/catalog/tests/test_listing_parity.py + test_storefront).{% endcomment %}
@@ -27,7 +27,7 @@
   </nav>
   {% endif %}
   {# H1.2: заголовок каталога — кастомный (catalog_title) с инлайн-правкой; суффикс категории вне маркера. #}
-  <h1 class="text-2xl md:text-3xl font-bold mt-1"><span data-edit="catalog_title">{% if catalog_title %}{{ catalog_title }}{% elif request.tenant|is_food_business %}{% trans "Speisekarte" %}{% else %}{% trans "Our products" %}{% endif %}</span>{% if current_category %} · {{ current_category }}{% endif %}</h1>
+  <h1 class="text-2xl md:text-3xl font-bold mt-1"><span data-edit="catalog_title">{% if catalog_title %}{{ catalog_title }}{% elif request.tenant|is_menu_business %}{% trans "Speisekarte" %}{% else %}{% trans "Our products" %}{% endif %}</span>{% if current_category %} · {{ current_category }}{% endif %}</h1>
   {# H1.2: интро каталога — правится инлайн; пустое скрыто на публичной, видно/правится в редакторе (?preview=1). #}
   {% if catalog_intro or is_preview %}<p class="mt-2 text-gray-600 whitespace-pre-line max-w-2xl" data-edit="catalog_intro">{{ catalog_intro }}</p>{% endif %}
   {# GK-13: печатная Speisekarte из живого каталога (гастро-типы, непустой каталог) #}
