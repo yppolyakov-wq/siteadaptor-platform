@@ -247,20 +247,37 @@ def _meta_complete(schema: str, code: str) -> None:
         )
 
 
+def _platform_host(host: str) -> bool:
+    """Хост, который обслуживает сама платформа: поддомен `TENANT_DOMAIN_BASE`.
+
+    Собственный домен бизнеса сюда не входит: DNS проверяется один раз при
+    подключении, потом его можно увести на чужой сервер (ревью SEC-C-M1)."""
+    base = (getattr(settings, "TENANT_DOMAIN_BASE", "") or "").lower().strip(".")
+    return bool(base) and host.endswith("." + base)
+
+
 def tenant_origin(schema: str, host: str = "") -> str:
-    """https-origin кабинета арендатора: хост, с которого начали (если это домен ЭТОГО
-    бизнеса — там его сессия), иначе основной домен. Чужой хост из state не принимается."""
+    """https-origin кабинета для завершения OAuth — ТОЛЬКО поддомен платформы.
+
+    Код согласия идёт туда редиректом; собственный домен бизнеса не годится (см.
+    `_platform_host`). Хост, с которого начали, берётся, если это поддомен ЭТОГО
+    бизнеса; иначе — любой его поддомен платформы; нет такого → ""."""
     from django_tenants.utils import schema_context
 
     from apps.tenants.models import Domain
 
     bare = (host or "").split(":", 1)[0].strip().lower()
     with schema_context("public"):
-        domains = Domain.objects.filter(tenant__schema_name=schema)
-        if bare and domains.filter(domain__iexact=bare).exists():
-            return f"https://{bare}"
-        domain = domains.filter(is_primary=True).first() or domains.first()
-    return f"https://{domain.domain}" if domain else ""
+        hosts = [
+            d.lower()
+            for d in Domain.objects.filter(tenant__schema_name=schema)
+            .order_by("-is_primary", "pk")
+            .values_list("domain", flat=True)
+        ]
+    own = [h for h in hosts if _platform_host(h)]
+    if bare in own:
+        return f"https://{bare}"
+    return f"https://{own[0]}" if own else ""
 
 
 def tenant_channels_url(schema: str) -> str:

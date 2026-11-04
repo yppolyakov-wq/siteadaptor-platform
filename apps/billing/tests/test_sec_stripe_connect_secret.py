@@ -23,12 +23,13 @@ PLATFORM = "whsec_platform"
 CONNECT = "whsec_connect"
 
 
-def _signed(secret: str):
+def _signed(secret: str, account: str = ""):
     evt_id = f"evt_{uuid.uuid4().hex[:12]}"
     cache.delete(f"stripe_evt:{evt_id}")
-    payload = json.dumps(
-        {"id": evt_id, "object": "event", "type": "ping", "data": {"object": {}}}
-    ).encode()
+    event = {"id": evt_id, "object": "event", "type": "ping", "data": {"object": {}}}
+    if account:
+        event["account"] = account
+    payload = json.dumps(event).encode()
     ts = int(time.time())
     sig = hmac.new(secret.encode(), f"{ts}.".encode() + payload, hashlib.sha256).hexdigest()
     return RequestFactory().post(
@@ -48,13 +49,20 @@ def test_platform_signature_accepted(settings):
 def test_connect_signature_accepted(settings):
     settings.STRIPE_WEBHOOK_SECRET = PLATFORM
     settings.STRIPE_CONNECT_WEBHOOK_SECRET = CONNECT
-    assert webhooks.stripe_webhook(_signed(CONNECT)).status_code == 200
+    assert webhooks.stripe_webhook(_signed(CONNECT, "acct_1")).status_code == 200
+
+
+def test_connect_signed_event_without_account_is_refused(settings):
+    """Ревью: утёкший Connect-секрет не подделает платформенное событие (подписку)."""
+    settings.STRIPE_WEBHOOK_SECRET = PLATFORM
+    settings.STRIPE_CONNECT_WEBHOOK_SECRET = CONNECT
+    assert webhooks.stripe_webhook(_signed(CONNECT)).status_code == 400
 
 
 def test_connect_signature_refused_without_connect_secret(settings):
     settings.STRIPE_WEBHOOK_SECRET = PLATFORM
     settings.STRIPE_CONNECT_WEBHOOK_SECRET = ""
-    assert webhooks.stripe_webhook(_signed(CONNECT)).status_code == 400
+    assert webhooks.stripe_webhook(_signed(CONNECT, "acct_1")).status_code == 400
 
 
 def test_foreign_signature_refused(settings):

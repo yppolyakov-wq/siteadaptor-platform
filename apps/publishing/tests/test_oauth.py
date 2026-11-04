@@ -14,6 +14,7 @@ pytestmark = pytest.mark.django_db
 def _settings(settings):
     settings.ROOT_URLCONF = "config.urls_tenant"
     settings.OAUTH_CALLBACK_BASE = "https://siteadaptor.de"
+    settings.TENANT_DOMAIN_BASE = "siteadaptor.de"
 
 
 # --- state ------------------------------------------------------------------------
@@ -73,10 +74,10 @@ def connection_schema():
 # --- вьюхи ------------------------------------------------------------------------
 
 
-def _req(path, session=None):
+def _req(path, session=None, host="shop.siteadaptor.de"):
     from django.contrib.messages.storage.fallback import FallbackStorage
 
-    req = RequestFactory().get(path)
+    req = RequestFactory().get(path, HTTP_HOST=host)
     req.user = type("U", (), {"is_authenticated": True, "is_active": True})()
     req.session = session if session is not None else {}
     req._messages = FallbackStorage(req)
@@ -159,13 +160,41 @@ def test_oauth_finish_refuses_state_of_another_business(monkeypatch):
     _finish(oauth.make_state("other_schema", "pinterest", "n1"), session)
 
 
-def test_tenant_origin_accepts_only_domains_of_that_business():
+def _tenant_with_domains():
     from apps.tenants.models import Domain
     from apps.tenants.tests.factories import TenantFactory
 
     tenant = TenantFactory(schema_name="oauth_t", slug="oauth-t")
-    Domain.objects.create(tenant=tenant, domain="laden.example", is_primary=True)
-    Domain.objects.create(tenant=tenant, domain="mein-laden.de", is_primary=False)
-    assert oauth.tenant_origin("oauth_t", "mein-laden.de:443") == "https://mein-laden.de"
-    assert oauth.tenant_origin("oauth_t", "evil.example") == "https://laden.example"
+    Domain.objects.create(tenant=tenant, domain="mein-laden.de", is_primary=True)
+    Domain.objects.create(tenant=tenant, domain="laden.siteadaptor.de", is_primary=False)
+    return tenant
+
+
+def test_tenant_origin_is_only_a_platform_subdomain_of_that_business():
+    """Ревью SEC-C-M1: собственный домен бизнеса (DNS можно увести на чужой сервер)
+    никогда не получает код согласия — только поддомен платформы."""
+    _tenant_with_domains()
+    assert oauth.tenant_origin("oauth_t", "laden.siteadaptor.de:443") == (
+        "https://laden.siteadaptor.de"
+    )
+    assert oauth.tenant_origin("oauth_t", "mein-laden.de") == "https://laden.siteadaptor.de"
+    assert oauth.tenant_origin("oauth_t", "evil.siteadaptor.de") == "https://laden.siteadaptor.de"
     assert oauth.tenant_origin("nope", "evil.example") == ""
+
+
+def test_callback_never_forwards_the_code_to_a_custom_domain():
+    _tenant_with_domains()
+    state = oauth.make_state("oauth_t", "pinterest", "n1", "mein-laden.de")
+    req = RequestFactory().get(f"/oauth/pinterest/callback/?code=abc&state={state}")
+    resp = views.oauth_callback(req, provider="pinterest")
+    assert resp["Location"].startswith("https://laden.siteadaptor.de/")
+
+
+def test_start_on_a_custom_domain_moves_to_the_platform_subdomain(monkeypatch):
+    monkeypatch.setattr(oauth, "tenant_origin", lambda s, h="": "https://laden.siteadaptor.de")
+    req = _req("/dashboard/channels/connect/pinterest/", host="mein-laden.de")
+    resp = views.oauth_start(req, provider="pinterest")
+    assert resp["Location"] == (
+        "https://laden.siteadaptor.de/dashboard/channels/connect/pinterest/"
+    )
+    assert not req.session  # код в сессии собственного домена не создаётся

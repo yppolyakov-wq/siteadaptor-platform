@@ -130,6 +130,14 @@ def oauth_start(request, provider):
 
     if not oauth.supports(provider):
         raise Http404
+    host = request.get_host().split(":", 1)[0].lower()
+    if not oauth._platform_host(host):
+        # Собственный домен бизнеса: подключение идёт на поддомене платформы — только
+        # туда платформа вернёт код согласия (ревью SEC-C-M1, перехват через DNS).
+        origin = oauth.tenant_origin(connection.schema_name)
+        if not origin:
+            raise Http404
+        return redirect(f"{origin}{request.path}")
     nonce = secrets.token_urlsafe(24)
     request.session[oauth.SESSION_NONCE_KEY.format(provider=provider)] = nonce
     return redirect(

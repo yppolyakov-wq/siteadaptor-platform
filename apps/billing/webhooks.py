@@ -356,9 +356,15 @@ def stripe_webhook(request):
         logger.error("stripe webhook: STRIPE_WEBHOOK_SECRET is not configured")
         return HttpResponse(status=503)
     event = None
-    for secret in _webhook_secrets():
+    secrets = _webhook_secrets()
+    for secret in secrets:
         try:
             event = stripe.Webhook.construct_event(payload, sig, secret)
+            # Эндпоинт подключённых аккаунтов шлёт ТОЛЬКО события с `account`. Без него
+            # такое событие — подделка утёкшим секретом под платформенное (подписка,
+            # featured): `handle_event` по одному `account` их не различил бы.
+            if secret != secrets[0] and not event.get("account"):
+                return HttpResponseBadRequest("connect event without account")
             break
         except ValueError:
             return HttpResponseBadRequest("invalid payload")
