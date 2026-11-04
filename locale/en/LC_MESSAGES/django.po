@@ -31844,3 +31844,18 @@ msgstr "No house rules yet."
 
 msgid "Pro Erwachsenem und Nacht, wird jeder Buchung hinzugefügt (0 = aus)."
 msgstr "Per adult per night, added to every booking (0 = off)."
+
+msgid "Bitte einen Titel angeben."
+msgstr "Please enter a title."
+
+msgid "Noch nicht auf der Website — erst nach dem Aktivieren sichtbar."
+msgstr "Not on the website yet — visible once activated."
+
+msgid "So sehen Kunden es"
+msgstr "How customers see it"
+
+msgid "Ihre Anfragen"
+msgstr "Your requests"
+
+msgid "Nur eine Bildvorschau der Karte auf Ihrer Website."
+msgstr "Only a visual preview of the card on your website."

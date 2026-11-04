@@ -50,6 +50,9 @@ CSS. Фото, сезоны, блокировки, комнаты, iCal — св
   <button type="button" data-pf-tab="ical" class="ui-tab" role="tab" aria-selected="{% if active_tab == 'ical' %}true{% else %}false{% endif %}" tabindex="{% if active_tab == 'ical' %}0{% else %}-1{% endif %}">{% trans "Calendar sync (iCal)" %}</button>
 </div>
 
+{% comment %}UX-D D7.3 (П6): на широком экране справа — «так видят клиенты».{% endcomment %}
+<div class="grid gap-6 xl:grid-cols-[minmax(0,48rem)_20rem] items-start" data-d7-cols>
+<div class="min-w-0">
 <form id="unit-form" method="post" enctype="multipart/form-data" class="ui-card p-5 max-w-3xl [&_:is(input,select,textarea)]:scroll-mb-32{% if active_tab == 'zimmer' or active_tab == 'ical' %} hidden{% endif %}" data-pf-hide-on="zimmer ical">
   {% csrf_token %}
   <input type="hidden" name="action" value="unit_settings"><input type="hidden" name="unit" value="{{ u.pk }}">
@@ -296,6 +299,10 @@ CSS. Фото, сезоны, блокировки, комнаты, iCal — св
     <label class="block"><span class="block text-xs font-medium text-gray-600 mb-1">{% trans 'Booking.com / Airbnb' %}</span><input type="text" name="label" placeholder="{% trans 'Booking.com / Airbnb' %}" class="ui-input w-auto"></label>
     <button class="ui-btn ui-btn-secondary ui-btn-sm">{% trans "Add source" %}</button>
   </form>
+</div>
+</div>
+{% if u.is_active %}{% url "storefront-unterkunft-unit" u.pk as unit_url %}{% endif %}
+{% include "core/_object_preview.html" with kind="stay" obj=u url=unit_url %}
 </div>
 </div>
 {% endblock %}

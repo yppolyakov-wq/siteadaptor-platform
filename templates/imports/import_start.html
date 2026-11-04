@@ -9,7 +9,9 @@
   {% if is_owner %}<a href="{% url 'imports:website' %}" class="text-sm text-indigo-700 hover:underline">{% trans "Von der Website importieren" %} →</a>{% endif %}
 </div>
 
-<div class="ui-card p-6 mb-8 max-w-xl">
+{% comment %}UX-D D7.1 (П6): загрузка и последние импорты — рядом на широком экране.{% endcomment %}
+<div class="grid gap-6 xl:grid-cols-2 items-start max-w-6xl" data-d7-cols>
+<div class="ui-card p-6">
   <h2 class="font-medium mb-4">{% trans "Upload a CSV or Excel file" %}</h2>
   <form method="post" enctype="multipart/form-data" class="space-y-4">
     {% csrf_token %}
@@ -45,7 +47,8 @@
   </form>
 </div>
 
-<h2 class="font-medium mb-3">{% trans "Recent imports" %}</h2>
+<section aria-labelledby="imp-recent-h">
+<h2 id="imp-recent-h" class="font-medium mb-3">{% trans "Recent imports" %}</h2>
 <div class="ui-card overflow-hidden">
   <table class="w-full text-sm">
     <thead class="bg-gray-50 text-gray-500 text-left">
@@ -71,5 +74,7 @@
       {% endfor %}
     </tbody>
   </table>
+</div>
+</section>
 </div>
 {% endblock %}

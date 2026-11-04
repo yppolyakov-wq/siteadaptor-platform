@@ -31931,3 +31931,18 @@ msgstr "Noch keine Hausordnung."
 
 msgid "Pro Erwachsenem und Nacht, wird jeder Buchung hinzugefügt (0 = aus)."
 msgstr "Pro Erwachsenem und Nacht, wird jeder Buchung hinzugefügt (0 = aus)."
+
+msgid "Bitte einen Titel angeben."
+msgstr "Bitte einen Titel angeben."
+
+msgid "Noch nicht auf der Website — erst nach dem Aktivieren sichtbar."
+msgstr "Noch nicht auf der Website — erst nach dem Aktivieren sichtbar."
+
+msgid "So sehen Kunden es"
+msgstr "So sehen Kunden es"
+
+msgid "Ihre Anfragen"
+msgstr "Ihre Anfragen"
+
+msgid "Nur eine Bildvorschau der Karte auf Ihrer Website."
+msgstr "Nur eine Bildvorschau der Karte auf Ihrer Website."

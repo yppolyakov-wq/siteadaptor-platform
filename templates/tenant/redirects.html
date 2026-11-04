@@ -3,12 +3,14 @@
 {% block dash_title %}{% trans "Weiterleitungen" %}{% endblock %}
 
 {% block dash_content %}
-<div class="max-w-4xl">
+{% comment %}UX-D D7.1 (П6): «добавить» и CSV — рядом, список — на всю ширину ниже.{% endcomment %}
+<div class="max-w-6xl">
   <h1 class="ui-h1 mb-1">{% nav_title _("Weiterleitungen") %}</h1>
   <p class="text-gray-500 mb-4 text-sm">{% trans "Für den Umzug von einer anderen Website: Wer eine alte Adresse aufruft, landet auf der neuen Seite. So behalten Sie Ihre Plätze bei Google. Eine Weiterleitung greift nur, wenn es unter der alten Adresse keine Seite gibt." %}</p>
 
   {% include "tenant/_settings_messages.html" %}
 
+  <div class="grid gap-4 xl:grid-cols-2 items-start" data-d7-cols>
   <form method="post" class="ui-card p-6 space-y-4" data-redirect-form>
     {% csrf_token %}
     <div class="grid sm:grid-cols-2 gap-4">
@@ -28,7 +30,7 @@
     <button class="ui-btn ui-btn-primary">{% trans "Speichern" %}</button>
   </form>
 
-  <div class="ui-card p-6 mt-4 flex flex-wrap items-center gap-3">
+  <div class="ui-card p-6 flex flex-wrap items-center gap-3">
     <form method="post" action="{% url 'site-redirects-import' %}" enctype="multipart/form-data" class="flex flex-wrap items-center gap-3">
       {% csrf_token %}
       <label class="text-sm">{% trans "CSV importieren" %}
@@ -38,6 +40,7 @@
     </form>
     <a href="{% url 'site-redirects-export' %}" class="ui-btn">{% trans "CSV exportieren" %}</a>
     <p class="w-full text-xs text-gray-500">{% trans "Spalten: alte Adresse; neue Adresse; Status (301 oder 410, leer = 301)." %}</p>
+  </div>
   </div>
 
   <div class="flex flex-wrap items-end justify-between gap-3 mt-8 mb-3">

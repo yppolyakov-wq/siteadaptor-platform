@@ -12,8 +12,11 @@
   </div>
 {% endif %}
 
+{% comment %}UX-D D7.1 (П6): на широком экране — композер слева, запланированные/черновики/
+отправленные справа.{% endcomment %}
+<div class="grid gap-6 xl:grid-cols-2 items-start max-w-6xl" data-d7-cols>
 {# Создание поста: текст + фото + ссылка + время → Planen / Jetzt senden / Entwurf #}
-<form method="post" enctype="multipart/form-data" class="bg-white border border-gray-200 rounded-lg p-4 max-w-xl space-y-3 mb-8">
+<form method="post" enctype="multipart/form-data" class="bg-white border border-gray-200 rounded-lg p-4 space-y-3">
   {% csrf_token %}
   <textarea name="text" rows="4" required aria-label="{% trans 'What would you like to share?' %}" placeholder="{% trans 'What would you like to share?' %}"
             class="ui-input">{{ prefill_text }}</textarea>
@@ -36,9 +39,11 @@
   </div>
 </form>
 
+<div>
+{% if not scheduled and not drafts and not sent %}<p class="text-sm ui-muted">{% trans "No posts yet." %}</p>{% endif %}
 {% if scheduled %}
 <h2 class="ui-h2 mb-2">{% trans "Scheduled" %}</h2>
-<div class="space-y-2 max-w-xl mb-8">
+<div class="space-y-2 mb-8">
   {% for p in scheduled %}
     <div class="bg-white border border-gray-200 rounded-lg p-3 flex items-start gap-3">
       {% if p.image_url %}<img src="{{ p.image_url }}" alt="" class="w-12 h-12 rounded object-cover">{% endif %}
@@ -57,7 +62,7 @@
 
 {% if drafts %}
 <h2 class="ui-h2 mb-2">{% trans "Drafts" %}</h2>
-<div class="space-y-2 max-w-xl mb-8">
+<div class="space-y-2 mb-8">
   {% for p in drafts %}
     <div class="bg-white border border-gray-200 rounded-lg p-3 flex items-start gap-3">
       {% if p.image_url %}<img src="{{ p.image_url }}" alt="" class="w-12 h-12 rounded object-cover">{% endif %}
@@ -73,7 +78,7 @@
 
 {% if sent %}
 <h2 class="ui-h2 mb-2">{% trans "Sent" %}</h2>
-<div class="space-y-2 max-w-xl">
+<div class="space-y-2">
   {% for p in sent %}
     <div class="bg-white border border-gray-100 rounded-lg p-3 flex items-start gap-3 opacity-70">
       {% if p.image_url %}<img src="{{ p.image_url }}" alt="" class="w-12 h-12 rounded object-cover">{% endif %}
@@ -85,4 +90,6 @@
   {% endfor %}
 </div>
 {% endif %}
+</div>
+</div>
 {% endblock %}

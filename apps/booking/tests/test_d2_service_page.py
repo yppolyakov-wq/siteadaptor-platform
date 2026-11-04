@@ -371,3 +371,13 @@ def test_template_has_no_inline_handlers():
 def test_tab_sync_script_lives_in_cabinet_js():
     js = (ROOT / "static/js/cabinet.js").read_text()
     assert "// ---- booking/service_page.html ----" in js and "data-svc-tab" in js
+
+
+def test_d7_page_shows_customer_preview_card():
+    """UX-D D7.3: справа — настоящая карточка витрины, неактивная."""
+    html = _page(_svc())
+    aside = html.split("data-object-preview", 1)[1].split("</aside>", 1)[0]
+    assert "Haarschnitt" in aside and "inert" in aside
+    assert "Noch nicht auf der Website" not in aside
+    html = _page(_svc(name="Bart", is_active=False))
+    assert "Noch nicht auf der Website" in html.split("data-object-preview", 1)[1]

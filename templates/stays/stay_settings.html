@@ -25,7 +25,10 @@ Hausordnung — своя форма и своё право (hausordnung.edit); �
 {% endif %}
 {% if not can_edit_prices %}<p class="mb-3 text-sm text-gray-600">{% trans "Kurtaxe und Check-in-Zeiten ändern nur Inhaber und Admins." %}</p>{% endif %}
 
-<div class="max-w-4xl space-y-4">
+{% comment %}UX-D D7.1 (П6): на широком экране — две колонки: деньги и правила слева,
+время и подача справа. Порядок DOM = порядок чтения на телефоне.{% endcomment %}
+<div class="grid gap-4 xl:grid-cols-2 items-start max-w-6xl" data-d7-cols>
+<div class="space-y-4">
 <section id="kurtaxe" class="ui-card p-5" aria-labelledby="us-kurtaxe-h">
   <h2 id="us-kurtaxe-h" class="ui-h2 mb-1">{% trans "Kurtaxe" %}</h2>
   <p class="text-xs text-gray-500 mb-3">{% trans "Pro Erwachsenem und Nacht, wird jeder Buchung hinzugefügt (0 = aus)." %}</p>
@@ -74,6 +77,8 @@ Hausordnung — своя форма и своё право (hausordnung.edit); �
   {% if stay_settings.house_rules %}<p class="text-sm whitespace-pre-line text-gray-700" data-house-rules-state>{{ stay_settings.house_rules }}</p>{% else %}<p class="text-sm text-gray-500" data-house-rules-state>{% trans "Noch keine Hausordnung." %}</p>{% endif %}
   {% endif %}
 </section>
+</div>
+<div class="space-y-4">
 <section id="zeiten" class="ui-card p-5" aria-labelledby="us-zeiten-h">
   <h2 id="us-zeiten-h" class="ui-h2 mb-1">{% trans "Check-in & Check-out" %}</h2>
   <p class="text-xs text-gray-500 mb-3">{% trans "Danach schließt das System die Abreise automatisch ab." %}</p>
@@ -116,5 +121,6 @@ Hausordnung — своя форма и своё право (hausordnung.edit); �
     <button class="ui-btn ui-btn-primary">{% trans "Save" %}</button>
   </form>
 </section>
+</div>
 </div>
 {% endblock %}

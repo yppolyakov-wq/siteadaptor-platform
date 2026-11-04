@@ -31990,3 +31990,18 @@ msgstr "Henüz ev kuralları yok."
 
 msgid "Pro Erwachsenem und Nacht, wird jeder Buchung hinzugefügt (0 = aus)."
 msgstr "Yetişkin başına gecelik, her rezervasyona eklenir (0 = kapalı)."
+
+msgid "Bitte einen Titel angeben."
+msgstr "Lütfen bir başlık girin."
+
+msgid "Noch nicht auf der Website — erst nach dem Aktivieren sichtbar."
+msgstr "Henüz web sitesinde değil — etkinleştirildikten sonra görünür."
+
+msgid "So sehen Kunden es"
+msgstr "Müşteriler böyle görüyor"
+
+msgid "Ihre Anfragen"
+msgstr "Talepleriniz"
+
+msgid "Nur eine Bildvorschau der Karte auf Ihrer Website."
+msgstr "Yalnızca web sitenizdeki kartın görsel önizlemesi."

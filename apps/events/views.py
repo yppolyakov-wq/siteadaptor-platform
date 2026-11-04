@@ -568,53 +568,64 @@ def _delete_tour_photo(tour, ref_id) -> None:
     tour.save(update_fields=["images"])
 
 
-@login_required
-def blog_list(request):
-    """RT4: кабинет блога — список записей + создание (простой POST)."""
+def _create_blog_post(request):
+    """RT4/CM-2/CM-3: создать статью из POST (общий код списка и страницы «Neuer Beitrag»).
+
+    Возвращает статью или None (пустой заголовок)."""
     from django.utils import timezone
     from django.utils.text import slugify
 
-    from apps.core.i18n_input import extra_locales
+    from .models import BlogPost
 
+    title = request.POST.get("title", "").strip()
+    if title:
+        base = slugify(title) or "post"
+        slug, n = base, 1
+        while BlogPost.objects.filter(slug=slug).exists():
+            n += 1
+            slug = f"{base}-{n}"
+        published = bool(request.POST.get("publish"))
+        # CM-2: «Veröffentlichen am» — будущая дата планирует публикацию
+        # (черновик с датой; beat send_due_content включит по наступлении).
+        publish_at = _parse_publish_at(request)
+        if publish_at is not None:
+            published = False
+        post = BlogPost.objects.create(
+            title=title[:200],
+            slug=slug[:220],
+            excerpt=request.POST.get("excerpt", "").strip()[:300],
+            body=request.POST.get("body", "").strip(),
+            cover=_uploaded_cover(request),
+            is_published=published,
+            published_at=publish_at or (timezone.now() if published else None),
+        )
+        # E9.10: переводы заголовка/тизера/текста (выпадашка языка у заголовка).
+        from apps.core.i18n_input import apply_i18n_overlay
+
+        changed = apply_i18n_overlay(
+            post, request.POST, getattr(request, "tenant", None), fields=_BLOG_I18N
+        )
+        if changed:
+            post.save(update_fields=changed)
+        if published:
+            # CM-3: опубликован сразу → авто-черновик поста в каналы.
+            from apps.publishing.services import blog_share_draft
+
+            blog_share_draft(post)
+        messages.success(request, _("Post created."))
+        return post
+    return None
+
+
+@login_required
+def blog_list(request):
+    """RT4: кабинет блога — список записей. UX-D D7.4: создание — страница «Neuer
+    Beitrag» (`blog-new`); POST сюда по-прежнему создаёт (старые открытые вкладки)."""
     from .models import BlogPost
 
     if request.method == "POST":
-        title = request.POST.get("title", "").strip()
-        if title:
-            base = slugify(title) or "post"
-            slug, n = base, 1
-            while BlogPost.objects.filter(slug=slug).exists():
-                n += 1
-                slug = f"{base}-{n}"
-            published = bool(request.POST.get("publish"))
-            # CM-2: «Veröffentlichen am» — будущая дата планирует публикацию
-            # (черновик с датой; beat send_due_content включит по наступлении).
-            publish_at = _parse_publish_at(request)
-            if publish_at is not None:
-                published = False
-            post = BlogPost.objects.create(
-                title=title[:200],
-                slug=slug[:220],
-                excerpt=request.POST.get("excerpt", "").strip()[:300],
-                body=request.POST.get("body", "").strip(),
-                cover=_uploaded_cover(request),
-                is_published=published,
-                published_at=publish_at or (timezone.now() if published else None),
-            )
-            # E9.10: переводы заголовка/тизера/текста (выпадашка языка у заголовка).
-            from apps.core.i18n_input import apply_i18n_overlay
-
-            changed = apply_i18n_overlay(
-                post, request.POST, getattr(request, "tenant", None), fields=_BLOG_I18N
-            )
-            if changed:
-                post.save(update_fields=changed)
-            if published:
-                # CM-3: опубликован сразу → авто-черновик поста в каналы.
-                from apps.publishing.services import blog_share_draft
-
-                blog_share_draft(post)
-            messages.success(request, _("Post created."))
+        # UX-D D7.4: создание — на своей странице; старый POST (открытые вкладки) работает.
+        _create_blog_post(request)
         return redirect("blog-list")
     # Фидбэк владельца 2026-08-25 («кнопка поделиться и выбрать канал где»):
     # у каждой опубликованной статьи — меню каналов с прямыми share-ссылками;
@@ -648,11 +659,35 @@ def blog_list(request):
         {
             "nav": "blog",  # W7b: своя вкладка в Marketing-хабе (была "events")
             "posts": posts,
-            "extra_locales": extra_locales(getattr(request, "tenant", None)),
             "rows": rows,
             # CM-3: пункт «во все каналы» виден только при активном модуле publishing.
             "can_share": getattr(request, "tenant", None) is not None
             and request.tenant.is_module_active("publishing"),
+        },
+    )
+
+
+@login_required
+def blog_new(request):
+    """UX-D D7.4 (П2): «＋ Neuer Beitrag» — своя страница вместо формы, раскрытой под
+    списком. GET ничего не пишет; POST — общий код создания, затем к статье."""
+    from apps.core.i18n_input import extra_locales
+
+    if request.method == "POST":
+        post = _create_blog_post(request)
+        if post is not None:
+            return redirect("blog-edit", pk=post.pk)
+        messages.error(request, _("Bitte einen Titel angeben."))
+    return render(
+        request,
+        "events/blog_new.html",
+        {
+            "nav": "blog",
+            # a11y-ревью D7: после ошибки фокус не уводим с сообщения в поле.
+            "had_error": request.method == "POST",
+            # ревью D7: введённое не теряется при ошибке (заголовок пустой).
+            "form_data": request.POST if request.method == "POST" else {},
+            "extra_locales": extra_locales(getattr(request, "tenant", None)),
         },
     )
 

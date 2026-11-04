@@ -12,7 +12,11 @@
   {% endfor %}
 {% endif %}
 
-<div class="ui-card p-0 divide-y divide-gray-100 mb-8">
+{% comment %}UX-D D7.1 (П6): обращения и новое обращение — рядом на широком экране.{% endcomment %}
+<div class="grid gap-6 xl:grid-cols-2 items-start max-w-6xl" data-d7-cols>
+<section aria-labelledby="help-threads-h">
+<h2 id="help-threads-h" class="sr-only">{% trans "Ihre Anfragen" %}</h2>
+<div class="ui-card p-0 divide-y divide-gray-100">
   {% for t in threads %}
     <a href="{% url 'support:thread' t.pk %}" class="flex items-center justify-between gap-3 p-4 hover:bg-gray-50">
       <div class="min-w-0">
@@ -29,12 +33,14 @@
     <p class="p-6 text-gray-500">{% trans "No requests yet." %}</p>
   {% endfor %}
 </div>
+</section>
 
-<form method="post" class="ui-card p-6 max-w-xl space-y-4">
+<form method="post" class="ui-card p-6 space-y-4">
   {% csrf_token %}
   <h2 class="ui-h2">{% trans "New request" %}</h2>
   <input name="subject" type="text" required aria-label="{% trans 'Subject' %}" placeholder="{% trans 'Subject' %}" class="ui-input">
   <textarea name="body" rows="4" required aria-label="{% trans 'How can we help?' %}" placeholder="{% trans 'How can we help?' %}" class="ui-input"></textarea>
   <button type="submit" class="ui-btn ui-btn-primary">{% trans "Send to support" %}</button>
 </form>
+</div>
 {% endblock %}

@@ -280,6 +280,7 @@ RULES: dict[str, Rule] = {
     "inbox:reply-draft-result": _r(N, NE),
     # --- Marketing -----------------------------------------------------------------
     "blog-list": _r(M, ME),
+    "blog-new": _r(M, ME),  # UX-D D7.4
     "blog-edit": _r(M, ME),
     "publishing-posts": _r(M, ME),
     "finder-settings": _r(M, ME),

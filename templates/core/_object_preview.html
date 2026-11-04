@@ -1,0 +1,14 @@
+{% load i18n sellable_ui %}
+{% comment %}UX-D D7.3 (П6): правая колонка страницы объекта — «так видят клиенты». Настоящая
+карточка витрины (общий тег sellable_card, ссылка заглушена «#») в неактивной обёртке:
+посмотреть, не нажать
+(паттерн T-8.31b). Параметры: kind ("service" | "stay"), obj, url — адрес на сайте (пусто = ещё не в
+продаже; сама ссылка — в шапке страницы).{% endcomment %}
+<section class="ui-card p-4 space-y-3 xl:sticky xl:top-20" aria-labelledby="obj-preview-h" data-object-preview>
+  <h2 id="obj-preview-h" class="text-xs font-semibold uppercase tracking-wide text-gray-500">{% trans "So sehen Kunden es" %}</h2>
+  <p class="sr-only">{% trans "Nur eine Bildvorschau der Karte auf Ihrer Website." %}</p>
+  <div inert aria-hidden="true" class="pointer-events-none select-none" style="--accent: {{ storefront_accent|default:'#4f46e5' }}; --sf-primary: var(--accent);">
+    {% sellable_card kind obj href="#" edit=False %}
+  </div>
+  {% if not url %}<p class="text-xs text-gray-500">{% trans "Noch nicht auf der Website — erst nach dem Aktivieren sichtbar." %}</p>{% endif %}
+</section>

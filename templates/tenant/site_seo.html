@@ -4,7 +4,7 @@
 
 {% block dash_content %}
 {% comment %}SM-4: подпункт «Website»; чужой settings-бар снят (рисовался без активного таба).{% endcomment %}
-<div class="max-w-3xl">
+<div class="max-w-6xl">
   <div class="flex items-center justify-between mb-1">
     <h1 class="ui-h1">🔎 {% nav_title _("SEO — titles & descriptions") %}</h1>
     <a href="{% url 'site-home' %}" class="text-sm text-indigo-600 hover:underline">← {% trans "Website" %}</a>
@@ -29,12 +29,15 @@
 
   <form method="post" class="space-y-4 pb-20" data-seo-form>
     {% csrf_token %}
+    {% comment %}UX-D D7.2 (П6): на широком экране — по две карточки в ряд, внутри карточки
+    поля и превью друг под другом.{% endcomment %}
+    <div class="grid gap-4 xl:grid-cols-2 items-start" data-d7-cols>
     {% for r in rows %}
       <div class="ui-card p-5" data-seo-row data-sample="{{ r.sample_json }}"
            data-default-title="{{ r.default_title }}" data-default-desc="{{ r.default_desc }}">
         <p class="font-semibold mb-3">{{ r.label }}</p>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-1 gap-4">
           <div class="space-y-3 min-w-0">
             <div>
               <label class="block text-xs font-medium text-gray-500 mb-1" for="title_{{ r.key }}">{% trans "Title template" %}</label>
@@ -62,6 +65,7 @@
         </div>
       </div>
     {% endfor %}
+    </div>
 
     {# SEO-3b: контроль AI-краулеров (GEO) — robots.txt блокирует ИИ-ботов при снятии #}
     <div class="ui-card p-5">

@@ -32117,3 +32117,18 @@ msgstr "Правила проживання ще не задано."
 
 msgid "Pro Erwachsenem und Nacht, wird jeder Buchung hinzugefügt (0 = aus)."
 msgstr "За дорослого за ніч, додається до кожного бронювання (0 = вимк.)."
+
+msgid "Bitte einen Titel angeben."
+msgstr "Вкажіть заголовок."
+
+msgid "Noch nicht auf der Website — erst nach dem Aktivieren sichtbar."
+msgstr "Поки не на сайті — з’явиться після активації."
+
+msgid "So sehen Kunden es"
+msgstr "Так це бачать клієнти"
+
+msgid "Ihre Anfragen"
+msgstr "Ваші звернення"
+
+msgid "Nur eine Bildvorschau der Karte auf Ihrer Website."
+msgstr "Це лише зображення картки на вашому сайті."

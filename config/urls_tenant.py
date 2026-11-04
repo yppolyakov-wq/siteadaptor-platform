@@ -437,6 +437,7 @@ urlpatterns = [
     # CM-1: блог — свой модуль (не events): кабинет на /dashboard/blog/,
     # вьюхи организационно остаются в apps/events (модель самостоятельна).
     path("dashboard/blog/", events_views.blog_list, name="blog-list"),
+    path("dashboard/blog/neu/", events_views.blog_new, name="blog-new"),  # UX-D D7.4
     path("dashboard/blog/<uuid:pk>/", events_views.blog_edit, name="blog-edit"),
     # Кабинет Aufträge/Angebote / смета Handwerker (G6 / F2).
     path("dashboard/auftraege/", include("apps.jobs.urls")),

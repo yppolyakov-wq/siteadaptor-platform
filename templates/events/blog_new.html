@@ -1,0 +1,50 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n cabinet %}
+{% block dash_title %}{% trans "New post" %}{% endblock %}
+
+{% block dash_content %}
+{% comment %}UX-D D7.4 (П2): «＋ Neuer Beitrag» — своя страница (раньше форма была раскрыта
+под списком статей). После создания — страница статьи.{% endcomment %}
+<a href="{% url 'blog-list' %}" class="text-sm text-gray-500 hover:underline">← {% trans "Blog" %}</a>
+<div class="flex items-center gap-3 flex-wrap mt-1 mb-4">
+  <h1 class="ui-h1">{% trans "New post" %}</h1>
+  {# E9.10: язык ввода новой статьи — одна выпадашка рядом с заголовком. #}
+  {% lang_switch %}
+</div>
+
+{% if messages %}
+  {% for m in messages %}
+    <div role="{% if m.tags == 'error' %}alert{% else %}status{% endif %}" class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+  {% endfor %}
+{% endif %}
+
+<form method="post" enctype="multipart/form-data" class="ui-card p-6 max-w-3xl space-y-3" data-blog-new>
+  {% csrf_token %}
+  {% i18n_base_locale as base_loc %}
+  <div data-i18n-loc="{{ base_loc }}" class="space-y-3">
+    <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Title" %}</span>
+      <input name="title" type="text" required{% if not had_error %} autofocus{% endif %} class="ui-input"></label>
+    <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Short summary (optional)" %}</span>
+      <input name="excerpt" type="text" value="{{ form_data.excerpt }}" class="ui-input"></label>
+    <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Text" %}</span>
+      <textarea name="body" rows="10" class="ui-input">{{ form_data.body }}</textarea></label>
+  </div>
+  {% for loc in extra_locales %}
+  <div data-i18n-loc="{{ loc }}" class="hidden space-y-3">
+    <input name="title_{{ loc }}" type="text" aria-label="{% trans 'Title' %} ({{ loc|upper }})" placeholder="{% trans 'Title' %} ({{ loc|upper }})" class="ui-input">
+    <input name="excerpt_{{ loc }}" type="text" aria-label="{% trans 'Short summary (optional)' %} ({{ loc|upper }})" placeholder="{% trans 'Short summary (optional)' %} ({{ loc|upper }})" class="ui-input">
+    <textarea name="body_{{ loc }}" rows="5" aria-label="{% trans 'Text' %} ({{ loc|upper }})" placeholder="{% trans 'Text' %} ({{ loc|upper }})" class="ui-input"></textarea>
+  </div>
+  {% endfor %}
+  <div>
+    <span class="block text-sm font-medium mb-1">{% trans "Cover (optional)" %}</span>
+    {% include "catalog/_photo_add_tile.html" with target="cover" %}
+    <input name="cover" type="file" accept="image/*" class="hidden" aria-label="{% trans "Cover (optional)" %}">
+  </div>
+  <label class="flex items-center gap-2 text-sm"><input type="checkbox" name="publish"> {% trans "Publish now" %}</label>
+  <label class="block text-sm text-gray-500">{% trans "Publish at (optional)" %}
+    <input type="datetime-local" name="publish_at" class="mt-1 rounded-lg border border-gray-300 px-3 py-2 text-sm block">
+  </label>
+  <button type="submit" class="ui-btn ui-btn-primary">{% trans "Create post" %}</button>
+</form>
+{% endblock %}

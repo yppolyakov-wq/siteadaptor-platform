@@ -192,3 +192,40 @@ def test_cabinet_publish_creates_channel_draft():
     views.blog_edit(_cab("post", {"title": post.title, "publish": ""}), pk=post.pk)
     views.blog_edit(_cab("post", {"title": post.title, "publish": "on"}), pk=post.pk)
     assert SocialPost.objects.filter(source_kind="blog").count() == 1
+
+
+# --- UX-D D7.4: «＋ Neuer Beitrag» — своя страница ----------------------------------
+
+
+def test_d7_list_has_no_inline_create_form_but_a_button():
+    BlogPost.objects.create(title="Alt", slug="alt")
+    html = views.blog_list(_cab()).content.decode()
+    assert 'name="title"' not in html and 'name="body"' not in html
+    assert 'href="/dashboard/blog/neu/"' in html
+
+
+def test_d7_new_page_get_writes_nothing_and_post_creates():
+    html = views.blog_new(_cab()).content.decode()
+    assert "data-blog-new" in html and 'name="title"' in html and 'name="cover"' in html
+    assert not BlogPost.objects.exists()
+    resp = views.blog_new(_cab("post", {"title": "Herbstmenü", "body": "Neu"}))
+    post = BlogPost.objects.get()
+    assert resp.status_code == 302 and resp.url == f"/dashboard/blog/{post.pk}/"
+    assert (post.slug, post.body, post.is_published) == ("herbstmenu", "Neu", False)
+
+
+def test_d7_new_page_empty_title_stays_with_error():
+    resp = views.blog_new(_cab("post", {"title": " "}))
+    assert resp.status_code == 200 and "data-blog-new" in resp.content.decode()
+    assert not BlogPost.objects.exists()
+
+
+def test_d7_permissions_match_list():
+    from apps.core import view_perms
+
+    assert view_perms.RULES["blog-new"] == view_perms.RULES["blog-list"]
+
+
+def test_d7_new_page_error_keeps_typed_text():
+    html = views.blog_new(_cab("post", {"title": "", "body": "Mein Text"})).content.decode()
+    assert "Mein Text" in html and " autofocus" not in html

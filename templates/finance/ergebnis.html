@@ -15,7 +15,10 @@
 </div>
 {% include "finance/_finance_tabs.html" with fin_tab="ergebnis" %}
 
-<div class="grid sm:grid-cols-3 gap-4 max-w-3xl">
+{% comment %}UX-D D7.2 (П6): результат слева, налоги справа — на широком экране рядом.{% endcomment %}
+<div class="grid gap-6 xl:grid-cols-2 items-start max-w-6xl" data-d7-cols>
+<div>
+<div class="grid sm:grid-cols-3 gap-4">
   <div class="rounded-xl border border-gray-200 p-5">
     <p class="text-xs ui-muted">{% trans "Einnahmen" %}</p>
     <p class="text-2xl font-semibold">{{ revenue|floatformat:2 }} €</p>
@@ -29,7 +32,22 @@
     <p class="text-2xl font-semibold {% if result < 0 %}text-red-600{% endif %}">{{ result|floatformat:2 }} €</p>
   </div>
 </div>
-<div class="mt-4 grid sm:grid-cols-3 gap-4 max-w-3xl">
+{% if cogs %}
+<div class="mt-4 grid sm:grid-cols-2 gap-4">
+  <div class="rounded-xl border border-gray-200 p-5">
+    <p class="text-xs ui-muted">{% trans "Wareneinsatz (EK der verkauften Ware)" %}</p>
+    <p class="text-xl font-semibold">−{{ cogs|floatformat:2 }} €</p>
+    {% if cogs_partial %}<p class="mt-1 text-xs text-amber-600">{% trans "Teilweise ohne EK-Preis — ältere Verkäufe oder Artikel ohne Einkaufspreis." %}</p>{% endif %}
+  </div>
+  <div class="rounded-xl border border-gray-200 p-5">
+    <p class="text-xs ui-muted">{% trans "Rohertrag (Einnahmen − Wareneinsatz)" %}</p>
+    <p class="text-xl font-semibold">{{ rohertrag|floatformat:2 }} €</p>
+  </div>
+</div>
+{% endif %}
+</div>
+<div>
+<div class="grid sm:grid-cols-3 gap-4">
   <div class="rounded-xl border border-gray-200 p-5">
     <p class="text-xs ui-muted">{% trans "USt aus Einnahmen" %}</p>
     <p class="text-xl font-semibold">{% if ust is None %}—{% else %}{{ ust|floatformat:2 }} €{% endif %}</p>
@@ -43,7 +61,7 @@
     <p class="text-xl font-semibold">{% if zahllast is None %}—{% else %}{{ zahllast|floatformat:2 }} €{% endif %}</p>
   </div>
 </div>
-<div class="mt-2 max-w-3xl text-sm text-gray-500" data-ustva>
+<div class="mt-2 text-sm text-gray-500" data-ustva>
   <p>{% trans "Besteuerung" %}: <a href="{% url 'legal-docs' %}" class="underline">{{ tax_regime_label }}</a></p>
   {% if tax_rows %}
   <ul class="mt-1">
@@ -53,18 +71,7 @@
   {% for n in tax_notes %}<p class="mt-1 text-xs">{{ n }}</p>{% endfor %}
   <p class="mt-1 text-xs">{% trans "Richtwert für die Voranmeldung — keine Steuererklärung." %}</p>
 </div>
-{% if cogs %}
-<div class="mt-4 grid sm:grid-cols-2 gap-4 max-w-2xl">
-  <div class="rounded-xl border border-gray-200 p-5">
-    <p class="text-xs ui-muted">{% trans "Wareneinsatz (EK der verkauften Ware)" %}</p>
-    <p class="text-xl font-semibold">−{{ cogs|floatformat:2 }} €</p>
-    {% if cogs_partial %}<p class="mt-1 text-xs text-amber-600">{% trans "Teilweise ohne EK-Preis — ältere Verkäufe oder Artikel ohne Einkaufspreis." %}</p>{% endif %}
-  </div>
-  <div class="rounded-xl border border-gray-200 p-5">
-    <p class="text-xs ui-muted">{% trans "Rohertrag (Einnahmen − Wareneinsatz)" %}</p>
-    <p class="text-xl font-semibold">{{ rohertrag|floatformat:2 }} €</p>
-  </div>
 </div>
-{% endif %}
+</div>
 <p class="mt-4 text-sm text-gray-500">{% trans "Einnahmen aus dem Journal, Ausgaben aus Einkauf, Anbieter-Buchungen und manuellen Einträgen." %}</p>
 {% endblock %}

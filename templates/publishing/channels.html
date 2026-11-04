@@ -7,7 +7,10 @@
 <p class="text-sm text-gray-500 mb-6">{% trans "Active promotions are published to enabled channels automatically." %}</p>
 
 {% if not can_manage %}<p class="text-sm text-amber-700 bg-amber-50 rounded-lg px-3 py-2 mb-4 max-w-xl" data-channels-readonly>{% trans "Nur der Inhaber kann Kanäle verbinden und ein- oder ausschalten." %}</p>{% endif %}
-<fieldset class="space-y-3 max-w-xl"{% if not can_manage %} disabled{% endif %}>
+{% comment %}UX-D D7.1 (П6): платформы публикации слева, личные каналы и последние
+публикации — справа.{% endcomment %}
+<div class="grid gap-6 xl:grid-cols-2 items-start max-w-6xl" data-d7-cols>
+<fieldset class="space-y-3"{% if not can_manage %} disabled{% endif %}>
   {% for ch in channels %}
     <div class="bg-white border border-gray-200 rounded-lg p-4">
       <div class="flex items-center justify-between">
@@ -176,9 +179,10 @@
 Каналы выше — куда УХОДИТ публикация; здесь — где клиент пишет нам и где мы
 отвечаем лично. Слой только читает состояние (`core.personal_channels`) и ведёт
 на существующие экраны настроек.{% endcomment %}
-<h2 class="ui-h2 mt-8 mb-1">{% trans "Persönliche Kanäle" %}</h2>
+<div>
+<h2 class="ui-h2 mb-1">{% trans "Persönliche Kanäle" %}</h2>
 <p class="text-sm text-gray-500 mb-3">{% trans "Wo Kundinnen und Kunden dich direkt erreichen." %}</p>
-<div class="grid sm:grid-cols-2 gap-3 max-w-3xl mb-8">
+<div class="grid sm:grid-cols-2 gap-3 mb-8">
   {% for c in personal_channels %}
     <a href="{{ c.url }}" class="ui-card flex items-start gap-3 p-4 hover:border-indigo-300">
       <span class="text-xl leading-none">{{ c.icon }}</span>
@@ -191,7 +195,7 @@
   {% endfor %}
 </div>
 
-<h2 class="ui-h2 mt-8 mb-3">{% trans "Recent publications" %}</h2>
+<h2 class="ui-h2 mb-3">{% trans "Recent publications" %}</h2>
 {% if publications %}
 <div class="ui-card p-0 overflow-x-auto">
   <table class="ui-table ui-table-stack">
@@ -224,4 +228,6 @@
 {% else %}
   <p class="ui-muted text-sm">{% trans "No publications yet." %}</p>
 {% endif %}
+</div>
+</div>
 {% endblock %}

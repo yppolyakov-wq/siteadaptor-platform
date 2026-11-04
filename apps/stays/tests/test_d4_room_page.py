@@ -474,3 +474,10 @@ def test_vat_hint_prints_single_percent(path):
 def test_vat_hint_renders_without_double_percent():
     html = _page(_unit(), tab="preise")
     assert "7 %%" not in html and "19 %%" not in html
+
+
+def test_d7_page_shows_customer_preview_card():
+    """UX-D D7.3: справа — настоящая карточка витрины номера, неактивная."""
+    html = _page(_unit())
+    aside = html.split("data-object-preview", 1)[1].split("</aside>", 1)[0]
+    assert "Doppelzimmer Seeblick" in aside and "inert" in aside

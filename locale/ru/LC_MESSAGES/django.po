@@ -32133,3 +32133,18 @@ msgstr "Правила проживания ещё не заданы."
 
 msgid "Pro Erwachsenem und Nacht, wird jeder Buchung hinzugefügt (0 = aus)."
 msgstr "За взрослого за ночь, добавляется к каждой брони (0 = выкл.)."
+
+msgid "Bitte einen Titel angeben."
+msgstr "Укажите заголовок."
+
+msgid "Noch nicht auf der Website — erst nach dem Aktivieren sichtbar."
+msgstr "Пока не на сайте — появится после активации."
+
+msgid "So sehen Kunden es"
+msgstr "Так это видят клиенты"
+
+msgid "Ihre Anfragen"
+msgstr "Ваши обращения"
+
+msgid "Nur eine Bildvorschau der Karte auf Ihrer Website."
+msgstr "Это лишь изображение карточки на вашем сайте."

@@ -46,6 +46,9 @@ Varianten» — свои мини-формы, вне #svc-form. Скрытое `
   <button type="button" data-pf-tab="text" class="ui-tab" role="tab" aria-selected="{% if active_tab == 'text' %}true{% else %}false{% endif %}" tabindex="{% if active_tab == 'text' %}0{% else %}-1{% endif %}">{% trans "Beschreibung & FAQ" %}</button>
 </div>
 
+{% comment %}UX-D D7.3 (П6): на широком экране справа — «так видят клиенты».{% endcomment %}
+<div class="grid gap-6 xl:grid-cols-[minmax(0,48rem)_20rem] items-start" data-d7-cols>
+<div class="min-w-0">
 <form id="svc-form" method="post" enctype="multipart/form-data" class="ui-card p-5 max-w-3xl [&_:is(input,select,textarea)]:scroll-mb-32{% if active_tab == 'preise' %} hidden{% endif %}" data-pf-hide-on="preise">
   {% csrf_token %}
   <input type="hidden" name="action" value="update"><input type="hidden" name="service" value="{{ s.pk }}">
@@ -258,6 +261,10 @@ Varianten» — свои мини-формы, вне #svc-form. Скрытое `
       <button class="ui-btn ui-btn-secondary ui-btn-sm">{% trans "Add" %}</button>
     </form>
   </section>
+</div>
+</div>
+{% if s.is_active %}{% url "storefront-service-detail" s.pk as svc_url %}{% endif %}
+{% include "core/_object_preview.html" with kind="service" obj=s url=svc_url %}
 </div>
 </div>
 {% endblock %}
