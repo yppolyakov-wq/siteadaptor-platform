@@ -21492,3 +21492,9 @@ Kauf auf Rechnung — 8 полей) и **Lieferung & Abholung** (доставк�
 (line N)», чтобы авария была видна в cron-логе. Замок `test_backup_script` гоняет НАСТОЯЩИЙ
 скрипт с подменённым `docker` (красный на прежней версии): обычный `.env.prod` проходит до
 «backup done», сбой дампа — громкий.
+Затем второй запуск дошёл до дампа и упал «out of shared memory / max_locks_per_transaction»:
+`pg_dump` блокирует каждую таблицу всех схем в одной транзакции (~136 схем × ~210 таблиц ≈
+28 000 против ~6 400 по умолчанию) — бэкап базы не прошёл бы ни разу. У сервиса `db`
+поднят `max_locks_per_transaction` до 1024 (≈100 000 блокировок, ~480 бизнесов; env
+`PG_MAX_LOCKS_PER_TRANSACTION`). Отдельный db-сервер — та же настройка в postgresql.conf.
+Замок — в `test_backup_script`.

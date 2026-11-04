@@ -67,3 +67,14 @@ def test_failure_is_loud_not_silent(tmp_path):
     proc, _ = _run(tmp_path, "DB_NAME=platform\nDB_USER=platform\n", fail_dump=True)
     assert proc.returncode != 0
     assert "backup FAILED" in proc.stderr
+
+
+def test_local_postgres_has_room_for_pg_dump_locks():
+    """pg_dump блокирует каждую таблицу всех схем в одной транзакции: с дефолтными 64
+    блокировками на соединение бэкап сотни схем падает «out of shared memory»."""
+    import re
+
+    compose = (ROOT / "docker-compose.prod.yml").read_text()
+    m = re.search(r"max_locks_per_transaction=\$\{PG_MAX_LOCKS_PER_TRANSACTION:-(\d+)\}", compose)
+    assert m, "у сервиса db должен быть поднят max_locks_per_transaction"
+    assert int(m.group(1)) >= 1024
