@@ -32215,3 +32215,40 @@ msgstr "Выезды сегодня"
 
 msgid "Tickets heute"
 msgstr "Билеты сегодня"
+
+msgid "Automatische Mailings"
+msgstr "Автоматические рассылки"
+
+msgid "Diese Mailings gehen nur an Kundinnen und Kunden mit bestätigter Einwilligung (Double-Opt-In)."
+msgstr "Эти рассылки получают только клиенты, подтвердившие согласие (Double-Opt-In)."
+
+msgid "Einstellen"
+msgstr "Настроить"
+
+msgid "Antwort bearbeiten"
+msgstr "Изменить ответ"
+
+msgid "Antworten"
+msgstr "Ответить"
+
+msgid "Ihre Antwort"
+msgstr "Ваш ответ"
+
+msgid "die übrigen automatisch"
+msgstr "остальные — автоматически"
+
+#, python-format
+msgid "%(n)s Kategorie eigens zugeordnet"
+msgid_plural "%(n)s Kategorien eigens zugeordnet"
+msgstr[0] "Сопоставлено вручную: %(n)s"
+msgstr[1] "Сопоставлено вручную: %(n)s"
+msgstr[2] "Сопоставлено вручную: %(n)s"
+msgstr[3] "Сопоставлено вручную: %(n)s"
+
+#, python-format
+msgid "%(n)s nicht im Stadtportal"
+msgid_plural "%(n)s nicht im Stadtportal"
+msgstr[0] "Не на портале города: %(n)s"
+msgstr[1] "Не на портале города: %(n)s"
+msgstr[2] "Не на портале города: %(n)s"
+msgstr[3] "Не на портале города: %(n)s"

@@ -271,6 +271,7 @@ def test_sidebar_children_composition():
         "notifications-settings",
         # KA-12 E8.4/E8.6: свой бот — канал; «Integrationen» — секция страницы каналов
         "telegram-settings",
+        "promotions:campaign-automation",  # UX-D D8.2 (осознанное дополнение): авто-рассылки
         "billing",
         "modules",
         "finder-settings",

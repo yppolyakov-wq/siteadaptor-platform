@@ -1,6 +1,6 @@
 from django.urls import path
 
-from . import list_pages, lite_views, views
+from . import campaign_pages, list_pages, lite_views, views
 
 app_name = "promotions"
 
@@ -75,6 +75,13 @@ urlpatterns = [
     path("loyalty/<uuid:program_id>/stamp/", views.loyalty_stamp, name="loyalty-stamp"),
     path("newsletter/", views.newsletter_campaigns, name="newsletter"),
     path("kampagnen/", views.coupon_campaigns, name="coupon-campaigns"),
+    # UX-D D8.2: создание шторкой + настройки автоматики в Einstellungen
+    path("kampagnen/neu/", campaign_pages.campaign_new, name="campaign-new"),
+    path(
+        "kampagnen/automatisch/",
+        campaign_pages.campaign_automation,
+        name="campaign-automation",
+    ),
     path("analytics/", views.analytics_overview, name="analytics"),
     path("poster/", views.shop_poster_pdf, name="shop-poster"),
 ]

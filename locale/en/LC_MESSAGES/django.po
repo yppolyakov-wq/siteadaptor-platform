@@ -31920,3 +31920,36 @@ msgstr "Jobs today"
 
 msgid "Tickets heute"
 msgstr "Tickets today"
+
+msgid "Automatische Mailings"
+msgstr "Automatic mailings"
+
+msgid "Diese Mailings gehen nur an Kundinnen und Kunden mit bestätigter Einwilligung (Double-Opt-In)."
+msgstr "These mailings only go to customers who have confirmed their consent (double opt-in)."
+
+msgid "Einstellen"
+msgstr "Set up"
+
+msgid "Antwort bearbeiten"
+msgstr "Edit reply"
+
+msgid "Antworten"
+msgstr "Reply"
+
+msgid "Ihre Antwort"
+msgstr "Your reply"
+
+msgid "die übrigen automatisch"
+msgstr "the rest automatically"
+
+#, python-format
+msgid "%(n)s Kategorie eigens zugeordnet"
+msgid_plural "%(n)s Kategorien eigens zugeordnet"
+msgstr[0] "%(n)s category mapped manually"
+msgstr[1] "%(n)s categories mapped manually"
+
+#, python-format
+msgid "%(n)s nicht im Stadtportal"
+msgid_plural "%(n)s nicht im Stadtportal"
+msgstr[0] "%(n)s not on the city portal"
+msgstr[1] "%(n)s not on the city portal"

@@ -127,14 +127,22 @@ def test_home_shows_sales_loop_and_widgets_only_with_section_rights(monkeypatch)
     assert not {"ready", "stays_today", "orders_new"} & {
         w["key"] for w in dash.widgets_for(staff, sample)
     }
+    from apps.core import day_home
+
     seen = []
     real = sales_page.body_context
+    real_summary = day_home.summary
 
     def _spy(req, kind, view):
         seen.append(kind)
         return real(req, kind, view)
 
+    def _spy_summary(req, kind):  # UX-D D8.1: у пекарни главная — сводка дня
+        seen.append(kind)
+        return real_summary(req, kind)
+
     monkeypatch.setattr(sales_page, "body_context", _spy)
+    monkeypatch.setattr(day_home, "summary", _spy_summary)
     _open("/dashboard/", tenant, staff)
     assert seen == []  # петля продаж без verkaeufe.view не собирается
     _open("/dashboard/", tenant, owner)

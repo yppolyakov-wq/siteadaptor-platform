@@ -1975,6 +1975,7 @@ def coupon_campaigns(request):
     сегмента + письмо. Только подтвердившим opt-in (UWG §7)."""
     from django.db.models import Count, Sum
 
+    from .campaign_pages import create_campaign, save_birthday, save_winback
     from .forms import CouponCampaignForm
     from .models import CouponCampaign
     from .newsletter import consented_customers, segment_customers, send_coupon_campaign
@@ -1984,19 +1985,7 @@ def coupon_campaigns(request):
         if action == "create":
             form = CouponCampaignForm(request.POST)
             if form.is_valid():
-                d = form.cleaned_data
-                CouponCampaign.objects.create(
-                    name=d["name"],
-                    tag=(d.get("tag") or "").strip().lower(),
-                    inactive_days=d.get("inactive_days"),
-                    top_ltv=d.get("top_ltv"),
-                    discount_percent=d.get("discount_percent"),
-                    discount_cents=int(d["discount_eur"] * 100) if d.get("discount_eur") else None,
-                    min_order_cents=int(d["min_order_eur"] * 100) if d.get("min_order_eur") else 0,
-                    valid_days=d["valid_days"],
-                    subject=d["subject"],
-                    body=(d.get("body") or "").strip(),
-                )
+                create_campaign(form)
                 messages.success(request, _("Kampagne gespeichert."))
             else:
                 messages.error(request, "; ".join(e for errs in form.errors.values() for e in errs))
@@ -2012,70 +2001,11 @@ def coupon_campaigns(request):
             CouponCampaign.objects.filter(
                 pk=request.POST.get("campaign"), status=CouponCampaign.STATUS_DRAFT
             ).delete()
-        elif action == "winback":
-            # B4.4: настройки авто-win-back живут на кампании kind=auto_winback.
-            obj = CouponCampaign.objects.filter(kind=CouponCampaign.KIND_AUTO_WINBACK).first()
-            if obj is None:
-                obj = CouponCampaign.objects.create(
-                    kind=CouponCampaign.KIND_AUTO_WINBACK,
-                    name="Auto Win-back",
-                    subject="Wir vermissen Sie – Ihr persönlicher Gutschein",
-                    status=CouponCampaign.STATUS_PAUSED,
-                )
-            try:
-                obj.inactive_days = max(1, int(request.POST.get("inactive_days") or 60))
-                obj.discount_percent = max(
-                    1, min(100, int(request.POST.get("discount_percent") or 10))
-                )
-                obj.valid_days = max(1, min(365, int(request.POST.get("valid_days") or 30)))
-            except (TypeError, ValueError):
-                messages.error(request, _("Bitte gültige Zahlen eingeben."))
-                return redirect("promotions:coupon-campaigns")
-            obj.subject = (request.POST.get("subject") or obj.subject).strip()[:200]
-            obj.status = (
-                CouponCampaign.STATUS_ACTIVE
-                if request.POST.get("enabled")
-                else CouponCampaign.STATUS_PAUSED
-            )
-            obj.save(
-                update_fields=[
-                    "inactive_days",
-                    "discount_percent",
-                    "valid_days",
-                    "subject",
-                    "status",
-                    "updated_at",
-                ]
-            )
-            messages.success(request, _("Auto Win-back gespeichert."))
-        elif action == "birthday":
-            # PMS-B2: настройки «Geburtstagsgruß» на кампании-синглтоне.
-            obj = CouponCampaign.objects.filter(kind=CouponCampaign.KIND_BIRTHDAY).first()
-            if obj is None:
-                obj = CouponCampaign.objects.create(
-                    kind=CouponCampaign.KIND_BIRTHDAY,
-                    name="Geburtstagsgruß",
-                    subject="Alles Gute zum Geburtstag – Ihr Geschenk wartet",
-                    status=CouponCampaign.STATUS_PAUSED,
-                )
-            try:
-                obj.discount_percent = max(
-                    1, min(100, int(request.POST.get("discount_percent") or 10))
-                )
-                obj.valid_days = max(1, min(365, int(request.POST.get("valid_days") or 30)))
-            except (TypeError, ValueError):
-                messages.error(request, _("Bitte gültige Zahlen eingeben."))
-                return redirect("promotions:coupon-campaigns")
-            obj.subject = (request.POST.get("subject") or obj.subject).strip()[:200]
-            obj.status = (
-                CouponCampaign.STATUS_ACTIVE
-                if request.POST.get("enabled")
-                else CouponCampaign.STATUS_PAUSED
-            )
-            obj.save(
-                update_fields=["discount_percent", "valid_days", "subject", "status", "updated_at"]
-            )
-            messages.success(request, _("Geburtstagsgruß gespeichert."))
+        elif action in ("winback", "birthday"):
+            # UX-D D8.2: настройки автоматики живут в Einstellungen › «Automatische
+            # Mailings»; старый POST этого экрана сохраняет то же самое.
+            (save_winback if action == "winback" else save_birthday)(request)
+            return redirect("promotions:campaign-automation")
         return redirect("promotions:coupon-campaigns")
 
     campaigns = list(
@@ -2091,8 +2021,13 @@ def coupon_campaigns(request):
                 tag=c.tag, inactive_days=c.inactive_days, top_ltv=c.top_ltv
             ).count()
 
-    # B4.3: prefill из CRM («Kampagne für diese Auswahl» передаёт ?tag=).
-    form = CouponCampaignForm(initial={"tag": (request.GET.get("tag") or "").strip()})
+    # B4.3: prefill из CRM («Kampagne für diese Auswahl» передаёт ?tag=) — UX-D D8.2:
+    # старая ссылка с ?tag= открывает форму новой кампании (шторка/страница).
+    tag = (request.GET.get("tag") or "").strip()
+    if tag:
+        return redirect(f"{reverse('promotions:campaign-new')}?{urlencode({'tag': tag[:50]})}")
+    from apps.core.templatetags.cabinet import can_open
+
     return render(
         request,
         "promotions/coupon_campaigns.html",
@@ -2100,11 +2035,10 @@ def coupon_campaigns(request):
             "nav": "campaigns",
             "campaigns": campaigns,
             "consented": consented_customers().count(),
-            "form": form,
+            # UX-D D8.2: сводка автоматики; настройки — в Einstellungen.
             "winback": CouponCampaign.objects.filter(kind=CouponCampaign.KIND_AUTO_WINBACK).first(),
-            # PMS-B2: панель «Geburtstagsgruß» + счётчик клиентов с датой рождения.
             "birthday": CouponCampaign.objects.filter(kind=CouponCampaign.KIND_BIRTHDAY).first(),
-            "birthday_known": consented_customers().exclude(birthday=None).count(),
+            "automation_open": can_open("promotions:campaign-automation", request),
             # VF-20b: обратный вход в Акции (экран кампаний был тупиком — ни одной
             # ссылки наружу). Гейт по модулю акций — fail-closed.
             "promotions_active": bool(

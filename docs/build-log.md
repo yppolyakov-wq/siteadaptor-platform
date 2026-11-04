@@ -21441,3 +21441,29 @@ Kanäle (платформы | личные каналы и публикации)
 объём для Grundpreis («0,125 kg», три знака) терялся при сохранении варианта, а «19,999» в
 мягком разборе становилось 0 вместо 20,00 € (теперь округление до цента, как было; «+5» читается).
 Замки: `test_d6_0b_money_input` (41, вкл. скан «float(…replace(",",…» в шести модулях).
+
+## 2026-11-04 — UX-D D8 «оптимизированный вид у всех архетипов» (БЕЗ миграций)
+
+План — `docs/ux-d8-archetype-parity-plan-2026-11-04.md`. Повод — вопрос владельца «все приведены
+к оптимизационному дизайну?»; сверка 20 демо × все пункты меню (885 экранов, 0 ошибок) нашла
+четыре места в старом виде. **D8.1** главная = сводка дня у заказов, записей, заявок и билетов
+(`apps/core/day_home.py` + `core/_day_home.html`; у отеля — прежний `stays/home_summary.py`):
+цифры дня, «Heute / Nächste …», «Neu eingegangen», «Braucht Aufmerksamkeit», загрузка на 7 дней.
+Источники — те же, что у экранов-целей: «Nicht bezahlt» = строки Offene Posten
+(`finance.bank.deal_open_items`), «Heute» = колонки вида «Heute» (`sales_page.heute_columns`
+получил `sections=` — сводка считает только свою группу), стадии — `pipeline`. Ссылки и счётчики
+— только на доступные пользователю экраны (`_screen_open`: запись меню видна тенанту, экран в
+пакете, право); Bestellvorschläge — одним агрегатом БД (`inventory.services.reorder_count`,
+паритет со списком замком), а не обходом каталога. **D8.2** Kampagnen: «＋ Neue Kampagne»
+шторкой (`promotions:campaign-new`, ошибки у поля, из CRM шторка ведёт к черновику), настройки
+Win-back и Geburtstagsgruß — экран «Automatische Mailings» в Einstellungen
+(`promotions:campaign-automation`); на рабочем экране — список и сводка автоматики. Старые POST
+экрана кампаний работают (`campaign_pages`); пустая тема из пробелов больше не стирает прежнюю.
+**D8.3** Kategorien: блок «Zuordnung zum Stadtkatalog» (по выпадающему списку на каждую
+категорию) — свой экран `catalog:category-city-map`, на списке сводка-ссылка. **D8.4**
+Bewertungen: ответ — по кнопке «Antworten» (`<details>`, без JS; поле в DOM — W0), готовый ответ
+виден текстом с «Antwort bearbeiten». Замки: `test_d8_day_home` (13), `test_d8_campaigns` (11),
+`test_city_mapping` (+2), `test_cabinet` (+1), `test_reorder` (+1); осознанно переписаны
+`test_x3_home_cockpit`, `test_perm_nav_hiding` (главная пекарни — сводка), `test_sidebar_st4b`
+(+«Automatische Mailings»), `test_pilot_e_phone` (денежные поля кампании — рендер MoneyField).
+Ревью django-reviewer ×2 — блокирующих нет, замечания закрыты.

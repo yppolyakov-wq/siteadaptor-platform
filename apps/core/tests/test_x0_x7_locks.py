@@ -91,6 +91,8 @@ EXPECTED_UNLISTED = frozenset(
         "team-invite",  # UX-D D6.6: «＋ Mitarbeiter einladen» (кнопка списка Team)
         "channel-disconnect",  # UX-D D6.6: POST «Trennen» на странице каналов
         "blog-new",  # UX-D D7.4: «＋ Neuer Beitrag» (кнопка списка блога)
+        "promotions:campaign-new",  # UX-D D8.2: «＋ New campaign» (кнопка списка кампаний)
+        "catalog:category-city-map",  # UX-D D8.3: карточка «Stadtkatalog» на списке категорий
         "booking:service-inline-edit",
         "booking:service-photo-edit",
         "catalog:category-create",

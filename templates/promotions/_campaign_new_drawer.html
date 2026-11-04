@@ -1,0 +1,5 @@
+{% load i18n %}
+{% comment %}UX-D D8.2: шторка «＋ Neue Kampagne» (campaign-new?box=1).{% endcomment %}
+<div data-drawer-title="{% trans 'New campaign' %}" class="text-sm">
+  {% include "promotions/_campaign_new_form.html" with in_drawer=1 %}
+</div>

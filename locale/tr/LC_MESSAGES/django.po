@@ -32066,3 +32066,36 @@ msgstr "Bugünkü işler"
 
 msgid "Tickets heute"
 msgstr "Bugünkü biletler"
+
+msgid "Automatische Mailings"
+msgstr "Otomatik e-postalar"
+
+msgid "Diese Mailings gehen nur an Kundinnen und Kunden mit bestätigter Einwilligung (Double-Opt-In)."
+msgstr "Bu e-postalar yalnızca onayını teyit eden müşterilere gider (çift onay)."
+
+msgid "Einstellen"
+msgstr "Ayarla"
+
+msgid "Antwort bearbeiten"
+msgstr "Yanıtı düzenle"
+
+msgid "Antworten"
+msgstr "Yanıtla"
+
+msgid "Ihre Antwort"
+msgstr "Yanıtınız"
+
+msgid "die übrigen automatisch"
+msgstr "diğerleri otomatik"
+
+#, python-format
+msgid "%(n)s Kategorie eigens zugeordnet"
+msgid_plural "%(n)s Kategorien eigens zugeordnet"
+msgstr[0] "Elle eşlenen kategori: %(n)s"
+msgstr[1] "Elle eşlenen kategori: %(n)s"
+
+#, python-format
+msgid "%(n)s nicht im Stadtportal"
+msgid_plural "%(n)s nicht im Stadtportal"
+msgstr[0] "Şehir portalında değil: %(n)s"
+msgstr[1] "Şehir portalında değil: %(n)s"

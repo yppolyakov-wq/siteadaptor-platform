@@ -710,7 +710,7 @@ def category_list(request):
     """SR-4 (канвас Kategorien): плитки с фото — фото и имя кликабельны →
     форма категории; подкатегории — чипами в плитке родителя."""
     if request.method == "POST" and request.POST.get("action") == "city_map":
-        return _save_city_map(request)
+        return _save_city_map(request)  # старая форма списка (до UX-D D8.3)
     tree = _category_tree()
     roots, cur = [], None
     for c in tree:
@@ -726,6 +726,32 @@ def category_list(request):
             "nav": "categories",
             "categories": tree,
             "roots": roots,
+            # UX-D D8.3: сопоставление с каталогом города — свой экран; здесь сводка.
+            "city_summary": _city_summary(tree) if tree else None,
+        },
+    )
+
+
+def _city_summary(tree) -> dict:
+    return {
+        "total": len(tree),
+        "own": sum(1 for c in tree if c.city_category),
+        "hidden": sum(1 for c in tree if c.hide_in_city),
+    }
+
+
+@login_required
+def category_city_map(request):
+    """UX-D D8.3: «Zuordnung zum Stadtkatalog» — выпадающий список у каждой категории
+    (до 50 полей) жил под плитками списка; теперь свой экран (та же форма и запись)."""
+    if request.method == "POST":
+        return _save_city_map(request, back="catalog:category-city-map")
+    tree = _category_tree()
+    return render(
+        request,
+        "catalog/category_city_map.html",
+        {
+            "nav": "categories",
             "city_map": _city_map_rows(tree),  # T-8.13b
             "city_map_groups": _city_map_groups(request, tree),
         },
@@ -760,7 +786,7 @@ def _city_map_groups(request, tree):
     return cc.grouped_choices(getattr(tenant, "business_type", None), keep=keep)
 
 
-def _save_city_map(request):
+def _save_city_map(request, back="catalog:category-list"):
     """Пишем только присланные строки; чужой id и неизвестный слаг игнорируются."""
     from apps.core import city_categories as cc
 
@@ -783,7 +809,7 @@ def _save_city_map(request):
     if changed:
         _resync_city_catalog(request)
     messages.success(request, _("Zuordnung gespeichert (%(n)s geändert).") % {"n": changed})
-    return redirect("catalog:category-list")
+    return redirect(back)
 
 
 def _resync_city_catalog(request) -> None:

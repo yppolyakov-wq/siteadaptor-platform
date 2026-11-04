@@ -1,0 +1,11 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{% trans "New campaign" %}{% endblock %}
+
+{% block dash_content %}
+{% comment %}UX-D D8.2: страница новой кампании без JS (в кабинете — шторка).{% endcomment %}
+<a href="{% url 'promotions:coupon-campaigns' %}" class="text-sm text-gray-600 hover:underline"><span aria-hidden="true">← </span>{% trans "Coupon campaigns" %}</a>
+<h1 class="ui-h1 mt-1 mb-4">{% trans "New campaign" %}</h1>
+{% include "tenant/_settings_messages.html" %}
+<div class="ui-card p-6 max-w-3xl">{% include "promotions/_campaign_new_form.html" %}</div>
+{% endblock %}

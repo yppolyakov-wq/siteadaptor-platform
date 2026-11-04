@@ -728,7 +728,11 @@ class VoucherCreateForm(forms.Form):
 class CouponCampaignForm(forms.Form):
     """B4/CM-9: купон-кампания по сегменту (персональные коды + письмо)."""
 
-    name = forms.CharField(label=_("Campaign name"), max_length=200)
+    name = forms.CharField(
+        label=_("Campaign name"),
+        max_length=200,
+        widget=forms.TextInput(attrs={"placeholder": _("e.g. Win-back autumn")}),
+    )
     # Сегмент (AND; всё пустое = вся opt-in-база).
     tag = forms.CharField(label=_("Customer tag"), max_length=50, required=False)
     inactive_days = forms.IntegerField(
@@ -750,7 +754,9 @@ class CouponCampaignForm(forms.Form):
     )
     # Письмо.
     subject = forms.CharField(label=_("Subject"), max_length=200)
-    body = forms.CharField(label=_("Message"), widget=forms.Textarea, required=False)
+    body = forms.CharField(
+        label=_("Message"), widget=forms.Textarea(attrs={"rows": 4}), required=False
+    )
 
     def clean(self):
         cleaned = super().clean()

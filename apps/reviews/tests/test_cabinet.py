@@ -186,3 +186,19 @@ def test_business_review_reply_cross_tenant_404():
         views.business_review_reply(_req("post", data={"reply_text": "hack"}), pk=foreign.pk)
     foreign.refresh_from_db()
     assert foreign.reply_text == ""
+
+
+def test_reply_field_sits_behind_antworten_button():
+    """UX-D D8.4: поле ответа не раскрыто под каждым отзывом — за кнопкой «Antworten»
+    (<details>, без JS); поле в DOM (W0); готовый ответ виден текстом."""
+    import re
+
+    _review(comment="Super!")
+    _review(comment="Gut", reply_text="Danke!")
+    body = views.review_list(_req()).content.decode()
+    assert body.count("data-review-reply-form") == 2
+    assert body.count('name="reply_text"') == 2  # поле в DOM
+    for block in re.findall(r"<details[^>]*data-review-reply-form.*?</details>", body, re.S):
+        assert "<summary" in block and 'name="reply_text"' in block
+    assert "Antworten" in body and "Antwort bearbeiten" in body
+    assert "data-review-reply" in body and "Danke!" in body

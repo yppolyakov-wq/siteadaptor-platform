@@ -172,7 +172,6 @@ def test_hand_written_money_inputs_are_text_fields():
     for rel, names in (
         ("promotions/promotion_quick.html", ("new_price", "old_price")),
         ("tenants/quick_start.html", ("new_price", "old_price")),
-        ("promotions/coupon_campaigns.html", ("discount_eur", "min_order_eur")),
     ):
         src = (root / rel).read_text()
         for name in names:
@@ -181,6 +180,13 @@ def test_hand_written_money_inputs_are_text_fields():
             )
             assert 'type="text"' in line and 'inputmode="decimal"' in line, (rel, line)
             assert 'type="number"' not in line, (rel, line)
+    # UX-D D8.2: форма кампании рендерится полями Django (MoneyField) — проверяем рендер.
+    from apps.promotions.forms import CouponCampaignForm
+
+    form = CouponCampaignForm()
+    for name in ("discount_eur", "min_order_eur"):
+        html = str(form[name])
+        assert 'type="text"' in html and 'inputmode="decimal"' in html, html
 
 
 # --- M1/M3: поля 16 px и «Speichern» над таб-баром --------------------------------------

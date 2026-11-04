@@ -111,6 +111,10 @@
   "Telegram-Verknüpfung",
   "Telegram-Verknüpfungen"
  ],
+ "apps/promotions/campaign_pages.py": [
+  "Alles Gute zum Geburtstag – Ihr Geschenk wartet",
+  "Wir vermissen Sie – Ihr persönlicher Gutschein"
+ ],
  "apps/promotions/message_parse.py": [
   "\\s+(?:zum\\s+)?("
  ],
@@ -123,10 +127,6 @@
  "apps/promotions/public_views.py": [
   "## Angebot",
   "Widerruf eines Kaufvertrags\n\nHiermit widerrufe ich den Vertrag über den Kauf folgender Waren:"
- ],
- "apps/promotions/views.py": [
-  "Alles Gute zum Geburtstag – Ihr Geschenk wartet",
-  "Wir vermissen Sie – Ihr persönlicher Gutschein"
  ],
  "apps/publishing/adapters.py": [
   "Facebook nicht konfiguriert:",

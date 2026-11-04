@@ -1,0 +1,13 @@
+{% load i18n %}
+{% comment %}UX-D D8.4: публичный ответ на отзыв — по кнопке «Antworten» (<details>, без JS);
+поле в DOM всегда (W0). Есть ответ — показываем его и даём «Antwort bearbeiten».{% endcomment %}
+{% if r.reply_text %}<p class="mt-2 text-xs text-gray-700 border-l-2 border-gray-200 pl-2 whitespace-pre-line" data-review-reply><span class="font-medium">{% trans "Ihre Antwort" %}:</span> {{ r.reply_text }}</p>{% endif %}
+<details class="mt-2 group" data-review-reply-form>
+  <summary class="inline-flex items-center gap-1 text-xs text-indigo-700 cursor-pointer hover:underline list-none min-h-[24px]">{% if r.reply_text %}{% trans "Antwort bearbeiten" %}{% else %}↩ {% trans "Antworten" %}{% endif %}</summary>
+  <form method="post" action="{{ action }}" class="mt-2 space-y-2">{% csrf_token %}
+    {% if with_next %}<input type="hidden" name="next" value="{{ request.get_full_path }}">{% endif %}
+    <label for="reply-{{ kind_key }}-{{ r.pk }}" class="sr-only">{% trans 'Reply publicly…' %}</label>
+    <textarea id="reply-{{ kind_key }}-{{ r.pk }}" name="reply_text" rows="3" placeholder="{% trans 'Reply publicly…' %}" class="ui-input text-sm">{{ r.reply_text }}</textarea>
+    <button class="ui-btn ui-btn-secondary ui-btn-sm">{% trans "Reply" %}</button>
+  </form>
+</details>

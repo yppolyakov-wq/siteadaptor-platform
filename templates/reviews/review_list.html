@@ -42,10 +42,7 @@
         <span class="text-xs text-gray-400">· {{ r.created_at|date:"d.m.Y" }}{% if r.status == 'hidden' %} · {% trans "Hidden" %}{% endif %}</span></p>
       {% if r.comment %}<p class="text-sm mt-1 whitespace-pre-line">{{ r.comment }}</p>{% endif %}
       {# 1а: публичный ответ владельца — паттерн CM-6.2 #}
-      <form method="post" action="{% url 'reviews:business-reply' r.pk %}" class="mt-2 flex items-start gap-2">{% csrf_token %}
-        <textarea name="reply_text" rows="1" aria-label="{% trans 'Reply publicly…' %}" placeholder="{% trans 'Reply publicly…' %}" class="flex-1 rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs">{{ r.reply_text }}</textarea>
-        <button class="text-xs border border-gray-300 rounded-lg px-2.5 py-1.5 hover:border-indigo-400">{% trans "Reply" %}</button>
-      </form>
+      {% url 'reviews:business-reply' r.pk as reply_url %}{% include "reviews/_reply_form.html" with action=reply_url kind_key="b" %}
     </div>
   {% empty %}
     <p class="text-sm ui-muted py-4">{% trans "No reviews yet." %}</p>
@@ -65,11 +62,7 @@
           <p class="text-xs ui-muted">{% firstof r.entity_label "—" %}</p>
           {% if r.comment %}<p class="text-sm mt-1 whitespace-pre-line">{{ r.comment }}</p>{% endif %}
           {# CM-6.2: ответ владельца — виден на витрине под отзывом. #}
-          <form method="post" action="{% url 'reviews:reply' r.pk %}" class="mt-2 flex items-start gap-2">{% csrf_token %}
-            <input type="hidden" name="next" value="{{ request.get_full_path }}">
-            <textarea name="reply_text" rows="1" aria-label="{% trans 'Reply publicly…' %}" placeholder="{% trans 'Reply publicly…' %}" class="flex-1 rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs">{{ r.reply_text }}</textarea>
-            <button class="text-xs border border-gray-300 rounded-lg px-2.5 py-1.5 hover:border-indigo-400">{% trans "Reply" %}</button>
-          </form>
+          {% url 'reviews:reply' r.pk as reply_url %}{% include "reviews/_reply_form.html" with action=reply_url kind_key="e" with_next=1 %}
         </div>
         <form method="post" action="{% url 'reviews:toggle' r.pk %}" class="shrink-0">{% csrf_token %}
           <input type="hidden" name="next" value="{{ request.get_full_path }}">

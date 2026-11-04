@@ -1,0 +1,39 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n cabinet %}
+{% block dash_title %}{% trans "Zuordnung zum Stadtkatalog" %}{% endblock %}
+
+{% block dash_content %}
+{% comment %}UX-D D8.3: сопоставление своих категорий с каталогом города — раньше блок
+под плитками списка категорий. Форма и запись прежние (_save_city_map).{% endcomment %}
+<a href="{% url 'catalog:category-list' %}" class="text-sm text-gray-600 hover:underline"><span aria-hidden="true">← </span>{% trans "Categories" %}</a>
+<h1 class="ui-h1 mt-1 mb-4">🏙 {% trans "Zuordnung zum Stadtkatalog" %}</h1>
+{% include "tenant/_settings_messages.html" %}
+{% if city_map %}
+{% comment %}T-8.13b: свои категории → категории каталога города. Своя навигация сайта
+не меняется; пусто = автоматически (родитель → название).{% endcomment %}
+<form method="post" action="{% url 'catalog:category-city-map' %}" class="ui-card p-5 max-w-4xl" data-city-map>
+  {% csrf_token %}
+  <input type="hidden" name="action" value="city_map">
+  <p class="text-sm text-gray-600 mb-4">{% trans "Unter welcher Rubrik Ihre Angebote im Stadtportal erscheinen. Ihre eigene Navigation bleibt unverändert." %}</p>
+  <div class="divide-y divide-gray-100">
+    {% for row in city_map %}
+      <div class="py-2 sm:flex sm:items-center sm:gap-4">
+        <input type="hidden" name="map_id" value="{{ row.cat.pk }}">
+        <label for="map-{{ row.cat.pk }}" class="block sm:w-1/3 text-sm font-medium {% if row.cat.level %}pl-4 text-gray-600{% endif %}">{% if row.cat.level %}↳ {% endif %}{{ row.cat }}</label>
+        <select id="map-{{ row.cat.pk }}" name="map_{{ row.cat.pk }}" class="ui-input mt-1 sm:mt-0 sm:flex-1" data-city-map-select>
+          <option value="" {% if not row.own %}selected{% endif %}>{% blocktrans with cat=row.auto_label %}Automatisch: {{ cat }}{% endblocktrans %}</option>
+          {% for section_label, items in city_map_groups %}
+            <optgroup label="{{ section_label }}">
+              {% for v, l in items %}<option value="{{ v }}" {% if row.own == v %}selected{% endif %}>{{ l }}</option>{% endfor %}
+            </optgroup>
+          {% endfor %}
+        </select>
+        <label class="mt-1 sm:mt-0 inline-flex items-center gap-1.5 text-xs text-gray-500 whitespace-nowrap"><input type="checkbox" name="hide_{{ row.cat.pk }}" value="1" {% if row.cat.hide_in_city %}checked{% endif %} data-city-hide> {% trans "Nicht zeigen" %}</label>
+      </div>
+    {% endfor %}
+  </div>
+  <button type="submit" class="ui-btn ui-btn-primary mt-4">{% trans "Speichern" %}</button>
+</form>
+{% endif %}
+{% if not city_map %}<p class="text-sm text-gray-600">{% trans "No categories yet." %}</p>{% endif %}
+{% endblock %}

@@ -221,6 +221,7 @@ RULES: dict[str, Rule] = {
     "catalog:category-image-primary": _r(S, SE),
     "catalog:category-inline-edit": _r(S, SE),
     "catalog:category-list": _r(S, SE),
+    "catalog:category-city-map": _r(S, SE),  # UX-D D8.3
     "catalog:combo-create": _r(S, SE),
     "catalog:combo-delete": _r(S, "sortiment.delete"),
     "catalog:combo-edit": _r(S, SE),
@@ -319,6 +320,8 @@ RULES: dict[str, Rule] = {
     "stays:unit-feature-checkout": _r(M, ME),
     # Акции
     "promotions:coupon-campaigns": _r(M, ME),
+    "promotions:campaign-new": _r(M, ME),  # UX-D D8.2
+    "promotions:campaign-automation": _r(M, ME),  # UX-D D8.2
     "promotions:loyalty-list": _r(M, ME),
     "promotions:loyalty-new": _r(M, ME),  # UX-D D6.4
     "promotions:loyalty-edit": _r(M, ME),  # UX-D D6.4

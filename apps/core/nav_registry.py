@@ -875,6 +875,18 @@ ENTRIES: tuple[NavEntry, ...] = (
         "bot telegram eigener",
         group="kanaele",
     ),
+    # UX-D D8.2: авто-рассылки (Win-back, Geburtstagsgruß) — были раскрыты формами
+    # на рабочем экране кампаний.
+    _e(
+        "settings",
+        "promotions:campaign-automation",
+        _("Automatische Mailings"),
+        "campaign-automation",
+        "crm",
+        True,
+        "win-back winback geburtstag automatisch gutschein mailing",
+        group="kanaele",
+    ),
     # GK-11: Google-рейтинг (Places API) — экран в кластере настроек.
     _e(
         "settings",

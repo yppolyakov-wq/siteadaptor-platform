@@ -85,6 +85,8 @@ urlpatterns = [
     path("products/photo-edit/", views.product_photo_edit, name="product-photo-edit"),
     path("categories/", views.category_list, name="category-list"),
     path("categories/new/", views.category_create, name="category-create"),
+    # UX-D D8.3: сопоставление с каталогом города — свой экран
+    path("categories/stadtkatalog/", views.category_city_map, name="category-city-map"),
     path("categories/inline-edit/", views.category_inline_edit, name="category-inline-edit"),
     path("categories/<uuid:pk>/edit/", views.category_edit, name="category-edit"),
     # FB-6: фото категории — удалить/сделать главной (паттерн product-image-*)

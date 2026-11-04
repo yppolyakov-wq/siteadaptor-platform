@@ -100,10 +100,26 @@ def _req(data=None, business_type="retail"):
     return req
 
 
-def test_list_shows_mapping_rows_with_auto_hint():
+def test_mapping_screen_shows_rows_with_auto_hint():
+    """UX-D D8.3: строки сопоставления — на своём экране; на списке только сводка."""
     _cat("Damenjacken")
-    html = views.category_list(_req()).content.decode()
+    req = _req()
+    html = views.category_city_map(req).content.decode()
     assert "data-city-map" in html and "Automatisch: Damenmode" in html
+    listing = views.category_list(req).content.decode()
+    assert "data-city-map" not in listing and "data-city-map-select" not in listing
+    assert "data-city-summary" in listing and "/catalog/categories/stadtkatalog/" in listing
+
+
+def test_mapping_screen_saves_and_returns_to_itself():
+    a = _cat("Alpha")
+    with mock.patch("apps.aggregator.tasks.reconcile_aggregator_schema.delay"):
+        resp = views.category_city_map(
+            _req({"action": "city_map", "map_id": [str(a.pk)], f"map_{a.pk}": "geschenke"})
+        )
+    assert resp.status_code == 302 and resp.url == "/catalog/categories/stadtkatalog/"
+    a.refresh_from_db()
+    assert a.city_category == "geschenke"
 
 
 def test_bulk_mapping_writes_only_sent_rows_and_ignores_garbage():

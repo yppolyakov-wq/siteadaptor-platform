@@ -32007,3 +32007,36 @@ msgstr "Einsätze heute"
 
 msgid "Tickets heute"
 msgstr "Tickets heute"
+
+msgid "Automatische Mailings"
+msgstr "Automatische Mailings"
+
+msgid "Diese Mailings gehen nur an Kundinnen und Kunden mit bestätigter Einwilligung (Double-Opt-In)."
+msgstr "Diese Mailings gehen nur an Kundinnen und Kunden mit bestätigter Einwilligung (Double-Opt-In)."
+
+msgid "Einstellen"
+msgstr "Einstellen"
+
+msgid "Antwort bearbeiten"
+msgstr "Antwort bearbeiten"
+
+msgid "Antworten"
+msgstr "Antworten"
+
+msgid "Ihre Antwort"
+msgstr "Ihre Antwort"
+
+msgid "die übrigen automatisch"
+msgstr "die übrigen automatisch"
+
+#, python-format
+msgid "%(n)s Kategorie eigens zugeordnet"
+msgid_plural "%(n)s Kategorien eigens zugeordnet"
+msgstr[0] "%(n)s Kategorie eigens zugeordnet"
+msgstr[1] "%(n)s Kategorien eigens zugeordnet"
+
+#, python-format
+msgid "%(n)s nicht im Stadtportal"
+msgid_plural "%(n)s nicht im Stadtportal"
+msgstr[0] "%(n)s nicht im Stadtportal"
+msgstr[1] "%(n)s nicht im Stadtportal"

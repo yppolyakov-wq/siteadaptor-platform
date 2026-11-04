@@ -32199,3 +32199,40 @@ msgstr "Виїзди сьогодні"
 
 msgid "Tickets heute"
 msgstr "Квитки сьогодні"
+
+msgid "Automatische Mailings"
+msgstr "Автоматичні розсилки"
+
+msgid "Diese Mailings gehen nur an Kundinnen und Kunden mit bestätigter Einwilligung (Double-Opt-In)."
+msgstr "Ці розсилки отримують лише клієнти, які підтвердили згоду (Double-Opt-In)."
+
+msgid "Einstellen"
+msgstr "Налаштувати"
+
+msgid "Antwort bearbeiten"
+msgstr "Змінити відповідь"
+
+msgid "Antworten"
+msgstr "Відповісти"
+
+msgid "Ihre Antwort"
+msgstr "Ваша відповідь"
+
+msgid "die übrigen automatisch"
+msgstr "решта — автоматично"
+
+#, python-format
+msgid "%(n)s Kategorie eigens zugeordnet"
+msgid_plural "%(n)s Kategorien eigens zugeordnet"
+msgstr[0] "Зіставлено вручну: %(n)s"
+msgstr[1] "Зіставлено вручну: %(n)s"
+msgstr[2] "Зіставлено вручну: %(n)s"
+msgstr[3] "Зіставлено вручну: %(n)s"
+
+#, python-format
+msgid "%(n)s nicht im Stadtportal"
+msgid_plural "%(n)s nicht im Stadtportal"
+msgstr[0] "Не на порталі міста: %(n)s"
+msgstr[1] "Не на порталі міста: %(n)s"
+msgstr[2] "Не на порталі міста: %(n)s"
+msgstr[3] "Не на порталі міста: %(n)s"

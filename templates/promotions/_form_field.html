@@ -1,0 +1,10 @@
+{% load i18n widget_tweaks form_a11y %}
+{% comment %}UX-D D8.2: одно поле Django-формы — подпись, ошибка у поля (form_a11y: aria-invalid/
+aria-describedby), подсказка. Первое ошибочное поле получает фокус шторки. Тот же рендер, что
+в _list_form_fields.html, но по одному полю — для форм с группами (fieldset).{% endcomment %}
+<div>
+  <label class="block text-sm font-medium mb-1" for="{{ field.id_for_label }}">{{ field.label }}</label>
+  {% if field.errors %}{% render_field field|a11y class="ui-input" data-drawer-autofocus="" %}{% else %}{% render_field field|a11y class="ui-input" %}{% endif %}
+  {% if field.help_text %}<p class="text-xs text-gray-600 mt-1" id="{{ field.auto_id }}_helptext">{{ field.help_text }}</p>{% endif %}
+  {% if field.errors %}<div id="{{ field.auto_id }}_errors">{% for err in field.errors %}<p class="text-xs text-red-700 mt-1"><span aria-hidden="true">⚠ </span>{{ err }}</p>{% endfor %}</div>{% endif %}
+</div>
