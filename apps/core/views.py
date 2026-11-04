@@ -5735,6 +5735,8 @@ def sellable_manage(request):
                 page_raw=(request.GET.get("seite") or "1") if kind_only else None,
             ),
             "kind_only": kind_only,
+            # FLT-4a: явный вид из адреса переживает поиск (сохранённый — и так дефолт)
+            "ansicht_param": requested if requested in ("kacheln", "liste") else "",
             "add_options": sm.add_options(tenant),
             # MX-7: цифровые Вещи (абонементы/сертификат) — на общей полке.
             # При любом активном фильтре полка прячется (как раньше при q).

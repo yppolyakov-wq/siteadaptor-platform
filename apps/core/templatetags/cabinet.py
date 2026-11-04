@@ -117,7 +117,7 @@ def query_with(context, key, value=""):
 
 
 #: Параметры, которые ссылки пейджера не переносят: фрагменты, курсоры, возвраты.
-_PAGER_DROP = ("box", "cursor", "next")
+_PAGER_DROP = ("box", "cursor", "next", "drawer")  # FLT-4a: шторка не липнет
 
 
 @register.inclusion_tag("core/_list_pager.html", takes_context=True)

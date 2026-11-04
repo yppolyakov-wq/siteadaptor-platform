@@ -583,7 +583,12 @@ def body_context(request, kind: str, view: str) -> dict:
         # упёрлись бы в гейт путей (404) — класс дефекта из сверки 2026-08-19.
         from apps.crm.views import customer_list_context
 
-        return {**customer_list_context(request), "crm_active": tenant.is_module_active("crm")}
+        # FLT-4a: вкладка продаж — поиск и «Mehr anzeigen» обязаны остаться на ней
+        return {
+            **customer_list_context(request),
+            "crm_active": tenant.is_module_active("crm"),
+            "list_tab": KUNDEN_TAB,
+        }
     if view == "heute":
         ctx["heute_columns"] = heute_columns(tenant, getattr(request, "user", None))
     elif view == "kalender" and kind == "stay":
