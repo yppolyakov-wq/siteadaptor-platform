@@ -654,6 +654,10 @@ def modules_nav(request):
         # не давал и на правовых страницах (там нет `site`) работал по
         # СОХРАНЁННОМУ конфигу.
         "storefront_text_width": cfg["site_defaults"].get("text_width", ""),
+        # FLT-3a: ширина витрины — класс контейнера (draft-aware, как text_width).
+        "storefront_page_width": siteconfig.PAGE_WIDTH_CLASSES.get(
+            cfg["site_defaults"].get("page_width", ""), "max-w-screen-2xl"
+        ),
         # DL-2: ХРОМ карточек ("" | hard | hairline | line) — рамка/тень
         # семейства Look'а; body несёт data-sf-chrome, правила в _base.html.
         "storefront_card_chrome": cfg["site_defaults"].get("card_chrome", ""),

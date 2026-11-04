@@ -32061,3 +32061,15 @@ msgstr "Treffer anzeigen"
 #: templates/aggregator/_portal_filter_bar.html
 msgid "Weitere Filter"
 msgstr "Weitere Filter"
+
+#: templates/tenant/design.html
+msgid "Seitenbreite"
+msgstr "Seitenbreite"
+
+#: templates/tenant/design.html
+msgid "Breit (1536 px)"
+msgstr "Breit (1536 px)"
+
+#: templates/tenant/design.html
+msgid "Normal (1280 px)"
+msgstr "Normal (1280 px)"

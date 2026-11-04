@@ -32269,3 +32269,15 @@ msgstr "Показать результаты"
 #: templates/aggregator/_portal_filter_bar.html
 msgid "Weitere Filter"
 msgstr "Другие фильтры"
+
+#: templates/tenant/design.html
+msgid "Seitenbreite"
+msgstr "Ширина страницы"
+
+#: templates/tenant/design.html
+msgid "Breit (1536 px)"
+msgstr "Широкая (1536 px)"
+
+#: templates/tenant/design.html
+msgid "Normal (1280 px)"
+msgstr "Обычная (1280 px)"

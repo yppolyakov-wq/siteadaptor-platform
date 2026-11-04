@@ -1873,6 +1873,11 @@ def section_visual(config, key) -> dict:
     return _clean_visual(None)
 
 
+# FLT-3a: ширина контейнера витрины (шапка, main, подвал) → класс Tailwind.
+PAGE_WIDTHS = ("normal", "full")
+PAGE_WIDTH_CLASSES = {"": "max-w-screen-2xl", "normal": "max-w-7xl", "full": "max-w-none"}
+
+
 def normalize_site_defaults(raw) -> dict:
     """SE-2d/SE-3d: глобальные дефолты стиля карточек («весь сайт»). Применяются ко
     всем сеткам витрины, если у секции/страницы нет своего visual-override. Дефолты
@@ -1944,6 +1949,10 @@ def normalize_site_defaults(raw) -> dict:
     # не было изначально, поэтому "" и «Volle Breite» рисовали одно и то же.
     if sd.get("text_width") in ("narrow", "wide", "full"):
         out["text_width"] = sd["text_width"]
+    # FLT-3a: ширина витрины. "" = 1536 px (решение владельца 2026-11-04: «Breit» по
+    # умолчанию); "normal" — прежние 1280 px; "full" — без ограничения.
+    if sd.get("page_width") in PAGE_WIDTHS:
+        out["page_width"] = sd["page_width"]
     return out
 
 

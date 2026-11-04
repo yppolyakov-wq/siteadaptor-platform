@@ -25,6 +25,8 @@ module.exports = {
     // переезжают на неё батчами; без safelist purge вырезал бы ещё не
     // использованные классы, и первый перевод экрана молча остался бы без стиля.
     { pattern: /^ui-/ },
+    // FLT-3a: ширина витрины приходит из Python (siteconfig.PAGE_WIDTH_CLASSES).
+    "max-w-7xl", "max-w-screen-2xl", "max-w-none",
   ],
   theme: { extend: {} },
   plugins: [],

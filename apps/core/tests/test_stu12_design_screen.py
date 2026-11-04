@@ -200,3 +200,17 @@ def test_page_background_toggle_off_clears_it():
     base = {"action": "design_settings", "sd_page_bg_present": "1", "sd_page_bg": "#faf6ef"}
     assert _post(tenant, {**base, "sd_page_bg_on": "on"})["site_defaults"]["page_bg"] == "#faf6ef"
     assert "page_bg" not in _post(tenant, base)["site_defaults"]
+
+
+def test_flt3_page_width_saved_only_with_its_sentinel():
+    """FLT-3a: ширина витрины пишется своим сентинелом; без него — не трогается (W0)."""
+    tenant = TenantFactory()
+    cfg = _post(
+        tenant,
+        {"action": "design_settings", "sd_page_width_present": "1", "sd_page_width": "normal"},
+    )
+    assert cfg["site_defaults"]["page_width"] == "normal"
+    cfg = _post(tenant, {"action": "design_settings", "theme_present": "1"})
+    assert cfg["site_defaults"]["page_width"] == "normal"  # чужая форма не стёрла
+    cfg = _post(tenant, {"action": "design_settings", "sd_page_width_present": "1"})
+    assert "page_width" not in cfg["site_defaults"]  # «Breit» = по умолчанию

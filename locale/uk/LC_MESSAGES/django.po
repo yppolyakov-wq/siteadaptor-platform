@@ -32256,3 +32256,15 @@ msgstr "Показати результати"
 #: templates/aggregator/_portal_filter_bar.html
 msgid "Weitere Filter"
 msgstr "Інші фільтри"
+
+#: templates/tenant/design.html
+msgid "Seitenbreite"
+msgstr "Ширина сторінки"
+
+#: templates/tenant/design.html
+msgid "Breit (1536 px)"
+msgstr "Широка (1536 px)"
+
+#: templates/tenant/design.html
+msgid "Normal (1280 px)"
+msgstr "Звичайна (1280 px)"

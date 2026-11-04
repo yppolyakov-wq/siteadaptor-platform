@@ -142,7 +142,7 @@
      На публичной витрине атрибут инертен (его читает только редактор).{% endcomment %}
   <header data-sf-section="header" class="{% if storefront_nav_sticky %}sticky top-0 {% endif %}z-20 bg-white/90 backdrop-blur border-b border-gray-100">
     {% if style == 'centered' %}
-    <div class="max-w-7xl mx-auto px-4 py-2 flex items-center flex-col gap-1">
+    <div class="{{ storefront_page_width|default:'max-w-screen-2xl' }} mx-auto px-4 py-2 flex items-center flex-col gap-1">
       <div class="w-full flex items-center justify-between sm:justify-center">
         {% include "storefront/_header_logo.html" %}
         <div class="flex items-center gap-2">{% include "storefront/_header_icons.html" %}</div>
@@ -154,7 +154,7 @@
     </div>
     {% else %}
     {# NAV-v2 (референс UniTheme): classic/minimal — «лого | меню | иконки» одной строкой. #}
-    <div class="max-w-7xl mx-auto px-4 h-14 flex items-center gap-2">
+    <div class="{{ storefront_page_width|default:'max-w-screen-2xl' }} mx-auto px-4 h-14 flex items-center gap-2">
       {% include "storefront/_header_logo.html" %}
       <nav id="sf-nav-desktop" class="text-sm {% if style == 'minimal' %}hidden{% else %}hidden sm:flex{% endif %} items-center gap-1 flex-1 min-w-0 overflow-hidden hover:overflow-visible focus-within:overflow-visible px-2">
         {% include "storefront/_header_nav.html" %}
@@ -289,7 +289,7 @@
 
   {% include "storefront/_demo_banner.html" %}
   {% holiday_banner %}
-  <main class="flex-1 w-full max-w-7xl mx-auto px-4 py-6 md:py-10">
+  <main class="flex-1 w-full {{ storefront_page_width|default:'max-w-screen-2xl' }} mx-auto px-4 py-6 md:py-10">
     {% if messages %}
       {% for m in messages %}
         <div role="status" class="mb-4 rounded-xl px-4 py-3 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
@@ -302,7 +302,7 @@
   <footer data-sf-section="footer" class="border-t border-gray-100 bg-white">
     {% comment %}MA-L: data-sf-footer-inner — нижний запас на телефоне под плавающие кнопки и
     панель покупки задаёт app.css (иначе они закрывали ссылки права).{% endcomment %}
-    <div class="max-w-7xl mx-auto px-4 py-6 text-xs text-gray-500 space-y-3" data-sf-footer-inner>
+    <div class="{{ storefront_page_width|default:'max-w-screen-2xl' }} mx-auto px-4 py-6 text-xs text-gray-500 space-y-3" data-sf-footer-inner>
       {# H1.2: тэглайн подвала — правится инлайн на канве; пустой скрыт на публичной, виден/правится под ?preview=1. #}
       {% if storefront_footer_text or request.GET.preview == '1' %}<p class="text-sm text-gray-600 whitespace-pre-line max-w-2xl" data-edit="footer_text">{{ storefront_footer_text }}</p>{% endif %}
       {% if request.tenant %}

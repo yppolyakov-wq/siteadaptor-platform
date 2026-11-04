@@ -91,6 +91,8 @@ def _save_design_settings(request) -> None:
         sd["media_shape"] = post.get("sd_media_shape", "")
         sd["variant_style"] = post.get("sd_variant_style", "")
         sd["card_slider"] = post.get("sd_card_slider") == "on"
+    if post.get("sd_page_width_present") == "1":  # FLT-3a: ширина витрины
+        sd["page_width"] = post.get("sd_page_width", "")
     if post.get("sd_page_bg_present") == "1":  # свой сентинел (как в билдере)
         sd["page_bg"] = post.get("sd_page_bg", "") if post.get("sd_page_bg_on") == "on" else ""
     cfg["site_defaults"] = sd

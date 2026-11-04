@@ -32120,3 +32120,15 @@ msgstr "Sonuçları göster"
 #: templates/aggregator/_portal_filter_bar.html
 msgid "Weitere Filter"
 msgstr "Diğer filtreler"
+
+#: templates/tenant/design.html
+msgid "Seitenbreite"
+msgstr "Sayfa genişliği"
+
+#: templates/tenant/design.html
+msgid "Breit (1536 px)"
+msgstr "Geniş (1536 px)"
+
+#: templates/tenant/design.html
+msgid "Normal (1280 px)"
+msgstr "Normal (1280 px)"

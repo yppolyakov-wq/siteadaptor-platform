@@ -31974,3 +31974,15 @@ msgstr "Show results"
 #: templates/aggregator/_portal_filter_bar.html
 msgid "Weitere Filter"
 msgstr "More filters"
+
+#: templates/tenant/design.html
+msgid "Seitenbreite"
+msgstr "Page width"
+
+#: templates/tenant/design.html
+msgid "Breit (1536 px)"
+msgstr "Wide (1536 px)"
+
+#: templates/tenant/design.html
+msgid "Normal (1280 px)"
+msgstr "Normal (1280 px)"
