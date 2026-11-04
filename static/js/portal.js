@@ -1,6 +1,8 @@
-/* FLT-1e: фильтры городского портала — шторка «Alle Filter», поповеры, автосортировка.
+/* FLT-1e: фильтры городского портала — шторка «Alle Filter» и поповеры.
  * Без этого файла всё работает: шторка — обычная форма (noscript), поповеры — <details>,
- * сортировка — кнопка «OK». Скрипт только улучшает поведение. План FLT §4, §6. */
+ * сортировка — кнопка «OK». Скрипт только улучшает поведение. План FLT §4, §6.
+ * Сортировка НЕ отправляется по change: стрелки в закрытом <select> на Windows дают change
+ * на каждое нажатие — страница перезагружалась бы с первой клавиши (WCAG 3.2.2). */
 (function () {
   "use strict";
   var drawer = document.getElementById("flt-drawer");
@@ -14,8 +16,12 @@
     var target = section && drawer.querySelector('[data-flt-sec="' + section + '"]');
     if (target) {
       target.scrollIntoView({ block: "start" });
-      var first = target.querySelector("input, a");
-      if (first) first.focus();
+      // имя группы читается первым; клавиатура телефона не выскакивает в поле цены
+      var legend = target.querySelector("legend, p[id]");
+      if (legend) {
+        if (!legend.hasAttribute("tabindex")) legend.setAttribute("tabindex", "-1");
+        legend.focus();
+      }
     }
     return true;
   }
@@ -29,11 +35,24 @@
       if (opener && typeof opener.focus === "function") opener.focus();
       opener = null;
     });
-    // клик по затемнению (вне содержимого) — закрыть
     drawer.addEventListener("click", function (e) {
-      if (e.target === drawer) closeDrawer();
+      if (e.target === drawer) closeDrawer(); // клик по затемнению
     });
   }
+
+  // С JS ссылка «Alle Filter» и пилюли ▾ на телефоне открывают диалог — так и называем
+  document.querySelectorAll("[data-flt-open]").forEach(function (a) {
+    a.setAttribute("role", "button");
+    a.setAttribute("aria-haspopup", "dialog");
+  });
+  function syncSummaries() {
+    document.querySelectorAll("[data-flt-pop] > summary").forEach(function (s) {
+      if (mobile.matches) s.setAttribute("aria-haspopup", "dialog");
+      else s.removeAttribute("aria-haspopup");
+    });
+  }
+  syncSummaries();
+  if (mobile.addEventListener) mobile.addEventListener("change", syncSummaries);
 
   document.addEventListener("click", function (e) {
     var open = e.target.closest("[data-flt-open]");
@@ -55,55 +74,50 @@
         return;
       }
     }
-    // клик вне открытого поповера — закрыть его
     document.querySelectorAll("[data-flt-pop][open]").forEach(function (d) {
-      if (!d.contains(e.target)) d.removeAttribute("open");
+      if (!d.contains(e.target)) d.removeAttribute("open"); // клик вне — закрыть
     });
   });
 
-  // один поповер за раз
   document.querySelectorAll("[data-flt-pop]").forEach(function (d) {
     d.addEventListener("toggle", function () {
       if (!d.open) return;
       document.querySelectorAll("[data-flt-pop][open]").forEach(function (o) {
-        if (o !== d) o.removeAttribute("open");
+        if (o !== d) o.removeAttribute("open"); // один поповер за раз
       });
+    });
+    // Tab ушёл из поповера — закрыть, чтобы он не накрывал содержимое
+    d.addEventListener("focusout", function (e) {
+      if (d.open && e.relatedTarget && !d.contains(e.relatedTarget)) d.removeAttribute("open");
     });
   });
 
   document.addEventListener("keydown", function (e) {
-    if (e.key !== "Escape") return;
-    document.querySelectorAll("[data-flt-pop][open]").forEach(function (d) {
-      d.removeAttribute("open");
-      var s = d.querySelector("summary");
-      if (s) s.focus();
-    });
+    if (e.key !== "Escape" || e.defaultPrevented) return;
+    var d = document.activeElement && document.activeElement.closest("[data-flt-pop][open]");
+    if (!d) return; // Esc в другом поле поповеры не трогает (шторка закрывается сама)
+    d.removeAttribute("open");
+    var s = d.querySelector("summary");
+    if (s) s.focus();
   });
 
-  // пустые поля не тащим в адрес («preis_von=&datum=») — короче ссылка, те же результаты
+  // пустые поля не тащим в адрес («preis_von=&datum=»): правим только отправляемые данные,
+  // DOM не трогаем — ничего не «гаснет» и не остаётся отключённым после отмены
   document.querySelectorAll("[data-flt] form").forEach(function (form) {
-    form.addEventListener("submit", function () {
-      form.querySelectorAll("input[name], select[name]").forEach(function (el) {
-        if (el.value === "" && (el.type !== "radio" || el.checked)) el.disabled = true;
+    form.addEventListener("formdata", function (e) {
+      var empty = [];
+      e.formData.forEach(function (value, key) {
+        if (value === "") empty.push(key);
+      });
+      empty.forEach(function (key) {
+        var kept = e.formData.getAll(key).filter(function (v) {
+          return v !== "";
+        });
+        e.formData.delete(key);
+        kept.forEach(function (v) {
+          e.formData.append(key, v);
+        });
       });
     });
-  });
-  // «Назад» из выдачи возвращает страницу из bfcache — поля снова активны
-  window.addEventListener("pageshow", function () {
-    document.querySelectorAll("[data-flt] form [disabled]").forEach(function (el) {
-      el.disabled = false;
-    });
-  });
-
-  // сортировка: смена значения — сразу применить, кнопка «OK» не нужна
-  document.querySelectorAll("[data-flt-sort]").forEach(function (form) {
-    var btn = form.querySelector("[data-flt-sort-submit]");
-    if (btn) btn.hidden = true;
-    var sel = form.querySelector("select");
-    if (sel) {
-      sel.addEventListener("change", function () {
-        form.submit();
-      });
-    }
   });
 })();
