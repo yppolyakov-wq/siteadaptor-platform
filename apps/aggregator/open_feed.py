@@ -26,7 +26,6 @@ from django.utils import feedgenerator
 from django.utils.translation import gettext as _
 
 from apps.core import city_categories as cc
-from apps.core import districts
 from apps.core.pagination import paginate
 
 from .models import AggregatorListing
@@ -52,7 +51,7 @@ class FeedParams:
     kinds: tuple[str, ...]
     kat: str
     tag: str
-    district: str
+    districts: tuple[str, ...]  # FLT-1b: ?stadtteil=a&stadtteil=b — как на странице портала
     limit: int
     cursor: str | None
 
@@ -68,7 +67,9 @@ def parse_params(request, *, city: str) -> FeedParams:
     tag = (g.get("merkmal") or "").strip()
     if not cc.normalize_tags([tag]):
         tag = ""
-    district = districts.normalize(city, g.get("stadtteil") or "") if city else ""
+    from . import search
+
+    area = search.parse_districts(g.getlist("stadtteil"), city=city) if city else ()
     try:
         limit = int(g.get("limit") or MAX_ITEMS)
     except (TypeError, ValueError):
@@ -79,7 +80,7 @@ def parse_params(request, *, city: str) -> FeedParams:
         kinds=kinds or AggregatorListing.OFFER_KINDS,
         kat=kat,
         tag=tag,
-        district=district,
+        districts=area,
         limit=limit,
         cursor=cursor,
     )
@@ -93,7 +94,7 @@ def feed_pool(*, city, business_type, include_demo: bool, params: FeedParams, po
         city=city or None,
         business_type=business_type or None,
         kinds=params.kinds,
-        district=params.district or None,
+        district=params.districts or None,
         city_category=params.kat or None,
         city_tag=params.tag or None,
         include_demo=include_demo,

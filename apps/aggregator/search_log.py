@@ -76,8 +76,8 @@ def filters_key(f, extra: dict | None = None) -> tuple[str, dict]:
         if k in ("kat", "merkmal"):
             shown.setdefault(k, []).append(v)
         elif k == "stadtteil" and k in shown:  # FLT-1b: список — только при > 1 районе
-            prev = shown[k]
-            shown[k] = [*prev, v] if isinstance(prev, list) else [prev, v]
+            prev = shown[k] if isinstance(shown[k], list) else [shown[k]]
+            shown[k] = prev if v in prev else [*prev, v]
         else:
             shown[k] = v
     key = urlencode(pairs)

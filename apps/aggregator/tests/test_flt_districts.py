@@ -59,10 +59,10 @@ def _seed():
     _listing("Brot aus Ohligs", OHLIGS, "o1")
 
 
-def _html(portal, path, district=None):
+def _html(portal, path, district=None, facet=None):
     req = RequestFactory().get(path, HTTP_HOST=portal.host)
     req.portal = portal
-    return portal_views.portal_home(req, district=district).content.decode()
+    return portal_views.portal_home(req, facet=facet, district=district).content.decode()
 
 
 def _filters(**get):
@@ -187,3 +187,39 @@ def test_follow_single_district_hash_unchanged():
 def test_follow_refuses_more_districts_than_cap_instead_of_truncating():
     many = [("stadtteil", d) for d in ("wald", "mitte", "graefrath", "burg-hoehscheid")]
     assert follow_query.canonical(many + [("q", "Brot")], city="Solingen") is None
+
+
+# --- ревью FLT-1b ------------------------------------------------------------------------
+
+
+def test_filter_form_keeps_param_district_on_district_path_page():
+    """«Anwenden» на /stadtteil/wald/?stadtteil=mitte не теряет Mitte."""
+    _seed()
+    p = _portal()
+    html = _html(p, "/stadtteil/wald/?stadtteil=mitte", district=WALD)
+    assert '<input type="hidden" name="stadtteil" value="mitte">' in html
+    assert '<input type="hidden" name="stadtteil" value="wald">' not in html  # путь — в action
+
+
+def test_facet_with_single_district_param_stays_self_canonical_noindex():
+    _seed()
+    p = _portal()
+    html = _html(p, "/bakery/?stadtteil=wald", facet="bakery")
+    assert "/stadtteil/wald/" not in html.split('rel="canonical"')[1][:120]
+
+
+def test_open_feed_takes_every_district():
+    from django.http import QueryDict
+
+    from apps.aggregator import open_feed
+
+    qd = QueryDict("stadtteil=wald&stadtteil=mitte")
+    params = open_feed.parse_params(type("R", (), {"GET": qd})(), city="Solingen")
+    assert params.districts == (WALD, MITTE)
+
+
+def test_search_log_key_dedupes_path_and_param_district():
+    from apps.aggregator import search_log
+
+    _key, shown = search_log.filters_key(_filters(stadtteil="wald"), extra={"stadtteil": WALD})
+    assert shown["stadtteil"] == [WALD]

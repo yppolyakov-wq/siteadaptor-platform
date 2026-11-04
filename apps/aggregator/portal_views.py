@@ -238,7 +238,7 @@ NOINDEX_PARAMS = frozenset(
 )
 
 
-def _seo_canonical(request, district, facet, filters) -> tuple[str, bool]:
+def _seo_canonical(request, portal, district, facet, filters) -> tuple[str, bool]:
     """(canonical, noindex) страницы портала.
 
     Путь (корень, `/stadtteil/<slug>/`, `/<facet>/`) без query — индексируемый лендинг,
@@ -255,10 +255,16 @@ def _seo_canonical(request, district, facet, filters) -> tuple[str, bool]:
     if not variation:
         return request.build_absolute_uri(request.path), False
     area = area_districts(district, filters)
-    if variation == {"stadtteil"} and len(area) == 1 and filters.districts == area[:1]:
-        path = f"/stadtteil/{quote(area[0], safe='')}/" + (
-            f"{quote(facet, safe='')}/" if facet else ""
-        )
+    # Только без отрасли и у портала с городом: страница района с отраслью 404, если
+    # отрасли в районе нет, а без города путевых страниц районов нет вовсе (ревью FLT-1b).
+    if (
+        variation == {"stadtteil"}
+        and portal.city
+        and not facet
+        and len(area) == 1
+        and filters.districts == area[:1]
+    ):
+        path = f"/stadtteil/{quote(area[0], safe='')}/"
         return request.build_absolute_uri(path), False
     return request.build_absolute_uri(request.get_full_path()), True
 
@@ -534,7 +540,7 @@ def portal_home(request, facet=None, district=None):
     reviews.attach_ratings(cards)  # G8b: звёзды в выдаче
     if district_tail:
         reviews.attach_ratings([i for g in district_tail for i in g["items"]])
-    canonical, robots_noindex = _seo_canonical(request, district, facet, filters)
+    canonical, robots_noindex = _seo_canonical(request, portal, district, facet, filters)
     heading = " · ".join(
         str(p) for p in (district_label, facet_label, category_chips["label"]) if p
     )
@@ -562,7 +568,8 @@ def portal_home(request, facet=None, district=None):
     if city_home:
         from . import follow
 
-        if district:
+        if district and area_districts(district, filters) == (district,):
+            # путь ∪ ?stadtteil=b — уже не «район a»: такой набор — кнопкой подписки на поиск
             follow_target = follow.parse_target({"stadtteil": district}, portal=portal)
         elif len(filters.kats) == 1:
             follow_target = follow.parse_target({"bereich": filters.kats[0]}, portal=portal)
@@ -863,7 +870,9 @@ def _filter_panel(request, portal, filters, q: str, scope, district, point=None)
         for k, v in keep + search_engine.carry(q, filters) + geo_carry
         if k in ("kind", "neu", "q", "kat", "merkmal", "lat", "lng", "groesse")
         # FLT-1b: несколько районов одиночный <select> не выразит — едут скрытыми полями
-        or (k == "stadtteil" and len(filters.districts) > 1)
+        # и при районе пути (там <select> скрыт): иначе «Anwenden» на /stadtteil/a/?stadtteil=b
+        # молча сужал бы выдачу до a (ревью FLT-1b)
+        or (k == "stadtteil" and (len(filters.districts) > 1 or district) and v != district)
     ]
     # T-8.7 Р-6: «Relevanz» только при q; «In der Nähe» и радиус — только при точке.
     sorts = [("", _("Relevanz") if q else _("Standard"))] + [
