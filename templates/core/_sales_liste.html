@@ -8,31 +8,12 @@ section (может быть None).{% endcomment %}
 (W10-3), у брони/записи/заявки/билета его не было вовсе.{% endcomment %}
 {% comment %}R3 (стиль B): контролы фильтра — белые карточки с тенью вместо
 рамок (границы только transparent — фокус подсвечивает индиго).{% endcomment %}
-<form method="get" class="flex flex-wrap items-center gap-2 mb-3">
-  <input type="hidden" name="tab" value="{{ active_kind }}">
-  <input type="hidden" name="view" value="liste">
-  {% comment %}X2c: фильтр статуса — паритет с легаси-страницей заявок (чипы)
-  и списком заказов; варианты из реестра, включая кастом-статусы владельца.{% endcomment %}
-  <select aria-label="{% trans "Status" %}" name="status" onchange="this.form.submit()" class="rounded-xl border border-transparent bg-white shadow-[0_3px_10px_rgba(22,24,29,0.05)] px-3 py-2 text-sm">
-    <option value="">{% trans "All statuses" %}</option>
-    {% for value, label in list_status_options %}
-      <option value="{{ value }}" {% if list_status == value %}selected{% endif %}>{{ label }}</option>
-    {% endfor %}
-  </select>
-  {% if list_sort_options %}
-  <select name="sort" onchange="this.form.submit()" aria-label="{% trans 'Sortierung' %}" data-list-sort class="rounded-xl border border-transparent bg-white shadow-[0_3px_10px_rgba(22,24,29,0.05)] px-3 py-2 text-sm">
-    <option value="">{% trans "Standard-Reihenfolge" %}</option>
-    {% for value, label in list_sort_options %}
-      <option value="{{ value }}" {% if list_sort == value %}selected{% endif %}>{{ label }}</option>
-    {% endfor %}
-  </select>
-  {% endif %}
-  <input type="search" name="q" value="{{ list_q }}" aria-label="{% trans 'Suche: Code, Name, E-Mail' %}" placeholder="{% trans 'Suche: Code, Name, E-Mail' %}"
-         class="rounded-xl border border-transparent bg-white shadow-[0_3px_10px_rgba(22,24,29,0.05)] px-3 py-2 text-sm w-56 focus:border-indigo-300 focus:outline-none">
-  <button aria-label="{% trans 'Suchen' %}" type="submit" class="ui-card px-3 py-2 text-sm hover:bg-gray-50">🔍</button>
-  {% comment %}KA-12 E2.2: CSV текущего списка (те же фильтры) — только владельцу.{% endcomment %}
-  {% if request.user|cab_can:"kunden.export" and active_kind != 'reservation' %}<a href="{% url 'verkaeufe-export' %}{% query_with 'tab' active_kind %}" data-sales-csv class="ui-card px-3 py-2 text-sm text-gray-600 hover:bg-gray-50" title="{% trans 'Liste als CSV herunterladen' %}">⬇ CSV</a>{% endif %}
-</form>
+{% comment %}FLT-4c: фильтр статуса — в шторке общей строки кабинета (поиск и сортировка в строке,
+«N Treffer», пилюли ✕); CSV — своей строкой справа.{% endcomment %}
+{% if request.user|cab_can:"kunden.export" and active_kind != 'reservation' %}
+<div class="flex justify-end mb-2"><a href="{% url 'verkaeufe-export' %}{% query_with 'tab' active_kind %}" data-sales-csv class="ui-card px-3 py-2 text-sm text-gray-600 hover:bg-gray-50" title="{% trans 'Liste als CSV herunterladen' %}">⬇ CSV</a></div>
+{% endif %}
+{% include "core/_list_filter_bar.html" with lf=list_lf %}
 {% comment %}SH-12/16 (фидбэк 2026-08-20): порядковый номер строки, покупатель
 отдельной строкой и МЕЛЬЧЕ шрифт; SH-11: статус меняется прямо из списка. Строка
 перестала быть одной большой ссылкой — внутри теперь есть кнопки (вложенные

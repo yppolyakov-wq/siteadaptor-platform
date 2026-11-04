@@ -85,6 +85,11 @@ def _url(pairs) -> str:
     return "?" + urlencode(pairs) if pairs else "?"
 
 
+def url_without(params, keys) -> str:
+    """Текущий адрес без `keys` (и без номера страницы/шторки) — ссылка пилюли «✕»."""
+    return _url(_pairs(params, set(keys)))
+
+
 def build(
     request,
     fields,
@@ -97,8 +102,15 @@ def build(
     keep=("tab", "view"),
     search_key: str = "q",
     sort_key: str = "sort",
+    force=(),
+    fixed=(),
 ) -> ListFilters:
-    params = request.GET
+    """`force` — пары, которые форма строки шлёт всегда (вкладка/вид списка), даже если
+    страница открыта без них в адресе; `fixed` — пилюли фильтров, которых нет в шторке."""
+    params = request.GET.copy()
+    for key, value in force:
+        if not params.get(key):
+            params[key] = value
     fields = list(fields)
     field_keys = {f.key for f in fields}
     lf = ListFilters(
@@ -114,10 +126,13 @@ def build(
     lf.drawer_hidden = _pairs(params, field_keys)
     lf.search_hidden = _pairs(params, {search_key})
     lf.sort_hidden = _pairs(params, {sort_key})
+    # `fixed` — фильтры извне (счётчик главной): в шторке их не выбирают, но видно и снимаемо
+    for f in fixed:
+        lf.pills.append(Pill(f.label, url_without(params, {f.key})))
     for f in fields:
         if f.value:
-            lf.pills.append(Pill(f"{f.label}: {f.value_label}", _url(_pairs(params, {f.key}))))
+            lf.pills.append(Pill(f"{f.label}: {f.value_label}", url_without(params, {f.key})))
     if search_value:
-        lf.pills.append(Pill(f"„{search_value}“", _url(_pairs(params, {search_key}))))
+        lf.pills.append(Pill(f"„{search_value}“", url_without(params, {search_key})))
     lf.reset_url = _url([(k, v) for k, v in _pairs(params, ()) if k in keep])
     return lf

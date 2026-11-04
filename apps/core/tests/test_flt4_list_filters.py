@@ -96,3 +96,40 @@ def test_invoices_use_the_filter_bar_without_autosubmit(_tenant_urlconf):
     assert not any(k == "art" for k, _ in sent)
     assert "1 Treffer" in bar and "data-flt-pill" in bar
     assert "data-invoice-chip" in html  # статус — чипами со счётчиками, как раньше
+
+
+# --- Verkäufe › Liste (FLT-4c) ------------------------------------------------------------
+
+
+def _sales(kind, query):
+    from apps.core.models import Membership
+    from apps.core.tests.test_staff_walk import _open, _tenant, _user
+
+    tenant = _tenant(kind)
+    return _open("/dashboard/verkaeufe/" + query, tenant, _user(Membership.ROLE_OWNER))
+
+
+def _drawer_hidden(html):
+    bar = _bar(html)
+    drawer = bar[bar.index("data-lf-drawer") :]
+    return re.findall(r'<input type="hidden" name="([^"]+)" value="([^"]*)">', drawer)
+
+
+def test_order_list_bar_keeps_tab_view_and_counter_filter():
+    html = _sales("bakery", "?tab=order&view=liste&zahlung=offen&q=Brot").content.decode()
+    bar = _bar(html)
+    assert "onchange" not in bar and 'name="status"' in bar and 'name="versand"' in bar
+    sent = _drawer_hidden(html)
+    assert ("tab", "order") in sent and ("view", "liste") in sent
+    assert ("zahlung", "offen") in sent and ("q", "Brot") in sent  # W0
+    assert "data-flt-pill" in bar  # фильтр счётчика виден и снимаем
+
+
+def test_generic_list_bar_forces_tab_and_view_when_url_has_none():
+    """Список открыт со вкладкой по умолчанию — поиск/шторка всё равно остаются в нём."""
+    resp = _sales("hotel", "?view=liste")
+    html = resp.content.decode()
+    bar = _bar(html)
+    assert 'name="status"' in bar and "onchange" not in bar
+    sent = dict(_drawer_hidden(html))
+    assert sent.get("view") == "liste" and sent.get("tab")

@@ -17,6 +17,7 @@ import logging
 from django.utils.translation import gettext_lazy as _
 
 from . import archetypes, status_registry, transactions
+from . import list_filters as lfm
 
 logger = logging.getLogger(__name__)
 
@@ -563,6 +564,23 @@ def order_list_queryset(params, contact_search: bool = True):
     return qs, status, q, versand, sort
 
 
+def _list_lf(request, fields, fixed, *, kind, q, sort, sort_options, total):
+    """FLT-4c: строка фильтров списка продаж. `fixed` — фильтры, пришедшие со
+    счётчиков главной: их нет в шторке (там нечего выбирать), но они видны
+    пилюлей ✕ и переживают поиск/сортировку/шторку (W0)."""
+    return lfm.build(
+        request,
+        fields,
+        search_value=q,
+        search_label=_("Suche: Code, Name, E-Mail"),
+        sort_value=sort,
+        sort_options=sort_options,
+        total=total,
+        force=(("tab", kind), ("view", "liste")),
+        fixed=fixed,
+    )
+
+
 def body_context(request, kind: str, view: str) -> dict:
     """X3: контекст ТЕЛА поверхности продаж (движок по (view, kind)).
 
@@ -661,6 +679,39 @@ def body_context(request, kind: str, view: str) -> dict:
         ctx["order_statuses"] = Order.STATUSES
         ctx["order_status"] = status
         ctx["order_q"] = q
+        # FLT-4c: строка фильтров — статус и «только доставка» в шторке, фильтр
+        # счётчика главной (abholung/zahlung) — пилюлей ✕; поиск и сорт — в строке.
+        counter = order_counters.active_label(request.GET)
+        counter_fields = []
+        if (request.GET.get("abholung") or "").strip() == "heute":
+            counter_fields.append(lfm.Field("abholung", counter, options=(("heute", ""),)))
+        if (request.GET.get("zahlung") or "").strip() == "offen":
+            counter_fields.append(lfm.Field("zahlung", counter, options=(("offen", ""),)))
+        ctx["list_lf"] = _list_lf(
+            request,
+            [
+                lfm.Field(
+                    "status",
+                    _("Status"),
+                    options=tuple(Order.STATUSES),
+                    value=status,
+                    empty_label=_("All statuses"),
+                ),
+                lfm.Field(
+                    "versand",
+                    _("Lieferung"),
+                    options=(("1", _("Nur Lieferungen")),),
+                    value="1" if versand else "",
+                    empty_label=_("Alle"),
+                ),
+            ],
+            counter_fields,
+            kind="order",
+            q=q,
+            sort=sort,
+            sort_options=ctx["list_sort_options"],
+            total=page.total,
+        )
     else:  # generic Liste по нормализованным транзакциям kind
         # W7c: список — по дате СОБЫТИЯ (заезд/начало), не по дате создания:
         # «сегодняшние брони» иначе тонули под старыми, созданными позже.
@@ -698,6 +749,24 @@ def body_context(request, kind: str, view: str) -> dict:
                 ctx["bulk_options"] = bulk
         ctx["list_q"] = q
         ctx["list_status"] = status
+        ctx["list_lf"] = _list_lf(
+            request,
+            [
+                lfm.Field(
+                    "status",
+                    _("Status"),
+                    options=tuple(options),
+                    value=status,
+                    empty_label=_("All statuses"),
+                )
+            ],
+            [],
+            kind=kind,
+            q=q,
+            sort=sort,
+            sort_options=ctx["list_sort_options"],
+            total=ctx["page"].total if ctx["page"] is not None else None,
+        )
         ctx["list_status_options"] = options
     return ctx
 
