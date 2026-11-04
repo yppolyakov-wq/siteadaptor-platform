@@ -16,12 +16,16 @@ from apps.aggregator import views as aggregator_views
 from apps.aggregator.mcp import views as mcp_views
 from apps.core import health
 from apps.core.media_views import serve_media
+from apps.tenants.demo_images import demo_image_view
 from apps.tenants.views import set_public_language
 
 urlpatterns = [
     path("", portal_views.portal_home, name="portal-home"),
     # Health-пробы должны отвечать и на хосте портала (мониторинг/Caddy).
     # Стоят до <facet>, иначе сегмент ушёл бы в уточнение и дал 404.
+    # PIMG: плейсхолдеры демо-бизнесов. Снимок листинга хранит относительный
+    # /medien/demo.svg — без маршрута здесь карточка каталога города давала 404.
+    path("medien/demo.svg", demo_image_view, name="demo-image"),
     path("health/", health.liveness, name="health"),
     path("health/ready/", health.readiness, name="health-ready"),
     # SEO портала (P2.1c): sitemap/robots по хосту портала.

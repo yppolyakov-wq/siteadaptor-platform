@@ -21,6 +21,7 @@ from apps.platform_bot import miniapp as platform_bot_miniapp
 from apps.platform_bot import webhook as platform_bot_webhook
 from apps.publishing import views as publishing_views
 from apps.tenants import quickstart_views
+from apps.tenants.demo_images import demo_image_view
 from apps.tenants.views import (
     BusinessSignupView,
     about_page,
@@ -57,6 +58,9 @@ urlpatterns = [
     # R5: платформенная BI-панель (MRR/churn/LTV) — только суперадмин (staff).
     path("plattform/bi/", billing_views.platform_bi, name="platform-bi"),
     path("entdecken/", aggregator_views.discover_index, name="aggregator-index"),
+    # PIMG: плейсхолдеры демо-бизнесов. Снимок листинга хранит относительный
+    # /medien/demo.svg — без маршрута здесь карточка каталога города давала 404.
+    path("medien/demo.svg", demo_image_view, name="demo-image"),
     # FD-4: платформенный Finder — ВЫШЕ catch-all города (иначе «finder» = city).
     path("entdecken/finder/", aggregator_views.platform_finder, name="aggregator-finder"),
     # MEN-12: отложенные предложения и их сравнение (сессия, без аккаунта) —

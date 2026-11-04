@@ -189,6 +189,20 @@ def _logo_image(tenant) -> dict:
     return {"url": tenant.logo_url} if getattr(tenant, "logo_url", "") else {}
 
 
+def _own_image(url: str, tenant) -> dict:
+    """PIMG: своё фото номера/события/тура → логотип → баннер витрины.
+
+    Раньше stay/event/tour брали ТОЛЬКО логотип: фото, загруженное к событию, в
+    каталог города не попадало, а у бизнеса без логотипа карточка была пустой."""
+    if url:
+        return {"url": url}
+    logo = _logo_image(tenant)
+    if logo:
+        return logo
+    hero = (getattr(tenant, "site_config", None) or {}).get("hero_image") or ""
+    return {"url": hero} if hero else {}
+
+
 def _tenant_base_defaults(tenant) -> dict:
     """Денормализованные поля бизнеса, общие для всех видов листинга."""
     return {
@@ -367,6 +381,7 @@ def _stay_snapshot(unit_id):
         "title": {"de": unit.name},
         "teaser": {"de": (unit.description or "")[:300]} if unit.description else {},
         "new_price": (Decimal(unit.price_cents) / 100) if unit.price_cents else None,
+        "image_url": unit.image_url,
     }
 
 
@@ -398,7 +413,7 @@ def sync_stay_listing(tenant_schema, unit_id) -> str:
             "promo_uuid": None,
             "title": snap["title"],
             "teaser": snap["teaser"],
-            "image": _logo_image(tenant),
+            "image": _own_image(snap["image_url"], tenant),
             "new_price": snap["new_price"],
             "old_price": None,
             "price_reference": "",  # SF-8a: смена вида не оставляет старое значение
@@ -439,6 +454,7 @@ def _event_snapshot(event_id):
         "new_price": (Decimal(event.price_cents) / 100) if event.price_cents else None,
         "starts_at": event.starts_at,
         "ends_at": event.ends_at,
+        "image_url": event.image_url,
         "category": event.category or "",  # R2b направление для фильтра агрегатора
         "city": event.city or "",  # R2b город события (точнее, чем город бизнеса)
         # T-8.26 п.3: мест нет (ёмкость или все тиры) → «Ausverkauft» в каталоге города
@@ -474,7 +490,7 @@ def sync_event_group_listing(tenant_schema, group_ref) -> str:
         "source_ref": group_ref,
     }
     nearest_id = None
-    tour_slug = tour_title = ""
+    tour_slug = tour_title = tour_image = ""
     with schema_context(tenant_schema):
         from apps.events.models import Event
 
@@ -487,6 +503,7 @@ def sync_event_group_listing(tenant_schema, group_ref) -> str:
             if kind_val == "tour" and nearest.tour_id:
                 tour_slug = nearest.tour.slug
                 tour_title = nearest.tour.title
+                tour_image = nearest.tour.image_url
         snap = _event_snapshot(nearest_id) if nearest_id else None
         if snap is not None:
             # T-8.26 п.3: группа распродана, только если распроданы ВСЕ будущие заезды —
@@ -519,7 +536,7 @@ def sync_event_group_listing(tenant_schema, group_ref) -> str:
             "promo_uuid": None,
             "title": {"de": tour_title} if tour_title else snap["title"],
             "teaser": snap["teaser"],
-            "image": _logo_image(tenant),
+            "image": _own_image(tour_image or snap["image_url"], tenant),
             "new_price": snap["new_price"],
             "old_price": None,
             "price_reference": "",  # SF-8a: смена вида не оставляет старое значение
@@ -585,7 +602,7 @@ def sync_event_listing(tenant_schema, event_id) -> str:
             "promo_uuid": None,
             "title": snap["title"],
             "teaser": snap["teaser"],
-            "image": _logo_image(tenant),
+            "image": _own_image(snap["image_url"], tenant),
             "new_price": snap["new_price"],
             "old_price": None,
             "price_reference": "",  # SF-8a: смена вида не оставляет старое значение
