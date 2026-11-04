@@ -25,7 +25,7 @@
 <div class="flex gap-2 mb-3 overflow-x-auto sm:overflow-visible sm:flex-wrap py-1 -mx-1 px-1" role="group" aria-label="{% trans 'Status' %}">
   {% for value, label, n in inv_chips %}
     <a href="{% query_with 'status' value %}" data-invoice-chip="{{ value|default:'alle' }}"
-       class="shrink-0 rounded-full px-3.5 py-2 text-sm font-medium {% if inv_filters.status == value %}bg-gray-900 text-white shadow-sm{% else %}bg-white text-gray-600 shadow-[0_3px_10px_rgba(22,24,29,0.05)] hover:bg-gray-50{% endif %}"
+       class="shrink-0 rounded-full px-3.5 py-2 text-sm font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 {% if inv_filters.status == value %}bg-gray-900 text-white shadow-sm{% else %}bg-white text-gray-600 shadow-[0_3px_10px_rgba(22,24,29,0.05)] hover:bg-gray-50{% endif %}"
        {% if inv_filters.status == value %}aria-current="true"{% endif %}>{{ label }} <span class="tabular-nums opacity-70">{{ n }}</span></a>
   {% endfor %}
 </div>

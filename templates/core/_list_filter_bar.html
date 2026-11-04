@@ -12,10 +12,10 @@
     </form>
     {% endif %}
     {% if lf.fields %}
-    <a href="#flt-drawer" data-flt-open="" class="ui-btn {% if lf.active_count %}ui-btn-primary{% else %}ui-btn-secondary{% endif %}">
+    <button type="button" data-flt-open="" aria-haspopup="dialog" aria-controls="flt-drawer" class="ui-btn {% if lf.active_count %}ui-btn-primary{% else %}ui-btn-secondary{% endif %}">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="4" y1="7" x2="20" y2="7"></line><line x1="4" y1="12" x2="20" y2="12"></line><line x1="4" y1="17" x2="20" y2="17"></line></svg>
-      {% trans "Filter" %}{% if lf.active_count %} · {{ lf.active_count }}<span class="sr-only"> {% trans "aktiv" %}</span>{% endif %}
-    </a>
+      {% trans "Filter" %}{% if lf.active_count %} <span aria-hidden="true">·</span> {{ lf.active_count }}<span class="sr-only"> {% trans "aktiv" %}</span>{% endif %}
+    </button>
     {% endif %}
     {% if lf.sort_options %}
     <form method="get" class="flex items-center gap-2 sm:ml-auto text-sm" data-lf-sort>
@@ -32,16 +32,16 @@
 
   {% if lf.total is not None or lf.pills %}
   <div class="mt-2 flex flex-wrap items-center gap-2 text-sm">
-    {% if lf.total is not None %}<p role="status" class="font-semibold text-gray-900 mr-1" data-hit-count>{% blocktrans count n=lf.total %}{{ n }} Treffer{% plural %}{{ n }} Treffer{% endblocktrans %}</p>{% endif %}
+    {% if lf.total is not None %}<p class="font-semibold text-gray-900 mr-1" data-hit-count>{% blocktrans count n=lf.total %}{{ n }} Treffer{% plural %}{{ n }} Treffer{% endblocktrans %}</p>{% endif %}
     {% for p in lf.pills %}
-      <a href="{{ p.url }}" data-flt-pill class="inline-flex items-center gap-1.5 rounded-full bg-gray-900 text-white px-3 py-1.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900">{{ p.label }} <span aria-hidden="true">✕</span><span class="sr-only">{% trans "Filter entfernen" %}</span></a>
+      <a href="{{ p.url }}" data-flt-pill class="inline-flex items-center gap-1.5 min-h-[44px] sm:min-h-0 rounded-full bg-gray-900 text-white px-3 py-1.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900">{{ p.label }} <span aria-hidden="true">✕</span><span class="sr-only">{% trans "Filter entfernen" %}</span></a>
     {% endfor %}
-    {% if lf.any_active %}<a href="{{ lf.reset_url }}" class="text-gray-500 hover:text-gray-800 underline-offset-2 hover:underline">{% trans "Filter zurücksetzen" %}</a>{% endif %}
+    {% if lf.any_active %}<a href="{{ lf.reset_url }}" class="inline-flex items-center min-h-[44px] sm:min-h-[24px] px-1 text-gray-500 hover:text-gray-800 underline-offset-2 hover:underline">{% trans "Filter zurücksetzen" %}</a>{% endif %}
   </div>
   {% endif %}
 
   {% if lf.fields %}
-  <noscript><style>#flt-drawer{display:block;position:static;width:auto;height:auto;max-height:none;margin-top:1rem;box-shadow:none;border-radius:var(--ui-r-card)}</style></noscript>
+  <noscript><style>#flt-drawer{display:block;position:static;width:auto;height:auto;max-height:none;margin-top:1rem;box-shadow:none;border-radius:var(--ui-r-card)}#flt-drawer .ui-drawer-close{display:none}</style></noscript>
   <dialog id="flt-drawer" class="ui-drawer" aria-labelledby="flt-drawer-title">
     <form method="get" class="flex flex-col flex-1 min-h-0" data-lf-drawer>
       {% for k, v in lf.drawer_hidden %}<input type="hidden" name="{{ k }}" value="{{ v }}">{% endfor %}
@@ -60,8 +60,8 @@
             <fieldset>
               <legend class="text-sm font-medium mb-2">{{ f.label }}</legend>
               <div class="flex flex-wrap gap-2">
-                <label class="inline-flex items-center gap-2 px-3 py-2 rounded-full border border-gray-300 text-sm cursor-pointer has-[:checked]:bg-gray-900 has-[:checked]:text-white has-[:checked]:border-gray-900 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-gray-900"><input type="radio" name="{{ f.key }}" value="" class="sr-only"{% if not f.value %} checked{% endif %}>{{ f.empty_label|default:_("Alle") }}</label>
-                {% for value, label in f.options %}<label class="inline-flex items-center gap-2 px-3 py-2 rounded-full border border-gray-300 text-sm cursor-pointer has-[:checked]:bg-gray-900 has-[:checked]:text-white has-[:checked]:border-gray-900 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-gray-900"><input type="radio" name="{{ f.key }}" value="{{ value }}" class="sr-only"{% if f.value == value %} checked{% endif %}>{{ label }}</label>{% endfor %}
+                <label class="group inline-flex items-center gap-1.5 min-h-[44px] sm:min-h-0 px-3 py-2 rounded-full border border-gray-300 text-sm cursor-pointer has-[:checked]:bg-gray-900 has-[:checked]:text-white has-[:checked]:border-gray-900 has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-indigo-600"><span aria-hidden="true" class="hidden group-has-[:checked]:inline">✓</span><input type="radio" name="{{ f.key }}" value="" class="sr-only"{% if not f.value %} checked{% endif %}>{{ f.empty_label|default:_("Alle") }}</label>
+                {% for value, label in f.options %}<label class="group inline-flex items-center gap-1.5 min-h-[44px] sm:min-h-0 px-3 py-2 rounded-full border border-gray-300 text-sm cursor-pointer has-[:checked]:bg-gray-900 has-[:checked]:text-white has-[:checked]:border-gray-900 has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-indigo-600"><span aria-hidden="true" class="hidden group-has-[:checked]:inline">✓</span><input type="radio" name="{{ f.key }}" value="{{ value }}" class="sr-only"{% if f.value == value %} checked{% endif %}>{{ label }}</label>{% endfor %}
               </div>
             </fieldset>
           {% else %}
