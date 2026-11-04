@@ -10,11 +10,15 @@
   // document, а повторное подключение файла — no-op.
   if (window.__fltInit) return;
   window.__fltInit = true;
-  var drawer = document.getElementById("flt-drawer");
+  // шторку ищем в момент действия: строка могла быть перерисована (fetch-своп)
+  function getDrawer() {
+    return document.getElementById("flt-drawer");
+  }
   var opener = null;
   var mobile = window.matchMedia("(max-width: 639px)");
 
   function openDrawer(section, from) {
+    var drawer = getDrawer();
     if (!drawer || typeof drawer.showModal !== "function") return false;
     opener = from || document.activeElement;
     drawer.showModal();
@@ -32,18 +36,20 @@
   }
 
   function closeDrawer() {
+    var drawer = getDrawer();
     if (drawer && drawer.open) drawer.close();
   }
 
-  if (drawer) {
-    drawer.addEventListener("close", function () {
-      if (opener && typeof opener.focus === "function") opener.focus();
+  // close не всплывает — ловим на фазе захвата
+  document.addEventListener(
+    "close",
+    function (e) {
+      if (!e.target || e.target.id !== "flt-drawer") return;
+      if (opener && opener.isConnected && typeof opener.focus === "function") opener.focus();
       opener = null;
-    });
-    drawer.addEventListener("click", function (e) {
-      if (e.target === drawer) closeDrawer(); // клик по затемнению
-    });
-  }
+    },
+    true
+  );
 
   // С JS ссылка «Alle Filter» и пилюли ▾ на телефоне открывают диалог — так и называем
   document.querySelectorAll("[data-flt-open]").forEach(function (a) {
@@ -60,6 +66,10 @@
   if (mobile.addEventListener) mobile.addEventListener("change", syncSummaries);
 
   document.addEventListener("click", function (e) {
+    if (e.target.id === "flt-drawer") {
+      closeDrawer(); // клик по затемнению
+      return;
+    }
     var open = e.target.closest("[data-flt-open]");
     if (open && openDrawer("", open)) {
       e.preventDefault();

@@ -1,11 +1,12 @@
 {% load i18n static %}{% comment %}FLT-4b: строка фильтров списка кабинета (контекст `lf` — apps.core.list_filters.build).
 Поиск виден всегда; остальные фильтры — в шторке «Filter» (одна GET-форма). Сортировка — с кнопкой
 «OK», без отправки по change (WCAG 3.2.2). Без JS шторка — обычная форма под строкой.
-Поведение шторки — общий static/js/portal.js (тот же, что у портала).{% endcomment %}
+Поведение шторки — общий static/js/portal.js (тот же, что у портала). Одна строка на страницу:
+id шторки `flt-drawer` — единственный (portal.js ищет его по id).{% endcomment %}
 <div data-flt data-list-filters class="mb-4">
   <div class="flex flex-wrap items-center gap-2">
     {% if lf.search_key %}
-    <form method="get" role="search" class="flex items-center gap-2 flex-1 min-w-[12rem] sm:flex-none" data-lf-search>
+    <form method="get" action="{{ lf.action }}" role="search" class="flex items-center gap-2 flex-1 min-w-[12rem] sm:flex-none" data-lf-search>
       {% for k, v in lf.search_hidden %}<input type="hidden" name="{{ k }}" value="{{ v }}">{% endfor %}
       <input type="search" name="{{ lf.search_key }}" value="{{ lf.search_value }}" aria-label="{{ lf.search_label }}" placeholder="{{ lf.search_label }}" class="ui-input w-full sm:w-64">
       <button type="submit" class="ui-btn ui-btn-secondary" aria-label="{% trans 'Suchen' %}">🔍</button>
@@ -18,7 +19,7 @@
     </button>
     {% endif %}
     {% if lf.sort_options %}
-    <form method="get" class="flex items-center gap-2 sm:ml-auto text-sm" data-lf-sort>
+    <form method="get" action="{{ lf.action }}" class="flex items-center gap-2 sm:ml-auto text-sm" data-lf-sort>
       {% for k, v in lf.sort_hidden %}<input type="hidden" name="{{ k }}" value="{{ v }}">{% endfor %}
       <label for="lf-sort" class="ui-muted">{% trans "Sortieren" %}:</label>
       <select id="lf-sort" name="{{ lf.sort_key }}" class="ui-input w-auto">
@@ -34,16 +35,16 @@
   <div class="mt-2 flex flex-wrap items-center gap-2 text-sm">
     {% if lf.total is not None %}<p class="font-semibold text-gray-900 mr-1" data-hit-count>{% blocktrans count n=lf.total %}{{ n }} Treffer{% plural %}{{ n }} Treffer{% endblocktrans %}</p>{% endif %}
     {% for p in lf.pills %}
-      <a href="{{ p.url }}" data-flt-pill class="inline-flex items-center gap-1.5 min-h-[44px] sm:min-h-0 rounded-full bg-gray-900 text-white px-3 py-1.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900">{{ p.label }} <span aria-hidden="true">✕</span><span class="sr-only">{% trans "Filter entfernen" %}</span></a>
+      <a href="{{ lf.action }}{{ p.url }}" data-flt-pill class="inline-flex items-center gap-1.5 min-h-[44px] sm:min-h-0 rounded-full bg-gray-900 text-white px-3 py-1.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900">{{ p.label }} <span aria-hidden="true">✕</span><span class="sr-only">{% trans "Filter entfernen" %}</span></a>
     {% endfor %}
-    {% if lf.any_active %}<a href="{{ lf.reset_url }}" class="inline-flex items-center min-h-[44px] sm:min-h-[24px] px-1 text-gray-500 hover:text-gray-800 underline-offset-2 hover:underline">{% trans "Filter zurücksetzen" %}</a>{% endif %}
+    {% if lf.any_active %}<a href="{{ lf.action }}{{ lf.reset_url }}" class="inline-flex items-center min-h-[44px] sm:min-h-[24px] px-1 text-gray-500 hover:text-gray-800 underline-offset-2 hover:underline">{% trans "Filter zurücksetzen" %}</a>{% endif %}
   </div>
   {% endif %}
 
   {% if lf.fields %}
   <noscript><style>#flt-drawer{display:block;position:static;width:auto;height:auto;max-height:none;margin-top:1rem;box-shadow:none;border-radius:var(--ui-r-card)}#flt-drawer .ui-drawer-close{display:none}</style></noscript>
   <dialog id="flt-drawer" class="ui-drawer" aria-labelledby="flt-drawer-title">
-    <form method="get" class="flex flex-col flex-1 min-h-0" data-lf-drawer>
+    <form method="get" action="{{ lf.action }}" class="flex flex-col flex-1 min-h-0" data-lf-drawer>
       {% for k, v in lf.drawer_hidden %}<input type="hidden" name="{{ k }}" value="{{ v }}">{% endfor %}
       <div class="ui-drawer-head">
         <h2 id="flt-drawer-title" class="ui-drawer-title">{% trans "Filter" %}</h2>
@@ -76,7 +77,7 @@
         {% endfor %}
         <div class="ui-drawer-foot">
           <button type="submit" class="ui-btn ui-btn-primary">{% trans "Anzeigen" %}</button>
-          <a href="{{ lf.reset_url }}" class="ui-btn ui-btn-secondary">{% trans "Filter zurücksetzen" %}</a>
+          <a href="{{ lf.action }}{{ lf.reset_url }}" class="ui-btn ui-btn-secondary">{% trans "Filter zurücksetzen" %}</a>
         </div>
       </div>
     </form>

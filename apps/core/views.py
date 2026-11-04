@@ -280,6 +280,10 @@ def dashboard(request):
 
         loop_ctx["pager_base"] = reverse("verkaeufe")
         loop_ctx["pager_params"] = {"tab": loop_kind, "view": loop_view}
+        # FLT-4: фильтры списка на главной ведут туда же, куда пейджер (главная их
+        # не листает) — иначе «стр. 2» теряла бы поиск/статус/сортировку.
+        if loop_ctx.get("list_lf") is not None:
+            loop_ctx["list_lf"].action = loop_ctx["pager_base"]
     from apps.core import freshness
 
     ctx = {
@@ -5687,7 +5691,7 @@ def sellable_manage(request):
         import uuid as _uuid
 
         try:
-            _uuid.UUID(category)
+            category = str(_uuid.UUID(category))  # FLT-4: каноническая форма — селект и пилюля
         except ValueError:
             category = ""
     active = request.GET.get("status") or ""

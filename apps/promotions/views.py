@@ -1427,6 +1427,9 @@ def reservation_list(request):
     qs = Reservation.objects.select_related("promotion", "customer").all()
     status = request.GET.get("status", "")
     promotion_id = request.GET.get("promotion", "")
+    # FLT-4: мусорный статус не фильтрует молча в пустой список (пилюли у него нет)
+    if status and status != "offen" and status not in RESERVATION_STATUSES:
+        status = ""
     if status == "offen":
         # T-8.30e: «offen» = ждут продавца (как счётчик «N offen»: встроенные + свои
         # статусы, держащие товар), ближайший срок первым.

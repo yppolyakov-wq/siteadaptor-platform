@@ -62,6 +62,7 @@ class ListFilters:
     search_hidden: list = field(default_factory=list)
     sort_hidden: list = field(default_factory=list)
     reset_url: str = "?"
+    action: str = ""  # пусто — текущая страница; главная кабинета ведёт в «Verkäufe»
 
     @property
     def active_count(self) -> int:
@@ -116,6 +117,10 @@ def build(
         if value and not params.get(key):
             params[key] = value
     fields = list(fields)
+    # мусор в адресе (поле очищено вьюхой до «») не переносим дальше невидимым
+    for f in fields:
+        if not f.value:
+            params.pop(f.key, None)
     field_keys = {f.key for f in fields}
     lf = ListFilters(
         fields=fields,

@@ -162,3 +162,39 @@ def test_reservation_bar_without_search_and_junk_promotion_is_ignored():
     assert resp.status_code == 200
     bar = _bar(resp.content.decode())
     assert 'role="search"' not in bar and 'name="promotion"' in bar and "onchange" not in bar
+
+
+# --- ревью FLT-4 --------------------------------------------------------------------------
+
+
+def test_junk_filter_value_is_not_carried_invisibly():
+    request = RequestFactory().get("/x/?art=zzz&q=Brot")
+    lf = lfm.build(
+        request,
+        [lfm.Field("art", "Art", options=FIELDS[0][2], value="")],  # вьюха очистила мусор
+        search_value="Brot",
+    )
+    assert not any(k == "art" for k, _ in lf.search_hidden + lf.sort_hidden + lf.drawer_hidden)
+
+
+def test_junk_reservation_status_does_not_silently_empty_the_list():
+    from apps.core.models import Membership
+    from apps.core.tests.test_staff_walk import _open, _tenant, _user
+
+    html = _open(
+        "/promotions/reservations/?status=garbage", _tenant("bakery"), _user(Membership.ROLE_OWNER)
+    ).content.decode()
+    bar = _bar(html)
+    assert "data-flt-pill" not in bar  # фильтра нет — и список не отфильтрован им
+
+
+def test_bar_action_prefixes_forms_pills_and_reset():
+    """Главная листает «Verkäufe» — её строка фильтров ведёт туда же (lf.action)."""
+    from django.template.loader import render_to_string
+
+    lf = _build("tab=order&view=liste&art=credit&q=Brot")
+    lf.action = "/dashboard/verkaeufe/"
+    html = render_to_string("core/_list_filter_bar.html", {"lf": lf})
+    assert html.count('action="/dashboard/verkaeufe/"') == 2  # поиск + шторка (сорта нет)
+    assert 'href="/dashboard/verkaeufe/?' in html
+    assert 'href="?' not in html.replace('href="#', "")
