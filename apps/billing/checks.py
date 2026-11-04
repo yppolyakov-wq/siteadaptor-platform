@@ -28,6 +28,28 @@ def stripe_webhook_secret_set(app_configs, **kwargs):
 
 
 @register(Tags.security, deploy=True)
+def stripe_connect_webhook_secret_set(app_configs, **kwargs):
+    """Connect включён, а секрета эндпоинта подключённых аккаунтов нет — оплаты
+    клиентов (заказы, депозиты, билеты) не подтвердятся: подпись не сойдётся."""
+    from django.core.checks import Warning as CheckWarning
+
+    if not getattr(settings, "STRIPE_CONNECT_CLIENT_ID", ""):
+        return []
+    secret = getattr(settings, "STRIPE_CONNECT_WEBHOOK_SECRET", "") or ""
+    if secret.startswith("whsec_"):
+        return []
+    return [
+        CheckWarning(
+            "STRIPE_CONNECT_CLIENT_ID задан, а STRIPE_CONNECT_WEBHOOK_SECRET — нет.",
+            hint="Stripe Dashboard → Webhooks → endpoint «Connected accounts» → Signing secret "
+            "→ .env.prod (STRIPE_CONNECT_WEBHOOK_SECRET=whsec_…). Без него оплаты клиентов "
+            "не подтверждаются.",
+            id="billing.W002",
+        )
+    ]
+
+
+@register(Tags.security, deploy=True)
 def email_backend_not_console(app_configs, **kwargs):
     """SEC (ревью аудита, SM13): с консольным почтовым бэкендом страница «проверьте
     почту» показывает ссылку подтверждения прямо в браузере (`signup.show_direct_link`) —

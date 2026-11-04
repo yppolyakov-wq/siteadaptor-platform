@@ -82,31 +82,44 @@ def redirect_uri(provider: str) -> str:
     return f"{callback_base()}/oauth/{provider}/callback/"
 
 
-def make_state(schema: str, provider: str) -> str:
-    return signing.dumps({"s": schema, "p": provider}, salt=_STATE_SALT)
+#: SEC-C-M1: ключ сессии кабинета с одноразовым кодом начатого подключения.
+SESSION_NONCE_KEY = "channel_oauth_nonce:{provider}"
 
 
-def read_state(state: str, provider: str) -> str | None:
-    """Вернуть схему арендатора из state или None (битый/просроченный/чужой провайдер)."""
+def make_state(schema: str, provider: str, nonce: str = "", host: str = "") -> str:
+    """state = подписанные схема + провайдер + одноразовый код сессии + хост кабинета."""
+    return signing.dumps({"s": schema, "p": provider, "n": nonce, "h": host}, salt=_STATE_SALT)
+
+
+def read_state_data(state: str, provider: str) -> dict | None:
+    """Данные state или None (битый/просроченный/чужой провайдер)."""
     try:
         data = signing.loads(state, salt=_STATE_SALT, max_age=_STATE_MAX_AGE)
     except (signing.BadSignature, signing.SignatureExpired):
         return None
-    return data.get("s") if data.get("p") == provider else None
+    if not isinstance(data, dict) or data.get("p") != provider or not data.get("s"):
+        return None
+    return data
+
+
+def read_state(state: str, provider: str) -> str | None:
+    """Вернуть схему арендатора из state или None (битый/просроченный/чужой провайдер)."""
+    data = read_state_data(state, provider)
+    return data["s"] if data else None
 
 
 def _meta_version() -> str:
     return getattr(settings, "META_GRAPH_API_VERSION", "v21.0")
 
 
-def authorize_url(provider: str, schema: str) -> str:
+def authorize_url(provider: str, schema: str, nonce: str = "", host: str = "") -> str:
     cfg = PROVIDERS[provider]
     params = {
         "client_id": _cred(cfg["client_id"]),
         "redirect_uri": redirect_uri(provider),
         "response_type": "code",
         "scope": cfg["scope"],
-        "state": make_state(schema, provider),
+        "state": make_state(schema, provider, nonce, host),
         **cfg["authorize_extra"],
     }
     # У Meta authorize_url содержит {version}; у прочих плейсхолдеров нет (no-op).
@@ -232,6 +245,22 @@ def _meta_complete(schema: str, code: str) -> None:
         _store_meta_channel(
             schema, "instagram", {"ig_user_id": iba["id"], "access_token": page["access_token"]}
         )
+
+
+def tenant_origin(schema: str, host: str = "") -> str:
+    """https-origin кабинета арендатора: хост, с которого начали (если это домен ЭТОГО
+    бизнеса — там его сессия), иначе основной домен. Чужой хост из state не принимается."""
+    from django_tenants.utils import schema_context
+
+    from apps.tenants.models import Domain
+
+    bare = (host or "").split(":", 1)[0].strip().lower()
+    with schema_context("public"):
+        domains = Domain.objects.filter(tenant__schema_name=schema)
+        if bare and domains.filter(domain__iexact=bare).exists():
+            return f"https://{bare}"
+        domain = domains.filter(is_primary=True).first() or domains.first()
+    return f"https://{domain.domain}" if domain else ""
 
 
 def tenant_channels_url(schema: str) -> str:

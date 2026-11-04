@@ -470,6 +470,12 @@ c) история броней (email-связка с Customer) → d) наст�
 
 ## Отложено / заметки на будущее
 
+- **(2026-11-04, решение владельца «позже») Копия бэкапа вне сервера.** Ночной
+  `scripts/backup.sh single` (cron 03:17, восстановление проверено) кладёт дамп и медиа
+  только на тот же сервер. Внешняя копия включается без кода: в `.env.prod`
+  `BACKUP_S3_BUCKET` + `AWS_S3_ENDPOINT_URL`/`AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY`
+  (Hetzner Object Storage). Отдельный бакет/ключ только на запись — желательно.
+
 - **KA-12 Z-5 — хвосты стойки (2026-10-25, ревью).** (1) Старая кнопка «Abgereist»
   (`action=fulfilled`) и доска переводят бронь в выезд без права `rezeption.edit` — свести гейт
   в `apply_action` для kind stay. (2) Индекс `(status, departure)` у `StayBooking` — когда броней

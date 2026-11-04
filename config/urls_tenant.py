@@ -481,6 +481,11 @@ urlpatterns = [
         publishing_views.oauth_start,
         name="channel-oauth-start",
     ),
+    path(
+        "dashboard/channels/connect/<str:provider>/finish/",
+        publishing_views.oauth_finish,
+        name="channel-oauth-finish",
+    ),
     # Каталог в кабинете владельца.
     path("catalog/", include("apps.catalog.urls")),
     # CSV-импорт товаров.

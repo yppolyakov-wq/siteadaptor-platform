@@ -299,6 +299,7 @@ RULES: dict[str, Rule] = {
     "channel-config": _r("kanaele.edit"),
     "channel-disconnect": _r("kanaele.edit"),  # UX-D D6.6
     "channel-oauth-start": _r("kanaele.edit"),
+    "channel-oauth-finish": _r("kanaele.edit"),
     "channel-toggle": _r("kanaele.edit"),
     "gbp-sync": _r("kanaele.edit"),
     "gbp-location": _r("kanaele.edit"),

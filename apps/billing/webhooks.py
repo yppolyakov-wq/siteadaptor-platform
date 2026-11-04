@@ -331,6 +331,19 @@ def handle_event(event_type: str, obj: dict, account: str = "") -> None:
             services.activate_subscription(tenant, ends_at=ends_at)
 
 
+def _webhook_secrets() -> list[str]:
+    """Секреты подписи: эндпоинт платформы и эндпоинт подключённых аккаунтов (Connect).
+
+    У Stripe это два разных эндпоинта на один URL, у каждого свой Signing secret.
+    Что событие с аккаунта бизнеса делает только своё, проверяет `handle_event`
+    (SEC-D1: `event.account` против `stripe_connect_id` тенанта)."""
+    secrets = [settings.STRIPE_WEBHOOK_SECRET]
+    connect = getattr(settings, "STRIPE_CONNECT_WEBHOOK_SECRET", "") or ""
+    if connect and connect not in secrets:
+        secrets.append(connect)
+    return secrets
+
+
 @csrf_exempt
 @require_POST
 def stripe_webhook(request):
@@ -342,11 +355,16 @@ def stripe_webhook(request):
         # любую подделку. Без секрета вебхук выключен (503 → Stripe повторит после настройки).
         logger.error("stripe webhook: STRIPE_WEBHOOK_SECRET is not configured")
         return HttpResponse(status=503)
-    try:
-        event = stripe.Webhook.construct_event(payload, sig, settings.STRIPE_WEBHOOK_SECRET)
-    except ValueError:
-        return HttpResponseBadRequest("invalid payload")
-    except stripe.error.SignatureVerificationError:
+    event = None
+    for secret in _webhook_secrets():
+        try:
+            event = stripe.Webhook.construct_event(payload, sig, secret)
+            break
+        except ValueError:
+            return HttpResponseBadRequest("invalid payload")
+        except stripe.error.SignatureVerificationError:
+            continue  # подпись другого эндпоинта (платформа / подключённые аккаунты)
+    if event is None:
         return HttpResponseBadRequest("invalid signature")
 
     # Дедупликация по event.id: первый приход выигрывает cache.add, повторы — no-op.

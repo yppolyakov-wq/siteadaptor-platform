@@ -73,39 +73,99 @@ def connection_schema():
 # --- вьюхи ------------------------------------------------------------------------
 
 
-def test_oauth_start_redirects_to_provider(monkeypatch):
-    user = type("U", (), {"is_authenticated": True, "is_active": True})()
-    req = RequestFactory().get("/dashboard/channels/connect/pinterest/")
-    req.user = user
+def _req(path, session=None):
+    from django.contrib.messages.storage.fallback import FallbackStorage
+
+    req = RequestFactory().get(path)
+    req.user = type("U", (), {"is_authenticated": True, "is_active": True})()
+    req.session = session if session is not None else {}
+    req._messages = FallbackStorage(req)
+    return req
+
+
+def test_oauth_start_redirects_to_provider_and_binds_the_browser():
+    req = _req("/dashboard/channels/connect/pinterest/")
     resp = views.oauth_start(req, provider="pinterest")
     assert resp.status_code == 302
     assert resp["Location"].startswith("https://www.pinterest.com/oauth/")
+    # SEC-C-M1: одноразовый код в сессии И в state
+    nonce = req.session[oauth.SESSION_NONCE_KEY.format(provider="pinterest")]
+    from urllib.parse import parse_qs, urlsplit
+
+    state = parse_qs(urlsplit(resp["Location"]).query)["state"][0]
+    assert oauth.read_state_data(state, "pinterest")["n"] == nonce
 
 
 def test_oauth_start_unknown_provider_404():
     from django.http import Http404
 
-    user = type("U", (), {"is_authenticated": True, "is_active": True})()
-    req = RequestFactory().get("/x/")
-    req.user = user
     with pytest.raises(Http404):
-        views.oauth_start(req, provider="tiktok")
+        views.oauth_start(_req("/x/"), provider="tiktok")
 
 
-def test_oauth_callback_stores_token(monkeypatch):
+def test_oauth_callback_forwards_to_the_cabinet_without_storing(monkeypatch):
+    """Основной домен токен не сохраняет — передаёт код в кабинет бизнеса."""
     schema = connection_schema()
-    state = oauth.make_state(schema, "pinterest")
-    monkeypatch.setattr(oauth, "exchange_code", lambda provider, code: "pin-token")
-    monkeypatch.setattr(
-        oauth, "tenant_channels_url", lambda s: "https://shop.test/dashboard/channels/"
-    )
+    state = oauth.make_state(schema, "pinterest", "n1", "shop.test")
+    monkeypatch.setattr(oauth, "tenant_origin", lambda s, h: "https://shop.test")
+    monkeypatch.setattr(oauth, "complete", lambda *a: pytest.fail("callback must not store"))
     req = RequestFactory().get(f"/oauth/pinterest/callback/?code=abc&state={state}")
     resp = views.oauth_callback(req, provider="pinterest")
     assert resp.status_code == 302
-    assert decrypted_config(Channel.objects.get(type="pinterest"))["access_token"] == "pin-token"
+    assert resp["Location"].startswith(
+        "https://shop.test/dashboard/channels/connect/pinterest/finish/?"
+    )
+    assert "code=abc" in resp["Location"]
 
 
 def test_oauth_callback_bad_state_400():
     req = RequestFactory().get("/oauth/pinterest/callback/?code=abc&state=bad")
     resp = views.oauth_callback(req, provider="pinterest")
     assert resp.status_code == 400
+
+
+def _finish(state, session):
+    return views.oauth_finish(
+        _req(f"/dashboard/channels/connect/pinterest/finish/?code=abc&state={state}", session),
+        provider="pinterest",
+    )
+
+
+def test_oauth_finish_stores_token_in_the_starting_browser(monkeypatch):
+    schema = connection_schema()
+    monkeypatch.setattr(oauth, "exchange_code", lambda provider, code: "pin-token")
+    session = {oauth.SESSION_NONCE_KEY.format(provider="pinterest"): "n1"}
+    resp = _finish(oauth.make_state(schema, "pinterest", "n1"), session)
+    assert resp.status_code == 302
+    assert decrypted_config(Channel.objects.get(type="pinterest"))["access_token"] == "pin-token"
+    assert not session  # код одноразовый
+
+
+def test_oauth_finish_refuses_a_link_started_in_another_browser(monkeypatch):
+    """Атака: ссылку на согласие, начатую атакующим, открывает жертва. У жертвы в
+    сессии кода нет (или он свой) — токен её страницы не сохраняется."""
+    schema = connection_schema()
+    monkeypatch.setattr(oauth, "complete", lambda *a: pytest.fail("must not store"))
+    attacker_state = oauth.make_state(schema, "pinterest", "attacker-nonce")
+    assert _finish(attacker_state, {}).status_code == 302
+    victim = {oauth.SESSION_NONCE_KEY.format(provider="pinterest"): "victim-nonce"}
+    assert _finish(attacker_state, victim).status_code == 302
+    assert not Channel.objects.filter(type="pinterest", config__has_key="access_token").exists()
+
+
+def test_oauth_finish_refuses_state_of_another_business(monkeypatch):
+    monkeypatch.setattr(oauth, "complete", lambda *a: pytest.fail("must not store"))
+    session = {oauth.SESSION_NONCE_KEY.format(provider="pinterest"): "n1"}
+    _finish(oauth.make_state("other_schema", "pinterest", "n1"), session)
+
+
+def test_tenant_origin_accepts_only_domains_of_that_business():
+    from apps.tenants.models import Domain
+    from apps.tenants.tests.factories import TenantFactory
+
+    tenant = TenantFactory(schema_name="oauth_t", slug="oauth-t")
+    Domain.objects.create(tenant=tenant, domain="laden.example", is_primary=True)
+    Domain.objects.create(tenant=tenant, domain="mein-laden.de", is_primary=False)
+    assert oauth.tenant_origin("oauth_t", "mein-laden.de:443") == "https://mein-laden.de"
+    assert oauth.tenant_origin("oauth_t", "evil.example") == "https://laden.example"
+    assert oauth.tenant_origin("nope", "evil.example") == ""

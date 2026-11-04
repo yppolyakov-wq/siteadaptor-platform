@@ -121,30 +121,71 @@ def channel_disconnect(request):
 
 @login_required
 def oauth_start(request, provider):
-    """Увести владельца на провайдера для выдачи доступа (GBP/Pinterest)."""
+    """Увести владельца на провайдера для выдачи доступа (GBP/Pinterest/Meta).
+
+    SEC-C-M1: в state — одноразовый код, который лежит и в сессии ЭТОГО браузера.
+    Иначе ссылку на согласие, начатую в кабинете атакующего, можно подсунуть
+    жертве: её страница Google/Facebook подключилась бы к чужому бизнесу."""
+    import secrets
+
     if not oauth.supports(provider):
         raise Http404
-    return redirect(oauth.authorize_url(provider, connection.schema_name))
+    nonce = secrets.token_urlsafe(24)
+    request.session[oauth.SESSION_NONCE_KEY.format(provider=provider)] = nonce
+    return redirect(
+        oauth.authorize_url(provider, connection.schema_name, nonce, request.get_host())
+    )
 
 
 def oauth_callback(request, provider):
-    """Единый callback на основном домене (public): code → токен → Channel.config.
+    """Единый callback на основном домене (public): провайдер возвращает сюда.
 
-    Без логина: доверяем подписанному state (схема арендатора). Ошибки —
-    короткой страницей, успех — редирект на каналы арендатора.
-    """
+    Токен здесь НЕ сохраняется: у основного домена нет сессии кабинета, а без неё
+    нельзя проверить, что подключение завершает тот же браузер, что его начал. Код
+    передаётся в кабинет бизнеса (`oauth_finish`), проверка — там."""
+    from urllib.parse import urlencode
+
     if not oauth.supports(provider):
         raise Http404
-    schema = oauth.read_state(request.GET.get("state", ""), provider)
+    state = request.GET.get("state", "")
+    data = oauth.read_state_data(state, provider)
     code = request.GET.get("code", "")
-    if not schema or not code:
+    if not data or not code:
         return HttpResponse(_("Authorization failed. Please try again."), status=400)
+    origin = oauth.tenant_origin(data["s"], data.get("h", ""))
+    if not origin:
+        return HttpResponse(_("Authorization failed. Please try again."), status=400)
+    query = urlencode({"state": state, "code": code})
+    return redirect(f"{origin}/dashboard/channels/connect/{provider}/finish/?{query}")
+
+
+@login_required
+@never_cache
+def oauth_finish(request, provider):
+    """SEC-C-M1: завершение в кабинете — тот же браузер (код из сессии), тот же бизнес."""
+    import hmac
+
+    if not oauth.supports(provider):
+        raise Http404
+    data = oauth.read_state_data(request.GET.get("state", ""), provider)
+    code = request.GET.get("code", "")
+    expected = request.session.pop(oauth.SESSION_NONCE_KEY.format(provider=provider), "")
+    if (
+        not data
+        or not code
+        or not expected
+        or data.get("s") != connection.schema_name
+        or not hmac.compare_digest(str(data.get("n") or ""), expected)
+    ):
+        messages.error(request, _("Authorization failed. Please try again."))
+        return redirect("channels")
     try:
-        oauth.complete(provider, schema, code)
-    except Exception:  # noqa: BLE001 — показать аккуратную ошибку, не 500
-        return HttpResponse(_("Could not complete the connection."), status=502)
-    back = oauth.tenant_channels_url(schema)
-    return redirect(back) if back else HttpResponse(_("Connected. You can close this tab."))
+        oauth.complete(provider, connection.schema_name, code)
+    except Exception:  # noqa: BLE001 — аккуратная ошибка вместо 500
+        messages.error(request, _("Could not complete the connection."))
+        return redirect("channels")
+    messages.success(request, _("Channel updated."))
+    return redirect("channels")
 
 
 @login_required

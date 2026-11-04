@@ -16,7 +16,9 @@
    (`pk_test_...`) и **Secret key** (`sk_test_...`).
 3. **Webhook:** Developers → Webhooks → Add endpoint:
    - Endpoint URL: `https://siteadaptor.de/stripe/webhook/`
-   - События: `checkout.session.completed`, `invoice.payment_failed`,
+   - Listen to: **Events on your account**
+   - События: `checkout.session.completed`, `checkout.session.async_payment_succeeded`,
+     `checkout.session.async_payment_failed`, `invoice.payment_failed`,
      `customer.subscription.updated`, `customer.subscription.deleted`
    - Add endpoint → скопировать **Signing secret** (`whsec_...`).
 
@@ -74,7 +76,17 @@ STRIPE_WEBHOOK_SECRET=whsec_...
    STRIPE_CONNECT_CLIENT_ID=ca_...
    ```
    Без него кнопка «Mit Stripe verbinden» скрыта (`is_connect_configured()=False`).
-- **Вебхук** — тот же эндпоинт; событие `account.updated` → `Tenant.payments_enabled`.
+- **Вебхук — второй эндпоинт** на тот же URL `https://siteadaptor.de/stripe/webhook/`
+  (SEC-D7, 2026-11-04): Developers → Webhooks → Add endpoint → **Listen to: Events on
+  Connected accounts**; события `checkout.session.completed`,
+  `checkout.session.async_payment_succeeded`, `checkout.session.async_payment_failed`,
+  `account.updated`. Его **Signing secret** — свой, отдельный от платформенного:
+  ```dotenv
+  STRIPE_CONNECT_WEBHOOK_SECRET=whsec_...
+  ```
+  Без него оплаты клиентов (заказы, депозиты, билеты, ваучеры) не подтверждаются —
+  подпись не сходится; `check --deploy` предупреждает `billing.W002`. Событие
+  `account.updated` → `Tenant.payments_enabled`.
 - **Комиссия (вариант B):** `BILLING_APPLICATION_FEE_PERCENT` — % по типу бизнеса
   (`hotel=3,tour_operator=5`), сейчас 0. Выставляется продавцу в счёте за систему
   (отдельная подзадача P2.5-fee), в платеже клиента НЕ удерживается.

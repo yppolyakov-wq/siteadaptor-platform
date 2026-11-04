@@ -761,6 +761,10 @@ STRIPE_LIVE_SECRET_KEY = env("STRIPE_LIVE_SECRET_KEY", default="")
 DJSTRIPE_WEBHOOK_SECRET = env("DJSTRIPE_WEBHOOK_SECRET", default="")
 # Секрет подписи Stripe-вебхука (наш эндпоинт apps.billing.webhooks.stripe_webhook).
 STRIPE_WEBHOOK_SECRET = env("STRIPE_WEBHOOK_SECRET", default="")
+# Второй эндпоинт Stripe — «Events on Connected accounts»: у него СВОЙ Signing secret.
+# Оплаты клиентов идут на аккаунтах бизнесов (Connect), их события подписаны этим
+# секретом; без него вебхук отбрасывал бы их как неподписанные (оплата не проводилась).
+STRIPE_CONNECT_WEBHOOK_SECRET = env("STRIPE_CONNECT_WEBHOOK_SECRET", default="")
 # P2.5 Stripe Connect (Standard-аккаунты, онбординг через OAuth): client_id платформы.
 STRIPE_CONNECT_CLIENT_ID = env("STRIPE_CONNECT_CLIENT_ID", default="")
 DJSTRIPE_FOREIGN_KEY_TO_FIELD = "id"

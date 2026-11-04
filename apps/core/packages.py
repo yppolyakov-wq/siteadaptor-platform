@@ -81,6 +81,7 @@ _AKTIONEN_VIEWS = frozenset(
         "channel-config",
         "channel-disconnect",  # UX-D D6.6: «Trennen» — там же, где настройки каналов
         "channel-oauth-start",
+        "channel-oauth-finish",
         # Aktionen
         "promotions:promotion-list",
         "promotions:promotion-quick",
