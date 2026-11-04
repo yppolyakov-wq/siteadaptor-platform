@@ -157,8 +157,11 @@ def listings_for(
         qs = qs.filter(is_demo=False)
     if city:
         qs = qs.filter(city__iexact=city)
-    if district:  # T-8.17: slug района (apps.core.districts)
-        qs = qs.filter(district=district)
+    if district:  # T-8.17: slug района (apps.core.districts); FLT-1b: или список slug'ов
+        if isinstance(district, (list, tuple, set, frozenset)):
+            qs = qs.filter(district__in=list(district))
+        else:
+            qs = qs.filter(district=district)
     if business_type:
         qs = qs.filter(business_type=business_type)
     if kind:

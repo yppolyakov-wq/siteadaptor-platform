@@ -322,7 +322,7 @@ def run_search(portal, state: dict, *, offset: int = 0, track: bool = False):
     city = portal.city or ""
     explicit = engine.SearchFilters(
         kats=(state["kat"],) if state.get("kat") else (),
-        district=state.get("d") or "",
+        districts=(state["d"],) if state.get("d") else (),
     )
     q = state.get("q") or ""
     q_eff, eff, _chips, _hints = engine.resolve_intent(q, explicit, city=city)

@@ -57,10 +57,10 @@ def test_weekday_next_occurrence_including_today():
 
 
 def test_district_reliable_forms_only():
-    assert _p("Friseur in Solingen-Wald").delta == {"district": "wald"}
+    assert _p("Friseur in Solingen-Wald").delta == {"districts": ("wald",)}
     assert _p("Friseur in Solingen-Wald").rest_q == "Friseur"
-    assert _p("Ohligs Bäcker").delta == {"district": "ohligs-aufderhoehe-merscheid"}
-    assert _p("Café in Gräfrath").delta == {"district": "graefrath"}
+    assert _p("Ohligs Bäcker").delta == {"districts": ("ohligs-aufderhoehe-merscheid",)}
+    assert _p("Café in Gräfrath").delta == {"districts": ("graefrath",)}
     assert _p("Wald Spaziergang").delta == {}  # голое многозначное слово — нет
     assert _p("Burgführung").delta == {}
     assert _p("Friseur in Solingen-Wald", city="").delta == {}  # без города — нет

@@ -27,6 +27,7 @@ from apps.core import districts
 Q_MAX = 60
 MAX_KATS = 3
 MAX_TAGS = 3
+MAX_DISTRICTS_FOLLOW = 3  # FLT-1b: больше районов — кнопку подписки не предлагаем (не усекаем)
 # Каноничный порядок ключей набора (и подписи).
 KEYS = (
     "q",
@@ -128,8 +129,10 @@ def canonical(params, *, city: str, portal: bool = True) -> tuple[tuple[str, str
         kind = ""
     pairs += [("kat", k) for k in sorted(eff.kats)[:MAX_KATS]]
     pairs += [("merkmal", t) for t in sorted(eff.tags)[:MAX_TAGS]]
+    if len(eff.districts) > MAX_DISTRICTS_FOLLOW:
+        return None  # молча усечённый набор — письмо не по тому, что видел житель
+    pairs += [("stadtteil", d) for d in sorted(eff.districts)]
     for key, value in (
-        ("stadtteil", eff.district),
         ("unternehmen", eff.business),
         ("marke", brand),
         ("groesse", eff.size),
@@ -179,8 +182,8 @@ def follow_link(params, *, portal, path_district: str = ""):
     if any((qd.get(k) or "").strip() for k in ENTDECKEN_ONLY):
         return None
     qd.setlist("art", ["suche"])
-    if path_district:
-        qd.setlist("stadtteil", [path_district])
+    if path_district and path_district not in qd.getlist("stadtteil"):
+        qd.appendlist("stadtteil", path_district)  # FLT-1b: путь + ?stadtteil= — объединение
     target = parse_target(qd, portal=portal)
     if target is None or target.kind != FollowSubscription.TARGET_QUERY:
         return None

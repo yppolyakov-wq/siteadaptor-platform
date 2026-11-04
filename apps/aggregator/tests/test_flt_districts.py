@@ -1,0 +1,189 @@
+"""FLT-1b: несколько районов в фильтре портала + canonical/noindex query-вариаций.
+
+План — docs/flt-portal-filters-plan-2026-11-04.md §2, §12, §13.
+"""
+
+import uuid
+
+import pytest
+from django.core.cache import cache
+from django.test import RequestFactory
+
+from apps.aggregator import follow_query, portal_views, search
+from apps.aggregator.models import AggregatorListing, AggregatorPortal, SearchQueryLog
+
+pytestmark = pytest.mark.django_db
+
+WALD = "wald"
+MITTE = "mitte"
+OHLIGS = "ohligs-aufderhoehe-merscheid"
+
+
+@pytest.fixture(autouse=True)
+def _clear(settings):
+    settings.ROOT_URLCONF = "config.urls_portal"
+    settings.PORTAL_DISTRICT_MIN_BUSINESSES = 0  # без хвоста соседей Г5 — чистая выдача
+    cache.clear()
+    yield
+    cache.clear()
+
+
+def _portal():
+    return AggregatorPortal.objects.create(
+        host="solingen.siteadaptor.de",
+        kind="city",
+        city="Solingen",
+        title={"de": "Angebote in Solingen"},
+        is_active=True,
+    )
+
+
+def _listing(title, district, schema):
+    return AggregatorListing.objects.create(
+        tenant_schema=schema,
+        tenant_slug=schema,
+        business_name=schema.upper(),
+        business_type="bakery",
+        city="Solingen",
+        district=district,
+        promo_uuid=uuid.uuid4(),
+        title={"de": title},
+        detail_url=f"https://{schema}.siteadaptor.de/p/1/",
+        is_active=True,
+    )
+
+
+def _seed():
+    _listing("Brot aus Wald", WALD, "w1")
+    _listing("Brot aus Mitte", MITTE, "m1")
+    _listing("Brot aus Ohligs", OHLIGS, "o1")
+
+
+def _html(portal, path, district=None):
+    req = RequestFactory().get(path, HTTP_HOST=portal.host)
+    req.portal = portal
+    return portal_views.portal_home(req, district=district).content.decode()
+
+
+def _filters(**get):
+    from django.http import QueryDict
+
+    qd = QueryDict(mutable=True)
+    for k, v in get.items():
+        qd.setlist(k, v if isinstance(v, list) else [v])
+    return search.parse_filters(type("R", (), {"GET": qd})(), city="Solingen")
+
+
+# --- движок ------------------------------------------------------------------------------
+
+
+def test_parse_filters_takes_every_district_once_in_order_and_drops_junk():
+    f = _filters(stadtteil=["Wald", "mitte", "wald", "atlantis", ""])
+    assert f.districts == (WALD, MITTE)
+    assert f.district == ""  # одиночный район — только когда он ровно один
+    assert _filters(stadtteil="Wald").district == WALD
+
+
+def test_district_list_is_capped():
+    many = ["wald"] * 500 + ["mitte"]
+    f = _filters(stadtteil=many)
+    assert f.districts == (WALD,)  # сырой ввод режется до нормализации
+    assert len(search.parse_districts([f"x{i}" for i in range(100)], city="")) == 0
+
+
+def test_single_district_carry_is_unchanged():
+    assert search.carry("", _filters(stadtteil="wald")) == [("stadtteil", WALD)]
+    assert search.carry("", _filters(stadtteil=["wald", "mitte"])) == [
+        ("stadtteil", WALD),
+        ("stadtteil", MITTE),
+    ]
+
+
+def test_apply_filters_is_or_over_districts():
+    _seed()
+    qs = search.apply_filters(
+        AggregatorListing.objects.all(), _filters(stadtteil=["wald", "mitte"])
+    )
+    assert set(qs.values_list("district", flat=True)) == {WALD, MITTE}
+
+
+# --- страница портала --------------------------------------------------------------------
+
+
+def test_two_districts_show_both_and_page_is_noindex_with_self_canonical():
+    _seed()
+    p = _portal()
+    html = _html(p, "/?stadtteil=wald&stadtteil=mitte")
+    assert "Brot aus Wald" in html and "Brot aus Mitte" in html
+    assert "Brot aus Ohligs" not in html
+    assert '<meta name="robots" content="noindex,follow">' in html
+    assert 'rel="canonical" href="http://solingen.siteadaptor.de/?stadtteil=wald' in html
+
+
+def test_single_district_param_on_root_canonicalizes_to_district_path():
+    _seed()
+    p = _portal()
+    html = _html(p, "/?stadtteil=wald")
+    assert 'rel="canonical" href="http://solingen.siteadaptor.de/stadtteil/wald/"' in html
+    assert 'name="robots"' not in html
+
+
+def test_district_path_page_is_indexable_and_unchanged():
+    _seed()
+    p = _portal()
+    html = _html(p, "/stadtteil/wald/", district=WALD)
+    assert "Brot aus Wald" in html and "Brot aus Mitte" not in html
+    assert 'rel="canonical" href="http://solingen.siteadaptor.de/stadtteil/wald/"' in html
+    assert 'name="robots"' not in html
+
+
+def test_path_plus_param_district_is_union_not_override():
+    """Раньше путь молча выкидывал ?stadtteil= (W0-потеря): теперь — объединение."""
+    _seed()
+    p = _portal()
+    html = _html(p, "/stadtteil/wald/?stadtteil=mitte", district=WALD)
+    assert "Brot aus Wald" in html and "Brot aus Mitte" in html
+    assert "Brot aus Ohligs" not in html
+    assert '<meta name="robots" content="noindex,follow">' in html
+
+
+def test_search_query_page_is_noindex():
+    _seed()
+    p = _portal()
+    assert '<meta name="robots" content="noindex,follow">' in _html(p, "/?q=Brot")
+
+
+def test_district_path_without_query_writes_no_search_log():
+    _seed()
+    p = _portal()
+    _html(p, "/stadtteil/wald/", district=WALD)
+    assert not SearchQueryLog.objects.exists()
+
+
+def test_each_district_has_its_own_removable_pill():
+    _seed()
+    p = _portal()
+    html = _html(p, "/?stadtteil=wald&stadtteil=mitte")
+    assert "?stadtteil=mitte" in html  # ✕ у «Wald» оставляет Mitte
+    assert "?stadtteil=wald" in html
+
+
+# --- подписка ----------------------------------------------------------------------------
+
+
+def test_follow_set_keeps_both_districts_sorted():
+    pairs = follow_query.canonical(
+        [("stadtteil", "wald"), ("stadtteil", "mitte"), ("q", "Brot")], city="Solingen"
+    )
+    assert ("stadtteil", MITTE) in pairs and ("stadtteil", WALD) in pairs
+    assert [v for k, v in pairs if k == "stadtteil"] == sorted([MITTE, WALD])
+
+
+def test_follow_single_district_hash_unchanged():
+    one = follow_query.canonical([("stadtteil", "wald"), ("q", "Brot")], city="Solingen")
+    assert one == (("q", "Brot"), ("stadtteil", WALD))
+
+
+def test_follow_refuses_more_districts_than_cap_instead_of_truncating():
+    many = [("stadtteil", d) for d in ("wald", "mitte", "graefrath", "burg-hoehscheid")]
+    assert follow_query.canonical(many + [("q", "Brot")], city="Solingen") is None

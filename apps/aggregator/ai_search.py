@@ -532,8 +532,8 @@ def _suggestion_view(item, payload, *, portal):
     for key, value in params:
         if key != KI_PARAM:
             merged.appendlist(key, value)
-    if payload.get("pd"):
-        merged.setlist("stadtteil", [payload["pd"]])
+    if payload.get("pd") and payload["pd"] not in merged.getlist("stadtteil"):
+        merged.appendlist("stadtteil", payload["pd"])  # FLT-1b: путь + ?stadtteil= — объединение
     filters = search.parse_filters(SimpleNamespace(GET=merged), city=city)
     q2, f2, _chips, _hints = search.resolve_intent(q_new, filters, city=city)
     if portal is not None:
@@ -711,8 +711,8 @@ def _expanded_view(terms, payload, *, portal):
     page = QueryDict(mutable=True)
     for key, value in payload["g"]:
         page.appendlist(key, value)
-    if payload.get("pd"):
-        page.setlist("stadtteil", [payload["pd"]])
+    if payload.get("pd") and payload["pd"] not in page.getlist("stadtteil"):
+        page.appendlist("stadtteil", payload["pd"])  # FLT-1b: путь + ?stadtteil= — объединение
     city = payload["c"]
     filters = search.parse_filters(SimpleNamespace(GET=page), city=city)
     # Фильтры, которые страница вывела из текста запроса (цена, «geöffnet»), действуют и тут.
@@ -727,8 +727,7 @@ def _expanded_view(terms, payload, *, portal):
             portal,
             city=city or None,
             business_type=business_type,
-            district=payload.get("pd") or None,
-        )
+        )  # район пути уже в `page` → в `filters` (объединение с ?stadtteil=)
         # Поиск ищет по всем видам («Kuchen» — товар), как страница с запросом.
         kinds = home.kinds_for(home.default_kind(kind, query, filters)) or (
             AggregatorListing.OFFER_KINDS

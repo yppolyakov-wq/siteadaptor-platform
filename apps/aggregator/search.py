@@ -283,7 +283,8 @@ def _weights() -> list[float]:
 class SearchFilters:
     kats: tuple[str, ...] = ()  # ?kat=a&kat=b — ИЛИ
     tags: tuple[str, ...] = ()  # ?merkmal=a&merkmal=b — И (Р-О2)
-    district: str = ""  # ?stadtteil=<slug>
+    # FLT-1b: ?stadtteil=a&stadtteil=b — ИЛИ (несколько районов); порядок первого вхождения
+    districts: tuple[str, ...] = ()
     price_from: Decimal | None = None
     price_to: Decimal | None = None
     date: str = ""  # heute | wochenende | YYYY-MM-DD (события/акции — окном, прочее — часами)
@@ -296,11 +297,16 @@ class SearchFilters:
     business: str = ""  # ?unternehmen=<slug> (T-8.10d) — только предложения этой компании
 
     @property
+    def district(self) -> str:
+        """Ровно один выбранный район (путь, Г5, подписка старого вида) или ""."""
+        return self.districts[0] if len(self.districts) == 1 else ""
+
+    @property
     def active(self) -> bool:
         return bool(
             self.kats
             or self.tags
-            or self.district
+            or self.districts
             or self.price_from is not None
             or self.price_to is not None
             or self.date
@@ -326,6 +332,8 @@ FILTER_PARAMS = (
     "marke",
     "unternehmen",
 )
+
+MAX_DISTRICTS = 30  # FLT-1b: потолок ?stadtteil= (реестр города меньше — мусор отбрасывается)
 
 BRAND_MAX = 60  # длина значения фильтра ?marke= (в листинге марка до 120)
 # Слаг компании: без похода в БД — неизвестный слаг просто даёт пустую выдачу.
@@ -387,11 +395,29 @@ def order_for(sort: str, qs) -> list:
     return list(ORDERINGS.get(sort) or ORDERINGS["neu"])
 
 
+def parse_districts(raw_values, *, city: str = "") -> tuple[str, ...]:
+    """FLT-1b: значения ?stadtteil= → slug'и реестра, без дублей, не больше MAX_DISTRICTS.
+
+    Сырой ввод режется ДО нормализации (мусорный запрос с тысячей значений не крутит
+    реестр тысячу раз). Без города — только slug'и, известные реестру хоть какого-то города."""
+    from apps.core import districts
+
+    known = None if city else {o["slug"] for o in districts.all_options()}
+    out: list[str] = []
+    for raw in list(raw_values)[: MAX_DISTRICTS * 2]:
+        raw = (raw or "").strip()
+        slug = districts.normalize(city, raw) if city else (raw if raw in known else "")
+        if slug and slug not in out:
+            out.append(slug)
+        if len(out) >= MAX_DISTRICTS:
+            break
+    return tuple(out)
+
+
 def parse_filters(request, *, city: str = "", point=None) -> SearchFilters:
     """``point`` — (lat, lng) посетителя: без неё сорт «Nähe» и радиус сбрасываются
     (обещание без исполнения — класс STU-9)."""
     from apps.core import city_categories as cc
-    from apps.core import districts
 
     from . import geo
     from .views import _money
@@ -405,12 +431,7 @@ def parse_filters(request, *, city: str = "", point=None) -> SearchFilters:
     radius_km = geo.parse_radius(get.get("umkreis")) if point is not None else None
     kats = tuple(dict.fromkeys(k for k in get.getlist("kat") if cc.keys_for_filter(k)))
     tags = tuple(dict.fromkeys(t for t in get.getlist("merkmal") if cc.normalize_tags([t])))
-    raw_district = (get.get("stadtteil") or "").strip()
-    if city:
-        district = districts.normalize(city, raw_district)
-    else:
-        known = {o["slug"] for o in districts.all_options()}
-        district = raw_district if raw_district in known else ""
+    district_list = parse_districts(get.getlist("stadtteil"), city=city)
     date = (get.get("datum") or "").strip()
     if date not in ("heute", "wochenende") and _parse_day(date) is None:
         date = ""
@@ -425,7 +446,7 @@ def parse_filters(request, *, city: str = "", point=None) -> SearchFilters:
     return SearchFilters(
         kats=kats,
         tags=tags,
-        district=district,
+        districts=district_list,
         price_from=_money(get.get("preis_von")),
         price_to=_money(get.get("preis_bis")),
         date=date,
@@ -523,8 +544,8 @@ def apply_filters(qs, f: SearchFilters, *, now=None, point=None):
         qs = qs.filter(city_category__in=keys)
     for tag in f.tags:
         qs = apply_city_filters(qs, None, tag)
-    if f.district:
-        qs = qs.filter(district=f.district)
+    if f.districts:
+        qs = qs.filter(district__in=f.districts)
     if f.price_from is not None:
         qs = qs.filter(new_price__gte=f.price_from)
     if f.price_to is not None:
@@ -590,8 +611,8 @@ def carry(q: str, f: SearchFilters) -> list[tuple[str, str]]:
         out.append(("q", q))
     out += [("kat", k) for k in f.kats]
     out += [("merkmal", t) for t in f.tags]
+    out += [("stadtteil", d) for d in f.districts]
     for key, value in (
-        ("stadtteil", f.district),
         ("preis_von", "" if f.price_from is None else str(f.price_from)),
         ("preis_bis", "" if f.price_to is None else str(f.price_to)),
         ("datum", f.date),

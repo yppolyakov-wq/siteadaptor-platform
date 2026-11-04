@@ -307,7 +307,7 @@ def parse(q: str, *, city: str = "", today: date | None = None, roh=frozenset())
                 _("Stadtteil %(d)s") % {"d": districts.label(city, slug) or slug},
                 slug,
                 span,
-                district=slug,
+                districts=(slug,),
             )
 
     tag_keys = {k for k, _l in cc.TAGS}
@@ -350,7 +350,7 @@ def apply(intent: Intent, explicit):
             continue
         if c.key == KEY_OPEN and "open_now" in overridden:
             continue
-        if c.key == KEY_DISTRICT and "district" in overridden:
+        if c.key == KEY_DISTRICT and "districts" in overridden:
             continue
         if c.key == KEY_SIZE and "size" in overridden:
             continue

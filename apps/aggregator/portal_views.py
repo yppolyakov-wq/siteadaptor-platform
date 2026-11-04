@@ -103,24 +103,36 @@ def _collapse_hotels(cards):
     return out
 
 
+def area_districts(path_district, filters) -> tuple[str, ...]:
+    """FLT-1b: район пути ∪ районы фильтров (порядок: путь первым, без дублей)."""
+    head = (path_district,) if path_district else ()
+    return tuple(dict.fromkeys(head + tuple(filters.districts)))
+
+
 def _district_pool(
     portal, city, business_type, district, q_eff, filters_eff, kinds, new_only, point, fuzzy=True
 ):
     """Цепочка выборки страницы портала: (outcome, весь пул, пул вида/«Neu», выдача).
 
     Одна функция для основной выдачи и групп Г5 «Auch in der Nähe» — на этом держится
-    «группа ⊆ выдачи по своей ссылке»: страница соседа строит пул ровно так же."""
+    «группа ⊆ выдачи по своей ссылке»: страница соседа строит пул ровно так же.
+
+    FLT-1b: `district` — район ПУТИ (`/stadtteil/<slug>/`, или "" ); районы из GET/текста
+    едут в `filters_eff.districts`. Область выдачи — их ОБЪЕДИНЕНИЕ, и режим поиска
+    (полнотекст/опечатки) решается уже на пуле этих районов: «похожие» только в районе
+    находятся на его странице (план FLT §13.1)."""
     from dataclasses import replace
 
     from . import portal_home_blocks as home
     from . import search as search_engine
 
+    area = area_districts(district, filters_eff)
     # T-8.20: единый поиск — режим (полнотекст/опечатки) решается ОДИН раз по пулу без
     # вида и категорий; от него же вкладки, чипы и выдача (иначе вкладка «0», а лента нашла).
     broad = search_engine.execute(
-        portal_scope.pool(portal, city=city, business_type=business_type, district=district),
+        portal_scope.pool(portal, city=city, business_type=business_type, district=area or None),
         q_eff,
-        replace(filters_eff, kats=(), tags=()),
+        replace(filters_eff, kats=(), tags=(), districts=()),
         surface="portal",
         track=False,
         city=city or "",  # T-8.26 п.4: топонимы города не участвуют в фолбэке опечаток
@@ -178,7 +190,7 @@ def _district_tail(
         or district_liveness.is_live(portal, district, business_type)
     ):
         return [], ""
-    tail_filters = replace(filters_eff, district="")
+    tail_filters = replace(filters_eff, districts=())
     # Та же область, что у страницы района: вид/«Neu», запрос (уже без фразы района),
     # фильтры и точка; курсор — позиция в чужой выдаче, его не переносим.
     carry = urlencode(
@@ -217,6 +229,44 @@ def _district_tail(
     if not groups:
         return [], ""
     return groups, districts.label(portal.city, district)
+
+
+# FLT-1b (план §12.2): страница с ЛЮБЫМ из этих параметров — вариация выдачи, а не
+# лендинг: noindex,follow и canonical на себя. Курсор/номер страницы сами по себе — нет.
+NOINDEX_PARAMS = frozenset(
+    {"q", "kind", "neu", "sort", "lat", "lng", "roh", "ansicht", "kat", "merkmal"}
+)
+
+
+def _seo_canonical(request, district, facet, filters) -> tuple[str, bool]:
+    """(canonical, noindex) страницы портала.
+
+    Путь (корень, `/stadtteil/<slug>/`, `/<facet>/`) без query — индексируемый лендинг,
+    canonical = путь. Ровно один район параметром и больше ничего (`/?stadtteil=a`,
+    `/stadtteil/a/?stadtteil=a`) — дубль путевой страницы района: canonical на неё,
+    без noindex (смешивать noindex с чужим canonical поисковики не советуют).
+    Прочие query-вариации — noindex,follow и canonical на себя."""
+    from urllib.parse import quote
+
+    from . import search as search_engine
+
+    keys = {k for k, vals in request.GET.lists() if any((v or "").strip() for v in vals)}
+    variation = keys & (NOINDEX_PARAMS | set(search_engine.FILTER_PARAMS))
+    if not variation:
+        return request.build_absolute_uri(request.path), False
+    area = area_districts(district, filters)
+    if variation == {"stadtteil"} and len(area) == 1 and filters.districts == area[:1]:
+        path = f"/stadtteil/{quote(area[0], safe='')}/" + (
+            f"{quote(facet, safe='')}/" if facet else ""
+        )
+        return request.build_absolute_uri(path), False
+    return request.build_absolute_uri(request.get_full_path()), True
+
+
+def _single_area(path_district, filters) -> str:
+    """Г5: хвост соседей — только когда область выдачи ровно один район."""
+    area = area_districts(path_district, filters)
+    return area[0] if len(area) == 1 else ""
 
 
 def _with_dates(url, von, bis, guests):
@@ -287,8 +337,6 @@ def portal_home(request, facet=None, district=None):
     filters = search_engine.parse_filters(request, city=city or "", point=point)
     if point is not None and not filters.sort:  # кнопка «📍 Near me» без sort = «Nähe»
         filters = replace(filters, sort="naehe")
-    if district:  # путь /stadtteil/<slug>/ сильнее параметра
-        filters = replace(filters, district="")
     # T-8.26 п.5a: намерение из текста («unter 100 €», «heute geöffnet», «in Wald») → фильтры
     # поиска; `filters` (явные) остаются источником формы/carry/пилюль, `filters_eff` — выборки.
     q_eff, filters_eff, intent_chips, intent_hints = search_engine.resolve_intent(
@@ -461,7 +509,7 @@ def portal_home(request, facet=None, district=None):
     try:
         district_tail, tail_label = _district_tail(
             portal,
-            district or filters_eff.district,
+            _single_area(district, filters_eff),
             city=city,
             business_type=business_type,
             facet=facet,
@@ -486,7 +534,7 @@ def portal_home(request, facet=None, district=None):
     reviews.attach_ratings(cards)  # G8b: звёзды в выдаче
     if district_tail:
         reviews.attach_ratings([i for g in district_tail for i in g["items"]])
-    canonical = request.build_absolute_uri(request.path)
+    canonical, robots_noindex = _seo_canonical(request, district, facet, filters)
     heading = " · ".join(
         str(p) for p in (district_label, facet_label, category_chips["label"]) if p
     )
@@ -605,6 +653,7 @@ def portal_home(request, facet=None, district=None):
             "near_active": point is not None and filters.sort in ("", "naehe"),  # G8c
             "map_points": geo.map_points(cards),
             "canonical": canonical,
+            "robots_noindex": robots_noindex,  # FLT-1b (план §12): query-вариации
             "other_portals": other_portals,
             "fav_ids": fav_ids,
             "ld_collection": collectionpage_ld(
@@ -779,15 +828,16 @@ def _filter_panel(request, portal, filters, q: str, scope, district, point=None)
     pills = []
     for kat in filters.kats if len(filters.kats) > 1 else ():
         pills.append({"label": cc.label(kat), "url": without("kat", value=kat)})
-    if filters.district:
+    if filters.districts:
         from apps.core import districts
 
-        pills.append(
-            {
-                "label": districts.label(portal.city, filters.district) or filters.district,
-                "url": without("stadtteil"),
-            }
-        )
+        for slug in filters.districts:
+            pills.append(
+                {
+                    "label": districts.label(portal.city, slug) or slug,
+                    "url": without("stadtteil", value=slug),
+                }
+            )
     from django.utils.formats import number_format
 
     if filters.price_from is not None:
@@ -812,6 +862,8 @@ def _filter_panel(request, portal, filters, q: str, scope, district, point=None)
         (k, v)
         for k, v in keep + search_engine.carry(q, filters) + geo_carry
         if k in ("kind", "neu", "q", "kat", "merkmal", "lat", "lng", "groesse")
+        # FLT-1b: несколько районов одиночный <select> не выразит — едут скрытыми полями
+        or (k == "stadtteil" and len(filters.districts) > 1)
     ]
     # T-8.7 Р-6: «Relevanz» только при q; «In der Nähe» и радиус — только при точке.
     sorts = [("", _("Relevanz") if q else _("Standard"))] + [
@@ -821,7 +873,7 @@ def _filter_panel(request, portal, filters, q: str, scope, district, point=None)
     ]
     return {
         "filters": filters,
-        "districts": [] if district else _district_choices(portal),
+        "districts": [] if district or len(filters.districts) > 1 else _district_choices(portal),
         "hidden": hidden,
         "pills": pills,
         "sorts": sorts,
