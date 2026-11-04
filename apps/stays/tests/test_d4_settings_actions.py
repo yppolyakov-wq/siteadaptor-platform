@@ -43,7 +43,7 @@ def _post(data, role=Membership.ROLE_OWNER):
 def test_every_action_has_handler_and_home():
     assert set(settings_actions.HANDLERS) == set(settings_actions.HOME)
     assert settings_actions.ACTIONS == frozenset(settings_actions.HANDLERS)
-    assert len(settings_actions.ACTIONS) == 15
+    assert len(settings_actions.ACTIONS) == 16  # UX-D D6.8: + house_rules
 
 
 def test_settings_actions_live_in_one_place():
@@ -62,7 +62,9 @@ def test_price_writing_settings_actions_require_price_permission():
         a for a, h in settings_actions.HANDLERS.items() if re.search(pattern, inspect.getsource(h))
     }
     assert writers == settings_actions.ACTIONS - {"card_amenities"}
-    assert writers <= views.RATE_EDIT_ACTIONS
+    # UX-D D6.8: Hausordnung — своё право (hausordnung.edit), не цена.
+    assert writers - {"house_rules"} <= views.RATE_EDIT_ACTIONS
+    assert "house_rules" not in views.RATE_EDIT_ACTIONS
 
 
 def test_legacy_post_to_units_still_saves_and_returns_to_its_section():
@@ -70,7 +72,8 @@ def test_legacy_post_to_units_still_saves_and_returns_to_its_section():
         {"action": "kurtaxe", "kurtaxe_eur": "2,50", "kurtaxe_label": "Kurtaxe", "house_rules": "x"}
     )
     s = StaySettings.load()
-    assert s.kurtaxe_cents == 250 and s.house_rules == "x"
+    # UX-D D6.8: действие «kurtaxe» Hausordnung больше не пишет (у неё своё право).
+    assert s.kurtaxe_cents == 250 and s.house_rules == ""
     assert resp.status_code == 302
     assert resp.url == "/dashboard/stays/unterkunft/"  # D4.3: экран «Unterkunft»
     assert msgs == ["Einstellungen gespeichert."]
@@ -82,6 +85,7 @@ def test_legacy_post_to_units_still_saves_and_returns_to_its_section():
         ("rateplan", "/dashboard/stays/tarife/"),
         ("gap_deal", "/dashboard/stays/preisregeln/?tab=luecken"),
         ("kurtaxe", "/dashboard/stays/unterkunft/"),
+        ("house_rules", "/dashboard/stays/unterkunft/"),
     ],
 )
 def test_home_urls_point_to_the_new_screens(action, sec):

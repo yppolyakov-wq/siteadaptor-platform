@@ -1189,6 +1189,9 @@ def units(request, pk=None):
         # (einstellungen.edit); старый адрес списка номеров (sortiment.edit) не обходит её.
         if action == "card_amenities" and not has_perm(request.user, "einstellungen.edit"):
             raise PermissionDenied
+        # UX-D D6.8: Hausordnung — своё право; старый адрес его не обходит.
+        if action == "house_rules" and not has_perm(request.user, "hausordnung.edit"):
+            raise PermissionDenied
         if settings_actions.handle(request, action):
             pass  # UX-D D4.0: тарифы/правила/Kurtaxe — общий модуль действий
         elif action == "unit":

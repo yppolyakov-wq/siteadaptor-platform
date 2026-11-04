@@ -31,6 +31,8 @@ SITES = {
     "booking._can_edit_policy": ("preise.edit", OWNER_ADMIN),
     "stays.RATE_EDIT_ACTIONS / can_price / can_edit_prices": ("preise.edit", OWNER_ADMIN),
     "stays.price_calendar._can_edit": ("preise.edit", OWNER_ADMIN),
+    # UX-D D6.8: Hausordnung отделена от Kurtaxe; доступ — прежний (owner+admin).
+    "stays.stay_settings house_rules": ("hausordnung.edit", OWNER_ADMIN),
     # KA-D7: финансовые выгрузки (middleware + кнопки CSV/DATEV)
     "roles.can_export_finance / FINANCE_EXPORT_PREFIXES": ("finanzen.export", OWNER_ADMIN),
     # Gutschrift, Anzahlungsrechnung, полный поиск получателя счёта

@@ -93,6 +93,8 @@ _ALL = (
     # Einstellungen
     _p("einstellungen.view", "einstellungen"),
     _p("einstellungen.edit", "einstellungen", ["einstellungen.view"]),
+    # UX-D D6.8 (решение владельца): Hausordnung отдельно от Kurtaxe (та — preise.edit).
+    _p("hausordnung.edit", "einstellungen", ["einstellungen.edit"]),
     _p("funktionen.view", "einstellungen"),
     _p("funktionen.edit", "einstellungen", ["funktionen.view"], sensitive=True),
     _p("betriebsferien.ganz", "einstellungen", sensitive=True),
@@ -133,7 +135,11 @@ _OWNER_ONLY_TODAY = frozenset(
     }
 )
 # Сегодня у owner и admin (KA-12 B6 / Z-4, KA-D7, KA-H4).
-_ADMIN_TODAY = frozenset({"preise.edit", "finanzen.export", "finanzen.korrektur", "geld.erstatten"})
+# UX-D D6.8: hausordnung.edit — сегодня ровно как preise.edit (одна форма с Kurtaxe);
+# сотруднику владелец выдаёт его точечно.
+_ADMIN_TODAY = frozenset(
+    {"preise.edit", "hausordnung.edit", "finanzen.export", "finanzen.korrektur", "geld.erstatten"}
+)
 
 # E6.7f (решения владельца В-2/В-3 «по рекомендации»): у сотрудника по умолчанию нет
 # цифр и финансов, правил процессов, доменов и включения функций — владелец возвращает

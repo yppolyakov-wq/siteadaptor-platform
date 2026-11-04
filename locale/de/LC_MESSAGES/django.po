@@ -31913,3 +31913,21 @@ msgstr "Inhalt"
 #, python-format
 msgid "Weitere Mitglieder (inaktiv oder nicht in der Liste) bleiben erhalten: %(n)s"
 msgstr "Weitere Mitglieder (inaktiv oder nicht in der Liste) bleiben erhalten: %(n)s"
+
+msgid "Die Hausordnung dürfen Sie nicht ändern."
+msgstr "Die Hausordnung dürfen Sie nicht ändern."
+
+msgid "Die Hausordnung ändern Sie nur mit dem Recht „Hausordnung bearbeiten“ (Team & Zugriff)."
+msgstr "Die Hausordnung ändern Sie nur mit dem Recht „Hausordnung bearbeiten“ (Team & Zugriff)."
+
+msgid "Erscheint als eigene Seite auf der Website, sobald sie ausgefüllt ist."
+msgstr "Erscheint als eigene Seite auf der Website, sobald sie ausgefüllt ist."
+
+msgid "Hausordnung bearbeiten"
+msgstr "Hausordnung bearbeiten"
+
+msgid "Noch keine Hausordnung."
+msgstr "Noch keine Hausordnung."
+
+msgid "Pro Erwachsenem und Nacht, wird jeder Buchung hinzugefügt (0 = aus)."
+msgstr "Pro Erwachsenem und Nacht, wird jeder Buchung hinzugefügt (0 = aus)."

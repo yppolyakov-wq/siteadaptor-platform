@@ -5,7 +5,8 @@ Kurtaxe и Hausordnung, часы заезда/выезда, удобства н�
 `docs/ux-d4-rooms-prices-plan-2026-11-03.md`, П4). Обработчики прежние
 (`settings_actions`). Права: экран — `einstellungen.view/edit`; Kurtaxe и часы пишут
 цену и момент признания выручки → ещё `preise.edit` (как гейт `RATE_EDIT_ACTIONS`).
-Kurtaxe и Hausordnung — одна форма (одно действие пишет оба поля; W0).
+UX-D D6.8 (решение владельца): Hausordnung — своя форма и своё право
+`hausordnung.edit` (по умолчанию у владельца и admin; сотруднику выдают в «Team»).
 """
 
 from __future__ import annotations
@@ -22,8 +23,9 @@ from apps.core.templatetags.cabinet import can_open
 from . import settings_actions
 from .models import AMENITIES, StaySettings
 
-ACTIONS = ("kurtaxe", "stay_hours", "card_amenities")
+ACTIONS = ("kurtaxe", "house_rules", "stay_hours", "card_amenities")
 PRICE_ACTIONS = ("kurtaxe", "stay_hours")
+HOUSE_RULES_ACTIONS = ("house_rules",)
 
 
 @login_required
@@ -34,6 +36,8 @@ def stay_settings(request):
             return HttpResponseBadRequest()
         if action in PRICE_ACTIONS and not has_perm(request.user, "preise.edit"):
             messages.error(request, _("Preise und Tarife ändern nur Inhaber und Admins."))
+        elif action in HOUSE_RULES_ACTIONS and not has_perm(request.user, "hausordnung.edit"):
+            messages.error(request, _("Die Hausordnung dürfen Sie nicht ändern."))
         else:
             settings_actions.handle(request, action)
         return redirect(settings_actions.home_url(action))
@@ -46,6 +50,7 @@ def stay_settings(request):
             "nav": "stay-settings",
             "stay_settings": StaySettings.load(),
             "can_edit_prices": has_perm(request.user, "preise.edit"),
+            "can_edit_house_rules": has_perm(request.user, "hausordnung.edit"),
             "hour_choices": range(24),
             "amenities": AMENITIES,
             "card_amenities": set(

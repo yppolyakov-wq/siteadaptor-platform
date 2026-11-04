@@ -92,22 +92,103 @@ def _form(html, action):
 
 def test_screen_hosts_all_three_forms_for_owner():
     html = v.stay_settings(_req()).content.decode()
-    for action in ("kurtaxe", "stay_hours", "card_amenities"):
+    for action in ("kurtaxe", "house_rules", "stay_hours", "card_amenities"):
         assert f'value="{action}"' in html, action
 
 
-def test_kurtaxe_form_unchanged_round_trip_keeps_settings():
-    """W0: Kurtaxe и Hausordnung — одно действие пишет все поля формы."""
+@pytest.mark.parametrize("action", ["kurtaxe", "house_rules"])
+def test_kurtaxe_and_house_rules_forms_unchanged_round_trip_keeps_settings(action):
+    """W0: форма, отправленная без правок, ничего не меняет."""
     s = StaySettings.load()
     s.kurtaxe_cents, s.kurtaxe_label, s.house_rules = 250, "Kurbeitrag", "Ruhe ab 22 Uhr"
     s.kurtaxe_children_free, s.kurtaxe_child_cents = False, 120
     s.save()
     before = StaySettings.objects.values().get(pk=s.pk)
-    data = _form(v.stay_settings(_req()).content.decode(), "kurtaxe")
+    data = _form(v.stay_settings(_req()).content.decode(), action)
     v.stay_settings(_req("post", data))
     after = StaySettings.objects.values().get(pk=s.pk)
     before.pop("updated_at"), after.pop("updated_at")
     assert after == before
+
+
+def test_kurtaxe_and_house_rules_are_separate_forms():
+    """UX-D D6.8: формы разные — сохранение одной не трогает поля другой."""
+    s = StaySettings.load()
+    s.kurtaxe_cents, s.house_rules = 250, "Ruhe ab 22 Uhr"
+    s.save()
+    data = _form(v.stay_settings(_req()).content.decode(), "kurtaxe")
+    assert "house_rules" not in data
+    v.stay_settings(_req("post", {**data, "kurtaxe_eur": ["3,00"]}))
+    assert (StaySettings.load().kurtaxe_cents, StaySettings.load().house_rules) == (
+        300,
+        "Ruhe ab 22 Uhr",
+    )
+    data = _form(v.stay_settings(_req()).content.decode(), "house_rules")
+    assert "kurtaxe_eur" not in data
+    v.stay_settings(_req("post", {**data, "house_rules": ["Keine Haustiere"]}))
+    s = StaySettings.load()
+    assert (s.kurtaxe_cents, s.house_rules) == (300, "Keine Haustiere")
+
+
+def _grant(req, *keys):
+    Membership.objects.filter(user=req.user).update(
+        permissions={"add": list(keys), "remove": [], "template": ""}
+    )
+    return req
+
+
+def test_staff_house_rules_off_by_default_owner_grants():
+    """UX-D D6.8 (решение владельца): право «Hausordnung bearbeiten» — отдельное,
+    у сотрудника по умолчанию нет; выданное — правит Hausordnung, но не Kurtaxe."""
+    s = StaySettings.load()
+    s.kurtaxe_cents, s.house_rules = 250, "alt"
+    s.save()
+    html = v.stay_settings(_req(role=Membership.ROLE_STAFF)).content.decode()
+    assert 'value="house_rules"' not in html and "data-house-rules-locked" in html
+    v.stay_settings(
+        _req("post", {"action": "house_rules", "house_rules": "neu"}, role=Membership.ROLE_STAFF)
+    )
+    assert StaySettings.load().house_rules == "alt"
+
+    req = _grant(_req(role=Membership.ROLE_STAFF), "hausordnung.edit")
+    html = v.stay_settings(req).content.decode()
+    assert 'value="house_rules"' in html and 'value="kurtaxe"' not in html
+    req = _grant(
+        _req(
+            "post",
+            {"action": "house_rules", "house_rules": "neu"},
+            role=Membership.ROLE_STAFF,
+        ),
+        "hausordnung.edit",
+    )
+    v.stay_settings(req)
+    req = _grant(
+        _req("post", {"action": "kurtaxe", "kurtaxe_eur": "9"}, role=Membership.ROLE_STAFF),
+        "hausordnung.edit",
+    )
+    v.stay_settings(req)
+    s = StaySettings.load()
+    assert (s.house_rules, s.kurtaxe_cents) == ("neu", 250)
+
+
+def test_admin_edits_house_rules_by_default():
+    html = v.stay_settings(_req(role=Membership.ROLE_ADMIN)).content.decode()
+    assert 'value="house_rules"' in html
+
+
+def test_old_units_url_cannot_bypass_house_rules_permission():
+    from django.core.exceptions import PermissionDenied
+
+    with pytest.raises(PermissionDenied):
+        views.units(
+            _req(
+                "post",
+                {"action": "house_rules", "house_rules": "x"},
+                role=Membership.ROLE_STAFF,
+                path="/dashboard/stays/units/",
+            )
+        )
+    assert StaySettings.load().house_rules == ""
 
 
 def test_hours_round_trip_keeps_settings():
@@ -168,7 +249,7 @@ def test_card_amenities_saved_by_staff_targeted_write():
 
 def test_units_list_no_longer_hosts_these_forms():
     text = (ROOT / "templates/stays/units.html").read_text()
-    for action in ("kurtaxe", "stay_hours", "card_amenities"):
+    for action in ("kurtaxe", "house_rules", "stay_hours", "card_amenities"):
         assert f'value="{action}"' not in text, action
     assert "stays:stay-settings" in text
 
@@ -189,7 +270,7 @@ def test_legacy_post_and_bookmark_land_on_new_screen():
 
 
 def test_home_urls_point_here():
-    for action in ("kurtaxe", "stay_hours", "card_amenities"):
+    for action in ("kurtaxe", "house_rules", "stay_hours", "card_amenities"):
         assert settings_actions.home_url(action) == URL
 
 
@@ -228,6 +309,14 @@ def test_old_units_url_cannot_bypass_card_amenities_permission(monkeypatch):
         )
 
 
-def test_read_only_notice_names_house_rules():
+def test_read_only_notice_names_house_rules_right():
     html = v.stay_settings(_req(role=Membership.ROLE_STAFF)).content.decode()
-    assert "Hausordnung" in html and "nur Inhaber und Admins" in html
+    assert "nur Inhaber und Admins" in html and "Hausordnung bearbeiten" in html
+
+
+def test_house_rules_post_without_field_does_not_wipe_text():
+    s = StaySettings.load()
+    s.house_rules = "Ruhe ab 22 Uhr"
+    s.save(update_fields=["house_rules"])
+    v.stay_settings(_req("post", {"action": "house_rules"}))
+    assert StaySettings.load().house_rules == "Ruhe ab 22 Uhr"

@@ -4,12 +4,12 @@
 
 {% block dash_content %}
 {% comment %}UX-D D4.3 (план ux-d4-rooms-prices): общие настройки размещения — Einstellungen ›
-Zimmer (раньше — под-вкладка списка номеров). Kurtaxe и Hausordnung — ОДНА форма (одно
-действие пишет оба поля; W0). Kurtaxe и часы правит право на цены; без него — чтение.{% endcomment %}
+Zimmer (раньше — под-вкладка списка номеров). Kurtaxe и часы правит право на цены; D6.8:
+Hausordnung — своя форма и своё право (hausordnung.edit); без права — чтение.{% endcomment %}
 <div class="flex items-center justify-between mb-2 gap-3 flex-wrap">
   <div class="flex items-center gap-3 flex-wrap">
     <h1 class="ui-h1">{% nav_title _("Unterkunft") %}</h1>
-    {% if can_edit_prices %}{% lang_switch %}{% endif %}
+    {% if can_edit_house_rules %}{% lang_switch %}{% endif %}
   </div>
   <div class="flex flex-wrap items-center gap-x-4 gap-y-1">
     {% if can_checkins %}<a href="{% url 'stays:checkins' %}" class="text-sm text-indigo-700 hover:underline">{% trans "Meldescheine" %} <span aria-hidden="true">→</span></a>{% endif %}
@@ -23,12 +23,12 @@ Zimmer (раньше — под-вкладка списка номеров). Kur
     <div role="{% if m.tags == 'error' %}alert{% else %}status{% endif %}" class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
   {% endfor %}
 {% endif %}
-{% if not can_edit_prices %}<p class="mb-3 text-sm text-gray-600">{% trans "Kurtaxe, Hausordnung und Check-in-Zeiten ändern nur Inhaber und Admins." %}</p>{% endif %}
+{% if not can_edit_prices %}<p class="mb-3 text-sm text-gray-600">{% trans "Kurtaxe und Check-in-Zeiten ändern nur Inhaber und Admins." %}</p>{% endif %}
 
 <div class="max-w-4xl space-y-4">
 <section id="kurtaxe" class="ui-card p-5" aria-labelledby="us-kurtaxe-h">
-  <h2 id="us-kurtaxe-h" class="ui-h2 mb-1">{% trans "Kurtaxe & house rules" %}</h2>
-  <p class="text-xs text-gray-500 mb-3">{% trans "Kurtaxe per adult per night, added to every booking (0 = off). Children are free. House rules appear as a public page when filled." %}</p>
+  <h2 id="us-kurtaxe-h" class="ui-h2 mb-1">{% trans "Kurtaxe" %}</h2>
+  <p class="text-xs text-gray-500 mb-3">{% trans "Pro Erwachsenem und Nacht, wird jeder Buchung hinzugefügt (0 = aus)." %}</p>
   {% if can_edit_prices %}
   <form method="post" class="flex items-end gap-3 flex-wrap">
     {% csrf_token %}
@@ -51,16 +51,27 @@ Zimmer (раньше — под-вкладка списка номеров). Kur
       <label class="block"><span class="block text-xs font-medium text-gray-500 mb-1">{% trans "Betrag / Kind / Nacht (€)" %}</span>
       <input name="kurtaxe_child_eur" type="text" inputmode="decimal" value="{{ stay_settings.kurtaxe_child_eur|stringformat:'.2f' }}" class="w-32 rounded-lg border border-gray-300 px-3 py-2 text-sm"></label>
     </div>
-    <div class="w-full">
-      <label class="block"><span class="block text-xs font-medium text-gray-500 mb-1">{% trans "House rules (Hausordnung) — shown as a public page when filled" %}</span>
-{% i18n_base_locale as base_loc %}<div data-i18n-loc="{{ base_loc }}">      <textarea name="house_rules" rows="4" class="ui-input" placeholder="{% trans 'Check-in ab 15:00, Check-out bis 11:00; Haustiere auf Anfrage; Nichtraucher; Ruhezeiten 22–7 Uhr; Kaution …' %}">{{ stay_settings.house_rules }}</textarea></div></label>
-      {% include "tenant/_i18n_inline.html" with obj=stay_settings fields="house_rules" wrap_class="mt-2 space-y-2" %}
-    </div>
     <button class="ui-btn ui-btn-primary">{% trans "Save" %}</button>
   </form>
   {% else %}
   <p class="text-sm" data-kurtaxe-state>{{ stay_settings.kurtaxe_label }}: {{ stay_settings.kurtaxe_eur|floatformat:2 }} € · {% if stay_settings.kurtaxe_children_free %}{% trans "Kinder frei" %}{% else %}{% trans "Betrag / Kind / Nacht (€)" %}: {{ stay_settings.kurtaxe_child_eur|floatformat:2 }}{% endif %}</p>
-  {% if stay_settings.house_rules %}<p class="mt-2 text-sm whitespace-pre-line text-gray-700">{{ stay_settings.house_rules }}</p>{% endif %}
+  {% endif %}
+</section>
+<section id="hausordnung" class="ui-card p-5" aria-labelledby="us-hausordnung-h">
+  <h2 id="us-hausordnung-h" class="ui-h2 mb-1">{% trans "Hausordnung" %}</h2>
+  <p class="text-xs text-gray-500 mb-3">{% trans "Erscheint als eigene Seite auf der Website, sobald sie ausgefüllt ist." %}</p>
+  {% if can_edit_house_rules %}
+  <form method="post">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="house_rules">
+    <label class="block"><span class="sr-only">{% trans "Hausordnung" %}</span>
+{% i18n_base_locale as base_loc %}<div data-i18n-loc="{{ base_loc }}">      <textarea name="house_rules" rows="5" class="ui-input" placeholder="{% trans 'Check-in ab 15:00, Check-out bis 11:00; Haustiere auf Anfrage; Nichtraucher; Ruhezeiten 22–7 Uhr; Kaution …' %}">{{ stay_settings.house_rules }}</textarea></div></label>
+    {% include "tenant/_i18n_inline.html" with obj=stay_settings fields="house_rules" wrap_class="mt-2 space-y-2" %}
+    <button class="ui-btn ui-btn-primary mt-3">{% trans "Save" %}</button>
+  </form>
+  {% else %}
+  <p class="mb-2 text-sm text-gray-600" data-house-rules-locked>{% trans "Die Hausordnung ändern Sie nur mit dem Recht „Hausordnung bearbeiten“ (Team & Zugriff)." %}</p>
+  {% if stay_settings.house_rules %}<p class="text-sm whitespace-pre-line text-gray-700" data-house-rules-state>{{ stay_settings.house_rules }}</p>{% else %}<p class="text-sm text-gray-500" data-house-rules-state>{% trans "Noch keine Hausordnung." %}</p>{% endif %}
   {% endif %}
 </section>
 <section id="zeiten" class="ui-card p-5" aria-labelledby="us-zeiten-h">

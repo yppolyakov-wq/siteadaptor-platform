@@ -96,21 +96,33 @@ def card_amenities(request) -> None:
 
 
 def kurtaxe(request) -> None:
-    """H9 Kurtaxe + H6 Hausordnung"""
+    """H9 Kurtaxe (цена → preise.edit). UX-D D6.8: Hausordnung — своё действие
+    ``house_rules`` со своим правом; здесь её поля не трогаем (W0)."""
     settings_obj = StaySettings.load()
     settings_obj.kurtaxe_cents = _eur_to_cents(request.POST.get("kurtaxe_eur"))
     settings_obj.kurtaxe_label = request.POST.get("kurtaxe_label", "").strip()[:80] or "Kurtaxe"
-    settings_obj.house_rules = request.POST.get("house_rules", "").strip()[:8000]
-    fields = ["kurtaxe_cents", "kurtaxe_label", "house_rules", "updated_at"]
-    # E9.10: переводы Hausordnung — в той же форме (выпадашка у заголовка).
-    fields += apply_i18n_overlay(
-        settings_obj, request.POST, getattr(request, "tenant", None), ("house_rules",)
-    )
+    fields = ["kurtaxe_cents", "kurtaxe_label", "updated_at"]
     # KA-12 Z-6: Kurtaxe детей — presence-guard (снятый чекбокс не приходит).
     if request.POST.get("kurtaxe_children_present"):
         settings_obj.kurtaxe_children_free = bool(request.POST.get("kurtaxe_children_free"))
         settings_obj.kurtaxe_child_cents = _eur_to_cents(request.POST.get("kurtaxe_child_eur"))
         fields += ["kurtaxe_children_free", "kurtaxe_child_cents"]
+    settings_obj.save(update_fields=fields)
+    messages.success(request, _("Settings saved."))
+
+
+def house_rules(request) -> None:
+    """H6 Hausordnung (право ``hausordnung.edit``, UX-D D6.8)"""
+    if "house_rules" not in request.POST:  # W0: без поля не стираем текст
+        messages.error(request, _("Die Hausordnung dürfen Sie nicht ändern."))
+        return
+    settings_obj = StaySettings.load()
+    settings_obj.house_rules = request.POST.get("house_rules", "").strip()[:8000]
+    fields = ["house_rules", "updated_at"]
+    # E9.10: переводы Hausordnung — в той же форме (выпадашка у заголовка).
+    fields += apply_i18n_overlay(
+        settings_obj, request.POST, getattr(request, "tenant", None), ("house_rules",)
+    )
     settings_obj.save(update_fields=fields)
     messages.success(request, _("Settings saved."))
 
@@ -262,6 +274,7 @@ HANDLERS = {
     "restriction_add": restriction_add,
     "restriction_delete": restriction_delete,
     "kurtaxe": kurtaxe,
+    "house_rules": house_rules,
     "stay_hours": stay_hours,
     "card_amenities": card_amenities,
 }
@@ -283,6 +296,7 @@ HOME: dict[str, tuple[str, str]] = {
     "restriction_add": ("stays:price-rules", "tab=regeln"),  # D4.2
     "restriction_delete": ("stays:price-rules", "tab=regeln"),  # D4.2
     "kurtaxe": ("stays:stay-settings", ""),  # D4.3
+    "house_rules": ("stays:stay-settings", ""),  # D6.8
     "stay_hours": ("stays:stay-settings", ""),  # D4.3
     # HF-2: живёт рядом с прочей «подачей» номеров
     "card_amenities": ("stays:stay-settings", ""),  # D4.3

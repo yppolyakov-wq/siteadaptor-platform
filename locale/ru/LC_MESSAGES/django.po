@@ -32115,3 +32115,21 @@ msgstr "Состав"
 #, python-format
 msgid "Weitere Mitglieder (inaktiv oder nicht in der Liste) bleiben erhalten: %(n)s"
 msgstr "Остальные участники (неактивные или не в списке) сохраняются: %(n)s"
+
+msgid "Die Hausordnung dürfen Sie nicht ändern."
+msgstr "У вас нет права менять правила проживания."
+
+msgid "Die Hausordnung ändern Sie nur mit dem Recht „Hausordnung bearbeiten“ (Team & Zugriff)."
+msgstr "Менять правила проживания можно только с правом «Редактировать правила проживания» (Команда и доступ)."
+
+msgid "Erscheint als eigene Seite auf der Website, sobald sie ausgefüllt ist."
+msgstr "Появится отдельной страницей на сайте, как только будет заполнено."
+
+msgid "Hausordnung bearbeiten"
+msgstr "Редактировать правила проживания"
+
+msgid "Noch keine Hausordnung."
+msgstr "Правила проживания ещё не заданы."
+
+msgid "Pro Erwachsenem und Nacht, wird jeder Buchung hinzugefügt (0 = aus)."
+msgstr "За взрослого за ночь, добавляется к каждой брони (0 = выкл.)."

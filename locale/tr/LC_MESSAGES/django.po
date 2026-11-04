@@ -31972,3 +31972,21 @@ msgstr "İçerik"
 #, python-format
 msgid "Weitere Mitglieder (inaktiv oder nicht in der Liste) bleiben erhalten: %(n)s"
 msgstr "Diğer üyeler (pasif veya listede değil) korunur: %(n)s"
+
+msgid "Die Hausordnung dürfen Sie nicht ändern."
+msgstr "Ev kurallarını değiştirme yetkiniz yok."
+
+msgid "Die Hausordnung ändern Sie nur mit dem Recht „Hausordnung bearbeiten“ (Team & Zugriff)."
+msgstr "Ev kurallarını değiştirmek için “Ev kurallarını düzenle” yetkisi gerekir (Ekip ve erişim)."
+
+msgid "Erscheint als eigene Seite auf der Website, sobald sie ausgefüllt ist."
+msgstr "Doldurulduğunda web sitesinde ayrı bir sayfa olarak görünür."
+
+msgid "Hausordnung bearbeiten"
+msgstr "Ev kurallarını düzenle"
+
+msgid "Noch keine Hausordnung."
+msgstr "Henüz ev kuralları yok."
+
+msgid "Pro Erwachsenem und Nacht, wird jeder Buchung hinzugefügt (0 = aus)."
+msgstr "Yetişkin başına gecelik, her rezervasyona eklenir (0 = kapalı)."

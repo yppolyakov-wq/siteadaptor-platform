@@ -76,6 +76,7 @@ LABELS = {
     "finanzen.bank": _("Bankumsätze importieren"),
     "einstellungen.view": _("Einstellungen ansehen"),
     "einstellungen.edit": _("Einstellungen ändern"),
+    "hausordnung.edit": _("Hausordnung bearbeiten"),
     "funktionen.view": _("Funktionen ansehen"),
     "funktionen.edit": _("Funktionen ein- und ausschalten"),
     "betriebsferien.ganz": _("Ganzen Betrieb schließen (Betriebsferien)"),
