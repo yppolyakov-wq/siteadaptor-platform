@@ -208,17 +208,21 @@ def _stay_heute_item(s, *, today, allowed, can_desk):
     }
 
 
-def heute_columns(tenant, user=None) -> list[dict]:
+def heute_columns(tenant, user=None, sections=None) -> list[dict]:
     """W10-4: kind-агностичный вид «Heute» — операционный ответ на «что сегодня»:
     заезды/выезды (stays — одна точка `front_desk.today_lists`, её же читает виджет
     главной), записи (booking), выдача/доставка (orders, status=ready). Колонки
     гейтятся модулями; KA-12 Z-5 (DF-Z4): ошибка колонки логируется и показывается
-    как «Konnte nicht geladen werden», а не как пустой день."""
+    как «Konnte nicht geladen werden», а не как пустой день. ``sections`` (UX-D D8.1) —
+    подмножество {"stays", "booking", "orders"}: считать только эти группы колонок."""
     from django.urls import reverse
     from django.utils import timezone
 
     today = timezone.localdate()
     cols = []
+
+    def _wanted(module):
+        return tenant.is_module_active(module) and (sections is None or module in sections)
 
     def _safe(key, fn):
         """(items, error): сломанная колонка одного модуля не валит «Heute»."""
@@ -232,7 +236,7 @@ def heute_columns(tenant, user=None) -> list[dict]:
         items, error = _safe(key, fn)
         return {"key": key, "icon": icon, "label": label, "items": items, "error": error, **extra}
 
-    if tenant.is_module_active("stays"):
+    if _wanted("stays"):
         from apps.core.permissions import has_perm
         from apps.stays import front_desk
         from apps.stays.models import StaySettings
@@ -310,7 +314,7 @@ def heute_columns(tenant, user=None) -> list[dict]:
                 ]
 
             cols.append(_col("reinigen", "🧹", _("Zimmer reinigen"), _dirty))
-    if tenant.is_module_active("booking"):
+    if _wanted("booking"):
         from apps.booking.models import Booking
 
         def _termine():
@@ -340,7 +344,7 @@ def heute_columns(tenant, user=None) -> list[dict]:
             return out
 
         cols.append(_col("termine", "📅", _("Termine heute"), _termine))
-    if tenant.is_module_active("orders"):
+    if _wanted("orders"):
         from apps.orders.models import Order
 
         def _ready(delivery: bool):

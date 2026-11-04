@@ -255,6 +255,12 @@ def dashboard(request):
         from apps.stays import home_summary
 
         loop_ctx = home_summary.summary(request)
+    elif loop_kind and _day_home_applies(loop_kind):
+        # UX-D D8.1: у заказов/записей/заявок/билетов — та же логика, что у отеля:
+        # главная = сводка дня, а рабочая поверхность — на «Verkäufe».
+        from apps.core import day_home
+
+        loop_ctx = day_home.summary(request, loop_kind)
     elif loop_kind:
         sub = sales_page.body_context(request, loop_kind, loop_view)
         # Ревью 2026-08-19: тело поверхности может вернуть HttpResponse —
@@ -299,6 +305,12 @@ def dashboard(request):
         # продаж. Вычисление осталось мёртвым грузом в 5-6 запросов — снято.
     }
     return render(request, "tenant/dashboard.html", {**loop_ctx, **ctx})
+
+
+def _day_home_applies(kind: str) -> bool:
+    from apps.core import day_home
+
+    return day_home.applies(kind)
 
 
 def _today_suggestions(request) -> list:

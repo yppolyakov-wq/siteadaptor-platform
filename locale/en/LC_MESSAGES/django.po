@@ -31859,3 +31859,64 @@ msgstr "Your requests"
 
 msgid "Nur eine Bildvorschau der Karte auf Ihrer Website."
 msgstr "Only a visual preview of the card on your website."
+
+msgid "Heute abholen & liefern"
+msgstr "Pick up & deliver today"
+
+msgid "Abholungen 7 Tage"
+msgstr "Pickups, next 7 days"
+
+msgid "Termine 7 Tage"
+msgstr "Appointments, next 7 days"
+
+msgid "Nächste Einsätze"
+msgstr "Upcoming jobs"
+
+msgid "Einsätze 7 Tage"
+msgstr "Jobs, next 7 days"
+
+msgid "Nächste Veranstaltungen"
+msgstr "Upcoming events"
+
+msgid "Tickets 7 Tage"
+msgstr "Tickets, next 7 days"
+
+#, python-format
+msgid "%(n)s Teilnehmer"
+msgstr "%(n)s participants"
+
+msgid "Neu / in Arbeit"
+msgstr "New / in progress"
+
+msgid "Neu eingegangen"
+msgstr "Just received"
+
+msgid "Nichts Neues."
+msgstr "Nothing new."
+
+#, python-format
+msgid "%(n)s neu, noch nicht bearbeitet"
+msgid_plural "%(n)s neu, noch nicht bearbeitet"
+msgstr[0] "%(n)s new, not handled yet"
+msgstr[1] "%(n)s new, not handled yet"
+
+#, python-format
+msgid "%(n)s Angebot abgelaufen"
+msgid_plural "%(n)s Angebote abgelaufen"
+msgstr[0] "%(n)s quote expired"
+msgstr[1] "%(n)s quotes expired"
+
+#, python-format
+msgid "%(n)s Artikel nachbestellen"
+msgid_plural "%(n)s Artikel nachbestellen"
+msgstr[0] "%(n)s item to reorder"
+msgstr[1] "%(n)s items to reorder"
+
+msgid "Abholungen heute"
+msgstr "Pickups today"
+
+msgid "Einsätze heute"
+msgstr "Jobs today"
+
+msgid "Tickets heute"
+msgstr "Tickets today"

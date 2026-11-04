@@ -61,3 +61,17 @@ def test_reorder_sold_out_first():
     out = services.reorder_suggestions(global_threshold=5)
     # Ausverkauft (0) первым, затем по возрастанию остатка
     assert [r["counter"] for r in out] == [0, 2, 4]
+
+
+def test_reorder_count_equals_suggestions_length():
+    """UX-D D8.1: главная считает Bestellvorschläge агрегатом БД — то же число, что список."""
+    ProductFactory(stock_quantity=3, reorder_point=10)  # в списке
+    ProductFactory(stock_quantity=4)  # ≤ глобального 5
+    ProductFactory(stock_quantity=9)  # выше
+    ProductFactory(stock_quantity=None, reorder_point=10)  # не учитывается
+    p = ProductFactory(stock_quantity=0)  # с вариантами — считается по вариантам
+    ProductVariant.objects.create(product=p, label="S", stock_quantity=1)  # в списке
+    ProductVariant.objects.create(product=p, label="M", stock_quantity=20, reorder_point=25)
+    ProductVariant.objects.create(product=p, label="L", stock_quantity=8)  # выше
+    expected = len(services.reorder_suggestions(global_threshold=5))
+    assert services.reorder_count(5) == expected == 4

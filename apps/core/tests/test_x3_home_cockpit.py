@@ -77,8 +77,10 @@ def test_verkaeufe_body_renders_expected_engine(business_type, tab, view, marker
         # UX-D D1.4 (осознанная переписка): у отеля работа дня — СВОДКА (заезды/
         # выезды/уборка/внимание), шахматка — на «Verkäufe»
         ("hotel", "data-hotel-home"),
-        ("friseur", "Tage blockieren"),  # дневной план записей (Tagesplan)
-        ("bakery", "Alle Status"),  # очередь заказов списком (рыночный дефолт ритейла)
+        # UX-D D8.1 (осознанная переписка, решение владельца «Делай»): у остальных
+        # видов продаж — тоже сводка дня, рабочая поверхность — на «Verkäufe»
+        ("friseur", 'data-day-home="booking"'),
+        ("bakery", 'data-day-home="order"'),
     ],
 )
 def test_home_renders_archetype_loop(business_type, marker):

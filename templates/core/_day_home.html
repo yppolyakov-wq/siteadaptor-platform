@@ -1,0 +1,118 @@
+{% load i18n %}
+{% comment %}UX-D D8.1: главная = сводка дня у заказов/записей/заявок/билетов (у отеля —
+stays/_hotel_home.html). Контекст — apps/core/day_home.summary (префикс dh_); выручка —
+виджет home_widgets (umsatz | finance_off). Числа — из тех же источников, что экраны,
+куда ведут ссылки (Offene Posten, вид «Heute», доска).{% endcomment %}
+<div data-day-home="{{ dh_kind }}">
+<div class="flex flex-wrap items-center gap-2 mb-4">
+  <a href="{{ dh_sales_url }}" class="ui-btn ui-btn-secondary ui-btn-sm">{{ dh_label }} <span aria-hidden="true">→</span></a>
+  {% if dh_create %}<a href="{{ dh_create }}"{% if dh_create_drawer %} data-drawer{% endif %} class="ui-btn ui-btn-primary ui-btn-sm">＋ {% trans "Neu" %}</a>{% endif %}
+</div>
+
+<section aria-labelledby="dh-kpi" class="mb-4">
+  <h2 id="dh-kpi" class="sr-only">{% trans "Heute in Zahlen" %}</h2>
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+    {% for w in widgets %}{% if w.key == "umsatz" or w.key == "finance_off" %}
+      <a href="{% url w.url_name %}{{ w.url_query }}" class="ui-card block p-4 hover:bg-gray-50">
+        <span class="block text-xs text-gray-500">{{ w.label }}</span>
+        <span class="block text-2xl font-bold tracking-tight mt-0.5 tabular-nums">{{ w.value }}</span>
+        <span class="block text-xs {% if '▲' in w.hint %}text-emerald-700{% elif '▼' in w.hint %}text-rose-700{% else %}text-gray-500{% endif %} mt-1">{{ w.hint }}</span>
+        {% if w.sparkline %}<svg viewBox="0 0 120 32" class="w-full h-6 mt-1 text-emerald-500" aria-hidden="true"><polyline points="{{ w.sparkline }}" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>{% endif %}
+      </a>
+    {% endif %}{% endfor %}
+    <a href="{{ dh_sales_url }}&amp;view=board" class="ui-card block p-4 hover:bg-gray-50">
+      <span class="block text-xs text-gray-500">{% trans "Neu / in Arbeit" %}</span>
+      <span class="block text-2xl font-bold tracking-tight mt-0.5 tabular-nums">{{ dh_new_n }} / {{ dh_progress_n }}</span>
+      <span class="block text-xs text-gray-500 mt-1">{{ dh_label }}</span>
+    </a>
+    <a href="{{ dh_sales_url }}&amp;view=liste" class="ui-card block p-4 hover:bg-gray-50">
+      <span class="block text-xs text-gray-500">{% trans "Heute" %}</span>
+      <span class="block text-2xl font-bold tracking-tight mt-0.5 tabular-nums">{{ dh_today_count }}</span>
+      <span class="block text-xs text-gray-500 mt-1">{{ dh_texts.kpi }}</span>
+    </a>
+    {% if dh_finance_link %}<a href="{% url 'finance:offene' %}" class="ui-card block p-4 hover:bg-gray-50">{% else %}<div class="ui-card p-4">{% endif %}
+      <span class="block text-xs text-gray-500">{% trans "Nicht bezahlt" %}</span>
+      <span class="block text-2xl font-bold tracking-tight mt-0.5 tabular-nums">{{ dh_unpaid.amount|floatformat:2 }} €</span>
+      <span class="block text-xs text-gray-500 mt-1">{{ dh_unpaid.count }} · {{ dh_label }}{% if not dh_finance %} · {% trans "Finanzen aktivieren für die Übersicht" %}{% endif %}</span>
+    {% if dh_finance_link %}</a>{% else %}</div>{% endif %}
+  </div>
+</section>
+
+<div class="grid lg:grid-cols-3 gap-4 mb-6">
+  <div class="lg:col-span-2 space-y-4">
+    <section aria-labelledby="dh-today" class="ui-card p-4">
+      <h2 id="dh-today" class="font-semibold mb-3">{{ dh_texts.today }}</h2>
+      <ul class="divide-y divide-gray-50">
+      {% for it in dh_items %}
+        <li class="py-2 first:pt-0">
+          <a href="{{ it.url }}"{% if it.drawer %} data-drawer{% endif %} class="flex items-start justify-between gap-3 hover:underline">
+            <span class="min-w-0">
+              <span class="block text-sm font-medium text-gray-800 break-words">{{ it.title }}</span>
+              {% if it.subtitle %}<span class="block text-xs text-gray-500 break-words">{{ it.subtitle }}</span>{% endif %}
+            </span>
+            {% if it.when or it.status %}<span class="shrink-0 text-right text-xs text-gray-500">{% if it.when %}{{ it.when|date:"D, d.m." }}{% endif %}{% if it.status %}<span class="block">{{ it.status }}</span>{% endif %}</span>{% endif %}
+          </a>
+        </li>
+      {% empty %}
+        {% if dh_items_error %}<li class="text-sm text-red-600" role="alert">{% trans "Konnte nicht geladen werden." %}</li>
+        {% else %}<li class="text-sm text-gray-500">{% trans "Nichts für heute." %}</li>{% endif %}
+      {% endfor %}
+      </ul>
+    </section>
+
+    <section aria-labelledby="dh-new" class="ui-card p-4">
+      <h2 id="dh-new" class="font-semibold mb-3">{% trans "Neu eingegangen" %}</h2>
+      <ul class="divide-y divide-gray-50">
+      {% for it in dh_new %}
+        <li class="py-2 first:pt-0">
+          <a href="{{ it.url }}"{% if it.drawer %} data-drawer{% endif %} class="flex items-start justify-between gap-3 hover:underline">
+            <span class="min-w-0">
+              <span class="block text-sm font-medium text-gray-800 break-words">{{ it.title }}</span>
+              {% if it.subtitle %}<span class="block text-xs text-gray-500 break-words">{{ it.subtitle }}</span>{% endif %}
+            </span>
+            {% if it.status %}<span class="shrink-0 text-xs text-gray-500">{{ it.status }}</span>{% endif %}
+          </a>
+        </li>
+      {% empty %}
+        <li class="text-sm text-gray-500">✓ {% trans "Nichts Neues." %}</li>
+      {% endfor %}
+      </ul>
+      {% if dh_new_n > dh_new|length %}<a href="{{ dh_sales_url }}&amp;view=board" class="block mt-2 text-xs text-indigo-700 hover:underline">{% blocktrans with n=dh_new_n %}Alle {{ n }} anzeigen{% endblocktrans %} <span aria-hidden="true">→</span></a>{% endif %}
+    </section>
+  </div>
+
+  <div class="space-y-4">
+    <section aria-labelledby="dh-attention" class="ui-card p-4">
+      <h2 id="dh-attention" class="font-semibold mb-3">{% trans "Braucht Aufmerksamkeit" %}</h2>
+      {% if dh_attention %}
+      <ul class="space-y-2 text-sm">
+        {% if dh_new_n %}<li><a href="{{ dh_sales_url }}&amp;view=board" class="flex items-center justify-between gap-2 hover:underline"><span><span class="inline-block w-2 h-2 rounded-full bg-amber-500 mr-1.5" aria-hidden="true"></span>{% blocktrans count n=dh_new_n %}{{ n }} neu, noch nicht bearbeitet{% plural %}{{ n }} neu, noch nicht bearbeitet{% endblocktrans %}</span><span aria-hidden="true">→</span></a></li>{% endif %}
+        {% if dh_overdue %}<li><a href="{{ dh_sales_url }}&amp;view=liste" class="flex items-center justify-between gap-2 hover:underline"><span><span class="inline-block w-2 h-2 rounded-full bg-rose-500 mr-1.5" aria-hidden="true"></span>{% blocktrans count n=dh_overdue %}{{ n }} Angebot abgelaufen{% plural %}{{ n }} Angebote abgelaufen{% endblocktrans %}</span><span aria-hidden="true">→</span></a></li>{% endif %}
+        {% if dh_low_stock %}<li><a href="{% url 'stock' %}" class="flex items-center justify-between gap-2 hover:underline"><span><span class="inline-block w-2 h-2 rounded-full bg-amber-500 mr-1.5" aria-hidden="true"></span>{% blocktrans count n=dh_low_stock %}{{ n }} Artikel nachbestellen{% plural %}{{ n }} Artikel nachbestellen{% endblocktrans %}</span><span aria-hidden="true">→</span></a></li>{% endif %}
+        {% if dh_unread %}<li><a href="{% url 'inbox:list' %}" class="flex items-center justify-between gap-2 hover:underline"><span><span class="inline-block w-2 h-2 rounded-full bg-indigo-500 mr-1.5" aria-hidden="true"></span>{% blocktrans count n=dh_unread %}{{ n }} ungelesene Nachricht{% plural %}{{ n }} ungelesene Nachrichten{% endblocktrans %}</span><span aria-hidden="true">→</span></a></li>{% endif %}
+      </ul>
+      {% else %}
+      <p class="text-sm text-gray-500">✓ {% trans "Alles erledigt." %}</p>
+      {% endif %}
+    </section>
+
+    {% include "core/_presence_card.html" with presence_width="w-full" %}
+
+    {% if dh_week %}
+    <section aria-labelledby="dh-week" class="ui-card p-4">
+      <h2 id="dh-week" class="font-semibold mb-3">{{ dh_texts.week }}</h2>
+      <ol aria-labelledby="dh-week" class="grid grid-cols-7 gap-1.5 items-end h-28">
+        {% for d in dh_week %}
+        <li class="flex flex-col items-center gap-1 h-full justify-end">
+          <span class="sr-only">{{ d.day|date:"l, d.m." }}: {{ d.n }}</span>
+          <span class="text-xs text-gray-500 tabular-nums" aria-hidden="true">{{ d.n }}</span>
+          <span class="w-full rounded-md bg-gray-100 flex-1 flex items-end overflow-hidden" aria-hidden="true"><span class="block w-full bg-indigo-300" style="height: {{ d.pct }}%"></span></span>
+          <span class="text-xs text-gray-600" aria-hidden="true">{{ d.day|date:"D" }}</span>
+        </li>
+        {% endfor %}
+      </ol>
+    </section>
+    {% endif %}
+  </div>
+</div>
+</div>

@@ -32132,3 +32132,70 @@ msgstr "Ваші звернення"
 
 msgid "Nur eine Bildvorschau der Karte auf Ihrer Website."
 msgstr "Це лише зображення картки на вашому сайті."
+
+msgid "Heute abholen & liefern"
+msgstr "Сьогодні: видача й доставка"
+
+msgid "Abholungen 7 Tage"
+msgstr "Видачі на 7 днів"
+
+msgid "Termine 7 Tage"
+msgstr "Записи на 7 днів"
+
+msgid "Nächste Einsätze"
+msgstr "Найближчі виїзди"
+
+msgid "Einsätze 7 Tage"
+msgstr "Виїзди на 7 днів"
+
+msgid "Nächste Veranstaltungen"
+msgstr "Найближчі заходи"
+
+msgid "Tickets 7 Tage"
+msgstr "Квитки на 7 днів"
+
+#, python-format
+msgid "%(n)s Teilnehmer"
+msgstr "Учасників: %(n)s"
+
+msgid "Neu / in Arbeit"
+msgstr "Нові / в роботі"
+
+msgid "Neu eingegangen"
+msgstr "Нові надходження"
+
+msgid "Nichts Neues."
+msgstr "Нічого нового."
+
+#, python-format
+msgid "%(n)s neu, noch nicht bearbeitet"
+msgid_plural "%(n)s neu, noch nicht bearbeitet"
+msgstr[0] "Нових, ще не опрацьованих: %(n)s"
+msgstr[1] "Нових, ще не опрацьованих: %(n)s"
+msgstr[2] "Нових, ще не опрацьованих: %(n)s"
+msgstr[3] "Нових, ще не опрацьованих: %(n)s"
+
+#, python-format
+msgid "%(n)s Angebot abgelaufen"
+msgid_plural "%(n)s Angebote abgelaufen"
+msgstr[0] "Прострочених кошторисів: %(n)s"
+msgstr[1] "Прострочених кошторисів: %(n)s"
+msgstr[2] "Прострочених кошторисів: %(n)s"
+msgstr[3] "Прострочених кошторисів: %(n)s"
+
+#, python-format
+msgid "%(n)s Artikel nachbestellen"
+msgid_plural "%(n)s Artikel nachbestellen"
+msgstr[0] "Дозамовити товарів: %(n)s"
+msgstr[1] "Дозамовити товарів: %(n)s"
+msgstr[2] "Дозамовити товарів: %(n)s"
+msgstr[3] "Дозамовити товарів: %(n)s"
+
+msgid "Abholungen heute"
+msgstr "Видачі сьогодні"
+
+msgid "Einsätze heute"
+msgstr "Виїзди сьогодні"
+
+msgid "Tickets heute"
+msgstr "Квитки сьогодні"

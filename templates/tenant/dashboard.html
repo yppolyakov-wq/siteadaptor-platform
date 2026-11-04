@@ -10,10 +10,13 @@
   <p class="text-xs text-gray-500">{% trans "Heute" %} · {% now "D, j. F" %}</p>
 </div>
 
-{% comment %}UX-D D1.4: у отеля — своя сводка дня (stays/_hotel_home.html), у остальных
-типов полоса виджетов и петля — без изменений.{% endcomment %}
+{% comment %}UX-D D1.4/D8.1: главная = сводка дня — у отеля stays/_hotel_home.html, у
+заказов/записей/заявок/билетов core/_day_home.html. Полоса виджетов и петля — только
+там, где сводки нет (направление без своей сводки, нет права на продажи).{% endcomment %}
 {% if hotel_home %}
 {% include "stays/_hotel_home.html" %}
+{% elif day_home %}
+{% include "core/_day_home.html" %}
 {% else %}
 {% comment %}R4: Umsatz — большая карта (radius 22, hint-пилюля «▲/▼ vs.
 Vorwoche», спарклайн); присутствие LS-2 — карточка рядом. Данные и гейты
@@ -91,7 +94,7 @@ deep-links те же.{% endcomment %}
 тем же телом, что и страница Verkäufe (`core/_sales_body.html`, контекст —
 `sales_page.body_context`). Прежние блоки (отдельная сводка «Heute», CTA-баннер
 календаря и второй канбан «Tasks») поглощены: они показывали те же сделки.{% endcomment %}
-{% if hotel_home %}{% elif active_kind %}
+{% if hotel_home or day_home %}{% elif active_kind %}
 <div class="flex items-baseline justify-between gap-3 mb-3">
   <h2 class="text-lg font-bold">{% if sales_primary_is_stays %}📅 {% trans "Belegungsplan" %}{% else %}🗂️ {% trans "Heute im Betrieb" %}{% endif %}</h2>
   <a href="{% url 'verkaeufe' %}" class="text-sm text-indigo-600 hover:underline">{% trans "Verkäufe" %} →</a>

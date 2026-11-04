@@ -32005,3 +32005,64 @@ msgstr "Talepleriniz"
 
 msgid "Nur eine Bildvorschau der Karte auf Ihrer Website."
 msgstr "Yalnızca web sitenizdeki kartın görsel önizlemesi."
+
+msgid "Heute abholen & liefern"
+msgstr "Bugün teslim alım ve teslimat"
+
+msgid "Abholungen 7 Tage"
+msgstr "Önümüzdeki 7 gün teslim alımlar"
+
+msgid "Termine 7 Tage"
+msgstr "Önümüzdeki 7 gün randevular"
+
+msgid "Nächste Einsätze"
+msgstr "Yaklaşan işler"
+
+msgid "Einsätze 7 Tage"
+msgstr "Önümüzdeki 7 gün işler"
+
+msgid "Nächste Veranstaltungen"
+msgstr "Yaklaşan etkinlikler"
+
+msgid "Tickets 7 Tage"
+msgstr "Önümüzdeki 7 gün biletler"
+
+#, python-format
+msgid "%(n)s Teilnehmer"
+msgstr "%(n)s katılımcı"
+
+msgid "Neu / in Arbeit"
+msgstr "Yeni / işlemde"
+
+msgid "Neu eingegangen"
+msgstr "Yeni gelenler"
+
+msgid "Nichts Neues."
+msgstr "Yeni bir şey yok."
+
+#, python-format
+msgid "%(n)s neu, noch nicht bearbeitet"
+msgid_plural "%(n)s neu, noch nicht bearbeitet"
+msgstr[0] "%(n)s yeni, henüz işlenmedi"
+msgstr[1] "%(n)s yeni, henüz işlenmedi"
+
+#, python-format
+msgid "%(n)s Angebot abgelaufen"
+msgid_plural "%(n)s Angebote abgelaufen"
+msgstr[0] "Süresi dolan teklif: %(n)s"
+msgstr[1] "Süresi dolan teklif: %(n)s"
+
+#, python-format
+msgid "%(n)s Artikel nachbestellen"
+msgid_plural "%(n)s Artikel nachbestellen"
+msgstr[0] "Yeniden sipariş edilecek ürün: %(n)s"
+msgstr[1] "Yeniden sipariş edilecek ürün: %(n)s"
+
+msgid "Abholungen heute"
+msgstr "Bugünkü teslim alımlar"
+
+msgid "Einsätze heute"
+msgstr "Bugünkü işler"
+
+msgid "Tickets heute"
+msgstr "Bugünkü biletler"

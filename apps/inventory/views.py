@@ -17,7 +17,7 @@ from apps.core.archetypes import FOOD_BUSINESS_TYPES
 from . import locations, matrix, services
 from .models import StockMovement
 
-DEFAULT_THRESHOLD = 5
+DEFAULT_THRESHOLD = services.DEFAULT_THRESHOLD
 
 # R3: причины ручной корректировки (ретейл списывает бой/усушку/кражу отдельно).
 ADJUST_REASONS = [
@@ -32,11 +32,7 @@ _REASON_LABELS = {k: v for k, v in ADJUST_REASONS}
 
 
 def _threshold(tenant) -> int:
-    cfg = tenant.site_config if isinstance(getattr(tenant, "site_config", None), dict) else {}
-    try:
-        return max(0, int(cfg.get("low_stock_threshold", DEFAULT_THRESHOLD)))
-    except (TypeError, ValueError):
-        return DEFAULT_THRESHOLD
+    return services.low_stock_threshold(tenant)
 
 
 def _int(value, default=0):

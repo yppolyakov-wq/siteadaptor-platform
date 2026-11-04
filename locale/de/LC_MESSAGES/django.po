@@ -31946,3 +31946,64 @@ msgstr "Ihre Anfragen"
 
 msgid "Nur eine Bildvorschau der Karte auf Ihrer Website."
 msgstr "Nur eine Bildvorschau der Karte auf Ihrer Website."
+
+msgid "Heute abholen & liefern"
+msgstr "Heute abholen & liefern"
+
+msgid "Abholungen 7 Tage"
+msgstr "Abholungen 7 Tage"
+
+msgid "Termine 7 Tage"
+msgstr "Termine 7 Tage"
+
+msgid "Nächste Einsätze"
+msgstr "Nächste Einsätze"
+
+msgid "Einsätze 7 Tage"
+msgstr "Einsätze 7 Tage"
+
+msgid "Nächste Veranstaltungen"
+msgstr "Nächste Veranstaltungen"
+
+msgid "Tickets 7 Tage"
+msgstr "Tickets 7 Tage"
+
+#, python-format
+msgid "%(n)s Teilnehmer"
+msgstr "%(n)s Teilnehmer"
+
+msgid "Neu / in Arbeit"
+msgstr "Neu / in Arbeit"
+
+msgid "Neu eingegangen"
+msgstr "Neu eingegangen"
+
+msgid "Nichts Neues."
+msgstr "Nichts Neues."
+
+#, python-format
+msgid "%(n)s neu, noch nicht bearbeitet"
+msgid_plural "%(n)s neu, noch nicht bearbeitet"
+msgstr[0] "%(n)s neu, noch nicht bearbeitet"
+msgstr[1] "%(n)s neu, noch nicht bearbeitet"
+
+#, python-format
+msgid "%(n)s Angebot abgelaufen"
+msgid_plural "%(n)s Angebote abgelaufen"
+msgstr[0] "%(n)s Angebot abgelaufen"
+msgstr[1] "%(n)s Angebote abgelaufen"
+
+#, python-format
+msgid "%(n)s Artikel nachbestellen"
+msgid_plural "%(n)s Artikel nachbestellen"
+msgstr[0] "%(n)s Artikel nachbestellen"
+msgstr[1] "%(n)s Artikel nachbestellen"
+
+msgid "Abholungen heute"
+msgstr "Abholungen heute"
+
+msgid "Einsätze heute"
+msgstr "Einsätze heute"
+
+msgid "Tickets heute"
+msgstr "Tickets heute"

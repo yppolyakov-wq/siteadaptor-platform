@@ -204,6 +204,43 @@ def reorder_suggestions(global_threshold):
     return out
 
 
+DEFAULT_THRESHOLD = 5
+
+
+def low_stock_threshold(tenant) -> int:
+    """Глобальный Meldebestand кабинета (`site_config["low_stock_threshold"]`)."""
+    cfg = tenant.site_config if isinstance(getattr(tenant, "site_config", None), dict) else {}
+    try:
+        return max(0, int(cfg.get("low_stock_threshold", DEFAULT_THRESHOLD)))
+    except (TypeError, ValueError):
+        return DEFAULT_THRESHOLD
+
+
+def reorder_count(global_threshold) -> int:
+    """UX-D D8.1: число Bestellvorschläge одним агрегатом БД (для главной; та же
+    граница, что у `reorder_suggestions`: остаток ≤ Meldebestand, неучитываемые —
+    мимо). Товар с вариантами считается по вариантам, не сам."""
+    from django.db.models import F, Value
+    from django.db.models.functions import Coalesce
+
+    from apps.catalog.models import Product, ProductVariant
+
+    point = Coalesce("reorder_point", Value(int(global_threshold)))
+    products = (
+        Product.objects.filter(variants__isnull=True, stock_quantity__isnull=False)
+        .annotate(_point=point)
+        .filter(stock_quantity__lte=F("_point"))
+        .count()
+    )
+    variants = (
+        ProductVariant.objects.filter(stock_quantity__isnull=False)
+        .annotate(_point=point)
+        .filter(stock_quantity__lte=F("_point"))
+        .count()
+    )
+    return products + variants
+
+
 def apply_manual_movement(
     *,
     product,
