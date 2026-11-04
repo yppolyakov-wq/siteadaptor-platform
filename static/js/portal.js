@@ -5,6 +5,11 @@
  * на каждое нажатие — страница перезагружалась бы с первой клавиши (WCAG 3.2.2). */
 (function () {
   "use strict";
+  // Витрина подменяет список fetch'ем (KAT-5): скрипт внутри подменённой зоны не
+  // перезапускается, а привязки к старым элементам умирают → всё делегировано на
+  // document, а повторное подключение файла — no-op.
+  if (window.__fltInit) return;
+  window.__fltInit = true;
   var drawer = document.getElementById("flt-drawer");
   var opener = null;
   var mobile = window.matchMedia("(max-width: 639px)");
@@ -79,17 +84,22 @@
     });
   });
 
-  document.querySelectorAll("[data-flt-pop]").forEach(function (d) {
-    d.addEventListener("toggle", function () {
-      if (!d.open) return;
+  // toggle не всплывает — ловим на фазе захвата
+  document.addEventListener(
+    "toggle",
+    function (e) {
+      var d = e.target;
+      if (!d.matches || !d.matches("[data-flt-pop]") || !d.open) return;
       document.querySelectorAll("[data-flt-pop][open]").forEach(function (o) {
         if (o !== d) o.removeAttribute("open"); // один поповер за раз
       });
-    });
-    // Tab ушёл из поповера — закрыть, чтобы он не накрывал содержимое
-    d.addEventListener("focusout", function (e) {
-      if (d.open && e.relatedTarget && !d.contains(e.relatedTarget)) d.removeAttribute("open");
-    });
+    },
+    true
+  );
+  // Tab ушёл из поповера — закрыть, чтобы он не накрывал содержимое
+  document.addEventListener("focusout", function (e) {
+    var d = e.target.closest && e.target.closest("[data-flt-pop][open]");
+    if (d && e.relatedTarget && !d.contains(e.relatedTarget)) d.removeAttribute("open");
   });
 
   document.addEventListener("keydown", function (e) {
@@ -103,8 +113,10 @@
 
   // пустые поля не тащим в адрес («preis_von=&datum=»): правим только отправляемые данные,
   // DOM не трогаем — ничего не «гаснет» и не остаётся отключённым после отмены
-  document.querySelectorAll("[data-flt] form").forEach(function (form) {
-    form.addEventListener("formdata", function (e) {
+  document.addEventListener(
+    "formdata",
+    function (e) {
+      if (!e.target.closest || !e.target.closest("[data-flt]")) return;
       var empty = [];
       e.formData.forEach(function (value, key) {
         if (value === "") empty.push(key);
@@ -118,6 +130,7 @@
           e.formData.append(key, v);
         });
       });
-    });
-  });
+    },
+    true
+  );
 })();

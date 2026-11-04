@@ -8,7 +8,7 @@ Hardening H8 — бронь/waitlist по IP+акции, QR-вьюхи по IP �
 import io
 import logging
 import uuid
-from urllib.parse import quote
+from urllib.parse import quote, urlencode
 
 import segno
 from django.conf import settings
@@ -1324,6 +1324,33 @@ def _carry_qs(params: dict) -> str:
     return urlencode(clean, doseq=True)
 
 
+def _quick_filters(facets: dict, sort: str, only_sale: bool) -> dict:
+    """FLT-3b: скрытые поля каждого поповера = всё состояние БЕЗ своего фасета (и без
+    курсора) — «Anwenden» в поповере не теряет остальные фильтры, поиск, вид и сорт."""
+
+    def state_without(*keys):
+        pairs = [
+            (k, one)
+            for k, v in facets.items()
+            if v and k not in keys
+            for one in (v if isinstance(v, (list, tuple)) else [v])
+        ]
+        if sort and sort != "newest":
+            pairs.append(("sort", sort))
+        return pairs
+
+    sale_pairs = state_without("sale")
+    if not only_sale:
+        sale_pairs.append(("sale", "1"))
+    return {
+        "price": state_without("preis_von", "preis_bis"),
+        "size": state_without("groesse"),
+        "color": state_without("farbe"),
+        "brand": state_without("marke"),
+        "sale_qs": urlencode(sale_pairs),
+    }
+
+
 def _facet_pills(facets: dict, chips: dict, badge_chips) -> list:
     """Пилюли активных фильтров: [{label, qs}], где `qs` — carry БЕЗ этого значения.
 
@@ -2070,7 +2097,11 @@ def product_list(request, slug=None):
             # активные фасеты, кроме q (у тулбара свой инпут) и sort (свой select).
             "show_listing_toolbar": bool(page.items or q),
             "q": q,
-            "toolbar_hidden": [(k, v) for k, v in _facets.items() if v and k != "q"],
+            # FLT-3b: мультивыбор (размер/цвет) — по полю на значение; раньше список
+            # уходил ОДНИМ значением «['M', 'L']», и смена сортировки ломала фильтр.
+            "toolbar_hidden": [(k, v) for k, v in filter_hidden if k != "q"],
+            # FLT-3b: быстрые фильтры в строке каталога (поповеры рядом с «Filter»).
+            "quick_filters": _quick_filters(_facets, sort, only_sale),
             "sort": sort,
             "sort_options": provider.sort_options(),
             # Билдер: показывать ли подкатегории карточками первыми (group=catalog).

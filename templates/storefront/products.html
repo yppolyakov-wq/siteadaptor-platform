@@ -221,6 +221,7 @@
 {% if catalog_show_filters and show_price_filter or catalog_show_filters and badge_chips or catalog_show_filters and show_stock_filter or catalog_show_filters and origin_chips or catalog_show_filters and show_rating_filter or catalog_show_filters and size_chips or catalog_show_filters and diet_chips or catalog_show_filters and color_chips or catalog_show_filters and sale_count or catalog_show_filters and heute_count %}
 {% include "storefront/_filter_toggle.html" with filter_key="catalog" bar=1 %}
 {% endif %}
+{% include "storefront/_catalog_quick_filters.html" %}
 {% comment %}2026-09-03: объём выдачи. Пагинация каталога курсорная («Mehr
 anzeigen»), поэтому без счётчика покупатель не знает, 12 товаров нашлось или
 340. При нуле молчим — там своё пустое состояние.{% endcomment %}
