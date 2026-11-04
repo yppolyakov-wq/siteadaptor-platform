@@ -35,7 +35,7 @@ id шторки `flt-drawer` — единственный (portal.js ищет е
   <div class="mt-2 flex flex-wrap items-center gap-2 text-sm">
     {% if lf.total is not None %}<p class="font-semibold text-gray-900 mr-1" data-hit-count>{% blocktrans count n=lf.total %}{{ n }} Treffer{% plural %}{{ n }} Treffer{% endblocktrans %}</p>{% endif %}
     {% for p in lf.pills %}
-      <a href="{{ lf.action }}{{ p.url }}" data-flt-pill class="inline-flex items-center gap-1.5 min-h-[44px] sm:min-h-0 rounded-full bg-gray-900 text-white px-3 py-1.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900">{{ p.label }} <span aria-hidden="true">✕</span><span class="sr-only">{% trans "Filter entfernen" %}</span></a>
+      <a href="{{ lf.action }}{{ p.url }}" data-flt-pill class="ui-chip">{{ p.label }} <span aria-hidden="true">✕</span><span class="sr-only">{% trans "Filter entfernen" %}</span></a>
     {% endfor %}
     {% if lf.any_active %}<a href="{{ lf.action }}{{ lf.reset_url }}" class="inline-flex items-center min-h-[44px] sm:min-h-[24px] px-1 text-gray-500 hover:text-gray-800 underline-offset-2 hover:underline">{% trans "Filter zurücksetzen" %}</a>{% endif %}
   </div>

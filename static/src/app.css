@@ -1784,6 +1784,11 @@ input[type="datetime-local"] {
   .ui-btn-sm { min-height: 32px; padding: .375rem .625rem; font-size: .8125rem; }
   .ui-btn-lg { min-height: 48px; padding: .75rem 1.125rem; font-size: .9375rem; }
 
+  /* FLT-4: снимаемый фильтр списка («Status: Offen ✕») — ссылка, снимающая свой ключ */
+  .ui-chip { display: inline-flex; align-items: center; gap: .375rem; padding: .375rem .75rem; border-radius: 9999px; background: #111827; color: #fff; font-size: .875rem; line-height: 1.25; text-decoration: none; }
+  .ui-chip:hover { background: #1F2937; }
+  .ui-chip:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: 2px; }
+  @media (max-width: 639.98px) { .ui-chip { min-height: 2.75rem; } }
   .ui-badge { display: inline-flex; align-items: center; gap: .3125rem; padding: .1875rem .5625rem; border-radius: 9999px; font-size: .75rem; font-weight: 600; line-height: 1.3; white-space: nowrap; }
   .ui-badge::before { content: ""; width: 6px; height: 6px; border-radius: 9999px; background: currentColor; }
   .ui-tone-new { background: var(--ui-warn-soft); color: var(--ui-warn); }
