@@ -695,7 +695,7 @@ msgstr "Корзина"
 #: apps/core/context.py:56 apps/tenants/siteconfig.py:1197
 #: templates/storefront/service_detail.html:62
 msgid "Book"
-msgstr "Записаться"
+msgstr "Забронировать"
 
 #: apps/core/context.py:58 apps/tenants/siteconfig.py:1198
 msgid "Stay"
@@ -1593,10 +1593,14 @@ msgstr "Сегодня"
 msgid "Tomorrow"
 msgstr "Завтра"
 
-#: apps/events/public_views.py:66
+#: apps/events/listing.py
 #, python-format
-msgid "In %(n)d days"
-msgstr "В эпоху «%(n)d»"
+msgid "In %(n)d day"
+msgid_plural "In %(n)d days"
+msgstr[0] "Через %(n)d день"
+msgstr[1] "Через %(n)d дня"
+msgstr[2] "Через %(n)d дней"
+msgstr[3] "Через %(n)d дня"
 
 #: apps/events/public_views.py:427
 #, python-format
@@ -5434,7 +5438,7 @@ msgstr "Участники"
 #: templates/storefront/event_detail.html:75
 #: templates/storefront/event_detail.html:108
 msgid "Seats"
-msgstr "Сиденья"
+msgstr "Места"
 
 #: templates/events/event_detail.html:66
 #: templates/imports/_status_card.html:13
@@ -7536,7 +7540,7 @@ msgstr "Доплата за ночь (€, например, за завтрак
 
 #: templates/stays/units.html:154 templates/storefront/_base.html:208
 msgid "Cancellation"
-msgstr "Отмена"
+msgstr "Условия отмены"
 
 #: templates/stays/units.html:160
 msgid "Free cancel until (days before, flexible only)"
@@ -8911,7 +8915,7 @@ msgstr "Любой учитель"
 #: templates/storefront/event_index.html:137
 #, python-format
 msgid "%(n)s seats left"
-msgstr "%(n)s оставшихся мест"
+msgstr "Осталось мест: %(n)s"
 
 #: templates/storefront/event_index.html:149
 msgid "No events match your filters."
@@ -9369,7 +9373,7 @@ msgstr "Наши номера"
 #: templates/storefront/sections/_trust.html:17
 #, python-format
 msgid "Since %(y)s"
-msgstr "Поскольку %(y)s"
+msgstr "С %(y)s года"
 
 #: templates/storefront/sections/_trust.html:18
 msgid "Family business"

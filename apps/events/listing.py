@@ -16,6 +16,7 @@ from __future__ import annotations
 from django.db.models import Sum
 from django.utils import timezone
 from django.utils.translation import gettext as _
+from django.utils.translation import ngettext
 
 SOON_DAYS = 14  # «скоро» — две недели (RV3; фильтр блока «In den nächsten 14 Tagen»)
 
@@ -68,7 +69,7 @@ def annotate_countdown(events) -> None:
             if days <= 0
             else _("Tomorrow")
             if days == 1
-            else _("In %(n)d days") % {"n": days}
+            else ngettext("In %(n)d day", "In %(n)d days", days) % {"n": days}
         )
 
 

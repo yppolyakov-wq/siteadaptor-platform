@@ -1,0 +1,10 @@
+{% load i18n %}{% comment %}Фидбэк 2026-11-04 («мероприятия выглядят пусто»): у события без фото
+вместо пустого места — афиша даты (день крупно, месяц, день недели, время) в цвете
+бизнеса. Параметры: e — событие, size — "sm" (миниатюра строки) | "card" (обложка
+карточки) | "poster" (левая колонка страницы события).{% endcomment %}
+<div class="{% if size == 'sm' %}w-24 h-24 rounded-xl flex-shrink-0{% elif size == 'poster' %}aspect-[4/3] rounded-2xl{% else %}w-full h-full{% endif %} flex flex-col items-center justify-center text-center select-none" style="background: var(--accent);" aria-hidden="true" data-event-date-tile>
+  <span class="uppercase tracking-wide font-semibold opacity-80 {% if size == 'sm' %}text-[11px]{% else %}text-sm{% endif %}">{{ e.starts_at|date:"D" }}</span>
+  <span class="font-bold leading-none {% if size == 'sm' %}text-3xl{% elif size == 'poster' %}text-8xl{% else %}text-6xl{% endif %}">{{ e.starts_at|date:"j" }}</span>
+  <span class="uppercase tracking-wide font-semibold {% if size == 'sm' %}text-xs{% elif size == 'poster' %}text-2xl mt-2{% else %}text-lg mt-1{% endif %}">{{ e.starts_at|date:"M" }}</span>
+  {% if size != 'sm' %}<span class="opacity-80 {% if size == 'poster' %}text-lg mt-3{% else %}text-sm mt-1{% endif %}">{{ e.starts_at|date:"H:i" }}{% if size == 'poster' and e.city %} · {{ e.city }}{% endif %}</span>{% endif %}
+</div>

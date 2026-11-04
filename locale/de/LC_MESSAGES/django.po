@@ -1603,10 +1603,12 @@ msgstr "Heute"
 msgid "Tomorrow"
 msgstr "Morgen"
 
-#: apps/events/public_views.py:66
+#: apps/events/listing.py
 #, python-format
-msgid "In %(n)d days"
-msgstr "In %(n)d Tagen"
+msgid "In %(n)d day"
+msgid_plural "In %(n)d days"
+msgstr[0] "In %(n)d Tag"
+msgstr[1] "In %(n)d Tagen"
 
 #: apps/events/public_views.py:427
 #, python-format

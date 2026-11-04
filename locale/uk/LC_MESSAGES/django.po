@@ -692,7 +692,7 @@ msgstr "Кошик"
 #: apps/core/context.py:56 apps/tenants/siteconfig.py:1197
 #: templates/storefront/service_detail.html:62
 msgid "Book"
-msgstr "Записатися"
+msgstr "Забронювати"
 
 #: apps/core/context.py:58 apps/tenants/siteconfig.py:1198
 msgid "Stay"
@@ -1588,10 +1588,14 @@ msgstr "Сьогодні"
 msgid "Tomorrow"
 msgstr "Завтра"
 
-#: apps/events/public_views.py:66
+#: apps/events/listing.py
 #, python-format
-msgid "In %(n)d days"
-msgstr "У часи «%(n)d»"
+msgid "In %(n)d day"
+msgid_plural "In %(n)d days"
+msgstr[0] "Через %(n)d день"
+msgstr[1] "Через %(n)d дні"
+msgstr[2] "Через %(n)d днів"
+msgstr[3] "Через %(n)d дня"
 
 #: apps/events/public_views.py:427
 #, python-format
@@ -7522,7 +7526,7 @@ msgstr "Додаткова плата за ніч (євро, наприклад,
 
 #: templates/stays/units.html:154 templates/storefront/_base.html:208
 msgid "Cancellation"
-msgstr "Скасування"
+msgstr "Умови скасування"
 
 #: templates/stays/units.html:160
 msgid "Free cancel until (days before, flexible only)"
@@ -8898,7 +8902,7 @@ msgstr "Будь-який вчитель"
 #: templates/storefront/event_index.html:137
 #, python-format
 msgid "%(n)s seats left"
-msgstr "%(n)s залишилося місць"
+msgstr "Залишилось місць: %(n)s"
 
 #: templates/storefront/event_index.html:149
 msgid "No events match your filters."
@@ -9357,7 +9361,7 @@ msgstr "Наші номери"
 #: templates/storefront/sections/_trust.html:17
 #, python-format
 msgid "Since %(y)s"
-msgstr "Оскільки %(y)s"
+msgstr "З %(y)s року"
 
 #: templates/storefront/sections/_trust.html:18
 msgid "Family business"

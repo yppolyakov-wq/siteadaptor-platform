@@ -635,7 +635,9 @@ RESTAURANT_MENUS = {
         "items": [
             {"label": "Speisekarte", "type": "archetype", "target": "catalog"},
             # MEN-13: комбо-наборы ресторана тоже были недостижимы из шапки.
-            {"label": "Menüs", "type": "page", "target": "combos"},
+            # Фидбэк 2026-11-04: «Меню» + «Menüs» рядом читались как два одинаковых
+            # пункта (ru «Speisekarte» = «Меню»); наборы — «Menü-Pakete».
+            {"label": "Menü-Pakete", "type": "page", "target": "combos"},
             {"label": "Angebote", "type": "archetype", "target": "promotions"},
             {"label": "Veranstaltungen", "type": "archetype", "target": "events"},
             {"label": "Catering", "type": "archetype", "target": "jobs"},

@@ -6,7 +6,7 @@
 <a href="{% url 'storefront-event' e.pk %}" class="sf-card group flex flex-col bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition">
   <div class="relative aspect-[4/3] bg-gray-100 overflow-hidden">
     <span data-photo-edit data-edit-model="event" data-edit-pk="{{ e.pk }}" role="button" tabindex="-1" class="sf-photo-edit hidden absolute bottom-2 right-2 z-20 w-8 h-8 rounded-full bg-white/95 shadow ring-1 ring-gray-200 flex items-center justify-center hover:text-indigo-600" title="{% trans 'Replace photo' %}" aria-label="{% trans 'Replace photo' %}">📷</span>
-    {% if e.image_url %}<img src="{{ e.image_url }}" alt="" loading="lazy" decoding="async" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">{% endif %}
+    {% if e.image_url %}<img src="{{ e.image_url }}" alt="" loading="lazy" decoding="async" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">{% else %}{% include "storefront/_event_date_tile.html" with size="card" %}{% endif %}
     <div class="absolute top-2 left-2 flex flex-wrap gap-1">
       {% if e.category_label %}<span class="text-xs bg-white/90 text-indigo-700 rounded-full px-2 py-0.5 shadow-sm">{{ e.category_label }}</span>{% endif %}
       {% if e.is_online %}<span class="text-xs bg-sky-600 text-white rounded-full px-2 py-0.5 shadow-sm">🖥 Online</span>{% endif %}

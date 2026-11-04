@@ -5,7 +5,7 @@
   переключатель) переносится под заголовок, а не выходит за экран.{% endcomment %}
   <div class="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 mb-4">
     {% section_title site 'products' as st %}
-    <h2 class="text-xl md:text-2xl font-bold" data-edit="section_titles.products">{% if st %}{{ st }}{% else %}{% trans "Our products" %}{% endif %}</h2>
+    <h2 class="text-xl md:text-2xl font-bold" data-edit="section_titles.products">{% if st %}{{ st }}{% elif request.tenant|is_food_business %}{% trans "Speisekarte" %}{% else %}{% trans "Our products" %}{% endif %}</h2>
     {% comment %}Ревью MEN-14: переключатель «список/плитка» ищет сетку по
     data-grid — у прайс-видов её нет, кнопки были мёртвыми.
     Стенд MEN-22: ссылка+переключатель — одной правой группой (как в _gallery):

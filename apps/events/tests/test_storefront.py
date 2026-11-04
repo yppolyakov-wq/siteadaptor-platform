@@ -506,3 +506,16 @@ def test_event_detail_photo_edit_marker():
     body = public_views.veranstaltung_detail(_req("get", {"preview": "1"}), ev.pk).content.decode()
     assert "data-photo-edit" in body and 'data-edit-model="event"' in body
     assert 'data-photo-op="replace"' in body and 'data-photo-op="add"' in body
+
+
+def test_events_without_photo_show_a_date_tile_and_neutral_heading():
+    """Фидбэк 2026-11-04: у ресторана «Retreats & events» и пустые карточки без фото."""
+    _event(title="Weinabend")
+    tenant = TenantFactory.build(business_type="restaurant")
+    body = public_views.veranstaltung_index(_req("get", tenant=tenant)).content.decode()
+    assert "data-event-date-tile" in body
+    assert "Retreats" not in body
+    retreat = TenantFactory.build(business_type="retreat")
+    assert (
+        "Retreats" in public_views.veranstaltung_index(_req("get", tenant=retreat)).content.decode()
+    )

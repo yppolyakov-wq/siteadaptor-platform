@@ -57,7 +57,7 @@ def test_event_index_list_structure_snapshot():
     body = _body()
     # SP-2: список — колонкой на телефоне, двумя колонками на lg (была пустая правая часть)
     assert 'data-sf-section="events" class="space-y-3 lg:space-y-0 lg:grid lg:grid-cols-2' in body
-    assert body.index("Retreats") < body.index('data-sf-section="events"')  # header выше грида
+    assert body.index("<h1") < body.index('data-sf-section="events"')  # header выше грида
     assert "flex gap-4 bg-white rounded-2xl" in body  # горизонтальная строка-карточка
     assert body.index("Alpha Retreat") < body.index("Beta Konzert")  # порядок по дате
     assert "storefront-events-calendar" in body or "/kalender/" in body or "Calendar" in body
