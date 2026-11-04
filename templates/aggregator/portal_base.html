@@ -24,7 +24,7 @@
 </head>
 <body class="min-h-screen bg-gray-50 text-gray-900 antialiased flex flex-col">
   <header class="sticky top-0 z-20 bg-white/90 backdrop-blur border-b-2" style="border-color: var(--portal-color)">
-    <div class="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
+    <div class="max-w-screen-2xl mx-auto px-4 md:px-6 h-14 flex items-center justify-between">
       <a href="{% url 'portal-home' %}" class="flex items-center gap-2 min-w-0">
         {% if portal.logo_url %}<img src="{{ portal.logo_url }}" alt="" class="h-8 w-8 rounded object-contain">{% endif %}
         <span class="text-lg font-bold tracking-tight truncate" style="color: var(--portal-color)">{{ portal.title_text }}</span>
@@ -42,12 +42,15 @@
     </div>
   </header>
 
-  <main class="flex-1 w-full max-w-5xl mx-auto px-4 py-6 md:py-10">
+  {% comment %}FLT-1a (2026-11-04): шапка и подвал — 1536 px; ширина main — блоком: листинги
+  портала (главная, выдача, поиск) широкие (`data-wide` → 4 колонки карточек на xl), страницы
+  чтения и форм остаются 1024 px.{% endcomment %}
+  <main class="group flex-1 w-full {% block main_width %}max-w-5xl{% endblock %} mx-auto px-4 md:px-6 py-6 md:py-10"{% block main_attrs %}{% endblock %}>
     {% block content %}{% endblock %}
   </main>
 
   <footer class="border-t border-gray-100 bg-white">
-    <div class="max-w-5xl mx-auto px-4 py-6 text-xs text-gray-400 flex flex-wrap items-center justify-between gap-3">
+    <div class="max-w-screen-2xl mx-auto px-4 md:px-6 py-6 text-xs text-gray-400 flex flex-wrap items-center justify-between gap-3">
       <span>© {% now "Y" %} {{ portal.title_text }} · siteadaptor</span>
       {# T-8.8: Impressum/Datenschutz платформы (DDG §5) — страницы живут на основном домене. #}
       <span class="flex items-center gap-3">
