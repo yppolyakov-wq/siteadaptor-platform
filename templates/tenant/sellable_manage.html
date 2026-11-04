@@ -86,8 +86,11 @@ Kategorie/Status (строго товарные — активный фильт�
   {% empty %}
   <div class="text-center text-gray-400 py-16">
     <p class="text-4xl mb-2">📦</p>
-    {% if filtered %}
+    {% if filtered and q %}
       <p>{% blocktrans %}Nichts gefunden für „{{ q }}“.{% endblocktrans %}</p>
+    {% elif filtered %}
+      {# FLT-4d: фильтр без поиска — без пустых кавычек «„“» #}
+      <p>{% trans "Nichts gefunden." %}</p>
     {% else %}
       <p>{% trans "Noch nichts im Sortiment — oben „＋“ wählen, um den ersten Eintrag anzulegen." %}</p>
     {% endif %}
