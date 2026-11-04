@@ -5709,6 +5709,42 @@ def sellable_manage(request):
 
         categories = list(Category.objects.all())
     filtered = bool(q or category or active)
+    from apps.core import list_filters as lfm
+
+    # FLT-4d: поиск в строке, Kategorie/Status — в шторке; «Alle N» (art) и явный
+    # вид (ansicht) переживают поиск и шторку — они в адресе, строка их переносит.
+    sortiment_fields = []
+    if catalog_active and categories:
+        sortiment_fields.append(
+            lfm.Field(
+                "kategorie",
+                _("Kategorie"),
+                options=tuple((str(c.pk), str(c)) for c in categories),
+                value=category,
+                empty_label=_("All categories"),
+            )
+        )
+    sortiment_fields.append(
+        lfm.Field(
+            "status",
+            _("Status"),
+            options=(("1", _("Active")), ("0", _("Inactive"))),
+            value=active,
+            empty_label=_("Any status"),
+        )
+    )
+    sortiment_lf = lfm.build(
+        request,
+        sortiment_fields,
+        search_value=q,
+        search_label=_("Suche im Sortiment…"),
+        keep=("art", "ansicht"),
+        exclude=("art", "ansicht"),
+        force=(
+            ("art", kind_only),
+            ("ansicht", requested if requested in ("kacheln", "liste") else ""),
+        ),
+    )
     return render(
         request,
         "tenant/sellable_manage.html",
@@ -5735,8 +5771,7 @@ def sellable_manage(request):
                 page_raw=(request.GET.get("seite") or "1") if kind_only else None,
             ),
             "kind_only": kind_only,
-            # FLT-4a: явный вид из адреса переживает поиск (сохранённый — и так дефолт)
-            "ansicht_param": requested if requested in ("kacheln", "liste") else "",
+            "sortiment_lf": sortiment_lf,
             "add_options": sm.add_options(tenant),
             # MX-7: цифровые Вещи (абонементы/сертификат) — на общей полке.
             # При любом активном фильтре полка прячется (как раньше при q).

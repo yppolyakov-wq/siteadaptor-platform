@@ -1433,6 +1433,10 @@ def reservation_list(request):
         qs = qs.filter(status__in=open_reservation_statuses()).order_by("expires_at", "created_at")
     elif status:
         qs = qs.filter(status=status)
+    promotions = list(Promotion.objects.all())
+    # FLT-4d: только акция из списка — мусор в адресе не роняет страницу
+    if promotion_id not in {str(p.pk) for p in promotions}:
+        promotion_id = ""
     if promotion_id:
         qs = qs.filter(promotion_id=promotion_id)
     # X1: фильтр печатал сырые коды («pending»/«confirmed»); отдаём пары
@@ -1457,15 +1461,41 @@ def reservation_list(request):
         page_raw=request.GET.get("seite"),
         per_page=LITE_RESERVATION_LIMIT if lite else CABINET_PAGE_SIZE,
     )
+    from apps.core import list_filters as lfm
+
+    known = {code for code, _label in status_choices}
+    reservation_lf = lfm.build(
+        request,
+        [
+            lfm.Field(
+                "status",
+                _("Status"),
+                options=tuple(status_choices),
+                value=status if status in known else "",
+                empty_label=_("Any status"),
+            ),
+            lfm.Field(
+                "promotion",
+                _("Promotion"),
+                options=tuple((str(p.pk), str(p)) for p in promotions),
+                value=promotion_id,
+                empty_label=_("All promotions"),
+            ),
+        ],
+        search_key=None,
+        total=page.total,
+        keep=(),
+    )
     return render(
         request,
         "promotions/reservation_list.html",
         {
+            "reservation_lf": reservation_lf,
             "reservations": page.items,
             "page": page,
             "statuses": status_choices,
             "status": status,
-            "promotions": Promotion.objects.all(),
+            "promotions": promotions,
             "selected_promotion": promotion_id,
             # T-8.30e: лёгкий кабинет — карточки для телефона, подсветка «Aktionen».
             "lite": lite,

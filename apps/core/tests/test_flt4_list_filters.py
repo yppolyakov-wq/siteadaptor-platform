@@ -133,3 +133,32 @@ def test_generic_list_bar_forces_tab_and_view_when_url_has_none():
     assert 'name="status"' in bar and "onchange" not in bar
     sent = dict(_drawer_hidden(html))
     assert sent.get("view") == "liste" and sent.get("tab")
+
+
+# --- Sortiment, Reservierungen (FLT-4d) ---------------------------------------------------
+
+
+def test_sortiment_bar_has_status_in_drawer_and_keeps_kind():
+    from apps.core.models import Membership
+    from apps.core.tests.test_staff_walk import _open, _tenant, _user
+
+    html = _open(
+        "/dashboard/angebote/?art=product&status=1", _tenant("shop"), _user(Membership.ROLE_OWNER)
+    ).content.decode()
+    bar = _bar(html)
+    assert 'name="status"' in bar and "onchange" not in bar
+    assert ("art", "product") in _drawer_hidden(html)
+
+
+def test_reservation_bar_without_search_and_junk_promotion_is_ignored():
+    from apps.core.models import Membership
+    from apps.core.tests.test_staff_walk import _open, _tenant, _user
+
+    resp = _open(
+        "/promotions/reservations/?promotion=not-a-uuid&status=offen",
+        _tenant("bakery"),
+        _user(Membership.ROLE_OWNER),
+    )
+    assert resp.status_code == 200
+    bar = _bar(resp.content.decode())
+    assert 'role="search"' not in bar and 'name="promotion"' in bar and "onchange" not in bar

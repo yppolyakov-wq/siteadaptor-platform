@@ -4,11 +4,13 @@
 Поведение шторки — общий static/js/portal.js (тот же, что у портала).{% endcomment %}
 <div data-flt data-list-filters class="mb-4">
   <div class="flex flex-wrap items-center gap-2">
+    {% if lf.search_key %}
     <form method="get" role="search" class="flex items-center gap-2 flex-1 min-w-[12rem] sm:flex-none" data-lf-search>
       {% for k, v in lf.search_hidden %}<input type="hidden" name="{{ k }}" value="{{ v }}">{% endfor %}
       <input type="search" name="{{ lf.search_key }}" value="{{ lf.search_value }}" aria-label="{{ lf.search_label }}" placeholder="{{ lf.search_label }}" class="ui-input w-full sm:w-64">
       <button type="submit" class="ui-btn ui-btn-secondary" aria-label="{% trans 'Suchen' %}">🔍</button>
     </form>
+    {% endif %}
     {% if lf.fields %}
     <a href="#flt-drawer" data-flt-open="" class="ui-btn {% if lf.active_count %}ui-btn-primary{% else %}ui-btn-secondary{% endif %}">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="4" y1="7" x2="20" y2="7"></line><line x1="4" y1="12" x2="20" y2="12"></line><line x1="4" y1="17" x2="20" y2="17"></line></svg>
