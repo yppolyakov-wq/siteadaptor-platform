@@ -1605,7 +1605,7 @@ msgstr[3] "Через %(n)d дня"
 #: apps/events/public_views.py:427
 #, python-format
 msgid "Sorry, only %(n)s seats left."
-msgstr "Извините, остались только места категории «%(n)s»."
+msgstr "Извините, осталось мест: %(n)s."
 
 #: apps/events/public_views.py:429
 msgid "Sorry, this event is sold out."
@@ -3069,7 +3069,7 @@ msgstr[3] "%(n)s типа номера"
 #: templates/storefront/products.html:136
 #: templates/storefront/stay_detail.html:31
 msgid "from"
-msgstr "из"
+msgstr "от"
 
 #: templates/aggregator/_cards.html:44
 #: templates/storefront/_buybox_stay_form.html:11
@@ -3265,7 +3265,7 @@ msgstr "Пока ничего не сохранено — нажмите на с
 
 #: templates/aggregator/portal_account.html:43
 msgid "My reservations"
-msgstr "Мои сомнения"
+msgstr "Мои бронирования"
 
 #: templates/aggregator/portal_account.html:64
 msgid ""
@@ -3322,7 +3322,7 @@ msgstr "Ваш опыт (необязательно)"
 #: templates/storefront/_entity_reviews.html:62
 #: templates/storefront/product_detail.html:124
 msgid "Submit review"
-msgstr "Оставить отзыв"
+msgstr "Отправить отзыв"
 
 #: templates/aggregator/portal_business.html:59
 msgid "Log in"
@@ -3371,7 +3371,7 @@ msgstr "Прибытие"
 #: templates/storefront/sections/_stay_search.html:17
 #: templates/storefront/stay_index.html:49
 msgid "Departure"
-msgstr "Отправление"
+msgstr "Выезд"
 
 #: templates/aggregator/portal_home.html:29 templates/stays/calendar.html:128
 #: templates/stays/channels.html:92 templates/storefront/booking_slots.html:67
@@ -4655,7 +4655,7 @@ msgstr "Здравствуйте, %(name)s,"
 #: templates/emails/booking_cancelled.txt:3
 #, python-format
 msgid "Ihre Reservierung am %(d)s um %(t)s wurde storniert."
-msgstr "Ваше бронирование на сайте %(d)s на %(t)s было отменено."
+msgstr "Ваше бронирование на %(d)s в %(t)s было отменено."
 
 #: templates/emails/booking_cancelled.txt:4
 msgid "Bei Fragen melden Sie sich gern direkt bei uns."
@@ -4676,7 +4676,7 @@ msgstr "Ваше бронирование подтверждено. Мы с не
 #: templates/emails/booking_reminder.txt:6
 #, python-format
 msgid "%(n)s Personen"
-msgstr "%(n)s Лица"
+msgstr "Человек: %(n)s"
 
 #: templates/emails/booking_confirmed.txt:7
 #: templates/emails/booking_created.txt:7
@@ -4987,9 +4987,7 @@ msgstr "Срок бронирования истек"
 msgid ""
 "Ihre Reservierung „%(title)s“ (Code %(code)s) ist abgelaufen, da sie nicht "
 "abgeholt wurde."
-msgstr ""
-"Ваше бронирование «%(title)s» (код %(code)s) истекло, так как вы не забрали "
-"багаж."
+msgstr "Ваше бронирование «%(title)s» (код %(code)s) истекло, так как его не забрали."
 
 #: templates/emails/reservation_expired.txt:3
 #, python-format
@@ -5015,13 +5013,13 @@ msgstr "Ваше бронирование подтверждено. Мы с не
 #: templates/emails/stay_confirmed.txt:6 templates/emails/stay_created.txt:6
 #, python-format
 msgid "%(n)s Nächte"
-msgstr "%(n)s Ночи"
+msgstr "Ночей: %(n)s"
 
 #: templates/emails/stay_confirmed.txt:6 templates/emails/stay_created.txt:6
 #: templates/emails/stay_reminder.txt:7
 #, python-format
 msgid "%(n)s Gäste"
-msgstr "%(n)s Гости"
+msgstr "Гостей: %(n)s"
 
 #: templates/emails/stay_confirmed_subject.txt:1
 msgid "Buchung bestätigt"
@@ -5046,9 +5044,7 @@ msgstr "По вашему бронированию ещё не поступил 
 msgid ""
 "Wenn Sie die Buchung nicht mehr benötigen, können Sie diese E-Mail einfach "
 "ignorieren."
-msgstr ""
-"Если вам больше не нужна эта бронировка, можете просто проигнорировать это "
-"письмо."
+msgstr "Если вам больше не нужно это бронирование, можете просто проигнорировать это письмо."
 
 #: templates/emails/stay_payment_reminder_subject.txt:1
 msgid "Ihre Buchung wartet auf die Anzahlung"
@@ -5149,7 +5145,7 @@ msgstr "Большое спасибо за регистрацию на «%(title
 #: templates/emails/ticket_created.txt:4
 #, python-format
 msgid "am %(d)s"
-msgstr "по адресу %(d)s"
+msgstr "на %(d)s"
 
 #: templates/emails/ticket_created.txt:8
 msgid "Betrag"
@@ -5219,7 +5215,7 @@ msgstr "Когда"
 
 #: templates/emails/ticket_reminder.txt:7
 msgid "Wo"
-msgstr "Что"
+msgstr "Где"
 
 #: templates/emails/ticket_reminder.txt:8
 #: templates/events/event_detail.html:65
@@ -5235,7 +5231,7 @@ msgstr "Информационный листок (что взять с собо
 #: templates/emails/ticket_reminder_subject.txt:1
 #, python-format
 msgid "Bald geht's los: %(title)s am %(d)s"
-msgstr "Скоро начнётся: «%(title)s» на сайте %(d)s"
+msgstr "Скоро начнётся: «%(title)s» на %(d)s"
 
 #: templates/emails/waitlist_available.html:4
 #: templates/emails/waitlist_available_subject.txt:1
@@ -7753,7 +7749,7 @@ msgstr "Подарочный сертификат"
 
 #: templates/storefront/_base.html:227
 msgid "Image viewer"
-msgstr "Программа для просмотра изображений"
+msgstr "Просмотр изображений"
 
 #: templates/storefront/_base.html:400
 msgid "Edit your site"
@@ -7779,7 +7775,7 @@ msgstr "Предыдущий месяц"
 #: templates/storefront/_booking_calendar.html:11
 #: templates/storefront/_stay_calendar.html:16
 msgid "Next month"
-msgstr "В следующем месяце"
+msgstr "Следующий месяц"
 
 #: templates/storefront/_booking_calendar.html:27
 msgid "available"
@@ -7827,7 +7823,7 @@ msgstr "Забронируйте сейчас"
 #: templates/storefront/_buybox_service_form.html:35
 #: templates/storefront/booking_slots.html:87
 msgid "Pass code (optional)"
-msgstr "Пароль (необязательно)"
+msgstr "Код абонемента (необязательно)"
 
 #: templates/storefront/_buybox_service_form.html:37
 #: templates/storefront/booking_slots.html:89
@@ -8154,7 +8150,7 @@ msgstr "Добавить в корзину"
 #: templates/storefront/service_slots.html:15
 #, python-format
 msgid "%(m)s min"
-msgstr "%(m)s У меня есть"
+msgstr "%(m)s мин"
 
 #: templates/storefront/_sellable_card.html:25
 #: templates/storefront/_sellable_card.html:58
@@ -8180,7 +8176,7 @@ msgstr "до %(n)s гостей"
 #: templates/storefront/_sellable_card.html:46
 #, python-format
 msgid "from %(p)s € total"
-msgstr "с сайта %(p)s, общая сумма в евро"
+msgstr "от %(p)s € всего"
 
 #: templates/storefront/_sellable_card.html:49
 #: templates/storefront/_sellable_card.html:53
@@ -8333,7 +8329,7 @@ msgstr "Запросить обратный звонок"
 
 #: templates/storefront/angebot.html:3
 msgid "Your quote"
-msgstr "Ваша цитата"
+msgstr "Ваша смета"
 
 #: templates/storefront/angebot.html:15
 msgid "Quote"
@@ -8366,15 +8362,15 @@ msgstr "Принять предложение"
 
 #: templates/storefront/angebot.html:58
 msgid "Decline"
-msgstr "Спад"
+msgstr "Отклонить"
 
 #: templates/storefront/angebot.html:62
 msgid "You accepted this quote. We'll be in touch."
-msgstr "Вы одобрили эту ценовую предложения. Мы свяжемся с вами."
+msgstr "Вы приняли это предложение. Мы свяжемся с вами."
 
 #: templates/storefront/angebot.html:64
 msgid "You declined this quote."
-msgstr "Вы отклонили эту цитату."
+msgstr "Вы отклонили это предложение."
 
 #: templates/storefront/auftrag_status.html:3
 #: templates/storefront/auftrag_status.html:8
@@ -8406,7 +8402,7 @@ msgstr "Спасибо! Ваша бронь принята."
 #: templates/storefront/booking_confirmation.html:11
 #, python-format
 msgid "%(n)s guests"
-msgstr "%(n)s гости"
+msgstr "Гостей: %(n)s"
 
 #: templates/storefront/booking_confirmation.html:16
 #: templates/storefront/stay_confirmation.html:26
@@ -8493,7 +8489,7 @@ msgstr "Заказ для стола"
 #: templates/storefront/cart.html:68
 #, python-format
 msgid "Order for table %(n)s — we'll bring it to you."
-msgstr "Закажите блюда из меню «%(n)s» — мы доставим их вам."
+msgstr "Закажите для стола %(n)s — мы принесём заказ вам."
 
 #: templates/storefront/cart.html:71
 msgid "e.g. allergies, extra wishes"
@@ -8506,12 +8502,12 @@ msgstr "Как бы вы хотели это получить?"
 #: templates/storefront/cart.html:81
 #, python-format
 msgid "Delivery %(f)s €"
-msgstr "Доставка%(f)s€"
+msgstr "Доставка %(f)s €"
 
 #: templates/storefront/cart.html:81
 #, python-format
 msgid "free from %(f)s €"
-msgstr "бесплатно с сайта %(f)s €"
+msgstr "бесплатно от %(f)s €"
 
 #: templates/storefront/cart.html:81
 #, python-format
@@ -8539,11 +8535,11 @@ msgstr "Код купона"
 #: templates/tenant/site.html:104 templates/tenant/site_home.html:529
 #: templates/tenant/site_home.html:848
 msgid "Apply"
-msgstr "Подать заявку"
+msgstr "Применить"
 
 #: templates/storefront/cart.html:162
 msgid "This code needs a higher order total."
-msgstr "В этом коде требуется итоговая сумма высшего порядка."
+msgstr "Для этого кода требуется сумма заказа выше."
 
 #: templates/storefront/cart.html:168
 msgid "Subtotal"
@@ -8638,7 +8634,7 @@ msgstr "Подписаться (iCal)"
 #: templates/storefront/stay_detail.html:65
 #, python-format
 msgid "from %(p)s €"
-msgstr "из %(p)s €"
+msgstr "от %(p)s €"
 
 #: templates/storefront/event_calendar.html:39
 msgid "No upcoming retreats."
@@ -8688,7 +8684,7 @@ msgstr "Регистрация получена"
 
 #: templates/storefront/event_confirmation.html:8
 msgid "You're in!"
-msgstr "Вы прошли!"
+msgstr "Вы зарегистрированы!"
 
 #: templates/storefront/event_confirmation.html:10
 msgid "Online"
@@ -8804,7 +8800,7 @@ msgstr "Билет"
 #: templates/storefront/event_detail.html:101
 #, python-format
 msgid "%(n)s left"
-msgstr "%(n)s слева"
+msgstr "осталось %(n)s"
 
 #: templates/storefront/event_detail.html:115
 msgid "Without accommodation"
@@ -9132,7 +9128,7 @@ msgstr "Пожалуйста, заранее перечислите полную
 
 #: templates/storefront/order_confirmation.html:50
 msgid "Reference"
-msgstr "Ссылка"
+msgstr "Номер"
 
 #: templates/storefront/order_confirmation.html:57
 msgid "Pay on delivery."
@@ -9212,7 +9208,7 @@ msgstr "Другие материалы из этой категории"
 #: templates/storefront/product_detail.html:147
 #, python-format
 msgid "from %(p)s %(c)s"
-msgstr "Источник: %(p)s %(c)s"
+msgstr "от %(p)s %(c)s"
 
 #: templates/storefront/product_detail.html:147
 #, python-format
@@ -9243,7 +9239,7 @@ msgstr "Цена от"
 
 #: templates/storefront/products.html:100
 msgid "to"
-msgstr "в"
+msgstr "до"
 
 #: templates/storefront/products.html:100
 msgid "Price to"
@@ -9431,13 +9427,11 @@ msgstr "Отменить бронирование"
 
 #: templates/storefront/stay_cancel.html:19
 msgid "This booking is already cancelled."
-msgstr "Этот бронирование уже отменено."
+msgstr "Это бронирование уже отменено."
 
 #: templates/storefront/stay_cancel.html:21
 msgid "This booking can no longer be cancelled online. Please contact us."
-msgstr ""
-"Этот бронирование больше нельзя отменить онлайн. Пожалуйста, свяжитесь с "
-"нами."
+msgstr "Это бронирование больше нельзя отменить онлайн. Пожалуйста, свяжитесь с нами."
 
 #: templates/storefront/stay_cancel.html:24
 msgid "Your deposit will be refunded."
@@ -9460,7 +9454,7 @@ msgstr "Онлайн-регистрация"
 
 #: templates/storefront/stay_checkin.html:19
 msgid "This booking is cancelled."
-msgstr "Этот бронирование отменено."
+msgstr "Это бронирование отменено."
 
 #: templates/storefront/stay_checkin.html:22
 msgid "Your check-in is complete. We look forward to welcoming you!"
@@ -9559,7 +9553,7 @@ msgstr "Скидка на «%(c)s»: −%(d)s €"
 
 #: templates/storefront/stay_confirmation.html:41
 msgid "Complete online check-in"
-msgstr "Полная онлайн-регистрация"
+msgstr "Завершить онлайн-регистрацию"
 
 #: templates/storefront/stay_confirmation.html:44
 msgid "Plans changed?"
@@ -9611,7 +9605,7 @@ msgstr "В данный момент свободных мест нет."
 
 #: templates/storefront/unsubscribed.html:3
 msgid "Unsubscribed"
-msgstr "Отписаться"
+msgstr "Отписка выполнена"
 
 #: templates/storefront/unsubscribed.html:9
 msgid "You have been unsubscribed"
@@ -18151,7 +18145,7 @@ msgstr "Готовые меню — фиксированные или с выб�
 
 #: templates/storefront/category_landing.html
 msgid "Grundpreis"
-msgstr "Базовая цена"
+msgstr "Цена за единицу"
 
 #: templates/catalog/combo_list.html
 msgid "Promote in the directory"
@@ -18200,7 +18194,7 @@ msgstr ""
 
 #: apps/aggregator/shortlist.py
 msgid "Anbieter"
-msgstr "Поставщик"
+msgstr "Продавец"
 
 #: apps/aggregator/shortlist.py
 msgid "Ort"

@@ -159,7 +159,7 @@ msgstr "Bu kupon kodu geçerli değildir."
 
 #: apps/booking/public_views.py:577 apps/booking/public_views.py:605
 msgid "This slot is no longer available. Please pick another."
-msgstr "Bu yuva artık kullanılamıyor. Lütfen başka bir yuva seçin."
+msgstr "Bu zaman aralığı artık müsait değil. Lütfen başka bir zaman aralığı seçin."
 
 #: apps/booking/public_views.py:676 apps/events/public_views.py:560
 #: apps/loyalty/public_views.py:90 apps/orders/public_views.py:633
@@ -293,7 +293,7 @@ msgstr "Balık"
 
 #: apps/catalog/food.py:17
 msgid "Erdnüsse"
-msgstr "Fıstık"
+msgstr "Yer fıstığı"
 
 #: apps/catalog/food.py:18
 msgid "Soja"
@@ -1599,7 +1599,7 @@ msgstr[1] "%(n)d gün sonra"
 #: apps/events/public_views.py:427
 #, python-format
 msgid "Sorry, only %(n)s seats left."
-msgstr "Üzgünüm, sadece %(n)s adresinde yer kalmış."
+msgstr "Üzgünüz, yalnızca %(n)s yer kaldı."
 
 #: apps/events/public_views.py:429
 msgid "Sorry, this event is sold out."
@@ -3019,7 +3019,7 @@ msgstr "Aç"
 #: templates/aggregator/_cards.html:32 templates/crm/customer_detail.html:125
 #: templates/promotions/promotion_list.html:66
 msgid "until"
-msgstr "bitiş"
+msgstr "kadar"
 
 #: templates/aggregator/_cards.html:32 templates/storefront/_open_badge.html:9
 msgid "Closed"
@@ -3034,7 +3034,7 @@ msgstr "açılır"
 msgid "%(n)s room type"
 msgid_plural "%(n)s room types"
 msgstr[0] "%(n)s oda türü"
-msgstr[1] "%(n)s oda türleri"
+msgstr[1] "%(n)s oda türü"
 
 #: templates/aggregator/_cards.html:43 templates/aggregator/_cards.html:49
 #: templates/storefront/_discount_display.html:49
@@ -3046,7 +3046,7 @@ msgstr[1] "%(n)s oda türleri"
 #: templates/storefront/products.html:136
 #: templates/storefront/stay_detail.html:31
 msgid "from"
-msgstr "kaynak:"
+msgstr "itibaren"
 
 #: templates/aggregator/_cards.html:44
 #: templates/storefront/_buybox_stay_form.html:11
@@ -3057,7 +3057,7 @@ msgstr "kaynak:"
 msgid "%(n)s night"
 msgid_plural "%(n)s nights"
 msgstr[0] "%(n)s gece"
-msgstr[1] "%(n)s geceler"
+msgstr[1] "%(n)s gece"
 
 #: templates/aggregator/_cards.html:50 templates/stays/units.html:109
 #: templates/storefront/_buybox_stay_form.html:62
@@ -3241,7 +3241,7 @@ msgstr ""
 
 #: templates/aggregator/portal_account.html:43
 msgid "My reservations"
-msgstr "Endişelerim"
+msgstr "Rezervasyonlarım"
 
 #: templates/aggregator/portal_account.html:64
 msgid ""
@@ -3263,8 +3263,8 @@ msgstr "Keşfedin"
 #, python-format
 msgid "%(n)s review"
 msgid_plural "%(n)s reviews"
-msgstr[0] "%(n)s inceleme"
-msgstr[1] "%(n)s yorumlar"
+msgstr[0] "%(n)s yorum"
+msgstr[1] "%(n)s yorum"
 
 #: templates/aggregator/portal_business.html:29
 #: templates/storefront/_base.html:200
@@ -3344,7 +3344,7 @@ msgstr "Varış"
 #: templates/storefront/sections/_stay_search.html:17
 #: templates/storefront/stay_index.html:49
 msgid "Departure"
-msgstr "Kalkış"
+msgstr "Çıkış"
 
 #: templates/aggregator/portal_home.html:29 templates/stays/calendar.html:128
 #: templates/stays/channels.html:92 templates/storefront/booking_slots.html:67
@@ -3362,8 +3362,8 @@ msgstr "Müsaitliği kontrol et"
 #, python-format
 msgid "%(n)s available house"
 msgid_plural "%(n)s available houses"
-msgstr[0] "%(n)s satılık ev"
-msgstr[1] "%(n)s satılık evler"
+msgstr[0] "%(n)s müsait ev"
+msgstr[1] "%(n)s müsait ev"
 
 #: templates/aggregator/portal_home.html:67
 msgid "More local portals"
@@ -4636,7 +4636,7 @@ msgstr "Rezervasyonunuz onaylandı. Sizi ağırlamaktan mutluluk duyarız!"
 #: templates/emails/booking_reminder.txt:6
 #, python-format
 msgid "%(n)s Personen"
-msgstr "%(n)s Kişiler"
+msgstr "%(n)s kişi"
 
 #: templates/emails/booking_confirmed.txt:7
 #: templates/emails/booking_created.txt:7
@@ -4974,13 +4974,13 @@ msgstr "Rezervasyonunuz onaylandı. Sizi bekliyoruz!"
 #: templates/emails/stay_confirmed.txt:6 templates/emails/stay_created.txt:6
 #, python-format
 msgid "%(n)s Nächte"
-msgstr "%(n)s Geceler"
+msgstr "%(n)s gece"
 
 #: templates/emails/stay_confirmed.txt:6 templates/emails/stay_created.txt:6
 #: templates/emails/stay_reminder.txt:7
 #, python-format
 msgid "%(n)s Gäste"
-msgstr "%(n)s Misafirler"
+msgstr "%(n)s misafir"
 
 #: templates/emails/stay_confirmed_subject.txt:1
 msgid "Buchung bestätigt"
@@ -5049,7 +5049,7 @@ msgstr "Ayrılış"
 #: templates/emails/stay_reminder_subject.txt:1
 #, python-format
 msgid "Erinnerung: Ihre Anreise am %(d)s"
-msgstr "Hatırlatma: %(d)s'da konaklamanız"
+msgstr "Hatırlatma: %(d)s tarihinde varışınız"
 
 #: templates/emails/ticket_cancelled.txt:3
 #, python-format
@@ -5077,7 +5077,7 @@ msgstr "“%(title)s” etkinliğine katılımınız onaylanmıştır."
 #: templates/emails/ticket_payment_reminder.txt:5
 #: templates/emails/ticket_reminder.txt:8
 msgid "Plätze"
-msgstr "Yerler"
+msgstr "Yer"
 
 #: templates/emails/ticket_confirmed.txt:5
 #: templates/emails/ticket_created.txt:7
@@ -5107,7 +5107,7 @@ msgstr "“%(title)s” etkinliğine kaydolduğunuz için çok teşekkür ederiz
 #: templates/emails/ticket_created.txt:4
 #, python-format
 msgid "am %(d)s"
-msgstr "%(d)s adresinde"
+msgstr "%(d)s tarihinde"
 
 #: templates/emails/ticket_created.txt:8
 msgid "Betrag"
@@ -5175,7 +5175,7 @@ msgstr "Ne zaman"
 
 #: templates/emails/ticket_reminder.txt:7
 msgid "Wo"
-msgstr "Ne"
+msgstr "Nerede"
 
 #: templates/emails/ticket_reminder.txt:8
 #: templates/events/event_detail.html:65
@@ -5191,7 +5191,7 @@ msgstr "Bilgi broşürünüz (yanınızda getirmeniz gerekenler, ulaşım)"
 #: templates/emails/ticket_reminder_subject.txt:1
 #, python-format
 msgid "Bald geht's los: %(title)s am %(d)s"
-msgstr "Yakında başlıyor: %(title)s adresinde %(d)s"
+msgstr "Yakında başlıyor: %(title)s, %(d)s tarihinde"
 
 #: templates/emails/waitlist_available.html:4
 #: templates/emails/waitlist_available_subject.txt:1
@@ -5396,7 +5396,7 @@ msgstr "Katılımcılar"
 #: templates/storefront/event_detail.html:75
 #: templates/storefront/event_detail.html:108
 msgid "Seats"
-msgstr "Kişi sayısı"
+msgstr "Yer sayısı"
 
 #: templates/events/event_detail.html:66
 #: templates/imports/_status_card.html:13
@@ -7766,7 +7766,7 @@ msgstr "Hemen rezervasyon yapın"
 #: templates/storefront/_buybox_service_form.html:35
 #: templates/storefront/booking_slots.html:87
 msgid "Pass code (optional)"
-msgstr "Şifre (isteğe bağlı)"
+msgstr "Kart kodu (isteğe bağlı)"
 
 #: templates/storefront/_buybox_service_form.html:37
 #: templates/storefront/booking_slots.html:89
@@ -7816,7 +7816,7 @@ msgstr "Devam etmek için bir zaman seçin."
 msgid "%(n)s room"
 msgid_plural "%(n)s rooms"
 msgstr[0] "%(n)s oda"
-msgstr[1] "%(n)s odalar"
+msgstr[1] "%(n)s oda"
 
 #: templates/storefront/_buybox_stay_form.html:15
 msgid "Choose your rate"
@@ -8093,7 +8093,7 @@ msgstr "Sepete ekle"
 #: templates/storefront/service_slots.html:15
 #, python-format
 msgid "%(m)s min"
-msgstr "%(m)s Bende"
+msgstr "%(m)s dk"
 
 #: templates/storefront/_sellable_card.html:25
 #: templates/storefront/_sellable_card.html:58
@@ -8273,7 +8273,7 @@ msgstr "Geri arama talebi"
 
 #: templates/storefront/angebot.html:3
 msgid "Your quote"
-msgstr "Alıntınız"
+msgstr "Teklifiniz"
 
 #: templates/storefront/angebot.html:15
 msgid "Quote"
@@ -8286,7 +8286,7 @@ msgstr "Kupon"
 
 #: templates/storefront/angebot.html:39
 msgid "To pay"
-msgstr "Ödeme yapmak için"
+msgstr "Ödenecek tutar"
 
 #: templates/storefront/angebot.html:40
 msgid "Deposit on acceptance"
@@ -8306,7 +8306,7 @@ msgstr "Teklifi kabul et"
 
 #: templates/storefront/angebot.html:58
 msgid "Decline"
-msgstr "Azalma"
+msgstr "Reddet"
 
 #: templates/storefront/angebot.html:62
 msgid "You accepted this quote. We'll be in touch."
@@ -8410,8 +8410,8 @@ msgstr "Grup dersi — bir saat seçin, boş yerler gösterilir."
 #, python-format
 msgid "%(n)s spot"
 msgid_plural "%(n)s spots"
-msgstr[0] "%(n)s nokta"
-msgstr[1] "%(n)s noktalar"
+msgstr[0] "%(n)s yer"
+msgstr[1] "%(n)s yer"
 
 #: templates/storefront/booking_slots.html:50
 msgid "No free slots on this day — try another date."
@@ -8445,7 +8445,7 @@ msgstr "Nasıl teslim almak istersiniz?"
 #: templates/storefront/cart.html:81
 #, python-format
 msgid "Delivery %(f)s €"
-msgstr "Kargo ücreti%(f)s€"
+msgstr "Kargo ücreti %(f)s €"
 
 #: templates/storefront/cart.html:81
 #, python-format
@@ -8478,7 +8478,7 @@ msgstr "İndirim kodu"
 #: templates/tenant/site.html:104 templates/tenant/site_home.html:529
 #: templates/tenant/site_home.html:848
 msgid "Apply"
-msgstr "Başvur"
+msgstr "Uygula"
 
 #: templates/storefront/cart.html:162
 msgid "This code needs a higher order total."
@@ -8508,7 +8508,7 @@ msgstr "Menüye göz atın"
 #: templates/storefront/combo_detail.html:23
 #, python-format
 msgid "up to %(n)s"
-msgstr "%(n)s adresine kadar"
+msgstr "en fazla %(n)s"
 
 #: templates/storefront/combo_detail.html:40
 msgid "Add to order"
@@ -8711,7 +8711,7 @@ msgstr "Çevrimiçi etkinlik"
 #: templates/storefront/event_detail.html:30
 #, python-format
 msgid "Only %(n)s spots left"
-msgstr "Sadece %(n)s adresinde yer kaldı"
+msgstr "Sadece %(n)s yer kaldı"
 
 #: templates/storefront/event_detail.html:31
 msgid "Reserve a spot"
@@ -8748,7 +8748,7 @@ msgstr "Bilet"
 #: templates/storefront/event_detail.html:101
 #, python-format
 msgid "%(n)s left"
-msgstr "%(n)s sol"
+msgstr "%(n)s kaldı"
 
 #: templates/storefront/event_detail.html:115
 msgid "Without accommodation"
@@ -8937,8 +8937,8 @@ msgstr "Her ziyaretinizde pul toplayın ve ödüller kazanın."
 #, python-format
 msgid "%(n)s stamp → %(reward)s"
 msgid_plural "%(n)s stamps → %(reward)s"
-msgstr[0] "%(n)s damga → %(reward)s"
-msgstr[1] "%(n)s pullar → %(reward)s"
+msgstr[0] "%(n)s pul → %(reward)s"
+msgstr[1] "%(n)s pul → %(reward)s"
 
 #: templates/storefront/loyalty.html:24
 msgid "Our loyalty programme is starting soon."
@@ -9074,7 +9074,7 @@ msgstr "Lütfen toplam tutarı önceden havale ediniz:"
 
 #: templates/storefront/order_confirmation.html:50
 msgid "Reference"
-msgstr "Kaynak"
+msgstr "Referans"
 
 #: templates/storefront/order_confirmation.html:57
 msgid "Pay on delivery."
@@ -9097,14 +9097,14 @@ msgstr "Henüz sunulan kart yok."
 msgid "%(credits)s visit"
 msgid_plural "%(credits)s visits"
 msgstr[0] "%(credits)s ziyaret"
-msgstr[1] "%(credits)s ziyaretler"
+msgstr[1] "%(credits)s ziyaret"
 
 #: templates/storefront/passes.html:18
 #, python-format
 msgid "%(days)s day valid"
 msgid_plural "%(days)s days valid"
 msgstr[0] "%(days)s gün geçerli"
-msgstr[1] "%(days)s geçerlilik süresi (gün)"
+msgstr[1] "%(days)s gün geçerli"
 
 #: templates/storefront/passes.html:30
 msgid "Available to buy on site."
@@ -9150,7 +9150,7 @@ msgstr "Bu kategoriden diğer içerikler"
 #: templates/storefront/product_detail.html:147
 #, python-format
 msgid "from %(p)s %(c)s"
-msgstr "%(p)s sitesinden %(c)s"
+msgstr "%(p)s %(c)s'den itibaren"
 
 #: templates/storefront/product_detail.html:147
 #, python-format
@@ -9177,15 +9177,15 @@ msgstr "Tüm diyetler"
 
 #: templates/storefront/products.html:98
 msgid "Price from"
-msgstr "Fiyat:"
+msgstr "En düşük fiyat"
 
 #: templates/storefront/products.html:100
 msgid "to"
-msgstr "...'ye"
+msgstr "–"
 
 #: templates/storefront/products.html:100
 msgid "Price to"
-msgstr "Fiyat:"
+msgstr "En yüksek fiyat"
 
 #: templates/storefront/products.html:116
 msgid "Only available"
@@ -9478,14 +9478,14 @@ msgstr "Check-in işlemini tamamla"
 msgid "%(n)s adult"
 msgid_plural "%(n)s adults"
 msgstr[0] "%(n)s yetişkin"
-msgstr[1] "%(n)s yetişkinler"
+msgstr[1] "%(n)s yetişkin"
 
 #: templates/storefront/stay_confirmation.html:11
 #, python-format
 msgid "%(n)s child"
 msgid_plural "%(n)s children"
 msgstr[0] "%(n)s çocuk"
-msgstr[1] "%(n)s çocuklar"
+msgstr[1] "%(n)s çocuk"
 
 #: templates/storefront/stay_confirmation.html:24
 #, python-format
@@ -9508,8 +9508,8 @@ msgstr "Tüm konaklama seçenekleri"
 #, python-format
 msgid "%(c)s review"
 msgid_plural "%(c)s reviews"
-msgstr[0] "%(c)s inceleme"
-msgstr[1] "%(c)s yorumlar"
+msgstr[0] "%(c)s yorum"
+msgstr[1] "%(c)s yorum"
 
 #: templates/storefront/stay_hausordnung.html:11
 #, python-format
@@ -18073,7 +18073,7 @@ msgstr "Hazır menüler — sabit veya seçimli. Fiyatlar kişi başıdır."
 
 #: templates/storefront/category_landing.html
 msgid "Grundpreis"
-msgstr "Taban fiyat"
+msgstr "Birim fiyat"
 
 #: templates/catalog/combo_list.html
 msgid "Promote in the directory"

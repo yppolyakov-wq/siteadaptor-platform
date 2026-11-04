@@ -326,7 +326,7 @@ msgstr "Люпин"
 
 #: apps/catalog/food.py:26
 msgid "Weichtiere"
-msgstr "М'якунокісті"
+msgstr "Молюски"
 
 #: apps/catalog/food.py:36
 msgid "Vegan"
@@ -1600,7 +1600,7 @@ msgstr[3] "Через %(n)d дня"
 #: apps/events/public_views.py:427
 #, python-format
 msgid "Sorry, only %(n)s seats left."
-msgstr "Вибачте, залишилися лише місця категорії «%(n)s»."
+msgstr "Вибачте, залишилося місць: %(n)s."
 
 #: apps/events/public_views.py:429
 msgid "Sorry, this event is sold out."
@@ -3057,7 +3057,7 @@ msgstr[3] "%(n)s типи номерів"
 #: templates/storefront/products.html:136
 #: templates/storefront/stay_detail.html:31
 msgid "from"
-msgstr "з"
+msgstr "від"
 
 #: templates/aggregator/_cards.html:44
 #: templates/storefront/_buybox_stay_form.html:11
@@ -3135,7 +3135,7 @@ msgstr "Скоро закінчиться"
 
 #: templates/aggregator/index.html:14
 msgid "By city"
-msgstr "За містом"
+msgstr "За містами"
 
 #: templates/aggregator/index.html:25 templates/aggregator/portal_home.html:61
 msgid "No offers yet."
@@ -3254,7 +3254,7 @@ msgstr ""
 
 #: templates/aggregator/portal_account.html:43
 msgid "My reservations"
-msgstr "Мої застереження"
+msgstr "Мої бронювання"
 
 #: templates/aggregator/portal_account.html:64
 msgid ""
@@ -4640,7 +4640,7 @@ msgstr "Привіт, %(name)s,"
 #: templates/emails/booking_cancelled.txt:3
 #, python-format
 msgid "Ihre Reservierung am %(d)s um %(t)s wurde storniert."
-msgstr "Ваше бронювання на сайті %(d)s на %(t)s було скасовано."
+msgstr "Ваше бронювання на %(d)s о %(t)s було скасовано."
 
 #: templates/emails/booking_cancelled.txt:4
 msgid "Bei Fragen melden Sie sich gern direkt bei uns."
@@ -4662,7 +4662,7 @@ msgstr "Ваше бронювання підтверджено. Чекаємо �
 #: templates/emails/booking_reminder.txt:6
 #, python-format
 msgid "%(n)s Personen"
-msgstr "%(n)s Особи"
+msgstr "Осіб: %(n)s"
 
 #: templates/emails/booking_confirmed.txt:7
 #: templates/emails/booking_created.txt:7
@@ -4975,9 +4975,7 @@ msgstr "Термін бронювання закінчився"
 msgid ""
 "Ihre Reservierung „%(title)s“ (Code %(code)s) ist abgelaufen, da sie nicht "
 "abgeholt wurde."
-msgstr ""
-"Ваше бронювання «%(title)s» (код %(code)s) втратило чинність, оскільки його "
-"не було реалізовано."
+msgstr "Ваше бронювання «%(title)s» (код %(code)s) втратило чинність, оскільки його не було забрано."
 
 #: templates/emails/reservation_expired.txt:3
 #, python-format
@@ -5003,13 +5001,13 @@ msgstr "Ваше бронювання підтверджено. Чекаємо �
 #: templates/emails/stay_confirmed.txt:6 templates/emails/stay_created.txt:6
 #, python-format
 msgid "%(n)s Nächte"
-msgstr "%(n)s Ночі"
+msgstr "Ночей: %(n)s"
 
 #: templates/emails/stay_confirmed.txt:6 templates/emails/stay_created.txt:6
 #: templates/emails/stay_reminder.txt:7
 #, python-format
 msgid "%(n)s Gäste"
-msgstr "%(n)s Гості"
+msgstr "Гостей: %(n)s"
 
 #: templates/emails/stay_confirmed_subject.txt:1
 msgid "Buchung bestätigt"
@@ -5136,7 +5134,7 @@ msgstr "Щиро дякуємо за вашу реєстрацію на «%(titl
 #: templates/emails/ticket_created.txt:4
 #, python-format
 msgid "am %(d)s"
-msgstr "за адресою %(d)s"
+msgstr "на %(d)s"
 
 #: templates/emails/ticket_created.txt:8
 msgid "Betrag"
@@ -5222,7 +5220,7 @@ msgstr "Ваш інформаційний листок (що взяти з со�
 #: templates/emails/ticket_reminder_subject.txt:1
 #, python-format
 msgid "Bald geht's los: %(title)s am %(d)s"
-msgstr "Скоро почнеться: «%(title)s» на сайті %(d)s"
+msgstr "Скоро почнеться: «%(title)s», %(d)s"
 
 #: templates/emails/waitlist_available.html:4
 #: templates/emails/waitlist_available_subject.txt:1
@@ -5253,8 +5251,7 @@ msgstr "Варто поспішати — кількість обмежена."
 #: templates/emails/waitlist_available.txt:9
 msgid ""
 "Dies ist eine einmalige Benachrichtigung auf Ihren Wunsch (Warteliste)."
-msgstr ""
-"Це одноразове повідомлення, надіслане на вашу прохання (лист очікування)."
+msgstr "Це одноразове повідомлення, надіслане на ваше прохання (лист очікування)."
 
 #: templates/emails/waitlist_available.txt:3
 #, python-format
@@ -7764,7 +7761,7 @@ msgstr "Минулий місяць"
 #: templates/storefront/_booking_calendar.html:11
 #: templates/storefront/_stay_calendar.html:16
 msgid "Next month"
-msgstr "Наступного місяця"
+msgstr "Наступний місяць"
 
 #: templates/storefront/_booking_calendar.html:27
 msgid "available"
@@ -7812,7 +7809,7 @@ msgstr "Забронюйте зараз"
 #: templates/storefront/_buybox_service_form.html:35
 #: templates/storefront/booking_slots.html:87
 msgid "Pass code (optional)"
-msgstr "Пароль (не обов’язково)"
+msgstr "Код абонемента (не обов’язково)"
 
 #: templates/storefront/_buybox_service_form.html:37
 #: templates/storefront/booking_slots.html:89
@@ -7960,7 +7957,7 @@ msgstr ""
 #: templates/storefront/_buybox_stay_unavailable.html:9
 #, python-format
 msgid "This place fits up to %(n)s guests."
-msgstr "Це місце розраховане на%(n)sгостей."
+msgstr "Це місце розраховане на %(n)s гостей."
 
 #: templates/storefront/_buybox_stay_unavailable.html:10
 msgid "Sorry, these dates are not available. Please try another range."
@@ -8067,7 +8064,7 @@ msgstr "Відгуки гостей"
 #: templates/storefront/sections/_before_after.html:19
 #: templates/storefront/sections/_before_after.html:20
 msgid "Before"
-msgstr "До того, як"
+msgstr "До"
 
 #: templates/storefront/_event_thematic.html:167
 #: templates/storefront/sections/_before_after.html:18
@@ -8139,7 +8136,7 @@ msgstr "Додати до кошика"
 #: templates/storefront/service_slots.html:15
 #, python-format
 msgid "%(m)s min"
-msgstr "%(m)s У мене є"
+msgstr "%(m)s хв"
 
 #: templates/storefront/_sellable_card.html:25
 #: templates/storefront/_sellable_card.html:58
@@ -8331,7 +8328,7 @@ msgstr "Ваучер"
 
 #: templates/storefront/angebot.html:39
 msgid "To pay"
-msgstr "Щоб оплатити"
+msgstr "До сплати"
 
 #: templates/storefront/angebot.html:40
 msgid "Deposit on acceptance"
@@ -8351,7 +8348,7 @@ msgstr "Прийняти пропозицію"
 
 #: templates/storefront/angebot.html:58
 msgid "Decline"
-msgstr "Зменшення"
+msgstr "Відхилити"
 
 #: templates/storefront/angebot.html:62
 msgid "You accepted this quote. We'll be in touch."
@@ -8478,7 +8475,7 @@ msgstr "Замовлення для столу"
 #: templates/storefront/cart.html:68
 #, python-format
 msgid "Order for table %(n)s — we'll bring it to you."
-msgstr "Замовте на сайті %(n)s — ми доставимо вам замовлення."
+msgstr "Замовте для столу %(n)s — ми принесемо вам."
 
 #: templates/storefront/cart.html:71
 msgid "e.g. allergies, extra wishes"
@@ -8524,11 +8521,11 @@ msgstr "Код купона"
 #: templates/tenant/site.html:104 templates/tenant/site_home.html:529
 #: templates/tenant/site_home.html:848
 msgid "Apply"
-msgstr "Подати заявку"
+msgstr "Застосувати"
 
 #: templates/storefront/cart.html:162
 msgid "This code needs a higher order total."
-msgstr "Цьому коду потрібна сума вищого порядку."
+msgstr "Для цього коду потрібна більша сума замовлення."
 
 #: templates/storefront/cart.html:168
 msgid "Subtotal"
@@ -8541,7 +8538,7 @@ msgstr "з ПДВ"
 
 #: templates/storefront/cart.html:177
 msgid "Zahlungspflichtig bestellen"
-msgstr "Оформити замовлення з оплатою"
+msgstr "Замовити з обов’язком оплати"
 
 #: templates/storefront/cart.html:178
 msgid "Secure order — your data stays private."
@@ -8609,7 +8606,7 @@ msgstr "Назад до пропозицій"
 #: templates/storefront/event_calendar.html:3
 #: templates/storefront/event_calendar.html:8
 msgid "Retreat calendar"
-msgstr "Календар реколекцій"
+msgstr "Календар ретритів"
 
 #: templates/storefront/event_calendar.html:9
 msgid "Subscribe (iCal)"
@@ -8754,7 +8751,7 @@ msgstr "Онлайн-захід"
 #: templates/storefront/event_detail.html:30
 #, python-format
 msgid "Only %(n)s spots left"
-msgstr "Залишилися лише місця на сайті %(n)s"
+msgstr "Залишилося місць: %(n)s"
 
 #: templates/storefront/event_detail.html:31
 msgid "Reserve a spot"
@@ -8791,7 +8788,7 @@ msgstr "Квиток"
 #: templates/storefront/event_detail.html:101
 #, python-format
 msgid "%(n)s left"
-msgstr "%(n)s ліворуч"
+msgstr "залишилось %(n)s"
 
 #: templates/storefront/event_detail.html:115
 msgid "Without accommodation"
@@ -9119,7 +9116,7 @@ msgstr "Будь ласка, перекажіть повну суму зазда
 
 #: templates/storefront/order_confirmation.html:50
 msgid "Reference"
-msgstr "Посилання"
+msgstr "Номер"
 
 #: templates/storefront/order_confirmation.html:57
 msgid "Pay on delivery."
@@ -9200,7 +9197,7 @@ msgstr "Більше матеріалів з цієї категорії"
 #: templates/storefront/product_detail.html:147
 #, python-format
 msgid "from %(p)s %(c)s"
-msgstr "з сайту %(p)s %(c)s"
+msgstr "від %(p)s %(c)s"
 
 #: templates/storefront/product_detail.html:147
 #, python-format
@@ -9480,7 +9477,7 @@ msgstr "Дата народження"
 
 #: templates/storefront/stay_checkin.html:47
 msgid "Nationality"
-msgstr "Національність"
+msgstr "Громадянство"
 
 #: templates/storefront/stay_checkin.html:52
 msgid "Street & number"
@@ -9547,7 +9544,7 @@ msgstr "Знижка на «%(c)s»: −%(d)s €"
 
 #: templates/storefront/stay_confirmation.html:41
 msgid "Complete online check-in"
-msgstr "Повна онлайн-реєстрація на рейс"
+msgstr "Завершити онлайн-реєстрацію"
 
 #: templates/storefront/stay_confirmation.html:44
 msgid "Plans changed?"
@@ -9587,7 +9584,7 @@ msgstr "Подаруйте відпочинок — придбайте пода�
 #: templates/storefront/stay_index.html:84
 #, python-format
 msgid "fits up to %(n)s guests"
-msgstr "містить до%(n)sгостей"
+msgstr "містить до %(n)s гостей"
 
 #: templates/storefront/stay_index.html:85
 msgid "Not available for these dates"
@@ -18138,7 +18135,7 @@ msgstr "Готові меню — фіксовані або з вибором. �
 
 #: templates/storefront/category_landing.html
 msgid "Grundpreis"
-msgstr "Базова ціна"
+msgstr "Ціна за одиницю"
 
 #: templates/catalog/combo_list.html
 msgid "Promote in the directory"
@@ -18189,7 +18186,7 @@ msgstr ""
 
 #: apps/aggregator/shortlist.py
 msgid "Anbieter"
-msgstr "Постачальник"
+msgstr "Продавець"
 
 #: apps/aggregator/shortlist.py
 msgid "Ort"
