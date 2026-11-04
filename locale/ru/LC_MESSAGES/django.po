@@ -32253,3 +32253,19 @@ msgstr[3] "Не на портале города: %(n)s"
 
 msgid "Lieferung & Abholung"
 msgstr "Доставка и самовывоз"
+
+#: templates/aggregator/_portal_filter_bar.html
+msgid "Alle Filter"
+msgstr "Все фильтры"
+
+#: templates/aggregator/_portal_filter_bar.html
+msgid "Sortieren"
+msgstr "Сортировка"
+
+#: templates/aggregator/_portal_filter_bar.html
+msgid "Treffer anzeigen"
+msgstr "Показать результаты"
+
+#: templates/aggregator/_portal_filter_bar.html
+msgid "Weitere Filter"
+msgstr "Другие фильтры"

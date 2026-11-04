@@ -32045,3 +32045,19 @@ msgstr[1] "%(n)s nicht im Stadtportal"
 
 msgid "Lieferung & Abholung"
 msgstr "Lieferung & Abholung"
+
+#: templates/aggregator/_portal_filter_bar.html
+msgid "Alle Filter"
+msgstr "Alle Filter"
+
+#: templates/aggregator/_portal_filter_bar.html
+msgid "Sortieren"
+msgstr "Sortieren"
+
+#: templates/aggregator/_portal_filter_bar.html
+msgid "Treffer anzeigen"
+msgstr "Treffer anzeigen"
+
+#: templates/aggregator/_portal_filter_bar.html
+msgid "Weitere Filter"
+msgstr "Weitere Filter"

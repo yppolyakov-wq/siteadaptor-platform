@@ -299,7 +299,7 @@ def test_portal_typo_note_and_filter_panel():
     req.portal = _portal()
     html = portal_views.portal_home(req).content.decode()
     assert "Messer Santoku" in html and "data-search-fuzzy" in html
-    assert "data-portal-filters" in html
+    assert "data-flt-bar" in html and 'id="flt-drawer"' in html
 
 
 @pytest.mark.urls("config.urls_portal")
@@ -308,10 +308,13 @@ def test_filter_pill_removes_only_its_filter():
     req = _req(q="Pizza", stadtteil="graefrath", offen="1")
     req.portal = _portal()
     html = portal_views.portal_home(req).content.decode()
-    pills = html.split("data-filter-pills", 1)[1].split("</div>", 1)[0]
-    hrefs = [h.replace("&amp;", "&") for h in re.findall(r'href="([^"]+)"', pills)]
-    assert len(hrefs) == 2 and all("q=Pizza" in h for h in hrefs)
-    assert {("stadtteil=" in h, "offen=" in h) for h in hrefs} == {(False, True), (True, False)}
+    bar = html.split("data-flt-bar", 1)[1].split("data-hit-count", 1)[0]
+    pills = re.findall(
+        r'<a href="([^"]+)" rel="nofollow"(?: aria-current="true"| data-flt-pill)', bar
+    )
+    pills = [h.replace("&amp;", "&") for h in pills]
+    assert len(pills) == 2 and all("q=Pizza" in h for h in pills)
+    assert {("stadtteil=" in h, "offen=" in h) for h in pills} == {(False, True), (True, False)}
 
 
 def test_ranked_pagination_has_no_duplicates():

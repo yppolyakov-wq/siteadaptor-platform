@@ -121,12 +121,21 @@ def _district_pool(
     едут в `filters_eff.districts`. Область выдачи — их ОБЪЕДИНЕНИЕ, и режим поиска
     (полнотекст/опечатки) решается уже на пуле этих районов: «похожие» только в районе
     находятся на его странице (план FLT §13.1)."""
+    area = area_districts(district, filters_eff)
+    return _pool_chain(
+        portal, city, business_type, area, q_eff, filters_eff, kinds, new_only, point, fuzzy
+    )
+
+
+def _pool_chain(
+    portal, city, business_type, area, q_eff, filters_eff, kinds, new_only, point, fuzzy=True
+):
+    """Тело `_district_pool` по готовой области районов (FLT-1d: им же — пул счётчиков)."""
     from dataclasses import replace
 
     from . import portal_home_blocks as home
     from . import search as search_engine
 
-    area = area_districts(district, filters_eff)
     # T-8.20: единый поиск — режим (полнотекст/опечатки) решается ОДИН раз по пулу без
     # вида и категорий; от него же вкладки, чипы и выдача (иначе вкладка «0», а лента нашла).
     broad = search_engine.execute(
@@ -269,6 +278,85 @@ def _seo_canonical(request, portal, district, facet, filters) -> tuple[str, bool
     return request.build_absolute_uri(request.get_full_path()), True
 
 
+def _filter_ui(
+    request,
+    portal,
+    *,
+    city,
+    business_type,
+    district,
+    facet,
+    facets,
+    axis,
+    scope,
+    q,
+    q_eff,
+    filters,
+    filters_eff,
+    kinds,
+    point,
+    broad,
+    whole_pool,
+    base_pool,
+    pool,
+    firm_total,
+) -> dict:
+    """FLT-1d: панель фильтров городского портала со счётчиками (portal_facets)."""
+    from dataclasses import replace
+
+    from apps.core import districts as district_registry
+
+    from . import portal_facets, portal_filter_ui
+
+    area = area_districts(district, filters_eff)
+    if area:  # счётчикам соседних районов нужен пул БЕЗ района (свой фасет не учитывается)
+        # Точный полнотекст: «похожие» по соседям не множат trigram-сканы (как хвост Г5);
+        # при опечатке соседние районы без точных совпадений просто не показываются.
+        _b, _w, wide_base, _p = _pool_chain(
+            portal,
+            city,
+            business_type,
+            (),
+            q_eff,
+            replace(filters_eff, districts=()),
+            kinds,
+            scope.new_only,
+            point,
+            fuzzy=False,
+        )
+    else:
+        wide_base = base_pool
+    counts = portal_facets.counts(
+        wide_base,
+        district_options=[slug for slug, _n in district_registry.choices_for(portal.city or "")],
+        area=area,
+        kats=filters_eff.kats,
+        tags=filters_eff.tags,
+    )
+    # «N Treffer» — точное число (потолок 240 — только у пагинации, план §13.4).
+    hits = pool.order_by().values("pk").count() + firm_total
+    branch_facets = facets
+    if not facet and axis == "business_type" and facets:
+        types = set(whole_pool.order_by().values_list("business_type", flat=True).distinct())
+        branch_facets = [(v, label) for v, label in facets if v in types]
+    return portal_filter_ui.build(
+        request,
+        portal,
+        facet=facet,
+        facets=branch_facets,
+        axis=axis,
+        district=district,
+        scope=scope,
+        q=q,
+        filters=filters,
+        area=area_districts(district, filters),
+        point=point,
+        counts=counts,
+        hits=hits,
+        hits_capped=False,
+    )
+
+
 def _single_area(path_district, filters) -> str:
     """Г5: хвост соседей — только когда область выдачи ровно один район."""
     area = area_districts(path_district, filters)
@@ -313,7 +401,8 @@ def portal_home(request, facet=None, district=None):
         if not district_label:
             raise Http404
     axis, facets = _facet_choices(portal, district=district)
-    district_chips = _district_choices(portal)
+    # FLT-1d: на городском портале районы — в строке фильтров (считаются там же)
+    district_chips = [] if portal_home_blocks.has_home(portal) else _district_choices(portal)
 
     facet_label = None
     if facet:
@@ -399,13 +488,22 @@ def portal_home(request, facet=None, district=None):
     else:
         kind_chips = _kind_chips(whole_pool.order_by(), request.path, kind)
         portal_tabs = []
-    category_chips = category_facets.chips(
-        base_pool.order_by(),  # без ранга: чипам нужен только состав
-        request.path,
-        kat,
-        tag,
-        extra={"kind": scope.kind_key, "neu": "1" if scope.new_only else "", **dict(carry)},
-    )
+    if city_home:  # FLT-1d: разделы и признаки — в строке фильтров; нужна только подпись
+        from apps.core import city_categories as cc
+
+        labels = [cc.label(k) for k in filters_eff.kats] + [
+            cc.tag_label(t) for t in filters_eff.tags
+        ]
+        category_chips = {"label": " · ".join(x for x in labels if x)}
+        district_chips = []
+    else:
+        category_chips = category_facets.chips(
+            base_pool.order_by(),  # без ранга: чипам нужен только состав
+            request.path,
+            kat,
+            tag,
+            extra={"kind": scope.kind_key, "neu": "1" if scope.new_only else "", **dict(carry)},
+        )
     # Блок Б5: группа «Von <Firma>» — только на первой странице выдачи.
     pool, firm_group, firm_total = _split_firm_matches(pool, q_eff)
     if request.GET.get("cursor"):
@@ -416,7 +514,7 @@ def portal_home(request, facet=None, district=None):
     # категории) свёрнуто и строится по НАЙДЕННОМУ, а не по всему порталу.
     searching = bool(q or filters.active)
     hits = hits_capped = None
-    if searching:
+    if searching and not city_home:  # FLT-1d: на городском портале — строка фильтров
         # один DISTINCT по паре вместо двух отдельных (database-ревью)
         pairs = set(whole_pool.order_by().values_list("district", "business_type").distinct())
         if not district:
@@ -430,6 +528,33 @@ def portal_home(request, facet=None, district=None):
             hits = search_engine.count_capped(pool, cap) + firm_total  # группа — тоже найдено
             hits_capped = hits > cap
             hits = min(hits, cap)
+    flt = None
+    if city_home:  # FLT-1d: строка пилюль + шторка (вместо формы «Filter» и «Eingrenzen»)
+        flt = _filter_ui(
+            request,
+            portal,
+            city=city,
+            business_type=business_type,
+            district=district,
+            facet=facet,
+            facets=facets,
+            axis=axis,
+            scope=scope,
+            q=q,
+            q_eff=q_eff,
+            filters=filters,
+            filters_eff=filters_eff,
+            kinds=kinds,
+            point=point,
+            broad=broad,
+            whole_pool=whole_pool,
+            base_pool=base_pool,
+            pool=pool,
+            firm_total=firm_total,
+        )
+        if searching and not (point is not None and filters.sort in ("", "naehe")):
+            cap = settings.AGGREGATOR_SEARCH["max_results"]
+            hits, hits_capped = min(flt["hits"], cap), flt["hits"] > cap  # ИИ-подсказка, журнал
     # T-8.10d D-2: ИИ-подсказка фильтров (за выключателем; проверяется первой — при
     # выключенном флаге путь страницы прежний байт-в-байт).
     ki_slot, ki_chips, ki_landing = None, [], False
@@ -633,9 +758,7 @@ def portal_home(request, facet=None, district=None):
                 if v
             ],
             # T-8.20: блок фильтров и пилюли активных фильтров (только у городского портала).
-            "filter_panel": _filter_panel(request, portal, filters, q, scope, district, point)
-            if city_home
-            else None,
+            "flt": flt,
             # «Weitere» несёт текущие фильтры (вид/категорию/признак), иначе вторая
             # страница показывала бы неотфильтрованную ленту.
             "page_carry": urlencode(
@@ -809,88 +932,6 @@ def _intent_hint_links(request, hints, pool, q, filters, geo_carry, scope) -> li
             }
         )
     return out
-
-
-def _filter_panel(request, portal, filters, q: str, scope, district, point=None) -> dict:
-    """T-8.20: блок фильтров ленты (без JS) и пилюли активных фильтров с ✕."""
-    from . import geo
-    from . import search as search_engine
-
-    keep = [("kind", scope.kind_key)] if scope.kind_key else []
-    if scope.new_only:
-        keep.append(("neu", "1"))
-    geo_carry = geo.carry(*point) if point is not None else []
-    params = keep + search_engine.carry(q, filters) + geo_carry
-
-    def without(*names: str, value: str = "") -> str:
-        rest = [(k, v) for k, v in params if not (k in names and (not value or v == value))]
-        return f"{request.path}?{urlencode(rest)}" if rest else request.path
-
-    from apps.core import city_categories as cc
-
-    labels = {
-        "heute": _("Heute"),
-        "wochenende": _("Am Wochenende"),
-    }
-    pills = []
-    for kat in filters.kats if len(filters.kats) > 1 else ():
-        pills.append({"label": cc.label(kat), "url": without("kat", value=kat)})
-    if filters.districts:
-        from apps.core import districts
-
-        for slug in filters.districts:
-            pills.append(
-                {
-                    "label": districts.label(portal.city, slug) or slug,
-                    "url": without("stadtteil", value=slug),
-                }
-            )
-    from django.utils.formats import number_format
-
-    if filters.price_from is not None:
-        price = number_format(filters.price_from, 2)
-        pills.append({"label": _("ab %(p)s €") % {"p": price}, "url": without("preis_von")})
-    if filters.price_to is not None:
-        price = number_format(filters.price_to, 2)
-        pills.append({"label": _("bis %(p)s €") % {"p": price}, "url": without("preis_bis")})
-    if filters.date:
-        pills.append({"label": labels.get(filters.date, filters.date), "url": without("datum")})
-    if filters.available:
-        pills.append({"label": _("Nur verfügbar"), "url": without("verfuegbar")})
-    if filters.open_now:
-        pills.append({"label": _("Jetzt geöffnet"), "url": without("offen")})
-    if filters.size:  # T-8.26 п.5c
-        pills.append({"label": _("Größe %(s)s") % {"s": filters.size}, "url": without("groesse")})
-    if filters.radius_km:  # T-8.7 Р-5
-        pills.append(
-            {"label": _("≤ %(km)s km") % {"km": filters.radius_km}, "url": without("umkreis")}
-        )
-    hidden = [
-        (k, v)
-        for k, v in keep + search_engine.carry(q, filters) + geo_carry
-        if k in ("kind", "neu", "q", "kat", "merkmal", "lat", "lng", "groesse")
-        # FLT-1b: несколько районов одиночный <select> не выразит — едут скрытыми полями
-        # и при районе пути (там <select> скрыт): иначе «Anwenden» на /stadtteil/a/?stadtteil=b
-        # молча сужал бы выдачу до a (ревью FLT-1b)
-        or (k == "stadtteil" and (len(filters.districts) > 1 or district) and v != district)
-    ]
-    # T-8.7 Р-6: «Relevanz» только при q; «In der Nähe» и радиус — только при точке.
-    sorts = [("", _("Relevanz") if q else _("Standard"))] + [
-        (k, label)
-        for k, label in search_engine.SORT_LABELS.items()
-        if k != "naehe" or point is not None
-    ]
-    return {
-        "filters": filters,
-        "districts": [] if district or len(filters.districts) > 1 else _district_choices(portal),
-        "hidden": hidden,
-        "pills": pills,
-        "sorts": sorts,
-        "has_point": point is not None,
-        "radius_choices": geo.RADIUS_CHOICES,
-        "reset_url": without(*search_engine.FILTER_PARAMS),
-        "open": filters.active or bool(filters.sort),
-    }
 
 
 def _other_portals(request, portal) -> list[tuple[str, str]]:

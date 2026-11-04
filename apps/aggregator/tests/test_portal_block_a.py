@@ -4,6 +4,7 @@
 А6 подложка карты. Замки написаны ДО кода.
 """
 
+import re
 import uuid
 from pathlib import Path
 
@@ -114,30 +115,38 @@ def test_cart_is_basket_in_russian():
 
 @override_settings(ROOT_URLCONF="config.urls_portal")
 def test_district_and_industry_chips_carry_query_and_filters():
+    """FLT-1d: переключатель района в поповере несёт запрос и фильтры, но не курсор."""
     p = _portal()
     _listing(district="wald", title={"de": "Brot im Wald"}, new_price="3.00")
     _listing(district="mitte", title={"de": "Brot in Mitte"}, new_price="3.00")
     req = _get(p, "/stadtteil/wald/?q=Brot&sort=endet&preis_bis=10&cursor=abc")
     html = portal_views.portal_home(req, district="wald").content.decode()
-    chips = html[html.index("data-district-chips") :]
-    chips = chips[: chips.index("</nav>")]
-    assert 'href="/stadtteil/mitte/?' in chips
+    hrefs = {
+        slug: href.replace("&amp;", "&")
+        for href, slug in re.findall(
+            r'href="([^"]+)" rel="nofollow" data-flt-district="([^"]+)"', html
+        )
+    }
     for frag in ("q=Brot", "sort=endet", "preis_bis=10"):
-        assert frag in chips
-    assert "cursor=" not in chips and "stadtteil=" not in chips
-    # «Alle» тоже не сбрасывает поиск
-    assert 'href="/?q=Brot' in chips
+        assert frag in hrefs["mitte"] and frag in hrefs["wald"]
+    assert all("cursor=" not in h for h in hrefs.values())
+    # «Mitte» добавляется к району пути (объединение), «Wald» снимает его — на корень
+    assert "stadtteil=wald" in hrefs["mitte"] and "stadtteil=mitte" in hrefs["mitte"]
+    assert hrefs["wald"].startswith("/?") and "stadtteil=" not in hrefs["wald"]
 
 
 @override_settings(ROOT_URLCONF="config.urls_portal")
 def test_chips_drop_stadtteil_filter_param_on_root():
+    """FLT-1d: ✕ района-параметра снимает только его — запрос остаётся."""
     p = _portal()
     _listing(district="wald")
     _listing(district="mitte")
     html = portal_views.portal_home(_get(p, "/?q=Brot&stadtteil=mitte")).content.decode()
-    chips = html[html.index("data-district-chips") :]
-    chips = chips[: chips.index("</nav>")]
-    assert "q=Brot" in chips and "stadtteil=" not in chips
+    pills = [
+        h.replace("&amp;", "&")
+        for h in re.findall(r'href="([^"]+)" rel="nofollow" data-flt-pill', html)
+    ]
+    assert pills == ["/?q=Brot"]
 
 
 # --- А3: «Für Unternehmen» --------------------------------------------------------

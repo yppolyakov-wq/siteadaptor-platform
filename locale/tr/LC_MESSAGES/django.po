@@ -32104,3 +32104,19 @@ msgstr[1] "Şehir portalında değil: %(n)s"
 
 msgid "Lieferung & Abholung"
 msgstr "Teslimat ve gel-al"
+
+#: templates/aggregator/_portal_filter_bar.html
+msgid "Alle Filter"
+msgstr "Tüm filtreler"
+
+#: templates/aggregator/_portal_filter_bar.html
+msgid "Sortieren"
+msgstr "Sırala"
+
+#: templates/aggregator/_portal_filter_bar.html
+msgid "Treffer anzeigen"
+msgstr "Sonuçları göster"
+
+#: templates/aggregator/_portal_filter_bar.html
+msgid "Weitere Filter"
+msgstr "Diğer filtreler"

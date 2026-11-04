@@ -31958,3 +31958,19 @@ msgstr[1] "%(n)s not on the city portal"
 
 msgid "Lieferung & Abholung"
 msgstr "Delivery & pickup"
+
+#: templates/aggregator/_portal_filter_bar.html
+msgid "Alle Filter"
+msgstr "All filters"
+
+#: templates/aggregator/_portal_filter_bar.html
+msgid "Sortieren"
+msgstr "Sort"
+
+#: templates/aggregator/_portal_filter_bar.html
+msgid "Treffer anzeigen"
+msgstr "Show results"
+
+#: templates/aggregator/_portal_filter_bar.html
+msgid "Weitere Filter"
+msgstr "More filters"

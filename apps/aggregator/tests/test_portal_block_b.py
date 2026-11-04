@@ -69,14 +69,14 @@ def _seed():
 
 @override_settings(ROOT_URLCONF="config.urls_portal")
 def test_search_shows_hit_count_and_collapses_refinement():
+    """FLT-1d: «N Treffer» — в строке фильтров над карточками; уточнение — в поповерах и
+    шторке (слой «Eingrenzen» снят)."""
     p = _portal()
     _seed()
     html = _html(p, "/?q=Pizza")
-    assert "data-hit-count" in html
-    assert "1 Treffer" in html
-    refine = html.index("data-portal-refine")
-    assert html.index("data-district-chips") > refine  # районы — внутри свёрнутого блока
-    assert html.rindex("Pizza Margherita") > refine  # карточка (в <head> — JSON-LD)
+    assert "data-hit-count" in html and "1 Treffer" in html
+    assert "data-portal-refine" not in html
+    assert html.index("data-flt-bar") < html.rindex("Pizza Margherita")
 
 
 @override_settings(ROOT_URLCONF="config.urls_portal")
@@ -84,28 +84,30 @@ def test_search_chips_are_built_from_found_pool():
     p = _portal()
     _seed()
     html = _html(p, "/?q=Pizza")
-    chips = html[html.index("data-district-chips") : html.index("data-district-chips") + 3000]
-    assert "/stadtteil/wald/" in chips
-    assert "/stadtteil/mitte/" not in chips  # в Mitte пиццы нет — мёртвый чип не нужен
+    assert 'data-flt-district="wald"' in html
+    assert 'data-flt-district="mitte"' not in html  # в Mitte пиццы нет — пустой выбор не нужен
 
 
 @override_settings(ROOT_URLCONF="config.urls_portal")
 def test_without_search_layout_is_unchanged():
+    """FLT-1d: строка фильтров и «N Treffer» есть и без поиска; районы — в строке, под
+    поиском (а не отдельной полосой над ним)."""
     p = _portal()
     _seed()
     html = _html(p, "/stadtteil/wald/", district="wald")
-    assert "data-portal-refine" not in html
-    assert "data-hit-count" not in html
-    # без поиска районы — над формой поиска, как раньше
-    assert html.index("data-district-chips") < html.index('name="q"')
+    assert "data-portal-refine" not in html and "data-district-chips" not in html
+    assert "data-hit-count" in html
+    assert html.index('name="q"') < html.index("data-flt-bar")
 
 
 @override_settings(ROOT_URLCONF="config.urls_portal")
 def test_search_with_district_keeps_all_district_chips():
+    """Переключение района при поиске не теряется: соседний район с находками — выбором."""
     p = _portal()
     _seed()
+    _listing(district="mitte", title={"de": "Pizza Mitte"})
     html = _html(p, "/stadtteil/wald/?q=Pizza", district="wald")
-    assert "/stadtteil/mitte/" in html  # переключение района при поиске не теряется
+    assert 'data-flt-district="mitte"' in html
 
 
 # --- Б2: список по умолчанию, карта по кнопке, Leaflet лениво -----------------------

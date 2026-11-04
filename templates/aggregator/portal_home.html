@@ -21,14 +21,19 @@
 
 {% include "aggregator/_demo_notice.html" %}
 
-{% if not searching %}{% include "aggregator/_portal_district_chips.html" %}{% endif %}
+{% if not searching and not flt %}{% include "aggregator/_portal_district_chips.html" %}{% endif %}
 
 {% include "aggregator/_portal_search.html" %}
 {% include "aggregator/_portal_tabs.html" with tabs=portal_tabs %}
-{% include "aggregator/_portal_filters.html" with panel=filter_panel %}
+{% include "aggregator/_portal_filter_bar.html" %}
 {% include "aggregator/_search_intent_chips.html" %}
 {% include "aggregator/_search_fuzzy_note.html" %}
-{% if searching %}
+{% if flt %}
+{% comment %}FLT-1d: районы, разделы, признаки и отрасли — в строке фильтров и шторке; «N Treffer»
+показывает сама строка. Прежние слои (чипы, «Eingrenzen», форма «Filter») здесь не нужны.{% endcomment %}
+{% if searching %}{% include "aggregator/_search_follow.html" %}{% endif %}
+{% include "aggregator/_portal_hotel_search.html" %}
+{% elif searching %}
 {% comment %}Блок Б1: при поиске — сначала число найденного и карточки; уточнение (районы,
 виды, разделы, отрасли) свёрнуто и построено по найденному.{% endcomment %}
 <p class="mb-3 text-sm font-medium text-gray-700" data-hit-count>{% if hits_capped %}{% blocktrans with n=hits %}{{ n }}+ Treffer{% endblocktrans %}{% elif hits is not None %}{% blocktrans count n=hits %}{{ n }} Treffer{% plural %}{{ n }} Treffer{% endblocktrans %}{% endif %}</p>

@@ -160,7 +160,7 @@ def test_district_page_filters_and_type_chips_stay_inside_district():
     html = resp.content.decode()
     assert "GraefrathDeal" in html and "WaldDeal" not in html
     assert "Gräfrath" in html
-    assert "/stadtteil/graefrath/friseur/" in html  # чип типа ведёт внутри района
+    assert 'href="/stadtteil/graefrath/friseur/"' in html  # отрасль ведёт внутри района
     assert "/stadtteil/graefrath/bakery/" not in html  # в районе нет пекарен
 
 

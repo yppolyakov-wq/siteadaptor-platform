@@ -193,6 +193,7 @@ def _portal():
 
 @override_settings(ROOT_URLCONF="config.urls_portal")
 def test_portal_filters_by_kat_and_shows_chips():
+    """FLT-1d: раздел/категория — галочки шторки со счётчиками (чипы раздела сняты)."""
     portal = _portal()
     _listing(title={"de": "Mantel"}, city_category="damenmode")
     _listing(title={"de": "Brötchen"}, city_category="brot-backwaren")
@@ -200,8 +201,9 @@ def test_portal_filters_by_kat_and_shows_chips():
     req.portal = portal
     html = portal_views.portal_home(req).content.decode()
     assert "Mantel" in html and "Brötchen" not in html
-    assert 'data-cat-chip="damenmode"' in html
-    assert 'data-cat-chip="lebensmittel-getraenke"' in html  # чип раздела по всему пулу
+    assert 'name="kat" value="damenmode"' in html  # категория открытого раздела
+    # раздел по всему пулу: свой фасет не учитывается — «Lebensmittel» остаётся выбором
+    assert 'name="kat" value="lebensmittel-getraenke"' in html
 
 
 @override_settings(ROOT_URLCONF="config.urls_portal")

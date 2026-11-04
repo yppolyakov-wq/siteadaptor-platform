@@ -193,12 +193,16 @@ def test_follow_refuses_more_districts_than_cap_instead_of_truncating():
 
 
 def test_filter_form_keeps_param_district_on_district_path_page():
-    """«Anwenden» на /stadtteil/wald/?stadtteil=mitte не теряет Mitte."""
+    """«Anwenden» на /stadtteil/wald/?stadtteil=mitte не теряет ни один район: форма шлёт
+    на корень, район пути — отмеченной галочкой (FLT-1d, план §13.3)."""
     _seed()
     p = _portal()
     html = _html(p, "/stadtteil/wald/?stadtteil=mitte", district=WALD)
-    assert '<input type="hidden" name="stadtteil" value="mitte">' in html
-    assert '<input type="hidden" name="stadtteil" value="wald">' not in html  # путь — в action
+    drawer = html.split('id="flt-drawer"', 1)[1]
+    assert 'action="/"' in drawer
+    assert 'name="stadtteil" value="wald" class="w-5 h-5" checked' in drawer
+    assert 'name="stadtteil" value="mitte" class="w-5 h-5" checked' in drawer
+    assert '<input type="hidden" name="stadtteil"' not in drawer  # районы — галочками
 
 
 def test_facet_with_single_district_param_stays_self_canonical_noindex():
@@ -223,3 +227,33 @@ def test_search_log_key_dedupes_path_and_param_district():
 
     _key, shown = search_log.filters_key(_filters(stadtteil="wald"), extra={"stadtteil": WALD})
     assert shown["stadtteil"] == [WALD]
+
+
+# --- FLT-1d: шторка -----------------------------------------------------------------------
+
+
+def test_drawer_submit_keeps_every_state_param():
+    """W0 (план §1/§4): «Treffer anzeigen» не теряет марку, компанию, карту, «roh=ort»…"""
+    import re
+
+    _seed()
+    p = _portal()
+    path = (
+        "/?q=Brot&kind=alle&neu=1&roh=ort&ansicht=karte&marke=Bosch&unternehmen=w1"
+        "&groesse=M&sort=endet&preis_von=1&preis_bis=9&datum=heute&verfuegbar=1&offen=1"
+        "&stadtteil=wald&kat=lebensmittel-getraenke&merkmal=bio&lat=51.17&lng=7.08&umkreis=5"
+    )
+    html = _html(p, path)
+    drawer = html.split('id="flt-drawer"', 1)[1].split("</dialog>", 1)[0]
+    names = set(re.findall(r'name="([a-z_]+)"', drawer))
+    sent = {k for k in re.findall(r"[?&]([a-z_]+)=", path)}
+    assert sent <= names, sent - names
+
+
+def test_filter_forms_have_no_csrf_token():
+    """Страница портала приходит из кэша публичных страниц — формы фильтров только GET."""
+    _seed()
+    p = _portal()
+    html = _html(p, "/?q=Brot")
+    bar = html.split("data-flt", 1)[1].split("</dialog>", 1)[0]
+    assert "csrfmiddlewaretoken" not in bar and 'method="post"' not in bar.lower()

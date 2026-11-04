@@ -32240,3 +32240,19 @@ msgstr[3] "Не на порталі міста: %(n)s"
 
 msgid "Lieferung & Abholung"
 msgstr "Доставка й самовивіз"
+
+#: templates/aggregator/_portal_filter_bar.html
+msgid "Alle Filter"
+msgstr "Усі фільтри"
+
+#: templates/aggregator/_portal_filter_bar.html
+msgid "Sortieren"
+msgstr "Сортування"
+
+#: templates/aggregator/_portal_filter_bar.html
+msgid "Treffer anzeigen"
+msgstr "Показати результати"
+
+#: templates/aggregator/_portal_filter_bar.html
+msgid "Weitere Filter"
+msgstr "Інші фільтри"
