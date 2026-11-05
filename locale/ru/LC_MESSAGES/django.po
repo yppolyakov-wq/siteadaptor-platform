@@ -33394,3 +33394,8 @@ msgstr "Аккаунт"
 #: templates/aggregator/portal_base.html
 msgid "Navigation"
 msgstr "Навигация"
+
+#: templates/aggregator/_home_new_businesses.html
+#, python-format
+msgid "Neu in %(city)s"
+msgstr "Новое в %(city)s"

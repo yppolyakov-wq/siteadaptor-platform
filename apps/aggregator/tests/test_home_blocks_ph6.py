@@ -66,6 +66,19 @@ def test_home_renders_new_blocks_and_marked_ad_strip(django_assert_max_num_queri
     assert 'data-home-block="offen"' in body and "data-district-tile=" in body
     assert "ANZEIGE" in body and "Bezahlte Platzierung" in body
     cache.clear()
-    # 2026-11-05 (PH-6): + «Jetzt geöffnet» (1) и районы (1) поверх кап 16 главной.
-    with django_assert_max_num_queries(18):
+    # 2026-11-05 (PH-6): + «Jetzt geöffnet» (1) и районы (1) поверх кап 17 главной.
+    with django_assert_max_num_queries(19):
         portal_views.portal_home(_get(portal))
+
+
+def test_new_businesses_block_needs_three_and_replaces_local_block():
+    portal = _portal()
+    for i in range(2):
+        _listing("business", f"Laden {i}")
+    body = _html(portal)
+    assert "data-home-new-businesses" not in body
+    cache.clear()
+    _listing("business", "Laden 3")
+    body = _html(portal)
+    assert "data-home-new-businesses" in body and 'data-home-block="unternehmen"' not in body
+    assert "/folgen/?unternehmen=" in body

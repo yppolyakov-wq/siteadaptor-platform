@@ -1004,6 +1004,9 @@ def _render_home(request, portal):
     offen = home.open_block(base, open_set, path=request.path, exclude_pks=taken)
     if offen:
         blocks.insert(min(1, len(blocks)), offen)
+    newbiz = home.new_businesses(base, path=request.path) if present["total"] else None
+    if newbiz:  # «Neu in <город>» заменяет блок «Lokale Unternehmen» (без двух бизнес-блоков)
+        blocks = [b for b in blocks if b["key"] != "unternehmen"]
     cards = featured + ([deal] if deal else []) + [item for b in blocks for item in b["items"]]
     tiles_d = home.district_tiles(base, portal.city, open_set) if present["total"] else []
     reviews.attach_ratings(cards)
@@ -1034,6 +1037,7 @@ def _render_home(request, portal):
             "facets": facets,
             "district_chips": [(t["slug"], t["name"]) for t in tiles_d],
             "district_tiles": tiles_d,
+            "newbiz": newbiz,
             "shows_demo": portal.show_demo and any(getattr(c, "is_demo", False) for c in cards),
             "business_link": True,
             "canonical": canonical,

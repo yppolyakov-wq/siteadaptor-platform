@@ -1,0 +1,26 @@
+{% load i18n %}
+{% comment %}PH-6: «Neu in <город>» — новые бизнесы круглыми плитками; «Folgen» — ссылка на страницу подписки (DOI), у демо — «Ansehen».{% endcomment %}
+{% if newbiz %}
+<section data-home-new-businesses aria-labelledby="home-newbiz" class="mb-10">
+  <div class="flex items-end justify-between gap-3 mb-4">
+    <h2 id="home-newbiz" class="text-2xl md:text-[28px] font-extrabold tracking-tight">{% blocktrans with city=portal.city %}Neu in {{ city }}{% endblocktrans %}</h2>
+    <a href="{{ newbiz.more_url }}" rel="nofollow" class="shrink-0 text-[15px] font-bold hover:underline" style="color: var(--portal-color)">{% trans "Alle anzeigen" %} <span aria-hidden="true">→</span></a>
+  </div>
+  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+    {% for b in newbiz.items %}
+    <div class="bg-white rounded-2xl p-4 flex flex-col items-center gap-2 text-center" data-new-business="{{ b.tenant_slug }}">
+      <a href="{% url 'portal-business' slug=b.tenant_slug %}" class="flex flex-col items-center gap-2">
+        {% if b.image.url %}<img src="{{ b.image.url }}" alt="" loading="lazy" class="w-[72px] h-[72px] rounded-full object-cover">{% else %}<span aria-hidden="true" class="w-[72px] h-[72px] rounded-full bg-orange-100 text-orange-800 grid place-items-center text-2xl font-extrabold">{{ b.business_name|slice:":1"|upper }}</span>{% endif %}
+        <span class="font-bold text-[15px] text-gray-900">{{ b.business_name }}</span>
+      </a>
+      <span class="text-xs text-gray-600">{% if b.district_name %}{{ b.district_name }}{% else %}{{ b.city }}{% endif %}</span>
+      {% if b.is_demo %}
+      <a href="{% url 'portal-business' slug=b.tenant_slug %}" class="inline-flex items-center h-9 px-4 rounded-full border-2 border-gray-900 text-[13px] font-bold">{% trans "Ansehen" %}</a>
+      {% else %}
+      <a href="{% url 'aggregator-follow' %}?unternehmen={{ b.tenant_slug|urlencode }}" rel="nofollow" class="inline-flex items-center h-9 px-4 rounded-full border-2 border-gray-900 text-[13px] font-bold">+ {% trans "Folgen" %}</a>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}

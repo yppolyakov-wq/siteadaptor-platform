@@ -33233,3 +33233,8 @@ msgstr "Hesap"
 #: templates/aggregator/portal_base.html
 msgid "Navigation"
 msgstr "Gezinme"
+
+#: templates/aggregator/_home_new_businesses.html
+#, python-format
+msgid "Neu in %(city)s"
+msgstr "%(city)s'de yeni"

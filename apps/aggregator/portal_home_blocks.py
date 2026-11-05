@@ -641,3 +641,28 @@ def district_tiles(base_qs, city: str, open_set: set) -> list[dict]:
         for slug, name in known
         if counts.get(slug)
     ]
+
+
+NEW_BUSINESS_DAYS = 30
+NEW_BUSINESS_MIN = 3  # меньше — блок не показываем («Neu» было бы неправдой)
+NEW_BUSINESS_LIMIT = 6
+
+
+def new_businesses(base_qs, *, path: str, now=None) -> dict | None:
+    """«Neu in <город>» — карточки бизнесов, появившихся за 30 дней (по одной на бизнес).
+
+    «Alle anzeigen» → лента бизнесов с `neu=1`. Меньше трёх — None (остаётся прежний блок
+    «Lokale Unternehmen»)."""
+    now = now or timezone.now()
+    qs = (
+        base_qs.filter(
+            listing_kind=L.KIND_BUSINESS, created_at__gte=now - timedelta(days=NEW_BUSINESS_DAYS)
+        )
+        .order_by("tenant_schema", "-created_at")
+        .distinct("tenant_schema")
+    )
+    items = sorted(qs[: NEW_BUSINESS_LIMIT * 2], key=lambda i: i.created_at, reverse=True)
+    items = items[:NEW_BUSINESS_LIMIT]
+    if len(items) < NEW_BUSINESS_MIN:
+        return None
+    return {"items": items, "more_url": f"{path}?kind=business&neu=1"}
