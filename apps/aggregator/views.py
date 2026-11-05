@@ -246,60 +246,58 @@ def _rating_schemas(min_rating: int) -> set:
     )
 
 
-def _open_now_schemas(schemas) -> set:
-    """A8: подмножество схем, открытых прямо сейчас (Tenant.opening_hours_structured).
+def open_snapshot(schemas, now=None) -> dict:
+    """Снимок «открыто сейчас» для схем пула: {schema: {"holiday": rng|None, "status": dict|None}}.
 
-    Часы живут на SHARED Tenant (public-схема) — вычисляем live-статус для схем,
-    присутствующих в пуле, и возвращаем открытые (тоже сводится к tenant_schema__in).
-    """
+    Часы живут на SHARED Tenant (public-схема) — ОДИН запрос на все схемы. Общая точка для
+    фильтра «Jetzt geöffnet», карточек ленты/главной портала и hero (план PH-0)."""
     from django.utils import timezone
 
     from apps.core import closures
     from apps.tenants import openinghours
 
-    now = timezone.localtime()
-    out = set()
+    now = now or timezone.localtime()
+    out = {}
     rows = Tenant.objects.filter(schema_name__in=set(schemas)).values_list(
         "schema_name", "opening_hours_structured", "closure_ranges"
     )
     for schema, structured, ranges in rows:
-        if closures.range_in_snapshot(ranges, now.date()):
-            continue  # KA-12 E4.1c: Betriebsferien — не «geöffnet»
-        status = openinghours.open_status(structured, now)
-        if status and status.get("open"):
-            out.add(schema)
+        holiday = closures.range_in_snapshot(ranges, now.date())
+        status = None if holiday else openinghours.open_status(structured, now)
+        out[schema] = {"holiday": holiday, "status": status}
     return out
 
 
-def _attach_open_status(cards):
+def _open_now_schemas(schemas, snapshot=None) -> set:
+    """A8: подмножество схем, открытых прямо сейчас (Betriebsferien — не «geöffnet»)."""
+    snapshot = open_snapshot(schemas) if snapshot is None else snapshot
+    return {
+        schema
+        for schema, row in snapshot.items()
+        if not row["holiday"] and row["status"] and row["status"].get("open")
+    }
+
+
+def _attach_open_status(cards, snapshot=None):
     """A8: прикрепить к карточкам live-статус «Jetzt geöffnet» (богатая карточка бизнеса).
 
-    Часы на SHARED Tenant (public-схема); один запрос на схемы пула. Поля карточки:
-    `has_hours` (часы заданы), `open_now` (открыт сейчас), `open_until` («bis HH:MM»
-    для открытых), `opens_next` («Mo 09:00» — ближайшее открытие для закрытых).
-    Бизнес без часов — без бейджа (не зашумляет).
+    Поля карточки: `has_hours` (часы заданы), `open_now` (открыт сейчас), `open_until`
+    («bis HH:MM» для открытых), `opens_next` («Mo 09:00» — ближайшее открытие), `holiday_until`.
+    Бизнес без часов — без бейджа. `snapshot` — уже посчитанный `open_snapshot` (0 запросов).
     """
     if not cards:
         return cards
-    from django.utils import timezone
-
-    from apps.core import closures
-    from apps.tenants import openinghours
-
-    now = timezone.localtime()
-    rows = Tenant.objects.filter(schema_name__in={c.tenant_schema for c in cards}).values_list(
-        "schema_name", "opening_hours_structured", "closure_ranges"
-    )
-    hours = {schema: structured for schema, structured, _r in rows}
-    ranges = {schema: r for schema, _s, r in rows}
+    if snapshot is None:
+        snapshot = open_snapshot({c.tenant_schema for c in cards})
     for card in cards:
-        holiday = closures.range_in_snapshot(ranges.get(card.tenant_schema), now.date())
+        row = snapshot.get(card.tenant_schema) or {"holiday": None, "status": None}
+        holiday = row["holiday"]
         card.holiday_until = holiday["bis"] if holiday else None
         if holiday:
             # KA-12 E4.1c: Betriebsferien — «geschlossen bis …», а не «öffnet Mo 09:00».
             card.has_hours, card.open_now, card.open_until, card.opens_next = True, False, "", ""
             continue
-        status = openinghours.open_status(hours.get(card.tenant_schema), now)
+        status = row["status"]
         card.has_hours = status is not None
         card.open_now = bool(status and status.get("open"))
         card.open_until = (status.get("until") or "") if status else ""

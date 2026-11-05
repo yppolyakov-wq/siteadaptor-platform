@@ -267,9 +267,7 @@ def _portal():
 
 
 def _titles(html):
-    return set(
-        re.findall(r'<h2 class="font-semibold leading-tight line-clamp-2">([^<]+)</h2>', html)
-    )
+    return set(re.findall(r"<h2 data-card-title[^>]*>([^<]+)</h2>", html))
 
 
 @pytest.mark.urls("config.urls_portal")

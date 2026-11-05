@@ -488,7 +488,7 @@ def test_section_entry_without_kind_shows_all_kinds_like_the_tile_count(isolated
     _seed_everything()
     html = _html(portal)
     tiles = re.findall(
-        r'href="([^"]+)" data-section-tile="([^"]+)".*?<span class="text-xs text-gray-400">(\d+)</span>',
+        r'href="([^"]+)" data-section-tile="([^"]+)".*?<span data-tile-count[^>]*>(\d+)</span>',
         html,
         re.S,
     )
@@ -497,7 +497,7 @@ def test_section_entry_without_kind_shows_all_kinds_like_the_tile_count(isolated
         params = dict(p.split("=") for p in html_mod.unescape(url).split("?", 1)[1].split("&"))
         by_tile = _html(portal, **params)
         by_chip = _html(portal, kat=key)  # вход без вида (чип раздела / вкладка)
-        card = r'<h2 class="font-semibold leading-tight line-clamp-2">'
+        card = r"data-card-title"  # PH-0: маркер вместо классов (редизайн карточки)
         n_tile = len(re.findall(card, by_tile))
         n_chip = len(re.findall(card, by_chip))
         assert n_tile == n_chip == int(count), (key, n_tile, n_chip, count)
