@@ -19,7 +19,7 @@ TENANT_APPS — тумблер переключает видимость/дос�
   их premium=True, и enabled_modules заработает как настоящий entitlement.
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 from django.utils.translation import gettext_lazy as _
 
@@ -64,6 +64,9 @@ class ModuleSpec:
     storefront_landing: str = ""  # url_name публичной страницы-«главной» архетипа
     storefront_icon: str = ""  # emoji тизера/пункта меню; фолбэк — icon
     storefront_teaser: bool = True  # показывать в сетке «Наши разделы» по умолчанию
+    # --- AIS-M M-1: слой на экране «Richtungen & Funktionen» (выставляет LAYERS ниже) --
+    layer: str = ""  # core | base | direction | addon
+    addon_for: tuple[str, ...] = ()  # ключи направлений, "*" — любое, "selling" — продающее
 
 
 REGISTRY: tuple[ModuleSpec, ...] = (
@@ -519,6 +522,37 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         core=True,
         description_de=_("Abo und Zahlung."),
     ),
+)
+
+# AIS-M M-1: три слоя (план `ais-m1-directions-screen-plan-2026-11-05.md` §2.1).
+# base — всегда есть, экраном не показывается (НЕ core: потолок пакета действует);
+# direction — модули направлений (`directions.REGISTRY`); addon — по направлениям.
+SELLING = "selling"
+ANY = "*"
+LAYERS: dict[str, tuple[str, tuple[str, ...]]] = {
+    "promotions": ("base", ()),
+    "crm": ("base", ()),
+    "reviews": ("base", ()),
+    "inbox": ("base", ()),
+    "orders": ("direction", ()),
+    "booking": ("direction", ()),
+    "stays": ("direction", ()),
+    "events": ("direction", ()),
+    "jobs": ("direction", ()),
+    "loyalty": ("addon", ("waren", "termine", "tisch", "speisekarte")),
+    "gift": ("addon", (SELLING,)),
+    "customer_account": ("addon", ("waren", "termine", "tisch", "tickets")),
+    "finance": ("addon", (SELLING,)),
+    "telegram": ("addon", (ANY,)),
+    "publishing": ("addon", (ANY,)),
+    "blog": ("addon", (ANY,)),
+    "analytics": ("addon", (ANY,)),
+}
+REGISTRY = tuple(
+    replace(spec, layer="core")
+    if spec.core
+    else replace(spec, layer=LAYERS[spec.key][0], addon_for=LAYERS[spec.key][1])
+    for spec in REGISTRY
 )
 
 _BY_KEY = {spec.key: spec for spec in REGISTRY}

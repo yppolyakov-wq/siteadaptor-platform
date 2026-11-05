@@ -4156,6 +4156,24 @@ def normalize_promo_groups(raw) -> dict:
     return out
 
 
+def normalize_directions(raw) -> dict:
+    """AIS-M M-1: режим направления {"<ключ>": {"mode": "zeigen"|"verkaufen"}}.
+
+    Ключ резервируется заранее (первый писатель — W4-5), чтобы Save конструктора не ронял
+    его (класс W0/W6). Presence-minimal: пусто — ключа в конфиге нет (golden целы)."""
+    from apps.core import directions
+
+    raw = raw if isinstance(raw, dict) else {}
+    out = {}
+    for key, value in raw.items():
+        if directions.get(key) is None or not isinstance(value, dict):
+            continue
+        mode = value.get("mode")
+        if mode in directions.MODES:
+            out[key] = {"mode": mode}
+    return out
+
+
 def normalize_presence(raw) -> dict:
     """LS-2 «Jetzt erreichbar»: {"mode": "on"|"off"}; auto — ДЕФОЛТ и в конфиг
     не пишется (presence-minimal, golden-паритет). Мусор → auto (пусто)."""
@@ -4748,6 +4766,10 @@ def _normalize_impl(config) -> dict:
     readiness = config.get("readiness")
     if isinstance(readiness, dict) and readiness.get("exempt") is True:
         normalized["readiness"] = {"exempt": True}
+    # AIS-M M-1: режимы направлений (presence-minimal).
+    directions_cfg = normalize_directions(config.get("directions"))
+    if directions_cfg:
+        normalized["directions"] = directions_cfg
     # Реестр id демо-контента (M20, apps.tenants.demo) — чтобы «Demo löschen»
     # удалил ровно созданное. Тоже переживает сохранение конструктора.
     if isinstance(config.get("demo"), dict):

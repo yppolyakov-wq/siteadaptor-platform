@@ -89,20 +89,10 @@ ASK_TYPES = frozenset({"other", "cafe", "werkstatt", "tour_operator"})
 
 
 def direction_choices(tenant) -> list:
-    """Направления, осмысленные для типа бизнеса (меню — у гастро, столы — у ресторана/кафе)."""
+    """Алиас `directions.choices_for` (AIS-M M-1: один источник для мастера и экрана)."""
     from apps.core import directions
 
-    btype = tenant.business_type or ""
-    out = []
-    for d in directions.REGISTRY:
-        if d.key == "speisekarte" and btype not in directions.MENU_TYPES:
-            continue
-        if d.key == "tisch" and btype not in directions.TABLE_TYPES:
-            continue
-        if d.key == "termine" and btype in directions.TABLE_TYPES:
-            continue
-        out.append(d)
-    return out
+    return directions.choices_for(tenant)
 
 
 def choose_directions(tenant, keys) -> list[str]:

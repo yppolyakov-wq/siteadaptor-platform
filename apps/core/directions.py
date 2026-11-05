@@ -220,3 +220,24 @@ def active(tenant) -> list[Direction]:
 def defaults_for(business_type: str) -> tuple[str, ...]:
     """Стартовые направления типа (пусто — спросить в мастере)."""
     return DEFAULT_FOR.get(business_type or "", ())
+
+
+#: AIS-M M-1: режимы направления (W4-5 «Verkauf öffnen»; в M-1 UI их не шлёт).
+MODES = ("zeigen", "verkaufen")
+
+
+def choices_for(tenant) -> list[Direction]:
+    """Направления, осмысленные для типа бизнеса (меню — у гастро, столы — у ресторана/кафе).
+
+    Единственный источник для мастера «Wie verkaufen Sie?» и экрана «Richtungen & Funktionen»."""
+    btype = (tenant.business_type if tenant is not None else "") or ""
+    out = []
+    for d in REGISTRY:
+        if d.key == "speisekarte" and btype not in MENU_TYPES:
+            continue
+        if d.key == "tisch" and btype not in TABLE_TYPES:
+            continue
+        if d.key == "termine" and btype in TABLE_TYPES:
+            continue
+        out.append(d)
+    return out
