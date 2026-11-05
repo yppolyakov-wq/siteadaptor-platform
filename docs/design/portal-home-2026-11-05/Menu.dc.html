@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Kategorien-Menü</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#111827}a:hover{color:#C2410C}
+</style>
+</helmet>
+<div style="width: 1440px; height: 900px; position: relative; overflow: hidden; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; color: #111827; background: #F4F5F7">
+  <div aria-hidden="true" style="position: absolute; inset: 0; background: rgba(17,24,39,.55)"></div>
+  <aside aria-label="Kategorien" style="position: absolute; top: 0; left: 0; bottom: 0; width: 880px; background: #FFFFFF; display: flex; box-shadow: 0 20px 60px rgba(0,0,0,.25)">
+    <div style="width: 440px; border-right: 1px solid #E5E7EB; display: flex; flex-direction: column">
+      <div style="display: flex; align-items: center; justify-content: space-between; padding: 22px 24px 14px">
+        <span style="font-size: 22px; font-weight: 800">Entdecke <span style="color: #C2410C">Solingen</span></span>
+        <a href="Main.dc.html" aria-label="Menü schließen" style="width: 44px; height: 44px; border-radius: 999px; display: grid; place-items: center; background: #F3F4F6"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#111827" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></a>
+      </div>
+      <a href="#" style="margin: 0 16px 10px; background: #111827; color: #FFFFFF; text-decoration: none; border-radius: 16px; padding: 14px 16px; display: flex; align-items: center; gap: 12px">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path></svg>
+        <span style="display: flex; flex-direction: column"><span style="font-weight: 700">Anmelden · Registrieren</span><span style="font-size: 13px; color: #D1D5DB">Lieblingsläden folgen, Angebote merken</span></span>
+      </a>
+      <nav style="overflow: auto; padding: 4px 8px 16px; display: flex; flex-direction: column">
+        <sc-for list="{{rows}}" as="r" hint-placeholder-count="9">
+          <a href="#" style="text-decoration: none; display: flex; align-items: center; gap: 14px; padding: 10px 12px; border-radius: 14px; background: {{r.bg}}">
+            <img src="{{r.img}}" alt="" style="width: 56px; height: 56px; border-radius: 14px; object-fit: cover; flex-shrink: 0">
+            <span style="flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0">
+              <span style="display: flex; align-items: center; gap: 8px"><span style="font-weight: 700; font-size: 16px; color: #111827">{{r.label}}</span><sc-if value="{{r.badge}}" hint-placeholder-val="{{ false }}"><span style="background: {{r.badgeBg}}; color: #FFFFFF; font-size: 10px; font-weight: 800; padding: 2px 7px; border-radius: 6px; letter-spacing: .04em">{{r.badge}}</span></sc-if></span>
+              <span style="font-size: 13px; color: #4B5563">{{r.desc}}</span>
+            </span>
+            <span style="font-size: 13px; font-weight: 700; color: #6B7280">{{r.count}}</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
+          </a>
+        </sc-for>
+      </nav>
+    </div>
+    <div style="flex: 1; padding: 26px 28px; display: flex; flex-direction: column; gap: 18px">
+      <div>
+        <div style="font-size: 13px; font-weight: 700; color: #C2410C; text-transform: uppercase; letter-spacing: .06em">Lebensmittel &amp; Getränke</div>
+        <div style="font-size: 26px; font-weight: 800; margin-top: 4px">312 Angebote · 41 Geschäfte</div>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+        <sc-for list="{{subs}}" as="s" hint-placeholder-count="6">
+          <a href="#" style="text-decoration: none; display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 14px; border: 1.5px solid #E5E7EB">
+            <img src="{{s.img}}" alt="" style="width: 48px; height: 48px; border-radius: 10px; object-fit: cover">
+            <span style="display: flex; flex-direction: column"><span style="font-weight: 700; font-size: 15px; color: #111827">{{s.label}}</span><span style="font-size: 12px; color: #6B7280">{{s.count}}</span></span>
+          </a>
+        </sc-for>
+      </div>
+      <a href="#" style="margin-top: auto; border-radius: 18px; overflow: hidden; position: relative; display: block; height: 200px; text-decoration: none">
+        <img src="/_blob/502932202ea1f71ed8959876caa29606" alt="Wochenmarkt" style="width: 100%; height: 100%; object-fit: cover; display: block">
+        <span style="position: absolute; left: 0; right: 0; bottom: 0; padding: 18px; background: rgba(17,24,39,.72); color: #FFFFFF; display: flex; flex-direction: column; gap: 4px">
+          <span style="font-size: 12px; font-weight: 800; letter-spacing: .06em; color: #FDBA74">THEMA DER WOCHE</span>
+          <span style="font-size: 20px; font-weight: 800">Regional &amp; frisch vom Wochenmarkt</span>
+        </span>
+      </a>
+    </div>
+  </aside>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const B = '/_blob/';
+    const r = (img, label, desc, count, badge, badgeBg, on) => ({ img: B + img, label, desc, count, badge, badgeBg, bg: on ? '#FFF7ED' : 'transparent' });
+    return {
+      rows: [
+        r('9eca54829f8d9ee2e2d47a6fb8e89742', 'Lebensmittel & Getränke', 'Bäcker, Metzger, Hofladen, Wein', '312', 'BELIEBT', '#C2410C', true),
+        r('526e78acd431ddd180ef8c6963fe92f0', 'Essen & Gastronomie', 'Restaurants, Cafés, Mittagstisch', '204', 'HEUTE', '#047857'),
+        r('dedd42d2750c585c2a144d41d883c279', 'Beauty & Pflege', 'Friseur, Kosmetik, Nagelstudio', '96', '', ''),
+        r('ee8c61a46f5a1c5e73330594d2f1ba6a', 'Kunst & Geschenke', 'Kerzen, Deko, Messer aus Solingen', '88', 'NEU', '#1D4ED8'),
+        r('21b7fccc89626ea4ac043a4443e1be00', 'Auto & Mobilität', 'Fahrräder, Werkstatt, Reparatur', '57', '', ''),
+        r('ca5d2b8068218be81269a9bccb481f95', 'Freizeit & Erlebnisse', 'Führungen, Kurse, Events', '64', '', ''),
+        r('71e7cabaabfb0cc8bbf36b20e25d3cf0', 'Reisen & Übernachten', 'Pensionen, Ferienwohnungen', '23', '', ''),
+        r('6dc52578e01d94c1e0da2800c3359906', 'Haus & Garten', 'Pflanzen, Handwerk, Wohnen', '71', '', ''),
+        r('8efe838528596f64fe6a2f1f43ce8d8d', 'Alle 15 Bereiche', 'Von Mode bis Tierbedarf', '', '', '')
+      ],
+      subs: [
+        { img: B + '9eca54829f8d9ee2e2d47a6fb8e89742', label: 'Bäckerei', count: '74 Angebote' },
+        { img: B + '3208d14bdc2c5d082434dc505603ce6b', label: 'Käse & Feinkost', count: '38 Angebote' },
+        { img: B + '6dc52578e01d94c1e0da2800c3359906', label: 'Obst & Gemüse', count: '52 Angebote' },
+        { img: B + 'eef5a5c762436136e2fd4538b4f95d61', label: 'Eis & Süßes', count: '29 Angebote' },
+        { img: B + '502932202ea1f71ed8959876caa29606', label: 'Wochenmarkt', count: '46 Angebote' },
+        { img: B + '8efe838528596f64fe6a2f1f43ce8d8d', label: 'Kaffee & Tee', count: '31 Angebote' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Entdecke Solingen — Magazin</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#FFFFFF}
+a{color:#111827}a:hover{color:#0F766E}
+</style>
+</helmet>
+<div style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif; color: #111827; background: #FFFFFF">
+  <section aria-labelledby="ch" style="position: relative; height: 560px; overflow: hidden">
+    <img src="/_blob/ca5d2b8068218be81269a9bccb481f95" alt="Solingen Altstadt" style="width: 100%; height: 100%; object-fit: cover; display: block">
+    <div style="position: absolute; inset: 0; background: rgba(15,23,42,.5)"></div>
+    <header style="position: absolute; top: 0; left: 0; right: 0; max-width: 1360px; margin: 0 auto; padding: 20px 40px; display: flex; align-items: center; gap: 16px; color: #FFFFFF">
+      <span style="font-family: 'Fraunces', serif; font-size: 26px; font-weight: 800">Entdecke Solingen</span>
+      <a href="#" style="margin-left: auto; color: #FFFFFF; text-decoration: none; font-weight: 600; height: 44px; display: inline-flex; align-items: center">Für Unternehmen</a>
+      <a href="#" style="color: #111827; background: #FFFFFF; text-decoration: none; font-weight: 700; padding: 0 18px; height: 44px; border-radius: 999px; display: inline-flex; align-items: center">Anmelden</a>
+    </header>
+    <div style="position: absolute; left: 0; right: 0; bottom: 70px; max-width: 1360px; margin: 0 auto; padding: 0 40px; color: #FFFFFF; display: flex; flex-direction: column; gap: 18px">
+      <h1 id="ch" style="margin: 0; font-family: 'Fraunces', serif; font-size: 64px; line-height: 1; font-weight: 800; max-width: 760px">Die Klingenstadt, Laden für Laden.</h1>
+      <form role="search" style="display: flex; align-items: center; gap: 10px; background: #FFFFFF; border-radius: 999px; padding: 0 8px 0 22px; height: 60px; max-width: 720px">
+        <label for="cq" style="position: absolute; left: -9999px">Suchen</label>
+        <input id="cq" placeholder="Was möchtest du heute entdecken?" style="flex: 1; border: 0; font: inherit; font-size: 17px; outline: none; color: #111827">
+        <button type="submit" style="height: 46px; padding: 0 22px; border-radius: 999px; border: 0; background: #0F766E; color: #FFFFFF; font: inherit; font-weight: 700; cursor: pointer">Entdecken</button>
+      </form>
+    </div>
+  </section>
+  <nav aria-label="Bereiche" style="max-width: 1360px; margin: 0 auto; padding: 14px 40px; display: flex; gap: 8px; overflow-x: auto; border-bottom: 1px solid #E5E7EB">
+    <sc-for list="{{chips}}" as="c" hint-placeholder-count="8"><a href="#" style="text-decoration: none; flex: 0 0 auto; height: 44px; padding: 0 18px; border-radius: 999px; border: 1.5px solid {{c.border}}; background: {{c.bg}}; color: {{c.fg}}; font-weight: 700; font-size: 14px; display: inline-flex; align-items: center">{{c.label}}</a></sc-for>
+  </nav>
+  <main style="max-width: 1360px; margin: 0 auto; padding: 40px 40px 70px; display: flex; flex-direction: column; gap: 56px">
+    <section aria-labelledby="cs">
+      <h2 id="cs" style="margin: 0 0 20px; font-family: 'Fraunces', serif; font-size: 36px; font-weight: 800">Diese Woche in Solingen</h2>
+      <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-template-rows: 260px 260px; gap: 18px">
+        <sc-for list="{{stories}}" as="s" hint-placeholder-count="4">
+          <a href="#" style="grid-column: span {{s.cols}}; grid-row: span {{s.rows}}; position: relative; border-radius: 22px; overflow: hidden; text-decoration: none; display: block">
+            <img src="{{s.img}}" alt="" style="width: 100%; height: 100%; object-fit: cover; display: block">
+            <span style="position: absolute; left: 0; right: 0; bottom: 0; padding: 22px; background: rgba(15,23,42,.66); color: #FFFFFF; display: flex; flex-direction: column; gap: 4px">
+              <span style="font-size: 12px; font-weight: 800; letter-spacing: .08em; color: #99F6E4">{{s.kicker}}</span>
+              <span style="font-family: 'Fraunces', serif; font-size: {{s.size}}; font-weight: 800; line-height: 1.1">{{s.title}}</span>
+              <span style="font-size: 14px; color: #E5E7EB">{{s.meta}}</span>
+            </span>
+          </a>
+        </sc-for>
+      </div>
+    </section>
+    <section aria-labelledby="cp" style="display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 24px; align-items: center">
+      <img src="/_blob/9eca54829f8d9ee2e2d47a6fb8e89742" alt="Bäckerei Klingenbrot" style="grid-column: span 6; width: 100%; height: 380px; object-fit: cover; border-radius: 24px">
+      <div style="grid-column: span 6; display: flex; flex-direction: column; gap: 14px">
+        <span style="font-size: 13px; font-weight: 800; letter-spacing: .08em; color: #0F766E">GESCHÄFT DER WOCHE · OHLIGS</span>
+        <h2 id="cp" style="margin: 0; font-family: 'Fraunces', serif; font-size: 40px; font-weight: 800; line-height: 1.05">«Wir backen noch mit Sauerteig von 1952.»</h2>
+        <p style="margin: 0; font-size: 17px; color: #374151">Bäckerei Klingenbrot — drei Generationen, jeden Morgen ab 6 Uhr. Heute: Roggenbrot 20 % günstiger.</p>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap"><a href="#" style="text-decoration: none; background: #0F766E; color: #FFFFFF; font-weight: 700; padding: 0 20px; height: 48px; border-radius: 999px; display: inline-flex; align-items: center">Zum Geschäft</a><a href="#" style="text-decoration: none; border: 1.5px solid #111827; font-weight: 700; padding: 0 20px; height: 48px; border-radius: 999px; display: inline-flex; align-items: center">+ Folgen</a></div>
+      </div>
+    </section>
+    <section aria-labelledby="cd">
+      <h2 id="cd" style="margin: 0 0 20px; font-family: 'Fraunces', serif; font-size: 36px; font-weight: 800">Top-Deals heute</h2>
+      <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 22px">
+        <sc-for list="{{deals}}" as="it" hint-placeholder-count="4"><dc-import name="Card" item="{{it}}" hint-size="100%,470px"></dc-import></sc-for>
+      </div>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":2300}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const B = '/_blob/';
+    const chip = (label, on) => ({ label, bg: on ? '#111827' : '#FFFFFF', fg: on ? '#FFFFFF' : '#111827', border: on ? '#111827' : '#E5E7EB' });
+    const card = (img, badge, tag, timer, initial, biz, district, title, rating, reviews, open, price, old, action) => ({ img: B + img, badge, tag, timer, initial, biz, district, title, rating, reviews, open, price, old, low30: '', action });
+    return {
+      chips: [chip('Alles', true), chip('Wochenmarkt'), chip('Regional & Bio'), chip('Für Familien'), chip('Made in Solingen'), chip('Abends ausgehen'), chip('Gesund & Fit'), chip('Neu eröffnet')],
+      stories: [
+        { img: B + '502932202ea1f71ed8959876caa29606', kicker: 'THEMA', title: 'Wochenmarkt: was jetzt Saison hat', meta: '46 Angebote · 12 Stände', cols: 2, rows: 2, size: '34px' },
+        { img: B + 'ee8c61a46f5a1c5e73330594d2f1ba6a', kicker: 'MADE IN SOLINGEN', title: 'Kerzen, Messer, Handwerk', meta: '88 Angebote', cols: 2, rows: 1, size: '24px' },
+        { img: B + 'eef5a5c762436136e2fd4538b4f95d61', kicker: 'FÜR FAMILIEN', title: 'Sonntag in Burg', meta: '31 Angebote', cols: 1, rows: 1, size: '20px' },
+        { img: B + '21b7fccc89626ea4ac043a4443e1be00', kicker: 'DRAUSSEN', title: 'Fahrrad-Saison startet', meta: '57 Angebote', cols: 1, rows: 1, size: '20px' }
+      ],
+      deals: [
+        card('9eca54829f8d9ee2e2d47a6fb8e89742', '−20 %', 'Endet heute', 'Endet in 02:14 h', 'K', 'Klingenbrot', 'Ohligs', 'Roggen-Sauerteigbrot 1 kg', '4,8', '126', 'Offen bis 18:00', '3,90 €', '4,90 €', 'Zurücklegen'),
+        card('526e78acd431ddd180ef8c6963fe92f0', '−30 %', '', 'Endet in 03:12 h', 'O', 'Ohligser Eck', 'Ohligs', 'Mittagspizza + Getränk', '4,5', '210', 'Offen bis 22:00', '6,90 €', '9,90 €', 'Coupon holen'),
+        card('dedd42d2750c585c2a144d41d883c279', '', 'Heute frei', '', 'S', 'Schnittpunkt', 'Mitte', 'Herrenhaarschnitt', '4,9', '212', 'Heute 15:30 frei', '26,00 €', '', 'Termin'),
+        card('3208d14bdc2c5d082434dc505603ce6b', '−15 %', 'Regional', '', 'F', 'Feinkost am Markt', 'Mitte', 'Bergischer Bergkäse 200 g', '4,9', '41', 'Offen bis 19:00', '4,25 €', '5,00 €', 'Zurücklegen')
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

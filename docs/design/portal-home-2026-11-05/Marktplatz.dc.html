@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Entdecke Solingen — Marktplatz</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#FFFFFF}
+a{color:#111827}a:hover{color:#EA580C}
+</style>
+</helmet>
+<div style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif; color: #111827; background: #FFFFFF">
+  <header style="border-bottom: 1px solid #E5E7EB">
+    <div style="max-width: 1360px; margin: 0 auto; padding: 14px 40px; display: flex; flex-wrap: wrap; align-items: center; gap: 16px">
+      <span style="font-size: 24px; font-weight: 800; color: #EA580C">Solingen<span style="color: #111827">.markt</span></span>
+      <form role="search" style="flex: 1 1 420px; display: flex; height: 48px; border: 2px solid #EA580C; border-radius: 14px; overflow: hidden">
+        <label for="bq" style="position: absolute; left: -9999px">Suchen</label>
+        <input id="bq" placeholder="Produkte, Geschäfte, Dienstleistungen suchen" style="flex: 1; border: 0; padding: 0 16px; font: inherit; font-size: 15px; outline: none">
+        <button type="submit" style="border: 0; background: #EA580C; color: #FFFFFF; font: inherit; font-weight: 700; padding: 0 22px; cursor: pointer">Suchen</button>
+      </form>
+      <a href="#" style="font-weight: 600; font-size: 14px; text-decoration: none; height: 44px; display: inline-flex; align-items: center">Gemerkt (3)</a>
+      <a href="#" style="font-weight: 600; font-size: 14px; text-decoration: none; height: 44px; display: inline-flex; align-items: center">Anmelden</a>
+    </div>
+  </header>
+  <main style="max-width: 1360px; margin: 0 auto; padding: 24px 40px 60px; display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start">
+    <nav aria-label="Kategorien" style="flex: 0 0 320px; border: 1px solid #E5E7EB; border-radius: 18px; padding: 8px">
+      <sc-for list="{{rows}}" as="r" hint-placeholder-count="10">
+        <a href="#" style="text-decoration: none; display: flex; align-items: center; gap: 12px; padding: 10px; border-radius: 12px; background: {{r.bg}}">
+          <img src="{{r.img}}" alt="" style="width: 44px; height: 44px; border-radius: 10px; object-fit: cover">
+          <span style="flex: 1; display: flex; flex-direction: column"><span style="display: flex; gap: 6px; align-items: center"><span style="font-weight: 700; font-size: 15px; color: #111827">{{r.label}}</span><sc-if value="{{r.badge}}" hint-placeholder-val="{{ false }}"><span style="background: #EA580C; color: #FFFFFF; font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 6px">{{r.badge}}</span></sc-if></span><span style="font-size: 12px; color: #6B7280">{{r.desc}}</span></span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
+        </a>
+      </sc-for>
+    </nav>
+    <div style="flex: 999 1 640px; min-width: 0; display: flex; flex-direction: column; gap: 24px">
+      <section aria-label="Aktion des Tages" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px">
+        <a href="#" style="grid-column: span 2; position: relative; border-radius: 20px; overflow: hidden; height: 300px; display: block; text-decoration: none">
+          <img src="/_blob/526e78acd431ddd180ef8c6963fe92f0" alt="Pizza" style="width: 100%; height: 100%; object-fit: cover; display: block">
+          <span style="position: absolute; inset: 0; background: rgba(17,24,39,.45)"></span>
+          <span style="position: absolute; left: 32px; bottom: 30px; color: #FFFFFF; display: flex; flex-direction: column; gap: 8px">
+            <span style="background: #EA580C; align-self: flex-start; font-weight: 800; padding: 6px 12px; border-radius: 999px">−30 % nur heute</span>
+            <span style="font-size: 34px; font-weight: 800; max-width: 460px; line-height: 1.1">Mittagspizza + Getränk im Ohligser Eck</span>
+            <span style="font-size: 15px">Noch 3 h 12 min · 6,90 € statt 9,90 €</span>
+          </span>
+        </a>
+        <div style="display: grid; grid-template-rows: repeat(2, minmax(0, 1fr)); gap: 16px">
+          <a href="#" style="border-radius: 20px; background: #FEF3C7; padding: 18px; text-decoration: none; display: flex; flex-direction: column; justify-content: space-between"><span style="font-weight: 800; font-size: 18px; color: #111827">Neu diese Woche</span><span style="font-size: 14px; color: #92400E">27 neue Angebote →</span></a>
+          <a href="#" style="border-radius: 20px; background: #DCFCE7; padding: 18px; text-decoration: none; display: flex; flex-direction: column; justify-content: space-between"><span style="font-weight: 800; font-size: 18px; color: #111827">Regional &amp; Bio</span><span style="font-size: 14px; color: #166534">84 Angebote →</span></a>
+        </div>
+      </section>
+      <section aria-label="Filter" style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center">
+        <sc-for list="{{chips}}" as="c" hint-placeholder-count="6">
+          <button type="button" style="height: 44px; padding: 0 16px; border-radius: 999px; border: 1.5px solid #E5E7EB; background: #F9FAFB; font: inherit; font-weight: 600; font-size: 14px; display: inline-flex; align-items: center; gap: 6px; cursor: pointer">{{c}} <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#111827" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></button>
+        </sc-for>
+        <span style="margin-left: auto; font-size: 14px; color: #4B5563">1 284 Angebote</span>
+      </section>
+      <section aria-labelledby="bh">
+        <h2 id="bh" style="margin: 0 0 14px; font-size: 24px; font-weight: 800">Beliebt diese Woche</h2>
+        <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px">
+          <sc-for list="{{cards}}" as="it" hint-placeholder-count="6"><dc-import name="Card" item="{{it}}" hint-size="100%,470px"></dc-import></sc-for>
+        </div>
+      </section>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":2200}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const B = '/_blob/';
+    const r = (img, label, desc, badge, on) => ({ img: B + img, label, desc, badge, bg: on ? '#FFF7ED' : 'transparent' });
+    const card = (img, badge, tag, initial, biz, district, title, rating, reviews, open, price, old, action) => ({ img: B + img, badge, tag, timer: '', initial, biz, district, title, rating, reviews, open, price, old, low30: '', action });
+    return {
+      rows: [
+        r('9eca54829f8d9ee2e2d47a6fb8e89742', 'Lebensmittel', 'Bäcker, Metzger, Hofladen', 'BELIEBT', true),
+        r('526e78acd431ddd180ef8c6963fe92f0', 'Essen &amp; Trinken', 'Restaurants, Cafés', ''),
+        r('dedd42d2750c585c2a144d41d883c279', 'Beauty &amp; Pflege', 'Friseur, Kosmetik', ''),
+        r('ee8c61a46f5a1c5e73330594d2f1ba6a', 'Geschenke', 'Kerzen, Deko, Messer', 'NEU'),
+        r('21b7fccc89626ea4ac043a4443e1be00', 'Mobilität', 'Fahrrad, Werkstatt', ''),
+        r('ca5d2b8068218be81269a9bccb481f95', 'Freizeit', 'Führungen, Kurse', ''),
+        r('71e7cabaabfb0cc8bbf36b20e25d3cf0', 'Übernachten', 'Pensionen, Ferienwohnungen', ''),
+        r('6dc52578e01d94c1e0da2800c3359906', 'Haus &amp; Garten', 'Pflanzen, Wohnen', ''),
+        r('3208d14bdc2c5d082434dc505603ce6b', 'Feinkost', 'Käse, Wein, Spezialitäten', ''),
+        r('8efe838528596f64fe6a2f1f43ce8d8d', 'Alle Bereiche', '15 Bereiche', '')
+      ].map((x) => ({ ...x, label: x.label.replace('&amp;', '&') })),
+      chips: ['Stadtteil', 'Preis', 'Geöffnet', 'Angebote', 'Merkmale', 'Sortieren'],
+      cards: [
+        card('9eca54829f8d9ee2e2d47a6fb8e89742', '−20 %', 'Beliebt', 'K', 'Klingenbrot', 'Ohligs', 'Roggen-Sauerteigbrot 1 kg', '4,8', '126', 'Offen bis 18:00', '3,90 €', '4,90 €', 'Zurücklegen'),
+        card('3208d14bdc2c5d082434dc505603ce6b', '−15 %', 'Regional', 'F', 'Feinkost am Markt', 'Mitte', 'Bergkäse, 200 g', '4,9', '41', 'Offen bis 19:00', '4,25 €', '5,00 €', 'Zurücklegen'),
+        card('ee8c61a46f5a1c5e73330594d2f1ba6a', '', 'Neu', 'L', 'Lichtblick', 'Wald', 'Bienenwachs-Kerzen 3er-Set', '4,7', '23', 'Offen bis 18:30', '14,90 €', '', 'Zurücklegen'),
+        card('21b7fccc89626ea4ac043a4443e1be00', '', 'Festpreis', 'R', 'Rad & Tat', 'Wald', 'Fahrrad-Inspektion', '4,8', '57', 'Termin morgen frei', '49,00 €', '', 'Termin'),
+        card('ca5d2b8068218be81269a9bccb481f95', '', 'Bald', 'K', 'Klingentouren', 'Mitte', 'Altstadt-Führung am Samstag', '4,9', '33', 'Sa 11:00 · 8 Plätze', '14,00 €', '', 'Ticket'),
+        card('71e7cabaabfb0cc8bbf36b20e25d3cf0', '−10 %', '', 'B', 'Brückenblick', 'Burg', 'Doppelzimmer mit Frühstück', '4,6', '71', 'Frei am Wochenende', 'ab 89,00 €', '99,00 €', 'Anfragen')
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>
