@@ -27,7 +27,8 @@ FOOD_TYPES: tuple[str, ...] = tuple(sorted(FOOD_BUSINESS_TYPES))
 # пищевой МАРКИРОВКИ (bakery/butcher/grocery/…) — не то же, что «есть кухня».
 # KDS — тем, кто ГОТОВИТ под заказ; Tisch-QR — заведениям со столами.
 KITCHEN_TYPES: tuple[str, ...] = ("cafe", "catering", "restaurant")
-TABLE_TYPES: tuple[str, ...] = ("cafe", "restaurant")
+# AIS-M M-0: «стол, а не мастер» — один источник с направлениями.
+from apps.core.directions import TABLE_TYPES  # noqa: E402
 
 
 @dataclass(frozen=True)
@@ -1137,19 +1138,8 @@ def allowed_for_business(url_name: str, tenant) -> bool:
     return (getattr(tenant, "business_type", "") or "") in types
 
 
-# KA-12 E8.1: направления кабинета. «Waren» — бизнесы, у которых есть товары
-# (тип, модуль заказов или хотя бы один активный товар); «Gastro» — пищевые типы.
-WAREN_TYPES: tuple[str, ...] = (
-    "bakery",
-    "butcher",
-    "grocery",
-    "retail",
-    "clothing",
-    "online_shop",
-    "werkstatt",  # S6b: Teile — товары с остатком (Lager/Einkauf у мастерской из коробки)
-)
-
-
+# KA-12 E8.1 → AIS-M M-0: «waren» вычисляет apps.core.directions (единственный источник
+# ответа «как продаёт бизнес»); здесь — гейты навигации поверх него.
 def direction_active(tenant, direction: str) -> bool:
     """Активно ли направление у тенанта. Fail-open: без тенанта или при ошибке — да."""
     if not direction or tenant is None:
@@ -1174,26 +1164,9 @@ def direction_active(tenant, direction: str) -> bool:
         return cached
     if direction != "waren":
         return True
-    if btype in WAREN_TYPES:
-        return True
-    from apps.core.modules import is_module_active
+    from apps.core import directions
 
-    if is_module_active(tenant, "orders"):
-        return True
-    cached = getattr(tenant, "_nav_has_products", None)
-    if cached is None:
-        try:
-            from apps.catalog.models import Category, Product
-
-            # Категории без товаров — тоже знак: владелец начал заводить ассортимент.
-            cached = Product.objects.filter(is_active=True).exists() or Category.objects.exists()
-        except Exception:  # noqa: BLE001 — хром не падает из-за гейта
-            cached = True
-        try:
-            tenant._nav_has_products = cached
-        except Exception:  # noqa: BLE001 — неизменяемый тенант (namespace) — без кэша
-            pass
-    return cached
+    return directions.is_active(tenant, "waren")
 
 
 # KA-12 E8.12: экраны «для всех» — без гейта модуля/направления, с причиной. Запись

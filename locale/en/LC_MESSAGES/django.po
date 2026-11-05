@@ -31986,3 +31986,35 @@ msgstr "Wide (1536 px)"
 #: templates/tenant/design.html
 msgid "Normal (1280 px)"
 msgstr "Normal (1280 px)"
+
+#: apps/core/directions.py
+msgid "Waren"
+msgstr "Goods"
+
+#: apps/core/directions.py
+msgid "Produkte zum Abholen oder Liefern."
+msgstr "Products for pickup or delivery."
+
+#: apps/core/directions.py
+msgid "Gerichte und Getränke zeigen."
+msgstr "Show dishes and drinks."
+
+#: apps/core/directions.py
+msgid "Kunden buchen eine Leistung zu einer Uhrzeit."
+msgstr "Customers book a service at a set time."
+
+#: apps/core/directions.py
+msgid "Gäste reservieren einen Tisch."
+msgstr "Guests reserve a table."
+
+#: apps/core/directions.py
+msgid "Gäste buchen Übernachtungen."
+msgstr "Guests book overnight stays."
+
+#: apps/core/directions.py
+msgid "Plätze für Veranstaltungen und Touren."
+msgstr "Seats for events and tours."
+
+#: apps/core/directions.py
+msgid "Kunden fragen an, Sie schicken ein Angebot."
+msgstr "Customers send a request, you send a quote."

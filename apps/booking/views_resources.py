@@ -575,7 +575,7 @@ def resource_new(request):
         messages.success(request, _("Resource created."))
         tab = "profil" if resource.type == Resource.TYPE_STAFF else "zeiten"
         return redirect(page_url(resource, tab))
-    from apps.core.nav_registry import TABLE_TYPES
+    from apps.core.directions import TABLE_TYPES
 
     wanted = request.GET.get("type")
     if wanted not in dict(Resource.TYPES):

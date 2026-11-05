@@ -32268,3 +32268,35 @@ msgstr "Широка (1536 px)"
 #: templates/tenant/design.html
 msgid "Normal (1280 px)"
 msgstr "Звичайна (1280 px)"
+
+#: apps/core/directions.py
+msgid "Waren"
+msgstr "Товари"
+
+#: apps/core/directions.py
+msgid "Produkte zum Abholen oder Liefern."
+msgstr "Товари з самовивозом або доставкою."
+
+#: apps/core/directions.py
+msgid "Gerichte und Getränke zeigen."
+msgstr "Показати страви та напої."
+
+#: apps/core/directions.py
+msgid "Kunden buchen eine Leistung zu einer Uhrzeit."
+msgstr "Клієнти записуються на послугу на певний час."
+
+#: apps/core/directions.py
+msgid "Gäste reservieren einen Tisch."
+msgstr "Гості бронюють столик."
+
+#: apps/core/directions.py
+msgid "Gäste buchen Übernachtungen."
+msgstr "Гості бронюють проживання."
+
+#: apps/core/directions.py
+msgid "Plätze für Veranstaltungen und Touren."
+msgstr "Місця на заходи та тури."
+
+#: apps/core/directions.py
+msgid "Kunden fragen an, Sie schicken ein Angebot."
+msgstr "Клієнти залишають заявку, ви надсилаєте пропозицію."

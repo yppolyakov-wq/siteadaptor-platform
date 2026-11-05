@@ -671,7 +671,8 @@ def body_context(request, kind: str, view: str) -> dict:
         # любой архетип с модулем orders (парикмахер — «Kitchen Display»).
         # KA-12 E0.3 (KA-5a B5): тот же гейт, что у записей реестра навигации — KDS только
         # кухням (cafe/catering/restaurant), Tisch-QR только залам; пекарне/мясной — нет.
-        from apps.core.nav_registry import KITCHEN_TYPES, TABLE_TYPES
+        from apps.core.directions import TABLE_TYPES
+        from apps.core.nav_registry import KITCHEN_TYPES
 
         btype = getattr(tenant, "business_type", "") or ""
         ctx["show_kds"] = btype in KITCHEN_TYPES
