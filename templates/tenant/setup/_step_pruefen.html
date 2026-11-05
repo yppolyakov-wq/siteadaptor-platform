@@ -73,6 +73,34 @@
 </section>
 {% endif %}
 
+{% if pruefen_rooms %}
+<section class="mt-4 space-y-3" aria-labelledby="pruefen-rooms-h" data-pruefen-rooms>
+  <h2 id="pruefen-rooms-h" class="text-base font-semibold">{% trans "Schon angelegt" %}</h2>
+  {% if pruefen_rooms_missing %}<p class="text-sm text-amber-800 bg-amber-50 rounded-lg px-3 py-2" role="note">{% trans "Ohne Foto können Gäste ein Zimmer nicht online buchen. Fügen Sie jetzt ein Foto hinzu — direkt mit der Kamera." %}</p>{% endif %}
+  <ul class="space-y-2">
+    {% for room in pruefen_rooms %}
+    <li class="ui-card p-3 flex flex-wrap items-center gap-3" data-pruefen-room>
+      <div class="flex-1 min-w-0">
+        <p class="font-semibold truncate">{{ room.name }}</p>
+        <p class="text-sm text-gray-600">{% blocktrans count n=room.meta %}{{ n }} Gast{% plural %}{{ n }} Gäste{% endblocktrans %}{% if room.price %} · {{ room.price }} € / {% trans "Nacht" %}{% endif %}</p>
+        {% if room.has_photo %}<span class="inline-block text-xs text-green-800 bg-green-100 rounded-full px-2 py-0.5">{% trans "mit Foto" %}</span>{% else %}<span class="inline-block text-xs text-amber-800 bg-amber-100 rounded-full px-2 py-0.5">{% trans "ohne Foto" %}</span>{% endif %}
+      </div>
+      {% if room.has_photo %}
+      <a href="{{ room.url }}" class="text-sm text-indigo-700 hover:underline px-2 py-2">{% trans "Bearbeiten" %}</a>
+      {% else %}
+      <form method="post" enctype="multipart/form-data" class="flex flex-wrap items-center gap-2" data-pruefen-photo>
+        {% csrf_token %}
+        <input type="hidden" name="unit" value="{{ room.pk }}">
+        <label class="text-sm"><span class="sr-only">{% blocktrans with name=room.name %}Foto für {{ name }}{% endblocktrans %}</span><input type="file" name="photo" accept="image/jpeg,image/png,image/webp" class="text-sm max-w-[12rem]"></label>
+        <button type="submit" name="action" value="offer_photo" class="ui-btn">{% trans "Foto hochladen" %}</button>
+      </form>
+      {% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+
 <p class="mt-4"><a href="{% url 'setup-ask' %}" class="text-sm text-indigo-700 hover:underline" data-setup-helper-link>{% trans "Mehreres auf einmal beschreiben (KI)" %} <span aria-hidden="true">→</span></a></p>
 
 {% if not pruefen_review %}

@@ -211,25 +211,13 @@ def _finance_active(request) -> bool:
     return bool(tenant is not None and tenant.is_module_active("finance"))
 
 
-def _add_unit_photos(unit, uploaded) -> None:
-    """Сохранить загруженные фото номера (до 8 на юнит). Первое фото — обложка,
-    если у юнита ещё нет фото. Переиспускаем catalog.images (Pillow + storage)."""
-    from apps.catalog.images import save_product_image
+def _add_unit_photos(unit, uploaded, request=None) -> None:
+    """Сохранить фото номера; несохранённые — сообщением владельцу (не молча)."""
+    from apps.stays.photos import add_unit_photos
 
-    if not uploaded:
-        return
-    images = list(unit.images or [])
-    for f in uploaded[:8]:
-        try:
-            ref = save_product_image(
-                f, is_primary=not images, sort_order=len(images), folder="stays"
-            )
-        except Exception:
-            continue
-        images.append(ref)
-    if images != list(unit.images or []):
-        unit.images = images[:24]
-        unit.save(update_fields=["images", "updated_at"])
+    _saved, failed = add_unit_photos(unit, uploaded)
+    if failed and request is not None:
+        messages.warning(request, " ".join(failed))
 
 
 def _parse_day(raw) -> date:
@@ -1217,7 +1205,7 @@ def units(request, pk=None):
                 # L3d: переводы неосновных локалей (после create — поля JSON)
                 if apply_i18n_overlay(unit, request.POST, getattr(request, "tenant", None)):
                     unit.save(update_fields=["name_i18n", "description_i18n", "updated_at"])
-                _add_unit_photos(unit, request.FILES.getlist("photos"))
+                _add_unit_photos(unit, request.FILES.getlist("photos"), request)
                 messages.success(request, _("Unit created."))
                 # Новый номер — сразу на его страницу редактирования.
                 return redirect("stays:unit-edit", pk=unit.pk)
@@ -1269,7 +1257,7 @@ def units(request, pk=None):
             ]
             _uf += apply_i18n_overlay(unit, request.POST, getattr(request, "tenant", None))  # L3d
             unit.save(update_fields=_uf)
-            _add_unit_photos(unit, request.FILES.getlist("photos"))
+            _add_unit_photos(unit, request.FILES.getlist("photos"), request)
             capacity_error = None
             # Z-5 Р-5 (DF-Z3, О-8): ёмкость — отдельно и под локом категории; отказ
             # не теряет остальные поля. PMS-R1: при комнатах ёмкость = их число

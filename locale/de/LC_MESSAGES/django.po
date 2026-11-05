@@ -32494,3 +32494,55 @@ msgstr "konnte nicht angelegt werden"
 #, python-format
 msgid "und %(n)s weitere"
 msgstr "und %(n)s weitere"
+
+#: apps/stays/photos.py
+#, python-format
+msgid "%(name)s: Foto konnte nicht gespeichert werden."
+msgstr "%(name)s: Foto konnte nicht gespeichert werden."
+
+#: apps/stays/photos.py
+#, python-format
+msgid "Foto für %(name)s"
+msgstr "Foto für %(name)s"
+
+#: apps/stays/photos.py
+#, python-format
+msgid "Foto gespeichert: „%(name)s“."
+msgstr "Foto gespeichert: „%(name)s“."
+
+#: apps/stays/photos.py
+msgid "Foto hochladen"
+msgstr "Foto hochladen"
+
+#: apps/stays/photos.py
+#, python-format
+msgid "Höchstens %(n)s Fotos auf einmal."
+msgstr "Höchstens %(n)s Fotos auf einmal."
+
+#: apps/stays/photos.py
+#, python-format
+msgid "Höchstens %(n)s Fotos je Zimmer."
+msgstr "Höchstens %(n)s Fotos je Zimmer."
+
+#: apps/stays/photos.py
+msgid "Ohne Foto können Gäste ein Zimmer nicht online buchen. Fügen Sie jetzt ein Foto hinzu — direkt mit der Kamera."
+msgstr "Ohne Foto können Gäste ein Zimmer nicht online buchen. Fügen Sie jetzt ein Foto hinzu — direkt mit der Kamera."
+
+#: apps/stays/photos.py
+msgid "Zimmer nicht gefunden."
+msgstr "Zimmer nicht gefunden."
+
+#: apps/stays/photos.py
+msgid "mit Foto"
+msgstr "mit Foto"
+
+#: apps/stays/photos.py
+msgid "ohne Foto"
+msgstr "ohne Foto"
+
+#: templates/tenant/setup/_step_pruefen.html
+#, python-format
+msgid "%(n)s Gast"
+msgid_plural "%(n)s Gäste"
+msgstr[0] "%(n)s Gast"
+msgstr[1] "%(n)s Gäste"

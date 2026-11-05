@@ -32553,3 +32553,55 @@ msgstr "eklenemedi"
 #, python-format
 msgid "und %(n)s weitere"
 msgstr "ve %(n)s tane daha"
+
+#: apps/stays/photos.py
+#, python-format
+msgid "%(name)s: Foto konnte nicht gespeichert werden."
+msgstr "%(name)s: fotoğraf kaydedilemedi."
+
+#: apps/stays/photos.py
+#, python-format
+msgid "Foto für %(name)s"
+msgstr "%(name)s için fotoğraf"
+
+#: apps/stays/photos.py
+#, python-format
+msgid "Foto gespeichert: „%(name)s“."
+msgstr "Fotoğraf kaydedildi: „%(name)s“."
+
+#: apps/stays/photos.py
+msgid "Foto hochladen"
+msgstr "Fotoğraf yükle"
+
+#: apps/stays/photos.py
+#, python-format
+msgid "Höchstens %(n)s Fotos auf einmal."
+msgstr "Bir seferde en fazla %(n)s fotoğraf."
+
+#: apps/stays/photos.py
+#, python-format
+msgid "Höchstens %(n)s Fotos je Zimmer."
+msgstr "Oda başına en fazla %(n)s fotoğraf."
+
+#: apps/stays/photos.py
+msgid "Ohne Foto können Gäste ein Zimmer nicht online buchen. Fügen Sie jetzt ein Foto hinzu — direkt mit der Kamera."
+msgstr "Fotoğraf olmadan misafirler odayı çevrimiçi rezerve edemez. Şimdi bir fotoğraf ekleyin — doğrudan kamerayla."
+
+#: apps/stays/photos.py
+msgid "Zimmer nicht gefunden."
+msgstr "Oda bulunamadı."
+
+#: apps/stays/photos.py
+msgid "mit Foto"
+msgstr "fotoğraflı"
+
+#: apps/stays/photos.py
+msgid "ohne Foto"
+msgstr "fotoğrafsız"
+
+#: templates/tenant/setup/_step_pruefen.html
+#, python-format
+msgid "%(n)s Gast"
+msgid_plural "%(n)s Gäste"
+msgstr[0] "%(n)s misafir"
+msgstr[1] "%(n)s misafir"

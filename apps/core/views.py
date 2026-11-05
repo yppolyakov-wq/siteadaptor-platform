@@ -326,11 +326,40 @@ def _today_suggestions(request) -> list:
     return today.card_context(request)
 
 
+def _pruefen_photo(request, kinds) -> None:
+    """AIS-W W4-2: фото номера прямо в шаге (без фото онлайн-брони нет)."""
+    from django.core.exceptions import ValidationError
+
+    from apps.stays.models import StayUnit
+    from apps.stays.photos import add_unit_photos
+
+    if "zimmer" not in kinds:
+        messages.error(request, _("Dafür fehlt Ihnen die Berechtigung."))
+        return
+    try:
+        unit = StayUnit.objects.get(pk=request.POST.get("unit", ""))
+    except (StayUnit.DoesNotExist, ValueError, ValidationError):
+        messages.error(request, _("Zimmer nicht gefunden."))
+        return
+    files = request.FILES.getlist("photo")
+    if not files:
+        messages.error(request, _("Bitte ein Foto auswählen."))
+        return
+    saved, failed = add_unit_photos(unit, files)
+    if saved:
+        messages.success(request, _("Foto gespeichert: „%(name)s“.") % {"name": unit.name})
+    if failed:
+        messages.error(request, " ".join(failed))
+
+
 def _pruefen_action(request, action: str) -> None:
     from apps.core import offer_batch, offer_examples, offer_lines
 
     tenant = request.tenant
     kinds = offer_batch.offer_kinds(tenant, request.user)
+    if action == "offer_photo":
+        _pruefen_photo(request, kinds)
+        return
     if action == "offer_confirm":
         report = offer_batch.confirm(request, tenant)
         if report.error:
@@ -458,7 +487,13 @@ def setup_view(request):
             return redirect("setup")
         # AIS-W W4-2: шаг «Angebot prüfen» — образцы/проверка/правка/подтверждение пачки.
         # До «offer_confirm» в базе ничего не создаётся (черновик — в сессии).
-        if action in ("offer_examples", "offer_preview", "offer_edit", "offer_confirm"):
+        if action in (
+            "offer_examples",
+            "offer_preview",
+            "offer_edit",
+            "offer_confirm",
+            "offer_photo",
+        ):
             _pruefen_action(request, action)
             return redirect("setup")
         handler = setup_steps.HANDLERS[onboarding.get_state(tenant)["step"]]

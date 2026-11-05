@@ -980,6 +980,7 @@ def _ctx_pruefen(request):
     wanted = request.GET.get("kind")
     kind = kind or (wanted if wanted in kinds else None) or (kinds[0] if kinds else "")
     rows, notes, review = [], [], bool(kind and draft.get("batch") and draft.get("kind") == kind)
+    rooms = _pruefen_rooms() if "zimmer" in kinds else []
     if review:
         examples = frozenset(offer_examples.lines_for(tenant.business_type, kind))
         try:
@@ -1000,8 +1001,29 @@ def _ctx_pruefen(request):
         "pruefen_ok": sum(1 for r in rows if r["on"]),
         "pruefen_bad": sum(1 for r in rows if r["errors"]),
         "pruefen_max": offer_lines.MAX_LINES,
-        "offer_items": _offer_items(tenant),
+        "offer_items": [] if "zimmer" in kinds else _offer_items(tenant),
+        "pruefen_rooms": rooms,
+        "pruefen_rooms_missing": any(not r["has_photo"] for r in rooms),
     }
+
+
+def _pruefen_rooms() -> list[dict]:
+    """Номера для «Schon angelegt» с отметкой фото (без фото — нет онлайн-брони)."""
+    from django.urls import reverse
+
+    from apps.stays.models import StayUnit
+
+    return [
+        {
+            "pk": u.pk,
+            "name": u.name or "—",
+            "has_photo": bool(u.images),
+            "meta": u.max_guests,
+            "price": _de_amount(u.price_cents / 100) if u.price_cents else "",
+            "url": reverse("stays:unit-edit", args=[u.pk]),
+        }
+        for u in StayUnit.objects.filter(is_active=True).order_by("-created_at")[:12]
+    ]
 
 
 HANDLERS = {

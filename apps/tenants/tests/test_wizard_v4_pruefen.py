@@ -287,3 +287,60 @@ def test_onboarding_key_survives_normalize_and_keeps_other_keys():
     assert tenant.site_config["seo"] == {"allow_ai": False}
     normalized = siteconfig.normalize(tenant.site_config)
     assert normalized["onboarding"]["offer_batches"]
+
+
+def _png():
+    import io
+
+    from django.core.files.uploadedfile import SimpleUploadedFile
+    from PIL import Image
+
+    buf = io.BytesIO()
+    Image.new("RGB", (8, 8), "blue").save(buf, "PNG")
+    return SimpleUploadedFile("zimmer.png", buf.getvalue(), content_type="image/png")
+
+
+def test_rooms_get_created_and_a_photo_makes_them_ready(settings, tmp_path):
+    from apps.core import readiness
+    from apps.stays.models import StayUnit
+
+    settings.MEDIA_ROOT = str(tmp_path)
+    tenant = _v4(business_type="hotel")
+    owner = Owner(tenant)
+    owner("post", {"action": "offer_preview", "kind": "zimmer", "offer_text": "DZ — 89 €"})
+    owner("post", _confirm_data(owner, [{"on": "1", "name": "DZ", "guests": "2", "price": "89"}]))
+    unit = StayUnit.objects.get()
+    assert unit.max_guests == 2 and unit.price_cents == 8900
+    html = owner().content.decode()
+    assert "data-pruefen-photo" in html and 'enctype="multipart/form-data"' in html
+    readiness.invalidate(tenant)
+    assert readiness.is_done(tenant, "zimmer.room") is False
+    owner("post", {"action": "offer_photo", "unit": str(unit.pk), "photo": _png()})
+    unit.refresh_from_db()
+    assert unit.images and any("Foto gespeichert" in m for m in owner.messages)
+    readiness.invalidate(tenant)
+    assert readiness.is_done(tenant, "zimmer.room") is True
+
+
+def test_broken_photo_is_reported_not_swallowed(settings, tmp_path):
+    from django.core.files.uploadedfile import SimpleUploadedFile
+
+    from apps.stays.models import StayUnit
+    from apps.stays.photos import add_unit_photos
+
+    settings.MEDIA_ROOT = str(tmp_path)
+    unit = StayUnit.objects.create(name="DZ", price_cents=8900)
+    saved, failed = add_unit_photos(unit, [SimpleUploadedFile("x.png", b"nope")])
+    assert saved == 0 and failed
+    tenant = _v4(business_type="hotel", slug="ph")
+    owner = Owner(tenant)
+    owner(
+        "post",
+        {
+            "action": "offer_photo",
+            "unit": str(unit.pk),
+            "photo": SimpleUploadedFile("x.png", b"nope"),
+        },
+    )
+    unit.refresh_from_db()
+    assert not unit.images and owner.messages
