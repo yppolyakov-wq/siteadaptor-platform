@@ -1,0 +1,19 @@
+{% load i18n %}
+{% comment %}AIS A-0: одна строка помощника — текст, уровень и ссылка (GET), кнопка (POST) или пометка «почему нет ссылки».{% endcomment %}
+<li class="flex items-start gap-2 py-2" data-assistant-item data-level="{{ it.level }}">
+  <span aria-hidden="true" class="shrink-0 w-5 text-center">{% if it.level == "problem" %}⚠️{% elif it.level == "unknown" %}❔{% elif it.level == "ok" %}✅{% else %}ℹ️{% endif %}</span>
+  <span class="min-w-0 flex-1">
+    <span class="sr-only">{% if it.level == "problem" %}{% trans "Problem:" %}{% elif it.level == "unknown" %}{% trans "Nicht geprüft:" %}{% elif it.level == "ok" %}{% trans "In Ordnung:" %}{% else %}{% trans "Hinweis:" %}{% endif %}</span>
+    <span class="block">{{ it.text }}</span>
+    {% if it.link.url and it.link.method == "POST" %}
+      <form method="post" action="{{ it.link.url }}" class="mt-1">
+        {% csrf_token %}<input type="hidden" name="next" value="{{ next_url }}">
+        <button type="submit" class="ui-btn ui-btn-secondary ui-btn-sm min-h-[44px]">{% trans "Bestätigung erneut senden" %}</button>
+      </form>
+    {% elif it.link.url %}
+      <a href="{{ it.link.url }}" class="inline-flex items-center min-h-[44px] text-indigo-700 hover:underline">{% trans "Öffnen" %} <span class="sr-only">: {{ it.text }}</span> →</a>
+    {% elif it.link.note %}
+      <span class="block ui-muted text-sm">{{ it.link.note }}</span>
+    {% endif %}
+  </span>
+</li>

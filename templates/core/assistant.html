@@ -1,0 +1,14 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{% trans "Assistent" %}{% endblock %}
+{% block dash_heading %}{% trans "Assistent" %}{% endblock %}
+
+{% block dash_content %}
+{% comment %}AIS A-0: полная страница помощника — вход без JS, из мастера и Mini App.{% endcomment %}
+<div class="max-w-2xl mx-auto">
+  <h1 class="ui-h1 mb-1">✨ {% trans "Assistent" %}</h1>
+  <p class="ui-muted mb-4">{% trans "Was fehlt noch, was ist gerade wichtig, und warum etwas nicht funktioniert — geprüft an Ihren echten Einstellungen. Es wird nichts geändert." %}</p>
+  {% if back_url %}<p class="mb-4"><a href="{{ back_url }}" class="text-indigo-700 hover:underline">← {% trans "Zurück" %}</a></p>{% endif %}
+  <div class="ui-card p-4">{% include "core/_assistant_body.html" %}</div>
+</div>
+{% endblock %}

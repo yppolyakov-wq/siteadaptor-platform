@@ -32724,3 +32724,118 @@ msgstr "“%(name)s”: no free appointments in the next %(days)s days — check
 #: apps/core/diagnoses.py
 msgid "Erst nach „Website veröffentlichen“ im Einrichtungsassistenten."
 msgstr "Only after “Publish website” in the setup wizard."
+
+#: apps/core/assistant.py
+#, python-format
+msgid "%(item)s (+%(n)s weitere)"
+msgstr "%(item)s (+%(n)s more)"
+
+#: apps/core/assistant.py
+msgid "Alles Wichtige ist erledigt."
+msgstr "Everything important is done."
+
+#: apps/core/assistant.py
+msgid "Assistent"
+msgstr "Assistant"
+
+#: apps/core/assistant.py
+msgid "Auf dieser Seite fehlt"
+msgstr "Missing on this page"
+
+#: apps/core/assistant.py
+msgid "Bestätigung erneut senden"
+msgstr "Resend confirmation"
+
+#: apps/core/assistant.py
+#, python-format
+msgid "Betriebsferien %(von)s – %(bis)s."
+msgstr "Closed for holidays %(von)s – %(bis)s."
+
+#: apps/core/assistant.py
+msgid "Bitte den Inhaber fragen."
+msgstr "Please ask the owner."
+
+#: apps/core/assistant.py
+msgid "E-Mail-Adresse bestätigen — erst dann sehen Kunden Ihre Website."
+msgstr "Confirm your email address — only then can customers see your website."
+
+#: apps/core/assistant.py
+msgid "Einige Prüfungen konnten nicht ausgeführt werden."
+msgstr "Some checks could not be run."
+
+#: apps/core/assistant.py
+msgid "Einstellung suchen"
+msgstr "Search settings"
+
+#: apps/core/assistant.py
+msgid "Funktioniert etwas nicht?"
+msgstr "Something not working?"
+
+#: apps/core/assistant.py
+msgid "Gerade wichtig"
+msgstr "Important right now"
+
+#: apps/core/assistant.py
+msgid "Hinweis:"
+msgstr "Note:"
+
+#: apps/core/assistant.py
+msgid "Im Browser öffnen."
+msgstr "Open in the browser."
+
+#: apps/core/assistant.py
+msgid "In Ordnung:"
+msgstr "OK:"
+
+#: apps/core/assistant.py
+msgid "Nicht geprüft:"
+msgstr "Not checked:"
+
+#: apps/core/assistant.py
+msgid "Nicht in Ihrem Paket."
+msgstr "Not in your package."
+
+#: apps/core/assistant.py
+msgid "Problem:"
+msgstr "Problem:"
+
+#: apps/core/assistant.py
+msgid "Was fehlt noch, was ist gerade wichtig, und warum etwas nicht funktioniert — geprüft an Ihren echten Einstellungen. Es wird nichts geändert."
+msgstr "What is still missing, what matters right now, and why something isn't working — checked against your real settings. Nothing is changed."
+
+#: apps/core/assistant.py
+msgid "Was fehlt noch?"
+msgstr "What's still missing?"
+
+#: apps/core/assistant.py
+#, python-format
+msgid "Website veröffentlichen — fehlende Angaben: %(n)s."
+msgstr "Publish website — missing details: %(n)s."
+
+#: apps/core/assistant.py
+msgid "Website veröffentlichen."
+msgstr "Publish website."
+
+#: apps/core/assistant.py
+msgid "Wo stelle ich das ein?"
+msgstr "Where do I set this?"
+
+#: apps/core/assistant.py
+msgid "Zu viele Prüfungen in kurzer Zeit — bitte in einer Minute erneut."
+msgstr "Too many checks in a short time — please try again in a minute."
+
+#: apps/core/assistant.py
+msgid "nicht geprüft"
+msgstr "not checked"
+
+#: apps/core/assistant.py
+msgid "in Ordnung"
+msgstr "OK"
+
+#: apps/core/assistant.py
+msgid "prüfen"
+msgstr "check"
+
+#: apps/core/assistant.py
+msgid "z. B. Öffnungszeiten, Lieferung"
+msgstr "e.g. opening hours, delivery"

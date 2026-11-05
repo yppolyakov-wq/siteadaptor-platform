@@ -1,0 +1,58 @@
+{% load i18n %}
+{% comment %}AIS A-0: тело помощника — шторка (?box=1) и полная страница. Без script и on…=: фрагмент вставляет cabinet.js. Только чтение.{% endcomment %}
+<div data-drawer-title="{% trans 'Assistent' %}" data-assistant class="space-y-5">
+  {% if failed %}<p class="ui-muted text-sm" role="status">{% trans "Einige Prüfungen konnten nicht ausgeführt werden." %}</p>{% endif %}
+
+  {% if here %}
+  <section aria-labelledby="as-here-h">
+    <h2 id="as-here-h" class="ui-h3 mb-1">{% trans "Auf dieser Seite fehlt" %}</h2>
+    <ul class="divide-y divide-gray-100">{% for it in here %}{% include "core/_assistant_item.html" %}{% endfor %}</ul>
+  </section>
+  {% endif %}
+
+  <section aria-labelledby="as-top-h">
+    <h2 id="as-top-h" class="ui-h3 mb-1">{% trans "Gerade wichtig" %}</h2>
+    <ul class="divide-y divide-gray-100">{% for it in important %}{% include "core/_assistant_item.html" %}{% endfor %}</ul>
+  </section>
+
+  {% if diagnoses %}
+  <section aria-labelledby="as-diag-h">
+    <h2 id="as-diag-h" class="ui-h3 mb-1">{% trans "Funktioniert etwas nicht?" %}</h2>
+    {% if limited %}<p class="ui-muted text-sm" role="status">{% trans "Zu viele Prüfungen in kurzer Zeit — bitte in einer Minute erneut." %}</p>{% endif %}
+    <div class="space-y-2">
+      {% for d in diagnoses %}
+      <details class="rounded-xl border border-gray-200 px-3 py-2"{% if d.key == pruefen or d.findings and not d.ok %} open{% endif %} data-diagnosis="{{ d.key }}">
+        <summary class="cursor-pointer min-h-[44px] flex items-center gap-2 font-medium">
+          <span class="flex-1">{{ d.symptom }}</span>
+          {% if d.findings is None %}<span class="ui-badge ui-tone-off">{% trans "nicht geprüft" %}</span>{% elif d.ok %}<span class="ui-badge ui-tone-ok">{% trans "in Ordnung" %}</span>{% else %}<span class="ui-badge ui-tone-bad">{% trans "prüfen" %}</span>{% endif %}
+        </summary>
+        {% if d.findings is None %}
+          <a href="{% url 'assistant' %}?pruefen={{ d.key }}{% if seite %}&amp;seite={{ seite|urlencode }}{% endif %}" data-drawer data-drawer-key="as-{{ d.key }}" class="ui-btn ui-btn-secondary ui-btn-sm min-h-[44px] my-2">{% trans "Jetzt prüfen" %}</a>
+        {% else %}
+          <ul class="divide-y divide-gray-100">{% for it in d.findings %}{% include "core/_assistant_item.html" %}{% endfor %}</ul>
+        {% endif %}
+      </details>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  <section aria-labelledby="as-where-h">
+    <h2 id="as-where-h" class="ui-h3 mb-1">{% trans "Wo stelle ich das ein?" %}</h2>
+    <form method="get" action="{% url 'assistant' %}" class="flex gap-2" role="search">
+      {% if seite %}<input type="hidden" name="seite" value="{{ seite }}">{% endif %}
+      <label for="as-q" class="sr-only">{% trans "Einstellung suchen" %}</label>
+      <input id="as-q" name="q" value="{{ q }}" maxlength="80" class="ui-input flex-1" placeholder="{% trans 'z. B. Öffnungszeiten, Lieferung' %}">
+      <button type="submit" class="ui-btn ui-btn-secondary min-h-[44px]">{% trans "Suchen" %}</button>
+    </form>
+    {% if q %}
+      {% if where %}
+      <ul class="mt-2 divide-y divide-gray-100" role="status">
+        {% for w in where %}<li class="py-2"><a href="{{ w.link.url }}" class="inline-flex items-center min-h-[44px] text-indigo-700 hover:underline">{{ w.text }}</a>{% if w.area %} <span class="ui-muted text-sm">· {{ w.area }}</span>{% endif %}</li>{% endfor %}
+      </ul>
+      {% else %}
+      <p class="ui-muted text-sm mt-2" role="status">{% trans "Nichts gefunden." %}</p>
+      {% endif %}
+    {% endif %}
+  </section>
+</div>

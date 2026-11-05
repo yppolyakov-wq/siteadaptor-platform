@@ -32870,3 +32870,118 @@ msgstr "“%(name)s”: önümüzdeki %(days)s gün boş randevu yok — persone
 #: apps/core/diagnoses.py
 msgid "Erst nach „Website veröffentlichen“ im Einrichtungsassistenten."
 msgstr "Ancak kurulum sihirbazında “Web sitesini yayınla” sonrasında."
+
+#: apps/core/assistant.py
+#, python-format
+msgid "%(item)s (+%(n)s weitere)"
+msgstr "%(item)s (+%(n)s daha)"
+
+#: apps/core/assistant.py
+msgid "Alles Wichtige ist erledigt."
+msgstr "Önemli her şey tamam."
+
+#: apps/core/assistant.py
+msgid "Assistent"
+msgstr "Asistan"
+
+#: apps/core/assistant.py
+msgid "Auf dieser Seite fehlt"
+msgstr "Bu sayfada eksik"
+
+#: apps/core/assistant.py
+msgid "Bestätigung erneut senden"
+msgstr "Onayı tekrar gönder"
+
+#: apps/core/assistant.py
+#, python-format
+msgid "Betriebsferien %(von)s – %(bis)s."
+msgstr "Tatil %(von)s – %(bis)s."
+
+#: apps/core/assistant.py
+msgid "Bitte den Inhaber fragen."
+msgstr "Lütfen işletme sahibine sorun."
+
+#: apps/core/assistant.py
+msgid "E-Mail-Adresse bestätigen — erst dann sehen Kunden Ihre Website."
+msgstr "E-posta adresinizi onaylayın — ancak o zaman müşteriler web sitenizi görür."
+
+#: apps/core/assistant.py
+msgid "Einige Prüfungen konnten nicht ausgeführt werden."
+msgstr "Bazı kontroller yapılamadı."
+
+#: apps/core/assistant.py
+msgid "Einstellung suchen"
+msgstr "Ayar ara"
+
+#: apps/core/assistant.py
+msgid "Funktioniert etwas nicht?"
+msgstr "Bir şey çalışmıyor mu?"
+
+#: apps/core/assistant.py
+msgid "Gerade wichtig"
+msgstr "Şu an önemli"
+
+#: apps/core/assistant.py
+msgid "Hinweis:"
+msgstr "Not:"
+
+#: apps/core/assistant.py
+msgid "Im Browser öffnen."
+msgstr "Tarayıcıda açın."
+
+#: apps/core/assistant.py
+msgid "In Ordnung:"
+msgstr "Tamam:"
+
+#: apps/core/assistant.py
+msgid "Nicht geprüft:"
+msgstr "Kontrol edilmedi:"
+
+#: apps/core/assistant.py
+msgid "Nicht in Ihrem Paket."
+msgstr "Paketinizde yok."
+
+#: apps/core/assistant.py
+msgid "Problem:"
+msgstr "Sorun:"
+
+#: apps/core/assistant.py
+msgid "Was fehlt noch, was ist gerade wichtig, und warum etwas nicht funktioniert — geprüft an Ihren echten Einstellungen. Es wird nichts geändert."
+msgstr "Ne eksik, şu an ne önemli ve bir şey neden çalışmıyor — gerçek ayarlarınızla kontrol edildi. Hiçbir şey değiştirilmez."
+
+#: apps/core/assistant.py
+msgid "Was fehlt noch?"
+msgstr "Ne eksik?"
+
+#: apps/core/assistant.py
+#, python-format
+msgid "Website veröffentlichen — fehlende Angaben: %(n)s."
+msgstr "Web sitesini yayınla — eksik bilgiler: %(n)s."
+
+#: apps/core/assistant.py
+msgid "Website veröffentlichen."
+msgstr "Web sitesini yayınla."
+
+#: apps/core/assistant.py
+msgid "Wo stelle ich das ein?"
+msgstr "Bunu nereden ayarlarım?"
+
+#: apps/core/assistant.py
+msgid "Zu viele Prüfungen in kurzer Zeit — bitte in einer Minute erneut."
+msgstr "Kısa sürede çok fazla kontrol — lütfen bir dakika sonra tekrar deneyin."
+
+#: apps/core/assistant.py
+msgid "nicht geprüft"
+msgstr "kontrol edilmedi"
+
+#: apps/core/assistant.py
+msgid "in Ordnung"
+msgstr "tamam"
+
+#: apps/core/assistant.py
+msgid "prüfen"
+msgstr "kontrol et"
+
+#: apps/core/assistant.py
+msgid "z. B. Öffnungszeiten, Lieferung"
+msgstr "ör. çalışma saatleri, teslimat"

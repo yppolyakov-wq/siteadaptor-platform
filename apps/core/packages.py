@@ -57,6 +57,7 @@ _AKTIONEN_VIEWS = frozenset(
         "lite-visibility",
         "lite-requests",
         "setup-ask",  # STU-19i
+        "assistant",  # AIS A-0
         "betriebsferien",  # KA-12 О-8: каникулы — и в лёгком пакете
         "legal-docs",
         "owner-confirm-resend",

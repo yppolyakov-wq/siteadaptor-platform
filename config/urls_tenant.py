@@ -14,7 +14,15 @@ from apps.billing import views as billing_views
 from apps.booking import public_views as booking_public
 from apps.collections import public_views as collections_public
 from apps.community import views as community_views
-from apps.core import extras_pages, health, lite_cabinet, owner_login, page_templates, tg_login
+from apps.core import (
+    assistant_views,
+    extras_pages,
+    health,
+    lite_cabinet,
+    owner_login,
+    page_templates,
+    tg_login,
+)
 from apps.core.demo_switch import demo_design_switch
 from apps.core.design_page import design_view
 from apps.core.media_views import serve_media
@@ -132,6 +140,7 @@ urlpatterns = [
     path("dashboard/anfragen/", lite_cabinet.lite_requests, name="lite-requests"),
     # STU-19i: the setup helper on its own screen (lite cabinet + Telegram Mini App)
     path("dashboard/anlegen/", lite_cabinet.setup_ask, name="setup-ask"),
+    path("dashboard/assistent/", assistant_views.assistant_view, name="assistant"),  # AIS A-0
     # UD4-2: кабинет «Benachrichtigungen» — каналы email/Telegram per-событие.
     path(
         "dashboard/settings/notifications/",
