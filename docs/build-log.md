@@ -21690,3 +21690,32 @@ Sie?»: включает модули отмеченных направлени�
 идемпотентности терялось при переходе по шагам (`get_state` пересобирал состояние). Стенд
 `scripts/wizard_v4_pruefen_stand.py` — 5 типов × 390 px, 35/35. Рамка `.ui-input` (контраст 1,2:1)
 — в roadmap, глобальная правка.
+
+## 2026-11-05 — AIS-A A-0: шторка «✨ Assistent» без ИИ (БЕЗ миграций)
+
+План `docs/ais-a0-assistant-plan-2026-11-05.md` (решения В-1…В-6 по рекомендации, ревью архитектора §12).
+**A0.1 — единые гейты (поведение прежнее, замки паритета):** `aggregator.visibility.withheld_reasons`
+(каталог города; `listable` = нет причин; на него переведены `where._catalog_reason` — попутно бот
+говорит «не опубликован», а не «Derzeit nicht sichtbar», — и `owner_stats._status`);
+`core/storefront_state.py` (`hidden_reasons` для «bald online», `orders/booking/stays_active` вместо
+6 inline-копий в витрине); `modules.inactive_reason` (почему модуль выключен); `health.tls_withheld`;
+`nav_registry.palette_entries_for`; `readiness.items_for/is_done(unknown_on_error=True)` — упавшая
+проверка = «не знаю», а не «готово»; `closures.closed_days(strict=True)`;
+`onboarding.publish_blockers(fresh=False)` (без сброса мемо).
+**A0.2 — реестр 8 диагнозов** `apps/core/diagnoses.py`: каждый ЗОВЁТ гейт витрины/каталога
+(замок подменяет гейт и ждёт другой вывод; AST-замок запрещает читать флаги видимости напрямую и
+`merchant.channel()` — он пишет). Сбой проверки или `applies` — «Konnte nicht geprüft werden»,
+«alles in Ordnung» только без проблем и без unknown; ноль INSERT/UPDATE/DELETE (замок).
+**A0.3 — экран** `dashboard/assistent/` (`assistant_views.py`, GET, шторка `?box=1` + полная
+страница): «Auf dieser Seite fehlt» · «Gerade wichtig» (≤3) · «Funktioniert etwas nicht?» (тяжёлые —
+кнопкой «Jetzt prüfen», 20/мин; открытия — 60/мин; поиск диагнозы не пересчитывает) · «Wo stelle ich
+das ein?» (индекс палитры, пост-фильтр). Каждая ссылка — `assistant.link`: Mini App, пакет, право,
+выключенный модуль; сотруднику Abo/Team не показываются, владельческие находки скрыты, вместо
+мёртвой ссылки — «Bitte den Inhaber fragen» / «Nicht in Ihrem Paket» / «Im Browser öffnen».
+Входы: ✨ в шапке (только ссылка — реестр в хроме не считается), «Was fehlt noch?» на лёгкой
+главной/Mini App, мастер — полной страницей с возвратом. i18n 85 msgid × 5. Ревью Django/безопасность
+(4 MEDIUM: сбой поиска = «Nichts gefunden», сбой `applies` прятал карточку, причины модулей «тариф/
+зависимость/unknown», нагрузка открытий) и a11y (цели 44 px, фокус на результат проверки, уровни
+заголовков в шторке) — закрыты. Стенд `scripts/assistant_a0_stand.py` (1440/390 + без JS) 25/25.
+Грабля: `onboarding.mark_complete` публикует сайт — стенд, которому нужен неопубликованный сайт,
+снимает `published_at` после неё. Дальше: A-1 статьи справки → A-2 свободный вопрос (Claude).
