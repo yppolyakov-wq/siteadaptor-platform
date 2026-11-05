@@ -50,6 +50,25 @@ def _recent_sales() -> bool | None:
 
 
 def report_for(tenant) -> dict:
+    """Строка отчёта; сбой бизнеса не роняет отчёт целиком — строка с ошибкой."""
+    try:
+        return _report_for(tenant)
+    except Exception:  # noqa: BLE001
+        logger.warning("readiness_report: %s failed", tenant.schema_name, exc_info=True)
+        return {
+            "schema": tenant.schema_name,
+            "business_type": tenant.business_type or "",
+            "demo": readiness.is_service_tenant(tenant),
+            "errors": ["report"],
+            "exempt": readiness.is_exempt(tenant),
+            "directions": [],
+            "base_missing": [],
+            "would_close": {},
+            "recent_sales": None,
+        }
+
+
+def _report_for(tenant) -> dict:
     with schema_context(tenant.schema_name):
         active = [d.key for d in directions.active(tenant)]
         base_missing = [r["key"] for r in readiness.missing(tenant, direction="")]
@@ -76,10 +95,12 @@ def report_for(tenant) -> dict:
 
 def needs_exempt(row: dict) -> bool:
     """Исключение: реальный бизнес, которому гейт закрыл бы кассу, и он продаёт (или неясно)."""
+    # Ошибка проверки = «не можем доказать готовность»: исключение ставим (fail-closed для
+    # отчёта — иначе сбой во время отчёта оставил бы продающий бизнес без исключения).
     return (
         not row["demo"]
         and not row["exempt"]
-        and bool(row["would_close"])
+        and bool(row["would_close"] or row["errors"])
         and row["recent_sales"] is not False
     )
 
@@ -89,7 +110,8 @@ def stamp_exempt(schema_name: str) -> None:
     with transaction.atomic():
         tenant = Tenant.objects.select_for_update().get(schema_name=schema_name)
         config = dict(tenant.site_config or {})
-        config["readiness"] = {"exempt": True}
+        block = config.get("readiness")
+        config["readiness"] = {**(block if isinstance(block, dict) else {}), "exempt": True}
         tenant.site_config = config
         tenant.save(update_fields=["site_config", "updated_at"])
 
@@ -113,7 +135,7 @@ class Command(BaseCommand):
             qs = qs.filter(schema_name=opts["tenant"])
         rows = [report_for(t) for t in qs]
         real = [r for r in rows if not r["demo"]]
-        closing = [r for r in real if r["would_close"] and not r["exempt"]]
+        closing = [r for r in real if (r["would_close"] or r["errors"]) and not r["exempt"]]
         to_stamp = [r for r in rows if needs_exempt(r)]
 
         if opts["stamp_exempt"]:

@@ -24,6 +24,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 
 from django.conf import settings
+from django.db import transaction
 from django.urls import NoReverseMatch, reverse
 from django.utils.translation import gettext_lazy as _
 
@@ -62,22 +63,25 @@ class Facts:
 
         return getattr(connection, "schema_name", None) == self.tenant.schema_name
 
+    def fail(self, key: str) -> None:
+        logger.warning(
+            "readiness: fact %s failed for %s", key, self.tenant.schema_name, exc_info=True
+        )
+        self.errors.append(key)
+
     def get(self, key: str, compute: Callable):
+        # Вне схемы — «unknown» и БЕЗ мемо: тот же объект позже может попасть в свою схему.
+        if not self.in_schema():
+            return None
         if key not in self._cache:
-            if not self.in_schema():
-                self._cache[key] = None
-            else:
-                try:
+            try:
+                # Savepoint: сбой одного запроса не ломает внешнюю транзакцию (иначе
+                # следующие факты падали бы каскадом).
+                with transaction.atomic():
                     self._cache[key] = compute()
-                except Exception:  # noqa: BLE001 — fail-open: сбой не закрывает кассу
-                    logger.warning(
-                        "readiness: fact %s failed for %s",
-                        key,
-                        self.tenant.schema_name,
-                        exc_info=True,
-                    )
-                    self.errors.append(key)
-                    self._cache[key] = True
+            except Exception:  # noqa: BLE001 — fail-open: сбой не закрывает кассу
+                self.fail(key)
+                self._cache[key] = True
         return self._cache[key]
 
 
@@ -108,7 +112,8 @@ def _cfg(tenant) -> dict:
 def _module(tenant, key: str) -> bool:
     try:
         return bool(tenant.is_module_active(key))
-    except Exception:  # noqa: BLE001
+    except Exception:  # noqa: BLE001 — видно в отчёте (errors), а не тихий False
+        facts_for(tenant).fail(f"module:{key}")
         return False
 
 
@@ -161,8 +166,7 @@ def _agb(t, f):
     def q():
         from apps.core.models import LegalDoc
 
-        texts = LegalDoc.objects.filter(kind="agb").values_list("text", flat=True)
-        return any((text or "").strip() for text in texts)
+        return LegalDoc.objects.filter(kind="agb").exclude(text__regex=r"^\s*$").exists()
 
     return f.get("agb", q)
 
@@ -176,9 +180,12 @@ def _prepay_for_delivery(t, f) -> bool:
 
 def _food_allergens(t, f):
     def q():
+        from django.db.models import Q
+
         from apps.catalog.models import Product
 
-        return not Product.objects.filter(is_active=True, allergens=[]).exists()
+        empty = Q(allergens=[]) | Q(allergens__isnull=True)
+        return not Product.objects.filter(empty, is_active=True).exists()
 
     return f.get("food_allergens", q)
 
@@ -351,7 +358,8 @@ _BY_KEY = {item.key: item for item in REGISTRY}
 def _url(item: Item) -> str:
     try:
         return reverse(item.url_name)
-    except NoReverseMatch:
+    except NoReverseMatch:  # вне urlconf тенанта (команда/Celery) — кнопки нет, это ожидаемо
+        logger.debug("readiness: no url for %s", item.url_name)
         return ""
 
 
@@ -360,8 +368,28 @@ def _active_direction_keys(tenant) -> set[str]:
 
     try:
         return {d.key for d in directions.active(tenant)}
-    except Exception:  # noqa: BLE001
+    except Exception:  # noqa: BLE001 — видно в отчёте (errors); показываем только базу
+        facts_for(tenant).fail("directions")
         return set()
+
+
+def _check(item: Item, tenant, facts: Facts):
+    """Проверка пункта под общей защитой: сбой — лог + errors + fail-open."""
+    try:
+        return item.check(tenant, facts)
+    except Exception:  # noqa: BLE001
+        facts.fail(item.key)
+        return True
+
+
+def _applies(item: Item, tenant, facts: Facts) -> bool:
+    if item.applies is None:
+        return True
+    try:
+        return bool(item.applies(tenant))
+    except Exception:  # noqa: BLE001
+        facts.fail(f"applies:{item.key}")
+        return True
 
 
 def items_for(tenant, *, direction: str | None = None, level: str | None = None) -> list[dict]:
@@ -377,7 +405,7 @@ def items_for(tenant, *, direction: str | None = None, level: str | None = None)
             continue
         if level and item.level != level:
             continue
-        if item.applies is not None and not item.applies(tenant):
+        if not _applies(item, tenant, facts):
             continue
         rows.append(
             {
@@ -385,7 +413,7 @@ def items_for(tenant, *, direction: str | None = None, level: str | None = None)
                 "label": item.label,
                 "level": item.level,
                 "direction": item.direction,
-                "done": item.check(tenant, facts),
+                "done": _check(item, tenant, facts),
                 "url": _url(item),
             }
         )
@@ -407,8 +435,8 @@ def missing(
 def is_done(tenant, key: str) -> bool | None:
     item = _BY_KEY.get(key)
     if item is None:
-        return None
-    return item.check(tenant, facts_for(tenant))
+        raise KeyError(key)  # опечатка в ключе — ошибка, а не «unknown»
+    return _check(item, tenant, facts_for(tenant))
 
 
 def sell_ready(tenant, direction: str) -> bool:

@@ -84,14 +84,22 @@ def test_delivery_without_prepayment_is_missing():
     assert "waren.prepay" not in keys  # пункт не применим без доставки
 
 
-def test_query_budget_per_direction_and_memo(django_assert_max_num_queries):
+def _selects(fn):
+    """Число SELECT'ов (savepoint'ы защиты фактов — не чтение данных)."""
+    from django.db import connection
+    from django.test.utils import CaptureQueriesContext
+
+    with CaptureQueriesContext(connection) as ctx:
+        fn()
+    return sum(1 for q in ctx.captured_queries if q["sql"].lstrip().upper().startswith("SELECT"))
+
+
+def test_query_budget_per_direction_and_memo():
     tenant = _tenant(business_type="hotel")
     for key in ("waren", "termine", "zimmer", "tickets"):
-        with django_assert_max_num_queries(3):
-            readiness.missing(tenant, direction=key)
+        assert _selects(lambda k=key: readiness.missing(tenant, direction=k)) <= 3, key
     # Повтор — из мемо; живым остаётся только Impressum (правится в том же запросе).
-    with django_assert_max_num_queries(1):
-        readiness.missing(tenant, direction="zimmer")
+    assert _selects(lambda: readiness.missing(tenant, direction="zimmer")) <= 1
 
 
 def test_normalize_keeps_only_true_exempt():
@@ -142,3 +150,24 @@ def test_stamp_writes_flag_and_dry_run_writes_nothing():
     tenant.refresh_from_db()
     assert tenant.site_config["readiness"] == {"exempt": True}
     assert tenant.site_config["seo"] == {"x": 1}  # чужие ключи целы
+
+
+def test_report_errors_mean_exempt_and_unknown_key_raises():
+    from apps.core.management.commands import readiness_report as cmd
+
+    row = {
+        "demo": False,
+        "exempt": False,
+        "would_close": {},
+        "errors": ["agb"],
+        "recent_sales": True,
+    }
+    assert cmd.needs_exempt(row)  # сбой проверки не лишает продающий бизнес исключения
+    with pytest.raises(KeyError):
+        readiness.is_done(TenantFactory.build(schema_name="public"), "nope")
+
+
+def test_outside_schema_is_not_memoized():
+    tenant = TenantFactory.build(schema_name="elsewhere", business_type="bakery")
+    assert readiness.facts_for(tenant).get("x", lambda: True) is None
+    assert "x" not in readiness.facts_for(tenant)._cache
