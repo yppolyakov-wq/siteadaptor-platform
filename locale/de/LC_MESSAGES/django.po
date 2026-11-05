@@ -32567,3 +32567,34 @@ msgstr "Sie verkaufen"
 #: apps/core/offer_batch.py
 msgid "Wie verkaufen Sie?"
 msgstr "Wie verkaufen Sie?"
+
+#: templates/tenant/setup/_step_pruefen.html
+msgid "Fehler:"
+msgstr "Fehler:"
+
+#: templates/tenant/setup/_step_pruefen.html
+msgid "Foto als JPG, PNG oder WebP."
+msgstr "Foto als JPG, PNG oder WebP."
+
+#: templates/tenant/setup/_step_pruefen.html
+#, python-format
+msgid "Foto für %(name)s hochladen"
+msgstr "Foto für %(name)s hochladen"
+
+#: templates/tenant/setup/_step_pruefen.html
+#, python-format
+msgid "Name, Zeile %(n)s"
+msgstr "Name, Zeile %(n)s"
+
+#: templates/tenant/setup/_step_pruefen.html
+msgid "Schon angelegte Angebote"
+msgstr "Schon angelegte Angebote"
+
+#: templates/tenant/setup/_step_pruefen.html
+msgid "Schon angelegte Zimmer"
+msgstr "Schon angelegte Zimmer"
+
+#: templates/tenant/setup/_step_pruefen.html
+#, python-format
+msgid "Zeile %(n)s übernehmen"
+msgstr "Zeile %(n)s übernehmen"

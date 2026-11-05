@@ -32768,3 +32768,34 @@ msgstr "Ви продаєте"
 #: apps/core/offer_batch.py
 msgid "Wie verkaufen Sie?"
 msgstr "Як ви продаєте?"
+
+#: templates/tenant/setup/_step_pruefen.html
+msgid "Fehler:"
+msgstr "Помилка:"
+
+#: templates/tenant/setup/_step_pruefen.html
+msgid "Foto als JPG, PNG oder WebP."
+msgstr "Фото у форматі JPG, PNG або WebP."
+
+#: templates/tenant/setup/_step_pruefen.html
+#, python-format
+msgid "Foto für %(name)s hochladen"
+msgstr "Завантажити фото для «%(name)s»"
+
+#: templates/tenant/setup/_step_pruefen.html
+#, python-format
+msgid "Name, Zeile %(n)s"
+msgstr "Назва, рядок %(n)s"
+
+#: templates/tenant/setup/_step_pruefen.html
+msgid "Schon angelegte Angebote"
+msgstr "Вже додані пропозиції"
+
+#: templates/tenant/setup/_step_pruefen.html
+msgid "Schon angelegte Zimmer"
+msgstr "Вже додані номери"
+
+#: templates/tenant/setup/_step_pruefen.html
+#, python-format
+msgid "Zeile %(n)s übernehmen"
+msgstr "Додати рядок %(n)s"

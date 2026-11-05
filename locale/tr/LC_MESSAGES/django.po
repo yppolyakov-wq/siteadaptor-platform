@@ -32626,3 +32626,34 @@ msgstr "Sattığınız"
 #: apps/core/offer_batch.py
 msgid "Wie verkaufen Sie?"
 msgstr "Nasıl satıyorsunuz?"
+
+#: templates/tenant/setup/_step_pruefen.html
+msgid "Fehler:"
+msgstr "Hata:"
+
+#: templates/tenant/setup/_step_pruefen.html
+msgid "Foto als JPG, PNG oder WebP."
+msgstr "JPG, PNG veya WebP olarak fotoğraf."
+
+#: templates/tenant/setup/_step_pruefen.html
+#, python-format
+msgid "Foto für %(name)s hochladen"
+msgstr "%(name)s için fotoğraf yükle"
+
+#: templates/tenant/setup/_step_pruefen.html
+#, python-format
+msgid "Name, Zeile %(n)s"
+msgstr "Ad, satır %(n)s"
+
+#: templates/tenant/setup/_step_pruefen.html
+msgid "Schon angelegte Angebote"
+msgstr "Zaten eklenen teklifler"
+
+#: templates/tenant/setup/_step_pruefen.html
+msgid "Schon angelegte Zimmer"
+msgstr "Zaten eklenen odalar"
+
+#: templates/tenant/setup/_step_pruefen.html
+#, python-format
+msgid "Zeile %(n)s übernehmen"
+msgstr "%(n)s. satırı ekle"

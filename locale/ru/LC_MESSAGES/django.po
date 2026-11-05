@@ -32781,3 +32781,34 @@ msgstr "Вы продаёте"
 #: apps/core/offer_batch.py
 msgid "Wie verkaufen Sie?"
 msgstr "Как вы продаёте?"
+
+#: templates/tenant/setup/_step_pruefen.html
+msgid "Fehler:"
+msgstr "Ошибка:"
+
+#: templates/tenant/setup/_step_pruefen.html
+msgid "Foto als JPG, PNG oder WebP."
+msgstr "Фото в формате JPG, PNG или WebP."
+
+#: templates/tenant/setup/_step_pruefen.html
+#, python-format
+msgid "Foto für %(name)s hochladen"
+msgstr "Загрузить фото для «%(name)s»"
+
+#: templates/tenant/setup/_step_pruefen.html
+#, python-format
+msgid "Name, Zeile %(n)s"
+msgstr "Название, строка %(n)s"
+
+#: templates/tenant/setup/_step_pruefen.html
+msgid "Schon angelegte Angebote"
+msgstr "Уже добавленные предложения"
+
+#: templates/tenant/setup/_step_pruefen.html
+msgid "Schon angelegte Zimmer"
+msgstr "Уже добавленные номера"
+
+#: templates/tenant/setup/_step_pruefen.html
+#, python-format
+msgid "Zeile %(n)s übernehmen"
+msgstr "Добавить строку %(n)s"

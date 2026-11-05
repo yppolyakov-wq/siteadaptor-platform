@@ -2,12 +2,12 @@
 {% comment %}AIS-W W4-2: шаг v4 «Angebot prüfen» (макет утверждён 2026-11-05). Ввод строками →
 «Prüfen» (таблица, в базе ещё ничего) → «Übernehmen» (пачка, отчёт). Без JS работает целиком:
 каждая кнопка — POST с redirect обратно на шаг. Все поля строки в DOM; скрытие только CSS (W0).{% endcomment %}
-<h1 class="text-2xl font-bold mb-1">{% if pruefen_review %}{% trans "Prüfen" %}{% else %}{% trans "Was verkaufen Sie?" %}{% endif %}</h1>
+<h1 id="pruefen-h" tabindex="-1" class="text-2xl font-bold mb-1 focus:outline-none">{% if pruefen_review %}{% trans "Prüfen" %}{% else %}{% trans "Was verkaufen Sie?" %}{% endif %}</h1>
 <p class="text-sm text-gray-600 mb-4">{% if pruefen_review %}{% trans "Noch ist nichts angelegt. Korrigieren Sie rot markierte Zeilen oder lassen Sie sie weg." %}{% else %}{% trans "Eine Zeile pro Angebot. Sie prüfen alles, bevor etwas angelegt wird." %}{% endif %}</p>
 
 {% if pruefen_directions and not pruefen_review %}
 <details class="ui-card p-4 mb-4"{% if pruefen_directions_open %} open{% endif %} data-pruefen-directions>
-  <summary class="cursor-pointer text-sm min-h-[44px] flex items-center justify-between gap-2"><span>{% if pruefen_directions_summary %}{% trans "Sie verkaufen" %}: <b>{{ pruefen_directions_summary }}</b>{% else %}<b>{% trans "Wie verkaufen Sie?" %}</b>{% endif %}</span><span class="text-indigo-700">{% trans "ändern" %}</span></summary>
+  <summary class="cursor-pointer text-sm min-h-[44px] rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 flex items-center justify-between gap-2"><span>{% if pruefen_directions_summary %}{% trans "Sie verkaufen" %}: <b>{{ pruefen_directions_summary }}</b>{% else %}<b>{% trans "Wie verkaufen Sie?" %}</b>{% endif %}</span><span class="text-indigo-700">{% trans "ändern" %}</span></summary>
   <form method="post" class="mt-3 space-y-2">
     {% csrf_token %}
     <fieldset class="space-y-2">
@@ -20,7 +20,7 @@
       {% endfor %}
     </fieldset>
     <p class="text-xs text-gray-600">{% trans "Abgewählte Bereiche werden nicht ausgeschaltet — das machen Sie unter „Funktionen“." %}</p>
-    <button type="submit" name="action" value="offer_directions" class="ui-btn ui-btn-primary">{% trans "Übernehmen" %}</button>
+    <button type="submit" name="action" value="offer_directions" class="ui-btn ui-btn-primary min-h-[44px]">{% trans "Übernehmen" %}</button>
   </form>
 </details>
 {% endif %}
@@ -32,35 +32,38 @@
   {% csrf_token %}
   <input type="hidden" name="batch" value="{{ pruefen_batch }}">
   <input type="hidden" name="row_count" value="{{ pruefen_rows|length }}">
-  <p class="ui-card px-4 py-3 text-sm" role="status" data-pruefen-summary>{% blocktrans with ok=pruefen_ok total=pruefen_rows|length %}{{ ok }} von {{ total }} werden übernommen{% endblocktrans %}{% if pruefen_bad %} · {% blocktrans count n=pruefen_bad %}{{ n }} Zeile mit Fehler{% plural %}{{ n }} Zeilen mit Fehler{% endblocktrans %}{% endif %}</p>
+  <p id="pruefen-summary" tabindex="-1" class="ui-card px-4 py-3 text-sm" role="status" data-pruefen-summary>{% blocktrans with ok=pruefen_ok total=pruefen_rows|length %}{{ ok }} von {{ total }} werden übernommen{% endblocktrans %}{% if pruefen_bad %} · {% blocktrans count n=pruefen_bad %}{{ n }} Zeile mit Fehler{% plural %}{{ n }} Zeilen mit Fehler{% endblocktrans %}{% endif %}</p>
   {% for note in pruefen_notes %}<p class="text-sm text-amber-800 bg-amber-50 rounded-lg px-3 py-2" role="note">{{ note }}</p>{% endfor %}
   <ul class="space-y-3">
     {% for r in pruefen_rows %}
+    {% with i=forloop.counter0 n=forloop.counter %}
     <li class="ui-card p-3 space-y-2{% if r.errors %} ring-2 ring-red-600{% endif %}" data-pruefen-row{% if r.errors %} data-pruefen-error{% endif %}>
-      <label class="flex items-center gap-3 min-h-[44px] font-semibold">
-        <input type="checkbox" name="row_{{ forloop.counter0 }}_on" value="1" class="h-5 w-5"{% if r.on %} checked{% endif %}>
-        <span class="sr-only">{% trans "Übernehmen" %}:</span>
-        <input name="row_{{ forloop.counter0 }}_name" value="{{ r.name }}" aria-label="{% trans 'Name' %}" class="ui-input flex-1 min-w-0 p-2 font-semibold">
-      </label>
-      <div class="grid grid-cols-2 gap-2 text-xs text-gray-600">
+      <div class="flex items-center gap-3 min-h-[44px]">
+        <input type="checkbox" id="pruefen-on{{ i }}" name="row_{{ i }}_on" value="1" class="h-5 w-5 shrink-0"{% if r.on %} checked{% endif %}>
+        <label for="pruefen-on{{ i }}" class="sr-only">{% blocktrans %}Zeile {{ n }} übernehmen{% endblocktrans %}</label>
+        <label for="pruefen-n{{ i }}" class="sr-only">{% blocktrans %}Name, Zeile {{ n }}{% endblocktrans %}</label>
+        <input id="pruefen-n{{ i }}" name="row_{{ i }}_name" value="{{ r.name }}" class="ui-input flex-1 min-w-0 p-2 font-semibold"{% if r.errors %} aria-invalid="true" aria-describedby="pruefen-e{{ i }}"{% endif %}>
+      </div>
+      <div class="grid grid-cols-2 gap-2 text-sm text-gray-600">
         {% if pruefen_kind == "termine" %}
-        <label class="flex flex-col gap-1">{% trans "Dauer (Min)" %}<input name="row_{{ forloop.counter0 }}_duration" value="{{ r.duration }}" inputmode="numeric" class="ui-input p-2"></label>
+        <label class="flex flex-col gap-1">{% trans "Dauer (Min)" %}<input name="row_{{ i }}_duration" value="{{ r.duration }}" inputmode="numeric" class="ui-input p-2"{% if r.errors %} aria-invalid="true" aria-describedby="pruefen-e{{ i }}"{% endif %}></label>
         {% elif pruefen_kind == "zimmer" %}
-        <label class="flex flex-col gap-1">{% trans "Gäste" %}<input name="row_{{ forloop.counter0 }}_guests" value="{{ r.guests }}" inputmode="numeric" class="ui-input p-2"></label>
+        <label class="flex flex-col gap-1">{% trans "Gäste" %}<input name="row_{{ i }}_guests" value="{{ r.guests }}" inputmode="numeric" class="ui-input p-2"{% if r.errors %} aria-invalid="true" aria-describedby="pruefen-e{{ i }}"{% endif %}></label>
         {% elif pruefen_kind == "tickets" %}
-        <label class="flex flex-col gap-1">{% trans "Datum & Uhrzeit" %}<input name="row_{{ forloop.counter0 }}_starts_at" value="{{ r.starts_at }}" placeholder="20.07.2027 19:00" class="ui-input p-2"></label>
+        <label class="flex flex-col gap-1">{% trans "Datum & Uhrzeit" %}<input name="row_{{ i }}_starts_at" value="{{ r.starts_at }}" placeholder="20.07.2027 19:00" class="ui-input p-2"{% if r.errors %} aria-invalid="true" aria-describedby="pruefen-e{{ i }}"{% endif %}></label>
         {% endif %}
-        <label class="flex flex-col gap-1">{% trans "Preis" %}<input name="row_{{ forloop.counter0 }}_price" value="{{ r.price }}" inputmode="decimal" class="ui-input p-2"{% if r.errors %} aria-describedby="pruefen-e{{ forloop.counter0 }}"{% endif %}></label>
+        <label class="flex flex-col gap-1">{% trans "Preis" %}<input name="row_{{ i }}_price" value="{{ r.price }}" inputmode="decimal" class="ui-input p-2"{% if r.errors %} aria-invalid="true" aria-describedby="pruefen-e{{ i }}"{% elif r.warnings %} aria-describedby="pruefen-w{{ i }}"{% endif %}></label>
       </div>
       {% if r.example %}<span class="inline-block text-xs text-amber-800 bg-amber-100 rounded-full px-2 py-0.5">{% trans "Beispiel — Preis prüfen" %}</span>{% endif %}
-      {% if r.errors %}<p id="pruefen-e{{ forloop.counter0 }}" class="text-sm text-red-800">{{ r.errors|join:" " }}</p>{% endif %}
-      {% for w in r.warnings %}<p class="text-sm text-amber-800 bg-amber-50 rounded-lg px-2 py-1">{{ w }}</p>{% endfor %}
+      {% if r.errors %}<p id="pruefen-e{{ i }}" class="text-sm text-red-800"><span class="sr-only">{% trans "Fehler:" %} </span>{{ r.errors|join:" " }}</p>{% endif %}
+      {% if r.warnings %}<div id="pruefen-w{{ i }}">{% for w in r.warnings %}<p class="text-sm text-amber-800 bg-amber-50 rounded-lg px-2 py-1 mt-1">{{ w }}</p>{% endfor %}</div>{% endif %}
     </li>
+    {% endwith %}
     {% endfor %}
   </ul>
   <div class="flex flex-wrap items-center gap-3 pt-2">
-    <button type="submit" name="action" value="offer_confirm" class="ui-btn ui-btn-primary" data-pruefen-confirm>{% blocktrans count n=pruefen_ok %}{{ n }} Angebot übernehmen{% plural %}{{ n }} Angebote übernehmen{% endblocktrans %}</button>
-    <button type="submit" name="action" value="offer_edit" formnovalidate class="ui-btn">{% trans "Zurück zum Text" %}</button>
+    <button type="submit" name="action" value="offer_confirm" class="ui-btn ui-btn-primary min-h-[44px]" data-pruefen-confirm>{% blocktrans count n=pruefen_ok %}{{ n }} Angebot übernehmen{% plural %}{{ n }} Angebote übernehmen{% endblocktrans %}</button>
+    <button type="submit" name="action" value="offer_edit" formnovalidate class="ui-btn min-h-[44px]">{% trans "Zurück zum Text" %}</button>
   </div>
 </form>
 {% else %}
@@ -78,24 +81,25 @@
   <p id="pruefen-hint" class="text-sm text-gray-600">{{ pruefen_hint }} · {% blocktrans with n=pruefen_max %}bis zu {{ n }} Zeilen{% endblocktrans %}</p>
   <textarea id="id_pruefen_text" name="offer_text" rows="8" aria-describedby="pruefen-hint" class="ui-input block w-full p-3 text-base leading-relaxed">{{ pruefen_text }}</textarea>
   <div class="flex flex-wrap gap-2">
-    <button type="submit" name="action" value="offer_examples" formnovalidate class="ui-btn flex-1">{% trans "Beispiele einfügen" %}</button>
-    <button type="submit" name="action" value="offer_preview" class="ui-btn ui-btn-primary flex-1" data-pruefen-preview>{% trans "Prüfen" %}</button>
+    <button type="submit" name="action" value="offer_examples" formnovalidate class="ui-btn flex-1 min-h-[44px]">{% trans "Beispiele einfügen" %}</button>
+    <button type="submit" name="action" value="offer_preview" class="ui-btn ui-btn-primary flex-1 min-h-[44px]" data-pruefen-preview>{% trans "Prüfen" %}</button>
   </div>
 </form>
 {% endif %}
 
 {% if offer_items %}
 <section class="ui-card p-4 mt-4" aria-labelledby="pruefen-done-h" data-pruefen-done>
-  <h2 id="pruefen-done-h" class="text-sm font-semibold mb-2">{% trans "Schon angelegt" %}</h2>
+  <h2 id="pruefen-done-h" class="text-sm font-semibold mb-2">{% trans "Schon angelegte Angebote" %}</h2>
   <ul class="divide-y divide-gray-100">
-    {% for it in offer_items %}<li class="flex items-center justify-between gap-2 py-2 text-sm"><span class="truncate">{{ it.name }}</span><a href="{{ it.url }}" class="shrink-0 text-indigo-700 hover:underline px-2 py-2">{% trans "Bearbeiten" %}</a></li>{% endfor %}
+    {% for it in offer_items %}<li class="flex items-center justify-between gap-2 py-2 text-sm"><span class="truncate">{{ it.name }}</span><a href="{{ it.url }}" class="shrink-0 inline-flex items-center min-h-[44px] text-indigo-700 hover:underline px-2">{% trans "Bearbeiten" %}</a></li>{% endfor %}
   </ul>
 </section>
 {% endif %}
 
 {% if pruefen_rooms %}
 <section class="mt-4 space-y-3" aria-labelledby="pruefen-rooms-h" data-pruefen-rooms>
-  <h2 id="pruefen-rooms-h" class="text-base font-semibold">{% trans "Schon angelegt" %}</h2>
+  <h2 id="pruefen-rooms-h" class="text-base font-semibold">{% trans "Schon angelegte Zimmer" %}</h2>
+  <p id="pruefen-photo-hint" class="text-sm text-gray-600">{% trans "Foto als JPG, PNG oder WebP." %}</p>
   {% if pruefen_rooms_missing %}<p class="text-sm text-amber-800 bg-amber-50 rounded-lg px-3 py-2" role="note">{% trans "Ohne Foto können Gäste ein Zimmer nicht online buchen. Fügen Sie jetzt ein Foto hinzu — direkt mit der Kamera." %}</p>{% endif %}
   <ul class="space-y-2">
     {% for room in pruefen_rooms %}
@@ -106,13 +110,13 @@
         {% if room.has_photo %}<span class="inline-block text-xs text-green-800 bg-green-100 rounded-full px-2 py-0.5">{% trans "mit Foto" %}</span>{% else %}<span class="inline-block text-xs text-amber-800 bg-amber-100 rounded-full px-2 py-0.5">{% trans "ohne Foto" %}</span>{% endif %}
       </div>
       {% if room.has_photo %}
-      <a href="{{ room.url }}" class="text-sm text-indigo-700 hover:underline px-2 py-2">{% trans "Bearbeiten" %}</a>
+      <a href="{{ room.url }}" class="inline-flex items-center min-h-[44px] text-sm text-indigo-700 hover:underline px-2">{% trans "Bearbeiten" %}</a>
       {% else %}
       <form method="post" enctype="multipart/form-data" class="flex flex-wrap items-center gap-2" data-pruefen-photo>
         {% csrf_token %}
         <input type="hidden" name="unit" value="{{ room.pk }}">
-        <label class="text-sm"><span class="sr-only">{% blocktrans with name=room.name %}Foto für {{ name }}{% endblocktrans %}</span><input type="file" name="photo" accept="image/jpeg,image/png,image/webp" class="text-sm max-w-[12rem]"></label>
-        <button type="submit" name="action" value="offer_photo" class="ui-btn">{% trans "Foto hochladen" %}</button>
+        <label class="block w-full text-sm"><span class="sr-only">{% blocktrans with name=room.name %}Foto für {{ name }}{% endblocktrans %}</span><input type="file" name="photo" accept="image/jpeg,image/png,image/webp" aria-describedby="pruefen-photo-hint" class="block w-full text-sm file:mr-3 file:min-h-[44px] file:px-4 file:rounded-lg file:border-0 file:bg-indigo-50 file:text-indigo-800 file:font-semibold"></label>
+        <button type="submit" name="action" value="offer_photo" class="ui-btn min-h-[44px]" aria-label="{% blocktrans with name=room.name %}Foto für {{ name }} hochladen{% endblocktrans %}">{% trans "Foto hochladen" %}</button>
       </form>
       {% endif %}
     </li>
@@ -121,7 +125,7 @@
 </section>
 {% endif %}
 
-<p class="mt-4"><a href="{% url 'setup-ask' %}" class="text-sm text-indigo-700 hover:underline" data-setup-helper-link>{% trans "Mehreres auf einmal beschreiben (KI)" %} <span aria-hidden="true">→</span></a></p>
+<p class="mt-4"><a href="{% url 'setup-ask' %}" class="inline-block py-3 text-sm text-indigo-700 hover:underline" data-setup-helper-link>{% trans "Mehreres auf einmal beschreiben (KI)" %} <span aria-hidden="true">→</span></a></p>
 
 {% if not pruefen_review %}
 <form method="post" class="mt-4">
@@ -129,3 +133,12 @@
   {% include "tenant/_setup_buttons.html" %}
 </form>
 {% endif %}
+{% comment %}a11y: после PRG фокус — на первую ошибку, иначе на сводку проверки (иначе
+программа чтения не узнает, что произошло). Без JS — обычное поведение.{% endcomment %}
+<script>
+(function () {
+  var el = document.querySelector('[data-pruefen-error] [aria-invalid="true"]') ||
+    document.getElementById('pruefen-summary');
+  if (el) el.focus();
+})();
+</script>
