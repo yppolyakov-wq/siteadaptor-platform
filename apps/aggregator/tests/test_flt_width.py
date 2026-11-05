@@ -54,7 +54,8 @@ def test_portal_results_page_is_wide_with_four_column_cards():
     html = portal_views.portal_home(req).content.decode()
     main = _main(html)
     assert "max-w-screen-2xl" in main and "data-wide" in main
-    assert "xl:group-data-[wide]:grid-cols-4" in html
+    # 2026-11-05: 4 колонки уже с lg (ряд = 4 карточки)
+    assert "lg:group-data-[wide]:grid-cols-4" in html
     assert html.count("max-w-screen-2xl") >= 3  # шапка, main, подвал
 
 

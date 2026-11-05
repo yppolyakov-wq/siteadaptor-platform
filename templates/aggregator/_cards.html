@@ -1,5 +1,5 @@
 {% load i18n portal_brand %}{# Грид карточек листингов: ожидает items (AggregatorListing); опц. fav_ids + portal_user (сердечки P2.3b, только на порталах под логином). #}
-<div class="grid grid-cols-2 lg:grid-cols-3 xl:group-data-[wide]:grid-cols-4 gap-4 md:gap-6">
+<div class="grid grid-cols-2 lg:grid-cols-3 lg:group-data-[wide]:grid-cols-4 gap-4 md:gap-6">
   {% for l in items %}
     <div class="relative" data-pstat="{{ l.pk }}">{# В5 V5-4: маячок показов считает карточку по этому pk #}
     {# D2.3: клик по оплаченной позиции считаем редирект-счётчиком (+rel=sponsored) #}
@@ -62,7 +62,7 @@
         {% if l.listing_kind == 'event' and l.starts_at %}
           <p class="text-xs text-gray-500 mt-1">{{ l.starts_at|date:"D, d.m.Y · H:i" }}</p>
         {% endif %}
-        <div class="mt-auto pt-2 flex flex-col sm:flex-row sm:items-end justify-between gap-2">
+        <div class="mt-auto pt-2 flex flex-col sm:flex-row sm:items-end lg:group-data-[wide]:flex-col lg:group-data-[wide]:items-stretch xl:group-data-[wide]:flex-row xl:group-data-[wide]:items-end justify-between gap-2">
         <div class="min-w-0">
         {% if l.range_total_eur %}
           <div class="flex items-baseline gap-2">

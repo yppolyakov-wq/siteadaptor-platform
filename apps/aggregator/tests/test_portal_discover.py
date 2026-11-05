@@ -375,7 +375,7 @@ def test_ld_lists_block_cards():
 
 def test_one_big_business_does_not_starve_a_block():
     """M1: лимит на бизнес — в SQL; 30 свежих товаров одного магазина не съедают блок."""
-    for i in range(5):
+    for i in range(6):  # 6 + 2 от «big» = 8 → два полных ряда
         _listing("product", f"Andere {i}")
     AggregatorListing.objects.update(created_at=timezone.now() - timedelta(days=3))
     for i in range(30):
@@ -501,3 +501,20 @@ def test_section_entry_without_kind_shows_all_kinds_like_the_tile_count(isolated
         n_tile = len(re.findall(card, by_tile))
         n_chip = len(re.findall(card, by_chip))
         assert n_tile == n_chip == int(count), (key, n_tile, n_chip, count)
+
+
+def test_block_shows_eight_only_when_full_otherwise_one_row():
+    """Решение владельца: 8 карточек, только если их 8; иначе — один ряд из 4."""
+    for i in range(7):
+        _listing("product", f"Sieben {i}")
+    produkte = {
+        b["key"]: b["items"]
+        for b in home.home_blocks(listings_for(city="Solingen"), city="Solingen", path="/")
+    }["produkte"]
+    assert len(produkte) == home.BLOCK_ROW
+    _listing("product", "Acht")
+    produkte = {
+        b["key"]: b["items"]
+        for b in home.home_blocks(listings_for(city="Solingen"), city="Solingen", path="/")
+    }["produkte"]
+    assert len(produkte) == home.BLOCK_LIMIT

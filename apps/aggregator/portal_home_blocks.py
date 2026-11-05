@@ -28,7 +28,10 @@ from .tasks import NEW_PRODUCT_DAYS
 logger = logging.getLogger(__name__)
 
 NEW_DAYS = NEW_PRODUCT_DAYS  # «Neu» = свежий листинг или бейдж «neu» товара
-BLOCK_LIMIT = 6  # полные ряды при сетке 2/3 колонки (урок DL-11)
+# Решение владельца 2026-11-05: ряд главной — 4 карточки; 8 (два полных ряда) — только
+# если набралось 8, иначе не больше 4 (6 давало неполный второй ряд на сетке из 4).
+BLOCK_LIMIT = 8
+BLOCK_ROW = 4
 FEATURED_LIMIT = 3
 # Параметры, превращающие корень портала в ленту. Посторонние (?ch=, ?utm_*) — нет:
 # ссылка из соцсети обязана открыть главную.
@@ -434,6 +437,8 @@ def home_blocks(base_qs, *, city: str, path: str, exclude_pks=(), now=None) -> l
             )
         ).filter(business_rank__lte=block.per_business)
         items = list(ranked.order_by(*order)[:BLOCK_LIMIT])
+        if len(items) < BLOCK_LIMIT:
+            items = items[:BLOCK_ROW]
         if not items:
             continue
         seen.update(item.pk for item in items)
