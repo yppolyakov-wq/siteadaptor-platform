@@ -337,8 +337,13 @@ def _pruefen_action(request, action: str) -> None:
             messages.error(request, report.error)
             return
         parts = [_("Angelegt: %(n)s") % {"n": len(report.created)}]
+        if report.replay:
+            parts = [_("Schon angelegt: %(n)s") % {"n": len(report.created)}]
         if report.skipped:
-            reasons = "; ".join(f"„{name}“: {why}" for name, why in report.skipped[:5])
+            shown = report.skipped[:10]
+            reasons = "; ".join(f"„{name}“: {why}" for name, why in shown)
+            if len(report.skipped) > len(shown):
+                reasons += " " + _("und %(n)s weitere") % {"n": len(report.skipped) - len(shown)}
             parts.append(
                 _("Übersprungen: %(n)s (%(reasons)s)")
                 % {"n": len(report.skipped), "reasons": reasons}
@@ -348,7 +353,13 @@ def _pruefen_action(request, action: str) -> None:
                 _("Mitarbeiter „%(name)s“ angelegt — umbenennen unter Ressourcen.")
                 % {"name": report.staff}
             )
-        messages.success(request, " · ".join(parts))
+        if report.staff_missing:
+            parts.append(_("Für buchbare Termine fehlt noch ein Mitarbeiter (Ressourcen)."))
+        text = " · ".join(parts)
+        if report.created:
+            messages.success(request, text)
+        else:
+            messages.warning(request, text)
         return
     draft = offer_batch.get_draft(request) or {}
     kind = request.POST.get("kind") or draft.get("kind", "")

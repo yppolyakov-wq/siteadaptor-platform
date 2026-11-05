@@ -32650,3 +32650,46 @@ msgstr[0] "Додати %(n)s пропозицію"
 msgstr[1] "Додати %(n)s пропозиції"
 msgstr[2] "Додати %(n)s пропозицій"
 msgstr[3] "Додати %(n)s пропозиції"
+
+#: apps/core/offer_batch.py
+msgid "Dauer bitte als eine Zahl, z. B. „45 Min“."
+msgstr "Вкажіть тривалість одним числом, наприклад «45 Min»."
+
+#: apps/core/offer_batch.py
+msgid "Für buchbare Termine fehlt noch ein Mitarbeiter (Ressourcen)."
+msgstr "Для запису поки немає співробітника (розділ «Ресурси»)."
+
+#: apps/core/offer_batch.py
+msgid "Höchstens 50 Zeilen auf einmal — bitte aufteilen."
+msgstr "Не більше 50 рядків за раз — розділіть список."
+
+#: apps/core/offer_batch.py
+msgid "Keine Zeile ausgewählt."
+msgstr "Не вибрано жодного рядка."
+
+#: apps/core/offer_batch.py
+msgid "Mehrere Zahlen — bitte den Preis mit „€“ kennzeichnen."
+msgstr "Кілька чисел — позначте ціну знаком «€»."
+
+#: apps/core/offer_batch.py
+#, python-format
+msgid "Ohne Jahr — %(year)s angenommen."
+msgstr "Без року — прийнято %(year)s."
+
+#: apps/core/offer_batch.py
+#, python-format
+msgid "Schon angelegt: %(n)s"
+msgstr "Вже додано: %(n)s"
+
+#: apps/core/offer_batch.py
+msgid "Zeile zu lang — bitte kürzer fassen."
+msgstr "Рядок задовгий — скоротіть його."
+
+#: apps/core/offer_batch.py
+msgid "konnte nicht angelegt werden"
+msgstr "не вдалося додати"
+
+#: apps/core/offer_batch.py
+#, python-format
+msgid "und %(n)s weitere"
+msgstr "і ще %(n)s"

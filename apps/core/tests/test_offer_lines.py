@@ -190,3 +190,38 @@ def test_unknown_kind_is_refused():
 def test_no_homemade_money_parsing():
     src = Path(offer_lines.__file__).read_text(encoding="utf-8")
     assert "float(" not in src and 'replace(",", ".")' not in src
+
+
+def test_unmarked_extra_numbers_never_become_the_price():
+    line = one("Cappuccino — 0,2 l — 3,40 €")
+    assert line.price == Decimal("3.40") and not line.errors
+    assert one("Pizza — 12 Zoll — 9,50").errors  # два числа без «€» — спросить
+    assert one("Suite — 45 m² — 120 €", "zimmer").price == Decimal("120")
+    line = one("Haarschnitt — 30–45 Min — 26 €", "termine")
+    assert line.errors and line.duration_min is None
+
+
+def test_date_without_year_rolling_over_warns():
+    line = one("Konzert — 20.07. 19 Uhr — 25", "tickets")
+    assert any("2027" in w for w in line.warnings)
+
+
+def test_validate_row_ignores_fields_of_other_kinds():
+    line = validate_row({"name": "Brot", "price": "3", "duration": "999"}, "waren")
+    assert line.price == Decimal("3") and not line.errors
+    line = validate_row(
+        {"name": "S", "price": "25", "duration": "30", "starts_at": "20.07.2026 19:00"},
+        "termine",
+    )
+    assert line.price == Decimal("25") and not line.errors
+
+
+def test_long_lines_are_not_regex_parsed():
+    import time
+
+    start = time.monotonic()
+    text = "a " + "1" * 7990
+    line = one(text)
+    spaces = parse_lines("a" + " " * 7990 + "x", "waren", today=TODAY).lines[0]
+    assert line.errors and spaces.errors
+    assert time.monotonic() - start < 0.5

@@ -146,36 +146,107 @@ def test_existing_name_is_skipped():
     assert any("gibt es schon" in m for m in owner.messages)
 
 
-def test_too_many_rows_are_capped():
+def test_too_many_ticked_rows_are_refused_not_cut():
     from apps.catalog.models import Product
 
     owner = Owner(_v4())
     owner("post", {"action": "offer_preview", "kind": "waren", "offer_text": "A — 1"})
     rows = [{"on": "1", "name": f"Artikel {i}", "price": "1"} for i in range(80)]
     owner("post", _confirm_data(owner, rows))
-    assert Product.objects.count() == 50
+    assert Product.objects.count() == 0 and any("50" in m for m in owner.messages)
 
 
-def test_db_failure_rolls_back_whole_batch(monkeypatch):
+def test_forged_low_row_count_does_not_hide_ticked_rows():
     from apps.catalog.models import Product
 
     owner = Owner(_v4())
     owner("post", {"action": "offer_preview", "kind": "waren", "offer_text": "A — 1"})
-    calls = []
+    data = _confirm_data(owner, [{"on": "1", "name": f"A{i}", "price": "1"} for i in range(3)])
+    data["row_count"] = "1"
+    owner("post", data)
+    assert Product.objects.count() == 3
+
+
+def test_failing_row_is_reported_and_others_are_created(monkeypatch):
+    from django.db import DatabaseError
+
+    from apps.catalog.models import Product
+
+    owner = Owner(_v4())
+    owner("post", {"action": "offer_preview", "kind": "waren", "offer_text": "A — 1"})
     real = offer_batch._create
 
     def flaky(tenant, kind, line):
-        calls.append(line.name)
-        if len(calls) == 3:
-            raise RuntimeError("db down")
+        if line.name == "A2":
+            raise DatabaseError("value too long")
         real(tenant, kind, line)
 
     monkeypatch.setattr(offer_batch, "_create", flaky)
     rows = [{"on": "1", "name": f"A{i}", "price": "1"} for i in range(4)]
     owner("post", _confirm_data(owner, rows))
-    assert Product.objects.count() == 0
-    assert any("Nichts angelegt" in m for m in owner.messages)
-    assert offer_batch.SESSION_KEY in owner.session  # черновик цел — можно повторить
+    assert Product.objects.count() == 3
+    assert any("A2" in m and "Übersprungen: 1" in m for m in owner.messages)
+
+
+def test_nothing_ticked_keeps_draft_and_says_so():
+    owner = Owner(_v4())
+    owner("post", {"action": "offer_preview", "kind": "waren", "offer_text": "A — 1"})
+    owner("post", _confirm_data(owner, [{"name": "A", "price": "1"}]))
+    assert offer_batch.SESSION_KEY in owner.session and owner.messages
+
+
+def test_all_skipped_keeps_draft_and_writes_no_batch():
+    from apps.catalog.models import Product
+
+    Product.objects.create(name={"de": "Brot"}, base_price=3)
+    tenant = _v4()
+    owner = Owner(tenant)
+    owner("post", {"action": "offer_preview", "kind": "waren", "offer_text": "Brot — 3"})
+    owner("post", _confirm_data(owner, [{"on": "1", "name": "Brot", "price": "3"}]))
+    tenant.refresh_from_db()
+    assert offer_batch.SESSION_KEY in owner.session
+    assert not tenant.site_config["onboarding"].get("offer_batches")
+
+
+def test_replay_clears_draft_and_says_already_added():
+    owner = Owner(_v4())
+    owner("post", {"action": "offer_preview", "kind": "waren", "offer_text": "Brot — 3"})
+    data = _confirm_data(owner, [{"on": "1", "name": "Brot", "price": "3"}])
+    session = dict(owner.session)
+    owner("post", data)
+    owner.session = session
+    owner("post", data)
+    assert offer_batch.SESSION_KEY not in owner.session
+    assert any("Schon angelegt: 1" in m for m in owner.messages)
+
+
+def test_batch_ring_survives_later_wizard_steps():
+    tenant = _v4()
+    owner = Owner(tenant)
+    owner("post", {"action": "offer_preview", "kind": "waren", "offer_text": "Brot — 3"})
+    owner("post", _confirm_data(owner, [{"on": "1", "name": "Brot", "price": "3"}]))
+    stale = type(tenant).objects.get(pk=tenant.pk)
+    stale.site_config = {**stale.site_config, "onboarding": {"v": 2, "flow": "v4"}}
+    onboarding.save_state(stale, onboarding.get_state(stale))  # запрос со старым тенантом
+    onboarding.advance(type(tenant).objects.get(pk=tenant.pk))
+    tenant.refresh_from_db()
+    assert tenant.site_config["onboarding"]["offer_batches"]
+
+
+def test_staff_member_needs_settings_permission(monkeypatch):
+    from apps.booking.models import Resource, Service
+    from apps.core import permissions
+
+    real = permissions.has_perm
+    monkeypatch.setattr(
+        permissions, "has_perm", lambda user, key: key != "einstellungen.edit" and real(user, key)
+    )
+    owner = Owner(_v4(business_type="friseur"))
+    owner("post", {"action": "offer_preview", "kind": "termine", "offer_text": "S — 30 Min — 2"})
+    rows = [{"on": "1", "name": "Schnitt", "duration": "30", "price": "25"}]
+    owner("post", _confirm_data(owner, rows))
+    assert Service.objects.count() == 1 and not Resource.objects.exists()
+    assert any("Mitarbeiter" in m for m in owner.messages)
 
 
 def test_termine_creates_service_and_one_staff_named_after_owner():

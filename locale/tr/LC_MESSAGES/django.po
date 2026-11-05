@@ -32510,3 +32510,46 @@ msgid "%(n)s Angebot übernehmen"
 msgid_plural "%(n)s Angebote übernehmen"
 msgstr[0] "%(n)s teklif ekle"
 msgstr[1] "%(n)s teklif ekle"
+
+#: apps/core/offer_batch.py
+msgid "Dauer bitte als eine Zahl, z. B. „45 Min“."
+msgstr "Süreyi tek sayı olarak girin, örn. „45 Min“."
+
+#: apps/core/offer_batch.py
+msgid "Für buchbare Termine fehlt noch ein Mitarbeiter (Ressourcen)."
+msgstr "Rezerve edilebilir randevular için henüz bir çalışan yok (Kaynaklar)."
+
+#: apps/core/offer_batch.py
+msgid "Höchstens 50 Zeilen auf einmal — bitte aufteilen."
+msgstr "Bir seferde en fazla 50 satır — lütfen bölün."
+
+#: apps/core/offer_batch.py
+msgid "Keine Zeile ausgewählt."
+msgstr "Satır seçilmedi."
+
+#: apps/core/offer_batch.py
+msgid "Mehrere Zahlen — bitte den Preis mit „€“ kennzeichnen."
+msgstr "Birden fazla sayı — lütfen fiyatı „€“ ile işaretleyin."
+
+#: apps/core/offer_batch.py
+#, python-format
+msgid "Ohne Jahr — %(year)s angenommen."
+msgstr "Yıl yok — %(year)s varsayıldı."
+
+#: apps/core/offer_batch.py
+#, python-format
+msgid "Schon angelegt: %(n)s"
+msgstr "Zaten eklendi: %(n)s"
+
+#: apps/core/offer_batch.py
+msgid "Zeile zu lang — bitte kürzer fassen."
+msgstr "Satır çok uzun — lütfen kısaltın."
+
+#: apps/core/offer_batch.py
+msgid "konnte nicht angelegt werden"
+msgstr "eklenemedi"
+
+#: apps/core/offer_batch.py
+#, python-format
+msgid "und %(n)s weitere"
+msgstr "ve %(n)s tane daha"

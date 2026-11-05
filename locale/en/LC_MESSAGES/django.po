@@ -32364,3 +32364,46 @@ msgid "%(n)s Angebot übernehmen"
 msgid_plural "%(n)s Angebote übernehmen"
 msgstr[0] "Add %(n)s offer"
 msgstr[1] "Add %(n)s offers"
+
+#: apps/core/offer_batch.py
+msgid "Dauer bitte als eine Zahl, z. B. „45 Min“."
+msgstr "Please give the duration as one number, e.g. “45 Min”."
+
+#: apps/core/offer_batch.py
+msgid "Für buchbare Termine fehlt noch ein Mitarbeiter (Ressourcen)."
+msgstr "Bookable appointments still need a staff member (Resources)."
+
+#: apps/core/offer_batch.py
+msgid "Höchstens 50 Zeilen auf einmal — bitte aufteilen."
+msgstr "At most 50 lines at once — please split them up."
+
+#: apps/core/offer_batch.py
+msgid "Keine Zeile ausgewählt."
+msgstr "No line selected."
+
+#: apps/core/offer_batch.py
+msgid "Mehrere Zahlen — bitte den Preis mit „€“ kennzeichnen."
+msgstr "Several numbers — please mark the price with “€”."
+
+#: apps/core/offer_batch.py
+#, python-format
+msgid "Ohne Jahr — %(year)s angenommen."
+msgstr "No year — assumed %(year)s."
+
+#: apps/core/offer_batch.py
+#, python-format
+msgid "Schon angelegt: %(n)s"
+msgstr "Already added: %(n)s"
+
+#: apps/core/offer_batch.py
+msgid "Zeile zu lang — bitte kürzer fassen."
+msgstr "Line too long — please shorten it."
+
+#: apps/core/offer_batch.py
+msgid "konnte nicht angelegt werden"
+msgstr "could not be added"
+
+#: apps/core/offer_batch.py
+#, python-format
+msgid "und %(n)s weitere"
+msgstr "and %(n)s more"

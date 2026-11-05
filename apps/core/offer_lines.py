@@ -28,10 +28,13 @@ _PAID = frozenset({"waren", "speisekarte", "termine", "zimmer"})
 MAX_LINES = 50
 MAX_TEXT = 8000
 MAX_NAME = 120
+#: Длина одной строки до разбора: регулярки на длинной строке квадратичны (DoS).
+MAX_LINE = 300
 MIN_DURATION, MAX_DURATION = 5, 600
 MAX_GUESTS = 20
 DEFAULT_GUESTS = 2
 DEFAULT_HOUR = 19
+DURATION_RANGE = -1
 
 _SPACES = re.compile(r"[    ]")
 _BULLET = re.compile(r"^\s*(?:[•*·]|-(?=\s)|\d{1,2}[.)](?=\s+\D))\s*")
@@ -50,6 +53,7 @@ _TAIL = re.compile(
     rf"\s+(?:ab\s+)?(?:{_CUR}\s*)?(?:{_NUM})(?:,[-–])?\s*{_CUR}?\s*$",
     re.IGNORECASE,
 )
+_CUR_RE = re.compile(_CUR, re.IGNORECASE)
 _AB = re.compile(r"\bab\b", re.IGNORECASE)
 _FREE = re.compile(r"\b(?:gratis|kostenlos|frei|free)\b", re.IGNORECASE)
 _UNIT = re.compile(r"(?:/|\bpro\b)\s*(?:\d+\s*)?(?:kg|g|l|ml|stück|stk)\b", re.IGNORECASE)
@@ -99,8 +103,11 @@ class Parsed:
     notes: list[str] = field(default_factory=list)
 
 
+_RUNS = re.compile(r"[ ]{2,}")
+
+
 def _clean(raw: str) -> str:
-    s = _SPACES.sub(" ", raw).strip()
+    s = _RUNS.sub(" ", _SPACES.sub(" ", raw)).strip()
     s = _BULLET.sub("", s, count=1)
     return _LEADERS.sub(" — ", s).strip()
 
@@ -116,6 +123,8 @@ def _duration(text: str) -> tuple[int | None, str]:
     m = _DUR.search(text)
     if not m:
         return None, text
+    if re.search(r"\d\s*[–-]\s*$", text[: m.start()]):
+        return DURATION_RANGE, _cut(text, m)  # «30–45 Min»: какую длительность брать?
     whole, frac = int(m.group(1)), m.group(2) or ""
     unit = m.group("unit").lower()
     value = Decimal(whole) + (Decimal(int(frac)) / (10 ** len(frac)) if frac else 0)
@@ -155,6 +164,7 @@ def _date(text: str, today: date) -> tuple[datetime | None, str, list[str], list
             day_ = date(today.year, month, day)
             if day_ < today:
                 day_ = date(today.year + 1, month, day)
+                warnings.append(_("Ohne Jahr — %(year)s angenommen.") % {"year": day_.year})
     except ValueError:
         errors.append(_("Datum ungültig."))
         return None, _cut(text, m), errors, warnings
@@ -177,25 +187,33 @@ def _price(text: str, kind: str):
         warnings.append(_("Einheit erkannt — Grundpreis richten Sie später ein."))
     if _CHF.search(text):
         warnings.append(_("Währung CHF — gespeichert in €."))
+    found = list(_PRICE.finditer(text))
+    marked = [m for m in found if _CUR_RE.search(m.group(0))]
     rng = _RANGE.search(text)
+    # Спанка «9–12 €» / «9 bis 12» — только если других чисел нет или за ней стоит валюта:
+    # иначе «30–45 Min — 26 €» прочитали бы как «ab 30».
+    is_range = bool(rng) and (len(found) == 2 or bool(_CUR_RE.match(text[rng.end() :].lstrip())))
     try:
-        if rng:
+        if is_range:
             price, price_from = money.parse_amount(rng.group("a")), True
             warnings.append(
                 _("Preisspanne — gespeichert als „ab %(price)s €“.")
                 % {"price": f"{price:.2f}".replace(".", ",", 1)}
             )
-        else:
-            found = list(_PRICE.finditer(text))
-            if found:
-                first = found[0]
-                if first.group("neg"):
-                    raise ValueError(first.group(0))
-                price = _amount(first.group("num"), first.group("dash"))
-                if len(found) > 1:
-                    warnings.append(_("Zweiter Preis — später als Variante anlegen."))
-            elif _FREE.search(text):
-                price = Decimal("0")
+        elif marked or len(found) == 1:
+            # Цена — число с «€»; без пометки — только если число в строке одно
+            # («0,2 l — 3,40 €» → 3,40, а не 0,20).
+            first = (marked or found)[0]
+            if first.group("neg"):
+                raise ValueError(first.group(0))
+            price = _amount(first.group("num"), first.group("dash"))
+            if len(marked) > 1:
+                warnings.append(_("Zweiter Preis — später als Variante anlegen."))
+        elif found:
+            errors.append(_("Mehrere Zahlen — bitte den Preis mit „€“ kennzeichnen."))
+            return None, False, errors, warnings
+        elif _FREE.search(text):
+            price = Decimal("0")
     except ValueError:
         errors.append(_("Preis nicht lesbar — bitte z. B. „3,50“ schreiben."))
         return None, False, errors, warnings
@@ -215,6 +233,9 @@ def _build(idx, raw, name, attrs, kind, today, examples) -> Line:
         duration, attrs = _duration(attrs)
         if duration is None:
             errors.append(_("Dauer fehlt — ohne Dauer gibt es keine freien Termine."))
+        elif duration == DURATION_RANGE:
+            duration = None
+            errors.append(_("Dauer bitte als eine Zahl, z. B. „45 Min“."))
         elif not MIN_DURATION <= duration <= MAX_DURATION:
             errors.append(_("Dauer zwischen 5 Minuten und 10 Stunden angeben."))
     elif kind == "zimmer":
@@ -296,6 +317,16 @@ def parse_lines(text: str, kind: str, *, examples=frozenset(), today=None) -> Pa
         raws = raws[:MAX_LINES]
     lines, seen = [], set()
     for idx, raw in enumerate(raws):
+        if len(raw) > MAX_LINE:
+            lines.append(
+                Line(
+                    idx=idx,
+                    raw=raw[:MAX_LINE],
+                    name=raw[:MAX_NAME].strip(),
+                    errors=(_("Zeile zu lang — bitte kürzer fassen."),),
+                )
+            )
+            continue
         cleaned = _clean(raw)
         name, attrs = _split(cleaned, kind)
         line = _build(idx, raw, name, attrs, kind, today, examples)
@@ -313,7 +344,11 @@ def validate_row(data: dict, kind: str, *, idx: int = 0, today=None) -> Line:
     Имя берётся как есть: разделители внутри — часть имени."""
     _check_kind(kind)
     today = today or timezone.localdate()
-    values = {f: str(data.get(f) or "").strip()[:200] for f in ("duration", "guests", "starts_at")}
+    own = {"termine": "duration", "zimmer": "guests", "tickets": "starts_at"}.get(kind)
+    values = {
+        f: str(data.get(f) or "").strip()[:200] if f == own else ""
+        for f in ("duration", "guests", "starts_at")
+    }
     # Таблица присылает голые числа («45», «2») — дописываем единицу, как в строке.
     if values["duration"].isdigit():
         values["duration"] += " Min"

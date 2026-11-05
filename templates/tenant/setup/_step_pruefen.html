@@ -32,7 +32,7 @@
         {% endif %}
         <label class="flex flex-col gap-1">{% trans "Preis" %}<input name="row_{{ forloop.counter0 }}_price" value="{{ r.price }}" inputmode="decimal" class="ui-input p-2"{% if r.errors %} aria-describedby="pruefen-e{{ forloop.counter0 }}"{% endif %}></label>
       </div>
-      {% if r.example %}<input type="hidden" name="row_{{ forloop.counter0 }}_example" value="1"><span class="inline-block text-xs text-amber-800 bg-amber-100 rounded-full px-2 py-0.5">{% trans "Beispiel — Preis prüfen" %}</span>{% endif %}
+      {% if r.example %}<span class="inline-block text-xs text-amber-800 bg-amber-100 rounded-full px-2 py-0.5">{% trans "Beispiel — Preis prüfen" %}</span>{% endif %}
       {% if r.errors %}<p id="pruefen-e{{ forloop.counter0 }}" class="text-sm text-red-800">{{ r.errors|join:" " }}</p>{% endif %}
       {% for w in r.warnings %}<p class="text-sm text-amber-800 bg-amber-50 rounded-lg px-2 py-1">{{ w }}</p>{% endfor %}
     </li>

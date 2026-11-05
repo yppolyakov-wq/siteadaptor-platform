@@ -32663,3 +32663,46 @@ msgstr[0] "Добавить %(n)s предложение"
 msgstr[1] "Добавить %(n)s предложения"
 msgstr[2] "Добавить %(n)s предложений"
 msgstr[3] "Добавить %(n)s предложения"
+
+#: apps/core/offer_batch.py
+msgid "Dauer bitte als eine Zahl, z. B. „45 Min“."
+msgstr "Укажите длительность одним числом, например «45 Min»."
+
+#: apps/core/offer_batch.py
+msgid "Für buchbare Termine fehlt noch ein Mitarbeiter (Ressourcen)."
+msgstr "Для записи пока нет сотрудника (раздел «Ресурсы»)."
+
+#: apps/core/offer_batch.py
+msgid "Höchstens 50 Zeilen auf einmal — bitte aufteilen."
+msgstr "Не больше 50 строк за раз — разделите список."
+
+#: apps/core/offer_batch.py
+msgid "Keine Zeile ausgewählt."
+msgstr "Не выбрано ни одной строки."
+
+#: apps/core/offer_batch.py
+msgid "Mehrere Zahlen — bitte den Preis mit „€“ kennzeichnen."
+msgstr "Несколько чисел — отметьте цену знаком «€»."
+
+#: apps/core/offer_batch.py
+#, python-format
+msgid "Ohne Jahr — %(year)s angenommen."
+msgstr "Без года — принят %(year)s."
+
+#: apps/core/offer_batch.py
+#, python-format
+msgid "Schon angelegt: %(n)s"
+msgstr "Уже добавлено: %(n)s"
+
+#: apps/core/offer_batch.py
+msgid "Zeile zu lang — bitte kürzer fassen."
+msgstr "Строка слишком длинная — сократите её."
+
+#: apps/core/offer_batch.py
+msgid "konnte nicht angelegt werden"
+msgstr "не удалось добавить"
+
+#: apps/core/offer_batch.py
+#, python-format
+msgid "und %(n)s weitere"
+msgstr "и ещё %(n)s"

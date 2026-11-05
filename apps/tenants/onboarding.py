@@ -386,6 +386,9 @@ def get_state(tenant) -> dict:
         state["source"] = raw["source"]
     if raw.get("flow") == "v4":  # AIS-W W4-1: мастер v4 (ставит регистрация)
         state["flow"] = "v4"
+    batches = raw.get("offer_batches")  # AIS-W W4-2: кольцо идемпотентности «Übernehmen»
+    if isinstance(batches, list):
+        state["offer_batches"] = [b for b in batches if isinstance(b, dict)][-10:]
     return state
 
 
@@ -435,6 +438,16 @@ def touch_start(tenant) -> None:
 
 def save_state(tenant, state: dict) -> None:
     config = tenant.site_config if isinstance(tenant.site_config, dict) else {}
+    # AIS-W W4-2: кольцо «Übernehmen» пишет offer_batch.confirm под блокировкой; запрос,
+    # загрузивший тенанта раньше, не должен его стереть — берём свежее из БД.
+    fresh = (
+        type(tenant).objects.filter(pk=tenant.pk).values_list("site_config", flat=True).first()
+        if tenant.pk
+        else None
+    )
+    fresh_batches = ((fresh or {}).get("onboarding") or {}).get("offer_batches")
+    if isinstance(fresh_batches, list) and fresh_batches:
+        state = {**state, "offer_batches": fresh_batches}
     config["onboarding"] = state
     tenant.site_config = config
     tenant.save(update_fields=["site_config", "updated_at"])

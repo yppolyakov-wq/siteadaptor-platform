@@ -12,9 +12,9 @@ from __future__ import annotations
 import logging
 import uuid
 from dataclasses import dataclass, field
-from decimal import Decimal
+from decimal import ROUND_HALF_UP, Decimal
 
-from django.db import transaction
+from django.db import DatabaseError, transaction
 from django.utils.translation import gettext as _
 
 from apps.core import offer_lines
@@ -42,6 +42,7 @@ class Report:
     staff: str = ""
     error: str = ""
     replay: bool = False
+    staff_missing: bool = False
 
     def as_dict(self) -> dict:
         return {
@@ -91,33 +92,45 @@ def clear_draft(request) -> None:
     request.session.pop(SESSION_KEY, None)
 
 
+class TooManyRows(ValueError):
+    """Отмеченных строк больше MAX_LINES — отказ целиком (не обрезаем молча)."""
+
+
 def rows_from_post(post) -> list[dict]:
-    """Строки таблицы из POST (не больше MAX_LINES; лишнее — отказ выше)."""
+    """Строки таблицы из POST. Индексы берутся по самим ключам (`row_<i>_name`), а не только
+    по `row_count`: подделанный/обрезанный счётчик не прячет отмеченную строку из отчёта."""
     try:
         count = int(post.get("row_count", "0"))
     except ValueError:
         count = 0
-    rows = []
-    for i in range(min(max(count, 0), offer_lines.MAX_LINES)):
-        rows.append(
-            {
-                "on": bool(post.get(f"row_{i}_on")),
-                "name": post.get(f"row_{i}_name", ""),
-                "price": post.get(f"row_{i}_price", ""),
-                "duration": post.get(f"row_{i}_duration", ""),
-                "guests": post.get(f"row_{i}_guests", ""),
-                "starts_at": post.get(f"row_{i}_starts_at", ""),
-                "example": bool(post.get(f"row_{i}_example")),
-            }
-        )
-    return rows
+    seen = {
+        int(k.split("_")[1])
+        for k in post
+        if k.startswith("row_") and k.split("_")[1].isdigit() and len(k.split("_")[1]) <= 4
+    }
+    total = max([count, *(i + 1 for i in seen)]) if (seen or count > 0) else 0
+    if total > offer_lines.MAX_LINES:
+        if any(post.get(f"row_{i}_on") for i in range(offer_lines.MAX_LINES, total)):
+            raise TooManyRows(total)
+        total = offer_lines.MAX_LINES
+    return [
+        {
+            "on": bool(post.get(f"row_{i}_on")),
+            "name": post.get(f"row_{i}_name", ""),
+            "price": post.get(f"row_{i}_price", ""),
+            "duration": post.get(f"row_{i}_duration", ""),
+            "guests": post.get(f"row_{i}_guests", ""),
+            "starts_at": post.get(f"row_{i}_starts_at", ""),
+        }
+        for i in range(total)
+    ]
 
 
 def _existing_names(kind: str) -> set[str]:
     if ENTITY_FOR[kind] == "product":
         from apps.catalog.models import Product
 
-        return {(p.name_text or "").casefold() for p in Product.objects.all().only("name")}
+        return {(p.name_text or "").casefold() for p in Product.objects.all()}
     if kind == "termine":
         from apps.booking.models import Service
 
@@ -132,7 +145,7 @@ def _existing_names(kind: str) -> set[str]:
 
 
 def _cents(price: Decimal | None) -> int:
-    return int((price or Decimal("0")) * 100)
+    return int(((price or Decimal("0")) * 100).to_integral_value(ROUND_HALF_UP))
 
 
 def _create(tenant, kind: str, line: offer_lines.Line) -> None:
@@ -173,66 +186,108 @@ def staff_name(tenant, user) -> str:
     return (full or tenant.name or _("Team"))[:100]
 
 
-def _ensure_staff(tenant, user) -> str:
-    """Termine: без активного мастера слотов нет — создаём одного на имя владельца."""
+def _ensure_staff(tenant, user) -> str | None:
+    """Termine: без активного мастера слотов нет — создаём одного на имя владельца.
+
+    "" — мастер уже есть; None — создать нельзя (ресурсы правит право настроек, а не
+    ассортимента: сотрудник без него не заводит ресурс мимо своего экрана)."""
     from apps.booking.models import Resource
+    from apps.core.permissions import has_perm
 
     if Resource.objects.filter(is_active=True, type=Resource.TYPE_STAFF).exists():
         return ""
+    if not has_perm(user, "einstellungen.edit"):
+        return None
     name = staff_name(tenant, user)
     Resource.objects.create(name=name, type=Resource.TYPE_STAFF, capacity=1)
     return name
 
 
+def _example_names(tenant, kind: str) -> set[str]:
+    """Имена образцов «Beispiele einfügen» — считаем их на сервере, не по флагу из POST."""
+    from apps.core import offer_examples
+
+    text = offer_examples.examples_for(tenant.business_type, kind)
+    return {x.name.casefold() for x in offer_lines.parse_lines(text, kind).lines}
+
+
 def confirm(request, tenant) -> Report:
-    """Создать отмеченные строки черновика. Ничего не пишет при протухшем черновике."""
+    """Создать отмеченные строки черновика. Ничего не пишет при протухшем черновике,
+    пустом выборе или если ни одна строка не создана (черновик остаётся — можно поправить)."""
     from apps.core import readiness
     from apps.tenants.models import Tenant
 
     draft = get_draft(request)
     batch = request.POST.get("batch", "")
-    if not draft or not batch or draft["batch"] != batch:
+    if not draft or not batch or draft.get("batch") != batch:
         return Report(error=_("Vorschau abgelaufen — bitte erneut prüfen."))
     kind = draft["kind"]
     if kind not in offer_kinds(tenant, request.user):
         return Report(error=_("Dafür fehlt Ihnen die Berechtigung."))
-    rows = rows_from_post(request.POST)
+    try:
+        rows = rows_from_post(request.POST)
+    except TooManyRows:
+        return Report(error=_("Höchstens 50 Zeilen auf einmal — bitte aufteilen."))
     picked = [(i, r) for i, r in enumerate(rows) if r["on"]]
+    if not picked:
+        return Report(error=_("Keine Zeile ausgewählt."))
+    examples = _example_names(tenant, kind)
     report = Report()
+    replay = None
     try:
         with transaction.atomic():
             locked = Tenant.objects.select_for_update().get(pk=tenant.pk)
             cfg = dict(locked.site_config or {})
             state = dict(cfg.get("onboarding") or {})
             ring = [x for x in state.get("offer_batches") or [] if isinstance(x, dict)]
-            for done in ring:
-                if done.get("id") == batch:
-                    return Report.from_dict(done.get("report") or {})
-            seen = _existing_names(kind)
-            for i, row in picked:
-                line = offer_lines.validate_row(row, kind, idx=i)
-                if line.errors:
-                    report.skipped.append((line.name or row["name"][:60], str(line.errors[0])))
-                    continue
-                key = line.name.casefold()
-                if key in seen:
-                    report.skipped.append((line.name, _("gibt es schon")))
-                    continue
-                _create(tenant, kind, line)
-                seen.add(key)
-                report.created.append(line.name)
-                report.examples += int(row["example"])
-            if kind == "termine" and report.created:
-                report.staff = _ensure_staff(tenant, request.user)
-            ring.append({"id": batch, "report": report.as_dict()})
-            state["offer_batches"] = ring[-_BATCH_RING:]
-            cfg["onboarding"] = state
-            locked.site_config = cfg
-            locked.save(update_fields=["site_config"])
-            tenant.site_config = cfg
-            transaction.on_commit(lambda: readiness.invalidate(tenant))
-    except Exception:
+            replay = next((x for x in ring if x.get("id") == batch), None)
+            if replay is None:
+                _create_rows(tenant, kind, picked, examples, report)
+                if kind == "termine" and report.created:
+                    staff = _ensure_staff(tenant, request.user)
+                    if staff is None:
+                        report.staff_missing = True
+                    report.staff = staff or ""
+                if report.created:
+                    ring.append({"id": batch, "report": report.as_dict()})
+                    state["offer_batches"] = ring[-_BATCH_RING:]
+                    cfg["onboarding"] = state
+                    locked.site_config = cfg
+                    locked.save(update_fields=["site_config"])
+                    tenant.site_config = cfg
+                    transaction.on_commit(lambda: readiness.invalidate(tenant))
+    except DatabaseError:
         logger.exception("offer batch %s failed (kind=%s)", batch, kind)
         return Report(error=_("Nichts angelegt — bitte erneut versuchen."))
-    clear_draft(request)
+    if replay is not None:
+        clear_draft(request)
+        return Report.from_dict(replay.get("report") or {})
+    if report.created:
+        clear_draft(request)
     return report
+
+
+def _create_rows(tenant, kind, picked, examples, report) -> None:
+    """Каждая строка — свой savepoint: сбой одной (длина поля, переполнение) не валит пачку
+    и попадает в отчёт с причиной; остальные создаются."""
+    seen = _existing_names(kind)
+    for i, row in picked:
+        line = offer_lines.validate_row(row, kind, idx=i)
+        label = line.name or row["name"][:60] or f"#{i + 1}"
+        if line.errors:
+            report.skipped.append((label, str(line.errors[0])))
+            continue
+        key = line.name.casefold()
+        if key in seen:
+            report.skipped.append((line.name, _("gibt es schon")))
+            continue
+        try:
+            with transaction.atomic():
+                _create(tenant, kind, line)
+        except DatabaseError:
+            logger.exception("offer batch row failed (kind=%s, row=%s)", kind, i)
+            report.skipped.append((line.name, _("konnte nicht angelegt werden")))
+            continue
+        seen.add(key)
+        report.created.append(line.name)
+        report.examples += int(key in examples)
