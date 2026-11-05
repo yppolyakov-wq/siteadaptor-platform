@@ -32287,3 +32287,7 @@ msgstr "Künyeniz böyle görünür"
 #: apps/core/setup_steps.py
 msgid "Website veröffentlichen"
 msgstr "Web sitesini yayınla"
+
+#: apps/core/setup_steps.py
+msgid "Bitte eine gültige E-Mail-Adresse eingeben."
+msgstr "Lütfen geçerli bir e-posta adresi girin."

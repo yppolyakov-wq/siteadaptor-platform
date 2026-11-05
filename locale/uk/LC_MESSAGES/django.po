@@ -32423,3 +32423,7 @@ msgstr "Так виглядає ваш Impressum"
 #: apps/core/setup_steps.py
 msgid "Website veröffentlichen"
 msgstr "Опублікувати сайт"
+
+#: apps/core/setup_steps.py
+msgid "Bitte eine gültige E-Mail-Adresse eingeben."
+msgstr "Введіть коректну адресу електронної пошти."

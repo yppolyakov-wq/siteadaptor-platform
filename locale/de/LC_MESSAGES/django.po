@@ -32228,3 +32228,7 @@ msgstr "So sieht Ihr Impressum aus"
 #: apps/core/setup_steps.py
 msgid "Website veröffentlichen"
 msgstr "Website veröffentlichen"
+
+#: apps/core/setup_steps.py
+msgid "Bitte eine gültige E-Mail-Adresse eingeben."
+msgstr "Bitte eine gültige E-Mail-Adresse eingeben."

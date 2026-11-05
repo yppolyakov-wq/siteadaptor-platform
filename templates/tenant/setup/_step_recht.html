@@ -5,7 +5,7 @@
 <h1 class="text-2xl font-bold mb-1">{% trans "Rechtliches & Veröffentlichen" %}</h1>
 <p class="text-sm text-gray-500 mb-4">{% trans "Ihr Impressum entsteht aus diesen Angaben. Danach geht Ihre Website online." %}</p>
 {% if published %}
-<div class="ui-card p-4 mb-4 text-sm" data-recht-published>✅ {% trans "Ihre Website ist online." %}</div>
+<div class="ui-card p-4 mb-4 text-sm" role="status" data-recht-published><span aria-hidden="true">✅</span> {% trans "Ihre Website ist online." %}</div>
 {% endif %}
 <form method="post" class="space-y-4" data-recht-form>
   {% csrf_token %}
@@ -30,25 +30,25 @@
     <legend class="block text-sm font-medium mb-1">{% trans "Besteuerung" %}</legend>
     <div class="flex flex-wrap gap-3 text-sm">
       {% for value, text in tax_choices %}
-      <label class="inline-flex items-center gap-2"><input type="radio" name="tax_choice" value="{{ value }}"{% if value == tax_current %} checked{% endif %}> {{ text }}</label>
+      <label class="inline-flex items-center gap-2 min-h-[44px] px-2"><input type="radio" name="tax_choice" value="{{ value }}" class="h-5 w-5"{% if value == tax_current %} checked{% endif %}> {{ text }}</label>
       {% endfor %}
     </div>
   </fieldset>
   {% if regulated and trade_missing %}
-  <p class="text-sm text-amber-800 bg-amber-50 rounded-lg p-3" data-recht-trade-warning>{% trans "Für ein zulassungspflichtiges Handwerk gehören die zuständige Kammer und die Berufsbezeichnung ins Impressum." %}</p>
+  <p class="text-sm text-amber-800 bg-amber-50 rounded-lg p-3" role="note" data-recht-trade-warning><span aria-hidden="true">⚠️</span> {% trans "Für ein zulassungspflichtiges Handwerk gehören die zuständige Kammer und die Berufsbezeichnung ins Impressum." %}</p>
   {% endif %}
   {% endif %}
 
   <section class="ui-card p-4" aria-labelledby="recht-preview-h">
     <h2 id="recht-preview-h" class="text-sm font-semibold mb-2">{% trans "So sieht Ihr Impressum aus" %}</h2>
-    <pre class="whitespace-pre-wrap text-sm text-gray-700 font-sans" data-recht-preview>{{ impressum_preview }}</pre>
-    <a href="/datenschutz/" target="_blank" rel="noopener" class="text-sm text-indigo-700 hover:underline">{% trans "Datenschutzerklärung ansehen" %} →</a>
+    <pre class="whitespace-pre-wrap break-words text-sm text-gray-700 font-sans" data-recht-preview>{{ impressum_preview }}</pre>
+    <a href="/datenschutz/" target="_blank" rel="noopener" class="text-sm text-indigo-700 hover:underline">{% trans "Datenschutzerklärung ansehen" %} <span aria-hidden="true">→</span></a>
   </section>
 
   {% if not published %}
   {% if blockers %}
-  <div id="recht-blockers" class="text-sm" data-recht-blockers>
-    <p class="font-medium mb-1">{% trans "Noch nicht veröffentlicht. Es fehlt:" %}</p>
+  <div class="text-sm" data-recht-blockers>
+    <p id="recht-blockers" class="font-medium mb-1">{% trans "Noch nicht veröffentlicht. Es fehlt:" %}</p>
     <ul class="list-disc pl-5 space-y-1">
       {% for b in blockers %}<li>{% if b.url %}<a href="{{ b.url }}" class="text-indigo-700 hover:underline">{{ b.label }}</a>{% else %}{{ b.label }}{% endif %}</li>{% endfor %}
     </ul>
@@ -56,11 +56,12 @@
   {% endif %}
   {% endif %}
 
+  {% comment %}Порядок кнопок: первая submit-кнопка формы срабатывает по Enter в поле — это «Speichern», а не «Zurück» (ревью a11y).{% endcomment %}
   <div class="flex flex-wrap items-center gap-3 pt-2">
-    {% if step_num > 1 %}<button type="submit" name="action" value="back" formnovalidate class="text-sm text-gray-500 px-3 py-2.5 hover:underline">← {% trans "Zurück" %}</button>{% endif %}
     {% if not tg_locked %}<button type="submit" class="ui-btn">{% trans "Speichern" %}</button>{% endif %}
     {% if not published %}
-    <button type="submit" name="action" value="publish" class="ui-btn ui-btn-primary"{% if blockers %} aria-describedby="recht-blockers"{% endif %} data-recht-publish>🚀 {% trans "Website veröffentlichen" %}</button>
+    <button type="submit" name="action" value="publish" class="ui-btn ui-btn-primary"{% if blockers %} aria-describedby="recht-blockers"{% endif %} data-recht-publish><span aria-hidden="true">🚀</span> {% trans "Website veröffentlichen" %}</button>
     {% endif %}
+    {% if step_num > 1 %}<button type="submit" name="action" value="back" formnovalidate class="text-sm text-gray-600 px-3 py-2.5 hover:underline"><span aria-hidden="true">←</span> {% trans "Zurück" %}</button>{% endif %}
   </div>
 </form>

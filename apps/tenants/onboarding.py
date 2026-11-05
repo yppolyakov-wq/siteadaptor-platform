@@ -112,7 +112,12 @@ def _gate_payment(t) -> bool:
 
 
 def is_v4(t) -> bool:
-    """Мастер v4: ставит регистрация при SETUP_WIZARD_V4 (`flow` + неопубликованный сайт)."""
+    """Мастер v4: ставит регистрация при SETUP_WIZARD_V4 (`flow` + неопубликованный сайт).
+
+    Неопубликованный сайт — всегда v4, даже если снимочный писатель уронил ключ
+    `onboarding`: опубликовать его можно только шагом «recht»."""
+    if getattr(t, "published_at", True) is None:
+        return True
     cfg = t.site_config if isinstance(t.site_config, dict) else {}
     raw = cfg.get("onboarding") if isinstance(cfg.get("onboarding"), dict) else {}
     return raw.get("flow") == "v4"

@@ -32141,3 +32141,7 @@ msgstr "This is what your imprint looks like"
 #: apps/core/setup_steps.py
 msgid "Website veröffentlichen"
 msgstr "Publish website"
+
+#: apps/core/setup_steps.py
+msgid "Bitte eine gültige E-Mail-Adresse eingeben."
+msgstr "Please enter a valid email address."

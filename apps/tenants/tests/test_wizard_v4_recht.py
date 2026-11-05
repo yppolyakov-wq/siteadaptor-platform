@@ -114,3 +114,27 @@ def test_recht_step_renders_fields_preview_and_blockers():
     assert "data-recht-form" in html and "data-recht-preview" in html
     assert "data-recht-blockers" in html and "data-recht-publish" in html
     assert 'name="chamber"' in html and "data-recht-trade-warning" in html
+
+
+def test_recht_rejects_bad_email_and_ignores_forged_legal_form():
+    tenant = _v4(slug="bad", legal_form="gmbh")
+    onboarding.goto(tenant, "recht")
+    core_views.setup_view(_req("post", {"contact_email": "kein-email"}, tenant))
+    tenant.refresh_from_db()
+    assert tenant.contact_email != "kein-email"
+    core_views.setup_view(_req("post", {"legal_form": "<script>"}, tenant))
+    tenant.refresh_from_db()
+    assert tenant.legal_form == "gmbh"
+
+
+def test_unpublished_site_stays_v4_even_without_onboarding_key():
+    tenant = TenantFactory.build(business_type="bakery", site_config={}, published_at=None)
+    assert onboarding.is_v4(tenant)
+    assert "recht" in onboarding.visible_keys(tenant)
+
+
+def test_save_button_comes_before_back_for_implicit_submit():
+    tenant = _v4(slug="ord")
+    onboarding.goto(tenant, "recht")
+    html = core_views.setup_view(_req("get", tenant=tenant)).content.decode()
+    assert html.index("Speichern") < html.index('value="back"')

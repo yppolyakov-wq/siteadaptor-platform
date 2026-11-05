@@ -239,19 +239,36 @@ def _post_recht(request):
         # SEC-A11: из Telegram-сессии правовые данные не меняются.
         messages.error(request, _("Rechtliche Angaben nur nach Anmeldung per E-Mail."))
         return False
-    changed = []
-    for field in _recht_fields(tenant):
-        if field in request.POST:
-            max_len = tenant._meta.get_field(field).max_length or 200
-            setattr(tenant, field, request.POST.get(field, "").strip()[:max_len])
-            changed.append(field)
+    from django.core.exceptions import ValidationError
+    from django.core.validators import validate_email
+
+    values = {
+        field: request.POST.get(field, "").strip()[
+            : tenant._meta.get_field(field).max_length or 200
+        ]
+        for field in _recht_fields(tenant)
+        if field in request.POST
+    }
+    email = values.get("contact_email")
+    if email:
+        try:
+            validate_email(email)
+        except ValidationError:
+            messages.error(request, _("Bitte eine gültige E-Mail-Adresse eingeben."))
+            return False
+    if values.get("legal_form") and values["legal_form"] not in dict(tenant.LEGAL_FORMS):
+        values.pop("legal_form")  # подмена значения формы — не пишем мусор в Impressum
+    for field, value in values.items():
+        setattr(tenant, field, value)
+    changed = list(values)
     if "tax_choice" in request.POST:
         from apps.finance import ustva
 
-        ustva.apply_regime(tenant, request.POST.get("tax_choice", ""))
-        changed += ["small_business", "tax_regime"]
+        if ustva.apply_regime(tenant, request.POST.get("tax_choice", "")):
+            changed += ["small_business", "tax_regime"]
     if changed:
         tenant.save(update_fields=[*changed, "updated_at"])
+        messages.success(request, _("Gespeichert."))
     return True
 
 

@@ -22,7 +22,7 @@
       {% if logo_url %}<img src="{{ logo_url }}" alt="{% trans 'Logo' %}" class="h-12 w-12 object-contain rounded border border-gray-200 bg-white">{% endif %}
       <input id="id_logo" name="logo" type="file" accept="image/*" class="block w-full text-sm text-gray-600">
     </div>
-    <p class="text-xs text-gray-400 mt-1">{% trans "Erscheint in der Kopfzeile statt des Namens." %}</p>
+    <p class="text-xs text-gray-600 mt-1">{% trans "Erscheint in der Kopfzeile statt des Namens." %}</p>
   </div>
   <div>
     <label class="block text-sm font-medium mb-1" for="id_address">{% trans "Adresse" %}</label>
@@ -31,7 +31,7 @@
   {% if hours_grid %}
   <fieldset data-setup-hours>
     <legend class="block text-sm font-medium mb-1">{% trans "Öffnungszeiten" %}</legend>
-    <p class="text-xs text-gray-500 mb-2">{% trans "Set open/close per day for the live “Open now” badge. Leave a day empty = closed." %}</p>
+    <p class="text-xs text-gray-600 mb-2">{% trans "Set open/close per day for the live “Open now” badge. Leave a day empty = closed." %}</p>
     <input type="hidden" name="oh_present" value="1">
     {% include "tenant/_hours_grid.html" %}
   </fieldset>
