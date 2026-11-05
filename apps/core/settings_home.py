@@ -26,7 +26,7 @@ _STATIC = {
     "ablaeufe": _("Status-Namen, Übergänge, Spalten"),
     "extras": _("Extras & Optionen zu Verkäufen"),
     "support:help": _("Anleitungen & Kontakt"),
-    "modules": _("Module an- und abschalten"),
+    "modules": _("Wie Sie verkaufen und welche Funktionen"),
 }
 
 

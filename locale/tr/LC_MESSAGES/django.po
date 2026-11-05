@@ -32999,3 +32999,91 @@ msgstr "%(f)s, kapalı olan başka bir işleve ihtiyaç duyuyor."
 #: apps/core/diagnoses.py
 msgid "Die Suche konnte nicht ausgeführt werden — bitte später erneut versuchen."
 msgstr "Arama yapılamadı — lütfen daha sonra tekrar deneyin."
+
+#: apps/core/directions_screen.py
+msgid "Ausgeschaltete Grundfunktionen"
+msgstr "Kapatılmış temel işlevler"
+
+#: apps/core/directions_screen.py
+msgid "Ausschalten"
+msgstr "Kapat"
+
+#: apps/core/directions_screen.py
+msgid "Diese Funktionen gehören normalerweise zu jedem Geschäft."
+msgstr "Bu işlevler normalde her işletmede bulunur."
+
+#: apps/core/directions_screen.py
+msgid "Diese Richtung ergibt sich aus Ihrem Angebot."
+msgstr "Bu yön sunduğunuz üründen gelir."
+
+#: apps/core/directions_screen.py
+msgid "Einschalten"
+msgstr "Aç"
+
+#: apps/core/directions_screen.py
+msgid "Ergibt sich aus Ihrem Angebot."
+msgstr "Sunduğunuz üründen gelir."
+
+#: apps/core/directions_screen.py
+msgid "Ihre Richtungen"
+msgstr "Yönleriniz"
+
+#: apps/core/directions_screen.py
+msgid "Immer eingeschaltet."
+msgstr "Her zaman açık."
+
+#: apps/core/directions_screen.py
+msgid "In Ihrem Paket immer eingeschaltet."
+msgstr "Paketinizde her zaman açık."
+
+#: apps/core/directions_screen.py
+msgid "Konnte nicht gespeichert werden."
+msgstr "Kaydedilemedi."
+
+#: apps/core/directions_screen.py
+msgid "Nicht im Paket."
+msgstr "Pakette yok."
+
+#: apps/core/directions_screen.py
+msgid "Noch keine Richtung — wählen Sie unten, wie Sie verkaufen."
+msgstr "Henüz yön yok — aşağıda nasıl sattığınızı seçin."
+
+#: apps/core/directions_screen.py
+msgid "Online-Verkauf ausschalten"
+msgstr "Online satışı kapat"
+
+#: apps/core/directions_screen.py
+msgid "Online-Verkauf einschalten"
+msgstr "Online satışı aç"
+
+#: apps/core/directions_screen.py
+msgid "Online-Verkauf ist eingeschaltet."
+msgstr "Online satış açık."
+
+#: apps/core/directions_screen.py
+msgid "Produkte werden gezeigt, online verkauft wird noch nicht."
+msgstr "Ürünler gösteriliyor, henüz online satılmıyor."
+
+#: apps/core/directions_screen.py
+msgid "Richtungen & Funktionen"
+msgstr "Yönler ve işlevler"
+
+#: apps/core/directions_screen.py
+msgid "Weitere Richtung hinzufügen"
+msgstr "Başka bir yön ekle"
+
+#: apps/core/directions_screen.py
+msgid "Wie Sie verkaufen und welche Funktionen"
+msgstr "Nasıl sattığınız ve hangi işlevler"
+
+#: apps/core/directions_screen.py
+msgid "Wie verkaufen Sie? Schalten Sie Richtungen und Zusatzfunktionen ein oder aus — Ihre Daten bleiben erhalten."
+msgstr "Nasıl satıyorsunuz? Yönleri ve ek işlevleri açıp kapatın — verileriniz korunur."
+
+#: apps/core/directions_screen.py
+msgid "Zusatzfunktionen"
+msgstr "Ek işlevler"
+
+#: apps/core/directions_screen.py
+msgid "Wird von einer anderen Richtung genutzt."
+msgstr "Başka bir yön tarafından kullanılıyor."

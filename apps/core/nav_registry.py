@@ -1005,11 +1005,11 @@ ENTRIES: tuple[NavEntry, ...] = (
     _e(
         "settings",
         "modules",
-        _("Funktionen"),
+        _("Richtungen & Funktionen"),
         "modules",
         None,
         True,
-        "module aktivieren",
+        "module aktivieren funktionen richtung verkaufen wie",
         group="system",
     ),
     # W12-1: режим кабинета одним экраном (Einfach/Experte + «что скрыто»).

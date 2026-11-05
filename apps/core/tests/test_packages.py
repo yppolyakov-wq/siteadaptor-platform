@@ -154,9 +154,11 @@ def test_modules_page_save_does_not_write_the_package_ceiling():
     html = views.modules_view(get).content.decode()
     assert "Nicht im Paket" in html or "Not in your package" in html
 
-    # Подделанный POST: включить gift и выключить blog — оба вне пакета, выбор из БД цел.
-    keys = [s.key for s in modules.optional_modules() if s.key != "blog"]
-    post = RequestFactory().post("/dashboard/modules/", {"modules": keys})
+    # Подделанный POST: включить gift вне пакета — выбор из БД цел.
+    # AIS-M M-1c: протокол экрана — одна карточка = один ключ.
+    post = RequestFactory().post(
+        "/dashboard/modules/", {"action": "module", "key": "gift", "on": "1"}
+    )
     post.session = import_module(dj_settings.SESSION_ENGINE).SessionStore()
     post.tenant, post.user = tenant, user
     MessageMiddleware(lambda r: None).process_request(post)

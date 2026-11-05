@@ -33141,3 +33141,91 @@ msgstr "Для «%(f)s» потрібна інша функція, а її ви�
 #: apps/core/diagnoses.py
 msgid "Die Suche konnte nicht ausgeführt werden — bitte später erneut versuchen."
 msgstr "Пошук не вдалося виконати — спробуйте пізніше."
+
+#: apps/core/directions_screen.py
+msgid "Ausgeschaltete Grundfunktionen"
+msgstr "Вимкнені базові функції"
+
+#: apps/core/directions_screen.py
+msgid "Ausschalten"
+msgstr "Вимкнути"
+
+#: apps/core/directions_screen.py
+msgid "Diese Funktionen gehören normalerweise zu jedem Geschäft."
+msgstr "Ці функції зазвичай є в кожного бізнесу."
+
+#: apps/core/directions_screen.py
+msgid "Diese Richtung ergibt sich aus Ihrem Angebot."
+msgstr "Цей напрям випливає з вашого асортименту."
+
+#: apps/core/directions_screen.py
+msgid "Einschalten"
+msgstr "Увімкнути"
+
+#: apps/core/directions_screen.py
+msgid "Ergibt sich aus Ihrem Angebot."
+msgstr "Випливає з вашого асортименту."
+
+#: apps/core/directions_screen.py
+msgid "Ihre Richtungen"
+msgstr "Ваші напрями"
+
+#: apps/core/directions_screen.py
+msgid "Immer eingeschaltet."
+msgstr "Завжди ввімкнено."
+
+#: apps/core/directions_screen.py
+msgid "In Ihrem Paket immer eingeschaltet."
+msgstr "У вашому пакеті завжди ввімкнено."
+
+#: apps/core/directions_screen.py
+msgid "Konnte nicht gespeichert werden."
+msgstr "Не вдалося зберегти."
+
+#: apps/core/directions_screen.py
+msgid "Nicht im Paket."
+msgstr "Немає в пакеті."
+
+#: apps/core/directions_screen.py
+msgid "Noch keine Richtung — wählen Sie unten, wie Sie verkaufen."
+msgstr "Поки немає напряму — оберіть нижче, як ви продаєте."
+
+#: apps/core/directions_screen.py
+msgid "Online-Verkauf ausschalten"
+msgstr "Вимкнути онлайн-продаж"
+
+#: apps/core/directions_screen.py
+msgid "Online-Verkauf einschalten"
+msgstr "Увімкнути онлайн-продаж"
+
+#: apps/core/directions_screen.py
+msgid "Online-Verkauf ist eingeschaltet."
+msgstr "Онлайн-продаж увімкнено."
+
+#: apps/core/directions_screen.py
+msgid "Produkte werden gezeigt, online verkauft wird noch nicht."
+msgstr "Товари показуються, онлайн поки не продаються."
+
+#: apps/core/directions_screen.py
+msgid "Richtungen & Funktionen"
+msgstr "Напрями та функції"
+
+#: apps/core/directions_screen.py
+msgid "Weitere Richtung hinzufügen"
+msgstr "Додати напрям"
+
+#: apps/core/directions_screen.py
+msgid "Wie Sie verkaufen und welche Funktionen"
+msgstr "Як ви продаєте і які функції"
+
+#: apps/core/directions_screen.py
+msgid "Wie verkaufen Sie? Schalten Sie Richtungen und Zusatzfunktionen ein oder aus — Ihre Daten bleiben erhalten."
+msgstr "Як ви продаєте? Вмикайте й вимикайте напрями та додаткові функції — дані зберігаються."
+
+#: apps/core/directions_screen.py
+msgid "Zusatzfunktionen"
+msgstr "Додаткові функції"
+
+#: apps/core/directions_screen.py
+msgid "Wird von einer anderen Richtung genutzt."
+msgstr "Використовується іншим напрямом."

@@ -4310,90 +4310,33 @@ def seo_settings_view(request):
 
 @login_required
 def modules_view(request):
-    """Страница «Module» (Track D / D0b): тумблеры опциональных блоков кабинета.
+    """AIS-M M-1c: «Richtungen & Funktionen» — направления карточками, дополнения по
+    направлениям, базовые модули скрыты (кроме выключенных). Каждая карточка — свой POST
+    с одним ключом (`directions_screen.apply` → единственные писатели под блокировкой).
+    Read-only при gated-подписке обеспечивает SubscriptionGatingMiddleware."""
+    from django.http import HttpResponseBadRequest
 
-    Core-модули показаны задизейбленными; запись — в Tenant.disabled_modules
-    (храним выключенное). Read-only при gated-подписке обеспечивает
-    SubscriptionGatingMiddleware (путь под /dashboard/).
-    """
-    from apps.core import modules as registry
-    from apps.core import packages
+    from apps.core import directions_screen
 
     tenant = request.tenant
-    optional = registry.optional_modules()
     if request.method == "POST":
-        enabled_keys = set(request.POST.getlist("modules"))
-        previously_disabled = set(tenant.disabled_modules or [])
-        # T-8.32a (ревью): вне пакета тумблер заперт — выбор владельца по таким модулям
-        # берём из БД, а не из формы: иначе Save (или подделанный POST) переписал бы его.
-        tenant.disabled_modules = [
-            spec.key
-            for spec in optional
-            if spec.key in previously_disabled and not packages.module_allowed(tenant, spec.key)
-        ] + [
-            spec.key
-            for spec in optional
-            if packages.module_allowed(tenant, spec.key) and spec.key not in enabled_keys
-        ]
-        tenant.save(update_fields=["disabled_modules", "updated_at"])
-        # Гибрид: включение неподходящего вертикали блока — с предупреждением
-        # (осознанный выбор, не запрет).
-        odd = [
-            str(spec.label_de)
-            for spec in optional
-            if spec.key in enabled_keys
-            and spec.key in previously_disabled
-            and not registry.is_suited_for(spec, tenant.business_type)
-        ]
-        if odd:
-            messages.warning(
-                request,
-                _("Note: %(modules)s is untypical for your business type — enabled anyway.")
-                % {"modules": ", ".join(odd)},
-            )
-        messages.success(request, _("Gespeichert."))
+        action = request.POST.get("action", "")
+        key = request.POST.get("key", "")
+        on = request.POST.get("on")
+        if on not in ("0", "1"):
+            return HttpResponseBadRequest()
+        problems = directions_screen.apply(tenant, action, key, on == "1")
+        if problems is None:
+            return HttpResponseBadRequest()
+        for code in dict.fromkeys(problems.values()):
+            messages.warning(request, directions_screen.problem_text(code))
+        if not problems:
+            messages.success(request, _("Gespeichert."))
         return redirect("modules")
-
-    dep_labels = {spec.key: spec.label_de for spec in registry.REGISTRY}
-
-    def _row(spec):
-        return {
-            "spec": spec,
-            "active": registry.is_module_active(tenant, spec.key),
-            "enabled": spec.core or spec.key not in (tenant.disabled_modules or []),
-            "depends_on": [dep_labels[dep] for dep in spec.depends_on],
-            "recommended": tenant.business_type in spec.recommended_for,
-            "suited_label": registry.suited_label(spec),
-            # T-8.32a: вне пакета тумблер заперт (выбор владельца сохраняет POST-ветка).
-            "in_package": spec.core or packages.module_allowed(tenant, spec.key),
-        }
-
-    # AB2 (анти-Битрикс): 3 секции в языке задач —
-    #  «Für Ihr Geschäft empfohlen» (core + подходящие вертикали, не premium),
-    #  «Weitere Funktionen» (универсальные/прочие, не premium),
-    #  «Premium» (premium=True, бейдж тарифа).
-    recommended = [
-        _row(spec)
-        for spec in registry.REGISTRY
-        if not spec.premium and (spec.core or registry.is_suited_for(spec, tenant.business_type))
-    ]
-    other = [
-        _row(spec)
-        for spec in registry.REGISTRY
-        if not spec.premium
-        and not spec.core
-        and not registry.is_suited_for(spec, tenant.business_type)
-    ]
-    premium = [_row(spec) for spec in registry.REGISTRY if spec.premium]
     return render(
         request,
         "tenant/modules.html",
-        {
-            "nav": "modules",
-            "rows": recommended,
-            "other_rows": other,
-            "premium_rows": premium,
-        },
+        {"nav": "modules", **directions_screen.context(tenant)},
     )
 
 

@@ -1,0 +1,21 @@
+{% load i18n %}
+{% comment %}AIS-M M-1c: строка дополнения/базового модуля — одна POST-форма с одним ключом.{% endcomment %}
+<div class="ui-card px-4 py-3 flex items-start gap-3" data-module="{{ row.key }}">
+  <div class="flex-1 min-w-0">
+    <p class="font-medium text-sm"><span aria-hidden="true">{{ row.icon }}</span> {{ row.label }}
+      {% if row.on %}<span class="ui-badge ui-tone-ok ml-1">{% trans "an" %}</span>{% else %}<span class="ui-badge ui-tone-off ml-1">{% trans "aus" %}</span>{% endif %}
+    </p>
+    {% if row.description %}<p class="ui-muted text-xs mt-0.5">{{ row.description }}</p>{% endif %}
+  </div>
+  {% if not row.in_package %}
+    <span class="ui-badge ui-tone-off">{% trans "Nicht im Paket" %}</span>
+  {% elif row.on and row.lite_locked %}
+    <span class="ui-muted text-xs">{% trans "In Ihrem Paket immer eingeschaltet." %}</span>
+  {% else %}
+  <form method="post">
+    {% csrf_token %}<input type="hidden" name="action" value="module"><input type="hidden" name="key" value="{{ row.key }}">
+    <input type="hidden" name="on" value="{% if row.on %}0{% else %}1{% endif %}">
+    <button type="submit" class="ui-btn {% if row.on %}ui-btn-secondary{% else %}ui-btn-primary{% endif %} ui-btn-sm min-h-[44px]">{% if row.on %}{% trans "Ausschalten" %}{% else %}{% trans "Einschalten" %}{% endif %}<span class="sr-only">: {{ row.label }}</span></button>
+  </form>
+  {% endif %}
+</div>

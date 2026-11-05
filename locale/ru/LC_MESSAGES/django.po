@@ -33154,3 +33154,91 @@ msgstr "Для «%(f)s» нужна другая функция, а она вы�
 #: apps/core/diagnoses.py
 msgid "Die Suche konnte nicht ausgeführt werden — bitte später erneut versuchen."
 msgstr "Поиск не удалось выполнить — попробуйте позже."
+
+#: apps/core/directions_screen.py
+msgid "Ausgeschaltete Grundfunktionen"
+msgstr "Выключенные базовые функции"
+
+#: apps/core/directions_screen.py
+msgid "Ausschalten"
+msgstr "Выключить"
+
+#: apps/core/directions_screen.py
+msgid "Diese Funktionen gehören normalerweise zu jedem Geschäft."
+msgstr "Эти функции обычно есть у каждого бизнеса."
+
+#: apps/core/directions_screen.py
+msgid "Diese Richtung ergibt sich aus Ihrem Angebot."
+msgstr "Это направление следует из вашего ассортимента."
+
+#: apps/core/directions_screen.py
+msgid "Einschalten"
+msgstr "Включить"
+
+#: apps/core/directions_screen.py
+msgid "Ergibt sich aus Ihrem Angebot."
+msgstr "Следует из вашего ассортимента."
+
+#: apps/core/directions_screen.py
+msgid "Ihre Richtungen"
+msgstr "Ваши направления"
+
+#: apps/core/directions_screen.py
+msgid "Immer eingeschaltet."
+msgstr "Всегда включено."
+
+#: apps/core/directions_screen.py
+msgid "In Ihrem Paket immer eingeschaltet."
+msgstr "В вашем пакете всегда включено."
+
+#: apps/core/directions_screen.py
+msgid "Konnte nicht gespeichert werden."
+msgstr "Не удалось сохранить."
+
+#: apps/core/directions_screen.py
+msgid "Nicht im Paket."
+msgstr "Нет в пакете."
+
+#: apps/core/directions_screen.py
+msgid "Noch keine Richtung — wählen Sie unten, wie Sie verkaufen."
+msgstr "Пока нет направления — выберите ниже, как вы продаёте."
+
+#: apps/core/directions_screen.py
+msgid "Online-Verkauf ausschalten"
+msgstr "Выключить онлайн-продажу"
+
+#: apps/core/directions_screen.py
+msgid "Online-Verkauf einschalten"
+msgstr "Включить онлайн-продажу"
+
+#: apps/core/directions_screen.py
+msgid "Online-Verkauf ist eingeschaltet."
+msgstr "Онлайн-продажа включена."
+
+#: apps/core/directions_screen.py
+msgid "Produkte werden gezeigt, online verkauft wird noch nicht."
+msgstr "Товары показываются, онлайн пока не продаются."
+
+#: apps/core/directions_screen.py
+msgid "Richtungen & Funktionen"
+msgstr "Направления и функции"
+
+#: apps/core/directions_screen.py
+msgid "Weitere Richtung hinzufügen"
+msgstr "Добавить направление"
+
+#: apps/core/directions_screen.py
+msgid "Wie Sie verkaufen und welche Funktionen"
+msgstr "Как вы продаёте и какие функции"
+
+#: apps/core/directions_screen.py
+msgid "Wie verkaufen Sie? Schalten Sie Richtungen und Zusatzfunktionen ein oder aus — Ihre Daten bleiben erhalten."
+msgstr "Как вы продаёте? Включайте и выключайте направления и дополнительные функции — данные сохраняются."
+
+#: apps/core/directions_screen.py
+msgid "Zusatzfunktionen"
+msgstr "Дополнительные функции"
+
+#: apps/core/directions_screen.py
+msgid "Wird von einer anderen Richtung genutzt."
+msgstr "Используется другим направлением."

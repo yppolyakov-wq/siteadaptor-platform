@@ -152,7 +152,7 @@ def test_settings_submenu_lists_every_screen():
         "Telegram-Bot",  # KA-12 E8.4: свой бот — канал (был в Marketing)
         "Abo & Rechnung",
         "Team & Zugriff",
-        "Funktionen",
+        "Richtungen & Funktionen",  # AIS-M M-1c (было «Funktionen»)
     ):
         assert lbl in kids, lbl
     # SM-4: отчёты/домены переехали в другие разделы — здесь их нет

@@ -1,0 +1,32 @@
+{% load i18n %}
+{% comment %}AIS-M M-1c: карточка направления — описание и одна POST-форма (одно направление, одно состояние).{% endcomment %}
+<div class="ui-card p-4 flex flex-col gap-2" data-direction="{{ card.key }}">
+  <h3 class="ui-h3 flex items-center gap-2"><span aria-hidden="true">{{ card.icon }}</span> {{ card.label }}</h3>
+  <p class="ui-muted text-sm">{{ card.blurb }}</p>
+  {% if card.sell %}
+    {% with row=card.sell %}
+    <form method="post" class="mt-1">
+      {% csrf_token %}<input type="hidden" name="action" value="module"><input type="hidden" name="key" value="{{ row.key }}">
+      <input type="hidden" name="on" value="{% if row.on %}0{% else %}1{% endif %}">
+      <p class="text-sm mb-1">{% if row.on %}{% trans "Online-Verkauf ist eingeschaltet." %}{% else %}{% trans "Produkte werden gezeigt, online verkauft wird noch nicht." %}{% endif %}</p>
+      {% if row.in_package %}
+      <button type="submit" class="ui-btn ui-btn-secondary ui-btn-sm min-h-[44px]">{% if row.on %}{% trans "Online-Verkauf ausschalten" %}{% else %}{% trans "Online-Verkauf einschalten" %}{% endif %}</button>
+      {% else %}<span class="ui-badge ui-tone-off">{% trans "Nicht im Paket" %}</span>{% endif %}
+    </form>
+    {% endwith %}
+  {% elif card.fixed %}
+    <p class="text-sm">{% trans "Ergibt sich aus Ihrem Angebot." %}</p>
+  {% elif not card.in_package %}
+    <span class="ui-badge ui-tone-off self-start">{% trans "Nicht im Paket" %}</span>
+  {% else %}
+    <form method="post" class="mt-auto">
+      {% csrf_token %}<input type="hidden" name="action" value="direction"><input type="hidden" name="key" value="{{ card.key }}">
+      <input type="hidden" name="on" value="{% if card.active %}0{% else %}1{% endif %}">
+      {% if card.active %}
+      <button type="submit" class="ui-btn ui-btn-secondary ui-btn-sm min-h-[44px]">{% trans "Ausschalten" %}<span class="sr-only">: {{ card.label }}</span></button>
+      {% else %}
+      <button type="submit" class="ui-btn ui-btn-primary ui-btn-sm min-h-[44px]">{% trans "Hinzufügen" %}<span class="sr-only">: {{ card.label }}</span></button>
+      {% endif %}
+    </form>
+  {% endif %}
+</div>

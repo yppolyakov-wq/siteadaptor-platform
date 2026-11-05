@@ -32940,3 +32940,91 @@ msgstr "%(f)s braucht eine weitere Funktion, die ausgeschaltet ist."
 #: apps/core/diagnoses.py
 msgid "Die Suche konnte nicht ausgeführt werden — bitte später erneut versuchen."
 msgstr "Die Suche konnte nicht ausgeführt werden — bitte später erneut versuchen."
+
+#: apps/core/directions_screen.py
+msgid "Ausgeschaltete Grundfunktionen"
+msgstr "Ausgeschaltete Grundfunktionen"
+
+#: apps/core/directions_screen.py
+msgid "Ausschalten"
+msgstr "Ausschalten"
+
+#: apps/core/directions_screen.py
+msgid "Diese Funktionen gehören normalerweise zu jedem Geschäft."
+msgstr "Diese Funktionen gehören normalerweise zu jedem Geschäft."
+
+#: apps/core/directions_screen.py
+msgid "Diese Richtung ergibt sich aus Ihrem Angebot."
+msgstr "Diese Richtung ergibt sich aus Ihrem Angebot."
+
+#: apps/core/directions_screen.py
+msgid "Einschalten"
+msgstr "Einschalten"
+
+#: apps/core/directions_screen.py
+msgid "Ergibt sich aus Ihrem Angebot."
+msgstr "Ergibt sich aus Ihrem Angebot."
+
+#: apps/core/directions_screen.py
+msgid "Ihre Richtungen"
+msgstr "Ihre Richtungen"
+
+#: apps/core/directions_screen.py
+msgid "Immer eingeschaltet."
+msgstr "Immer eingeschaltet."
+
+#: apps/core/directions_screen.py
+msgid "In Ihrem Paket immer eingeschaltet."
+msgstr "In Ihrem Paket immer eingeschaltet."
+
+#: apps/core/directions_screen.py
+msgid "Konnte nicht gespeichert werden."
+msgstr "Konnte nicht gespeichert werden."
+
+#: apps/core/directions_screen.py
+msgid "Nicht im Paket."
+msgstr "Nicht im Paket."
+
+#: apps/core/directions_screen.py
+msgid "Noch keine Richtung — wählen Sie unten, wie Sie verkaufen."
+msgstr "Noch keine Richtung — wählen Sie unten, wie Sie verkaufen."
+
+#: apps/core/directions_screen.py
+msgid "Online-Verkauf ausschalten"
+msgstr "Online-Verkauf ausschalten"
+
+#: apps/core/directions_screen.py
+msgid "Online-Verkauf einschalten"
+msgstr "Online-Verkauf einschalten"
+
+#: apps/core/directions_screen.py
+msgid "Online-Verkauf ist eingeschaltet."
+msgstr "Online-Verkauf ist eingeschaltet."
+
+#: apps/core/directions_screen.py
+msgid "Produkte werden gezeigt, online verkauft wird noch nicht."
+msgstr "Produkte werden gezeigt, online verkauft wird noch nicht."
+
+#: apps/core/directions_screen.py
+msgid "Richtungen & Funktionen"
+msgstr "Richtungen & Funktionen"
+
+#: apps/core/directions_screen.py
+msgid "Weitere Richtung hinzufügen"
+msgstr "Weitere Richtung hinzufügen"
+
+#: apps/core/directions_screen.py
+msgid "Wie Sie verkaufen und welche Funktionen"
+msgstr "Wie Sie verkaufen und welche Funktionen"
+
+#: apps/core/directions_screen.py
+msgid "Wie verkaufen Sie? Schalten Sie Richtungen und Zusatzfunktionen ein oder aus — Ihre Daten bleiben erhalten."
+msgstr "Wie verkaufen Sie? Schalten Sie Richtungen und Zusatzfunktionen ein oder aus — Ihre Daten bleiben erhalten."
+
+#: apps/core/directions_screen.py
+msgid "Zusatzfunktionen"
+msgstr "Zusatzfunktionen"
+
+#: apps/core/directions_screen.py
+msgid "Wird von einer anderen Richtung genutzt."
+msgstr "Wird von einer anderen Richtung genutzt."

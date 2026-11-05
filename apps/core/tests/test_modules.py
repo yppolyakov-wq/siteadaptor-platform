@@ -369,78 +369,24 @@ class TestModulesView:
         return request
 
     def test_get_lists_registry_with_states(self, settings):
+        """AIS-M M-1c (переписан осознанно): выключенный базовый модуль — в блоке
+        «Ausgeschaltete Grundfunktionen», дополнения — тумблерами; core не показан."""
         settings.ROOT_URLCONF = "config.urls_tenant"
         from apps.core.views import modules_view
 
         tenant = TenantFactory(disabled_modules=["crm"])
-        response = modules_view(self._request(tenant))
-        html = response.content.decode()
+        html = modules_view(self._request(tenant)).content.decode()
         assert "Kunden (CRM)" in html and "Stempelkarten" in html
-        # Core-чекбокс задизейблен, выключенный crm — без checked.
-        assert html.count("disabled") >= 4
+        assert 'data-module="catalog"' not in html
 
     def test_get_shows_task_sections(self, settings):
-        """AB2: страница «Module» сгруппирована в язык задач (empfohlen / weitere)."""
+        """AIS-M M-1c: язык задач — «Ihre Richtungen» / «Zusatzfunktionen» (было AB2)."""
         settings.ROOT_URLCONF = "config.urls_tenant"
         from apps.core.views import modules_view
 
         html = modules_view(self._request(TenantFactory())).content.decode()
-        assert "Empfehlungen für Ihr Unternehmen" in html
-        assert "Weitere Funktionen" in html
-        # Premium-секция скрыта, пока нет premium-модулей.
-        assert "Available with a paid plan." not in html
-
-    def test_post_writes_disabled_modules(self, settings):
-        settings.ROOT_URLCONF = "config.urls_tenant"
-        from apps.core.views import modules_view
-
-        tenant = TenantFactory(disabled_modules=["crm"])
-        # Владелец оставил только promotions и loyalty.
-        response = modules_view(
-            self._request(tenant, "post", {"modules": ["promotions", "loyalty"]})
-        )
-        assert response.status_code == 302
-        tenant.refresh_from_db()
-        assert set(tenant.disabled_modules) == {
-            "crm",
-            "orders",
-            "booking",
-            "stays",
-            "jobs",
-            "analytics",
-            "publishing",
-            "finance",
-            "inbox",
-            "telegram",
-            "events",
-            "blog",  # CM-1: опциональный модуль (по умолчанию вкл. у всех)
-            "gift",  # B1.1: Geschenkgutscheine — опциональный, вкл. у всех из коробки
-            "reviews",  # CM-6: Bewertungen — опциональный, вкл. у всех из коробки
-            "customer_account",
-        }
-        # Core нельзя выключить отсутствием галки, мусорный ключ игнорируется.
-        response = modules_view(self._request(tenant, "post", {"modules": ["warehouse"]}))
-        tenant.refresh_from_db()
-        assert set(tenant.disabled_modules) == {
-            "promotions",
-            "crm",
-            "orders",
-            "booking",
-            "stays",
-            "jobs",
-            "loyalty",
-            "analytics",
-            "publishing",
-            "finance",
-            "inbox",
-            "telegram",
-            "events",
-            "blog",  # CM-1: опциональный модуль (по умолчанию вкл. у всех)
-            "gift",  # B1.1: Geschenkgutscheine — опциональный, вкл. у всех из коробки
-            "reviews",  # CM-6: Bewertungen — опциональный, вкл. у всех из коробки
-            "customer_account",
-        }
-        assert modules.is_module_active(tenant, "catalog")  # core живёт
+        assert "Ihre Richtungen" in html and "Zusatzfunktionen" in html
+        # POST-протокол (одна карточка — один ключ) — apps/core/tests/test_m1_screen.py.
 
 
 # --- гибрид: suited_for + предупреждение (решение владельца 2026-06-12) -------
@@ -473,54 +419,5 @@ def test_default_disabled_unchanged_by_suited_for():
     assert "booking" not in modules.default_disabled_for("cafe")
 
 
-@pytest.mark.django_db
-def test_modules_view_warns_on_untypical_enable(settings):
-    settings.ROOT_URLCONF = "config.urls_tenant"
-    import uuid as _uuid
-
-    from django.contrib.auth import get_user_model
-    from django.contrib.messages import get_messages
-    from django.contrib.messages.middleware import MessageMiddleware
-    from django.contrib.sessions.middleware import SessionMiddleware
-
-    from apps.core.views import modules_view
-
-    def _request(tenant, data):
-        request = RequestFactory().post("/dashboard/modules/", data)
-        SessionMiddleware(lambda r: None).process_request(request)
-        MessageMiddleware(lambda r: None).process_request(request)
-        request.tenant = tenant
-        owner = _uuid.uuid4().hex[:8]
-        request.user = get_user_model().objects.create_user(username=f"o-{owner}", password="pw")
-        return request
-
-    # Пекарня включает Booking (untypical) — сохраняется, но с предупреждением.
-    tenant = TenantFactory(business_type="bakery", disabled_modules=["booking"])
-    request = _request(
-        tenant,
-        {
-            "modules": [
-                "promotions",
-                "crm",
-                "orders",
-                "booking",
-                "loyalty",
-                "analytics",
-                "publishing",
-            ]
-        },
-    )
-    modules_view(request)
-    tenant.refresh_from_db()
-    assert "booking" not in tenant.disabled_modules
-    texts = [str(m) for m in get_messages(request)]
-    assert any("Booking" in t and "untypisch" in t for t in texts)
-
-    # GET: untypical-блок ушёл в other_rows с подписью «Geeignet für…»
-    get_request = RequestFactory().get("/dashboard/modules/")
-    SessionMiddleware(lambda r: None).process_request(get_request)
-    MessageMiddleware(lambda r: None).process_request(get_request)
-    get_request.tenant = tenant
-    get_request.user = request.user
-    body = modules_view(get_request).content.decode()
-    assert "Weitere Funktionen" in body and "Geeignet für:" in body  # AB2: секция «weitere»
+# AIS-M M-1c: предупреждение «untypisch» снято — чужие модули больше не показываются
+# списком; неподходящее направление добавляется осознанно карточкой «Weitere Richtung».
