@@ -19,12 +19,15 @@ eröffnen», ИИ-помощника и (за флагом) гейта прод�
 
 from __future__ import annotations
 
+import logging
 from collections.abc import Callable
 from dataclasses import dataclass
 
 from django.conf import settings
 from django.urls import NoReverseMatch, reverse
 from django.utils.translation import gettext_lazy as _
+
+logger = logging.getLogger(__name__)
 
 MUST = "must"
 NICE = "nice"
@@ -51,6 +54,8 @@ class Facts:
     def __init__(self, tenant):
         self.tenant = tenant
         self._cache: dict = {}
+        #: Факты, упавшие с ошибкой (отчёт показывает их как «error», гейт — fail-open).
+        self.errors: list[str] = []
 
     def in_schema(self) -> bool:
         from django.db import connection
@@ -65,6 +70,13 @@ class Facts:
                 try:
                     self._cache[key] = compute()
                 except Exception:  # noqa: BLE001 — fail-open: сбой не закрывает кассу
+                    logger.warning(
+                        "readiness: fact %s failed for %s",
+                        key,
+                        self.tenant.schema_name,
+                        exc_info=True,
+                    )
+                    self.errors.append(key)
                     self._cache[key] = True
         return self._cache[key]
 
@@ -78,6 +90,14 @@ def facts_for(tenant) -> Facts:
         except Exception:  # noqa: BLE001 — неизменяемый тенант — без мемо
             pass
     return cached
+
+
+def invalidate(tenant) -> None:
+    """Сбросить мемо (после записи данных в том же запросе — шаг мастера, форма)."""
+    try:
+        del tenant._readiness_facts
+    except AttributeError:
+        pass
 
 
 def _cfg(tenant) -> dict:
@@ -104,7 +124,10 @@ def _contact(t, f) -> bool:
 def _impressum(t, f):
     from apps.core.lite_cabinet import impressum_missing
 
-    return f.get("impressum", lambda: not impressum_missing(t))
+    # Без мемо: Impressum правится в том же запросе (шаг мастера «Recht»), а запрос один.
+    if not f.in_schema():
+        return None
+    return not impressum_missing(t)
 
 
 def _email_confirmed(t, f) -> bool:
@@ -176,7 +199,7 @@ def _booking_hours(t, f):
     def q():
         from apps.booking.models import AvailabilityRule
 
-        return AvailabilityRule.objects.exists()
+        return AvailabilityRule.objects.filter(resource__is_active=True).exists()
 
     return f.get("availability_rules", q)
 
@@ -196,12 +219,14 @@ def _room_with_photo(t, f):
 
 def _upcoming_event(t, f):
     def q():
+        from django.db.models import Q
         from django.utils import timezone
 
         from apps.events.models import Event
 
+        now = timezone.now()
         return Event.objects.filter(
-            status=Event.STATUS_PUBLISHED, starts_at__gte=timezone.now()
+            Q(starts_at__gte=now) | Q(ends_at__gte=now), status=Event.STATUS_PUBLISHED
         ).exists()
 
     return f.get("upcoming_event", q)
@@ -367,9 +392,16 @@ def items_for(tenant, *, direction: str | None = None, level: str | None = None)
     return rows
 
 
-def missing(tenant, *, direction: str | None = None, level: str | None = MUST) -> list[dict]:
-    """Невыполненные пункты (unknown — None — не считаем невыполненными)."""
-    return [r for r in items_for(tenant, direction=direction, level=level) if r["done"] is False]
+def missing(
+    tenant, *, direction: str | None = None, level: str | None = MUST, only_direction=False
+) -> list[dict]:
+    """Невыполненные пункты (unknown — None — не считаем невыполненными).
+
+    `only_direction` — без базовых пунктов (только пункты самого направления)."""
+    rows = items_for(tenant, direction=direction, level=level)
+    if only_direction:
+        rows = [r for r in rows if r["direction"]]
+    return [r for r in rows if r["done"] is False]
 
 
 def is_done(tenant, key: str) -> bool | None:
@@ -381,9 +413,14 @@ def is_done(tenant, key: str) -> bool | None:
 
 def sell_ready(tenant, direction: str) -> bool:
     """База (обязательное) + обязательное направления выполнены."""
-    base = [r for r in missing(tenant, direction="") if not r["direction"]]
-    own = [r for r in missing(tenant, direction=direction) if r["direction"] == direction]
+    base = missing(tenant, direction="")
+    own = missing(tenant, direction=direction, only_direction=True)
     return not base and not own
+
+
+def is_service_tenant(tenant) -> bool:
+    """Демо и служебные бизнесы гейт не трогает и в отчёт не считает."""
+    return bool(getattr(tenant, "is_demo", False) or getattr(tenant, "is_internal", False))
 
 
 def is_exempt(tenant) -> bool:
@@ -395,6 +432,6 @@ def sell_allowed(tenant, direction: str) -> bool:
     """Гейт продажи: при выключенном флаге — всегда да (поведение прежнее)."""
     if not getattr(settings, "READINESS_SELL_GATE", False):
         return True
-    if getattr(tenant, "is_demo", False) or is_exempt(tenant):
+    if is_service_tenant(tenant) or is_exempt(tenant):
         return True
     return sell_ready(tenant, direction)

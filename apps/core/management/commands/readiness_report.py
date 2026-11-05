@@ -12,9 +12,11 @@ docs/ais-w4-0-readiness-plan-2026-11-05.md §4."""
 from __future__ import annotations
 
 import json
+import logging
 from datetime import timedelta
 
 from django.core.management.base import BaseCommand
+from django.db import transaction
 from django.utils import timezone
 from django_tenants.utils import schema_context
 
@@ -25,18 +27,26 @@ from apps.tenants.models import Tenant
 SALES_MODELS = ("orders.Order", "booking.Booking", "stays.StayBooking", "events.Ticket")
 SALES_WINDOW_DAYS = 90
 
+logger = logging.getLogger(__name__)
 
-def _recent_sales() -> bool:
+
+def _recent_sales() -> bool | None:
+    """True/False — были ли продажи за окно; None — проверить не удалось.
+
+    Сбой НЕ равен «продаж не было»: иначе работающий магазин не получит исключения и
+    касса закроется. None трактуется как «продаёт» (исключение ставится)."""
     from django.apps import apps
 
     since = timezone.now() - timedelta(days=SALES_WINDOW_DAYS)
+    unknown = False
     for label in SALES_MODELS:
         try:
             if apps.get_model(label).objects.filter(created_at__gte=since).exists():
                 return True
         except Exception:  # noqa: BLE001 — отчёт не падает на одном бизнесе
-            continue
-    return False
+            logger.warning("readiness_report: cannot check %s", label, exc_info=True)
+            unknown = True
+    return None if unknown else False
 
 
 def report_for(tenant) -> dict:
@@ -47,21 +57,41 @@ def report_for(tenant) -> dict:
         for key in active:
             if not readiness.sell_ready(tenant, key):
                 closed[key] = [
-                    r["key"]
-                    for r in readiness.missing(tenant, direction=key)
-                    if r["direction"] == key
+                    r["key"] for r in readiness.missing(tenant, direction=key, only_direction=True)
                 ]
         sales = _recent_sales()
+        errors = list(readiness.facts_for(tenant).errors)
     return {
         "schema": tenant.schema_name,
         "business_type": tenant.business_type or "",
-        "demo": bool(tenant.is_demo),
+        "demo": readiness.is_service_tenant(tenant),
+        "errors": errors,
         "exempt": readiness.is_exempt(tenant),
         "directions": active,
         "base_missing": base_missing,
         "would_close": closed,
         "recent_sales": sales,
     }
+
+
+def needs_exempt(row: dict) -> bool:
+    """Исключение: реальный бизнес, которому гейт закрыл бы кассу, и он продаёт (или неясно)."""
+    return (
+        not row["demo"]
+        and not row["exempt"]
+        and bool(row["would_close"])
+        and row["recent_sales"] is not False
+    )
+
+
+def stamp_exempt(schema_name: str) -> None:
+    """Пометить исключением под блокировкой строки (параллельный Save не затрёт флаг)."""
+    with transaction.atomic():
+        tenant = Tenant.objects.select_for_update().get(schema_name=schema_name)
+        config = dict(tenant.site_config or {})
+        config["readiness"] = {"exempt": True}
+        tenant.site_config = config
+        tenant.save(update_fields=["site_config", "updated_at"])
 
 
 class Command(BaseCommand):
@@ -84,17 +114,13 @@ class Command(BaseCommand):
         rows = [report_for(t) for t in qs]
         real = [r for r in rows if not r["demo"]]
         closing = [r for r in real if r["would_close"] and not r["exempt"]]
-        to_stamp = [r for r in closing if r["recent_sales"]]
+        to_stamp = [r for r in rows if needs_exempt(r)]
 
         if opts["stamp_exempt"]:
             for row in to_stamp:
                 self.stdout.write(f"exempt: {row['schema']} ({', '.join(row['would_close'])})")
                 if opts["apply"]:
-                    tenant = Tenant.objects.get(schema_name=row["schema"])
-                    config = dict(tenant.site_config or {})
-                    config["readiness"] = {"exempt": True}
-                    tenant.site_config = config
-                    tenant.save(update_fields=["site_config", "updated_at"])
+                    stamp_exempt(row["schema"])
             mode = "записано" if opts["apply"] else "dry-run, ничего не записано"
             self.stdout.write(f"Исключений: {len(to_stamp)} ({mode}).")
             return
@@ -104,6 +130,10 @@ class Command(BaseCommand):
             return
         for row in rows:
             flag = " [demo]" if row["demo"] else (" [exempt]" if row["exempt"] else "")
+            if row["errors"]:
+                flag += f" [error: {', '.join(row['errors'])}]"
+            if row["recent_sales"] is None:
+                flag += " [sales ?]"
             close = (
                 "; ".join(f"{k}: {', '.join(v) or 'база'}" for k, v in row["would_close"].items())
                 or "—"

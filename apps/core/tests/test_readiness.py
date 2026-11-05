@@ -89,8 +89,9 @@ def test_query_budget_per_direction_and_memo(django_assert_max_num_queries):
     for key in ("waren", "termine", "zimmer", "tickets"):
         with django_assert_max_num_queries(3):
             readiness.missing(tenant, direction=key)
-    with django_assert_max_num_queries(0):
-        readiness.missing(tenant, direction="zimmer")  # повтор — из мемо
+    # Повтор — из мемо; живым остаётся только Impressum (правится в том же запросе).
+    with django_assert_max_num_queries(1):
+        readiness.missing(tenant, direction="zimmer")
 
 
 def test_normalize_keeps_only_true_exempt():
@@ -110,10 +111,34 @@ def test_registry_is_not_called_from_cabinet_chrome():
         assert "readiness" not in path.read_text(encoding="utf-8"), path
 
 
-def test_report_dry_run_writes_nothing(settings):
-    tenant = _tenant(disabled_modules=[])
+def test_report_rows_and_stamp_rules():
+    """Отчёт по бизнесу в своей схеме + правила исключения (сбой продаж ≠ «не продаёт»)."""
+    from apps.core.management.commands import readiness_report as cmd
+
+    tenant = _tenant(disabled_modules=[])  # Waren продаёт, ничего не заполнено
+    row = cmd.report_for(tenant)
+    assert "waren" in row["would_close"] and "impressum" in row["base_missing"]
+    assert cmd.needs_exempt({**row, "recent_sales": True})
+    assert cmd.needs_exempt({**row, "recent_sales": None})  # неясно — исключение ставим
+    assert not cmd.needs_exempt({**row, "recent_sales": False})
+    assert not cmd.needs_exempt({**row, "demo": True, "recent_sales": True})
+
+
+def test_internal_tenant_is_not_gated(settings):
+    settings.READINESS_SELL_GATE = True
+    internal = TenantFactory.build(schema_name="public", business_type="bakery", is_internal=True)
+    assert readiness.sell_allowed(internal, "waren") is True
+
+
+def test_stamp_writes_flag_and_dry_run_writes_nothing():
+    from apps.core.management.commands import readiness_report as cmd
+
+    tenant = _tenant(disabled_modules=[], site_config={"seo": {"x": 1}})
     out = StringIO()
     call_command("readiness_report", "--stamp-exempt", stdout=out)
     tenant.refresh_from_db()
-    assert "readiness" not in (tenant.site_config or {})
-    assert "dry-run" in out.getvalue()
+    assert "readiness" not in tenant.site_config and "dry-run" in out.getvalue()
+    cmd.stamp_exempt(tenant.schema_name)
+    tenant.refresh_from_db()
+    assert tenant.site_config["readiness"] == {"exempt": True}
+    assert tenant.site_config["seo"] == {"x": 1}  # чужие ключи целы
