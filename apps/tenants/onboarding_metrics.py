@@ -14,6 +14,7 @@ from __future__ import annotations
 import statistics
 from datetime import datetime
 
+from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 
 from apps.tenants import onboarding
@@ -46,6 +47,8 @@ def tenant_row(tenant) -> dict | None:
         return None  # мастер не открывали после AIS-0 — данных нет
     created = tenant.created_at
     completed_at = _at(times.get("completed"))
+    if state["completed"] and completed_at is None:
+        return None  # завершён до AIS-0 — когда именно, неизвестно
     # Время на шаге = от предыдущей метки до метки шага (порядок — по времени).
     marks = sorted(
         ((key, _at(value)) for key, value in times.items() if key != "completed"),
@@ -66,6 +69,7 @@ def tenant_row(tenant) -> dict | None:
         "completed": bool(state["completed"] and completed_at),
         "minutes_to_complete": _minutes(created, completed_at),
         "minutes_to_start": _minutes(created, _at(times["start"])),
+        "age_minutes": _minutes(created, timezone.now()),
         "skipped": list(state["skipped"]),
         "dwell": dwell,
     }
@@ -82,7 +86,13 @@ def _percentile(values: list[float], q: float) -> float | None:
 def summarize(rows: list[dict]) -> dict:
     """Сводка: медиана/p75 времени до завершения, доля за сутки, узкие шаги."""
     done = [r["minutes_to_complete"] for r in rows if r["minutes_to_complete"] is not None]
-    within_day = [m for m in done if m <= DAY_MINUTES]
+    # Доля «за сутки» — только среди тех, у кого сутки уже прошли: свежие ещё не успели.
+    aged = [r for r in rows if (r.get("age_minutes") or 0) >= DAY_MINUTES]
+    within_day = [
+        r
+        for r in aged
+        if r["minutes_to_complete"] is not None and r["minutes_to_complete"] <= DAY_MINUTES
+    ]
     steps: dict[str, dict] = {}
     for row in rows:
         for key, minutes in row["dwell"].items():
@@ -100,6 +110,6 @@ def summarize(rows: list[dict]) -> dict:
         "completed": len(done),
         "median_minutes": statistics.median(done) if done else None,
         "p75_minutes": _percentile(done, 75),
-        "share_within_day": (len(within_day) / len(rows)) if rows else None,
+        "share_within_day": (len(within_day) / len(aged)) if aged else None,
         "steps": steps,
     }

@@ -5,7 +5,6 @@ from io import StringIO
 
 import pytest
 from django.core.management import call_command
-from django.utils import timezone
 
 from apps.tenants import onboarding
 from apps.tenants.onboarding_metrics import summarize, tenant_row
@@ -84,7 +83,8 @@ def test_row_and_summary_measure_minutes_from_creation():
     assert round(row["minutes_to_complete"]) == 20
     assert round(row["dwell"]["company"]) == 4 and round(row["dwell"]["stil"]) == 1
     summary = summarize([row])
-    assert round(summary["median_minutes"]) == 20 and summary["share_within_day"] == 1.0
+    assert round(summary["median_minutes"]) == 20
+    assert summary["share_within_day"] is None  # бизнесу меньше суток — доля не считается
     assert summary["steps"]["stil"]["skipped"] == 1
 
 
@@ -100,6 +100,34 @@ def test_report_command_runs():
     onboarding.advance(tenant)
     out = StringIO()
     call_command("onboarding_report", "--days", "1", stdout=out)
-    assert "all:" in out.getvalue() and "bakery:" in out.getvalue()
-    tenant.created_at = timezone.now() - timedelta(days=40)
-    tenant.save(update_fields=["created_at"])
+    text = out.getvalue()
+    assert "all: 1 Betriebe · fertig 1" in text and "bakery: 1 Betriebe" in text
+
+
+def test_legacy_completed_wizard_gets_no_start_and_is_not_counted():
+    tenant = _tenant(site_config={"onboarding": {"v": 2, "step": "done", "completed": True}})
+    onboarding.touch_start(tenant)
+    assert "times" not in onboarding.get_state(tenant)
+    assert tenant_row(tenant) is None
+
+
+def test_naive_timestamp_is_dropped():
+    tenant = TenantFactory.build(
+        site_config={
+            "onboarding": {"v": 2, "step": "company", "times": {"start": "2026-01-01T10:00:00"}}
+        }
+    )
+    assert "times" not in onboarding.get_state(tenant)
+
+
+def test_summary_percentiles_and_share_over_aged_tenants():
+    rows = [
+        {"minutes_to_complete": m, "age_minutes": 2 * 24 * 60, "dwell": {}, "skipped": []}
+        for m in (10, 20, 30)
+    ]
+    rows.append(
+        {"minutes_to_complete": None, "age_minutes": 2 * 24 * 60, "dwell": {}, "skipped": []}
+    )
+    summary = summarize(rows)
+    assert summary["median_minutes"] == 20 and summary["p75_minutes"] == 25
+    assert summary["share_within_day"] == 0.75

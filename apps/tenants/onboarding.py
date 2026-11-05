@@ -342,7 +342,11 @@ def _clean_times(raw) -> dict:
 
     out = {}
     for key, value in raw.items():
-        if key in _TIME_KEYS and isinstance(value, str) and parse_datetime(value) is not None:
+        if key not in _TIME_KEYS or not isinstance(value, str):
+            continue
+        at = parse_datetime(value)
+        # Наивное время (ручная правка) сломало бы вычитание из aware created_at в отчёте.
+        if at is not None and at.tzinfo is not None:
             out[key] = value
     return out
 
@@ -352,13 +356,15 @@ def _stamp(state: dict, key: str) -> None:
     from django.utils import timezone
 
     times = state.setdefault("times", {})
-    times.setdefault(key, timezone.now().isoformat(timespec="seconds"))
+    times.setdefault(key, timezone.now().isoformat())
 
 
 def touch_start(tenant) -> None:
     """Первый показ мастера: одна запись на тенанта, повторные заходы БД не трогают."""
     state = get_state(tenant)
-    if "start" in state.get("times", {}):
+    # Уже завершённый мастер (легаси, быстрый старт, демо, импорт) в замер не идёт:
+    # метка start без completed выглядела бы как «бросил мастер».
+    if state["completed"] or "start" in state.get("times", {}):
         return
     _stamp(state, "start")
     save_state(tenant, state)
