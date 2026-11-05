@@ -398,6 +398,7 @@ def setup_view(request):
     # GET: рельса открывает любой шаг — ?step=<key> персистится (escape-hatch к
     # скрытому business тоже), невалидный ключ игнорируется. Без ?step= позиция на
     # скрытом шаге (свежий тенант стоит на business) → снап к первому видимому.
+    onboarding.touch_start(tenant)  # AIS-0: первый показ мастера (одна запись)
     wanted = request.GET.get("step")
     if wanted:
         state = onboarding.goto(tenant, wanted)

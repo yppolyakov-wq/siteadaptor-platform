@@ -310,13 +310,58 @@ def get_state(tenant) -> dict:
         # v1 не хранил done-список: шаги ДО текущего int и не пропущенные — выполнены.
         passed_olds = [_LEGACY_INT_TO_OLD[n] for n in range(1, num)]
         done_keys = ({_remap_key(o) for o in passed_olds} & non_final) - skipped_keys
-    return {
+    state = {
         "v": 2,
         "step": step,
         "done": _ordered(done_keys),
         "skipped": _ordered(skipped_keys),
         "completed": completed,
     }
+    # AIS-0: метки времени и источник — только для замера, на поведение не влияют.
+    times = _clean_times(raw.get("times"))
+    if times:
+        state["times"] = times
+    if raw.get("source") in SOURCES:
+        state["source"] = raw["source"]
+    return state
+
+
+# --- AIS-0: замер «время до живого сайта» (docs/ais-0-onboarding-metric-plan-2026-11-05.md) ---
+#: Откуда пришло «пройдено»: wizard — владелец прошёл мастер сам; остальное — мастер
+#: помечен пройденным за него (быстрый старт, демо-кит, импорт) и в замер не идёт.
+SOURCES = ("wizard", "quick", "demo", "import")
+#: Ключи меток: шаги реестра + «start» (первый показ мастера) + «completed».
+_TIME_KEYS = frozenset((*STEP_KEYS, "start", "completed"))
+
+
+def _clean_times(raw) -> dict:
+    """Метки {ключ: ISO-время}; мусор (чужие ключи, не-строки, не-даты) отбрасывается."""
+    if not isinstance(raw, dict):
+        return {}
+    from django.utils.dateparse import parse_datetime
+
+    out = {}
+    for key, value in raw.items():
+        if key in _TIME_KEYS and isinstance(value, str) and parse_datetime(value) is not None:
+            out[key] = value
+    return out
+
+
+def _stamp(state: dict, key: str) -> None:
+    """Первая метка ключа (повтор не перезаписывает — нужен ПЕРВЫЙ раз)."""
+    from django.utils import timezone
+
+    times = state.setdefault("times", {})
+    times.setdefault(key, timezone.now().isoformat(timespec="seconds"))
+
+
+def touch_start(tenant) -> None:
+    """Первый показ мастера: одна запись на тенанта, повторные заходы БД не трогают."""
+    state = get_state(tenant)
+    if "start" in state.get("times", {}):
+        return
+    _stamp(state, "start")
+    save_state(tenant, state)
 
 
 def save_state(tenant, state: dict) -> None:
@@ -352,6 +397,7 @@ def advance(tenant, *, skip: bool = False) -> dict:
     cur = state["step"]
     vis = visible_keys(tenant)
     if cur != _FINAL:
+        _stamp(state, cur)
         if skip:
             state["skipped"] = _ordered({*state["skipped"], cur})
             state["done"] = [k for k in state["done"] if k != cur]
@@ -362,6 +408,9 @@ def advance(tenant, *, skip: bool = False) -> dict:
         after = [k for k in vis if STEP_KEYS.index(k) > STEP_KEYS.index(cur)]
         state["step"] = after[0] if after else _FINAL
     if state["step"] == _FINAL:
+        if not state["completed"]:
+            state.setdefault("source", "wizard")
+            _stamp(state, "completed")
         state["completed"] = True
     save_state(tenant, state)
     return state
@@ -392,7 +441,7 @@ def leave(tenant) -> dict:
     return state
 
 
-def mark_complete(tenant) -> dict:
+def mark_complete(tenant, *, source: str = "") -> dict:
     """Пометить мастер ПРОЙДЕННЫМ целиком (решение владельца 2026-08-19: демо-киты
     мастер пропускают).
 
@@ -406,6 +455,11 @@ def mark_complete(tenant) -> dict:
     state["step"] = _FINAL
     state["done"] = _ordered(set(visible_keys(tenant)) - {_FINAL})
     state["skipped"] = []
+    if not state["completed"]:
+        # AIS-0: мастер пройден ЗА владельца — помечаем источник, замер такой не считает.
+        if source in SOURCES:
+            state.setdefault("source", source)
+        _stamp(state, "completed")
     state["completed"] = True
     save_state(tenant, state)
     return state

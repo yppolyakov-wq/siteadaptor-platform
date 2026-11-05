@@ -160,7 +160,7 @@ class Command(BaseCommand):
             email=opts["owner_email"].strip().lower(),
             password=secrets.token_urlsafe(24),
         )
-        onboarding.mark_complete(tenant)  # сайт наполняет импорт — мастер не нужен
+        onboarding.mark_complete(tenant, source="import")  # сайт наполняет импорт — мастер не нужен
         self.stdout.write(self.style.SUCCESS(f"created business {tenant.name} → {login_url}"))
         self.stdout.write("  owner login: open the shop, /anmelden/link/ — link by e-mail")
         return tenant

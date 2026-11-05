@@ -25503,7 +25503,7 @@ def apply_kit(tenant, key: str) -> bool:
     # «нетронутом» состоянии) — вскрыто серверным обходом кабинета.
     from . import onboarding
 
-    onboarding.mark_complete(tenant)
+    onboarding.mark_complete(tenant, source="demo")
     return True
 
 

@@ -124,7 +124,7 @@ def provision_quick_logic(tenant_id, email, promo) -> int | None:
                 limits.activate(promo_obj, tenant)
             except limits.ActivationLimit:
                 pass
-        onboarding.mark_complete(tenant)
+        onboarding.mark_complete(tenant, source="quick")
     if first_run:
         from apps.core import owner_login
 
