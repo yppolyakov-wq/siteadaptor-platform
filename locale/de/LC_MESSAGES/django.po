@@ -33028,3 +33028,15 @@ msgstr "Zusatzfunktionen"
 #: apps/core/directions_screen.py
 msgid "Wird von einer anderen Richtung genutzt."
 msgstr "Wird von einer anderen Richtung genutzt."
+
+#: apps/core/directions_screen.py
+msgid "Für diese Richtung gibt es hier nichts umzuschalten."
+msgstr "Für diese Richtung gibt es hier nichts umzuschalten."
+
+#: apps/core/directions_screen.py
+msgid "Weitere Zusatzfunktionen"
+msgstr "Weitere Zusatzfunktionen"
+
+#: apps/core/directions_screen.py
+msgid "Passen nicht zu Ihren Richtungen — Sie können sie trotzdem einschalten."
+msgstr "Passen nicht zu Ihren Richtungen — Sie können sie trotzdem einschalten."

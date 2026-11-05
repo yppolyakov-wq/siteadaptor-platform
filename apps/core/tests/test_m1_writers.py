@@ -88,4 +88,6 @@ def test_fixed_directions_and_mode():
     assert directions.set_state(t, "zimmer", True, mode="zeigen") == {}
     cfg = _fresh(t).site_config
     assert cfg["directions"] == {"zimmer": {"mode": "zeigen"}} and cfg["x"] == 1
-    assert directions.set_state(t, "zimmer", True, mode="bad") == {"zimmer": modules.SET_UNKNOWN}
+    before = _fresh(t).disabled_modules
+    assert directions.set_state(t, "tickets", True, mode="bad") == {"tickets": modules.SET_UNKNOWN}
+    assert _fresh(t).disabled_modules == before  # без частичной записи

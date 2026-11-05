@@ -245,7 +245,7 @@ def choices_for(tenant) -> list[Direction]:
 
 #: Направления, которые нельзя выключить: активны по типу и данным, не по модулю.
 FIXED = frozenset({"waren", "speisekarte"})
-STATE_FIXED, STATE_SHARED = "fixed", "shared"
+STATE_FIXED, STATE_SHARED, STATE_UNCHANGED = "fixed", "shared", "unchanged"
 
 
 def set_state(tenant, key: str, on: bool, *, mode: str | None = None) -> dict[str, str]:
@@ -259,8 +259,8 @@ def set_state(tenant, key: str, on: bool, *, mode: str | None = None) -> dict[st
     from apps.core import modules
 
     direction = _BY_KEY.get(key)
-    if direction is None:
-        return {key: modules.SET_UNKNOWN}
+    if direction is None or (mode is not None and mode not in MODES):
+        return {key: modules.SET_UNKNOWN}  # проверка ДО записи — без частичной записи
     if not on and key in FIXED:
         return {key: STATE_FIXED}
     with transaction.atomic():
@@ -278,17 +278,14 @@ def set_state(tenant, key: str, on: bool, *, mode: str | None = None) -> dict[st
             else:
                 changes[module] = on
         problems.update(modules.set_modules(locked, changes))
-        if mode is not None:
-            if mode not in MODES:
-                problems[key] = modules.SET_UNKNOWN
-            else:
-                cfg = dict(locked.site_config or {})
-                modes = dict(cfg.get("directions") or {})
-                modes[key] = {"mode": mode}
-                cfg["directions"] = modes
-                locked.site_config = cfg
-                locked.auto_create_schema = False
-                locked.save(update_fields=["site_config", "updated_at"])
-                tenant.site_config = cfg
+        if mode is not None:  # проверен до блокировки
+            cfg = dict(locked.site_config or {})
+            modes = dict(cfg.get("directions") or {})
+            modes[key] = {"mode": mode}
+            cfg["directions"] = modes
+            locked.site_config = cfg
+            locked.auto_create_schema = False
+            locked.save(update_fields=["site_config", "updated_at"])
+            tenant.site_config = cfg
     tenant.disabled_modules = locked.disabled_modules
     return problems

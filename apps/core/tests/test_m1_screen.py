@@ -122,3 +122,31 @@ def test_every_form_sends_one_key():
     for form in forms:
         assert form.count('name="key"') == 1
         assert "csrfmiddlewaretoken" in form
+
+
+def test_orders_reachable_without_waren():
+    """Ревью M-1c HIGH: салон без товаров с выключенным orders — контрол есть."""
+    preset = list(modules.default_disabled_for("friseur"))
+    t = TenantFactory(business_type="friseur", disabled_modules=sorted({*preset, "orders"}))
+    assert 'data-direction="waren"' in _html(t)
+
+
+def test_disabled_addon_without_direction_still_has_control():
+    preset = list(modules.default_disabled_for("hotel"))
+    t = TenantFactory(business_type="hotel", disabled_modules=sorted({*preset, "loyalty"}))
+    assert 'data-module="loyalty"' in _html(t)
+
+
+def test_module_action_cannot_switch_direction_modules():
+    t = TenantFactory(business_type="friseur", disabled_modules=[])
+    resp = modules_view(_req(t, "post", {"action": "module", "key": "booking", "on": "0"}))
+    assert resp.status_code == 400
+    assert "booking" not in Tenant.objects.get(pk=t.pk).disabled_modules
+
+
+def test_noop_direction_is_not_reported_as_saved():
+    t = TenantFactory(business_type="cafe", disabled_modules=[])
+    problems = directions_screen.apply(t, "direction", "speisekarte", True)
+    assert problems == {}  # уже активна — ок
+    problems = directions_screen.apply(t, "direction", "speisekarte", False)
+    assert problems  # не выключается — честная причина, не «Gespeichert»

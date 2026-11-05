@@ -79,7 +79,9 @@ def context(tenant) -> dict:
     more = [
         _direction_card(tenant, d, False)
         for d in directions.REGISTRY
-        if d.key not in active_keys and d.key not in directions.FIXED and d.key in choices
+        # Waren (FIXED: не выключается) неактивна — карточка нужна, иначе выключенный
+        # orders у салона/отеля без товаров был бы недостижим (ревью M-1c, HIGH).
+        if d.key not in active_keys and d.key != "speisekarte" and d.key in choices
     ]
     disabled = set(tenant.disabled_modules or [])
     addons = [
@@ -88,12 +90,26 @@ def context(tenant) -> dict:
         if spec.layer == "addon"
         and (_addon_fits(spec, active_keys, selling) or spec.key not in disabled)
     ]
+    # Выключенные дополнения без подходящего направления — свёрнутым списком: контрол
+    # у выключенного модуля есть ВСЕГДА (диагноз «X ist ausgeschaltet» ведёт сюда).
+    shown = {r["key"] for r in addons}
+    other_addons = [
+        _module_row(tenant, spec)
+        for spec in modules.REGISTRY
+        if spec.layer == "addon" and spec.key not in shown
+    ]
     base_off = [
         _module_row(tenant, spec)
         for spec in modules.REGISTRY
         if spec.layer == "base" and spec.key in disabled
     ]
-    return {"mine": mine, "addons": addons, "more": more, "base_off": base_off}
+    return {
+        "mine": mine,
+        "addons": addons,
+        "other_addons": other_addons,
+        "more": more,
+        "base_off": base_off,
+    }
 
 
 def problem_text(code: str) -> str:
@@ -103,16 +119,22 @@ def problem_text(code: str) -> str:
         modules.SET_CORE: _("Immer eingeschaltet."),
         directions.STATE_FIXED: _("Diese Richtung ergibt sich aus Ihrem Angebot."),
         directions.STATE_SHARED: _("Wird von einer anderen Richtung genutzt."),
+        directions.STATE_UNCHANGED: _("Für diese Richtung gibt es hier nichts umzuschalten."),
     }.get(code, _("Konnte nicht gespeichert werden."))
 
 
 def apply(tenant, action: str, key: str, on: bool) -> dict[str, str] | None:
     """Записать один переключатель. None — неизвестное действие/ключ (400)."""
     if action == ACTION_DIRECTION and directions.get(key) is not None:
-        return directions.set_state(tenant, key, on)
+        problems = directions.set_state(tenant, key, on)
+        if not problems and directions.is_active(tenant, key) != on:
+            problems = {key: directions.STATE_UNCHANGED}  # не «Gespeichert» на пустом месте
+        return problems
     if action == ACTION_MODULE:
         spec = modules.get_module(key)
-        if spec is None or spec.core:
+        # Модули направлений — только через set_state (проверка общего модуля);
+        # исключение — orders: тумблер «Online verkaufen» карточки Waren.
+        if spec is None or (spec.layer not in ("base", "addon") and key != "orders"):
             return None
         return modules.set_modules(tenant, {key: on})
     return None

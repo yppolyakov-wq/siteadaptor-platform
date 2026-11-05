@@ -30,6 +30,16 @@
   </section>
   {% endif %}
 
+  {% if other_addons %}
+  <details class="mb-6" data-directions-other-addons>
+    <summary class="cursor-pointer min-h-[44px] flex items-center font-medium">{% trans "Weitere Zusatzfunktionen" %}</summary>
+    <p class="ui-muted text-sm my-2">{% trans "Passen nicht zu Ihren Richtungen — Sie können sie trotzdem einschalten." %}</p>
+    <div class="grid xl:grid-cols-2 gap-3 items-start">
+      {% for row in other_addons %}{% include "tenant/_module_toggle.html" %}{% endfor %}
+    </div>
+  </details>
+  {% endif %}
+
   {% if more %}
   <section class="mb-6" aria-labelledby="dir-more-h" data-directions-more>
     <h2 id="dir-more-h" class="ui-h2 mb-2">{% trans "Weitere Richtung hinzufügen" %}</h2>

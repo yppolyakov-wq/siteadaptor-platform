@@ -33242,3 +33242,15 @@ msgstr "Дополнительные функции"
 #: apps/core/directions_screen.py
 msgid "Wird von einer anderen Richtung genutzt."
 msgstr "Используется другим направлением."
+
+#: apps/core/directions_screen.py
+msgid "Für diese Richtung gibt es hier nichts umzuschalten."
+msgstr "Для этого направления здесь нечего переключать."
+
+#: apps/core/directions_screen.py
+msgid "Weitere Zusatzfunktionen"
+msgstr "Другие дополнительные функции"
+
+#: apps/core/directions_screen.py
+msgid "Passen nicht zu Ihren Richtungen — Sie können sie trotzdem einschalten."
+msgstr "Не подходят к вашим направлениям — но включить их можно."

@@ -33229,3 +33229,15 @@ msgstr "Додаткові функції"
 #: apps/core/directions_screen.py
 msgid "Wird von einer anderen Richtung genutzt."
 msgstr "Використовується іншим напрямом."
+
+#: apps/core/directions_screen.py
+msgid "Für diese Richtung gibt es hier nichts umzuschalten."
+msgstr "Для цього напряму тут нічого перемикати."
+
+#: apps/core/directions_screen.py
+msgid "Weitere Zusatzfunktionen"
+msgstr "Інші додаткові функції"
+
+#: apps/core/directions_screen.py
+msgid "Passen nicht zu Ihren Richtungen — Sie können sie trotzdem einschalten."
+msgstr "Не пасують до ваших напрямів — але ввімкнути їх можна."

@@ -33087,3 +33087,15 @@ msgstr "Ek işlevler"
 #: apps/core/directions_screen.py
 msgid "Wird von einer anderen Richtung genutzt."
 msgstr "Başka bir yön tarafından kullanılıyor."
+
+#: apps/core/directions_screen.py
+msgid "Für diese Richtung gibt es hier nichts umzuschalten."
+msgstr "Bu yön için burada değiştirilecek bir şey yok."
+
+#: apps/core/directions_screen.py
+msgid "Weitere Zusatzfunktionen"
+msgstr "Diğer ek işlevler"
+
+#: apps/core/directions_screen.py
+msgid "Passen nicht zu Ihren Richtungen — Sie können sie trotzdem einschalten."
+msgstr "Yönlerinize uymuyor — yine de açabilirsiniz."
