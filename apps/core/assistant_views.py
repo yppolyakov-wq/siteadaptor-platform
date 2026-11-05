@@ -54,6 +54,8 @@ def assistant_view(request):
             "back_url": drawer.drawer_next(request, "") if request.GET.get("next") else "",
         }
     )
+    # Шторка: заголовок диалога — h2, секции под ним — h3 (на странице — h1 → h2).
+    ctx["hl"] = "h3" if drawer.is_box(request) else "h2"
     if drawer.is_box(request):
         return drawer.fragment(render(request, "core/_assistant_body.html", ctx))
     return render(request, "core/assistant.html", ctx)

@@ -11,7 +11,7 @@
         <button type="submit" class="ui-btn ui-btn-secondary ui-btn-sm min-h-[44px]">{% trans "Bestätigung erneut senden" %}</button>
       </form>
     {% elif it.link.url %}
-      <a href="{{ it.link.url }}" class="inline-flex items-center min-h-[44px] text-indigo-700 hover:underline">{% trans "Öffnen" %} <span class="sr-only">: {{ it.text }}</span> →</a>
+      <a href="{{ it.link.url }}" class="inline-flex items-center min-h-[44px] text-indigo-700 hover:underline">{% trans "Öffnen" %}<span class="sr-only">: {{ it.text }}</span> <span aria-hidden="true">→</span></a>
     {% elif it.link.note %}
       <span class="block ui-muted text-sm">{{ it.link.note }}</span>
     {% endif %}

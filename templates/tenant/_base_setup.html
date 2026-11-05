@@ -19,7 +19,7 @@
         <button type="submit" name="action" value="exit" formnovalidate class="text-gray-500 hover:text-indigo-700 hover:underline">{% trans "Später fertigstellen" %}</button>
       </form>
       {# AIS A-0 (В-4): помощник полной страницей с возвратом в мастер #}
-      <a href="{% url 'assistant' %}?seite=setup&amp;next={{ request.get_full_path|urlencode }}" class="text-gray-500 hover:text-indigo-700 hover:underline" data-setup-assistant-link>✨ {% trans "Assistent" %}</a>
+      <a href="{% url 'assistant' %}?seite=setup&amp;next={{ request.get_full_path|urlencode }}" class="inline-flex items-center min-h-[44px] text-gray-500 hover:text-indigo-700 hover:underline" data-setup-assistant-link><span aria-hidden="true">✨</span>&nbsp;{% trans "Assistent" %}</a>
       <a href="{% url 'account_logout' %}" class="text-indigo-600 hover:underline whitespace-nowrap">{% trans "Sign out" %}</a>
     </div>
   </header>

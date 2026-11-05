@@ -5,25 +5,25 @@
 
   {% if here %}
   <section aria-labelledby="as-here-h">
-    <h2 id="as-here-h" class="ui-h3 mb-1">{% trans "Auf dieser Seite fehlt" %}</h2>
+    <{{ hl|default:"h2" }} id="as-here-h" class="ui-h3 mb-1">{% trans "Auf dieser Seite fehlt" %}</{{ hl|default:"h2" }}>
     <ul class="divide-y divide-gray-100">{% for it in here %}{% include "core/_assistant_item.html" %}{% endfor %}</ul>
   </section>
   {% endif %}
 
   <section aria-labelledby="as-top-h">
-    <h2 id="as-top-h" class="ui-h3 mb-1">{% trans "Gerade wichtig" %}</h2>
+    <{{ hl|default:"h2" }} id="as-top-h" class="ui-h3 mb-1">{% trans "Gerade wichtig" %}</{{ hl|default:"h2" }}>
     <ul class="divide-y divide-gray-100">{% for it in important %}{% include "core/_assistant_item.html" %}{% endfor %}</ul>
   </section>
 
   {% if diagnoses %}
   <section aria-labelledby="as-diag-h">
-    <h2 id="as-diag-h" class="ui-h3 mb-1">{% trans "Funktioniert etwas nicht?" %}</h2>
+    <{{ hl|default:"h2" }} id="as-diag-h" class="ui-h3 mb-1">{% trans "Funktioniert etwas nicht?" %}</{{ hl|default:"h2" }}>
     {% if limited %}<p class="ui-muted text-sm" role="status">{% trans "Zu viele Prüfungen in kurzer Zeit — bitte in einer Minute erneut." %}</p>{% endif %}
     <div class="space-y-2">
       {% for d in diagnoses %}
       <details class="rounded-xl border border-gray-200 px-3 py-2"{% if d.key == pruefen or d.findings and not d.ok %} open{% endif %} data-diagnosis="{{ d.key }}">
-        <summary class="cursor-pointer min-h-[44px] flex items-center gap-2 font-medium">
-          <span class="flex-1">{{ d.symptom }}</span>
+        <summary tabindex="-1"{% if d.key == pruefen %} data-drawer-autofocus{% endif %} class="cursor-pointer min-h-[44px] flex items-center gap-2 font-medium rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
+          <span class="flex-1">{{ d.symptom }}</span><span class="sr-only">: </span>
           {% if d.findings is None %}<span class="ui-badge ui-tone-off">{% trans "nicht geprüft" %}</span>{% elif d.ok %}<span class="ui-badge ui-tone-ok">{% trans "in Ordnung" %}</span>{% else %}<span class="ui-badge ui-tone-bad">{% trans "prüfen" %}</span>{% endif %}
         </summary>
         {% if d.findings is None %}
@@ -38,7 +38,7 @@
   {% endif %}
 
   <section aria-labelledby="as-where-h">
-    <h2 id="as-where-h" class="ui-h3 mb-1">{% trans "Wo stelle ich das ein?" %}</h2>
+    <{{ hl|default:"h2" }} id="as-where-h" class="ui-h3 mb-1">{% trans "Wo stelle ich das ein?" %}</{{ hl|default:"h2" }}>
     <form method="get" action="{% url 'assistant' %}" class="flex gap-2" role="search">
       {% if seite %}<input type="hidden" name="seite" value="{{ seite }}">{% endif %}
       <label for="as-q" class="sr-only">{% trans "Einstellung suchen" %}</label>
@@ -47,7 +47,7 @@
     </form>
     {% if q %}
       {% if where %}
-      <ul class="mt-2 divide-y divide-gray-100" role="status">
+      <ul class="mt-2 divide-y divide-gray-100">
         {% for w in where %}<li class="py-2"><a href="{{ w.link.url }}" class="inline-flex items-center min-h-[44px] text-indigo-700 hover:underline">{{ w.text }}</a>{% if w.area %} <span class="ui-muted text-sm">· {{ w.area }}</span>{% endif %}</li>{% endfor %}
       </ul>
       {% else %}
