@@ -204,4 +204,25 @@
   }
   tickEnds();
   setInterval(tickEnds, 60000);
+
+  // ---- PH-5: «In der Nähe» на главной — только при геолокации (без JS кнопки нет) ----
+  document.querySelectorAll("[data-near-me]").forEach(function (btn) {
+    if (navigator.geolocation) btn.hidden = false;
+  });
+  document.addEventListener("click", function (e) {
+    var btn = e.target.closest && e.target.closest("[data-near-me]");
+    if (!btn || !navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(function (pos) {
+      var u = new URL("/", window.location.href);
+      u.searchParams.set("kind", "alle");
+      u.searchParams.set("lat", pos.coords.latitude.toFixed(5));
+      u.searchParams.set("lng", pos.coords.longitude.toFixed(5));
+      u.searchParams.set("sort", "naehe");
+      window.location.href = u.toString();
+    });
+  });
+  // «Alle Filter» с главной: лента открывается с шторкой фильтров.
+  if (window.location.hash === "#filter") {
+    openDrawer("", null);
+  }
 })();

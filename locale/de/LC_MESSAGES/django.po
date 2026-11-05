@@ -33127,3 +33127,17 @@ msgid "%(n)s Geschäft geöffnet"
 msgid_plural "%(n)s Geschäfte geöffnet"
 msgstr[0] "%(n)s Geschäft geöffnet"
 msgstr[1] "%(n)s Geschäfte geöffnet"
+
+#: templates/aggregator/_home_quick_filters.html
+msgid "Schnellfilter"
+msgstr "Schnellfilter"
+
+#: templates/aggregator/_home_quick_filters.html
+#, python-format
+msgid "ab %(n)s €"
+msgstr "ab %(n)s €"
+
+#: templates/aggregator/_home_quick_filters.html
+#, python-format
+msgid "bis %(n)s €"
+msgstr "bis %(n)s €"

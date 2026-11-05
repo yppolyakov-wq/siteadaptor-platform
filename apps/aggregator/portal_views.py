@@ -1016,6 +1016,8 @@ def _render_home(request, portal):
             "stats": stats,
             "open_count": len(open_set),
             "hero_chips": home.hero_chips(present, stats, len(open_set), request.path),
+            "quick_filters": home.quick_filters(stats, len(open_set), request.path),
+            "price_links": home.price_links(request.path) if stats.get("businesses") else [],
             "pool_empty": not present["total"],
             "tiles": home.section_tiles(present, request.path),
             # PH-2: меню «Kategorien» — из уже посчитанного presence, без запросов.

@@ -33347,3 +33347,17 @@ msgstr[0] "%(n)s магазин открыт"
 msgstr[1] "%(n)s магазина открыты"
 msgstr[2] "%(n)s магазинов открыто"
 msgstr[3] "%(n)s магазина открыто"
+
+#: templates/aggregator/_home_quick_filters.html
+msgid "Schnellfilter"
+msgstr "Быстрые фильтры"
+
+#: templates/aggregator/_home_quick_filters.html
+#, python-format
+msgid "ab %(n)s €"
+msgstr "от %(n)s €"
+
+#: templates/aggregator/_home_quick_filters.html
+#, python-format
+msgid "bis %(n)s €"
+msgstr "до %(n)s €"

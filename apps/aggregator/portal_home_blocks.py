@@ -541,3 +541,35 @@ def hero_chips(present: dict, stats: dict, open_count: int, path: str) -> list[d
     if stats.get("cheap"):
         chips.append({"label": _("Unter 10 €"), "url": f"{path}?kind=alle&preis_bis=10"})
     return chips
+
+
+# --- PH-5: строка быстрых фильтров на главной (только ссылки — страница кэшируется) ----
+
+PRICE_STEPS = (10, 20, 50)
+
+
+def quick_filters(stats: dict, open_count: int, path: str) -> list[dict]:
+    """Тумблеры-ссылки на ленту; каждый — только при непустом результате."""
+    out = []
+    if open_count:
+        out.append(
+            {"key": "offen", "label": _("Jetzt geöffnet"), "url": f"{path}?kind=alle&offen=1"}
+        )
+    # «Angebote» — уже вкладкой вида рядом (дубль не показываем).
+    if stats.get("new_week"):
+        out.append({"key": "neu", "label": _("Neu"), "url": f"{path}?kind=alle&neu=1"})
+    if stats.get("offers"):
+        out.append({"key": "heute", "label": _("Heute"), "url": f"{path}?kind=alle&datum=heute"})
+    return out
+
+
+def price_links(path: str) -> list[dict]:
+    return [
+        {"label": _("bis %(n)s €") % {"n": n}, "url": f"{path}?kind=alle&preis_bis={n}"}
+        for n in PRICE_STEPS
+    ] + [
+        {
+            "label": _("ab %(n)s €") % {"n": PRICE_STEPS[-1]},
+            "url": f"{path}?kind=alle&preis_von={PRICE_STEPS[-1]}",
+        }
+    ]
