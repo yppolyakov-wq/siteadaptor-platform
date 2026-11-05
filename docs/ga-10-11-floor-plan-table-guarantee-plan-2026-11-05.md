@@ -23,12 +23,16 @@ GA-0…GA-9 волны 4 KA-12). Два трека, связанных толь�
 | Экран «Tischplan»: плитки по зонам на момент времени, walk-in, «Tisch zuweisen» | `booking/tischplan.py`, `templates/booking/tischplan.html` (GA-6) | Слой чтения переиспользуем 1:1, меняем только раскладку |
 | Демо зала: 8 столов в двух зонах + «Tisch 3+4» | кит restaurant (GA-7) | Демо получит план и этаж |
 | Депозит стола — **фиксированный, на стол** (`Resource.deposit_cents`) | `tisch_slots`/`tisch_book` | Не «за гостя», возврат без окна |
-| **Правила отмены — только у услуги** (`Service.cancel_window_hours/late_cancel`), снимком в `Booking.cancel_policy` | `booking/cancel_policy.py` (B6) | **Бронь стола создаётся с `service=None` → снимок `{}` → «бесплатно до начала, всегда возврат».** У ресторана правил отмены сейчас нет вообще |
-| Шкала Stornogebühr «за N ч — X %» | `events.Event.cancel_fee_steps` + `normalize_fee_steps` (T-4a) | Переиспользуем нормализатор для столов |
-| Депозит после N неявок | `booking/no_show_rule.py` (E6.4c) | Сочетается с GA-11 (берётся большее) |
-| Сохранённая карта + списание без гостя | `billing.connect.installment_checkout_session` (`setup_future_usage=off_session`) + `charge_off_session` (R10) | Основа «Kartengarantie»; нужен вариант Checkout `mode="setup"` (без платежа) |
-| Фолио платежей, онлайн-остаток, возвраты | `core/folio.py`, `core/balance_pay.py`, `core/refunds.py` | Списанная плата пишется в фолио, ссылка оплаты — тем же путём |
-| Ссылка гостя «Termin verwalten» (отмена/перенос) | B6 | Распространяется на столы |
+| **Правила отмены — только у услуги** (`Service.cancel_window_hours/late_cancel`), снимком в `Booking.cancel_policy` | `booking/cancel_policy.py` (B6) | **Бронь стола создаётся с `service=None` → снимок `{}` → «бесплатно до начала, всегда возврат».** У ресторана правил отмены сейчас нет вообще. Режимы снимка — только `keep\|refund` (удерживается вся Anzahlung, процентов нет, `:68-80`, `:176`) |
+| Шкала Stornogebühr | `events/details.py::normalize_fee_steps` (T-4a, `:221`) | **В ДНЯХ**, пары `{days, percent}` «за ≤N дней — X %». Столам нужны часы → свой нормализатор (общий не трогаем, паритет T-4a) |
+| Частичное удержание при отмене | `core/refunds.py::refund_cancel_fee` (`:399`), `refund_partial` (`:554`) | Механика удержания процента уже есть — переиспользуем |
+| Депозит после N неявок | `booking/no_show_rule.py::amount_cents` (E6.4c, `:118`) | Сегодня **первое ненулевое** (депозит ресурса → сумма правила → цена), не максимум — формулу меняем явно (§4.6) |
+| Сохранённая карта + списание без гостя | `billing.connect.installment_checkout_session` (`setup_future_usage=off_session`) + `mandate_from_payment_intent` + `charge_off_session` (R10) | Основа «Kartengarantie»; нужен Checkout `mode="setup"` и чтение мандата из **SetupIntent** |
+| Вебхук connected-аккаунтов | `billing/webhooks.py::CONNECT_KINDS` (`:57`) | Новый вид не из списка молча отбрасывается как платформенный (`:112-121`) |
+| Удержание места до оплаты | `core/payment_holds.py` (`expire_overdue`, `start_online_hold`, `STRIPE_MIN_SESSION` 30 мин + `SESSION_MARGIN` 15 мин) | Минимум удержания ≈ 45 мин; обработчик гарантии обязан обнулить `payment_due_at` |
+| Фолио, онлайн-остаток, возвраты | `core/folio.py` (`record`/`record_online`), `core/balance_pay.py`, `core/refunds.py` | Плата пишется в фолио. **`balance_pay.rest_payable` для платы после неявки НЕ подходит** (требует `payment_state=deposit`, неотменённую сделку и `start > now`, `:60-75`) |
+| Ссылка гостя «Termin verwalten» | B6, `notifications.py:81-87` | Ставится только при снимке с `v` → у столов её сейчас нет; самоперенос требует `service_id` (`cancel_policy.py:103`) — у столов перенос гостем не делаем |
+| Учёт денег брони стола | `Booking.price_cents=0` → `total_cents=0` (`models.py:621`), выручка при `fulfilled` не пишется (`state_machine.py:68`) | Плата без своей строки в контракте дала бы «переплату» (`refunds.overpaid_cents`, `:708`) — нужна явная строка (§4.5) |
 
 Вывод: GA-10 — это в основном фронтенд и одна аддитивная миграция. Логика брони не меняется.
 GA-11 серьёзнее: у столов нет правил отмены, а гарантии картой нет вообще (есть только
@@ -99,7 +103,8 @@ FloorPlan  («Ebene» — этаж или отдельное помещение)
   level  SmallInt          −1 Keller · 0 EG · 1 OG … (сортировка, подпись)
   width, height  SmallInt  размер листа в клетках сетки (по умолч. 40×24; кап 200×200)
   step_free  Bool          barrierefrei erreichbar (лифт/без ступеней)
-  is_outdoor Bool          терраса/сад — закрывается на день одной кнопкой (погода)
+  (is_outdoor — НЕ в 10.1: «закрыть террасу на день» массово создаёт ClosedDate и
+   задевает брони → отдельный инкремент GA-10.8)
   elements  JSON           [{id, kind, x, y, w, h, rot, label}] — стены, двери, окна,
                            бар, лестница, растение, подпись, «Bereich»-прямоугольник; кап 300
   sort_order, is_active
@@ -137,8 +142,12 @@ Resource (+ только для type=table, все nullable → старые с�
   полной альтернативой.
 - **Телефон/планшет:** pointer events (мышь + палец), кнопки масштаба; полноценное
   редактирование — от планшета, на телефоне просмотр + сдвиг стрелками (Р-6).
+- **На план ставятся только активные одиночные столы.** Комбинации (`Resource.parts` не
+  пуст) и нестоловые ресурсы своей схемы не размещаются (схемы тенантов изолированы, так
+  что реальный риск — именно они, а не чужой тенант); комбинация рисуется на живом плане
+  обводкой своих столов.
 - **Сохранение:** `POST` JSON целого листа `{version, tables:[…], elements:[…]}` →
-  серверная валидация (столы только этого тенанта и типа table, координаты в границах,
+  серверная валидация (только активные одиночные столы type=table, координаты в границах,
   уникальные id элементов, капы, длина подписей) → одна `atomic` с `select_for_update`
   листа → версия не совпала → 409 «Plan wurde inzwischen geändert». Без JS экран показывает
   read-only план + список.
@@ -190,13 +199,19 @@ Resource (+ только для type=table, все nullable → старые с�
 | **Vorauszahlung** | сумма сразу (Checkout) | возврат полностью | удержание по ступеням; опция «auf die Rechnung angerechnet» (Anzahlung) или нет (Reservierungsgebühr) |
 | **Kartengarantie** | ничего, карта сохраняется (Checkout `mode="setup"`) | ничего, карта освобождается | списание по ступеням — **вручную** кнопкой владельца (Р-3) |
 
-Сумма: «pro Person» или «pro Reservierung». Ступени — тот же формат, что у событий
-(`normalize_fee_steps`): «kostenlos bis 24 h vorher · 50 % bis 0 h · Nichterscheinen 100 %».
+Сумма: «pro Person» или «pro Reservierung». Ступени — **в часах**, свой нормализатор
+`booking/table_policy.py::normalize_hour_steps` (событийный `normalize_fee_steps` работает
+в днях и с обратным смыслом — не обобщаем): «kostenlos bis 24 h vorher · 50 % bis 0 h ·
+Nichterscheinen 100 %». Удержание процента — существующим `refunds.refund_cancel_fee`.
 
 ### 4.2 Где правило живёт
 
-`site_config["booking"]["tables"]["policy"]` (presence-minimal, через `normalize_booking`;
-нет ключа = прежнее поведение байт-в-байт):
+**Отдельный ключ `site_config["booking"]["table_policy"]`, рядом с `tables`, а не внутри.**
+Причина (ревью): `normalize_booking` пересобирает `tables` только из `instant_max`/
+`online_max` (`siteconfig.py:4194`) — вложенный ключ стёрся бы; а материализация `tables`
+ради политики включила бы правило GA-1 с `instant_max=0` (`table_rules.decide`) → каждая
+бронь стала бы Gruppenanfrage. Presence-minimal, golden-замок; нет ключа = прежнее
+поведение байт-в-байт:
 
 ```
 { "mode": "none|prepay|guarantee",
@@ -208,8 +223,7 @@ Resource (+ только для type=table, все nullable → старые с�
      {"label": "Terrasse", "floors": [<id>], …} ] }   # кап 10 правил
 ```
 
-- Правило, депозит стола (`Resource.deposit_cents`) и E6.4c сочетаются **по максимуму**
-  суммы — не суммируются (как G4 в отеле).
+- Правило, депозит стола (`Resource.deposit_cents`) и E6.4c — см. §4.6 (явная формула).
 - Экран — «Buchungsregeln» (D2.1), раздел «Tische»: режим, сумма, ступени, особые правила,
   живой предпросмотр текста условий для гостя. Право — `preise.edit` (как предоплата услуги).
 
@@ -222,24 +236,35 @@ Resource (+ только для type=table, все nullable → старые с�
 - Гость видит условия **до отправки**: блок «Stornobedingungen» с суммой и сроком,
   обязательный чекбокс «Ich akzeptiere die Stornobedingungen» (снимок текста + хэш в брони);
   письмо-подтверждение повторяет «Kostenlos stornierbar bis Fr, 19.12., 19:00».
-- Ссылка гостя «Reservierung verwalten» (B6) — для столов: отмена с показом удержания
-  «сейчас».
+- Ссылка гостя «Reservierung verwalten» — для столов **только отмена** с показом удержания
+  «сейчас» (письмо получает `manage_url` при снимке v2; самоперенос стола — нет).
+- Отмена из кабинета (`refunds.needs_choice`) предлагает удержание по снимку, а не по
+  текущему правилу.
 - Решение «вернуть / удержать» фиксируется в момент отмены (грабля B6), повтор решает по
   снимку.
 
 ### 4.4 Kartengarantie — механика
 
 - Новый `connect.setup_checkout_session` (Checkout `mode="setup"`, `payment_method_types=["card"]`,
-  `customer_creation="always"`, текст мандата Stripe о будущем списании) на connected account.
-- Вебхук `checkout.session.completed` (mode=setup, сверка `event.account` — SEC-D1) → бронь
-  получает `guarantee_state=ready` + ссылки на customer/payment method; бронь подтверждается
-  только после этого (как депозит). Незавершённая гарантия держит стол ограниченное время
-  (как онлайн-оплата 24 ч → для стола 30 мин, Р-7) и снимается штатным FSM.
+  metadata и в сессии, и в `setup_intent_data`, текст мандата о будущем списании) на connected
+  account. **Customer создаётся заранее** на connected account (поддержка `customer_creation`
+  в setup-режиме — проверить по документации Stripe в 11.3a; заранее созданный — надёжнее).
+- Вебхук: новый вид `booking_guarantee` **в `CONNECT_KINDS`** (иначе событие отбрасывается).
+  У setup-сессии `payment_intent` пуст, `payment_status=no_payment_required` → customer/PM
+  читаются из **SetupIntent** (`mandate_from_setup_intent`, аналог `mandate_from_payment_intent`);
+  сверка `event.account` (SEC-D1), дедуп по session id. Обработчик ставит
+  `guarantee_state=ready` и **обнуляет `payment_due_at`** (как `mark_deposit_paid`), иначе
+  `expire_overdue` снимет уже гарантированную бронь. Бронь подтверждается только после этого.
+- Удержание стола до завершения гарантии/предоплаты — **не меньше ≈ 45 мин** (30 мин минимум
+  сессии Stripe + 15 мин запаса, `payment_holds`); `start_online_hold` сейчас заточен на 24 ч —
+  нужен параметр длительности (Р-7).
 - Списание: карточка брони при `no_show` или поздней отмене → кнопка «Ausfallgebühr belasten»
   с суммой из снимка (можно уменьшить, нельзя увеличить) → `charge_off_session`
-  (ключ идемпотентности = бронь + сумма) → фолио `DealPayment` + выручка тем же путём, что
-  удержание B6. SCA-отказ / отказ карты → письмо гостю со ссылкой оплаты (`balance_pay`),
-  состояние «Gebühr offen»; таймаут Stripe ≠ отказ (грабля B2-4a).
+  (ключ идемпотентности = бронь + сумма) → фолио `folio.record_online` + выручка (§4.5).
+  Право — как у возврата (owner или бухгалтер). Отказ карты / SCA → письмо гостю со
+  **своей ссылкой оплаты платы** (новый вид `booking_fee` в `CONNECT_KINDS`; `balance_pay`
+  не подходит — он требует депозит и будущую дату), состояние «Gebühr offen»; таймаут
+  Stripe ≠ отказ (грабля B2-4a).
 - «Gebühr erlassen» — закрывает без списания.
 - **DSGVO/минимизация:** после посещения или отмены без платы — `guarantee_state=released`,
   через 14 дней beat отвязывает payment method в Stripe и чистит ссылки.
@@ -250,9 +275,33 @@ Resource (+ только для type=table, все nullable → старые с�
 
 - Vorauszahlung «angerechnet» = Anzahlung: идёт существующим путём депозита (фолио, остаток,
   B2-8 Mindest-Ist/Anzahlungsrechnung).
+- **У брони стола нет цены** (`total_cents=0`, выручка при `fulfilled` не пишется).
+  Поэтому плата — **явная строка денежного контракта** (`fee_charged_cents` входит в
+  total/due брони): иначе уплаченная плата выглядит «переплатой» (`overpaid_cents`) и кабинет
+  предложит её вернуть. Выручка пишется в момент удержания/списания (поздняя отмена,
+  неявка), а не при `fulfilled`. Reservierungsgebühr (не angerechnet) — выручка при визите.
+- «Angerechnet» без чека в системе (ресторан пробивает счёт на своей кассе): предоплата
+  остаётся обязательством к зачёту, в журнал как выручка не идёт — замок «нет двойного
+  учёта» (Р-10).
 - Удержанная плата и списание по гарантии — **вопрос Steuerberater'у (Р-5):** Entgelt
   (USt) или Schadensersatz (без USt); EuGH C-295/17 (MEO) сдвигает практику к «Entgelt».
   До ответа — ставка настраивается в правиле (по умолчанию как у B6-удержания).
+
+### 4.6 Точки встраивания (из ревью кода)
+
+- **Сумма к оплате:** `max(policy_amount, Resource.deposit_cents, E6.4c)` — меняем
+  `no_show_rule.amount_cents` (сейчас «первое ненулевое»). Гостю с неявками режим
+  guarantee повышается до prepay (карта уже не защищает от повторной неявки).
+- **Автоподтверждение:** `auto_confirm` в `tisch_book` сейчас смотрит только
+  `candidate.deposit_cents` — режимы prepay/guarantee тоже его блокируют. Сочетание с GA-1:
+  REQUEST (Gruppenanfrage) + guarantee — гарантия собирается сразу, подтверждает владелец;
+  INSTANT + guarantee — подтверждение после вебхука.
+- **Обход политики:** `/termin/<pk>/` бронирует любой стол с `bookable_online`
+  (`termin_book`). Политика и выбор зоны применяются в `_termin_book_core` при
+  `resource.type == table`, а не только в `tisch_book` — замок «оба пути дают один снимок».
+- **Ручные брони** (`create_manual`, стойка, Tischplan): согласия гостя нет → политика не
+  применяется; опционально «Garantie-Link senden» гостю (v2).
+- **Новые экраны** — в `view_perms` и `nav_registry` (чеклист `cabinet-screen-dod.md`).
 
 ---
 
@@ -260,24 +309,29 @@ Resource (+ только для type=table, все nullable → старые с�
 
 | # | Что | Миграция | Зависит |
 |---|---|---|---|
-| **GA-10.0** | Замки ДО кода: характеристика Tischplan (плитки/состояния), подбор GA-4, легаси-отмена стола «бесплатно до начала» | — | — |
-| **GA-10.1** | `FloorPlan` + поля стола + `auto_layout` + read-only рендер плана в Tischplan за переключателем | ⚠️ booking (аддитивная) | 10.0 |
-| **GA-10.2** | Редактор (этажи, столы, элементы, Save с версией, клавиатура) | — | 10.1 |
-| **GA-10.3** | Живой план: этажи, состояния, клик → шторка, «Plan \| Liste» | — | 10.2 |
-| **GA-11.0** | Замки денег: снимок v1/`{}` неизменны, нет ключа policy = байт-в-байт | — | — |
-| **GA-11.1** | Правила отмены столов без денег: ступени, снимок v2, условия на витрине + чекбокс, письма, «Reservierung verwalten» | — | 11.0 |
-| **GA-11.2** | Vorauszahlung pro Person/Reservierung, angerechnet/не, удержание по ступеням | — | 11.1 |
-| **GA-10.4** | Подсказки комбинаций по соседству | — | 10.2 |
+| **GA-10.0 ∥ GA-11.0** | Замки ДО кода (параллельно): Tischplan (плитки/состояния), подбор GA-4, легаси-отмена стола «бесплатно до начала», снимок v1/`{}` неизменен, **нет `table_policy` → `decide()` GA-1 прежний**, golden `normalize_booking` | — | — |
+| **GA-10.1** | `FloorPlan` + поля стола + `requested_area` + `auto_layout` + read-only рендер плана в Tischplan за переключателем | ⚠️ booking (аддитивная) | 10.0 |
+| **GA-10.2a** | Серверное сохранение листа: JSON-приёмник, валидация (только активные одиночные столы), капы, версия → 409 | — | 10.1 |
+| **GA-10.2b** | SVG-холст и JS: перетаскивание, размер, поворот, элементы, «Nicht platziert», Undo | — | 10.2a |
+| **GA-10.2c** | Клавиатура, `aria-live`, палитра элементов, планшет | — | 10.2b |
+| **GA-10.3** | Живой план: этажи, состояния текстом и цветом, клик → шторка, «Plan \| Liste» | — | 10.2 |
+| **GA-11.1** | Правила отмены столов без денег: ступени в часах, ключ `table_policy`, снимок v2, условия + чекбокс на витрине (**за флагом юр-вычитки, Р-9**), письма, отмена по ссылке гостя, оба пути брони (`tisch_book` и `_termin_book_core`) | — | 11.0 |
+| **GA-11.2** | Vorauszahlung pro Person/Reservierung, angerechnet/не, удержание по ступеням (`refund_cancel_fee`), строка платы в контракте, формула `max()` с E6.4c, блок автоподтверждения | — | 11.1 |
 | **GA-10.5** | Витрина: Bereich/этаж/barrierefrei | — | 10.1 |
-| **GA-11.3** | Kartengarantie (setup, вебхук, ручное списание, SCA-фолбэк, освобождение) | ⚠️ booking (поля гарантии) | 11.2 |
+| **GA-10.4** | Подсказки комбинаций по соседству | — | 10.2 |
+| **GA-11.3a** | Kartengarantie: setup-сессия, Customer на connected account, вебхук `booking_guarantee` (`CONNECT_KINDS`, SetupIntent), удержание ≥ 45 мин, обнуление `payment_due_at`, подтверждение | ⚠️ booking (поля гарантии) | 11.2 |
+| **GA-11.3b** | Списание «Ausfallgebühr belasten»: off-session, ссылка оплаты платы (`booking_fee`), фолио, выручка, «Gebühr offen/erlassen», права | — | 11.3a |
+| **GA-11.3c** | Освобождение карты после визита/отмены + beat отвязки через 14 дней | — | 11.3b |
 | **GA-11.4** | Особые правила (даты/дни/группы/этажи) | — | 11.2, 10.1 |
 | **GA-10.6** | Выбор стола гостем (опция) | — | 10.5 |
+| **GA-10.8** | «Außenbereich heute geschlossen»: закрыть этаж-террасу на день с показом затронутых броней и письмом гостям | ⚠️ booking (`is_outdoor`) | 10.1 |
 | **GA-10.7 / 11.5** | Демо ресторана (2 этажа + терраса, правило гарантии для групп) + золотой путь GP-8 (бронь → поздняя отмена → удержание → выручка) + стенд + переводы ×5 | — | всё |
 
-Рекомендуемый порядок: **10.0 → 10.1 → 10.2 → 10.3 → 11.0 → 11.1 → 11.2 → 10.5 → 10.4 → 11.3
-→ 11.4 → 10.6 → 10.7/11.5.** План зала даёт видимую ценность первым; правила отмены без
-денег (11.1) дёшевы и уже снимают проблему «у ресторана нет правил отмены»; гарантия
-картой (11.3) — самая рискованная часть, идёт после того, как правила и снимок обкатаны.
+Рекомендуемый порядок: **10.0 ∥ 11.0 → 10.1 → 10.2a–c → 10.3 → 11.1 → 11.2 → 10.5 → 10.4 →
+11.3a–c → 11.4 → 10.6 → 10.8 → 10.7/11.5.** План зала даёт видимую ценность первым; правила
+отмены без денег (11.1) дёшевы и уже снимают проблему «у ресторана нет правил отмены»;
+гарантия картой (11.3) — самая рискованная часть, идёт после того, как правила и снимок
+обкатаны.
 
 ## 6. Решения владельца
 
@@ -289,9 +343,10 @@ Resource (+ только для type=table, все nullable → старые с�
 | Р-4 | Где хранить выбранную гостем зону | Отдельное поле `Booking.requested_area` в миграции 10.1 (видно на карточке, ищется) |
 | Р-5 | НДС удержанной платы | Вопрос Steuerberater'у; до ответа — настраиваемая ставка |
 | Р-6 | Редактирование с телефона | Полное — от планшета; телефон — просмотр + сдвиг стрелками |
-| Р-7 | Сколько держать стол, пока гость не завершил гарантию/предоплату | 30 мин |
+| Р-7 | Сколько держать стол, пока гость не завершил гарантию/предоплату | 45 мин (меньше нельзя: минимум сессии Stripe 30 мин + 15 мин запаса) |
 | Р-8 | Перетаскивание брони на другой стол в живом плане | v2 (сейчас — кнопка «Tisch zuweisen») |
-| Р-9 | Текст условий | Шаблон с оговоркой § 309 Nr. 5 b («Ihnen bleibt der Nachweis eines geringeren Schadens unbenommen»); юр-вычитка до включения GA-11.2/11.3 в проде (флаг) |
+| Р-9 | Текст условий | Шаблон с оговоркой § 309 Nr. 5 b («Ihnen bleibt der Nachweis eines geringeren Schadens unbenommen»); юр-вычитка до включения уже GA-11.1 в проде (флаг: чекбокс и текст условий появляются там) |
+| Р-10 | Предоплата «angerechnet», если чек пробивается на кассе ресторана | Обязательство к зачёту, не выручка; отметка «verrechnet» на карточке брони |
 
 ## 7. Риски
 
@@ -318,13 +373,13 @@ Resource (+ только для type=table, все nullable → старые с�
 | План (этот док) | `market-research` (сделано) | `planner` — ревью плана сразу после записи (§9); `architect` — модель Ebene/зон при Р-1 |
 | GA-10.0 / 11.0 | `django-tdd`, `python-testing` | — (замки ДО кода, красные/зелёные по задумке) |
 | GA-10.1 | `database-migrations`, `postgres-patterns`, `django-patterns` | `database-reviewer` (миграция, индексы `floor`), `django-reviewer` |
-| GA-10.2 | `django-security`, `api-design` (JSON-сохранение), `accessibility`, `e2e-testing` | `security-reviewer` (валидация JSON, кросс-тенант), `django-reviewer`, `a11y-architect` (холст, клавиатура), `e2e-runner`/Playwright-стенд 1440/1024/390 |
+| GA-10.2a–c | `django-security`, `api-design` (JSON-сохранение), `accessibility`, `e2e-testing` | `security-reviewer` (валидация JSON, кросс-тенант), `django-reviewer`, `a11y-architect` (холст, клавиатура), `e2e-runner`/Playwright-стенд 1440/1024/390 |
 | GA-10.3 | `accessibility`, `e2e-testing` | `django-reviewer`, `a11y-architect`, Playwright-стенд |
 | GA-10.4 | `django-tdd` | `django-reviewer` |
 | GA-10.5 / 10.6 | `django-security`, `accessibility`, `e2e-testing`, `seo` (витрина) | `security-reviewer` (недоверие к выбору гостя), `a11y-architect`, Playwright-стенд |
 | GA-11.1 | `django-patterns`, `error-handling` | `django-reviewer`, `silent-failure-hunter` (снимок/повтор отмены) |
 | GA-11.2 | `error-handling`, `django-security` | `django-reviewer` + `security-reviewer` + `silent-failure-hunter` |
-| GA-11.3 | `error-handling`, `django-security`, `django-celery` (beat освобождения), `database-migrations` | `security-reviewer` (вебхук, `event.account`), `silent-failure-hunter` (SCA/таймаут), `database-reviewer`, `django-reviewer` |
+| GA-11.3a–c | `error-handling`, `django-security`, `django-celery` (beat освобождения), `database-migrations` | `security-reviewer` (вебхук, `event.account`), `silent-failure-hunter` (SCA/таймаут), `database-reviewer`, `django-reviewer` |
 | GA-11.4 | `django-tdd` | `django-reviewer` |
 | GA-10.7 / 11.5 | `e2e-testing` | `e2e-runner` (золотой путь GP-8), `doc-updater` (build-log, task-catalog, §3 CLAUDE.md) |
 
@@ -332,6 +387,23 @@ Resource (+ только для type=table, все nullable → старые с�
 (`--reuse-db`, при миграциях `--create-db`) + `scripts/i18n_quickcheck.py` +
 `test_template_comments` + `npm run build:css` при новых классах → CI на git.
 
-## 9. Ревью плана (planner)
+## 9. Ревью плана (planner, 2026-11-05)
 
-_Заполняется по итогам прогона агента `planner`._
+Агент `planner` проверил план по коду; ключевые утверждения перепроверены вручную
+(`siteconfig.py:4194`, `webhooks.py:57`, `balance_pay.py:60`, `no_show_rule.py:118`,
+`events/details.py:221`, `payment_holds.py:84-112`). Внесено в план:
+
+- ступени событий — в днях → свой нормализатор в часах (§1, §4.1);
+- политика — отдельный ключ `booking.table_policy`: вложенный в `tables` стёрся бы и
+  ломал GA-1 (§4.2);
+- вебхук гарантии — новый вид в `CONNECT_KINDS`, мандат из SetupIntent, Customer заранее,
+  обнуление `payment_due_at` (§4.4);
+- удержание стола ≥ 45 мин вместо 30 (Р-7);
+- ссылка оплаты платы — свой вид `booking_fee`, а не `balance_pay` (§4.4);
+- у брони стола нет цены → плата явной строкой контракта, иначе «переплата» (§4.5);
+- формула `max()` с E6.4c, блок автоподтверждения, политика и в `_termin_book_core`,
+  ручные брони без политики (§4.6);
+- в редакторе — только активные одиночные столы, без комбинаций (§3.2);
+- `is_outdoor` вынесен в GA-10.8;
+- GA-10.2 и GA-11.3 разбиты на a/b/c; GA-11.0 идёт параллельно с 10.0; флаг юр-вычитки —
+  уже с GA-11.1.
