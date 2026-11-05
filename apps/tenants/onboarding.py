@@ -318,6 +318,8 @@ def get_state(tenant) -> dict:
         state["times"] = times
     if raw.get("source") in SOURCES:
         state["source"] = raw["source"]
+    if raw.get("flow") == "v4":  # AIS-W W4-1: мастер v4 (ставит регистрация)
+        state["flow"] = "v4"
     return state
 
 
@@ -463,7 +465,64 @@ def mark_complete(tenant, *, source: str = "") -> dict:
         _stamp(state, "completed")
     state["completed"] = True
     save_state(tenant, state)
+    # AIS-W W4-1: мастер пройден за владельца (быстрый старт, демо, импорт) — сайт
+    # готов, прятать его до кнопки «Website veröffentlichen» незачем.
+    if getattr(tenant, "published_at", True) is None:
+        _set_published(tenant)
     return state
+
+
+# --- AIS-W W4-1: «Website veröffentlichen» --------------------------------------------------
+
+#: Без этого сайт не публикуется (базовые «обязательно» реестра готовности).
+PUBLISH_REQUIRED = ("contact", "impressum", "email")
+
+
+def _set_published(tenant) -> None:
+    from django.utils import timezone
+
+    from apps.tenants.models import Tenant
+
+    now = timezone.now()
+    # Одно поле одним UPDATE: чужие снимки site_config его не затрут; повтор — no-op.
+    Tenant.objects.filter(pk=tenant.pk, published_at__isnull=True).update(published_at=now)
+    tenant.published_at = Tenant.objects.values_list("published_at", flat=True).get(pk=tenant.pk)
+
+
+def publish_blockers(tenant) -> list[dict]:
+    """Чего не хватает для публикации. Fail-closed: «не можем проверить» = не хватает."""
+    from apps.core import readiness
+
+    readiness.invalidate(tenant)
+    return [
+        row
+        for row in readiness.items_for(tenant, direction="")
+        if row["key"] in PUBLISH_REQUIRED and row["done"] is not True
+    ]
+
+
+def publish(tenant) -> list[dict]:
+    """Опубликовать сайт. Возвращает недостающее (пусто — опубликовано).
+
+    Идемпотентно: повтор время публикации не меняет. После публикации — каталог города
+    (`apply_visibility`, как при подтверждении почты) и сброс кэша витрины."""
+    blockers = publish_blockers(tenant)
+    if blockers:
+        return blockers
+    if tenant.published_at is None:
+        _set_published(tenant)
+        state = get_state(tenant)
+        if not state["completed"]:
+            state["completed"] = True
+            state.setdefault("source", "wizard")
+            _stamp(state, "completed")  # финиш замера AIS-0 = публикация
+            save_state(tenant, state)
+        from apps.aggregator.visibility import apply_visibility
+        from apps.core.pagecache import bump_storefront_cache
+
+        apply_visibility(tenant)
+        bump_storefront_cache(tenant.schema_name)
+    return []
 
 
 def goto(tenant, key: str) -> dict:

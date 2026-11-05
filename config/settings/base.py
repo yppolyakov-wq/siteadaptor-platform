@@ -743,6 +743,8 @@ LITE_FREE_ACTIVE_PROMOS = env.int("LITE_FREE_ACTIVE_PROMOS", default=5)
 # AIS-W W4-0: жёсткий гейт продажи по реестру готовности (apps.core.readiness).
 # Выключен до прогона `readiness_report` и проставления исключений работающим магазинам.
 READINESS_SELL_GATE = env.bool("READINESS_SELL_GATE", default=False)
+# AIS-W W4-1: мастер v4 для новых регистраций — сайт скрыт до «Website veröffentlichen».
+SETUP_WIZARD_V4 = env.bool("SETUP_WIZARD_V4", default=False)
 # KA-12 E6.6: потолки против «выкупа витрины» резервами и купонами (Р-2/Р-4).
 PROMO_PENDING_HOLD_HOURS = env.int("PROMO_PENDING_HOLD_HOURS", default=4)
 PROMO_RESERVATIONS_PER_IP_DAY = env.int("PROMO_RESERVATIONS_PER_IP_DAY", default=10)

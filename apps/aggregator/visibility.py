@@ -24,6 +24,7 @@ def listable(tenant) -> bool:
         and not getattr(tenant, "email_pending", False)
         and getattr(tenant, "in_city_catalog", True)
         and not getattr(tenant, "is_internal", False)  # T-8.26: тестовая регистрация
+        and getattr(tenant, "published_at", True) is not None  # AIS-W W4-1
     )
 
 
@@ -39,6 +40,7 @@ def withheld_schemas():
         | Q(email_pending=True)
         | Q(in_city_catalog=False)
         | Q(is_internal=True)
+        | Q(published_at__isnull=True)  # AIS-W W4-1: сайт ещё не опубликован
     ).values("schema_name")
 
 

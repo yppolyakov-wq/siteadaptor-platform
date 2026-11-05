@@ -78,7 +78,11 @@ class PendingStorefrontMiddleware:
         if (
             tenant is None
             or getattr(tenant, "schema_name", "public") == "public"
-            or not getattr(tenant, "email_pending", False)
+            or not (
+                getattr(tenant, "email_pending", False)
+                # AIS-W W4-1: сайт ещё не опубликован (мастер v4).
+                or getattr(tenant, "published_at", True) is None
+            )
             or request.method not in ("GET", "HEAD")
             or request.path.startswith(self.OPEN_PREFIXES)
             or has_cabinet_access(getattr(request, "user", None))
@@ -89,6 +93,8 @@ class PendingStorefrontMiddleware:
         response = render(request, "storefront/coming_soon.html", status=503)
         response["X-Robots-Tag"] = "noindex, nofollow"
         response["Retry-After"] = "3600"
+        # Ни прокси, ни браузер не кэшируют «bald online»: после публикации — сразу сайт.
+        response["Cache-Control"] = "no-store"
         return response
 
 

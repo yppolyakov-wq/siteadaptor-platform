@@ -63,6 +63,12 @@ class Tenant(TenantMixin):
     # города не попадает НИКОГДА; ставится только в админке, владелец его не видит и
     # снять не может (в отличие от согласия `in_city_catalog`).
     is_internal = models.BooleanField(default=False)
+    # AIS-W W4-1: момент «Website veröffentlichen». None — сайт ещё не опубликован:
+    # витрина гостям 503 «bald online», в каталог города не идёт. Отдельное поле, а не
+    # ключ site_config: ~30 писателей пишут site_config целиком из снимка запроса и
+    # затёрли бы метку (ревью architect). Новые тенанты по умолчанию опубликованы;
+    # «скрыт до публикации» ставит только регистрация при мастере v4 (SETUP_WIZARD_V4).
+    published_at = models.DateTimeField(null=True, blank=True, default=timezone.now)
     # T-8.22: основная категория бизнеса в каталоге города (слаг core/city_categories).
     # Пусто = подсказка по типу бизнеса; нужна там, где тип ничего не говорит («Sonstiges»).
     city_category = models.CharField(max_length=40, blank=True, default="")

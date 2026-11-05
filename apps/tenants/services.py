@@ -52,7 +52,9 @@ def _resolve_partner(code: str):
         return None
 
 
-def _new_tenant(*, business_name, slug, business_type, city, email, partner_code="") -> Tenant:
+def _new_tenant(
+    *, business_name, slug, business_type, city, email, partner_code="", wizard_v4=False
+) -> Tenant:
     from apps.jobs.anfrage_presets import with_default
 
     # KA-12 A-3: стартовая форма заявки по типу (кейтеринг — дата/гости/повод).
@@ -61,7 +63,7 @@ def _new_tenant(*, business_name, slug, business_type, city, email, partner_code
     from apps.jobs import status_presets
 
     site_config, _changed = status_presets.with_default(site_config, business_type)
-    return Tenant(
+    tenant = Tenant(
         partner=_resolve_partner(partner_code),
         schema_name=slug.replace("-", "_"),
         name=business_name,
@@ -79,6 +81,12 @@ def _new_tenant(*, business_name, slug, business_type, city, email, partner_code
         enabled_locales=["de", "en"],
         site_config=site_config,
     )
+    if wizard_v4:
+        # AIS-W W4-1: мастер v4 — сайт скрыт от гостей до «Website veröffentlichen».
+        # Признак ставится при СОЗДАНИИ (иначе до первого захода в мастер сайт виден).
+        tenant.published_at = None
+        tenant.site_config = {**site_config, "onboarding": {"v": 2, "flow": "v4"}}
+    return tenant
 
 
 @transaction.atomic
@@ -109,6 +117,7 @@ def start_business_provisioning(
         city=city,
         email=email,
         partner_code=partner_code,
+        wizard_v4=getattr(settings, "SETUP_WIZARD_V4", False),
     )
     tenant.provisioning_status = Tenant.PROVISIONING_PENDING
     tenant.auto_create_schema = False  # схему создаст фоновая задача
