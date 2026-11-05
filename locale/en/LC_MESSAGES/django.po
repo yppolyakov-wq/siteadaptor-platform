@@ -32074,3 +32074,13 @@ msgstr "At least one upcoming event"
 #: apps/core/readiness.py
 msgid "Anfrageformular angepasst"
 msgstr "Request form customised"
+
+#: apps/ai/disclosure.py
+#, python-format
+msgid "Diese Suche nutzt KI von %(who)s. Ihr Suchtext wird dafür in die USA übermittelt (Standardvertragsklauseln der EU)."
+msgstr "This search uses AI from %(who)s. Your search text is transferred to the USA for this (EU standard contractual clauses)."
+
+#: apps/ai/disclosure.py
+#, python-format
+msgid "Diese KI-Funktion nutzt %(who)s. Ihre Eingaben werden dafür in die USA übermittelt (Standardvertragsklauseln der EU). Geben Sie keine Daten ein, die nicht nötig sind."
+msgstr "This AI feature uses %(who)s. Your input is transferred to the USA for this (EU standard contractual clauses). Do not enter data that is not needed."

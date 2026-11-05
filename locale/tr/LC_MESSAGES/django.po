@@ -32220,3 +32220,13 @@ msgstr "En az bir yaklaşan etkinlik"
 #: apps/core/readiness.py
 msgid "Anfrageformular angepasst"
 msgstr "Talep formu özelleştirildi"
+
+#: apps/ai/disclosure.py
+#, python-format
+msgid "Diese Suche nutzt KI von %(who)s. Ihr Suchtext wird dafür in die USA übermittelt (Standardvertragsklauseln der EU)."
+msgstr "Bu arama %(who)s yapay zekâsını kullanır. Arama metniniz bunun için ABD'ye aktarılır (AB standart sözleşme maddeleri)."
+
+#: apps/ai/disclosure.py
+#, python-format
+msgid "Diese KI-Funktion nutzt %(who)s. Ihre Eingaben werden dafür in die USA übermittelt (Standardvertragsklauseln der EU). Geben Sie keine Daten ein, die nicht nötig sind."
+msgstr "Bu yapay zekâ işlevi %(who)s kullanır. Girdileriniz bunun için ABD'ye aktarılır (AB standart sözleşme maddeleri). Gerekli olmayan veri girmeyin."

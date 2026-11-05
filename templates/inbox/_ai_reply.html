@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load i18n ai_notice %}
 {% comment %}T-8.10g «✨ Antwort vorschlagen»: черновик ИИ только ЗАПОЛНЯЕТ поле ответа
 этой формы — отправляет человек. Метка «KI-generiert» — подсказка владельцу,
 в текст сообщения не вставляется. Скрипт делегирован на document (урок Ф1).{% endcomment %}
@@ -13,6 +13,7 @@
           data-fail="{% trans 'Kein Vorschlag möglich – bitte selbst antworten.' %}"
           data-replace="{% trans 'Vorhandenen Text ersetzen?' %}">✨ {% trans "Antwort vorschlagen" %}</button>
   <span class="text-xs text-gray-500" data-ai-reply-status role="status" aria-live="polite"></span>
+  {% ai_notice "inbox_reply_draft" %}
 </div>
 <script>
 (function () {

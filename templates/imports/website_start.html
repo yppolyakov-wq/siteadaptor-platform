@@ -1,6 +1,6 @@
 {% extends "tenant/_base_dashboard.html" %}
 {% load cabinet %}
-{% load i18n %}
+{% load i18n ai_notice %}
 {% block dash_title %}{% trans "Von der Website importieren" %}{% endblock %}
 
 {% block dash_content %}
@@ -25,6 +25,7 @@
       {% trans "Website auslesen" %}
     </button>
   </form>
+  {% ai_notice "site_import_extract" %}
 </div>
 
 {% if not verified_host %}<div class="max-w-xl">{% include "imports/_site_verify.html" %}</div>

@@ -1,4 +1,4 @@
-{% load i18n %}{% comment %}Д1 (T-8.10a): «✨ Vorschlag aus dem Foto». Кнопка появляется, когда выбрано фото;
+{% load i18n ai_notice %}{% comment %}Д1 (T-8.10a): «✨ Vorschlag aus dem Foto». Кнопка появляется, когда выбрано фото;
 ИИ заполняет ТОЛЬКО пустые поля (категорию — если владелец её не менял), цену не трогает.
 Каждое заполненное поле помечено «KI-generiert, bitte prüfen» и «Rückgängig». Без JS блока нет.{% endcomment %}
 <input type="hidden" name="ai_draft" value="" data-ai-draft-flag>
@@ -17,6 +17,7 @@
   <span class="hidden text-sm text-gray-600" data-ai-photo-busy>{% trans "Wird erkannt…" %}</span>
   <p class="text-xs text-gray-600" data-ai-photo-msg></p>
   <p class="text-xs text-gray-500">{% trans "Preis und Dauer bestimmen Sie selbst. Bitte keine Personen fotografieren." %}</p>
+  {% ai_notice "promo_photo_draft" %}
 </div>
 <script>
 (function () {

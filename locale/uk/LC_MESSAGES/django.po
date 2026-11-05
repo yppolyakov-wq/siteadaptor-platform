@@ -32356,3 +32356,13 @@ msgstr "Хоча б один майбутній захід"
 #: apps/core/readiness.py
 msgid "Anfrageformular angepasst"
 msgstr "Форму заявки налаштовано"
+
+#: apps/ai/disclosure.py
+#, python-format
+msgid "Diese Suche nutzt KI von %(who)s. Ihr Suchtext wird dafür in die USA übermittelt (Standardvertragsklauseln der EU)."
+msgstr "Цей пошук використовує ШІ %(who)s. Текст запиту для цього передається до США (стандартні договірні умови ЄС)."
+
+#: apps/ai/disclosure.py
+#, python-format
+msgid "Diese KI-Funktion nutzt %(who)s. Ihre Eingaben werden dafür in die USA übermittelt (Standardvertragsklauseln der EU). Geben Sie keine Daten ein, die nicht nötig sind."
+msgstr "Ця функція ШІ використовує %(who)s. Ваші дані для цього передаються до США (стандартні договірні умови ЄС). Не вводьте зайвих даних."

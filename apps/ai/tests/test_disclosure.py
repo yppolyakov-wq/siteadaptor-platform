@@ -90,3 +90,29 @@ def test_non_eu_route_hidden_when_eu_required(anthropic_on, settings):
     settings.MISTRAL_MODEL_FAST = settings.MISTRAL_MODEL_STRONG = "mistral-x"
     text = disclosure.platform_section()
     assert "Anthropic" not in text and "USA" not in text
+
+
+# --- AIS (решение владельца 2026-11-05): пометка у ИИ-кнопок, пока маршрут вне ЕС ---------
+
+
+def test_notice_names_usa_for_enabled_task_on_direct_api(anthropic_on):
+    text = disclosure.notice("promo_photo_draft")
+    assert "Anthropic PBC" in text and "USA" in text
+    assert "Suchtext" in disclosure.notice("promo_text_check", audience="public")
+
+
+def test_notice_silent_for_disabled_task_or_eu_route(anthropic_on, settings):
+    assert disclosure.notice("inbox_reply_draft") == ""  # задача не включена
+    anthropic_on.AI_ROUTE_FAST = ["mistral"]
+    anthropic_on.AI_ROUTE_STRONG = ["mistral"]
+    settings.MISTRAL_MODEL_FAST = settings.MISTRAL_MODEL_STRONG = "mistral-x"
+    assert disclosure.notice("promo_photo_draft") == ""  # ЕС — пометки нет
+
+
+def test_notice_tag_renders_only_with_text(anthropic_on):
+    from django.template import Context, Template
+
+    tpl = Template('{% load ai_notice %}{% ai_notice "promo_photo_draft" %}')
+    assert "data-ai-notice" in tpl.render(Context())
+    anthropic_on.AI_TASKS_ENABLED = []
+    assert tpl.render(Context()).strip() == ""

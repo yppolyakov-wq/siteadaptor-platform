@@ -32369,3 +32369,13 @@ msgstr "Хотя бы одно предстоящее мероприятие"
 #: apps/core/readiness.py
 msgid "Anfrageformular angepasst"
 msgstr "Форма заявки настроена"
+
+#: apps/ai/disclosure.py
+#, python-format
+msgid "Diese Suche nutzt KI von %(who)s. Ihr Suchtext wird dafür in die USA übermittelt (Standardvertragsklauseln der EU)."
+msgstr "Этот поиск использует ИИ %(who)s. Текст запроса для этого передаётся в США (стандартные договорные условия ЕС)."
+
+#: apps/ai/disclosure.py
+#, python-format
+msgid "Diese KI-Funktion nutzt %(who)s. Ihre Eingaben werden dafür in die USA übermittelt (Standardvertragsklauseln der EU). Geben Sie keine Daten ein, die nicht nötig sind."
+msgstr "Эта функция ИИ использует %(who)s. Ваши данные для этого передаются в США (стандартные договорные условия ЕС). Не вводите лишних данных."

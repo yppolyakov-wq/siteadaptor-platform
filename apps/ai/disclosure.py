@@ -13,6 +13,7 @@ from __future__ import annotations
 import logging
 
 from django.conf import settings
+from django.utils.translation import gettext as _
 
 from . import config
 
@@ -188,3 +189,31 @@ def tenant_paragraph() -> str:
     except Exception:  # noqa: BLE001
         logger.exception("ai disclosure: tenant paragraph failed")
         return ""
+
+
+def notice(task: str, *, audience: str = "owner") -> str:
+    """Короткая пометка у ИИ-функции, пока её маршрут уходит из ЕС (решение владельца
+    2026-11-05: работаем на прямом Claude API и честно об этом сообщаем).
+
+    Пусто, если задача выключена или все маршруты в ЕС — после перехода на Bedrock EU
+    пометка исчезает сама. `audience="public"` — для посетителей портала."""
+    try:
+        if task not in active_tasks():
+            return ""
+        foreign = [legal for legal, _place, eu in active_processors() if not eu]
+    except Exception:  # noqa: BLE001 — пометка не должна ронять страницу
+        logger.warning("ai notice failed for %s", task, exc_info=True)
+        return ""
+    if not foreign:
+        return ""
+    who = ", ".join(dict.fromkeys(foreign))
+    if audience == "public":
+        return _(
+            "Diese Suche nutzt KI von %(who)s. Ihr Suchtext wird dafür in die USA "
+            "übermittelt (Standardvertragsklauseln der EU)."
+        ) % {"who": who}
+    return _(
+        "Diese KI-Funktion nutzt %(who)s. Ihre Eingaben werden dafür in die USA "
+        "übermittelt (Standardvertragsklauseln der EU). Geben Sie keine Daten ein, "
+        "die nicht nötig sind."
+    ) % {"who": who}

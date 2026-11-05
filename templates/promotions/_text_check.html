@@ -1,4 +1,4 @@
-{% load i18n %}{% comment %}D2a-2 (T-8.10e): «Vor dem Veröffentlichen prüfen» — блок подсказок внутри
+{% load i18n ai_notice %}{% comment %}D2a-2 (T-8.10e): «Vor dem Veröffentlichen prüfen» — блок подсказок внутри
 формы акции (ассистент или полная форма). Ничего не блокирует: Save/«Veröffentlichen»
 работают при любых подсказках. Без JS блок показывает серверные подсказки (правка),
 кнопка проверки требует JS. План — docs/d2-ai-text-check-plan-2026-10-17.md §5.{% endcomment %}
@@ -12,6 +12,7 @@
     </div>
   </div>
   <p class="text-xs text-gray-500">{% trans "Automatische Hinweise – keine Rechtsberatung." %}</p>
+  {% if text_check_ai %}{% ai_notice "promo_text_check" %}{% endif %}
   {% comment %}SP-16: live-region ВСЕГДА в дереве доступности — скрытый display:none
   регион скринридеры не слушают и первую фразу «KI prüft …» теряли. Пустой — sr-only.{% endcomment %}
   <p class="sr-only text-xs text-gray-500" data-tc-status role="status"></p>
