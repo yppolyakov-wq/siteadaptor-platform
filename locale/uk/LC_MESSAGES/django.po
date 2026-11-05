@@ -32747,3 +32747,24 @@ msgstr[0] "%(n)s гість"
 msgstr[1] "%(n)s гості"
 msgstr[2] "%(n)s гостей"
 msgstr[3] "%(n)s гостя"
+
+#: apps/core/offer_batch.py
+msgid "Abgewählte Bereiche werden nicht ausgeschaltet — das machen Sie unter „Funktionen“."
+msgstr "Зняті розділи не вимикаються — це робиться у «Функціях»."
+
+#: apps/core/offer_batch.py
+msgid "Mehreres ist möglich. Ändern geht jederzeit."
+msgstr "Можна вибрати кілька. Змінити можна будь-коли."
+
+#: apps/core/offer_batch.py
+#, python-format
+msgid "Nicht in Ihrem Paket enthalten: %(items)s"
+msgstr "Не входить у ваш пакет: %(items)s"
+
+#: apps/core/offer_batch.py
+msgid "Sie verkaufen"
+msgstr "Ви продаєте"
+
+#: apps/core/offer_batch.py
+msgid "Wie verkaufen Sie?"
+msgstr "Як ви продаєте?"

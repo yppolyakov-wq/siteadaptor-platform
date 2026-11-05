@@ -971,7 +971,7 @@ def _pruefen_row(line) -> dict:
 
 
 def _ctx_pruefen(request):
-    from apps.core import offer_batch, offer_examples, offer_lines
+    from apps.core import directions, offer_batch, offer_examples, offer_lines
 
     tenant = request.tenant
     kinds = offer_batch.offer_kinds(tenant, request.user)
@@ -981,6 +981,14 @@ def _ctx_pruefen(request):
     kind = kind or (wanted if wanted in kinds else None) or (kinds[0] if kinds else "")
     rows, notes, review = [], [], bool(kind and draft.get("batch") and draft.get("kind") == kind)
     rooms = _pruefen_rooms() if "zimmer" in kinds else []
+    chosen = set(offer_batch.chosen_directions(tenant))
+    active = {d.key for d in directions.active(tenant)}
+    defaults = set(directions.defaults_for(tenant.business_type))
+    picked = chosen or active | defaults
+    choices = [
+        {"key": d.key, "label": d.label, "blurb": d.blurb, "checked": d.key in picked}
+        for d in offer_batch.direction_choices(tenant)
+    ]
     if review:
         examples = frozenset(offer_examples.lines_for(tenant.business_type, kind))
         try:
@@ -1003,6 +1011,10 @@ def _ctx_pruefen(request):
         "pruefen_max": offer_lines.MAX_LINES,
         "offer_items": [] if "zimmer" in kinds else _offer_items(tenant),
         "pruefen_rooms": rooms,
+        "pruefen_directions": choices,
+        "pruefen_directions_open": not kinds
+        or (tenant.business_type in offer_batch.ASK_TYPES and not chosen),
+        "pruefen_directions_summary": ", ".join(str(c["label"]) for c in choices if c["checked"]),
         "pruefen_rooms_missing": any(not r["has_photo"] for r in rooms),
     }
 

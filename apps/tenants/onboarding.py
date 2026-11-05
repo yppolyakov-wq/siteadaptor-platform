@@ -389,6 +389,9 @@ def get_state(tenant) -> dict:
     batches = raw.get("offer_batches")  # AIS-W W4-2: кольцо идемпотентности «Übernehmen»
     if isinstance(batches, list):
         state["offer_batches"] = [b for b in batches if isinstance(b, dict)][-10:]
+    chosen = raw.get("directions")  # AIS-W W4-2: ответ «Wie verkaufen Sie?»
+    if isinstance(chosen, list):
+        state["directions"] = [k for k in chosen if isinstance(k, str)][:10]
     return state
 
 
@@ -436,6 +439,11 @@ def touch_start(tenant) -> None:
     save_state(tenant, state)
 
 
+#: Ключи состояния, которые пишут точечные писатели под блокировкой (offer_batch): общий
+#: save_state берёт их из БД, а не из (возможно, устаревшего) тенанта запроса.
+_LOCKED_STATE_KEYS = ("offer_batches", "directions")
+
+
 def save_state(tenant, state: dict) -> None:
     config = tenant.site_config if isinstance(tenant.site_config, dict) else {}
     # AIS-W W4-2: кольцо «Übernehmen» пишет offer_batch.confirm под блокировкой; запрос,
@@ -445,9 +453,10 @@ def save_state(tenant, state: dict) -> None:
         if tenant.pk
         else None
     )
-    fresh_batches = ((fresh or {}).get("onboarding") or {}).get("offer_batches")
-    if isinstance(fresh_batches, list) and fresh_batches:
-        state = {**state, "offer_batches": fresh_batches}
+    fresh_state = (fresh or {}).get("onboarding") or {}
+    for key in _LOCKED_STATE_KEYS:
+        if isinstance(fresh_state.get(key), list):
+            state = {**state, key: fresh_state[key]}
     config["onboarding"] = state
     tenant.site_config = config
     tenant.save(update_fields=["site_config", "updated_at"])

@@ -32605,3 +32605,24 @@ msgid "%(n)s Gast"
 msgid_plural "%(n)s Gäste"
 msgstr[0] "%(n)s misafir"
 msgstr[1] "%(n)s misafir"
+
+#: apps/core/offer_batch.py
+msgid "Abgewählte Bereiche werden nicht ausgeschaltet — das machen Sie unter „Funktionen“."
+msgstr "İşareti kaldırılan alanlar kapatılmaz — bunu „Özellikler“ altında yaparsınız."
+
+#: apps/core/offer_batch.py
+msgid "Mehreres ist möglich. Ändern geht jederzeit."
+msgstr "Birden fazlası mümkün. İstediğiniz zaman değiştirebilirsiniz."
+
+#: apps/core/offer_batch.py
+#, python-format
+msgid "Nicht in Ihrem Paket enthalten: %(items)s"
+msgstr "Paketinize dahil değil: %(items)s"
+
+#: apps/core/offer_batch.py
+msgid "Sie verkaufen"
+msgstr "Sattığınız"
+
+#: apps/core/offer_batch.py
+msgid "Wie verkaufen Sie?"
+msgstr "Nasıl satıyorsunuz?"

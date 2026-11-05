@@ -63,16 +63,83 @@ class Report:
         )
 
 
+def chosen_directions(tenant) -> list[str]:
+    """Ответ «Wie verkaufen Sie?» из состояния мастера (ключи направлений)."""
+    cfg = tenant.site_config if isinstance(tenant.site_config, dict) else {}
+    raw = (cfg.get("onboarding") or {}).get("directions")
+    return [k for k in raw if isinstance(k, str)] if isinstance(raw, list) else []
+
+
 def offer_kinds(tenant, user) -> list[str]:
-    """Виды ввода, доступные этому пользователю: активное направление + модуль + право."""
+    """Виды ввода, доступные этому пользователю: активное направление + модуль + право.
+
+    «Waren», выбранные в «Wie verkaufen Sie?», доступны и без включённой онлайн-продажи:
+    каталог — базовый модуль, а продажу открывает отдельный шаг (W4-5)."""
     from apps.core import directions, setup_assistant
 
     allowed = set(setup_assistant.allowed_entities(tenant, user))
-    return [
-        d.key
-        for d in directions.active(tenant)
-        if d.key in ENTITY_FOR and ENTITY_FOR[d.key] in allowed
-    ]
+    keys = [d.key for d in directions.active(tenant)]
+    if "waren" in chosen_directions(tenant) and "waren" not in keys:
+        keys.insert(0, "waren")
+    return [k for k in keys if k in ENTITY_FOR and ENTITY_FOR[k] in allowed]
+
+
+#: Типы, у которых «Wie verkaufen Sie?» открыт сразу (направление не очевидно из типа).
+ASK_TYPES = frozenset({"other", "cafe", "werkstatt", "tour_operator"})
+
+
+def direction_choices(tenant) -> list:
+    """Направления, осмысленные для типа бизнеса (меню — у гастро, столы — у ресторана/кафе)."""
+    from apps.core import directions
+
+    btype = tenant.business_type or ""
+    out = []
+    for d in directions.REGISTRY:
+        if d.key == "speisekarte" and btype not in directions.MENU_TYPES:
+            continue
+        if d.key == "tisch" and btype not in directions.TABLE_TYPES:
+            continue
+        if d.key == "termine" and btype in directions.TABLE_TYPES:
+            continue
+        out.append(d)
+    return out
+
+
+def choose_directions(tenant, keys) -> list[str]:
+    """Записать ответ «Wie verkaufen Sie?»: включить модули отмеченных направлений.
+
+    Снятая галочка модуль не выключает (решение владельца). «Waren» онлайн-продажу не
+    включает — её открывает шаг «Verkauf öffnen». Возвращает подписи направлений, которые
+    включить не удалось (пакет и т. п.) — молча «включено» не говорим."""
+    from apps.core import directions, modules, packages
+    from apps.tenants.models import Tenant
+
+    allowed = {d.key: d for d in direction_choices(tenant)}
+    picked = [k for k in dict.fromkeys(keys) if k in allowed]
+    problems = []
+    for key in picked:
+        if key == "waren":
+            continue
+        for module in allowed[key].modules:
+            if not packages.module_allowed(tenant, module):
+                problems.append(str(allowed[key].label))
+                break
+            modules.enable_module(tenant, module)
+    with transaction.atomic():
+        locked = Tenant.objects.select_for_update().get(pk=tenant.pk)
+        cfg = dict(locked.site_config or {})
+        state = dict(cfg.get("onboarding") or {})
+        state["directions"] = picked
+        cfg["onboarding"] = state
+        locked.site_config = cfg
+        locked.save(update_fields=["site_config"])
+    tenant.site_config = cfg
+    tenant.disabled_modules = locked.disabled_modules
+    for key in picked:
+        if key not in ("waren",) and str(allowed[key].label) not in problems:
+            if not directions.is_active(tenant, key):
+                problems.append(str(allowed[key].label))
+    return problems
 
 
 def new_draft(request, kind: str, text: str) -> dict:

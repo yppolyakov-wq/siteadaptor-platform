@@ -360,6 +360,20 @@ def _pruefen_action(request, action: str) -> None:
     if action == "offer_photo":
         _pruefen_photo(request, kinds)
         return
+    if action == "offer_directions":
+        from apps.core.permissions import has_perm
+
+        if not has_perm(request.user, "funktionen.edit"):
+            messages.error(request, _("Dafür fehlt Ihnen die Berechtigung."))
+            return
+        problems = offer_batch.choose_directions(tenant, request.POST.getlist("direction"))
+        offer_batch.clear_draft(request)
+        if problems:
+            messages.warning(
+                request,
+                _("Nicht in Ihrem Paket enthalten: %(items)s") % {"items": ", ".join(problems)},
+            )
+        return
     if action == "offer_confirm":
         report = offer_batch.confirm(request, tenant)
         if report.error:
@@ -493,6 +507,7 @@ def setup_view(request):
             "offer_edit",
             "offer_confirm",
             "offer_photo",
+            "offer_directions",
         ):
             _pruefen_action(request, action)
             return redirect("setup")

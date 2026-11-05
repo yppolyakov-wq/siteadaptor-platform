@@ -5,6 +5,26 @@
 <h1 class="text-2xl font-bold mb-1">{% if pruefen_review %}{% trans "Prüfen" %}{% else %}{% trans "Was verkaufen Sie?" %}{% endif %}</h1>
 <p class="text-sm text-gray-600 mb-4">{% if pruefen_review %}{% trans "Noch ist nichts angelegt. Korrigieren Sie rot markierte Zeilen oder lassen Sie sie weg." %}{% else %}{% trans "Eine Zeile pro Angebot. Sie prüfen alles, bevor etwas angelegt wird." %}{% endif %}</p>
 
+{% if pruefen_directions and not pruefen_review %}
+<details class="ui-card p-4 mb-4"{% if pruefen_directions_open %} open{% endif %} data-pruefen-directions>
+  <summary class="cursor-pointer text-sm min-h-[44px] flex items-center justify-between gap-2"><span>{% if pruefen_directions_summary %}{% trans "Sie verkaufen" %}: <b>{{ pruefen_directions_summary }}</b>{% else %}<b>{% trans "Wie verkaufen Sie?" %}</b>{% endif %}</span><span class="text-indigo-700">{% trans "ändern" %}</span></summary>
+  <form method="post" class="mt-3 space-y-2">
+    {% csrf_token %}
+    <fieldset class="space-y-2">
+      <legend class="text-sm text-gray-600 mb-1">{% trans "Mehreres ist möglich. Ändern geht jederzeit." %}</legend>
+      {% for d in pruefen_directions %}
+      <label class="flex items-start gap-3 rounded-xl border border-gray-200 p-3 min-h-[44px]">
+        <input type="checkbox" name="direction" value="{{ d.key }}" class="h-5 w-5 mt-0.5"{% if d.checked %} checked{% endif %}>
+        <span><b class="block text-sm">{{ d.label }}</b><span class="text-sm text-gray-600">{{ d.blurb }}</span></span>
+      </label>
+      {% endfor %}
+    </fieldset>
+    <p class="text-xs text-gray-600">{% trans "Abgewählte Bereiche werden nicht ausgeschaltet — das machen Sie unter „Funktionen“." %}</p>
+    <button type="submit" name="action" value="offer_directions" class="ui-btn ui-btn-primary">{% trans "Übernehmen" %}</button>
+  </form>
+</details>
+{% endif %}
+
 {% if not pruefen_kinds %}
 <p class="ui-card p-4 text-sm" data-pruefen-none>{% trans "Für Ihr Geschäft gibt es hier nichts einzutragen — weiter zum nächsten Schritt." %}</p>
 {% elif pruefen_review %}

@@ -344,3 +344,54 @@ def test_broken_photo_is_reported_not_swallowed(settings, tmp_path):
     )
     unit.refresh_from_db()
     assert not unit.images and owner.messages
+
+
+def test_other_type_asks_how_you_sell_and_enables_only_what_was_ticked():
+    from apps.core import directions
+
+    tenant = _v4(business_type="other", disabled_modules=["booking", "events", "stays", "jobs"])
+    owner = Owner(tenant)
+    html = owner().content.decode()
+    assert (
+        "data-pruefen-directions" in html
+        and "open" in html.split("data-pruefen-directions")[0][-40:]
+    )
+    owner("post", {"action": "offer_directions", "direction": ["waren", "termine"]})
+    tenant.refresh_from_db()
+    assert "booking" not in tenant.disabled_modules and "stays" in tenant.disabled_modules
+    assert directions.is_active(tenant, "termine")
+    assert offer_batch.offer_kinds(tenant, owner.user)[:2] == ["waren", "termine"]
+    # Снятая галочка модуль не выключает.
+    owner("post", {"action": "offer_directions", "direction": ["waren"]})
+    tenant.refresh_from_db()
+    assert "booking" not in tenant.disabled_modules
+
+
+def test_waren_choice_does_not_open_online_ordering():
+    tenant = _v4(business_type="other", slug="ow", disabled_modules=["orders"])
+    owner = Owner(tenant)
+    owner("post", {"action": "offer_directions", "direction": ["waren"]})
+    tenant.refresh_from_db()
+    assert "orders" in tenant.disabled_modules
+    assert "waren" in offer_batch.offer_kinds(tenant, owner.user)
+
+
+def test_bakery_shows_directions_collapsed():
+    owner = Owner(_v4(slug="bk"))
+    html = owner().content.decode()
+    head = html.split("data-pruefen-directions")[0][-60:]
+    assert "data-pruefen-directions" in html and " open" not in head
+
+
+def test_directions_need_functions_permission(monkeypatch):
+    from apps.core import permissions
+
+    real = permissions.has_perm
+    monkeypatch.setattr(
+        permissions, "has_perm", lambda user, key: key != "funktionen.edit" and real(user, key)
+    )
+    tenant = _v4(business_type="other", slug="np", disabled_modules=["booking"])
+    owner = Owner(tenant)
+    owner("post", {"action": "offer_directions", "direction": ["termine"]})
+    tenant.refresh_from_db()
+    assert "booking" in tenant.disabled_modules
