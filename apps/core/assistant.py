@@ -64,12 +64,23 @@ class Link:
 
 
 def _is_owner(request) -> bool:
-    from apps.core import permissions, roles
+    """Уровень владельца — через реестр прав (пол «Abo» = только владелец), не по роли."""
+    from apps.core import permissions, view_perms
 
     user = getattr(request, "user", None)
     if user is None or not permissions.is_member(user):
         return True  # не член команды — кабинет его не пускает; прятать нечего
-    return roles.is_owner(user)
+    return view_perms.allowed_quiet(user, "billing", "GET")
+
+
+def _staff_hidden(request, url_name: str) -> bool:
+    """Abo/Team: без права пункт не показывается вовсе (В-1), даже пометкой."""
+    from apps.core import permissions, view_perms
+
+    user = getattr(request, "user", None)
+    if user is None or not permissions.is_member(user):
+        return False
+    return not view_perms.allowed_quiet(user, url_name, "GET")
 
 
 def _is_lite(request) -> bool:
@@ -93,7 +104,7 @@ def link(request, url_name: str, *, args=(), query: str = "", method: str = "GET
 
     if not url_name:
         return Link()
-    if url_name in STAFF_HIDDEN and not _is_owner(request):
+    if url_name in STAFF_HIDDEN and _staff_hidden(request, url_name):
         return None
     if _is_lite(request) and url_name in LITE_ALIASES:
         alias = LITE_ALIASES[url_name]
