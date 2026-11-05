@@ -32999,3 +32999,44 @@ msgid "Endet in %(n)s Tag"
 msgid_plural "Endet in %(n)s Tagen"
 msgstr[0] "Ends in %(n)s day"
 msgstr[1] "Ends in %(n)s days"
+
+#: templates/aggregator/_portal_hero.html
+#, python-format
+msgid "Angebote von Läden, Cafés und Handwerkern aus %(city)s — reservieren, abholen, direkt vor Ort."
+msgstr "Offers from shops, cafés and craftspeople in %(city)s — reserve, pick up, right on site."
+
+#: templates/aggregator/_portal_hero.html
+msgid "Deal des Tages"
+msgstr "Deal of the day"
+
+#: templates/aggregator/_portal_hero.html
+msgid "Geschäfte"
+msgstr "Shops"
+
+#: templates/aggregator/_portal_hero.html
+msgid "Größter Rabatt"
+msgstr "Biggest discount"
+
+#: templates/aggregator/_portal_hero.html
+msgid "Größter Rabatt, endet heute"
+msgstr "Biggest discount, ends today"
+
+#: templates/aggregator/_portal_hero.html
+msgid "Unter 10 €"
+msgstr "Under €10"
+
+#: templates/aggregator/_portal_hero.html
+#, python-format
+msgid "Was gibt's heute in %(city)s?"
+msgstr "What's on today in %(city)s?"
+
+#: templates/aggregator/_portal_hero.html
+msgid "neu diese Woche"
+msgstr "new this week"
+
+#: templates/aggregator/_portal_hero.html
+#, python-format
+msgid "%(n)s Geschäft geöffnet"
+msgid_plural "%(n)s Geschäfte geöffnet"
+msgstr[0] "%(n)s shop open"
+msgstr[1] "%(n)s shops open"

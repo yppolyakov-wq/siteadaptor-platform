@@ -451,3 +451,93 @@ def home_blocks(base_qs, *, city: str, path: str, exclude_pks=(), now=None) -> l
             }
         )
     return out
+
+
+# --- PH-4: первый экран «Was gibt's heute in <город>?» -----------------------------------
+
+
+def home_stats(base_qs, now=None) -> dict:
+    """Цифры первого экрана — ОДИН aggregate по пулу портала (пул = «действует сейчас»)."""
+    now = now or timezone.now()
+    return base_qs.order_by().aggregate(
+        businesses=Count("tenant_schema", distinct=True),
+        offers=Count("id", filter=Q(listing_kind__in=L.OFFER_KINDS)),
+        new_week=Count("id", filter=Q(created_at__gte=now - timedelta(days=7))),
+        cheap=Count("id", filter=Q(new_price__lte=10)),
+    )
+
+
+def open_snapshot_for(base_qs) -> dict:
+    """Снимок часов по всем схемам пула (2 запроса: схемы + Tenant) — им же карточки."""
+    from .views import open_snapshot
+
+    schemas = set(base_qs.order_by().values_list("tenant_schema", flat=True).distinct())
+    return open_snapshot(schemas) if schemas else {}
+
+
+def open_schemas(snapshot: dict) -> set:
+    """Схемы, открытые сейчас (из готового снимка — 0 запросов)."""
+    from .views import _open_now_schemas
+
+    return _open_now_schemas(set(), snapshot=snapshot)
+
+
+def deal_of_day(base_qs, *, exclude_pks=(), now=None):
+    """«Deal des Tages» — ОРГАНИЧЕСКОЕ правило (UWG §5a: платное сюда не попадает никогда).
+
+    Акция с фото и известной ценой (не mystery, без «2 für 1»-условия): сначала те, что
+    заканчиваются сегодня, затем больший процент, затем дневная ротация (стабильно в
+    пределах дня и кэша)."""
+    now = now or timezone.now()
+    end_of_day = timezone.localtime(now).replace(hour=23, minute=59, second=59)
+    qs = (
+        base_qs.filter(
+            listing_kind=L.KIND_PROMOTION,
+            discount_percent__isnull=False,
+            new_price__isnull=False,
+            price_condition={},
+            is_surprise=False,
+        )
+        .exclude(image={})
+        .exclude(featured_until__gt=now)
+    )
+    if exclude_pks:
+        qs = qs.exclude(pk__in=exclude_pks)
+    salt = Value(timezone.localdate().isoformat(), output_field=CharField())
+    qs = qs.annotate(
+        ends_today=Case(
+            When(ends_at__lte=end_of_day, then=Value(0)),
+            default=Value(1),
+            output_field=IntegerField(),
+        ),
+        rotation=MD5(Concat(Cast("id", CharField()), salt, output_field=CharField())),
+    )
+    deal = qs.order_by("ends_today", "-discount_percent", "rotation").first()
+    if deal is not None:
+        deal.deal_reason = (
+            _("Größter Rabatt, endet heute") if deal.ends_today == 0 else _("Größter Rabatt")
+        )
+    return deal
+
+
+def hero_chips(present: dict, stats: dict, open_count: int, path: str) -> list[dict]:
+    """Быстрые чипы первого экрана — только с непустым результатом (без журнала поиска)."""
+    chips = []
+    if open_count:
+        chips.append({"label": _("Jetzt geöffnet"), "url": f"{path}?kind=alle&offen=1"})
+    if stats.get("offers"):
+        chips.append({"label": _("Angebote"), "url": f"{path}?kind=angebote"})
+    categories = present.get("categories", {})
+    if categories:
+        top = max(categories, key=lambda k: categories[k])
+        cat = cc.category(top)
+        if cat:
+            chips.append(
+                {
+                    "label": str(cat.label),
+                    "url": scope_url(path, FeedScope(kind_key="alle", kat=top)),
+                }
+            )
+    if stats.get("cheap"):
+        chips.append({"label": _("Unter 10 €"), "url": f"{path}?kind=alle&preis_bis=10"})
+    return chips

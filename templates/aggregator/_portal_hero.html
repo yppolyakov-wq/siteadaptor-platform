@@ -1,0 +1,48 @@
+{% load i18n portal_brand %}
+{% comment %}PH-4 (макет Main.dc.html): первый экран — «Was gibt's heute in <город>?», поиск, быстрые чипы, живые цифры; справа «Deal des Tages» (органическое правило, платное сюда не попадает — UWG §5a). Без пользовательских данных: страница кэшируется.{% endcomment %}
+<section data-portal-home aria-labelledby="hero-h" class="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-6 mb-10">
+  <div class="{% if deal %}lg:col-span-7{% else %}lg:col-span-12{% endif %} bg-gray-900 text-white rounded-3xl px-6 py-8 md:px-11 md:py-11 flex flex-col gap-5 justify-center">
+    {% if open_count %}<p class="inline-flex items-center gap-2 text-xs md:text-[13px] font-bold uppercase tracking-wider text-orange-300"><span aria-hidden="true" class="w-2 h-2 rounded-full bg-green-500"></span>{% now "l" %} · {% blocktrans count n=open_count %}{{ n }} Geschäft geöffnet{% plural %}{{ n }} Geschäfte geöffnet{% endblocktrans %}</p>{% endif %}
+    <h1 id="hero-h" class="text-3xl md:text-5xl font-extrabold leading-[1.05] tracking-tight">{% blocktrans with city=portal.city %}Was gibt's heute in {{ city }}?{% endblocktrans %}</h1>
+    <p class="text-base md:text-lg text-gray-300 max-w-xl">{% if portal.intro_text %}{{ portal.intro_text }}{% else %}{% blocktrans with city=portal.city %}Angebote von Läden, Cafés und Handwerkern aus {{ city }} — reservieren, abholen, direkt vor Ort.{% endblocktrans %}{% endif %}</p>
+    <form method="get" action="{% url 'portal-home' %}" role="search" data-portal-search class="flex gap-2 bg-white rounded-full p-1.5 pl-5 max-w-2xl">
+      <label for="portal-q" class="sr-only">{% trans "Suchen" %}</label>
+      <input id="portal-q" type="search" name="q" maxlength="100" placeholder="{% blocktrans with city=portal.city %}Was suchen Sie in {{ city }}?{% endblocktrans %}" class="flex-1 min-w-0 bg-transparent text-gray-900 outline-none text-base">
+      <button type="submit" class="shrink-0 rounded-full h-11 px-5 font-bold text-white" style="background: var(--portal-color)">{% trans "Suchen" %}</button>
+    </form>
+    {% if hero_chips %}
+    <div class="flex flex-wrap gap-2.5">
+      {% for c in hero_chips %}<a href="{{ c.url }}" rel="nofollow" data-hero-chip class="inline-flex items-center h-11 px-4 rounded-full bg-white/10 border border-white/20 font-semibold text-sm hover:bg-white/20">{{ c.label }}</a>{% endfor %}
+    </div>
+    {% endif %}
+    {% if stats.businesses %}
+    <dl class="flex flex-wrap gap-x-9 gap-y-3 pt-1" data-hero-stats>
+      <div><dt class="sr-only">{% trans "Geschäfte" %}</dt><dd><span class="block text-3xl font-extrabold">{{ stats.businesses }}</span><span class="text-[13px] text-gray-400">{% trans "Geschäfte" %}</span></dd></div>
+      {% if stats.offers %}<div><dt class="sr-only">{% trans "Angebote" %}</dt><dd><a href="{% url 'portal-home' %}?kind=angebote" rel="nofollow" class="block"><span class="block text-3xl font-extrabold">{{ stats.offers }}</span><span class="text-[13px] text-gray-400">{% trans "Angebote" %}</span></a></dd></div>{% endif %}
+      {% if stats.new_week %}<div><dt class="sr-only">{% trans "neu diese Woche" %}</dt><dd><span class="block text-3xl font-extrabold">{{ stats.new_week }}</span><span class="text-[13px] text-gray-400">{% trans "neu diese Woche" %}</span></dd></div>{% endif %}
+    </dl>
+    {% endif %}
+  </div>
+  {% if deal %}
+  {% url 'aggregator-offer' deal.pk as deal_url %}
+  <a href="{{ deal_url|default:deal.portal_url }}" data-deal-of-day class="lg:col-span-5 bg-white rounded-3xl overflow-hidden flex flex-col shadow-[0_8px_24px_rgba(17,24,39,.06)] hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-orange-600">
+    <div class="relative h-56 md:h-72 bg-gray-100">
+      {% if deal.image.url %}<img src="{{ deal.image.url }}" alt="{{ deal.title_text }}" class="w-full h-full object-cover">{% endif %}
+      <span class="absolute top-4 left-4 bg-yellow-300 text-gray-900 text-xs font-extrabold uppercase tracking-wide px-3 py-1.5 rounded-full">{% trans "Deal des Tages" %}</span>
+      <span class="absolute top-4 right-4 bg-orange-700 text-white text-2xl font-extrabold px-3.5 py-1.5 rounded-xl">−{{ deal.discount_percent }} %</span>
+      {% if deal.is_demo %}<span data-demo-badge class="absolute bottom-3 right-3 bg-gray-900/80 text-white text-[11px] font-semibold px-2 py-0.5 rounded-full">{% trans "Demo" %}</span>{% endif %}
+    </div>
+    <div class="p-5 md:p-6 flex flex-col gap-3 flex-1">
+      <p class="text-sm text-gray-600"><span class="font-bold text-gray-900">{{ deal.business_name }}</span>{% if deal.district_name %} · {{ deal.district_name }}{% endif %}{% if deal.open_now and deal.open_until %} · <span class="font-semibold text-emerald-700">{% blocktrans with t=deal.open_until %}Open until {{ t }}{% endblocktrans %}</span>{% endif %}</p>
+      <h2 class="text-xl md:text-2xl font-extrabold">{{ deal.title_text }}</h2>
+      <p class="text-xs text-gray-500">{{ deal.deal_reason }}</p>
+      <div class="flex flex-wrap items-center justify-between gap-3 mt-auto">
+        <p class="flex items-baseline gap-2.5"><span class="text-3xl font-extrabold whitespace-nowrap">{{ deal.new_price }} {{ deal.currency }}</span>{% if deal.old_price and deal.old_price > deal.new_price %}<span class="text-base text-gray-500 line-through whitespace-nowrap">{{ deal.old_price }} {{ deal.currency }}</span>{% endif %}</p>
+        {% if deal.ends_text %}<p class="inline-flex items-center gap-1.5 text-sm font-bold text-orange-700" data-ends-at="{{ deal.ends_iso }}" data-ended-label="{% trans 'Beendet' %}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="13" r="8"></circle><path d="M12 9v4l2.5 2.5M9 2h6"></path></svg><span data-ends-text>{{ deal.ends_text }}</span></p>{% endif %}
+      </div>
+      {% if deal.price_reference == "lowest30" and deal.old_price %}<p class="text-[10px] leading-tight text-gray-400">{% blocktrans with p=deal.old_price %}Lowest price in the last 30 days: {{ p }} €{% endblocktrans %}</p>{% endif %}
+      <span class="flex items-center justify-center h-12 rounded-full text-white font-bold" style="background: var(--portal-color)">{{ deal.listing_kind|card_action }}</span>
+    </div>
+  </a>
+  {% endif %}
+</section>

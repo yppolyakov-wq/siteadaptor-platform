@@ -1,0 +1,82 @@
+"""PH-4: первый экран — цифры, «Deal des Tages» (органика, UWG §5a), быстрые чипы."""
+
+import html as html_mod
+import re
+from datetime import timedelta
+
+import pytest
+from django.utils import timezone
+
+from apps.aggregator import portal_home_blocks as home
+from apps.aggregator.models import AggregatorListing
+from apps.aggregator.tests.test_portal_discover import _html, _listing, _portal
+
+pytestmark = [pytest.mark.django_db, pytest.mark.urls("config.urls_portal")]
+
+IMG = {"url": "https://x.test/a.jpg"}
+
+
+def _deal(title, pct, **kw):
+    return _listing(
+        "promotion",
+        title,
+        city_category="restaurants",
+        discount_percent=pct,
+        new_price=5,
+        image=IMG,
+        **kw,
+    )
+
+
+def test_featured_never_becomes_deal_of_day():
+    _deal("Bezahlt", 90, featured_until=timezone.now() + timedelta(days=1))
+    organic = _deal("Organisch", 20)
+    deal = home.deal_of_day(AggregatorListing.objects.all())
+    assert deal.pk == organic.pk
+
+
+def test_ending_today_beats_bigger_discount():
+    _deal("Groß", 60, ends_at=timezone.now() + timedelta(days=3))
+    today = _deal("Heute", 20, ends_at=timezone.now() + timedelta(minutes=30))
+    deal = home.deal_of_day(AggregatorListing.objects.all())
+    assert deal.pk == today.pk and "heute" in str(deal.deal_reason)
+
+
+def test_deal_requires_photo_known_price_and_no_condition():
+    _listing("promotion", "Ohne Foto", discount_percent=50, new_price=5)
+    _deal("Bedingung", 50, price_condition={"kind": "nth"})
+    _deal("Mystery", 50, is_surprise=True)
+    assert home.deal_of_day(AggregatorListing.objects.all()) is None
+
+
+def test_hero_on_home_deal_not_repeated_and_no_csrf():
+    portal = _portal()
+    d = _deal("Pizza-Deal", 40)
+    for i in range(3):
+        _listing("product", f"Ware {i}", city_category="brot-backwaren")
+    body = _html(portal)
+    assert "data-deal-of-day" in body and "Deal des Tages" in body
+    assert body.count(d.title["de"]) == 1 or body.count(f">{d.title['de']}<") == 1
+    assert "Was gibt&#x27;s heute in Solingen?" in body or "Was gibt's heute in Solingen?" in body
+    assert "data-portal-search" in body and "csrfmiddlewaretoken" not in body
+
+
+def test_hero_chips_and_stats_lead_to_non_empty_feeds():
+    portal = _portal()
+    _deal("Pizza-Deal", 40)
+    _listing("product", "Brot", city_category="brot-backwaren", new_price=3)
+    body = _html(portal)
+    links = re.findall(r'href="(/\?[^"]+)" rel="nofollow" data-hero-chip', body)
+    links += re.findall(r'href="(/\?kind=[a-z]+)" rel="nofollow" class="block"', body)
+    assert links
+    for url in links:
+        params = dict(p.split("=") for p in html_mod.unescape(url).split("?", 1)[1].split("&"))
+        assert "data-card-title" in _html(portal, **params), url
+
+
+def test_stats_are_one_query(django_assert_num_queries):
+    _deal("A", 10)
+    _listing("product", "B")
+    with django_assert_num_queries(1):
+        stats = home.home_stats(AggregatorListing.objects.all())
+    assert stats["businesses"] == 2 and stats["offers"] == 1

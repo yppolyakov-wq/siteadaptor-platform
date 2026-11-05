@@ -978,22 +978,32 @@ def _render_home(request, portal):
     # Показы платных позиций считаем только на «чистом» корне (кэшируемый рендер):
     # иначе боты с `?x=<мусор>` накручивали бы метрику, которую видят владельцы.
     featured = home.featured(base, count_impressions=not request.GET) if present["total"] else []
+    # PH-4: «Deal des Tages» — органическое правило; платные (featured) исключены.
+    deal = (
+        home.deal_of_day(base, exclude_pks={item.pk for item in featured})
+        if present["total"]
+        else None
+    )
+    stats = home.home_stats(base) if present["total"] else {}
+    # Один снимок часов на весь пул: им же «N geöffnet» и строки часов на карточках.
+    snapshot = home.open_snapshot_for(base) if present["total"] else {}
+    open_set = home.open_schemas(snapshot)
     blocks = (
         home.home_blocks(
             base,
             city=portal.city,
             path=request.path,
-            exclude_pks={item.pk for item in featured},
+            exclude_pks={item.pk for item in featured} | ({deal.pk} if deal else set()),
         )
         if present["total"]
         else []
     )
-    cards = featured + [item for b in blocks for item in b["items"]]
+    cards = featured + ([deal] if deal else []) + [item for b in blocks for item in b["items"]]
     reviews.attach_ratings(cards)
-    # PH-3: «Endet in …» и часы работы на карточках — один запрос к Tenant.
+    # PH-3: «Endet in …» и часы работы на карточках — из общего снимка (0 запросов).
     from .portal_cards import prepare_cards
 
-    prepare_cards(cards)
+    prepare_cards(cards, snapshot=snapshot)
     _axis, facets = _facet_choices(portal)
     canonical = request.build_absolute_uri(request.path)
     return render(
@@ -1002,6 +1012,10 @@ def _render_home(request, portal):
         {
             "portal": portal,
             "portal_tabs": home.tabs(present, "alle", request.path),
+            "deal": deal,
+            "stats": stats,
+            "open_count": len(open_set),
+            "hero_chips": home.hero_chips(present, stats, len(open_set), request.path),
             "pool_empty": not present["total"],
             "tiles": home.section_tiles(present, request.path),
             # PH-2: меню «Kategorien» — из уже посчитанного presence, без запросов.

@@ -341,12 +341,14 @@ def test_search_is_rate_limited(settings, isolated_ratelimit):
 def test_query_count_does_not_grow_with_data(django_assert_max_num_queries):
     portal = _portal()
     _seed_everything()
-    with django_assert_max_num_queries(14):
+    # 2026-11-05 (PH-3/PH-4, осознанно 14 → 16): «Deal des Tages» (1) и цифры первого
+    # экрана (1); снимок часов (схемы + Tenant) обслуживает и «N geöffnet», и карточки.
+    with django_assert_max_num_queries(16):
         portal_views.portal_home(_get(portal))
     for i in range(30):
         _listing("product", f"Viel {i}", city_category="brot-backwaren")
     cache.clear()
-    with django_assert_max_num_queries(14):
+    with django_assert_max_num_queries(16):
         portal_views.portal_home(_get(portal))
 
 

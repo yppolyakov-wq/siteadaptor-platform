@@ -33304,3 +33304,46 @@ msgstr[0] "Закончится через %(n)s день"
 msgstr[1] "Закончится через %(n)s дня"
 msgstr[2] "Закончится через %(n)s дней"
 msgstr[3] "Закончится через %(n)s дня"
+
+#: templates/aggregator/_portal_hero.html
+#, python-format
+msgid "Angebote von Läden, Cafés und Handwerkern aus %(city)s — reservieren, abholen, direkt vor Ort."
+msgstr "Предложения магазинов, кафе и мастеров %(city)s — отложить, забрать, прямо на месте."
+
+#: templates/aggregator/_portal_hero.html
+msgid "Deal des Tages"
+msgstr "Предложение дня"
+
+#: templates/aggregator/_portal_hero.html
+msgid "Geschäfte"
+msgstr "Магазины"
+
+#: templates/aggregator/_portal_hero.html
+msgid "Größter Rabatt"
+msgstr "Самая большая скидка"
+
+#: templates/aggregator/_portal_hero.html
+msgid "Größter Rabatt, endet heute"
+msgstr "Самая большая скидка, заканчивается сегодня"
+
+#: templates/aggregator/_portal_hero.html
+msgid "Unter 10 €"
+msgstr "До 10 €"
+
+#: templates/aggregator/_portal_hero.html
+#, python-format
+msgid "Was gibt's heute in %(city)s?"
+msgstr "Что сегодня есть в %(city)s?"
+
+#: templates/aggregator/_portal_hero.html
+msgid "neu diese Woche"
+msgstr "новое за неделю"
+
+#: templates/aggregator/_portal_hero.html
+#, python-format
+msgid "%(n)s Geschäft geöffnet"
+msgid_plural "%(n)s Geschäfte geöffnet"
+msgstr[0] "%(n)s магазин открыт"
+msgstr[1] "%(n)s магазина открыты"
+msgstr[2] "%(n)s магазинов открыто"
+msgstr[3] "%(n)s магазина открыто"
