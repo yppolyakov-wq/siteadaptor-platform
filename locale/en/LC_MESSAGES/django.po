@@ -32145,3 +32145,83 @@ msgstr "Publish website"
 #: apps/core/setup_steps.py
 msgid "Bitte eine gültige E-Mail-Adresse eingeben."
 msgstr "Please enter a valid email address."
+
+#: apps/core/offer_lines.py
+msgid "Datum fehlt, z. B. „20.07. 19 Uhr“."
+msgstr "Date missing, e.g. “20.07. 7 pm”."
+
+#: apps/core/offer_lines.py
+msgid "Datum liegt in der Vergangenheit."
+msgstr "The date is in the past."
+
+#: apps/core/offer_lines.py
+msgid "Datum ungültig."
+msgstr "Invalid date."
+
+#: apps/core/offer_lines.py
+msgid "Dauer fehlt — ohne Dauer gibt es keine freien Termine."
+msgstr "Duration missing — without a duration there are no free slots."
+
+#: apps/core/offer_lines.py
+msgid "Dauer zwischen 5 Minuten und 10 Stunden angeben."
+msgstr "Enter a duration between 5 minutes and 10 hours."
+
+#: apps/core/offer_lines.py
+msgid "Doppelt in der Liste."
+msgstr "Duplicate in the list."
+
+#: apps/core/offer_lines.py
+msgid "Einheit erkannt — Grundpreis richten Sie später ein."
+msgstr "Unit detected — set up the unit price later."
+
+#: apps/core/offer_lines.py
+msgid "Gäste zwischen 1 und 20 angeben."
+msgstr "Enter between 1 and 20 guests."
+
+#: apps/core/offer_lines.py
+#, python-format
+msgid "Gäste: %(n)s angenommen."
+msgstr "Guests: assumed %(n)s."
+
+#: apps/core/offer_lines.py
+#, python-format
+msgid "Keine Uhrzeit — %(hour)s:00 Uhr angenommen."
+msgstr "No time — assumed %(hour)s:00."
+
+#: apps/core/offer_lines.py
+msgid "Name fehlt."
+msgstr "Name missing."
+
+#: apps/core/offer_lines.py
+msgid "Name gekürzt auf 120 Zeichen."
+msgstr "Name shortened to 120 characters."
+
+#: apps/core/offer_lines.py
+#, python-format
+msgid "Nur die ersten %(n)s Zeilen werden geprüft — den Rest danach."
+msgstr "Only the first %(n)s lines are checked — add the rest afterwards."
+
+#: apps/core/offer_lines.py
+msgid "Preis 0 € — ohne Preis tragen Sie es unter „Anfragen“ ein."
+msgstr "Price €0 — without a price, add it under “Requests”."
+
+#: apps/core/offer_lines.py
+msgid "Preis fehlt."
+msgstr "Price missing."
+
+#: apps/core/offer_lines.py
+msgid "Preis nicht lesbar — bitte z. B. „3,50“ schreiben."
+msgstr "Price not readable — please write e.g. “3,50”."
+
+#: apps/core/offer_lines.py
+#, python-format
+msgid "Preisspanne — gespeichert als „ab %(price)s €“."
+msgstr "Price range — saved as “from €%(price)s”."
+
+#: apps/core/offer_lines.py
+msgid "Währung CHF — gespeichert in €."
+msgstr "Currency CHF — saved in €."
+
+#: apps/core/offer_lines.py
+msgid "Zweiter Preis — später als Variante anlegen."
+msgstr "Second price — add it later as a variant."

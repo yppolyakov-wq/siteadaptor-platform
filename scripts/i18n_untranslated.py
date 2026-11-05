@@ -100,6 +100,12 @@ SKIP_FILES = (
     # («nur heute», «gratis», «beste») и ссылки на нормы («EU-Öko-VO 2018/848») — это не
     # интерфейс; подсказки правил в том же файле идут через gettext и в каталогах есть.
     "apps/core/text_check.py",
+    # AIS-W W4-2: разбор строк «Name — Preis» — regex из немецких слов ввода владельца
+    # («Min», «Pers.», «pro kg»); сообщения разбора в том же файле идут через gettext.
+    "apps/core/offer_lines.py",
+    # AIS-W W4-2: образцы «Beispiele einfügen» — немецкий ввод владельца (контент, как
+    # demo_kits), кнопка кладёт их в textarea, переводу не подлежат.
+    "apps/core/offer_examples.py",
 )
 # DCC: спеки демо-бизнесов города — контент, переводится словарями demo_i18n_*.
 SKIP_DIR_PARTS = ("/migrations/", "/tests/", "/node_modules/", "/.venv/", "/demo_city/")
