@@ -138,3 +138,18 @@ def test_save_button_comes_before_back_for_implicit_submit():
     onboarding.goto(tenant, "recht")
     html = core_views.setup_view(_req("get", tenant=tenant)).content.decode()
     assert html.index("Speichern") < html.index('value="back"')
+
+
+def test_dashboard_sends_untouched_v4_owner_into_wizard():
+    tenant = _v4(slug="dash")
+    response = core_views.dashboard(_req("get", tenant=tenant))
+    assert response.status_code == 302 and response.url.endswith("/dashboard/setup/")
+
+
+def test_recht_names_missing_impressum_parts_and_suggests_login_email():
+    tenant = _v4(slug="miss", contact_email="")
+    onboarding.goto(tenant, "recht")
+    request = _req("get", tenant=tenant)
+    html = core_views.setup_view(request).content.decode()
+    assert "data-impressum-missing" in html
+    assert f'value="{request.user.email}"' in html

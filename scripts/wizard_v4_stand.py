@@ -8,7 +8,7 @@ JS-ошибок и горизонтального скролла, телефон
 
     python manage.py runserver 0.0.0.0:8000 --settings=config.settings.stand
     uv run python scripts/wizard_v4_stand.py --setup     # один раз: тенант и владелец
-    uv run python scripts/wizard_v4_stand.py
+    uv run --with playwright==1.55.0 python scripts/wizard_v4_stand.py
 
 Хост `wizardv4.siteadaptor.de` направляется на локальный сервер правилом резолвера
 Chromium. Не входит в CI (там нет браузера).
@@ -20,9 +20,7 @@ import argparse
 import subprocess
 import sys
 
-from playwright.sync_api import sync_playwright
-
-CHROME = "/opt/pw-browsers/chromium-1194/chrome-linux/chrome"
+CHROME = "/opt/pw-browsers/chromium"
 BASE = "siteadaptor.de"
 SLUG = "wizardv4"
 EMAIL = "owner@wizardv4.test"
@@ -115,11 +113,32 @@ def owner_path(run, browser, port, width):
     page.click("[data-recht-publish]")
     page.wait_for_load_state()
     run.check(
-        "Fertig" in page.content() or "online" in page.content(), "после публикации — «Fertig»"
+        page.locator("[data-recht-blockers]").count() == 0
+        and "Ihre Website ist jetzt online" in page.content(),
+        "после публикации — «Fertig» (почта Impressum подставлена из входа)",
     )
     _health(run, page, errors, "Fertig", width)
     run.check(guest.goto(url + "/").status == 200, "гость после публикации: 200")
     ctx.close()
+
+
+RESET = f"""
+from apps.tenants.models import Tenant
+t = Tenant.objects.get(schema_name={SLUG!r})
+t.published_at = None
+t.address = t.contact_email = t.legal_representative = t.register_court = t.register_number = ""
+t.tax_number = t.legal_form = ""
+t.site_config = {{**(t.site_config or {{}}), "onboarding": {{"v": 2, "flow": "v4"}}}}
+t.save()
+"""
+
+
+def _reset_unpublished():
+    subprocess.run(
+        [sys.executable, "manage.py", "shell", "--settings=config.settings.stand", "-c", RESET],
+        capture_output=True,
+        check=True,
+    )
 
 
 def main():
@@ -136,12 +155,16 @@ def main():
         )
         print(out.stdout[-400:], out.stderr[-1500:])
         return
+    from playwright.sync_api import sync_playwright  # глобальный Playwright, не из venv
+
     run = Run()
     with sync_playwright() as p:
         browser = p.chromium.launch(
             executable_path=CHROME, args=[f"--host-resolver-rules=MAP *.{BASE} 127.0.0.1"]
         )
-        owner_path(run, browser, args.port, 390)
+        for width in (390, 1440):
+            _reset_unpublished()
+            owner_path(run, browser, args.port, width)
         browser.close()
     print(f"\n{run.ok} ok, {len(run.fail)} fail")
     for f in run.fail:

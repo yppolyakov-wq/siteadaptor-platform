@@ -219,7 +219,7 @@ def dashboard(request):
     # нетронутого состояния и снимает редирект — остальной кабинет не гейтится.
     untouched = (
         not state["completed"]
-        and state["step"] == onboarding.STEP_KEYS[0]
+        and state["step"] in (onboarding.STEP_KEYS[0], onboarding.visible_keys(request.tenant)[0])
         and not state["skipped"]
         and not state["done"]
     )

@@ -7,6 +7,7 @@
 {% if published %}
 <div class="ui-card p-4 mb-4 text-sm" role="status" data-recht-published><span aria-hidden="true">✅</span> {% trans "Ihre Website ist online." %}</div>
 {% endif %}
+{% include "tenant/_impressum_missing.html" with missing=impressum_missing %}
 <form method="post" class="space-y-4" data-recht-form>
   {% csrf_token %}
   {% if tg_locked %}

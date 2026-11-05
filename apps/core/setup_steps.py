@@ -274,7 +274,7 @@ def _post_recht(request):
 
 def _ctx_recht(request):
     from apps.core import tg_login
-    from apps.core.lite_cabinet import LiteBusinessForm
+    from apps.core.lite_cabinet import LiteBusinessForm, impressum_missing
     from apps.finance import ustva
     from apps.tenants import onboarding
     from apps.tenants.models import REGULATED_TRADE_TYPES
@@ -290,7 +290,10 @@ def _ctx_recht(request):
         {
             "name": f,
             "label": labels.get(f, f),
-            "value": getattr(tenant, f, ""),
+            # Пустой e-mail Impressum подсказываем почтой входа: владелец видит её в поле
+            # и сохраняет вместе с формой (без молчаливой записи).
+            "value": getattr(tenant, f, "")
+            or (getattr(request.user, "email", "") if f == "contact_email" else ""),
             "choices": choices.get(f),
         }
         for f in _recht_fields(tenant)
@@ -303,6 +306,7 @@ def _ctx_recht(request):
         "trade_missing": tenant.business_type in REGULATED_TRADE_TYPES
         and not (tenant.chamber and tenant.profession),
         "impressum_preview": tenant.impressum_text(),
+        "impressum_missing": [] if tenant.published_at else impressum_missing(tenant),
         "published": tenant.published_at is not None,
         "blockers": [] if tenant.published_at else onboarding.publish_blockers(tenant),
         "tg_locked": tg_login.is_tg_session(request),
