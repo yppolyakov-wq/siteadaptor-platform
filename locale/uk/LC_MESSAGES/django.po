@@ -33264,3 +33264,30 @@ msgstr[0] "%(n)s підрозділ"
 msgstr[1] "%(n)s підрозділи"
 msgstr[2] "%(n)s підрозділів"
 msgstr[3] "%(n)s підрозділу"
+
+#: apps/aggregator/portal_cards.py
+#, python-format
+msgid "Endet in %(n)s Min."
+msgstr "Закінчиться через %(n)s хв."
+
+#: apps/aggregator/portal_cards.py
+#, python-format
+msgid "Endet in %(n)s Std."
+msgstr "Закінчиться через %(n)s год"
+
+#: apps/aggregator/portal_cards.py
+msgid "Verfügbarkeit"
+msgstr "Наявність місць"
+
+#: apps/aggregator/portal_cards.py
+msgid "Zum Geschäft"
+msgstr "До крамниці"
+
+#: apps/aggregator/portal_cards.py
+#, python-format
+msgid "Endet in %(n)s Tag"
+msgid_plural "Endet in %(n)s Tagen"
+msgstr[0] "Закінчиться через %(n)s день"
+msgstr[1] "Закінчиться через %(n)s дні"
+msgstr[2] "Закінчиться через %(n)s днів"
+msgstr[3] "Закінчиться через %(n)s дня"

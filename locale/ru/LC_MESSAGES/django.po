@@ -33277,3 +33277,30 @@ msgstr[0] "%(n)s подраздел"
 msgstr[1] "%(n)s подраздела"
 msgstr[2] "%(n)s подразделов"
 msgstr[3] "%(n)s подраздела"
+
+#: apps/aggregator/portal_cards.py
+#, python-format
+msgid "Endet in %(n)s Min."
+msgstr "Закончится через %(n)s мин."
+
+#: apps/aggregator/portal_cards.py
+#, python-format
+msgid "Endet in %(n)s Std."
+msgstr "Закончится через %(n)s ч"
+
+#: apps/aggregator/portal_cards.py
+msgid "Verfügbarkeit"
+msgstr "Наличие мест"
+
+#: apps/aggregator/portal_cards.py
+msgid "Zum Geschäft"
+msgstr "К магазину"
+
+#: apps/aggregator/portal_cards.py
+#, python-format
+msgid "Endet in %(n)s Tag"
+msgid_plural "Endet in %(n)s Tagen"
+msgstr[0] "Закончится через %(n)s день"
+msgstr[1] "Закончится через %(n)s дня"
+msgstr[2] "Закончится через %(n)s дней"
+msgstr[3] "Закончится через %(n)s дня"

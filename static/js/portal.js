@@ -187,4 +187,21 @@
       if (row) showPanel(row);
     });
   });
+
+  // ---- PH-3: «Endet in …» — по истечении срока карточка помечается «Beendet»
+  // (главная кэшируется до 2 минут; текст считает сервер). ----
+  function tickEnds() {
+    var now = Date.now();
+    document.querySelectorAll("[data-ends-at]").forEach(function (el) {
+      var t = Date.parse(el.getAttribute("data-ends-at"));
+      if (!isNaN(t) && t <= now && !el.hasAttribute("data-ended")) {
+        el.setAttribute("data-ended", "");
+        var txt = el.querySelector("[data-ends-text]");
+        if (txt) txt.textContent = el.getAttribute("data-ended-label") || "";
+        el.style.opacity = "0.6";
+      }
+    });
+  }
+  tickEnds();
+  setInterval(tickEnds, 60000);
 })();

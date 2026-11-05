@@ -1,4 +1,4 @@
-{% load i18n %}{# Грид карточек листингов: ожидает items (AggregatorListing); опц. fav_ids + portal_user (сердечки P2.3b, только на порталах под логином). #}
+{% load i18n portal_brand %}{# Грид карточек листингов: ожидает items (AggregatorListing); опц. fav_ids + portal_user (сердечки P2.3b, только на порталах под логином). #}
 <div class="grid grid-cols-2 lg:grid-cols-3 xl:group-data-[wide]:grid-cols-4 gap-4 md:gap-6">
   {% for l in items %}
     <div class="relative" data-pstat="{{ l.pk }}">{# В5 V5-4: маячок показов считает карточку по этому pk #}
@@ -7,8 +7,9 @@
     (фолбэк — сайт бизнеса, если роута нет); оплаченная — счётчиком на сайт бизнеса.{% endcomment %}
     {% if l.listing_kind == 'business' %}{% url 'portal-business' slug=l.tenant_slug as offer_url %}{% else %}{% url 'aggregator-offer' l.pk as offer_url %}{% endif %}
     <a href="{% if l.is_featured_now %}{% url 'aggregator-featured-click' l.pk %}{% else %}{{ offer_url|default:l.portal_url }}{% endif %}"{% if l.is_featured_now %} rel="sponsored nofollow"{% endif %}
-       class="group block bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-500 transition">
-      <div class="relative aspect-square bg-gray-100">
+       class="group flex flex-col h-full bg-white rounded-[18px] shadow-[0_1px_2px_rgba(17,24,39,.06),0_8px_24px_rgba(17,24,39,.06)] overflow-hidden hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-orange-600 transition">
+      {% comment %}PH-3 (макет Card.dc.html): фото 4:3, бейджи слева сверху, «Endet in …» отдельной строкой.{% endcomment %}
+      <div class="relative aspect-[4/3] bg-gray-100">
         {% if l.image.url %}
           <img src="{{ l.image.url }}" alt="{{ l.title_text }}" loading="lazy" decoding="async"
                class="w-full h-full object-cover group-hover:scale-[1.02] transition">
@@ -19,9 +20,9 @@
         {% endif %}
         {% if l.price_condition_label %}
           {# В2: условие цены вместо «−N %» — скидка действует не на каждую штуку. #}
-          <span class="absolute top-3 left-3 bg-red-600 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow" data-price-condition>{{ l.price_condition_label }}</span>
+          <span class="absolute top-3 left-3 bg-orange-700 text-white text-sm font-extrabold px-3 py-1 rounded-full shadow" data-price-condition>{{ l.price_condition_label }}</span>
         {% elif l.discount_percent %}
-          <span class="absolute top-3 left-3 bg-red-600 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow">−{{ l.discount_percent }} %</span>
+          <span class="absolute top-3 left-3 bg-orange-700 text-white text-sm font-extrabold px-3 py-1 rounded-full shadow">−{{ l.discount_percent }} %</span>
         {% endif %}
         {% if l.is_demo %}
           {# T-8.15: вымышленный демо-бизнес — помечаем на любой поверхности каталога. #}
@@ -32,13 +33,18 @@
           <span class="absolute bottom-3 left-3 bg-amber-400 text-amber-950 text-xs font-bold px-2.5 py-1 rounded-full shadow">{% trans "★ Anzeige" %}</span>
         {% endif %}
       </div>
-      <div class="p-3 md:p-4">
-        <p class="text-xs text-gray-400 mb-0.5">{{ l.business_name }}{% if l.city %} · {{ l.city }}{% endif %}{% if l.district_name %} · {{ l.district_name }}{% endif %}</p>
-        {% if l.business_rating %}<p class="text-xs text-amber-500 mb-0.5">★ {{ l.business_rating.avg_rating }} <span class="text-gray-300">({{ l.business_rating.review_count }})</span></p>{% endif %}
+      <div class="p-3 md:p-4 flex flex-col gap-1.5 flex-1">
+        <p class="flex items-center gap-2 text-[13px] text-gray-600 min-w-0">
+          <span aria-hidden="true" class="w-6 h-6 shrink-0 rounded-full bg-orange-100 text-orange-800 grid place-items-center text-xs font-extrabold">{{ l.business_name|slice:":1"|upper }}</span>
+          <span class="font-semibold text-gray-800 truncate">{{ l.business_name }}</span>
+          <span class="truncate max-w-[45%] hidden sm:inline">{% if l.district_name %}· {{ l.district_name }}{% elif l.city %}· {{ l.city }}{% endif %}</span>
+        </p>
+        {% if l.ends_text %}<p class="flex items-center gap-1.5 text-[13px] font-bold {% if l.ends_soon %}text-orange-700{% else %}text-gray-600{% endif %}" data-ends-at="{{ l.ends_iso }}" data-ended-label="{% trans "Beendet" %}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="13" r="8"></circle><path d="M12 9v4l2.5 2.5M9 2h6"></path></svg><span data-ends-text>{{ l.ends_text }}</span></p>{% endif %}
+        {% if l.business_rating %}<p class="text-[13px] font-bold text-gray-800">★ {{ l.business_rating.avg_rating }} <span class="font-normal text-gray-500">({{ l.business_rating.review_count }})</span></p>{% endif %}
         {% comment %}A8: live-статус «Jetzt geöffnet» на карточке города (богатая карточка
         бизнеса). Виден только при заданных часах (has_hours); открыт → зелёный «bis HH:MM»,
         закрыт → серый с ближайшим открытием.{% endcomment %}
-        {% if l.holiday_until %}<span class="inline-block mb-1 bg-amber-100 text-amber-800 text-[11px] font-medium px-2 py-0.5 rounded-full" data-holiday>🏖 {% blocktrans with d=l.holiday_until|date:"d.m." %}Betriebsferien bis {{ d }}{% endblocktrans %}</span>{% elif l.has_hours %}{% if l.open_now %}<span class="inline-block mb-1 bg-green-100 text-green-800 text-[11px] font-medium px-2 py-0.5 rounded-full">🟢 {% if l.open_until %}{% blocktrans with t=l.open_until %}Open until {{ t }}{% endblocktrans %}{% else %}{% trans "Open now" %}{% endif %}</span>{% else %}<span class="inline-block mb-1 bg-gray-100 text-gray-500 text-[11px] font-medium px-2 py-0.5 rounded-full">{% trans "Closed" %}{% if l.opens_next %} · {% trans "opens" %} {{ l.opens_next }}{% endif %}</span>{% endif %}{% endif %}
+        {% if l.holiday_until %}<span class="self-start text-[13px] font-semibold text-amber-800" data-holiday>🏖 {% blocktrans with d=l.holiday_until|date:"d.m." %}Betriebsferien bis {{ d }}{% endblocktrans %}</span>{% elif l.has_hours %}{% if l.open_now %}<span class="self-start inline-flex items-center gap-1.5 text-[13px] font-semibold text-emerald-700"><span aria-hidden="true" class="w-2 h-2 rounded-full bg-emerald-500"></span>{% if l.open_until %}{% blocktrans with t=l.open_until %}Open until {{ t }}{% endblocktrans %}{% else %}{% trans "Open now" %}{% endif %}</span>{% else %}<span class="self-start text-[13px] text-gray-500">{% trans "Closed" %}{% if l.opens_next %} · {% trans "opens" %} {{ l.opens_next }}{% endif %}</span>{% endif %}{% endif %}
         {% if l.is_surprise %}<span class="inline-block mb-1 bg-green-100 text-green-800 text-[11px] font-medium px-2 py-0.5 rounded-full">🌱 {% trans "Überraschungstüte" %}</span>{% endif %}
         {% if l.listing_kind == 'stay' %}<span class="inline-block mb-1 bg-sky-100 text-sky-800 text-[11px] font-medium px-2 py-0.5 rounded-full">🛏 {% trans "Übernachten" %}</span>{% endif %}
         {% if l.room_count and l.room_count > 1 %}<span class="inline-block mb-1 ml-1 text-[11px] text-gray-500">· {% blocktrans count n=l.room_count %}{{ n }} room type{% plural %}{{ n }} room types{% endblocktrans %}</span>{% endif %}
@@ -52,31 +58,33 @@
         {% if l.is_new %}<span class="inline-block mb-1 ml-1 bg-indigo-100 text-indigo-800 text-[11px] font-medium px-2 py-0.5 rounded-full" data-new-badge>{% trans "New in store" %}</span>{% endif %}
         {% if l.item_condition %}<span class="inline-block mb-1 ml-1 {% if l.item_condition == 'neu' or l.item_condition == 'neu_ohne_ovp' %}bg-emerald-100 text-emerald-800{% else %}bg-gray-100 text-gray-700{% endif %} text-[11px] font-medium px-2 py-0.5 rounded-full" data-condition="{{ l.item_condition }}">{{ l.item_condition_label }}</span>{% endif %}
         {% if l.availability == 'on_request' %}<span class="inline-block mb-1 ml-1 bg-gray-100 text-gray-700 text-[11px] font-medium px-2 py-0.5 rounded-full" data-availability="on_request">{% trans "Auf Bestellung" %}</span>{% elif l.availability == 'sold_out' %}<span class="inline-block mb-1 ml-1 bg-red-50 text-red-700 text-[11px] font-medium px-2 py-0.5 rounded-full" data-availability="sold_out">{% trans "Ausverkauft" %}</span>{% endif %}
-        <h2 data-card-title class="font-semibold leading-tight line-clamp-2">{{ l.title_text }}</h2>
+        <h2 data-card-title class="text-[17px] font-bold leading-snug line-clamp-2">{{ l.title_text }}</h2>
         {% if l.listing_kind == 'event' and l.starts_at %}
           <p class="text-xs text-gray-500 mt-1">{{ l.starts_at|date:"D, d.m.Y · H:i" }}</p>
         {% endif %}
+        <div class="mt-auto pt-2 flex flex-col sm:flex-row sm:items-end justify-between gap-2">
+        <div class="min-w-0">
         {% if l.range_total_eur %}
-          <div class="mt-2 flex items-baseline gap-2">
+          <div class="flex items-baseline gap-2">
             <span class="font-bold">{% trans "from" %} {{ l.range_total_eur|floatformat:2 }} €</span>
             <span class="text-xs text-gray-400">/ {% blocktrans count n=l.range_nights %}{{ n }} night{% plural %}{{ n }} nights{% endblocktrans %}</span>
           </div>
         {% elif l.new_price is not None %}
-          <div class="mt-2 flex items-baseline gap-2">
+          <div class="flex flex-wrap items-baseline gap-x-2 text-lg">
             {% if l.listing_kind == 'stay' %}
-              <span class="font-bold">{% trans "from" %} {{ l.new_price }} {{ l.currency }}</span>
+              <span class="font-extrabold whitespace-nowrap">{% trans "from" %} {{ l.new_price }} {{ l.currency }}</span>
               <span class="text-xs text-gray-400">/ {% trans "night" %}</span>
             {% elif l.listing_kind == 'service' %}
-              <span class="font-bold">{{ l.new_price }} {{ l.currency }}</span>
+              <span class="font-extrabold whitespace-nowrap">{{ l.new_price }} {{ l.currency }}</span>
               {% if l.price_per_person %}<span class="text-xs text-gray-400">/ {% trans "Person" %}</span>{% endif %}
             {% elif l.listing_kind == 'menu' %}
-              <span class="font-bold">{% trans "from" %} {{ l.new_price }} {{ l.currency }}</span>
+              <span class="font-extrabold whitespace-nowrap">{% trans "from" %} {{ l.new_price }} {{ l.currency }}</span>
               {% if l.price_per_person %}<span class="text-xs text-gray-400">/ {% trans "Gast" %}</span>{% endif %}
             {% else %}
-              <span class="font-bold">{{ l.new_price }} {{ l.currency }}</span>
+              <span class="font-extrabold whitespace-nowrap">{{ l.new_price }} {{ l.currency }}</span>
               {% if l.old_price and l.old_price > l.new_price %}
                 {% if l.price_reference == "uvp" %}<span class="text-xs text-gray-400">{% trans "UVP" %}</span>{% endif %}
-                <span class="text-sm text-gray-400 line-through">{{ l.old_price }} {{ l.currency }}</span>
+                <span class="text-sm text-gray-400 line-through whitespace-nowrap">{{ l.old_price }} {{ l.currency }}</span>
               {% endif %}
             {% endif %}
           </div>
@@ -85,6 +93,10 @@
             <p class="mt-0.5 text-[10px] leading-tight text-gray-400">{% blocktrans with p=l.old_price %}Lowest price in the last 30 days: {{ p }} €{% endblocktrans %}</p>
           {% endif %}
         {% endif %}
+        </div>
+        {% comment %}PH-3: пилюля действия — span внутри ссылки карточки (одна ссылка, a11y).{% endcomment %}
+        <span class="shrink-0 inline-flex items-center justify-center min-h-[40px] px-3.5 rounded-full bg-orange-700 text-white text-[13px] font-bold group-hover:bg-orange-800" data-card-action>{{ l.listing_kind|card_action }}</span>
+        </div>
       </div>
     </a>
     {% url 'aggregator-report' l.pk as report_url %}

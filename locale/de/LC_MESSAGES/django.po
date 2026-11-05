@@ -33061,3 +33061,28 @@ msgid "%(n)s Unterbereich"
 msgid_plural "%(n)s Unterbereiche"
 msgstr[0] "%(n)s Unterbereich"
 msgstr[1] "%(n)s Unterbereiche"
+
+#: apps/aggregator/portal_cards.py
+#, python-format
+msgid "Endet in %(n)s Min."
+msgstr "Endet in %(n)s Min."
+
+#: apps/aggregator/portal_cards.py
+#, python-format
+msgid "Endet in %(n)s Std."
+msgstr "Endet in %(n)s Std."
+
+#: apps/aggregator/portal_cards.py
+msgid "Verfügbarkeit"
+msgstr "Verfügbarkeit"
+
+#: apps/aggregator/portal_cards.py
+msgid "Zum Geschäft"
+msgstr "Zum Geschäft"
+
+#: apps/aggregator/portal_cards.py
+#, python-format
+msgid "Endet in %(n)s Tag"
+msgid_plural "Endet in %(n)s Tagen"
+msgstr[0] "Endet in %(n)s Tag"
+msgstr[1] "Endet in %(n)s Tagen"

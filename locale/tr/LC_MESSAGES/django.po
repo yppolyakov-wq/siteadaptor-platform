@@ -33120,3 +33120,28 @@ msgid "%(n)s Unterbereich"
 msgid_plural "%(n)s Unterbereiche"
 msgstr[0] "%(n)s alt bölüm"
 msgstr[1] "%(n)s alt bölüm"
+
+#: apps/aggregator/portal_cards.py
+#, python-format
+msgid "Endet in %(n)s Min."
+msgstr "%(n)s dk içinde bitiyor"
+
+#: apps/aggregator/portal_cards.py
+#, python-format
+msgid "Endet in %(n)s Std."
+msgstr "%(n)s sa içinde bitiyor"
+
+#: apps/aggregator/portal_cards.py
+msgid "Verfügbarkeit"
+msgstr "Müsaitlik"
+
+#: apps/aggregator/portal_cards.py
+msgid "Zum Geschäft"
+msgstr "İşletmeye git"
+
+#: apps/aggregator/portal_cards.py
+#, python-format
+msgid "Endet in %(n)s Tag"
+msgid_plural "Endet in %(n)s Tagen"
+msgstr[0] "%(n)s gün içinde bitiyor"
+msgstr[1] "%(n)s gün içinde bitiyor"

@@ -668,8 +668,13 @@ def portal_home(request, facet=None, district=None):
     from . import reviews
 
     reviews.attach_ratings(cards)  # G8b: звёзды в выдаче
-    if district_tail:
-        reviews.attach_ratings([i for g in district_tail for i in g["items"]])
+    tail_items = [i for g in district_tail for i in g["items"]] if district_tail else []
+    if tail_items:
+        reviews.attach_ratings(tail_items)
+    # PH-3: «Endet in …» и часы работы на карточках — один запрос к Tenant на всю выдачу.
+    from .portal_cards import prepare_cards
+
+    prepare_cards(list(cards) + tail_items)
     canonical, robots_noindex = _seo_canonical(request, portal, district, facet, filters)
     heading = " · ".join(
         str(p) for p in (district_label, facet_label, category_chips["label"]) if p
@@ -985,6 +990,10 @@ def _render_home(request, portal):
     )
     cards = featured + [item for b in blocks for item in b["items"]]
     reviews.attach_ratings(cards)
+    # PH-3: «Endet in …» и часы работы на карточках — один запрос к Tenant.
+    from .portal_cards import prepare_cards
+
+    prepare_cards(cards)
     _axis, facets = _facet_choices(portal)
     canonical = request.build_absolute_uri(request.path)
     return render(
