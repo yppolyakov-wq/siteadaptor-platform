@@ -1,6 +1,6 @@
 # AIS-W W4-1 — мастер v4: шаг «Rechtliches & Veröffentlichen» + часы сеткой (2026-11-05)
 
-План — агент ECC `planner` (2026-11-05). Без миграций. Источник структуры —
+План — агент ECC `planner` (2026-11-05); ревью `architect` — §9 (вводит ОДНУ миграцию: `Tenant.published_at`). Источник структуры —
 `ais-wizard-v4-structure-2026-11-05.md` §3; правки ревью — `ais-modules-directions-assistant-plan` §5.
 
 ## 1. «Опубликовать» технически
@@ -76,3 +76,33 @@ Playwright 390/1440 (регистрация → company → recht → блок �
    регистрации). Рекомендация — да: так Impressum есть до выхода в сеть.
 2. Палата/профессия у регулируемых типов: блокировать публикацию без них или мягкое
    предупреждение? Рекомендация — предупреждение (есть Anlage B без Meisterpflicht).
+
+## 9. Ревью `architect` (2026-11-05) — правки, имеющие приоритет над §1–§8
+
+1. **CRITICAL — хранение.** `published_at` в `site_config["onboarding"]` теряется: ~30 писателей
+   (Studio Save, `site_view`, promotions, booking, stays, demo, sitetemplates, cscart, platform_bot,
+   telegram/notify, transition_rules, status_labels) пишут ВЕСЬ `site_config` из снимка начала
+   запроса — старая копия `onboarding` затрёт метку, сайт исчезнет у гостей. **Решение: SHARED-поле
+   `Tenant.published_at` (DateTime, null) — миграция `tenants/00xx`, бэкфилл существующих
+   `published_at = created_at`.** Публикация — одно `update()`; middleware и каталог читают поле.
+2. **HIGH — каталог города и выходы наружу.** `aggregator/visibility.listable` и
+   `withheld_schemas()` должны учитывать «не опубликован»; при публикации — `apply_visibility`
+   (как при подтверждении почты, T-8.6). Проверить фиды Merchant/метапоиска, MCP, publishing,
+   ссылки в письмах.
+3. **HIGH — хелперы онбординга на v3-реестре:** `_remap_key`, `_clean_times`/`_TIME_KEYS`,
+   `_ordered`, `non_final`/`_FINAL`, `visible_keys`, `progress`, `steps_with_status`,
+   `setup_checklist`, проверка «нетронутого» в `dashboard` (`STEP_KEYS[0]`) — все получают реестр
+   из состояния (`_steps(state)`), по замку на каждый.
+4. **HIGH — окно до `touch_start`:** признак v4 ставить при создании тенанта (`create_business`
+   при включённом флаге: `published_at=None` + `flow`), `touch_start` — только метка времени.
+5. **MEDIUM — Telegram:** v4-владелец из Mini App не может опубликовать (правовое заперто) →
+   карточка «Website noch nicht online — per E-Mail-Login veröffentlichen» на `lite_home`; быстрый
+   старт/бот/демо/импорт — опубликованы сразу (замок).
+6. **MEDIUM — middleware/кэш:** проверка поля ДО `has_cabinet_access` (тот ходит в БД); 503 с
+   `Cache-Control: no-store`, свой текст «noch nicht veröffentlicht»; после публикации
+   `bump_storefront_cache`. Общий кэш P0-1 безопасен (декоратор вьюхи работает после middleware).
+7. **MEDIUM — гейт:** проверка внутри блокирующей транзакции с перечитыванием тенанта; публикация
+   после записи правовых полей, обновить `request.tenant` в памяти; повтор не перезаписывает время.
+8. **Не хватало:** пункт «Website veröffentlichen» в `setup_checklist` и на главной кабинета,
+   бейдж «Offline» в шапке, замок «выключение флага не прячет опубликованных», проверка демо-китов
+   при включённом флаге.
