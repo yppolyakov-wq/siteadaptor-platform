@@ -33246,3 +33246,21 @@ msgstr "Не пасують до ваших напрямів — але ввім
 #, python-format
 msgid "Angebote, Läden und Termine in %(city)s"
 msgstr "Пропозиції, крамниці та записи в %(city)s"
+
+#: templates/aggregator/_portal_menu.html
+#, python-format
+msgid "Alles in %(label)s"
+msgstr "Усе в розділі «%(label)s»"
+
+#: templates/aggregator/_portal_menu.html
+msgid "Menü schließen"
+msgstr "Закрити меню"
+
+#: templates/aggregator/_portal_menu.html
+#, python-format
+msgid "%(n)s Unterbereich"
+msgid_plural "%(n)s Unterbereiche"
+msgstr[0] "%(n)s підрозділ"
+msgstr[1] "%(n)s підрозділи"
+msgstr[2] "%(n)s підрозділів"
+msgstr[3] "%(n)s підрозділу"

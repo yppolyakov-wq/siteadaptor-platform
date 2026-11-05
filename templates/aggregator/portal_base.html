@@ -27,6 +27,12 @@
     <div class="max-w-screen-2xl mx-auto px-4 md:px-6 h-14 flex items-center justify-between">
       {% comment %}PH-1: вордмарк «<Город>Markt» — город тёмным, «Markt» акцентом; подзаголовок под ним.{% endcomment %}
       {% portal_wordmark portal as wm %}
+      <span class="flex items-center gap-3 min-w-0">
+      {% comment %}PH-2: «☰ Kategorien» — с JS открывает мега-меню; без JS — якорь разделов главной.{% endcomment %}
+      <a href="{% url 'portal-home' %}#kategorien" data-portal-menu-open class="shrink-0 inline-flex items-center gap-2 h-11 px-3 sm:px-4 rounded-full text-white font-bold text-sm" style="background: var(--portal-color)">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h10M4 18h16"></path></svg>
+        <span class="hidden sm:inline">{% trans "Kategorien" %}</span><span class="sm:hidden sr-only">{% trans "Kategorien" %}</span>
+      </a>
       <a href="{% url 'portal-home' %}" class="flex items-center gap-2 min-w-0" data-portal-wordmark>
         {% if portal.logo_url %}<img src="{{ portal.logo_url }}" alt="" class="h-8 w-8 rounded object-contain">{% endif %}
         <span class="flex flex-col min-w-0 leading-tight">
@@ -34,6 +40,7 @@
           {% if portal.tagline_text %}<span class="hidden sm:block text-xs text-gray-500 truncate">{{ portal.tagline_text }}</span>{% endif %}
         </span>
       </a>
+      </span>
       <div class="flex items-center gap-4 ml-4 shrink-0">
         {% if ui_languages %}<span class="hidden sm:inline-flex">{% include "tenants/_lang_switch.html" %}</span>{% endif %}
         <a href="{% url 'portal-for-business' %}" class="hidden sm:inline text-sm text-gray-500 hover:underline">{% trans "Für Unternehmen" %}</a>
@@ -44,7 +51,24 @@
         {% endif %}
       </div>
     </div>
+    {% if portal_menu %}
+    {% comment %}PH-2: полоса разделов с иконками (как у Airbnb) — те же ссылки, что в меню.{% endcomment %}
+    <nav aria-label="{% trans 'Bereiche' %}" data-portal-strip class="max-w-screen-2xl mx-auto px-2 md:px-4 flex gap-1 overflow-x-auto">
+      <a href="{% url 'portal-home' %}" class="shrink-0 flex flex-col items-center gap-1 px-3 pt-2 pb-2.5 min-w-[5.5rem] border-b-[3px] text-gray-700 hover:text-gray-900" style="border-color: {% if request.resolver_match.url_name == 'portal-home' and not request.GET %}var(--portal-color){% else %}transparent{% endif %}">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5L18 18M6 18l2.5-2.5M15.5 8.5L18 6"></path></svg>
+        <span class="text-[13px] font-semibold whitespace-nowrap">{% trans "Alles" %}</span>
+      </a>
+      {% for s in portal_menu %}
+      <a href="{{ s.url }}" data-portal-strip-item="{{ s.key }}" class="shrink-0 flex flex-col items-center gap-1 px-3 pt-2 pb-2.5 min-w-[5.5rem] border-b-[3px] border-transparent text-gray-700 hover:text-gray-900">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ s.icon }}"></path></svg>
+        <span class="text-[13px] font-semibold whitespace-nowrap">{{ s.label }}</span>
+      </a>
+      {% endfor %}
+    </nav>
+    {% endif %}
   </header>
+  {% if portal_menu %}{% include "aggregator/_portal_menu.html" %}{% endif %}
+  {% if portal_menu %}<script src="{% static 'js/portal.js' %}" defer></script>{% endif %}
 
   {% comment %}FLT-1a (2026-11-04): шапка и подвал — 1536 px; ширина main — блоком: листинги
   портала (главная, выдача, поиск) широкие (`data-wide` → 4 колонки карточек на xl), страницы

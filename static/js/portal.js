@@ -143,4 +143,48 @@
     },
     true
   );
+
+  // ---- PH-2: мега-меню «Kategorien» (портал) ----
+  // Без JS кнопка — ссылка на якорь разделов главной; с JS открывает <dialog>.
+  var menuOpener = null;
+  document.addEventListener("click", function (e) {
+    var open = e.target.closest && e.target.closest("[data-portal-menu-open]");
+    if (open) {
+      var menu = document.getElementById("portal-menu");
+      if (menu && typeof menu.showModal === "function") {
+        e.preventDefault();
+        menuOpener = open;
+        menu.showModal();
+        var first = menu.querySelector("[data-portal-menu-section]");
+        if (first) first.focus();
+      }
+      return;
+    }
+    var menuEl = document.getElementById("portal-menu");
+    if (!menuEl || !menuEl.open) return;
+    if (e.target.closest("[data-portal-menu-close]") || e.target === menuEl) {
+      menuEl.close();
+    }
+  });
+  document.addEventListener("close", function (e) {
+    if (e.target && e.target.id === "portal-menu" && menuOpener) {
+      menuOpener.focus();
+      menuOpener = null;
+    }
+  }, true);
+  // Подкатегории справа — по наведению/фокусу на строку раздела.
+  function showPanel(row) {
+    var menu = document.getElementById("portal-menu");
+    if (!menu || !row) return;
+    var key = row.getAttribute("data-portal-menu-row");
+    menu.querySelectorAll("[data-portal-menu-panel]").forEach(function (p) {
+      p.hidden = p.getAttribute("data-portal-menu-panel") !== key;
+    });
+  }
+  ["mouseover", "focusin"].forEach(function (type) {
+    document.addEventListener(type, function (e) {
+      var row = e.target.closest && e.target.closest("[data-portal-menu-row]");
+      if (row) showPanel(row);
+    });
+  });
 })();

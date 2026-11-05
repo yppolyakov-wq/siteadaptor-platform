@@ -32958,3 +32958,19 @@ msgstr "They don't match your directions — you can still switch them on."
 #, python-format
 msgid "Angebote, Läden und Termine in %(city)s"
 msgstr "Offers, shops and appointments in %(city)s"
+
+#: templates/aggregator/_portal_menu.html
+#, python-format
+msgid "Alles in %(label)s"
+msgstr "Everything in %(label)s"
+
+#: templates/aggregator/_portal_menu.html
+msgid "Menü schließen"
+msgstr "Close menu"
+
+#: templates/aggregator/_portal_menu.html
+#, python-format
+msgid "%(n)s Unterbereich"
+msgid_plural "%(n)s Unterbereiche"
+msgstr[0] "%(n)s subsection"
+msgstr[1] "%(n)s subsections"

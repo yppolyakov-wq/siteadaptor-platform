@@ -33104,3 +33104,19 @@ msgstr "Yönlerinize uymuyor — yine de açabilirsiniz."
 #, python-format
 msgid "Angebote, Läden und Termine in %(city)s"
 msgstr "%(city)s'de teklifler, dükkânlar ve randevular"
+
+#: templates/aggregator/_portal_menu.html
+#, python-format
+msgid "Alles in %(label)s"
+msgstr "%(label)s içindeki her şey"
+
+#: templates/aggregator/_portal_menu.html
+msgid "Menü schließen"
+msgstr "Menüyü kapat"
+
+#: templates/aggregator/_portal_menu.html
+#, python-format
+msgid "%(n)s Unterbereich"
+msgid_plural "%(n)s Unterbereiche"
+msgstr[0] "%(n)s alt bölüm"
+msgstr[1] "%(n)s alt bölüm"

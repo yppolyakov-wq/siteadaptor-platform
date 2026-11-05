@@ -8,6 +8,7 @@
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
 from datetime import timedelta
 from urllib.parse import urlencode
@@ -23,6 +24,8 @@ from .models import AggregatorListing as L
 from .models import apply_city_filters
 from .search import FILTER_PARAMS
 from .tasks import NEW_PRODUCT_DAYS
+
+logger = logging.getLogger(__name__)
 
 NEW_DAYS = NEW_PRODUCT_DAYS  # «Neu» = свежий листинг или бейдж «neu» товара
 BLOCK_LIMIT = 6  # полные ряды при сетке 2/3 колонки (урок DL-11)
@@ -240,12 +243,19 @@ def presence(base_qs) -> dict:
     )
     kinds: dict[str, int] = {}
     sections: dict[str, int] = {}
+    categories: dict[str, int] = {}
     for kind, cat_key, n in rows:
         kinds[kind] = kinds.get(kind, 0) + n
         cat = cc.category(cat_key) if cat_key else None
         if cat:
             sections[cat.section] = sections.get(cat.section, 0) + n
-    return {"kinds": kinds, "sections": sections, "total": sum(kinds.values())}
+            categories[cat.key] = categories.get(cat.key, 0) + n
+    return {
+        "kinds": kinds,
+        "sections": sections,
+        "categories": categories,
+        "total": sum(kinds.values()),
+    }
 
 
 def tabs(present: dict, active_key: str, path: str, *, carry=()) -> list[dict]:
@@ -268,12 +278,76 @@ def tabs(present: dict, active_key: str, path: str, *, carry=()) -> list[dict]:
     return out
 
 
+MENU_POPULAR = 3  # бейдж «Beliebt» — топ-N разделов по числу предложений (факт, не реклама)
+MENU_CACHE_TTL = 300
+
+
+def menu_sections(present: dict, path: str) -> list[dict]:
+    """PH-2: разделы мега-меню «Kategorien» — только непустые; подкатегории со счётчиком;
+    описание в одну строку = первые подписи подкатегорий (новых текстов не нужно)."""
+    from . import portal_icons
+
+    sections = present["sections"]
+    categories = present.get("categories", {})
+    top = sorted(sections, key=lambda k: -sections[k])[:MENU_POPULAR]
+    out = []
+    for s in cc.SECTIONS:
+        if not sections.get(s.key):
+            continue
+        subs = [
+            {
+                "key": c.key,
+                "label": str(c.label),
+                "count": categories[c.key],
+                "url": scope_url(path, FeedScope(kind_key="alle", kat=c.key)),
+            }
+            for c in cc.CATEGORIES
+            if c.section == s.key and categories.get(c.key)
+        ]
+        labels = [str(c.label) for c in cc.CATEGORIES if c.section == s.key][:3]
+        out.append(
+            {
+                "key": s.key,
+                "label": str(s.label),
+                "icon": portal_icons.icon_for(s.key),
+                "count": sections[s.key],
+                "desc": ", ".join(labels),
+                "popular": s.key in top,
+                "url": scope_url(path, FeedScope(kind_key="alle", kat=s.key)),
+                "subs": subs,
+            }
+        )
+    return out
+
+
+def cached_menu_sections(portal, base_qs, path: str) -> list[dict]:
+    """Меню для страниц, где presence не считается: Redis на 5 минут, fail-open (без меню —
+    кнопка ведёт на якорь главной)."""
+    from django.core.cache import cache
+    from django.utils.translation import get_language
+
+    key = f"portal_menu:{portal.pk}:{get_language() or ''}:{path}"
+    try:
+        hit = cache.get(key)
+        if hit is not None:
+            return hit
+        value = menu_sections(presence(base_qs), path)
+        cache.set(key, value, MENU_CACHE_TTL)
+        return value
+    except Exception:  # noqa: BLE001 — меню не обязательно, страница не падает
+        logger.warning("portal menu failed", exc_info=True)
+        return []
+
+
 def section_tiles(present: dict, path: str) -> list[dict]:
+    from . import portal_icons
+
     sections = present["sections"]
     return [
         {
             "key": s.key,
             "icon": s.icon,
+            "svg": portal_icons.icon_for(s.key),
             "label": s.label,
             "count": sections[s.key],
             "url": scope_url(path, FeedScope(kind_key="alle", kat=s.key)),

@@ -1,0 +1,56 @@
+{% load i18n %}
+{% comment %}PH-2: мега-меню «Kategorien» — разделы крупными строками (иконка, описание, счётчик, бейдж «Beliebt»), справа подкатегории раздела. Без JS не открывается: кнопка в шапке ведёт на якорь #kategorien главной. Ссылки — те же, что в ленте (scope_url).{% endcomment %}
+<dialog id="portal-menu" aria-labelledby="portal-menu-h" data-portal-menu class="m-0 p-0 max-w-none max-h-none w-full sm:w-[min(880px,100vw)] h-full bg-white shadow-2xl backdrop:bg-gray-900/55">
+  <div class="flex h-full">
+    <div class="w-full sm:w-[440px] sm:border-r border-gray-200 flex flex-col">
+      <div class="flex items-center justify-between px-5 pt-5 pb-3">
+        <h2 id="portal-menu-h" class="text-xl font-extrabold">{% trans "Kategorien" %}</h2>
+        <button type="button" data-portal-menu-close aria-label="{% trans 'Menü schließen' %}" class="w-11 h-11 rounded-full bg-gray-100 grid place-items-center hover:bg-gray-200">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+        </button>
+      </div>
+      <nav aria-label="{% trans 'Bereiche' %}" class="overflow-y-auto px-2 pb-5 flex flex-col gap-0.5">
+        {% for s in portal_menu %}
+        <div data-portal-menu-row="{{ s.key }}">
+          <a href="{{ s.url }}" data-portal-menu-section="{{ s.key }}" class="flex items-center gap-3.5 px-3 py-2.5 rounded-2xl hover:bg-orange-50 focus:bg-orange-50">
+            <span class="w-12 h-12 shrink-0 rounded-xl bg-orange-50 grid place-items-center" style="color: var(--portal-color)">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ s.icon }}"></path></svg>
+            </span>
+            <span class="flex-1 min-w-0">
+              <span class="flex items-center gap-2"><span class="font-bold text-[15px] text-gray-900">{{ s.label }}</span>{% if s.popular %}<span class="text-[10px] font-extrabold tracking-wide uppercase text-white px-1.5 py-0.5 rounded-md" style="background: var(--portal-color)">{% trans "Beliebt" %}</span>{% endif %}</span>
+              <span class="block text-[13px] text-gray-600 truncate">{{ s.desc }}</span>
+            </span>
+            <span class="text-[13px] font-bold text-gray-500">{{ s.count }}</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
+          </a>
+          {% if s.subs %}
+          <details class="sm:hidden pl-[4.75rem] pr-3">
+            <summary class="text-sm text-gray-600 py-2 cursor-pointer">{% blocktrans count n=s.subs|length %}{{ n }} Unterbereich{% plural %}{{ n }} Unterbereiche{% endblocktrans %}</summary>
+            <ul class="pb-2">{% for c in s.subs %}<li><a href="{{ c.url }}" class="flex justify-between py-2 text-sm"><span>{{ c.label }}</span><span class="text-gray-500">{{ c.count }}</span></a></li>{% endfor %}</ul>
+          </details>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </nav>
+    </div>
+    <div class="hidden sm:flex flex-1 flex-col gap-4 p-7 overflow-y-auto">
+      {% for s in portal_menu %}
+      <section data-portal-menu-panel="{{ s.key }}" {% if not forloop.first %}hidden{% endif %} aria-labelledby="pmp-{{ s.key }}">
+        <p class="text-xs font-bold uppercase tracking-wide" style="color: var(--portal-color)">{{ s.label }}</p>
+        <h3 id="pmp-{{ s.key }}" class="text-2xl font-extrabold mt-1 mb-4">{% blocktrans count n=s.count %}{{ n }} Angebot{% plural %}{{ n }} Angebote{% endblocktrans %}</h3>
+        {% if s.subs %}
+        <div class="grid grid-cols-2 gap-3">
+          {% for c in s.subs %}
+          <a href="{{ c.url }}" class="flex flex-col rounded-2xl border-2 border-gray-200 px-3.5 py-3 hover:border-gray-400">
+            <span class="font-bold text-[15px] text-gray-900">{{ c.label }}</span>
+            <span class="text-xs text-gray-500">{% blocktrans count n=c.count %}{{ n }} Angebot{% plural %}{{ n }} Angebote{% endblocktrans %}</span>
+          </a>
+          {% endfor %}
+        </div>
+        {% endif %}
+        <a href="{{ s.url }}" class="inline-flex items-center mt-4 min-h-[44px] font-bold hover:underline" style="color: var(--portal-color)">{% blocktrans with label=s.label %}Alles in {{ label }}{% endblocktrans %} <span aria-hidden="true">&nbsp;→</span></a>
+      </section>
+      {% endfor %}
+    </div>
+  </div>
+</dialog>

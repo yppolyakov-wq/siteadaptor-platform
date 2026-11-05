@@ -485,7 +485,12 @@ def portal_home(request, facet=None, district=None):
             whole_pool, search_engine.SearchFilters(kats=filters_eff.kats, tags=filters_eff.tags)
         )
         portal_tabs = home.tabs(home.presence(tab_pool), kind, request.path, carry=tab_carry)
+        # PH-2: мега-меню «Kategorien» — общий пул портала, кэш 5 минут (0 запросов в тепле).
+        portal_menu = home.cached_menu_sections(
+            portal, portal_scope.pool(portal), reverse("portal-home")
+        )
     else:
+        portal_menu = []
         kind_chips = _kind_chips(whole_pool.order_by(), request.path, kind)
         portal_tabs = []
     if city_home:  # FLT-1d: разделы и признаки — в строке фильтров; нужна только подпись
@@ -711,6 +716,7 @@ def portal_home(request, facet=None, district=None):
         "aggregator/portal_home.html",
         {
             "portal": portal,
+            "portal_menu": portal_menu,
             "follow_target": follow_target,
             "ki_slot": ki_slot,
             "ki_chips": ki_chips,
@@ -989,6 +995,8 @@ def _render_home(request, portal):
             "portal_tabs": home.tabs(present, "alle", request.path),
             "pool_empty": not present["total"],
             "tiles": home.section_tiles(present, request.path),
+            # PH-2: меню «Kategorien» — из уже посчитанного presence, без запросов.
+            "portal_menu": home.menu_sections(present, request.path),
             "featured": featured,
             "blocks": blocks,
             "facets": facets,

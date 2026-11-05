@@ -33045,3 +33045,19 @@ msgstr "Passen nicht zu Ihren Richtungen — Sie können sie trotzdem einschalte
 #, python-format
 msgid "Angebote, Läden und Termine in %(city)s"
 msgstr "Angebote, Läden und Termine in %(city)s"
+
+#: templates/aggregator/_portal_menu.html
+#, python-format
+msgid "Alles in %(label)s"
+msgstr "Alles in %(label)s"
+
+#: templates/aggregator/_portal_menu.html
+msgid "Menü schließen"
+msgstr "Menü schließen"
+
+#: templates/aggregator/_portal_menu.html
+#, python-format
+msgid "%(n)s Unterbereich"
+msgid_plural "%(n)s Unterbereiche"
+msgstr[0] "%(n)s Unterbereich"
+msgstr[1] "%(n)s Unterbereiche"
