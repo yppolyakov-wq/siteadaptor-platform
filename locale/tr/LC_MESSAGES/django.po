@@ -33099,3 +33099,8 @@ msgstr "Diğer ek işlevler"
 #: apps/core/directions_screen.py
 msgid "Passen nicht zu Ihren Richtungen — Sie können sie trotzdem einschalten."
 msgstr "Yönlerinize uymuyor — yine de açabilirsiniz."
+
+#: templates/aggregator/portal_discover.html
+#, python-format
+msgid "Angebote, Läden und Termine in %(city)s"
+msgstr "%(city)s'de teklifler, dükkânlar ve randevular"

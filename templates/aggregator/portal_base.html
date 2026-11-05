@@ -1,4 +1,4 @@
-{% load i18n static %}<!doctype html>{# Брендированный base портального хоста (P2.1b): ожидает portal. #}
+{% load i18n static portal_brand %}<!doctype html>{# Брендированный base портального хоста (P2.1b): ожидает portal. #}
 <html lang="{{ request.LANGUAGE_CODE|default:'de' }}">
 <head>
   <meta charset="utf-8">
@@ -25,13 +25,17 @@
 <body class="min-h-screen bg-gray-50 text-gray-900 antialiased flex flex-col">
   <header class="sticky top-0 z-20 bg-white/90 backdrop-blur border-b-2" style="border-color: var(--portal-color)">
     <div class="max-w-screen-2xl mx-auto px-4 md:px-6 h-14 flex items-center justify-between">
-      <a href="{% url 'portal-home' %}" class="flex items-center gap-2 min-w-0">
+      {% comment %}PH-1: вордмарк «<Город>Markt» — город тёмным, «Markt» акцентом; подзаголовок под ним.{% endcomment %}
+      {% portal_wordmark portal as wm %}
+      <a href="{% url 'portal-home' %}" class="flex items-center gap-2 min-w-0" data-portal-wordmark>
         {% if portal.logo_url %}<img src="{{ portal.logo_url }}" alt="" class="h-8 w-8 rounded object-contain">{% endif %}
-        <span class="text-lg font-bold tracking-tight truncate" style="color: var(--portal-color)">{{ portal.title_text }}</span>
+        <span class="flex flex-col min-w-0 leading-tight">
+          <span class="text-xl font-extrabold tracking-tight truncate">{% if wm.dark %}<span class="text-gray-900">{{ wm.dark }}</span>{% endif %}<span style="color: var(--portal-color)">{{ wm.accent }}</span></span>
+          {% if portal.tagline_text %}<span class="hidden sm:block text-xs text-gray-500 truncate">{{ portal.tagline_text }}</span>{% endif %}
+        </span>
       </a>
       <div class="flex items-center gap-4 ml-4 shrink-0">
         {% if ui_languages %}<span class="hidden sm:inline-flex">{% include "tenants/_lang_switch.html" %}</span>{% endif %}
-        {% if portal.tagline_text %}<span class="hidden sm:block text-sm text-gray-500 truncate">{{ portal.tagline_text }}</span>{% endif %}
         <a href="{% url 'portal-for-business' %}" class="hidden sm:inline text-sm text-gray-500 hover:underline">{% trans "Für Unternehmen" %}</a>
         {% if portal_user %}
           <a href="{% url 'portal-account' %}" class="text-sm font-medium hover:underline" style="color: var(--portal-color)">{% trans "My account" %}</a>

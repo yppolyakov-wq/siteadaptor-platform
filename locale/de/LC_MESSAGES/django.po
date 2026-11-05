@@ -33040,3 +33040,8 @@ msgstr "Weitere Zusatzfunktionen"
 #: apps/core/directions_screen.py
 msgid "Passen nicht zu Ihren Richtungen — Sie können sie trotzdem einschalten."
 msgstr "Passen nicht zu Ihren Richtungen — Sie können sie trotzdem einschalten."
+
+#: templates/aggregator/portal_discover.html
+#, python-format
+msgid "Angebote, Läden und Termine in %(city)s"
+msgstr "Angebote, Läden und Termine in %(city)s"

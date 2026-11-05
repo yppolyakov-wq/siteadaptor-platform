@@ -475,6 +475,7 @@ class Command(BaseCommand):
         from django.conf import settings
         from django_tenants.utils import get_public_schema_name
 
+        from apps.aggregator import branding
         from apps.aggregator.models import AggregatorPortal
         from apps.core import districts
         from apps.tenants.models import Domain, Tenant
@@ -491,26 +492,17 @@ class Command(BaseCommand):
                 )
             )
             return
+        brand = branding.city_brand(city)
         _portal, created = AggregatorPortal.objects.get_or_create(
             host=host,
             defaults={
                 "kind": AggregatorPortal.KIND_CITY,
                 "city": city,
                 "show_demo": True,
-                "title": {
-                    "de": f"Angebote in {city}",
-                    "en": f"Offers in {city}",
-                    "ru": f"Предложения в {city}",
-                    "uk": f"Пропозиції в {city}",
-                    "tr": f"{city} fırsatları",
-                },
-                "tagline": {
-                    "de": "Aktionen, Neuheiten und Angebote aus allen Stadtteilen.",
-                    "en": "Deals, new arrivals and offers from every district.",
-                    "ru": "Акции, новинки и предложения из всех районов.",
-                    "uk": "Акції, новинки та пропозиції з усіх районів.",
-                    "tr": "Tüm semtlerden kampanyalar, yenilikler ve teklifler.",
-                },
+                # PH-1 (2026-11-05): бренд «<Город>Markt» (apps.aggregator.branding).
+                "title": brand["title"],
+                "tagline": brand["tagline"],
+                "primary_color": brand["color"],
                 "intro": {
                     "de": f"Was Geschäfte in {city} heute anbieten — vor Ort abholen, "
                     "reservieren oder anfragen.",
@@ -524,6 +516,8 @@ class Command(BaseCommand):
                 },
             },
         )
+        if not created and branding.refresh_city_brand(_portal):
+            self.stdout.write(f"  Portal-Marke → {_portal.title_text}")
         if public is None:
             # Без public-тенанта хост некуда привязать — портал есть, но отдаёт 404.
             self.stdout.write(

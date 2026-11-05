@@ -32953,3 +32953,8 @@ msgstr "More extra functions"
 #: apps/core/directions_screen.py
 msgid "Passen nicht zu Ihren Richtungen — Sie können sie trotzdem einschalten."
 msgstr "They don't match your directions — you can still switch them on."
+
+#: templates/aggregator/portal_discover.html
+#, python-format
+msgid "Angebote, Läden und Termine in %(city)s"
+msgstr "Offers, shops and appointments in %(city)s"

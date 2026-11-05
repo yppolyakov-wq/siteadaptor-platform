@@ -1,6 +1,6 @@
 {% extends "aggregator/portal_base.html" %}
 {% load i18n %}
-{% block title %}{% blocktrans with city=portal.city %}Entdecke {{ city }}{% endblocktrans %} — {{ portal.title_text }}{% endblock %}
+{% block title %}{{ portal.title_text }} — {% blocktrans with city=portal.city %}Angebote, Läden und Termine in {{ city }}{% endblocktrans %}{% endblock %}
 
 {% block structured_data %}{% if ld_collection %}<script type="application/ld+json">{{ ld_collection|safe }}</script>{% endif %}{% endblock %}
 
