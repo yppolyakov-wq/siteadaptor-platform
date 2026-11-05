@@ -313,7 +313,13 @@ def validate_row(data: dict, kind: str, *, idx: int = 0, today=None) -> Line:
     Имя берётся как есть: разделители внутри — часть имени."""
     _check_kind(kind)
     today = today or timezone.localdate()
-    fields_ = ("duration", "guests", "starts_at", "price")
-    attrs = " ".join(str(data.get(f) or "").strip()[:200] for f in fields_ if data.get(f))
+    values = {f: str(data.get(f) or "").strip()[:200] for f in ("duration", "guests", "starts_at")}
+    # Таблица присылает голые числа («45», «2») — дописываем единицу, как в строке.
+    if values["duration"].isdigit():
+        values["duration"] += " Min"
+    if values["guests"].isdigit():
+        values["guests"] += " Pers."
+    values["price"] = str(data.get("price") or "").strip()[:200]
+    attrs = " ".join(v for v in values.values() if v)
     name = _SPACES.sub(" ", str(data.get("name") or ""))[: MAX_NAME * 2]
     return _build(idx, name, name, attrs, kind, today, frozenset())

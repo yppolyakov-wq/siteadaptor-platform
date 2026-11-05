@@ -326,6 +326,53 @@ def _today_suggestions(request) -> list:
     return today.card_context(request)
 
 
+def _pruefen_action(request, action: str) -> None:
+    from apps.core import offer_batch, offer_examples, offer_lines
+
+    tenant = request.tenant
+    kinds = offer_batch.offer_kinds(tenant, request.user)
+    if action == "offer_confirm":
+        report = offer_batch.confirm(request, tenant)
+        if report.error:
+            messages.error(request, report.error)
+            return
+        parts = [_("Angelegt: %(n)s") % {"n": len(report.created)}]
+        if report.skipped:
+            reasons = "; ".join(f"„{name}“: {why}" for name, why in report.skipped[:5])
+            parts.append(
+                _("Übersprungen: %(n)s (%(reasons)s)")
+                % {"n": len(report.skipped), "reasons": reasons}
+            )
+        if report.staff:
+            parts.append(
+                _("Mitarbeiter „%(name)s“ angelegt — umbenennen unter Ressourcen.")
+                % {"name": report.staff}
+            )
+        messages.success(request, " · ".join(parts))
+        return
+    draft = offer_batch.get_draft(request) or {}
+    kind = request.POST.get("kind") or draft.get("kind", "")
+    if kind not in kinds:
+        messages.error(request, _("Dafür fehlt Ihnen die Berechtigung."))
+        return
+    if action == "offer_edit":
+        request.session[offer_batch.SESSION_KEY] = {**draft, "batch": ""}
+        return
+    if action == "offer_examples":
+        text = offer_examples.examples_for(tenant.business_type, kind)
+        request.session[offer_batch.SESSION_KEY] = {"kind": kind, "text": text, "batch": ""}
+        messages.info(request, _("Beispiele eingefügt — bitte Preise anpassen."))
+        return
+    text = request.POST.get("offer_text", "")
+    if len(text) > offer_lines.MAX_TEXT:
+        messages.error(request, _("Zu viel Text — bitte in mehreren Schritten eintragen."))
+        return
+    if not text.strip():
+        messages.error(request, _("Bitte mindestens eine Zeile eintragen."))
+        return
+    offer_batch.new_draft(request, kind, text)
+
+
 @login_required
 def setup_view(request):
     """Onboarding-Wizard: тонкий диспетчер шагов (AB6.1).
@@ -397,6 +444,11 @@ def setup_view(request):
                 return redirect("setup")
             onboarding.goto(tenant, "done")
             messages.success(request, _("Ihre Website ist jetzt online."))
+            return redirect("setup")
+        # AIS-W W4-2: шаг «Angebot prüfen» — образцы/проверка/правка/подтверждение пачки.
+        # До «offer_confirm» в базе ничего не создаётся (черновик — в сессии).
+        if action in ("offer_examples", "offer_preview", "offer_edit", "offer_confirm"):
+            _pruefen_action(request, action)
             return redirect("setup")
         handler = setup_steps.HANDLERS[onboarding.get_state(tenant)["step"]]
         # KA-H2: post-хендлер вправе вернуть False — ошибка ввода, слайд не листаем.

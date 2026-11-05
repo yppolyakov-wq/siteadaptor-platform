@@ -32225,3 +32225,142 @@ msgstr "Currency CHF — saved in €."
 #: apps/core/offer_lines.py
 msgid "Zweiter Preis — später als Variante anlegen."
 msgstr "Second price — add it later as a variant."
+
+#: apps/core/offer_batch.py
+#, python-format
+msgid "%(ok)s von %(total)s werden übernommen"
+msgstr "%(ok)s of %(total)s will be added"
+
+#: apps/core/offer_batch.py
+#, python-format
+msgid "Angelegt: %(n)s"
+msgstr "Added: %(n)s"
+
+#: apps/core/offer_batch.py
+msgid "Beispiel — Preis prüfen"
+msgstr "Example — check the price"
+
+#: apps/core/offer_batch.py
+msgid "Beispiele einfügen"
+msgstr "Insert examples"
+
+#: apps/core/offer_batch.py
+msgid "Beispiele eingefügt — bitte Preise anpassen."
+msgstr "Examples inserted — please adjust the prices."
+
+#: apps/core/offer_batch.py
+msgid "Bitte mindestens eine Zeile eintragen."
+msgstr "Please enter at least one line."
+
+#: apps/core/offer_batch.py
+msgid "Dafür fehlt Ihnen die Berechtigung."
+msgstr "You don't have permission for this."
+
+#: apps/core/offer_batch.py
+msgid "Dauer (Min)"
+msgstr "Duration (min)"
+
+#: apps/core/offer_batch.py
+msgid "Eine Zeile pro Angebot. Sie prüfen alles, bevor etwas angelegt wird."
+msgstr "One line per offer. You check everything before anything is created."
+
+#: apps/core/offer_batch.py
+msgid "Format: Name — Datum Uhrzeit — Preis, z. B. „Konzert — 20.07. 19 Uhr — 25 €“"
+msgstr "Format: name — date time — price, e.g. “Konzert — 20.07. 19 Uhr — 25 €”"
+
+#: apps/core/offer_batch.py
+msgid "Format: Name — Dauer — Preis, z. B. „Haarschnitt — 30 Min — 26 €“"
+msgstr "Format: name — duration — price, e.g. “Haarschnitt — 30 Min — 26 €”"
+
+#: apps/core/offer_batch.py
+msgid "Format: Name — Gäste — Preis/Nacht, z. B. „Doppelzimmer — 2 Gäste — 89 €“"
+msgstr "Format: name — guests — price/night, e.g. “Doppelzimmer — 2 Gäste — 89 €”"
+
+#: apps/core/offer_batch.py
+msgid "Format: Name — Preis, z. B. „Cappuccino — 3,40 €“"
+msgstr "Format: name — price, e.g. “Cappuccino — 3,40 €”"
+
+#: apps/core/offer_batch.py
+msgid "Format: Name — Preis, z. B. „Roggenbrot — 3,50 €“"
+msgstr "Format: name — price, e.g. “Roggenbrot — 3,50 €”"
+
+#: apps/core/offer_batch.py
+msgid "Für Ihr Geschäft gibt es hier nichts einzutragen — weiter zum nächsten Schritt."
+msgstr "There is nothing to enter here for your business — continue to the next step."
+
+#: apps/core/offer_batch.py
+msgid "Ihre Angebote"
+msgstr "Your offers"
+
+#: apps/core/offer_batch.py
+msgid "Mehreres auf einmal beschreiben (KI)"
+msgstr "Describe several at once (AI)"
+
+#: apps/core/offer_batch.py
+#, python-format
+msgid "Mitarbeiter „%(name)s“ angelegt — umbenennen unter Ressourcen."
+msgstr "Staff member “%(name)s” added — rename under Resources."
+
+#: apps/core/offer_batch.py
+msgid "Nichts angelegt — bitte erneut versuchen."
+msgstr "Nothing was added — please try again."
+
+#: apps/core/offer_batch.py
+msgid "Noch ist nichts angelegt. Korrigieren Sie rot markierte Zeilen oder lassen Sie sie weg."
+msgstr "Nothing has been created yet. Fix the lines marked red or leave them out."
+
+#: apps/core/offer_batch.py
+msgid "Prüfen"
+msgstr "Check"
+
+#: apps/core/offer_batch.py
+msgid "Schon angelegt"
+msgstr "Already added"
+
+#: apps/core/offer_batch.py
+msgid "Vorschau abgelaufen — bitte erneut prüfen."
+msgstr "Preview expired — please check again."
+
+#: apps/core/offer_batch.py
+msgid "Was tragen Sie ein?"
+msgstr "What are you entering?"
+
+#: apps/core/offer_batch.py
+msgid "Was verkaufen Sie?"
+msgstr "What do you sell?"
+
+#: apps/core/offer_batch.py
+msgid "Zu viel Text — bitte in mehreren Schritten eintragen."
+msgstr "Too much text — please enter it in several steps."
+
+#: apps/core/offer_batch.py
+msgid "Zurück zum Text"
+msgstr "Back to the text"
+
+#: apps/core/offer_batch.py
+#, python-format
+msgid "bis zu %(n)s Zeilen"
+msgstr "up to %(n)s lines"
+
+#: apps/core/offer_batch.py
+msgid "gibt es schon"
+msgstr "already exists"
+
+#: apps/core/offer_batch.py
+#, python-format
+msgid "Übersprungen: %(n)s (%(reasons)s)"
+msgstr "Skipped: %(n)s (%(reasons)s)"
+
+#: templates/tenant/setup/_step_pruefen.html
+#, python-format
+msgid "%(n)s Zeile mit Fehler"
+msgid_plural "%(n)s Zeilen mit Fehler"
+msgstr[0] "%(n)s line with an error"
+msgstr[1] "%(n)s lines with errors"
+
+#: templates/tenant/setup/_step_pruefen.html
+#, python-format
+msgid "%(n)s Angebot übernehmen"
+msgid_plural "%(n)s Angebote übernehmen"
+msgstr[0] "Add %(n)s offer"
+msgstr[1] "Add %(n)s offers"

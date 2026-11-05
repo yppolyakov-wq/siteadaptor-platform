@@ -925,6 +925,85 @@ def _ctx_start(request):
     return {"has_demo": demo.has_demo(request.tenant)}
 
 
+# AIS-W W4-2: шаг v4 «Angebot prüfen» — строки «Name — Preis» → таблица проверки → пачка.
+_PRUEFEN_KIND_LABELS = {
+    "waren": gettext_lazy("Waren"),
+    "speisekarte": gettext_lazy("Speisekarte"),
+    "termine": gettext_lazy("Termine"),
+    "zimmer": gettext_lazy("Zimmer"),
+    "tickets": gettext_lazy("Veranstaltungen"),
+}
+_PRUEFEN_HINTS = {
+    "waren": gettext_lazy("Format: Name — Preis, z. B. „Roggenbrot — 3,50 €“"),
+    "speisekarte": gettext_lazy("Format: Name — Preis, z. B. „Cappuccino — 3,40 €“"),
+    "termine": gettext_lazy("Format: Name — Dauer — Preis, z. B. „Haarschnitt — 30 Min — 26 €“"),
+    "zimmer": gettext_lazy(
+        "Format: Name — Gäste — Preis/Nacht, z. B. „Doppelzimmer — 2 Gäste — 89 €“"
+    ),
+    "tickets": gettext_lazy(
+        "Format: Name — Datum Uhrzeit — Preis, z. B. „Konzert — 20.07. 19 Uhr — 25 €“"
+    ),
+}
+
+
+def _de_amount(value) -> str:
+    return "" if value is None else f"{value:.2f}".replace(".", ",", 1)
+
+
+def _pruefen_row(line) -> dict:
+    from django.utils import timezone
+
+    price = _de_amount(line.price)
+    return {
+        "idx": line.idx,
+        "on": not line.errors,
+        "name": line.name,
+        "price": f"ab {price}" if line.price_from and price else price,
+        "duration": str(line.duration_min or ""),
+        "guests": str(line.guests or ""),
+        "starts_at": (
+            timezone.localtime(line.starts_at).strftime("%d.%m.%Y %H:%M") if line.starts_at else ""
+        ),
+        "example": line.example,
+        "errors": line.errors,
+        "warnings": line.warnings,
+    }
+
+
+def _ctx_pruefen(request):
+    from apps.core import offer_batch, offer_examples, offer_lines
+
+    tenant = request.tenant
+    kinds = offer_batch.offer_kinds(tenant, request.user)
+    draft = offer_batch.get_draft(request) or {}
+    kind = draft.get("kind") if draft.get("kind") in kinds else None
+    wanted = request.GET.get("kind")
+    kind = kind or (wanted if wanted in kinds else None) or (kinds[0] if kinds else "")
+    rows, notes, review = [], [], bool(kind and draft.get("batch") and draft.get("kind") == kind)
+    if review:
+        examples = frozenset(offer_examples.lines_for(tenant.business_type, kind))
+        try:
+            parsed = offer_lines.parse_lines(draft.get("text", ""), kind, examples=examples)
+        except offer_lines.OfferTextTooLong:
+            parsed = offer_lines.Parsed(lines=[])
+        rows = [_pruefen_row(x) for x in parsed.lines]
+        notes = parsed.notes
+    return {
+        "pruefen_kinds": [{"key": k, "label": _PRUEFEN_KIND_LABELS[k]} for k in kinds],
+        "pruefen_kind": kind,
+        "pruefen_hint": _PRUEFEN_HINTS.get(kind, ""),
+        "pruefen_text": draft.get("text", "") if draft.get("kind") == kind else "",
+        "pruefen_review": review,
+        "pruefen_batch": draft.get("batch", ""),
+        "pruefen_rows": rows,
+        "pruefen_notes": notes,
+        "pruefen_ok": sum(1 for r in rows if r["on"]),
+        "pruefen_bad": sum(1 for r in rows if r["errors"]),
+        "pruefen_max": offer_lines.MAX_LINES,
+        "offer_items": _offer_items(tenant),
+    }
+
+
 HANDLERS = {
     "business": StepHandler(
         template="tenant/setup/_step_business.html", post=_post_business, context=_ctx_business
@@ -966,6 +1045,7 @@ HANDLERS = {
     "offer": StepHandler(
         template="tenant/setup/_step_offer.html", context=_ctx_content, preview=True
     ),
+    "pruefen": StepHandler(template="tenant/setup/_step_pruefen.html", context=_ctx_pruefen),
     # AB6.10: вид страницы товара — стиль карточек + секции детали; превью открывает
     # деталь первой сущности (preview_url в контексте).
     "detail": StepHandler(

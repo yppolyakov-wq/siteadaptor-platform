@@ -134,7 +134,7 @@ def _v3_only(gate=None):
     return check
 
 
-def _gate_recht(t) -> bool:
+def _gate_v4(t) -> bool:
     return is_v4(t)
 
 
@@ -163,7 +163,9 @@ SETUP_STEPS = (
     SetupStep("company", "🏠", _("Firma & Logo"), check=_check_company),
     SetupStep("stil", "🎨", _("Stil"), tile_url="site-home", gate=_v3_only()),
     SetupStep("menu", "🧭", _("Menü"), tile_url="site-menu", gate=_v3_only()),
-    SetupStep("offer", "🛍️", _("Angebot"), check=_check_offer),
+    SetupStep("offer", "🛍️", _("Angebot"), check=_check_offer, gate=_v3_only()),
+    # AIS-W W4-2: у v4 — строки «Name — Preis» → проверка → пачка (без ИИ).
+    SetupStep("pruefen", "🛍️", _("Angebot"), check=_check_offer, gate=_gate_v4),
     # AB6.10: вид страницы товара/услуги/номера (стиль карточек + секции детали).
     SetupStep("detail", "🧾", _("Produktseite"), gate=_v3_only(_gate_detail)),
     SetupStep(
@@ -195,7 +197,7 @@ SETUP_STEPS = (
         "🚀",
         _("Veröffentlichen"),
         check=_check_recht,
-        gate=_gate_recht,
+        gate=_gate_v4,
         tile_url="setup",
     ),
     SetupStep("done", "🎉", _("Fertig")),

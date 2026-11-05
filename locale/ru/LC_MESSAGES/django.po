@@ -32520,3 +32520,146 @@ msgstr "Валюта CHF — сохранено в €."
 #: apps/core/offer_lines.py
 msgid "Zweiter Preis — später als Variante anlegen."
 msgstr "Вторая цена — добавьте её позже как вариант."
+
+#: apps/core/offer_batch.py
+#, python-format
+msgid "%(ok)s von %(total)s werden übernommen"
+msgstr "Будет добавлено %(ok)s из %(total)s"
+
+#: apps/core/offer_batch.py
+#, python-format
+msgid "Angelegt: %(n)s"
+msgstr "Добавлено: %(n)s"
+
+#: apps/core/offer_batch.py
+msgid "Beispiel — Preis prüfen"
+msgstr "Пример — проверьте цену"
+
+#: apps/core/offer_batch.py
+msgid "Beispiele einfügen"
+msgstr "Вставить примеры"
+
+#: apps/core/offer_batch.py
+msgid "Beispiele eingefügt — bitte Preise anpassen."
+msgstr "Примеры вставлены — поправьте цены."
+
+#: apps/core/offer_batch.py
+msgid "Bitte mindestens eine Zeile eintragen."
+msgstr "Введите хотя бы одну строку."
+
+#: apps/core/offer_batch.py
+msgid "Dafür fehlt Ihnen die Berechtigung."
+msgstr "У вас нет прав на это."
+
+#: apps/core/offer_batch.py
+msgid "Dauer (Min)"
+msgstr "Длительность (мин)"
+
+#: apps/core/offer_batch.py
+msgid "Eine Zeile pro Angebot. Sie prüfen alles, bevor etwas angelegt wird."
+msgstr "Одна строка — одно предложение. Вы всё проверите, прежде чем что-то будет создано."
+
+#: apps/core/offer_batch.py
+msgid "Format: Name — Datum Uhrzeit — Preis, z. B. „Konzert — 20.07. 19 Uhr — 25 €“"
+msgstr "Формат: Название — Дата время — Цена, например «Konzert — 20.07. 19 Uhr — 25 €»"
+
+#: apps/core/offer_batch.py
+msgid "Format: Name — Dauer — Preis, z. B. „Haarschnitt — 30 Min — 26 €“"
+msgstr "Формат: Название — Длительность — Цена, например «Haarschnitt — 30 Min — 26 €»"
+
+#: apps/core/offer_batch.py
+msgid "Format: Name — Gäste — Preis/Nacht, z. B. „Doppelzimmer — 2 Gäste — 89 €“"
+msgstr "Формат: Название — Гости — Цена/ночь, например «Doppelzimmer — 2 Gäste — 89 €»"
+
+#: apps/core/offer_batch.py
+msgid "Format: Name — Preis, z. B. „Cappuccino — 3,40 €“"
+msgstr "Формат: Название — Цена, например «Cappuccino — 3,40 €»"
+
+#: apps/core/offer_batch.py
+msgid "Format: Name — Preis, z. B. „Roggenbrot — 3,50 €“"
+msgstr "Формат: Название — Цена, например «Roggenbrot — 3,50 €»"
+
+#: apps/core/offer_batch.py
+msgid "Für Ihr Geschäft gibt es hier nichts einzutragen — weiter zum nächsten Schritt."
+msgstr "Для вашего бизнеса здесь нечего вносить — переходите к следующему шагу."
+
+#: apps/core/offer_batch.py
+msgid "Ihre Angebote"
+msgstr "Ваши предложения"
+
+#: apps/core/offer_batch.py
+msgid "Mehreres auf einmal beschreiben (KI)"
+msgstr "Описать несколько сразу (ИИ)"
+
+#: apps/core/offer_batch.py
+#, python-format
+msgid "Mitarbeiter „%(name)s“ angelegt — umbenennen unter Ressourcen."
+msgstr "Добавлен сотрудник «%(name)s» — переименовать можно в разделе «Ресурсы»."
+
+#: apps/core/offer_batch.py
+msgid "Nichts angelegt — bitte erneut versuchen."
+msgstr "Ничего не добавлено — попробуйте ещё раз."
+
+#: apps/core/offer_batch.py
+msgid "Noch ist nichts angelegt. Korrigieren Sie rot markierte Zeilen oder lassen Sie sie weg."
+msgstr "Пока ничего не создано. Исправьте строки, отмеченные красным, или уберите их."
+
+#: apps/core/offer_batch.py
+msgid "Prüfen"
+msgstr "Проверить"
+
+#: apps/core/offer_batch.py
+msgid "Schon angelegt"
+msgstr "Уже добавлено"
+
+#: apps/core/offer_batch.py
+msgid "Vorschau abgelaufen — bitte erneut prüfen."
+msgstr "Предпросмотр устарел — проверьте ещё раз."
+
+#: apps/core/offer_batch.py
+msgid "Was tragen Sie ein?"
+msgstr "Что вы вносите?"
+
+#: apps/core/offer_batch.py
+msgid "Was verkaufen Sie?"
+msgstr "Что вы продаёте?"
+
+#: apps/core/offer_batch.py
+msgid "Zu viel Text — bitte in mehreren Schritten eintragen."
+msgstr "Слишком много текста — внесите его в несколько приёмов."
+
+#: apps/core/offer_batch.py
+msgid "Zurück zum Text"
+msgstr "Вернуться к тексту"
+
+#: apps/core/offer_batch.py
+#, python-format
+msgid "bis zu %(n)s Zeilen"
+msgstr "до %(n)s строк"
+
+#: apps/core/offer_batch.py
+msgid "gibt es schon"
+msgstr "уже есть"
+
+#: apps/core/offer_batch.py
+#, python-format
+msgid "Übersprungen: %(n)s (%(reasons)s)"
+msgstr "Пропущено: %(n)s (%(reasons)s)"
+
+#: templates/tenant/setup/_step_pruefen.html
+#, python-format
+msgid "%(n)s Zeile mit Fehler"
+msgid_plural "%(n)s Zeilen mit Fehler"
+msgstr[0] "%(n)s строка с ошибкой"
+msgstr[1] "%(n)s строки с ошибкой"
+msgstr[2] "%(n)s строк с ошибкой"
+msgstr[3] "%(n)s строки с ошибкой"
+
+#: templates/tenant/setup/_step_pruefen.html
+#, python-format
+msgid "%(n)s Angebot übernehmen"
+msgid_plural "%(n)s Angebote übernehmen"
+msgstr[0] "Добавить %(n)s предложение"
+msgstr[1] "Добавить %(n)s предложения"
+msgstr[2] "Добавить %(n)s предложений"
+msgstr[3] "Добавить %(n)s предложения"

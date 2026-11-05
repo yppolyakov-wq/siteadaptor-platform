@@ -32312,3 +32312,142 @@ msgstr "Währung CHF — gespeichert in €."
 #: apps/core/offer_lines.py
 msgid "Zweiter Preis — später als Variante anlegen."
 msgstr "Zweiter Preis — später als Variante anlegen."
+
+#: apps/core/offer_batch.py
+#, python-format
+msgid "%(ok)s von %(total)s werden übernommen"
+msgstr "%(ok)s von %(total)s werden übernommen"
+
+#: apps/core/offer_batch.py
+#, python-format
+msgid "Angelegt: %(n)s"
+msgstr "Angelegt: %(n)s"
+
+#: apps/core/offer_batch.py
+msgid "Beispiel — Preis prüfen"
+msgstr "Beispiel — Preis prüfen"
+
+#: apps/core/offer_batch.py
+msgid "Beispiele einfügen"
+msgstr "Beispiele einfügen"
+
+#: apps/core/offer_batch.py
+msgid "Beispiele eingefügt — bitte Preise anpassen."
+msgstr "Beispiele eingefügt — bitte Preise anpassen."
+
+#: apps/core/offer_batch.py
+msgid "Bitte mindestens eine Zeile eintragen."
+msgstr "Bitte mindestens eine Zeile eintragen."
+
+#: apps/core/offer_batch.py
+msgid "Dafür fehlt Ihnen die Berechtigung."
+msgstr "Dafür fehlt Ihnen die Berechtigung."
+
+#: apps/core/offer_batch.py
+msgid "Dauer (Min)"
+msgstr "Dauer (Min)"
+
+#: apps/core/offer_batch.py
+msgid "Eine Zeile pro Angebot. Sie prüfen alles, bevor etwas angelegt wird."
+msgstr "Eine Zeile pro Angebot. Sie prüfen alles, bevor etwas angelegt wird."
+
+#: apps/core/offer_batch.py
+msgid "Format: Name — Datum Uhrzeit — Preis, z. B. „Konzert — 20.07. 19 Uhr — 25 €“"
+msgstr "Format: Name — Datum Uhrzeit — Preis, z. B. „Konzert — 20.07. 19 Uhr — 25 €“"
+
+#: apps/core/offer_batch.py
+msgid "Format: Name — Dauer — Preis, z. B. „Haarschnitt — 30 Min — 26 €“"
+msgstr "Format: Name — Dauer — Preis, z. B. „Haarschnitt — 30 Min — 26 €“"
+
+#: apps/core/offer_batch.py
+msgid "Format: Name — Gäste — Preis/Nacht, z. B. „Doppelzimmer — 2 Gäste — 89 €“"
+msgstr "Format: Name — Gäste — Preis/Nacht, z. B. „Doppelzimmer — 2 Gäste — 89 €“"
+
+#: apps/core/offer_batch.py
+msgid "Format: Name — Preis, z. B. „Cappuccino — 3,40 €“"
+msgstr "Format: Name — Preis, z. B. „Cappuccino — 3,40 €“"
+
+#: apps/core/offer_batch.py
+msgid "Format: Name — Preis, z. B. „Roggenbrot — 3,50 €“"
+msgstr "Format: Name — Preis, z. B. „Roggenbrot — 3,50 €“"
+
+#: apps/core/offer_batch.py
+msgid "Für Ihr Geschäft gibt es hier nichts einzutragen — weiter zum nächsten Schritt."
+msgstr "Für Ihr Geschäft gibt es hier nichts einzutragen — weiter zum nächsten Schritt."
+
+#: apps/core/offer_batch.py
+msgid "Ihre Angebote"
+msgstr "Ihre Angebote"
+
+#: apps/core/offer_batch.py
+msgid "Mehreres auf einmal beschreiben (KI)"
+msgstr "Mehreres auf einmal beschreiben (KI)"
+
+#: apps/core/offer_batch.py
+#, python-format
+msgid "Mitarbeiter „%(name)s“ angelegt — umbenennen unter Ressourcen."
+msgstr "Mitarbeiter „%(name)s“ angelegt — umbenennen unter Ressourcen."
+
+#: apps/core/offer_batch.py
+msgid "Nichts angelegt — bitte erneut versuchen."
+msgstr "Nichts angelegt — bitte erneut versuchen."
+
+#: apps/core/offer_batch.py
+msgid "Noch ist nichts angelegt. Korrigieren Sie rot markierte Zeilen oder lassen Sie sie weg."
+msgstr "Noch ist nichts angelegt. Korrigieren Sie rot markierte Zeilen oder lassen Sie sie weg."
+
+#: apps/core/offer_batch.py
+msgid "Prüfen"
+msgstr "Prüfen"
+
+#: apps/core/offer_batch.py
+msgid "Schon angelegt"
+msgstr "Schon angelegt"
+
+#: apps/core/offer_batch.py
+msgid "Vorschau abgelaufen — bitte erneut prüfen."
+msgstr "Vorschau abgelaufen — bitte erneut prüfen."
+
+#: apps/core/offer_batch.py
+msgid "Was tragen Sie ein?"
+msgstr "Was tragen Sie ein?"
+
+#: apps/core/offer_batch.py
+msgid "Was verkaufen Sie?"
+msgstr "Was verkaufen Sie?"
+
+#: apps/core/offer_batch.py
+msgid "Zu viel Text — bitte in mehreren Schritten eintragen."
+msgstr "Zu viel Text — bitte in mehreren Schritten eintragen."
+
+#: apps/core/offer_batch.py
+msgid "Zurück zum Text"
+msgstr "Zurück zum Text"
+
+#: apps/core/offer_batch.py
+#, python-format
+msgid "bis zu %(n)s Zeilen"
+msgstr "bis zu %(n)s Zeilen"
+
+#: apps/core/offer_batch.py
+msgid "gibt es schon"
+msgstr "gibt es schon"
+
+#: apps/core/offer_batch.py
+#, python-format
+msgid "Übersprungen: %(n)s (%(reasons)s)"
+msgstr "Übersprungen: %(n)s (%(reasons)s)"
+
+#: templates/tenant/setup/_step_pruefen.html
+#, python-format
+msgid "%(n)s Zeile mit Fehler"
+msgid_plural "%(n)s Zeilen mit Fehler"
+msgstr[0] "%(n)s Zeile mit Fehler"
+msgstr[1] "%(n)s Zeilen mit Fehler"
+
+#: templates/tenant/setup/_step_pruefen.html
+#, python-format
+msgid "%(n)s Angebot übernehmen"
+msgid_plural "%(n)s Angebote übernehmen"
+msgstr[0] "%(n)s Angebot übernehmen"
+msgstr[1] "%(n)s Angebote übernehmen"

@@ -1,0 +1,83 @@
+{% load i18n %}
+{% comment %}AIS-W W4-2: шаг v4 «Angebot prüfen» (макет утверждён 2026-11-05). Ввод строками →
+«Prüfen» (таблица, в базе ещё ничего) → «Übernehmen» (пачка, отчёт). Без JS работает целиком:
+каждая кнопка — POST с redirect обратно на шаг. Все поля строки в DOM; скрытие только CSS (W0).{% endcomment %}
+<h1 class="text-2xl font-bold mb-1">{% if pruefen_review %}{% trans "Prüfen" %}{% else %}{% trans "Was verkaufen Sie?" %}{% endif %}</h1>
+<p class="text-sm text-gray-600 mb-4">{% if pruefen_review %}{% trans "Noch ist nichts angelegt. Korrigieren Sie rot markierte Zeilen oder lassen Sie sie weg." %}{% else %}{% trans "Eine Zeile pro Angebot. Sie prüfen alles, bevor etwas angelegt wird." %}{% endif %}</p>
+
+{% if not pruefen_kinds %}
+<p class="ui-card p-4 text-sm" data-pruefen-none>{% trans "Für Ihr Geschäft gibt es hier nichts einzutragen — weiter zum nächsten Schritt." %}</p>
+{% elif pruefen_review %}
+<form method="post" class="space-y-3" data-pruefen-review>
+  {% csrf_token %}
+  <input type="hidden" name="batch" value="{{ pruefen_batch }}">
+  <input type="hidden" name="row_count" value="{{ pruefen_rows|length }}">
+  <p class="ui-card px-4 py-3 text-sm" role="status" data-pruefen-summary>{% blocktrans with ok=pruefen_ok total=pruefen_rows|length %}{{ ok }} von {{ total }} werden übernommen{% endblocktrans %}{% if pruefen_bad %} · {% blocktrans count n=pruefen_bad %}{{ n }} Zeile mit Fehler{% plural %}{{ n }} Zeilen mit Fehler{% endblocktrans %}{% endif %}</p>
+  {% for note in pruefen_notes %}<p class="text-sm text-amber-800 bg-amber-50 rounded-lg px-3 py-2" role="note">{{ note }}</p>{% endfor %}
+  <ul class="space-y-3">
+    {% for r in pruefen_rows %}
+    <li class="ui-card p-3 space-y-2{% if r.errors %} ring-2 ring-red-600{% endif %}" data-pruefen-row{% if r.errors %} data-pruefen-error{% endif %}>
+      <label class="flex items-center gap-3 min-h-[44px] font-semibold">
+        <input type="checkbox" name="row_{{ forloop.counter0 }}_on" value="1" class="h-5 w-5"{% if r.on %} checked{% endif %}>
+        <span class="sr-only">{% trans "Übernehmen" %}:</span>
+        <input name="row_{{ forloop.counter0 }}_name" value="{{ r.name }}" aria-label="{% trans 'Name' %}" class="ui-input flex-1 min-w-0 p-2 font-semibold">
+      </label>
+      <div class="grid grid-cols-2 gap-2 text-xs text-gray-600">
+        {% if pruefen_kind == "termine" %}
+        <label class="flex flex-col gap-1">{% trans "Dauer (Min)" %}<input name="row_{{ forloop.counter0 }}_duration" value="{{ r.duration }}" inputmode="numeric" class="ui-input p-2"></label>
+        {% elif pruefen_kind == "zimmer" %}
+        <label class="flex flex-col gap-1">{% trans "Gäste" %}<input name="row_{{ forloop.counter0 }}_guests" value="{{ r.guests }}" inputmode="numeric" class="ui-input p-2"></label>
+        {% elif pruefen_kind == "tickets" %}
+        <label class="flex flex-col gap-1">{% trans "Datum & Uhrzeit" %}<input name="row_{{ forloop.counter0 }}_starts_at" value="{{ r.starts_at }}" placeholder="20.07.2027 19:00" class="ui-input p-2"></label>
+        {% endif %}
+        <label class="flex flex-col gap-1">{% trans "Preis" %}<input name="row_{{ forloop.counter0 }}_price" value="{{ r.price }}" inputmode="decimal" class="ui-input p-2"{% if r.errors %} aria-describedby="pruefen-e{{ forloop.counter0 }}"{% endif %}></label>
+      </div>
+      {% if r.example %}<input type="hidden" name="row_{{ forloop.counter0 }}_example" value="1"><span class="inline-block text-xs text-amber-800 bg-amber-100 rounded-full px-2 py-0.5">{% trans "Beispiel — Preis prüfen" %}</span>{% endif %}
+      {% if r.errors %}<p id="pruefen-e{{ forloop.counter0 }}" class="text-sm text-red-800">{{ r.errors|join:" " }}</p>{% endif %}
+      {% for w in r.warnings %}<p class="text-sm text-amber-800 bg-amber-50 rounded-lg px-2 py-1">{{ w }}</p>{% endfor %}
+    </li>
+    {% endfor %}
+  </ul>
+  <div class="flex flex-wrap items-center gap-3 pt-2">
+    <button type="submit" name="action" value="offer_confirm" class="ui-btn ui-btn-primary" data-pruefen-confirm>{% blocktrans count n=pruefen_ok %}{{ n }} Angebot übernehmen{% plural %}{{ n }} Angebote übernehmen{% endblocktrans %}</button>
+    <button type="submit" name="action" value="offer_edit" formnovalidate class="ui-btn">{% trans "Zurück zum Text" %}</button>
+  </div>
+</form>
+{% else %}
+<form method="post" class="ui-card p-4 space-y-3" data-pruefen-form>
+  {% csrf_token %}
+  {% if pruefen_kinds|length > 1 %}
+  <fieldset>
+    <legend class="block text-sm font-medium mb-1">{% trans "Was tragen Sie ein?" %}</legend>
+    <div class="flex flex-wrap gap-2 text-sm">
+      {% for k in pruefen_kinds %}<label class="inline-flex items-center gap-2 min-h-[44px] px-2"><input type="radio" name="kind" value="{{ k.key }}" class="h-5 w-5"{% if k.key == pruefen_kind %} checked{% endif %}> {{ k.label }}</label>{% endfor %}
+    </div>
+  </fieldset>
+  {% else %}<input type="hidden" name="kind" value="{{ pruefen_kind }}">{% endif %}
+  <label for="id_pruefen_text" class="block text-sm font-semibold">{% trans "Ihre Angebote" %}</label>
+  <p id="pruefen-hint" class="text-sm text-gray-600">{{ pruefen_hint }} · {% blocktrans with n=pruefen_max %}bis zu {{ n }} Zeilen{% endblocktrans %}</p>
+  <textarea id="id_pruefen_text" name="offer_text" rows="8" aria-describedby="pruefen-hint" class="ui-input block w-full p-3 text-base leading-relaxed">{{ pruefen_text }}</textarea>
+  <div class="flex flex-wrap gap-2">
+    <button type="submit" name="action" value="offer_examples" formnovalidate class="ui-btn flex-1">{% trans "Beispiele einfügen" %}</button>
+    <button type="submit" name="action" value="offer_preview" class="ui-btn ui-btn-primary flex-1" data-pruefen-preview>{% trans "Prüfen" %}</button>
+  </div>
+</form>
+{% endif %}
+
+{% if offer_items %}
+<section class="ui-card p-4 mt-4" aria-labelledby="pruefen-done-h" data-pruefen-done>
+  <h2 id="pruefen-done-h" class="text-sm font-semibold mb-2">{% trans "Schon angelegt" %}</h2>
+  <ul class="divide-y divide-gray-100">
+    {% for it in offer_items %}<li class="flex items-center justify-between gap-2 py-2 text-sm"><span class="truncate">{{ it.name }}</span><a href="{{ it.url }}" class="shrink-0 text-indigo-700 hover:underline px-2 py-2">{% trans "Bearbeiten" %}</a></li>{% endfor %}
+  </ul>
+</section>
+{% endif %}
+
+<p class="mt-4"><a href="{% url 'setup-ask' %}" class="text-sm text-indigo-700 hover:underline" data-setup-helper-link>{% trans "Mehreres auf einmal beschreiben (KI)" %} <span aria-hidden="true">→</span></a></p>
+
+{% if not pruefen_review %}
+<form method="post" class="mt-4">
+  {% csrf_token %}
+  {% include "tenant/_setup_buttons.html" %}
+</form>
+{% endif %}

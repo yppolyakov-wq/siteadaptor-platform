@@ -32371,3 +32371,142 @@ msgstr "Para birimi CHF — € olarak kaydedildi."
 #: apps/core/offer_lines.py
 msgid "Zweiter Preis — später als Variante anlegen."
 msgstr "İkinci fiyat — sonra varyant olarak ekleyin."
+
+#: apps/core/offer_batch.py
+#, python-format
+msgid "%(ok)s von %(total)s werden übernommen"
+msgstr "%(total)s satırdan %(ok)s tanesi eklenecek"
+
+#: apps/core/offer_batch.py
+#, python-format
+msgid "Angelegt: %(n)s"
+msgstr "Eklendi: %(n)s"
+
+#: apps/core/offer_batch.py
+msgid "Beispiel — Preis prüfen"
+msgstr "Örnek — fiyatı kontrol edin"
+
+#: apps/core/offer_batch.py
+msgid "Beispiele einfügen"
+msgstr "Örnek ekle"
+
+#: apps/core/offer_batch.py
+msgid "Beispiele eingefügt — bitte Preise anpassen."
+msgstr "Örnekler eklendi — lütfen fiyatları düzenleyin."
+
+#: apps/core/offer_batch.py
+msgid "Bitte mindestens eine Zeile eintragen."
+msgstr "Lütfen en az bir satır girin."
+
+#: apps/core/offer_batch.py
+msgid "Dafür fehlt Ihnen die Berechtigung."
+msgstr "Bunun için yetkiniz yok."
+
+#: apps/core/offer_batch.py
+msgid "Dauer (Min)"
+msgstr "Süre (dk)"
+
+#: apps/core/offer_batch.py
+msgid "Eine Zeile pro Angebot. Sie prüfen alles, bevor etwas angelegt wird."
+msgstr "Her teklif için bir satır. Bir şey oluşturulmadan önce hepsini kontrol edersiniz."
+
+#: apps/core/offer_batch.py
+msgid "Format: Name — Datum Uhrzeit — Preis, z. B. „Konzert — 20.07. 19 Uhr — 25 €“"
+msgstr "Biçim: Ad — Tarih Saat — Fiyat, örn. „Konzert — 20.07. 19 Uhr — 25 €“"
+
+#: apps/core/offer_batch.py
+msgid "Format: Name — Dauer — Preis, z. B. „Haarschnitt — 30 Min — 26 €“"
+msgstr "Biçim: Ad — Süre — Fiyat, örn. „Haarschnitt — 30 Min — 26 €“"
+
+#: apps/core/offer_batch.py
+msgid "Format: Name — Gäste — Preis/Nacht, z. B. „Doppelzimmer — 2 Gäste — 89 €“"
+msgstr "Biçim: Ad — Misafir — Fiyat/gece, örn. „Doppelzimmer — 2 Gäste — 89 €“"
+
+#: apps/core/offer_batch.py
+msgid "Format: Name — Preis, z. B. „Cappuccino — 3,40 €“"
+msgstr "Biçim: Ad — Fiyat, örn. „Cappuccino — 3,40 €“"
+
+#: apps/core/offer_batch.py
+msgid "Format: Name — Preis, z. B. „Roggenbrot — 3,50 €“"
+msgstr "Biçim: Ad — Fiyat, örn. „Roggenbrot — 3,50 €“"
+
+#: apps/core/offer_batch.py
+msgid "Für Ihr Geschäft gibt es hier nichts einzutragen — weiter zum nächsten Schritt."
+msgstr "İşletmeniz için burada girilecek bir şey yok — sonraki adıma geçin."
+
+#: apps/core/offer_batch.py
+msgid "Ihre Angebote"
+msgstr "Teklifleriniz"
+
+#: apps/core/offer_batch.py
+msgid "Mehreres auf einmal beschreiben (KI)"
+msgstr "Birkaçını birden anlatın (YZ)"
+
+#: apps/core/offer_batch.py
+#, python-format
+msgid "Mitarbeiter „%(name)s“ angelegt — umbenennen unter Ressourcen."
+msgstr "Çalışan „%(name)s“ eklendi — Kaynaklar altında yeniden adlandırın."
+
+#: apps/core/offer_batch.py
+msgid "Nichts angelegt — bitte erneut versuchen."
+msgstr "Hiçbir şey eklenmedi — lütfen tekrar deneyin."
+
+#: apps/core/offer_batch.py
+msgid "Noch ist nichts angelegt. Korrigieren Sie rot markierte Zeilen oder lassen Sie sie weg."
+msgstr "Henüz hiçbir şey oluşturulmadı. Kırmızı işaretli satırları düzeltin veya çıkarın."
+
+#: apps/core/offer_batch.py
+msgid "Prüfen"
+msgstr "Kontrol et"
+
+#: apps/core/offer_batch.py
+msgid "Schon angelegt"
+msgstr "Zaten eklendi"
+
+#: apps/core/offer_batch.py
+msgid "Vorschau abgelaufen — bitte erneut prüfen."
+msgstr "Önizlemenin süresi doldu — lütfen tekrar kontrol edin."
+
+#: apps/core/offer_batch.py
+msgid "Was tragen Sie ein?"
+msgstr "Ne giriyorsunuz?"
+
+#: apps/core/offer_batch.py
+msgid "Was verkaufen Sie?"
+msgstr "Ne satıyorsunuz?"
+
+#: apps/core/offer_batch.py
+msgid "Zu viel Text — bitte in mehreren Schritten eintragen."
+msgstr "Çok fazla metin — lütfen birkaç adımda girin."
+
+#: apps/core/offer_batch.py
+msgid "Zurück zum Text"
+msgstr "Metne geri dön"
+
+#: apps/core/offer_batch.py
+#, python-format
+msgid "bis zu %(n)s Zeilen"
+msgstr "en fazla %(n)s satır"
+
+#: apps/core/offer_batch.py
+msgid "gibt es schon"
+msgstr "zaten var"
+
+#: apps/core/offer_batch.py
+#, python-format
+msgid "Übersprungen: %(n)s (%(reasons)s)"
+msgstr "Atlandı: %(n)s (%(reasons)s)"
+
+#: templates/tenant/setup/_step_pruefen.html
+#, python-format
+msgid "%(n)s Zeile mit Fehler"
+msgid_plural "%(n)s Zeilen mit Fehler"
+msgstr[0] "%(n)s satırda hata"
+msgstr[1] "%(n)s satırda hata"
+
+#: templates/tenant/setup/_step_pruefen.html
+#, python-format
+msgid "%(n)s Angebot übernehmen"
+msgid_plural "%(n)s Angebote übernehmen"
+msgstr[0] "%(n)s teklif ekle"
+msgstr[1] "%(n)s teklif ekle"

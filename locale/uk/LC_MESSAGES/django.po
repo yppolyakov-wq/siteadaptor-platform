@@ -32507,3 +32507,146 @@ msgstr "Валюта CHF — збережено в €."
 #: apps/core/offer_lines.py
 msgid "Zweiter Preis — später als Variante anlegen."
 msgstr "Друга ціна — додайте її пізніше як варіант."
+
+#: apps/core/offer_batch.py
+#, python-format
+msgid "%(ok)s von %(total)s werden übernommen"
+msgstr "Буде додано %(ok)s з %(total)s"
+
+#: apps/core/offer_batch.py
+#, python-format
+msgid "Angelegt: %(n)s"
+msgstr "Додано: %(n)s"
+
+#: apps/core/offer_batch.py
+msgid "Beispiel — Preis prüfen"
+msgstr "Приклад — перевірте ціну"
+
+#: apps/core/offer_batch.py
+msgid "Beispiele einfügen"
+msgstr "Вставити приклади"
+
+#: apps/core/offer_batch.py
+msgid "Beispiele eingefügt — bitte Preise anpassen."
+msgstr "Приклади вставлено — виправте ціни."
+
+#: apps/core/offer_batch.py
+msgid "Bitte mindestens eine Zeile eintragen."
+msgstr "Введіть хоча б один рядок."
+
+#: apps/core/offer_batch.py
+msgid "Dafür fehlt Ihnen die Berechtigung."
+msgstr "У вас немає прав на це."
+
+#: apps/core/offer_batch.py
+msgid "Dauer (Min)"
+msgstr "Тривалість (хв)"
+
+#: apps/core/offer_batch.py
+msgid "Eine Zeile pro Angebot. Sie prüfen alles, bevor etwas angelegt wird."
+msgstr "Один рядок — одна пропозиція. Ви все перевірите, перш ніж щось буде створено."
+
+#: apps/core/offer_batch.py
+msgid "Format: Name — Datum Uhrzeit — Preis, z. B. „Konzert — 20.07. 19 Uhr — 25 €“"
+msgstr "Формат: Назва — Дата час — Ціна, наприклад «Konzert — 20.07. 19 Uhr — 25 €»"
+
+#: apps/core/offer_batch.py
+msgid "Format: Name — Dauer — Preis, z. B. „Haarschnitt — 30 Min — 26 €“"
+msgstr "Формат: Назва — Тривалість — Ціна, наприклад «Haarschnitt — 30 Min — 26 €»"
+
+#: apps/core/offer_batch.py
+msgid "Format: Name — Gäste — Preis/Nacht, z. B. „Doppelzimmer — 2 Gäste — 89 €“"
+msgstr "Формат: Назва — Гості — Ціна/ніч, наприклад «Doppelzimmer — 2 Gäste — 89 €»"
+
+#: apps/core/offer_batch.py
+msgid "Format: Name — Preis, z. B. „Cappuccino — 3,40 €“"
+msgstr "Формат: Назва — Ціна, наприклад «Cappuccino — 3,40 €»"
+
+#: apps/core/offer_batch.py
+msgid "Format: Name — Preis, z. B. „Roggenbrot — 3,50 €“"
+msgstr "Формат: Назва — Ціна, наприклад «Roggenbrot — 3,50 €»"
+
+#: apps/core/offer_batch.py
+msgid "Für Ihr Geschäft gibt es hier nichts einzutragen — weiter zum nächsten Schritt."
+msgstr "Для вашого бізнесу тут нічого вносити — переходьте до наступного кроку."
+
+#: apps/core/offer_batch.py
+msgid "Ihre Angebote"
+msgstr "Ваші пропозиції"
+
+#: apps/core/offer_batch.py
+msgid "Mehreres auf einmal beschreiben (KI)"
+msgstr "Описати кілька одразу (ШІ)"
+
+#: apps/core/offer_batch.py
+#, python-format
+msgid "Mitarbeiter „%(name)s“ angelegt — umbenennen unter Ressourcen."
+msgstr "Додано співробітника «%(name)s» — перейменувати можна в розділі «Ресурси»."
+
+#: apps/core/offer_batch.py
+msgid "Nichts angelegt — bitte erneut versuchen."
+msgstr "Нічого не додано — спробуйте ще раз."
+
+#: apps/core/offer_batch.py
+msgid "Noch ist nichts angelegt. Korrigieren Sie rot markierte Zeilen oder lassen Sie sie weg."
+msgstr "Поки нічого не створено. Виправте рядки, позначені червоним, або приберіть їх."
+
+#: apps/core/offer_batch.py
+msgid "Prüfen"
+msgstr "Перевірити"
+
+#: apps/core/offer_batch.py
+msgid "Schon angelegt"
+msgstr "Вже додано"
+
+#: apps/core/offer_batch.py
+msgid "Vorschau abgelaufen — bitte erneut prüfen."
+msgstr "Попередній перегляд застарів — перевірте ще раз."
+
+#: apps/core/offer_batch.py
+msgid "Was tragen Sie ein?"
+msgstr "Що ви вносите?"
+
+#: apps/core/offer_batch.py
+msgid "Was verkaufen Sie?"
+msgstr "Що ви продаєте?"
+
+#: apps/core/offer_batch.py
+msgid "Zu viel Text — bitte in mehreren Schritten eintragen."
+msgstr "Забагато тексту — внесіть його в кілька прийомів."
+
+#: apps/core/offer_batch.py
+msgid "Zurück zum Text"
+msgstr "Повернутися до тексту"
+
+#: apps/core/offer_batch.py
+#, python-format
+msgid "bis zu %(n)s Zeilen"
+msgstr "до %(n)s рядків"
+
+#: apps/core/offer_batch.py
+msgid "gibt es schon"
+msgstr "вже є"
+
+#: apps/core/offer_batch.py
+#, python-format
+msgid "Übersprungen: %(n)s (%(reasons)s)"
+msgstr "Пропущено: %(n)s (%(reasons)s)"
+
+#: templates/tenant/setup/_step_pruefen.html
+#, python-format
+msgid "%(n)s Zeile mit Fehler"
+msgid_plural "%(n)s Zeilen mit Fehler"
+msgstr[0] "%(n)s рядок з помилкою"
+msgstr[1] "%(n)s рядки з помилкою"
+msgstr[2] "%(n)s рядків з помилкою"
+msgstr[3] "%(n)s рядка з помилкою"
+
+#: templates/tenant/setup/_step_pruefen.html
+#, python-format
+msgid "%(n)s Angebot übernehmen"
+msgid_plural "%(n)s Angebote übernehmen"
+msgstr[0] "Додати %(n)s пропозицію"
+msgstr[1] "Додати %(n)s пропозиції"
+msgstr[2] "Додати %(n)s пропозицій"
+msgstr[3] "Додати %(n)s пропозиції"
