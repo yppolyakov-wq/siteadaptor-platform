@@ -45,8 +45,28 @@ def prepare_cards(cards, snapshot=None, now=None):
     return cards
 
 
+#: PH-9: подпись по отклику акции (снимок `AggregatorListing.action`).
+_ACTION_LABELS = ("coupon", "reserve", "buy", "inquire", "booking", "show")
+REMAINING_SHOW = 10  # «noch N Stück» — только когда мало (иначе шум)
+
+
+def card_action(listing) -> str:
+    """Подпись пилюли: отклик акции (PH-9), иначе — по виду листинга."""
+    action = getattr(listing, "action", "") or ""
+    if action in _ACTION_LABELS:
+        return {
+            "coupon": _("Coupon holen"),
+            "reserve": _("Zurücklegen"),
+            "buy": _("Kaufen"),
+            "inquire": _("Anfragen"),
+            "booking": _("Termin"),
+            "show": _("Ansehen"),
+        }[action]
+    return action_label(getattr(listing, "listing_kind", "") or "")
+
+
 def action_label(kind: str) -> str:
-    """Подпись пилюли действия по виду листинга (честно: без «Coupon» — отклика в листинге нет)."""
+    """Подпись пилюли действия по виду листинга."""
     return {
         "promotion": _("Zum Angebot"),
         "product": _("Ansehen"),

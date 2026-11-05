@@ -33399,3 +33399,16 @@ msgstr "Навигация"
 #, python-format
 msgid "Neu in %(city)s"
 msgstr "Новое в %(city)s"
+
+#: apps/aggregator/portal_cards.py
+msgid "Kaufen"
+msgstr "Купить"
+
+#: apps/aggregator/portal_cards.py
+#, python-format
+msgid "Nur noch %(n)s Stück"
+msgstr "Осталось всего %(n)s шт."
+
+#: apps/aggregator/portal_cards.py
+msgid "Zurücklegen"
+msgstr "Отложить"

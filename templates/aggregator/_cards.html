@@ -41,6 +41,7 @@
           <span class="truncate max-w-[45%] hidden sm:inline">{% if l.district_name %}· {{ l.district_name }}{% elif l.city %}· {{ l.city }}{% endif %}</span>
         </p>
         {% if l.ends_text %}<p class="flex items-center gap-1.5 text-[13px] font-bold {% if l.ends_soon %}text-orange-700{% else %}text-gray-600{% endif %}" data-ends-at="{{ l.ends_iso }}" data-ended-label="{% trans "Beendet" %}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="13" r="8"></circle><path d="M12 9v4l2.5 2.5M9 2h6"></path></svg><span data-ends-text>{{ l.ends_text }}</span></p>{% endif %}
+        {% with few=l|few_left %}{% if few %}<p class="text-[13px] font-bold text-orange-700" data-few-left>{% blocktrans with n=few %}Nur noch {{ n }} Stück{% endblocktrans %}</p>{% endif %}{% endwith %}
         {% if l.business_rating %}<p class="text-[13px] font-bold text-gray-800">★ {{ l.business_rating.avg_rating }} <span class="font-normal text-gray-500">({{ l.business_rating.review_count }})</span></p>{% endif %}
         {% comment %}A8: live-статус «Jetzt geöffnet» на карточке города (богатая карточка
         бизнеса). Виден только при заданных часах (has_hours); открыт → зелёный «bis HH:MM»,
@@ -96,7 +97,7 @@
         {% endif %}
         </div>
         {% comment %}PH-3: пилюля действия — span внутри ссылки карточки (одна ссылка, a11y).{% endcomment %}
-        <span class="shrink-0 inline-flex items-center justify-center min-h-[40px] px-3.5 rounded-full bg-orange-700 text-white text-[13px] font-bold group-hover:bg-orange-800" data-card-action>{{ l.listing_kind|card_action }}</span>
+        <span class="shrink-0 inline-flex items-center justify-center min-h-[40px] px-3.5 rounded-full bg-orange-700 text-white text-[13px] font-bold group-hover:bg-orange-800" data-card-action>{{ l|card_action_for }}</span>
         </div>
       </div>
     </a>

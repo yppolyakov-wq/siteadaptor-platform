@@ -41,7 +41,7 @@
         {% if deal.ends_text %}<p class="inline-flex items-center gap-1.5 text-sm font-bold text-orange-700" data-ends-at="{{ deal.ends_iso }}" data-ended-label="{% trans 'Beendet' %}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="13" r="8"></circle><path d="M12 9v4l2.5 2.5M9 2h6"></path></svg><span data-ends-text>{{ deal.ends_text }}</span></p>{% endif %}
       </div>
       {% if deal.price_reference == "lowest30" and deal.old_price %}<p class="text-[10px] leading-tight text-gray-400">{% blocktrans with p=deal.old_price %}Lowest price in the last 30 days: {{ p }} €{% endblocktrans %}</p>{% endif %}
-      <span class="flex items-center justify-center h-12 rounded-full text-white font-bold" style="background: var(--portal-color)">{{ deal.listing_kind|card_action }}</span>
+      <span class="flex items-center justify-center h-12 rounded-full text-white font-bold" style="background: var(--portal-color)">{{ deal|card_action_for }}</span>
     </div>
   </a>
   {% endif %}

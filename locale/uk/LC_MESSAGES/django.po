@@ -33386,3 +33386,16 @@ msgstr "Навігація"
 #, python-format
 msgid "Neu in %(city)s"
 msgstr "Нове в %(city)s"
+
+#: apps/aggregator/portal_cards.py
+msgid "Kaufen"
+msgstr "Купити"
+
+#: apps/aggregator/portal_cards.py
+#, python-format
+msgid "Nur noch %(n)s Stück"
+msgstr "Залишилося лише %(n)s шт."
+
+#: apps/aggregator/portal_cards.py
+msgid "Zurücklegen"
+msgstr "Відкласти"

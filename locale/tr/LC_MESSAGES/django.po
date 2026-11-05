@@ -33238,3 +33238,16 @@ msgstr "Gezinme"
 #, python-format
 msgid "Neu in %(city)s"
 msgstr "%(city)s'de yeni"
+
+#: apps/aggregator/portal_cards.py
+msgid "Kaufen"
+msgstr "Satın al"
+
+#: apps/aggregator/portal_cards.py
+#, python-format
+msgid "Nur noch %(n)s Stück"
+msgstr "Sadece %(n)s adet kaldı"
+
+#: apps/aggregator/portal_cards.py
+msgid "Zurücklegen"
+msgstr "Ayırt"

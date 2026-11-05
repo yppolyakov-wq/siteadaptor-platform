@@ -30,7 +30,7 @@ def portal_listing(tenant, promo):
     from apps.aggregator.models import AggregatorListing
 
     try:
-        snap = tasks._snapshot(promo.pk)
+        snap = tasks._snapshot(promo.pk, tenant)
         if snap is None:
             return None
         listing = AggregatorListing(

@@ -33179,3 +33179,16 @@ msgstr "Navigation"
 #, python-format
 msgid "Neu in %(city)s"
 msgstr "Neu in %(city)s"
+
+#: apps/aggregator/portal_cards.py
+msgid "Kaufen"
+msgstr "Kaufen"
+
+#: apps/aggregator/portal_cards.py
+#, python-format
+msgid "Nur noch %(n)s Stück"
+msgstr "Nur noch %(n)s Stück"
+
+#: apps/aggregator/portal_cards.py
+msgid "Zurücklegen"
+msgstr "Zurücklegen"

@@ -164,6 +164,12 @@ class AggregatorListing(I18nMixin, models.Model):
     # T-8.11: наличие товара («" — есть или не учитывается) и бейдж «Neu».
     availability = models.CharField(max_length=20, blank=True, default="")
     is_new = models.BooleanField(default=False)
+    # PH-9 (портал, 2026-11-05): что делает кнопка акции (promotions.response: coupon/
+    # reserve/buy/inquire/booking/show) и сколько осталось по лимиту — карточка портала
+    # пишет «Coupon holen / Zurücklegen» и «noch N Stück» как на витрине. "" / None —
+    # не акция или без лимита.
+    action = models.CharField(max_length=20, blank=True, default="")
+    remaining = models.PositiveIntegerField(null=True, blank=True)
     # SF-8a: что за референс у зачёркнутой `old_price` — чтобы портал/фид печатали
     # то же, что витрина: «UVP» (чужая рекомендация производителя) или низшая цена
     # 30 дней до акции (§ 11 PAngV, SF-7). "" = референса нет / не объявляем.

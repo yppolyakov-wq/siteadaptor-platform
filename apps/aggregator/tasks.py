@@ -67,8 +67,9 @@ def _scheme() -> str:
     return "http" if getattr(settings, "DEBUG", False) else "https"
 
 
-def _snapshot(promotion_id):
+def _snapshot(promotion_id, tenant=None):
     """Снимок карточки акции в ТЕКУЩЕЙ (tenant) схеме → dict или None."""
+    from apps.promotions import response
     from apps.promotions.models import Promotion
 
     promo = Promotion.objects.filter(id=promotion_id).first()
@@ -95,6 +96,11 @@ def _snapshot(promotion_id):
         "is_surprise": promo.is_surprise,
         # T-8.26 п.3: распроданность лимита — честно и у mystery (скрыта цена, не остаток).
         "availability": AVAILABILITY_SOLD_OUT if promo.is_sold_out else "",
+        # PH-9: отклик (та же функция, что кнопка на странице акции) и остаток лимита.
+        "action": _safe_response(response, promo, tenant),
+        "remaining": promo.available_quantity
+        if promo.available_quantity is not None and promo.available_quantity > 0
+        else None,
         # T-8.13a: категория/признаки каталога города + диеты товара-цели (данные
         # товара — честный источник «vegan/bio», подсказка их не выдумывает).
         "city_category": promo.city_category or "",
@@ -115,6 +121,14 @@ def _snapshot(promotion_id):
             promo.product if promo.product_id and not (mystery or promo.is_surprise) else None
         ),
     }
+
+
+def _safe_response(response, promo, tenant) -> str:
+    try:
+        return response.response_for(promo, tenant) or ""
+    except Exception:  # noqa: BLE001 — без отклика карточка нейтральна, синк не падает
+        logger.warning("aggregator: response_for failed", exc_info=True)
+        return ""
 
 
 def _product_city_category(promo) -> str:
@@ -301,6 +315,8 @@ def promotion_listing_defaults(tenant, snap, promotion_id) -> dict:
         "detail_url": f"{_site(tenant)}/p/{promotion_id}/",
         "is_surprise": snap["is_surprise"],
         "availability": snap.get("availability", ""),
+        "action": snap.get("action", ""),
+        "remaining": snap.get("remaining"),
         "price_condition": snap.get("price_condition", {}),
         "item_condition": snap.get("item_condition", ""),
         "item_condition_note": snap.get("item_condition_note", {}),
@@ -316,10 +332,10 @@ def sync_listing(tenant_schema, promotion_id) -> str:
 
     from .models import AggregatorListing
 
-    with schema_context(tenant_schema):
-        snap = _snapshot(promotion_id)
-
     tenant = Tenant.objects.filter(schema_name=tenant_schema).first()
+    with schema_context(tenant_schema):
+        snap = _snapshot(promotion_id, tenant)
+
     key = {
         "tenant_schema": tenant_schema,
         "listing_kind": AggregatorListing.KIND_PROMOTION,
