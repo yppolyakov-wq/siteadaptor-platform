@@ -33382,3 +33382,15 @@ msgstr "Открыто сейчас · каждый день в новом по�
 #, python-format
 msgid "Sieh nach, was in %(city)s direkt um die Ecke los ist."
 msgstr "Посмотри, что происходит прямо за углом в %(city)s."
+
+#: templates/aggregator/portal_base.html
+msgid "Gemerkt"
+msgstr "Сохранённое"
+
+#: templates/aggregator/portal_base.html
+msgid "Konto"
+msgstr "Аккаунт"
+
+#: templates/aggregator/portal_base.html
+msgid "Navigation"
+msgstr "Навигация"

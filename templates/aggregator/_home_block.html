@@ -7,5 +7,5 @@
     </div>
     <a href="{{ block.more_url }}" data-home-more class="shrink-0 text-[15px] font-bold hover:underline" style="color: var(--portal-color)">{% trans "Alle anzeigen" %} <span aria-hidden="true">→</span></a>
   </div>
-  {% include "aggregator/_cards.html" with items=block.items %}
+  {% include "aggregator/_cards.html" with items=block.items layout="row" %}
 </section>

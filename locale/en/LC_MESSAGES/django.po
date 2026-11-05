@@ -33075,3 +33075,15 @@ msgstr "Open right now · reshuffled daily"
 #, python-format
 msgid "Sieh nach, was in %(city)s direkt um die Ecke los ist."
 msgstr "See what's happening right around the corner in %(city)s."
+
+#: templates/aggregator/portal_base.html
+msgid "Gemerkt"
+msgstr "Saved"
+
+#: templates/aggregator/portal_base.html
+msgid "Konto"
+msgstr "Account"
+
+#: templates/aggregator/portal_base.html
+msgid "Navigation"
+msgstr "Navigation"

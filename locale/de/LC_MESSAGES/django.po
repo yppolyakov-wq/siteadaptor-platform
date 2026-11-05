@@ -33162,3 +33162,15 @@ msgstr "Gerade geöffnet · täglich neu gemischt"
 #, python-format
 msgid "Sieh nach, was in %(city)s direkt um die Ecke los ist."
 msgstr "Sieh nach, was in %(city)s direkt um die Ecke los ist."
+
+#: templates/aggregator/portal_base.html
+msgid "Gemerkt"
+msgstr "Gemerkt"
+
+#: templates/aggregator/portal_base.html
+msgid "Konto"
+msgstr "Konto"
+
+#: templates/aggregator/portal_base.html
+msgid "Navigation"
+msgstr "Navigation"

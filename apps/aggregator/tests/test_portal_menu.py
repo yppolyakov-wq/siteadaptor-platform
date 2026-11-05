@@ -71,3 +71,12 @@ def test_feed_menu_is_cached(django_assert_max_num_queries):
     with CaptureQueriesContext(connection) as warm:
         _html(portal, kind="alle")
     assert len(warm.captured_queries) < len(cold.captured_queries)
+
+
+def test_mobile_bottom_nav_and_swipe_rows():
+    portal = _portal()
+    _seed_everything()
+    body = _html(portal)
+    assert "data-portal-bottom-nav" in body and 'aria-current="page"' in body
+    assert "data-card-row" in body  # блоки главной — свайп-лентой на телефоне
+    assert "csrfmiddlewaretoken" not in body

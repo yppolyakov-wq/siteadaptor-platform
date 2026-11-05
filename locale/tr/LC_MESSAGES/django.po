@@ -33221,3 +33221,15 @@ msgstr "Şu an açık · her gün yeniden karıştırılır"
 #, python-format
 msgid "Sieh nach, was in %(city)s direkt um die Ecke los ist."
 msgstr "%(city)s'de hemen köşede neler olduğuna bak."
+
+#: templates/aggregator/portal_base.html
+msgid "Gemerkt"
+msgstr "Kaydedilenler"
+
+#: templates/aggregator/portal_base.html
+msgid "Konto"
+msgstr "Hesap"
+
+#: templates/aggregator/portal_base.html
+msgid "Navigation"
+msgstr "Gezinme"
