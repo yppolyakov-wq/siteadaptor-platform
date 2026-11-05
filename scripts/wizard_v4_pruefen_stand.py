@@ -67,6 +67,27 @@ with schema_context({slug!r}):
 """
 
 
+RESET = """
+from django_tenants.utils import schema_context
+from apps.tenants.models import Tenant
+from apps.tenants import onboarding
+for slug in {slugs!r}:
+    with schema_context(slug):
+        from apps.catalog.models import Product
+        from apps.booking.models import Resource, Service
+        from apps.stays.models import StayUnit
+        from apps.events.models import Event
+        Product.objects.all().delete()
+        Service.objects.all().delete(); Resource.objects.all().delete()
+        StayUnit.objects.all().delete(); Event.objects.all().delete()
+    t = Tenant.objects.get(schema_name=slug)
+    t.site_config = {{**(t.site_config or {{}}), "onboarding": {{"v": 2, "flow": "v4"}}}}
+    t.save(update_fields=["site_config"])
+    onboarding.goto(t, "pruefen")
+print("RESET")
+"""
+
+
 class Run:
     def __init__(self):
         self.ok = 0
@@ -144,7 +165,7 @@ def bakery(run, browser, port):
           const form = document.querySelector('[data-pruefen-review]');
           const data = new FormData(form); data.set('action', 'offer_confirm');
           await Promise.all([1, 2].map(() =>
-            fetch(form.action || location.href, {method: 'POST', body: data, credentials: 'same-origin'})));
+            fetch(form.getAttribute('action') || location.href, {method: 'POST', body: data, credentials: 'same-origin'})));
         }"""
     )
     created = counts("pbaeck")[0]
@@ -225,8 +246,8 @@ def other(run, browser, port):
         or page.locator("input[type=hidden][name=kind][value=termine]").count() == 1,
         "Termine доступны для ввода",
     )
-    if page.locator("input[name=kind][value=termine]").count():
-        page.check("input[name=kind][value=termine]")
+    if page.locator("input[type=radio][name=kind][value=termine]").count():
+        page.check("input[type=radio][name=kind][value=termine]")
     page.fill("#id_pruefen_text", "Beratung — 60 Min — 80 €")
     _check(page)
     page.click("[data-pruefen-confirm]")
@@ -246,6 +267,7 @@ def main():
         return
     from playwright.sync_api import sync_playwright  # глобальный Playwright, не из venv
 
+    print(_shell(RESET.format(slugs=list(PERSONAS)))[-200:].strip().splitlines()[-1:])
     run = Run()
     with sync_playwright() as p:
         browser = p.chromium.launch(
