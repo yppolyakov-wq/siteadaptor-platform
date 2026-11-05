@@ -32300,3 +32300,59 @@ msgstr "Місця на заходи та тури."
 #: apps/core/directions.py
 msgid "Kunden fragen an, Sie schicken ein Angebot."
 msgstr "Клієнти залишають заявку, ви надсилаєте пропозицію."
+
+#: apps/core/readiness.py
+msgid "Adresse und Telefon oder E-Mail"
+msgstr "Адреса й телефон або e-mail"
+
+#: apps/core/readiness.py
+msgid "Impressum vollständig"
+msgstr "Impressum заповнено повністю"
+
+#: apps/core/readiness.py
+msgid "E-Mail-Adresse bestätigt"
+msgstr "Адресу e-mail підтверджено"
+
+#: apps/core/readiness.py
+msgid "Titelbild oder Galerie"
+msgstr "Титульне фото або галерея"
+
+#: apps/core/readiness.py
+msgid "Text „Über uns“"
+msgstr "Текст «Про нас»"
+
+#: apps/core/readiness.py
+msgid "Mindestens ein Produkt mit Preis"
+msgstr "Хоча б один товар із ціною"
+
+#: apps/core/readiness.py
+msgid "Bei Lieferung: Zahlung per Karte oder Vorkasse"
+msgstr "При доставці: оплата карткою або передоплатою"
+
+#: apps/core/readiness.py
+msgid "Allergene bei allen Gerichten angegeben"
+msgstr "Алергени вказано в усіх стравах"
+
+#: apps/core/readiness.py
+msgid "Mindestens eine Leistung"
+msgstr "Хоча б одна послуга"
+
+#: apps/core/readiness.py
+msgid "Öffnungszeiten oder Zeiten der Mitarbeiter"
+msgstr "Години роботи або години майстрів"
+
+#: apps/core/readiness.py
+msgid "Öffnungszeiten oder Zeiten der Tische"
+msgstr "Години роботи або години столів"
+
+#: apps/core/readiness.py
+msgid "Mindestens ein Zimmer mit Preis, Gästezahl und Foto"
+msgstr "Хоча б один номер із ціною, кількістю гостей і фото"
+
+#: apps/core/readiness.py
+msgid "Mindestens eine kommende Veranstaltung"
+msgstr "Хоча б один майбутній захід"
+
+#: apps/core/readiness.py
+msgid "Anfrageformular angepasst"
+msgstr "Форму заявки налаштовано"

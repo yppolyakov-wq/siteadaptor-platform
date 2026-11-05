@@ -740,6 +740,9 @@ DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="noreply@platform.local")
 # T-8.4 (Р-5): бесплатная лёгкая ступень («Nur Aktionen» без подписки) держит не
 # больше N активных акций одновременно; на N+1 — «Mehr Aktionen? Schreiben Sie uns».
 LITE_FREE_ACTIVE_PROMOS = env.int("LITE_FREE_ACTIVE_PROMOS", default=5)
+# AIS-W W4-0: жёсткий гейт продажи по реестру готовности (apps.core.readiness).
+# Выключен до прогона `readiness_report` и проставления исключений работающим магазинам.
+READINESS_SELL_GATE = env.bool("READINESS_SELL_GATE", default=False)
 # KA-12 E6.6: потолки против «выкупа витрины» резервами и купонами (Р-2/Р-4).
 PROMO_PENDING_HOLD_HOURS = env.int("PROMO_PENDING_HOLD_HOURS", default=4)
 PROMO_RESERVATIONS_PER_IP_DAY = env.int("PROMO_RESERVATIONS_PER_IP_DAY", default=10)

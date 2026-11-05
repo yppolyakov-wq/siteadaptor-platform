@@ -32164,3 +32164,59 @@ msgstr "Etkinlikler ve turlar için yerler."
 #: apps/core/directions.py
 msgid "Kunden fragen an, Sie schicken ein Angebot."
 msgstr "Müşteriler talep gönderir, siz teklif gönderirsiniz."
+
+#: apps/core/readiness.py
+msgid "Adresse und Telefon oder E-Mail"
+msgstr "Adres ve telefon veya e-posta"
+
+#: apps/core/readiness.py
+msgid "Impressum vollständig"
+msgstr "Künye eksiksiz"
+
+#: apps/core/readiness.py
+msgid "E-Mail-Adresse bestätigt"
+msgstr "E-posta adresi onaylandı"
+
+#: apps/core/readiness.py
+msgid "Titelbild oder Galerie"
+msgstr "Kapak görseli veya galeri"
+
+#: apps/core/readiness.py
+msgid "Text „Über uns“"
+msgstr "“Hakkımızda” metni"
+
+#: apps/core/readiness.py
+msgid "Mindestens ein Produkt mit Preis"
+msgstr "Fiyatı olan en az bir ürün"
+
+#: apps/core/readiness.py
+msgid "Bei Lieferung: Zahlung per Karte oder Vorkasse"
+msgstr "Teslimatta: kartla veya ön ödemeyle ödeme"
+
+#: apps/core/readiness.py
+msgid "Allergene bei allen Gerichten angegeben"
+msgstr "Tüm yemeklerde alerjenler belirtildi"
+
+#: apps/core/readiness.py
+msgid "Mindestens eine Leistung"
+msgstr "En az bir hizmet"
+
+#: apps/core/readiness.py
+msgid "Öffnungszeiten oder Zeiten der Mitarbeiter"
+msgstr "Açılış saatleri veya çalışan saatleri"
+
+#: apps/core/readiness.py
+msgid "Öffnungszeiten oder Zeiten der Tische"
+msgstr "Açılış saatleri veya masa saatleri"
+
+#: apps/core/readiness.py
+msgid "Mindestens ein Zimmer mit Preis, Gästezahl und Foto"
+msgstr "Fiyatı, misafir sayısı ve fotoğrafı olan en az bir oda"
+
+#: apps/core/readiness.py
+msgid "Mindestens eine kommende Veranstaltung"
+msgstr "En az bir yaklaşan etkinlik"
+
+#: apps/core/readiness.py
+msgid "Anfrageformular angepasst"
+msgstr "Talep formu özelleştirildi"

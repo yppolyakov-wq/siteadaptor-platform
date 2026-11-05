@@ -68,15 +68,6 @@ def _check_home(t) -> bool:
     return bool(cfg.get("hero_title") or cfg.get("hero_image") or cfg.get("gallery"))
 
 
-def _has_legal_doc(t) -> bool:
-    try:
-        from apps.core.models import LegalDoc
-
-        return LegalDoc.objects.exists()
-    except Exception:  # noqa: BLE001 — модель/таблица недоступна
-        return False
-
-
 def _check_about(t) -> bool:
     # AB6.10: «Über uns» — свой слайд (страница о компании + шаблоны блоков).
     cfg = t.site_config if isinstance(t.site_config, dict) else {}
@@ -85,7 +76,11 @@ def _check_about(t) -> bool:
 
 def _check_texts(t) -> bool:
     # AB6.10: about уехал на слайд `about` — texts отвечает только за правовое.
-    return _has_legal_doc(t)
+    # AIS-W W4-0: «готово» = Impressum полный (§ 5 DDG), а не «есть хоть какой-то
+    # LegalDoc» — один предикат с реестром готовности. Вне схемы тенанта — не ✓.
+    from apps.core import readiness
+
+    return readiness.is_done(t, "impressum") is True
 
 
 _CHECKOUT_MODULES = ("orders", "booking", "stays", "events", "jobs")

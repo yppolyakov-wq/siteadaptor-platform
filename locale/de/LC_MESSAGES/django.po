@@ -32105,3 +32105,59 @@ msgstr "Plätze für Veranstaltungen und Touren."
 #: apps/core/directions.py
 msgid "Kunden fragen an, Sie schicken ein Angebot."
 msgstr "Kunden fragen an, Sie schicken ein Angebot."
+
+#: apps/core/readiness.py
+msgid "Adresse und Telefon oder E-Mail"
+msgstr "Adresse und Telefon oder E-Mail"
+
+#: apps/core/readiness.py
+msgid "Impressum vollständig"
+msgstr "Impressum vollständig"
+
+#: apps/core/readiness.py
+msgid "E-Mail-Adresse bestätigt"
+msgstr "E-Mail-Adresse bestätigt"
+
+#: apps/core/readiness.py
+msgid "Titelbild oder Galerie"
+msgstr "Titelbild oder Galerie"
+
+#: apps/core/readiness.py
+msgid "Text „Über uns“"
+msgstr "Text „Über uns“"
+
+#: apps/core/readiness.py
+msgid "Mindestens ein Produkt mit Preis"
+msgstr "Mindestens ein Produkt mit Preis"
+
+#: apps/core/readiness.py
+msgid "Bei Lieferung: Zahlung per Karte oder Vorkasse"
+msgstr "Bei Lieferung: Zahlung per Karte oder Vorkasse"
+
+#: apps/core/readiness.py
+msgid "Allergene bei allen Gerichten angegeben"
+msgstr "Allergene bei allen Gerichten angegeben"
+
+#: apps/core/readiness.py
+msgid "Mindestens eine Leistung"
+msgstr "Mindestens eine Leistung"
+
+#: apps/core/readiness.py
+msgid "Öffnungszeiten oder Zeiten der Mitarbeiter"
+msgstr "Öffnungszeiten oder Zeiten der Mitarbeiter"
+
+#: apps/core/readiness.py
+msgid "Öffnungszeiten oder Zeiten der Tische"
+msgstr "Öffnungszeiten oder Zeiten der Tische"
+
+#: apps/core/readiness.py
+msgid "Mindestens ein Zimmer mit Preis, Gästezahl und Foto"
+msgstr "Mindestens ein Zimmer mit Preis, Gästezahl und Foto"
+
+#: apps/core/readiness.py
+msgid "Mindestens eine kommende Veranstaltung"
+msgstr "Mindestens eine kommende Veranstaltung"
+
+#: apps/core/readiness.py
+msgid "Anfrageformular angepasst"
+msgstr "Anfrageformular angepasst"

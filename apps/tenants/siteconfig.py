@@ -4743,6 +4743,11 @@ def _normalize_impl(config) -> dict:
     # конструктора не должно его затирать.
     if isinstance(config.get("onboarding"), dict):
         normalized["onboarding"] = config["onboarding"]
+    # AIS-W W4-0: исключение из гейта продажи (ставит readiness_report). Только True —
+    # отсутствие ключа = прежний конфиг (golden целы).
+    readiness = config.get("readiness")
+    if isinstance(readiness, dict) and readiness.get("exempt") is True:
+        normalized["readiness"] = {"exempt": True}
     # Реестр id демо-контента (M20, apps.tenants.demo) — чтобы «Demo löschen»
     # удалил ровно созданное. Тоже переживает сохранение конструктора.
     if isinstance(config.get("demo"), dict):
