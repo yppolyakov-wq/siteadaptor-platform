@@ -382,6 +382,22 @@ def setup_view(request):
                 )
             onboarding.advance(tenant)
             return redirect("setup")
+        # AIS-W W4-1: «Website veröffentlichen» — сначала сохранить правовые поля шага,
+        # затем публикация с перепроверкой на сервере (fail-closed).
+        if action == "publish":
+            if setup_steps.HANDLERS["recht"].post(request) is False:
+                return redirect("setup")
+            blockers = onboarding.publish(tenant)
+            if blockers:
+                messages.error(
+                    request,
+                    _("Noch nicht veröffentlicht. Es fehlt: %(items)s")
+                    % {"items": ", ".join(str(b["label"]) for b in blockers)},
+                )
+                return redirect("setup")
+            onboarding.goto(tenant, "done")
+            messages.success(request, _("Ihre Website ist jetzt online."))
+            return redirect("setup")
         handler = setup_steps.HANDLERS[onboarding.get_state(tenant)["step"]]
         # KA-H2: post-хендлер вправе вернуть False — ошибка ввода, слайд не листаем.
         if handler.post and handler.post(request) is False and action != "live":

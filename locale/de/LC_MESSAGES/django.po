@@ -32171,3 +32171,60 @@ msgstr "Diese Suche nutzt KI von %(who)s. Ihr Suchtext wird dafür in die USA ü
 #, python-format
 msgid "Diese KI-Funktion nutzt %(who)s. Ihre Eingaben werden dafür in die USA übermittelt (Standardvertragsklauseln der EU). Geben Sie keine Daten ein, die nicht nötig sind."
 msgstr "Diese KI-Funktion nutzt %(who)s. Ihre Eingaben werden dafür in die USA übermittelt (Standardvertragsklauseln der EU). Geben Sie keine Daten ein, die nicht nötig sind."
+
+#: apps/core/setup_steps.py
+msgid "Berufsbezeichnung"
+msgstr "Berufsbezeichnung"
+
+#: apps/core/setup_steps.py
+msgid "Zuständige Kammer"
+msgstr "Zuständige Kammer"
+
+#: apps/core/setup_steps.py
+msgid "Hinweis zu den Öffnungszeiten (z. B. Feiertage)"
+msgstr "Hinweis zu den Öffnungszeiten (z. B. Feiertage)"
+
+#: apps/core/setup_steps.py
+msgid "Ihre Website ist jetzt online."
+msgstr "Ihre Website ist jetzt online."
+
+#: apps/core/setup_steps.py
+#, python-format
+msgid "Noch nicht veröffentlicht. Es fehlt: %(items)s"
+msgstr "Noch nicht veröffentlicht. Es fehlt: %(items)s"
+
+#: apps/core/setup_steps.py
+msgid "Rechtliche Angaben nur nach Anmeldung per E-Mail."
+msgstr "Rechtliche Angaben nur nach Anmeldung per E-Mail."
+
+#: apps/core/setup_steps.py
+msgid "Datenschutzerklärung ansehen"
+msgstr "Datenschutzerklärung ansehen"
+
+#: apps/core/setup_steps.py
+msgid "Für ein zulassungspflichtiges Handwerk gehören die zuständige Kammer und die Berufsbezeichnung ins Impressum."
+msgstr "Für ein zulassungspflichtiges Handwerk gehören die zuständige Kammer und die Berufsbezeichnung ins Impressum."
+
+#: apps/core/setup_steps.py
+msgid "Ihr Impressum entsteht aus diesen Angaben. Danach geht Ihre Website online."
+msgstr "Ihr Impressum entsteht aus diesen Angaben. Danach geht Ihre Website online."
+
+#: apps/core/setup_steps.py
+msgid "Ihre Website ist online."
+msgstr "Ihre Website ist online."
+
+#: apps/core/setup_steps.py
+msgid "Noch nicht veröffentlicht. Es fehlt:"
+msgstr "Noch nicht veröffentlicht. Es fehlt:"
+
+#: apps/core/setup_steps.py
+msgid "Rechtliches & Veröffentlichen"
+msgstr "Rechtliches & Veröffentlichen"
+
+#: apps/core/setup_steps.py
+msgid "So sieht Ihr Impressum aus"
+msgstr "So sieht Ihr Impressum aus"
+
+#: apps/core/setup_steps.py
+msgid "Website veröffentlichen"
+msgstr "Website veröffentlichen"

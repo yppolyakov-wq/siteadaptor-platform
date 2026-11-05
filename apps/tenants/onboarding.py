@@ -108,6 +108,35 @@ def _gate_payment(t) -> bool:
     return any(t.is_module_active(m) for m in _CHECKOUT_MODULES)
 
 
+# --- AIS-W W4-1: мастер v4 — тот же реестр, другой набор видимых шагов ------------------
+
+
+def is_v4(t) -> bool:
+    """Мастер v4: ставит регистрация при SETUP_WIZARD_V4 (`flow` + неопубликованный сайт)."""
+    cfg = t.site_config if isinstance(t.site_config, dict) else {}
+    raw = cfg.get("onboarding") if isinstance(cfg.get("onboarding"), dict) else {}
+    return raw.get("flow") == "v4"
+
+
+def _v3_only(gate=None):
+    """Шаг мастера v3: у v4 скрыт (его настройки — по умолчанию по типу или позже)."""
+
+    def check(t) -> bool:
+        if is_v4(t):
+            return False
+        return True if gate is None else gate(t)
+
+    return check
+
+
+def _gate_recht(t) -> bool:
+    return is_v4(t)
+
+
+def _check_recht(t) -> bool:
+    return getattr(t, "published_at", None) is not None
+
+
 # AB6.2/AB6.10: целевая карта слайдов (планы master-slides-v3 §0d +
 # signup-confirm-wizard-plan-2026-07-17 §2, порядок владельца: язык → товар →
 # страница товара → категория → главная → о компании → тексты → оплата в конце).
@@ -115,25 +144,55 @@ def _gate_payment(t) -> bool:
 # detail/category/payment — гейт по архетипу/модулям. Порядок = порядок рельсы.
 SETUP_STEPS = (
     SetupStep("business", "🏪", _("Branche"), gate=_gate_business),
-    SetupStep("start", "🚀", _("Start"), check=_check_start),
+    SetupStep("start", "🚀", _("Start"), check=_check_start, gate=_v3_only()),
     # AB6.10: языки СРАЗУ после старта (порядок владельца 2026-07-17) — контент
     # дальнейших шагов заполняется на каждом включённом языке.
-    SetupStep("language", "🌐", _("Sprachen"), check=_check_language, tile_url="languages"),
+    SetupStep(
+        "language",
+        "🌐",
+        _("Sprachen"),
+        check=_check_language,
+        tile_url="languages",
+        gate=_v3_only(),
+    ),
     SetupStep("company", "🏠", _("Firma & Logo"), check=_check_company),
-    SetupStep("stil", "🎨", _("Stil"), tile_url="site-home"),
-    SetupStep("menu", "🧭", _("Menü"), tile_url="site-menu"),
+    SetupStep("stil", "🎨", _("Stil"), tile_url="site-home", gate=_v3_only()),
+    SetupStep("menu", "🧭", _("Menü"), tile_url="site-menu", gate=_v3_only()),
     SetupStep("offer", "🛍️", _("Angebot"), check=_check_offer),
     # AB6.10: вид страницы товара/услуги/номера (стиль карточек + секции детали).
-    SetupStep("detail", "🧾", _("Produktseite"), gate=_gate_detail),
+    SetupStep("detail", "🧾", _("Produktseite"), gate=_v3_only(_gate_detail)),
     SetupStep(
-        "category", "📁", _("Kategorien"), gate=_gate_category, tile_url="catalog:category-list"
+        "category",
+        "📁",
+        _("Kategorien"),
+        gate=_v3_only(_gate_category),
+        tile_url="catalog:category-list",
     ),
-    SetupStep("home", "🖼️", _("Startseite"), check=_check_home, tile_url="site-home"),
+    SetupStep(
+        "home", "🖼️", _("Startseite"), check=_check_home, tile_url="site-home", gate=_v3_only()
+    ),
     # AB6.10: «О компании» — свой слайд с шаблонами страницы (page_blocks["info"]).
-    SetupStep("about", "🏢", _("Über uns"), check=_check_about),
-    SetupStep("texts", "📄", _("Recht"), check=_check_texts, tile_url="legal-docs"),
+    SetupStep("about", "🏢", _("Über uns"), check=_check_about, gate=_v3_only()),
+    SetupStep(
+        "texts", "📄", _("Recht"), check=_check_texts, tile_url="legal-docs", gate=_v3_only()
+    ),
     # AB6.10: оплата/доставка — в конец («если есть» — гейт по чекаут-модулям).
-    SetupStep("payment", "💳", _("Zahlung"), gate=_gate_payment, tile_url="payment-settings"),
+    SetupStep(
+        "payment",
+        "💳",
+        _("Zahlung"),
+        gate=_v3_only(_gate_payment),
+        tile_url="payment-settings",
+    ),
+    # AIS-W W4-1: мастер v4 — право и публикация (последний шаг перед «Fertig»).
+    SetupStep(
+        "recht",
+        "🚀",
+        _("Veröffentlichen"),
+        check=_check_recht,
+        gate=_gate_recht,
+        tile_url="setup",
+    ),
     SetupStep("done", "🎉", _("Fertig")),
 )
 STEP_KEYS = tuple(s.key for s in SETUP_STEPS)
@@ -410,6 +469,12 @@ def advance(tenant, *, skip: bool = False) -> dict:
         # Следующий видимый шаг после текущего (текущий мог быть escape-hatch вне vis).
         after = [k for k in vis if STEP_KEYS.index(k) > STEP_KEYS.index(cur)]
         state["step"] = after[0] if after else _FINAL
+    # AIS-W W4-1: в v4 мастер завершает ТОЛЬКО «Website veröffentlichen» — дальше
+    # шага «recht» без публикации не пройти (ни «Weiter», ни «Überspringen»).
+    if state["step"] == _FINAL and _unpublished_v4(tenant):
+        state["step"] = "recht"
+        state["skipped"] = [k for k in state["skipped"] if k != "recht"]
+        state["done"] = [k for k in state["done"] if k != "recht"]
     if state["step"] == _FINAL:
         if not state["completed"]:
             state.setdefault("source", "wizard")
@@ -536,11 +601,17 @@ def publish(tenant) -> list[dict]:
     return []
 
 
+def _unpublished_v4(tenant) -> bool:
+    return is_v4(tenant) and getattr(tenant, "published_at", None) is None
+
+
 def goto(tenant, key: str) -> dict:
     """Прыжок к произвольному шагу (?step=<key> из рельсы) — дозаполнить пропущенное
     или escape-hatch к скрытому шагу (business «erweitern»). Любой валидный ключ
     реестра (даже гейченный); done/skipped/completed не трогаются (это позиция)."""
     state = get_state(tenant)
+    if key == _FINAL and _unpublished_v4(tenant):
+        key = "recht"  # «Fertig» только после публикации
     if key in _STEP_BY_KEY and key != state["step"]:
         state["step"] = key
         save_state(tenant, state)

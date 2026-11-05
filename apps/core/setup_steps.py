@@ -181,17 +181,14 @@ def _post_company(request):
     for field in ("address", "opening_hours", "contact_phone", "contact_email"):
         if field in request.POST:
             setattr(tenant, field, request.POST.get(field, "").strip())
-    tenant.save(
-        update_fields=[
-            "name",
-            "city",
-            "address",
-            "opening_hours",
-            "contact_phone",
-            "contact_email",
-            "updated_at",
-        ]
-    )
+    fields = ["name", "city", "address", "opening_hours", "contact_phone", "contact_email"]
+    # AIS-W W4-1: часы сеткой (мастер v4). Сентинел — нет сетки в POST, часы не трогаем (W0).
+    if "oh_present" in request.POST:
+        from apps.core.views import _parse_opening_hours
+
+        tenant.opening_hours_structured = _parse_opening_hours(request)
+        fields.append("opening_hours_structured")
+    tenant.save(update_fields=[*fields, "updated_at"])
     # Логотип — файл (реюз M1-хелпер); no-op без файла. В live-режиме файлы не шлются.
     from apps.core.views import _save_logo
 
@@ -199,7 +196,101 @@ def _post_company(request):
 
 
 def _ctx_company(request):
-    return {"logo_url": request.tenant.logo_url}
+    from apps.core.views import _opening_hours_rows
+    from apps.tenants import onboarding
+
+    ctx = {"logo_url": request.tenant.logo_url}
+    if onboarding.is_v4(request.tenant):  # мастер v4: часы сеткой (как в «Geschäft»)
+        ctx["hours_grid"] = True
+        ctx["opening_hours_rows"] = _opening_hours_rows(request.tenant)
+    return ctx
+
+
+# --- AIS-W W4-1: шаг «Rechtliches & Veröffentlichen» --------------------------------------
+
+#: Правовые поля шага (те же, что раздел «Rechtliches» лёгкого «Geschäft», + палата и
+#: профессия для zulassungspflichtiges Handwerk).
+RECHT_FIELDS = (
+    "contact_email",
+    "legal_form",
+    "legal_representative",
+    "register_court",
+    "register_number",
+    "vat_id",
+    "tax_number",
+)
+TRADE_FIELDS = ("chamber", "profession")
+
+
+def _recht_fields(tenant) -> tuple[str, ...]:
+    from apps.tenants.models import REGULATED_TRADE_TYPES
+
+    if tenant.business_type in REGULATED_TRADE_TYPES:
+        return (*RECHT_FIELDS, *TRADE_FIELDS)
+    return RECHT_FIELDS
+
+
+def _post_recht(request):
+    """Правовые данные Impressum. Presence-safe: поле, которого нет в POST, не трогаем."""
+    from apps.core import tg_login
+
+    tenant = request.tenant
+    if tg_login.is_tg_session(request):
+        # SEC-A11: из Telegram-сессии правовые данные не меняются.
+        messages.error(request, _("Rechtliche Angaben nur nach Anmeldung per E-Mail."))
+        return False
+    changed = []
+    for field in _recht_fields(tenant):
+        if field in request.POST:
+            max_len = tenant._meta.get_field(field).max_length or 200
+            setattr(tenant, field, request.POST.get(field, "").strip()[:max_len])
+            changed.append(field)
+    if "tax_choice" in request.POST:
+        from apps.finance import ustva
+
+        ustva.apply_regime(tenant, request.POST.get("tax_choice", ""))
+        changed += ["small_business", "tax_regime"]
+    if changed:
+        tenant.save(update_fields=[*changed, "updated_at"])
+    return True
+
+
+def _ctx_recht(request):
+    from apps.core import tg_login
+    from apps.core.lite_cabinet import LiteBusinessForm
+    from apps.finance import ustva
+    from apps.tenants import onboarding
+    from apps.tenants.models import REGULATED_TRADE_TYPES
+
+    tenant = request.tenant
+    labels = {
+        **LiteBusinessForm.Meta.labels,
+        "chamber": gettext_lazy("Zuständige Kammer"),
+        "profession": gettext_lazy("Berufsbezeichnung"),
+    }
+    choices = {"legal_form": [("", "—"), *tenant._meta.get_field("legal_form").choices]}
+    fields = [
+        {
+            "name": f,
+            "label": labels.get(f, f),
+            "value": getattr(tenant, f, ""),
+            "choices": choices.get(f),
+        }
+        for f in _recht_fields(tenant)
+    ]
+    return {
+        "recht_fields": fields,
+        "tax_choices": ustva.REGIME_CHOICES,
+        "tax_current": ustva.regime_of(tenant),
+        "regulated": tenant.business_type in REGULATED_TRADE_TYPES,
+        "trade_missing": tenant.business_type in REGULATED_TRADE_TYPES
+        and not (tenant.chamber and tenant.profession),
+        "impressum_preview": tenant.impressum_text(),
+        "published": tenant.published_at is not None,
+        "blockers": [] if tenant.published_at else onboarding.publish_blockers(tenant),
+        "tg_locked": tg_login.is_tg_session(request),
+        "preview_url": "/impressum/",
+    }
 
 
 # Хвост AB6 (решение §0b.3): чипы стандартных пунктов меню на слайде «Menü».
@@ -895,6 +986,12 @@ HANDLERS = {
     ),
     "texts": StepHandler(
         template="tenant/setup/_step_texts.html", post=_post_texts, context=_ctx_texts
+    ),
+    "recht": StepHandler(
+        template="tenant/setup/_step_recht.html",
+        post=_post_recht,
+        context=_ctx_recht,
+        preview=True,
     ),
     "done": StepHandler(template="tenant/setup/_step_done.html"),
 }

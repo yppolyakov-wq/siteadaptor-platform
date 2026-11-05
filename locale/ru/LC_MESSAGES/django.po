@@ -32379,3 +32379,60 @@ msgstr "Этот поиск использует ИИ %(who)s. Текст зап
 #, python-format
 msgid "Diese KI-Funktion nutzt %(who)s. Ihre Eingaben werden dafür in die USA übermittelt (Standardvertragsklauseln der EU). Geben Sie keine Daten ein, die nicht nötig sind."
 msgstr "Эта функция ИИ использует %(who)s. Ваши данные для этого передаются в США (стандартные договорные условия ЕС). Не вводите лишних данных."
+
+#: apps/core/setup_steps.py
+msgid "Berufsbezeichnung"
+msgstr "Профессиональное звание"
+
+#: apps/core/setup_steps.py
+msgid "Zuständige Kammer"
+msgstr "Ответственная палата"
+
+#: apps/core/setup_steps.py
+msgid "Hinweis zu den Öffnungszeiten (z. B. Feiertage)"
+msgstr "Примечание к часам работы (например, праздники)"
+
+#: apps/core/setup_steps.py
+msgid "Ihre Website ist jetzt online."
+msgstr "Ваш сайт теперь онлайн."
+
+#: apps/core/setup_steps.py
+#, python-format
+msgid "Noch nicht veröffentlicht. Es fehlt: %(items)s"
+msgstr "Ещё не опубликовано. Не хватает: %(items)s"
+
+#: apps/core/setup_steps.py
+msgid "Rechtliche Angaben nur nach Anmeldung per E-Mail."
+msgstr "Юридические данные — только после входа по e-mail."
+
+#: apps/core/setup_steps.py
+msgid "Datenschutzerklärung ansehen"
+msgstr "Посмотреть политику конфиденциальности"
+
+#: apps/core/setup_steps.py
+msgid "Für ein zulassungspflichtiges Handwerk gehören die zuständige Kammer und die Berufsbezeichnung ins Impressum."
+msgstr "Для ремесла с обязательным допуском в Impressum указываются ответственная палата и профессиональное звание."
+
+#: apps/core/setup_steps.py
+msgid "Ihr Impressum entsteht aus diesen Angaben. Danach geht Ihre Website online."
+msgstr "Impressum составляется из этих данных. После этого сайт выходит в сеть."
+
+#: apps/core/setup_steps.py
+msgid "Ihre Website ist online."
+msgstr "Ваш сайт онлайн."
+
+#: apps/core/setup_steps.py
+msgid "Noch nicht veröffentlicht. Es fehlt:"
+msgstr "Ещё не опубликовано. Не хватает:"
+
+#: apps/core/setup_steps.py
+msgid "Rechtliches & Veröffentlichen"
+msgstr "Право и публикация"
+
+#: apps/core/setup_steps.py
+msgid "So sieht Ihr Impressum aus"
+msgstr "Так выглядит ваш Impressum"
+
+#: apps/core/setup_steps.py
+msgid "Website veröffentlichen"
+msgstr "Опубликовать сайт"

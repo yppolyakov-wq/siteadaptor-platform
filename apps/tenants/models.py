@@ -7,6 +7,10 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django_tenants.models import DomainMixin, TenantMixin
 
+#: AIS-W W4-1: типы с zulassungspflichtigem Handwerk (Anlage A HwO) — в Impressum
+#: Kammer und Berufsbezeichnung. Блокировки нет (решение владельца: предупреждение).
+REGULATED_TRADE_TYPES = ("handwerker", "werkstatt", "friseur")
+
 
 class Tenant(TenantMixin):
     BUSINESS_TYPES = [
@@ -526,6 +530,9 @@ class Tenant(TenantMixin):
             lines.append(f"Zuständige Kammer: {self.chamber}")
         if self.profession:
             lines.append(f"Berufsbezeichnung: {self.profession}")
+        # AIS-W W4-1: zulassungspflichtiges Handwerk — Berufsrecht nennen (§ 5 Abs. 1 Nr. 5 DDG).
+        if self.chamber and self.business_type in REGULATED_TRADE_TYPES:
+            lines.append("Berufsrechtliche Regelung: Handwerksordnung (HwO)")
         if self.legal_responsible:
             lines.append(f"Verantwortlich i.S.d. § 18 Abs. 2 MStV: {self.legal_responsible}")
         return "\n".join(lines)

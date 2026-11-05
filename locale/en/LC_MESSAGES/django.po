@@ -32084,3 +32084,60 @@ msgstr "This search uses AI from %(who)s. Your search text is transferred to the
 #, python-format
 msgid "Diese KI-Funktion nutzt %(who)s. Ihre Eingaben werden dafür in die USA übermittelt (Standardvertragsklauseln der EU). Geben Sie keine Daten ein, die nicht nötig sind."
 msgstr "This AI feature uses %(who)s. Your input is transferred to the USA for this (EU standard contractual clauses). Do not enter data that is not needed."
+
+#: apps/core/setup_steps.py
+msgid "Berufsbezeichnung"
+msgstr "Professional title"
+
+#: apps/core/setup_steps.py
+msgid "Zuständige Kammer"
+msgstr "Responsible chamber"
+
+#: apps/core/setup_steps.py
+msgid "Hinweis zu den Öffnungszeiten (z. B. Feiertage)"
+msgstr "Note on opening hours (e.g. public holidays)"
+
+#: apps/core/setup_steps.py
+msgid "Ihre Website ist jetzt online."
+msgstr "Your website is now online."
+
+#: apps/core/setup_steps.py
+#, python-format
+msgid "Noch nicht veröffentlicht. Es fehlt: %(items)s"
+msgstr "Not published yet. Missing: %(items)s"
+
+#: apps/core/setup_steps.py
+msgid "Rechtliche Angaben nur nach Anmeldung per E-Mail."
+msgstr "Legal details only after signing in by e-mail."
+
+#: apps/core/setup_steps.py
+msgid "Datenschutzerklärung ansehen"
+msgstr "View privacy policy"
+
+#: apps/core/setup_steps.py
+msgid "Für ein zulassungspflichtiges Handwerk gehören die zuständige Kammer und die Berufsbezeichnung ins Impressum."
+msgstr "For a licensed trade, the responsible chamber and the professional title belong in the imprint."
+
+#: apps/core/setup_steps.py
+msgid "Ihr Impressum entsteht aus diesen Angaben. Danach geht Ihre Website online."
+msgstr "Your imprint is created from these details. Then your website goes online."
+
+#: apps/core/setup_steps.py
+msgid "Ihre Website ist online."
+msgstr "Your website is online."
+
+#: apps/core/setup_steps.py
+msgid "Noch nicht veröffentlicht. Es fehlt:"
+msgstr "Not published yet. Missing:"
+
+#: apps/core/setup_steps.py
+msgid "Rechtliches & Veröffentlichen"
+msgstr "Legal & publish"
+
+#: apps/core/setup_steps.py
+msgid "So sieht Ihr Impressum aus"
+msgstr "This is what your imprint looks like"
+
+#: apps/core/setup_steps.py
+msgid "Website veröffentlichen"
+msgstr "Publish website"

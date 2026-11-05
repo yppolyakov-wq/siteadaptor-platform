@@ -28,8 +28,16 @@
     <label class="block text-sm font-medium mb-1" for="id_address">{% trans "Adresse" %}</label>
     <textarea id="id_address" name="address" rows="2" class="w-full rounded-lg border border-gray-300 px-3 py-2">{{ request.tenant.address }}</textarea>
   </div>
+  {% if hours_grid %}
+  <fieldset data-setup-hours>
+    <legend class="block text-sm font-medium mb-1">{% trans "Öffnungszeiten" %}</legend>
+    <p class="text-xs text-gray-500 mb-2">{% trans "Set open/close per day for the live “Open now” badge. Leave a day empty = closed." %}</p>
+    <input type="hidden" name="oh_present" value="1">
+    {% include "tenant/_hours_grid.html" %}
+  </fieldset>
+  {% endif %}
   <div>
-    <label class="block text-sm font-medium mb-1" for="id_opening_hours">{% trans "Öffnungszeiten" %}</label>
+    <label class="block text-sm font-medium mb-1" for="id_opening_hours">{% if hours_grid %}{% trans "Hinweis zu den Öffnungszeiten (z. B. Feiertage)" %}{% else %}{% trans "Öffnungszeiten" %}{% endif %}</label>
     <textarea id="id_opening_hours" name="opening_hours" rows="3" placeholder="{% trans 'Mo–Fr 8–18 Uhr' %}&#10;{% trans 'Sa 8–13 Uhr' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2">{{ request.tenant.opening_hours }}</textarea>
   </div>
   <div class="grid sm:grid-cols-2 gap-4">
