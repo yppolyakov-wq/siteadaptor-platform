@@ -998,7 +998,14 @@ def _render_home(request, portal):
         if present["total"]
         else []
     )
+    # PH-6: «Jetzt geöffnet» — вторым блоком, без повторов с остальными.
+    taken = {item.pk for item in featured} | ({deal.pk} if deal else set())
+    taken |= {item.pk for b in blocks for item in b["items"]}
+    offen = home.open_block(base, open_set, path=request.path, exclude_pks=taken)
+    if offen:
+        blocks.insert(min(1, len(blocks)), offen)
     cards = featured + ([deal] if deal else []) + [item for b in blocks for item in b["items"]]
+    tiles_d = home.district_tiles(base, portal.city, open_set) if present["total"] else []
     reviews.attach_ratings(cards)
     # PH-3: «Endet in …» и часы работы на карточках — из общего снимка (0 запросов).
     from .portal_cards import prepare_cards
@@ -1025,7 +1032,8 @@ def _render_home(request, portal):
             "featured": featured,
             "blocks": blocks,
             "facets": facets,
-            "district_chips": _district_choices(portal),
+            "district_chips": [(t["slug"], t["name"]) for t in tiles_d],
+            "district_tiles": tiles_d,
             "shows_demo": portal.show_demo and any(getattr(c, "is_demo", False) for c in cards),
             "business_link": True,
             "canonical": canonical,

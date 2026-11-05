@@ -33200,3 +33200,24 @@ msgstr "%(n)s € ve üzeri"
 #, python-format
 msgid "bis %(n)s €"
 msgstr "%(n)s €'ya kadar"
+
+#: templates/aggregator/portal_discover.html
+msgid "ANZEIGE"
+msgstr "REKLAM"
+
+#: templates/aggregator/portal_discover.html
+msgid "Bezahlte Platzierung — getrennt von den Empfehlungen"
+msgstr "Ücretli yerleşim — önerilerden ayrı"
+
+#: templates/aggregator/portal_discover.html
+msgid "Deine Stadtteile"
+msgstr "Semtlerin"
+
+#: templates/aggregator/portal_discover.html
+msgid "Gerade geöffnet · täglich neu gemischt"
+msgstr "Şu an açık · her gün yeniden karıştırılır"
+
+#: templates/aggregator/portal_discover.html
+#, python-format
+msgid "Sieh nach, was in %(city)s direkt um die Ecke los ist."
+msgstr "%(city)s'de hemen köşede neler olduğuna bak."

@@ -101,7 +101,7 @@ BLOCKS: tuple[Block, ...] = (
         _("Aktuelle Angebote"),
         FeedScope(kind_key="angebote"),
         "urgent",
-    ),
+    ),  # PH-6: заголовок «Endet bald», если есть срочные (home_blocks)
     Block(
         "produkte",
         _("Produkte aus %(city)s"),
@@ -442,12 +442,21 @@ def home_blocks(base_qs, *, city: str, path: str, exclude_pks=(), now=None) -> l
         if not items:
             continue
         seen.update(item.pk for item in items)
+        title = str(block.title) % {"city": city}
+        more_url = scope_url(path, block.scope)
+        if block.order == "urgent":
+            # PH-6: срочное первым — честный заголовок «Endet bald», если что-то кончается
+            # в ближайшие сутки; «Alle anzeigen» — та же область, отсортированная по сроку.
+            soon = (now or timezone.now()) + timedelta(days=1)
+            if any(i.ends_at and i.ends_at <= soon for i in items):
+                title = str(_("Endet bald"))
+            more_url = f"{more_url}&sort=endet" if "?" in more_url else f"{more_url}?sort=endet"
         out.append(
             {
                 "key": block.key,
-                "title": str(block.title) % {"city": city},
+                "title": title,
                 "items": items,
-                "more_url": scope_url(path, block.scope),
+                "more_url": more_url,
             }
         )
     return out
@@ -572,4 +581,63 @@ def price_links(path: str) -> list[dict]:
             "label": _("ab %(n)s €") % {"n": PRICE_STEPS[-1]},
             "url": f"{path}?kind=alle&preis_von={PRICE_STEPS[-1]}",
         }
+    ]
+
+
+# --- PH-6: блоки «Jetzt geöffnet» и районы со счётчиками --------------------------------
+
+
+def open_block(base_qs, open_set: set, *, path: str, exclude_pks=()) -> dict | None:
+    """«Jetzt geöffnet» — предложения открытых сейчас бизнесов, по одному на бизнес,
+    дневная ротация. «Alle anzeigen» → лента с `offen=1` (её надмножество)."""
+    if not open_set:
+        return None
+    qs = base_qs.filter(tenant_schema__in=open_set).exclude(listing_kind=L.KIND_BUSINESS)
+    if exclude_pks:
+        qs = qs.exclude(pk__in=exclude_pks)
+    order = _order("daily_rotation")
+    ranked = qs.annotate(
+        business_rank=Window(
+            RowNumber(), partition_by=[F("tenant_schema")], order_by=_as_expressions(order)
+        )
+    ).filter(business_rank__lte=1)
+    items = list(ranked.order_by(*order)[:BLOCK_LIMIT])
+    if len(items) < BLOCK_LIMIT:
+        items = items[:BLOCK_ROW]
+    if not items:
+        return None
+    return {
+        "key": "offen",
+        "title": _("Jetzt geöffnet"),
+        "subtitle": _("Gerade geöffnet · täglich neu gemischt"),
+        "items": items,
+        "more_url": f"{path}?kind=alle&offen=1",
+    }
+
+
+def district_tiles(base_qs, city: str, open_set: set) -> list[dict]:
+    """Районы с числом предложений и открытых сейчас — ОДИН запрос; порядок реестра,
+    пустой район не показываем."""
+    from apps.core import districts
+
+    known = districts.choices_for(city)
+    if not known:
+        return []
+    rows = (
+        base_qs.order_by()
+        .exclude(district="")
+        .values("district", "tenant_schema")
+        .annotate(n=Count("id"))
+        .values_list("district", "tenant_schema", "n")
+    )
+    counts: dict[str, int] = {}
+    opened: dict[str, int] = {}
+    for district, schema, n in rows:
+        counts[district] = counts.get(district, 0) + n
+        if schema in open_set:
+            opened[district] = opened.get(district, 0) + n
+    return [
+        {"slug": slug, "name": name, "count": counts[slug], "open": opened.get(slug, 0)}
+        for slug, name in known
+        if counts.get(slug)
     ]

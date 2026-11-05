@@ -33348,3 +33348,24 @@ msgstr "від %(n)s €"
 #, python-format
 msgid "bis %(n)s €"
 msgstr "до %(n)s €"
+
+#: templates/aggregator/portal_discover.html
+msgid "ANZEIGE"
+msgstr "РЕКЛАМА"
+
+#: templates/aggregator/portal_discover.html
+msgid "Bezahlte Platzierung — getrennt von den Empfehlungen"
+msgstr "Платне розміщення — окремо від рекомендацій"
+
+#: templates/aggregator/portal_discover.html
+msgid "Deine Stadtteile"
+msgstr "Твої райони"
+
+#: templates/aggregator/portal_discover.html
+msgid "Gerade geöffnet · täglich neu gemischt"
+msgstr "Відчинено зараз · щодня в новому порядку"
+
+#: templates/aggregator/portal_discover.html
+#, python-format
+msgid "Sieh nach, was in %(city)s direkt um die Ecke los ist."
+msgstr "Подивись, що відбувається просто за рогом у %(city)s."

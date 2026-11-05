@@ -11,7 +11,7 @@ from apps.tenants.tests.factories import TenantFactory
 
 pytestmark = pytest.mark.django_db
 
-ALWAYS = {str(d): [["00:00", "23:59"]] for d in range(7)}
+ALWAYS = {str(d): ["00:00", "23:59"] for d in range(7)}
 
 
 def test_snapshot_is_one_query_and_feeds_both_helpers():
@@ -20,6 +20,7 @@ def test_snapshot_is_one_query_and_feeds_both_helpers():
     with CaptureQueriesContext(connection) as ctx:
         snap = views.open_snapshot({a.schema_name, b.schema_name})
     assert len(ctx.captured_queries) == 1
+    assert views._open_now_schemas(set(), snapshot=snap) == {a.schema_name}
     assert views._open_now_schemas(set(), snapshot=snap) == views._open_now_schemas(
         {a.schema_name, b.schema_name}
     )

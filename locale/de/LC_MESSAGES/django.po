@@ -33141,3 +33141,24 @@ msgstr "ab %(n)s €"
 #, python-format
 msgid "bis %(n)s €"
 msgstr "bis %(n)s €"
+
+#: templates/aggregator/portal_discover.html
+msgid "ANZEIGE"
+msgstr "ANZEIGE"
+
+#: templates/aggregator/portal_discover.html
+msgid "Bezahlte Platzierung — getrennt von den Empfehlungen"
+msgstr "Bezahlte Platzierung — getrennt von den Empfehlungen"
+
+#: templates/aggregator/portal_discover.html
+msgid "Deine Stadtteile"
+msgstr "Deine Stadtteile"
+
+#: templates/aggregator/portal_discover.html
+msgid "Gerade geöffnet · täglich neu gemischt"
+msgstr "Gerade geöffnet · täglich neu gemischt"
+
+#: templates/aggregator/portal_discover.html
+#, python-format
+msgid "Sieh nach, was in %(city)s direkt um die Ecke los ist."
+msgstr "Sieh nach, was in %(city)s direkt um die Ecke los ist."

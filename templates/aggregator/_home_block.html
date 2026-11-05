@@ -1,8 +1,11 @@
 {% load i18n %}{# T-8.19: блок главной портала; «Alle anzeigen» ведёт на ленту той же области. #}
 <section data-home-block="{{ block.key }}" class="mb-10" aria-labelledby="home-block-{{ block.key }}">
-  <div class="flex items-baseline justify-between gap-3 mb-3">
-    <h2 id="home-block-{{ block.key }}" class="text-lg md:text-xl font-semibold">{{ block.title }}</h2>
-    <a href="{{ block.more_url }}" data-home-more class="shrink-0 text-sm font-medium hover:underline" style="color: var(--portal-color)">{% trans "Alle anzeigen" %} →</a>
+  <div class="flex items-end justify-between gap-3 mb-4">
+    <div>
+      <h2 id="home-block-{{ block.key }}" class="text-2xl md:text-[28px] font-extrabold tracking-tight">{{ block.title }}</h2>
+      {% if block.subtitle %}<p class="mt-1 text-sm md:text-[15px] text-gray-600">{{ block.subtitle }}</p>{% endif %}
+    </div>
+    <a href="{{ block.more_url }}" data-home-more class="shrink-0 text-[15px] font-bold hover:underline" style="color: var(--portal-color)">{% trans "Alle anzeigen" %} <span aria-hidden="true">→</span></a>
   </div>
   {% include "aggregator/_cards.html" with items=block.items %}
 </section>
