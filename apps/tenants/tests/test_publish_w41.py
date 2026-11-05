@@ -91,3 +91,50 @@ def test_mark_complete_publishes_quick_start_demo_import():
     tenant = _ready_tenant(slug="mc")
     onboarding.mark_complete(tenant, source="demo")
     assert Tenant.objects.get(pk=tenant.pk).published_at is not None
+
+
+def test_unpublished_storefront_refuses_guest_post_too():
+    request = RequestFactory().post("/warenkorb/")
+    request.tenant = TenantFactory.build(schema_name="shop3", published_at=None)
+    request.user = AnonymousUser()
+    assert PendingStorefrontMiddleware(lambda r: HttpResponse("ok"))(request).status_code == 503
+    request.tenant = TenantFactory.build(schema_name="shop4")
+    assert PendingStorefrontMiddleware(lambda r: HttpResponse("ok"))(request).status_code == 200
+
+
+def test_publish_side_effects_run_once(monkeypatch):
+    from apps.core.models import LegalDoc
+
+    calls = []
+    monkeypatch.setattr(onboarding, "_after_publish", lambda t: calls.append(t.pk))
+    tenant = _ready_tenant(slug="fx", address="Weg 1", contact_phone="0211 1")
+    LegalDoc.objects.create(kind="impressum", locale="de", text="Bäckerei, Weg 1, Hilden")
+    onboarding.publish(tenant)
+    onboarding.publish(tenant)
+    onboarding.mark_complete(tenant)
+    assert calls == [tenant.pk]
+
+
+def test_registration_reads_the_v4_flag(settings, django_capture_on_commit_callbacks):
+    from apps.tenants.services import start_business_provisioning
+
+    settings.SETUP_WIZARD_V4 = True
+    tenant = start_business_provisioning(
+        business_name="Neu",
+        slug="neu-v4",
+        business_type="bakery",
+        city="Hilden",
+        email="neu@x.de",
+        password_hash="x",
+    )
+    assert tenant.published_at is None
+    settings.SETUP_WIZARD_V4 = False
+    old = start_business_provisioning(
+        business_name="Alt",
+        slug="alt-v3",
+        business_type="bakery",
+        city="Hilden",
+        email="alt@x.de",
+        password_hash="x",
+    )
+    assert old.published_at is not None

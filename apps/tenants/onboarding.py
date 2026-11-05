@@ -467,8 +467,8 @@ def mark_complete(tenant, *, source: str = "") -> dict:
     save_state(tenant, state)
     # AIS-W W4-1: мастер пройден за владельца (быстрый старт, демо, импорт) — сайт
     # готов, прятать его до кнопки «Website veröffentlichen» незачем.
-    if getattr(tenant, "published_at", True) is None:
-        _set_published(tenant)
+    if getattr(tenant, "published_at", True) is None and _set_published(tenant):
+        _after_publish(tenant)
     return state
 
 
@@ -478,15 +478,28 @@ def mark_complete(tenant, *, source: str = "") -> dict:
 PUBLISH_REQUIRED = ("contact", "impressum", "email")
 
 
-def _set_published(tenant) -> None:
+def _set_published(tenant) -> bool:
+    """Поставить время публикации. True — опубликовали СЕЙЧАС (не раньше, не другой запрос)."""
     from django.utils import timezone
 
     from apps.tenants.models import Tenant
 
     now = timezone.now()
     # Одно поле одним UPDATE: чужие снимки site_config его не затрут; повтор — no-op.
-    Tenant.objects.filter(pk=tenant.pk, published_at__isnull=True).update(published_at=now)
+    changed = Tenant.objects.filter(pk=tenant.pk, published_at__isnull=True).update(
+        published_at=now
+    )
     tenant.published_at = Tenant.objects.values_list("published_at", flat=True).get(pk=tenant.pk)
+    return bool(changed)
+
+
+def _after_publish(tenant) -> None:
+    """Каталог города (как при подтверждении почты, T-8.6) и сброс кэша витрины."""
+    from apps.aggregator.visibility import apply_visibility
+    from apps.core.pagecache import bump_storefront_cache
+
+    apply_visibility(tenant)
+    bump_storefront_cache(tenant.schema_name)
 
 
 def publish_blockers(tenant) -> list[dict]:
@@ -506,22 +519,20 @@ def publish(tenant) -> list[dict]:
 
     Идемпотентно: повтор время публикации не меняет. После публикации — каталог города
     (`apply_visibility`, как при подтверждении почты) и сброс кэша витрины."""
+    if tenant.published_at is not None:
+        return []  # уже опубликован — снова не проверяем и не перезапускаем эффекты
     blockers = publish_blockers(tenant)
     if blockers:
         return blockers
-    if tenant.published_at is None:
-        _set_published(tenant)
-        state = get_state(tenant)
-        if not state["completed"]:
-            state["completed"] = True
-            state.setdefault("source", "wizard")
-            _stamp(state, "completed")  # финиш замера AIS-0 = публикация
-            save_state(tenant, state)
-        from apps.aggregator.visibility import apply_visibility
-        from apps.core.pagecache import bump_storefront_cache
-
-        apply_visibility(tenant)
-        bump_storefront_cache(tenant.schema_name)
+    if not _set_published(tenant):
+        return []  # параллельный запрос успел раньше — эффекты на нём
+    state = get_state(tenant)
+    if not state["completed"]:
+        state["completed"] = True
+        state.setdefault("source", "wizard")
+        _stamp(state, "completed")  # финиш замера AIS-0 = публикация
+        save_state(tenant, state)
+    _after_publish(tenant)
     return []
 
 

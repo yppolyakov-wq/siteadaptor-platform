@@ -20,7 +20,14 @@ class TenantAdmin(ModelAdmin):
     actions = ("mark_internal",)
     # T-8.26: поля, от которых зависит присутствие в каталоге города — правка в админке
     # действует сразу (снимки удаляются / реконсилируются), без ресинка.
-    VISIBILITY_FIELDS = ("is_active", "is_demo", "is_internal", "in_city_catalog", "email_pending")
+    VISIBILITY_FIELDS = (
+        "is_active",
+        "is_demo",
+        "is_internal",
+        "in_city_catalog",
+        "email_pending",
+        "published_at",  # AIS-W W4-1: публикация из админки → каталог города сразу
+    )
     readonly_fields = ("schema_name", "created_at", "updated_at")
     ordering = ("-created_at",)
 

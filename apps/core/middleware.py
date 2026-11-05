@@ -75,15 +75,16 @@ class PendingStorefrontMiddleware:
 
     def __call__(self, request):
         tenant = getattr(request, "tenant", None)
+        # AIS-W W4-1: сайт ещё не опубликован (мастер v4). Закрыт для гостей ЦЕЛИКОМ, и
+        # POST тоже (иначе по известному адресу можно оформить заказ на сайте, который
+        # владелец ещё не готовил; ревью security-reviewer). Вебхуки Telegram и кабинет
+        # идут по OPEN_PREFIXES, Stripe — на публичный хост.
+        unpublished = getattr(tenant, "published_at", True) is None
         if (
             tenant is None
             or getattr(tenant, "schema_name", "public") == "public"
-            or not (
-                getattr(tenant, "email_pending", False)
-                # AIS-W W4-1: сайт ещё не опубликован (мастер v4).
-                or getattr(tenant, "published_at", True) is None
-            )
-            or request.method not in ("GET", "HEAD")
+            or not (getattr(tenant, "email_pending", False) or unpublished)
+            or (request.method not in ("GET", "HEAD") and not unpublished)
             or request.path.startswith(self.OPEN_PREFIXES)
             or has_cabinet_access(getattr(request, "user", None))
         ):
