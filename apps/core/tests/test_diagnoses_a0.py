@@ -170,3 +170,20 @@ def test_all_diagnoses_are_read_only(urlconf):
         if q["sql"].lstrip().upper().startswith(("INSERT", "UPDATE", "DELETE"))
     ]
     assert not writes, writes[:3]
+
+
+@pytest.mark.parametrize(
+    ("reason", "level", "snippet"),
+    [
+        ("tariff", "problem", "Tarif"),
+        ("needs:orders", "problem", "weitere Funktion"),
+        ("unknown", "unknown", "nicht geprüft"),
+        ("disabled", "problem", "ausgeschaltet"),
+    ],
+)
+def test_module_reasons_have_own_wording(monkeypatch, reason, level, snippet):
+    from apps.core import modules
+
+    monkeypatch.setattr(modules, "inactive_reason", lambda t, key: reason)
+    f = diagnoses._module_finding(object(), "orders", "X")
+    assert f.level == level and snippet.lower() in f.text.lower()

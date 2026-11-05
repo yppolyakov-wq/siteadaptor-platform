@@ -11,6 +11,8 @@ from apps.core import assistant, diagnoses, drawer, ratelimit
 
 #: Тяжёлые диагнозы по кнопке: не чаще 20 раз в минуту на пользователя.
 HEAVY_LIMIT, HEAVY_WINDOW = 20, 60
+#: Дешёвые диагнозы на каждое открытие шторки: не чаще 60 раз в минуту.
+OPEN_LIMIT, OPEN_WINDOW = 60, 60
 
 
 def _seite(request) -> str:
@@ -41,9 +43,17 @@ def assistant_view(request):
         window=HEAVY_WINDOW,
     ):
         run_key, limited = "", True
-    ctx = assistant.build(
-        request, seite=_seite(request), q=request.GET.get("q") or "", run_key=run_key
+    q = request.GET.get("q") or ""
+    # Поиск не пересчитывает диагнозы; частые открытия — тоже нет (лимит на пользователя).
+    diagnose = not q and not ratelimit.hit(
+        "assistant-open",
+        f"{connection.schema_name}:{request.user.pk}",
+        limit=OPEN_LIMIT,
+        window=OPEN_WINDOW,
     )
+    if not q and not diagnose:
+        limited = True
+    ctx = assistant.build(request, seite=_seite(request), q=q, run_key=run_key, diagnose=diagnose)
     ctx.update(
         {
             "nav": "dashboard",

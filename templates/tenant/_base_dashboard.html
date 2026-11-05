@@ -157,7 +157,7 @@
         {% endif %}
         {% comment %}W3-fix (видимость): язык витрины — прямая ссылка на «Sprachen»
         (включить доп. языки → на витрине появляется переключатель DE/EN/…).{% endcomment %}
-        {% comment %}AIS A-0: помощник — только ссылка (readiness в хроме не считается).{% endcomment %}
+        {% comment %}AIS A-0: помощник — только ссылка (реестр готовности в хроме не считается).{% endcomment %}
         <a href="{% url 'assistant' %}?seite={{ request.resolver_match.view_name|urlencode }}" data-drawer data-drawer-key="assistant" data-assistant-open class="inline-flex items-center justify-center gap-1 min-h-[44px] min-w-[44px] text-gray-500 hover:text-gray-900" title="{% trans 'Assistent' %}" aria-label="{% trans 'Assistent' %}"><span aria-hidden="true">✨</span> <span class="hidden lg:inline">{% trans "Assistent" %}</span></a>
         <button type="button" id="navpal-open" class="text-gray-500 hover:text-gray-900" title="{% trans 'Suche (Strg+K)' %}" aria-label="{% trans 'Suche (Strg+K)' %}">🔍</button>
         {% if 'languages'|pkg_allowed:request.tenant and 'languages'|can_open:request %}<a href="{% url 'languages' %}" class="inline-flex items-center gap-1 text-gray-500 hover:text-gray-900" title="{% trans 'Website languages' %}">🌐 <span class="hidden lg:inline">{% trans "Sprachen" %}</span>{% if cabinet_locale_count > 1 %}<span class="text-[11px] font-semibold text-indigo-600">{{ cabinet_locale_count }}</span>{% endif %}</a>{% endif %}

@@ -28,6 +28,8 @@ MAX_HERE = 6
 QUERY_MAX = 80
 BREAK_DAYS = 7
 
+#: Действия вне зоны прав кабинета (свой путь, не `dashboard/`): только владельцу.
+OWNER_ACTIONS = frozenset({"owner-confirm-resend"})
 #: Экраны, которые сотруднику не показываются вовсе (решение В-1), даже текстом.
 STAFF_HIDDEN = frozenset({"billing", "team", "team-invite", "team-member"})
 #: Лёгкий пакет / Mini App: у полного экрана есть лёгкий двойник (None — двойника нет).
@@ -98,6 +100,14 @@ def link(request, url_name: str, *, args=(), query: str = "", method: str = "GET
         if alias is None:
             return Link()  # текст без ссылки: в лёгком кабинете экрана нет
         url_name, args, query = alias, (), ""
+    if url_name in OWNER_ACTIONS:
+        if not _is_owner(request):
+            return Link(blocked=BLOCK_OWNER)
+        try:
+            return Link(url=reverse(url_name), method=method)
+        except NoReverseMatch:
+            logger.warning("assistant: no url for %s", url_name)
+            return Link()
     try:
         if not setup_assistant.reachable(request, url_name):
             if tg_login.is_tg_session(request) and url_name not in tg_login.TG_LITE_VIEWS:
@@ -252,12 +262,35 @@ def _findings(request, found) -> list[dict]:
     return out
 
 
+def _unknown():
+    return [
+        {
+            "text": _("Konnte nicht geprüft werden — bitte später erneut versuchen."),
+            "level": diagnoses.UNKNOWN,
+            "link": Link(),
+        }
+    ]
+
+
 def diagnosis_cards(request, run_key: str = "") -> list[dict]:
     """Дешёвые диагнозы считаются сразу; тяжёлый — только тот, что запросили кнопкой."""
     cards = []
-    for d in diagnoses.applicable(request.tenant):
+    for d, known in diagnoses.applicable_status(request.tenant):
         ran = d.cost == diagnoses.CHEAP or d.key == run_key
-        found = _findings(request, diagnoses.run(request.tenant, d.key)) if ran else None
+        if not known:
+            found = _unknown()
+        elif ran:
+            found = _findings(request, diagnoses.run(request.tenant, d.key))
+            if not found:  # всё отфильтровано правами — не пустой список под «prüfen»
+                found = [
+                    {
+                        "text": _("Bitte den Inhaber fragen."),
+                        "level": diagnoses.INFO,
+                        "link": Link(),
+                    }
+                ]
+        else:
+            found = None
         cards.append(
             {
                 "key": d.key,
@@ -303,11 +336,16 @@ def _safe(fn, *args, default):
         return default, True
 
 
-def build(request, *, seite: str = "", q: str = "", run_key: str = "") -> dict:
+def build(
+    request, *, seite: str = "", q: str = "", run_key: str = "", diagnose: bool = True
+) -> dict:
+    """`diagnose=False` — поиск/лимит: диагнозы не пересчитываются на каждый ввод."""
     here, here_failed = _safe(missing_here, request, seite, default=[])
     top, top_failed = _safe(important, request, default=[])
-    cards, cards_failed = _safe(diagnosis_cards, request, run_key, default=[])
-    where, _where_failed = _safe(where_search, request, q, default=[])
+    cards, cards_failed = (
+        _safe(diagnosis_cards, request, run_key, default=[]) if diagnose else ([], False)
+    )
+    where, where_failed = _safe(where_search, request, q, default=[])
     return {
         "seite": seite,
         "q": (q or "")[:QUERY_MAX],
@@ -315,5 +353,7 @@ def build(request, *, seite: str = "", q: str = "", run_key: str = "") -> dict:
         "important": top,
         "diagnoses": cards,
         "where": where,
-        "failed": here_failed or top_failed or cards_failed,
+        "failed": here_failed or top_failed or cards_failed or where_failed,
+        "where_failed": where_failed,
+        "diagnosed": diagnose,
     }

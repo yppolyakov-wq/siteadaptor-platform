@@ -51,7 +51,7 @@ def _req(tenant, data=None, user=None, headers=None):
 
 def test_screen_registered_everywhere():
     assert view_perms.rule_for("assistant").read == view_perms.OPEN
-    assert view_perms.rule_for("owner-confirm-resend").read == view_perms.FLOOR
+    assert "owner-confirm-resend" in assistant.OWNER_ACTIONS
     assert "assistant" in tg_login.TG_LITE_VIEWS
     assert "assistant" in packages._AKTIONEN_VIEWS
 
@@ -113,7 +113,8 @@ def test_owner_only_findings_hidden_for_staff(tenant, monkeypatch):
     staff_cards = assistant.diagnosis_cards(_req(tenant, user=_user(Membership.ROLE_STAFF)))
     owner_cards = assistant.diagnosis_cards(_req(tenant))
     by = {c["key"]: c for c in staff_cards}
-    assert by["not_in_city"]["findings"] == []
+    assert all(f["link"].url == "" for f in by["not_in_city"]["findings"])
+    assert "Abo" not in " ".join(f["text"] for f in by["not_in_city"]["findings"])
     assert {c["key"]: c for c in owner_cards}["not_in_city"]["findings"]
 
 
@@ -131,7 +132,9 @@ def test_package_note(tenant, monkeypatch):
 
 def test_heavy_diagnosis_runs_only_on_request(tenant, monkeypatch):
     calls = []
-    monkeypatch.setattr(diagnoses, "applicable", lambda t: [diagnoses.BY_KEY["google_feed"]])
+    monkeypatch.setattr(
+        diagnoses, "applicable_status", lambda t: [(diagnoses.BY_KEY["google_feed"], True)]
+    )
     real = diagnoses.run
 
     def spy(t, key):
@@ -149,7 +152,9 @@ def test_heavy_diagnosis_rate_limited(tenant, monkeypatch):
     from apps.core import ratelimit
 
     monkeypatch.setattr(ratelimit, "hit", lambda *a, **kw: True)
-    monkeypatch.setattr(diagnoses, "applicable", lambda t: [diagnoses.BY_KEY["google_feed"]])
+    monkeypatch.setattr(
+        diagnoses, "applicable_status", lambda t: [(diagnoses.BY_KEY["google_feed"], True)]
+    )
     body = assistant_views.assistant_view(_req(tenant, {"pruefen": "google_feed"})).content
     assert "Zu viele Prüfungen".encode() in body
     cache.clear()
@@ -193,3 +198,37 @@ def test_chrome_only_links(settings):
     src = Path("templates/tenant/_base_dashboard.html").read_text(encoding="utf-8")
     assert "{% url 'assistant' %}" in src
     assert "assistant_rows" not in src and "diagnos" not in src
+
+
+def test_failing_applies_shows_unknown_card(tenant, monkeypatch):
+    from apps.core import directions
+
+    monkeypatch.setattr(directions, "is_active", lambda t, key: 1 / 0)
+    cards = {c["key"]: c for c in assistant.diagnosis_cards(_req(tenant))}
+    assert cards["cart_closed"]["findings"][0]["level"] == diagnoses.UNKNOWN
+    assert cards["cart_closed"]["ok"] is False
+
+
+def test_search_does_not_rerun_diagnoses(tenant, monkeypatch):
+    called = []
+    monkeypatch.setattr(assistant, "diagnosis_cards", lambda *a: called.append(1) or [])
+    assistant_views.assistant_view(_req(tenant, {"q": "zeiten"}))
+    assert not called
+
+
+def test_failed_search_is_not_nothing_found(tenant, monkeypatch):
+    monkeypatch.setattr(assistant, "where_search", lambda r, q: 1 / 0)
+    body = assistant_views.assistant_view(_req(tenant, {"q": "zeiten"})).content.decode()
+    assert "Nichts gefunden" not in body
+    assert "Die Suche konnte nicht ausgeführt werden" in body
+
+
+def test_staff_sees_note_instead_of_empty_card(tenant, monkeypatch):
+    from apps.aggregator import visibility
+
+    monkeypatch.setattr(visibility, "withheld_reasons", lambda t: ["suspended"])
+    cards = {
+        c["key"]: c
+        for c in assistant.diagnosis_cards(_req(tenant, user=_user(Membership.ROLE_STAFF)))
+    }
+    assert cards["not_in_city"]["findings"][0]["text"] == "Bitte den Inhaber fragen."

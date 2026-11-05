@@ -32985,3 +32985,17 @@ msgstr "kontrol et"
 #: apps/core/assistant.py
 msgid "z. B. Öffnungszeiten, Lieferung"
 msgstr "ör. çalışma saatleri, teslimat"
+
+#: apps/core/diagnoses.py
+#, python-format
+msgid "%(f)s ist in Ihrem Tarif nicht enthalten."
+msgstr "%(f)s tarifenize dahil değil."
+
+#: apps/core/diagnoses.py
+#, python-format
+msgid "%(f)s braucht eine weitere Funktion, die ausgeschaltet ist."
+msgstr "%(f)s, kapalı olan başka bir işleve ihtiyaç duyuyor."
+
+#: apps/core/diagnoses.py
+msgid "Die Suche konnte nicht ausgeführt werden — bitte später erneut versuchen."
+msgstr "Arama yapılamadı — lütfen daha sonra tekrar deneyin."

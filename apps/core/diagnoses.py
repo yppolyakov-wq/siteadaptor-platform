@@ -111,7 +111,7 @@ def _not_in_city(t) -> list[Finding]:
                 text,
                 url,
                 query="step=recht" if code == "unpublished" else "",
-                owner_only=code == "suspended",
+                owner_only=code in ("suspended", "inactive", "operator_off"),
                 method="POST" if url == "owner-confirm-resend" else "GET",
             )
         )
@@ -139,8 +139,20 @@ def _module_finding(t, key: str, label) -> Finding | None:
     reason = modules.inactive_reason(t, key)
     if not reason:
         return None
+    if reason == "unknown":
+        return Finding(UNKNOWN, _("Konnte nicht geprüft werden — bitte später erneut versuchen."))
     if reason == "package":
         return Finding(PROBLEM, _("%(f)s ist in Ihrem Paket nicht enthalten.") % {"f": label})
+    if reason == "tariff":
+        return Finding(
+            PROBLEM, _("%(f)s ist in Ihrem Tarif nicht enthalten.") % {"f": label}, owner_only=True
+        )
+    if reason.startswith("needs:"):
+        return Finding(
+            PROBLEM,
+            _("%(f)s braucht eine weitere Funktion, die ausgeschaltet ist.") % {"f": label},
+            "modules",
+        )
     return Finding(PROBLEM, _("%(f)s ist ausgeschaltet.") % {"f": label}, "modules")
 
 
@@ -160,7 +172,11 @@ def _cart_closed(t) -> list[Finding]:
     if message:
         out.append(Finding(PROBLEM, str(message), "betriebsferien"))
     if not payments.available_methods(t):
-        out.append(Finding(PROBLEM, _("Keine Zahlungsart eingerichtet."), "payment-settings"))
+        out.append(
+            Finding(
+                PROBLEM, _("Keine Zahlungsart eingerichtet."), "payment-settings", owner_only=True
+            )
+        )
     product = readiness.is_done(t, "waren.product", unknown_on_error=True)
     if product is False:
         out.append(
@@ -440,8 +456,24 @@ def _safe(fn, t, default):
         return default
 
 
+_APPLIES_FAILED = object()
+
+
+def applicable_status(tenant) -> list[tuple[Diagnosis, bool]]:
+    """[(диагноз, понятно_ли_применим)]: сбой `applies` не прячет карточку молча —
+    она остаётся с пометкой «nicht geprüft» (не знаю ≠ «не относится»)."""
+    out = []
+    for d in REGISTRY:
+        got = _safe(d.applies, tenant, _APPLIES_FAILED)
+        if got is _APPLIES_FAILED:
+            out.append((d, False))
+        elif got:
+            out.append((d, True))
+    return out
+
+
 def applicable(tenant) -> list[Diagnosis]:
-    return [d for d in REGISTRY if _safe(d.applies, tenant, False)]
+    return [d for d, known in applicable_status(tenant) if known]
 
 
 def run(tenant, key: str) -> list[Finding]:

@@ -33127,3 +33127,17 @@ msgstr "перевірити"
 #: apps/core/assistant.py
 msgid "z. B. Öffnungszeiten, Lieferung"
 msgstr "наприклад, години роботи, доставка"
+
+#: apps/core/diagnoses.py
+#, python-format
+msgid "%(f)s ist in Ihrem Tarif nicht enthalten."
+msgstr "%(f)s не входить у ваш тариф."
+
+#: apps/core/diagnoses.py
+#, python-format
+msgid "%(f)s braucht eine weitere Funktion, die ausgeschaltet ist."
+msgstr "Для «%(f)s» потрібна інша функція, а її вимкнено."
+
+#: apps/core/diagnoses.py
+msgid "Die Suche konnte nicht ausgeführt werden — bitte später erneut versuchen."
+msgstr "Пошук не вдалося виконати — спробуйте пізніше."

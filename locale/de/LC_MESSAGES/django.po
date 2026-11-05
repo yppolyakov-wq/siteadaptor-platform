@@ -32926,3 +32926,17 @@ msgstr "prüfen"
 #: apps/core/assistant.py
 msgid "z. B. Öffnungszeiten, Lieferung"
 msgstr "z. B. Öffnungszeiten, Lieferung"
+
+#: apps/core/diagnoses.py
+#, python-format
+msgid "%(f)s ist in Ihrem Tarif nicht enthalten."
+msgstr "%(f)s ist in Ihrem Tarif nicht enthalten."
+
+#: apps/core/diagnoses.py
+#, python-format
+msgid "%(f)s braucht eine weitere Funktion, die ausgeschaltet ist."
+msgstr "%(f)s braucht eine weitere Funktion, die ausgeschaltet ist."
+
+#: apps/core/diagnoses.py
+msgid "Die Suche konnte nicht ausgeführt werden — bitte später erneut versuchen."
+msgstr "Die Suche konnte nicht ausgeführt werden — bitte später erneut versuchen."

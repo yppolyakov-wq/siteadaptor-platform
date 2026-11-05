@@ -15,6 +15,7 @@
     <ul class="divide-y divide-gray-100">{% for it in important %}{% include "core/_assistant_item.html" %}{% endfor %}</ul>
   </section>
 
+  {% if not diagnosed and not q %}<p class="ui-muted text-sm">{% trans "Zu viele Prüfungen in kurzer Zeit — bitte in einer Minute erneut." %}</p>{% endif %}
   {% if diagnoses %}
   <section aria-labelledby="as-diag-h">
     <{{ hl|default:"h2" }} id="as-diag-h" class="ui-h3 mb-1">{% trans "Funktioniert etwas nicht?" %}</{{ hl|default:"h2" }}>
@@ -50,8 +51,10 @@
       <ul class="mt-2 divide-y divide-gray-100">
         {% for w in where %}<li class="py-2"><a href="{{ w.link.url }}" class="inline-flex items-center min-h-[44px] text-indigo-700 hover:underline">{{ w.text }}</a>{% if w.area %} <span class="ui-muted text-sm">· {{ w.area }}</span>{% endif %}</li>{% endfor %}
       </ul>
+      {% elif where_failed %}
+      <p class="ui-muted text-sm mt-2">{% trans "Die Suche konnte nicht ausgeführt werden — bitte später erneut versuchen." %}</p>
       {% else %}
-      <p class="ui-muted text-sm mt-2" role="status">{% trans "Nichts gefunden." %}</p>
+      <p class="ui-muted text-sm mt-2">{% trans "Nichts gefunden." %}</p>
       {% endif %}
     {% endif %}
   </section>
