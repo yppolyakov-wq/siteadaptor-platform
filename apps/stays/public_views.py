@@ -46,8 +46,9 @@ def _horizon_days() -> int:
 
 
 def _require_stays_active(request):
-    tenant = getattr(request, "tenant", None)
-    if tenant is None or not tenant.is_module_active("stays"):
+    from apps.core.storefront_state import stays_active
+
+    if not stays_active(getattr(request, "tenant", None)):
         raise Http404
 
 

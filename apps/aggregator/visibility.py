@@ -14,18 +14,43 @@ from __future__ import annotations
 SUSPENDED = "suspended"
 
 
+#: Коды причин, по которым бизнес сейчас не в каталоге города (порядок = приоритет показа).
+WITHHELD_REASONS = (
+    "inactive",
+    "suspended",
+    "email_pending",
+    "unpublished",
+    "operator_off",
+    "internal",
+)
+
+
+def withheld_reasons(tenant) -> list[str]:
+    """Почему бизнес сейчас не в каталоге города ([] — может быть).
+
+    Единственный источник условия: `listable` и помощник (AIS-A A-0) читают его, а не
+    повторяют проверки. Порядок совпадает с `withheld_schemas` (замок паритета)."""
+    if tenant is None:
+        return ["inactive"]
+    reasons = []
+    if not getattr(tenant, "is_active", True):
+        reasons.append("inactive")
+    if getattr(tenant, "subscription_status", "") == SUSPENDED:
+        reasons.append("suspended")
+    if getattr(tenant, "email_pending", False):
+        reasons.append("email_pending")
+    if getattr(tenant, "published_at", True) is None:  # AIS-W W4-1
+        reasons.append("unpublished")
+    if not getattr(tenant, "in_city_catalog", True):
+        reasons.append("operator_off")
+    if getattr(tenant, "is_internal", False):  # T-8.26: тестовая регистрация
+        reasons.append("internal")
+    return reasons
+
+
 def listable(tenant) -> bool:
     """Может ли бизнес быть в каталоге города прямо сейчас."""
-    if tenant is None:
-        return False
-    return bool(
-        getattr(tenant, "is_active", True)
-        and getattr(tenant, "subscription_status", "") != SUSPENDED
-        and not getattr(tenant, "email_pending", False)
-        and getattr(tenant, "in_city_catalog", True)
-        and not getattr(tenant, "is_internal", False)  # T-8.26: тестовая регистрация
-        and getattr(tenant, "published_at", True) is not None  # AIS-W W4-1
-    )
+    return not withheld_reasons(tenant)
 
 
 def withheld_schemas():

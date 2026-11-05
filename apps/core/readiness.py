@@ -57,6 +57,10 @@ class Facts:
         self._cache: dict = {}
         #: Факты, упавшие с ошибкой (отчёт показывает их как «error», гейт — fail-open).
         self.errors: list[str] = []
+        #: Сколько раз прочитан упавший факт (в т.ч. из мемо) — по нему `_check` узнаёт,
+        #: что ответ пункта построен на сбое, даже если упал факт раньше (AIS-A A-0).
+        self.failed_reads = 0
+        self._failed: set[str] = set()
 
     def in_schema(self) -> bool:
         from django.db import connection
@@ -81,7 +85,10 @@ class Facts:
                     self._cache[key] = compute()
             except Exception:  # noqa: BLE001 — fail-open: сбой не закрывает кассу
                 self.fail(key)
+                self._failed.add(key)
                 self._cache[key] = True
+        if key in self._failed:
+            self.failed_reads += 1
         return self._cache[key]
 
 
@@ -373,13 +380,21 @@ def _active_direction_keys(tenant) -> set[str]:
         return set()
 
 
-def _check(item: Item, tenant, facts: Facts):
-    """Проверка пункта под общей защитой: сбой — лог + errors + fail-open."""
+def _check(item: Item, tenant, facts: Facts, *, unknown_on_error: bool = False):
+    """Проверка пункта под общей защитой: сбой — лог + errors + fail-open.
+
+    `unknown_on_error` (помощник AIS-A A-0): упавшая проверка — None («не смогли проверить»),
+    а не True — подсказке нельзя говорить «готово», если она этого не знает. Гейт продажи
+    остаётся fail-open (по умолчанию)."""
+    before = (len(facts.errors), facts.failed_reads)
     try:
-        return item.check(tenant, facts)
+        done = item.check(tenant, facts)
     except Exception:  # noqa: BLE001
         facts.fail(item.key)
-        return True
+        done = True
+    if unknown_on_error and (len(facts.errors), facts.failed_reads) != before:
+        return None
+    return done
 
 
 def _applies(item: Item, tenant, facts: Facts) -> bool:
@@ -392,7 +407,13 @@ def _applies(item: Item, tenant, facts: Facts) -> bool:
         return True
 
 
-def items_for(tenant, *, direction: str | None = None, level: str | None = None) -> list[dict]:
+def items_for(
+    tenant,
+    *,
+    direction: str | None = None,
+    level: str | None = None,
+    unknown_on_error: bool = False,
+) -> list[dict]:
     """Пункты, применимые к бизнесу: база + активные направления (или одно указанное).
 
     Строка: key, label, level, direction, done (True/False/None), url.
@@ -405,16 +426,23 @@ def items_for(tenant, *, direction: str | None = None, level: str | None = None)
             continue
         if level and item.level != level:
             continue
-        if not _applies(item, tenant, facts):
+        before = len(facts.errors)
+        applies = _applies(item, tenant, facts)
+        if unknown_on_error and len(facts.errors) > before:
+            done = None  # не смогли понять, относится ли пункт, — не «готово»
+        elif not applies:
             continue
+        else:
+            done = _check(item, tenant, facts, unknown_on_error=unknown_on_error)
         rows.append(
             {
                 "key": item.key,
                 "label": item.label,
                 "level": item.level,
                 "direction": item.direction,
-                "done": _check(item, tenant, facts),
+                "done": done,
                 "url": _url(item),
+                "url_name": item.url_name,
             }
         )
     return rows
@@ -432,11 +460,11 @@ def missing(
     return [r for r in rows if r["done"] is False]
 
 
-def is_done(tenant, key: str) -> bool | None:
+def is_done(tenant, key: str, *, unknown_on_error: bool = False) -> bool | None:
     item = _BY_KEY.get(key)
     if item is None:
         raise KeyError(key)  # опечатка в ключе — ошибка, а не «unknown»
-    return _check(item, tenant, facts_for(tenant))
+    return _check(item, tenant, facts_for(tenant), unknown_on_error=unknown_on_error)
 
 
 def sell_ready(tenant, direction: str) -> bool:

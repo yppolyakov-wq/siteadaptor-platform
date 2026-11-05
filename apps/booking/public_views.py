@@ -38,8 +38,9 @@ MAX_UNITS = 8  # HF-7: максимум подряд идущих единиц �
 
 
 def _require_booking_active(request):
-    tenant = getattr(request, "tenant", None)
-    if tenant is None or not tenant.is_module_active("booking"):
+    from apps.core.storefront_state import booking_active
+
+    if not booking_active(getattr(request, "tenant", None)):
         raise Http404
 
 

@@ -59,6 +59,18 @@ def readiness(_request):
     )
 
 
+def tls_withheld(tenant) -> bool:
+    """SEC-B-H1: бизнес быстрой регистрации, не подтвердивший почту за сутки, нового
+    сертификата не получает (иначе боты расходуют квоту Let's Encrypt, класс T-5). Единственный
+    источник: проверка домена Caddy и помощник (AIS-A A-0)."""
+    return bool(
+        tenant is not None
+        and getattr(tenant, "email_pending", False)
+        and getattr(tenant, "created_at", None)
+        and tenant.created_at < timezone.now() - UNCONFIRMED_TLS_GRACE
+    )
+
+
 def verify_domain(request):
     """Phase 2: авторизация домена для Caddy on-demand TLS.
 
@@ -79,11 +91,6 @@ def verify_domain(request):
     tenant = row.tenant
     # SEC-B-H1: бизнес из быстрой регистрации, не подтвердивший почту за сутки, нового
     # сертификата не получает — иначе боты расходуют квоту Let's Encrypt (класс T-5).
-    if (
-        tenant is not None
-        and getattr(tenant, "email_pending", False)
-        and tenant.created_at
-        and tenant.created_at < timezone.now() - UNCONFIRMED_TLS_GRACE
-    ):
+    if tls_withheld(tenant):
         return HttpResponse(status=404)
     return HttpResponse("ok")

@@ -5,7 +5,7 @@ import logging
 from django import template
 from django.utils.translation import gettext_lazy as _
 
-from apps.core import modules, nav_registry, packages
+from apps.core import nav_registry, packages
 
 register = template.Library()
 logger = logging.getLogger(__name__)
@@ -184,46 +184,7 @@ def lite_allowed(url_name, request):
 def nav_palette(context):
     """W8-4: палитра Ctrl+K — гейтнутый индекс реестра (модуль активен).
     haystack = label+search в нижнем регистре (клиентский фильтр)."""
-    request = context.get("request")
-    tenant = getattr(request, "tenant", None) if request is not None else None
-    area_by_hub = {hub: a.label for a in nav_registry.ANCHORS for hub in a.hubs}
-    owner_hidden = modules.owner_hidden_for(getattr(request, "user", None))
-    entries = []
-    for e in nav_registry.palette_entries():
-        anchor = e.get("anchor")
-        if (
-            anchor is not None
-            and tenant is not None
-            and not nav_registry.anchor_visible(anchor, tenant)
-        ):
-            continue  # KA-12 E8.3: скрытый условный якорь — без карточки
-        mod = e["module_key"]
-        if mod is not None and tenant is not None and not modules.is_module_active(tenant, mod):
-            continue
-        if e["url_name"] in owner_hidden or e["url_name"] + e.get("query", "") in owner_hidden:
-            continue  # E6.7e: экраны без права пользователя не показываем
-        if not nav_registry.allowed_for_business(e["url_name"], tenant):
-            continue  # X4: гейт по типу бизнеса (гастро-экраны)
-        entry = e.get("entry")
-        if (
-            entry is not None
-            and tenant is not None
-            and not nav_registry.entry_visible(entry, tenant)
-        ):
-            continue  # KA-12 E8.1: «любой из модулей» и направления — как в сайдбаре
-        if tenant is not None and not packages.view_allowed(tenant, e["url_name"]):
-            continue  # T-8.32b: экраны вне пакета в палитре не показываем
-        entries.append(
-            {
-                "url_name": e["url_name"],
-                # VF-10: вкладки-адреса («Aufträge» ?tab=job) — прыжок с query
-                "query": e.get("query", ""),
-                "label": e["label"],
-                "area": area_by_hub.get(e["hub"], ""),
-                "haystack": f"{e['label']} {e['search']}".lower(),
-            }
-        )
-    return {"entries": entries}
+    return {"entries": nav_registry.palette_entries_for(context.get("request"))}
 
 
 # E9: стадия → тон детали `.ui-badge` (та же палитра, что `status_tone` по роли:

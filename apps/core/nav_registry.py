@@ -1391,6 +1391,45 @@ def palette_entries() -> list[dict]:
 # --- KA-12 E8.3/E8.4: условные якоря и группы подменю --------------------------
 
 
+def palette_entries_for(request) -> list[dict]:
+    """W8-4: гейтнутый индекс палитры Ctrl+K для этого запроса (модули, права, тип бизнеса,
+    пакет). Одна точка для палитры и помощника (AIS-A A-0 «Wo stelle ich das ein?»).
+    haystack = label+search в нижнем регистре (клиентский фильтр)."""
+    from apps.core import modules, packages
+
+    tenant = getattr(request, "tenant", None) if request is not None else None
+    area_by_hub = {hub: a.label for a in ANCHORS for hub in a.hubs}
+    owner_hidden = modules.owner_hidden_for(getattr(request, "user", None))
+    entries = []
+    for e in palette_entries():
+        anchor = e.get("anchor")
+        if anchor is not None and tenant is not None and not anchor_visible(anchor, tenant):
+            continue  # KA-12 E8.3: скрытый условный якорь — без карточки
+        mod = e["module_key"]
+        if mod is not None and tenant is not None and not modules.is_module_active(tenant, mod):
+            continue
+        if e["url_name"] in owner_hidden or e["url_name"] + e.get("query", "") in owner_hidden:
+            continue  # E6.7e: экраны без права пользователя не показываем
+        if not allowed_for_business(e["url_name"], tenant):
+            continue  # X4: гейт по типу бизнеса (гастро-экраны)
+        entry = e.get("entry")
+        if entry is not None and tenant is not None and not entry_visible(entry, tenant):
+            continue  # KA-12 E8.1: «любой из модулей» и направления — как в сайдбаре
+        if tenant is not None and not packages.view_allowed(tenant, e["url_name"]):
+            continue  # T-8.32b: экраны вне пакета в палитре не показываем
+        entries.append(
+            {
+                "url_name": e["url_name"],
+                # VF-10: вкладки-адреса («Aufträge» ?tab=job) — прыжок с query
+                "query": e.get("query", ""),
+                "label": e["label"],
+                "area": area_by_hub.get(e["hub"], ""),
+                "haystack": f"{e['label']} {e['search']}".lower(),
+            }
+        )
+    return entries
+
+
 def anchor_visible(anchor, tenant) -> bool:
     """Виден ли якорь тенанту. Условный (modules_any) — если активен любой из модулей;
     иначе прежнее правило: свой модуль или любой модуль его хабов (X0)."""

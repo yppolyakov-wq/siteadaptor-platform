@@ -15,20 +15,25 @@ PORTAL_LIMIT = 3
 
 
 def _catalog_reason(tenant) -> str:
-    """Почему бизнеса нет в каталоге города ('' — может быть)."""
+    """Почему бизнеса нет в каталоге города ('' — может быть).
+
+    Причины — из единственного источника `visibility.withheld_reasons` (AIS-A A-0); здесь
+    только текст. Раньше условия были продублированы и не знали «сайт не опубликован»."""
     from apps.aggregator import visibility
 
     if getattr(tenant, "is_demo", False):
         return _("Demo-Geschäft — nicht im echten Stadtkatalog.")
-    if getattr(tenant, "email_pending", False):
-        return _("Erst nach Bestätigung Ihrer E-Mail-Adresse (Link in der E-Mail).")
-    if not getattr(tenant, "in_city_catalog", True):
-        return _("Im Stadtkatalog ausgeschaltet (Einstellungen → Mein Geschäft).")
-    if getattr(tenant, "subscription_status", "") == visibility.SUSPENDED:
-        return _("Konto pausiert — bitte im Kabinett unter „Abo“ prüfen.")
-    if not visibility.listable(tenant):
-        return _("Derzeit nicht sichtbar.")
-    return ""
+    reasons = visibility.withheld_reasons(tenant)
+    texts = {
+        "email_pending": _("Erst nach Bestätigung Ihrer E-Mail-Adresse (Link in der E-Mail)."),
+        "unpublished": _("Erst nach „Website veröffentlichen“ im Einrichtungsassistenten."),
+        "operator_off": _("Im Stadtkatalog vom Betreiber ausgeschaltet."),
+        "suspended": _("Konto pausiert — bitte im Kabinett unter „Abo“ prüfen."),
+    }
+    for code, text in texts.items():  # порядок прежний: почта → публикация → оператор → абонемент
+        if code in reasons:
+            return text
+    return _("Derzeit nicht sichtbar.") if reasons else ""
 
 
 def _catalog_state(tenant, promo, *, with_urls=True) -> dict:

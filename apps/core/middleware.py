@@ -79,11 +79,12 @@ class PendingStorefrontMiddleware:
         # POST тоже (иначе по известному адресу можно оформить заказ на сайте, который
         # владелец ещё не готовил; ревью security-reviewer). Вебхуки Telegram и кабинет
         # идут по OPEN_PREFIXES, Stripe — на публичный хост.
-        unpublished = getattr(tenant, "published_at", True) is None
+        from apps.core.storefront_state import hidden_reasons
+
+        reasons = hidden_reasons(tenant)
+        unpublished = "unpublished" in reasons
         if (
-            tenant is None
-            or getattr(tenant, "schema_name", "public") == "public"
-            or not (getattr(tenant, "email_pending", False) or unpublished)
+            not reasons
             or (request.method not in ("GET", "HEAD") and not unpublished)
             or request.path.startswith(self.OPEN_PREFIXES)
             or has_cabinet_access(getattr(request, "user", None))

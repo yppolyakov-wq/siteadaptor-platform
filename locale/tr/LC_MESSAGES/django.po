@@ -32657,3 +32657,216 @@ msgstr "Zaten eklenen odalar"
 #, python-format
 msgid "Zeile %(n)s übernehmen"
 msgstr "%(n)s. satırı ekle"
+
+#: apps/core/diagnoses.py
+msgid "Online-Bestellung"
+msgstr "Online sipariş"
+
+#: apps/core/diagnoses.py
+msgid "Kunden sehen „Bald online“"
+msgstr "Müşteriler “Yakında yayında” görüyor"
+
+#: apps/core/diagnoses.py
+msgid "Nicht im Stadtkatalog"
+msgstr "Şehir kataloğunda yok"
+
+#: apps/core/diagnoses.py
+msgid "Kunden können nicht online bestellen"
+msgstr "Müşteriler online sipariş veremiyor"
+
+#: apps/core/diagnoses.py
+msgid "Meine Aktion ist nicht zu sehen"
+msgstr "Kampanyam görünmüyor"
+
+#: apps/core/diagnoses.py
+msgid "Die Website zeigt „geschlossen“"
+msgstr "Web sitesi “kapalı” gösteriyor"
+
+#: apps/core/diagnoses.py
+msgid "Keine freien Termine auf der Website"
+msgstr "Web sitesinde boş randevu yok"
+
+#: apps/core/diagnoses.py
+msgid "Zimmer nicht buchbar"
+msgstr "Odalar rezerve edilemiyor"
+
+#: apps/core/diagnoses.py
+msgid "Produkte fehlen bei Google"
+msgstr "Ürünler Google'da eksik"
+
+#: apps/core/diagnoses.py
+msgid "Erst nach Bestätigung Ihrer E-Mail-Adresse."
+msgstr "Ancak e-posta adresinizi onayladıktan sonra."
+
+#: apps/core/diagnoses.py
+msgid "Erst nach „Website veröffentlichen“."
+msgstr "Ancak “Web sitesini yayınla” sonrasında."
+
+#: apps/core/diagnoses.py
+msgid "Im Stadtkatalog vom Betreiber ausgeschaltet."
+msgstr "Şehir kataloğunda operatör tarafından kapatıldı."
+
+#: apps/core/diagnoses.py
+msgid "Konto pausiert — bitte unter „Abo“ prüfen."
+msgstr "Hesap duraklatıldı — lütfen “Abonelik” bölümünü kontrol edin."
+
+#: apps/core/diagnoses.py
+msgid "Ihr Konto ist derzeit nicht aktiv."
+msgstr "Hesabınız şu anda aktif değil."
+
+#: apps/core/diagnoses.py
+msgid "Testkonto — erscheint nicht im Stadtkatalog."
+msgstr "Test hesabı — şehir kataloğunda görünmez."
+
+#: apps/core/diagnoses.py
+msgid "Ihr Geschäft ist im Stadtkatalog sichtbar."
+msgstr "İşletmeniz şehir kataloğunda görünüyor."
+
+#: apps/core/diagnoses.py
+#, python-format
+msgid "%(f)s ist ausgeschaltet."
+msgstr "%(f)s kapalı."
+
+#: apps/core/diagnoses.py
+msgid "Laut Öffnungszeiten gerade geöffnet."
+msgstr "Çalışma saatlerine göre şu anda açık."
+
+#: apps/core/diagnoses.py
+msgid "Gäste können Zimmer online buchen."
+msgstr "Misafirler odaları online rezerve edebilir."
+
+#: apps/core/diagnoses.py
+msgid "Alle Produkte sind im Google-Feed."
+msgstr "Tüm ürünler Google akışında."
+
+#: apps/core/diagnoses.py
+msgid "Konnte nicht geprüft werden — bitte später erneut versuchen."
+msgstr "Kontrol edilemedi — lütfen daha sonra tekrar deneyin."
+
+#: apps/core/diagnoses.py
+msgid "Ihre E-Mail-Adresse ist noch nicht bestätigt — bis dahin sehen Kunden „Bald online“."
+msgstr "E-posta adresiniz henüz onaylanmadı — o zamana kadar müşteriler “Yakında yayında” görür."
+
+#: apps/core/diagnoses.py
+msgid "Die Website ist noch nicht veröffentlicht."
+msgstr "Web sitesi henüz yayınlanmadı."
+
+#: apps/core/diagnoses.py
+msgid "Ihre Website ist für Kunden sichtbar."
+msgstr "Web siteniz müşterilere görünüyor."
+
+#: apps/core/diagnoses.py
+msgid "Demo-Geschäft — erscheint nicht im echten Stadtkatalog."
+msgstr "Demo işletme — gerçek şehir kataloğunda görünmez."
+
+#: apps/core/diagnoses.py
+msgid "Noch keine sichtbaren Einträge — aktive Aktionen und Angebote mit Foto und Preis erscheinen im Stadtkatalog."
+msgstr "Henüz görünür kayıt yok — fotoğraflı ve fiyatlı aktif kampanyalar ve teklifler şehir kataloğunda görünür."
+
+#: apps/core/diagnoses.py
+#, python-format
+msgid "%(f)s ist in Ihrem Paket nicht enthalten."
+msgstr "%(f)s paketinize dahil değil."
+
+#: apps/core/diagnoses.py
+msgid "Ihre Website zeigt nur Aktionen — der Warenkorb ist ausgeblendet."
+msgstr "Web siteniz yalnızca kampanyaları gösteriyor — sepet gizli."
+
+#: apps/core/diagnoses.py
+msgid "Keine Zahlungsart eingerichtet."
+msgstr "Ödeme yöntemi ayarlanmadı."
+
+#: apps/core/diagnoses.py
+msgid "Noch kein Produkt mit Preis angelegt."
+msgstr "Henüz fiyatlı ürün oluşturulmadı."
+
+#: apps/core/diagnoses.py
+msgid "Kunden können online bestellen."
+msgstr "Müşteriler online sipariş verebilir."
+
+#: apps/core/diagnoses.py
+msgid "Noch keine Aktion angelegt."
+msgstr "Henüz kampanya oluşturulmadı."
+
+#: apps/core/diagnoses.py
+msgid "Ihre Aktionen sind sichtbar."
+msgstr "Kampanyalarınız görünüyor."
+
+#: apps/core/diagnoses.py
+msgid "Keine Öffnungszeiten hinterlegt — die Website zeigt keinen Status."
+msgstr "Çalışma saatleri girilmedi — web sitesi durum göstermiyor."
+
+#: apps/core/diagnoses.py
+msgid "Gerade geschlossen laut Öffnungszeiten — die Website zeigt das so an."
+msgstr "Çalışma saatlerine göre şu anda kapalı — web sitesi bunu böyle gösteriyor."
+
+#: apps/core/diagnoses.py
+msgid "Noch keine aktive Leistung."
+msgstr "Henüz aktif hizmet yok."
+
+#: apps/core/diagnoses.py
+msgid "Für Ihre Leistungen gibt es freie Termine."
+msgstr "Hizmetleriniz için boş randevular var."
+
+#: apps/core/diagnoses.py
+msgid "Kein Zimmer mit Preis, Gästezahl und Foto — Gäste können nicht online buchen."
+msgstr "Fiyatı, misafir sayısı ve fotoğrafı olan oda yok — misafirler online rezervasyon yapamaz."
+
+#: apps/core/diagnoses.py
+msgid "Zimmer konnten nicht geprüft werden."
+msgstr "Odalar kontrol edilemedi."
+
+#: apps/core/diagnoses.py
+msgid "Der Google-Produktfeed ist nicht eingeschaltet."
+msgstr "Google ürün akışı açık değil."
+
+#: apps/core/diagnoses.py
+msgid "Produkte konnten nicht geprüft werden."
+msgstr "Ürünler kontrol edilemedi."
+
+#: apps/core/diagnoses.py
+#, python-format
+msgid "Betriebsferien bis %(day)s — die Website zeigt „geschlossen“."
+msgstr "%(day)s tarihine kadar tatil — web sitesi “kapalı” gösteriyor."
+
+#: apps/core/diagnoses.py
+msgid "Online-Termine"
+msgstr "Online randevular"
+
+#: apps/core/diagnoses.py
+msgid "Zimmerbuchung"
+msgstr "Oda rezervasyonu"
+
+#: apps/core/diagnoses.py
+#, python-format
+msgid "In den nächsten %(days)s Tagen keine freie Nacht — Belegung und Preise prüfen."
+msgstr "Önümüzdeki %(days)s gün içinde boş gece yok — doluluk ve fiyatları kontrol edin."
+
+#: apps/core/diagnoses.py
+#, python-format
+msgid "%(n)s Produkte fehlen im Google-Feed (z. B. ohne Foto oder Preis)."
+msgstr "%(n)s ürün Google akışında eksik (ör. fotoğraf veya fiyat yok)."
+
+#: apps/core/diagnoses.py
+#, python-format
+msgid "Es fehlt: %(item)s"
+msgstr "Eksik: %(item)s"
+
+#: apps/core/diagnoses.py
+#, python-format
+msgid "„%(name)s“: niemand im Team bietet diese Leistung an."
+msgstr "“%(name)s”: ekipte bu hizmeti sunan kimse yok."
+
+#: apps/core/diagnoses.py
+#, python-format
+msgid "„%(name)s“ — %(where)s: %(why)s"
+msgstr "“%(name)s” — %(where)s: %(why)s"
+
+#: apps/core/diagnoses.py
+#, python-format
+msgid "„%(name)s“: in den nächsten %(days)s Tagen keine freien Termine — Öffnungszeiten der Mitarbeiter, Betriebsferien oder Buchungsfenster prüfen."
+msgstr "“%(name)s”: önümüzdeki %(days)s gün boş randevu yok — personel saatlerini, tatilleri veya rezervasyon aralığını kontrol edin."
+
+#: apps/core/diagnoses.py
+msgid "Erst nach „Website veröffentlichen“ im Einrichtungsassistenten."
+msgstr "Ancak kurulum sihirbazında “Web sitesini yayınla” sonrasında."

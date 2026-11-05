@@ -32511,3 +32511,216 @@ msgstr "Rooms already added"
 #, python-format
 msgid "Zeile %(n)s übernehmen"
 msgstr "Add line %(n)s"
+
+#: apps/core/diagnoses.py
+msgid "Online-Bestellung"
+msgstr "Online ordering"
+
+#: apps/core/diagnoses.py
+msgid "Kunden sehen „Bald online“"
+msgstr "Customers see “Coming soon”"
+
+#: apps/core/diagnoses.py
+msgid "Nicht im Stadtkatalog"
+msgstr "Not in the city catalogue"
+
+#: apps/core/diagnoses.py
+msgid "Kunden können nicht online bestellen"
+msgstr "Customers can't order online"
+
+#: apps/core/diagnoses.py
+msgid "Meine Aktion ist nicht zu sehen"
+msgstr "My promotion isn't visible"
+
+#: apps/core/diagnoses.py
+msgid "Die Website zeigt „geschlossen“"
+msgstr "The website shows “closed”"
+
+#: apps/core/diagnoses.py
+msgid "Keine freien Termine auf der Website"
+msgstr "No free appointments on the website"
+
+#: apps/core/diagnoses.py
+msgid "Zimmer nicht buchbar"
+msgstr "Rooms can't be booked"
+
+#: apps/core/diagnoses.py
+msgid "Produkte fehlen bei Google"
+msgstr "Products missing on Google"
+
+#: apps/core/diagnoses.py
+msgid "Erst nach Bestätigung Ihrer E-Mail-Adresse."
+msgstr "Only after you confirm your email address."
+
+#: apps/core/diagnoses.py
+msgid "Erst nach „Website veröffentlichen“."
+msgstr "Only after “Publish website”."
+
+#: apps/core/diagnoses.py
+msgid "Im Stadtkatalog vom Betreiber ausgeschaltet."
+msgstr "Switched off in the city catalogue by the operator."
+
+#: apps/core/diagnoses.py
+msgid "Konto pausiert — bitte unter „Abo“ prüfen."
+msgstr "Account paused — please check under “Subscription”."
+
+#: apps/core/diagnoses.py
+msgid "Ihr Konto ist derzeit nicht aktiv."
+msgstr "Your account is currently not active."
+
+#: apps/core/diagnoses.py
+msgid "Testkonto — erscheint nicht im Stadtkatalog."
+msgstr "Test account — not shown in the city catalogue."
+
+#: apps/core/diagnoses.py
+msgid "Ihr Geschäft ist im Stadtkatalog sichtbar."
+msgstr "Your business is visible in the city catalogue."
+
+#: apps/core/diagnoses.py
+#, python-format
+msgid "%(f)s ist ausgeschaltet."
+msgstr "%(f)s is switched off."
+
+#: apps/core/diagnoses.py
+msgid "Laut Öffnungszeiten gerade geöffnet."
+msgstr "Open right now according to your opening hours."
+
+#: apps/core/diagnoses.py
+msgid "Gäste können Zimmer online buchen."
+msgstr "Guests can book rooms online."
+
+#: apps/core/diagnoses.py
+msgid "Alle Produkte sind im Google-Feed."
+msgstr "All products are in the Google feed."
+
+#: apps/core/diagnoses.py
+msgid "Konnte nicht geprüft werden — bitte später erneut versuchen."
+msgstr "Could not be checked — please try again later."
+
+#: apps/core/diagnoses.py
+msgid "Ihre E-Mail-Adresse ist noch nicht bestätigt — bis dahin sehen Kunden „Bald online“."
+msgstr "Your email address isn't confirmed yet — until then customers see “Coming soon”."
+
+#: apps/core/diagnoses.py
+msgid "Die Website ist noch nicht veröffentlicht."
+msgstr "The website isn't published yet."
+
+#: apps/core/diagnoses.py
+msgid "Ihre Website ist für Kunden sichtbar."
+msgstr "Your website is visible to customers."
+
+#: apps/core/diagnoses.py
+msgid "Demo-Geschäft — erscheint nicht im echten Stadtkatalog."
+msgstr "Demo business — not shown in the real city catalogue."
+
+#: apps/core/diagnoses.py
+msgid "Noch keine sichtbaren Einträge — aktive Aktionen und Angebote mit Foto und Preis erscheinen im Stadtkatalog."
+msgstr "No visible entries yet — active promotions and offers with a photo and price appear in the city catalogue."
+
+#: apps/core/diagnoses.py
+#, python-format
+msgid "%(f)s ist in Ihrem Paket nicht enthalten."
+msgstr "%(f)s is not included in your package."
+
+#: apps/core/diagnoses.py
+msgid "Ihre Website zeigt nur Aktionen — der Warenkorb ist ausgeblendet."
+msgstr "Your website only shows promotions — the cart is hidden."
+
+#: apps/core/diagnoses.py
+msgid "Keine Zahlungsart eingerichtet."
+msgstr "No payment method set up."
+
+#: apps/core/diagnoses.py
+msgid "Noch kein Produkt mit Preis angelegt."
+msgstr "No product with a price created yet."
+
+#: apps/core/diagnoses.py
+msgid "Kunden können online bestellen."
+msgstr "Customers can order online."
+
+#: apps/core/diagnoses.py
+msgid "Noch keine Aktion angelegt."
+msgstr "No promotion created yet."
+
+#: apps/core/diagnoses.py
+msgid "Ihre Aktionen sind sichtbar."
+msgstr "Your promotions are visible."
+
+#: apps/core/diagnoses.py
+msgid "Keine Öffnungszeiten hinterlegt — die Website zeigt keinen Status."
+msgstr "No opening hours set — the website shows no status."
+
+#: apps/core/diagnoses.py
+msgid "Gerade geschlossen laut Öffnungszeiten — die Website zeigt das so an."
+msgstr "Closed right now according to your opening hours — the website shows it that way."
+
+#: apps/core/diagnoses.py
+msgid "Noch keine aktive Leistung."
+msgstr "No active service yet."
+
+#: apps/core/diagnoses.py
+msgid "Für Ihre Leistungen gibt es freie Termine."
+msgstr "There are free appointments for your services."
+
+#: apps/core/diagnoses.py
+msgid "Kein Zimmer mit Preis, Gästezahl und Foto — Gäste können nicht online buchen."
+msgstr "No room with price, number of guests and photo — guests can't book online."
+
+#: apps/core/diagnoses.py
+msgid "Zimmer konnten nicht geprüft werden."
+msgstr "Rooms could not be checked."
+
+#: apps/core/diagnoses.py
+msgid "Der Google-Produktfeed ist nicht eingeschaltet."
+msgstr "The Google product feed is not switched on."
+
+#: apps/core/diagnoses.py
+msgid "Produkte konnten nicht geprüft werden."
+msgstr "Products could not be checked."
+
+#: apps/core/diagnoses.py
+#, python-format
+msgid "Betriebsferien bis %(day)s — die Website zeigt „geschlossen“."
+msgstr "Closed for holidays until %(day)s — the website shows “closed”."
+
+#: apps/core/diagnoses.py
+msgid "Online-Termine"
+msgstr "Online appointments"
+
+#: apps/core/diagnoses.py
+msgid "Zimmerbuchung"
+msgstr "Room booking"
+
+#: apps/core/diagnoses.py
+#, python-format
+msgid "In den nächsten %(days)s Tagen keine freie Nacht — Belegung und Preise prüfen."
+msgstr "No free night in the next %(days)s days — check occupancy and prices."
+
+#: apps/core/diagnoses.py
+#, python-format
+msgid "%(n)s Produkte fehlen im Google-Feed (z. B. ohne Foto oder Preis)."
+msgstr "%(n)s products are missing from the Google feed (e.g. without a photo or price)."
+
+#: apps/core/diagnoses.py
+#, python-format
+msgid "Es fehlt: %(item)s"
+msgstr "Missing: %(item)s"
+
+#: apps/core/diagnoses.py
+#, python-format
+msgid "„%(name)s“: niemand im Team bietet diese Leistung an."
+msgstr "“%(name)s”: nobody in the team offers this service."
+
+#: apps/core/diagnoses.py
+#, python-format
+msgid "„%(name)s“ — %(where)s: %(why)s"
+msgstr "“%(name)s” — %(where)s: %(why)s"
+
+#: apps/core/diagnoses.py
+#, python-format
+msgid "„%(name)s“: in den nächsten %(days)s Tagen keine freien Termine — Öffnungszeiten der Mitarbeiter, Betriebsferien oder Buchungsfenster prüfen."
+msgstr "“%(name)s”: no free appointments in the next %(days)s days — check staff hours, holidays or the booking window."
+
+#: apps/core/diagnoses.py
+msgid "Erst nach „Website veröffentlichen“ im Einrichtungsassistenten."
+msgstr "Only after “Publish website” in the setup wizard."

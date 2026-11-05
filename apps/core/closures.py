@@ -38,8 +38,11 @@ def _own_schema(tenant=None) -> bool:
     return True
 
 
-def closed_days(start: date, end: date, tenant=None) -> dict:
-    """{день: причина} закрытий бизнеса в [start, end] (включительно)."""
+def closed_days(start: date, end: date, tenant=None, *, strict: bool = False) -> dict:
+    """{день: причина} закрытий бизнеса в [start, end] (включительно).
+
+    `strict` (помощник AIS-A A-0): сбой чтения поднимается, а не превращается в «не закрыто»
+    — диагноз не должен говорить «открыто», если не смог проверить."""
     if not _own_schema(tenant) or end < start:
         return {}
     try:
@@ -51,6 +54,8 @@ def closed_days(start: date, end: date, tenant=None) -> dict:
             ).values_list("date", "reason")
         )
     except Exception:  # noqa: BLE001 — витрина важнее баннера
+        if strict:
+            raise
         logger.exception("closures: read failed")
         return {}
 

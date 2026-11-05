@@ -19,6 +19,7 @@ from django.views.decorators.http import require_POST
 
 from apps.catalog.combos import combo_labels
 from apps.core import closures, page_settings, ratelimit
+from apps.core.storefront_state import orders_active
 
 from . import delivery_choice, pickup_slots
 from . import payments as order_payments
@@ -37,8 +38,7 @@ MAX_QTY = 50  # на позицию — защита от мусора
 
 
 def _require_orders_active(request):
-    tenant = getattr(request, "tenant", None)
-    if tenant is None or not tenant.is_module_active("orders"):
+    if not orders_active(getattr(request, "tenant", None)):
         raise Http404
 
 
@@ -385,7 +385,7 @@ def combo_detail_public(request, pk):
     if combo is None:
         raise Http404
     tenant = getattr(request, "tenant", None)
-    orders_active = tenant is not None and tenant.is_module_active("orders")
+    orders_on = orders_active(tenant)
     from apps.tenants import siteconfig
 
     site_cfg = siteconfig.normalize(tenant.site_config) if tenant is not None else {}
@@ -432,12 +432,12 @@ def combo_detail_public(request, pk):
             "pool_courses": pool_courses,
             "from_price": combo_price_from(combo),
             "min_qty": combo.min_persons or 1,
-            "combo_orders_active": orders_active,
+            "combo_orders_active": orders_on,
             # DS-7 menu_show_prices: browse-only витрина может скрывать цены (PAngV —
-            # где заказ есть, цена обязана быть видна → orders_active всегда True-ветка).
-            "show_prices": orders_active or site_cfg.get("menu_show_prices") is not False,
+            # где заказ есть, цена обязана быть видна → orders_on всегда True-ветка).
+            "show_prices": orders_on or site_cfg.get("menu_show_prices") is not False,
             "combo_anfrage_active": (
-                not orders_active and tenant is not None and tenant.is_module_active("jobs")
+                not orders_on and tenant is not None and tenant.is_module_active("jobs")
             ),
             "reviews": list(review_services.published_for("combo", combo.pk)),
             "review_summary": review_services.summary("combo", combo.pk),
@@ -1411,7 +1411,7 @@ def offer_page(request, token):
         return redirect("storefront-offer", token=token)
 
     labels = dict(Order.PAYMENT_METHODS)
-    orders_active = tenant is not None and tenant.is_module_active("orders")
+    orders_on = orders_active(tenant)
     return render(
         request,
         "storefront/offer.html",
@@ -1419,7 +1419,7 @@ def offer_page(request, token):
             "offer": offer,
             "lines": list(offer.lines.all()),
             "just_paid": request.GET.get("paid") == "1",
-            "order_link": offer.order is not None and orders_active,
+            "order_link": offer.order is not None and orders_on,
             # Пикер способа — только при >1 (паритет-семантика E7-2 checkout).
             "payment_methods": [{"code": m, "label": labels[m]} for m in methods]
             if len(methods) > 1

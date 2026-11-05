@@ -41,9 +41,10 @@ def can_buy(tenant) -> bool:
     if tenant is None:
         return True
     from apps.core import storefront_profile
+    from apps.core.storefront_state import orders_active
 
     try:
-        orders_on = tenant.is_module_active("orders")
+        orders_on = orders_active(tenant)
     except Exception:  # noqa: BLE001 — стаб тенанта без модулей
         return True
     return orders_on and not storefront_profile.is_aktionen(tenant)

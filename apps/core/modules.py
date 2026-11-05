@@ -555,6 +555,27 @@ def is_module_active(tenant, key: str, *, ignore_package: bool = False) -> bool:
     )
 
 
+def inactive_reason(tenant, key: str) -> str:
+    """Почему модуль сейчас выключен ("" — включён). Та же цепочка, что `is_module_active`
+    (замок паритета), — для помощника AIS-A A-0: «unknown» · «tariff» · «package» ·
+    «disabled» · «needs:<модуль>»."""
+    spec = _BY_KEY.get(key)
+    if spec is None:
+        return "unknown"
+    if spec.core:
+        return ""
+    if not is_entitled(tenant, spec):
+        return "tariff"
+    if not packages.module_allowed(tenant, key):
+        return "package"
+    if key in (getattr(tenant, "disabled_modules", None) or []):
+        return "disabled"
+    for dep in spec.depends_on:
+        if inactive_reason(tenant, dep):
+            return f"needs:{dep}"
+    return ""
+
+
 def enable_module(tenant, key: str) -> bool:
     """T-8.29: включить ОДИН модуль точечной записью (чужие выборы владельца целы).
     True — что-то изменилось."""

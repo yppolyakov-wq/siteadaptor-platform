@@ -596,11 +596,15 @@ def _after_publish(tenant) -> None:
     bump_storefront_cache(tenant.schema_name)
 
 
-def publish_blockers(tenant) -> list[dict]:
-    """Чего не хватает для публикации. Fail-closed: «не можем проверить» = не хватает."""
+def publish_blockers(tenant, *, fresh: bool = True) -> list[dict]:
+    """Чего не хватает для публикации. Fail-closed: «не можем проверить» = не хватает.
+
+    `fresh=False` — читает уже собранные за запрос факты (помощник A-0 не сбрасывает
+    мемо чужого рендера)."""
     from apps.core import readiness
 
-    readiness.invalidate(tenant)
+    if fresh:
+        readiness.invalidate(tenant)
     return [
         row
         for row in readiness.items_for(tenant, direction="")

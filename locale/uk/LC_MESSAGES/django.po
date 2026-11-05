@@ -32799,3 +32799,216 @@ msgstr "Вже додані номери"
 #, python-format
 msgid "Zeile %(n)s übernehmen"
 msgstr "Додати рядок %(n)s"
+
+#: apps/core/diagnoses.py
+msgid "Online-Bestellung"
+msgstr "Онлайн-замовлення"
+
+#: apps/core/diagnoses.py
+msgid "Kunden sehen „Bald online“"
+msgstr "Клієнти бачать «Скоро онлайн»"
+
+#: apps/core/diagnoses.py
+msgid "Nicht im Stadtkatalog"
+msgstr "Немає в каталозі міста"
+
+#: apps/core/diagnoses.py
+msgid "Kunden können nicht online bestellen"
+msgstr "Клієнти не можуть замовити онлайн"
+
+#: apps/core/diagnoses.py
+msgid "Meine Aktion ist nicht zu sehen"
+msgstr "Моєї акції не видно"
+
+#: apps/core/diagnoses.py
+msgid "Die Website zeigt „geschlossen“"
+msgstr "Сайт показує «зачинено»"
+
+#: apps/core/diagnoses.py
+msgid "Keine freien Termine auf der Website"
+msgstr "На сайті немає вільного часу"
+
+#: apps/core/diagnoses.py
+msgid "Zimmer nicht buchbar"
+msgstr "Номери не можна забронювати"
+
+#: apps/core/diagnoses.py
+msgid "Produkte fehlen bei Google"
+msgstr "Товарів немає в Google"
+
+#: apps/core/diagnoses.py
+msgid "Erst nach Bestätigung Ihrer E-Mail-Adresse."
+msgstr "Лише після підтвердження вашого e-mail."
+
+#: apps/core/diagnoses.py
+msgid "Erst nach „Website veröffentlichen“."
+msgstr "Лише після «Опублікувати сайт»."
+
+#: apps/core/diagnoses.py
+msgid "Im Stadtkatalog vom Betreiber ausgeschaltet."
+msgstr "Вимкнено в каталозі міста оператором."
+
+#: apps/core/diagnoses.py
+msgid "Konto pausiert — bitte unter „Abo“ prüfen."
+msgstr "Обліковий запис призупинено — перевірте розділ «Підписка»."
+
+#: apps/core/diagnoses.py
+msgid "Ihr Konto ist derzeit nicht aktiv."
+msgstr "Ваш обліковий запис зараз не активний."
+
+#: apps/core/diagnoses.py
+msgid "Testkonto — erscheint nicht im Stadtkatalog."
+msgstr "Тестовий обліковий запис — не показується в каталозі міста."
+
+#: apps/core/diagnoses.py
+msgid "Ihr Geschäft ist im Stadtkatalog sichtbar."
+msgstr "Ваш бізнес видно в каталозі міста."
+
+#: apps/core/diagnoses.py
+#, python-format
+msgid "%(f)s ist ausgeschaltet."
+msgstr "%(f)s вимкнено."
+
+#: apps/core/diagnoses.py
+msgid "Laut Öffnungszeiten gerade geöffnet."
+msgstr "За годинами роботи зараз відчинено."
+
+#: apps/core/diagnoses.py
+msgid "Gäste können Zimmer online buchen."
+msgstr "Гості можуть бронювати номери онлайн."
+
+#: apps/core/diagnoses.py
+msgid "Alle Produkte sind im Google-Feed."
+msgstr "Усі товари є у фіді Google."
+
+#: apps/core/diagnoses.py
+msgid "Konnte nicht geprüft werden — bitte später erneut versuchen."
+msgstr "Не вдалося перевірити — спробуйте пізніше."
+
+#: apps/core/diagnoses.py
+msgid "Ihre E-Mail-Adresse ist noch nicht bestätigt — bis dahin sehen Kunden „Bald online“."
+msgstr "Ваш e-mail ще не підтверджено — до того клієнти бачать «Скоро онлайн»."
+
+#: apps/core/diagnoses.py
+msgid "Die Website ist noch nicht veröffentlicht."
+msgstr "Сайт ще не опубліковано."
+
+#: apps/core/diagnoses.py
+msgid "Ihre Website ist für Kunden sichtbar."
+msgstr "Ваш сайт видно клієнтам."
+
+#: apps/core/diagnoses.py
+msgid "Demo-Geschäft — erscheint nicht im echten Stadtkatalog."
+msgstr "Демо-бізнес — не показується в справжньому каталозі міста."
+
+#: apps/core/diagnoses.py
+msgid "Noch keine sichtbaren Einträge — aktive Aktionen und Angebote mit Foto und Preis erscheinen im Stadtkatalog."
+msgstr "Поки немає видимих записів — активні акції та пропозиції з фото й ціною з'являються в каталозі міста."
+
+#: apps/core/diagnoses.py
+#, python-format
+msgid "%(f)s ist in Ihrem Paket nicht enthalten."
+msgstr "%(f)s не входить у ваш пакет."
+
+#: apps/core/diagnoses.py
+msgid "Ihre Website zeigt nur Aktionen — der Warenkorb ist ausgeblendet."
+msgstr "Ваш сайт показує лише акції — кошик приховано."
+
+#: apps/core/diagnoses.py
+msgid "Keine Zahlungsart eingerichtet."
+msgstr "Не налаштовано спосіб оплати."
+
+#: apps/core/diagnoses.py
+msgid "Noch kein Produkt mit Preis angelegt."
+msgstr "Ще немає товару з ціною."
+
+#: apps/core/diagnoses.py
+msgid "Kunden können online bestellen."
+msgstr "Клієнти можуть замовляти онлайн."
+
+#: apps/core/diagnoses.py
+msgid "Noch keine Aktion angelegt."
+msgstr "Ще немає жодної акції."
+
+#: apps/core/diagnoses.py
+msgid "Ihre Aktionen sind sichtbar."
+msgstr "Ваші акції видно."
+
+#: apps/core/diagnoses.py
+msgid "Keine Öffnungszeiten hinterlegt — die Website zeigt keinen Status."
+msgstr "Години роботи не вказано — сайт не показує статус."
+
+#: apps/core/diagnoses.py
+msgid "Gerade geschlossen laut Öffnungszeiten — die Website zeigt das so an."
+msgstr "За годинами роботи зараз зачинено — сайт так і показує."
+
+#: apps/core/diagnoses.py
+msgid "Noch keine aktive Leistung."
+msgstr "Ще немає активної послуги."
+
+#: apps/core/diagnoses.py
+msgid "Für Ihre Leistungen gibt es freie Termine."
+msgstr "Для ваших послуг є вільний час."
+
+#: apps/core/diagnoses.py
+msgid "Kein Zimmer mit Preis, Gästezahl und Foto — Gäste können nicht online buchen."
+msgstr "Немає номера з ціною, кількістю гостей і фото — гості не можуть бронювати онлайн."
+
+#: apps/core/diagnoses.py
+msgid "Zimmer konnten nicht geprüft werden."
+msgstr "Не вдалося перевірити номери."
+
+#: apps/core/diagnoses.py
+msgid "Der Google-Produktfeed ist nicht eingeschaltet."
+msgstr "Фід товарів Google не ввімкнено."
+
+#: apps/core/diagnoses.py
+msgid "Produkte konnten nicht geprüft werden."
+msgstr "Не вдалося перевірити товари."
+
+#: apps/core/diagnoses.py
+#, python-format
+msgid "Betriebsferien bis %(day)s — die Website zeigt „geschlossen“."
+msgstr "Відпустка до %(day)s — сайт показує «зачинено»."
+
+#: apps/core/diagnoses.py
+msgid "Online-Termine"
+msgstr "Онлайн-запис"
+
+#: apps/core/diagnoses.py
+msgid "Zimmerbuchung"
+msgstr "Бронювання номерів"
+
+#: apps/core/diagnoses.py
+#, python-format
+msgid "In den nächsten %(days)s Tagen keine freie Nacht — Belegung und Preise prüfen."
+msgstr "У найближчі %(days)s днів немає вільної ночі — перевірте завантаження й ціни."
+
+#: apps/core/diagnoses.py
+#, python-format
+msgid "%(n)s Produkte fehlen im Google-Feed (z. B. ohne Foto oder Preis)."
+msgstr "%(n)s товарів немає у фіді Google (наприклад, без фото чи ціни)."
+
+#: apps/core/diagnoses.py
+#, python-format
+msgid "Es fehlt: %(item)s"
+msgstr "Бракує: %(item)s"
+
+#: apps/core/diagnoses.py
+#, python-format
+msgid "„%(name)s“: niemand im Team bietet diese Leistung an."
+msgstr "«%(name)s»: ніхто в команді не надає цю послугу."
+
+#: apps/core/diagnoses.py
+#, python-format
+msgid "„%(name)s“ — %(where)s: %(why)s"
+msgstr "«%(name)s» — %(where)s: %(why)s"
+
+#: apps/core/diagnoses.py
+#, python-format
+msgid "„%(name)s“: in den nächsten %(days)s Tagen keine freien Termine — Öffnungszeiten der Mitarbeiter, Betriebsferien oder Buchungsfenster prüfen."
+msgstr "«%(name)s»: у найближчі %(days)s днів немає вільного часу — перевірте години співробітників, відпустку або вікно запису."
+
+#: apps/core/diagnoses.py
+msgid "Erst nach „Website veröffentlichen“ im Einrichtungsassistenten."
+msgstr "Лише після «Опублікувати сайт» у майстрі налаштування."

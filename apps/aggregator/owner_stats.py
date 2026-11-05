@@ -190,15 +190,16 @@ def _top(schema: str, start, end) -> list:
 
 
 def _status(tenant) -> str:
+    """Состояние в каталоге для экрана «Stadtportal» — из единственного источника
+    `visibility.withheld_reasons` (AIS-A A-0). Приоритет показа прежний: оператор → почта."""
     from . import visibility
 
-    if not getattr(tenant, "in_city_catalog", True):
+    reasons = visibility.withheld_reasons(tenant)
+    if "operator_off" in reasons:
         return "not_in_catalog"
-    if getattr(tenant, "email_pending", False):
+    if "email_pending" in reasons:
         return "email_pending"
-    if not visibility.listable(tenant):
-        return "hidden"
-    return "ok"
+    return "hidden" if reasons else "ok"
 
 
 def portal_totals(tenant, days: int = DEFAULT_PERIOD) -> tuple[int, int]:

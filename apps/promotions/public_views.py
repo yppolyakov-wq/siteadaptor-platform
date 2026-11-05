@@ -31,6 +31,7 @@ from apps.core.models import resolve_overlay
 from apps.core.pagecache import cache_storefront_page
 from apps.core.pagination import paginate
 from apps.core.seo import offer_ld
+from apps.core.storefront_state import orders_active
 from apps.loyalty.models import LoyaltyCard, LoyaltyProgram, Voucher
 from apps.promotions import group_styles, promo_types, rules_text
 
@@ -1840,7 +1841,7 @@ def product_list(request, slug=None):
         or marke
         or q
     )
-    has_combos = request.tenant.is_module_active("orders") and active_combos().exists()
+    has_combos = orders_active(request.tenant) and active_combos().exists()
     combos_teaser = (
         list(active_combos()[:3])
         if has_combos
@@ -2198,7 +2199,7 @@ def product_detail(request, pk=None, pslug=None, cslug=None):
                 else None
             ),
             # Кнопка «Zur Abholung bestellen» (D2a) — только при активном модуле.
-            "orders_enabled": request.tenant.is_module_active("orders"),
+            "orders_enabled": orders_active(request.tenant),
             # GK-14: browse-only каталог (orders off) — buy-box падает в Anfrage-CTA.
             "jobs_active": request.tenant.is_module_active("jobs"),
             # A1/A2: отзывы о товаре (только верифицированные покупатели).
@@ -2952,7 +2953,7 @@ def product_anprobe_reserve(request, pk):
     if request.method != "POST" or request.POST.get("website"):
         return redirect(product.get_absolute_url())
     cfg = siteconfig.normalize(getattr(request.tenant, "site_config", {}) or {})
-    if not cfg.get("anprobe") or not request.tenant.is_module_active("orders"):
+    if not cfg.get("anprobe") or not orders_active(request.tenant):
         return redirect(product.get_absolute_url())
     rl_ident = f"{ratelimit.client_ip(request)}:{pk}"
     if ratelimit.hit("anprobe", rl_ident, limit=RL_LIMIT, window=RL_WINDOW):
