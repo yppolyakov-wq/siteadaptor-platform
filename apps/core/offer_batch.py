@@ -101,7 +101,7 @@ def choose_directions(tenant, keys) -> list[str]:
     Снятая галочка модуль не выключает (решение владельца). «Waren» онлайн-продажу не
     включает — её открывает шаг «Verkauf öffnen». Возвращает подписи направлений, которые
     включить не удалось (пакет и т. п.) — молча «включено» не говорим."""
-    from apps.core import directions, modules, packages
+    from apps.core import directions
     from apps.tenants.models import Tenant
 
     allowed = {d.key: d for d in direction_choices(tenant)}
@@ -110,13 +110,12 @@ def choose_directions(tenant, keys) -> list[str]:
     for key in picked:
         if key == "waren":
             continue
-        for module in allowed[key].modules:
-            if not packages.module_allowed(tenant, module):
-                problems.append(str(allowed[key].label))
-                break
-            modules.enable_module(tenant, module)
+        # AIS-M M-1b: один писатель направлений (пакет проверяется под блокировкой).
+        if directions.set_state(tenant, key, True):
+            problems.append(str(allowed[key].label))
     with transaction.atomic():
         locked = Tenant.objects.select_for_update().get(pk=tenant.pk)
+        locked.auto_create_schema = False  # точечная правка: схему не создаём
         cfg = dict(locked.site_config or {})
         state = dict(cfg.get("onboarding") or {})
         state["directions"] = picked

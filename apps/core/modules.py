@@ -632,6 +632,55 @@ def enable_module(tenant, key: str) -> bool:
     return True
 
 
+#: AIS-M M-1b: почему переключение модуля не записано ("" — записано или уже так).
+SET_UNKNOWN, SET_CORE, SET_PACKAGE, SET_LITE = "unknown", "core", "package", "lite"
+
+
+def module_switch_problem(tenant, key: str, on: bool) -> str:
+    """Можно ли переключить модуль (читает свежий тенант; зовётся и под блокировкой)."""
+    from apps.core import packages
+
+    spec = _BY_KEY.get(key)
+    if spec is None:
+        return SET_UNKNOWN
+    if spec.core:
+        return SET_CORE
+    if on and not packages.module_allowed(tenant, key):
+        return SET_PACKAGE
+    if not on and key in packages._LITE_MODULES and packages.package_of(tenant).lite:
+        return SET_LITE  # лёгкий пакет: заявки по акции живут на jobs (T-8.2) и т. п.
+    return ""
+
+
+def set_modules(tenant, changes: dict[str, bool]) -> dict[str, str]:
+    """Единственный писатель переключений модулей (экран «Richtungen & Funktionen»).
+
+    Одна транзакция, свежая строка под блокировкой, пишется ТОЛЬКО `disabled_modules` и
+    только перечисленные ключи (чужие выборы целы). Возвращает {ключ: проблема} для того,
+    что не записано; пусто — всё записано."""
+    from django.db import transaction
+
+    problems: dict[str, str] = {}
+    with transaction.atomic():
+        locked = type(tenant).objects.select_for_update().get(pk=tenant.pk)
+        disabled = list(locked.disabled_modules or [])
+        for key, on in changes.items():
+            problem = module_switch_problem(locked, key, on)
+            if problem:
+                problems[key] = problem
+                continue
+            if on:
+                disabled = [m for m in disabled if m != key]
+            elif key not in disabled:
+                disabled.append(key)
+        if disabled != list(locked.disabled_modules or []):
+            locked.disabled_modules = disabled
+            locked.auto_create_schema = False  # точечная правка: схему не создаём
+            locked.save(update_fields=["disabled_modules", "updated_at"])
+    tenant.disabled_modules = locked.disabled_modules
+    return problems
+
+
 def active_modules(tenant) -> list[ModuleSpec]:
     return [spec for spec in REGISTRY if is_module_active(tenant, spec.key)]
 

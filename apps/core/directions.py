@@ -241,3 +241,54 @@ def choices_for(tenant) -> list[Direction]:
             continue
         out.append(d)
     return out
+
+
+#: Направления, которые нельзя выключить: активны по типу и данным, не по модулю.
+FIXED = frozenset({"waren", "speisekarte"})
+STATE_FIXED, STATE_SHARED = "fixed", "shared"
+
+
+def set_state(tenant, key: str, on: bool, *, mode: str | None = None) -> dict[str, str]:
+    """AIS-M M-1b: включить/выключить направление = записать набор его модулей.
+
+    Выключение не трогает модуль, который держит другое активное направление (общий
+    `booking` у Termine и Tisch). `mode` (W4-5) пишется в `site_config["directions"]` в той
+    же транзакции из ЗАБЛОКИРОВАННОЙ копии. Возвращает {модуль|ключ: проблема}."""
+    from django.db import transaction
+
+    from apps.core import modules
+
+    direction = _BY_KEY.get(key)
+    if direction is None:
+        return {key: modules.SET_UNKNOWN}
+    if not on and key in FIXED:
+        return {key: STATE_FIXED}
+    with transaction.atomic():
+        locked = type(tenant).objects.select_for_update().get(pk=tenant.pk)
+        changes: dict[str, bool] = {}
+        problems: dict[str, str] = {}
+        shared = set()
+        if not on:
+            for other in active(locked):
+                if other.key != key:
+                    shared.update(other.modules)
+        for module in direction.modules:
+            if not on and module in shared:
+                problems[module] = STATE_SHARED
+            else:
+                changes[module] = on
+        problems.update(modules.set_modules(locked, changes))
+        if mode is not None:
+            if mode not in MODES:
+                problems[key] = modules.SET_UNKNOWN
+            else:
+                cfg = dict(locked.site_config or {})
+                modes = dict(cfg.get("directions") or {})
+                modes[key] = {"mode": mode}
+                cfg["directions"] = modes
+                locked.site_config = cfg
+                locked.auto_create_schema = False
+                locked.save(update_fields=["site_config", "updated_at"])
+                tenant.site_config = cfg
+    tenant.disabled_modules = locked.disabled_modules
+    return problems
