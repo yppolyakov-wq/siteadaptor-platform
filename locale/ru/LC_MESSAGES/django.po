@@ -34612,3 +34612,23 @@ msgstr "Категория исчезнет из меню, фильтров и �
 #: apps/core/assistant_actions.py
 msgid "Mehrere Beträge gefunden — bitte den neuen Preis eintragen."
 msgstr "Найдено несколько сумм — укажите новую цену."
+
+#: apps/core/assistant_actions.py
+msgid "Bitte eine Einstellung aus der Liste wählen."
+msgstr "Выберите настройку из списка."
+
+#: apps/core/assistant_actions.py
+msgid "Das passt zu mehreren Einstellungen — bitte genauer sagen."
+msgstr "Подходит к нескольким настройкам — уточните, пожалуйста."
+
+#: apps/core/assistant_actions.py
+msgid "Ist schon so eingestellt."
+msgstr "Уже так настроено."
+
+#: apps/core/assistant_actions.py
+msgid "Neue Einstellung"
+msgstr "Новая настройка"
+
+#: apps/core/assistant_actions.py
+msgid "Seite einstellen"
+msgstr "Настроить страницу"

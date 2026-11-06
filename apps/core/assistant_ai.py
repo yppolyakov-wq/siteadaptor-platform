@@ -677,7 +677,7 @@ def put_plan(request, q: str) -> dict:
     return {"job": job}
 
 
-def put_actions(request, q: str) -> dict:
+def put_actions(request, q: str, builder=None) -> dict:
     """AIS A-4b: «измени цену / скрой / перенеси» существующего объекта → пакет изменений
     с предпросмотром (тот же job-канал, лимиты и замок, что у плана; без ИИ)."""
     from django.core.cache import cache
@@ -700,7 +700,8 @@ def put_actions(request, q: str) -> dict:
         if not cache.add(_lock_key(schema, user_pk), job, JOB_TTL):
             return {"code": "busy"}
         locked = True
-        items = assistant_changes.build(request.tenant, request.user, q[:QUESTION_MAX])
+        build = builder or assistant_changes.build
+        items = build(request.tenant, request.user, q[:QUESTION_MAX])
         if not items:
             return {"code": "unavailable"}
         entry = {

@@ -34305,3 +34305,23 @@ msgstr "The category disappears from the menu, filters and city catalogue; its p
 #: apps/core/assistant_actions.py
 msgid "Mehrere Beträge gefunden — bitte den neuen Preis eintragen."
 msgstr "Several amounts found — please enter the new price."
+
+#: apps/core/assistant_actions.py
+msgid "Bitte eine Einstellung aus der Liste wählen."
+msgstr "Please choose a setting from the list."
+
+#: apps/core/assistant_actions.py
+msgid "Das passt zu mehreren Einstellungen — bitte genauer sagen."
+msgstr "That fits several settings — please be more specific."
+
+#: apps/core/assistant_actions.py
+msgid "Ist schon so eingestellt."
+msgstr "Already set like this."
+
+#: apps/core/assistant_actions.py
+msgid "Neue Einstellung"
+msgstr "New setting"
+
+#: apps/core/assistant_actions.py
+msgid "Seite einstellen"
+msgstr "Set up page"

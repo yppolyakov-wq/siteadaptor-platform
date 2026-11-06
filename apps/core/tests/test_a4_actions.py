@@ -78,12 +78,15 @@ def test_registry_is_closed():
         "service.visibility",
         "category.visibility",
         "product.move",
+        "page.setting",
     }
     for key, spec in assistant_actions.ACTIONS.items():
         obj, verb = key.split(".")
         assert obj not in assistant_actions.FORBIDDEN_OBJECTS
         assert verb not in assistant_actions.FORBIDDEN_VERBS
-        assert spec.perm and spec.module and spec.screen and spec.edit_screen
+        assert spec.perm and spec.screen and spec.edit_screen
+        # модуль — у всех, кроме настройки страницы (её тип проверяет page_settings.validate)
+        assert spec.module or spec.verb == "page"
         if spec.verb == "create":
             assert any(f.name == "name" and f.required for f in spec.fields)
         if spec.verb == "price":

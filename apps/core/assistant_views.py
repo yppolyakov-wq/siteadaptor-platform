@@ -147,11 +147,14 @@ def assistant_ask(request):
     seite = _seite_value(request.POST.get("seite"))
     raw = request.POST.get("frage", "")
     q, code = assistant_ai.prepare_question(raw)
-    from apps.core import assistant_changes
+    from apps.core import assistant_changes, assistant_pages
 
     if not code and assistant_changes.intent(request.tenant, request.user, q):
         # AIS A-4b: «измени цену / скрой / перенеси» существующего — пакет изменений
         got = assistant_ai.put_actions(request, q)
+    elif not code and assistant_pages.intent(request.tenant, request.user, q):
+        # AIS A-4c: «покажи товары списком / 4 в ряд» — настройка страницы
+        got = assistant_ai.put_actions(request, q, builder=assistant_pages.build)
     elif not code and setup_assistant.create_intent(request.tenant, request.user, q):
         # AIS A-3a: «создай …» — план с предзаполненной формой, и без ИИ тоже
         got = assistant_ai.put_plan(request, q)

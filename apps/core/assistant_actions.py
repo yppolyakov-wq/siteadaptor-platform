@@ -55,13 +55,14 @@ PRODUCT_VISIBILITY = "product.visibility"
 SERVICE_VISIBILITY = "service.visibility"
 CATEGORY_VISIBILITY = "category.visibility"
 PRODUCT_MOVE = "product.move"
+PAGE_SETTING = "page.setting"  # A-4c: шаблон/сетка/карточка страницы (page_settings)
 
 
 @dataclass(frozen=True)
 class FieldSpec:
     name: str  # имя поля пакета (не формы)
     label: object
-    kind: str  # text | money | minutes | category | visible (только показ)
+    kind: str  # text | money | minutes | category | visible (только показ) | setting
     required: bool = False
 
 
@@ -75,7 +76,7 @@ class ActionSpec:
     screen: str  # экран создания — тот же гейт пакета, что у формы
     edit_screen: str  # экран объекта после создания (ссылка в отчёте)
     fields: tuple[FieldSpec, ...]
-    verb: str = "create"  # create | price | visibility | move
+    verb: str = "create"  # create | price | visibility | move | page
 
 
 ACTIONS: dict[str, ActionSpec] = {
@@ -190,6 +191,17 @@ for _key, _entity, _label, _module, _perm, _screen, _fields, _verb in (
     ACTIONS[_key] = ActionSpec(
         _key, _entity, _label, _module, _perm, _screen, _screen, _fields, _verb
     )
+ACTIONS[PAGE_SETTING] = ActionSpec(
+    PAGE_SETTING,
+    "page",
+    gettext_lazy("Seite einstellen"),
+    "",  # модуль типа страницы проверяет сам page_settings.validate
+    "website.edit",
+    "page-templates-website",
+    "page-templates-website",
+    (FieldSpec("value", gettext_lazy("Neue Einstellung"), "setting", True),),
+    "page",
+)
 
 #: Объекты, которых в реестре не может быть никогда (стратегия В-2, запретный список).
 FORBIDDEN_OBJECTS = frozenset(
@@ -297,7 +309,7 @@ def allowed(request, spec: ActionSpec) -> tuple[bool, str]:
     from apps.core.permissions import has_perm
 
     try:
-        if not request.tenant.is_module_active(spec.module):
+        if spec.module and not request.tenant.is_module_active(spec.module):
             return False, _("Diese Funktion ist bei Ihnen nicht eingeschaltet.")
         if not has_perm(request.user, spec.perm):
             return False, _("Dafür fehlt Ihnen die Berechtigung — bitte die Inhaberin fragen.")
@@ -352,7 +364,12 @@ def present(request, items: list[dict], *, errors: dict | None = None) -> list[d
             ok, reason = False, item["blocked"]
         # «переместить» — только в существующую категорию (новых в пакете изменений нет)
         upto = 0 if spec.verb == "move" else i
-        options = category_options(request.tenant, items, upto, existing)
+        if spec.verb == "page":  # A-4c: доступные варианты настройки (как на экране кабинета)
+            from apps.core import assistant_pages
+
+            options = assistant_pages.options(request.tenant, _target_pk(item))
+        else:
+            options = category_options(request.tenant, items, upto, existing)
         values = item.get("values") or {}
         fields = [
             {
@@ -376,8 +393,10 @@ def present(request, items: list[dict], *, errors: dict | None = None) -> list[d
                 if setup_assistant.reachable(request, spec.screen)
                 else ""
             )
+        elif spec.verb == "page":
+            form_url = _page_url(request, spec, values.get("type", ""))
         else:
-            form_url = _object_url(request, spec, (item.get("target") or {}).get("pk", ""))
+            form_url = _object_url(request, spec, _target_pk(item))
         out.append(
             {
                 "index": i,
@@ -402,6 +421,22 @@ def present(request, items: list[dict], *, errors: dict | None = None) -> list[d
     return out
 
 
+def _target_pk(item: dict) -> str:
+    return str((item.get("target") or {}).get("pk") or "")
+
+
+def _page_url(request, spec: ActionSpec, type_code: str) -> str:
+    """Экран кабинета «Seitenvorlage» этого типа страницы (если открывается здесь)."""
+    from apps.core import page_templates, setup_assistant
+
+    if not type_code or not setup_assistant.reachable(request, spec.edit_screen):
+        return ""
+    try:
+        return page_templates.cabinet_url(type_code)
+    except Exception:  # noqa: BLE001 — ссылка-дополнение
+        return ""
+
+
 def _object_url(request, spec: ActionSpec, pk: str) -> str:
     from django.urls import NoReverseMatch, reverse
 
@@ -415,10 +450,14 @@ def _object_url(request, spec: ActionSpec, pk: str) -> str:
         return ""
 
 
-def _value_text(spec: ActionSpec, canon: str, existing=None) -> str:
+def _value_text(spec: ActionSpec, canon: str, existing=None, tenant=None, code: str = "") -> str:
     """Каноническое значение поля изменения → подпись «vorher/nachher»."""
     from apps.core import assistant_changes
 
+    if spec.verb == "page":
+        from apps.core import assistant_pages
+
+        return assistant_pages.value_label(tenant, code, canon) if tenant is not None else canon
     if spec.verb == "price":
         return assistant_changes.money_text(spec.entity, canon)
     if spec.verb == "visibility":
@@ -453,9 +492,15 @@ def _change_texts(request, spec, item, values, existing) -> dict:
                 "Der niedrigere Preis bleibt 30 Tage im Preisverlauf (§ 11 PAngV) — auch wenn "
                 "Sie ihn zurücksetzen."
             )
+    code = _target_pk(item)
+    tenant = request.tenant
     return {
-        "before_text": _value_text(spec, before, existing),
-        "after_text": _value_text(spec, after, existing) if after or spec.verb != "price" else "",
+        "before_text": _value_text(spec, before, existing, tenant, code),
+        "after_text": (
+            _value_text(spec, after, existing, tenant, code)
+            if after or spec.verb != "price"
+            else ""
+        ),
         "warning": warning,
     }
 
@@ -473,6 +518,8 @@ def _canon(spec: ActionSpec, values: dict) -> str:
         return str(to_cents(amount))
     if spec.verb == "visibility":
         return "1" if values.get("visible") else ""
+    if spec.verb == "page":
+        return str(values.get("value") or "")
     ref = values.get("category", "")
     return ref[3:] if ref.startswith("pk:") else ""
 
@@ -499,7 +546,7 @@ def merge_post(items: list[dict], post) -> list[dict]:
     return out
 
 
-def _clean(items: list[dict], post, existing: list) -> tuple[list[dict], dict]:
+def _clean(items: list[dict], post, existing: list, tenant=None) -> tuple[list[dict], dict]:
     """Значения из POST поверх кэша (только поля спеки по индексу) + проверка формы."""
     from apps.core.money import parse_amount
 
@@ -530,6 +577,12 @@ def _clean(items: list[dict], post, existing: list) -> tuple[list[dict], dict]:
             elif f.kind == "minutes" and raw:
                 if not raw.isdigit() or not (5 <= int(raw) <= 1440):
                     err = _("Bitte Minuten zwischen 5 und 1440 angeben.")
+            elif f.kind == "setting":
+                from apps.core import assistant_pages
+
+                allowed_values = {v for v, _l in assistant_pages.options(tenant, _target_pk(item))}
+                if raw not in allowed_values:
+                    err = _("Bitte eine Einstellung aus der Liste wählen.")
             elif f.kind == "category" and raw not in {
                 v
                 for v, _label in category_options(
@@ -646,7 +699,7 @@ def apply(request, job: str, entry: dict, post) -> dict:
     items = list(entry.get("actions") or [])
     if not items:
         raise ApplyError("expired")
-    cleaned, errors = _clean(items, post, _existing_options(request.tenant))
+    cleaned, errors = _clean(items, post, _existing_options(request.tenant), request.tenant)
     if errors:
         raise ApplyError("invalid", errors)
     if not cleaned:
@@ -692,7 +745,7 @@ def apply(request, job: str, entry: dict, post) -> dict:
                 from apps.catalog.writers import WriteError
 
                 if row["spec"].verb != "create":
-                    snaps.append(_change(row, targets))
+                    snaps.append(_change(row, targets, request.tenant))
                     continue
                 try:
                     obj = _write(request.tenant, row["spec"], row["values"], created, actor)
@@ -781,11 +834,88 @@ def _set_value(spec: ActionSpec, obj, canon: str, *, stamp: bool = True) -> None
     obj.save(update_fields=["category", "updated_at"])
 
 
-def _change(row: dict, targets: dict) -> dict:
+def _unset_page(cfg: dict, code: str) -> dict:
+    """Убрать ключ настройки из конфига (её не было до пакета — presence-minimal)."""
+    from apps.core import studio_pages
+
+    out = dict(cfg or {})
+    path = studio_pages.SETTINGS[code].site_key
+    if len(path) == 1:
+        out.pop(path[0], None)
+        return out
+    parent = dict(out.get(path[0]) or {})
+    parent.pop(path[1], None)
+    if parent:
+        out[path[0]] = parent
+    else:
+        out.pop(path[0], None)
+    return out
+
+
+def _write_page(
+    tenant, code: str, value: str, *, validate: bool = True, unset: bool = False
+) -> None:
+    """Настройка страницы внутри транзакции пакета (Tenant уже заблокирован): тот же путь,
+    что `page_settings.write` — проверка по схеме, одна запись ключа, сброс кэша витрины."""
+    from apps.core import page_settings
+    from apps.core.pagecache import bump_storefront_cache
+    from apps.tenants.models import Tenant
+
+    fresh = Tenant.objects.only("pk", "schema_name", "site_config").get(pk=tenant.pk)
+    if unset:
+        new_cfg = _unset_page(fresh.site_config or {}, code)
+    else:
+        cleaned = page_settings.validate(fresh, code, value) if validate else value
+        new_cfg = page_settings.apply_override(fresh.site_config or {}, code, cleaned)
+    Tenant.objects.filter(pk=tenant.pk).update(site_config=new_cfg)
+    schema = fresh.schema_name
+    transaction.on_commit(lambda: bump_storefront_cache(schema))
+    tenant.site_config = new_cfg
+
+
+def _page_current(tenant, code: str) -> str:
+    from apps.core import assistant_pages
+    from apps.tenants.models import Tenant
+
+    fresh = Tenant.objects.only("pk", "site_config").get(pk=tenant.pk)
+    return assistant_pages.current(fresh, code)
+
+
+def _change_page(row: dict, tenant) -> dict:
+    from apps.core import page_settings
+
+    spec, item = row["spec"], row["item"]
+    code = _target_pk(item)
+    before = str(item.get("before") or "")
+    if _page_current(tenant, code) != before:
+        raise ApplyError(
+            "invalid", {f"{row['index']}:value": _("Inzwischen geändert — bitte neu fragen.")}
+        )
+    try:
+        _write_page(tenant, code, row["after"])
+    except page_settings.PageSettingError as exc:
+        raise ApplyError(
+            "invalid", {f"{row['index']}:value": _("Bitte eine Einstellung aus der Liste wählen.")}
+        ) from exc
+    return {
+        "action": spec.key,
+        "kind": "page",
+        "pk": code,
+        "type": row["values"].get("type", ""),
+        "name": row["values"].get("name", ""),
+        "before": before,
+        "before_set": bool(item.get("before_set", True)),
+        "after": row["after"],
+    }
+
+
+def _change(row: dict, targets: dict, tenant=None) -> dict:
     """Применить изменение: объект жив и значение то же, что видел владелец в предпросмотре."""
     from apps.core import assistant_changes
 
     spec, item = row["spec"], row["item"]
+    if spec.verb == "page":
+        return _change_page(row, tenant)
     pk = str((item.get("target") or {}).get("pk") or "")
     obj = targets.get((spec.entity, pk))
     field = spec.fields[0].name
@@ -883,7 +1013,9 @@ def present_report(request, rep: dict) -> dict:
         if spec is None:
             continue
         url = ""
-        if setup_assistant.reachable(request, spec.edit_screen):
+        if spec.verb == "page":
+            url = _page_url(request, spec, str(item.get("type") or ""))
+        elif setup_assistant.reachable(request, spec.edit_screen):
             try:
                 url = reverse(spec.edit_screen, args=[item["pk"]])
             except NoReverseMatch:
@@ -891,10 +1023,12 @@ def present_report(request, rep: dict) -> dict:
         back = undone.get(item.get("pk"))
         change_text = ""
         if spec.verb != "create":
-            change_text = (
-                f"{_value_text(spec, str(item.get('before') or ''), existing)} → "
-                f"{_value_text(spec, str(item.get('after') or ''), existing)}"
+            code = str(item.get("pk") or "")
+            before = _value_text(
+                spec, str(item.get("before") or ""), existing, request.tenant, code
             )
+            after = _value_text(spec, str(item.get("after") or ""), existing, request.tenant, code)
+            change_text = f"{before} → {after}"
         rows.append(
             {
                 "label": spec.label,
@@ -975,12 +1109,26 @@ def _generic_links(kind: str, pk: str) -> bool:
         return True
 
 
-def _undo_item(item: dict, obj) -> dict:
+def _undo_item(item: dict, obj, tenant=None) -> dict:
     """Откатить один пункт на уже заблокированной строке. → {pk, done, reason}."""
     from apps.catalog.models import Product
 
     kind, pk = item["kind"], item["pk"]
     out = {"pk": pk, "done": False, "reason": ""}
+    if kind == "page":  # A-4c: настройка страницы — без строки объекта
+        if _page_current(tenant, pk) != str(item.get("after") or ""):
+            out["reason"] = _("Inzwischen geändert — nicht zurückgesetzt.")
+            return out
+        # прежнее значение уже стояло — восстанавливаем без повторной проверки доступности
+        _write_page(
+            tenant,
+            pk,
+            str(item.get("before") or ""),
+            validate=False,
+            unset=not item.get("before_set", True),
+        )
+        out["done"] = True
+        return out
     if obj is None or getattr(obj, "deleted_at", None):
         out["reason"] = _("Inzwischen gelöscht.")
         return out
@@ -1067,7 +1215,10 @@ def undo(request, job: str) -> dict:
                 manager = models.get(kind) or Service.objects
                 for obj in manager.filter(pk__in=pks).order_by("pk").select_for_update():
                     locked[(kind, str(obj.pk))] = obj
-            results = [_undo_item(r, locked.get((r["kind"], r["pk"]))) for r in reversed(rows)]
+            results = [
+                _undo_item(r, locked.get((r["kind"], r["pk"])), request.tenant)
+                for r in reversed(rows)
+            ]
             # ничего не откатилось (всё изменено/используется) — пакет НЕ помечаем отменённым:
             # владелец исправит причину и попробует ещё раз в том же окне
             if any(r["done"] for r in results):

@@ -22,7 +22,7 @@
     {% else %}
     <div>
       <label for="{{ fid }}" class="block text-sm">{{ f.label }}{% if f.required %} <span aria-hidden="true">*</span>{% endif %}</label>
-      {% if f.kind == "category" %}
+      {% if f.kind == "category" or f.kind == "setting" %}
       <select id="{{ fid }}" name="{{ f.input }}" class="ui-input w-full"{% if f.error %} aria-invalid="true" aria-describedby="{{ fid }}-err"{% endif %}>
         {% for value, label in it.options %}<option value="{{ value }}"{% if value == f.value %} selected{% endif %}>{{ label }}</option>{% endfor %}
       </select>
