@@ -786,7 +786,7 @@ def finish(request, job: str, entry: dict) -> dict:
     опроса не собирают пакет дважды: второй видит «ещё думаю» и спросит снова."""
     from django.core.cache import cache
 
-    from apps.core import assistant_actions, assistant_ai, assistant_bulk
+    from apps.core import assistant_actions, assistant_ai
 
     schema, user_pk = assistant_ai._schema_name(), request.user.pk
     key = assistant_ai._job_key(schema, user_pk, job)
@@ -803,13 +803,9 @@ def finish(request, job: str, entry: dict) -> dict:
         if not items and ctx.get("mixed"):
             done = _rules_plan(request, job, q)  # ИИ не помог — создание по правилам
         elif items:
-            bulk = assistant_bulk.meta(items)
-            summary = [
-                {"action": it["action"], "name": it["values"].get("name", "")} for it in items
-            ]
-            if bulk is not None:
-                summary = [{"action": items[0]["action"], "name": bulk["title"]}]
             from apps.core import assistant_clarify
+
+            summary = assistant_clarify.summary_for(items)
 
             ask = assistant_clarify.wrap(job, items, summary, q)
             if ask is not None:  # A-5b: одноимённые — вопрос «какой?», модель не зовётся снова

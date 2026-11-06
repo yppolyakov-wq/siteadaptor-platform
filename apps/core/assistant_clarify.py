@@ -140,10 +140,27 @@ def summary_for(items: list[dict]) -> list[dict]:
         return []
     bulk = assistant_bulk.meta(items)
     if bulk is not None:
-        return [{"action": items[0]["action"], "name": bulk["title"]}]
+        return [{"action": items[0]["action"], "name": bulk["title"], "bulk": True}]
     return [
-        {"action": it["action"], "name": (it.get("values") or {}).get("name", "")} for it in items
+        {
+            "action": it["action"],
+            "name": (it.get("values") or {}).get("name", ""),
+            # A-5c: для «und den Käsekuchen auch» — КОД действия (без цен и pk)
+            "verb": _verb_of(it),
+        }
+        for it in items
     ]
+
+
+def _verb_of(item: dict) -> str:
+    action = str(item.get("action") or "")
+    if action.endswith(".visibility"):
+        return "show" if (item.get("values") or {}).get("visible") else "hide"
+    if action.endswith(".price"):
+        return "price"
+    if action.endswith(".move"):
+        return "move"
+    return ""
 
 
 def options_for_rows(rows: list[dict]) -> list[dict]:

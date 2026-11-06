@@ -81,6 +81,22 @@ def _escalate_handle(request, q, raw, seite, hit):
     return assistant_escalate.handle(request, q, seite)
 
 
+def _followup_intent(request, q):
+    from apps.core import assistant_followup
+
+    return assistant_followup.intent(request, q)
+
+
+def _followup_handle(request, q, raw, seite, hit):
+    # AIS A-5c: «und den Käsekuchen auch» — то же действие, что в прошлом ходе, новый объект
+    from apps.core import assistant_ai, assistant_followup
+
+    prev, obj = hit
+    return assistant_ai.put_actions(
+        request, q, builder=lambda tenant, user, text: assistant_followup.build(prev, obj)
+    )
+
+
 def _mixed_intent(request, q):
     from apps.core import assistant_ai_actions
 
@@ -144,6 +160,7 @@ HANDLERS: tuple[Handler, ...] = (
     Handler("changes", _changes_intent, _changes_handle),
     Handler("pages", _pages_intent, _pages_handle),
     Handler("escalate", _escalate_intent, _escalate_handle),
+    Handler("followup", _followup_intent, _followup_handle),
     Handler("mixed", _mixed_intent, _mixed_handle),
     Handler("create", _create_intent, _create_handle),
     Handler("ai_actions", _ai_actions_intent, _ai_actions_handle),

@@ -692,7 +692,6 @@ def put_actions(request, q: str, builder=None) -> dict:
 
     from apps.core import (
         assistant_actions,
-        assistant_bulk,
         assistant_changes,
         page_templates,
         ratelimit,
@@ -718,12 +717,10 @@ def put_actions(request, q: str, builder=None) -> dict:
         items = build(request.tenant, request.user, q[:QUESTION_MAX])
         if not items:
             return {"code": "unavailable"}
-        bulk = assistant_bulk.meta(items)
-        # в историю — только сводка (что предлагалось), без пакета; массовый — одной строкой
-        summary = [{"action": it["action"], "name": it["values"].get("name", "")} for it in items]
-        if bulk is not None:
-            summary = [{"action": items[0]["action"], "name": bulk["title"]}]
         from apps.core import assistant_clarify
+
+        # в историю — только сводка (что предлагалось), без пакета; массовый — одной строкой
+        summary = assistant_clarify.summary_for(items)
 
         ask = assistant_clarify.wrap(job, items, summary, q)
         if ask is not None:  # A-5b: вопрос «какой?/teurer oder günstiger?» — без истории
