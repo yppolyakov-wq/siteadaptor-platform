@@ -210,17 +210,22 @@ def _cents(price: Decimal | None) -> int:
 
 
 def _create(tenant, kind: str, line: offer_lines.Line) -> None:
+    # AIS A-4a: товар и услуга — теми же писателями, что экраны кабинета и ассистент (форма
+    # экрана: НДС по умолчанию для еды, i18n, склад-леджер; «＋ Leistung» — сборка услуги)
     if ENTITY_FOR[kind] == "product":
-        from apps.catalog.models import Product
-        from apps.core.archetypes import FOOD_BUSINESS_TYPES
+        from apps.catalog.writers import create_product
 
-        vat = Decimal("7.00") if tenant.business_type in FOOD_BUSINESS_TYPES else Decimal("19.00")
-        Product.objects.create(name={"de": line.name}, base_price=line.price, vat_rate=vat)
+        create_product(tenant, {"name_de": line.name, "base_price": str(line.price)})
     elif kind == "termine":
-        from apps.booking.models import Service
+        from apps.booking.writers import create_service
 
-        Service.objects.create(
-            name=line.name, duration_minutes=line.duration_min, price_cents=_cents(line.price)
+        create_service(
+            tenant,
+            {
+                "name": line.name,
+                "duration": str(line.duration_min or ""),
+                "price_eur": "" if line.price is None else str(line.price),
+            },
         )
     elif kind == "zimmer":
         from apps.stays.models import StayUnit

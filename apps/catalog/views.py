@@ -20,7 +20,7 @@ from apps.core.archetypes import FOOD_BUSINESS_TYPES as _FOOD_BUSINESS_TYPES
 from apps.core.i18n_input import apply_i18n_overlay, extra_locales, i18n_inputs_for
 from apps.inventory.services import log_catalog_change
 
-from . import category_styles
+from . import category_styles, writers
 from .forms import CategoryForm, ProductForm
 from .images import delete_stored_image, save_product_image
 from .models import (
@@ -202,13 +202,9 @@ def product_create(request):
     if request.method == "POST" and form.is_valid():
         product = form.save()
         _save_product_overlays(product, request)  # Ф2: переводы origin/ingredients
-        # T1: стартовый остаток нового товара → в склад-леджер (реконсиляция).
-        log_catalog_change(
-            product=product,
-            old=None,
-            new=product.stock_quantity,
-            actor=getattr(request.user, "username", ""),
-        )
+        # T1: стартовый остаток нового товара → в склад-леджер (реконсиляция). A-4a: тот же
+        # пост-шаг, что у писателя ассистента (`catalog.writers`) — один путь создания.
+        writers.after_product_created(product, getattr(request.user, "username", ""))
         _handle_uploads(request, product)
         return redirect("catalog:product-edit", pk=product.pk)
     return render(

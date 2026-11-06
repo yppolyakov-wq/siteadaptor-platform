@@ -1197,26 +1197,35 @@ def _variant_action_locked(request, action, service) -> None:
 def _service_from_post(request):
     """Новая услуга из POST (без сохранения): общий код списка (`action=create`) и
     шторки «＋ Leistung» (UX-D D2.2). Пустое имя → None."""
+    return service_from_data(
+        request.POST,
+        getattr(request, "tenant", None),
+        image=_uploaded_image_ref(request, "image", "services") or {},  # A3: фото услуги
+    )
+
+
+def service_from_data(data, tenant, image=None):
+    """AIS A-4a: единственная сборка новой услуги — экран и ассистент (`booking.writers`)."""
     from .models import Service
 
-    name = request.POST.get("name", "").strip()[:120]  # Service.name max_length
+    name = (data.get("name") or "").strip()[:120]  # Service.name max_length
     if not name:
         return None
     service = Service(
         name=name,
-        description=request.POST.get("description", "").strip(),  # A3
-        image=_uploaded_image_ref(request, "image", "services") or {},  # A3: фото услуги
-        duration_minutes=_int_clamped(request.POST.get("duration"), 30, 5, 1440),
-        price_cents=_eur_to_cents(request.POST.get("price_eur")),
+        description=(data.get("description") or "").strip(),  # A3
+        image=image or {},
+        duration_minutes=_int_clamped(data.get("duration"), 30, 5, 1440),
+        price_cents=_eur_to_cents(data.get("price_eur")),
         # DC-8: ставка НДС услуги (DE — обычно 19 %).
-        vat_rate=vat.parse_rate(request.POST.get("vat_rate"), Decimal("19.00")),
-        deposit_cents=_eur_to_cents(request.POST.get("deposit_eur")),
-        is_video=bool(request.POST.get("is_video")),  # LS-1
+        vat_rate=vat.parse_rate(data.get("vat_rate"), Decimal("19.00")),
+        deposit_cents=_eur_to_cents(data.get("deposit_eur")),
+        is_video=bool(data.get("is_video")),  # LS-1
         # MX-5: режим цены (""=за бронь | per_person).
-        pricing_mode="per_person" if request.POST.get("pricing_mode") == "per_person" else "",
+        pricing_mode="per_person" if data.get("pricing_mode") == "per_person" else "",
     )
     # L3d: переводы неосновных локалей (name_<loc>/description_<loc>)
-    apply_i18n_overlay(service, request.POST, getattr(request, "tenant", None))
+    apply_i18n_overlay(service, data, tenant)
     return service
 
 
