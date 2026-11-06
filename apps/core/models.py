@@ -456,3 +456,46 @@ class LegacyRedirect(TimestampedModel):
     def __str__(self):
         q = f"?{self.source_query}" if self.source_query else ""
         return f"{self.source_path}{q} → {self.target or self.status}"
+
+
+class AssistantTurn(models.Model):
+    """AIS A-3d: история переписки с помощником кабинета (решение владельца — в базе,
+    90 дней; docs/ais-a3-assistant-panel-plan-2026-11-06.md §2).
+
+    Только вопрос (уже после `pii.scrub`) и ПРОВЕРЕННАЯ запись ответа — та же, что лежала
+    в кэше задачи: текст после пост-проверки, ссылки и статьи — идентификаторами, план —
+    данными. URL не хранятся: показ строит их заново с правами смотрящего. Пишет только
+    `apps.core.assistant_history`."""
+
+    KIND_ANSWER = "answer"
+    KIND_PLAN = "plan"
+    KIND_ARTICLES = "articles"
+    KIND_FALLBACK = "fallback"
+    KIND_SCOPE = "scope"
+    KINDS = [
+        (KIND_ANSWER, "answer"),
+        (KIND_PLAN, "plan"),
+        (KIND_ARTICLES, "articles"),
+        (KIND_FALLBACK, "fallback"),
+        (KIND_SCOPE, "scope"),
+    ]
+
+    # индекс — составной (user, -created_at) ниже; отдельный индекс FK не нужен
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="assistant_turns",
+        db_index=False,
+    )
+    job = models.CharField(max_length=32, unique=True)
+    kind = models.CharField(max_length=10, choices=KINDS)
+    question = models.TextField()
+    entry = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [models.Index(fields=["user", "-created_at"], name="core_asst_user_created")]
+
+    def __str__(self):
+        return f"{self.kind}: {self.question[:40]}"

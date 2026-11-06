@@ -34038,3 +34038,88 @@ msgstr "Antwort vom Support: %(betreff)s"
 #, python-format
 msgid "Der SiteAdaptor-Support hat geantwortet: %(url)s"
 msgstr "Der SiteAdaptor-Support hat geantwortet: %(url)s"
+
+#: apps/support/admin.py
+msgid "Gesendete Nachrichten werden nicht geändert — bitte neu antworten."
+msgstr "Gesendete Nachrichten werden nicht geändert — bitte neu antworten."
+
+#: apps/support/admin.py
+msgid "Antwort auf 5000 Zeichen gekürzt."
+msgstr "Antwort auf 5000 Zeichen gekürzt."
+
+#: templates/core/_assistant_support.html
+msgid "Alle Anfragen"
+msgstr "Alle Anfragen"
+
+#: templates/core/_assistant_support.html
+msgid "Alle Nachrichten"
+msgstr "Alle Nachrichten"
+
+#: templates/core/_assistant_support.html
+msgid "An den Support senden"
+msgstr "An den Support senden"
+
+#: templates/core/_assistant_support.html
+msgid "Assistent & Hilfe"
+msgstr "Assistent & Hilfe"
+
+#: templates/core/_assistant_support.html
+msgid "Bereiche des Assistenten"
+msgstr "Bereiche des Assistenten"
+
+#: templates/core/_assistant_support.html
+msgid "Betreff"
+msgstr "Betreff"
+
+#: templates/core/_assistant_support.html
+msgid "Ihre Anfragen an den Support"
+msgstr "Ihre Anfragen an den Support"
+
+#: templates/core/_assistant_support.html
+msgid "Ihre Nachricht"
+msgstr "Ihre Nachricht"
+
+#: templates/core/_assistant_support.html
+msgid "Nachrichten von Kunden"
+msgstr "Nachrichten von Kunden"
+
+#: templates/core/_assistant_support.html
+msgid "Neue Antwort vom Support"
+msgstr "Neue Antwort vom Support"
+
+#: templates/core/_assistant_support.html
+msgid "Neue Antwort:"
+msgstr "Neue Antwort:"
+
+#: templates/core/_assistant_support.html
+msgid "Noch keine Anfragen. Fragen Sie uns — wir antworten per E-Mail und hier."
+msgstr "Noch keine Anfragen. Fragen Sie uns — wir antworten per E-Mail und hier."
+
+#: templates/core/_assistant_support.html
+msgid "Noch keine Nachrichten von Kunden."
+msgstr "Noch keine Nachrichten von Kunden."
+
+#: templates/core/_assistant_support.html
+msgid "Ungelesen:"
+msgstr "Ungelesen:"
+
+#: templates/core/_assistant_body.html
+msgid ", ungelesene Nachrichten von Kunden: {n}"
+msgstr ", ungelesene Nachrichten von Kunden: {n}"
+
+#: templates/core/_assistant_body.html
+#, python-format
+msgid "Ihre Fragen werden %(days)s Tage gespeichert."
+msgstr "Ihre Fragen werden %(days)s Tage gespeichert."
+
+#: templates/core/_assistant_body.html
+msgid "Verlauf gelöscht."
+msgstr "Verlauf gelöscht."
+
+#: templates/core/_assistant_body.html
+msgid "Verlauf löschen"
+msgstr "Verlauf löschen"
+
+#: templates/core/_assistant_body.html
+msgid "Wirklich alles löschen?"
+msgstr "Wirklich alles löschen?"

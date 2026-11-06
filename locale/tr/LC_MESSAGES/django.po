@@ -34097,3 +34097,88 @@ msgstr "Destekten yanıt: %(betreff)s"
 #, python-format
 msgid "Der SiteAdaptor-Support hat geantwortet: %(url)s"
 msgstr "SiteAdaptor desteği yanıt verdi: %(url)s"
+
+#: apps/support/admin.py
+msgid "Gesendete Nachrichten werden nicht geändert — bitte neu antworten."
+msgstr "Gönderilmiş mesajlar değiştirilmez — lütfen yeniden yanıtlayın."
+
+#: apps/support/admin.py
+msgid "Antwort auf 5000 Zeichen gekürzt."
+msgstr "Yanıt 5000 karaktere kısaltıldı."
+
+#: templates/core/_assistant_support.html
+msgid "Alle Anfragen"
+msgstr "Tüm talepler"
+
+#: templates/core/_assistant_support.html
+msgid "Alle Nachrichten"
+msgstr "Tüm mesajlar"
+
+#: templates/core/_assistant_support.html
+msgid "An den Support senden"
+msgstr "Desteğe gönder"
+
+#: templates/core/_assistant_support.html
+msgid "Assistent & Hilfe"
+msgstr "Asistan ve yardım"
+
+#: templates/core/_assistant_support.html
+msgid "Bereiche des Assistenten"
+msgstr "Asistan bölümleri"
+
+#: templates/core/_assistant_support.html
+msgid "Betreff"
+msgstr "Konu"
+
+#: templates/core/_assistant_support.html
+msgid "Ihre Anfragen an den Support"
+msgstr "Destek talepleriniz"
+
+#: templates/core/_assistant_support.html
+msgid "Ihre Nachricht"
+msgstr "Mesajınız"
+
+#: templates/core/_assistant_support.html
+msgid "Nachrichten von Kunden"
+msgstr "Müşteri mesajları"
+
+#: templates/core/_assistant_support.html
+msgid "Neue Antwort vom Support"
+msgstr "Destekten yeni yanıt"
+
+#: templates/core/_assistant_support.html
+msgid "Neue Antwort:"
+msgstr "Yeni yanıt:"
+
+#: templates/core/_assistant_support.html
+msgid "Noch keine Anfragen. Fragen Sie uns — wir antworten per E-Mail und hier."
+msgstr "Henüz talep yok. Bize sorun — e-posta ile ve burada yanıtlarız."
+
+#: templates/core/_assistant_support.html
+msgid "Noch keine Nachrichten von Kunden."
+msgstr "Henüz müşteri mesajı yok."
+
+#: templates/core/_assistant_support.html
+msgid "Ungelesen:"
+msgstr "Okunmamış:"
+
+#: templates/core/_assistant_body.html
+msgid ", ungelesene Nachrichten von Kunden: {n}"
+msgstr ", okunmamış müşteri mesajları: {n}"
+
+#: templates/core/_assistant_body.html
+#, python-format
+msgid "Ihre Fragen werden %(days)s Tage gespeichert."
+msgstr "Sorularınız %(days)s gün saklanır."
+
+#: templates/core/_assistant_body.html
+msgid "Verlauf gelöscht."
+msgstr "Geçmiş silindi."
+
+#: templates/core/_assistant_body.html
+msgid "Verlauf löschen"
+msgstr "Geçmişi sil"
+
+#: templates/core/_assistant_body.html
+msgid "Wirklich alles löschen?"
+msgstr "Gerçekten her şey silinsin mi?"

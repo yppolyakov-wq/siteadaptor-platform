@@ -34245,3 +34245,88 @@ msgstr "Відповідь підтримки: %(betreff)s"
 #, python-format
 msgid "Der SiteAdaptor-Support hat geantwortet: %(url)s"
 msgstr "Підтримка SiteAdaptor відповіла: %(url)s"
+
+#: apps/support/admin.py
+msgid "Gesendete Nachrichten werden nicht geändert — bitte neu antworten."
+msgstr "Надіслані повідомлення не змінюються — дайте нову відповідь."
+
+#: apps/support/admin.py
+msgid "Antwort auf 5000 Zeichen gekürzt."
+msgstr "Відповідь скорочено до 5000 символів."
+
+#: templates/core/_assistant_support.html
+msgid "Alle Anfragen"
+msgstr "Усі звернення"
+
+#: templates/core/_assistant_support.html
+msgid "Alle Nachrichten"
+msgstr "Усі повідомлення"
+
+#: templates/core/_assistant_support.html
+msgid "An den Support senden"
+msgstr "Надіслати до підтримки"
+
+#: templates/core/_assistant_support.html
+msgid "Assistent & Hilfe"
+msgstr "Помічник і підтримка"
+
+#: templates/core/_assistant_support.html
+msgid "Bereiche des Assistenten"
+msgstr "Розділи помічника"
+
+#: templates/core/_assistant_support.html
+msgid "Betreff"
+msgstr "Тема"
+
+#: templates/core/_assistant_support.html
+msgid "Ihre Anfragen an den Support"
+msgstr "Ваші звернення до підтримки"
+
+#: templates/core/_assistant_support.html
+msgid "Ihre Nachricht"
+msgstr "Ваше повідомлення"
+
+#: templates/core/_assistant_support.html
+msgid "Nachrichten von Kunden"
+msgstr "Повідомлення клієнтів"
+
+#: templates/core/_assistant_support.html
+msgid "Neue Antwort vom Support"
+msgstr "Нова відповідь підтримки"
+
+#: templates/core/_assistant_support.html
+msgid "Neue Antwort:"
+msgstr "Нова відповідь:"
+
+#: templates/core/_assistant_support.html
+msgid "Noch keine Anfragen. Fragen Sie uns — wir antworten per E-Mail und hier."
+msgstr "Звернень поки немає. Запитайте нас — відповімо e-mail і тут."
+
+#: templates/core/_assistant_support.html
+msgid "Noch keine Nachrichten von Kunden."
+msgstr "Повідомлень від клієнтів поки немає."
+
+#: templates/core/_assistant_support.html
+msgid "Ungelesen:"
+msgstr "Не прочитано:"
+
+#: templates/core/_assistant_body.html
+msgid ", ungelesene Nachrichten von Kunden: {n}"
+msgstr ", непрочитаних повідомлень клієнтів: {n}"
+
+#: templates/core/_assistant_body.html
+#, python-format
+msgid "Ihre Fragen werden %(days)s Tage gespeichert."
+msgstr "Ваші питання зберігаються %(days)s днів."
+
+#: templates/core/_assistant_body.html
+msgid "Verlauf gelöscht."
+msgstr "Історію видалено."
+
+#: templates/core/_assistant_body.html
+msgid "Verlauf löschen"
+msgstr "Видалити історію"
+
+#: templates/core/_assistant_body.html
+msgid "Wirklich alles löschen?"
+msgstr "Справді видалити все?"

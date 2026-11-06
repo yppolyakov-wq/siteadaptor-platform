@@ -25,9 +25,42 @@ def _seite(request) -> str:
     return _seite_value(request.GET.get("seite"))
 
 
+def _panel_ctx(request, tab: str) -> dict:
+    """AIS A-3c: вкладки панели и данные не-KI вкладок (без диагнозов — дёшево)."""
+    from apps.core import assistant_panel
+
+    ctx = {
+        "tab": tab,
+        "tabs": assistant_panel.tabs_for(request, tab, _seite(request)),
+        "support_unread": assistant_panel.support_unread(request),
+    }
+    if tab == "support":
+        ctx["support"] = assistant_panel.support_ctx(request)
+    elif tab == "kunden":
+        ctx["kunden"] = assistant_panel.kunden_ctx(request)
+    return ctx
+
+
+def _render(request, ctx: dict):
+    # Шторка: заголовок диалога — h2, секции под ним — h3 (на странице — h1 → h2).
+    ctx["hl"] = "h3" if drawer.is_box(request) else "h2"
+    ctx["hl_sub"] = "h4" if drawer.is_box(request) else "h3"  # A-1: группы результатов
+    ctx.setdefault("nav", "dashboard")
+    ctx.setdefault("next_url", drawer.drawer_next(request, request.path))
+    ctx.setdefault("back_url", drawer.drawer_next(request, "") if request.GET.get("next") else "")
+    if drawer.is_box(request):
+        return drawer.fragment(render(request, "core/_assistant_body.html", ctx))
+    return render(request, "core/assistant.html", ctx)
+
+
 @login_required
 @require_GET
 def assistant_view(request):
+    from apps.core import assistant_panel
+
+    tab = assistant_panel.resolve_tab(request)
+    if tab != "ki":
+        return _render(request, _panel_ctx(request, tab))
     run_key = request.GET.get("pruefen") or ""
     limited = False
     if run_key not in diagnoses.BY_KEY or diagnoses.BY_KEY[run_key].cost != diagnoses.HEAVY:
@@ -79,12 +112,12 @@ def assistant_view(request):
             "back_url": drawer.drawer_next(request, "") if request.GET.get("next") else "",
         }
     )
-    # Шторка: заголовок диалога — h2, секции под ним — h3 (на странице — h1 → h2).
-    ctx["hl"] = "h3" if drawer.is_box(request) else "h2"
-    ctx["hl_sub"] = "h4" if drawer.is_box(request) else "h3"  # A-1: группы результатов
-    if drawer.is_box(request):
-        return drawer.fragment(render(request, "core/_assistant_body.html", ctx))
-    return render(request, "core/assistant.html", ctx)
+    ctx.update(_panel_ctx(request, "ki"))
+    from apps.core import assistant_history
+
+    ctx["history"] = assistant_history.recent(request)  # A-3d: только чтение
+    ctx["history_days"] = assistant_history.RETENTION_DAYS
+    return _render(request, ctx)
 
 
 def _answer_ctx(request, job: str) -> dict | None:
@@ -152,3 +185,20 @@ def assistant_answer(request, job):
     resp["X-Sf-Answer-State"] = ans["state"]
     resp["Cache-Control"] = "no-store"
     return resp
+
+
+@login_required
+@require_POST
+@drawer.drawer_aware
+def assistant_history_clear(request):
+    """AIS A-3d: «Verlauf löschen» — только свои строки этого пользователя."""
+    from django.contrib import messages
+    from django.shortcuts import redirect
+    from django.urls import reverse
+    from django.utils.translation import gettext as _
+
+    from apps.core import assistant_history
+
+    assistant_history.clear(request.user)
+    messages.success(request, _("Verlauf gelöscht."))
+    return redirect(reverse("assistant"))

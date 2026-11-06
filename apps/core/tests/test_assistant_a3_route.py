@@ -14,7 +14,6 @@ from apps.core.tests.test_assistant_a2 import (  # noqa: F401 — фикстур
     GOOD,
     _answer_html,
     _ask,
-    _clean,
     _model,
     _req,
     _urlconf,

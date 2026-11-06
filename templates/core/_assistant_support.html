@@ -1,0 +1,26 @@
+{% load i18n %}
+{% comment %}AIS A-3c: вкладка «Support» — свои обращения (точка — есть ответ) и новая заявка штатной формой support:help. Тред открывается на своей странице.{% endcomment %}
+<section aria-labelledby="as-sup-h">
+  <{{ hl|default:"h2" }} id="as-sup-h" class="ui-h3 mb-1">{% trans "Ihre Anfragen an den Support" %}</{{ hl|default:"h2" }}>
+  {% if support.threads %}
+  <ul class="divide-y divide-gray-100">
+    {% for t in support.threads %}
+    <li><a href="{% url 'support:thread' t.pk %}" class="flex items-center justify-between gap-2 min-h-[44px] py-2 text-sm hover:text-indigo-700"><span class="min-w-0 truncate{% if t.unread_for_owner %} font-semibold{% endif %}">{% if t.unread_for_owner %}<span class="inline-block w-2 h-2 rounded-full bg-amber-400 mr-1" aria-hidden="true"></span><span class="sr-only">{% trans "Neue Antwort:" %} </span>{% endif %}{{ t.subject }}</span><span class="ui-muted text-xs shrink-0">{{ t.get_status_display }}</span></a></li>
+    {% endfor %}
+  </ul>
+  <p class="mt-1"><a href="{{ support.help_url }}" class="inline-flex items-center min-h-[44px] text-sm text-indigo-700 hover:underline">{% trans "Alle Anfragen" %} <span aria-hidden="true">→</span></a></p>
+  {% else %}
+  <p class="ui-muted text-sm">{% trans "Noch keine Anfragen. Fragen Sie uns — wir antworten per E-Mail und hier." %}</p>
+  {% endif %}
+</section>
+<section aria-labelledby="as-sup-new-h">
+  <{{ hl|default:"h2" }} id="as-sup-new-h" class="ui-h3 mb-1">{% trans "Neue Anfrage" %}</{{ hl|default:"h2" }}>
+  <form method="post" action="{{ support.help_url }}" data-drawer-form class="space-y-2">
+    {% csrf_token %}
+    <label for="as-sup-subject" class="block text-sm font-medium">{% trans "Betreff" %}</label>
+    <input id="as-sup-subject" name="subject" maxlength="200" required class="ui-input block w-full">
+    <label for="as-sup-body" class="block text-sm font-medium">{% trans "Ihre Nachricht" %}</label>
+    <textarea id="as-sup-body" name="body" rows="3" maxlength="5000" required class="ui-input block w-full"></textarea>
+    <button type="submit" class="ui-btn ui-btn-primary min-h-[44px]">{% trans "An den Support senden" %}</button>
+  </form>
+</section>

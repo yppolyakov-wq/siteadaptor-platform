@@ -155,6 +155,12 @@ urlpatterns = [
         assistant_views.assistant_answer,
         name="assistant-answer",
     ),
+    # AIS A-3d: «Verlauf löschen» (POST, только свои строки)
+    path(
+        "dashboard/assistent/verlauf/loeschen/",
+        assistant_views.assistant_history_clear,
+        name="assistant-history-clear",
+    ),
     # UD4-2: кабинет «Benachrichtigungen» — каналы email/Telegram per-событие.
     path(
         "dashboard/settings/notifications/",

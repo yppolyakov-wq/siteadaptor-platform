@@ -460,11 +460,19 @@ def _digest(lang: str, prompt_wo_marker: str, ctx: dict) -> str:
     return hashlib.sha256(raw.encode()).hexdigest()
 
 
-def _put(schema: str, user_pk, entry: dict, ttl: int = RESULT_TTL, job: str = "") -> str:
+def _put(
+    schema: str, user_pk, entry: dict, ttl: int = RESULT_TTL, job: str = "", q: str = ""
+) -> str:
+    """Запись задачи в кэш. A-3d: готовая запись с вопросом уходит и в историю
+    (`assistant_history.record` — та же проверенная запись, сбой не мешает ответу)."""
     from django.core.cache import cache
 
     job = job or uuid.uuid4().hex
     cache.set(_job_key(schema, user_pk, job), {**entry, "v": ENTRY_V}, ttl)
+    if q and entry.get("state") == "done":
+        from apps.core import assistant_history
+
+        assistant_history.record(schema, user_pk, job, q, entry)
     return job
 
 
@@ -535,22 +543,22 @@ def ask(request, raw_q: str, seite: str = "") -> dict:
         keys = [x["key"] for x in help_articles.search(request, q)[:3]]
         on_outcome("scope")
         entry = _result("scope", {"labels": {}, "article_keys": keys}, code="scope", topic=topic)
-        return {"job": _put(schema, user_pk, entry)}
+        return {"job": _put(schema, user_pk, entry, q=q)}
     lang = (translation.get_language() or "de")[:2]
     try:
         ctx = build_context(request, q, seite)
     except Exception:  # noqa: BLE001 — сбой сборки: спокойный ответ, а не 500
         logger.warning("assistant answer: context failed", exc_info=True)
-        return {"job": _put(schema, user_pk, _result("fallback", None, code="unavailable"))}
+        return {"job": _put(schema, user_pk, _result("fallback", None, code="unavailable"), q=q)}
     if not ctx["articles"] and not ctx["refs"]:
         on_outcome("unknown")
-        return {"job": _put(schema, user_pk, _result("fallback", ctx, code="unknown"))}
+        return {"job": _put(schema, user_pk, _result("fallback", ctx, code="unknown"), q=q)}
     marker = secrets.token_hex(6)
     prompt = build_prompt(ctx, q, marker)
     digest = _digest(lang, build_prompt(ctx, q, "M"), ctx)
     hit = cache.get(_cache_key(schema, digest))
     if isinstance(hit, dict):
-        return {"job": _put(schema, user_pk, hit)}
+        return {"job": _put(schema, user_pk, hit, q=q)}
     job = uuid.uuid4().hex
     if not cache.add(_lock_key(schema, user_pk), job, JOB_TTL):
         return {"code": "busy"}
@@ -581,6 +589,7 @@ def ask(request, raw_q: str, seite: str = "") -> dict:
             "digest": digest,
             "counted": counted,
             "deadline": _now() + DEADLINE_S,
+            "q": q,  # A-3d: только для записи итога в историю (кэш, TTL задачи)
         }
         _put(schema, user_pk, pending, JOB_TTL, job=job)
     except BaseException:
@@ -596,11 +605,11 @@ def ask(request, raw_q: str, seite: str = "") -> dict:
         logger.warning("assistant answer: queue unavailable", exc_info=True)
         _refund(counted)
         _release(schema, user_pk, job)
-        _put(schema, user_pk, _result("fallback", ctx, code="unavailable"), job=job)
+        _put(schema, user_pk, _result("fallback", ctx, code="unavailable"), job=job, q=q)
     return {"job": job}
 
 
-def _instant(request, entry: dict) -> dict:
+def _instant(request, entry: dict, q: str = "") -> dict:
     """Готовый ответ без модели вопросов (статьи без ИИ) — тем же job-каналом, что ответ
     ИИ: шторка и опрос не различают пути. Лимит запросов общий с вопросами."""
     from apps.core import ratelimit
@@ -611,7 +620,7 @@ def _instant(request, entry: dict) -> dict:
             "assistant-ask-req", f"{schema}:{user_pk}", limit=REQ_LIMIT, window=RATE_WINDOW
         ):
             return {"code": "quota"}
-        return {"job": _put(schema, user_pk, entry)}
+        return {"job": _put(schema, user_pk, entry, q=q)}
     except Exception:  # noqa: BLE001 — Redis недоступен: спокойное сообщение, а не 500
         logger.warning("assistant answer: instant entry failed", exc_info=True)
         return {"code": "unavailable"}
@@ -646,7 +655,7 @@ def put_plan(request, q: str) -> dict:
         locked = True
         plan = setup_assistant.build_plan(q[:QUESTION_MAX], request.tenant, request.user)
         entry = {"state": "done", "outcome": "plan", "plan": setup_assistant.plan_to_data(plan)}
-        _put(schema, user_pk, entry, job=job)
+        _put(schema, user_pk, entry, job=job, q=q)
     except Exception:  # noqa: BLE001 — сбой кэша/плана: спокойное сообщение, а не 500
         logger.warning("assistant answer: plan failed", exc_info=True)
         return {"code": "unavailable"}
@@ -663,7 +672,7 @@ def put_articles(request, q: str) -> dict:
 
     keys = [x["key"] for x in help_articles.search(request, q)[:3]]
     on_outcome("articles")
-    return _instant(request, _result("articles", {"labels": {}, "article_keys": keys}))
+    return _instant(request, _result("articles", {"labels": {}, "article_keys": keys}), q=q)
 
 
 def _now() -> float:
@@ -712,7 +721,7 @@ def run_job(*, schema: str, user_pk, job: str) -> None:
         if outcome.get("code") in SYSTEM_CODES:
             _refund(entry.get("counted"))
         try:
-            _put(schema, user_pk, outcome, job=job)
+            _put(schema, user_pk, outcome, job=job, q=str(entry.get("q") or ""))
         except Exception:  # noqa: BLE001 — Redis упал: опрос увидит протухшую задачу
             logger.warning("assistant answer: result not stored")
         _release(schema, user_pk, job)

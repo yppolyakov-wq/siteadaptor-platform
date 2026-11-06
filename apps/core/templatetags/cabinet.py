@@ -522,3 +522,33 @@ def tc_grouped(findings):
             if place and place not in groups[key][1]:
                 groups[key][1].append(place)
     return [groups[k] for k in order]
+
+
+@register.inclusion_tag("core/_assistant_fab.html", takes_context=True)
+def assistant_fab(context):
+    """AIS A-3c: плавающая кнопка «✨ Assistent» — единственный вход в помощника.
+
+    Точка — поддержка ответила, а владелец не прочёл; бейдж клиентов — общий опрос
+    `data-inbox-badge` (только если экран бесед открывается). Сбой — кнопка без меток."""
+    from apps.core import assistant_panel
+
+    request = context.get("request")
+    seite = ""
+    support_dot = kunden = False
+    if request is None or not getattr(getattr(request, "user", None), "is_authenticated", False):
+        return {"request": request, "seite": "", "support_dot": False, "kunden": False}
+    memo = getattr(request, "_assistant_fab", None)
+    if memo is not None:  # тег мог сработать дважды на одном запросе
+        return memo
+    try:
+        match = getattr(request, "resolver_match", None)
+        seite = getattr(match, "view_name", "") or ""
+        support_dot = assistant_panel._available(request, "support") and bool(
+            assistant_panel.support_unread(request)
+        )
+        kunden = assistant_panel._available(request, "kunden")
+    except Exception:  # noqa: BLE001 — кнопка помощника не роняет кабинет
+        logging.getLogger(__name__).warning("assistant fab: badges failed", exc_info=True)
+    memo = {"request": request, "seite": seite, "support_dot": support_dot, "kunden": kunden}
+    request._assistant_fab = memo
+    return memo

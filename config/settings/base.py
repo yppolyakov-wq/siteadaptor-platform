@@ -497,6 +497,11 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.core.tasks.send_owner_digests",
         "schedule": 3600.0,
     },
+    # AIS A-3d: история переписки с помощником — срок хранения (DSGVO, 90 дней)
+    "purge-assistant-history": {
+        "task": "apps.core.tasks.purge_assistant_history",
+        "schedule": 86400.0,
+    },
     # Г3: предупреждение «позиции скоро уйдут из каталога города» — раз в сутки,
     # письмо не чаще раза в ISO-неделю (dedupe_key).
     "warn-city-freshness": {
@@ -753,6 +758,8 @@ PROMO_COUPONS_PER_IP_DAY = env.int("PROMO_COUPONS_PER_IP_DAY", default=3)
 PLATFORM_CONTACT_EMAIL = env("PLATFORM_CONTACT_EMAIL", default="kontakt@siteadaptor.de")
 # AIS A-3b: куда платформе приходят письма о новых обращениях в поддержку (пусто → PLATFORM_CONTACT_EMAIL)
 SUPPORT_NOTIFY_EMAIL = env("SUPPORT_NOTIFY_EMAIL", default="")
+# AIS A-3d: сколько дней хранится история вопросов к помощнику кабинета
+ASSISTANT_HISTORY_DAYS = env.int("ASSISTANT_HISTORY_DAYS", default=90)
 # SF-8b: исключение § 11 Abs. 4 PAngV (schnell verderblich / kurze Haltbarkeit) — акция
 # с флагом владельца НЕ ограничивается 30-дневным минимумом. Выключатель для отката по
 # решению юриста: False → флаг игнорируется целиком (данные владельцев не трогаются).

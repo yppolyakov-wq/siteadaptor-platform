@@ -115,11 +115,14 @@ def drawer(run, browser, port, width):
     _ask(page, "dialog[open]", f"Wie liefere ich nur in meine Stadt? {RUN}")
     if width == 390:  # второй прогон берёт тот же вопрос из кэша — ответ сразу готов
         page.wait_for_selector(
-            "dialog[open] [data-assistant-reply][data-state=pending]", timeout=5000
+            "dialog[open] [data-assistant-answer] [data-assistant-reply][data-state=pending]",
+            timeout=5000,
         )
         run.check(True, "ожидание: «sucht eine Antwort»")
-    page.wait_for_selector("dialog[open] [data-assistant-text]", timeout=15000)
-    reply = page.locator("dialog[open] [data-assistant-reply]")
+    page.wait_for_selector(
+        "dialog[open] [data-assistant-answer] [data-assistant-text]", timeout=15000
+    )
+    reply = page.locator("dialog[open] [data-assistant-answer] [data-assistant-reply]")
     run.check("KI-Assistent" in reply.inner_text(), "ответ помечен «KI-Assistent»")
     href = reply.locator("a").first.get_attribute("href") or ""
     run.check(
@@ -128,15 +131,20 @@ def drawer(run, browser, port, width):
     _health(run, page, errors, "Ответ", width)
 
     _ask(page, "dialog[open]", "Muss ich Umsatzsteuer zahlen?")
-    page.wait_for_selector("dialog[open] [data-assistant-fallback]", timeout=10000)
+    page.wait_for_selector(
+        "dialog[open] [data-assistant-answer] [data-assistant-fallback]", timeout=10000
+    )
     run.check(
-        "Steuerberater" in page.locator("dialog[open] [data-assistant-reply]").inner_text(),
+        "Steuerberater"
+        in page.locator("dialog[open] [data-assistant-answer] [data-assistant-reply]").inner_text(),
         "налоги: отказ с «Steuerberater»",
     )
 
     _ask(page, "dialog[open]", "evil Lieferung einrichten")
-    page.wait_for_selector("dialog[open] [data-assistant-fallback]", timeout=15000)
-    body = page.locator("dialog[open] [data-assistant-reply]").inner_html()
+    page.wait_for_selector(
+        "dialog[open] [data-assistant-answer] [data-assistant-fallback]", timeout=15000
+    )
+    body = page.locator("dialog[open] [data-assistant-answer] [data-assistant-reply]").inner_html()
     run.check("evil.example" not in body, "подсунутая ссылка не показана")
     run.check("data-help=" in body, "вместо ответа — статьи A-1")
     _health(run, page, errors, "Отказы", width)
@@ -148,9 +156,10 @@ def russian(run, browser, port):
     ctx, page, errors, url = _page(browser, port, 390, lang="ru-RU")
     page.goto(url + "/dashboard/assistent/")
     _ask(page, "body", "Как настроить доставку только по моему городу?")
-    page.wait_for_selector("[data-assistant-text]", timeout=15000)
+    page.wait_for_selector("[data-assistant-answer] [data-assistant-text]", timeout=15000)
     run.check(
-        "ИИ-помощник" in page.locator("[data-assistant-reply]").inner_text(),
+        "ИИ-помощник"
+        in page.locator("[data-assistant-answer] [data-assistant-reply]").inner_text(),
         "ru: подпись «ИИ-помощник»",
     )
     _health(run, page, errors, "ru", 390)
@@ -172,7 +181,8 @@ def without_js(run, browser, port):
         refresh.click()
         page.wait_for_load_state()
     run.check(
-        page.locator("[data-assistant-text]").count() == 1, "без JS: ответ после «Aktualisieren»"
+        page.locator("[data-assistant-answer] [data-assistant-text]").count() == 1,
+        "без JS: ответ после «Aktualisieren»",
     )
     ctx.close()
 

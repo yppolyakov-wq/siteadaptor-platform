@@ -1783,6 +1783,10 @@ input[type="datetime-local"] {
   .ui-btn-danger-outline { background: var(--ui-surface); color: var(--ui-danger); border-color: currentColor; }
   .ui-btn-sm { min-height: 32px; padding: .375rem .625rem; font-size: .8125rem; }
   .ui-btn-lg { min-height: 48px; padding: .75rem 1.125rem; font-size: .9375rem; }
+  /* AIS A-3c: плавающая кнопка помощника (единственный вход); место — утилитами шаблона */
+  .ui-fab { position: fixed; z-index: 30; width: 3.5rem; height: 3.5rem; border-radius: 9999px; display: grid; place-items: center; background: var(--ui-accent); color: var(--ui-on-accent); box-shadow: 0 10px 24px rgba(22,24,29,.22); text-decoration: none; }
+  .ui-fab:hover { background: var(--ui-accent-hover); }
+  .ui-fab:focus-visible { outline: 3px solid var(--ui-focus); outline-offset: 3px; }
 
   /* FLT-4: снимаемый фильтр списка («Status: Offen ✕») — ссылка, снимающая свой ключ */
   .ui-chip { display: inline-flex; align-items: center; gap: .375rem; padding: .375rem .75rem; border-radius: 9999px; background: #111827; color: #fff; font-size: .875rem; line-height: 1.25; text-decoration: none; }

@@ -34258,3 +34258,88 @@ msgstr "Ответ поддержки: %(betreff)s"
 #, python-format
 msgid "Der SiteAdaptor-Support hat geantwortet: %(url)s"
 msgstr "Поддержка SiteAdaptor ответила: %(url)s"
+
+#: apps/support/admin.py
+msgid "Gesendete Nachrichten werden nicht geändert — bitte neu antworten."
+msgstr "Отправленные сообщения не меняются — ответьте новым."
+
+#: apps/support/admin.py
+msgid "Antwort auf 5000 Zeichen gekürzt."
+msgstr "Ответ сокращён до 5000 символов."
+
+#: templates/core/_assistant_support.html
+msgid "Alle Anfragen"
+msgstr "Все обращения"
+
+#: templates/core/_assistant_support.html
+msgid "Alle Nachrichten"
+msgstr "Все сообщения"
+
+#: templates/core/_assistant_support.html
+msgid "An den Support senden"
+msgstr "Отправить в поддержку"
+
+#: templates/core/_assistant_support.html
+msgid "Assistent & Hilfe"
+msgstr "Помощник и поддержка"
+
+#: templates/core/_assistant_support.html
+msgid "Bereiche des Assistenten"
+msgstr "Разделы помощника"
+
+#: templates/core/_assistant_support.html
+msgid "Betreff"
+msgstr "Тема"
+
+#: templates/core/_assistant_support.html
+msgid "Ihre Anfragen an den Support"
+msgstr "Ваши обращения в поддержку"
+
+#: templates/core/_assistant_support.html
+msgid "Ihre Nachricht"
+msgstr "Ваше сообщение"
+
+#: templates/core/_assistant_support.html
+msgid "Nachrichten von Kunden"
+msgstr "Сообщения клиентов"
+
+#: templates/core/_assistant_support.html
+msgid "Neue Antwort vom Support"
+msgstr "Новый ответ поддержки"
+
+#: templates/core/_assistant_support.html
+msgid "Neue Antwort:"
+msgstr "Новый ответ:"
+
+#: templates/core/_assistant_support.html
+msgid "Noch keine Anfragen. Fragen Sie uns — wir antworten per E-Mail und hier."
+msgstr "Обращений пока нет. Спросите нас — ответим по e-mail и здесь."
+
+#: templates/core/_assistant_support.html
+msgid "Noch keine Nachrichten von Kunden."
+msgstr "Сообщений от клиентов пока нет."
+
+#: templates/core/_assistant_support.html
+msgid "Ungelesen:"
+msgstr "Не прочитано:"
+
+#: templates/core/_assistant_body.html
+msgid ", ungelesene Nachrichten von Kunden: {n}"
+msgstr ", непрочитанных сообщений клиентов: {n}"
+
+#: templates/core/_assistant_body.html
+#, python-format
+msgid "Ihre Fragen werden %(days)s Tage gespeichert."
+msgstr "Ваши вопросы хранятся %(days)s дней."
+
+#: templates/core/_assistant_body.html
+msgid "Verlauf gelöscht."
+msgstr "История удалена."
+
+#: templates/core/_assistant_body.html
+msgid "Verlauf löschen"
+msgstr "Удалить историю"
+
+#: templates/core/_assistant_body.html
+msgid "Wirklich alles löschen?"
+msgstr "Точно удалить всё?"

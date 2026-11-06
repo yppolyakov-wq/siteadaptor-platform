@@ -32,11 +32,20 @@ def _urlconf(settings):
 
 
 @pytest.fixture(autouse=True)
-def _clean():
+def _clean(monkeypatch):
+    """Свой кэш на тест. Раньше здесь был `cache.clear()` ОБЩЕГО Redis: под xdist (CI
+    `-n auto`) он стирал данные тестов соседних воркеров (замки, корзины, лимиты) — и
+    те падали «флаками», а эти ловили чужие ключи (A-3, 2026-11-06)."""
+    import sys
+
+    import django.core.cache as dj_cache
+    from django.core.cache.backends.locmem import LocMemCache
+
+    local = LocMemCache(f"a2-{uuid.uuid4().hex}", {})
+    monkeypatch.setattr(dj_cache, "cache", local)
+    monkeypatch.setattr(sys.modules[__name__], "cache", local)
     help_articles._index.cache_clear()
-    cache.clear()
     yield
-    cache.clear()
 
 
 @pytest.fixture

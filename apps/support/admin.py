@@ -37,16 +37,25 @@ class SupportThreadAdmin(ModelAdmin):
 
         if formset.model is not SupportMessage:
             return super().save_formset(request, form, formset, change)
+        from django.contrib import messages
+        from django.utils.translation import gettext as _
+
         instances = formset.save(commit=False)
         for obj in formset.deleted_objects:
             obj.delete()
+        if formset.changed_objects:
+            # переписка — запись: отправленное (в т.ч. текст владельца) не переписываем
+            messages.warning(
+                request, _("Gesendete Nachrichten werden nicht geändert — bitte neu antworten.")
+            )
         for obj in instances:
             if obj.pk:
-                obj.save()  # правка старого сообщения — без уведомлений
                 continue
             body = (obj.body or "").strip()
-            if body:
-                services.add_message(
-                    formset.instance, body=body[:5000], author_role=SupportMessage.AUTHOR_PLATFORM
-                )
-        formset.save_m2m()
+            if not body:
+                continue
+            if len(body) > 5000:
+                messages.warning(request, _("Antwort auf 5000 Zeichen gekürzt."))
+            services.add_message(
+                formset.instance, body=body[:5000], author_role=SupportMessage.AUTHOR_PLATFORM
+            )

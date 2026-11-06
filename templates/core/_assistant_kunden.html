@@ -1,0 +1,15 @@
+{% load i18n %}
+{% comment %}AIS A-3c: вкладка «Kunden» — последние беседы, непрочитанные первыми. Только тема, имя, время: контакты клиента в панель не выводятся. Беседа открывается на своей странице.{% endcomment %}
+<section aria-labelledby="as-kd-h">
+  <{{ hl|default:"h2" }} id="as-kd-h" class="ui-h3 mb-1">{% trans "Nachrichten von Kunden" %}</{{ hl|default:"h2" }}>
+  {% if kunden.conversations %}
+  <ul class="divide-y divide-gray-100">
+    {% for c in kunden.conversations %}
+    <li><a href="{{ c.url }}" class="flex items-center justify-between gap-2 min-h-[44px] py-2 text-sm hover:text-indigo-700"><span class="min-w-0 truncate{% if c.unread %} font-semibold{% endif %}">{% if c.unread %}<span class="inline-block w-2 h-2 rounded-full bg-rose-500 mr-1" aria-hidden="true"></span><span class="sr-only">{% trans "Ungelesen:" %} </span>{% endif %}{{ c.subject|default:c.name|default:_("Nachricht") }}{% if c.subject and c.name %} <span class="ui-muted font-normal">· {{ c.name }}</span>{% endif %}</span><span class="ui-muted text-xs shrink-0">{{ c.at|date:"d.m. H:i" }}</span></a></li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="ui-muted text-sm">{% trans "Noch keine Nachrichten von Kunden." %}</p>
+  {% endif %}
+  <p class="mt-1"><a href="{{ kunden.inbox_url }}" class="inline-flex items-center min-h-[44px] text-sm text-indigo-700 hover:underline">{% trans "Alle Nachrichten" %} <span aria-hidden="true">→</span></a></p>
+</section>

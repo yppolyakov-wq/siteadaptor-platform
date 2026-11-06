@@ -18,6 +18,11 @@ try { (function () {
           if (d.count > 0) { badge.textContent = d.count; badge.classList.remove("hidden"); }
           else { badge.classList.add("hidden"); }
         });
+        // A-3c: у плавающей кнопки цифра скрыта от скринридера — слово с числом отдельно
+        document.querySelectorAll("[data-inbox-badge-sr]").forEach(function (sr) {
+          var tpl = sr.getAttribute("data-sr-template") || "";
+          sr.textContent = d.count > 0 ? tpl.replace("{n}", String(d.count)) : "";
+        });
       }).catch(function () {});
   }
   refresh();
@@ -636,7 +641,10 @@ try { (function () {
   }
 
   function visible(el) {
-    return el && document.contains(el) && el.offsetParent !== null && typeof el.focus === "function";
+    // offsetParent у position:fixed всегда null — плавающая кнопка помощника (A-3c)
+    // считалась бы невидимой и фокус уходил бы на h1; getClientRects ловит display:none.
+    return el && document.contains(el) && typeof el.focus === "function" &&
+      (el.offsetParent !== null || el.getClientRects().length > 0);
   }
 
   dlg.addEventListener("cancel", function (e) { e.preventDefault(); close(); });

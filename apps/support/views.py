@@ -9,11 +9,14 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import gettext as _
 
+from apps.core.drawer import drawer_aware
+
 from . import services
 from .models import SupportMessage, SupportThread
 
 
 @login_required
+@drawer_aware  # AIS A-3c: новая заявка прямо из панели помощника (JSON для шторки)
 def help_list(request):
     tenant = request.tenant
     if request.method == "POST":

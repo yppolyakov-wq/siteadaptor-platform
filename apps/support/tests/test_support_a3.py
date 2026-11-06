@@ -121,3 +121,48 @@ def test_support_open_in_lite_package_and_mini_app():
 
     assert {"support:help", "support:thread"} <= set(tg_login.TG_LITE_VIEWS)
     assert {"support:help", "support:thread"} <= set(packages._AKTIONEN_VIEWS)
+
+
+# ── ревью A-3b (silent-failure + security) ──
+
+
+@override_settings(SUPPORT_NOTIFY_EMAIL="support@platform.test")
+def test_newline_in_subject_or_company_does_not_kill_the_email():
+    tenant = TenantFactory(name="Krume\nBcc: evil@x.test", contact_email="chef@krume.test")
+    thread = services.open_thread(tenant=tenant, subject="Kasse\r\nhängt", body="x")
+    assert "\n" not in thread.subject and "\r" not in thread.subject
+    note = Notification.objects.get(recipient="support@platform.test")
+    assert "\n" not in note.subject and "\r" not in note.subject
+
+
+def test_admin_does_not_rewrite_sent_messages():
+    tenant = _tenant()
+    thread = services.open_thread(tenant=tenant, subject="Kasse", body="Original vom Inhaber")
+    first = thread.messages.get()
+    from django.contrib.auth import get_user_model
+
+    admin = SupportThreadAdmin(SupportThread, site)
+    request = RequestFactory().post("/admin/")
+    from django.contrib.messages.storage.fallback import FallbackStorage
+    from django.contrib.sessions.middleware import SessionMiddleware
+
+    SessionMiddleware(lambda r: None).process_request(request)
+    request._messages = FallbackStorage(request)
+    request.user = get_user_model().objects.create_superuser("root-a3b", "r2@t.de", "pw12345678")
+    inline = admin.get_inline_instances(request, thread)[0]
+    FormSet = inline.get_formset(request, thread)
+    prefix = FormSet.get_default_prefix()
+    data = {
+        f"{prefix}-TOTAL_FORMS": "1",
+        f"{prefix}-INITIAL_FORMS": "1",
+        f"{prefix}-MIN_NUM_FORMS": "0",
+        f"{prefix}-MAX_NUM_FORMS": "1000",
+        f"{prefix}-0-id": str(first.pk),
+        f"{prefix}-0-thread": str(thread.pk),
+        f"{prefix}-0-body": "UMGESCHRIEBEN",
+    }
+    formset = FormSet(data=data, instance=thread, prefix=prefix)
+    assert formset.is_valid(), formset.errors
+    admin.save_formset(request, admin.get_form(request, thread)(instance=thread), formset, True)
+    first.refresh_from_db()
+    assert first.body == "Original vom Inhaber"

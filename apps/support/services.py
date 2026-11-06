@@ -22,9 +22,15 @@ logger = logging.getLogger(__name__)
 PLATFORM_NOTIFY_WINDOW_S = 1800
 
 
+def one_line(text) -> str:
+    """Тема/имя в одну строку: перевод строки в заголовке письма роняет отправку
+    (BadHeaderError) — письмо терялось бы молча (ревью A-3b)."""
+    return " ".join(str(text or "").split())
+
+
 def open_thread(*, tenant, subject, body):
     with transaction.atomic():
-        thread = SupportThread.objects.create(tenant=tenant, subject=(subject or "").strip()[:200])
+        thread = SupportThread.objects.create(tenant=tenant, subject=one_line(subject)[:200])
         add_message(thread, body=body, author_role=SupportMessage.AUTHOR_OWNER)
     return thread
 
@@ -80,24 +86,26 @@ def notify_platform(thread) -> None:
         window = int(time.time() // PLATFORM_NOTIFY_WINDOW_S)
         with translation.override("de"):
             subject = _("Neue Support-Anfrage: %(firma)s — %(betreff)s") % {
-                "firma": tenant.name,
-                "betreff": thread.subject,
+                "firma": one_line(tenant.name),
+                "betreff": one_line(thread.subject),
             }
             body = _("Antworten Sie in der Verwaltung: %(url)s") % {
                 "url": f"{_platform_url()}/admin/support/supportthread/{thread.pk}/change/"
             }
-        _in_tenant(
+        sent = _in_tenant(
             tenant,
             lambda: notify(
                 dedupe_key=f"support-platform:{thread.pk}:{window}",
                 type="support_platform",
                 recipient=to,
-                subject=subject[:200],
+                subject=one_line(subject)[:200],
                 body=body,
             ),
         )
+        if sent is None:  # уже было письмо по этому треду в окне — новое видно по флагу
+            logger.info("support: platform mail for thread %s suppressed (window)", thread.pk)
     except Exception:  # noqa: BLE001 — письмо — дополнение: тред уже сохранён
-        logger.warning("support: platform notification failed", exc_info=True)
+        logger.exception("support: platform notification failed for thread %s", thread.pk)
 
 
 def notify_owner(thread, message) -> None:
@@ -109,11 +117,14 @@ def notify_owner(thread, message) -> None:
         tenant = thread.tenant
         to = (tenant.contact_email or tenant.owner_email or "").strip()
         if not to:
+            logger.warning("support: tenant %s has no e-mail for the reply notice", tenant.pk)
             return
 
         def _send():
             with translation.override(tenant_locale()):
-                subject = _("Antwort vom Support: %(betreff)s") % {"betreff": thread.subject}
+                subject = _("Antwort vom Support: %(betreff)s") % {
+                    "betreff": one_line(thread.subject)
+                }
                 body = _("Der SiteAdaptor-Support hat geantwortet: %(url)s") % {
                     "url": f"{site_url_for(tenant)}/dashboard/help/{thread.pk}/"
                 }
@@ -121,13 +132,13 @@ def notify_owner(thread, message) -> None:
                 dedupe_key=f"support-owner:{message.pk}",
                 type="support_owner",
                 recipient=to,
-                subject=subject[:200],
+                subject=one_line(subject)[:200],
                 body=body,
             )
 
         _in_tenant(tenant, _send)
     except Exception:  # noqa: BLE001 — письмо — дополнение: ответ уже в треде
-        logger.warning("support: owner notification failed", exc_info=True)
+        logger.exception("support: owner notification failed for thread %s", thread.pk)
 
 
 def _platform_url() -> str:

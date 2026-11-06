@@ -1,6 +1,22 @@
 {% load i18n ai_notice %}
 {% comment %}AIS A-0: тело помощника — шторка (?box=1) и полная страница. Без script и on…=: фрагмент вставляет cabinet.js. Только чтение.{% endcomment %}
 <div data-drawer-title="{% trans 'Assistent' %}" data-assistant class="space-y-5">
+  {% comment %}AIS A-3c: вкладки панели — ссылки (в шторке грузят фрагмент, без JS — страницу).{% endcomment %}
+  {% if tabs|length > 1 %}
+  <nav aria-label="{% trans 'Bereiche des Assistenten' %}" class="ui-tabs" data-assistant-tabs>
+    {% for t in tabs %}<a href="{{ t.url }}" data-drawer data-drawer-key="assistant" data-assistant-tablink="{{ t.key }}"{% if t.active %} aria-current="page" data-drawer-autofocus{% endif %} class="ui-tab min-h-[44px]">{{ t.label }}{% if t.key == "support" and support_unread %} <span class="w-2 h-2 rounded-full bg-amber-500" aria-hidden="true"></span><span class="sr-only">, {% trans "Neue Antwort vom Support" %}</span>{% endif %}</a>{% endfor %}
+  </nav>
+  {% endif %}
+  {% if tab == "support" %}
+  <div data-assistant-tab="support" class="space-y-4">
+    {% include "core/_assistant_support.html" %}
+  </div>
+  {% elif tab == "kunden" %}
+  <div data-assistant-tab="kunden" class="space-y-4">
+    {% include "core/_assistant_kunden.html" %}
+  </div>
+  {% else %}
+  <div data-assistant-tab="ki" class="space-y-5">
   {% if failed %}<p class="ui-muted text-sm" role="status">{% trans "Einige Prüfungen konnten nicht ausgeführt werden." %}</p>{% endif %}
 
   {% if here %}
@@ -71,6 +87,21 @@
     </form>
     {% if anlegen %}<a href="{% url 'setup-ask' %}" class="ui-btn ui-btn-secondary min-h-[44px] mt-2" data-assistant-anlegen><span aria-hidden="true">＋</span> {% trans "Was möchten Sie anlegen?" %}</a>{% endif %}
     <div data-assistant-answer aria-live="polite">{% if answer %}{% with ans=answer %}{% include "core/_assistant_answer.html" %}{% endwith %}{% endif %}</div>
+    {% if history %}
+    <div class="mt-4" data-assistant-history>
+      <{{ hl_sub|default:"h3" }} class="text-sm font-semibold mb-1">{% trans "Verlauf" %}</{{ hl_sub|default:"h3" }}>
+      <ul class="space-y-2">
+        {% for h in history %}
+        <li><details class="rounded-xl border border-gray-200 px-3 py-2"><summary class="min-h-[44px] flex items-center justify-between gap-2 cursor-pointer text-sm"><span class="min-w-0 truncate">{{ h.question }}</span><span class="ui-muted text-xs shrink-0">{{ h.at|date:"d.m. H:i" }}</span></summary>{% with ans=h.ans %}{% include "core/_assistant_answer.html" %}{% endwith %}</details></li>
+        {% endfor %}
+      </ul>
+      <form method="post" action="{% url 'assistant-history-clear' %}" data-drawer-form class="mt-2">
+        {% csrf_token %}
+        <button type="submit" class="ui-btn ui-btn-ghost ui-btn-sm min-h-[44px]" data-confirm-tap="{% trans 'Wirklich alles löschen?' %}">{% trans "Verlauf löschen" %}</button>
+      </form>
+      <p class="ui-muted text-xs mt-1">{% blocktrans with days=history_days %}Ihre Fragen werden {{ days }} Tage gespeichert.{% endblocktrans %}</p>
+    </div>
+    {% endif %}
     {% if q %}
       {% if help_found %}
       <{{ hl_sub|default:"h3" }} class="text-sm font-semibold mt-3 mb-1" data-help-results>{% trans "Anleitungen" %}</{{ hl_sub|default:"h3" }}>
@@ -88,4 +119,6 @@
       {% endif %}
     {% endif %}
   </section>
+  </div>
+  {% endif %}
 </div>

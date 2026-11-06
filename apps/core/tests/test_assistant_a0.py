@@ -195,9 +195,12 @@ def test_chrome_only_links(settings):
     """Хром — только ссылка: шапка не зовёт readiness/диагнозы."""
     from pathlib import Path
 
+    # A-3c (решение владельца 2026-11-06): вход — плавающая кнопка, шапка её подключает
     src = Path("templates/tenant/_base_dashboard.html").read_text(encoding="utf-8")
-    assert "{% url 'assistant' %}" in src
-    assert "assistant_rows" not in src and "diagnos" not in src
+    fab = Path("templates/core/_assistant_fab.html").read_text(encoding="utf-8")
+    assert "{% assistant_fab %}" in src and "{% url 'assistant' %}" in fab
+    for text in (src, fab):
+        assert "assistant_rows" not in text and "diagnos" not in text
 
 
 def test_failing_applies_shows_unknown_card(tenant, monkeypatch):

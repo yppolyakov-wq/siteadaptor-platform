@@ -1,0 +1,9 @@
+{% load i18n %}
+{% comment %}AIS A-3c: плавающая кнопка помощника — вход в шторку (KI · Support · Kunden). Имя — из содержимого (sr-only), бейджи озвучиваются: точка поддержки и число непрочитанных клиентов (визуальная цифра скрыта от скринридера, слово с числом — sr-only, обновляет cabinet.js). На телефоне — выше таб-бара, «＋» продаж и липких «Speichern».{% endcomment %}
+<a href="{% url 'assistant' %}?seite={{ seite|urlencode }}" data-drawer data-drawer-key="assistant" data-assistant-open data-assistant-fab aria-haspopup="dialog"
+   class="ui-fab right-4 bottom-[10rem] md:right-6 md:bottom-6">
+  <span aria-hidden="true" class="text-2xl leading-none">✨</span>
+  <span class="sr-only">{% trans "Assistent & Hilfe" %}</span>
+  {% if support_dot %}<span data-assistant-support-dot class="absolute top-0.5 left-0.5 w-3.5 h-3.5 rounded-full bg-amber-500 ring-2 ring-white" aria-hidden="true"></span><span class="sr-only">, {% trans "Neue Antwort vom Support" %}</span>{% endif %}
+  {% if kunden %}<span data-inbox-badge data-url="{% url 'inbox:unread-count' %}" aria-hidden="true" class="hidden absolute -top-1 -right-1 min-w-[1.25rem] h-5 px-1 rounded-full bg-rose-600 text-white text-[12px] leading-5 text-center"></span><span class="sr-only" data-inbox-badge-sr data-sr-template="{% trans ', ungelesene Nachrichten von Kunden: {n}' %}"></span>{% endif %}
+</a>
