@@ -247,6 +247,7 @@ def book(
     variant_label="",
     customer=None,
     enforce_seats=True,
+    channel="",
 ):
     """Создать запись, атомарно проверив пересечения. Бросает SlotTaken /
     ResourceClosed / ValueError (кривой интервал) / PromoInvalid (B1.2).
@@ -258,6 +259,16 @@ def book(
     promotion (P5 «ценовой слой») — бронь по акции: лимит кампании списывается
     В ЭТОЙ ЖЕ транзакции (SlotTaken откатывает и его), FK для возврата при
     отмене; промо-цена приходит уже готовой в price_cents."""
+    if channel == "storefront":
+        # AIS W4-5d: касса витрины — гейт готовности до любых записей (кабинет channel не передаёт).
+        from django.db import connection
+
+        from apps.core import readiness
+
+        readiness.require_sell(
+            getattr(connection, "tenant", None),
+            "tisch" if getattr(resource, "type", "") == "table" else "termine",
+        )
     if end <= start:
         raise ValueError("end must be after start")
     # KA-12 E4.4b: вариант обязан принадлежать услуге брони (кросс-таблица в БД не выразима).

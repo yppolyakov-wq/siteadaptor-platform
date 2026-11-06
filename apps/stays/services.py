@@ -353,6 +353,7 @@ def book_stay(
     billing_address="",
     payment_due_at=None,
     apply_auto_discount=True,
+    channel="",
 ):
     """Создать бронь по датам, атомарно проверив занятость по ночам. Бросает
     ValueError (кривой диапазон), MinStay, MaxGuests, StayUnavailable, PromoInvalid.
@@ -364,6 +365,13 @@ def book_stay(
     Kurtaxe), атомарно гасится; задан, но не применим → PromoInvalid.
     rooms (G5) — число номеров этого типа в одной брони (семьи/группы): занимает
     ``rooms`` из quantity, вместимость и цена проживания × rooms."""
+    if channel == "storefront":
+        # AIS W4-5d: касса витрины — гейт готовности до любых записей (кабинет channel не передаёт).
+        from django.db import connection
+
+        from apps.core import readiness
+
+        readiness.require_sell(getattr(connection, "tenant", None), "zimmer")
     if departure <= arrival:
         raise ValueError("departure must be after arrival")
     rooms = max(1, int(rooms))

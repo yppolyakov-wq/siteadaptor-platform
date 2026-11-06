@@ -20,7 +20,14 @@ from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy
 
 from apps.billing import connect
-from apps.core import attribution, listing_composition, option_trackers, page_settings, ratelimit
+from apps.core import (
+    attribution,
+    listing_composition,
+    option_trackers,
+    page_settings,
+    ratelimit,
+    readiness,
+)
 from apps.loyalty.public_views import gift_purchase_active as _gift_purchase_active
 
 from . import availability, payments, pricing, restrictions, services
@@ -707,6 +714,7 @@ def unterkunft_book(request, pk):
     try:
         booking = services.book_stay(
             unit,
+            channel="storefront",  # AIS W4-5d: гейт готовности кассы
             arrival=von,
             departure=bis,
             name=name,
@@ -726,6 +734,9 @@ def unterkunft_book(request, pk):
             # доступен только фирме, Р-3; срок оплаты по Р-2/Р-4).
             **_payment_kwargs(request, "stay"),
         )
+    except readiness.SellBlocked:
+        messages.error(request, readiness.NEUTRAL_MESSAGE)
+        return redirect(back)
     except services.RatePlanInvalid:  # Z-4: тариф сузили/выключили между формой и POST
         messages.error(request, RATE_PLAN_UNAVAILABLE_MSG)
         return redirect(back)

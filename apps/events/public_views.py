@@ -18,7 +18,7 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 
 from apps.billing import connect
-from apps.core import listing_composition, option_trackers, page_settings, ratelimit
+from apps.core import listing_composition, option_trackers, page_settings, ratelimit, readiness
 from apps.stays.services import StayUnavailable
 
 from . import installments, payments, services
@@ -509,6 +509,7 @@ def veranstaltung_book(request, pk):
     try:
         ticket = services.book_ticket(
             event,
+            channel="storefront",  # AIS W4-5d: гейт готовности кассы
             name=name,
             email=request.POST.get("email", "").strip(),
             phone=request.POST.get("phone", "").strip(),
@@ -525,6 +526,9 @@ def veranstaltung_book(request, pk):
             health_confirmed=bool(request.POST.get("health_confirmed")),
             signed_ip=ratelimit.client_ip(request),
         )
+    except readiness.SellBlocked:
+        messages.error(request, readiness.NEUTRAL_MESSAGE)
+        return redirect("storefront-event", pk=pk)
     except services.TierClosed:
         messages.error(request, _("Dieser Frühbucherpreis ist abgelaufen."))
         return redirect("storefront-event", pk=pk)

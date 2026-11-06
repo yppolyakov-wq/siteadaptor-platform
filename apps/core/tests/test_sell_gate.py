@@ -20,13 +20,25 @@ pytestmark = pytest.mark.django_db
 
 
 @pytest.fixture
-def not_ready(monkeypatch, settings):
+def conn_tenant():
+    """Тенант соединения через set_tenant (не monkeypatch: откат raising=False удаляет атрибут
+    у общего соединения и роняет соседние тесты процесса)."""
+    prev = getattr(connection, "tenant", None)
+    tenant = TenantFactory.build(schema_name=connection.schema_name)
+    connection.set_tenant(tenant)
+    yield tenant
+    if prev is not None:
+        connection.set_tenant(prev)
+    else:
+        connection.set_schema_to_public()
+
+
+@pytest.fixture
+def not_ready(monkeypatch, settings, conn_tenant):
     """Флаг включён, тенант соединения — обычный и НЕ готов к продаже."""
     settings.READINESS_SELL_GATE = True
-    tenant = TenantFactory.build(schema_name=connection.schema_name)
-    monkeypatch.setattr(connection, "tenant", tenant, raising=False)
     monkeypatch.setattr(readiness, "sell_ready", lambda t, d: False)
-    return tenant
+    return conn_tenant
 
 
 def _order(**kw):
@@ -146,15 +158,107 @@ def test_checkout_shows_neutral_message_and_keeps_cart(not_ready, settings):
     assert texts == [str(readiness.NEUTRAL_MESSAGE)]
 
 
-def test_checkout_flag_off_still_creates_order(settings, monkeypatch):
+def test_checkout_flag_off_still_creates_order(settings, monkeypatch, conn_tenant):
     from apps.orders import public_views
     from apps.orders.models import Order
 
     settings.ROOT_URLCONF = "config.urls_tenant"
     settings.READINESS_SELL_GATE = False
     monkeypatch.setattr(readiness, "sell_ready", lambda t, d: pytest.fail("gate consulted"))
-    tenant = TenantFactory.build(schema_name=connection.schema_name)
-    monkeypatch.setattr(connection, "tenant", tenant, raising=False)
     p = ProductFactory(base_price=Decimal("3"))
-    public_views.checkout(_checkout_request({str(p.pk): 1}, tenant))
+    public_views.checkout(_checkout_request({str(p.pk): 1}, conn_tenant))
     assert Order.objects.count() == 1
+
+
+# --- срез 2: записи, столы, номера, билеты, абонемент, сертификат --------------------------
+
+
+@pytest.fixture
+def blocked_directions(monkeypatch):
+    """Гейт закрыт для всех направлений; копит, с каким направлением его спросили."""
+    seen = []
+
+    def deny(tenant, direction):
+        seen.append(direction)
+        raise readiness.SellBlocked(direction)
+
+    monkeypatch.setattr(readiness, "require_sell", deny)
+    return seen
+
+
+def test_booking_services_ask_the_gate_with_their_direction(blocked_directions):
+    from datetime import date, datetime
+    from types import SimpleNamespace
+
+    from apps.booking import services as booking
+    from apps.events import services as events
+    from apps.stays import services as stays
+
+    now = datetime(2030, 1, 1, 10)
+    for resource, expected in ((SimpleNamespace(type="table"), "tisch"), (None, "termine")):
+        with pytest.raises(readiness.SellBlocked):
+            booking.book(resource, start=now, end=now, name="G", channel="storefront")
+        assert blocked_directions[-1] == expected
+    with pytest.raises(readiness.SellBlocked):
+        stays.book_stay(
+            None,
+            arrival=date(2030, 1, 1),
+            departure=date(2030, 1, 2),
+            name="G",
+            channel="storefront",
+        )
+    with pytest.raises(readiness.SellBlocked):
+        events.book_ticket(None, name="G", channel="storefront")
+    assert blocked_directions[-2:] == ["zimmer", "tickets"]
+
+
+def test_booking_services_without_channel_skip_the_gate(blocked_directions):
+    """Кабинет channel не передаёт: до гейта дело не доходит (ошибка — уже своя, по данным)."""
+    from datetime import datetime
+
+    from apps.booking import services as booking
+
+    now = datetime(2030, 1, 1, 10)
+    with pytest.raises(ValueError):  # end <= start — своя проверка сервиса, не гейт
+        booking.book(None, start=now, end=now, name="G")
+    assert blocked_directions == []
+
+
+def test_gift_voucher_checks_only_the_base(monkeypatch):
+    seen = []
+    monkeypatch.setattr(readiness, "missing", lambda t, **kw: seen.append(kw) or [])
+    assert readiness.sell_ready(TenantFactory.build(), "") is True
+    assert {kw.get("direction") for kw in seen} == {""}
+
+
+def test_every_storefront_sale_call_passes_the_channel():
+    """Замок класса: вьюха витрины, зовущая сервис продажи, передаёт channel="storefront"
+    (или внесена сюда с причиной)."""
+    import re
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[3]
+    calls = re.compile(
+        r"(?<![\w.])(?:\w*services\.)?(book|book_many|book_stay|book_ticket|create_order|purchase)\("
+    )
+    allow: set[str] = set()  # сюда — точка, которую осознанно не гейтим, с причиной
+    missing_channel = []
+    for path in root.glob("apps/*/public_views.py"):
+        text = path.read_text(encoding="utf-8")
+        for m in calls.finditer(text):
+            if text[max(0, m.start() - 4) : m.start()] == "def ":
+                continue
+            window = text[m.end() : m.end() + 2500]
+            depth, end = 1, 0
+            for i, ch in enumerate(window):
+                depth += ch == "("
+                depth -= ch == ")"
+                if depth == 0:
+                    end = i
+                    break
+            args = window[:end]
+            key = f"{path.relative_to(root)}:{m.group(1)}"
+            gated = "channel=" in args and '"storefront"' in args
+            if not gated and not any(key.startswith(a) for a in allow):
+                missing_channel.append(key)
+    assert not missing_channel, missing_channel

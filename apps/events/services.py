@@ -110,6 +110,7 @@ def book_ticket(
     waiver_signed_name="",
     health_confirmed=False,
     signed_ip="",
+    channel="",
 ):
     """Создать билет, атомарно проверив наличие мест. Бросает ValueError,
     EventNotBookable, SoldOut, PromoInvalid. tier_label (A6) — выбранный ценовой
@@ -120,6 +121,13 @@ def book_ticket(
     voucher_code (R4) — подарочный/промо-код (Voucher): скидка на сумму билета,
     атомарно гасится; задан, но не применим → PromoInvalid. deposit_percent события
     (R4) → снимок онлайн-депозита (Ticket.deposit_cents)."""
+    if channel == "storefront":
+        # AIS W4-5d: касса витрины — гейт готовности до любых записей (кабинет channel не передаёт).
+        from django.db import connection
+
+        from apps.core import readiness
+
+        readiness.require_sell(getattr(connection, "tenant", None), "tickets")
     if quantity < 1:
         raise ValueError("quantity must be >= 1")
 

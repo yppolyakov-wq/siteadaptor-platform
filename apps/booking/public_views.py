@@ -21,7 +21,14 @@ from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy
 
 from apps.billing import connect
-from apps.core import attribution, listing_composition, option_trackers, page_settings, ratelimit
+from apps.core import (
+    attribution,
+    listing_composition,
+    option_trackers,
+    page_settings,
+    ratelimit,
+    readiness,
+)
 from apps.core.fsm import IllegalTransition
 from apps.promotions.services import OutOfStock as PromoSoldOut
 
@@ -524,6 +531,9 @@ def karte_kaufen(request, pk):
     if request.method != "POST":
         return redirect("storefront-karten")
     if request.POST.get("website"):  # honeypot
+        return redirect("storefront-karten")
+    if not readiness.sell_allowed(request.tenant, "termine"):  # AIS W4-5d: гейт кассы
+        messages.error(request, readiness.NEUTRAL_MESSAGE)
         return redirect("storefront-karten")
     if ratelimit.hit("karte", ratelimit.client_ip(request), limit=RL_LIMIT, window=RL_WINDOW):
         return HttpResponse(status=429)
@@ -1249,6 +1259,7 @@ def service_book(request, pk):
         # бронь (набор оформляется как один заказ).
         created = services.book_many(
             slot_plan,
+            channel="storefront",  # AIS W4-5d: гейт готовности кассы
             party_size=persons,
             name=name,
             email=email,
@@ -1266,6 +1277,11 @@ def service_book(request, pk):
             variant_label=variant.name[:100] if variant is not None else "",
         )
         booking = created[0]
+    except readiness.SellBlocked:
+        messages.error(request, readiness.NEUTRAL_MESSAGE)
+        return _embed_redirect(
+            "storefront-service-slots", embed, request=request, extra=back, pk=pk
+        )
     except services.PromoInvalid:
         # B1.2: невалидный промокод/Gutschein — бронь не создаём, слот не занят.
         messages.error(request, _("This voucher code is not valid."))
@@ -1699,6 +1715,7 @@ def _termin_book_core(request, candidates, *, back, cancel_url, embed):
             try:
                 booking = services.book(
                     candidate,
+                    channel="storefront",  # AIS W4-5d: гейт готовности кассы
                     start=start,
                     end=end,
                     name=name,
@@ -1727,6 +1744,9 @@ def _termin_book_core(request, candidates, *, back, cancel_url, embed):
             except (services.SlotTaken, services.ResourceClosed):
                 if candidate is candidates[-1]:
                     raise
+    except readiness.SellBlocked:
+        messages.error(request, readiness.NEUTRAL_MESSAGE)
+        return back()
     except (services.SlotTaken, services.ResourceClosed):
         messages.error(request, _("This slot is no longer available. Please pick another."))
         return back()

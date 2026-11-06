@@ -47,6 +47,12 @@ def gutschein_buy(request):
         return redirect("storefront-gutschein")
     if request.POST.get("website"):  # honeypot
         return redirect("storefront-gutschein")
+    from apps.core import readiness
+
+    # AIS W4-5d: сертификат — денежная продажа без своего направления: только база.
+    if not readiness.sell_allowed(request.tenant, ""):
+        messages.error(request, readiness.NEUTRAL_MESSAGE)
+        return redirect("storefront-gutschein")
     if ratelimit.hit("gift", ratelimit.client_ip(request), limit=RL_LIMIT, window=RL_WINDOW):
         return HttpResponse(status=429)
 
