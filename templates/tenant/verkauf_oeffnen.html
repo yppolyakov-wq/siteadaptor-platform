@@ -13,7 +13,8 @@
   {% if not questions %}
   <p class="ui-card p-4 text-sm" data-verkauf-empty>{% trans "Für Ihr Geschäft gibt es hier gerade nichts zu klären." %}</p>
   {% else %}
-  <p class="text-sm mb-3" data-verkauf-open>{% if open %}{% blocktrans count n=open %}Noch {{ n }} Frage offen.{% plural %}Noch {{ n }} Fragen offen.{% endblocktrans %}{% else %}{% trans "Alle Fragen sind beantwortet." %}{% endif %}</p>
+  {% if failed %}<p class="text-sm mb-2 text-amber-800" role="status" data-verkauf-failed>{% trans "Eine Frage konnte nicht geladen werden — bitte später erneut öffnen." %}</p>{% endif %}
+  <p class="text-sm mb-3" data-verkauf-open>{% if open %}{% blocktrans count n=open %}Noch {{ n }} Frage offen.{% plural %}Noch {{ n }} Fragen offen.{% endblocktrans %}{% elif not failed %}{% trans "Alle Fragen sind beantwortet." %}{% endif %}</p>
   <ol class="space-y-3">
     {% for q in questions %}
     <li id="{{ q.anchor }}" class="ui-card p-4 space-y-3" data-verkauf-question="{{ q.key }}" data-state="{{ q.state }}">
@@ -21,15 +22,18 @@
         <h2 class="ui-h3 flex-1">{{ q.label }}</h2>
         {% if q.state == "ja" %}<span class="ui-badge ui-tone-ok">{{ q.yes }}</span>{% elif q.state == "nein" %}<span class="ui-badge ui-tone-off">{{ q.no }}</span>{% else %}<span class="ui-badge ui-tone-new">{% trans "offen" %}</span>{% endif %}
       </div>
-      {% if q.blocked %}
-        <p class="text-sm text-gray-700">{{ q.blocked }}</p>
-      {% elif can_edit %}
+      {% if q.state == "error" %}
+        <p class="text-sm text-amber-800">{% trans "Konnte nicht geladen werden." %}</p>
+      {% else %}
+      {% if q.blocked %}<p class="text-sm text-gray-700">{{ q.blocked }}</p>{% endif %}
+      {% if can_edit %}
       <form method="post" class="flex flex-wrap gap-2">
         {% csrf_token %}
         <input type="hidden" name="frage" value="{{ q.key }}">
-        <button type="submit" name="antwort" value="ja" class="ui-btn {% if q.state == 'ja' %}ui-btn-primary{% else %}ui-btn-secondary{% endif %} min-h-[44px]"{% if q.state == "ja" %} aria-pressed="true"{% else %} aria-pressed="false"{% endif %}>{{ q.yes }}</button>
+        {% if not q.blocked %}<button type="submit" name="antwort" value="ja" class="ui-btn {% if q.state == 'ja' %}ui-btn-primary{% else %}ui-btn-secondary{% endif %} min-h-[44px]"{% if q.state == "ja" %} aria-pressed="true"{% else %} aria-pressed="false"{% endif %}>{{ q.yes }}</button>{% endif %}
         <button type="submit" name="antwort" value="nein" class="ui-btn {% if q.state == 'nein' %}ui-btn-primary{% else %}ui-btn-secondary{% endif %} min-h-[44px]"{% if q.state == "nein" %} aria-pressed="true"{% else %} aria-pressed="false"{% endif %}>{{ q.no }}</button>
       </form>
+      {% endif %}
       {% endif %}
       {% if q.note %}<p class="text-sm text-amber-800" data-verkauf-note>{{ q.note }}</p>{% endif %}
       {% if q.more.url %}<a href="{{ q.more.url }}" class="inline-flex items-center min-h-[44px] text-sm text-indigo-700 underline">{{ q.more_label }} <span aria-hidden="true" class="ml-1">→</span></a>{% endif %}

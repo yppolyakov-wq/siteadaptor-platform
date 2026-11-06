@@ -41,10 +41,7 @@ class Question:
 
 
 def _orders(t) -> bool:
-    try:
-        return bool(t.is_module_active("orders"))
-    except Exception:  # noqa: BLE001 — вопрос fail-closed
-        return False
+    return bool(t.is_module_active("orders"))  # сбой — строка «konnte nicht geladen werden»
 
 
 def _delivery_write(t, on):
@@ -62,9 +59,11 @@ def _vorkasse_write(t, on):
 def _delivery_note(t) -> str:
     if not getattr(t, "delivery_enabled", False):
         return ""
-    zones = len(getattr(t, "delivery_zones", None) or [])
+    zones = bool(getattr(t, "delivery_zones", None))
     fee = int(getattr(t, "delivery_fee_cents", 0) or 0)
-    if not zones and not fee:
+    # вне зон действует общий сбор (`orders.services.delivery_quote`): 0 € без ограничения
+    # по зонам = бесплатно везде, даже если зоны есть
+    if not fee and not (zones and getattr(t, "delivery_restrict_to_zones", False)):
         return str(_("Lieferung ist derzeit überall kostenlos — Gebiete und Gebühren festlegen."))
     return ""
 
@@ -143,9 +142,9 @@ def questions_for(request, direction: str = "") -> list[dict]:
                 "more": assistant.link(request, q.more_url) if q.more_url else None,
                 "more_label": q.more_label,
             }
-        except Exception:  # noqa: BLE001 — сломанный вопрос не роняет экран (fail-closed)
-            logger.warning("sell question %s failed", q.key, exc_info=True)
-            continue
+        except Exception:  # noqa: BLE001 — сломанный вопрос не роняет экран, но и не прячется
+            logger.exception("sell question %s failed", q.key)
+            row = {"key": q.key, "anchor": anchor(q.key), "label": q.label, "state": "error"}
         out.append(row)
     return out
 
@@ -173,13 +172,16 @@ def answer(request, key: str, choice: str) -> None:
     tenant = request.tenant
     if not has_perm(request.user, PERM) or not q.applies(tenant):
         raise AnswerError("forbidden")
-    if q.blocked(tenant):
+    on = choice == YES
+    if on and q.blocked(tenant):  # «нет» безопасно всегда — его можно ответить и без IBAN
         raise AnswerError("blocked")
+    from django.db import transaction
+
     from apps.core import readiness
 
-    on = choice == YES
-    q.write(tenant, on)
-    _mark(tenant, key, no=not on)
+    with transaction.atomic():  # тумблер и отметка — вместе или никак
+        q.write(tenant, on)
+        _mark(tenant, key, no=not on)
     readiness.invalidate(tenant)
 
 

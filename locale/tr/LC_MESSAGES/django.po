@@ -34758,3 +34758,9 @@ msgid "Noch %(n)s Frage offen."
 msgid_plural "Noch %(n)s Fragen offen."
 msgstr[0] "%(n)s soru kaldı."
 msgstr[1] "%(n)s soru kaldı."
+
+msgid "Diese Antwort wurde nicht gespeichert."
+msgstr "Bu yanıt kaydedilmedi."
+
+msgid "Eine Frage konnte nicht geladen werden — bitte später erneut öffnen."
+msgstr "Bir soru yüklenemedi — lütfen daha sonra tekrar açın."

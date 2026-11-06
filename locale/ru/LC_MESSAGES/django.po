@@ -34929,3 +34929,9 @@ msgstr[0] "Остался %(n)s вопрос."
 msgstr[1] "Осталось %(n)s вопроса."
 msgstr[2] "Осталось %(n)s вопросов."
 msgstr[3] "Осталось %(n)s вопросов."
+
+msgid "Diese Antwort wurde nicht gespeichert."
+msgstr "Этот ответ не сохранён."
+
+msgid "Eine Frage konnte nicht geladen werden — bitte später erneut öffnen."
+msgstr "Один вопрос не удалось загрузить — откройте позже ещё раз."

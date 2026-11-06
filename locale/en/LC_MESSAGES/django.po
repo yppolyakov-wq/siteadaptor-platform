@@ -34612,3 +34612,9 @@ msgid "Noch %(n)s Frage offen."
 msgid_plural "Noch %(n)s Fragen offen."
 msgstr[0] "%(n)s question left."
 msgstr[1] "%(n)s questions left."
+
+msgid "Diese Antwort wurde nicht gespeichert."
+msgstr "This answer was not saved."
+
+msgid "Eine Frage konnte nicht geladen werden — bitte später erneut öffnen."
+msgstr "A question could not be loaded — please open again later."

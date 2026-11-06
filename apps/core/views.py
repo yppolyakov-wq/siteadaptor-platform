@@ -6545,9 +6545,14 @@ def verkauf_oeffnen(request):
                 messages.error(request, _("Dafür fehlt Ihnen die Berechtigung."))
             elif str(exc) == "blocked":
                 messages.error(request, _("Diese Frage lässt sich hier noch nicht beantworten."))
+            else:
+                messages.error(request, _("Diese Antwort wurde nicht gespeichert."))
         else:
             messages.success(request, _("Gespeichert."))
-        return redirect(f"{reverse('verkauf-oeffnen')}#{sell_questions.anchor(key)}")
+        url = reverse("verkauf-oeffnen")
+        if key in sell_questions.BY_KEY:
+            url += f"#{sell_questions.anchor(key)}"
+        return redirect(url)
     rows = sell_questions.questions_for(request)
     return render(
         request,
@@ -6556,6 +6561,7 @@ def verkauf_oeffnen(request):
             "nav": "settings",
             "questions": rows,
             "open": sum(1 for r in rows if r["state"] == "open"),
+            "failed": sum(1 for r in rows if r["state"] == "error"),
             "can_edit": has_perm(request.user, sell_questions.PERM),
         },
     )

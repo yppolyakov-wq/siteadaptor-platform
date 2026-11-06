@@ -133,3 +133,42 @@ def test_screen_renders_without_js_and_has_nav_entry(shop):
 def test_post_redirects_to_question(shop):
     resp = _answer(shop, "waren.delivery", "ja")
     assert resp.status_code == 302 and resp["Location"].endswith("#q-waren-delivery")
+
+
+def test_blocked_question_can_still_be_answered_no(bakery):
+    _answer(bakery, "waren.vorkasse", "nein")
+    assert Tenant.objects.get(pk=bakery.pk).site_config["verkauf"]["no"] == ["waren.vorkasse"]
+
+
+def test_free_delivery_warning_covers_zones_without_restriction(shop):
+    shop.delivery_enabled, shop.delivery_fee_cents = True, 0
+    shop.delivery_restrict_to_zones = False  # зоны есть, но вне них — бесплатно
+    assert sell_questions._delivery_note(shop)
+    shop.delivery_restrict_to_zones = True
+    assert not sell_questions._delivery_note(shop)
+
+
+def test_broken_question_is_shown_not_hidden(shop, monkeypatch):
+    broken = sell_questions.BY_KEY["waren.delivery"]
+    monkeypatch.setattr(
+        sell_questions,
+        "QUESTIONS",
+        (sell_questions.Question(**{**broken.__dict__, "applies": lambda t: 1 / 0}),),
+    )
+    html = views.verkauf_oeffnen(_req(shop)).content.decode()
+    assert "data-verkauf-failed" in html and "Alle Fragen sind beantwortet" not in html
+
+
+def test_mark_failure_rolls_back_the_switch(shop, monkeypatch):
+    def boom(*a, **k):
+        raise RuntimeError("lock")
+
+    monkeypatch.setattr(sell_questions, "_mark", boom)
+    with pytest.raises(RuntimeError):
+        sell_questions.answer(_req(shop, "post", user=_user()), "waren.delivery", "ja")
+    assert Tenant.objects.get(pk=shop.pk).delivery_enabled is False
+
+
+def test_unknown_key_redirects_without_fragment(shop):
+    resp = _answer(shop, "x\nevil", "ja")
+    assert resp["Location"] == reverse("verkauf-oeffnen")
