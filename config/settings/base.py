@@ -749,7 +749,9 @@ LITE_FREE_ACTIVE_PROMOS = env.int("LITE_FREE_ACTIVE_PROMOS", default=5)
 # Выключен до прогона `readiness_report` и проставления исключений работающим магазинам.
 READINESS_SELL_GATE = env.bool("READINESS_SELL_GATE", default=False)
 # AIS-W W4-1: мастер v4 для новых регистраций — сайт скрыт до «Website veröffentlichen».
-SETUP_WIZARD_V4 = env.bool("SETUP_WIZARD_V4", default=False)
+# W4-6 (решение владельца 2026-11-06): включён по умолчанию после сквозного стенда;
+# `SETUP_WIZARD_V4=False` в .env.prod — откат на прежний мастер без релиза.
+SETUP_WIZARD_V4 = env.bool("SETUP_WIZARD_V4", default=True)
 # KA-12 E6.6: потолки против «выкупа витрины» резервами и купонами (Р-2/Р-4).
 PROMO_PENDING_HOLD_HOURS = env.int("PROMO_PENDING_HOLD_HOURS", default=4)
 PROMO_RESERVATIONS_PER_IP_DAY = env.int("PROMO_RESERVATIONS_PER_IP_DAY", default=10)
