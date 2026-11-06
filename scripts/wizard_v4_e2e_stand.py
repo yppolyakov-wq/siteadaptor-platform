@@ -137,6 +137,16 @@ def owner_path(run, browser, port, slug, btype, width):
         page.wait_for_load_state()
     page.goto(url + "/dashboard/")
     run.check("/dashboard/setup/" in page.url, "кабинет уводит в мастер")
+    # AIS-3: первый шаг — «Was haben Sie schon?»; без ключей видны Website и «Nichts».
+    run.check(page.locator("[data-quelle-form]").count() == 1, "шаг «Was haben Sie schon?»")
+    run.check(
+        page.locator('[data-quelle-option="website"]').count() == 1
+        and page.locator('[data-quelle-option="none"]').count() == 1,
+        "карточки Website и «Nichts davon»",
+    )
+    _health(run, page, errors, "Was haben Sie schon?", width)
+    page.check("input[name=had][value=none]")
+    _primary(page)
     run.check(page.locator("[data-setup-hours]").count() == 1, "Firma: часы сеткой")
     _health(run, page, errors, "Firma", width)
     page.fill("#id_address", "Hauptstraße 1, 40721 Hilden")
