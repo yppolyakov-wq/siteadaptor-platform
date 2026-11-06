@@ -34705,3 +34705,55 @@ msgstr "Diese Antwort wurde nicht gespeichert."
 
 msgid "Eine Frage konnte nicht geladen werden — bitte später erneut öffnen."
 msgstr "Eine Frage konnte nicht geladen werden — bitte später erneut öffnen."
+
+msgid "Assistent fragen"
+msgstr "Assistent fragen"
+
+msgid "Aussehen wählen"
+msgstr "Aussehen wählen"
+
+msgid "Eine Aktion bringt Laufkundschaft — in einer Minute vom Handy aus."
+msgstr "Eine Aktion bringt Laufkundschaft — in einer Minute vom Handy aus."
+
+msgid "Erst nach der Veröffentlichung sehen Kundinnen und Kunden Ihre Website."
+msgstr "Erst nach der Veröffentlichung sehen Kundinnen und Kunden Ihre Website."
+
+msgid "Erste Aktion starten"
+msgstr "Erste Aktion starten"
+
+msgid "Fertigstellen"
+msgstr "Fertigstellen"
+
+msgid "Fragen beantworten"
+msgstr "Fragen beantworten"
+
+msgid "Gäste aus dem Ausland lesen Ihre Seite in ihrer Sprache."
+msgstr "Gäste aus dem Ausland lesen Ihre Seite in ihrer Sprache."
+
+msgid "Jetzt gibt es genug Inhalt, um das Aussehen auf Ihren Daten zu wählen."
+msgstr "Jetzt gibt es genug Inhalt, um das Aussehen auf Ihren Daten zu wählen."
+
+msgid "Sprachen wählen"
+msgstr "Sprachen wählen"
+
+msgid "Varianten ansehen"
+msgstr "Varianten ansehen"
+
+msgid "Weitere Sprachen"
+msgstr "Weitere Sprachen"
+
+msgid "Wie füge ich Fotos zu Produkten hinzu?"
+msgstr "Wie füge ich Fotos zu Produkten hinzu?"
+
+msgid "Wie übersetze ich meine Website?"
+msgstr "Wie übersetze ich meine Website?"
+
+msgid "Noch %(n)s kurze Frage, dann können Kunden online bestellen."
+msgid_plural "Noch %(n)s kurze Fragen, dann können Kunden online bestellen."
+msgstr[0] "Noch %(n)s kurze Frage, dann können Kunden online bestellen."
+msgstr[1] "Noch %(n)s kurze Fragen, dann können Kunden online bestellen."
+
+msgid "%(n)s Angebot hat noch kein Foto — mit Foto wird öfter gekauft."
+msgid_plural "%(n)s Angebote haben noch kein Foto — mit Foto wird öfter gekauft."
+msgstr[0] "%(n)s Angebot hat noch kein Foto — mit Foto wird öfter gekauft."
+msgstr[1] "%(n)s Angebote haben noch kein Foto — mit Foto wird öfter gekauft."

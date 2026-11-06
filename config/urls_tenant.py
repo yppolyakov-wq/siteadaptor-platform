@@ -68,6 +68,7 @@ from apps.core.views import (
     media_library,
     menu_builder_view,
     modules_view,
+    next_step_hide,
     notifications_settings,
     pages_view,
     palette_search,
@@ -214,6 +215,7 @@ urlpatterns = [
     path("dashboard/settings/payments/", payment_settings, name="payment-settings"),
     # AIS W4-5a: «Verkauf öffnen» — вопросы по направлению вместо форм
     path("dashboard/verkauf-oeffnen/", verkauf_oeffnen, name="verkauf-oeffnen"),
+    path("dashboard/naechster-schritt/spaeter/", next_step_hide, name="next-step-hide"),
     # GK-11: Place ID + кэш Google-рейтинга (карточка Integrationen).
     path(
         "dashboard/settings/google-bewertungen/",

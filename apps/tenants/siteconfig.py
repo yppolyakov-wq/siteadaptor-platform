@@ -4771,6 +4771,12 @@ def _normalize_impl(config) -> dict:
     verkauf = config.get("verkauf")
     if isinstance(verkauf, dict) and isinstance(verkauf.get("no"), list):
         normalized["verkauf"] = {"no": [str(k)[:40] for k in verkauf["no"]][:50]}
+    # AIS W4-5c: спрятанные карточки «Nächster Schritt» — пишет `apps.core.next_steps.hide`
+    nxt = config.get("next_steps")
+    if isinstance(nxt, dict) and isinstance(nxt.get("hidden"), dict):
+        normalized["next_steps"] = {
+            "hidden": {str(k)[:40]: str(v)[:40] for k, v in list(nxt["hidden"].items())[:20]}
+        }
     # AIS-M M-1: режимы направлений (presence-minimal).
     directions_cfg = normalize_directions(config.get("directions"))
     if directions_cfg:

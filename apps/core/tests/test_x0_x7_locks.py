@@ -146,6 +146,8 @@ EXPECTED_UNLISTED = frozenset(
         "integrations-home",
         "set-cabinet-lang",
         "set-presence",
+        # [POST] AIS W4-5c: «Später» у карточки «Nächster Schritt» — приёмник, не экран.
+        "next-step-hide",
         # [POST] Г3: «Alles noch aktuell» — приёмник плашки, не экран.
         "city-freshness-confirm",
         # DL-13 C3: POST-only targeted-write режима страницы акций (панель в списке акций).

@@ -416,6 +416,7 @@ RULES: dict[str, Rule] = {
     "notifications-settings": _r(CFG, CFGE),
     "payment-settings": _r(CFG, CFGE),  # IBAN — Vorbehalt внутри экрана
     "verkauf-oeffnen": _r(CFG, CFGE),  # AIS W4-5a: вопросы; запись — узкими писателями
+    "next-step-hide": _r(CFG, CFGE),  # AIS W4-5c: «Später» у карточки главной
     "google-reviews-settings": _r(CFG, CFGE),
     "extras": _r(CFG, CFGE),
     "extra-new": _r(CFG, CFGE),  # UX-D D6.1

@@ -34764,3 +34764,55 @@ msgstr "Bu yanıt kaydedilmedi."
 
 msgid "Eine Frage konnte nicht geladen werden — bitte später erneut öffnen."
 msgstr "Bir soru yüklenemedi — lütfen daha sonra tekrar açın."
+
+msgid "Assistent fragen"
+msgstr "Asistana sor"
+
+msgid "Aussehen wählen"
+msgstr "Görünümü seçin"
+
+msgid "Eine Aktion bringt Laufkundschaft — in einer Minute vom Handy aus."
+msgstr "Bir kampanya yeni müşteri getirir — telefondan bir dakikada."
+
+msgid "Erst nach der Veröffentlichung sehen Kundinnen und Kunden Ihre Website."
+msgstr "Müşteriler web sitenizi ancak yayınlandıktan sonra görür."
+
+msgid "Erste Aktion starten"
+msgstr "İlk kampanyayı başlatın"
+
+msgid "Fertigstellen"
+msgstr "Tamamla"
+
+msgid "Fragen beantworten"
+msgstr "Soruları yanıtla"
+
+msgid "Gäste aus dem Ausland lesen Ihre Seite in ihrer Sprache."
+msgstr "Yurt dışından gelen ziyaretçiler sitenizi kendi dillerinde okur."
+
+msgid "Jetzt gibt es genug Inhalt, um das Aussehen auf Ihren Daten zu wählen."
+msgstr "Artık görünümü kendi verilerinizle seçecek kadar içerik var."
+
+msgid "Sprachen wählen"
+msgstr "Dilleri seçin"
+
+msgid "Varianten ansehen"
+msgstr "Seçenekleri gör"
+
+msgid "Weitere Sprachen"
+msgstr "Diğer diller"
+
+msgid "Wie füge ich Fotos zu Produkten hinzu?"
+msgstr "Ürünlere nasıl fotoğraf eklerim?"
+
+msgid "Wie übersetze ich meine Website?"
+msgstr "Web sitemi nasıl çeviririm?"
+
+msgid "Noch %(n)s kurze Frage, dann können Kunden online bestellen."
+msgid_plural "Noch %(n)s kurze Fragen, dann können Kunden online bestellen."
+msgstr[0] "%(n)s kısa soru kaldı, sonra müşteriler çevrimiçi sipariş verebilir."
+msgstr[1] "%(n)s kısa soru kaldı, sonra müşteriler çevrimiçi sipariş verebilir."
+
+msgid "%(n)s Angebot hat noch kein Foto — mit Foto wird öfter gekauft."
+msgid_plural "%(n)s Angebote haben noch kein Foto — mit Foto wird öfter gekauft."
+msgstr[0] "%(n)s ürünün henüz fotoğrafı yok — fotoğraflı ürünler daha sık satılır."
+msgstr[1] "%(n)s ürünün henüz fotoğrafı yok — fotoğraflı ürünler daha sık satılır."

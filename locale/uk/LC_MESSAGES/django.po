@@ -34922,3 +34922,59 @@ msgstr "Цю відповідь не збережено."
 
 msgid "Eine Frage konnte nicht geladen werden — bitte später erneut öffnen."
 msgstr "Одне питання не вдалося завантажити — відкрийте пізніше ще раз."
+
+msgid "Assistent fragen"
+msgstr "Запитати помічника"
+
+msgid "Aussehen wählen"
+msgstr "Вибрати оформлення"
+
+msgid "Eine Aktion bringt Laufkundschaft — in einer Minute vom Handy aus."
+msgstr "Акція приводить нових покупців — за хвилину з телефону."
+
+msgid "Erst nach der Veröffentlichung sehen Kundinnen und Kunden Ihre Website."
+msgstr "Клієнти побачать сайт лише після публікації."
+
+msgid "Erste Aktion starten"
+msgstr "Запустити першу акцію"
+
+msgid "Fertigstellen"
+msgstr "Завершити"
+
+msgid "Fragen beantworten"
+msgstr "Відповісти на питання"
+
+msgid "Gäste aus dem Ausland lesen Ihre Seite in ihrer Sprache."
+msgstr "Гості з-за кордону читають сайт своєю мовою."
+
+msgid "Jetzt gibt es genug Inhalt, um das Aussehen auf Ihren Daten zu wählen."
+msgstr "Тепер достатньо вмісту, щоб вибрати оформлення на ваших даних."
+
+msgid "Sprachen wählen"
+msgstr "Вибрати мови"
+
+msgid "Varianten ansehen"
+msgstr "Переглянути варіанти"
+
+msgid "Weitere Sprachen"
+msgstr "Інші мови"
+
+msgid "Wie füge ich Fotos zu Produkten hinzu?"
+msgstr "Як додати фото до товарів?"
+
+msgid "Wie übersetze ich meine Website?"
+msgstr "Як перекласти сайт?"
+
+msgid "Noch %(n)s kurze Frage, dann können Kunden online bestellen."
+msgid_plural "Noch %(n)s kurze Fragen, dann können Kunden online bestellen."
+msgstr[0] "Залишилося %(n)s коротке питання — і клієнти зможуть замовляти онлайн."
+msgstr[1] "Залишилося %(n)s короткі питання — і клієнти зможуть замовляти онлайн."
+msgstr[2] "Залишилося %(n)s коротких питань — і клієнти зможуть замовляти онлайн."
+msgstr[3] "Залишилося %(n)s коротких питань — і клієнти зможуть замовляти онлайн."
+
+msgid "%(n)s Angebot hat noch kein Foto — mit Foto wird öfter gekauft."
+msgid_plural "%(n)s Angebote haben noch kein Foto — mit Foto wird öfter gekauft."
+msgstr[0] "У %(n)s позиції ще немає фото — з фото купують частіше."
+msgstr[1] "У %(n)s позицій ще немає фото — з фото купують частіше."
+msgstr[2] "У %(n)s позицій ще немає фото — з фото купують частіше."
+msgstr[3] "У %(n)s позицій ще немає фото — з фото купують частіше."

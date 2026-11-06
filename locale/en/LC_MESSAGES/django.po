@@ -34618,3 +34618,55 @@ msgstr "This answer was not saved."
 
 msgid "Eine Frage konnte nicht geladen werden — bitte später erneut öffnen."
 msgstr "A question could not be loaded — please open again later."
+
+msgid "Assistent fragen"
+msgstr "Ask the assistant"
+
+msgid "Aussehen wählen"
+msgstr "Choose the look"
+
+msgid "Eine Aktion bringt Laufkundschaft — in einer Minute vom Handy aus."
+msgstr "A promotion brings walk-in customers — set up from your phone in a minute."
+
+msgid "Erst nach der Veröffentlichung sehen Kundinnen und Kunden Ihre Website."
+msgstr "Customers see your website only after it is published."
+
+msgid "Erste Aktion starten"
+msgstr "Start your first promotion"
+
+msgid "Fertigstellen"
+msgstr "Finish"
+
+msgid "Fragen beantworten"
+msgstr "Answer questions"
+
+msgid "Gäste aus dem Ausland lesen Ihre Seite in ihrer Sprache."
+msgstr "Visitors from abroad read your site in their language."
+
+msgid "Jetzt gibt es genug Inhalt, um das Aussehen auf Ihren Daten zu wählen."
+msgstr "There is now enough content to choose the look on your own data."
+
+msgid "Sprachen wählen"
+msgstr "Choose languages"
+
+msgid "Varianten ansehen"
+msgstr "See options"
+
+msgid "Weitere Sprachen"
+msgstr "More languages"
+
+msgid "Wie füge ich Fotos zu Produkten hinzu?"
+msgstr "How do I add photos to products?"
+
+msgid "Wie übersetze ich meine Website?"
+msgstr "How do I translate my website?"
+
+msgid "Noch %(n)s kurze Frage, dann können Kunden online bestellen."
+msgid_plural "Noch %(n)s kurze Fragen, dann können Kunden online bestellen."
+msgstr[0] "%(n)s short question left, then customers can order online."
+msgstr[1] "%(n)s short questions left, then customers can order online."
+
+msgid "%(n)s Angebot hat noch kein Foto — mit Foto wird öfter gekauft."
+msgid_plural "%(n)s Angebote haben noch kein Foto — mit Foto wird öfter gekauft."
+msgstr[0] "%(n)s item has no photo yet — items with photos sell more often."
+msgstr[1] "%(n)s items have no photo yet — items with photos sell more often."

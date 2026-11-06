@@ -34935,3 +34935,59 @@ msgstr "Этот ответ не сохранён."
 
 msgid "Eine Frage konnte nicht geladen werden — bitte später erneut öffnen."
 msgstr "Один вопрос не удалось загрузить — откройте позже ещё раз."
+
+msgid "Assistent fragen"
+msgstr "Спросить помощника"
+
+msgid "Aussehen wählen"
+msgstr "Выбрать оформление"
+
+msgid "Eine Aktion bringt Laufkundschaft — in einer Minute vom Handy aus."
+msgstr "Акция приводит новых покупателей — за минуту с телефона."
+
+msgid "Erst nach der Veröffentlichung sehen Kundinnen und Kunden Ihre Website."
+msgstr "Клиенты увидят сайт только после публикации."
+
+msgid "Erste Aktion starten"
+msgstr "Запустить первую акцию"
+
+msgid "Fertigstellen"
+msgstr "Завершить"
+
+msgid "Fragen beantworten"
+msgstr "Ответить на вопросы"
+
+msgid "Gäste aus dem Ausland lesen Ihre Seite in ihrer Sprache."
+msgstr "Гости из-за рубежа читают сайт на своём языке."
+
+msgid "Jetzt gibt es genug Inhalt, um das Aussehen auf Ihren Daten zu wählen."
+msgstr "Теперь достаточно содержимого, чтобы выбрать оформление на ваших данных."
+
+msgid "Sprachen wählen"
+msgstr "Выбрать языки"
+
+msgid "Varianten ansehen"
+msgstr "Посмотреть варианты"
+
+msgid "Weitere Sprachen"
+msgstr "Другие языки"
+
+msgid "Wie füge ich Fotos zu Produkten hinzu?"
+msgstr "Как добавить фото к товарам?"
+
+msgid "Wie übersetze ich meine Website?"
+msgstr "Как перевести сайт?"
+
+msgid "Noch %(n)s kurze Frage, dann können Kunden online bestellen."
+msgid_plural "Noch %(n)s kurze Fragen, dann können Kunden online bestellen."
+msgstr[0] "Остался %(n)s короткий вопрос — и клиенты смогут заказывать онлайн."
+msgstr[1] "Осталось %(n)s коротких вопроса — и клиенты смогут заказывать онлайн."
+msgstr[2] "Осталось %(n)s коротких вопросов — и клиенты смогут заказывать онлайн."
+msgstr[3] "Осталось %(n)s коротких вопросов — и клиенты смогут заказывать онлайн."
+
+msgid "%(n)s Angebot hat noch kein Foto — mit Foto wird öfter gekauft."
+msgid_plural "%(n)s Angebote haben noch kein Foto — mit Foto wird öfter gekauft."
+msgstr[0] "У %(n)s позиции ещё нет фото — с фото покупают чаще."
+msgstr[1] "У %(n)s позиций ещё нет фото — с фото покупают чаще."
+msgstr[2] "У %(n)s позиций ещё нет фото — с фото покупают чаще."
+msgstr[3] "У %(n)s позиций ещё нет фото — с фото покупают чаще."

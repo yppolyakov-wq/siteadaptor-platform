@@ -290,7 +290,9 @@ def dashboard(request):
         "nav": "dashboard",
         # X2a: ОДИН механизм прогресса — единый чек-лист (реестр шагов мастера +
         # перенесённый пункт часов).
-        "checklist": onboarding.setup_checklist(tenant),
+        "checklist": None if onboarding.is_v4(tenant) else onboarding.setup_checklist(tenant),
+        # AIS W4-5c: мастер v4 — карточки «Nächster Schritt» ВМЕСТО чек-листа (один механизм)
+        "next_steps": _next_steps(request) if onboarding.is_v4(tenant) else [],
         # ST-4a: виджеты «что сегодня» — сжаты в полосу над петлёй (X3).
         "widgets": dash.widgets_for(request.user, dash.home_widgets(tenant)),
         # X3: сама петля — через общий партиал тела продаж.
@@ -310,6 +312,18 @@ def dashboard(request):
         # продаж. Вычисление осталось мёртвым грузом в 5-6 запросов — снято.
     }
     return render(request, "tenant/dashboard.html", {**loop_ctx, **ctx})
+
+
+def _next_steps(request) -> list:
+    from apps.core import next_steps
+
+    try:
+        return next_steps.cards(request)
+    except Exception:  # noqa: BLE001 — карточки не роняют главную
+        import logging
+
+        logging.getLogger(__name__).exception("dashboard: next steps failed")
+        return []
 
 
 def _day_home_applies(kind: str) -> bool:
@@ -6565,3 +6579,13 @@ def verkauf_oeffnen(request):
             "can_edit": has_perm(request.user, sell_questions.PERM),
         },
     )
+
+
+@login_required
+@require_POST
+def next_step_hide(request):
+    """AIS W4-5c: «Später» у карточки «Nächster Schritt» — спрятать на 14 дней."""
+    from . import next_steps
+
+    next_steps.hide(request.tenant, (request.POST.get("karte") or "")[:40])
+    return redirect("dashboard")
