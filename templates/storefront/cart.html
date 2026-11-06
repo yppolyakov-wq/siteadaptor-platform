@@ -63,6 +63,8 @@
       {% endfor %}
     </div>
 
+    {% sell_closed "goods" as closed_sale %}
+    {% if closed_sale and not quote_cart %}{% include "storefront/_sell_closed.html" %}{% endif %}
     <form id="checkout-form" method="post" action="{% url 'storefront-checkout' %}" class="sf-card bg-white rounded-2xl shadow-sm p-5 space-y-4">
       {% csrf_token %}{% portal_attribution_fields %}
       {% if promo_seen %}<input type="hidden" name="promo_seen" value="{{ promo_seen }}">{% endif %}

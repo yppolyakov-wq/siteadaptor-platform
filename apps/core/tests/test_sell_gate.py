@@ -281,3 +281,51 @@ def test_every_storefront_sale_call_passes_the_channel():
 def test_gate_without_tenant_is_allowed_not_500(settings):
     settings.READINESS_SELL_GATE = True
     readiness.require_sell(None, "waren")  # не бросает
+
+
+# --- GET: фраза вместо формы (не вводить данные зря) -------------------------------------
+
+
+@pytest.mark.parametrize("kind", ["stay", "service", "event", "goods"])
+def test_sell_closed_tag_follows_the_gate(kind, not_ready, settings):
+    from types import SimpleNamespace
+
+    from apps.tenants.templatetags.siteui import sell_closed
+
+    ctx = {"request": SimpleNamespace(tenant=not_ready)}
+    assert sell_closed(ctx, kind) is True
+    settings.READINESS_SELL_GATE = False
+    assert sell_closed(ctx, kind) is False
+
+
+def test_stay_page_shows_notice_instead_of_form(not_ready, settings):
+    from django.template.loader import render_to_string
+
+    html = render_to_string(
+        "storefront/_buybox.html",
+        {
+            "sellable": {"kind": "stay", "buybox_ready": True, "purchase_mode": "booking"},
+            "buybox_form": "storefront/_price_request.html",
+            "buybox_mode": "booking",
+            "request": __import__("types").SimpleNamespace(tenant=not_ready),
+        },
+    )
+    assert "data-sell-closed" in html
+
+
+def test_stay_page_shows_form_when_gate_is_off(settings, conn_tenant):
+    from types import SimpleNamespace
+
+    from django.template.loader import render_to_string
+
+    settings.READINESS_SELL_GATE = False
+    html = render_to_string(
+        "storefront/_buybox.html",
+        {
+            "sellable": {"kind": "stay", "buybox_ready": True, "purchase_mode": "booking"},
+            "buybox_form": "storefront/_price_request.html",
+            "buybox_mode": "booking",
+            "request": SimpleNamespace(tenant=conn_tenant),
+        },
+    )
+    assert "data-sell-closed" not in html and "data-price-on-request" in html

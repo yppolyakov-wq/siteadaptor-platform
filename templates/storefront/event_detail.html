@@ -100,6 +100,8 @@
       Extras) → Schritt 2 «Ihre Daten» (контакты/анкета/код/Waiver) с обзором выбора.
       Прогрессивное улучшение: без JS оба шага видимы и кнопки-навигация спрятаны
       (обычная одностраничная форма); JS включает пошаговый режим.{% endcomment %}
+      {% sell_closed "event" as closed_sale %}
+      {% if closed_sale %}{% include "storefront/_sell_closed.html" %}{% else %}
       <form method="post" action="{% url 'storefront-event-book' event.pk %}" class="space-y-3 mt-3" data-rv1>
         {% csrf_token %}{% portal_attribution_fields %}
         <input type="text" name="website" class="hidden" tabindex="-1" autocomplete="off" aria-hidden="true">
@@ -214,6 +216,7 @@
         </div>
         {% include "storefront/_privacy_note.html" %}
       </form>
+      {% endif %}
       <script>
       (function () {
         document.querySelectorAll('[data-rv1]').forEach(function (form) {

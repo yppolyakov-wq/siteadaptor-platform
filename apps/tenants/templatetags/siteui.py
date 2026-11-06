@@ -992,3 +992,25 @@ def is_menu_business(tenant) -> bool:
     from apps.core.nav_registry import KITCHEN_TYPES
 
     return getattr(tenant, "business_type", "") in KITCHEN_TYPES
+
+
+#: AIS W4-5d: вид продаваемой сущности → направление гейта готовности.
+_SELL_KIND_DIRECTION = {"stay": "zimmer", "service": "termine", "event": "tickets"}
+
+
+@register.simple_tag(takes_context=True)
+def sell_closed(context, kind):
+    """AIS W4-5d: касса этого направления закрыта гейтом готовности — показать фразу ВМЕСТО
+    формы, чтобы клиент не вводил данные зря. `kind` — вид сущности или "goods"."""
+    from apps.core import readiness
+
+    request = context.get("request")
+    tenant = getattr(request, "tenant", None)
+    if tenant is None:
+        return False
+    direction = (
+        readiness.goods_direction(tenant)
+        if kind == "goods"
+        else _SELL_KIND_DIRECTION.get(kind, kind)
+    )
+    return not readiness.sell_allowed(tenant, direction)
