@@ -2,12 +2,16 @@
 
 from __future__ import annotations
 
+import logging
+
 from django.contrib.auth.decorators import login_required
 from django.db import connection
 from django.shortcuts import render
 from django.views.decorators.http import require_GET, require_POST
 
 from apps.core import assistant, diagnoses, drawer, ratelimit
+
+logger = logging.getLogger(__name__)
 
 #: Тяжёлые диагнозы по кнопке: не чаще 20 раз в минуту на пользователя.
 HEAVY_LIMIT, HEAVY_WINDOW = 20, 60
@@ -209,6 +213,8 @@ def assistant_reply(request, job):
     from apps.core import assistant_actions, assistant_ai, assistant_clarify, ratelimit
 
     entry = assistant_ai.job_state(request, job, convert=False)
+    if entry is not None and entry.get("outcome") == "actions":
+        return _actions_response(request, job)  # повтор после успешного ответа — тот же итог
     if entry is None or entry.get("outcome") != "ask":
         return _actions_response(request, job, code="expired")
     schema, user_pk = assistant_ai._schema_name(), request.user.pk
@@ -222,34 +228,46 @@ def assistant_reply(request, job):
     key = assistant_ai._job_key(schema, user_pk, job)
     round_ = int(entry.get("round") or 1)
     # двойной тап / устаревшая вкладка: на один раунд — один ответ
-    if not cache.add(f"{key}:reply:{round_}", 1, assistant_ai.JOB_TTL):
+    if not cache.add(f"{key}:reply:{round_}", 1, assistant_actions.ACTIONS_TTL):
         return _actions_response(request, job)
     current = cache.get(key)
     if not isinstance(current, dict) or current.get("round") != entry.get("round"):
         return _actions_response(request, job)
     try:
         items = assistant_clarify.answer(request, entry, request.POST.get("option", ""))
+        _store_reply(request, job, entry, items, round_)
     except assistant_clarify.AnswerError:
         cache.delete(f"{key}:reply:{round_}")  # чужой/исчезнувший вариант — можно выбрать снова
         return _actions_response(request, job, code="expired")
-    summary = entry.get("summary") or []
+    except Exception:  # noqa: BLE001 — сбой строителя/кэша: раунд не запирается, можно снова
+        logger.exception("assistant reply: rebuild failed")
+        cache.delete(f"{key}:reply:{round_}")
+        return _actions_response(request, job, code="busy")
+    return _actions_response(request, job)
+
+
+def _store_reply(request, job: str, entry: dict, items: list, round_: int) -> None:
+    """Следующий вопрос или готовый пакет — в ту же задачу; история — только готовый пакет."""
+    from apps.core import assistant_actions, assistant_ai, assistant_clarify
+
+    schema, user_pk = assistant_ai._schema_name(), request.user.pk
+    summary = assistant_clarify.summary_for(items) or entry.get("summary") or []
     source = entry.get("source", "")
     nxt = assistant_clarify.wrap(job, items, summary, entry.get("question", ""), round_ + 1)
     if nxt is not None:
-        if source:
-            nxt["source"] = source
+        nxt.update(source=source, dropped=entry.get("dropped", 0))
         assistant_ai._put(schema, user_pk, nxt, assistant_actions.ACTIONS_TTL, job=job)
-    else:
-        done = assistant_clarify.done_entry(job, items, summary, source)
-        assistant_ai._put(
-            schema,
-            user_pk,
-            done,
-            assistant_actions.ACTIONS_TTL,
-            job=job,
-            q=str(entry.get("question") or ""),
-        )
-    return _actions_response(request, job)
+        return
+    done = assistant_clarify.done_entry(job, items, summary, source)
+    done["dropped"] = entry.get("dropped", 0)
+    assistant_ai._put(
+        schema,
+        user_pk,
+        done,
+        assistant_actions.ACTIONS_TTL,
+        job=job,
+        q=str(entry.get("question") or ""),
+    )
 
 
 def _actions_response(request, job: str, *, code: str = ""):

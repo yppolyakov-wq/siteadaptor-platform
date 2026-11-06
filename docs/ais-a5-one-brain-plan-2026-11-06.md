@@ -111,3 +111,16 @@ ruff + pytest apps/core apps/support + template_comments + i18n_quickcheck (+ bu
 `classify()`; `assistant_ask` зовёт только `route()`. Запасные пути — внутри `handle`. Замки
 `test_assistant_router` (21): паритет без ИИ (13 фраз) и с ИИ (5), «answer последний, ключи уникальны»,
 «первое попадание выигрывает», AST «во вьюхе нет `intent/create_intent/wants/mixed`».
+
+## 11. Исполнение A-5b (2026-11-06)
+Строители оставляют `blocked` и добавляют `item["clarify"]`: A-4b `build` и A-4e `_pick_target` —
+`pick_target` (одноимённые), A-4d `expand` — `direction` («um 10 %» без направления, `direction_missing`).
+`assistant_clarify.wrap` → запись `state="done", outcome="ask"` (опрос шторки останавливается без правки
+JS), вопрос в историю не пишется; `assistant_reply` (`POST …/antwort/`, в view_perms/packages/tg_login):
+вариант — только из кэша, `cache.add(:reply:round)` + перечитывание раунда, сборка заново
+`item_for`/`expand`, ≤ 2 раундов, готовый пакет пишется в историю один раз. JS отправляет значение
+нажатой кнопки. **Ревью ECC (django · security · a11y, 0 критичных):** сбой сборки не запирает раунд,
+повтор после успеха показывает итог, токен раунда живёт как вопрос, `dropped`/`summary` переносятся,
+категории вариантов одним запросом, одинаковые подписи нумеруются; a11y — без `role=status` на вопросе
+(фокус на первую кнопку вместо двойного чтения), все варианты недоступны на время запроса, без дублей
+скрытого поля. Замки `test_a5b_clarify` (14), стенд Playwright 6/6 (1440 de, 390 ru).

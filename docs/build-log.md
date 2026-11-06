@@ -22006,3 +22006,12 @@ ich … ein» — к модели); в промпт — до 5 статей A-1,
 - `apps/core/assistant_router.py` — реестр обработчиков фразы (bulk → changes → pages → mixed → create →
   ai_actions → answer) вместо цепочки if/elif во вьюхе; запасные пути прежние. Замки
   `test_assistant_router` (21), смежные 514 зелёных.
+
+## 2026-11-06 — AIS A-5b: уточняющий вопрос кнопками вместо тупика (без миграций)
+- «скрой Käsekuchen» при двух одноимённых → «Welchen Eintrag meinen Sie?» с кнопками «Käsekuchen ·
+  Torten / · Kuchen»; «alle Kuchen um 10 %» → «Teurer oder günstiger?»; то же для ответа ИИ (A-4e, модель
+  второй раз не зовётся). Ответ — только вариант из кэша задачи, пакет собирается заново тем же
+  строителем, дальше прежний предпросмотр/«Alles übernehmen»/«Rückgängig»; ≤ 2 вопросов.
+- `apps/core/assistant_clarify.py`, вьюха `assistant_reply`, партиал `_assistant_clarify.html`, JS шлёт
+  значение нажатой кнопки. Ревью ECC (django · security · a11y) — правки в плане A-5 §11.
+- Замки 14 (+ переписан A-4b «одноимённые» → вопрос), смежные 527 зелёных, стенд 6/6.

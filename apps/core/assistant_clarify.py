@@ -132,10 +132,33 @@ def answer(request, entry: dict, option: str) -> list[dict]:
     raise AnswerError("state")
 
 
+def summary_for(items: list[dict]) -> list[dict]:
+    """Сводка для истории по ГОТОВЫМ пунктам (после ответа массовый пакет мог смениться)."""
+    from apps.core import assistant_bulk
+
+    if not items:
+        return []
+    bulk = assistant_bulk.meta(items)
+    if bulk is not None:
+        return [{"action": items[0]["action"], "name": bulk["title"]}]
+    return [
+        {"action": it["action"], "name": (it.get("values") or {}).get("name", "")} for it in items
+    ]
+
+
 def options_for_rows(rows: list[dict]) -> list[dict]:
     """Варианты «какой из одноимённых» — с подписью, по которой их различить."""
+    from apps.catalog.models import Category
     from apps.core import assistant_changes
 
+    # категории товаров — одним запросом (≤ 6 вариантов, без N+1)
+    cat_ids = {
+        r["obj"].category_id for r in rows if r["kind"] == "product" and r["obj"].category_id
+    }
+    cats = {c.pk: c for c in Category.objects.filter(pk__in=cat_ids)} if cat_ids else {}
+    for r in rows:
+        if r["kind"] == "product":
+            r["obj"]._clarify_cat = cats.get(r["obj"].category_id)
     out, seen = [], set()
     for row in rows:
         key = f"{row['kind']}:{row['obj'].pk}"
@@ -145,13 +168,22 @@ def options_for_rows(rows: list[dict]) -> list[dict]:
         out.append({"id": key, "label": _label(row["kind"], row["obj"], assistant_changes)})
         if len(out) >= MAX_OPTIONS:
             break
+    # одинаковые подписи (одно имя в одной категории) различаем номером: кнопки не путаются
+    counts: dict[str, int] = {}
+    for o in out:
+        counts[o["label"]] = counts.get(o["label"], 0) + 1
+    seen_n: dict[str, int] = {}
+    for o in out:
+        if counts[o["label"]] > 1:
+            seen_n[o["label"]] = seen_n.get(o["label"], 0) + 1
+            o["label"] = f"{o['label']} ({seen_n[o['label']]})"
     return out
 
 
 def _label(kind: str, obj, assistant_changes) -> str:
     name = assistant_changes._display(kind, obj)
     if kind == "product":
-        cat = getattr(obj, "category", None)
+        cat = getattr(obj, "_clarify_cat", None)
         where = cat.get_i18n("name") if cat is not None else _("ohne Kategorie")
         state = "" if obj.is_active else " · " + _("ausgeblendet")
         return f"{name} · {where}{state}"

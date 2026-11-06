@@ -180,3 +180,44 @@ def test_ai_ambiguous_asks_which(settings, isolated_ratelimit, bakery, twins):
         _reply(bakery, user, got["job"], f"product:{twins[1].pk}")
     assert "data-assistant-clarify" in html and g.call_count == 1
     assert _entry(user, got["job"])["actions"][0]["target"]["pk"] == str(twins[1].pk)
+
+
+# ── правки по ревью ECC (django · security · a11y) ───────────────────────────────────
+
+
+def test_builder_crash_does_not_lock_the_question(ai_off, bakery, twins):
+    from unittest import mock
+
+    _a, b = twins
+    user, got = _ask(bakery, "скрой Käsekuchen")
+    with mock.patch.object(assistant_clarify, "answer", side_effect=RuntimeError("db down")):
+        _reply(bakery, user, got["job"], f"product:{b.pk}")
+    _reply(bakery, user, got["job"], f"product:{b.pk}")  # вторая попытка проходит
+    assert _entry(user, got["job"])["outcome"] == "actions"
+
+
+def test_repeat_after_success_shows_result(ai_off, bakery, twins):
+    _a, b = twins
+    user, got = _ask(bakery, "скрой Käsekuchen")
+    _reply(bakery, user, got["job"], f"product:{b.pk}")
+    resp = _reply(bakery, user, got["job"], f"product:{b.pk}")
+    assert "data-assistant-apply-btn" in resp.content.decode()
+
+
+def test_identical_labels_are_numbered(ai_off, bakery):
+    cat = writers.create_category(bakery, {"name_de": "Kuchen"})
+    for price in ("3,00", "4,00"):
+        writers.create_product(
+            bakery, {"name_de": "Käsekuchen", "base_price": price, "category": str(cat.pk)}
+        )
+    user, got = _ask(bakery, "скрой Käsekuchen")
+    labels = [o["label"] for o in _entry(user, got["job"])["options"]]
+    assert len(set(labels)) == 2 and labels[0].endswith("(1)")
+
+
+def test_question_has_no_live_region_and_names_group(ai_off, bakery, twins):
+    user, got = _ask(bakery, "скрой Käsekuchen")
+    html = _html(bakery, user, got["job"])
+    clarify = html.split("data-assistant-clarify", 1)[1]
+    assert 'role="group"' in clarify and "aria-labelledby" in clarify
+    assert 'role="status"' not in clarify.split("</form>")[0]

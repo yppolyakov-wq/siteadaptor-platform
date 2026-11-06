@@ -1165,16 +1165,21 @@ try { (function () {
     // A-5b: у уточнения несколько кнопок-вариантов — значение несёт НАЖАТАЯ (FormData её не берёт)
     var sub = e.submitter && e.submitter.name ? e.submitter : null;
     var btn = sub || form.querySelector("button[type=submit]");
+    if (form.getAttribute("aria-busy") === "true") return;
     if (btn && btn.getAttribute("aria-disabled") === "true") return;
+    // все кнопки формы (у уточнения — все варианты) недоступны, пока идёт запрос:
+    // второй вариант во время первого не уходит
+    var all = Array.prototype.slice.call(form.querySelectorAll("button[type=submit]"));
+    all.forEach(function (b) { b.setAttribute("aria-disabled", "true"); });
+    form.setAttribute("aria-busy", "true");
     var body = new FormData(form);
     if (sub) body.append(sub.name, sub.value);
     var label = btn ? btn.textContent : "";
-    if (btn) {
-      btn.setAttribute("aria-disabled", "true");
-      if (btn.getAttribute("data-busy-text")) btn.textContent = btn.getAttribute("data-busy-text");
-    }
+    if (btn && btn.getAttribute("data-busy-text")) btn.textContent = btn.getAttribute("data-busy-text");
     function restore() {
-      if (btn) { btn.removeAttribute("aria-disabled"); btn.textContent = label; }
+      all.forEach(function (b) { b.removeAttribute("aria-disabled"); });
+      form.removeAttribute("aria-busy");
+      if (btn) btn.textContent = label;
     }
     fetch(form.getAttribute("action"), {
       method: "POST", body: body, credentials: "same-origin",
@@ -1193,17 +1198,21 @@ try { (function () {
         if (!fresh) throw new Error("empty");
         reply.replaceWith(fresh);
         var focus = fresh.querySelector("[aria-invalid=true]") ||
-          fresh.querySelector("[data-assistant-result]") ||
-          fresh.querySelector("[data-assistant-clarify] button");
+          fresh.querySelector("[data-assistant-clarify] button") ||
+          fresh.querySelector("[data-assistant-result]");
         if (!focus) { fresh.setAttribute("tabindex", "-1"); focus = fresh; }
         focus.focus();
       })
       .catch(function () {
         restore();
         if (sub) {  // обычный POST не несёт значение нажатой кнопки — кладём его полем
-          var keep = document.createElement("input");
-          keep.type = "hidden"; keep.name = sub.name; keep.value = sub.value;
-          form.appendChild(keep);
+          var keep = form.querySelector('input[type=hidden][data-submitter]');
+          if (!keep) {
+            keep = document.createElement("input");
+            keep.type = "hidden"; keep.setAttribute("data-submitter", "1");
+            form.appendChild(keep);
+          }
+          keep.name = sub.name; keep.value = sub.value;
         }
         form.submit();  // запасной путь — обычный POST (сервер идемпотентен)
       });
