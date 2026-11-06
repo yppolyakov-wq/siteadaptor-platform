@@ -270,13 +270,17 @@ def assistant_escalate(request, job):
         thread = esc.send(request, entry, request.POST.get("text", ""))
     except esc.SendError as exc:
         cache.delete(f"{key}:escalate")
-        return _actions_response(request, job, code="busy" if exc.code == "quota" else "nothing")
+        return _actions_response(request, job, code="quota" if exc.code == "quota" else "nothing")
     except Exception:  # noqa: BLE001 — сбой записи: можно отправить снова
         logger.exception("assistant escalate: send failed")
         cache.delete(f"{key}:escalate")
         return _actions_response(request, job, code="busy")
     done = {**entry, "outcome": "escalated", "thread_pk": thread.pk}
-    assistant_ai._put(schema, user_pk, done, assistant_ai.RESULT_TTL, job=job)
+    try:
+        assistant_ai._put(schema, user_pk, done, assistant_ai.RESULT_TTL, job=job)
+    except Exception:  # noqa: BLE001 — обращение УЖЕ ушло: показываем успех, а не 500
+        logger.warning("assistant escalate: result not stored", exc_info=True)
+        return _actions_response(request, job, code="sent")
     return _actions_response(request, job)
 
 

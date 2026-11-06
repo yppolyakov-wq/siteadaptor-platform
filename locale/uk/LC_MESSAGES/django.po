@@ -34803,3 +34803,7 @@ msgstr "Нехай цим займеться людина? Я надішлю ц�
 #: apps/core/assistant_bulk.py
 msgid "Wird gesendet …"
 msgstr "Надсилається …"
+
+#: apps/core/assistant_bulk.py
+msgid "Bitte keine Daten Ihrer Kundinnen und Kunden eintragen. E-Mail-Adressen und Telefonnummern werden automatisch entfernt, Namen und Adressen nicht."
+msgstr "Не вводьте, будь ласка, дані клієнтів. Адреси e-mail і номери телефонів видаляються автоматично, імена та адреси — ні."

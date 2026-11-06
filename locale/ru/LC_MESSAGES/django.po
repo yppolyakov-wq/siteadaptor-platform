@@ -34816,3 +34816,7 @@ msgstr "Пусть этим займётся человек? Я отправлю
 #: apps/core/assistant_bulk.py
 msgid "Wird gesendet …"
 msgstr "Отправляется …"
+
+#: apps/core/assistant_bulk.py
+msgid "Bitte keine Daten Ihrer Kundinnen und Kunden eintragen. E-Mail-Adressen und Telefonnummern werden automatisch entfernt, Namen und Adressen nicht."
+msgstr "Не вводите, пожалуйста, данные клиентов. Адреса e-mail и номера телефонов удаляются автоматически, имена и адреса — нет."

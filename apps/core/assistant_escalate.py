@@ -28,14 +28,22 @@ THREAD_WINDOW = timedelta(days=7)
 LIMIT_USER, LIMIT_TENANT, WINDOW = 3, 10, 3600
 
 _W, _E = r"(?<!\w)", r"(?!\w)"
-#: просьба о человеке или «не работает» на пяти языках кабинета
+#: явная ПРОСЬБА о человеке/поддержке или жалоба «не работает» на пяти языках кабинета.
+#: Голые «Mensch/человек/Mitarbeiter/support» — обычная лексика («pro Mensch», «на 20
+#: человек», «supported») и сюда не входят (ревью безопасности A-5d).
 _HUMAN = re.compile(
     _W + r"(?:"
-    r"funktioniert\s+nicht|klappt\s+nicht|geht\s+nicht|mensch\w*|support\w*"
-    r"|kundendienst\w*|hilfe\s+von|doesn'?t\s+work|not\s+working|human|real\s+person|support"
-    r"|не\s+работает|не\s+получается|человек\w*|оператор\w*|поддержк\w*"
-    r"|не\s+працює|не\s+виходить|людин\w*|підтримк\w*"
-    r"|çalışmıyor|olmuyor|insan(?:la)?|destek\w*|müşteri\s+hizmet\w*"
+    r"funktioniert\s+(?:gar\s+)?nicht|klappt\s+(?:gar\s+)?nicht|geht\s+(?:gar\s+)?nicht"
+    r"|(?:mit\s+)?(?:einem|einer)\s+menschen?\s+sprechen|echte[nr]?\s+(?:person|menschen?)"
+    r"|support\s+(?:kontaktier\w*|schreiben|anschreiben|fragen)|an\s+den\s+support"
+    r"|kundendienst\w*"
+    r"|(?:does\s*n[o']?t|is\s+not|isn'?t)\s+working|doesn'?t\s+work|not\s+working"
+    r"|talk\s+to\s+(?:a\s+)?(?:human|person|someone)|real\s+person|contact\s+support"
+    r"|не\s+работает|не\s+получается|живы\w*\s+человек\w*|позов\w*\s+человек\w*"
+    r"|(?:свяж\w*|напиш\w*)\s+(?:с\s+|в\s+)?поддержк\w*|оператор\w*"
+    r"|не\s+працює|не\s+виходить|жив\w*\s+людин\w*"
+    r"|(?:зв.яж\w*|напиш\w*)\s+(?:з\s+|в\s+)?підтримк\w*"
+    r"|çalışmıyor|olmuyor|bir\s+insanla|destek(?:le|e)\s+\w+|destek\s+ekibi\w*"
     r")" + _E,
     re.IGNORECASE,
 )
@@ -82,6 +90,7 @@ def handle(request, q: str, seite: str = "") -> dict:
         "outcome": "escalate",
         "job": job,
         "preview": preview(request, q, seite),
+        "question": q,  # тема треда — из текущего вопроса
     }
     return _put(request, job, entry, q)
 
@@ -113,25 +122,35 @@ class SendError(Exception):
 
 def send(request, entry: dict, text: str):
     """Отправить в Support. Возвращает тред. Бросает SendError(quota|empty)."""
+    from apps.ai import guard
     from apps.core import ratelimit
     from apps.core.pii import scrub
-    from apps.support import services
-    from apps.support.models import SupportMessage, SupportThread
 
-    body = scrub(str(text or "")).strip()[:BODY_MAX]
+    # нормализация как у вопроса (full-width «＠» и т. п.), затем маскер контактов
+    body = scrub(guard.normalize(str(text or ""))).strip()[:BODY_MAX]
     if not body:
         raise SendError("empty")
     tenant = request.tenant
-    if ratelimit.hit(
-        "assistant-support",
-        f"{tenant.schema_name}:{request.user.pk}",
-        limit=LIMIT_USER,
-        window=WINDOW,
-    ) or ratelimit.hit(
-        "assistant-support-t", tenant.schema_name, limit=LIMIT_TENANT, window=WINDOW
-    ):
+    user_scope = ("assistant-support", f"{tenant.schema_name}:{request.user.pk}")
+    tenant_scope = ("assistant-support-t", tenant.schema_name)
+    if ratelimit.hit(*user_scope, limit=LIMIT_USER, window=WINDOW):
         raise SendError("quota")
-    who = getattr(request.user, "email", "") or str(request.user.pk)
+    if ratelimit.hit(*tenant_scope, limit=LIMIT_TENANT, window=WINDOW):
+        ratelimit.refund(*user_scope)
+        raise SendError("quota")
+    try:
+        return _write(tenant, request.user, entry, body)
+    except Exception:
+        ratelimit.refund(*user_scope)  # обращение не ушло — попытки назад
+        ratelimit.refund(*tenant_scope)
+        raise
+
+
+def _write(tenant, user, entry: dict, body: str):
+    from apps.support import services
+    from apps.support.models import SupportMessage, SupportThread
+
+    who = getattr(user, "email", "") or str(user.pk)
     # треды — общие для команды бизнеса: в тексте видно, кто написал
     body = body + "\n\n— " + _("Aus dem Assistenten gesendet von %(who)s") % {"who": who}
     since = timezone.now() - THREAD_WINDOW
@@ -148,6 +167,7 @@ def send(request, entry: dict, text: str):
     if thread is not None:
         services.add_message(thread, body=body, author_role=SupportMessage.AUTHOR_OWNER)
         return thread
-    first = body.splitlines()[0].lstrip("– ").strip() if body else ""
-    subject = f"{SUBJECT_PREFIX} {services.one_line(first)[:80]}"
+    # тема — из ТЕКУЩЕГО вопроса (в превью первым может стоять более ранний)
+    topic = services.one_line(entry.get("question") or "")[:80]
+    subject = f"{SUBJECT_PREFIX} {topic}".strip()
     return services.open_thread(tenant=tenant, subject=subject, body=body)

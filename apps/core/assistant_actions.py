@@ -1301,6 +1301,8 @@ def error_text(code: str) -> str:
         "invalid": _("Bitte die markierten Felder prüfen."),
         "busy": _("Gerade in Benutzung — bitte gleich erneut versuchen."),
         "too_late": _("Rückgängig ist nur 10 Minuten lang möglich."),
+        "quota": _("Zu viele Fragen in kurzer Zeit — bitte später erneut versuchen."),
+        "sent": _("An den Support gesendet — die Antwort finden Sie unter „Support“."),
     }.get(code, _("Das hat nicht geklappt — bitte erneut versuchen."))
 
 

@@ -34507,3 +34507,7 @@ msgstr "Should a person take care of this? I'll send it to support."
 #: apps/core/assistant_bulk.py
 msgid "Wird gesendet …"
 msgstr "Sending …"
+
+#: apps/core/assistant_bulk.py
+msgid "Bitte keine Daten Ihrer Kundinnen und Kunden eintragen. E-Mail-Adressen und Telefonnummern werden automatisch entfernt, Namen und Adressen nicht."
+msgstr "Please don't enter your customers' data. E-mail addresses and phone numbers are removed automatically, names and addresses are not."

@@ -34653,3 +34653,7 @@ msgstr "Bununla bir insan mı ilgilensin? Destek ekibine gönderiyorum."
 #: apps/core/assistant_bulk.py
 msgid "Wird gesendet …"
 msgstr "Gönderiliyor …"
+
+#: apps/core/assistant_bulk.py
+msgid "Bitte keine Daten Ihrer Kundinnen und Kunden eintragen. E-Mail-Adressen und Telefonnummern werden automatisch entfernt, Namen und Adressen nicht."
+msgstr "Lütfen müşterilerinizin verilerini girmeyin. E-posta adresleri ve telefon numaraları otomatik olarak kaldırılır, isimler ve adresler kaldırılmaz."

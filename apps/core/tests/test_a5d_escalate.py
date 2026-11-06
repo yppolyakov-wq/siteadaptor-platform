@@ -41,9 +41,9 @@ def _send(tenant, user, job, text):
     "phrase",
     [
         "Die Bezahlung funktioniert nicht",
-        "Ich brauche einen Menschen",
+        "Ich möchte mit einem Menschen sprechen",
         "оплата не работает",
-        "оплата не працює, потрібна людина",
+        "оплата не працює",
         "ödeme çalışmıyor",
         "payment is not working",
     ],
@@ -75,13 +75,13 @@ def test_send_once_scrubbed_with_author(ai_off, bakery):
 def test_second_request_same_week_joins_thread(ai_off, bakery):
     user, first = _ask(bakery, "Die Bezahlung funktioniert nicht")
     _send(bakery, user, first["job"], "erstes Problem")
-    _u, second = _ask(bakery, "Ich brauche einen Menschen", user=user)
+    _u, second = _ask(bakery, "Ich möchte mit einem Menschen sprechen", user=user)
     _send(bakery, user, second["job"], "zweites Problem")
     assert SupportThread.objects.count() == 1 and SupportMessage.objects.count() == 2
 
 
 def test_empty_text_sends_nothing(ai_off, bakery):
-    user, got = _ask(bakery, "Ich brauche einen Menschen")
+    user, got = _ask(bakery, "Ich möchte mit einem Menschen sprechen")
     _send(bakery, user, got["job"], "   ")
     assert not SupportThread.objects.exists()
     _send(bakery, user, got["job"], "jetzt mit Text")  # после отказа — можно снова
@@ -91,13 +91,13 @@ def test_empty_text_sends_nothing(ai_off, bakery):
 def test_rate_limit(ai_off, bakery):
     user = _user()
     for i in range(4):
-        _u, got = _ask(bakery, f"Ich brauche einen Menschen {i}", user=user)
+        _u, got = _ask(bakery, f"Ich möchte mit einem Menschen sprechen {i}", user=user)
         _send(bakery, user, got["job"], f"Problem {i}")
     assert SupportMessage.objects.count() == 3
 
 
 def test_foreign_job_is_refused(ai_off, bakery):
-    user, got = _ask(bakery, "Ich brauche einen Menschen")
+    user, got = _ask(bakery, "Ich möchte mit einem Menschen sprechen")
     _send(bakery, _user(), got["job"], "fremd")
     assert not SupportThread.objects.exists()
 
@@ -105,3 +105,30 @@ def test_foreign_job_is_refused(ai_off, bakery):
 @pytest.mark.parametrize("phrase", ["Mitarbeiter anlegen", "Seite Support anlegen"])
 def test_create_phrases_are_not_escalation(ai_off, bakery, phrase):
     assert assistant_router.classify(_req(bakery), phrase) != "escalate"
+
+
+@pytest.mark.parametrize(
+    "phrase",
+    [
+        "Preis pro Mensch 20 €",
+        "Событие на 20 человек",
+        "Which payment methods are supported?",
+        "Termin für Mitarbeiterin Anna",
+    ],
+)
+def test_ordinary_words_are_not_escalation(ai_off, bakery, phrase):
+    assert assistant_router.classify(_req(bakery), phrase) != "escalate"
+
+
+def test_fullwidth_email_is_scrubbed(ai_off, bakery):
+    user, got = _ask(bakery, "Ich möchte mit einem Menschen sprechen")
+    _send(bakery, user, got["job"], "Kunde max＠example.com meldet Fehler")
+    assert "example.com" not in SupportMessage.objects.get().body
+
+
+def test_subject_from_current_question(ai_off, bakery):
+    user = _user()
+    _ask(bakery, "Wie ändere ich die Öffnungszeiten?", user=user)
+    _u, got = _ask(bakery, "Die Bezahlung funktioniert nicht", user=user)
+    _send(bakery, user, got["job"], "Text")
+    assert "Bezahlung" in SupportThread.objects.get().subject

@@ -92,10 +92,8 @@ RULES: dict[str, Rule] = {
     # AIS A-4a: право на КАЖДЫЙ пункт пакета проверяется внутри (assistant_actions.allowed)
     "assistant-apply": _r(OPEN),
     "assistant-undo": _r(OPEN),
-    "assistant-reply": _r(OPEN),
-    "assistant-escalate": _r(
-        OPEN
-    ),  # AIS A-5d: как «support:help» — вся команда  # AIS A-5b: варианты — из кэша задачи, права пункта — внутри
+    "assistant-reply": _r(OPEN),  # AIS A-5b: варианты — из кэша задачи, права пункта — внутри
+    "assistant-escalate": _r(OPEN),  # AIS A-5d: как «support:help» — вся команда
     "setup-ask": _r(OPEN),  # STU-19i: a plan only; entities are gated by module + right
     "community:event-space": _r(V, E),
     "deal-billing-edit": _r(V, E),

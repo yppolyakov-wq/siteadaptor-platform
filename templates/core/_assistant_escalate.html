@@ -15,7 +15,7 @@
   <div>
     <label for="esc-text-{{ ans.job }}" class="block text-sm">{% trans "Ihre Nachricht (Sie können sie ändern)" %}</label>
     <textarea id="esc-text-{{ ans.job }}" name="text" rows="5" maxlength="2000" class="ui-input w-full" aria-describedby="esc-hint-{{ ans.job }}">{{ ans.preview }}</textarea>
-    <p id="esc-hint-{{ ans.job }}" class="ui-muted text-xs">{% trans "Bitte keine Daten Ihrer Kundinnen und Kunden eintragen. E-Mail-Adressen und Telefonnummern werden entfernt." %}</p>
+    <p id="esc-hint-{{ ans.job }}" class="ui-muted text-xs">{% trans "Bitte keine Daten Ihrer Kundinnen und Kunden eintragen. E-Mail-Adressen und Telefonnummern werden automatisch entfernt, Namen und Adressen nicht." %}</p>
   </div>
   <button type="submit" class="ui-btn ui-btn-primary min-h-[44px]" data-busy-text="{% trans 'Wird gesendet …' %}">{% trans "An den Support senden" %}</button>
 </form>
