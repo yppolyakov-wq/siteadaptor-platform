@@ -213,17 +213,18 @@ def _actions_response(request, job: str, *, code: str = ""):
     from django.urls import reverse
     from django.utils.html import escape
 
-    from apps.core import assistant_actions
+    from apps.core import assistant_actions, assistant_ai
 
     text = str(assistant_actions.error_text(code)) if code else ""
+    valid = bool(assistant_ai.JOB_RE.fullmatch(str(job or "")))
     if not request.headers.get("X-Sf-Drawer"):
         if text:
             messages.error(request, text)
-        return redirect(reverse("assistant") + f"?antwort={job}")
-    ans = _answer_ctx(request, job)
+        return redirect(reverse("assistant") + (f"?antwort={job}" if valid else ""))
+    ans = _answer_ctx(request, job) if valid else None
     if ans is None:
         resp = HttpResponse(
-            f'<div data-assistant-reply><p role="status" tabindex="-1" data-assistant-result'
+            f'<div data-assistant-reply><p tabindex="-1" data-assistant-result'
             f' class="text-sm">{escape(text or assistant_actions.error_text("expired"))}</p></div>'
         )
     else:

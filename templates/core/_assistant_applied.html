@@ -1,7 +1,7 @@
 {% load i18n %}
 {% comment %}AIS A-4a: отчёт применённого пакета — что создано (ссылки с правами), «Rückgängig» в окне 10 минут, итог отката по пунктам.{% endcomment %}
 <section class="ui-card p-4 space-y-2" data-assistant-applied>
-  <p role="status" tabindex="-1" data-assistant-result class="font-semibold">{% if ans.applied.undone %}{% trans "Rückgängig gemacht." %}{% else %}{% blocktrans with n=ans.applied.count %}Erledigt — angelegt: {{ n }}{% endblocktrans %}{% endif %}</p>
+  <p tabindex="-1" data-assistant-result class="font-semibold">{% if ans.applied.undone %}{% trans "Rückgängig gemacht." %}{% else %}{% blocktrans with n=ans.applied.count %}Erledigt — angelegt: {{ n }}{% endblocktrans %}{% endif %}</p>
   <ul class="text-sm space-y-1">
     {% for r in ans.applied.rows %}
     <li>{{ r.label }}: {% if r.url and not r.undone %}<a href="{{ r.url }}" class="text-indigo-700 hover:underline">{{ r.name }}</a>{% else %}{{ r.name }}{% endif %}{% if r.undone %} — {{ r.undo_note|default:_("zurückgesetzt") }}{% elif r.undo_note %} — {{ r.undo_note }}{% endif %}</li>
@@ -10,7 +10,7 @@
   {% if ans.applied.can_undo %}
   <form method="post" action="{% url 'assistant-undo' ans.job %}" data-assistant-undo>
     {% csrf_token %}
-    <button type="submit" class="ui-btn ui-btn-secondary min-h-[44px]">{% blocktrans with t=ans.applied.undo_until|time:"H:i" %}Rückgängig (bis {{ t }} Uhr){% endblocktrans %}</button>
+    <button type="submit" class="ui-btn ui-btn-secondary min-h-[44px]" data-busy-text="{% trans 'Wird zurückgesetzt …' %}">{% blocktrans with t=ans.applied.undo_until|time:"H:i" %}Rückgängig (bis {{ t }} Uhr){% endblocktrans %}</button>
   </form>
   {% endif %}
 </section>

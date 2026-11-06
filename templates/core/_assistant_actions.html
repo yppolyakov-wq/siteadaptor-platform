@@ -1,29 +1,33 @@
 {% load i18n %}
-{% comment %}AIS A-4a: предпросмотр пакета «создать» — по карточке на пункт, правимые поля, галочка «übernehmen». Без права — причина без контролов. Вид действия и объект — из кэша задачи, форма меняет только значения.{% endcomment %}
-<form method="post" action="{% url 'assistant-apply' ans.job %}" data-assistant-apply class="ui-card p-4 space-y-3" aria-labelledby="aa-h-{{ ans.job }}">
+{% comment %}AIS A-4a: предпросмотр пакета «создать» — по карточке на пункт, правимые поля, галочка «übernehmen». Без права — причина без контролов. Вид действия и объект — из кэша задачи, форма меняет только значения. novalidate: снятый пункт не блокирует отправку, ошибки — у полей с сервера.{% endcomment %}
+<form method="post" action="{% url 'assistant-apply' ans.job %}" data-assistant-apply novalidate class="ui-card p-4 space-y-3">
   {% csrf_token %}
   <input type="hidden" name="items_present" value="1">
   <div class="flex items-center justify-between gap-2 flex-wrap">
-    <{{ hl_sub|default:"h3" }} id="aa-h-{{ ans.job }}" class="ui-h2">{% trans "Das lege ich für Sie an" %}</{{ hl_sub|default:"h3" }}>
+    <{{ hl_sub|default:"h3" }} class="ui-h2">{% trans "Das lege ich für Sie an" %}</{{ hl_sub|default:"h3" }}>
     <span class="ui-badge ui-tone-new">{% trans "Vorschau" %} · {% trans "nichts ist gespeichert" %}</span>
   </div>
+  {% if ans.actions_allowed %}<p class="ui-muted text-xs"><span aria-hidden="true">*</span> {% trans "Pflichtfeld" %}</p>{% endif %}
   {% for it in ans.actions %}
   <fieldset class="rounded-xl border border-gray-200 p-3 space-y-2" data-assistant-action="{{ it.index }}">
     <legend class="font-semibold px-1">{{ forloop.counter }}. {{ it.label }}{% if it.name %} „{{ it.name }}“{% endif %}</legend>
     {% if it.allowed %}
-    <label class="inline-flex items-center gap-2 min-h-[44px] text-sm"><input type="checkbox" name="take_{{ it.index }}" value="1" checked> {% trans "übernehmen" %}</label>
+    <label class="inline-flex items-center gap-2 min-h-[44px] text-sm"><input type="checkbox" name="take_{{ it.index }}" value="1"{% if it.take %} checked{% endif %}> {% trans "übernehmen" %}</label>
     {% for f in it.fields %}
+    {% with fid=f.input|add:"-"|add:ans.job %}
     <div>
-      <label for="{{ f.input }}-{{ ans.job }}" class="block text-sm">{{ f.label }}{% if f.required %} <span aria-hidden="true">*</span><span class="sr-only">{% trans "(Pflichtfeld)" %}</span>{% endif %}</label>
+      <label for="{{ fid }}" class="block text-sm">{{ f.label }}{% if f.required %} <span aria-hidden="true">*</span>{% endif %}</label>
       {% if f.kind == "category" %}
-      <select id="{{ f.input }}-{{ ans.job }}" name="{{ f.input }}" class="ui-input w-full"{% if f.error %} aria-invalid="true" aria-describedby="{{ f.input }}-{{ ans.job }}-err"{% endif %}>
+      <select id="{{ fid }}" name="{{ f.input }}" class="ui-input w-full"{% if f.error %} aria-invalid="true" aria-describedby="{{ fid }}-err"{% endif %}>
         {% for value, label in it.options %}<option value="{{ value }}"{% if value == f.value %} selected{% endif %}>{{ label }}</option>{% endfor %}
       </select>
       {% else %}
-      <input id="{{ f.input }}-{{ ans.job }}" name="{{ f.input }}" value="{{ f.value }}" class="ui-input w-full" autocomplete="off"{% if f.kind == "money" %} inputmode="decimal"{% elif f.kind == "minutes" %} inputmode="numeric"{% endif %}{% if f.required %} required aria-required="true"{% endif %}{% if f.error %} aria-invalid="true" aria-describedby="{{ f.input }}-{{ ans.job }}-err"{% endif %}>
+      <input id="{{ fid }}" name="{{ f.input }}" value="{{ f.value }}" class="ui-input w-full" autocomplete="off"{% if f.kind == "money" %} inputmode="decimal"{% elif f.kind == "minutes" %} inputmode="numeric"{% endif %}{% if f.required %} required{% endif %}{% if f.error %} aria-invalid="true"{% endif %}{% if f.kind == "money" or f.kind == "minutes" or f.error %} aria-describedby="{% if f.kind == 'money' or f.kind == 'minutes' %}{{ fid }}-hint{% endif %}{% if f.error %} {{ fid }}-err{% endif %}"{% endif %}>
+      {% if f.kind == "money" %}<p id="{{ fid }}-hint" class="ui-muted text-xs">{% trans "z. B. 3,20" %}</p>{% elif f.kind == "minutes" %}<p id="{{ fid }}-hint" class="ui-muted text-xs">{% trans "Minuten" %}</p>{% endif %}
       {% endif %}
-      {% if f.error %}<p id="{{ f.input }}-{{ ans.job }}-err" class="text-sm text-red-700">{{ f.error }}</p>{% endif %}
+      {% if f.error %}<p id="{{ fid }}-err" class="text-sm text-red-700">{{ f.error }}</p>{% endif %}
     </div>
+    {% endwith %}
     {% endfor %}
     {% if it.note %}<p class="ui-muted text-sm">{{ it.note }}</p>{% endif %}
     {% if it.form_url %}<a href="{{ it.form_url }}" class="inline-flex items-center min-h-[44px] text-sm text-indigo-700 hover:underline">{% trans "Lieber im Formular öffnen" %} <span aria-hidden="true">→</span></a>{% endif %}
@@ -33,7 +37,7 @@
   </fieldset>
   {% endfor %}
   {% if ans.actions_allowed %}
-  <button type="submit" class="ui-btn ui-btn-primary min-h-[44px]" data-assistant-apply-btn>{% trans "Alles übernehmen" %}</button>
+  <button type="submit" class="ui-btn ui-btn-primary min-h-[44px]" data-assistant-apply-btn data-busy-text="{% trans 'Wird übernommen …' %}">{% trans "Alles übernehmen" %}</button>
   <p class="ui-muted text-xs">{% trans "Danach 10 Minuten lang rückgängig zu machen." %}</p>
   {% endif %}
 </form>

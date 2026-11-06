@@ -34267,3 +34267,23 @@ msgstr "zurückgesetzt"
 #, python-format
 msgid "Rückgängig (bis %(t)s Uhr)"
 msgstr "Rückgängig (bis %(t)s Uhr)"
+
+#: apps/core/assistant_actions.py
+msgid "Das geht hier nicht — bitte im Kabinett im Browser anlegen."
+msgstr "Das geht hier nicht — bitte im Kabinett im Browser anlegen."
+
+#: apps/core/assistant_actions.py
+msgid "Pflichtfeld"
+msgstr "Pflichtfeld"
+
+#: apps/core/assistant_actions.py
+msgid "Wird zurückgesetzt …"
+msgstr "Wird zurückgesetzt …"
+
+#: apps/core/assistant_actions.py
+msgid "Wird übernommen …"
+msgstr "Wird übernommen …"
+
+#: apps/core/assistant_actions.py
+msgid "z. B. 3,20"
+msgstr "z. B. 3,20"

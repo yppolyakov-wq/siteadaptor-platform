@@ -34474,3 +34474,23 @@ msgstr "скасовано"
 #, python-format
 msgid "Rückgängig (bis %(t)s Uhr)"
 msgstr "Скасувати (до %(t)s)"
+
+#: apps/core/assistant_actions.py
+msgid "Das geht hier nicht — bitte im Kabinett im Browser anlegen."
+msgstr "Тут це не вийде — створіть у кабінеті в браузері."
+
+#: apps/core/assistant_actions.py
+msgid "Pflichtfeld"
+msgstr "Обов’язкове поле"
+
+#: apps/core/assistant_actions.py
+msgid "Wird zurückgesetzt …"
+msgstr "Скасовую …"
+
+#: apps/core/assistant_actions.py
+msgid "Wird übernommen …"
+msgstr "Застосовую …"
+
+#: apps/core/assistant_actions.py
+msgid "z. B. 3,20"
+msgstr "наприклад, 3,20"

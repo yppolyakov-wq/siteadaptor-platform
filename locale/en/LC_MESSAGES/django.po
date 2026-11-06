@@ -34180,3 +34180,23 @@ msgstr "reset"
 #, python-format
 msgid "Rückgängig (bis %(t)s Uhr)"
 msgstr "Undo (until %(t)s)"
+
+#: apps/core/assistant_actions.py
+msgid "Das geht hier nicht — bitte im Kabinett im Browser anlegen."
+msgstr "Not possible here — please create it in the cabinet in the browser."
+
+#: apps/core/assistant_actions.py
+msgid "Pflichtfeld"
+msgstr "Required field"
+
+#: apps/core/assistant_actions.py
+msgid "Wird zurückgesetzt …"
+msgstr "Undoing …"
+
+#: apps/core/assistant_actions.py
+msgid "Wird übernommen …"
+msgstr "Applying …"
+
+#: apps/core/assistant_actions.py
+msgid "z. B. 3,20"
+msgstr "e.g. 3.20"

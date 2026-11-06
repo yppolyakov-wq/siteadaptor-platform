@@ -34326,3 +34326,23 @@ msgstr "geri alındı"
 #, python-format
 msgid "Rückgängig (bis %(t)s Uhr)"
 msgstr "Geri al (%(t)s saatine kadar)"
+
+#: apps/core/assistant_actions.py
+msgid "Das geht hier nicht — bitte im Kabinett im Browser anlegen."
+msgstr "Burada mümkün değil — lütfen tarayıcıda panelde oluşturun."
+
+#: apps/core/assistant_actions.py
+msgid "Pflichtfeld"
+msgstr "Zorunlu alan"
+
+#: apps/core/assistant_actions.py
+msgid "Wird zurückgesetzt …"
+msgstr "Geri alınıyor …"
+
+#: apps/core/assistant_actions.py
+msgid "Wird übernommen …"
+msgstr "Uygulanıyor …"
+
+#: apps/core/assistant_actions.py
+msgid "z. B. 3,20"
+msgstr "ör. 3,20"

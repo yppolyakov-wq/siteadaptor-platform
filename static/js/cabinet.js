@@ -1147,9 +1147,11 @@ try { (function () {
 
 // ---- core/_assistant_actions.html / _assistant_applied.html (AIS A-4a) ----
 // «Alles übernehmen» и «Rückgängig»: POST fetch'ем, ответ — свежий фрагмент ответа помощника,
-// он заменяет прежний (data-assistant-reply); фокус — на сообщение результата. Без JS — обычный
-// POST и страница помощника. Кнопка блокируется на время запроса (двойной клик — один пакет и
-// на сервере: уникальный job).
+// он заменяет прежний (data-assistant-reply). Фокус — на первое поле с ошибкой, иначе на
+// сообщение результата, иначе на сам фрагмент (один механизм — перенос фокуса, без live-region:
+// иначе экранный диктор читает дважды). Кнопка на время запроса — aria-disabled (disabled
+// уронил бы фокус) и текст «Wird übernommen …». Без JS — обычный POST и страница помощника;
+// двойной клик и повтор после сбоя безопасны и на сервере (уникальный job).
 try { (function () {
   "use strict";
   document.addEventListener("submit", function (e) {
@@ -1161,9 +1163,15 @@ try { (function () {
     if (!reply) return;
     e.preventDefault();
     var btn = form.querySelector("button[type=submit]");
-    if (btn && btn.disabled) return;
-    if (btn) { btn.disabled = true; btn.setAttribute("aria-disabled", "true"); }
-    form.setAttribute("aria-busy", "true");
+    if (btn && btn.getAttribute("aria-disabled") === "true") return;
+    var label = btn ? btn.textContent : "";
+    if (btn) {
+      btn.setAttribute("aria-disabled", "true");
+      if (btn.getAttribute("data-busy-text")) btn.textContent = btn.getAttribute("data-busy-text");
+    }
+    function restore() {
+      if (btn) { btn.removeAttribute("aria-disabled"); btn.textContent = label; }
+    }
     fetch(form.getAttribute("action"), {
       method: "POST", body: new FormData(form), credentials: "same-origin",
       redirect: "manual", headers: { "X-Sf-Drawer": "1" }
@@ -1180,14 +1188,14 @@ try { (function () {
         var fresh = box.querySelector("[data-assistant-reply]") || box.firstElementChild;
         if (!fresh) throw new Error("empty");
         reply.replaceWith(fresh);
-        var focus = fresh.querySelector("[data-assistant-result]") ||
-          fresh.querySelector("[aria-invalid=true]");
-        if (focus) focus.focus();
+        var focus = fresh.querySelector("[aria-invalid=true]") ||
+          fresh.querySelector("[data-assistant-result]");
+        if (!focus) { fresh.setAttribute("tabindex", "-1"); focus = fresh; }
+        focus.focus();
       })
       .catch(function () {
-        if (btn) { btn.disabled = false; btn.removeAttribute("aria-disabled"); }
-        form.removeAttribute("aria-busy");
-        form.submit();  // запасной путь — обычный POST
+        restore();
+        form.submit();  // запасной путь — обычный POST (сервер идемпотентен)
       });
   });
 })(); } catch (e) { console.error(e); }

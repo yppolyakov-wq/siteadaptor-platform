@@ -287,3 +287,67 @@ def test_in_tail_stays_in_the_name_when_it_is_no_category(ai_off, bakery):
     user, got = _ask(bakery, "Produkt Brot in Scheiben 2,50 €")
     html = _html(bakery, user, got["job"])
     assert "Scheiben" in html  # «in Scheiben» — часть названия, а не категория
+
+
+# ── ревью A-4a (django / security / database / a11y) ────────────────────────────────
+
+
+def test_whole_euro_price_can_be_undone(ai_off, bakery):
+    user, got = _ask(bakery, "Produkt Roggenbrot 5 €")
+    _apply(bakery, user, got["job"], {"items_present": "1", "take_0": "1"})
+    assert Product.objects.get().base_price == Decimal("5.00")
+    _undo(bakery, user, got["job"])  # снимок «5.00», а не «5» — не «inzwischen geändert»
+    assert not Product.objects.exists()
+
+
+def test_nothing_undone_keeps_the_retry(ai_off, bakery):
+    user, job = _applied(bakery)
+    Product.objects.update(base_price=Decimal("9.99"))
+    _undo(bakery, user, job)
+    change = AssistantChange.objects.get(job=job)
+    assert change.undone_at is None  # ничего не откатилось — пакет не помечен
+    assert change.undo_report and not any(r["done"] for r in change.undo_report)
+    Product.objects.update(base_price=Decimal("3.20"))  # владелец вернул цену
+    _undo(bakery, user, job)  # повтор в том же окне откатывает
+    assert not Product.objects.exists() and not Category.objects.exists()
+
+
+def test_screen_gate_applies_to_actions(ai_off, bakery, monkeypatch):
+    """Mini App / пакет: ассистент не создаёт то, чего не открыл бы экран создания."""
+    from apps.core import setup_assistant
+
+    user, job = _kuchen(bakery)
+    monkeypatch.setattr(
+        setup_assistant, "reachable", lambda request, name: name != "catalog:category-create"
+    )
+    html = _html(bakery, user, job)
+    assert "data-assistant-action-blocked" in html
+    _apply(bakery, user, job, {"items_present": "1", "take_0": "1", "take_1": "1"})
+    assert not Category.objects.exists()
+
+
+def test_failed_link_check_keeps_the_object(ai_off, bakery, monkeypatch):
+    from apps.core import models as core_models
+
+    user, job = _applied(bakery)
+
+    def boom(*a, **k):
+        raise RuntimeError("db hiccup")
+
+    monkeypatch.setattr(core_models.Extra.objects, "filter", boom)
+    _undo(bakery, user, job)
+    assert Product.objects.count() == 1  # не смогли проверить — не удаляем
+
+
+def test_unticked_item_stays_unticked_after_error(ai_off, bakery):
+    user, job = _kuchen(bakery)
+    _apply(bakery, user, job, {"items_present": "1", "take_0": "1", "f_0_name": ""})
+    html = _html(bakery, user, job)
+    assert 'name="take_0" value="1" checked' in html
+    assert 'name="take_1" value="1" checked' not in html
+
+
+def test_price_with_three_decimals_is_rejected_before_writing(ai_off, bakery):
+    user, job = _kuchen(bakery)
+    _apply(bakery, user, job, {"items_present": "1", "take_1": "1", "f_1_price": "3,999"})
+    assert not Product.objects.exists() and 'aria-invalid="true"' in _html(bakery, user, job)

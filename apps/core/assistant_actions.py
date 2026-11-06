@@ -146,7 +146,7 @@ def _find_category(tenant, name: str) -> str:
         return ""
     hits = [
         c
-        for c in Category.objects.only("pk", "name")[:MAX_OPTIONS]
+        for c in Category.objects.only("pk", "name").order_by("pk")[:MAX_OPTIONS]
         if any(str(v).strip().casefold() == wanted for v in (c.name or {}).values())
     ]
     return f"pk:{hits[0].pk}" if len(hits) == 1 else ""
@@ -214,8 +214,9 @@ def from_plan(plan, tenant) -> list[dict]:
 
 
 def allowed(request, spec: ActionSpec) -> tuple[bool, str]:
-    """(можно, причина) — модуль, право и пакет тарифа, как у экрана создания."""
-    from apps.core import packages
+    """(можно, причина) — модуль, право и те же три гейта, что у экрана создания (пакет,
+    белый список Mini App, права экрана): ассистент не делает того, чего не дал бы экран."""
+    from apps.core import packages, setup_assistant
     from apps.core.permissions import has_perm
 
     try:
@@ -225,6 +226,8 @@ def allowed(request, spec: ActionSpec) -> tuple[bool, str]:
             return False, _("Dafür fehlt Ihnen die Berechtigung — bitte die Inhaberin fragen.")
         if not packages.view_allowed(request.tenant, spec.screen):
             return False, _("In Ihrem Paket nicht enthalten.")
+        if not setup_assistant.reachable(request, spec.screen):
+            return False, _("Das geht hier nicht — bitte im Kabinett im Browser anlegen.")
     except Exception:  # noqa: BLE001 — неизвестно → не предлагаем кнопку
         logger.warning("assistant actions: gate failed for %s", spec.key, exc_info=True)
         return False, _("Gerade nicht prüfbar — bitte im Formular anlegen.")
@@ -295,6 +298,7 @@ def present(request, items: list[dict], *, errors: dict | None = None) -> list[d
                 "name": values.get("name", ""),
                 "fields": fields,
                 "allowed": ok,
+                "take": item.get("take", True),
                 "reason": reason,
                 "note": item.get("note", ""),
                 "options": options,
@@ -319,13 +323,16 @@ def merge_post(items: list[dict], post) -> list[dict]:
             key = f"f_{i}_{f.name}"
             if key in post:
                 values[f.name] = str(post.get(key) or "").strip()[:NAME_MAX]
-        out.append({**item, "values": values})
+        take = item.get("take", True)
+        if post.get("items_present") == "1":
+            take = bool(post.get(f"take_{i}"))
+        out.append({**item, "values": values, "take": take})
     return out
 
 
 def _clean(items: list[dict], post, existing: list) -> tuple[list[dict], dict]:
     """Значения из POST поверх кэша (только поля спеки по индексу) + проверка формы."""
-    from apps.core.money import parse_money
+    from apps.core.money import parse_amount
 
     cleaned, errors = [], {}
     present_flag = post.get("items_present") == "1"
@@ -346,13 +353,11 @@ def _clean(items: list[dict], post, existing: list) -> tuple[list[dict], dict]:
                     err = _("Bitte einen Namen angeben.")
             elif f.kind == "money":
                 try:
-                    amount = parse_money(raw)
+                    amount = parse_amount(raw, max_value=MAX_PRICE)  # ≤ 2 знака, 0…100 000
                 except ValueError:
-                    amount, err = None, _("Bitte einen Betrag wie 3,20 angeben.")
+                    amount, err = None, _("Bitte einen Betrag zwischen 0 und 100.000 € angeben.")
                 if not err and amount is None and f.required:
                     err = _("Bitte einen Preis angeben.")
-                elif amount is not None and not (0 <= amount <= MAX_PRICE):
-                    err = _("Bitte einen Betrag zwischen 0 und 100.000 € angeben.")
             elif f.kind == "minutes" and raw:
                 if not raw.isdigit() or not (5 <= int(raw) <= 1440):
                     err = _("Bitte Minuten zwischen 5 und 1440 angeben.")
@@ -379,23 +384,32 @@ def _ref_pk(ref: str, created: dict[int, str]) -> str:
 def snapshot(kind: str, obj) -> dict:
     """Канонический снимок полей объекта (сравнивается при откате)."""
     if kind == "product":
+        # цена — с двумя знаками: из формы приходит Decimal("5"), из базы — Decimal("5.00")
         return {
             "name": dict(obj.name or {}),
-            "base_price": str(obj.base_price),
+            "description": dict(obj.description or {}),
+            "base_price": str(Decimal(obj.base_price).quantize(Decimal("0.01"))),
             "category": str(obj.category_id or ""),
             "is_active": bool(obj.is_active),
+            "stock": obj.stock_quantity,
+            "sku": obj.sku or "",
+            "images": len(obj.images or []),
         }
     if kind == "category":
         return {
             "name": dict(obj.name or {}),
+            "description": dict(obj.description or {}),
             "parent": str(obj.parent_id or ""),
             "is_active": bool(obj.is_active),
+            "images": len(obj.images or []),
         }
     return {
         "name": obj.name,
+        "description": obj.description or "",
         "price_cents": int(obj.price_cents),
         "duration_minutes": int(obj.duration_minutes),
         "is_active": bool(obj.is_active),
+        "images": len(obj.images or []) if isinstance(obj.images, list) else bool(obj.images),
     }
 
 
@@ -431,7 +445,8 @@ def _write(tenant, spec: ActionSpec, values: dict, created: dict[int, str], acto
 def _is_lock_timeout(exc: Exception) -> bool:
     cause = getattr(exc, "__cause__", None)
     code = getattr(cause, "sqlstate", None) or getattr(cause, "pgcode", None)
-    return code == "55P03"
+    # 55P03 — lock_timeout; 40P01 — взаимная блокировка с покупкой (снята сервером первой)
+    return code in ("55P03", "40P01")
 
 
 def _lock_tenant(tenant) -> None:
@@ -439,7 +454,9 @@ def _lock_tenant(tenant) -> None:
 
     with connection.cursor() as cur:
         cur.execute(f"SET LOCAL lock_timeout = '{LOCK_TIMEOUT}'")
-    Tenant.objects.select_for_update().only("pk").get(pk=tenant.pk)
+    # NO KEY UPDATE: сериализует применения тенанта, но не мешает вставкам строк со
+    # ссылкой на Tenant (FOR KEY SHARE: домены, биллинг, поддержка)
+    Tenant.objects.select_for_update(no_key=True).only("pk").get(pk=tenant.pk)
 
 
 def apply(request, job: str, entry: dict, post) -> dict:
@@ -470,7 +487,8 @@ def apply(request, job: str, entry: dict, post) -> dict:
         if ref.startswith("item:"):
             idx = ref[5:]
             if not idx.isdigit() or int(idx) not in {r["index"] for r in cleaned}:
-                errors[f"{row['index']}:category"] = _(
+                field = "parent" if row["spec"].key == CATEGORY_CREATE else "category"
+                errors[f"{row['index']}:{field}"] = _(
                     "Die neue Kategorie wird nicht übernommen — bitte eine andere wählen."
                 )
     if errors:
@@ -506,6 +524,15 @@ def apply(request, job: str, entry: dict, post) -> dict:
                 )
             change.items = snaps
             change.save(update_fields=["items"])
+            # аудит в той же транзакции и строго: без записи в журнал пакет не проводится
+            audit_event(
+                action="assistant.apply",
+                resource_type="assistant_change",
+                resource_id=str(change.pk),
+                actor=request.user,
+                changes={"items": [{"action": s["action"], "pk": s["pk"]} for s in snaps]},
+                strict=True,
+            )
     except IntegrityError:
         prior = AssistantChange.objects.filter(job=job, user=request.user).first()
         if prior is None:
@@ -515,13 +542,6 @@ def apply(request, job: str, entry: dict, post) -> dict:
         if _is_lock_timeout(exc):
             raise ApplyError("busy") from exc
         raise
-    audit_event(
-        action="assistant.apply",
-        resource_type="assistant_change",
-        resource_id=str(change.pk),
-        actor=request.user,
-        changes={"items": [{"action": s["action"], "pk": s["pk"]} for s in snaps]},
-    )
     return report(change)
 
 
@@ -601,23 +621,29 @@ def present_report(request, rep: dict) -> dict:
 
 def _has_links(obj, *, allow=None) -> bool:
     """Есть ли на объект ссылки (обратные FK/M2M), кроме разрешённых `allow(model, qs)`."""
-    for rel in obj._meta.related_objects:
+    relations = [
+        f
+        for f in obj._meta.get_fields(include_hidden=True)
+        if f.auto_created and not f.concrete and (f.one_to_many or f.one_to_one or f.many_to_many)
+    ]
+    for rel in relations:
         try:
-            accessor = rel.get_accessor_name()
-            if not accessor:
+            if rel.one_to_one:
+                if rel.related_model._default_manager.filter(**{rel.field.name: obj}).exists():
+                    return True
                 continue
-            related = getattr(obj, accessor)
-        except Exception:  # noqa: BLE001 — OneToOne без строки
-            continue
-        if not hasattr(related, "all"):
-            return True  # OneToOne существует
-        qs = related.all()
-        manager = getattr(rel.related_model, "all_objects", None)
-        if manager is not None and rel.field is not None and not rel.many_to_many:
-            qs = manager.filter(**{rel.field.name: obj})
-        if allow is not None:
-            qs = allow(rel.related_model, qs)
-        if qs is not None and qs.exists():
+            if rel.many_to_many:
+                qs = rel.related_model._default_manager.filter(**{rel.field.name: obj})
+            else:
+                manager = getattr(rel.related_model, "all_objects", None)
+                manager = manager if manager is not None else rel.related_model._default_manager
+                qs = manager.filter(**{rel.field.name: obj})
+            if allow is not None:
+                qs = allow(rel.related_model, qs)
+            if qs is not None and qs.exists():
+                return True
+        except Exception:  # noqa: BLE001 — не смогли проверить ссылку → считаем «используется»
+            logger.warning("assistant actions: link check failed for %s", rel, exc_info=True)
             return True
     return False
 
@@ -627,21 +653,26 @@ def _product_allow(model, qs):
     if label == "catalog.pricelog":
         return None  # первая запись журнала цен — своя (§ 11 PAngV, не чистится)
     if label == "inventory.stockmovement":
-        return qs.exclude(source="catalog")  # стартовое движение склада — своё
+        # стартовое движение склада (первое из формы создания) — своё; любые последующие,
+        # в т. ч. правка остатка в форме товара, — уже изменение
+        first = qs.filter(source="catalog").order_by("created_at", "pk").first()
+        return qs.exclude(pk=first.pk) if first else qs
     return qs
 
 
 def _generic_links(kind: str, pk: str) -> bool:
+    """Ссылки без FK (доп. услуги, отзывы). Сбой проверки — «используется» (не удаляем)."""
     from apps.core.models import Extra
+    from apps.reviews.models import Review
 
-    if Extra.objects.filter(entity_kind=kind, entity_id=pk).exists():
-        return True
     try:
-        from apps.reviews.models import Review
-
-        return Review.objects.filter(entity_kind=kind, entity_id=pk).exists()
-    except Exception:  # noqa: BLE001 — нет модуля отзывов / чужой формат pk
-        return False
+        return (
+            Extra.objects.filter(entity_kind=kind, entity_id=pk).exists()
+            or Review.objects.filter(entity_kind=kind, entity_id=pk).exists()
+        )
+    except Exception:  # noqa: BLE001
+        logger.warning("assistant actions: generic link check failed", exc_info=True)
+        return True
 
 
 def _undo_item(item: dict, obj) -> dict:
@@ -713,20 +744,24 @@ def undo(request, job: str) -> dict:
                 for obj in manager.filter(pk__in=pks).order_by("pk").select_for_update():
                     locked[(kind, str(obj.pk))] = obj
             results = [_undo_item(r, locked.get((r["kind"], r["pk"]))) for r in reversed(rows)]
-            change.undone_at = timezone.now()
+            # ничего не откатилось (всё изменено/используется) — пакет НЕ помечаем отменённым:
+            # владелец исправит причину и попробует ещё раз в том же окне
+            if any(r["done"] for r in results):
+                change.undone_at = timezone.now()
             change.undo_report = results
             change.save(update_fields=["undone_at", "undo_report"])
+            audit_event(
+                action="assistant.undo",
+                resource_type="assistant_change",
+                resource_id=str(change.pk),
+                actor=request.user,
+                changes={"items": [{"pk": r["pk"], "done": r["done"]} for r in results]},
+                strict=True,
+            )
     except OperationalError as exc:
         if _is_lock_timeout(exc):
             raise ApplyError("busy") from exc
         raise
-    audit_event(
-        action="assistant.undo",
-        resource_type="assistant_change",
-        resource_id=str(change.pk),
-        actor=request.user,
-        changes={"items": [{"pk": r["pk"], "done": r["done"]} for r in results]},
-    )
     return report(change)
 
 

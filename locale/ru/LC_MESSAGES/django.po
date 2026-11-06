@@ -34487,3 +34487,23 @@ msgstr "отменено"
 #, python-format
 msgid "Rückgängig (bis %(t)s Uhr)"
 msgstr "Отменить (до %(t)s)"
+
+#: apps/core/assistant_actions.py
+msgid "Das geht hier nicht — bitte im Kabinett im Browser anlegen."
+msgstr "Здесь это не получится — создайте в кабинете в браузере."
+
+#: apps/core/assistant_actions.py
+msgid "Pflichtfeld"
+msgstr "Обязательное поле"
+
+#: apps/core/assistant_actions.py
+msgid "Wird zurückgesetzt …"
+msgstr "Отменяю …"
+
+#: apps/core/assistant_actions.py
+msgid "Wird übernommen …"
+msgstr "Применяю …"
+
+#: apps/core/assistant_actions.py
+msgid "z. B. 3,20"
+msgstr "например, 3,20"

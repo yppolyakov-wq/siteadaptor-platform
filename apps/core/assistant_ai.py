@@ -657,7 +657,11 @@ def put_plan(request, q: str) -> dict:
         entry = {"state": "done", "outcome": "plan", "plan": setup_assistant.plan_to_data(plan)}
         # A-4a: пункты, которые ассистент создаёт сам («Alles übernehmen»). Живут ТОЛЬКО
         # в кэше задачи (30 мин); в историю идёт план без них (assistant_history._DROP).
-        actions = assistant_actions.from_plan(plan, request.tenant)
+        try:
+            actions = assistant_actions.from_plan(plan, request.tenant)
+        except Exception:  # noqa: BLE001 — без пакета остаётся прежний план (A-3)
+            logger.warning("assistant actions: package not built", exc_info=True)
+            actions = []
         ttl = RESULT_TTL
         if actions:
             entry.update(actions=actions, job=job)
