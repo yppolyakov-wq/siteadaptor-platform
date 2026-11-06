@@ -34909,3 +34909,6 @@ msgstr "Çok fazla arama — lütfen daha sonra tekrar deneyin."
 
 msgid "Google"
 msgstr "Google"
+
+msgid "Nichts übernommen."
+msgstr "Hiçbir şey alınmadı."

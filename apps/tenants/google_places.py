@@ -192,7 +192,8 @@ def place_details(place_id: str, *, lang: str = "de") -> PlaceData:
     )
     address, city, zip_code = _address(data.get("addressComponents"))
     phone = _clip(data.get("nationalPhoneNumber"), 40)
-    site = _clip(data.get("websiteUri"), 200)
+    raw_site = str(data.get("websiteUri") or "").strip()
+    site = raw_site if len(raw_site) <= 200 else ""  # обрезанный URL — битая ссылка: не берём
     parts = urlsplit(site) if site else None
     if (
         not parts

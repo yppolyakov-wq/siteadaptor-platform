@@ -170,6 +170,15 @@ def context(request) -> dict:
     return ctx
 
 
+def _log(exc, what: str) -> None:
+    from apps.tenants import google_places as gp
+
+    if isinstance(exc, gp.PlacesError):
+        logger.warning("setup google: %s failed: %s", what, exc)
+    else:
+        logger.exception("setup google: %s unexpected answer", what)
+
+
 def _back():
     return redirect(f"{reverse('setup')}?step=company#google")
 
@@ -197,8 +206,8 @@ def setup_google(request):
             return _back()
         try:
             hits = gp.search_places(query, city, lang=_lang(request))
-        except gp.PlacesError as exc:
-            logger.warning("setup google: search failed: %s", exc)
+        except Exception as exc:  # noqa: BLE001 — PlacesError и неожиданный ответ: попытку назад
+            _log(exc, "search")
             _refund(taken)
             messages.error(request, _("Google ist gerade nicht erreichbar — bitte später erneut."))
             return _back()
@@ -219,8 +228,8 @@ def setup_google(request):
             return _back()
         try:
             data = gp.place_details(pid, lang=_lang(request))
-        except gp.PlacesError as exc:
-            logger.warning("setup google: details failed: %s", exc)
+        except Exception as exc:  # noqa: BLE001 — PlacesError и неожиданный ответ: попытку назад
+            _log(exc, "details")
             _refund(taken)
             messages.error(request, _("Google ist gerade nicht erreichbar — bitte später erneut."))
             return _back()
@@ -241,8 +250,7 @@ def _apply(request):
         return _back()
     tenant = request.tenant
     wanted = set(request.POST.getlist("g_field"))
-    fields = ["google_place_id"]
-    tenant.google_place_id = data["place_id"]
+    fields = []
     for key, field in FIELDS:
         if key not in wanted or not data.get(key):
             continue
@@ -253,6 +261,22 @@ def _apply(request):
                 continue
         setattr(tenant, field, value)
         fields.append(field)
+    if not fields:  # ничего не отмечено — и профиль не привязываем (чужой рейтинг не показать)
+        messages.info(request, _("Nichts übernommen."))
+        _save(request, {})
+        return _back()
+    if tenant.google_place_id != data["place_id"]:
+        # другое место: рейтинг прежнего не должен висеть на витрине до ночного обновления
+        tenant.google_place_id = data["place_id"]
+        tenant.google_rating = None
+        tenant.google_rating_count = 0
+        tenant.google_rating_updated_at = None
+        fields += [
+            "google_place_id",
+            "google_rating",
+            "google_rating_count",
+            "google_rating_updated_at",
+        ]
     tenant.save(update_fields=[*fields, "updated_at"])
     _save(request, {})
     messages.success(request, _("Angaben von Google übernommen — bitte kurz prüfen."))

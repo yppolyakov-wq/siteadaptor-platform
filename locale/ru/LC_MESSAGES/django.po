@@ -35084,3 +35084,6 @@ msgstr "Слишком много поисков — попробуйте поз
 
 msgid "Google"
 msgstr "Google"
+
+msgid "Nichts übernommen."
+msgstr "Ничего не перенесено."

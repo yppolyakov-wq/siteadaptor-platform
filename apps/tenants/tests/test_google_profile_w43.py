@@ -257,3 +257,46 @@ def test_hit_name_is_escaped_in_the_step(isolated, v4):
         {"google_hits": [{"place_id": PID, "name": "<script>x</script>", "address": ""}]},
     )
     assert "<script>x</script>" not in html and "&lt;script&gt;" in html
+
+
+@pytest.mark.django_db
+def test_switching_place_clears_old_rating(isolated, v4):
+    v4.google_place_id, v4.google_rating, v4.google_rating_count = "Other_place_123", 4.9, 300
+    v4.save()
+    user = get_user_model().objects.create_user(username="g-rt", email="g-rt@t.de")
+    with mock.patch.object(gp, "search_places", return_value=_hit()):
+        _post(v4, {"action": "search", "g_name": "Bäckerei"}, user)
+    with mock.patch.object(gp, "place_details", return_value=DATA):
+        _post(v4, {"action": "pick", "place_id": PID}, user)
+    _post(v4, {"action": "apply", "g_field": ["phone"]}, user)
+    fresh = Tenant.objects.get(pk=v4.pk)
+    assert fresh.google_place_id == PID and fresh.google_rating is None
+
+
+@pytest.mark.django_db
+def test_nothing_checked_links_nothing(isolated, v4):
+    user = get_user_model().objects.create_user(username="g-no", email="g-no@t.de")
+    with mock.patch.object(gp, "search_places", return_value=_hit()):
+        _post(v4, {"action": "search", "g_name": "Bäckerei"}, user)
+    with mock.patch.object(gp, "place_details", return_value=DATA):
+        _post(v4, {"action": "pick", "place_id": PID}, user)
+    _post(v4, {"action": "apply"}, user)
+    assert Tenant.objects.get(pk=v4.pk).google_place_id == ""
+
+
+def test_overlong_website_is_dropped_not_truncated():
+    uri = "https://shop.example/" + "a" * 300
+    with mock.patch.object(gp.requests, "request", return_value=_resp({"websiteUri": uri})):
+        assert gp.place_details(PID).website == ""
+
+
+@pytest.mark.django_db
+def test_unexpected_google_answer_refunds_and_does_not_500(isolated, v4):
+    with mock.patch.object(gp, "search_places", side_effect=TypeError("odd json")):
+        resp, _req = _post(v4, {"action": "search", "g_name": "Bäckerei"})
+    assert resp.status_code == 302
+    from django.db import connection
+
+    from apps.core import ratelimit
+
+    assert not ratelimit.hit("gplaces-search-t", connection.schema_name, limit=1, window=60)

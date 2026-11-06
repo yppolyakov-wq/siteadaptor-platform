@@ -34850,3 +34850,6 @@ msgstr "Zu viele Suchen — bitte später erneut versuchen."
 
 msgid "Google"
 msgstr "Google"
+
+msgid "Nichts übernommen."
+msgstr "Nichts übernommen."
