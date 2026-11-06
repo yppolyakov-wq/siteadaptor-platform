@@ -34749,3 +34749,8 @@ msgstr "Отброшено предложений: %(n)s."
 #: apps/core/assistant_bulk.py
 msgid "Das erledige ich für Sie"
 msgstr "Это я сделаю для вас"
+
+#: apps/core/assistant_bulk.py
+#, python-format
+msgid "„%(name)s“ gibt es schon — wirklich neu anlegen?"
+msgstr "«%(name)s» уже есть — точно создать ещё раз?"

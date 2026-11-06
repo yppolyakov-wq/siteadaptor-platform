@@ -527,3 +527,50 @@ def test_schema_has_create_only_when_allowed(ai_on, bakery, shop, monkeypatch):
         "action"
     ]["enum"]
     assert not any(a.endswith(".create") for a in enum)
+
+
+# ── правки по ревью A-4e-3 ───────────────────────────────────────────────────────────
+
+
+@pytest.mark.parametrize(
+    "phrase",
+    [
+        "Produkt Käsekuchen Mini 4 € anlegen, Preis wie Käsekuchen",  # новое имя + «Preis»
+        "Produkt Brot aus Sauerteig anlegen",  # «aus» — не «ausblenden»
+        "Kategorie Kuchen anlegen",  # чистое создание
+    ],
+)
+def test_pure_create_stays_with_rules(ai_on, bakery, shop, phrase):
+    writers.create_category(bakery, {"name_de": "Brot"})
+    assert not assistant_ai_actions.mixed(bakery, _user(), phrase)
+
+
+def test_create_name_must_be_contiguous(ai_on, bakery, shop):
+    user = _user()
+    data = {
+        "items": [{"action": "category.create", "ref": None, "name_text": "Apfelstrudel Kuchen"}]
+    }
+    items, dropped = assistant_ai_actions.check_actions(
+        bakery, user, MIXED, _ctx(bakery, user), data
+    )
+    assert not items and dropped == 1
+
+
+def test_duplicate_create_collapses_and_existing_warns(ai_on, bakery, shop):
+    user = _user()
+    data = {
+        "items": [
+            {"action": "category.create", "ref": None, "name_text": "Torten"},
+            {"action": "category.create", "ref": None, "name_text": "Torten"},
+        ]
+    }
+    items, _d = assistant_ai_actions.check_actions(
+        bakery, user, "Kategorie Torten anlegen und Apfelstrudel raus", _ctx(bakery, user), data
+    )
+    assert len(items) == 1 and "gibt es schon" in items[0]["note"]
+
+
+def test_mixed_without_ai_result_falls_back_to_rules_plan(ai_on, bakery, shop):
+    user, got, _g = _run(bakery, MIXED, {"not_action": True, "items": []})
+    entry = assistant_ai.job_state(_req(bakery, user=user), got["job"])
+    assert entry["outcome"] == "plan" and entry.get("actions")

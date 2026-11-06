@@ -166,7 +166,9 @@ def assistant_ask(request):
     ):
         # AIS A-4e-3: «Kategorie Torten anlegen und Apfelstrudel ausblenden» — создание И
         # изменение в одной фразе: правила создания взяли бы только первую половину
-        got = assistant_ai_actions.ask(request, q, ai_ctx)
+        got = assistant_ai_actions.ask(request, q, {**ai_ctx, "mixed": True})
+        if got.get("code") in ("quota", "busy", "unavailable"):
+            got = assistant_ai.put_plan(request, q)  # без ИИ — прежний план создания
     elif not code and setup_assistant.create_intent(request.tenant, request.user, q):
         # AIS A-3a: «создай …» — план с предзаполненной формой, и без ИИ тоже
         got = assistant_ai.put_plan(request, q)

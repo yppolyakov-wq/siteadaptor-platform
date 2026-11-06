@@ -34440,3 +34440,8 @@ msgstr "Discarded suggestions: %(n)s."
 #: apps/core/assistant_bulk.py
 msgid "Das erledige ich für Sie"
 msgstr "I'll take care of this for you"
+
+#: apps/core/assistant_bulk.py
+#, python-format
+msgid "„%(name)s“ gibt es schon — wirklich neu anlegen?"
+msgstr "“%(name)s” already exists — create it again anyway?"

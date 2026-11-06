@@ -34586,3 +34586,8 @@ msgstr "Atılan öneriler: %(n)s."
 #: apps/core/assistant_bulk.py
 msgid "Das erledige ich für Sie"
 msgstr "Bunu sizin için hallediyorum"
+
+#: apps/core/assistant_bulk.py
+#, python-format
+msgid "„%(name)s“ gibt es schon — wirklich neu anlegen?"
+msgstr "„%(name)s“ zaten var — yine de yeni oluşturulsun mu?"

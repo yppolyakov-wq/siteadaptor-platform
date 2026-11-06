@@ -34736,3 +34736,8 @@ msgstr "Відкинуто пропозицій: %(n)s."
 #: apps/core/assistant_bulk.py
 msgid "Das erledige ich für Sie"
 msgstr "Це я зроблю для вас"
+
+#: apps/core/assistant_bulk.py
+#, python-format
+msgid "„%(name)s“ gibt es schon — wirklich neu anlegen?"
+msgstr "«%(name)s» вже є — точно створити ще раз?"
