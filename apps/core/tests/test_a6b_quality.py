@@ -132,3 +132,49 @@ def test_report_json(bakery):
 def test_report_unknown_schema():
     with pytest.raises(CommandError):
         call_command("assistant_report", schema="nope")
+
+
+def test_background_answer_keeps_route_and_counts_final_code(bakery):
+    """Фоновая задача пишет итог вне `route()`: маршрут берётся из pending-записи."""
+    from apps.ai.errors import AIUnavailable
+
+    schema, job, pk = "public", "a" * 32, _user().pk
+    entry = {
+        "state": "pending",
+        "route": "answer",
+        "ctx": {},
+        "lang": "de",
+        "q": "x",
+        "prompt": "p",
+        "schema": {},
+        "system": "s",
+        "v": assistant_ai.ENTRY_V,
+    }
+    _cache().set(assistant_ai._job_key(schema, pk, job), entry, 60)
+    with mock.patch.object(assistant_ai, "generate", side_effect=AIUnavailable()):
+        assistant_ai.run_job(schema=schema, user_pk=pk, job=job)
+    stored = _cache().get(assistant_ai._job_key(schema, pk, job))
+    assert stored["route"] == "answer" and stored["code"] == AIUnavailable.code
+    assert assistant_stats.read(schema, days=1) == {("answer", AIUnavailable.code): 1}
+
+
+def test_timeout_keeps_route(ai_off, bakery):
+    from apps.core.tests.test_assistant_a2 import _req
+
+    user = _user()
+    schema, job = assistant_ai._schema_name(), "b" * 32
+    _cache().set(
+        assistant_ai._job_key(schema, user.pk, job),
+        {"state": "pending", "deadline": 1, "route": "answer", "v": assistant_ai.ENTRY_V},
+        60,
+    )
+    got = assistant_ai.job_state(_req(bakery, user=user), job)
+    assert got["code"] == "timeout" and got["route"] == "answer"
+    assert assistant_stats.read(schema, days=1) == {("answer", "timeout"): 1}
+
+
+def test_report_skips_tenants_without_history_when_listing_all(bakery):
+    out = io.StringIO()
+    with mock.patch.object(assistant_stats, "read") as read:
+        call_command("assistant_report", json=True, stdout=out)
+    read.assert_not_called()

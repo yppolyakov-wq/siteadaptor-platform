@@ -404,6 +404,13 @@ def check_answer(data, ctx: dict, lang: str, echo: str | None = None) -> tuple[d
     return {"text": text, "links": links[:MAX_LINKS], "state_refs": states[:MAX_LINKS]}, ""
 
 
+def _stat(schema: str, entry: dict, code: str) -> None:
+    """A-6b: итог фоновой задачи в счётчики (роутер считает только приём задачи — «ok»)."""
+    from apps.core import assistant_stats
+
+    assistant_stats.bump(schema, str(entry.get("route") or ""), code)
+
+
 def on_outcome(code: str) -> None:
     """Шов журнала вопросов (A-3): исход без текста вопроса. Пока только лог."""
     logger.info("assistant answer outcome=%s", code or "answer")
@@ -807,7 +814,9 @@ def run_job(*, schema: str, user_pk, job: str) -> None:
             if finalize(schema, user_pk, job):  # опрос уже объявил таймаут — молчим
                 if outcome.get("code") in SYSTEM_CODES:
                     _refund(entry.get("counted"))
+                outcome = {**outcome, "route": entry.get("route", "")}  # A-6b
                 _put(schema, user_pk, outcome, job=job, q=str(entry.get("q") or ""))
+                _stat(schema, entry, outcome.get("code") or outcome.get("outcome") or "")
         except Exception:  # noqa: BLE001 — Redis упал: опрос увидит протухшую задачу
             logger.warning("assistant answer: result not stored")
         _release(schema, user_pk, job)
@@ -832,8 +841,10 @@ def job_state(request, job: str, *, convert: bool = True) -> dict | None:
         _refund(entry.get("counted"))
         _release(schema, user_pk, job)
         ctx = entry.get("ctx") or {}
-        entry = _result("fallback", ctx, code="timeout")
+        route = entry.get("route", "")
+        entry = {**_result("fallback", ctx, code="timeout"), "route": route}
         _put(schema, user_pk, entry, job=job)
+        _stat(schema, entry, "timeout")
         entry["v"] = ENTRY_V
     # A-4e: ответ модели → пункты пакета в ЭТОМ запросе (права, язык, свежее «vorher»);
     # «Alles übernehmen» (convert=False) не собирает пакет, который владелец не видел

@@ -3,8 +3,8 @@
     python manage.py assistant_report [--schema <schema>] [--days 30] [--json]
     python manage.py assistant_report --schema <schema> --samples 20   # непонятые фразы
 
-Без `--schema` — по всем бизнесам (без public). `--samples` — вопросы, которые помощник не понял:
-только с `--schema`, после повторного `pii.scrub`, ≤ 120 символов, без автора. Команда —
+Без `--schema` — по всем бизнесам с историей за период (без public). `--samples` — вопросы,
+которые помощник не понял: только с `--schema`, после повторного `pii.scrub`, ≤ 120 символов, без автора. Команда —
 для оператора платформы на сервере; экрана нет. План — docs/ais-a6-quality-plan-2026-11-06.md §4.
 """
 
@@ -48,6 +48,9 @@ class Command(BaseCommand):
         reports = []
         for schema in schemas:
             with schema_context(schema):
+                # без --schema бизнесы без истории не читаем (счётчики — тысячи ключей на бизнес)
+                if not opts["schema"] and not assistant_quality.has_turns(since):
+                    continue
                 report = assistant_quality.summarize(schema, since, days)
                 if opts["samples"]:
                     report["samples"] = assistant_quality.samples(schema, since, opts["samples"])

@@ -415,6 +415,9 @@ def run(*, schema: str, user_pk, job: str, entry: dict) -> None:
                 if outcome.get("code") in assistant_ai.SYSTEM_CODES:
                     assistant_ai._refund(entry.get("counted"))
                 is_done = outcome.get("state") == "done"
+                if is_done:  # отказ провайдера/формы — итог здесь; «raw» досчитает finish
+                    outcome = {**outcome, "route": entry.get("route", "")}
+                    assistant_ai._stat(schema, outcome, outcome.get("code") or "")
                 assistant_ai._put(schema, user_pk, outcome, job=job, q=q if is_done else "")
         except Exception:  # noqa: BLE001 — Redis упал: опрос увидит протухшую задачу
             logger.warning("assistant ai actions: result not stored", exc_info=True)
@@ -834,4 +837,5 @@ def finish(request, job: str, entry: dict) -> dict:
     except Exception:  # noqa: BLE001 — Redis: покажем ответ один раз, без сохранения
         logger.warning("assistant ai actions: finished entry not stored", exc_info=True)
     assistant_ai.on_outcome(done.get("code") or "actions")
+    assistant_ai._stat(schema, done, done.get("code") or done.get("outcome") or "")
     return {**done, "v": assistant_ai.ENTRY_V}

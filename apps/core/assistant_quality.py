@@ -1,19 +1,22 @@
-"""AIS A-6b: отчёт качества помощника — только для команды `assistant_report` (суперпользователь
-платформы на сервере). План — docs/ais-a6-quality-plan-2026-11-06.md §4.
+"""AIS A-6b: отчёт качества помощника — только для команды `assistant_report` (оператор платформы
+на сервере). План — docs/ais-a6-quality-plan-2026-11-06.md §4.
 
-`summarize(schema, since)` — только КОДЫ и числа: доли исходов по обработчику, средний `dropped`,
-раунды уточнений, пакеты предложено/применено/откачено, отказы до истории (`assistant_stats`).
-`samples(schema, since, n)` — вопросы, которые помощник НЕ понял (без `kind=answer`): повторный
-`pii.scrub`, ≤ 120 символов, без автора. Вызывать внутри `schema_context(schema)`.
+`summarize(schema, since)` — только КОДЫ и числа (агрегаты в базе): доли исходов по обработчику,
+средний `dropped`, раунды уточнений, пакеты предложено/применено/откачено, счётчики
+`assistant_stats`. `samples(schema, since, n)` — вопросы, которые помощник НЕ понял (те же коды,
+что `misses`; без `kind=answer`): повторный `pii.scrub`, ≤ 120 символов, без автора. Вызывать
+внутри `schema_context(schema)`.
 """
 
 from __future__ import annotations
 
-from collections import Counter
+from django.db.models import Count, IntegerField, Q, Sum
+from django.db.models.fields.json import KeyTextTransform
+from django.db.models.functions import Cast, Coalesce
 
 SAMPLE_MAX = 120
-#: исходы «не понял» — источник samples
-_MISS_CODES = ("unknown", "unclear", "check_failed")
+#: «не понял» — одно определение для `misses` и `samples`
+MISS_CODES = ("unknown", "unclear", "check_failed")
 
 
 def _turns(since):
@@ -22,52 +25,71 @@ def _turns(since):
     return AssistantTurn.objects.filter(created_at__gte=since)
 
 
-def summarize(schema: str, since, days: int = 30) -> dict:
+def _int(key: str):
+    return Coalesce(Cast(KeyTextTransform(key, "entry"), IntegerField()), 0)
+
+
+def has_turns(since) -> bool:
+    return _turns(since).exists()
+
+
+def summarize(schema: str, since, days: int = 30, counters: bool = True) -> dict:
     from apps.core import assistant_stats
     from apps.core.models import AssistantChange
 
-    routes: dict[str, Counter] = {}
-    kinds: Counter = Counter()
-    dropped = rounds = actions = 0
-    jobs = []
-    for kind, entry, job in _turns(since).values_list("kind", "entry", "job").iterator():
-        entry = entry or {}
-        kinds[kind] += 1
-        route = str(entry.get("route") or "?")
-        routes.setdefault(route, Counter())[str(entry.get("code") or kind)] += 1
-        dropped += int(entry.get("dropped") or 0)
-        rounds += int(entry.get("clarify_rounds") or 0)
-        if kind == "actions":
-            actions += 1
-            jobs.append(job)
-    changes = AssistantChange.objects.filter(job__in=jobs)
-    applied = changes.count()
-    undone = changes.filter(undone_at__isnull=False).count()
-    total = sum(kinds.values())
+    rows = (
+        _turns(since)
+        .annotate(r=KeyTextTransform("route", "entry"), c=KeyTextTransform("code", "entry"))
+        .values("kind", "r", "c")
+        .annotate(n=Count("id"))
+        .order_by()
+    )
+    routes: dict[str, dict[str, int]] = {}
+    kinds: dict[str, int] = {}
+    misses = 0
+    for row in rows:
+        kinds[row["kind"]] = kinds.get(row["kind"], 0) + row["n"]
+        code = row["c"] or row["kind"]
+        bucket = routes.setdefault(row["r"] or "?", {})
+        bucket[code] = bucket.get(code, 0) + row["n"]
+        misses += row["n"] if row["c"] in MISS_CODES else 0
+    acts = _turns(since).filter(kind="actions")
+    agg = acts.aggregate(n=Count("id"), dropped=Sum(_int("dropped")))
+    changes = AssistantChange.objects.filter(job__in=acts.values("job")).aggregate(
+        applied=Count("id"), undone=Count("id", filter=Q(undone_at__isnull=False))
+    )
+    rounds = _turns(since).aggregate(s=Sum(_int("clarify_rounds")))["s"] or 0
+    proposed = agg["n"] or 0
     return {
         "schema": schema,
-        "turns": total,
-        "kinds": dict(kinds),
-        "routes": {r: dict(c) for r, c in sorted(routes.items())},
-        "misses": sum(c[m] for c in routes.values() for m in _MISS_CODES),
-        "avg_dropped": round(dropped / actions, 2) if actions else 0,
+        "turns": sum(kinds.values()),
+        "kinds": kinds,
+        "routes": dict(sorted(routes.items())),
+        "misses": misses,
+        "avg_dropped": round((agg["dropped"] or 0) / proposed, 2) if proposed else 0,
         "clarify_rounds": rounds,
-        "actions": {"proposed": actions, "applied": applied, "undone": undone},
+        "actions": {"proposed": proposed, **changes},
         "counters": {
             f"{r}:{c}": n for (r, c), n in sorted(assistant_stats.read(schema, days).items())
-        },
+        }
+        if counters
+        else {},
     }
 
 
 def samples(schema: str, since, n: int = 20) -> list[str]:
     from apps.core.pii import scrub
 
-    out = []
-    qs = _turns(since).exclude(kind="answer").order_by("-created_at")
-    for question, entry in qs.values_list("question", "entry")[: max(n, 0) * 5]:
-        code = (entry or {}).get("code") or ""
-        if code not in _MISS_CODES and (entry or {}).get("outcome") != "fallback":
-            continue
+    out: list[str] = []
+    qs = (
+        _turns(since)
+        .exclude(kind="answer")
+        .annotate(c=KeyTextTransform("code", "entry"))
+        .filter(c__in=MISS_CODES)
+        .order_by("-created_at")
+        .values_list("question", flat=True)
+    )
+    for question in qs[: max(n, 0) * 3]:
         text = " ".join(scrub(question or "").split())[:SAMPLE_MAX]
         if text and text not in out:
             out.append(text)
