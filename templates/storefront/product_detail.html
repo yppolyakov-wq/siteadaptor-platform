@@ -33,7 +33,7 @@
     {% comment %}SF-4b (вариант A): активная акция-цель — промо-цена крупно,
     база зачёркнута. data-price-edit остаётся на элементе ТОЛЬКО с базовой
     ценой (канва-правка пишет base_price; промо — производная).{% endcomment %}
-    {% if product.has_variants %}{% trans "from" %} {{ product.price_from }}{% elif target_promo and target_promo.new_price is not None %}<span class="text-rose-600">{{ target_promo.new_price }}</span>{% if target_promo.has_discount %} <span class="text-base font-normal text-gray-400 line-through" data-price-edit data-edit-pk="{{ product.pk }}" data-price="{{ product.base_price }}">{{ target_promo.old_price }}</span>{% endif %}{% else %}<span data-price-edit data-edit-pk="{{ product.pk }}" data-price="{{ product.base_price }}">{{ product.base_price }}</span>{% endif %} {{ product.currency|cursym }}
+    {% if product.price_on_request %}{% include "storefront/_price_request.html" with p=product %}{% else %}{% if product.has_variants %}{% trans "from" %} {{ product.price_from }}{% elif target_promo and target_promo.new_price is not None %}<span class="text-rose-600">{{ target_promo.new_price }}</span>{% if target_promo.has_discount %} <span class="text-base font-normal text-gray-400 line-through" data-price-edit data-edit-pk="{{ product.pk }}" data-price="{{ product.base_price }}">{{ target_promo.old_price }}</span>{% endif %}{% else %}<span data-price-edit data-edit-pk="{{ product.pk }}" data-price="{{ product.base_price }}">{{ product.base_price }}</span>{% endif %} {{ product.currency|cursym }}{% endif %}
   </div>
   {% comment %}O-1: UVP-Streichpreis + Ersparnis. Nur wenn KEINE Aktion läuft —
   sonst stünden zwei Referenzpreise nebeneinander und der Kunde weiß nicht, worauf
@@ -44,7 +44,7 @@
       · <span class="text-rose-600 font-semibold">{% blocktrans with s=product.savings c=product.currency|cursym %}Sie sparen {{ s }} {{ c }}{% endblocktrans %}</span>
     </p>
   {% endif %}
-  {% if not product.has_variants %}{% with gp=product.grundpreis %}{% if gp %}
+  {% if not product.has_variants and not product.price_on_request %}{% with gp=product.grundpreis %}{% if gp %}
     <p class="text-sm text-gray-500">{{ gp.0 }} {{ product.currency|cursym }} / {{ gp.1 }}</p>
   {% endif %}{% endwith %}{% endif %}{% include "storefront/_menu_days_badge.html" with p=product %}
   {% comment %}Фидбэк 2026-08-04 «везде артикул»: Art.-Nr. под ценой; у товара с
@@ -254,7 +254,8 @@
 
 {% block detail_buybar %}
 {# M20U-4: мобильная липкая панель покупки (только когда заказ доступен и в наличии) #}
-{% if orders_enabled and product.in_stock %}
+{% comment %}W4-6b: «nur auf Anfrage» — панель «в корзину» не показываем (CTA — заявка в buy-box).{% endcomment %}
+{% if orders_enabled and product.in_stock and product.primary_action != "request" %}
   {% if product.has_variants %}{% blocktrans asvar buyprice with p=product.price_from c=product.currency|cursym %}from {{ p }} {{ c }}{% endblocktrans %}{% elif target_promo and target_promo.new_price is not None %}{% blocktrans asvar buyprice with p=target_promo.new_price c=product.currency|cursym %}{{ p }} {{ c }}{% endblocktrans %}{% else %}{% blocktrans asvar buyprice with p=product.base_price c=product.currency|cursym %}{{ p }} {{ c }}{% endblocktrans %}{% endif %}
   {% include "storefront/_detail_buybar.html" with price=buyprice anchor="#kaufen" module="catalog" sold_out=False %}
 {% endif %}

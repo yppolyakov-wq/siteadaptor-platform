@@ -1,7 +1,7 @@
 {% load i18n attribution %}{% comment %}DL-19: кнопка «в корзину» для НОВЫХ форм карточки. Прежние
 ветки держат свою инлайн-копию (паритет разметки), поэтому партиал — только для
 regal/lookbook/deal. Параметры: p, cls (позиционирование).{% endcomment %}
-{% if storefront_quick_add and p.in_stock %}
+{% if storefront_quick_add and p.in_stock and p.primary_action != "request" %}
   {% if p.has_variants or p.has_modifiers %}
     <button type="button" data-quick-url="{% url 'storefront-quick-add' p.pk %}"
             class="js-add-btn {{ cls }} w-10 h-10 rounded-full bg-white ring-1 ring-gray-200 shadow hover:bg-gray-50 active:scale-90 transition flex items-center justify-center"

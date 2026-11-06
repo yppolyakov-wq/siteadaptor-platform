@@ -17,6 +17,7 @@ from decimal import Decimal
 
 from django.urls import NoReverseMatch, reverse
 from django.utils.html import strip_tags
+from django.utils.translation import gettext_lazy as _
 
 from apps.core import archetypes
 
@@ -75,6 +76,13 @@ def _product(obj, locale):
     base = obj.price_from if obj.has_variants else obj.base_price
     prefix = "ab " if obj.has_variants else ""
     img = obj.primary_image
+    if obj.price_on_request:
+        # W4-6b: без цены — подпись людям, а машинам (JSON-LD Offer, Finder) цены нет вовсе.
+        return {
+            **_product_common(obj, locale, img),
+            "price_display": _("Preis auf Anfrage"),
+            "price_value": None,
+        }
     return {
         "name": obj.get_i18n("name", locale),
         # SR-3: в тизеры/JSON-LD — плоский текст (разметка — только деталь).
@@ -100,6 +108,17 @@ ITEM_CONDITION = {
     "wie_neu": "https://schema.org/UsedCondition",
     "gut": "https://schema.org/UsedCondition",
 }
+
+
+def _product_common(obj, locale, img) -> dict:
+    return {
+        "name": obj.get_i18n("name", locale),
+        "description": strip_tags(obj.get_i18n("description", locale) or ""),
+        "image_url": img.get("url", "") if isinstance(img, dict) else "",
+        "gallery": _gallery_urls(obj.images),
+        "price_currency": obj.currency,
+        "ld_extra": _product_ld_extra(obj),
+    }
 
 
 def _product_ld_extra(obj) -> dict:

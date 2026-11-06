@@ -35074,3 +35074,9 @@ msgstr "Google"
 
 msgid "Nichts übernommen."
 msgstr "Нічого не перенесено."
+
+msgid "Preis auf Anfrage"
+msgstr "Ціна за запитом"
+
+msgid "Kontakt aufnehmen"
+msgstr "Зв’язатися"

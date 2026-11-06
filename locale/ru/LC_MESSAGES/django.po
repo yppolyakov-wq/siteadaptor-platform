@@ -35087,3 +35087,9 @@ msgstr "Google"
 
 msgid "Nichts übernommen."
 msgstr "Ничего не перенесено."
+
+msgid "Preis auf Anfrage"
+msgstr "Цена по запросу"
+
+msgid "Kontakt aufnehmen"
+msgstr "Связаться"

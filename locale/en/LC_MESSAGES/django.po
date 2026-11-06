@@ -34766,3 +34766,9 @@ msgstr "Google"
 
 msgid "Nichts übernommen."
 msgstr "Nothing applied."
+
+msgid "Preis auf Anfrage"
+msgstr "Price on request"
+
+msgid "Kontakt aufnehmen"
+msgstr "Get in touch"

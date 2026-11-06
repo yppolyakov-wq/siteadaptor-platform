@@ -34853,3 +34853,9 @@ msgstr "Google"
 
 msgid "Nichts übernommen."
 msgstr "Nichts übernommen."
+
+msgid "Preis auf Anfrage"
+msgstr "Preis auf Anfrage"
+
+msgid "Kontakt aufnehmen"
+msgstr "Kontakt aufnehmen"

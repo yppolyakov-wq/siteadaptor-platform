@@ -28,6 +28,14 @@ test_public (порядок CTA/точные href). Двухшаговость (
       <button type="button" data-quick-url="{% url 'storefront-anfrage-modal' %}?betreff={{ sellable.name|urlencode }}" class="block w-full text-center text-white rounded-lg px-4 py-3 font-medium" style="background: var(--accent, #4f46e5);">{% trans "Request a quote" %}</button>
       <p class="text-center text-xs text-gray-500">{% trans "Unverbindlich — wir melden uns mit einem Angebot." %}</p>
     </div>
+  {% elif product.primary_action == "request" %}
+    {% comment %}W4-6b: «nur auf Anfrage» без модуля заявок — не тупик: сообщение (inbox)
+    или телефон/почта бизнеса. Корзины у такого товара нет никогда.{% endcomment %}
+    <div class="mt-6 space-y-2" data-request-fallback>
+      {% if inbox_active %}<a href="{% url 'storefront-message' %}?betreff={{ sellable.name|urlencode }}" class="block w-full text-center text-white rounded-lg px-4 py-3 font-medium" style="background: var(--accent, #4f46e5);">{% trans "Kontakt aufnehmen" %}</a>
+      {% elif request.tenant.contact_phone %}<a href="tel:{{ request.tenant.contact_phone }}" class="block w-full text-center text-white rounded-lg px-4 py-3 font-medium" style="background: var(--accent, #4f46e5);">{% trans "Anrufen" %}</a>
+      {% elif request.tenant.contact_email %}<a href="mailto:{{ request.tenant.contact_email }}" class="block w-full text-center text-white rounded-lg px-4 py-3 font-medium" style="background: var(--accent, #4f46e5);">{% trans "Kontakt aufnehmen" %}</a>{% endif %}
+    </div>
   {% endif %}
 {% elif mode == "reserve" %}
   {# promotion: резервирование / при sold-out — лист ожидания вместо формы. #}

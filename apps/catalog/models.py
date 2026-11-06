@@ -503,6 +503,19 @@ class Product(SoftDeleteMixin, I18nMixin):
         return self.stock_quantity is None or self.stock_quantity > 0
 
     @property
+    def price_on_request(self) -> bool:
+        """W4-6b: «Preis auf Anfrage» — товар «nur auf Anfrage» без положительной цены.
+
+        Цена 0 означает «нет цены» ТОЛЬКО вместе с `primary_action="request"` (так его создают
+        импорт с сайта клиента и мастер v4); обычный товар за 0 € остаётся «0,00 €».
+        Варианты берутся из предзагрузки карточек, если она есть (без N+1)."""
+        if self.primary_action != "request":
+            return False
+        if self.has_variants:
+            return not any((v.price_value or 0) > 0 for v in self.active_variants)
+        return not (self.base_price or 0) > 0
+
+    @property
     def price_from(self):
         """Минимальная цена среди активных вариантов («ab X €») или base_price."""
         prices = [v.price_value for v in self.active_variants]

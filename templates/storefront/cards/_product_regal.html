@@ -10,15 +10,15 @@
     <div class="w-24 sm:w-28 min-h-[6rem] shrink-0 flex flex-col justify-center">
       {% include "storefront/cards/_photo.html" with ratio="h-full min-h-[6rem]" side=True %}
     </div>
-    <div class="flex-1 min-w-0 px-3 py-2.5 bg-amber-50 dark:bg-gray-800{% if storefront_quick_add and p.in_stock %} pr-14{% endif %}" data-price-plate>
+    <div class="flex-1 min-w-0 px-3 py-2.5 bg-amber-50 dark:bg-gray-800{% if storefront_quick_add and p.in_stock and p.primary_action != "request" %} pr-14{% endif %}" data-price-plate>
       <div class="flex items-baseline gap-2 flex-wrap">
-        <span class="text-2xl leading-none font-extrabold {% if p.promo_price %}text-red-600{% endif %}">{% if p.has_variants %}<span class="text-xs font-normal text-gray-500">{% trans "from" %}</span> {{ p.price_from|default:p.base_price }}{% elif p.promo_price %}{{ p.promo_price }}{% else %}<span data-price-edit data-edit-pk="{{ p.pk }}" data-price="{{ p.base_price }}">{{ p.base_price }}</span>{% endif %} {{ p.currency|cursym }}</span>
+        <span class="text-2xl leading-none font-extrabold {% if p.promo_price %}text-red-600{% endif %}">{% if p.price_on_request %}{% include "storefront/_price_request.html" %}{% else %}{% if p.has_variants %}<span class="text-xs font-normal text-gray-500">{% trans "from" %}</span> {{ p.price_from|default:p.base_price }}{% elif p.promo_price %}{{ p.promo_price }}{% else %}<span data-price-edit data-edit-pk="{{ p.pk }}" data-price="{{ p.base_price }}">{{ p.base_price }}</span>{% endif %} {{ p.currency|cursym }}{% endif %}</span>
         {% if p.promo_badge %}<span class="bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded-full shadow">{{ p.promo_badge }}</span>
         {% elif p.badge_label %}<span class="bg-amber-400 text-amber-950 text-xs font-bold px-2 py-0.5 rounded-full shadow">{{ p.badge_label }}</span>{% endif %}
       </div>
       <p class="mt-0.5 text-[11px] leading-tight text-gray-500 dark:text-gray-400 flex flex-wrap items-baseline gap-x-2">
         {% if p.promo_old %}<span class="line-through">{{ p.promo_old }} {{ p.currency|cursym }}</span>{% endif %}
-        {% if not p.has_variants %}{% with gp=p.grundpreis %}{% if gp %}<span>{{ gp.0 }} {{ p.currency|cursym }} / {{ gp.1 }}</span>{% endif %}{% endwith %}{% endif %}
+        {% if not p.has_variants and not p.price_on_request %}{% with gp=p.grundpreis %}{% if gp %}<span>{{ gp.0 }} {{ p.currency|cursym }} / {{ gp.1 }}</span>{% endif %}{% endwith %}{% endif %}
       </p>
       <h3 class="mt-1 font-semibold leading-tight line-clamp-2" data-edit-model="product" data-edit-pk="{{ p.pk }}" data-edit-field="name">{{ p }}</h3>
       {% if p.promo_savings %}<p class="mt-0.5 text-[11px] font-medium text-emerald-700 dark:text-emerald-400" data-savings>{% blocktrans with amount=p.promo_savings %}You save {{ amount }} €{% endblocktrans %}</p>{% endif %}

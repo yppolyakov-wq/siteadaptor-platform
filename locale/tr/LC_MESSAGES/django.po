@@ -34912,3 +34912,9 @@ msgstr "Google"
 
 msgid "Nichts übernommen."
 msgstr "Hiçbir şey alınmadı."
+
+msgid "Preis auf Anfrage"
+msgstr "Fiyat talep üzerine"
+
+msgid "Kontakt aufnehmen"
+msgstr "İletişime geçin"

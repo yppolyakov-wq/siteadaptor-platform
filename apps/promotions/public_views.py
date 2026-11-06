@@ -2202,6 +2202,8 @@ def product_detail(request, pk=None, pslug=None, cslug=None):
             "orders_enabled": orders_active(request.tenant),
             # GK-14: browse-only каталог (orders off) — buy-box падает в Anfrage-CTA.
             "jobs_active": request.tenant.is_module_active("jobs"),
+            # W4-6b: «nur auf Anfrage» без модуля заявок — запасной вход «Nachricht».
+            "inbox_active": request.tenant.is_module_active("inbox"),
             # A1/A2: отзывы о товаре (только верифицированные покупатели).
             "reviews": list(product_reviews.published_for(product)),
             "review_summary": product_reviews.summary(product),
