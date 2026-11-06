@@ -111,3 +111,40 @@ def test_select_offers_only_available_values(ai_off, bakery):
     user, got = _ask(bakery, "Zeige die Produkte als Preisliste")
     _apply(bakery, user, got["job"], {**TAKE, "f_0_value": "nonsense"})
     assert _layout(bakery) is None  # мусорное значение — ошибка поля, ничего не записано
+
+
+# ── ревью A-4c ──────────────────────────────────────────────────────────────────────
+
+
+@pytest.mark.parametrize(
+    "phrase",
+    [
+        "Zeige die Produkte in 2 Reihen",
+        "Produkte Reihenfolge 3 anzeigen",
+        "show products in 2 rows",
+    ],
+)
+def test_rows_are_not_columns(ai_off, bakery, phrase):
+    items = assistant_pages.build(bakery, _user(), phrase)
+    assert not items or items[0]["values"]["value"] not in ("cols2", "cols3")
+
+
+def test_label_and_per_row_together_is_ambiguous(ai_off, bakery):
+    items = assistant_pages.build(bakery, _user(), "Zeige die Produkte als Galerie, 4 pro Reihe")
+    assert items and items[0]["blocked"]
+
+
+def test_standard_is_not_offered_where_the_schema_rejects_it(ai_off, bakery):
+    values = {v for v, _l in assistant_pages.options(bakery, "catalog_layout")}
+    assert "" not in values and "preisliste" in values
+
+
+def test_undo_keeps_owner_edits_made_after_apply(ai_off, bakery):
+    from apps.core import page_settings
+
+    user, got = _ask(bakery, "Zeige die Produkte als Galerie")
+    _apply(bakery, user, got["job"], TAKE)
+    bakery.refresh_from_db()
+    page_settings.write(bakery, "catalog_layout", "gallery", output={"rows": 2})  # ряды в кабинете
+    _undo(bakery, user, got["job"])
+    assert _layout(bakery)["rows"] == 2  # правка владельца жива: откат отказал

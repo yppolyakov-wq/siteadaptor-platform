@@ -34412,3 +34412,7 @@ msgstr "Neue Einstellung"
 #: apps/core/assistant_actions.py
 msgid "Seite einstellen"
 msgstr "Seite einstellen"
+
+#: apps/core/assistant_actions.py
+msgid "Diese Einstellung ist hier nicht mehr verfügbar."
+msgstr "Diese Einstellung ist hier nicht mehr verfügbar."

@@ -713,6 +713,11 @@ def apply(request, job: str, entry: dict, post) -> dict:
                 row["after"] = _canon(row["spec"], row["values"])
             except ValueError:
                 errors[f"{row['index']}:price"] = _("Bitte einen Preis angeben.")
+        if row["spec"].verb == "page":
+            from apps.core import page_settings
+
+            # ~10 EXISTS-запросов гейта — ДО блокировки строки Tenant (как page_settings.write)
+            row["gate"] = page_settings.composition_gate(request.tenant.site_config or {})
         ref = row["values"].get("category") or row["values"].get("parent") or ""
         if ref.startswith("item:"):
             idx = ref[5:]
@@ -834,12 +839,30 @@ def _set_value(spec: ActionSpec, obj, canon: str, *, stamp: bool = True) -> None
     obj.save(update_fields=["category", "updated_at"])
 
 
+def _page_raw(cfg: dict, code: str):
+    """Сохранённое значение настройки как есть (весь подсловарь сетки — с рядами, темпом…)."""
+    from apps.core import studio_pages
+
+    setting = studio_pages.SETTINGS.get(code)
+    if setting is None:
+        return None
+    node = cfg or {}
+    for key in setting.site_key:
+        if not isinstance(node, dict) or key not in node:
+            return None
+        node = node[key]
+    return node
+
+
 def _unset_page(cfg: dict, code: str) -> dict:
     """Убрать ключ настройки из конфига (её не было до пакета — presence-minimal)."""
     from apps.core import studio_pages
 
     out = dict(cfg or {})
-    path = studio_pages.SETTINGS[code].site_key
+    setting = studio_pages.SETTINGS.get(code)
+    if setting is None:
+        return out
+    path = setting.site_key
     if len(path) == 1:
         out.pop(path[0], None)
         return out
@@ -853,24 +876,30 @@ def _unset_page(cfg: dict, code: str) -> dict:
 
 
 def _write_page(
-    tenant, code: str, value: str, *, validate: bool = True, unset: bool = False
-) -> None:
+    tenant, code: str, value: str, *, validate: bool = True, unset: bool = False, gate=None
+) -> dict:
     """Настройка страницы внутри транзакции пакета (Tenant уже заблокирован): тот же путь,
     что `page_settings.write` — проверка по схеме, одна запись ключа, сброс кэша витрины."""
     from apps.core import page_settings
     from apps.core.pagecache import bump_storefront_cache
     from apps.tenants.models import Tenant
 
-    fresh = Tenant.objects.only("pk", "schema_name", "site_config").get(pk=tenant.pk)
+    # полная строка: проверки validate читают модули/тип бизнеса (без отложенных полей под замком)
+    fresh = Tenant.objects.get(pk=tenant.pk)
     if unset:
         new_cfg = _unset_page(fresh.site_config or {}, code)
     else:
-        cleaned = page_settings.validate(fresh, code, value) if validate else value
+        cleaned = page_settings.validate(fresh, code, value, gate) if validate else value
         new_cfg = page_settings.apply_override(fresh.site_config or {}, code, cleaned)
     Tenant.objects.filter(pk=tenant.pk).update(site_config=new_cfg)
     schema = fresh.schema_name
-    transaction.on_commit(lambda: bump_storefront_cache(schema))
-    tenant.site_config = new_cfg
+
+    def _after_commit():
+        bump_storefront_cache(schema)
+        tenant.site_config = new_cfg  # в памяти — только после коммита (откат пакета не врёт)
+
+    transaction.on_commit(_after_commit)
+    return new_cfg
 
 
 def _page_current(tenant, code: str) -> str:
@@ -879,6 +908,19 @@ def _page_current(tenant, code: str) -> str:
 
     fresh = Tenant.objects.only("pk", "site_config").get(pk=tenant.pk)
     return assistant_pages.current(fresh, code)
+
+
+def _page_stored(tenant, code: str):
+    from apps.tenants.models import Tenant
+
+    fresh = Tenant.objects.only("pk", "site_config").get(pk=tenant.pk)
+    return _page_raw(fresh.site_config or {}, code)
+
+
+def _page_options(tenant, code: str):
+    from apps.core import assistant_pages
+
+    return assistant_pages.options(tenant, code)
 
 
 def _change_page(row: dict, tenant) -> dict:
@@ -892,11 +934,15 @@ def _change_page(row: dict, tenant) -> dict:
             "invalid", {f"{row['index']}:value": _("Inzwischen geändert — bitte neu fragen.")}
         )
     try:
-        _write_page(tenant, code, row["after"])
+        new_cfg = _write_page(tenant, code, row["after"], gate=row.get("gate"))
     except page_settings.PageSettingError as exc:
-        raise ApplyError(
-            "invalid", {f"{row['index']}:value": _("Bitte eine Einstellung aus der Liste wählen.")}
-        ) from exc
+        allowed_values = {v for v, _l in _page_options(tenant, code)}
+        msg = (
+            _("Bitte eine Einstellung aus der Liste wählen.")
+            if allowed_values
+            else _("Diese Einstellung ist hier nicht mehr verfügbar.")
+        )
+        raise ApplyError("invalid", {f"{row['index']}:value": msg}) from exc
     return {
         "action": spec.key,
         "kind": "page",
@@ -906,6 +952,8 @@ def _change_page(row: dict, tenant) -> dict:
         "before": before,
         "before_set": bool(item.get("before_set", True)),
         "after": row["after"],
+        # весь сохранённый блок после применения: откат сверяет его целиком (ряды, темп…)
+        "after_raw": _page_raw(new_cfg, code),
     }
 
 
@@ -1116,7 +1164,12 @@ def _undo_item(item: dict, obj, tenant=None) -> dict:
     kind, pk = item["kind"], item["pk"]
     out = {"pk": pk, "done": False, "reason": ""}
     if kind == "page":  # A-4c: настройка страницы — без строки объекта
-        if _page_current(tenant, pk) != str(item.get("after") or ""):
+        changed = (
+            _page_stored(tenant, pk) != item["after_raw"]
+            if "after_raw" in item
+            else _page_current(tenant, pk) != str(item.get("after") or "")
+        )
+        if changed:
             out["reason"] = _("Inzwischen geändert — nicht zurückgesetzt.")
             return out
         # прежнее значение уже стояло — восстанавливаем без повторной проверки доступности

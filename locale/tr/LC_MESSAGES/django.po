@@ -34471,3 +34471,7 @@ msgstr "Yeni ayar"
 #: apps/core/assistant_actions.py
 msgid "Seite einstellen"
 msgstr "Sayfayı ayarla"
+
+#: apps/core/assistant_actions.py
+msgid "Diese Einstellung ist hier nicht mehr verfügbar."
+msgstr "Bu ayar burada artık kullanılamıyor."

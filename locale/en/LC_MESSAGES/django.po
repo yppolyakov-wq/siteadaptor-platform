@@ -34325,3 +34325,7 @@ msgstr "New setting"
 #: apps/core/assistant_actions.py
 msgid "Seite einstellen"
 msgstr "Set up page"
+
+#: apps/core/assistant_actions.py
+msgid "Diese Einstellung ist hier nicht mehr verfügbar."
+msgstr "This setting is no longer available here."

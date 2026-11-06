@@ -34632,3 +34632,7 @@ msgstr "Новая настройка"
 #: apps/core/assistant_actions.py
 msgid "Seite einstellen"
 msgstr "Настроить страницу"
+
+#: apps/core/assistant_actions.py
+msgid "Diese Einstellung ist hier nicht mehr verfügbar."
+msgstr "Эта настройка здесь больше недоступна."

@@ -57,15 +57,19 @@ TYPE_WORDS: dict[str, tuple[str, ...]] = {
 #: что владелец хочет поменять ВИД (не создать и не спросить)
 _DISPLAY = re.compile(
     r"(?<!\w)(?:zeig\w*|anzeig\w*|darstell\w*|ansicht|vorlage|layout|raster|als|show|display\w*|"
-    r"view|template|grid|kartenform|karten|показ\w*|выв\w*|шаблон\w*|вид|сетк\w*|відобра\w*|вигляд|сітк\w*|"
+    r"template|grid|kartenform|показ\w*|выв\w*|шаблон\w*|вид|сетк\w*|відобра\w*|вигляд|сітк\w*|"
     r"göster\w*|görünüm|şablon|ızgara)(?!\w)",
     re.IGNORECASE,
 )
+#: «4 pro Reihe / 4 в ряд / 4 per row» — предлог обязателен: «in 2 Reihen» (две СТРОКИ),
+#: «Reihenfolge», «Reihenhäuser» колонками не считаются
 _PER_ROW = re.compile(
-    r"(?<!\d)([1-6])\s*(?:pro|je|per|in|в|у|на)?\s*(?:reihe|zeile|row|ряд\w*|рядок|рядку|satır\w*)",
+    r"(?<!\d)([1-6])\s*(?:pro|je|per|в|у|на)\s+"
+    r"(?:reihe|zeile|row|ряд|рядок|рядку|satıra|satırda)(?!\w)",
     re.IGNORECASE,
 )
 _SUPPORTED_KINDS = ("choice", "layout")
+PER_ROW_SCORE = 100
 
 
 def _types_in(text: str) -> list[str]:
@@ -108,7 +112,7 @@ def _candidates(text: str, ts) -> list[tuple[int, object, object]]:
             if not choice.available or not choice.value:
                 continue
             if per_row and st.kind == "layout" and choice.value == f"cols{per_row.group(1)}":
-                out.append((100, st, choice))
+                out.append((PER_ROW_SCORE, st, choice))
                 continue
             for label in _labels(choice.label):
                 if re.search(r"(?<!\w)" + re.escape(label) + r"(?!\w)", low):
@@ -164,14 +168,16 @@ def options(tenant, code: str) -> list[tuple[str, str]]:
     setting = studio_pages.SETTINGS.get(code)
     if setting is None:
         return []
-    gate = page_settings.composition_gate(tenant.site_config or {})
-    out = []
-    for choice in page_settings.choices(setting, gate):
-        if choice.available:
-            out.append((choice.value, str(choice.label or _("Standard"))))
-    if not any(v == "" for v, _l in out):
-        out.insert(0, ("", str(_("Standard"))))
-    return out
+    try:
+        gate = page_settings.composition_gate(tenant.site_config or {})
+        # только то, что примет page_settings.validate: «Standard» — если он есть в схеме
+        return [
+            (choice.value, str(choice.label or _("Standard")))
+            for choice in page_settings.choices(setting, gate)
+            if choice.available
+        ]
+    except page_settings.PageSettingError:  # настройку убрали из реестра — нечего предлагать
+        return []
 
 
 def value_label(tenant, code: str, value: str) -> str:
@@ -204,7 +210,9 @@ def build(tenant, user, text: str) -> list[dict]:
         "note": "",
         "blocked": "",
     }
-    if len(top) > 1:
+    # «als Liste, 4 pro Reihe» — и подпись, и «N pro Reihe»: не выбираем молча одно из двух
+    both = best == PER_ROW_SCORE and any(score < PER_ROW_SCORE for score, _st, _ch in found)
+    if len(top) > 1 or both:
         item["blocked"] = _("Das passt zu mehreren Einstellungen — bitte genauer sagen.")
     elif choice.value == item["before"]:
         item["blocked"] = _("Ist schon so eingestellt.")
