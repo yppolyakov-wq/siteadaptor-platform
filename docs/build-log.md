@@ -22111,3 +22111,17 @@ ich … ein» — к модели); в промпт — до 5 статей A-1,
   — понятное сообщение). ⚠️ ops: `GOOGLE_PLACES_API_KEY` (Places API + биллинг) + квота в Google
   Console; строка о Places в Datenschutz платформы.
 
+
+## 2026-11-06 — AIS W4-6: сквозной стенд мастера v4 (без миграций)
+
+`scripts/wizard_v4_e2e_stand.py` проходит путь владельца целиком, как человек: `/registrieren/` →
+письмо (прямая ссылка console-бэкенда) → пароль → ожидание схемы (Celery, копия `_template`) →
+вход → Firma → Angebot prüfen → Recht (сначала отказ со списком недостающего, затем Impressum и
+публикация) → Fertig → главная с «Nächster Schritt» → «Verkauf öffnen». Гость: 503 до публикации,
+200 после. Bakery, Friseur, Hotel, Events, Handwerker × 390 px + Bakery/Hotel × 1440 px — всё
+зелёное, без JS-ошибок и горизонтального скролла. **Находка:** у Handwerker шаг «Angebot» пуст —
+решение W4-2 §10 п.3 (Anfragen как товар «auf Anfrage») не исполнено, потому что витрина везде
+печатает цену; это инкремент W4-6b. CI-замок `test_design_guard` поймал таблицу Google без
+`ui-table` — исправлено. Грабли стенда: лимит регистраций 5/ч на сеть (стенд сбрасывает `rl:*`),
+локальной БД нужны public-тенант с Domain и шаблонная схема. План —
+`docs/ais-w4-6-wizard-stand-plan-2026-11-06.md`.
