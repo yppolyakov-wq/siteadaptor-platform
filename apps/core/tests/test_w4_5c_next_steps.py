@@ -114,3 +114,27 @@ def test_hide_endpoint(v4):
     resp = views.next_step_hide(_req(v4, "post", {"karte": "verkauf"}))
     assert resp.status_code == 302
     assert "verkauf" in Tenant.objects.get(pk=v4.pk).site_config["next_steps"]["hidden"]
+
+
+def test_publish_card_cannot_be_hidden_by_direct_post(v4):
+    assert not next_steps.hide(v4, "publish")
+    views.next_step_hide(_req(v4, "post", {"karte": "publish"}))
+    assert "publish" in _keys(Tenant.objects.get(pk=v4.pk))
+
+
+def test_product_checks_cost_one_query(v4, django_assert_max_num_queries):
+    from apps.core import directions
+
+    request = _req(v4)
+    directions.active(v4)  # направления/модули — свои запросы, не карточек
+    with django_assert_max_num_queries(6):
+        next_steps.cards(request, limit=10)
+
+
+def test_photo_card_only_for_goods_direction(v4, monkeypatch):
+    from apps.core import directions
+
+    monkeypatch.setattr(directions, "active", lambda t: [])
+    assert "photos" not in _keys(v4) and "design" not in [
+        c["key"] for c in next_steps.cards(_req(v4), limit=10)
+    ]

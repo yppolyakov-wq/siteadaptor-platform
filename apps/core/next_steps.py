@@ -37,6 +37,8 @@ class Card:
     action: str
     query: str = ""
     assistant_q: str = ""
+    #: «Später» на столько дней (совет без срочности — реже); None — спрятать нельзя
+    hide_days: int | None = HIDE_DAYS
 
 
 def _unpublished(t):
@@ -66,14 +68,38 @@ def _open(t, q) -> bool:
     return sell_questions.state(t, q) == "open"
 
 
-def _photos(t):
-    from django.db.models import Q
+def _product_stats(t) -> dict:
+    """Одним запросом на загрузку главной: активные товары и сколько из них без фото
+    (одно определение «без фото» для обеих карточек). Мемо на тенанте."""
+    memo = getattr(t, "_next_steps_products", None)
+    if memo is not None:
+        return memo
+    from django.db.models import Count, Q
 
     from apps.catalog.models import Product
 
-    if not t.is_module_active("catalog"):
+    no_photo = Q(images=[]) | Q(images__isnull=True)
+    memo = Product.objects.filter(is_active=True).aggregate(
+        total=Count("pk"), no_photo=Count("pk", filter=no_photo)
+    )
+    try:
+        t._next_steps_products = memo
+    except Exception:  # noqa: BLE001 — неизменяемый тенант — без мемо
+        pass
+    return memo
+
+
+def _sells_goods(t) -> bool:
+    """Товары — главное у бизнеса (направление Waren), а не остатки у отеля/салона."""
+    from apps.core import directions
+
+    return t.is_module_active("catalog") and any(d.key == "waren" for d in directions.active(t))
+
+
+def _photos(t):
+    if not _sells_goods(t):
         return None
-    n = Product.objects.filter(Q(images=[]) | Q(images__isnull=True), is_active=True).count()
+    n = _product_stats(t)["no_photo"]
     if not n:
         return None
     return ngettext(
@@ -99,12 +125,11 @@ def _languages(t):
 
 def _design(t):
     """§3a: Aussehen erst, wenn es eigene Daten gibt (≥ 5 Angebote und ein eigenes Foto)."""
-    from apps.catalog.models import Product
 
-    if not t.is_module_active("catalog"):
+    if not _sells_goods(t):
         return None
-    products = Product.objects.filter(is_active=True)
-    if products.count() < 5 or not products.exclude(images=[]).exists():
+    stats = _product_stats(t)
+    if stats["total"] < 5 or stats["total"] - stats["no_photo"] < 1:
         return None
     cfg = t.site_config if isinstance(t.site_config, dict) else {}
     if (cfg.get("design") or {}).get("look"):  # Look уже выбран владельцем
@@ -120,6 +145,7 @@ CARDS: tuple[Card, ...] = (
         "setup",
         _("Fertigstellen"),
         query="step=recht",
+        hide_days=None,  # единственный вход в публикацию — не прячется
     ),
     Card(
         "verkauf",
@@ -142,6 +168,7 @@ CARDS: tuple[Card, ...] = (
         _first_promo,
         "promotions:promotion-quick",
         _("Aktion anlegen"),
+        hide_days=90,
     ),
     Card(
         "languages",
@@ -150,6 +177,7 @@ CARDS: tuple[Card, ...] = (
         "languages",
         _("Sprachen wählen"),
         assistant_q=_("Wie übersetze ich meine Website?"),
+        hide_days=90,
     ),
     Card(
         "design",
@@ -207,6 +235,7 @@ def cards(request, limit: int = LIMIT) -> list[dict]:
             "action": card.action,
             "url": target.url,
             "assistant_url": "",
+            "hideable": card.hide_days is not None,
         }
         if card.assistant_q:
             from urllib.parse import urlencode
@@ -218,13 +247,16 @@ def cards(request, limit: int = LIMIT) -> list[dict]:
     return out
 
 
-def hide(tenant, key: str, days: int = HIDE_DAYS) -> bool:
-    """«Später»: спрятать карточку. Единственный писатель ключа — из ЗАБЛОКИРОВАННОЙ строки."""
+def hide(tenant, key: str) -> bool:
+    """«Später»: спрятать карточку на её срок. Единственный писатель ключа — из
+    ЗАБЛОКИРОВАННОЙ строки. Карточку без срока (публикация) спрятать нельзя — правило на
+    сервере, а не в шаблоне."""
     from django.db import transaction
 
-    if key not in BY_KEY:
+    card = BY_KEY.get(key)
+    if card is None or card.hide_days is None:
         return False
-    until = (timezone.now() + timedelta(days=days)).isoformat()
+    until = (timezone.now() + timedelta(days=card.hide_days)).isoformat()
     with transaction.atomic():
         locked = type(tenant).objects.select_for_update().get(pk=tenant.pk)
         cfg = dict(locked.site_config or {})
