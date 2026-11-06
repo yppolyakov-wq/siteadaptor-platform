@@ -116,8 +116,11 @@ def test_neutral_modules_are_mixed_in_not_appended():
     neutral = {"Auswertung", "Veröffentlichung (Kanäle)", "Finanzen (Umsatz)", "Telegram-Bot"}
     positions = [i for i, lb in enumerate(labels) if lb in neutral]
     assert positions, "нейтральных модулей нет в сетке"
-    # Не сгруппированы в хвосте: хотя бы один профильный модуль идёт ПОСЛЕ них.
-    assert max(positions) < len(labels) - 1, f"нейтральные съехали в конец: {labels}"
+    # Не сгруппированы в хвосте: хотя бы один профильный модуль идёт ПОСЛЕ первого
+    # нейтрального (AIS-M M-1d: последней карточкой отеля может оказаться нейтральная —
+    # Kundenkonto ушёл из рекомендованных; свойство «вперемешку» от этого не меняется).
+    profile_after = [i for i, lb in enumerate(labels) if lb not in neutral and i > min(positions)]
+    assert profile_after, f"нейтральные съехали в конец: {labels}"
 
 
 def test_public_header_has_mobile_quick_start_bar():
