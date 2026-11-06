@@ -11,10 +11,15 @@
   {% for it in ans.actions %}
   <fieldset class="rounded-xl border border-gray-200 p-3 space-y-2" data-assistant-action="{{ it.index }}">
     <legend class="font-semibold px-1">{{ forloop.counter }}. {{ it.label }}{% if it.name %} „{{ it.name }}“{% endif %}</legend>
+    {% if it.before_text %}<p class="text-sm" data-assistant-before><span class="ui-muted">{% trans "Bisher:" %}</span> {{ it.before_text }}{% if it.after_text %} <span aria-hidden="true">→</span><span class="sr-only">{% trans "neu:" %}</span> <strong>{{ it.after_text }}</strong>{% endif %}</p>{% endif %}
+    {% if it.warning %}<p class="text-sm text-amber-800" data-assistant-pangv><span aria-hidden="true">⚠</span> {{ it.warning }}</p>{% endif %}
     {% if it.allowed %}
     <label class="inline-flex items-center gap-2 min-h-[44px] text-sm"><input type="checkbox" name="take_{{ it.index }}" value="1"{% if it.take %} checked{% endif %}> {% trans "übernehmen" %}</label>
     {% for f in it.fields %}
     {% with fid=f.input|add:"-"|add:ans.job %}
+    {% if f.kind == "visible" %}
+    <p class="text-sm font-semibold">{% if f.value %}{% trans "Wird wieder angezeigt." %}{% else %}{% trans "Wird ausgeblendet (bleibt gespeichert)." %}{% endif %}</p>
+    {% else %}
     <div>
       <label for="{{ fid }}" class="block text-sm">{{ f.label }}{% if f.required %} <span aria-hidden="true">*</span>{% endif %}</label>
       {% if f.kind == "category" %}
@@ -27,6 +32,7 @@
       {% endif %}
       {% if f.error %}<p id="{{ fid }}-err" class="text-sm text-red-700">{{ f.error }}</p>{% endif %}
     </div>
+    {% endif %}
     {% endwith %}
     {% endfor %}
     {% if it.note %}<p class="ui-muted text-sm">{{ it.note }}</p>{% endif %}

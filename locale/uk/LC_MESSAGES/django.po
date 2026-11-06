@@ -34494,3 +34494,92 @@ msgstr "Застосовую …"
 #: apps/core/assistant_actions.py
 msgid "z. B. 3,20"
 msgstr "наприклад, 3,20"
+
+#: apps/core/assistant_actions.py
+msgid "Auf der Website"
+msgstr "На сайті"
+
+#: apps/core/assistant_actions.py
+msgid "Bisher:"
+msgstr "Зараз:"
+
+#: apps/core/assistant_actions.py
+msgid "Der niedrigere Preis bleibt 30 Tage im Preisverlauf (§ 11 PAngV) — auch wenn Sie ihn zurücksetzen."
+msgstr "Нижча ціна 30 днів лишається в історії цін (§ 11 PAngV) — навіть якщо ви її скасуєте."
+
+#: apps/core/assistant_actions.py
+#, python-format
+msgid "Erledigt — übernommen: %(n)s"
+msgstr "Готово — прийнято: %(n)s"
+
+#: apps/core/assistant_actions.py
+msgid "Hat Varianten oder Saisonpreise — den Preis bitte im Formular ändern."
+msgstr "Є варіанти або сезонні ціни — змініть ціну у формі."
+
+#: apps/core/assistant_actions.py
+msgid "Hat Varianten — den Preis bitte im Formular ändern."
+msgstr "Є варіанти — змініть ціну у формі."
+
+#: apps/core/assistant_actions.py
+msgid "In andere Kategorie verschieben"
+msgstr "Перенести в іншу категорію"
+
+#: apps/core/assistant_actions.py
+msgid "Inzwischen geändert — bitte neu fragen."
+msgstr "Відтоді змінено — запитайте знову."
+
+#: apps/core/assistant_actions.py
+msgid "Ist schon ausgeblendet."
+msgstr "Вже приховано."
+
+#: apps/core/assistant_actions.py
+msgid "Ist schon in dieser Kategorie."
+msgstr "Вже в цій категорії."
+
+#: apps/core/assistant_actions.py
+msgid "Ist schon sichtbar."
+msgstr "Вже видно."
+
+#: apps/core/assistant_actions.py
+msgid "Keinen Preis gefunden — bitte eintragen."
+msgstr "Ціну не знайдено — вкажіть її."
+
+#: apps/core/assistant_actions.py
+msgid "Mehrere Einträge heißen so — bitte im Sortiment ändern."
+msgstr "Так називаються кілька записів — змініть в асортименті."
+
+#: apps/core/assistant_actions.py
+msgid "Neuer Preis (€)"
+msgstr "Нова ціна (€)"
+
+#: apps/core/assistant_actions.py
+msgid "Sichtbarkeit ändern"
+msgstr "Змінити видимість"
+
+#: apps/core/assistant_actions.py
+msgid "Vorgeschlagen:"
+msgstr "Запропоновано:"
+
+#: apps/core/assistant_actions.py
+msgid "Wird ausgeblendet (bleibt gespeichert)."
+msgstr "Буде приховано (лишиться збереженим)."
+
+#: apps/core/assistant_actions.py
+msgid "Wird wieder angezeigt."
+msgstr "Знову буде показано."
+
+#: apps/core/assistant_actions.py
+msgid "Zielkategorie nicht gefunden — bitte wählen."
+msgstr "Цільову категорію не знайдено — оберіть."
+
+#: apps/core/assistant_actions.py
+msgid "Zurückgesetzt. Der niedrigere Preis bleibt 30 Tage im Preisverlauf (§ 11 PAngV)."
+msgstr "Скасовано. Нижча ціна 30 днів лишається в історії цін (§ 11 PAngV)."
+
+#: apps/core/assistant_actions.py
+msgid "ohne Kategorie"
+msgstr "без категорії"
+
+#: apps/core/assistant_actions.py
+msgid "neu:"
+msgstr "нове:"

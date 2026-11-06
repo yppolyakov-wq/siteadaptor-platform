@@ -677,6 +677,53 @@ def put_plan(request, q: str) -> dict:
     return {"job": job}
 
 
+def put_actions(request, q: str) -> dict:
+    """AIS A-4b: «измени цену / скрой / перенеси» существующего объекта → пакет изменений
+    с предпросмотром (тот же job-канал, лимиты и замок, что у плана; без ИИ)."""
+    from django.core.cache import cache
+
+    from apps.core import assistant_actions, assistant_changes, page_templates, ratelimit
+
+    schema, user_pk = _schema_name(), request.user.pk
+    job = uuid.uuid4().hex
+    locked = False
+    try:
+        if ratelimit.hit(
+            "assistant-ask-req", f"{schema}:{user_pk}", limit=REQ_LIMIT, window=RATE_WINDOW
+        ) or ratelimit.hit(
+            "setup-plan",
+            str(user_pk),
+            limit=page_templates.PLAN_LIMIT,
+            window=page_templates.PLAN_WINDOW,
+        ):
+            return {"code": "quota"}
+        if not cache.add(_lock_key(schema, user_pk), job, JOB_TTL):
+            return {"code": "busy"}
+        locked = True
+        items = assistant_changes.build(request.tenant, request.user, q[:QUESTION_MAX])
+        if not items:
+            return {"code": "unavailable"}
+        entry = {
+            "state": "done",
+            "outcome": "actions",
+            "actions": items,
+            "job": job,
+            # в историю — только сводка (что предлагалось), без пакета
+            "summary": [
+                {"action": it["action"], "name": it["values"].get("name", "")} for it in items
+            ],
+        }
+        _put(schema, user_pk, entry, assistant_actions.ACTIONS_TTL, job=job, q=q)
+    except Exception:  # noqa: BLE001 — сбой кэша/разбора: спокойное сообщение, а не 500
+        logger.warning("assistant answer: actions failed", exc_info=True)
+        return {"code": "unavailable"}
+    finally:
+        if locked:
+            _release(schema, user_pk, job)
+    on_outcome("actions")
+    return {"job": job}
+
+
 def put_articles(request, q: str) -> dict:
     """ИИ выключен: вопрос всё равно получает ответ — подходящие статьи A-1."""
     from apps.core import help_articles
@@ -798,6 +845,8 @@ def _present(request, entry: dict) -> dict:
         for ref in entry.get("state_refs") or []
     ]
     outcome = entry.get("outcome")
+    if outcome == "actions":  # A-4b: пакет изменений (в истории — только сводка)
+        return _present_actions(request, entry)
     if outcome == "plan":
         from apps.core import setup_assistant
 
@@ -840,6 +889,27 @@ def _present(request, entry: dict) -> dict:
         "scope_text": _scope_text(entry.get("topic", "")) if outcome == "scope" else "",
         "ai_label": AI_LABEL,
     }
+
+
+def _present_actions(request, entry: dict) -> dict:
+    from apps.core import assistant_actions
+
+    out = {"state": "done", "outcome": "actions", "summary": []}
+    for row in entry.get("summary") or []:
+        spec = assistant_actions.ACTIONS.get(row.get("action"))
+        if spec is not None:
+            out["summary"].append({"label": spec.label, "name": row.get("name", "")})
+    if not entry.get("actions"):
+        return out  # из истории — без кнопки
+    rep = assistant_actions.report_for(request, str(entry.get("job") or ""))
+    if rep is not None:
+        out["applied"] = assistant_actions.present_report(request, rep)
+    else:
+        out["actions"] = assistant_actions.present(
+            request, entry["actions"], errors=entry.get("action_errors")
+        )
+        out["actions_allowed"] = any(it["allowed"] for it in out["actions"])
+    return out
 
 
 def present(request, entry: dict) -> dict:

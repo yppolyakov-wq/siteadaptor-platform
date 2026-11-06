@@ -34346,3 +34346,92 @@ msgstr "Uygulanıyor …"
 #: apps/core/assistant_actions.py
 msgid "z. B. 3,20"
 msgstr "ör. 3,20"
+
+#: apps/core/assistant_actions.py
+msgid "Auf der Website"
+msgstr "Web sitesinde"
+
+#: apps/core/assistant_actions.py
+msgid "Bisher:"
+msgstr "Şu an:"
+
+#: apps/core/assistant_actions.py
+msgid "Der niedrigere Preis bleibt 30 Tage im Preisverlauf (§ 11 PAngV) — auch wenn Sie ihn zurücksetzen."
+msgstr "Düşük fiyat, geri alsanız bile 30 gün fiyat geçmişinde kalır (§ 11 PAngV)."
+
+#: apps/core/assistant_actions.py
+#, python-format
+msgid "Erledigt — übernommen: %(n)s"
+msgstr "Tamam — uygulandı: %(n)s"
+
+#: apps/core/assistant_actions.py
+msgid "Hat Varianten oder Saisonpreise — den Preis bitte im Formular ändern."
+msgstr "Varyantları veya sezon fiyatları var — fiyatı lütfen formda değiştirin."
+
+#: apps/core/assistant_actions.py
+msgid "Hat Varianten — den Preis bitte im Formular ändern."
+msgstr "Varyantları var — fiyatı lütfen formda değiştirin."
+
+#: apps/core/assistant_actions.py
+msgid "In andere Kategorie verschieben"
+msgstr "Başka kategoriye taşı"
+
+#: apps/core/assistant_actions.py
+msgid "Inzwischen geändert — bitte neu fragen."
+msgstr "Bu arada değiştirildi — lütfen yeniden sorun."
+
+#: apps/core/assistant_actions.py
+msgid "Ist schon ausgeblendet."
+msgstr "Zaten gizli."
+
+#: apps/core/assistant_actions.py
+msgid "Ist schon in dieser Kategorie."
+msgstr "Zaten bu kategoride."
+
+#: apps/core/assistant_actions.py
+msgid "Ist schon sichtbar."
+msgstr "Zaten görünür."
+
+#: apps/core/assistant_actions.py
+msgid "Keinen Preis gefunden — bitte eintragen."
+msgstr "Fiyat bulunamadı — lütfen girin."
+
+#: apps/core/assistant_actions.py
+msgid "Mehrere Einträge heißen so — bitte im Sortiment ändern."
+msgstr "Bu adda birden fazla kayıt var — lütfen ürün yelpazesinde değiştirin."
+
+#: apps/core/assistant_actions.py
+msgid "Neuer Preis (€)"
+msgstr "Yeni fiyat (€)"
+
+#: apps/core/assistant_actions.py
+msgid "Sichtbarkeit ändern"
+msgstr "Görünürlüğü değiştir"
+
+#: apps/core/assistant_actions.py
+msgid "Vorgeschlagen:"
+msgstr "Önerilen:"
+
+#: apps/core/assistant_actions.py
+msgid "Wird ausgeblendet (bleibt gespeichert)."
+msgstr "Gizlenecek (kayıtlı kalır)."
+
+#: apps/core/assistant_actions.py
+msgid "Wird wieder angezeigt."
+msgstr "Yeniden gösterilecek."
+
+#: apps/core/assistant_actions.py
+msgid "Zielkategorie nicht gefunden — bitte wählen."
+msgstr "Hedef kategori bulunamadı — lütfen seçin."
+
+#: apps/core/assistant_actions.py
+msgid "Zurückgesetzt. Der niedrigere Preis bleibt 30 Tage im Preisverlauf (§ 11 PAngV)."
+msgstr "Geri alındı. Düşük fiyat 30 gün fiyat geçmişinde kalır (§ 11 PAngV)."
+
+#: apps/core/assistant_actions.py
+msgid "ohne Kategorie"
+msgstr "kategorisiz"
+
+#: apps/core/assistant_actions.py
+msgid "neu:"
+msgstr "yeni:"

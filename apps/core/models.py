@@ -472,12 +472,14 @@ class AssistantTurn(models.Model):
     KIND_ARTICLES = "articles"
     KIND_FALLBACK = "fallback"
     KIND_SCOPE = "scope"
+    KIND_ACTIONS = "actions"  # A-4b: предложенный пакет изменений (в истории — сводка)
     KINDS = [
         (KIND_ANSWER, "answer"),
         (KIND_PLAN, "plan"),
         (KIND_ARTICLES, "articles"),
         (KIND_FALLBACK, "fallback"),
         (KIND_SCOPE, "scope"),
+        (KIND_ACTIONS, "actions"),
     ]
 
     # индекс — составной (user, -created_at) ниже; отдельный индекс FK не нужен

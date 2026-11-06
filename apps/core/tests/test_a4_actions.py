@@ -65,14 +65,29 @@ def _kuchen(tenant):
 # ── реестр ──────────────────────────────────────────────────────────────────────────
 
 
-def test_registry_is_closed_and_create_only():
-    assert set(assistant_actions.ACTIONS) == {"category.create", "product.create", "service.create"}
+def test_registry_is_closed():
+    """A-4b: реестр расширен изменениями, но по-прежнему ЗАКРЫТ — точный список действий,
+    ни одного объекта/глагола из запретного списка; цена — только правом preise.edit."""
+    assert set(assistant_actions.ACTIONS) == {
+        "category.create",
+        "product.create",
+        "service.create",
+        "product.price",
+        "service.price",
+        "product.visibility",
+        "service.visibility",
+        "category.visibility",
+        "product.move",
+    }
     for key, spec in assistant_actions.ACTIONS.items():
         obj, verb = key.split(".")
         assert obj not in assistant_actions.FORBIDDEN_OBJECTS
         assert verb not in assistant_actions.FORBIDDEN_VERBS
         assert spec.perm and spec.module and spec.screen and spec.edit_screen
-        assert any(f.name == "name" and f.required for f in spec.fields)
+        if spec.verb == "create":
+            assert any(f.name == "name" and f.required for f in spec.fields)
+        if spec.verb == "price":
+            assert spec.perm == "preise.edit"
 
 
 # ── предпросмотр ────────────────────────────────────────────────────────────────────

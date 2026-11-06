@@ -34200,3 +34200,92 @@ msgstr "Applying …"
 #: apps/core/assistant_actions.py
 msgid "z. B. 3,20"
 msgstr "e.g. 3.20"
+
+#: apps/core/assistant_actions.py
+msgid "Auf der Website"
+msgstr "On the website"
+
+#: apps/core/assistant_actions.py
+msgid "Bisher:"
+msgstr "Currently:"
+
+#: apps/core/assistant_actions.py
+msgid "Der niedrigere Preis bleibt 30 Tage im Preisverlauf (§ 11 PAngV) — auch wenn Sie ihn zurücksetzen."
+msgstr "The lower price stays in the price history for 30 days (§ 11 PAngV) — even if you undo it."
+
+#: apps/core/assistant_actions.py
+#, python-format
+msgid "Erledigt — übernommen: %(n)s"
+msgstr "Done — applied: %(n)s"
+
+#: apps/core/assistant_actions.py
+msgid "Hat Varianten oder Saisonpreise — den Preis bitte im Formular ändern."
+msgstr "Has variants or seasonal prices — please change the price in the form."
+
+#: apps/core/assistant_actions.py
+msgid "Hat Varianten — den Preis bitte im Formular ändern."
+msgstr "Has variants — please change the price in the form."
+
+#: apps/core/assistant_actions.py
+msgid "In andere Kategorie verschieben"
+msgstr "Move to another category"
+
+#: apps/core/assistant_actions.py
+msgid "Inzwischen geändert — bitte neu fragen."
+msgstr "Changed in the meantime — please ask again."
+
+#: apps/core/assistant_actions.py
+msgid "Ist schon ausgeblendet."
+msgstr "Already hidden."
+
+#: apps/core/assistant_actions.py
+msgid "Ist schon in dieser Kategorie."
+msgstr "Already in this category."
+
+#: apps/core/assistant_actions.py
+msgid "Ist schon sichtbar."
+msgstr "Already visible."
+
+#: apps/core/assistant_actions.py
+msgid "Keinen Preis gefunden — bitte eintragen."
+msgstr "No price found — please enter one."
+
+#: apps/core/assistant_actions.py
+msgid "Mehrere Einträge heißen so — bitte im Sortiment ändern."
+msgstr "Several entries have this name — please change it in the range."
+
+#: apps/core/assistant_actions.py
+msgid "Neuer Preis (€)"
+msgstr "New price (€)"
+
+#: apps/core/assistant_actions.py
+msgid "Sichtbarkeit ändern"
+msgstr "Change visibility"
+
+#: apps/core/assistant_actions.py
+msgid "Vorgeschlagen:"
+msgstr "Suggested:"
+
+#: apps/core/assistant_actions.py
+msgid "Wird ausgeblendet (bleibt gespeichert)."
+msgstr "Will be hidden (stays saved)."
+
+#: apps/core/assistant_actions.py
+msgid "Wird wieder angezeigt."
+msgstr "Will be shown again."
+
+#: apps/core/assistant_actions.py
+msgid "Zielkategorie nicht gefunden — bitte wählen."
+msgstr "Target category not found — please choose."
+
+#: apps/core/assistant_actions.py
+msgid "Zurückgesetzt. Der niedrigere Preis bleibt 30 Tage im Preisverlauf (§ 11 PAngV)."
+msgstr "Undone. The lower price stays in the price history for 30 days (§ 11 PAngV)."
+
+#: apps/core/assistant_actions.py
+msgid "ohne Kategorie"
+msgstr "no category"
+
+#: apps/core/assistant_actions.py
+msgid "neu:"
+msgstr "new:"

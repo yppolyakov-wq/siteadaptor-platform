@@ -34287,3 +34287,92 @@ msgstr "Wird übernommen …"
 #: apps/core/assistant_actions.py
 msgid "z. B. 3,20"
 msgstr "z. B. 3,20"
+
+#: apps/core/assistant_actions.py
+msgid "Auf der Website"
+msgstr "Auf der Website"
+
+#: apps/core/assistant_actions.py
+msgid "Bisher:"
+msgstr "Bisher:"
+
+#: apps/core/assistant_actions.py
+msgid "Der niedrigere Preis bleibt 30 Tage im Preisverlauf (§ 11 PAngV) — auch wenn Sie ihn zurücksetzen."
+msgstr "Der niedrigere Preis bleibt 30 Tage im Preisverlauf (§ 11 PAngV) — auch wenn Sie ihn zurücksetzen."
+
+#: apps/core/assistant_actions.py
+#, python-format
+msgid "Erledigt — übernommen: %(n)s"
+msgstr "Erledigt — übernommen: %(n)s"
+
+#: apps/core/assistant_actions.py
+msgid "Hat Varianten oder Saisonpreise — den Preis bitte im Formular ändern."
+msgstr "Hat Varianten oder Saisonpreise — den Preis bitte im Formular ändern."
+
+#: apps/core/assistant_actions.py
+msgid "Hat Varianten — den Preis bitte im Formular ändern."
+msgstr "Hat Varianten — den Preis bitte im Formular ändern."
+
+#: apps/core/assistant_actions.py
+msgid "In andere Kategorie verschieben"
+msgstr "In andere Kategorie verschieben"
+
+#: apps/core/assistant_actions.py
+msgid "Inzwischen geändert — bitte neu fragen."
+msgstr "Inzwischen geändert — bitte neu fragen."
+
+#: apps/core/assistant_actions.py
+msgid "Ist schon ausgeblendet."
+msgstr "Ist schon ausgeblendet."
+
+#: apps/core/assistant_actions.py
+msgid "Ist schon in dieser Kategorie."
+msgstr "Ist schon in dieser Kategorie."
+
+#: apps/core/assistant_actions.py
+msgid "Ist schon sichtbar."
+msgstr "Ist schon sichtbar."
+
+#: apps/core/assistant_actions.py
+msgid "Keinen Preis gefunden — bitte eintragen."
+msgstr "Keinen Preis gefunden — bitte eintragen."
+
+#: apps/core/assistant_actions.py
+msgid "Mehrere Einträge heißen so — bitte im Sortiment ändern."
+msgstr "Mehrere Einträge heißen so — bitte im Sortiment ändern."
+
+#: apps/core/assistant_actions.py
+msgid "Neuer Preis (€)"
+msgstr "Neuer Preis (€)"
+
+#: apps/core/assistant_actions.py
+msgid "Sichtbarkeit ändern"
+msgstr "Sichtbarkeit ändern"
+
+#: apps/core/assistant_actions.py
+msgid "Vorgeschlagen:"
+msgstr "Vorgeschlagen:"
+
+#: apps/core/assistant_actions.py
+msgid "Wird ausgeblendet (bleibt gespeichert)."
+msgstr "Wird ausgeblendet (bleibt gespeichert)."
+
+#: apps/core/assistant_actions.py
+msgid "Wird wieder angezeigt."
+msgstr "Wird wieder angezeigt."
+
+#: apps/core/assistant_actions.py
+msgid "Zielkategorie nicht gefunden — bitte wählen."
+msgstr "Zielkategorie nicht gefunden — bitte wählen."
+
+#: apps/core/assistant_actions.py
+msgid "Zurückgesetzt. Der niedrigere Preis bleibt 30 Tage im Preisverlauf (§ 11 PAngV)."
+msgstr "Zurückgesetzt. Der niedrigere Preis bleibt 30 Tage im Preisverlauf (§ 11 PAngV)."
+
+#: apps/core/assistant_actions.py
+msgid "ohne Kategorie"
+msgstr "ohne Kategorie"
+
+#: apps/core/assistant_actions.py
+msgid "neu:"
+msgstr "neu:"

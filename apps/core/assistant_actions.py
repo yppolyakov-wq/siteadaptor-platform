@@ -48,13 +48,20 @@ MAX_PRICE = Decimal("100000")
 CATEGORY_CREATE = "category.create"
 PRODUCT_CREATE = "product.create"
 SERVICE_CREATE = "service.create"
+# A-4b: изменения СУЩЕСТВУЮЩИХ объектов (план §11)
+PRODUCT_PRICE = "product.price"
+SERVICE_PRICE = "service.price"
+PRODUCT_VISIBILITY = "product.visibility"
+SERVICE_VISIBILITY = "service.visibility"
+CATEGORY_VISIBILITY = "category.visibility"
+PRODUCT_MOVE = "product.move"
 
 
 @dataclass(frozen=True)
 class FieldSpec:
     name: str  # имя поля пакета (не формы)
     label: object
-    kind: str  # text | money | minutes | category
+    kind: str  # text | money | minutes | category | visible (только показ)
     required: bool = False
 
 
@@ -68,6 +75,7 @@ class ActionSpec:
     screen: str  # экран создания — тот же гейт пакета, что у формы
     edit_screen: str  # экран объекта после создания (ссылка в отчёте)
     fields: tuple[FieldSpec, ...]
+    verb: str = "create"  # create | price | visibility | move
 
 
 ACTIONS: dict[str, ActionSpec] = {
@@ -113,6 +121,75 @@ ACTIONS: dict[str, ActionSpec] = {
         ),
     ),
 }
+
+_PRICE_FIELD = (FieldSpec("price", gettext_lazy("Neuer Preis (€)"), "money", True),)
+_VISIBLE_FIELD = (FieldSpec("visible", gettext_lazy("Auf der Website"), "visible"),)
+_MOVE_FIELD = (FieldSpec("category", gettext_lazy("Neue Kategorie"), "category"),)
+for _key, _entity, _label, _module, _perm, _screen, _fields, _verb in (
+    (
+        PRODUCT_PRICE,
+        "product",
+        gettext_lazy("Preis ändern"),
+        "catalog",
+        "preise.edit",
+        "catalog:product-edit",
+        _PRICE_FIELD,
+        "price",
+    ),
+    (
+        SERVICE_PRICE,
+        "service",
+        gettext_lazy("Preis ändern"),
+        "booking",
+        "preise.edit",
+        "booking:service-edit",
+        _PRICE_FIELD,
+        "price",
+    ),
+    (
+        PRODUCT_VISIBILITY,
+        "product",
+        gettext_lazy("Sichtbarkeit ändern"),
+        "catalog",
+        "sortiment.edit",
+        "catalog:product-edit",
+        _VISIBLE_FIELD,
+        "visibility",
+    ),
+    (
+        SERVICE_VISIBILITY,
+        "service",
+        gettext_lazy("Sichtbarkeit ändern"),
+        "booking",
+        "sortiment.edit",
+        "booking:service-edit",
+        _VISIBLE_FIELD,
+        "visibility",
+    ),
+    (
+        CATEGORY_VISIBILITY,
+        "category",
+        gettext_lazy("Sichtbarkeit ändern"),
+        "catalog",
+        "sortiment.edit",
+        "catalog:category-edit",
+        _VISIBLE_FIELD,
+        "visibility",
+    ),
+    (
+        PRODUCT_MOVE,
+        "product",
+        gettext_lazy("In andere Kategorie verschieben"),
+        "catalog",
+        "sortiment.edit",
+        "catalog:product-edit",
+        _MOVE_FIELD,
+        "move",
+    ),
+):
+    ACTIONS[_key] = ActionSpec(
+        _key, _entity, _label, _module, _perm, _screen, _screen, _fields, _verb
+    )
 
 #: Объекты, которых в реестре не может быть никогда (стратегия В-2, запретный список).
 FORBIDDEN_OBJECTS = frozenset(
@@ -271,7 +348,11 @@ def present(request, items: list[dict], *, errors: dict | None = None) -> list[d
         if spec is None:
             continue
         ok, reason = allowed(request, spec)
-        options = category_options(request.tenant, items, i, existing)
+        if ok and item.get("blocked"):
+            ok, reason = False, item["blocked"]
+        # «переместить» — только в существующую категорию (новых в пакете изменений нет)
+        upto = 0 if spec.verb == "move" else i
+        options = category_options(request.tenant, items, upto, existing)
         values = item.get("values") or {}
         fields = [
             {
@@ -285,12 +366,18 @@ def present(request, items: list[dict], *, errors: dict | None = None) -> list[d
             }
             for f in spec.fields
         ]
-        prefill = {
-            setup_assistant._NAME_FIELD[spec.entity]: values.get("name", ""),
-        }
-        price_field = setup_assistant._PRICE_FIELD.get(spec.entity)
-        if price_field:
-            prefill[price_field] = values.get("price", "")
+        if spec.verb == "create":
+            prefill = {setup_assistant._NAME_FIELD[spec.entity]: values.get("name", "")}
+            price_field = setup_assistant._PRICE_FIELD.get(spec.entity)
+            if price_field:
+                prefill[price_field] = values.get("price", "")
+            form_url = (
+                setup_assistant._form_url(spec.entity, prefill)
+                if setup_assistant.reachable(request, spec.screen)
+                else ""
+            )
+        else:
+            form_url = _object_url(request, spec, (item.get("target") or {}).get("pk", ""))
         out.append(
             {
                 "index": i,
@@ -302,12 +389,82 @@ def present(request, items: list[dict], *, errors: dict | None = None) -> list[d
                 "reason": reason,
                 "note": item.get("note", ""),
                 "options": options,
-                "form_url": setup_assistant._form_url(spec.entity, prefill)
-                if setup_assistant.reachable(request, spec.screen)
-                else "",
+                "form_url": form_url,
+                "verb": spec.verb,
+                **_change_texts(request, spec, item, values, existing),
             }
         )
     return out
+
+
+def _object_url(request, spec: ActionSpec, pk: str) -> str:
+    from django.urls import NoReverseMatch, reverse
+
+    from apps.core import setup_assistant
+
+    if not pk or not setup_assistant.reachable(request, spec.edit_screen):
+        return ""
+    try:
+        return reverse(spec.edit_screen, args=[pk])
+    except NoReverseMatch:
+        return ""
+
+
+def _value_text(spec: ActionSpec, canon: str, existing=None) -> str:
+    """Каноническое значение поля изменения → подпись «vorher/nachher»."""
+    from apps.core import assistant_changes
+
+    if spec.verb == "price":
+        return assistant_changes.money_text(spec.entity, canon)
+    if spec.verb == "visibility":
+        return str(_("sichtbar")) if canon else str(_("ausgeblendet"))
+    if spec.verb == "move":
+        if not canon:
+            return str(_("ohne Kategorie"))
+        labels = dict(existing if existing is not None else _existing_options(None))
+        return labels.get(f"pk:{canon}", "")
+    return ""
+
+
+def _change_texts(request, spec, item, values, existing) -> dict:
+    """«vorher → nachher» и предупреждение § 11 PAngV для пункта изменения."""
+    if spec.verb == "create":
+        return {"before_text": "", "after_text": "", "warning": ""}
+    before = str(item.get("before") or "")
+    after = ""
+    try:
+        after = _canon(spec, values)
+    except ValueError:
+        after = ""
+    warning = ""
+    if spec.verb == "price" and spec.entity == "product" and before and after:
+        if Decimal(after) < Decimal(before):
+            warning = _(
+                "Der niedrigere Preis bleibt 30 Tage im Preisverlauf (§ 11 PAngV) — auch wenn "
+                "Sie ihn zurücksetzen."
+            )
+    return {
+        "before_text": _value_text(spec, before, existing),
+        "after_text": _value_text(spec, after, existing) if after or spec.verb != "price" else "",
+        "warning": warning,
+    }
+
+
+def _canon(spec: ActionSpec, values: dict) -> str:
+    """Новое значение изменения в каноническом виде (как `assistant_changes.current`)."""
+    from apps.core.money import parse_amount, to_cents
+
+    if spec.verb == "price":
+        amount = parse_amount(values.get("price", ""), max_value=MAX_PRICE)
+        if amount is None:
+            raise ValueError("no price")
+        if spec.entity == "product":
+            return str(amount.quantize(Decimal("0.01")))
+        return str(to_cents(amount))
+    if spec.verb == "visibility":
+        return "1" if values.get("visible") else ""
+    ref = values.get("category", "")
+    return ref[3:] if ref.startswith("pk:") else ""
 
 
 # ───────────────────────── применение ─────────────────────────
@@ -320,6 +477,8 @@ def merge_post(items: list[dict], post) -> list[dict]:
         spec = ACTIONS.get(item.get("action"))
         values = dict(item.get("values") or {})
         for f in spec.fields if spec else ():
+            if f.kind == "visible":
+                continue  # «скрыть/показать» — направление из кэша, не из формы
             key = f"f_{i}_{f.name}"
             if key in post:
                 values[f.name] = str(post.get(key) or "").strip()[:NAME_MAX]
@@ -362,13 +521,16 @@ def _clean(items: list[dict], post, existing: list) -> tuple[list[dict], dict]:
                 if not raw.isdigit() or not (5 <= int(raw) <= 1440):
                     err = _("Bitte Minuten zwischen 5 und 1440 angeben.")
             elif f.kind == "category" and raw not in {
-                v for v, _label in category_options(None, items, i, existing)
+                v
+                for v, _label in category_options(
+                    None, items, 0 if spec.verb == "move" else i, existing
+                )
             }:
                 err = _("Bitte eine Kategorie aus der Liste wählen.")
             if err:
                 errors[f"{i}:{f.name}"] = err
             values[f.name] = raw
-        cleaned.append({"index": i, "spec": spec, "values": values})
+        cleaned.append({"index": i, "spec": spec, "values": values, "item": item})
     return cleaned, errors
 
 
@@ -481,8 +643,13 @@ def apply(request, job: str, entry: dict, post) -> dict:
         raise ApplyError("nothing")
     for row in cleaned:
         ok, _reason = allowed(request, row["spec"])
-        if not ok:
+        if not ok or row["item"].get("blocked"):
             raise ApplyError("forbidden")
+        if row["spec"].verb != "create":
+            try:
+                row["after"] = _canon(row["spec"], row["values"])
+            except ValueError:
+                errors[f"{row['index']}:price"] = _("Bitte einen Preis angeben.")
         ref = row["values"].get("category") or row["values"].get("parent") or ""
         if ref.startswith("item:"):
             idx = ref[5:]
@@ -504,9 +671,19 @@ def apply(request, job: str, entry: dict, post) -> dict:
             )
             created: dict[int, str] = {}
             snaps = []
+            targets = _lock_targets(
+                [
+                    (row["spec"].entity, (row["item"].get("target") or {}).get("pk", ""))
+                    for row in cleaned
+                    if row["spec"].verb != "create"
+                ]
+            )
             for row in cleaned:
                 from apps.catalog.writers import WriteError
 
+                if row["spec"].verb != "create":
+                    snaps.append(_change(row, targets))
+                    continue
                 try:
                     obj = _write(request.tenant, row["spec"], row["values"], created, actor)
                 except WriteError as exc:
@@ -543,6 +720,85 @@ def apply(request, job: str, entry: dict, post) -> dict:
             raise ApplyError("busy") from exc
         raise
     return report(change)
+
+
+def _lock_targets(pairs: list[tuple[str, str]]) -> dict:
+    """Строки целей изменений: по виду ОДНИМ запросом, по pk, FOR UPDATE (после Tenant)."""
+    out = {}
+    for kind in ("product", "category", "service"):
+        pks = sorted({pk for k, pk in pairs if k == kind and pk})
+        if not pks:
+            continue
+        for obj in _manager(kind).filter(pk__in=pks).order_by("pk").select_for_update():
+            out[(kind, str(obj.pk))] = obj
+    return out
+
+
+def _manager(kind: str):
+    from apps.booking.models import Service
+    from apps.catalog.models import Category, Product
+
+    return {
+        "product": Product.all_objects,
+        "category": Category.all_objects,
+        "service": Service.objects,
+    }[kind]
+
+
+def _set_value(spec: ActionSpec, obj, canon: str) -> None:
+    """Узкая запись одного поля на заблокированной строке (save → post_save: журнал цен,
+    листинг города; не update(), который обошёл бы сигналы)."""
+    if spec.verb == "price":
+        if spec.entity == "product":
+            obj.base_price = Decimal(canon)
+            obj.save(update_fields=["base_price", "updated_at"])
+        else:
+            obj.price_cents = int(canon)
+            obj.save(update_fields=["price_cents", "updated_at"])
+        return
+    if spec.verb == "visibility":
+        obj.is_active = bool(canon)
+        fields = ["is_active", "updated_at"]
+        if obj.is_active and hasattr(obj, "confirmed_at"):  # Г3: включение = подтверждение
+            from apps.core import freshness
+
+            freshness.stamp(obj)
+            fields.append("confirmed_at")
+        obj.save(update_fields=fields)
+        return
+    obj.category_id = canon or None
+    obj.save(update_fields=["category", "updated_at"])
+
+
+def _change(row: dict, targets: dict) -> dict:
+    """Применить изменение: объект жив и значение то же, что видел владелец в предпросмотре."""
+    from apps.core import assistant_changes
+
+    spec, item = row["spec"], row["item"]
+    pk = str((item.get("target") or {}).get("pk") or "")
+    obj = targets.get((spec.entity, pk))
+    field = spec.fields[0].name
+    if obj is None or getattr(obj, "deleted_at", None):
+        raise ApplyError("invalid", {f"{row['index']}:{field}": _("Inzwischen gelöscht.")})
+    before = str(item.get("before") or "")
+    if assistant_changes.current(spec.entity, spec.verb, obj) != before:
+        raise ApplyError(
+            "invalid",
+            {f"{row['index']}:{field}": _("Inzwischen geändert — bitte neu fragen.")},
+        )
+    if spec.verb == "price":
+        blocked = assistant_changes._price_blocked(spec.entity, obj)
+        if blocked:
+            raise ApplyError("invalid", {f"{row['index']}:{field}": blocked})
+    _set_value(spec, obj, row["after"])
+    return {
+        "action": spec.key,
+        "kind": spec.entity,
+        "pk": pk,
+        "name": row["values"].get("name", ""),
+        "before": before,
+        "after": row["after"],
+    }
 
 
 def _form_errors(index: int, errors: dict) -> dict:
@@ -585,6 +841,12 @@ def present_report(request, rep: dict) -> dict:
 
     rows = []
     undone = {r.get("pk"): r for r in rep.get("undo_report") or []}
+    existing = None
+    if any(
+        (ACTIONS.get(i.get("action")) or ACTIONS[PRODUCT_CREATE]).verb == "move"
+        for i in rep.get("items") or []
+    ):
+        existing = _existing_options(None)
     for item in rep.get("items") or []:
         spec = ACTIONS.get(item.get("action"))
         if spec is None:
@@ -596,10 +858,17 @@ def present_report(request, rep: dict) -> dict:
             except NoReverseMatch:
                 url = ""
         back = undone.get(item.get("pk"))
+        change_text = ""
+        if spec.verb != "create":
+            change_text = (
+                f"{_value_text(spec, str(item.get('before') or ''), existing)} → "
+                f"{_value_text(spec, str(item.get('after') or ''), existing)}"
+            )
         rows.append(
             {
                 "label": spec.label,
                 "name": item.get("name", ""),
+                "change_text": change_text,
                 "url": url,
                 "undone": bool(back and back.get("done")),
                 "undo_note": (back or {}).get("reason", ""),
@@ -684,6 +953,9 @@ def _undo_item(item: dict, obj) -> dict:
     if obj is None or getattr(obj, "deleted_at", None):
         out["reason"] = _("Inzwischen gelöscht.")
         return out
+    spec = ACTIONS.get(item.get("action"))
+    if spec is not None and spec.verb != "create":
+        return _undo_change(spec, item, obj, out)
     if snapshot(kind, obj) != item.get("after"):
         out["reason"] = _("Inzwischen geändert — nicht zurückgesetzt.")
         return out
@@ -705,6 +977,27 @@ def _undo_item(item: dict, obj) -> dict:
             return out
         obj.delete()
     out["done"] = True
+    return out
+
+
+def _undo_change(spec: ActionSpec, item: dict, obj, out: dict) -> dict:
+    """Изменение: вернуть прежнее значение, только если с тех пор его не меняли."""
+    from apps.core import assistant_changes
+
+    if assistant_changes.current(spec.entity, spec.verb, obj) != str(item.get("after") or ""):
+        out["reason"] = _("Inzwischen geändert — nicht zurückgesetzt.")
+        return out
+    _set_value(spec, obj, str(item.get("before") or ""))
+    out["done"] = True
+    if spec.verb == "price" and spec.entity == "product":
+        try:
+            lowered = Decimal(item["after"]) < Decimal(item["before"])
+        except Exception:  # noqa: BLE001 — нет чисел — нет оговорки
+            lowered = False
+        if lowered:
+            out["reason"] = _(
+                "Zurückgesetzt. Der niedrigere Preis bleibt 30 Tage im Preisverlauf (§ 11 PAngV)."
+            )
     return out
 
 
