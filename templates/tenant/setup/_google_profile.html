@@ -6,7 +6,7 @@
   {% if google_rows %}
   <form method="post" action="{% url 'setup-google' %}" class="space-y-3">
     {% csrf_token %}<input type="hidden" name="action" value="apply">
-    <table class="w-full text-sm">
+    <table class="ui-table w-full text-sm">
       <caption class="sr-only">{% trans "Angaben von Google im Vergleich" %}</caption>
       <thead><tr class="text-left text-gray-600"><th scope="col" class="py-1 pr-2">{% trans "Übernehmen" %}</th><th scope="col" class="py-1 pr-2">{% trans "Feld" %}</th><th scope="col" class="py-1 pr-2">{% trans "Jetzt" %}</th><th scope="col" class="py-1">{% trans "Google" %}</th></tr></thead>
       <tbody>
