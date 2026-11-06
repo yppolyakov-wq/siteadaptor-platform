@@ -403,6 +403,7 @@ def run(*, schema: str, user_pk, job: str, entry: dict) -> None:
                 if data["items"] or data["not_action"]:  # пустой «не понял» не закрепляем
                     cache.set(_cache_key(schema, entry["digest"]), data, CACHE_TTL)
                 outcome = {k: entry[k] for k in ("task", "ctx", "lang", "q", "digest")}
+                outcome["route"] = entry.get("route", "")
                 outcome.update(state="raw", data=data, counted=entry.get("counted"))
     except Exception:  # noqa: BLE001 — сбой задачи не должен висеть «pending»
         logger.exception("assistant ai actions job failed")
@@ -821,6 +822,8 @@ def finish(request, job: str, entry: dict) -> dict:
         logger.exception("assistant ai actions: check failed")
         assistant_ai._refund(entry.get("counted"))
         done = assistant_ai._result("fallback", ctx, code="check_failed")
+    if entry.get("route") and not done.get("route"):  # A-6b: маршрут переживает опрос
+        done["route"] = entry["route"]
     ttl = assistant_actions.ACTIONS_TTL if done.get("actions") or done.get("base") else None
     hist_q = "" if done.get("outcome") == "ask" else q  # вопрос в историю не пишется
     try:

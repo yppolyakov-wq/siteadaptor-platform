@@ -188,9 +188,16 @@ def classify(request, raw: str) -> str:
 
 def route(request, raw: str, seite: str = "") -> tuple[str, dict]:
     """Фраза → (ключ обработчика, {"job"} | {"code"})."""
-    from apps.core import assistant_ai
+    from apps.core import assistant_ai, assistant_stats
 
     q, code = assistant_ai.prepare_question(raw)
     handler, hit = _pick(request, q, code)
     logger.info("assistant route=%s", handler.key)  # без текста вопроса
-    return handler.key, handler.handle(request, q, raw, seite, hit)
+    # A-6b: ключ обработчика едет в запись задачи (`assistant_ai._put`) — отчёт без текста
+    token = assistant_ai.ROUTE.set(handler.key)
+    try:
+        got = handler.handle(request, q, raw, seite, hit)
+    finally:
+        assistant_ai.ROUTE.reset(token)
+    assistant_stats.bump(assistant_ai._schema_name(), handler.key, got.get("code") or "ok")
+    return handler.key, got

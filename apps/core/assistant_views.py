@@ -275,6 +275,9 @@ def assistant_escalate(request, job):
         logger.exception("assistant escalate: send failed")
         cache.delete(f"{key}:escalate")
         return _actions_response(request, job, code="busy")
+    from apps.core import assistant_stats
+
+    assistant_stats.bump(schema, "escalate", "sent")  # A-6b: реально ушло в Support
     done = {**entry, "outcome": "escalated", "thread_pk": thread.pk}
     try:
         assistant_ai._put(schema, user_pk, done, assistant_ai.RESULT_TTL, job=job)
@@ -292,12 +295,13 @@ def _store_reply(request, job: str, entry: dict, items: list, round_: int) -> No
     summary = assistant_clarify.summary_for(items) or entry.get("summary") or []
     source = entry.get("source", "")
     nxt = assistant_clarify.wrap(job, items, summary, entry.get("question", ""), round_ + 1)
+    keep = {"source": source, "dropped": entry.get("dropped", 0), "route": entry.get("route", "")}
     if nxt is not None:
-        nxt.update(source=source, dropped=entry.get("dropped", 0))
+        nxt.update(keep)
         assistant_ai._put(schema, user_pk, nxt, assistant_actions.ACTIONS_TTL, job=job)
         return
     done = assistant_clarify.done_entry(job, items, summary, source)
-    done["dropped"] = entry.get("dropped", 0)
+    done.update(keep, clarify_rounds=round_)  # A-6b: сколько вопросов понадобилось
     assistant_ai._put(
         schema,
         user_pk,

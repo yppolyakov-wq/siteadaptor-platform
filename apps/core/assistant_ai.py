@@ -13,6 +13,7 @@
 
 from __future__ import annotations
 
+import contextvars
 import hashlib
 import json
 import logging
@@ -460,6 +461,10 @@ def _digest(lang: str, prompt_wo_marker: str, ctx: dict) -> str:
     return hashlib.sha256(raw.encode()).hexdigest()
 
 
+#: A-6b: ключ обработчика роутера на время обработки фразы (пишется в запись задачи)
+ROUTE: contextvars.ContextVar[str] = contextvars.ContextVar("assistant_route", default="")
+
+
 def _put(
     schema: str, user_pk, entry: dict, ttl: int = RESULT_TTL, job: str = "", q: str = ""
 ) -> str:
@@ -468,6 +473,9 @@ def _put(
     from django.core.cache import cache
 
     job = job or uuid.uuid4().hex
+    route = ROUTE.get()
+    if route and not entry.get("route"):
+        entry = {**entry, "route": route}
     cache.set(_job_key(schema, user_pk, job), {**entry, "v": ENTRY_V}, ttl)
     if q and entry.get("state") == "done":
         from apps.core import assistant_history

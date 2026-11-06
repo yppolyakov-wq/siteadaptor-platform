@@ -51,3 +51,9 @@ ops: после деплоя `assistant_report --days 14` — базовая л�
 A-6a — `django-reviewer` + `code-reviewer` (риск подгонки детекторов); A-6b — `django-reviewer`,
 `security-reviewer` (PII в samples, текст в ключах, межтенантность), `silent-failure-hunter`,
 `database-reviewer` (агрегаты `AssistantTurn` по `created_at` + JSON-фильтр).
+
+## 8. Исполнено (2026-11-06)
+A-6a — `assistant_phrases` + `assistant_eval`. A-6b — вместо `request.assistant_route` ключ
+обработчика несёт contextvar `assistant_ai.ROUTE` (ставится и снимается в `assistant_router.route`;
+запись задачи берёт его в `_put`, ИИ-задача и ответ на уточнение переносят `route` явно);
+`assistant_stats`, `assistant_quality`, `assistant_report`. Прежний `on_outcome` — лог, не тронут.
