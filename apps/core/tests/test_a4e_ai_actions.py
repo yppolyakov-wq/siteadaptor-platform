@@ -65,8 +65,12 @@ def _model(data, error=None):
     return gen, run
 
 
-def _ref(ctx_or_user, tenant, kind, name):
-    ctx = assistant_ai_actions.wants(_req(tenant, user=ctx_or_user), f"{name} ändern")
+CTX_PHRASE = "Käsekuchen Apfelstrudel Torten ändern"
+
+
+def _ref(user, tenant, kind, name, phrase=CTX_PHRASE):
+    """Номер объекта в списке, который увидит модель для ЭТОЙ фразы (названные — первыми)."""
+    ctx = assistant_ai_actions.wants(_req(tenant, user=user), phrase)
     for i, (k, _pk, names) in enumerate(ctx["objects"]):
         if k == kind and name in names:
             return i
@@ -93,7 +97,7 @@ PHRASE = "Den Apfelstrudel bitte erstmal nicht mehr anbieten"
 
 def test_ai_hide_then_undo(ai_on, bakery, shop):
     user = _user()
-    ref = _ref(user, bakery, "product", "Apfelstrudel")
+    ref = _ref(user, bakery, "product", "Apfelstrudel", PHRASE)
     user, got, gen = _run(bakery, PHRASE, _hide(ref), user=user)
     assert gen.called
     html = _html(bakery, user, got["job"])
@@ -243,8 +247,9 @@ def test_category_all_is_expanded_by_server(ai_on, bakery, shop):
 
 def test_two_items_apply_together(ai_on, bakery, shop):
     user = _user()
-    kref = _ref(user, bakery, "product", "Käsekuchen")
-    sref = _ref(user, bakery, "product", "Apfelstrudel")
+    two = "Käsekuchen jetzt 3,90 und Apfelstrudel raus"
+    kref = _ref(user, bakery, "product", "Käsekuchen", two)
+    sref = _ref(user, bakery, "product", "Apfelstrudel", two)
     data = {
         "not_action": False,
         "items": [
@@ -253,6 +258,7 @@ def test_two_items_apply_together(ai_on, bakery, shop):
         ],
     }
     user, got, _g = _run(bakery, "Käsekuchen jetzt 3,90 und Apfelstrudel raus", data, user=user)
+    _html(bakery, user, got["job"])  # владелец увидел предпросмотр
     _apply(bakery, user, got["job"], TAKE)
     assert Product.objects.get(pk=shop.kase.pk).base_price == Decimal("3.90")
     assert Product.objects.get(pk=shop.strudel.pk).is_active is False
@@ -266,9 +272,10 @@ def test_price_needs_preise_edit(ai_on, bakery, shop, monkeypatch):
         permissions, "has_perm", lambda user, perm: perm != "preise.edit" and real(user, perm)
     )
     user = _user()
-    ref = _ref(user, bakery, "product", "Käsekuchen")
+    phrase = "Käsekuchen ab jetzt für 3,90 anbieten"
+    ref = _ref(user, bakery, "product", "Käsekuchen", phrase)
     data = {"items": [{"action": "product.price", "ref": ref, "price_text": "3,90"}]}
-    user, got, _g = _run(bakery, "Käsekuchen ab jetzt für 3,90 anbieten", data, user=user)
+    user, got, _g = _run(bakery, phrase, data, user=user)
     assert "data-assistant-apply-btn" not in _html(bakery, user, got["job"])
 
 
@@ -285,7 +292,7 @@ def test_provider_failure_refunds(ai_on, bakery, shop):
 
 def test_cache_keeps_model_answer_not_items(ai_on, bakery, shop):
     user = _user()
-    ref = _ref(user, bakery, "product", "Apfelstrudel")
+    ref = _ref(user, bakery, "product", "Apfelstrudel", PHRASE)
     _u, first, gen1 = _run(bakery, PHRASE, _hide(ref), user=user)
     assistant_ai.job_state(_req(bakery, user=user), first["job"])
     _u, second, gen2 = _run(bakery, PHRASE, _hide(ref), user=user)
@@ -296,7 +303,7 @@ def test_cache_keeps_model_answer_not_items(ai_on, bakery, shop):
 
 def test_history_has_only_summary(ai_on, bakery, shop):
     user = _user()
-    ref = _ref(user, bakery, "product", "Apfelstrudel")
+    ref = _ref(user, bakery, "product", "Apfelstrudel", PHRASE)
     user, got, _g = _run(bakery, PHRASE, _hide(ref), user=user)
     assistant_ai.job_state(_req(bakery, user=user), got["job"])
     turn = AssistantTurn.objects.get(job=got["job"])
@@ -317,7 +324,7 @@ def test_us_notice_in_preview(ai_on, bakery, shop, monkeypatch):
         disclosure, "active_processors", lambda: [("Anthropic PBC", "San Francisco, USA", False)]
     )
     user = _user()
-    ref = _ref(user, bakery, "product", "Apfelstrudel")
+    ref = _ref(user, bakery, "product", "Apfelstrudel", PHRASE)
     user, got, _g = _run(bakery, PHRASE, _hide(ref), user=user)
     assert "data-ai-notice" in _html(bakery, user, got["job"])
 
@@ -335,3 +342,96 @@ def test_full_path_through_ai_layer(ai_on, bakery, shop):
     entry = assistant_ai.job_state(_req(bakery, user=user), got["job"])
     assert entry["state"] == "done" and entry["outcome"] in ("actions", "fallback")
     assert _html(bakery, user, got["job"])
+
+
+# ── правки по ревью ECC (django · security · silent-failure) ─────────────────────────
+
+
+@pytest.mark.parametrize(
+    ("phrase", "names", "named"),
+    [
+        ("Strudel nicht mehr anbieten", ["Apfelstrudel"], True),  # хвост сложного слова
+        ("убери пока штрудель с сайта", ["Apfelstrudel"], True),  # другая азбука
+        ("Torten raus", ["Torte"], True),  # склонение
+        ("mach das und das bitte", ["Brot und Butter"], False),  # служебные слова
+        ("Apfelkuchen raus", ["Apfelstrudel"], False),  # сосед с тем же началом
+    ],
+)
+def test_named_in_phrase(phrase, names, named):
+    assert assistant_ai_actions._named(phrase.casefold(), names) is named
+
+
+def test_category_all_needs_all_word(ai_on, bakery, shop):
+    user = _user()
+    cref = _ref(user, bakery, "category", "Torten")
+    data = {"items": [{"action": "product.price", "ref": cref, "scope": "category_all"}]}
+    items, dropped = assistant_ai_actions.check_actions(
+        bakery, user, "Torten 10 % teurer", _ctx(bakery, user), data
+    )
+    assert not items and dropped == 1
+
+
+def test_relative_price_with_two_items_is_not_guessed(ai_on, bakery, shop):
+    user = _user()
+    kref = _ref(user, bakery, "product", "Käsekuchen")
+    sref = _ref(user, bakery, "product", "Apfelstrudel")
+    data = {
+        "items": [
+            {"action": "product.price", "ref": kref, "price_text": "10 %"},
+            {"action": "product.price", "ref": sref, "price_text": "3,00"},
+        ]
+    }
+    items, _d = assistant_ai_actions.check_actions(
+        bakery, user, "Käsekuchen 10 % billiger, Apfelstrudel auf 3,00", _ctx(bakery, user), data
+    )
+    assert [it["values"]["price"] for it in items] == ["", ""]
+
+
+def test_unclear_has_its_own_text(ai_on, bakery, shop):
+    user = _user()
+    data = {"items": [{"action": "product.visibility", "ref": 999, "visible": False}]}
+    user, got, _g = _run(bakery, PHRASE, data, user=user)
+    html = _html(bakery, user, got["job"])
+    assert "data-assistant-action-note" in html and "nicht verfügbar" not in html
+
+
+def test_apply_on_unseen_proposal_is_refused(ai_on, bakery, shop):
+    """«Alles übernehmen» по задаче, чей пакет владелец ещё не видел, — истёк."""
+    user = _user()
+    ref = _ref(user, bakery, "product", "Apfelstrudel", PHRASE)
+    user, got, _g = _run(bakery, PHRASE, _hide(ref), user=user)
+    _apply(bakery, user, got["job"], TAKE)  # без опроса — пакет ещё «сырой»
+    assert Product.objects.get(pk=shop.strudel.pk).is_active is True
+
+
+def test_concurrent_polls_build_once(ai_on, bakery, shop):
+    user = _user()
+    ref = _ref(user, bakery, "product", "Apfelstrudel", PHRASE)
+    user, got, _g = _run(bakery, PHRASE, _hide(ref), user=user)
+    from django.core.cache import cache
+
+    key = assistant_ai._job_key("public", user.pk, got["job"])
+    raw = cache.get(key)
+    first = assistant_ai_actions.finish(_req(bakery, user=user), got["job"], raw)
+    second = assistant_ai_actions.finish(_req(bakery, user=user), got["job"], raw)
+    assert first["outcome"] == "actions" and second["state"] == "pending"
+
+
+def test_late_worker_does_not_overwrite_timeout(ai_on, bakery, shop):
+    from django.core.cache import cache
+
+    user = _user()
+    job = "a" * 32
+    key = assistant_ai._job_key("public", user.pk, job)
+    cache.set(key, {"state": "pending", "deadline": 0, "ctx": {}, "v": assistant_ai.ENTRY_V})
+    timed_out = assistant_ai.job_state(_req(bakery, user=user), job)
+    assert timed_out["code"] == "timeout"
+    assert not assistant_ai.finalize("public", user.pk, job)  # поздний воркер проиграет
+
+
+def test_empty_answer_is_not_cached(ai_on, bakery, shop):
+    user = _user()
+    _u, first, gen1 = _run(bakery, PHRASE, {"not_action": False, "items": []}, user=user)
+    assistant_ai.job_state(_req(bakery, user=user), first["job"])
+    _u, second, gen2 = _run(bakery, PHRASE, {"not_action": False, "items": []}, user=user)
+    assert gen1.called and gen2.called

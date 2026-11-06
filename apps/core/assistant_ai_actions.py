@@ -25,6 +25,7 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
+import os
 import re
 import secrets
 import uuid
@@ -99,8 +100,8 @@ def wants(request, q: str) -> dict | None:
     Без ИИ, никогда не бросает (fail-closed: обычный вопрос)."""
     try:
         return _wants(request, q)
-    except Exception:  # noqa: BLE001
-        logger.warning("assistant ai actions: wants failed", exc_info=True)
+    except Exception:  # noqa: BLE001 — fail closed, но систематический сбой видно в Sentry
+        logger.exception("assistant ai actions: wants failed")
         return None
 
 
@@ -120,7 +121,10 @@ def _wants(request, q: str) -> dict | None:
     low = q.casefold()
     if not _signal(q, low, rows, kinds):
         return None
-    rows.sort(key=lambda r: kinds.index(r["kind"]))  # категории → товары → услуги
+    named = {id(r) for r in assistant_changes._matches(low, rows, kinds)[0]}
+    # названные во фразе — первыми (срез по 3500 символам их не отрежет), дальше
+    # категории → товары → услуги
+    rows.sort(key=lambda r: (id(r) not in named, kinds.index(r["kind"])))
     objects, lines, used, truncated = [], [], 0, False
     for row in rows:
         names = [_clean_name(n) for n in row["names"]]
@@ -238,7 +242,7 @@ def ask(request, q: str, ctx: dict) -> dict:
     """POST «KI fragen» с признаком действия → {"job": id} | {"code": …}."""
     from django.core.cache import cache
 
-    from apps.core import assistant_ai, help_articles, page_templates, ratelimit
+    from apps.core import assistant_ai, help_articles, ratelimit
 
     schema, user_pk = assistant_ai._schema_name(), request.user.pk
     if ratelimit.hit(
@@ -246,16 +250,16 @@ def ask(request, q: str, ctx: dict) -> dict:
         f"{schema}:{user_pk}",
         limit=assistant_ai.REQ_LIMIT,
         window=assistant_ai.RATE_WINDOW,
-    ) or ratelimit.hit(
-        "setup-plan",
-        str(user_pk),
-        limit=page_templates.PLAN_LIMIT,
-        window=page_templates.PLAN_WINDOW,
     ):
         return {"code": "quota"}
     lang = (translation.get_language() or "de")[:2]
-    ctx = {**ctx, "article_keys": [x["key"] for x in help_articles.search(request, q)[:3]]}
-    digest = _digest(lang, q, ctx)
+    try:
+        keys = [x["key"] for x in help_articles.search(request, q)[:3]]
+        ctx = {**ctx, "article_keys": keys}
+        digest = _digest(lang, q, ctx)
+    except Exception:  # noqa: BLE001 — сбой сборки: спокойный ответ, а не 500
+        logger.exception("assistant ai actions: ask context failed")
+        return {"code": "unavailable"}
     job = uuid.uuid4().hex
     base = {"task": TASK, "ctx": ctx, "lang": lang, "q": q, "digest": digest}
     hit = cache.get(_cache_key(schema, digest))
@@ -329,24 +333,26 @@ def run(*, schema: str, user_pk, job: str, entry: dict) -> None:
         else:
             data = _shape(result.data)
             if data is None:
-                outcome = assistant_ai._result("fallback", ctx, code="invalid")
+                logger.warning("assistant ai actions: invalid model answer %s", type(result.data))
+                outcome = assistant_ai._result("fallback", ctx, code="unavailable")
             else:
-                cache.set(_cache_key(schema, entry["digest"]), data, CACHE_TTL)
+                if data["items"] or data["not_action"]:  # пустой «не понял» не закрепляем
+                    cache.set(_cache_key(schema, entry["digest"]), data, CACHE_TTL)
                 outcome = {k: entry[k] for k in ("task", "ctx", "lang", "q", "digest")}
-                outcome.update(state="raw", data=data)
+                outcome.update(state="raw", data=data, counted=entry.get("counted"))
     except Exception:  # noqa: BLE001 — сбой задачи не должен висеть «pending»
         logger.exception("assistant ai actions job failed")
     finally:
-        if outcome.get("code") in assistant_ai.SYSTEM_CODES:
-            assistant_ai._refund(entry.get("counted"))
         try:
-            current = cache.get(assistant_ai._job_key(schema, user_pk, job))
-            # опрос уже объявил таймаут — поздний ответ его не перезаписывает (§14.11 п. 16)
-            if isinstance(current, dict) and current.get("state") == "pending":
+            # опрос уже объявил таймаут — поздний ответ его не перезаписывает, попытки
+            # второй раз не возвращаются (§14.11 п. 16; один «финализатор» на задачу)
+            if assistant_ai.finalize(schema, user_pk, job):
+                if outcome.get("code") in assistant_ai.SYSTEM_CODES:
+                    assistant_ai._refund(entry.get("counted"))
                 is_done = outcome.get("state") == "done"
                 assistant_ai._put(schema, user_pk, outcome, job=job, q=q if is_done else "")
         except Exception:  # noqa: BLE001 — Redis упал: опрос увидит протухшую задачу
-            logger.warning("assistant ai actions: result not stored")
+            logger.warning("assistant ai actions: result not stored", exc_info=True)
         assistant_ai._release(schema, user_pk, job)
         assistant_ai.on_outcome(outcome.get("code", "") or "actions_raw")
 
@@ -355,8 +361,11 @@ def _shape(data) -> dict | None:
     """Ответ модели → {not_action, items[≤10]} с полями только известных типов, или None."""
     if not isinstance(data, dict):
         return None
+    raw_items = data.get("items")
+    if raw_items is not None and not isinstance(raw_items, list):
+        return None
     items = []
-    for raw in (data.get("items") or [])[:MAX_ITEMS]:
+    for raw in (raw_items or [])[:MAX_ITEMS]:
         if not isinstance(raw, dict) or raw.get("action") not in AI_ACTIONS:
             continue
         item = {"action": raw["action"], "scope": "one"}
@@ -389,17 +398,101 @@ def _objects(ctx: dict) -> list[tuple[str, object | None, list[str]]]:
     return [(kind, found.get((kind, pk)), names) for kind, pk, names in ctx.get("objects") or ()]
 
 
-_WORD = re.compile(r"[^\W\d_]{3,}", re.UNICODE)
+_WORD = re.compile(r"[^\W\d_]{4,}", re.UNICODE)
+#: служебные слова 4+ букв: «Brot und Butter», «Kaffee mit Milch» не «названы» фразой
+#: «… und …» (ревью безопасности: имя из импорта сайта может состоять из одних таких слов)
+_STOP = frozenset(
+    "eine einen einem einer oder aber auch noch nach über unter ohne sehr bitte jetzt "
+    "with from that this have mehr alle allen aller sofort erstmal "
+    "этот эта это эти все всех тоже ещё пока надо".split()
+)
+_CYR = str.maketrans(
+    {
+        "а": "a",
+        "б": "b",
+        "в": "w",
+        "г": "g",
+        "д": "d",
+        "е": "e",
+        "ё": "e",
+        "ж": "zh",
+        "з": "s",
+        "и": "i",
+        "й": "j",
+        "к": "k",
+        "л": "l",
+        "м": "m",
+        "н": "n",
+        "о": "o",
+        "п": "p",
+        "р": "r",
+        "с": "s",
+        "т": "t",
+        "у": "u",
+        "ф": "f",
+        "х": "ch",
+        "ц": "z",
+        "ч": "ch",
+        "ш": "sh",
+        "щ": "sch",
+        "ъ": "",
+        "ы": "y",
+        "ь": "",
+        "э": "e",
+        "ю": "ju",
+        "я": "ja",
+        "і": "i",
+        "ї": "ji",
+        "є": "je",
+        "ґ": "g",
+    }
+)
+FUZZY = 0.8  # «штрудель» → «schtrudel» ≈ «strudel»
+
+
+def _words(text: str) -> list[str]:
+    return [w for w in _WORD.findall(text.casefold()) if w not in _STOP]
+
+
+def _latin(word: str) -> str:
+    return (
+        word.translate(_CYR)
+        .replace("ä", "a")
+        .replace("ö", "o")
+        .replace("ü", "u")
+        .replace("ß", "ss")
+    )
+
+
+def _word_hits(word: str, part: str) -> bool:
+    """Слово фразы называет часть имени: целиком, по началу (склонения: «Torte/Torten»,
+    «штрудель/штруделя»), хвостом сложного слова («Strudel» → «Apfelstrudel») или
+    похожим написанием другой азбукой («штрудель» → «Strudel»)."""
+    from difflib import SequenceMatcher
+
+    if word == part:
+        return True
+    # склонение: общее начало покрывает оба слова, кроме ≤ 3 букв окончания
+    # («Torte/Torten», «штрудель/штруделя»), а не «Apfelkuchen» ≠ «Apfelstrudel»
+    common = len(os.path.commonprefix([word, part]))
+    if common >= 5 and common >= max(len(word), len(part)) - 3:
+        return True
+    if len(word) >= 5 and part.endswith(word):
+        return True
+    a, b = _latin(word), _latin(part)
+    if min(len(a), len(b)) < 5:
+        return False
+    if b.endswith(a[-5:]) and len(a) >= 6:
+        return SequenceMatcher(None, a, b[-len(a) :]).ratio() >= FUZZY
+    return SequenceMatcher(None, a, b).ratio() >= FUZZY
 
 
 def _named(q_cf: str, names: list[str]) -> bool:
-    """Объект назван во фразе: слово имени (≥ 3 букв) или его начало (5 букв — склонения:
-    «штрудель/штруделя», «Torte/Torten») встречается целым словом."""
-    words = set(_WORD.findall(q_cf))
-    stems = {w[:5] for w in words if len(w) >= 5}
+    """Объект назван во фразе — хоть одно значимое слово имени (≥ 4 букв, не служебное)."""
+    words = _words(q_cf)
     for name in names:
-        for part in _WORD.findall(name.casefold()):
-            if part in words or (len(part) >= 5 and part[:5] in stems):
+        for part in _words(name):
+            if any(_word_hits(w, part) for w in words):
                 return True
     return False
 
@@ -413,13 +506,19 @@ def _ambiguous(objects, index: int) -> bool:
     )
 
 
-def _price_value(q: str, kind: str, obj, price_text: str) -> tuple[str, str, bool]:
+def _price_value(
+    q: str, kind: str, obj, price_text: str, *, single: bool = True
+) -> tuple[str, str, bool]:
     """(новая цена как текст, подсказка, fixed). Абсолютная — только число из фразы;
     «10 % дешевле» — расчёт сервера (одна формула с WR-6/A-4d), только для товаров."""
     from apps.catalog import bulk_price
     from apps.core import assistant_bulk, assistant_changes, setup_assistant
 
-    if assistant_changes._RELATIVE.search(q) or assistant_bulk._PCT.search(q):
+    relative_q = bool(assistant_changes._RELATIVE.search(q) or assistant_bulk._PCT.search(q))
+    if relative_q and not single:
+        # «Torte 10 % billiger, Brot auf 3,00»: чья доля к какому товару — не угадываем
+        return "", _("Bitte die Preise einzeln eintragen."), False
+    if relative_q:
         if kind != "product":
             return (
                 "",
@@ -443,6 +542,7 @@ def check_actions(tenant, user, q: str, ctx: dict, data: dict) -> tuple[list[dic
     q_cf = q.casefold()
     items, dropped, seen = [], 0, set()
     raw_items = list((data or {}).get("items") or [])
+    price_items = sum(1 for r in raw_items if str(r.get("action", "")).endswith(".price"))
     bulk_raw = [r for r in raw_items if r.get("scope") == "category_all"]
     if bulk_raw:  # массовый пункт — только один и только он (§14.11 п. 13)
         dropped += len(raw_items) - 1
@@ -461,6 +561,9 @@ def check_actions(tenant, user, q: str, ctx: dict, data: dict) -> tuple[list[dic
             if obj_kind != "category" or kind != "product" or action == "product.move":
                 dropped += 1
                 continue
+            if not _quantified(q_cf, names):  # как у правил A-4d: без «все» — не массово
+                dropped += 1
+                continue
             verb = "price" if action == "product.price" else _visibility_verb(raw)
             if not verb:
                 dropped += 1
@@ -470,7 +573,9 @@ def check_actions(tenant, user, q: str, ctx: dict, data: dict) -> tuple[list[dic
             dropped += 1
             continue
         if action.endswith(".price"):
-            value, note, fixed = _price_value(q, kind, obj, raw.get("price_text") or "")
+            value, note, fixed = _price_value(
+                q, kind, obj, raw.get("price_text") or "", single=price_items <= 1
+            )
             item = assistant_changes.item_for(kind, "price", obj, value, note)
             if fixed:
                 item["fixed"] = True
@@ -495,6 +600,17 @@ def check_actions(tenant, user, q: str, ctx: dict, data: dict) -> tuple[list[dic
     return items, dropped
 
 
+def _quantified(q_cf: str, names: list[str]) -> bool:
+    """Слово «все» рядом с названием категории — то же правило, что у A-4d."""
+    from apps.core import assistant_bulk
+
+    for name in names:
+        m = re.search(r"(?<!\w)" + re.escape(name.casefold()[:5]), q_cf)
+        if m and assistant_bulk._quantified(q_cf, m.start(), m.end()):
+            return True
+    return False
+
+
 def _visibility_verb(raw: dict) -> str:
     if raw.get("visible") is True:
         return "show"
@@ -505,21 +621,25 @@ def _visibility_verb(raw: dict) -> str:
 
 def finish(request, job: str, entry: dict) -> dict:
     """Запись «ответ модели» → готовая запись пакета (в запросе опроса). Никогда не бросает:
-    сбой проверки — статьи вместо пакета, в базу ничего не пишется."""
-    from apps.core import assistant_ai, assistant_bulk
+    сбой проверки — честное сообщение и статьи, в базу ничего не пишется. Два одновременных
+    опроса не собирают пакет дважды: второй видит «ещё думаю» и спросит снова."""
+    from django.core.cache import cache
+
+    from apps.core import assistant_actions, assistant_ai, assistant_bulk
 
     schema, user_pk = assistant_ai._schema_name(), request.user.pk
+    key = assistant_ai._job_key(schema, user_pk, job)
+    if not cache.add(f"{key}:finish", 1, 30):
+        return {"state": "pending", "v": assistant_ai.ENTRY_V}
     ctx, q = entry.get("ctx") or {}, str(entry.get("q") or "")
     data = entry.get("data") or {}
+    dropped = 0
     try:
-        with translation.override(entry.get("lang") or None):
-            items, dropped = ([], 0)
+        with translation.override(entry.get("lang") or "de"):
+            items = []
             if not data.get("not_action"):
                 items, dropped = check_actions(request.tenant, request.user, q, ctx, data)
-        if not items:
-            code = "unknown" if data.get("not_action") else "unclear"
-            done = assistant_ai._result("fallback", ctx, code=code)
-        else:
+        if items:
             bulk = assistant_bulk.meta(items)
             summary = [
                 {"action": it["action"], "name": it["values"].get("name", "")} for it in items
@@ -535,11 +655,14 @@ def finish(request, job: str, entry: dict) -> dict:
                 "job": job,
                 "summary": summary,
             }
-    except Exception:  # noqa: BLE001
-        logger.warning("assistant ai actions: check failed", exc_info=True)
-        done = assistant_ai._result("fallback", ctx, code="error")
-    from apps.core import assistant_actions
-
+        else:
+            # «понял фразу, но однозначного товара нет» — своим текстом, а не «nicht verfügbar»
+            code = "unknown" if data.get("not_action") else "unclear"
+            done = {**assistant_ai._result("fallback", ctx, code=code), "dropped": dropped}
+    except Exception:  # noqa: BLE001 — ошибка кода: в Sentry, владельцу — честно, попытку назад
+        logger.exception("assistant ai actions: check failed")
+        assistant_ai._refund(entry.get("counted"))
+        done = assistant_ai._result("fallback", ctx, code="check_failed")
     ttl = assistant_actions.ACTIONS_TTL if done.get("outcome") == "actions" else None
     try:
         if ttl:
@@ -547,6 +670,6 @@ def finish(request, job: str, entry: dict) -> dict:
         else:
             assistant_ai._put(schema, user_pk, done, job=job, q=q)
     except Exception:  # noqa: BLE001 — Redis: покажем ответ один раз, без сохранения
-        logger.warning("assistant ai actions: finished entry not stored")
+        logger.warning("assistant ai actions: finished entry not stored", exc_info=True)
     assistant_ai.on_outcome(done.get("code") or "actions")
     return {**done, "v": assistant_ai.ENTRY_V}

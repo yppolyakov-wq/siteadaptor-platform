@@ -34715,3 +34715,20 @@ msgstr[0] "%(n)s пропозицію відкинуто — неоднозна�
 msgstr[1] "%(n)s пропозиції відкинуто — неоднозначно."
 msgstr[2] "%(n)s пропозицій відкинуто — неоднозначно."
 msgstr[3] "%(n)s пропозиції відкинуто — неоднозначно."
+
+#: apps/core/assistant_bulk.py
+msgid "Bitte die Preise einzeln eintragen."
+msgstr "Введіть, будь ласка, ціни окремо."
+
+#: apps/core/assistant_bulk.py
+msgid "Den Vorschlag konnte ich nicht prüfen — bitte im Sortiment ändern."
+msgstr "Не вдалося перевірити пропозицію — змініть, будь ласка, в асортименті."
+
+#: apps/core/assistant_bulk.py
+msgid "Ich habe keinen eindeutigen Eintrag dazu gefunden — bitte das Produkt genau so nennen, wie es im Sortiment heißt, oder dort ändern."
+msgstr "Не знайшов однозначної позиції — назвіть товар точно так, як він називається в асортименті, або змініть його там."
+
+#: apps/core/assistant_bulk.py
+#, python-format
+msgid "Verworfene Vorschläge: %(n)s."
+msgstr "Відкинуто пропозицій: %(n)s."

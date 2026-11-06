@@ -83,7 +83,8 @@ TASK_DATA = {
     ),
     "assistant_actions": (
         "Änderungen am Sortiment per Assistent im Kundenbereich: Ihr Satz (ohne erkennbare "
-        "Kontaktdaten) und die Namen Ihrer Kategorien, Produkte und Leistungen (keine Preise, "
+        "Kontaktdaten) und die Namen Ihrer Kategorien, Produkte und Leistungen, auch nicht "
+        "veröffentlichter (keine Preise, "
         "Kunden-, Bestell- oder Nachrichtendaten); gespeichert wird erst, wenn Sie den "
         "Vorschlag übernehmen",
         "Art. 6 Abs. 1 lit. b DSGVO",

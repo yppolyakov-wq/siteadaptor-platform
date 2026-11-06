@@ -34728,3 +34728,20 @@ msgstr[0] "%(n)s предложение отброшено — неоднозн�
 msgstr[1] "%(n)s предложения отброшены — неоднозначно."
 msgstr[2] "%(n)s предложений отброшено — неоднозначно."
 msgstr[3] "%(n)s предложения отброшено — неоднозначно."
+
+#: apps/core/assistant_bulk.py
+msgid "Bitte die Preise einzeln eintragen."
+msgstr "Введите, пожалуйста, цены по отдельности."
+
+#: apps/core/assistant_bulk.py
+msgid "Den Vorschlag konnte ich nicht prüfen — bitte im Sortiment ändern."
+msgstr "Не удалось проверить предложение — измените, пожалуйста, в ассортименте."
+
+#: apps/core/assistant_bulk.py
+msgid "Ich habe keinen eindeutigen Eintrag dazu gefunden — bitte das Produkt genau so nennen, wie es im Sortiment heißt, oder dort ändern."
+msgstr "Не нашёл однозначной позиции — назовите товар точно так, как он называется в ассортименте, или измените его там."
+
+#: apps/core/assistant_bulk.py
+#, python-format
+msgid "Verworfene Vorschläge: %(n)s."
+msgstr "Отброшено предложений: %(n)s."

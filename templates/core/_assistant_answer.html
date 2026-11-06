@@ -34,7 +34,7 @@
   </ul>
   {% endif %}
   {% else %}
-  <p class="text-sm" role="status" data-assistant-fallback>{% if ans.outcome == "scope" %}{{ ans.scope_text }}{% elif ans.unavailable %}{% trans "Der KI-Assistent ist gerade nicht verfügbar." %}{% if ans.articles %} {% trans "Diese Anleitungen helfen vielleicht." %}{% endif %}{% else %}{% trans "Ich bin nicht sicher — diese Anleitungen helfen vielleicht." %}{% endif %}</p>
+  <p class="text-sm" role="status" data-assistant-fallback>{% if ans.action_note %}<span data-assistant-action-note>{{ ans.action_note }}</span>{% elif ans.outcome == "scope" %}{{ ans.scope_text }}{% elif ans.unavailable %}{% trans "Der KI-Assistent ist gerade nicht verfügbar." %}{% if ans.articles %} {% trans "Diese Anleitungen helfen vielleicht." %}{% endif %}{% else %}{% trans "Ich bin nicht sicher — diese Anleitungen helfen vielleicht." %}{% endif %}</p>
   {% if ans.articles %}<div class="space-y-2">{% for a in ans.articles %}{% include "core/_assistant_article.html" %}{% endfor %}</div>{% endif %}
   {% endif %}
 </div>

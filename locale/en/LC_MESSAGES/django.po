@@ -34419,3 +34419,20 @@ msgid "%(n)s Vorschlag verworfen — nicht eindeutig."
 msgid_plural "%(n)s Vorschläge verworfen — nicht eindeutig."
 msgstr[0] "%(n)s suggestion discarded — not unambiguous."
 msgstr[1] "%(n)s suggestions discarded — not unambiguous."
+
+#: apps/core/assistant_bulk.py
+msgid "Bitte die Preise einzeln eintragen."
+msgstr "Please enter the prices one by one."
+
+#: apps/core/assistant_bulk.py
+msgid "Den Vorschlag konnte ich nicht prüfen — bitte im Sortiment ändern."
+msgstr "I couldn't check the suggestion — please change it in the product list."
+
+#: apps/core/assistant_bulk.py
+msgid "Ich habe keinen eindeutigen Eintrag dazu gefunden — bitte das Produkt genau so nennen, wie es im Sortiment heißt, oder dort ändern."
+msgstr "I couldn't find a clear entry for this — please name the product exactly as it is called in your product list, or change it there."
+
+#: apps/core/assistant_bulk.py
+#, python-format
+msgid "Verworfene Vorschläge: %(n)s."
+msgstr "Discarded suggestions: %(n)s."

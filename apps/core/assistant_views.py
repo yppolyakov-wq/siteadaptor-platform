@@ -261,7 +261,9 @@ def assistant_apply(request, job):
     POST меняет значения полей и галочки по индексу. Повтор — тот же отчёт."""
     from apps.core import assistant_actions, assistant_ai
 
-    entry = assistant_ai.job_state(request, job)
+    # A-4e: «сырой» ответ ИИ здесь не превращается в пакет — применить можно только то,
+    # что владелец видел в предпросмотре
+    entry = assistant_ai.job_state(request, job, convert=False)
     if entry is None or entry.get("state") != "done" or not entry.get("actions"):
         return _actions_response(request, job, code="expired")
     try:

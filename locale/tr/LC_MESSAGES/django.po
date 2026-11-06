@@ -34565,3 +34565,20 @@ msgid "%(n)s Vorschlag verworfen — nicht eindeutig."
 msgid_plural "%(n)s Vorschläge verworfen — nicht eindeutig."
 msgstr[0] "%(n)s öneri atıldı — açık değil."
 msgstr[1] "%(n)s öneri atıldı — açık değil."
+
+#: apps/core/assistant_bulk.py
+msgid "Bitte die Preise einzeln eintragen."
+msgstr "Lütfen fiyatları tek tek girin."
+
+#: apps/core/assistant_bulk.py
+msgid "Den Vorschlag konnte ich nicht prüfen — bitte im Sortiment ändern."
+msgstr "Öneriyi kontrol edemedim — lütfen ürün listesinde değiştirin."
+
+#: apps/core/assistant_bulk.py
+msgid "Ich habe keinen eindeutigen Eintrag dazu gefunden — bitte das Produkt genau so nennen, wie es im Sortiment heißt, oder dort ändern."
+msgstr "Bunun için net bir kayıt bulamadım — lütfen ürünü ürün listesindeki adıyla yazın veya orada değiştirin."
+
+#: apps/core/assistant_bulk.py
+#, python-format
+msgid "Verworfene Vorschläge: %(n)s."
+msgstr "Atılan öneriler: %(n)s."

@@ -476,6 +476,14 @@ def _put(
     return job
 
 
+def finalize(schema: str, user_pk, job: str) -> bool:
+    """Право записать ИТОГ задачи — ровно одному: воркеру с ответом ИЛИ опросу с таймаутом.
+    Проигравший ничего не пишет и попытки второй раз не возвращает (A-4e, ревью)."""
+    from django.core.cache import cache
+
+    return bool(cache.add(f"{_job_key(schema, user_pk, job)}:final", 1, JOB_TTL))
+
+
 def _release(schema: str, user_pk, job: str) -> None:
     """Снять замок, только если он ЭТОЙ задачи (поздний finally не снимает чужой замок)."""
     from django.core.cache import cache
@@ -790,17 +798,18 @@ def run_job(*, schema: str, user_pk, job: str) -> None:
     except Exception:  # noqa: BLE001 — сбой задачи не должен висеть «pending»
         logger.exception("assistant answer job failed")
     finally:
-        if outcome.get("code") in SYSTEM_CODES:
-            _refund(entry.get("counted"))
         try:
-            _put(schema, user_pk, outcome, job=job, q=str(entry.get("q") or ""))
+            if finalize(schema, user_pk, job):  # опрос уже объявил таймаут — молчим
+                if outcome.get("code") in SYSTEM_CODES:
+                    _refund(entry.get("counted"))
+                _put(schema, user_pk, outcome, job=job, q=str(entry.get("q") or ""))
         except Exception:  # noqa: BLE001 — Redis упал: опрос увидит протухшую задачу
             logger.warning("assistant answer: result not stored")
         _release(schema, user_pk, job)
         on_outcome(outcome.get("code", ""))
 
 
-def job_state(request, job: str) -> dict | None:
+def job_state(request, job: str, *, convert: bool = True) -> dict | None:
     """Запись задачи этого пользователя (или None — чужая/мусорная/протухшая/старая версия).
     Просроченный pending превращается в «nicht verfügbar» (замок снят, попытки назад)."""
     from django.core.cache import cache
@@ -812,6 +821,8 @@ def job_state(request, job: str) -> dict | None:
     if not isinstance(entry, dict) or entry.get("v") != ENTRY_V:
         return None
     if entry.get("state") == "pending" and _now() > float(entry.get("deadline") or 0):
+        if not finalize(schema, user_pk, job):  # воркер как раз пишет ответ — спросим снова
+            return entry
         logger.warning("assistant answer: job timed out")
         _refund(entry.get("counted"))
         _release(schema, user_pk, job)
@@ -819,7 +830,9 @@ def job_state(request, job: str) -> dict | None:
         entry = _result("fallback", ctx, code="timeout")
         _put(schema, user_pk, entry, job=job)
         entry["v"] = ENTRY_V
-    if entry.get("state") == "raw":  # A-4e: ответ модели → пункты пакета в ЭТОМ запросе
+    # A-4e: ответ модели → пункты пакета в ЭТОМ запросе (права, язык, свежее «vorher»);
+    # «Alles übernehmen» (convert=False) не собирает пакет, который владелец не видел
+    if entry.get("state") == "raw" and convert:
         from apps.core import assistant_ai_actions
 
         entry = assistant_ai_actions.finish(request, job, entry)
@@ -895,11 +908,17 @@ def _present(request, entry: dict) -> dict:
             if item:
                 item["open"] = False
                 articles.append(item)
-    unavailable = outcome == "fallback" and (entry.get("code") in SYSTEM_CODES or not articles)
+    action_note = _action_note(entry)
+    unavailable = (
+        outcome == "fallback"
+        and not action_note
+        and (entry.get("code") in SYSTEM_CODES or not articles)
+    )
     return {
         "state": "done",
         "outcome": outcome,
         "unavailable": unavailable,
+        "action_note": action_note,
         "text": entry.get("text", ""),
         "links": links,
         "states": states,
@@ -907,6 +926,24 @@ def _present(request, entry: dict) -> dict:
         "scope_text": _scope_text(entry.get("topic", "")) if outcome == "scope" else "",
         "ai_label": AI_LABEL,
     }
+
+
+def _action_note(entry: dict) -> str:
+    """A-4e: ИИ понял фразу как действие, но пакета нет — сказать почему, а не «nicht
+    verfügbar» (модель работала; сервер отбросил неоднозначное)."""
+    code = entry.get("code")
+    if code == "unclear":
+        n = int(entry.get("dropped") or 0)
+        text = _(
+            "Ich habe keinen eindeutigen Eintrag dazu gefunden — bitte das Produkt genau so "
+            "nennen, wie es im Sortiment heißt, oder dort ändern."
+        )
+        if n:
+            text = f"{text} " + _("Verworfene Vorschläge: %(n)s.") % {"n": n}
+        return text
+    if code == "check_failed":
+        return _("Den Vorschlag konnte ich nicht prüfen — bitte im Sortiment ändern.")
+    return ""
 
 
 def _present_actions(request, entry: dict) -> dict:
