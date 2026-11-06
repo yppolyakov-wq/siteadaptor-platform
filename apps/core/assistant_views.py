@@ -94,19 +94,13 @@ def assistant_view(request):
         diagnose=diagnose,
         artikel=(request.GET.get("artikel") or "")[:40],
     )
-    from apps.core import assistant_ai, setup_assistant
+    from apps.core import assistant_ai
 
     antwort = request.GET.get("antwort") or ""
-    try:  # A-3a: «Was möchten Sie anlegen?» — видимой кнопкой, если экран тут открывается
-        anlegen = setup_assistant.reachable(request, "setup-ask") and bool(
-            setup_assistant.allowed_entities(request.tenant, request.user)
-        )
-    except Exception:  # noqa: BLE001 — кнопка-дополнение не роняет шторку
-        anlegen = False
     ctx.update(
         {
             "ai_enabled": assistant_ai.enabled(),
-            "anlegen": anlegen,
+            "chips": assistant.chips(request),
             "answer": _answer_ctx(request, antwort) if antwort else None,
             "nav": "dashboard",
             "limited": limited,

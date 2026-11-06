@@ -1,8 +1,8 @@
 {% load i18n %}
 {% comment %}AIS A-2: ответ ИИ-помощника — ожидание, ответ (текст прошёл пост-проверку, ссылки построил сервер), отказ вне рамок или статьи A-1 вместо ответа. Только autoescape, без script.{% endcomment %}
-<div data-assistant-reply data-state="{{ ans.state }}"{% if ans.state == "pending" %} aria-busy="true"{% endif %} class="mt-3 rounded-xl border border-gray-200 p-3 space-y-2">
+<div data-assistant-reply data-state="{{ ans.state }}" class="mt-3 rounded-xl border border-gray-200 p-3 space-y-2">
   {% if ans.state == "pending" %}
-  <p role="status" class="text-sm">{% trans "Der KI-Assistent sucht eine Antwort …" %}</p>
+  <p class="text-sm">{% trans "Der KI-Assistent sucht eine Antwort …" %}</p>
   {% if ans.job %}<a href="{% url 'assistant' %}?antwort={{ ans.job }}" class="inline-flex items-center min-h-[44px] text-sm text-indigo-700 hover:underline" data-assistant-refresh>{% trans "Aktualisieren" %}</a>{% endif %}
   {% elif ans.outcome == "plan" %}
   <div data-assistant-plan class="space-y-3">
@@ -40,5 +40,12 @@
   {% else %}
   <p class="text-sm" role="status" data-assistant-fallback>{% if ans.action_note %}<span data-assistant-action-note>{{ ans.action_note }}</span>{% elif ans.outcome == "scope" %}{{ ans.scope_text }}{% elif ans.unavailable %}{% trans "Der KI-Assistent ist gerade nicht verfügbar." %}{% if ans.articles %} {% trans "Diese Anleitungen helfen vielleicht." %}{% endif %}{% else %}{% trans "Ich bin nicht sicher — diese Anleitungen helfen vielleicht." %}{% endif %}</p>
   {% if ans.articles %}<div class="space-y-2">{% for a in ans.articles %}{% include "core/_assistant_article.html" %}{% endfor %}</div>{% endif %}
+  {% endif %}
+  {% if ans.where and ans.outcome != "scope" %}
+  {% comment %}AS-1: «Wo stelle ich das ein?» — экраны к фразе; URL построен с правами смотрящего.{% endcomment %}
+  <div data-assistant-where>
+    <{{ hl_sub|default:"h3" }} class="text-sm font-semibold mb-1">{% trans "Einstellungen" %}</{{ hl_sub|default:"h3" }}>
+    <ul class="divide-y divide-gray-100">{% for w in ans.where %}<li><a href="{{ w.link.url }}" class="inline-flex items-center min-h-[44px] text-indigo-700 underline">{{ w.text }}{% if w.area %} <span class="ui-muted text-sm ml-1">· {{ w.area }}</span>{% endif %} <span aria-hidden="true" class="ml-1">→</span></a></li>{% endfor %}</ul>
+  </div>
   {% endif %}
 </div>

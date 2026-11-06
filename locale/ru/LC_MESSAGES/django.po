@@ -34820,3 +34820,63 @@ msgstr "Отправляется …"
 #: apps/core/assistant_bulk.py
 msgid "Bitte keine Daten Ihrer Kundinnen und Kunden eintragen. E-Mail-Adressen und Telefonnummern werden automatisch entfernt, Namen und Adressen nicht."
 msgstr "Не вводите, пожалуйста, данные клиентов. Адреса e-mail и номера телефонов удаляются автоматически, имена и адреса — нет."
+
+msgid "Allergene bei allen Gerichten angeben"
+msgstr "Указать аллергены у всех блюд"
+
+msgid "Auf dieser Seite zu erledigen"
+msgstr "Сделать на этой странице"
+
+msgid "Erneut prüfen"
+msgstr "Проверить снова"
+
+msgid "Fragen oder sagen, was zu tun ist"
+msgstr "Спросите или напишите, что сделать"
+
+msgid "Gefunden"
+msgstr "Найдено"
+
+msgid "Ich möchte mit einem Menschen sprechen"
+msgstr "Хочу поговорить с человеком"
+
+msgid "Impressum vervollständigen"
+msgstr "Заполнить Impressum полностью"
+
+msgid "Sie chatten mit einer KI."
+msgstr "Вы общаетесь с ИИ."
+
+msgid "Status Ihres Shops"
+msgstr "Состояние магазина"
+
+msgid "Wie lege ich ein Produkt an?"
+msgstr "Как добавить товар?"
+
+msgid "Wo stelle ich die Öffnungszeiten ein?"
+msgstr "Где настроить часы работы?"
+
+msgid "z. B. Wie richte ich die Lieferung ein? · Neue Leistung Herrenhaarschnitt 25 € 30 min · Apfelstrudel ausblenden"
+msgstr "напр. Как настроить доставку? · Новая услуга Мужская стрижка 25 € 30 мин · Скрыть Apfelstrudel"
+
+msgid "%(n)s zu erledigen"
+msgid_plural "%(n)s zu erledigen"
+msgstr[0] "%(n)s исправить"
+msgstr[1] "%(n)s исправить"
+msgstr[2] "%(n)s исправить"
+msgstr[3] "%(n)s исправить"
+
+msgid "%(n)s nicht geprüft"
+msgid_plural "%(n)s nicht geprüft"
+msgstr[0] "%(n)s не проверено"
+msgstr[1] "%(n)s не проверено"
+msgstr[2] "%(n)s не проверено"
+msgstr[3] "%(n)s не проверено"
+
+msgid "%(n)s Frage"
+msgid_plural "%(n)s Fragen"
+msgstr[0] "%(n)s вопрос"
+msgstr[1] "%(n)s вопроса"
+msgstr[2] "%(n)s вопросов"
+msgstr[3] "%(n)s вопросов"
+
+msgid "Beispiele — Antippen sendet die Frage:"
+msgstr "Примеры — нажмите, чтобы отправить вопрос:"

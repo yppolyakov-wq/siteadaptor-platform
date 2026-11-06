@@ -4,7 +4,7 @@
   {% comment %}AIS A-3c: вкладки панели — ссылки (в шторке грузят фрагмент, без JS — страницу).{% endcomment %}
   {% if tabs|length > 1 %}
   <nav aria-label="{% trans 'Bereiche des Assistenten' %}" class="ui-tabs" data-assistant-tabs>
-    {% for t in tabs %}<a href="{{ t.url }}" data-drawer data-drawer-key="assistant" data-assistant-tablink="{{ t.key }}"{% if t.active %} aria-current="page" data-drawer-autofocus{% endif %} class="ui-tab min-h-[44px]">{{ t.label }}{% if t.key == "support" and support_unread %} <span class="w-2 h-2 rounded-full bg-amber-500" aria-hidden="true"></span><span class="sr-only">, {% trans "Neue Antwort vom Support" %}</span>{% endif %}</a>{% endfor %}
+    {% for t in tabs %}<a href="{{ t.url }}" data-drawer data-drawer-key="assistant" data-assistant-tablink="{{ t.key }}"{% if t.active %} aria-current="page"{% if not pruefen %} data-drawer-autofocus{% endif %}{% endif %} class="ui-tab min-h-[44px]">{{ t.label }}{% if t.key == "support" and support_unread %} <span class="w-2 h-2 rounded-full bg-amber-500" aria-hidden="true"></span><span class="sr-only">, {% trans "Neue Antwort vom Support" %}</span>{% endif %}</a>{% endfor %}
   </nav>
   {% endif %}
   {% if tab == "support" %}
@@ -17,12 +17,38 @@
   </div>
   {% else %}
   <div data-assistant-tab="ki" class="space-y-5">
-  {% if failed %}<p class="ui-muted text-sm" role="status">{% trans "Einige Prüfungen konnten nicht ausgeführt werden." %}</p>{% endif %}
+  {% comment %}AS-1: одно поле наверху — вопрос, создание, изменение, «где настроить», «позовите человека» идут через один роутер. Ниже ответ, помощь по странице, свёрнутые «Status» и «Verlauf».{% endcomment %}
+  <form method="post" action="{% url 'assistant-ask' %}" class="space-y-2 rounded-2xl border border-indigo-200 bg-indigo-50/40 p-3" data-assistant-ask data-error="{% trans 'Der KI-Assistent ist gerade nicht verfügbar.' %}" data-timeout="{% trans 'Die Antwort dauert länger als üblich — bitte später erneut fragen.' %}">
+    {% csrf_token %}
+    {% if seite %}<input type="hidden" name="seite" value="{{ seite }}">{% endif %}
+    <label for="as-frage" class="block font-semibold">{% trans "Fragen oder sagen, was zu tun ist" %}</label>
+    <textarea id="as-frage" name="frage" rows="3" maxlength="500" required aria-describedby="as-frage-hint{% if ai_enabled %} as-frage-ai{% endif %}" class="ui-input block w-full" placeholder="{% trans 'z. B. Wie richte ich die Lieferung ein? · Neue Leistung Herrenhaarschnitt 25 € 30 min · Apfelstrudel ausblenden' %}">{{ q }}</textarea>
+    <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+      <button type="submit" class="ui-btn ui-btn-primary min-h-[44px]" data-assistant-ask-btn>{% trans "Senden" %}</button>
+      <p id="as-frage-hint" class="ui-muted text-xs flex-1 min-w-[12rem]">{% if ai_enabled %}{% trans "Sie chatten mit einer KI." %} {% endif %}{% trans "Bitte keine Kundendaten eingeben." %}</p>
+    </div>
+    {% if ai_enabled %}<div id="as-frage-ai">{% ai_notice "assistant_answer" %}</div>{% endif %}
+    <p id="as-chips-h" class="ui-muted text-xs">{% trans "Beispiele — Antippen sendet die Frage:" %}</p>
+    <div class="flex flex-wrap gap-2" role="group" aria-labelledby="as-chips-h" data-assistant-chips>
+      {% for c in chips %}<button type="submit" name="frage" value="{{ c }}" formnovalidate data-assistant-chip class="ui-btn ui-btn-ghost ui-btn-sm min-h-[44px] rounded-full border border-gray-400">{{ c }}</button>{% endfor %}
+    </div>
+  </form>
 
-  {% if here %}
-  <section aria-labelledby="as-here-h">
-    <{{ hl|default:"h2" }} id="as-here-h" class="ui-h3 mb-1">{% trans "Auf dieser Seite fehlt" %}</{{ hl|default:"h2" }}>
-    <ul class="divide-y divide-gray-100">{% for it in here %}{% include "core/_assistant_item.html" %}{% endfor %}</ul>
+  <div data-assistant-answer aria-live="polite">{% if answer %}{% with ans=answer %}{% include "core/_assistant_answer.html" %}{% endwith %}{% endif %}</div>
+
+  {% if q %}
+  <section aria-labelledby="as-where-h" data-assistant-search>
+    <{{ hl|default:"h2" }} id="as-where-h" class="ui-h3 mb-1">{% trans "Gefunden" %}</{{ hl|default:"h2" }}>
+    {% if help_found %}<div class="space-y-2" data-help-results>{% for a in help_found %}{% include "core/_assistant_article.html" %}{% endfor %}</div>{% endif %}
+    {% if where %}
+    <ul class="mt-2 divide-y divide-gray-100">
+      {% for w in where %}<li class="py-2"><a href="{{ w.link.url }}" class="inline-flex items-center min-h-[44px] text-indigo-700 hover:underline">{{ w.text }}</a>{% if w.area %} <span class="ui-muted text-sm">· {{ w.area }}</span>{% endif %}</li>{% endfor %}
+    </ul>
+    {% elif where_failed or help_failed %}
+    <p class="ui-muted text-sm mt-2">{% trans "Die Suche konnte nicht ausgeführt werden — bitte später erneut versuchen." %}</p>
+    {% elif not help_found %}
+    <p class="ui-muted text-sm mt-2">{% trans "Nichts gefunden." %}</p>
+    {% endif %}
   </section>
   {% endif %}
 
@@ -36,62 +62,62 @@
   </section>
   {% endif %}
 
-  <section aria-labelledby="as-top-h">
-    <{{ hl|default:"h2" }} id="as-top-h" class="ui-h3 mb-1">{% trans "Gerade wichtig" %}</{{ hl|default:"h2" }}>
-    <ul class="divide-y divide-gray-100">{% for it in important %}{% include "core/_assistant_item.html" %}{% endfor %}</ul>
-  </section>
+  <details class="rounded-2xl border border-gray-200 px-3" data-assistant-status{% if pruefen %} open{% endif %}>
+    <summary class="min-h-[52px] flex flex-wrap items-center gap-2 cursor-pointer font-semibold rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
+      <{{ hl|default:"h2" }} class="flex-1 text-base font-semibold">{% trans "Status Ihres Shops" %}</{{ hl|default:"h2" }}>
+      {% if status.fix or status.unknown or diagnosed %}<span class="sr-only">: </span>{% endif %}
+      {% if status.fix %}<span class="ui-badge ui-tone-bad">{% blocktrans count n=status.fix %}{{ n }} zu erledigen{% plural %}{{ n }} zu erledigen{% endblocktrans %}</span>{% endif %}
+      {% if status.unknown %}<span class="ui-badge ui-tone-off">{% blocktrans count n=status.unknown %}{{ n }} nicht geprüft{% plural %}{{ n }} nicht geprüft{% endblocktrans %}</span>{% endif %}
+      {% if not status.fix and not status.unknown and diagnosed %}<span class="ui-badge ui-tone-ok">{% trans "in Ordnung" %}</span>{% endif %}
+    </summary>
+    <div class="space-y-4 pb-3">
+    {% if failed %}<p class="ui-muted text-sm" role="status">{% trans "Einige Prüfungen konnten nicht ausgeführt werden." %}</p>{% endif %}
 
-  {% if not diagnosed and not q %}<p class="ui-muted text-sm">{% trans "Zu viele Prüfungen in kurzer Zeit — bitte in einer Minute erneut." %}</p>{% endif %}
-  {% if diagnoses %}
-  <section aria-labelledby="as-diag-h">
-    <{{ hl|default:"h2" }} id="as-diag-h" class="ui-h3 mb-1">{% trans "Funktioniert etwas nicht?" %}</{{ hl|default:"h2" }}>
-    {% if limited %}<p class="ui-muted text-sm" role="status">{% trans "Zu viele Prüfungen in kurzer Zeit — bitte in einer Minute erneut." %}</p>{% endif %}
-    <div class="space-y-2">
-      {% for d in diagnoses %}
-      <details class="rounded-xl border border-gray-200 px-3 py-2"{% if d.key == pruefen or d.findings and not d.ok %} open{% endif %} data-diagnosis="{{ d.key }}">
-        <summary{% if d.key == pruefen %} data-drawer-autofocus{% endif %} class="cursor-pointer min-h-[44px] flex items-center gap-2 font-medium rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
-          <span class="flex-1">{{ d.symptom }}</span><span class="sr-only">: </span>
-          {% if d.findings is None %}<span class="ui-badge ui-tone-off">{% trans "nicht geprüft" %}</span>{% elif d.ok %}<span class="ui-badge ui-tone-ok">{% trans "in Ordnung" %}</span>{% else %}<span class="ui-badge ui-tone-bad">{% trans "prüfen" %}</span>{% endif %}
-        </summary>
-        {% if d.findings is None %}
-          <a href="{% url 'assistant' %}?pruefen={{ d.key }}{% if seite %}&amp;seite={{ seite|urlencode }}{% endif %}" data-drawer data-drawer-key="as-{{ d.key }}" class="ui-btn ui-btn-secondary ui-btn-sm min-h-[44px] my-2">{% trans "Jetzt prüfen" %}</a>
-        {% else %}
-          <ul class="divide-y divide-gray-100">{% for it in d.findings %}{% include "core/_assistant_item.html" %}{% endfor %}</ul>
-        {% endif %}
-      </details>
-      {% endfor %}
+    {% if here %}
+    <section aria-labelledby="as-here-h">
+      <{{ hl_sub|default:"h3" }} id="as-here-h" class="text-sm font-semibold mb-1">{% trans "Auf dieser Seite zu erledigen" %}</{{ hl_sub|default:"h3" }}>
+      <ul class="divide-y divide-gray-100">{% for it in here %}{% include "core/_assistant_item.html" %}{% endfor %}</ul>
+    </section>
+    {% endif %}
+
+    <section aria-labelledby="as-top-h">
+      <{{ hl_sub|default:"h3" }} id="as-top-h" class="text-sm font-semibold mb-1">{% trans "Gerade wichtig" %}</{{ hl_sub|default:"h3" }}>
+      <ul class="divide-y divide-gray-100">{% for it in important %}{% include "core/_assistant_item.html" %}{% endfor %}</ul>
+    </section>
+
+    {% if not diagnosed and not q %}<p class="ui-muted text-sm">{% trans "Zu viele Prüfungen in kurzer Zeit — bitte in einer Minute erneut." %}</p>{% endif %}
+    {% if diagnoses %}
+    <section aria-labelledby="as-diag-h">
+      <{{ hl_sub|default:"h3" }} id="as-diag-h" class="text-sm font-semibold mb-1">{% trans "Funktioniert etwas nicht?" %}</{{ hl_sub|default:"h3" }}>
+      {% if limited %}<p class="ui-muted text-sm" role="status">{% trans "Zu viele Prüfungen in kurzer Zeit — bitte in einer Minute erneut." %}</p>{% endif %}
+      <div class="space-y-2">
+        {% for d in diagnoses %}
+        <details class="rounded-xl border border-gray-200 px-3 py-2"{% if d.key == pruefen or d.tone == "problem" %} open{% endif %} data-diagnosis="{{ d.key }}" data-tone="{{ d.tone }}">
+          <summary{% if d.key == pruefen %} data-drawer-autofocus{% endif %} class="cursor-pointer min-h-[44px] flex items-center gap-2 font-medium rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
+            <span class="flex-1">{{ d.symptom }}</span><span class="sr-only">: </span>
+            {% if d.tone == "ok" %}<span class="ui-badge ui-tone-ok">{% trans "in Ordnung" %}</span>{% elif d.tone == "problem" %}<span class="ui-badge ui-tone-bad">{% trans "prüfen" %}</span>{% elif d.tone == "info" %}<span class="ui-badge ui-tone-run">{% trans "Hinweis" %}</span>{% else %}<span class="ui-badge ui-tone-off">{% trans "nicht geprüft" %}</span>{% endif %}
+          </summary>
+          {% if d.findings is None or d.tone == "unknown" %}
+            {% if d.findings %}<ul class="divide-y divide-gray-100">{% for it in d.findings %}{% include "core/_assistant_item.html" %}{% endfor %}</ul>{% endif %}
+            {% if d.heavy %}<a href="{% url 'assistant' %}?pruefen={{ d.key }}{% if seite %}&amp;seite={{ seite|urlencode }}{% endif %}" data-drawer data-drawer-key="as-{{ d.key }}" class="ui-btn ui-btn-secondary ui-btn-sm min-h-[44px] my-2">{% if d.findings is None %}{% trans "Jetzt prüfen" %}{% else %}{% trans "Erneut prüfen" %}{% endif %}</a>{% endif %}
+          {% else %}
+            <ul class="divide-y divide-gray-100">{% for it in d.findings %}{% include "core/_assistant_item.html" %}{% endfor %}</ul>
+          {% endif %}
+        </details>
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
     </div>
-  </section>
-  {% endif %}
+  </details>
 
-  <section aria-labelledby="as-where-h">
-    <{{ hl|default:"h2" }} id="as-where-h" class="ui-h3 mb-1">{% trans "Wo stelle ich das ein?" %}</{{ hl|default:"h2" }}>
-    <form method="get" action="{% url 'assistant' %}" class="flex gap-2" role="search">
-      {% if seite %}<input type="hidden" name="seite" value="{{ seite }}">{% endif %}
-      <label for="as-q" class="sr-only">{% trans "Frage oder Einstellung suchen" %}</label>
-      <input id="as-q" name="q" value="{{ q }}" maxlength="80" class="ui-input flex-1" placeholder="{% trans 'z. B. Öffnungszeiten, Lieferung' %}">
-      <button type="submit" class="ui-btn ui-btn-secondary min-h-[44px]">{% trans "Suchen" %}</button>
-    </form>
-    <form method="post" action="{% url 'assistant-ask' %}" class="mt-3 space-y-2" data-assistant-ask data-error="{% trans 'Der KI-Assistent ist gerade nicht verfügbar.' %}" data-timeout="{% trans 'Die Antwort dauert länger als üblich — bitte später erneut fragen.' %}">
-      {% csrf_token %}
-      {% if seite %}<input type="hidden" name="seite" value="{{ seite }}">{% endif %}
-      <label for="as-frage" class="block text-sm font-medium">{% trans "Frage stellen oder etwas anlegen" %}</label>
-      <textarea id="as-frage" name="frage" rows="2" maxlength="500" required aria-describedby="as-frage-hint" class="ui-input block w-full" placeholder="{% trans 'z. B. Neue Leistung Herrenhaarschnitt 25 € 30 min — oder: Wie richte ich die Lieferung ein?' %}"></textarea>
-      {% if ai_enabled %}
-      <p id="as-frage-hint" class="ui-muted text-xs">{% trans "Sie chatten mit einer KI. Antworten bitte prüfen — Steuer- und Rechtsfragen beantwortet sie nicht." %} {% trans "Bitte keine Kundendaten eingeben." %}</p>
-      {% ai_notice "assistant_answer" %}
-      {% elif anlegen %}
-      <p id="as-frage-hint" class="ui-muted text-xs">{% trans "„Neue Leistung …“ öffnet ein vorausgefülltes Formular; auf Fragen antworten passende Anleitungen." %} {% trans "Bitte keine Kundendaten eingeben." %}</p>
-      {% else %}
-      <p id="as-frage-hint" class="ui-muted text-xs">{% trans "Bitte keine Kundendaten eingeben." %}</p>
-      {% endif %}
-      <button type="submit" class="ui-btn ui-btn-secondary min-h-[44px]" data-assistant-ask-btn><span aria-hidden="true">✨</span> {% if ai_enabled %}{% trans "KI fragen" %}{% else %}{% trans "Fragen" %}{% endif %}</button>
-    </form>
-    {% if anlegen %}<a href="{% url 'setup-ask' %}" class="ui-btn ui-btn-secondary min-h-[44px] mt-2" data-assistant-anlegen><span aria-hidden="true">＋</span> {% trans "Was möchten Sie anlegen?" %}</a>{% endif %}
-    <div data-assistant-answer aria-live="polite">{% if answer %}{% with ans=answer %}{% include "core/_assistant_answer.html" %}{% endwith %}{% endif %}</div>
-    {% if history %}
-    <div class="mt-4" data-assistant-history>
-      <{{ hl_sub|default:"h3" }} class="text-sm font-semibold mb-1">{% trans "Verlauf" %}</{{ hl_sub|default:"h3" }}>
+  {% if history %}
+  <details class="rounded-2xl border border-gray-200 px-3" data-assistant-history>
+    <summary class="min-h-[52px] flex items-center gap-2 cursor-pointer font-semibold rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
+      <{{ hl|default:"h2" }} class="flex-1 text-base font-semibold">{% trans "Verlauf" %}</{{ hl|default:"h2" }}><span class="sr-only">: </span>
+      <span class="ui-muted text-sm font-normal">{% blocktrans count n=history|length %}{{ n }} Frage{% plural %}{{ n }} Fragen{% endblocktrans %}</span>
+    </summary>
+    <div class="pb-3">
       <ul class="space-y-2">
         {% for h in history %}
         <li><details class="rounded-xl border border-gray-200 px-3 py-2"><summary class="min-h-[44px] flex items-center justify-between gap-2 cursor-pointer text-sm"><span class="min-w-0 truncate">{{ h.question }}</span><span class="ui-muted text-xs shrink-0">{{ h.at|date:"d.m. H:i" }}</span></summary>{% with ans=h.ans %}{% include "core/_assistant_answer.html" %}{% endwith %}</details></li>
@@ -103,24 +129,8 @@
       </form>
       <p class="ui-muted text-xs mt-1">{% blocktrans with days=history_days %}Ihre Fragen werden {{ days }} Tage gespeichert.{% endblocktrans %}</p>
     </div>
-    {% endif %}
-    {% if q %}
-      {% if help_found %}
-      <{{ hl_sub|default:"h3" }} class="text-sm font-semibold mt-3 mb-1" data-help-results>{% trans "Anleitungen" %}</{{ hl_sub|default:"h3" }}>
-      <div class="space-y-2">{% for a in help_found %}{% include "core/_assistant_article.html" %}{% endfor %}</div>
-      {% endif %}
-      {% if where %}
-      {% if help_found %}<{{ hl_sub|default:"h3" }} class="text-sm font-semibold mt-3 mb-1">{% trans "Einstellungen" %}</{{ hl_sub|default:"h3" }}>{% endif %}
-      <ul class="mt-2 divide-y divide-gray-100">
-        {% for w in where %}<li class="py-2"><a href="{{ w.link.url }}" class="inline-flex items-center min-h-[44px] text-indigo-700 hover:underline">{{ w.text }}</a>{% if w.area %} <span class="ui-muted text-sm">· {{ w.area }}</span>{% endif %}</li>{% endfor %}
-      </ul>
-      {% elif where_failed or help_failed %}
-      <p class="ui-muted text-sm mt-2">{% trans "Die Suche konnte nicht ausgeführt werden — bitte später erneut versuchen." %}</p>
-      {% elif not help_found and not help_failed %}
-      <p class="ui-muted text-sm mt-2">{% trans "Nichts gefunden." %}</p>
-      {% endif %}
-    {% endif %}
-  </section>
+  </details>
+  {% endif %}
   </div>
   {% endif %}
 </div>

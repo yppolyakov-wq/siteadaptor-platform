@@ -145,11 +145,21 @@ def _ai_actions_handle(request, q, raw, seite, hit):
 
 def _answer_handle(request, q, raw, seite, hit):
     # AIS A-2: вопрос; без ИИ — статьи, а не отказ
-    from apps.core import assistant_ai
+    from apps.core import assistant, assistant_ai
 
-    got = assistant_ai.ask(request, raw, seite)
-    if got.get("code") == "disabled":
-        got = assistant_ai.put_articles(request, q)
+    # AS-1: «Wo stelle ich das ein?» — часть ответа (отдельной формы поиска больше нет)
+    try:
+        where = tuple(assistant.where_for_text(request, q))
+    except Exception:  # noqa: BLE001 — подсказка экранов не роняет ответ
+        logger.warning("assistant router: where failed", exc_info=True)
+        where = ()
+    token = assistant_ai.WHERE.set(where)
+    try:
+        got = assistant_ai.ask(request, raw, seite)
+        if got.get("code") == "disabled":
+            got = assistant_ai.put_articles(request, q)
+    finally:
+        assistant_ai.WHERE.reset(token)
     return got
 
 

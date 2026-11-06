@@ -1819,6 +1819,7 @@ input[type="datetime-local"] {
   .ui-input { width: 100%; min-height: 44px; padding: .5625rem .75rem; font-size: 16px; color: var(--ui-fg); background: var(--ui-surface); border: 1px solid var(--ui-line); border-radius: var(--ui-r-ctl); }
   .ui-input:focus { outline: none; border-color: var(--ui-accent); box-shadow: 0 0 0 3px var(--ui-accent-soft); }
   .ui-input[aria-invalid="true"] { border-color: var(--ui-danger); }
+  .ui-input::placeholder { color: #6b7280; }  /* AS-1: подсказка поля ≥ 4,5:1 (gray-400 давал 2,5:1) */
   .ui-help { font-size: .8125rem; color: var(--ui-muted); }
   .ui-field-error { font-size: .8125rem; font-weight: 600; color: var(--ui-danger); }
 

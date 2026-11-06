@@ -191,7 +191,7 @@ def missing_here(request, seite: str) -> list[dict]:
         if row["done"] is True or row.get("url_name") not in names:
             continue
         level = diagnoses.UNKNOWN if row["done"] is None else diagnoses.PROBLEM
-        item = _row(request, row["label"], row["url_name"], level=level)
+        item = _row(request, row.get("todo") or row["label"], row["url_name"], level=level)
         if item:
             out.append(item)
     return out[:MAX_HERE]
@@ -246,9 +246,10 @@ def important(request) -> list[dict]:
     if must:
         first = must[0]
         text = (
-            _("%(item)s (+%(n)s weitere)") % {"item": first["label"], "n": len(must) - 1}
+            _("%(item)s (+%(n)s weitere)")
+            % {"item": first.get("todo") or first["label"], "n": len(must) - 1}
             if len(must) > 1
-            else str(first["label"])
+            else str(first.get("todo") or first["label"])
         )
         out.append(_row(request, text, first.get("url_name", ""), level=diagnoses.PROBLEM))
     if any(r["done"] is None for r in rows):
@@ -322,9 +323,40 @@ def diagnosis_cards(request, run_key: str = "") -> list[dict]:
                 "heavy": d.cost == diagnoses.HEAVY,
                 "findings": found,
                 "ok": bool(found) and all(f["level"] == diagnoses.OK for f in found),
+                "tone": _tone(found),
             }
         )
     return cards
+
+
+def _tone(found) -> str:
+    """AS-1: цвет бейджа по смыслу — красный только при настоящей проблеме."""
+    if found is None:
+        return "pending"  # тяжёлый диагноз ещё не запускали
+    levels = {f["level"] for f in found}
+    if diagnoses.PROBLEM in levels:
+        return "problem"
+    if found and levels <= {diagnoses.OK}:
+        return "ok"
+    if diagnoses.UNKNOWN in levels:
+        return "unknown"
+    return "info"
+
+
+def _item_key(it) -> tuple:
+    link_ = it.get("link")
+    return (str(it.get("text", "")), getattr(link_, "url", "") or "")
+
+
+def status_counts(here, top, cards) -> dict:
+    """AS-1: сводка свёрнутой карточки «Status Ihres Shops» — сколько исправить / не
+    проверено. Пункт экрана и «Gerade wichtig» могут быть ОДНОЙ проблемой (обязательный пункт
+    на своём экране) — считаем различные (текст + ссылка)."""
+    fix = {_item_key(it) for it in [*here, *top] if it["level"] == diagnoses.PROBLEM}
+    unknown = {_item_key(it) for it in [*here, *top] if it["level"] == diagnoses.UNKNOWN}
+    n_fix = len(fix) + sum(1 for c in cards if c["tone"] == "problem")
+    n_unknown = len(unknown) + sum(1 for c in cards if c["tone"] == "unknown")
+    return {"fix": n_fix, "unknown": n_unknown}
 
 
 # --- «Wo stelle ich das ein?» ------------------------------------------------------------
@@ -347,6 +379,91 @@ def where_search(request, q: str) -> list[dict]:
         if len(out) >= MAX_WHERE:
             break
     return out
+
+
+#: AS-1: слова, которые ничего не говорят о том, КУДА идти
+_WHERE_STOP = frozenset(
+    "wie wo was wann kann ich mein meine meinen einstellen einrichten ändern finde finden "
+    "how where what can my set setup change find где как что можно мой моя мои настроить "
+    "изменить найти поменять де як що мій моя налаштувати змінити nasıl nerede ne benim "
+    "eine einen einer gibt geht nicht bitte sind soll muss wird dass habe haben möchte "
+    "this that there please want have need does which хочу нужно надо есть почему можно "
+    "будь ласка треба чому потрібно lütfen neden istiyorum".split()
+)
+#: основа слова — 5 букв; короче — только целое слово из 5+ (иначе «shop»/«eine» — шум)
+_WHERE_STEM = 5
+
+
+def where_for_text(request, text: str, limit: int = 3) -> list[dict]:
+    """AS-1: экраны настроек к ФРАЗЕ (не к ключевым словам): баллы по значимым словам —
+    основа (5 букв) слова встречается в названии/разделе экрана. Хранимые данные: имя экрана,
+    query и подписи; URL и права — при показе (`where_links`)."""
+    import re
+
+    from apps.core import nav_registry
+
+    words = [
+        w[:_WHERE_STEM]
+        for w in re.findall(r"[^\W\d_]+", (text or "").lower()[:200])
+        if len(w) >= _WHERE_STEM and w not in _WHERE_STOP
+    ]
+    if not words:
+        return []
+    scored = []
+    for e in nav_registry.palette_entries_for(request):
+        hay = e["haystack"]
+        score = sum(1 for w in words if w in hay)
+        if score:
+            scored.append((score, e))
+    scored.sort(key=lambda x: -x[0])
+    out, seen = [], set()
+    for _score, e in scored:
+        key = (e["url_name"], e.get("query", ""))
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append(
+            {
+                "url_name": e["url_name"],
+                "query": str(e.get("query", "")),
+                "label": str(e["label"]),
+                "area": str(e["area"]),
+            }
+        )
+        if len(out) >= limit:
+            break
+    return out
+
+
+def where_links(request, refs) -> list[dict]:
+    """Ссылки к сохранённым экранам — с правами СМОТРЯЩЕГО (чужие права не переносятся)."""
+    out = []
+    for ref in refs or []:
+        if not isinstance(ref, dict):
+            continue
+        target = link(
+            request, str(ref.get("url_name") or ""), query=str(ref.get("query") or "").lstrip("?")
+        )
+        if target is None or not target.url:
+            continue
+        out.append(
+            {
+                "text": str(ref.get("label") or ""),
+                "area": str(ref.get("area") or ""),
+                "link": target,
+            }
+        )
+    return out
+
+
+def chips(request) -> list[str]:
+    """AS-1: подсказки-кнопки под полем — безопасные фразы (ничего не меняют сами): вопрос
+    «где», вопрос «как» и «позовите человека» (карточка Support — отправка только кнопкой)."""
+    return [
+        str(_("Wo stelle ich die Öffnungszeiten ein?")),
+        str(_("Wie lege ich ein Produkt an?")),
+        str(_("Ich möchte mit einem Menschen sprechen")),
+    ]
 
 
 # --- сборка ------------------------------------------------------------------------------
@@ -391,7 +508,9 @@ def build(
         _safe(diagnosis_cards, request, run_key, default=[]) if diagnose else ([], False)
     )
     where, where_failed = _safe(where_search, request, q, default=[])
+    counts = status_counts(here, top, cards)
     return {
+        "status": counts,
         "seite": seite,
         "q": (q or "")[:QUERY_MAX],
         "here": here,

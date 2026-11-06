@@ -291,6 +291,10 @@ def test_staff_gets_no_owner_refs(ai_task_on, bakery):
 
 
 def test_links_rechecked_when_rights_change(ai_task_on, bakery, monkeypatch):
+    from apps.core import assistant
+
+    # AS-1: ссылки «где настроить» проверяются отдельно (test_as1_one_field) — здесь статьи
+    monkeypatch.setattr(assistant, "where_for_text", lambda request, q, limit=3: [])
     gen, run = _model(GOOD)
     with gen, run:
         user, got = _ask(bakery, "Lieferung einrichten")

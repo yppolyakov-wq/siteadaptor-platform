@@ -44,6 +44,9 @@ class Item:
     check: Callable  # (tenant, facts) -> bool | None (None — не можем проверить)
     #: Пункт применим к этому бизнесу (Widerruf — только при доставке и т.п.).
     applies: Callable | None = None
+    #: AS-1: подпись-ЗАДАЧА для помощника («E-Mail-Adresse bestätigen»), когда `label` —
+    #: название проверки в причастии; пусто — помощник показывает `label`.
+    todo: str = ""
 
 
 # --- факты (лениво, мемо на тенанте) --------------------------------------------------------
@@ -269,8 +272,24 @@ def _food(t) -> bool:
 REGISTRY: tuple[Item, ...] = (
     # База: без этого сайт нельзя показать.
     Item("contact", "", MUST, _("Adresse und Telefon oder E-Mail"), "settings", _contact),
-    Item("impressum", "", MUST, _("Impressum vollständig"), "legal-docs", _impressum),
-    Item("email", "", MUST, _("E-Mail-Adresse bestätigt"), "settings", _email_confirmed),
+    Item(
+        "impressum",
+        "",
+        MUST,
+        _("Impressum vollständig"),
+        "legal-docs",
+        _impressum,
+        todo=_("Impressum vervollständigen"),
+    ),
+    Item(
+        "email",
+        "",
+        MUST,
+        _("E-Mail-Adresse bestätigt"),
+        "settings",
+        _email_confirmed,
+        todo=_("E-Mail-Adresse bestätigen"),
+    ),
     Item("hours", "", NICE, _("Öffnungszeiten"), "settings", _hours),
     Item("home", "", NICE, _("Titelbild oder Galerie"), "site-home", _home),
     Item("about", "", NICE, _("Text „Über uns“"), "site-home", _about),
@@ -302,6 +321,7 @@ REGISTRY: tuple[Item, ...] = (
         "catalog:product-create",
         _food_allergens,
         applies=_food,
+        todo=_("Allergene bei allen Gerichten angeben"),
     ),
     # Termine / Tisch.
     Item(
@@ -354,6 +374,7 @@ REGISTRY: tuple[Item, ...] = (
         _("Anfrageformular angepasst"),
         "ablaeufe",
         _anfrage_form,
+        todo=_("Anfrageformular anpassen"),
     ),
 )
 _BY_KEY = {item.key: item for item in REGISTRY}
@@ -438,6 +459,7 @@ def items_for(
             {
                 "key": item.key,
                 "label": item.label,
+                "todo": item.todo or item.label,
                 "level": item.level,
                 "direction": item.direction,
                 "done": done,

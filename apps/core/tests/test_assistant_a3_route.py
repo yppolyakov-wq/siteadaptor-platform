@@ -96,15 +96,9 @@ def test_plan_entry_keeps_no_url_and_is_versioned(ai_off, bakery):  # noqa: F811
     assert entry["outcome"] == "plan" and "url" not in entry
 
 
-def test_drawer_has_visible_anlegen_button(ai_off, bakery):  # noqa: F811
-    from django.urls import reverse
-
-    body = assistant_views.assistant_view(_req(bakery)).content.decode()
-    assert "data-assistant-anlegen" in body and reverse("setup-ask") in body
-
-
-def test_anlegen_button_hidden_without_rights(ai_off, bakery, monkeypatch):  # noqa: F811
-    monkeypatch.setattr(setup_assistant, "allowed_entities", lambda t, u: [])
+def test_drawer_has_no_second_create_button(ai_off, bakery):  # noqa: F811
+    """AS-1 (осознанная переписка): «Was möchten Sie anlegen?» — дубль поля; создание — фразой
+    в том же поле (один роутер)."""
     body = assistant_views.assistant_view(_req(bakery)).content.decode()
     assert "data-assistant-anlegen" not in body
 

@@ -1084,8 +1084,7 @@ try { (function () {
     if (!target) return;
     var p = document.createElement("p");
     p.className = "ui-muted text-sm mt-2";
-    p.setAttribute("role", "status");
-    p.textContent = text;
+    p.textContent = text;  // объявляет сама область aria-live (без вложенного role=status)
     target.innerHTML = "";
     target.appendChild(p);
   }
@@ -1096,7 +1095,9 @@ try { (function () {
         if (!r.ok) throw new Error("status " + r.status);
         var state = r.headers.get("X-Sf-Answer-State");
         return r.text().then(function (html) {
-          if (target) target.innerHTML = html;
+          // AS-1: тот же «ищу ответ …» не переписываем каждые 1,5 с — диктор не повторяет
+          var same = state === "pending" && target && target.querySelector('[data-state="pending"]');
+          if (target && !same) target.innerHTML = html;
           if (state !== "pending") { done(); return; }
           if (n >= POLL_MAX) { note(target, form.getAttribute("data-timeout") || ""); done(); return; }
           setTimeout(function () { poll(target, url, form, n + 1, 0, done); }, POLL_MS);
@@ -1117,14 +1118,19 @@ try { (function () {
     if (!window.fetch) return;  // старый браузер — обычный POST
     e.preventDefault();
     var btn = form.querySelector("[data-assistant-ask-btn]");
-    if (btn && btn.disabled) return;
+    // AS-1: занятость — aria-busy формы (disabled уронил бы фокус; подсказки тоже ждут)
+    if (form.getAttribute("aria-busy") === "true") return;
+    // AS-1: подсказка-кнопка — её фраза встаёт в поле (видно, что спросили) и уходит как вопрос
+    var chip = e.submitter && e.submitter.hasAttribute("data-assistant-chip") ? e.submitter : null;
+    var field = form.querySelector("textarea[name=frage]");
+    if (chip && field) field.value = chip.value;
     var root = form.closest("[data-assistant]");
     var target = root && root.querySelector("[data-assistant-answer]");
     function done() {
-      if (btn) { btn.disabled = false; btn.removeAttribute("aria-disabled"); }
+      if (btn) btn.removeAttribute("aria-disabled");
       form.removeAttribute("aria-busy");
     }
-    if (btn) { btn.disabled = true; btn.setAttribute("aria-disabled", "true"); }
+    if (btn) btn.setAttribute("aria-disabled", "true");
     form.setAttribute("aria-busy", "true");
     fetch(form.getAttribute("action"), {
       method: "POST", body: new FormData(form), credentials: "same-origin",

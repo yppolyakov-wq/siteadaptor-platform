@@ -34657,3 +34657,57 @@ msgstr "Gönderiliyor …"
 #: apps/core/assistant_bulk.py
 msgid "Bitte keine Daten Ihrer Kundinnen und Kunden eintragen. E-Mail-Adressen und Telefonnummern werden automatisch entfernt, Namen und Adressen nicht."
 msgstr "Lütfen müşterilerinizin verilerini girmeyin. E-posta adresleri ve telefon numaraları otomatik olarak kaldırılır, isimler ve adresler kaldırılmaz."
+
+msgid "Allergene bei allen Gerichten angeben"
+msgstr "Tüm yemeklere alerjen bilgisi ekleyin"
+
+msgid "Auf dieser Seite zu erledigen"
+msgstr "Bu sayfada yapılacaklar"
+
+msgid "Erneut prüfen"
+msgstr "Tekrar kontrol et"
+
+msgid "Fragen oder sagen, was zu tun ist"
+msgstr "Sorun veya ne yapılacağını yazın"
+
+msgid "Gefunden"
+msgstr "Bulunanlar"
+
+msgid "Ich möchte mit einem Menschen sprechen"
+msgstr "Bir insanla konuşmak istiyorum"
+
+msgid "Impressum vervollständigen"
+msgstr "Künyeyi (Impressum) tamamlayın"
+
+msgid "Sie chatten mit einer KI."
+msgstr "Bir yapay zekâ ile konuşuyorsunuz."
+
+msgid "Status Ihres Shops"
+msgstr "Mağazanızın durumu"
+
+msgid "Wie lege ich ein Produkt an?"
+msgstr "Nasıl ürün eklerim?"
+
+msgid "Wo stelle ich die Öffnungszeiten ein?"
+msgstr "Çalışma saatlerini nereden ayarlarım?"
+
+msgid "z. B. Wie richte ich die Lieferung ein? · Neue Leistung Herrenhaarschnitt 25 € 30 min · Apfelstrudel ausblenden"
+msgstr "örn. Teslimatı nasıl ayarlarım? · Yeni hizmet Erkek saç kesimi 25 € 30 dk · Apfelstrudel'i gizle"
+
+msgid "%(n)s zu erledigen"
+msgid_plural "%(n)s zu erledigen"
+msgstr[0] "%(n)s yapılacak"
+msgstr[1] "%(n)s yapılacak"
+
+msgid "%(n)s nicht geprüft"
+msgid_plural "%(n)s nicht geprüft"
+msgstr[0] "%(n)s kontrol edilmedi"
+msgstr[1] "%(n)s kontrol edilmedi"
+
+msgid "%(n)s Frage"
+msgid_plural "%(n)s Fragen"
+msgstr[0] "%(n)s soru"
+msgstr[1] "%(n)s soru"
+
+msgid "Beispiele — Antippen sendet die Frage:"
+msgstr "Örnekler — dokununca soru gönderilir:"

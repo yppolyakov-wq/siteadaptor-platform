@@ -86,6 +86,17 @@ def drawer(run, browser, port, width):
     dialog = page.locator("dialog#sf-drawer")
     page.wait_for_selector("dialog#sf-drawer [data-assistant]", timeout=8000)
     run.check(dialog.evaluate("d => d.open"), "шторка открыта")
+    # AS-1: поле вопроса — первым; состояние магазина — свёрнутой карточкой
+    run.check(
+        dialog.locator("[data-assistant-tab=ki] form").first.get_attribute("data-assistant-ask")
+        is not None,
+        "поле вопроса первым",
+    )
+    run.check(not dialog.locator("form[role=search]").count(), "отдельного поиска нет")
+    page.screenshot(
+        path=f"/tmp/claude-0/-home-user-siteadaptor-platform/cdc57c3f-cb4f-5fd2-843f-21ebe6ced2a2/scratchpad/as1_{width}.png"
+    )
+    dialog.locator("[data-assistant-status] > summary").click()
     body = dialog.inner_text()
     run.check("Gerade wichtig" in body, "блок «Gerade wichtig»")
     run.check("Funktioniert etwas nicht?" in body, "блок диагнозов")
@@ -110,10 +121,13 @@ def no_js(run, browser, port):
     resp = page.goto(url + "/dashboard/assistent/?seite=dashboard")
     run.check(resp.status == 200, "полная страница 200")
     run.check(page.locator("[data-assistant]").count() == 1, "тело помощника на странице")
-    page.fill("#as-q", "Öffnungszeiten")
-    page.click("form[role=search] button[type=submit]")
+    page.click("[data-assistant-chip]")  # «Wo stelle ich die Öffnungszeiten ein?»
     page.wait_for_load_state()
-    run.check(page.locator("section[aria-labelledby=as-where-h] a").count() >= 1, "поиск находит")
+    run.check(page.locator("[data-assistant-where] a").count() >= 1, "«где» — в ответе")
+    resp = page.goto(url + "/dashboard/assistent/?q=Öffnungszeiten")
+    run.check(
+        page.locator("section[aria-labelledby=as-where-h] a").count() >= 1, "старый ?q= работает"
+    )
     ctx.close()
 
 

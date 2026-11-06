@@ -470,6 +470,8 @@ def _digest(lang: str, prompt_wo_marker: str, ctx: dict) -> str:
 
 #: A-6b: ключ обработчика роутера на время обработки фразы (пишется в запись задачи)
 ROUTE: contextvars.ContextVar[str] = contextvars.ContextVar("assistant_route", default="")
+#: AS-1: экраны настроек к фразе (имена + подписи, без URL) — едут в запись задачи ответа
+WHERE: contextvars.ContextVar[tuple] = contextvars.ContextVar("assistant_where", default=())
 
 
 def _put(
@@ -483,6 +485,9 @@ def _put(
     route = ROUTE.get()
     if route and not entry.get("route"):
         entry = {**entry, "route": route}
+    where = WHERE.get()
+    if where and "where" not in entry:
+        entry = {**entry, "where": list(where)}
     cache.set(_job_key(schema, user_pk, job), {**entry, "v": ENTRY_V}, ttl)
     if q and entry.get("state") == "done":
         from apps.core import assistant_history
@@ -814,7 +819,12 @@ def run_job(*, schema: str, user_pk, job: str) -> None:
             if finalize(schema, user_pk, job):  # опрос уже объявил таймаут — молчим
                 if outcome.get("code") in SYSTEM_CODES:
                     _refund(entry.get("counted"))
-                outcome = {**outcome, "route": entry.get("route", "")}  # A-6b
+                # A-6b/AS-1: маршрут и экраны настроек переживают фоновую задачу
+                outcome = {
+                    **outcome,
+                    "route": entry.get("route", ""),
+                    "where": entry.get("where") or [],
+                }
                 _put(schema, user_pk, outcome, job=job, q=str(entry.get("q") or ""))
                 _stat(schema, entry, outcome.get("code") or outcome.get("outcome") or "")
         except Exception:  # noqa: BLE001 — Redis упал: опрос увидит протухшую задачу
@@ -842,7 +852,11 @@ def job_state(request, job: str, *, convert: bool = True) -> dict | None:
         _release(schema, user_pk, job)
         ctx = entry.get("ctx") or {}
         route = entry.get("route", "")
-        entry = {**_result("fallback", ctx, code="timeout"), "route": route}
+        entry = {
+            **_result("fallback", ctx, code="timeout"),
+            "route": route,
+            "where": entry.get("where") or [],
+        }
         _put(schema, user_pk, entry, job=job)
         _stat(schema, entry, "timeout")
         entry["v"] = ENTRY_V
@@ -967,6 +981,7 @@ def _present(request, entry: dict) -> dict:
         "articles": articles,
         "scope_text": _scope_text(entry.get("topic", "")) if outcome == "scope" else "",
         "ai_label": AI_LABEL,
+        "where": assistant.where_links(request, entry.get("where")),  # AS-1
     }
 
 

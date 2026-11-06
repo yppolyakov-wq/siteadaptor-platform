@@ -34511,3 +34511,57 @@ msgstr "Sending …"
 #: apps/core/assistant_bulk.py
 msgid "Bitte keine Daten Ihrer Kundinnen und Kunden eintragen. E-Mail-Adressen und Telefonnummern werden automatisch entfernt, Namen und Adressen nicht."
 msgstr "Please don't enter your customers' data. E-mail addresses and phone numbers are removed automatically, names and addresses are not."
+
+msgid "Allergene bei allen Gerichten angeben"
+msgstr "Add allergens to all dishes"
+
+msgid "Auf dieser Seite zu erledigen"
+msgstr "To do on this page"
+
+msgid "Erneut prüfen"
+msgstr "Check again"
+
+msgid "Fragen oder sagen, was zu tun ist"
+msgstr "Ask, or say what to do"
+
+msgid "Gefunden"
+msgstr "Found"
+
+msgid "Ich möchte mit einem Menschen sprechen"
+msgstr "I'd like to talk to a person"
+
+msgid "Impressum vervollständigen"
+msgstr "Complete the legal notice (Impressum)"
+
+msgid "Sie chatten mit einer KI."
+msgstr "You are chatting with an AI."
+
+msgid "Status Ihres Shops"
+msgstr "Status of your shop"
+
+msgid "Wie lege ich ein Produkt an?"
+msgstr "How do I add a product?"
+
+msgid "Wo stelle ich die Öffnungszeiten ein?"
+msgstr "Where do I set the opening hours?"
+
+msgid "z. B. Wie richte ich die Lieferung ein? · Neue Leistung Herrenhaarschnitt 25 € 30 min · Apfelstrudel ausblenden"
+msgstr "e.g. How do I set up delivery? · New service Men's haircut 25 € 30 min · Hide Apfelstrudel"
+
+msgid "%(n)s zu erledigen"
+msgid_plural "%(n)s zu erledigen"
+msgstr[0] "%(n)s to fix"
+msgstr[1] "%(n)s to fix"
+
+msgid "%(n)s nicht geprüft"
+msgid_plural "%(n)s nicht geprüft"
+msgstr[0] "%(n)s not checked"
+msgstr[1] "%(n)s not checked"
+
+msgid "%(n)s Frage"
+msgid_plural "%(n)s Fragen"
+msgstr[0] "%(n)s question"
+msgstr[1] "%(n)s questions"
+
+msgid "Beispiele — Antippen sendet die Frage:"
+msgstr "Examples — tap to send the question:"

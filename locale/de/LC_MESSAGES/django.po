@@ -34598,3 +34598,57 @@ msgstr "Wird gesendet …"
 #: apps/core/assistant_bulk.py
 msgid "Bitte keine Daten Ihrer Kundinnen und Kunden eintragen. E-Mail-Adressen und Telefonnummern werden automatisch entfernt, Namen und Adressen nicht."
 msgstr "Bitte keine Daten Ihrer Kundinnen und Kunden eintragen. E-Mail-Adressen und Telefonnummern werden automatisch entfernt, Namen und Adressen nicht."
+
+msgid "Allergene bei allen Gerichten angeben"
+msgstr "Allergene bei allen Gerichten angeben"
+
+msgid "Auf dieser Seite zu erledigen"
+msgstr "Auf dieser Seite zu erledigen"
+
+msgid "Erneut prüfen"
+msgstr "Erneut prüfen"
+
+msgid "Fragen oder sagen, was zu tun ist"
+msgstr "Fragen oder sagen, was zu tun ist"
+
+msgid "Gefunden"
+msgstr "Gefunden"
+
+msgid "Ich möchte mit einem Menschen sprechen"
+msgstr "Ich möchte mit einem Menschen sprechen"
+
+msgid "Impressum vervollständigen"
+msgstr "Impressum vervollständigen"
+
+msgid "Sie chatten mit einer KI."
+msgstr "Sie chatten mit einer KI."
+
+msgid "Status Ihres Shops"
+msgstr "Status Ihres Shops"
+
+msgid "Wie lege ich ein Produkt an?"
+msgstr "Wie lege ich ein Produkt an?"
+
+msgid "Wo stelle ich die Öffnungszeiten ein?"
+msgstr "Wo stelle ich die Öffnungszeiten ein?"
+
+msgid "z. B. Wie richte ich die Lieferung ein? · Neue Leistung Herrenhaarschnitt 25 € 30 min · Apfelstrudel ausblenden"
+msgstr "z. B. Wie richte ich die Lieferung ein? · Neue Leistung Herrenhaarschnitt 25 € 30 min · Apfelstrudel ausblenden"
+
+msgid "%(n)s zu erledigen"
+msgid_plural "%(n)s zu erledigen"
+msgstr[0] "%(n)s zu erledigen"
+msgstr[1] "%(n)s zu erledigen"
+
+msgid "%(n)s nicht geprüft"
+msgid_plural "%(n)s nicht geprüft"
+msgstr[0] "%(n)s nicht geprüft"
+msgstr[1] "%(n)s nicht geprüft"
+
+msgid "%(n)s Frage"
+msgid_plural "%(n)s Fragen"
+msgstr[0] "%(n)s Frage"
+msgstr[1] "%(n)s Fragen"
+
+msgid "Beispiele — Antippen sendet die Frage:"
+msgstr "Beispiele — Antippen sendet die Frage:"
