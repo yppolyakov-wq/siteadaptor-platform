@@ -34565,3 +34565,50 @@ msgstr[1] "%(n)s questions"
 
 msgid "Beispiele — Antippen sendet die Frage:"
 msgstr "Examples — tap to send the question:"
+
+msgid "Alle Fragen sind beantwortet."
+msgstr "All questions are answered."
+
+msgid "Diese Frage lässt sich hier noch nicht beantworten."
+msgstr "This question can't be answered here yet."
+
+msgid "Ein paar kurze Fragen, damit Kundinnen und Kunden bei Ihnen online kaufen können. Alles lässt sich später in den Einstellungen ändern."
+msgstr "A few short questions so customers can buy from you online. You can change everything later in the settings."
+
+msgid "Für Ihr Geschäft gibt es hier gerade nichts zu klären."
+msgstr "There is nothing to settle here for your business right now."
+
+msgid "Ja, Vorkasse anbieten"
+msgstr "Yes, offer prepayment"
+
+msgid "Ja, ich liefere"
+msgstr "Yes, I deliver"
+
+msgid "Liefergebiete und Gebühren"
+msgstr "Delivery areas and fees"
+
+msgid "Liefern Sie auch?"
+msgstr "Do you also deliver?"
+
+msgid "Lieferung ist derzeit überall kostenlos — Gebiete und Gebühren festlegen."
+msgstr "Delivery is currently free everywhere — set areas and fees."
+
+msgid "Nein, nur Abholung"
+msgstr "No, pickup only"
+
+msgid "Verkauf öffnen"
+msgstr "Open sales"
+
+msgid "Vorkasse per Überweisung anbieten?"
+msgstr "Offer prepayment by bank transfer?"
+
+msgid "Zahlarten und Bankverbindung"
+msgstr "Payment methods and bank details"
+
+msgid "Zuerst die Bankverbindung eintragen (nur Inhaber)."
+msgstr "First enter the bank details (owner only)."
+
+msgid "Noch %(n)s Frage offen."
+msgid_plural "Noch %(n)s Fragen offen."
+msgstr[0] "%(n)s question left."
+msgstr[1] "%(n)s questions left."

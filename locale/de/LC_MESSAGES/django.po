@@ -34652,3 +34652,50 @@ msgstr[1] "%(n)s Fragen"
 
 msgid "Beispiele — Antippen sendet die Frage:"
 msgstr "Beispiele — Antippen sendet die Frage:"
+
+msgid "Alle Fragen sind beantwortet."
+msgstr "Alle Fragen sind beantwortet."
+
+msgid "Diese Frage lässt sich hier noch nicht beantworten."
+msgstr "Diese Frage lässt sich hier noch nicht beantworten."
+
+msgid "Ein paar kurze Fragen, damit Kundinnen und Kunden bei Ihnen online kaufen können. Alles lässt sich später in den Einstellungen ändern."
+msgstr "Ein paar kurze Fragen, damit Kundinnen und Kunden bei Ihnen online kaufen können. Alles lässt sich später in den Einstellungen ändern."
+
+msgid "Für Ihr Geschäft gibt es hier gerade nichts zu klären."
+msgstr "Für Ihr Geschäft gibt es hier gerade nichts zu klären."
+
+msgid "Ja, Vorkasse anbieten"
+msgstr "Ja, Vorkasse anbieten"
+
+msgid "Ja, ich liefere"
+msgstr "Ja, ich liefere"
+
+msgid "Liefergebiete und Gebühren"
+msgstr "Liefergebiete und Gebühren"
+
+msgid "Liefern Sie auch?"
+msgstr "Liefern Sie auch?"
+
+msgid "Lieferung ist derzeit überall kostenlos — Gebiete und Gebühren festlegen."
+msgstr "Lieferung ist derzeit überall kostenlos — Gebiete und Gebühren festlegen."
+
+msgid "Nein, nur Abholung"
+msgstr "Nein, nur Abholung"
+
+msgid "Verkauf öffnen"
+msgstr "Verkauf öffnen"
+
+msgid "Vorkasse per Überweisung anbieten?"
+msgstr "Vorkasse per Überweisung anbieten?"
+
+msgid "Zahlarten und Bankverbindung"
+msgstr "Zahlarten und Bankverbindung"
+
+msgid "Zuerst die Bankverbindung eintragen (nur Inhaber)."
+msgstr "Zuerst die Bankverbindung eintragen (nur Inhaber)."
+
+msgid "Noch %(n)s Frage offen."
+msgid_plural "Noch %(n)s Fragen offen."
+msgstr[0] "Noch %(n)s Frage offen."
+msgstr[1] "Noch %(n)s Fragen offen."

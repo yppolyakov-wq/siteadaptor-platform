@@ -34880,3 +34880,52 @@ msgstr[3] "%(n)s вопросов"
 
 msgid "Beispiele — Antippen sendet die Frage:"
 msgstr "Примеры — нажмите, чтобы отправить вопрос:"
+
+msgid "Alle Fragen sind beantwortet."
+msgstr "На все вопросы есть ответ."
+
+msgid "Diese Frage lässt sich hier noch nicht beantworten."
+msgstr "На этот вопрос здесь пока нельзя ответить."
+
+msgid "Ein paar kurze Fragen, damit Kundinnen und Kunden bei Ihnen online kaufen können. Alles lässt sich später in den Einstellungen ändern."
+msgstr "Несколько коротких вопросов, чтобы клиенты могли покупать у вас онлайн. Всё можно изменить позже в настройках."
+
+msgid "Für Ihr Geschäft gibt es hier gerade nichts zu klären."
+msgstr "Для вашего бизнеса здесь сейчас нечего уточнять."
+
+msgid "Ja, Vorkasse anbieten"
+msgstr "Да, предлагать предоплату"
+
+msgid "Ja, ich liefere"
+msgstr "Да, я доставляю"
+
+msgid "Liefergebiete und Gebühren"
+msgstr "Зоны и стоимость доставки"
+
+msgid "Liefern Sie auch?"
+msgstr "Вы также доставляете?"
+
+msgid "Lieferung ist derzeit überall kostenlos — Gebiete und Gebühren festlegen."
+msgstr "Доставка сейчас бесплатна везде — задайте зоны и стоимость."
+
+msgid "Nein, nur Abholung"
+msgstr "Нет, только самовывоз"
+
+msgid "Verkauf öffnen"
+msgstr "Открыть продажи"
+
+msgid "Vorkasse per Überweisung anbieten?"
+msgstr "Предлагать предоплату банковским переводом?"
+
+msgid "Zahlarten und Bankverbindung"
+msgstr "Способы оплаты и банковские реквизиты"
+
+msgid "Zuerst die Bankverbindung eintragen (nur Inhaber)."
+msgstr "Сначала укажите банковские реквизиты (только владелец)."
+
+msgid "Noch %(n)s Frage offen."
+msgid_plural "Noch %(n)s Fragen offen."
+msgstr[0] "Остался %(n)s вопрос."
+msgstr[1] "Осталось %(n)s вопроса."
+msgstr[2] "Осталось %(n)s вопросов."
+msgstr[3] "Осталось %(n)s вопросов."

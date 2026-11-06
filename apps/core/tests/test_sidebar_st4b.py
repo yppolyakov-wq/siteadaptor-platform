@@ -259,6 +259,7 @@ def test_sidebar_children_composition():
         "legal-docs",
         "team",
         "stock-settings",  # UX-D D6.2b (осознанное дополнение): настройки склада
+        "verkauf-oeffnen",  # AIS W4-5a: вопросы перед полным экраном оплаты
         "payment-settings",
         "ablaeufe",
         "extras",

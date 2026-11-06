@@ -100,6 +100,7 @@ from apps.core.views import (
     transitions_save,
     verkaeufe,
     verkaeufe_view_set,
+    verkauf_oeffnen,
     zusatzverkaeufe,
 )
 from apps.events import public_views as events_public
@@ -211,6 +212,8 @@ urlpatterns = [
     path("dashboard/finder/", finder_settings, name="finder-settings"),
     # W4-3: единый экран «Zahlung & Versand» (свод оплаты/доставки).
     path("dashboard/settings/payments/", payment_settings, name="payment-settings"),
+    # AIS W4-5a: «Verkauf öffnen» — вопросы по направлению вместо форм
+    path("dashboard/verkauf-oeffnen/", verkauf_oeffnen, name="verkauf-oeffnen"),
     # GK-11: Place ID + кэш Google-рейтинга (карточка Integrationen).
     path(
         "dashboard/settings/google-bewertungen/",

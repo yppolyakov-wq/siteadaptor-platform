@@ -6527,3 +6527,35 @@ def betriebsferien_view(request):
         "tenant/betriebsferien.html",
         {"ranges": ranges, "today": today, "nav": "betriebsferien"},
     )
+
+
+@login_required
+@perm_required("einstellungen.view")
+def verkauf_oeffnen(request):
+    """AIS W4-5a: «Verkauf öffnen» — вопросы по направлению; по форме на вопрос, PRG, без JS.
+    Запись — `sell_questions.answer` (узкие писатели + отметка «нет» под блокировкой)."""
+    from . import sell_questions
+
+    if request.method == "POST":
+        key = (request.POST.get("frage") or "")[:40]
+        try:
+            sell_questions.answer(request, key, request.POST.get("antwort") or "")
+        except sell_questions.AnswerError as exc:
+            if str(exc) == "forbidden":
+                messages.error(request, _("Dafür fehlt Ihnen die Berechtigung."))
+            elif str(exc) == "blocked":
+                messages.error(request, _("Diese Frage lässt sich hier noch nicht beantworten."))
+        else:
+            messages.success(request, _("Gespeichert."))
+        return redirect(f"{reverse('verkauf-oeffnen')}#{sell_questions.anchor(key)}")
+    rows = sell_questions.questions_for(request)
+    return render(
+        request,
+        "tenant/verkauf_oeffnen.html",
+        {
+            "nav": "settings",
+            "questions": rows,
+            "open": sum(1 for r in rows if r["state"] == "open"),
+            "can_edit": has_perm(request.user, sell_questions.PERM),
+        },
+    )

@@ -787,6 +787,20 @@ def save_delivery(tenant, request) -> None:
     )
 
 
+def set_delivery_enabled(tenant, on: bool) -> None:
+    """AIS W4-5a: УЗКИЙ писатель — только тумблер доставки. Зоны, сборы, точки самовывоза
+    и ограничение по зонам не трогаются (их правит экран «Zahlung & Lieferung»)."""
+    tenant.delivery_enabled = bool(on)
+    tenant.save(update_fields=["delivery_enabled", "updated_at"])
+
+
+def set_vorkasse_enabled(tenant, on: bool) -> None:
+    """AIS W4-5a: УЗКИЙ писатель — только тумблер Vorkasse. Банковские реквизиты не
+    трогаются (их меняет только владелец на экране оплаты, KA-H2)."""
+    tenant.vorkasse_enabled = bool(on)
+    tenant.save(update_fields=["vorkasse_enabled", "updated_at"])
+
+
 def save_pickup_slots(tenant, request) -> None:
     """KA-W1: опция «Kunden wählen eine Abholzeit». Точечная запись одного ключа
     site_config (W6: остальные ключи конфига не трогаем); выключено → ключ снят."""

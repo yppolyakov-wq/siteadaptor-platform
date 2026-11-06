@@ -34711,3 +34711,50 @@ msgstr[1] "%(n)s soru"
 
 msgid "Beispiele — Antippen sendet die Frage:"
 msgstr "Örnekler — dokununca soru gönderilir:"
+
+msgid "Alle Fragen sind beantwortet."
+msgstr "Tüm sorular yanıtlandı."
+
+msgid "Diese Frage lässt sich hier noch nicht beantworten."
+msgstr "Bu soru henüz burada yanıtlanamaz."
+
+msgid "Ein paar kurze Fragen, damit Kundinnen und Kunden bei Ihnen online kaufen können. Alles lässt sich später in den Einstellungen ändern."
+msgstr "Müşterilerin sizden çevrimiçi satın alabilmesi için birkaç kısa soru. Her şeyi daha sonra ayarlardan değiştirebilirsiniz."
+
+msgid "Für Ihr Geschäft gibt es hier gerade nichts zu klären."
+msgstr "Şu anda işletmeniz için burada netleştirilecek bir şey yok."
+
+msgid "Ja, Vorkasse anbieten"
+msgstr "Evet, ön ödeme sun"
+
+msgid "Ja, ich liefere"
+msgstr "Evet, teslimat yapıyorum"
+
+msgid "Liefergebiete und Gebühren"
+msgstr "Teslimat bölgeleri ve ücretleri"
+
+msgid "Liefern Sie auch?"
+msgstr "Teslimat da yapıyor musunuz?"
+
+msgid "Lieferung ist derzeit überall kostenlos — Gebiete und Gebühren festlegen."
+msgstr "Teslimat şu anda her yere ücretsiz — bölgeleri ve ücretleri belirleyin."
+
+msgid "Nein, nur Abholung"
+msgstr "Hayır, yalnızca gel-al"
+
+msgid "Verkauf öffnen"
+msgstr "Satışı aç"
+
+msgid "Vorkasse per Überweisung anbieten?"
+msgstr "Havale ile ön ödeme sunulsun mu?"
+
+msgid "Zahlarten und Bankverbindung"
+msgstr "Ödeme yöntemleri ve banka bilgileri"
+
+msgid "Zuerst die Bankverbindung eintragen (nur Inhaber)."
+msgstr "Önce banka bilgilerini girin (yalnızca sahip)."
+
+msgid "Noch %(n)s Frage offen."
+msgid_plural "Noch %(n)s Fragen offen."
+msgstr[0] "%(n)s soru kaldı."
+msgstr[1] "%(n)s soru kaldı."

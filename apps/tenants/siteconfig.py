@@ -4766,6 +4766,11 @@ def _normalize_impl(config) -> dict:
     readiness = config.get("readiness")
     if isinstance(readiness, dict) and readiness.get("exempt") is True:
         normalized["readiness"] = {"exempt": True}
+    # AIS W4-5a: ответы «Verkauf öffnen» со значением по умолчанию («nein») — пишет только
+    # `apps.core.sell_questions` под блокировкой; Save конструктора их не роняет.
+    verkauf = config.get("verkauf")
+    if isinstance(verkauf, dict) and isinstance(verkauf.get("no"), list):
+        normalized["verkauf"] = {"no": [str(k)[:40] for k in verkauf["no"]][:50]}
     # AIS-M M-1: режимы направлений (presence-minimal).
     directions_cfg = normalize_directions(config.get("directions"))
     if directions_cfg:

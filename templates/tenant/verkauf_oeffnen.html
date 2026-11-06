@@ -1,0 +1,41 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n cabinet %}
+{% block dash_title %}{% trans "Verkauf öffnen" %}{% endblock %}
+
+{% block dash_content %}
+{% comment %}AIS W4-5a: «Verkauf öffnen» — короткие вопросы вместо форм. Одна форма на вопрос (PRG, без JS); запись — узкими писателями (`apps.core.sell_questions`), «да» видно по данным.{% endcomment %}
+<div class="max-w-3xl">
+  <h1 class="ui-h1 mb-1">{% nav_title _("Verkauf öffnen") %}</h1>
+  <p class="text-gray-600 mb-4 text-sm">{% trans "Ein paar kurze Fragen, damit Kundinnen und Kunden bei Ihnen online kaufen können. Alles lässt sich später in den Einstellungen ändern." %}</p>
+
+  {% include "tenant/_settings_messages.html" %}
+
+  {% if not questions %}
+  <p class="ui-card p-4 text-sm" data-verkauf-empty>{% trans "Für Ihr Geschäft gibt es hier gerade nichts zu klären." %}</p>
+  {% else %}
+  <p class="text-sm mb-3" data-verkauf-open>{% if open %}{% blocktrans count n=open %}Noch {{ n }} Frage offen.{% plural %}Noch {{ n }} Fragen offen.{% endblocktrans %}{% else %}{% trans "Alle Fragen sind beantwortet." %}{% endif %}</p>
+  <ol class="space-y-3">
+    {% for q in questions %}
+    <li id="{{ q.anchor }}" class="ui-card p-4 space-y-3" data-verkauf-question="{{ q.key }}" data-state="{{ q.state }}">
+      <div class="flex flex-wrap items-center gap-2">
+        <h2 class="ui-h3 flex-1">{{ q.label }}</h2>
+        {% if q.state == "ja" %}<span class="ui-badge ui-tone-ok">{{ q.yes }}</span>{% elif q.state == "nein" %}<span class="ui-badge ui-tone-off">{{ q.no }}</span>{% else %}<span class="ui-badge ui-tone-new">{% trans "offen" %}</span>{% endif %}
+      </div>
+      {% if q.blocked %}
+        <p class="text-sm text-gray-700">{{ q.blocked }}</p>
+      {% elif can_edit %}
+      <form method="post" class="flex flex-wrap gap-2">
+        {% csrf_token %}
+        <input type="hidden" name="frage" value="{{ q.key }}">
+        <button type="submit" name="antwort" value="ja" class="ui-btn {% if q.state == 'ja' %}ui-btn-primary{% else %}ui-btn-secondary{% endif %} min-h-[44px]"{% if q.state == "ja" %} aria-pressed="true"{% else %} aria-pressed="false"{% endif %}>{{ q.yes }}</button>
+        <button type="submit" name="antwort" value="nein" class="ui-btn {% if q.state == 'nein' %}ui-btn-primary{% else %}ui-btn-secondary{% endif %} min-h-[44px]"{% if q.state == "nein" %} aria-pressed="true"{% else %} aria-pressed="false"{% endif %}>{{ q.no }}</button>
+      </form>
+      {% endif %}
+      {% if q.note %}<p class="text-sm text-amber-800" data-verkauf-note>{{ q.note }}</p>{% endif %}
+      {% if q.more.url %}<a href="{{ q.more.url }}" class="inline-flex items-center min-h-[44px] text-sm text-indigo-700 underline">{{ q.more_label }} <span aria-hidden="true" class="ml-1">→</span></a>{% endif %}
+    </li>
+    {% endfor %}
+  </ol>
+  {% endif %}
+</div>
+{% endblock %}

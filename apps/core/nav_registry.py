@@ -836,6 +836,17 @@ ENTRIES: tuple[NavEntry, ...] = (
         group="verkauf",
         direction="waren",
     ),
+    # AIS W4-5a: «Verkauf öffnen» — короткие вопросы (доставка, Vorkasse …) по направлению
+    _e(
+        "settings",
+        "verkauf-oeffnen",
+        _("Verkauf öffnen"),
+        "settings",
+        "orders",
+        search="verkauf öffnen liefern vorkasse fragen",
+        group="verkauf",
+        direction="waren",
+    ),
     _e(
         "settings",
         "payment-settings",

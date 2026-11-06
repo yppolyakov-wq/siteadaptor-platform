@@ -34867,3 +34867,52 @@ msgstr[3] "%(n)s питань"
 
 msgid "Beispiele — Antippen sendet die Frage:"
 msgstr "Приклади — натисніть, щоб надіслати питання:"
+
+msgid "Alle Fragen sind beantwortet."
+msgstr "На всі питання є відповідь."
+
+msgid "Diese Frage lässt sich hier noch nicht beantworten."
+msgstr "На це питання тут поки не можна відповісти."
+
+msgid "Ein paar kurze Fragen, damit Kundinnen und Kunden bei Ihnen online kaufen können. Alles lässt sich später in den Einstellungen ändern."
+msgstr "Кілька коротких запитань, щоб клієнти могли купувати у вас онлайн. Усе можна змінити пізніше в налаштуваннях."
+
+msgid "Für Ihr Geschäft gibt es hier gerade nichts zu klären."
+msgstr "Для вашого бізнесу тут зараз нічого уточнювати."
+
+msgid "Ja, Vorkasse anbieten"
+msgstr "Так, пропонувати передоплату"
+
+msgid "Ja, ich liefere"
+msgstr "Так, я доставляю"
+
+msgid "Liefergebiete und Gebühren"
+msgstr "Зони та вартість доставки"
+
+msgid "Liefern Sie auch?"
+msgstr "Ви також доставляєте?"
+
+msgid "Lieferung ist derzeit überall kostenlos — Gebiete und Gebühren festlegen."
+msgstr "Доставка зараз безкоштовна всюди — задайте зони та вартість."
+
+msgid "Nein, nur Abholung"
+msgstr "Ні, лише самовивіз"
+
+msgid "Verkauf öffnen"
+msgstr "Відкрити продажі"
+
+msgid "Vorkasse per Überweisung anbieten?"
+msgstr "Пропонувати передоплату банківським переказом?"
+
+msgid "Zahlarten und Bankverbindung"
+msgstr "Способи оплати та банківські реквізити"
+
+msgid "Zuerst die Bankverbindung eintragen (nur Inhaber)."
+msgstr "Спершу вкажіть банківські реквізити (лише власник)."
+
+msgid "Noch %(n)s Frage offen."
+msgid_plural "Noch %(n)s Fragen offen."
+msgstr[0] "Залишилося %(n)s питання."
+msgstr[1] "Залишилося %(n)s питання."
+msgstr[2] "Залишилося %(n)s питань."
+msgstr[3] "Залишилося %(n)s питань."
