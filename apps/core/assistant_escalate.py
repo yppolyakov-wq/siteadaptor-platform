@@ -31,7 +31,7 @@ _W, _E = r"(?<!\w)", r"(?!\w)"
 #: просьба о человеке или «не работает» на пяти языках кабинета
 _HUMAN = re.compile(
     _W + r"(?:"
-    r"funktioniert\s+nicht|klappt\s+nicht|geht\s+nicht|mensch\w*|mitarbeiter\w*|support\w*"
+    r"funktioniert\s+nicht|klappt\s+nicht|geht\s+nicht|mensch\w*|support\w*"
     r"|kundendienst\w*|hilfe\s+von|doesn'?t\s+work|not\s+working|human|real\s+person|support"
     r"|не\s+работает|не\s+получается|человек\w*|оператор\w*|поддержк\w*"
     r"|не\s+працює|не\s+виходить|людин\w*|підтримк\w*"
@@ -42,7 +42,13 @@ _HUMAN = re.compile(
 
 
 def intent(request, q: str) -> bool:
-    return bool(q and _HUMAN.search(q))
+    """Просьба о человеке/«не работает». Фраза создания («Mitarbeiter anlegen», «Support-Seite
+    anlegen») — не эскалация: её разбирают правила создания."""
+    from apps.core import assistant_changes
+
+    if not q or assistant_changes._CREATE.search(q):
+        return False
+    return bool(_HUMAN.search(q))
 
 
 def _recent_questions(request, q: str) -> list[str]:

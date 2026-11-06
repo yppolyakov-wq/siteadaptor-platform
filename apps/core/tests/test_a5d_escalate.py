@@ -100,3 +100,8 @@ def test_foreign_job_is_refused(ai_off, bakery):
     user, got = _ask(bakery, "Ich brauche einen Menschen")
     _send(bakery, _user(), got["job"], "fremd")
     assert not SupportThread.objects.exists()
+
+
+@pytest.mark.parametrize("phrase", ["Mitarbeiter anlegen", "Seite Support anlegen"])
+def test_create_phrases_are_not_escalation(ai_off, bakery, phrase):
+    assert assistant_router.classify(_req(bakery), phrase) != "escalate"
