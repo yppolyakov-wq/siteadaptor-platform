@@ -35261,3 +35261,31 @@ msgstr "Предложение ниже — ваш текст остаётся, 
 
 msgid "Zu viele Vorschläge in kurzer Zeit — bitte später erneut versuchen."
 msgstr "Слишком много предложений за короткое время — попробуйте позже."
+
+msgid "Ohne Öffnungszeiten wissen Kunden nicht, wann Sie da sind."
+msgstr "Без часов работы клиенты не знают, когда вы открыты."
+
+msgid "Mit Ihrem Google-Profil zeigen wir Ihre Bewertungen auf der Website."
+msgstr "С вашим профилем Google мы покажем отзывы на сайте."
+
+msgid "Zeiten eintragen"
+msgstr "Указать часы"
+
+msgid "Wo trage ich die Öffnungszeiten ein?"
+msgstr "Где указать часы работы?"
+
+msgid "Beschreibungen ergänzen"
+msgstr "Добавить описания"
+
+msgid "Google-Profil verbinden"
+msgstr "Подключить профиль Google"
+
+msgid "Profil verbinden"
+msgstr "Подключить профиль"
+
+msgid "%(n)s Angebot hat noch keine Beschreibung — ein Satz hilft beim Kaufen."
+msgid_plural "%(n)s Angebote haben noch keine Beschreibung — ein Satz hilft beim Kaufen."
+msgstr[0] "У %(n)s позиции ещё нет описания — одно предложение помогает продавать."
+msgstr[1] "У %(n)s позиций ещё нет описания — одно предложение помогает продавать."
+msgstr[2] "У %(n)s позиций ещё нет описания — одно предложение помогает продавать."
+msgstr[3] "У %(n)s позиции ещё нет описания — одно предложение помогает продавать."

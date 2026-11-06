@@ -142,3 +142,39 @@ def test_photo_card_only_for_goods_direction(v4, monkeypatch):
     assert "photos" not in _keys(v4) and "design" not in [
         c["key"] for c in next_steps.cards(_req(v4), limit=10)
     ]
+
+
+# --- AIS-6: карточки по данным -----------------------------------------------------
+
+
+def test_hours_card_only_without_opening_hours(v4):
+    v4.opening_hours = ""
+    assert next_steps._hours(v4)
+    v4.opening_hours = "Mo–Fr 8–18"
+    assert next_steps._hours(v4) is None
+
+
+def test_descriptions_card_counts_products_without_text(v4, monkeypatch):
+    from apps.catalog.models import Product
+
+    monkeypatch.setattr(next_steps, "_sells_goods", lambda t: True)
+    Product.objects.create(name={"de": "A"}, base_price=1, description={})
+    Product.objects.create(name={"de": "B"}, base_price=1, description={"de": "Lecker"})
+    Product.objects.create(name={"de": "C"}, base_price=1, description={"de": ""})
+    text = next_steps._descriptions(v4)
+    assert text and "2" in text
+    Product.objects.filter(name__de__in=["A", "C"]).update(description={"de": "Gut"})
+    v4._next_steps_products = None
+    assert next_steps._descriptions(v4) is None
+
+
+def test_google_card_only_when_search_works_and_not_linked(v4, monkeypatch):
+    from apps.core import setup_google
+
+    monkeypatch.setattr(setup_google, "enabled", lambda t: False)
+    assert next_steps._google(v4) is None
+    monkeypatch.setattr(setup_google, "enabled", lambda t: True)
+    v4.google_place_id = ""
+    assert next_steps._google(v4)
+    v4.google_place_id = "ChIJ123"
+    assert next_steps._google(v4) is None

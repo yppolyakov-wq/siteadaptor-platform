@@ -34940,3 +34940,29 @@ msgstr "Suggestion below — your text stays until you accept"
 
 msgid "Zu viele Vorschläge in kurzer Zeit — bitte später erneut versuchen."
 msgstr "Too many suggestions in a short time — please try again later."
+
+msgid "Ohne Öffnungszeiten wissen Kunden nicht, wann Sie da sind."
+msgstr "Without opening hours, customers don't know when you are there."
+
+msgid "Mit Ihrem Google-Profil zeigen wir Ihre Bewertungen auf der Website."
+msgstr "With your Google profile we show your reviews on the website."
+
+msgid "Zeiten eintragen"
+msgstr "Enter hours"
+
+msgid "Wo trage ich die Öffnungszeiten ein?"
+msgstr "Where do I enter the opening hours?"
+
+msgid "Beschreibungen ergänzen"
+msgstr "Add descriptions"
+
+msgid "Google-Profil verbinden"
+msgstr "Connect Google profile"
+
+msgid "Profil verbinden"
+msgstr "Connect profile"
+
+msgid "%(n)s Angebot hat noch keine Beschreibung — ein Satz hilft beim Kaufen."
+msgid_plural "%(n)s Angebote haben noch keine Beschreibung — ein Satz hilft beim Kaufen."
+msgstr[0] "%(n)s item has no description yet — one sentence helps sell it."
+msgstr[1] "%(n)s items have no description yet — one sentence helps sell them."

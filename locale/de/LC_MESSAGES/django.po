@@ -35027,3 +35027,29 @@ msgstr "Vorschlag unten — Ihr Text bleibt, bis Sie übernehmen"
 
 msgid "Zu viele Vorschläge in kurzer Zeit — bitte später erneut versuchen."
 msgstr "Zu viele Vorschläge in kurzer Zeit — bitte später erneut versuchen."
+
+msgid "Ohne Öffnungszeiten wissen Kunden nicht, wann Sie da sind."
+msgstr "Ohne Öffnungszeiten wissen Kunden nicht, wann Sie da sind."
+
+msgid "Mit Ihrem Google-Profil zeigen wir Ihre Bewertungen auf der Website."
+msgstr "Mit Ihrem Google-Profil zeigen wir Ihre Bewertungen auf der Website."
+
+msgid "Zeiten eintragen"
+msgstr "Zeiten eintragen"
+
+msgid "Wo trage ich die Öffnungszeiten ein?"
+msgstr "Wo trage ich die Öffnungszeiten ein?"
+
+msgid "Beschreibungen ergänzen"
+msgstr "Beschreibungen ergänzen"
+
+msgid "Google-Profil verbinden"
+msgstr "Google-Profil verbinden"
+
+msgid "Profil verbinden"
+msgstr "Profil verbinden"
+
+msgid "%(n)s Angebot hat noch keine Beschreibung — ein Satz hilft beim Kaufen."
+msgid_plural "%(n)s Angebote haben noch keine Beschreibung — ein Satz hilft beim Kaufen."
+msgstr[0] "%(n)s Angebot hat noch keine Beschreibung — ein Satz hilft beim Kaufen."
+msgstr[1] "%(n)s Angebote haben noch keine Beschreibung — ein Satz hilft beim Kaufen."

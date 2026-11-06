@@ -72,13 +72,23 @@ def _product_stats(t) -> dict:
     memo = getattr(t, "_next_steps_products", None)
     if memo is not None:
         return memo
+    from django.conf import settings
     from django.db.models import Count, Q
 
     from apps.catalog.models import Product
 
     no_photo = Q(images=[]) | Q(images__isnull=True)
+    base = settings.LANGUAGE_CODE
+    no_text = (
+        Q(description={})
+        | Q(description__isnull=True)
+        | Q(**{f"description__{base}__isnull": True})
+        | Q(**{f"description__{base}": ""})
+    )
     memo = Product.objects.filter(is_active=True).aggregate(
-        total=Count("pk"), no_photo=Count("pk", filter=no_photo)
+        total=Count("pk"),
+        no_photo=Count("pk", filter=no_photo),
+        no_text=Count("pk", filter=no_text),
     )
     try:
         t._next_steps_products = memo
@@ -105,6 +115,36 @@ def _photos(t):
         "%(n)s Angebote haben noch kein Foto — mit Foto wird öfter gekauft.",
         n,
     ) % {"n": n}
+
+
+def _hours(t):
+    """AIS-6: без часов витрина не может сказать «geöffnet», а поиск города — «offen»."""
+    if (getattr(t, "opening_hours", "") or "").strip():
+        return None
+    return str(_("Ohne Öffnungszeiten wissen Kunden nicht, wann Sie da sind."))
+
+
+def _descriptions(t):
+    """AIS-6: позиции без описания — вход в «✨ Text vorschlagen» (AIS-7) на форме товара."""
+    if not _sells_goods(t):
+        return None
+    n = _product_stats(t)["no_text"]
+    if not n:
+        return None
+    return ngettext(
+        "%(n)s Angebot hat noch keine Beschreibung — ein Satz hilft beim Kaufen.",
+        "%(n)s Angebote haben noch keine Beschreibung — ein Satz hilft beim Kaufen.",
+        n,
+    ) % {"n": n}
+
+
+def _google(t):
+    """AIS-6: профиль Google не связан — только если платформа умеет его искать."""
+    from apps.core import setup_google
+
+    if (getattr(t, "google_place_id", "") or "").strip() or not setup_google.enabled(t):
+        return None
+    return str(_("Mit Ihrem Google-Profil zeigen wir Ihre Bewertungen auf der Website."))
 
 
 def _first_promo(t):
@@ -153,12 +193,36 @@ CARDS: tuple[Card, ...] = (
         _("Fragen beantworten"),
     ),
     Card(
+        "hours",
+        _("Öffnungszeiten eintragen"),
+        _hours,
+        "settings",
+        _("Zeiten eintragen"),
+        assistant_q=_("Wo trage ich die Öffnungszeiten ein?"),
+    ),
+    Card(
         "photos",
         _("Fotos ergänzen"),
         _photos,
         "catalog:product-list",
         _("Zum Sortiment"),
         assistant_q=_("Wie füge ich Fotos zu Produkten hinzu?"),
+    ),
+    Card(
+        "descriptions",
+        _("Beschreibungen ergänzen"),
+        _descriptions,
+        "catalog:product-list",
+        _("Zum Sortiment"),
+        hide_days=30,
+    ),
+    Card(
+        "google",
+        _("Google-Profil verbinden"),
+        _google,
+        "google-reviews-settings",
+        _("Profil verbinden"),
+        hide_days=90,
     ),
     Card(
         "promo",

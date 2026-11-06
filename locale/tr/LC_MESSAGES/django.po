@@ -35086,3 +35086,29 @@ msgstr "Öneri aşağıda — siz kabul edene kadar metniniz kalır"
 
 msgid "Zu viele Vorschläge in kurzer Zeit — bitte später erneut versuchen."
 msgstr "Kısa sürede çok fazla öneri — lütfen daha sonra tekrar deneyin."
+
+msgid "Ohne Öffnungszeiten wissen Kunden nicht, wann Sie da sind."
+msgstr "Çalışma saatleri olmadan müşteriler ne zaman açık olduğunuzu bilmez."
+
+msgid "Mit Ihrem Google-Profil zeigen wir Ihre Bewertungen auf der Website."
+msgstr "Google profilinizle değerlendirmelerinizi web sitesinde gösteririz."
+
+msgid "Zeiten eintragen"
+msgstr "Saatleri girin"
+
+msgid "Wo trage ich die Öffnungszeiten ein?"
+msgstr "Çalışma saatlerini nereye girerim?"
+
+msgid "Beschreibungen ergänzen"
+msgstr "Açıklama ekleyin"
+
+msgid "Google-Profil verbinden"
+msgstr "Google profilini bağlayın"
+
+msgid "Profil verbinden"
+msgstr "Profili bağla"
+
+msgid "%(n)s Angebot hat noch keine Beschreibung — ein Satz hilft beim Kaufen."
+msgid_plural "%(n)s Angebote haben noch keine Beschreibung — ein Satz hilft beim Kaufen."
+msgstr[0] "%(n)s ürünün henüz açıklaması yok — bir cümle satışa yardımcı olur."
+msgstr[1] "%(n)s ürünün henüz açıklaması yok — bir cümle satışa yardımcı olur."
