@@ -35155,3 +35155,6 @@ msgstr "Перевірити й перенести"
 
 msgid "Zurück zum Einrichten"
 msgstr "Назад до налаштування"
+
+msgid "Die Website konnte nicht gelesen werden. Prüfen Sie die Adresse im ersten Schritt oder tragen Sie Ihr Angebot hier ein."
+msgstr "Сайт не вдалося прочитати. Перевірте адресу на першому кроці або впишіть пропозицію тут."

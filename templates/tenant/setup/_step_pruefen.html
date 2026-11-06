@@ -28,7 +28,9 @@
 {% if quelle_import %}
 <section class="ui-card p-4 mb-4 space-y-2" aria-labelledby="quelle-imp-h" data-quelle-import="{{ quelle_import.state }}">
   <h2 id="quelle-imp-h" class="text-sm font-semibold">{% blocktrans with host=quelle_import.host %}Von Ihrer Website {{ host }}{% endblocktrans %}</h2>
-  {% if quelle_import.state == "running" %}
+  {% if quelle_import.state == "failed" %}
+  <p class="text-sm text-red-800" role="status">{% trans "Die Website konnte nicht gelesen werden. Prüfen Sie die Adresse im ersten Schritt oder tragen Sie Ihr Angebot hier ein." %}</p>
+  {% elif quelle_import.state == "running" %}
   <p class="text-sm text-gray-600" role="status">{% trans "Import läuft … Sie können hier weitermachen." %}</p>
   {% elif quelle_import.state == "applied" %}
   <p class="text-sm text-gray-600">{% trans "Übernommen." %}</p>

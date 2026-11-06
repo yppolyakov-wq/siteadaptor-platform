@@ -1110,8 +1110,8 @@ def _quelle_options(request) -> list[dict]:
     ]
 
 
-def _quelle_run(tenant):
-    """Прогон импорта, запущенный из мастера (не упавший) — или None."""
+def _wizard_run(tenant):
+    """Прогон импорта, запущенный из мастера (любой статус) — или None."""
     from apps.tenants import onboarding
 
     run_id = onboarding.import_run_id(tenant)
@@ -1122,13 +1122,15 @@ def _quelle_run(tenant):
     from apps.imports.models import SiteImportRun
 
     try:
-        return (
-            SiteImportRun.objects.filter(pk=run_id)
-            .exclude(status=SiteImportRun.STATUS_FAILED)
-            .first()
-        )
+        return SiteImportRun.objects.filter(pk=run_id).first()
     except (ValueError, ValidationError):  # мусор в state — прогона нет
         return None
+
+
+def _quelle_run(tenant):
+    """Живой прогон мастера (упавший — «прогона нет»: можно запустить заново)."""
+    run = _wizard_run(tenant)
+    return None if run is None or run.status == run.STATUS_FAILED else run
 
 
 def _quelle_import_card(request) -> dict | None:
@@ -1137,14 +1139,16 @@ def _quelle_import_card(request) -> dict | None:
 
     if "website" not in onboarding.had(request.tenant):
         return None
-    run = _quelle_run(request.tenant)
+    run = _wizard_run(request.tenant)
     if run is None:
         return None
     from django.urls import reverse
 
     from apps.imports.site import verify
 
-    if run.status in run.ACTIVE:
+    if run.status == run.STATUS_FAILED:
+        state = "failed"
+    elif run.status in run.ACTIVE:
         state = "running"
     elif run.status == run.STATUS_APPLIED:
         state = "applied"
@@ -1172,28 +1176,44 @@ def _post_quelle(request):
 
     «Eigene Website» запускает ТОТ ЖЕ импорт, что экран кабинета (`start_run`: проверка
     адреса, SSRF-защита при обходе, лимиты, подтверждение владения ДО применения). Мастер не
-    ждёт прогона: статус покажет шаг «Angebot»."""
+    ждёт прогона: статус покажет шаг «Angebot». Выбор сохраняется ДО запуска — забытая
+    галочка согласия не стирает остальные отметки."""
     from apps.tenants import onboarding
 
+    tenant = request.tenant
     allowed = {o["key"] for o in _quelle_options(request)}
-    keys = onboarding.clean_had([k for k in request.POST.getlist("had") if k in allowed])
-    run_id = None
-    if "website" in keys and not _quelle_run(request.tenant):
-        from apps.imports.site import service
+    keys = [k for k in request.POST.getlist("had") if k in allowed]
+    # Чужие варианты (сотруднику Website не показан) — не наши, выбор владельца не теряем.
+    keys += [k for k in onboarding.had(tenant) if k not in allowed]
+    keys = onboarding.set_had(tenant, keys)
+    if "website" not in keys:
+        request.session.pop("quelle_url", None)
+        return None
+    if "website" not in allowed or _quelle_run(tenant):
+        return None  # прогон уже есть (или вариант не наш) — второй не стартуем
+    from apps.imports.site import service
 
-        url = (request.POST.get("site_url") or "").strip()[:500]
-        request.session["quelle_url"] = url  # ввод не теряется при ошибке
-        if request.POST.get("consent") != "1":
-            messages.error(request, _("Bitte bestätigen Sie, dass Sie Inhaber der Website sind."))
-            return False
-        try:
-            run = service.start_run(user=request.user, url=url)
-        except service.StartError as exc:
+    url = (request.POST.get("site_url") or "").strip()[:500]
+    request.session["quelle_url"] = url  # ввод не теряется при ошибке
+    if request.POST.get("consent") != "1":
+        messages.error(request, _("Bitte bestätigen Sie, dass Sie Inhaber der Website sind."))
+        return False
+    try:
+        run = service.start_run(user=request.user, url=url)
+    except service.StartError as exc:
+        run = _active_run()  # прогон уже идёт (напр. запущен из кабинета) — берём его
+        if run is None:
             messages.error(request, str(exc))
             return False
-        run_id = run.pk
-        request.session.pop("quelle_url", None)
-    onboarding.set_had(request.tenant, keys, import_run=run_id)
+    request.session.pop("quelle_url", None)
+    onboarding.set_had(tenant, keys, import_run=run.pk)
+    return None
+
+
+def _active_run():
+    from apps.imports.models import SiteImportRun
+
+    return SiteImportRun.objects.filter(status__in=SiteImportRun.ACTIVE).first()
 
 
 HANDLERS = {

@@ -34934,3 +34934,6 @@ msgstr "Prüfen & übernehmen"
 
 msgid "Zurück zum Einrichten"
 msgstr "Zurück zum Einrichten"
+
+msgid "Die Website konnte nicht gelesen werden. Prüfen Sie die Adresse im ersten Schritt oder tragen Sie Ihr Angebot hier ein."
+msgstr "Die Website konnte nicht gelesen werden. Prüfen Sie die Adresse im ersten Schritt oder tragen Sie Ihr Angebot hier ein."

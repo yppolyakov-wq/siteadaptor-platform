@@ -35168,3 +35168,6 @@ msgstr "Проверить и перенести"
 
 msgid "Zurück zum Einrichten"
 msgstr "Назад к настройке"
+
+msgid "Die Website konnte nicht gelesen werden. Prüfen Sie die Adresse im ersten Schritt oder tragen Sie Ihr Angebot hier ein."
+msgstr "Сайт не удалось прочитать. Проверьте адрес на первом шаге или впишите предложение здесь."

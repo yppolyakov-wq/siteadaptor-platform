@@ -246,3 +246,74 @@ def test_import_screen_back_link_only_into_the_wizard(value, ok):
     request = RequestFactory().get("/imports/website/x/", {"next": value})
     request.user = AnonymousUser()
     assert bool(_wizard_back(request)) is ok
+
+
+# --- правки по ревью (django-reviewer + security-reviewer) --------------------------------
+
+
+def test_missing_consent_keeps_the_other_choices(fake_start, monkeypatch):
+    from apps.core import setup_google
+
+    monkeypatch.setattr(setup_google, "enabled", lambda t: True)
+    tenant, owner = _quelle_owner()
+    owner("post", {"had": ["website", "google"], "site_url": "https://k.example"})
+    tenant.refresh_from_db()
+    assert onboarding.had(tenant) == ["website", "google"] and fake_start == []
+
+
+def test_staff_save_does_not_drop_the_owners_website_choice():
+    from apps.core.models import Membership
+
+    tenant = _v4()
+    onboarding.set_had(tenant, ["website"])
+    onboarding.goto(tenant, "quelle")
+    Owner(tenant, role=Membership.ROLE_STAFF)("post", {"had": ["none"]})
+    tenant.refresh_from_db()
+    assert onboarding.had(tenant) == ["none"]  # «none» побеждает, но и при выборе…
+    onboarding.set_had(tenant, ["website"])
+    onboarding.goto(tenant, "quelle")
+    Owner(tenant, role=Membership.ROLE_STAFF)("post", {"had": []})
+    tenant.refresh_from_db()
+    assert onboarding.had(tenant) == ["website"]  # …не своего варианта сотрудник не снимает
+
+
+def test_running_cabinet_import_is_adopted(monkeypatch):
+    from django.utils import timezone
+
+    from apps.imports.models import SiteImportRun
+    from apps.imports.site import service
+
+    run = SiteImportRun.objects.create(
+        start_url="https://k.example", host="k.example", consent_at=timezone.now()
+    )
+
+    def busy(**kw):
+        raise service.StartError("Ein Import läuft bereits.")
+
+    monkeypatch.setattr(service, "start_run", busy)
+    tenant, owner = _quelle_owner()
+    owner("post", {"had": ["website"], "site_url": "https://k.example", "consent": "1"})
+    tenant.refresh_from_db()
+    assert onboarding.import_run_id(tenant) == str(run.pk)
+    assert onboarding.get_state(tenant)["step"] == "company"
+
+
+def test_failed_import_is_shown_not_swallowed(fake_start):
+    from apps.imports.models import SiteImportRun
+
+    tenant, owner = _quelle_owner()
+    owner("post", {"had": ["website"], "site_url": "https://k.example", "consent": "1"})
+    SiteImportRun.objects.update(status=SiteImportRun.STATUS_FAILED)
+    onboarding.goto(tenant, "pruefen")
+    assert 'data-quelle-import="failed"' in owner().content.decode()
+
+
+def test_stale_tenant_save_does_not_wipe_the_choice():
+    from apps.tenants.models import Tenant
+
+    tenant = _v4()
+    stale = Tenant.objects.get(pk=tenant.pk)  # вторая вкладка: загружена ДО выбора
+    onboarding.set_had(tenant, ["google"], import_run="abc")
+    onboarding.goto(stale, "company")
+    fresh = Tenant.objects.get(pk=tenant.pk)
+    assert onboarding.had(fresh) == ["google"] and onboarding.import_run_id(fresh) == "abc"

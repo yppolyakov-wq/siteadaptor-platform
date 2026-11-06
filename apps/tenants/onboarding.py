@@ -502,6 +502,8 @@ def touch_start(tenant) -> None:
 #: Ключи состояния, которые пишут точечные писатели под блокировкой (offer_batch): общий
 #: save_state берёт их из БД, а не из (возможно, устаревшего) тенанта запроса.
 _LOCKED_STATE_KEYS = ("offer_batches", "directions")
+#: AIS-3: ключи с единственным писателем `set_had` — save_state их только переносит из БД.
+_OWNED_STATE_KEYS = ("had", "import_run")
 
 
 def save_state(tenant, state: dict) -> None:
@@ -517,6 +519,10 @@ def save_state(tenant, state: dict) -> None:
     for key in _LOCKED_STATE_KEYS:
         if isinstance(fresh_state.get(key), list):
             state = {**state, key: fresh_state[key]}
+    # AIS-3: выбор «Was haben Sie schon?» и прогон импорта пишет только `set_had` — правда в
+    # БД (и «убрано» тоже): вторая вкладка или live-сохранение не вернёт и не сотрёт их.
+    state = {k: v for k, v in state.items() if k not in _OWNED_STATE_KEYS}
+    state.update({k: fresh_state[k] for k in _OWNED_STATE_KEYS if k in fresh_state})
     config["onboarding"] = state
     tenant.site_config = config
     tenant.save(update_fields=["site_config", "updated_at"])

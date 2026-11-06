@@ -21,8 +21,9 @@
     <div class="ui-card p-4 space-y-2 lg:col-span-2" data-quelle-site>
       <label for="id_site_url" class="block text-sm font-semibold">{% trans "Adresse Ihrer Website" %}</label>
       <input id="id_site_url" type="url" name="site_url" value="{{ quelle_url }}" inputmode="url" autocomplete="url" placeholder="https://" class="ui-input block w-full">
-      <label class="flex items-center gap-2 text-sm min-h-[44px]"><input type="checkbox" name="consent" value="1" class="h-5 w-5"> {% trans "Ich bin Inhaber dieser Website" %}</label>
+      <label class="flex items-start gap-2 text-sm min-h-[44px]"><input type="checkbox" name="consent" value="1" class="h-5 w-5 mt-0.5 shrink-0"> <span>{% trans "Ich bin Inhaber dieser Website bzw. berechtigt, ihre Inhalte zu verwenden. Texte und Fotos dürfen übernommen werden." %}</span></label>
       <p class="text-xs text-gray-600">{% trans "Nur nötig, wenn Sie «Eigene Website» wählen. Der Import läuft im Hintergrund — Sie machen weiter." %}</p>
+      {% ai_notice "site_import_extract" %}
     </div>
     {% endif %}
     {% endfor %}

@@ -34847,3 +34847,6 @@ msgstr "Check & take over"
 
 msgid "Zurück zum Einrichten"
 msgstr "Back to setup"
+
+msgid "Die Website konnte nicht gelesen werden. Prüfen Sie die Adresse im ersten Schritt oder tragen Sie Ihr Angebot hier ein."
+msgstr "The website could not be read. Check the address in the first step or enter your offer here."

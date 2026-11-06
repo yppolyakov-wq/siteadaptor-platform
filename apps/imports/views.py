@@ -323,15 +323,12 @@ def website_run(request, pk):
     tenant = request.tenant
     back = _wizard_back(request)
 
-    def redirect(*args, **kwargs):  # AIS-3: возврат в мастер переживает POST-циклы экрана
-        from django.shortcuts import redirect as _redirect
+    def to_run():  # AIS-3: возврат в мастер переживает POST-циклы экрана
+        from django.urls import reverse
+        from django.utils.http import urlencode
 
-        response = _redirect(*args, **kwargs)
-        if back:
-            from django.utils.http import urlencode
-
-            response["Location"] += "?" + urlencode({"next": back})
-        return response
+        location = reverse("imports:website-run", args=[run.pk])
+        return redirect(location + ("?" + urlencode({"next": back}) if back else ""))
 
     items = list(run.items.all())
     action = request.POST.get("action") if request.method == "POST" else None
@@ -346,17 +343,17 @@ def website_run(request, pk):
                 request,
                 _("Der Bestätigungscode wurde auf Ihrer Website nicht gefunden."),
             )
-        return redirect("imports:website-run", pk=run.pk)
+        return to_run()
     if action == "eintrag":
         # T-8.27d (Р-A): визитка — витрина без каталога, позиции ведут на сайт владельца.
         if not _can_eintrag(tenant, run):
             messages.error(request, _("Die Visitenkarte ist für diesen Import nicht möglich."))
-            return redirect("imports:website-run", pk=run.pk)
+            return to_run()
         _enable_eintrag(tenant)
         messages.success(
             request, _("Visitenkarte aktiviert: Ihre Artikel verlinken auf Ihre Website.")
         )
-        return redirect("imports:website-run", pk=run.pk)
+        return to_run()
     if request.method == "POST" and run.status == SiteImportRun.STATUS_READY:
         decisions = {
             str(item.pk): {
@@ -373,7 +370,7 @@ def website_run(request, pk):
             result = apply.apply_items(run, tenant, decisions)
         except apply.ApplyError as exc:
             messages.error(request, APPLY_ERRORS.get(str(exc), APPLY_ERRORS["not_ready"]))
-            return redirect("imports:website-run", pk=run.pk)
+            return to_run()
         apply.apply_profile(run, tenant, fields)
         messages.success(
             request,
@@ -388,7 +385,7 @@ def website_run(request, pk):
                 _("Nicht gespeichert: %(names)s. Bitte prüfen und erneut versuchen.")
                 % {"names": ", ".join(result.errors[:10])},
             )
-        return redirect("imports:website-run", pk=run.pk)
+        return to_run()
     return render(
         request,
         "imports/website_run.html",
