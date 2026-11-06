@@ -33994,3 +33994,47 @@ msgstr "Zimmer sind bei Ihnen nicht eingeschaltet — als Produkt geplant."
 #: apps/core/setup_assistant.py
 msgid "Veranstaltungen sind bei Ihnen nicht eingeschaltet — als Produkt geplant."
 msgstr "Veranstaltungen sind bei Ihnen nicht eingeschaltet — als Produkt geplant."
+
+#: templates/core/_assistant_body.html
+msgid "Dazu habe ich keine Anleitung gefunden."
+msgstr "Dazu habe ich keine Anleitung gefunden."
+
+#: templates/core/_assistant_body.html
+msgid "Diese Anleitungen passen zu Ihrer Frage."
+msgstr "Diese Anleitungen passen zu Ihrer Frage."
+
+#: templates/core/_assistant_body.html
+msgid "Frage stellen oder etwas anlegen"
+msgstr "Frage stellen oder etwas anlegen"
+
+#: templates/core/_assistant_body.html
+msgid "Fragen"
+msgstr "Fragen"
+
+#: templates/core/_assistant_body.html
+msgid "z. B. Neue Leistung Herrenhaarschnitt 25 € 30 min — oder: Wie richte ich die Lieferung ein?"
+msgstr "z. B. Neue Leistung Herrenhaarschnitt 25 € 30 min — oder: Wie richte ich die Lieferung ein?"
+
+#: templates/core/_assistant_body.html
+msgid "„Neue Leistung …“ öffnet ein vorausgefülltes Formular; auf Fragen antworten passende Anleitungen."
+msgstr "„Neue Leistung …“ öffnet ein vorausgefülltes Formular; auf Fragen antworten passende Anleitungen."
+
+#: apps/support/services.py
+#, python-format
+msgid "Neue Support-Anfrage: %(firma)s — %(betreff)s"
+msgstr "Neue Support-Anfrage: %(firma)s — %(betreff)s"
+
+#: apps/support/services.py
+#, python-format
+msgid "Antworten Sie in der Verwaltung: %(url)s"
+msgstr "Antworten Sie in der Verwaltung: %(url)s"
+
+#: apps/support/services.py
+#, python-format
+msgid "Antwort vom Support: %(betreff)s"
+msgstr "Antwort vom Support: %(betreff)s"
+
+#: apps/support/services.py
+#, python-format
+msgid "Der SiteAdaptor-Support hat geantwortet: %(url)s"
+msgstr "Der SiteAdaptor-Support hat geantwortet: %(url)s"

@@ -196,3 +196,82 @@ def test_ai_duration_only_as_written(tenant):
 def test_system_prompt_carries_examples_in_five_languages():
     for marker in ("Herrenhaarschnitt", "прыжки с парашутом", "200 гр", "olarak", "Käsekuchen"):
         assert marker in sa.SYSTEM
+
+
+# ── ревью A-3a: вопрос о создании ≠ команда создать ──
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "Wie lege ich eine Leistung an?",
+        "Как работает акция?",
+        "Wie funktioniert eine Aktion",
+        "How do I add a product?",
+        "Як створити послугу?",
+        "Nasıl hizmet eklerim?",
+        "Где категории товаров?",
+    ],
+)
+def test_question_about_creating_is_not_an_intent(tenant, monkeypatch, text):
+    from types import SimpleNamespace
+
+    monkeypatch.setattr(sa, "allowed_entities", lambda t, u: ALL)
+    assert not sa.create_intent(tenant, SimpleNamespace(pk=1), text)
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "Kann ich eine Leistung Haarschnitt 25 € anlegen?",
+        "neue Leistung „Bart trimmen“?",
+        "создай услугу прыжки с парашутом",
+    ],
+)
+def test_command_with_data_stays_an_intent(tenant, monkeypatch, text):
+    from types import SimpleNamespace
+
+    monkeypatch.setattr(sa, "allowed_entities", lambda t, u: ALL)
+    assert sa.create_intent(tenant, SimpleNamespace(pk=1), text)
+
+
+def test_ai_bare_number_is_not_a_price_when_owner_wrote_a_currency(tenant):
+    text = "Wein 12 €, Tisch 5"
+    step = {"entity": "product", "name": "Wein", "price_text": "5"}
+    got = sa._from_ai({"steps": [step]}, text, tenant, ALL).steps[0]
+    assert _val(got, "base_price") == ""
+
+
+def test_plan_round_trips_through_cache_data(tenant):
+    plan = sa.plan_from_rules("создай услугу прыжки с парашутом, 200 евро, 60 минут", tenant, ALL)
+    again = sa.plan_from_data(sa.plan_to_data(plan), tenant)
+    assert again.steps == plan.steps and again.source == plan.source
+
+
+def test_intent_when_explicit_kind_is_off_but_fallback_is_allowed(tenant, monkeypatch):
+    """Стенд: у пекарни нет услуг; «… как услугу» всё равно команда — план даст товар с
+    пометкой (раньше фраза уходила в модель вопросов)."""
+    from types import SimpleNamespace
+
+    monkeypatch.setattr(
+        sa, "allowed_entities", lambda t, u: [sa.ENTITY_CATEGORY, sa.ENTITY_PRODUCT]
+    )
+    assert sa.create_intent(tenant, SimpleNamespace(pk=1), SAUSAGE_PHRASE)
+
+
+SAUSAGE_PHRASE = "добавь новый товар Колбаса копченая 200 гр 50 евро как услугу"
+
+
+def test_service_off_plain_kind_word_falls_back_with_name(tenant):
+    """Стенд: «создай услугу прыжки …, 200 евро» у пекарни без услуг давал «Продукт» без
+    имени из хвоста. Теперь — товар «прыжки с парашутом» 200,00 с пометкой."""
+    allowed = [sa.ENTITY_CATEGORY, sa.ENTITY_PRODUCT]
+    plan = sa.plan_from_rules("создай услугу прыжки с парашутом, 200 евро", tenant, allowed)
+    assert len(plan.steps) == 1 and plan.note
+    assert _val(plan.steps[0], "name_de") == "прыжки с парашутом"
+    assert _val(plan.steps[0], "base_price") == "200,00"
+
+
+def test_nameless_tail_without_a_step_is_not_a_product(tenant):
+    plan = sa.plan_from_rules("200 евро, 60 минут", tenant, [sa.ENTITY_PRODUCT])
+    assert plan.steps == ()

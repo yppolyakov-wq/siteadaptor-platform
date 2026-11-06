@@ -293,14 +293,16 @@ def test_links_rechecked_when_rights_change(ai_task_on, bakery, monkeypatch):
 # --- ИИ выключен, лимиты, кэш, очередь ----------------------------------------------------
 
 
-def test_disabled_no_form_and_no_model(settings, bakery):
+def test_disabled_no_ai_hint_and_no_model(settings, bakery):
+    # A-3a (решение владельца 2026-11-06): поле видно и без ИИ — «создать» даёт план,
+    # вопрос даёт статьи A-1; пометки «Sie chatten mit einer KI» нет, модель не вызвана
     settings.AI_ENABLED = False
     body = assistant_views.assistant_view(_req(bakery)).content.decode()
-    assert "data-assistant-ask" not in body
+    assert "data-assistant-ask" in body and "Sie chatten mit einer KI" not in body
     gen, run = _model(GOOD)
     with gen as g, run:
         _user_, got = _ask(bakery, "Lieferung einrichten")
-    assert got["code"] == "disabled" and g.call_count == 0
+    assert "job" in got and g.call_count == 0
 
 
 def test_form_shown_when_enabled(ai_task_on, bakery):

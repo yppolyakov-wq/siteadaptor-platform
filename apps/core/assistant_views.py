@@ -57,12 +57,19 @@ def assistant_view(request):
         diagnose=diagnose,
         artikel=(request.GET.get("artikel") or "")[:40],
     )
-    from apps.core import assistant_ai
+    from apps.core import assistant_ai, setup_assistant
 
     antwort = request.GET.get("antwort") or ""
+    try:  # A-3a: «Was möchten Sie anlegen?» — видимой кнопкой, если экран тут открывается
+        anlegen = setup_assistant.reachable(request, "setup-ask") and bool(
+            setup_assistant.allowed_entities(request.tenant, request.user)
+        )
+    except Exception:  # noqa: BLE001 — кнопка-дополнение не роняет шторку
+        anlegen = False
     ctx.update(
         {
             "ai_enabled": assistant_ai.enabled(),
+            "anlegen": anlegen,
             "answer": _answer_ctx(request, antwort) if antwort else None,
             "nav": "dashboard",
             "limited": limited,
@@ -102,10 +109,18 @@ def assistant_ask(request):
     from django.shortcuts import redirect
     from django.urls import reverse
 
-    from apps.core import assistant_ai
+    from apps.core import assistant_ai, setup_assistant
 
     seite = _seite_value(request.POST.get("seite"))
-    got = assistant_ai.ask(request, request.POST.get("frage", ""), seite)
+    raw = request.POST.get("frage", "")
+    q, code = assistant_ai.prepare_question(raw)
+    if not code and setup_assistant.create_intent(request.tenant, request.user, q):
+        # AIS A-3a: «создай …» — план с предзаполненной формой, и без ИИ тоже
+        got = assistant_ai.put_plan(request, q)
+    else:
+        got = assistant_ai.ask(request, raw, seite)
+        if got.get("code") == "disabled":
+            got = assistant_ai.put_articles(request, q)  # без ИИ — статьи, а не отказ
     is_drawer = bool(request.headers.get("X-Sf-Drawer"))
     if got.get("code"):
         text = str(assistant_ai.error_text(got["code"]))

@@ -4,6 +4,11 @@
   {% if ans.state == "pending" %}
   <p role="status" class="text-sm">{% trans "Der KI-Assistent sucht eine Antwort …" %}</p>
   {% if ans.job %}<a href="{% url 'assistant' %}?antwort={{ ans.job }}" class="inline-flex items-center min-h-[44px] text-sm text-indigo-700 hover:underline" data-assistant-refresh>{% trans "Aktualisieren" %}</a>{% endif %}
+  {% elif ans.outcome == "plan" %}
+  <div data-assistant-plan>{% if ans.plan %}{% with plan=ans.plan %}{% include "tenant/_setup_plan.html" %}{% endwith %}{% endif %}</div>
+  {% elif ans.outcome == "articles" %}
+  <p class="text-sm" role="status" data-assistant-fallback>{% if ans.articles %}{% trans "Diese Anleitungen passen zu Ihrer Frage." %}{% else %}{% trans "Dazu habe ich keine Anleitung gefunden." %}{% endif %}</p>
+  {% if ans.articles %}<div class="space-y-2">{% for a in ans.articles %}{% include "core/_assistant_article.html" %}{% endfor %}</div>{% endif %}
   {% elif ans.outcome == "answer" %}
   <{{ hl_sub|default:"h3" }} class="text-sm font-semibold flex items-center gap-2"><span aria-hidden="true">✨</span>{% trans "KI-Assistent" %} <span class="ui-badge ui-tone-off">{{ ans.ai_label }}</span></{{ hl_sub|default:"h3" }}>
   <p class="text-sm" data-assistant-text>{{ ans.text|linebreaksbr }}</p>

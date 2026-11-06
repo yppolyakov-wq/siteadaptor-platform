@@ -34201,3 +34201,47 @@ msgstr "Номери у вас не ввімкнені — запланован�
 #: apps/core/setup_assistant.py
 msgid "Veranstaltungen sind bei Ihnen nicht eingeschaltet — als Produkt geplant."
 msgstr "Заходи у вас не ввімкнені — заплановано як товар."
+
+#: templates/core/_assistant_body.html
+msgid "Dazu habe ich keine Anleitung gefunden."
+msgstr "Інструкції на цю тему не знайшлося."
+
+#: templates/core/_assistant_body.html
+msgid "Diese Anleitungen passen zu Ihrer Frage."
+msgstr "Ці інструкції підходять до вашого питання."
+
+#: templates/core/_assistant_body.html
+msgid "Frage stellen oder etwas anlegen"
+msgstr "Поставити питання або щось створити"
+
+#: templates/core/_assistant_body.html
+msgid "Fragen"
+msgstr "Запитати"
+
+#: templates/core/_assistant_body.html
+msgid "z. B. Neue Leistung Herrenhaarschnitt 25 € 30 min — oder: Wie richte ich die Lieferung ein?"
+msgstr "напр. Нова послуга Чоловіча стрижка 25 € 30 хв — або: Як налаштувати доставку?"
+
+#: templates/core/_assistant_body.html
+msgid "„Neue Leistung …“ öffnet ein vorausgefülltes Formular; auf Fragen antworten passende Anleitungen."
+msgstr "«Нова послуга …» відкриває заповнену форму; на питання відповідають відповідні інструкції."
+
+#: apps/support/services.py
+#, python-format
+msgid "Neue Support-Anfrage: %(firma)s — %(betreff)s"
+msgstr "Нове звернення до підтримки: %(firma)s — %(betreff)s"
+
+#: apps/support/services.py
+#, python-format
+msgid "Antworten Sie in der Verwaltung: %(url)s"
+msgstr "Дайте відповідь в адмінці: %(url)s"
+
+#: apps/support/services.py
+#, python-format
+msgid "Antwort vom Support: %(betreff)s"
+msgstr "Відповідь підтримки: %(betreff)s"
+
+#: apps/support/services.py
+#, python-format
+msgid "Der SiteAdaptor-Support hat geantwortet: %(url)s"
+msgstr "Підтримка SiteAdaptor відповіла: %(url)s"

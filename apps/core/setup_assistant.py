@@ -357,8 +357,12 @@ def _price_in(text: str) -> str:
 def _clean_name(raw: str) -> str:
     raw = _HOURS_RE.sub(" ", _DURATION_RE.sub(" ", _PRICE_RE.sub(" ", raw or "")))
     words = [w for w in re.split(r"\s+", raw.strip(" .:-–—!?")) if w]
-    for stems in _KEYWORDS.values():
-        words = [w for w in words if not any(w.lower().startswith(s) for s in stems)]
+    loose = _KEYWORDS[ENTITY_CATEGORY] + _KEYWORDS[ENTITY_PRODUCT]  # STU-19c: "Unterkategorie"
+    words = [
+        w
+        for w in words
+        if not _stem_entity(w.strip(".,:")) and not any(w.lower().startswith(s) for s in loose)
+    ]  # A-3a: "Zimmerpflanze", "Kundenservice" stay in the name, "услугу/Zimmer" do not
     # AIS A-3a: filler words only at the edges — inner "с/mit/в" belong to the name
     while words and words[0].lower().strip(".,:") in _FILLER:
         words.pop(0)
@@ -579,6 +583,21 @@ _FALLBACK_NOTE = {
 }
 
 
+def _resolve_entity(segment: str, allowed: list[str]) -> tuple[str, object]:
+    """(entity, note) for a segment. A kind that is switched off here ("… как услугу",
+    "создай услугу …" without services) falls back to the next kind named in the segment,
+    else to a product, with a note — the owner gets a plan, not silence. "" = nothing."""
+    entity = _entity_of(segment)
+    if not entity or entity in allowed:
+        return entity, ""
+    fallback = _entity_of(segment, explicit=False)
+    if fallback == entity or fallback not in allowed:
+        fallback = ENTITY_PRODUCT if entity in _FALLBACK_NOTE else ""
+    if fallback in allowed:
+        return fallback, _FALLBACK_NOTE.get(entity, "")
+    return "", ""
+
+
 def plan_from_rules(text: str, tenant, allowed: list[str]) -> Plan:
     text = (text or "")[:TEXT_MAX]
     specs: list[dict] = []
@@ -593,22 +612,18 @@ def plan_from_rules(text: str, tenant, allowed: list[str]) -> Plan:
         name = _clean_name(quoted.group(1) if quoted else segment)
         # AIS A-3a: ", 200 евро, 60 минут" — a tail without a name and without a keyword
         # belongs to the step before it, it is not a new nameless product
-        if specs and not name and not _keyword_entity(segment):
-            prev = specs[-1]
-            if prev["entity"] in _PRICE_FIELD and not prev["price"]:
-                prev["price"] = _price_in(segment)
-            if prev["entity"] == ENTITY_SERVICE and not prev["duration"]:
-                prev["duration"] = _duration_in(segment)
+        if not name and not _keyword_entity(segment):
+            if specs:
+                prev = specs[-1]
+                if prev["entity"] in _PRICE_FIELD and not prev["price"]:
+                    prev["price"] = _price_in(segment)
+                if prev["entity"] == ENTITY_SERVICE and not prev["duration"]:
+                    prev["duration"] = _duration_in(segment)
+            continue  # never a nameless product of its own
+        entity, why = _resolve_entity(segment, allowed)
+        if not entity:
             continue
-        entity = _entity_of(segment)
-        if entity not in allowed and _explicit_entity(segment) == entity:
-            # "… как услугу", but services are off here: plan the next named kind and say so
-            fallback = _entity_of(segment, explicit=False)
-            if fallback in allowed and fallback != entity:
-                note = note or _FALLBACK_NOTE.get(entity, "")
-                entity = fallback
-        if entity not in allowed:
-            continue
+        note = note or why
         specs.append(
             {
                 "entity": entity,
@@ -632,19 +647,83 @@ def plan_from_rules(text: str, tenant, allowed: list[str]) -> Plan:
     return Plan(steps=tuple(steps), source="rules", note=note, template_link=link)
 
 
+#: A question about creating ("Wie lege ich eine Leistung an?") is not a command to create.
+_QUESTION_START_RE = re.compile(
+    r"^\s*(?:wie|was|wo|wann|warum|wieso|weshalb|welche\w?|how|what|where|when|why|which"
+    r"|как|что|где|когда|почему|зачем|какие?|як|що|де|коли|чому|nasıl|neden|nerede|hangi)\b",
+    re.IGNORECASE,
+)
+
+
+def _looks_like_question(text: str) -> bool:
+    """A question without data. A price, a duration or a quoted name make it a command
+    again ("Kann ich eine Leistung Haarschnitt 25 € anlegen?")."""
+    if _PRICE_RE.search(text) or _QUOTED_RE.search(text) or _duration_in(text):
+        return False
+    return text.rstrip().endswith("?") or bool(_QUESTION_START_RE.match(text))
+
+
+def plan_to_data(plan: Plan) -> dict:
+    """A plan as plain data for the job cache (A-3a: built ONCE when asked, so a re-read
+    neither calls the AI again nor spends the limit). Only the owner's own values."""
+
+    def _get(step, names):
+        values = {f.name: f.value for f in step.fields}
+        return next((values[n] for n in names if values.get(n)), "")
+
+    return {
+        "source": plan.source,
+        "note": str(plan.note or ""),
+        "template_link": plan.template_link,
+        "steps": [
+            {
+                "entity": st.entity,
+                "name": _get(st, (_NAME_FIELD[st.entity],)),
+                "price": _get(st, (_PRICE_FIELD.get(st.entity, ""),)),
+                "parent": _get(st, ("category", "parent")),
+                "duration": _get(st, ("duration",)),
+            }
+            for st in plan.steps
+        ],
+    }
+
+
+def plan_from_data(data, tenant) -> Plan:
+    """Back from the cache: steps are rebuilt by the same `_step` (no AI); unknown
+    entities are dropped. Rights are checked by `for_request` at display time."""
+    if not isinstance(data, dict):
+        return Plan()
+    steps = []
+    for raw in (data.get("steps") or [])[:MAX_STEPS]:
+        if not isinstance(raw, dict) or raw.get("entity") not in ENTITIES:
+            continue
+        val = {k: str(raw.get(k) or "")[:NAME_MAX] for k in ("name", "price", "parent", "duration")}
+        steps.append(
+            _step(raw["entity"], val["name"], val["price"], val["parent"], tenant, val["duration"])
+        )
+    link = str(data.get("template_link") or "")
+    return Plan(
+        steps=tuple(steps),
+        source="ai" if data.get("source") == "ai" else "rules",
+        note=str(data.get("note") or ""),
+        template_link=link if link.startswith("/") and not link.startswith("//") else "",
+    )
+
+
 def create_intent(tenant, user, text: str) -> bool:
     """AIS A-3: does this phrase ask to create something this user may create?
 
-    The same rule detector as the Ctrl+K entry (no AI call); a question like "Wo stelle
-    ich … ein?" is not an intent. Never raises."""
+    The same rule detector as the Ctrl+K entry (no AI call); a question ("Wo stelle ich
+    … ein?", "Wie lege ich eine Leistung an?") is not an intent. Never raises."""
     text = (text or "").strip()[:TEXT_MAX]
-    if len(text) < 3:
+    if len(text) < 3 or _looks_like_question(text):
         return False
     try:
         allowed = allowed_entities(tenant, user)
     except Exception:  # noqa: BLE001 — fail closed
         return False
-    return any(_entity_of(seg) in allowed for seg in _SPLIT_RE.split(text) if seg.strip())
+    # the same choice as the plan (a switched-off kind falls back with a note)
+    return any(_resolve_entity(seg, allowed)[0] for seg in _SPLIT_RE.split(text) if seg.strip())
 
 
 # ───────────────────────── AI ─────────────────────────
@@ -722,6 +801,10 @@ def _ai_price(text: str, price_text: str) -> str:
 
     m = re.search(r"\d{1,6}(?:[.,]\d{1,2})?", price_text or "")
     if not m or _NOT_PRICE_AFTER_RE.match(price_text, m.end()):
+        return ""
+    if not _PRICE_RE.search(price_text) and _PRICE_RE.search(text or ""):
+        # the owner marks prices with a currency here — a bare number is something else
+        # ("Wein 12 €, Tisch 5": 5 is not the wine's price)
         return ""
     try:
         want = parse_money(m.group(0))

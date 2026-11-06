@@ -34053,3 +34053,47 @@ msgstr "Odalar sizde açık değil — ürün olarak planlandı."
 #: apps/core/setup_assistant.py
 msgid "Veranstaltungen sind bei Ihnen nicht eingeschaltet — als Produkt geplant."
 msgstr "Etkinlikler sizde açık değil — ürün olarak planlandı."
+
+#: templates/core/_assistant_body.html
+msgid "Dazu habe ich keine Anleitung gefunden."
+msgstr "Bu konuda bir kılavuz bulamadım."
+
+#: templates/core/_assistant_body.html
+msgid "Diese Anleitungen passen zu Ihrer Frage."
+msgstr "Bu kılavuzlar sorunuza uyuyor."
+
+#: templates/core/_assistant_body.html
+msgid "Frage stellen oder etwas anlegen"
+msgstr "Soru sorun veya bir şey oluşturun"
+
+#: templates/core/_assistant_body.html
+msgid "Fragen"
+msgstr "Sor"
+
+#: templates/core/_assistant_body.html
+msgid "z. B. Neue Leistung Herrenhaarschnitt 25 € 30 min — oder: Wie richte ich die Lieferung ein?"
+msgstr "örn. Yeni hizmet Erkek saç kesimi 25 € 30 dk — veya: Teslimatı nasıl ayarlarım?"
+
+#: templates/core/_assistant_body.html
+msgid "„Neue Leistung …“ öffnet ein vorausgefülltes Formular; auf Fragen antworten passende Anleitungen."
+msgstr "„Yeni hizmet …“ önceden doldurulmuş bir form açar; sorulara uygun kılavuzlarla yanıt verilir."
+
+#: apps/support/services.py
+#, python-format
+msgid "Neue Support-Anfrage: %(firma)s — %(betreff)s"
+msgstr "Yeni destek talebi: %(firma)s — %(betreff)s"
+
+#: apps/support/services.py
+#, python-format
+msgid "Antworten Sie in der Verwaltung: %(url)s"
+msgstr "Yönetim panelinde yanıtlayın: %(url)s"
+
+#: apps/support/services.py
+#, python-format
+msgid "Antwort vom Support: %(betreff)s"
+msgstr "Destekten yanıt: %(betreff)s"
+
+#: apps/support/services.py
+#, python-format
+msgid "Der SiteAdaptor-Support hat geantwortet: %(url)s"
+msgstr "SiteAdaptor desteği yanıt verdi: %(url)s"

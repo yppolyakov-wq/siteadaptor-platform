@@ -600,6 +600,72 @@ def ask(request, raw_q: str, seite: str = "") -> dict:
     return {"job": job}
 
 
+def _instant(request, entry: dict) -> dict:
+    """Готовый ответ без модели вопросов (статьи без ИИ) — тем же job-каналом, что ответ
+    ИИ: шторка и опрос не различают пути. Лимит запросов общий с вопросами."""
+    from apps.core import ratelimit
+
+    schema, user_pk = _schema_name(), request.user.pk
+    try:
+        if ratelimit.hit(
+            "assistant-ask-req", f"{schema}:{user_pk}", limit=REQ_LIMIT, window=RATE_WINDOW
+        ):
+            return {"code": "quota"}
+        return {"job": _put(schema, user_pk, entry)}
+    except Exception:  # noqa: BLE001 — Redis недоступен: спокойное сообщение, а не 500
+        logger.warning("assistant answer: instant entry failed", exc_info=True)
+        return {"code": "unavailable"}
+
+
+def put_plan(request, q: str) -> dict:
+    """AIS A-3a: «создай услугу …» → план помощника «Was möchten Sie anlegen?».
+
+    План строится ОДИН раз здесь (правила + ИИ-задача setup_plan, если включена) и
+    хранится данными без вопроса; показ только перепроверяет права (`for_request`).
+    Модель вопросов не вызывается — она ничего не создаёт и выбросила бы цену владельца.
+    Лимиты — общий на вопросы + лимит помощника; замок «один вопрос одновременно»."""
+    from django.core.cache import cache
+
+    from apps.core import page_templates, ratelimit, setup_assistant
+
+    schema, user_pk = _schema_name(), request.user.pk
+    job = uuid.uuid4().hex
+    locked = False
+    try:
+        if ratelimit.hit(
+            "assistant-ask-req", f"{schema}:{user_pk}", limit=REQ_LIMIT, window=RATE_WINDOW
+        ) or ratelimit.hit(
+            "setup-plan",
+            str(user_pk),
+            limit=page_templates.PLAN_LIMIT,
+            window=page_templates.PLAN_WINDOW,
+        ):
+            return {"code": "quota"}
+        if not cache.add(_lock_key(schema, user_pk), job, JOB_TTL):
+            return {"code": "busy"}
+        locked = True
+        plan = setup_assistant.build_plan(q[:QUESTION_MAX], request.tenant, request.user)
+        entry = {"state": "done", "outcome": "plan", "plan": setup_assistant.plan_to_data(plan)}
+        _put(schema, user_pk, entry, job=job)
+    except Exception:  # noqa: BLE001 — сбой кэша/плана: спокойное сообщение, а не 500
+        logger.warning("assistant answer: plan failed", exc_info=True)
+        return {"code": "unavailable"}
+    finally:
+        if locked:
+            _release(schema, user_pk, job)
+    on_outcome("plan")
+    return {"job": job}
+
+
+def put_articles(request, q: str) -> dict:
+    """ИИ выключен: вопрос всё равно получает ответ — подходящие статьи A-1."""
+    from apps.core import help_articles
+
+    keys = [x["key"] for x in help_articles.search(request, q)[:3]]
+    on_outcome("articles")
+    return _instant(request, _result("articles", {"labels": {}, "article_keys": keys}))
+
+
 def _now() -> float:
     import time
 
@@ -712,6 +778,15 @@ def _present(request, entry: dict) -> dict:
         for ref in entry.get("state_refs") or []
     ]
     outcome = entry.get("outcome")
+    if outcome == "plan":
+        from apps.core import setup_assistant
+
+        plan = setup_assistant.plan_from_data(entry.get("plan"), request.tenant)
+        return {
+            "state": "done",
+            "outcome": "plan",
+            "plan": setup_assistant.for_request(plan, request),
+        }
     articles = []
     if outcome != "answer":
         for key in entry.get("articles") or []:

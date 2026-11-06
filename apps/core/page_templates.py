@@ -215,7 +215,13 @@ PLAN_WINDOW = 600
 
 def _setup_plan(request):
     """STU-19c: answer of the "Was möchten Sie anlegen?" bar (GET ?frage=)."""
-    text = (request.GET.get("frage") or "").strip()
+    return setup_plan_for(request, request.GET.get("frage") or "")
+
+
+def setup_plan_for(request, text: str):
+    """The plan for a phrase, checked for this request (rights, package, Mini App).
+    AIS A-3a: also the answer of the assistant drawer to "create X"."""
+    text = (text or "").strip()
     if not text:
         return None
     if ratelimit.hit("setup-plan", str(request.user.pk), limit=PLAN_LIMIT, window=PLAN_WINDOW):
