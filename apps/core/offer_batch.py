@@ -220,11 +220,18 @@ def _create(tenant, kind: str, line: offer_lines.Line) -> None:
 
         fields = {"name_de": line.name, "base_price": str(line.price)}
         if kind == "anfragen":
+            # «ab 80 €» точной ценой не сохраняем (витрина показала бы «80 €»): цена остаётся
+            # «auf Anfrage», а ориентир уходит в описание словами владельца.
+            exact = line.price is not None and not line.price_from
             fields = {
                 "name_de": line.name,
-                "base_price": "0" if line.price is None else str(line.price),
+                "base_price": str(line.price) if exact else "0",
                 "primary_action": "request",
             }
+            if line.price is not None and line.price_from:
+                fields["description_de"] = _("ab %(price)s €") % {
+                    "price": f"{line.price:.2f}".replace(".", ",")
+                }
         create_product(tenant, fields)
     elif kind == "termine":
         from apps.booking.writers import create_service

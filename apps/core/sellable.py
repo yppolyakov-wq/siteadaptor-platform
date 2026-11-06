@@ -12,12 +12,14 @@
 - `jobs.Job`/Auftrag — НЕ sellable (индивидуальная смета, транзакция под U-D).
 """
 
+from contextlib import nullcontext
 from dataclasses import dataclass, field
 from decimal import Decimal
 
 from django.urls import NoReverseMatch, reverse
+from django.utils import translation
 from django.utils.html import strip_tags
-from django.utils.translation import gettext_lazy as _
+from django.utils.translation import gettext
 
 from apps.core import archetypes
 
@@ -73,16 +75,19 @@ def _gallery_urls(images) -> list:
 
 
 def _product(obj, locale):
-    base = obj.price_from if obj.has_variants else obj.base_price
-    prefix = "ab " if obj.has_variants else ""
     img = obj.primary_image
     if obj.price_on_request:
-        # W4-6b: без цены — подпись людям, а машинам (JSON-LD Offer, Finder) цены нет вовсе.
+        # W4-6b: без цены — подпись людям (на языке контракта, как name), а машинам
+        # (JSON-LD Offer, Finder) цены нет вовсе.
+        with translation.override(locale) if locale else nullcontext():
+            label = gettext("Preis auf Anfrage")
         return {
             **_product_common(obj, locale, img),
-            "price_display": _("Preis auf Anfrage"),
+            "price_display": label,
             "price_value": None,
         }
+    base = obj.price_from if obj.has_variants else obj.base_price
+    prefix = "ab " if obj.has_variants else ""
     return {
         "name": obj.get_i18n("name", locale),
         # SR-3: в тизеры/JSON-LD — плоский текст (разметка — только деталь).

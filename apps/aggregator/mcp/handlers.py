@@ -382,7 +382,7 @@ def next_steps(listings) -> dict[int, str]:
             with schema_context(schema):
                 from apps.promotions.models import Promotion
 
-                for promo in Promotion.objects.filter(pk__in=list(refs)):
+                for promo in Promotion.objects.filter(pk__in=list(refs)).select_related("product"):
                     code = response.response_for(promo, tenant)
                     step = "visit" if code == response.SHOW else code
                     pk = refs.get(str(promo.pk))

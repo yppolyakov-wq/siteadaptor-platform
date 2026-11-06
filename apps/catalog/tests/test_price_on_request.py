@@ -271,3 +271,11 @@ def test_stale_cart_line_is_dropped_with_a_message(_tenant_urls, monkeypatch):
     request.POST = {"name": "Gast", "email": "g@example.com", "phone": "1", "agb": "1"}
     public_views.checkout(request)
     assert request.session[CART_SESSION_KEY] == {str(other.pk): 2}
+
+
+def test_sellable_label_follows_contract_locale():
+    from apps.core import sellable
+
+    assert (
+        sellable.display_fields("product", _request(), "en")["price_display"] == "Price on request"
+    )

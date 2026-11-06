@@ -447,3 +447,14 @@ def test_without_jobs_there_is_no_anfragen_input(monkeypatch):
     user = get_user_model().objects.create_user(username="x-hw2", password="pw12345678")
     Membership.objects.create(user=user, role=Membership.ROLE_OWNER)
     assert "anfragen" not in offer_batch.offer_kinds(tenant, user)
+
+
+def test_anfragen_ab_price_is_not_saved_as_exact_price():
+    from apps.catalog.models import Product
+
+    owner = Owner(_handwerker())
+    owner("post", {"action": "offer_preview", "kind": "anfragen", "offer_text": "Bad — ab 80 €"})
+    owner("post", _confirm_data(owner, [{"on": "1", "name": "Badsanierung", "price": "ab 80"}]))
+    p = Product.objects.get()
+    assert p.price_on_request, owner.messages
+    assert "80" in p.description["de"]
