@@ -103,3 +103,49 @@ def test_real_admin_url_resolves():
     with pytest.raises(PermissionDenied):
         view(_req(superuser=False))
     assert view(_req()).status_code == 200
+
+
+_TASKS_ENV = {
+    "AI_ENABLED": False,
+    "AI_REQUIRE_EU": False,
+    "AI_ROUTE_FAST": ["anthropic"],
+    "AI_ROUTE_STRONG": ["anthropic"],
+    "ANTHROPIC_MODEL_FAST": "m",
+    "ANTHROPIC_MODEL_STRONG": "m",
+    "AI_TASKS_ENABLED": ["promo_text_check"],
+}
+
+
+# Фидбэк владельца 2026-11-06: «ставлю галочки задач — не применяются». Галочки
+# учитывались только при переключателе «Aufgaben hier festlegen»; без него Save молча
+# оставлял `.env`. Изменённый набор теперь сам становится своим списком.
+@override_settings(**_TASKS_ENV)
+def test_changed_task_boxes_apply_without_custom_toggle():
+    data = {"tasks_present": "1", "tasks": ["promo_text_check", "assistant_answer"]}
+    resp = _view()(_req("post", data))
+    assert resp.status_code == 302
+    values = AIConfig.objects.get(pk=1).values
+    assert values["AI_TASKS_ENABLED"] == ["promo_text_check", "assistant_answer"]
+
+
+@override_settings(**_TASKS_ENV)
+def test_unchanged_task_boxes_keep_following_env():
+    _view()(_req("post", {"tasks_present": "1", "tasks": ["promo_text_check"]}))
+    assert "AI_TASKS_ENABLED" not in AIConfig.objects.get(pk=1).values
+
+
+@override_settings(**_TASKS_ENV)
+def test_unticking_custom_toggle_returns_to_env():
+    from apps.ai import config
+
+    config.save({"AI_TASKS_ENABLED": ["assistant_answer"]})
+    data = {"tasks_present": "1", "tasks_was_custom": "1", "tasks": ["assistant_answer"]}
+    _view()(_req("post", data))
+    assert "AI_TASKS_ENABLED" not in AIConfig.objects.get(pk=1).values
+
+
+def test_screen_marks_task_boxes_for_auto_toggle():
+    resp = _view()(_req())
+    resp.render()
+    html = resp.content.decode()
+    assert 'name="tasks_present"' in html and "data-ai-task " in html

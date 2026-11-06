@@ -68,8 +68,19 @@ def parse(post) -> tuple[dict, list[str]]:
                 errors.append(_("Ungültiger Modellname: %(name)s") % {"name": key})
             else:
                 values[key] = raw
+    picked_tasks = list(dict.fromkeys(t for t in post.getlist("tasks") if t))
+    env_tasks = set(getattr(settings, "AI_TASKS_ENABLED", ()) or ())
     if post.get("tasks_custom"):
-        values["AI_TASKS_ENABLED"] = [t for t in post.getlist("tasks") if t]
+        values["AI_TASKS_ENABLED"] = picked_tasks
+    elif (
+        post.get("tasks_present")
+        and not post.get("tasks_was_custom")
+        and set(picked_tasks) != env_tasks
+    ):
+        # Галочки задач изменены без переключателя «hier festlegen» — раньше такой Save
+        # молча откатывал выбор к `.env`. Изменённый набор = свой список. Снятый
+        # переключатель при уже своём списке (`tasks_was_custom`) — возврат к `.env`.
+        values["AI_TASKS_ENABLED"] = picked_tasks
     for key in NUMBER_KEYS:
         raw = (post.get(key) or "").strip().replace(",", ".")
         if not raw:

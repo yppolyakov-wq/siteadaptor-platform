@@ -63,13 +63,22 @@
 
   <div class="bg-white p-6 rounded-default shadow-xs border border-base-200 dark:bg-base-900 dark:border-base-800 flex flex-col gap-2">
     <h2 class="text-lg font-semibold">{% trans "Aufgaben" %}</h2>
-    <label class="flex items-center gap-2 text-sm"><input type="checkbox" name="tasks_custom" {% if tasks_custom %}checked{% endif %}> {% trans "Aufgaben hier festlegen (sonst wie .env)" %} <span class="text-font-subtle-light">· .env: {{ tasks_env|default:"—" }}</span></label>
+    <input type="hidden" name="tasks_present" value="1">
+    {% if tasks_custom %}<input type="hidden" name="tasks_was_custom" value="1">{% endif %}
+    <label class="flex items-center gap-2 text-sm"><input type="checkbox" name="tasks_custom" data-ai-tasks-custom {% if tasks_custom %}checked{% endif %}> {% trans "Aufgaben hier festlegen (sonst wie .env)" %} <span class="text-font-subtle-light">· .env: {{ tasks_env|default:"—" }}</span></label>
     {% for name, what, scope in tasks %}
       <label class="flex items-start gap-2 text-sm">
-        <input type="checkbox" name="tasks" value="{{ name }}" {% if name in tasks_active %}checked{% endif %} class="mt-1">
+        <input type="checkbox" name="tasks" value="{{ name }}" data-ai-task {% if name in tasks_active %}checked{% endif %} class="mt-1">
         <span><span class="font-medium">{{ name }}</span> <span class="text-font-subtle-light">({{ scope }})</span><br><span class="text-xs">{{ what }}</span></span>
       </label>
     {% endfor %}
+    <script>
+      document.addEventListener("change", function (e) {
+        if (!e.target.matches || !e.target.matches("[data-ai-task]")) return;
+        var t = document.querySelector("[data-ai-tasks-custom]");
+        if (t) t.checked = true;
+      });
+    </script>
   </div>
 
   <div class="bg-white p-6 rounded-default shadow-xs border border-base-200 dark:bg-base-900 dark:border-base-800 flex flex-col gap-2">
