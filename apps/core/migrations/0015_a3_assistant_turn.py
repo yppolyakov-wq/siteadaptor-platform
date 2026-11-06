@@ -53,7 +53,7 @@ class Migration(migrations.Migration):
                 ),
             ],
             options={
-                "ordering": ["-created_at"],
+                "ordering": ["-created_at", "-pk"],
                 "indexes": [
                     models.Index(
                         fields=["user", "-created_at"], name="core_asst_user_created"

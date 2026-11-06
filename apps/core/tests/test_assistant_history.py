@@ -137,3 +137,44 @@ def test_viewing_history_writes_nothing(ai_off, bakery):  # noqa: F811
     before = AssistantTurn.objects.count()
     assistant_views.assistant_view(_req(bakery, user=owner))
     assert AssistantTurn.objects.count() == before
+
+
+# ── ревью A-3d (database + security) ──
+
+
+def test_revoked_member_loses_history(ai_off, bakery):  # noqa: F811
+    from apps.core import perm_grants
+    from apps.core.models import Membership
+
+    owner = _user()
+    staff = _user(Membership.ROLE_STAFF)
+    _s, got = _ask(bakery, SAUSAGE, user=staff)
+    assert AssistantTurn.objects.filter(user=staff).exists()
+    perm_grants.revoke_member(owner, staff.membership.pk)
+    assert not AssistantTurn.objects.filter(user=staff).exists()
+
+
+def test_old_entry_format_is_not_shown(ai_off, bakery):  # noqa: F811
+    owner, got = _ask(bakery, SAUSAGE)
+    AssistantTurn.objects.filter(job=got["job"]).update(entry={"outcome": "plan", "v": -1})
+    html = assistant_views.assistant_view(_req(bakery, user=owner)).content.decode()
+    assert "data-assistant-history" not in html
+
+
+def test_history_render_query_budget(ai_off, bakery):  # noqa: F811
+    from django.db import connection
+    from django.test.utils import CaptureQueriesContext
+
+    owner = _user()
+    for phrase in (SAUSAGE, "Wie stelle ich die Zustellung ein?", "neue Kategorie Brot"):
+        _ask(bakery, phrase, user=owner)
+    from apps.core.tests.test_assistant_a2 import _req as req
+
+    with CaptureQueriesContext(connection) as ctx:
+        assistant_history.recent(req(bakery, user=owner))
+    assert len(ctx.captured_queries) <= 10, [q["sql"][:80] for q in ctx.captured_queries]
+
+
+def test_drawer_warns_not_to_enter_customer_data(ai_off, bakery):  # noqa: F811
+    html = assistant_views.assistant_view(_req(bakery)).content.decode()
+    assert "keine Kundendaten" in html

@@ -34123,3 +34123,7 @@ msgstr "Verlauf löschen"
 #: templates/core/_assistant_body.html
 msgid "Wirklich alles löschen?"
 msgstr "Wirklich alles löschen?"
+
+#: templates/core/_assistant_body.html
+msgid "Bitte keine Kundendaten eingeben."
+msgstr "Bitte keine Kundendaten eingeben."

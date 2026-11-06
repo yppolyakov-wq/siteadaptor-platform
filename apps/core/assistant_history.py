@@ -24,7 +24,10 @@ _DROP = ("prompt", "system", "schema", "ctx", "echo", "counted", "deadline", "di
 
 
 def _clean_entry(entry: dict) -> dict:
-    return {k: v for k, v in (entry or {}).items() if k not in _DROP}
+    from apps.core.assistant_ai import ENTRY_V
+
+    # версия формата — как в кэше: запись старого формата при показе пропускается
+    return {**{k: v for k, v in (entry or {}).items() if k not in _DROP}, "v": ENTRY_V}
 
 
 def record(schema: str, user_pk, job: str, question: str, entry: dict) -> None:
@@ -58,6 +61,8 @@ def _cap(user_pk) -> None:
     from apps.core.models import AssistantTurn
 
     keep = AssistantTurn.objects.filter(user_id=user_pk).order_by("-created_at", "-pk")
+    if not keep[MAX_PER_USER : MAX_PER_USER + 1].exists():
+        return  # обычный случай — один дешёвый запрос по индексу
     old = list(keep.values_list("pk", flat=True)[MAX_PER_USER:])
     if old:
         AssistantTurn.objects.filter(pk__in=old).delete()
@@ -77,8 +82,12 @@ def recent(request, limit: int = SHOW) -> list[dict]:
     except Exception:  # noqa: BLE001 — нет таблицы до деплоя миграции: просто без истории
         logger.warning("assistant history: read failed", exc_info=True)
         return []
+    from apps.core.assistant_ai import ENTRY_V
+
     out = []
     for turn in rows:
+        if (turn.entry or {}).get("v") != ENTRY_V:
+            continue  # старый формат записи — не показываем криво
         entry = {**(turn.entry or {}), "state": "done"}
         out.append(
             {
@@ -105,7 +114,9 @@ def purge(now=None) -> int:
     total = 0
     while True:
         pks = list(
-            AssistantTurn.objects.filter(created_at__lt=cutoff).values_list("pk", flat=True)[:1000]
+            AssistantTurn.objects.filter(created_at__lt=cutoff)
+            .order_by("pk")
+            .values_list("pk", flat=True)[:1000]
         )
         if not pks:
             return total

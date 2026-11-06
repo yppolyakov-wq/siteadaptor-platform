@@ -309,7 +309,19 @@ def revoke_member(actor_user, member_pk) -> None:
         target_user = target.user
         target.delete()  # User остаётся (история/повторный инвайт)
         _release_telegram(target_user.pk)
+        _drop_assistant_history(target_user)
     P.forget(target_user)
+
+
+def _drop_assistant_history(user) -> None:
+    """AIS A-3d (ревью DSGVO): снятый с команды не хранит вопросы к ассистенту ещё 90 дней."""
+    try:
+        from apps.core import assistant_history
+
+        with transaction.atomic():  # savepoint: сбой не отравляет отзыв доступа
+            assistant_history.clear(user)
+    except Exception:  # noqa: BLE001 — отзыв доступа важнее; строки уберёт срок хранения
+        logger.warning("revoke: assistant history not cleared", exc_info=True)
 
 
 def _release_telegram(user_pk) -> None:

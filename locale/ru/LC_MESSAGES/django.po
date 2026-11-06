@@ -34343,3 +34343,7 @@ msgstr "Удалить историю"
 #: templates/core/_assistant_body.html
 msgid "Wirklich alles löschen?"
 msgstr "Точно удалить всё?"
+
+#: templates/core/_assistant_body.html
+msgid "Bitte keine Kundendaten eingeben."
+msgstr "Пожалуйста, не вводите данные клиентов."

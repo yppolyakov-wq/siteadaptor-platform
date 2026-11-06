@@ -494,7 +494,7 @@ class AssistantTurn(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
 
     class Meta:
-        ordering = ["-created_at"]
+        ordering = ["-created_at", "-pk"]
         indexes = [models.Index(fields=["user", "-created_at"], name="core_asst_user_created")]
 
     def __str__(self):

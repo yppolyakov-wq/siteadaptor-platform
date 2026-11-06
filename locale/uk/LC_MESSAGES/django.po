@@ -34330,3 +34330,7 @@ msgstr "Видалити історію"
 #: templates/core/_assistant_body.html
 msgid "Wirklich alles löschen?"
 msgstr "Справді видалити все?"
+
+#: templates/core/_assistant_body.html
+msgid "Bitte keine Kundendaten eingeben."
+msgstr "Будь ласка, не вводьте дані клієнтів."

@@ -34182,3 +34182,7 @@ msgstr "Geçmişi sil"
 #: templates/core/_assistant_body.html
 msgid "Wirklich alles löschen?"
 msgstr "Gerçekten her şey silinsin mi?"
+
+#: templates/core/_assistant_body.html
+msgid "Bitte keine Kundendaten eingeben."
+msgstr "Lütfen müşteri verisi girmeyin."

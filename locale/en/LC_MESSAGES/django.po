@@ -34036,3 +34036,7 @@ msgstr "Delete history"
 #: templates/core/_assistant_body.html
 msgid "Wirklich alles löschen?"
 msgstr "Really delete everything?"
+
+#: templates/core/_assistant_body.html
+msgid "Bitte keine Kundendaten eingeben."
+msgstr "Please do not enter customer data."

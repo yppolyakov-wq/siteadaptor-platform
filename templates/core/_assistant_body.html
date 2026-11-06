@@ -78,10 +78,12 @@
       <label for="as-frage" class="block text-sm font-medium">{% trans "Frage stellen oder etwas anlegen" %}</label>
       <textarea id="as-frage" name="frage" rows="2" maxlength="500" required aria-describedby="as-frage-hint" class="ui-input block w-full" placeholder="{% trans 'z. B. Neue Leistung Herrenhaarschnitt 25 € 30 min — oder: Wie richte ich die Lieferung ein?' %}"></textarea>
       {% if ai_enabled %}
-      <p id="as-frage-hint" class="ui-muted text-xs">{% trans "Sie chatten mit einer KI. Antworten bitte prüfen — Steuer- und Rechtsfragen beantwortet sie nicht." %}</p>
+      <p id="as-frage-hint" class="ui-muted text-xs">{% trans "Sie chatten mit einer KI. Antworten bitte prüfen — Steuer- und Rechtsfragen beantwortet sie nicht." %} {% trans "Bitte keine Kundendaten eingeben." %}</p>
       {% ai_notice "assistant_answer" %}
       {% elif anlegen %}
-      <p id="as-frage-hint" class="ui-muted text-xs">{% trans "„Neue Leistung …“ öffnet ein vorausgefülltes Formular; auf Fragen antworten passende Anleitungen." %}</p>
+      <p id="as-frage-hint" class="ui-muted text-xs">{% trans "„Neue Leistung …“ öffnet ein vorausgefülltes Formular; auf Fragen antworten passende Anleitungen." %} {% trans "Bitte keine Kundendaten eingeben." %}</p>
+      {% else %}
+      <p id="as-frage-hint" class="ui-muted text-xs">{% trans "Bitte keine Kundendaten eingeben." %}</p>
       {% endif %}
       <button type="submit" class="ui-btn ui-btn-secondary min-h-[44px]" data-assistant-ask-btn><span aria-hidden="true">✨</span> {% if ai_enabled %}{% trans "KI fragen" %}{% else %}{% trans "Fragen" %}{% endif %}</button>
     </form>
