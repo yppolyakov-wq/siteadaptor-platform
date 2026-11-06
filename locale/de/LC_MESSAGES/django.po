@@ -34532,3 +34532,27 @@ msgstr "Das erledige ich für Sie"
 #, python-format
 msgid "„%(name)s“ gibt es schon — wirklich neu anlegen?"
 msgstr "„%(name)s“ gibt es schon — wirklich neu anlegen?"
+
+#: apps/core/assistant_bulk.py
+msgid "Bitte genauer sagen."
+msgstr "Bitte genauer sagen."
+
+#: apps/core/assistant_bulk.py
+msgid "Danach sehen Sie den Vorschlag — gespeichert wird erst mit „Alles übernehmen“."
+msgstr "Danach sehen Sie den Vorschlag — gespeichert wird erst mit „Alles übernehmen“."
+
+#: apps/core/assistant_bulk.py
+msgid "Teurer oder günstiger?"
+msgstr "Teurer oder günstiger?"
+
+#: apps/core/assistant_bulk.py
+msgid "Welchen Eintrag meinen Sie?"
+msgstr "Welchen Eintrag meinen Sie?"
+
+#: apps/core/assistant_bulk.py
+msgid "günstiger"
+msgstr "günstiger"
+
+#: apps/core/assistant_bulk.py
+msgid "teurer"
+msgstr "teurer"

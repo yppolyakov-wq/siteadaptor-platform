@@ -353,5 +353,16 @@ def build(tenant, user, text: str) -> list[dict]:
             value = f"pk:{cats[0]['obj'].pk}"
     item = item_for(kind, verb, obj, value, note)
     if len({(r["kind"], r["obj"].pk) for r in found}) > 1:
+        from apps.core import assistant_clarify
+
         item["blocked"] = _("Mehrere Einträge heißen so — bitte im Sortiment ändern.")
+        # A-5b: вместо тупика — вопрос «какой?»; ответ соберёт пункт тем же item_for
+        same = [r for r in found if verb != "move" or r["kind"] == "product"]
+        item["clarify"] = {
+            "slot": "pick_target",
+            "options": assistant_clarify.options_for_rows(same),
+            "verb": verb,
+            "value": value,
+            "note": note,
+        }
     return [item]

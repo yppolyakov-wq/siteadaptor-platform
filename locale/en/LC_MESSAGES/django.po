@@ -34445,3 +34445,27 @@ msgstr "I'll take care of this for you"
 #, python-format
 msgid "„%(name)s“ gibt es schon — wirklich neu anlegen?"
 msgstr "“%(name)s” already exists — create it again anyway?"
+
+#: apps/core/assistant_bulk.py
+msgid "Bitte genauer sagen."
+msgstr "Please be more specific."
+
+#: apps/core/assistant_bulk.py
+msgid "Danach sehen Sie den Vorschlag — gespeichert wird erst mit „Alles übernehmen“."
+msgstr "Then you'll see the suggestion — nothing is saved until “Apply all”."
+
+#: apps/core/assistant_bulk.py
+msgid "Teurer oder günstiger?"
+msgstr "More expensive or cheaper?"
+
+#: apps/core/assistant_bulk.py
+msgid "Welchen Eintrag meinen Sie?"
+msgstr "Which entry do you mean?"
+
+#: apps/core/assistant_bulk.py
+msgid "günstiger"
+msgstr "cheaper"
+
+#: apps/core/assistant_bulk.py
+msgid "teurer"
+msgstr "more expensive"

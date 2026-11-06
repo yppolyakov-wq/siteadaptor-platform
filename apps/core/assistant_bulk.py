@@ -156,6 +156,21 @@ def price_change(text: str) -> tuple[str, Decimal | None, str]:
     return mode, value, ""
 
 
+def direction_missing(text: str) -> bool:
+    """Одна сумма/процент без знака и без слова «teurer/günstiger» — спрашиваем направление."""
+    from apps.core import assistant_changes
+
+    pcts, eurs = list(_PCT.finditer(text)), list(_EUR.finditer(text))
+    if len(pcts) + len(eurs) != 1:
+        return False
+    m = (pcts or eurs)[0]
+    if m.group("sign"):
+        return False
+    if bool(_UP.search(text)) != bool(_DOWN.search(text)):
+        return False
+    return bool(pcts) or bool(assistant_changes._RELATIVE.search(text) or _NA_AMOUNT.search(text))
+
+
 def change_text(mode: str, value: Decimal) -> str:
     num = f"{abs(value):.2f}".rstrip("0").rstrip(".").replace(".", ",")
     if mode == "pct":
@@ -272,7 +287,18 @@ def expand(tenant, cat, verb: str, text: str) -> list[dict]:
     if verb == "price":
         mode, value, reason = price_change(text)
         if reason:
-            return _notice(action, title, reason)
+            items = _notice(action, title, reason)
+            if direction_missing(text):  # A-5b: «um 10 %» — спросить «teurer/günstiger?»
+                items[0]["clarify"] = {
+                    "slot": "direction",
+                    "options": [
+                        {"id": "up", "label": _("teurer")},
+                        {"id": "down", "label": _("günstiger")},
+                    ],
+                    "cat": str(cat.pk),
+                    "text": text,
+                }
+            return items
     with_variants = set()
     if verb == "price":
         with_variants = set(

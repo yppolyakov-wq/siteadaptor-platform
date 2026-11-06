@@ -34591,3 +34591,27 @@ msgstr "Bunu sizin için hallediyorum"
 #, python-format
 msgid "„%(name)s“ gibt es schon — wirklich neu anlegen?"
 msgstr "„%(name)s“ zaten var — yine de yeni oluşturulsun mu?"
+
+#: apps/core/assistant_bulk.py
+msgid "Bitte genauer sagen."
+msgstr "Lütfen daha açık yazın."
+
+#: apps/core/assistant_bulk.py
+msgid "Danach sehen Sie den Vorschlag — gespeichert wird erst mit „Alles übernehmen“."
+msgstr "Ardından öneriyi görürsünüz — „Tümünü uygula“ demeden kaydedilmez."
+
+#: apps/core/assistant_bulk.py
+msgid "Teurer oder günstiger?"
+msgstr "Daha pahalı mı, daha ucuz mu?"
+
+#: apps/core/assistant_bulk.py
+msgid "Welchen Eintrag meinen Sie?"
+msgstr "Hangi kaydı kastediyorsunuz?"
+
+#: apps/core/assistant_bulk.py
+msgid "günstiger"
+msgstr "daha ucuz"
+
+#: apps/core/assistant_bulk.py
+msgid "teurer"
+msgstr "daha pahalı"

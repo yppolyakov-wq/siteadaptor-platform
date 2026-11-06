@@ -23,6 +23,8 @@ SHOW = 5
 _DROP = ("prompt", "system", "schema", "ctx", "echo", "counted", "deadline", "digest", "q")
 #: A-4a: пакет «создать» и его ошибки — только в кэше задачи: из истории не применить
 _DROP += ("actions", "action_errors", "job")
+#: A-5b: вопрос-уточнение и его пакет — только в кэше задачи
+_DROP += ("options", "base", "slot", "at", "round", "question")
 
 
 def _clean_entry(entry: dict) -> dict:

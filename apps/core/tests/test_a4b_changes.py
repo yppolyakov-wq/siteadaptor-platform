@@ -131,11 +131,13 @@ def test_move_to_existing_category(ai_off, bakery, cake):
     assert Product.objects.get().category_id is None
 
 
-def test_ambiguous_name_has_no_button(ai_off, bakery, cake):
+def test_ambiguous_name_asks_which(ai_off, bakery, cake):
+    """A-5b: одноимённые — не тупик «Mehrere Einträge», а вопрос «какой?» без кнопки
+    «Alles übernehmen» (её даёт только выбор варианта)."""
     writers.create_product(bakery, {"name_de": "Käsekuchen", "base_price": "4"})
     user, got = _ask(bakery, "Preis Käsekuchen auf 3,50 €")
     html = _html(bakery, user, got["job"])
-    assert "Mehrere" in html and "data-assistant-apply-btn" not in html
+    assert "data-assistant-clarify" in html and "data-assistant-apply-btn" not in html
 
 
 def test_history_keeps_only_a_summary(ai_off, bakery, cake):

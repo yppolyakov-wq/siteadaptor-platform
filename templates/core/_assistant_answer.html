@@ -10,6 +10,8 @@
     {% if ans.applied %}{% include "core/_assistant_applied.html" %}{% elif ans.actions %}{% include "core/_assistant_actions.html" %}{% endif %}
     {% if ans.plan.steps or not ans.actions and not ans.applied %}{% if ans.plan %}{% with plan=ans.plan %}{% include "tenant/_setup_plan.html" %}{% endwith %}{% endif %}{% endif %}
   </div>
+  {% elif ans.outcome == "ask" %}
+  {% include "core/_assistant_clarify.html" %}
   {% elif ans.outcome == "actions" %}
   <div data-assistant-plan class="space-y-3">
     {% if ans.action_message %}<p tabindex="-1" data-assistant-result class="text-sm font-semibold text-amber-800">{{ ans.action_message }}</p>{% endif %}

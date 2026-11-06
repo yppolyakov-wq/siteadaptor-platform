@@ -161,6 +161,12 @@ urlpatterns = [
         assistant_views.assistant_apply,
         name="assistant-apply",
     ),
+    # AIS A-5b: ответ на уточняющий вопрос помощника (кнопка-вариант, POST)
+    path(
+        "dashboard/assistent/frage/<str:job>/antwort/",
+        assistant_views.assistant_reply,
+        name="assistant-reply",
+    ),
     path(
         "dashboard/assistent/frage/<str:job>/rueckgaengig/",
         assistant_views.assistant_undo,

@@ -1,0 +1,12 @@
+{% load i18n ai_notice %}
+{% comment %}AIS A-5b: уточняющий вопрос помощника — кнопки-варианты; вариант уходит POST'ом, сервер принимает только записанные в задаче варианты. Без JS — обычная форма и страница помощника.{% endcomment %}
+<form method="post" action="{% url 'assistant-reply' ans.job %}" data-assistant-apply class="ui-card p-4 space-y-3" data-assistant-clarify>
+  {% csrf_token %}
+  {% if ans.action_message %}<p tabindex="-1" data-assistant-result class="text-sm font-semibold text-amber-800">{{ ans.action_message }}</p>{% endif %}
+  <p id="clarify-q-{{ ans.job }}" class="font-semibold" role="status">{{ ans.question }}</p>
+  {% if ans.source == "ai" %}{% ai_notice "assistant_actions" %}{% endif %}
+  <div role="group" aria-labelledby="clarify-q-{{ ans.job }}" class="flex flex-wrap gap-2">
+    {% for o in ans.options %}<button type="submit" name="option" value="{{ o.id }}" class="ui-btn ui-btn-secondary min-h-[44px]" data-busy-text="{% trans 'Einen Moment …' %}">{{ o.label }}</button>{% endfor %}
+  </div>
+  <p class="ui-muted text-xs">{% trans "Danach sehen Sie den Vorschlag — gespeichert wird erst mit „Alles übernehmen“." %}</p>
+</form>

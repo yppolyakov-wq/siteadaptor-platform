@@ -34741,3 +34741,27 @@ msgstr "Це я зроблю для вас"
 #, python-format
 msgid "„%(name)s“ gibt es schon — wirklich neu anlegen?"
 msgstr "«%(name)s» вже є — точно створити ще раз?"
+
+#: apps/core/assistant_bulk.py
+msgid "Bitte genauer sagen."
+msgstr "Уточніть, будь ласка."
+
+#: apps/core/assistant_bulk.py
+msgid "Danach sehen Sie den Vorschlag — gespeichert wird erst mit „Alles übernehmen“."
+msgstr "Потім ви побачите пропозицію — збережеться лише після «Застосувати все»."
+
+#: apps/core/assistant_bulk.py
+msgid "Teurer oder günstiger?"
+msgstr "Дорожче чи дешевше?"
+
+#: apps/core/assistant_bulk.py
+msgid "Welchen Eintrag meinen Sie?"
+msgstr "Яку позицію ви маєте на увазі?"
+
+#: apps/core/assistant_bulk.py
+msgid "günstiger"
+msgstr "дешевше"
+
+#: apps/core/assistant_bulk.py
+msgid "teurer"
+msgstr "дорожче"

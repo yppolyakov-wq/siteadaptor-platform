@@ -1162,8 +1162,12 @@ try { (function () {
     var reply = form.closest("[data-assistant-reply]");
     if (!reply) return;
     e.preventDefault();
-    var btn = form.querySelector("button[type=submit]");
+    // A-5b: у уточнения несколько кнопок-вариантов — значение несёт НАЖАТАЯ (FormData её не берёт)
+    var sub = e.submitter && e.submitter.name ? e.submitter : null;
+    var btn = sub || form.querySelector("button[type=submit]");
     if (btn && btn.getAttribute("aria-disabled") === "true") return;
+    var body = new FormData(form);
+    if (sub) body.append(sub.name, sub.value);
     var label = btn ? btn.textContent : "";
     if (btn) {
       btn.setAttribute("aria-disabled", "true");
@@ -1173,7 +1177,7 @@ try { (function () {
       if (btn) { btn.removeAttribute("aria-disabled"); btn.textContent = label; }
     }
     fetch(form.getAttribute("action"), {
-      method: "POST", body: new FormData(form), credentials: "same-origin",
+      method: "POST", body: body, credentials: "same-origin",
       redirect: "manual", headers: { "X-Sf-Drawer": "1" }
     })
       .then(function (r) {
@@ -1189,12 +1193,18 @@ try { (function () {
         if (!fresh) throw new Error("empty");
         reply.replaceWith(fresh);
         var focus = fresh.querySelector("[aria-invalid=true]") ||
-          fresh.querySelector("[data-assistant-result]");
+          fresh.querySelector("[data-assistant-result]") ||
+          fresh.querySelector("[data-assistant-clarify] button");
         if (!focus) { fresh.setAttribute("tabindex", "-1"); focus = fresh; }
         focus.focus();
       })
       .catch(function () {
         restore();
+        if (sub) {  // обычный POST не несёт значение нажатой кнопки — кладём его полем
+          var keep = document.createElement("input");
+          keep.type = "hidden"; keep.name = sub.name; keep.value = sub.value;
+          form.appendChild(keep);
+        }
         form.submit();  // запасной путь — обычный POST (сервер идемпотентен)
       });
   });

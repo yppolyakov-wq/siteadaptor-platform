@@ -197,6 +197,61 @@ def assistant_history_clear(request):
     return redirect(reverse("assistant"))
 
 
+@login_required
+@require_POST
+@drawer.drawer_aware
+def assistant_reply(request, job):
+    """AIS A-5b: ответ на уточняющий вопрос (кнопка-вариант). Вариант — ТОЛЬКО из записанных
+    в кэше задачи этого пользователя; пакет собирается тем же строителем заново (свежее
+    «vorher», права — при показе и «Alles übernehmen»). Модель не зовётся."""
+    from django.core.cache import cache
+
+    from apps.core import assistant_actions, assistant_ai, assistant_clarify, ratelimit
+
+    entry = assistant_ai.job_state(request, job, convert=False)
+    if entry is None or entry.get("outcome") != "ask":
+        return _actions_response(request, job, code="expired")
+    schema, user_pk = assistant_ai._schema_name(), request.user.pk
+    if ratelimit.hit(
+        "assistant-ask-req",
+        f"{schema}:{user_pk}",
+        limit=assistant_ai.REQ_LIMIT,
+        window=assistant_ai.RATE_WINDOW,
+    ):
+        return _actions_response(request, job, code="busy")
+    key = assistant_ai._job_key(schema, user_pk, job)
+    round_ = int(entry.get("round") or 1)
+    # двойной тап / устаревшая вкладка: на один раунд — один ответ
+    if not cache.add(f"{key}:reply:{round_}", 1, assistant_ai.JOB_TTL):
+        return _actions_response(request, job)
+    current = cache.get(key)
+    if not isinstance(current, dict) or current.get("round") != entry.get("round"):
+        return _actions_response(request, job)
+    try:
+        items = assistant_clarify.answer(request, entry, request.POST.get("option", ""))
+    except assistant_clarify.AnswerError:
+        cache.delete(f"{key}:reply:{round_}")  # чужой/исчезнувший вариант — можно выбрать снова
+        return _actions_response(request, job, code="expired")
+    summary = entry.get("summary") or []
+    source = entry.get("source", "")
+    nxt = assistant_clarify.wrap(job, items, summary, entry.get("question", ""), round_ + 1)
+    if nxt is not None:
+        if source:
+            nxt["source"] = source
+        assistant_ai._put(schema, user_pk, nxt, assistant_actions.ACTIONS_TTL, job=job)
+    else:
+        done = assistant_clarify.done_entry(job, items, summary, source)
+        assistant_ai._put(
+            schema,
+            user_pk,
+            done,
+            assistant_actions.ACTIONS_TTL,
+            job=job,
+            q=str(entry.get("question") or ""),
+        )
+    return _actions_response(request, job)
+
+
 def _actions_response(request, job: str, *, code: str = ""):
     """Ответ на «Alles übernehmen»/«Rückgängig»: шторка — свежий фрагмент ответа (тот же,
     что у опроса); без JS — 302 на страницу помощника с сообщением."""

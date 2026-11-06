@@ -667,6 +667,7 @@ def check_actions(tenant, user, q: str, ctx: dict, data: dict) -> tuple[list[dic
             item = assistant_changes.item_for(kind, "move", obj, target)
         if _ambiguous(objects, ref):
             item["blocked"] = _("Mehrere Einträge heißen so — bitte im Sortiment ändern.")
+            item["clarify"] = _pick_target(objects, ref, item)
         seen.add((action, str(obj.pk)))
         items.append(item)
     return items[:MAX_ITEMS], dropped + max(len(items) - MAX_ITEMS, 0)
@@ -714,6 +715,36 @@ def _create_items(tenant, user, q: str, ctx: dict, raw: list[dict]) -> tuple[lis
         if (kind, name.casefold()) in existing:
             it["note"] = _("„%(name)s“ gibt es schon — wirklich neu anlegen?") % {"name": name}
     return items, raw_count - len(items)
+
+
+def _pick_target(objects, index: int, item: dict) -> dict:
+    """A-5b: одноимённые объекты из списка модели → вопрос «какой?» (ответ соберёт пункт тем
+    же `item_for`; модель второй раз не зовётся)."""
+    from apps.core import assistant_clarify
+
+    kind, _obj, names = objects[index]
+    key = {n.casefold() for n in names}
+    rows = [
+        {"kind": k, "obj": o}
+        for k, o, other in objects
+        if k == kind and o is not None and key & {n.casefold() for n in other}
+    ]
+    action = item["action"]
+    values = item.get("values") or {}
+    if action.endswith(".price"):
+        verb, value = "price", values.get("price", "")
+    elif action.endswith(".visibility"):
+        verb, value = ("show" if values.get("visible") else "hide"), ""
+    else:
+        verb, value = "move", values.get("category", "")
+    return {
+        "slot": "pick_target",
+        "options": assistant_clarify.options_for_rows(rows),
+        "verb": verb,
+        "value": value,
+        "note": item.get("note", ""),
+        "fixed": bool(item.get("fixed")),
+    }
 
 
 def _quantified(q_cf: str, names: list[str]) -> bool:
@@ -778,15 +809,14 @@ def finish(request, job: str, entry: dict) -> dict:
             ]
             if bulk is not None:
                 summary = [{"action": items[0]["action"], "name": bulk["title"]}]
-            done = {
-                "state": "done",
-                "outcome": "actions",
-                "source": "ai",
-                "actions": items,
-                "dropped": dropped,
-                "job": job,
-                "summary": summary,
-            }
+            from apps.core import assistant_clarify
+
+            ask = assistant_clarify.wrap(job, items, summary, q)
+            if ask is not None:  # A-5b: одноимённые — вопрос «какой?», модель не зовётся снова
+                done = {**ask, "source": "ai", "dropped": dropped}
+            else:
+                done = assistant_clarify.done_entry(job, items, summary, source="ai")
+                done["dropped"] = dropped
         else:
             # «понял фразу, но однозначного товара нет» — своим текстом, а не «nicht verfügbar»
             code = "unknown" if data.get("not_action") else "unclear"
@@ -795,10 +825,11 @@ def finish(request, job: str, entry: dict) -> dict:
         logger.exception("assistant ai actions: check failed")
         assistant_ai._refund(entry.get("counted"))
         done = assistant_ai._result("fallback", ctx, code="check_failed")
-    ttl = assistant_actions.ACTIONS_TTL if done.get("actions") else None
+    ttl = assistant_actions.ACTIONS_TTL if done.get("actions") or done.get("base") else None
+    hist_q = "" if done.get("outcome") == "ask" else q  # вопрос в историю не пишется
     try:
         if ttl:
-            assistant_ai._put(schema, user_pk, done, ttl, job=job, q=q)
+            assistant_ai._put(schema, user_pk, done, ttl, job=job, q=hist_q)
         else:
             assistant_ai._put(schema, user_pk, done, job=job, q=q)
     except Exception:  # noqa: BLE001 — Redis: покажем ответ один раз, без сохранения

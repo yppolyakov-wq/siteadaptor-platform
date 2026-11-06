@@ -723,14 +723,14 @@ def put_actions(request, q: str, builder=None) -> dict:
         summary = [{"action": it["action"], "name": it["values"].get("name", "")} for it in items]
         if bulk is not None:
             summary = [{"action": items[0]["action"], "name": bulk["title"]}]
-        entry = {
-            "state": "done",
-            "outcome": "actions",
-            "actions": items,
-            "job": job,
-            "summary": summary,
-        }
-        _put(schema, user_pk, entry, assistant_actions.ACTIONS_TTL, job=job, q=q)
+        from apps.core import assistant_clarify
+
+        ask = assistant_clarify.wrap(job, items, summary, q)
+        if ask is not None:  # A-5b: вопрос «какой?/teurer oder günstiger?» — без истории
+            _put(schema, user_pk, ask, assistant_actions.ACTIONS_TTL, job=job)
+        else:
+            entry = assistant_clarify.done_entry(job, items, summary)
+            _put(schema, user_pk, entry, assistant_actions.ACTIONS_TTL, job=job, q=q)
     except Exception:  # noqa: BLE001 — сбой кэша/разбора: спокойное сообщение, а не 500
         logger.warning("assistant answer: actions failed", exc_info=True)
         return {"code": "unavailable"}
@@ -876,6 +876,19 @@ def _present(request, entry: dict) -> dict:
         for ref in entry.get("state_refs") or []
     ]
     outcome = entry.get("outcome")
+    if outcome == "ask":  # A-5b: уточняющий вопрос — кнопки из кэша задачи
+        from apps.core import assistant_clarify
+
+        if not entry.get("options"):  # из истории вопроса не бывает — на всякий случай
+            return {"state": "done", "outcome": "fallback", "unavailable": True, "articles": []}
+        return {
+            "state": "done",
+            "outcome": "ask",
+            "question": assistant_clarify.question(entry.get("slot", "")),
+            "options": entry["options"],
+            "round": entry.get("round", 1),
+            "source": entry.get("source", ""),
+        }
     if outcome == "actions":  # A-4b: пакет изменений (в истории — только сводка)
         return _present_actions(request, entry)
     if outcome == "plan":
