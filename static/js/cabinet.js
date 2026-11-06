@@ -1144,3 +1144,50 @@ try { (function () {
       .catch(function () { note(target, form.getAttribute("data-error") || ""); done(); });
   });
 })(); } catch (e) { console.error(e); }
+
+// ---- core/_assistant_actions.html / _assistant_applied.html (AIS A-4a) ----
+// «Alles übernehmen» и «Rückgängig»: POST fetch'ем, ответ — свежий фрагмент ответа помощника,
+// он заменяет прежний (data-assistant-reply); фокус — на сообщение результата. Без JS — обычный
+// POST и страница помощника. Кнопка блокируется на время запроса (двойной клик — один пакет и
+// на сервере: уникальный job).
+try { (function () {
+  "use strict";
+  document.addEventListener("submit", function (e) {
+    var form = e.target;
+    if (e.defaultPrevented || !form.matches) return;
+    if (!form.matches("form[data-assistant-apply], form[data-assistant-undo]")) return;
+    if (!window.fetch) return;
+    var reply = form.closest("[data-assistant-reply]");
+    if (!reply) return;
+    e.preventDefault();
+    var btn = form.querySelector("button[type=submit]");
+    if (btn && btn.disabled) return;
+    if (btn) { btn.disabled = true; btn.setAttribute("aria-disabled", "true"); }
+    form.setAttribute("aria-busy", "true");
+    fetch(form.getAttribute("action"), {
+      method: "POST", body: new FormData(form), credentials: "same-origin",
+      redirect: "manual", headers: { "X-Sf-Drawer": "1" }
+    })
+      .then(function (r) {
+        if (r.type === "opaqueredirect") { location.reload(); return null; }
+        if (!r.ok) throw new Error("status " + r.status);
+        return r.text();
+      })
+      .then(function (html) {
+        if (html === null) return;
+        var box = document.createElement("div");
+        box.innerHTML = html;
+        var fresh = box.querySelector("[data-assistant-reply]") || box.firstElementChild;
+        if (!fresh) throw new Error("empty");
+        reply.replaceWith(fresh);
+        var focus = fresh.querySelector("[data-assistant-result]") ||
+          fresh.querySelector("[aria-invalid=true]");
+        if (focus) focus.focus();
+      })
+      .catch(function () {
+        if (btn) { btn.disabled = false; btn.removeAttribute("aria-disabled"); }
+        form.removeAttribute("aria-busy");
+        form.submit();  // запасной путь — обычный POST
+      });
+  });
+})(); } catch (e) { console.error(e); }

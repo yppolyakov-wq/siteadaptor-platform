@@ -61,6 +61,8 @@ _AKTIONEN_VIEWS = frozenset(
         "assistant-ask",  # AIS A-2
         "assistant-answer",  # AIS A-2
         "assistant-history-clear",  # AIS A-3d
+        "assistant-apply",  # AIS A-4a
+        "assistant-undo",  # AIS A-4a
         "support:help",  # AIS A-3b: поддержка нужна малому владельцу больше всех
         "support:thread",
         "betriebsferien",  # KA-12 О-8: каникулы — и в лёгком пакете

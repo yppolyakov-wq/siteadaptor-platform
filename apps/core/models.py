@@ -499,3 +499,34 @@ class AssistantTurn(models.Model):
 
     def __str__(self):
         return f"{self.kind}: {self.question[:40]}"
+
+
+class AssistantChange(models.Model):
+    """AIS A-4a: журнал пакета, применённого из помощника («Alles übernehmen»).
+
+    Одна строка на пакет (`job` уникален — повторный POST не применит дважды). `items` —
+    канонические снимки: действие, вид, pk созданного/изменённого объекта и значения полей
+    ПОСЛЕ применения (Decimal — строкой, FK — pk строкой). По ним «Rückgängig» в течение
+    `undo_until` проверяет, что объект с тех пор не меняли. Текста фразы здесь нет.
+    Пишет только `apps.core.assistant_actions`; срок — как у истории (90 дней)."""
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="assistant_changes",
+        db_index=False,
+    )
+    job = models.CharField(max_length=32, unique=True)
+    items = models.JSONField(default=list, blank=True)
+    applied_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    undo_until = models.DateTimeField()
+    undone_at = models.DateTimeField(null=True, blank=True)
+    #: итог отката по пунктам [{action, pk, done, reason}] — для показа «что не откатилось»
+    undo_report = models.JSONField(default=list, blank=True)
+
+    class Meta:
+        ordering = ["-applied_at", "-pk"]
+        indexes = [models.Index(fields=["user", "-applied_at"], name="core_asst_chg_user")]
+
+    def __str__(self):
+        return f"{self.job} ({len(self.items or [])})"

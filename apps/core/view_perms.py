@@ -89,6 +89,9 @@ RULES: dict[str, Rule] = {
     "assistant-ask": _r(OPEN),  # AIS A-2: вопрос ИИ; ответ ссылается только через assistant.link
     "assistant-answer": _r(OPEN),  # AIS A-2: опрос ответа (job привязан к пользователю)
     "assistant-history-clear": _r(OPEN),  # AIS A-3d: удаляет только свои строки
+    # AIS A-4a: право на КАЖДЫЙ пункт пакета проверяется внутри (assistant_actions.allowed)
+    "assistant-apply": _r(OPEN),
+    "assistant-undo": _r(OPEN),
     "setup-ask": _r(OPEN),  # STU-19i: a plan only; entities are gated by module + right
     "community:event-space": _r(V, E),
     "deal-billing-edit": _r(V, E),

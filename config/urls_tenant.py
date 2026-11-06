@@ -155,6 +155,17 @@ urlpatterns = [
         assistant_views.assistant_answer,
         name="assistant-answer",
     ),
+    # AIS A-4a: «Alles übernehmen» / «Rückgängig» пакета помощника (POST)
+    path(
+        "dashboard/assistent/frage/<str:job>/uebernehmen/",
+        assistant_views.assistant_apply,
+        name="assistant-apply",
+    ),
+    path(
+        "dashboard/assistent/frage/<str:job>/rueckgaengig/",
+        assistant_views.assistant_undo,
+        name="assistant-undo",
+    ),
     # AIS A-3d: «Verlauf löschen» (POST, только свои строки)
     path(
         "dashboard/assistent/verlauf/loeschen/",

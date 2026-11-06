@@ -635,7 +635,7 @@ def put_plan(request, q: str) -> dict:
     Лимиты — общий на вопросы + лимит помощника; замок «один вопрос одновременно»."""
     from django.core.cache import cache
 
-    from apps.core import page_templates, ratelimit, setup_assistant
+    from apps.core import assistant_actions, page_templates, ratelimit, setup_assistant
 
     schema, user_pk = _schema_name(), request.user.pk
     job = uuid.uuid4().hex
@@ -655,7 +655,14 @@ def put_plan(request, q: str) -> dict:
         locked = True
         plan = setup_assistant.build_plan(q[:QUESTION_MAX], request.tenant, request.user)
         entry = {"state": "done", "outcome": "plan", "plan": setup_assistant.plan_to_data(plan)}
-        _put(schema, user_pk, entry, job=job, q=q)
+        # A-4a: пункты, которые ассистент создаёт сам («Alles übernehmen»). Живут ТОЛЬКО
+        # в кэше задачи (30 мин); в историю идёт план без них (assistant_history._DROP).
+        actions = assistant_actions.from_plan(plan, request.tenant)
+        ttl = RESULT_TTL
+        if actions:
+            entry.update(actions=actions, job=job)
+            ttl = assistant_actions.ACTIONS_TTL
+        _put(schema, user_pk, entry, ttl, job=job, q=q)
     except Exception:  # noqa: BLE001 — сбой кэша/плана: спокойное сообщение, а не 500
         logger.warning("assistant answer: plan failed", exc_info=True)
         return {"code": "unavailable"}
@@ -790,12 +797,26 @@ def _present(request, entry: dict) -> dict:
     if outcome == "plan":
         from apps.core import setup_assistant
 
-        plan = setup_assistant.plan_from_data(entry.get("plan"), request.tenant)
-        return {
-            "state": "done",
-            "outcome": "plan",
-            "plan": setup_assistant.for_request(plan, request),
-        }
+        plan = setup_assistant.for_request(
+            setup_assistant.plan_from_data(entry.get("plan"), request.tenant), request
+        )
+        out = {"state": "done", "outcome": "plan", "plan": plan}
+        if entry.get("actions"):  # A-4a: пакет «создать» с предпросмотром
+            from dataclasses import replace
+
+            from apps.core import assistant_actions
+
+            rep = assistant_actions.report_for(request, str(entry.get("job") or ""))
+            if rep is not None:
+                out["applied"] = assistant_actions.present_report(request, rep)
+            else:
+                out["actions"] = assistant_actions.present(
+                    request, entry["actions"], errors=entry.get("action_errors")
+                )
+                out["actions_allowed"] = any(it["allowed"] for it in out["actions"])
+            own = set(assistant_actions.ENTITY_ACTION)
+            out["plan"] = replace(plan, steps=tuple(s for s in plan.steps if s.entity not in own))
+        return out
     articles = []
     if outcome != "answer":
         for key in entry.get("articles") or []:
@@ -835,3 +856,21 @@ def error_text(code: str) -> str:
         "busy": _("Die vorige Frage wird noch beantwortet."),
         "quota": _("Zu viele Fragen in kurzer Zeit — bitte später erneut versuchen."),
     }.get(code, _("Der KI-Assistent ist gerade nicht verfügbar."))
+
+
+def keep_action_input(request, job: str, entry: dict, post, errors: dict) -> None:
+    """A-4a: ошибка в предпросмотре — сохранить ввод и ошибки в кэше задачи (поля
+    спеки по индексу, вид действия не меняется), чтобы владелец не вводил заново."""
+    from apps.core import assistant_actions
+
+    try:
+        items = assistant_actions.merge_post(entry.get("actions") or [], post)
+        _put(
+            _schema_name(),
+            request.user.pk,
+            {**entry, "actions": items, "action_errors": dict(errors or {})},
+            assistant_actions.ACTIONS_TTL,
+            job=job,
+        )
+    except Exception:  # noqa: BLE001 — сохранение ввода — удобство, не условие
+        logger.warning("assistant actions: input not kept", exc_info=True)

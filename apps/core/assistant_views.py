@@ -202,3 +202,70 @@ def assistant_history_clear(request):
     assistant_history.clear(request.user)
     messages.success(request, _("Verlauf gelöscht."))
     return redirect(reverse("assistant"))
+
+
+def _actions_response(request, job: str, *, code: str = ""):
+    """Ответ на «Alles übernehmen»/«Rückgängig»: шторка — свежий фрагмент ответа (тот же,
+    что у опроса); без JS — 302 на страницу помощника с сообщением."""
+    from django.contrib import messages
+    from django.http import HttpResponse
+    from django.shortcuts import redirect
+    from django.urls import reverse
+    from django.utils.html import escape
+
+    from apps.core import assistant_actions
+
+    text = str(assistant_actions.error_text(code)) if code else ""
+    if not request.headers.get("X-Sf-Drawer"):
+        if text:
+            messages.error(request, text)
+        return redirect(reverse("assistant") + f"?antwort={job}")
+    ans = _answer_ctx(request, job)
+    if ans is None:
+        resp = HttpResponse(
+            f'<div data-assistant-reply><p role="status" tabindex="-1" data-assistant-result'
+            f' class="text-sm">{escape(text or assistant_actions.error_text("expired"))}</p></div>'
+        )
+    else:
+        ans["action_message"] = text
+        resp = render(
+            request,
+            "core/_assistant_answer.html",
+            {"ans": ans, "hl": "h3", "hl_sub": "h4", "next_url": drawer.drawer_next(request, "")},
+        )
+    resp["Cache-Control"] = "no-store"
+    return resp
+
+
+@login_required
+@require_POST
+def assistant_apply(request, job):
+    """AIS A-4a: «Alles übernehmen» — пакет ТОЛЬКО из кэша задачи этого пользователя;
+    POST меняет значения полей и галочки по индексу. Повтор — тот же отчёт."""
+    from apps.core import assistant_actions, assistant_ai
+
+    entry = assistant_ai.job_state(request, job)
+    if entry is None or entry.get("state") != "done" or not entry.get("actions"):
+        return _actions_response(request, job, code="expired")
+    try:
+        assistant_actions.apply(request, job, entry, request.POST)
+    except assistant_actions.ApplyError as exc:
+        if exc.code == "invalid":
+            assistant_ai.keep_action_input(request, job, entry, request.POST, exc.errors)
+        return _actions_response(request, job, code=exc.code)
+    return _actions_response(request, job)
+
+
+@login_required
+@require_POST
+def assistant_undo(request, job):
+    """AIS A-4a: «Rückgängig» — только автор, 10 минут, по снимку полей."""
+    from apps.core import assistant_actions, assistant_ai
+
+    if not assistant_ai.JOB_RE.fullmatch(str(job or "")):
+        return _actions_response(request, job, code="expired")
+    try:
+        assistant_actions.undo(request, job)
+    except assistant_actions.ApplyError as exc:
+        return _actions_response(request, job, code=exc.code)
+    return _actions_response(request, job)

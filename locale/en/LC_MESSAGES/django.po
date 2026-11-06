@@ -34040,3 +34040,143 @@ msgstr "Really delete everything?"
 #: templates/core/_assistant_body.html
 msgid "Bitte keine Kundendaten eingeben."
 msgstr "Please do not enter customer data."
+
+#: apps/core/assistant_actions.py
+msgid "Kategorie anlegen"
+msgstr "Create category"
+
+#: apps/core/assistant_actions.py
+#, python-format
+msgid "Kategorie „%(name)s“ gibt es noch nicht — bitte wählen."
+msgstr "Category “%(name)s” does not exist yet — please choose."
+
+#: apps/core/assistant_actions.py
+msgid "Diese Funktion ist bei Ihnen nicht eingeschaltet."
+msgstr "This feature is not switched on for you."
+
+#: apps/core/assistant_actions.py
+msgid "Dafür fehlt Ihnen die Berechtigung — bitte die Inhaberin fragen."
+msgstr "You do not have permission for this — please ask the owner."
+
+#: apps/core/assistant_actions.py
+msgid "In Ihrem Paket nicht enthalten."
+msgstr "Not included in your package."
+
+#: apps/core/assistant_actions.py
+msgid "Gerade nicht prüfbar — bitte im Formular anlegen."
+msgstr "Cannot be checked right now — please create it in the form."
+
+#: apps/core/assistant_actions.py
+msgid "— ohne Kategorie —"
+msgstr "— no category —"
+
+#: apps/core/assistant_actions.py
+#, python-format
+msgid "Neu: %(name)s"
+msgstr "New: %(name)s"
+
+#: apps/core/assistant_actions.py
+msgid "Bitte einen Betrag wie 3,20 angeben."
+msgstr "Please enter an amount such as 3.20."
+
+#: apps/core/assistant_actions.py
+msgid "Bitte einen Preis angeben."
+msgstr "Please enter a price."
+
+#: apps/core/assistant_actions.py
+msgid "Bitte Minuten zwischen 5 und 1440 angeben."
+msgstr "Please enter minutes between 5 and 1440."
+
+#: apps/core/assistant_actions.py
+msgid "Bitte eine Kategorie aus der Liste wählen."
+msgstr "Please choose a category from the list."
+
+#: apps/core/assistant_actions.py
+msgid "Die neue Kategorie wird nicht übernommen — bitte eine andere wählen."
+msgstr "The new category is not being taken over — please choose another one."
+
+#: apps/core/assistant_actions.py
+msgid "Bitte prüfen."
+msgstr "Please check."
+
+#: apps/core/assistant_actions.py
+msgid "Inzwischen gelöscht."
+msgstr "Deleted in the meantime."
+
+#: apps/core/assistant_actions.py
+msgid "Inzwischen geändert — nicht zurückgesetzt."
+msgstr "Changed in the meantime — not reset."
+
+#: apps/core/assistant_actions.py
+msgid "Schon verwendet (z. B. bestellt) — nicht zurückgesetzt."
+msgstr "Already in use (e.g. ordered) — not reset."
+
+#: apps/core/assistant_actions.py
+msgid "Enthält Produkte oder Unterkategorien — nicht zurückgesetzt."
+msgstr "Contains products or subcategories — not reset."
+
+#: apps/core/assistant_actions.py
+msgid "Schon verwendet — ausgeblendet statt gelöscht."
+msgstr "Already in use — hidden instead of deleted."
+
+#: apps/core/assistant_actions.py
+msgid "Der Vorschlag ist abgelaufen — bitte neu fragen."
+msgstr "The suggestion has expired — please ask again."
+
+#: apps/core/assistant_actions.py
+msgid "Nichts ausgewählt."
+msgstr "Nothing selected."
+
+#: apps/core/assistant_actions.py
+msgid "Bitte die markierten Felder prüfen."
+msgstr "Please check the marked fields."
+
+#: apps/core/assistant_actions.py
+msgid "Gerade in Benutzung — bitte gleich erneut versuchen."
+msgstr "In use right now — please try again in a moment."
+
+#: apps/core/assistant_actions.py
+msgid "Rückgängig ist nur 10 Minuten lang möglich."
+msgstr "Undo is only possible for 10 minutes."
+
+#: apps/core/assistant_actions.py
+msgid "Das hat nicht geklappt — bitte erneut versuchen."
+msgstr "That did not work — please try again."
+
+#: apps/core/assistant_actions.py
+msgid "Das lege ich für Sie an"
+msgstr "I will create this for you"
+
+#: apps/core/assistant_actions.py
+msgid "(Pflichtfeld)"
+msgstr "(required)"
+
+#: apps/core/assistant_actions.py
+msgid "Lieber im Formular öffnen"
+msgstr "Open in the form instead"
+
+#: apps/core/assistant_actions.py
+msgid "Alles übernehmen"
+msgstr "Apply all"
+
+#: apps/core/assistant_actions.py
+msgid "Danach 10 Minuten lang rückgängig zu machen."
+msgstr "Can be undone for 10 minutes afterwards."
+
+#: apps/core/assistant_actions.py
+msgid "Rückgängig gemacht."
+msgstr "Undone."
+
+#: apps/core/assistant_actions.py
+#, python-format
+msgid "Erledigt — angelegt: %(n)s"
+msgstr "Done — created: %(n)s"
+
+#: apps/core/assistant_actions.py
+msgid "zurückgesetzt"
+msgstr "reset"
+
+#: apps/core/assistant_actions.py
+#, python-format
+msgid "Rückgängig (bis %(t)s Uhr)"
+msgstr "Undo (until %(t)s)"

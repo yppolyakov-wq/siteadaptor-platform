@@ -151,11 +151,13 @@ def assistant_answer_job(*, schema: str, user_pk, job: str) -> None:
 
 @shared_task
 def purge_assistant_history() -> int:
-    """AIS A-3d: история помощника — не дольше ASSISTANT_HISTORY_DAYS (90) во всех схемах."""
-    from apps.core import assistant_history
+    """AIS A-3d: история помощника — не дольше ASSISTANT_HISTORY_DAYS (90) во всех схемах.
+    A-4a: тот же срок у журнала применённых пакетов (AssistantChange)."""
+    from apps.core import assistant_actions, assistant_history
 
     total = 0
     for tenant in _iter_tenants():
         with tenant_iter.isolated(tenant.schema_name, "purge_assistant_history"):
             total += assistant_history.purge()
+            total += assistant_actions.purge()
     return total

@@ -34186,3 +34186,143 @@ msgstr "Gerçekten her şey silinsin mi?"
 #: templates/core/_assistant_body.html
 msgid "Bitte keine Kundendaten eingeben."
 msgstr "Lütfen müşteri verisi girmeyin."
+
+#: apps/core/assistant_actions.py
+msgid "Kategorie anlegen"
+msgstr "Kategori oluştur"
+
+#: apps/core/assistant_actions.py
+#, python-format
+msgid "Kategorie „%(name)s“ gibt es noch nicht — bitte wählen."
+msgstr "“%(name)s” kategorisi henüz yok — lütfen seçin."
+
+#: apps/core/assistant_actions.py
+msgid "Diese Funktion ist bei Ihnen nicht eingeschaltet."
+msgstr "Bu özellik sizde açık değil."
+
+#: apps/core/assistant_actions.py
+msgid "Dafür fehlt Ihnen die Berechtigung — bitte die Inhaberin fragen."
+msgstr "Bunun için yetkiniz yok — lütfen işletme sahibine sorun."
+
+#: apps/core/assistant_actions.py
+msgid "In Ihrem Paket nicht enthalten."
+msgstr "Paketinize dahil değil."
+
+#: apps/core/assistant_actions.py
+msgid "Gerade nicht prüfbar — bitte im Formular anlegen."
+msgstr "Şu anda kontrol edilemiyor — lütfen formda oluşturun."
+
+#: apps/core/assistant_actions.py
+msgid "— ohne Kategorie —"
+msgstr "— kategorisiz —"
+
+#: apps/core/assistant_actions.py
+#, python-format
+msgid "Neu: %(name)s"
+msgstr "Yeni: %(name)s"
+
+#: apps/core/assistant_actions.py
+msgid "Bitte einen Betrag wie 3,20 angeben."
+msgstr "Lütfen 3,20 gibi bir tutar girin."
+
+#: apps/core/assistant_actions.py
+msgid "Bitte einen Preis angeben."
+msgstr "Lütfen bir fiyat girin."
+
+#: apps/core/assistant_actions.py
+msgid "Bitte Minuten zwischen 5 und 1440 angeben."
+msgstr "Lütfen 5 ile 1440 arasında dakika girin."
+
+#: apps/core/assistant_actions.py
+msgid "Bitte eine Kategorie aus der Liste wählen."
+msgstr "Lütfen listeden bir kategori seçin."
+
+#: apps/core/assistant_actions.py
+msgid "Die neue Kategorie wird nicht übernommen — bitte eine andere wählen."
+msgstr "Yeni kategori alınmıyor — lütfen başka birini seçin."
+
+#: apps/core/assistant_actions.py
+msgid "Bitte prüfen."
+msgstr "Lütfen kontrol edin."
+
+#: apps/core/assistant_actions.py
+msgid "Inzwischen gelöscht."
+msgstr "Bu arada silindi."
+
+#: apps/core/assistant_actions.py
+msgid "Inzwischen geändert — nicht zurückgesetzt."
+msgstr "Bu arada değiştirildi — geri alınmadı."
+
+#: apps/core/assistant_actions.py
+msgid "Schon verwendet (z. B. bestellt) — nicht zurückgesetzt."
+msgstr "Zaten kullanılıyor (ör. sipariş edildi) — geri alınmadı."
+
+#: apps/core/assistant_actions.py
+msgid "Enthält Produkte oder Unterkategorien — nicht zurückgesetzt."
+msgstr "Ürün veya alt kategori içeriyor — geri alınmadı."
+
+#: apps/core/assistant_actions.py
+msgid "Schon verwendet — ausgeblendet statt gelöscht."
+msgstr "Zaten kullanılıyor — silinmek yerine gizlendi."
+
+#: apps/core/assistant_actions.py
+msgid "Der Vorschlag ist abgelaufen — bitte neu fragen."
+msgstr "Öneri süresi doldu — lütfen yeniden sorun."
+
+#: apps/core/assistant_actions.py
+msgid "Nichts ausgewählt."
+msgstr "Hiçbir şey seçilmedi."
+
+#: apps/core/assistant_actions.py
+msgid "Bitte die markierten Felder prüfen."
+msgstr "Lütfen işaretli alanları kontrol edin."
+
+#: apps/core/assistant_actions.py
+msgid "Gerade in Benutzung — bitte gleich erneut versuchen."
+msgstr "Şu anda kullanımda — lütfen birazdan tekrar deneyin."
+
+#: apps/core/assistant_actions.py
+msgid "Rückgängig ist nur 10 Minuten lang möglich."
+msgstr "Geri alma yalnızca 10 dakika boyunca mümkündür."
+
+#: apps/core/assistant_actions.py
+msgid "Das hat nicht geklappt — bitte erneut versuchen."
+msgstr "Bu işe yaramadı — lütfen tekrar deneyin."
+
+#: apps/core/assistant_actions.py
+msgid "Das lege ich für Sie an"
+msgstr "Sizin için bunu oluşturuyorum"
+
+#: apps/core/assistant_actions.py
+msgid "(Pflichtfeld)"
+msgstr "(zorunlu)"
+
+#: apps/core/assistant_actions.py
+msgid "Lieber im Formular öffnen"
+msgstr "Bunun yerine formda aç"
+
+#: apps/core/assistant_actions.py
+msgid "Alles übernehmen"
+msgstr "Tümünü uygula"
+
+#: apps/core/assistant_actions.py
+msgid "Danach 10 Minuten lang rückgängig zu machen."
+msgstr "Sonrasında 10 dakika boyunca geri alınabilir."
+
+#: apps/core/assistant_actions.py
+msgid "Rückgängig gemacht."
+msgstr "Geri alındı."
+
+#: apps/core/assistant_actions.py
+#, python-format
+msgid "Erledigt — angelegt: %(n)s"
+msgstr "Tamam — oluşturuldu: %(n)s"
+
+#: apps/core/assistant_actions.py
+msgid "zurückgesetzt"
+msgstr "geri alındı"
+
+#: apps/core/assistant_actions.py
+#, python-format
+msgid "Rückgängig (bis %(t)s Uhr)"
+msgstr "Geri al (%(t)s saatine kadar)"

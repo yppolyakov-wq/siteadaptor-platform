@@ -5,7 +5,11 @@
   <p role="status" class="text-sm">{% trans "Der KI-Assistent sucht eine Antwort …" %}</p>
   {% if ans.job %}<a href="{% url 'assistant' %}?antwort={{ ans.job }}" class="inline-flex items-center min-h-[44px] text-sm text-indigo-700 hover:underline" data-assistant-refresh>{% trans "Aktualisieren" %}</a>{% endif %}
   {% elif ans.outcome == "plan" %}
-  <div data-assistant-plan>{% if ans.plan %}{% with plan=ans.plan %}{% include "tenant/_setup_plan.html" %}{% endwith %}{% endif %}</div>
+  <div data-assistant-plan class="space-y-3">
+    {% if ans.action_message %}<p role="status" tabindex="-1" data-assistant-result class="text-sm font-semibold text-amber-800">{{ ans.action_message }}</p>{% endif %}
+    {% if ans.applied %}{% include "core/_assistant_applied.html" %}{% elif ans.actions %}{% include "core/_assistant_actions.html" %}{% endif %}
+    {% if ans.plan.steps or not ans.actions and not ans.applied %}{% if ans.plan %}{% with plan=ans.plan %}{% include "tenant/_setup_plan.html" %}{% endwith %}{% endif %}{% endif %}
+  </div>
   {% elif ans.outcome == "articles" %}
   <p class="text-sm" role="status" data-assistant-fallback>{% if ans.articles %}{% trans "Diese Anleitungen passen zu Ihrer Frage." %}{% else %}{% trans "Dazu habe ich keine Anleitung gefunden." %}{% endif %}</p>
   {% if ans.articles %}<div class="space-y-2">{% for a in ans.articles %}{% include "core/_assistant_article.html" %}{% endfor %}</div>{% endif %}

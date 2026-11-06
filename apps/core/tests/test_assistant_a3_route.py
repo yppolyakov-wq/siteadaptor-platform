@@ -135,7 +135,9 @@ def test_plan_rights_rechecked_on_display(ai_off, bakery, monkeypatch):  # noqa:
     user, got = _ask(bakery, SAUSAGE)
     monkeypatch.setattr(setup_assistant, "reachable", lambda request, name: False)
     _resp, html = _answer_html(bakery, user, got["job"])
-    assert "data-setup-unreachable" in html and "price_eur=50%2C00" not in html
+    # A-4a: пункт «создать» живёт в предпросмотре пакета — ссылки на форму, которая тут не
+    # открывается, нет (ни у шага плана, ни у пункта пакета)
+    assert "price_eur=50%2C00" not in html and "Lieber im Formular öffnen" not in html
 
 
 def test_plan_storage_failure_is_a_calm_message(ai_off, bakery, monkeypatch):  # noqa: F811

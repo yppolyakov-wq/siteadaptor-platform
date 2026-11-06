@@ -21,6 +21,8 @@ MAX_PER_USER = 200
 SHOW = 5
 #: служебные поля задачи, которые в историю не идут (промпт, лимиты, срок)
 _DROP = ("prompt", "system", "schema", "ctx", "echo", "counted", "deadline", "digest", "q")
+#: A-4a: пакет «создать» и его ошибки — только в кэше задачи: из истории не применить
+_DROP += ("actions", "action_errors", "job")
 
 
 def _clean_entry(entry: dict) -> dict:
