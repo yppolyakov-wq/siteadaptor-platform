@@ -1,0 +1,36 @@
+# AIS W4-5d — гейт продажи в кассах (2026-11-06)
+
+`readiness.sell_allowed(tenant, direction)` есть с W4-0, но никто его не зовёт. Инкремент подключает
+гейт ко всем точкам, где ПОСЕТИТЕЛЬ витрины создаёт продажу или бронь. При
+`READINESS_SELL_GATE=False` (дефолт) поведение байт-в-байт прежнее. Без миграций.
+
+## Решение
+* Хелпер `readiness.require_sell(tenant, direction)` → `SellBlocked`; нейтральная фраза клиенту
+  `NEUTRAL_MESSAGE`; направление товаров — `goods_direction(tenant)` (speisekarte | waren),
+  стола/услуги — по ресурсу.
+* Сервисы (`create_order`, `book`/`book_many`, `book_stay`, `book_ticket`) получают
+  `channel=""`; при `channel="storefront"` гейт первой строкой, ДО atomic/блокировок/списаний.
+  Кабинет и сидер параметр не передают → работают как раньше.
+* Вьюха: на GET — сообщение вместо формы; на POST — ловит `SellBlocked`, 200 с сообщением,
+  корзина цела. Владелец (член команды) видит ссылку «Verkauf öffnen».
+
+## Точки
+Гейт: checkout корзины, Anprobe, покупка акции (по цели), запись на услугу / стол / termin,
+Mehrfachkarte, бронь номера (вкл. мультикомнатную), билеты, Gutschein (только базовые пункты).
+НЕ гейт: принятие предложения/сметы владельца, заявки, кабинетные создания, демо, оплата
+платформе. **Открытый вопрос O-1:** Zurücklegen и купон (оплаты нет) — рекомендация: не гейтить.
+
+## Замки до кода
+Флаг off → паритет и 0 запросов; флаг on + не готов → отказ, ничего не создано (заказ, склад,
+лимит акции, слот, Stripe); demo/internal/exempt → проходит; готов → проходит; негейтимые точки
+работают; fail-open при ошибке факта; утечки ключей пунктов клиенту нет; скан «вьюха витрины,
+зовущая сервис продажи, передаёт channel="storefront» либо в allowlist с причиной».
+
+## Rollout
+Мерж с флагом off → `readiness_report` на проде → `--stamp-exempt --apply` → решение O-1 →
+`READINESS_SELL_GATE=True` → через неделю отчёт и логи `sell blocked`.
+
+## ECC
+Скиллы: django-patterns, django-tdd, django-security, error-handling, accessibility. Агенты:
+django-reviewer (всегда), security-reviewer (обход прямым POST, утечка), silent-failure-hunter
+(fail-open, проглоченный отказ), Playwright-стенд 390/1440 с флагом on.

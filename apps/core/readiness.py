@@ -513,3 +513,36 @@ def sell_allowed(tenant, direction: str) -> bool:
     if is_service_tenant(tenant) or is_exempt(tenant):
         return True
     return sell_ready(tenant, direction)
+
+
+# --- AIS W4-5d: гейт продажи в кассах витрины -----------------------------------------------
+
+#: Клиенту — одна нейтральная фраза: без названий пунктов и ссылок кабинета.
+NEUTRAL_MESSAGE = _("Online-Bestellung ist hier noch nicht möglich — bitte kontaktieren Sie uns.")
+
+
+class SellBlocked(Exception):
+    """Касса витрины закрыта гейтом готовности (флаг `READINESS_SELL_GATE`)."""
+
+    def __init__(self, direction: str = ""):
+        super().__init__(direction)
+        self.direction = direction
+
+
+def require_sell(tenant, direction: str) -> None:
+    """Отказ (`SellBlocked`), если гейт закрыт. Звать ДО транзакции и любых списаний."""
+    if not sell_allowed(tenant, direction):
+        logger.info("readiness: sell blocked %s/%s", getattr(tenant, "schema_name", "?"), direction)
+        raise SellBlocked(direction)
+
+
+def goods_direction(tenant) -> str:
+    """Направление кассы товаров: меню (гастро) или Waren."""
+    from apps.core import directions
+
+    try:
+        keys = {d.key for d in directions.active(tenant)}
+    except Exception:  # noqa: BLE001 — fail-open: направление не определить → Waren
+        logger.warning("readiness: goods direction failed", exc_info=True)
+        return "waren"
+    return "speisekarte" if "speisekarte" in keys and "waren" not in keys else "waren"

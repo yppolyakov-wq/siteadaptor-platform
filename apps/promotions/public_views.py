@@ -26,7 +26,7 @@ from django.views.decorators.csrf import csrf_exempt
 
 from apps.catalog.combos import combo_labels
 from apps.catalog.views import FOOD_BUSINESS_TYPES as _FOOD_TYPES
-from apps.core import closures, grid_filler, page_settings, ratelimit
+from apps.core import closures, grid_filler, page_settings, ratelimit, readiness
 from apps.core.models import resolve_overlay
 from apps.core.pagecache import cache_storefront_page
 from apps.core.pagination import paginate
@@ -2868,7 +2868,13 @@ def promotion_purchase(request, pk):
             **_promo_payment_kwargs(request),
             pickup_slot=slot,
             pickup_capacity=slot_capacity,
+            channel="storefront",  # AIS W4-5d: гейт готовности кассы
         )
+    except readiness.SellBlocked:
+        if token_key:
+            cache.delete(token_key)
+        messages.error(request, readiness.NEUTRAL_MESSAGE)
+        return render(request, "storefront/promotion_detail.html", ctx)
     except PromoNotEligible:
         # KA-12 PR-5: правило клиента — нейтрально (не подтверждаем, что адрес — наш клиент).
         if token_key:

@@ -18,7 +18,7 @@ from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
 from apps.catalog.combos import combo_labels
-from apps.core import closures, page_settings, ratelimit
+from apps.core import closures, page_settings, ratelimit, readiness
 from apps.core.storefront_state import orders_active
 
 from . import delivery_choice, pickup_slots
@@ -1200,7 +1200,12 @@ def checkout(request):
             # SF-10: цены акций, которые увидел покупатель, — create_order не
             # подменит их молча полной ценой, если акция ушла с витрины.
             expected_promos=pmap,
+            # AIS W4-5d: гейт готовности — только для продажи (корзина-смета — запрос).
+            channel="" if quote_mode else "storefront",
         )
+    except readiness.SellBlocked:
+        messages.error(request, readiness.NEUTRAL_MESSAGE)  # корзина остаётся в сессии
+        return redirect("storefront-cart")
     except EmptyOrder:
         messages.error(request, _("Your order is empty."))
         return redirect("storefront-cart")

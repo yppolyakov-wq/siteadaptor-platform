@@ -34933,3 +34933,6 @@ msgstr "Talep üzerine hizmetler"
 
 msgid "Eine Leistung pro Zeile, Preis optional. Ohne Preis steht „Preis auf Anfrage“ — Kunden fragen über das Formular an."
 msgstr "Satır başına bir hizmet, fiyat isteğe bağlı. Fiyat yoksa “Fiyat talep üzerine” görünür — müşteriler form üzerinden sorar."
+
+msgid "Online-Bestellung ist hier noch nicht möglich — bitte kontaktieren Sie uns."
+msgstr "Burada henüz çevrimiçi sipariş verilemiyor — lütfen bizimle iletişime geçin."

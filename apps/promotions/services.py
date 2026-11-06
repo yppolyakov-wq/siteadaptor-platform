@@ -336,6 +336,7 @@ def purchase(
     payment_due_at=None,
     pickup_slot=None,
     pickup_capacity=0,
+    channel="",
 ):
     """P2 «ценовой слой»: чекаут акции СТАНДАРТНЫМ заказом (план
     promo-price-layer-plan-2026-08-03).
@@ -352,6 +353,14 @@ def purchase(
         # В2: условная акция онлайн не продаётся — гард в сервисе, не только во вьюхе
         # (будущие каналы: бот, MCP).
         raise ValueError("conditional promotion is not sold online")
+    if channel == "storefront":
+        # AIS W4-5d: касса витрины — гейт готовности ДО списания лимита кампании.
+        from django.db import connection
+
+        from apps.core import readiness
+
+        tenant = getattr(connection, "tenant", None)
+        readiness.require_sell(tenant, readiness.goods_direction(tenant))
     if promotion.product_id and promotion.product.primary_action == "request":
         # W4-6b: товар «nur auf Anfrage» не продаётся и через акцию — до списания лимита.
         raise ValueError("request-only product is not sold online")

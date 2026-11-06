@@ -310,6 +310,7 @@ def create_order(
     apply_promotions=True,
     expected_promos=None,
     with_gift=False,
+    channel="",
 ):
     """Создать заказ из позиций со снимками цены/названия.
 
@@ -324,6 +325,15 @@ def create_order(
     ценой/названием (из строки, не из каталога). product/variant переданы → складской учёт как у обычных
     позиций (anti-oversell + леджер); None → свободная строка, склад не тронут.
     """
+    if channel == "storefront":
+        # AIS W4-5d: касса витрины — гейт готовности (флаг READINESS_SELL_GATE) до любых
+        # записей и списаний. Кабинет/сидер/предложения владельца channel не передают.
+        from django.db import connection
+
+        from apps.core import readiness
+
+        tenant = getattr(connection, "tenant", None)
+        readiness.require_sell(tenant, readiness.goods_direction(tenant))
     norm = []
     for item in items:
         if len(item) == 4:

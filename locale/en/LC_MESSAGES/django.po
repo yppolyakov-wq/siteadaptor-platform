@@ -34787,3 +34787,6 @@ msgstr "Services on request"
 
 msgid "Eine Leistung pro Zeile, Preis optional. Ohne Preis steht „Preis auf Anfrage“ — Kunden fragen über das Formular an."
 msgstr "One service per line, price optional. Without a price it shows “Price on request” — customers ask via the form."
+
+msgid "Online-Bestellung ist hier noch nicht möglich — bitte kontaktieren Sie uns."
+msgstr "Online ordering is not possible here yet — please contact us."
