@@ -34495,3 +34495,14 @@ msgstr "%(n)s würden 0 € kosten — bleiben unverändert."
 #, python-format
 msgid "%(n)s würden über 100.000 € kosten — bleiben unverändert."
 msgstr "%(n)s würden über 100.000 € kosten — bleiben unverändert."
+
+#: apps/core/assistant_bulk.py
+msgid "Vorschlag der KI — bitte prüfen, gespeichert wird erst mit „Alles übernehmen“."
+msgstr "Vorschlag der KI — bitte prüfen, gespeichert wird erst mit „Alles übernehmen“."
+
+#: templates/core/_assistant_actions.html
+#, python-format
+msgid "%(n)s Vorschlag verworfen — nicht eindeutig."
+msgid_plural "%(n)s Vorschläge verworfen — nicht eindeutig."
+msgstr[0] "%(n)s Vorschlag verworfen — nicht eindeutig."
+msgstr[1] "%(n)s Vorschläge verworfen — nicht eindeutig."

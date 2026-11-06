@@ -81,6 +81,14 @@ TASK_DATA = {
         "Art. 6 Abs. 1 lit. b DSGVO",
         "owner",
     ),
+    "assistant_actions": (
+        "Änderungen am Sortiment per Assistent im Kundenbereich: Ihr Satz (ohne erkennbare "
+        "Kontaktdaten) und die Namen Ihrer Kategorien, Produkte und Leistungen (keine Preise, "
+        "Kunden-, Bestell- oder Nachrichtendaten); gespeichert wird erst, wenn Sie den "
+        "Vorschlag übernehmen",
+        "Art. 6 Abs. 1 lit. b DSGVO",
+        "owner",
+    ),
     "setup_plan": (
         "Hilfe beim Anlegen von Kategorien und Produkten im Kundenbereich: der eingegebene "
         "Satz und die Namen der möglichen Felder (keine Kunden- oder Bestelldaten)",

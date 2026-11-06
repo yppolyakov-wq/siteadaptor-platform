@@ -147,7 +147,7 @@ def assistant_ask(request):
     seite = _seite_value(request.POST.get("seite"))
     raw = request.POST.get("frage", "")
     q, code = assistant_ai.prepare_question(raw)
-    from apps.core import assistant_bulk, assistant_changes, assistant_pages
+    from apps.core import assistant_ai_actions, assistant_bulk, assistant_changes, assistant_pages
 
     if not code and assistant_bulk.intent(request.tenant, request.user, q):
         # AIS A-4d: «alle Kuchen 10 % teurer» — все товары категории (≤ 50) одним пакетом;
@@ -162,6 +162,10 @@ def assistant_ask(request):
     elif not code and setup_assistant.create_intent(request.tenant, request.user, q):
         # AIS A-3a: «создай …» — план с предзаполненной формой, и без ИИ тоже
         got = assistant_ai.put_plan(request, q)
+    elif not code and (ai_ctx := assistant_ai_actions.wants(request, q)) is not None:
+        # AIS A-4e: правила не поняли, но во фразе есть действие или имя товара — ИИ
+        # предлагает пакет из закрытого реестра, факты проверяет сервер
+        got = assistant_ai_actions.ask(request, q, ai_ctx)
     else:
         got = assistant_ai.ask(request, raw, seite)
         if got.get("code") == "disabled":

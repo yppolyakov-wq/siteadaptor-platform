@@ -34702,3 +34702,16 @@ msgstr "%(n)s коштували б 0 € — залишаються без зм
 #, python-format
 msgid "%(n)s würden über 100.000 € kosten — bleiben unverändert."
 msgstr "%(n)s коштували б понад 100 000 € — залишаються без змін."
+
+#: apps/core/assistant_bulk.py
+msgid "Vorschlag der KI — bitte prüfen, gespeichert wird erst mit „Alles übernehmen“."
+msgstr "Пропозиція ШІ — перевірте, збережеться лише після «Застосувати все»."
+
+#: templates/core/_assistant_actions.html
+#, python-format
+msgid "%(n)s Vorschlag verworfen — nicht eindeutig."
+msgid_plural "%(n)s Vorschläge verworfen — nicht eindeutig."
+msgstr[0] "%(n)s пропозицію відкинуто — неоднозначно."
+msgstr[1] "%(n)s пропозиції відкинуто — неоднозначно."
+msgstr[2] "%(n)s пропозицій відкинуто — неоднозначно."
+msgstr[3] "%(n)s пропозиції відкинуто — неоднозначно."

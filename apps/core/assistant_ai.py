@@ -759,6 +759,11 @@ def run_job(*, schema: str, user_pk, job: str) -> None:
         return
     if not cache.add(f"{key}:run", 1, JOB_TTL):
         return  # повторная доставка задачи
+    if entry.get("task") == "assistant_actions":  # A-4e: тот же job-канал, другая задача
+        from apps.core import assistant_ai_actions
+
+        assistant_ai_actions.run(schema=schema, user_pk=user_pk, job=job, entry=entry)
+        return
     ctx = dict(entry["ctx"])
     outcome = _result("fallback", ctx, code="error")
     try:
@@ -814,6 +819,10 @@ def job_state(request, job: str) -> dict | None:
         entry = _result("fallback", ctx, code="timeout")
         _put(schema, user_pk, entry, job=job)
         entry["v"] = ENTRY_V
+    if entry.get("state") == "raw":  # A-4e: ответ модели → пункты пакета в ЭТОМ запросе
+        from apps.core import assistant_ai_actions
+
+        entry = assistant_ai_actions.finish(request, job, entry)
     return entry
 
 
@@ -927,6 +936,8 @@ def _present_actions(request, entry: dict) -> dict:
             out["bulk_errors"] = any(f["error"] for it in out["actions"] for f in it["fields"])
         out["actions_allowed"] = any(it["allowed"] for it in out["actions"])
         out["actions_change"] = any(it["verb"] != "create" for it in out["actions"])
+        out["source"] = entry.get("source", "")  # A-4e: «Vorschlag der KI» + пометка о США
+        out["dropped"] = int(entry.get("dropped") or 0)
     return out
 
 

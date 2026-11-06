@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load i18n ai_notice %}
 {% comment %}AIS A-4a: предпросмотр пакета «создать» — по карточке на пункт, правимые поля, галочка «übernehmen». Без права — причина без контролов. Вид действия и объект — из кэша задачи, форма меняет только значения. novalidate: снятый пункт не блокирует отправку, ошибки — у полей с сервера.{% endcomment %}
 <form method="post" action="{% url 'assistant-apply' ans.job %}" data-assistant-apply novalidate class="ui-card p-4 space-y-3">
   {% csrf_token %}
@@ -7,6 +7,11 @@
     <{{ hl_sub|default:"h3" }} class="ui-h2">{% if ans.actions_change %}{% trans "Das ändere ich für Sie" %}{% else %}{% trans "Das lege ich für Sie an" %}{% endif %}</{{ hl_sub|default:"h3" }}>
     <span class="ui-badge ui-tone-new">{% trans "Vorschau" %} · {% trans "nichts ist gespeichert" %}</span>
   </div>
+  {% if ans.source == "ai" %}
+  <p class="text-sm" data-assistant-ai-proposal><span aria-hidden="true">✨</span> {% trans "Vorschlag der KI — bitte prüfen, gespeichert wird erst mit „Alles übernehmen“." %}</p>
+  {% ai_notice "assistant_actions" %}
+  {% if ans.dropped %}<p class="ui-muted text-sm" role="status" data-assistant-ai-dropped>{% blocktrans count n=ans.dropped %}{{ n }} Vorschlag verworfen — nicht eindeutig.{% plural %}{{ n }} Vorschläge verworfen — nicht eindeutig.{% endblocktrans %}</p>{% endif %}
+  {% endif %}
   {% if ans.bulk %}
   {% comment %}AIS A-4d: массовый пакет — одна шапка и строки таблицей (до 50), у каждой строки своя галочка; цену считает сервер, полей ввода нет.{% endcomment %}
   <p class="font-semibold" data-assistant-bulk>{{ ans.bulk.title }}{% if ans.bulk.change %}: {{ ans.bulk.change }}{% endif %}</p>

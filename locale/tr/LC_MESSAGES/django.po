@@ -34554,3 +34554,14 @@ msgstr "%(n)s 0 € olurdu — değişmeden kalıyor."
 #, python-format
 msgid "%(n)s würden über 100.000 € kosten — bleiben unverändert."
 msgstr "%(n)s 100.000 € üzerinde olurdu — değişmeden kalıyor."
+
+#: apps/core/assistant_bulk.py
+msgid "Vorschlag der KI — bitte prüfen, gespeichert wird erst mit „Alles übernehmen“."
+msgstr "Yapay zekâ önerisi — lütfen kontrol edin; „Tümünü uygula“ demeden kaydedilmez."
+
+#: templates/core/_assistant_actions.html
+#, python-format
+msgid "%(n)s Vorschlag verworfen — nicht eindeutig."
+msgid_plural "%(n)s Vorschläge verworfen — nicht eindeutig."
+msgstr[0] "%(n)s öneri atıldı — açık değil."
+msgstr[1] "%(n)s öneri atıldı — açık değil."
