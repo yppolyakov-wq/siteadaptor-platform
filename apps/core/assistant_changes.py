@@ -123,8 +123,13 @@ def _display(kind: str, obj) -> str:
 
 def intent(tenant, user, text: str) -> bool:
     """Есть ли во фразе изменение существующего объекта (без ИИ). Никогда не бросает."""
+    from apps.core import setup_assistant
+
     text = (text or "").strip()[:TEXT_MAX]
     if len(text) < 4 or not _verb(text):
+        return False
+    # «Wie ändere ich den Preis von Käsekuchen?» — вопрос о том, КАК, а не просьба сделать
+    if setup_assistant._looks_like_question(text):
         return False
     try:
         kinds = (

@@ -151,3 +151,15 @@ def test_category_hide(ai_off, bakery):
     user, got = _ask(bakery, "blende Saisonware aus")
     _apply(bakery, user, got["job"], TAKE)
     assert Category.objects.get().is_active is False
+
+
+@pytest.mark.parametrize(
+    "question",
+    [
+        "Wie ändere ich den Preis von Käsekuchen?",
+        "Wo kann ich Käsekuchen ausblenden?",
+        "как изменить цену Käsekuchen?",
+    ],
+)
+def test_question_is_not_a_change(ai_off, bakery, cake, question):
+    assert not assistant_changes.intent(bakery, None, question)
