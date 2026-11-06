@@ -264,6 +264,13 @@ def test_postcheck(base, out, ok):
     assert (it.check_item(base, out, target="en") is not None) is ok
 
 
+def test_plain_base_rejects_long_tag_injection():
+    base = "Frisches Brot vom Bäcker aus dem Ofen " * 12
+    evil = '<img src=x alt="' + "a" * 400 + '" onerror=alert(1)>'
+    assert it.check_item(base, "Fresh bread " * 30 + evil, target="en") is None
+    assert it.check_item("Brot > 1 kg", "Bread > 1 kg", target="en") == "Bread > 1 kg"
+
+
 def test_postcheck_script_and_limit():
     base = "Frisches Roggenbrot aus dem Steinofen"
     assert it.check_item(base, "Свежий ржаной хлеб из каменной печи", target="ru")
@@ -352,3 +359,16 @@ def test_legal_screen_has_no_button(owner, monkeypatch):
 
     monkeypatch.setattr(api, "is_enabled", lambda task=None: True)
     assert "data-i18n-translate " not in _render_switch(owner, "legal-docs")
+
+
+def test_redelivery_releases_busy_and_ends_pending(owner, ai_on, jobs_cache, no_limit):
+    from django.db import connection
+
+    with mock.patch.object(tasks.i18n_translate_job, "delay"):
+        job = _json(_post(owner, ITEMS))["job"]
+    schema = connection.schema_name
+    jobs_cache.add(f"{it._job_key(schema, owner.pk, job)}:lock", 1, 60)  # первая доставка умерла
+    it.run_job(schema=schema, user_pk=owner.pk, job=job)
+    assert _json(_get(owner, job))["state"] == "error"
+    with mock.patch.object(tasks.i18n_translate_job, "delay"):
+        assert "job" in _json(_post(owner, [{"id": "t1", "text": "Neuer Text"}]))

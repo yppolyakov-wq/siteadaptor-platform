@@ -35219,3 +35219,12 @@ msgstr "Слишком долго — попробуйте ещё раз."
 
 msgid "Wird übersetzt …"
 msgstr "Переводим …"
+
+msgid "Automatisch übersetzt – bitte prüfen"
+msgstr "Переведено автоматически – проверьте"
+
+msgid "Bitte laden Sie die Seite neu und versuchen Sie es erneut."
+msgstr "Перезагрузите страницу и попробуйте ещё раз."
+
+msgid "Nichts übersetzt"
+msgstr "Ничего не переведено"

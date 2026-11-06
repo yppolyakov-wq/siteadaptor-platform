@@ -61,6 +61,9 @@ def i18n_translate_start(request):
         ratelimit.refund("ai-translate", schema)
         return JsonResponse({"code": exc.code})
     except Exception:  # noqa: BLE001 — очередь недоступна: попытка не сгорает
+        import logging
+
+        logging.getLogger(__name__).exception("i18n translate: job not queued")
         ratelimit.refund("ai-translate-user", user_key)
         ratelimit.refund("ai-translate", schema)
         return JsonResponse({"code": "unavailable"})

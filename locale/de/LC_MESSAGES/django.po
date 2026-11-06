@@ -34985,3 +34985,12 @@ msgstr "Dauert zu lange — bitte erneut versuchen."
 
 msgid "Wird übersetzt …"
 msgstr "Wird übersetzt …"
+
+msgid "Automatisch übersetzt – bitte prüfen"
+msgstr "Automatisch übersetzt – bitte prüfen"
+
+msgid "Bitte laden Sie die Seite neu und versuchen Sie es erneut."
+msgstr "Bitte laden Sie die Seite neu und versuchen Sie es erneut."
+
+msgid "Nichts übersetzt"
+msgstr "Nichts übersetzt"

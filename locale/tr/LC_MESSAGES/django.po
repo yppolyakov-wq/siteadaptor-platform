@@ -35044,3 +35044,12 @@ msgstr "Çok uzun sürüyor — lütfen tekrar deneyin."
 
 msgid "Wird übersetzt …"
 msgstr "Çevriliyor …"
+
+msgid "Automatisch übersetzt – bitte prüfen"
+msgstr "Otomatik çevrildi – lütfen kontrol edin"
+
+msgid "Bitte laden Sie die Seite neu und versuchen Sie es erneut."
+msgstr "Lütfen sayfayı yeniden yükleyip tekrar deneyin."
+
+msgid "Nichts übersetzt"
+msgstr "Hiçbir şey çevrilmedi"

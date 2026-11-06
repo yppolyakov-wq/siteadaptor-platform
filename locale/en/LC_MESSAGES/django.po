@@ -34898,3 +34898,12 @@ msgstr "This is taking too long — please try again."
 
 msgid "Wird übersetzt …"
 msgstr "Translating …"
+
+msgid "Automatisch übersetzt – bitte prüfen"
+msgstr "Translated automatically – please check"
+
+msgid "Bitte laden Sie die Seite neu und versuchen Sie es erneut."
+msgstr "Please reload the page and try again."
+
+msgid "Nichts übersetzt"
+msgstr "Nothing translated"

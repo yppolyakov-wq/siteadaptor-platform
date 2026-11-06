@@ -35206,3 +35206,12 @@ msgstr "Надто довго — спробуйте ще раз."
 
 msgid "Wird übersetzt …"
 msgstr "Перекладаємо …"
+
+msgid "Automatisch übersetzt – bitte prüfen"
+msgstr "Перекладено автоматично – перевірте"
+
+msgid "Bitte laden Sie die Seite neu und versuchen Sie es erneut."
+msgstr "Перезавантажте сторінку та спробуйте ще раз."
+
+msgid "Nichts übersetzt"
+msgstr "Нічого не перекладено"

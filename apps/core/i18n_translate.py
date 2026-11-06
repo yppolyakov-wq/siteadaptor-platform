@@ -167,7 +167,7 @@ def target_allowed(tenant, target: str) -> bool:
 
 _EMAIL_RE = re.compile(r"[\w.+-]+@[\w-]+(?:\.[\w-]+)+")
 _URL_RE = re.compile(r"https?://\S+", re.IGNORECASE)
-_TAG_RE = re.compile(r"<[^<>]{1,300}>")
+_TAG_RE = re.compile(r"<[^<>]{1,2000}>")
 _PLACEHOLDER_RE = re.compile(r"\{[\w.]{1,40}\}|%\([\w]{1,40}\)[sd]")
 _MARK_RE = re.compile(r"⟦(\d{1,3})⟧")
 
@@ -231,8 +231,8 @@ def check_item(base: str, translated: str, *, target: str, limit: int = 0) -> st
     if not out or out == base.strip():
         return None  # identity не применяем
     rich = richtext.is_rich(base)
-    if not rich and _TAG_RE.search(out):
-        return None
+    if not rich and (out.count("<") > base.count("<") or out.count(">") > base.count(">")):
+        return None  # у плоской базы — никаких угловых скобок сверх базы (ревью security)
     norm_base, norm_out = guard.normalize(base), guard.normalize(out)
     if _numbers(norm_base) != _numbers(norm_out):
         return None
@@ -299,7 +299,7 @@ def translate(items: list[dict], *, target: str, tenant) -> tuple[dict, str]:
             tenant=tenant,
         )
     except AIError as exc:
-        logger.info("i18n translate skipped: %s", exc.code)
+        logger.warning("i18n translate failed: %s", exc.code)
         return {}, getattr(exc, "code", "") or "unavailable"
     out: dict[str, str] = {}
     for row in (result.data or {}).get("items") or []:
@@ -376,9 +376,14 @@ def run_job(*, schema: str, user_pk, job: str) -> None:
     key = _job_key(schema, user_pk, job)
     entry = cache.get(key)
     if not isinstance(entry, dict) or entry.get("state") != "pending":
+        cache.delete(_busy_key(schema, user_pk))
         return
     if not cache.add(f"{key}:lock", 1, JOB_TTL):
-        return  # повторная доставка: модель второй раз не зовём
+        # повторная доставка (воркер убит посреди задачи): модель второй раз не зовём,
+        # но и «läuft schon» на 5 минут не оставляем
+        cache.set(key, {"state": "error", "code": "error"}, RESULT_TTL)
+        cache.delete(_busy_key(schema, user_pk))
+        return
     outcome = {"state": "error", "code": "error"}
     try:
         items = entry.get("items") or []
@@ -395,8 +400,10 @@ def run_job(*, schema: str, user_pk, job: str) -> None:
     except Exception:  # noqa: BLE001 — сбой задачи не должен висеть «pending»
         logger.exception("i18n translate job failed")
     finally:
-        cache.set(key, outcome, RESULT_TTL)  # перезапись: тексты уходят из кэша
-        cache.delete(_busy_key(schema, user_pk))
+        try:
+            cache.set(key, outcome, RESULT_TTL)  # перезапись: тексты уходят из кэша
+        finally:
+            cache.delete(_busy_key(schema, user_pk))
 
 
 def job_state(*, schema: str, user_pk, job: str) -> dict | None:
