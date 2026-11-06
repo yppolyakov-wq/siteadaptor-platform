@@ -34814,3 +34814,9 @@ msgstr "None of these"
 
 msgid "Wir zeigen Beispiele — Sie ändern sie."
 msgstr "We show examples — you change them."
+
+msgid "Sie haben «Google-Profil» gewählt — suchen Sie hier Ihren Eintrag."
+msgstr "You chose “Google profile” — search for your listing here."
+
+msgid "Sie haben ein Foto gewählt — laden Sie es hier hoch."
+msgstr "You chose a photo — upload it here."

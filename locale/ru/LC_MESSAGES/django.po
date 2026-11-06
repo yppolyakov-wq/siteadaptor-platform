@@ -35135,3 +35135,9 @@ msgstr "Ничего из этого"
 
 msgid "Wir zeigen Beispiele — Sie ändern sie."
 msgstr "Мы покажем примеры — вы их измените."
+
+msgid "Sie haben «Google-Profil» gewählt — suchen Sie hier Ihren Eintrag."
+msgstr "Вы выбрали «Профиль в Google» — найдите здесь свою запись."
+
+msgid "Sie haben ein Foto gewählt — laden Sie es hier hoch."
+msgstr "Вы выбрали фото — загрузите его здесь."

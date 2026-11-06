@@ -34960,3 +34960,9 @@ msgstr "Hiçbiri"
 
 msgid "Wir zeigen Beispiele — Sie ändern sie."
 msgstr "Örnekler gösteririz — siz değiştirirsiniz."
+
+msgid "Sie haben «Google-Profil» gewählt — suchen Sie hier Ihren Eintrag."
+msgstr "“Google profili” seçtiniz — kaydınızı burada arayın."
+
+msgid "Sie haben ein Foto gewählt — laden Sie es hier hoch."
+msgstr "Bir fotoğraf seçtiniz — buradan yükleyin."

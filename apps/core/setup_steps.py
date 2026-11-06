@@ -206,6 +206,10 @@ def _ctx_company(request):
         from apps.core import setup_google
 
         ctx.update(setup_google.context(request))  # W4-3: «Bei Google suchen»
+        from apps.tenants import onboarding
+
+        # AIS-3: выбрали «Google-Profil» на первом шаге — подсказка над поиском.
+        ctx["google_chosen"] = "google" in onboarding.had(request.tenant)
     return ctx
 
 
@@ -1005,11 +1009,19 @@ def _ctx_pruefen(request):
             parsed = offer_lines.Parsed(lines=[])
         rows = [_pruefen_row(x) for x in parsed.lines]
         notes = parsed.notes
+    from apps.tenants import onboarding
+
+    have = set(onboarding.had(tenant))
+    text = draft.get("text", "") if draft.get("kind") == kind else ""
+    # AIS-3: «Nichts davon» — образцы сразу в поле (как «Beispiele einfügen»; в базу — ничего).
+    if not text and not review and "none" in have and kind and not _offer_items(tenant):
+        text = "\n".join(offer_examples.lines_for(tenant.business_type, kind))
     return {
         "pruefen_kinds": [{"key": k, "label": _PRUEFEN_KIND_LABELS[k]} for k in kinds],
         "pruefen_kind": kind,
         "pruefen_hint": _PRUEFEN_HINTS.get(kind, ""),
-        "pruefen_text": draft.get("text", "") if draft.get("kind") == kind else "",
+        "pruefen_text": text,
+        "photo_chosen": "photo" in have,
         "pruefen_review": review,
         "pruefen_batch": draft.get("batch", ""),
         "pruefen_rows": rows,

@@ -89,3 +89,54 @@ def test_skip_marks_the_step_skipped():
     tenant.refresh_from_db()
     state = onboarding.get_state(tenant)
     assert "quelle" in state["skipped"] and state["step"] == "company"
+
+
+# --- срез 2: передача выбора в следующие шаги ---------------------------------------------
+
+
+def _offer_text(response) -> str:
+    import re
+
+    m = re.search(
+        r'<textarea id="id_pruefen_text"[^>]*>(.*?)</textarea>', response.content.decode(), re.S
+    )
+    return m.group(1) if m else ""
+
+
+def test_none_prefills_examples_without_creating_anything():
+    from apps.catalog.models import Product
+
+    tenant = _v4()
+    onboarding.set_had(tenant, ["none"])
+    onboarding.goto(tenant, "pruefen")
+    assert "Roggenbrot" in _offer_text(Owner(tenant)()) and Product.objects.count() == 0
+
+
+def test_without_none_the_offer_field_stays_empty():
+    tenant = _v4()
+    onboarding.goto(tenant, "pruefen")
+    assert _offer_text(Owner(tenant)()).strip() == ""
+
+
+def test_google_choice_shows_hint_and_calls_nothing(monkeypatch):
+    from apps.core import setup_google
+    from apps.tenants import google_places
+
+    monkeypatch.setattr(setup_google, "enabled", lambda t: True)
+    monkeypatch.setattr(google_places, "search_places", lambda *a, **k: pytest.fail("API"))
+    tenant = _v4()
+    onboarding.set_had(tenant, ["google"])
+    onboarding.goto(tenant, "company")
+    html = Owner(tenant)().content.decode()
+    assert 'data-quelle-hint="google"' in html
+
+
+def test_photo_choice_shows_hint_on_offer_step(monkeypatch):
+    from apps.core import offer_photo
+
+    monkeypatch.setattr(offer_photo, "enabled", lambda: True)
+    tenant = _v4()
+    onboarding.set_had(tenant, ["photo"])
+    onboarding.goto(tenant, "pruefen")
+    html = Owner(tenant)().content.decode()
+    assert 'data-quelle-hint="photo"' in html

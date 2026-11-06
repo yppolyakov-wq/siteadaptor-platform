@@ -34901,3 +34901,9 @@ msgstr "Nichts davon"
 
 msgid "Wir zeigen Beispiele — Sie ändern sie."
 msgstr "Wir zeigen Beispiele — Sie ändern sie."
+
+msgid "Sie haben «Google-Profil» gewählt — suchen Sie hier Ihren Eintrag."
+msgstr "Sie haben «Google-Profil» gewählt — suchen Sie hier Ihren Eintrag."
+
+msgid "Sie haben ein Foto gewählt — laden Sie es hier hoch."
+msgstr "Sie haben ein Foto gewählt — laden Sie es hier hoch."

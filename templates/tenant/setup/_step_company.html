@@ -4,7 +4,7 @@
 Логотип грузится только на «Weiter» (файлы не идут в live-превью).{% endcomment %}
 <h1 class="text-2xl font-bold mb-1">{% trans "Deine Firma" %}</h1>
 <p class="text-sm text-gray-500 mb-4">{% trans "Name, Kontakt und Logo erscheinen auf deiner Website." %}</p>
-{% if google_enabled %}{% include "tenant/setup/_google_profile.html" %}{% endif %}
+{% if google_enabled %}{% if google_chosen %}<p class="text-sm text-indigo-900 bg-indigo-50 rounded-lg px-3 py-2 mb-2" data-quelle-hint="google">{% trans "Sie haben «Google-Profil» gewählt — suchen Sie hier Ihren Eintrag." %}</p>{% endif %}{% include "tenant/setup/_google_profile.html" %}{% endif %}
 <form method="post" enctype="multipart/form-data" class="space-y-4">
   {% csrf_token %}
   <div class="grid sm:grid-cols-2 gap-4">

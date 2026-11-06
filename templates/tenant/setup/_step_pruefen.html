@@ -96,6 +96,7 @@
   {% if pruefen_scan_kinds and pruefen_scan_state == "none" %}
   <fieldset class="border-t border-gray-100 pt-3 space-y-2" data-pruefen-scan>
     <legend class="text-sm font-semibold">📷 {% trans "Foto der Speisekarte oder Preisliste" %}</legend>
+    {% if photo_chosen %}<p class="text-sm text-indigo-900 bg-indigo-50 rounded-lg px-3 py-2" data-quelle-hint="photo">{% trans "Sie haben ein Foto gewählt — laden Sie es hier hoch." %}</p>{% endif %}
     <p id="pruefen-scan-hint" class="text-sm text-gray-600">{% blocktrans with n=pruefen_scan_max %}Bis zu {{ n }} Fotos (JPG, PNG, WebP). Wir lesen die Angebote ab — Sie prüfen alles, bevor etwas angelegt wird.{% endblocktrans %}</p>
     <label class="block text-sm"><span class="sr-only">{% trans "Fotos auswählen" %}</span><input type="file" name="menu_photo" multiple accept="image/jpeg,image/png,image/webp" aria-describedby="pruefen-scan-hint" class="block w-full text-sm file:mr-3 file:min-h-[44px] file:px-4 file:rounded-lg file:border-0 file:bg-indigo-50 file:text-indigo-800 file:font-semibold"></label>
     <button type="submit" name="action" value="offer_scan" formnovalidate class="ui-btn min-h-[44px]" data-pruefen-scan-start>{% trans "Foto lesen" %}</button>
