@@ -321,6 +321,18 @@ def website_run(request, pk):
     _owner_only(request)
     run = get_object_or_404(SiteImportRun, pk=pk)
     tenant = request.tenant
+    back = _wizard_back(request)
+
+    def redirect(*args, **kwargs):  # AIS-3: возврат в мастер переживает POST-циклы экрана
+        from django.shortcuts import redirect as _redirect
+
+        response = _redirect(*args, **kwargs)
+        if back:
+            from django.utils.http import urlencode
+
+            response["Location"] += "?" + urlencode({"next": back})
+        return response
+
     items = list(run.items.all())
     action = request.POST.get("action") if request.method == "POST" else None
     if action == "verify":
@@ -395,8 +407,19 @@ def website_run(request, pk):
             "verify_meta": verify.meta_tag(),
             "verify_file": verify.FILE_PATH,
             "verify_token": verify.token(),
+            "wizard_back": back,
         },
     )
+
+
+def _wizard_back(request) -> str:
+    """AIS-3: `next` — только путь мастера этого хоста (иначе пусто: открытого редиректа нет)."""
+    from django.urls import reverse
+
+    from apps.core.owner_login import safe_next
+
+    value = safe_next(request, request.GET.get("next", ""), default="")
+    return value if value.startswith(reverse("setup")) else ""
 
 
 APPLY_ERRORS = {

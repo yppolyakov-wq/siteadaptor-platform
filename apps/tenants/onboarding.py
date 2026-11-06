@@ -158,7 +158,13 @@ def clean_had(keys) -> list[str]:
     return ["none"] if "none" in picked else picked
 
 
-def set_had(tenant, keys) -> list[str]:
+def import_run_id(t) -> str:
+    cfg = t.site_config if isinstance(t.site_config, dict) else {}
+    raw = (cfg.get("onboarding") or {}).get("import_run")
+    return raw if isinstance(raw, str) else ""
+
+
+def set_had(tenant, keys, *, import_run=None) -> list[str]:
     """Единственный писатель `onboarding["had"]` (под блокировкой строки, без пересборки
     site_config); пустой выбор ключ убирает (presence-minimal)."""
     from django.db import transaction
@@ -175,6 +181,8 @@ def set_had(tenant, keys) -> list[str]:
             state["had"] = picked
         else:
             state.pop("had", None)
+        if import_run is not None:
+            state["import_run"] = str(import_run)
         cfg["onboarding"] = state
         locked.site_config = cfg
         locked.save(update_fields=["site_config"])
@@ -435,6 +443,9 @@ def get_state(tenant) -> dict:
     batches = raw.get("offer_batches")  # AIS-W W4-2: кольцо идемпотентности «Übernehmen»
     if isinstance(batches, list):
         state["offer_batches"] = [b for b in batches if isinstance(b, dict)][-10:]
+    run = raw.get("import_run")  # AIS-3: прогон импорта сайта, запущенный из мастера
+    if isinstance(run, str) and len(run) <= 40:
+        state["import_run"] = run
     have = clean_had(raw.get("had") if isinstance(raw.get("had"), list) else [])
     if have:  # AIS-3: ответ «Was haben Sie schon?» (presence-minimal)
         state["had"] = have

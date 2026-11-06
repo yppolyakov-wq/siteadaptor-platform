@@ -35128,3 +35128,30 @@ msgstr "Ви вибрали «Профіль у Google» — знайдіть т
 
 msgid "Sie haben ein Foto gewählt — laden Sie es hier hoch."
 msgstr "Ви вибрали фото — завантажте його тут."
+
+msgid "Ich bin Inhaber dieser Website"
+msgstr "Я власник цього сайту"
+
+msgid "Nur nötig, wenn Sie «Eigene Website» wählen. Der Import läuft im Hintergrund — Sie machen weiter."
+msgstr "Потрібно, лише якщо ви вибрали «Власний сайт». Імпорт іде у фоні — ви продовжуєте."
+
+msgid "Von Ihrer Website %(host)s"
+msgstr "З вашого сайту %(host)s"
+
+msgid "Import läuft … Sie können hier weitermachen."
+msgstr "Імпорт триває… тут можна продовжувати."
+
+msgid "Übernommen."
+msgstr "Перенесено."
+
+msgid "Bestätigen Sie kurz, dass die Website Ihnen gehört — dann prüfen Sie jede Zeile."
+msgstr "Коротко підтвердьте, що сайт ваш, — потім перевірте кожен рядок."
+
+msgid "Bereit zum Prüfen."
+msgstr "Готово до перевірки."
+
+msgid "Prüfen & übernehmen"
+msgstr "Перевірити й перенести"
+
+msgid "Zurück zum Einrichten"
+msgstr "Назад до налаштування"

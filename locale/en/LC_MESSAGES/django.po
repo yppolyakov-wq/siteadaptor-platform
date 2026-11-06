@@ -34820,3 +34820,30 @@ msgstr "You chose “Google profile” — search for your listing here."
 
 msgid "Sie haben ein Foto gewählt — laden Sie es hier hoch."
 msgstr "You chose a photo — upload it here."
+
+msgid "Ich bin Inhaber dieser Website"
+msgstr "I own this website"
+
+msgid "Nur nötig, wenn Sie «Eigene Website» wählen. Der Import läuft im Hintergrund — Sie machen weiter."
+msgstr "Only needed if you choose “Own website”. The import runs in the background — you carry on."
+
+msgid "Von Ihrer Website %(host)s"
+msgstr "From your website %(host)s"
+
+msgid "Import läuft … Sie können hier weitermachen."
+msgstr "Import running … you can carry on here."
+
+msgid "Übernommen."
+msgstr "Taken over."
+
+msgid "Bestätigen Sie kurz, dass die Website Ihnen gehört — dann prüfen Sie jede Zeile."
+msgstr "Briefly confirm that the website is yours — then check every line."
+
+msgid "Bereit zum Prüfen."
+msgstr "Ready to check."
+
+msgid "Prüfen & übernehmen"
+msgstr "Check & take over"
+
+msgid "Zurück zum Einrichten"
+msgstr "Back to setup"

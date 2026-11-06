@@ -6,6 +6,7 @@
 {% block dash_content %}
 <div class="flex items-center justify-between mb-6">
   <h1 class="ui-h1">{{ run.host }}</h1>
+  {% if wizard_back %}<a href="{{ wizard_back }}" class="ui-btn min-h-[44px] mt-2" data-wizard-back>← {% trans "Zurück zum Einrichten" %}</a>{% endif %}
   <a href="{% url 'imports:website' %}" class="text-sm text-indigo-700 hover:underline">{% trans "Neuer Import" %}</a>
 </div>
 

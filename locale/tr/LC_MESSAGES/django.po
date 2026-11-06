@@ -34966,3 +34966,30 @@ msgstr "“Google profili” seçtiniz — kaydınızı burada arayın."
 
 msgid "Sie haben ein Foto gewählt — laden Sie es hier hoch."
 msgstr "Bir fotoğraf seçtiniz — buradan yükleyin."
+
+msgid "Ich bin Inhaber dieser Website"
+msgstr "Bu web sitesinin sahibiyim"
+
+msgid "Nur nötig, wenn Sie «Eigene Website» wählen. Der Import läuft im Hintergrund — Sie machen weiter."
+msgstr "Yalnızca “Kendi web siteniz” seçildiyse gerekir. İçe aktarma arka planda çalışır — siz devam edersiniz."
+
+msgid "Von Ihrer Website %(host)s"
+msgstr "Web sitenizden: %(host)s"
+
+msgid "Import läuft … Sie können hier weitermachen."
+msgstr "İçe aktarma sürüyor … burada devam edebilirsiniz."
+
+msgid "Übernommen."
+msgstr "Aktarıldı."
+
+msgid "Bestätigen Sie kurz, dass die Website Ihnen gehört — dann prüfen Sie jede Zeile."
+msgstr "Web sitesinin size ait olduğunu kısaca onaylayın — ardından her satırı kontrol edin."
+
+msgid "Bereit zum Prüfen."
+msgstr "Kontrole hazır."
+
+msgid "Prüfen & übernehmen"
+msgstr "Kontrol et ve aktar"
+
+msgid "Zurück zum Einrichten"
+msgstr "Kuruluma geri dön"

@@ -48,7 +48,7 @@ def test_choice_survives_state_normalization():
     assert onboarding.get_state(t).get("had") == ["photo"]
 
 
-def test_post_writes_only_the_choice(monkeypatch):
+def test_post_writes_only_the_choice(monkeypatch, fake_start):
     from apps.catalog.models import Product
     from apps.core import offer_photo, setup_google
 
@@ -58,7 +58,10 @@ def test_post_writes_only_the_choice(monkeypatch):
     onboarding.goto(tenant, "quelle")
     before = (tenant.name, tenant.address, tenant.city)
     owner = Owner(tenant)
-    owner("post", {"had": ["website", "google", "photo"]})
+    owner(
+        "post",
+        {"had": ["website", "google", "photo"], "site_url": "https://k.example", "consent": "1"},
+    )
     tenant.refresh_from_db()
     assert onboarding.had(tenant) == ["website", "google", "photo"]
     assert (tenant.name, tenant.address, tenant.city) == before
@@ -66,7 +69,7 @@ def test_post_writes_only_the_choice(monkeypatch):
     assert onboarding.get_state(tenant)["step"] == "company"  # «Weiter» ведёт дальше
 
 
-def test_options_without_keys_are_not_rendered_and_not_accepted(monkeypatch):
+def test_options_without_keys_are_not_rendered_and_not_accepted(monkeypatch, fake_start):
     from apps.core import offer_photo, setup_google
 
     monkeypatch.setattr(setup_google, "enabled", lambda t: False)
@@ -77,7 +80,10 @@ def test_options_without_keys_are_not_rendered_and_not_accepted(monkeypatch):
     html = owner().content.decode()
     assert 'data-quelle-option="website"' in html and 'data-quelle-option="none"' in html
     assert 'data-quelle-option="google"' not in html and 'data-quelle-option="photo"' not in html
-    owner("post", {"had": ["google", "photo", "website"]})
+    owner(
+        "post",
+        {"had": ["google", "photo", "website"], "site_url": "https://k.example", "consent": "1"},
+    )
     tenant.refresh_from_db()
     assert onboarding.had(tenant) == ["website"]
 
@@ -140,3 +146,103 @@ def test_photo_choice_shows_hint_on_offer_step(monkeypatch):
     onboarding.goto(tenant, "pruefen")
     html = Owner(tenant)().content.decode()
     assert 'data-quelle-hint="photo"' in html
+
+
+# --- срез 3: «Eigene Website» запускает импорт Г1 ----------------------------------------
+
+
+@pytest.fixture
+def fake_start(monkeypatch):
+    """`start_run` — та же функция, что у экрана кабинета; здесь — без Celery и сети."""
+    from apps.imports.models import SiteImportRun
+    from apps.imports.site import service
+
+    calls = []
+
+    def start(*, user, url):
+        calls.append(url)
+        from django.utils import timezone
+
+        return SiteImportRun.objects.create(
+            start_url=url, host="krume.example", consent_at=timezone.now()
+        )
+
+    monkeypatch.setattr(service, "start_run", start)
+    return calls
+
+
+def _quelle_owner():
+    tenant = _v4()
+    onboarding.goto(tenant, "quelle")
+    return tenant, Owner(tenant)
+
+
+def test_website_needs_consent_and_keeps_the_typed_url(fake_start):
+    tenant, owner = _quelle_owner()
+    owner("post", {"had": ["website"], "site_url": "https://krume.example"})
+    tenant.refresh_from_db()
+    assert fake_start == [] and onboarding.get_state(tenant)["step"] == "quelle"
+    assert "https://krume.example" in owner().content.decode()
+
+
+def test_website_starts_the_same_import_once(fake_start):
+    tenant, owner = _quelle_owner()
+    data = {"had": ["website"], "site_url": "https://krume.example", "consent": "1"}
+    owner("post", data)
+    tenant.refresh_from_db()
+    assert fake_start == ["https://krume.example"] and onboarding.import_run_id(tenant)
+    onboarding.goto(tenant, "quelle")
+    owner("post", data)  # повторный проход шага — второй прогон не стартует
+    assert len(fake_start) == 1
+
+
+def test_start_error_stays_on_step(monkeypatch):
+    from apps.imports.site import service
+
+    def boom(**kw):
+        raise service.StartError("Ein Import läuft bereits.")
+
+    monkeypatch.setattr(service, "start_run", boom)
+    tenant, owner = _quelle_owner()
+    owner("post", {"had": ["website"], "site_url": "https://x.example", "consent": "1"})
+    tenant.refresh_from_db()
+    assert onboarding.get_state(tenant)["step"] == "quelle"
+    assert any("läuft bereits" in m for m in owner.messages)
+
+
+def test_non_owner_has_no_website_option():
+    from apps.core.models import Membership
+
+    tenant = _v4()
+    onboarding.goto(tenant, "quelle")
+    html = Owner(tenant, role=Membership.ROLE_STAFF)().content.decode()
+    assert 'data-quelle-option="website"' not in html
+
+
+def test_offer_step_shows_import_status_card(fake_start):
+    tenant, owner = _quelle_owner()
+    owner("post", {"had": ["website"], "site_url": "https://krume.example", "consent": "1"})
+    onboarding.goto(tenant, "pruefen")
+    html = owner().content.decode()
+    assert 'data-quelle-import="running"' in html
+
+
+@pytest.mark.parametrize(
+    "value,ok",
+    [
+        ("/dashboard/setup/?step=pruefen", True),
+        ("//evil.example/dashboard/setup/", False),
+        ("https://evil.example/dashboard/setup/", False),
+        ("/dashboard/orders/", False),
+        ("/\\\\evil.example", False),
+    ],
+)
+def test_import_screen_back_link_only_into_the_wizard(value, ok):
+    from django.contrib.auth.models import AnonymousUser
+    from django.test import RequestFactory
+
+    from apps.imports.views import _wizard_back
+
+    request = RequestFactory().get("/imports/website/x/", {"next": value})
+    request.user = AnonymousUser()
+    assert bool(_wizard_back(request)) is ok

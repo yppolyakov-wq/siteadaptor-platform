@@ -25,6 +25,19 @@
 </details>
 {% endif %}
 
+{% if quelle_import %}
+<section class="ui-card p-4 mb-4 space-y-2" aria-labelledby="quelle-imp-h" data-quelle-import="{{ quelle_import.state }}">
+  <h2 id="quelle-imp-h" class="text-sm font-semibold">{% blocktrans with host=quelle_import.host %}Von Ihrer Website {{ host }}{% endblocktrans %}</h2>
+  {% if quelle_import.state == "running" %}
+  <p class="text-sm text-gray-600" role="status">{% trans "Import läuft … Sie können hier weitermachen." %}</p>
+  {% elif quelle_import.state == "applied" %}
+  <p class="text-sm text-gray-600">{% trans "Übernommen." %}</p>
+  {% else %}
+  <p class="text-sm text-gray-600">{% if quelle_import.state == "verify" %}{% trans "Bestätigen Sie kurz, dass die Website Ihnen gehört — dann prüfen Sie jede Zeile." %}{% else %}{% trans "Bereit zum Prüfen." %}{% endif %}</p>
+  <a href="{{ quelle_import.url }}" class="ui-btn ui-btn-primary min-h-[44px]">{% trans "Prüfen & übernehmen" %}</a>
+  {% endif %}
+</section>
+{% endif %}
 {% if not pruefen_kinds %}
 <p class="ui-card p-4 text-sm" data-pruefen-none>{% trans "Für Ihr Geschäft gibt es hier nichts einzutragen — weiter zum nächsten Schritt." %}</p>
 {% elif pruefen_review %}

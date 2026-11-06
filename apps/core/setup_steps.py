@@ -1022,6 +1022,7 @@ def _ctx_pruefen(request):
         "pruefen_hint": _PRUEFEN_HINTS.get(kind, ""),
         "pruefen_text": text,
         "photo_chosen": "photo" in have,
+        "quelle_import": _quelle_import_card(request),
         "pruefen_review": review,
         "pruefen_batch": draft.get("batch", ""),
         "pruefen_rows": rows,
@@ -1086,30 +1087,113 @@ def _quelle_options(request) -> list[dict]:
         ),
         ("none", _("Nichts davon"), _("Wir zeigen Beispiele — Sie ändern sie.")),
     ]
+    from apps.core.roles import is_owner
+
     available = {
-        "website": True,
+        # импорт с сайта — только владельцу (как экран импорта)
+        "website": is_owner(request.user),
         "google": setup_google.enabled(tenant),
         "photo": offer_photo.enabled(),
         "none": True,
     }
     return [
-        {"key": k, "label": label, "hint": hint, "checked": k in chosen, "ai": k == "photo"}
+        {
+            "key": k,
+            "label": label,
+            "hint": hint,
+            "checked": k in chosen,
+            "ai": k == "photo",
+            "url": k == "website",
+        }
         for k, label, hint in opts
         if available[k]
     ]
 
 
+def _quelle_run(tenant):
+    """Прогон импорта, запущенный из мастера (не упавший) — или None."""
+    from apps.tenants import onboarding
+
+    run_id = onboarding.import_run_id(tenant)
+    if not run_id:
+        return None
+    from django.core.exceptions import ValidationError
+
+    from apps.imports.models import SiteImportRun
+
+    try:
+        return (
+            SiteImportRun.objects.filter(pk=run_id)
+            .exclude(status=SiteImportRun.STATUS_FAILED)
+            .first()
+        )
+    except (ValueError, ValidationError):  # мусор в state — прогона нет
+        return None
+
+
+def _quelle_import_card(request) -> dict | None:
+    """AIS-3: карточка статуса импорта на шаге «Angebot»."""
+    from apps.tenants import onboarding
+
+    if "website" not in onboarding.had(request.tenant):
+        return None
+    run = _quelle_run(request.tenant)
+    if run is None:
+        return None
+    from django.urls import reverse
+
+    from apps.imports.site import verify
+
+    if run.status in run.ACTIVE:
+        state = "running"
+    elif run.status == run.STATUS_APPLIED:
+        state = "applied"
+    else:
+        state = "ready" if verify.is_verified(run) else "verify"
+    back = reverse("setup") + "?step=pruefen"
+    return {
+        "state": state,
+        "host": run.host,
+        "count": run.items.count(),
+        "url": reverse("imports:website-run", args=[run.pk]) + "?next=" + back,
+    }
+
+
 def _ctx_quelle(request):
-    return {"quelle_options": _quelle_options(request)}
+    tenant = request.tenant
+    return {
+        "quelle_options": _quelle_options(request),
+        "quelle_url": request.session.get("quelle_url") or tenant.website_url or "",
+    }
 
 
 def _post_quelle(request):
-    """AIS-3: запомнить выбор — и только (бизнес-данные пишут шаги, куда он ведёт)."""
+    """AIS-3: запомнить выбор — и только (бизнес-данные пишут шаги, куда он ведёт).
+
+    «Eigene Website» запускает ТОТ ЖЕ импорт, что экран кабинета (`start_run`: проверка
+    адреса, SSRF-защита при обходе, лимиты, подтверждение владения ДО применения). Мастер не
+    ждёт прогона: статус покажет шаг «Angebot»."""
     from apps.tenants import onboarding
 
     allowed = {o["key"] for o in _quelle_options(request)}
-    keys = [k for k in request.POST.getlist("had") if k in allowed]
-    onboarding.set_had(request.tenant, keys)
+    keys = onboarding.clean_had([k for k in request.POST.getlist("had") if k in allowed])
+    run_id = None
+    if "website" in keys and not _quelle_run(request.tenant):
+        from apps.imports.site import service
+
+        url = (request.POST.get("site_url") or "").strip()[:500]
+        request.session["quelle_url"] = url  # ввод не теряется при ошибке
+        if request.POST.get("consent") != "1":
+            messages.error(request, _("Bitte bestätigen Sie, dass Sie Inhaber der Website sind."))
+            return False
+        try:
+            run = service.start_run(user=request.user, url=url)
+        except service.StartError as exc:
+            messages.error(request, str(exc))
+            return False
+        run_id = run.pk
+        request.session.pop("quelle_url", None)
+    onboarding.set_had(request.tenant, keys, import_run=run_id)
 
 
 HANDLERS = {
