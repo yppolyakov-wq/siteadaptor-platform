@@ -33970,3 +33970,11 @@ msgstr "Zu viele Fragen in kurzer Zeit — bitte später erneut versuchen."
 #: apps/core/assistant_ai.py templates/core/_assistant_answer.html
 msgid "z. B. Wie richte ich die Lieferung nur für meine Stadt ein?"
 msgstr "z. B. Wie richte ich die Lieferung nur für meine Stadt ein?"
+
+#: templates/core/_assistant_answer.html templates/core/_assistant_body.html
+msgid "Die Antwort dauert länger als üblich — bitte später erneut fragen."
+msgstr "Die Antwort dauert länger als üblich — bitte später erneut fragen."
+
+#: templates/core/_assistant_answer.html templates/core/_assistant_body.html
+msgid "Diese Anleitungen helfen vielleicht."
+msgstr "Diese Anleitungen helfen vielleicht."

@@ -57,7 +57,7 @@
       <button type="submit" class="ui-btn ui-btn-secondary min-h-[44px]">{% trans "Suchen" %}</button>
     </form>
     {% if ai_enabled %}
-    <form method="post" action="{% url 'assistant-ask' %}" class="mt-3 space-y-2" data-assistant-ask data-error="{% trans 'Der KI-Assistent ist gerade nicht verfügbar.' %}">
+    <form method="post" action="{% url 'assistant-ask' %}" class="mt-3 space-y-2" data-assistant-ask data-error="{% trans 'Der KI-Assistent ist gerade nicht verfügbar.' %}" data-timeout="{% trans 'Die Antwort dauert länger als üblich — bitte später erneut fragen.' %}">
       {% csrf_token %}
       {% if seite %}<input type="hidden" name="seite" value="{{ seite }}">{% endif %}
       <label for="as-frage" class="block text-sm font-medium">{% trans "Frage an den KI-Assistenten" %}</label>

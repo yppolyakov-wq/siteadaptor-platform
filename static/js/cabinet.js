@@ -1066,16 +1066,12 @@ try { (function () {
 })(); } catch (e) { console.error(e); }
 // ---- core/_assistant_body.html (форма «✨ KI fragen») ----
 // AIS A-2: вопрос уходит POST'ом (fetch, CSRF из формы), ответ опрашивается фрагментом каждые
-// 1,5 с до 30 с. Делегирование на document — форма живёт в шторке, вставленной fetch'ем.
+// 1,5 с до ~30 с. Делегирование на document — форма живёт в шторке, вставленной fetch'ем.
 // Без JS форма отправляется обычным POST и страница помощника показывает ответ (?antwort=).
+// Сбой сети на опросе терпим дважды; 404 (задача протухла) и таймаут — сообщение, не тишина.
 try { (function () {
   "use strict";
-  var POLL_MS = 1500, POLL_MAX = 20;
-  function box(form) {
-    var root = form.closest("[data-assistant]");
-    return root && root.querySelector("[data-assistant-answer]");
-  }
-  function show(target, html) { if (target) target.innerHTML = html; }
+  var POLL_MS = 1500, POLL_MAX = 20, FAIL_MAX = 2;
   function note(target, text) {
     if (!target) return;
     var p = document.createElement("p");
@@ -1085,21 +1081,27 @@ try { (function () {
     target.innerHTML = "";
     target.appendChild(p);
   }
-  function poll(target, url, n, done) {
+  function poll(target, url, form, n, fails, done) {
     fetch(url, { credentials: "same-origin", headers: { "X-Sf-Drawer": "1" } })
       .then(function (r) {
+        if (r.status === 404) { note(target, form.getAttribute("data-error") || ""); done(); return; }
         if (!r.ok) throw new Error("status " + r.status);
         var state = r.headers.get("X-Sf-Answer-State");
         return r.text().then(function (html) {
-          show(target, html);
-          if (state === "pending" && n < POLL_MAX) {
-            setTimeout(function () { poll(target, url, n + 1, done); }, POLL_MS);
-          } else {
-            done();
-          }
+          if (target) target.innerHTML = html;
+          if (state !== "pending") { done(); return; }
+          if (n >= POLL_MAX) { note(target, form.getAttribute("data-timeout") || ""); done(); return; }
+          setTimeout(function () { poll(target, url, form, n + 1, 0, done); }, POLL_MS);
         });
       })
-      .catch(function () { note(target, document.querySelector("form[data-assistant-ask]") ? document.querySelector("form[data-assistant-ask]").getAttribute("data-error") || "" : ""); done(); });
+      .catch(function () {
+        if (fails < FAIL_MAX && n < POLL_MAX) {
+          setTimeout(function () { poll(target, url, form, n + 1, fails + 1, done); }, POLL_MS * 2);
+        } else {
+          note(target, form.getAttribute("data-error") || "");
+          done();
+        }
+      });
   }
   document.addEventListener("submit", function (e) {
     var form = e.target;
@@ -1108,7 +1110,8 @@ try { (function () {
     e.preventDefault();
     var btn = form.querySelector("[data-assistant-ask-btn]");
     if (btn && btn.disabled) return;
-    var target = box(form);
+    var root = form.closest("[data-assistant]");
+    var target = root && root.querySelector("[data-assistant-answer]");
     function done() {
       if (btn) { btn.disabled = false; btn.removeAttribute("aria-disabled"); }
       form.removeAttribute("aria-busy");
@@ -1121,12 +1124,13 @@ try { (function () {
     })
       .then(function (r) {
         if (r.type === "opaqueredirect") { location.reload(); return null; }
+        if (!r.ok) throw new Error("status " + r.status);
         return r.json();
       })
       .then(function (res) {
         if (!res) return;
-        if (res.url) { poll(target, res.url, 0, done); return; }
-        note(target, res.message || "");
+        if (res.url) { poll(target, res.url, form, 0, 0, done); return; }
+        note(target, res.message || form.getAttribute("data-error") || "");
         done();
       })
       .catch(function () { note(target, form.getAttribute("data-error") || ""); done(); });

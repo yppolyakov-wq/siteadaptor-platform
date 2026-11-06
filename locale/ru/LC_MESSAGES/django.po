@@ -34190,3 +34190,11 @@ msgstr "Слишком много вопросов за короткое вре�
 #: apps/core/assistant_ai.py templates/core/_assistant_answer.html
 msgid "z. B. Wie richte ich die Lieferung nur für meine Stadt ein?"
 msgstr "например: Как настроить доставку только по моему городу?"
+
+#: templates/core/_assistant_answer.html templates/core/_assistant_body.html
+msgid "Die Antwort dauert länger als üblich — bitte später erneut fragen."
+msgstr "Ответ занимает больше времени, чем обычно, — спросите позже."
+
+#: templates/core/_assistant_answer.html templates/core/_assistant_body.html
+msgid "Diese Anleitungen helfen vielleicht."
+msgstr "Возможно, помогут эти инструкции."

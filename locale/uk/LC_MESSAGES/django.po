@@ -34177,3 +34177,11 @@ msgstr "Забагато питань за короткий час — спро�
 #: apps/core/assistant_ai.py templates/core/_assistant_answer.html
 msgid "z. B. Wie richte ich die Lieferung nur für meine Stadt ein?"
 msgstr "наприклад: Як налаштувати доставку лише по моєму місту?"
+
+#: templates/core/_assistant_answer.html templates/core/_assistant_body.html
+msgid "Die Antwort dauert länger als üblich — bitte später erneut fragen."
+msgstr "Відповідь триває довше, ніж зазвичай, — запитайте пізніше."
+
+#: templates/core/_assistant_answer.html templates/core/_assistant_body.html
+msgid "Diese Anleitungen helfen vielleicht."
+msgstr "Можливо, допоможуть ці інструкції."

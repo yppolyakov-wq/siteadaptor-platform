@@ -299,16 +299,34 @@ def schema_for(ctx: dict) -> dict:
 
 # --- пост-проверка -------------------------------------------------------------------------
 
+# Обещания о деньгах/сроках/тарифе — отказ ВСЕГДА (ревью A-2: допуск «если слово есть в
+# статье» пропускал «kostenlos» при любом «Kosten…» в соседней статье).
 _PROMISE = re.compile(
-    r"(?i)(?<!\w)(kostenlos|gratis|kostet|kosten|gebühr|tarif|abo|upgrade|rabatt|garantier"
-    r"|sofort|innerhalb|free|cost|fee|tariff|subscription|guarante|immediately|бесплатн|стоит"
-    r"|стоимост|тариф|подписк|гарант|сразу|безкоштовн|коштує|вартіст|ücretsiz|ücret|abonelik"
-    r"|garanti|hemen)\w*"
+    r"(?i)(?<!\w)(kostenlos|gratis|kostet|gebühr|tarif|abo(?!\w)|abonnement|upgrade|rabatt"
+    r"|garantie|garantier|sofort|free(?!\w)|costs?(?!\w)|fees?(?!\w)|tariff|subscription"
+    r"|guarante|immediately|бесплатн|стоит|стоимост|тариф|подписк|гарант|сразу|безкоштовн"
+    r"|коштує|вартіст|одразу|ücretsiz|ücret|abonelik|garanti|hemen)\w*"
 )
+# Утверждения о состоянии магазина — только через state_refs (сервер рендерит из снимка).
+# Чёрный список по 5 языкам: ложный отказ дешевле ложного «уже настроено».
 _STATE = re.compile(
-    r"(?i)\b(?:ist|sind)\s+(?:bereits|schon|jetzt|noch\s+nicht)\b|\bhaben\s+sie\s+(?:bereits|schon|noch\s+nicht)\b"
-    r"|\b(?:is|are)\s+already\b|\byou\s+have\s+(?:already|not\s+yet)\b|(?<!\w)уже(?!\w)"
-    r"|ещ[её]\s+не(?!\w)|(?<!\w)вже(?!\w)|(?<!\w)ще\s+не(?!\w)|\bzaten\b|\bhenüz\b"
+    r"(?i)\b(?:ist|sind)\s+(?:bereits|schon|jetzt|noch\s+nicht|nicht|eingerichtet|aktiv\w*"
+    r"|deaktiviert|leer|vorhanden|verbunden|freigeschaltet|veröffentlicht|online|sichtbar)\b"
+    r"|\b(?:haben|hast)\s+(?:sie\s+|du\s+)?(?:bereits|schon|noch\s+nicht|kein\w*|noch\s+kein\w*)\b"
+    r"|\bfehl(?:t|en)\b|\bnoch\s+kein\w*"
+    r"|\b(?:is|are)\s+(?:already|not|set\s+up|active|enabled|disabled|missing|empty|connected"
+    r"|published|visible|online)\b|\byou\s+(?:have|haven't|don't\s+have|do\s+not\s+have)\b"
+    r"|\b(?:isn't|aren't|haven't)\b"
+    r"|(?<!\w)уже(?!\w)|ещ[её]\s+не(?!\w)|у\s+вас\s+(?:нет|не|есть)(?!\w)|не\s+настро\w*"
+    r"|(?<!\w)настроен\w*|подключ[её]н\w*|отсутству\w*|(?<!\w)вже(?!\w)|ще\s+не(?!\w)"
+    r"|у\s+вас\s+(?:немає|не|є)(?!\w)|не\s+налашт\w*|налаштован\w*|підключен\w*|відсутн\w*"
+    r"|\bzaten\b|\bhenüz\b|\beksik\b|\bayarlan(?:mış|madı)\w*|\bmevcut\b|\byok\b"
+)
+# Домен, разбитый пробелами («shop . de», «name (at) example»): ссылку из текста мы не строим,
+# но фишинговую подсказку не показываем.
+_SPACED_LINK = re.compile(
+    r"(?i)[^\W\d_]{2,}\s*\.\s+(?:de|com|net|org|eu|ru|ua|tr|io|me|info|shop|at|ch)\b"
+    r"|\(\s*at\s*\)|\[\s*at\s*\]"
 )
 
 
@@ -349,6 +367,7 @@ def check_answer(data, ctx: dict, lang: str, echo: str | None = None) -> tuple[d
         guard.OBFUSCATED_LINK_RE.search(text)
         or guard.DOMAIN_RE.search(text)
         or guard.IP_RE.search(text)
+        or _SPACED_LINK.search(text)
         or "<" in text
     ):
         return None, "link"
@@ -364,22 +383,22 @@ def check_answer(data, ctx: dict, lang: str, echo: str | None = None) -> tuple[d
         echo
     ):
         return None, "number"
-    echo_low = echo.casefold()
-    for m in _PROMISE.finditer(text):
-        if m.group(0).casefold()[:5] not in echo_low:
-            return None, "promise"
+    if _PROMISE.search(text):
+        return None, "promise"
     if _STATE.search(text):
         return None, "state"
     if not _language_ok(text, lang):
         return None, "language"
     links = []
-    for item in data.get("links") or []:
+    raw_links = data.get("links") if isinstance(data.get("links"), list) else []
+    raw_states = data.get("state_refs") if isinstance(data.get("state_refs"), list) else []
+    for item in raw_links:
         ref = item.get("ref") if isinstance(item, dict) else None
         if ref in ctx["refs"] and ref not in links:
             links.append(ref)
     states = []
-    for ref in data.get("state_refs") or []:
-        if ref in ctx["state_refs"] and ref not in states:
+    for ref in raw_states:
+        if isinstance(ref, str) and ref in ctx["state_refs"] and ref not in states:
             states.append(ref)
     return {"text": text, "links": links[:MAX_LINKS], "state_refs": states[:MAX_LINKS]}, ""
 
@@ -394,10 +413,18 @@ def on_outcome(code: str) -> None:
 JOB_TTL = 300
 RESULT_TTL = 600
 CACHE_TTL = 3600
+#: Задача, не ответившая за это время, считается упавшей: опрос отдаёт «nicht verfügbar»,
+#: замок снимается, попытки возвращаются (воркер умер между шагами / воркера нет).
+DEADLINE_S = 90
 RATE_LIMIT, RATE_LIMIT_DAY, RATE_LIMIT_TENANT = 10, 40, 30
 RATE_WINDOW, DAY = 600, 86400
 REQ_LIMIT = 60  # щедрый лимит на сами запросы (отказы до модели тоже)
 JOB_RE = re.compile(r"[0-9a-f]{32}")
+ENTRY_V = 1  # версия записи: старая запись после деплоя — мусор (404), а не KeyError
+#: Исходы «сервис не ответил» — владельцу «nicht verfügbar», не «nicht sicher».
+SYSTEM_CODES = frozenset(
+    {"error", "unavailable", "timeout", "config", "disabled", "quota", "rate_limited", "refused"}
+)
 
 
 def _schema_name() -> str:
@@ -433,12 +460,34 @@ def _digest(lang: str, prompt_wo_marker: str, ctx: dict) -> str:
     return hashlib.sha256(raw.encode()).hexdigest()
 
 
-def _put(schema: str, user_pk, entry: dict, ttl: int = RESULT_TTL) -> str:
+def _put(schema: str, user_pk, entry: dict, ttl: int = RESULT_TTL, job: str = "") -> str:
     from django.core.cache import cache
 
-    job = uuid.uuid4().hex
-    cache.set(_job_key(schema, user_pk, job), entry, ttl)
+    job = job or uuid.uuid4().hex
+    cache.set(_job_key(schema, user_pk, job), {**entry, "v": ENTRY_V}, ttl)
     return job
+
+
+def _release(schema: str, user_pk, job: str) -> None:
+    """Снять замок, только если он ЭТОЙ задачи (поздний finally не снимает чужой замок)."""
+    from django.core.cache import cache
+
+    key = _lock_key(schema, user_pk)
+    try:
+        if cache.get(key) == job:
+            cache.delete(key)
+    except Exception:  # noqa: BLE001 — Redis недоступен: замок истечёт сам (JOB_TTL)
+        logger.warning("assistant answer: lock release failed")
+
+
+def _refund(counted) -> None:
+    from apps.core import ratelimit
+
+    for scope, ident in counted or ():
+        try:
+            ratelimit.refund(scope, ident)
+        except Exception:  # noqa: BLE001 — возврат попытки не должен ронять ответ
+            logger.warning("assistant answer: refund failed for %s", scope)
 
 
 def _result(outcome: str, ctx: dict | None, *, code: str = "", answer=None, topic="") -> dict:
@@ -451,13 +500,15 @@ def _result(outcome: str, ctx: dict | None, *, code: str = "", answer=None, topi
         "topic": topic,
         "articles": list(ctx.get("article_keys") or []),
         "labels": {},
+        "status": {},
     }
     if answer:
+        snap = ctx.get("snapshot") or {"readiness": {}, "checks": {}}
         entry.update(text=answer["text"], links=answer["links"], state_refs=answer["state_refs"])
         refs = [*answer["links"], *answer["state_refs"]]
         entry["labels"] = {r: ctx["labels"].get(r, "") for r in refs}
         entry["status"] = {
-            r: (ctx["snapshot"]["readiness"].get(r[2:]) or ctx["snapshot"]["checks"].get(r[2:]))
+            r: (snap["readiness"].get(r[2:]) or snap["checks"].get(r[2:]))
             for r in answer["state_refs"]
         }
     return entry
@@ -488,7 +539,7 @@ def ask(request, raw_q: str, seite: str = "") -> dict:
     lang = (translation.get_language() or "de")[:2]
     try:
         ctx = build_context(request, q, seite)
-    except Exception:  # noqa: BLE001 — сбой сборки: спокойный фолбэк, а не 500
+    except Exception:  # noqa: BLE001 — сбой сборки: спокойный ответ, а не 500
         logger.warning("assistant answer: context failed", exc_info=True)
         return {"job": _put(schema, user_pk, _result("fallback", None, code="unavailable"))}
     if not ctx["articles"] and not ctx["refs"]:
@@ -500,7 +551,8 @@ def ask(request, raw_q: str, seite: str = "") -> dict:
     hit = cache.get(_cache_key(schema, digest))
     if isinstance(hit, dict):
         return {"job": _put(schema, user_pk, hit)}
-    if not cache.add(_lock_key(schema, user_pk), 1, JOB_TTL):
+    job = uuid.uuid4().hex
+    if not cache.add(_lock_key(schema, user_pk), job, JOB_TTL):
         return {"code": "busy"}
     scopes = (
         ("ai-assistant-user", f"{schema}:{user_pk}", RATE_LIMIT, RATE_WINDOW),
@@ -508,40 +560,55 @@ def ask(request, raw_q: str, seite: str = "") -> dict:
         ("ai-assistant", schema, RATE_LIMIT_TENANT, RATE_WINDOW),
     )
     counted = []
-    for scope, ident, limit, window in scopes:
-        counted.append((scope, ident))
-        if ratelimit.hit(scope, ident, limit=limit, window=window):
-            for s, i in counted:
-                ratelimit.refund(s, i)
-            cache.delete(_lock_key(schema, user_pk))
-            return {"code": "quota"}
-    system = SYSTEM.replace("{lang}", lang).replace("{marker}", marker)
-    pending = {
-        "state": "pending",
-        "prompt": prompt,
-        "system": system,
-        "schema": schema_for(ctx),
-        "ctx": {k: ctx[k] for k in ("refs", "state_refs", "labels", "article_keys", "snapshot")},
-        "echo": _echo(ctx),
-        "lang": lang,
-        "digest": digest,
-    }
-    job = _put(schema, user_pk, pending, JOB_TTL)
+    try:
+        for scope, ident, limit, window in scopes:
+            counted.append((scope, ident))
+            if ratelimit.hit(scope, ident, limit=limit, window=window):
+                _refund(counted)
+                _release(schema, user_pk, job)
+                return {"code": "quota"}
+        system = SYSTEM.replace("{lang}", lang).replace("{marker}", marker)
+        pending = {
+            "state": "pending",
+            "prompt": prompt,
+            "system": system,
+            "schema": schema_for(ctx),
+            "ctx": {
+                k: ctx[k] for k in ("refs", "state_refs", "labels", "article_keys", "snapshot")
+            },
+            "echo": _echo(ctx),
+            "lang": lang,
+            "digest": digest,
+            "counted": counted,
+            "deadline": _now() + DEADLINE_S,
+        }
+        _put(schema, user_pk, pending, JOB_TTL, job=job)
+    except BaseException:
+        # Сбой между замком и записью задачи: попытки назад, замок снят, ошибка наружу.
+        _refund(counted)
+        _release(schema, user_pk, job)
+        raise
     try:
         from apps.core import tasks
 
         tasks.assistant_answer_job.delay(schema=schema, user_pk=user_pk, job=job)
     except Exception:  # noqa: BLE001 — очередь лежит: попытки назад, статьи вместо ответа
-        logger.warning("assistant answer: queue unavailable")
-        for s, i in counted:
-            ratelimit.refund(s, i)
-        cache.delete(_lock_key(schema, user_pk))
-        cache.set(_job_key(schema, user_pk, job), _result("fallback", ctx, code="unavailable"))
+        logger.warning("assistant answer: queue unavailable", exc_info=True)
+        _refund(counted)
+        _release(schema, user_pk, job)
+        _put(schema, user_pk, _result("fallback", ctx, code="unavailable"), job=job)
     return {"job": job}
 
 
+def _now() -> float:
+    import time
+
+    return time.time()
+
+
 def run_job(*, schema: str, user_pk, job: str) -> None:
-    """Воркер: вызов модели и проверка. Замок снимается при любом исходе."""
+    """Воркер: вызов модели и проверка. Замок снимается и при сбое; системный сбой
+    возвращает попытки (квота — за ответы, а не за упавший сервис)."""
     from django.core.cache import cache
 
     key = _job_key(schema, user_pk, job)
@@ -562,32 +629,50 @@ def run_job(*, schema: str, user_pk, job: str) -> None:
                 tenant=schema,
             )
         except AIError as exc:
-            logger.info("assistant answer skipped: %s", exc.code)
+            logger.warning("assistant answer: provider failed: %s", exc.code)
             outcome = _result("fallback", ctx, code=exc.code)
         else:
             answer, code = check_answer(result.data, ctx, entry["lang"], echo=entry["echo"])
-            outcome = (
-                _result("answer", ctx, answer=answer)
-                if answer
-                else _result("fallback", ctx, code=code)
-            )
             if answer:
+                outcome = _result("answer", ctx, answer=answer)
                 cache.set(_cache_key(schema, entry["digest"]), outcome, CACHE_TTL)
+            elif code == "scope":  # модель сама сказала «вне рамок» — тот же серверный отказ
+                outcome = _result("scope", ctx, code="scope", topic="chat")
+            else:
+                outcome = _result("fallback", ctx, code=code)
     except Exception:  # noqa: BLE001 — сбой задачи не должен висеть «pending»
         logger.exception("assistant answer job failed")
     finally:
-        cache.set(key, outcome, RESULT_TTL)
-        cache.delete(_lock_key(schema, user_pk))
+        if outcome.get("code") in SYSTEM_CODES:
+            _refund(entry.get("counted"))
+        try:
+            _put(schema, user_pk, outcome, job=job)
+        except Exception:  # noqa: BLE001 — Redis упал: опрос увидит протухшую задачу
+            logger.warning("assistant answer: result not stored")
+        _release(schema, user_pk, job)
         on_outcome(outcome.get("code", ""))
 
 
 def job_state(request, job: str) -> dict | None:
+    """Запись задачи этого пользователя (или None — чужая/мусорная/протухшая/старая версия).
+    Просроченный pending превращается в «nicht verfügbar» (замок снят, попытки назад)."""
     from django.core.cache import cache
 
     if not JOB_RE.fullmatch(str(job or "")):
         return None
-    entry = cache.get(_job_key(_schema_name(), request.user.pk, job))
-    return entry if isinstance(entry, dict) else None
+    schema, user_pk = _schema_name(), request.user.pk
+    entry = cache.get(_job_key(schema, user_pk, job))
+    if not isinstance(entry, dict) or entry.get("v") != ENTRY_V:
+        return None
+    if entry.get("state") == "pending" and _now() > float(entry.get("deadline") or 0):
+        logger.warning("assistant answer: job timed out")
+        _refund(entry.get("counted"))
+        _release(schema, user_pk, job)
+        ctx = entry.get("ctx") or {}
+        entry = _result("fallback", ctx, code="timeout")
+        _put(schema, user_pk, entry, job=job)
+        entry["v"] = ENTRY_V
+    return entry
 
 
 # --- показ ответа ------------------------------------------------------------------------
@@ -602,15 +687,16 @@ def _status_label(code: str) -> str:
     }.get(code, _("nicht geprüft"))
 
 
-def present(request, entry: dict) -> dict:
-    """Готовый результат → контекст шаблона. Каждая ссылка ещё раз проходит права."""
+def _present(request, entry: dict) -> dict:
     from apps.core import assistant, help_articles
 
     if entry.get("state") != "done":
         return {"state": "pending"}
+    labels = entry.get("labels") or {}
+    status = entry.get("status") or {}
     links = []
     for ref in entry.get("links") or []:
-        kind, _sep, rest = ref.partition(":")
+        kind, _sep, rest = str(ref).partition(":")
         if kind == "a":
             akey, _sep, lkey = rest.partition(":")
             item = help_articles.opened(request, akey)
@@ -620,30 +706,41 @@ def present(request, entry: dict) -> dict:
         elif kind == "s":
             target = assistant.link(request, rest)
             if target is not None and (target.url or target.blocked):
-                links.append({"label": entry["labels"].get(ref, ""), "link": target})
+                links.append({"label": labels.get(ref, ""), "link": target})
     states = [
-        {"label": entry["labels"].get(ref, ""), "status": _status_label(entry["status"].get(ref))}
+        {"label": labels.get(ref, ""), "status": _status_label(status.get(ref))}
         for ref in entry.get("state_refs") or []
     ]
+    outcome = entry.get("outcome")
     articles = []
-    if entry.get("outcome") != "answer":
+    if outcome != "answer":
         for key in entry.get("articles") or []:
             item = help_articles.opened(request, key)
             if item:
                 item["open"] = False
                 articles.append(item)
+    unavailable = outcome == "fallback" and (entry.get("code") in SYSTEM_CODES or not articles)
     return {
         "state": "done",
-        "outcome": entry.get("outcome"),
+        "outcome": outcome,
+        "unavailable": unavailable,
         "text": entry.get("text", ""),
         "links": links,
         "states": states,
         "articles": articles,
-        "scope_text": _scope_text(entry.get("topic", ""))
-        if entry.get("outcome") == "scope"
-        else "",
+        "scope_text": _scope_text(entry.get("topic", "")) if outcome == "scope" else "",
         "ai_label": AI_LABEL,
     }
+
+
+def present(request, entry: dict) -> dict:
+    """Готовый результат → контекст шаблона. Каждая ссылка ещё раз проходит права.
+    Сбой показа — спокойное «nicht verfügbar», а не 500 на опросе."""
+    try:
+        return _present(request, entry)
+    except Exception:  # noqa: BLE001 — ответ — дополнение, страница помощника должна жить
+        logger.exception("assistant answer: present failed")
+        return {"state": "done", "outcome": "fallback", "unavailable": True, "articles": []}
 
 
 def error_text(code: str) -> str:

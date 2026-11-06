@@ -405,3 +405,117 @@ def test_task_is_registered_and_described():
 
     assert registry.get(assistant_ai.TASK).tier == "fast"
     assert assistant_ai.TASK in disclosure.TASK_DATA
+
+
+# --- правки по ревью (security + silent-failure) ------------------------------------------
+
+
+@pytest.mark.parametrize(
+    "text,lang",
+    [
+        ("Sie haben keine Zahlungsart.", "de"),
+        ("Ihre Lieferung ist eingerichtet.", "de"),
+        ("Es fehlen noch Öffnungszeiten.", "de"),
+        ("You haven't set up delivery.", "en"),
+        ("У вас нет способа оплаты.", "ru"),
+        ("Доставка не настроена в кабинете.", "ru"),
+    ],
+)
+def test_more_state_claims_rejected(text, lang):
+    assert assistant_ai.check_answer({**GOOD, "text": text}, _ctx(), lang)[1] == "state"
+
+
+def test_promise_rejected_even_if_word_family_in_articles():
+    ctx = _ctx()
+    ctx["articles"][0]["summary"] = "Lieferkosten und Kosten der Lieferung eintragen."
+    data = {**GOOD, "text": "Die Lieferung ist für Sie kostenlos."}
+    assert assistant_ai.check_answer(data, ctx, "de")[1] == "promise"
+
+
+def test_spaced_domain_rejected():
+    data = {**GOOD, "text": "Schauen Sie auf beispiel . de nach."}
+    assert assistant_ai.check_answer(data, _ctx(), "de")[1] == "link"
+
+
+def test_non_list_links_do_not_crash():
+    data = {**GOOD, "links": 5, "state_refs": "x"}
+    answer, code = assistant_ai.check_answer(data, _ctx(), "de")
+    assert code == "" and answer["links"] == [] and answer["state_refs"] == []
+
+
+def test_model_out_of_scope_shows_server_refusal(ai_task_on, bakery):
+    gen, run = _model({**GOOD, "out_of_scope": True})
+    with gen, run:
+        user, got = _ask(bakery, "Lieferung und Wetter heute")
+    _resp, html = _answer_html(bakery, user, got["job"])
+    assert "Ich helfe nur bei der Einrichtung" in html
+
+
+def test_provider_error_refunds_and_says_unavailable(ai_task_on, bakery):
+    from apps.ai.errors import AIUnavailable
+    from apps.core import ratelimit
+
+    user = _user()
+    run = mock.patch.object(
+        tasks.assistant_answer_job,
+        "delay",
+        side_effect=lambda **kw: tasks.assistant_answer_job(**kw),
+    )
+    with (
+        mock.patch.object(assistant_ai, "generate", side_effect=AIUnavailable("down")),
+        run,
+        mock.patch.object(ratelimit, "refund") as refund,
+    ):
+        _u, got = _ask(bakery, "Lieferung einrichten", user=user)
+    assert refund.call_count == 3
+    _resp, html = _answer_html(bakery, user, got["job"])
+    assert "gerade nicht verfügbar" in html
+    assert cache.get(assistant_ai._lock_key("public", user.pk)) is None
+
+
+def test_stuck_pending_times_out_and_frees_lock(ai_task_on, bakery, monkeypatch):
+    from apps.core import ratelimit
+
+    user = _user()
+    with mock.patch.object(tasks.assistant_answer_job, "delay"):  # воркера нет
+        _u, got = _ask(bakery, "Lieferung einrichten", user=user)
+    assert cache.get(assistant_ai._lock_key("public", user.pk)) == got["job"]
+    monkeypatch.setattr(assistant_ai, "_now", lambda: 10**12)
+    with mock.patch.object(ratelimit, "refund") as refund:
+        _resp, html = _answer_html(bakery, user, got["job"])
+    assert "gerade nicht verfügbar" in html and refund.call_count == 3
+    assert cache.get(assistant_ai._lock_key("public", user.pk)) is None
+
+
+def test_late_release_does_not_drop_foreign_lock():
+    cache.set(assistant_ai._lock_key("public", 77), "b" * 32, 60)
+    assistant_ai._release("public", 77, "a" * 32)
+    assert cache.get(assistant_ai._lock_key("public", 77)) == "b" * 32
+
+
+def test_failure_between_lock_and_job_releases_lock(ai_task_on, bakery, monkeypatch):
+    from apps.core import ratelimit
+
+    user = _user()
+    monkeypatch.setattr(assistant_ai, "schema_for", lambda ctx: 1 / 0)
+    with mock.patch.object(ratelimit, "refund") as refund, pytest.raises(ZeroDivisionError):
+        assistant_ai.ask(_req(bakery, "post", user=user), "Lieferung einrichten", "")
+    assert refund.call_count == 3
+    assert cache.get(assistant_ai._lock_key("public", user.pk)) is None
+
+
+def test_present_failure_is_not_500(ai_task_on, bakery, monkeypatch):
+    gen, run = _model(GOOD)
+    with gen, run:
+        user, got = _ask(bakery, "Lieferung einrichten")
+    monkeypatch.setattr(assistant_ai, "_present", lambda r, e: 1 / 0)
+    resp, html = _answer_html(bakery, user, got["job"])
+    assert resp.status_code == 200 and "gerade nicht verfügbar" in html
+
+
+def test_old_entry_version_is_404(ai_task_on, bakery):
+    user = _user()
+    job = "c" * 32
+    cache.set(assistant_ai._job_key("public", user.pk, job), {"state": "done"}, 60)
+    with pytest.raises(Http404):
+        assistant_views.assistant_answer(_req(bakery, user=user, drawer=True), job)
