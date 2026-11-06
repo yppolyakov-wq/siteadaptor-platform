@@ -34994,3 +34994,36 @@ msgstr "Bitte laden Sie die Seite neu und versuchen Sie es erneut."
 
 msgid "Nichts übersetzt"
 msgstr "Nichts übersetzt"
+
+msgid "Bitte zuerst speichern"
+msgstr "Bitte zuerst speichern"
+
+msgid "Der Vorschlag ist gerade nicht verfügbar."
+msgstr "Der Vorschlag ist gerade nicht verfügbar."
+
+msgid "Der Vorschlag wird schon erstellt."
+msgstr "Der Vorschlag wird schon erstellt."
+
+msgid "Erst speichern, dann Text vorschlagen"
+msgstr "Erst speichern, dann Text vorschlagen"
+
+msgid "Kein sicherer Vorschlag — bitte selbst formulieren"
+msgstr "Kein sicherer Vorschlag — bitte selbst formulieren"
+
+msgid "Text vorschlagen"
+msgstr "Text vorschlagen"
+
+msgid "Text wird erstellt …"
+msgstr "Text wird erstellt …"
+
+msgid "Vorschlag der KI – bitte prüfen"
+msgstr "Vorschlag der KI – bitte prüfen"
+
+msgid "Vorschlag eingefügt — bitte prüfen und speichern"
+msgstr "Vorschlag eingefügt — bitte prüfen und speichern"
+
+msgid "Vorschlag unten — Ihr Text bleibt, bis Sie übernehmen"
+msgstr "Vorschlag unten — Ihr Text bleibt, bis Sie übernehmen"
+
+msgid "Zu viele Vorschläge in kurzer Zeit — bitte später erneut versuchen."
+msgstr "Zu viele Vorschläge in kurzer Zeit — bitte später erneut versuchen."

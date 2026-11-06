@@ -35228,3 +35228,36 @@ msgstr "Перезагрузите страницу и попробуйте ещ
 
 msgid "Nichts übersetzt"
 msgstr "Ничего не переведено"
+
+msgid "Bitte zuerst speichern"
+msgstr "Сначала сохраните"
+
+msgid "Der Vorschlag ist gerade nicht verfügbar."
+msgstr "Предложение сейчас недоступно."
+
+msgid "Der Vorschlag wird schon erstellt."
+msgstr "Предложение уже создаётся."
+
+msgid "Erst speichern, dann Text vorschlagen"
+msgstr "Сначала сохраните, затем предложим текст"
+
+msgid "Kein sicherer Vorschlag — bitte selbst formulieren"
+msgstr "Надёжного варианта нет — напишите сами"
+
+msgid "Text vorschlagen"
+msgstr "Предложить текст"
+
+msgid "Text wird erstellt …"
+msgstr "Создаём текст …"
+
+msgid "Vorschlag der KI – bitte prüfen"
+msgstr "Предложение ИИ – проверьте"
+
+msgid "Vorschlag eingefügt — bitte prüfen und speichern"
+msgstr "Предложение вставлено — проверьте и сохраните"
+
+msgid "Vorschlag unten — Ihr Text bleibt, bis Sie übernehmen"
+msgstr "Предложение ниже — ваш текст остаётся, пока вы не примете"
+
+msgid "Zu viele Vorschläge in kurzer Zeit — bitte später erneut versuchen."
+msgstr "Слишком много предложений за короткое время — попробуйте позже."

@@ -64,6 +64,7 @@ main-колонка + правая колонка «Preis & Bestand»/«Kategori
       {% for g in i18n_groups %}{% include "tenant/_i18n_group.html" %}{% endfor %}
       {% comment %}SR-3: визуальный редактор описания (см. партиал).{% endcomment %}
       {% include "catalog/_richtext_editor.html" %}
+      {% text_draft_button "product" product %}
       {% comment %}Под обычной ценой — переход к вариантам/наценкам (расширенная цена).
          Только когда товар уже сохранён (иначе вариантов ещё нет).{% endcomment %}
       {% if product %}

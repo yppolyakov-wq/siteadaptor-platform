@@ -1,4 +1,4 @@
-{% load i18n %}{% comment %}M20d/STU-12e: поля контент-секции. Раньше партиал рисовал ВСЕ секции подряд
+{% load i18n cabinet %}{% comment %}M20d/STU-12e: поля контент-секции. Раньше партиал рисовал ВСЕ секции подряд
 одним ящиком «Content sections» внизу конструктора; с 12e он рисует поля ОДНОЙ секции —
 в её собственной строке блока (`{% include … with key=s.key %}`), чтобы текст правился там же,
 где вид. `name=` не менялись; парсинг на сервере — siteconfig.parse_content_sections
@@ -68,6 +68,7 @@ trust_marks_text, usp_text, faq_text.{% endcomment %}
          class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" aria-label="{% trans 'Headline' %}">
   <textarea name="about_text" rows="4" placeholder="{% trans 'Tell your story in a few sentences.' %}"
             class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" aria-label="{% trans 'Text' %}">{{ config.about_text }}</textarea>
+  {% text_draft_button "about" None content_loc %}
 </div>
 {% elif key == "contact" %}
 {% comment %}LAY-1a: у блока контактов данных в site_config НЕТ — адрес, телефон и часы

@@ -1,0 +1,165 @@
+{% load i18n ai_notice %}
+{% comment %}AIS-7: «✨ Text vorschlagen» из сохранённых фактов. Пустое поле заполняется, заполненное — предложение с «Übernehmen» (откат «Rückgängig»). В базу ничего: сохраняет Save формы.{% endcomment %}
+{% if unsaved %}
+<p class="text-sm text-gray-600" data-ai-draft-unsaved>✨ {% trans "Erst speichern, dann Text vorschlagen" %}</p>
+{% elif draft %}
+<div class="flex flex-wrap items-center gap-2" data-ai-draft-box data-url="{{ draft.url }}" data-result="{{ draft.result }}" data-screen="{{ draft.screen }}" data-kind="{{ draft.kind }}" data-pk="{{ draft.pk }}" data-locale="{{ draft.locale }}" data-targets="{{ draft.targets }}">
+  <button type="button" class="ui-btn ui-btn-sm min-h-[32px]" data-ai-draft><span aria-hidden="true">✨</span> {% trans "Text vorschlagen" %}</button>
+  <span class="text-sm text-gray-600" role="status" aria-live="polite" data-ai-draft-status></span>
+  {% ai_notice "text_from_facts" %}
+  <div class="w-full space-y-2 hidden" data-ai-draft-offer>
+    <p class="text-sm font-semibold">{% trans "Vorschlag der KI – bitte prüfen" %}</p>
+    <div class="text-sm whitespace-pre-line rounded-lg bg-indigo-50 p-3" data-ai-draft-text></div>
+    <div class="flex flex-wrap gap-2">
+      <button type="button" class="ui-btn ui-btn-sm ui-btn-primary min-h-[32px]" data-ai-draft-take>{% trans "Übernehmen" %}</button>
+      <button type="button" class="ui-btn ui-btn-sm min-h-[32px]" data-ai-draft-drop>{% trans "Verwerfen" %}</button>
+    </div>
+  </div>
+  <button type="button" class="ui-btn ui-btn-sm min-h-[32px] hidden" data-ai-draft-undo>{% trans "Rückgängig" %}</button>
+  <span class="sr-only" id="ai-draft-note">{% trans "Vorschlag der KI – bitte prüfen" %}</span>
+</div>
+<script>
+(function () {
+  "use strict";
+  if (window.__aiDraftBound) return;
+  window.__aiDraftBound = true;
+  var MSG = {
+    work: "{{ _('Text wird erstellt …')|escapejs }}",
+    done: "{{ _('Vorschlag eingefügt — bitte prüfen und speichern')|escapejs }}",
+    offer: "{{ _('Vorschlag unten — Ihr Text bleibt, bis Sie übernehmen')|escapejs }}",
+    rejected: "{{ _('Kein sicherer Vorschlag — bitte selbst formulieren')|escapejs }}",
+    quota: "{{ _('Zu viele Vorschläge in kurzer Zeit — bitte später erneut versuchen.')|escapejs }}",
+    busy: "{{ _('Der Vorschlag wird schon erstellt.')|escapejs }}",
+    gone: "{{ _('Bitte zuerst speichern')|escapejs }}",
+    forbidden: "{{ _('Bitte laden Sie die Seite neu und versuchen Sie es erneut.')|escapejs }}",
+    error: "{{ _('Der Vorschlag ist gerade nicht verfügbar.')|escapejs }}"
+  };
+  function say(box, text) {
+    var st = box.querySelector("[data-ai-draft-status]");
+    st.textContent = "";
+    if (text) setTimeout(function () { st.textContent = text; }, 50);
+  }
+  function field(box, name) {
+    var form = box.closest("form") || document;
+    return form.querySelector('[name="' + name + '"]');
+  }
+  function plain(el) { return el.value.replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").trim(); }
+  function rte(el) {
+    var wrap = el.nextElementSibling;
+    return wrap && wrap.querySelector ? wrap.querySelector(".rte-area") : null;
+  }
+  function put(el, value, rich) {
+    var area = rte(el);
+    if (area) {
+      if (rich) { area.innerHTML = rich; } else {
+        area.textContent = "";
+        value.split("\n").forEach(function (line, i) {
+          if (i) area.appendChild(document.createElement("br"));
+          area.appendChild(document.createTextNode(line));
+        });
+      }
+      el.value = area.innerHTML;
+    } else {
+      el.value = value;
+    }
+    el.dispatchEvent(new Event("input", { bubbles: true }));
+  }
+  function mark(el) {
+    el.setAttribute("data-ai-filled", "1");
+    var d = (el.getAttribute("aria-describedby") || "").split(" ").filter(Boolean);
+    if (d.indexOf("ai-draft-note") === -1) d.push("ai-draft-note");
+    el.setAttribute("aria-describedby", d.join(" "));
+  }
+  function apply(box, data) {
+    var targets = JSON.parse(box.getAttribute("data-targets") || "{}");
+    var got = data.fields || {}, filled = 0, offered = [];
+    Object.keys(targets).forEach(function (key) {
+      var el = field(box, targets[key]);
+      if (!el || !(key in got)) return;
+      if (!plain(el)) { put(el, got[key]); mark(el); filled++; }
+      else offered.push([el, got[key]]);
+    });
+    var offer = box.querySelector("[data-ai-draft-offer]");
+    if (offered.length) {
+      box.__aiOffer = offered;
+      box.querySelector("[data-ai-draft-text]").textContent = offered.map(function (x) {
+        return x[1];
+      }).join("\n\n");
+      offer.classList.remove("hidden");
+    }
+    if (!filled && !offered.length) return say(box, MSG.rejected);
+    say(box, offered.length ? MSG.offer : MSG.done);
+  }
+  function finish(box, btn, msg) {
+    btn.removeAttribute("aria-disabled");
+    btn.removeAttribute("aria-busy");
+    if (msg) say(box, msg);
+  }
+  function run(box, btn) {
+    var body = new FormData();
+    var csrf = document.querySelector("input[name=csrfmiddlewaretoken]");
+    body.append("csrfmiddlewaretoken", csrf ? csrf.value : "");
+    ["screen", "kind", "pk", "locale"].forEach(function (k) {
+      body.append(k, box.getAttribute("data-" + k) || "");
+    });
+    btn.setAttribute("aria-disabled", "true");
+    btn.setAttribute("aria-busy", "true");
+    say(box, MSG.work);
+    var t0 = Date.now();
+    function handle(d, job) {
+      if (d.state === "done") { finish(box, btn, ""); return apply(box, d); }
+      if (d.code) return finish(box, btn, MSG[d.code] || MSG.error);
+      if (Date.now() - t0 > 90000) return finish(box, btn, MSG.error);
+      setTimeout(function () {
+        fetch(box.getAttribute("data-result") + job + "/", { credentials: "same-origin" })
+          .then(function (r) { if (!r.ok || r.redirected) throw r; return r.json(); })
+          .then(function (x) { handle(x, job); })
+          .catch(function (err) { console.error("text draft poll", err); finish(box, btn, MSG.error); });
+      }, 1500);
+    }
+    fetch(box.getAttribute("data-url"), { method: "POST", body: body, credentials: "same-origin" })
+      .then(function (r) {
+        if (r.redirected) { finish(box, btn, MSG.forbidden); return null; }
+        if (!r.ok) throw r;
+        return r.json();
+      })
+      .then(function (d) { if (d) handle(d, d.job); })
+      .catch(function (err) { console.error("text draft", err); finish(box, btn, MSG.error); });
+  }
+  document.addEventListener("click", function (e) {
+    var t = e.target.closest && e.target.closest("[data-ai-draft], [data-ai-draft-take], [data-ai-draft-drop], [data-ai-draft-undo]");
+    if (!t) return;
+    var box = t.closest("[data-ai-draft-box]");
+    if (!box) return;
+    e.preventDefault();
+    var offer = box.querySelector("[data-ai-draft-offer]");
+    var undo = box.querySelector("[data-ai-draft-undo]");
+    if (t.hasAttribute("data-ai-draft")) {
+      if (t.getAttribute("aria-disabled") !== "true") run(box, t);
+    } else if (t.hasAttribute("data-ai-draft-take")) {
+      box.__aiUndo = (box.__aiOffer || []).map(function (x) {
+        var area = rte(x[0]);
+        return [x[0], x[0].value, area ? area.innerHTML : null];
+      });
+      (box.__aiOffer || []).forEach(function (x) { put(x[0], x[1]); mark(x[0]); });
+      offer.classList.add("hidden");
+      undo.classList.remove("hidden");
+      say(box, MSG.done);
+    } else if (t.hasAttribute("data-ai-draft-drop")) {
+      offer.classList.add("hidden");
+      say(box, "");
+    } else if (t.hasAttribute("data-ai-draft-undo")) {
+      (box.__aiUndo || []).forEach(function (x) {
+        x[0].value = x[1];
+        var area = rte(x[0]);
+        if (area && x[2] !== null) area.innerHTML = x[2];
+        x[0].removeAttribute("data-ai-filled");
+        x[0].dispatchEvent(new Event("input", { bubbles: true }));
+      });
+      undo.classList.add("hidden");
+      say(box, "");
+    }
+  });
+})();
+</script>
+{% endif %}

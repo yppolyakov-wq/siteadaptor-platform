@@ -86,12 +86,13 @@ RULES: dict[str, Rule] = {
     "payments-page": _r(V, E),
     "lite-requests": _r(V, E),
     "assistant": _r(OPEN),  # AIS A-0: только чтение; ссылки фильтрует assistant.link
-    "assistant-ask": _r(OPEN),
-    # AIS-5: право записи экрана формы проверяется внутри (подпись экрана + allowed POST)
+    "assistant-ask": _r(OPEN),  # AIS A-2: вопрос ИИ; ответ ссылается только через assistant.link
+    # AIS-5/AIS-7: право записи экрана формы проверяется внутри (подпись экрана + allowed POST);
+    # задача привязана к пользователю.
     "i18n-translate": _r(OPEN),
-    "i18n-translate-result": _r(
-        OPEN
-    ),  # job привязан к пользователю  # AIS A-2: вопрос ИИ; ответ ссылается только через assistant.link
+    "i18n-translate-result": _r(OPEN),
+    "text-draft": _r(OPEN),
+    "text-draft-result": _r(OPEN),
     "assistant-answer": _r(OPEN),  # AIS A-2: опрос ответа (job привязан к пользователю)
     "assistant-history-clear": _r(OPEN),  # AIS A-3d: удаляет только свои строки
     # AIS A-4a: право на КАЖДЫЙ пункт пакета проверяется внутри (assistant_actions.allowed)

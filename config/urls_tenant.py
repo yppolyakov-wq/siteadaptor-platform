@@ -163,6 +163,13 @@ urlpatterns = [
         translate_views.i18n_translate_result,
         name="i18n-translate-result",
     ),
+    # AIS-7: «✨ Text vorschlagen» из сохранённых фактов (JSON, ничего не пишет)
+    path("dashboard/text-vorschlagen/", translate_views.text_draft_start, name="text-draft"),
+    path(
+        "dashboard/text-vorschlagen/<str:job>/",
+        translate_views.text_draft_result,
+        name="text-draft-result",
+    ),
     path(
         "dashboard/assistent/frage/<str:job>/",
         assistant_views.assistant_answer,

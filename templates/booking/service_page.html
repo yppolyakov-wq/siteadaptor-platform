@@ -146,6 +146,7 @@ Varianten» — свои мини-формы, вне #svc-form. Скрытое `
     <div data-i18n-loc="{{ base_loc }}">
       <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Description (what's included)" %}</span>
       <textarea name="description" rows="3" class="ui-input">{{ s.description }}</textarea></label>
+      {% text_draft_button "service" s %}
     </div>
     {% for inp in s.i18n_inputs %}{% if inp.field != 'name' %}
     <div data-i18n-loc="{{ inp.locale }}" class="hidden">

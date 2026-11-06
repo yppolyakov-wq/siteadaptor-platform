@@ -150,6 +150,14 @@ def i18n_translate_job(*, schema: str, user_pk, job: str) -> None:
 
 
 @idempotent_task()
+def text_draft_job(*, schema: str, user_pk, job: str) -> None:
+    """AIS-7: текст из сохранённых фактов — вне веб-воркера."""
+    from apps.core import text_draft
+
+    text_draft.run_job(schema=schema, user_pk=user_pk, job=job)
+
+
+@idempotent_task()
 def assistant_answer_job(*, schema: str, user_pk, job: str) -> None:
     """AIS A-2: ИИ-ответ помощника кабинета — вне веб-воркера."""
     from apps.core import assistant_ai

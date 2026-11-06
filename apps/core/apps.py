@@ -31,6 +31,7 @@ class CoreConfig(AppConfig):
             i18n_translate,  # noqa: F401 — AIS-5 «Übersetzen»
             offer_photo,  # noqa: F401 — AIS W4-4 «Foto der Speisekarte»
             setup_assistant,  # noqa: F401
+            text_draft,  # noqa: F401 — AIS-7 «Text vorschlagen»
             tg_login,
         )
 

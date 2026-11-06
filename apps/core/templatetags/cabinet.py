@@ -379,6 +379,62 @@ def i18n_translate_ctx(context):
     }
 
 
+#: AIS-7: вид текста → поле ответа → name инпута формы (база описания товара — `<поле>_<база>`).
+_DRAFT_TARGETS = {
+    "product": lambda base: {"description": f"description_{base}"},
+    "service": lambda base: {"description": "description"},
+    "about": lambda base: {"about_title": "about_title", "about_text": "about_text"},
+    "hero": lambda base: {"hero_title": "hero_title", "hero_text": "hero_text"},
+}
+
+
+@register.inclusion_tag("tenant/_ai_draft_button.html", takes_context=True)
+def text_draft_button(context, kind, obj=None, locale=""):
+    """AIS-7: «✨ Text vorschlagen» рядом с полем. Без кнопки: ИИ выключен, нет права записи
+    экрана, вид не для этого экрана, объект не сохранён (факты читаются из базы)."""
+    import json
+
+    from django.conf import settings
+    from django.db import connection
+    from django.urls import reverse
+
+    from apps.ai.api import is_enabled
+    from apps.core import i18n_translate, text_draft, view_perms
+    from apps.core.translate_views import DRAFT_SCREENS
+
+    request = context.get("request")
+    match = getattr(request, "resolver_match", None)
+    view_name = getattr(match, "view_name", "") or ""
+    user = getattr(request, "user", None)
+    off = {"draft": None, "unsaved": False}
+    if kind not in DRAFT_SCREENS.get(view_name, ()) or user is None:
+        return off
+    try:
+        if not is_enabled(text_draft.TASK) or not view_perms.allowed(user, view_name, "POST"):
+            return off
+    except Exception:  # noqa: BLE001 — кнопка не должна ронять форму
+        logger.warning("text draft button skipped", exc_info=True)
+        return off
+    state = getattr(obj, "_state", None)
+    if kind in ("product", "service") and (
+        not getattr(obj, "pk", None) or state is None or state.adding
+    ):  # UUID-pk есть и у несохранённого объекта — смотрим на _state
+        return {"draft": None, "unsaved": True}
+    base = settings.LANGUAGE_CODE
+    return {
+        "unsaved": False,
+        "draft": {
+            "url": reverse("text-draft"),
+            "result": reverse("text-draft-result", args=["0" * 32]).rsplit("0" * 32, 1)[0],
+            "screen": i18n_translate.sign_screen(connection.schema_name, view_name),
+            "kind": kind,
+            "pk": str(getattr(obj, "pk", "") or ""),
+            "locale": locale or base,
+            "targets": json.dumps(_DRAFT_TARGETS[kind](base)),
+        },
+    }
+
+
 #: E9.10: подписи и вид полей переводов в списках кабинета (один словарь на все
 #: экраны — подпись поля перевода = подпись базового поля + код языка).
 _I18N_FIELD_LABELS = {

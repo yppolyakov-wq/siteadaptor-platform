@@ -35215,3 +35215,36 @@ msgstr "Перезавантажте сторінку та спробуйте щ
 
 msgid "Nichts übersetzt"
 msgstr "Нічого не перекладено"
+
+msgid "Bitte zuerst speichern"
+msgstr "Спочатку збережіть"
+
+msgid "Der Vorschlag ist gerade nicht verfügbar."
+msgstr "Пропозиція зараз недоступна."
+
+msgid "Der Vorschlag wird schon erstellt."
+msgstr "Пропозиція вже створюється."
+
+msgid "Erst speichern, dann Text vorschlagen"
+msgstr "Спочатку збережіть, потім запропонуємо текст"
+
+msgid "Kein sicherer Vorschlag — bitte selbst formulieren"
+msgstr "Надійного варіанту немає — напишіть самі"
+
+msgid "Text vorschlagen"
+msgstr "Запропонувати текст"
+
+msgid "Text wird erstellt …"
+msgstr "Створюємо текст …"
+
+msgid "Vorschlag der KI – bitte prüfen"
+msgstr "Пропозиція ШІ – перевірте"
+
+msgid "Vorschlag eingefügt — bitte prüfen und speichern"
+msgstr "Пропозицію вставлено — перевірте й збережіть"
+
+msgid "Vorschlag unten — Ihr Text bleibt, bis Sie übernehmen"
+msgstr "Пропозиція нижче — ваш текст лишається, доки ви не приймете"
+
+msgid "Zu viele Vorschläge in kurzer Zeit — bitte später erneut versuchen."
+msgstr "Забагато пропозицій за короткий час — спробуйте пізніше."

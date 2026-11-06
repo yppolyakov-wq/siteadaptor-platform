@@ -97,6 +97,13 @@ TASK_DATA = {
         "Art. 6 Abs. 1 lit. b DSGVO",
         "owner",
     ),
+    "text_from_facts": (
+        "Textvorschläge für Beschreibungen, „Über uns“ und Banner: Name, Kategorie, Zutaten "
+        "und Allergene, Dauer, Öffnungszeiten und Ort Ihres Geschäfts (keine Preise, Kunden- "
+        "oder Bestelldaten); gespeichert wird erst beim Speichern des Formulars",
+        "Art. 6 Abs. 1 lit. b DSGVO",
+        "owner",
+    ),
     "setup_plan": (
         "Hilfe beim Anlegen von Kategorien und Produkten im Kundenbereich und im "
         "Einrichtungsassistenten: der eingegebene "

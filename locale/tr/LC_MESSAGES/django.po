@@ -35053,3 +35053,36 @@ msgstr "Lütfen sayfayı yeniden yükleyip tekrar deneyin."
 
 msgid "Nichts übersetzt"
 msgstr "Hiçbir şey çevrilmedi"
+
+msgid "Bitte zuerst speichern"
+msgstr "Lütfen önce kaydedin"
+
+msgid "Der Vorschlag ist gerade nicht verfügbar."
+msgstr "Öneri şu anda kullanılamıyor."
+
+msgid "Der Vorschlag wird schon erstellt."
+msgstr "Öneri zaten hazırlanıyor."
+
+msgid "Erst speichern, dann Text vorschlagen"
+msgstr "Önce kaydedin, sonra metin önerin"
+
+msgid "Kein sicherer Vorschlag — bitte selbst formulieren"
+msgstr "Güvenli bir öneri yok — lütfen kendiniz yazın"
+
+msgid "Text vorschlagen"
+msgstr "Metin öner"
+
+msgid "Text wird erstellt …"
+msgstr "Metin oluşturuluyor …"
+
+msgid "Vorschlag der KI – bitte prüfen"
+msgstr "Yapay zekâ önerisi – lütfen kontrol edin"
+
+msgid "Vorschlag eingefügt — bitte prüfen und speichern"
+msgstr "Öneri eklendi — lütfen kontrol edip kaydedin"
+
+msgid "Vorschlag unten — Ihr Text bleibt, bis Sie übernehmen"
+msgstr "Öneri aşağıda — siz kabul edene kadar metniniz kalır"
+
+msgid "Zu viele Vorschläge in kurzer Zeit — bitte später erneut versuchen."
+msgstr "Kısa sürede çok fazla öneri — lütfen daha sonra tekrar deneyin."

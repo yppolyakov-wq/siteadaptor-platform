@@ -294,6 +294,7 @@
                       <span class="block font-medium mb-1">{% trans "Banner text" %}</span>
                       <textarea name="hero_text" rows="3" class="ui-input">{{ hero_text }}</textarea>
                     </label>
+                    {% text_draft_button "hero" None content_loc %}
                     <label class="block text-sm">
                       <span class="block font-medium mb-1">{% trans "Banner background image (URL)" %}</span>
                       <input type="text" name="hero_image" value="{{ config.hero_image }}" placeholder="https://…" class="ui-input">

@@ -34907,3 +34907,36 @@ msgstr "Please reload the page and try again."
 
 msgid "Nichts übersetzt"
 msgstr "Nothing translated"
+
+msgid "Bitte zuerst speichern"
+msgstr "Please save first"
+
+msgid "Der Vorschlag ist gerade nicht verfügbar."
+msgstr "The suggestion is not available right now."
+
+msgid "Der Vorschlag wird schon erstellt."
+msgstr "The suggestion is already being created."
+
+msgid "Erst speichern, dann Text vorschlagen"
+msgstr "Save first, then suggest a text"
+
+msgid "Kein sicherer Vorschlag — bitte selbst formulieren"
+msgstr "No safe suggestion — please write it yourself"
+
+msgid "Text vorschlagen"
+msgstr "Suggest text"
+
+msgid "Text wird erstellt …"
+msgstr "Creating text …"
+
+msgid "Vorschlag der KI – bitte prüfen"
+msgstr "AI suggestion – please check"
+
+msgid "Vorschlag eingefügt — bitte prüfen und speichern"
+msgstr "Suggestion inserted — please check and save"
+
+msgid "Vorschlag unten — Ihr Text bleibt, bis Sie übernehmen"
+msgstr "Suggestion below — your text stays until you accept"
+
+msgid "Zu viele Vorschläge in kurzer Zeit — bitte später erneut versuchen."
+msgstr "Too many suggestions in a short time — please try again later."

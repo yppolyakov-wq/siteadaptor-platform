@@ -61,6 +61,8 @@ _AKTIONEN_VIEWS = frozenset(
         "assistant-ask",  # AIS A-2
         "i18n-translate",  # AIS-5
         "i18n-translate-result",
+        "text-draft",  # AIS-7
+        "text-draft-result",
         "assistant-answer",  # AIS A-2
         "assistant-history-clear",  # AIS A-3d
         "assistant-apply",  # AIS A-4a
