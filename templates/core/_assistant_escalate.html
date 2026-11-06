@@ -1,0 +1,22 @@
+{% load i18n %}
+{% comment %}AIS A-5d: предложение отправить обращение в Support — превью можно поправить, уходит только по кнопке; после отправки — ссылка на тред.{% endcomment %}
+{% if ans.outcome == "escalated" %}
+<section class="ui-card p-4 space-y-2" data-assistant-escalated>
+  <p tabindex="-1" data-assistant-result class="font-semibold">{% trans "An den Support gesendet — die Antwort finden Sie unter „Support“." %}</p>
+  {% if ans.thread_url %}<a href="{{ ans.thread_url }}" class="inline-flex items-center min-h-[44px] text-sm text-indigo-700 hover:underline">{% trans "Anfrage öffnen" %} <span aria-hidden="true">→</span></a>{% endif %}
+</section>
+{% elif ans.from_history %}
+<p class="text-sm ui-muted">{% trans "Angeboten: an den Support senden." %}</p>
+{% else %}
+<form method="post" action="{% url 'assistant-escalate' ans.job %}" data-assistant-apply class="ui-card p-4 space-y-3" data-assistant-escalate>
+  {% csrf_token %}
+  {% if ans.action_message %}<p tabindex="-1" data-assistant-result class="text-sm font-semibold text-amber-800">{{ ans.action_message }}</p>{% endif %}
+  <p class="font-semibold">{% trans "Soll sich ein Mensch darum kümmern? Ich schicke das an den Support." %}</p>
+  <div>
+    <label for="esc-text-{{ ans.job }}" class="block text-sm">{% trans "Ihre Nachricht (Sie können sie ändern)" %}</label>
+    <textarea id="esc-text-{{ ans.job }}" name="text" rows="5" maxlength="2000" class="ui-input w-full" aria-describedby="esc-hint-{{ ans.job }}">{{ ans.preview }}</textarea>
+    <p id="esc-hint-{{ ans.job }}" class="ui-muted text-xs">{% trans "Bitte keine Daten Ihrer Kundinnen und Kunden eintragen. E-Mail-Adressen und Telefonnummern werden entfernt." %}</p>
+  </div>
+  <button type="submit" class="ui-btn ui-btn-primary min-h-[44px]" data-busy-text="{% trans 'Wird gesendet …' %}">{% trans "An den Support senden" %}</button>
+</form>
+{% endif %}

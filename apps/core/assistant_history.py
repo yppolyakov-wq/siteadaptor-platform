@@ -25,6 +25,8 @@ _DROP = ("prompt", "system", "schema", "ctx", "echo", "counted", "deadline", "di
 _DROP += ("actions", "action_errors", "job")
 #: A-5b: вопрос-уточнение и его пакет — только в кэше задачи
 _DROP += ("options", "base", "slot", "at", "round", "question")
+#: A-5d: превью обращения в Support и id треда — только в кэше задачи
+_DROP += ("preview", "thread_pk")
 
 
 def _clean_entry(entry: dict) -> dict:

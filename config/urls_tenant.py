@@ -167,6 +167,12 @@ urlpatterns = [
         assistant_views.assistant_reply,
         name="assistant-reply",
     ),
+    # AIS A-5d: «An den Support senden» из поля помощника (POST)
+    path(
+        "dashboard/assistent/frage/<str:job>/support/",
+        assistant_views.assistant_escalate,
+        name="assistant-escalate",
+    ),
     path(
         "dashboard/assistent/frage/<str:job>/rueckgaengig/",
         assistant_views.assistant_undo,

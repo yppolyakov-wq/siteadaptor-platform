@@ -876,6 +876,19 @@ def _present(request, entry: dict) -> dict:
         for ref in entry.get("state_refs") or []
     ]
     outcome = entry.get("outcome")
+    if outcome in ("escalate", "escalated"):  # A-5d: обращение в Support
+        thread_url = ""
+        if entry.get("thread_pk"):
+            from django.urls import reverse
+
+            thread_url = reverse("support:thread", args=[entry["thread_pk"]])
+        return {
+            "state": "done",
+            "outcome": outcome,
+            "preview": entry.get("preview", ""),
+            "thread_url": thread_url,
+            "from_history": not entry.get("job"),
+        }
     if outcome == "ask":  # A-5b: уточняющий вопрос — кнопки из кэша задачи
         from apps.core import assistant_clarify
 

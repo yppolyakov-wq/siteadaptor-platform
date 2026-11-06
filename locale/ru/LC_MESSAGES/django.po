@@ -34778,3 +34778,41 @@ msgstr "дешевле"
 #: apps/core/assistant_bulk.py
 msgid "teurer"
 msgstr "дороже"
+
+#: apps/core/assistant_bulk.py
+msgid "An den Support gesendet — die Antwort finden Sie unter „Support“."
+msgstr "Отправлено в поддержку — ответ появится в разделе «Поддержка»."
+
+#: apps/core/assistant_bulk.py
+msgid "Anfrage öffnen"
+msgstr "Открыть обращение"
+
+#: apps/core/assistant_bulk.py
+msgid "Angeboten: an den Support senden."
+msgstr "Предложено: отправить в поддержку."
+
+#: apps/core/assistant_bulk.py
+#, python-format
+msgid "Aus dem Assistenten gesendet von %(who)s"
+msgstr "Отправлено из помощника: %(who)s"
+
+#: apps/core/assistant_bulk.py
+msgid "Bitte keine Daten Ihrer Kundinnen und Kunden eintragen. E-Mail-Adressen und Telefonnummern werden entfernt."
+msgstr "Не вводите, пожалуйста, данные ваших клиентов. Адреса e-mail и номера телефонов удаляются."
+
+#: apps/core/assistant_bulk.py
+msgid "Ihre Nachricht (Sie können sie ändern)"
+msgstr "Ваше сообщение (можно изменить)"
+
+#: apps/core/assistant_bulk.py
+#, python-format
+msgid "Seite: %(seite)s"
+msgstr "Страница: %(seite)s"
+
+#: apps/core/assistant_bulk.py
+msgid "Soll sich ein Mensch darum kümmern? Ich schicke das an den Support."
+msgstr "Пусть этим займётся человек? Я отправлю это в поддержку."
+
+#: apps/core/assistant_bulk.py
+msgid "Wird gesendet …"
+msgstr "Отправляется …"

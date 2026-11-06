@@ -246,6 +246,40 @@ def assistant_reply(request, job):
     return _actions_response(request, job)
 
 
+@login_required
+@require_POST
+@drawer.drawer_aware
+def assistant_escalate(request, job):
+    """AIS A-5d: «An den Support senden» — текст из формы (владелец мог поправить превью),
+    контакты вычищаются ещё раз; повтор того же job — тот же тред."""
+    from django.core.cache import cache
+
+    from apps.core import assistant_ai
+    from apps.core import assistant_escalate as esc
+
+    entry = assistant_ai.job_state(request, job, convert=False)
+    if entry is None or entry.get("outcome") not in ("escalate", "escalated"):
+        return _actions_response(request, job, code="expired")
+    if entry.get("outcome") == "escalated":
+        return _actions_response(request, job)
+    schema, user_pk = assistant_ai._schema_name(), request.user.pk
+    key = assistant_ai._job_key(schema, user_pk, job)
+    if not cache.add(f"{key}:escalate", 1, assistant_ai.RESULT_TTL):
+        return _actions_response(request, job)
+    try:
+        thread = esc.send(request, entry, request.POST.get("text", ""))
+    except esc.SendError as exc:
+        cache.delete(f"{key}:escalate")
+        return _actions_response(request, job, code="busy" if exc.code == "quota" else "nothing")
+    except Exception:  # noqa: BLE001 — сбой записи: можно отправить снова
+        logger.exception("assistant escalate: send failed")
+        cache.delete(f"{key}:escalate")
+        return _actions_response(request, job, code="busy")
+    done = {**entry, "outcome": "escalated", "thread_pk": thread.pk}
+    assistant_ai._put(schema, user_pk, done, assistant_ai.RESULT_TTL, job=job)
+    return _actions_response(request, job)
+
+
 def _store_reply(request, job: str, entry: dict, items: list, round_: int) -> None:
     """Следующий вопрос или готовый пакет — в ту же задачу; история — только готовый пакет."""
     from apps.core import assistant_actions, assistant_ai, assistant_clarify

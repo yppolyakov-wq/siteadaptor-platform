@@ -68,6 +68,19 @@ def _pages_handle(request, q, raw, seite, hit):
     return assistant_ai.put_actions(request, q, builder=assistant_pages.build)
 
 
+def _escalate_intent(request, q):
+    from apps.core import assistant_escalate
+
+    return assistant_escalate.intent(request, q) or None
+
+
+def _escalate_handle(request, q, raw, seite, hit):
+    # AIS A-5d: «funktioniert nicht / ich brauche einen Menschen» — предложение отправить в Support
+    from apps.core import assistant_escalate
+
+    return assistant_escalate.handle(request, q, seite)
+
+
 def _mixed_intent(request, q):
     from apps.core import assistant_ai_actions
 
@@ -130,6 +143,7 @@ HANDLERS: tuple[Handler, ...] = (
     Handler("bulk", _bulk_intent, _bulk_handle),
     Handler("changes", _changes_intent, _changes_handle),
     Handler("pages", _pages_intent, _pages_handle),
+    Handler("escalate", _escalate_intent, _escalate_handle),
     Handler("mixed", _mixed_intent, _mixed_handle),
     Handler("create", _create_intent, _create_handle),
     Handler("ai_actions", _ai_actions_intent, _ai_actions_handle),
