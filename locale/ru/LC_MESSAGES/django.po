@@ -35171,3 +35171,21 @@ msgstr "Назад к настройке"
 
 msgid "Die Website konnte nicht gelesen werden. Prüfen Sie die Adresse im ersten Schritt oder tragen Sie Ihr Angebot hier ein."
 msgstr "Сайт не удалось прочитать. Проверьте адрес на первом шаге или впишите предложение здесь."
+
+msgid "Beschreiben Sie Ihr Geschäft in einem Satz"
+msgstr "Опишите ваш бизнес одной фразой"
+
+msgid "Optional. Wir machen daraus Zeilen für Ihr Angebot — Preise nur, wenn Sie sie schreiben."
+msgstr "Необязательно. Мы превратим её в строки вашего предложения — цены только те, что вы напишете."
+
+msgid "Zum Beispiel: Bäckerei: Brötchen 0,50 €, Brezel 0,80 €"
+msgstr "Например: Пекарня: булочка 0,50 €, крендель 0,80 €"
+
+msgid "Kategorien und Aktionen legen Sie später an."
+msgstr "Категории и акции вы создадите позже."
+
+msgid "Keine Angebote erkannt — tragen Sie sie im nächsten Schritt ein."
+msgstr "Предложения не распознаны — введите их на следующем шаге."
+
+msgid "Aus Ihrem Satz übernommen — bitte prüfen."
+msgstr "Взято из вашей фразы — проверьте, пожалуйста."

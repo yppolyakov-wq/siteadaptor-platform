@@ -34996,3 +34996,21 @@ msgstr "Kuruluma geri dön"
 
 msgid "Die Website konnte nicht gelesen werden. Prüfen Sie die Adresse im ersten Schritt oder tragen Sie Ihr Angebot hier ein."
 msgstr "Web sitesi okunamadı. İlk adımda adresi kontrol edin veya teklifinizi buraya girin."
+
+msgid "Beschreiben Sie Ihr Geschäft in einem Satz"
+msgstr "İşletmenizi tek bir cümleyle anlatın"
+
+msgid "Optional. Wir machen daraus Zeilen für Ihr Angebot — Preise nur, wenn Sie sie schreiben."
+msgstr "İsteğe bağlı. Bunu teklifiniz için satırlara dönüştürürüz — fiyatlar yalnızca sizin yazdıklarınız."
+
+msgid "Zum Beispiel: Bäckerei: Brötchen 0,50 €, Brezel 0,80 €"
+msgstr "Örneğin: Fırın: küçük ekmek 0,50 €, simit 0,80 €"
+
+msgid "Kategorien und Aktionen legen Sie später an."
+msgstr "Kategorileri ve kampanyaları daha sonra oluşturursunuz."
+
+msgid "Keine Angebote erkannt — tragen Sie sie im nächsten Schritt ein."
+msgstr "Teklif tanınmadı — bir sonraki adımda girin."
+
+msgid "Aus Ihrem Satz übernommen — bitte prüfen."
+msgstr "Cümlenizden alındı — lütfen kontrol edin."

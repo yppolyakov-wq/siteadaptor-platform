@@ -145,7 +145,10 @@ def owner_path(run, browser, port, slug, btype, width):
         "карточки Website и «Nichts davon»",
     )
     _health(run, page, errors, "Was haben Sie schon?", width)
+    run.check(page.locator("textarea[name=sentence]").count() == 1, "поле «in einem Satz»")
     page.check("input[name=had][value=none]")
+    if btype == "bakery":  # AIS-2: фраза → строки «Angebot prüfen», в базу ничего
+        page.fill("textarea[name=sentence]", "Bäckerei: Brötchen 0,50 €, Brezel 0,80 €")
     _primary(page)
     run.check(page.locator("[data-setup-hours]").count() == 1, "Firma: часы сеткой")
     _health(run, page, errors, "Firma", width)
@@ -160,6 +163,12 @@ def owner_path(run, browser, port, slug, btype, width):
         "шаг «Angebot prüfen»",
     )
     _health(run, page, errors, "Angebot", width)
+    if btype == "bakery" and page.locator("#id_pruefen_text").count():
+        offer = page.locator("#id_pruefen_text").input_value()
+        run.check("Brötchen — 0,50 €" in offer, "фраза → строки в «Prüfen»")
+        run.check(
+            page.locator("[data-pruefen-from-sentence]").count() == 1, "пометка «Aus Ihrem Satz»"
+        )
     if page.locator("button[value=offer_examples]").count():
         page.click("button[value=offer_examples]")
         page.wait_for_load_state()

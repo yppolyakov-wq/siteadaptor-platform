@@ -983,7 +983,14 @@ def _pruefen_row(line) -> dict:
 
 
 def _ctx_pruefen(request):
-    from apps.core import directions, offer_batch, offer_examples, offer_lines, offer_photo
+    from apps.core import (
+        directions,
+        offer_batch,
+        offer_examples,
+        offer_lines,
+        offer_photo,
+        offer_sentence,
+    )
 
     tenant = request.tenant
     kinds = offer_batch.offer_kinds(tenant, request.user)
@@ -1014,8 +1021,14 @@ def _ctx_pruefen(request):
     have = set(onboarding.had(tenant))
     text = draft.get("text", "") if draft.get("kind") == kind else ""
     # AIS-3: «Nichts davon» — образцы сразу в поле (как «Beispiele einfügen»; в базу — ничего).
-    if not text and not review and "none" in have and kind and not _offer_items(tenant):
-        text = "\n".join(offer_examples.lines_for(tenant.business_type, kind))
+    from_sentence = False
+    if not text and not review and kind and not _offer_items(tenant):
+        # AIS-2: свои слова владельца сильнее образцов «Nichts davon»
+        said = offer_sentence.lines_for_kind(onboarding.sentence_lines(tenant), kind)
+        if said:
+            text, from_sentence = said, True
+        elif "none" in have:
+            text = "\n".join(offer_examples.lines_for(tenant.business_type, kind))
     return {
         "pruefen_kinds": [{"key": k, "label": _PRUEFEN_KIND_LABELS[k]} for k in kinds],
         "pruefen_kind": kind,
@@ -1041,6 +1054,7 @@ def _ctx_pruefen(request):
         "pruefen_scan_kinds": offer_photo.kinds_for(kinds),
         "pruefen_scan_state": offer_photo.state(request),  # только чтение (GET)
         "pruefen_from_photo": review and draft.get("source") == "photo",
+        "pruefen_from_sentence": from_sentence,
         "pruefen_scan_max": offer_photo.MAX_PHOTOS,
         "ai_label": offer_photo.AI_LABEL,
     }
@@ -1164,11 +1178,40 @@ def _quelle_import_card(request) -> dict | None:
 
 
 def _ctx_quelle(request):
+    from apps.tenants import onboarding
+
     tenant = request.tenant
     return {
         "quelle_options": _quelle_options(request),
         "quelle_url": request.session.get("quelle_url") or tenant.website_url or "",
+        "quelle_sentence": onboarding.sentence(tenant),
+        "quelle_sentence_max": onboarding.SENTENCE_MAX,
     }
+
+
+def _save_sentence(request) -> None:
+    """AIS-2: фраза → строки для «Angebot prüfen» (в базу ничего). Планировщик (и ИИ)
+    зовётся только по «Weiter» и только при изменённой фразе или пустом прежнем результате
+    (лимит/сбой ИИ не застревают навсегда); поле, которого нет в POST, состояние не трогает;
+    «Zurück»/«Überspringen» фразу не обрабатывают."""
+    from apps.core import offer_sentence
+    from apps.tenants import onboarding
+
+    if "sentence" not in request.POST or request.POST.get("action") in ("back", "skip", "live"):
+        return
+    tenant = request.tenant
+    text = (request.POST.get("sentence") or "").strip()[: onboarding.SENTENCE_MAX]
+    if text and text == onboarding.sentence(tenant) and onboarding.sentence_lines(tenant):
+        return
+    if not text and not onboarding.sentence(tenant):
+        return
+    if not text:
+        onboarding.set_sentence(tenant, "", [])
+        return
+    result = offer_sentence.build(tenant, request.user, text)
+    onboarding.set_sentence(tenant, text, result.lines)
+    if result.note:
+        messages.info(request, str(result.note))
 
 
 def _post_quelle(request):
@@ -1181,6 +1224,7 @@ def _post_quelle(request):
     from apps.tenants import onboarding
 
     tenant = request.tenant
+    _save_sentence(request)  # AIS-2: до ветки website — забытое согласие фразу не теряет
     allowed = {o["key"] for o in _quelle_options(request)}
     keys = [k for k in request.POST.getlist("had") if k in allowed]
     # Чужие варианты (сотруднику Website не показан) — не наши, выбор владельца не теряем.

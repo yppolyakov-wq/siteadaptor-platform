@@ -2,6 +2,7 @@
 {% comment %}AIS-3: первый шаг мастера v4 «Was haben Sie schon?» (макет утверждён 2026-11-06). Шаг
 только запоминает выбор; данные пишут шаги, куда он ведёт, и только после подтверждения
 владельца. Карточек без ключа (Google, ИИ) нет вовсе. «Nichts davon» побеждает на сервере.{% endcomment %}
+{% comment %}AIS-2: необязательная фраза под карточками → строки шага «Angebot prüfen» (в базу ничего).{% endcomment %}
 <h1 class="text-2xl font-bold mb-1">{% trans "Was haben Sie schon?" %}</h1>
 <p class="text-sm text-gray-600 mb-4">{% trans "Wir übernehmen, was es schon gibt — Sie prüfen jedes Feld, bevor etwas online geht. Mehrere Antworten möglich." %}</p>
 <form method="post" data-quelle-form>
@@ -28,5 +29,11 @@
     {% endif %}
     {% endfor %}
   </fieldset>
+  <div class="ui-card p-4 space-y-2 mt-3" data-quelle-sentence>
+    <label for="id_sentence" class="block text-sm font-semibold">{% trans "Beschreiben Sie Ihr Geschäft in einem Satz" %}</label>
+    <p id="sentence-hint" class="text-sm text-gray-600">{% trans "Optional. Wir machen daraus Zeilen für Ihr Angebot — Preise nur, wenn Sie sie schreiben." %}</p>
+    <textarea id="id_sentence" name="sentence" rows="2" maxlength="{{ quelle_sentence_max }}" aria-describedby="sentence-hint" placeholder="{% trans "Zum Beispiel: Bäckerei: Brötchen 0,50 €, Brezel 0,80 €" %}" class="ui-input block w-full p-3 text-base">{{ quelle_sentence }}</textarea>
+    {% ai_notice "setup_plan" %}
+  </div>
   {% include "tenant/_setup_buttons.html" %}
 </form>

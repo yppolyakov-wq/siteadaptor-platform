@@ -34850,3 +34850,21 @@ msgstr "Back to setup"
 
 msgid "Die Website konnte nicht gelesen werden. Prüfen Sie die Adresse im ersten Schritt oder tragen Sie Ihr Angebot hier ein."
 msgstr "The website could not be read. Check the address in the first step or enter your offer here."
+
+msgid "Beschreiben Sie Ihr Geschäft in einem Satz"
+msgstr "Describe your business in one sentence"
+
+msgid "Optional. Wir machen daraus Zeilen für Ihr Angebot — Preise nur, wenn Sie sie schreiben."
+msgstr "Optional. We turn it into lines for your offer — prices only if you write them."
+
+msgid "Zum Beispiel: Bäckerei: Brötchen 0,50 €, Brezel 0,80 €"
+msgstr "For example: Bakery: rolls €0.50, pretzel €0.80"
+
+msgid "Kategorien und Aktionen legen Sie später an."
+msgstr "You can create categories and promotions later."
+
+msgid "Keine Angebote erkannt — tragen Sie sie im nächsten Schritt ein."
+msgstr "No offers recognised — enter them in the next step."
+
+msgid "Aus Ihrem Satz übernommen — bitte prüfen."
+msgstr "Taken from your sentence — please check."

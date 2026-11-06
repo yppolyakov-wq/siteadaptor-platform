@@ -91,7 +91,8 @@ TASK_DATA = {
         "owner",
     ),
     "setup_plan": (
-        "Hilfe beim Anlegen von Kategorien und Produkten im Kundenbereich: der eingegebene "
+        "Hilfe beim Anlegen von Kategorien und Produkten im Kundenbereich und im "
+        "Einrichtungsassistenten: der eingegebene "
         "Satz und die Namen der möglichen Felder (keine Kunden- oder Bestelldaten)",
         "Art. 6 Abs. 1 lit. b DSGVO",
         "owner",

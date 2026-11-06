@@ -102,6 +102,7 @@
   </fieldset>
   {% else %}<input type="hidden" name="kind" value="{{ pruefen_kind }}">{% endif %}
   <label for="id_pruefen_text" class="block text-sm font-semibold">{% trans "Ihre Angebote" %}</label>
+  {% if pruefen_from_sentence %}<p class="text-sm text-indigo-900 bg-indigo-50 rounded-lg px-3 py-2" role="note" data-pruefen-from-sentence>{% trans "Aus Ihrem Satz übernommen — bitte prüfen." %}</p>{% endif %}
   <p id="pruefen-hint" class="text-sm text-gray-600">{{ pruefen_hint }} · {% blocktrans with n=pruefen_max %}bis zu {{ n }} Zeilen{% endblocktrans %}</p>
   <textarea id="id_pruefen_text" name="offer_text" rows="8" aria-describedby="pruefen-hint" class="ui-input block w-full p-3 text-base leading-relaxed">{{ pruefen_text }}</textarea>
   <div class="flex flex-wrap gap-2">

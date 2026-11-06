@@ -149,7 +149,57 @@ def had(t) -> list[str]:
 
 
 def _check_quelle(t) -> bool:
-    return bool(had(t))
+    return bool(had(t)) or bool(sentence(t))
+
+
+def _state(t) -> dict:
+    cfg = t.site_config if isinstance(t.site_config, dict) else {}
+    raw = cfg.get("onboarding")
+    return raw if isinstance(raw, dict) else {}
+
+
+#: AIS-2: фраза «Beschreiben Sie Ihr Geschäft in einem Satz» (≤ setup_assistant.TEXT_MAX).
+SENTENCE_MAX = 400
+
+
+def sentence(t) -> str:
+    raw = _state(t).get("sentence")
+    return raw if isinstance(raw, str) else ""
+
+
+def sentence_lines(t) -> list[dict]:
+    from apps.core import offer_sentence
+
+    return offer_sentence.clean_lines(_state(t).get("sentence_lines"))
+
+
+def set_sentence(tenant, text: str, lines) -> None:
+    """Единственный писатель `onboarding["sentence"]`/`["sentence_lines"]` (под блокировкой
+    строки, без пересборки site_config); пустая фраза оба ключа убирает (presence-minimal)."""
+    from django.db import transaction
+
+    from apps.core import offer_sentence
+    from apps.tenants.models import Tenant
+
+    text = (text or "").strip()[:SENTENCE_MAX]
+    cleaned = offer_sentence.clean_lines(lines) if text else []
+    with transaction.atomic():
+        locked = Tenant.objects.select_for_update().get(pk=tenant.pk)
+        locked.auto_create_schema = False
+        cfg = dict(locked.site_config or {})
+        state = dict(cfg.get("onboarding") or {})
+        if text:
+            state["sentence"] = text
+        else:
+            state.pop("sentence", None)
+        if cleaned:
+            state["sentence_lines"] = cleaned
+        else:
+            state.pop("sentence_lines", None)
+        cfg["onboarding"] = state
+        locked.site_config = cfg
+        locked.save(update_fields=["site_config"])
+    tenant.site_config = cfg
 
 
 def clean_had(keys) -> list[str]:
@@ -446,6 +496,14 @@ def get_state(tenant) -> dict:
     run = raw.get("import_run")  # AIS-3: прогон импорта сайта, запущенный из мастера
     if isinstance(run, str) and len(run) <= 40:
         state["import_run"] = run
+    said = raw.get("sentence")  # AIS-2: фраза владельца и строки из неё (presence-minimal)
+    if isinstance(said, str) and said.strip():
+        state["sentence"] = said.strip()[:SENTENCE_MAX]
+        from apps.core import offer_sentence
+
+        said_lines = offer_sentence.clean_lines(raw.get("sentence_lines"))
+        if said_lines:
+            state["sentence_lines"] = said_lines
     have = clean_had(raw.get("had") if isinstance(raw.get("had"), list) else [])
     if have:  # AIS-3: ответ «Was haben Sie schon?» (presence-minimal)
         state["had"] = have
@@ -503,7 +561,7 @@ def touch_start(tenant) -> None:
 #: save_state берёт их из БД, а не из (возможно, устаревшего) тенанта запроса.
 _LOCKED_STATE_KEYS = ("offer_batches", "directions")
 #: AIS-3: ключи с единственным писателем `set_had` — save_state их только переносит из БД.
-_OWNED_STATE_KEYS = ("had", "import_run")
+_OWNED_STATE_KEYS = ("had", "import_run", "sentence", "sentence_lines")
 
 
 def save_state(tenant, state: dict) -> None:

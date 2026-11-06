@@ -34937,3 +34937,21 @@ msgstr "Zurück zum Einrichten"
 
 msgid "Die Website konnte nicht gelesen werden. Prüfen Sie die Adresse im ersten Schritt oder tragen Sie Ihr Angebot hier ein."
 msgstr "Die Website konnte nicht gelesen werden. Prüfen Sie die Adresse im ersten Schritt oder tragen Sie Ihr Angebot hier ein."
+
+msgid "Beschreiben Sie Ihr Geschäft in einem Satz"
+msgstr "Beschreiben Sie Ihr Geschäft in einem Satz"
+
+msgid "Optional. Wir machen daraus Zeilen für Ihr Angebot — Preise nur, wenn Sie sie schreiben."
+msgstr "Optional. Wir machen daraus Zeilen für Ihr Angebot — Preise nur, wenn Sie sie schreiben."
+
+msgid "Zum Beispiel: Bäckerei: Brötchen 0,50 €, Brezel 0,80 €"
+msgstr "Zum Beispiel: Bäckerei: Brötchen 0,50 €, Brezel 0,80 €"
+
+msgid "Kategorien und Aktionen legen Sie später an."
+msgstr "Kategorien und Aktionen legen Sie später an."
+
+msgid "Keine Angebote erkannt — tragen Sie sie im nächsten Schritt ein."
+msgstr "Keine Angebote erkannt — tragen Sie sie im nächsten Schritt ein."
+
+msgid "Aus Ihrem Satz übernommen — bitte prüfen."
+msgstr "Aus Ihrem Satz übernommen — bitte prüfen."
