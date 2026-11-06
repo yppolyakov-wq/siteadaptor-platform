@@ -34436,3 +34436,7 @@ msgstr "I couldn't find a clear entry for this — please name the product exact
 #, python-format
 msgid "Verworfene Vorschläge: %(n)s."
 msgstr "Discarded suggestions: %(n)s."
+
+#: apps/core/assistant_bulk.py
+msgid "Das erledige ich für Sie"
+msgstr "I'll take care of this for you"

@@ -34732,3 +34732,7 @@ msgstr "Не знайшов однозначної позиції — назві
 #, python-format
 msgid "Verworfene Vorschläge: %(n)s."
 msgstr "Відкинуто пропозицій: %(n)s."
+
+#: apps/core/assistant_bulk.py
+msgid "Das erledige ich für Sie"
+msgstr "Це я зроблю для вас"

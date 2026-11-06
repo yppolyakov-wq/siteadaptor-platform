@@ -34745,3 +34745,7 @@ msgstr "Не нашёл однозначной позиции — назовит
 #, python-format
 msgid "Verworfene Vorschläge: %(n)s."
 msgstr "Отброшено предложений: %(n)s."
+
+#: apps/core/assistant_bulk.py
+msgid "Das erledige ich für Sie"
+msgstr "Это я сделаю для вас"

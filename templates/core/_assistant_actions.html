@@ -4,7 +4,7 @@
   {% csrf_token %}
   <input type="hidden" name="items_present" value="1">
   <div class="flex items-center justify-between gap-2 flex-wrap">
-    <{{ hl_sub|default:"h3" }} class="ui-h2">{% if ans.actions_change %}{% trans "Das ändere ich für Sie" %}{% else %}{% trans "Das lege ich für Sie an" %}{% endif %}</{{ hl_sub|default:"h3" }}>
+    <{{ hl_sub|default:"h3" }} class="ui-h2">{% if ans.actions_mixed %}{% trans "Das erledige ich für Sie" %}{% elif ans.actions_change %}{% trans "Das ändere ich für Sie" %}{% else %}{% trans "Das lege ich für Sie an" %}{% endif %}</{{ hl_sub|default:"h3" }}>
     <span class="ui-badge ui-tone-new">{% trans "Vorschau" %} · {% trans "nichts ist gespeichert" %}</span>
   </div>
   {% if ans.source == "ai" %}

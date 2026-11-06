@@ -149,7 +149,7 @@ def test_schema_only_allowed_actions(ai_on, bakery, shop, monkeypatch):
     ]["enum"]
     assert set(enum) <= set(assistant_ai_actions.AI_ACTIONS)
     assert not any(a.startswith("service.") for a in enum)  # без booking — без услуг
-    assert "page.setting" not in enum and not any(a.endswith(".create") for a in enum)
+    assert "page.setting" not in enum  # шаблоны страниц — A-4e-4
 
 
 def test_price_must_be_in_owner_text(ai_on, bakery, shop):
@@ -435,3 +435,95 @@ def test_empty_answer_is_not_cached(ai_on, bakery, shop):
     assistant_ai.job_state(_req(bakery, user=user), first["job"])
     _u, second, gen2 = _run(bakery, PHRASE, {"not_action": False, "items": []}, user=user)
     assert gen1.called and gen2.called
+
+
+# ── A-4e-3: создание и смешанные пакеты ──────────────────────────────────────────────
+
+MIXED = "Kategorie Kuchen anlegen und Apfelstrudel ausblenden"
+
+
+def test_mixed_phrase_goes_to_ai_not_to_create_rules(ai_on, bakery, shop):
+    user = _user()
+    assert assistant_ai_actions.mixed(bakery, user, MIXED)
+    ref = _ref(user, bakery, "product", "Apfelstrudel", MIXED)
+    data = {
+        "not_action": False,
+        "items": [
+            {"action": "category.create", "ref": None, "name_text": "Kuchen"},
+            {"action": "product.visibility", "ref": ref, "visible": False},
+        ],
+    }
+    user, got, gen = _run(bakery, MIXED, data, user=user)
+    assert gen.called
+    html = _html(bakery, user, got["job"])
+    assert "Das erledige ich für Sie" in html
+    _apply(bakery, user, got["job"], TAKE)
+    from apps.catalog.models import Category
+
+    assert Category.objects.filter(name__de="Kuchen").exists()
+    assert Product.objects.get(pk=shop.strudel.pk).is_active is False
+    _undo(bakery, user, got["job"])
+    assert not Category.objects.filter(name__de="Kuchen").exists()
+    assert Product.objects.get(pk=shop.strudel.pk).is_active is True
+
+
+def test_mixed_off_without_ai(settings, isolated_ratelimit, bakery, shop):
+    settings.AI_ENABLED = False
+    assert not assistant_ai_actions.mixed(bakery, _user(), MIXED)
+
+
+def test_create_name_only_from_owner_words(ai_on, bakery, shop):
+    user = _user()
+    data = {
+        "items": [
+            {
+                "action": "product.create",
+                "ref": None,
+                "name_text": "Schokotorte",
+                "price_text": "4,50 €",
+            },
+            {"action": "product.create", "ref": None, "name_text": "Erfundene Torte"},
+        ]
+    }
+    items, dropped = assistant_ai_actions.check_actions(
+        bakery, user, "neu: Schokotorte für 4,50 € und Apfelstrudel raus", _ctx(bakery, user), data
+    )
+    assert [it["values"]["name"] for it in items] == ["Schokotorte"] and dropped == 1
+    assert items[0]["values"]["price"] == "4,50"
+
+
+def test_create_price_must_be_written(ai_on, bakery, shop):
+    user = _user()
+    data = {
+        "items": [
+            {
+                "action": "product.create",
+                "ref": None,
+                "name_text": "Schokotorte",
+                "price_text": "9,90",
+            }
+        ]
+    }
+    items, _d = assistant_ai_actions.check_actions(
+        bakery, user, "neu: Schokotorte", _ctx(bakery, user), data
+    )
+    assert items[0]["values"]["price"] == ""
+
+
+def test_schema_has_create_only_when_allowed(ai_on, bakery, shop, monkeypatch):
+    from apps.core import permissions
+
+    ctx = assistant_ai_actions.wants(_req(bakery), PHRASE)
+    enum = assistant_ai_actions.schema_for(ctx)["properties"]["items"]["items"]["properties"][
+        "action"
+    ]["enum"]
+    assert "product.create" in enum
+    real = permissions.has_perm
+    monkeypatch.setattr(
+        permissions, "has_perm", lambda user, perm: perm != "sortiment.edit" and real(user, perm)
+    )
+    ctx = assistant_ai_actions.wants(_req(bakery), PHRASE)
+    enum = assistant_ai_actions.schema_for(ctx)["properties"]["items"]["items"]["properties"][
+        "action"
+    ]["enum"]
+    assert not any(a.endswith(".create") for a in enum)

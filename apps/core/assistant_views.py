@@ -159,6 +159,14 @@ def assistant_ask(request):
     elif not code and assistant_pages.intent(request.tenant, request.user, q):
         # AIS A-4c: «покажи товары списком / 4 в ряд» — настройка страницы
         got = assistant_ai.put_actions(request, q, builder=assistant_pages.build)
+    elif (
+        not code
+        and assistant_ai_actions.mixed(request.tenant, request.user, q)
+        and (ai_ctx := assistant_ai_actions.wants(request, q)) is not None
+    ):
+        # AIS A-4e-3: «Kategorie Torten anlegen und Apfelstrudel ausblenden» — создание И
+        # изменение в одной фразе: правила создания взяли бы только первую половину
+        got = assistant_ai_actions.ask(request, q, ai_ctx)
     elif not code and setup_assistant.create_intent(request.tenant, request.user, q):
         # AIS A-3a: «создай …» — план с предзаполненной формой, и без ИИ тоже
         got = assistant_ai.put_plan(request, q)

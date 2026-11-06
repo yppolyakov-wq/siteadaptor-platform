@@ -34582,3 +34582,7 @@ msgstr "Bunun için net bir kayıt bulamadım — lütfen ürünü ürün listes
 #, python-format
 msgid "Verworfene Vorschläge: %(n)s."
 msgstr "Atılan öneriler: %(n)s."
+
+#: apps/core/assistant_bulk.py
+msgid "Das erledige ich für Sie"
+msgstr "Bunu sizin için hallediyorum"

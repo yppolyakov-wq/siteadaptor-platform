@@ -34523,3 +34523,7 @@ msgstr "Ich habe keinen eindeutigen Eintrag dazu gefunden — bitte das Produkt 
 #, python-format
 msgid "Verworfene Vorschläge: %(n)s."
 msgstr "Verworfene Vorschläge: %(n)s."
+
+#: apps/core/assistant_bulk.py
+msgid "Das erledige ich für Sie"
+msgstr "Das erledige ich für Sie"

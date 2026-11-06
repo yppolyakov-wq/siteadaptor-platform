@@ -973,6 +973,10 @@ def _present_actions(request, entry: dict) -> dict:
             out["bulk_errors"] = any(f["error"] for it in out["actions"] for f in it["fields"])
         out["actions_allowed"] = any(it["allowed"] for it in out["actions"])
         out["actions_change"] = any(it["verb"] != "create" for it in out["actions"])
+        # A-4e-3: создание и изменение в одном пакете — общий заголовок
+        out["actions_mixed"] = out["actions_change"] and any(
+            it["verb"] == "create" for it in out["actions"]
+        )
         out["source"] = entry.get("source", "")  # A-4e: «Vorschlag der KI» + пометка о США
         out["dropped"] = int(entry.get("dropped") or 0)
     return out
