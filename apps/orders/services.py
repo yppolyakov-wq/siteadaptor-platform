@@ -46,6 +46,23 @@ class NotOnMenu(OutOfStock):
         self.days = days
 
 
+class RequestOnly(OutOfStock):
+    """W4-6b: товар «nur auf Anfrage» (MX-5) — не продаётся корзиной. Подкласс OutOfStock —
+    любой чекаут ловит его без 500 (протухшая корзина, ручной POST)."""
+
+    on_request = True
+
+    def __init__(self, title="", pk=None):
+        super().__init__(title=title, available=0)
+        self.pk = pk
+
+
+def _check_not_request_only(products):
+    for product in products:
+        if getattr(product, "primary_action", "") == "request":
+            raise RequestOnly(title=str(product), pk=product.pk)
+
+
 def _add_gift(order, subtotal):
     """KA-12 PR-4: строка-подарок 0 € (лимит кампании + склад) — в savepoint: кончился
     подарок между корзиной и заказом — заказ уходит без него, а не падает."""
@@ -346,6 +363,13 @@ def create_order(
         )
     if not norm and not combo_norm and not custom_norm:
         raise EmptyOrder()
+    # W4-6b: «nur auf Anfrage» корзиной не продаётся — до лимитов акций и склада. Запрос
+    # (quote: корзина-смета) и предложение владельца (offer) — не продажа, пропускаем.
+    if source_channel not in ("quote", "offer"):
+        # Свободные строки с товаром (чекаут акции `promotions.purchase`) — тоже.
+        _check_not_request_only(
+            [p for p, _v, _q, _o in norm] + [ln[3] for ln in custom_norm if ln[3] is not None]
+        )
     if (
         any(qty < 1 for _p, _v, qty, _o in norm)
         or any(q < 1 for _c, _o, q in combo_norm)

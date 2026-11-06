@@ -42,6 +42,13 @@ def _require_orders_active(request):
         raise Http404
 
 
+def _quote_cart(tenant) -> bool:
+    """MEN-9: корзина-смета (просчёт без оплаты) — в ней и «nur auf Anfrage» уместен."""
+    from apps.tenants import siteconfig
+
+    return bool(siteconfig.normalize(getattr(tenant, "site_config", None) or {}).get("quote_cart"))
+
+
 def _cart(request) -> dict:
     cart = request.session.get(CART_SESSION_KEY)
     return cart if isinstance(cart, dict) else {}
@@ -250,6 +257,8 @@ def quick_add_form(request, pk):
         pk=pk,
         is_active=True,
     )
+    if product.primary_action == "request" and not _quote_cart(request.tenant):
+        raise Http404  # W4-6b: у товара «nur auf Anfrage» быстрого «в корзину» нет
     from apps.promotions.price_layer import attach_promos
 
     attach_promos([product])
@@ -722,6 +731,11 @@ def cart_add(request):
     from apps.catalog.models import Product, ProductVariant
 
     product = get_object_or_404(Product, pk=request.POST.get("product"), is_active=True)
+    if product.primary_action == "request" and not _quote_cart(request.tenant):
+        # W4-6b: «nur auf Anfrage» — корзины нет (кнопки нет; это ручной/протухший POST).
+        return _add_error(
+            request, _("Dieser Artikel ist nur auf Anfrage erhältlich."), product_pk=product.pk
+        )
     variant = None
     if product.has_variants:
         vid = (request.POST.get("variant") or "").strip()
@@ -1212,6 +1226,18 @@ def checkout(request):
         )
         return redirect("storefront-cart")
     except OutOfStock as exc:
+        if getattr(exc, "on_request", False):  # W4-6b: протухшая корзина с «nur auf Anfrage»
+            # Позицию убираем из корзины, иначе каждый повтор упирается в ту же ошибку.
+            cart = _cart(request)
+            request.session[CART_SESSION_KEY] = {
+                k: v for k, v in cart.items() if _split_key(k)[0] != str(exc.pk)
+            }
+            messages.error(
+                request,
+                _("„%(item)s“ ist nur auf Anfrage erhältlich — bitte fragen Sie bei uns an.")
+                % {"item": exc.title},
+            )
+            return redirect("storefront-cart")
         if getattr(exc, "days", ""):  # KA-12 GA-9: Tageskarte — блюдо не в день выдачи
             messages.error(
                 request,

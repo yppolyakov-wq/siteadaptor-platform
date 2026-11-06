@@ -935,6 +935,7 @@ _PRUEFEN_KIND_LABELS = {
     "termine": gettext_lazy("Termine"),
     "zimmer": gettext_lazy("Zimmer"),
     "tickets": gettext_lazy("Veranstaltungen"),
+    "anfragen": gettext_lazy("Leistungen auf Anfrage"),
 }
 _PRUEFEN_HINTS = {
     "waren": gettext_lazy("Format: Name — Preis, z. B. „Roggenbrot — 3,50 €“"),
@@ -945,6 +946,10 @@ _PRUEFEN_HINTS = {
     ),
     "tickets": gettext_lazy(
         "Format: Name — Datum Uhrzeit — Preis, z. B. „Konzert — 20.07. 19 Uhr — 25 €“"
+    ),
+    "anfragen": gettext_lazy(
+        "Eine Leistung pro Zeile, Preis optional. Ohne Preis steht „Preis auf Anfrage“ — "
+        "Kunden fragen über das Formular an."
     ),
 }
 

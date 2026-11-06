@@ -34859,3 +34859,18 @@ msgstr "Preis auf Anfrage"
 
 msgid "Kontakt aufnehmen"
 msgstr "Kontakt aufnehmen"
+
+msgid "Dieser Artikel ist nur auf Anfrage erhältlich."
+msgstr "Dieser Artikel ist nur auf Anfrage erhältlich."
+
+msgid "„%(item)s“ ist nur auf Anfrage erhältlich — bitte fragen Sie bei uns an."
+msgstr "„%(item)s“ ist nur auf Anfrage erhältlich — bitte fragen Sie bei uns an."
+
+msgid "Bitte fragen Sie bei uns im Geschäft nach."
+msgstr "Bitte fragen Sie bei uns im Geschäft nach."
+
+msgid "Leistungen auf Anfrage"
+msgstr "Leistungen auf Anfrage"
+
+msgid "Eine Leistung pro Zeile, Preis optional. Ohne Preis steht „Preis auf Anfrage“ — Kunden fragen über das Formular an."
+msgstr "Eine Leistung pro Zeile, Preis optional. Ohne Preis steht „Preis auf Anfrage“ — Kunden fragen über das Formular an."

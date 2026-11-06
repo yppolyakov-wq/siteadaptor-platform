@@ -117,6 +117,9 @@ class CatalogFacets(FacetProvider):
             )
         if sel["diet"]:
             items = items.filter(diets__contains=[sel["diet"]])
+        if sel["preis_von"] is not None or sel["preis_bis"] is not None:
+            # W4-6b: «Preis auf Anfrage» (0 = нет цены) в ценовой диапазон не попадает.
+            items = items.exclude(_on_request_q())
         if sel["preis_von"] is not None:
             items = items.filter(base_price__gte=sel["preis_von"])
         if sel["preis_bis"] is not None:
@@ -220,7 +223,9 @@ class CatalogFacets(FacetProvider):
             for v in vals or []:
                 if v in food.VALID_DIETS:
                     diet_counts[v] = diet_counts.get(v, 0) + 1
-        bounds = items.aggregate(lo=Min("base_price"), hi=Max("base_price"))
+        bounds = items.exclude(_on_request_q()).aggregate(
+            lo=Min("base_price"), hi=Max("base_price")
+        )
         price_lo, price_hi = bounds["lo"], bounds["hi"]
         # Тумблер наличия — только если что-то реально распродано (иначе шум).
         show_stock = (
@@ -391,6 +396,14 @@ class CatalogFacets(FacetProvider):
             ("price_asc", _("Price: low to high")),
             ("price_desc", _("Price: high to low")),
         ]
+
+
+def _on_request_q():
+    """W4-6b: товар «nur auf Anfrage» без цены (зеркало `Product.price_on_request` для
+    товара без вариантов; у вариантного цена на вариантах — его не трогаем)."""
+    from django.db.models import Q
+
+    return Q(primary_action="request", base_price__lte=0) & ~Q(variants__is_active=True)
 
 
 def _today():

@@ -111,7 +111,7 @@ def pool_products(combo):
             Q(category_id=combo.category_id)
             | Q(category__parent_id=combo.category_id, category__is_active=True),
             is_active=True,
-        )
+        ).exclude(primary_action="request")  # W4-6b: «nur auf Anfrage» в набор не продаётся
     )
     dishes = [p for p in products if p.course]
     return dishes or products

@@ -31,6 +31,9 @@ ENTITY_FOR = {
     "termine": "service",
     "zimmer": "room",
     "tickets": "event",
+    # W4-6b: Leistungen «auf Anfrage» (Handwerk и т. п.) — товар с CTA заявки вместо корзины;
+    # без цены витрина пишет «Preis auf Anfrage». Направление активно только при модуле jobs.
+    "anfragen": "product",
 }
 
 
@@ -215,7 +218,14 @@ def _create(tenant, kind: str, line: offer_lines.Line) -> None:
     if ENTITY_FOR[kind] == "product":
         from apps.catalog.writers import create_product
 
-        create_product(tenant, {"name_de": line.name, "base_price": str(line.price)})
+        fields = {"name_de": line.name, "base_price": str(line.price)}
+        if kind == "anfragen":
+            fields = {
+                "name_de": line.name,
+                "base_price": "0" if line.price is None else str(line.price),
+                "primary_action": "request",
+            }
+        create_product(tenant, fields)
     elif kind == "termine":
         from apps.booking.writers import create_service
 

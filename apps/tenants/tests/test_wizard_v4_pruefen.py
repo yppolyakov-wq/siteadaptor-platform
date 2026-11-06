@@ -395,3 +395,55 @@ def test_directions_need_functions_permission(monkeypatch):
     owner("post", {"action": "offer_directions", "direction": ["termine"]})
     tenant.refresh_from_db()
     assert "booking" in tenant.disabled_modules
+
+
+# --- W4-6b: Handwerk — «Leistungen auf Anfrage» -------------------------------------------
+
+
+def _handwerker():
+    tenant = _v4(business_type="handwerker", slug="hw")
+    tenant.enabled_modules = list({*(tenant.enabled_modules or []), "jobs"})
+    tenant.save(update_fields=["enabled_modules"])
+    return tenant
+
+
+def test_handwerker_gets_anfragen_input_not_nothing_to_enter():
+    owner = Owner(_handwerker())
+    html = owner().content.decode()
+    assert "data-pruefen-none" not in html and "data-pruefen-form" in html
+    assert 'value="anfragen"' in html
+
+
+def test_anfragen_lines_become_request_products_with_optional_price():
+    from apps.catalog.models import Product
+
+    owner = Owner(_handwerker())
+    text = "Dachreparatur — auf Anfrage\nRinnenreinigung — 89"
+    owner("post", {"action": "offer_preview", "kind": "anfragen", "offer_text": text})
+    rows = [
+        {"on": "1", "name": "Dachreparatur", "price": ""},
+        {"on": "1", "name": "Rinnenreinigung", "price": "89"},
+    ]
+    data = _confirm_data(owner, rows)
+    owner("post", data)
+    got = {p.name["de"]: p for p in Product.objects.all()}
+    assert set(got) == {"Dachreparatur", "Rinnenreinigung"}, owner.messages
+    assert all(p.primary_action == "request" for p in got.values())
+    assert got["Dachreparatur"].price_on_request and not got["Rinnenreinigung"].price_on_request
+    owner("post", data)  # повтор той же пачки — без дублей
+    assert Product.objects.count() == 2
+
+
+def test_without_jobs_there_is_no_anfragen_input(monkeypatch):
+    from apps.tenants.models import Tenant
+
+    tenant = _v4(business_type="handwerker", slug="hw2")
+    real = Tenant.is_module_active
+    monkeypatch.setattr(Tenant, "is_module_active", lambda self, k: k != "jobs" and real(self, k))
+    from apps.core import modules
+
+    real_mod = modules.is_module_active
+    monkeypatch.setattr(modules, "is_module_active", lambda t, k: k != "jobs" and real_mod(t, k))
+    user = get_user_model().objects.create_user(username="x-hw2", password="pw12345678")
+    Membership.objects.create(user=user, role=Membership.ROLE_OWNER)
+    assert "anfragen" not in offer_batch.offer_kinds(tenant, user)

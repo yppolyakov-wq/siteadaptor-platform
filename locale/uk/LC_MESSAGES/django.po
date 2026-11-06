@@ -35080,3 +35080,18 @@ msgstr "Ціна за запитом"
 
 msgid "Kontakt aufnehmen"
 msgstr "Зв’язатися"
+
+msgid "Dieser Artikel ist nur auf Anfrage erhältlich."
+msgstr "Цей товар доступний лише за запитом."
+
+msgid "„%(item)s“ ist nur auf Anfrage erhältlich — bitte fragen Sie bei uns an."
+msgstr "«%(item)s» доступний лише за запитом — будь ласка, напишіть нам."
+
+msgid "Bitte fragen Sie bei uns im Geschäft nach."
+msgstr "Будь ласка, запитайте у нас у магазині."
+
+msgid "Leistungen auf Anfrage"
+msgstr "Послуги за запитом"
+
+msgid "Eine Leistung pro Zeile, Preis optional. Ohne Preis steht „Preis auf Anfrage“ — Kunden fragen über das Formular an."
+msgstr "Одна послуга на рядок, ціна — за бажанням. Без ціни буде «Ціна за запитом» — клієнти запитають через форму."

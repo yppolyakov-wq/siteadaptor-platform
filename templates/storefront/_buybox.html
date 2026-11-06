@@ -34,7 +34,8 @@ test_public (порядок CTA/точные href). Двухшаговость (
     <div class="mt-6 space-y-2" data-request-fallback>
       {% if inbox_active %}<a href="{% url 'storefront-message' %}?betreff={{ sellable.name|urlencode }}" class="block w-full text-center text-white rounded-lg px-4 py-3 font-medium" style="background: var(--accent, #4f46e5);">{% trans "Kontakt aufnehmen" %}</a>
       {% elif request.tenant.contact_phone %}<a href="tel:{{ request.tenant.contact_phone }}" class="block w-full text-center text-white rounded-lg px-4 py-3 font-medium" style="background: var(--accent, #4f46e5);">{% trans "Anrufen" %}</a>
-      {% elif request.tenant.contact_email %}<a href="mailto:{{ request.tenant.contact_email }}" class="block w-full text-center text-white rounded-lg px-4 py-3 font-medium" style="background: var(--accent, #4f46e5);">{% trans "Kontakt aufnehmen" %}</a>{% endif %}
+      {% elif request.tenant.contact_email %}<a href="mailto:{{ request.tenant.contact_email }}" class="block w-full text-center text-white rounded-lg px-4 py-3 font-medium" style="background: var(--accent, #4f46e5);">{% trans "Kontakt aufnehmen" %}</a>
+      {% else %}<p class="text-sm text-gray-600">{% trans "Bitte fragen Sie bei uns im Geschäft nach." %}</p>{% endif %}
     </div>
   {% endif %}
 {% elif mode == "reserve" %}

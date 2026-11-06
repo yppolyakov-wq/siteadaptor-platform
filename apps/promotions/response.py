@@ -65,6 +65,11 @@ def chosen(promo) -> str:
     return value if value in CHOICE_KEYS else ""
 
 
+def _request_only(promo) -> bool:
+    product = getattr(promo, "product", None) if getattr(promo, "product_id", None) else None
+    return getattr(product, "primary_action", "") == "request"
+
+
 def response_for(promo, tenant) -> str:
     """Отклик акции для этого тенанта (см. модульный docstring)."""
     if getattr(promo, "target_kind", "") in ("service", "stay"):
@@ -82,6 +87,13 @@ def response_for(promo, tenant) -> str:
         if wanted == INQUIRE and can_inquire(tenant):
             return INQUIRE
         return SHOW
+    if _request_only(promo):
+        # W4-6b: цель — товар «nur auf Anfrage»: корзиной не продаётся, только заявка
+        # (или показ). Явный выбор владельца «отложить»/«купон» сильнее.
+        wanted = chosen(promo)
+        if wanted in (RESERVE, COUPON, SHOW):
+            return wanted
+        return INQUIRE if tenant is not None and can_inquire(tenant) else SHOW
     conditional = bool(getattr(promo, "price_condition", None))
     if tenant is None:
         if conditional:

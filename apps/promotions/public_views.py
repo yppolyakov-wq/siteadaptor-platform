@@ -2794,6 +2794,10 @@ def promotion_purchase(request, pk):
         # В2: условная акция онлайн не продаётся (подменённый POST тоже).
         messages.info(request, _("Diese Aktion können Sie zurücklegen lassen."))
         return redirect("storefront-promotion", pk=pk)
+    if promo.product_id and promo.product.primary_action == "request":
+        # W4-6b: «nur auf Anfrage» — без покупки (подменённый POST тоже).
+        messages.info(request, _("Dieser Artikel ist nur auf Anfrage erhältlich."))
+        return redirect("storefront-promotion", pk=pk)
     if not promo_response.can_buy(getattr(request, "tenant", None)):
         # T-8.2: без модуля заказов подтверждение заказа отдаёт 404 — заказ не
         # создаём, возвращаем на акцию (там кнопка «отложить» вместо покупки).

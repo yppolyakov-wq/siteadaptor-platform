@@ -352,6 +352,9 @@ def purchase(
         # В2: условная акция онлайн не продаётся — гард в сервисе, не только во вьюхе
         # (будущие каналы: бот, MCP).
         raise ValueError("conditional promotion is not sold online")
+    if promotion.product_id and promotion.product.primary_action == "request":
+        # W4-6b: товар «nur auf Anfrage» не продаётся и через акцию — до списания лимита.
+        raise ValueError("request-only product is not sold online")
     if promotion.scope_kind:
         # KA-12 PR-1 (ревью): акция на категорию/магазин действует в корзине на товары —
         # своей цены у неё нет (кастом-строка с ценой None уронила бы create_order).

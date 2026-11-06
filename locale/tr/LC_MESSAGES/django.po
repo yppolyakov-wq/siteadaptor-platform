@@ -34918,3 +34918,18 @@ msgstr "Fiyat talep üzerine"
 
 msgid "Kontakt aufnehmen"
 msgstr "İletişime geçin"
+
+msgid "Dieser Artikel ist nur auf Anfrage erhältlich."
+msgstr "Bu ürün yalnızca talep üzerine sunulur."
+
+msgid "„%(item)s“ ist nur auf Anfrage erhältlich — bitte fragen Sie bei uns an."
+msgstr "“%(item)s” yalnızca talep üzerine sunulur — lütfen bize sorun."
+
+msgid "Bitte fragen Sie bei uns im Geschäft nach."
+msgstr "Lütfen mağazamızda sorun."
+
+msgid "Leistungen auf Anfrage"
+msgstr "Talep üzerine hizmetler"
+
+msgid "Eine Leistung pro Zeile, Preis optional. Ohne Preis steht „Preis auf Anfrage“ — Kunden fragen über das Formular an."
+msgstr "Satır başına bir hizmet, fiyat isteğe bağlı. Fiyat yoksa “Fiyat talep üzerine” görünür — müşteriler form üzerinden sorar."

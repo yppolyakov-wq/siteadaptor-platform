@@ -127,6 +127,8 @@ def promo_line_price(promo, product, variant=None):
     модификаторов добавляются ПОВЕРХ снаружи."""
     if promo is None or product is None or promo.product_id != product.pk:
         return None
+    if getattr(product, "primary_action", "") == "request":
+        return None  # W4-6b: «nur auf Anfrage» корзиной не продаётся — промо-цены нет
     if variant is not None and getattr(variant, "price", None) is not None:
         return None
     return promo.new_price
@@ -152,7 +154,8 @@ def attach_promos(products, *, with_lowest=True):
 
         reference_price.attach(list(pmap.values()))
     for p in products:
-        promo = pmap.get(p.pk)
+        # W4-6b: у «nur auf Anfrage» нет цены корзины — ни бейджа, ни «−10 % von 0».
+        promo = None if getattr(p, "primary_action", "") == "request" else pmap.get(p.pk)
         p.promo = promo
         p.promo_price = None if getattr(p, "has_variants", False) else promo_line_price(promo, p)
         # SF-7 (§11 PAngV): объявлять снижение — только от цены сравнения. Акция,

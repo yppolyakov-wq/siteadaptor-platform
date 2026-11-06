@@ -117,7 +117,9 @@ def build_menu_pdf(tenant, groups) -> bytes:
             c.setFont(font, 10)
             c.drawString(x, y, name + (f" ({marks})" if marks else ""))
             c.setFont(font_bold, 10)
-            c.drawRightString(right, y, money(p.base_price))
+            # W4-6b: «nur auf Anfrage» без цены — подпись, а не «0,00 €».
+            price_txt = _("Preis auf Anfrage") if p.price_on_request else money(p.base_price)
+            c.drawRightString(right, y, price_txt)
             diets = _diet_labels(p)
             desc = (p.get_i18n("description") or "").strip().replace("\n", " ")
             # KA-12 GA-9: Tageskarte — «nur Mo · Mi» первым в подстроке.

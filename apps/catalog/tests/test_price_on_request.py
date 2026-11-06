@@ -155,3 +155,119 @@ def test_catalog_list_shows_label(_tenant_urls):
     html = public_views.product_list(_web("/sortiment/")).content.decode()
     assert "Dachreparatur" in html and "Preis auf Anfrage" in html
     assert "0,00 €" not in html
+
+
+# --- корзина, заказ, фасеты, акции (батч 3) ----------------------------------------------
+
+
+def test_cart_add_refuses_request_product(_tenant_urls):
+    from apps.orders import public_views
+    from apps.orders.public_views import CART_SESSION_KEY
+
+    for p in (_request(), ProductFactory(primary_action="request", base_price=Decimal("89"))):
+        request = _web("/warenkorb/add/")
+        request.method, request.POST = "POST", {"product": str(p.pk), "qty": "1"}
+        public_views.cart_add(request)
+        assert not request.session.get(CART_SESSION_KEY), p
+
+
+def test_quick_add_fragment_is_404(_tenant_urls):
+    from django.http import Http404
+
+    from apps.orders import public_views
+
+    p = _request()
+    with pytest.raises(Http404):
+        public_views.quick_add_form(_web(f"/q/{p.pk}/"), pk=p.pk)
+
+
+def test_create_order_refuses_request_product_but_offer_may_sell_it():
+    from apps.orders import services
+    from apps.orders.models import Order
+
+    p = ProductFactory(primary_action="request", base_price=Decimal("89"))
+    with pytest.raises(services.RequestOnly):
+        services.create_order(items=[(p, None, 1, [])], name="Gast", email="g@example.com")
+    assert not Order.objects.exists()
+    order = services.create_order(
+        items=[(p, None, 1, [])], name="Gast", email="g@example.com", source_channel="offer"
+    )
+    assert order.pk
+
+
+def test_price_facet_and_bounds_skip_request_products():
+    from apps.catalog.facets import CatalogFacets
+    from apps.catalog.models import Product
+
+    _request(name={"de": "Dach"})
+    ProductFactory(base_price=Decimal("5"), name={"de": "Seife"})
+    ProductFactory(base_price=Decimal("20"), name={"de": "Kerze"})
+    f = CatalogFacets()
+    items = f.apply(Product.objects.all(), {"preis_von": Decimal("0"), "preis_bis": Decimal("50")})
+    names = {p.name["de"] for p in items}
+    assert names == {"Seife", "Kerze"}
+    ctx = f.present(Product.objects.all(), f.selected({}))
+    assert ctx["price_lo"] == Decimal("5")
+
+
+def test_promo_price_layer_ignores_request_products():
+    from apps.promotions.price_layer import attach_promos, promo_line_price
+    from apps.promotions.tests.factories import PromotionFactory
+
+    p = _request()
+    promo = PromotionFactory(product=p, status="active", discount_percent=50)
+    assert promo_line_price(promo, p) is None
+    (q,) = attach_promos([p])
+    assert q.promo is None and not q.promo_badge
+
+
+# --- правки по ревью: покупка через акцию, отклик, протухшая корзина -----------------------
+
+
+def test_promo_purchase_cannot_sell_request_product():
+    from apps.orders import services
+    from apps.orders.models import Order
+    from apps.promotions import services as promo_services
+    from apps.promotions.tests.factories import PromotionFactory
+
+    p = ProductFactory(primary_action="request", base_price=Decimal("89"))
+    promo = PromotionFactory(product=p, status="active", discount_percent=10)
+    with pytest.raises(ValueError):
+        promo_services.purchase(promo, quantity=1, name="Gast", email="g@example.com")
+    with pytest.raises(services.RequestOnly):  # и в обход сервиса — свободной строкой
+        services.create_order(
+            items=[], custom_lines=[("X", Decimal("1"), 1, p)], name="G", email="g@example.com"
+        )
+    assert not Order.objects.exists()
+
+
+def test_promo_page_offers_inquiry_not_buy_for_request_product(monkeypatch):
+    from apps.promotions import response
+    from apps.promotions.tests.factories import PromotionFactory
+    from apps.tenants.tests.factories import TenantFactory
+
+    promo = PromotionFactory(product=_request(), status="active", discount_percent=10)
+    monkeypatch.setattr(response, "can_inquire", lambda t: True)
+    assert response.response_for(promo, TenantFactory.build()) == response.INQUIRE
+    monkeypatch.setattr(response, "can_inquire", lambda t: False)
+    assert response.response_for(promo, TenantFactory.build()) == response.SHOW
+
+
+def test_stale_cart_line_is_dropped_with_a_message(_tenant_urls, monkeypatch):
+    from apps.orders import public_views, services
+    from apps.orders.public_views import CART_SESSION_KEY
+
+    p = ProductFactory(primary_action="request", base_price=Decimal("89"))
+    other = ProductFactory(base_price=Decimal("3"))
+    request = _web("/warenkorb/")
+    request.session[CART_SESSION_KEY] = {str(p.pk): 1, str(other.pk): 2}
+
+    def boom(**kw):
+        raise services.RequestOnly(title="Dach", pk=p.pk)
+
+    monkeypatch.setattr(public_views, "create_order", boom, raising=False)
+    monkeypatch.setattr(services, "create_order", boom)
+    request.method = "POST"
+    request.POST = {"name": "Gast", "email": "g@example.com", "phone": "1", "agb": "1"}
+    public_views.checkout(request)
+    assert request.session[CART_SESSION_KEY] == {str(other.pk): 2}

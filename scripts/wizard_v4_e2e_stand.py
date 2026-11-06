@@ -162,8 +162,7 @@ def owner_path(run, browser, port, slug, btype, width):
         page.wait_for_load_state()
         _health(run, page, errors, "Übernommen", width)
     else:
-        # Тип без вида ввода (Anfragen — W4-6 находка: «Preis auf Anfrage» не готов на витрине).
-        run.check(page.locator("[data-pruefen-none]").count() == 1, "«nichts einzutragen» честно")
+        run.check(False, "образцы для типа")
     if page.locator("[data-recht-form]").count() == 0:
         _primary(page)
     run.check(page.locator("[data-recht-form]").count() == 1, "шаг «Rechtliches & Veröffentlichen»")
@@ -182,6 +181,11 @@ def owner_path(run, browser, port, slug, btype, width):
     run.check("Ihre Website ist jetzt online" in page.content(), "«Fertig» после публикации")
     _health(run, page, errors, "Fertig", width)
     run.check(guest.goto(url + "/").status == 200, "гость после публикации: 200")
+    if btype == "handwerker":  # W4-6b: Leistungen auf Anfrage — подпись вместо «0,00 €»
+        guest.goto(url + "/sortiment/")
+        body = guest.content()
+        run.check("Preis auf Anfrage" in body, "витрина: «Preis auf Anfrage»")
+        run.check("0,00" not in body, "витрина: нигде нет «0,00»")
 
     page.goto(url + "/dashboard/")
     run.check("/dashboard/setup/" not in page.url, "после мастера кабинет открывается")
