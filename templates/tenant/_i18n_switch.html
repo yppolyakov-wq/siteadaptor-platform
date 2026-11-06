@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load i18n cabinet ai_notice %}
 {% comment %}Переиспользуемый переключатель языка формы + логика табов (товар/акция/…).
 Пилюли языков (по i18n_groups; только при i18n_multi) переключают видимость групп
 `[data-i18n-loc]`; кнопки `[data-pf-tab]` — панелей `[data-pf-panel]`. Все поля всех
@@ -17,12 +17,22 @@
     {% for g in i18n_groups %}<option value="{{ g.code }}" title="{{ g.label }}"{% if g.is_base %} selected{% endif %}>{{ g.code }}</option>{% endfor %}
   </select>
 </label>
+{% i18n_translate_ctx as tr %}
+{% if tr %}
+{% comment %}AIS-5: «🌐 Übersetzen» — переводит базовый текст в ПУСТЫЕ поля выбранного языка; в базу ничего, сохраняет Save формы. Видна при выбранном не-базовом языке.{% endcomment %}
+<span class="inline-flex flex-wrap items-center gap-2" data-i18n-translate-box>
+  <button type="button" class="ui-btn ui-btn-sm min-h-[32px] hidden" data-i18n-translate data-url="{{ tr.url }}" data-result="{{ tr.result }}" data-screen="{{ tr.screen }}" data-base="{{ tr.base }}">🌐 {% trans "Übersetzen" %}</button>
+  <span class="text-xs text-gray-600" role="status" aria-live="polite" data-i18n-translate-status></span>
+  {% ai_notice "i18n_translate" %}
+</span>
+{% endif %}
 {% endif %}
 
 <style>
   .i18n-pill { background:#fff; cursor:pointer; }
   .i18n-pill:hover { border-color:#a5b4fc; }
   .i18n-pill-on { background:#4f46e5; border-color:#4f46e5; color:#fff; }
+  [data-ai-filled] { outline: 2px dashed #a5b4fc; outline-offset: 1px; }
   /* SR-2d: активный таб без правой колонки → грид формы в одну колонку
      (селектор бьёт lg:grid по специфичности; атрибут+класс > один класс). */
   [data-pf-grid].pf-rail-off { display:block; }
@@ -51,7 +61,132 @@
     document.querySelectorAll("[data-i18n-loc]").forEach(function (el) {
       el.classList.toggle("hidden", el.getAttribute("data-i18n-loc") !== loc);
     });
+    document.querySelectorAll("[data-i18n-translate]").forEach(function (b) {
+      b.classList.toggle("hidden", loc === b.getAttribute("data-base"));
+    });
   }
+
+  // AIS-5: «🌐 Übersetzen». Поля выбранного языка, ПУСТЫЕ на момент клика и на момент
+  // ответа (владелец мог начать печатать), получают перевод базового текста той же формы.
+  var TR_MSG = {
+    done: "{{ _('Felder übersetzt — bitte prüfen und speichern')|escapejs }}",
+    skipped: "{{ _('übersprungen: Zahlen oder Links passten nicht')|escapejs }}",
+    none: "{{ _('Nichts zu übersetzen — alle Felder sind schon ausgefüllt')|escapejs }}",
+    error: "{{ _('Die Übersetzung ist gerade nicht verfügbar.')|escapejs }}",
+    quota: "{{ _('Zu viele Übersetzungen in kurzer Zeit — bitte später erneut versuchen.')|escapejs }}",
+    too_large: "{{ _('Zu viel Text auf einmal — bitte in Teilen übersetzen.')|escapejs }}",
+    busy: "{{ _('Die Übersetzung läuft schon.')|escapejs }}",
+    slow: "{{ _('Dauert zu lange — bitte erneut versuchen.')|escapejs }}",
+    work: "{{ _('Wird übersetzt …')|escapejs }}"
+  };
+  function trBase(el, loc, base) {
+    if (el.hasAttribute("data-i18n-base")) return el.getAttribute("data-i18n-base");
+    var form = el.form, name = el.getAttribute("name") || "";
+    var of = el.getAttribute("data-i18n-of");
+    if (form && of && form.elements[of]) return form.elements[of].value;
+    var suffix = "_" + loc;
+    if (!form || name.slice(-suffix.length) !== suffix) return "";
+    var stem = name.slice(0, -suffix.length);
+    var src = form.elements[stem + "_" + base] || form.elements[stem];
+    return src && typeof src.value === "string" ? src.value : "";
+  }
+  function trFields(loc) {
+    var out = [];
+    document.querySelectorAll('[data-i18n-loc="' + loc + '"]').forEach(function (g) {
+      var list = g.matches("input, textarea") ? [g] : g.querySelectorAll("input, textarea");
+      list.forEach(function (el) {
+        if (out.indexOf(el) !== -1 || el.closest("[data-i18n-notranslate]")) return;
+        var t = (el.getAttribute("type") || "text").toLowerCase();
+        if (el.tagName !== "TEXTAREA" && t !== "text") return;
+        out.push(el);
+      });
+    });
+    return out;
+  }
+  function trFill(el, value) {
+    el.value = value;
+    el.setAttribute("data-ai-filled", "1");
+    var wrap = el.nextElementSibling;
+    var area = wrap && wrap.querySelector && wrap.querySelector(".rte-area");
+    if (area) area.innerHTML = value;  // иначе submit перетрёт значение старым редактором
+    el.dispatchEvent(new Event("input", { bubbles: true }));
+  }
+  function trSay(box, text) {
+    var st = box && box.querySelector("[data-i18n-translate-status]");
+    if (st) st.textContent = text;
+  }
+  function trCsrf() {
+    var m = document.querySelector("input[name=csrfmiddlewaretoken]");
+    return m ? m.value : "";
+  }
+  function trRun(btn) {
+    var box = btn.closest("[data-i18n-translate-box]");
+    var sel = document.querySelector("[data-i18n-select]");
+    var loc = sel ? sel.value : "", base = btn.getAttribute("data-base");
+    if (!loc || loc === base) return;
+    var byId = {}, items = [], n = 0;
+    trFields(loc).forEach(function (el) {
+      if (el.value.trim()) return;
+      var text = trBase(el, loc, base).trim();
+      if (!text) return;
+      var id = "t" + (++n);
+      byId[id] = el;
+      var max = parseInt(el.getAttribute("maxlength") || "0", 10) || 0;
+      items.push({ id: id, text: text, max: max });
+    });
+    if (!items.length) { trSay(box, TR_MSG.none); return; }
+    var body = new FormData();
+    body.append("csrfmiddlewaretoken", trCsrf());
+    body.append("screen", btn.getAttribute("data-screen"));
+    body.append("target", loc);
+    body.append("items", JSON.stringify(items));
+    btn.disabled = true;
+    btn.setAttribute("aria-busy", "true");
+    trSay(box, TR_MSG.work);
+    function finish(msg) {
+      btn.disabled = false;
+      btn.removeAttribute("aria-busy");
+      trSay(box, msg);
+    }
+    function apply(data) {
+      var got = data.items || {}, filled = 0;
+      Object.keys(got).forEach(function (id) {
+        var el = byId[id];
+        if (el && !el.value.trim()) { trFill(el, got[id]); filled++; }
+      });
+      var skipped = items.length - filled;
+      var msg = filled + " " + TR_MSG.done;
+      if (skipped) msg += " · " + skipped + " " + TR_MSG.skipped;
+      finish(msg);
+    }
+    function handle(data, started) {
+      if (data.state === "done") return apply(data);
+      if (data.code) return finish(TR_MSG[data.code] || TR_MSG.error);
+      if (!data.job && data.state !== "pending") return finish(TR_MSG.error);
+      var job = data.job || started;
+      if (Date.now() - t0 > 90000) return finish(TR_MSG.slow);
+      setTimeout(function () {
+        fetch(btn.getAttribute("data-result") + job + "/", { credentials: "same-origin" })
+          .then(function (r) { if (!r.ok) throw r; return r.json(); })
+          .then(function (d) { handle(d, job); })
+          .catch(function () { finish(TR_MSG.error); });
+      }, 1500);
+    }
+    var t0 = Date.now();
+    fetch(btn.getAttribute("data-url"), { method: "POST", body: body, credentials: "same-origin" })
+      .then(function (r) { if (!r.ok) throw r; return r.json(); })
+      .then(function (d) { handle(d, d.job); })
+      .catch(function () { finish(TR_MSG.error); });
+  }
+  document.addEventListener("click", function (e) {
+    var btn = e.target.closest && e.target.closest("[data-i18n-translate]");
+    if (btn && !btn.disabled) { e.preventDefault(); trRun(btn); }
+  });
+  document.addEventListener("input", function (e) {
+    if (e.isTrusted && e.target.hasAttribute && e.target.hasAttribute("data-ai-filled")) {
+      e.target.removeAttribute("data-ai-filled");
+    }
+  });
   // Табы содержимого: одна панель активна.
   function setTab(t) {
     // Ревью a11y: ключ без кнопки не трогаем (иначе все вкладки tabindex=-1 и

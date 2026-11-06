@@ -90,6 +90,13 @@ TASK_DATA = {
         "Art. 6 Abs. 1 lit. b DSGVO",
         "owner",
     ),
+    "i18n_translate": (
+        "Übersetzung Ihrer Texte (Namen, Beschreibungen) in weitere Sprachen der Website: "
+        "nur die Texte, die Sie übersetzen lassen; gespeichert wird erst beim Speichern "
+        "des Formulars",
+        "Art. 6 Abs. 1 lit. b DSGVO",
+        "owner",
+    ),
     "setup_plan": (
         "Hilfe beim Anlegen von Kategorien und Produkten im Kundenbereich und im "
         "Einrichtungsassistenten: der eingegebene "

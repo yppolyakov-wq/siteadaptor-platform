@@ -35014,3 +35014,33 @@ msgstr "Teklif tanınmadı — bir sonraki adımda girin."
 
 msgid "Aus Ihrem Satz übernommen — bitte prüfen."
 msgstr "Cümlenizden alındı — lütfen kontrol edin."
+
+msgid "Übersetzen"
+msgstr "Çevir"
+
+msgid "Felder übersetzt — bitte prüfen und speichern"
+msgstr "alan çevrildi — lütfen kontrol edip kaydedin"
+
+msgid "übersprungen: Zahlen oder Links passten nicht"
+msgstr "atlandı: sayılar veya bağlantılar eşleşmedi"
+
+msgid "Nichts zu übersetzen — alle Felder sind schon ausgefüllt"
+msgstr "Çevrilecek bir şey yok — tüm alanlar zaten dolu"
+
+msgid "Die Übersetzung ist gerade nicht verfügbar."
+msgstr "Çeviri şu anda kullanılamıyor."
+
+msgid "Zu viele Übersetzungen in kurzer Zeit — bitte später erneut versuchen."
+msgstr "Kısa sürede çok fazla çeviri — lütfen daha sonra tekrar deneyin."
+
+msgid "Zu viel Text auf einmal — bitte in Teilen übersetzen."
+msgstr "Bir seferde çok fazla metin — lütfen parça parça çevirin."
+
+msgid "Die Übersetzung läuft schon."
+msgstr "Çeviri zaten sürüyor."
+
+msgid "Dauert zu lange — bitte erneut versuchen."
+msgstr "Çok uzun sürüyor — lütfen tekrar deneyin."
+
+msgid "Wird übersetzt …"
+msgstr "Çevriliyor …"

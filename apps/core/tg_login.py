@@ -53,6 +53,8 @@ TG_LITE_VIEWS = frozenset(
         "lite-requests",  # KA-12 E8.9
         "assistant",  # AIS A-0: шторка помощника (только чтение)
         "assistant-ask",  # AIS A-2: вопрос ИИ-помощнику
+        "i18n-translate",  # AIS-5
+        "i18n-translate-result",
         "assistant-answer",  # AIS A-2: опрос ответа
         "assistant-history-clear",  # AIS A-3d
         "assistant-apply",  # AIS A-4a

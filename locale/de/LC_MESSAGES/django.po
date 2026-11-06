@@ -34955,3 +34955,33 @@ msgstr "Keine Angebote erkannt — tragen Sie sie im nächsten Schritt ein."
 
 msgid "Aus Ihrem Satz übernommen — bitte prüfen."
 msgstr "Aus Ihrem Satz übernommen — bitte prüfen."
+
+msgid "Übersetzen"
+msgstr "Übersetzen"
+
+msgid "Felder übersetzt — bitte prüfen und speichern"
+msgstr "Felder übersetzt — bitte prüfen und speichern"
+
+msgid "übersprungen: Zahlen oder Links passten nicht"
+msgstr "übersprungen: Zahlen oder Links passten nicht"
+
+msgid "Nichts zu übersetzen — alle Felder sind schon ausgefüllt"
+msgstr "Nichts zu übersetzen — alle Felder sind schon ausgefüllt"
+
+msgid "Die Übersetzung ist gerade nicht verfügbar."
+msgstr "Die Übersetzung ist gerade nicht verfügbar."
+
+msgid "Zu viele Übersetzungen in kurzer Zeit — bitte später erneut versuchen."
+msgstr "Zu viele Übersetzungen in kurzer Zeit — bitte später erneut versuchen."
+
+msgid "Zu viel Text auf einmal — bitte in Teilen übersetzen."
+msgstr "Zu viel Text auf einmal — bitte in Teilen übersetzen."
+
+msgid "Die Übersetzung läuft schon."
+msgstr "Die Übersetzung läuft schon."
+
+msgid "Dauert zu lange — bitte erneut versuchen."
+msgstr "Dauert zu lange — bitte erneut versuchen."
+
+msgid "Wird übersetzt …"
+msgstr "Wird übersetzt …"

@@ -35176,3 +35176,33 @@ msgstr "Пропозиції не розпізнано — введіть їх �
 
 msgid "Aus Ihrem Satz übernommen — bitte prüfen."
 msgstr "Взято з вашого речення — будь ласка, перевірте."
+
+msgid "Übersetzen"
+msgstr "Перекласти"
+
+msgid "Felder übersetzt — bitte prüfen und speichern"
+msgstr "полів перекладено — перевірте й збережіть"
+
+msgid "übersprungen: Zahlen oder Links passten nicht"
+msgstr "пропущено: числа або посилання не збіглися"
+
+msgid "Nichts zu übersetzen — alle Felder sind schon ausgefüllt"
+msgstr "Нічого перекладати — усі поля вже заповнені"
+
+msgid "Die Übersetzung ist gerade nicht verfügbar."
+msgstr "Переклад зараз недоступний."
+
+msgid "Zu viele Übersetzungen in kurzer Zeit — bitte später erneut versuchen."
+msgstr "Забагато перекладів за короткий час — спробуйте пізніше."
+
+msgid "Zu viel Text auf einmal — bitte in Teilen übersetzen."
+msgstr "Забагато тексту одразу — перекладайте частинами."
+
+msgid "Die Übersetzung läuft schon."
+msgstr "Переклад уже виконується."
+
+msgid "Dauert zu lange — bitte erneut versuchen."
+msgstr "Надто довго — спробуйте ще раз."
+
+msgid "Wird übersetzt …"
+msgstr "Перекладаємо …"

@@ -142,6 +142,14 @@ def offer_photo_lines(*, schema: str, user_pk, job: str) -> None:
 
 
 @idempotent_task()
+def i18n_translate_job(*, schema: str, user_pk, job: str) -> None:
+    """AIS-5: перевод пустых полей языка ввода — вне веб-воркера."""
+    from apps.core import i18n_translate
+
+    i18n_translate.run_job(schema=schema, user_pk=user_pk, job=job)
+
+
+@idempotent_task()
 def assistant_answer_job(*, schema: str, user_pk, job: str) -> None:
     """AIS A-2: ИИ-ответ помощника кабинета — вне веб-воркера."""
     from apps.core import assistant_ai

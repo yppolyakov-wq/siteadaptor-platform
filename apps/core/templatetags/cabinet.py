@@ -314,7 +314,11 @@ def lang_switch(context):
     услуга, номер, правовые тексты) группы строятся по языкам тенанта.
     Один язык — ничего не рендерим."""
     if context.get("i18n_groups") is not None:
-        return {"i18n_groups": context["i18n_groups"], "i18n_multi": context.get("i18n_multi")}
+        return {
+            "i18n_groups": context["i18n_groups"],
+            "i18n_multi": context.get("i18n_multi"),
+            "request": context.get("request"),
+        }
     from django.conf import settings
 
     from apps.core.i18n_input import form_locales
@@ -332,7 +336,47 @@ def lang_switch(context):
         }
         for loc in form_locales(tenant)
     ]
-    return {"i18n_groups": groups, "i18n_multi": len(groups) > 1}
+    return {"i18n_groups": groups, "i18n_multi": len(groups) > 1, "request": request}
+
+
+#: AIS-5: экраны, где машинный перевод не предлагаем (правовые тексты — юридический риск).
+NO_TRANSLATE_SCREENS = frozenset({"legal-docs"})
+
+
+@register.simple_tag(takes_context=True)
+def i18n_translate_ctx(context):
+    """AIS-5: данные кнопки «🌐 Übersetzen» или None (ИИ выключен, нет права записи экрана,
+    правовой экран, вне кабинета). Экран подписывается — эндпоинт верит только подписи."""
+    from django.db import connection
+
+    from apps.ai.api import is_enabled
+    from apps.core import i18n_translate, view_perms
+
+    request = context.get("request")
+    match = getattr(request, "resolver_match", None)
+    view_name = getattr(match, "view_name", "") or ""
+    user = getattr(request, "user", None)
+    if not view_name or view_name in NO_TRANSLATE_SCREENS or user is None:
+        return None
+    try:
+        if not is_enabled(i18n_translate.TASK):
+            return None
+        if view_perms.rule_for(view_name) is None:
+            return None
+        if not view_perms.allowed(user, view_name, "POST"):
+            return None
+    except Exception:  # noqa: BLE001 — кнопка не должна ронять форму
+        logger.warning("i18n translate button skipped", exc_info=True)
+        return None
+    from django.conf import settings
+    from django.urls import reverse
+
+    return {
+        "url": reverse("i18n-translate"),
+        "result": reverse("i18n-translate-result", args=["0" * 32]).rsplit("0" * 32, 1)[0],
+        "screen": i18n_translate.sign_screen(connection.schema_name, view_name),
+        "base": settings.LANGUAGE_CODE,
+    }
 
 
 #: E9.10: подписи и вид полей переводов в списках кабинета (один словарь на все

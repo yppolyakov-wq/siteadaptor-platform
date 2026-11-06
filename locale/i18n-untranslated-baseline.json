@@ -18,7 +18,8 @@
   "Prüfung des Aktionstexts: Text der Aktion und ihre Angaben (Preis, Vergleichspreis, Rabatt, Laufzeit, Menge)",
   "Prüfung öffentlicher Einträge im Stadtkatalog: Text, Preis und Rabatt des Eintrags",
   "Rechenzentren in der EU",
-  "Suche im Stadtportal: die eingegebene Suchphrase; die daraus abgeleiteten Filter (nicht die Phrase) werden bis zu 24 Stunden zwischengespeichert"
+  "Suche im Stadtportal: die eingegebene Suchphrase; die daraus abgeleiteten Filter (nicht die Phrase) werden bis zu 24 Stunden zwischengespeichert",
+  "Übersetzung Ihrer Texte (Namen, Beschreibungen) in weitere Sprachen der Website: nur die Texte, die Sie übersetzen lassen; gespeichert wird erst beim Speichern des Formulars"
  ],
  "apps/billing/usage.py": [
   "Nutzungsgebühr"

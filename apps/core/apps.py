@@ -28,6 +28,7 @@ class CoreConfig(AppConfig):
         from apps.core import (
             assistant_ai,  # noqa: F401 — AIS A-2 «KI fragen»
             assistant_ai_actions,  # noqa: F401 — AIS A-4e «KI-Aktionen»
+            i18n_translate,  # noqa: F401 — AIS-5 «Übersetzen»
             offer_photo,  # noqa: F401 — AIS W4-4 «Foto der Speisekarte»
             setup_assistant,  # noqa: F401
             tg_login,

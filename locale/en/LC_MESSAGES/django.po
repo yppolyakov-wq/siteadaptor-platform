@@ -34868,3 +34868,33 @@ msgstr "No offers recognised — enter them in the next step."
 
 msgid "Aus Ihrem Satz übernommen — bitte prüfen."
 msgstr "Taken from your sentence — please check."
+
+msgid "Übersetzen"
+msgstr "Translate"
+
+msgid "Felder übersetzt — bitte prüfen und speichern"
+msgstr "fields translated — please check and save"
+
+msgid "übersprungen: Zahlen oder Links passten nicht"
+msgstr "skipped: numbers or links did not match"
+
+msgid "Nichts zu übersetzen — alle Felder sind schon ausgefüllt"
+msgstr "Nothing to translate — all fields are already filled in"
+
+msgid "Die Übersetzung ist gerade nicht verfügbar."
+msgstr "Translation is not available right now."
+
+msgid "Zu viele Übersetzungen in kurzer Zeit — bitte später erneut versuchen."
+msgstr "Too many translations in a short time — please try again later."
+
+msgid "Zu viel Text auf einmal — bitte in Teilen übersetzen."
+msgstr "Too much text at once — please translate in parts."
+
+msgid "Die Übersetzung läuft schon."
+msgstr "The translation is already running."
+
+msgid "Dauert zu lange — bitte erneut versuchen."
+msgstr "This is taking too long — please try again."
+
+msgid "Wird übersetzt …"
+msgstr "Translating …"

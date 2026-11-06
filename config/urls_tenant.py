@@ -22,6 +22,7 @@ from apps.core import (
     owner_login,
     page_templates,
     tg_login,
+    translate_views,
 )
 from apps.core.demo_switch import demo_design_switch
 from apps.core.design_page import design_view
@@ -155,6 +156,13 @@ urlpatterns = [
     path("dashboard/assistent/", assistant_views.assistant_view, name="assistant"),  # AIS A-0
     # AIS A-2: «✨ KI fragen» (POST) и опрос ответа (GET, фрагмент)
     path("dashboard/assistent/frage/", assistant_views.assistant_ask, name="assistant-ask"),
+    # AIS-5: «🌐 Übersetzen» в переключателе языка ввода (JSON, ничего не пишет)
+    path("dashboard/uebersetzen/", translate_views.i18n_translate_start, name="i18n-translate"),
+    path(
+        "dashboard/uebersetzen/<str:job>/",
+        translate_views.i18n_translate_result,
+        name="i18n-translate-result",
+    ),
     path(
         "dashboard/assistent/frage/<str:job>/",
         assistant_views.assistant_answer,
