@@ -22073,3 +22073,23 @@ ich … ein» — к модели); в промпт — до 5 статей A-1,
   в `aria-describedby`, контраст placeholder). Стенд `assistant_a0_stand.py` 30/30 (1440/390, без
   JS). Замки `test_as1_one_field` (16).
 
+## 2026-11-06 — AIS W4-5a + W4-5c: «Verkauf öffnen» и карточки «Nächster Schritt» (без миграций)
+- План — `docs/ais-w4-5-verkauf-oeffnen-plan-2026-11-06.md` (ECC `planner` + правки `architect`).
+- **W4-5a** экран `/dashboard/verkauf-oeffnen/` (группа «Verkauf» в Einstellungen): короткие вопросы
+  вместо форм — «Liefern Sie auch?», «Vorkasse per Überweisung anbieten?». Пишут УЗКИЕ писатели
+  `orders.views.set_delivery_enabled` / `set_vorkasse_enabled` — только тумблер (полные писатели
+  экрана оплаты при частичном POST стёрли бы зоны/сборы/точки и банк — класс W0). Без IBAN «Ja» не
+  предлагается (только ссылка), «Nein» — можно. Ответ «нет» хранится отметкой
+  `site_config["verkauf"]["no"]` (один писатель под `select_for_update`, тумблер и отметка — одной
+  транзакцией, passthrough в normalize); отметка НИКОГДА не делает пункт готовности выполненным —
+  readiness смотрит только данные. Предупреждение «доставка бесплатна везде» по тем же правилам,
+  что `delivery_quote`. Сломанный вопрос виден («konnte nicht geladen werden»), а не прячется.
+- **W4-5c** главная мастера v4 — карточки «Nächster Schritt» (`apps/core/next_steps.py`) ВМЕСТО
+  чек-листа (X2a): ≤ 3 по пользе (публикация · Verkauf öffnen · фото · первая акция · языки ·
+  дизайн после ≥ 5 позиций с фото, §3a), ссылки через `assistant.link` (права/пакет/модуль), сбой —
+  без карточки, «Später» на срок карточки (публикацию не спрятать — проверка на сервере),
+  «✨ Assistent fragen» с готовой фразой; товары одним агрегатом. Карточки — первыми на главной.
+- ECC: `security-reviewer` и `django-reviewer` — находки закрыты. Стенд 16/16 (1440/390). Замки:
+  `test_w4_5a_verkauf` (15), `test_w4_5c_next_steps` (13). Дальше — W4-5b (остальные направления),
+  W4-3 Google, W4-6 стенд; гейт продажи (W4-5d) — после W4-6.
+

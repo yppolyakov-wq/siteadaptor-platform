@@ -9,6 +9,8 @@
   <h1 class="ui-h1 tracking-tight">{{ request.tenant.name }}</h1>
   <p class="text-xs text-gray-500">{% trans "Heute" %} · {% now "D, j. F" %}</p>
 </div>
+{% comment %}AIS W4-5c: «Nächster Schritt» — первым после шапки (у нового сайта это главное).{% endcomment %}
+{% include "tenant/_next_steps.html" %}
 
 {% comment %}UX-D D1.4/D8.1: главная = сводка дня — у отеля stays/_hotel_home.html, у
 заказов/записей/заявок/билетов core/_day_home.html. Полоса виджетов и петля — только
@@ -63,30 +65,6 @@ deep-links те же.{% endcomment %}
 признак «фото/галерея» ушёл внутрь проверки шага «Startseite».{% endcomment %}
 {% include "aggregator/_freshness_banner.html" %}
 {% include "promotions/_today_suggestions.html" %}
-{% if next_steps %}
-{% comment %}AIS W4-5c: карточки «Nächster Schritt» (мастер v4) — вход на существующий экран + «зачем»; ссылки уже прошли права/пакет.{% endcomment %}
-<section aria-labelledby="ns-h" class="mb-8" data-next-steps>
-  <h2 id="ns-h" class="ui-h3 mb-3">{% trans "Nächster Schritt" %}</h2>
-  <ul class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-    {% for c in next_steps %}
-    <li class="ui-card p-4 flex flex-col gap-2" data-next-step="{{ c.key }}">
-      <h3 class="font-semibold">{{ c.title }}</h3>
-      <p class="text-sm text-gray-600 flex-1">{{ c.why }}</p>
-      <div class="flex flex-wrap items-center gap-2">
-        <a href="{{ c.url }}" class="ui-btn ui-btn-primary ui-btn-sm min-h-[44px]">{{ c.action }}</a>
-        {% if c.assistant_url %}<a href="{{ c.assistant_url }}" data-drawer data-drawer-key="assistant" class="ui-btn ui-btn-ghost ui-btn-sm min-h-[44px]"><span aria-hidden="true">✨</span> {% trans "Assistent fragen" %}</a>{% endif %}
-        {% if c.hideable %}
-        <form method="post" action="{% url 'next-step-hide' %}" class="ml-auto">
-          {% csrf_token %}<input type="hidden" name="karte" value="{{ c.key }}">
-          <button type="submit" class="ui-btn ui-btn-ghost ui-btn-sm min-h-[44px]">{% trans "Später" %}<span class="sr-only">: {{ c.title }}</span></button>
-        </form>
-        {% endif %}
-      </div>
-    </li>
-    {% endfor %}
-  </ul>
-</section>
-{% endif %}
 {% if checklist and not checklist.completed %}
 <div class="mb-8 max-w-xl bg-white rounded-[22px] shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-5">
   <div class="flex items-center justify-between mb-3">
