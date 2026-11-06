@@ -97,6 +97,10 @@
 
 ## 2. База и модели
 
+- **«No space left on device» у Postgres в Docker ≠ диск.** `could not resize shared memory
+  segment` = кончился `/dev/shm` контейнера (Docker по умолчанию 64 МБ); параллельные запросы
+  кладут туда общую память. Пересев демо в 3 потока валил копию схемы-шаблона → откат на
+  миграции. Лечится `shm_size` у сервиса db (T-12, `PG_SHM_SIZE`, по умолчанию 512mb).
 - **`tenant.save()` на тенанте без схемы СОЗДАЁТ схему** (django-tenants: при update и
   `auto_create_schema=True` — все миграции, минуты). Свежий `Tenant.objects.get()` несёт класс-дефолт
   True. Точечная запись конфига — `Tenant.objects.filter(pk=…).update(...)` + сброс кэша витрины
