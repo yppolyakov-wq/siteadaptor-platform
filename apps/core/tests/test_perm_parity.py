@@ -208,6 +208,7 @@ IS_OWNER_ALLOWED = {
     "apps/core/views.py",  # can_edit_bank (IBAN) — пол
     "apps/orders/views.py",  # IBAN Vorkasse — пол
     "apps/imports/views.py",  # импорт с чужого сайта — пол
+    "apps/core/setup_steps.py",  # AIS-3: «Eigene Website» в мастере — тот же пол импорта
 }
 
 
