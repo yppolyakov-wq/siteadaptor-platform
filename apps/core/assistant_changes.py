@@ -303,50 +303,55 @@ def _new_price(text: str) -> tuple[str, str]:
     return price, "" if price else _("Keinen Preis gefunden — bitte eintragen.")
 
 
-def build(tenant, user, text: str) -> list[dict]:
-    """Один пункт пакета из фразы (или [] — нечего менять)."""
+def item_for(kind: str, verb: str, obj, value: str = "", note: str = "") -> dict:
+    """Один пункт изменения существующего объекта — общий для правил (A-4b) и ИИ (A-4e).
+
+    verb: price | hide | show | move; value — новая цена как написал владелец (price) или
+    «pk:<категория>» (move). Права здесь НЕ проверяются: это делают present/apply."""
     from apps.core import assistant_actions as aa
 
+    action = {"price": f"{kind}.price", "move": aa.PRODUCT_MOVE}.get(verb, f"{kind}.visibility")
+    item = {
+        "action": action,
+        "target": {"kind": kind, "pk": str(obj.pk)},
+        "values": {"name": _display(kind, obj)},
+        "note": note,
+        "blocked": "",
+    }
+    item["before"] = current(kind, aa.ACTIONS[action].verb, obj)
+    if verb == "price":
+        item["values"]["price"] = value
+        item["blocked"] = _price_blocked(kind, obj)
+    elif verb in ("hide", "show"):
+        want = "1" if verb == "show" else ""
+        item["values"]["visible"] = want
+        if want == item["before"]:
+            item["blocked"] = _("Ist schon sichtbar.") if want else _("Ist schon ausgeblendet.")
+    else:
+        item["values"]["category"] = value
+        if not value:
+            item["note"] = item["note"] or _("Zielkategorie nicht gefunden — bitte wählen.")
+        elif value == f"pk:{item['before']}":
+            item["blocked"] = _("Ist schon in dieser Kategorie.")
+    return item
+
+
+def build(tenant, user, text: str) -> list[dict]:
+    """Один пункт пакета из фразы (или [] — нечего менять)."""
     got = _find(tenant, user, text)
     if got is None:
         return []
     verb, _kinds, rows, found, low, end, text = got
     row = found[0]
     kind, obj = row["kind"], row["obj"]
-    name = _display(kind, obj)
-    action = {
-        "price": f"{kind}.price",
-        "move": aa.PRODUCT_MOVE,
-    }.get(verb, f"{kind}.visibility")
-    item = {
-        "action": action,
-        "target": {"kind": kind, "pk": str(obj.pk)},
-        "values": {"name": name},
-        "note": "",
-        "blocked": "",
-    }
+    value, note = "", ""
+    if verb == "price":
+        value, note = _new_price(text)
+    elif verb == "move":  # цель ищем ПОСЛЕ имени товара, в том же casefold-тексте
+        cats, _s, _e = _matches(low[end:] if end >= 0 else "", rows, ("category",))
+        if len({c["obj"].pk for c in cats}) == 1:
+            value = f"pk:{cats[0]['obj'].pk}"
+    item = item_for(kind, verb, obj, value, note)
     if len({(r["kind"], r["obj"].pk) for r in found}) > 1:
         item["blocked"] = _("Mehrere Einträge heißen so — bitte im Sortiment ändern.")
-    spec_verb = aa.ACTIONS[action].verb
-    item["before"] = current(kind, spec_verb, obj)
-    if verb == "price":
-        price, note = _new_price(text)
-        item["values"]["price"] = price
-        item["note"] = note
-        item["blocked"] = item["blocked"] or _price_blocked(kind, obj)
-    elif verb in ("hide", "show"):
-        want = "1" if verb == "show" else ""
-        item["values"]["visible"] = want
-        if want == item["before"]:
-            item["blocked"] = _("Ist schon sichtbar.") if want else _("Ist schon ausgeblendet.")
-    else:  # move — цель ищем ПОСЛЕ имени товара, в том же casefold-тексте
-        cats, _s, _e = _matches(low[end:] if end >= 0 else "", rows, ("category",))
-        ref = ""
-        if len({c["obj"].pk for c in cats}) == 1:
-            ref = f"pk:{cats[0]['obj'].pk}"
-        item["values"]["category"] = ref
-        if not ref:
-            item["note"] = _("Zielkategorie nicht gefunden — bitte wählen.")
-        elif ref == f"pk:{item['before']}":
-            item["blocked"] = _("Ist schon in dieser Kategorie.")
     return [item]

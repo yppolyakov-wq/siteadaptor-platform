@@ -240,15 +240,21 @@ def _notice(action: str, title: str, reason: str) -> list[dict]:
 
 def build(tenant, user, text: str) -> list[dict]:
     """Пункты пакета: по одному на товар категории (≤ 50), или [] — не наше."""
+    got = _find(tenant, user, text)
+    if got is None:
+        return []
+    verb, cat, text = got
+    return expand(tenant, cat, verb, text)
+
+
+def expand(tenant, cat, verb: str, text: str) -> list[dict]:
+    """Категория → пункты по товарам (≤ 50) — общая развёртка правил (A-4d) и ИИ (A-4e):
+    количество и цены считает сервер, а не модель. verb: price | hide | show."""
     from apps.catalog import bulk_price
     from apps.catalog.models import ProductVariant
     from apps.core import assistant_actions as aa
     from apps.core import assistant_changes
 
-    got = _find(tenant, user, text)
-    if got is None:
-        return []
-    verb, cat, text = got
     title = _("Alle Produkte in „%(name)s“") % {"name": cat.get_i18n("name")}
     action = aa.PRODUCT_PRICE if verb == "price" else aa.PRODUCT_VISIBILITY
     products, total = _products(cat)

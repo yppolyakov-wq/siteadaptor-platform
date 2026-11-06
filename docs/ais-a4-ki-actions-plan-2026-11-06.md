@@ -220,3 +220,101 @@ e2e-testing, accessibility, error-handling. Агенты: `architect` по §1 �
 - Замки: ×5 языков, общая формула, без направления, без «все», скрыть+откат (категория видима),
   снятая галочка, вариантный товар, > 50, право `preise.edit`, без `sortiment.view` — тишина,
   вопрос, одна строка истории, одно предупреждение, изменённый после предпросмотра — отказ.
+
+## 14. A-4e — ИИ-задача `assistant_actions`: фраза мимо правил → пакет (план, 2026-11-06)
+План — агент ECC `planner`, сверен с кодом. Решения владельца: в проде пока прямой Claude API (США)
+с пометкой «Daten werden in den USA verarbeitet» (`{% ai_notice %}`); Bedrock EU позже — только маршрут.
+**Без миграций.** ИИ понимает формулировку и выбирает из ЗАКРЫТОГО реестра; каждый факт проверяет
+сервер теми же функциями, что у правил; дальше — существующая цепочка `put_actions`-запись →
+`_present_actions` → `apply`/`undo`.
+
+### 14.1 Маршрут (`assistant_views.assistant_ask`)
+bulk → changes → pages → create_intent → **НОВОЕ** `assistant_ai_actions.wants(request, q)` → `ask`.
+`wants()` без ИИ: задача включена; `out_of_scope(q) == ""`; не вопрос (`_looks_like_question`);
+`sortiment.view` + активен catalog или booking; индекс не пуст. Правила всегда приоритетнее; ИИ не
+переписывает пункт правил. Модель «не действие» → fallback со статьями A-1 без второго вызова.
+
+### 14.2 Контекст (`apps/core/assistant_ai_actions.py::build_context`)
+Индекс `assistant_changes._index` по `_kinds_for`: категории → товары → услуги; строка `{i, kind, name}`
+(имя + i18n через « / », ≤ 80, без переводов строк и маркеров); кап 3500 символов, хвост режется,
+«Liste unvollständig». **Никогда:** цены, pk, описания, клиенты, заказы, брони. `ctx["objects"]` =
+`[(kind, pk)]` — только в кэше задачи. Фраза — `prepare_question` (scrub ПД); рамки REQ/DATA с
+маркером `token_hex(6)` (вырезается из данных); SYSTEM — каталог действий + примеры структуры на 5 языках.
+
+### 14.3 Схема (`schema_for(ctx)`)
+`{not_action, items[≤10]: {action: enum, ref: int|null, category_ref: int|null, scope: one|category_all,
+name_text ≤120, price_text ≤20, duration_text ≤20, visible: bool|null, in_category_text ≤60}}`. Enum —
+из `ACTIONS` ∩ виды `_kinds_for` × активные модули; `page.setting` в v1 исключён; ref — 0…len−1.
+
+### 14.4 Проверка фактов (`check_actions`)
+1. ref в пределах и вид совпадает со спекой, иначе пункт отброшен. 2. Объект назван во фразе (слово
+имени ≥ 3, casefold, префикс 5 — склонения), иначе отброшен. 3. Два объекта с тем же именем → blocked.
+4. Цена: `setup_assistant._ai_price(q, price_text)` (число буквально в тексте, не вес/время/валюта);
+относительное — `assistant_bulk.price_change` + `bulk_price.new_price`, `fixed`; несколько сумм при
+нескольких ценах → пусто + подсказка; `_price_blocked`. 5. Видимость из модели; `want == before` →
+blocked. 6. Перенос — только в существующую названную категорию. 7. `category_all` разворачивает
+СЕРВЕР (`assistant_bulk.expand`, ≤ 50), в пакете не больше одного массового пункта. 8. `*.create` →
+`setup_assistant._from_ai` → `from_plan` (создание первым). 9. Пункт — тот же dict, что у правил
+(`assistant_changes.item_for`); права — в `present`/`apply`. 10. Отброшенные — сводка в шапке; ничего
+не осталось → fallback `unclear`.
+
+### 14.5 Задача, кэш, лимиты
+`TaskSpec(tier="fast", max_tokens=800, timeout_s=20, max_input_chars=6000)`; `ask()` по образцу
+`assistant_ai.ask` (лимиты, замок, pending, Celery `assistant_actions_job`); `run_actions_job` →
+generate → check_actions → `_put(outcome="actions", source="ai")`; SYSTEM_CODES → refund; finally —
+release. Кэш хранит ПРОВЕРЕННЫЙ ответ модели (не пункты): пункты пересобираются, `before` свежий;
+ключ включает хэш списка объектов. Таймаут — общий `job_state`.
+
+### 14.6 Отказы
+AIError/невалидный JSON → «nicht verfügbar» + статьи, refund; выдуманный индекс → пункт отброшен;
+всё отброшено → fallback; Redis/очередь → `unavailable`; исключение проверки → fallback, без записи.
+
+### 14.7 Закон и настройки
+`disclosure.TASK_DATA["assistant_actions"]` (фраза без контактов + названия; без цен/клиентов/заказов;
+Art. 6 Abs. 1 lit. b; owner), строка в `ai-usage-policy §2`, по умолчанию ВЫКЛ, предпросмотр
+`source=ai` — «Vorschlag der KI — bitte prüfen» + `{% ai_notice %}`.
+
+### 14.8 Замки ДО кода (`test_a4e_ai_actions.py`)
+паритет `item_for`/`expand` · маршрут · промпт (нет цен/pk/ПД, кап, маркер, инъекция внутри DATA) ·
+схема (enum ⊆ ACTIONS, без booking — без service.*, без page.setting) · факты ×5 языков · bulk (51,
+два массовых) · смешанный пакет create+change → apply/undo · права · кэш · лимиты/refund/таймаут ·
+история · disclosure.
+
+### 14.9 ECC
+Скиллы: django-tdd, django-security, django-celery, error-handling, python-testing. Агенты:
+`architect` (§14.1, §14.5 до кода), `django-reviewer` каждый батч, `security-reviewer` A-4e-2/3,
+`silent-failure-hunter` (воркер/refund/fallback), `a11y-architect` (бейдж, сводка). Стенд Playwright
+1440/390 de+ru на тестовых данных с прямым Claude.
+
+### 14.10 Инкременты
+A-4e-1 рефактор без ИИ (`item_for`, `expand` + паритет) → A-4e-2 задача (изменения, тумблер ВЫКЛ) →
+A-4e-3 создание и смешанные пакеты + стенд → A-4e-4 (по журналу A-6) `page.setting`.
+
+### 14.11 Правки архитектора (агент `architect`, 2026-11-06) — обязательны до кода
+1. `wants()` — только при СИГНАЛЕ действия: глагол (общий `_ACTION_VERB_RE` = `assistant_changes._VERB_RE`
+   + глаголы создания + «все») ИЛИ имя существующего объекта во фразе (`_matches`). Без сигнала — прямо в
+   `ask` (иначе регрессия A-2: «Mein Shop wird nicht angezeigt» потерял бы диагноз).
+2. `not_action` от модели → воркер ставит в ту же задачу запись `assistant_answer` (второй вызов только
+   в этом редком случае; попытки считаются по задаче). Вопрос — `assistant_changes._looks_like_question`.
+3. Индекс строится один раз: `wants(request, q) -> ctx | None` → `ask(request, q, ctx)`; fail-closed.
+4. `check_actions(tenant, user, q, ctx, data, lang)` — без request и `reachable()`; воркер:
+   `schema_context` + Tenant/User по pk + `translation.override(lang)`. Права воркера — только «что
+   предлагать»; гейты экрана/Mini App — в `present`/`apply` (инвариант A-4a).
+5. Пользователь удалён/потерял членство до воркера → `unavailable` + refund.
+6. Кэш — только ответ модели после проверки схемы; ключ: TASK, CHECK_VERSION, lang, q, упорядоченный
+   список `(kind, pk, names)`, enum схемы, версия ACTIONS. Попаданий мало (индекс по `-updated_at`) — честно.
+7. На попадании `check_actions` выполняется синхронно в запросе тем же кодом.
+8. Не дублировать: `_put`, `_release`, `_refund`, `_lock_key`, `job_state`, `JOB_RE`, `ENTRY_V`,
+   `DEADLINE_S` из `assistant_ai`; один `run_job` с диспетчером по `entry["task"]`; в ctx действий —
+   `article_keys` для fallback по таймауту.
+9. `assistant_history._DROP` += `objects`, `source`, сырые данные модели; замок «из истории не применяется».
+10. Видимость — только при глаголе скрыть/показать во фразе. 11. `in_category_text`/`name_text` —
+   должны встречаться во фразе. 12. Неоднозначность — по индексу (тот же casefold-ключ), не по выбору модели.
+13. Пакет с `category_all` — только массовый, прочие пункты отброшены со сводкой; две цены при
+   относительном изменении — отказ (замок).
+14. Смешанный create + change — `outcome="actions"`, `present` рисует create-пункты; замок на шаблон и
+   `actions_change`. 15. `_from_ai(..., allowed)` — по правам пользователя в воркере; цена при create —
+   `sortiment.edit`, при изменении — `preise.edit`.
+16. Проверка короче `DEADLINE_S`; поздний `_put` воркера не перезаписывает timeout.
+17. Тумблер `wants()` — задача `assistant_actions` из AI-CFG (`apps/ai/config.py`), не `assistant_ai.enabled()`.
+18. pk из `ctx["objects"]` перепроверяются перед `item_for` (удалён → пункт отброшен).
