@@ -539,9 +539,10 @@ def _score(words, parts) -> tuple[int, int]:
     return total, matched
 
 
-def ranked(q: str) -> list[Article]:
-    """Статьи по запросу без гейтов: сначала «все слова», если пусто — «любое слово»."""
-    words = [w for w in norm((q or "")[:QUERY_MAX]) if len(w) >= MIN_WORD]
+def ranked(q: str, *, max_chars: int = QUERY_MAX) -> list[Article]:
+    """Статьи по запросу без гейтов: сначала «все слова», если пусто — «любое слово».
+    `max_chars` — длиннее для вопроса ИИ-помощника (A-2), поиск шторки режет до 80."""
+    words = [w for w in norm((q or "")[:max_chars]) if len(w) >= MIN_WORD]
     if not words:
         return []
     scored = []

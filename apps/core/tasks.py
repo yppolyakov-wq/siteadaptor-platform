@@ -139,3 +139,11 @@ def offer_photo_lines(*, schema: str, user_pk, job: str) -> None:
     from apps.core import offer_photo
 
     offer_photo.run_job(schema=schema, user_pk=user_pk, job=job)
+
+
+@idempotent_task()
+def assistant_answer_job(*, schema: str, user_pk, job: str) -> None:
+    """AIS A-2: ИИ-ответ помощника кабинета — вне веб-воркера."""
+    from apps.core import assistant_ai
+
+    assistant_ai.run_job(schema=schema, user_pk=user_pk, job=job)

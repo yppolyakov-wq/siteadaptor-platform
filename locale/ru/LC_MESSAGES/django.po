@@ -34122,3 +34122,71 @@ msgstr "Найти вопрос или настройку"
 #: templates/core/_assistant_body.html
 msgid "Hilfe zu dieser Seite"
 msgstr "Помощь по этой странице"
+
+#: apps/core/assistant_ai.py templates/core/_assistant_answer.html
+msgid "Aktualisieren"
+msgstr "Обновить"
+
+#: apps/core/assistant_ai.py templates/core/_assistant_answer.html
+msgid "Bitte eine Frage eingeben."
+msgstr "Введите вопрос."
+
+#: apps/core/assistant_ai.py templates/core/_assistant_answer.html
+msgid "Der KI-Assistent ist gerade nicht verfügbar."
+msgstr "ИИ-помощник сейчас недоступен."
+
+#: apps/core/assistant_ai.py templates/core/_assistant_answer.html
+msgid "Der KI-Assistent sucht eine Antwort …"
+msgstr "ИИ-помощник ищет ответ …"
+
+#: apps/core/assistant_ai.py templates/core/_assistant_answer.html
+msgid "Die Frage ist zu lang — höchstens 500 Zeichen."
+msgstr "Вопрос слишком длинный — не более 500 символов."
+
+#: apps/core/assistant_ai.py templates/core/_assistant_answer.html
+msgid "Die vorige Frage wird noch beantwortet."
+msgstr "Предыдущий вопрос ещё обрабатывается."
+
+#: apps/core/assistant_ai.py templates/core/_assistant_answer.html
+msgid "Frage an den KI-Assistenten"
+msgstr "Вопрос ИИ-помощнику"
+
+#: apps/core/assistant_ai.py templates/core/_assistant_answer.html
+msgid "Ich bin nicht sicher — diese Anleitungen helfen vielleicht."
+msgstr "Я не уверен — возможно, помогут эти инструкции."
+
+#: apps/core/assistant_ai.py templates/core/_assistant_answer.html
+msgid "Ich helfe nur bei der Einrichtung und Bedienung Ihres Kundenbereichs. Fragen Sie zum Beispiel: „Wie richte ich die Lieferung ein?“"
+msgstr "Я помогаю только с настройкой и работой в вашем кабинете. Спросите, например: «Как настроить доставку?»"
+
+#: apps/core/assistant_ai.py templates/core/_assistant_answer.html
+msgid "KI fragen"
+msgstr "Спросить ИИ"
+
+#: apps/core/assistant_ai.py templates/core/_assistant_answer.html
+msgid "KI-Assistent"
+msgstr "ИИ-помощник"
+
+#: apps/core/assistant_ai.py templates/core/_assistant_answer.html
+msgid "Laut Prüfung:"
+msgstr "По проверке:"
+
+#: apps/core/assistant_ai.py templates/core/_assistant_answer.html
+msgid "Sie chatten mit einer KI. Antworten bitte prüfen — Steuer- und Rechtsfragen beantwortet sie nicht."
+msgstr "Вы общаетесь с ИИ. Проверяйте ответы — на налоговые и юридические вопросы он не отвечает."
+
+#: apps/core/assistant_ai.py templates/core/_assistant_answer.html
+msgid "Zu Rechtsfragen kann ich nicht beraten — bitte fragen Sie einen Anwalt, die IHK oder die Handwerkskammer. Wo Sie Angaben eintragen, zeigen die Anleitungen."
+msgstr "По юридическим вопросам я не консультирую — обратитесь к юристу, в IHK или в ремесленную палату. Где вводить данные, показывают инструкции."
+
+#: apps/core/assistant_ai.py templates/core/_assistant_answer.html
+msgid "Zu Steuerfragen kann ich nicht beraten — bitte fragen Sie Ihren Steuerberater oder einen Lohnsteuerhilfeverein. Wo Sie Angaben eintragen, zeigen die Anleitungen."
+msgstr "По налоговым вопросам я не консультирую — обратитесь к налоговому консультанту или в Lohnsteuerhilfeverein. Где вводить данные, показывают инструкции."
+
+#: apps/core/assistant_ai.py templates/core/_assistant_answer.html
+msgid "Zu viele Fragen in kurzer Zeit — bitte später erneut versuchen."
+msgstr "Слишком много вопросов за короткое время — попробуйте позже."
+
+#: apps/core/assistant_ai.py templates/core/_assistant_answer.html
+msgid "z. B. Wie richte ich die Lieferung nur für meine Stadt ein?"
+msgstr "например: Как настроить доставку только по моему городу?"

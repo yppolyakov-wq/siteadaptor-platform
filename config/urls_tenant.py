@@ -148,6 +148,13 @@ urlpatterns = [
     # STU-19i: the setup helper on its own screen (lite cabinet + Telegram Mini App)
     path("dashboard/anlegen/", lite_cabinet.setup_ask, name="setup-ask"),
     path("dashboard/assistent/", assistant_views.assistant_view, name="assistant"),  # AIS A-0
+    # AIS A-2: «✨ KI fragen» (POST) и опрос ответа (GET, фрагмент)
+    path("dashboard/assistent/frage/", assistant_views.assistant_ask, name="assistant-ask"),
+    path(
+        "dashboard/assistent/frage/<str:job>/",
+        assistant_views.assistant_answer,
+        name="assistant-answer",
+    ),
     # UD4-2: кабинет «Benachrichtigungen» — каналы email/Telegram per-событие.
     path(
         "dashboard/settings/notifications/",

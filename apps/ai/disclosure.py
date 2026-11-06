@@ -73,6 +73,13 @@ TASK_DATA = {
         "Art. 6 Abs. 1 lit. b DSGVO",
         "owner",
     ),
+    "assistant_answer": (
+        "Fragen an den Assistenten im Kundenbereich: Ihre Frage (ohne erkennbare Kontaktdaten), "
+        "passende Hilfetexte und der Einrichtungsstand Ihres Geschäfts als Kennzeichen "
+        "(keine Kunden-, Bestell- oder Nachrichtendaten)",
+        "Art. 6 Abs. 1 lit. b DSGVO",
+        "owner",
+    ),
     "setup_plan": (
         "Hilfe beim Anlegen von Kategorien und Produkten im Kundenbereich: der eingegebene "
         "Satz und die Namen der möglichen Felder (keine Kunden- oder Bestelldaten)",

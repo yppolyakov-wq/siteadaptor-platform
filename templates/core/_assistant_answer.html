@@ -1,0 +1,24 @@
+{% load i18n %}
+{% comment %}AIS A-2: ответ ИИ-помощника — ожидание, ответ (текст прошёл пост-проверку, ссылки построил сервер), отказ вне рамок или статьи A-1 вместо ответа. Только autoescape, без script.{% endcomment %}
+<div data-assistant-reply data-state="{{ ans.state }}"{% if ans.state == "pending" %} aria-busy="true"{% endif %} class="mt-3 rounded-xl border border-gray-200 p-3 space-y-2">
+  {% if ans.state == "pending" %}
+  <p role="status" class="text-sm">{% trans "Der KI-Assistent sucht eine Antwort …" %}</p>
+  {% if ans.job %}<a href="{% url 'assistant' %}?antwort={{ ans.job }}" class="inline-flex items-center min-h-[44px] text-sm text-indigo-700 hover:underline" data-assistant-refresh>{% trans "Aktualisieren" %}</a>{% endif %}
+  {% elif ans.outcome == "answer" %}
+  <{{ hl_sub|default:"h3" }} class="text-sm font-semibold flex items-center gap-2"><span aria-hidden="true">✨</span>{% trans "KI-Assistent" %} <span class="ui-badge ui-tone-off">{{ ans.ai_label }}</span></{{ hl_sub|default:"h3" }}>
+  <p class="text-sm" data-assistant-text>{{ ans.text|linebreaksbr }}</p>
+  {% if ans.states %}
+  <ul class="text-sm space-y-1">{% for st in ans.states %}<li><span class="ui-muted">{% trans "Laut Prüfung:" %}</span> {{ st.label }} — {{ st.status }}</li>{% endfor %}</ul>
+  {% endif %}
+  {% if ans.links %}
+  <ul class="space-y-1">
+    {% for x in ans.links %}
+    <li>{% if x.link.url and x.link.method == "POST" %}<form method="post" action="{{ x.link.url }}">{% csrf_token %}<input type="hidden" name="next" value="{{ next_url }}"><button type="submit" class="ui-btn ui-btn-secondary ui-btn-sm min-h-[44px]">{{ x.label }}</button></form>{% elif x.link.url %}<a href="{{ x.link.url }}" class="inline-flex items-center min-h-[44px] text-indigo-700 hover:underline">{{ x.label }} <span aria-hidden="true">→</span></a>{% else %}<span class="text-sm">{{ x.label }}</span> <span class="ui-muted text-sm">· {{ x.link.note }}</span>{% endif %}</li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+  {% else %}
+  <p class="text-sm" role="status" data-assistant-fallback>{% if ans.outcome == "scope" %}{{ ans.scope_text }}{% else %}{% trans "Ich bin nicht sicher — diese Anleitungen helfen vielleicht." %}{% endif %}</p>
+  {% if ans.articles %}<div class="space-y-2">{% for a in ans.articles %}{% include "core/_assistant_article.html" %}{% endfor %}</div>{% endif %}
+  {% endif %}
+</div>

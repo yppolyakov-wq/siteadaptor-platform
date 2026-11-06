@@ -1064,3 +1064,71 @@ try { (function () {
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", openNeu);
   else openNeu();
 })(); } catch (e) { console.error(e); }
+// ---- core/_assistant_body.html (форма «✨ KI fragen») ----
+// AIS A-2: вопрос уходит POST'ом (fetch, CSRF из формы), ответ опрашивается фрагментом каждые
+// 1,5 с до 30 с. Делегирование на document — форма живёт в шторке, вставленной fetch'ем.
+// Без JS форма отправляется обычным POST и страница помощника показывает ответ (?antwort=).
+try { (function () {
+  "use strict";
+  var POLL_MS = 1500, POLL_MAX = 20;
+  function box(form) {
+    var root = form.closest("[data-assistant]");
+    return root && root.querySelector("[data-assistant-answer]");
+  }
+  function show(target, html) { if (target) target.innerHTML = html; }
+  function note(target, text) {
+    if (!target) return;
+    var p = document.createElement("p");
+    p.className = "ui-muted text-sm mt-2";
+    p.setAttribute("role", "status");
+    p.textContent = text;
+    target.innerHTML = "";
+    target.appendChild(p);
+  }
+  function poll(target, url, n, done) {
+    fetch(url, { credentials: "same-origin", headers: { "X-Sf-Drawer": "1" } })
+      .then(function (r) {
+        if (!r.ok) throw new Error("status " + r.status);
+        var state = r.headers.get("X-Sf-Answer-State");
+        return r.text().then(function (html) {
+          show(target, html);
+          if (state === "pending" && n < POLL_MAX) {
+            setTimeout(function () { poll(target, url, n + 1, done); }, POLL_MS);
+          } else {
+            done();
+          }
+        });
+      })
+      .catch(function () { note(target, document.querySelector("form[data-assistant-ask]") ? document.querySelector("form[data-assistant-ask]").getAttribute("data-error") || "" : ""); done(); });
+  }
+  document.addEventListener("submit", function (e) {
+    var form = e.target;
+    if (e.defaultPrevented || !form.matches || !form.matches("form[data-assistant-ask]")) return;
+    if (!window.fetch) return;  // старый браузер — обычный POST
+    e.preventDefault();
+    var btn = form.querySelector("[data-assistant-ask-btn]");
+    if (btn && btn.disabled) return;
+    var target = box(form);
+    function done() {
+      if (btn) { btn.disabled = false; btn.removeAttribute("aria-disabled"); }
+      form.removeAttribute("aria-busy");
+    }
+    if (btn) { btn.disabled = true; btn.setAttribute("aria-disabled", "true"); }
+    form.setAttribute("aria-busy", "true");
+    fetch(form.getAttribute("action"), {
+      method: "POST", body: new FormData(form), credentials: "same-origin",
+      redirect: "manual", headers: { "X-Sf-Drawer": "1" }
+    })
+      .then(function (r) {
+        if (r.type === "opaqueredirect") { location.reload(); return null; }
+        return r.json();
+      })
+      .then(function (res) {
+        if (!res) return;
+        if (res.url) { poll(target, res.url, 0, done); return; }
+        note(target, res.message || "");
+        done();
+      })
+      .catch(function () { note(target, form.getAttribute("data-error") || ""); done(); });
+  });
+})(); } catch (e) { console.error(e); }

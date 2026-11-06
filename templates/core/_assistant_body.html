@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load i18n ai_notice %}
 {% comment %}AIS A-0: тело помощника — шторка (?box=1) и полная страница. Без script и on…=: фрагмент вставляет cabinet.js. Только чтение.{% endcomment %}
 <div data-drawer-title="{% trans 'Assistent' %}" data-assistant class="space-y-5">
   {% if failed %}<p class="ui-muted text-sm" role="status">{% trans "Einige Prüfungen konnten nicht ausgeführt werden." %}</p>{% endif %}
@@ -56,6 +56,18 @@
       <input id="as-q" name="q" value="{{ q }}" maxlength="80" class="ui-input flex-1" placeholder="{% trans 'z. B. Öffnungszeiten, Lieferung' %}">
       <button type="submit" class="ui-btn ui-btn-secondary min-h-[44px]">{% trans "Suchen" %}</button>
     </form>
+    {% if ai_enabled %}
+    <form method="post" action="{% url 'assistant-ask' %}" class="mt-3 space-y-2" data-assistant-ask data-error="{% trans 'Der KI-Assistent ist gerade nicht verfügbar.' %}">
+      {% csrf_token %}
+      {% if seite %}<input type="hidden" name="seite" value="{{ seite }}">{% endif %}
+      <label for="as-frage" class="block text-sm font-medium">{% trans "Frage an den KI-Assistenten" %}</label>
+      <textarea id="as-frage" name="frage" rows="2" maxlength="500" required aria-describedby="as-frage-hint" class="ui-input block w-full" placeholder="{% trans 'z. B. Wie richte ich die Lieferung nur für meine Stadt ein?' %}"></textarea>
+      <p id="as-frage-hint" class="ui-muted text-xs">{% trans "Sie chatten mit einer KI. Antworten bitte prüfen — Steuer- und Rechtsfragen beantwortet sie nicht." %}</p>
+      {% ai_notice "assistant_answer" %}
+      <button type="submit" class="ui-btn ui-btn-secondary min-h-[44px]" data-assistant-ask-btn><span aria-hidden="true">✨</span> {% trans "KI fragen" %}</button>
+    </form>
+    <div data-assistant-answer aria-live="polite">{% if answer %}{% with ans=answer %}{% include "core/_assistant_answer.html" %}{% endwith %}{% endif %}</div>
+    {% endif %}
     {% if q %}
       {% if help_found %}
       <{{ hl_sub|default:"h3" }} class="text-sm font-semibold mt-3 mb-1" data-help-results>{% trans "Anleitungen" %}</{{ hl_sub|default:"h3" }}>

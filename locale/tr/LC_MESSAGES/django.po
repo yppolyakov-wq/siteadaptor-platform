@@ -33961,3 +33961,71 @@ msgstr "Soru veya ayar arayın"
 #: templates/core/_assistant_body.html
 msgid "Hilfe zu dieser Seite"
 msgstr "Bu sayfa için yardım"
+
+#: apps/core/assistant_ai.py templates/core/_assistant_answer.html
+msgid "Aktualisieren"
+msgstr "Yenile"
+
+#: apps/core/assistant_ai.py templates/core/_assistant_answer.html
+msgid "Bitte eine Frage eingeben."
+msgstr "Lütfen bir soru girin."
+
+#: apps/core/assistant_ai.py templates/core/_assistant_answer.html
+msgid "Der KI-Assistent ist gerade nicht verfügbar."
+msgstr "Yapay zekâ asistanı şu anda kullanılamıyor."
+
+#: apps/core/assistant_ai.py templates/core/_assistant_answer.html
+msgid "Der KI-Assistent sucht eine Antwort …"
+msgstr "Yapay zekâ asistanı bir yanıt arıyor …"
+
+#: apps/core/assistant_ai.py templates/core/_assistant_answer.html
+msgid "Die Frage ist zu lang — höchstens 500 Zeichen."
+msgstr "Soru çok uzun — en fazla 500 karakter."
+
+#: apps/core/assistant_ai.py templates/core/_assistant_answer.html
+msgid "Die vorige Frage wird noch beantwortet."
+msgstr "Önceki soru hâlâ yanıtlanıyor."
+
+#: apps/core/assistant_ai.py templates/core/_assistant_answer.html
+msgid "Frage an den KI-Assistenten"
+msgstr "Yapay zekâ asistanına soru"
+
+#: apps/core/assistant_ai.py templates/core/_assistant_answer.html
+msgid "Ich bin nicht sicher — diese Anleitungen helfen vielleicht."
+msgstr "Emin değilim — bu kılavuzlar yardımcı olabilir."
+
+#: apps/core/assistant_ai.py templates/core/_assistant_answer.html
+msgid "Ich helfe nur bei der Einrichtung und Bedienung Ihres Kundenbereichs. Fragen Sie zum Beispiel: „Wie richte ich die Lieferung ein?“"
+msgstr "Yalnızca müşteri alanınızın kurulumu ve kullanımı konusunda yardımcı olurum. Örneğin şunu sorun: “Teslimatı nasıl ayarlarım?”"
+
+#: apps/core/assistant_ai.py templates/core/_assistant_answer.html
+msgid "KI fragen"
+msgstr "Yapay zekâya sor"
+
+#: apps/core/assistant_ai.py templates/core/_assistant_answer.html
+msgid "KI-Assistent"
+msgstr "Yapay zekâ asistanı"
+
+#: apps/core/assistant_ai.py templates/core/_assistant_answer.html
+msgid "Laut Prüfung:"
+msgstr "Kontrole göre:"
+
+#: apps/core/assistant_ai.py templates/core/_assistant_answer.html
+msgid "Sie chatten mit einer KI. Antworten bitte prüfen — Steuer- und Rechtsfragen beantwortet sie nicht."
+msgstr "Bir yapay zekâ ile konuşuyorsunuz. Lütfen yanıtları kontrol edin — vergi ve hukuk sorularını yanıtlamaz."
+
+#: apps/core/assistant_ai.py templates/core/_assistant_answer.html
+msgid "Zu Rechtsfragen kann ich nicht beraten — bitte fragen Sie einen Anwalt, die IHK oder die Handwerkskammer. Wo Sie Angaben eintragen, zeigen die Anleitungen."
+msgstr "Hukuki konularda danışmanlık yapamam — lütfen bir avukata, IHK’ya veya esnaf odasına danışın. Bilgilerin nereye girileceğini kılavuzlar gösterir."
+
+#: apps/core/assistant_ai.py templates/core/_assistant_answer.html
+msgid "Zu Steuerfragen kann ich nicht beraten — bitte fragen Sie Ihren Steuerberater oder einen Lohnsteuerhilfeverein. Wo Sie Angaben eintragen, zeigen die Anleitungen."
+msgstr "Vergi konularında danışmanlık yapamam — lütfen vergi danışmanınıza veya bir Lohnsteuerhilfeverein’e danışın. Bilgilerin nereye girileceğini kılavuzlar gösterir."
+
+#: apps/core/assistant_ai.py templates/core/_assistant_answer.html
+msgid "Zu viele Fragen in kurzer Zeit — bitte später erneut versuchen."
+msgstr "Kısa sürede çok fazla soru — lütfen daha sonra tekrar deneyin."
+
+#: apps/core/assistant_ai.py templates/core/_assistant_answer.html
+msgid "z. B. Wie richte ich die Lieferung nur für meine Stadt ein?"
+msgstr "örn. Teslimatı yalnızca şehrim için nasıl ayarlarım?"

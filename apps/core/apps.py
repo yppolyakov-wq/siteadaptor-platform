@@ -26,6 +26,7 @@ class CoreConfig(AppConfig):
         # and the AI admin list must know it without importing a view first).
         # T-8.30: любой вход снимает ограничение сессии Telegram Mini App.
         from apps.core import (
+            assistant_ai,  # noqa: F401 — AIS A-2 «KI fragen»
             offer_photo,  # noqa: F401 — AIS W4-4 «Foto der Speisekarte»
             setup_assistant,  # noqa: F401
             tg_login,

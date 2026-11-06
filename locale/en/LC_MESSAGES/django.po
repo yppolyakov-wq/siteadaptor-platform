@@ -33815,3 +33815,71 @@ msgstr "Search a question or setting"
 #: templates/core/_assistant_body.html
 msgid "Hilfe zu dieser Seite"
 msgstr "Help for this page"
+
+#: apps/core/assistant_ai.py templates/core/_assistant_answer.html
+msgid "Aktualisieren"
+msgstr "Refresh"
+
+#: apps/core/assistant_ai.py templates/core/_assistant_answer.html
+msgid "Bitte eine Frage eingeben."
+msgstr "Please enter a question."
+
+#: apps/core/assistant_ai.py templates/core/_assistant_answer.html
+msgid "Der KI-Assistent ist gerade nicht verfügbar."
+msgstr "The AI assistant is not available right now."
+
+#: apps/core/assistant_ai.py templates/core/_assistant_answer.html
+msgid "Der KI-Assistent sucht eine Antwort …"
+msgstr "The AI assistant is looking for an answer …"
+
+#: apps/core/assistant_ai.py templates/core/_assistant_answer.html
+msgid "Die Frage ist zu lang — höchstens 500 Zeichen."
+msgstr "The question is too long — at most 500 characters."
+
+#: apps/core/assistant_ai.py templates/core/_assistant_answer.html
+msgid "Die vorige Frage wird noch beantwortet."
+msgstr "The previous question is still being answered."
+
+#: apps/core/assistant_ai.py templates/core/_assistant_answer.html
+msgid "Frage an den KI-Assistenten"
+msgstr "Question for the AI assistant"
+
+#: apps/core/assistant_ai.py templates/core/_assistant_answer.html
+msgid "Ich bin nicht sicher — diese Anleitungen helfen vielleicht."
+msgstr "I'm not sure — these guides may help."
+
+#: apps/core/assistant_ai.py templates/core/_assistant_answer.html
+msgid "Ich helfe nur bei der Einrichtung und Bedienung Ihres Kundenbereichs. Fragen Sie zum Beispiel: „Wie richte ich die Lieferung ein?“"
+msgstr "I only help with setting up and using your customer area. Ask, for example: “How do I set up delivery?”"
+
+#: apps/core/assistant_ai.py templates/core/_assistant_answer.html
+msgid "KI fragen"
+msgstr "Ask AI"
+
+#: apps/core/assistant_ai.py templates/core/_assistant_answer.html
+msgid "KI-Assistent"
+msgstr "AI assistant"
+
+#: apps/core/assistant_ai.py templates/core/_assistant_answer.html
+msgid "Laut Prüfung:"
+msgstr "According to the check:"
+
+#: apps/core/assistant_ai.py templates/core/_assistant_answer.html
+msgid "Sie chatten mit einer KI. Antworten bitte prüfen — Steuer- und Rechtsfragen beantwortet sie nicht."
+msgstr "You are chatting with an AI. Please check the answers — it does not answer tax or legal questions."
+
+#: apps/core/assistant_ai.py templates/core/_assistant_answer.html
+msgid "Zu Rechtsfragen kann ich nicht beraten — bitte fragen Sie einen Anwalt, die IHK oder die Handwerkskammer. Wo Sie Angaben eintragen, zeigen die Anleitungen."
+msgstr "I can't advise on legal questions — please ask a lawyer, the IHK or the chamber of crafts. The guides show where to enter details."
+
+#: apps/core/assistant_ai.py templates/core/_assistant_answer.html
+msgid "Zu Steuerfragen kann ich nicht beraten — bitte fragen Sie Ihren Steuerberater oder einen Lohnsteuerhilfeverein. Wo Sie Angaben eintragen, zeigen die Anleitungen."
+msgstr "I can't advise on tax questions — please ask your tax advisor or a payroll tax assistance association. The guides show where to enter details."
+
+#: apps/core/assistant_ai.py templates/core/_assistant_answer.html
+msgid "Zu viele Fragen in kurzer Zeit — bitte später erneut versuchen."
+msgstr "Too many questions in a short time — please try again later."
+
+#: apps/core/assistant_ai.py templates/core/_assistant_answer.html
+msgid "z. B. Wie richte ich die Lieferung nur für meine Stadt ein?"
+msgstr "e.g. How do I set up delivery only for my town?"

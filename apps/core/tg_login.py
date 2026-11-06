@@ -52,6 +52,8 @@ TG_LITE_VIEWS = frozenset(
         "betriebsferien",  # KA-12 О-8
         "lite-requests",  # KA-12 E8.9
         "assistant",  # AIS A-0: шторка помощника (только чтение)
+        "assistant-ask",  # AIS A-2: вопрос ИИ-помощнику
+        "assistant-answer",  # AIS A-2: опрос ответа
         "setup-ask",  # STU-19i: "Was möchten Sie anlegen?" (plan only): заявки списком (карточка со сметой — вне Telegram)
         "owner-confirm-resend",
         "set-cabinet-lang",

@@ -200,6 +200,7 @@ EXPECTED_UNLISTED = frozenset(
         "inbox:unread-count",  # JSON-счётчик бейджа
         "palette-search",  # X8: JSON-поиск палитры (не страница)
         "assistant",  # AIS A-0: вход — кнопка «✨» в шапке, главная лёгкого кабинета, мастер
+        "assistant-ask",  # AIS A-2: приёмник вопроса шторки (POST, не экран)
         "setup-ask",  # STU-19i: вход — плитка главной лёгкого кабинета/Mini App и Ctrl+K
         "setup",  # мастер — собственный хром (_base_setup)
         "setup-offer-scan",  # W4-4: JSON-опрос «Foto lesen» шага мастера (не экран)
