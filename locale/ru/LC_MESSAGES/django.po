@@ -35109,5 +35109,5 @@ msgstr "Услуги по запросу"
 msgid "Eine Leistung pro Zeile, Preis optional. Ohne Preis steht „Preis auf Anfrage“ — Kunden fragen über das Formular an."
 msgstr "Одна услуга на строку, цена — по желанию. Без цены будет «Цена по запросу» — клиенты спросят через форму."
 
-msgid "Online-Bestellung ist hier noch nicht möglich — bitte kontaktieren Sie uns."
-msgstr "Онлайн-заказ здесь пока недоступен — пожалуйста, свяжитесь с нами."
+msgid "Online kaufen und buchen ist hier noch nicht möglich — bitte melden Sie sich direkt bei uns."
+msgstr "Купить или забронировать онлайн здесь пока нельзя — пожалуйста, свяжитесь с нами напрямую."

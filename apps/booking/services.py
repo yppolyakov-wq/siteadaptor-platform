@@ -265,9 +265,11 @@ def book(
 
         from apps.core import readiness
 
+        # Стол — только бронь без услуги на ресурсе-столе (тип ресурса по умолчанию «стол»,
+        # поэтому запись на услугу всегда считается направлением Termine).
+        is_table = service is None and getattr(resource, "type", "") == "table"
         readiness.require_sell(
-            getattr(connection, "tenant", None),
-            "tisch" if getattr(resource, "type", "") == "table" else "termine",
+            getattr(connection, "tenant", None), "tisch" if is_table else "termine"
         )
     if end <= start:
         raise ValueError("end must be after start")
@@ -413,6 +415,16 @@ def book_many(starts, **kwargs):
     Остальные поля брони (имя/почта/услуга/…) — общие, приходят в kwargs.
     Возвращает список созданных броней в порядке периодов.
     """
+    if kwargs.get("channel") == "storefront":
+        # AIS W4-5d: гейт ДО блокировок области (каждый `book` проверит ещё раз — мемо).
+        from django.db import connection
+
+        from apps.core import readiness
+
+        readiness.require_sell(
+            getattr(connection, "tenant", None),
+            "termine" if kwargs.get("service") is not None else "tisch",
+        )
     slots = list(starts)
     if not slots:
         raise ValueError("no slots given")

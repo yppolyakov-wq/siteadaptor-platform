@@ -195,10 +195,20 @@ def test_booking_services_ask_the_gate_with_their_direction(blocked_directions):
     from apps.stays import services as stays
 
     now = datetime(2030, 1, 1, 10)
-    for resource, expected in ((SimpleNamespace(type="table"), "tisch"), (None, "termine")):
+    cases = (
+        (SimpleNamespace(type="table"), None, "tisch"),
+        (SimpleNamespace(type="table"), object(), "termine"),  # услуга на ресурсе-«столе»
+        (None, None, "termine"),
+    )
+    for resource, service, expected in cases:
         with pytest.raises(readiness.SellBlocked):
-            booking.book(resource, start=now, end=now, name="G", channel="storefront")
+            booking.book(
+                resource, start=now, end=now, name="G", service=service, channel="storefront"
+            )
         assert blocked_directions[-1] == expected
+    with pytest.raises(readiness.SellBlocked):
+        booking.book_many([], service=object(), name="G", channel="storefront")
+    assert blocked_directions[-1] == "termine"
     with pytest.raises(readiness.SellBlocked):
         stays.book_stay(
             None,
@@ -241,9 +251,13 @@ def test_every_storefront_sale_call_passes_the_channel():
     calls = re.compile(
         r"(?<![\w.])(?:\w*services\.)?(book|book_many|book_stay|book_ticket|create_order|purchase)\("
     )
-    allow: set[str] = set()  # сюда — точка, которую осознанно не гейтим, с причиной
+    allow = {
+        # пробрасывает channel вызывающего (публичного вызова нет; витрина передаст storefront)
+        "apps/promotions/price_layer.py:book",
+    }
     missing_channel = []
-    for path in root.glob("apps/*/public_views.py"):
+    paths = [*root.glob("apps/*/public_views.py"), root / "apps/promotions/price_layer.py"]
+    for path in paths:
         text = path.read_text(encoding="utf-8")
         for m in calls.finditer(text):
             if text[max(0, m.start() - 4) : m.start()] == "def ":
@@ -258,7 +272,12 @@ def test_every_storefront_sale_call_passes_the_channel():
                     break
             args = window[:end]
             key = f"{path.relative_to(root)}:{m.group(1)}"
-            gated = "channel=" in args and '"storefront"' in args
+            gated = "channel=" in args and ('"storefront"' in args or "channel=channel" in args)
             if not gated and not any(key.startswith(a) for a in allow):
                 missing_channel.append(key)
     assert not missing_channel, missing_channel
+
+
+def test_gate_without_tenant_is_allowed_not_500(settings):
+    settings.READINESS_SELL_GATE = True
+    readiness.require_sell(None, "waren")  # не бросает

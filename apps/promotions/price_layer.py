@@ -364,6 +364,7 @@ def purchase_service(
     phone="",
     note="",
     source_channel="",
+    channel="",
 ):
     """Чекаут акции-услуги СТАНДАРТНОЙ бронью (двойное списание в одной
     транзакции): лимит кампании + слот мастера (anti-double-book штатный).
@@ -380,6 +381,7 @@ def purchase_service(
     price = promotion.new_price
     return booking_services.book(
         resource,
+        channel=channel,  # AIS W4-5d: витрина обязана передать "storefront"
         start=start,
         end=end,
         name=name,

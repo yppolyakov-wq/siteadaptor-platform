@@ -510,6 +510,9 @@ def sell_allowed(tenant, direction: str) -> bool:
     """Гейт продажи: при выключенном флаге — всегда да (поведение прежнее)."""
     if not getattr(settings, "READINESS_SELL_GATE", False):
         return True
+    if tenant is None:  # вне запроса витрины (скрипт/Celery) — правды не знаем: fail-open
+        logger.warning("readiness: sell gate without tenant — allowed")
+        return True
     if is_service_tenant(tenant) or is_exempt(tenant):
         return True
     return sell_ready(tenant, direction)
@@ -518,7 +521,9 @@ def sell_allowed(tenant, direction: str) -> bool:
 # --- AIS W4-5d: гейт продажи в кассах витрины -----------------------------------------------
 
 #: Клиенту — одна нейтральная фраза: без названий пунктов и ссылок кабинета.
-NEUTRAL_MESSAGE = _("Online-Bestellung ist hier noch nicht möglich — bitte kontaktieren Sie uns.")
+NEUTRAL_MESSAGE = _(
+    "Online kaufen und buchen ist hier noch nicht möglich — bitte melden Sie sich direkt bei uns."
+)
 
 
 class SellBlocked(Exception):
