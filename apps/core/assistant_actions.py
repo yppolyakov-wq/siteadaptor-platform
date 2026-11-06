@@ -391,7 +391,12 @@ def present(request, items: list[dict], *, errors: dict | None = None) -> list[d
                 "options": options,
                 "form_url": form_url,
                 "verb": spec.verb,
-                **_change_texts(request, spec, item, values, existing),
+                # без права — без текущих значений (цена/видимость скрытого товара)
+                **(
+                    _change_texts(request, spec, item, values, existing)
+                    if ok
+                    else {"before_text": "", "after_text": "", "warning": ""}
+                ),
             }
         )
     return out
@@ -437,6 +442,11 @@ def _change_texts(request, spec, item, values, existing) -> dict:
     except ValueError:
         after = ""
     warning = ""
+    if spec.key == CATEGORY_VISIBILITY and not after:
+        warning = _(
+            "Die Kategorie verschwindet aus Menü, Filtern und Stadtkatalog; ihre Produkte "
+            "werden dabei nicht einzeln ausgeblendet."
+        )
     if spec.verb == "price" and spec.entity == "product" and before and after:
         if Decimal(after) < Decimal(before):
             warning = _(
@@ -707,7 +717,7 @@ def apply(request, job: str, entry: dict, post) -> dict:
                 resource_type="assistant_change",
                 resource_id=str(change.pk),
                 actor=request.user,
-                changes={"items": [{"action": s["action"], "pk": s["pk"]} for s in snaps]},
+                changes={"items": [_audit_item(s) for s in snaps]},
                 strict=True,
             )
     except IntegrityError:
@@ -745,7 +755,7 @@ def _manager(kind: str):
     }[kind]
 
 
-def _set_value(spec: ActionSpec, obj, canon: str) -> None:
+def _set_value(spec: ActionSpec, obj, canon: str, *, stamp: bool = True) -> None:
     """Узкая запись одного поля на заблокированной строке (save → post_save: журнал цен,
     листинг города; не update(), который обошёл бы сигналы)."""
     if spec.verb == "price":
@@ -759,7 +769,8 @@ def _set_value(spec: ActionSpec, obj, canon: str) -> None:
     if spec.verb == "visibility":
         obj.is_active = bool(canon)
         fields = ["is_active", "updated_at"]
-        if obj.is_active and hasattr(obj, "confirmed_at"):  # Г3: включение = подтверждение
+        # Г3: включение = подтверждение актуальности; откат скрытия — не подтверждение
+        if stamp and obj.is_active and hasattr(obj, "confirmed_at"):
             from apps.core import freshness
 
             freshness.stamp(obj)
@@ -788,8 +799,19 @@ def _change(row: dict, targets: dict) -> dict:
         )
     if spec.verb == "price":
         blocked = assistant_changes._price_blocked(spec.entity, obj)
+        if not blocked and spec.entity == "service" and int(row["after"]) < obj.deposit_cents:
+            blocked = _("Der Preis darf nicht unter der Anzahlung liegen.")
         if blocked:
             raise ApplyError("invalid", {f"{row['index']}:{field}": blocked})
+    if spec.verb == "move" and row["after"]:
+        from apps.catalog.models import Category
+
+        # цель могли удалить между предпросмотром и кликом
+        if not Category.objects.filter(pk=row["after"]).exists():
+            raise ApplyError(
+                "invalid",
+                {f"{row['index']}:{field}": _("Bitte eine Kategorie aus der Liste wählen.")},
+            )
     _set_value(spec, obj, row["after"])
     return {
         "action": spec.key,
@@ -799,6 +821,15 @@ def _change(row: dict, targets: dict) -> dict:
         "before": before,
         "after": row["after"],
     }
+
+
+def _audit_item(snap: dict) -> dict:
+    """В журнал: действие и pk; у изменения — значения до/после (цена — восстановима из
+    аудита и после 90-дневной чистки AssistantChange). Текста фразы нет."""
+    out = {"action": snap["action"], "pk": snap["pk"]}
+    if "before" in snap:
+        out.update(before=snap["before"], after=snap["after"])
+    return out
 
 
 def _form_errors(index: int, errors: dict) -> dict:
@@ -987,7 +1018,7 @@ def _undo_change(spec: ActionSpec, item: dict, obj, out: dict) -> dict:
     if assistant_changes.current(spec.entity, spec.verb, obj) != str(item.get("after") or ""):
         out["reason"] = _("Inzwischen geändert — nicht zurückgesetzt.")
         return out
-    _set_value(spec, obj, str(item.get("before") or ""))
+    _set_value(spec, obj, str(item.get("before") or ""), stamp=False)
     out["done"] = True
     if spec.verb == "price" and spec.entity == "product":
         try:

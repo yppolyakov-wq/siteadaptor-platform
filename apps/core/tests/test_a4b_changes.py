@@ -55,7 +55,7 @@ TAKE = {"items_present": "1", "take_0": "1"}
     ],
 )
 def test_price_change_in_five_languages(ai_off, bakery, cake, phrase):
-    assert assistant_changes.intent(bakery, None, phrase)
+    assert assistant_changes.intent(bakery, _user(), phrase)
     user, got = _ask(bakery, phrase)
     _apply(bakery, user, got["job"], TAKE)
     cake.refresh_from_db()
@@ -63,8 +63,8 @@ def test_price_change_in_five_languages(ai_off, bakery, cake, phrase):
 
 
 def test_create_phrase_is_not_a_change(ai_off, bakery, cake):
-    assert not assistant_changes.intent(bakery, None, "lege Produkt Käsekuchen 4 € an")
-    assert not assistant_changes.intent(bakery, None, "добавь товар Käsekuchen 4 евро")
+    assert not assistant_changes.intent(bakery, _user(), "lege Produkt Käsekuchen 4 € an")
+    assert not assistant_changes.intent(bakery, _user(), "добавь товар Käsekuchen 4 евро")
 
 
 def test_price_preview_then_undo(ai_off, bakery, cake):
@@ -162,4 +162,85 @@ def test_category_hide(ai_off, bakery):
     ],
 )
 def test_question_is_not_a_change(ai_off, bakery, cake, question):
-    assert not assistant_changes.intent(bakery, None, question)
+    assert not assistant_changes.intent(bakery, _user(), question)
+
+
+def test_no_view_right_no_detection(ai_off, bakery, cake, monkeypatch):
+    """Без права видеть ассортимент детектор молчит (не выдаёт и само существование)."""
+    from apps.core import permissions
+
+    real = permissions.has_perm
+    monkeypatch.setattr(
+        permissions,
+        "has_perm",
+        lambda user, perm: perm not in ("sortiment.view", "preise.edit") and real(user, perm),
+    )
+    assert not assistant_changes.intent(bakery, _user(), "Preis Käsekuchen auf 3,50 €")
+
+
+def test_no_price_right_shows_no_current_value(ai_off, bakery, cake, monkeypatch):
+    from apps.core import permissions
+
+    real = permissions.has_perm
+    monkeypatch.setattr(
+        permissions, "has_perm", lambda user, perm: perm != "preise.edit" and real(user, perm)
+    )
+    user, got = _ask(bakery, "Preis Käsekuchen auf 3,50 €")
+    html = _html(bakery, user, got["job"])
+    assert "data-assistant-action-blocked" in html and "3,20" not in html
+
+
+def test_audit_keeps_before_and_after(ai_off, bakery, cake):
+    from apps.audit.models import AuditEvent
+
+    user, got = _ask(bakery, "Preis Käsekuchen auf 3,50 €")
+    _apply(bakery, user, got["job"], TAKE)
+    event = AuditEvent.objects.filter(action="assistant.apply").latest("pk")
+    item = event.changes["items"][0]
+    assert item["before"] == "3.20" and item["after"] == "3.50"
+
+
+@pytest.mark.parametrize(
+    "phrase",
+    [
+        "Preis Käsekuchen um 2 € erhöhen",
+        "увеличь цену Käsekuchen на 2 евро",
+        "Preis Käsekuchen +10 %",
+    ],
+)
+def test_relative_price_is_not_taken_as_absolute(ai_off, bakery, cake, phrase):
+    items = assistant_changes.build(bakery, _user(), phrase)
+    assert items and items[0]["values"]["price"] == ""
+
+
+def test_thousands_separator(ai_off, bakery):
+    writers.create_product(bakery, {"name_de": "Sofa", "base_price": "999"})
+    items = assistant_changes.build(bakery, _user(), "Preis Sofa auf 1.250 €")
+    assert items[0]["values"]["price"] == "1250,00"
+
+
+def test_hide_wins_over_price_word_without_amount(ai_off, bakery, cake):
+    items = assistant_changes.build(bakery, _user(), "Preis Käsekuchen ausblenden")
+    assert items[0]["action"] == "product.visibility"
+
+
+def test_longer_new_name_is_creation_not_change(ai_off, bakery, cake):
+    assert not assistant_changes.intent(bakery, _user(), "Käsekuchen Mini kostet 4 €")
+
+
+def test_question_with_price_is_still_a_question(ai_off, bakery, cake):
+    assert not assistant_changes.intent(
+        bakery, _user(), "Wie ändere ich den Preis von Käsekuchen, z. B. auf 3,50 €?"
+    )
+
+
+def test_far_verb_is_not_a_command(ai_off, bakery, cake):
+    text = "Käsekuchen ist unser Klassiker seit vielen Jahren und wir möchten die Preise zeigen"
+    assert not assistant_changes.intent(bakery, _user(), text)
+
+
+def test_move_with_sharp_s_in_name(ai_off, bakery):
+    writers.create_product(bakery, {"name_de": "Fußcreme", "base_price": "4"})
+    pflege = writers.create_category(bakery, {"name_de": "Pflege"})
+    items = assistant_changes.build(bakery, _user(), "verschiebe Fußcreme nach Pflege")
+    assert items[0]["values"]["category"] == f"pk:{pflege.pk}"

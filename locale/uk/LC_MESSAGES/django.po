@@ -34583,3 +34583,19 @@ msgstr "без категорії"
 #: apps/core/assistant_actions.py
 msgid "neu:"
 msgstr "нове:"
+
+#: apps/core/assistant_actions.py
+msgid "Bitte den neuen Preis eintragen — um wie viel, rechne ich nicht um."
+msgstr "Вкажіть нову ціну — «на скільки» я не перераховую."
+
+#: apps/core/assistant_actions.py
+msgid "Der Preis darf nicht unter der Anzahlung liegen."
+msgstr "Ціна не може бути нижчою за передоплату."
+
+#: apps/core/assistant_actions.py
+msgid "Die Kategorie verschwindet aus Menü, Filtern und Stadtkatalog; ihre Produkte werden dabei nicht einzeln ausgeblendet."
+msgstr "Категорія зникне з меню, фільтрів і каталогу міста; її товари окремо не приховуються."
+
+#: apps/core/assistant_actions.py
+msgid "Mehrere Beträge gefunden — bitte den neuen Preis eintragen."
+msgstr "Знайдено кілька сум — вкажіть нову ціну."

@@ -34289,3 +34289,19 @@ msgstr "no category"
 #: apps/core/assistant_actions.py
 msgid "neu:"
 msgstr "new:"
+
+#: apps/core/assistant_actions.py
+msgid "Bitte den neuen Preis eintragen — um wie viel, rechne ich nicht um."
+msgstr "Please enter the new price — I don't convert “by how much”."
+
+#: apps/core/assistant_actions.py
+msgid "Der Preis darf nicht unter der Anzahlung liegen."
+msgstr "The price must not be lower than the deposit."
+
+#: apps/core/assistant_actions.py
+msgid "Die Kategorie verschwindet aus Menü, Filtern und Stadtkatalog; ihre Produkte werden dabei nicht einzeln ausgeblendet."
+msgstr "The category disappears from the menu, filters and city catalogue; its products are not hidden individually."
+
+#: apps/core/assistant_actions.py
+msgid "Mehrere Beträge gefunden — bitte den neuen Preis eintragen."
+msgstr "Several amounts found — please enter the new price."
