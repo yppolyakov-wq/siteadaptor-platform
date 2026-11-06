@@ -35027,3 +35027,60 @@ msgstr "Настройки размещения"
 
 msgid "Veranstaltungen ansehen"
 msgstr "Посмотреть мероприятия"
+
+msgid "Angaben laden"
+msgstr "Загрузить данные"
+
+msgid "Angaben von Google im Vergleich"
+msgstr "Сравнение с данными Google"
+
+msgid "Bei Google suchen"
+msgstr "Найти в Google"
+
+msgid "Feld"
+msgstr "Поле"
+
+msgid "Für die Suche werden Name und Ort an Google (USA) gesendet."
+msgstr "Для поиска название и город отправляются в Google (США)."
+
+msgid "Haben Sie ein Google-Profil? Wir übernehmen Adresse, Telefon und Öffnungszeiten — Sie prüfen jedes Feld. Fotos übernehmen wir nicht."
+msgstr "Есть профиль Google? Перенесём адрес, телефон и часы работы — вы проверите каждое поле. Фото не берём."
+
+msgid "Neu suchen"
+msgstr "Искать заново"
+
+msgid "Nicht alle Öffnungszeiten passten (Nachtschicht oder zwei Zeiten am Tag) — bitte prüfen."
+msgstr "Не все часы подошли (ночная смена или два интервала в день) — проверьте."
+
+msgid "Welcher Eintrag ist Ihr Geschäft?"
+msgstr "Какая запись — ваш бизнес?"
+
+msgid "gleich"
+msgstr "совпадает"
+
+msgid "Angaben von Google übernommen — bitte kurz prüfen."
+msgstr "Данные Google перенесены — проверьте, пожалуйста."
+
+msgid "Bitte den Namen Ihres Geschäfts eingeben."
+msgstr "Введите название вашего бизнеса."
+
+msgid "Bitte zuerst suchen und einen Eintrag wählen."
+msgstr "Сначала найдите и выберите запись."
+
+msgid "Die Google-Daten sind abgelaufen — bitte erneut suchen."
+msgstr "Данные Google устарели — найдите заново."
+
+msgid "Google ist gerade nicht erreichbar — bitte später erneut."
+msgstr "Google сейчас недоступен — попробуйте позже."
+
+msgid "Nichts gefunden — bitte Namen oder Ort anders schreiben."
+msgstr "Ничего не найдено — напишите название или город иначе."
+
+msgid "Zu viele Abrufe — bitte später erneut versuchen."
+msgstr "Слишком много запросов — попробуйте позже."
+
+msgid "Zu viele Suchen — bitte später erneut versuchen."
+msgstr "Слишком много поисков — попробуйте позже."
+
+msgid "Google"
+msgstr "Google"

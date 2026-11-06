@@ -412,6 +412,7 @@ RULES: dict[str, Rule] = {
     "settings": _r(CFG, CFGE),
     "setup": _r(CFG, CFGE),
     "setup-offer-scan": _r(CFG, CFGE),  # W4-4: опрос «Foto lesen» того же шага мастера
+    "setup-google": _r(CFG, CFGE),  # W4-3: «Bei Google suchen» шага «Firma»
     "languages": _r(CFG, CFGE),
     "notifications-settings": _r(CFG, CFGE),
     "payment-settings": _r(CFG, CFGE),  # IBAN — Vorbehalt внутри экрана

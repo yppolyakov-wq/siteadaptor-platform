@@ -34706,3 +34706,60 @@ msgstr "Accommodation settings"
 
 msgid "Veranstaltungen ansehen"
 msgstr "View events"
+
+msgid "Angaben laden"
+msgstr "Load details"
+
+msgid "Angaben von Google im Vergleich"
+msgstr "Details from Google compared"
+
+msgid "Bei Google suchen"
+msgstr "Search on Google"
+
+msgid "Feld"
+msgstr "Field"
+
+msgid "Für die Suche werden Name und Ort an Google (USA) gesendet."
+msgstr "For the search, name and town are sent to Google (USA)."
+
+msgid "Haben Sie ein Google-Profil? Wir übernehmen Adresse, Telefon und Öffnungszeiten — Sie prüfen jedes Feld. Fotos übernehmen wir nicht."
+msgstr "Do you have a Google profile? We take over the address, phone and opening hours — you check every field. We don't copy photos."
+
+msgid "Neu suchen"
+msgstr "Search again"
+
+msgid "Nicht alle Öffnungszeiten passten (Nachtschicht oder zwei Zeiten am Tag) — bitte prüfen."
+msgstr "Not all opening hours fit (night shift or two times a day) — please check."
+
+msgid "Welcher Eintrag ist Ihr Geschäft?"
+msgstr "Which entry is your business?"
+
+msgid "gleich"
+msgstr "same"
+
+msgid "Angaben von Google übernommen — bitte kurz prüfen."
+msgstr "Details from Google applied — please check briefly."
+
+msgid "Bitte den Namen Ihres Geschäfts eingeben."
+msgstr "Please enter the name of your business."
+
+msgid "Bitte zuerst suchen und einen Eintrag wählen."
+msgstr "Please search first and choose an entry."
+
+msgid "Die Google-Daten sind abgelaufen — bitte erneut suchen."
+msgstr "The Google data has expired — please search again."
+
+msgid "Google ist gerade nicht erreichbar — bitte später erneut."
+msgstr "Google can't be reached right now — please try later."
+
+msgid "Nichts gefunden — bitte Namen oder Ort anders schreiben."
+msgstr "Nothing found — please write the name or town differently."
+
+msgid "Zu viele Abrufe — bitte später erneut versuchen."
+msgstr "Too many requests — please try again later."
+
+msgid "Zu viele Suchen — bitte später erneut versuchen."
+msgstr "Too many searches — please try again later."
+
+msgid "Google"
+msgstr "Google"

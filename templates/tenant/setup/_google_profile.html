@@ -1,0 +1,52 @@
+{% load i18n %}
+{% comment %}AIS W4-3: «Bei Google suchen» — поиск → выбор карточки → сравнение «сейчас · Google» с галочками → «Übernehmen». Каждый шаг — POST и возврат на шаг (без JS). Данные Google — из серверного кэша; фото не берём.{% endcomment %}
+<section id="google" aria-labelledby="g-h" class="ui-card p-4 mb-5 space-y-3" data-google-profile>
+  <h2 id="g-h" class="ui-h3">{% trans "Bei Google suchen" %}</h2>
+  <p class="text-sm text-gray-600">{% trans "Haben Sie ein Google-Profil? Wir übernehmen Adresse, Telefon und Öffnungszeiten — Sie prüfen jedes Feld. Fotos übernehmen wir nicht." %}</p>
+  {% if google_rows %}
+  <form method="post" action="{% url 'setup-google' %}" class="space-y-3">
+    {% csrf_token %}<input type="hidden" name="action" value="apply">
+    <table class="w-full text-sm">
+      <caption class="sr-only">{% trans "Angaben von Google im Vergleich" %}</caption>
+      <thead><tr class="text-left text-gray-600"><th scope="col" class="py-1 pr-2">{% trans "Übernehmen" %}</th><th scope="col" class="py-1 pr-2">{% trans "Feld" %}</th><th scope="col" class="py-1 pr-2">{% trans "Jetzt" %}</th><th scope="col" class="py-1">{% trans "Google" %}</th></tr></thead>
+      <tbody>
+        {% for r in google_rows %}
+        <tr class="border-t border-gray-100 align-top" data-google-row="{{ r.key }}">
+          <td class="py-2 pr-2"><input type="checkbox" id="g-{{ r.key }}" name="g_field" value="{{ r.key }}" class="h-5 w-5"{% if r.checked %} checked{% endif %}></td>
+          <th scope="row" class="py-2 pr-2 font-medium text-left"><label for="g-{{ r.key }}">{{ r.label }}</label></th>
+          <td class="py-2 pr-2 text-gray-600">{{ r.old|default:"—" }}</td>
+          <td class="py-2">{{ r.new }}{% if r.same %} <span class="ui-muted text-xs">({% trans "gleich" %})</span>{% endif %}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% if google_hours_partial %}<p class="text-sm text-amber-800">{% trans "Nicht alle Öffnungszeiten passten (Nachtschicht oder zwei Zeiten am Tag) — bitte prüfen." %}</p>{% endif %}
+    <div class="flex flex-wrap gap-2">
+      <button type="submit" class="ui-btn ui-btn-primary min-h-[44px]">{% trans "Übernehmen" %}</button>
+    </div>
+  </form>
+  <form method="post" action="{% url 'setup-google' %}">{% csrf_token %}<input type="hidden" name="action" value="cancel"><button type="submit" class="ui-btn ui-btn-ghost ui-btn-sm min-h-[44px]">{% trans "Abbrechen" %}</button></form>
+  {% elif google_hits %}
+  <form method="post" action="{% url 'setup-google' %}" class="space-y-2">
+    {% csrf_token %}<input type="hidden" name="action" value="pick">
+    <fieldset>
+      <legend class="text-sm font-medium mb-1">{% trans "Welcher Eintrag ist Ihr Geschäft?" %}</legend>
+      <ul class="space-y-1">
+        {% for h in google_hits %}
+        <li><label class="flex items-start gap-2 rounded-lg border border-gray-200 px-3 py-2 min-h-[44px] cursor-pointer"><input type="radio" name="place_id" value="{{ h.place_id }}" required class="mt-1"{% if forloop.first %} checked{% endif %}><span><span class="font-medium">{{ h.name }}</span><span class="block text-xs text-gray-600">{{ h.address }}</span></span></label></li>
+        {% endfor %}
+      </ul>
+    </fieldset>
+    <button type="submit" class="ui-btn ui-btn-primary min-h-[44px]">{% trans "Angaben laden" %}</button>
+  </form>
+  <form method="post" action="{% url 'setup-google' %}">{% csrf_token %}<input type="hidden" name="action" value="cancel"><button type="submit" class="ui-btn ui-btn-ghost ui-btn-sm min-h-[44px]">{% trans "Neu suchen" %}</button></form>
+  {% else %}
+  <form method="post" action="{% url 'setup-google' %}" class="grid sm:grid-cols-[1fr_1fr_auto] gap-2 items-end">
+    {% csrf_token %}<input type="hidden" name="action" value="search">
+    <div><label for="g-name" class="block text-sm font-medium mb-1">{% trans "Name des Geschäfts" %}</label><input id="g-name" name="g_name" maxlength="80" required value="{{ request.tenant.name }}" class="ui-input"></div>
+    <div><label for="g-city" class="block text-sm font-medium mb-1">{% trans "Ort" %}</label><input id="g-city" name="g_city" maxlength="80" value="{{ request.tenant.city }}" class="ui-input"></div>
+    <button type="submit" class="ui-btn ui-btn-secondary min-h-[44px]">{% trans "Suchen" %}</button>
+  </form>
+  <p class="ui-muted text-xs">{% trans "Für die Suche werden Name und Ort an Google (USA) gesendet." %}</p>
+  {% endif %}
+</section>

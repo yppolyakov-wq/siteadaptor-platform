@@ -33,6 +33,7 @@ from apps.core.redirects_views import (
     redirects_view,
 )
 from apps.core.settings_home import einstellungen_home
+from apps.core.setup_google import setup_google as setup_google_view
 from apps.core.storefront_profile import redirect_if_aktionen as _aktionen
 from apps.core.team import team_invite, team_join, team_member, team_view
 from apps.core.views import (
@@ -141,6 +142,8 @@ urlpatterns = [
         setup_offer_photo_state,
         name="setup-offer-scan",
     ),
+    # AIS W4-3: «Bei Google suchen» в шаге «Firma» (поиск/выбор/применение, PRG)
+    path("dashboard/setup/google/", setup_google_view, name="setup-google"),
     path("dashboard/settings/", settings_view, name="settings"),
     # T-8.23c: лёгкий кабинет «Nur Aktionen»
     path("dashboard/geschaeft/", lite_cabinet.lite_business, name="lite-business"),

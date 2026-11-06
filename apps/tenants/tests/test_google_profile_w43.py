@@ -1,13 +1,22 @@
 """AIS W4-3 фаза 1: клиент Google Places — FieldMask, ключ только в заголовке, клампы,
 маппинг дней, отказ на мусорный id без запроса (план ais-w4-3-google-profile-plan-2026-11-06)."""
 
+import uuid
 from types import SimpleNamespace
 from unittest import mock
 
 import pytest
 import requests
+from django.contrib.auth import get_user_model
+from django.contrib.messages.middleware import MessageMiddleware
+from django.contrib.sessions.middleware import SessionMiddleware
+from django.http import Http404
+from django.test import RequestFactory
 
+from apps.core import setup_google
 from apps.tenants import google_places as gp
+from apps.tenants.models import Tenant
+from apps.tenants.tests.factories import TenantFactory
 
 PID = "ChIJN1t_tDeuEmsRUsoyG83frY4"
 
@@ -122,3 +131,129 @@ def test_without_key_no_request(monkeypatch):
     with mock.patch.object(gp.requests, "request") as req, pytest.raises(gp.PlacesError):
         gp.search_places("a", "b")
     req.assert_not_called()
+
+
+# ── фаза 2: приёмник мастера — лимиты, кэш, применение только отмеченного ──
+
+
+HOURS = {"0": ["08:00", "18:00"]}
+DATA = gp.PlaceData(
+    PID, address="Neue Str. 1, 40721 Hilden", city="Hilden", phone="02103 1", hours=HOURS
+)
+
+
+@pytest.fixture
+def isolated(monkeypatch, settings):
+    import django.core.cache as dj_cache
+    from django.core.cache.backends.locmem import LocMemCache
+
+    from apps.core import ratelimit
+
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    local = LocMemCache(f"w43-{uuid.uuid4().hex}", {})
+    monkeypatch.setattr(dj_cache, "cache", local)
+    monkeypatch.setattr(ratelimit, "cache", local)
+    return local
+
+
+@pytest.fixture
+def v4(db):
+    return TenantFactory(
+        schema_name="public",
+        slug="w43",
+        business_type="bakery",
+        published_at=None,
+        site_config={"onboarding": {"v": 2, "flow": "v4"}},
+        address="Alte Str. 9",
+        contact_phone="",
+    )
+
+
+def _post(tenant, data, user=None):
+    request = RequestFactory().post("/dashboard/setup/google/", data, REMOTE_ADDR="10.0.0.1")
+    SessionMiddleware(lambda r: None).process_request(request)
+    MessageMiddleware(lambda r: None).process_request(request)
+    request.tenant = tenant
+    if user is None:
+        name = uuid.uuid4().hex[:8]
+        user = get_user_model().objects.create_user(username=f"g-{name}", email=f"g-{name}@t.de")
+    request.user = user
+    return setup_google.setup_google(request), request
+
+
+def _hit():
+    return [gp.PlaceHit(PID, "Bäckerei", "Hilden")]
+
+
+@pytest.mark.django_db
+def test_flow_search_pick_apply_only_checked(isolated, v4):
+    user = get_user_model().objects.create_user(username="g-own", email="g-own@t.de")
+    with mock.patch.object(gp, "search_places", return_value=_hit()):
+        _post(v4, {"action": "search", "g_name": "Bäckerei"}, user)
+    with mock.patch.object(gp, "place_details", return_value=DATA):
+        _post(v4, {"action": "pick", "place_id": PID}, user)
+    resp, req = _post(
+        v4, {"action": "apply", "g_field": ["phone", "hours"], "address": "evil"}, user
+    )
+    fresh = Tenant.objects.get(pk=v4.pk)
+    assert resp.status_code == 302
+    assert fresh.google_place_id == PID and fresh.contact_phone == "02103 1"
+    assert fresh.opening_hours_structured == HOURS
+    assert fresh.address == "Alte Str. 9"  # не отмечено — не тронуто (и POST-подделка игнор)
+
+
+@pytest.mark.django_db
+def test_prefilled_owner_field_is_unchecked(isolated, v4):
+    user = get_user_model().objects.create_user(username="g-ck", email="g-ck@t.de")
+    with mock.patch.object(gp, "search_places", return_value=_hit()):
+        _post(v4, {"action": "search", "g_name": "Bäckerei"}, user)
+    with mock.patch.object(gp, "place_details", return_value=DATA):
+        _resp, req = _post(v4, {"action": "pick", "place_id": PID}, user)
+    rows = {r["key"]: r for r in setup_google.context(req)["google_rows"]}
+    assert rows["address"]["checked"] is False and rows["phone"]["checked"] is True
+
+
+@pytest.mark.django_db
+def test_pick_only_own_search_hits(isolated, v4):
+    with mock.patch.object(gp, "place_details") as details:
+        _post(v4, {"action": "pick", "place_id": PID})
+    details.assert_not_called()
+
+
+@pytest.mark.django_db
+def test_apply_without_cache_writes_nothing(isolated, v4):
+    _post(v4, {"action": "apply", "g_field": ["phone"]})
+    assert Tenant.objects.get(pk=v4.pk).google_place_id == ""
+
+
+@pytest.mark.django_db
+def test_rate_limit_before_google_and_refund_on_error(isolated, v4):
+    with mock.patch.object(gp, "search_places", side_effect=gp.PlacesError("http 500")) as s:
+        for _ in range(setup_google.SEARCH_NET[0] + 2):
+            _post(v4, {"action": "search", "g_name": "Bäckerei"})
+    assert s.call_count == setup_google.SEARCH_NET[0] + 2  # сбой Google — попытки возвращены
+    with mock.patch.object(gp, "search_places", return_value=[]) as s:
+        for _ in range(setup_google.SEARCH_NET[0] + 2):
+            _post(v4, {"action": "search", "g_name": "Bäckerei"})
+    assert s.call_count == setup_google.SEARCH_NET[0]  # лимит — без запроса в Google
+
+
+@pytest.mark.django_db
+def test_without_key_no_block_and_404(isolated, v4, monkeypatch):
+    monkeypatch.setattr(gp, "api_key", lambda: "")
+    with pytest.raises(Http404):
+        _post(v4, {"action": "search", "g_name": "x"})
+    from apps.core import setup_google as sg
+
+    assert sg.enabled(v4) is False
+
+
+@pytest.mark.django_db
+def test_hit_name_is_escaped_in_the_step(isolated, v4):
+    from django.template.loader import render_to_string
+
+    html = render_to_string(
+        "tenant/setup/_google_profile.html",
+        {"google_hits": [{"place_id": PID, "name": "<script>x</script>", "address": ""}]},
+    )
+    assert "<script>x</script>" not in html and "&lt;script&gt;" in html

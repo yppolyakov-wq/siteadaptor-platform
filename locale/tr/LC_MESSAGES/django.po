@@ -34852,3 +34852,60 @@ msgstr "Konaklama ayarları"
 
 msgid "Veranstaltungen ansehen"
 msgstr "Etkinlikleri gör"
+
+msgid "Angaben laden"
+msgstr "Bilgileri yükle"
+
+msgid "Angaben von Google im Vergleich"
+msgstr "Google'dan gelen bilgiler karşılaştırması"
+
+msgid "Bei Google suchen"
+msgstr "Google'da ara"
+
+msgid "Feld"
+msgstr "Alan"
+
+msgid "Für die Suche werden Name und Ort an Google (USA) gesendet."
+msgstr "Arama için ad ve şehir Google'a (ABD) gönderilir."
+
+msgid "Haben Sie ein Google-Profil? Wir übernehmen Adresse, Telefon und Öffnungszeiten — Sie prüfen jedes Feld. Fotos übernehmen wir nicht."
+msgstr "Google profiliniz var mı? Adres, telefon ve çalışma saatlerini alırız — her alanı siz kontrol edersiniz. Fotoğrafları almayız."
+
+msgid "Neu suchen"
+msgstr "Yeniden ara"
+
+msgid "Nicht alle Öffnungszeiten passten (Nachtschicht oder zwei Zeiten am Tag) — bitte prüfen."
+msgstr "Tüm çalışma saatleri uymadı (gece vardiyası veya günde iki zaman) — lütfen kontrol edin."
+
+msgid "Welcher Eintrag ist Ihr Geschäft?"
+msgstr "Hangi kayıt sizin işletmeniz?"
+
+msgid "gleich"
+msgstr "aynı"
+
+msgid "Angaben von Google übernommen — bitte kurz prüfen."
+msgstr "Google bilgileri alındı — lütfen kısaca kontrol edin."
+
+msgid "Bitte den Namen Ihres Geschäfts eingeben."
+msgstr "Lütfen işletmenizin adını girin."
+
+msgid "Bitte zuerst suchen und einen Eintrag wählen."
+msgstr "Lütfen önce arayın ve bir kayıt seçin."
+
+msgid "Die Google-Daten sind abgelaufen — bitte erneut suchen."
+msgstr "Google verilerinin süresi doldu — lütfen yeniden arayın."
+
+msgid "Google ist gerade nicht erreichbar — bitte später erneut."
+msgstr "Google şu anda ulaşılamıyor — lütfen daha sonra tekrar deneyin."
+
+msgid "Nichts gefunden — bitte Namen oder Ort anders schreiben."
+msgstr "Bir şey bulunamadı — lütfen adı veya şehri farklı yazın."
+
+msgid "Zu viele Abrufe — bitte später erneut versuchen."
+msgstr "Çok fazla istek — lütfen daha sonra tekrar deneyin."
+
+msgid "Zu viele Suchen — bitte später erneut versuchen."
+msgstr "Çok fazla arama — lütfen daha sonra tekrar deneyin."
+
+msgid "Google"
+msgstr "Google"

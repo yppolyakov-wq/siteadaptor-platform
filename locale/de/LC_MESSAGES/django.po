@@ -34793,3 +34793,60 @@ msgstr "Unterkunft-Einstellungen"
 
 msgid "Veranstaltungen ansehen"
 msgstr "Veranstaltungen ansehen"
+
+msgid "Angaben laden"
+msgstr "Angaben laden"
+
+msgid "Angaben von Google im Vergleich"
+msgstr "Angaben von Google im Vergleich"
+
+msgid "Bei Google suchen"
+msgstr "Bei Google suchen"
+
+msgid "Feld"
+msgstr "Feld"
+
+msgid "Für die Suche werden Name und Ort an Google (USA) gesendet."
+msgstr "Für die Suche werden Name und Ort an Google (USA) gesendet."
+
+msgid "Haben Sie ein Google-Profil? Wir übernehmen Adresse, Telefon und Öffnungszeiten — Sie prüfen jedes Feld. Fotos übernehmen wir nicht."
+msgstr "Haben Sie ein Google-Profil? Wir übernehmen Adresse, Telefon und Öffnungszeiten — Sie prüfen jedes Feld. Fotos übernehmen wir nicht."
+
+msgid "Neu suchen"
+msgstr "Neu suchen"
+
+msgid "Nicht alle Öffnungszeiten passten (Nachtschicht oder zwei Zeiten am Tag) — bitte prüfen."
+msgstr "Nicht alle Öffnungszeiten passten (Nachtschicht oder zwei Zeiten am Tag) — bitte prüfen."
+
+msgid "Welcher Eintrag ist Ihr Geschäft?"
+msgstr "Welcher Eintrag ist Ihr Geschäft?"
+
+msgid "gleich"
+msgstr "gleich"
+
+msgid "Angaben von Google übernommen — bitte kurz prüfen."
+msgstr "Angaben von Google übernommen — bitte kurz prüfen."
+
+msgid "Bitte den Namen Ihres Geschäfts eingeben."
+msgstr "Bitte den Namen Ihres Geschäfts eingeben."
+
+msgid "Bitte zuerst suchen und einen Eintrag wählen."
+msgstr "Bitte zuerst suchen und einen Eintrag wählen."
+
+msgid "Die Google-Daten sind abgelaufen — bitte erneut suchen."
+msgstr "Die Google-Daten sind abgelaufen — bitte erneut suchen."
+
+msgid "Google ist gerade nicht erreichbar — bitte später erneut."
+msgstr "Google ist gerade nicht erreichbar — bitte später erneut."
+
+msgid "Nichts gefunden — bitte Namen oder Ort anders schreiben."
+msgstr "Nichts gefunden — bitte Namen oder Ort anders schreiben."
+
+msgid "Zu viele Abrufe — bitte später erneut versuchen."
+msgstr "Zu viele Abrufe — bitte später erneut versuchen."
+
+msgid "Zu viele Suchen — bitte später erneut versuchen."
+msgstr "Zu viele Suchen — bitte später erneut versuchen."
+
+msgid "Google"
+msgstr "Google"

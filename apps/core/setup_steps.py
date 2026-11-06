@@ -203,6 +203,9 @@ def _ctx_company(request):
     if onboarding.is_v4(request.tenant):  # мастер v4: часы сеткой (как в «Geschäft»)
         ctx["hours_grid"] = True
         ctx["opening_hours_rows"] = _opening_hours_rows(request.tenant)
+        from apps.core import setup_google
+
+        ctx.update(setup_google.context(request))  # W4-3: «Bei Google suchen»
     return ctx
 
 
