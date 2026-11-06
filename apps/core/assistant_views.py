@@ -142,44 +142,11 @@ def assistant_ask(request):
     from django.shortcuts import redirect
     from django.urls import reverse
 
-    from apps.core import assistant_ai, setup_assistant
+    from apps.core import assistant_ai, assistant_router
 
     seite = _seite_value(request.POST.get("seite"))
-    raw = request.POST.get("frage", "")
-    q, code = assistant_ai.prepare_question(raw)
-    from apps.core import assistant_ai_actions, assistant_bulk, assistant_changes, assistant_pages
-
-    if not code and assistant_bulk.intent(request.tenant, request.user, q):
-        # AIS A-4d: «alle Kuchen 10 % teurer» — все товары категории (≤ 50) одним пакетом;
-        # раньше A-4b: «blende alle Kuchen aus» — товары, а не сама категория
-        got = assistant_ai.put_actions(request, q, builder=assistant_bulk.build)
-    elif not code and assistant_changes.intent(request.tenant, request.user, q):
-        # AIS A-4b: «измени цену / скрой / перенеси» существующего — пакет изменений
-        got = assistant_ai.put_actions(request, q)
-    elif not code and assistant_pages.intent(request.tenant, request.user, q):
-        # AIS A-4c: «покажи товары списком / 4 в ряд» — настройка страницы
-        got = assistant_ai.put_actions(request, q, builder=assistant_pages.build)
-    elif (
-        not code
-        and assistant_ai_actions.mixed(request.tenant, request.user, q)
-        and (ai_ctx := assistant_ai_actions.wants(request, q)) is not None
-    ):
-        # AIS A-4e-3: «Kategorie Torten anlegen und Apfelstrudel ausblenden» — создание И
-        # изменение в одной фразе: правила создания взяли бы только первую половину
-        got = assistant_ai_actions.ask(request, q, {**ai_ctx, "mixed": True})
-        if got.get("code") in ("quota", "busy", "unavailable"):
-            got = assistant_ai.put_plan(request, q)  # без ИИ — прежний план создания
-    elif not code and setup_assistant.create_intent(request.tenant, request.user, q):
-        # AIS A-3a: «создай …» — план с предзаполненной формой, и без ИИ тоже
-        got = assistant_ai.put_plan(request, q)
-    elif not code and (ai_ctx := assistant_ai_actions.wants(request, q)) is not None:
-        # AIS A-4e: правила не поняли, но во фразе есть действие или имя товара — ИИ
-        # предлагает пакет из закрытого реестра, факты проверяет сервер
-        got = assistant_ai_actions.ask(request, q, ai_ctx)
-    else:
-        got = assistant_ai.ask(request, raw, seite)
-        if got.get("code") == "disabled":
-            got = assistant_ai.put_articles(request, q)  # без ИИ — статьи, а не отказ
+    # AIS A-5a: какая ветка понимает фразу — решает реестр обработчиков (assistant_router)
+    _key, got = assistant_router.route(request, request.POST.get("frage", ""), seite)
     is_drawer = bool(request.headers.get("X-Sf-Drawer"))
     if got.get("code"):
         text = str(assistant_ai.error_text(got["code"]))

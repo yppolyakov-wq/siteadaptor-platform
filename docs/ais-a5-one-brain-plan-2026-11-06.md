@@ -72,3 +72,42 @@ ruff + pytest apps/core apps/support + template_comments + i18n_quickcheck (+ bu
 `silent-failure-hunter` A-5a, `a11y-architect` A-5b, `e2e-runner` стенд
 (`scripts/assistant_a5_stand.py`, 390/1440, de+ru, bakery: два «Käsekuchen»; «Kuchen um 10 %» → «teurer»;
 «und den Käsekuchen auch»; «das funktioniert nicht» → Support; без JS; Mini App).
+
+## 9. Правки архитектора (агент `architect`, 2026-11-06) — обязательны до кода
+1. `ENTRY_V` НЕ поднимать: `assistant_history.recent()` прячет строки с другой версией (90 дней истории
+   пропали бы, открытые предпросмотры — 404). `state="ask"` живёт рядом с прежними; замок «v=1 видна».
+2. `_present` знает `state=="ask"` до проверки `!= "done"`; JS шторки считает ask финальным (иначе
+   вечный опрос); замок «опрос ask-задачи отдаёт ask».
+3. Строители оставляют `blocked` (текст-запасной путь) и ДОБАВЛЯЮТ `item["clarify"] = {slot, options,
+   at}`; один пост-шаг `assistant_clarify.need(items)` в `put_actions` превращает первый такой пункт в
+   ask. Строки `blocked` не парсим (переведённый текст). Один вопрос за раз; `round` — на пункт.
+4. A-4e: ask создаётся в `finish()` (пункты собираются там), под тем же `:finish`-замком; ответ на
+   вопрос модель НЕ зовёт — только кэшированный `base` + свежий `item_for` по выбранному pk.
+5. `assistant_apply` уже требует `state=="done"` — замок. `assistant_reply`: тот же `_lock_key`, счёт
+   `assistant-ask-req` + `assistant-reply`, после `cache.add(:reply:round)` перепроверка «всё ещё ask с
+   тем же round»; `base[at]` заменяется на месте; в массовом пакете pick_target нет, потолок 50 —
+   перепроверка.
+6. История: ask не пишется, после ответа тот же job пишется один раз (`get_or_create(job)`); новый
+   `kind` и `core/0018` не нужны; `_DROP` += options/base/slot.
+7. Продолжения: маркер + не вопрос + остаток резолвится в ОДИН объект + последний ход actions/plan;
+   `followup` ПОСЛЕ bulk/changes/pages (глагол есть — их работа), до mixed/create/ai_actions; новый пункт
+   из `summary.action` + нового pk (ничего из старого пакета).
+8. Только свои ходы (`user_id`, схема), ≤ 15 мин, последний; к массовому ходу продолжений нет; в ИИ —
+   код действия без pk/цен (замок).
+9. Эскалация: превью через маскер журнала поиска (T-8.21) при показе И отправке; тело собирает сервер по
+   id ходов, из POST — только правка владельца; без ответов ИИ и `entry`.
+10. `support:help` открыт всей команде, треды — тенанта: в теле — кто отправил. `add_message` уже
+   уведомляет платформу (`on_commit`) — второй `notify_platform` НЕ звать. Идемпотентность —
+   `cache.add(:escalate)` + `thread_pk` в записи; «открытый тред» = последний open, ≤ 7 дней, тема с
+   «[Assistent]». Лимит 3/час — на пользователя И тенант.
+11. Паритет A-5a — с ИИ и без; запасные пути (code → answer, mixed quota/busy/unavailable → put_plan,
+   answer disabled → put_articles) сохранены внутри `handle`.
+12. Порядок: **A-5a → A-5b → A-5d → A-5c** (эскалация — страховка для неясного; продолжения —
+   самая эвристическая часть). Mini App: `assistant-reply`/эскалация — в `TG_LITE_VIEWS` в своих
+   инкрементах; `security-reviewer` — и на A-5c (читает историю).
+
+## 10. Исполнение A-5a (2026-11-06)
+`apps/core/assistant_router.py`: `Handler(key, intent, handle)`, `HANDLERS` в прежнем порядке, `route()` /
+`classify()`; `assistant_ask` зовёт только `route()`. Запасные пути — внутри `handle`. Замки
+`test_assistant_router` (21): паритет без ИИ (13 фраз) и с ИИ (5), «answer последний, ключи уникальны»,
+«первое попадание выигрывает», AST «во вьюхе нет `intent/create_intent/wants/mixed`».
