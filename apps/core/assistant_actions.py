@@ -533,7 +533,7 @@ def merge_post(items: list[dict], post) -> list[dict]:
     for i, item in enumerate(items):
         spec = ACTIONS.get(item.get("action"))
         values = dict(item.get("values") or {})
-        for f in spec.fields if spec else ():
+        for f in spec.fields if spec and not item.get("fixed") else ():
             if f.kind == "visible":
                 continue  # «скрыть/показать» — направление из кэша, не из формы
             key = f"f_{i}_{f.name}"

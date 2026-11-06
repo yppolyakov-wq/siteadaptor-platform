@@ -34416,3 +34416,82 @@ msgstr "Seite einstellen"
 #: apps/core/assistant_actions.py
 msgid "Diese Einstellung ist hier nicht mehr verfügbar."
 msgstr "Diese Einstellung ist hier nicht mehr verfügbar."
+
+#: apps/core/assistant_bulk.py
+#, python-format
+msgid "%(n)s Produkte — vorher und nachher"
+msgstr "%(n)s Produkte — vorher und nachher"
+
+#: apps/core/assistant_bulk.py
+msgid "Bisher"
+msgstr "Bisher"
+
+#: apps/core/assistant_bulk.py
+msgid "Das ändere ich für Sie"
+msgstr "Das ändere ich für Sie"
+
+#: apps/core/assistant_bulk.py
+#, python-format
+msgid "%(n)s mit Varianten — den Preis bitte im Formular ändern."
+msgstr "%(n)s mit Varianten — den Preis bitte im Formular ändern."
+
+#: apps/core/assistant_bulk.py
+#, python-format
+msgid "%(n)s schon so — bleiben unverändert."
+msgstr "%(n)s schon so — bleiben unverändert."
+
+#: apps/core/assistant_bulk.py
+#, python-format
+msgid "Alle Produkte in „%(name)s“"
+msgstr "Alle Produkte in „%(name)s“"
+
+#: apps/core/assistant_bulk.py
+#, python-format
+msgid "Das sind %(n)s Produkte — mehr als %(max)s auf einmal ändere ich nicht. Bitte im Sortiment mehrere auswählen."
+msgstr "Das sind %(n)s Produkte — mehr als %(max)s auf einmal ändere ich nicht. Bitte im Sortiment mehrere auswählen."
+
+#: apps/core/assistant_bulk.py
+msgid "Den Betrag verstehe ich nicht — bitte z. B. „10 Prozent“ oder „2 €“."
+msgstr "Den Betrag verstehe ich nicht — bitte z. B. „10 Prozent“ oder „2 €“."
+
+#: apps/core/assistant_bulk.py
+msgid "In dieser Kategorie ist nichts."
+msgstr "In dieser Kategorie ist nichts."
+
+#: apps/core/assistant_bulk.py
+msgid "Mehrere Beträge gefunden — bitte nur einen nennen."
+msgstr "Mehrere Beträge gefunden — bitte nur einen nennen."
+
+#: apps/core/assistant_bulk.py
+msgid "Teurer oder günstiger? Zum Beispiel „alle Kuchen 10 Prozent teurer“."
+msgstr "Teurer oder günstiger? Zum Beispiel „alle Kuchen 10 Prozent teurer“."
+
+#: apps/core/assistant_bulk.py
+msgid "Teurer oder günstiger? Zum Beispiel „alle Kuchen 2 € teurer“."
+msgstr "Teurer oder günstiger? Zum Beispiel „alle Kuchen 2 € teurer“."
+
+#: apps/core/assistant_bulk.py
+msgid "Um wie viel? Zum Beispiel „alle Kuchen 10 Prozent teurer“."
+msgstr "Um wie viel? Zum Beispiel „alle Kuchen 10 Prozent teurer“."
+
+#: apps/core/assistant_bulk.py
+msgid "ausblenden"
+msgstr "ausblenden"
+
+#: apps/core/assistant_bulk.py
+msgid "wieder anzeigen"
+msgstr "wieder anzeigen"
+
+#: apps/core/assistant_bulk.py
+msgid "Einige Produkte wurden inzwischen geändert — bitte neu fragen oder diese Zeilen abwählen."
+msgstr "Einige Produkte wurden inzwischen geändert — bitte neu fragen oder diese Zeilen abwählen."
+
+#: apps/core/assistant_bulk.py
+#, python-format
+msgid "%(n)s würden 0 € kosten — bleiben unverändert."
+msgstr "%(n)s würden 0 € kosten — bleiben unverändert."
+
+#: apps/core/assistant_bulk.py
+#, python-format
+msgid "%(n)s würden über 100.000 € kosten — bleiben unverändert."
+msgstr "%(n)s würden über 100.000 € kosten — bleiben unverändert."

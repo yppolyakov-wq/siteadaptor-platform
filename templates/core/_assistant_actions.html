@@ -4,9 +4,35 @@
   {% csrf_token %}
   <input type="hidden" name="items_present" value="1">
   <div class="flex items-center justify-between gap-2 flex-wrap">
-    <{{ hl_sub|default:"h3" }} class="ui-h2">{% trans "Das lege ich für Sie an" %}</{{ hl_sub|default:"h3" }}>
+    <{{ hl_sub|default:"h3" }} class="ui-h2">{% if ans.actions_change %}{% trans "Das ändere ich für Sie" %}{% else %}{% trans "Das lege ich für Sie an" %}{% endif %}</{{ hl_sub|default:"h3" }}>
     <span class="ui-badge ui-tone-new">{% trans "Vorschau" %} · {% trans "nichts ist gespeichert" %}</span>
   </div>
+  {% if ans.bulk %}
+  {% comment %}AIS A-4d: массовый пакет — одна шапка и строки таблицей (до 50), у каждой строки своя галочка; цену считает сервер, полей ввода нет.{% endcomment %}
+  <p class="font-semibold" data-assistant-bulk>{{ ans.bulk.title }}{% if ans.bulk.change %}: {{ ans.bulk.change }}{% endif %}</p>
+  {% if ans.actions_allowed %}
+  {% if ans.bulk_errors %}<p class="text-sm text-red-700" role="alert">{% trans "Einige Produkte wurden inzwischen geändert — bitte neu fragen oder diese Zeilen abwählen." %}</p>{% endif %}
+  <table class="ui-table ui-table-stack w-full text-sm" data-assistant-bulk-rows>
+    <caption class="sr-only">{% blocktrans with n=ans.bulk.count %}{{ n }} Produkte — vorher und nachher{% endblocktrans %}</caption>
+    <thead><tr><th scope="col">{% trans "übernehmen" %}</th><th scope="col">{% trans "Bisher" %}</th><th scope="col">{% trans "Neu" %}</th></tr></thead>
+    <tbody>
+      {% for it in ans.actions %}
+      <tr data-assistant-action="{{ it.index }}">
+        {% with err=it.fields.0.error eid="bulk-err-"|add:ans.job %}
+        <td data-cell="primary">{% if it.allowed %}<label class="inline-flex items-center gap-2 min-h-[44px]"><input type="checkbox" name="take_{{ it.index }}" value="1"{% if it.take %} checked{% endif %}{% if err %} aria-invalid="true" aria-describedby="{{ eid }}-{{ it.index }}"{% endif %}> <span class="sr-only">{% trans "übernehmen" %}:</span> {{ it.name }}</label>{% else %}{{ it.name }} — <span class="ui-muted" data-assistant-action-blocked>{{ it.reason }}</span>{% endif %}{% if err %}<span id="{{ eid }}-{{ it.index }}" class="block text-sm text-red-700" data-assistant-bulk-error>{{ err }}</span>{% endif %}</td>
+        {% endwith %}
+        <td data-label="{% trans 'Bisher' %}">{{ it.before_text }}</td>
+        <td data-label="{% trans 'Neu' %}"><strong>{{ it.after_text }}</strong></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% if ans.bulk_warning %}<p class="text-sm text-amber-800" data-assistant-pangv><span aria-hidden="true">⚠</span> {{ ans.bulk_warning }}</p>{% endif %}
+  {% else %}
+  {% with first=ans.actions.0 %}{% if first %}<p class="ui-muted text-sm" data-assistant-action-blocked>{{ first.reason }}</p>{% endif %}{% endwith %}
+  {% endif %}
+  {% if ans.actions_allowed %}{% for note in ans.bulk.skipped %}<p class="ui-muted text-sm">{{ note }}</p>{% endfor %}{% endif %}
+  {% else %}
   {% if ans.actions_allowed %}<p class="ui-muted text-xs"><span aria-hidden="true">*</span> {% trans "Pflichtfeld" %}</p>{% endif %}
   {% for it in ans.actions %}
   <fieldset class="rounded-xl border border-gray-200 p-3 space-y-2" data-assistant-action="{{ it.index }}">
@@ -42,6 +68,7 @@
     {% endif %}
   </fieldset>
   {% endfor %}
+  {% endif %}
   {% if ans.actions_allowed %}
   <button type="submit" class="ui-btn ui-btn-primary min-h-[44px]" data-assistant-apply-btn data-busy-text="{% trans 'Wird übernommen …' %}">{% trans "Alles übernehmen" %}</button>
   <p class="ui-muted text-xs">{% trans "Danach 10 Minuten lang rückgängig zu machen." %}</p>

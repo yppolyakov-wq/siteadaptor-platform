@@ -1321,7 +1321,6 @@ def combo_option_delete(request, pk, gid, oid):
 
 
 _BULK_MAX = 200  # KA-12 WR-6: как лимит списка Sortiment
-_BULK_PRICE_MAX = Decimal("100000")
 
 
 def _bulk_products(request):
@@ -1380,18 +1379,19 @@ def products_bulk_visibility(request):
 def products_bulk_price(request):
     """KA-12 WR-6 (E3.2): цена выбранных товаров — «= X €», «± X %», «± X €». Через
     `.save()` по одному: PriceLog фиксирует каждое изменение (§11 PAngV — минимум 30 дней)."""
+    from apps.catalog import bulk_price
+
     mode = request.POST.get("mode", "")
     amount = _parse_signed(request.POST.get("amount"))
-    if mode == "set" and amount is not None and amount < 0:
-        amount = None
     products = _bulk_products(request)
-    if not products or amount is None or mode not in ("set", "pct", "eur"):
+    if not products or amount is None or mode not in bulk_price.MODES:
         messages.error(request, _("Bitte Produkte auswählen und einen Betrag angeben."))
         return redirect("sellable-manage")
-    if mode == "pct" and not Decimal("-90") <= amount <= Decimal("500"):
+    if mode == "pct" and not bulk_price.PCT_MIN <= amount <= bulk_price.PCT_MAX:
         messages.error(request, _("Prozent zwischen −90 und 500."))
         return redirect("sellable-manage")
-    if abs(amount) > _BULK_PRICE_MAX:  # ревью WR-6: «1e30» → InvalidOperation/overflow
+    # ревью WR-6: «1e30» → InvalidOperation/overflow; одна проверка с помощником (A-4d)
+    if not bulk_price.valid(mode, amount):
         messages.error(request, _("Bitte Produkte auswählen und einen Betrag angeben."))
         return redirect("sellable-manage")
     from django.db import transaction
@@ -1403,18 +1403,12 @@ def products_bulk_price(request):
 
 
 def _apply_bulk_price(products, mode, amount) -> int:
-    from decimal import ROUND_HALF_UP
+    from apps.catalog import bulk_price
 
     changed = 0
     for product in products:
         base = Decimal(str(product.base_price))
-        if mode == "set":
-            new = amount
-        elif mode == "pct":
-            new = base * (Decimal(100) + amount) / Decimal(100)
-        else:
-            new = base + amount
-        new = max(new, Decimal("0")).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+        new = bulk_price.new_price(base, mode, amount)
         if new != base:
             product.base_price = new
             product.save(update_fields=["base_price", "updated_at"])

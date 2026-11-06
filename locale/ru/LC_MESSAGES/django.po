@@ -34636,3 +34636,82 @@ msgstr "Настроить страницу"
 #: apps/core/assistant_actions.py
 msgid "Diese Einstellung ist hier nicht mehr verfügbar."
 msgstr "Эта настройка здесь больше недоступна."
+
+#: apps/core/assistant_bulk.py
+#, python-format
+msgid "%(n)s Produkte — vorher und nachher"
+msgstr "%(n)s товаров — было и станет"
+
+#: apps/core/assistant_bulk.py
+msgid "Bisher"
+msgstr "Было"
+
+#: apps/core/assistant_bulk.py
+msgid "Das ändere ich für Sie"
+msgstr "Это я изменю для вас"
+
+#: apps/core/assistant_bulk.py
+#, python-format
+msgid "%(n)s mit Varianten — den Preis bitte im Formular ändern."
+msgstr "%(n)s с вариантами — цену, пожалуйста, измените в форме."
+
+#: apps/core/assistant_bulk.py
+#, python-format
+msgid "%(n)s schon so — bleiben unverändert."
+msgstr "%(n)s уже так — остаются без изменений."
+
+#: apps/core/assistant_bulk.py
+#, python-format
+msgid "Alle Produkte in „%(name)s“"
+msgstr "Все товары в «%(name)s»"
+
+#: apps/core/assistant_bulk.py
+#, python-format
+msgid "Das sind %(n)s Produkte — mehr als %(max)s auf einmal ändere ich nicht. Bitte im Sortiment mehrere auswählen."
+msgstr "Это %(n)s товаров — больше %(max)s за раз я не меняю. Выберите несколько в ассортименте."
+
+#: apps/core/assistant_bulk.py
+msgid "Den Betrag verstehe ich nicht — bitte z. B. „10 Prozent“ oder „2 €“."
+msgstr "Не понимаю сумму — например, «10 процентов» или «2 €»."
+
+#: apps/core/assistant_bulk.py
+msgid "In dieser Kategorie ist nichts."
+msgstr "В этой категории ничего нет."
+
+#: apps/core/assistant_bulk.py
+msgid "Mehrere Beträge gefunden — bitte nur einen nennen."
+msgstr "Найдено несколько сумм — назовите, пожалуйста, одну."
+
+#: apps/core/assistant_bulk.py
+msgid "Teurer oder günstiger? Zum Beispiel „alle Kuchen 10 Prozent teurer“."
+msgstr "Дороже или дешевле? Например, «все торты на 10 процентов дороже»."
+
+#: apps/core/assistant_bulk.py
+msgid "Teurer oder günstiger? Zum Beispiel „alle Kuchen 2 € teurer“."
+msgstr "Дороже или дешевле? Например, «все торты на 2 € дороже»."
+
+#: apps/core/assistant_bulk.py
+msgid "Um wie viel? Zum Beispiel „alle Kuchen 10 Prozent teurer“."
+msgstr "На сколько? Например, «все торты на 10 процентов дороже»."
+
+#: apps/core/assistant_bulk.py
+msgid "ausblenden"
+msgstr "скрыть"
+
+#: apps/core/assistant_bulk.py
+msgid "wieder anzeigen"
+msgstr "снова показать"
+
+#: apps/core/assistant_bulk.py
+msgid "Einige Produkte wurden inzwischen geändert — bitte neu fragen oder diese Zeilen abwählen."
+msgstr "Некоторые товары тем временем изменились — спросите заново или снимите эти строки."
+
+#: apps/core/assistant_bulk.py
+#, python-format
+msgid "%(n)s würden 0 € kosten — bleiben unverändert."
+msgstr "%(n)s стоили бы 0 € — остаются без изменений."
+
+#: apps/core/assistant_bulk.py
+#, python-format
+msgid "%(n)s würden über 100.000 € kosten — bleiben unverändert."
+msgstr "%(n)s стоили бы больше 100 000 € — остаются без изменений."

@@ -682,7 +682,13 @@ def put_actions(request, q: str, builder=None) -> dict:
     с предпросмотром (тот же job-канал, лимиты и замок, что у плана; без ИИ)."""
     from django.core.cache import cache
 
-    from apps.core import assistant_actions, assistant_changes, page_templates, ratelimit
+    from apps.core import (
+        assistant_actions,
+        assistant_bulk,
+        assistant_changes,
+        page_templates,
+        ratelimit,
+    )
 
     schema, user_pk = _schema_name(), request.user.pk
     job = uuid.uuid4().hex
@@ -704,15 +710,17 @@ def put_actions(request, q: str, builder=None) -> dict:
         items = build(request.tenant, request.user, q[:QUESTION_MAX])
         if not items:
             return {"code": "unavailable"}
+        bulk = assistant_bulk.meta(items)
+        # в историю — только сводка (что предлагалось), без пакета; массовый — одной строкой
+        summary = [{"action": it["action"], "name": it["values"].get("name", "")} for it in items]
+        if bulk is not None:
+            summary = [{"action": items[0]["action"], "name": bulk["title"]}]
         entry = {
             "state": "done",
             "outcome": "actions",
             "actions": items,
             "job": job,
-            # в историю — только сводка (что предлагалось), без пакета
-            "summary": [
-                {"action": it["action"], "name": it["values"].get("name", "")} for it in items
-            ],
+            "summary": summary,
         }
         _put(schema, user_pk, entry, assistant_actions.ACTIONS_TTL, job=job, q=q)
     except Exception:  # noqa: BLE001 — сбой кэша/разбора: спокойное сообщение, а не 500
@@ -909,7 +917,16 @@ def _present_actions(request, entry: dict) -> dict:
         out["actions"] = assistant_actions.present(
             request, entry["actions"], errors=entry.get("action_errors")
         )
+        from apps.core import assistant_bulk
+
+        out["bulk"] = assistant_bulk.meta(entry["actions"])  # A-4d: шапка и строки таблицей
+        if out["bulk"] is not None:  # одно предупреждение § 11 PAngV на пакет, а не на строку
+            out["bulk_warning"] = next(
+                (it["warning"] for it in out["actions"] if it["allowed"] and it["warning"]), ""
+            )
+            out["bulk_errors"] = any(f["error"] for it in out["actions"] for f in it["fields"])
         out["actions_allowed"] = any(it["allowed"] for it in out["actions"])
+        out["actions_change"] = any(it["verb"] != "create" for it in out["actions"])
     return out
 
 
