@@ -367,7 +367,8 @@ def _help(request, seite: str, q: str, artikel: str) -> tuple:
     opened = help_articles.opened(request, artikel) if artikel else None
     skip = opened["key"] if opened else ""
     here = help_articles.articles_here(request, seite, skip=skip)
-    found = help_articles.search(request, q) if q else []
+    shown = frozenset({skip, *(x["key"] for x in here)})
+    found = help_articles.search(request, q, skip=shown) if q else []
     return opened, here, found
 
 

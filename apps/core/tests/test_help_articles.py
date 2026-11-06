@@ -277,3 +277,53 @@ def test_nothing_found_only_when_both_empty(bakery):
     body = assistant_views.assistant_view(_req(bakery, {"q": "qqqxyzzz"})).content.decode()
     assert "Nichts gefunden" in body
     assert "data-help-results" not in body
+
+
+def test_summary_stays_in_tab_order():
+    """Раскрытие статьи/диагноза доступно с клавиатуры (WCAG 2.1.1): summary без tabindex=-1."""
+    for name in ("_assistant_article.html", "_assistant_body.html"):
+        src = open(f"templates/core/{name}", encoding="utf-8").read()
+        assert '<summary tabindex="-1"' not in src, name
+
+
+def test_failed_article_search_is_not_nothing_found(bakery, monkeypatch):
+    monkeypatch.setattr(help_articles, "search", lambda *a, **k: 1 / 0)
+    monkeypatch.setattr(assistant, "where_search", lambda r, q: [])
+    body = assistant_views.assistant_view(_req(bakery, {"q": "Öffnungszeiten"})).content.decode()
+    assert "Nichts gefunden" not in body
+    assert "Die Suche konnte nicht ausgeführt werden" in body
+
+
+def test_one_broken_article_does_not_empty_help(bakery, monkeypatch):
+    real = help_articles.render
+
+    def flaky(request, article, **kw):
+        if article.key == "bezahlung":
+            raise RuntimeError("boom")
+        return real(request, article, **kw)
+
+    monkeypatch.setattr(help_articles, "render", flaky)
+    keys = [x["key"] for x in help_articles.articles_here(_req(bakery), "payment-settings")]
+    assert "bezahlung" not in keys and "lieferung_abholung" in keys
+
+
+def test_email_article_only_while_email_pending(bakery, monkeypatch):
+    from apps.core import storefront_state
+
+    assert help_articles.opened(_req(bakery), "email_bestaetigen") is None
+    monkeypatch.setattr(storefront_state, "hidden_reasons", lambda t: ["email_pending"])
+    assert help_articles.opened(_req(bakery), "email_bestaetigen") is not None
+
+
+def test_no_duplicate_between_help_here_and_results(bakery):
+    ctx = assistant.build(_req(bakery), seite="payment-settings", q="Lieferung")
+    here = {x["key"] for x in ctx["help_here"]}
+    found = {x["key"] for x in ctx["help_found"]}
+    assert "lieferung_abholung" in here and not (here & found)
+
+
+def test_search_query_budget(bakery, django_assert_max_num_queries):
+    request = _req(bakery)
+    help_articles.search(request, "e")  # прогрев мемо членства/тенанта
+    with django_assert_max_num_queries(4):
+        help_articles.search(request, "Preis Foto Termin")

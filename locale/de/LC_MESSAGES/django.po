@@ -33428,8 +33428,8 @@ msgid "Angebote mit Preis und Foto anlegen."
 msgstr "Angebote mit Preis und Foto anlegen."
 
 #: apps/core/help_articles.py
-msgid "Im Assistenten „Funktioniert etwas nicht?“ zeigt, was noch fehlt."
-msgstr "Im Assistenten „Funktioniert etwas nicht?“ zeigt, was noch fehlt."
+msgid "Im Assistenten zeigt „Funktioniert etwas nicht?“, was noch fehlt."
+msgstr "Im Assistenten zeigt „Funktioniert etwas nicht?“, was noch fehlt."
 
 #: apps/core/help_articles.py
 msgid "Startseite gestalten"

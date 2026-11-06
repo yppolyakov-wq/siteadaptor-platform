@@ -33,7 +33,7 @@
     <div class="space-y-2">
       {% for d in diagnoses %}
       <details class="rounded-xl border border-gray-200 px-3 py-2"{% if d.key == pruefen or d.findings and not d.ok %} open{% endif %} data-diagnosis="{{ d.key }}">
-        <summary tabindex="-1"{% if d.key == pruefen %} data-drawer-autofocus{% endif %} class="cursor-pointer min-h-[44px] flex items-center gap-2 font-medium rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
+        <summary{% if d.key == pruefen %} data-drawer-autofocus{% endif %} class="cursor-pointer min-h-[44px] flex items-center gap-2 font-medium rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
           <span class="flex-1">{{ d.symptom }}</span><span class="sr-only">: </span>
           {% if d.findings is None %}<span class="ui-badge ui-tone-off">{% trans "nicht geprüft" %}</span>{% elif d.ok %}<span class="ui-badge ui-tone-ok">{% trans "in Ordnung" %}</span>{% else %}<span class="ui-badge ui-tone-bad">{% trans "prüfen" %}</span>{% endif %}
         </summary>
@@ -66,9 +66,9 @@
       <ul class="mt-2 divide-y divide-gray-100">
         {% for w in where %}<li class="py-2"><a href="{{ w.link.url }}" class="inline-flex items-center min-h-[44px] text-indigo-700 hover:underline">{{ w.text }}</a>{% if w.area %} <span class="ui-muted text-sm">· {{ w.area }}</span>{% endif %}</li>{% endfor %}
       </ul>
-      {% elif where_failed %}
+      {% elif where_failed or help_failed %}
       <p class="ui-muted text-sm mt-2">{% trans "Die Suche konnte nicht ausgeführt werden — bitte später erneut versuchen." %}</p>
-      {% elif not help_found %}
+      {% elif not help_found and not help_failed %}
       <p class="ui-muted text-sm mt-2">{% trans "Nichts gefunden." %}</p>
       {% endif %}
     {% endif %}

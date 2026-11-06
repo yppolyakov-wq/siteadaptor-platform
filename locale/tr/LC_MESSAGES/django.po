@@ -33487,7 +33487,7 @@ msgid "Angebote mit Preis und Foto anlegen."
 msgstr "Fiyatlı ve fotoğraflı teklifler oluşturun."
 
 #: apps/core/help_articles.py
-msgid "Im Assistenten „Funktioniert etwas nicht?“ zeigt, was noch fehlt."
+msgid "Im Assistenten zeigt „Funktioniert etwas nicht?“, was noch fehlt."
 msgstr "Asistanda “Bir şey çalışmıyor mu?” bölümü eksikleri gösterir."
 
 #: apps/core/help_articles.py

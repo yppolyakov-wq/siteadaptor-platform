@@ -33648,7 +33648,7 @@ msgid "Angebote mit Preis und Foto anlegen."
 msgstr "Создайте предложения с ценой и фото."
 
 #: apps/core/help_articles.py
-msgid "Im Assistenten „Funktioniert etwas nicht?“ zeigt, was noch fehlt."
+msgid "Im Assistenten zeigt „Funktioniert etwas nicht?“, was noch fehlt."
 msgstr "В помощнике раздел «Что-то не работает?» покажет, чего ещё не хватает."
 
 #: apps/core/help_articles.py

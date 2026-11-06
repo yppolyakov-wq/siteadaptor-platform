@@ -1,7 +1,7 @@
 {% load i18n %}
 {% comment %}AIS A-1: одна статья справки — раскрывается без JS (details/summary); ссылки — через assistant.link (пометка вместо ссылки, если экран недоступен). Только autoescape.{% endcomment %}
 <details class="rounded-xl border border-gray-200 px-3 py-2"{% if a.open %} open{% endif %} data-help="{{ a.key }}">
-  <summary tabindex="-1"{% if a.open %} data-drawer-autofocus{% endif %} class="cursor-pointer min-h-[44px] flex items-center gap-2 font-medium rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"><span aria-hidden="true">📘</span><span class="flex-1">{{ a.title }}</span></summary>
+  <summary{% if a.open %} data-drawer-autofocus{% endif %} class="cursor-pointer min-h-[44px] flex items-center gap-2 font-medium rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"><span aria-hidden="true">📘</span><span class="flex-1">{{ a.title }}</span></summary>
   <p class="text-sm text-gray-700 mt-1">{{ a.summary }}</p>
   <ol class="list-decimal pl-5 mt-2 space-y-1 text-sm">{% for step in a.steps %}<li>{{ step }}</li>{% endfor %}</ol>
   {% if a.links %}

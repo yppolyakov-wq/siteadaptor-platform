@@ -56,6 +56,7 @@ class Article:
     owner_only: bool = False
     readiness: tuple = ()  # связанные Item.key реестра готовности
     diagnoses: tuple = ()  # связанные Diagnosis.key
+    show_if: str = ""  # ключ SHOW_IF: статья нужна только в этом состоянии бизнеса
 
     @property
     def main(self) -> ArticleLink:
@@ -139,6 +140,7 @@ REGISTRY: tuple[Article, ...] = (
             "help-keywords", "bestätigen, Bestätigung, E-Mail, Link, nicht sichtbar"
         ),
         diagnoses=("website_hidden",),
+        show_if="email_pending",
     ),
     Article(
         key="impressum",
@@ -203,7 +205,7 @@ REGISTRY: tuple[Article, ...] = (
         steps=(
             _("E-Mail bestätigen und Website veröffentlichen."),
             _("Angebote mit Preis und Foto anlegen."),
-            _("Im Assistenten „Funktioniert etwas nicht?“ zeigt, was noch fehlt."),
+            _("Im Assistenten zeigt „Funktioniert etwas nicht?“, was noch fehlt."),
         ),
         links=(L("open", "settings", _("Mein Geschäft")),),
         keywords=pgettext_lazy(
@@ -556,6 +558,17 @@ def ranked(q: str) -> list[Article]:
 # --- видимость и выдача ------------------------------------------------------------------
 
 
+def _email_pending(tenant) -> bool:
+    from apps.core import storefront_state
+
+    return "email_pending" in storefront_state.hidden_reasons(tenant)
+
+
+#: Состояние бизнеса, в котором статья вообще нужна (подтверждённому владельцу кнопка
+#: «Bestätigung erneut senden» не показывается — как у диагноза `website_hidden`).
+SHOW_IF = {"email_pending": _email_pending}
+
+
 def _gate_ok(request, article: Article) -> bool:
     from apps.core import assistant, directions, modules
 
@@ -563,6 +576,8 @@ def _gate_ok(request, article: Article) -> bool:
     if article.owner_only and not assistant._is_owner(request):
         return False
     try:
+        if article.show_if and not SHOW_IF[article.show_if](tenant):
+            return False
         if article.directions and not any(
             directions.is_active(tenant, d) for d in article.directions
         ):
@@ -601,11 +616,23 @@ def render(request, article: Article, *, open_: bool = False) -> dict | None:
     }
 
 
-def search(request, q: str) -> list[dict]:
-    """Статьи по запросу с гейтами ПО ХОДУ (скрытые не вытесняют видимые), кап 5."""
+def _render_safe(request, article: Article) -> dict | None:
+    """Сбой одной статьи (битый перевод, reverse) не гасит всю справку — статья пропускается."""
+    try:
+        return render(request, article)
+    except Exception:  # noqa: BLE001 — одна статья не стоит пустой шторки
+        logger.warning("help: article %s failed", article.key, exc_info=True)
+        return None
+
+
+def search(request, q: str, *, skip=frozenset()) -> list[dict]:
+    """Статьи по запросу с гейтами ПО ХОДУ (скрытые не вытесняют видимые), кап 5.
+    `skip` — статьи, уже показанные выше («Hilfe zu dieser Seite»): без дублей."""
     out = []
     for article in ranked(q):
-        item = render(request, article)
+        if article.key in skip:
+            continue
+        item = _render_safe(request, article)
         if item:
             out.append(item)
             if len(out) >= MAX_RESULTS:
@@ -624,7 +651,7 @@ def articles_here(request, seite: str, *, skip: str = "") -> list[dict]:
     for article in REGISTRY:
         if article.key == skip or not (article.all_screens & names):
             continue
-        item = render(request, article)
+        item = _render_safe(request, article)
         if item:
             out.append(item)
             if len(out) >= MAX_HERE:
