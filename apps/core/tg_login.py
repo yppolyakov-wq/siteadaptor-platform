@@ -54,6 +54,8 @@ TG_LITE_VIEWS = frozenset(
         "assistant",  # AIS A-0: шторка помощника (только чтение)
         "assistant-ask",  # AIS A-2: вопрос ИИ-помощнику
         "assistant-answer",  # AIS A-2: опрос ответа
+        "support:help",  # AIS A-3b: техподдержка и в Mini App
+        "support:thread",
         "setup-ask",  # STU-19i: "Was möchten Sie anlegen?" (plan only): заявки списком (карточка со сметой — вне Telegram)
         "owner-confirm-resend",
         "set-cabinet-lang",

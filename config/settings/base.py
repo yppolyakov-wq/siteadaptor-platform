@@ -751,6 +751,8 @@ PROMO_RESERVATIONS_PER_IP_DAY = env.int("PROMO_RESERVATIONS_PER_IP_DAY", default
 PROMO_OPEN_RESERVATIONS_PER_CONTACT = env.int("PROMO_OPEN_RESERVATIONS_PER_CONTACT", default=3)
 PROMO_COUPONS_PER_IP_DAY = env.int("PROMO_COUPONS_PER_IP_DAY", default=3)
 PLATFORM_CONTACT_EMAIL = env("PLATFORM_CONTACT_EMAIL", default="kontakt@siteadaptor.de")
+# AIS A-3b: куда платформе приходят письма о новых обращениях в поддержку (пусто → PLATFORM_CONTACT_EMAIL)
+SUPPORT_NOTIFY_EMAIL = env("SUPPORT_NOTIFY_EMAIL", default="")
 # SF-8b: исключение § 11 Abs. 4 PAngV (schnell verderblich / kurze Haltbarkeit) — акция
 # с флагом владельца НЕ ограничивается 30-дневным минимумом. Выключатель для отката по
 # решению юриста: False → флаг игнорируется целиком (данные владельцев не трогаются).

@@ -60,6 +60,8 @@ _AKTIONEN_VIEWS = frozenset(
         "assistant",  # AIS A-0
         "assistant-ask",  # AIS A-2
         "assistant-answer",  # AIS A-2
+        "support:help",  # AIS A-3b: поддержка нужна малому владельцу больше всех
+        "support:thread",
         "betriebsferien",  # KA-12 О-8: каникулы — и в лёгком пакете
         "legal-docs",
         "owner-confirm-resend",
