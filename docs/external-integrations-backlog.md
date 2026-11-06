@@ -97,3 +97,10 @@ skill-matrix · extras с фото · виджет брони стола (iframe
 - `billing-stripe-setup.md` — настройка Stripe (ключи/Price/Connect/webhook).
 - `hotel-channel-manager-plan.md` — план Channel Manager (G11), включая OTA-API.
 - `master-plan.md` / `audit-2026-06-22.md` §6 — модули M21/M23/P2.8 в общей картине.
+
+## Google Places — мастер «Bei Google suchen» (AIS W4-3, 2026-11-06)
+Тот же ключ, что GK-11: `GOOGLE_PLACES_API_KEY` (Places API (New) + биллинг). Стоимость: поиск —
+Text Search Essentials, выбор карточки — Place Details по старшему SKU поля (телефон/сайт/часы →
+Enterprise) за каждый выбор. Лимиты в коде: поиск 10/ч на сеть и 20/день на бизнес, выбор 5/ч и
+10/день. Владельцу: дневная квота в Google Console и строка о Places в Datenschutz платформы.
+
