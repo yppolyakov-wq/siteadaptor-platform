@@ -11,7 +11,11 @@ class AggregatorConfig(AppConfig):
         # Сброс кэша резолвера host→портал при изменении AggregatorPortal.
         from django.db.models.signals import post_delete, post_save
 
-        from . import ai_expand, ai_moderation, ai_search  # noqa: F401 — T-8.34d: и расширение запроса
+        from . import (  # noqa: F401 — T-8.34d: и расширение запроса
+            ai_expand,
+            ai_moderation,
+            ai_search,
+        )
         from .middleware import clear_portal_cache
         from .models import AggregatorPortal
 
