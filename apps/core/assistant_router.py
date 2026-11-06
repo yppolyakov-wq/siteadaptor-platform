@@ -91,9 +91,9 @@ def _followup_handle(request, q, raw, seite, hit):
     # AIS A-5c: «und den Käsekuchen auch» — то же действие, что в прошлом ходе, новый объект
     from apps.core import assistant_ai, assistant_followup
 
-    prev, obj = hit
+    prev, found = hit
     return assistant_ai.put_actions(
-        request, q, builder=lambda tenant, user, text: assistant_followup.build(prev, obj)
+        request, q, builder=lambda tenant, user, text: assistant_followup.build(prev, found)
     )
 
 

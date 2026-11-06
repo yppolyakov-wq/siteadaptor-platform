@@ -63,23 +63,56 @@ def _previous(request) -> dict | None:
     return {"kind": kind, "verb": row["verb"]}
 
 
+#: отрицание переворачивает смысл («und den Käsekuchen auch nicht») — не продолжаем
+_NEGATION = re.compile(
+    _W + r"(?:nicht|kein\w*|nie|не|нет|ні|not|no|never|değil|yok|hayır)" + _E, re.IGNORECASE
+)
+#: слова-связки, которые могут стоять рядом с маркером и именем — и ничего больше
+_FILLER = frozenset(
+    "und den die das dem der bitte noch mal and the please also и а ещё еще пожалуйста "
+    "і а ще будь ласка".split()
+)
+MAX_WORDS = 7
+
+
+def _only_filler(text_cf: str, start: int, end: int) -> bool:
+    """После имени объекта и маркера остались только связки: «und den Käsekuchen auch» —
+    да; «der Käsekuchen ist auch lecker», «Также хочу спросить про Käsekuchen» — нет."""
+    rest = _MARKER.sub(" ", text_cf[:start] + " " + text_cf[end:])
+    words = re.findall(r"[^\W\d_]+", rest)
+    return all(w in _FILLER for w in words)
+
+
 def _find(request, q: str):
     from apps.core import assistant_changes
+    from apps.core.permissions import has_perm
 
     text = (q or "").strip()[:TEXT_MAX]
-    if not _MARKER.search(text) or assistant_changes._looks_like_question(text):
+    if not _MARKER.search(text) or _NEGATION.search(text):
+        return None
+    if assistant_changes._looks_like_question(text):
+        return None
+    # коротко и одной фразой: «und den Käsekuchen auch», а не рассказ с «auch» внутри
+    if len(text.split()) > MAX_WORDS or re.search(r"[,.;:!?]\s*\S", text.strip(" .!")):
         return None
     prev = _previous(request)
     if prev is None:
         return None
+    perm = "preise.edit" if prev["verb"] == "price" else "sortiment.edit"
+    if not has_perm(request.user, perm):
+        return None
     kinds = assistant_changes._kinds_for(request.tenant, request.user, prev["verb"])
     if prev["kind"] not in kinds:
         return None
+    # только вид прошлого хода: одноимённые категория и товар — разные вещи (A-4b ищет так же)
     rows = assistant_changes._index(request.tenant, (prev["kind"],))
-    found, _start, _end = assistant_changes._matches(text.casefold(), rows, (prev["kind"],))
-    if len({r["obj"].pk for r in found}) != 1:
+    low = text.casefold()
+    found, start, end = assistant_changes._matches(low, rows, (prev["kind"],))
+    if not found or assistant_changes._extends_name(text, found):
+        return None  # «Käsekuchen Mini auch» — это ДРУГОЙ товар, а не «Käsekuchen»
+    if not _only_filler(low, start, end):
         return None
-    return prev, found[0]["obj"]
+    return prev, found
 
 
 def intent(request, q: str):
@@ -90,11 +123,20 @@ def intent(request, q: str):
         return None
 
 
-def build(prev: dict, obj) -> list[dict]:
-    from apps.core import assistant_changes
+def build(prev: dict, found: list[dict]) -> list[dict]:
+    from apps.core import assistant_changes, assistant_clarify
 
     note = ""
     if prev["verb"] == "price":
         note = _("Bitte einen Preis angeben.")
-    item = assistant_changes.item_for(prev["kind"], prev["verb"], obj, "", note)
+    item = assistant_changes.item_for(prev["kind"], prev["verb"], found[0]["obj"], "", note)
+    if len({r["obj"].pk for r in found}) > 1:  # одноимённые — тот же вопрос «какой?» (A-5b)
+        item["blocked"] = _("Mehrere Einträge heißen so — bitte im Sortiment ändern.")
+        item["clarify"] = {
+            "slot": "pick_target",
+            "options": assistant_clarify.options_for_rows(found),
+            "verb": prev["verb"],
+            "value": "",
+            "note": note,
+        }
     return [item]

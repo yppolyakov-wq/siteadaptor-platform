@@ -93,3 +93,36 @@ def test_bulk_turn_has_no_followup(ai_off, bakery, shop):
     )
     user, _first = _ask(bakery, "скрой все товары категории Kuchen")
     assert assistant_router.classify(_req(bakery, user=user), FOLLOW) != "followup"
+
+
+@pytest.mark.parametrize(
+    "phrase",
+    [
+        "Также хочу спросить про Käsekuchen",
+        "Der Käsekuchen ist auch lecker",
+        "und den Käsekuchen auch nicht",
+        "Käsekuchen Mini auch",
+        "Käsekuchen auch, und dann noch was anderes",
+    ],
+)
+def test_statements_and_negations_are_not_followups(ai_off, bakery, shop, phrase):
+    user, _first = _ask(bakery, "скрой Apfelstrudel")
+    assert assistant_router.classify(_req(bakery, user=user), phrase) != "followup"
+
+
+def test_same_name_twins_get_question(ai_off, bakery, shop):
+    writers.create_product(bakery, {"name_de": "Käsekuchen", "base_price": "5"})
+    user, _first = _ask(bakery, "скрой Apfelstrudel")
+    _u, got = _ask(bakery, FOLLOW, user=user)
+    assert "data-assistant-clarify" in _html(bakery, user, got["job"])
+
+
+def test_price_followup_needs_price_right(ai_off, bakery, shop, monkeypatch):
+    from apps.core import permissions
+
+    user, _first = _ask(bakery, "Preis Apfelstrudel auf 3,50 €")
+    real = permissions.has_perm
+    monkeypatch.setattr(
+        permissions, "has_perm", lambda u, perm: perm != "preise.edit" and real(u, perm)
+    )
+    assert assistant_router.classify(_req(bakery, user=user), FOLLOW) != "followup"
