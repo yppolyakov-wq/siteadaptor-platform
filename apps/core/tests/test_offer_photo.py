@@ -47,7 +47,20 @@ def test_separator_inside_name_does_not_split_line(sep):
 
 
 @pytest.mark.parametrize(
-    "price", ["ca. 3", "3,50 € + Pfand", "-5 €", "20 %", "Tagespreis", "3,50 €/kg", "1 2 3"]
+    "price",
+    [
+        "ca. 3",
+        "3,50 € + Pfand",
+        "-5 €",
+        "20 %",
+        "Tagespreis",
+        "3,50 €/kg",
+        "1 2 3",
+        "0,00 €",
+        "0",
+        "99999 €",
+        "12–9 €",
+    ],
 )
 def test_unreadable_price_becomes_missing_not_invented(price):
     rows = _parsed(_raw({"name": "Brot", "price_text": price}), "waren")
@@ -195,6 +208,14 @@ def test_take_result_is_one_shot():
     assert "lines" not in offer_photo.job_state(schema=schema, user_pk=user, job=job)
     assert offer_photo.take_result(schema=schema, user_pk=user, job=job)["lines"] == ["A — 1 €"]
     assert offer_photo.take_result(schema=schema, user_pk=user, job=job) is None
+
+
+def test_taken_result_reads_as_taken_not_missing():
+    schema, user, job = "public", 11, "d" * 32
+    cache.set(offer_photo._job_key(schema, user, job), {"state": "done", "lines": []}, 60)
+    assert offer_photo.take_result(schema=schema, user_pk=user, job=job) is not None
+    # Вторая вкладка видит «taken» (молчит), а не пустой ключ («zu lange gedauert»).
+    assert offer_photo.job_state(schema=schema, user_pk=user, job=job) == {"state": "taken"}
 
 
 def test_pending_result_is_not_taken():

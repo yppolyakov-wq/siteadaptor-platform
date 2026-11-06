@@ -133,7 +133,8 @@ def choose_directions(tenant, keys) -> list[str]:
 
 def new_draft(request, kind: str, text: str, *, source: str = "") -> dict:
     """Новый черновик. `source="photo"` — строки прочитаны ИИ с фото (W4-4): таблица
-    показывает пометку «aus dem Foto erkannt»; ручная правка текста её снимает."""
+    показывает пометку «aus dem Foto erkannt». Пометка переживает «Zurück zum Text» и
+    повторный «Prüfen» того же вида (Р-3); «Beispiele einfügen» и «Übernehmen» её снимают."""
     draft = {"batch": uuid.uuid4().hex, "kind": kind, "text": text[: offer_lines.MAX_TEXT]}
     if source == "photo":
         draft["source"] = "photo"

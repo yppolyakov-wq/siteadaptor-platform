@@ -33280,8 +33280,8 @@ msgid "Foto nicht lesbar — bitte JPG, PNG oder WebP nehmen."
 msgstr "Foto nicht lesbar — bitte JPG, PNG oder WebP nehmen."
 
 #: apps/core/offer_photo.py templates/tenant/setup/_step_pruefen.html
-msgid "Foto zu groß — höchstens 15 MB pro Foto."
-msgstr "Foto zu groß — höchstens 15 MB pro Foto."
+msgid "Fotos zu groß — höchstens 15 MB pro Foto, 25 MB zusammen."
+msgstr "Fotos zu groß — höchstens 15 MB pro Foto, 25 MB zusammen."
 
 #: apps/core/offer_photo.py templates/tenant/setup/_step_pruefen.html
 msgid "Fotos auswählen"

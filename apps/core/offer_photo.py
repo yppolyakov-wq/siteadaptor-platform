@@ -113,9 +113,27 @@ def clean_name(value) -> str:
     return text[:NAME_MAX].strip()
 
 
+#: Сумма за позицию малого бизнеса: «0» и «99999» с фото — скорее мусор/инъекция, чем цена.
+MAX_PRICE = 10000
+
+
 def clean_price(value) -> str:
+    """Цена дословно, если это ОДНА правдоподобная сумма (> 0, ≤ MAX_PRICE; у «a–b» a < b);
+    иначе "" — строка получит «Preis fehlt», а не выдуманную/подсунутую цену."""
+    from apps.core import money
+
     text = _SPACES.sub(" ", str(value or "")).strip()
-    return text if text and _PRICE_OK.fullmatch(text) else ""
+    if not text or not _PRICE_OK.fullmatch(text):
+        return ""
+    try:
+        amounts = [money.parse_amount(n) for n in re.findall(_AMOUNT, text)]
+    except ValueError:
+        return ""
+    if not amounts or any(a <= 0 or a > MAX_PRICE for a in amounts):
+        return ""
+    if len(amounts) == 2 and amounts[0] >= amounts[1]:
+        return ""
+    return text
 
 
 def clean_detail(value, kind: str) -> str:
@@ -254,6 +272,7 @@ def run_job(*, schema: str, user_pk, job: str) -> None:
         logger.exception("offer photo lines job failed")
     finally:
         cache.set(key, outcome, RESULT_TTL)  # перезапись: байты фото уходят из кэша
+        release_lock(schema, user_pk)
 
 
 def job_state(*, schema: str, user_pk, job: str) -> dict | None:
@@ -275,9 +294,10 @@ def take_result(*, schema: str, user_pk, job: str) -> dict | None:
     entry = cache.get(key)
     if not isinstance(entry, dict) or entry.get("state") not in ("done", "error"):
         return None
-    if not cache.delete(key):
+    # Атомарный захват: ключ-захват ставит только один запрос; основной ключ сразу
+    # становится «taken» (без окна «ключа нет» — вторая вкладка не видит «zu lange»).
+    if not cache.add(f"{key}:claim", 1, RESULT_TTL):
         return None
-    # Метка «забрано»: вторая вкладка видит её и молчит, а не пишет «zu lange gedauert».
     cache.set(key, {"state": "taken"}, RESULT_TTL)
     return entry
 
@@ -291,7 +311,8 @@ ERRORS = {
     "quota": gettext_lazy("Zu viele Fotos in kurzer Zeit — bitte später erneut versuchen."),
     "config": gettext_lazy("Foto nicht lesbar — bitte JPG, PNG oder WebP nehmen."),
     "too_many": gettext_lazy("Höchstens 3 Fotos auf einmal."),
-    "too_large": gettext_lazy("Foto zu groß — höchstens 15 MB pro Foto."),
+    "busy": gettext_lazy("Das Foto wird schon gelesen."),
+    "too_large": gettext_lazy("Fotos zu groß — höchstens 15 MB pro Foto, 25 MB zusammen."),
     "no_file": gettext_lazy("Bitte ein Foto auswählen."),
     "nothing": gettext_lazy(
         "Auf dem Foto haben wir keine Preisliste erkannt — bitte ein schärferes Foto "
@@ -339,8 +360,29 @@ def state(request) -> str:
     return found["state"] if found.get("state") in ("pending", "done") else "error"
 
 
+#: Сумма загрузки за раз: 3 фото по 15 МБ декодировать в веб-воркере не даём.
+MAX_UPLOAD_BYTES = 25 * 1024 * 1024
+
+
+def _lock_key(schema: str, user_pk) -> str:
+    return f"ai-offer-photo-lock:{schema}:{user_pk}"
+
+
+def release_lock(schema: str, user_pk) -> None:
+    from django.core.cache import cache
+
+    cache.delete(_lock_key(schema, user_pk))
+
+
 def start(request, kind: str, uploads, *, base_text: str = "") -> str:
-    """POST «Foto lesen»: проверить фото, лимиты, поставить задачу. '' — запущено, иначе код."""
+    """POST «Foto lesen»: проверить фото, лимиты, поставить задачу. '' — запущено, иначе код.
+
+    Порядок: дешёвые проверки → замок «одно чтение на пользователя» (две вкладки) → лимит
+    частоты → декодирование. Отказ после лимита возвращает попытку (`ratelimit.refund`):
+    битая загрузка или упавшая очередь лимит не съедают, а декодирование без лимита
+    (CPU/память веб-воркера) невозможно."""
+    from django.core.cache import cache
+
     from apps.ai.errors import AIConfigError
     from apps.ai.images import reencode
     from apps.core import ratelimit
@@ -352,32 +394,54 @@ def start(request, kind: str, uploads, *, base_text: str = "") -> str:
         return "no_file"
     if len(uploads) > MAX_PHOTOS:
         return "too_many"
+    if any(u.size > RAW_MAX_BYTES for u in uploads) or sum(u.size for u in uploads) > (
+        MAX_UPLOAD_BYTES
+    ):
+        return "too_large"
+    schema, user_pk = _schema(), request.user.pk
+    if not cache.add(_lock_key(schema, user_pk), 1, JOB_TTL):
+        return "busy"
+    scopes = (("ai-offer-photo-user", f"{schema}:{user_pk}"), ("ai-offer-photo", schema))
+    counted = []
+    for scope, ident in scopes:
+        limit = RATE_LIMIT if scope.endswith("-user") else RATE_LIMIT_TENANT
+        counted.append((scope, ident))
+        if ratelimit.hit(scope, ident, limit=limit, window=RATE_WINDOW):
+            release_lock(schema, user_pk)
+            return "quota"
+
+    def _fail(code: str) -> str:
+        for scope, ident in counted:
+            ratelimit.refund(scope, ident)
+        release_lock(schema, user_pk)
+        return code
+
     photos = []
     for upload in uploads:
-        if upload.size > RAW_MAX_BYTES:
-            return "too_large"
         try:
             photos.append(reencode(upload.read()))
         except AIConfigError:
-            return "config"
-    schema = _schema()
-    # Лимит — после проверки файлов (битая загрузка лимит не съедает), по пользователю И по
-    # бизнесу, как у фото акции (Д1).
-    if ratelimit.hit(
-        "ai-offer-photo-user", f"{schema}:{request.user.pk}", limit=RATE_LIMIT, window=RATE_WINDOW
-    ) or ratelimit.hit("ai-offer-photo", schema, limit=RATE_LIMIT_TENANT, window=RATE_WINDOW):
-        return "quota"
+            return _fail("config")
+    previous = pointer(request)
+    if previous is not None:  # прежний (готовый/упавший) результат больше не нужен
+        drop_job(schema=schema, user_pk=user_pk, job=previous["job"])
     try:
-        job = start_job(schema=schema, user_pk=request.user.pk, photos=photos, kind=kind)
+        job = start_job(schema=schema, user_pk=user_pk, photos=photos, kind=kind)
     except Exception:  # noqa: BLE001 — очередь недоступна: спокойная ошибка, шаг живёт
         logger.warning("offer photo lines: queue unavailable")
-        return "unavailable"
+        return _fail("unavailable")
     request.session[SESSION_KEY] = {
         "job": job,
         "kind": kind,
         "base": (base_text or "")[: offer_lines.MAX_TEXT],
     }
     return ""
+
+
+def drop_job(*, schema: str, user_pk, job: str) -> None:
+    from django.core.cache import cache
+
+    cache.delete(_job_key(schema, user_pk, job))
 
 
 @dataclass

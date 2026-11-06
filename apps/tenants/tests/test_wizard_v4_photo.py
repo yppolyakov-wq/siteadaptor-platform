@@ -16,6 +16,7 @@ from PIL import Image
 from apps.catalog.models import Product
 from apps.core import offer_batch, offer_photo, tasks
 from apps.core import views as core_views
+from apps.tenants.tests.factories import TenantFactory
 from apps.tenants.tests.test_wizard_v4_pruefen import Owner, _confirm_data, _v4
 
 pytestmark = pytest.mark.django_db
@@ -164,21 +165,61 @@ def test_kind_not_allowed_for_scan(ai_task_on):
     assert any("Berechtigung" in m for m in owner.messages)
 
 
-def test_too_many_or_not_image_refused_without_spending_limit(ai_task_on):
+def test_bad_files_refused_and_limit_not_spent(ai_task_on):
     from apps.core import ratelimit
 
     owner = Owner(_v4())
     with (
         mock.patch.object(tasks.offer_photo_lines, "delay") as delay,
         mock.patch.object(ratelimit, "hit", return_value=False) as hit,
+        mock.patch.object(ratelimit, "refund") as refund,
     ):
         _scan(owner, files=[_jpeg(f"{i}.jpg") for i in range(4)])
         assert any("Höchstens 3" in m for m in owner.messages)
+        _scan(owner, files=[])
+        assert hit.call_count == 0  # дешёвые отказы — до лимита
         pdf = SimpleUploadedFile("karte.pdf", b"%PDF-1.4 x", content_type="application/pdf")
         _scan(owner, files=[pdf])
         assert any("nicht lesbar" in m for m in owner.messages)
-        _scan(owner, files=[])
-    assert delay.call_count == 0 and hit.call_count == 0
+    # Декодирование — только после лимита; битый файл попытку возвращает.
+    assert hit.call_count == 2 and refund.call_count == 2
+    assert delay.call_count == 0
+    _scan(owner, files=[_jpeg()])  # замок снят: следующий старт не «busy»
+    assert not any("schon gelesen" in m for m in owner.messages)
+
+
+def test_parallel_tabs_start_one_job(ai_task_on):
+    from django.core.cache import cache
+    from django.db import connection
+
+    owner = Owner(_v4())
+    owner()
+    cache.add(offer_photo._lock_key(connection.schema_name, owner.user.pk), 1, 60)
+    with mock.patch.object(tasks.offer_photo_lines, "delay") as delay:
+        _scan(owner)  # вторая вкладка: первая уже держит замок
+    assert delay.call_count == 0
+    assert any("schon gelesen" in m for m in owner.messages)
+
+
+def test_lock_released_after_reading(ai_task_on):
+    from django.core.cache import cache
+    from django.db import connection
+
+    owner = Owner(_v4())
+    run, gen = _inline()
+    with run, gen:
+        _scan(owner)
+    assert cache.get(offer_photo._lock_key(connection.schema_name, owner.user.pk)) is None
+
+
+def test_poll_endpoint_follows_wizard_package_gate():
+    from apps.core import packages
+
+    for business in ("bakery", "hotel"):
+        tenant = TenantFactory.build(business_type=business)
+        assert packages.view_allowed(tenant, "setup-offer-scan") == packages.view_allowed(
+            tenant, "setup"
+        )
 
 
 def test_rate_limit_gives_quota(ai_task_on):
@@ -196,9 +237,15 @@ def test_rate_limit_gives_quota(ai_task_on):
 
 def test_broker_down_is_calm_and_cache_clean(ai_task_on):
     owner = Owner(_v4())
-    with mock.patch.object(tasks.offer_photo_lines, "delay", side_effect=OSError("down")):
+    from apps.core import ratelimit
+
+    with (
+        mock.patch.object(tasks.offer_photo_lines, "delay", side_effect=OSError("down")),
+        mock.patch.object(ratelimit, "refund") as refund,
+    ):
         _scan(owner)
     assert offer_photo.SESSION_KEY not in owner.session
+    assert refund.call_count == 2  # упавшая очередь лимит не съедает
     assert any("nicht verfügbar" in m for m in owner.messages)
 
 
