@@ -4025,7 +4025,8 @@ Python 3.12, менеджер uv.
 - **Самое свежее (2026-11-05/06): AIS-M M-1a…c (экран «Richtungen & Funktionen», без миграций) +
   ПОРТАЛ PH-0…PH-9 — главная «Heute in <город>» + бренд «<Город>Markt» (⚠️ `aggregator/0038`).**
   M-1: слои модулей, единственные писатели `modules.set_modules`/`directions.set_state`, экран
-  направлениями (большой Save снят); остаток M-1d пресеты, M-1e `modules_report`. Портал (план
+  направлениями (большой Save снят); M-1d пресеты по направлениям (акции у отеля/туров/ремесла —
+  пункт меню с первой акции) + M-1e `modules_report` (⚠️ ops: отчёт → владельцу → `--apply`). Портал (план
   `portal-home-a-plan-2026-11-05.md`): общий `open_snapshot`, вордмарк SolingenMarkt (под будущий
   домен), мега-меню «Kategorien», карточка 4:3 с действием, первый экран + «Deal des Tages»
   (органический), быстрые фильтры ссылками, блоки «Endet bald»/«Jetzt geöffnet»/Stadtteile/«Neu in»,
