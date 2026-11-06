@@ -241,10 +241,11 @@ def test_gating_skips_public_schema():
             },
         ),
         # hotel: stays рекомендован вертикали → НЕ в дефолтном disabled (jobs — да).
+        # AIS-M M-1d: promotions вкл (пункт меню — до первой акции скрыт), Kundenkonto выкл.
         (
             "hotel",
             {
-                "promotions",
+                "customer_account",
                 "orders",
                 "jobs",
                 "loyalty",
@@ -290,7 +291,6 @@ def test_gating_skips_public_schema():
         (
             "handwerker",
             {
-                "promotions",
                 "orders",
                 "booking",
                 "stays",
@@ -306,7 +306,6 @@ def test_gating_skips_public_schema():
         (
             "werkstatt",
             {
-                "promotions",
                 "orders",
                 "stays",
                 "loyalty",

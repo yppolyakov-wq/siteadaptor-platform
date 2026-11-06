@@ -33192,3 +33192,23 @@ msgstr "Nur noch %(n)s Stück"
 #: apps/aggregator/portal_cards.py
 msgid "Zurücklegen"
 msgstr "Zurücklegen"
+
+#: templates/tenant/modules.html
+msgid "Aktionen: Saison-Check & Neukunden-Rabatt"
+msgstr "Aktionen: Saison-Check & Neukunden-Rabatt"
+
+#: templates/tenant/modules.html
+msgid "Zum Beispiel Frühjahrs-Check zum Festpreis oder 10 Prozent für Neukunden. Der Menüpunkt „Aktionen“ erscheint mit Ihrer ersten Aktion."
+msgstr "Zum Beispiel Frühjahrs-Check zum Festpreis oder 10 Prozent für Neukunden. Der Menüpunkt „Aktionen“ erscheint mit Ihrer ersten Aktion."
+
+#: templates/tenant/modules.html
+msgid "Aktionen: Lücken-Deal & Frühbucher"
+msgstr "Aktionen: Lücken-Deal & Frühbucher"
+
+#: templates/tenant/modules.html
+msgid "Freie Lücken füllen oder früh Buchende belohnen. Der Menüpunkt „Aktionen“ erscheint mit Ihrer ersten Aktion."
+msgstr "Freie Lücken füllen oder früh Buchende belohnen. Der Menüpunkt „Aktionen“ erscheint mit Ihrer ersten Aktion."
+
+#: templates/tenant/modules.html
+msgid "Erste Aktion anlegen"
+msgstr "Erste Aktion anlegen"

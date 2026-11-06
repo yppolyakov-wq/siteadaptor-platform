@@ -33399,3 +33399,23 @@ msgstr "Залишилося лише %(n)s шт."
 #: apps/aggregator/portal_cards.py
 msgid "Zurücklegen"
 msgstr "Відкласти"
+
+#: templates/tenant/modules.html
+msgid "Aktionen: Saison-Check & Neukunden-Rabatt"
+msgstr "Акції: сезонна перевірка та знижка новим клієнтам"
+
+#: templates/tenant/modules.html
+msgid "Zum Beispiel Frühjahrs-Check zum Festpreis oder 10 Prozent für Neukunden. Der Menüpunkt „Aktionen“ erscheint mit Ihrer ersten Aktion."
+msgstr "Наприклад, весняна перевірка за фіксованою ціною або 10 відсотків новим клієнтам. Пункт меню «Акції» з’явиться з вашою першою акцією."
+
+#: templates/tenant/modules.html
+msgid "Aktionen: Lücken-Deal & Frühbucher"
+msgstr "Акції: знижка на «вікна» та раннє бронювання"
+
+#: templates/tenant/modules.html
+msgid "Freie Lücken füllen oder früh Buchende belohnen. Der Menüpunkt „Aktionen“ erscheint mit Ihrer ersten Aktion."
+msgstr "Заповніть вільні «вікна» або заохотьте раннє бронювання. Пункт меню «Акції» з’явиться з вашою першою акцією."
+
+#: templates/tenant/modules.html
+msgid "Erste Aktion anlegen"
+msgstr "Створити першу акцію"

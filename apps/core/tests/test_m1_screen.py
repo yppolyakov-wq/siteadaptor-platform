@@ -150,3 +150,21 @@ def test_noop_direction_is_not_reported_as_saved():
     assert problems == {}  # уже активна — ок
     problems = directions_screen.apply(t, "direction", "speisekarte", False)
     assert problems  # не выключается — честная причина, не «Gespeichert»
+
+
+@pytest.mark.parametrize(("btype", "kind"), [("hotel", "stay"), ("handwerker", "craft")])
+def test_late_promo_card_until_first_promo(btype, kind):
+    t = TenantFactory(business_type=btype, disabled_modules=[])
+    t._m1d_has_promos = False
+    html = _html(t)
+    assert f'data-late-promo="{kind}"' in html
+    assert "/promotions/new/" in html
+    t2 = TenantFactory(business_type=btype, disabled_modules=[])
+    t2._m1d_has_promos = True
+    assert "data-late-promo" not in _html(t2)
+
+
+def test_no_late_promo_card_for_bakery():
+    t = TenantFactory(business_type="bakery", disabled_modules=[])
+    t._m1d_has_promos = False
+    assert "data-late-promo" not in _html(t)

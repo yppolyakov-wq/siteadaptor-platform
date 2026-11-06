@@ -1215,8 +1215,52 @@ def entry_gate(entry: NavEntry) -> str:
     return UNIVERSAL.get(entry.url_name, "")
 
 
-def entry_visible(entry: NavEntry, tenant, owner_hidden=frozenset()) -> bool:
-    """Единый гейт показа записи — сайдбар, палитра, обзор настроек и замки."""
+#: AIS-M M-1d (§5.3/§5.7): типы, у которых акции включены базово, но пункты меню
+#: «Aktionen» появляются только с первой акцией (вход — карточка на «Richtungen &
+#: Funktionen» и «Neue Aktion» в палитре).
+LATE_PROMO_TYPES = frozenset({"hotel", "tour_operator", "handwerker", "werkstatt"})
+
+
+def has_promotions(tenant) -> bool:
+    """Есть ли у бизнеса хоть одна акция (мемо на объекте тенанта, fail-open)."""
+    memo = getattr(tenant, "_m1d_has_promos", None)
+    if memo is not None:
+        return memo
+    from django.db import connection, transaction
+
+    from apps.core import lite_cabinet
+
+    memo = True
+    try:
+        if not lite_cabinet.is_lite(tenant) and connection.schema_name == getattr(
+            tenant, "schema_name", None
+        ):
+            from apps.promotions.models import Promotion
+
+            with transaction.atomic():
+                memo = Promotion.objects.exists()
+    except Exception:  # noqa: BLE001 — хром меню не падает, пункт остаётся видимым
+        memo = True
+    try:
+        tenant._m1d_has_promos = memo
+    except Exception:  # noqa: BLE001
+        pass
+    return memo
+
+
+def late_promo_hidden(entry: NavEntry, tenant) -> bool:
+    if entry.module_key != "promotions" or entry.group != "aktionen" or entry.palette_only:
+        return False
+    if getattr(tenant, "business_type", "") not in LATE_PROMO_TYPES:
+        return False
+    return not has_promotions(tenant)
+
+
+def entry_visible(entry: NavEntry, tenant, owner_hidden=frozenset(), *, menu: bool = False) -> bool:
+    """Единый гейт показа записи — сайдбар, палитра, обзор настроек и замки.
+
+    ``menu=True`` — показ в меню/палитре: дополнительно прячет «поздние» акции
+    (M-1d). Ссылки и счётчики (assistant, day_home) этот гейт не трогает."""
     from apps.core.modules import is_module_active
 
     if entry.module_key and not is_module_active(tenant, entry.module_key):
@@ -1226,6 +1270,8 @@ def entry_visible(entry: NavEntry, tenant, owner_hidden=frozenset()) -> bool:
     if entry.direction and not direction_active(tenant, entry.direction):
         return False
     if not allowed_for_business(entry.url_name, tenant):
+        return False
+    if menu and late_promo_hidden(entry, tenant):
         return False
     return entry.url_name not in owner_hidden and (entry.url_name + entry.query) not in owner_hidden
 
@@ -1413,7 +1459,7 @@ def palette_entries_for(request) -> list[dict]:
         if not allowed_for_business(e["url_name"], tenant):
             continue  # X4: гейт по типу бизнеса (гастро-экраны)
         entry = e.get("entry")
-        if entry is not None and tenant is not None and not entry_visible(entry, tenant):
+        if entry is not None and tenant is not None and not entry_visible(entry, tenant, menu=True):
             continue  # KA-12 E8.1: «любой из модулей» и направления — как в сайдбаре
         if tenant is not None and not packages.view_allowed(tenant, e["url_name"]):
             continue  # T-8.32b: экраны вне пакета в палитре не показываем
@@ -1499,14 +1545,18 @@ def visible_children(anchor, tenant, owner_hidden=frozenset()) -> list[tuple]:
     """Подпункты якоря `(запись, группа)` под едиными гейтами — сайдбар и обзор настроек.
     К якорю-фолбэку добавляются подпункты скрытых условных якорей (их группой).
     Порядок — по группам SUBMENU_GROUPS (стабильно внутри группы); без группы — в конце."""
-    out = [(e, e.group) for e in sidebar_children(anchor) if entry_visible(e, tenant, owner_hidden)]
+    out = [
+        (e, e.group)
+        for e in sidebar_children(anchor)
+        if entry_visible(e, tenant, owner_hidden, menu=True)
+    ]
     seen = {(e.url_name, e.query) for e, _g in out}
     for other in ANCHORS:
         if other.fallback != anchor.nav_key or anchor_visible(other, tenant):
             continue
         for e in sidebar_children(other):
             key = (e.url_name, e.query)
-            if key in seen or not entry_visible(e, tenant, owner_hidden):
+            if key in seen or not entry_visible(e, tenant, owner_hidden, menu=True):
                 continue
             seen.add(key)
             out.append((e, other.fallback_group))

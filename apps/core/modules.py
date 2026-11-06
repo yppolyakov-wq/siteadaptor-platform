@@ -132,10 +132,15 @@ REGISTRY: tuple[ModuleSpec, ...] = (
             "friseur",  # S6: салон делает Aktionen
             "events",  # S6: организатор — промо-акции
             "catering",  # GK-1: акции на пакеты/сезон
+            # AIS-M M-1d (§5.3/§5.7): акции — базовый слой; у отеля/ремесла/туров пункт
+            # меню прячется до первой акции (nav_registry, гейт «aktionen»).
+            "hotel",
+            "tour_operator",
+            "handwerker",
+            "werkstatt",
         ),
         # S6: handwerker/werkstatt — suited (не вкл по умолчанию, но подходит) →
         # promotions покрывает все типы → suited_label остаётся «Für alle Geschäftstypen».
-        suited_for=("hotel", "tour_operator", "handwerker", "werkstatt"),
         description_de=_("Aktionen erstellen, Reservierungen annehmen und im Laden einlösen."),
         # HF-1 (фидбэк владельца 2026-07-31, п. 7): у модуля не было витринной
         # посадочной — из-за этого пункт меню «Aktionen» нельзя было собрать
@@ -236,8 +241,10 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         # S6: Friseur/Werkstatt — услуги по времени (Termin) primary; Handwerker — suited.
         # KA-12 E8.11: отелю запись по времени не нужна из коробки (спа/велопрокат —
         # включает сам или демо-кит с услугами).
-        recommended_for=("cafe", "restaurant", "tour_operator", "friseur", "werkstatt"),
-        suited_for=("retail", "clothing", "other", "handwerker", "catering"),
+        # AIS-M M-1d: tour_operator — без booking (Tickets + Anfragen; услуги кита включает
+        # kit_enabled_modules по контенту).
+        recommended_for=("cafe", "restaurant", "friseur", "werkstatt"),
+        suited_for=("retail", "clothing", "other", "handwerker", "catering", "tour_operator"),
         description_de=_("Tische, Termine oder Zimmer nach Uhrzeit reservieren lassen."),
         storefront_label=_("Termin buchen"),
         storefront_blurb=_("Reservieren Sie online Ihren Tisch oder Termin."),
@@ -348,7 +355,8 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         # предупреждения; suited НЕ влияет на пресет (default_disabled читает recommended).
         # Bäckerei/Metzgerei: Partyservice (Kuchenbuffets/Platten) — классика, демо-киты
         # включают jobs (2026-07-30, запрос владельца «bakery: Partyservice»).
-        recommended_for=("handwerker", "werkstatt", "catering"),  # GK-1: primary кейтеринга
+        # GK-1: primary кейтеринга; AIS-M M-1d: tour_operator — Anfragen (DEFAULT_FOR).
+        recommended_for=("handwerker", "werkstatt", "catering", "tour_operator"),
         suited_for=("restaurant", "cafe", "bakery", "butcher", "other"),
         description_de=_(
             "Anfragen annehmen, Angebote/Kostenvoranschläge erstellen, Aufträge abrechnen."
@@ -470,7 +478,7 @@ REGISTRY: tuple[ModuleSpec, ...] = (
             "retail",
             "clothing",
             "online_shop",  # 2026-07-10
-            "hotel",
+            # AIS-M M-1d (§5.3): у отеля Kundenkonto выкл. по умолчанию (suited).
             "tour_operator",
             "friseur",  # S6: Termine/Bonuskarte
             "handwerker",  # S6: Aufträge/Rechnungen
@@ -478,7 +486,7 @@ REGISTRY: tuple[ModuleSpec, ...] = (
             "events",  # S6: Tickets
             "catering",  # GK-1: заявки/заказы клиента
         ),
-        suited_for=("other",),
+        suited_for=("other", "hotel"),
         description_de=_(
             "Kunden melden sich per E-Mail-Link an und sehen Bestellungen, "
             "Termine, Rechnungen und Bonuskarten."

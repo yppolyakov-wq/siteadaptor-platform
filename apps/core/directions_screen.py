@@ -70,6 +70,19 @@ def _direction_card(tenant, d, active: bool) -> dict:
     return card
 
 
+def _late_promo(tenant) -> str:
+    """M-1d: у отеля/туров/ремесла акции включены, но пункт меню ждёт первой акции —
+    карточка-вход. Пусто = карточки нет; иначе "craft" или "stay" (своя подпись)."""
+    from apps.core import nav_registry
+
+    btype = getattr(tenant, "business_type", "")
+    if btype not in nav_registry.LATE_PROMO_TYPES:
+        return ""
+    if not modules.is_module_active(tenant, "promotions") or nav_registry.has_promotions(tenant):
+        return ""
+    return "craft" if btype in ("handwerker", "werkstatt") else "stay"
+
+
 def context(tenant) -> dict:
     active_dirs = directions.active(tenant)
     active_keys = {d.key for d in active_dirs}
@@ -104,6 +117,7 @@ def context(tenant) -> dict:
         if spec.layer == "base" and spec.key in disabled
     ]
     return {
+        "late_promo": _late_promo(tenant),
         "mine": mine,
         "addons": addons,
         "other_addons": other_addons,

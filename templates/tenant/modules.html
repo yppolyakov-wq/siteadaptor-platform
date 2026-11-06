@@ -21,6 +21,19 @@
     {% endif %}
   </section>
 
+  {% if late_promo %}
+  <section class="mb-6 ui-card p-4" aria-labelledby="dir-late-h" data-late-promo="{{ late_promo }}">
+    {% if late_promo == "craft" %}
+    <h2 id="dir-late-h" class="ui-h2 mb-1">{% trans "Aktionen: Saison-Check & Neukunden-Rabatt" %}</h2>
+    <p class="ui-muted mb-3">{% trans "Zum Beispiel Frühjahrs-Check zum Festpreis oder 10 Prozent für Neukunden. Der Menüpunkt „Aktionen“ erscheint mit Ihrer ersten Aktion." %}</p>
+    {% else %}
+    <h2 id="dir-late-h" class="ui-h2 mb-1">{% trans "Aktionen: Lücken-Deal & Frühbucher" %}</h2>
+    <p class="ui-muted mb-3">{% trans "Freie Lücken füllen oder früh Buchende belohnen. Der Menüpunkt „Aktionen“ erscheint mit Ihrer ersten Aktion." %}</p>
+    {% endif %}
+    <a href="{% url 'promotions:promotion-create' %}" class="ui-btn ui-btn-primary">{% trans "Erste Aktion anlegen" %}</a>
+  </section>
+  {% endif %}
+
   {% if addons %}
   <section class="mb-6" aria-labelledby="dir-addons-h" data-directions-addons>
     <h2 id="dir-addons-h" class="ui-h2 mb-2">{% trans "Zusatzfunktionen" %}</h2>
