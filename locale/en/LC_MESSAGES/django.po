@@ -33895,3 +33895,15 @@ msgstr "These guides may help."
 #: apps/core/assistant_ai.py
 msgid "erledigt"
 msgstr "done"
+
+#: apps/core/setup_assistant.py
+msgid "Leistungen sind bei Ihnen nicht eingeschaltet — als Produkt geplant."
+msgstr "Services are not switched on for you — planned as a product."
+
+#: apps/core/setup_assistant.py
+msgid "Zimmer sind bei Ihnen nicht eingeschaltet — als Produkt geplant."
+msgstr "Rooms are not switched on for you — planned as a product."
+
+#: apps/core/setup_assistant.py
+msgid "Veranstaltungen sind bei Ihnen nicht eingeschaltet — als Produkt geplant."
+msgstr "Events are not switched on for you — planned as a product."

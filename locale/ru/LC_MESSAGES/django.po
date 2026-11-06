@@ -34202,3 +34202,15 @@ msgstr "Возможно, помогут эти инструкции."
 #: apps/core/assistant_ai.py
 msgid "erledigt"
 msgstr "готово"
+
+#: apps/core/setup_assistant.py
+msgid "Leistungen sind bei Ihnen nicht eingeschaltet — als Produkt geplant."
+msgstr "Услуги у вас не включены — запланировано как товар."
+
+#: apps/core/setup_assistant.py
+msgid "Zimmer sind bei Ihnen nicht eingeschaltet — als Produkt geplant."
+msgstr "Номера у вас не включены — запланировано как товар."
+
+#: apps/core/setup_assistant.py
+msgid "Veranstaltungen sind bei Ihnen nicht eingeschaltet — als Produkt geplant."
+msgstr "Мероприятия у вас не включены — запланировано как товар."

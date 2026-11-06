@@ -34041,3 +34041,15 @@ msgstr "Bu kılavuzlar yardımcı olabilir."
 #: apps/core/assistant_ai.py
 msgid "erledigt"
 msgstr "tamamlandı"
+
+#: apps/core/setup_assistant.py
+msgid "Leistungen sind bei Ihnen nicht eingeschaltet — als Produkt geplant."
+msgstr "Hizmetler sizde açık değil — ürün olarak planlandı."
+
+#: apps/core/setup_assistant.py
+msgid "Zimmer sind bei Ihnen nicht eingeschaltet — als Produkt geplant."
+msgstr "Odalar sizde açık değil — ürün olarak planlandı."
+
+#: apps/core/setup_assistant.py
+msgid "Veranstaltungen sind bei Ihnen nicht eingeschaltet — als Produkt geplant."
+msgstr "Etkinlikler sizde açık değil — ürün olarak planlandı."
