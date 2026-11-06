@@ -34185,3 +34185,7 @@ msgstr "Відповідь триває довше, ніж зазвичай, —
 #: templates/core/_assistant_answer.html templates/core/_assistant_body.html
 msgid "Diese Anleitungen helfen vielleicht."
 msgstr "Можливо, допоможуть ці інструкції."
+
+#: apps/core/assistant_ai.py
+msgid "erledigt"
+msgstr "готово"

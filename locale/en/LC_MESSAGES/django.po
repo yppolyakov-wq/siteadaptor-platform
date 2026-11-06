@@ -33891,3 +33891,7 @@ msgstr "The answer is taking longer than usual — please ask again later."
 #: templates/core/_assistant_answer.html templates/core/_assistant_body.html
 msgid "Diese Anleitungen helfen vielleicht."
 msgstr "These guides may help."
+
+#: apps/core/assistant_ai.py
+msgid "erledigt"
+msgstr "done"
