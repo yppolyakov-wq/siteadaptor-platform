@@ -31,7 +31,11 @@ def i18n_translate_start(request):
     tenant = getattr(request, "tenant", None)
     screen = it.screen_from(request.POST.get("screen", ""), schema)
     # Право ЗАПИСИ того экрана, с которого нажали: перевод — часть правки этой формы.
-    if not screen or not view_perms.allowed(request.user, screen, "POST"):
+    if (
+        not screen
+        or not _lite_screen_ok(request, screen)
+        or not view_perms.allowed(request.user, screen, "POST")
+    ):
         return JsonResponse({"code": "forbidden"})
     target = request.POST.get("target", "")
     if not it.target_allowed(tenant, target):
@@ -88,10 +92,20 @@ def i18n_translate_result(request, job):
 #: Экран → разрешённые виды текста (подпись экрана + право записи доказывают форму).
 DRAFT_SCREENS = {
     "catalog:product-edit": ("product",),
-    "catalog:product-create": ("product",),  # только подсказка «Erst speichern»
     "booking:service-edit": ("service",),
     "site-home": ("about", "hero"),
 }
+
+
+#: Экраны, где у кнопки только подсказка «Erst speichern» (POST отсюда не принимается).
+DRAFT_HINT_SCREENS = {"catalog:product-create": ("product",)}
+
+
+def _lite_screen_ok(request, screen: str) -> bool:
+    """Сессия Mini App (лёгкий кабинет): подпись экрана полного кабинета не принимаем."""
+    from apps.core import tg_login
+
+    return not tg_login.is_tg_session(request) or screen in tg_login.TG_LITE_VIEWS
 
 
 @login_required
@@ -111,6 +125,7 @@ def text_draft_start(request):
     if (
         not screen
         or kind not in DRAFT_SCREENS.get(screen, ())
+        or not _lite_screen_ok(request, screen)
         or not view_perms.allowed(request.user, screen, "POST")
     ):
         return JsonResponse({"code": "forbidden"})

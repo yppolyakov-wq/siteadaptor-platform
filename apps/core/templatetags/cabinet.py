@@ -400,14 +400,23 @@ def text_draft_button(context, kind, obj=None, locale=""):
 
     from apps.ai.api import is_enabled
     from apps.core import i18n_translate, text_draft, view_perms
-    from apps.core.translate_views import DRAFT_SCREENS
+    from apps.core.translate_views import DRAFT_HINT_SCREENS, DRAFT_SCREENS
 
     request = context.get("request")
     match = getattr(request, "resolver_match", None)
     view_name = getattr(match, "view_name", "") or ""
     user = getattr(request, "user", None)
     off = {"draft": None, "unsaved": False}
-    if kind not in DRAFT_SCREENS.get(view_name, ()) or user is None:
+    if user is None:
+        return off
+    if kind in DRAFT_HINT_SCREENS.get(view_name, ()):
+        try:
+            if is_enabled(text_draft.TASK) and view_perms.allowed(user, view_name, "POST"):
+                return {"draft": None, "unsaved": True}
+        except Exception:  # noqa: BLE001
+            logger.warning("text draft hint skipped", exc_info=True)
+        return off
+    if kind not in DRAFT_SCREENS.get(view_name, ()):
         return off
     try:
         if not is_enabled(text_draft.TASK) or not view_perms.allowed(user, view_name, "POST"):

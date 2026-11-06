@@ -323,3 +323,41 @@ def test_button_only_with_ai_perm_and_saved_object(owner, product, monkeypatch):
     assert "data-ai-draft-box" not in _render_button(
         owner, "product", product, "catalog:product-edit"
     )
+
+
+def test_create_screen_only_hints_and_post_is_forbidden(
+    owner, product, ai_on, jobs_cache, no_limit
+):
+    assert _json(_post(owner, pk=product.pk, screen="catalog:product-create")) == {
+        "code": "forbidden"
+    }
+    html = _render_button(owner, "product", Product(), "catalog:product-create")
+    assert "data-ai-draft-unsaved" in html
+
+
+def test_lite_session_rejects_full_cabinet_screen(owner, product, ai_on, jobs_cache, monkeypatch):
+    from apps.core import tg_login
+
+    monkeypatch.setattr(tg_login, "is_tg_session", lambda request: True)
+    assert "site-home" not in tg_login.TG_LITE_VIEWS
+    assert _json(_post(owner, pk="", kind="about", screen="site-home")) == {"code": "forbidden"}
+
+
+def test_service_variants_reach_facts():
+    from apps.booking.models import Service, ServiceVariant
+
+    service = Service.objects.create(name="Haarschnitt", duration_minutes=30)
+    ServiceVariant.objects.create(service=service, name="Langhaar")
+    ServiceVariant.objects.create(service=service, name="Alt", is_active=False)
+    facts = text_facts.service_facts(service)
+    assert "Variant: Langhaar" in facts.text and "Alt" not in facts.text
+
+
+def test_stale_job_does_not_release_current_busy(owner, product, ai_on, jobs_cache, no_limit):
+    from django.db import connection
+
+    schema = connection.schema_name
+    with mock.patch.object(tasks.text_draft_job, "delay"):
+        job = _json(_post(owner, pk=product.pk))["job"]
+    text_draft.run_job(schema=schema, user_pk=owner.pk, job="f" * 32)  # чужая/старая задача
+    assert jobs_cache.get(text_draft._busy_key(schema, owner.pk)) == job

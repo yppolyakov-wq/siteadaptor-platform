@@ -65,11 +65,8 @@ def product_facts(obj) -> Facts:
         facts.lines.append(f"- Diet: {diets}")
         facts.claims_text += f" {diets} {' '.join(obj.diets or [])}"
     sizes = set()
-    try:
-        for v in obj.variants.all()[:20]:
-            sizes |= {s for s in (getattr(v, "size", ""), getattr(v, "color", "")) if s}
-    except Exception:  # noqa: BLE001 — варианты необязательны
-        sizes = set()
+    for v in obj.variants.all()[:20]:
+        sizes |= {s for s in (v.size, v.color) if s}
     if sizes:
         facts.lines.append(f"- Variants: {_one_line(', '.join(sorted(sizes)))}")
     return facts
@@ -88,11 +85,9 @@ def service_facts(obj) -> Facts:
     for row in (obj.faq or [])[:8]:
         if isinstance(row, dict) and row.get("q"):
             facts.lines.append(f"- FAQ: {_one_line(row.get('q'))} {_one_line(row.get('a') or '')}")
-    try:
-        for v in obj.variants.all()[:10]:
-            facts.lines.append(f"- Variant: {_one_line(v.name)}, {v.duration_minutes} min")
-    except Exception:  # noqa: BLE001
-        pass
+    for v in obj.variants.filter(is_active=True)[:10]:
+        facts.lines.append(f"- Variant: {_one_line(v.name)}")
+        facts.name_text += f" {v.name}"
     facts.claims_text += f" {obj.name}"
     return facts
 

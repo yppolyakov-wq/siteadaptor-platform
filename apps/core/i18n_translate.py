@@ -335,6 +335,14 @@ def _cache_key(schema: str, value: str) -> str:
     return f"ai-translate-cache:{schema}:{value}"
 
 
+def _release(schema: str, user_pk, job: str) -> None:
+    """Снять «занято», только если оно принадлежит ЭТОЙ задаче (поздняя повторная доставка
+    старой задачи не должна освобождать место текущей)."""
+    key = _busy_key(schema, user_pk)
+    if cache.get(key) == job:
+        cache.delete(key)
+
+
 def _busy_key(schema: str, user_pk) -> str:
     return f"ai-translate-busy:{schema}:{user_pk}"
 
@@ -350,9 +358,9 @@ def cached(schema: str, value: str, items: list[dict]) -> dict | None:
 def start_job(*, schema: str, user_pk, items: list[dict], target: str, value: str) -> str:
     from . import tasks
 
-    if not cache.add(_busy_key(schema, user_pk), 1, JOB_TTL):
-        raise BadRequest("busy")
     job = uuid.uuid4().hex
+    if not cache.add(_busy_key(schema, user_pk), job, JOB_TTL):
+        raise BadRequest("busy")
     cache.set(
         _job_key(schema, user_pk, job),
         {"state": "pending", "items": items, "target": target, "digest": value},
@@ -362,7 +370,7 @@ def start_job(*, schema: str, user_pk, items: list[dict], target: str, value: st
         tasks.i18n_translate_job.delay(schema=schema, user_pk=user_pk, job=job)
     except Exception:  # noqa: BLE001 — брокер недоступен: текст не должен висеть в кэше
         cache.delete(_job_key(schema, user_pk, job))
-        cache.delete(_busy_key(schema, user_pk))
+        _release(schema, user_pk, job)
         raise
     return job
 
@@ -376,13 +384,13 @@ def run_job(*, schema: str, user_pk, job: str) -> None:
     key = _job_key(schema, user_pk, job)
     entry = cache.get(key)
     if not isinstance(entry, dict) or entry.get("state") != "pending":
-        cache.delete(_busy_key(schema, user_pk))
+        _release(schema, user_pk, job)
         return
     if not cache.add(f"{key}:lock", 1, JOB_TTL):
         # повторная доставка (воркер убит посреди задачи): модель второй раз не зовём,
         # но и «läuft schon» на 5 минут не оставляем
         cache.set(key, {"state": "error", "code": "error"}, RESULT_TTL)
-        cache.delete(_busy_key(schema, user_pk))
+        _release(schema, user_pk, job)
         return
     outcome = {"state": "error", "code": "error"}
     try:
@@ -403,7 +411,7 @@ def run_job(*, schema: str, user_pk, job: str) -> None:
         try:
             cache.set(key, outcome, RESULT_TTL)  # перезапись: тексты уходят из кэша
         finally:
-            cache.delete(_busy_key(schema, user_pk))
+            _release(schema, user_pk, job)
 
 
 def job_state(*, schema: str, user_pk, job: str) -> dict | None:

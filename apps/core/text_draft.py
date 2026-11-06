@@ -237,6 +237,14 @@ def _cache_key(schema: str, value: str) -> str:
     return f"ai-draft-cache:{schema}:{value}"
 
 
+def _release(schema: str, user_pk, job: str) -> None:
+    """Снять «занято», только если оно принадлежит ЭТОЙ задаче (поздняя повторная доставка
+    старой задачи не должна освобождать место текущей)."""
+    key = _busy_key(schema, user_pk)
+    if cache.get(key) == job:
+        cache.delete(key)
+
+
 def _busy_key(schema: str, user_pk) -> str:
     return f"ai-draft-busy:{schema}:{user_pk}"
 
@@ -253,9 +261,9 @@ class Busy(Exception):
 def start_job(*, schema: str, user_pk, kind: str, pk, locale: str, value: str) -> str:
     from . import tasks
 
-    if not cache.add(_busy_key(schema, user_pk), 1, JOB_TTL):
-        raise Busy
     job = uuid.uuid4().hex
+    if not cache.add(_busy_key(schema, user_pk), job, JOB_TTL):
+        raise Busy
     cache.set(
         _job_key(schema, user_pk, job),
         {"state": "pending", "kind": kind, "pk": pk, "locale": locale, "digest": value},
@@ -265,7 +273,7 @@ def start_job(*, schema: str, user_pk, kind: str, pk, locale: str, value: str) -
         tasks.text_draft_job.delay(schema=schema, user_pk=user_pk, job=job)
     except Exception:  # noqa: BLE001 — брокер недоступен
         cache.delete(_job_key(schema, user_pk, job))
-        cache.delete(_busy_key(schema, user_pk))
+        _release(schema, user_pk, job)
         raise
     return job
 
@@ -296,11 +304,11 @@ def run_job(*, schema: str, user_pk, job: str) -> None:
     key = _job_key(schema, user_pk, job)
     entry = cache.get(key)
     if not isinstance(entry, dict) or entry.get("state") != "pending":
-        cache.delete(_busy_key(schema, user_pk))
+        _release(schema, user_pk, job)
         return
     if not cache.add(f"{key}:lock", 1, JOB_TTL):
         cache.set(key, {"state": "error", "code": "error"}, RESULT_TTL)
-        cache.delete(_busy_key(schema, user_pk))
+        _release(schema, user_pk, job)
         return
     outcome = {"state": "error", "code": "error"}
     try:
@@ -329,7 +337,7 @@ def run_job(*, schema: str, user_pk, job: str) -> None:
         try:
             cache.set(key, outcome, RESULT_TTL)
         finally:
-            cache.delete(_busy_key(schema, user_pk))
+            _release(schema, user_pk, job)
 
 
 def job_state(*, schema: str, user_pk, job: str) -> dict | None:
