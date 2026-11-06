@@ -76,7 +76,7 @@ def _confirm_data(owner, rows):
 
 def test_v4_rail_uses_pruefen_and_v3_keeps_offer():
     tenant = TenantFactory.build(business_type="bakery", site_config=dict(V4), published_at=None)
-    assert onboarding.visible_keys(tenant) == ["company", "pruefen", "recht", "done"]
+    assert onboarding.visible_keys(tenant) == ["quelle", "company", "pruefen", "recht", "done"]
     v3 = TenantFactory.build(business_type="bakery")
     assert "offer" in onboarding.visible_keys(v3) and "pruefen" not in onboarding.visible_keys(v3)
 

@@ -1,0 +1,23 @@
+{% load i18n ai_notice %}
+{% comment %}AIS-3: первый шаг мастера v4 «Was haben Sie schon?» (макет утверждён 2026-11-06). Шаг
+только запоминает выбор; данные пишут шаги, куда он ведёт, и только после подтверждения
+владельца. Карточек без ключа (Google, ИИ) нет вовсе. «Nichts davon» побеждает на сервере.{% endcomment %}
+<h1 class="text-2xl font-bold mb-1">{% trans "Was haben Sie schon?" %}</h1>
+<p class="text-sm text-gray-600 mb-4">{% trans "Wir übernehmen, was es schon gibt — Sie prüfen jedes Feld, bevor etwas online geht. Mehrere Antworten möglich." %}</p>
+<form method="post" data-quelle-form>
+  {% csrf_token %}
+  <fieldset class="grid lg:grid-cols-2 gap-3">
+    <legend class="sr-only">{% trans "Was haben Sie schon?" %}</legend>
+    {% for o in quelle_options %}
+    <label class="ui-card flex items-start gap-3 p-4 min-h-[44px] cursor-pointer has-[:checked]:ring-2 has-[:checked]:ring-indigo-600" data-quelle-option="{{ o.key }}">
+      <input type="checkbox" name="had" value="{{ o.key }}" class="h-5 w-5 mt-0.5 shrink-0"{% if o.checked %} checked{% endif %}>
+      <span class="flex flex-col gap-1">
+        <span class="font-semibold">{{ o.label }}</span>
+        <span class="text-sm text-gray-600">{{ o.hint }}</span>
+        {% if o.ai %}{% ai_notice "offer_photo_lines" %}{% endif %}
+      </span>
+    </label>
+    {% endfor %}
+  </fieldset>
+  {% include "tenant/_setup_buttons.html" %}
+</form>

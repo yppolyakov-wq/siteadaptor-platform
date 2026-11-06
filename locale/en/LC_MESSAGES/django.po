@@ -34790,3 +34790,27 @@ msgstr "One service per line, price optional. Without a price it shows “Price 
 
 msgid "Online kaufen und buchen ist hier noch nicht möglich — bitte melden Sie sich direkt bei uns."
 msgstr "Buying and booking online is not possible here yet — please get in touch with us directly."
+
+msgid "Was haben Sie schon?"
+msgstr "What do you already have?"
+
+msgid "Wir übernehmen, was es schon gibt — Sie prüfen jedes Feld, bevor etwas online geht. Mehrere Antworten möglich."
+msgstr "We take over what already exists — you check every field before anything goes online. Several answers possible."
+
+msgid "Eigene Website"
+msgstr "Own website"
+
+msgid "Wir lesen Produkte, Preise und Kontaktdaten."
+msgstr "We read products, prices and contact details."
+
+msgid "Adresse, Telefon und Öffnungszeiten — Sie suchen im nächsten Schritt."
+msgstr "Address, phone and opening hours — you search in the next step."
+
+msgid "1–3 Fotos. Wir lesen Namen und Preise."
+msgstr "1–3 photos. We read names and prices."
+
+msgid "Nichts davon"
+msgstr "None of these"
+
+msgid "Wir zeigen Beispiele — Sie ändern sie."
+msgstr "We show examples — you change them."

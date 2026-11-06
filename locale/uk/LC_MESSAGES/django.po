@@ -35098,3 +35098,27 @@ msgstr "Одна послуга на рядок, ціна — за бажанн�
 
 msgid "Online kaufen und buchen ist hier noch nicht möglich — bitte melden Sie sich direkt bei uns."
 msgstr "Купити чи забронювати онлайн тут поки не можна — будь ласка, зв’яжіться з нами напряму."
+
+msgid "Was haben Sie schon?"
+msgstr "Що у вас уже є?"
+
+msgid "Wir übernehmen, was es schon gibt — Sie prüfen jedes Feld, bevor etwas online geht. Mehrere Antworten möglich."
+msgstr "Ми перенесемо те, що вже є, — ви перевірите кожне поле, перш ніж щось з’явиться на сайті. Можна вибрати кілька варіантів."
+
+msgid "Eigene Website"
+msgstr "Власний сайт"
+
+msgid "Wir lesen Produkte, Preise und Kontaktdaten."
+msgstr "Ми зчитаємо товари, ціни та контакти."
+
+msgid "Adresse, Telefon und Öffnungszeiten — Sie suchen im nächsten Schritt."
+msgstr "Адреса, телефон і години роботи — пошук на наступному кроці."
+
+msgid "1–3 Fotos. Wir lesen Namen und Preise."
+msgstr "1–3 фото. Ми зчитаємо назви та ціни."
+
+msgid "Nichts davon"
+msgstr "Нічого з цього"
+
+msgid "Wir zeigen Beispiele — Sie ändern sie."
+msgstr "Ми покажемо приклади — ви їх зміните."

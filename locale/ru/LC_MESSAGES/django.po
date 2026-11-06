@@ -35111,3 +35111,27 @@ msgstr "Одна услуга на строку, цена — по желани�
 
 msgid "Online kaufen und buchen ist hier noch nicht möglich — bitte melden Sie sich direkt bei uns."
 msgstr "Купить или забронировать онлайн здесь пока нельзя — пожалуйста, свяжитесь с нами напрямую."
+
+msgid "Was haben Sie schon?"
+msgstr "Что у вас уже есть?"
+
+msgid "Wir übernehmen, was es schon gibt — Sie prüfen jedes Feld, bevor etwas online geht. Mehrere Antworten möglich."
+msgstr "Мы перенесём то, что уже есть, — вы проверите каждое поле, прежде чем что-то появится на сайте. Можно выбрать несколько вариантов."
+
+msgid "Eigene Website"
+msgstr "Собственный сайт"
+
+msgid "Wir lesen Produkte, Preise und Kontaktdaten."
+msgstr "Мы считаем товары, цены и контакты."
+
+msgid "Adresse, Telefon und Öffnungszeiten — Sie suchen im nächsten Schritt."
+msgstr "Адрес, телефон и часы работы — поиск на следующем шаге."
+
+msgid "1–3 Fotos. Wir lesen Namen und Preise."
+msgstr "1–3 фото. Мы считаем названия и цены."
+
+msgid "Nichts davon"
+msgstr "Ничего из этого"
+
+msgid "Wir zeigen Beispiele — Sie ändern sie."
+msgstr "Мы покажем примеры — вы их измените."

@@ -50,7 +50,7 @@ def test_v3_tenant_never_sees_recht_and_keeps_its_steps():
 
 def test_v4_shows_only_base_steps():
     tenant = TenantFactory.build(business_type="bakery", site_config=dict(V4), published_at=None)
-    assert onboarding.visible_keys(tenant) == ["company", "pruefen", "recht", "done"]
+    assert onboarding.visible_keys(tenant) == ["quelle", "company", "pruefen", "recht", "done"]
 
 
 def test_v4_cannot_finish_without_publishing():

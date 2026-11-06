@@ -138,6 +138,50 @@ def _gate_v4(t) -> bool:
     return is_v4(t)
 
 
+#: AIS-3: что у владельца уже есть (порядок = порядок карточек на экране).
+HAD_KEYS = ("website", "google", "photo", "none")
+
+
+def had(t) -> list[str]:
+    cfg = t.site_config if isinstance(t.site_config, dict) else {}
+    raw = (cfg.get("onboarding") or {}).get("had")
+    return [k for k in HAD_KEYS if isinstance(raw, list) and k in raw]
+
+
+def _check_quelle(t) -> bool:
+    return bool(had(t))
+
+
+def clean_had(keys) -> list[str]:
+    """Выбор экрана «Was haben Sie schon?»: только известные ключи; «none» снимает остальные."""
+    picked = [k for k in HAD_KEYS if k in set(keys or ())]
+    return ["none"] if "none" in picked else picked
+
+
+def set_had(tenant, keys) -> list[str]:
+    """Единственный писатель `onboarding["had"]` (под блокировкой строки, без пересборки
+    site_config); пустой выбор ключ убирает (presence-minimal)."""
+    from django.db import transaction
+
+    from apps.tenants.models import Tenant
+
+    picked = clean_had(keys)
+    with transaction.atomic():
+        locked = Tenant.objects.select_for_update().get(pk=tenant.pk)
+        locked.auto_create_schema = False
+        cfg = dict(locked.site_config or {})
+        state = dict(cfg.get("onboarding") or {})
+        if picked:
+            state["had"] = picked
+        else:
+            state.pop("had", None)
+        cfg["onboarding"] = state
+        locked.site_config = cfg
+        locked.save(update_fields=["site_config"])
+    tenant.site_config = cfg
+    return picked
+
+
 def _check_recht(t) -> bool:
     return getattr(t, "published_at", None) is not None
 
@@ -160,6 +204,8 @@ SETUP_STEPS = (
         tile_url="languages",
         gate=_v3_only(),
     ),
+    # AIS-3: мастер v4 начинается с «Was haben Sie schon?» — только выбор и маршрут.
+    SetupStep("quelle", "🧭", _("Was haben Sie schon?"), check=_check_quelle, gate=_gate_v4),
     SetupStep("company", "🏠", _("Firma & Logo"), check=_check_company),
     SetupStep("stil", "🎨", _("Stil"), tile_url="site-home", gate=_v3_only()),
     SetupStep("menu", "🧭", _("Menü"), tile_url="site-menu", gate=_v3_only()),
@@ -389,6 +435,9 @@ def get_state(tenant) -> dict:
     batches = raw.get("offer_batches")  # AIS-W W4-2: кольцо идемпотентности «Übernehmen»
     if isinstance(batches, list):
         state["offer_batches"] = [b for b in batches if isinstance(b, dict)][-10:]
+    have = clean_had(raw.get("had") if isinstance(raw.get("had"), list) else [])
+    if have:  # AIS-3: ответ «Was haben Sie schon?» (presence-minimal)
+        state["had"] = have
     chosen = raw.get("directions")  # AIS-W W4-2: ответ «Wie verkaufen Sie?»
     if isinstance(chosen, list):
         state["directions"] = [k for k in chosen if isinstance(k, str)][:10]

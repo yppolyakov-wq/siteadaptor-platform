@@ -1052,6 +1052,54 @@ def _pruefen_rooms() -> list[dict]:
     ]
 
 
+def _quelle_options(request) -> list[dict]:
+    """AIS-3: карточки «Was haben Sie schon?» — только доступные этому бизнесу (гейты те же,
+    что у самих потоков: без ключа Google/ИИ карточки нет вовсе)."""
+    from apps.core import offer_photo, setup_google
+    from apps.tenants import onboarding
+
+    tenant = request.tenant
+    chosen = set(onboarding.had(tenant))
+    opts = [
+        ("website", _("Eigene Website"), _("Wir lesen Produkte, Preise und Kontaktdaten.")),
+        (
+            "google",
+            _("Google-Profil"),
+            _("Adresse, Telefon und Öffnungszeiten — Sie suchen im nächsten Schritt."),
+        ),
+        (
+            "photo",
+            _("Foto der Speisekarte oder Preisliste"),
+            _("1–3 Fotos. Wir lesen Namen und Preise."),
+        ),
+        ("none", _("Nichts davon"), _("Wir zeigen Beispiele — Sie ändern sie.")),
+    ]
+    available = {
+        "website": True,
+        "google": setup_google.enabled(tenant),
+        "photo": offer_photo.enabled(),
+        "none": True,
+    }
+    return [
+        {"key": k, "label": label, "hint": hint, "checked": k in chosen, "ai": k == "photo"}
+        for k, label, hint in opts
+        if available[k]
+    ]
+
+
+def _ctx_quelle(request):
+    return {"quelle_options": _quelle_options(request)}
+
+
+def _post_quelle(request):
+    """AIS-3: запомнить выбор — и только (бизнес-данные пишут шаги, куда он ведёт)."""
+    from apps.tenants import onboarding
+
+    allowed = {o["key"] for o in _quelle_options(request)}
+    keys = [k for k in request.POST.getlist("had") if k in allowed]
+    onboarding.set_had(request.tenant, keys)
+
+
 HANDLERS = {
     "business": StepHandler(
         template="tenant/setup/_step_business.html", post=_post_business, context=_ctx_business
@@ -1059,6 +1107,9 @@ HANDLERS = {
     # AB6.9: первый видимый слайд — «богатое» демо одним кликом (первый логический шаг).
     "start": StepHandler(
         template="tenant/setup/_step_start.html", context=_ctx_start, preview=True
+    ),
+    "quelle": StepHandler(
+        template="tenant/setup/_step_quelle.html", post=_post_quelle, context=_ctx_quelle
     ),
     "company": StepHandler(
         template="tenant/setup/_step_company.html",

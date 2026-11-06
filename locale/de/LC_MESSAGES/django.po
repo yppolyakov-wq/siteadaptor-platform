@@ -34877,3 +34877,27 @@ msgstr "Eine Leistung pro Zeile, Preis optional. Ohne Preis steht „Preis auf A
 
 msgid "Online kaufen und buchen ist hier noch nicht möglich — bitte melden Sie sich direkt bei uns."
 msgstr "Online kaufen und buchen ist hier noch nicht möglich — bitte melden Sie sich direkt bei uns."
+
+msgid "Was haben Sie schon?"
+msgstr "Was haben Sie schon?"
+
+msgid "Wir übernehmen, was es schon gibt — Sie prüfen jedes Feld, bevor etwas online geht. Mehrere Antworten möglich."
+msgstr "Wir übernehmen, was es schon gibt — Sie prüfen jedes Feld, bevor etwas online geht. Mehrere Antworten möglich."
+
+msgid "Eigene Website"
+msgstr "Eigene Website"
+
+msgid "Wir lesen Produkte, Preise und Kontaktdaten."
+msgstr "Wir lesen Produkte, Preise und Kontaktdaten."
+
+msgid "Adresse, Telefon und Öffnungszeiten — Sie suchen im nächsten Schritt."
+msgstr "Adresse, Telefon und Öffnungszeiten — Sie suchen im nächsten Schritt."
+
+msgid "1–3 Fotos. Wir lesen Namen und Preise."
+msgstr "1–3 Fotos. Wir lesen Namen und Preise."
+
+msgid "Nichts davon"
+msgstr "Nichts davon"
+
+msgid "Wir zeigen Beispiele — Sie ändern sie."
+msgstr "Wir zeigen Beispiele — Sie ändern sie."

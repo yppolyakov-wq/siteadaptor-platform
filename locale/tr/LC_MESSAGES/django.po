@@ -34936,3 +34936,27 @@ msgstr "Satır başına bir hizmet, fiyat isteğe bağlı. Fiyat yoksa “Fiyat 
 
 msgid "Online kaufen und buchen ist hier noch nicht möglich — bitte melden Sie sich direkt bei uns."
 msgstr "Burada henüz çevrimiçi satın alma ve rezervasyon yapılamıyor — lütfen doğrudan bizimle iletişime geçin."
+
+msgid "Was haben Sie schon?"
+msgstr "Elinizde şimdiden neler var?"
+
+msgid "Wir übernehmen, was es schon gibt — Sie prüfen jedes Feld, bevor etwas online geht. Mehrere Antworten möglich."
+msgstr "Var olanı biz aktarırız — bir şey yayına girmeden önce her alanı siz kontrol edersiniz. Birden fazla seçim yapılabilir."
+
+msgid "Eigene Website"
+msgstr "Kendi web siteniz"
+
+msgid "Wir lesen Produkte, Preise und Kontaktdaten."
+msgstr "Ürünleri, fiyatları ve iletişim bilgilerini okuruz."
+
+msgid "Adresse, Telefon und Öffnungszeiten — Sie suchen im nächsten Schritt."
+msgstr "Adres, telefon ve çalışma saatleri — sonraki adımda aranır."
+
+msgid "1–3 Fotos. Wir lesen Namen und Preise."
+msgstr "1–3 fotoğraf. Adları ve fiyatları okuruz."
+
+msgid "Nichts davon"
+msgstr "Hiçbiri"
+
+msgid "Wir zeigen Beispiele — Sie ändern sie."
+msgstr "Örnekler gösteririz — siz değiştirirsiniz."
