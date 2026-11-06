@@ -90,3 +90,56 @@ def test_eval_command_ai_needs_key(settings, isolated_ratelimit, bakery):
     settings.AI_ENABLED = False
     with pytest.raises(CommandError):
         call_command("assistant_eval", "--schema", bakery.schema_name, "--ai")
+
+
+def test_eval_refuses_name_collision(settings, isolated_ratelimit, shop):
+    from django.core.management import CommandError, call_command
+
+    settings.AI_ENABLED = False
+    with pytest.raises(CommandError):
+        call_command("assistant_eval", "--schema", shop.schema_name)
+
+
+def test_eval_min_is_command_error(settings, isolated_ratelimit, bakery, monkeypatch):
+    from django.core.management import CommandError, call_command
+
+    from apps.core import assistant_router
+    from apps.core.models import Membership
+
+    settings.AI_ENABLED = False
+    Membership.objects.filter(user=_user()).update(role=Membership.ROLE_OWNER)
+    monkeypatch.setattr(assistant_router, "classify", lambda request, raw: "answer")
+    with pytest.raises(CommandError):
+        call_command("assistant_eval", "--schema", bakery.schema_name, "--min", "0.99")
+
+
+def test_eval_ai_calls_model_outside_rollback(ai_on, bakery, monkeypatch):
+    """--ai: модель зовётся после отката (учёт AIUsage не теряется), ответ проверяется без базы."""
+    from io import StringIO
+    from types import SimpleNamespace
+
+    from django.core.management import call_command
+
+    from apps.core.models import Membership
+
+    Membership.objects.filter(user=_user()).update(role=Membership.ROLE_OWNER)
+    calls = []
+
+    def fake(task, prompt, **kw):
+        from django.db import connection
+
+        calls.append(connection.in_atomic_block)
+        return SimpleNamespace(data={"not_action": False, "items": []})
+
+    monkeypatch.setattr("apps.ai.api.generate", fake)
+    out = StringIO()
+    call_command(
+        "assistant_eval",
+        "--schema",
+        bakery.schema_name,
+        "--ai",
+        "--route",
+        "ai_actions",
+        stdout=out,
+    )
+    assert calls and "0 Punkte" in out.getvalue()

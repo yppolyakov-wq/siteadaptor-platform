@@ -126,3 +126,15 @@ def test_price_followup_needs_price_right(ai_off, bakery, shop, monkeypatch):
         permissions, "has_perm", lambda u, perm: perm != "preise.edit" and real(u, perm)
     )
     assert assistant_router.classify(_req(bakery, user=user), FOLLOW) != "followup"
+
+
+@pytest.mark.parametrize("phrase", ["Käsekuchen de.", "Käsekuchen da"])
+def test_turkish_tail_with_previous_turn(ai_off, bakery, shop, phrase):
+    user, _first = _ask(bakery, "скрой Apfelstrudel")
+    assert assistant_router.classify(_req(bakery, user=user), phrase) == "followup"
+
+
+def test_turkish_tail_needs_previous_turn_and_no_apostrophe(ai_off, bakery, shop):
+    assert assistant_router.classify(_req(bakery), "Käsekuchen de") != "followup"
+    user, _first = _ask(bakery, "скрой Apfelstrudel")
+    assert assistant_router.classify(_req(bakery, user=user), "Käsekuchen'de") != "followup"

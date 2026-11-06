@@ -5,7 +5,8 @@
 
 `mode`: rules — без ИИ; ai — с включённой задачей `assistant_actions` (модель не зовётся,
 проверяется маршрут); followup — после хода `PREV`. `note`: synthetic | real (фразы из
-реальной обратной связи владельцев — отдельная отметка против подгонки правил под набор).
+реальной обратной связи владельцев — отдельная отметка против подгонки правил под набор) |
+negative (похоже на действие, но это вопрос — ждём `answer`).
 """
 
 from __future__ import annotations
@@ -79,6 +80,18 @@ PHRASES: tuple[Phrase, ...] = tuple(
             uk="Як змінити години роботи?",
             tr="Çalışma saatlerini nasıl değiştiririm?",
         ),
+        # отрицательные: вопрос с именем товара или словом действия — НЕ действие (route answer)
+        *[
+            Phrase(text, lang, "answer", note="negative")
+            for lang, text in (
+                ("de", "Kann ich den Käsekuchen auch als Gutschein verkaufen?"),
+                ("de", "Was kostet der Käsekuchen?"),
+                ("en", "Which payment methods are supported?"),
+                ("ru", "сколько стоит Käsekuchen?"),
+                ("uk", "Скільки коштує Käsekuchen?"),
+                ("tr", "Käsekuchen ne kadar?"),
+            )
+        ],
         *_p(
             "ai_actions",
             "ai",

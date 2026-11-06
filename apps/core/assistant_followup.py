@@ -34,7 +34,7 @@ _MARKER = re.compile(
 )
 #: tr: частица «de/da» после слова — «Käsekuchen de» = «и Käsekuchen тоже»; только в конце
 #: фразы (в середине это обычный локатив/союз)
-_TR_TAIL = re.compile(r"(?<!\w)(?:de|da)\s*$", re.IGNORECASE)
+_TR_TAIL = re.compile(r"(?<![\w'’])(?:de|da)\s*[.!]?\s*$", re.IGNORECASE)
 _VERBS = ("hide", "show", "price", "move")
 
 
