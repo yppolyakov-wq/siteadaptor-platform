@@ -33505,3 +33505,607 @@ msgstr "Ще не готово — зачекайте трохи."
 #: apps/core/offer_photo.py
 msgid "Zu viele Fotos in kurzer Zeit — bitte später erneut versuchen."
 msgstr "Забагато фото за короткий час — спробуйте пізніше."
+
+#: apps/core/help_articles.py
+msgid "Ohne Öffnungszeiten gibt es keine freien Termine und keine Abholzeiten, und Kunden sehen nicht, ob Sie geöffnet haben."
+msgstr "Без годин роботи немає вільних записів і часу самовивозу, а клієнти не бачать, чи ви відчинені."
+
+#: apps/core/help_articles.py
+msgid "Öffnen Sie „Mein Geschäft“."
+msgstr "Відкрийте «Мій бізнес»."
+
+#: apps/core/help_articles.py
+msgid "Tragen Sie für jeden Tag die Zeiten ein — geschlossene Tage leer lassen."
+msgstr "Вкажіть час для кожного дня — вихідні залиште порожніми."
+
+#: apps/core/help_articles.py
+msgid "Speichern."
+msgstr "Збережіть."
+
+#: apps/core/help_articles.py
+msgid "Betriebsferien eintragen"
+msgstr "Вказати відпустку"
+
+#: apps/core/help_articles.py
+msgid "In den Ferien zeigt die Website einen Hinweis, Termine und Bestellungen für diese Tage sind gesperrt."
+msgstr "Під час відпустки на сайті є оголошення, а записи й замовлення на ці дні закриті."
+
+#: apps/core/help_articles.py
+msgid "Öffnen Sie „Betriebsferien“."
+msgstr "Відкрийте «Відпустка / зачинено»."
+
+#: apps/core/help_articles.py
+msgid "Ersten und letzten freien Tag eintragen."
+msgstr "Вкажіть перший і останній неробочий день."
+
+#: apps/core/help_articles.py
+msgid "Speichern — der Hinweis erscheint automatisch."
+msgstr "Збережіть — оголошення з’явиться саме."
+
+#: apps/core/help_articles.py
+msgid "Adresse und Kontakt"
+msgstr "Адреса й контакти"
+
+#: apps/core/help_articles.py
+msgid "Adresse, Telefon und E-Mail stehen auf Ihrer Website, im Impressum und im Stadtkatalog."
+msgstr "Адреса, телефон і e-mail видно на вашому сайті, в Impressum і в каталозі міста."
+
+#: apps/core/help_articles.py
+msgid "Adresse, Telefon und E-Mail prüfen."
+msgstr "Перевірте адресу, телефон і e-mail."
+
+#: apps/core/help_articles.py
+msgid "E-Mail-Adresse bestätigen"
+msgstr "Підтвердити e-mail"
+
+#: apps/core/help_articles.py
+msgid "Bis die E-Mail-Adresse bestätigt ist, sehen Kunden Ihre Website nicht und Sie stehen nicht im Stadtkatalog."
+msgstr "Поки e-mail не підтверджено, клієнти не бачать ваш сайт, а вас немає в каталозі міста."
+
+#: apps/core/help_articles.py
+msgid "Öffnen Sie die E-Mail von uns und klicken Sie auf den Link."
+msgstr "Відкрийте наш лист і натисніть на посилання."
+
+#: apps/core/help_articles.py
+msgid "Keine E-Mail da? Spam-Ordner prüfen oder die Bestätigung erneut senden."
+msgstr "Листа немає? Перевірте теку «Спам» або надішліть підтвердження ще раз."
+
+#: apps/core/help_articles.py
+msgid "Impressum ausfüllen"
+msgstr "Заповнити Impressum"
+
+#: apps/core/help_articles.py
+msgid "Jede geschäftliche Website in Deutschland braucht ein Impressum. Wir erzeugen es aus Ihren Angaben."
+msgstr "Кожному комерційному сайту в Німеччині потрібен Impressum. Ми складаємо його з ваших даних."
+
+#: apps/core/help_articles.py
+msgid "Öffnen Sie „Recht & Steuern“."
+msgstr "Відкрийте «Право й податки»."
+
+#: apps/core/help_articles.py
+msgid "Vertretungsberechtigte Person, Rechtsform und Register eintragen."
+msgstr "Вкажіть уповноважену особу, правову форму та реєстр."
+
+#: apps/core/help_articles.py
+msgid "Bei Fragen zur Rechtsform: Steuerberater oder IHK fragen."
+msgstr "Питання про правову форму — до податкового консультанта або в IHK."
+
+#: apps/core/help_articles.py
+msgid "AGB, Datenschutz und Widerruf"
+msgstr "AGB, конфіденційність і відкликання"
+
+#: apps/core/help_articles.py
+msgid "Wir erzeugen Texte als Vorlage aus Ihren Angaben. Lassen Sie sie bitte von einem Anwalt prüfen — eine Rechtsberatung ersetzen sie nicht."
+msgstr "Ми складаємо тексти-шаблони з ваших даних. Будь ласка, дайте їх перевірити юристу — юридичну консультацію вони не замінюють."
+
+#: apps/core/help_articles.py
+msgid "Vorlage ansehen und bei Bedarf eigenen Text einfügen."
+msgstr "Перегляньте шаблон і за потреби вставте свій текст."
+
+#: apps/core/help_articles.py
+msgid "Kunden sehen Ihre Website erst nach „Website veröffentlichen“. Fehlt noch etwas, zeigt der Schritt, was."
+msgstr "Клієнти побачать сайт лише після «Опублікувати сайт». Якщо чогось бракує, крок покаже, чого."
+
+#: apps/core/help_articles.py
+msgid "Öffnen Sie den Schritt „Rechtliches & Veröffentlichen“."
+msgstr "Відкрийте крок «Право й публікація»."
+
+#: apps/core/help_articles.py
+msgid "Fehlende Angaben ergänzen."
+msgstr "Доповніть відсутні дані."
+
+#: apps/core/help_articles.py
+msgid "Auf „Website veröffentlichen“ klicken."
+msgstr "Натисніть «Опублікувати сайт»."
+
+#: apps/core/help_articles.py
+msgid "Im Stadtkatalog erscheinen"
+msgstr "Потрапити до каталогу міста"
+
+#: apps/core/help_articles.py
+msgid "Ihre Angebote erscheinen im Stadtkatalog, sobald die Website veröffentlicht und die E-Mail bestätigt ist. Neue Angebote kommen nach wenigen Minuten dazu."
+msgstr "Ваші пропозиції з’являться в каталозі міста, щойно сайт опубліковано, а e-mail підтверджено. Нові пропозиції додаються за кілька хвилин."
+
+#: apps/core/help_articles.py
+msgid "E-Mail bestätigen und Website veröffentlichen."
+msgstr "Підтвердьте e-mail і опублікуйте сайт."
+
+#: apps/core/help_articles.py
+msgid "Angebote mit Preis und Foto anlegen."
+msgstr "Створіть пропозиції з ціною та фото."
+
+#: apps/core/help_articles.py
+msgid "Im Assistenten „Funktioniert etwas nicht?“ zeigt, was noch fehlt."
+msgstr "У помічнику розділ «Щось не працює?» покаже, чого ще бракує."
+
+#: apps/core/help_articles.py
+msgid "Startseite gestalten"
+msgstr "Оформити головну сторінку"
+
+#: apps/core/help_articles.py
+msgid "Titelbild, Text „Über uns“ und Reihenfolge der Blöcke ändern Sie im Studio."
+msgstr "Титульне фото, текст «Про нас» і порядок блоків змінюються в Studio."
+
+#: apps/core/help_articles.py
+msgid "Öffnen Sie das Studio."
+msgstr "Відкрийте Studio."
+
+#: apps/core/help_articles.py
+msgid "Auf einen Block klicken und rechts ändern."
+msgstr "Натисніть на блок і змініть його праворуч."
+
+#: apps/core/help_articles.py
+msgid "Studio"
+msgstr "Studio"
+
+#: apps/core/help_articles.py
+msgid "Produkt anlegen"
+msgstr "Створити товар"
+
+#: apps/core/help_articles.py
+msgid "Ein Produkt braucht Namen und Preis. Mit Foto verkauft es sich besser."
+msgstr "Товару потрібні назва й ціна. З фото він продається краще."
+
+#: apps/core/help_articles.py
+msgid "Öffnen Sie „Neues Produkt“."
+msgstr "Відкрийте «Новий товар»."
+
+#: apps/core/help_articles.py
+msgid "Name, Preis und Kategorie eintragen, Foto hinzufügen."
+msgstr "Вкажіть назву, ціну й категорію, додайте фото."
+
+#: apps/core/help_articles.py
+msgid "Speichern — das Produkt ist sofort im Sortiment."
+msgstr "Збережіть — товар одразу з’явиться в асортименті."
+
+#: apps/core/help_articles.py
+msgid "Neues Produkt"
+msgstr "Новий товар"
+
+#: apps/core/help_articles.py
+msgid "Kategorien ordnen"
+msgstr "Упорядкувати категорії"
+
+#: apps/core/help_articles.py
+msgid "Kategorien gliedern Ihr Sortiment auf der Website und im Menü."
+msgstr "Категорії поділяють асортимент на сайті й у меню."
+
+#: apps/core/help_articles.py
+msgid "Öffnen Sie „Kategorien“."
+msgstr "Відкрийте «Категорії»."
+
+#: apps/core/help_articles.py
+msgid "Kategorie anlegen oder umbenennen."
+msgstr "Створіть або перейменуйте категорію."
+
+#: apps/core/help_articles.py
+msgid "Reihenfolge per Ziehen ändern."
+msgstr "Змінюйте порядок перетягуванням."
+
+#: apps/core/help_articles.py
+msgid "Allergene und Zusatzstoffe angeben"
+msgstr "Вказати алергени й добавки"
+
+#: apps/core/help_articles.py
+msgid "Bei Speisen gehören Allergene und Zusatzstoffe zur Pflichtkennzeichnung. Sie tragen sie pro Gericht ein."
+msgstr "Для страв алергени й добавки — обов’язкове маркування. Їх вказують для кожної страви."
+
+#: apps/core/help_articles.py
+msgid "Gericht im Sortiment öffnen."
+msgstr "Відкрийте страву в асортименті."
+
+#: apps/core/help_articles.py
+msgid "Allergene und Zusatzstoffe ankreuzen."
+msgstr "Позначте алергени й добавки."
+
+#: apps/core/help_articles.py
+msgid "Speichern — die Angaben stehen auf der Website und in der Speisekarte als PDF."
+msgstr "Збережіть — дані з’являться на сайті й у меню в PDF."
+
+#: apps/core/help_articles.py
+msgid "Bezahlung einrichten"
+msgstr "Налаштувати оплату"
+
+#: apps/core/help_articles.py
+msgid "Kunden zahlen vor Ort, per Vorkasse oder online mit Karte (Stripe). Ohne eine Zahlart kann online niemand bestellen."
+msgstr "Клієнти платять на місці, передоплатою на рахунок або онлайн карткою (Stripe). Без способу оплати онлайн ніхто не замовить."
+
+#: apps/core/help_articles.py
+msgid "Öffnen Sie „Zahlung & Lieferung“."
+msgstr "Відкрийте «Оплата й доставка»."
+
+#: apps/core/help_articles.py
+msgid "Zahlarten auswählen, für Vorkasse IBAN eintragen."
+msgstr "Виберіть способи оплати, для передоплати вкажіть IBAN."
+
+#: apps/core/help_articles.py
+msgid "Für Kartenzahlung Stripe verbinden."
+msgstr "Для оплати карткою підключіть Stripe."
+
+#: apps/core/help_articles.py
+msgid "Lieferung und Abholung"
+msgstr "Доставка й самовивіз"
+
+#: apps/core/help_articles.py
+msgid "Sie legen fest, ob Kunden abholen, ob Sie liefern und in welche Postleitzahlen."
+msgstr "Ви вирішуєте, чи забирають клієнти самі, чи доставляєте ви і в які індекси."
+
+#: apps/core/help_articles.py
+msgid "Öffnen Sie „Lieferung & Abholung“."
+msgstr "Відкрийте «Доставка й самовивіз»."
+
+#: apps/core/help_articles.py
+msgid "Abholung und Lieferung ein- oder ausschalten."
+msgstr "Увімкніть або вимкніть самовивіз і доставку."
+
+#: apps/core/help_articles.py
+msgid "Für Lieferung Postleitzahlen und Preis eintragen."
+msgstr "Для доставки вкажіть індекси й ціну."
+
+#: apps/core/help_articles.py
+msgid "Leistung anlegen"
+msgstr "Створити послугу"
+
+#: apps/core/help_articles.py
+msgid "Eine Leistung braucht Dauer und Preis — aus der Dauer entstehen die freien Termine."
+msgstr "Послузі потрібні тривалість і ціна — з тривалості будуються вільні записи."
+
+#: apps/core/help_articles.py
+msgid "Öffnen Sie „Leistungen“."
+msgstr "Відкрийте «Послуги»."
+
+#: apps/core/help_articles.py
+msgid "Name, Dauer und Preis eintragen."
+msgstr "Вкажіть назву, тривалість і ціну."
+
+#: apps/core/help_articles.py
+msgid "Mitarbeiter, Tische und ihre Zeiten"
+msgstr "Працівники, столи та їхній час"
+
+#: apps/core/help_articles.py
+msgid "Termine gibt es nur, wenn ein Mitarbeiter oder Tisch zu dieser Zeit frei ist."
+msgstr "Записи можливі, лише коли в цей час вільний працівник або стіл."
+
+#: apps/core/help_articles.py
+msgid "Öffnen Sie „Öffnungszeiten & Ressourcen“."
+msgstr "Відкрийте «Години роботи та ресурси»."
+
+#: apps/core/help_articles.py
+msgid "Mitarbeiter oder Tisch anlegen."
+msgstr "Додайте працівника або стіл."
+
+#: apps/core/help_articles.py
+msgid "Zeiten eintragen, wenn sie von den Öffnungszeiten abweichen."
+msgstr "Вкажіть час, якщо він відрізняється від годин роботи."
+
+#: apps/core/help_articles.py
+msgid "Buchungsregeln: Storno und Anzahlung"
+msgstr "Правила запису: скасування й передоплата"
+
+#: apps/core/help_articles.py
+msgid "Hier legen Sie fest, bis wann Kunden kostenlos stornieren und ob eine Anzahlung nötig ist."
+msgstr "Тут ви задаєте, до якого моменту клієнти скасовують безкоштовно і чи потрібна передоплата."
+
+#: apps/core/help_articles.py
+msgid "Öffnen Sie „Buchungsregeln“."
+msgstr "Відкрийте «Правила запису»."
+
+#: apps/core/help_articles.py
+msgid "Frist für kostenlose Stornierung wählen."
+msgstr "Виберіть строк безкоштовного скасування."
+
+#: apps/core/help_articles.py
+msgid "Anzahlung und Regel bei Nichterscheinen festlegen."
+msgstr "Задайте передоплату й правило при неявці."
+
+#: apps/core/help_articles.py
+msgid "Ein Zimmer braucht Preis pro Nacht, Anzahl Gäste und ein Foto — ohne Foto ist keine Online-Buchung möglich."
+msgstr "Номеру потрібні ціна за ніч, кількість гостей і фото — без фото онлайн-бронювання неможливе."
+
+#: apps/core/help_articles.py
+msgid "Öffnen Sie „Zimmer“."
+msgstr "Відкрийте «Номери»."
+
+#: apps/core/help_articles.py
+msgid "Name, Gäste und Preis pro Nacht eintragen."
+msgstr "Вкажіть назву, кількість гостей і ціну за ніч."
+
+#: apps/core/help_articles.py
+msgid "Foto hinzufügen und speichern."
+msgstr "Додайте фото й збережіть."
+
+#: apps/core/help_articles.py
+msgid "Preise nach Saison und Tag"
+msgstr "Ціни за сезоном і днями"
+
+#: apps/core/help_articles.py
+msgid "Im Preiskalender ändern Sie Preise für einzelne Tage oder Zeiträume und sperren Tage für den Verkauf."
+msgstr "У календарі цін ви змінюєте ціни на окремі дні чи періоди й закриваєте дні для продажу."
+
+#: apps/core/help_articles.py
+msgid "Öffnen Sie „Preise & Verfügbarkeit“."
+msgstr "Відкрийте «Ціни та наявність»."
+
+#: apps/core/help_articles.py
+msgid "Zeitraum markieren und neuen Preis eintragen."
+msgstr "Виділіть період і вкажіть нову ціну."
+
+#: apps/core/help_articles.py
+msgid "Vorschau prüfen und übernehmen."
+msgstr "Перевірте попередній перегляд і застосуйте."
+
+#: apps/core/help_articles.py
+msgid "Veranstaltung anlegen"
+msgstr "Створити подію"
+
+#: apps/core/help_articles.py
+msgid "Eine Veranstaltung braucht Datum, Uhrzeit, Plätze und Preis."
+msgstr "Події потрібні дата, час, місця й ціна."
+
+#: apps/core/help_articles.py
+msgid "Öffnen Sie „Veranstaltungen“."
+msgstr "Відкрийте «Події»."
+
+#: apps/core/help_articles.py
+msgid "Neue Veranstaltung anlegen: Datum, Uhrzeit, Plätze, Preis."
+msgstr "Створіть подію: дата, час, місця, ціна."
+
+#: apps/core/help_articles.py
+msgid "Veröffentlichen — Tickets sind sofort buchbar."
+msgstr "Опублікуйте — квитки одразу можна купити."
+
+#: apps/core/help_articles.py
+msgid "Anfrageformular anpassen"
+msgstr "Налаштувати форму заявки"
+
+#: apps/core/help_articles.py
+msgid "Im Anfrageformular fragen Sie zum Beispiel Datum, Gästezahl und Anlass ab — so können Sie gleich ein Angebot schreiben."
+msgstr "У формі заявки ви питаєте, наприклад, дату, кількість гостей і привід — і одразу можете написати пропозицію."
+
+#: apps/core/help_articles.py
+msgid "Öffnen Sie „Abläufe & Status“."
+msgstr "Відкрийте «Процеси та статуси»."
+
+#: apps/core/help_articles.py
+msgid "Im Abschnitt „Anfrage-Formular“ Felder auswählen."
+msgstr "У розділі «Форма заявки» виберіть поля."
+
+#: apps/core/help_articles.py
+msgid "Aktion erstellen"
+msgstr "Створити акцію"
+
+#: apps/core/help_articles.py
+msgid "Eine Aktion legen Sie in einer Minute an: Foto, Titel, Preis und Laufzeit — auch vom Handy."
+msgstr "Акцію створюють за хвилину: фото, назва, ціна й строк — і з телефона теж."
+
+#: apps/core/help_articles.py
+msgid "Öffnen Sie „Schnell-Aktion“."
+msgstr "Відкрийте «Швидка акція»."
+
+#: apps/core/help_articles.py
+msgid "Foto aufnehmen, Titel und Preis eintragen."
+msgstr "Зробіть фото, вкажіть назву й ціну."
+
+#: apps/core/help_articles.py
+msgid "Laufzeit wählen und veröffentlichen."
+msgstr "Виберіть строк і опублікуйте."
+
+#: apps/core/help_articles.py
+msgid "Schnell-Aktion"
+msgstr "Швидка акція"
+
+#: apps/core/help_articles.py
+msgid "Telegram-Bot verbinden"
+msgstr "Підключити Telegram-бота"
+
+#: apps/core/help_articles.py
+msgid "Über Telegram erhalten Sie Bestellungen und Nachrichten sofort aufs Handy und legen Aktionen per Chat an."
+msgstr "Через Telegram замовлення й повідомлення одразу приходять на телефон, а акції створюються в чаті."
+
+#: apps/core/help_articles.py
+msgid "Öffnen Sie „Telegram“."
+msgstr "Відкрийте «Telegram»."
+
+#: apps/core/help_articles.py
+msgid "Gemeinsamen Bot verbinden oder eigenen Bot eintragen."
+msgstr "Підключіть спільний бот або вкажіть свій."
+
+#: apps/core/help_articles.py
+msgid "Im Bot auf „Start“ tippen."
+msgstr "Натисніть «Start» у боті."
+
+#: apps/core/help_articles.py
+msgid "Mitarbeiter einladen und Rechte vergeben"
+msgstr "Запросити працівників і надати права"
+
+#: apps/core/help_articles.py
+msgid "Mitarbeiter bekommen einen eigenen Zugang. Was sie sehen und ändern dürfen, legen Sie pro Person fest."
+msgstr "Працівники отримують свій вхід. Що їм можна бачити й змінювати, ви задаєте для кожного."
+
+#: apps/core/help_articles.py
+msgid "Öffnen Sie „Team & Zugriff“."
+msgstr "Відкрийте «Команда та доступ»."
+
+#: apps/core/help_articles.py
+msgid "Einladung per E-Mail senden."
+msgstr "Надішліть запрошення e-mailом."
+
+#: apps/core/help_articles.py
+msgid "Rechte mit einer Vorlage wählen oder einzeln anpassen."
+msgstr "Виберіть права за шаблоном або налаштуйте окремо."
+
+#. Translators: comma-separated search words, add local synonyms
+#: apps/core/help_articles.py
+msgctxt "help-keywords"
+msgid "Öffnungszeiten, Uhrzeit, geöffnet, geschlossen, Ruhetag, Zeiten"
+msgstr "години роботи, час, відчинено, зачинено, вихідний, розклад"
+
+#. Translators: comma-separated search words, add local synonyms
+#: apps/core/help_articles.py
+msgctxt "help-keywords"
+msgid "Urlaub, Ferien, geschlossen, Pause, Betriebsurlaub"
+msgstr "відпустка, канікули, зачинено, перерва, вихідні"
+
+#. Translators: comma-separated search words, add local synonyms
+#: apps/core/help_articles.py
+msgctxt "help-keywords"
+msgid "Adresse, Telefon, E-Mail, Kontakt, Anschrift, Straße"
+msgstr "адреса, телефон, пошта, контакти, вулиця"
+
+#. Translators: comma-separated search words, add local synonyms
+#: apps/core/help_articles.py
+msgctxt "help-keywords"
+msgid "bestätigen, Bestätigung, E-Mail, Link, nicht sichtbar"
+msgstr "підтвердити, підтвердження, пошта, посилання, не видно"
+
+#. Translators: comma-separated search words, add local synonyms
+#: apps/core/help_articles.py
+msgctxt "help-keywords"
+msgid "Impressum, Pflichtangaben, Rechtsform, Handelsregister, USt-IdNr"
+msgstr "імпресум, обов’язкові дані, правова форма, реєстр, податковий номер"
+
+#. Translators: comma-separated search words, add local synonyms
+#: apps/core/help_articles.py
+msgctxt "help-keywords"
+msgid "AGB, Datenschutz, Widerruf, Datenschutzerklärung, DSGVO, Rechtstexte"
+msgstr "умови, конфіденційність, відкликання, захист даних, GDPR, юридичні тексти"
+
+#. Translators: comma-separated search words, add local synonyms
+#: apps/core/help_articles.py
+msgctxt "help-keywords"
+msgid "veröffentlichen, online, sichtbar, Bald online, freischalten"
+msgstr "опублікувати, онлайн, видно, скоро онлайн, запустити"
+
+#. Translators: comma-separated search words, add local synonyms
+#: apps/core/help_articles.py
+msgctxt "help-keywords"
+msgid "Stadtkatalog, Stadtportal, Katalog, gefunden werden, sichtbar"
+msgstr "каталог міста, міський портал, каталог, знайти, видно"
+
+#. Translators: comma-separated search words, add local synonyms
+#: apps/core/help_articles.py
+msgctxt "help-keywords"
+msgid "Startseite, Titelbild, Design, Über uns, Banner, Studio, Layout"
+msgstr "головна, титульне фото, дизайн, про нас, банер, студія, макет"
+
+#. Translators: comma-separated search words, add local synonyms
+#: apps/core/help_articles.py
+msgctxt "help-keywords"
+msgid "Produkt, Artikel, Ware, anlegen, Preis, Foto, Sortiment"
+msgstr "товар, артикул, продукт, створити, ціна, фото, асортимент"
+
+#. Translators: comma-separated search words, add local synonyms
+#: apps/core/help_articles.py
+msgctxt "help-keywords"
+msgid "Kategorie, Gruppe, Reihenfolge, Sortierung, Menü"
+msgstr "категорія, група, порядок, сортування, меню"
+
+#. Translators: comma-separated search words, add local synonyms
+#: apps/core/help_articles.py
+msgctxt "help-keywords"
+msgid "Allergene, Zusatzstoffe, Kennzeichnung, LMIV, Gluten, Laktose"
+msgstr "алергени, добавки, маркування, глютен, лактоза"
+
+#. Translators: comma-separated search words, add local synonyms
+#: apps/core/help_articles.py
+msgctxt "help-keywords"
+msgid "Bezahlung, Zahlung, Stripe, Karte, Vorkasse, IBAN, PayPal, bar"
+msgstr "оплата, платіж, страйп, картка, передоплата, IBAN, PayPal, готівка"
+
+#. Translators: comma-separated search words, add local synonyms
+#: apps/core/help_articles.py
+msgctxt "help-keywords"
+msgid "Lieferung, Liefergebiet, PLZ, Versand, Abholung, Lieferkosten"
+msgstr "доставка, зона доставки, індекс, відправлення, самовивіз, вартість доставки"
+
+#. Translators: comma-separated search words, add local synonyms
+#: apps/core/help_articles.py
+msgctxt "help-keywords"
+msgid "Leistung, Dienstleistung, Termin, Dauer, Behandlung, Service"
+msgstr "послуга, запис, тривалість, процедура, сервіс"
+
+#. Translators: comma-separated search words, add local synonyms
+#: apps/core/help_articles.py
+msgctxt "help-keywords"
+msgid "Mitarbeiter, Ressource, Tisch, Kalender, freie Termine, Arbeitszeit"
+msgstr "працівник, майстер, ресурс, стіл, календар, вільний час, робочий час"
+
+#. Translators: comma-separated search words, add local synonyms
+#: apps/core/help_articles.py
+msgctxt "help-keywords"
+msgid "Storno, Stornierung, Anzahlung, No-Show, nicht erschienen, absagen"
+msgstr "скасування, скасувати, передоплата, неявка, не прийшов"
+
+#. Translators: comma-separated search words, add local synonyms
+#: apps/core/help_articles.py
+msgctxt "help-keywords"
+msgid "Zimmer, Unterkunft, Übernachtung, Gäste, Nacht, Ferienwohnung"
+msgstr "номер, кімната, проживання, ночівля, гості, ніч, квартира"
+
+#. Translators: comma-separated search words, add local synonyms
+#: apps/core/help_articles.py
+msgctxt "help-keywords"
+msgid "Saison, Preis, Tagespreis, Hochsaison, Kalender, Verfügbarkeit"
+msgstr "сезон, ціна, ціна за день, високий сезон, календар, наявність"
+
+#. Translators: comma-separated search words, add local synonyms
+#: apps/core/help_articles.py
+msgctxt "help-keywords"
+msgid "Veranstaltung, Event, Ticket, Kurs, Workshop, Plätze, Termin"
+msgstr "подія, захід, квиток, курс, майстер-клас, місця, дата"
+
+#. Translators: comma-separated search words, add local synonyms
+#: apps/core/help_articles.py
+msgctxt "help-keywords"
+msgid "Anfrage, Formular, Angebot, Kostenvoranschlag, Catering, Gäste"
+msgstr "заявка, форма, пропозиція, кошторис, кейтеринг, гості"
+
+#. Translators: comma-separated search words, add local synonyms
+#: apps/core/help_articles.py
+msgctxt "help-keywords"
+msgid "Aktion, Angebot, Rabatt, Sonderangebot, Coupon, Gutschein"
+msgstr "акція, пропозиція, знижка, спецпропозиція, купон, сертифікат"
+
+#. Translators: comma-separated search words, add local synonyms
+#: apps/core/help_articles.py
+msgctxt "help-keywords"
+msgid "Telegram, Bot, Handy, Benachrichtigung, Chat, Mini App"
+msgstr "телеграм, бот, телефон, сповіщення, чат, міні-застосунок"
+
+#. Translators: comma-separated search words, add local synonyms
+#: apps/core/help_articles.py
+msgctxt "help-keywords"
+msgid "Team, Mitarbeiter, Rechte, Zugang, einladen, Rolle"
+msgstr "команда, працівник, права, доступ, запросити, роль"
+
+#: templates/core/_assistant_body.html
+msgid "Anleitungen"
+msgstr "Інструкції"
+
+#: templates/core/_assistant_body.html
+msgid "Frage oder Einstellung suchen"
+msgstr "Знайти питання або налаштування"
+
+#: templates/core/_assistant_body.html
+msgid "Hilfe zu dieser Seite"
+msgstr "Допомога щодо цієї сторінки"

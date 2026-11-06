@@ -17,16 +17,8 @@ OPEN_LIMIT, OPEN_WINDOW = 60, 60
 
 def _seite(request) -> str:
     """Только известные имена экранов: URL из запроса в шторку не попадает."""
-    from apps.core import nav_registry, readiness
-
     raw = (request.GET.get("seite") or "")[:80]
-    known = (
-        {e.url_name for e in nav_registry.ENTRIES}
-        | {a.url_name for a in nav_registry.ANCHORS}
-        | {i.url_name for i in readiness.REGISTRY}
-        | set(assistant.SCREEN_EXTRA)
-    )
-    return raw if raw in known else ""
+    return raw if raw in assistant.known_screens() else ""
 
 
 @login_required
@@ -53,7 +45,14 @@ def assistant_view(request):
     )
     if not q and not diagnose:
         limited = True
-    ctx = assistant.build(request, seite=_seite(request), q=q, run_key=run_key, diagnose=diagnose)
+    ctx = assistant.build(
+        request,
+        seite=_seite(request),
+        q=q,
+        run_key=run_key,
+        diagnose=diagnose,
+        artikel=(request.GET.get("artikel") or "")[:40],
+    )
     ctx.update(
         {
             "nav": "dashboard",
@@ -66,6 +65,7 @@ def assistant_view(request):
     )
     # Шторка: заголовок диалога — h2, секции под ним — h3 (на странице — h1 → h2).
     ctx["hl"] = "h3" if drawer.is_box(request) else "h2"
+    ctx["hl_sub"] = "h4" if drawer.is_box(request) else "h3"  # A-1: группы результатов
     if drawer.is_box(request):
         return drawer.fragment(render(request, "core/_assistant_body.html", ctx))
     return render(request, "core/assistant.html", ctx)

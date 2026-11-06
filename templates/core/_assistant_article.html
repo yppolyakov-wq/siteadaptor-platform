@@ -1,0 +1,22 @@
+{% load i18n %}
+{% comment %}AIS A-1: одна статья справки — раскрывается без JS (details/summary); ссылки — через assistant.link (пометка вместо ссылки, если экран недоступен). Только autoescape.{% endcomment %}
+<details class="rounded-xl border border-gray-200 px-3 py-2"{% if a.open %} open{% endif %} data-help="{{ a.key }}">
+  <summary tabindex="-1"{% if a.open %} data-drawer-autofocus{% endif %} class="cursor-pointer min-h-[44px] flex items-center gap-2 font-medium rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"><span aria-hidden="true">📘</span><span class="flex-1">{{ a.title }}</span></summary>
+  <p class="text-sm text-gray-700 mt-1">{{ a.summary }}</p>
+  <ol class="list-decimal pl-5 mt-2 space-y-1 text-sm">{% for step in a.steps %}<li>{{ step }}</li>{% endfor %}</ol>
+  {% if a.links %}
+  <ul class="mt-2 space-y-1">
+    {% for x in a.links %}
+    <li>
+      {% if x.link.url and x.link.method == "POST" %}
+      <form method="post" action="{{ x.link.url }}">{% csrf_token %}<input type="hidden" name="next" value="{{ next_url }}"><button type="submit" class="ui-btn ui-btn-secondary ui-btn-sm min-h-[44px]">{{ x.label }}</button></form>
+      {% elif x.link.url %}
+      <a href="{{ x.link.url }}" class="inline-flex items-center min-h-[44px] text-indigo-700 hover:underline">{{ x.label }} <span aria-hidden="true">→</span></a>
+      {% else %}
+      <span class="text-sm">{{ x.label }}</span> <span class="ui-muted text-sm">· {{ x.link.note }}</span>
+      {% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+</details>

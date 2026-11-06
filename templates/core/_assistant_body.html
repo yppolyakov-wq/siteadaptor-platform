@@ -10,6 +10,16 @@
   </section>
   {% endif %}
 
+  {% if help_open or help_here %}
+  <section aria-labelledby="as-help-h" data-help-here>
+    <{{ hl|default:"h2" }} id="as-help-h" class="ui-h3 mb-1">{% trans "Hilfe zu dieser Seite" %}</{{ hl|default:"h2" }}>
+    <div class="space-y-2">
+      {% if help_open %}{% with a=help_open %}{% include "core/_assistant_article.html" %}{% endwith %}{% endif %}
+      {% for a in help_here %}{% include "core/_assistant_article.html" %}{% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
   <section aria-labelledby="as-top-h">
     <{{ hl|default:"h2" }} id="as-top-h" class="ui-h3 mb-1">{% trans "Gerade wichtig" %}</{{ hl|default:"h2" }}>
     <ul class="divide-y divide-gray-100">{% for it in important %}{% include "core/_assistant_item.html" %}{% endfor %}</ul>
@@ -42,18 +52,23 @@
     <{{ hl|default:"h2" }} id="as-where-h" class="ui-h3 mb-1">{% trans "Wo stelle ich das ein?" %}</{{ hl|default:"h2" }}>
     <form method="get" action="{% url 'assistant' %}" class="flex gap-2" role="search">
       {% if seite %}<input type="hidden" name="seite" value="{{ seite }}">{% endif %}
-      <label for="as-q" class="sr-only">{% trans "Einstellung suchen" %}</label>
+      <label for="as-q" class="sr-only">{% trans "Frage oder Einstellung suchen" %}</label>
       <input id="as-q" name="q" value="{{ q }}" maxlength="80" class="ui-input flex-1" placeholder="{% trans 'z. B. Öffnungszeiten, Lieferung' %}">
       <button type="submit" class="ui-btn ui-btn-secondary min-h-[44px]">{% trans "Suchen" %}</button>
     </form>
     {% if q %}
+      {% if help_found %}
+      <{{ hl_sub|default:"h3" }} class="text-sm font-semibold mt-3 mb-1" data-help-results>{% trans "Anleitungen" %}</{{ hl_sub|default:"h3" }}>
+      <div class="space-y-2">{% for a in help_found %}{% include "core/_assistant_article.html" %}{% endfor %}</div>
+      {% endif %}
       {% if where %}
+      {% if help_found %}<{{ hl_sub|default:"h3" }} class="text-sm font-semibold mt-3 mb-1">{% trans "Einstellungen" %}</{{ hl_sub|default:"h3" }}>{% endif %}
       <ul class="mt-2 divide-y divide-gray-100">
         {% for w in where %}<li class="py-2"><a href="{{ w.link.url }}" class="inline-flex items-center min-h-[44px] text-indigo-700 hover:underline">{{ w.text }}</a>{% if w.area %} <span class="ui-muted text-sm">· {{ w.area }}</span>{% endif %}</li>{% endfor %}
       </ul>
       {% elif where_failed %}
       <p class="ui-muted text-sm mt-2">{% trans "Die Suche konnte nicht ausgeführt werden — bitte später erneut versuchen." %}</p>
-      {% else %}
+      {% elif not help_found %}
       <p class="ui-muted text-sm mt-2">{% trans "Nichts gefunden." %}</p>
       {% endif %}
     {% endif %}

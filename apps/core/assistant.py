@@ -165,6 +165,19 @@ def _readiness_rows(request):
     return memo
 
 
+def known_screens() -> set[str]:
+    """Все имена экранов, которые помощник знает (?seite= и ссылки статей A-1)."""
+    from apps.core import nav_registry, readiness
+
+    return (
+        {e.url_name for e in nav_registry.ENTRIES}
+        | {a.url_name for a in nav_registry.ANCHORS}
+        | {i.url_name for i in readiness.REGISTRY}
+        | set(SCREEN_EXTRA)
+        | set(OWNER_ACTIONS)
+    )
+
+
 def screen_names(seite: str) -> set[str]:
     return {seite, *SCREEN_EXTRA.get(seite, ())} if seite else set()
 
@@ -347,10 +360,30 @@ def _safe(fn, *args, default):
         return default, True
 
 
+def _help(request, seite: str, q: str, artikel: str) -> tuple:
+    """A-1: (раскрытая по ?artikel= статья, статьи экрана, статьи по запросу)."""
+    from apps.core import help_articles
+
+    opened = help_articles.opened(request, artikel) if artikel else None
+    skip = opened["key"] if opened else ""
+    here = help_articles.articles_here(request, seite, skip=skip)
+    found = help_articles.search(request, q) if q else []
+    return opened, here, found
+
+
 def build(
-    request, *, seite: str = "", q: str = "", run_key: str = "", diagnose: bool = True
+    request,
+    *,
+    seite: str = "",
+    q: str = "",
+    run_key: str = "",
+    diagnose: bool = True,
+    artikel: str = "",
 ) -> dict:
     """`diagnose=False` — поиск/лимит: диагнозы не пересчитываются на каждый ввод."""
+    (help_open, help_here, help_found), help_failed = _safe(
+        _help, request, seite, q, artikel, default=(None, [], [])
+    )
     here, here_failed = _safe(missing_here, request, seite, default=[])
     top, top_failed = _safe(important, request, default=[])
     cards, cards_failed = (
@@ -364,7 +397,11 @@ def build(
         "important": top,
         "diagnoses": cards,
         "where": where,
-        "failed": here_failed or top_failed or cards_failed or where_failed,
+        "failed": here_failed or top_failed or cards_failed or where_failed or help_failed,
         "where_failed": where_failed,
         "diagnosed": diagnose,
+        "help_open": help_open,
+        "help_here": help_here,
+        "help_found": help_found,
+        "help_failed": help_failed,
     }
