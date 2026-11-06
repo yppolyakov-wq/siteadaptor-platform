@@ -842,10 +842,9 @@ ENTRIES: tuple[NavEntry, ...] = (
         "verkauf-oeffnen",
         _("Verkauf öffnen"),
         "settings",
-        "orders",
-        search="verkauf öffnen liefern vorkasse fragen",
+        search="verkauf öffnen liefern vorkasse stornierung fragen",
         group="verkauf",
-        direction="waren",
+        modules_any=("orders", "booking", "stays", "events", "jobs"),
     ),
     _e(
         "settings",

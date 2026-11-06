@@ -34978,12 +34978,12 @@ msgstr "Как добавить фото к товарам?"
 msgid "Wie übersetze ich meine Website?"
 msgstr "Как перевести сайт?"
 
-msgid "Noch %(n)s kurze Frage, dann können Kunden online bestellen."
-msgid_plural "Noch %(n)s kurze Fragen, dann können Kunden online bestellen."
-msgstr[0] "Остался %(n)s короткий вопрос — и клиенты смогут заказывать онлайн."
-msgstr[1] "Осталось %(n)s коротких вопроса — и клиенты смогут заказывать онлайн."
-msgstr[2] "Осталось %(n)s коротких вопросов — и клиенты смогут заказывать онлайн."
-msgstr[3] "Осталось %(n)s коротких вопросов — и клиенты смогут заказывать онлайн."
+msgid "Noch %(n)s kurze Frage, dann können Kunden online kaufen und buchen."
+msgid_plural "Noch %(n)s kurze Fragen, dann können Kunden online kaufen und buchen."
+msgstr[0] "Остался %(n)s короткий вопрос — и клиенты смогут покупать и бронировать онлайн."
+msgstr[1] "Осталось %(n)s коротких вопроса — и клиенты смогут покупать и бронировать онлайн."
+msgstr[2] "Осталось %(n)s коротких вопросов — и клиенты смогут покупать и бронировать онлайн."
+msgstr[3] "Осталось %(n)s коротких вопросов — и клиенты смогут покупать и бронировать онлайн."
 
 msgid "%(n)s Angebot hat noch kein Foto — mit Foto wird öfter gekauft."
 msgid_plural "%(n)s Angebote haben noch kein Foto — mit Foto wird öfter gekauft."
@@ -34991,3 +34991,39 @@ msgstr[0] "У %(n)s позиции ещё нет фото — с фото пок
 msgstr[1] "У %(n)s позиций ещё нет фото — с фото покупают чаще."
 msgstr[2] "У %(n)s позиций ещё нет фото — с фото покупают чаще."
 msgstr[3] "У %(n)s позиций ещё нет фото — с фото покупают чаще."
+
+msgid "Absageregeln Ihrer Leistungen geprüft?"
+msgstr "Правила отмены ваших услуг проверены?"
+
+msgid "Anfrageformular einstellen"
+msgstr "Настроить форму заявки"
+
+msgid "Anfrageformular passend eingestellt?"
+msgstr "Форма заявки настроена как нужно?"
+
+msgid "Buchungsregeln ansehen"
+msgstr "Посмотреть правила записи"
+
+msgid "Kurtaxe und Hausordnung geprüft?"
+msgstr "Курортный сбор и правила проживания проверены?"
+
+msgid "Passt so"
+msgstr "Всё верно"
+
+msgid "Regeln für Tischreservierungen geprüft?"
+msgstr "Правила бронирования столов проверены?"
+
+msgid "Rückgaberegeln Ihrer Veranstaltungen geprüft?"
+msgstr "Правила возврата для ваших мероприятий проверены?"
+
+msgid "Stornobedingungen Ihrer Tarife geprüft?"
+msgstr "Условия отмены ваших тарифов проверены?"
+
+msgid "Tarife ansehen"
+msgstr "Посмотреть тарифы"
+
+msgid "Unterkunft-Einstellungen"
+msgstr "Настройки размещения"
+
+msgid "Veranstaltungen ansehen"
+msgstr "Посмотреть мероприятия"

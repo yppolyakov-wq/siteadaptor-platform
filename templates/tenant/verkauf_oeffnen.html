@@ -31,7 +31,7 @@
         {% csrf_token %}
         <input type="hidden" name="frage" value="{{ q.key }}">
         {% if not q.blocked %}<button type="submit" name="antwort" value="ja" class="ui-btn {% if q.state == 'ja' %}ui-btn-primary{% else %}ui-btn-secondary{% endif %} min-h-[44px]"{% if q.state == "ja" %} aria-pressed="true"{% else %} aria-pressed="false"{% endif %}>{{ q.yes }}</button>{% endif %}
-        <button type="submit" name="antwort" value="nein" class="ui-btn {% if q.state == 'nein' %}ui-btn-primary{% else %}ui-btn-secondary{% endif %} min-h-[44px]"{% if q.state == "nein" %} aria-pressed="true"{% else %} aria-pressed="false"{% endif %}>{{ q.no }}</button>
+        {% if not q.confirm %}        <button type="submit" name="antwort" value="nein" class="ui-btn {% if q.state == 'nein' %}ui-btn-primary{% else %}ui-btn-secondary{% endif %} min-h-[44px]"{% if q.state == "nein" %} aria-pressed="true"{% else %} aria-pressed="false"{% endif %}>{{ q.no }}</button>{% endif %}
       </form>
       {% endif %}
       {% endif %}

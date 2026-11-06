@@ -34748,12 +34748,48 @@ msgstr "Wie füge ich Fotos zu Produkten hinzu?"
 msgid "Wie übersetze ich meine Website?"
 msgstr "Wie übersetze ich meine Website?"
 
-msgid "Noch %(n)s kurze Frage, dann können Kunden online bestellen."
-msgid_plural "Noch %(n)s kurze Fragen, dann können Kunden online bestellen."
-msgstr[0] "Noch %(n)s kurze Frage, dann können Kunden online bestellen."
-msgstr[1] "Noch %(n)s kurze Fragen, dann können Kunden online bestellen."
+msgid "Noch %(n)s kurze Frage, dann können Kunden online kaufen und buchen."
+msgid_plural "Noch %(n)s kurze Fragen, dann können Kunden online kaufen und buchen."
+msgstr[0] "Noch %(n)s kurze Frage, dann können Kunden online kaufen und buchen."
+msgstr[1] "Noch %(n)s kurze Fragen, dann können Kunden online kaufen und buchen."
 
 msgid "%(n)s Angebot hat noch kein Foto — mit Foto wird öfter gekauft."
 msgid_plural "%(n)s Angebote haben noch kein Foto — mit Foto wird öfter gekauft."
 msgstr[0] "%(n)s Angebot hat noch kein Foto — mit Foto wird öfter gekauft."
 msgstr[1] "%(n)s Angebote haben noch kein Foto — mit Foto wird öfter gekauft."
+
+msgid "Absageregeln Ihrer Leistungen geprüft?"
+msgstr "Absageregeln Ihrer Leistungen geprüft?"
+
+msgid "Anfrageformular einstellen"
+msgstr "Anfrageformular einstellen"
+
+msgid "Anfrageformular passend eingestellt?"
+msgstr "Anfrageformular passend eingestellt?"
+
+msgid "Buchungsregeln ansehen"
+msgstr "Buchungsregeln ansehen"
+
+msgid "Kurtaxe und Hausordnung geprüft?"
+msgstr "Kurtaxe und Hausordnung geprüft?"
+
+msgid "Passt so"
+msgstr "Passt so"
+
+msgid "Regeln für Tischreservierungen geprüft?"
+msgstr "Regeln für Tischreservierungen geprüft?"
+
+msgid "Rückgaberegeln Ihrer Veranstaltungen geprüft?"
+msgstr "Rückgaberegeln Ihrer Veranstaltungen geprüft?"
+
+msgid "Stornobedingungen Ihrer Tarife geprüft?"
+msgstr "Stornobedingungen Ihrer Tarife geprüft?"
+
+msgid "Tarife ansehen"
+msgstr "Tarife ansehen"
+
+msgid "Unterkunft-Einstellungen"
+msgstr "Unterkunft-Einstellungen"
+
+msgid "Veranstaltungen ansehen"
+msgstr "Veranstaltungen ansehen"

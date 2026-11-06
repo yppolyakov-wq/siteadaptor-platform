@@ -50,14 +50,12 @@ def _unpublished(t):
 def _verkauf(t):
     from apps.core import sell_questions
 
-    if not t.is_module_active("orders"):
-        return None
     n = sum(1 for q in sell_questions.QUESTIONS if q.applies(t) and _open(t, q))
     if not n:
         return None
     return ngettext(
-        "Noch %(n)s kurze Frage, dann können Kunden online bestellen.",
-        "Noch %(n)s kurze Fragen, dann können Kunden online bestellen.",
+        "Noch %(n)s kurze Frage, dann können Kunden online kaufen und buchen.",
+        "Noch %(n)s kurze Fragen, dann können Kunden online kaufen und buchen.",
         n,
     ) % {"n": n}
 

@@ -34807,12 +34807,48 @@ msgstr "Ürünlere nasıl fotoğraf eklerim?"
 msgid "Wie übersetze ich meine Website?"
 msgstr "Web sitemi nasıl çeviririm?"
 
-msgid "Noch %(n)s kurze Frage, dann können Kunden online bestellen."
-msgid_plural "Noch %(n)s kurze Fragen, dann können Kunden online bestellen."
-msgstr[0] "%(n)s kısa soru kaldı, sonra müşteriler çevrimiçi sipariş verebilir."
-msgstr[1] "%(n)s kısa soru kaldı, sonra müşteriler çevrimiçi sipariş verebilir."
+msgid "Noch %(n)s kurze Frage, dann können Kunden online kaufen und buchen."
+msgid_plural "Noch %(n)s kurze Fragen, dann können Kunden online kaufen und buchen."
+msgstr[0] "%(n)s kısa soru kaldı, sonra müşteriler çevrimiçi satın alıp rezervasyon yapabilir."
+msgstr[1] "%(n)s kısa soru kaldı, sonra müşteriler çevrimiçi satın alıp rezervasyon yapabilir."
 
 msgid "%(n)s Angebot hat noch kein Foto — mit Foto wird öfter gekauft."
 msgid_plural "%(n)s Angebote haben noch kein Foto — mit Foto wird öfter gekauft."
 msgstr[0] "%(n)s ürünün henüz fotoğrafı yok — fotoğraflı ürünler daha sık satılır."
 msgstr[1] "%(n)s ürünün henüz fotoğrafı yok — fotoğraflı ürünler daha sık satılır."
+
+msgid "Absageregeln Ihrer Leistungen geprüft?"
+msgstr "Hizmetlerinizin iptal kurallarını kontrol ettiniz mi?"
+
+msgid "Anfrageformular einstellen"
+msgstr "Talep formunu ayarla"
+
+msgid "Anfrageformular passend eingestellt?"
+msgstr "Talep formu uygun şekilde ayarlandı mı?"
+
+msgid "Buchungsregeln ansehen"
+msgstr "Rezervasyon kurallarını gör"
+
+msgid "Kurtaxe und Hausordnung geprüft?"
+msgstr "Konaklama vergisi ve ev kurallarını kontrol ettiniz mi?"
+
+msgid "Passt so"
+msgstr "Böyle uygun"
+
+msgid "Regeln für Tischreservierungen geprüft?"
+msgstr "Masa rezervasyonu kurallarını kontrol ettiniz mi?"
+
+msgid "Rückgaberegeln Ihrer Veranstaltungen geprüft?"
+msgstr "Etkinliklerinizin iade kurallarını kontrol ettiniz mi?"
+
+msgid "Stornobedingungen Ihrer Tarife geprüft?"
+msgstr "Tarifelerinizin iptal koşullarını kontrol ettiniz mi?"
+
+msgid "Tarife ansehen"
+msgstr "Tarifeleri gör"
+
+msgid "Unterkunft-Einstellungen"
+msgstr "Konaklama ayarları"
+
+msgid "Veranstaltungen ansehen"
+msgstr "Etkinlikleri gör"

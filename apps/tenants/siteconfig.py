@@ -4769,8 +4769,14 @@ def _normalize_impl(config) -> dict:
     # AIS W4-5a: ответы «Verkauf öffnen» со значением по умолчанию («nein») — пишет только
     # `apps.core.sell_questions` под блокировкой; Save конструктора их не роняет.
     verkauf = config.get("verkauf")
-    if isinstance(verkauf, dict) and isinstance(verkauf.get("no"), list):
-        normalized["verkauf"] = {"no": [str(k)[:40] for k in verkauf["no"]][:50]}
+    if isinstance(verkauf, dict):
+        clean = {
+            kind: [str(k)[:40] for k in verkauf[kind]][:50]
+            for kind in ("no", "ok")
+            if isinstance(verkauf.get(kind), list) and verkauf[kind]
+        }
+        if clean:
+            normalized["verkauf"] = clean
     # AIS W4-5c: спрятанные карточки «Nächster Schritt» — пишет `apps.core.next_steps.hide`
     nxt = config.get("next_steps")
     if isinstance(nxt, dict) and isinstance(nxt.get("hidden"), dict):

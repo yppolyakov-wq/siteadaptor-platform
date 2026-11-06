@@ -172,3 +172,38 @@ def test_mark_failure_rolls_back_the_switch(shop, monkeypatch):
 def test_unknown_key_redirects_without_fragment(shop):
     resp = _answer(shop, "x\nevil", "ja")
     assert resp["Location"] == reverse("verkauf-oeffnen")
+
+
+# ── W4-5b: остальные направления — подтверждения, настройки не трогаются ──
+
+
+def test_confirm_questions_only_mark_and_never_touch_settings(shop, monkeypatch):
+    from apps.core import directions
+
+    monkeypatch.setattr(
+        directions, "active", lambda t: [directions.get(k) for k in ("termine", "zimmer")]
+    )
+    keys = {r["key"] for r in sell_questions.questions_for(_req(shop))}
+    assert {"termine.cancel", "zimmer.cancel", "zimmer.kurtaxe"} <= keys
+    assert "tickets.refund" not in keys
+    before = {
+        f: getattr(Tenant.objects.get(pk=shop.pk), f)
+        for f in ("delivery_enabled", "vorkasse_enabled", "delivery_zones")
+    }
+    _answer(shop, "zimmer.cancel", "ja")
+    fresh = Tenant.objects.get(pk=shop.pk)
+    assert fresh.site_config["verkauf"] == {"ok": ["zimmer.cancel"]}
+    assert {f: getattr(fresh, f) for f in before} == before
+    assert sell_questions.state(fresh, sell_questions.BY_KEY["zimmer.cancel"]) == "ja"
+    html = views.verkauf_oeffnen(_req(fresh)).content.decode()
+    block = html.split('data-verkauf-question="zimmer.kurtaxe"')[1].split("</li>")[0]
+    assert 'value="nein"' not in block  # у подтверждения нет «нет»
+
+
+def test_confirm_links_go_through_rights(shop, monkeypatch):
+    from apps.core import assistant, directions
+
+    monkeypatch.setattr(directions, "active", lambda t: [directions.get("tickets")])
+    monkeypatch.setattr(assistant, "link", lambda request, name, **kw: None)
+    row = next(r for r in sell_questions.questions_for(_req(shop)) if r["key"] == "tickets.refund")
+    assert row["more"] is None

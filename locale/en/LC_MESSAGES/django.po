@@ -34661,12 +34661,48 @@ msgstr "How do I add photos to products?"
 msgid "Wie übersetze ich meine Website?"
 msgstr "How do I translate my website?"
 
-msgid "Noch %(n)s kurze Frage, dann können Kunden online bestellen."
-msgid_plural "Noch %(n)s kurze Fragen, dann können Kunden online bestellen."
-msgstr[0] "%(n)s short question left, then customers can order online."
-msgstr[1] "%(n)s short questions left, then customers can order online."
+msgid "Noch %(n)s kurze Frage, dann können Kunden online kaufen und buchen."
+msgid_plural "Noch %(n)s kurze Fragen, dann können Kunden online kaufen und buchen."
+msgstr[0] "%(n)s short question left, then customers can buy and book online."
+msgstr[1] "%(n)s short questions left, then customers can buy and book online."
 
 msgid "%(n)s Angebot hat noch kein Foto — mit Foto wird öfter gekauft."
 msgid_plural "%(n)s Angebote haben noch kein Foto — mit Foto wird öfter gekauft."
 msgstr[0] "%(n)s item has no photo yet — items with photos sell more often."
 msgstr[1] "%(n)s items have no photo yet — items with photos sell more often."
+
+msgid "Absageregeln Ihrer Leistungen geprüft?"
+msgstr "Checked the cancellation rules of your services?"
+
+msgid "Anfrageformular einstellen"
+msgstr "Set up the inquiry form"
+
+msgid "Anfrageformular passend eingestellt?"
+msgstr "Is the inquiry form set up to fit?"
+
+msgid "Buchungsregeln ansehen"
+msgstr "View booking rules"
+
+msgid "Kurtaxe und Hausordnung geprüft?"
+msgstr "Checked the tourist tax and house rules?"
+
+msgid "Passt so"
+msgstr "Looks good"
+
+msgid "Regeln für Tischreservierungen geprüft?"
+msgstr "Checked the table reservation rules?"
+
+msgid "Rückgaberegeln Ihrer Veranstaltungen geprüft?"
+msgstr "Checked the refund rules of your events?"
+
+msgid "Stornobedingungen Ihrer Tarife geprüft?"
+msgstr "Checked the cancellation terms of your rates?"
+
+msgid "Tarife ansehen"
+msgstr "View rates"
+
+msgid "Unterkunft-Einstellungen"
+msgstr "Accommodation settings"
+
+msgid "Veranstaltungen ansehen"
+msgstr "View events"

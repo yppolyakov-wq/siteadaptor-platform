@@ -47,13 +47,17 @@ def test_at_most_three_in_usefulness_order(v4):
 def test_verkauf_card_disappears_when_questions_answered(v4):
     assert "verkauf" in _keys(v4)
     for q in sell_questions.QUESTIONS:
-        sell_questions._mark(v4, q.key, no=True)
+        sell_questions._mark(v4, q.key, no=q.write is not None, ok=q.write is None)
+        v4 = Tenant.objects.get(pk=v4.pk)
     assert "verkauf" not in _keys(Tenant.objects.get(pk=v4.pk))
 
 
-def test_module_off_hides_card(v4, monkeypatch):
+def test_no_selling_direction_no_verkauf_card(v4, monkeypatch):
+    from apps.core import directions
+
     real = Tenant.is_module_active
     monkeypatch.setattr(Tenant, "is_module_active", lambda self, k: k != "orders" and real(self, k))
+    monkeypatch.setattr(directions, "active", lambda t: [])
     assert "verkauf" not in _keys(v4)
 
 

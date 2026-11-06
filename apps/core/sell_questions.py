@@ -31,13 +31,25 @@ class Question:
     yes: str
     no: str
     current: Callable  # (tenant) -> bool
-    write: Callable  # (tenant, on: bool) -> None
+    #: (tenant, on) -> None; None — вопрос-ПОДТВЕРЖДЕНИЕ: настройка живёт на своём экране
+    #: (решение владельца UX-D D2: общих правил отмены нет — правим по услуге/тарифу/событию),
+    #: здесь только «Passt so» после просмотра
+    write: Callable | None = None
     applies: Callable = lambda t: True
     #: ответить здесь нельзя — нужна ссылка на экран (тогда без переключателя)
     blocked: Callable = lambda t: ""
     more_url: str = ""
     more_label: str = ""
     note: Callable = lambda t: ""
+
+
+def _direction(key: str) -> Callable:
+    def check(t) -> bool:
+        from apps.core import directions
+
+        return any(d.key == key for d in directions.active(t))
+
+    return check
 
 
 def _orders(t) -> bool:
@@ -102,16 +114,88 @@ QUESTIONS: tuple[Question, ...] = (
         more_label=_("Zahlarten und Bankverbindung"),
     ),
 )
+#: AIS W4-5b: остальные направления — подтверждения (настройка — на своём экране)
+QUESTIONS += (
+    Question(
+        "termine.cancel",
+        "termine",
+        _("Absageregeln Ihrer Leistungen geprüft?"),
+        _("Passt so"),
+        "",
+        current=lambda t: False,
+        applies=_direction("termine"),
+        more_url="booking:booking-rules",
+        more_label=_("Buchungsregeln ansehen"),
+    ),
+    Question(
+        "tisch.cancel",
+        "tisch",
+        _("Regeln für Tischreservierungen geprüft?"),
+        _("Passt so"),
+        "",
+        current=lambda t: False,
+        applies=_direction("tisch"),
+        more_url="booking:booking-rules",
+        more_label=_("Buchungsregeln ansehen"),
+    ),
+    Question(
+        "zimmer.cancel",
+        "zimmer",
+        _("Stornobedingungen Ihrer Tarife geprüft?"),
+        _("Passt so"),
+        "",
+        current=lambda t: False,
+        applies=_direction("zimmer"),
+        more_url="stays:rate-plans",
+        more_label=_("Tarife ansehen"),
+    ),
+    Question(
+        "zimmer.kurtaxe",
+        "zimmer",
+        _("Kurtaxe und Hausordnung geprüft?"),
+        _("Passt so"),
+        "",
+        current=lambda t: False,
+        applies=_direction("zimmer"),
+        more_url="stays:stay-settings",
+        more_label=_("Unterkunft-Einstellungen"),
+    ),
+    Question(
+        "tickets.refund",
+        "tickets",
+        _("Rückgaberegeln Ihrer Veranstaltungen geprüft?"),
+        _("Passt so"),
+        "",
+        current=lambda t: False,
+        applies=_direction("tickets"),
+        more_url="events:list",
+        more_label=_("Veranstaltungen ansehen"),
+    ),
+    Question(
+        "anfragen.form",
+        "anfragen",
+        _("Anfrageformular passend eingestellt?"),
+        _("Passt so"),
+        "",
+        current=lambda t: False,
+        applies=_direction("anfragen"),
+        more_url="ablaeufe",
+        more_label=_("Anfrageformular einstellen"),
+    ),
+)
 BY_KEY = {q.key: q for q in QUESTIONS}
 
 
-def _marks(tenant) -> set[str]:
+def _marks(tenant, kind: str = "no") -> set[str]:
     raw = (getattr(tenant, "site_config", None) or {}).get("verkauf") or {}
-    return set(raw.get("no") or []) if isinstance(raw, dict) else set()
+    return set(raw.get(kind) or []) if isinstance(raw, dict) else set()
 
 
 def state(tenant, q: Question) -> str:
-    """yes | no | open — «да» по данным, «нет» по отметке (данные всё равно сильнее)."""
+    """ja | nein | open — «да» по данным, «нет» по отметке (данные всё равно сильнее).
+    Подтверждение: «ja» — отметка «ok» («Passt so» после просмотра экрана)."""
+    if q.write is None:
+        return YES if q.key in _marks(tenant, "ok") else "open"
     if q.current(tenant):
         return YES
     return NO if q.key in _marks(tenant) else "open"
@@ -136,6 +220,7 @@ def questions_for(request, direction: str = "") -> list[dict]:
                 "label": q.label,
                 "yes": q.yes,
                 "no": q.no,
+                "confirm": q.write is None,
                 "state": state(tenant, q),
                 "blocked": blocked,
                 "note": q.note(tenant),
@@ -179,25 +264,33 @@ def answer(request, key: str, choice: str) -> None:
 
     from apps.core import readiness
 
+    if q.write is None:  # подтверждение: только отметка «ok» (настройки не трогаем)
+        _mark(tenant, key, no=False, ok=on)
+        return
     with transaction.atomic():  # тумблер и отметка — вместе или никак
         q.write(tenant, on)
         _mark(tenant, key, no=not on)
     readiness.invalidate(tenant)
 
 
-def _mark(tenant, key: str, *, no: bool) -> None:
-    """Единственный писатель `site_config["verkauf"]` — из ЗАБЛОКИРОВАННОЙ строки (вторая
-    вкладка мастера не затрёт отметку, отметка не затрёт её)."""
+def _mark(tenant, key: str, *, no: bool, ok: bool = False) -> None:
+    """Единственный писатель `site_config["verkauf"]` ({"no": [...], "ok": [...]}) — из
+    ЗАБЛОКИРОВАННОЙ строки (вторая вкладка мастера не затрёт отметку, отметка не затрёт её)."""
     from django.db import transaction
 
     with transaction.atomic():
         locked = type(tenant).objects.select_for_update().get(pk=tenant.pk)
         cfg = dict(locked.site_config or {})
-        marks = [k for k in ((cfg.get("verkauf") or {}).get("no") or []) if k != key]
-        if no:
-            marks.append(key)
-        if marks:
-            cfg["verkauf"] = {"no": marks}
+        old = cfg.get("verkauf") if isinstance(cfg.get("verkauf"), dict) else {}
+        section = {}
+        for kind, add in (("no", no), ("ok", ok)):
+            marks = [k for k in (old.get(kind) or []) if k != key]
+            if add:
+                marks.append(key)
+            if marks:
+                section[kind] = marks
+        if section:
+            cfg["verkauf"] = section
         else:
             cfg.pop("verkauf", None)
         locked.site_config = cfg
