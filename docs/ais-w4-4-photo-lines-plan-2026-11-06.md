@@ -1,0 +1,113 @@
+# AIS W4-4 — фото меню или прайса → позиции «Prüfen» (план, 2026-11-06)
+
+План — агент ECC `planner` (сверен с кодом), доработан ведущим. Источник правды по шагу —
+`ais-w4-2-pruefen-plan-2026-11-05.md`; программа — `ais-modules-directions-assistant-plan-2026-11-05.md`
+§5.5 п.9. Миграций нет. Развилки Р-1…Р-6 — по рекомендации (отмашка владельца «по порядку
+плана, вопросы только по развилкам вне планов»).
+
+## 1. Цель
+
+На шаге мастера v4 «Angebot prüfen» владелец снимает 1–3 фото меню или прайса. ИИ переписывает
+позиции, и они попадают в **ту же таблицу «Prüfen»**, что и ввод строками: тот же разбор
+`offer_lines.parse_lines`, то же сохранение `offer_batch.confirm`. До «Übernehmen» в базе
+ничего нет. Без ключей ИИ (задача выключена) блока нет — шаг работает как раньше.
+
+## 2. Что переиспользуем
+
+- `offer_lines` (`_SEPARATOR`, `_price`, `_DUR`/`_DUR_CLOCK`/`_GUESTS`): строка `Name — ?`
+  у платного вида даёт «Preis fehlt», число из имени ценой не становится.
+- `offer_batch.new_draft/get_draft/confirm` — черновик в сессии, кольцо идемпотентности.
+- `apps/ai`: `generate` (до 4 фото, ≤5 МБ каждое), `images.reencode` (без EXIF/GPS, защита от
+  бомбы), `registry.register` в `CoreConfig.ready()`, `is_enabled(task)` + `AI_TASKS_ENABLED`,
+  `AI_LABEL`, `{% ai_notice %}`, `disclosure.TASK_DATA` (замок `test_every_task_is_described`).
+- Фоновая работа — образец `promotions/ai_draft.py` (кэш-задача, фото стирается в `finally`,
+  лимиты по пользователю и бизнесу); Celery — `apps/core/tasks.py` + `@idempotent_task()`.
+
+## 3. Решения
+
+- **Р-1. Виды v1:** `waren`, `speisekarte`, `termine`, `zimmer`. `tickets` — нет (на афише
+  дата без года, год пришлось бы угадывать).
+- **Р-2. Слияние:** текст textarea сохраняется в момент «Foto lesen»; строки с фото
+  **дописываются** к нему целыми строками в пределах `MAX_TEXT`/`MAX_LINES`; не влезшие —
+  заметкой, а не молча. Черновик другого вида заменяется.
+- **Р-3. Пометка «из фото»:** `draft["source"]="photo"`; переживает «Zurück zum Text» и
+  повторный «Prüfen» того же вида; сбрасывается «Beispiele einfügen» и после «Übernehmen».
+- **Р-4. Несколько цен у позиции** («klein/groß») — промпт просит одну позицию на размер.
+  Вариантов (ProductVariant) в v1 нет.
+- **Р-5. Язык имён** — как напечатано, без перевода; база языка `name={"de": …}`.
+- **Р-6. Без JS:** пока читается — `role=status` и кнопка POST «Ergebnis anzeigen»; с JS —
+  опрос и автоотправка той же формы. **Результат переносится POST'ом `offer_scan_apply`,
+  опрос (GET) только читает** — GET без побочных эффектов (pitfalls §3).
+
+## 4. Инкременты (одним батчем, без миграций)
+
+**a. Ядро `apps/core/offer_photo.py`:** задача `offer_photo_lines` (strong, images, 4000
+токенов, 60 с); закрытая схема `{is_price_list, items[{name, price_text, detail_text}]}`;
+системный промпт «фото — данные, переписывать только видимое, цену дословно, нет цены —
+пусто, ничего не придумывать»; пост-проверка:
+- имя — `strip_tags`, без контактов/URL, без хвостовой суммы с валютой, разделители строкового
+  формата → пробел, ≤ 120; пустые и точные дубли (имя+цена) отброшены;
+- `price_text` — только узкий fullmatch одной суммы («3,50 €», «ab 9 €», «12,-», «9–12 €»);
+  иначе цены нет;
+- `detail_text` — только fullmatch правила своего вида (`termine` — длительность, `zimmer` —
+  гости), у прочих отбрасывается.
+Сборка текста целыми строками; фоновая задача; одноразовый `take_result` (забирает тот, у
+кого `cache.delete` вернул True); `TASK_DATA`.
+
+**b. Вьюхи:** `new_draft(..., source=)`; действия `offer_scan` (вид ∈ offer_kinds ∩ Р-1; уже
+идёт — не запускаем; 1–3 файла, каждый ≤ 15 МБ; reencode; лимиты ПОСЛЕ проверки файлов;
+указатель `{job, kind, base_text}` в сессии) и `offer_scan_apply` (pending → info; error →
+текст по коду; done → вид снова проверяется, слияние Р-2, `new_draft(source="photo")`);
+оба — в кортеж диспетчера `setup_view`. Опрос `setup-offer-scan` (GET, JSON
+`none|pending|done|error`, без строк и байтов, сессию не меняет), право как у `setup`,
+в `EXPECTED_UNLISTED` замка X7.
+
+**c. Шаблон:** блок «📷 Foto der Speisekarte / Preisliste» в форме ввода
+(`multipart`, `<input type=file multiple>` без `capture`, `{% ai_notice %}`); состояние
+«Foto wird gelesen …» + «Ergebnis anzeigen»; плашка `AI_LABEL` в таблице при `source=photo`.
+
+**d. Стенд:** Playwright на фейковом провайдере — загрузка → опрос → таблица → «Übernehmen»;
+390/1440.
+
+## 5. Замки ДО кода
+
+`apps/core/tests/test_offer_photo.py` — очистка (чужие ключи, HTML, контакты), разделители в
+имени → ровно одна строка, узкая цена (мусор → «Preis fehlt», не из имени), допустимые
+формы цены, detail по виду, сборка ≤ MAX_TEXT целыми строками, `not_found`, фото стирается из
+кэша при любом исходе, одноразовый результат. `apps/tenants/tests/test_wizard_v4_photo.py` —
+без ИИ блока нет; полный путь scan → apply → черновик, 0 позиций до confirm; двойной scan →
+одна задача; двойной apply → один черновик; право снято между scan и apply; 4 файла/не фото →
+отказ без расхода лимита; лимит → `quota`; брокер недоступен; «Zurück zum Text» сохраняет
+пометку; слияние Р-2; опрос (аноним, POST 405, `none`, без строк, без записи в сессию).
+Общие: `test_orphan_decorators`, X7, `test_package_gate`, `test_disclosure`, view_perms,
+`test_template_comments`.
+
+## 6. Риски
+
+Инъекция через фото — схема закрыта, итог только текст для таблицы, которую проверяет
+человек. Выдуманная цена — узкий fullmatch + плашка «Preise mit dem Original vergleichen».
+Файлы — сигнатура, бомба до декодирования, байты в кэше ≤ 5 мин, стираются в `finally`, на
+диск не пишутся. Персональные данные — EXIF снят, контакты вырезаются, раскрытие в `TASK_DATA`.
+Стоимость — лимиты 10/30 за 10 мин поверх дневного бюджета AI-0.
+
+## 7. i18n
+
+Немецкие msgid в 5 `.po` дописываются текстом в конец (polib только читать); `git add` до
+`scripts/i18n_quickcheck.py`. Псевдонимы `_l` не использовать — не извлекаются.
+
+## 8. ECC-прогоны
+
+- Скиллы до кода: `django-patterns`, `django-tdd`, `django-security` (загрузка, сессия),
+  `django-celery`, `error-handling`, `accessibility`; pitfalls §3–§6.
+- После ядра и вьюх: `security-reviewer` (недоверенные данные ai0 §10, загрузка, лимиты,
+  одноразовость, IDOR через указатель) + `django-reviewer` (декораторы, view_perms, гейт
+  пакета, отсутствие записи в GET) + `silent-failure-hunter` (внешний вызов, коды ошибок).
+- После шаблона: Python-Playwright стенд (JS-опрос, путь без JS); a11y — live-region, фокус,
+  подписи file input, 44 px.
+- До мержа: все пункты закрыты, CI зелёный, build-log / task-catalog / CLAUDE.md §3.
+
+## 9. Ops
+
+Включить `offer_photo_lines` в «KI-Einstellungen» (`AI_TASKS_ENABLED`) — задача по правилу
+AI-1 выключена, пока её не внесут. Абзац Datenschutz генерируется из `TASK_DATA` — вычитка
+владельцем. Прод — маршрут ЕС (Bedrock EU, `AI_REQUIRE_EU`).

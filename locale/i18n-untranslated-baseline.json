@@ -11,6 +11,7 @@
   "Dublin, Rechenzentren in der EU",
   "Empfänger:",
   "Erkennbare E-Mail-Adressen, Telefon- und Kontonummern entfernen wir vor der Übermittlung aus Texten. Die Inhalte speichern wir nicht; wir protokollieren nur Aufgabe, Umfang und Dauer der Anfrage (",
+  "Erkennung Ihres Angebots aus Fotos Ihrer Speisekarte oder Preisliste im Einrichtungsassistenten: Fotos (ohne Standort- und Kameradaten); was auf dem Foto sonst zu sehen ist, wird mit übermittelt",
   "Hilfe beim Anlegen von Kategorien und Produkten im Kundenbereich: der eingegebene Satz und die Namen der möglichen Felder (keine Kunden- oder Bestelldaten)",
   "Import Ihres Sortiments von Ihrer Website: Text der Seiten Ihrer Website",
   "Jede Antwort wird von unseren Mitarbeitenden geprüft und selbst versendet.",
@@ -77,8 +78,7 @@
   "English"
  ],
  "apps/finance/exports.py": [
-  "Gegenkonto (ohne BU-Schlüssel)",
-  "Konto"
+  "Gegenkonto (ohne BU-Schlüssel)"
  ],
  "apps/imports/cscart.py": [
   "Zahlungsarten",
@@ -158,10 +158,8 @@
  ],
  "apps/tenants/management/commands/seed_demo_tenants.py": [
   ": kein Themenportal",
-  "Aktionen, Neuheiten und Angebote aus allen Stadtteilen.",
   "Direkt buchen — ohne Provision.",
   "Fehlt Ihr Kit? Der Container läuft evtl. auf einem alten Image — erst neu bauen:\n      ./scripts/deploy.sh single   (git pull + docker compose build + up -d)",
-  "Tüm semtlerden kampanyalar, yenilikler ve teklifler.",
   "Vegan, vegetarisch, bio und regional — aus allen Stadtteilen.",
   "Vegan, vejetaryen, organik ve yerel — tüm semtlerden.",
   "Was Geschäfte in",

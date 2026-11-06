@@ -33419,3 +33419,89 @@ msgstr "Заповніть вільні «вікна» або заохотьте
 #: templates/tenant/modules.html
 msgid "Erste Aktion anlegen"
 msgstr "Створити першу акцію"
+
+#: apps/core/offer_photo.py templates/tenant/setup/_step_pruefen.html
+#, python-format
+msgid "%(n)s Zeilen vom Foto passen nicht mehr in die Liste — bitte danach eintragen."
+msgstr "%(n)s рядків із фото вже не вміщуються в список — додайте їх потім."
+
+#: apps/core/offer_photo.py templates/tenant/setup/_step_pruefen.html
+msgid "Auf dem Foto haben wir keine Preisliste erkannt — bitte ein schärferes Foto nehmen oder die Zeilen von Hand eintragen."
+msgstr "На фото не вдалося розпізнати прайс-лист — зробіть чіткіше фото або введіть рядки вручну."
+
+#: apps/core/offer_photo.py templates/tenant/setup/_step_pruefen.html
+msgid "Aus dem Foto erkannt — vergleichen Sie Namen und Preise mit dem Original."
+msgstr "Розпізнано з фото — звірте назви й ціни з оригіналом."
+
+#: apps/core/offer_photo.py templates/tenant/setup/_step_pruefen.html
+#, python-format
+msgid "Bis zu %(n)s Fotos (JPG, PNG, WebP). Wir lesen die Angebote ab — Sie prüfen alles, bevor etwas angelegt wird."
+msgstr "До %(n)s фото (JPG, PNG, WebP). Ми зчитаємо пропозиції — ви все перевірите, перш ніж щось буде створено."
+
+#: apps/core/offer_photo.py templates/tenant/setup/_step_pruefen.html
+msgid "Das Foto ist gelesen."
+msgstr "Фото прочитано."
+
+#: apps/core/offer_photo.py templates/tenant/setup/_step_pruefen.html
+msgid "Das Foto konnte gerade nicht gelesen werden — bitte erneut versuchen."
+msgstr "Зараз не вдалося прочитати фото — спробуйте ще раз."
+
+#: apps/core/offer_photo.py templates/tenant/setup/_step_pruefen.html
+msgid "Das Foto konnte nicht gelesen werden."
+msgstr "Фото не вдалося прочитати."
+
+#: apps/core/offer_photo.py templates/tenant/setup/_step_pruefen.html
+msgid "Das Foto wird gelesen …"
+msgstr "Читаємо фото …"
+
+#: apps/core/offer_photo.py templates/tenant/setup/_step_pruefen.html
+msgid "Das Foto wird schon gelesen."
+msgstr "Фото вже читається."
+
+#: apps/core/offer_photo.py templates/tenant/setup/_step_pruefen.html
+msgid "Das Lesen hat zu lange gedauert — bitte erneut versuchen."
+msgstr "Читання тривало надто довго — спробуйте ще раз."
+
+#: apps/core/offer_photo.py templates/tenant/setup/_step_pruefen.html
+msgid "Das Lesen von Fotos ist gerade nicht verfügbar."
+msgstr "Читання фото зараз недоступне."
+
+#: apps/core/offer_photo.py templates/tenant/setup/_step_pruefen.html
+msgid "Das dauert meist unter einer Minute. Angelegt wird noch nichts — Sie prüfen zuerst."
+msgstr "Зазвичай це триває менше хвилини. Поки нічого не створюється — спершу ви перевірите."
+
+#: apps/core/offer_photo.py templates/tenant/setup/_step_pruefen.html
+msgid "Ergebnis anzeigen"
+msgstr "Показати результат"
+
+#: apps/core/offer_photo.py templates/tenant/setup/_step_pruefen.html
+msgid "Foto der Speisekarte oder Preisliste"
+msgstr "Фото меню або прайс-листа"
+
+#: apps/core/offer_photo.py templates/tenant/setup/_step_pruefen.html
+msgid "Foto lesen"
+msgstr "Прочитати фото"
+
+#: apps/core/offer_photo.py templates/tenant/setup/_step_pruefen.html
+msgid "Foto nicht lesbar — bitte JPG, PNG oder WebP nehmen."
+msgstr "Фото не читається — використайте JPG, PNG або WebP."
+
+#: apps/core/offer_photo.py templates/tenant/setup/_step_pruefen.html
+msgid "Foto zu groß — höchstens 15 MB pro Foto."
+msgstr "Фото завелике — не більше 15 МБ на фото."
+
+#: apps/core/offer_photo.py templates/tenant/setup/_step_pruefen.html
+msgid "Fotos auswählen"
+msgstr "Вибрати фото"
+
+#: apps/core/offer_photo.py templates/tenant/setup/_step_pruefen.html
+msgid "Höchstens 3 Fotos auf einmal."
+msgstr "Не більше 3 фото за раз."
+
+#: apps/core/offer_photo.py templates/tenant/setup/_step_pruefen.html
+msgid "Noch nicht fertig — bitte einen Moment warten."
+msgstr "Ще не готово — зачекайте трохи."
+
+#: apps/core/offer_photo.py
+msgid "Zu viele Fotos in kurzer Zeit — bitte später erneut versuchen."
+msgstr "Забагато фото за короткий час — спробуйте пізніше."

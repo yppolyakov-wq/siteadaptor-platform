@@ -66,6 +66,13 @@ TASK_DATA = {
         "Art. 6 Abs. 1 lit. f DSGVO (passende Suchergebnisse)",
         "public",
     ),
+    "offer_photo_lines": (
+        "Erkennung Ihres Angebots aus Fotos Ihrer Speisekarte oder Preisliste im "
+        "Einrichtungsassistenten: Fotos (ohne Standort- und Kameradaten); was auf dem Foto "
+        "sonst zu sehen ist, wird mit übermittelt",
+        "Art. 6 Abs. 1 lit. b DSGVO",
+        "owner",
+    ),
     "setup_plan": (
         "Hilfe beim Anlegen von Kategorien und Produkten im Kundenbereich: der eingegebene "
         "Satz und die Namen der möglichen Felder (keine Kunden- oder Bestelldaten)",

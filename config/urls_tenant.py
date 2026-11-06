@@ -85,6 +85,7 @@ from apps.core.views import (
     set_cabinet_lang_view,
     set_presence_view,
     settings_view,
+    setup_offer_photo_state,
     setup_view,
     share_preview_issue,
     site_cblock_photo_edit,
@@ -132,6 +133,12 @@ urlpatterns = [
     # регистрации. X2a: алиас `/willkommen/` удалён — на него не вело ни одной
     # ссылки, а строковые префиксы в middleware приходилось поддерживать вручную.
     path("dashboard/setup/", setup_view, name="setup"),
+    # AIS-W W4-4: опрос «Foto der Speisekarte wird gelesen» (JSON, без строк)
+    path(
+        "dashboard/setup/foto/",
+        setup_offer_photo_state,
+        name="setup-offer-scan",
+    ),
     path("dashboard/settings/", settings_view, name="settings"),
     # T-8.23c: лёгкий кабинет «Nur Aktionen»
     path("dashboard/geschaeft/", lite_cabinet.lite_business, name="lite-business"),

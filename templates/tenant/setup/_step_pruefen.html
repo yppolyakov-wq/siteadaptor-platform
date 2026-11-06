@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load i18n ai_notice %}
 {% comment %}AIS-W W4-2: шаг v4 «Angebot prüfen» (макет утверждён 2026-11-05). Ввод строками →
 «Prüfen» (таблица, в базе ещё ничего) → «Übernehmen» (пачка, отчёт). Без JS работает целиком:
 каждая кнопка — POST с redirect обратно на шаг. Все поля строки в DOM; скрытие только CSS (W0).{% endcomment %}
@@ -33,6 +33,7 @@
   <input type="hidden" name="batch" value="{{ pruefen_batch }}">
   <input type="hidden" name="row_count" value="{{ pruefen_rows|length }}">
   <p id="pruefen-summary" tabindex="-1" class="ui-card px-4 py-3 text-sm" role="status" data-pruefen-summary>{% blocktrans with ok=pruefen_ok total=pruefen_rows|length %}{{ ok }} von {{ total }} werden übernommen{% endblocktrans %}{% if pruefen_bad %} · {% blocktrans count n=pruefen_bad %}{{ n }} Zeile mit Fehler{% plural %}{{ n }} Zeilen mit Fehler{% endblocktrans %}{% endif %}</p>
+  {% if pruefen_from_photo %}<p class="text-sm text-amber-800 bg-amber-50 rounded-lg px-3 py-2" role="note" data-pruefen-from-photo><b>{{ ai_label }}</b> · {% trans "Aus dem Foto erkannt — vergleichen Sie Namen und Preise mit dem Original." %}</p>{% endif %}
   {% for note in pruefen_notes %}<p class="text-sm text-amber-800 bg-amber-50 rounded-lg px-3 py-2" role="note">{{ note }}</p>{% endfor %}
   <ul class="space-y-3">
     {% for r in pruefen_rows %}
@@ -67,7 +68,15 @@
   </div>
 </form>
 {% else %}
-<form method="post" class="ui-card p-4 space-y-3" data-pruefen-form>
+{% if pruefen_scan_state != "none" %}
+<form method="post" class="ui-card p-4 mb-4 space-y-3" data-pruefen-scan-wait data-scan-url="{% url 'setup-offer-scan' %}">
+  {% csrf_token %}
+  <p id="pruefen-scan-status" role="status" aria-live="polite" class="text-sm font-semibold" data-pruefen-scan-status>{% if pruefen_scan_state == "done" %}{% trans "Das Foto ist gelesen." %}{% elif pruefen_scan_state == "error" %}{% trans "Das Foto konnte nicht gelesen werden." %}{% else %}{% trans "Das Foto wird gelesen …" %}{% endif %}</p>
+  <p class="text-sm text-gray-600">{% trans "Das dauert meist unter einer Minute. Angelegt wird noch nichts — Sie prüfen zuerst." %}</p>
+  <button type="submit" name="action" value="offer_scan_apply" class="ui-btn ui-btn-primary min-h-[44px]" data-pruefen-scan-apply>{% trans "Ergebnis anzeigen" %}</button>
+</form>
+{% endif %}
+<form method="post" enctype="multipart/form-data" class="ui-card p-4 space-y-3" data-pruefen-form>
   {% csrf_token %}
   {% if pruefen_kinds|length > 1 %}
   <fieldset>
@@ -84,6 +93,15 @@
     <button type="submit" name="action" value="offer_examples" formnovalidate class="ui-btn flex-1 min-h-[44px]">{% trans "Beispiele einfügen" %}</button>
     <button type="submit" name="action" value="offer_preview" class="ui-btn ui-btn-primary flex-1 min-h-[44px]" data-pruefen-preview>{% trans "Prüfen" %}</button>
   </div>
+  {% if pruefen_scan_kinds and pruefen_scan_state == "none" %}
+  <fieldset class="border-t border-gray-100 pt-3 space-y-2" data-pruefen-scan>
+    <legend class="text-sm font-semibold">📷 {% trans "Foto der Speisekarte oder Preisliste" %}</legend>
+    <p id="pruefen-scan-hint" class="text-sm text-gray-600">{% blocktrans with n=pruefen_scan_max %}Bis zu {{ n }} Fotos (JPG, PNG, WebP). Wir lesen die Angebote ab — Sie prüfen alles, bevor etwas angelegt wird.{% endblocktrans %}</p>
+    <label class="block text-sm"><span class="sr-only">{% trans "Fotos auswählen" %}</span><input type="file" name="menu_photo" multiple accept="image/jpeg,image/png,image/webp" aria-describedby="pruefen-scan-hint" class="block w-full text-sm file:mr-3 file:min-h-[44px] file:px-4 file:rounded-lg file:border-0 file:bg-indigo-50 file:text-indigo-800 file:font-semibold"></label>
+    <button type="submit" name="action" value="offer_scan" formnovalidate class="ui-btn min-h-[44px]" data-pruefen-scan-start>{% trans "Foto lesen" %}</button>
+    {% ai_notice "offer_photo_lines" %}
+  </fieldset>
+  {% endif %}
 </form>
 {% endif %}
 
@@ -140,5 +158,25 @@
   var el = document.querySelector('[data-pruefen-error] [aria-invalid="true"]') ||
     document.getElementById('pruefen-summary');
   if (el) el.focus();
+  // W4-4: пока фото читается — опрос состояния; готово/ошибка → та же форма «Ergebnis
+  // anzeigen» (POST). Без JS владелец нажимает кнопку сам. Опрос только читает.
+  var wait = document.querySelector('[data-pruefen-scan-wait]');
+  if (!wait || !window.fetch) return;
+  var url = wait.getAttribute('data-scan-url'), tries = 0;
+  function submit() {
+    var btn = wait.querySelector('[data-pruefen-scan-apply]');
+    if (wait.requestSubmit) wait.requestSubmit(btn); else btn.click();
+  }
+  function poll() {
+    tries += 1;
+    fetch(url, {credentials: 'same-origin', headers: {'Accept': 'application/json'}})
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        if (d.state === 'pending' && tries < 150) { setTimeout(poll, 2000); }
+        else if (d.state !== 'pending') { submit(); }
+      })
+      .catch(function () { if (tries < 150) setTimeout(poll, 4000); });
+  }
+  setTimeout(poll, 1500);
 })();
 </script>

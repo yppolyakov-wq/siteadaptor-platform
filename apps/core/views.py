@@ -13,7 +13,7 @@ from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.translation import gettext as _
 from django.utils.translation import ngettext
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_GET, require_POST
 
 from apps.catalog import category_styles
 from apps.catalog.option_styles import VARIANT_STYLES
@@ -352,6 +352,48 @@ def _pruefen_photo(request, kinds) -> None:
         messages.error(request, " ".join(failed))
 
 
+def _pruefen_scan(request, kinds) -> None:
+    """AIS-W W4-4: «Foto lesen» — фото меню/прайса уходят на фоновое чтение ИИ."""
+    from apps.core import offer_photo
+
+    kind = request.POST.get("kind", "")
+    if not offer_photo.enabled():
+        messages.error(request, str(offer_photo.ERRORS["disabled"]))
+        return
+    if kind not in offer_photo.kinds_for(kinds):
+        messages.error(request, _("Dafür fehlt Ihnen die Berechtigung."))
+        return
+    if offer_photo.state(request) == "pending":
+        # Двойной клик / вторая вкладка: первое чтение ещё идёт — вторую задачу не ставим.
+        messages.info(request, _("Das Foto wird schon gelesen."))
+        return
+    code = offer_photo.start(
+        request,
+        kind,
+        request.FILES.getlist("menu_photo"),
+        base_text=request.POST.get("offer_text", ""),
+    )
+    if code:
+        messages.error(request, str(offer_photo.ERRORS.get(code, offer_photo.ERRORS["error"])))
+
+
+def _pruefen_scan_apply(request, kinds) -> None:
+    """AIS-W W4-4: «Ergebnis anzeigen» — готовые строки в черновик «Prüfen» (POST, не GET)."""
+    from apps.core import offer_photo
+
+    applied = offer_photo.apply(request, kinds)
+    if applied.status == "pending":
+        messages.info(request, _("Noch nicht fertig — bitte einen Moment warten."))
+    elif applied.status == "error":
+        messages.error(request, applied.error)
+    elif applied.status == "done" and applied.dropped:
+        messages.warning(
+            request,
+            _("%(n)s Zeilen vom Foto passen nicht mehr in die Liste — bitte danach eintragen.")
+            % {"n": applied.dropped},
+        )
+
+
 def _pruefen_action(request, action: str) -> None:
     from apps.core import offer_batch, offer_examples, offer_lines
 
@@ -359,6 +401,12 @@ def _pruefen_action(request, action: str) -> None:
     kinds = offer_batch.offer_kinds(tenant, request.user)
     if action == "offer_photo":
         _pruefen_photo(request, kinds)
+        return
+    if action == "offer_scan":
+        _pruefen_scan(request, kinds)
+        return
+    if action == "offer_scan_apply":
+        _pruefen_scan_apply(request, kinds)
         return
     if action == "offer_directions":
         from apps.core.permissions import has_perm
@@ -424,7 +472,20 @@ def _pruefen_action(request, action: str) -> None:
     if not text.strip():
         messages.error(request, _("Bitte mindestens eine Zeile eintragen."))
         return
-    offer_batch.new_draft(request, kind, text)
+    # W4-4 (Р-3): повторный «Prüfen» того же вида после фото сохраняет пометку «aus dem Foto».
+    source = draft.get("source") if draft.get("kind") == kind else ""
+    offer_batch.new_draft(request, kind, text, source=source or "")
+
+
+@login_required
+@require_GET
+def setup_offer_photo_state(request):
+    """AIS-W W4-4: опрос чтения фото меню. Только состояние — строки забирает шаг."""
+    from django.http import JsonResponse
+
+    from apps.core import offer_photo
+
+    return JsonResponse({"state": offer_photo.state(request)})
 
 
 @login_required
@@ -507,6 +568,8 @@ def setup_view(request):
             "offer_edit",
             "offer_confirm",
             "offer_photo",
+            "offer_scan",
+            "offer_scan_apply",
             "offer_directions",
         ):
             _pruefen_action(request, action)

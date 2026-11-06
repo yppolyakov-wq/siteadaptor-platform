@@ -971,7 +971,7 @@ def _pruefen_row(line) -> dict:
 
 
 def _ctx_pruefen(request):
-    from apps.core import directions, offer_batch, offer_examples, offer_lines
+    from apps.core import directions, offer_batch, offer_examples, offer_lines, offer_photo
 
     tenant = request.tenant
     kinds = offer_batch.offer_kinds(tenant, request.user)
@@ -1016,6 +1016,12 @@ def _ctx_pruefen(request):
         or (tenant.business_type in offer_batch.ASK_TYPES and not chosen),
         "pruefen_directions_summary": ", ".join(str(c["label"]) for c in choices if c["checked"]),
         "pruefen_rooms_missing": any(not r["has_photo"] for r in rooms),
+        # W4-4: фото меню → строки (кнопка только при включённой задаче ИИ).
+        "pruefen_scan_kinds": offer_photo.kinds_for(kinds),
+        "pruefen_scan_state": offer_photo.state(request),  # только чтение (GET)
+        "pruefen_from_photo": review and draft.get("source") == "photo",
+        "pruefen_scan_max": offer_photo.MAX_PHOTOS,
+        "ai_label": offer_photo.AI_LABEL,
     }
 
 

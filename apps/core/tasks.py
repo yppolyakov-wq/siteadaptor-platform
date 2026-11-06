@@ -13,6 +13,7 @@ from celery import shared_task
 from django.utils import timezone
 
 from apps.core import digest, tenant_iter
+from apps.core.jobs import idempotent_task
 
 
 def _iter_tenants():
@@ -130,3 +131,11 @@ def warn_city_freshness() -> int:
             if warn_freshness_for_tenant(tenant):
                 sent += 1
     return sent
+
+
+@idempotent_task()
+def offer_photo_lines(*, schema: str, user_pk, job: str) -> None:
+    """AIS W4-4: строки шага «Angebot prüfen» из фото меню/прайса — вне веб-воркера."""
+    from apps.core import offer_photo
+
+    offer_photo.run_job(schema=schema, user_pk=user_pk, job=job)
