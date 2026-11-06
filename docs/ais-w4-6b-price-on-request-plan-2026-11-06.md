@@ -34,3 +34,14 @@ CSV; подсказка «übersprungen» в массовой цене помо�
 Скиллы: django-patterns, django-tdd, django-security, accessibility, e2e-testing. Агенты:
 `django-reviewer` после батча 2 и перед мержем; `security-reviewer` + `silent-failure-hunter` на
 батче 3; `a11y-architect` на подписи и фолбэк-CTA; Playwright-стенд 390/1440.
+
+## Результат (2026-11-06)
+
+Все 4 батча сделаны. Замки: `apps/catalog/tests/test_price_on_request.py` (25) + 3 в
+`test_wizard_v4_pruefen.py`; регрессия orders/promotions/catalog/jobs — 2178 зелёных; стенд W4-6:
+Handwerker 35/35 (витрина «Preis auf Anfrage», ни одного «0,00»), пекарня 33/33.
+
+**Ревью нашли (исправлено):** покупка такого товара через страницу акции `/p/<uuid>/kaufen/` —
+строка шла `custom_lines` мимо проверки (теперь отказ в вьюхе, сервисе и `create_order`, а
+страница акции предлагает заявку); пустой блок CTA без inbox/телефона/почты; протухшая
+позиция в корзине зацикливала чекаут; фасет цены отбрасывал вариантный товар.
