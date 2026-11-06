@@ -32,6 +32,9 @@ _W, _E = r"(?<!\w)", r"(?!\w)"
 _MARKER = re.compile(
     _W + r"(?:auch|ebenfalls|genauso|тоже|также|теж|також|too|as\s+well)" + _E, re.IGNORECASE
 )
+#: tr: частица «de/da» после слова — «Käsekuchen de» = «и Käsekuchen тоже»; только в конце
+#: фразы (в середине это обычный локатив/союз)
+_TR_TAIL = re.compile(r"(?<!\w)(?:de|da)\s*$", re.IGNORECASE)
 _VERBS = ("hide", "show", "price", "move")
 
 
@@ -78,7 +81,7 @@ MAX_WORDS = 7
 def _only_filler(text_cf: str, start: int, end: int) -> bool:
     """После имени объекта и маркера остались только связки: «und den Käsekuchen auch» —
     да; «der Käsekuchen ist auch lecker», «Также хочу спросить про Käsekuchen» — нет."""
-    rest = _MARKER.sub(" ", text_cf[:start] + " " + text_cf[end:])
+    rest = _TR_TAIL.sub(" ", _MARKER.sub(" ", text_cf[:start] + " " + text_cf[end:]))
     words = re.findall(r"[^\W\d_]+", rest)
     return all(w in _FILLER for w in words)
 
@@ -88,7 +91,7 @@ def _find(request, q: str):
     from apps.core.permissions import has_perm
 
     text = (q or "").strip()[:TEXT_MAX]
-    if not _MARKER.search(text) or _NEGATION.search(text):
+    if not (_MARKER.search(text) or _TR_TAIL.search(text)) or _NEGATION.search(text):
         return None
     if assistant_changes._looks_like_question(text):
         return None

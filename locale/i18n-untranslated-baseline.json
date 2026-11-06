@@ -34,12 +34,30 @@
   "Zahlende Kunden",
   "Zahlung überfällig"
  ],
+ "apps/core/assistant_phrases.py": [
+  "Den Apfelstrudel bitte erstmal nicht mehr anbieten",
+  "Die Bezahlung funktioniert nicht",
+  "Kategorie Torten anlegen und Apfelstrudel ausblenden",
+  "Kuchen tüm ürünler %10 artır",
+  "Käsekuchen de",
+  "Käsekuchen gizle",
+  "Käsekuchen too",
+  "Preis Käsekuchen auf 3,50 €",
+  "Produkte 4 pro Reihe anzeigen",
+  "Wie ändere ich die Öffnungszeiten?",
+  "alle Kuchen 10 % teurer",
+  "change the price of Käsekuchen to 3.50 €",
+  "und den Käsekuchen auch"
+ ],
  "apps/core/districts.py": [
   "Aufderhöhe",
   "Burg/Höhscheid",
   "Gräfrath",
   "Höhscheid",
   "Ohligs/Aufderhöhe/Merscheid"
+ ],
+ "apps/core/management/commands/assistant_eval.py": [
+  "Käsekuchen"
  ],
  "apps/core/page_presets.py": [
   "Abholung und Bezahlung vor Ort möglich — Ihre Bestellung liegt zur vereinbarten Zeit für Sie bereit.",
