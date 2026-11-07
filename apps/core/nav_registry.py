@@ -580,6 +580,17 @@ ENTRIES: tuple[NavEntry, ...] = (
         True,
         direction="waren",
     ),
+    # FB-24b: типы опций магазина (Größe, Farbe, Material … + свои) — направлению «Waren».
+    _e(
+        "sellables",
+        "catalog:option-list",
+        _("Optionen"),
+        "options",
+        "catalog",
+        True,
+        "varianten groesse farbe material optionen",
+        direction="waren",
+    ),
     # FB-16: page templates live only under Website (Seitenvorlagen).
     _e("sellables", "collections:list", _("Kollektionen"), "collections", None, True, "lookbook"),
     # R2 (редизайн B, утверждённая структура): складская группа — подпункты

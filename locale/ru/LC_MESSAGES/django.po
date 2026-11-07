@@ -35580,3 +35580,114 @@ msgstr "Картинка с текстом и ссылкой — на любой
 
 msgid "Fotos gespeichert. Bitte die markierten Felder korrigieren."
 msgstr "Фото сохранены. Исправьте, пожалуйста, отмеченные поля."
+
+msgid "Alle Kombinationen der Optionen; vorhandene werden übersprungen."
+msgstr "Все сочетания опций; существующие пропускаются."
+
+msgid "Auswahl im Shop"
+msgstr "Выбор в магазине"
+
+msgid "Bitte einen Namen angeben (höchstens 30 Optionen)."
+msgstr "Укажите название (не больше 30 опций)."
+
+msgid "Die Werte stehen direkt an den Varianten (Feld im Produkt)."
+msgstr "Значения задаются прямо у вариантов (поле в товаре)."
+
+msgid "Dieser Wert wird von Varianten benutzt."
+msgstr "Это значение используют варианты."
+
+msgid "Eigene Option"
+msgstr "Своя опция"
+
+msgid "Für alles, was es im Standard nicht gibt — z. B. „Stoffart“ oder „Füllung“. Eigene Optionen erscheinen nur auf Ihrer Website."
+msgstr "Для всего, чего нет в стандарте, — например «тип ткани» или «начинка». Свои опции видны только на вашем сайте."
+
+msgid "Geschmack"
+msgstr "Вкус"
+
+msgid "Gespeichert, Werte ergänzt."
+msgstr "Сохранено, значения добавлены."
+
+msgid "Gewicht"
+msgstr "Вес"
+
+msgid "Höchstens drei Optionen pro Produkt."
+msgstr "Не больше трёх опций на товар."
+
+msgid "Länge"
+msgstr "Длина"
+
+msgid "Mit ✓ Google werden die Werte auch an Google Shopping und an die Filter im Stadtportal übergeben."
+msgstr "С ✓ Google значения передаются также в Google Shopping и в фильтры городского портала."
+
+msgid "Option aktiviert."
+msgstr "Опция включена."
+
+msgid "Option angelegt."
+msgstr "Опция создана."
+
+msgid "Option anlegen"
+msgstr "Создать опцию"
+
+msgid "Option ausgeblendet."
+msgstr "Опция скрыта."
+
+msgid "Option gelöscht."
+msgstr "Опция удалена."
+
+msgid "Optionen"
+msgstr "Опции"
+
+msgid "Optionen des Produkts gespeichert."
+msgstr "Опции товара сохранены."
+
+msgid "Optionen gelten für den ganzen Shop. Im Produkt wählen Sie unter „Varianten“, welche (höchstens drei) es hat."
+msgstr "Опции действуют на весь магазин. В товаре во вкладке «Варианты» вы выбираете, какие из них у него есть (не больше трёх)."
+
+msgid "Optionen im Shop"
+msgstr "Опции магазина"
+
+msgid "Optionen dieses Produkts"
+msgstr "Опции этого товара"
+
+msgid "Optionen übernehmen"
+msgstr "Применить опции"
+
+msgid "Standard-Optionen"
+msgstr "Стандартные опции"
+
+msgid "Stückzahl"
+msgstr "Количество штук"
+
+msgid "Volumen"
+msgstr "Объём"
+
+msgid "Wert gelöscht."
+msgstr "Значение удалено."
+
+msgid "Wert löschen"
+msgstr "Удалить значение"
+
+msgid "Werte"
+msgstr "Значения"
+
+msgid "Werte durch Komma"
+msgstr "Значения через запятую"
+
+msgid "Werte hinzufügen (durch Komma getrennt)"
+msgstr "Добавить значения (через запятую)"
+
+msgid "Weitere Optionen anlegen"
+msgstr "Создать другие опции"
+
+msgid "Wird von Varianten benutzt — bitte nur ausblenden."
+msgstr "Используется вариантами — можно только скрыть."
+
+msgid "höchstens drei"
+msgstr "не больше трёх"
+
+msgid "z. B. Baumwolle, Leinen"
+msgstr "например хлопок, лён"
+
+msgid "z. B. Füllung"
+msgstr "например начинка"

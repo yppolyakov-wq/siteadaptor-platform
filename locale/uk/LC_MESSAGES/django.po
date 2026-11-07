@@ -35567,3 +35567,114 @@ msgstr "Зображення з текстом і посиланням — на 
 
 msgid "Fotos gespeichert. Bitte die markierten Felder korrigieren."
 msgstr "Фото збережено. Виправте, будь ласка, позначені поля."
+
+msgid "Alle Kombinationen der Optionen; vorhandene werden übersprungen."
+msgstr "Усі поєднання опцій; наявні пропускаються."
+
+msgid "Auswahl im Shop"
+msgstr "Вибір у магазині"
+
+msgid "Bitte einen Namen angeben (höchstens 30 Optionen)."
+msgstr "Вкажіть назву (не більше 30 опцій)."
+
+msgid "Die Werte stehen direkt an den Varianten (Feld im Produkt)."
+msgstr "Значення задаються прямо у варіантів (поле в товарі)."
+
+msgid "Dieser Wert wird von Varianten benutzt."
+msgstr "Це значення використовують варіанти."
+
+msgid "Eigene Option"
+msgstr "Своя опція"
+
+msgid "Für alles, was es im Standard nicht gibt — z. B. „Stoffart“ oder „Füllung“. Eigene Optionen erscheinen nur auf Ihrer Website."
+msgstr "Для всього, чого немає в стандарті, — наприклад «тип тканини» або «начинка». Свої опції видно лише на вашому сайті."
+
+msgid "Geschmack"
+msgstr "Смак"
+
+msgid "Gespeichert, Werte ergänzt."
+msgstr "Збережено, значення додано."
+
+msgid "Gewicht"
+msgstr "Вага"
+
+msgid "Höchstens drei Optionen pro Produkt."
+msgstr "Не більше трьох опцій на товар."
+
+msgid "Länge"
+msgstr "Довжина"
+
+msgid "Mit ✓ Google werden die Werte auch an Google Shopping und an die Filter im Stadtportal übergeben."
+msgstr "З ✓ Google значення передаються також у Google Shopping і у фільтри міського порталу."
+
+msgid "Option aktiviert."
+msgstr "Опцію увімкнено."
+
+msgid "Option angelegt."
+msgstr "Опцію створено."
+
+msgid "Option anlegen"
+msgstr "Створити опцію"
+
+msgid "Option ausgeblendet."
+msgstr "Опцію приховано."
+
+msgid "Option gelöscht."
+msgstr "Опцію видалено."
+
+msgid "Optionen"
+msgstr "Опції"
+
+msgid "Optionen des Produkts gespeichert."
+msgstr "Опції товару збережено."
+
+msgid "Optionen gelten für den ganzen Shop. Im Produkt wählen Sie unter „Varianten“, welche (höchstens drei) es hat."
+msgstr "Опції діють на весь магазин. У товарі на вкладці «Варіанти» ви обираєте, які з них у нього є (не більше трьох)."
+
+msgid "Optionen im Shop"
+msgstr "Опції магазину"
+
+msgid "Optionen dieses Produkts"
+msgstr "Опції цього товару"
+
+msgid "Optionen übernehmen"
+msgstr "Застосувати опції"
+
+msgid "Standard-Optionen"
+msgstr "Стандартні опції"
+
+msgid "Stückzahl"
+msgstr "Кількість штук"
+
+msgid "Volumen"
+msgstr "Об'єм"
+
+msgid "Wert gelöscht."
+msgstr "Значення видалено."
+
+msgid "Wert löschen"
+msgstr "Видалити значення"
+
+msgid "Werte"
+msgstr "Значення"
+
+msgid "Werte durch Komma"
+msgstr "Значення через кому"
+
+msgid "Werte hinzufügen (durch Komma getrennt)"
+msgstr "Додати значення (через кому)"
+
+msgid "Weitere Optionen anlegen"
+msgstr "Створити інші опції"
+
+msgid "Wird von Varianten benutzt — bitte nur ausblenden."
+msgstr "Використовується варіантами — можна лише приховати."
+
+msgid "höchstens drei"
+msgstr "не більше трьох"
+
+msgid "z. B. Baumwolle, Leinen"
+msgstr "наприклад бавовна, льон"
+
+msgid "z. B. Füllung"
+msgstr "наприклад начинка"

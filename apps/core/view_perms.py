@@ -236,6 +236,8 @@ RULES: dict[str, Rule] = {
     "catalog:category-image-primary": _r(S, SE),
     "catalog:category-inline-edit": _r(S, SE),
     "catalog:category-list": _r(S, SE),
+    "catalog:option-list": _r(S, SE),  # FB-24b
+    "catalog:product-axes": _r(S, SE),
     "catalog:category-city-map": _r(S, SE),  # UX-D D8.3
     "catalog:combo-create": _r(S, SE),
     "catalog:combo-delete": _r(S, "sortiment.delete"),

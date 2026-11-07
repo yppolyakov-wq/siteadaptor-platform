@@ -35257,3 +35257,114 @@ msgstr "Image with text and link — on any page, with a date range"
 
 msgid "Fotos gespeichert. Bitte die markierten Felder korrigieren."
 msgstr "Photos saved. Please correct the highlighted fields."
+
+msgid "Alle Kombinationen der Optionen; vorhandene werden übersprungen."
+msgstr "All combinations of the options; existing ones are skipped."
+
+msgid "Auswahl im Shop"
+msgstr "Selection in the shop"
+
+msgid "Bitte einen Namen angeben (höchstens 30 Optionen)."
+msgstr "Please enter a name (at most 30 options)."
+
+msgid "Die Werte stehen direkt an den Varianten (Feld im Produkt)."
+msgstr "The values are set directly on the variants (field in the product)."
+
+msgid "Dieser Wert wird von Varianten benutzt."
+msgstr "This value is used by variants."
+
+msgid "Eigene Option"
+msgstr "Custom option"
+
+msgid "Für alles, was es im Standard nicht gibt — z. B. „Stoffart“ oder „Füllung“. Eigene Optionen erscheinen nur auf Ihrer Website."
+msgstr "For anything not in the standard set — e.g. “fabric type” or “filling”. Custom options appear only on your website."
+
+msgid "Geschmack"
+msgstr "Flavour"
+
+msgid "Gespeichert, Werte ergänzt."
+msgstr "Saved, values added."
+
+msgid "Gewicht"
+msgstr "Weight"
+
+msgid "Höchstens drei Optionen pro Produkt."
+msgstr "At most three options per product."
+
+msgid "Länge"
+msgstr "Length"
+
+msgid "Mit ✓ Google werden die Werte auch an Google Shopping und an die Filter im Stadtportal übergeben."
+msgstr "With ✓ Google the values are also passed to Google Shopping and to the filters of the city portal."
+
+msgid "Option aktiviert."
+msgstr "Option activated."
+
+msgid "Option angelegt."
+msgstr "Option created."
+
+msgid "Option anlegen"
+msgstr "Create option"
+
+msgid "Option ausgeblendet."
+msgstr "Option hidden."
+
+msgid "Option gelöscht."
+msgstr "Option deleted."
+
+msgid "Optionen"
+msgstr "Options"
+
+msgid "Optionen des Produkts gespeichert."
+msgstr "Product options saved."
+
+msgid "Optionen gelten für den ganzen Shop. Im Produkt wählen Sie unter „Varianten“, welche (höchstens drei) es hat."
+msgstr "Options apply to the whole shop. In the product, under “Variants”, you choose which ones (at most three) it has."
+
+msgid "Optionen im Shop"
+msgstr "Options in the shop"
+
+msgid "Optionen dieses Produkts"
+msgstr "Options of this product"
+
+msgid "Optionen übernehmen"
+msgstr "Apply options"
+
+msgid "Standard-Optionen"
+msgstr "Standard options"
+
+msgid "Stückzahl"
+msgstr "Quantity"
+
+msgid "Volumen"
+msgstr "Volume"
+
+msgid "Wert gelöscht."
+msgstr "Value deleted."
+
+msgid "Wert löschen"
+msgstr "Delete value"
+
+msgid "Werte"
+msgstr "Values"
+
+msgid "Werte durch Komma"
+msgstr "Values separated by commas"
+
+msgid "Werte hinzufügen (durch Komma getrennt)"
+msgstr "Add values (comma-separated)"
+
+msgid "Weitere Optionen anlegen"
+msgstr "Create more options"
+
+msgid "Wird von Varianten benutzt — bitte nur ausblenden."
+msgstr "Used by variants — please only hide it."
+
+msgid "höchstens drei"
+msgstr "at most three"
+
+msgid "z. B. Baumwolle, Leinen"
+msgstr "e.g. cotton, linen"
+
+msgid "z. B. Füllung"
+msgstr "e.g. filling"

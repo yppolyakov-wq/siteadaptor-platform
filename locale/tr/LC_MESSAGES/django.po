@@ -35403,3 +35403,114 @@ msgstr "Metin ve bağlantılı görsel — her sayfada, tarih aralığıyla"
 
 msgid "Fotos gespeichert. Bitte die markierten Felder korrigieren."
 msgstr "Fotoğraflar kaydedildi. Lütfen işaretli alanları düzeltin."
+
+msgid "Alle Kombinationen der Optionen; vorhandene werden übersprungen."
+msgstr "Seçeneklerin tüm kombinasyonları; mevcut olanlar atlanır."
+
+msgid "Auswahl im Shop"
+msgstr "Mağazada seçim"
+
+msgid "Bitte einen Namen angeben (höchstens 30 Optionen)."
+msgstr "Lütfen bir ad girin (en fazla 30 seçenek)."
+
+msgid "Die Werte stehen direkt an den Varianten (Feld im Produkt)."
+msgstr "Değerler doğrudan varyantlarda belirlenir (üründeki alan)."
+
+msgid "Dieser Wert wird von Varianten benutzt."
+msgstr "Bu değer varyantlar tarafından kullanılıyor."
+
+msgid "Eigene Option"
+msgstr "Özel seçenek"
+
+msgid "Für alles, was es im Standard nicht gibt — z. B. „Stoffart“ oder „Füllung“. Eigene Optionen erscheinen nur auf Ihrer Website."
+msgstr "Standartta olmayan her şey için — ör. “kumaş türü” veya “dolgu”. Özel seçenekler yalnızca sitenizde görünür."
+
+msgid "Geschmack"
+msgstr "Tat"
+
+msgid "Gespeichert, Werte ergänzt."
+msgstr "Kaydedildi, değerler eklendi."
+
+msgid "Gewicht"
+msgstr "Ağırlık"
+
+msgid "Höchstens drei Optionen pro Produkt."
+msgstr "Ürün başına en fazla üç seçenek."
+
+msgid "Länge"
+msgstr "Uzunluk"
+
+msgid "Mit ✓ Google werden die Werte auch an Google Shopping und an die Filter im Stadtportal übergeben."
+msgstr "✓ Google ile değerler Google Shopping'e ve şehir portalının filtrelerine de aktarılır."
+
+msgid "Option aktiviert."
+msgstr "Seçenek etkinleştirildi."
+
+msgid "Option angelegt."
+msgstr "Seçenek oluşturuldu."
+
+msgid "Option anlegen"
+msgstr "Seçenek oluştur"
+
+msgid "Option ausgeblendet."
+msgstr "Seçenek gizlendi."
+
+msgid "Option gelöscht."
+msgstr "Seçenek silindi."
+
+msgid "Optionen"
+msgstr "Seçenekler"
+
+msgid "Optionen des Produkts gespeichert."
+msgstr "Ürün seçenekleri kaydedildi."
+
+msgid "Optionen gelten für den ganzen Shop. Im Produkt wählen Sie unter „Varianten“, welche (höchstens drei) es hat."
+msgstr "Seçenekler tüm mağaza için geçerlidir. Üründe “Varyantlar” altında hangilerinin (en fazla üç) olduğunu seçersiniz."
+
+msgid "Optionen im Shop"
+msgstr "Mağazadaki seçenekler"
+
+msgid "Optionen dieses Produkts"
+msgstr "Bu ürünün seçenekleri"
+
+msgid "Optionen übernehmen"
+msgstr "Seçenekleri uygula"
+
+msgid "Standard-Optionen"
+msgstr "Standart seçenekler"
+
+msgid "Stückzahl"
+msgstr "Adet"
+
+msgid "Volumen"
+msgstr "Hacim"
+
+msgid "Wert gelöscht."
+msgstr "Değer silindi."
+
+msgid "Wert löschen"
+msgstr "Değeri sil"
+
+msgid "Werte"
+msgstr "Değerler"
+
+msgid "Werte durch Komma"
+msgstr "Değerler virgülle"
+
+msgid "Werte hinzufügen (durch Komma getrennt)"
+msgstr "Değer ekle (virgülle ayrılmış)"
+
+msgid "Weitere Optionen anlegen"
+msgstr "Başka seçenekler oluştur"
+
+msgid "Wird von Varianten benutzt — bitte nur ausblenden."
+msgstr "Varyantlar tarafından kullanılıyor — lütfen yalnızca gizleyin."
+
+msgid "höchstens drei"
+msgstr "en fazla üç"
+
+msgid "z. B. Baumwolle, Leinen"
+msgstr "ör. pamuk, keten"
+
+msgid "z. B. Füllung"
+msgstr "ör. dolgu"

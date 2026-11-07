@@ -254,6 +254,8 @@ def product_edit(request, pk):
                 {c for c in product.variants.values_list("color", flat=True) if c}, key=str.lower
             ),
             "modifier_groups": product.modifier_groups.prefetch_related("options"),
+            # FB-24b/c: оси вариантов товара (типы опций магазина) и поля генератора по ним.
+            **_axis_ctx(product),
             # O-2: реестры видов отображения (витрина и кабинет читают один список).
             "variant_styles": VARIANT_STYLES,
             "modifier_styles": MODIFIER_STYLES,
@@ -320,6 +322,32 @@ def variant_add(request, pk):
 MAX_GENERATED_VARIANTS = 120  # KA-12 WR-5: 12 размеров × 10 цветов — потолок одной операции
 
 
+def _axis_ctx(product) -> dict:
+    """FB-24: строки выбора осей + оси товара для генератора (свои типы — с подписью)."""
+    from apps.catalog import option_types, options
+    from apps.catalog.models import OptionType
+    from apps.catalog.options_views import product_axis_rows
+
+    axes = options.product_axes(product)
+    by_code = {t.code: t for t in OptionType.objects.filter(code__in=axes)}
+    generator_axes = [
+        {
+            "code": code,
+            "label": option_types.type_label(by_code[code])
+            if code in by_code
+            else option_types.standard_label(code),
+        }
+        for code in axes
+        if code not in option_types.FIELD_BACKED
+    ]
+    return {
+        "axis_rows": product_axis_rows(product),
+        "axes_custom": generator_axes,
+        "axes_has_size": "size" in axes,
+        "axes_has_color": "color" in axes,
+    }
+
+
 def _axis_values(raw) -> list[str]:
     """«S, M, L» / по строкам → ["S", "M", "L"] (без пустых и дублей, порядок ввода)."""
     seen, out = set(), []
@@ -338,14 +366,29 @@ def _axis_values(raw) -> list[str]:
 def variant_generate(request, pk):
     """KA-12 WR-5 (E3.1): все сочетания «размеры × цвета» одним действием. Существующие
     варианты пропускаются (по метке), цена/остаток — общие; стартовый остаток — в леджер."""
+    from itertools import product as cartesian
+
     from django.db import transaction
+
+    from apps.catalog import option_types, options
+    from apps.catalog.models import OptionType
 
     product = get_object_or_404(Product, pk=pk)
     sizes = _axis_values(request.POST.get("sizes")) or [""]
     colors = _axis_values(request.POST.get("colors")) or [""]
+    # FB-24c: своих осей у товара до двух (всего ≤ 3) — значения тем же вводом «A, B».
+    axes = options.product_axes(product)
+    extra_types = list(
+        OptionType.objects.filter(code__in=[c for c in axes if c not in option_types.FIELD_BACKED])
+    )
+    extra_types.sort(key=lambda t: axes.index(t.code))
+    extra_values = [_axis_values(request.POST.get(f"axis_{t.code}")) or [""] for t in extra_types]
     # Ревью WR-5: размер произведения проверяем ДО построения списка сочетаний.
-    too_many = len(sizes) * len(colors) > MAX_GENERATED_VARIANTS
-    combos = [] if too_many else [(sz, col) for sz in sizes for col in colors if sz or col]
+    total = len(sizes) * len(colors)
+    for vals in extra_values:
+        total *= len(vals)
+    too_many = total > MAX_GENERATED_VARIANTS
+    combos = [] if too_many else [c for c in cartesian(sizes, colors, *extra_values) if any(c)]
     if not combos and not too_many:
         messages.error(request, _("Bitte Größen und/oder Farben angeben."))
         return redirect("catalog:product-edit", pk=pk)
@@ -363,8 +406,12 @@ def variant_generate(request, pk):
             ProductVariant.objects.filter(product=product).values_list("label", flat=True)
         )
         order = ProductVariant.objects.filter(product=product).count()
-        for size, color in combos:
-            label = " · ".join(part for part in (size, color) if part)[:100]
+        for combo in combos:
+            size, color, *rest = combo
+            values = {"size": size, "color": color}
+            values.update({t.code: v for t, v in zip(extra_types, rest, strict=True)})
+            ordered = {c: values.get(c, "") for c in [*axes, "size", "color"] if c in values}
+            label = option_types.axes_label(ordered)[:100]
             if label in existing:
                 continue
             variant = ProductVariant.objects.create(
@@ -376,6 +423,9 @@ def variant_generate(request, pk):
                 stock_quantity=stock,
                 sort_order=order + created,
             )
+            for option_type, value in zip(extra_types, rest, strict=True):
+                if value:
+                    options.set_variant_option(variant, option_type, value)
             existing.add(label)
             created += 1
             log_catalog_change(

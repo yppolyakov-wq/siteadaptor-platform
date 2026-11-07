@@ -258,6 +258,9 @@ class Product(SoftDeleteMixin, I18nMixin):
     # список / кнопки / цветные кружки / фото-плитки / строки / две оси.
     # Пусто = дефолт магазина (site_defaults.variant_style), а он пуст = список.
     variant_style = models.CharField(max_length=12, blank=True, default="")
+    # FB-24: оси вариантов этого товара — коды типов опций магазина (`OptionType.code`)
+    # по порядку, ≤ 3. Пусто = прежние оси «размер/цвет» (поведение байт-в-байт).
+    option_axes = models.JSONField(default=list, blank=True)
 
     # DL-19: ФОРМА карточки этого товара на витрине (реестр core.card_forms).
     # Пусто = форма из настроек сайта (site_defaults.card_style). Своё значение
@@ -745,6 +748,75 @@ class ProductVariant(TimestampedModel):
             self.content_amount if self.content_amount is not None else self.product.content_amount
         )
         return grundpreis(self.price_value, self.product.unit, content)
+
+
+class OptionType(TimestampedModel):
+    """FB-24: тип опции МАГАЗИНА («Material», «Geschmack», свой «Stoffart»).
+
+    `standard` — код из реестра `catalog.option_types.STANDARD` (сопоставлен с фильтрами
+    портала и атрибутами Google) или пусто — свой тип владельца. Значения `size`/`color`
+    стандартных «Größe»/«Farbe» живут в полях варианта, здесь хранится только их порядок,
+    подпись и вид выбора."""
+
+    code = models.SlugField(max_length=40, unique=True)
+    name = models.CharField(max_length=60, blank=True)
+    name_i18n = models.JSONField(default=dict, blank=True)
+    standard = models.CharField(max_length=20, blank=True)
+    # вид выбора на витрине (реестр option_styles.VARIANT_STYLES); пусто = как у товара
+    display = models.CharField(max_length=12, blank=True)
+    sort_order = models.IntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ["sort_order", "id"]
+
+    def __str__(self):
+        from apps.catalog.option_types import type_label
+
+        return type_label(self)
+
+
+class OptionValue(TimestampedModel):
+    """FB-24: значение типа опции («Baumwolle», «Leinen»). `value` — ключ учёта (базовый
+    язык), перевод — только для показа (инвариант I18N-10)."""
+
+    option_type = models.ForeignKey(OptionType, on_delete=models.CASCADE, related_name="values")
+    value = models.CharField(max_length=60)
+    value_i18n = models.JSONField(default=dict, blank=True)
+    hex = models.CharField(max_length=7, blank=True)
+    sort_order = models.IntegerField(default=0)
+
+    class Meta:
+        ordering = ["sort_order", "id"]
+        constraints = [
+            models.UniqueConstraint(fields=["option_type", "value"], name="option_value_uniq"),
+        ]
+
+    def __str__(self):
+        return self.value
+
+    @property
+    def value_localized(self) -> str:
+        return resolve_overlay(self.value, self.value_i18n)
+
+
+class VariantOption(models.Model):
+    """FB-24: значение типа опции у варианта (кроме размера/цвета — они в полях варианта).
+    Один тип — одно значение на вариант."""
+
+    variant = models.ForeignKey(
+        ProductVariant, on_delete=models.CASCADE, related_name="option_links"
+    )
+    option_type = models.ForeignKey(OptionType, on_delete=models.CASCADE, related_name="+")
+    value = models.ForeignKey(OptionValue, on_delete=models.CASCADE, related_name="links")
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["variant", "option_type"], name="variant_option_uniq"),
+        ]
+
+    def __str__(self):
+        return f"{self.variant_id}: {self.value_id}"
 
 
 class ModifierGroup(TimestampedModel):

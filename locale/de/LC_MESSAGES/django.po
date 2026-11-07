@@ -35344,3 +35344,114 @@ msgstr "Bild mit Text und Link — auf jeder Seite, mit Zeitraum"
 
 msgid "Fotos gespeichert. Bitte die markierten Felder korrigieren."
 msgstr "Fotos gespeichert. Bitte die markierten Felder korrigieren."
+
+msgid "Alle Kombinationen der Optionen; vorhandene werden übersprungen."
+msgstr "Alle Kombinationen der Optionen; vorhandene werden übersprungen."
+
+msgid "Auswahl im Shop"
+msgstr "Auswahl im Shop"
+
+msgid "Bitte einen Namen angeben (höchstens 30 Optionen)."
+msgstr "Bitte einen Namen angeben (höchstens 30 Optionen)."
+
+msgid "Die Werte stehen direkt an den Varianten (Feld im Produkt)."
+msgstr "Die Werte stehen direkt an den Varianten (Feld im Produkt)."
+
+msgid "Dieser Wert wird von Varianten benutzt."
+msgstr "Dieser Wert wird von Varianten benutzt."
+
+msgid "Eigene Option"
+msgstr "Eigene Option"
+
+msgid "Für alles, was es im Standard nicht gibt — z. B. „Stoffart“ oder „Füllung“. Eigene Optionen erscheinen nur auf Ihrer Website."
+msgstr "Für alles, was es im Standard nicht gibt — z. B. „Stoffart“ oder „Füllung“. Eigene Optionen erscheinen nur auf Ihrer Website."
+
+msgid "Geschmack"
+msgstr "Geschmack"
+
+msgid "Gespeichert, Werte ergänzt."
+msgstr "Gespeichert, Werte ergänzt."
+
+msgid "Gewicht"
+msgstr "Gewicht"
+
+msgid "Höchstens drei Optionen pro Produkt."
+msgstr "Höchstens drei Optionen pro Produkt."
+
+msgid "Länge"
+msgstr "Länge"
+
+msgid "Mit ✓ Google werden die Werte auch an Google Shopping und an die Filter im Stadtportal übergeben."
+msgstr "Mit ✓ Google werden die Werte auch an Google Shopping und an die Filter im Stadtportal übergeben."
+
+msgid "Option aktiviert."
+msgstr "Option aktiviert."
+
+msgid "Option angelegt."
+msgstr "Option angelegt."
+
+msgid "Option anlegen"
+msgstr "Option anlegen"
+
+msgid "Option ausgeblendet."
+msgstr "Option ausgeblendet."
+
+msgid "Option gelöscht."
+msgstr "Option gelöscht."
+
+msgid "Optionen"
+msgstr "Optionen"
+
+msgid "Optionen des Produkts gespeichert."
+msgstr "Optionen des Produkts gespeichert."
+
+msgid "Optionen gelten für den ganzen Shop. Im Produkt wählen Sie unter „Varianten“, welche (höchstens drei) es hat."
+msgstr "Optionen gelten für den ganzen Shop. Im Produkt wählen Sie unter „Varianten“, welche (höchstens drei) es hat."
+
+msgid "Optionen im Shop"
+msgstr "Optionen im Shop"
+
+msgid "Optionen dieses Produkts"
+msgstr "Optionen dieses Produkts"
+
+msgid "Optionen übernehmen"
+msgstr "Optionen übernehmen"
+
+msgid "Standard-Optionen"
+msgstr "Standard-Optionen"
+
+msgid "Stückzahl"
+msgstr "Stückzahl"
+
+msgid "Volumen"
+msgstr "Volumen"
+
+msgid "Wert gelöscht."
+msgstr "Wert gelöscht."
+
+msgid "Wert löschen"
+msgstr "Wert löschen"
+
+msgid "Werte"
+msgstr "Werte"
+
+msgid "Werte durch Komma"
+msgstr "Werte durch Komma"
+
+msgid "Werte hinzufügen (durch Komma getrennt)"
+msgstr "Werte hinzufügen (durch Komma getrennt)"
+
+msgid "Weitere Optionen anlegen"
+msgstr "Weitere Optionen anlegen"
+
+msgid "Wird von Varianten benutzt — bitte nur ausblenden."
+msgstr "Wird von Varianten benutzt — bitte nur ausblenden."
+
+msgid "höchstens drei"
+msgstr "höchstens drei"
+
+msgid "z. B. Baumwolle, Leinen"
+msgstr "z. B. Baumwolle, Leinen"
+
+msgid "z. B. Füllung"
+msgstr "z. B. Füllung"

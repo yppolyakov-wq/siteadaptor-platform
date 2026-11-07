@@ -1,6 +1,6 @@
 from django.urls import path
 
-from . import views
+from . import options_views, views
 
 app_name = "catalog"
 
@@ -83,6 +83,9 @@ urlpatterns = [
     path("products/inline-edit/", views.product_inline_edit, name="product-inline-edit"),
     # M4: замена главного фото товара на канве (multipart).
     path("products/photo-edit/", views.product_photo_edit, name="product-photo-edit"),
+    # FB-24b: типы опций магазина + оси вариантов товара
+    path("optionen/", options_views.option_list, name="option-list"),
+    path("products/<uuid:pk>/axes/", options_views.product_axes, name="product-axes"),
     path("categories/", views.category_list, name="category-list"),
     path("categories/new/", views.category_create, name="category-create"),
     # UX-D D8.3: сопоставление с каталогом города — свой экран

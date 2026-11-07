@@ -1,0 +1,111 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n cabinet %}
+{% block dash_title %}{% trans "Optionen" %}{% endblock %}
+
+{% block dash_content %}
+{% comment %}FB-24b: типы опций МАГАЗИНА (решение владельца 2026-11-07). Стандартные —
+сопоставлены с фильтрами портала и Google; свои — только для витрины этого сайта. Значения
+размера и цвета задаются в самих вариантах, здесь — порядок, подпись и вид выбора.{% endcomment %}
+<div class="mb-4">
+  <h1 class="ui-h1">🎛 {% nav_title _("Optionen") %}</h1>
+  <p class="ui-muted text-sm mt-1">{% trans "Optionen gelten für den ganzen Shop. Im Produkt wählen Sie unter „Varianten“, welche (höchstens drei) es hat." %}</p>
+</div>
+
+{% if messages %}
+  {% for m in messages %}
+    <div role="{% if m.tags == 'error' %}alert{% else %}status{% endif %}" class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+  {% endfor %}
+{% endif %}
+
+<div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
+  <section class="ui-card p-4" aria-labelledby="opt-standard">
+    <h2 id="opt-standard" class="font-semibold mb-1">{% trans "Standard-Optionen" %}</h2>
+    <p class="ui-muted text-xs mb-3">{% trans "Mit ✓ Google werden die Werte auch an Google Shopping und an die Filter im Stadtportal übergeben." %}</p>
+    <ul class="divide-y divide-gray-100">
+      {% for s in standard %}
+      <li class="flex items-center justify-between gap-3 py-2 text-sm">
+        <span>{{ s.label }}{% if s.google %} <span class="ui-badge">✓ Google</span>{% endif %}</span>
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="standard">
+          <input type="hidden" name="code" value="{{ s.code }}">
+          {% if s.on %}
+            <input type="hidden" name="on" value="0">
+            <button class="ui-btn ui-btn-secondary">{% trans "Ausblenden" %}</button>
+          {% else %}
+            <input type="hidden" name="on" value="1">
+            <button class="ui-btn ui-btn-primary">{% trans "Aktivieren" %}</button>
+          {% endif %}
+        </form>
+      </li>
+      {% endfor %}
+    </ul>
+  </section>
+
+  <section class="ui-card p-4" aria-labelledby="opt-own">
+    <h2 id="opt-own" class="font-semibold mb-1">{% trans "Eigene Option" %}</h2>
+    <p class="ui-muted text-xs mb-3">{% trans "Für alles, was es im Standard nicht gibt — z. B. „Stoffart“ oder „Füllung“. Eigene Optionen erscheinen nur auf Ihrer Website." %}</p>
+    <form method="post" class="flex flex-wrap gap-2">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="add">
+      <label class="flex-1 min-w-[12rem]"><span class="sr-only">{% trans "Name" %}</span>
+        <input name="name" type="text" maxlength="60" required placeholder="{% trans 'z. B. Füllung' %}" class="ui-input w-full"></label>
+      <button class="ui-btn ui-btn-primary">＋ {% trans "Option anlegen" %}</button>
+    </form>
+  </section>
+</div>
+
+{% if rows %}
+<h2 class="font-semibold mt-6 mb-2">{% trans "Optionen im Shop" %}</h2>
+<div class="grid grid-cols-1 xl:grid-cols-2 gap-4" data-option-rows>
+  {% for r in rows %}
+  <section class="ui-card p-4 space-y-3" data-option-type="{{ r.type.code }}">
+    <form method="post" class="space-y-3">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="save">
+      <input type="hidden" name="type" value="{{ r.type.pk }}">
+      <div class="flex flex-wrap items-center gap-2">
+        {% if r.standard %}
+          <h3 class="font-medium">{{ r.label }}</h3><span class="ui-badge">{% trans "Standard" %}</span>
+        {% else %}
+          <label class="flex-1 min-w-[10rem]"><span class="sr-only">{% trans "Name" %}</span>
+            <input name="name" type="text" maxlength="60" value="{{ r.type.name }}" class="ui-input w-full"></label>
+        {% endif %}
+        <label class="flex items-center gap-1 text-sm ml-auto"><input type="checkbox" name="is_active" {% if r.type.is_active %}checked{% endif %} class="rounded border-gray-300"> {% trans "Aktiv" %}</label>
+      </div>
+      <label class="block text-sm"><span class="block text-xs ui-muted mb-1">{% trans "Auswahl im Shop" %}</span>
+        <select name="display" class="ui-input">
+          {% for key, label, hint in display_options %}<option value="{{ key }}" {% if r.type.display == key %}selected{% endif %}>{{ label }}</option>{% endfor %}
+        </select></label>
+      {% if r.field_backed %}
+        <p class="ui-muted text-xs">{% trans "Die Werte stehen direkt an den Varianten (Feld im Produkt)." %}</p>
+      {% else %}
+        {% if r.values %}
+        <ul class="flex flex-wrap gap-2" aria-label="{% trans 'Werte' %}">
+          {% for v in r.values %}
+          <li class="flex items-center gap-1 rounded-full border border-gray-200 pl-3 pr-1 py-0.5 text-sm">
+            {{ v.value }}
+            <label class="sr-only" for="ord-{{ v.pk }}">{% trans "Position" %}</label>
+            <input id="ord-{{ v.pk }}" name="order_{{ v.pk }}" type="number" min="0" value="{{ v.sort_order }}" class="w-12 rounded border border-gray-200 px-1 text-xs">
+            <button form="del-{{ v.pk }}" class="tap44 px-1 text-red-600" aria-label="{% trans 'Wert löschen' %}: {{ v.value }}">✕</button>
+          </li>
+          {% endfor %}
+        </ul>
+        {% endif %}
+        <label class="block text-sm"><span class="block text-xs ui-muted mb-1">{% trans "Werte hinzufügen (durch Komma getrennt)" %}</span>
+          <input name="new_values" type="text" placeholder="{% trans 'z. B. Baumwolle, Leinen' %}" class="ui-input w-full"></label>
+      {% endif %}
+      <div class="flex flex-wrap gap-2">
+        <button class="ui-btn ui-btn-primary">{% trans "Save" %}</button>
+        {% if not r.in_use %}<button form="del-type-{{ r.type.pk }}" class="ui-btn ui-btn-secondary text-red-600">{% trans "Löschen" %}</button>{% endif %}
+      </div>
+    </form>
+    {% for v in r.values %}
+    <form id="del-{{ v.pk }}" method="post" class="hidden">{% csrf_token %}<input type="hidden" name="action" value="delete_value"><input type="hidden" name="type" value="{{ r.type.pk }}"><input type="hidden" name="value" value="{{ v.pk }}"></form>
+    {% endfor %}
+    <form id="del-type-{{ r.type.pk }}" method="post" class="hidden">{% csrf_token %}<input type="hidden" name="action" value="delete"><input type="hidden" name="type" value="{{ r.type.pk }}"></form>
+  </section>
+  {% endfor %}
+</div>
+{% endif %}
+{% endblock %}
