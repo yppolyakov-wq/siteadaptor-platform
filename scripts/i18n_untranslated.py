@@ -107,6 +107,9 @@ SKIP_FILES = (
     # demo_kits), кнопка кладёт их в textarea, переводу не подлежат.
     "apps/core/offer_examples.py",
     "apps/aggregator/branding.py",  # PH-1: бренд портала — тексты по локалям (контент в БД)
+    # FB-19: подсказки поля «Stadt» — официальные названия городов (данные, пишутся в
+    # Tenant.city как есть); перевод сломал бы город портала и район.
+    "apps/core/cities.py",
 )
 # DCC: спеки демо-бизнесов города — контент, переводится словарями demo_i18n_*.
 SKIP_DIR_PARTS = ("/migrations/", "/tests/", "/node_modules/", "/.venv/", "/demo_city/")

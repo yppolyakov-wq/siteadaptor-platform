@@ -21,7 +21,7 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
-from apps.core import city_categories, ratelimit
+from apps.core import cities, city_categories, ratelimit
 from apps.core.archetypes import FOOD_BUSINESS_TYPES
 from apps.promotions.quick import MAX_PHOTOS
 
@@ -89,7 +89,7 @@ def _context(request, form, kept_photos=None, kept_signed=""):
         "type_cards": quickstart.type_cards(request),
         "stamp": quickstart.form_stamp(),
         "domain_base": quickstart.domain_base(),
-        "known_cities": quickstart.known_cities(),
+        "known_cities": cities.suggestions(),  # FB-19: + города DACH
         "district_options": _district_options(),
         "max_photos": MAX_PHOTOS,
         "category_suggestions": dict(city_categories.BY_BUSINESS_TYPE),

@@ -14,7 +14,8 @@
     </div>
     <div>
       <label class="block text-sm font-medium mb-1" for="id_city">{% trans "Stadt" %}</label>
-      <input id="id_city" name="city" type="text" value="{{ request.tenant.city }}" placeholder="{% trans 'z. B. Hilden' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      <input id="id_city" name="city" type="text" value="{{ request.tenant.city }}" placeholder="{% trans 'z. B. Hilden' %}" list="id_city-cities" autocomplete="address-level2" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      <datalist id="id_city-cities">{% for c in city_suggestions %}<option value="{{ c }}">{% endfor %}</datalist>
     </div>
   </div>
   <div>

@@ -177,7 +177,9 @@ def _post_company(request):
     # site_view/legal_docs_view; live-save шлёт FormData слайда целиком, но чужой
     # или урезанный POST не должен стирать контакты).
     if "city" in request.POST:
-        tenant.city = request.POST.get("city", "").strip()
+        from apps.core import cities
+
+        tenant.city = cities.canonical(request.POST.get("city", ""))  # FB-19
     for field in ("address", "opening_hours", "contact_phone", "contact_email"):
         if field in request.POST:
             setattr(tenant, field, request.POST.get(field, "").strip())
@@ -196,10 +198,11 @@ def _post_company(request):
 
 
 def _ctx_company(request):
+    from apps.core import cities
     from apps.core.views import _opening_hours_rows
     from apps.tenants import onboarding
 
-    ctx = {"logo_url": request.tenant.logo_url}
+    ctx = {"logo_url": request.tenant.logo_url, "city_suggestions": cities.suggestions()}
     if onboarding.is_v4(request.tenant):  # мастер v4: часы сеткой (как в «Geschäft»)
         ctx["hours_grid"] = True
         ctx["opening_hours_rows"] = _opening_hours_rows(request.tenant)

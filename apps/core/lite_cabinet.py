@@ -17,7 +17,7 @@ from django.urls import reverse
 from django.utils.translation import gettext, pgettext_lazy
 from django.utils.translation import gettext_lazy as _
 
-from apps.core import storefront_profile, view_perms
+from apps.core import cities, storefront_profile, view_perms
 from apps.core.view_perms import perm_required
 
 # (url_name, nav_key, emoji, подпись) — nav_key существующие: подсветка и иконки даром.
@@ -201,6 +201,7 @@ class LiteBusinessForm(forms.ModelForm):
             "register_court": _("Nur mit Handelsregister-Eintrag, z. B. „Amtsgericht Wuppertal“."),
         }
         widgets = {
+            "city": cities.CityInput,  # FB-19: подсказки городов
             "address": forms.Textarea(attrs={"rows": 2}),
             "contact_email": forms.EmailInput(attrs={"autocomplete": "email"}),
             "contact_phone": forms.TextInput(attrs={"type": "tel", "autocomplete": "tel"}),
@@ -262,6 +263,9 @@ class LiteBusinessForm(forms.ModelForm):
         if commit:
             obj.save()
         return obj
+
+    def clean_city(self):
+        return cities.canonical(self.cleaned_data.get("city"))  # FB-19
 
     def clean_district(self):
         from apps.core import districts
