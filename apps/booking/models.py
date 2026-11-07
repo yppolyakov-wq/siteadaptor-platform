@@ -175,6 +175,16 @@ class Service(I18nMixin, TimestampedModel):
     # Г3: последнее явное подтверждение владельца (не updated_at — его сдвигают продажи
     # и фоновые записи). default=now: при миграции все позиции получают полный срок.
     confirmed_at = models.DateTimeField(default=timezone.now)
+    # FB-20: метка на карточке («Neu», «Beliebt») — реестр apps/core/labels.py.
+    badge = models.CharField(max_length=20, blank=True, default="")
+
+    @property
+    def badge_label(self) -> str:
+        """FB-20: переводимая подпись метки (на витрине — язык клиента)."""
+        from apps.core.labels import label_for
+
+        return label_for(self.badge)
+
     # LS-1: видео-консультация (v1 = WhatsApp-видео, wa.me-линк в письмах и на
     # детали; НИКАКОЙ записи разговоров — §201 StGB). Бронь — обычным движком.
     is_video = models.BooleanField(default=False)

@@ -1420,6 +1420,11 @@ def services_view(request, pk=None):
             if request.POST.get("hide_in_city_present"):  # T-8.11
                 service.hide_in_city = bool(request.POST.get("hide_in_city"))
                 fields.append("hide_in_city")
+            if "badge" in request.POST:  # FB-20: presence-guard (W0)
+                from apps.core.labels import clean as clean_label
+
+                service.badge = clean_label(request.POST.get("badge"))
+                fields.append("badge")
             # KA-12 E4.4a: буфер/минимальный срок/горизонт — по сентинелу (W0).
             buffer_changed = False
             if request.POST.get("booking_rules_present"):

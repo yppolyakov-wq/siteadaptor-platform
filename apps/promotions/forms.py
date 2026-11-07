@@ -12,7 +12,7 @@ from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 
 from apps.catalog.models import Product
-from apps.core import card_forms
+from apps.core import card_forms, labels
 from apps.core.form_fields import MoneyField
 from apps.core.i18n_input import DynamicI18nFormMixin, OverlayI18nFormMixin, extra_locales
 from apps.loyalty.models import LoyaltyProgram
@@ -79,6 +79,7 @@ class PromotionForm(DynamicI18nFormMixin, forms.ModelForm):
             "show_countdown",
             "discount_style",
             "card_style",
+            "badge",  # FB-20
             "page_style",
             "is_surprise",
             "recurrence",
@@ -169,6 +170,13 @@ class PromotionForm(DynamicI18nFormMixin, forms.ModelForm):
             self.fields["stay_unit"].help_text = _(
                 "Aktion gilt für dieses Zimmer — wirkt als Preis-Kandidat bei der Buchung."
             )
+        # FB-20: метка на карточке — тот же реестр, что у товара/услуги/события/номера.
+        self.fields["badge"] = forms.ChoiceField(
+            label=_("Badge"),
+            required=False,
+            choices=labels.CHOICES,
+            help_text=_("Kleiner Aufkleber auf der Karte (z. B. „Neu“, „Beliebt“)."),
+        )
         # DL-19: ФОРМА карточки этой акции — из реестра card_forms; пусто = «как в
         # настройках сайта», заданное значение побеждает общий выбор владельца.
         self.fields["card_style"] = forms.ChoiceField(

@@ -60,6 +60,7 @@ CSS. Фото, сезоны, блокировки, комнаты, iCal — св
 
   {# --- Grunddaten -------------------------------------------------------- #}
   <div data-pf-panel="basis" class="grid sm:grid-cols-3 gap-3 items-end{% if active_tab != 'basis' %} hidden{% endif %}">
+    {% include "tenant/_badge_select.html" with current=u.badge %}
     <div class="sm:col-span-3">
       <div data-i18n-loc="{{ base_loc }}" lang="{{ base_loc }}">
         <label class="block"><span class="block text-xs font-medium text-gray-500 mb-1">{% trans "Description" %}</span>

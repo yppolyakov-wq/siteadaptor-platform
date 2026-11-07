@@ -1,0 +1,11 @@
+{% load i18n cabinet %}
+{% comment %}FB-20: метка на карточке («Neu», «Beliebt») — один селект на услугу/номер
+(реестр apps/core/labels.py; у товара/акции/события — поле формы). Поле всегда в POST,
+поэтому сервер пишет его по присутствию имени «badge» (W0).{% endcomment %}
+<div>
+  <label for="id_badge" class="block text-sm font-medium mb-1">{% trans "Badge" %}</label>
+  <select id="id_badge" name="badge" aria-describedby="id_badge_helptext" class="ui-input">
+    {% badge_choices as choices %}{% for code, label in choices %}<option value="{{ code }}"{% if code == current %} selected{% endif %}>{{ label }}</option>{% endfor %}
+  </select>
+  <p id="id_badge_helptext" class="text-xs ui-muted mt-1">{% trans "Kleiner Aufkleber auf der Karte (z. B. „Neu“, „Beliebt“)." %}</p>
+</div>

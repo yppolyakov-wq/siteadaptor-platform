@@ -9,6 +9,7 @@
     </div>
     <div class="min-w-0 flex-1">
       {% if p.group and not in_group %}<p class="text-[10px] font-semibold uppercase tracking-wide text-gray-400" data-promo-group>{{ p.group_localized }}</p>{% endif %}
+      {% include "storefront/_entity_label.html" with label=p.badge_label cls="inline-block mb-1" %}
       <h3 class="font-semibold leading-tight line-clamp-2" data-edit-model="promotion" data-edit-field="title" data-edit-pk="{{ p.pk }}">{{ p.title_text }}</h3>
       <div class="mt-0.5 flex items-center gap-x-2 flex-wrap [&_span]:whitespace-nowrap">
         {% include "storefront/_discount_display.html" with promo=p part="price_line" %}

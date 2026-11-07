@@ -177,6 +177,16 @@ class Promotion(SoftDeleteMixin, I18nMixin):
     RESERVATION = "reservation"
     PROMO_TYPES = [(DISCOUNT, _("Discount")), (RESERVATION, _("Reservation"))]
 
+    # FB-20: метка на карточке («Neu», «Beliebt») — реестр apps/core/labels.py.
+    badge = models.CharField(max_length=20, blank=True, default="")
+
+    @property
+    def badge_label(self) -> str:
+        """FB-20: переводимая подпись метки (на витрине — язык клиента)."""
+        from apps.core.labels import label_for
+
+        return label_for(self.badge)
+
     title = models.JSONField(default=dict)  # {"de": "...", "en": "..."}
     description = models.JSONField(default=dict)
 

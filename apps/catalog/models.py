@@ -12,17 +12,14 @@ from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
+from apps.core.labels import LABELS
 from apps.core.models import I18nMixin, SoftDeleteMixin, TimestampedModel, resolve_overlay
 
 # Ф3: переводимые метки бейджа для витрины. BADGE_CHOICES на модели остаётся
 # немецким (форма кабинета/БД/миграции не трогаем) — здесь тот же msgid, но
 # lazy: на витрине резолвится в язык клиента (переводы в django.po).
-BADGE_LABELS = {
-    "tagesgericht": _("Tagesgericht"),
-    "neu": _("Neu"),
-    "beliebt": _("Beliebt"),
-    "empfehlung": _("Empfehlung"),
-}
+# FB-20: общий реестр меток — у акции/услуги/события/номера тот же (apps/core/labels.py).
+BADGE_LABELS = LABELS
 
 
 class Category(SoftDeleteMixin, I18nMixin):

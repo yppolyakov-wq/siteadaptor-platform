@@ -29,6 +29,7 @@ home-секций. Идентичность/медиа/ссылка/CTA-подп
          class="w-16 h-16 sm:w-20 sm:h-20 rounded-xl object-cover shrink-0">
   {% endif %}
   <div class="min-w-0 flex-1">
+    {% include "storefront/_entity_label.html" with label=obj.badge_label cls="inline-block mb-1" %}
     <h3 class="font-semibold text-lg truncate"{% if edit %} data-edit-model="{{ edit_model }}" data-edit-pk="{{ card.pk }}" data-edit-field="name"{% endif %}>{{ card.name }}</h3>
     {% if card.description and show_description %}<p class="text-sm text-gray-500 mt-0.5 line-clamp-2"{% if edit %} data-edit-model="{{ edit_model }}" data-edit-pk="{{ card.pk }}" data-edit-field="description"{% endif %}>{{ card.description }}</p>{% endif %}
     {% if card.kind == "service" %}<p class="text-sm text-gray-400 mt-1">{% blocktrans with m=obj.duration_minutes %}{{ m }} min{% endblocktrans %}</p>
@@ -54,6 +55,7 @@ home-секций. Идентичность/медиа/ссылка/CTA-подп
 </a>
 {% else %}
 <a href="{{ href }}" class="sf-card relative block bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition">
+  {% include "storefront/_entity_label.html" with label=obj.badge_label cls="absolute top-3 left-3 z-10" %}
   {% if edit %}<span data-photo-edit data-edit-model="{{ edit_model }}" data-edit-pk="{{ card.pk }}" role="button" tabindex="-1" class="sf-photo-edit hidden absolute top-2 right-2 z-20 w-8 h-8 rounded-full bg-white/95 shadow ring-1 ring-gray-200 flex items-center justify-center hover:text-indigo-600" title="{% trans 'Replace photo' %}" aria-label="{% trans 'Replace photo' %}">📷</span>{% endif %}
   {% comment %}LAY-4: «Ценник-полка» — цена ведёт, фото лишь опознаёт товар. Плашка
   СВЕРХУ, до фото: так ряд ценников читается как полка в магазине.{% endcomment %}

@@ -30,6 +30,7 @@
 <div id="buchen" class="space-y-4 scroll-mt-24">
   <div>
     {# L3c: локализованное имя номера; инлайн-правка редактирует base-поле. #}
+    {% include "storefront/_entity_label.html" with label=unit.badge_label cls="inline-block mb-2" %}
     <h1 class="text-2xl md:text-3xl font-bold" data-edit-model="stay" data-edit-pk="{{ unit.pk }}" data-edit-field="name">{{ unit.name_localized }}</h1>
     {% comment %}A5: рейтинг бизнеса на странице номера (как Booking/HRS) — звезда +
     среднее + число отзывов; только если отзывы есть.{% endcomment %}

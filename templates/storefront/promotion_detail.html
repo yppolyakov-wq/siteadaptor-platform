@@ -70,6 +70,7 @@
 
   {# Инфо #}
   <div data-promo-col="info">
+    {% include "storefront/_entity_label.html" with label=promotion.badge_label cls="inline-block mb-2" %}
     <h1 class="text-2xl md:text-3xl font-bold">{{ promotion.title_text }}</h1>
     {% include "storefront/_discount_display.html" with promo=promotion part="surprise" size="lg" %}
 

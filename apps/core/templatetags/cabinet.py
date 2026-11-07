@@ -661,3 +661,11 @@ def assistant_fab(context):
     memo = {"request": request, "seite": seite, "support_dot": support_dot, "kunden": kunden}
     request._assistant_fab = memo
     return memo
+
+
+@register.simple_tag
+def badge_choices():
+    """FB-20: варианты метки карточки (общий реестр apps/core/labels.py)."""
+    from apps.core.labels import CHOICES
+
+    return CHOICES
