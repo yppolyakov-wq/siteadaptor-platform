@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>SolingenMarkt – Tafel mobil</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;700&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#FCD34D;text-decoration:none}
+</style>
+</helmet>
+<div style="width: 390px; height: 1700px; box-sizing: border-box; overflow: hidden; background: #0B0F14; color: #F3F4F6; font-family: Inter, system-ui, sans-serif; display: flex; flex-direction: column">
+  <header style="padding: 14px 16px; display: flex; flex-direction: column; gap: 12px; border-bottom: 1px solid #1F2937">
+    <div style="display: flex; align-items: center; gap: 8px"><span style="background: #FCD34D; color: #0B0F14; font-weight: 800; border-radius: 6px; padding: 3px 7px; font-size: 13px">SG</span><b style="font-size: 18px">SolingenMarkt</b><span style="margin-left: auto; font-family: 'IBM Plex Mono', monospace; font-size: 22px; font-weight: 700; color: #FCD34D">14:20</span></div>
+    <label style="display: flex; align-items: center; gap: 8px; background: #111827; border: 1px solid #374151; border-radius: 12px; padding: 0 14px; min-height: 46px">
+      <span style="position: absolute; width: 1px; height: 1px; overflow: hidden">Suche</span>
+      <input type="search" placeholder="Ziel suchen …" style="flex: 1; border: 0; background: transparent; color: #F3F4F6; font: 16px Inter, sans-serif; outline: none; min-height: 42px">
+    </label>
+    <div role="tablist" aria-label="Tafel" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px">
+      <button type="button" role="tab" aria-selected="true" style="border: 0; border-radius: 10px; background: #FCD34D; color: #0B0F14; font: 800 14px Inter, sans-serif; min-height: 44px">Abfahrt · 9</button>
+      <button type="button" role="tab" aria-selected="false" style="border: 1px solid #374151; border-radius: 10px; background: #111827; color: #F3F4F6; font: 700 14px Inter, sans-serif; min-height: 44px">Ankunft · 12</button>
+    </div>
+  </header>
+  <ol style="list-style: none; margin: 0; padding: 0">
+    <sc-for list="{{rows}}" as="r" hint-placeholder-count="7">
+      <li style="border-bottom: 1px solid #1F2937">
+        <a href="#" style="display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 12px; padding: 14px 16px; color: #F3F4F6">
+          <span style="font-family: 'IBM Plex Mono', monospace; font-weight: 700; color: #FCD34D; background: #000000; border-radius: 6px; text-align: center; padding: 6px 0; align-self: start">{{r.time}}</span>
+          <span style="display: flex; flex-direction: column; gap: 3px">
+            <b style="font-size: 16px">{{r.t}}</b>
+            <span style="font-size: 13px; color: #9CA3AF">{{r.shop}} · {{r.area}}</span>
+            <span style="display: flex; gap: 10px; font-size: 13px"><b>{{r.p}}</b><span style="color: {{r.nc}}; font-weight: 700">{{r.note}}</span></span>
+          </span>
+        </a>
+      </li>
+    </sc-for>
+  </ol>
+  <nav aria-label="Hauptnavigation" style="margin-top: auto; border-top: 1px solid #1F2937; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); padding: 8px 6px 18px">
+    <a href="#" style="display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; color: #FCD34D; min-height: 44px">Tafel</a>
+    <a href="#" style="display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; color: #D1D5DB; min-height: 44px">Karte</a>
+    <a href="#" style="display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; color: #D1D5DB; min-height: 44px">Mein Tag</a>
+    <a href="#" style="display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; color: #D1D5DB; min-height: 44px">Konto</a>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1700}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const R = '#FCA5A5', Y = '#FCD34D', G = '#6EE7B7', S = '#9CA3AF';
+    const r = (time, t, shop, area, p, note, nc) => ({ time, t, shop, area, p, note, nc });
+    return { rows: [
+      r('15:00', 'Suppe des Tages', 'Café Ohligser Eck', 'Ohligs', '6,50 €', 'noch 40 Min.', R),
+      r('16:00', 'MHD-Joghurt −40 %', 'Hofladen Wupperhof', 'Ohligs', '1,50 €', 'noch 8 Stück', Y),
+      r('17:00', 'Termin −20 %', 'Salon Gräfrath', 'Gräfrath', '31,20 €', '3 frei', Y),
+      r('18:00', 'Feierabendtüte −50 %', 'Klingenbrot', 'Mitte', '5,00 €', 'ab 17 Uhr', S),
+      r('18:30', 'Tulpen 10 Stück', 'Vergissmeinnicht', 'Gräfrath', '5,00 €', 'pünktlich', G),
+      r('20:00', 'Kabarett: Bergisch …', 'Kulturkeller', 'Mitte', '18,00 €', 'Einlass 19:30', G),
+      r('21:00', 'Spa 3 Stunden', 'Day-Spa Wupperwelle', 'Burg', '29,00 €', 'letzter Einlass 18:00', Y),
+      r('23:00', '2 Pizzen + Salat', 'Pizzabote', 'Burg', '24,90 €', 'liefert', G)
+    ] };
+  }
+}
+</script>
+</body>
+</html>

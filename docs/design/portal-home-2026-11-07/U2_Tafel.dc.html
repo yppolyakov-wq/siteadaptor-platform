@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>SolingenMarkt – Solingen-Tafel</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0B0F14}
+a{color:#FCD34D;text-decoration:none}a:hover{color:#FDE68A}
+</style>
+</helmet>
+<div style="font-family: Inter, system-ui, sans-serif; color: #F3F4F6; background: #0B0F14">
+<header style="border-bottom: 1px solid #1F2937">
+  <div style="max-width: 1360px; margin: 0 auto; padding: 16px 24px; display: flex; flex-wrap: wrap; align-items: center; gap: 18px">
+    <span style="display: flex; align-items: center; gap: 10px"><span style="background: #FCD34D; color: #0B0F14; font-weight: 800; border-radius: 6px; padding: 4px 8px; font-size: 14px">SG</span><span style="font-weight: 800; font-size: 20px">SolingenMarkt</span></span>
+    <label style="flex: 1 1 380px; display: flex; align-items: center; gap: 8px; background: #111827; border: 1px solid #374151; border-radius: 10px; padding: 0 16px; min-height: 46px">
+      <span style="position: absolute; width: 1px; height: 1px; overflow: hidden">Suche</span>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input type="search" placeholder="Ziel suchen: Pizza, Friseur, Kino …" style="flex: 1; border: 0; background: transparent; color: #F3F4F6; font: 15px Inter, sans-serif; outline: none; min-height: 42px">
+    </label>
+    <span style="font-family: 'IBM Plex Mono', monospace; font-size: 26px; font-weight: 700; color: #FCD34D">14:20</span>
+  </div>
+</header>
+
+<main style="max-width: 1360px; margin: 0 auto; padding: 28px 24px 48px; display: flex; flex-direction: column; gap: 32px">
+  <div style="display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px">
+    <div>
+      <div style="font-size: 13px; font-weight: 700; letter-spacing: .1em; color: #9CA3AF">SOLINGEN · SAMSTAG 7. NOVEMBER</div>
+      <h1 style="margin: 6px 0 0; font-size: 50px; letter-spacing: -0.03em; line-height: 1">Was heute noch fährt.</h1>
+    </div>
+    <div role="group" aria-label="Stadtteil" style="margin-left: auto; display: flex; flex-wrap: wrap; gap: 6px">
+      <sc-for list="{{gleise}}" as="g" hint-placeholder-count="6">
+        <a href="#" aria-current="{{g.cur}}" style="{{g.style}}">{{g.t}}</a>
+      </sc-for>
+    </div>
+  </div>
+
+  <sc-for list="{{boards}}" as="b" hint-placeholder-count="2">
+    <section aria-labelledby="{{b.id}}" style="background: #111827; border: 1px solid #1F2937; border-radius: 18px; overflow: hidden">
+      <div style="display: flex; align-items: center; gap: 12px; padding: 16px 20px; background: #0F172A; border-bottom: 1px solid #1F2937">
+        <span style="background: {{b.color}}; color: #0B0F14; font-weight: 800; font-size: 13px; padding: 4px 10px; border-radius: 6px">{{b.tag}}</span>
+        <h2 id="{{b.id}}" style="margin: 0; font-size: 22px">{{b.t}}</h2>
+        <span style="font-size: 14px; color: #9CA3AF">{{b.sub}}</span>
+        <a href="#" style="margin-left: auto; font-weight: 700; font-size: 14px">Ganze Tafel →</a>
+      </div>
+      <table style="width: 100%; border-collapse: collapse; font-family: 'IBM Plex Mono', monospace">
+        <thead>
+          <tr style="text-align: left; font-size: 12px; color: #9CA3AF; letter-spacing: .08em">
+            <th scope="col" style="padding: 10px 20px; font-weight: 500">{{b.h1}}</th>
+            <th scope="col" style="padding: 10px 8px; font-weight: 500">ANGEBOT</th>
+            <th scope="col" style="padding: 10px 8px; font-weight: 500">GESCHÄFT</th>
+            <th scope="col" style="padding: 10px 8px; font-weight: 500">STADTTEIL</th>
+            <th scope="col" style="padding: 10px 8px; font-weight: 500">PREIS</th>
+            <th scope="col" style="padding: 10px 20px; font-weight: 500">HINWEIS</th>
+          </tr>
+        </thead>
+        <tbody>
+          <sc-for list="{{b.rows}}" as="r" hint-placeholder-count="6">
+            <tr style="border-top: 1px solid #1F2937; font-size: 16px">
+              <td style="padding: 12px 20px"><span style="background: #000000; color: {{b.color}}; padding: 4px 8px; border-radius: 4px; font-weight: 700">{{r.time}}</span></td>
+              <td style="padding: 12px 8px; font-weight: 700; color: #F9FAFB"><a href="#" style="color: #F9FAFB">{{r.t}}</a></td>
+              <td style="padding: 12px 8px; color: #D1D5DB">{{r.shop}}</td>
+              <td style="padding: 12px 8px; color: #D1D5DB">{{r.area}}</td>
+              <td style="padding: 12px 8px; color: #F9FAFB">{{r.p}}</td>
+              <td style="padding: 12px 20px; color: {{r.nc}}; font-weight: 700">{{r.note}}</td>
+            </tr>
+          </sc-for>
+        </tbody>
+      </table>
+    </section>
+  </sc-for>
+
+  <section aria-labelledby="sel-h" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px">
+    <h2 id="sel-h" style="grid-column: 1 / -1; margin: 0; font-size: 22px">Nächster Halt: die drei, die gleich schließen</h2>
+    <sc-for list="{{cards}}" as="c" hint-placeholder-count="3">
+      <a href="#" style="background: #111827; border: 1px solid #1F2937; border-radius: 18px; overflow: hidden; color: #F3F4F6; display: flex">
+        <img src="{{c.img}}" alt="" style="width: 150px; height: 140px; object-fit: cover">
+        <span style="padding: 14px; display: flex; flex-direction: column; gap: 4px"><span style="font-family: 'IBM Plex Mono', monospace; color: #FCA5A5; font-weight: 700">{{c.time}}</span><b style="font-size: 16px">{{c.t}}</b><span style="font-size: 13px; color: #9CA3AF">{{c.s}}</span><span style="margin-top: auto; color: #FCD34D; font-weight: 700; font-size: 14px">{{c.cta}} →</span></span>
+      </a>
+    </sc-for>
+  </section>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const B = '/_blob/', R = '#FCA5A5', Y = '#FCD34D', G = '#6EE7B7', S = '#9CA3AF';
+    const gleise = ['Alle Gleise', 'Mitte', 'Ohligs', 'Wald', 'Gräfrath', 'Burg'].map((t, i) => ({ t, cur: i === 0 ? 'page' : 'false',
+      style: 'border-radius:8px;padding:8px 14px;font-size:14px;font-weight:700;min-height:40px;box-sizing:border-box;display:inline-flex;align-items:center;' + (i === 0 ? 'background:#FCD34D;color:#0B0F14' : 'background:#111827;color:#F3F4F6;border:1px solid #374151') }));
+    const r = (time, t, shop, area, p, note, nc) => ({ time, t, shop, area, p, note, nc });
+    return {
+      gleise,
+      boards: [
+        { id: 'ab', tag: 'ABFAHRT', color: Y, t: 'Endet bald', sub: 'nur, was man vor Ende noch schafft', h1: 'BIS', rows: [
+          r('15:00', 'Suppe des Tages', 'Café Ohligser Eck', 'Ohligs', '6,50 €', 'noch 40 Min.', R),
+          r('16:00', 'MHD-Joghurt −40 %', 'Hofladen Wupperhof', 'Ohligs', '1,50 €', 'noch 8 Stück', Y),
+          r('17:00', 'Termin −20 %', 'Salon Gräfrath', 'Gräfrath', '31,20 €', '3 Plätze frei', Y),
+          r('18:00', 'Feierabendtüte −50 %', 'Bäckerei Klingenbrot', 'Mitte', '5,00 €', 'ab 17 Uhr', S),
+          r('18:30', 'Tulpen 10 Stück', 'Vergissmeinnicht', 'Gräfrath', '5,00 €', 'pünktlich', G),
+          r('20:00', 'Kabarett: Bergisch …', 'Kulturkeller', 'Mitte', '18,00 €', 'Einlass 19:30', G) ] },
+        { id: 'an', tag: 'ANKUNFT', color: G, t: 'Neu eingetroffen', sub: 'seit Ihrem letzten Besuch am Mittwoch', h1: 'SEIT', rows: [
+          r('14:10', 'Tiramisu zum Mitnehmen', 'Trattoria Lumetto', 'Mitte', '6,90 €', 'neu im Sortiment', G),
+          r('11:30', 'Café Morgenrot', 'neues Geschäft', 'Mitte', '—', 'erstmals dabei', G),
+          r('Fr', 'Kerzen 2 für 29 €', 'Schleifchen', 'Ohligs', '16,90 €', 'ab Mo im Laden', S),
+          r('Mi', 'E-Bike-Familienpaket', 'Radverleih', 'Burg', '79,00 €', '−12 %', Y) ] }
+      ],
+      cards: [
+        { img: B+'b6b8e6b3e5f638e21a9cc342057ef0f4', time: 'bis 15:00', t: 'Suppe des Tages', s: 'Café Ohligser Eck · 200 m', cta: 'Zurücklegen' },
+        { img: B+'1a9f5aed8fd7ca238974cdc49931468f', time: 'bis 16:00', t: 'MHD-Joghurt −40 %', s: 'Hofladen Wupperhof · noch 8', cta: 'Zurücklegen' },
+        { img: B+'ba2fda82e9bb03bde9d5f6620c7b73f4', time: 'bis 17:00', t: 'Termin −20 %', s: 'Salon Gräfrath · 3 frei', cta: 'Termin wählen' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

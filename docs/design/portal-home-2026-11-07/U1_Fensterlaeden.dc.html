@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>SolingenMarkt – Bergische Fensterläden</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F4F1EA}
+a{color:#1F6F43;text-decoration:none}a:hover{color:#14502F}
+</style>
+</helmet>
+<div style="font-family: Inter, system-ui, sans-serif; color: #1E2226; background: #F4F1EA">
+<header style="background: #2B2F33; color: #FFFFFF">
+  <div style="max-width: 1360px; margin: 0 auto; padding: 16px 24px; display: flex; flex-wrap: wrap; align-items: center; gap: 18px">
+    <span style="display: flex; flex-direction: column"><span style="font-family: Fraunces, serif; font-weight: 800; font-size: 24px">SolingenMarkt</span><span style="font-size: 12px; color: #C9CED3; letter-spacing: .08em">SCHIEFER · FACHWERK · KLINGE</span></span>
+    <label style="flex: 1 1 380px; display: flex; align-items: center; gap: 8px; background: #FFFFFF; border-radius: 10px; padding: 0 16px; min-height: 46px">
+      <span style="position: absolute; width: 1px; height: 1px; overflow: hidden">Suche</span>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2B2F33" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input type="search" placeholder="Durch Solingen bummeln — was suchen Sie?" style="flex: 1; border: 0; font: 15px Inter, sans-serif; outline: none; min-height: 42px; color: #1E2226">
+    </label>
+    <a href="#" style="color: #FFFFFF; font-weight: 600; font-size: 14px">Anmelden</a>
+  </div>
+</header>
+
+<main style="max-width: 1360px; margin: 0 auto; padding: 32px 24px 48px; display: flex; flex-direction: column; gap: 40px">
+  <section aria-labelledby="u1-h" style="display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px">
+    <div style="flex: 1 1 560px">
+      <div style="font-size: 13px; font-weight: 700; letter-spacing: .08em; color: #1F6F43">SAMSTAG · 14:20 UHR</div>
+      <h1 id="u1-h" style="margin: 6px 0 0; font-family: Fraunces, serif; font-size: 54px; line-height: 1; letter-spacing: -0.02em">Die Läden sind auf.</h1>
+      <p style="margin: 12px 0 0; font-size: 17px; color: #4A5056; max-width: 640px; line-height: 1.5">Grüne Läden offen heißt: Das Geschäft hat jetzt geöffnet und das Angebot gilt heute. Geschlossene Läden zeigen, wann sie wieder aufmachen.</p>
+    </div>
+    <div role="group" aria-label="Stadtteil" style="display: flex; flex-wrap: wrap; gap: 6px">
+      <sc-for list="{{areas}}" as="a" hint-placeholder-count="6">
+        <a href="#" aria-current="{{a.cur}}" style="{{a.style}}">{{a.t}}</a>
+      </sc-for>
+    </div>
+  </section>
+
+  <section aria-label="Die Straße" style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 22px 18px">
+    <sc-for list="{{houses}}" as="h" hint-placeholder-count="8">
+      <article style="display: flex; flex-direction: column">
+        <div aria-hidden="true" style="height: 46px; background: #2B2F33; clip-path: polygon(50% 0, 100% 100%, 0 100%)"></div>
+        <div style="background: repeating-linear-gradient(0deg, #3A3F44 0 9px, #33383D 9px 11px); padding: 16px 16px 14px; display: flex; flex-direction: column; gap: 10px">
+          <div style="position: relative; border: 6px solid #FFFFFF; height: 150px; background: #1E2226; overflow: hidden">
+            <img src="{{h.img}}" alt="" style="width: 100%; height: 100%; object-fit: cover; display: block; {{h.imgStyle}}">
+            <span aria-hidden="true" style="{{h.left}}"></span>
+            <span aria-hidden="true" style="{{h.right}}"></span>
+            <sc-if value="{{h.closed}}" hint-placeholder-val="{{ false }}"><span style="position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); background: #FFFFFF; color: #1E2226; font-size: 12px; font-weight: 700; padding: 6px 10px; border-radius: 6px; white-space: nowrap">{{h.closed}}</span></sc-if>
+            <sc-if value="{{h.badge}}" hint-placeholder-val="{{ false }}"><span style="position: absolute; right: 6px; top: 6px; background: #C2410C; color: #FFFFFF; font-size: 12px; font-weight: 800; padding: 3px 8px; border-radius: 999px">{{h.badge}}</span></sc-if>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px; color: #FFFFFF">
+            <span style="width: 10px; height: 10px; border-radius: 50%; background: {{h.dot}}"></span>
+            <b style="font-size: 14px">{{h.shop}}</b>
+          </div>
+        </div>
+        <div style="background: #FFFFFF; padding: 12px 14px; display: flex; flex-direction: column; gap: 4px; border: 1px solid #E2DDD2; border-top: 0">
+          <span style="font-size: 15px; font-weight: 700">{{h.t}}</span>
+          <span style="font-size: 12px; color: #4A5056">{{h.s}}</span>
+          <div style="display: flex; align-items: center; margin-top: 4px"><b>{{h.p}}</b><a href="#" style="margin-left: auto; font-size: 13px; font-weight: 700">{{h.cta}} →</a></div>
+        </div>
+      </article>
+    </sc-for>
+  </section>
+
+  <section aria-labelledby="typ-h" style="display: flex; flex-direction: column; gap: 16px">
+    <h2 id="typ-h" style="margin: 0; font-family: Fraunces, serif; font-size: 34px">Typisch Solingen</h2>
+    <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px">
+      <sc-for list="{{typ}}" as="t" hint-placeholder-count="4">
+        <a href="#" style="background: #FFFFFF; border: 1px solid #E2DDD2; color: #1E2226; display: flex; flex-direction: column">
+          <img src="{{t.img}}" alt="" style="width: 100%; height: 150px; object-fit: cover; display: block">
+          <span style="padding: 14px; display: flex; flex-direction: column; gap: 4px"><b style="font-family: Fraunces, serif; font-size: 20px">{{t.t}}</b><span style="font-size: 13px; color: #4A5056; line-height: 1.45">{{t.s}}</span><span style="font-size: 13px; font-weight: 700; color: #1F6F43">{{t.n}}</span></span>
+        </a>
+      </sc-for>
+    </div>
+  </section>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":2300}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const B = '/_blob/';
+    const slat = 'repeating-linear-gradient(0deg,#1F6F43 0 9px,#185A36 9px 11px)';
+    const sh = (side, open) => 'position:absolute;top:0;bottom:0;' + side + ':0;width:' + (open ? '22px' : '50%') + ';background:' + slat + ';' + (side === 'left' ? 'border-right' : 'border-left') + ':2px solid #14502F';
+    const hs = (img, shop, t, s, p, cta, badge, open, closed) => ({ img: B+img, shop, t, s, p, cta, badge, closed: open ? '' : closed,
+      left: sh('left', open), right: sh('right', open), dot: open ? '#34D399' : '#9CA3AF', imgStyle: open ? '' : 'opacity:.5' });
+    const areas = ['Alle', 'Mitte', 'Ohligs', 'Wald', 'Gräfrath', 'Burg'].map((t, i) => ({ t, cur: i === 0 ? 'page' : 'false',
+      style: 'border-radius:8px;padding:8px 14px;font-size:14px;font-weight:700;min-height:40px;box-sizing:border-box;display:inline-flex;align-items:center;' + (i === 0 ? 'background:#2B2F33;color:#FFFFFF' : 'background:#FFFFFF;color:#1E2226;border:1px solid #D6D0C4') }));
+    return {
+      areas,
+      houses: [
+        hs('d648274a4c4401071d4ca5a78902aa8e', 'Bäckerei Klingenbrot', 'Feierabendtüte', 'Mitte · bis 18:00', '5,00 €', 'Zurücklegen', '−50 %', true),
+        hs('b6b8e6b3e5f638e21a9cc342057ef0f4', 'Café Ohligser Eck', 'Suppe des Tages', 'Ohligs · bis 15:00', '6,50 €', 'Zurücklegen', '', true),
+        hs('ba2fda82e9bb03bde9d5f6620c7b73f4', 'Salon Gräfrath', 'Termin heute 14–17', 'Gräfrath · noch 3', '31,20 €', 'Termin', '−20 %', true),
+        hs('620363281e997d3d7a8ce36409726bcb', 'Radverleih Wupperschleife', 'E-Bike-Familientag', 'Burg · bis 21:00', '79,00 €', 'Reservieren', '−12 %', true),
+        hs('3d93fa50ae038d6dba492c5ba65525c2', 'Trattoria Lumetto', 'Tiramisu zum Mitnehmen', 'Mitte · bis 23:00', '6,90 €', 'Ansehen', '', true),
+        hs('81b6249e9760b4fec38a0b063a93c39f', 'Schleifchen', 'Kerzen 2 für 29 €', 'Ohligs', '16,90 €', 'Merken', '', false, 'öffnet Mo 09:30'),
+        hs('0e59404bf9c844759892f46ea4ad7c9e', 'Eiscafé Gelatino', 'Kugel-Montag', 'Wald', '1,00 €', 'Merken', '', false, 'öffnet So 10:00'),
+        hs('f246cca0205426cb1736d89c25f473fb', 'Werkstatt Ohligs', 'Reifenwechsel', 'Ohligs', '29,00 €', 'Termin', '', false, 'öffnet Mo 08:00')
+      ],
+      typ: [
+        { img: B+'45be92b64a3a1c78934c0dd2522248e4', t: 'Bergische Kaffeetafel', s: 'Waffeln, Milchreis, Dröppelminna — wo es sie diese Woche gibt.', n: '6 Cafés' },
+        { img: B+'f246cca0205426cb1736d89c25f473fb', t: 'Klinge & Schliff', s: 'Messer schleifen lassen, Solinger Schneidwaren direkt vom Hersteller.', n: '9 Werkstätten' },
+        { img: B+'ebdd95c0705f1927cf7fc15fb8586bd2', t: 'An der Wupper', s: 'Touren, Verleih und Einkehr zwischen Müngstener Brücke und Burg.', n: '14 Angebote' },
+        { img: B+'508fdfe870cd29b59a4e87aba6b48850', t: 'Aus dem Bergischen', s: 'Hofläden, Imker, regionale Feinkost — Herkunft geprüft.', n: '58 Produkte' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

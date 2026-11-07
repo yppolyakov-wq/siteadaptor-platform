@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>SolingenMarkt – Mein Samstag</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F6F7F9}
+a{color:#C2410C;text-decoration:none}a:hover{color:#9A3412}
+</style>
+</helmet>
+<div style="font-family: Inter, system-ui, sans-serif; color: #111827; background: #F6F7F9">
+<header style="background: #FFFFFF; border-bottom: 1px solid #E5E7EB">
+  <div style="max-width: 1360px; margin: 0 auto; padding: 14px 24px; display: flex; flex-wrap: wrap; align-items: center; gap: 16px">
+    <span style="font-weight: 800; font-size: 20px; letter-spacing: -0.02em">Solingen<span style="color: #C2410C">Markt</span></span>
+    <nav aria-label="Hauptmenü" style="display: flex; gap: 18px; font-size: 14px; font-weight: 600"><a href="#" style="color: #374151">Entdecken</a><a href="#" style="color: #374151">Karte</a><a href="#" aria-current="page" style="color: #111827; border-bottom: 2px solid #C2410C; padding-bottom: 2px">Mein Tag</a></nav>
+    <a href="#" style="margin-left: auto; font-weight: 600; font-size: 14px">Anmelden</a>
+  </div>
+</header>
+
+<main style="max-width: 1360px; margin: 0 auto; padding: 28px 24px 48px; display: flex; flex-direction: column; gap: 22px">
+  <div style="display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px">
+    <div>
+      <div style="font-size: 13px; font-weight: 700; letter-spacing: .06em; color: #C2410C">AUS IHRER MERKLISTE GEBAUT</div>
+      <h1 style="margin: 6px 0 0; font-size: 46px; letter-spacing: -0.03em; line-height: 1">Mein Samstag in Solingen</h1>
+    </div>
+    <div style="margin-left: auto; display: flex; flex-wrap: wrap; gap: 8px">
+      <button type="button" style="border: 1px solid #D1D5DB; background: #FFFFFF; border-radius: 999px; padding: 10px 16px; font: 600 14px Inter, sans-serif; min-height: 44px">Mit Familie teilen</button>
+      <button type="button" style="border: 0; background: #C2410C; color: #FFFFFF; border-radius: 999px; padding: 10px 18px; font: 700 14px Inter, sans-serif; min-height: 44px">Alles zurücklegen (3)</button>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: 300px minmax(0, 1fr) 420px; gap: 20px; align-items: start">
+    <aside aria-labelledby="ml-h" style="background: #FFFFFF; border-radius: 20px; padding: 18px; display: flex; flex-direction: column; gap: 12px">
+      <h2 id="ml-h" style="margin: 0; font-size: 18px">Merkliste · 6</h2>
+      <sc-for list="{{saved}}" as="s" hint-placeholder-count="6">
+        <div style="display: flex; gap: 10px; align-items: center">
+          <img src="{{s.img}}" alt="" style="width: 48px; height: 48px; border-radius: 10px; object-fit: cover">
+          <span style="flex: 1; display: flex; flex-direction: column"><b style="font-size: 13px">{{s.t}}</b><span style="font-size: 12px; color: {{s.c}}; font-weight: 600">{{s.s}}</span></span>
+        </div>
+      </sc-for>
+      <p style="margin: 0; font-size: 12px; color: #4B5563; line-height: 1.5">Was heute nicht mehr geht, bleibt hier und erscheint im Plan für Montag.</p>
+    </aside>
+
+    <section aria-labelledby="plan-h" style="background: #FFFFFF; border-radius: 20px; padding: 20px; display: flex; flex-direction: column">
+      <h2 id="plan-h" style="margin: 0 0 14px; font-size: 18px">Ihr Plan · 4 Stationen</h2>
+      <sc-for list="{{plan}}" as="p" hint-placeholder-count="5">
+        <div style="display: grid; grid-template-columns: 64px 28px minmax(0, 1fr); gap: 10px">
+          <b style="font-size: 15px; padding-top: 12px; text-align: right">{{p.time}}</b>
+          <div style="display: flex; flex-direction: column; align-items: center">
+            <span style="width: 28px; height: 28px; border-radius: 50%; background: {{p.dotBg}}; color: #FFFFFF; font-size: 13px; font-weight: 800; display: flex; align-items: center; justify-content: center; margin-top: 8px">{{p.no}}</span>
+            <span style="flex: 1; width: 2px; background: #E5E7EB; min-height: 20px"></span>
+          </div>
+          <div style="{{p.box}}">
+            <sc-if value="{{p.img}}" hint-placeholder-val="{{ true }}"><img src="{{p.img}}" alt="" style="width: 72px; height: 72px; border-radius: 12px; object-fit: cover"></sc-if>
+            <span style="flex: 1; display: flex; flex-direction: column; gap: 3px">
+              <b style="font-size: 15px">{{p.t}}</b>
+              <span style="font-size: 12px; color: #4B5563">{{p.s}}</span>
+              <sc-if value="{{p.warn}}" hint-placeholder-val="{{ false }}"><span style="font-size: 12px; font-weight: 700; color: #B45309">{{p.warn}}</span></sc-if>
+            </span>
+            <span style="font-size: 13px; font-weight: 700; white-space: nowrap">{{p.p}}</span>
+          </div>
+        </div>
+      </sc-for>
+    </section>
+
+    <aside style="display: flex; flex-direction: column; gap: 16px">
+      <div style="position: relative; height: 360px; border-radius: 20px; overflow: hidden; background: #E8EEE6">
+        <svg viewBox="0 0 420 360" width="100%" height="100%" role="img" aria-label="Route durch Ohligs, Mitte und Burg">
+          <rect width="420" height="360" fill="#E8EEE6"/>
+          <path d="M0 260 C120 230 240 300 420 250" fill="none" stroke="#9EC5E3" stroke-width="12"/>
+          <path d="M70 90 L190 150 L330 260 L225 185" fill="none" stroke="#C2410C" stroke-width="4" stroke-dasharray="8 6"/>
+          <g font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#374151"><text x="40" y="70">Ohligs</text><text x="180" y="185">Mitte</text><text x="320" y="300">Burg</text></g>
+          <g font-family="Inter, sans-serif" font-size="13" font-weight="800" fill="#FFFFFF">
+            <circle cx="70" cy="90" r="14" fill="#C2410C"/><text x="66" y="95">1</text>
+            <circle cx="190" cy="150" r="14" fill="#C2410C"/><text x="186" y="155">2</text>
+            <circle cx="330" cy="260" r="14" fill="#C2410C"/><text x="326" y="265">3</text>
+            <circle cx="225" cy="185" r="14" fill="#C2410C"/><text x="221" y="190">4</text>
+          </g>
+        </svg>
+      </div>
+      <div style="background: #111827; color: #FFFFFF; border-radius: 20px; padding: 18px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; text-align: center">
+        <span><b style="display: block; font-size: 22px">3</b><span style="font-size: 12px; color: #D1D5DB">Stadtteile</span></span>
+        <span><b style="display: block; font-size: 22px">14 km</b><span style="font-size: 12px; color: #D1D5DB">mit dem Auto</span></span>
+        <span><b style="display: block; font-size: 22px">63 €</b><span style="font-size: 12px; color: #D1D5DB">gespart 14 €</span></span>
+      </div>
+      <div style="background: #FFFFFF; border-radius: 20px; padding: 18px; display: flex; flex-direction: column; gap: 10px">
+        <h2 style="margin: 0; font-size: 16px">Familie stimmt ab</h2>
+        <div style="display: flex; align-items: center; gap: 8px; font-size: 14px"><span style="width: 32px; height: 32px; border-radius: 50%; background: #FDE68A; display: flex; align-items: center; justify-content: center; font-weight: 800">A</span><span style="width: 32px; height: 32px; border-radius: 50%; background: #BFDBFE; display: flex; align-items: center; justify-content: center; font-weight: 800">M</span><span>Kinderkino: 2 Ja · Spa: 1 Ja</span></div>
+        <div style="border-top: 1px solid #F3F4F6; padding-top: 10px; font-size: 14px"><b>Passt noch rein:</b> 15:30 Waffel + Kaffee, Waffelstube Unterburg, 400 m von Station 4 · <a href="#">hinzufügen</a></div>
+      </div>
+    </aside>
+  </div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const B = '/_blob/', G = '#047857', A = '#B45309', X = '#6B7280';
+    const st = (time, no, img, t, s, p, warn, kind) => ({ time, no, img: img ? B+img : '', t, s, p, warn,
+      dotBg: kind === 'move' ? '#9CA3AF' : '#C2410C',
+      box: 'display:flex;gap:12px;align-items:center;margin:4px 0 14px;padding:12px;border-radius:16px;' + (kind === 'move' ? 'background:#F9FAFB;border:1px dashed #D1D5DB' : 'background:#FFFFFF;border:1px solid #E5E7EB') });
+    return {
+      saved: [
+        { img: B+'b6b8e6b3e5f638e21a9cc342057ef0f4', t: 'Suppe des Tages', s: 'offen bis 15:00', c: G },
+        { img: B+'d648274a4c4401071d4ca5a78902aa8e', t: 'Feierabendtüte', s: 'ab 17:00', c: A },
+        { img: B+'727b724abb015feeb7630cb82099d25f', t: 'Kinderkino', s: 'So 16:00', c: X },
+        { img: B+'a785509d75579795d84651c4452591f8', t: 'Spa 3 Stunden', s: 'offen bis 21:00', c: G },
+        { img: B+'81b6249e9760b4fec38a0b063a93c39f', t: 'Kerzen 2 für 29 €', s: 'erst Montag', c: X },
+        { img: B+'620363281e997d3d7a8ce36409726bcb', t: 'E-Bike-Tag', s: 'offen bis 21:00', c: G }
+      ],
+      plan: [
+        st('12:30', '1', 'b6b8e6b3e5f638e21a9cc342057ef0f4', 'Mittag: Suppe des Tages', 'Café Ohligser Eck · Ohligs', '6,50 €', 'Schließt 15:00 — deshalb zuerst', 'stop'),
+        st('13:20', '·', '', '12 Min. nach Mitte', 'Auto · Parken Neumarkt', '', '', 'move'),
+        st('13:40', '2', '12e55685e50f34ab0e5d675508d6f305', 'Winterstiefel anprobieren', 'Schuhhaus Wiedenhof · Mitte', '69,00 €', '', 'stop'),
+        st('15:00', '3', 'a785509d75579795d84651c4452591f8', 'Spa 3 Stunden', 'Day-Spa Wupperwelle · Burg', '29,00 €', '', 'stop'),
+        st('18:15', '4', 'd648274a4c4401071d4ca5a78902aa8e', 'Feierabendtüte abholen', 'Bäckerei Klingenbrot · Mitte', '5,00 €', 'Zurückgelegt bis 18:30', 'stop')
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>
