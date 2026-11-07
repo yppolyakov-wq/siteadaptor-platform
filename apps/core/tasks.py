@@ -133,7 +133,9 @@ def warn_city_freshness() -> int:
     return sent
 
 
-@idempotent_task()
+# Потолок по времени: разбор PDF/ответ ИИ не держит слот воркера; SoftTimeLimitExceeded —
+# Exception, `run_job` запишет «error» и снимет блокировку (AIS-4, ревью безопасности).
+@idempotent_task(soft_time_limit=90, time_limit=120)
 def offer_photo_lines(*, schema: str, user_pk, job: str) -> None:
     """AIS W4-4: строки шага «Angebot prüfen» из фото меню/прайса — вне веб-воркера."""
     from apps.core import offer_photo

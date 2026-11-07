@@ -34,7 +34,8 @@ TEXT_MAX = 20000
 #: Меньше значимых символов на страницу → скан без текстового слоя (или «кракозябры»).
 MIN_CHARS_PER_PAGE = 20
 #: Потолок распаковки одного потока (декомпрессионная бомба); у pypdf по умолчанию 75 МБ.
-STREAM_MAX = 20 * 1024 * 1024
+STREAM_MAX = 4 * 1024 * 1024
+#: Сумму по многим потокам ограничивает потолок времени задачи (`tasks.offer_photo_lines`).
 
 TASK = "offer_pdf_lines"
 #: В модель уходит только текстовый слой, обрезанный до этого размера.
@@ -81,15 +82,15 @@ def extract_text(data: bytes) -> tuple[str, str]:
     бросает — битый файл даёт код, а не 500/висящую задачу."""
     import pypdf
 
+    # pypdf 7: лимиты — конфигурация (не константы модуля). ВНЕ общего try: ошибка здесь —
+    # поломка установки, а не «битый файл» владельца; пусть падает громко.
+    pypdf.overwrite_configuration(
+        zlib_maximum_output_length=STREAM_MAX,
+        lzw_maximum_output_length=STREAM_MAX,
+        run_length_maximum_output_length=STREAM_MAX,
+        maximum_declared_stream_length=STREAM_MAX,
+    )
     try:
-        # pypdf 7: лимиты — конфигурация текущего контекста выполнения (не глобальные
-        # константы модуля): потолок распаковки потока против декомпрессионной бомбы.
-        pypdf.overwrite_configuration(
-            zlib_maximum_output_length=STREAM_MAX,
-            lzw_maximum_output_length=STREAM_MAX,
-            run_length_maximum_output_length=STREAM_MAX,
-            maximum_declared_stream_length=STREAM_MAX,
-        )
         reader = pypdf.PdfReader(io.BytesIO(data), strict=False)
         if reader.is_encrypted:
             return "", "encrypted"
@@ -103,6 +104,7 @@ def extract_text(data: bytes) -> tuple[str, str]:
             except Exception:  # noqa: BLE001 — один битый лист не роняет остальные
                 logger.info("offer pdf: page skipped", exc_info=True)
                 text = ""
+            text = _compact(text)
             parts.append(text)
             total += len(text)
             if total >= TEXT_MAX:
@@ -117,11 +119,34 @@ def extract_text(data: bytes) -> tuple[str, str]:
     return text, ""
 
 
+#: Layout-режим выравнивает колонки пробелами: 3+ пробела = граница колонки.
+_COLUMN_GAP = re.compile(r" {3,}")
+_PRICEY = re.compile(r"\d[.,]\d{2}\b")
+
+
+def _compact(text: str) -> str:
+    """Убрать выравнивание layout-режима, оставив границы колонок (« | »), и пустые строки —
+    иначе пробелы съедают лимит TEXT_MAX и последние страницы молча теряются."""
+    out = []
+    for line in text.splitlines():
+        cells = [" ".join(c.split()) for c in _COLUMN_GAP.split(line.strip())]
+        cells = [c for c in cells if c]
+        if cells:
+            out.append(" | ".join(cells))
+    return "\n".join(out)
+
+
+def _segments(text: str):
+    """Ячейки строк: две колонки меню («Pizza 8,50 | Pasta 9,00») — две позиции."""
+    for raw in (text or "").splitlines():
+        for cell in raw.split(" | "):
+            yield " ".join(cell.split())
+
+
 def rule_lines(text: str, kind: str) -> list[str]:
     """Строки по правилам: имя + цена из хвоста строки, иначе строка пропускается."""
     lines, seen = [], set()
-    for raw in (text or "").splitlines():
-        raw = " ".join(raw.split())
+    for raw in _segments(text):
         if len(raw) < 3 or not _LETTER.search(raw):
             continue
         m = _TAIL_PRICE.match(raw)
@@ -140,7 +165,8 @@ def rule_lines(text: str, kind: str) -> list[str]:
                     head = head[: found.start()] + head[found.end() :]
                     break
         name = offer_photo.clean_name(head)
-        if not name or not _LETTER.search(name):
+        # Вторая цена в имени — склеились две позиции: лучше пропустить, чем выдумать.
+        if not name or not _LETTER.search(name) or _PRICEY.search(name):
             continue
         line = " — ".join(p for p in (name, detail, price) if p)
         if line.casefold() in seen:
@@ -152,8 +178,19 @@ def rule_lines(text: str, kind: str) -> list[str]:
     return lines
 
 
+_CURRENCY_GAP = re.compile(r"\s*(€|eur|euro|chf)\s*")
+
+
 def _squash(value: str) -> str:
-    return _WS.sub(" ", value or "").strip().casefold()
+    text = _WS.sub(" ", (value or "").replace(" | ", " ")).strip().casefold()
+    return _CURRENCY_GAP.sub(r" \1 ", text).strip()
+
+
+def _occurs(needle: str, haystack: str) -> bool:  # haystack уже через _squash
+    """Дословно и ЦЕЛЫМ фрагментом: «3,50» не находится внутри «13,50», «Bier» — внутри
+    «Bierbrot»."""
+    needle = _squash(needle)
+    return bool(needle and re.search(r"(?<![\w,.])" + re.escape(needle) + r"(?![\w,])", haystack))
 
 
 def verify_lines(raw, text: str, kind: str) -> list[str]:
@@ -164,19 +201,30 @@ def verify_lines(raw, text: str, kind: str) -> list[str]:
     if not isinstance(raw, dict) or raw.get("is_price_list") is not True:
         return []
     items = raw.get("items")
-    haystack = _squash(text)
+    segments = [_squash(s) for s in _segments(text)]
+    segments = [s for s in segments if s]
     checked = []
     for item in items if isinstance(items, list) else []:
         if not isinstance(item, dict):
             continue
         name = offer_photo.clean_name(item.get("name"))
-        if not name or _squash(name) not in haystack:
+        hits = [i for i, seg in enumerate(segments) if _occurs(name, seg)]
+        if not hits:
             continue
+        # Цена/деталь — в той же ячейке, что имя, или в следующей (имя и цена на двух строках):
+        # чужая цена из другой строки меню не «подтверждает» выдуманную.
+        # Следующая ячейка — только если в ячейке имени цены нет вовсе.
+        near = [
+            segments[j]
+            for i in hits
+            for j in ((i,) if _PRICEY.search(segments[i]) else (i, i + 1))
+            if j < len(segments)
+        ]
         price = offer_photo.clean_price(item.get("price_text"))
-        if price and _squash(price) not in haystack:
+        if price and not any(_occurs(price, seg) for seg in near):
             price = ""
         detail = offer_photo.clean_detail(item.get("detail_text"), kind)
-        if detail and _squash(detail) not in haystack:
+        if detail and not any(_occurs(detail, seg) for seg in near):
             detail = ""
         checked.append({"name": name, "price_text": price, "detail_text": detail})
     return offer_photo.clean_lines({"is_price_list": True, "items": checked}, kind)
@@ -201,13 +249,17 @@ def ai_lines(text: str, kind: str, *, tenant=None) -> list[str]:
     return verify_lines(result.data, text, kind)
 
 
-def read_pdf(data: bytes, kind: str, *, tenant=None) -> tuple[list[str], str]:
-    """Воркер: PDF → строки. ИИ (если включён) поверх правил; сбой/пусто у ИИ — правила."""
+def read_pdf(data: bytes, kind: str, *, tenant=None) -> tuple[list[str], str, bool]:
+    """Воркер: PDF → (строки, код, строки_от_ИИ). ИИ (если включён) поверх правил;
+    сбой/пусто у ИИ — правила."""
     text, code = extract_text(data)
     if code:
-        return [], code
-    lines = ai_lines(text, kind, tenant=tenant) or rule_lines(text, kind)
-    return lines, ("" if lines else "nothing_pdf")
+        return [], code, False
+    lines = ai_lines(text, kind, tenant=tenant)
+    if lines:
+        return lines, "", True
+    lines = rule_lines(text, kind)
+    return lines, ("" if lines else "nothing_pdf"), False
 
 
 def enabled() -> bool:

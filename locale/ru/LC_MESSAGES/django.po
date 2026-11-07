@@ -35343,3 +35343,6 @@ msgstr "PDF меню или прайс-листа"
 
 msgid "PDF lesen"
 msgstr "Прочитать PDF"
+
+msgid "%(n)s Zeilen aus der Datei passen nicht mehr in die Liste — bitte danach eintragen."
+msgstr "%(n)s строк из файла больше не помещаются в список — внесите их потом."

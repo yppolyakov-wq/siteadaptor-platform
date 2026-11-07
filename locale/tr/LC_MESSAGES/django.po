@@ -35166,3 +35166,6 @@ msgstr "Menünün veya fiyat listesinin PDF'i"
 
 msgid "PDF lesen"
 msgstr "PDF'i oku"
+
+msgid "%(n)s Zeilen aus der Datei passen nicht mehr in die Liste — bitte danach eintragen."
+msgstr "Dosyadaki %(n)s satır artık listeye sığmıyor — lütfen sonra girin."

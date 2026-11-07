@@ -35107,3 +35107,6 @@ msgstr "PDF der Speisekarte oder Preisliste"
 
 msgid "PDF lesen"
 msgstr "PDF lesen"
+
+msgid "%(n)s Zeilen aus der Datei passen nicht mehr in die Liste — bitte danach eintragen."
+msgstr "%(n)s Zeilen aus der Datei passen nicht mehr in die Liste — bitte danach eintragen."

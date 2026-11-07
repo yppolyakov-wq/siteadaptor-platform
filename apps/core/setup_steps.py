@@ -1057,7 +1057,8 @@ def _ctx_pruefen(request):
         "pruefen_scan_pdf_ai": offer_pdf.enabled(),
         "pruefen_scan_state": offer_photo.state(request),  # только чтение (GET)
         "pruefen_from_photo": review and draft.get("source") == "photo",
-        "pruefen_from_pdf": review and draft.get("source") == "pdf",
+        "pruefen_from_pdf": review and draft.get("source") in ("pdf", "pdf_ai"),
+        "pruefen_from_pdf_ai": review and draft.get("source") == "pdf_ai",
         "pruefen_from_sentence": from_sentence,
         "pruefen_scan_max": offer_photo.MAX_PHOTOS,
         "ai_label": offer_photo.AI_LABEL,

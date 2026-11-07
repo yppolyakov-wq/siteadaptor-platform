@@ -376,7 +376,7 @@ def _pruefen_scan(request, kinds) -> None:
         return
     if offer_photo.state(request) == "pending":
         # Двойной клик / вторая вкладка: первое чтение ещё идёт — вторую задачу не ставим.
-        messages.info(request, _("Das Foto wird schon gelesen."))
+        messages.info(request, _("Die Datei wird gelesen …"))
         return
     code = offer_photo.start(
         request,
@@ -400,7 +400,7 @@ def _pruefen_scan_apply(request, kinds) -> None:
     elif applied.status == "done" and applied.dropped:
         messages.warning(
             request,
-            _("%(n)s Zeilen vom Foto passen nicht mehr in die Liste — bitte danach eintragen.")
+            _("%(n)s Zeilen aus der Datei passen nicht mehr in die Liste — bitte danach eintragen.")
             % {"n": applied.dropped},
         )
 

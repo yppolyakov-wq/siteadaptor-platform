@@ -130,7 +130,7 @@ def test_double_scan_starts_one_job(ai_task_on):
         _scan(owner)
         _scan(owner)
     assert delay.call_count == 1
-    assert any("schon gelesen" in m for m in owner.messages)
+    assert any("wird gelesen" in m for m in owner.messages)
 
 
 def test_double_apply_gives_one_draft(ai_task_on):
@@ -188,7 +188,7 @@ def test_bad_files_refused_and_limit_not_spent(ai_task_on):
     assert hit.call_count == 2 and refund.call_count == 2
     assert delay.call_count == 0
     _scan(owner, files=[_jpeg()])  # замок снят: следующий старт не «busy»
-    assert not any("schon gelesen" in m for m in owner.messages)
+    assert not any("wird gelesen" in m for m in owner.messages)
 
 
 def test_parallel_tabs_start_one_job(ai_task_on):
@@ -201,7 +201,7 @@ def test_parallel_tabs_start_one_job(ai_task_on):
     with mock.patch.object(tasks.offer_photo_lines, "delay") as delay:
         _scan(owner)  # вторая вкладка: первая уже держит замок
     assert delay.call_count == 0
-    assert any("schon gelesen" in m for m in owner.messages)
+    assert any("wird gelesen" in m for m in owner.messages)
 
 
 def test_lock_released_after_reading(ai_task_on):
@@ -235,7 +235,7 @@ def test_rate_limit_gives_quota(ai_task_on):
     ):
         _scan(owner)
     assert delay.call_count == 0
-    assert any("Zu viele Fotos" in m for m in owner.messages)
+    assert any("Zu viele Versuche" in m for m in owner.messages)
 
 
 def test_broker_down_is_calm_and_cache_clean(ai_task_on):

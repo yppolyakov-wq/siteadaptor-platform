@@ -274,7 +274,9 @@ def run_job(*, schema: str, user_pk, job: str) -> None:
             if source == "pdf":
                 from apps.core import offer_pdf
 
-                lines, code = offer_pdf.read_pdf(bytes(entry["pdf"]), kind, tenant=tenant)
+                lines, code, via_ai = offer_pdf.read_pdf(bytes(entry["pdf"]), kind, tenant=tenant)
+                if via_ai:
+                    source = "pdf_ai"
             else:
                 lines, code = read_photos(list(entry.get("photos") or []), kind, tenant=tenant)
         if lines:
@@ -321,10 +323,10 @@ def take_result(*, schema: str, user_pk, job: str) -> dict | None:
 ERRORS = {
     "disabled": gettext_lazy("Das Lesen von Fotos ist gerade nicht verfügbar."),
     "unavailable": gettext_lazy("Das Lesen von Fotos ist gerade nicht verfügbar."),
-    "quota": gettext_lazy("Zu viele Fotos in kurzer Zeit — bitte später erneut versuchen."),
+    "quota": gettext_lazy("Zu viele Versuche. Bitte später erneut."),
     "config": gettext_lazy("Foto nicht lesbar — bitte JPG, PNG oder WebP nehmen."),
     "too_many": gettext_lazy("Höchstens 3 Fotos auf einmal."),
-    "busy": gettext_lazy("Das Foto wird schon gelesen."),
+    "busy": gettext_lazy("Die Datei wird gelesen …"),
     "too_large": gettext_lazy("Fotos zu groß — höchstens 15 MB pro Foto, 25 MB zusammen."),
     "no_file": gettext_lazy("Bitte ein Foto auswählen."),
     "nothing": gettext_lazy(
@@ -574,6 +576,6 @@ def apply(request, kinds) -> Applied:
         base = str(draft.get("text") or "")
     lines = [x for x in result.get("lines") or [] if isinstance(x, str)]
     text, dropped = merge_text(base, lines)
-    source = "pdf" if result.get("source") == "pdf" else "photo"
+    source = result.get("source") if result.get("source") in ("pdf", "pdf_ai") else "photo"
     offer_batch.new_draft(request, kind, text, source=source)
     return Applied("done", dropped=dropped)

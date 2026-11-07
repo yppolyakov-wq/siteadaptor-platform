@@ -232,8 +232,8 @@ def test_ai_not_price_list_gives_nothing():
 def test_read_pdf_uses_ai_when_enabled(pdf_ai_on):
     data = {"is_price_list": True, "items": [{"name": "Butterbrezel", "price_text": "€ 1,20"}]}
     with _gen(data) as gen:
-        lines, code = offer_pdf.read_pdf(_pdf(), "waren")
-    assert gen.call_count == 1 and code == ""
+        lines, code, via_ai = offer_pdf.read_pdf(_pdf(), "waren")
+    assert gen.call_count == 1 and code == "" and via_ai
     assert lines == ["Butterbrezel — € 1,20"]
     prompt = gen.call_args.args[1]
     assert "Roggenbrot" in prompt and "images" not in gen.call_args.kwargs
@@ -243,10 +243,10 @@ def test_ai_error_or_empty_falls_back_to_rules(pdf_ai_on):
     from apps.ai.errors import AIError
 
     with mock.patch.object(offer_pdf, "generate", side_effect=AIError("down")):
-        lines, code = offer_pdf.read_pdf(_pdf(), "waren")
-    assert code == "" and "Roggenbrot — 3,50 €" in lines
+        lines, code, via_ai = offer_pdf.read_pdf(_pdf(), "waren")
+    assert code == "" and "Roggenbrot — 3,50 €" in lines and not via_ai
     with _gen({"is_price_list": True, "items": [{"name": "Erfunden", "price_text": "1 €"}]}):
-        lines, _ = offer_pdf.read_pdf(_pdf(), "waren")
+        lines, _, _ = offer_pdf.read_pdf(_pdf(), "waren")
     assert "Roggenbrot — 3,50 €" in lines
 
 
@@ -254,3 +254,63 @@ def test_ai_disabled_does_not_call_model():
     with mock.patch.object(offer_pdf, "generate") as gen:
         offer_pdf.read_pdf(_pdf(), "waren")
     assert gen.call_count == 0
+
+
+# --- ревью: колонки, границы, сжатие, конфигурация ----------------------------------
+
+
+def test_two_columns_give_two_items_and_glued_prices_are_skipped():
+    text = offer_pdf._compact("Pizza 8,50        Pasta 9,00\nSuppe 4,50 Salat 5,00")
+    lines = offer_pdf.rule_lines(text, "speisekarte")
+    assert lines == ["Pizza — 8,50", "Pasta — 9,00"]
+
+
+def test_compact_keeps_many_pages_under_text_limit():
+    line = "Roggenbrot" + " " * 80 + "3,50 €"
+    text, code = offer_pdf.extract_text(_pdf([line] * 30, pages=8))
+    assert code == "" and text.count("Roggenbrot") == 240
+
+
+def test_verify_is_whole_fragment_and_ignores_currency_spacing():
+    text = "Roggenbrot 13,50 €\nBierbrot 3,50€"
+    data = {
+        "is_price_list": True,
+        "items": [
+            {"name": "Roggenbrot", "price_text": "3,50 €"},  # только внутри «13,50»
+            {"name": "Bier", "price_text": "3,50 €"},  # только внутри «Bierbrot»
+            {"name": "Bierbrot", "price_text": "3,50 €"},  # «3,50€» без пробела — та же цена
+        ],
+    }
+    assert offer_pdf.verify_lines(data, text, "waren") == [
+        "Roggenbrot — ?",
+        "Bierbrot — 3,50 €",
+    ]
+
+
+def test_broken_pypdf_configuration_fails_loudly_not_as_owner_error():
+    with mock.patch.object(pypdf, "overwrite_configuration", side_effect=TypeError("kw")):
+        with pytest.raises(TypeError):
+            offer_pdf.extract_text(_pdf())
+
+
+def test_ai_rows_are_marked_and_disclosed(pdf_ai_on):
+    data = {"is_price_list": True, "items": [{"name": "Butterbrezel", "price_text": "€ 1,20"}]}
+    owner = Owner(_v4())
+    with mock.patch("apps.ai.disclosure.notice", return_value="USA") as notice:
+        owner()
+    assert "offer_pdf_lines" in [c.args[0] for c in notice.call_args_list]
+    with _inline(), _gen(data):
+        _scan(owner, [_upload(_pdf())])
+    owner("post", {"action": "offer_scan_apply"})
+    assert owner.session[offer_batch.SESSION_KEY]["source"] == "pdf_ai"
+    html = owner().content.decode()
+    assert "KI-generiert" in html.split("data-pruefen-from-pdf")[1][:300]
+
+
+def test_photo_hint_hidden_when_only_pdf_accepted():
+    from apps.tenants import onboarding
+
+    owner = Owner(_v4())
+    onboarding.set_had(owner.tenant, ["photo"])
+    html = owner().content.decode()
+    assert 'data-quelle-hint="photo"' not in html

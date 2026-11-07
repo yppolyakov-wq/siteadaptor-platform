@@ -139,7 +139,7 @@ def new_draft(request, kind: str, text: str, *, source: str = "") -> dict:
     показывает пометку «aus dem Foto erkannt». Пометка переживает «Zurück zum Text» и
     повторный «Prüfen» того же вида (Р-3); «Beispiele einfügen» и «Übernehmen» её снимают."""
     draft = {"batch": uuid.uuid4().hex, "kind": kind, "text": text[: offer_lines.MAX_TEXT]}
-    if source in ("photo", "pdf"):  # AIS-4: строки из PDF помечаются так же
+    if source in ("photo", "pdf", "pdf_ai"):  # AIS-4: строки из PDF помечаются так же
         draft["source"] = source
     request.session[SESSION_KEY] = draft
     return draft

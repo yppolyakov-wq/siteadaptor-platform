@@ -30,6 +30,7 @@ PERSONAS = {
     "photel": "hotel",
     "pevent": "events",
     "pother": "other",
+    "ppdf": "bakery",
 }
 # 1×1 PNG — фото номера.
 PNG = base64.b64decode(
@@ -257,6 +258,63 @@ def other(run, browser, port):
     ctx.close()
 
 
+def _menu_pdf() -> bytes:
+    import io
+
+    from reportlab.lib.pagesizes import A4
+    from reportlab.pdfgen import canvas
+
+    buf = io.BytesIO()
+    c = canvas.Canvas(buf, pagesize=A4)
+    for y, line in enumerate(
+        [
+            "Backhaus — Preisliste",
+            "Tel. 02103 123456",
+            "Roggenbrot ....... 3,50 €",
+            "Dinkelbrot 4,20",
+            "Öffnungszeiten Mo–Fr 7–18",
+        ]
+    ):
+        c.drawString(60, 800 - 20 * y, line)
+    c.save()
+    return buf.getvalue()
+
+
+def pdf(run, browser, port):
+    """AIS-4: PDF без ИИ → правила → таблица; нужен Celery-воркер (`celery -A config worker`)."""
+    import time
+
+    print("PDF (Bäckerei)")
+    ctx, page, errors, url = _login(browser, "ppdf", port)
+    block = page.locator("[data-pruefen-scan]")
+    run.check(block.count() == 1, "блок PDF виден без ИИ")
+    accept = page.get_attribute("[data-pruefen-scan-file]", "accept")
+    run.check(accept == "application/pdf", f"без ИИ только PDF ({accept})")
+    with tempfile.NamedTemporaryFile(suffix=".pdf") as tmp:
+        tmp.write(_menu_pdf())
+        tmp.flush()
+        page.set_input_files("[data-pruefen-scan-file]", tmp.name)
+        page.click("[data-pruefen-scan-start]")
+        page.wait_for_load_state()
+    _health(run, page, errors, "PDF wird gelesen")
+    for _ in range(30):
+        if page.locator("[data-pruefen-scan-wait]").count() == 0:
+            break
+        status = page.text_content("[data-pruefen-scan-status]") or ""
+        if "ist gelesen" in status:
+            page.click("[data-pruefen-scan-apply]")
+            page.wait_for_load_state()
+            break
+        time.sleep(1)
+        page.reload()
+    rows = page.locator("[data-pruefen-row]").count()
+    run.check(rows == 2, f"из PDF две строки с ценой ({rows})")
+    run.check(page.locator("[data-pruefen-from-pdf]").count() == 1, "пометка «Aus der PDF»")
+    run.check(counts("ppdf")[0] == 0, "PDF базу не трогает")
+    _health(run, page, errors, "Prüfen aus PDF")
+    ctx.close()
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--port", type=int, default=8000)
@@ -273,7 +331,7 @@ def main():
         browser = p.chromium.launch(
             executable_path=CHROME, args=[f"--host-resolver-rules=MAP *.{BASE} 127.0.0.1"]
         )
-        for persona in (bakery, friseur, pension, events, other):
+        for persona in (bakery, friseur, pension, events, other, pdf):
             persona(run, browser, args.port)
         browser.close()
     print(f"\n{run.ok} ok, {len(run.fail)} fail")

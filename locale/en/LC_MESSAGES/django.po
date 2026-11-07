@@ -35020,3 +35020,6 @@ msgstr "PDF of the menu or price list"
 
 msgid "PDF lesen"
 msgstr "Read PDF"
+
+msgid "%(n)s Zeilen aus der Datei passen nicht mehr in die Liste — bitte danach eintragen."
+msgstr "%(n)s lines from the file no longer fit in the list — please enter them afterwards."
