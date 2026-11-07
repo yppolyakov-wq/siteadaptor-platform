@@ -769,7 +769,7 @@ def promotion_quick(request):
             from apps.telegram import bots
 
             bot = bots.for_kind(tg_draft.get("bot"))  # file_id привязан к боту черновика
-            uploads, _failed = (
+            uploads, failed = (
                 telegram_promo.photos_from_telegram(bot.token, tg_draft["photo_ids"])
                 if bot
                 else ([], True)
@@ -779,6 +779,19 @@ def promotion_quick(request):
                     images = quick.save_photos(uploads)
                 except ValidationError:
                     images = []
+            # FB-18: раньше акция МОЛЧА уходила без фото, если Telegram его не отдал.
+            if not images:
+                form.add_error(
+                    "photo",
+                    _(
+                        "Die Fotos aus Telegram konnten nicht geladen werden. Bitte laden "
+                        "Sie das Foto hier hoch."
+                    ),
+                )
+            elif failed:
+                messages.warning(
+                    request, _("Nicht alle Fotos aus Telegram konnten übernommen werden.")
+                )
         if not form.errors:
             try:
                 quick.publish_built(

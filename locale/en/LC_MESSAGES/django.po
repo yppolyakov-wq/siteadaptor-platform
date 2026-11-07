@@ -35023,3 +35023,9 @@ msgstr "Read PDF"
 
 msgid "%(n)s Zeilen aus der Datei passen nicht mehr in die Liste — bitte danach eintragen."
 msgstr "%(n)s lines from the file no longer fit in the list — please enter them afterwards."
+
+msgid "Die Fotos aus Telegram konnten nicht geladen werden. Bitte laden Sie das Foto hier hoch."
+msgstr "The photos from Telegram could not be loaded. Please upload the photo here."
+
+msgid "Nicht alle Fotos aus Telegram konnten übernommen werden."
+msgstr "Not all photos from Telegram could be taken over."

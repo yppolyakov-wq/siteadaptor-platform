@@ -35169,3 +35169,9 @@ msgstr "PDF'i oku"
 
 msgid "%(n)s Zeilen aus der Datei passen nicht mehr in die Liste — bitte danach eintragen."
 msgstr "Dosyadaki %(n)s satır artık listeye sığmıyor — lütfen sonra girin."
+
+msgid "Die Fotos aus Telegram konnten nicht geladen werden. Bitte laden Sie das Foto hier hoch."
+msgstr "Telegram'daki fotoğraflar yüklenemedi. Lütfen fotoğrafı buraya yükleyin."
+
+msgid "Nicht alle Fotos aus Telegram konnten übernommen werden."
+msgstr "Telegram'daki fotoğrafların hepsi aktarılamadı."
