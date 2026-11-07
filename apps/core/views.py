@@ -371,9 +371,6 @@ def _pruefen_scan(request, kinds) -> None:
     from apps.core import offer_photo
 
     kind = request.POST.get("kind", "")
-    if not offer_photo.enabled():
-        messages.error(request, str(offer_photo.ERRORS["disabled"]))
-        return
     if kind not in offer_photo.kinds_for(kinds):
         messages.error(request, _("Dafür fehlt Ihnen die Berechtigung."))
         return

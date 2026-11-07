@@ -66,6 +66,12 @@ TASK_DATA = {
         "Art. 6 Abs. 1 lit. f DSGVO (passende Suchergebnisse)",
         "public",
     ),
+    "offer_pdf_lines": (
+        "Erkennung Ihres Angebots aus einer PDF Ihrer Speisekarte oder Preisliste im "
+        "Einrichtungsassistenten: nur der Text der PDF",
+        "Art. 6 Abs. 1 lit. b DSGVO",
+        "owner",
+    ),
     "offer_photo_lines": (
         "Erkennung Ihres Angebots aus Fotos Ihrer Speisekarte oder Preisliste im "
         "Einrichtungsassistenten: Fotos (ohne Standort- und Kameradaten); was auf dem Foto "

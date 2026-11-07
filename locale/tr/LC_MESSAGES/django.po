@@ -35112,3 +35112,57 @@ msgid "%(n)s Angebot hat noch keine Beschreibung — ein Satz hilft beim Kaufen.
 msgid_plural "%(n)s Angebote haben noch keine Beschreibung — ein Satz hilft beim Kaufen."
 msgstr[0] "%(n)s ürünün henüz açıklaması yok — bir cümle satışa yardımcı olur."
 msgstr[1] "%(n)s ürünün henüz açıklaması yok — bir cümle satışa yardımcı olur."
+
+msgid "1 PDF mit Text (bis 5 MB, 10 Seiten). Wir übernehmen Zeilen mit Preis — Sie prüfen alles, bevor etwas angelegt wird."
+msgstr "Metin içeren 1 PDF (en fazla 5 MB, 10 sayfa). Fiyatlı satırları alıyoruz — bir şey oluşturulmadan önce her şeyi siz kontrol edersiniz."
+
+msgid "Aus der PDF erkannt — vergleichen Sie Namen und Preise mit dem Original."
+msgstr "PDF'ten tanındı — adları ve fiyatları orijinalle karşılaştırın."
+
+msgid "Bis zu %(n)s Fotos (JPG, PNG, WebP) oder 1 PDF (bis 5 MB, 10 Seiten). Wir lesen die Angebote ab — Sie prüfen alles, bevor etwas angelegt wird."
+msgstr "En fazla %(n)s fotoğraf (JPG, PNG, WebP) veya 1 PDF (en fazla 5 MB, 10 sayfa). Teklifleri okuyoruz — bir şey oluşturulmadan önce her şeyi siz kontrol edersiniz."
+
+msgid "Datei auswählen"
+msgstr "Dosya seçin"
+
+msgid "Datei lesen"
+msgstr "Dosyayı oku"
+
+msgid "Die Datei ist gelesen."
+msgstr "Dosya okundu."
+
+msgid "Die Datei konnte nicht gelesen werden."
+msgstr "Dosya okunamadı."
+
+msgid "Die Datei wird gelesen …"
+msgstr "Dosya okunuyor …"
+
+msgid "Die PDF ist geschützt — bitte ohne Passwort speichern."
+msgstr "PDF korumalı — lütfen şifresiz kaydedin."
+
+msgid "Die PDF ist zu groß — höchstens 5 MB."
+msgstr "PDF çok büyük — en fazla 5 MB."
+
+msgid "Die PDF konnte nicht gelesen werden."
+msgstr "PDF okunamadı."
+
+msgid "Diese PDF enthält keinen Text (eingescannt) — bitte als Foto hochladen oder die Zeilen von Hand eintragen."
+msgstr "Bu PDF metin içermiyor (taranmış) — lütfen fotoğraf olarak yükleyin veya satırları elle girin."
+
+msgid "Entweder Fotos oder eine PDF."
+msgstr "Ya fotoğraflar ya da bir PDF."
+
+msgid "Foto oder PDF der Speisekarte oder Preisliste"
+msgstr "Menünün veya fiyat listesinin fotoğrafı ya da PDF'i"
+
+msgid "Höchstens 10 Seiten."
+msgstr "En fazla 10 sayfa."
+
+msgid "In der PDF haben wir keine Zeilen mit Preis gefunden — bitte die Zeilen von Hand eintragen."
+msgstr "PDF'te fiyatlı satır bulamadık — lütfen satırları elle girin."
+
+msgid "PDF der Speisekarte oder Preisliste"
+msgstr "Menünün veya fiyat listesinin PDF'i"
+
+msgid "PDF lesen"
+msgstr "PDF'i oku"

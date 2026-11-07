@@ -73,12 +73,14 @@ def _scan(owner, files=None, text="", kind="waren"):
     )
 
 
-def test_without_ai_no_photo_block_and_step_works(settings):
+def test_without_ai_block_takes_only_pdf_and_photos_are_refused(settings):
+    """AIS-4 (осознанная переписка W4-4): без ИИ блок остаётся — PDF читается правилами;
+    фото без ИИ по-прежнему не читаются."""
     settings.AI_ENABLED = False
     owner = Owner(_v4())
     html = owner().content.decode()
-    assert "data-pruefen-scan>" not in html
-    assert 'name="menu_photo"' not in html
+    assert "data-pruefen-scan>" in html and 'accept="application/pdf"' in html
+    assert "image/jpeg" not in html and "data-ai-notice" not in html
     assert "data-pruefen-form" in html
     _scan(owner)
     assert offer_photo.SESSION_KEY not in owner.session
@@ -178,8 +180,9 @@ def test_bad_files_refused_and_limit_not_spent(ai_task_on):
         assert any("Höchstens 3" in m for m in owner.messages)
         _scan(owner, files=[])
         assert hit.call_count == 0  # дешёвые отказы — до лимита
-        pdf = SimpleUploadedFile("karte.pdf", b"%PDF-1.4 x", content_type="application/pdf")
-        _scan(owner, files=[pdf])
+        # AIS-4: PDF стал законным входом — «битый файл» здесь — испорченная картинка.
+        bad = SimpleUploadedFile("karte.jpg", b"not an image", content_type="image/jpeg")
+        _scan(owner, files=[bad])
         assert any("nicht lesbar" in m for m in owner.messages)
     # Декодирование — только после лимита; битый файл попытку возвращает.
     assert hit.call_count == 2 and refund.call_count == 2

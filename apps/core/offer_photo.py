@@ -231,14 +231,21 @@ def _job_key(schema: str, user_pk, job: str) -> str:
     return f"ai-offer-photo:{schema}:{user_pk}:{job}"
 
 
-def start_job(*, schema: str, user_pk, photos: list[bytes], kind: str) -> str:
+def start_job(
+    *, schema: str, user_pk, photos: list[bytes], kind: str, pdf: bytes | None = None
+) -> str:
     from django.core.cache import cache
 
     from apps.core import tasks
 
     job = uuid.uuid4().hex
     key = _job_key(schema, user_pk, job)
-    cache.set(key, {"state": "pending", "photos": photos[:MAX_PHOTOS], "kind": kind}, JOB_TTL)
+    entry = {"state": "pending", "kind": kind}
+    if pdf is not None:  # AIS-4: PDF разбирается только в воркере
+        entry["pdf"] = pdf
+    else:
+        entry["photos"] = photos[:MAX_PHOTOS]
+    cache.set(key, entry, JOB_TTL)
     try:
         tasks.offer_photo_lines.delay(schema=schema, user_pk=user_pk, job=job)
     except Exception:  # noqa: BLE001 — брокер недоступен: фото не должны висеть в кэше
@@ -262,10 +269,16 @@ def run_job(*, schema: str, user_pk, job: str) -> None:
     outcome = {"state": "error", "code": "error", "kind": kind}
     try:
         tenant = Tenant.objects.filter(schema_name=schema).first()
+        source = "pdf" if entry.get("pdf") is not None else "photo"
         with schema_context(schema):
-            lines, code = read_photos(list(entry.get("photos") or []), kind, tenant=tenant)
+            if source == "pdf":
+                from apps.core import offer_pdf
+
+                lines, code = offer_pdf.read_pdf(bytes(entry["pdf"]), kind, tenant=tenant)
+            else:
+                lines, code = read_photos(list(entry.get("photos") or []), kind, tenant=tenant)
         if lines:
-            outcome = {"state": "done", "lines": lines, "kind": kind}
+            outcome = {"state": "done", "lines": lines, "kind": kind, "source": source}
         else:
             outcome = {"state": "error", "code": code or "error", "kind": kind}
     except Exception:  # noqa: BLE001 — сбой задачи не должен висеть «pending»
@@ -321,6 +334,21 @@ ERRORS = {
     "kind": gettext_lazy("Dafür fehlt Ihnen die Berechtigung."),
     "expired": gettext_lazy("Das Lesen hat zu lange gedauert — bitte erneut versuchen."),
     "error": gettext_lazy("Das Foto konnte gerade nicht gelesen werden — bitte erneut versuchen."),
+    # AIS-4: PDF
+    "mixed": gettext_lazy("Entweder Fotos oder eine PDF."),
+    "pdf_too_large": gettext_lazy("Die PDF ist zu groß — höchstens 5 MB."),
+    "not_pdf": gettext_lazy("Die PDF konnte nicht gelesen werden."),
+    "pdf_broken": gettext_lazy("Die PDF konnte nicht gelesen werden."),
+    "too_many_pages": gettext_lazy("Höchstens 10 Seiten."),
+    "encrypted": gettext_lazy("Die PDF ist geschützt — bitte ohne Passwort speichern."),
+    "no_text": gettext_lazy(
+        "Diese PDF enthält keinen Text (eingescannt) — bitte als Foto hochladen oder die "
+        "Zeilen von Hand eintragen."
+    ),
+    "nothing_pdf": gettext_lazy(
+        "In der PDF haben wir keine Zeilen mit Preis gefunden — bitte die Zeilen von Hand "
+        "eintragen."
+    ),
 }
 
 
@@ -329,8 +357,15 @@ def enabled() -> bool:
 
 
 def kinds_for(kinds) -> list[str]:
-    """Виды, для которых шаг предлагает фото (Р-1 ∩ доступные пользователю)."""
-    return [k for k in kinds if k in KINDS] if enabled() else []
+    """Виды, для которых шаг предлагает чтение файла (Р-1 ∩ доступные пользователю).
+    AIS-4: PDF читается правилами и без ИИ — блок есть всегда; фото — только с ИИ."""
+    return [k for k in kinds if k in KINDS]
+
+
+def _is_pdf(upload) -> bool:
+    name = str(getattr(upload, "name", "") or "").lower()
+    ctype = str(getattr(upload, "content_type", "") or "").lower()
+    return name.endswith(".pdf") or ctype == "application/pdf"
 
 
 def _schema() -> str:
@@ -387,11 +422,16 @@ def start(request, kind: str, uploads, *, base_text: str = "") -> str:
     from apps.ai.images import reencode
     from apps.core import ratelimit
 
-    if not enabled():
-        return "disabled"
     uploads = list(uploads or [])
     if not uploads:
         return "no_file"
+    pdfs = [u for u in uploads if _is_pdf(u)]
+    if pdfs and len(uploads) > 1:
+        return "mixed"
+    if pdfs:
+        return _start_pdf(request, kind, pdfs[0], base_text=base_text)
+    if not enabled():
+        return "disabled"
     if len(uploads) > MAX_PHOTOS:
         return "too_many"
     if any(u.size > RAW_MAX_BYTES for u in uploads) or sum(u.size for u in uploads) > (
@@ -429,6 +469,53 @@ def start(request, kind: str, uploads, *, base_text: str = "") -> str:
         job = start_job(schema=schema, user_pk=user_pk, photos=photos, kind=kind)
     except Exception:  # noqa: BLE001 — очередь недоступна: спокойная ошибка, шаг живёт
         logger.warning("offer photo lines: queue unavailable")
+        return _fail("unavailable")
+    request.session[SESSION_KEY] = {
+        "job": job,
+        "kind": kind,
+        "base": (base_text or "")[: offer_lines.MAX_TEXT],
+    }
+    return ""
+
+
+def _start_pdf(request, kind: str, upload, *, base_text: str = "") -> str:
+    """AIS-4: та же очередь, замок и лимиты, что у фото; разбор — в воркере."""
+    from django.core.cache import cache
+
+    from apps.core import offer_pdf, ratelimit
+
+    if upload.size > offer_pdf.MAX_BYTES:
+        return "pdf_too_large"
+    schema, user_pk = _schema(), request.user.pk
+    if not cache.add(_lock_key(schema, user_pk), 1, JOB_TTL):
+        return "busy"
+    scopes = (("ai-offer-photo-user", f"{schema}:{user_pk}"), ("ai-offer-photo", schema))
+    counted = []
+    for scope, ident in scopes:
+        limit = RATE_LIMIT if scope.endswith("-user") else RATE_LIMIT_TENANT
+        counted.append((scope, ident))
+        if ratelimit.hit(scope, ident, limit=limit, window=RATE_WINDOW):
+            release_lock(schema, user_pk)
+            return "quota"
+
+    def _fail(code: str) -> str:
+        for scope, ident in counted:
+            ratelimit.refund(scope, ident)
+        release_lock(schema, user_pk)
+        return code
+
+    data = upload.read(offer_pdf.MAX_BYTES + 1)
+    if len(data) > offer_pdf.MAX_BYTES:
+        return _fail("pdf_too_large")
+    if not offer_pdf.looks_like_pdf(data):
+        return _fail("not_pdf")
+    previous = pointer(request)
+    if previous is not None:
+        drop_job(schema=schema, user_pk=user_pk, job=previous["job"])
+    try:
+        job = start_job(schema=schema, user_pk=user_pk, photos=[], kind=kind, pdf=data)
+    except Exception:  # noqa: BLE001 — очередь недоступна
+        logger.warning("offer pdf lines: queue unavailable")
         return _fail("unavailable")
     request.session[SESSION_KEY] = {
         "job": job,
@@ -487,5 +574,6 @@ def apply(request, kinds) -> Applied:
         base = str(draft.get("text") or "")
     lines = [x for x in result.get("lines") or [] if isinstance(x, str)]
     text, dropped = merge_text(base, lines)
-    offer_batch.new_draft(request, kind, text, source="photo")
+    source = "pdf" if result.get("source") == "pdf" else "photo"
+    offer_batch.new_draft(request, kind, text, source=source)
     return Applied("done", dropped=dropped)

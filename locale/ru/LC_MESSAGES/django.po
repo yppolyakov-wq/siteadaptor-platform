@@ -35289,3 +35289,57 @@ msgstr[0] "У %(n)s позиции ещё нет описания — одно �
 msgstr[1] "У %(n)s позиций ещё нет описания — одно предложение помогает продавать."
 msgstr[2] "У %(n)s позиций ещё нет описания — одно предложение помогает продавать."
 msgstr[3] "У %(n)s позиции ещё нет описания — одно предложение помогает продавать."
+
+msgid "1 PDF mit Text (bis 5 MB, 10 Seiten). Wir übernehmen Zeilen mit Preis — Sie prüfen alles, bevor etwas angelegt wird."
+msgstr "1 PDF с текстом (до 5 МБ, 10 страниц). Мы берём строки с ценой — вы всё проверяете, прежде чем что-то будет создано."
+
+msgid "Aus der PDF erkannt — vergleichen Sie Namen und Preise mit dem Original."
+msgstr "Распознано из PDF — сверьте названия и цены с оригиналом."
+
+msgid "Bis zu %(n)s Fotos (JPG, PNG, WebP) oder 1 PDF (bis 5 MB, 10 Seiten). Wir lesen die Angebote ab — Sie prüfen alles, bevor etwas angelegt wird."
+msgstr "До %(n)s фото (JPG, PNG, WebP) или 1 PDF (до 5 МБ, 10 страниц). Мы считываем предложения — вы всё проверяете, прежде чем что-то будет создано."
+
+msgid "Datei auswählen"
+msgstr "Выбрать файл"
+
+msgid "Datei lesen"
+msgstr "Прочитать файл"
+
+msgid "Die Datei ist gelesen."
+msgstr "Файл прочитан."
+
+msgid "Die Datei konnte nicht gelesen werden."
+msgstr "Не удалось прочитать файл."
+
+msgid "Die Datei wird gelesen …"
+msgstr "Файл читается …"
+
+msgid "Die PDF ist geschützt — bitte ohne Passwort speichern."
+msgstr "PDF защищён — сохраните его без пароля."
+
+msgid "Die PDF ist zu groß — höchstens 5 MB."
+msgstr "PDF слишком большой — не более 5 МБ."
+
+msgid "Die PDF konnte nicht gelesen werden."
+msgstr "Не удалось прочитать PDF."
+
+msgid "Diese PDF enthält keinen Text (eingescannt) — bitte als Foto hochladen oder die Zeilen von Hand eintragen."
+msgstr "В этом PDF нет текста (скан) — загрузите его как фото или введите строки вручную."
+
+msgid "Entweder Fotos oder eine PDF."
+msgstr "Либо фото, либо один PDF."
+
+msgid "Foto oder PDF der Speisekarte oder Preisliste"
+msgstr "Фото или PDF меню или прайс-листа"
+
+msgid "Höchstens 10 Seiten."
+msgstr "Не более 10 страниц."
+
+msgid "In der PDF haben wir keine Zeilen mit Preis gefunden — bitte die Zeilen von Hand eintragen."
+msgstr "В PDF не нашлось строк с ценой — введите строки вручную."
+
+msgid "PDF der Speisekarte oder Preisliste"
+msgstr "PDF меню или прайс-листа"
+
+msgid "PDF lesen"
+msgstr "Прочитать PDF"

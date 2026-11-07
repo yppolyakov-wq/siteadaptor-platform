@@ -34966,3 +34966,57 @@ msgid "%(n)s Angebot hat noch keine Beschreibung — ein Satz hilft beim Kaufen.
 msgid_plural "%(n)s Angebote haben noch keine Beschreibung — ein Satz hilft beim Kaufen."
 msgstr[0] "%(n)s item has no description yet — one sentence helps sell it."
 msgstr[1] "%(n)s items have no description yet — one sentence helps sell them."
+
+msgid "1 PDF mit Text (bis 5 MB, 10 Seiten). Wir übernehmen Zeilen mit Preis — Sie prüfen alles, bevor etwas angelegt wird."
+msgstr "1 PDF with text (up to 5 MB, 10 pages). We take over lines with a price — you check everything before anything is created."
+
+msgid "Aus der PDF erkannt — vergleichen Sie Namen und Preise mit dem Original."
+msgstr "Recognised from the PDF — compare names and prices with the original."
+
+msgid "Bis zu %(n)s Fotos (JPG, PNG, WebP) oder 1 PDF (bis 5 MB, 10 Seiten). Wir lesen die Angebote ab — Sie prüfen alles, bevor etwas angelegt wird."
+msgstr "Up to %(n)s photos (JPG, PNG, WebP) or 1 PDF (up to 5 MB, 10 pages). We read the offers — you check everything before anything is created."
+
+msgid "Datei auswählen"
+msgstr "Choose file"
+
+msgid "Datei lesen"
+msgstr "Read file"
+
+msgid "Die Datei ist gelesen."
+msgstr "The file has been read."
+
+msgid "Die Datei konnte nicht gelesen werden."
+msgstr "The file could not be read."
+
+msgid "Die Datei wird gelesen …"
+msgstr "Reading the file …"
+
+msgid "Die PDF ist geschützt — bitte ohne Passwort speichern."
+msgstr "The PDF is protected — please save it without a password."
+
+msgid "Die PDF ist zu groß — höchstens 5 MB."
+msgstr "The PDF is too large — 5 MB at most."
+
+msgid "Die PDF konnte nicht gelesen werden."
+msgstr "The PDF could not be read."
+
+msgid "Diese PDF enthält keinen Text (eingescannt) — bitte als Foto hochladen oder die Zeilen von Hand eintragen."
+msgstr "This PDF contains no text (scanned) — please upload it as a photo or enter the lines by hand."
+
+msgid "Entweder Fotos oder eine PDF."
+msgstr "Either photos or one PDF."
+
+msgid "Foto oder PDF der Speisekarte oder Preisliste"
+msgstr "Photo or PDF of the menu or price list"
+
+msgid "Höchstens 10 Seiten."
+msgstr "10 pages at most."
+
+msgid "In der PDF haben wir keine Zeilen mit Preis gefunden — bitte die Zeilen von Hand eintragen."
+msgstr "We found no lines with a price in the PDF — please enter the lines by hand."
+
+msgid "PDF der Speisekarte oder Preisliste"
+msgstr "PDF of the menu or price list"
+
+msgid "PDF lesen"
+msgstr "Read PDF"

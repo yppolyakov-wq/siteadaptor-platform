@@ -988,6 +988,7 @@ def _ctx_pruefen(request):
         offer_batch,
         offer_examples,
         offer_lines,
+        offer_pdf,
         offer_photo,
         offer_sentence,
     )
@@ -1052,8 +1053,11 @@ def _ctx_pruefen(request):
         "pruefen_rooms_missing": any(not r["has_photo"] for r in rooms),
         # W4-4: фото меню → строки (кнопка только при включённой задаче ИИ).
         "pruefen_scan_kinds": offer_photo.kinds_for(kinds),
+        "pruefen_scan_photo": offer_photo.enabled(),  # AIS-4: без ИИ блок принимает только PDF
+        "pruefen_scan_pdf_ai": offer_pdf.enabled(),
         "pruefen_scan_state": offer_photo.state(request),  # только чтение (GET)
         "pruefen_from_photo": review and draft.get("source") == "photo",
+        "pruefen_from_pdf": review and draft.get("source") == "pdf",
         "pruefen_from_sentence": from_sentence,
         "pruefen_scan_max": offer_photo.MAX_PHOTOS,
         "ai_label": offer_photo.AI_LABEL,
