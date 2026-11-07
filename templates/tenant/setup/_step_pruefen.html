@@ -117,8 +117,7 @@
     <p id="pruefen-scan-hint" class="text-sm text-gray-600">{% if pruefen_scan_photo %}{% blocktrans with n=pruefen_scan_max %}Bis zu {{ n }} Fotos (JPG, PNG, WebP) oder 1 PDF (bis 5 MB, 10 Seiten). Wir lesen die Angebote ab — Sie prüfen alles, bevor etwas angelegt wird.{% endblocktrans %}{% else %}{% trans "1 PDF mit Text (bis 5 MB, 10 Seiten). Wir übernehmen Zeilen mit Preis — Sie prüfen alles, bevor etwas angelegt wird." %}{% endif %}</p>
     <label class="block text-sm"><span class="sr-only">{% trans "Datei auswählen" %}</span><input type="file" name="menu_photo"{% if pruefen_scan_photo %} multiple accept="image/jpeg,image/png,image/webp,application/pdf"{% else %} accept="application/pdf"{% endif %} aria-describedby="pruefen-scan-hint" class="block w-full text-sm file:mr-3 file:min-h-[44px] file:px-4 file:rounded-lg file:border-0 file:bg-indigo-50 file:text-indigo-800 file:font-semibold" data-pruefen-scan-file></label>
     <button type="submit" name="action" value="offer_scan" formnovalidate class="ui-btn min-h-[44px]" data-pruefen-scan-start>{% if pruefen_scan_photo %}{% trans "Datei lesen" %}{% else %}{% trans "PDF lesen" %}{% endif %}</button>
-    {% if pruefen_scan_photo %}{% ai_notice "offer_photo_lines" %}{% endif %}
-    {% if pruefen_scan_pdf_ai %}{% ai_notice "offer_pdf_lines" %}{% endif %}
+    {% if pruefen_scan_photo or pruefen_scan_pdf_ai %}{% ai_notice "offer_photo_lines" "offer_pdf_lines" %}{% endif %}
   </fieldset>
   {% endif %}
 </form>
