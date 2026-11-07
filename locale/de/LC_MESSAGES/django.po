@@ -35293,3 +35293,42 @@ msgstr "Zeigen ab"
 
 msgid "Zeigen bis"
 msgstr "Zeigen bis"
+
+msgid "Anpassen"
+msgstr "Anpassen"
+
+msgid "Breit 16:9"
+msgstr "Breit 16:9"
+
+msgid "Format"
+msgstr "Format"
+
+msgid "Fotoformat je Bereich"
+msgstr "Fotoformat je Bereich"
+
+msgid "Ganz zeigen (mit Rand)"
+msgstr "Ganz zeigen (mit Rand)"
+
+msgid "Hoch 3:4"
+msgstr "Hoch 3:4"
+
+msgid "Leer = wie bei „Fotoform“. „Ganz zeigen“ schneidet nichts ab, sondern lässt Rand."
+msgstr "Leer = wie bei „Fotoform“. „Ganz zeigen“ schneidet nichts ab, sondern lässt Rand."
+
+msgid "Leistungen, Zimmer & Termine"
+msgstr "Leistungen, Zimmer & Termine"
+
+msgid "Menüs & Sets"
+msgstr "Menüs & Sets"
+
+msgid "Quadrat 1:1"
+msgstr "Quadrat 1:1"
+
+msgid "Quer 3:2"
+msgstr "Quer 3:2"
+
+msgid "Quer 4:3"
+msgstr "Quer 4:3"
+
+msgid "Zuschneiden"
+msgstr "Zuschneiden"

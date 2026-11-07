@@ -35206,3 +35206,42 @@ msgstr "Show from"
 
 msgid "Zeigen bis"
 msgstr "Show until"
+
+msgid "Anpassen"
+msgstr "Fit"
+
+msgid "Breit 16:9"
+msgstr "Wide 16:9"
+
+msgid "Format"
+msgstr "Format"
+
+msgid "Fotoformat je Bereich"
+msgstr "Photo format per area"
+
+msgid "Ganz zeigen (mit Rand)"
+msgstr "Show whole (with margin)"
+
+msgid "Hoch 3:4"
+msgstr "Portrait 3:4"
+
+msgid "Leer = wie bei „Fotoform“. „Ganz zeigen“ schneidet nichts ab, sondern lässt Rand."
+msgstr "Empty = as in “Photo shape”. “Show whole” crops nothing and leaves a margin instead."
+
+msgid "Leistungen, Zimmer & Termine"
+msgstr "Services, rooms & events"
+
+msgid "Menüs & Sets"
+msgstr "Menus & sets"
+
+msgid "Quadrat 1:1"
+msgstr "Square 1:1"
+
+msgid "Quer 3:2"
+msgstr "Landscape 3:2"
+
+msgid "Quer 4:3"
+msgstr "Landscape 4:3"
+
+msgid "Zuschneiden"
+msgstr "Crop"

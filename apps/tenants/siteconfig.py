@@ -1907,6 +1907,13 @@ def normalize_site_defaults(raw) -> dict:
     # 3:2 / 4:3), поэтому ключ presence-minimal и golden-эталоны целы.
     if sd.get("media_shape") in ("round", "wide"):
         out["media_shape"] = sd["media_shape"]
+    # FB-21: формат фото по МЕСТАМ (product/promo/sellable/category/combo/tour) —
+    # {place: {ratio, fit}}; ключ только при непустом (presence-minimal, golden целы).
+    from apps.core import media_places
+
+    places = media_places.clean(sd.get("media_places"))
+    if places:
+        out["media_places"] = places
     # O-2 (2026-08-01): дефолтный вид выбора вариантов для всего магазина; товар
     # может его переопределить. Ключ ТОЛЬКО при валидном не-пустом значении
     # ("" = выпадающий список, как раньше → golden целы).

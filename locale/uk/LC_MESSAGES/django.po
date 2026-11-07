@@ -35516,3 +35516,42 @@ msgstr "Показувати з"
 
 msgid "Zeigen bis"
 msgstr "Показувати до"
+
+msgid "Anpassen"
+msgstr "Вписування"
+
+msgid "Breit 16:9"
+msgstr "Широкий 16:9"
+
+msgid "Format"
+msgstr "Формат"
+
+msgid "Fotoformat je Bereich"
+msgstr "Формат фото за розділами"
+
+msgid "Ganz zeigen (mit Rand)"
+msgstr "Показати повністю (з полями)"
+
+msgid "Hoch 3:4"
+msgstr "Вертикальний 3:4"
+
+msgid "Leer = wie bei „Fotoform“. „Ganz zeigen“ schneidet nichts ab, sondern lässt Rand."
+msgstr "Порожньо — як у «Формі фото». «Показати повністю» нічого не обрізає, а залишає поля."
+
+msgid "Leistungen, Zimmer & Termine"
+msgstr "Послуги, номери та події"
+
+msgid "Menüs & Sets"
+msgstr "Набори та меню"
+
+msgid "Quadrat 1:1"
+msgstr "Квадрат 1:1"
+
+msgid "Quer 3:2"
+msgstr "Горизонтальний 3:2"
+
+msgid "Quer 4:3"
+msgstr "Горизонтальний 4:3"
+
+msgid "Zuschneiden"
+msgstr "Обрізати"

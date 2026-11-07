@@ -35529,3 +35529,42 @@ msgstr "Показывать с"
 
 msgid "Zeigen bis"
 msgstr "Показывать до"
+
+msgid "Anpassen"
+msgstr "Вписывание"
+
+msgid "Breit 16:9"
+msgstr "Широкий 16:9"
+
+msgid "Format"
+msgstr "Формат"
+
+msgid "Fotoformat je Bereich"
+msgstr "Формат фото по разделам"
+
+msgid "Ganz zeigen (mit Rand)"
+msgstr "Показать целиком (с полями)"
+
+msgid "Hoch 3:4"
+msgstr "Вертикальный 3:4"
+
+msgid "Leer = wie bei „Fotoform“. „Ganz zeigen“ schneidet nichts ab, sondern lässt Rand."
+msgstr "Пусто — как в «Форме фото». «Показать целиком» ничего не обрезает, а оставляет поля."
+
+msgid "Leistungen, Zimmer & Termine"
+msgstr "Услуги, номера и события"
+
+msgid "Menüs & Sets"
+msgstr "Наборы и меню"
+
+msgid "Quadrat 1:1"
+msgstr "Квадрат 1:1"
+
+msgid "Quer 3:2"
+msgstr "Горизонтальный 3:2"
+
+msgid "Quer 4:3"
+msgstr "Горизонтальный 4:3"
+
+msgid "Zuschneiden"
+msgstr "Обрезать"

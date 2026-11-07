@@ -666,6 +666,8 @@ def modules_nav(request):
         "storefront_card_chrome": cfg["site_defaults"].get("card_chrome", ""),
         # DL-10a: форма кадра на карточках (round | wide; "" = как в разметке).
         "storefront_media_shape": cfg["site_defaults"].get("media_shape", ""),
+        # FB-21: пропорция/вписывание фото по местам → готовые CSS-правила (из реестра).
+        "storefront_media_css": _media_places_css(cfg["site_defaults"].get("media_places")),
         # DL-16.4: форма карточки акции ("" | preis) и листание фото на карточке товара.
         "storefront_promo_card": cfg["site_defaults"].get("promo_card", ""),
         "storefront_card_slider": cfg["site_defaults"].get("card_slider", ""),
@@ -770,3 +772,9 @@ def _cabinet_tabbar(tenant, compact, user=None) -> list[dict]:
     elif "sellables" in by_key:
         out.append(_item(by_key["sellables"]))
     return out
+
+
+def _media_places_css(places) -> str:
+    from apps.core import media_places
+
+    return media_places.css(places)

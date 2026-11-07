@@ -35352,3 +35352,42 @@ msgstr "Şu tarihten itibaren göster"
 
 msgid "Zeigen bis"
 msgstr "Şu tarihe kadar göster"
+
+msgid "Anpassen"
+msgstr "Sığdır"
+
+msgid "Breit 16:9"
+msgstr "Geniş 16:9"
+
+msgid "Format"
+msgstr "Biçim"
+
+msgid "Fotoformat je Bereich"
+msgstr "Alana göre fotoğraf biçimi"
+
+msgid "Ganz zeigen (mit Rand)"
+msgstr "Tamamını göster (kenarlı)"
+
+msgid "Hoch 3:4"
+msgstr "Dikey 3:4"
+
+msgid "Leer = wie bei „Fotoform“. „Ganz zeigen“ schneidet nichts ab, sondern lässt Rand."
+msgstr "Boş = “Fotoğraf biçimi” ile aynı. “Tamamını göster” kırpmaz, kenar boşluğu bırakır."
+
+msgid "Leistungen, Zimmer & Termine"
+msgstr "Hizmetler, odalar ve etkinlikler"
+
+msgid "Menüs & Sets"
+msgstr "Menüler ve setler"
+
+msgid "Quadrat 1:1"
+msgstr "Kare 1:1"
+
+msgid "Quer 3:2"
+msgstr "Yatay 3:2"
+
+msgid "Quer 4:3"
+msgstr "Yatay 4:3"
+
+msgid "Zuschneiden"
+msgstr "Kırp"

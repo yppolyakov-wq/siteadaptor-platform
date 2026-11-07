@@ -14,6 +14,7 @@ from django.shortcuts import redirect, render
 from django.utils.translation import gettext as _
 
 from apps.catalog.option_styles import VARIANT_STYLES
+from apps.core import media_places
 from apps.tenants import sitetemplates
 
 STUDIO_PREFIX = "/dashboard/site/home/"
@@ -89,6 +90,7 @@ def _save_design_settings(request) -> None:
         sd["card_bg"] = post.get("sd_card_bg", "") if post.get("sd_card_bg_on") == "on" else ""
         sd["card_chrome"] = post.get("sd_card_chrome", "")
         sd["media_shape"] = post.get("sd_media_shape", "")
+        sd["media_places"] = media_places.from_post(post)  # FB-21
         sd["variant_style"] = post.get("sd_variant_style", "")
         sd["card_slider"] = post.get("sd_card_slider") == "on"
     if post.get("sd_page_width_present") == "1":  # FLT-3a: ширина витрины
@@ -173,6 +175,9 @@ def design_view(request):
             "quick_add": cfg.get("quick_add", False),
             "wishlist": cfg.get("wishlist", False),
             "variant_style_options": VARIANT_STYLES,
+            "media_place_rows": media_places.rows(sd.get("media_places")),
+            "media_ratio_options": media_places.RATIO_LABELS.items(),
+            "media_fit_options": media_places.FITS.items(),
             "site_templates": sitetemplates.template_cards(tenant.business_type),
             "has_demo": demo.has_demo(tenant),
             # DL-13: подпись композиции на карточке (чем шаблон отличается по

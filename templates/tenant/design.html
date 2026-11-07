@@ -124,6 +124,26 @@ Look'и; применение POST'ом — сохраняется сразу. �
         {% trans "Fotos auf der Karte durchblättern" %}
       </label>
     </div>
+    {% comment %}FB-21: формат фото по местам — сильнее общей «Fotoform» выше.{% endcomment %}
+    <fieldset class="pt-2 border-t border-gray-100" data-media-places>
+      <legend class="font-medium text-sm">{% trans "Fotoformat je Bereich" %}</legend>
+      <p class="ui-muted text-xs mb-2">{% trans "Leer = wie bei „Fotoform“. „Ganz zeigen“ schneidet nichts ab, sondern lässt Rand." %}</p>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-x-6 gap-y-2">
+        {% for r in media_place_rows %}
+        <div class="grid grid-cols-3 gap-2 items-center text-sm">
+          <span class="font-medium">{{ r.label }}</span>
+          <select name="mp_{{ r.code }}_ratio" class="ui-input" aria-label="{{ r.label }}: {% trans "Format" %}">
+            <option value="" {% if not r.ratio %}selected{% endif %}>{% trans "Standard" %}</option>
+            {% for key, label in media_ratio_options %}<option value="{{ key }}" {% if r.ratio == key %}selected{% endif %}>{{ label }}</option>{% endfor %}
+          </select>
+          <select name="mp_{{ r.code }}_fit" class="ui-input" aria-label="{{ r.label }}: {% trans "Anpassen" %}">
+            <option value="" {% if not r.fit %}selected{% endif %}>{% trans "Zuschneiden" %}</option>
+            {% for key, label in media_fit_options %}<option value="{{ key }}" {% if r.fit == key %}selected{% endif %}>{{ label }}</option>{% endfor %}
+          </select>
+        </div>
+        {% endfor %}
+      </div>
+    </fieldset>
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-gray-100">
       <label class="flex items-center gap-2 text-sm">
         <input type="hidden" name="quick_add_present" value="1">
