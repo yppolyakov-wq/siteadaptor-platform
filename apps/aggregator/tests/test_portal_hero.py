@@ -37,7 +37,11 @@ def test_featured_never_becomes_deal_of_day():
 
 def test_ending_today_beats_bigger_discount():
     _deal("Groß", 60, ends_at=timezone.now() + timedelta(days=3))
-    today = _deal("Heute", 20, ends_at=timezone.now() + timedelta(minutes=30))
+    # Не «+30 мин»: в 23:46 по Берлину это уже завтра (флак CI 2026-11-07).
+    now = timezone.localtime()
+    end_of_day = now.replace(hour=23, minute=59, second=0, microsecond=0)
+    ends = min(now + timedelta(minutes=30), max(end_of_day, now + timedelta(seconds=30)))
+    today = _deal("Heute", 20, ends_at=ends)
     deal = home.deal_of_day(AggregatorListing.objects.all())
     assert deal.pk == today.pk and "heute" in str(deal.deal_reason)
 
