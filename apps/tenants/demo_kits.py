@@ -5552,7 +5552,8 @@ CAFE_MENUS = {
         "style": "classic",
         "sticky": True,
         "items": [
-            {"label": "Karte", "type": "archetype", "target": "catalog"},
+            # FB-23e: вид «Symbolleiste» — категории карты круглыми фото под шапкой.
+            {"label": "Karte", "type": "categories", "target": "", "layout": "strip"},
             {"label": "Reservieren", "type": "archetype", "target": "booking"},
             {"label": "Treue", "type": "archetype", "target": "loyalty"},
             # Аудит 2026-08-06 (фидбэк владельца «не везде есть акции»): акции
@@ -12455,17 +12456,40 @@ OUTLET_MENUS = {
         "sticky": True,
         "items": [
             {
+                # FB-23e: вид «Mega» — направления слева, их полки справа (auto).
                 "label": "Technik",
                 "type": "category",
                 "target": "notebooks-pcs",
+                "layout": "mega",
                 "children": [
-                    {"label": "Notebooks & PCs", "type": "category", "target": "notebooks-pcs"},
-                    {"label": "Smartphones", "type": "category", "target": "smartphones"},
-                    {"label": "TV, Audio & Foto", "type": "category", "target": "tv-audio-foto"},
-                    {"label": "Haushalt & Küche", "type": "category", "target": "haushalt-kueche"},
+                    {
+                        "label": "Notebooks & PCs",
+                        "type": "category",
+                        "auto": True,
+                        "target": "notebooks-pcs",
+                    },
+                    {
+                        "label": "Smartphones",
+                        "type": "category",
+                        "auto": True,
+                        "target": "smartphones",
+                    },
+                    {
+                        "label": "TV, Audio & Foto",
+                        "type": "category",
+                        "auto": True,
+                        "target": "tv-audio-foto",
+                    },
+                    {
+                        "label": "Haushalt & Küche",
+                        "type": "category",
+                        "auto": True,
+                        "target": "haushalt-kueche",
+                    },
                     {
                         "label": "Gaming & Smart Home",
                         "type": "category",
+                        "auto": True,
                         "target": "gaming-smarthome",
                     },
                 ],
@@ -12474,14 +12498,26 @@ OUTLET_MENUS = {
                 "label": "Mode",
                 "type": "category",
                 "target": "damenmode",
+                "layout": "mega",
                 "children": [
-                    {"label": "Damenmode", "type": "category", "target": "damenmode"},
-                    {"label": "Herrenmode", "type": "category", "target": "herrenmode"},
-                    {"label": "Schuhe", "type": "category", "target": "schuhe"},
-                    {"label": "Sport & Outdoor", "type": "category", "target": "sport-outdoor"},
+                    {"label": "Damenmode", "type": "category", "auto": True, "target": "damenmode"},
+                    {
+                        "label": "Herrenmode",
+                        "type": "category",
+                        "auto": True,
+                        "target": "herrenmode",
+                    },
+                    {"label": "Schuhe", "type": "category", "auto": True, "target": "schuhe"},
+                    {
+                        "label": "Sport & Outdoor",
+                        "type": "category",
+                        "auto": True,
+                        "target": "sport-outdoor",
+                    },
                     {
                         "label": "Taschen & Accessoires",
                         "type": "category",
+                        "auto": True,
                         "target": "taschen-accessoires",
                     },
                 ],
@@ -16626,28 +16662,70 @@ ONLINE_SHOP_MENUS = {
         "sticky": True,
         "items": [
             {
+                # FB-23e: вид «Spalten» — направления колонками, их подразделы ссылками
+                # (auto), справа баннер распродажи.
                 "label": "Sortiment",
                 "type": "archetype",
                 "target": "catalog",
+                "layout": "columns",
+                "image": "/static/demo/photos/shop-atelier-sale.webp",
+                "desc": "Sale bis −30 %",
                 "children": [
-                    {"label": "Mode & Basics", "type": "category", "target": "mode-basics"},
-                    {"label": "Schuhe", "type": "category", "target": "schuhe"},
+                    {
+                        "label": "Mode & Basics",
+                        "type": "category",
+                        "auto": True,
+                        "target": "mode-basics",
+                    },
+                    {"label": "Schuhe", "type": "category", "auto": True, "target": "schuhe"},
                     {
                         "label": "Taschen & Rucksäcke",
                         "type": "category",
+                        "auto": True,
                         "target": "taschen-rucksaecke",
                     },
                     {
                         "label": "Schmuck & Accessoires",
                         "type": "category",
+                        "auto": True,
                         "target": "schmuck-accessoires",
                     },
-                    {"label": "Wohnen & Textil", "type": "category", "target": "wohnen-textil"},
-                    {"label": "Küche & Tafel", "type": "category", "target": "kueche-tafel"},
-                    {"label": "Kaffee & Tee", "type": "category", "target": "kaffee-tee"},
-                    {"label": "Pflege & Bad", "type": "category", "target": "pflege-bad"},
-                    {"label": "Papeterie & Büro", "type": "category", "target": "papeterie-buero"},
-                    {"label": "Sport & Outdoor", "type": "category", "target": "sport-outdoor"},
+                    {
+                        "label": "Wohnen & Textil",
+                        "type": "category",
+                        "auto": True,
+                        "target": "wohnen-textil",
+                    },
+                    {
+                        "label": "Küche & Tafel",
+                        "type": "category",
+                        "auto": True,
+                        "target": "kueche-tafel",
+                    },
+                    {
+                        "label": "Kaffee & Tee",
+                        "type": "category",
+                        "auto": True,
+                        "target": "kaffee-tee",
+                    },
+                    {
+                        "label": "Pflege & Bad",
+                        "type": "category",
+                        "auto": True,
+                        "target": "pflege-bad",
+                    },
+                    {
+                        "label": "Papeterie & Büro",
+                        "type": "category",
+                        "auto": True,
+                        "target": "papeterie-buero",
+                    },
+                    {
+                        "label": "Sport & Outdoor",
+                        "type": "category",
+                        "auto": True,
+                        "target": "sport-outdoor",
+                    },
                 ],
             },
             {"label": "Sets", "type": "page", "target": "combos"},
