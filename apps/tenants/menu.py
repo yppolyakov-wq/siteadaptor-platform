@@ -190,7 +190,23 @@ def _category_url(tenant, slug: str):
     return _reverse_args("storefront-category", slug)
 
 
-def _category_children(tenant, parent_slug: str):
+#: FB-23a: виды панели, которым нужен 3-й уровень авто-категорий.
+NESTED_LAYOUTS = ("mega", "columns")
+
+
+def _category_item(cat) -> dict:
+    url = _reverse_args("storefront-category", cat.slug)
+    return {
+        "label": cat.get_i18n("name"),
+        "url": url,
+        "icon": cat.icon or "",
+        "image": cat.image_url,
+        "desc": cat.get_i18n("description"),
+        "children": [],
+    }
+
+
+def _category_children(tenant, parent_slug: str, nested: bool = False):
     """MEN-15: дети узла «Kategorien» — живые категории каталога, ОДНИМ запросом.
 
     Запрос владельца (2026-08-13): «настройка выводить категории во 2-й уровень
@@ -214,8 +230,9 @@ def _category_children(tenant, parent_slug: str):
             tenant._menu_categories_memo = memo
         except AttributeError:
             memo = None
-    if memo is not None and parent_slug in memo:
-        return memo[parent_slug]
+    memo_key = (parent_slug, nested)
+    if memo is not None and memo_key in memo:
+        return memo[memo_key]
 
     try:
         from apps.catalog.models import Category
@@ -233,8 +250,18 @@ def _category_children(tenant, parent_slug: str):
         else:
             qs = qs.filter(parent__isnull=True)
         rows = list(qs.order_by("sort_order", "slug")[:_MAX_MENU_CATEGORIES])
+        # FB-23a: 3-й уровень — подкатегории ВСЕХ веток одним запросом (E10: шапка
+        # рендерится на каждой странице, запрос на ветку здесь недопустим).
+        grand: dict = {}
+        if nested and rows:
+            for sub in Category.objects.filter(is_active=True, parent__in=rows).order_by(
+                "sort_order", "slug"
+            ):
+                bucket = grand.setdefault(sub.parent_id, [])
+                if len(bucket) < _MAX_MENU_CATEGORIES:
+                    bucket.append(sub)
     except Exception:  # noqa: BLE001 — узел меню не должен ронять страницу
-        rows = []
+        rows, grand = [], {}
 
     out = []
     for cat in rows:
@@ -252,11 +279,16 @@ def _category_children(tenant, parent_slug: str):
                 # короткое описание категории под названием плитки. Обрезает
                 # шаблон (truncatechars) — здесь данные без вёрстки.
                 "desc": cat.get_i18n("description"),
-                "children": [],
+                # FB-23a: 3-й уровень (вид «Mega»/«Spalten») — подкатегории веток.
+                "children": [
+                    item
+                    for item in (_category_item(sub) for sub in grand.get(cat.pk, []))
+                    if item["url"]
+                ],
             }
         )
     if memo is not None:
-        memo[parent_slug] = out
+        memo[memo_key] = out
     return out
 
 
@@ -341,10 +373,81 @@ def _hidden_by_profile(tenant, node: dict) -> bool:
     return False
 
 
+#: FB-23a: пункт → конкретная сущность. (модуль, загрузчик) — загрузчик возвращает
+#: ссылку на ВИДИМУЮ посетителю запись или None (скрытая/удалённая — пункт гаснет).
+def _product_url(target):
+    from apps.catalog.models import Product
+
+    obj = Product.objects.filter(pk=target, is_active=True).select_related("category").first()
+    return obj.get_absolute_url() if obj else None
+
+
+def _service_url(target):
+    from apps.booking.models import Service
+
+    if not Service.objects.filter(pk=target, is_active=True).exists():
+        return None
+    return _reverse_args("storefront-service-detail", target)
+
+
+def _stay_url(target):
+    from apps.stays.models import StayUnit
+
+    if not StayUnit.objects.filter(pk=target, is_active=True).exists():
+        return None
+    return _reverse_args("storefront-unterkunft-unit", target)
+
+
+def _event_url(target):
+    from apps.events.models import Event
+
+    if not Event.objects.filter(pk=target, status=Event.STATUS_PUBLISHED).exists():
+        return None
+    return _reverse_args("storefront-event", target)
+
+
+def _tour_url(target):
+    from apps.events.models import Tour
+
+    if not Tour.objects.filter(slug=target, is_published=True).exists():
+        return None
+    return _reverse_args("storefront-tour", target)
+
+
+def _promotion_url(target):
+    from apps.promotions.models import Promotion
+
+    if not Promotion.objects.filter(Promotion.on_sale_q(), pk=target).exists():
+        return None
+    return _reverse_args("storefront-promotion", target)
+
+
+_ENTITY_URLS = {
+    "product": ("catalog", _product_url),
+    "service": ("booking", _service_url),
+    "stay": ("stays", _stay_url),
+    "event": ("events", _event_url),
+    "tour": ("events", _tour_url),
+    "promotion": ("promotions", _promotion_url),
+}
+
+
+def _entity_url(tenant, ntype: str, target: str):
+    module, loader = _ENTITY_URLS[ntype]
+    if not target or not modules.is_module_active(tenant, module):
+        return None
+    try:
+        return loader(target)
+    except Exception:  # noqa: BLE001 — мусорный pk/удалённая запись не роняют шапку
+        return None
+
+
 def _node_url(tenant, node: dict):
     ntype, target = node["type"], node["target"]
     if _hidden_by_profile(tenant, node):
         return None
+    if ntype in _ENTITY_URLS:
+        return _entity_url(tenant, ntype, target)
     if ntype == "archetype":
         return _archetype_url(tenant, target)
     if ntype == "category":
@@ -381,7 +484,7 @@ def _node_url(tenant, node: dict):
                 return None
         return _reverse(name)
     if ntype == "url":
-        return target or None
+        return siteconfig._menu_href(target) or None  # FB-23a: и для старых конфигов
     if ntype == "anchor":
         if not target:
             return None
@@ -476,14 +579,21 @@ def _node_label(node: dict) -> str:
     return explicit or gettext(node["label"])
 
 
-def _resolve(tenant, node: dict):
+def _resolve(tenant, node: dict, depth: int = 1):
     if not node.get("enabled", True):
         return None
-    children = [c for c in (_resolve(tenant, k) for k in node.get("children", [])) if c]
+    children = [c for c in (_resolve(tenant, k, depth + 1) for k in node.get("children", [])) if c]
+    # FB-23a: авто-подкатегории — у узла «Kategorien» всегда, у пункта-категории по
+    # переключателю `auto`; 3-й уровень, только если до него хватает глубины.
+    # 3-й уровень авто-категорий нужен только панелям «Mega»/«Spalten» — прочим меню
+    # лишний запрос на каждую страницу ни к чему.
+    nested = depth == 1 and node.get("layout") in NESTED_LAYOUTS
+    if node["type"] == "category" and node.get("auto") and depth < siteconfig._MENU_MAX_DEPTH:
+        children = children + _category_children(tenant, node["target"], nested)
     if node["type"] == "categories":
         # MEN-15: дети собираются из живых категорий (владелец список не ведёт).
         # Ручные дети, если их положили, остаются впереди авто-списка.
-        children = children + _category_children(tenant, node["target"])
+        children = children + _category_children(tenant, node["target"], nested)
         # Фидбэк 2026-08-26: у гастро в то же подменю едут наборы меню —
         # «картинками по наборам и категориям».
         if node.get("with_combos"):
@@ -491,7 +601,7 @@ def _resolve(tenant, node: dict):
     url = _node_url(tenant, node)
     if url is None and not children:
         return None
-    return {
+    out = {
         "label": _node_label(node),
         "url": url,
         "icon": node.get("icon", ""),
@@ -501,6 +611,14 @@ def _resolve(tenant, node: dict):
         # прямоугольник, поэтому сетку включаем только если фото ЕСТЬ.
         "has_images": any(c.get("image") for c in children),
     }
+    # FB-23a: своё фото/подпись пункта (у авто-категорий они приходят из каталога).
+    if node.get("image"):
+        out["image"] = node["image"]
+    if node.get("desc"):
+        out["desc"] = node["desc"]
+    if depth == 1:
+        out["layout"] = node.get("layout") or ("tiles" if out["has_images"] else "list")
+    return out
 
 
 def _menus_of(tenant, cfg=None) -> dict:
@@ -574,6 +692,26 @@ def top_meta(tenant, cfg=None) -> tuple[str, bool]:
 
 def bottom_enabled(tenant, cfg=None) -> bool:
     return _menus_of(tenant, cfg)["bottom"]["enabled"]
+
+
+def resolve_footer(tenant, cfg=None) -> list[dict]:
+    """FB-23d: колонки подвала [{label, items:[{label,url,icon}]}]; [] — колонок нет
+    (подвал прежний). Ссылки резолвятся теми же правилами, что шапка; колонка без
+    живых ссылок выпадает."""
+    from django.utils.translation import get_language
+
+    out = []
+    for col in (_menus_of(tenant, cfg).get("footer") or {}).get("columns", []):
+        items = [
+            r
+            for r in (_resolve(tenant, n, siteconfig._MENU_MAX_DEPTH) for n in col["items"])
+            if r and r["url"]
+        ]
+        if not items:
+            continue
+        label = (col.get("label_i18n") or {}).get(get_language() or "de") or col["label"]
+        out.append({"label": label, "items": items})
+    return out
 
 
 def target_sets(tenant) -> dict:
@@ -653,7 +791,80 @@ def target_sets(tenant) -> dict:
         "category_parents": parent_targets,
         "pages": page_targets,
         "promo_groups": promo_group_targets,
+        **_entity_targets(tenant),
     }
+
+
+#: FB-23a: сколько записей одного вида в выборе цели (товаров бывает тысячи —
+#: в редакторе FB-23c у товара будет поиск, селекту хватает первых).
+_ENTITY_TARGET_LIMIT = 200
+
+
+def _entity_targets(tenant) -> dict:
+    """FB-23a: цели «конкретная запись» — только включённых модулей и видимые."""
+    out = {key: [] for key in ("products", "services", "stays", "events", "tours", "promotions")}
+
+    def _add(key, module, rows, label):
+        if not modules.is_module_active(tenant, module):
+            return
+        try:
+            out[key] = [
+                {"value": value, "label": text}
+                for value, text in ((v, label(o)) for v, o in rows())
+                if text
+            ][:_ENTITY_TARGET_LIMIT]
+        except Exception:  # noqa: BLE001 — редактор меню не роняется из-за одной модели
+            out[key] = []
+
+    from apps.booking.models import Service
+    from apps.catalog.models import Product
+    from apps.events.models import Event, Tour
+    from apps.promotions.models import Promotion
+    from apps.stays.models import StayUnit
+
+    lim = _ENTITY_TARGET_LIMIT
+    _add(
+        "products",
+        "catalog",
+        lambda: ((str(o.pk), o) for o in Product.objects.filter(is_active=True)[:lim]),
+        lambda o: o.get_i18n("name"),
+    )
+    _add(
+        "services",
+        "booking",
+        lambda: ((str(o.pk), o) for o in Service.objects.filter(is_active=True)[:lim]),
+        lambda o: o.name_localized(),
+    )
+    _add(
+        "stays",
+        "stays",
+        lambda: ((str(o.pk), o) for o in StayUnit.objects.filter(is_active=True)[:lim]),
+        lambda o: o.name_localized(),
+    )
+    _add(
+        "events",
+        "events",
+        lambda: (
+            (str(o.pk), o)
+            for o in Event.objects.filter(status=Event.STATUS_PUBLISHED).order_by("-starts_at")[
+                :lim
+            ]
+        ),
+        lambda o: o.title_text,
+    )
+    _add(
+        "tours",
+        "events",
+        lambda: ((o.slug, o) for o in Tour.objects.filter(is_published=True)[:lim]),
+        lambda o: o.title_text,
+    )
+    _add(
+        "promotions",
+        "promotions",
+        lambda: ((str(o.pk), o) for o in Promotion.objects.filter(Promotion.on_sale_q())[:lim]),
+        lambda o: o.title_text,
+    )
+    return out
 
 
 def target_options(tenant) -> list[dict]:
@@ -675,6 +886,13 @@ def target_options(tenant) -> list[dict]:
         (_("Bereiche"), "archetype", sets["archetypes"]),
         (_("Kategorien"), "category", sets["categories"]),
         (_("Aktionsgruppen"), "promo_group", sets["promo_groups"]),
+        # FB-23a: конкретные записи
+        (_("Produkte"), "product", sets["products"]),
+        (_("Leistungen"), "service", sets["services"]),
+        (_("Zimmer"), "stay", sets["stays"]),
+        (_("Veranstaltungen"), "event", sets["events"]),
+        (_("Touren"), "tour", sets["tours"]),
+        (_("Aktionen"), "promotion", sets["promotions"]),
     )
     pairs = []
     for label, ntype, items in groups:
@@ -696,7 +914,9 @@ def target_options(tenant) -> list[dict]:
             "enabled": True,
             "children": [],
         }
-        available = _resolve(tenant, node) is not None
+        # FB-23a: записи уже отобраны видимыми (_entity_targets) — без запроса на
+        # каждую из сотни товаров.
+        available = ntype in _ENTITY_URLS or _resolve(tenant, node) is not None
         out.append(
             {
                 "group": group,

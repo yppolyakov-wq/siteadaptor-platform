@@ -2579,9 +2579,46 @@ MENU_NODE_TYPES = (
     "url",
     "anchor",
     "group",
+    # FB-23a: пункт ведёт на конкретную сущность (target = её pk; тур — slug).
+    "product",
+    "service",
+    "stay",
+    "event",
+    "tour",
+    "promotion",
 )
 _MAX_MENU_ITEMS = 20  # потолок пунктов на уровень
-_MENU_MAX_DEPTH = 2  # глубина вложенности (родитель + дети)
+# FB-23a (решение владельца 2026-11-07): 3 уровня — как стандарт рынка (Shopify).
+_MENU_MAX_DEPTH = 3
+#: FB-23a: вид выпадающей панели пункта верхнего уровня. "" (ключа нет) = как раньше:
+#: плитки, если у подпунктов есть фото, иначе список. list · tiles · mega (как портал:
+#: слева подразделы, справа 3-й уровень) · columns (подразделы — колонки, 3-й уровень —
+#: ссылки под ними) · strip (полоса иконок/фото под шапкой).
+MENU_LAYOUTS = ("list", "tiles", "mega", "columns", "strip")
+_MENU_DESC_MAX = 120
+#: FB-23d: подвал из колонок ссылок — потолки.
+_FOOTER_MAX_COLUMNS = 6
+_FOOTER_MAX_LINKS = 12
+
+
+def _menu_href(value) -> str:
+    """Ссылка/картинка пункта меню: только http(s)/mailto/tel/относительные (правило
+    `siteui.safe_href`); `javascript:`, `data:`, `//host` → "" (узел-url тогда выпадет)."""
+    s = _s(value)[:500]
+    if s.startswith("//"):
+        return ""
+    low = s.lower()
+    if low.startswith(("http://", "https://", "mailto:", "tel:")) or s.startswith(("/", "#")):
+        return s
+    return ""
+
+
+def _menu_locales() -> tuple[str, ...]:
+    from django.conf import settings
+
+    return tuple(code for code, _name in settings.LANGUAGES)
+
+
 # Соответствие легаси-пунктов nav → узлы меню (для вывода menus.top из nav).
 _NAV_KEY_TO_NODE = {
     "offers": ("page", "home"),
@@ -2615,10 +2652,13 @@ def _clean_menu_node(raw, depth: int):
     if not label:
         return None
     ntype = raw.get("type") if raw.get("type") in MENU_NODE_TYPES else "url"
+    target = _s(raw.get("target"))
+    if ntype == "url":
+        target = _menu_href(target)  # FB-23a: javascript:/data: в шапку не пускаем
     node = {
         "label": label,
         "type": ntype,
-        "target": _s(raw.get("target")),
+        "target": target,
         "enabled": bool(raw.get("enabled", True)),
         "icon": _s(raw.get("icon"))[:8],
         "children": [],
@@ -2633,9 +2673,23 @@ def _clean_menu_node(raw, depth: int):
         node["with_combos"] = True
     li18n = raw.get("label_i18n")
     if isinstance(li18n, dict):
-        clean_li18n = {loc: _s(v) for loc, v in li18n.items() if loc in ("de", "en") and _s(v)}
+        # FB-23a: переводы на ВСЕ языки витрины (было только de/en).
+        allowed = _menu_locales()
+        clean_li18n = {loc: _s(v) for loc, v in li18n.items() if loc in allowed and _s(v)}
         if clean_li18n:
             node["label_i18n"] = clean_li18n
+    # FB-23a: фото и подпись пункта, авто-подкатегории у пункта-категории, вид
+    # выпадашки у верхнего уровня — все presence-minimal (легаси-меню не раздуваем).
+    image = _menu_href(raw.get("image"))
+    if image and not image.startswith(("mailto:", "tel:", "#")):
+        node["image"] = image
+    desc = _s(raw.get("desc"))[:_MENU_DESC_MAX]
+    if desc:
+        node["desc"] = desc
+    if ntype == "category" and raw.get("auto"):
+        node["auto"] = True
+    if depth == 1 and raw.get("layout") in MENU_LAYOUTS:
+        node["layout"] = raw["layout"]
     if depth < _MENU_MAX_DEPTH and isinstance(raw.get("children"), list):
         for child in raw["children"][:_MAX_MENU_ITEMS]:
             cleaned = _clean_menu_node(child, depth + 1)
@@ -2690,7 +2744,7 @@ def _normalize_menus(raw, nav: dict) -> dict:
     top = raw.get("top") if isinstance(raw.get("top"), dict) else {}
     bottom = raw.get("bottom") if isinstance(raw.get("bottom"), dict) else {}
     top_style = top.get("style")
-    return {
+    out = {
         "top": {
             "style": top_style if top_style in NAV_STYLES else nav["style"],
             "sticky": bool(top.get("sticky", nav["sticky"])),
@@ -2701,6 +2755,40 @@ def _normalize_menus(raw, nav: dict) -> dict:
             "items": _clean_menu_items(bottom.get("items")),
         },
     }
+    # FB-23d: подвал из колонок ссылок; нет колонок — ключа нет (прежний подвал
+    # байт-в-байт, golden целы).
+    footer = raw.get("footer") if isinstance(raw.get("footer"), dict) else {}
+    columns = _clean_footer_columns(footer.get("columns"))
+    if columns:
+        out["footer"] = {"columns": columns}
+    return out
+
+
+def _clean_footer_columns(raw) -> list[dict]:
+    out = []
+    if not isinstance(raw, list):
+        return out
+    allowed = _menu_locales()
+    for col in raw[:_FOOTER_MAX_COLUMNS]:
+        if not isinstance(col, dict):
+            continue
+        label = _s(col.get("label"))[:60]
+        links = []
+        for item in (col.get("items") or [])[:_FOOTER_MAX_LINKS]:
+            # ссылка подвала — лист: детей не бывает (глубина = последний уровень)
+            node = _clean_menu_node(item, _MENU_MAX_DEPTH)
+            if node is not None:
+                links.append(node)
+        if not label and not links:
+            continue
+        clean = {"label": label, "items": links}
+        li18n = col.get("label_i18n")
+        if isinstance(li18n, dict):
+            tr = {loc: _s(v)[:60] for loc, v in li18n.items() if loc in allowed and _s(v)}
+            if tr:
+                clean["label_i18n"] = tr
+        out.append(clean)
+    return out
 
 
 # Шрифты витрины (P2a). ТОЛЬКО системные стеки — без загрузки веб-шрифтов
