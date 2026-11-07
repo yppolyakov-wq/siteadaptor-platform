@@ -35368,3 +35368,30 @@ msgstr "e.g. cotton, linen"
 
 msgid "z. B. Füllung"
 msgstr "e.g. filling"
+
+msgid "Block hinzufügen"
+msgstr "Add block"
+
+msgid "Diese Änderung ist hier nicht möglich."
+msgstr "This change is not possible here."
+
+msgid "Einblenden"
+msgstr "Show"
+
+msgid "In Studio bearbeiten"
+msgstr "Edit in Studio"
+
+msgid "In der Vorschau zeigen"
+msgstr "Show in preview"
+
+msgid "Kopfzeile & Menü"
+msgstr "Header & menu"
+
+msgid "Noch keine eigenen Blöcke auf dieser Seite."
+msgstr "No custom blocks on this page yet."
+
+msgid "Sichtbare Blöcke"
+msgstr "Visible blocks"
+
+msgid "Welche Blöcke auf welcher Seite stehen — und in welcher Reihenfolge."
+msgstr "Which blocks are on which page — and in what order."

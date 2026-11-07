@@ -1045,6 +1045,16 @@ ENTRIES: tuple[NavEntry, ...] = (
         True,
         "vorlage layout raster kartenform startseite blog textseiten",
     ),
+    # FB-25: схема блоков всех страниц с уменьшенной живой страницей (правка — тут же).
+    _e(
+        "site",
+        "site-schema",
+        _("Seitenaufbau"),
+        "site-schema",
+        None,
+        True,
+        "aufbau schema bloecke struktur layout seiten",
+    ),
     _e("site", "site-seo", _("SEO"), "seo", None, True, "meta titel beschreibung robots"),
     # M21.1: старые адреса после переезда с другой платформы (301/410).
     _e(
@@ -1183,6 +1193,7 @@ UNIVERSAL: dict[str, str] = {
     "support:help": "помощь — у каждого",
     "design": "дизайн сайта — у каждого",
     "site-seo": "SEO сайта — у каждого",
+    "site-schema": "схема блоков страниц — у каждого",
     # STU-19d: the screens show only the page types whose module is on.
     "page-templates-website": "шаблоны всех страниц сайта — у каждого",
     "site-redirects": "переадресации старых адресов — у каждого",

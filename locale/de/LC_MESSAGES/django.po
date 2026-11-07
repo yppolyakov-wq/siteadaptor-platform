@@ -35455,3 +35455,30 @@ msgstr "z. B. Baumwolle, Leinen"
 
 msgid "z. B. Füllung"
 msgstr "z. B. Füllung"
+
+msgid "Block hinzufügen"
+msgstr "Block hinzufügen"
+
+msgid "Diese Änderung ist hier nicht möglich."
+msgstr "Diese Änderung ist hier nicht möglich."
+
+msgid "Einblenden"
+msgstr "Einblenden"
+
+msgid "In Studio bearbeiten"
+msgstr "In Studio bearbeiten"
+
+msgid "In der Vorschau zeigen"
+msgstr "In der Vorschau zeigen"
+
+msgid "Kopfzeile & Menü"
+msgstr "Kopfzeile & Menü"
+
+msgid "Noch keine eigenen Blöcke auf dieser Seite."
+msgstr "Noch keine eigenen Blöcke auf dieser Seite."
+
+msgid "Sichtbare Blöcke"
+msgstr "Sichtbare Blöcke"
+
+msgid "Welche Blöcke auf welcher Seite stehen — und in welcher Reihenfolge."
+msgstr "Welche Blöcke auf welcher Seite stehen — und in welcher Reihenfolge."

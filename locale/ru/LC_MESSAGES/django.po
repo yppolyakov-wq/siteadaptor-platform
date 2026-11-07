@@ -35691,3 +35691,30 @@ msgstr "например хлопок, лён"
 
 msgid "z. B. Füllung"
 msgstr "например начинка"
+
+msgid "Block hinzufügen"
+msgstr "Добавить блок"
+
+msgid "Diese Änderung ist hier nicht möglich."
+msgstr "Это изменение здесь невозможно."
+
+msgid "Einblenden"
+msgstr "Показать"
+
+msgid "In Studio bearbeiten"
+msgstr "Изменить в Студии"
+
+msgid "In der Vorschau zeigen"
+msgstr "Показать в предпросмотре"
+
+msgid "Kopfzeile & Menü"
+msgstr "Шапка и меню"
+
+msgid "Noch keine eigenen Blöcke auf dieser Seite."
+msgstr "На этой странице пока нет своих блоков."
+
+msgid "Sichtbare Blöcke"
+msgstr "Видимые блоки"
+
+msgid "Welche Blöcke auf welcher Seite stehen — und in welcher Reihenfolge."
+msgstr "Какие блоки стоят на какой странице — и в каком порядке."

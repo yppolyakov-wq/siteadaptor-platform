@@ -35678,3 +35678,30 @@ msgstr "наприклад бавовна, льон"
 
 msgid "z. B. Füllung"
 msgstr "наприклад начинка"
+
+msgid "Block hinzufügen"
+msgstr "Додати блок"
+
+msgid "Diese Änderung ist hier nicht möglich."
+msgstr "Ця зміна тут неможлива."
+
+msgid "Einblenden"
+msgstr "Показати"
+
+msgid "In Studio bearbeiten"
+msgstr "Змінити в Студії"
+
+msgid "In der Vorschau zeigen"
+msgstr "Показати в попередньому перегляді"
+
+msgid "Kopfzeile & Menü"
+msgstr "Шапка й меню"
+
+msgid "Noch keine eigenen Blöcke auf dieser Seite."
+msgstr "На цій сторінці ще немає своїх блоків."
+
+msgid "Sichtbare Blöcke"
+msgstr "Видимі блоки"
+
+msgid "Welche Blöcke auf welcher Seite stehen — und in welcher Reihenfolge."
+msgstr "Які блоки стоять на якій сторінці — і в якому порядку."

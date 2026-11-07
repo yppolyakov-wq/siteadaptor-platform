@@ -373,6 +373,7 @@ RULES: dict[str, Rule] = {
     "promotions:voucher-new": _r(M, ME),  # UX-D D6.4
     # --- Website ------------------------------------------------------------------
     "design": _r(W, WE),
+    "site-schema": _r(W, WE),  # FB-25
     "page-templates-sortiment": _r(W, WE),  # STU-19b
     "page-templates-aktionen": _r(W, WE),  # STU-19d
     "page-templates-website": _r(W, WE),  # STU-19d

@@ -218,6 +218,8 @@ def test_sidebar_children_composition():
         "site-home",
         "design",
         "page-templates-website",
+        # FB-25 (осознанное дополнение): схема блоков страниц рядом с шаблонами
+        "site-schema",
         "site-seo",
         "site-redirects",
         "domains",

@@ -35514,3 +35514,30 @@ msgstr "ör. pamuk, keten"
 
 msgid "z. B. Füllung"
 msgstr "ör. dolgu"
+
+msgid "Block hinzufügen"
+msgstr "Blok ekle"
+
+msgid "Diese Änderung ist hier nicht möglich."
+msgstr "Bu değişiklik burada mümkün değil."
+
+msgid "Einblenden"
+msgstr "Göster"
+
+msgid "In Studio bearbeiten"
+msgstr "Studio'da düzenle"
+
+msgid "In der Vorschau zeigen"
+msgstr "Önizlemede göster"
+
+msgid "Kopfzeile & Menü"
+msgstr "Üst bilgi ve menü"
+
+msgid "Noch keine eigenen Blöcke auf dieser Seite."
+msgstr "Bu sayfada henüz özel blok yok."
+
+msgid "Sichtbare Blöcke"
+msgstr "Görünür bloklar"
+
+msgid "Welche Blöcke auf welcher Seite stehen — und in welcher Reihenfolge."
+msgstr "Hangi sayfada hangi bloklar var — ve hangi sırayla."
