@@ -1,0 +1,27 @@
+{% load i18n %}
+{% comment %}FB-23b вид D «Spalten» (классика больших магазинов): подразделы — заголовки
+колонок, под каждым ссылки 3-го уровня (≤ 8 + «Alle anzeigen»); справа — баннер из фото
+и подписи САМОГО пункта (если владелец их задал).{% endcomment %}
+<div class="bg-white rounded-xl shadow-lg ring-1 ring-black/5 p-5 flex gap-6 w-[min(1100px,calc(100vw-2rem))]" data-menu-layout="columns">
+  <div class="flex-1 min-w-0 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-5">
+    {% for c in item.children %}
+    <div class="min-w-0">
+      <a href="{{ c.url|default:'#' }}" class="flex items-center gap-2 text-sm font-semibold text-gray-900 hover:underline">{% include "storefront/menu/_icon.html" with node=c %}<span class="break-words">{{ c.label }}</span></a>
+      {% if c.children %}
+      <ul class="mt-2 space-y-1.5">
+        {% for g in c.children|slice:":8" %}
+        <li><a href="{{ g.url }}" class="text-sm text-gray-600 hover:text-gray-900 hover:underline break-words">{{ g.label }}</a></li>
+        {% endfor %}
+        {% if c.children|length > 8 and c.url %}<li><a href="{{ c.url }}" class="text-sm font-medium hover:underline" style="color: var(--accent)">{% trans "Alle anzeigen" %} →</a></li>{% endif %}
+      </ul>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% if item.image %}
+  <a href="{{ item.url|default:'#' }}" class="hidden md:block relative w-64 shrink-0 rounded-xl overflow-hidden" data-menu-banner>
+    <img src="{{ item.image }}" alt="" loading="lazy" class="w-full h-full object-cover">
+    {% if item.desc %}<span class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-4 pb-4 pt-10 text-white font-semibold">{{ item.desc }}</span>{% endif %}
+  </a>
+  {% endif %}
+</div>

@@ -1,0 +1,18 @@
+{% comment %}FB-23b вид G «Symbolleiste»: подпункты пункта с видом strip — полосой круглых
+фото/иконок под шапкой (на телефоне листается пальцем). Подпись под кругом; без фото и
+иконки — первая буква.{% endcomment %}
+{% for item in storefront_menu %}{% if item.layout == "strip" and item.children %}
+<nav aria-label="{{ item.label }}" class="border-b border-gray-100 bg-white" data-menu-layout="strip">
+  <ul class="{{ storefront_page_width|default:'max-w-screen-2xl' }} mx-auto px-4 py-3 flex gap-4 overflow-x-auto">
+    {% for c in item.children %}
+    <li class="shrink-0">
+      <a href="{{ c.url|default:'#' }}" class="flex flex-col items-center gap-1.5 w-20 text-center text-xs font-medium text-gray-700 hover:text-gray-900">
+        {% if c.image %}<img src="{{ c.image }}" alt="" loading="lazy" class="w-14 h-14 rounded-full object-cover ring-1 ring-gray-200">
+        {% else %}<span aria-hidden="true" class="w-14 h-14 rounded-full bg-gray-100 ring-1 ring-gray-200 flex items-center justify-center text-xl">{% if c.icon %}{{ c.icon }}{% else %}{{ c.label|slice:":1"|upper }}{% endif %}</span>{% endif %}
+        <span class="line-clamp-2 break-words">{{ c.label }}</span>
+      </a>
+    </li>
+    {% endfor %}
+  </ul>
+</nav>
+{% endif %}{% endfor %}

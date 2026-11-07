@@ -1,0 +1,10 @@
+{% load i18n %}
+{% comment %}FB-23b вид A «Liste»: текстовый столбец; 3-й уровень — строками с отступом.{% endcomment %}
+<div class="bg-white rounded-xl shadow-lg ring-1 ring-black/5 py-2 min-w-[220px] max-w-[calc(100vw-2rem)]" data-menu-layout="list">
+  {% for c in item.children %}
+    <a href="{{ c.url|default:'#' }}" class="flex items-center gap-2 px-4 py-2 whitespace-nowrap text-gray-700 hover:bg-gray-50">{% include "storefront/menu/_icon.html" with node=c %}{{ c.label }}</a>
+    {% for g in c.children %}
+      <a href="{{ g.url }}" class="flex items-center gap-2 pl-8 pr-4 py-1.5 whitespace-nowrap text-sm text-gray-500 hover:bg-gray-50 hover:text-gray-800">{% include "storefront/menu/_icon.html" with node=g %}{{ g.label }}</a>
+    {% endfor %}
+  {% endfor %}
+</div>

@@ -1,0 +1,25 @@
+{% load i18n %}
+{% comment %}FB-23b вид B «Kacheln» (MEN-15/MEN-20, вынесено из _header_nav без изменений
+вёрстки): сетка плиток с фото и описанием; пункт без фото — полноширинная строка.
+Ширина клампится по экрану, положение при нехватке места двигает JS (fitPanel).{% endcomment %}
+<div class="bg-white rounded-xl shadow-lg ring-1 ring-black/5 p-3 grid grid-cols-2 gap-2 w-[560px] max-w-[calc(100vw-2rem)]" data-menu-layout="tiles">
+  {% for c in item.children %}
+    {% if c.image %}
+    <a href="{{ c.url|default:'#' }}" class="flex items-center gap-2.5 rounded-lg p-2 hover:bg-gray-50">
+      <img src="{{ c.image }}" alt="" loading="lazy" class="w-14 h-14 rounded-lg object-cover shrink-0">
+      <span class="min-w-0">
+        <span class="block text-sm font-medium text-gray-700 break-words">{{ c.label }}</span>
+        {% if c.desc %}<span class="block text-xs text-gray-500 leading-snug">{{ c.desc|truncatechars:60 }}</span>{% endif %}
+      </span>
+    </a>
+    {% else %}
+    <a href="{{ c.url|default:'#' }}" class="col-span-2 flex items-center justify-between rounded-lg border border-dashed border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-300">
+      <span class="min-w-0 flex items-center gap-2">{% include "storefront/menu/_icon.html" with node=c %}<span>
+        <span class="block break-words">{{ c.label }}</span>
+        {% if c.desc %}<span class="block text-xs font-normal text-gray-500 leading-snug">{{ c.desc|truncatechars:60 }}</span>{% endif %}
+      </span></span>
+      <span class="text-gray-400" aria-hidden="true">→</span>
+    </a>
+    {% endif %}
+  {% endfor %}
+</div>

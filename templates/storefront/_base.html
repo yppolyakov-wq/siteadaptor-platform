@@ -162,22 +162,39 @@
       <div class="flex items-center gap-2 shrink-0 ml-auto">{% include "storefront/_header_icons.html" %}</div>
     </div>
     {% endif %}
-    {# Раскрывающееся меню (мобильный + minimal-десктоп): дети с отступом. #}
+    {% comment %}Раскрывающееся меню (мобильный + minimal-десктоп). FB-23b: аккордеон на
+    3 уровня (<details> — без JS), иконки пунктов; ссылка самого раздела — первой строкой
+    внутри («Alles in …»), чтобы раздел с подменю оставался кликабельным.{% endcomment %}
     <nav id="sf-nav-mobile" class="hidden border-t border-gray-100 px-4 py-2 {% if style != 'minimal' %}sm:hidden{% endif %}">
       {% for item in storefront_menu %}
-        {% if item.url %}
-          <a href="{{ item.url }}" class="block py-2 text-gray-700 hover:text-gray-900 font-medium">{{ item.label }}</a>
-        {% else %}
-          <div class="pt-2 pb-1 text-xs font-semibold uppercase tracking-wide text-gray-400">{{ item.label }}</div>
+        {% if item.children %}
+        <details class="group/m border-b border-gray-50 last:border-0" data-menu-acc>
+          <summary class="flex items-center justify-between gap-2 py-2 font-medium text-gray-700 cursor-pointer list-none">
+            <span class="flex items-center gap-2">{% include "storefront/menu/_icon.html" with node=item %}{{ item.label }}</span>
+            <svg class="transition group-open/m:rotate-180" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+          </summary>
+          <div class="pb-2">
+            {% if item.url %}<a href="{{ item.url }}" class="block py-2 pl-4 text-sm font-semibold" style="color: var(--accent)">{% blocktrans with label=item.label %}Alles in {{ label }}{% endblocktrans %} →</a>{% endif %}
+            {% for c in item.children %}
+              {% if c.children %}
+              <details class="pl-4">
+                <summary class="flex items-center gap-2 py-2 text-gray-600 cursor-pointer list-none">{% if c.image %}<img src="{{ c.image }}" alt="" loading="lazy" class="w-8 h-8 rounded object-cover shrink-0">{% else %}{% include "storefront/menu/_icon.html" with node=c %}{% endif %}<span class="flex-1">{{ c.label }}</span><span aria-hidden="true" class="text-gray-400">›</span></summary>
+                {% if c.url %}<a href="{{ c.url }}" class="block py-1.5 pl-6 text-sm font-medium text-gray-700">{% blocktrans with label=c.label %}Alles in {{ label }}{% endblocktrans %}</a>{% endif %}
+                {% for g in c.children %}<a href="{{ g.url }}" class="block py-1.5 pl-6 text-sm text-gray-500 hover:text-gray-900">{{ g.label }}</a>{% endfor %}
+              </details>
+              {% else %}
+              <a href="{{ c.url|default:'#' }}" class="flex items-center gap-2 py-2 pl-4 text-gray-600 hover:text-gray-900">{% if c.image %}<img src="{{ c.image }}" alt="" loading="lazy" class="w-8 h-8 rounded object-cover shrink-0">{% else %}{% include "storefront/menu/_icon.html" with node=c %}{% endif %}{{ c.label }}</a>
+              {% endif %}
+            {% endfor %}
+          </div>
+        </details>
+        {% elif item.url %}
+          <a href="{{ item.url }}" class="flex items-center gap-2 py-2 text-gray-700 hover:text-gray-900 font-medium">{% include "storefront/menu/_icon.html" with node=item %}{{ item.label }}</a>
         {% endif %}
-        {% comment %}MEN-15: у категорий — мини-фото 32px в строке (плитки на
-        телефоне съели бы весь экран); без фото строка прежняя.{% endcomment %}
-        {% for c in item.children %}
-          <a href="{{ c.url }}" class="flex items-center gap-2 py-2 pl-4 text-gray-600 hover:text-gray-900">{% if c.image %}<img src="{{ c.image }}" alt="" loading="lazy" class="w-8 h-8 rounded object-cover shrink-0">{% endif %}{{ c.label }}</a>
-        {% endfor %}
       {% endfor %}
     </nav>
   </header>
+  {% include "storefront/menu/_strip.html" %}
   {% endwith %}
   <script>
   (function () {
@@ -241,6 +258,24 @@
       },
       true,
     );
+    // FB-23b: вид «Mega» — строка слева (наведение/фокус) показывает свою панель справа.
+    function megaShow(row) {
+      var root = row.closest("[data-mega]");
+      if (!root) return;
+      var i = row.getAttribute("data-mega-row");
+      root.querySelectorAll("[data-mega-pane]").forEach(function (p) {
+        p.classList.toggle("hidden", p.getAttribute("data-mega-pane") !== i);
+      });
+      root.querySelectorAll("[data-mega-row]").forEach(function (r) {
+        r.classList.toggle("bg-gray-50", r === row);
+      });
+    }
+    ["mouseover", "focusin"].forEach(function (ev) {
+      document.addEventListener(ev, function (e) {
+        var row = e.target.closest && e.target.closest("[data-mega-row]");
+        if (row) megaShow(row);
+      });
+    });
     // NAV-v2: overflow «Mehr ▾» — не влезающие пункты ряда прячем, показываем их
     // копии в панели (рендер двойной, JS только переключает видимость).
     var dnav = document.getElementById("sf-nav-desktop");
