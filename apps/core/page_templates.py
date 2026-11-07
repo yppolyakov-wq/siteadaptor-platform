@@ -45,7 +45,7 @@ SECTIONS = {
         ),
         "module": None,
         "url_name": "page-templates-sortiment",
-        "nav": "seitenvorlage",
+        "nav": "seitenvorlagen",  # FB-16: экран — только Website
         "title": _("Seitenvorlage"),
         "intro": _(
             "So zeigt Ihre Website Ihr Angebot: Listen, Kategorien und Detailseiten. "
@@ -56,7 +56,7 @@ SECTIONS = {
         "types": ("promos", "promo_group", "promo"),
         "module": "promotions",
         "url_name": "page-templates-aktionen",
-        "nav": "seitenvorlage-aktionen",
+        "nav": "seitenvorlagen",  # FB-16: экран — только Website
         "title": _("Seitenvorlage"),
         "intro": _(
             "So zeigt Ihre Website die Aktionsseite, eine Aktionsgruppe und eine einzelne "

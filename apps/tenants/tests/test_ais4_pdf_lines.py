@@ -296,9 +296,13 @@ def test_broken_pypdf_configuration_fails_loudly_not_as_owner_error():
 def test_ai_rows_are_marked_and_disclosed(pdf_ai_on):
     data = {"is_price_list": True, "items": [{"name": "Butterbrezel", "price_text": "€ 1,20"}]}
     owner = Owner(_v4())
-    with mock.patch("apps.ai.disclosure.notice", return_value="USA") as notice:
-        owner()
-    assert "offer_pdf_lines" in [c.args[0] for c in notice.call_args_list]
+
+    # FB-15: одна пометка на шаг; ИИ для PDF раскрыт, даже если фото-ИИ выключен
+    def only_pdf(task, audience="owner"):
+        return "USA" if task == "offer_pdf_lines" else ""
+
+    with mock.patch("apps.ai.disclosure.notice", side_effect=only_pdf):
+        assert owner().content.decode().count("data-ai-notice") == 1
     with _inline(), _gen(data):
         _scan(owner, [_upload(_pdf())])
     owner("post", {"action": "offer_scan_apply"})
