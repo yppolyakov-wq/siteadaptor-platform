@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>SolingenMarkt – V5 Suche zuerst</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#FFFFFF}
+a{color:#C2410C;text-decoration:none}a:hover{color:#9A3412}
+</style>
+</helmet>
+<div style="font-family: Inter, system-ui, sans-serif; color: #111827; background: #FFFFFF">
+<header style="max-width: 1360px; margin: 0 auto; padding: 16px 24px; display: flex; flex-wrap: wrap; align-items: center; gap: 18px">
+  <span style="font-weight: 800; font-size: 20px; letter-spacing: -0.02em">Solingen<span style="color: #C2410C">Markt</span></span>
+  <nav aria-label="Hauptmenü" style="margin-left: auto; display: flex; flex-wrap: wrap; gap: 18px; font-size: 14px; font-weight: 600">
+    <a href="#" style="color: #374151">Kategorien</a><a href="#" style="color: #374151">Karte</a><a href="#" style="color: #374151">Für Unternehmen</a><a href="#">Anmelden</a>
+  </nav>
+</header>
+
+<main style="max-width: 1360px; margin: 0 auto; padding: 40px 24px 48px; display: flex; flex-direction: column; gap: 40px">
+  <section aria-labelledby="s-h" style="max-width: 860px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; text-align: center">
+    <h1 id="s-h" style="margin: 0; font-size: 48px; letter-spacing: -0.03em; line-height: 1.05">Was suchen Sie in Solingen?</h1>
+    <p style="margin: 0; font-size: 17px; color: #4B5563">200 Angebote, 103 Geschäfte, 48 Termine — heute, in Ihrer Nähe.</p>
+    <div style="position: relative; text-align: left">
+      <label style="display: flex; align-items: center; gap: 10px; border: 2px solid #111827; border-radius: 18px; padding: 0 8px 0 20px; min-height: 64px; background: #FFFFFF">
+        <span style="position: absolute; width: 1px; height: 1px; overflow: hidden">Suche</span>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#111827" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input type="search" value="pizza heute abend" style="flex: 1; border: 0; font: 20px Inter, sans-serif; outline: none; min-height: 56px">
+        <button type="button" style="border: 0; background: #C2410C; color: #FFFFFF; border-radius: 12px; padding: 14px 22px; font: 700 16px Inter, sans-serif; min-height: 48px">Suchen</button>
+      </label>
+      <div role="listbox" aria-label="Vorschläge" style="margin-top: 8px; border: 1px solid #E5E7EB; border-radius: 18px; box-shadow: 0 12px 32px rgba(0,0,0,.12); background: #FFFFFF; padding: 14px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px">
+        <div style="grid-column: span 2; display: flex; flex-wrap: wrap; gap: 8px; font-size: 13px">
+          <span style="color: #4B5563">Verstanden als:</span>
+          <span style="background: #FFF7ED; color: #9A3412; border-radius: 999px; padding: 4px 10px; font-weight: 600">„Pizza“</span>
+          <span style="background: #ECFDF5; color: #065F46; border-radius: 999px; padding: 4px 10px; font-weight: 600">heute ab 18 Uhr geöffnet ✕</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <span style="font-size: 12px; font-weight: 700; color: #4B5563; letter-spacing: .05em">ANGEBOTE · 6</span>
+          <sc-for list="{{offers}}" as="o" hint-placeholder-count="3">
+            <a href="#" style="display: flex; gap: 10px; align-items: center; padding: 6px; border-radius: 10px; color: #111827">
+              <img src="{{o.img}}" alt="" style="width: 44px; height: 44px; border-radius: 10px; object-fit: cover">
+              <span style="flex: 1; display: flex; flex-direction: column"><b style="font-size: 14px">{{o.t}}</b><span style="font-size: 12px; color: #4B5563">{{o.s}}</span></span>
+              <b style="font-size: 14px">{{o.p}}</b>
+            </a>
+          </sc-for>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <span style="font-size: 12px; font-weight: 700; color: #4B5563; letter-spacing: .05em">GESCHÄFTE · 4</span>
+          <sc-for list="{{shops}}" as="s" hint-placeholder-count="3">
+            <a href="#" style="display: flex; gap: 10px; align-items: center; padding: 6px; border-radius: 10px; color: #111827">
+              <span style="width: 44px; height: 44px; border-radius: 50%; background: #FFF7ED; color: #C2410C; font-weight: 800; display: flex; align-items: center; justify-content: center">{{s.i}}</span>
+              <span style="flex: 1; display: flex; flex-direction: column"><b style="font-size: 14px">{{s.t}}</b><span style="font-size: 12px; color: {{s.c}}; font-weight: 600">{{s.s}}</span></span>
+            </a>
+          </sc-for>
+          <span style="font-size: 12px; font-weight: 700; color: #4B5563; letter-spacing: .05em; margin-top: 6px">BEREICH</span>
+          <a href="#" style="font-size: 14px; font-weight: 600">Essen &amp; Gastronomie › Lieferservice (7)</a>
+        </div>
+        <a href="#" style="grid-column: span 2; text-align: center; background: #111827; color: #FFFFFF; border-radius: 12px; padding: 12px; font-weight: 700">Alle 10 Treffer anzeigen</a>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="pop-h" style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; align-items: center">
+    <h2 id="pop-h" style="margin: 0 6px 0 0; font-size: 15px; color: #4B5563; font-weight: 600">Heute oft gesucht:</h2>
+    <sc-for list="{{pop}}" as="p" hint-placeholder-count="8">
+      <a href="#" style="border: 1px solid #D1D5DB; border-radius: 999px; padding: 9px 14px; font-size: 14px; font-weight: 600; color: #111827; min-height: 40px; box-sizing: border-box; display: inline-flex; align-items: center">{{p}}</a>
+    </sc-for>
+  </section>
+
+  <section aria-label="Heute auf einen Blick" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px">
+    <sc-for list="{{cols}}" as="c" hint-placeholder-count="3">
+      <div style="background: #F9FAFB; border-radius: 22px; padding: 20px; display: flex; flex-direction: column; gap: 4px">
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px"><span style="width: 10px; height: 10px; border-radius: 50%; background: {{c.dot}}"></span><h2 style="margin: 0; font-size: 18px">{{c.t}}</h2><span style="margin-left: auto; font-size: 13px; color: #4B5563">{{c.n}}</span></div>
+        <sc-for list="{{c.rows}}" as="r" hint-placeholder-count="5">
+          <a href="#" style="display: flex; gap: 10px; align-items: baseline; padding: 9px 0; border-top: 1px solid #E5E7EB; color: #111827">
+            <span style="flex: 1; display: flex; flex-direction: column"><span style="font-size: 14px; font-weight: 600">{{r.t}}</span><span style="font-size: 12px; color: #4B5563">{{r.s}}</span></span>
+            <span style="font-size: 13px; font-weight: 700; color: {{c.dot}}; white-space: nowrap">{{r.m}}</span>
+          </a>
+        </sc-for>
+        <a href="#" style="margin-top: 8px; font-weight: 700; font-size: 14px">{{c.more}}</a>
+      </div>
+    </sc-for>
+  </section>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1600}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const B = '/_blob/';
+    const r = (t, s, m) => ({ t, s, m });
+    return {
+      offers: [
+        { img: B+'4865b863ef9aa474b10bf70621e51ca9', t: '2 Pizzen + Salat', s: 'Pizzabote Klingenstadt · Lieferung', p: '24,90 €' },
+        { img: B+'3d93fa50ae038d6dba492c5ba65525c2', t: 'Pizza Margherita + Tiramisu', s: 'Trattoria Lumetto · Mitte', p: '13,90 €' },
+        { img: B+'b6b8e6b3e5f638e21a9cc342057ef0f4', t: 'Mittwoch: jede Pizza 7 €', s: 'Landgasthof Wupperaue · ab Mi', p: '7,00 €' }
+      ],
+      shops: [
+        { i: 'P', t: 'Pizzabote Klingenstadt', s: 'offen bis 23:00 · liefert', c: '#047857' },
+        { i: 'T', t: 'Trattoria Lumetto', s: 'offen bis 23:00 · Tisch frei 19:30', c: '#047857' },
+        { i: 'G', t: 'Grill & Wrap Ohligs', s: 'öffnet 17:00', c: '#B45309' }
+      ],
+      pop: ['Brötchen', 'Friseur heute', 'Kinderkino', 'Fahrrad leihen', 'Geschenk unter 20 €', 'Mittagstisch', 'Handy Reparatur', 'Hotel Burg'],
+      cols: [
+        { t: 'Endet heute', n: '9', dot: '#B91C1C', more: 'Alle 9 →', rows: [r('Feierabendtüte −50 %', 'Klingenbrot · Mitte', '18:00'), r('Last-Minute-Termin −20 %', 'Salon Gräfrath', '17:00'), r('MHD-Joghurt −40 %', 'Wupperhof · Ohligs', '16:00'), r('Tulpen 10 Stück 5 €', 'Vergissmeinnicht', '18:30'), r('Kräutersets 9,90 €', 'Grünspross · Wald', '18:00')] },
+        { t: 'Neu seit Mittwoch', n: '12', dot: '#1D4ED8', more: 'Alle 12 →', rows: [r('Tiramisu zum Mitnehmen', 'Trattoria Lumetto', 'vor 2 Std.'), r('Café Morgenrot eröffnet', 'Mitte', 'vor 5 Std.'), r('Kerzen 2 für 29 €', 'Schleifchen', 'gestern'), r('E-Bike-Familienpaket', 'Radverleih Burg', 'gestern'), r('Vernissage Galerie', 'Gräfrath · Mo 20:00', 'gestern')] },
+        { t: 'Jetzt offen', n: '14', dot: '#047857', more: 'Alle 14 auf der Karte →', rows: [r('Trattoria Lumetto', 'Restaurant · Mitte', 'bis 23:00'), r('Day-Spa Wupperwelle', 'Wellness · Burg', 'bis 21:00'), r('Familienhof Abenteuerwiese', 'Kinder · Ohligs', 'bis 21:00'), r('Pension Brückenblick', 'Übernachten · Burg', 'bis 20:00'), r('Radverleih Wupperschleife', 'Freizeit · Burg', 'bis 21:00')] }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>SolingenMarkt – V8 Lebendige Bereiche</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F6F7F9}
+a{color:#C2410C;text-decoration:none}a:hover{color:#9A3412}
+</style>
+</helmet>
+<div style="font-family: Inter, system-ui, sans-serif; color: #111827; background: #F6F7F9">
+<header style="background: #FFFFFF; border-bottom: 1px solid #E5E7EB">
+  <div style="max-width: 1360px; margin: 0 auto; padding: 14px 24px; display: flex; flex-wrap: wrap; align-items: center; gap: 16px">
+    <span style="font-weight: 800; font-size: 20px; letter-spacing: -0.02em">Solingen<span style="color: #C2410C">Markt</span></span>
+    <label style="flex: 1 1 360px; display: flex; align-items: center; gap: 8px; background: #F3F4F6; border-radius: 999px; padding: 0 18px; min-height: 44px">
+      <span style="position: absolute; width: 1px; height: 1px; overflow: hidden">Suche</span>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4B5563" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input type="search" placeholder="Suchen in Solingen" style="flex: 1; border: 0; background: transparent; font: 15px Inter, sans-serif; outline: none; min-height: 40px">
+    </label>
+    <a href="#" style="font-weight: 600; font-size: 14px">Anmelden</a>
+  </div>
+</header>
+
+<main style="max-width: 1360px; margin: 0 auto; padding: 28px 24px 40px; display: flex; flex-direction: column; gap: 24px">
+  <section style="display: flex; flex-wrap: wrap; align-items: center; gap: 16px">
+    <div style="flex: 1 1 520px">
+      <h1 style="margin: 0; font-size: 40px; letter-spacing: -0.03em">Solingen nach Bereichen</h1>
+      <p style="margin: 8px 0 0; font-size: 16px; color: #4B5563">Jede Kachel zeigt, was dort gerade los ist — Sie sehen sofort, wo es sich lohnt.</p>
+    </div>
+    <a href="#" style="flex: 0 1 460px; display: flex; gap: 12px; align-items: center; background: #FFFFFF; border-radius: 18px; padding: 10px; color: #111827; border: 2px solid #FCD34D">
+      <img src="/_blob/d648274a4c4401071d4ca5a78902aa8e" alt="" style="width: 76px; height: 76px; border-radius: 12px; object-fit: cover">
+      <span style="display: flex; flex-direction: column; gap: 2px; flex: 1"><span style="font-size: 11px; font-weight: 800; color: #92400E; letter-spacing: .05em">DEAL DES TAGES</span><b>Feierabendtüte −50 %</b><span style="font-size: 13px; color: #4B5563">Klingenbrot · bis 18:00 · <b style="color: #111827">5,00 €</b></span></span>
+    </a>
+  </section>
+
+  <div role="group" aria-label="Sortierung" style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 14px">
+    <span style="color: #4B5563; font-weight: 600">Sortieren:</span>
+    <button type="button" aria-pressed="true" style="border: 0; background: #111827; color: #FFFFFF; border-radius: 999px; padding: 8px 14px; font: 600 14px Inter, sans-serif; min-height: 40px">Was jetzt los ist</button>
+    <button type="button" aria-pressed="false" style="border: 1px solid #D1D5DB; background: #FFFFFF; border-radius: 999px; padding: 8px 14px; font: 600 14px Inter, sans-serif; min-height: 40px">Meiste Angebote</button>
+    <button type="button" aria-pressed="false" style="border: 1px solid #D1D5DB; background: #FFFFFF; border-radius: 999px; padding: 8px 14px; font: 600 14px Inter, sans-serif; min-height: 40px">A–Z</button>
+  </div>
+
+  <section aria-label="Bereiche" style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px">
+    <sc-for list="{{tiles}}" as="t" hint-placeholder-count="12">
+      <article style="background: #FFFFFF; border-radius: 20px; overflow: hidden; display: flex; flex-direction: column; border: 1px solid #E5E7EB">
+        <a href="#" style="position: relative; display: block; height: 128px; color: #FFFFFF">
+          <img src="{{t.img}}" alt="" style="width: 100%; height: 100%; object-fit: cover; display: block">
+          <span style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0) 25%, rgba(0,0,0,.7))"></span>
+          <span style="position: absolute; left: 14px; bottom: 10px; right: 14px; display: flex; align-items: baseline; gap: 8px"><b style="font-size: 18px">{{t.t}}</b><span style="margin-left: auto; font-size: 13px; font-weight: 600">{{t.n}}</span></span>
+        </a>
+        <div style="padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 8px">
+          <div style="display: flex; flex-wrap: wrap; gap: 6px; font-size: 12px; font-weight: 700">
+            <span style="background: #ECFDF5; color: #065F46; border-radius: 999px; padding: 3px 8px">{{t.o}} offen</span>
+            <sc-if value="{{t.neu}}" hint-placeholder-val="{{ true }}"><span style="background: #EFF6FF; color: #1D4ED8; border-radius: 999px; padding: 3px 8px">{{t.neu}} neu</span></sc-if>
+            <sc-if value="{{t.end}}" hint-placeholder-val="{{ false }}"><span style="background: #FEF2F2; color: #B91C1C; border-radius: 999px; padding: 3px 8px">{{t.end}} enden heute</span></sc-if>
+          </div>
+          <a href="#" style="display: flex; gap: 8px; align-items: baseline; color: #111827; padding: 8px 10px; background: #F9FAFB; border-radius: 12px">
+            <span style="flex: 1; min-width: 0; display: flex; flex-direction: column"><span style="font-size: 11px; color: #4B5563">Top heute</span><span style="font-size: 13px; font-weight: 600">{{t.top}}</span></span>
+            <b style="font-size: 13px; white-space: nowrap">{{t.p}}</b>
+          </a>
+          <span style="font-size: 12px; color: #4B5563; line-height: 1.5">{{t.subs}}</span>
+        </div>
+      </article>
+    </sc-for>
+  </section>
+  <a href="#" style="align-self: center; border: 1px solid #D1D5DB; background: #FFFFFF; border-radius: 999px; padding: 12px 22px; font-weight: 600; color: #111827">Weitere 3 Bereiche: Dienstleistungen · Handwerk · Reisen</a>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":2000}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const B = '/_blob/';
+    const t = (img, tt, n, o, neu, end, top, p, subs) => ({ img: B+img, t: tt, n, o, neu, end, top, p, subs });
+    return {
+      tiles: [
+        t('508fdfe870cd29b59a4e87aba6b48850', 'Lebensmittel', '66', '9', '3', '4', 'Feierabendtüte −50 %', '5,00 €', 'Obst & Gemüse · Brot · Fleisch · Getränke'),
+        t('b6b8e6b3e5f638e21a9cc342057ef0f4', 'Essen & Gastro', '65', '11', '2', '2', 'Suppe des Tages', '6,50 €', 'Cafés 19 · Restaurants 11 · Lieferservice 7'),
+        t('ba2fda82e9bb03bde9d5f6620c7b73f4', 'Beauty & Pflege', '40', '4', '', '1', 'Last-Minute-Termin −20 %', '31,20 €', 'Friseur 14 · Massage 6 · Nägel 6'),
+        t('727b724abb015feeb7630cb82099d25f', 'Kinder & Familie', '41', '3', '1', '', 'Kinderkino So 16:00', '5,00 €', 'Spielzeug 17 · Babybedarf 18 · Aktivitäten 6'),
+        t('12e55685e50f34ab0e5d675508d6f305', 'Mode & Accessoires', '63', '5', '4', '', 'Winterstiefel −30 %', '69,00 €', 'Damen 16 · Herren 8 · Schmuck 13'),
+        t('620363281e997d3d7a8ce36409726bcb', 'Freizeit & Erlebnisse', '48', '6', '2', '', 'E-Bike-Familienpaket', '79,00 €', 'Veranstaltungen 22 · Outdoor 10 · Kurse 6'),
+        t('81b6249e9760b4fec38a0b063a93c39f', 'Kunst & Geschenke', '45', '2', '3', '', 'Kerzen 2 für 29 €', '16,90 €', 'Geschenke 14 · Lokale Produkte 13'),
+        t('a785509d75579795d84651c4452591f8', 'Gesundheit & Fitness', '39', '4', '1', '', 'Probetraining', 'gratis', 'Yoga 8 · Optik 8 · Wellness 6'),
+        t('c10d082d8cfce1a4ef0815de646cb2b9', 'Haus & Garten', '45', '3', '', '1', 'Kräutersets 9,90 €', '9,90 €', 'Garten 17 · Beleuchtung 8 · Küche 8'),
+        t('f246cca0205426cb1736d89c25f473fb', 'Auto & Mobilität', '38', '2', '', '', 'Reifenwechsel Termin', '29,00 €', 'Werkstatt 12 · Vermietung 10 · Fahrräder 9'),
+        t('44c38039eaec9144f7566345c54d5d93', 'Elektronik & Technik', '53', '3', '2', '', 'Display-Tausch ab', '79,00 €', 'Smartphones 13 · Computer 11 · Zubehör 11'),
+        t('0e59404bf9c844759892f46ea4ad7c9e', 'Tiere & Tierbedarf', '40', '2', '', '', 'Tiersitting: Kennenlernen', 'gratis', 'Tierzubehör 14 · Futter 10 · Services 10')
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

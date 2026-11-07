@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>SolingenMarkt – Mobil Tagesablauf</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#C2410C;text-decoration:none}a:hover{color:#9A3412}
+</style>
+</helmet>
+<div style="width: 390px; height: 2400px; box-sizing: border-box; overflow: hidden; background: #F6F7F9; font-family: Inter, system-ui, sans-serif; color: #111827; display: flex; flex-direction: column">
+  <header style="background: #111827; color: #FFFFFF; padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 12px">
+    <div style="display: flex; align-items: center"><span style="font-weight: 800; font-size: 19px">Solingen<span style="color: #FDBA74">Markt</span></span><a href="#" style="margin-left: auto; color: #FFFFFF; font-size: 14px; font-weight: 600">Anmelden</a></div>
+    <label style="display: flex; align-items: center; gap: 8px; background: #FFFFFF; border-radius: 14px; padding: 0 14px; min-height: 46px">
+      <span style="position: absolute; width: 1px; height: 1px; overflow: hidden">Suche</span>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4B5563" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input type="search" placeholder="Was suchen Sie?" style="flex: 1; border: 0; font: 16px Inter, sans-serif; outline: none; min-height: 42px">
+    </label>
+    <div style="font-size: 12px; font-weight: 700; color: #FCD34D; letter-spacing: .05em">SAMSTAG · 14:20 · 9 °C</div>
+    <nav aria-label="Tagesleiste" style="display: flex; gap: 8px; overflow: hidden">
+      <a href="#jetzt" style="flex: 0 0 auto; background: #C2410C; color: #FFFFFF; border-radius: 14px; padding: 10px 12px; display: flex; flex-direction: column; min-width: 96px"><span style="font-size: 11px; opacity: .9">14–17</span><b style="font-size: 14px">Jetzt</b><span style="font-size: 11px">23 offen</span></a>
+      <a href="#abend" style="flex: 0 0 auto; background: #1F2937; border: 1px solid #374151; color: #FFFFFF; border-radius: 14px; padding: 10px 12px; display: flex; flex-direction: column; min-width: 96px"><span style="font-size: 11px; opacity: .9">17–22</span><b style="font-size: 14px">Abend</b><span style="font-size: 11px">31 Angebote</span></a>
+      <a href="#morgen" style="flex: 0 0 auto; background: #1F2937; border: 1px solid #374151; color: #FFFFFF; border-radius: 14px; padding: 10px 12px; display: flex; flex-direction: column; min-width: 96px"><span style="font-size: 11px; opacity: .9">So früh</span><b style="font-size: 14px">Frühstück</b><span style="font-size: 11px">8 Angebote</span></a>
+    </nav>
+  </header>
+
+  <sc-for list="{{blocks}}" as="b" hint-placeholder-count="3">
+    <section id="{{b.id}}" aria-label="{{b.t}}" style="padding: 18px 0 0; display: flex; flex-direction: column; gap: 10px">
+      <div style="padding: 0 16px; display: flex; align-items: baseline; gap: 8px">
+        <span style="width: 4px; align-self: stretch; border-radius: 2px; background: {{b.color}}"></span>
+        <div style="display: flex; flex-direction: column"><span style="font-size: 12px; font-weight: 700; color: {{b.color}}">{{b.time}}</span><h2 style="margin: 0; font-size: 20px">{{b.t}}</h2></div>
+        <a href="#" style="margin-left: auto; font-size: 14px; font-weight: 600">{{b.more}}</a>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 10px; padding: 0 16px">
+        <sc-for list="{{b.cards}}" as="c" hint-placeholder-count="3">
+          <a href="#" style="display: flex; gap: 12px; background: #FFFFFF; border-radius: 16px; padding: 10px; color: #111827; border: 1px solid #E5E7EB">
+            <span style="position: relative; flex: 0 0 auto"><img src="{{c.img}}" alt="" style="width: 96px; height: 96px; border-radius: 12px; object-fit: cover; display: block"><span style="position: absolute; left: 6px; bottom: 6px; background: #FFFFFF; font-size: 11px; font-weight: 800; padding: 2px 6px; border-radius: 999px">{{c.when}}</span></span>
+            <span style="display: flex; flex-direction: column; gap: 3px; min-width: 0; flex: 1"><span style="font-size: 12px; color: #4B5563">{{c.shop}}</span><b style="font-size: 15px; line-height: 1.25">{{c.t}}</b><span style="margin-top: auto; display: flex; align-items: center"><b>{{c.p}}</b><span style="margin-left: auto; font-size: 13px; font-weight: 700; color: #C2410C">{{c.cta}} →</span></span></span>
+          </a>
+        </sc-for>
+      </div>
+    </section>
+  </sc-for>
+
+  <section style="margin: 18px 16px 0; background: #FFFFFF; border-radius: 16px; padding: 14px; display: flex; align-items: center; gap: 12px; border: 1px solid #E5E7EB">
+    <span style="display: flex; flex-direction: column; flex: 1"><b style="font-size: 15px">Morgen früh erinnern?</b><span style="font-size: 12px; color: #4B5563">Kurze Übersicht per Telegram oder E-Mail.</span></span>
+    <a href="#" style="background: #111827; color: #FFFFFF; border-radius: 999px; padding: 10px 14px; font-weight: 700; font-size: 13px">Folgen</a>
+  </section>
+
+  <nav aria-label="Hauptnavigation" style="margin-top: auto; background: #FFFFFF; border-top: 1px solid #E5E7EB; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); padding: 8px 6px 18px">
+    <a href="#" style="display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #C2410C; min-height: 44px">● Heute</a>
+    <a href="#" style="display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; color: #374151; min-height: 44px">Karte</a>
+    <a href="#" style="display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; color: #374151; min-height: 44px">Gemerkt</a>
+    <a href="#" style="display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; color: #374151; min-height: 44px">Konto</a>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":2400}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const B = '/_blob/';
+    const c = (img, when, shop, t, p, cta) => ({ img: B+img, when, shop, t, p, cta });
+    return {
+      blocks: [
+        { id: 'jetzt', time: '14:20 – 17:00', t: 'Jetzt', color: '#C2410C', more: 'Alle 23', cards: [
+          c('ba2fda82e9bb03bde9d5f6620c7b73f4', '14–17', 'Salon Gräfrath', 'Last-Minute-Termin −20 %', '31,20 €', 'Termin'),
+          c('b6b8e6b3e5f638e21a9cc342057ef0f4', 'bis 15', 'Café Ohligser Eck', 'Suppe des Tages', '6,50 €', 'Zurücklegen'),
+          c('620363281e997d3d7a8ce36409726bcb', 'bis 18', 'Radverleih Wupperschleife', 'E-Bike 3 Stunden', '25,00 €', 'Reservieren') ] },
+        { id: 'abend', time: '17:00 – 22:00', t: 'Feierabend & Abend', color: '#7C3AED', more: 'Alle 31', cards: [
+          c('d648274a4c4401071d4ca5a78902aa8e', 'ab 17', 'Bäckerei Klingenbrot', 'Feierabendtüte −50 %', '5,00 €', 'Zurücklegen'),
+          c('4865b863ef9aa474b10bf70621e51ca9', 'bis 23', 'Pizzabote Klingenstadt', '2 Pizzen + Salat', '24,90 €', 'Bestellen'),
+          c('81b6249e9760b4fec38a0b063a93c39f', '20:00', 'Kulturkeller Funkenschlag', 'Kabarett: Bergisch …', '18,00 €', 'Tickets') ] },
+        { id: 'morgen', time: 'Sonntag 8 – 12 Uhr', t: 'Sonntagsfrühstück', color: '#047857', more: 'Alle 8', cards: [
+          c('45be92b64a3a1c78934c0dd2522248e4', 'So 8', 'Backhaus Krume', 'Brunch-Korb für 2', '24,00 €', 'Vorbestellen'),
+          c('c069bad5ac76b4c30164485d0c45b605', 'So 9', 'Café Morgenrot', 'Frühstück für Zwei', '18,90 €', 'Tisch') ] }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>
