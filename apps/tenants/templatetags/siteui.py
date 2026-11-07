@@ -1014,3 +1014,38 @@ def sell_closed(context, kind):
         else _SELL_KIND_DIRECTION.get(kind, kind)
     )
     return not readiness.sell_allowed(tenant, direction)
+
+
+@register.simple_tag(takes_context=True)
+def hero_slides(context, heroes):
+    """FB-22: слайды баннера, активные СЕГОДНЯ (`starts`/`ends`), со ссылкой `href`.
+
+    Ссылка: выбранная из списка целей (`link` = «type:target» — тот же резолвер, что
+    меню: скрытая запись/выключенный модуль → ссылки нет) → иначе своя `button_url`
+    (только безопасные схемы). Слайд без активных дат выпадает — витрина покажет
+    одиночный hero, как без слайдов."""
+    from django.utils import timezone
+
+    from apps.tenants import menu, siteconfig
+
+    request = context.get("request")
+    tenant = getattr(request, "tenant", None)
+    today = timezone.localdate().isoformat()
+    out = []
+    for h in heroes or []:
+        if h.get("starts") and h["starts"] > today:
+            continue
+        if h.get("ends") and h["ends"] < today:
+            continue
+        href = ""
+        if h.get("link") and tenant is not None:
+            ntype, target = h["link"].split(":", 1)
+            node = {"label": "x", "type": ntype, "target": target, "enabled": True, "children": []}
+            try:
+                href = menu._node_url(tenant, node) or ""
+            except Exception:  # noqa: BLE001 — битая цель не роняет главную
+                href = ""
+        if not href:
+            href = siteconfig._menu_href(h.get("button_url"))
+        out.append({**h, "href": href})
+    return out

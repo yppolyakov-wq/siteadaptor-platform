@@ -2877,6 +2877,16 @@ def _s(value) -> str:
 _MAX_HEROES = 6  # потолок слайдов баннера-слайдера (M20U-2)
 
 
+#: FB-22: оформление слайда баннера. Нет ключа = прежний вид (по центру, тёмная вуаль,
+#: белый текст).
+HERO_SLIDE_STYLE = {
+    "align": ("left", "center", "right"),
+    "overlay": ("none", "light", "dark"),
+    "tone": ("light", "dark"),
+}
+_ISO_DAY = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+
+
 def normalize_heroes(raw) -> list[dict]:
     """M20U-2: слайды баннера → [{image, title, text, button_label, button_url}].
 
@@ -2892,8 +2902,23 @@ def normalize_heroes(raw) -> list[dict]:
             "title": _s(item.get("title"))[:200],
             "text": _s(item.get("text"))[:400],
             "button_label": _s(item.get("button_label"))[:60],
-            "button_url": _s(item.get("button_url"))[:300],
+            # FB-22: только безопасные схемы (как пункт меню) — javascript:/data: → ""
+            "button_url": _menu_href(item.get("button_url"))[:300],
         }
+        # FB-22: ссылка из списка целей меню («type:target»), оформление и даты показа —
+        # presence-minimal (старые слайды байт-в-байт).
+        link = _s(item.get("link"))
+        if ":" in link and link.split(":", 1)[0] in MENU_NODE_TYPES:
+            h["link"] = link[:200]
+        for key, allowed in HERO_SLIDE_STYLE.items():
+            if item.get(key) in allowed:
+                h[key] = item[key]
+        for key in ("starts", "ends"):
+            day = _s(item.get(key))
+            if _ISO_DAY.match(day):
+                h[key] = day
+        if item.get("click_all"):
+            h["click_all"] = True
         if h["image"] or h["title"] or h["text"]:
             out.append(h)
         if len(out) >= _MAX_HEROES:

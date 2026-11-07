@@ -1,4 +1,5 @@
 {% load i18n siteui %}{# Секция hero (Track C2 / M20U-2): баннер или слайдер баннеров из site_config. #}
+{% hero_slides site.heroes as slides %}
 {% firstof site.hero_image site.heroes.0.image as hero_photo %}
 {% if site.hero_style == "split" %}
 {% comment %}DS-3b (Fokus): сплит-композиция — текст слева на чистом поле (читается
@@ -60,27 +61,31 @@
 текст/CTA, всегда) · акция дня · категория с фото · часы работы · Newsletter ·
 рейтинг. Плитки без данных выпадают, сетка уплотняется (тег hero_bento).{% endcomment %}
 {% hero_bento %}
-{% elif site.heroes %}
+{% elif slides %}
 {# M20U-2: слайдер главных баннеров (full-bleed). Один слайд — без автопрокрутки. #}
 {# STU-12f: слот медиа баннера — клик в Студии открывает менеджер слайдов. #}
+{% comment %}FB-22: слайды — только активные сегодня (даты «с/по»), ссылка из списка целей
+или своя (тег hero_slides), оформление слайда: положение текста, вуаль, цвет текста;
+«весь слайд — ссылка» = растянутая ссылка поверх (кнопка остаётся видимой).{% endcomment %}
 <section class="relative left-1/2 -translate-x-1/2 w-screen -mt-6 md:-mt-10 mb-10" data-hero-slider data-sf-media-slot="hero">
   <div class="relative min-h-[38vh] md:min-h-[46vh] bg-gray-800 overflow-hidden">
-    {% for h in site.heroes %}
-    <div class="absolute inset-0 flex items-center justify-center text-center text-white bg-cover bg-center transition-opacity duration-700 {% if not forloop.first %}opacity-0 pointer-events-none{% endif %}"
+    {% for h in slides %}
+    <div class="absolute inset-0 flex items-center {% if h.align == 'left' %}justify-start text-left{% elif h.align == 'right' %}justify-end text-right{% else %}justify-center text-center{% endif %} {% if h.tone == 'dark' %}text-gray-900{% else %}text-white{% endif %} bg-cover bg-center transition-opacity duration-700 {% if not forloop.first %}opacity-0 pointer-events-none{% endif %}"
          {% if h.image %}style="background-image:url('{{ h.image }}');"{% endif %} data-hero-slide>
-      <div class="absolute inset-0 bg-black/45"></div>
-      <div class="relative px-4 py-12 max-w-4xl">
-        <h1 class="text-4xl md:text-6xl font-bold drop-shadow-lg">{{ h.title|default:request.tenant.name }}</h1>
-        {% if h.text %}<p class="mt-4 text-lg md:text-xl text-white/90 max-w-2xl mx-auto drop-shadow">{{ h.text }}</p>{% endif %}
-        {% if h.button_label and h.button_url %}<a href="{{ h.button_url }}" class="inline-block mt-5 bg-white text-gray-900 rounded-lg px-6 py-2.5 font-medium hover:bg-gray-100">{{ h.button_label }}</a>
+      {% if h.overlay == 'light' %}<div class="absolute inset-0 bg-white/50"></div>{% elif h.overlay != 'none' %}<div class="absolute inset-0 bg-black/45"></div>{% endif %}
+      {% if h.click_all and h.href %}<a href="{{ h.href }}" class="absolute inset-0 z-[1]" aria-label="{{ h.title|default:request.tenant.name }}"></a>{% endif %}
+      <div class="relative z-[2] px-4 md:px-12 py-12 max-w-4xl">
+        <h1 class="text-4xl md:text-6xl font-bold {% if h.tone != 'dark' %}drop-shadow-lg{% endif %}">{{ h.title|default:request.tenant.name }}</h1>
+        {% if h.text %}<p class="mt-4 text-lg md:text-xl {% if h.tone == 'dark' %}text-gray-700{% else %}text-white/90 drop-shadow{% endif %} max-w-2xl {% if h.align == 'right' %}ml-auto{% elif h.align != 'left' %}mx-auto{% endif %}">{{ h.text }}</p>{% endif %}
+        {% if h.button_label and h.href %}<a href="{{ h.href }}" class="inline-block mt-5 {% if h.tone == 'dark' %}bg-gray-900 text-white hover:bg-gray-800{% else %}bg-white text-gray-900 hover:bg-gray-100{% endif %} rounded-lg px-6 py-2.5 font-medium">{{ h.button_label }}</a>
         {% else %}{% include "storefront/sections/_hero_cta.html" with style="light" %}{% endif %}
       </div>
     </div>
     {% endfor %}
   </div>
-  {% if site.heroes|length > 1 %}
+  {% if slides|length > 1 %}
   <div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
-    {% for h in site.heroes %}<button type="button" class="w-2.5 h-2.5 rounded-full {% if forloop.first %}bg-white{% else %}bg-white/50{% endif %}" data-hero-dot aria-label="{% trans 'Slide' %} {{ forloop.counter }}"></button>{% endfor %}
+    {% for h in slides %}<button type="button" class="w-2.5 h-2.5 rounded-full {% if forloop.first %}bg-white{% else %}bg-white/50{% endif %}" data-hero-dot aria-label="{% trans 'Slide' %} {{ forloop.counter }}"></button>{% endfor %}
   </div>
   {% endif %}
 </section>

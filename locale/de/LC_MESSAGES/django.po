@@ -35257,3 +35257,39 @@ msgstr "Ziehen Sie Punkte an eine neue Stelle — auf die Mitte eines Punktes ge
 
 msgid "Übersetzungen"
 msgstr "Übersetzungen"
+
+msgid "Abdunkeln"
+msgstr "Abdunkeln"
+
+msgid "Ganzes Bild verlinken"
+msgstr "Ganzes Bild verlinken"
+
+msgid "Hell"
+msgstr "Hell"
+
+msgid "Keine"
+msgstr "Keine"
+
+msgid "Links"
+msgstr "Links"
+
+msgid "Mitte"
+msgstr "Mitte"
+
+msgid "Oder eigene Adresse in «Button link». Ein gewähltes Ziel hat Vorrang."
+msgstr "Oder eigene Adresse in «Button link». Ein gewähltes Ziel hat Vorrang."
+
+msgid "Rechts"
+msgstr "Rechts"
+
+msgid "Schrift"
+msgstr "Schrift"
+
+msgid "Wohin führt der Banner?"
+msgstr "Wohin führt der Banner?"
+
+msgid "Zeigen ab"
+msgstr "Zeigen ab"
+
+msgid "Zeigen bis"
+msgstr "Zeigen bis"

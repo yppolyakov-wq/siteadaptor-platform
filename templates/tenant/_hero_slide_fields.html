@@ -1,0 +1,31 @@
+{% load i18n %}
+{% comment %}FB-22: ссылка и оформление слайда баннера (одна разметка для «изменить» и
+«новый слайд»). Ссылка — тот же выбор целей, что в меню; своя ссылка — поле выше.{% endcomment %}
+<label class="block text-sm"><span class="block text-xs ui-muted mb-1">{% trans "Wohin führt der Banner?" %}</span>
+  <select name="hero_s_link" class="ui-input min-w-0">{% include "tenant/_menu_target_options.html" with current=h.link unknown=False %}</select>
+</label>
+<p class="text-xs ui-muted">{% trans "Oder eigene Adresse in «Button link». Ein gewähltes Ziel hat Vorrang." %}</p>
+<label class="flex items-center gap-2 text-sm"><input type="checkbox" name="hero_s_click_all" value="1"{% if h.click_all %} checked{% endif %}> {% trans "Ganzes Bild verlinken" %}</label>
+<div class="grid grid-cols-3 gap-2">
+  <label class="text-sm"><span class="block text-xs ui-muted mb-1">{% trans "Text" %}</span>
+    <select name="hero_s_align" class="ui-input min-w-0">
+      <option value="">{% trans "Mitte" %}</option>
+      <option value="left"{% if h.align == 'left' %} selected{% endif %}>{% trans "Links" %}</option>
+      <option value="right"{% if h.align == 'right' %} selected{% endif %}>{% trans "Rechts" %}</option>
+    </select></label>
+  <label class="text-sm"><span class="block text-xs ui-muted mb-1">{% trans "Abdunkeln" %}</span>
+    <select name="hero_s_overlay" class="ui-input min-w-0">
+      <option value="">{% trans "Dunkel" %}</option>
+      <option value="light"{% if h.overlay == 'light' %} selected{% endif %}>{% trans "Hell" %}</option>
+      <option value="none"{% if h.overlay == 'none' %} selected{% endif %}>{% trans "Keine" %}</option>
+    </select></label>
+  <label class="text-sm"><span class="block text-xs ui-muted mb-1">{% trans "Schrift" %}</span>
+    <select name="hero_s_tone" class="ui-input min-w-0">
+      <option value="">{% trans "Hell" %}</option>
+      <option value="dark"{% if h.tone == 'dark' %} selected{% endif %}>{% trans "Dunkel" %}</option>
+    </select></label>
+</div>
+<div class="grid grid-cols-2 gap-2">
+  <label class="text-sm"><span class="block text-xs ui-muted mb-1">{% trans "Zeigen ab" %}</span><input type="date" name="hero_s_starts" value="{{ h.starts|default:'' }}" class="ui-input min-w-0"></label>
+  <label class="text-sm"><span class="block text-xs ui-muted mb-1">{% trans "Zeigen bis" %}</span><input type="date" name="hero_s_ends" value="{{ h.ends|default:'' }}" class="ui-input min-w-0"></label>
+</div>

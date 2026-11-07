@@ -35493,3 +35493,39 @@ msgstr "Перетаскивайте пункты на новое место —
 
 msgid "Übersetzungen"
 msgstr "Переводы"
+
+msgid "Abdunkeln"
+msgstr "Затемнение"
+
+msgid "Ganzes Bild verlinken"
+msgstr "Сделать ссылкой всё изображение"
+
+msgid "Hell"
+msgstr "Светлое"
+
+msgid "Keine"
+msgstr "Нет"
+
+msgid "Links"
+msgstr "Слева"
+
+msgid "Mitte"
+msgstr "По центру"
+
+msgid "Oder eigene Adresse in «Button link». Ein gewähltes Ziel hat Vorrang."
+msgstr "Или свой адрес в «Button link». Выбранная цель важнее."
+
+msgid "Rechts"
+msgstr "Справа"
+
+msgid "Schrift"
+msgstr "Цвет текста"
+
+msgid "Wohin führt der Banner?"
+msgstr "Куда ведёт баннер?"
+
+msgid "Zeigen ab"
+msgstr "Показывать с"
+
+msgid "Zeigen bis"
+msgstr "Показывать до"

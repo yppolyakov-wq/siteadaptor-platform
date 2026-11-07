@@ -1413,6 +1413,7 @@
             <textarea name="hero_s_text" rows="2" aria-label="{% trans 'Text' %}" placeholder="{% trans 'Text' %}" class="ui-input min-w-0">{{ h.text }}</textarea>
             <input type="text" name="hero_s_btn_label" value="{{ h.button_label }}" aria-label="{% trans 'Button text' %}" placeholder="{% trans 'Button text' %}" class="ui-input min-w-0">
             <input type="text" name="hero_s_btn_url" value="{{ h.button_url }}" aria-label="{% trans "Link" %}" placeholder="{% trans 'Button link (e.g. /sortiment/)' %}" class="ui-input min-w-0">
+            {% include "tenant/_hero_slide_fields.html" %}
             <div class="flex items-center gap-2 flex-wrap">
               <input aria-label="{% trans "Foto" %}" type="file" name="hero_s_image" accept="image/*" class="text-sm file:mr-2 file:rounded-lg file:border-0 file:bg-indigo-50 file:text-indigo-700 file:px-2 file:py-1">
               <button class="text-sm border border-indigo-200 text-indigo-700 rounded-lg px-3 py-1.5 hover:bg-indigo-50">{% trans "Save slide" %}</button>
@@ -1431,6 +1432,7 @@
             <textarea name="hero_s_text" rows="2" aria-label="{% trans 'Text' %}" placeholder="{% trans 'Text' %}" class="ui-input min-w-0"></textarea>
             <input type="text" name="hero_s_btn_label" aria-label="{% trans 'Button text' %}" placeholder="{% trans 'Button text' %}" class="ui-input min-w-0">
             <input type="text" name="hero_s_btn_url" aria-label="{% trans "Link" %}" placeholder="{% trans 'Button link (e.g. /sortiment/)' %}" class="ui-input min-w-0">
+            {% include "tenant/_hero_slide_fields.html" with h=None %}
             <div class="flex items-center gap-2 flex-wrap">
               <input aria-label="{% trans "Foto" %}" type="file" name="hero_s_image" accept="image/*" class="text-sm file:mr-2 file:rounded-lg file:border-0 file:bg-indigo-50 file:text-indigo-700 file:px-2 file:py-1">
               <button class="ui-btn ui-btn-primary ui-btn-sm">{% trans "Add slide" %}</button>

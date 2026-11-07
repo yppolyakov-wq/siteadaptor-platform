@@ -1149,6 +1149,14 @@ def _hero_slide_from_post(request, existing_image: str = "") -> dict:
         "text": request.POST.get("hero_s_text", "").strip(),
         "button_label": request.POST.get("hero_s_btn_label", "").strip(),
         "button_url": request.POST.get("hero_s_btn_url", "").strip(),
+        # FB-22: ссылка из списка целей, оформление, даты показа (санитайзит normalize)
+        "link": request.POST.get("hero_s_link", "").strip(),
+        "align": request.POST.get("hero_s_align", ""),
+        "overlay": request.POST.get("hero_s_overlay", ""),
+        "tone": request.POST.get("hero_s_tone", ""),
+        "starts": request.POST.get("hero_s_starts", "").strip(),
+        "ends": request.POST.get("hero_s_ends", "").strip(),
+        "click_all": bool(request.POST.get("hero_s_click_all")),
     }
     uploaded = request.FILES.get("hero_s_image")
     url = request.POST.get("hero_s_image_url", "").strip()

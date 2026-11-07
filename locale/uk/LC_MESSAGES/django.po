@@ -35480,3 +35480,39 @@ msgstr "Перетягуйте пункти на нове місце — кин�
 
 msgid "Übersetzungen"
 msgstr "Переклади"
+
+msgid "Abdunkeln"
+msgstr "Затемнення"
+
+msgid "Ganzes Bild verlinken"
+msgstr "Зробити посиланням усе зображення"
+
+msgid "Hell"
+msgstr "Світле"
+
+msgid "Keine"
+msgstr "Немає"
+
+msgid "Links"
+msgstr "Ліворуч"
+
+msgid "Mitte"
+msgstr "По центру"
+
+msgid "Oder eigene Adresse in «Button link». Ein gewähltes Ziel hat Vorrang."
+msgstr "Або власна адреса в «Button link». Обрана ціль має пріоритет."
+
+msgid "Rechts"
+msgstr "Праворуч"
+
+msgid "Schrift"
+msgstr "Колір тексту"
+
+msgid "Wohin führt der Banner?"
+msgstr "Куди веде банер?"
+
+msgid "Zeigen ab"
+msgstr "Показувати з"
+
+msgid "Zeigen bis"
+msgstr "Показувати до"

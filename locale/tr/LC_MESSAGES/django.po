@@ -35316,3 +35316,39 @@ msgstr "Öğeleri yeni bir yere sürükleyin — bir öğenin ortasına bırakı
 
 msgid "Übersetzungen"
 msgstr "Çeviriler"
+
+msgid "Abdunkeln"
+msgstr "Karartma"
+
+msgid "Ganzes Bild verlinken"
+msgstr "Tüm görsele bağlantı ver"
+
+msgid "Hell"
+msgstr "Açık"
+
+msgid "Keine"
+msgstr "Yok"
+
+msgid "Links"
+msgstr "Sol"
+
+msgid "Mitte"
+msgstr "Orta"
+
+msgid "Oder eigene Adresse in «Button link». Ein gewähltes Ziel hat Vorrang."
+msgstr "Ya da «Button link» alanına kendi adresiniz. Seçilen hedef önceliklidir."
+
+msgid "Rechts"
+msgstr "Sağ"
+
+msgid "Schrift"
+msgstr "Yazı rengi"
+
+msgid "Wohin führt der Banner?"
+msgstr "Banner nereye gidiyor?"
+
+msgid "Zeigen ab"
+msgstr "Şu tarihten itibaren göster"
+
+msgid "Zeigen bis"
+msgstr "Şu tarihe kadar göster"

@@ -35170,3 +35170,39 @@ msgstr "Drag items to a new place — dropped onto the middle of an item, it bec
 
 msgid "Übersetzungen"
 msgstr "Translations"
+
+msgid "Abdunkeln"
+msgstr "Darken"
+
+msgid "Ganzes Bild verlinken"
+msgstr "Link the whole image"
+
+msgid "Hell"
+msgstr "Light"
+
+msgid "Keine"
+msgstr "None"
+
+msgid "Links"
+msgstr "Left"
+
+msgid "Mitte"
+msgstr "Centre"
+
+msgid "Oder eigene Adresse in «Button link». Ein gewähltes Ziel hat Vorrang."
+msgstr "Or your own address in «Button link». A chosen target takes priority."
+
+msgid "Rechts"
+msgstr "Right"
+
+msgid "Schrift"
+msgstr "Text colour"
+
+msgid "Wohin führt der Banner?"
+msgstr "Where does the banner lead?"
+
+msgid "Zeigen ab"
+msgstr "Show from"
+
+msgid "Zeigen bis"
+msgstr "Show until"
