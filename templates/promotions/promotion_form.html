@@ -73,6 +73,7 @@
       <button type="button" data-pf-tab="rabatt" id="pf-tab-rabatt" aria-controls="pf-panel-rabatt" class="ui-tab shrink-0 whitespace-nowrap" role="tab" aria-selected="false" tabindex="-1">{% trans "Discount" %}</button>
       <button type="button" data-pf-tab="zeit" id="pf-tab-zeit" aria-controls="pf-panel-zeit" class="ui-tab shrink-0 whitespace-nowrap" role="tab" aria-selected="false" tabindex="-1">{% trans "Quantity & time" %}</button>
       <button type="button" data-pf-tab="anz" id="pf-tab-anz" aria-controls="pf-panel-anz" class="ui-tab shrink-0 whitespace-nowrap" role="tab" aria-selected="false" tabindex="-1">{% trans "Display" %}</button>
+      {% if promotion %}<button type="button" data-pf-tab="stats" id="pf-tab-stats" aria-controls="pf-panel-stats" class="ui-tab shrink-0 whitespace-nowrap" role="tab" aria-selected="false" tabindex="-1">{% trans "Statistics" %}</button>{% endif %}
     </div>
 
     {# Basics: заголовок/описание (per язык) + товар/раздел + фото #}
@@ -146,6 +147,13 @@
     </div>
   </form>
 
+  {% comment %}FB-17: статистика — своя вкладка «Statistics» (раньше висела под формой и в
+  боковой колонке на КАЖДОЙ вкладке). Панели вне формы: переключатель вкладок
+  (_i18n_switch) переключает все [data-pf-panel] страницы.{% endcomment %}
+  {% if promotion %}
+  <div data-pf-panel="stats" id="pf-panel-stats" role="tabpanel" aria-labelledby="pf-tab-stats" class="hidden">
+  {% if not stats %}<div class="ui-card p-4 mt-4"><p class="text-sm ui-muted">{% trans "No reservations yet." %}</p></div>{% endif %}
+  {% endif %}
   {% if promotion and stats %}
     <div class="ui-card p-4 mt-4">
       <p class="text-sm font-medium mb-2">{% trans "Statistics" %}</p>
@@ -164,6 +172,7 @@
       {% endif %}
     </div>
   {% endif %}
+  {% if promotion %}</div>{% endif %}
   </div>
 
   <aside class="mt-4 lg:mt-0 min-w-0">
@@ -261,8 +270,8 @@
       </script>
     </div>
 
-    {# Атрибуция: брони по каналам #}
-    <div class="ui-card p-4 mt-4">
+    {# Атрибуция: брони по каналам (FB-17: только на вкладке «Statistics») #}
+    <div class="ui-card p-4 mt-4 hidden" data-pf-panel="stats" role="tabpanel" aria-labelledby="pf-tab-stats">
       {% if channel_funnel %}
         {% comment %}T-8.6: воронка по каналам — откуда пришли и что сделали
         (portal = каталог города, flyer = Aushang, direkt = без метки).{% endcomment %}
