@@ -162,3 +162,82 @@ Baymard). Вредят блоки в четырёх случаях:
 2. **Выбрать вариант главной.** Рекомендация — V1 как основа плюс из V3 хронология «Neu» и
    «seit letztem Besuch».
 3. **Sortiment:** направления первыми, одна полка с вкладками, сетка без дублей.
+
+## 6. Дополнение: крупные маркетплейсы и unitheme (повторная проверка)
+
+**Метод и ограничения.** Живые главные почти всех площадок не отдались напрямую:
+- amazon.de и eventim — 503;
+- ebay.de, etsy, groupon, mediamarkt, lieferando, yelp — 403;
+- idealo заблокирован.
+
+Поэтому факты взяты из официальных справочных и пресс-страниц (Wolt, eBay, MediaMarkt, Vinted) и из сторонних разборов. Порядок блоков на главных живыми страницами **не подтверждён**.
+
+### 6.1 Что видно у площадок [Ф]
+
+- **Wolt** публикует, как ранжирует выдачу ([how-search-works](https://explore.wolt.com/en/deu/how-search-works)):
+  - закрытое не скрывается, а опускается вниз;
+  - учитываются время суток и расстояние;
+  - платное помечено «Sponsored».
+- **Wolt, редизайн 2026** ([press](https://press.wolt.com/en-WW/259625-wolt-app-updated-a-new-way-to-discover-everything-around-you/)): выдача **сгруппирована по намерению**. Запрос «protein» даёт отдельные ряды: добавки / продукты / блюда ресторанов.
+- **eBay Lokal** ([Verkäuferportal](https://www.ebay.de/verkaeuferportal/news/verkaeufer/2023-september/ebay-lokal)):
+  - индекс и радиус;
+  - фильтр «Abholung»;
+  - место показывается индексом, а не километрами;
+  - выдача по QR-коду или 6-значному коду.
+- **MediaMarkt** ([Click&Collect](https://www.mediamarkt.de/de/campaign/click-and-collect)): выбранный магазин сразу показывает наличие; «Bereit zur Marktabholung» — заказ готов через 30 минут.
+- **Amazon Blitzangebote** ([monsterdealz](https://www.monsterdealz.de/magazin/amazon-blitzangebote)): таймер и шкала «% beansprucht» без абсолютного числа штук. Критика: крупный бейдж скидки не означает лучшую цену.
+- **Airbnb 2025** ([hospitalitydesign](https://hospitalitydesign.com/news/airbnb-services-experiences-new-app/179155)):
+  - вкладки Homes / Experiences / Services над общим поиском;
+  - общие вишлисты с голосованием.
+- **Eventim, страницы городов** ([пример](https://www.eventim.de/en/city/freiburg-im-breisgau-57/konzerte-1/clubkonzerte-72/)): блок «Weitere Events in der Nähe»; при пустой выдаче — совет снять фильтры.
+- **Eventbrite**: пресеты дат today / weekend / week. Слабое место ([разбор](https://ixd.prattsi.org/?p=11978)) — три конкурирующих поиска на главной.
+- **Check24** ([главная](https://www.check24.de/)): под плитками направлений — четыре обещания доверия.
+- **idealo**: история цены и «Preiswecker».
+- **Vinted** ([help](https://www.vinted.com/help/35)): лента новых объявлений, подписка на продавцов, сохранённые фильтры.
+- **Wildberries / Ozon** ([sostav](https://www.sostav.ru/publication/87-brendovoj-kommunikatsii-na-wildberries-proiskhodit-cherez-bannery-na-glavnoj-stranitse-63098.html), [habr](https://habr.com/en/articles/946932)): главная перегружена баннерами. По разбору на Habr, баннеры, которые вытесняют товар, снижают конверсию.
+- **Антипримеры:**
+  - **AliExpress** — 3–5 купонов и несколько таймеров одновременно ([teardown](https://landingdoctors.com/teardowns/aliexpress-com)).
+  - **Temu** — процедура Еврокомиссии по DSA от 31.10.2024 за фейковые скидки и отсчёты ([CCPC](https://www.ccpc.ie/business/ccpc-and-eu-consumer-authorities-inform-temu-that-they-are-under-scrutiny-for-potential-breaches-of-consumer-protection-law/)).
+  - **Booking** — «Nur noch 1 Zimmer» оспорено в NL, FR и UK ([Which?](https://www.which.co.uk/news/article/booking-com-still-misleading-holidaymakers-with-1-room-left-claims-aSNln2j8gkGl)).
+
+### 6.2 Что берём для портала [Р]
+
+1. **Выдача по намерению.** Каждый тип — своим рядом с «Alle →»: Gerichte / Restaurants / Aktionen / Events. Это и есть ответ на вопрос «как смешивать разные типы» — макет V10.
+2. **Вкладки типов над общим поиском:** Alles · Angebote · Essen · Erleben · Termine · Übernachten · Geschäfte. Пустые вкладки приглушены.
+3. **Закрытое — вниз, с разделителем «Später geöffnet».** Не прятать.
+4. **Район в шапке** («Ohligs · 3 km ▾»), а не отдельным блоком. Название района важнее километров.
+5. **Дата-пресеты:** Jetzt / Heute / Wochenende.
+6. **При пустой выдаче — «Weitere in der Nähe».**
+7. **Под выдачей — блок «Wie wir sortieren».** Это требование § 5b Abs. 2 UWG: раскрыть основные параметры ранжирования. Плюс 4 обещания доверия.
+8. **Тип карточки читается без отдельной подписи:** по глаголу кнопки (Zurücklegen / Bestellen / Tisch / Tickets / Coupon holen) и строке факта (цена+срок / дата+места / часы).
+9. **На телефоне — карта фоном и выдвижной лист со списком** (Google Maps Explore) — макет M3.
+10. **Общая Merkliste с голосованием** для семьи — на потом.
+
+### 6.3 Чего избегать [Р]
+
+- Не больше одного таймера в поле зрения. В остальных местах — дата «bis Sa 18:00».
+- Никаких «80 % weg» без абсолютных чисел. Только правдивое «noch 4 Stück».
+- Баннерную главную не делать.
+
+### 6.4 unitheme.net — повторная проверка
+
+Все хосты отдают **403 Cloudflare challenge**: unitheme.net, www, /en/ и демо `*.mv.unitheme.net`. demos.abt.team — 503. Живой осмотр невозможен.
+
+Снимок главной есть в Wayback: https://web.archive.org/web/20260310143739/https://unitheme.net/ — открывается в обычном браузере. Описание ниже взято из [документации разработчика](https://docs.cs-cart.abt.team/en/abt__unitheme2.doc) и [CS-Cart Marketplace](https://marketplace.cs-cart.com/unitheme2.html).
+
+**Что это.** UniTheme2 от AlexBranding (ABT) — тема для CS-Cart. $249, оценка 4,7/5 по 60 отзывам. Главная жалоба покупателей: «170+ настроек».
+
+**Блоки темы:**
+- мегаменю с иконками и короткими описаниями, в колонки, со ссылкой «More» на втором уровне;
+- «Fly menu» — меню, которое также работает в нижней липкой панели;
+- 6 раскладок главной;
+- Grid с кнопкой «Show more», Scroller с числом карточек отдельно для ПК / планшета / телефона;
+- табы из блоков с подгрузкой при переключении;
+- «Recently viewed»;
+- «Deal of the day»;
+- видимость каждого блока отдельно для ПК и для телефона;
+- фильтры вертикальные или горизонтальные, строка активных фильтров с ✕, липкая плашка «Categories + Filters»;
+- подгрузка «Show more» в трёх режимах (авто / по кнопке / полуавто) с серыми заглушками;
+- вторая картинка при наведении, quick view.
+
+**Для портала:** мегаменю с описаниями под 15 разделов, ленты табами в одном блоке, «Show more» с заглушками, видимость блока по устройству. Обилие настроек не переносим (курс «анти-Битрикс»).
