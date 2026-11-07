@@ -33,6 +33,22 @@ test_cart_form_variants_and_modifiers_fields (regex по name= во всём HTM
       {% endfor %}
     </div>
   {% endif %}
+  {% comment %}FB-24d: свои оси товара (Material, Geschmack …) — ряд на тип; доступность
+  считает тот же скрипт по атрибутам data-o-<код> опций селекта.{% endcomment %}
+  {% for ax in custom_axes %}
+    <p class="text-xs text-gray-500 mb-1">{{ ax.label }}</p>
+    <div data-pick-ui data-pick-axis="{{ ax.code }}" class="mb-2">
+      {% for val in ax.values %}
+        {% if ax.dots %}
+        <button type="button" data-pick data-pick-value="{{ val.name }}" title="{{ val.label }}"
+                class="sf-swatch"{% if val.hex %} style="background:{{ val.hex }}"{% endif %}>{% if not val.hex %}<span class="text-[10px]">{{ val.label|slice:":1" }}</span>{% endif %}</button>
+        {% else %}
+        <button type="button" data-pick data-pick-value="{{ val.name }}"
+                class="rounded-lg border border-gray-300 px-3 py-1.5 text-sm hover:border-indigo-400">{{ val.label }}</button>
+        {% endif %}
+      {% endfor %}
+    </div>
+  {% endfor %}
 {% elif variant_style == "color" %}
   <div data-pick-ui class="mb-2">
     {% for v in variants %}

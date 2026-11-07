@@ -93,6 +93,11 @@ def variant_picker(context, product):
     from apps.catalog import option_styles
 
     style = option_styles.variant_style(product, context.get("storefront_variant_style", ""))
+    # FB-24d: свои оси товара (Material, Geschmack, …) — ряды выбора поверх того же
+    # селекта; с ними вид всегда «оси». Без своих осей — ровно прежнее поведение.
+    custom_rows = _custom_axis_rows(product)
+    if custom_rows:
+        style = "axes"
     variants = list(product.active_variants) if style else []
     for v in variants:
         v.color_hex = option_styles.color_hex(v.color)
@@ -112,7 +117,7 @@ def variant_picker(context, product):
         if v.size and all(s["name"] != v.size for s in sizes):
             sizes.append({"name": v.size, "label": v.size_localized})
     # Вид «две оси» без обеих осей выродился бы в один ряд — честно падаем в кнопки.
-    if style == "axes" and not (colors and sizes):
+    if not custom_rows and style == "axes" and not (colors and sizes):
         style = "buttons"
     return {
         "product": product,
@@ -120,4 +125,56 @@ def variant_picker(context, product):
         "variants": variants,
         "variant_colors": colors,
         "variant_sizes": sizes,
+        "custom_axes": custom_rows,
     }
+
+
+def _custom_axis_rows(product) -> list[dict]:
+    """FB-24d: ряды своих осей товара + `pick_axes` на вариантах (атрибуты опций селекта).
+
+    Варианты кладутся в кэш `_pf_active_variants` (та же конвенция, что у предзагрузки
+    карточек), поэтому цикл опций селекта видит ТЕ ЖЕ объекты с осями."""
+    from django.db.models import prefetch_related_objects
+
+    from apps.catalog import option_types, options
+    from apps.catalog.models import OptionType
+
+    codes = [c for c in options.product_axes(product) if c not in option_types.FIELD_BACKED]
+    if not codes:
+        return []
+    variants = list(product.active_variants)
+    prefetch_related_objects(variants, "option_links__option_type", "option_links__value")
+    product.__dict__["_pf_active_variants"] = variants
+    types = {t.code: t for t in OptionType.objects.filter(code__in=codes)}
+    rows = []
+    for code in codes:
+        t = types.get(code)
+        if t is None:
+            continue
+        seen: dict[str, dict] = {}
+        for v in variants:
+            link = next((lk for lk in v.option_links.all() if lk.option_type_id == t.pk), None)
+            pairs = getattr(v, "pick_axes", [])
+            if link is not None:
+                pairs.append((code, link.value.value))
+                seen.setdefault(
+                    link.value.value,
+                    {
+                        "name": link.value.value,
+                        "label": link.value.value_localized,
+                        "hex": link.value.hex,
+                        "order": link.value.sort_order,
+                    },
+                )
+            v.pick_axes = pairs
+        if seen:
+            values = sorted(seen.values(), key=lambda x: x["order"])
+            rows.append(
+                {
+                    "code": code,
+                    "label": option_types.type_label(t),
+                    "dots": t.display == "color",
+                    "values": values,
+                }
+            )
+    return rows
