@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>SolingenMarkt – V11 Quad-Karten</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#FFFFFF}
+a{color:#C2410C;text-decoration:none}a:hover{color:#9A3412}
+</style>
+</helmet>
+<div style="font-family: Inter, system-ui, sans-serif; color: #111827; background: #FFFFFF">
+<header style="border-bottom: 1px solid #E5E7EB; background: #FAFAFA">
+  <div style="max-width: 1360px; margin: 0 auto; padding: 14px 24px 0; display: flex; flex-wrap: wrap; align-items: center; gap: 16px">
+    <span style="font-weight: 800; font-size: 20px; letter-spacing: -0.02em">Solingen<span style="color: #C2410C">Markt</span></span>
+    <nav aria-label="Arten" style="margin: 0 auto; display: flex; flex-wrap: wrap; gap: 6px">
+      <sc-for list="{{types}}" as="t" hint-placeholder-count="6">
+        <a href="#" aria-current="{{t.cur}}" style="{{t.style}}">
+          <span style="width: 36px; height: 36px; border-radius: 12px; background: {{t.bg}}; display: flex; align-items: center; justify-content: center">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="{{t.fg}}" stroke-width="2" aria-hidden="true"><path d="{{t.icon}}"/></svg>
+          </span>{{t.t}}</a>
+      </sc-for>
+    </nav>
+    <a href="#" style="font-weight: 600; font-size: 14px">Anmelden</a>
+  </div>
+  <form role="search" style="max-width: 900px; margin: 14px auto 18px; padding: 0 24px; display: flex">
+    <div style="flex: 1; display: grid; grid-template-columns: 1.4fr 1fr 1fr auto; align-items: center; background: #FFFFFF; border: 1px solid #D1D5DB; border-radius: 999px; box-shadow: 0 4px 14px rgba(0,0,0,.08); padding: 6px 6px 6px 0">
+      <label style="display: flex; flex-direction: column; padding: 6px 22px; border-right: 1px solid #E5E7EB"><span style="font-size: 12px; font-weight: 700">Was</span><input type="search" placeholder="Pizza, Friseur, Fahrrad …" style="border: 0; outline: none; font: 15px Inter, sans-serif; min-height: 28px"></label>
+      <label style="display: flex; flex-direction: column; padding: 6px 22px; border-right: 1px solid #E5E7EB"><span style="font-size: 12px; font-weight: 700">Wo</span><select style="border: 0; outline: none; font: 15px Inter, sans-serif; min-height: 28px; background: transparent"><option>Ganz Solingen</option><option>Ohligs</option><option>Mitte</option></select></label>
+      <label style="display: flex; flex-direction: column; padding: 6px 22px"><span style="font-size: 12px; font-weight: 700">Wann</span><select style="border: 0; outline: none; font: 15px Inter, sans-serif; min-height: 28px; background: transparent"><option>Jetzt</option><option>Heute</option><option>Wochenende</option></select></label>
+      <button type="submit" aria-label="Suchen" style="width: 52px; height: 52px; border: 0; border-radius: 50%; background: #C2410C; display: flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.5" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button>
+    </div>
+  </form>
+</header>
+
+<main style="max-width: 1360px; margin: 0 auto; padding: 24px 24px 40px; display: flex; flex-direction: column; gap: 32px">
+  <section aria-label="Überblick" style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px">
+    <sc-for list="{{quads}}" as="q" hint-placeholder-count="4">
+      <div style="background: {{q.bg}}; border-radius: 20px; padding: 16px; display: flex; flex-direction: column; gap: 12px">
+        <h2 style="margin: 0; font-size: 18px; line-height: 1.25">{{q.t}}</h2>
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+          <sc-for list="{{q.items}}" as="i" hint-placeholder-count="4">
+            <a href="#" style="display: flex; flex-direction: column; gap: 4px; color: #111827">
+              <span style="position: relative; display: block; aspect-ratio: 1 / 1; border-radius: 12px; overflow: hidden; background: #FFFFFF"><img src="{{i.img}}" alt="" style="width: 100%; height: 100%; object-fit: cover; display: block">
+                <sc-if value="{{i.b}}" hint-placeholder-val="{{ false }}"><span style="position: absolute; left: 6px; top: 6px; background: #C2410C; color: #FFFFFF; font-size: 11px; font-weight: 800; padding: 2px 7px; border-radius: 999px">{{i.b}}</span></sc-if></span>
+              <span style="font-size: 12px; font-weight: 600; line-height: 1.25">{{i.t}}</span>
+            </a>
+          </sc-for>
+        </div>
+        <a href="#" style="font-size: 13px; font-weight: 700; margin-top: auto">{{q.more}}</a>
+      </div>
+    </sc-for>
+  </section>
+
+  <sc-for list="{{rows}}" as="r" hint-placeholder-count="2">
+    <section aria-label="{{r.plain}}" style="display: flex; flex-direction: column; gap: 14px">
+      <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px">
+        <h2 style="margin: 0; font-size: 24px; letter-spacing: -0.02em">{{r.a}} <span style="color: #C2410C">{{r.b}}</span></h2>
+        <a href="#" aria-label="Alle ansehen" style="width: 36px; height: 36px; border-radius: 50%; background: #F3F4F6; display: flex; align-items: center; justify-content: center; color: #111827; font-weight: 800">→</a>
+        <div role="tablist" aria-label="Auswahl" style="display: flex; gap: 4px; margin-left: 8px">
+          <sc-for list="{{r.tabs}}" as="tb" hint-placeholder-count="3">
+            <button type="button" role="tab" aria-selected="{{tb.sel}}" style="{{tb.style}}">{{tb.t}}</button>
+          </sc-for>
+        </div>
+        <div style="margin-left: auto; display: flex; gap: 8px">
+          <button type="button" aria-label="Zurück" style="width: 40px; height: 40px; border-radius: 50%; border: 1px solid #D1D5DB; background: #FFFFFF; color: #9CA3AF">‹</button>
+          <button type="button" aria-label="Weiter" style="width: 40px; height: 40px; border-radius: 50%; border: 1px solid #D1D5DB; background: #FFFFFF">›</button>
+        </div>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 14px">
+        <sc-for list="{{r.cards}}" as="c" hint-placeholder-count="6">
+          <a href="#" style="display: flex; flex-direction: column; gap: 6px; color: #111827">
+            <span style="position: relative; display: block; aspect-ratio: 1 / 1; border-radius: 16px; overflow: hidden"><img src="{{c.img}}" alt="" style="width: 100%; height: 100%; object-fit: cover; display: block">
+              <sc-if value="{{c.badge}}" hint-placeholder-val="{{ false }}"><span style="position: absolute; left: 8px; top: 8px; background: #FFFFFF; color: #111827; font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 999px">{{c.badge}}</span></sc-if></span>
+            <b style="font-size: 14px; line-height: 1.25">{{c.t}}</b>
+            <span style="font-size: 12px; color: #4B5563">{{c.s}}</span>
+            <span style="font-size: 13px"><b>{{c.p}}</b> <span style="color: {{c.fc}}; font-weight: 600">· {{c.f}}</span></span>
+          </a>
+        </sc-for>
+      </div>
+    </section>
+  </sc-for>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":2000}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const B = '/_blob/', G = '#047857', A = '#B45309', X = '#6B7280';
+    const td = [
+      ['Alles', 'M3 12h18M12 3v18', '#FFF7ED', '#C2410C'],
+      ['Angebote', 'M20 12l-8 8-9-9V3h8z', '#FFEDD5', '#9A3412'],
+      ['Essen', 'M7 3v8M5 3v5a2 2 0 0 0 4 0V3M7 11v10M17 3c-2 2-2 6 0 8v10', '#FEF3C7', '#92400E'],
+      ['Erleben', 'M4 8h16v3a2 2 0 0 0 0 4v3H4v-3a2 2 0 0 0 0-4z', '#EDE9FE', '#6D28D9'],
+      ['Termine', 'M4 6h16v14H4zM4 10h16M8 3v4M16 3v4', '#D1FAE5', '#065F46'],
+      ['Übernachten', 'M3 18V8M3 14h18v4M21 18v-6a3 3 0 0 0-3-3h-7v5', '#DBEAFE', '#1E40AF']
+    ];
+    const types = td.map(([t, icon, bg, fg], i) => ({ t, icon, bg, fg, cur: i === 0 ? 'page' : 'false',
+      style: 'display:flex;align-items:center;gap:8px;padding:6px 12px 12px;font-size:14px;font-weight:700;color:#111827;min-height:44px;box-sizing:border-box;' + (i === 0 ? 'border-bottom:3px solid #111827' : 'border-bottom:3px solid transparent;color:#374151') }));
+    const it = (img, t, b) => ({ img: B+img, t, b });
+    const tab = (t, on) => ({ t, sel: on ? 'true' : 'false', style: 'border-radius:999px;padding:7px 14px;font:600 13px Inter,sans-serif;min-height:36px;' + (on ? 'border:0;background:#111827;color:#FFFFFF' : 'border:1px solid #D1D5DB;background:#FFFFFF;color:#111827') });
+    const c = (img, badge, t, s, p, f, fc) => ({ img: B+img, badge, t, s, p, f, fc });
+    return {
+      types,
+      quads: [
+        { t: 'Endet heute', bg: '#FEF2F2', more: 'Alle 9 bis heute Abend', items: [it('d648274a4c4401071d4ca5a78902aa8e', 'Feierabendtüte', '−50 %'), it('ba2fda82e9bb03bde9d5f6620c7b73f4', 'Termin 14–17 Uhr', '−20 %'), it('1a9f5aed8fd7ca238974cdc49931468f', 'MHD-Joghurt', '−40 %'), it('b6b8e6b3e5f638e21a9cc342057ef0f4', 'Suppe des Tages', '')] },
+        { t: 'Beliebt in Solingen diese Woche', bg: '#FFF7ED', more: 'Mehr Beliebtes', items: [it('4865b863ef9aa474b10bf70621e51ca9', 'Pizza-Familienpaket', ''), it('620363281e997d3d7a8ce36409726bcb', 'E-Bike-Verleih', ''), it('3d93fa50ae038d6dba492c5ba65525c2', 'Tiramisu', ''), it('0e59404bf9c844759892f46ea4ad7c9e', 'Kugel-Montag', '')] },
+        { t: 'Neu seit Ihrem letzten Besuch', bg: '#EFF6FF', more: 'Alle 12 Neuheiten', items: [it('c069bad5ac76b4c30164485d0c45b605', 'Café Morgenrot', 'neu'), it('81b6249e9760b4fec38a0b063a93c39f', 'Kerzen-Wochen', 'neu'), it('a785509d75579795d84651c4452591f8', 'Probetraining', 'neu'), it('12e55685e50f34ab0e5d675508d6f305', 'Winterstiefel', 'neu')] },
+        { t: 'Am Wochenende', bg: '#F5F3FF', more: 'Kalender öffnen', items: [it('727b724abb015feeb7630cb82099d25f', 'Kinderkino So 16:00', ''), it('ebdd95c0705f1927cf7fc15fb8586bd2', 'Wupper-Wanderung', ''), it('45be92b64a3a1c78934c0dd2522248e4', 'Brunch-Korb', ''), it('c10d082d8cfce1a4ef0815de646cb2b9', 'Kurztrip Burg', '')] }
+      ],
+      rows: [
+        { a: 'In Ohligs', b: 'jetzt geöffnet', plain: 'In Ohligs jetzt geöffnet', tabs: [tab('Alles', true), tab('Essen'), tab('Einkaufen')], cards: [
+          c('b6b8e6b3e5f638e21a9cc342057ef0f4', 'Lokal-Favorit', 'Café Ohligser Eck', 'Mittagstisch · 200 m', '6,50 €', 'bis 15:00', G),
+          c('1a9f5aed8fd7ca238974cdc49931468f', '', 'Hofladen Wupperhof', 'MHD-Joghurt −40 %', '1,50 €', 'bis 16:00', G),
+          c('12e55685e50f34ab0e5d675508d6f305', '', 'Schuhhaus Wiedenhof', 'Winterstiefel −30 %', '69,00 €', 'bis 18:00', G),
+          c('727b724abb015feeb7630cb82099d25f', 'Lokal-Favorit', 'Familienhof Abenteuerwiese', 'Kindergeburtstag', 'ab 89 €', 'bis 21:00', G),
+          c('4865b863ef9aa474b10bf70621e51ca9', '', 'Grill & Wrap Ohligs', 'Wrap + Getränk', '8,50 €', 'ab 17:00', A),
+          c('81b6249e9760b4fec38a0b063a93c39f', '', 'Schleifchen', 'Kerzen 2 für 29 €', '16,90 €', 'Mo 09:30', X) ] },
+        { a: 'Termine', b: 'heute noch frei', plain: 'Termine heute noch frei', tabs: [tab('Alle', true), tab('Friseur'), tab('Wellness')], cards: [
+          c('ba2fda82e9bb03bde9d5f6620c7b73f4', '3 frei', 'Salon Gräfrath', 'Haarschnitt −20 %', '31,20 €', '14:30', A),
+          c('a785509d75579795d84651c4452591f8', '', 'Day-Spa Wupperwelle', 'Spa 3 Stunden', '29,00 €', '16:00', G),
+          c('f246cca0205426cb1736d89c25f473fb', '', 'Werkstatt Ohligs', 'Reifenwechsel', '29,00 €', 'Mo 08:00', X),
+          c('620363281e997d3d7a8ce36409726bcb', '', 'Radverleih Wupperschleife', 'Rad-Check', '19,00 €', '15:00', G),
+          c('c069bad5ac76b4c30164485d0c45b605', '', 'Café Morgenrot', 'Tisch für 4', '', '19:30', G),
+          c('44c38039eaec9144f7566345c54d5d93', '', 'Kaffeehaus Kronprinz', 'Barista-Kurs', '35,00 €', 'Sa 11:00', A) ] }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>
