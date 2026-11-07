@@ -35332,3 +35332,12 @@ msgstr "Quer 4:3"
 
 msgid "Zuschneiden"
 msgstr "Zuschneiden"
+
+msgid "Banner — außerhalb des Zeitraums"
+msgstr "Banner — außerhalb des Zeitraums"
+
+msgid "Banner — klicken zum Bearbeiten"
+msgstr "Banner — klicken zum Bearbeiten"
+
+msgid "Bild mit Text und Link — auf jeder Seite, mit Zeitraum"
+msgstr "Bild mit Text und Link — auf jeder Seite, mit Zeitraum"

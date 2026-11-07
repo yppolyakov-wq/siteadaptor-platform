@@ -35568,3 +35568,12 @@ msgstr "Горизонтальный 4:3"
 
 msgid "Zuschneiden"
 msgstr "Обрезать"
+
+msgid "Banner — außerhalb des Zeitraums"
+msgstr "Баннер — вне периода показа"
+
+msgid "Banner — klicken zum Bearbeiten"
+msgstr "Баннер — нажмите, чтобы изменить"
+
+msgid "Bild mit Text und Link — auf jeder Seite, mit Zeitraum"
+msgstr "Картинка с текстом и ссылкой — на любой странице, с датами показа"

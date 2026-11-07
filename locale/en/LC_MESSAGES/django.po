@@ -35245,3 +35245,12 @@ msgstr "Landscape 4:3"
 
 msgid "Zuschneiden"
 msgstr "Crop"
+
+msgid "Banner — außerhalb des Zeitraums"
+msgstr "Banner — outside its display period"
+
+msgid "Banner — klicken zum Bearbeiten"
+msgstr "Banner — click to edit"
+
+msgid "Bild mit Text und Link — auf jeder Seite, mit Zeitraum"
+msgstr "Image with text and link — on any page, with a date range"

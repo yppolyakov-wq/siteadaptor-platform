@@ -414,6 +414,24 @@ collect()/save работают без переименований. data-cb-id 
     <textarea name="cb_{{ b.id }}_body" rows="2" maxlength="200" aria-label="{% trans 'Text' %} ({% trans 'optional' %})" placeholder="{% trans 'Text' %} ({% trans 'optional' %})" class="w-full rounded border border-gray-300 px-3 py-2 text-sm">{{ b.data.body }}</textarea>
     <input type="text" name="cb_{{ b.id }}_button_label" value="{{ b.data.button_label }}" maxlength="40" aria-label="{% trans 'Button label (optional)' %}" placeholder="{% trans 'Button label (optional)' %}" class="w-full rounded border border-gray-300 px-3 py-2 text-sm">
   {% endif %}
+  {% if b.type == "banner" %}
+    {% comment %}FB-22b: баннер страницы — поля слайда главной (общий партиал с префиксом).{% endcomment %}
+    <input type="text" name="cb_{{ b.id }}_url" value="{{ b.data.url }}" aria-label="{% trans 'Image URL' %}" placeholder="{% trans 'Image URL' %}" class="w-full rounded border border-gray-300 px-3 py-2 text-sm">
+    <input type="text" name="cb_{{ b.id }}_title" value="{{ b.data.title }}" maxlength="200" aria-label="{% trans 'Title' %}" placeholder="{% trans 'Title' %}" class="w-full rounded border border-gray-300 px-3 py-2 text-sm">
+    <textarea name="cb_{{ b.id }}_text" rows="2" maxlength="400" aria-label="{% trans 'Text' %}" placeholder="{% trans 'Text' %}" class="w-full rounded border border-gray-300 px-3 py-2 text-sm">{{ b.data.text }}</textarea>
+    <div class="grid grid-cols-2 gap-2">
+      <input type="text" name="cb_{{ b.id }}_button_label" value="{{ b.data.button_label }}" maxlength="60" aria-label="{% trans 'Button label' %}" placeholder="{% trans 'Button label' %}" class="min-w-0 rounded border border-gray-300 px-3 py-2 text-sm">
+      <input type="text" name="cb_{{ b.id }}_button_url" value="{{ b.data.button_url }}" aria-label="{% trans 'Button link' %}" placeholder="/termin/ {% trans 'or' %} https://…" class="min-w-0 rounded border border-gray-300 px-3 py-2 text-sm">
+    </div>
+    {% with fp="cb_"|add:b.id|add:"_" %}{% include "tenant/_hero_slide_fields.html" with h=b.data %}{% endwith %}
+    <label class="flex items-center gap-1.5 text-xs text-gray-600">{% trans "Height" %}
+      <select name="cb_{{ b.id }}_height" class="rounded border border-gray-300 px-2 py-1 text-sm">
+        <option value="sm" {% if b.data.height == 'sm' %}selected{% endif %}>{% trans "Schmal" %}</option>
+        <option value="" {% if not b.data.height %}selected{% endif %}>{% trans "Standard" %}</option>
+        <option value="lg" {% if b.data.height == 'lg' %}selected{% endif %}>{% trans "Groß" %}</option>
+      </select>
+    </label>
+  {% endif %}
   {% if b.type == "stats" %}
     {% comment %}GK-4: полоса цифр — textarea «wert | label» построчно (паттерн
        usp_text); парс в canonical rows — строковая ветка _clean_cblock_data.{% endcomment %}
@@ -456,7 +474,7 @@ collect()/save работают без переименований. data-cb-id 
     </label>
     <label class="flex items-center gap-1"><input type="checkbox" name="newline_cb_{{ b.id }}" {% if b.newline %}checked{% endif %} class="rounded border-gray-300">{% trans "Start new row" %}</label>
   </div>
-  {% if b.type == "text" or b.type == "image" or b.type == "image_text" or b.type == "button" or b.type == "stats" or b.type == "newsletter" %}
+  {% if b.type == "text" or b.type == "image" or b.type == "image_text" or b.type == "button" or b.type == "stats" or b.type == "newsletter" or b.type == "banner" %}
     {% comment %}UC6-6b: visual блока — тень (Просто) + радиус/отступ/фон (Эксперт);
        применяется к .cb-box через --sf-* переменные обёртки.{% endcomment %}
     <div class="flex flex-wrap items-center gap-3 text-xs text-gray-600">

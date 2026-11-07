@@ -801,6 +801,29 @@ def _read_cblock_data(post, bid: str, btype: str) -> dict:
         # STU-12e: высота отступа. Ветки не было вовсе — Save ТЕРЯЛ высоту, заданную
         # пресетом вставки (normalize её знает: "sm"/"lg"/"xl", пусто = стандарт).
         return {"height": f("height")}
+    if btype == "banner":
+        # FB-22b: поля слайда; снятый чекбокс браузер не шлёт → False (нормализатор
+        # держит click_all только при True).
+        return {
+            **{
+                name: f(name)
+                for name in (
+                    "url",
+                    "title",
+                    "text",
+                    "button_label",
+                    "button_url",
+                    "link",
+                    "align",
+                    "overlay",
+                    "tone",
+                    "starts",
+                    "ends",
+                    "height",
+                )
+            },
+            "click_all": post.get(f"cb_{bid}_click_all") in ("1", "on"),
+        }
     if btype == "stats":
         # GK-4: textarea «wert | label» построчно — канонизацию в rows-список
         # делает строковая ветка _clean_cblock_data (normalize).
@@ -2091,10 +2114,18 @@ def _add_block_fetch_response(request, new_id, host):
             "b": b,
             "pb_page": host,
             **_cblock_row_lists(request),
+            # FB-22b: выбор цели у баннера — тот же список, что в меню
+            "menu_target_options": _menu_target_options(request) if b["type"] == "banner" else [],
         },
         request=request,
     )
     return JsonResponse({"ok": True, "id": new_id, "host": host, "row_html": row_html})
+
+
+def _menu_target_options(request):
+    from apps.tenants import menu as menu_mod
+
+    return menu_mod.target_options(request.tenant)
 
 
 def _menu_rows(items, options):
@@ -3368,6 +3399,12 @@ def home_builder_view(request):
                     "icon": "🔢",
                     "hint": _("2–4 key figures with captions"),
                 },  # GK-4
+                {
+                    "value": "banner",
+                    "label": siteconfig.CBLOCK_LABELS["banner"],
+                    "icon": "🏞️",
+                    "hint": _("Bild mit Text und Link — auf jeder Seite, mit Zeitraum"),
+                },  # FB-22b
                 {
                     "value": "newsletter",
                     "label": siteconfig.CBLOCK_LABELS["newsletter"],

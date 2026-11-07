@@ -35391,3 +35391,12 @@ msgstr "Yatay 4:3"
 
 msgid "Zuschneiden"
 msgstr "Kırp"
+
+msgid "Banner — außerhalb des Zeitraums"
+msgstr "Afiş — gösterim süresi dışında"
+
+msgid "Banner — klicken zum Bearbeiten"
+msgstr "Afiş — düzenlemek için tıklayın"
+
+msgid "Bild mit Text und Link — auf jeder Seite, mit Zeitraum"
+msgstr "Metin ve bağlantılı görsel — her sayfada, tarih aralığıyla"

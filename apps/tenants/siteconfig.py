@@ -170,6 +170,9 @@ REPEATABLE_BLOCKS = (
     "list",
     "stats",
     "newsletter",
+    # FB-22b: баннер на ЛЮБОЙ странице — свои фото/текст/ссылка/оформление/даты
+    # (поля слайда главной; рендер — заголовок h2, не h1 страницы).
+    "banner",
 )
 # LB-1: легаси-ключи C-блоков → канонический тип. Псевдоним принимается на ВСЕХ
 # входах конфига (главная, страницы, сохранённые шаблоны блоков) и приёмниками
@@ -545,6 +548,26 @@ def _clean_cblock_data(key: str, raw) -> dict:
             if v
         }
         return out
+    if key == "banner":
+        # FB-22b: та же санитизация, что у слайда главной (normalize_heroes: безопасные
+        # ссылки, цель из списка меню, оформление, даты); фото — в `url` (как у прочих
+        # C-блоков: 📷 на канве синхронизирует форму по {url}). Пустой баннер остаётся
+        # блоком — владелец заполняет его в панели.
+        slide = normalize_heroes([{**d, "image": d.get("url"), "title": d.get("title") or " "}])
+        h = slide[0] if slide else {}
+        out = {
+            "url": h.get("image", ""),
+            "title": _s(d.get("title"))[:200],
+            "text": h.get("text", ""),
+            "button_label": h.get("button_label", ""),
+            "button_url": h.get("button_url", ""),
+        }
+        for k in ("link", "align", "overlay", "tone", "starts", "ends", "click_all"):
+            if k in h:
+                out[k] = h[k]
+        if d.get("height") in ("sm", "lg"):
+            out["height"] = d["height"]
+        return out
     if key == "stats":
         # GK-4: полоса цифр — rows = [{value, label}] (НЕ "items": у dict в Django-
         # шаблоне .items — метод). Принимает и текст textarea «wert | label» построчно
@@ -636,6 +659,14 @@ CBLOCK_DEMO_DATA = {
     "newsletter": {
         "title": "Bleiben Sie auf dem Laufenden",
         "body": "Neuigkeiten und Angebote — kein Spam, jederzeit abbestellbar.",
+    },
+    # FB-22b: демо баннера (round-trip через _clean_cblock_data — замок).
+    "banner": {
+        "url": "",
+        "title": "Neu bei uns",
+        "text": "Schauen Sie vorbei — wir freuen uns auf Sie.",
+        "button_label": "Mehr erfahren",
+        "button_url": "",
     },
     # GK-4: демо ОБЯЗАНО быть байт-в-байт равно _clean_cblock_data("stats", demo)
     # (замок test_cblocks_builder: round-trip demo-данных).
@@ -1116,6 +1147,7 @@ CBLOCK_LABELS = {
     "list": _("Liste"),
     "stats": _("Numbers"),
     "newsletter": _("Newsletter"),
+    "banner": _("Banner"),
     "faq_ref": _("FAQ anzeigen"),
     "team_ref": _("Team anzeigen"),
     "gallery_ref": _("Galerie anzeigen"),

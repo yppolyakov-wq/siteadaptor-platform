@@ -75,7 +75,8 @@ CBLOCK_TEMPLATES = {
     # LB-1: блок «Liste» — акции или товары с фильтром и своим видом (легаси PT-6
     # «акции одного типа» читается как он: siteconfig.LEGACY_CBLOCK_ALIASES).
     "list": "storefront/sections/_block_list.html",
-    "stats": "storefront/sections/_block_stats.html",  # GK-4: полоса цифр
+    "stats": "storefront/sections/_block_stats.html",
+    "banner": "storefront/sections/_block_banner.html",  # FB-22b  # GK-4: полоса цифр
     "newsletter": "storefront/sections/_block_newsletter.html",  # GK-8: подписка (DOI)
 }
 
@@ -1049,3 +1050,12 @@ def hero_slides(context, heroes):
             href = siteconfig._menu_href(h.get("button_url"))
         out.append({**h, "href": href})
     return out
+
+
+@register.simple_tag(takes_context=True)
+def banner_slide(context, block):
+    """FB-22b: C-блок «Banner» → слайд (как у главной) или None вне дат показа."""
+    if not isinstance(block, dict):
+        return None
+    slides = hero_slides(context, [{**block, "image": block.get("url", "")}])
+    return slides[0] if slides else None

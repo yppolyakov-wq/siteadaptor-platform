@@ -2398,7 +2398,8 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
        "size", "color", "rounded", "style_hint", "rows", "height", "type", "limit",
        "source", "intro", "endet", "rabatt", "category", "collection", "event_category",
        "country", "entity", "stars", "only", "sort", "out", "cols", "speed", "card",
-       "style", "scope", "ziel"];
+       "style", "scope", "ziel",
+       "text", "button_url", "link", "overlay", "tone", "starts", "ends"];  // FB-22b: баннер
       CB_DATA_FIELDS.forEach(function (f) {  // UC6-2/4/6f + GK-4
         var el = form.querySelector("[name='cb_" + cbId + "_" + f + "']");
         if (el && el.value !== "") cb.data[f] = el.value;
@@ -2406,6 +2407,9 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
       // UE1: чекбокс кнопки промо-блока — по checked (value у чекбокса всегда "on").
       var sb = form.querySelector("[name='cb_" + cbId + "_show_button']");
       if (sb && sb.checked) cb.data.show_button = "on";
+      // FB-22b: «весь баннер ссылкой» — по checked.
+      var ca = form.querySelector("[name='cb_" + cbId + "_click_all']");
+      if (ca && ca.checked) cb.data.click_all = "1";
       // UC6-3/3a: ширина/положение/перенос блока → live-preview (черновик).
       var cw = form.querySelector("select[name='width_cb_" + cbId + "']");
       if (cw && cw.value) cb.width = cw.value;
