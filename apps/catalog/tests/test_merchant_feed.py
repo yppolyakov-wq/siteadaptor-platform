@@ -552,7 +552,9 @@ def test_promo_feed_constant_queries(django_assert_max_num_queries):
         ProductVariant.objects.create(product=p, label="S", price=Decimal("5"), stock_quantity=2)
         if i % 2:
             _promo(p, price_override=Decimal("1.00"))
-    with django_assert_max_num_queries(7):
+    # FB-24e (осознанно 7 → 8): предзагрузка опций вариантов (Material) — один
+    # запрос на весь фид, по-прежнему константа.
+    with django_assert_max_num_queries(8):
         _merchant_xml(google.merchant_products())
 
 

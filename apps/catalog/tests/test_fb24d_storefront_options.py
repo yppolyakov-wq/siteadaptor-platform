@@ -74,3 +74,22 @@ def test_unknown_option_code_is_ignored():
     _shirt("Hemd Leinen", ["Leinen"])
     body = public_views.product_list(_req(params={"opt_evil": "x"})).content.decode()
     assert "Hemd Leinen" in body
+
+
+def test_standard_material_reaches_city_search_terms_custom_does_not():
+    from apps.aggregator.tasks import _variant_terms
+
+    p = _shirt("Hemd", ["Leinen"])
+    own = options.add_custom("Füllung")
+    v = p.variants.first()
+    options.set_variant_option(v, own, "Geheim")
+    terms = _variant_terms(p)
+    assert "Leinen" in terms and "Geheim" not in terms
+
+
+def test_material_in_google_feed_item():
+    from apps.catalog import feed
+
+    p = _shirt("Hemd", ["Leinen"])
+    v = p.variants.prefetch_related("option_links__option_type", "option_links__value").first()
+    assert feed._google_material(v) == "Leinen"

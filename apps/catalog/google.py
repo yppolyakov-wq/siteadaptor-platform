@@ -121,7 +121,7 @@ def eligibility(
 
 
 def _active_products():
-    from .models import Product, ProductVariant
+    from .models import Product, ProductVariant, VariantOption
 
     return (
         Product.objects.filter(is_active=True)
@@ -129,7 +129,13 @@ def _active_products():
         .prefetch_related(
             Prefetch(
                 "variants",
-                queryset=ProductVariant.objects.filter(is_active=True),
+                # FB-24e: опции варианта (Material) — без N+1 в фиде
+                queryset=ProductVariant.objects.filter(is_active=True).prefetch_related(
+                    Prefetch(
+                        "option_links",
+                        queryset=VariantOption.objects.select_related("option_type", "value"),
+                    )
+                ),
                 to_attr="feed_variants",
             )
         )

@@ -78,3 +78,15 @@ def variant_axes(variant, codes=None) -> dict[str, str]:
 def axes_label(values: dict[str, str]) -> str:
     """Метка варианта из осей: «M · Blau · Baumwolle» (порядок — порядок осей)."""
     return " · ".join(v for v in values.values() if v)
+
+
+def standard_variant_values(variant) -> dict[str, str]:
+    """FB-24e: значения СТАНДАРТНЫХ типов (кроме размера/цвета) у варианта —
+    {атрибут Google или код: значение}. Свои типы владельца наружу не уходят: их
+    значения не сопоставимы между магазинами."""
+    out: dict[str, str] = {}
+    for link in variant.option_links.all():
+        code = link.option_type.standard
+        if code and code in STANDARD and code not in FIELD_BACKED:
+            out[code] = link.value.value
+    return out

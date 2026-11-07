@@ -24187,7 +24187,21 @@ WOHNWERK = DemoKit(
                     "table-lamp",
                 ),
                 _p("Vase Steinzeug", "34.00", "Handgedreht, 25 cm hoch.", "ceramic-vase"),
-                _p("Kissenbezug Leinen", "29.00", "50 × 50 cm, stonewashed.", "linen-cushion"),
+                # FB-24: демо своей оси «Material» рядом с цветом (фильтр и выбор на витрине).
+                {
+                    **_p(
+                        "Kissenbezug Leinen",
+                        "29.00",
+                        "50 × 50 cm, stonewashed.",
+                        "linen-cushion",
+                        variants=[
+                            {"label": f"{c} · {m}", "color": c, "options": {"material": m}}
+                            for c in ("Sand", "Grau")
+                            for m in ("Leinen", "Baumwolle")
+                        ],
+                    ),
+                    "option_axes": ["color", "material"],
+                },
             ],
         ),
         (
@@ -24936,6 +24950,9 @@ def apply_kit(tenant, key: str) -> bool:
                     sku=v.get("sku") or f"{product.sku}-{vsort + 1}",  # SH-19: артикул варианта
                     sort_order=vsort,
                 )
+                # FB-24: значения опций магазина у варианта ({"material": "Leinen"}).
+                for code, value in (v.get("options") or {}).items():
+                    _demo_set_option(variant, code, value)
                 if v.get("stock") is not None:
                     from apps.inventory.services import record_movement
 
@@ -24952,6 +24969,10 @@ def apply_kit(tenant, key: str) -> bool:
                 ProductVariant.objects.create(
                     product=product, label=vlabel, price=Decimal(vprice), sort_order=vsort
                 )
+        if item.get("option_axes"):  # FB-24: оси вариантов товара
+            from apps.catalog import options as _options
+
+            _options.set_product_axes(product, item["option_axes"])
         for gsort, group in enumerate(item.get("modifiers", [])):
             mg = ModifierGroup.objects.create(
                 product=product,
@@ -27449,3 +27470,17 @@ def _seed_kit_records(tenant, kit: DemoKit, refs: dict, products: list) -> None:
             subject="Entwurf: Sommer am See — Last-Minute-Wochen",
             body="Bald verfügbar: unsere Sommer-Specials mit Frühbucher- und Last-Minute-Rabatten.",
         )
+
+
+def _demo_set_option(variant, code, value) -> None:
+    """FB-24: значение опции у демо-варианта (стандартный тип включается сам)."""
+    from apps.catalog import option_types
+    from apps.catalog import options as _options
+    from apps.catalog.models import OptionType
+
+    if code in option_types.STANDARD:
+        option_type = _options.enable_standard(code)
+    else:
+        option_type = OptionType.objects.filter(code=code).first() or _options.add_custom(code)
+    if option_type is not None:
+        _options.set_variant_option(variant, option_type, value)
