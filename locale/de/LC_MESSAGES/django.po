@@ -35341,3 +35341,6 @@ msgstr "Banner — klicken zum Bearbeiten"
 
 msgid "Bild mit Text und Link — auf jeder Seite, mit Zeitraum"
 msgstr "Bild mit Text und Link — auf jeder Seite, mit Zeitraum"
+
+msgid "Fotos gespeichert. Bitte die markierten Felder korrigieren."
+msgstr "Fotos gespeichert. Bitte die markierten Felder korrigieren."

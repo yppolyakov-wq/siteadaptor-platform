@@ -35400,3 +35400,6 @@ msgstr "Afiş — düzenlemek için tıklayın"
 
 msgid "Bild mit Text und Link — auf jeder Seite, mit Zeitraum"
 msgstr "Metin ve bağlantılı görsel — her sayfada, tarih aralığıyla"
+
+msgid "Fotos gespeichert. Bitte die markierten Felder korrigieren."
+msgstr "Fotoğraflar kaydedildi. Lütfen işaretli alanları düzeltin."

@@ -1132,10 +1132,21 @@ def promotion_edit(request, pk):
         instance=promo,
         tenant=getattr(request, "tenant", None),
     )
-    if request.method == "POST" and form.is_valid():
-        promo = form.save()
-        _handle_promo_uploads(request, promo)
-        return redirect("promotions:promotion-edit", pk=promo.pk)
+    if request.method == "POST":
+        if form.is_valid():
+            promo = form.save()
+            _handle_promo_uploads(request, promo)
+            return redirect("promotions:promotion-edit", pk=promo.pk)
+        # FB-18b: акция уже есть — выбранные фото сохраняем и при ошибке в полях. Браузер
+        # не может вернуть файл в форму, и раньше фото молча пропадало вместе с ошибкой.
+        if request.FILES.getlist("images"):
+            before = len(promo.images or [])
+            _handle_promo_uploads(request, promo)
+            if len(promo.images or []) > before:
+                messages.info(
+                    request,
+                    _("Fotos gespeichert. Bitte die markierten Felder korrigieren."),
+                )
     # атрибуция: брони по каналам привлечения
     channel_stats = list(
         promo.reservations.values("source_channel").annotate(n=Count("id")).order_by("-n")

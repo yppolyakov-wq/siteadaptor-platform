@@ -35577,3 +35577,6 @@ msgstr "Баннер — нажмите, чтобы изменить"
 
 msgid "Bild mit Text und Link — auf jeder Seite, mit Zeitraum"
 msgstr "Картинка с текстом и ссылкой — на любой странице, с датами показа"
+
+msgid "Fotos gespeichert. Bitte die markierten Felder korrigieren."
+msgstr "Фото сохранены. Исправьте, пожалуйста, отмеченные поля."
