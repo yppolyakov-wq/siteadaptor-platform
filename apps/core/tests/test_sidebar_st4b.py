@@ -235,8 +235,7 @@ def test_sidebar_children_composition():
         "events:list",
         "events:tour-list",
         "catalog:category-list",
-        # STU-19b (осознанное дополнение): шаблон/сетка/карточка страниц каталога
-        "page-templates-sortiment",
+        # FB-16 (осознанно снято): шаблоны страниц — только в Website
         "collections:list",
         # R2: складская группа — подпункты Sortiment (ящика на страницах нет)
         "stock",

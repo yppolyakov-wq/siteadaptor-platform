@@ -60,7 +60,7 @@ def test_studio_shows_summaries_with_cabinet_links(tenant):
         _request("get", "/dashboard/site/home/", tenant=tenant)
     ).content.decode()
     assert body.count("data-stu19-summary") >= len(page_settings.CABINET_OWNED) - 6
-    assert "/dashboard/seitenvorlagen/sortiment/?typ=stays" in body
+    assert "/dashboard/seitenvorlagen/?typ=stays" in body
     assert 'name="stays_page_style"' not in body and 'name="sd_layout"' not in body
 
 

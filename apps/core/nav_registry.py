@@ -375,17 +375,6 @@ ENTRIES: tuple[NavEntry, ...] = (
         search="gruppen rubriken typen mystery vorbestellung",
         group="aktionen",
     ),
-    # STU-19d: page template / grid / card form of the offer pages.
-    _e(
-        "marketing",
-        "page-templates-aktionen",
-        _("Seitenvorlage"),
-        "seitenvorlage-aktionen",
-        "promotions",
-        True,
-        "vorlage layout raster kartenform aktionsseite",
-        group="aktionen",
-    ),
     # T-8.4: ассистент «Schnell-Aktion» — вход из палитры (основной вход — «＋»
     # в списке акций и мобильная плавающая кнопка).
     _e(
@@ -591,20 +580,7 @@ ENTRIES: tuple[NavEntry, ...] = (
         True,
         direction="waren",
     ),
-    # STU-19b: page template / grid / card form of the catalog pages — moved out of
-    # the Studio panel (plan stu19 §2.2). Same gate as the catalog pages it controls.
-    # STU-19d: the tab covers every page of the offer (catalog, services, rooms,
-    # events, tours) — not only goods, so no "Waren" direction and no module gate:
-    # the screen itself shows only the types whose module is on.
-    _e(
-        "sellables",
-        "page-templates-sortiment",
-        _("Seitenvorlage"),
-        "seitenvorlage",
-        None,
-        True,
-        "vorlage layout raster kartenform ansicht seitenvorlage",
-    ),
+    # FB-16: page templates live only under Website (Seitenvorlagen).
     _e("sellables", "collections:list", _("Kollektionen"), "collections", None, True, "lookbook"),
     # R2 (редизайн B, утверждённая структура): складская группа — подпункты
     # сайдбара «Sortiment» (ящик «Erweitert» на страницах больше не рендерится,
@@ -1198,7 +1174,6 @@ UNIVERSAL: dict[str, str] = {
     "site-seo": "SEO сайта — у каждого",
     # STU-19d: the screens show only the page types whose module is on.
     "page-templates-website": "шаблоны всех страниц сайта — у каждого",
-    "page-templates-sortiment": "шаблоны страниц ассортимента — у каждого (типы по модулям)",
     "site-redirects": "переадресации старых адресов — у каждого",
     "domains": "домены — у каждого",
     "media-library": "медиатека — у каждого",

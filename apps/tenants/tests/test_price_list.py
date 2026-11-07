@@ -280,7 +280,7 @@ def _cabinet(tenant, typ, method="get", data=None):
 
     from apps.core import page_templates
 
-    path = "/dashboard/seitenvorlagen/sortiment/"
+    path = "/dashboard/seitenvorlagen/"
     request = getattr(RequestFactory(), method)(path, data if data is not None else {"typ": typ})
     SessionMiddleware(lambda r: None).process_request(request)
     MessageMiddleware(lambda r: None).process_request(request)
@@ -291,7 +291,7 @@ def _cabinet(tenant, typ, method="get", data=None):
         username=f"pl-{o}", email=f"pl-{o}@t.de", password="pw12345678"
     )
     request.tenant = tenant
-    return page_templates.page_templates_sortiment(request)
+    return page_templates.page_templates_website(request)
 
 
 def test_studio_picker_offers_every_price_view(settings):

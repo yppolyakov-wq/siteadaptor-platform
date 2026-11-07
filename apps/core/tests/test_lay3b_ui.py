@@ -58,15 +58,15 @@ def _tenant(slug):
 
 
 def _cabinet(tenant, typ):
-    path = "/dashboard/seitenvorlagen/sortiment/"
-    resp = page_templates.page_templates_sortiment(_request("get", path, {"typ": typ}, tenant))
+    path = "/dashboard/seitenvorlagen/"
+    resp = page_templates.page_templates_website(_request("get", path, {"typ": typ}, tenant))
     assert resp.status_code == 200
     return resp.content.decode()
 
 
 def _cabinet_save(tenant, data):
-    path = "/dashboard/seitenvorlagen/sortiment/"
-    resp = page_templates.page_templates_sortiment(_request("post", path, data, tenant))
+    path = "/dashboard/seitenvorlagen/"
+    resp = page_templates.page_templates_website(_request("post", path, data, tenant))
     assert resp.status_code == 302
     tenant.refresh_from_db()
     return siteconfig.normalize(tenant.site_config)

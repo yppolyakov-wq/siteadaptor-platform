@@ -72,7 +72,7 @@ def _tiles(body, code):
 
 def test_cabinet_shows_a_tile_for_every_category_template():
     tenant = TenantFactory(schema_name="public", slug="dl20s", name="DL20S")
-    form = _tiles(_cabinet(tenant, "page_templates_sortiment", "category"), "category_page_style")
+    form = _tiles(_cabinet(tenant, "page_templates_website", "category"), "category_page_style")
     for code, _label, _hint in category_styles.CATEGORY_PAGE_STYLES:
         assert f'name="value" value="{code}"' in form, code
 
@@ -82,7 +82,7 @@ def test_studio_row_is_a_summary_not_a_picker():
     body = _body(tenant)
     assert 'name="sd_category_page_style"' not in body
     assert 'name="sd_promo_group_style"' not in body
-    assert "/dashboard/seitenvorlagen/sortiment/?typ=category" in body
+    assert "/dashboard/seitenvorlagen/?typ=category" in body
 
 
 def test_cabinet_saves_the_site_wide_page_template():
@@ -117,7 +117,7 @@ def test_cabinet_shows_and_saves_the_group_page_default():
         name="DL20G2",
         enabled_modules=["catalog", "promotions"],
     )
-    form = _tiles(_cabinet(tenant, "page_templates_aktionen", "promo_group"), "promo_group_style")
+    form = _tiles(_cabinet(tenant, "page_templates_website", "promo_group"), "promo_group_style")
     for code, _label, _hint in group_styles.GROUP_PAGE_STYLES:
         assert f'name="value" value="{code}"' in form, code
     page_settings.write(tenant, "promo_group_style", "prospekt")

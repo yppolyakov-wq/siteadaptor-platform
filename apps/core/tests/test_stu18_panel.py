@@ -168,7 +168,7 @@ def test_shelves_are_not_offered_without_sub_entities(settings):
 
     settings.ROOT_URLCONF = "config.urls_tenant"
     tenant = TenantFactory(business_type="restaurant")
-    markup = page_templates.page_templates_sortiment(
+    markup = page_templates.page_templates_website(
         _req(tenant, data={"typ": "catalog"})
     ).content.decode()
 

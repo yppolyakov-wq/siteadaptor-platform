@@ -57,10 +57,8 @@ def _cabinet(tenant, typ, method="get", data=None):
 
     from apps.core import page_templates
 
-    path = "/dashboard/seitenvorlagen/sortiment/"
-    view = page_templates.page_templates_sortiment
-    if typ in ("promos", "promo_group", "promo"):
-        path, view = "/dashboard/seitenvorlagen/aktionen/", page_templates.page_templates_aktionen
+    path = "/dashboard/seitenvorlagen/"
+    view = page_templates.page_templates_website  # FB-16: один экран Website
     req = _request(method, path, data if data is not None else {"typ": typ}, tenant)
     o = uuid.uuid4().hex[:8]
     req.user = get_user_model().objects.create_user(f"cf-{o}", f"cf-{o}@t.de", "pw12345678")
