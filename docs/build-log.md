@@ -22235,3 +22235,13 @@ layout-выравнивание сжимается до « | »-колонок (
 фото принимаются, «Datei» вместо «Foto» в общих сообщениях. Замки `test_ais4_pdf_lines.py`
 (25), стенд PDF-персоны (реальный Celery) 9/9. ⚠️ ops: включить `offer_pdf_lines` в
 «KI-Einstellungen» (без него работают правила).
+
+- **2026-11-07 · PH-10 (анализ, кода нет):** проверка прода портала Solingen и /sortiment/
+  (Playwright 1440/390 + сверка с кодом) — 11 дефектов портала (тестовые бизнесы «Про/123/Test aktion»
+  в «Neu in Solingen», подпись заглушки «Sg-biergarten» без `cap`, счётчики 200 vs 571 из разных
+  наборов `home_stats`, «Endet bald» с закрытыми до конца акции магазинами, портретное фото ломает ряд,
+  «EUR» вместо «€», время засева у события…) и 4 дефекта магазина (направления под каруселями, дубль
+  сетки с полкой, плавающие кнопки поверх карточки). Рынок (kaufDA/TGTG/Kleinanzeigen/Zalando/IKEA/
+  Otto/Baymard/NN/g) — `docs/portal-home-variants-analysis-2026-11-07.md`. Канвас: V1 Heute-Feed ·
+  V2 Karte+Liste · V3 Wochen-Magazin · V4 Navigator · Mobil · Sortiment «Wegweiser»; исходники
+  `docs/design/portal-home-2026-11-07/`. Дальше — выбор варианта и хотфиксы §5 по решению владельца.

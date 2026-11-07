@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>SolingenMarkt – V1 Heute-Feed</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F6F7F9}
+a{color:#C2410C;text-decoration:none}a:hover{color:#9A3412}
+</style>
+</helmet>
+<div style="font-family: Inter, system-ui, sans-serif; color: #111827; background: #F6F7F9; min-height: 100%">
+
+<header style="background: #FFFFFF; border-bottom: 1px solid #E5E7EB">
+  <div style="max-width: 1360px; margin: 0 auto; padding: 14px 24px; display: flex; flex-wrap: wrap; align-items: center; gap: 16px">
+    <button type="button" style="display: flex; align-items: center; gap: 8px; background: {{accent}}; color: #FFFFFF; border: 0; border-radius: 999px; padding: 10px 18px; font: 600 14px Inter, sans-serif; min-height: 44px">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>Kategorien</button>
+    <div style="display: flex; flex-direction: column">
+      <span style="font-weight: 800; font-size: 20px; letter-spacing: -0.02em">Solingen<span style="color: {{accent}}">Markt</span></span>
+      <span style="font-size: 12px; color: #4B5563">Alles aus der Klingenstadt</span>
+    </div>
+    <label style="flex: 1 1 360px; display: flex; align-items: center; gap: 8px; background: #F3F4F6; border-radius: 999px; padding: 0 6px 0 18px; min-height: 44px">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4B5563" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <span style="position: absolute; width: 1px; height: 1px; overflow: hidden">Suche</span>
+      <input type="search" placeholder="Pizza, Friseur, Fahrrad, Kinderkino …" style="flex: 1; border: 0; background: transparent; font: 15px Inter, sans-serif; outline: none; min-height: 40px">
+    </label>
+    <nav aria-label="Konto" style="display: flex; align-items: center; gap: 18px; font-size: 14px">
+      <a href="#" style="color: #374151">DE ▾</a>
+      <a href="#" style="color: #374151">Merkzettel (3)</a>
+      <a href="#" style="font-weight: 600">Anmelden</a>
+    </nav>
+  </div>
+</header>
+
+<main style="max-width: 1360px; margin: 0 auto; padding: 24px; display: flex; flex-direction: column; gap: 32px">
+
+  <section aria-label="Heute" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px">
+    <div style="grid-column: span 2; background: #111827; color: #FFFFFF; border-radius: 24px; padding: 32px; display: flex; flex-direction: column; gap: 20px">
+      <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: #FCD34D; letter-spacing: 0.04em"><span style="width: 8px; height: 8px; border-radius: 50%; background: #34D399"></span>SAMSTAG, 7. NOVEMBER · 14 GESCHÄFTE JETZT OFFEN</div>
+      <h1 style="margin: 0; font-size: 44px; line-height: 1.05; letter-spacing: -0.03em">Was brauchen Sie heute?</h1>
+      <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px">
+        <sc-for list="{{intents}}" as="it" hint-placeholder-count="4">
+          <a href="#" style="background: #1F2937; border: 1px solid #374151; border-radius: 16px; padding: 16px; color: #FFFFFF; display: flex; flex-direction: column; gap: 6px; min-height: 96px">
+            <span style="font-size: 17px; font-weight: 700">{{it.t}}</span>
+            <span style="font-size: 13px; color: #D1D5DB">{{it.s}}</span>
+          </a>
+        </sc-for>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 24px; font-size: 14px; color: #D1D5DB; border-top: 1px solid #374151; padding-top: 16px">
+        <span><b style="color: #FFFFFF; font-size: 18px">200</b> aktuelle Angebote</span>
+        <span><b style="color: #FFFFFF; font-size: 18px">9</b> enden heute</span>
+        <span><b style="color: #FFFFFF; font-size: 18px">12</b> neu seit Ihrem letzten Besuch</span>
+        <span><b style="color: #FFFFFF; font-size: 18px">103</b> Geschäfte</span>
+      </div>
+    </div>
+    <article style="background: #FFFFFF; border-radius: 24px; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 1px 3px rgba(0,0,0,.08)">
+      <div style="position: relative; height: 210px">
+        <img src="/_blob/d648274a4c4401071d4ca5a78902aa8e" alt="Feierabendtüte" style="width: 100%; height: 100%; object-fit: cover; display: block">
+        <span style="position: absolute; top: 14px; left: 14px; background: #FCD34D; color: #111827; font-size: 12px; font-weight: 800; padding: 6px 12px; border-radius: 999px">DEAL DES TAGES</span>
+        <span style="position: absolute; top: 14px; right: 14px; background: {{accent}}; color: #FFFFFF; font-size: 20px; font-weight: 800; padding: 6px 12px; border-radius: 12px">−50 %</span>
+      </div>
+      <div style="padding: 18px 20px 20px; display: flex; flex-direction: column; gap: 8px">
+        <span style="font-size: 13px; color: #4B5563">Bäckerei Klingenbrot · Mitte · <span style="color: #047857; font-weight: 600">offen bis 18:00</span></span>
+        <h2 style="margin: 0; font-size: 22px">Feierabendtüte</h2>
+        <div style="display: flex; align-items: baseline; gap: 10px"><b style="font-size: 26px">5,00 €</b><s style="color: #4B5563">10,00 €</s><span style="margin-left: auto; color: #B91C1C; font-size: 13px; font-weight: 600">heute bis 18:00</span></div>
+        <a href="#" style="background: {{accent}}; color: #FFFFFF; text-align: center; font-weight: 700; border-radius: 999px; padding: 12px; margin-top: 4px">Zurücklegen</a>
+      </div>
+    </article>
+  </section>
+
+  <nav aria-label="Bereiche" style="display: flex; gap: 10px; overflow-x: auto; padding-bottom: 4px">
+    <sc-for list="{{cats}}" as="c" hint-placeholder-count="10">
+      <a href="#" style="flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; gap: 6px; width: 104px; padding: 12px 6px; background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 16px; color: #111827; text-align: center">
+        <span style="width: 44px; height: 44px; border-radius: 12px; background: #FFF7ED; color: {{accent}}; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 15px">{{c.i}}</span>
+        <span style="font-size: 12px; font-weight: 600; line-height: 1.2">{{c.t}}</span>
+        <span style="font-size: 11px; color: #4B5563">{{c.n}}</span>
+      </a>
+    </sc-for>
+    <a href="#" style="flex: 0 0 auto; width: 104px; display: flex; align-items: center; justify-content: center; border: 1px dashed #9CA3AF; border-radius: 16px; color: #374151; font-size: 13px; font-weight: 600">Alle 15 →</a>
+  </nav>
+
+  <section aria-labelledby="feed-h" style="background: #FFFFFF; border-radius: 24px; padding: 24px; display: flex; flex-direction: column; gap: 20px">
+    <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px">
+      <h2 id="feed-h" style="margin: 0 12px 0 0; font-size: 26px; letter-spacing: -0.02em">Angebote</h2>
+      <div role="tablist" aria-label="Ansicht" style="display: flex; flex-wrap: wrap; gap: 6px; background: #F3F4F6; padding: 4px; border-radius: 999px">
+        <sc-for list="{{tabs}}" as="tb" hint-placeholder-count="5">
+          <button type="button" role="tab" aria-selected="{{tb.sel}}" onClick="{{tb.pick}}" style="{{tb.style}}">{{tb.t}} <span style="opacity: .75; font-weight: 500">{{tb.n}}</span></button>
+        </sc-for>
+      </div>
+      <div style="margin-left: auto; display: flex; flex-wrap: wrap; gap: 8px; font-size: 13px">
+        <button type="button" style="border: 1px solid #D1D5DB; background: #FFFFFF; border-radius: 999px; padding: 8px 14px; font: 600 13px Inter, sans-serif; min-height: 40px">Stadtteil ▾</button>
+        <button type="button" style="border: 1px solid #D1D5DB; background: #FFFFFF; border-radius: 999px; padding: 8px 14px; font: 600 13px Inter, sans-serif; min-height: 40px">Preis ▾</button>
+        <button type="button" style="border: 1px solid #D1D5DB; background: #FFFFFF; border-radius: 999px; padding: 8px 14px; font: 600 13px Inter, sans-serif; min-height: 40px">Nur offen</button>
+        <button type="button" style="border: 0; background: #111827; color: #FFFFFF; border-radius: 999px; padding: 8px 14px; font: 600 13px Inter, sans-serif; min-height: 40px">Liste ⇄ Karte</button>
+      </div>
+    </div>
+    <p style="margin: 0; font-size: 14px; color: #4B5563">{{tabHint}}</p>
+    <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px">
+      <sc-for list="{{cards}}" as="c" hint-placeholder-count="8">
+        <article style="border: 1px solid #E5E7EB; border-radius: 18px; overflow: hidden; display: flex; flex-direction: column; background: #FFFFFF">
+          <div style="position: relative; aspect-ratio: 4 / 3; background: #F3F4F6">
+            <img src="{{c.img}}" alt="{{c.title}}" style="width: 100%; height: 100%; object-fit: cover; display: block">
+            <sc-if value="{{c.badge}}" hint-placeholder-val="{{ true }}"><span style="position: absolute; top: 10px; left: 10px; background: {{accent}}; color: #FFFFFF; font-size: 13px; font-weight: 800; padding: 4px 10px; border-radius: 999px">{{c.badge}}</span></sc-if>
+            <sc-if value="{{c.fresh}}" hint-placeholder-val="{{ false }}"><span style="position: absolute; top: 10px; right: 10px; background: #FFFFFF; color: #1D4ED8; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 999px">● {{c.fresh}}</span></sc-if>
+            <span style="position: absolute; bottom: 10px; left: 10px; background: rgba(17,24,39,.82); color: #FFFFFF; font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 999px">{{c.kind}}</span>
+          </div>
+          <div style="padding: 14px; display: flex; flex-direction: column; gap: 6px; flex: 1">
+            <span style="font-size: 12px; color: #4B5563">{{c.shop}} · {{c.area}}</span>
+            <h3 style="margin: 0; font-size: 16px; line-height: 1.3">{{c.title}}</h3>
+            <span style="font-size: 12px; font-weight: 600; color: {{c.statusColor}}">{{c.status}}</span>
+            <div style="margin-top: auto; display: flex; align-items: center; gap: 8px; padding-top: 8px">
+              <b style="font-size: 18px">{{c.price}}</b><s style="font-size: 13px; color: #4B5563">{{c.old}}</s>
+              <a href="#" style="margin-left: auto; background: #FFF7ED; color: #9A3412; font-weight: 700; font-size: 13px; border-radius: 999px; padding: 8px 14px">{{c.cta}}</a>
+            </div>
+          </div>
+        </article>
+      </sc-for>
+    </div>
+    <a href="#" style="align-self: center; border: 1px solid #D1D5DB; border-radius: 999px; padding: 12px 22px; font-weight: 600; color: #111827">Alle 200 Angebote im Überblick →</a>
+  </section>
+
+  <section aria-labelledby="we-h" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px">
+    <div style="grid-column: span 2; background: #FFFFFF; border-radius: 24px; padding: 24px">
+      <div style="display: flex; align-items: baseline; gap: 12px; margin-bottom: 16px"><h2 id="we-h" style="margin: 0; font-size: 22px">Dieses Wochenende</h2><a href="#" style="margin-left: auto; font-weight: 600; font-size: 14px">Kalender →</a></div>
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px">
+        <sc-for list="{{days}}" as="d" hint-placeholder-count="3">
+          <div style="display: flex; flex-direction: column; gap: 10px">
+            <div style="font-weight: 800; font-size: 14px; color: {{accent}}">{{d.d}}</div>
+            <sc-for list="{{d.ev}}" as="e" hint-placeholder-count="2">
+              <a href="#" style="display: flex; gap: 10px; padding: 10px; border-radius: 12px; background: #F9FAFB; color: #111827">
+                <b style="font-size: 14px; min-width: 44px">{{e.time}}</b>
+                <span style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 14px; font-weight: 600">{{e.t}}</span><span style="font-size: 12px; color: #4B5563">{{e.p}}</span></span>
+              </a>
+            </sc-for>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+    <div style="background: #FFFFFF; border-radius: 24px; padding: 24px; display: flex; flex-direction: column; gap: 14px">
+      <h2 style="margin: 0; font-size: 22px">Neu in Solingen</h2>
+      <sc-for list="{{newShops}}" as="s" hint-placeholder-count="3">
+        <a href="#" style="display: flex; align-items: center; gap: 12px; color: #111827">
+          <img src="{{s.img}}" alt="" style="width: 56px; height: 56px; border-radius: 14px; object-fit: cover">
+          <span style="display: flex; flex-direction: column; gap: 2px; flex: 1"><b style="font-size: 15px">{{s.t}}</b><span style="font-size: 12px; color: #4B5563">{{s.s}}</span></span>
+          <span style="font-size: 12px; font-weight: 700; color: #1D4ED8">{{s.since}}</span>
+        </a>
+      </sc-for>
+      <p style="margin: 0; font-size: 12px; color: #4B5563">Nur Geschäfte mit Foto, Öffnungszeiten und mind. 1 Angebot.</p>
+    </div>
+  </section>
+
+  <section aria-labelledby="st-h" style="background: #FFFFFF; border-radius: 24px; padding: 24px; display: flex; flex-wrap: wrap; align-items: center; gap: 16px">
+    <h2 id="st-h" style="margin: 0; font-size: 22px; flex: 1 1 220px">Ihr Stadtteil</h2>
+    <sc-for list="{{areas}}" as="a" hint-placeholder-count="5">
+      <a href="#" style="flex: 1 1 160px; border: 1px solid #E5E7EB; border-radius: 16px; padding: 14px; color: #111827; display: flex; flex-direction: column; gap: 4px">
+        <b>{{a.t}}</b><span style="font-size: 13px; color: #4B5563">{{a.n}} Angebote</span><span style="font-size: 13px; color: #047857; font-weight: 600">{{a.o}} jetzt offen</span>
+      </a>
+    </sc-for>
+  </section>
+</main>
+
+<footer style="border-top: 1px solid #E5E7EB; background: #FFFFFF; margin-top: 16px">
+  <div style="max-width: 1360px; margin: 0 auto; padding: 20px 24px; display: flex; flex-wrap: wrap; gap: 20px; font-size: 13px; color: #4B5563">
+    <span>© 2026 SolingenMarkt</span><a href="#">Für Unternehmen</a><a href="#">Impressum</a><a href="#">Datenschutz</a>
+  </div>
+</footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#C2410C","options":["#C2410C","#1D4ED8","#047857"]},"$preview":{"width":1440,"height":2500}}'>
+class Component extends DCLogic {
+  constructor(p){ super(p); this.state = { tab: 0 }; }
+  renderVals() {
+    const accent = this.props.accent ?? '#C2410C';
+    const B = '/_blob/';
+    const open = '#047857', warn = '#B91C1C', mute = '#4B5563';
+    const all = [
+      { img: B+'b6b8e6b3e5f638e21a9cc342057ef0f4', badge: '', kind: 'Angebot', shop: 'Café Ohligser Eck', area: 'Ohligs', title: 'Mittagstisch: Suppe des Tages', status: 'Offen bis 15:00 · endet heute', statusColor: open, price: '6,50 €', old: '', cta: 'Zurücklegen', fresh: '' },
+      { img: B+'ba2fda82e9bb03bde9d5f6620c7b73f4', badge: '−20 %', kind: 'Termin', shop: 'Salon am Gräfrather Markt', area: 'Gräfrath', title: 'Last-Minute-Termin heute', status: 'Noch 3 Termine · 14–17 Uhr', statusColor: warn, price: '31,20 €', old: '39,00 €', cta: 'Termin', fresh: '' },
+      { img: B+'1a9f5aed8fd7ca238974cdc49931468f', badge: '−40 %', kind: 'Angebot', shop: 'Hofladen Wupperhof', area: 'Ohligs', title: 'MHD-Rettung: Joghurt', status: 'Offen bis 16:00 · solange vorrätig', statusColor: open, price: '1,50 €', old: '2,50 €', cta: 'Zurücklegen', fresh: 'neu' },
+      { img: B+'4865b863ef9aa474b10bf70621e51ca9', badge: '−18 %', kind: 'Lieferung', shop: 'Pizzabote Klingenstadt', area: 'Burg', title: 'Familienpaket: 2 Pizzen + Salat', status: 'Offen bis 23:00', statusColor: open, price: '24,90 €', old: '30,50 €', cta: 'Ansehen', fresh: '' },
+      { img: B+'3d93fa50ae038d6dba492c5ba65525c2', badge: '', kind: 'Produkt', shop: 'Trattoria Lumetto', area: 'Mitte', title: 'Tiramisu zum Mitnehmen', status: 'Offen bis 23:00', statusColor: open, price: '6,90 €', old: '', cta: 'Ansehen', fresh: 'neu' },
+      { img: B+'620363281e997d3d7a8ce36409726bcb', badge: '−12 %', kind: 'Verleih', shop: 'Radverleih Wupperschleife', area: 'Burg', title: '2 E-Bikes + Anhänger, 1 Tag', status: 'Offen bis 21:00 · noch 5 Tage', statusColor: mute, price: '79,00 €', old: '90,00 €', cta: 'Zurücklegen', fresh: '' },
+      { img: B+'0e59404bf9c844759892f46ea4ad7c9e', badge: '−38 %', kind: 'Angebot', shop: 'Eiscafé Gelatino', area: 'Wald', title: 'Kugel-Montag: jede Kugel 1 €', status: 'Ab Montag · öffnet So 10:00', statusColor: mute, price: '1,00 €', old: '1,60 €', cta: 'Merken', fresh: '' },
+      { img: B+'81b6249e9760b4fec38a0b063a93c39f', badge: '2 für 29 €', kind: 'Angebot', shop: 'Geschenkeladen Schleifchen', area: 'Ohligs', title: 'Kerzen-Wochen', status: 'Öffnet Mo 09:30', statusColor: mute, price: '16,90 €', old: '', cta: 'Ansehen', fresh: 'neu' }
+    ];
+    const tabsDef = [
+      { t: 'Für heute', n: '48', hint: 'Sofort nutzbar: Geschäft ist heute offen und das Angebot gilt heute. Geschlossene Läden rutschen nach hinten.' },
+      { t: 'Endet bald', n: '9', hint: 'Nur Angebote, die man vor Ablauf noch wahrnehmen kann (Laden öffnet vor dem Ende).' },
+      { t: 'Neu', n: '12', hint: 'Seit Ihrem letzten Besuch am Mittwoch hinzugekommen — blauer Punkt auf der Karte.' },
+      { t: 'Wochenende', n: '23', hint: 'Veranstaltungen und Angebote für Sa/So.' },
+      { t: 'In der Nähe', n: '31', hint: 'Bis 2 km um Ihren Standort oder gewählten Stadtteil.' }
+    ];
+    const sel = this.state.tab;
+    const tabs = tabsDef.map((x, i) => ({ ...x, sel: i === sel ? 'true' : 'false', pick: () => this.setState({ tab: i }),
+      style: 'border:0;border-radius:999px;padding:8px 14px;font:600 14px Inter,sans-serif;min-height:40px;cursor:pointer;' + (i === sel ? 'background:#111827;color:#FFFFFF' : 'background:transparent;color:#374151') }));
+    const order = [[0,1,2,3,4,5,6,7],[0,1,2,5,3,4,6,7],[2,4,7,0,1,3,5,6],[5,6,3,7,0,1,2,4],[2,0,4,1,3,5,6,7]][sel];
+    return {
+      accent, tabs, tabHint: tabsDef[sel].hint,
+      cards: order.map(i => all[i]),
+      intents: [
+        { t: 'Essen gehen', s: '19 Cafés & Restaurants offen' },
+        { t: 'Einkaufen', s: '66 Lebensmittel-Angebote' },
+        { t: 'Termin buchen', s: 'Friseur, Werkstatt, Spa' },
+        { t: 'Etwas erleben', s: '8 Events am Wochenende' }
+      ],
+      cats: [
+        { i: 'LG', t: 'Lebensmittel', n: '66' }, { i: 'EG', t: 'Essen & Gastro', n: '65' }, { i: 'MA', t: 'Mode', n: '63' },
+        { i: 'ET', t: 'Elektronik', n: '53' }, { i: 'HG', t: 'Haus & Garten', n: '45' }, { i: 'BP', t: 'Beauty', n: '40' },
+        { i: 'GF', t: 'Gesundheit', n: '39' }, { i: 'FE', t: 'Freizeit', n: '48' }, { i: 'KF', t: 'Kinder', n: '41' },
+        { i: 'AM', t: 'Auto & Rad', n: '38' }, { i: 'KG', t: 'Geschenke', n: '45' }
+      ],
+      days: [
+        { d: 'Samstag', ev: [ { time: '11:00', t: 'Spielerunde für Familien', p: 'Spielwaren Kreisel · Mitte' }, { time: '20:00', t: 'Kabarett: Bergisch …', p: 'Kulturkeller · Mitte' } ] },
+        { d: 'Sonntag', ev: [ { time: '10:00', t: 'Waffeln im Café', p: 'Waffelstube Unterburg' }, { time: '16:00', t: 'Kinderkino (ab 6)', p: 'Lichtspiel · Wald' } ] },
+        { d: 'Montag', ev: [ { time: '12:00', t: 'Altstadtrundgang', p: 'Klingenpfad · Gräfrath' }, { time: '21:00', t: 'Filmabend OmU', p: 'Lichtspiel · Wald' } ] }
+      ],
+      newShops: [
+        { img: B+'c069bad5ac76b4c30164485d0c45b605', t: 'Café Morgenrot', s: 'Café · Mitte · 6 Angebote', since: 'seit 2 Tagen' },
+        { img: B+'f246cca0205426cb1736d89c25f473fb', t: 'Elektro Schmitz', s: 'Handwerk · Gräfrath', since: 'seit 4 Tagen' },
+        { img: B+'a785509d75579795d84651c4452591f8', t: 'Bergisch Fit', s: 'Fitness · Wald · Probetraining', since: 'diese Woche' }
+      ],
+      areas: [ { t: 'Mitte', n: '163', o: '22' }, { t: 'Burg/Höhscheid', n: '142', o: '36' }, { t: 'Ohligs', n: '126', o: '17' }, { t: 'Gräfrath', n: '122', o: '4' }, { t: 'Wald', n: '117', o: '7' } ]
+    };
+  }
+}
+</script>
+</body>
+</html>

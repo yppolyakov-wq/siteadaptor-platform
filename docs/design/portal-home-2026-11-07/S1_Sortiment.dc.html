@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Weitwerk – Sortiment Wegweiser</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#FAF8F5}
+a{color:#1F2937;text-decoration:none}a:hover{color:#000000}
+</style>
+</helmet>
+<div style="font-family: Manrope, system-ui, sans-serif; color: #1F2937; background: #FAF8F5">
+<header style="background: #FFFFFF; border-bottom: 1px solid #E7E2DA">
+  <div style="max-width: 1360px; margin: 0 auto; padding: 14px 24px; display: flex; flex-wrap: wrap; align-items: center; gap: 18px">
+    <span style="font-weight: 800; font-size: 20px">Weitwerk</span>
+    <label style="flex: 1 1 380px; display: flex; align-items: center; gap: 8px; border: 1px solid #D6D0C6; border-radius: 12px; padding: 0 14px; min-height: 44px; background: #FFFFFF">
+      <span style="position: absolute; width: 1px; height: 1px; overflow: hidden">Suche</span>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#57534E" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input type="search" placeholder="In 201 Artikeln suchen — Marke, Material, Größe" style="flex: 1; border: 0; font: 15px Manrope, sans-serif; outline: none; min-height: 40px">
+    </label>
+    <nav aria-label="Konto" style="display: flex; gap: 18px; font-size: 14px; font-weight: 600"><a href="#">Merkzettel</a><a href="#">Konto</a><a href="#">Warenkorb (2)</a></nav>
+  </div>
+</header>
+
+<main style="max-width: 1360px; margin: 0 auto; padding: 24px; display: flex; flex-direction: column; gap: 32px">
+  <div style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 12px">
+    <h1 style="margin: 0; font-size: 34px; letter-spacing: -0.02em">Sortiment</h1>
+    <span style="font-size: 15px; color: #57534E">201 Artikel in 10 Bereichen · 38 reduziert · 14 neu diese Woche</span>
+  </div>
+
+  <section aria-label="Bereiche" style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px">
+    <sc-for list="{{deps}}" as="d" hint-placeholder-count="10">
+      <div style="background: #FFFFFF; border: 1px solid #E7E2DA; border-radius: 16px; overflow: hidden; display: flex; flex-direction: column">
+        <a href="#" style="position: relative; display: block; height: 120px">
+          <img src="{{d.img}}" alt="" style="width: 100%; height: 100%; object-fit: cover; display: block">
+          <sc-if value="{{d.tag}}" hint-placeholder-val="{{ false }}"><span style="position: absolute; left: 8px; top: 8px; background: #FFFFFF; color: #1D4ED8; font-size: 11px; font-weight: 800; padding: 3px 8px; border-radius: 999px">{{d.tag}}</span></sc-if>
+        </a>
+        <div style="padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 4px">
+          <a href="#" style="font-weight: 800; font-size: 15px">{{d.t}} <span style="font-weight: 500; color: #57534E; font-size: 13px">{{d.n}}</span></a>
+          <span style="font-size: 12px; color: #57534E; line-height: 1.5">{{d.subs}}</span>
+        </div>
+      </div>
+    </sc-for>
+  </section>
+
+  <section aria-labelledby="wg2" style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px; background: #FFFFFF; border: 1px solid #E7E2DA; border-radius: 16px; padding: 16px 18px">
+    <h2 id="wg2" style="margin: 0 8px 0 0; font-size: 16px">Schnell finden:</h2>
+    <sc-for list="{{guides}}" as="g" hint-placeholder-count="6">
+      <a href="#" style="border: 1px solid #D6D0C6; border-radius: 999px; padding: 9px 14px; font-size: 14px; font-weight: 600; min-height: 40px; box-sizing: border-box; display: inline-flex; align-items: center; gap: 6px">{{g.t}} <span style="color: #57534E; font-weight: 500">{{g.n}}</span></a>
+    </sc-for>
+  </section>
+
+  <section aria-labelledby="shelf-h" style="display: flex; flex-direction: column; gap: 14px">
+    <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px">
+      <h2 id="shelf-h" style="margin: 0; font-size: 22px">Im Fokus</h2>
+      <div role="tablist" aria-label="Regal" style="display: flex; gap: 4px; background: #EFEBE4; border-radius: 999px; padding: 4px">
+        <sc-for list="{{shelfTabs}}" as="s" hint-placeholder-count="3">
+          <button type="button" role="tab" aria-selected="{{s.sel}}" onClick="{{s.pick}}" style="{{s.style}}">{{s.t}}</button>
+        </sc-for>
+      </div>
+      <a href="#" style="margin-left: auto; font-weight: 700; font-size: 14px">{{shelfMore}}</a>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px">
+      <sc-for list="{{shelf}}" as="p" hint-placeholder-count="5">
+        <article style="background: #FFFFFF; border: 1px solid #E7E2DA; border-radius: 14px; overflow: hidden; display: flex; flex-direction: column">
+          <div style="position: relative; aspect-ratio: 1 / 1"><img src="{{p.img}}" alt="{{p.t}}" style="width: 100%; height: 100%; object-fit: cover; display: block"><span style="position: absolute; left: 8px; top: 8px; background: {{p.bb}}; color: #FFFFFF; font-size: 11px; font-weight: 800; padding: 3px 8px; border-radius: 999px">{{p.badge}}</span></div>
+          <div style="padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 3px"><span style="font-size: 11px; color: #57534E">{{p.cat}}</span><b style="font-size: 14px">{{p.t}}</b><span style="font-size: 15px; font-weight: 800">{{p.p}} <s style="font-size: 12px; color: #57534E; font-weight: 500">{{p.old}}</s></span></div>
+        </article>
+      </sc-for>
+    </div>
+  </section>
+
+  <section aria-labelledby="all-h" style="display: flex; flex-direction: column; gap: 14px">
+    <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px; background: #FFFFFF; border: 1px solid #E7E2DA; border-radius: 14px; padding: 10px 14px">
+      <h2 id="all-h" style="margin: 0 8px 0 0; font-size: 18px">Alle Artikel</h2>
+      <button type="button" style="border: 1px solid #D6D0C6; background: #FFFFFF; border-radius: 10px; padding: 8px 12px; font: 600 14px Manrope, sans-serif; min-height: 40px">Bereich ▾</button>
+      <button type="button" style="border: 1px solid #D6D0C6; background: #FFFFFF; border-radius: 10px; padding: 8px 12px; font: 600 14px Manrope, sans-serif; min-height: 40px">Preis ▾</button>
+      <button type="button" style="border: 1px solid #D6D0C6; background: #FFFFFF; border-radius: 10px; padding: 8px 12px; font: 600 14px Manrope, sans-serif; min-height: 40px">Größe ▾</button>
+      <button type="button" style="border: 1px solid #D6D0C6; background: #FFFFFF; border-radius: 10px; padding: 8px 12px; font: 600 14px Manrope, sans-serif; min-height: 40px">Farbe ▾</button>
+      <button type="button" style="border: 1px solid #1F2937; background: #1F2937; color: #FFFFFF; border-radius: 10px; padding: 8px 12px; font: 600 14px Manrope, sans-serif; min-height: 40px">Unter 30 € ✕</button>
+      <span style="margin-left: auto; font-size: 14px; color: #57534E">84 Treffer · Sortierung: Beliebt ▾</span>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px">
+      <sc-for list="{{grid}}" as="p" hint-placeholder-count="10">
+        <article style="background: #FFFFFF; border: 1px solid #E7E2DA; border-radius: 14px; overflow: hidden; display: flex; flex-direction: column">
+          <div style="aspect-ratio: 1 / 1"><img src="{{p.img}}" alt="{{p.t}}" style="width: 100%; height: 100%; object-fit: cover; display: block"></div>
+          <div style="padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 3px"><a href="#" style="font-size: 11px; color: #57534E">{{p.cat}}</a><b style="font-size: 14px">{{p.t}}</b><span style="font-size: 15px; font-weight: 800">{{p.p}}</span></div>
+        </article>
+      </sc-for>
+    </div>
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 8px">
+      <span style="font-size: 13px; color: #57534E">10 von 84 angezeigt</span>
+      <button type="button" style="border: 1px solid #1F2937; background: #FFFFFF; border-radius: 999px; padding: 12px 24px; font: 700 15px Manrope, sans-serif; min-height: 44px">20 weitere laden</button>
+    </div>
+  </section>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":2300}}'>
+class Component extends DCLogic {
+  constructor(p){ super(p); this.state = { s: 0 }; }
+  renderVals() {
+    const B = '/_blob/';
+    const deps = [
+      [B+'508fdfe870cd29b59a4e87aba6b48850', 'Mode & Basics', '20', 'Shirts · Strick · Hosen · Mäntel', 'neu: 4'],
+      [B+'12e55685e50f34ab0e5d675508d6f305', 'Schuhe', '20', 'Sneaker · Stiefel · Hausschuhe', ''],
+      [B+'620363281e997d3d7a8ce36409726bcb', 'Taschen & Rucksäcke', '20', 'Rucksäcke · Shopper · Reise', ''],
+      [B+'81b6249e9760b4fec38a0b063a93c39f', 'Schmuck & Accessoires', '20', 'Ketten · Schals · Uhren', ''],
+      [B+'c10d082d8cfce1a4ef0815de646cb2b9', 'Wohnen & Textil', '21', 'Decken · Kissen · Vasen', 'neu: 3'],
+      [B+'3d93fa50ae038d6dba492c5ba65525c2', 'Küche & Tafel', '20', 'Geschirr · Besteck · Bräter', ''],
+      [B+'44c38039eaec9144f7566345c54d5d93', 'Kaffee & Tee', '20', 'Bohnen · Tee · Zubehör', ''],
+      [B+'a785509d75579795d84651c4452591f8', 'Pflege & Bad', '20', 'Seifen · Handtücher · Düfte', ''],
+      [B+'727b724abb015feeb7630cb82099d25f', 'Papeterie & Büro', '20', 'Notizbücher · Stifte · Ordnung', ''],
+      [B+'ebdd95c0705f1927cf7fc15fb8586bd2', 'Sport & Outdoor', '20', 'Camping · Yoga · Trinkflaschen', 'neu: 5']
+    ].map(([img, t, n, subs, tag]) => ({ img, t, n, subs, tag }));
+    const guides = [ { t: 'Geschenk finden', n: '46' }, { t: 'Erste Wohnung', n: '31' }, { t: 'Unter 30 €', n: '84' }, { t: 'Naturfasern', n: '27' }, { t: 'Neu im Herbst', n: '14' }, { t: 'Sets & Pakete', n: '6' } ];
+    const tabsDef = [['Neu', 'Alle 14 neuen →'], ['Reduziert', 'Alle 38 reduzierten →'], ['Beliebt', 'Bestseller →']];
+    const s = this.state.s;
+    const shelfTabs = tabsDef.map(([t], i) => ({ t, sel: i === s ? 'true' : 'false', pick: () => this.setState({ s: i }), style: 'border:0;border-radius:999px;padding:8px 16px;font:700 14px Manrope,sans-serif;min-height:40px;cursor:pointer;' + (i === s ? 'background:#1F2937;color:#FFFFFF' : 'background:transparent;color:#1F2937') }));
+    const P = (img, cat, t, p, old, badge, bb) => ({ img: B+img, cat, t, p, old, badge, bb });
+    const shelves = [
+      [P('ebdd95c0705f1927cf7fc15fb8586bd2','Camp & Licht','Picknickdecke „Wiese“','59,00 €','','Neu','#1D4ED8'), P('620363281e997d3d7a8ce36409726bcb','Rucksäcke','Wanderrucksack 28 l','89,00 €','','Neu','#1D4ED8'), P('c10d082d8cfce1a4ef0815de646cb2b9','Wohnen','Wolldecke Fischgrat','79,00 €','','Neu','#1D4ED8'), P('44c38039eaec9144f7566345c54d5d93','Kaffee','Espresso „Werkbank“','15,90 €','','Neu','#1D4ED8'), P('81b6249e9760b4fec38a0b063a93c39f','Wohnen','Kerzen-Set Bienenwachs','24,00 €','','Neu','#1D4ED8')],
+      [P('a785509d75579795d84651c4452591f8','Pflege','Kräuterseife 3er','12,90 €','16,90 €','−24 %','#B91C1C'), P('12e55685e50f34ab0e5d675508d6f305','Schuhe','Halbschuh Leder','89,00 €','119,00 €','−25 %','#B91C1C'), P('3d93fa50ae038d6dba492c5ba65525c2','Küche','Dessertschalen 4er','19,00 €','26,00 €','−27 %','#B91C1C'), P('508fdfe870cd29b59a4e87aba6b48850','Mode','Leinenhemd','39,00 €','55,00 €','−29 %','#B91C1C'), P('727b724abb015feeb7630cb82099d25f','Papeterie','Skizzenbuch A4','12,90 €','16,90 €','−24 %','#B91C1C')],
+      [P('44c38039eaec9144f7566345c54d5d93','Kaffee','Filterkaffee Morgenlicht','13,50 €','','★ 4,8','#92400E'), P('c10d082d8cfce1a4ef0815de646cb2b9','Wohnen','Leinenkissen','29,00 €','','★ 4,7','#92400E'), P('620363281e997d3d7a8ce36409726bcb','Taschen','Shopper Canvas','34,00 €','','★ 4,9','#92400E'), P('81b6249e9760b4fec38a0b063a93c39f','Wohnen','Duftkerze Zeder','18,00 €','','★ 4,6','#92400E'), P('a785509d75579795d84651c4452591f8','Tee','Kräutertee Abendruhe','8,90 €','','★ 4,8','#92400E')]
+    ];
+    const g = (img, cat, t, p) => ({ img: B+img, cat, t, p });
+    return {
+      deps, guides, shelfTabs, shelf: shelves[s], shelfMore: tabsDef[s][1],
+      grid: [
+        g('a785509d75579795d84651c4452591f8','Pflege & Bad','Handtuch „Frottee“ 50×100','26,00 €'), g('727b724abb015feeb7630cb82099d25f','Papeterie','Notizbuch Punktraster','14,00 €'), g('44c38039eaec9144f7566345c54d5d93','Kaffee & Tee','Kaffeefilter Keramik','22,00 €'), g('81b6249e9760b4fec38a0b063a93c39f','Wohnen','Teelichthalter Glas 3er','16,00 €'), g('3d93fa50ae038d6dba492c5ba65525c2','Küche & Tafel','Holzlöffel Olive 3er','24,00 €'),
+        g('508fdfe870cd29b59a4e87aba6b48850','Mode & Basics','Strickmütze Merino','29,00 €'), g('620363281e997d3d7a8ce36409726bcb','Sport & Outdoor','Trinkflasche 0,75 l','19,90 €'), g('12e55685e50f34ab0e5d675508d6f305','Schuhe','Hausschuh Filz','28,00 €'), g('c10d082d8cfce1a4ef0815de646cb2b9','Wohnen & Textil','Kissenhülle Leinen','22,00 €'), g('ebdd95c0705f1927cf7fc15fb8586bd2','Sport & Outdoor','Sitzkissen faltbar','17,90 €')
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

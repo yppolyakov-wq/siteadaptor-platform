@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>SolingenMarkt – Mobil</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#C2410C;text-decoration:none}a:hover{color:#9A3412}
+</style>
+</helmet>
+<div style="width: 390px; height: 2700px; box-sizing: border-box; overflow: hidden; background: #F6F7F9; font-family: Inter, system-ui, sans-serif; color: #111827; display: flex; flex-direction: column">
+  <header style="background: #FFFFFF; padding: 12px 16px; display: flex; flex-direction: column; gap: 10px; border-bottom: 1px solid #E5E7EB">
+    <div style="display: flex; align-items: center; gap: 10px">
+      <span style="font-weight: 800; font-size: 19px; letter-spacing: -0.02em">Solingen<span style="color: #C2410C">Markt</span></span>
+      <a href="#" style="margin-left: auto; font-size: 14px; font-weight: 600">Anmelden</a>
+    </div>
+    <label style="display: flex; align-items: center; gap: 8px; background: #F3F4F6; border-radius: 14px; padding: 0 14px; min-height: 46px">
+      <span style="position: absolute; width: 1px; height: 1px; overflow: hidden">Suche</span>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4B5563" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input type="search" placeholder="Was suchen Sie in Solingen?" style="flex: 1; border: 0; background: transparent; font: 16px Inter, sans-serif; outline: none; min-height: 42px">
+    </label>
+    <div style="display: flex; align-items: center; gap: 6px; font-size: 13px; color: #374151"><span style="width: 8px; height: 8px; border-radius: 50%; background: #047857"></span>Sa · 14 offen · <b style="color: #B91C1C">9 enden heute</b> · <b style="color: #1D4ED8">12 neu</b></div>
+  </header>
+
+  <section aria-label="Was möchten Sie?" style="padding: 14px 16px 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+    <a href="#" style="background: #111827; color: #FFFFFF; border-radius: 16px; padding: 14px; display: flex; flex-direction: column; gap: 4px; min-height: 64px"><b>Essen gehen</b><span style="font-size: 12px; color: #D1D5DB">19 offen</span></a>
+    <a href="#" style="background: #111827; color: #FFFFFF; border-radius: 16px; padding: 14px; display: flex; flex-direction: column; gap: 4px"><b>Einkaufen</b><span style="font-size: 12px; color: #D1D5DB">66 Angebote</span></a>
+    <a href="#" style="background: #111827; color: #FFFFFF; border-radius: 16px; padding: 14px; display: flex; flex-direction: column; gap: 4px"><b>Termin buchen</b><span style="font-size: 12px; color: #D1D5DB">heute frei: 11</span></a>
+    <a href="#" style="background: #111827; color: #FFFFFF; border-radius: 16px; padding: 14px; display: flex; flex-direction: column; gap: 4px"><b>Erleben</b><span style="font-size: 12px; color: #D1D5DB">8 am Wochenende</span></a>
+  </section>
+
+  <section aria-label="Deal des Tages" style="padding: 14px 16px 0">
+    <a href="#" style="display: flex; gap: 12px; background: #FFFFFF; border-radius: 18px; padding: 10px; color: #111827; box-shadow: 0 1px 3px rgba(0,0,0,.08)">
+      <span style="position: relative; flex: 0 0 auto">
+        <img src="/_blob/d648274a4c4401071d4ca5a78902aa8e" alt="" style="width: 112px; height: 112px; border-radius: 12px; object-fit: cover; display: block">
+        <span style="position: absolute; left: 6px; top: 6px; background: #C2410C; color: #FFFFFF; font-size: 13px; font-weight: 800; padding: 3px 8px; border-radius: 999px">−50 %</span>
+      </span>
+      <span style="display: flex; flex-direction: column; gap: 3px; min-width: 0">
+        <span style="font-size: 11px; font-weight: 800; color: #92400E; letter-spacing: .04em">DEAL DES TAGES</span>
+        <b style="font-size: 16px">Feierabendtüte</b>
+        <span style="font-size: 12px; color: #4B5563">Klingenbrot · Mitte · 120 m</span>
+        <span style="font-size: 12px; color: #047857; font-weight: 600">offen bis 18:00 · noch 6</span>
+        <span><b style="font-size: 18px">5,00 €</b> <s style="font-size: 12px; color: #4B5563">10,00 €</s></span>
+      </span>
+    </a>
+  </section>
+
+  <section aria-labelledby="m-feed" style="padding: 18px 0 0; display: flex; flex-direction: column; gap: 10px">
+    <div style="padding: 0 16px; display: flex; align-items: baseline"><h2 id="m-feed" style="margin: 0; font-size: 20px">Für heute</h2><a href="#" style="margin-left: auto; font-size: 14px; font-weight: 600">Alle 48 →</a></div>
+    <div role="tablist" aria-label="Ansicht" style="display: flex; gap: 6px; padding: 0 16px; overflow-x: auto">
+      <button type="button" role="tab" aria-selected="true" style="flex: 0 0 auto; border: 0; border-radius: 999px; padding: 8px 14px; background: #111827; color: #FFFFFF; font: 600 14px Inter, sans-serif; min-height: 40px">Für heute</button>
+      <button type="button" role="tab" aria-selected="false" style="flex: 0 0 auto; border: 1px solid #D1D5DB; border-radius: 999px; padding: 8px 14px; background: #FFFFFF; font: 600 14px Inter, sans-serif; min-height: 40px">Endet bald</button>
+      <button type="button" role="tab" aria-selected="false" style="flex: 0 0 auto; border: 1px solid #D1D5DB; border-radius: 999px; padding: 8px 14px; background: #FFFFFF; font: 600 14px Inter, sans-serif; min-height: 40px">Neu</button>
+      <button type="button" role="tab" aria-selected="false" style="flex: 0 0 auto; border: 1px solid #D1D5DB; border-radius: 999px; padding: 8px 14px; background: #FFFFFF; font: 600 14px Inter, sans-serif; min-height: 40px">In der Nähe</button>
+    </div>
+    <div style="display: flex; gap: 12px; padding: 0 16px; overflow: hidden">
+      <sc-for list="{{rail}}" as="c" hint-placeholder-count="3">
+        <article style="flex: 0 0 236px; background: #FFFFFF; border-radius: 16px; overflow: hidden; border: 1px solid #E5E7EB">
+          <div style="position: relative; height: 150px"><img src="{{c.img}}" alt="" style="width: 100%; height: 100%; object-fit: cover; display: block"><sc-if value="{{c.badge}}" hint-placeholder-val="{{ true }}"><span style="position: absolute; left: 8px; top: 8px; background: #C2410C; color: #FFFFFF; font-size: 12px; font-weight: 800; padding: 3px 8px; border-radius: 999px">{{c.badge}}</span></sc-if></div>
+          <div style="padding: 10px 12px; display: flex; flex-direction: column; gap: 3px">
+            <span style="font-size: 11px; color: #4B5563">{{c.shop}}</span>
+            <b style="font-size: 14px">{{c.t}}</b>
+            <span style="font-size: 12px; font-weight: 600; color: {{c.sc}}">{{c.s}}</span>
+            <b style="font-size: 16px; margin-top: 2px">{{c.p}}</b>
+          </div>
+        </article>
+      </sc-for>
+    </div>
+    <div aria-hidden="true" style="display: flex; justify-content: center; gap: 6px"><span style="width: 18px; height: 6px; border-radius: 3px; background: #111827"></span><span style="width: 6px; height: 6px; border-radius: 3px; background: #D1D5DB"></span><span style="width: 6px; height: 6px; border-radius: 3px; background: #D1D5DB"></span></div>
+  </section>
+
+  <section aria-labelledby="m-neu" style="margin: 18px 16px 0; background: #FFFFFF; border-radius: 18px; padding: 16px; display: flex; flex-direction: column; gap: 12px">
+    <div style="display: flex; align-items: baseline"><h2 id="m-neu" style="margin: 0; font-size: 18px">Neu seit Mittwoch</h2><span style="margin-left: auto; font-size: 12px; font-weight: 700; color: #1D4ED8">12</span></div>
+    <sc-for list="{{news}}" as="n" hint-placeholder-count="4">
+      <a href="#" style="display: flex; gap: 10px; align-items: center; color: #111827">
+        <img src="{{n.img}}" alt="" style="width: 52px; height: 52px; border-radius: 12px; object-fit: cover">
+        <span style="flex: 1; min-width: 0; display: flex; flex-direction: column"><b style="font-size: 14px">{{n.t}}</b><span style="font-size: 12px; color: #4B5563">{{n.s}}</span></span>
+        <span style="font-size: 11px; font-weight: 700; color: #1D4ED8">{{n.ago}}</span>
+      </a>
+    </sc-for>
+    <a href="#" style="font-weight: 700; font-size: 14px">Alle Neuheiten →</a>
+  </section>
+
+  <section aria-labelledby="m-cat" style="padding: 18px 16px 0; display: flex; flex-direction: column; gap: 10px">
+    <h2 id="m-cat" style="margin: 0; font-size: 18px">Bereiche</h2>
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+      <sc-for list="{{cats}}" as="c" hint-placeholder-count="6">
+        <a href="#" style="background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 14px; padding: 10px 6px; color: #111827; text-align: center; display: flex; flex-direction: column; gap: 2px; min-height: 56px; justify-content: center"><b style="font-size: 12px">{{c.t}}</b><span style="font-size: 11px; color: #4B5563">{{c.n}}</span></a>
+      </sc-for>
+    </div>
+    <a href="#" style="font-weight: 700; font-size: 14px; text-align: center; padding: 8px">Alle 15 Bereiche</a>
+  </section>
+
+  <section aria-labelledby="m-we" style="margin: 10px 16px 0; background: #FFFFFF; border-radius: 18px; padding: 16px; display: flex; flex-direction: column; gap: 10px">
+    <h2 id="m-we" style="margin: 0; font-size: 18px">Wochenende</h2>
+    <sc-for list="{{events}}" as="e" hint-placeholder-count="4">
+      <a href="#" style="display: flex; gap: 12px; align-items: center; color: #111827; padding: 6px 0; border-top: 1px solid #F3F4F6">
+        <span style="width: 48px; text-align: center; display: flex; flex-direction: column; background: #FFF7ED; border-radius: 10px; padding: 6px 0"><b style="color: #C2410C; font-size: 12px">{{e.d}}</b><b style="font-size: 14px">{{e.time}}</b></span>
+        <span style="display: flex; flex-direction: column"><b style="font-size: 14px">{{e.t}}</b><span style="font-size: 12px; color: #4B5563">{{e.p}}</span></span>
+      </a>
+    </sc-for>
+  </section>
+
+  <nav aria-label="Hauptnavigation" style="margin-top: auto; background: #FFFFFF; border-top: 1px solid #E5E7EB; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); padding: 8px 6px 18px">
+    <a href="#" style="display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 11px; font-weight: 700; color: #C2410C; min-height: 44px; justify-content: center">● Heute</a>
+    <a href="#" style="display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 11px; font-weight: 600; color: #374151; min-height: 44px; justify-content: center">Karte</a>
+    <a href="#" style="display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 11px; font-weight: 600; color: #374151; min-height: 44px; justify-content: center">Gemerkt</a>
+    <a href="#" style="display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 11px; font-weight: 600; color: #374151; min-height: 44px; justify-content: center">Konto</a>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":2700}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const B = '/_blob/', G = '#047857', W = '#B91C1C';
+    return {
+      rail: [
+        { img: B+'b6b8e6b3e5f638e21a9cc342057ef0f4', badge: '', shop: 'Café Ohligser Eck · Ohligs', t: 'Mittagstisch: Suppe', s: 'offen bis 15:00', sc: G, p: '6,50 €' },
+        { img: B+'ba2fda82e9bb03bde9d5f6620c7b73f4', badge: '−20 %', shop: 'Salon Gräfrath', t: 'Last-Minute-Termin', s: 'noch 3 · 14–17 Uhr', sc: W, p: '31,20 €' },
+        { img: B+'4865b863ef9aa474b10bf70621e51ca9', badge: '−18 %', shop: 'Pizzabote · Burg', t: '2 Pizzen + Salat', s: 'offen bis 23:00', sc: G, p: '24,90 €' }
+      ],
+      news: [
+        { img: B+'3d93fa50ae038d6dba492c5ba65525c2', t: 'Tiramisu zum Mitnehmen', s: 'Trattoria Lumetto · Mitte', ago: 'vor 2 Std.' },
+        { img: B+'c069bad5ac76b4c30164485d0c45b605', t: 'Café Morgenrot ist neu', s: 'Mitte · 6 Angebote', ago: 'vor 5 Std.' },
+        { img: B+'81b6249e9760b4fec38a0b063a93c39f', t: 'Kerzen 2 für 29 €', s: 'Schleifchen · Ohligs', ago: 'gestern' },
+        { img: B+'620363281e997d3d7a8ce36409726bcb', t: 'E-Bike-Familienpaket', s: 'Radverleih · Burg', ago: 'gestern' }
+      ],
+      cats: [ { t: 'Lebensmittel', n: '66' }, { t: 'Gastronomie', n: '65' }, { t: 'Mode', n: '63' }, { t: 'Freizeit', n: '48' }, { t: 'Geschenke', n: '45' }, { t: 'Kinder', n: '41' } ],
+      events: [
+        { d: 'SA', time: '11:00', t: 'Spielerunde für Familien', p: 'Spielwaren Kreisel · Mitte · frei' },
+        { d: 'SA', time: '20:00', t: 'Kabarett: Bergisch …', p: 'Kulturkeller · 18,00 €' },
+        { d: 'SO', time: '16:00', t: 'Kinderkino (ab 6)', p: 'Lichtspiel · Wald · 5,00 €' },
+        { d: 'MO', time: '12:00', t: 'Altstadtrundgang', p: 'Klingenpfad · 12,00 €' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

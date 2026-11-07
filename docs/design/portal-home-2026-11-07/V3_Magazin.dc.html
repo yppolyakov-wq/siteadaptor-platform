@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>SolingenMarkt – V3 Wochen-Magazin</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#FBFAF7}
+a{color:#C2410C;text-decoration:none}a:hover{color:#9A3412}
+</style>
+</helmet>
+<div style="font-family: Inter, system-ui, sans-serif; color: #111827; background: #FBFAF7">
+<header style="border-bottom: 1px solid #E7E5E4; background: #FFFFFF">
+  <div style="max-width: 1360px; margin: 0 auto; padding: 16px 24px; display: flex; flex-wrap: wrap; align-items: center; gap: 20px">
+    <span style="font-weight: 800; font-size: 20px; letter-spacing: -0.02em">Solingen<span style="color: #C2410C">Markt</span></span>
+    <nav aria-label="Hauptmenü" style="display: flex; flex-wrap: wrap; gap: 18px; font-size: 14px; font-weight: 600">
+      <a href="#" style="color: #111827">Heute</a><a href="#" style="color: #111827">Angebote</a><a href="#" style="color: #111827">Veranstaltungen</a><a href="#" style="color: #111827">Geschäfte</a><a href="#" style="color: #1D4ED8">Neu (12)</a><a href="#" style="color: #111827">Karte</a>
+    </nav>
+    <label style="margin-left: auto; flex: 0 1 340px; display: flex; align-items: center; gap: 8px; background: #F5F5F4; border-radius: 999px; padding: 0 16px; min-height: 44px">
+      <span style="position: absolute; width: 1px; height: 1px; overflow: hidden">Suche</span>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#57534E" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input type="search" placeholder="Suchen in Solingen" style="flex: 1; border: 0; background: transparent; font: 15px Inter, sans-serif; outline: none; min-height: 40px">
+    </label>
+  </div>
+</header>
+
+<main style="max-width: 1360px; margin: 0 auto; padding: 28px 24px 40px; display: flex; flex-direction: column; gap: 40px">
+  <div style="display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px">
+    <div>
+      <div style="font-size: 13px; font-weight: 700; letter-spacing: .08em; color: #C2410C">KW 45 · 7.–13. NOVEMBER</div>
+      <h1 style="margin: 6px 0 0; font-size: 46px; letter-spacing: -0.03em; line-height: 1">Diese Woche in Solingen</h1>
+    </div>
+    <span style="margin-left: auto; font-size: 14px; color: #57534E">Zuletzt aktualisiert vor 8 Min. · 200 Angebote aus 103 Geschäften</span>
+  </div>
+
+  <section aria-label="Highlights" style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-auto-rows: 230px; gap: 16px">
+    <a href="#" style="grid-column: span 2; grid-row: span 2; position: relative; border-radius: 24px; overflow: hidden; color: #FFFFFF; display: block">
+      <img src="/_blob/d648274a4c4401071d4ca5a78902aa8e" alt="" style="width: 100%; height: 100%; object-fit: cover; display: block">
+      <span style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0) 40%, rgba(0,0,0,.78) 100%)"></span>
+      <span style="position: absolute; top: 18px; left: 18px; background: #FCD34D; color: #111827; font-size: 12px; font-weight: 800; padding: 6px 12px; border-radius: 999px">DEAL DES TAGES</span>
+      <span style="position: absolute; left: 24px; right: 24px; bottom: 22px; display: flex; flex-direction: column; gap: 6px">
+        <span style="font-size: 14px; opacity: .9">Bäckerei Klingenbrot · Mitte · offen bis 18:00</span>
+        <span style="font-size: 34px; font-weight: 800; letter-spacing: -0.02em">Feierabendtüte −50 %</span>
+        <span style="font-size: 18px"><b>5,00 €</b> <s style="opacity: .8">10,00 €</s> · nur heute · noch 6 Tüten</span>
+      </span>
+    </a>
+    <div style="grid-row: span 2; background: #111827; color: #FFFFFF; border-radius: 24px; padding: 20px; display: flex; flex-direction: column; gap: 12px">
+      <div style="display: flex; align-items: center; gap: 8px"><h2 style="margin: 0; font-size: 20px">Endet heute</h2><span style="margin-left: auto; background: #B91C1C; border-radius: 999px; padding: 4px 10px; font-size: 12px; font-weight: 700">9</span></div>
+      <sc-for list="{{ending}}" as="e" hint-placeholder-count="5">
+        <a href="#" style="display: flex; gap: 10px; align-items: center; color: #FFFFFF; padding: 8px 0; border-top: 1px solid #374151">
+          <span style="font-variant-numeric: tabular-nums; font-weight: 800; color: #FCA5A5; min-width: 54px">{{e.left}}</span>
+          <span style="display: flex; flex-direction: column; flex: 1; min-width: 0"><span style="font-size: 14px; font-weight: 600">{{e.t}}</span><span style="font-size: 12px; color: #D1D5DB">{{e.s}}</span></span>
+        </a>
+      </sc-for>
+      <a href="#" style="margin-top: auto; color: #FDBA74; font-weight: 700; font-size: 14px">Alle 9 ansehen →</a>
+    </div>
+    <div style="grid-row: span 2; background: #FFFFFF; border: 1px solid #E7E5E4; border-radius: 24px; padding: 20px; display: flex; flex-direction: column; gap: 10px">
+      <div style="display: flex; align-items: center; gap: 8px"><h2 style="margin: 0; font-size: 20px">Neu</h2><span style="font-size: 13px; color: #1D4ED8; font-weight: 700">12 seit Mittwoch</span></div>
+      <sc-for list="{{newest}}" as="n" hint-placeholder-count="4">
+        <a href="#" style="display: flex; gap: 10px; align-items: center; color: #111827">
+          <img src="{{n.img}}" alt="" style="width: 54px; height: 54px; border-radius: 12px; object-fit: cover">
+          <span style="display: flex; flex-direction: column; flex: 1; min-width: 0"><span style="font-size: 14px; font-weight: 600">{{n.t}}</span><span style="font-size: 12px; color: #57534E">{{n.s}}</span></span>
+          <span style="font-size: 11px; font-weight: 700; color: #1D4ED8; white-space: nowrap">{{n.ago}}</span>
+        </a>
+      </sc-for>
+      <a href="#" style="margin-top: auto; font-weight: 700; font-size: 14px">Chronik öffnen →</a>
+    </div>
+  </section>
+
+  <section aria-labelledby="thema-h" style="display: flex; flex-direction: column; gap: 16px">
+    <div style="display: flex; align-items: baseline; gap: 12px"><h2 id="thema-h" style="margin: 0; font-size: 28px; letter-spacing: -0.02em">Themen der Woche</h2><span style="color: #57534E; font-size: 14px">kuratiert von der Redaktion · wechselt montags</span></div>
+    <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px">
+      <sc-for list="{{themes}}" as="t" hint-placeholder-count="4">
+        <a href="#" style="position: relative; border-radius: 20px; overflow: hidden; height: 260px; color: #FFFFFF; display: block">
+          <img src="{{t.img}}" alt="" style="width: 100%; height: 100%; object-fit: cover; display: block">
+          <span style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,.05) 30%, rgba(0,0,0,.75) 100%)"></span>
+          <span style="position: absolute; left: 18px; right: 18px; bottom: 16px; display: flex; flex-direction: column; gap: 4px"><b style="font-size: 20px">{{t.t}}</b><span style="font-size: 13px">{{t.n}}</span></span>
+        </a>
+      </sc-for>
+    </div>
+  </section>
+
+  <section aria-labelledby="chron-h" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px">
+    <div style="grid-column: span 2; display: flex; flex-direction: column; gap: 14px">
+      <h2 id="chron-h" style="margin: 0; font-size: 28px; letter-spacing: -0.02em">Was ist neu — Chronik</h2>
+      <sc-for list="{{chron}}" as="g" hint-placeholder-count="3">
+        <div style="display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 16px">
+          <div style="font-weight: 800; color: #C2410C; padding-top: 12px">{{g.day}}</div>
+          <div style="display: flex; flex-direction: column; border-left: 2px solid #E7E5E4; padding-left: 16px">
+            <sc-for list="{{g.items}}" as="i" hint-placeholder-count="3">
+              <a href="#" style="display: flex; gap: 12px; align-items: center; padding: 10px 0; border-bottom: 1px solid #F0EFEC; color: #111827">
+                <span style="font-size: 12px; color: #57534E; min-width: 46px">{{i.time}}</span>
+                <span style="font-size: 11px; font-weight: 700; background: {{i.kb}}; color: #111827; border-radius: 999px; padding: 3px 9px">{{i.kind}}</span>
+                <span style="font-weight: 600; flex: 1">{{i.t}}</span>
+                <span style="font-size: 13px; color: #57534E">{{i.shop}}</span>
+                <b style="min-width: 70px; text-align: right">{{i.price}}</b>
+              </a>
+            </sc-for>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+    <aside style="background: #FFFFFF; border: 1px solid #E7E5E4; border-radius: 24px; padding: 22px; display: flex; flex-direction: column; gap: 14px; align-self: start">
+      <h2 style="margin: 0; font-size: 20px">Nichts verpassen</h2>
+      <p style="margin: 0; font-size: 14px; color: #44403C; line-height: 1.5">Folgen Sie Geschäften, Bereichen oder Ihrem Stadtteil — einmal pro Woche eine kurze Übersicht per E-Mail oder Telegram.</p>
+      <label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600">E-Mail<input type="email" placeholder="name@beispiel.de" style="border: 1px solid #D6D3D1; border-radius: 12px; padding: 12px; font: 15px Inter, sans-serif; min-height: 44px; box-sizing: border-box"></label>
+      <button type="button" style="border: 0; background: #C2410C; color: #FFFFFF; border-radius: 999px; padding: 12px; font: 700 15px Inter, sans-serif; min-height: 44px">Wochenübersicht abonnieren</button>
+      <span style="font-size: 12px; color: #57534E">Double-Opt-In, jederzeit abbestellbar.</span>
+    </aside>
+  </section>
+
+  <section aria-labelledby="shops-h" style="display: flex; flex-direction: column; gap: 14px">
+    <div style="display: flex; align-items: baseline; gap: 12px"><h2 id="shops-h" style="margin: 0; font-size: 28px; letter-spacing: -0.02em">Geschäfte, die gerade viel anbieten</h2><a href="#" style="margin-left: auto; font-weight: 600">Alle 103 →</a></div>
+    <div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 14px">
+      <sc-for list="{{shops}}" as="s" hint-placeholder-count="6">
+        <a href="#" style="background: #FFFFFF; border: 1px solid #E7E5E4; border-radius: 18px; overflow: hidden; color: #111827; display: flex; flex-direction: column">
+          <img src="{{s.img}}" alt="" style="width: 100%; height: 110px; object-fit: cover; display: block">
+          <span style="padding: 12px; display: flex; flex-direction: column; gap: 3px"><b style="font-size: 14px">{{s.t}}</b><span style="font-size: 12px; color: #57534E">{{s.s}}</span><span style="font-size: 12px; font-weight: 700; color: #047857">{{s.n}}</span></span>
+        </a>
+      </sc-for>
+    </div>
+  </section>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":2500}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const B = '/_blob/';
+    const K = { Angebot: '#FFEDD5', Event: '#EDE9FE', Produkt: '#FEF3C7', Geschäft: '#DBEAFE', Termin: '#D1FAE5' };
+    const it = (time, kind, t, shop, price) => ({ time, kind, t, shop, price, kb: K[kind] });
+    return {
+      ending: [
+        { left: '1:40 h', t: 'Mittagstisch: Suppe', s: 'Café Ohligser Eck · 6,50 €' },
+        { left: '3:10 h', t: 'Last-Minute-Termin −20 %', s: 'Salon Gräfrath · noch 3' },
+        { left: '4:00 h', t: 'MHD-Rettung Joghurt −40 %', s: 'Hofladen Wupperhof' },
+        { left: '6:30 h', t: 'Tulpen 10 Stück 5 €', s: 'Blumen Vergissmeinnicht' },
+        { left: '8:00 h', t: 'Kräutersets 9,90 €', s: 'Gärtnerei Grünspross' }
+      ],
+      newest: [
+        { img: B+'3d93fa50ae038d6dba492c5ba65525c2', t: 'Tiramisu zum Mitnehmen', s: 'Trattoria Lumetto', ago: 'vor 2 Std.' },
+        { img: B+'c069bad5ac76b4c30164485d0c45b605', t: 'Café Morgenrot eröffnet', s: 'Mitte · 6 Angebote', ago: 'vor 5 Std.' },
+        { img: B+'81b6249e9760b4fec38a0b063a93c39f', t: 'Kerzen-Wochen 2 für 29 €', s: 'Schleifchen · Ohligs', ago: 'gestern' },
+        { img: B+'620363281e997d3d7a8ce36409726bcb', t: 'E-Bike-Familienpaket', s: 'Radverleih · Burg', ago: 'gestern' }
+      ],
+      themes: [
+        { img: B+'727b724abb015feeb7630cb82099d25f', t: 'Mit Kindern', n: '41 Angebote · 9 Events' },
+        { img: B+'508fdfe870cd29b59a4e87aba6b48850', t: 'Regional & handgemacht', n: '58 Produkte aus Solingen' },
+        { img: B+'b6b8e6b3e5f638e21a9cc342057ef0f4', t: 'Mittagstisch unter 10 €', n: '17 Gerichte heute' },
+        { img: B+'ebdd95c0705f1927cf7fc15fb8586bd2', t: 'Herbst an der Wupper', n: 'Touren, Verleih, Einkehr' }
+      ],
+      chron: [
+        { day: 'Heute', items: [ it('14:10', 'Produkt', 'Tiramisu zum Mitnehmen', 'Trattoria Lumetto', '6,90 €'), it('11:30', 'Geschäft', 'Café Morgenrot ist neu', 'Mitte', ''), it('09:05', 'Angebot', 'MHD-Rettung Joghurt −40 %', 'Hofladen Wupperhof', '1,50 €') ] },
+        { day: 'Gestern', items: [ it('18:20', 'Angebot', 'Kerzen-Wochen 2 für 29 €', 'Schleifchen', '16,90 €'), it('16:00', 'Event', 'Vernissage: Bergische Landschaften', 'Galerie Weißwand', 'frei'), it('10:40', 'Termin', 'Wasseranalyse fürs Aquarium', 'Aquaristik Wasserwelt', '') ] },
+        { day: 'Mittwoch', items: [ it('15:00', 'Angebot', 'E-Bike-Familienpaket −12 %', 'Radverleih Wupperschleife', '79,00 €'), it('09:30', 'Event', 'Drechselkurs: Schale in 4 Std.', 'Holzkunst Drechselspan', '95,00 €') ] }
+      ],
+      shops: [
+        { img: B+'45be92b64a3a1c78934c0dd2522248e4', t: 'Backhaus Krume', s: 'Bäckerei · Wald', n: '8 Angebote' },
+        { img: B+'4865b863ef9aa474b10bf70621e51ca9', t: 'Pizzabote Klingenstadt', s: 'Lieferung · Burg', n: '6 Angebote' },
+        { img: B+'ba2fda82e9bb03bde9d5f6620c7b73f4', t: 'Salon Gräfrath', s: 'Friseur · Gräfrath', n: '5 Termine heute' },
+        { img: B+'12e55685e50f34ab0e5d675508d6f305', t: 'Schuhhaus Wiedenhof', s: 'Schuhe · Mitte', n: '12 reduziert' },
+        { img: B+'c10d082d8cfce1a4ef0815de646cb2b9', t: 'Pension Brückenblick', s: 'Übernachten · Burg', n: '3 Zimmer frei' },
+        { img: B+'f246cca0205426cb1736d89c25f473fb', t: 'Werkstatt Ohligs', s: 'Auto · Ohligs', n: 'Termin morgen' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>
