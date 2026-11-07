@@ -335,6 +335,8 @@ def modules_nav(request):
     # (стиль/sticky/пункты/CTA) ДО Save, как остальные настройки Студии.
     storefront_menu = menu_mod.resolve_menu(tenant, "top", cfg)
     nav_style, nav_sticky = menu_mod.top_meta(tenant, cfg)
+    # FB-23d: колонки ссылок подвала ([] — подвал прежний).
+    storefront_footer_menu = menu_mod.resolve_footer(tenant, cfg)
     # Акцент — поле Tenant (не в site_config). Отдаём готовое значение: в превью —
     # override из черновика (`_accent`), иначе tenant.primary_color. Шаблон НЕ
     # обращается к request.tenant сам (в фильтре-аргументе это падало бы на
@@ -613,6 +615,7 @@ def modules_nav(request):
         "storefront_nav": nav_items,
         # S7: многоуровневое меню витрины (дерево с подменю) + стиль/sticky.
         "storefront_menu": storefront_menu,
+        "storefront_footer_menu": storefront_footer_menu,
         "storefront_nav_style": nav_style,
         "storefront_nav_sticky": nav_sticky,
         # P1→T2b: липкий мобильный таб-бар — кастомный (menus.bottom) или авто.

@@ -73,3 +73,11 @@ def test_mobile_menu_is_a_three_level_accordion():
     mobile = base[base.index('id="sf-nav-mobile"') : base.index("</header>")]
     assert mobile.count("<details") == 2 and "data-menu-acc" in mobile
     assert "storefront/menu/_strip.html" in base
+
+
+def test_footer_columns_render_above_the_legal_row():
+    base = open("templates/storefront/_base.html", encoding="utf-8").read()
+    footer = base[base.index("<footer") : base.index("</footer>")]
+    assert footer.index("data-footer-columns") < footer.index("storefront-impressum")
+    ctx = open("apps/core/context.py", encoding="utf-8").read()
+    assert '"storefront_footer_menu": storefront_footer_menu' in ctx

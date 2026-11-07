@@ -176,3 +176,79 @@ def test_builder_targets_cover_deep_and_orphan_categories():
     labels = {row["value"]: row["label"] for row in data["categories"]}
     assert labels["d1-warm"].startswith("— ") and labels["d1-soups"].startswith("— — ")
     assert "d1-off" not in values  # выключенная категория целью не предлагается
+
+
+# --- FB-23c: экран «Website › Menü» ------------------------------------------------
+
+
+def test_fb23c_saves_three_levels_layouts_and_footer_without_touching_design():
+    tenant = TenantFactory(
+        schema_name="public", slug="fb23c", name="FB23C", site_config={"hero_title": "Hi"}
+    )
+    payload = {
+        "top": {
+            "style": "classic",
+            "sticky": True,
+            "items": [
+                {
+                    "label": "Shop",
+                    "type": "group",
+                    "layout": "columns",
+                    "image": "/media/sale.webp",
+                    "desc": "Sale",
+                    "children": [
+                        {
+                            "label": "Brot",
+                            "type": "page",
+                            "target": "home",
+                            "children": [{"label": "Roggen", "type": "page", "target": "home"}],
+                        }
+                    ],
+                }
+            ],
+        },
+        "bottom": {"enabled": False, "items": []},
+        "footer": {
+            "columns": [
+                {
+                    "label": "Service",
+                    "items": [{"label": "Kontakt", "type": "page", "target": "contact"}],
+                }
+            ]
+        },
+    }
+    resp = views.menu_builder_view(
+        _request("post", "/dashboard/site/menu/", {"menus_json": json.dumps(payload)}, tenant)
+    )
+    assert resp.status_code == 302
+    tenant.refresh_from_db()
+    menus = siteconfig.normalize(tenant.site_config)["menus"]
+    shop = menus["top"]["items"][0]
+    assert shop["layout"] == "columns" and shop["image"] == "/media/sale.webp"
+    assert shop["children"][0]["children"][0]["label"] == "Roggen"  # 3-й уровень
+    assert menus["footer"]["columns"][0]["label"] == "Service"
+    assert tenant.site_config["hero_title"] == "Hi"
+
+
+def test_fb23c_editor_gets_entities_locales_and_layouts():
+    from apps.catalog.models import Product
+
+    p = Product.objects.create(name={"de": "Brezel"}, base_price="1.00", is_active=True)
+    tenant = TenantFactory(schema_name="public", slug="fb23d", name="FB23D")
+    body = views.menu_builder_view(_request("get", "/dashboard/site/menu/", tenant=tenant))
+    body = body.content.decode()
+    data = json.loads(
+        body.split('id="builder-data" type="application/json">')[1].split("</script>")[0]
+    )
+    assert {"value": str(p.pk), "label": "Brezel"} in data["products"]
+    assert data["layouts"] == list(siteconfig.MENU_LAYOUTS) and data["max_depth"] == 3
+    assert "footer" in data["menus"]  # вкладка подвала всегда есть
+    for tab in ('data-tab="top"', 'data-tab="bottom"', 'data-tab="footer"'):
+        assert tab in body
+
+
+def test_fb23c_invalid_payload_keeps_the_menu_and_says_so():
+    tenant = TenantFactory(schema_name="public", slug="fb23e", name="FB23E")
+    req = _request("post", "/dashboard/site/menu/", {"menus_json": "[]"}, tenant)
+    views.menu_builder_view(req)
+    assert any("nicht gespeichert" in str(m) for m in req._messages)

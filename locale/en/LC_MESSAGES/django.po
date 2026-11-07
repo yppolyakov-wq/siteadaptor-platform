@@ -35029,3 +35029,144 @@ msgstr "The photos from Telegram could not be loaded. Please upload the photo he
 
 msgid "Nicht alle Fotos aus Telegram konnten übernommen werden."
 msgstr "Not all photos from Telegram could be taken over."
+
+msgid "(ohne Namen)"
+msgstr "(no name)"
+
+msgid "Als Unterpunkt einrücken"
+msgstr "Indent as sub-item"
+
+msgid "Ansicht des Untermenüs"
+msgstr "Submenu view"
+
+msgid "Auch Menüs & Pakete zeigen"
+msgstr "Also show menus & packages"
+
+msgid "Bereiche links, Unterpunkte rechts"
+msgstr "Sections left, sub-items right"
+
+msgid "Bild"
+msgstr "Image"
+
+msgid "Bild-Adresse"
+msgstr "Image address"
+
+msgid "Bilder mit Text"
+msgstr "Images with text"
+
+msgid "Bitte ein Ziel wählen — sonst erscheint der Punkt nicht."
+msgstr "Please choose a target — otherwise the item will not appear."
+
+msgid "Das Menü konnte nicht gespeichert werden."
+msgstr "The menu could not be saved."
+
+msgid "Eigene untere Leiste verwenden (sonst automatisch)"
+msgstr "Use a custom bottom bar (otherwise automatic)"
+
+msgid "Ein-/ausblenden"
+msgstr "Show/hide"
+
+msgid "Eine Ebene höher"
+msgstr "One level up"
+
+msgid "Einfache Liste"
+msgstr "Simple list"
+
+msgid "Fußzeile"
+msgstr "Footer"
+
+msgid "Kacheln, wenn Unterpunkte Bilder haben, sonst Liste"
+msgstr "Tiles if sub-items have images, otherwise a list"
+
+msgid "Kein Bild"
+msgstr "No image"
+
+msgid "Kopfzeile"
+msgstr "Header"
+
+msgid "Kopfzeile bleibt oben"
+msgstr "Header stays on top"
+
+msgid "Kurzer Text"
+msgstr "Short text"
+
+msgid "Mega"
+msgstr "Mega"
+
+msgid "Menü aus Kategorien"
+msgstr "Menu from categories"
+
+msgid "Menü-Bereiche"
+msgstr "Menu areas"
+
+msgid "Nach oben"
+msgstr "Move up"
+
+msgid "Nach unten"
+msgstr "Move down"
+
+msgid "Punkt"
+msgstr "Item"
+
+msgid "Runde Bilder unter der Kopfzeile"
+msgstr "Round images below the header"
+
+msgid "Spalte"
+msgstr "Column"
+
+msgid "Spalte löschen"
+msgstr "Delete column"
+
+msgid "Spalten mit Links und Banner"
+msgstr "Columns with links and banner"
+
+msgid "Spalten mit Links unter der Website. Ohne Spalten bleibt die Fußzeile wie bisher (Adresse, Öffnungszeiten, Rechtliches)."
+msgstr "Columns of links at the bottom of the website. Without columns the footer stays as before (address, opening hours, legal)."
+
+msgid "Spaltentitel"
+msgstr "Column title"
+
+msgid "Suchen …"
+msgstr "Search …"
+
+msgid "Symbolleiste"
+msgstr "Icon bar"
+
+msgid "Tour"
+msgstr "Tour"
+
+msgid "Ungespeicherte Änderungen"
+msgstr "Unsaved changes"
+
+msgid "Ungespeicherte Änderungen gehen verloren."
+msgstr "Unsaved changes will be lost."
+
+msgid "Untere Leiste (Handy)"
+msgstr "Bottom bar (phone)"
+
+msgid "Unterkategorien automatisch anzeigen"
+msgstr "Show subcategories automatically"
+
+msgid "Unterpunkt hinzufügen"
+msgstr "Add sub-item"
+
+msgid "Vorschau (gespeicherter Stand)"
+msgstr "Preview (saved version)"
+
+msgid "Vorschau der Website"
+msgstr "Website preview"
+
+msgid "Wohin führt der Punkt?"
+msgstr "Where does the item lead?"
+
+msgid "Wählen Sie links einen Punkt, um ihn zu bearbeiten."
+msgstr "Choose an item on the left to edit it."
+
+msgid "Zentriert"
+msgstr "Centred"
+
+msgid "Ziehen Sie Punkte an eine neue Stelle — auf die Mitte eines Punktes gezogen wird er zum Unterpunkt. Bis zu drei Ebenen."
+msgstr "Drag items to a new place — dropped onto the middle of an item, it becomes a sub-item. Up to three levels."
+
+msgid "Übersetzungen"
+msgstr "Translations"

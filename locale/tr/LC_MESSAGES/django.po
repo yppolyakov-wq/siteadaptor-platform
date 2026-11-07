@@ -35175,3 +35175,144 @@ msgstr "Telegram'daki fotoğraflar yüklenemedi. Lütfen fotoğrafı buraya yük
 
 msgid "Nicht alle Fotos aus Telegram konnten übernommen werden."
 msgstr "Telegram'daki fotoğrafların hepsi aktarılamadı."
+
+msgid "(ohne Namen)"
+msgstr "(adsız)"
+
+msgid "Als Unterpunkt einrücken"
+msgstr "Alt öğe yap"
+
+msgid "Ansicht des Untermenüs"
+msgstr "Alt menü görünümü"
+
+msgid "Auch Menüs & Pakete zeigen"
+msgstr "Menü ve paketleri de göster"
+
+msgid "Bereiche links, Unterpunkte rechts"
+msgstr "Bölümler solda, alt öğeler sağda"
+
+msgid "Bild"
+msgstr "Görsel"
+
+msgid "Bild-Adresse"
+msgstr "Görsel adresi"
+
+msgid "Bilder mit Text"
+msgstr "Metinli görseller"
+
+msgid "Bitte ein Ziel wählen — sonst erscheint der Punkt nicht."
+msgstr "Lütfen bir hedef seçin — aksi halde öğe görünmez."
+
+msgid "Das Menü konnte nicht gespeichert werden."
+msgstr "Menü kaydedilemedi."
+
+msgid "Eigene untere Leiste verwenden (sonst automatisch)"
+msgstr "Özel alt çubuk kullan (aksi halde otomatik)"
+
+msgid "Ein-/ausblenden"
+msgstr "Göster/gizle"
+
+msgid "Eine Ebene höher"
+msgstr "Bir seviye yukarı"
+
+msgid "Einfache Liste"
+msgstr "Basit liste"
+
+msgid "Fußzeile"
+msgstr "Alt bilgi"
+
+msgid "Kacheln, wenn Unterpunkte Bilder haben, sonst Liste"
+msgstr "Alt öğelerin görseli varsa kutucuklar, yoksa liste"
+
+msgid "Kein Bild"
+msgstr "Görsel yok"
+
+msgid "Kopfzeile"
+msgstr "Üst bilgi"
+
+msgid "Kopfzeile bleibt oben"
+msgstr "Üst bilgi sabit kalsın"
+
+msgid "Kurzer Text"
+msgstr "Kısa metin"
+
+msgid "Mega"
+msgstr "Mega"
+
+msgid "Menü aus Kategorien"
+msgstr "Kategorilerden menü"
+
+msgid "Menü-Bereiche"
+msgstr "Menü alanları"
+
+msgid "Nach oben"
+msgstr "Yukarı taşı"
+
+msgid "Nach unten"
+msgstr "Aşağı taşı"
+
+msgid "Punkt"
+msgstr "Öğe"
+
+msgid "Runde Bilder unter der Kopfzeile"
+msgstr "Üst bilginin altında yuvarlak görseller"
+
+msgid "Spalte"
+msgstr "Sütun"
+
+msgid "Spalte löschen"
+msgstr "Sütunu sil"
+
+msgid "Spalten mit Links und Banner"
+msgstr "Bağlantı sütunları ve banner"
+
+msgid "Spalten mit Links unter der Website. Ohne Spalten bleibt die Fußzeile wie bisher (Adresse, Öffnungszeiten, Rechtliches)."
+msgstr "Web sitesinin altında bağlantı sütunları. Sütun yoksa alt bilgi eskisi gibi kalır (adres, çalışma saatleri, yasal bilgiler)."
+
+msgid "Spaltentitel"
+msgstr "Sütun başlığı"
+
+msgid "Suchen …"
+msgstr "Ara …"
+
+msgid "Symbolleiste"
+msgstr "Simge çubuğu"
+
+msgid "Tour"
+msgstr "Tur"
+
+msgid "Ungespeicherte Änderungen"
+msgstr "Kaydedilmemiş değişiklikler"
+
+msgid "Ungespeicherte Änderungen gehen verloren."
+msgstr "Kaydedilmemiş değişiklikler kaybolacak."
+
+msgid "Untere Leiste (Handy)"
+msgstr "Alt çubuk (telefon)"
+
+msgid "Unterkategorien automatisch anzeigen"
+msgstr "Alt kategorileri otomatik göster"
+
+msgid "Unterpunkt hinzufügen"
+msgstr "Alt öğe ekle"
+
+msgid "Vorschau (gespeicherter Stand)"
+msgstr "Önizleme (kaydedilen sürüm)"
+
+msgid "Vorschau der Website"
+msgstr "Web sitesi önizlemesi"
+
+msgid "Wohin führt der Punkt?"
+msgstr "Öğe nereye gidiyor?"
+
+msgid "Wählen Sie links einen Punkt, um ihn zu bearbeiten."
+msgstr "Düzenlemek için soldan bir öğe seçin."
+
+msgid "Zentriert"
+msgstr "Ortalı"
+
+msgid "Ziehen Sie Punkte an eine neue Stelle — auf die Mitte eines Punktes gezogen wird er zum Unterpunkt. Bis zu drei Ebenen."
+msgstr "Öğeleri yeni bir yere sürükleyin — bir öğenin ortasına bırakılan öğe alt öğe olur. En fazla üç seviye."
+
+msgid "Übersetzungen"
+msgstr "Çeviriler"

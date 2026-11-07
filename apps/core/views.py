@@ -4228,54 +4228,71 @@ def pages_view(request):
 
 @login_required
 def menu_builder_view(request):
-    """Билдер меню витрины (S7b): дерево пунктов top + bottom, привязка к
-    архетипам/категориям/страницам/URL/якорям, вложенность 2 уровня.
+    """FB-23c: экран «Website › Menü» — шапка, нижняя панель (телефон) и подвал.
 
-    Редактор — на клиенте (ванильный JS): модель сериализуется в скрытый JSON,
-    сервер санитайзит через siteconfig.normalize (источник правды по схеме).
-    Сохранение мёржит в текущий site_config, прочие настройки не затрагивая.
+    Редактор — на клиенте (ванильный JS, дерево до 3 уровней с перетаскиванием):
+    модель сериализуется в скрытый JSON, сервер санитайзит через siteconfig.normalize
+    (источник правды по схеме). Запись — под блокировкой строки тенанта: Save Студии в
+    ту же секунду не перетрёт меню и наоборот; прочие ключи конфига не трогаются.
     """
     import json
 
+    from django.db import transaction
+
     from apps.tenants import siteconfig
+    from apps.tenants.models import Tenant
 
     if request.method == "POST":
         try:
             data = json.loads(request.POST.get("menus_json", "") or "{}")
         except (ValueError, TypeError):
             data = None
-        config = siteconfig.normalize(request.tenant.site_config)
         # Битый/пустой payload не трогает меню (не затираем при сбое редактора);
         # валидное дерево (есть top/bottom) — пишем, normalize санитайзит.
         if isinstance(data, dict) and ("top" in data or "bottom" in data):
-            config["menus"] = data
-        request.tenant.site_config = siteconfig.normalize(config)
-        request.tenant.save(update_fields=["site_config", "updated_at"])
-        messages.success(request, _("Gespeichert."))
+            with transaction.atomic():
+                locked = Tenant.objects.select_for_update().get(pk=request.tenant.pk)
+                config = siteconfig.normalize(locked.site_config)
+                config["menus"] = data
+                locked.site_config = siteconfig.normalize(config)
+                locked.save(update_fields=["site_config", "updated_at"])
+            request.tenant.site_config = locked.site_config
+            messages.success(request, _("Gespeichert."))
+        else:
+            messages.error(request, _("Das Menü konnte nicht gespeichert werden."))
         return redirect("site-menu")
 
+    from apps.core.i18n_input import form_locales
+    from apps.core.models import MediaAsset
     from apps.tenants import menu as menu_mod
 
     tenant = request.tenant
     menus = siteconfig.normalize(tenant.site_config)["menus"]
+    menus.setdefault("footer", {"columns": []})
     # STU-16d: списки целей строит `menu.target_sets` — ОДИН источник для этого
-    # экрана и для селекта цели в панели Студии (иначе два редактора меню
-    # разъехались бы: новая страница появлялась бы в одном и не появлялась в другом).
+    # экрана и для селекта цели в панели Студии.
     targets = menu_mod.target_sets(tenant)
-    archetype_targets = targets["archetypes"]
-    category_targets = targets["categories"]
-    parent_targets = targets["category_parents"]
-    page_targets = targets["pages"]
-    promo_group_targets = targets["promo_groups"]
+    try:
+        media = list(
+            MediaAsset.objects.filter(mime_type__startswith="image/")
+            .exclude(url="")
+            .order_by("-pk")
+            .values_list("url", flat=True)[:60]
+        )
+    except Exception:  # noqa: BLE001 — без медиатеки остаётся поле адреса
+        media = []
     builder = {
         "menus": menus,
         "types": list(siteconfig.MENU_NODE_TYPES),
-        "archetypes": archetype_targets,
-        "categories": category_targets,
-        "category_parents": parent_targets,
-        "pages": page_targets,
-        "promo_groups": promo_group_targets,
+        **targets,
         "styles": list(siteconfig.NAV_STYLES),
+        "layouts": list(siteconfig.MENU_LAYOUTS),
+        "max_depth": siteconfig._MENU_MAX_DEPTH,
+        "max_items": siteconfig._MAX_MENU_ITEMS,
+        "footer_max_columns": siteconfig._FOOTER_MAX_COLUMNS,
+        "footer_max_links": siteconfig._FOOTER_MAX_LINKS,
+        "locales": form_locales(tenant)[1:],
+        "media": media,
     }
     return render(request, "tenant/site_menu.html", {"nav": "site", "builder": builder})
 

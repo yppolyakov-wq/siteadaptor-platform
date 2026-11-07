@@ -35116,3 +35116,144 @@ msgstr "Die Fotos aus Telegram konnten nicht geladen werden. Bitte laden Sie das
 
 msgid "Nicht alle Fotos aus Telegram konnten übernommen werden."
 msgstr "Nicht alle Fotos aus Telegram konnten übernommen werden."
+
+msgid "(ohne Namen)"
+msgstr "(ohne Namen)"
+
+msgid "Als Unterpunkt einrücken"
+msgstr "Als Unterpunkt einrücken"
+
+msgid "Ansicht des Untermenüs"
+msgstr "Ansicht des Untermenüs"
+
+msgid "Auch Menüs & Pakete zeigen"
+msgstr "Auch Menüs & Pakete zeigen"
+
+msgid "Bereiche links, Unterpunkte rechts"
+msgstr "Bereiche links, Unterpunkte rechts"
+
+msgid "Bild"
+msgstr "Bild"
+
+msgid "Bild-Adresse"
+msgstr "Bild-Adresse"
+
+msgid "Bilder mit Text"
+msgstr "Bilder mit Text"
+
+msgid "Bitte ein Ziel wählen — sonst erscheint der Punkt nicht."
+msgstr "Bitte ein Ziel wählen — sonst erscheint der Punkt nicht."
+
+msgid "Das Menü konnte nicht gespeichert werden."
+msgstr "Das Menü konnte nicht gespeichert werden."
+
+msgid "Eigene untere Leiste verwenden (sonst automatisch)"
+msgstr "Eigene untere Leiste verwenden (sonst automatisch)"
+
+msgid "Ein-/ausblenden"
+msgstr "Ein-/ausblenden"
+
+msgid "Eine Ebene höher"
+msgstr "Eine Ebene höher"
+
+msgid "Einfache Liste"
+msgstr "Einfache Liste"
+
+msgid "Fußzeile"
+msgstr "Fußzeile"
+
+msgid "Kacheln, wenn Unterpunkte Bilder haben, sonst Liste"
+msgstr "Kacheln, wenn Unterpunkte Bilder haben, sonst Liste"
+
+msgid "Kein Bild"
+msgstr "Kein Bild"
+
+msgid "Kopfzeile"
+msgstr "Kopfzeile"
+
+msgid "Kopfzeile bleibt oben"
+msgstr "Kopfzeile bleibt oben"
+
+msgid "Kurzer Text"
+msgstr "Kurzer Text"
+
+msgid "Mega"
+msgstr "Mega"
+
+msgid "Menü aus Kategorien"
+msgstr "Menü aus Kategorien"
+
+msgid "Menü-Bereiche"
+msgstr "Menü-Bereiche"
+
+msgid "Nach oben"
+msgstr "Nach oben"
+
+msgid "Nach unten"
+msgstr "Nach unten"
+
+msgid "Punkt"
+msgstr "Punkt"
+
+msgid "Runde Bilder unter der Kopfzeile"
+msgstr "Runde Bilder unter der Kopfzeile"
+
+msgid "Spalte"
+msgstr "Spalte"
+
+msgid "Spalte löschen"
+msgstr "Spalte löschen"
+
+msgid "Spalten mit Links und Banner"
+msgstr "Spalten mit Links und Banner"
+
+msgid "Spalten mit Links unter der Website. Ohne Spalten bleibt die Fußzeile wie bisher (Adresse, Öffnungszeiten, Rechtliches)."
+msgstr "Spalten mit Links unter der Website. Ohne Spalten bleibt die Fußzeile wie bisher (Adresse, Öffnungszeiten, Rechtliches)."
+
+msgid "Spaltentitel"
+msgstr "Spaltentitel"
+
+msgid "Suchen …"
+msgstr "Suchen …"
+
+msgid "Symbolleiste"
+msgstr "Symbolleiste"
+
+msgid "Tour"
+msgstr "Tour"
+
+msgid "Ungespeicherte Änderungen"
+msgstr "Ungespeicherte Änderungen"
+
+msgid "Ungespeicherte Änderungen gehen verloren."
+msgstr "Ungespeicherte Änderungen gehen verloren."
+
+msgid "Untere Leiste (Handy)"
+msgstr "Untere Leiste (Handy)"
+
+msgid "Unterkategorien automatisch anzeigen"
+msgstr "Unterkategorien automatisch anzeigen"
+
+msgid "Unterpunkt hinzufügen"
+msgstr "Unterpunkt hinzufügen"
+
+msgid "Vorschau (gespeicherter Stand)"
+msgstr "Vorschau (gespeicherter Stand)"
+
+msgid "Vorschau der Website"
+msgstr "Vorschau der Website"
+
+msgid "Wohin führt der Punkt?"
+msgstr "Wohin führt der Punkt?"
+
+msgid "Wählen Sie links einen Punkt, um ihn zu bearbeiten."
+msgstr "Wählen Sie links einen Punkt, um ihn zu bearbeiten."
+
+msgid "Zentriert"
+msgstr "Zentriert"
+
+msgid "Ziehen Sie Punkte an eine neue Stelle — auf die Mitte eines Punktes gezogen wird er zum Unterpunkt. Bis zu drei Ebenen."
+msgstr "Ziehen Sie Punkte an eine neue Stelle — auf die Mitte eines Punktes gezogen wird er zum Unterpunkt. Bis zu drei Ebenen."
+
+msgid "Übersetzungen"
+msgstr "Übersetzungen"

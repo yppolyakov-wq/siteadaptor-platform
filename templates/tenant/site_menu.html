@@ -1,17 +1,22 @@
 {% extends "tenant/_base_dashboard.html" %}
 {% load i18n %}
-{% block dash_title %}{% trans "Menu" %}{% endblock %}
+{% block dash_title %}{% trans "Menü" %}{% endblock %}
 
 {% block dash_content %}
-<div class="max-w-2xl">
-  <div class="flex items-center justify-between mb-4">
-    <h1 class="ui-h1">{% trans "Navigation menu" %}</h1>
-    <span class="flex items-center gap-3">
-      <a href="{% url 'site-preview' %}" class="text-sm text-indigo-600 hover:underline">👁 {% trans "Preview" %}</a>
-      <a href="{% url 'site-home' %}" class="text-sm text-indigo-600 hover:underline">← {% trans "Website" %}</a>
+{% comment %}FB-23c (план docs/fb23-site-menu-plan-2026-11-07.md): один экран меню сайта.
+Слева — дерево пунктов (до 3 уровней: перетаскивание выше/ниже/внутрь, кнопки
+«вложить/вынуть»), справа — панель выбранного пункта (подпись и переводы, куда ведёт,
+иконка, фото, подпись, вид панели). Вкладки: шапка · нижняя панель (телефон) · подвал.
+Модель — JSON в скрытом поле; схему держит siteconfig.normalize на сервере.{% endcomment %}
+<div class="max-w-6xl">
+  <div class="flex flex-wrap items-center justify-between gap-3 mb-2">
+    <h1 class="ui-h1">{% trans "Menü" %}</h1>
+    <span class="flex items-center gap-3 text-sm">
+      <a href="/" target="_blank" rel="noopener" class="text-indigo-600 hover:underline">👁 {% trans "Website ansehen" %}</a>
+      <a href="{% url 'site-home' %}" class="text-indigo-600 hover:underline">{% trans "Studio" %} →</a>
     </span>
   </div>
-  <p class="text-sm text-gray-500 mb-4">{% trans "Build your header and bottom menu. Drag-free: use ↑/↓ to reorder. Sub-items appear as a dropdown on desktop." %}</p>
+  <p class="text-sm ui-muted mb-4">{% trans "Ziehen Sie Punkte an eine neue Stelle — auf die Mitte eines Punktes gezogen wird er zum Unterpunkt. Bis zu drei Ebenen." %}</p>
 
   {% if messages %}
     {% for m in messages %}
@@ -21,45 +26,62 @@
 
   {{ builder|json_script:"builder-data" }}
 
-  <form method="post" id="menu-form" class="space-y-6">
+  <nav class="ui-tabs mb-4" aria-label="{% trans "Menü-Bereiche" %}" role="tablist">
+    <button type="button" class="ui-tab" role="tab" data-tab="top" aria-selected="true">{% trans "Kopfzeile" %}</button>
+    <button type="button" class="ui-tab" role="tab" data-tab="bottom" aria-selected="false">{% trans "Untere Leiste (Handy)" %}</button>
+    <button type="button" class="ui-tab" role="tab" data-tab="footer" aria-selected="false">{% trans "Fußzeile" %}</button>
+  </nav>
+
+  <form method="post" id="menu-form">
     {% csrf_token %}
     <input type="hidden" name="menus_json" id="menus_json">
+    <div class="grid lg:grid-cols-[minmax(0,1fr)_380px] gap-4 items-start">
+      <section class="ui-card p-5 min-w-0" aria-label="{% trans "Menüpunkte" %}">
+        <div data-pane="top">
+          <div class="flex flex-wrap items-center gap-4 mb-4 text-sm">
+            <label class="flex items-center gap-2">{% trans "Kopfzeile" %}
+              <select id="top-style" class="ui-input !w-auto">
+                <option value="classic">{% trans "Klassisch" %}</option>
+                <option value="centered">{% trans "Zentriert" %}</option>
+                <option value="minimal">{% trans "Minimal" %}</option>
+              </select>
+            </label>
+            <label class="flex items-center gap-2"><input type="checkbox" id="top-sticky"> {% trans "Kopfzeile bleibt oben" %}</label>
+          </div>
+          <ul id="tree-top" class="space-y-1.5" data-tree="top"></ul>
+          <div class="mt-3 flex flex-wrap gap-2">
+            <button type="button" class="ui-btn ui-btn-secondary ui-btn-sm" data-add="top">＋ {% trans "Punkt" %}</button>
+            <button type="button" class="ui-btn ui-btn-secondary ui-btn-sm" id="from-categories">＋ {% trans "Menü aus Kategorien" %}</button>
+          </div>
+        </div>
+        <div data-pane="bottom" hidden>
+          <label class="flex items-center gap-2 text-sm mb-3"><input type="checkbox" id="bottom-enabled"> {% trans "Eigene untere Leiste verwenden (sonst automatisch)" %}</label>
+          <ul id="tree-bottom" class="space-y-1.5" data-tree="bottom"></ul>
+          <button type="button" class="mt-3 ui-btn ui-btn-secondary ui-btn-sm" data-add="bottom">＋ {% trans "Punkt" %}</button>
+          <p class="text-xs ui-muted mt-3">{% trans "Only the first 5 items are shown on mobile. A cart item automatically gets the accent colour and the item-count badge." %}</p>
+        </div>
+        <div data-pane="footer" hidden>
+          <p class="text-sm ui-muted mb-3">{% trans "Spalten mit Links unter der Website. Ohne Spalten bleibt die Fußzeile wie bisher (Adresse, Öffnungszeiten, Rechtliches)." %}</p>
+          <div id="footer-cols" class="grid sm:grid-cols-2 gap-3"></div>
+          <button type="button" class="mt-3 ui-btn ui-btn-secondary ui-btn-sm" id="add-column">＋ {% trans "Spalte" %}</button>
+        </div>
+      </section>
 
-    <fieldset class="ui-card p-6">
-      <legend class="font-semibold mb-3">{% trans "Header menu" %}</legend>
-      <div class="flex flex-wrap items-center gap-4 mb-4 text-sm">
-        <label class="flex items-center gap-2">{% trans "Style" %}
-          <select id="top-style" class="rounded-lg border border-gray-300 px-2 py-1.5"></select>
-        </label>
-        <label class="flex items-center gap-2">
-          <input type="checkbox" id="top-sticky" class="rounded border-gray-300"> {% trans "Sticky header" %}
-        </label>
-      </div>
-      <div id="top-items" class="space-y-2"></div>
-      <div class="mt-3 flex flex-wrap items-center gap-2">
-        <button type="button" data-add="top" class="text-sm border border-indigo-200 text-indigo-700 rounded-lg px-3 py-1.5 hover:bg-indigo-50">+ {% trans "Add item" %}</button>
-        {% comment %}MEN-15: один клик добавляет авто-подменю категорий — это и есть
-        «настройка выводить категории» из запроса владельца.{% endcomment %}
-        <button type="button" id="add-categories" class="text-sm border border-gray-200 text-gray-700 rounded-lg px-3 py-1.5 hover:bg-gray-50">+ {% trans "Categories submenu" %}</button>
-      </div>
-      <p class="text-xs ui-muted mt-2">{% trans "The categories submenu fills itself from your catalogue. Categories with a photo are shown as picture tiles." %}
-        <a href="{% url 'catalog:category-list' %}" class="text-indigo-600 hover:underline">{% trans "Manage category photos" %} →</a></p>
-    </fieldset>
-
-    <fieldset class="ui-card p-6">
-      <legend class="font-semibold mb-3">{% trans "Bottom menu (mobile)" %}</legend>
-      <label class="flex items-center gap-2 text-sm mb-4">
-        <input type="checkbox" id="bottom-enabled" class="rounded border-gray-300">
-        {% trans "Use a custom bottom menu (otherwise an automatic bar is shown)" %}
-      </label>
-      <div id="bottom-items" class="space-y-2"></div>
-      <button type="button" data-add="bottom" class="mt-3 text-sm border border-indigo-200 text-indigo-700 rounded-lg px-3 py-1.5 hover:bg-indigo-50">+ {% trans "Add item" %}</button>
-      {# bottom-nav ТЗ: подсказки владельцу — лимит и семантика корзины #}
-      <p class="text-xs ui-muted mt-3">{% trans "Only the first 5 items are shown on mobile. A cart item automatically gets the accent colour and the item-count badge." %}</p>
-    </fieldset>
-
-    <button type="submit" class="ui-btn ui-btn-primary">{% trans "Save" %}</button>
+      <aside class="ui-card p-5 lg:sticky lg:top-4" id="item-panel" aria-live="polite">
+        <p class="text-sm ui-muted" id="panel-empty">{% trans "Wählen Sie links einen Punkt, um ihn zu bearbeiten." %}</p>
+        <div id="panel-body" class="space-y-4" hidden></div>
+      </aside>
+    </div>
+    <div class="mt-4 flex items-center gap-3">
+      <button type="submit" class="ui-btn ui-btn-primary">{% trans "Save" %}</button>
+      <span id="dirty-note" class="text-sm text-amber-700" hidden>{% trans "Ungespeicherte Änderungen" %}</span>
+    </div>
   </form>
+
+  <section class="mt-6" aria-label="{% trans "Vorschau" %}">
+    <h2 class="text-sm font-semibold mb-2">{% trans "Vorschau (gespeicherter Stand)" %}</h2>
+    <iframe src="/" title="{% trans "Vorschau der Website" %}" class="w-full h-[420px] rounded-xl ring-1 ring-gray-200 bg-white" loading="lazy"></iframe>
+  </section>
 </div>
 
 <script>
@@ -67,218 +89,391 @@
   "use strict";
   var D = JSON.parse(document.getElementById("builder-data").textContent);
   var M = D.menus;
+  M.footer = M.footer || { columns: [] };
+  var MAX_DEPTH = { top: D.max_depth, bottom: 1 };
   var T = {
-    archetype: "{% trans "Bereich" %}", category: "{% trans "Kategorie" %}",
-    promo_group: "{% trans "Aktionsgruppe" %}", page: "{% trans "Seite" %}",
-    url: "{% trans "Link (URL)" %}", anchor: "{% trans "Sprungmarke" %}",
-    group: "{% trans "Nur Untermenü" %}",
-    // MEN-15: авто-подменю категорий каталога (список НЕ ведётся руками).
-    categories: "{% trans "Kategorien (automatisch)" %}"
+    noName: "{% trans "(ohne Namen)" %}", up: "{% trans "Nach oben" %}", down: "{% trans "Nach unten" %}",
+    indent: "{% trans "Als Unterpunkt einrücken" %}", outdent: "{% trans "Eine Ebene höher" %}",
+    hide: "{% trans "Ein-/ausblenden" %}", del: "{% trans "Löschen" %}", addChild: "{% trans "Unterpunkt hinzufügen" %}",
+    hidden: "{% trans "ausgeblendet" %}", auto: "{% trans "automatisch" %}", newItem: "{% trans "Neuer Punkt" %}",
+    label: "{% trans "Bezeichnung" %}", translations: "{% trans "Übersetzungen" %}", goes: "{% trans "Wohin führt der Punkt?" %}",
+    target: "{% trans "Ziel" %}", search: "{% trans "Suchen …" %}", autoSubs: "{% trans "Unterkategorien automatisch anzeigen" %}",
+    combos: "{% trans "Auch Menüs & Pakete zeigen" %}", icon: "{% trans "Symbol" %}", image: "{% trans "Bild" %}",
+    imageUrl: "{% trans "Bild-Adresse" %}", desc: "{% trans "Kurzer Text" %}", layout: "{% trans "Ansicht des Untermenüs" %}",
+    noImage: "{% trans "Kein Bild" %}", colTitle: "{% trans "Spaltentitel" %}", addLink: "{% trans "Link" %}",
+    delCol: "{% trans "Spalte löschen" %}", needTarget: "{% trans "Bitte ein Ziel wählen — sonst erscheint der Punkt nicht." %}",
+    leave: "{% trans "Ungespeicherte Änderungen gehen verloren." %}"
   };
-  var elTop = document.getElementById("top-items");
-  var elBottom = document.getElementById("bottom-items");
-  var styleSel = document.getElementById("top-style");
-  var stickyCb = document.getElementById("top-sticky");
-  var bottomCb = document.getElementById("bottom-enabled");
-  var dragNode = null, dragSide = "", dragChild = false;  // состояние drag-drop
+  var KINDS = [
+    { k: "page", label: "{% trans "Seite" %}", list: "pages" },
+    { k: "archetype", label: "{% trans "Bereich" %}", list: "archetypes" },
+    { k: "category", label: "{% trans "Kategorie" %}", list: "categories" },
+    { k: "categories", label: "{% trans "Kategorien (automatisch)" %}", list: "category_parents" },
+    { k: "product", label: "{% trans "Produkt" %}", list: "products" },
+    { k: "service", label: "{% trans "Leistung" %}", list: "services" },
+    { k: "stay", label: "{% trans "Zimmer" %}", list: "stays" },
+    { k: "event", label: "{% trans "Veranstaltung" %}", list: "events" },
+    { k: "tour", label: "{% trans "Tour" %}", list: "tours" },
+    { k: "promotion", label: "{% trans "Aktion" %}", list: "promotions" },
+    { k: "promo_group", label: "{% trans "Aktionsgruppe" %}", list: "promo_groups" },
+    { k: "url", label: "{% trans "Link (URL)" %}", input: "https://… / /pfad/" },
+    { k: "anchor", label: "{% trans "Sprungmarke" %}", input: "#aktionen" },
+    { k: "group", label: "{% trans "Nur Untermenü" %}" }
+  ];
+  var LAYOUTS = [
+    { k: "", label: "{% trans "Automatisch" %}", hint: "{% trans "Kacheln, wenn Unterpunkte Bilder haben, sonst Liste" %}" },
+    { k: "list", label: "{% trans "Liste" %}", hint: "{% trans "Einfache Liste" %}" },
+    { k: "tiles", label: "{% trans "Kacheln" %}", hint: "{% trans "Bilder mit Text" %}" },
+    { k: "mega", label: "{% trans "Mega" %}", hint: "{% trans "Bereiche links, Unterpunkte rechts" %}" },
+    { k: "columns", label: "{% trans "Spalten" %}", hint: "{% trans "Spalten mit Links und Banner" %}" },
+    { k: "strip", label: "{% trans "Symbolleiste" %}", hint: "{% trans "Runde Bilder unter der Kopfzeile" %}" }
+  ];
+  var ICONS = ["", "🛍", "🍞", "☕", "🍰", "🥗", "🧀", "🎁", "⭐", "🔥", "🏷", "📅", "🏨", "✂️", "🚲", "📞", "ℹ️", "❤️"];
+  var tab = "top", sel = null, dirty = false;
 
-  function opt(value, label, sel) {
-    var o = document.createElement("option");
-    o.value = value; o.textContent = label; if (value === sel) o.selected = true;
-    return o;
-  }
-  function blankNode() { return { label: "", type: "archetype", target: "", enabled: true, icon: "", children: [] }; }
-
-  function targetControl(node) {
-    var t = node.type, list = null;
-    if (t === "archetype") list = D.archetypes;
-    else if (t === "category") list = D.categories;
-    // Цель узла «Kategorien»: пусто = корневые, slug = подкатегории этой ветки.
-    else if (t === "categories") list = D.category_parents;
-    else if (t === "promo_group") list = D.promo_groups;
-    else if (t === "page") list = D.pages;
-    if (list) {
-      var s = document.createElement("select");
-      s.className = "f-target rounded-lg border border-gray-300 px-2 py-1.5 text-sm";
-      if (!list.length) s.appendChild(opt("", "—", node.target));
-      list.forEach(function (o) { s.appendChild(opt(o.value, o.label, node.target)); });
-      return s;
-    }
-    if (t === "url" || t === "anchor") {
-      var i = document.createElement("input");
-      i.type = "text"; i.className = "f-target rounded-lg border border-gray-300 px-2 py-1.5 text-sm flex-1";
-      i.placeholder = t === "url" ? "https://… / /pfad/" : "#aktionen";
-      i.value = node.target || "";
-      return i;
-    }
-    var span = document.createElement("span"); span.className = "f-target text-xs text-gray-400"; span.dataset.empty = "1";
-    span.textContent = "—"; return span;
-  }
-
-  function row(node, side, isChild) {
-    var wrap = document.createElement("div");
-    wrap.className = "menu-row border border-gray-100 rounded-xl px-3 py-2 " + (isChild ? "ml-6 bg-gray-50/60" : "bg-white");
-    var line = document.createElement("div");
-    line.className = "flex flex-wrap items-center gap-2";
-
-    var handle = document.createElement("span");
-    handle.textContent = "⠿"; handle.title = "{% trans 'Drag to reorder' %}";
-    handle.setAttribute("draggable", "true");
-    handle.className = "drag-handle cursor-grab select-none text-gray-400 px-1";
-    handle.addEventListener("dragstart", function (e) {
-      e.stopPropagation();
-      dragNode = node; dragSide = side; dragChild = isChild;
-      wrap.classList.add("opacity-50");
-      if (e.dataTransfer) { e.dataTransfer.effectAllowed = "move"; e.dataTransfer.setData("text/plain", ""); }
+  function el(tag, attrs, text) {
+    var e = document.createElement(tag);
+    Object.keys(attrs || {}).forEach(function (k) {
+      if (k === "class") e.className = attrs[k]; else if (k in e && k !== "list") e[k] = attrs[k]; else e.setAttribute(k, attrs[k]);
     });
-    handle.addEventListener("dragend", function () { wrap.classList.remove("opacity-50"); dragNode = null; });
-
-    var label = document.createElement("input");
-    label.type = "text"; label.value = node.label || ""; label.placeholder = "{% trans 'Title' %}";
-    label.className = "f-label rounded-lg border border-gray-300 px-2 py-1.5 text-sm flex-1 min-w-[120px]";
-
-    var type = document.createElement("select");
-    type.className = "f-type rounded-lg border border-gray-300 px-2 py-1.5 text-sm";
-    D.types.forEach(function (tp) {
-      if (isChild && tp === "group") return; // без под-под-меню
-      type.appendChild(opt(tp, T[tp] || tp, node.type));
-    });
-    type.addEventListener("change", function () { node.type = type.value; node.target = ""; render(); });
-
-    var targetCell = document.createElement("div");
-    targetCell.className = "flex items-center";
-    targetCell.appendChild(targetControl(node));
-
-    var en = document.createElement("label");
-    en.className = "flex items-center gap-1 text-xs text-gray-500";
-    var enCb = document.createElement("input");
-    enCb.type = "checkbox"; enCb.className = "f-enabled rounded border-gray-300"; enCb.checked = node.enabled !== false;
-    en.appendChild(enCb); en.appendChild(document.createTextNode("{% trans 'On' %}"));
-
-    line.appendChild(handle); line.appendChild(label); line.appendChild(type); line.appendChild(targetCell); line.appendChild(en);
-
-    // действия
-    var actions = document.createElement("div");
-    actions.className = "flex items-center gap-1 ml-auto";
-    function btn(txt, fn, title) {
-      var b = document.createElement("button");
-      b.type = "button"; b.textContent = txt; b.title = title || "";
-      b.className = "w-7 h-7 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-100 text-sm leading-none";
-      b.addEventListener("click", fn); return b;
+    if (text != null) e.textContent = text;
+    return e;
+  }
+  function markDirty() { dirty = true; document.getElementById("dirty-note").hidden = false; }
+  function blank(label) { return { label: label || T.newItem, type: "page", target: "", enabled: true, icon: "", children: [] }; }
+  function listFor(side) { return side === "top" ? M.top.items : M.bottom.items; }
+  function kind(k) { return KINDS.filter(function (x) { return x.k === k; })[0] || KINDS[0]; }
+  function optionsFor(k) { var kd = kind(k); return kd.list ? (D[kd.list] || []) : null; }
+  function needsTarget(n) {
+    return (n.type === "url" || n.type === "anchor" || (optionsFor(n.type) && n.type !== "categories")) && !n.target && !(n.children || []).length;
+  }
+  // --- дерево: поиск узла и операции по ссылке на объект (пути «плывут» при переносе)
+  function locate(list, node, parent, depth) {
+    for (var i = 0; i < list.length; i++) {
+      if (list[i] === node) return { list: list, index: i, parent: parent, depth: depth };
+      var hit = locate(list[i].children || [], node, list[i], depth + 1);
+      if (hit) return hit;
     }
-    actions.appendChild(btn("↑", function () { reorder(node, side, isChild, -1); }));
-    actions.appendChild(btn("↓", function () { reorder(node, side, isChild, 1); }));
-    if (side === "top" && !isChild) {
-      actions.appendChild(btn("+", function () { syncFromDom(); node.children.push(blankNode()); render(); }, "{% trans 'Add sub-item' %}"));
-    }
-    actions.appendChild(btn("✕", function () { syncFromDom(); var a = listFor(node, side, isChild); var i = a.indexOf(node); if (i > -1) a.splice(i, 1); render(); }, "{% trans 'Remove' %}"));
-    line.appendChild(actions);
-    wrap.appendChild(line);
-    wrap._node = node;
-
-    // drag-drop: переставляем только в пределах одного списка (того же родителя).
-    wrap.addEventListener("dragover", function (e) { if (dragNode) e.preventDefault(); });
-    wrap.addEventListener("drop", function (e) {
-      if (!dragNode) return;
-      e.preventDefault(); e.stopPropagation();
-      syncFromDom();
-      var src = listFor(dragNode, dragSide, dragChild), dst = listFor(node, side, isChild);
-      if (src === dst && dragNode !== node) {
-        var from = src.indexOf(dragNode), to = dst.indexOf(node);
-        if (from > -1 && to > -1) { dst.splice(to, 0, src.splice(from, 1)[0]); render(); }
-      }
-      dragNode = null;
-    });
-
-    if (side === "top" && !isChild) {
-      var kids = document.createElement("div");
-      kids.className = "mt-2 space-y-2"; kids.dataset.kids = "1";
-      (node.children || []).forEach(function (c) { kids.appendChild(row(c, side, true)); });
-      wrap.appendChild(kids);
-    }
-    return wrap;
+    return null;
+  }
+  function height(n) { var h = 1; (n.children || []).forEach(function (c) { h = Math.max(h, 1 + height(c)); }); return h; }
+  function contains(n, x) { return n === x || (n.children || []).some(function (c) { return contains(c, x); }); }
+  function moveNode(side, node, target, where) {
+    if (contains(node, target)) return false;
+    var tpos = locate(listFor(side), target, null, 1);
+    var newDepth = where === "inside" ? tpos.depth + 1 : tpos.depth;
+    if (newDepth + height(node) - 1 > MAX_DEPTH[side]) return false;
+    var from = locate(listFor(side), node, null, 1);
+    from.list.splice(from.index, 1);
+    tpos = locate(listFor(side), target, null, 1);
+    if (where === "inside") { target.children = target.children || []; target.children.push(node); }
+    else tpos.list.splice(tpos.index + (where === "after" ? 1 : 0), 0, node);
+    return true;
   }
 
-  function listFor(node, side, isChild) {
-    if (side === "bottom") return M.bottom.items;
-    if (!isChild) return M.top.items;
-    // ребёнок: найти родителя
-    var p = M.top.items.find(function (it) { return (it.children || []).indexOf(node) > -1; });
-    return p ? p.children : [];
-  }
-  function reorder(node, side, isChild, d) {
-    // Перепривязываем массив из M ПОСЛЕ syncFromDom (он пересоздаёт M.*.items —
-    // захваченная заранее ссылка стала бы устаревшей, и порядок не применился бы).
-    syncFromDom();
-    var arr = listFor(node, side, isChild);
-    var i = arr.indexOf(node), j = i + d;
-    if (i > -1 && j >= 0 && j < arr.length) { arr.splice(j, 0, arr.splice(i, 1)[0]); render(); }
+  function rowButtons(side, node, pos) {
+    var box = el("span", { class: "ml-auto flex items-center gap-0.5 shrink-0" });
+    function b(txt, title, fn, disabled) {
+      var x = el("button", { type: "button", class: "w-8 h-8 rounded-lg text-gray-500 hover:bg-gray-100 disabled:opacity-30", title: title, "aria-label": title }, txt);
+      x.disabled = !!disabled;
+      x.addEventListener("click", function (e) { e.stopPropagation(); fn(); markDirty(); render(); });
+      return x;
+    }
+    var prev = pos.index > 0 ? pos.list[pos.index - 1] : null;
+    box.appendChild(b("↑", T.up, function () { pos.list.splice(pos.index - 1, 0, pos.list.splice(pos.index, 1)[0]); }, pos.index === 0));
+    box.appendChild(b("↓", T.down, function () { pos.list.splice(pos.index + 1, 0, pos.list.splice(pos.index, 1)[0]); }, pos.index === pos.list.length - 1));
+    if (MAX_DEPTH[side] > 1) {
+      box.appendChild(b("→", T.indent, function () { moveNode(side, node, prev, "inside"); },
+        !prev || pos.depth + height(node) > MAX_DEPTH[side]));
+      box.appendChild(b("←", T.outdent, function () { moveNode(side, node, pos.parent, "after"); }, !pos.parent));
+      box.appendChild(b("＋", T.addChild, function () {
+        node.children = node.children || []; var c = blank(); node.children.push(c); sel = { side: side, node: c };
+      }, pos.depth >= MAX_DEPTH[side] || (node.children || []).length >= D.max_items));
+    }
+    box.appendChild(b(node.enabled === false ? "◌" : "👁", T.hide, function () { node.enabled = node.enabled === false; }));
+    box.appendChild(b("✕", T.del, function () { pos.list.splice(pos.index, 1); if (sel && contains(node, sel.node)) sel = null; }));
+    return box;
   }
 
-  function syncFromDom() {
-    // читаем текстовые/чекбокс-поля из DOM в модель (структура уже в M)
-    function readRows(container) {
-      var out = [];
-      container.querySelectorAll(":scope > .menu-row").forEach(function (r) {
-        var n = r._node;
-        var line = r.querySelector(":scope > div");  // строка с полями (без детей)
-        n.label = line.querySelector(".f-label").value;
-        n.type = line.querySelector(".f-type").value;
-        var tg = line.querySelector(".f-target");
-        n.target = tg && !tg.dataset.empty ? (tg.value || "") : "";
-        // .f-enabled лежит внутри <label> → ищем по строке, а не как прямого ребёнка.
-        n.enabled = line.querySelector(".f-enabled").checked;
-        var kc = r.querySelector(":scope > [data-kids]");
-        n.children = kc ? readRows(kc) : (n.children || []);
-        out.push(n);
+  function renderList(side, ul, list, parent, depth) {
+    ul.innerHTML = "";
+    list.forEach(function (node, i) {
+      var pos = { list: list, index: i, parent: parent, depth: depth };
+      var li = el("li", {});
+      var row = el("div", {
+        class: "flex items-center gap-2 rounded-xl border px-2 py-1.5 bg-white " +
+          (sel && sel.node === node ? "border-indigo-500 ring-2 ring-indigo-100" : "border-gray-200") +
+          (node.enabled === false ? " opacity-60" : ""),
+        draggable: "true", "data-menu-row": ""
       });
-      return out;
+      row.appendChild(el("span", { class: "cursor-grab select-none text-gray-400 px-1", "aria-hidden": "true" }, "⠿"));
+      var pick = el("button", { type: "button", class: "min-w-0 flex-1 flex items-center gap-2 text-left py-1" });
+      if (node.icon) pick.appendChild(el("span", { "aria-hidden": "true" }, node.icon));
+      pick.appendChild(el("span", { class: "truncate font-medium text-sm" }, node.label || T.noName));
+      pick.appendChild(el("span", { class: "text-xs ui-muted shrink-0" }, kind(node.type).label + (node.auto || node.type === "categories" ? " · " + T.auto : "")));
+      if (node.enabled === false) pick.appendChild(el("span", { class: "text-xs ui-muted" }, "· " + T.hidden));
+      if (needsTarget(node)) { row.classList.add("border-amber-400"); pick.title = T.needTarget; }
+      pick.addEventListener("click", function () { sel = { side: side, node: node }; render(); });
+      row.appendChild(pick);
+      row.appendChild(rowButtons(side, node, pos));
+      // перетаскивание: верхняя треть — выше, нижняя — ниже, середина — внутрь
+      row.addEventListener("dragstart", function (e) { e.dataTransfer.effectAllowed = "move"; dragState = { side: side, node: node }; row.classList.add("opacity-40"); });
+      row.addEventListener("dragend", function () { dragState = null; render(); });
+      row.addEventListener("dragover", function (e) {
+        if (!dragState || dragState.side !== side || dragState.node === node) return;
+        e.preventDefault();
+        var r = row.getBoundingClientRect(), y = (e.clientY - r.top) / r.height;
+        row.dataset.zone = y < 0.3 ? "before" : y > 0.7 || MAX_DEPTH[side] === 1 ? "after" : "inside";
+        row.style.boxShadow = row.dataset.zone === "before" ? "inset 0 3px 0 #6366f1" : row.dataset.zone === "after" ? "inset 0 -3px 0 #6366f1" : "inset 0 0 0 2px #6366f1";
+      });
+      row.addEventListener("dragleave", function () { row.style.boxShadow = ""; });
+      row.addEventListener("drop", function (e) {
+        e.preventDefault(); row.style.boxShadow = "";
+        if (dragState && moveNode(side, dragState.node, node, row.dataset.zone || "after")) markDirty();
+        render();
+      });
+      li.appendChild(row);
+      if ((node.children || []).length) {
+        var sub = el("ul", { class: "mt-1.5 ml-6 space-y-1.5 border-l border-gray-100 pl-2" });
+        renderList(side, sub, node.children, node, depth + 1);
+        li.appendChild(sub);
+      }
+      ul.appendChild(li);
+    });
+  }
+  var dragState = null;
+
+  function renderFooter() {
+    var box = document.getElementById("footer-cols");
+    box.innerHTML = "";
+    M.footer.columns.forEach(function (col, ci) {
+      var card = el("div", { class: "rounded-xl border border-gray-200 p-3 space-y-2" });
+      var head = el("div", { class: "flex items-center gap-2" });
+      var title = el("input", { type: "text", class: "ui-input", value: col.label || "", placeholder: T.colTitle, "aria-label": T.colTitle, maxLength: 60 });
+      title.addEventListener("input", function () { col.label = title.value; markDirty(); });
+      head.appendChild(title);
+      var del = el("button", { type: "button", class: "w-8 h-8 rounded-lg text-gray-500 hover:bg-gray-100", title: T.delCol, "aria-label": T.delCol }, "✕");
+      del.addEventListener("click", function () { M.footer.columns.splice(ci, 1); sel = null; markDirty(); render(); });
+      head.appendChild(del);
+      card.appendChild(head);
+      var ul = el("ul", { class: "space-y-1" });
+      col.items = col.items || [];
+      col.items.forEach(function (link, li) {
+        var r = el("li", { class: "flex items-center gap-1 rounded-lg border px-2 py-1 " + (sel && sel.node === link ? "border-indigo-500" : "border-gray-100") + (needsTarget(link) ? " border-amber-400" : "") });
+        var pick = el("button", { type: "button", class: "flex-1 text-left text-sm truncate py-1" }, link.label || T.noName);
+        pick.addEventListener("click", function () { sel = { side: "footer", node: link }; render(); });
+        r.appendChild(pick);
+        var x = el("button", { type: "button", class: "w-7 h-7 rounded text-gray-500 hover:bg-gray-100", title: T.del, "aria-label": T.del }, "✕");
+        x.addEventListener("click", function () { col.items.splice(li, 1); sel = null; markDirty(); render(); });
+        r.appendChild(x);
+        ul.appendChild(r);
+      });
+      card.appendChild(ul);
+      var add = el("button", { type: "button", class: "text-sm text-indigo-600 hover:underline" }, "＋ " + T.addLink);
+      add.disabled = col.items.length >= D.footer_max_links;
+      add.addEventListener("click", function () { var n = blank(); col.items.push(n); sel = { side: "footer", node: n }; markDirty(); render(); });
+      card.appendChild(add);
+      box.appendChild(card);
+    });
+    document.getElementById("add-column").disabled = M.footer.columns.length >= D.footer_max_columns;
+  }
+
+  function field(label, control) {
+    var w = el("div", {});
+    var id = "mp-" + Math.random().toString(36).slice(2, 8);
+    control.id = control.id || id;
+    w.appendChild(el("label", { for: control.id, class: "block text-sm font-medium mb-1" }, label));
+    w.appendChild(control);
+    return w;
+  }
+
+  function renderPanel() {
+    var body = document.getElementById("panel-body");
+    var empty = document.getElementById("panel-empty");
+    body.innerHTML = "";
+    if (!sel) { body.hidden = true; empty.hidden = false; return; }
+    body.hidden = false; empty.hidden = true;
+    var n = sel.node, side = sel.side;
+    var where = side === "top" ? locate(M.top.items, n, null, 1) : null;
+    var top = where && where.depth === 1;
+
+    var label = el("input", { type: "text", class: "ui-input", value: n.label, maxLength: 60 });
+    label.addEventListener("input", function () { n.label = label.value; markDirty(); renderTrees(); });
+    body.appendChild(field(T.label, label));
+    if (D.locales.length) {
+      var det = el("details", { class: "text-sm" });
+      det.appendChild(el("summary", { class: "cursor-pointer ui-muted" }, "🌐 " + T.translations));
+      n.label_i18n = n.label_i18n || {};
+      D.locales.forEach(function (loc) {
+        var i = el("input", { type: "text", class: "ui-input mt-1", value: n.label_i18n[loc] || "", lang: loc, maxLength: 60 });
+        i.addEventListener("input", function () { if (i.value) n.label_i18n[loc] = i.value; else delete n.label_i18n[loc]; markDirty(); });
+        det.appendChild(field(loc.toUpperCase(), i));
+      });
+      body.appendChild(det);
     }
-    M.top.items = readRows(elTop);
-    M.bottom.items = readRows(elBottom);
-    M.top.style = styleSel.value;
-    M.top.sticky = stickyCb.checked;
-    M.bottom.enabled = bottomCb.checked;
+
+    var kindSel = el("select", { class: "ui-input" });
+    KINDS.forEach(function (kd) {
+      if (side !== "top" && kd.k === "group") return;
+      var opts = kd.list ? (D[kd.list] || []) : null;
+      if (opts && !opts.length && kd.k !== n.type) return;
+      var o = el("option", { value: kd.k }, kd.label);
+      if (kd.k === n.type) o.selected = true;
+      kindSel.appendChild(o);
+    });
+    kindSel.addEventListener("change", function () { n.type = kindSel.value; n.target = ""; delete n.auto; markDirty(); render(); });
+    body.appendChild(field(T.goes, kindSel));
+
+    var kd = kind(n.type);
+    if (kd.list) {
+      var opts = D[kd.list] || [];
+      var wrap = el("div", { class: "space-y-1.5" });
+      var tsel = el("select", { class: "ui-input", "aria-label": T.target });
+      if (opts.length > 12) {
+        var filter = el("input", { type: "search", class: "ui-input", placeholder: T.search, "aria-label": T.search });
+        filter.addEventListener("input", function () {
+          var q = filter.value.toLowerCase();
+          Array.prototype.forEach.call(tsel.options, function (o) { o.hidden = q && o.text.toLowerCase().indexOf(q) < 0; });
+        });
+        wrap.appendChild(filter);
+      }
+      if (n.type !== "categories") tsel.appendChild(el("option", { value: "" }, "—"));
+      var known = false;
+      opts.forEach(function (o) {
+        var op = el("option", { value: o.value }, o.label);
+        if (o.value === n.target) { op.selected = true; known = true; }
+        tsel.appendChild(op);
+      });
+      if (n.target && !known) { var keep = el("option", { value: n.target }, n.target); keep.selected = true; tsel.appendChild(keep); }
+      tsel.addEventListener("change", function () {
+        n.target = tsel.value;
+        var hit = opts.filter(function (o) { return o.value === n.target; })[0];
+        if (hit && (!n.label || n.label === T.newItem)) { n.label = hit.label.replace(/^(— )+/, ""); label.value = n.label; }
+        markDirty(); renderTrees();
+      });
+      wrap.appendChild(tsel);
+      body.appendChild(field(T.target, wrap));
+    } else if (kd.input) {
+      var ti = el("input", { type: "text", class: "ui-input", value: n.target || "", placeholder: kd.input });
+      ti.addEventListener("input", function () { n.target = ti.value.trim(); markDirty(); renderTrees(); });
+      body.appendChild(field(T.target, ti));
+    }
+    function check(text, on, fn) {
+      var l = el("label", { class: "flex items-center gap-2 text-sm" });
+      var c = el("input", { type: "checkbox" }); c.checked = !!on;
+      c.addEventListener("change", function () { fn(c.checked); markDirty(); renderTrees(); });
+      l.appendChild(c); l.appendChild(document.createTextNode(text));
+      body.appendChild(l);
+    }
+    if (n.type === "category" && side === "top") check(T.autoSubs, n.auto, function (v) { if (v) n.auto = true; else delete n.auto; });
+    if (n.type === "categories") check(T.combos, n.with_combos, function (v) { if (v) n.with_combos = true; else delete n.with_combos; });
+
+    // иконка
+    var icons = el("div", { class: "flex flex-wrap gap-1", role: "group", "aria-label": T.icon });
+    ICONS.forEach(function (ic) {
+      var b = el("button", { type: "button", class: "w-9 h-9 rounded-lg border text-base " + ((n.icon || "") === ic ? "border-indigo-500 bg-indigo-50" : "border-gray-200"), "aria-pressed": (n.icon || "") === ic ? "true" : "false", title: ic || "—" }, ic || "∅");
+      b.addEventListener("click", function () { n.icon = ic; markDirty(); renderTrees(); renderPanel(); });
+      icons.appendChild(b);
+    });
+    var iw = el("div", {}); iw.appendChild(el("p", { class: "block text-sm font-medium mb-1" }, T.icon)); iw.appendChild(icons);
+    body.appendChild(iw);
+
+    if (side === "top") {
+      var imgWrap = el("div", { class: "space-y-1.5" });
+      var url = el("input", { type: "text", class: "ui-input", value: n.image || "", placeholder: "/media/…", "aria-label": T.imageUrl });
+      url.addEventListener("input", function () { if (url.value.trim()) n.image = url.value.trim(); else delete n.image; markDirty(); });
+      if (D.media.length) {
+        var grid = el("div", { class: "flex flex-wrap gap-1.5 max-h-40 overflow-y-auto" });
+        var none = el("button", { type: "button", class: "w-12 h-12 rounded-lg border text-xs " + (!n.image ? "border-indigo-500" : "border-gray-200") }, T.noImage);
+        none.addEventListener("click", function () { delete n.image; markDirty(); renderPanel(); });
+        grid.appendChild(none);
+        D.media.forEach(function (m) {
+          var b = el("button", { type: "button", class: "w-12 h-12 rounded-lg overflow-hidden border-2 " + (n.image === m ? "border-indigo-500" : "border-transparent"), "aria-label": T.image, "aria-pressed": n.image === m ? "true" : "false" });
+          b.appendChild(el("img", { src: m, alt: "", class: "w-full h-full object-cover", loading: "lazy" }));
+          b.addEventListener("click", function () { n.image = m; markDirty(); renderPanel(); });
+          grid.appendChild(b);
+        });
+        imgWrap.appendChild(grid);
+      }
+      imgWrap.appendChild(url);
+      body.appendChild(field(T.image, imgWrap));
+      var desc = el("textarea", { class: "ui-input", rows: 2, maxLength: 120 });
+      desc.value = n.desc || "";
+      desc.addEventListener("input", function () { if (desc.value.trim()) n.desc = desc.value; else delete n.desc; markDirty(); });
+      body.appendChild(field(T.desc, desc));
+    }
+
+    if (top) {
+      var lw = el("fieldset", { class: "space-y-1.5" });
+      lw.appendChild(el("legend", { class: "text-sm font-medium mb-1" }, T.layout));
+      var g = el("div", { class: "grid grid-cols-2 gap-2" });
+      LAYOUTS.forEach(function (L) {
+        var on = (n.layout || "") === L.k;
+        var lab = el("label", { class: "rounded-xl border p-2 cursor-pointer text-xs " + (on ? "border-indigo-500 bg-indigo-50" : "border-gray-200"), "data-layout-choice": L.k });
+        var r = el("input", { type: "radio", name: "mp-layout", value: L.k, class: "sr-only" }); r.checked = on;
+        r.addEventListener("change", function () { if (L.k) n.layout = L.k; else delete n.layout; markDirty(); renderPanel(); });
+        lab.appendChild(r);
+        lab.appendChild(el("span", { class: "block font-semibold text-sm" }, L.label));
+        lab.appendChild(el("span", { class: "block ui-muted" }, L.hint));
+        g.appendChild(lab);
+      });
+      lw.appendChild(g);
+      body.appendChild(lw);
+    }
+    var need = el("p", { class: "text-sm text-amber-700", role: "status", id: "mp-need" }, T.needTarget);
+    need.hidden = !needsTarget(n);
+    body.appendChild(need);
   }
 
-  function render() {
-    elTop.innerHTML = ""; elBottom.innerHTML = "";
-    M.top.items.forEach(function (n) { elTop.appendChild(row(n, "top", false)); });
-    M.bottom.items.forEach(function (n) { elBottom.appendChild(row(n, "bottom", false)); });
+  function renderTrees() {
+    renderList("top", document.getElementById("tree-top"), M.top.items, null, 1);
+    renderList("bottom", document.getElementById("tree-bottom"), M.bottom.items, null, 1);
+    renderFooter();
+    var need = document.getElementById("mp-need");
+    if (need && sel) need.hidden = !needsTarget(sel.node);  // предупреждение гаснет при вводе цели
   }
+  function render() { renderTrees(); renderPanel(); }
 
-  D.styles.forEach(function (s) { styleSel.appendChild(opt(s, s, M.top.style)); });
-  stickyCb.checked = M.top.sticky !== false;
-  bottomCb.checked = !!M.bottom.enabled;
-
-  document.querySelectorAll("[data-add]").forEach(function (b) {
+  // вкладки
+  document.querySelectorAll("[data-tab]").forEach(function (b) {
     b.addEventListener("click", function () {
-      syncFromDom();
-      (b.dataset.add === "top" ? M.top.items : M.bottom.items).push(blankNode());
+      tab = b.dataset.tab; sel = null;
+      document.querySelectorAll("[data-tab]").forEach(function (x) { x.setAttribute("aria-selected", x === b ? "true" : "false"); });
+      document.querySelectorAll("[data-pane]").forEach(function (p) { p.hidden = p.dataset.pane !== tab; });
       render();
     });
   });
-
-  // MEN-15: готовый узел «Kategorien» — подпись по умолчанию и авто-дети.
-  var addCats = document.getElementById("add-categories");
-  if (addCats) addCats.addEventListener("click", function () {
-    syncFromDom();
-    M.top.items.push({
-      // Ревью MEN-15: подпись пункта — ДАННЫЕ витрины, а её базовый язык
-      // немецкий (`menu._node_label` переводит известные подписи на язык
-      // посетителя). Перевод на язык КАБИНЕТА записал бы в конфиг, например,
-      // русское слово, и витрина показывала бы его всем языкам.
-      label: "Kategorien", type: "categories", target: "",
-      enabled: true, icon: "", children: []
+  document.querySelectorAll("[data-add]").forEach(function (b) {
+    b.addEventListener("click", function () {
+      var list = listFor(b.dataset.add);
+      if (list.length >= D.max_items) return;
+      var n = blank(); list.push(n); sel = { side: b.dataset.add, node: n }; markDirty(); render();
     });
-    render();
   });
+  document.getElementById("from-categories").addEventListener("click", function () {
+    (D.category_parents || []).forEach(function (c) {
+      if (!c.value || M.top.items.length >= D.max_items) return;
+      var exists = M.top.items.some(function (x) { return x.type === "category" && x.target === c.value; });
+      if (!exists) M.top.items.push({ label: c.label, type: "category", target: c.value, auto: true, enabled: true, icon: "", children: [] });
+    });
+    markDirty(); render();
+  });
+  document.getElementById("add-column").addEventListener("click", function () {
+    M.footer.columns.push({ label: "", items: [] }); markDirty(); render();
+  });
+  var styleSel = document.getElementById("top-style"), stickyCb = document.getElementById("top-sticky"), bottomCb = document.getElementById("bottom-enabled");
+  styleSel.value = M.top.style || "classic";
+  stickyCb.checked = M.top.sticky !== false;
+  bottomCb.checked = !!M.bottom.enabled;
+  styleSel.addEventListener("change", function () { M.top.style = styleSel.value; markDirty(); });
+  stickyCb.addEventListener("change", function () { M.top.sticky = stickyCb.checked; markDirty(); });
+  bottomCb.addEventListener("change", function () { M.bottom.enabled = bottomCb.checked; markDirty(); });
 
   document.getElementById("menu-form").addEventListener("submit", function () {
-    syncFromDom();
-    document.getElementById("menus_json").value = JSON.stringify(M);
+    dirty = false;
+    document.getElementById("menus_json").value = JSON.stringify({ top: M.top, bottom: M.bottom, footer: M.footer });
   });
-
+  window.addEventListener("beforeunload", function (e) { if (dirty) { e.preventDefault(); e.returnValue = T.leave; } });
   render();
 })();
 </script>

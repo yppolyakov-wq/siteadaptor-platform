@@ -35352,3 +35352,144 @@ msgstr "Не удалось загрузить фото из Telegram. Загр�
 
 msgid "Nicht alle Fotos aus Telegram konnten übernommen werden."
 msgstr "Не все фото из Telegram удалось перенести."
+
+msgid "(ohne Namen)"
+msgstr "(без названия)"
+
+msgid "Als Unterpunkt einrücken"
+msgstr "Сделать подпунктом"
+
+msgid "Ansicht des Untermenüs"
+msgstr "Вид подменю"
+
+msgid "Auch Menüs & Pakete zeigen"
+msgstr "Показывать также меню и наборы"
+
+msgid "Bereiche links, Unterpunkte rechts"
+msgstr "Разделы слева, подпункты справа"
+
+msgid "Bild"
+msgstr "Изображение"
+
+msgid "Bild-Adresse"
+msgstr "Адрес изображения"
+
+msgid "Bilder mit Text"
+msgstr "Картинки с текстом"
+
+msgid "Bitte ein Ziel wählen — sonst erscheint der Punkt nicht."
+msgstr "Выберите цель — иначе пункт не появится."
+
+msgid "Das Menü konnte nicht gespeichert werden."
+msgstr "Не удалось сохранить меню."
+
+msgid "Eigene untere Leiste verwenden (sonst automatisch)"
+msgstr "Своя нижняя панель (иначе автоматическая)"
+
+msgid "Ein-/ausblenden"
+msgstr "Показать/скрыть"
+
+msgid "Eine Ebene höher"
+msgstr "На уровень выше"
+
+msgid "Einfache Liste"
+msgstr "Простой список"
+
+msgid "Fußzeile"
+msgstr "Подвал"
+
+msgid "Kacheln, wenn Unterpunkte Bilder haben, sonst Liste"
+msgstr "Плитки, если у подпунктов есть фото, иначе список"
+
+msgid "Kein Bild"
+msgstr "Без фото"
+
+msgid "Kopfzeile"
+msgstr "Шапка"
+
+msgid "Kopfzeile bleibt oben"
+msgstr "Шапка закреплена сверху"
+
+msgid "Kurzer Text"
+msgstr "Короткий текст"
+
+msgid "Mega"
+msgstr "Мега"
+
+msgid "Menü aus Kategorien"
+msgstr "Меню из категорий"
+
+msgid "Menü-Bereiche"
+msgstr "Разделы меню"
+
+msgid "Nach oben"
+msgstr "Выше"
+
+msgid "Nach unten"
+msgstr "Ниже"
+
+msgid "Punkt"
+msgstr "Пункт"
+
+msgid "Runde Bilder unter der Kopfzeile"
+msgstr "Круглые фото под шапкой"
+
+msgid "Spalte"
+msgstr "Колонка"
+
+msgid "Spalte löschen"
+msgstr "Удалить колонку"
+
+msgid "Spalten mit Links und Banner"
+msgstr "Колонки ссылок и баннер"
+
+msgid "Spalten mit Links unter der Website. Ohne Spalten bleibt die Fußzeile wie bisher (Adresse, Öffnungszeiten, Rechtliches)."
+msgstr "Колонки ссылок внизу сайта. Без колонок подвал остаётся прежним (адрес, часы работы, правовая информация)."
+
+msgid "Spaltentitel"
+msgstr "Заголовок колонки"
+
+msgid "Suchen …"
+msgstr "Поиск …"
+
+msgid "Symbolleiste"
+msgstr "Полоса значков"
+
+msgid "Tour"
+msgstr "Тур"
+
+msgid "Ungespeicherte Änderungen"
+msgstr "Несохранённые изменения"
+
+msgid "Ungespeicherte Änderungen gehen verloren."
+msgstr "Несохранённые изменения будут потеряны."
+
+msgid "Untere Leiste (Handy)"
+msgstr "Нижняя панель (телефон)"
+
+msgid "Unterkategorien automatisch anzeigen"
+msgstr "Показывать подкатегории автоматически"
+
+msgid "Unterpunkt hinzufügen"
+msgstr "Добавить подпункт"
+
+msgid "Vorschau (gespeicherter Stand)"
+msgstr "Предпросмотр (сохранённая версия)"
+
+msgid "Vorschau der Website"
+msgstr "Предпросмотр сайта"
+
+msgid "Wohin führt der Punkt?"
+msgstr "Куда ведёт пункт?"
+
+msgid "Wählen Sie links einen Punkt, um ihn zu bearbeiten."
+msgstr "Выберите пункт слева, чтобы его изменить."
+
+msgid "Zentriert"
+msgstr "По центру"
+
+msgid "Ziehen Sie Punkte an eine neue Stelle — auf die Mitte eines Punktes gezogen wird er zum Unterpunkt. Bis zu drei Ebenen."
+msgstr "Перетаскивайте пункты на новое место — брошенный на середину другого пункта становится подпунктом. До трёх уровней."
+
+msgid "Übersetzungen"
+msgstr "Переводы"

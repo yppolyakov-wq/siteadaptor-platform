@@ -338,6 +338,20 @@
     {% comment %}MA-L: data-sf-footer-inner — нижний запас на телефоне под плавающие кнопки и
     панель покупки задаёт app.css (иначе они закрывали ссылки права).{% endcomment %}
     <div class="{{ storefront_page_width|default:'max-w-screen-2xl' }} mx-auto px-4 py-6 text-xs text-gray-500 space-y-3" data-sf-footer-inner>
+      {% comment %}FB-23d: колонки ссылок из «Website › Menü › Fußzeile»; без колонок блока нет
+      (подвал прежний). Правовая строка ниже остаётся всегда (Impressum — обязателен).{% endcomment %}
+      {% if storefront_footer_menu %}
+      <nav aria-label="{% trans "Fußzeile" %}" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-x-6 gap-y-4 pb-3 text-sm" data-footer-columns>
+        {% for col in storefront_footer_menu %}
+        <div class="min-w-0">
+          {% if col.label %}<p class="font-semibold text-gray-800 mb-2">{{ col.label }}</p>{% endif %}
+          <ul class="space-y-1.5">
+            {% for link in col.items %}<li><a href="{{ link.url }}" class="text-gray-600 hover:text-gray-900 hover:underline inline-flex items-center gap-1.5">{% include "storefront/menu/_icon.html" with node=link %}{{ link.label }}</a></li>{% endfor %}
+          </ul>
+        </div>
+        {% endfor %}
+      </nav>
+      {% endif %}
       {# H1.2: тэглайн подвала — правится инлайн на канве; пустой скрыт на публичной, виден/правится под ?preview=1. #}
       {% if storefront_footer_text or request.GET.preview == '1' %}<p class="text-sm text-gray-600 whitespace-pre-line max-w-2xl" data-edit="footer_text">{{ storefront_footer_text }}</p>{% endif %}
       {% if request.tenant %}
