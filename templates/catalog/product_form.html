@@ -270,7 +270,7 @@ main-колонка + правая колонка «Preis & Bestand»/«Kategori
             {% for a in axis_rows %}
             <label class="flex items-center gap-1 rounded-full border border-gray-200 px-3 py-1"><input type="checkbox" name="axes" value="{{ a.code }}" {% if a.on %}checked{% endif %} class="rounded border-gray-300"> {{ a.label }}</label>
             {% endfor %}
-            <a href="{% url 'catalog:option-list' %}" class="text-indigo-600 text-xs self-center">{% trans "Weitere Optionen anlegen" %} →</a>
+            {% if 'catalog:option-list'|pkg_allowed:request.tenant %}<a href="{% url 'catalog:option-list' %}" class="text-indigo-600 text-xs self-center">{% trans "Weitere Optionen anlegen" %} →</a>{% endif %}
           </div>
         </fieldset>
         <button class="ui-btn ui-btn-secondary mt-2">{% trans "Optionen übernehmen" %}</button>

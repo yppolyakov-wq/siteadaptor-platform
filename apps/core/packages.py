@@ -128,6 +128,7 @@ _AKTIONEN_VIEWS = frozenset(
         "catalog:product-image-delete",
         "catalog:product-image-primary",
         "catalog:variant-*",
+        "catalog:product-axes",  # FB-24: оси вариантов — часть вкладки «Varianten»
         "catalog:modifier-*",
         # Kunden & Nachrichten (без Sofort-Angebot: он создаёт заказ — продажа вне пакета)
         "inbox:list",
