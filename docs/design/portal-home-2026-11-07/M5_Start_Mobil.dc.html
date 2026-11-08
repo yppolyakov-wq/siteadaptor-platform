@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>SolingenMarkt – Startseite mobil</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#C2410C;text-decoration:none}a:hover{color:#9A3412}
+</style>
+</helmet>
+<div style="width: 390px; height: 2780px; box-sizing: border-box; overflow: hidden; background: #FFFFFF; font-family: Inter, system-ui, sans-serif; color: #111827; display: flex; flex-direction: column; position: relative">
+  <header style="background: #FFFFFF; padding: 10px 16px 12px; display: flex; flex-direction: column; gap: 10px; border-bottom: 1px solid #E5E7EB">
+    <div style="display: flex; align-items: center; gap: 10px">
+      <button type="button" aria-label="Kategorien" style="width: 44px; height: 44px; border: 0; border-radius: 50%; background: #C2410C; color: #FFFFFF; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+      <span style="display: flex; flex-direction: column"><span style="font-weight: 800; font-size: 19px; letter-spacing: -0.02em">Solingen<span style="color: #C2410C">Markt</span></span><span style="font-size: 11px; color: #4B5563">Alles aus der Klingenstadt</span></span>
+      <button type="button" aria-label="Sprache: Deutsch" style="margin-left: auto; height: 40px; border: 1px solid #D1D5DB; border-radius: 999px; background: #FFFFFF; padding: 0 12px; font: 600 13px Inter, sans-serif; color: #374151">DE ▾</button>
+    </div>
+    <form role="search" style="margin: 0">
+      <button type="button" style="width: 100%; display: flex; align-items: center; gap: 12px; border: 2px solid #111827; border-radius: 999px; background: #FFFFFF; padding: 6px 6px 6px 18px; min-height: 58px; box-sizing: border-box; box-shadow: 0 4px 14px rgba(0,0,0,.08); text-align: left; font-family: Inter, sans-serif">
+        <span style="flex: 1; display: flex; flex-direction: column; min-width: 0"><b style="font-size: 15px; color: #111827">Was suchen Sie?</b><span style="font-size: 12px; color: #4B5563">Ganz Solingen · Jetzt</span></span>
+        <span aria-hidden="true" style="width: 44px; height: 44px; border-radius: 50%; background: #C2410C; display: flex; align-items: center; justify-content: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></span>
+      </button>
+    </form>
+  </header>
+
+  <div style="padding: 12px 16px 0; display: flex; flex-direction: column; gap: 10px">
+    <h1 style="margin: 0; font-size: 20px; letter-spacing: -0.01em">Heute in Solingen</h1>
+    <nav aria-label="Schnellfilter" style="display: flex; gap: 8px; overflow: hidden">
+      <sc-for list="{{chips}}" as="c" hint-placeholder-count="5">
+        <a href="#" style="flex: 0 0 auto; display: flex; align-items: center; gap: 6px; border: 1px solid #D1D5DB; border-radius: 999px; padding: 0 14px; min-height: 40px; font-size: 14px; font-weight: 600; color: #111827"><span style="width: 8px; height: 8px; border-radius: 50%; background: {{c.dot}}"></span>{{c.t}}</a>
+      </sc-for>
+    </nav>
+  </div>
+
+  <section aria-labelledby="slide-h" style="padding: 12px 16px 0">
+    <div style="position: relative; height: 196px; border-radius: 20px; overflow: hidden; background: #111827">
+      <img src="/_blob/d648274a4c4401071d4ca5a78902aa8e" alt="" style="width: 100%; height: 100%; object-fit: cover; display: block; opacity: .9">
+      <span style="position: absolute; inset: 0; background: linear-gradient(90deg, rgba(17,24,39,.88) 0%, rgba(17,24,39,.55) 60%, rgba(17,24,39,.1) 100%)"></span>
+      <div style="position: absolute; left: 16px; right: 16px; top: 16px; bottom: 16px; display: flex; flex-direction: column; gap: 6px; color: #FFFFFF">
+        <span style="align-self: flex-start; background: #FCD34D; color: #111827; font-size: 11px; font-weight: 800; letter-spacing: .05em; padding: 3px 9px; border-radius: 999px">DEAL DES TAGES</span>
+        <p id="slide-h" style="margin: 0; font-size: 22px; font-weight: 800; line-height: 1.15">Feierabendtüte −50 %</p>
+        <span style="font-size: 13px; color: #E5E7EB">Klingenbrot · Mitte · ab 17 Uhr, noch 6</span>
+        <a href="#" style="margin-top: auto; align-self: flex-start; background: #FFFFFF; color: #111827; border-radius: 999px; padding: 0 16px; min-height: 40px; display: flex; align-items: center; font-size: 14px; font-weight: 700">Jetzt zurücklegen</a>
+      </div>
+    </div>
+    <div style="display: flex; justify-content: center; gap: 4px; padding-top: 6px" role="group" aria-label="Folien">
+      <sc-for list="{{dots}}" as="d" hint-placeholder-count="5">
+        <button type="button" aria-label="{{d.l}}" aria-current="{{d.cur}}" style="width: 24px; height: 24px; border: 0; background: transparent; padding: 0; display: flex; align-items: center; justify-content: center"><span style="{{d.s}}"></span></button>
+      </sc-for>
+    </div>
+  </section>
+
+  <section aria-label="Für heute" style="padding: 8px 0 0">
+    <div style="display: flex; gap: 12px; padding: 0 16px; overflow: hidden">
+      <sc-for list="{{quads}}" as="q" hint-placeholder-count="3">
+        <div role="group" aria-label="{{q.t}}" style="flex: 0 0 296px; background: {{q.bg}}; border-radius: 20px; padding: 14px; box-sizing: border-box; display: flex; flex-direction: column; gap: 10px">
+          <h2 style="margin: 0; font-size: 17px">{{q.t}}</h2>
+          <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+            <sc-for list="{{q.items}}" as="i" hint-placeholder-count="4">
+              <a href="#" style="display: flex; flex-direction: column; gap: 4px; color: #111827">
+                <span style="position: relative; display: block; aspect-ratio: 4 / 3; border-radius: 12px; overflow: hidden; background: #FFFFFF"><img src="{{i.img}}" alt="" style="width: 100%; height: 100%; object-fit: cover; display: block"><sc-if value="{{i.b}}" hint-placeholder-val="{{ false }}"><span style="position: absolute; left: 6px; top: 6px; background: #C2410C; color: #FFFFFF; font-size: 11px; font-weight: 800; padding: 2px 7px; border-radius: 999px">{{i.b}}</span></sc-if></span>
+                <span style="font-size: 13px; font-weight: 600; line-height: 1.25">{{i.t}}</span>
+              </a>
+            </sc-for>
+          </div>
+          <a href="#" style="font-size: 14px; font-weight: 700">{{q.more}} →</a>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <section aria-labelledby="best-h" style="padding: 26px 16px 0; display: flex; flex-direction: column; gap: 12px">
+    <h2 id="best-h" style="margin: 0; font-size: 20px">Das Beste aus jedem Bereich</h2>
+    <sc-for list="{{best}}" as="b" hint-placeholder-count="3">
+      <div style="border: 1px solid #E5E7EB; border-radius: 18px; padding: 12px; display: flex; flex-direction: column; gap: 6px">
+        <a href="#" style="display: flex; align-items: center; gap: 10px; color: #111827; min-height: 44px">
+          <img src="{{b.img}}" alt="" style="width: 44px; height: 44px; border-radius: 12px; object-fit: cover">
+          <b style="flex: 1; font-size: 16px">{{b.t}}</b>
+          <span style="font-size: 13px; color: #4B5563">{{b.n}}</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C2410C" stroke-width="2.4" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+        </a>
+        <sc-for list="{{b.rows}}" as="r" hint-placeholder-count="3">
+          <a href="#" style="display: flex; align-items: center; gap: 10px; border-top: 1px solid #F3F4F6; padding-top: 8px; min-height: 44px; color: #111827">
+            <span aria-hidden="true" style="width: 8px; height: 8px; border-radius: 50%; background: {{r.dot}}; flex: 0 0 auto"></span>
+            <span style="flex: 1; min-width: 0; display: flex; flex-direction: column"><span style="font-size: 14px; font-weight: 600">{{r.t}}</span><span style="font-size: 12px; color: #4B5563">{{r.s}}</span></span>
+            <b style="font-size: 15px">{{r.p}}</b>
+          </a>
+        </sc-for>
+      </div>
+    </sc-for>
+    <a href="#" style="align-self: stretch; text-align: center; border: 1px solid #111827; border-radius: 999px; min-height: 46px; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700; color: #111827">Alle 15 Bereiche</a>
+  </section>
+
+  <section aria-labelledby="shops-h" style="padding: 26px 0 0; display: flex; flex-direction: column; gap: 10px">
+    <div style="padding: 0 16px; display: flex; align-items: baseline"><h2 id="shops-h" style="margin: 0; font-size: 20px">Geschäfte in Solingen</h2><a href="#" style="margin-left: auto; font-size: 14px; font-weight: 600">Alle →</a></div>
+    <div style="display: flex; gap: 12px; padding: 0 16px; overflow: hidden">
+      <sc-for list="{{shops}}" as="s" hint-placeholder-count="3">
+        <a href="#" style="flex: 0 0 160px; display: flex; flex-direction: column; gap: 4px; color: #111827">
+          <img src="{{s.img}}" alt="" style="width: 160px; height: 120px; border-radius: 16px; object-fit: cover; display: block">
+          <b style="font-size: 14px">{{s.t}}</b>
+          <span style="font-size: 12px; color: #4B5563">{{s.s}}</span>
+          <span style="font-size: 12px; font-weight: 700; color: #047857">{{s.n}}</span>
+        </a>
+      </sc-for>
+    </div>
+  </section>
+
+  <section aria-labelledby="top-h" style="padding: 26px 16px 0; display: flex; flex-direction: column; gap: 12px">
+    <h2 id="top-h" style="margin: 0; font-size: 20px">Top-Aktionen</h2>
+    <sc-for list="{{tops}}" as="t" hint-placeholder-count="2">
+      <article style="display: flex; gap: 12px; border: 1px solid #E5E7EB; border-radius: 18px; padding: 10px">
+        <span style="position: relative; flex: 0 0 auto"><img src="{{t.img}}" alt="" style="width: 112px; height: 112px; border-radius: 12px; object-fit: cover; display: block"><span style="position: absolute; left: 6px; top: 6px; background: #C2410C; color: #FFFFFF; font-size: 12px; font-weight: 800; padding: 2px 8px; border-radius: 999px">{{t.badge}}</span></span>
+        <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px">
+          <span style="font-size: 12px; color: #4B5563">{{t.shop}} · {{t.area}}</span>
+          <a href="#" style="font-size: 15px; font-weight: 700; color: #111827; line-height: 1.25">{{t.t}}</a>
+          <span style="font-size: 12px; font-weight: 600; color: {{t.fc}}">{{t.fact}}</span>
+          <span style="margin-top: auto; display: flex; align-items: baseline; gap: 6px"><b style="font-size: 18px">{{t.p}}</b><s style="font-size: 12px; color: #4B5563">{{t.old}}</s></span>
+        </span>
+      </article>
+    </sc-for>
+  </section>
+
+  <footer style="margin-top: 32px; background: #111827; color: #E5E7EB; padding: 22px 16px 110px; display: flex; flex-direction: column; gap: 4px">
+    <span style="font-weight: 800; font-size: 18px; color: #FFFFFF">Solingen<span style="color: #FDBA74">Markt</span></span>
+    <span style="font-size: 13px; color: #D1D5DB; padding-bottom: 10px">Lokale Angebote aus allen Stadtteilen.</span>
+    <sc-for list="{{foot}}" as="f" hint-placeholder-count="4">
+      <details style="border-top: 1px solid #374151"><summary style="min-height: 48px; display: flex; align-items: center; font-size: 15px; font-weight: 700; color: #FFFFFF; cursor: pointer">{{f}}</summary></details>
+    </sc-for>
+    <div style="display: flex; flex-wrap: wrap; gap: 8px; padding-top: 12px; border-top: 1px solid #374151">
+      <sc-for list="{{langs}}" as="l" hint-placeholder-count="5"><a href="#" style="min-width: 44px; min-height: 36px; display: flex; align-items: center; justify-content: center; border: 1px solid #4B5563; border-radius: 999px; font-size: 13px; font-weight: 700; color: #FFFFFF">{{l}}</a></sc-for>
+    </div>
+    <span style="font-size: 12px; color: #9CA3AF; padding-top: 10px">Impressum · Datenschutz · Für Unternehmen</span>
+  </footer>
+
+  <nav aria-label="Navigation" style="position: absolute; left: 12px; right: 12px; top: 770px; background: #111827; border-radius: 24px; padding: 6px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); box-shadow: 0 10px 24px rgba(0,0,0,.25)">
+    <sc-for list="{{tabs}}" as="t" hint-placeholder-count="4">
+      <a href="#" aria-current="{{t.cur}}" style="{{t.s}}"><span style="font-size: 11px; font-weight: 700">{{t.t}}</span></a>
+    </sc-for>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":2780}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const B = '/_blob/', G = '#047857', A = '#B45309', X = '#9CA3AF';
+    const it = (img, t, b) => ({ img: B+img, t, b });
+    const row = (t, s, p, dot) => ({ t, s, p, dot });
+    const lbl = ['Deal des Tages', 'Ihr Geschäft in Solingen', 'Wochenende', 'Neu in Solingen', 'Regional'];
+    return {
+      chips: [{ t: 'Jetzt offen', dot: G }, { t: 'Endet heute', dot: '#B91C1C' }, { t: 'Neu', dot: '#1D4ED8' }, { t: 'Wochenende', dot: '#6D28D9' }, { t: 'In der Nähe', dot: '#374151' }],
+      dots: lbl.map((l, i) => ({ l: 'Folie ' + (i + 1) + ': ' + l, cur: i === 0 ? 'true' : 'false', s: 'display:block;height:8px;border-radius:4px;' + (i === 0 ? 'width:22px;background:#111827' : 'width:8px;background:#9CA3AF') })),
+      quads: [
+        { t: 'Endet heute', bg: '#FEF2F2', more: 'Alle 9 bis heute Abend', items: [it('d648274a4c4401071d4ca5a78902aa8e', 'Feierabendtüte', '−50 %'), it('ba2fda82e9bb03bde9d5f6620c7b73f4', 'Termin 14–17 Uhr', '−20 %'), it('1a9f5aed8fd7ca238974cdc49931468f', 'MHD-Joghurt', '−40 %'), it('b6b8e6b3e5f638e21a9cc342057ef0f4', 'Suppe des Tages', '')] },
+        { t: 'Jetzt geöffnet', bg: '#ECFDF5', more: 'Alle 96 offenen', items: [it('4865b863ef9aa474b10bf70621e51ca9', 'Pizza-Familienpaket', ''), it('620363281e997d3d7a8ce36409726bcb', 'E-Bike-Verleih', ''), it('3d93fa50ae038d6dba492c5ba65525c2', 'Tiramisu', ''), it('0e59404bf9c844759892f46ea4ad7c9e', 'Kugel-Montag', '')] },
+        { t: 'Am Wochenende', bg: '#F5F3FF', more: 'Wochenende ansehen', items: [it('727b724abb015feeb7630cb82099d25f', 'Kinderkino So 16:00', ''), it('ebdd95c0705f1927cf7fc15fb8586bd2', 'Wupper-Wanderung', ''), it('45be92b64a3a1c78934c0dd2522248e4', 'Brunch-Korb', ''), it('c10d082d8cfce1a4ef0815de646cb2b9', 'Kurztrip Burg', '')] }
+      ],
+      best: [
+        { img: B+'508fdfe870cd29b59a4e87aba6b48850', t: 'Lebensmittel', n: '66', rows: [row('Feierabendtüte −50 %', 'Klingenbrot · Mitte · bis 18:00', '5,00 €', G), row('MHD-Joghurt −40 %', 'Hofladen Wupperhof · Ohligs', '1,50 €', G), row('Bergkäse am Stück', 'Feinkost am Markt · öffnet 14:00', '3,20 €', A)] },
+        { img: B+'b6b8e6b3e5f638e21a9cc342057ef0f4', t: 'Gastronomie', n: '65', rows: [row('Mittagstisch: Suppe', 'Café Ohligser Eck · bis 15:00', '6,50 €', G), row('2 Pizzen + Salat', 'Pizzabote · Burg · liefert', '24,90 €', G), row('Affogato', 'Eiscafé Gelatino · öffnet So', '3,90 €', X)] },
+        { img: B+'12e55685e50f34ab0e5d675508d6f305', t: 'Mode', n: '63', rows: [row('Winterstiefel −30 %', 'Schuhhaus · Mitte', '69,00 €', G), row('Strickschal Merino', 'Studio Nordwind · Wald', '39,00 €', A), row('Lederhandschuhe', 'Weitwerk · Ohligs', '29,00 €', X)] }
+      ],
+      shops: [
+        { img: B+'45be92b64a3a1c78934c0dd2522248e4', t: 'Backhaus Krume', s: 'Bäckerei · Wald', n: '8 Angebote' },
+        { img: B+'ba2fda82e9bb03bde9d5f6620c7b73f4', t: 'Salon Gräfrath', s: 'Friseur · Gräfrath', n: '5 Termine heute' },
+        { img: B+'c10d082d8cfce1a4ef0815de646cb2b9', t: 'Pension Brückenblick', s: 'Übernachten · Burg', n: '3 Zimmer frei' }
+      ],
+      tops: [
+        { img: B+'4865b863ef9aa474b10bf70621e51ca9', badge: '−18 %', shop: 'Pizzabote Klingenstadt', area: 'Burg', t: 'Familienpaket: 2 Pizzen + Salat', fact: 'Offen bis 23:00 · gültig bis So', fc: G, p: '24,90 €', old: '30,50 €' },
+        { img: B+'620363281e997d3d7a8ce36409726bcb', badge: '−12 %', shop: 'Radverleih Wupperschleife', area: 'Burg', t: 'Familientag: 2 E-Bikes + Anhänger', fact: 'Offen bis 21:00 · noch 5 Tage', fc: A, p: '79,00 €', old: '90,00 €' }
+      ],
+      foot: ['Stadtteile', 'Bereiche', 'Für Unternehmen', 'Über SolingenMarkt'],
+      langs: ['DE', 'EN', 'TR', 'RU', 'UA'],
+      tabs: ['Entdecken', 'Karte', 'Gemerkt', 'Konto'].map((t, i) => ({ t, cur: i === 0 ? 'page' : 'false', s: 'display:flex;align-items:center;justify-content:center;min-height:48px;border-radius:18px;' + (i === 0 ? 'background:#FDBA74;color:#111827' : 'color:#E5E7EB') }))
+    };
+  }
+}
+</script>
+</body>
+</html>

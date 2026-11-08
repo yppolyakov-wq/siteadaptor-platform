@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>SolingenMarkt – Kategorie mobil</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#C2410C;text-decoration:none}a:hover{color:#9A3412}
+</style>
+</helmet>
+<div style="width: 390px; height: 2200px; box-sizing: border-box; overflow: hidden; background: #FFFFFF; font-family: Inter, system-ui, sans-serif; color: #111827; display: flex; flex-direction: column; position: relative">
+  <header style="background: #FFFFFF; padding: 10px 16px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid #E5E7EB">
+    <button type="button" aria-label="Kategorien" onClick="{{open}}" style="width: 44px; height: 44px; flex: 0 0 auto; border: 0; border-radius: 50%; background: #C2410C; color: #FFFFFF; display: flex; align-items: center; justify-content: center; cursor: pointer"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+    <form role="search" style="flex: 1; min-width: 0; margin: 0">
+      <label style="display: flex; align-items: center; gap: 8px; border: 2px solid #111827; border-radius: 999px; padding: 0 6px 0 14px; min-height: 50px; box-sizing: border-box">
+        <span style="position: absolute; width: 1px; height: 1px; overflow: hidden">In Essen &amp; Gastronomie suchen</span>
+        <input type="search" placeholder="In Gastronomie suchen …" style="flex: 1; min-width: 0; border: 0; outline: none; font: 15px Inter, sans-serif; min-height: 36px">
+        <span aria-hidden="true" style="width: 38px; height: 38px; border-radius: 50%; background: #C2410C; display: flex; align-items: center; justify-content: center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></span>
+      </label>
+    </form>
+  </header>
+
+  <div style="padding: 12px 16px 0; display: flex; flex-direction: column; gap: 4px">
+    <nav aria-label="Brotkrumen" style="font-size: 13px; color: #4B5563"><a href="#" style="color: #374151">Startseite</a> <span aria-hidden="true">/</span> Essen &amp; Gastronomie</nav>
+    <h1 style="margin: 0; font-size: 24px; letter-spacing: -0.02em">Essen &amp; Gastronomie</h1>
+    <span style="font-size: 14px; color: #374151"><b>65</b> Angebote · <b style="color: #047857">19 jetzt geöffnet</b></span>
+  </div>
+
+  <section aria-label="Unterbereiche" style="padding: 14px 0 0">
+    <div style="display: flex; gap: 12px; padding: 0 16px; overflow: hidden">
+      <sc-for list="{{subs}}" as="s" hint-placeholder-count="5">
+        <a href="#" style="flex: 0 0 76px; display: flex; flex-direction: column; align-items: center; gap: 4px; color: #111827; text-align: center">
+          <img src="{{s.img}}" alt="" style="width: 72px; height: 72px; border-radius: 20px; object-fit: cover; display: block">
+          <span style="font-size: 12px; font-weight: 700; line-height: 1.2">{{s.t}}</span>
+          <span style="font-size: 11px; color: #4B5563">{{s.n}}</span>
+        </a>
+      </sc-for>
+    </div>
+  </section>
+
+  <div style="position: sticky; top: 0; background: #FFFFFF; padding: 14px 0 10px; display: flex; flex-direction: column; gap: 10px; border-bottom: 1px solid #F3F4F6">
+    <div style="display: flex; gap: 8px; padding: 0 16px; overflow: hidden">
+      <button type="button" style="flex: 0 0 auto; display: flex; align-items: center; gap: 6px; border: 0; background: #111827; color: #FFFFFF; border-radius: 999px; padding: 0 14px; min-height: 42px; font: 700 14px Inter, sans-serif"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>Filter · 1</button>
+      <sc-for list="{{pills}}" as="p" hint-placeholder-count="4">
+        <button type="button" aria-pressed="{{p.on}}" style="{{p.s}}">{{p.t}}</button>
+      </sc-for>
+    </div>
+    <div style="display: flex; align-items: center; padding: 0 16px; font-size: 14px">
+      <label style="display: flex; align-items: center; gap: 6px; color: #4B5563">Sortieren: <select style="border: 0; background: transparent; color: #C2410C; font: 700 14px Inter, sans-serif; min-height: 32px"><option>Jetzt nutzbar zuerst</option><option>Endet bald</option><option>Neueste</option><option>Preis</option></select></label>
+      <div role="group" aria-label="Ansicht" style="margin-left: auto; display: flex; gap: 6px">
+        <button type="button" aria-pressed="true" aria-label="Kacheln" style="width: 40px; height: 40px; border: 1px solid #C2410C; border-radius: 10px; background: #FFF7ED; color: #C2410C"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="1"/><rect x="13" y="4" width="7" height="7" rx="1"/><rect x="4" y="13" width="7" height="7" rx="1"/><rect x="13" y="13" width="7" height="7" rx="1"/></svg></button>
+        <button type="button" aria-pressed="false" aria-label="Liste" style="width: 40px; height: 40px; border: 1px solid #D1D5DB; border-radius: 10px; background: #FFFFFF; color: #374151"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></svg></button>
+      </div>
+    </div>
+  </div>
+
+  <main style="padding: 14px 16px 0; display: flex; flex-direction: column; gap: 18px">
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 12px">
+      <sc-for list="{{cards}}" as="c" hint-placeholder-count="6">
+        <article style="display: flex; flex-direction: column">
+          <div style="position: relative; aspect-ratio: 4 / 3; border-radius: 14px; overflow: hidden; background: #F3F4F6">
+            <img src="{{c.img}}" alt="" style="width: 100%; height: 100%; object-fit: cover; display: block">
+            <div style="position: absolute; left: 6px; top: 6px; display: flex; flex-direction: column; gap: 4px; align-items: flex-start">
+              <sc-if value="{{c.badge}}" hint-placeholder-val="{{ false }}"><span style="background: #C2410C; color: #FFFFFF; font-size: 12px; font-weight: 800; padding: 2px 8px; border-radius: 999px">{{c.badge}}</span></sc-if>
+              <sc-if value="{{c.tag}}" hint-placeholder-val="{{ false }}"><span style="background: {{c.tagBg}}; color: #111827; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px">{{c.tag}}</span></sc-if>
+            </div>
+            <button type="button" aria-label="Merken: {{c.t}}" style="position: absolute; right: 4px; top: 4px; width: 36px; height: 36px; border: 0; border-radius: 50%; background: rgba(255,255,255,.92); display: flex; align-items: center; justify-content: center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#111827" stroke-width="2" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg></button>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 2px; padding-top: 8px; flex: 1">
+            <a href="#" style="color: #111827; font-size: 14px; font-weight: 700; line-height: 1.25; min-height: 36px">{{c.t}}</a>
+            <span style="font-size: 12px; color: #4B5563">{{c.shop}} · {{c.area}}</span>
+            <span style="font-size: 12px; font-weight: 600; color: {{c.sc}}">{{c.status}}</span>
+            <span style="margin-top: auto; padding-top: 4px; display: flex; align-items: baseline; gap: 6px"><b style="font-size: 17px">{{c.p}}</b><s style="font-size: 12px; color: #4B5563">{{c.old}}</s></span>
+          </div>
+        </article>
+      </sc-for>
+    </div>
+
+    <section aria-labelledby="pop-h" style="background: #F9FAFB; border-radius: 18px; padding: 14px; display: flex; flex-direction: column; gap: 6px">
+      <h2 id="pop-h" style="margin: 0 0 4px; font-size: 17px">Geschäfte in dieser Kategorie</h2>
+      <sc-for list="{{shops}}" as="s" hint-placeholder-count="3">
+        <a href="#" style="display: flex; align-items: center; gap: 10px; color: #111827; min-height: 52px"><img src="{{s.img}}" alt="" style="width: 44px; height: 44px; border-radius: 12px; object-fit: cover"><span style="flex: 1; display: flex; flex-direction: column"><b style="font-size: 14px">{{s.t}}</b><span style="font-size: 12px; color: {{s.c}}; font-weight: 600">{{s.s}}</span></span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2.4" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></a>
+      </sc-for>
+    </section>
+
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 12px">
+      <sc-for list="{{cards2}}" as="c" hint-placeholder-count="2">
+        <article style="display: flex; flex-direction: column">
+          <div style="position: relative; aspect-ratio: 4 / 3; border-radius: 14px; overflow: hidden; background: #F3F4F6"><img src="{{c.img}}" alt="" style="width: 100%; height: 100%; object-fit: cover; display: block"></div>
+          <div style="display: flex; flex-direction: column; gap: 2px; padding-top: 8px">
+            <a href="#" style="color: #111827; font-size: 14px; font-weight: 700; line-height: 1.25; min-height: 36px">{{c.t}}</a>
+            <span style="font-size: 12px; color: #4B5563">{{c.shop}} · {{c.area}}</span>
+            <span style="font-size: 12px; font-weight: 600; color: {{c.sc}}">{{c.status}}</span>
+            <b style="font-size: 17px; padding-top: 4px">{{c.p}}</b>
+          </div>
+        </article>
+      </sc-for>
+    </div>
+
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 8px; padding-bottom: 120px">
+      <span style="font-size: 13px; color: #4B5563">8 von 65 angezeigt</span>
+      <button type="button" style="width: 100%; border: 1px solid #111827; background: #FFFFFF; border-radius: 999px; min-height: 48px; font: 700 15px Inter, sans-serif">24 weitere laden</button>
+    </div>
+  </main>
+
+  <sc-if value="{{sheet}}" hint-placeholder-val="{{ true }}">
+  <div style="position: absolute; inset: 0; background: rgba(17,24,39,.5)"></div>
+  <nav role="dialog" aria-modal="true" aria-labelledby="m-cat-h" style="position: absolute; left: 0; top: 0; bottom: 0; width: 330px; background: #FFFFFF; display: flex; flex-direction: column; box-shadow: 10px 0 30px rgba(0,0,0,.2)">
+    <div style="display: flex; align-items: center; padding: 10px 8px 10px 20px; border-bottom: 1px solid #E5E7EB">
+      <h2 id="m-cat-h" style="margin: 0; font-size: 20px; flex: 1">Kategorien</h2>
+      <button type="button" aria-label="Kategorien schließen" onClick="{{close}}" style="width: 44px; height: 44px; border: 0; background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#111827" stroke-width="2.2" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    </div>
+    <div style="padding: 8px 12px; display: flex; flex-direction: column">
+      <sc-for list="{{tree}}" as="c" hint-placeholder-count="12">
+        <a href="#" aria-current="{{c.cur}}" style="{{c.s}}"><span style="flex: 1">{{c.t}}</span><span style="font-size: 12px; background: #F3F4F6; color: #374151; border-radius: 8px; padding: 2px 8px; font-weight: 600">{{c.n}}</span></a>
+      </sc-for>
+    </div>
+  </nav>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":2200}}'>
+class Component extends DCLogic {
+  constructor(p){ super(p); this.state = { sheet: false }; }
+  renderVals() {
+    const B = '/_blob/', G = '#047857', A = '#B45309', X = '#4B5563';
+    const sheet = this.state.sheet;
+    const pd = [['Jetzt geöffnet', true], ['Preis', false], ['Stadtteil', false], ['Lieferung', false], ['Vegetarisch', false]];
+    const pills = pd.map(([t, on]) => ({ t: t + (on ? ' ✓' : ' ▾'), on: on ? 'true' : 'false', s: 'flex:0 0 auto;border:0;border-radius:999px;padding:0 14px;min-height:42px;font:600 14px Inter,sans-serif;' + (on ? 'background:#FFF7ED;color:#9A3412;box-shadow:inset 0 0 0 1px #C2410C' : 'background:#F3F4F6;color:#111827') }));
+    const td = [['Lebensmittel & Getränke', '66', 0], ['Essen & Gastronomie', '65', 1], ['Restaurants', '11', 2], ['Cafés', '19', 2], ['Frühstück', '7', 2], ['Mittagessen', '8', 2], ['Catering', '6', 2], ['Takeaway', '7', 2], ['Lieferservice', '7', 2], ['Mode & Accessoires', '63', 0], ['Freizeit & Erlebnisse', '48', 0], ['Kinder & Familie', '41', 0], ['Beauty & Pflege', '40', 0], ['Alle 15 Bereiche', '670', 0]];
+    const tree = td.map(([t, n, lvl]) => ({ t, n, cur: lvl === 1 ? 'page' : 'false',
+      s: 'display:flex;align-items:center;gap:8px;min-height:44px;font-size:15px;color:#111827;border-radius:10px;' + (lvl === 1 ? 'font-weight:800;background:#FFF7ED;padding-left:10px;' : lvl === 2 ? 'padding-left:26px;' : 'padding-left:10px;') }));
+    const sub = (img, t, n) => ({ img: B+img, t, n });
+    const card = (img, badge, tag, tagBg, t, shop, area, status, sc, p, old) => ({ img: B+img, badge, tag, tagBg, t, shop, area, status, sc, p, old });
+    return {
+      sheet, open: () => this.setState({ sheet: true }), close: () => this.setState({ sheet: false }),
+      pills, tree,
+      subs: [ sub('3d93fa50ae038d6dba492c5ba65525c2', 'Restaurants', '11'), sub('c069bad5ac76b4c30164485d0c45b605', 'Cafés', '19'), sub('45be92b64a3a1c78934c0dd2522248e4', 'Frühstück', '7'), sub('b6b8e6b3e5f638e21a9cc342057ef0f4', 'Mittagessen', '8'), sub('508fdfe870cd29b59a4e87aba6b48850', 'Catering', '6'), sub('0e59404bf9c844759892f46ea4ad7c9e', 'Takeaway', '7') ],
+      cards: [
+        card('b6b8e6b3e5f638e21a9cc342057ef0f4', '', 'Endet heute', '#FECACA', 'Mittagstisch: Suppe des Tages', 'Café Ohligser Eck', 'Ohligs', 'Geöffnet bis 15:00', G, '6,50 €', ''),
+        card('4865b863ef9aa474b10bf70621e51ca9', '−18 %', 'Beliebt', '#EDE9FE', 'Familienpaket: 2 Pizzen + Salat', 'Pizzabote', 'Burg', 'Bis 23:00 · liefert', G, '24,90 €', '30,50 €'),
+        card('c069bad5ac76b4c30164485d0c45b605', '', 'Neu', '#BFDBFE', 'Frühstück für Zwei', 'Café Morgenrot', 'Mitte', 'Geöffnet bis 14:00', G, '18,90 €', ''),
+        card('3d93fa50ae038d6dba492c5ba65525c2', '', '', '', 'Tiramisu zum Mitnehmen', 'Trattoria Lumetto', 'Mitte', 'Geöffnet bis 23:00', G, '6,90 €', ''),
+        card('44c38039eaec9144f7566345c54d5d93', '−22 %', '', '', 'Cappuccino + Croissant', 'Kaffeehaus Kronprinz', 'Mitte', 'nur noch heute', A, '4,20 €', '5,40 €'),
+        card('45be92b64a3a1c78934c0dd2522248e4', '', '', '', 'Sonntagsbrunch-Korb für 2', 'Backhaus Krume', 'Wald', 'noch 2 Körbe · So 8–11', A, '24,00 €', '')
+      ],
+      shops: [
+        { img: B+'c069bad5ac76b4c30164485d0c45b605', t: 'Café Morgenrot', s: 'neu · offen bis 18:00', c: G },
+        { img: B+'3d93fa50ae038d6dba492c5ba65525c2', t: 'Trattoria Lumetto', s: 'offen bis 23:00', c: G },
+        { img: B+'0e59404bf9c844759892f46ea4ad7c9e', t: 'Eiscafé Gelatino', s: 'öffnet So 10:00', c: X }
+      ],
+      cards2: [
+        card('508fdfe870cd29b59a4e87aba6b48850', '', '', '', 'Fingerfood-Box, 30 Stück', 'Tafelrunde Catering', 'Burg', '2 Tage vorher bestellen', X, '54,00 €', ''),
+        card('0e59404bf9c844759892f46ea4ad7c9e', '', '', '', 'Kugel-Montag: jede Kugel 1 €', 'Eiscafé Gelatino', 'Wald', 'öffnet So 10:00', X, '1,00 €', '')
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>
