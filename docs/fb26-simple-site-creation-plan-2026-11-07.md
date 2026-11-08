@@ -65,3 +65,10 @@ Termine/Tisch/Zimmer/Tickets/Anfragen выключены; Waren онлайн-п�
 видны все), `?type=` с Branchen-страницы предотмечает чипы. Замки
 `test_fb26_signup_directions.py` (9), стенд Playwright 390 px.
 FB-26b/c (поиск по нишам, замер `onboarding_report`) — по спросу.
+
+**FB-26a, правка по фидбэку владельца (2026-11-08):** «продаю» — это любые товары, не только
+еда, и не только самовывоз. Чип «Waren im Laden & zum Abholen» с подсказкой «Lebensmittel,
+Drogerie, Spielzeug, Mode, Technik …» + отдельный чип «Online-Shop mit Lieferung & Versand»
+(раскрывается в то же направление Waren, но сразу включает модуль заказов; один он → ниша
+online_shop). У каждого чипа строка примеров типов («z. B. Bäckerei, Hofladen, Drogerie,
+Spielwaren, Boutique»).

@@ -31,7 +31,7 @@ class BusinessSignupForm(forms.Form):
     # FB-26: направления — обязательны (иначе не понять, отель это или магазин).
     directions = forms.MultipleChoiceField(
         label=_("Was verkaufen Sie?"),
-        choices=[(k, label) for k, _i, label, _h in signup_directions.CHOICES],
+        choices=[(c[0], c[2]) for c in signup_directions.CHOICES],
         widget=forms.CheckboxSelectMultiple,
         error_messages={"required": _("Bitte wählen Sie mindestens eine Richtung.")},
     )

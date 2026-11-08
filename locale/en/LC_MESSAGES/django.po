@@ -35452,6 +35452,47 @@ msgstr "Tickets & tours"
 msgid "Zimmer & Übernachtung"
 msgstr "Rooms & stays"
 
+
 #: FB-26
-msgid "Zum Abholen, Liefern oder Versenden."
-msgstr "For pickup, delivery or shipping."
+msgid "Waren im Laden & zum Abholen"
+msgstr "Goods in store & for pickup"
+
+#: FB-26
+msgid "Alles, was Sie verkaufen: Lebensmittel, Drogerie, Spielzeug, Mode, Technik …"
+msgstr "Anything you sell: groceries, drugstore items, toys, fashion, electronics …"
+
+#: FB-26
+msgid "z. B. Bäckerei, Hofladen, Drogerie, Spielwaren, Boutique"
+msgstr "e.g. bakery, farm shop, drugstore, toy shop, boutique"
+
+#: FB-26
+msgid "Online-Shop mit Lieferung & Versand"
+msgstr "Online shop with delivery & shipping"
+
+#: FB-26
+msgid "Kunden bestellen online, Sie liefern oder versenden."
+msgstr "Customers order online, you deliver or ship."
+
+#: FB-26
+msgid "z. B. Online-Shop, Manufaktur, Feinkost, Mode"
+msgstr "e.g. online shop, craft maker, delicatessen, fashion"
+
+#: FB-26
+msgid "z. B. Friseur, Kosmetik, Werkstatt, Massage"
+msgstr "e.g. hairdresser, beauty salon, garage, massage"
+
+#: FB-26
+msgid "z. B. Hotel, Pension, Ferienwohnung"
+msgstr "e.g. hotel, guesthouse, holiday flat"
+
+#: FB-26
+msgid "z. B. Kurse, Stadtführungen, Konzerte"
+msgstr "e.g. classes, city tours, concerts"
+
+#: FB-26
+msgid "z. B. Handwerk, Catering, Reparatur"
+msgstr "e.g. trades, catering, repairs"
+
+#: FB-26
+msgid "z. B. Café, Restaurant, Imbiss"
+msgstr "e.g. café, restaurant, snack bar"

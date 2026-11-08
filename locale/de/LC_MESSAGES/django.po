@@ -35539,6 +35539,47 @@ msgstr "Tickets & Touren"
 msgid "Zimmer & Übernachtung"
 msgstr "Zimmer & Übernachtung"
 
+
 #: FB-26
-msgid "Zum Abholen, Liefern oder Versenden."
-msgstr "Zum Abholen, Liefern oder Versenden."
+msgid "Waren im Laden & zum Abholen"
+msgstr "Waren im Laden & zum Abholen"
+
+#: FB-26
+msgid "Alles, was Sie verkaufen: Lebensmittel, Drogerie, Spielzeug, Mode, Technik …"
+msgstr "Alles, was Sie verkaufen: Lebensmittel, Drogerie, Spielzeug, Mode, Technik …"
+
+#: FB-26
+msgid "z. B. Bäckerei, Hofladen, Drogerie, Spielwaren, Boutique"
+msgstr "z. B. Bäckerei, Hofladen, Drogerie, Spielwaren, Boutique"
+
+#: FB-26
+msgid "Online-Shop mit Lieferung & Versand"
+msgstr "Online-Shop mit Lieferung & Versand"
+
+#: FB-26
+msgid "Kunden bestellen online, Sie liefern oder versenden."
+msgstr "Kunden bestellen online, Sie liefern oder versenden."
+
+#: FB-26
+msgid "z. B. Online-Shop, Manufaktur, Feinkost, Mode"
+msgstr "z. B. Online-Shop, Manufaktur, Feinkost, Mode"
+
+#: FB-26
+msgid "z. B. Friseur, Kosmetik, Werkstatt, Massage"
+msgstr "z. B. Friseur, Kosmetik, Werkstatt, Massage"
+
+#: FB-26
+msgid "z. B. Hotel, Pension, Ferienwohnung"
+msgstr "z. B. Hotel, Pension, Ferienwohnung"
+
+#: FB-26
+msgid "z. B. Kurse, Stadtführungen, Konzerte"
+msgstr "z. B. Kurse, Stadtführungen, Konzerte"
+
+#: FB-26
+msgid "z. B. Handwerk, Catering, Reparatur"
+msgstr "z. B. Handwerk, Catering, Reparatur"
+
+#: FB-26
+msgid "z. B. Café, Restaurant, Imbiss"
+msgstr "z. B. Café, Restaurant, Imbiss"

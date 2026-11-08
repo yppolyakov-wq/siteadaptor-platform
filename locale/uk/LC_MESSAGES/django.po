@@ -35762,6 +35762,47 @@ msgstr "Квитки та тури"
 msgid "Zimmer & Übernachtung"
 msgstr "Номери та проживання"
 
+
 #: FB-26
-msgid "Zum Abholen, Liefern oder Versenden."
-msgstr "Самовивіз, доставка або відправлення."
+msgid "Waren im Laden & zum Abholen"
+msgstr "Товари в магазині та самовивіз"
+
+#: FB-26
+msgid "Alles, was Sie verkaufen: Lebensmittel, Drogerie, Spielzeug, Mode, Technik …"
+msgstr "Усе, що ви продаєте: продукти, побутова хімія, іграшки, одяг, техніка …"
+
+#: FB-26
+msgid "z. B. Bäckerei, Hofladen, Drogerie, Spielwaren, Boutique"
+msgstr "напр. пекарня, фермерська крамниця, господарські товари, іграшки, бутик"
+
+#: FB-26
+msgid "Online-Shop mit Lieferung & Versand"
+msgstr "Інтернет-магазин з доставкою та відправленням"
+
+#: FB-26
+msgid "Kunden bestellen online, Sie liefern oder versenden."
+msgstr "Клієнти замовляють онлайн, ви доставляєте або відправляєте."
+
+#: FB-26
+msgid "z. B. Online-Shop, Manufaktur, Feinkost, Mode"
+msgstr "напр. інтернет-магазин, майстерня, делікатеси, одяг"
+
+#: FB-26
+msgid "z. B. Friseur, Kosmetik, Werkstatt, Massage"
+msgstr "напр. перукарня, косметологія, автосервіс, масаж"
+
+#: FB-26
+msgid "z. B. Hotel, Pension, Ferienwohnung"
+msgstr "напр. готель, гостьовий будинок, апартаменти"
+
+#: FB-26
+msgid "z. B. Kurse, Stadtführungen, Konzerte"
+msgstr "напр. курси, екскурсії, концерти"
+
+#: FB-26
+msgid "z. B. Handwerk, Catering, Reparatur"
+msgstr "напр. ремесло, кейтеринг, ремонт"
+
+#: FB-26
+msgid "z. B. Café, Restaurant, Imbiss"
+msgstr "напр. кафе, ресторан, закусочна"

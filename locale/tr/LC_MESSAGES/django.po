@@ -35598,6 +35598,47 @@ msgstr "Biletler ve turlar"
 msgid "Zimmer & Übernachtung"
 msgstr "Odalar ve konaklama"
 
+
 #: FB-26
-msgid "Zum Abholen, Liefern oder Versenden."
-msgstr "Gel-al, teslimat veya kargo."
+msgid "Waren im Laden & zum Abholen"
+msgstr "Mağazada ve gel-al ürünler"
+
+#: FB-26
+msgid "Alles, was Sie verkaufen: Lebensmittel, Drogerie, Spielzeug, Mode, Technik …"
+msgstr "Sattığınız her şey: gıda, temizlik ürünleri, oyuncak, moda, elektronik …"
+
+#: FB-26
+msgid "z. B. Bäckerei, Hofladen, Drogerie, Spielwaren, Boutique"
+msgstr "ör. fırın, çiftlik dükkanı, drogeri, oyuncakçı, butik"
+
+#: FB-26
+msgid "Online-Shop mit Lieferung & Versand"
+msgstr "Teslimat ve kargolu online mağaza"
+
+#: FB-26
+msgid "Kunden bestellen online, Sie liefern oder versenden."
+msgstr "Müşteriler online sipariş verir, siz teslim eder ya da kargolarsınız."
+
+#: FB-26
+msgid "z. B. Online-Shop, Manufaktur, Feinkost, Mode"
+msgstr "ör. online mağaza, atölye, şarküteri, moda"
+
+#: FB-26
+msgid "z. B. Friseur, Kosmetik, Werkstatt, Massage"
+msgstr "ör. kuaför, güzellik salonu, oto servis, masaj"
+
+#: FB-26
+msgid "z. B. Hotel, Pension, Ferienwohnung"
+msgstr "ör. otel, pansiyon, tatil dairesi"
+
+#: FB-26
+msgid "z. B. Kurse, Stadtführungen, Konzerte"
+msgstr "ör. kurslar, şehir turları, konserler"
+
+#: FB-26
+msgid "z. B. Handwerk, Catering, Reparatur"
+msgstr "ör. zanaat, catering, tamir"
+
+#: FB-26
+msgid "z. B. Café, Restaurant, Imbiss"
+msgstr "ör. kafe, restoran, büfe"

@@ -94,7 +94,9 @@ def _new_tenant(
         from . import signup_directions
 
         chosen = signup_directions.directions_for(business_type, directions)
-        tenant.disabled_modules = signup_directions.disabled_modules(business_type, chosen)
+        tenant.disabled_modules = signup_directions.disabled_modules(
+            business_type, chosen, online="online" in signup_directions.clean(directions)
+        )
         tenant.site_config = {**tenant.site_config, "onboarding": {"v": 2, "directions": chosen}}
     if wizard_v4:
         # AIS-W W4-1: мастер v4 — сайт скрыт от гостей до «Website veröffentlichen».

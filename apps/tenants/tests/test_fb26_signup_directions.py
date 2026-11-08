@@ -118,3 +118,24 @@ def test_preselected_niche_prefills_chips(settings):
     request.session = {}
     html = views.BusinessSignupView.as_view()(request).content.decode()
     assert 'value="gastro" checked' in html
+
+
+def test_online_chip_enables_orders_and_infers_online_shop():
+    """Фидбэк 2026-11-08: «продаю онлайн» — отдельный ответ, он сразу включает заказы."""
+    form = _form(directions=["online"])
+    assert form.is_valid() and form.cleaned_data["business_type"] == "online_shop"
+    chosen = signup_directions.directions_for("retail", ["online"])
+    assert chosen == ["waren"]
+    assert "orders" not in signup_directions.disabled_modules("retail", chosen, online=True)
+    assert "orders" in signup_directions.disabled_modules("other", ["waren"])
+
+
+def test_page_shows_examples_for_every_choice(settings):
+    settings.ROOT_URLCONF = "config.urls_public"
+    request = RequestFactory().get("/registrieren/")
+    request.session = {}
+    html = views.BusinessSignupView.as_view()(request).content.decode()
+    assert "Spielzeug" in html and "Drogerie" in html  # «любые товары», не только еда
+    assert 'value="online"' in html
+    for chip in signup_directions.CHOICES:
+        assert str(chip[4]) in html
