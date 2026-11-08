@@ -8,7 +8,7 @@
 {% block content %}
 {% if flt %}
 {% comment %}PH-11b: с lg — колонка фильтров слева (та же форма, что шторка на телефоне).{% endcomment %}
-<nav aria-label="{% trans 'Brotkrumen' %}" class="text-sm text-gray-500 mb-4" data-breadcrumbs><a href="{% url 'portal-home' %}" class="text-gray-700 hover:underline">{% trans "Startseite" %}</a> <span aria-hidden="true">/</span> {% if heading %}{{ heading }}{% elif searching and search_q %}{% trans "Suchergebnisse" %}{% else %}{{ portal.title_text }}{% endif %}</nav>
+<nav aria-label="{% trans 'Brotkrumen' %}" class="{% if search_q %}max-md:hidden {% endif %}text-sm text-gray-500 mb-4" data-breadcrumbs><a href="{% url 'portal-home' %}" class="text-gray-700 hover:underline">{% trans "Startseite" %}</a> <span aria-hidden="true">/</span> {% if heading %}{{ heading }}{% elif searching and search_q %}{% trans "Suchergebnisse" %}{% else %}{{ portal.title_text }}{% endif %}</nav>
 <div data-flt-layout class="group/flt lg:flex lg:items-start lg:gap-8">
 <script>try{if(window.matchMedia("(min-width: 1024px)").matches&&localStorage.getItem("portal:fltCollapsed")==="1")document.currentScript.parentElement.setAttribute("data-flt-collapsed","")}catch(e){}</script>
 <div class="contents lg:flex lg:flex-col lg:gap-4 lg:w-[300px] lg:shrink-0 lg:self-stretch{% if not cat_tree %} lg:group-data-[flt-collapsed]/flt:hidden{% endif %}">
@@ -82,10 +82,11 @@
 {% endif %}
 
 {% if cards or cards_later %}
-{% if cards %}{% include "aggregator/_cards.html" with items=cards flt_grid=flt %}{% endif %}
+{% comment %}PH-13d (M6): в выдаче поиска на телефоне — строки; раздел без поиска остаётся плиткой.{% endcomment %}
+{% if cards %}{% include "aggregator/_cards.html" with items=cards flt_grid=flt layout=search_q|yesno:"list," %}{% endif %}
 {% if cards_later %}
-<div class="flex items-center gap-3 my-8 text-sm text-gray-500" data-later-divider><span aria-hidden="true" class="flex-1 h-px bg-gray-200"></span><h2 class="font-medium">{% trans "Später geöffnet" %}</h2><span aria-hidden="true" class="flex-1 h-px bg-gray-200"></span></div>
-{% include "aggregator/_cards.html" with items=cards_later flt_grid=flt %}
+<div class="flex items-center gap-3 my-8 text-sm text-gray-500" data-later-divider><span aria-hidden="true" class="flex-1 h-px bg-gray-200"></span><h2 class="font-medium">{% trans "Später geöffnet" %} <span class="text-gray-400">· <span data-later-count>{{ cards_later|length }}</span></span></h2><span aria-hidden="true" class="flex-1 h-px bg-gray-200"></span></div>
+{% include "aggregator/_cards.html" with items=cards_later flt_grid=flt layout=search_q|yesno:"list," %}
 {% endif %}
 
 {% if page.has_more %}

@@ -5,10 +5,12 @@
 колонка просто видна. Без POST и csrf: страница может прийти из кэша (P0-1).{% endcomment %}
 {% if flt %}
   <noscript><style>#flt-drawer{display:block;position:static;margin:1rem 0;max-width:none;width:auto;height:auto;max-height:none;box-shadow:none}</style></noscript>
-  <dialog id="flt-drawer" aria-labelledby="flt-drawer-title" class="p-0 m-0 ml-auto h-full max-h-none w-full max-w-none sm:max-w-md bg-white shadow-2xl backdrop:bg-black/40 lg:block lg:sticky lg:left-auto lg:right-auto lg:shrink-0 lg:w-[300px] lg:h-auto lg:m-0 lg:shadow-none lg:border lg:border-gray-200 lg:rounded-3xl lg:overflow-hidden lg:top-28 lg:group-data-[flt-collapsed]/flt:hidden">
+  <dialog id="flt-drawer" aria-labelledby="flt-drawer-title" class="p-0 m-0 ml-auto h-full max-h-none w-full max-w-none sm:max-w-md max-sm:mt-auto max-sm:ml-0 max-sm:h-[85dvh] max-sm:rounded-t-3xl bg-white shadow-2xl backdrop:bg-black/40 lg:block lg:sticky lg:left-auto lg:right-auto lg:shrink-0 lg:w-[300px] lg:h-auto lg:m-0 lg:shadow-none lg:border lg:border-gray-200 lg:rounded-3xl lg:overflow-hidden lg:top-28 lg:group-data-[flt-collapsed]/flt:hidden">
     <form method="get" action="{{ flt.action }}" class="flex flex-col h-full">
       {% for k, v in flt.hidden %}<input type="hidden" name="{{ k }}" value="{{ v }}">{% endfor %}
-      <div class="flex items-center justify-between px-4 py-3 border-b border-gray-200">
+      {% comment %}PH-13d (M6): на телефоне шторка выезжает снизу — «ручка» сверху, декоративная.{% endcomment %}
+      <div class="relative flex items-center justify-between px-4 py-3 max-sm:pt-5 border-b border-gray-200">
+        <span aria-hidden="true" data-flt-handle class="sm:hidden absolute left-1/2 top-2 -translate-x-1/2 w-10 h-1.5 rounded-full bg-gray-300"></span>
         <h2 id="flt-drawer-title" class="text-lg font-bold">{% trans "Filter" %}</h2>
         <button type="button" data-flt-close aria-label="{% trans "Schließen" %}" class="lg:hidden w-11 h-11 inline-flex items-center justify-center rounded-full hover:bg-gray-100 text-xl"><span aria-hidden="true">✕</span></button>
       </div>
