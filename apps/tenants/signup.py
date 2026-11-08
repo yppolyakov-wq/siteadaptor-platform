@@ -41,6 +41,7 @@ def create_request(*, cleaned_data, partner_code="", locale="de") -> SignupReque
         business_name=cleaned_data["business_name"],
         slug=cleaned_data["slug"],
         business_type=cleaned_data["business_type"],
+        directions=list(cleaned_data.get("directions") or []),
         city=cleaned_data["city"],
         partner_code=partner_code,
         locale=locale or "de",

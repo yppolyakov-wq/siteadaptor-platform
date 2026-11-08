@@ -35705,3 +35705,63 @@ msgstr "Видимі блоки"
 
 msgid "Welche Blöcke auf welcher Seite stehen — und in welcher Reihenfolge."
 msgstr "Які блоки стоять на якій сторінці — і в якому порядку."
+
+#: FB-26
+msgid "Alle Branchen zeigen"
+msgstr "Показати всі галузі"
+
+#: FB-26
+msgid "Anfragen & Aufträge"
+msgstr "Заявки та замовлення"
+
+#: FB-26
+msgid "Bitte wählen Sie mindestens eine Richtung."
+msgstr "Оберіть хоча б один напрям."
+
+#: FB-26
+msgid "Damit Texte, Beispiele und Aussehen passen. Keine passende Branche? Einfach überspringen."
+msgstr "Щоб тексти, приклади й оформлення пасували. Немає відповідної галузі? Просто пропустіть."
+
+#: FB-26
+msgid "Gäste buchen Nächte."
+msgstr "Гості бронюють ночі."
+
+#: FB-26
+msgid "Ihre Branche (optional)"
+msgstr "Ваша галузь (необов’язково)"
+
+#: FB-26
+msgid "Kunden buchen eine Uhrzeit."
+msgstr "Клієнти записуються на час."
+
+#: FB-26
+msgid "Mehrere möglich. Sie können es später jederzeit ändern."
+msgstr "Можна кілька. Це можна змінити будь-коли пізніше."
+
+#: FB-26
+msgid "Plätze für Termine mit Datum."
+msgstr "Місця на заходи з датою."
+
+#: FB-26
+msgid "Speisekarte und Tischreservierung."
+msgstr "Меню та бронювання столиків."
+
+#: FB-26
+msgid "Speisen & Getränke"
+msgstr "Їжа та напої"
+
+#: FB-26
+msgid "Termine & Dienstleistungen"
+msgstr "Записи та послуги"
+
+#: FB-26
+msgid "Tickets & Touren"
+msgstr "Квитки та тури"
+
+#: FB-26
+msgid "Zimmer & Übernachtung"
+msgstr "Номери та проживання"
+
+#: FB-26
+msgid "Zum Abholen, Liefern oder Versenden."
+msgstr "Самовивіз, доставка або відправлення."

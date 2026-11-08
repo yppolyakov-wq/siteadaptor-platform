@@ -35395,3 +35395,63 @@ msgstr "Visible blocks"
 
 msgid "Welche Blöcke auf welcher Seite stehen — und in welcher Reihenfolge."
 msgstr "Which blocks are on which page — and in what order."
+
+#: FB-26
+msgid "Alle Branchen zeigen"
+msgstr "Show all industries"
+
+#: FB-26
+msgid "Anfragen & Aufträge"
+msgstr "Inquiries & orders"
+
+#: FB-26
+msgid "Bitte wählen Sie mindestens eine Richtung."
+msgstr "Please choose at least one option."
+
+#: FB-26
+msgid "Damit Texte, Beispiele und Aussehen passen. Keine passende Branche? Einfach überspringen."
+msgstr "So that texts, examples and design fit. No matching industry? Just skip it."
+
+#: FB-26
+msgid "Gäste buchen Nächte."
+msgstr "Guests book nights."
+
+#: FB-26
+msgid "Ihre Branche (optional)"
+msgstr "Your industry (optional)"
+
+#: FB-26
+msgid "Kunden buchen eine Uhrzeit."
+msgstr "Customers book a time slot."
+
+#: FB-26
+msgid "Mehrere möglich. Sie können es später jederzeit ändern."
+msgstr "Several possible. You can change this at any time later."
+
+#: FB-26
+msgid "Plätze für Termine mit Datum."
+msgstr "Seats for dated events."
+
+#: FB-26
+msgid "Speisekarte und Tischreservierung."
+msgstr "Menu and table reservations."
+
+#: FB-26
+msgid "Speisen & Getränke"
+msgstr "Food & drinks"
+
+#: FB-26
+msgid "Termine & Dienstleistungen"
+msgstr "Appointments & services"
+
+#: FB-26
+msgid "Tickets & Touren"
+msgstr "Tickets & tours"
+
+#: FB-26
+msgid "Zimmer & Übernachtung"
+msgstr "Rooms & stays"
+
+#: FB-26
+msgid "Zum Abholen, Liefern oder Versenden."
+msgstr "For pickup, delivery or shipping."

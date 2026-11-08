@@ -35541,3 +35541,63 @@ msgstr "Görünür bloklar"
 
 msgid "Welche Blöcke auf welcher Seite stehen — und in welcher Reihenfolge."
 msgstr "Hangi sayfada hangi bloklar var — ve hangi sırayla."
+
+#: FB-26
+msgid "Alle Branchen zeigen"
+msgstr "Tüm sektörleri göster"
+
+#: FB-26
+msgid "Anfragen & Aufträge"
+msgstr "Talepler ve siparişler"
+
+#: FB-26
+msgid "Bitte wählen Sie mindestens eine Richtung."
+msgstr "Lütfen en az bir seçenek belirleyin."
+
+#: FB-26
+msgid "Damit Texte, Beispiele und Aussehen passen. Keine passende Branche? Einfach überspringen."
+msgstr "Metinler, örnekler ve görünüm uysun diye. Uygun sektör yok mu? Atlayın."
+
+#: FB-26
+msgid "Gäste buchen Nächte."
+msgstr "Misafirler gece rezervasyonu yapar."
+
+#: FB-26
+msgid "Ihre Branche (optional)"
+msgstr "Sektörünüz (isteğe bağlı)"
+
+#: FB-26
+msgid "Kunden buchen eine Uhrzeit."
+msgstr "Müşteriler saat ayırtır."
+
+#: FB-26
+msgid "Mehrere möglich. Sie können es später jederzeit ändern."
+msgstr "Birden fazla seçilebilir. Daha sonra istediğiniz zaman değiştirebilirsiniz."
+
+#: FB-26
+msgid "Plätze für Termine mit Datum."
+msgstr "Tarihli etkinlikler için yerler."
+
+#: FB-26
+msgid "Speisekarte und Tischreservierung."
+msgstr "Menü ve masa rezervasyonu."
+
+#: FB-26
+msgid "Speisen & Getränke"
+msgstr "Yiyecek ve içecek"
+
+#: FB-26
+msgid "Termine & Dienstleistungen"
+msgstr "Randevular ve hizmetler"
+
+#: FB-26
+msgid "Tickets & Touren"
+msgstr "Biletler ve turlar"
+
+#: FB-26
+msgid "Zimmer & Übernachtung"
+msgstr "Odalar ve konaklama"
+
+#: FB-26
+msgid "Zum Abholen, Liefern oder Versenden."
+msgstr "Gel-al, teslimat veya kargo."

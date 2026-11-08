@@ -12,6 +12,7 @@ from django.utils.translation import gettext_lazy as _
 
 from apps.core import cities
 
+from . import signup_directions
 from .models import Tenant
 
 # Начинается с буквы/цифры: «-template» дал бы схему «_template» (шаблон T-10).
@@ -27,7 +28,17 @@ class BusinessSignupForm(forms.Form):
         max_length=100,
         help_text=_("{slug}.siteadaptor.de — nur a-z, 0-9 und Bindestrich."),
     )
-    business_type = forms.ChoiceField(label=_("Art des Geschäfts"), choices=Tenant.BUSINESS_TYPES)
+    # FB-26: направления — обязательны (иначе не понять, отель это или магазин).
+    directions = forms.MultipleChoiceField(
+        label=_("Was verkaufen Sie?"),
+        choices=[(k, label) for k, _i, label, _h in signup_directions.CHOICES],
+        widget=forms.CheckboxSelectMultiple,
+        error_messages={"required": _("Bitte wählen Sie mindestens eine Richtung.")},
+    )
+    # FB-26: ниша — необязательно («Andere» или пусто → вывод из направлений).
+    business_type = forms.ChoiceField(
+        label=_("Ihre Branche (optional)"), choices=Tenant.BUSINESS_TYPES, required=False
+    )
     city = forms.CharField(label=_("Stadt"), max_length=100, widget=cities.CityInput)
     email = forms.EmailField(label=_("Deine E-Mail"))
     password1 = forms.CharField(label=_("Passwort"), widget=forms.PasswordInput, min_length=8)
@@ -58,6 +69,11 @@ class BusinessSignupForm(forms.Form):
 
     def clean(self):
         cleaned = super().clean()
+        chips = signup_directions.clean(cleaned.get("directions"))
+        cleaned["directions"] = chips
+        cleaned["business_type"] = signup_directions.resolve_type(
+            cleaned.get("business_type") or "", chips
+        )
         p1, p2 = cleaned.get("password1"), cleaned.get("password2")
         if p1 and p2 and p1 != p2:
             self.add_error("password2", _("Passwörter stimmen nicht überein."))

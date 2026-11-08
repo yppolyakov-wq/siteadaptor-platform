@@ -252,6 +252,7 @@ def test_signup_slug_cannot_map_to_template():
                 "business_name": "X",
                 "slug": "-template",
                 "business_type": "bakery",
+                "directions": ["waren"],
                 "city": "Köln",
                 "email": "a@example.com",
                 "password1": "geheim123",

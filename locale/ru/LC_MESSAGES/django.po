@@ -35718,3 +35718,63 @@ msgstr "Видимые блоки"
 
 msgid "Welche Blöcke auf welcher Seite stehen — und in welcher Reihenfolge."
 msgstr "Какие блоки стоят на какой странице — и в каком порядке."
+
+#: FB-26
+msgid "Alle Branchen zeigen"
+msgstr "Показать все отрасли"
+
+#: FB-26
+msgid "Anfragen & Aufträge"
+msgstr "Заявки и заказы"
+
+#: FB-26
+msgid "Bitte wählen Sie mindestens eine Richtung."
+msgstr "Выберите хотя бы одно направление."
+
+#: FB-26
+msgid "Damit Texte, Beispiele und Aussehen passen. Keine passende Branche? Einfach überspringen."
+msgstr "Чтобы тексты, примеры и оформление подходили. Нет подходящей отрасли? Просто пропустите."
+
+#: FB-26
+msgid "Gäste buchen Nächte."
+msgstr "Гости бронируют ночи."
+
+#: FB-26
+msgid "Ihre Branche (optional)"
+msgstr "Ваша отрасль (необязательно)"
+
+#: FB-26
+msgid "Kunden buchen eine Uhrzeit."
+msgstr "Клиенты записываются на время."
+
+#: FB-26
+msgid "Mehrere möglich. Sie können es später jederzeit ändern."
+msgstr "Можно несколько. Это можно изменить в любой момент позже."
+
+#: FB-26
+msgid "Plätze für Termine mit Datum."
+msgstr "Места на мероприятия с датой."
+
+#: FB-26
+msgid "Speisekarte und Tischreservierung."
+msgstr "Меню и бронирование столиков."
+
+#: FB-26
+msgid "Speisen & Getränke"
+msgstr "Еда и напитки"
+
+#: FB-26
+msgid "Termine & Dienstleistungen"
+msgstr "Записи и услуги"
+
+#: FB-26
+msgid "Tickets & Touren"
+msgstr "Билеты и туры"
+
+#: FB-26
+msgid "Zimmer & Übernachtung"
+msgstr "Номера и проживание"
+
+#: FB-26
+msgid "Zum Abholen, Liefern oder Versenden."
+msgstr "Самовывоз, доставка или отправка."

@@ -410,6 +410,7 @@ def business_type_cards(request=None) -> list[dict]:
     для этого типа не засеяно; #3/#5)."""
     from django.conf import settings
 
+    from apps.tenants import signup_directions
     from apps.tenants.models import Tenant
 
     base = getattr(settings, "TENANT_DOMAIN_BASE", "siteadaptor.de")  # с портом (dev)
@@ -429,6 +430,8 @@ def business_type_cards(request=None) -> list[dict]:
                 "icon": icon,
                 "blurb": blurb,
                 "demo_url": demo_url,
+                # FB-26: какие чипы «Was verkaufen Sie?» подходят нише (фильтр на странице).
+                "chips": signup_directions.niche_chips(value),
             }
         )
     return cards

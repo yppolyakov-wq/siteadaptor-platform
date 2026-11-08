@@ -35482,3 +35482,63 @@ msgstr "Sichtbare Blöcke"
 
 msgid "Welche Blöcke auf welcher Seite stehen — und in welcher Reihenfolge."
 msgstr "Welche Blöcke auf welcher Seite stehen — und in welcher Reihenfolge."
+
+#: FB-26
+msgid "Alle Branchen zeigen"
+msgstr "Alle Branchen zeigen"
+
+#: FB-26
+msgid "Anfragen & Aufträge"
+msgstr "Anfragen & Aufträge"
+
+#: FB-26
+msgid "Bitte wählen Sie mindestens eine Richtung."
+msgstr "Bitte wählen Sie mindestens eine Richtung."
+
+#: FB-26
+msgid "Damit Texte, Beispiele und Aussehen passen. Keine passende Branche? Einfach überspringen."
+msgstr "Damit Texte, Beispiele und Aussehen passen. Keine passende Branche? Einfach überspringen."
+
+#: FB-26
+msgid "Gäste buchen Nächte."
+msgstr "Gäste buchen Nächte."
+
+#: FB-26
+msgid "Ihre Branche (optional)"
+msgstr "Ihre Branche (optional)"
+
+#: FB-26
+msgid "Kunden buchen eine Uhrzeit."
+msgstr "Kunden buchen eine Uhrzeit."
+
+#: FB-26
+msgid "Mehrere möglich. Sie können es später jederzeit ändern."
+msgstr "Mehrere möglich. Sie können es später jederzeit ändern."
+
+#: FB-26
+msgid "Plätze für Termine mit Datum."
+msgstr "Plätze für Termine mit Datum."
+
+#: FB-26
+msgid "Speisekarte und Tischreservierung."
+msgstr "Speisekarte und Tischreservierung."
+
+#: FB-26
+msgid "Speisen & Getränke"
+msgstr "Speisen & Getränke"
+
+#: FB-26
+msgid "Termine & Dienstleistungen"
+msgstr "Termine & Dienstleistungen"
+
+#: FB-26
+msgid "Tickets & Touren"
+msgstr "Tickets & Touren"
+
+#: FB-26
+msgid "Zimmer & Übernachtung"
+msgstr "Zimmer & Übernachtung"
+
+#: FB-26
+msgid "Zum Abholen, Liefern oder Versenden."
+msgstr "Zum Abholen, Liefern oder Versenden."
