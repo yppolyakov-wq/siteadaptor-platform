@@ -62,7 +62,6 @@ def portal_footer(portal):
     if not portal:
         return {}
     from django.core.cache import cache
-    from django.urls import reverse
     from django.utils.translation import get_language
 
     key = f"portal_footer:{portal.pk}:{get_language() or ''}"
@@ -72,28 +71,52 @@ def portal_footer(portal):
         data = None
     if data is not None:
         return data
+    data, ttl = _footer_data(portal), FOOTER_CACHE
+    if data is None:  # ошибка БД: подвал на КАЖДОЙ странице — не роняем страницу, пусто ненадолго
+        data, ttl = {"kinds": [], "facets": [], "districts": []}, 30
+    try:
+        cache.set(key, data, ttl)
+    except Exception:  # noqa: BLE001
+        pass
+    return data
+
+
+def _footer_data(portal) -> dict | None:
+    """Ссылки подвала (запросы к БД). None — ошибка: вызывающий отдаёт пустой подвал."""
+    import logging
+
+    from django.urls import NoReverseMatch, reverse
+
     from apps.aggregator import portal_home_blocks as home
     from apps.aggregator import portal_scope, portal_views
     from apps.aggregator.platform_links import platform_url
 
-    home_url = reverse("portal-home")
-    kinds = set(
-        portal_scope.pool(portal).order_by().values_list("listing_kind", flat=True).distinct()
-    )
-    _axis, facets = portal_views._facet_choices(portal)
-    data = {
-        "kinds": [
-            {"label": str(t.label), "url": home.scope_url(home_url, home.FeedScope(kind_key=t.key))}
-            for t in home.TABS
-            if t.key != "alle" and kinds & set(t.kinds)
-        ],
-        "facets": [(v, str(label)) for v, label in facets],
-        "districts": portal_views._district_choices(portal),
-        "start_url": platform_url("quick-start"),
-        "agb_url": platform_url("platform-agb"),
-    }
     try:
-        cache.set(key, data, FOOTER_CACHE)
-    except Exception:  # noqa: BLE001
-        pass
-    return data
+        home_url = reverse("portal-home")
+        kinds = set(
+            portal_scope.pool(portal).order_by().values_list("listing_kind", flat=True).distinct()
+        )
+        _axis, values = portal_views._facet_choices(portal)
+        facets = []
+        for value, label in values:
+            try:  # свободная ось «city» — сырая строка из данных: «/» маршрут не примет
+                facets.append({"label": str(label), "url": reverse("portal-facet", args=[value])})
+            except NoReverseMatch:
+                continue
+        return {
+            "kinds": [
+                {
+                    "label": str(t.label),
+                    "url": home.scope_url(home_url, home.FeedScope(kind_key=t.key)),
+                }
+                for t in home.TABS
+                if t.key != "alle" and kinds & set(t.kinds)
+            ],
+            "facets": facets,
+            "districts": portal_views._district_choices(portal),
+            "start_url": platform_url("quick-start"),
+            "agb_url": platform_url("platform-agb"),
+        }
+    except Exception:  # noqa: BLE001 — подвал не должен ронять страницу
+        logging.getLogger(__name__).exception("portal_footer: data failed")
+        return None

@@ -7,17 +7,17 @@ portal_footer, кэш 5 минут). Здесь же единственные с
   <div class="w-full px-4 md:px-6 lg:px-10 pt-11 pb-7 grid grid-cols-2 md:grid-cols-3 xl:grid-cols-[1.4fr_repeat(4,minmax(0,1fr))] gap-8">
     <div class="col-span-2 md:col-span-3 xl:col-span-1 flex flex-col gap-3">
       <a href="{% url 'portal-home' %}" class="self-start text-[22px] font-extrabold tracking-tight text-white">{% if fwm.dark %}{{ fwm.dark }}{% endif %}<span class="text-orange-300">{{ fwm.accent }}</span></a>
-      <p class="text-sm leading-relaxed max-w-sm">{% blocktrans with city=portal.city %}Die lokale Plattform für Angebote, Termine und Geschäfte aus {{ city }}. Sie kaufen und bezahlen direkt beim Geschäft.{% endblocktrans %}</p>
+      {% if portal.city %}<p class="text-sm leading-relaxed max-w-sm">{% blocktrans with city=portal.city %}Die lokale Plattform für Angebote, Termine und Geschäfte aus {{ city }}. Sie kaufen und bezahlen direkt beim Geschäft.{% endblocktrans %}</p>{% endif %}
     </div>
     <nav aria-labelledby="foot-discover" class="min-w-0">
       <h2 id="foot-discover" class="text-white text-sm font-bold mb-3">{% trans "Entdecken" %}</h2>
       <ul class="space-y-2 text-sm [overflow-wrap:anywhere]">
-        {% for k in foot.kinds %}<li><a href="{{ k.url }}" class="hover:text-white hover:underline">{{ k.label }}</a></li>{% endfor %}
+        {% for k in foot.kinds %}<li><a href="{{ k.url }}" rel="nofollow" class="hover:text-white hover:underline">{{ k.label }}</a></li>{% endfor %}
       </ul>
       {% if foot.facets %}
       <h3 class="mt-5 mb-2 text-white text-sm font-bold">{% trans "Branche" %}</h3>
       <ul class="space-y-2 text-sm [overflow-wrap:anywhere]" data-footer-facets>
-        {% for v, label in foot.facets %}<li><a href="{% url 'portal-facet' facet=v %}" class="hover:text-white hover:underline">{{ label }}</a></li>{% endfor %}
+        {% for f in foot.facets %}<li><a href="{{ f.url }}" class="hover:text-white hover:underline">{{ f.label }}</a></li>{% endfor %}
       </ul>
       {% endif %}
     </nav>
@@ -48,6 +48,6 @@ portal_footer, кэш 5 минут). Здесь же единственные с
   </div>
   <div class="w-full px-4 md:px-6 lg:px-10 py-5 border-t border-white/10 flex flex-wrap items-center justify-between gap-3 text-xs text-gray-400">
     <span>© {% now "Y" %} {{ portal.title_text }} · siteadaptor</span>
-    {% if ui_languages %}{% include "tenants/_lang_switch.html" %}{% endif %}
+    {% if ui_languages %}<span class="md:hidden">{% include "tenants/_lang_switch.html" %}</span>{% endif %}
   </div>
 </footer>

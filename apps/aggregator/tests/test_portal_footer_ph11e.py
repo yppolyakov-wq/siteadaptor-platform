@@ -57,3 +57,21 @@ def test_home_has_no_district_tiles_or_branche_any_more():
     html = _html(_portal())
     body = html.split("data-portal-footer", 1)[0]
     assert "data-district-tile" not in body and "/stadtteil/wald/" not in body.split("<main", 1)[1]
+
+
+def test_footer_failure_does_not_break_the_page(monkeypatch):
+    from apps.aggregator import portal_views
+
+    def boom(*a, **k):
+        raise RuntimeError("db down")
+
+    monkeypatch.setattr(portal_views, "_district_choices", boom)
+    _listing("promotion", "Pizza")
+    html = _html(_portal(), kind="alle")
+    assert "data-portal-footer" in html and "Pizza" in html
+
+
+def test_feed_links_in_footer_are_nofollow():
+    _listing("promotion", "Pizza")
+    foot = _foot(_html(_portal()))
+    assert 'href="/?kind=angebote" rel="nofollow"' in foot
