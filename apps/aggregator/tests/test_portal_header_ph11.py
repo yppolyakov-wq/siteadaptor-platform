@@ -33,16 +33,41 @@ def test_header_wo_lists_city_districts_and_preselects_filter():
 
 
 def test_header_hidden_does_not_duplicate_visible_fields():
-    """Дубль имени перетёр бы выбор в форме (QueryDict.get берёт последнее)."""
+    """Дубль имени перетёр бы выбор (QueryDict.get берёт последнее), а «Jederzeit» /
+    «Ganz <Stadt>» не снимали бы фильтр — шапка владеет районом и временем."""
     _listing("promotion", "Herbstrabatt")
     html = _html(_portal(), q="Herbst", stadtteil=["wald", "mitte"], offen="1", kind="angebote")
     form = _header_form(html)
     hidden = re.findall(r'<input type="hidden" name="([^"]+)" value="([^"]*)"', form)
     names = [n for n, _ in hidden]
-    assert ("stadtteil", "mitte") in hidden  # второй район едет скрытым
-    assert ("stadtteil", "wald") not in hidden and "offen" not in names and "datum" not in names
+    assert "stadtteil" not in names and "offen" not in names and "datum" not in names
     assert ("kind", "angebote") in hidden
+    assert '<option value="wald" selected>' in form
     assert '<option value="jetzt" selected>' in form
+
+
+def test_header_wann_heute_with_offen_can_be_cleared():
+    _listing("promotion", "Herbstrabatt")
+    form = _header_form(_html(_portal(), q="Herbst", offen="1", datum="heute"))
+    assert '<option value="heute" selected>' in form and 'name="offen"' not in form
+
+
+def test_header_custom_date_shown_once_and_junk_not_echoed():
+    _listing("promotion", "Herbstrabatt")
+    portal = _portal()
+    form = _header_form(_html(portal, q="Herbst", datum="2026-11-14"))
+    assert '<option value="2026-11-14" selected>' in form
+    assert form.count('name="datum"') == 1
+    junk = _header_form(_html(portal, q="Herbst", datum="<script>x</script>"))
+    assert "<script>x" not in junk and "&lt;script&gt;" not in junk
+
+
+def test_header_renders_on_non_feed_page():
+    resp = portal_views.for_business(_get(_portal(), path="/fuer-unternehmen/"))
+    html = resp.content.decode()
+    form = _header_form(html)
+    assert 'name="q"' in form and 'value="wald"' in form
+    assert '<input type="hidden"' not in form
 
 
 def test_datum_jetzt_means_open_now():

@@ -21,7 +21,7 @@ def portal_districts(portal):
     """PH-11a: районы города портала для «Wo» шапки — [(slug, name)] из реестра, без БД."""
     from apps.core import districts
 
-    if portal is None:
+    if not portal:
         return []
     return [(d.slug, d.name) for d in districts.districts_for(getattr(portal, "city", ""))]
 

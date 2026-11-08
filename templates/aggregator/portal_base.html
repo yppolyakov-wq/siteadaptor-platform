@@ -44,7 +44,7 @@
       <nav aria-label="{% trans 'Konto' %}" class="ml-auto md:ml-0 flex items-center gap-4 shrink-0 text-sm">
         {% if ui_languages %}<span class="hidden 2xl:inline-flex">{% include "tenants/_lang_switch.html" %}</span>{% endif %}
         <a href="{% url 'portal-for-business' %}" class="hidden 2xl:inline text-gray-600 hover:underline">{% trans "Für Unternehmen" %}</a>
-        <a href="{% if portal_user %}{% url 'portal-account' %}{% else %}{% url 'portal-login' %}?next=/konto/{% endif %}" rel="nofollow" class="hidden lg:inline text-gray-700 hover:underline">{% trans "Merkzettel" %}</a>
+        <a href="{% if portal_user %}{% url 'portal-account' %}{% else %}{% url 'portal-login' %}?next=/konto/{% endif %}" rel="nofollow" class="hidden sm:inline md:hidden lg:inline text-gray-700 hover:underline">{% trans "Merkzettel" %}</a>
         {% if portal_user %}
           <a href="{% url 'portal-account' %}" class="font-semibold hover:underline" style="color: var(--portal-color)">{% trans "My account" %}</a>
         {% else %}

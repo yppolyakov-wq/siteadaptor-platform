@@ -279,24 +279,16 @@ def _seo_canonical(request, portal, district, facet, filters) -> tuple[str, bool
 
 
 def _header_search(hidden, filters, district) -> dict:
-    """PH-11a: поля шапки «Wo/Wann» + скрытые параметры БЕЗ того, что уже есть в полях.
+    """PH-11a: поля шапки «Wo/Wann» + скрытые параметры БЕЗ того, что поля шапки задают сами.
 
-    «Wo» = первый выбранный район (или район пути `/stadtteil/<slug>/`), остальные районы
-    едут скрытыми. «Wann» = heute/wochenende/дата из `datum`, иначе «jetzt» при `offen=1`
-    («jetzt» сервер читает как offen=1). Дубль имени в форме молча перетёр бы выбор
-    (QueryDict.get берёт последнее значение) — поэтому поле убираем из скрытых."""
-    wo = filters.districts[0] if filters.districts else (district or "")
+    Шапка ВЛАДЕЕТ районом и временем: «Wo» = район пути `/stadtteil/<slug>/` или первый
+    выбранный, «Wann» = heute/wochenende/дата из `datum`, иначе «jetzt» при `offen=1`.
+    Поэтому `stadtteil`, `datum` и `offen` в скрытые НЕ идут: иначе дубль имени перетёр бы
+    выбор (QueryDict.get берёт последнее), а «Jederzeit»/«Ganz <Stadt>» не снимали бы фильтр.
+    Тонкий мультивыбор районов и «offen + heute» остаются в панели фильтров."""
+    wo = district or (filters.districts[0] if filters.districts else "")
     wann = filters.date or ("jetzt" if filters.open_now else "")
-    out, wo_taken = [], False
-    for key, value in hidden:
-        if key == "datum":
-            continue
-        if key == "offen" and wann == "jetzt":
-            continue
-        if key == "stadtteil" and value == wo and not wo_taken:
-            wo_taken = True
-            continue
-        out.append((key, value))
+    out = [(k, v) for k, v in hidden if k not in ("stadtteil", "datum", "offen")]
     custom = wann not in ("", "jetzt", "heute", "wochenende")
     return {
         "header_hidden": out,
