@@ -278,6 +278,20 @@ def _seo_canonical(request, portal, district, facet, filters) -> tuple[str, bool
     return request.build_absolute_uri(request.get_full_path()), True
 
 
+def _split_open_later(cards):
+    """PH-11b: (сейчас доступные, позже открывающиеся) — устойчиво, порядок внутри сохранён.
+
+    «Позже» = у бизнеса есть часы и он сейчас закрыт (или на каникулах). Без часов (онлайн-
+    товары, мероприятия) — не прячем. Оплаченные позиции остаются наверху с пометкой."""
+    now_, later = [], []
+    for card in cards:
+        closed = bool(getattr(card, "holiday_until", None)) or (
+            getattr(card, "has_hours", False) and not getattr(card, "open_now", False)
+        )
+        (later if closed and not card.is_featured_now else now_).append(card)
+    return now_, later
+
+
 def _header_search(hidden, filters, district) -> dict:
     """PH-11a: поля шапки «Wo/Wann» + скрытые параметры БЕЗ того, что поля шапки задают сами.
 
@@ -695,6 +709,12 @@ def portal_home(request, facet=None, district=None):
     from .portal_cards import prepare_cards
 
     prepare_cards(list(cards) + tail_items)
+    # PH-11b: при порядке по умолчанию закрытые сейчас — после разделителя «Später geöffnet»
+    # (в пределах загруженной страницы; «Wie wir sortieren» говорит об этом). Явный сорт
+    # посетителя (endet/neu/offen/naehe), «рядом» и поиск отелей по датам — порядок не трогаем.
+    cards_later = []
+    if flt and page is not None and not filters.sort and not hotel_portal:
+        cards, cards_later = _split_open_later(cards)
     canonical, robots_noindex = _seo_canonical(request, portal, district, facet, filters)
     heading = " · ".join(
         str(p) for p in (district_label, facet_label, category_chips["label"]) if p
@@ -750,6 +770,7 @@ def portal_home(request, facet=None, district=None):
             "following": follow.is_following(user, follow_target) if follow_target else False,
             "page": page,
             "cards": cards,
+            "cards_later": cards_later,
             "hotel_portal": hotel_portal,  # H8b: показать форму поиска по датам
             "search": search,  # H8b: выбранный диапазон/гости (или None)
             "facets": facets,

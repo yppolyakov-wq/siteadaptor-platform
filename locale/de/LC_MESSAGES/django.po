@@ -35615,3 +35615,15 @@ msgstr "Filter einblenden"
 #: PH-11
 msgid "Suchergebnisse für „%(q)s“"
 msgstr "Suchergebnisse für „%(q)s“"
+
+#: PH-11
+msgid "Später geöffnet"
+msgstr "Später geöffnet"
+
+#: PH-11
+msgid "Wie wir sortieren"
+msgstr "Wie wir sortieren"
+
+#: PH-11
+msgid "Zuerst, was zu Ihrer Suche passt und was Sie jetzt nutzen können; Geschäfte, die gerade geschlossen haben, stehen auf jeder Seite unter „Später geöffnet“. Eine andere Sortierung wählen Sie oben. Bezahlte Platzierungen sind als „Anzeige“ markiert und ändern die Reihenfolge der übrigen Treffer nicht."
+msgstr "Zuerst, was zu Ihrer Suche passt und was Sie jetzt nutzen können; Geschäfte, die gerade geschlossen haben, stehen auf jeder Seite unter „Später geöffnet“. Eine andere Sortierung wählen Sie oben. Bezahlte Platzierungen sind als „Anzeige“ markiert und ändern die Reihenfolge der übrigen Treffer nicht."

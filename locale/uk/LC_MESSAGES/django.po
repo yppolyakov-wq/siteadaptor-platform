@@ -35838,3 +35838,15 @@ msgstr "Показати фільтри"
 #: PH-11
 msgid "Suchergebnisse für „%(q)s“"
 msgstr "Результати пошуку за «%(q)s»"
+
+#: PH-11
+msgid "Später geöffnet"
+msgstr "Відкриється пізніше"
+
+#: PH-11
+msgid "Wie wir sortieren"
+msgstr "Як ми сортуємо"
+
+#: PH-11
+msgid "Zuerst, was zu Ihrer Suche passt und was Sie jetzt nutzen können; Geschäfte, die gerade geschlossen haben, stehen auf jeder Seite unter „Später geöffnet“. Eine andere Sortierung wählen Sie oben. Bezahlte Platzierungen sind als „Anzeige“ markiert und ändern die Reihenfolge der übrigen Treffer nicht."
+msgstr "Спочатку те, що відповідає вашому запиту і чим можна скористатися просто зараз; закриті зараз заклади на кожній сторінці стоять у розділі «Відкриється пізніше». Інше сортування можна вибрати вище. Платні розміщення позначені як «Реклама» і не змінюють порядок інших результатів."

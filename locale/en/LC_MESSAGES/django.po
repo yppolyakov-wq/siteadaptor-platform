@@ -35528,3 +35528,15 @@ msgstr "Show filters"
 #: PH-11
 msgid "Suchergebnisse für „%(q)s“"
 msgstr "Search results for “%(q)s”"
+
+#: PH-11
+msgid "Später geöffnet"
+msgstr "Open later"
+
+#: PH-11
+msgid "Wie wir sortieren"
+msgstr "How we sort"
+
+#: PH-11
+msgid "Zuerst, was zu Ihrer Suche passt und was Sie jetzt nutzen können; Geschäfte, die gerade geschlossen haben, stehen auf jeder Seite unter „Später geöffnet“. Eine andere Sortierung wählen Sie oben. Bezahlte Platzierungen sind als „Anzeige“ markiert und ändern die Reihenfolge der übrigen Treffer nicht."
+msgstr "First, what matches your search and what you can use right now; shops that are currently closed appear on each page under “Open later”. You can choose a different sort order above. Paid placements are marked as “Ad” and do not change the order of the other results."

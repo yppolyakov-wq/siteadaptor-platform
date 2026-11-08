@@ -70,3 +70,36 @@ def test_collapsed_state_applied_before_paint():
         "lg:group-data-[flt-collapsed]/flt:hidden"
         in html.split('id="flt-drawer"', 1)[1].split(">", 1)[0]
     )
+
+
+def _card(name, *, hours=True, open_now=True, featured=False, holiday=None):
+    from types import SimpleNamespace
+
+    return SimpleNamespace(
+        name=name,
+        has_hours=hours,
+        open_now=open_now,
+        is_featured_now=featured,
+        holiday_until=holiday,
+    )
+
+
+def test_split_open_later_keeps_order_and_featured_on_top():
+    from apps.aggregator.portal_views import _split_open_later
+
+    cards = [
+        _card("ad", open_now=False, featured=True),
+        _card("zu", open_now=False),
+        _card("auf"),
+        _card("online", hours=False, open_now=False),
+        _card("ferien", holiday="2026-11-20"),
+        _card("auf2"),
+    ]
+    now_, later = _split_open_later(cards)
+    assert [c.name for c in now_] == ["ad", "auf", "online", "auf2"]
+    assert [c.name for c in later] == ["zu", "ferien"]
+
+
+def test_sorting_note_on_feed_and_not_on_home():
+    html = _feed(q="Herbst")
+    assert "data-sorting-note" in html and "Wie wir sortieren" in html
