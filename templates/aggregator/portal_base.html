@@ -28,7 +28,7 @@
     язык/Merkzettel/вход. На телефоне поиск уходит второй строкой (Wo/Wann — под полем «Was»).
     Полоса иконок разделов (PH-2) снята: единственная навигация по разделам — мега-меню.{% endcomment %}
     {% portal_wordmark portal as wm %}
-    <div class="max-w-[1392px] mx-auto px-4 md:px-6 py-3 md:py-4 flex flex-wrap md:flex-nowrap items-center gap-3 md:gap-4">
+    <div class="w-full px-4 md:px-6 lg:px-10 py-3 md:py-4 flex flex-wrap md:flex-nowrap items-center gap-3 md:gap-4">
       <a href="{% url 'portal-home' %}#kategorien" data-portal-menu-open class="shrink-0 inline-flex items-center gap-2 h-12 md:h-14 px-4 md:px-5 rounded-full text-white font-bold text-[15px]" style="background: var(--portal-color)">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h10M4 18h16"></path></svg>
         <span class="hidden sm:inline">{% trans "Kategorien" %}</span><span class="sm:hidden sr-only">{% trans "Kategorien" %}</span>
@@ -42,7 +42,7 @@
       </a>
       {% include "aggregator/_portal_header_search.html" %}
       <nav aria-label="{% trans 'Konto' %}" class="ml-auto md:ml-0 flex items-center gap-4 shrink-0 text-sm">
-        {% if ui_languages %}<span class="hidden 2xl:inline-flex">{% include "tenants/_lang_switch.html" %}</span>{% endif %}
+        {% if ui_languages %}<span class="hidden md:inline-flex">{% include "aggregator/_portal_lang_menu.html" %}</span>{% endif %}
         <a href="{% url 'portal-for-business' %}" class="hidden 2xl:inline text-gray-600 hover:underline">{% trans "Für Unternehmen" %}</a>
         <a href="{% if portal_user %}{% url 'portal-account' %}{% else %}{% url 'portal-login' %}?next=/konto/{% endif %}" rel="nofollow" class="hidden sm:inline md:hidden lg:inline text-gray-700 hover:underline">{% trans "Merkzettel" %}</a>
         {% if portal_user %}
@@ -56,10 +56,10 @@
   {% if portal_menu %}{% include "aggregator/_portal_menu.html" %}{% endif %}
   {% if portal_menu %}<script src="{% static 'js/portal.js' %}" defer></script>{% endif %}
 
-  {% comment %}FLT-1a (2026-11-04): шапка и подвал — 1536 px; ширина main — блоком: листинги
-  портала (главная, выдача, поиск) широкие (`data-wide` → 4 колонки карточек на xl), страницы
-  чтения и форм остаются 1024 px.{% endcomment %}
-  <main class="group flex-1 w-full {% block main_width %}max-w-5xl{% endblock %} mx-auto px-4 md:px-6 py-6 md:py-10"{% block main_attrs %}{% endblock %}>
+  {% comment %}PH-11 (фидбэк владельца 2026-11-08): шапка, main и подвал — на всю ширину на всех
+  страницах портала; `data-wide` у листингов по-прежнему даёт 4 колонки карточек на xl. Узкие
+  формы (вход, подписка) держат ширину своими карточками.{% endcomment %}
+  <main class="group flex-1 w-full {% block main_width %}{% endblock %} px-4 md:px-6 lg:px-10 py-6 md:py-10"{% block main_attrs %}{% endblock %}>
     {% block content %}{% endblock %}
   </main>
 
@@ -82,7 +82,7 @@
   {% endwith %}
 
   <footer class="border-t border-gray-100 bg-white pb-24 sm:pb-0">
-    <div class="max-w-screen-2xl mx-auto px-4 md:px-6 py-6 text-xs text-gray-400 flex flex-wrap items-center justify-between gap-3">
+    <div class="w-full px-4 md:px-6 lg:px-10 py-6 text-xs text-gray-400 flex flex-wrap items-center justify-between gap-3">
       <span>© {% now "Y" %} {{ portal.title_text }} · siteadaptor</span>
       {# T-8.8: Impressum/Datenschutz платформы (DDG §5) — страницы живут на основном домене. #}
       <span class="flex items-center gap-3">
@@ -90,7 +90,7 @@
         {% if platform_legal.impressum %}<a href="{{ platform_legal.impressum }}" class="hover:text-gray-600">{% trans "Impressum" %}</a>{% endif %}
         {% if platform_legal.datenschutz %}<a href="{{ platform_legal.datenschutz }}" class="hover:text-gray-600">{% trans "Datenschutz" %}</a>{% endif %}
       </span>
-      {% if ui_languages %}<span class="2xl:hidden">{% include "tenants/_lang_switch.html" %}</span>{% endif %}
+      {% if ui_languages %}<span class="md:hidden">{% include "tenants/_lang_switch.html" %}</span>{% endif %}
     </div>
   </footer>
 {% include "aggregator/_pstat_beacon.html" %}

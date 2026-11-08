@@ -35983,3 +35983,51 @@ msgstr "Популярное на этой неделе"
 #: PH-11
 msgid "Neu hinzugekommen"
 msgstr "Недавно добавлено"
+
+#: PH-11
+msgid "Alle %(n)s in %(label)s"
+msgstr "Все %(n)s в разделе «%(label)s»"
+
+#: PH-11
+msgid "Alle Geschäfte"
+msgstr "Все магазины"
+
+#: PH-11
+msgid "Das Beste aus jedem Bereich"
+msgstr "Лучшее из каждого раздела"
+
+#: PH-11
+msgid "Geschäfte, die gerade viel anbieten"
+msgstr "Магазины, где сейчас много предложений"
+
+#: PH-11
+msgid "Top-Aktionen dieser Woche"
+msgstr "Топ-акции недели"
+
+#: PH-11
+msgid "die meistgemerkten Angebote"
+msgstr "предложения, которые чаще всего сохраняют"
+
+#: PH-11
+msgid "endet heute / wenige übrig"
+msgstr "заканчивается сегодня / осталось мало"
+
+#: PH-11
+msgid "gerade geschlossen"
+msgstr "сейчас закрыто"
+
+#: PH-11
+msgid "je 3 — zuerst, was heute nutzbar ist"
+msgstr "по 3 — сначала то, чем можно воспользоваться сегодня"
+
+#: PH-11
+msgid "jetzt geöffnet"
+msgstr "сейчас открыто"
+
+#: PH-11
+msgid "%(n)s× gemerkt diese Woche"
+msgid_plural "%(n)s× gemerkt diese Woche"
+msgstr[0] "сохранили %(n)s раз за неделю"
+msgstr[1] "сохранили %(n)s раза за неделю"
+msgstr[2] "сохранили %(n)s раз за неделю"
+msgstr[3] "сохранили %(n)s раза за неделю"

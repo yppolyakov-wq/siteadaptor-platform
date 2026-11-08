@@ -78,7 +78,18 @@ def test_feed_menu_is_cached(django_assert_max_num_queries):
 def test_mobile_bottom_nav_and_swipe_rows():
     portal = _portal()
     _seed_everything()
-    body = _html(portal)
-    assert "data-portal-bottom-nav" in body and 'aria-current="page"' in body
-    assert "data-card-row" in body  # блоки главной — свайп-лентой на телефоне
+    # resolver_match ставит роутер — RequestFactory его не знает (раньше aria-current давали
+    # снятые вкладки главной, PH-11d2): собираем запрос как роутер.
+    from django.urls import resolve
+
+    from apps.aggregator import portal_views
+    from apps.aggregator.tests.test_portal_discover import _get
+
+    req = _get(portal)
+    req.resolver_match = resolve("/")
+    body = portal_views.portal_home(req).content.decode()
+    nav = body.split("data-portal-bottom-nav", 1)[1].split("</nav>", 1)[0]
+    assert 'aria-current="page"' in nav
+    # контент главной на телефоне: quad-лента (PH-11d1), «Das Beste» (PH-11d2) или ряды-страховка
+    assert any(m in body for m in ("data-card-row", "data-home-quad", "data-home-best"))
     assert "csrfmiddlewaretoken" not in body

@@ -35743,3 +35743,49 @@ msgstr "Beliebt diese Woche"
 #: PH-11
 msgid "Neu hinzugekommen"
 msgstr "Neu hinzugekommen"
+
+#: PH-11
+msgid "Alle %(n)s in %(label)s"
+msgstr "Alle %(n)s in %(label)s"
+
+#: PH-11
+msgid "Alle Geschäfte"
+msgstr "Alle Geschäfte"
+
+#: PH-11
+msgid "Das Beste aus jedem Bereich"
+msgstr "Das Beste aus jedem Bereich"
+
+#: PH-11
+msgid "Geschäfte, die gerade viel anbieten"
+msgstr "Geschäfte, die gerade viel anbieten"
+
+#: PH-11
+msgid "Top-Aktionen dieser Woche"
+msgstr "Top-Aktionen dieser Woche"
+
+#: PH-11
+msgid "die meistgemerkten Angebote"
+msgstr "die meistgemerkten Angebote"
+
+#: PH-11
+msgid "endet heute / wenige übrig"
+msgstr "endet heute / wenige übrig"
+
+#: PH-11
+msgid "gerade geschlossen"
+msgstr "gerade geschlossen"
+
+#: PH-11
+msgid "je 3 — zuerst, was heute nutzbar ist"
+msgstr "je 3 — zuerst, was heute nutzbar ist"
+
+#: PH-11
+msgid "jetzt geöffnet"
+msgstr "jetzt geöffnet"
+
+#: PH-11
+msgid "%(n)s× gemerkt diese Woche"
+msgid_plural "%(n)s× gemerkt diese Woche"
+msgstr[0] "%(n)s× gemerkt diese Woche"
+msgstr[1] "%(n)s× gemerkt diese Woche"

@@ -1,7 +1,5 @@
 """PH-4: первый экран — цифры, «Deal des Tages» (органика, UWG §5a), быстрые чипы."""
 
-import html as html_mod
-import re
 from datetime import timedelta
 
 import pytest
@@ -63,24 +61,3 @@ def test_hero_on_home_deal_not_repeated_and_no_csrf():
     assert body.count(d.title["de"]) == 1 or body.count(f">{d.title['de']}<") == 1
     assert "Was gibt&#x27;s heute in Solingen?" in body or "Was gibt's heute in Solingen?" in body
     assert "data-portal-search" in body and "csrfmiddlewaretoken" not in body
-
-
-def test_hero_chips_and_stats_lead_to_non_empty_feeds():
-    portal = _portal()
-    _deal("Pizza-Deal", 40)
-    _listing("product", "Brot", city_category="brot-backwaren", new_price=3)
-    body = _html(portal)
-    links = re.findall(r'href="(/\?[^"]+)" rel="nofollow" data-hero-chip', body)
-    links += re.findall(r'href="(/\?kind=[a-z]+)" rel="nofollow" class="block"', body)
-    assert links
-    for url in links:
-        params = dict(p.split("=") for p in html_mod.unescape(url).split("?", 1)[1].split("&"))
-        assert "data-card-title" in _html(portal, **params), url
-
-
-def test_stats_are_one_query(django_assert_num_queries):
-    _deal("A", 10)
-    _listing("product", "B")
-    with django_assert_num_queries(1):
-        stats = home.home_stats(AggregatorListing.objects.all())
-    assert stats["businesses"] == 2 and stats["offers"] == 1

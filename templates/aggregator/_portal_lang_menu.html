@@ -1,0 +1,13 @@
+{% load i18n %}{% get_current_language as CUR_LANG %}{% comment %}PH-11 (фидбэк владельца 2026-11-08): язык в шапке — выпадающим списком, чтобы поиск
+был шире. Без JS: <details> со ссылками на /sprache/ (как пилюли подвала); закрывается кликом
+по «summary» и Esc (portal.js — общий обработчик поповеров).{% endcomment %}
+<details data-lang-menu class="relative">
+  <summary class="list-none cursor-pointer inline-flex items-center gap-1 h-10 px-3 rounded-full border border-gray-300 text-sm font-semibold text-gray-700 hover:border-gray-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900">
+    <span class="sr-only">{% trans "Language" %}: </span>{% for l in ui_languages %}{% if l.code == CUR_LANG %}{{ l.label }}{% endif %}{% endfor %}<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg>
+  </summary>
+  <ul class="absolute right-0 z-40 mt-2 w-28 rounded-xl bg-white border border-gray-200 shadow-lg p-1">
+    {% for l in ui_languages %}
+    <li><a href="/sprache/?lang={{ l.code }}&amp;next={{ request.path|urlencode }}" lang="{{ l.code }}" class="block px-3 py-2 rounded-lg text-sm hover:bg-gray-50 {% if l.code == CUR_LANG %}font-bold text-gray-900{% else %}text-gray-700{% endif %}"{% if l.code == CUR_LANG %} aria-current="true"{% endif %}>{{ l.label }}</a></li>
+    {% endfor %}
+  </ul>
+</details>

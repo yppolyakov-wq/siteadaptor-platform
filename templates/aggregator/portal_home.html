@@ -4,7 +4,7 @@
 
 {% block structured_data %}{% if ld_collection %}<script type="application/ld+json">{{ ld_collection|safe }}</script>{% endif %}{% endblock %}
 
-{% block main_width %}max-w-screen-2xl{% endblock %}{% block main_attrs %} data-wide{% endblock %}
+{% block main_attrs %} data-wide{% endblock %}
 {% block content %}
 {% if flt %}
 {% comment %}PH-11b: с lg — колонка фильтров слева (та же форма, что шторка на телефоне).{% endcomment %}

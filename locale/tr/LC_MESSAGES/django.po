@@ -35802,3 +35802,49 @@ msgstr "Bu hafta popüler"
 #: PH-11
 msgid "Neu hinzugekommen"
 msgstr "Yeni eklenenler"
+
+#: PH-11
+msgid "Alle %(n)s in %(label)s"
+msgstr "%(label)s içinde tümü (%(n)s)"
+
+#: PH-11
+msgid "Alle Geschäfte"
+msgstr "Tüm işletmeler"
+
+#: PH-11
+msgid "Das Beste aus jedem Bereich"
+msgstr "Her kategoriden en iyiler"
+
+#: PH-11
+msgid "Geschäfte, die gerade viel anbieten"
+msgstr "Şu anda çok teklifi olan işletmeler"
+
+#: PH-11
+msgid "Top-Aktionen dieser Woche"
+msgstr "Bu haftanın en iyi kampanyaları"
+
+#: PH-11
+msgid "die meistgemerkten Angebote"
+msgstr "en çok kaydedilen teklifler"
+
+#: PH-11
+msgid "endet heute / wenige übrig"
+msgstr "bugün bitiyor / az kaldı"
+
+#: PH-11
+msgid "gerade geschlossen"
+msgstr "şu anda kapalı"
+
+#: PH-11
+msgid "je 3 — zuerst, was heute nutzbar ist"
+msgstr "her birinden 3 — önce bugün kullanılabilenler"
+
+#: PH-11
+msgid "jetzt geöffnet"
+msgstr "şu anda açık"
+
+#: PH-11
+msgid "%(n)s× gemerkt diese Woche"
+msgid_plural "%(n)s× gemerkt diese Woche"
+msgstr[0] "bu hafta %(n)s kez kaydedildi"
+msgstr[1] "bu hafta %(n)s kez kaydedildi"

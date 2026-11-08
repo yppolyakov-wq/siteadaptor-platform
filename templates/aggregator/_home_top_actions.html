@@ -1,0 +1,33 @@
+{% load i18n portal_brand %}{% comment %}PH-11d2 (макет K1): «Top-Aktionen dieser Woche» — самые сохраняемые акции за
+неделю (порог ≥2 акции с ≥2 сохранениями); платное не попадает (UWG §5a).{% endcomment %}
+{% if top_actions %}
+<section data-home-top aria-labelledby="top-h" class="mb-12">
+  <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1 mb-4">
+    <h2 id="top-h" class="text-2xl md:text-[28px] font-extrabold tracking-tight">{% trans "Top-Aktionen dieser Woche" %}</h2>
+    <p class="text-sm text-gray-600">{% trans "die meistgemerkten Angebote" %}</p>
+    <a href="{% url 'portal-home' %}?kind=angebote" rel="nofollow" class="sm:ml-auto text-[15px] font-bold hover:underline" style="color: var(--portal-color)">{% trans "Alle Aktionen" %} <span aria-hidden="true">→</span></a>
+  </div>
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+    {% for t in top_actions %}
+    {% url 'aggregator-offer' t.pk as offer_url %}
+    <article data-top-action="{{ t.pk }}" class="relative bg-white border border-gray-200 rounded-3xl overflow-hidden grid sm:grid-cols-[minmax(0,240px)_1fr]">
+      <div class="relative min-h-[180px] bg-gray-100">
+        {% if t.image.url %}<img src="{{ t.image.url }}" alt="" loading="lazy" decoding="async" class="absolute inset-0 w-full h-full object-cover">{% endif %}
+        {% if t.discount_percent %}<span class="absolute left-3 top-3 bg-orange-700 text-white text-lg font-extrabold px-3 py-1 rounded-xl">−{{ t.discount_percent }} %</span>{% endif %}
+      </div>
+      <div class="p-5 flex flex-col gap-1.5">
+        <p class="text-[13px] text-gray-600">{{ t.business_name }}{% if t.district_name %} · {{ t.district_name }}{% endif %}</p>
+        <h3 id="top-{{ t.pk }}" class="text-xl font-extrabold leading-tight">{{ t.title_text }}</h3>
+        <p class="text-[13px] font-semibold text-emerald-700">{% blocktrans count n=t.saves %}{{ n }}× gemerkt diese Woche{% plural %}{{ n }}× gemerkt diese Woche{% endblocktrans %}</p>
+        <div class="mt-auto pt-3 flex flex-wrap items-center gap-3">
+          {% if t.new_price %}<b class="text-2xl whitespace-nowrap">{{ t.new_price }} {{ t.currency }}</b>{% endif %}
+          {% if t.old_price and t.new_price and t.old_price > t.new_price %}<s class="text-gray-600 whitespace-nowrap">{{ t.old_price }} {{ t.currency }}</s>{% endif %}
+          <a href="{{ offer_url|default:t.portal_url }}" aria-describedby="top-{{ t.pk }}" class="sm:ml-auto inline-flex items-center h-11 px-5 rounded-full text-white font-bold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900" style="background: var(--portal-color)">{{ t|card_action_for }}</a>
+        </div>
+        {% if t.price_reference == "lowest30" and t.old_price %}<p class="text-xs text-gray-600">{% blocktrans with p=t.old_price %}Lowest price in the last 30 days: {{ p }} €{% endblocktrans %}</p>{% endif %}
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}

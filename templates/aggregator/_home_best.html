@@ -1,0 +1,42 @@
+{% load i18n %}{% comment %}PH-11d2 (макет K1): «Das Beste aus jedem Bereich» — топ-разделы по 3 строки, точка
+статуса по снимку часов (без пользовательских данных — P0-1). Здесь же якорь #kategorien:
+кнопка «Kategorien» без JS ведёт сюда. Строки ⊆ ленты раздела, платное не попадает (UWG §5a).{% endcomment %}
+{% if best_sections %}
+<section data-home-best id="kategorien" aria-labelledby="best-h" class="mb-12 scroll-mt-32">
+  <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1 mb-4">
+    <h2 id="best-h" class="text-2xl md:text-[28px] font-extrabold tracking-tight">{% trans "Das Beste aus jedem Bereich" %}</h2>
+    <p class="text-sm text-gray-600">{% trans "je 3 — zuerst, was heute nutzbar ist" %}</p>
+  </div>
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    {% for b in best_sections %}
+    <article data-best-section="{{ b.key }}" class="bg-white rounded-3xl overflow-hidden flex flex-col shadow-[0_1px_2px_rgba(17,24,39,.06),0_8px_24px_rgba(17,24,39,.06)]">
+      <div class="relative h-28 bg-gray-800">
+        {% if b.image %}<img src="{{ b.image }}" alt="" loading="lazy" decoding="async" class="absolute inset-0 w-full h-full object-cover">{% endif %}
+        <span aria-hidden="true" class="absolute inset-0 bg-gradient-to-b from-transparent from-30% to-black/70"></span>
+        <h3 class="absolute left-4 bottom-3 text-lg font-extrabold text-white">{{ b.label }}</h3>
+        <span class="absolute right-3 bottom-3 bg-white text-gray-900 text-xs font-bold rounded-full px-2.5 py-1">{{ b.count }}<span class="sr-only"> {% trans "Angebote" %}</span></span>
+      </div>
+      <ol class="px-4 py-1 flex flex-col">
+        {% for r in b.items %}
+        {% url 'aggregator-offer' r.pk as offer_url %}
+        <li class="flex items-center gap-2.5 py-2.5 border-b border-gray-100 last:border-b-0">
+          {% if r.best_dot %}<span aria-hidden="true" class="w-2 h-2 shrink-0 rounded-full {% if r.best_dot == 'open' %}bg-emerald-700{% elif r.best_dot == 'soon' %}bg-amber-700{% else %}bg-gray-400{% endif %}"></span>{% else %}<span aria-hidden="true" class="w-2 h-2 shrink-0"></span>{% endif %}
+          <span class="flex-1 min-w-0 flex flex-col">
+            <a href="{{ offer_url|default:r.portal_url }}" class="text-sm font-semibold text-gray-900 truncate hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900 rounded">{{ r.title_text }}</a>
+            <span class="text-xs text-gray-600 truncate">{{ r.business_name }}{% if r.district_name %} · {{ r.district_name }}{% endif %}{% if r.best_dot %}<span class="sr-only"> · {% if r.best_dot == 'open' %}{% trans "jetzt geöffnet" %}{% elif r.best_dot == 'soon' %}{% trans "endet heute / wenige übrig" %}{% else %}{% trans "gerade geschlossen" %}{% endif %}</span>{% endif %}</span>
+          </span>
+          {% if r.new_price %}<b class="text-sm whitespace-nowrap">{{ r.new_price }} {{ r.currency }}</b>{% endif %}
+        </li>
+        {% endfor %}
+      </ol>
+      <a href="{{ b.url }}" rel="nofollow" data-best-more="{{ b.count }}" class="mt-auto px-4 pt-3 pb-4 text-sm font-bold hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-gray-900" style="color: var(--portal-color)">{% blocktrans with n=b.count label=b.label %}Alle {{ n }} in {{ label }}{% endblocktrans %} <span aria-hidden="true">→</span></a>
+    </article>
+    {% endfor %}
+  </div>
+  <p class="mt-3 flex flex-wrap gap-4 text-xs text-gray-600" aria-hidden="true">
+    <span class="inline-flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-700"></span>{% trans "jetzt geöffnet" %}</span>
+    <span class="inline-flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-amber-700"></span>{% trans "endet heute / wenige übrig" %}</span>
+    <span class="inline-flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-gray-400"></span>{% trans "gerade geschlossen" %}</span>
+  </p>
+</section>
+{% endif %}

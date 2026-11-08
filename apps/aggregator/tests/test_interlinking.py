@@ -102,7 +102,11 @@ def test_portal_home_links_other_portals():
     p = _portal()
     _portal(host="koeln.siteadaptor.de", city="Köln", title={"de": "Angebote Köln"})
     _portal(host="aus.siteadaptor.de", city="Weg", title={"de": "Weg"}, is_active=False)
-    req = RequestFactory().get("/", HTTP_HOST=p.host)
+    # PH-11d2: главная по макету K1 не ведёт на чужие порталы; перелинковка — в ленте.
+    home = RequestFactory().get("/", HTTP_HOST=p.host)
+    home.portal = p
+    assert "koeln.siteadaptor.de" not in portal_views.portal_home(home).content.decode()
+    req = RequestFactory().get("/?kind=alle", HTTP_HOST=p.host)
     req.portal = p
     body = portal_views.portal_home(req).content.decode()
     assert "Weitere regionale Portale" in body

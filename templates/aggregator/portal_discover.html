@@ -4,11 +4,14 @@
 
 {% block structured_data %}{% if ld_collection %}<script type="application/ld+json">{{ ld_collection|safe }}</script>{% endif %}{% endblock %}
 
-{% block main_width %}max-w-screen-2xl{% endblock %}{% block main_attrs %} data-wide{% endblock %}
+{% block main_attrs %} data-wide{% endblock %}
 {% block content %}
+{% comment %}PH-11d (макет K1): баннер · заголовок · quad-карточки · «Anzeigen» · «Das Beste aus jedem
+Bereich» · «Neu in <город>» · «Geschäfte» · «Top-Aktionen». Ряды блоков, плитки разделов, быстрые фильтры
+и ссылки на чужие порталы сняты (PH-11d2): навигация — шапка и мега-меню. Ряды
+блоков остаются только страховкой малого портала (нет «Das Beste»).{% endcomment %}
 {% include "aggregator/_portal_slider.html" %}
 {% include "aggregator/_portal_hero.html" %}
-{% include "aggregator/_home_quick_filters.html" with tabs=portal_tabs %}
 {% include "aggregator/_portal_quad.html" %}
 
 {% include "aggregator/_demo_notice.html" %}
@@ -25,16 +28,19 @@
 </section>
 {% endif %}
 
-{% include "aggregator/_section_tiles.html" %}
-
+{% include "aggregator/_home_best.html" %}
+{% comment %}Страховка малого портала: без «Das Beste» — прежние ряды блоков (без показанного в карточках).{% endcomment %}
 {% for b in blocks %}
   {% include "aggregator/_home_block.html" with block=b %}
 {% empty %}
   {% if pool_empty %}<p data-home-empty class="text-gray-400">{% blocktrans with city=portal.city %}Noch keine Angebote in {{ city }}{% endblocktrans %}</p>{% endif %}
 {% endfor %}
-
 {% include "aggregator/_home_new_businesses.html" %}
+{% include "aggregator/_home_busy.html" %}
+{% include "aggregator/_home_top_actions.html" %}
 
+{% comment %}Районы и «Branche» — единственные ссылки главной на страницы районов и отраслей:
+остаются до тёмного подвала PH-11e (колонки «Stadtteile»/«Entdecken»), иначе страницы осиротеют.{% endcomment %}
 {% if district_tiles %}
 {% comment %}PH-6: районы плитками — число предложений и «offen» сейчас (один запрос).{% endcomment %}
 <section data-district-chips aria-labelledby="home-districts" class="mt-12 mb-10 grid grid-cols-1 lg:grid-cols-12 gap-5 items-center">
@@ -55,22 +61,11 @@
 {% endif %}
 
 {% if facets %}
-<div class="flex flex-wrap items-center gap-2 mb-6{% if not district_chips %} mt-10{% endif %}">
+<div class="flex flex-wrap items-center gap-2 mb-6">
   <span class="text-sm font-medium text-gray-500 mr-1">{% trans "Branche" %}:</span>
   {% for v, label in facets %}
     <a href="{% url 'portal-facet' facet=v %}" class="px-3 py-1.5 rounded-full text-sm border bg-white border-gray-200 text-gray-600 hover:border-gray-400">{{ label }}</a>
   {% endfor %}
-</div>
-{% endif %}
-
-{% if other_portals %}
-<div class="mt-10 border-t border-gray-100 pt-6">
-  <p class="text-sm font-semibold text-gray-500 mb-3">{% trans "More local portals" %}</p>
-  <div class="flex flex-wrap gap-2">
-    {% for url, title in other_portals %}
-      <a href="{{ url }}" class="px-3 py-1.5 rounded-full text-sm bg-white border border-gray-200 text-gray-600 hover:border-indigo-400 hover:text-indigo-700">{{ title }}</a>
-    {% endfor %}
-  </div>
 </div>
 {% endif %}
 {% endblock %}

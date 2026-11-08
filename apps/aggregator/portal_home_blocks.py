@@ -13,7 +13,7 @@ from dataclasses import dataclass
 from datetime import timedelta
 from urllib.parse import urlencode
 
-from django.db.models import Case, CharField, Count, F, IntegerField, Q, Value, When, Window
+from django.db.models import Case, CharField, Count, F, IntegerField, Max, Q, Value, When, Window
 from django.db.models.functions import MD5, Cast, Concat, RowNumber
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -762,7 +762,41 @@ def quad_cards(base_qs, blocks, open_set, *, portal_pk, path: str, now=None) -> 
         f"{path}?{urlencode({'kind': 'angebote', 'sort': 'endet'})}",
     )
 
-    # 2. Beliebt diese Woche — просмотры за 7 дней; иначе «Jetzt geöffnet» из блоков.
+    # 2. Am Wochenende — датированное из «Freizeit», пересекающее окно выходных. Выбирает ДО
+    # «Jetzt geöffnet» (фидбэк 2026-11-08: события уходили туда, и карточка выходных пустела).
+    # Окно пусто (воскресный вечер, выходные позади) — «Demnächst»: ближайшие события.
+    start, end = date_window("wochenende", now=now)
+    freizeit = by_key.get("freizeit", {}).get("items", [])
+    weekend = [
+        i
+        for i in freizeit
+        if i.listing_kind in DATED_KINDS
+        and (i.starts_at is None or i.starts_at < end)
+        and (i.ends_at is None or i.ends_at >= start)
+    ]
+    if weekend:
+        add(
+            "wochenende",
+            _("Am Wochenende"),
+            weekend,
+            f"{path}?{urlencode({'kind': 'alle', 'kat': 'freizeit-erlebnisse', 'datum': 'wochenende'})}",
+        )
+    else:
+        upcoming = sorted(
+            {
+                i.pk: i for b in blocks for i in b["items"] if i.listing_kind == L.KIND_EVENT
+            }.values(),
+            key=lambda i: (i.starts_at is None, i.starts_at or now),
+        )
+        add("demnaechst", _("Demnächst"), upcoming, f"{path}?kind={L.KIND_EVENT}")
+
+    # 3. Neu — блок «neu».
+    neu = by_key.get("neu")
+    if neu:
+        add("neu", _("Neu hinzugekommen"), neu["items"], neu["more_url"])
+
+    # 4. Beliebt diese Woche — просмотры за 7 дней; иначе «Jetzt geöffnet» (магазины, а не
+    # события: у события нет «открыто сейчас»).
     popular = []
     ids = _popular_ids(base_qs, portal_pk, now)
     if ids:
@@ -780,7 +814,7 @@ def quad_cards(base_qs, blocks, open_set, *, portal_pk, path: str, now=None) -> 
             i
             for b in blocks
             for i in b["items"]
-            if i.tenant_schema in open_set and i.listing_kind != L.KIND_BUSINESS
+            if i.tenant_schema in open_set and i.listing_kind not in (L.KIND_BUSINESS, L.KIND_EVENT)
         ]
         add(
             "offen",
@@ -789,24 +823,138 @@ def quad_cards(base_qs, blocks, open_set, *, portal_pk, path: str, now=None) -> 
             f"{path}?{urlencode({'kind': 'alle', 'offen': '1'})}",
         )
 
-    # 3. Neu diese Woche — блок «neu».
-    neu = by_key.get("neu")
-    if neu:
-        add("neu", _("Neu hinzugekommen"), neu["items"], neu["more_url"])
-
-    # 4. Am Wochenende — датированное из «Freizeit», пересекающее окно выходных.
-    start, end = date_window("wochenende", now=now)
-    weekend = [
-        i
-        for i in by_key.get("freizeit", {}).get("items", [])
-        if i.listing_kind in DATED_KINDS
-        and (i.starts_at is None or i.starts_at < end)
-        and (i.ends_at is None or i.ends_at >= start)
-    ]
-    add(
-        "wochenende",
-        _("Am Wochenende"),
-        weekend,
-        f"{path}?{urlencode({'kind': 'alle', 'kat': 'freizeit-erlebnisse', 'datum': 'wochenende'})}",
-    )
+    # Порядок показа — по макету K1 (выбор шёл в порядке «кому нужнее»).
+    order = ("endet", "beliebt", "offen", "neu", "wochenende", "demnaechst")
+    cards.sort(key=lambda c: order.index(c["key"]))
     return cards
+
+
+# --- PH-11d2: «Das Beste aus jedem Bereich», «Geschäfte», «Top-Aktionen» (макет K1) ------
+
+BEST_SECTIONS = 6
+BEST_ROWS = 3
+LOW_STOCK = 3  # «wenige übrig» — тот же порог, что честная плашка остатка (PH-9)
+BUSY_LIMIT = 6
+BUSY_MIN = 3  # меньше трёх бизнесов с предложениями — блока нет
+TOP_LIMIT = 2
+TOP_MIN_SAVES = 2  # порог честности: «meistgemerkt» — не по одному сохранению
+TOP_DAYS = 7
+
+
+def _dot(item, snapshot, end_of_day) -> str:
+    """Статус строки: open · soon (endet heute / wenige übrig) · closed · "" (часов нет)."""
+    row = snapshot.get(item.tenant_schema) or {}
+    status = row.get("status") or {}
+    if row.get("holiday") or (status and not status.get("open")):
+        return "closed"
+    if (item.ends_at and item.ends_at <= end_of_day) or (
+        item.remaining is not None and item.remaining <= LOW_STOCK
+    ):
+        return "soon"
+    return "open" if status.get("open") else ""
+
+
+def best_by_section(
+    base_qs, present, open_set, snapshot, *, path: str, exclude_pks=(), now=None
+) -> list[dict]:
+    """Топ-разделы пула по числу предложений и по 3 строки в каждом — ОДИН запрос (Window
+    RowNumber по разделу). «Zuerst, was heute nutzbar ist»: открытые сейчас выше, затем
+    срочное, затем новое. Строки ⊆ ленты раздела (?kind=alle&kat=<раздел>); платное не
+    попадает (UWG §5a), бизнес-карточки не строки."""
+    now = now or timezone.now()
+    sections = present.get("sections", {})
+    top = sorted(sections, key=lambda k: (-sections[k], k))[:BEST_SECTIONS]
+    if not top:
+        return []
+    cats = {s: [c.key for c in cc.CATEGORIES if c.section == s] for s in top}
+    section_of = Case(
+        *[When(city_category__in=keys, then=Value(s)) for s, keys in cats.items() if keys],
+        default=Value(""),
+        output_field=CharField(),
+    )
+    open_first = Case(
+        When(tenant_schema__in=sorted(open_set), then=Value(0)),
+        default=Value(1),
+        output_field=IntegerField(),
+    )
+    order = [open_first, F("ends_at").asc(nulls_last=True), "-created_at", "-pk"]
+    rows = (
+        base_qs.exclude(listing_kind=L.KIND_BUSINESS)
+        .exclude(featured_until__gt=now)
+        .exclude(pk__in=list(exclude_pks))
+        .annotate(best_section=section_of)
+        .exclude(best_section="")
+        .annotate(best_rank=Window(RowNumber(), partition_by=[F("best_section")], order_by=order))
+        .filter(best_rank__lte=BEST_ROWS)
+        .order_by("best_section", "best_rank")
+    )
+    by_section: dict[str, list] = {}
+    for item in rows:
+        by_section.setdefault(item.best_section, []).append(item)
+    end_of_day = timezone.localtime(now).replace(hour=23, minute=59, second=59)
+    out = []
+    for key in top:
+        items = by_section.get(key)
+        if not items:
+            continue
+        sec = cc.section(key)
+        for item in items:
+            item.best_dot = _dot(item, snapshot, end_of_day)
+        out.append(
+            {
+                "key": key,
+                "label": str(sec.label) if sec else key,
+                "count": sections[key],
+                "image": next(
+                    (i.image.get("url") for i in items if (i.image or {}).get("url")), ""
+                ),
+                "items": items,
+                "url": scope_url(path, FeedScope(kind_key="alle", kat=key)),
+            }
+        )
+    # Ряды по 3 на десктопе: 4 или 5 разделов дали бы одинокую карточку во втором ряду.
+    if len(out) > 3:
+        out = out[: len(out) // 3 * 3]
+    return out
+
+
+def busy_businesses(base_qs, *, path: str) -> dict | None:
+    """«Geschäfte, die gerade viel anbieten» — бизнесы пула по числу предложений: ОДИН
+    агрегат + ОДИН запрос фото бизнес-карточек. Меньше BUSY_MIN — None."""
+    rows = list(
+        base_qs.exclude(listing_kind=L.KIND_BUSINESS)
+        .order_by()
+        .values("tenant_schema")
+        # группа — бизнес (схема); имя и slug — из его строк (у одного бизнеса они одни)
+        .annotate(n=Count("id"), tenant_slug=Max("tenant_slug"), business_name=Max("business_name"))
+        .order_by("-n", "business_name")[:BUSY_LIMIT]
+    )
+    if len(rows) < BUSY_MIN:
+        return None
+    photos = {
+        schema: image
+        for schema, image in base_qs.filter(
+            listing_kind=L.KIND_BUSINESS, tenant_schema__in=[r["tenant_schema"] for r in rows]
+        )
+        .order_by()
+        .values_list("tenant_schema", "image")
+    }
+    for r in rows:
+        r["image"] = (photos.get(r["tenant_schema"]) or {}).get("url", "")
+    return {"items": rows, "more_url": f"{path}?kind={L.KIND_BUSINESS}"}
+
+
+def top_actions(base_qs, *, path: str, exclude_pks=(), now=None) -> list:
+    """«Top-Aktionen dieser Woche» — самые сохраняемые акции за неделю (FavoriteListing),
+    ОДИН запрос. Порог: ≥2 акции с ≥2 сохранениями — иначе блока нет. Платное — нет."""
+    now = now or timezone.now()
+    since = now - timedelta(days=TOP_DAYS)
+    items = list(
+        base_qs.filter(listing_kind=L.KIND_PROMOTION)
+        .exclude(featured_until__gt=now)
+        .exclude(pk__in=list(exclude_pks))
+        .annotate(saves=Count("favorited_by", filter=Q(favorited_by__created_at__gte=since)))
+        .filter(saves__gte=TOP_MIN_SAVES)
+        .order_by("-saves", "-pk")[:TOP_LIMIT]
+    )
+    return items if len(items) >= TOP_LIMIT else []

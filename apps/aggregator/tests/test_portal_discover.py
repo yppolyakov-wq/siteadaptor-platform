@@ -117,14 +117,16 @@ def test_empty_portal_has_search_and_empty_note_only():
 
 
 def test_tab_without_data_is_hidden():
+    """Вкладки видов — в ленте (на главной по макету K1 их нет: PH-11d2)."""
     portal = _portal()
     _listing("promotion", "Herbstrabatt")
     _listing("product", "Messer")
-    html = _html(portal)
+    html = _html(portal, kind="alle")
     assert 'data-portal-tab="product"' in html and 'data-portal-tab="event"' not in html
+    assert "data-portal-tab=" not in _html(portal)
     _listing("event", "Konzert", starts_at=timezone.now() + timedelta(days=3))
     cache.clear()
-    assert 'data-portal-tab="event"' in _html(portal)
+    assert 'data-portal-tab="event"' in _html(portal, kind="alle")
 
 
 def test_section_tiles_only_nonempty_with_counts():
@@ -345,12 +347,14 @@ def test_query_count_does_not_grow_with_data(django_assert_max_num_queries):
     # экрана (1), «Neu in <город>» (1); снимок часов обслуживает «N geöffnet» и карточки.
     # 2026-11-08 (PH-11d1b, осознанно 17 → 18): «Beliebt diese Woche» — просмотры за неделю
     # (1, кэш 15 минут; пул по pk — только когда просмотры есть).
-    with django_assert_max_num_queries(18):
+    # 2026-11-08 (PH-11d2, осознанно 18 → 21): «Das Beste» (1), «Geschäfte» (2), «Top-Aktionen»
+    # (1) минус «чужие порталы» (1). План §2: холодный рендер ≈ +6, корень кэширован.
+    with django_assert_max_num_queries(21):
         portal_views.portal_home(_get(portal))
     for i in range(30):
         _listing("product", f"Viel {i}", city_category="brot-backwaren")
     cache.clear()
-    with django_assert_max_num_queries(18):
+    with django_assert_max_num_queries(21):
         portal_views.portal_home(_get(portal))
 
 
@@ -415,7 +419,9 @@ def test_stays_only_city_is_not_reported_empty():
     _listing("stay", "Doppelzimmer", city_category="hotels")
     AggregatorListing.objects.update(created_at=timezone.now() - timedelta(days=30))
     html = _html(_portal())
-    assert _blocks(html) == ["angebote"] and "data-home-empty" not in html
+    # PH-11d2: номер — строкой «Das Beste» своего раздела; «Noch keine…» не показываем.
+    assert 'data-best-section="reisen-uebernachten"' in html and "Doppelzimmer" in html
+    assert "data-home-empty" not in html
 
 
 @pytest.mark.parametrize("params", [{"q": ""}, {"kind": ""}, {"q": "  "}])
@@ -491,11 +497,13 @@ def test_section_entry_without_kind_shows_all_kinds_like_the_tile_count(isolated
     portal = _portal()
     _seed_everything()
     html = _html(portal)
-    tiles = re.findall(
-        r'href="([^"]+)" data-section-tile="([^"]+)".*?<span data-tile-count[^>]*>(\d+)</span>',
-        html,
-        re.S,
-    )
+    # PH-11d2: плитки разделов сняты — то же обещание теперь у «Alle N in <раздел>» в «Das Beste».
+    tiles = [
+        (url, re.search(r"kat=([a-z-]+)", url).group(1), count)
+        for url, count in re.findall(
+            r'<a href="([^"]+)" rel="nofollow" data-best-more="(\d+)"', html
+        )
+    ]
     assert tiles
     for url, key, count in tiles:
         params = dict(p.split("=") for p in html_mod.unescape(url).split("?", 1)[1].split("&"))

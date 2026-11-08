@@ -1047,10 +1047,12 @@ def _fav_ids(request) -> set:
 
 
 def _render_home(request, portal):
-    """T-8.19: «Entdecke <город>» — поиск, вкладки, плитки разделов, «Anzeigen», блоки.
+    """T-8.19/PH-11d: «Heute in <город>» по макету K1 — баннер, quad-карточки, «Anzeigen»,
+    «Das Beste aus jedem Bereich», «Geschäfte», «Top-Aktionen».
 
-    Число запросов не зависит от объёма данных: presence (1), featured (≤2), блоки (по 1),
-    рейтинги (1), районы, «Branche», другие порталы. Корень без query кэшируется.
+    Число запросов не зависит от объёма данных: presence (1), featured (≤2), блоки (по 1,
+    питают карточки), «Beliebt» (≤2, кэш), «Das Beste» (1), «Geschäfte» (2), «Top-Aktionen»
+    (1), рейтинги (1). Корень без query кэшируется.
     """
     from . import portal_home_blocks as home
     from . import reviews
@@ -1089,7 +1091,41 @@ def _render_home(request, portal):
     newbiz = home.new_businesses(base, path=request.path) if present["total"] else None
     if newbiz:  # «Neu in <город>» заменяет блок «Lokale Unternehmen» (без двух бизнес-блоков)
         blocks = [b for b in blocks if b["key"] != "unternehmen"]
-    cards = featured + ([deal] if deal else []) + [item for b in blocks for item in b["items"]]
+    # PH-11d2 (макет K1): ряды блоков на главной не рисуются — блоки питают quad-карточки;
+    # ниже карточек — «Das Beste aus jedem Bereich», «Geschäfte», «Top-Aktionen».
+    quad = (
+        home.quad_cards(base, blocks, open_set, portal_pk=portal.pk, path=request.path)
+        if present["total"]
+        else []
+    )
+    # Deal и «Anzeigen» уже на экране — в «Das Beste» и «Top-Aktionen» не повторяем.
+    shown = {item.pk for item in featured} | ({deal.pk} if deal else set())
+    best = (
+        home.best_by_section(
+            base, present, open_set, snapshot, path=request.path, exclude_pks=shown
+        )
+        if present["total"]
+        else []
+    )
+    # Страховка малого портала: без «Das Beste» (мало данных или предложения без раздела)
+    # главная не пустеет — ряды блоков остаются, без того, что уже показали карточки.
+    in_quad = {item.pk for c in quad for item in c["items"]} if len(quad) > 1 else set()
+    rows = []
+    if not best:
+        for b in blocks:
+            items = [i for i in b["items"] if i.pk not in in_quad]
+            if items:
+                rows.append({**b, "items": items})
+    busy = home.busy_businesses(base, path=request.path) if present["total"] else None
+    tops = home.top_actions(base, path=request.path, exclude_pks=shown) if present["total"] else []
+    cards = (
+        featured
+        + ([deal] if deal else [])
+        + [item for c in quad for item in c["items"]]
+        + [item for b in best for item in b["items"]]
+        + [item for b in rows for item in b["items"]]
+        + tops
+    )
     tiles_d = home.district_tiles(base, portal.city, open_set) if present["total"] else []
     reviews.attach_ratings(cards)
     # PH-3: «Endet in …» и часы работы на карточках — из общего снимка (0 запросов).
@@ -1103,35 +1139,27 @@ def _render_home(request, portal):
         "aggregator/portal_discover.html",
         {
             "portal": portal,
-            "portal_tabs": home.tabs(present, "alle", request.path),
             "deal": deal,
-            "quad_cards": (
-                home.quad_cards(base, blocks, open_set, portal_pk=portal.pk, path=request.path)
-                if present["total"]
-                else []
-            ),
+            "quad_cards": quad,
+            "best_sections": best,
+            "blocks": rows,
+            "busy": busy,
+            "top_actions": tops,
             "slides": portal_slides.slides(
                 portal, deal=deal, stats=stats, newbiz=newbiz, path=request.path
             ),
             "stats": stats,
             "open_count": len(open_set),
-            "hero_chips": home.hero_chips(present, stats, len(open_set), request.path),
-            "quick_filters": home.quick_filters(stats, len(open_set), request.path),
-            "price_links": home.price_links(request.path) if stats.get("businesses") else [],
             "pool_empty": not present["total"],
-            "tiles": home.section_tiles(present, request.path),
             # PH-2: меню «Kategorien» — из уже посчитанного presence, без запросов.
             "portal_menu": home.menu_sections(present, request.path),
             "featured": featured,
-            "blocks": blocks,
             "facets": facets,
-            "district_chips": [(t["slug"], t["name"]) for t in tiles_d],
             "district_tiles": tiles_d,
             "newbiz": newbiz,
             "shows_demo": portal.show_demo and any(getattr(c, "is_demo", False) for c in cards),
             "business_link": True,
             "canonical": canonical,
-            "other_portals": _other_portals(request, portal),
             "fav_ids": _fav_ids(request),
             "ld_collection": collectionpage_ld(
                 name=portal.title_text,

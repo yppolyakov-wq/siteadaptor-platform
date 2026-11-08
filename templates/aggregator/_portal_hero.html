@@ -1,21 +1,9 @@
 {% load i18n portal_brand %}
-{% comment %}PH-4/PH-11d1: заголовок главной под баннером — «Was gibt's heute in <город>?», быстрые чипы, живые цифры. «Deal des Tages» переехал в слайдер (_portal_slider.html). Без пользовательских данных: страница кэшируется.{% endcomment %}
-<section data-portal-hero aria-labelledby="hero-h" class="mb-10">
+{% comment %}PH-4/PH-11d1: заголовок главной под баннером — «Was gibt's heute in <город>?», без чипов и цифр (PH-11d2: их работу делают баннер и quad-карточки). «Deal des Tages» — в слайдере. Без пользовательских данных: страница кэшируется.{% endcomment %}
+<section data-portal-hero aria-labelledby="hero-h" class="mb-6">
   <div class="flex flex-col gap-4">
     {% if open_count %}<p class="inline-flex items-center gap-2 text-xs md:text-[13px] font-bold uppercase tracking-wider text-orange-700"><span aria-hidden="true" class="w-2 h-2 rounded-full bg-green-500"></span>{% now "l" %} · {% blocktrans count n=open_count %}{{ n }} Geschäft geöffnet{% plural %}{{ n }} Geschäfte geöffnet{% endblocktrans %}</p>{% endif %}
     <h1 id="hero-h" class="text-3xl md:text-4xl font-extrabold leading-[1.05] tracking-tight">{% blocktrans with city=portal.city %}Was gibt's heute in {{ city }}?{% endblocktrans %}</h1>
     <p class="text-base md:text-lg text-gray-600 max-w-2xl">{% if portal.intro_text %}{{ portal.intro_text }}{% else %}{% blocktrans with city=portal.city %}Angebote von Läden, Cafés und Handwerkern aus {{ city }} — reservieren, abholen, direkt vor Ort.{% endblocktrans %}{% endif %}</p>
-    {% if hero_chips %}
-    <div class="flex flex-wrap gap-2.5">
-      {% for c in hero_chips %}<a href="{{ c.url }}" rel="nofollow" data-hero-chip class="inline-flex items-center h-11 px-4 rounded-full bg-white border border-gray-300 font-semibold text-sm hover:border-gray-900">{{ c.label }}</a>{% endfor %}
-    </div>
-    {% endif %}
-    {% if stats.businesses %}
-    <dl class="flex flex-wrap gap-x-9 gap-y-3 pt-1" data-hero-stats>
-      <div><dt class="sr-only">{% trans "Geschäfte" %}</dt><dd><span class="block text-3xl font-extrabold">{{ stats.businesses }}</span><span class="text-[13px] text-gray-600">{% trans "Geschäfte" %}</span></dd></div>
-      {% if stats.offers %}<div><dt class="sr-only">{% trans "Angebote" %}</dt><dd><a href="{% url 'portal-home' %}?kind=angebote" rel="nofollow" class="block"><span class="block text-3xl font-extrabold">{{ stats.offers }}</span><span class="text-[13px] text-gray-600">{% trans "Angebote" %}</span></a></dd></div>{% endif %}
-      {% if stats.new_week %}<div><dt class="sr-only">{% trans "neu diese Woche" %}</dt><dd><span class="block text-3xl font-extrabold">{{ stats.new_week }}</span><span class="text-[13px] text-gray-600">{% trans "neu diese Woche" %}</span></dd></div>{% endif %}
-    </dl>
-    {% endif %}
   </div>
 </section>

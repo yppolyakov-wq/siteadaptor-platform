@@ -1,9 +1,6 @@
-"""PH-5: быстрые фильтры главной — только ссылки, каждая ведёт в непустую ленту."""
+"""PH-5 → PH-11d2: быстрые фильтры сняты с главной (замок отсутствия); функция — до уборки PH-11e."""
 
-import html as html_mod
-import re
 from datetime import timedelta
-from urllib.parse import parse_qsl, urlsplit
 
 import pytest
 from django.utils import timezone
@@ -26,26 +23,15 @@ def _seed():
     _listing("product", "Brot", city_category="brot-backwaren", new_price=3, district="mitte")
 
 
-def test_quick_filters_are_links_into_the_feed():
+def test_home_has_no_quick_filters_or_hero_chips():
+    """PH-11d2 (макет K1): быстрые фильтры и чипы первого экрана сняты — их работу делают поиск
+    шапки («Was/Wo/Wann»), баннер и quad-карточки. Фильтры живут в ленте."""
     portal = _portal()
     _seed()
     body = _html(portal)
-    assert "data-home-quick-filters" in body and "csrfmiddlewaretoken" not in body
-    urls = re.findall(r'href="([^"]+)" rel="nofollow" data-quick-filter=', body)
-    urls += re.findall(r'href="([^"]+)" rel="nofollow" class="flex items-center min-h', body)
-    assert urls
-    for url in urls:
-        query = dict(parse_qsl(urlsplit(html_mod.unescape(url)).query))
-        assert set(query) <= home.FEED_PARAMS, url  # иначе корень откроет главную
-        assert "data-portal-home" not in _html(portal, **query), url
-
-
-def test_near_me_hidden_without_js_and_all_filters_opens_drawer_anchor():
-    portal = _portal()
-    _seed()
-    body = _html(portal)
-    assert re.search(r"<button[^>]*hidden[^>]*data-near-me", body)
-    assert "?kind=alle#filter" in body
+    assert "data-home-quick-filters" not in body and "data-hero-chip" not in body
+    assert "data-hero-stats" not in body and "data-section-tiles" not in body
+    assert "data-portal-header-search" in body and "csrfmiddlewaretoken" not in body
 
 
 def test_empty_toggles_are_not_shown():

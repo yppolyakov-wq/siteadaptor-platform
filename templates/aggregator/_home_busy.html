@@ -1,0 +1,23 @@
+{% load i18n %}{% comment %}PH-11d2 (макет K1): «Geschäfte, die gerade viel anbieten» — бизнесы пула по числу
+предложений (агрегат по пулу портала: демо/скрытое уже отсечены).{% endcomment %}
+{% if busy %}
+<section data-home-busy aria-labelledby="busy-h" class="mb-12">
+  <div class="flex flex-wrap items-baseline justify-between gap-3 mb-4">
+    <h2 id="busy-h" class="text-2xl md:text-[28px] font-extrabold tracking-tight">{% trans "Geschäfte, die gerade viel anbieten" %}</h2>
+    <a href="{{ busy.more_url }}" rel="nofollow" class="shrink-0 text-[15px] font-bold hover:underline" style="color: var(--portal-color)">{% trans "Alle Geschäfte" %} <span aria-hidden="true">→</span></a>
+  </div>
+  <ul class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+    {% for s in busy.items %}
+    <li data-busy="{{ s.tenant_slug }}">
+      <a href="{% url 'portal-business' slug=s.tenant_slug %}" class="group h-full flex flex-col bg-white border border-gray-200 rounded-2xl overflow-hidden hover:border-gray-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900">
+        {% if s.image %}<img src="{{ s.image }}" alt="" loading="lazy" decoding="async" class="w-full h-28 object-cover">{% else %}<span aria-hidden="true" class="w-full h-28 grid place-items-center bg-orange-100 text-orange-900 text-3xl font-extrabold">{{ s.business_name|slice:":1"|upper }}</span>{% endif %}
+        <span class="p-3 flex flex-col gap-0.5">
+          <span class="text-sm font-bold text-gray-900 group-hover:underline">{{ s.business_name }}</span>
+          <span class="text-xs font-bold text-emerald-700">{% blocktrans count n=s.n %}{{ n }} Angebot{% plural %}{{ n }} Angebote{% endblocktrans %}</span>
+        </span>
+      </a>
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}

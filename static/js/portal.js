@@ -284,6 +284,20 @@
       window.location.href = u.toString();
     });
   });
+  // PH-11: язык в шапке — <details>; закрываем кликом мимо и Esc (фокус — на summary).
+  document.addEventListener("click", function (e) {
+    document.querySelectorAll("[data-lang-menu][open]").forEach(function (d) {
+      if (!d.contains(e.target)) d.open = false;
+    });
+  });
+  document.addEventListener("keydown", function (e) {
+    if (e.key !== "Escape") return;
+    var d = document.activeElement && document.activeElement.closest("[data-lang-menu][open]");
+    if (!d) return;
+    d.open = false;
+    var s = d.querySelector("summary");
+    if (s) s.focus();
+  });
   // PH-11d1: баннер-слайдер главной — стрелки, точки, «1 / N». Автопрокрутки нет (WCAG 2.2.2);
   // без JS лента листается сама (scroll-snap). Невидимые слайды — inert: Tab не уходит за край.
   document.querySelectorAll("[data-portal-slider]").forEach(function (root) {

@@ -63,12 +63,16 @@ def test_home_renders_new_blocks_and_marked_ad_strip(django_assert_max_num_queri
         featured_until=timezone.now() + timedelta(days=1),
     )
     body = _html(portal)
-    assert 'data-home-block="offen"' in body and "data-district-tile=" in body
+    # PH-11d1: «Jetzt geöffnet» — карточкой под заголовком (или рядом-страховкой малого портала)
+    assert 'data-quad="offen"' in body or 'data-home-block="offen"' in body
+    assert "data-district-tile=" in body
     assert "ANZEIGE" in body and "Bezahlte Platzierung" in body
     cache.clear()
     # 2026-11-05 (PH-6): + «Jetzt geöffnet» (1) и районы (1) поверх кап 17 главной.
     # 2026-11-08 (PH-11d1b, осознанно 19 → 20): «Beliebt diese Woche» (1, кэш 15 минут).
-    with django_assert_max_num_queries(20):
+    # 2026-11-08 (PH-11d2, осознанно 20 → 23): «Das Beste» (1), «Geschäfte» (2), «Top-Aktionen»
+    # (1) минус «чужие порталы» (1).
+    with django_assert_max_num_queries(23):
         portal_views.portal_home(_get(portal))
 
 

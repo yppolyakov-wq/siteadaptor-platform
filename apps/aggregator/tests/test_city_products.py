@@ -217,7 +217,6 @@ def test_portal_feed_stays_offers_and_kind_chips_switch():
     req.portal = portal
     html = portal_views.portal_home(req).content.decode()
     assert "Herbstrabatt" in html and "Winterjacke" not in html
-    assert 'data-portal-tab="product"' in html
     req = RequestFactory().get("/?kind=angebote")
     req.portal = portal
     html = portal_views.portal_home(req).content.decode()
