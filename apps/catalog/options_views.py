@@ -31,15 +31,30 @@ def option_list(request):
         {"code": code, "label": label, "google": bool(google), "on": code in enabled}
         for code, (label, google, _key) in reg.STANDARD.items()
     ]
+    from apps.core.i18n_input import extra_locales
+
+    locales = extra_locales(getattr(request, "tenant", None))
     rows = []
     for t in types:
+        values = list(t.values.all())
+        for v in values:
+            # FB-24: поля перевода значения — по одному на язык (скрыты, показывает
+            # переключатель языка; инвариант W0).
+            v.translations = [
+                {
+                    "locale": loc,
+                    "name": options.value_input_name(v.pk, loc),
+                    "value": (v.value_i18n or {}).get(loc, ""),
+                }
+                for loc in locales
+            ]
         rows.append(
             {
                 "type": t,
                 "label": reg.type_label(t),
                 "standard": bool(t.standard),
                 "field_backed": t.code in reg.FIELD_BACKED,
-                "values": list(t.values.all()),
+                "values": values,
                 "in_use": options.type_in_use(t),
             }
         )
@@ -52,6 +67,7 @@ def option_list(request):
             "rows": rows,
             "display_options": VARIANT_STYLES,
             "max_values": reg.MAX_VALUES,
+            "has_translations": bool(locales),
         },
     )
 
@@ -88,6 +104,7 @@ def _apply(request) -> None:
             if order.isdigit() and int(order) != value.sort_order:
                 value.sort_order = int(order)
                 value.save(update_fields=["sort_order", "updated_at"])
+        options.save_translations(option_type, request.POST, getattr(request, "tenant", None))
         added = options.add_values(option_type, request.POST.get("new_values", ""))
         messages.success(
             request, _("Gespeichert.") if not added else _("Gespeichert, Werte ergänzt.")

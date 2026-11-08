@@ -35583,3 +35583,7 @@ msgstr "z. B. Handwerk, Catering, Reparatur"
 #: FB-26
 msgid "z. B. Café, Restaurant, Imbiss"
 msgstr "z. B. Café, Restaurant, Imbiss"
+
+#: FB-24f
+msgid "Übersetzungen tragen Sie dort an der Variante ein."
+msgstr "Übersetzungen tragen Sie dort an der Variante ein."

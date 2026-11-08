@@ -35642,3 +35642,7 @@ msgstr "ör. zanaat, catering, tamir"
 #: FB-26
 msgid "z. B. Café, Restaurant, Imbiss"
 msgstr "ör. kafe, restoran, büfe"
+
+#: FB-24f
+msgid "Übersetzungen tragen Sie dort an der Variante ein."
+msgstr "Çevirileri orada, varyantta girersiniz."

@@ -390,14 +390,22 @@ class CatalogFacets(FacetProvider):
                 variant__is_active=True,
                 option_type__is_active=True,
             )
-            .values("option_type__code", "value__value")
+            .values("option_type__code", "value__value", "value__value_i18n")
             .annotate(o=Min("value__sort_order"), n=Count("variant__product_id", distinct=True))
             .order_by("o", "value__value")
         )
+        from apps.core.models import resolve_overlay
+
         by_code: dict[str, list] = {}
         for r in rows:
+            value = r["value__value"]
             by_code.setdefault(r["option_type__code"], []).append(
-                {"value": r["value__value"], "count": r["n"]}
+                {
+                    # value — ключ фильтра (база), label — показ на языке посетителя.
+                    "value": value,
+                    "label": resolve_overlay(value, r["value__value_i18n"] or {}),
+                    "count": r["n"],
+                }
             )
         if not by_code:
             return []

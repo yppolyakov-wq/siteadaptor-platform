@@ -96,7 +96,7 @@ fixed-ящиком, и до инициализации JS она вспыхив�
       {% for v in ax.values %}
       <label class="cursor-pointer">
         <input type="checkbox" name="opt_{{ ax.code }}" value="{{ v.value }}" {% if v.on %}checked{% endif %} class="sr-only peer">
-        <span class="inline-flex items-center gap-1 rounded-lg border border-gray-300 px-2.5 py-1 text-sm text-gray-700 peer-checked:border-gray-900 peer-checked:bg-gray-900 peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-offset-1">{{ v.value }}<span class="text-[11px] opacity-60">{{ v.count }}</span></span>
+        <span class="inline-flex items-center gap-1 rounded-lg border border-gray-300 px-2.5 py-1 text-sm text-gray-700 peer-checked:border-gray-900 peer-checked:bg-gray-900 peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-offset-1">{{ v.label|default:v.value }}<span class="text-[11px] opacity-60">{{ v.count }}</span></span>
       </label>
       {% endfor %}
     </div>

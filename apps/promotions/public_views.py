@@ -1374,9 +1374,14 @@ def _facet_pills(facets: dict, chips: dict, badge_chips) -> list:
     for key in ("groesse", "farbe"):
         for value in facets.get(key) or []:
             pills.append({"label": value, "qs": drop(key, value)})
+    opt_labels = {
+        row["code"]: {v["value"]: v.get("label") or v["value"] for v in row["values"]}
+        for row in chips.get("option_chips", [])
+    }
     for key in sorted(k for k in facets if k.startswith("opt_")):  # FB-24d
+        names = opt_labels.get(key[4:], {})
         for value in facets.get(key) or []:
-            pills.append({"label": value, "qs": drop(key, value)})
+            pills.append({"label": names.get(value, value), "qs": drop(key, value)})
     for key in ("diet", "badge", "herkunft", "kollektion", "q"):
         value = facets.get(key)
         if value:

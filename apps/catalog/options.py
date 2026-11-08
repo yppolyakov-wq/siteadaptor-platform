@@ -140,3 +140,39 @@ def set_variant_option(variant: ProductVariant, option_type: OptionType, value: 
     VariantOption.objects.update_or_create(
         variant=variant, option_type=option_type, defaults={"value": val}
     )
+
+
+def value_input_name(value_pk: int, locale: str) -> str:
+    """Имя поля перевода значения в форме «Optionen» (по полю на значение и язык)."""
+    return f"val_{value_pk}_{locale}"
+
+
+def save_translations(option_type, post, tenant) -> None:
+    """Переводы подписи своего типа и его значений из POST экрана «Optionen».
+
+    База (немецкий ключ) не меняется — склад, заказы и фильтр держатся за неё; переводится
+    только показ. Отсутствующее поле не трогаем, пустое — снимает перевод языка."""
+    from apps.core.i18n_input import apply_i18n_overlay, extra_locales
+
+    locales = extra_locales(tenant)
+    if not locales:
+        return
+    if not option_type.standard:
+        changed = apply_i18n_overlay(option_type, post, tenant, fields=("name",))
+        if changed:
+            option_type.save(update_fields=[*changed, "updated_at"])
+    for value in option_type.values.all():
+        overlay = dict(value.value_i18n or {})
+        before = dict(overlay)
+        for loc in locales:
+            raw = post.get(value_input_name(value.pk, loc))
+            if raw is None:
+                continue
+            text = " ".join(raw.split())[:60]
+            if text and text != value.value:
+                overlay[loc] = text
+            else:
+                overlay.pop(loc, None)
+        if overlay != before:
+            value.value_i18n = overlay
+            value.save(update_fields=["value_i18n", "updated_at"])

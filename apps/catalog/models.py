@@ -665,6 +665,12 @@ class ProductVariant(TimestampedModel):
         own = resolve_overlay(self.label, self.label_i18n)
         if own != self.label:
             return own
+        if self.label and self.label != self.axis_label():
+            # FB-24: метка с осями опций магазина («S · Blau · Leinen») — собираем из
+            # переведённых значений ВСЕХ осей, иначе свои оси выпадали бы из подписи.
+            from_options = self.options_label_localized()
+            if from_options:
+                return from_options
         from_axes = self.axis_label_localized
         if from_axes and from_axes != self.axis_label():
             return from_axes
@@ -677,6 +683,31 @@ class ProductVariant(TimestampedModel):
     @property
     def color_localized(self) -> str:
         return resolve_overlay(self.color, self.color_i18n)
+
+    def options_label_localized(self) -> str:
+        """Подпись из переведённых осей товара (размер, цвет и опции магазина) в порядке
+        осей товара — ровно так, как генератор собирал плоскую метку. Пусто, если у
+        варианта нет значений опций магазина (тогда работает прежняя логика)."""
+        links = {
+            link.option_type.code: (link.value.value, link.value.value_localized)
+            for link in self.option_links.all()
+        }
+        if not links:
+            return ""
+        values = {
+            "size": (self.size or "", self.size_localized),
+            "color": (self.color or "", self.color_localized),
+            **links,
+        }
+        from apps.catalog import option_types
+
+        codes = option_types.clean_axes(
+            getattr(self.product, "option_axes", None) or [], set(values)
+        ) or [*option_types.FIELD_BACKED, *links]
+        base = " · ".join(values[c][0] for c in codes if values.get(c, ("", ""))[0])
+        if base != self.label:
+            return ""  # метку правили руками — она важнее сборки
+        return " · ".join(values[c][1] for c in codes if values.get(c, ("", ""))[0])
 
     @property
     def axis_label_localized(self) -> str:

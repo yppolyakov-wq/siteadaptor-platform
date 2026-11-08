@@ -35819,3 +35819,7 @@ msgstr "напр. ремесло, кейтеринг, ремонт"
 #: FB-26
 msgid "z. B. Café, Restaurant, Imbiss"
 msgstr "напр. кафе, ресторан, закусочная"
+
+#: FB-24f
+msgid "Übersetzungen tragen Sie dort an der Variante ein."
+msgstr "Переводы вводятся там же, у варианта."

@@ -35496,3 +35496,7 @@ msgstr "e.g. trades, catering, repairs"
 #: FB-26
 msgid "z. B. Café, Restaurant, Imbiss"
 msgstr "e.g. café, restaurant, snack bar"
+
+#: FB-24f
+msgid "Übersetzungen tragen Sie dort an der Variante ein."
+msgstr "You enter translations there, on the variant."
