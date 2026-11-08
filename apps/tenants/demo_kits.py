@@ -328,6 +328,9 @@ class DemoKit:
     page_blocks: dict = field(default_factory=dict)
     # M2 Boutique: Größentabellen per категория {slug: text} (строки «S | 86–90»).
     size_tables: dict = field(default_factory=dict)
+    # STU-12j/F9 демо: форма карточки у ОДНОЙ полки {slug категории: форма} — сильнее
+    # формы сайта (`card_style`), слабее своей у товара.
+    category_card_styles: dict = field(default_factory=dict)
     # M3 Boutique: Click&Reserve «In der Anprobe» (site_config["anprobe"]).
     enable_anprobe: bool = False
     # ST-7a: демо-spacer'ы [{"after": "<section_key>", "height": "sm|lg|xl"}].
@@ -6181,6 +6184,8 @@ CLOTHING = DemoKit(
     section_layouts={"gallery": {"preset": "cols3"}, "categories": {"preset": "cols4"}},
     look="fein",  # DS-1: Playfair на креме — редакционный «бутиковый» тон
     card_style="lookbook",  # DL-19 (N2): высокий кадр 3:4 и тихая подпись
+    # STU-12j: сумки — ценником-полкой поверх «Lookbook» сайта (своя форма у полки).
+    category_card_styles={"accessoires-taschen": "regal"},
     variant_style="axes",  # O-2: цвет кружками + размеры кнопками
     label="Studio Nordwind",
     business_type="clothing",
@@ -25035,6 +25040,7 @@ def apply_kit(tenant, key: str) -> bool:
             is_active=True,
             parent=parent,
             size_table=kit.size_tables.get(slug, ""),  # M2 Größentabelle
+            card_style=kit.category_card_styles.get(slug, ""),  # STU-12j: форма у полки
             city_category=kit.city_categories.get(slug, ""),  # T-8.22
             # Фидбэк 2026-08-07 («категории картинками»): фото категории брали
             # только вручную в кабинете, поэтому у ВСЕХ демо `images` был пуст и

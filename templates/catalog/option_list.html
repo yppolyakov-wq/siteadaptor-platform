@@ -7,7 +7,10 @@
 сопоставлены с фильтрами портала и Google; свои — только для витрины этого сайта. Значения
 размера и цвета задаются в самих вариантах, здесь — порядок, подпись и вид выбора.{% endcomment %}
 <div class="mb-4">
-  <h1 class="ui-h1">🎛 {% nav_title _("Optionen") %}</h1>
+  <div class="flex flex-wrap items-center gap-3">
+    <h1 class="ui-h1">🎛 {% nav_title _("Optionen") %}</h1>
+    {% lang_switch %}
+  </div>
   <p class="ui-muted text-sm mt-1">{% trans "Optionen gelten für den ganzen Shop. Im Produkt wählen Sie unter „Varianten“, welche (höchstens drei) es hat." %}</p>
 </div>
 
@@ -68,8 +71,9 @@
         {% if r.standard %}
           <h3 class="font-medium">{{ r.label }}</h3><span class="ui-badge">{% trans "Standard" %}</span>
         {% else %}
-          <label class="flex-1 min-w-[10rem]"><span class="sr-only">{% trans "Name" %}</span>
+          <label class="flex-1 min-w-[10rem]" data-i18n-loc="{% i18n_base_locale %}"><span class="sr-only">{% trans "Name" %}</span>
             <input name="name" type="text" maxlength="60" value="{{ r.type.name }}" class="ui-input w-full"></label>
+          {% overlay_i18n_inputs r.type "name" %}
         {% endif %}
         <label class="flex items-center gap-1 text-sm ml-auto"><input type="checkbox" name="is_active" {% if r.type.is_active %}checked{% endif %} class="rounded border-gray-300"> {% trans "Aktiv" %}</label>
       </div>
@@ -78,13 +82,18 @@
           {% for key, label, hint in display_options %}<option value="{{ key }}" {% if r.type.display == key %}selected{% endif %}>{{ label }}</option>{% endfor %}
         </select></label>
       {% if r.field_backed %}
-        <p class="ui-muted text-xs">{% trans "Die Werte stehen direkt an den Varianten (Feld im Produkt)." %}</p>
+        <p class="ui-muted text-xs">{% trans "Die Werte stehen direkt an den Varianten (Feld im Produkt)." %}{% if has_translations %} {% trans "Übersetzungen tragen Sie dort an der Variante ein." %}{% endif %}</p>
       {% else %}
         {% if r.values %}
         <ul class="flex flex-wrap gap-2" aria-label="{% trans 'Werte' %}">
           {% for v in r.values %}
           <li class="flex items-center gap-1 rounded-full border border-gray-200 pl-3 pr-1 py-0.5 text-sm">
             {{ v.value }}
+            {% for t in v.translations %}
+            <label class="hidden" data-i18n-loc="{{ t.locale }}"><span class="sr-only">{{ v.value }} ({{ t.locale|upper }})</span>
+              <input name="{{ t.name }}" type="text" maxlength="60" value="{{ t.value }}" data-i18n-base="{{ v.value }}"
+                     placeholder="{{ v.value }}" class="w-28 rounded border border-gray-200 px-1 text-xs"></label>
+            {% endfor %}
             <label class="sr-only" for="ord-{{ v.pk }}">{% trans "Position" %}</label>
             <input id="ord-{{ v.pk }}" name="order_{{ v.pk }}" type="number" min="0" value="{{ v.sort_order }}" class="w-12 rounded border border-gray-200 px-1 text-xs">
             <button form="del-{{ v.pk }}" class="tap44 px-1 text-red-600" aria-label="{% trans 'Wert löschen' %}: {{ v.value }}">✕</button>

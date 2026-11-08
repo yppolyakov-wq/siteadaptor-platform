@@ -129,9 +129,13 @@
             <p id="bt-label" class="block text-sm font-medium text-gray-800 mb-1">{{ form.business_type.label }}</p>
             <p class="text-xs text-gray-500 mb-2">{% trans "Damit Texte, Beispiele und Aussehen passen. Keine passende Branche? Einfach überspringen." %}
               <button type="button" class="hidden text-indigo-600 hover:text-indigo-800 font-medium underline" data-niche-all>{% trans "Alle Branchen zeigen" %}</button></p>
+            <label class="block mb-2"><span class="sr-only">{% trans "Branche suchen" %}</span>
+              <input type="search" data-niche-search autocomplete="off" placeholder="{% trans 'Branche suchen, z. B. Friseur, Bioladen, Werkstatt' %}"
+                     class="ui-input w-full hidden"></label>
+            <p class="hidden text-xs text-gray-500 mb-2" data-niche-none role="status">{% trans "Keine passende Branche — wählen Sie „Sonstiges“ oder überspringen Sie den Schritt." %}</p>
             <div class="grid sm:grid-cols-2 gap-3" role="radiogroup" data-niche-cards aria-labelledby="bt-label"{% if form.business_type.errors %} aria-describedby="{{ form.business_type.auto_id }}_errors"{% endif %}>
               {% for bt in business_types %}
-                <label data-chips="{{ bt.chips }}" class="bt-card flex items-start gap-3 bg-white border border-gray-200 rounded-xl px-4 py-3 cursor-pointer hover:border-indigo-300">
+                <label data-chips="{{ bt.chips }}" data-terms="{{ bt.terms }}" class="bt-card flex items-start gap-3 bg-white border border-gray-200 rounded-xl px-4 py-3 cursor-pointer hover:border-indigo-300">
                   <input type="radio" name="business_type" value="{{ bt.value }}"
                          {% if form.business_type.value == bt.value %}checked{% endif %} class="mt-1 text-indigo-600 border-gray-300 focus:ring-indigo-500">
                   <span class="min-w-0">
@@ -226,22 +230,38 @@
         var chips = document.querySelector("[data-dir-chips]");
         var cards = document.querySelector("[data-niche-cards]");
         var all = document.querySelector("[data-niche-all]");
+        var search = document.querySelector("[data-niche-search]");
+        var none = document.querySelector("[data-niche-none]");
         if (!chips || !cards) return;
         var showAll = false;
+        if (search) search.classList.remove("hidden");  // без JS поиск не нужен — видны все
+        function norm(t) {
+          return (t || "").toLowerCase().replace(/ä/g, "a").replace(/ö/g, "o").replace(/ü/g, "u").replace(/ß/g, "ss");
+        }
         function sync() {
           var on = Array.prototype.map.call(chips.querySelectorAll("input:checked"), function (i) { return i.value; });
-          var hidden = 0;
+          var q = norm(search ? search.value.trim() : "");
+          var hidden = 0, shown = 0;
           cards.querySelectorAll("[data-chips]").forEach(function (c) {
             var mine = (c.getAttribute("data-chips") || "").split(" ").filter(Boolean);
             var radio = c.querySelector("input");
-            var fit = !on.length || showAll || (radio && radio.checked) || radio.value === "other" ||
-              mine.some(function (k) { return on.indexOf(k) !== -1; });
+            var fit;
+            if (q) {
+              // Поиск сильнее фильтра направлений: ищут то, что знают по названию.
+              fit = norm(c.textContent + " " + (c.getAttribute("data-terms") || "")).indexOf(q) !== -1 ||
+                (radio && radio.checked);
+            } else {
+              fit = !on.length || showAll || (radio && radio.checked) || radio.value === "other" ||
+                mine.some(function (k) { return on.indexOf(k) !== -1; });
+            }
             c.classList.toggle("hidden", !fit);
-            if (!fit) hidden++;
+            if (fit) shown++; else hidden++;
           });
-          if (all) all.classList.toggle("hidden", !hidden);
+          if (all) all.classList.toggle("hidden", !hidden || !!q);
+          if (none) none.classList.toggle("hidden", !(q && !shown));
         }
         chips.addEventListener("change", sync);
+        if (search) search.addEventListener("input", sync);
         if (all) all.addEventListener("click", function () { showAll = true; sync(); });
         sync();
       })();

@@ -180,6 +180,10 @@
  "apps/tenants/management/commands/create_test_tenant.py": [
   "Bäckerei Test"
  ],
+ "apps/tenants/management/commands/onboarding_report.py": [
+  "--compare: Datum als YYYY-MM-DD",
+  "Anfragen · bestätigt"
+ ],
  "apps/tenants/management/commands/seed_demo_tenants.py": [
   ": kein Themenportal",
   "Direkt buchen — ohne Provision.",
@@ -211,6 +215,15 @@
   "UG (haftungsbeschränkt)",
   "YouTube",
   "Zuständige Kammer:"
+ ],
+ "apps/tenants/signup_directions.py": [
+  "Bioladen Supermarkt Hofladen Feinkost Kiosk Getränke Unverpackt",
+  "Bäcker Konditorei Brot Kuchen Torten",
+  "Gaststätte Imbiss Pizzeria Bistro Lieferdienst",
+  "Laden Geschäft Drogerie Spielwaren Spielzeug Haushalt Geschenke Blumen Buchhandlung Elektro Möbel Deko Schmuck Optiker Fahrrad Zoo",
+  "Maler Elektriker Sanitär Tischler Schreiner Dachdecker Gärtner Reinigung",
+  "Pension Ferienwohnung Gästehaus Hostel Übernachtung Camping",
+  "Reisen Touren Stadtführung Reiseveranstalter"
  ],
  "apps/tenants/siteconfig.py": [
   "Beschreiben Sie hier ein Angebot oder eine Besonderheit — das Foto können Sie jederzeit austauschen.",

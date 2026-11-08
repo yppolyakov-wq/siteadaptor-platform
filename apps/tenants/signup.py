@@ -7,6 +7,8 @@ GET /registrieren/bestaetigen/<token>/ → start_business_provisioning (преж
 а здесь public-схема без тенанта.
 """
 
+from datetime import timedelta
+
 from django.conf import settings
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
@@ -27,14 +29,29 @@ def show_direct_link() -> bool:
     return "console" in getattr(settings, "EMAIL_BACKEND", "")
 
 
+#: FB-26c: сколько хранится обезличенный след брошенной заявки (для воронки).
+FUNNEL_RETENTION = timedelta(days=180)
+
+
 def create_request(*, cleaned_data, partner_code="", locale="de") -> SignupRequest:
     """Создать заявку: pending-дубли того же email заменяются (новый токен),
     просроченный мусор чистится оппортунистически (без beat-задачи)."""
     from django.contrib.auth.hashers import make_password
 
-    stale = timezone.now() - SignupRequest.CONFIRM_TTL * 2
-    SignupRequest.objects.filter(confirmed_at__isnull=True, created_at__lt=stale).delete()
-    SignupRequest.objects.filter(confirmed_at__isnull=True, email=cleaned_data["email"]).delete()
+    now = timezone.now()
+    stale = now - SignupRequest.CONFIRM_TTL * 2
+    # FB-26c: брошенная заявка не удаляется, а обезличивается — воронке регистрации
+    # нужен её факт (дата, ниша, направления), личные данные (почта, пароль, имя,
+    # адрес) уходят. Через FUNNEL_RETENTION строка удаляется совсем.
+    SignupRequest.objects.filter(
+        confirmed_at__isnull=True, created_at__lt=now - FUNNEL_RETENTION
+    ).delete()
+    SignupRequest.objects.filter(confirmed_at__isnull=True, created_at__lt=stale).exclude(
+        email=""
+    ).update(email="", password_hash="", business_name="", slug="", city="", partner_code="")
+    SignupRequest.objects.filter(confirmed_at__isnull=True, email=cleaned_data["email"]).update(
+        email="", password_hash="", business_name="", slug="", city="", partner_code=""
+    )
     return SignupRequest.objects.create(
         email=cleaned_data["email"],
         password_hash=make_password(cleaned_data["password1"]),

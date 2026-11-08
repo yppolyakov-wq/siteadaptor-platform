@@ -35632,3 +35632,19 @@ msgid "%(n)s regionales Angebot von hier"
 msgid_plural "%(n)s regionale Angebote von hier"
 msgstr[0] "%(n)s regional offer from here"
 msgstr[1] "%(n)s regional offers from here"
+
+#: FB-24f
+msgid "Übersetzungen tragen Sie dort an der Variante ein."
+msgstr "You enter translations there, on the variant."
+
+#: FB-26b
+msgid "Branche suchen"
+msgstr "Search industry"
+
+#: FB-26b
+msgid "Branche suchen, z. B. Friseur, Bioladen, Werkstatt"
+msgstr "Search industry, e.g. hairdresser, organic shop, garage"
+
+#: FB-26b
+msgid "Keine passende Branche — wählen Sie „Sonstiges“ oder überspringen Sie den Schritt."
+msgstr "No matching industry — choose “Other” or skip this step."

@@ -157,3 +157,29 @@ def niche_chips(business_type: str) -> str:
     if "waren" in chips or "online" in chips:
         chips = clean([*chips, "waren", "online"])
     return " ".join(chips)
+
+
+#: FB-26b: слова, по которым владелец ищет свою нишу (ищут по своему названию бизнеса,
+#: а не по нашему). Немецкий — язык рынка; без перевода: это ключи поиска, не текст.
+SEARCH_TERMS: dict[str, str] = {
+    "bakery": "Bäcker Konditorei Brot Kuchen Torten",
+    "butcher": "Fleischerei Wurst Partyservice",
+    "grocery": "Bioladen Supermarkt Hofladen Feinkost Kiosk Getränke Unverpackt",
+    "clothing": "Mode Boutique Schuhe Textil Kleidung",
+    "restaurant": "Gaststätte Imbiss Pizzeria Bistro Lieferdienst",
+    "cafe": "Kaffee Eisdiele Bar Teestube",
+    "retail": "Laden Geschäft Drogerie Spielwaren Spielzeug Haushalt Geschenke Blumen "
+    "Buchhandlung Elektro Möbel Deko Schmuck Optiker Fahrrad Zoo",
+    "online_shop": "Versand Webshop E-Commerce Manufaktur",
+    "tour_operator": "Reisen Touren Stadtführung Reiseveranstalter",
+    "hotel": "Pension Ferienwohnung Gästehaus Hostel Übernachtung Camping",
+    "friseur": "Kosmetik Nagelstudio Barbier Massage Beauty Tattoo Physio",
+    "handwerker": "Maler Elektriker Sanitär Tischler Schreiner Dachdecker Gärtner Reinigung",
+    "werkstatt": "Autowerkstatt KFZ Reparatur Reifen Fahrradwerkstatt",
+    "events": "Kurse Workshops Konzerte Yoga Tanzschule Seminar",
+    "catering": "Partyservice Buffet Hochzeit Events Essen",
+}
+
+
+def search_terms(business_type: str) -> str:
+    return SEARCH_TERMS.get(business_type, "")

@@ -35778,3 +35778,19 @@ msgid "%(n)s regionales Angebot von hier"
 msgid_plural "%(n)s regionale Angebote von hier"
 msgstr[0] "Buradan %(n)s yerel teklif"
 msgstr[1] "Buradan %(n)s yerel teklif"
+
+#: FB-24f
+msgid "Übersetzungen tragen Sie dort an der Variante ein."
+msgstr "Çevirileri orada, varyantta girersiniz."
+
+#: FB-26b
+msgid "Branche suchen"
+msgstr "Sektör ara"
+
+#: FB-26b
+msgid "Branche suchen, z. B. Friseur, Bioladen, Werkstatt"
+msgstr "Sektör ara, ör. kuaför, organik market, oto servis"
+
+#: FB-26b
+msgid "Keine passende Branche — wählen Sie „Sonstiges“ oder überspringen Sie den Schritt."
+msgstr "Uygun sektör yok — “Diğer”i seçin veya bu adımı atlayın."

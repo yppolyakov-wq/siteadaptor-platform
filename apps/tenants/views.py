@@ -247,7 +247,7 @@ def signup_confirm(request, token):
     from django.contrib.auth.hashers import check_password
 
     if request.method != "POST":
-        signup_req = SignupRequest.objects.filter(token=token).first()
+        signup_req = _live_requests().filter(token=token).first()
         if signup_req is None:
             return _signup_error(request, "invalid", 404)
         if signup_req.is_confirmed:
@@ -259,12 +259,12 @@ def signup_confirm(request, token):
         return _confirm_page(request, signup_req)
 
     if ratelimit.hit("signup-confirm", token[:64], limit=10, window=600):
-        signup_req = SignupRequest.objects.filter(token=token).first()
+        signup_req = _live_requests().filter(token=token).first()
         if signup_req is None:
             return _signup_error(request, "invalid", 404)
         return _confirm_page(request, signup_req, error="ratelimit", status=429)
     with transaction.atomic():
-        signup_req = SignupRequest.objects.select_for_update().filter(token=token).first()
+        signup_req = _live_requests().select_for_update().filter(token=token).first()
         if signup_req is None:
             return _signup_error(request, "invalid", 404)
         if signup_req.is_confirmed:
@@ -296,12 +296,18 @@ def signup_confirm(request, token):
     return redirect("signup-waiting", slug=tenant.slug)
 
 
+def _live_requests():
+    """Заявки, по ссылке которых можно действовать: обезличенный след брошенной
+    заявки (FB-26c, почта стёрта) — уже не заявка, а строка воронки."""
+    return SignupRequest.objects.exclude(confirmed_at__isnull=True, email="")
+
+
 def signup_resend(request):
     """AB5.1: переотправка письма подтверждения (кнопка на «проверьте почту»)."""
     if request.method != "POST":
         return redirect("business-signup")
     token = (request.POST.get("token") or "")[:64]
-    signup_req = SignupRequest.objects.filter(token=token, confirmed_at__isnull=True).first()
+    signup_req = _live_requests().filter(token=token, confirmed_at__isnull=True).first()
     if signup_req is None or signup_req.is_expired:
         return redirect("business-signup")
     ctx = {

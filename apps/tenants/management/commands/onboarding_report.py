@@ -15,7 +15,7 @@ from django.core.management.base import BaseCommand
 from django.utils import timezone
 
 from apps.tenants.models import Tenant
-from apps.tenants.onboarding_metrics import summarize, tenant_row
+from apps.tenants.onboarding_metrics import signup_funnel, summarize, tenant_row
 
 
 def _fmt(minutes) -> str:
@@ -29,6 +29,11 @@ class Command(BaseCommand):
         parser.add_argument("--days", type=int, default=30, help="созданные за N дней")
         parser.add_argument("--type", default="", help="только этот business_type")
         parser.add_argument("--json", action="store_true")
+        parser.add_argument(
+            "--compare",
+            default="",
+            help="FB-26c: дата YYYY-MM-DD — воронка регистрации ДО и ПОСЛЕ неё",
+        )
 
     def handle(self, *args, **opts):
         since = timezone.now() - timedelta(days=max(opts["days"], 1))
@@ -40,9 +45,12 @@ class Command(BaseCommand):
         for row in rows:
             groups.setdefault(row["business_type"] or "—", []).append(row)
         report = {key: summarize(value) for key, value in groups.items()}
+        funnel = self._funnel(since, opts["compare"])
         if opts["json"]:
-            self.stdout.write(json.dumps(report, indent=2, default=str))
+            self.stdout.write(json.dumps({**report, "signup": funnel}, indent=2, default=str))
             return
+        for label, data in funnel.items():
+            self.stdout.write(self._funnel_line(label, data))
         for key, data in report.items():
             share = data["share_within_day"]
             self.stdout.write(
@@ -59,3 +67,30 @@ class Command(BaseCommand):
                     f"  {step}: Median {_fmt(info['median'])} · "
                     f"gesehen {info['seen']} · übersprungen {info['skipped']}"
                 )
+
+    def _funnel(self, since, compare: str) -> dict:
+        """Воронка регистрации за период; с --compare — два периода (до / после даты)."""
+        from datetime import datetime
+
+        if not compare:
+            return {"Registrierung": signup_funnel(since)}
+        try:
+            cut = timezone.make_aware(datetime.strptime(compare, "%Y-%m-%d"))
+        except ValueError:
+            self.stderr.write("--compare: Datum als YYYY-MM-DD")
+            return {"Registrierung": signup_funnel(since)}
+        return {
+            f"Registrierung vor {compare}": signup_funnel(since, cut),
+            f"Registrierung ab {compare}": signup_funnel(cut),
+        }
+
+    @staticmethod
+    def _funnel_line(label: str, data: dict) -> str:
+        def pct(value):
+            return "—" if value is None else f"{value:.0%}"
+
+        return (
+            f"{label}: {data['sent']} Anfragen · bestätigt {data['confirmed']} "
+            f"({pct(data['confirm_rate'])}) · Assistent fertig {data['completed']} "
+            f"({pct(data['complete_rate'])})"
+        )
