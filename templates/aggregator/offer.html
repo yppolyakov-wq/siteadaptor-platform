@@ -1,5 +1,5 @@
 {% extends base_template %}{# T-8.24: страница предложения — портал ИЛИ главный /entdecken. #}
-{% load i18n %}
+{% load i18n portal_brand %}
 {% block title %}{{ listing.title_text }} — {{ listing.business_name }}{% endblock %}
 {% block meta_description %}{{ listing.teaser_text|default:listing.title_text|truncatechars:160 }}{% endblock %}
 {% block og_title %}{{ listing.title_text }}{% endblock %}
@@ -46,8 +46,8 @@
     </div>
     {% if listing.new_price is not None %}
       <div class="mt-4 flex items-baseline gap-3" data-offer-price>
-        <span class="text-3xl font-bold">{{ listing.new_price }} {{ listing.currency }}</span>
-        {% if listing.old_price and listing.old_price > listing.new_price %}{% if listing.price_reference == "uvp" %}<span class="text-sm text-gray-400">{% trans "UVP" %}</span> {% endif %}<span class="text-lg text-gray-400 line-through">{{ listing.old_price }} {{ listing.currency }}</span>{% endif %}
+        <span class="text-3xl font-bold">{{ listing.new_price }} {{ listing.currency|currency_sign }}</span>
+        {% if listing.old_price and listing.old_price > listing.new_price %}{% if listing.price_reference == "uvp" %}<span class="text-sm text-gray-400">{% trans "UVP" %}</span> {% endif %}<span class="text-lg text-gray-400 line-through">{{ listing.old_price }} {{ listing.currency|currency_sign }}</span>{% endif %}
       </div>
       {% if listing.price_reference == "lowest30" and listing.old_price %}
         {# SF-8a (§ 11 PAngV): референс зачёркнутой цены — как на витрине бизнеса. #}

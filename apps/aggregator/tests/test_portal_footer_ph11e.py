@@ -75,3 +75,14 @@ def test_feed_links_in_footer_are_nofollow():
     _listing("promotion", "Pizza")
     foot = _foot(_html(_portal()))
     assert 'href="/?kind=angebote" rel="nofollow"' in foot
+
+
+def test_visible_prices_use_euro_sign_not_iso_code():
+    """Прод-разбор PH-10: «5,00 EUR» на карточках → «5,00 €»."""
+    from apps.aggregator.templatetags.portal_brand import currency_sign
+
+    assert currency_sign("EUR") == "€" and currency_sign("CHF") == "CHF" and currency_sign("") == ""
+    _listing("promotion", "Pizza", new_price=5, currency="EUR")
+    html = _html(_portal(), kind="alle")
+    cards = html.split("data-card-title", 1)[1].split("data-portal-footer", 1)[0]
+    assert "€" in cards and " EUR<" not in cards

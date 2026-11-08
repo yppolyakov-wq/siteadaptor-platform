@@ -1,4 +1,4 @@
-{% load i18n %}{% comment %}PH-11d1b (макет K1): четыре карточки под заголовком главной — Endet heute · Beliebt
+{% load i18n portal_brand %}{% comment %}PH-11d1b (макет K1): четыре карточки под заголовком главной — Endet heute · Beliebt
 (или Jetzt geöffnet) · Neu · Am Wochenende. Показанное ⊆ ленты по «Alle anzeigen»; платное сюда не
 попадает (UWG §5a). На телефоне — лента со snap, с sm — сетка по числу карточек; одна карточка —
 не ряд (ниже и так блоки), её не показываем.{% endcomment %}
@@ -14,7 +14,7 @@
         <a href="{{ offer_url|default:l.portal_url }}" class="group block rounded-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900">
           <span class="block aspect-square rounded-xl overflow-hidden bg-gray-100">{% if l.image.url %}<img src="{{ l.image.url }}" alt="" loading="lazy" decoding="async" class="w-full h-full object-cover group-hover:scale-105 transition-transform">{% endif %}</span>
           <span class="mt-1.5 block text-[13px] font-semibold leading-snug line-clamp-2 text-gray-900 group-hover:underline">{{ l.title_text }}</span>
-          {% if l.discount_percent %}<span class="block text-xs font-bold text-orange-700">−{{ l.discount_percent }} %</span>{% elif l.new_price %}<span class="block text-xs text-gray-600">{{ l.new_price }} {{ l.currency }}</span>{% endif %}
+          {% if l.discount_percent %}<span class="block text-xs font-bold text-orange-700">−{{ l.discount_percent }} %</span>{% elif l.new_price %}<span class="block text-xs text-gray-600">{{ l.new_price }} {{ l.currency|currency_sign }}</span>{% endif %}
         </a>
       </li>
       {% endfor %}

@@ -120,3 +120,14 @@ def _footer_data(portal) -> dict | None:
     except Exception:  # noqa: BLE001 — подвал не должен ронять страницу
         logging.getLogger(__name__).exception("portal_footer: data failed")
         return None
+
+
+CURRENCY_SIGNS = {"EUR": "€", "GBP": "£", "USD": "$"}
+
+
+@register.filter
+def currency_sign(code):
+    """Видимая цена: «5,00 €», а не «5,00 EUR» (прод-разбор PH-10). Машиночитаемое (JSON-LD,
+    фид) остаётся кодом ISO; неизвестная валюта (CHF) — кодом."""
+    code = (code or "").strip()
+    return CURRENCY_SIGNS.get(code.upper(), code)

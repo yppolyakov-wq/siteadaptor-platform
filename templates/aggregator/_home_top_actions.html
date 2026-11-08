@@ -20,8 +20,8 @@
         <h3 id="top-{{ t.pk }}" class="text-xl font-extrabold leading-tight">{{ t.title_text }}</h3>
         <p class="text-[13px] font-semibold text-emerald-700">{% blocktrans count n=t.saves %}{{ n }}× gemerkt diese Woche{% plural %}{{ n }}× gemerkt diese Woche{% endblocktrans %}</p>
         <div class="mt-auto pt-3 flex flex-wrap items-center gap-3">
-          {% if t.new_price %}<b class="text-2xl whitespace-nowrap">{{ t.new_price }} {{ t.currency }}</b>{% endif %}
-          {% if t.old_price and t.new_price and t.old_price > t.new_price %}<s class="text-gray-600 whitespace-nowrap">{{ t.old_price }} {{ t.currency }}</s>{% endif %}
+          {% if t.new_price %}<b class="text-2xl whitespace-nowrap">{{ t.new_price }} {{ t.currency|currency_sign }}</b>{% endif %}
+          {% if t.old_price and t.new_price and t.old_price > t.new_price %}<s class="text-gray-600 whitespace-nowrap">{{ t.old_price }} {{ t.currency|currency_sign }}</s>{% endif %}
           <a href="{{ offer_url|default:t.portal_url }}" class="sm:ml-auto inline-flex items-center h-11 px-5 rounded-full text-white font-bold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900" style="background: var(--portal-color)">{{ t|card_action_for }}<span class="sr-only">: {{ t.title_text }}</span></a>
         </div>
         {% if t.price_reference == "lowest30" and t.old_price %}<p class="text-xs text-gray-600">{% blocktrans with p=t.old_price %}Lowest price in the last 30 days: {{ p }} €{% endblocktrans %}</p>{% endif %}

@@ -1,4 +1,4 @@
-{% load i18n %}{% comment %}PH-11d2 (макет K1): «Das Beste aus jedem Bereich» — топ-разделы по 3 строки, точка
+{% load i18n portal_brand %}{% comment %}PH-11d2 (макет K1): «Das Beste aus jedem Bereich» — топ-разделы по 3 строки, точка
 статуса по снимку часов (без пользовательских данных — P0-1). Здесь же якорь #kategorien:
 кнопка «Kategorien» без JS ведёт сюда. Строки ⊆ ленты раздела, платное не попадает (UWG §5a).{% endcomment %}
 {% if best_sections %}
@@ -25,7 +25,7 @@
             <a href="{{ offer_url|default:r.portal_url }}" class="text-sm font-semibold text-gray-900 truncate hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900 rounded">{{ r.title_text }}</a>
             <span class="text-xs text-gray-600 truncate">{{ r.business_name }}{% if r.district_name %} · {{ r.district_name }}{% endif %}{% if r.best_dot %}<span class="sr-only"> · {% if r.best_dot == 'open' %}{% trans "jetzt geöffnet" %}{% elif r.best_dot == 'soon' %}{% trans "endet heute / wenige übrig" %}{% else %}{% trans "gerade geschlossen" %}{% endif %}</span>{% endif %}</span>
           </span>
-          {% if r.new_price %}<b class="text-sm whitespace-nowrap">{{ r.new_price }} {{ r.currency }}</b>{% endif %}
+          {% if r.new_price %}<b class="text-sm whitespace-nowrap">{{ r.new_price }} {{ r.currency|currency_sign }}</b>{% endif %}
         </li>
         {% endfor %}
       </ol>

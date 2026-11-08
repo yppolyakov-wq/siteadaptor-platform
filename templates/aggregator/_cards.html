@@ -74,19 +74,19 @@
         {% elif l.new_price is not None %}
           <div class="flex flex-wrap items-baseline gap-x-2 text-lg">
             {% if l.listing_kind == 'stay' %}
-              <span class="font-extrabold whitespace-nowrap">{% trans "from" %} {{ l.new_price }} {{ l.currency }}</span>
+              <span class="font-extrabold whitespace-nowrap">{% trans "from" %} {{ l.new_price }} {{ l.currency|currency_sign }}</span>
               <span class="text-xs text-gray-400">/ {% trans "night" %}</span>
             {% elif l.listing_kind == 'service' %}
-              <span class="font-extrabold whitespace-nowrap">{{ l.new_price }} {{ l.currency }}</span>
+              <span class="font-extrabold whitespace-nowrap">{{ l.new_price }} {{ l.currency|currency_sign }}</span>
               {% if l.price_per_person %}<span class="text-xs text-gray-400">/ {% trans "Person" %}</span>{% endif %}
             {% elif l.listing_kind == 'menu' %}
-              <span class="font-extrabold whitespace-nowrap">{% trans "from" %} {{ l.new_price }} {{ l.currency }}</span>
+              <span class="font-extrabold whitespace-nowrap">{% trans "from" %} {{ l.new_price }} {{ l.currency|currency_sign }}</span>
               {% if l.price_per_person %}<span class="text-xs text-gray-400">/ {% trans "Gast" %}</span>{% endif %}
             {% else %}
-              <span class="font-extrabold whitespace-nowrap">{{ l.new_price }} {{ l.currency }}</span>
+              <span class="font-extrabold whitespace-nowrap">{{ l.new_price }} {{ l.currency|currency_sign }}</span>
               {% if l.old_price and l.old_price > l.new_price %}
                 {% if l.price_reference == "uvp" %}<span class="text-xs text-gray-400">{% trans "UVP" %}</span>{% endif %}
-                <span class="text-sm text-gray-400 line-through whitespace-nowrap">{{ l.old_price }} {{ l.currency }}</span>
+                <span class="text-sm text-gray-400 line-through whitespace-nowrap">{{ l.old_price }} {{ l.currency|currency_sign }}</span>
               {% endif %}
             {% endif %}
           </div>

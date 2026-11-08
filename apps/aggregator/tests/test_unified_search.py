@@ -368,7 +368,9 @@ def test_query_count_does_not_grow(django_assert_max_num_queries):
     # Блок Б1: +3 постоянных (районы и отрасли найденного, «N Treffer»); Б5: +1 (фирмы запроса).
     # AI-CFG: +2 постоянных — чтение настроек ИИ из БД (в тесте — с точкой сохранения);
     # в проде кэш 15 с на процесс. Второй замок ниже (уже с тёплым кэшем) держит рост.
-    with django_assert_max_num_queries(28) as ctx:
+    # PH-11e (2026-11-08, осознанно 28 → 29): подвал портала (виды/отрасли/районы) — холодный
+    # кэш на первом рендере; тёплый (замок ниже) — 0.
+    with django_assert_max_num_queries(29) as ctx:
         portal_views.portal_home(req)
     small = len(ctx.captured_queries)
     for i in range(30):
