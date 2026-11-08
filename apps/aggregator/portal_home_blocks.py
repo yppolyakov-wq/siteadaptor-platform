@@ -678,3 +678,121 @@ def new_businesses(base_qs, *, path: str, now=None) -> dict | None:
     if len(items) < NEW_BUSINESS_MIN:
         return None
     return {"items": items, "more_url": f"{path}?kind=business&neu=1"}
+
+
+# --- PH-11d1b: quad-карточки главной (макет K1) ------------------------------------------
+
+QUAD_ITEMS = 4
+POPULAR_DAYS = 7
+POPULAR_MIN_VIEWS = 3  # порог честности: «beliebt» — не по одному случайному просмотру
+POPULAR_MIN_ITEMS = 4  # меньше — карточка «Jetzt geöffnet» вместо «Beliebt»
+POPULAR_CACHE = 15 * 60
+
+
+def _popular_ids(portal_pk, now) -> list[int]:
+    """pk листингов с ≥ POPULAR_MIN_VIEWS просмотрами за неделю — по убыванию. ОДИН запрос
+    по индексу дня (`agg_pstat_day_idx`), кэш 15 минут; fail-open (нет кэша — запрос)."""
+    from django.core.cache import cache
+    from django.db.models import Sum
+
+    from .models import PortalStat
+
+    key = f"portal_popular:{portal_pk}:{timezone.localdate(now).isoformat()}"
+    try:
+        cached = cache.get(key)
+    except Exception:  # noqa: BLE001 — кэш недоступен: считаем напрямую
+        cached = None
+    if cached is not None:
+        return cached
+    since = timezone.localdate(now) - timedelta(days=POPULAR_DAYS - 1)
+    ids = list(
+        PortalStat.objects.filter(day__gte=since, action="view", listing_id__isnull=False)
+        .values("listing_id")
+        .annotate(n=Sum("count"))
+        .filter(n__gte=POPULAR_MIN_VIEWS)
+        .order_by("-n", "listing_id")
+        .values_list("listing_id", flat=True)[:24]
+    )
+    try:
+        cache.set(key, ids, POPULAR_CACHE)
+    except Exception:  # noqa: BLE001
+        logger.warning("portal_popular: cache.set failed", exc_info=True)
+    return ids
+
+
+def quad_cards(base_qs, blocks, open_set, *, portal_pk, path: str, now=None) -> list[dict]:
+    """Четыре карточки под баннером: Endet heute · Beliebt (или Jetzt geöffnet) · Neu ·
+    Am Wochenende. Инвариант «карточка ⊆ ленты по ссылке»: показанное берётся из той же
+    области, что открывает «Alle»; платное (featured) сюда не попадает (UWG §5a). Пустая
+    карточка не рендерится. Запросы: 0 из блоков + ≤2 на «Beliebt»."""
+    from .search import DATED_KINDS, date_window
+
+    now = now or timezone.now()
+    by_key = {b["key"]: b for b in blocks}
+    used: set[int] = set()
+    cards: list[dict] = []
+
+    def add(key, title, items, url):
+        picked = [i for i in items if i.pk not in used][:QUAD_ITEMS]
+        if picked:
+            used.update(i.pk for i in picked)
+            cards.append({"key": key, "title": title, "items": picked, "more_url": url})
+
+    # 1. Endet heute — из блока «angebote» (порядок «Endet bald»): что кончается до полуночи.
+    end_of_day = timezone.localtime(now).replace(hour=23, minute=59, second=59)
+    offers = by_key.get("angebote", {}).get("items", [])
+    add(
+        "endet",
+        _("Endet heute"),
+        [i for i in offers if i.ends_at and i.ends_at <= end_of_day],
+        f"{path}?{urlencode({'kind': 'angebote', 'sort': 'endet'})}",
+    )
+
+    # 2. Beliebt diese Woche — просмотры за 7 дней; иначе «Jetzt geöffnet» из блоков.
+    popular = []
+    ids = _popular_ids(portal_pk, now)
+    if ids:
+        rows = {
+            i.pk: i
+            for i in base_qs.filter(pk__in=ids)
+            .exclude(featured_until__gt=now)
+            .exclude(listing_kind=L.KIND_BUSINESS)
+        }
+        popular = [rows[pk] for pk in ids if pk in rows and pk not in used]
+    if len(popular) >= POPULAR_MIN_ITEMS:
+        add("beliebt", _("Beliebt diese Woche"), popular, f"{path}?kind=alle")
+    elif open_set:
+        pool = [
+            i
+            for b in blocks
+            for i in b["items"]
+            if i.tenant_schema in open_set and i.listing_kind != L.KIND_BUSINESS
+        ]
+        add(
+            "offen",
+            _("Jetzt geöffnet"),
+            pool,
+            f"{path}?{urlencode({'kind': 'alle', 'offen': '1'})}",
+        )
+
+    # 3. Neu diese Woche — блок «neu».
+    neu = by_key.get("neu")
+    if neu:
+        add("neu", _("Neu hinzugekommen"), neu["items"], neu["more_url"])
+
+    # 4. Am Wochenende — датированное из «Freizeit», пересекающее окно выходных.
+    start, end = date_window("wochenende", now=now)
+    weekend = [
+        i
+        for i in by_key.get("freizeit", {}).get("items", [])
+        if i.listing_kind in DATED_KINDS
+        and (i.starts_at is None or i.starts_at < end)
+        and (i.ends_at is None or i.ends_at >= start)
+    ]
+    add(
+        "wochenende",
+        _("Am Wochenende"),
+        weekend,
+        f"{path}?{urlencode({'kind': 'alle', 'kat': 'freizeit-erlebnisse', 'datum': 'wochenende'})}",
+    )
+    return cards

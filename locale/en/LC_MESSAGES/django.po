@@ -35648,3 +35648,11 @@ msgstr "Search industry, e.g. hairdresser, organic shop, garage"
 #: FB-26b
 msgid "Keine passende Branche — wählen Sie „Sonstiges“ oder überspringen Sie den Schritt."
 msgstr "No matching industry — choose “Other” or skip this step."
+
+#: PH-11
+msgid "Beliebt diese Woche"
+msgstr "Popular this week"
+
+#: PH-11
+msgid "Neu hinzugekommen"
+msgstr "Just added"

@@ -67,7 +67,8 @@ def test_home_renders_new_blocks_and_marked_ad_strip(django_assert_max_num_queri
     assert "ANZEIGE" in body and "Bezahlte Platzierung" in body
     cache.clear()
     # 2026-11-05 (PH-6): + «Jetzt geöffnet» (1) и районы (1) поверх кап 17 главной.
-    with django_assert_max_num_queries(19):
+    # 2026-11-08 (PH-11d1b, осознанно 19 → 20): «Beliebt diese Woche» (1, кэш 15 минут).
+    with django_assert_max_num_queries(20):
         portal_views.portal_home(_get(portal))
 
 

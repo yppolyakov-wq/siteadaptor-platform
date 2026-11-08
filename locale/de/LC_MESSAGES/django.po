@@ -35735,3 +35735,11 @@ msgstr "Branche suchen, z. B. Friseur, Bioladen, Werkstatt"
 #: FB-26b
 msgid "Keine passende Branche — wählen Sie „Sonstiges“ oder überspringen Sie den Schritt."
 msgstr "Keine passende Branche — wählen Sie „Sonstiges“ oder überspringen Sie den Schritt."
+
+#: PH-11
+msgid "Beliebt diese Woche"
+msgstr "Beliebt diese Woche"
+
+#: PH-11
+msgid "Neu hinzugekommen"
+msgstr "Neu hinzugekommen"

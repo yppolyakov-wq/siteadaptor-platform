@@ -343,12 +343,14 @@ def test_query_count_does_not_grow_with_data(django_assert_max_num_queries):
     _seed_everything()
     # 2026-11-05 (PH-3/PH-4/PH-6, осознанно 14 → 17): «Deal des Tages» (1), цифры первого
     # экрана (1), «Neu in <город>» (1); снимок часов обслуживает «N geöffnet» и карточки.
-    with django_assert_max_num_queries(17):
+    # 2026-11-08 (PH-11d1b, осознанно 17 → 18): «Beliebt diese Woche» — просмотры за неделю
+    # (1, кэш 15 минут; пул по pk — только когда просмотры есть).
+    with django_assert_max_num_queries(18):
         portal_views.portal_home(_get(portal))
     for i in range(30):
         _listing("product", f"Viel {i}", city_category="brot-backwaren")
     cache.clear()
-    with django_assert_max_num_queries(17):
+    with django_assert_max_num_queries(18):
         portal_views.portal_home(_get(portal))
 
 

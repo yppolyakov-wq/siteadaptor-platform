@@ -35962,3 +35962,11 @@ msgstr "Знайти галузь, напр. перукарня, еко-мага
 #: FB-26b
 msgid "Keine passende Branche — wählen Sie „Sonstiges“ oder überspringen Sie den Schritt."
 msgstr "Відповідної галузі немає — оберіть «Інше» або пропустіть крок."
+
+#: PH-11
+msgid "Beliebt diese Woche"
+msgstr "Популярне цього тижня"
+
+#: PH-11
+msgid "Neu hinzugekommen"
+msgstr "Нещодавно додано"

@@ -35975,3 +35975,11 @@ msgstr "Найти отрасль, напр. парикмахерская, эк�
 #: FB-26b
 msgid "Keine passende Branche — wählen Sie „Sonstiges“ oder überspringen Sie den Schritt."
 msgstr "Подходящей отрасли нет — выберите «Другое» или пропустите шаг."
+
+#: PH-11
+msgid "Beliebt diese Woche"
+msgstr "Популярное на этой неделе"
+
+#: PH-11
+msgid "Neu hinzugekommen"
+msgstr "Недавно добавлено"

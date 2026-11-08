@@ -1105,6 +1105,11 @@ def _render_home(request, portal):
             "portal": portal,
             "portal_tabs": home.tabs(present, "alle", request.path),
             "deal": deal,
+            "quad_cards": (
+                home.quad_cards(base, blocks, open_set, portal_pk=portal.pk, path=request.path)
+                if present["total"]
+                else []
+            ),
             "slides": portal_slides.slides(
                 portal, deal=deal, stats=stats, newbiz=newbiz, path=request.path
             ),
