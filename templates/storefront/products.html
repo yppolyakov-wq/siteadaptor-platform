@@ -63,7 +63,7 @@
   {% include "storefront/_combo_grid.html" with combos=category_combos %}
 </section>
 {% endif %}
-{% if wegweiser_departments %}{% include "storefront/composition/_wegweiser_departments.html" with departments=wegweiser_departments summary=wegweiser_summary %}{% endif %}
+{% if wegweiser_departments %}{% include "storefront/composition/_wegweiser_departments.html" with departments=wegweiser_departments summary=wegweiser_summary cols=wegweiser_cols %}{% endif %}
 {% if wegweiser_guides %}{% include "storefront/composition/_wegweiser_guides.html" with guides=wegweiser_guides %}{% endif %}
 {% if wegweiser_focus %}{% include "storefront/composition/_wegweiser_focus.html" with panels=wegweiser_focus %}{% endif %}
 {% endblock %}

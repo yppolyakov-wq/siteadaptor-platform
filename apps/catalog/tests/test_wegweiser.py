@@ -317,3 +317,21 @@ def test_focus_cards_carry_the_same_rating_as_grid_cards():
     )
     focus = _focus(_body())
     assert "★" in focus or "5,0" in focus or "5.0" in focus
+
+
+@pytest.mark.parametrize("n,lg", [(10, 5), (6, 6), (8, 4), (9, 3), (5, 5), (7, 5)])
+def test_department_rows_are_full_on_desktop(n, lg):
+    """Стенд: 6 направлений в 5 колонок давали одинокую плитку во втором ряду (DL-11)."""
+    from apps.catalog import wegweiser
+
+    assert wegweiser.columns(n) == lg
+
+
+def test_odd_department_count_spans_the_last_tile_on_phones():
+    _tree(roots=3)
+    body = _body()
+    grid = re.search(
+        r"<section[^>]*data-wegweiser-departments.*?<div class=\"([^\"]+)\"", body, re.S
+    )
+    assert "max-md:[&>article:last-child]:col-span-2" in grid.group(1)
+    assert "lg:grid-cols-3" in grid.group(1)

@@ -35890,3 +35890,15 @@ msgstr "Hızlı bul"
 #: Wegweiser
 msgid "Unter %(price)s €"
 msgstr "%(price)s € altı"
+
+#: Wegweiser
+msgid "%(counter)s Artikel"
+msgid_plural "%(counter)s Artikel"
+msgstr[0] "%(counter)s ürün"
+msgstr[1] "%(counter)s ürün"
+
+#: Wegweiser
+msgid "in %(counter)s Bereich"
+msgid_plural "in %(counter)s Bereichen"
+msgstr[0] "%(counter)s bölümde"
+msgstr[1] "%(counter)s bölümde"

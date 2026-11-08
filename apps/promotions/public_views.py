@@ -2066,6 +2066,9 @@ def product_list(request, slug=None):
             or bool(wegweiser_departments),
             "wegweiser_departments": wegweiser_departments,
             "wegweiser_summary": wegweiser_summary,
+            "wegweiser_cols": _ww.columns(len(wegweiser_departments))
+            if wegweiser_departments
+            else 5,
             "wegweiser_focus": wegweiser_focus if wegweiser_mode else [],
             "wegweiser_rest": bool(wegweiser_mode and wegweiser_focus),
             "wegweiser_guides": wegweiser_guides,

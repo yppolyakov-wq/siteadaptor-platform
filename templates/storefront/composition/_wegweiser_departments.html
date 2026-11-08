@@ -3,7 +3,8 @@
 числами. Стоит в шапке листинга — выше блоков владельца (listing_before), где у
 демо стояли карусели «Neu»/«Reduziert»: направления первыми. Фото — только
 настоящее (Category.tile_image_url), иначе текстовая плитка (SP-15).
-Параметры: departments (wegweiser.departments), summary (wegweiser.summary).{% endcomment %}
+Параметры: departments (wegweiser.departments), summary (wegweiser.summary), cols
+(wegweiser.columns).{% endcomment %}
 {% if summary %}
 <p class="-mt-4 mb-5 text-sm text-gray-600" data-wegweiser-summary>
   {% blocktrans count counter=summary.articles %}{{ counter }} Artikel{% plural %}{{ counter }} Artikel{% endblocktrans %}
@@ -12,7 +13,10 @@
 {% endif %}
 <section class="mb-8" aria-labelledby="ww-deps-h" data-wegweiser-departments>
   <h2 id="ww-deps-h" class="sr-only">{% trans "Bereiche" %}</h2>
-  <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
+  {% comment %}Ряды без «сироты» (DL-11): колонки десктопа считает wegweiser.columns,
+  планшет — 3 или 2, телефон — 2, при нечётном числе последняя плитка во всю строку.{% endcomment %}
+  {% with n=departments|length %}
+  <div class="grid grid-cols-2 {% if n|divisibleby:3 %}md:grid-cols-3{% else %}md:grid-cols-2{% endif %} {% if cols == 6 %}lg:grid-cols-6{% elif cols == 4 %}lg:grid-cols-4{% elif cols == 3 %}lg:grid-cols-3{% else %}lg:grid-cols-5{% endif %}{% if not n|divisibleby:2 %} max-md:[&>article:last-child]:col-span-2{% endif %} gap-3 md:gap-4">
     {% for d in departments %}{% with c=d.category %}
     <article class="sf-card flex flex-col bg-white rounded-2xl border border-gray-200 overflow-hidden" data-wegweiser-dept="{{ c.slug }}">
       <a href="{% url 'storefront-category' c.slug %}" class="relative block" tabindex="-1" aria-hidden="true">
@@ -34,4 +38,5 @@
     </article>
     {% endwith %}{% endfor %}
   </div>
+  {% endwith %}
 </section>

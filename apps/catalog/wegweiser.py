@@ -70,6 +70,15 @@ def departments(categories) -> list[dict]:
     return out if len(out) >= MIN_DEPARTMENTS else []
 
 
+def columns(n: int) -> int:
+    """Колонки плиток на десктопе без неполного ряда (DL-11): первое из 5/6/4/3, на
+    которое число направлений делится без остатка; иначе 5 (как в макете S1)."""
+    for cols in (5, 6, 4, 3):
+        if n and n % cols == 0:
+            return cols
+    return 5
+
+
 def summary(all_products, departments_count: int, sale_count: int) -> dict:
     """Строка под H1: «N Artikel in M Bereichen · K reduziert · J neu».
 

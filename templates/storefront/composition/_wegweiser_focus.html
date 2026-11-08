@@ -22,8 +22,9 @@ Beliebt вместо двух каруселей пресета. Без JS — �
       <h3 class="text-base font-bold" data-focus-heading>{{ panel.label }}</h3>
       {% if panel.more %}<a href="?{{ panel.query }}" class="ml-auto inline-flex min-h-[1.5rem] items-center text-sm font-medium hover:underline" style="color: var(--accent, #4f46e5);">{% blocktrans with n=panel.total %}Alle {{ n }} anzeigen{% endblocktrans %} →</a>{% endif %}
     </div>
-    <div class="flex gap-4 overflow-x-auto pb-2" data-sf-slider>
-      {% for p in panel.items %}<div class="w-56 shrink-0 flex [&>div]:w-full">{% include "storefront/_product_card.html" %}</div>{% endfor %}
+    {% comment %}Телефон/планшет — лента со слайдером; десктоп — пять карточек на всю ширину (S1).{% endcomment %}
+    <div class="flex gap-4 overflow-x-auto pb-2 lg:grid lg:grid-cols-5 lg:overflow-visible" data-sf-slider>
+      {% for p in panel.items %}<div class="w-56 shrink-0 lg:w-auto flex [&>div]:w-full">{% include "storefront/_product_card.html" %}</div>{% endfor %}
     </div>
   </div>
   {% endfor %}

@@ -35744,3 +35744,15 @@ msgstr "Quick finds"
 #: Wegweiser
 msgid "Unter %(price)s €"
 msgstr "Under %(price)s €"
+
+#: Wegweiser
+msgid "%(counter)s Artikel"
+msgid_plural "%(counter)s Artikel"
+msgstr[0] "%(counter)s item"
+msgstr[1] "%(counter)s items"
+
+#: Wegweiser
+msgid "in %(counter)s Bereich"
+msgid_plural "in %(counter)s Bereichen"
+msgstr[0] "in %(counter)s department"
+msgstr[1] "in %(counter)s departments"

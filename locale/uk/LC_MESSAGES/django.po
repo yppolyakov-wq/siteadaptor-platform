@@ -36062,3 +36062,19 @@ msgstr "Швидкий пошук"
 #: Wegweiser
 msgid "Unter %(price)s €"
 msgstr "До %(price)s €"
+
+#: Wegweiser
+msgid "%(counter)s Artikel"
+msgid_plural "%(counter)s Artikel"
+msgstr[0] "%(counter)s товар"
+msgstr[1] "%(counter)s товари"
+msgstr[2] "%(counter)s товарів"
+msgstr[3] "%(counter)s товару"
+
+#: Wegweiser
+msgid "in %(counter)s Bereich"
+msgid_plural "in %(counter)s Bereichen"
+msgstr[0] "у %(counter)s розділі"
+msgstr[1] "у %(counter)s розділах"
+msgstr[2] "у %(counter)s розділах"
+msgstr[3] "у %(counter)s розділах"
