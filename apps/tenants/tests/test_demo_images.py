@@ -240,3 +240,39 @@ def test_catering_placeholder_caption_reads_like_the_dish():
         if rest and not any(w.startswith(rest) for w in words):
             bad.append((name, item["img"], caption))
     assert not bad, f"Подпись плейсхолдера не про блюдо: {bad}"
+
+
+# --- W-0 (Wegweiser, 2026-11-08): короткая игла не затеняет длинную ---------------------------
+
+
+def test_most_specific_needle_wins():
+    """«man» не должен перехватывать «mantel»/«maniküre», «matte» — «isomatte», «car» — «scarf»:
+    побеждает самое длинное совпадение, а не первое в списке."""
+    from apps.tenants.demo_images import _EMOJI, _emoji_for
+
+    wrong = []
+    for short, _e in _EMOJI:
+        for long, long_e in _EMOJI:
+            if short != long and short in long and _emoji_for(long) != long_e:
+                wrong.append((long, _emoji_for(long), long_e))
+    assert not wrong, wrong
+
+
+def test_needles_are_unique():
+    """Дубль иглы с ДРУГИМ эмодзи мёртв (срабатывает первая) и вводит в заблуждение."""
+    from collections import defaultdict
+
+    from apps.tenants.demo_images import _EMOJI
+
+    seen = defaultdict(set)
+    for n, e in _EMOJI:
+        seen[n].add(e)
+    dups = {n: e for n, e in seen.items() if len(e) > 1}
+    assert not dups, dups
+
+
+def test_isomatte_is_not_yoga():
+    from apps.tenants.demo_images import _emoji_for
+
+    assert _emoji_for("isomatte-boden-selbst") == "🛌"
+    assert _emoji_for("bademantel-waffel") == "🛁"

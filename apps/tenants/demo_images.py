@@ -281,7 +281,6 @@ _EMOJI = [
     ("buerste", "🧹"),
     ("handtuch", "🧻"),
     ("duschtuch", "🧻"),
-    ("bademantel", "🥋"),
     ("kulturbeutel", "🧳"),
     ("notizbuch", "📓"),
     ("skizzenbuch", "📔"),
@@ -417,7 +416,6 @@ _EMOJI = [
     ("saat", "🌱"),
     ("nagel", "💅"),
     ("manikuere", "💅"),
-    ("kosmetik", "🧖"),
     ("gesicht", "🧖"),
     ("massage", "💆"),
     ("spa-", "🧖"),
@@ -457,9 +455,7 @@ _EMOJI = [
     ("mietwagen", "🚗"),
     ("auto-", "🚗"),
     ("reifen", "🛞"),
-    ("brille", "👓"),
     ("sehtest", "👓"),
-    ("physio", "🩺"),
     ("fitness", "🏋️"),
     ("hantel", "🏋️"),
     ("turnen", "🤸"),
@@ -525,7 +521,6 @@ _EMOJI = [
     ("trekking", "🚲"),
     ("anhaenger", "🚲"),
     ("heizung", "🔥"),
-    ("maler", "🖌️"),
     ("montage", "🔧"),
     ("regal", "🪜"),
     ("hund", "🐕"),
@@ -691,7 +686,6 @@ _EMOJI = [
     ("knit", "🧶"),
     ("cardigan", "🧶"),
     ("pullover", "🧶"),
-    ("hoodie", "🧥"),
     ("halfzip", "🧥"),
     ("sweat", "🧥"),
     ("socken", "🧦"),
@@ -709,7 +703,6 @@ _EMOJI = [
     ("loafer", "👞"),
     ("derby", "👞"),
     ("monk", "👞"),
-    ("ballerina", "🩰"),
     ("stiefel", "🥾"),
     ("boots", "🥾"),
     ("sandal", "🩴"),
@@ -718,7 +711,6 @@ _EMOJI = [
     ("hausschuh", "🥿"),
     ("tasche", "👜"),
     ("bag", "👜"),
-    ("shopper", "👜"),
     ("wallet", "👛"),
     ("geldbörse", "👛"),
     ("cardholder", "💳"),
@@ -738,9 +730,7 @@ _EMOJI = [
     ("hat", "🧢"),
     ("handschuh", "🧤"),
     ("glove", "🧤"),
-    ("brille", "🕶️"),
     ("sunglasses", "🕶️"),
-    ("schmuck", "💍"),
     ("jewelry", "💍"),
     ("regenschirm", "☂️"),
     ("umbrella", "☂️"),
@@ -758,7 +748,6 @@ _EMOJI = [
     ("rope", "🤸"),
     ("laufschuh", "👟"),
     ("running", "👟"),
-    ("flasche", "🧴"),
     ("bottle", "🧴"),
     ("sport", "🏃"),
     # O-4 (доводка после прогона по слотам кита): темы, которых не нашлось.
@@ -792,9 +781,16 @@ _FOOD_HINTS = ("food", "essen", "menu", "speise", "gericht", "kueche", "kitchen"
 
 def _emoji_for(keyword: str) -> str:
     kw = keyword.lower()
-    for needle, emoji in _EMOJI:
-        if needle in kw:
-            return emoji
+    # Порядок списка задаёт приоритет между РАЗНЫМИ словами («auto,inspektion» → 🚗), но
+    # совпадение, которое целиком лежит внутри более длинного совпадения, уступает ему:
+    # иначе «man» перехватывал «mantel», «matte» — «isomatte», «car» — «scarf».
+    hits = [(n, e) for n, e in _EMOJI if n in kw]
+    if hits:
+        needle, emoji = hits[0]
+        for other, other_emoji in hits:
+            if len(other) > len(needle) and needle in other:
+                needle, emoji = other, other_emoji
+        return emoji
     if "vegan" in kw:
         return "🌿"
     return "🍽️" if any(h in kw for h in _FOOD_HINTS) else "✨"
