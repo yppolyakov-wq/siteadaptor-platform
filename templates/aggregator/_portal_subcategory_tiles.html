@@ -1,13 +1,14 @@
 {% load i18n %}{% comment %}PH-11c (макет P2): плитки подкатегорий раздела над выдачей — иконка раздела и
-счётчик (решение В-4: без фото в v1). Только на странице самого раздела.{% endcomment %}
+счётчик (решение В-4: без фото в v1). Только на странице самого раздела.
+PH-13e (M7): на телефоне — плитка 76 px без рамки, значок 72 px.{% endcomment %}
 {% if cat_nav and cat_nav.current == cat_nav.section %}{% for s in cat_tree %}{% if s.key == cat_nav.section and s.subs %}
 <nav aria-label="{% trans 'Unterbereiche' %}" data-subcategory-tiles class="mb-6">
   <ul class="flex gap-3 overflow-x-auto pb-1 sm:grid sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 sm:overflow-visible">
     {% for c in s.subs %}
-    <li class="shrink-0 w-32 sm:w-auto"><a href="{{ c.url }}" class="h-full flex flex-col items-center gap-2 rounded-2xl border border-gray-200 bg-white px-3 py-4 text-center hover:border-gray-400">
-      <span class="w-12 h-12 rounded-xl flex items-center justify-center" style="background: color-mix(in srgb, var(--portal-color) 12%, white); color: var(--portal-link)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ s.icon }}"></path></svg></span>
-      <span class="text-sm font-bold leading-tight">{{ c.label }}</span>
-      <span class="text-xs text-gray-500">{% blocktrans count n=c.count %}{{ n }} Angebot{% plural %}{{ n }} Angebote{% endblocktrans %}</span>
+    <li class="shrink-0 w-32 max-sm:w-[76px] sm:w-auto"><a href="{{ c.url }}" class="h-full flex flex-col items-center gap-2 max-sm:gap-1 rounded-2xl border border-gray-200 bg-white px-3 py-4 max-sm:border-0 max-sm:bg-transparent max-sm:p-0 text-center hover:border-gray-400">
+      <span class="w-12 h-12 max-sm:w-[72px] max-sm:h-[72px] rounded-xl max-sm:rounded-[20px] flex items-center justify-center" style="background: color-mix(in srgb, var(--portal-color) 12%, white); color: var(--portal-link)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ s.icon }}"></path></svg></span>
+      <span class="text-sm max-sm:text-xs font-bold leading-tight">{{ c.label }}</span>
+      <span class="text-xs max-sm:text-[11px] text-gray-500">{% blocktrans count n=c.count %}{{ n }} Angebot{% plural %}{{ n }} Angebote{% endblocktrans %}</span>
     </a></li>
     {% endfor %}
   </ul>

@@ -35,6 +35,9 @@
 {% if not searching and not flt %}{% include "aggregator/_portal_district_chips.html" %}{% endif %}
 
 {% include "aggregator/_portal_tabs.html" with tabs=portal_tabs %}
+{% comment %}PH-13e (M7): на телефоне дерева разделов нет (оно колонкой с lg) — вход во все разделы
+открывает то же мега-меню, что ☰ в шапке; без JS ведёт на якорь главной.{% endcomment %}
+{% if cat_nav %}<a href="{% url 'portal-home' %}#kategorien" data-portal-menu-open data-all-categories class="lg:hidden mb-4 inline-flex items-center gap-2 min-h-[2.75rem] px-4 rounded-full border border-gray-300 bg-white text-sm font-bold text-gray-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h10M4 18h16"></path></svg>{% trans "Alle Bereiche" %}</a>{% endif %}
 {% include "aggregator/_portal_subcategory_tiles.html" %}
 {% include "aggregator/_portal_filter_bar.html" %}
 {% include "aggregator/_search_intent_chips.html" %}
