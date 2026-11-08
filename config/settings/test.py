@@ -10,6 +10,9 @@ django-tenants держит TENANT_APPS только в схемах аренд�
 роутер остаётся на месте (django-tenants требует его на старте).
 """
 
+import os as _os
+
+from ._xdist import worker_cache as _worker_cache
 from .base import *  # noqa: F401, F403
 from .base import BASE_DIR, SHARED_APPS, STORAGES, TENANT_APPS
 
@@ -63,3 +66,13 @@ AWS_BEDROCK_ACCESS_KEY_ID = AWS_BEDROCK_SECRET_ACCESS_KEY = ""
 # SEC-D2: вебхук без секрета отвечает 503 — тесты вьюхи подменяют construct_event и
 # ждут обработку, поэтому секрет задан (тест на 503 ставит "" сам).
 STRIPE_WEBHOOK_SECRET = "whsec_test"
+
+# PH-12a: под pytest-xdist — своя база Redis на воркер (общий FLUSHDB давал флаки).
+CACHES = {**CACHES}  # noqa: F405
+CACHES["default"] = {**CACHES["default"]}
+_loc, _prefix = _worker_cache(
+    CACHES["default"]["LOCATION"], _os.environ.get("PYTEST_XDIST_WORKER", "")
+)
+CACHES["default"]["LOCATION"] = _loc
+if _prefix:
+    CACHES["default"]["KEY_PREFIX"] = _prefix
