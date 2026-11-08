@@ -35686,3 +35686,7 @@ msgstr "Nasıl sıralıyoruz"
 #: PH-11
 msgid "Zuerst, was zu Ihrer Suche passt und was Sie jetzt nutzen können; Geschäfte, die gerade geschlossen haben, stehen auf jeder Seite unter „Später geöffnet“. Eine andere Sortierung wählen Sie oben. Bezahlte Platzierungen sind als „Anzeige“ markiert und ändern die Reihenfolge der übrigen Treffer nicht."
 msgstr "Önce aramanıza uyan ve şu anda kullanabileceğiniz teklifler; şu an kapalı olan işletmeler her sayfada “Daha sonra açık” altında yer alır. Farklı bir sıralamayı yukarıdan seçebilirsiniz. Ücretli yerleşimler “Reklam” olarak işaretlenir ve diğer sonuçların sırasını değiştirmez."
+
+#: PH-11
+msgid "Unterbereiche"
+msgstr "Alt kategoriler"

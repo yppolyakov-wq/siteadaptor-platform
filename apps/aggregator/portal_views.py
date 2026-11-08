@@ -278,6 +278,21 @@ def _seo_canonical(request, portal, district, facet, filters) -> tuple[str, bool
     return request.build_absolute_uri(request.get_full_path()), True
 
 
+def _category_nav(filters, q) -> dict | None:
+    """PH-11c: страница раздела — ровно один `?kat=` без поиска. {"current", "section"}:
+    раздел, к которому принадлежит выбранная категория (или он сам), — для дерева слева
+    и плиток подкатегорий над выдачей."""
+    from apps.core import city_categories as cc
+
+    if q or len(filters.kats) != 1:
+        return None
+    key = filters.kats[0]
+    if cc.section(key):
+        return {"current": key, "section": key}
+    cat = cc.category(key)
+    return {"current": key, "section": cat.section} if cat else None
+
+
 def _split_open_later(cards):
     """PH-11b: (сейчас доступные, позже открывающиеся) — устойчиво, порядок внутри сохранён.
 
@@ -712,6 +727,7 @@ def portal_home(request, facet=None, district=None):
     # PH-11b: при порядке по умолчанию закрытые сейчас — после разделителя «Später geöffnet»
     # (в пределах загруженной страницы; «Wie wir sortieren» говорит об этом). Явный сорт
     # посетителя (endet/neu/offen/naehe), «рядом» и поиск отелей по датам — порядок не трогаем.
+    cat_nav = _category_nav(filters, q) if flt else None
     cards_later = []
     if flt and page is not None and not filters.sort and not hotel_portal:
         cards, cards_later = _split_open_later(cards)
@@ -771,6 +787,7 @@ def portal_home(request, facet=None, district=None):
             "page": page,
             "cards": cards,
             "cards_later": cards_later,
+            "cat_nav": cat_nav,
             "hotel_portal": hotel_portal,  # H8b: показать форму поиска по датам
             "search": search,  # H8b: выбранный диапазон/гости (или None)
             "facets": facets,

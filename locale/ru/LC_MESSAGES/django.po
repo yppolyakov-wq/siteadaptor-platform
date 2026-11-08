@@ -35863,3 +35863,7 @@ msgstr "Как мы сортируем"
 #: PH-11
 msgid "Zuerst, was zu Ihrer Suche passt und was Sie jetzt nutzen können; Geschäfte, die gerade geschlossen haben, stehen auf jeder Seite unter „Später geöffnet“. Eine andere Sortierung wählen Sie oben. Bezahlte Platzierungen sind als „Anzeige“ markiert und ändern die Reihenfolge der übrigen Treffer nicht."
 msgstr "Сначала то, что подходит под ваш запрос и чем можно воспользоваться прямо сейчас; закрытые сейчас заведения на каждой странице стоят в разделе «Откроется позже». Другую сортировку можно выбрать выше. Платные размещения помечены как «Реклама» и не меняют порядок остальных результатов."
+
+#: PH-11
+msgid "Unterbereiche"
+msgstr "Подразделы"
