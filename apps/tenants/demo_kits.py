@@ -26262,7 +26262,9 @@ def _seed_kit_modules(tenant, kit: DemoKit, refs: dict) -> None:
             if isinstance(spec, dict):
                 in_days = spec.get("in_days", 7)
                 hour = spec.get("hour", 10)
-                starts = (now + timedelta(days=in_days)).replace(
+                # PH-12f: час спеки — местный (Берлин), а `now` — UTC: без localtime 10:00
+                # превращалось в 11:00 на витрине.
+                starts = timezone.localtime(now + timedelta(days=in_days)).replace(
                     hour=hour, minute=0, second=0, microsecond=0
                 )
                 duration_days = spec.get("duration_days")
@@ -26370,9 +26372,13 @@ def _seed_kit_modules(tenant, kit: DemoKit, refs: dict) -> None:
                     )
             else:
                 title, in_days, capacity, price = spec
+                # PH-12f: краткий кортеж не несёт часа — раньше брал время ЗАСЕВА («08:52»
+                # на проде); круглые 10:00, как дефолт `hour` у богатого dict.
                 event = Event.objects.create(
                     title=title,
-                    starts_at=now + timedelta(days=in_days),
+                    starts_at=timezone.localtime(now + timedelta(days=in_days)).replace(
+                        hour=10, minute=0, second=0, microsecond=0
+                    ),
                     capacity=capacity,
                     price_cents=int(Decimal(price) * 100),
                     status=Event.STATUS_PUBLISHED,
