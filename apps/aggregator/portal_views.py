@@ -293,6 +293,21 @@ def _category_nav(filters, q) -> dict | None:
     return {"current": key, "section": cat.section} if cat else None
 
 
+def _category_tree(menu, carry, path) -> list[dict]:
+    """PH-11c: дерево разделов страницы раздела — данные мега-меню (кэш), но ссылки несут
+    текущие фильтры (район, цена, сортировка…): переход между разделами их не сбрасывает.
+    Раздела нет в меню (кэш ещё не видит его) — дерева нет."""
+    keep = [(k, v) for k, v in carry if k not in ("kat", "cursor", "kind")]
+
+    def url(key):
+        return f"{path}?{urlencode([('kind', 'alle'), ('kat', key), *keep])}"
+
+    return [
+        {**s, "url": url(s["key"]), "subs": [{**c, "url": url(c["key"])} for c in s["subs"]]}
+        for s in menu
+    ]
+
+
 def _split_open_later(cards):
     """PH-11b: (сейчас доступные, позже открывающиеся) — устойчиво, порядок внутри сохранён.
 
@@ -728,6 +743,11 @@ def portal_home(request, facet=None, district=None):
     # (в пределах загруженной страницы; «Wie wir sortieren» говорит об этом). Явный сорт
     # посетителя (endet/neu/offen/naehe), «рядом» и поиск отелей по датам — порядок не трогаем.
     cat_nav = _category_nav(filters, q) if flt else None
+    cat_tree = []
+    if cat_nav and any(s["key"] == cat_nav["section"] for s in portal_menu):
+        cat_tree = _category_tree(portal_menu, tab_carry, request.path)
+    else:
+        cat_nav = None
     cards_later = []
     if flt and page is not None and not filters.sort and not hotel_portal:
         cards, cards_later = _split_open_later(cards)
@@ -788,6 +808,7 @@ def portal_home(request, facet=None, district=None):
             "cards": cards,
             "cards_later": cards_later,
             "cat_nav": cat_nav,
+            "cat_tree": cat_tree,
             "hotel_portal": hotel_portal,  # H8b: показать форму поиска по датам
             "search": search,  # H8b: выбранный диапазон/гости (или None)
             "facets": facets,

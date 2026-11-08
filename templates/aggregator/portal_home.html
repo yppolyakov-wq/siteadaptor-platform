@@ -11,7 +11,7 @@
 <nav aria-label="{% trans 'Brotkrumen' %}" class="text-sm text-gray-500 mb-4" data-breadcrumbs><a href="{% url 'portal-home' %}" class="text-gray-700 hover:underline">{% trans "Startseite" %}</a> <span aria-hidden="true">/</span> {% if heading %}{{ heading }}{% elif searching and search_q %}{% trans "Suchergebnisse" %}{% else %}{{ portal.title_text }}{% endif %}</nav>
 <div data-flt-layout class="group/flt lg:flex lg:items-start lg:gap-8">
 <script>try{if(window.matchMedia("(min-width: 1024px)").matches&&localStorage.getItem("portal:fltCollapsed")==="1")document.currentScript.parentElement.setAttribute("data-flt-collapsed","")}catch(e){}</script>
-<div class="contents lg:flex lg:flex-col lg:gap-4 lg:w-[300px] lg:shrink-0 lg:group-data-[flt-collapsed]/flt:hidden">
+<div class="contents lg:flex lg:flex-col lg:gap-4 lg:w-[300px] lg:shrink-0 lg:self-stretch{% if not cat_tree %} lg:group-data-[flt-collapsed]/flt:hidden{% endif %}">
 {% include "aggregator/_portal_category_tree.html" %}
 {% include "aggregator/_portal_filter_drawer.html" %}
 </div>

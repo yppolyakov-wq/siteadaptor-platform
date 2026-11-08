@@ -62,3 +62,31 @@ def test_category_nav_resolves_section_and_category():
     assert nav(SearchFilters(kats=("restaurants",)), "Pizza") is None
     assert nav(SearchFilters(kats=("restaurants", "cafes")), "") is None
     assert nav(SearchFilters(kats=("unbekannt",)), "") is None
+
+
+# --- ревью PH-11c ----------------------------------------------------------------------
+
+
+def _column(html):
+    return (
+        html.split("data-flt-layout", 1)[1].split("data-category-tree", 1)[0].rsplit("<div", 1)[1]
+    )
+
+
+def test_tree_links_keep_current_filters():
+    html = _html(_seed(), kat="essen-gastronomie", stadtteil="wald", sort="neu")
+    tree = _tree(html).replace("&amp;", "&")
+    assert "kat=restaurants&stadtteil=wald&sort=neu" in tree
+    assert "kat=essen-gastronomie&stadtteil=wald" not in tree.split("Restaurants", 1)[1]
+
+
+def test_column_stretches_for_sticky_filter_and_tree_survives_collapse():
+    column = _column(_html(_seed(), kat="essen-gastronomie"))
+    assert "lg:self-stretch" in column
+    assert "group-data-[flt-collapsed]/flt:hidden" not in column  # дерево остаётся
+
+
+def test_column_without_tree_still_collapses():
+    html = _html(_seed(), q="Pasta")
+    column = html.split("data-flt-layout", 1)[1].split('id="flt-drawer"', 1)[0].rsplit("<div", 1)[1]
+    assert "lg:group-data-[flt-collapsed]/flt:hidden" in column

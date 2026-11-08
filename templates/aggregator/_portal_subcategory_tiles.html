@@ -1,6 +1,6 @@
 {% load i18n %}{% comment %}PH-11c (макет P2): плитки подкатегорий раздела над выдачей — иконка раздела и
 счётчик (решение В-4: без фото в v1). Только на странице самого раздела.{% endcomment %}
-{% if cat_nav and cat_nav.current == cat_nav.section %}{% for s in portal_menu %}{% if s.key == cat_nav.section and s.subs %}
+{% if cat_nav and cat_nav.current == cat_nav.section %}{% for s in cat_tree %}{% if s.key == cat_nav.section and s.subs %}
 <nav aria-label="{% trans 'Unterbereiche' %}" data-subcategory-tiles class="mb-6">
   <ul class="flex gap-3 overflow-x-auto pb-1 sm:grid sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 sm:overflow-visible">
     {% for c in s.subs %}
