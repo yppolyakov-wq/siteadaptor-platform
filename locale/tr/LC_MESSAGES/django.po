@@ -35917,3 +35917,39 @@ msgstr "Kart"
 msgctxt "nav"
 msgid "Entdecken"
 msgstr "Keşfet"
+
+#: PH-13f
+msgid "So bekommen Sie es"
+msgstr "Nasıl alırsınız"
+
+#: PH-13f
+msgid "Bezahlung"
+msgstr "Ödeme"
+
+#: PH-13f
+msgid "Verfügbar"
+msgstr "Mevcut"
+
+#: PH-13f
+msgid "Noch %(n)s"
+msgstr "%(n)s adet kaldı"
+
+#: PH-13f
+msgid "Zurücklegen, im Geschäft abholen"
+msgstr "Ayırtın, mağazadan alın"
+
+#: PH-13f
+msgid "Coupon holen, im Geschäft einlösen"
+msgstr "Kupon alın, mağazada kullanın"
+
+#: PH-13f
+msgid "Termin online buchen"
+msgstr "Online randevu alın"
+
+#: PH-13f
+msgid "Anfrage an das Geschäft senden"
+msgstr "İşletmeye talep gönderin"
+
+#: PH-13f
+msgid "Beim Geschäft bestellen"
+msgstr "İşletmeden sipariş verin"

@@ -35858,3 +35858,39 @@ msgstr "Karte"
 msgctxt "nav"
 msgid "Entdecken"
 msgstr "Entdecken"
+
+#: PH-13f
+msgid "So bekommen Sie es"
+msgstr "So bekommen Sie es"
+
+#: PH-13f
+msgid "Bezahlung"
+msgstr "Bezahlung"
+
+#: PH-13f
+msgid "Verfügbar"
+msgstr "Verfügbar"
+
+#: PH-13f
+msgid "Noch %(n)s"
+msgstr "Noch %(n)s"
+
+#: PH-13f
+msgid "Zurücklegen, im Geschäft abholen"
+msgstr "Zurücklegen, im Geschäft abholen"
+
+#: PH-13f
+msgid "Coupon holen, im Geschäft einlösen"
+msgstr "Coupon holen, im Geschäft einlösen"
+
+#: PH-13f
+msgid "Termin online buchen"
+msgstr "Termin online buchen"
+
+#: PH-13f
+msgid "Anfrage an das Geschäft senden"
+msgstr "Anfrage an das Geschäft senden"
+
+#: PH-13f
+msgid "Beim Geschäft bestellen"
+msgstr "Beim Geschäft bestellen"

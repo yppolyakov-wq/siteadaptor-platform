@@ -36106,3 +36106,39 @@ msgstr "Карта"
 msgctxt "nav"
 msgid "Entdecken"
 msgstr "Обзор"
+
+#: PH-13f
+msgid "So bekommen Sie es"
+msgstr "Как получить"
+
+#: PH-13f
+msgid "Bezahlung"
+msgstr "Оплата"
+
+#: PH-13f
+msgid "Verfügbar"
+msgstr "В наличии"
+
+#: PH-13f
+msgid "Noch %(n)s"
+msgstr "Осталось %(n)s"
+
+#: PH-13f
+msgid "Zurücklegen, im Geschäft abholen"
+msgstr "Отложить и забрать в магазине"
+
+#: PH-13f
+msgid "Coupon holen, im Geschäft einlösen"
+msgstr "Получить купон и использовать в магазине"
+
+#: PH-13f
+msgid "Termin online buchen"
+msgstr "Записаться онлайн"
+
+#: PH-13f
+msgid "Anfrage an das Geschäft senden"
+msgstr "Отправить запрос в магазин"
+
+#: PH-13f
+msgid "Beim Geschäft bestellen"
+msgstr "Заказать у магазина"

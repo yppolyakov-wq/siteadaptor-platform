@@ -689,8 +689,7 @@
   {# DL-6: FAB — в акценте тенанта (жёсткий indigo игнорировал Look любого цвета). #}
   {% comment %}SP-16 (WCAG 2.5.3): имя кнопки = видимая подпись. aria-label «Ask us a
   question» в de/ru/uk/tr не начинался с видимого «Fragen Sie uns» — голосовое
-  управление не находило кнопку. Подпись всегда в DOM. Wegweiser W-4: кнопка — иконка
-  на всех ширинах (подпись sr-only даёт имя), иначе на планшете она закрывала корзину.{% endcomment %}
+  управление не находило кнопку. Подпись всегда в DOM (W-4: всегда sr-only).{% endcomment %}
   <a href="{% url 'storefront-message' %}" data-chat-fab title="{% trans 'Ask us a question' %}"
      class="fixed right-4 bottom-20 sm:bottom-5 z-30 flex items-center gap-2 text-white rounded-full shadow-lg px-4 py-3 hover:opacity-90" style="background: var(--accent);">
     <span class="text-lg leading-none" aria-hidden="true">💬</span><span class="sr-only text-sm font-medium" data-chat-fab-label>{% trans "Ask us" %}</span>

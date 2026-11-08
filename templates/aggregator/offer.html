@@ -5,6 +5,9 @@
 {% block og_title %}{{ listing.title_text }}{% endblock %}
 {% block structured_data %}<script type="application/ld+json">{{ offer_jsonld|safe }}</script>{% endblock %}
 
+{% comment %}PH-13g (макет M8): на телефоне вместо нижнего меню — панель покупки (цена + действие).{% endcomment %}
+{% block bottom_nav %}{% endblock %}
+
 {% block content %}
 {% include "aggregator/_demo_notice.html" %}
 {% if portal %}
@@ -13,8 +16,8 @@
   <a href="{% url 'aggregator-index' %}" class="text-sm text-gray-500 hover:underline">← {% trans "Discover" %}</a>
 {% endif %}
 
-<article class="mt-3 grid grid-cols-1 md:grid-cols-2 gap-6 bg-white rounded-2xl shadow-sm overflow-hidden" data-offer-page>
-  <div class="relative aspect-square bg-gray-100">
+<article class="mt-3 grid grid-cols-1 md:grid-cols-2 gap-6 max-md:gap-0 bg-white rounded-2xl max-md:rounded-none max-md:-mx-4 shadow-sm max-md:shadow-none overflow-hidden" data-offer-page>
+  <div class="relative aspect-square max-md:aspect-[4/3] bg-gray-100">
     {% if listing.image.url %}
       <img src="{{ listing.image.url }}" alt="{{ listing.title_text }}" class="w-full h-full object-cover">
     {% else %}
@@ -31,7 +34,7 @@
       <span data-demo-badge class="absolute bottom-3 right-3 bg-gray-900/80 text-white text-xs font-semibold px-2 py-0.5 rounded-full">{% trans "Demo" %}</span>
     {% endif %}
   </div>
-  <div class="p-5 md:p-6 md:pl-0 flex flex-col min-w-0">
+  <div class="p-5 max-md:px-4 md:p-6 md:pl-0 flex flex-col min-w-0">
     <p class="text-sm text-gray-500">
       {% if portal %}<a href="{% url 'portal-business' slug=listing.tenant_slug %}" class="font-medium text-gray-700 hover:underline">{{ listing.business_name }}</a>{% else %}<span class="font-medium text-gray-700">{{ listing.business_name }}</span>{% endif %}{% if listing.district_name %} · {{ listing.district_name }}{% elif listing.city %} · {{ listing.city }}{% endif %}
       {% if listing.business_rating %}<span class="ml-1 text-amber-500">★ {{ listing.business_rating.avg_rating }}</span>{% endif %}
@@ -59,16 +62,42 @@
     {% if listing.item_condition %}<p class="mt-2 text-sm text-gray-600" data-offer-item-condition>{% trans "Zustand" %}: {{ listing.item_condition_label }}{% if listing.item_condition_note_text %} — {{ listing.item_condition_note_text }}{% endif %}</p>{% endif %}
     {% if listing.listing_kind == 'event' and listing.starts_at %}<p class="mt-2 text-sm text-gray-600">📅 {{ listing.starts_at|date:"D, d.m.Y · H:i" }}</p>{% endif %}
     {% if listing.ends_at and listing.listing_kind != 'event' %}<p class="mt-2 text-sm text-gray-600">⏳ {% blocktrans with d=listing.ends_at|date:"d.m.Y" %}bis {{ d }}{% endblocktrans %}</p>{% endif %}
+    {% if offer_facts %}
+    {% comment %}PH-13f (M8): факты только из данных листинга — нет данных, нет строки.{% endcomment %}
+    <dl class="mt-4 rounded-2xl border border-gray-200 divide-y divide-gray-100" data-offer-facts>
+      {% for f in offer_facts %}<div class="flex items-baseline justify-between gap-4 px-4 py-2.5 text-sm" data-offer-fact="{{ f.key }}"><dt class="text-gray-600">{{ f.label }}</dt><dd class="font-semibold text-gray-900 text-right">{{ f.value }}</dd></div>{% endfor %}
+    </dl>
+    {% endif %}
     {% if listing.teaser_text %}<p class="mt-4 text-gray-700 whitespace-pre-line break-words">{{ listing.teaser_text }}</p>{% endif %}
     <div class="mt-auto pt-6">
-      {% url 'aggregator-outbound' listing.pk as out_url %}
-      <a href="{{ out_url|default:listing.portal_url }}" rel="nofollow" data-offer-cta
-         class="block w-full text-center rounded-xl bg-gray-900 text-white px-5 py-3 font-semibold hover:bg-gray-800">{% blocktrans with name=listing.business_name %}Zum Angebot bei {{ name }} →{% endblocktrans %}</a>
+      {% comment %}PH-13g (M8): тот же единственный CTA — на телефоне в закреплённой панели снизу
+      вместе с ценой; на md+ — в потоке, как раньше.{% endcomment %}
+      <div data-offer-buybar class="max-md:fixed max-md:inset-x-0 max-md:bottom-0 max-md:z-30 max-md:bg-white max-md:border-t max-md:border-gray-200 max-md:px-4 max-md:pt-3 max-md:pb-[max(.75rem,env(safe-area-inset-bottom))] max-md:shadow-[0_-6px_18px_rgba(0,0,0,.08)] max-md:flex max-md:items-center max-md:gap-3">
+        {% if listing.new_price is not None %}<span class="md:hidden shrink-0 text-xl font-extrabold whitespace-nowrap">{{ listing.new_price }} {{ listing.currency|currency_sign }}</span>{% endif %}
+        {% url 'aggregator-outbound' listing.pk as out_url %}
+        <a href="{{ out_url|default:listing.portal_url }}" rel="nofollow" data-offer-cta
+           class="block w-full max-md:flex-1 max-md:min-w-0 max-md:truncate text-center rounded-xl bg-gray-900 text-white px-5 py-3 font-semibold hover:bg-gray-800">{% blocktrans with name=listing.business_name %}Zum Angebot bei {{ name }} →{% endblocktrans %}</a>
+      </div>
       {% url 'aggregator-report' listing.pk as report_url %}
       {% if report_url %}<a href="{{ report_url }}" rel="nofollow" class="block text-right text-xs text-gray-400 hover:text-gray-600 mt-2">⚑ {% trans "Melden" %}</a>{% endif %}
     </div>
   </div>
 </article>
+
+{% if business_card %}
+{% comment %}PH-13f (M8): «So finden Sie uns» — публичные поля бизнеса; нет адреса — нет маршрута,
+нет телефона — нет звонка. Карту не рисуем (решение В-13: адрес + «Route»).{% endcomment %}
+<section class="mt-6 rounded-2xl border border-gray-200 bg-white p-4 md:p-5" aria-labelledby="offer-biz-h" data-offer-business>
+  <h2 id="offer-biz-h" class="text-lg font-bold">{% trans "So finden Sie uns" %}</h2>
+  <p class="mt-2 font-semibold text-gray-900">{{ business_card.name }}</p>
+  {% if business_card.address %}<p class="text-sm text-gray-600">{{ business_card.address }}</p>{% endif %}
+  {% if business_hours %}<p class="mt-1 text-sm text-gray-600 whitespace-pre-line">{{ business_hours }}</p>{% endif %}
+  <div class="mt-3 flex flex-wrap gap-2">
+    {% if business_card.route_url %}<a href="{{ business_card.route_url }}" target="_blank" rel="noopener" class="inline-flex items-center min-h-[2.75rem] px-4 rounded-full border border-gray-900 text-sm font-bold text-gray-900">{% trans "Route planen" %}</a>{% endif %}
+    {% if business_card.phone %}<a href="tel:{{ business_card.phone }}" class="inline-flex items-center min-h-[2.75rem] px-4 rounded-full border border-gray-900 text-sm font-bold text-gray-900">{% trans "Anrufen" %}</a>{% endif %}
+  </div>
+</section>
+{% endif %}
 
 {% if more %}
   <section class="mt-10" data-offer-more>
@@ -88,4 +117,5 @@
     {% include "aggregator/_cards.html" with items=nearby %}
   </section>
 {% endif %}
+<div class="md:hidden h-24" aria-hidden="true"></div>
 {% endblock %}

@@ -36093,3 +36093,39 @@ msgstr "Картка"
 msgctxt "nav"
 msgid "Entdecken"
 msgstr "Огляд"
+
+#: PH-13f
+msgid "So bekommen Sie es"
+msgstr "Як отримати"
+
+#: PH-13f
+msgid "Bezahlung"
+msgstr "Оплата"
+
+#: PH-13f
+msgid "Verfügbar"
+msgstr "У наявності"
+
+#: PH-13f
+msgid "Noch %(n)s"
+msgstr "Залишилось %(n)s"
+
+#: PH-13f
+msgid "Zurücklegen, im Geschäft abholen"
+msgstr "Відкласти й забрати в магазині"
+
+#: PH-13f
+msgid "Coupon holen, im Geschäft einlösen"
+msgstr "Отримати купон і використати в магазині"
+
+#: PH-13f
+msgid "Termin online buchen"
+msgstr "Записатися онлайн"
+
+#: PH-13f
+msgid "Anfrage an das Geschäft senden"
+msgstr "Надіслати запит до магазину"
+
+#: PH-13f
+msgid "Beim Geschäft bestellen"
+msgstr "Замовити в магазині"

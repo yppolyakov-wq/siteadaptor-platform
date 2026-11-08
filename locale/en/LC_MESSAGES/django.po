@@ -35771,3 +35771,39 @@ msgstr "Card"
 msgctxt "nav"
 msgid "Entdecken"
 msgstr "Discover"
+
+#: PH-13f
+msgid "So bekommen Sie es"
+msgstr "How to get it"
+
+#: PH-13f
+msgid "Bezahlung"
+msgstr "Payment"
+
+#: PH-13f
+msgid "Verfügbar"
+msgstr "Available"
+
+#: PH-13f
+msgid "Noch %(n)s"
+msgstr "%(n)s left"
+
+#: PH-13f
+msgid "Zurücklegen, im Geschäft abholen"
+msgstr "Reserve, pick up in store"
+
+#: PH-13f
+msgid "Coupon holen, im Geschäft einlösen"
+msgstr "Get a coupon, redeem it in store"
+
+#: PH-13f
+msgid "Termin online buchen"
+msgstr "Book an appointment online"
+
+#: PH-13f
+msgid "Anfrage an das Geschäft senden"
+msgstr "Send a request to the shop"
+
+#: PH-13f
+msgid "Beim Geschäft bestellen"
+msgstr "Order from the shop"

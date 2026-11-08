@@ -1235,7 +1235,17 @@ def offer_page(request, pk):
 
     tenant = Tenant.objects.filter(schema_name=listing.tenant_schema).first()
     ld = listing_ld(listing, request=request, tenant=tenant)
+    from django.utils.translation import get_language
+
+    from apps.core.business_card import card_context
     from apps.core.seo import _dumps
+
+    from .offer_facts import facts as _offer_facts
+
+    # PH-13f (макет M8): «So finden Sie uns» — публичные поля бизнеса (тот же tenant,
+    # +0 запросов); нет адреса и телефона → блока нет. Часы — строкой на языке гостя.
+    business_card = card_context(tenant)
+    business_hours = tenant.opening_hours_localized(get_language()) if tenant else ""
 
     return render(
         request,
@@ -1247,6 +1257,9 @@ def offer_page(request, pk):
             "more": more,
             "similar": similar,
             "nearby": nearby,  # блок Б3
+            "offer_facts": _offer_facts(listing),
+            "business_card": business_card,
+            "business_hours": business_hours,
             # Стратегия А: основная страница — у бизнеса; портал — промежуточный шаг.
             "canonical": listing.detail_url,
             "offer_jsonld": _dumps(ld),
