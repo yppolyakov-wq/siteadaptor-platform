@@ -53,7 +53,7 @@ def test_portal_sets_ink_and_link_variables():
     style = re.search(r"<style>:root \{[^<]*</style>", html).group(0)
     assert "--portal-color: #fde047" in style and "--portal-ink: #111827" in style
     assert "--portal-link:" in style
-    assert '[style*="background: var(--portal-color)"]' in style
+    assert '[style*="background: var(--portal-color"]' in style
 
 
 def test_broken_primary_colour_cannot_inject_css():
@@ -74,3 +74,46 @@ def test_brand_coloured_text_links_use_the_readable_link_colour():
         if re.search(r"(?<![-\w])color: var\(--portal-color\)", p.read_text())
     ]
     assert offenders == []
+
+
+def test_every_brand_background_is_caught_by_the_ink_rule():
+    """Замок класса (ревью a11y): любой фон цветом портала в шаблонах — в одной из форм,
+    которые ловит правило чернил (иначе белый текст на светлом бренде — 1,x:1)."""
+    from pathlib import Path
+
+    caught = (
+        "background: var(--portal-color",
+        "background:var(--portal-color",
+        "background-color: var(--portal-color",
+        "background-color:var(--portal-color",
+    )
+    root = Path(__file__).resolve().parents[3] / "templates" / "aggregator"
+    misses = []
+    for path in root.glob("*.html"):
+        for m in re.finditer(r'style="([^"]*var\(--portal-color[^"]*)"', path.read_text()):
+            decl = m.group(1)
+            # светлая подложка color-mix(… white) — текст на ней цветом ссылки, правило не нужно
+            if "color-mix(" in decl:
+                continue
+            if re.search(r"background[\w-]*\s*:[^;]*var\(--portal-color", decl) and not any(
+                c in decl for c in caught
+            ):
+                misses.append(f"{path.name}: {decl}")
+    assert misses == []
+
+
+def test_storefront_accent_cannot_inject_css():
+    """Ревью PH-12b: тот же класс на витрине — tenant.primary_color шёл в <style> как есть."""
+    from django.contrib.sessions.backends.cache import SessionStore
+    from django.test import RequestFactory
+
+    from apps.core.context import modules_nav
+    from apps.tenants.tests.factories import TenantFactory
+
+    tenant = TenantFactory(schema_name="inj", slug="inj", name="Inj", primary_color="#1;}a{x")
+    req = RequestFactory().get("/")
+    req.session = SessionStore()
+    req.tenant = tenant
+    assert modules_nav(req)["storefront_accent"] == ""
+    tenant.primary_color = "#4F46E5"
+    assert modules_nav(req)["storefront_accent"] == "#4f46e5"

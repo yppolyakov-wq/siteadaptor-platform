@@ -329,6 +329,11 @@ def modules_nav(request):
         storefront_accent = _draft["_accent"]
     else:
         storefront_accent = tenant.primary_color or ""
+    # PH-12b (ревью): значение идёт в <style> и style= — только `#rrggbb`, иначе «нет акцента»
+    # (шаблоны берут фолбэк): `;}` автоэкранирование не трогает — выход из блока CSS.
+    from apps.core import colors
+
+    storefront_accent = colors.normalize_hex(storefront_accent, default="")
     # ST-1b: stateless-превью Look'а (?preview=1&look=<family>) — оверлей пачки
     # ключей ПОВЕРХ cfg только на этот рендер, НИЧЕГО не пишет (N iframe галереи
     # не делят единственный session-слот черновика). DL-3: += &bundle=<key> —
