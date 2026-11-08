@@ -12,7 +12,7 @@
     <article data-best-section="{{ b.key }}" class="bg-white rounded-3xl overflow-hidden flex flex-col shadow-[0_1px_2px_rgba(17,24,39,.06),0_8px_24px_rgba(17,24,39,.06)]">
       <div class="relative h-28 bg-gray-800">
         {% if b.image %}<img src="{{ b.image }}" alt="" loading="lazy" decoding="async" class="absolute inset-0 w-full h-full object-cover">{% endif %}
-        <span aria-hidden="true" class="absolute inset-0 bg-gradient-to-b from-transparent from-30% to-black/70"></span>
+        <span aria-hidden="true" class="absolute inset-0 bg-gradient-to-b from-transparent from-10% to-black/80"></span>
         <h3 class="absolute left-4 bottom-3 text-lg font-extrabold text-white">{{ b.label }}</h3>
         <span class="absolute right-3 bottom-3 bg-white text-gray-900 text-xs font-bold rounded-full px-2.5 py-1">{{ b.count }}<span class="sr-only"> {% trans "Angebote" %}</span></span>
       </div>
@@ -20,7 +20,7 @@
         {% for r in b.items %}
         {% url 'aggregator-offer' r.pk as offer_url %}
         <li class="flex items-center gap-2.5 py-2.5 border-b border-gray-100 last:border-b-0">
-          {% if r.best_dot %}<span aria-hidden="true" class="w-2 h-2 shrink-0 rounded-full {% if r.best_dot == 'open' %}bg-emerald-700{% elif r.best_dot == 'soon' %}bg-amber-700{% else %}bg-gray-400{% endif %}"></span>{% else %}<span aria-hidden="true" class="w-2 h-2 shrink-0"></span>{% endif %}
+          {% comment %}Статус — цветом И формой (SC 1.4.1): круг · ромб · кольцо.{% endcomment %}<span aria-hidden="true" class="shrink-0 {% if r.best_dot == 'open' %}w-2 h-2 rounded-full bg-emerald-700{% elif r.best_dot == 'soon' %}w-2 h-2 rotate-45 bg-amber-700{% elif r.best_dot == 'closed' %}w-2 h-2 rounded-full border-2 border-gray-500{% else %}w-2 h-2{% endif %}"></span>
           <span class="flex-1 min-w-0 flex flex-col">
             <a href="{{ offer_url|default:r.portal_url }}" class="text-sm font-semibold text-gray-900 truncate hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900 rounded">{{ r.title_text }}</a>
             <span class="text-xs text-gray-600 truncate">{{ r.business_name }}{% if r.district_name %} · {{ r.district_name }}{% endif %}{% if r.best_dot %}<span class="sr-only"> · {% if r.best_dot == 'open' %}{% trans "jetzt geöffnet" %}{% elif r.best_dot == 'soon' %}{% trans "endet heute / wenige übrig" %}{% else %}{% trans "gerade geschlossen" %}{% endif %}</span>{% endif %}</span>
@@ -33,10 +33,10 @@
     </article>
     {% endfor %}
   </div>
-  <p class="mt-3 flex flex-wrap gap-4 text-xs text-gray-600" aria-hidden="true">
-    <span class="inline-flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-700"></span>{% trans "jetzt geöffnet" %}</span>
-    <span class="inline-flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-amber-700"></span>{% trans "endet heute / wenige übrig" %}</span>
-    <span class="inline-flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-gray-400"></span>{% trans "gerade geschlossen" %}</span>
+  <p class="mt-3 flex flex-wrap gap-4 text-xs text-gray-600">
+    <span class="inline-flex items-center gap-1.5"><span aria-hidden="true" class="w-2 h-2 rounded-full bg-emerald-700"></span>{% trans "jetzt geöffnet" %}</span>
+    <span class="inline-flex items-center gap-1.5"><span aria-hidden="true" class="w-2 h-2 rotate-45 bg-amber-700"></span>{% trans "endet heute / wenige übrig" %}</span>
+    <span class="inline-flex items-center gap-1.5"><span aria-hidden="true" class="w-2 h-2 rounded-full border-2 border-gray-500"></span>{% trans "gerade geschlossen" %}</span>
   </p>
 </section>
 {% endif %}

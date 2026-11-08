@@ -290,6 +290,11 @@
       if (!d.contains(e.target)) d.open = false;
     });
   });
+  // Tab ушёл за последний пункт — меню не остаётся висеть поверх контента.
+  document.addEventListener("focusout", function (e) {
+    var d = e.target.closest && e.target.closest("[data-lang-menu][open]");
+    if (d && !d.contains(e.relatedTarget)) d.open = false;
+  });
   document.addEventListener("keydown", function (e) {
     if (e.key !== "Escape") return;
     var d = document.activeElement && document.activeElement.closest("[data-lang-menu][open]");
