@@ -27,6 +27,13 @@ TODAY = timezone.localdate()
 
 
 @pytest.fixture(autouse=True)
+def _fresh_today():
+    # Дата на каждый тест, не на импорт: прогон CI пересекает полночь по Берлину.
+    global TODAY
+    TODAY = timezone.localdate()
+
+
+@pytest.fixture(autouse=True)
 def _private_cache(monkeypatch):
     """Кэш подсказок — приватный LocMem: CI гоняет тесты параллельно на одном Redis,
     а ключ `today:public:<дата>` у всех воркеров общий (чужой кэш = чужие подсказки)."""

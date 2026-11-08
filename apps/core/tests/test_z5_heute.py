@@ -38,6 +38,14 @@ def _urlconf(settings):
     settings.ROOT_URLCONF = "config.urls_tenant"
 
 
+@pytest.fixture(autouse=True)
+def _today():
+    # Дата на каждый тест, не на импорт модуля: прогон CI пересекает полночь
+    # по Берлину, и «сегодня» импорта становится «вчера» (флак 2026-11-08).
+    global TODAY
+    TODAY = timezone.localdate()
+
+
 def _unit():
     return StayUnit.objects.create(
         name=f"DZ {uuid.uuid4().hex[:6]}", price_cents=10000, quantity=20

@@ -32,6 +32,13 @@ TODAY = timezone.localdate()
 
 
 @pytest.fixture(autouse=True)
+def _fresh_today():
+    # Дата на каждый тест, не на импорт: прогон CI пересекает полночь по Берлину.
+    global TODAY
+    TODAY = timezone.localdate()
+
+
+@pytest.fixture(autouse=True)
 def _urlconf(settings):
     settings.ROOT_URLCONF = "config.urls_tenant"
 

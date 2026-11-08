@@ -24,6 +24,13 @@ TODAY = timezone.localdate()
 OTHER = (TODAY.weekday() + 1) % 7
 
 
+@pytest.fixture(autouse=True)
+def _fresh_today():
+    # Дата на каждый тест, не на импорт: прогон CI пересекает полночь по Берлину.
+    global TODAY
+    TODAY = timezone.localdate()
+
+
 def _next(weekday):
     d = TODAY + timedelta(days=1)
     while d.weekday() != weekday:
