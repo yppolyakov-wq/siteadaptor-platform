@@ -284,3 +284,36 @@ def test_guides_hidden_with_fewer_than_two_or_when_filtering():
     _flat(b, 3, "Gleich", price="5.00")  # один ценовой уровень, подборок нет
     assert "data-wegweiser-guides" not in _body()
     assert "data-wegweiser-guides" not in _body("/sortiment/?q=Gleich")
+
+
+# ─────────────────────────── ревью ECC ───────────────────────────
+
+
+def test_legacy_category_param_is_a_plain_result_not_wegweiser():
+    """django-reviewer: `?kategorie=` на корне рисовал Fokus по ВСЕМУ магазину и выкидывал
+    его товары из сетки выбранной категории."""
+    a, b = _cat("A"), _cat("B")
+    neu = _flat(a, 4, "Neuheit", badge="neu")
+    _flat(b, 4, "Normal")
+    body = _body(f"/sortiment/?kategorie={a.slug}")
+    assert not _focus(body) and "data-wegweiser-departments" not in body
+    assert all(p.name["de"] in body for p in neu)
+
+
+def test_focus_cards_carry_the_same_rating_as_grid_cards():
+    from apps.reviews.models import Review
+
+    a, b = _cat("A"), _cat("B")
+    neu = _flat(a, 3, "Neuheit", badge="neu")
+    _flat(b, 3, "Normal")
+    Review.objects.create(
+        entity_kind="product",
+        entity_id=neu[0].pk,
+        rating=5,
+        author_name="Ana",
+        email="ana@example.com",
+        comment="gut",
+        is_published=True,
+    )
+    focus = _focus(_body())
+    assert "★" in focus or "5,0" in focus or "5.0" in focus

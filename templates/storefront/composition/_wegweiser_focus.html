@@ -11,7 +11,7 @@ Beliebt вместо двух каруселей пресета. Без JS — �
     {% if panels|length > 1 %}
     <div role="tablist" aria-labelledby="ww-focus-h" class="flex flex-wrap gap-2" hidden data-focus-tabs>
       {% for panel in panels %}
-      <button type="button" role="tab" id="ww-tab-{{ panel.key }}" aria-controls="ww-panel-{{ panel.key }}" aria-selected="{% if forloop.first %}true{% else %}false{% endif %}"{% if not forloop.first %} tabindex="-1"{% endif %} class="min-h-[2.5rem] rounded-full border px-4 text-sm font-semibold" data-focus-tab="{{ panel.key }}">{{ panel.label }}</button>
+      <button type="button" role="tab" id="ww-tab-{{ panel.key }}" aria-controls="ww-panel-{{ panel.key }}" aria-selected="{% if forloop.first %}true{% else %}false{% endif %}"{% if not forloop.first %} tabindex="-1"{% endif %} class="min-h-[2.5rem] rounded-full border border-gray-300 bg-white px-4 text-sm font-semibold text-gray-900" data-focus-tab="{{ panel.key }}">{{ panel.label }}</button>
       {% endfor %}
     </div>
     {% endif %}
@@ -20,7 +20,7 @@ Beliebt вместо двух каруселей пресета. Без JS — �
   <div id="ww-panel-{{ panel.key }}" class="mb-6" data-focus-panel="{{ panel.key }}">
     <div class="mb-2 flex items-baseline justify-between gap-3">
       <h3 class="text-base font-bold" data-focus-heading>{{ panel.label }}</h3>
-      {% if panel.more %}<a href="?{{ panel.query }}" class="ml-auto text-sm font-medium hover:underline" style="color: var(--accent, #4f46e5);">{% blocktrans with n=panel.total %}Alle {{ n }} anzeigen{% endblocktrans %} →</a>{% endif %}
+      {% if panel.more %}<a href="?{{ panel.query }}" class="ml-auto inline-flex min-h-[1.5rem] items-center text-sm font-medium hover:underline" style="color: var(--accent, #4f46e5);">{% blocktrans with n=panel.total %}Alle {{ n }} anzeigen{% endblocktrans %} →</a>{% endif %}
     </div>
     <div class="flex gap-4 overflow-x-auto pb-2" data-sf-slider>
       {% for p in panel.items %}<div class="w-56 shrink-0 flex [&>div]:w-full">{% include "storefront/_product_card.html" %}</div>{% endfor %}

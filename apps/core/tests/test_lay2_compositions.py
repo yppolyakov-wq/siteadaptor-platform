@@ -30,7 +30,9 @@ CATEGORY_CODES = [
     "mosaik",
     "kompakt",
 ]
-ROOT_CODES = list(CATEGORY_CODES)  # на корне прайс-вида не было и раньше
+# на корне прайс-вида не было и раньше; Wegweiser (2026-11-08) — только корень, сразу
+# за Standard (осознанное расширение реестра, план sortiment-wegweiser)
+ROOT_CODES = ["", "wegweiser", *CATEGORY_CODES[1:]]
 PROMO_PAGE_CODES = [
     "",
     "kopfbild",

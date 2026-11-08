@@ -7,10 +7,11 @@
 {% if summary %}
 <p class="-mt-4 mb-5 text-sm text-gray-600" data-wegweiser-summary>
   {% blocktrans count counter=summary.articles %}{{ counter }} Artikel{% plural %}{{ counter }} Artikel{% endblocktrans %}
-  {% blocktrans count counter=summary.departments %}in {{ counter }} Bereich{% plural %}in {{ counter }} Bereichen{% endblocktrans %}{% if summary.sale %} · {% blocktrans with n=summary.sale %}{{ n }} reduziert{% endblocktrans %}{% endif %}{% if summary.new %} · {% blocktrans count counter=summary.new %}{{ counter }} neu{% plural %}{{ counter }} neu{% endblocktrans %}{% endif %}
+  {% blocktrans count counter=summary.departments %}in {{ counter }} Bereich{% plural %}in {{ counter }} Bereichen{% endblocktrans %}{% if summary.sale %} <span aria-hidden="true">·</span> {% blocktrans with n=summary.sale %}{{ n }} reduziert{% endblocktrans %}{% endif %}{% if summary.new %} <span aria-hidden="true">·</span> {% blocktrans count counter=summary.new %}{{ counter }} neu{% plural %}{{ counter }} neu{% endblocktrans %}{% endif %}
 </p>
 {% endif %}
-<section class="mb-8" aria-label="{% trans 'Bereiche' %}" data-wegweiser-departments>
+<section class="mb-8" aria-labelledby="ww-deps-h" data-wegweiser-departments>
+  <h2 id="ww-deps-h" class="sr-only">{% trans "Bereiche" %}</h2>
   <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
     {% for d in departments %}{% with c=d.category %}
     <article class="sf-card flex flex-col bg-white rounded-2xl border border-gray-200 overflow-hidden" data-wegweiser-dept="{{ c.slug }}">
@@ -23,10 +24,10 @@
         {% if d.new %}<span class="absolute left-2 top-2 rounded-full bg-white px-2 py-0.5 text-xs font-bold text-blue-700 shadow-sm" data-wegweiser-new>{% blocktrans count counter=d.new %}{{ counter }} neu{% plural %}{{ counter }} neu{% endblocktrans %}</span>{% endif %}
       </a>
       <div class="flex flex-col gap-1 p-3">
-        <a href="{% url 'storefront-category' c.slug %}" class="font-bold leading-snug text-gray-900 hover:underline">{{ c }} <span class="font-normal text-sm text-gray-500">{{ d.count }}</span></a>
+        <h3 class="font-bold leading-snug"><a href="{% url 'storefront-category' c.slug %}" class="text-gray-900 hover:underline">{{ c }} <span class="font-normal text-sm text-gray-500"><span aria-hidden="true">{{ d.count }}</span><span class="sr-only">— {% blocktrans count counter=d.count %}{{ counter }} Artikel{% plural %}{{ counter }} Artikel{% endblocktrans %}{% if d.new %}, {% blocktrans count counter=d.new %}{{ counter }} neu{% plural %}{{ counter }} neu{% endblocktrans %}{% endif %}</span></span></a></h3>
         {% if d.subs %}
-        <p class="text-xs leading-relaxed text-gray-600">
-          {% for s in d.subs %}<a href="{% url 'storefront-category' s.slug %}" class="hover:underline">{{ s }}</a>{% if not forloop.last %} · {% endif %}{% endfor %}{% if d.more_subs %} · {% blocktrans with n=d.more_subs %}+{{ n }} weitere{% endblocktrans %}{% endif %}
+        <p class="text-xs leading-loose text-gray-600">
+          {% for s in d.subs %}<a href="{% url 'storefront-category' s.slug %}" class="inline-block py-1 hover:underline">{{ s }}</a>{% if not forloop.last %} <span aria-hidden="true">·</span> {% endif %}{% endfor %}{% if d.more_subs %} · {% blocktrans with n=d.more_subs %}+{{ n }} weitere{% endblocktrans %}{% endif %}
         </p>
         {% endif %}
       </div>

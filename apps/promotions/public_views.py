@@ -1555,7 +1555,7 @@ def product_list(request, slug=None):
     # («Frische» → Obst & Gemüse / Backwaren) показывал на /sortiment/ не четыре
     # направления, а шесть листьев — иерархия витрины пропадала. Плоский каталог
     # (товары лежат прямо в корневых) не меняется: те же категории, тот же порядок.
-    categories = (
+    categories = list(
         Category.objects.filter(is_active=True, parent__isnull=True)
         .filter(Q(products__is_active=True) | Q(children__products__is_active=True))
         .distinct()
@@ -1570,6 +1570,8 @@ def product_list(request, slug=None):
     # витрина уступает место выдаче; на «Show more» шапку не повторяем.
     ww_overview = bool(
         not path_mode
+        # легаси `?kategorie=` — это выдача категории, а не обзор магазина (ревью)
+        and category is None
         and cat_style == "wegweiser"
         and not _facets_narrow(sel, request.GET)
         and not request.GET.get("badge")
@@ -1583,15 +1585,29 @@ def product_list(request, slug=None):
         # КАЖДОЙ странице, иначе вторая страница повторила бы то, что стояло в полке.
         # Набор может смениться между запросами (новый товар) — тогда на стыке
         # страниц возможен единичный повтор или пропуск; это приемлемо.
+        _ww_all = Product.objects.filter(is_active=True)
+        # скидки — один проход резолвера акций; тот же набор, что за `?sale=1` и у чипа
+        _ww_sale_ids = provider._discounted_ids(_ww_all)
         wegweiser_focus = _ww.focus_panels(
-            Product.objects.filter(is_active=True).select_related("category"), provider
+            _ww_all.select_related("category"),
+            provider,
+            sale_ids=_ww_sale_ids,
+            ids_only=not wegweiser_mode,  # курсор: нужны только pk для исключения
         )
         products = products.exclude(pk__in=_ww.focus_ids(wegweiser_focus))
-        if wegweiser_focus and not request.GET.get("cursor"):
-            # карточка показывает промо-цену так же, как в сетке (SF-4b: «показано = продано»)
+        if wegweiser_focus and wegweiser_mode:
+            # карточка «Im Fokus» = карточка сетки: промо-цена (SF-4b) и рейтинг ★
+            from apps.reviews import services as _ww_reviews
+
             from .price_layer import attach_promos as _attach_promos_focus
 
-            _attach_promos_focus([p for panel in wegweiser_focus for p in panel["items"]])
+            _ww_items = [p for panel in wegweiser_focus for p in panel["items"]]
+            _attach_promos_focus(_ww_items)
+            _ww_rating = _ww_reviews.bulk_summary("product", [p.pk for p in _ww_items])
+            for _p in _ww_items:
+                _row = _ww_rating.get(_p.pk)
+                _p.review_avg = _row["avg"] if _row else None
+                _p.review_count = _row["count"] if _row else 0
     wegweiser_guides = []
     if wegweiser_mode:
         wegweiser_departments = _ww.departments(categories)

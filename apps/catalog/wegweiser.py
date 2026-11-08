@@ -10,7 +10,7 @@
 
 from __future__ import annotations
 
-from django.db.models import Count, Prefetch, Q
+from django.db.models import Count, Prefetch, Q, prefetch_related_objects
 
 #: сколько подкатегорий печатать на плитке направления (остальные — «+N»)
 SUBCATEGORY_NAMES = 4
@@ -27,17 +27,17 @@ def departments(categories) -> list[dict]:
     подкатегории одним prefetch и один агрегат по товарам."""
     from .models import Category, Product
 
-    roots = list(
-        categories.prefetch_related(
-            Prefetch(
-                "children",
-                queryset=Category.objects.filter(is_active=True).order_by("sort_order", "slug"),
-                to_attr="ww_children",
-            )
-        )
-    )
+    roots = list(categories)
     if len(roots) < MIN_DEPARTMENTS:
         return []
+    prefetch_related_objects(
+        roots,
+        Prefetch(
+            "children",
+            queryset=Category.objects.filter(is_active=True).order_by("sort_order", "slug"),
+            to_attr="ww_children",
+        ),
+    )
     ids = [i for r in roots for i in (r.pk, *(c.pk for c in r.ww_children))]
     per_cat = {
         row["category_id"]: row
@@ -55,6 +55,9 @@ def departments(categories) -> list[dict]:
         # подкатегория без товаров на плитке — пустое обещание
         subs = [c for c in root.ww_children if _n(c.pk)]
         cats = [root.pk, *(c.pk for c in root.ww_children)]
+        if not sum(_n(pk) for pk in cats):
+            # товары только в НЕАКТИВНОЙ подкатегории: плитка «0» никуда не ведёт
+            continue
         out.append(
             {
                 "category": root,
@@ -64,7 +67,7 @@ def departments(categories) -> list[dict]:
                 "more_subs": max(0, len(subs) - SUBCATEGORY_NAMES),
             }
         )
-    return out
+    return out if len(out) >= MIN_DEPARTMENTS else []
 
 
 def summary(all_products, departments_count: int, sale_count: int) -> dict:
@@ -87,7 +90,7 @@ FOCUS_ITEMS = 5
 MIN_FOCUS_ITEMS = 3
 
 
-def focus_panels(all_products, provider) -> list[dict]:
+def focus_panels(all_products, provider, *, sale_ids=None, ids_only=False) -> list[dict]:
     """«Im Fokus»: одна полка с вкладками Neu · Reduziert · Beliebt.
 
     Каждая вкладка — та же выборка, что за её ссылкой «Alle N →»: Neu и Beliebt —
@@ -96,17 +99,33 @@ def focus_panels(all_products, provider) -> list[dict]:
     равно числу за ней. Решение Р-3 плана: «neu» по бейджу, а не по дате создания —
     у демо и импорта даты одинаковые, «neu diese Woche» соврал бы.
 
-    Запросов постоянно: ≤ 3 выборки + ≤ 3 подсчёта (только когда вкладка обрезана)."""
+    Запросов постоянно: ≤ 3 выборки + ≤ 2 подсчёта (только когда вкладка обрезана).
+    `sale_ids` — уже посчитанные pk со скидкой (вьюха считает их один раз: резолвер
+    акций дорогой, а второй проход мог бы разойтись с чипом). `ids_only` — для
+    курсорных страниц: нужны только pk, чтобы сетка их исключила."""
     from django.utils.translation import gettext_lazy as _
 
     specs = (
         ("neu", _("Neu"), all_products.filter(badge="neu"), "badge=neu"),
-        ("sale", _("Reduziert"), provider.apply(all_products, {"sale": "1"}), "sale=1"),
+        (
+            "sale",
+            _("Reduziert"),
+            all_products.filter(pk__in=sale_ids)
+            if sale_ids is not None
+            else provider.apply(all_products, {"sale": "1"}),
+            "sale=1",
+        ),
         ("beliebt", _("Beliebt"), all_products.filter(badge="beliebt"), "badge=beliebt"),
     )
     panels = []
     for key, label, qs, query in specs:
-        items = list(qs.order_by("-is_featured", "-created_at", "-pk")[: FOCUS_ITEMS + 1])
+        ordered = qs.order_by("-is_featured", "-created_at", "-pk")
+        if ids_only:
+            pks = list(ordered.values_list("pk", flat=True)[: FOCUS_ITEMS + 1])
+            if len(pks) >= MIN_FOCUS_ITEMS:
+                panels.append({"key": key, "pks": pks[:FOCUS_ITEMS]})
+            continue
+        items = list(ordered[: FOCUS_ITEMS + 1])
         if len(items) < MIN_FOCUS_ITEMS:
             continue
         more = len(items) > FOCUS_ITEMS
@@ -116,7 +135,11 @@ def focus_panels(all_products, provider) -> list[dict]:
                 "key": key,
                 "label": label,
                 "items": items,
-                "total": qs.count() if more else len(items),
+                "total": (
+                    (len(sale_ids) if key == "sale" and sale_ids is not None else qs.count())
+                    if more
+                    else len(items)
+                ),
                 "more": more,
                 "query": query,
             }
@@ -126,7 +149,11 @@ def focus_panels(all_products, provider) -> list[dict]:
 
 def focus_ids(panels) -> set:
     """pk товаров «Im Fokus» — сетка ниже их не повторяет (дефект прода №2)."""
-    return {p.pk for panel in panels for p in panel["items"]}
+    return {
+        pk
+        for panel in panels
+        for pk in (panel.get("pks") or [p.pk for p in panel.get("items", [])])
+    }
 
 
 #: подборок-чипов в «Schnell finden» (макет S1 — строка без переноса на десктопе)

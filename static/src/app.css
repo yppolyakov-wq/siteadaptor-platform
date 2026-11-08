@@ -1855,3 +1855,17 @@ html:has(dialog.ui-drawer[open]) { overflow: hidden; }
 [data-bar-pk] > a[data-drawer]::after { content: ""; position: absolute; inset: 0; }
 [data-bar-pk] > a[data-drawer]:focus-visible { outline: none; }
 [data-bar-pk]:has(> a[data-drawer]:focus-visible) { outline: 2px solid var(--ui-focus); outline-offset: -2px; }
+
+/* Wegweiser (a11y-ревью 2026-11-08): явное фокус-кольцо — тёмный контур с белой
+   подложкой виден и на акцентной заливке вкладки, и на светлых чипах. */
+[data-focus-tab]:focus-visible,
+[data-wegweiser-guides] a:focus-visible,
+[data-wegweiser-dept] a:focus-visible,
+[data-wegweiser-focus] a:focus-visible,
+[data-demo-design] summary:focus-visible,
+[data-chat-fab]:focus-visible {
+  outline: 2px solid #111827;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px #fff;
+}
+

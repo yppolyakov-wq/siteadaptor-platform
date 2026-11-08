@@ -7,13 +7,13 @@ Wegweiser W-4 (2026-11-08): переключатель «Design testen» (DL-8e)
     {% if request.tenant.is_demo %}<span><strong>{% trans "Demo-Geschäft" %}</strong> — {% trans "dies ist ein Beispiel-Shop zum Ausprobieren." %}</span>{% endif %}
     {% if storefront_demo_design %}
     <details class="relative ml-auto" data-demo-design>
-      <summary class="list-none cursor-pointer inline-flex items-center gap-2 bg-gray-900 text-white rounded-full px-4 min-h-[2.25rem] text-sm font-medium whitespace-nowrap">🎨 {% trans "Design testen" %}</summary>
+      <summary class="list-none cursor-pointer inline-flex items-center gap-2 bg-gray-900 text-white rounded-full px-4 min-h-[2.25rem] text-sm font-medium whitespace-nowrap"><span aria-hidden="true">🎨</span> {% trans "Design testen" %}</summary>
       <div class="absolute right-0 top-full mt-2 z-40 w-60 bg-white text-gray-900 rounded-xl shadow-xl border border-gray-200 p-1.5">
         <a href="{% url 'storefront-design-testen' %}?tpl=standard&next={{ request.path|urlencode }}"
-           class="block rounded-lg px-3 py-1.5 text-sm hover:bg-gray-100{% if not storefront_demo_design.active %} font-semibold{% endif %}">{% trans "Standard" %}{% if not storefront_demo_design.active %} ✓{% endif %}</a>
+           class="block rounded-lg px-3 py-1.5 text-sm hover:bg-gray-100{% if not storefront_demo_design.active %} font-semibold{% endif %}"{% if not storefront_demo_design.active %} aria-current="true"{% endif %}>{% trans "Standard" %}{% if not storefront_demo_design.active %} <span aria-hidden="true">✓</span>{% endif %}</a>
         {% for o in storefront_demo_design.options %}
           <a href="{% url 'storefront-design-testen' %}?tpl={{ o.key }}&next={{ request.path|urlencode }}"
-             class="block rounded-lg px-3 py-1.5 text-sm hover:bg-gray-100{% if o.key == storefront_demo_design.active %} font-semibold{% endif %}">{{ o.label }}{% if o.key == storefront_demo_design.active %} ✓{% endif %}</a>
+             class="block rounded-lg px-3 py-1.5 text-sm hover:bg-gray-100{% if o.key == storefront_demo_design.active %} font-semibold{% endif %}"{% if o.key == storefront_demo_design.active %} aria-current="true"{% endif %}>{{ o.label }}{% if o.key == storefront_demo_design.active %} <span aria-hidden="true">✓</span>{% endif %}</a>
         {% endfor %}
       </div>
     </details>

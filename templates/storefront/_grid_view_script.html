@@ -468,9 +468,11 @@ document.addEventListener("change", function (e) {
       var on = b.getAttribute("data-focus-tab") === key;
       b.setAttribute("aria-selected", on ? "true" : "false");
       b.tabIndex = on ? 0 : -1;
-      b.classList.toggle("text-white", on);
+      // a11y-ревью: на светлом акценте белый текст нечитаем — «чернила» акцента
+      // (`--accent-ink`, считаются по контрасту WCAG в apps/core/colors.py).
       b.style.background = on ? "var(--accent, #4f46e5)" : "";
       b.style.borderColor = on ? "var(--accent, #4f46e5)" : "";
+      b.style.color = on ? "var(--accent-ink, #ffffff)" : "";
       if (on && focus) b.focus();
     });
     root.querySelectorAll("[data-focus-panel]").forEach(function (p) {
@@ -515,5 +517,22 @@ document.addEventListener("change", function (e) {
   document.addEventListener("sf:navigated", init);
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
   else init();
+})();
+
+/* Wegweiser W-4 (a11y-ревью): выпадашка «Design testen» в полосе демо закрывается
+   по Escape (фокус — на summary) и кликом вне неё (SC 1.4.13). */
+(function () {
+  document.addEventListener("keydown", function (e) {
+    if (e.key !== "Escape") return;
+    var d = document.querySelector("details[data-demo-design][open]");
+    if (!d) return;
+    d.open = false;
+    var s = d.querySelector("summary");
+    if (s) s.focus();
+  });
+  document.addEventListener("click", function (e) {
+    var d = document.querySelector("details[data-demo-design][open]");
+    if (d && !d.contains(e.target)) d.open = false;
+  });
 })();
 </script>

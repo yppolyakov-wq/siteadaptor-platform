@@ -4,6 +4,7 @@
 оверлей — тот же stateless-механизм, что у ?preview=1&bundle=.
 """
 
+import re
 from importlib import import_module
 
 import pytest
@@ -66,7 +67,7 @@ def test_session_overlay_renders_choice_on_demo_home():
     html = storefront_home(request).content.decode()
     assert ' data-sf-look="neon"' in html
     assert 'var tenantDark = "dark" === "dark"' in html  # кожа neon
-    assert "data-demo-design" in html  # пилюля «Design testen»
+    assert re.search(r"<details[^>]*data-demo-design", html)  # пилюля «Design testen»
     assert demo.site_config in (None, {}, demo.site_config)  # read-only
 
     other = TenantFactory.build(slug="realshop", business_type="grocery")
@@ -74,7 +75,8 @@ def test_session_overlay_renders_choice_on_demo_home():
     request.session[demo_switch.SESSION_KEY] = "deal_neon"
     html = storefront_home(request).content.decode()
     assert ' data-sf-look="neon"' not in html
-    assert "data-demo-design" not in html
+    # разметка, а не голый маркер: селектор живёт в общем JS (Escape закрывает список)
+    assert not re.search(r"<details[^>]*data-demo-design", html)
 
 
 def test_design_switcher_lives_in_the_demo_banner_not_over_cards():
