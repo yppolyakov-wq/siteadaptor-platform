@@ -78,12 +78,15 @@ def test_home_renders_new_blocks_and_marked_ad_strip(django_assert_max_num_queri
 
 def test_new_businesses_block_needs_three_and_replaces_local_block():
     portal = _portal()
-    for i in range(2):
-        _listing("business", f"Laden {i}")
+    img = {"url": "https://x.test/a.jpg"}
+    for i in range(2):  # PH-12d: «Neu» требует фото и предложение
+        _listing("business", f"Laden {i}", schema=f"nb{i}", image=img)
+        _listing("promotion", f"Deal {i}", schema=f"nb{i}")
     body = _html(portal)
     assert "data-home-new-businesses" not in body
     cache.clear()
-    _listing("business", "Laden 3")
+    _listing("business", "Laden 3", schema="nb3", image=img)
+    _listing("promotion", "Deal 3", schema="nb3")
     body = _html(portal)
     assert "data-home-new-businesses" in body and 'data-home-block="unternehmen"' not in body
     assert "/folgen/?unternehmen=" in body

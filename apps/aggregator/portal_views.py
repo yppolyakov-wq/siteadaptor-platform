@@ -1085,7 +1085,9 @@ def _render_home(request, portal):
     # PH-11d2 (макет K1): ряды блоков на главной не рисуются — блоки питают quad-карточки;
     # ниже карточек — «Das Beste aus jedem Bereich», «Geschäfte», «Top-Aktionen».
     quad = (
-        home.quad_cards(base, blocks, open_set, portal_pk=portal.pk, path=request.path)
+        home.quad_cards(
+            base, blocks, open_set, portal_pk=portal.pk, path=request.path, snapshot=snapshot
+        )
         if present["total"]
         else []
     )

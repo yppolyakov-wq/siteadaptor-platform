@@ -569,11 +569,20 @@ def new_businesses(base_qs, *, path: str, now=None) -> dict | None:
 
     «Alle anzeigen» → лента бизнесов с `neu=1`. Меньше трёх — None (остаётся прежний блок
     «Lokale Unternehmen»)."""
+    from django.db.models import Exists, OuterRef
+
     now = now or timezone.now()
+    # PH-12d: «Neu» — только бизнес с фото и хотя бы одним предложением (на проде в блок
+    # попадали тестовые тенанты «Про»/«123» с пустой карточкой).
+    has_offer = base_qs.filter(tenant_schema=OuterRef("tenant_schema")).exclude(
+        listing_kind=L.KIND_BUSINESS
+    )
     qs = (
         base_qs.filter(
             listing_kind=L.KIND_BUSINESS, created_at__gte=now - timedelta(days=NEW_BUSINESS_DAYS)
         )
+        .exclude(image={})
+        .filter(Exists(has_offer))
         .order_by("tenant_schema", "-created_at")
         .distinct("tenant_schema")
     )
@@ -632,7 +641,38 @@ def _popular_ids(base_qs, portal_pk, now) -> list[int]:
     return ids
 
 
-def quad_cards(base_qs, blocks, open_set, *, portal_pk, path: str, now=None) -> list[dict]:
+def usable_before(row, ends_at, now) -> bool:
+    """PH-12d: можно ли воспользоваться предложением до `ends_at` по снимку часов бизнеса —
+    открыт сейчас или откроется позже сегодня до конца. Часов нет (`row`/`status` пусты) —
+    True: отсутствие часов не утверждает «закрыто». Betriebsferien — False."""
+    from apps.tenants.openinghours import weekday_abbr
+
+    if not row:
+        return True
+    if row.get("holiday"):
+        return False
+    status = row.get("status")
+    if not status:
+        return True
+    if status.get("open"):
+        return True
+    nxt = status.get("next")
+    if not nxt:
+        return False
+    local_now = timezone.localtime(now)
+    if nxt[0] != weekday_abbr(local_now.weekday()):
+        return False
+    try:
+        hh, mm = (int(x) for x in nxt[1].split(":"))
+    except (ValueError, AttributeError):
+        return False
+    opens = local_now.replace(hour=hh, minute=mm, second=0, microsecond=0)
+    return opens < timezone.localtime(ends_at)
+
+
+def quad_cards(
+    base_qs, blocks, open_set, *, portal_pk, path: str, now=None, snapshot=None
+) -> list[dict]:
     """Четыре карточки под баннером: Endet heute · Beliebt (или Jetzt geöffnet) · Neu ·
     Am Wochenende. Инвариант «карточка ⊆ ленты по ссылке»: показанное берётся из той же
     области, что открывает «Alle»; платное (featured) сюда не попадает (UWG §5a). Пустая
@@ -662,7 +702,14 @@ def quad_cards(base_qs, blocks, open_set, *, portal_pk, path: str, now=None) -> 
     add(
         "endet",
         _("Endet heute"),
-        [i for i in offers if i.ends_at and i.ends_at <= end_of_day],
+        [
+            i
+            for i in offers
+            if i.ends_at
+            and i.ends_at <= end_of_day
+            # PH-12d: закрытый до завтра бизнес — акция кончится раньше, чем до неё дойдут
+            and usable_before((snapshot or {}).get(i.tenant_schema), i.ends_at, now)
+        ],
         f"{path}?{urlencode({'kind': 'angebote', 'sort': 'endet'})}",
     )
 

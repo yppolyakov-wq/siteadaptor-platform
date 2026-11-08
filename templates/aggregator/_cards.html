@@ -101,8 +101,7 @@
         </div>
       </div>
     </a>
-    {% url 'aggregator-report' l.pk as report_url %}
-    {% if report_url %}<a href="{{ report_url }}" rel="nofollow" class="block text-right text-[11px] text-gray-400 hover:text-gray-600 mt-1 pr-1" data-report-link>⚑ {% trans "Melden" %}</a>{% endif %}
+    {% comment %}PH-12d: «Melden» — на странице предложения (offer.html), не под каждой карточкой (шум).{% endcomment %}
     {% comment %}MEN-12: «Merken» без аккаунта (сессия) — на главном домене
     /entdecken/, где логина нет; на порталах под логином остаётся персональное
     избранное (сердечко ниже), поэтому кнопки не дублируются.{% endcomment %}

@@ -239,4 +239,4 @@ def test_cards_link_with_channel_and_report():
     # T-8.24: карточка ведёт на страницу предложения в портале; атрибуция `?ch=portal`
     # переехала на её кнопку «Zum Angebot» (test_offer_page).
     assert f'href="/entdecken/angebot/{listing.pk}/"' in html
-    assert "data-report-link" in html
+    assert "data-report-link" not in html  # PH-12d: «Melden» — на странице предложения
