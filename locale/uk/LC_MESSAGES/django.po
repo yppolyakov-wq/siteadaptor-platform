@@ -36078,3 +36078,18 @@ msgstr[0] "у %(counter)s розділі"
 msgstr[1] "у %(counter)s розділах"
 msgstr[2] "у %(counter)s розділах"
 msgstr[3] "у %(counter)s розділах"
+
+#: PH-13b
+msgctxt "map"
+msgid "Karte"
+msgstr "Мапа"
+
+#: PH-13b
+msgctxt "payment method"
+msgid "Karte"
+msgstr "Картка"
+
+#: PH-13b
+msgctxt "nav"
+msgid "Entdecken"
+msgstr "Огляд"

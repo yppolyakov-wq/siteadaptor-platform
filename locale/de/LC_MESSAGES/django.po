@@ -35843,3 +35843,18 @@ msgid "in %(counter)s Bereich"
 msgid_plural "in %(counter)s Bereichen"
 msgstr[0] "in %(counter)s Bereich"
 msgstr[1] "in %(counter)s Bereichen"
+
+#: PH-13b
+msgctxt "map"
+msgid "Karte"
+msgstr "Karte"
+
+#: PH-13b
+msgctxt "payment method"
+msgid "Karte"
+msgstr "Karte"
+
+#: PH-13b
+msgctxt "nav"
+msgid "Entdecken"
+msgstr "Entdecken"

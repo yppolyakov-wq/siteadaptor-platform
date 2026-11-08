@@ -11,8 +11,15 @@ Bereich» · «Neu in <город>» · «Geschäfte» · «Top-Aktionen». Ря
 быстрые фильтры, «Branche» и ссылки на чужие порталы сняты (PH-11d2/e): навигация — шапка,
 мега-меню и подвал (районы и отрасли — там). Ряды
 блоков остаются только страховкой малого портала (нет «Das Beste»).{% endcomment %}
-{% include "aggregator/_portal_slider.html" %}
+{% comment %}PH-13b (макет M5): в DOM заголовок раньше слайдера — на телефоне h1 и быстрые чипы
+стоят над баннером, первая карточка предложения попадает на первый экран. На md+ слайдер
+визуально первым (md:-order-1); в заголовке нет фокусируемого — порядок Tab не расходится.{% endcomment %}
+<div class="flex flex-col">
 {% include "aggregator/_portal_hero.html" %}
+<div class="md:-order-1">
+{% include "aggregator/_portal_slider.html" %}
+</div>
+</div>
 {% include "aggregator/_portal_quad.html" %}
 
 {% include "aggregator/_demo_notice.html" %}

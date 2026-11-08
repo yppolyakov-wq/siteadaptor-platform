@@ -101,14 +101,18 @@ def test_featured_never_lands_in_slider():
         featured_until=timezone.now() + timedelta(days=1),
     )
     html = _html(_portal())
-    slider = html.split("data-portal-slider", 1)[1].split("data-portal-hero", 1)[0]
+    # PH-13b: заголовок теперь стоит в DOM раньше слайдера — режем слайдер по его </section>
+    slider = html.split("data-portal-slider", 1)[1].split("</section>", 1)[0]
     assert "Bezahlt" not in slider
 
 
 def test_home_heading_stays_below_slider_and_no_csrf():
+    """PH-13b (осознанно переписан): в DOM h1 раньше слайдера (на телефоне он над баннером,
+    макет M5), на десктопе слайдер визуально первым — обёртка `md:-order-1`."""
     _listing("product", "Brot", city_category="brot-backwaren")
     html = _html(_portal())
-    assert html.index("data-portal-slider") < html.index('id="hero-h"')
+    assert html.index('id="hero-h"') < html.index("data-portal-slider")
+    assert re.search(r'<div class="md:-order-1">\s*<section[^>]*data-portal-slider', html)
     assert html.count("<h1") == 1 and "csrfmiddlewaretoken" not in html
 
 
@@ -126,6 +130,6 @@ def test_page_heading_comes_first_and_slides_have_no_headings():
     # закрытые <dialog> (мега-меню, шторка) вне дерева доступности — их заголовки не в счёт
     body = re.sub(r"<dialog\b.*?</dialog>", "", html.split("<body", 1)[1], flags=re.S)
     assert body.index("<h1") < body.index("<h2")
-    slider = html.split("data-portal-slider", 1)[1].split("data-portal-hero", 1)[0]
+    slider = html.split("data-portal-slider", 1)[1].split("</section>", 1)[0]
     assert "<h2" not in slider and "<h3" not in slider
     assert 'aria-labelledby="slide-deal-h"' in slider and 'id="slide-deal-h"' in slider

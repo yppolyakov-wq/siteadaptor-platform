@@ -10,7 +10,7 @@ portal_footer, кэш 5 минут). Здесь же единственные с
       {% if portal.city %}<p class="text-sm leading-relaxed max-w-sm">{% blocktrans with city=portal.city %}Die lokale Plattform für Angebote, Termine und Geschäfte aus {{ city }}. Sie kaufen und bezahlen direkt beim Geschäft.{% endblocktrans %}</p>{% endif %}
     </div>
     <nav aria-labelledby="foot-discover" class="min-w-0">
-      <h2 id="foot-discover" class="text-white text-sm font-bold mb-3">{% trans "Entdecken" %}</h2>
+      <h2 id="foot-discover" class="text-white text-sm font-bold mb-3">{% trans "Entdecken" context "nav" %}</h2>
       <ul class="space-y-2 text-sm [overflow-wrap:anywhere]">
         {% for k in foot.kinds %}<li><a href="{{ k.url }}" rel="nofollow" class="hover:text-white hover:underline">{{ k.label }}</a></li>{% endfor %}
       </ul>

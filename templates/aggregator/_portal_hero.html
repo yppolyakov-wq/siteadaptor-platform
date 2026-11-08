@@ -1,9 +1,16 @@
 {% load i18n portal_brand %}
-{% comment %}PH-4/PH-11d1: заголовок главной под баннером — «Was gibt's heute in <город>?», без чипов и цифр (PH-11d2: их работу делают баннер и quad-карточки). «Deal des Tages» — в слайдере. Без пользовательских данных: страница кэшируется.{% endcomment %}
-<section data-portal-hero aria-labelledby="hero-h" class="mb-6">
-  <div class="flex flex-col gap-4">
-    {% if open_count %}<p class="inline-flex items-center gap-2 text-xs md:text-[13px] font-bold uppercase tracking-wider text-orange-700"><span aria-hidden="true" class="w-2 h-2 rounded-full bg-green-500"></span>{% now "l" %} · {% blocktrans count n=open_count %}{{ n }} Geschäft geöffnet{% plural %}{{ n }} Geschäfte geöffnet{% endblocktrans %}</p>{% endif %}
-    <h1 id="hero-h" class="text-3xl md:text-4xl font-extrabold leading-[1.05] tracking-tight">{% blocktrans with city=portal.city %}Was gibt's heute in {{ city }}?{% endblocktrans %}</h1>
-    <p class="text-base md:text-lg text-gray-600 max-w-2xl">{% if portal.intro_text %}{{ portal.intro_text }}{% else %}{% blocktrans with city=portal.city %}Angebote von Läden, Cafés und Handwerkern aus {{ city }} — reservieren, abholen, direkt vor Ort.{% endblocktrans %}{% endif %}</p>
+{% comment %}PH-4/PH-11d1: заголовок главной — «Was gibt's heute in <город>?». «Deal des Tages» — в слайдере. PH-13b: на телефоне h1 и быстрые чипы стоят НАД слайдером (порядок в portal_discover.html). Без пользовательских данных: страница кэшируется.{% endcomment %}
+<section data-portal-hero aria-labelledby="hero-h" class="mb-3 md:mb-6">
+  <div class="flex flex-col gap-3 md:gap-4">
+    {% if open_count %}<p class="max-md:hidden inline-flex items-center gap-2 text-xs md:text-[13px] font-bold uppercase tracking-wider text-orange-700"><span aria-hidden="true" class="w-2 h-2 rounded-full bg-green-500"></span>{% now "l" %} · {% blocktrans count n=open_count %}{{ n }} Geschäft geöffnet{% plural %}{{ n }} Geschäfte geöffnet{% endblocktrans %}</p>{% endif %}
+    <h1 id="hero-h" class="text-2xl md:text-4xl font-extrabold leading-[1.05] tracking-tight">{% blocktrans with city=portal.city %}Was gibt's heute in {{ city }}?{% endblocktrans %}</h1>
+    <p class="max-md:hidden text-base md:text-lg text-gray-600 max-w-2xl">{% if portal.intro_text %}{{ portal.intro_text }}{% else %}{% blocktrans with city=portal.city %}Angebote von Läden, Cafés und Handwerkern aus {{ city }} — reservieren, abholen, direkt vor Ort.{% endblocktrans %}{% endif %}</p>
+    {% comment %}PH-13b (M5): быстрые чипы на телефоне — те же выборки, что «Alle anzeigen» у
+    quad-карточек (ни одного нового запроса, платное сюда не попадает: UWG §5a).{% endcomment %}
+    {% if quad_cards|length > 1 %}
+    <nav aria-label="{% trans 'Schnellfilter' %}" data-quick-chips class="md:hidden flex gap-2 overflow-x-auto -mx-4 px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      {% for c in quad_cards %}<a href="{{ c.more_url }}" rel="nofollow" class="shrink-0 inline-flex items-center gap-2 min-h-[2.5rem] px-3.5 rounded-full border border-gray-300 bg-white text-sm font-semibold text-gray-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900"><span aria-hidden="true" class="w-2 h-2 rounded-full {% if c.key == 'endet' %}bg-red-700{% elif c.key == 'offen' or c.key == 'beliebt' %}bg-green-700{% elif c.key == 'neu' %}bg-blue-700{% else %}bg-violet-700{% endif %}"></span>{{ c.title }}</a>{% endfor %}
+    </nav>
+    {% endif %}
   </div>
 </section>

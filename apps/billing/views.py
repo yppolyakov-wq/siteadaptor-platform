@@ -15,6 +15,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils.translation import gettext as _
+from django.utils.translation import pgettext_lazy
 from django.views.decorators.http import require_POST
 
 from . import connect, services
@@ -72,7 +73,8 @@ def portal(request):
 # передаём (дефолт Stripe Dashboard бизнеса). Способ должен быть активирован
 # в Stripe Dashboard — иначе Stripe вернёт ошибку (у флоу есть фолбэки).
 STRIPE_METHOD_CHOICES = [
-    ("card", _("Karte")),
+    # «Karte» — омоним: список блюд («Меню») и карта города. Здесь — банковская карта.
+    ("card", pgettext_lazy("payment method", "Karte")),
     ("paypal", _("PayPal")),
     ("klarna", _("Klarna (u. a. Kauf auf Rechnung)")),
     ("sepa_debit", _("SEPA-Lastschrift")),
