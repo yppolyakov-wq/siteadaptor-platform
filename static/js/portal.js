@@ -314,6 +314,14 @@
         else d.removeAttribute("aria-current");
       });
       if (counter) counter.textContent = i + 1 + " / " + n;
+      // Фокус внутри слайда, который сейчас станет inert, иначе упадёт на <body> (SC 2.4.3).
+      var active = document.activeElement;
+      if (active && active !== document.body) {
+        var holder = active.closest("[data-slide]");
+        if (holder && holder !== slides[i] && track.contains(holder)) {
+          (dots[i] || root.querySelector("[data-slider-next]")).focus();
+        }
+      }
       slides.forEach(function (s, k) {
         if (k === i) s.removeAttribute("inert");
         else s.setAttribute("inert", "");
@@ -346,6 +354,8 @@
     });
     root.addEventListener("keydown", function (e) {
       if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+      // Alt+← — «Назад» браузера, Ctrl/Shift — выделение: не перехватываем (SC 2.1.4).
+      if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
       if (e.target.closest("input, select, textarea")) return;
       e.preventDefault();
       go(current() + (e.key === "ArrowRight" ? 1 : -1));

@@ -28,7 +28,13 @@ def _quads(html):
 
 
 def _quad(html, key):
-    return html.split(f'data-quad="{key}"', 1)[1].split("</section>", 1)[0]
+    """Разметка карточки — от её data-quad до её ссылки «Alle anzeigen» включительно."""
+    tail = html.split(f'data-quad="{key}"', 1)[1]
+    return (
+        tail.split("Alle anzeigen", 1)[0]
+        + "Alle anzeigen"
+        + tail.split("Alle anzeigen", 1)[1].split("</a>", 1)[0]
+    )
 
 
 def _ends_today():
@@ -108,9 +114,10 @@ def test_popular_ids_query_is_cached():
     for item in items:
         _views(item, 5)
     now = timezone.now()
-    first = home._popular_ids(portal.pk, now)
+    base = AggregatorListing.objects.all()
+    first = home._popular_ids(base, portal.pk, now)
     PortalStat.objects.all().delete()
-    assert home._popular_ids(portal.pk, now) == first  # кэш 15 минут
+    assert home._popular_ids(base, portal.pk, now) == first  # кэш 15 минут
 
 
 def test_cards_do_not_repeat_items():
@@ -118,7 +125,7 @@ def test_cards_do_not_repeat_items():
     for i in range(3):
         _listing("promotion", f"Neu und endet {i}", ends_at=_ends_today())
     html = _html(portal)
-    shown = re.findall(r'data-quad="[a-z]+".*?</section>', html, flags=re.S)
+    shown = [_quad(html, k) for k in _quads(html)]
     titles = [t for s in shown for t in re.findall(r"Neu und endet \d", s)]
     assert len(titles) == len(set(titles))
 
@@ -144,3 +151,41 @@ def test_pool_only_queries_stay_bounded(django_assert_max_num_queries):
     AggregatorListing.objects.update(is_active=True)
     with django_assert_max_num_queries(60):
         _html(portal)
+
+
+def test_featured_from_blocks_never_in_cards():
+    """4-я оплаченная акция не входит в полосу «Anzeigen» (лимит 3) и попадает в блоки —
+    в карточку без пометки она попасть не должна."""
+    _second_card()
+    soon = timezone.now() + timedelta(days=1)
+    for i in range(4):
+        _listing("promotion", f"Bezahlt {i}", featured_until=soon, ends_at=_ends_today())
+    html = _html(_portal())
+    cards = "".join(_quad(html, k) for k in _quads(html))
+    assert "Bezahlt" not in cards
+
+
+def test_popular_ignores_other_cities_and_bot_traffic():
+    portal = _portal()
+    items = [_listing("promotion", f"Hit {i}") for i in range(4)]
+    for item in items:
+        _views(item, 5)
+    elsewhere = _listing("promotion", "Woanders")
+    AggregatorListing.objects.filter(pk=elsewhere.pk).update(city="Wuppertal")
+    _views(elsewhere, 50)
+    bot = _listing("promotion", "Nur Bot")
+    PortalStat.objects.create(
+        day=date.today(),
+        tenant_schema=bot.tenant_schema,
+        listing_kind=bot.listing_kind,
+        source_ref=bot.source_ref,
+        listing_id=bot.pk,
+        action="view",
+        channel="mcp",
+        count=50,
+    )
+    from apps.aggregator import portal_scope
+
+    ids = home._popular_ids(portal_scope.pool(portal), portal.pk, timezone.now())
+    assert elsewhere.pk not in ids and bot.pk not in ids
+    assert {i.pk for i in items} <= set(ids)

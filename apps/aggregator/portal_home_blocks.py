@@ -689,9 +689,11 @@ POPULAR_MIN_ITEMS = 4  # меньше — карточка «Jetzt geöffnet» �
 POPULAR_CACHE = 15 * 60
 
 
-def _popular_ids(portal_pk, now) -> list[int]:
+def _popular_ids(base_qs, portal_pk, now) -> list[int]:
     """pk листингов с ≥ POPULAR_MIN_VIEWS просмотрами за неделю — по убыванию. ОДИН запрос
-    по индексу дня (`agg_pstat_day_idx`), кэш 15 минут; fail-open (нет кэша — запрос)."""
+    по индексу дня (`agg_pstat_day_idx`), кэш 15 минут; fail-open (нет кэша — запрос).
+    У PortalStat нет поля портала: рейтинг сужен до бизнесов пула (иначе чужие порталы и
+    демо вытесняли бы свои позиции из топа), считаются только визиты людей с портала."""
     from django.core.cache import cache
     from django.db.models import Sum
 
@@ -706,7 +708,13 @@ def _popular_ids(portal_pk, now) -> list[int]:
         return cached
     since = timezone.localdate(now) - timedelta(days=POPULAR_DAYS - 1)
     ids = list(
-        PortalStat.objects.filter(day__gte=since, action="view", listing_id__isnull=False)
+        PortalStat.objects.filter(
+            day__gte=since,
+            action="view",
+            channel__in=("portal", "entdecken"),
+            listing_id__isnull=False,
+            tenant_schema__in=base_qs.order_by().values("tenant_schema"),
+        )
         .values("listing_id")
         .annotate(n=Sum("count"))
         .filter(n__gte=POPULAR_MIN_VIEWS)
@@ -733,7 +741,13 @@ def quad_cards(base_qs, blocks, open_set, *, portal_pk, path: str, now=None) -> 
     cards: list[dict] = []
 
     def add(key, title, items, url):
-        picked = [i for i in items if i.pk not in used][:QUAD_ITEMS]
+        # UWG §5a: блоки отсекают только показанные в «Anzeigen» featured (≤3, не все виды) —
+        # оплаченное без пометки сюда не попадает ни из одного источника.
+        picked = [
+            i
+            for i in items
+            if i.pk not in used and not (i.featured_until and i.featured_until > now)
+        ][:QUAD_ITEMS]
         if picked:
             used.update(i.pk for i in picked)
             cards.append({"key": key, "title": title, "items": picked, "more_url": url})
@@ -750,7 +764,7 @@ def quad_cards(base_qs, blocks, open_set, *, portal_pk, path: str, now=None) -> 
 
     # 2. Beliebt diese Woche — просмотры за 7 дней; иначе «Jetzt geöffnet» из блоков.
     popular = []
-    ids = _popular_ids(portal_pk, now)
+    ids = _popular_ids(base_qs, portal_pk, now)
     if ids:
         rows = {
             i.pk: i
