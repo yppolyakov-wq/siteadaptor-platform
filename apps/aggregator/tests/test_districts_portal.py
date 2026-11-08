@@ -145,9 +145,10 @@ def test_district_chips_only_for_districts_with_offers():
     p = _portal()
     _listing(district="wald", title={"de": "WaldDeal"})
     html = portal_views.portal_home(_get(p)).content.decode()
-    assert "data-district-chips" in html
-    assert "/stadtteil/wald/" in html
-    assert "/stadtteil/mitte/" not in html  # пустой район — мёртвый чип не показываем
+    # PH-11e: районы — колонкой подвала на всех страницах портала (с главной сняты)
+    foot = html.split("data-footer-districts", 1)[1].split("</ul>", 1)[0]
+    assert "/stadtteil/wald/" in foot
+    assert "/stadtteil/mitte/" not in foot  # пустой район — мёртвую ссылку не показываем
 
 
 @override_settings(ROOT_URLCONF="config.urls_portal", PORTAL_DISTRICT_MIN_BUSINESSES=0)

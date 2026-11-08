@@ -35848,3 +35848,7 @@ msgid "%(n)s× gemerkt diese Woche"
 msgid_plural "%(n)s× gemerkt diese Woche"
 msgstr[0] "bu hafta %(n)s kez kaydedildi"
 msgstr[1] "bu hafta %(n)s kez kaydedildi"
+
+#: PH-11
+msgid "Die lokale Plattform für Angebote, Termine und Geschäfte aus %(city)s. Sie kaufen und bezahlen direkt beim Geschäft."
+msgstr "%(city)s'deki teklifler, etkinlikler ve işletmeler için yerel platform. Satın alma ve ödemeyi doğrudan işletmede yaparsınız."

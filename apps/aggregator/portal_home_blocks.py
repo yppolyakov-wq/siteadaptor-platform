@@ -342,24 +342,6 @@ def cached_menu_sections(portal, base_qs, path: str) -> list[dict]:
         return []
 
 
-def section_tiles(present: dict, path: str) -> list[dict]:
-    from . import portal_icons
-
-    sections = present["sections"]
-    return [
-        {
-            "key": s.key,
-            "icon": s.icon,
-            "svg": portal_icons.icon_for(s.key),
-            "label": s.label,
-            "count": sections[s.key],
-            "url": scope_url(path, FeedScope(kind_key="alle", kat=s.key)),
-        }
-        for s in cc.SECTIONS
-        if sections.get(s.key)
-    ]
-
-
 def _order(key: str, now=None) -> list:
     if key == "urgent":  # срочное первым (О-4) — тот же порядок, что сорт «Endet bald»
         from .search import ORDERINGS
@@ -541,59 +523,9 @@ def deal_of_day(base_qs, *, exclude_pks=(), now=None):
     return deal
 
 
-def hero_chips(present: dict, stats: dict, open_count: int, path: str) -> list[dict]:
-    """Быстрые чипы первого экрана — только с непустым результатом (без журнала поиска)."""
-    chips = []
-    if open_count:
-        chips.append({"label": _("Jetzt geöffnet"), "url": f"{path}?kind=alle&offen=1"})
-    if stats.get("offers"):
-        chips.append({"label": _("Angebote"), "url": f"{path}?kind=angebote"})
-    categories = present.get("categories", {})
-    if categories:
-        top = max(categories, key=lambda k: categories[k])
-        cat = cc.category(top)
-        if cat:
-            chips.append(
-                {
-                    "label": str(cat.label),
-                    "url": scope_url(path, FeedScope(kind_key="alle", kat=top)),
-                }
-            )
-    if stats.get("cheap"):
-        chips.append({"label": _("Unter 10 €"), "url": f"{path}?kind=alle&preis_bis=10"})
-    return chips
-
-
 # --- PH-5: строка быстрых фильтров на главной (только ссылки — страница кэшируется) ----
 
 PRICE_STEPS = (10, 20, 50)
-
-
-def quick_filters(stats: dict, open_count: int, path: str) -> list[dict]:
-    """Тумблеры-ссылки на ленту; каждый — только при непустом результате."""
-    out = []
-    if open_count:
-        out.append(
-            {"key": "offen", "label": _("Jetzt geöffnet"), "url": f"{path}?kind=alle&offen=1"}
-        )
-    # «Angebote» — уже вкладкой вида рядом (дубль не показываем).
-    if stats.get("new_week"):
-        out.append({"key": "neu", "label": _("Neu"), "url": f"{path}?kind=alle&neu=1"})
-    if stats.get("offers"):
-        out.append({"key": "heute", "label": _("Heute"), "url": f"{path}?kind=alle&datum=heute"})
-    return out
-
-
-def price_links(path: str) -> list[dict]:
-    return [
-        {"label": _("bis %(n)s €") % {"n": n}, "url": f"{path}?kind=alle&preis_bis={n}"}
-        for n in PRICE_STEPS
-    ] + [
-        {
-            "label": _("ab %(n)s €") % {"n": PRICE_STEPS[-1]},
-            "url": f"{path}?kind=alle&preis_von={PRICE_STEPS[-1]}",
-        }
-    ]
 
 
 # --- PH-6: блоки «Jetzt geöffnet» и районы со счётчиками --------------------------------
@@ -625,34 +557,6 @@ def open_block(base_qs, open_set: set, *, path: str, exclude_pks=()) -> dict | N
         "items": items,
         "more_url": f"{path}?kind=alle&offen=1",
     }
-
-
-def district_tiles(base_qs, city: str, open_set: set) -> list[dict]:
-    """Районы с числом предложений и открытых сейчас — ОДИН запрос; порядок реестра,
-    пустой район не показываем."""
-    from apps.core import districts
-
-    known = districts.choices_for(city)
-    if not known:
-        return []
-    rows = (
-        base_qs.order_by()
-        .exclude(district="")
-        .values("district", "tenant_schema")
-        .annotate(n=Count("id"))
-        .values_list("district", "tenant_schema", "n")
-    )
-    counts: dict[str, int] = {}
-    opened: dict[str, int] = {}
-    for district, schema, n in rows:
-        counts[district] = counts.get(district, 0) + n
-        if schema in open_set:
-            opened[district] = opened.get(district, 0) + n
-    return [
-        {"slug": slug, "name": name, "count": counts[slug], "open": opened.get(slug, 0)}
-        for slug, name in known
-        if counts.get(slug)
-    ]
 
 
 NEW_BUSINESS_DAYS = 30

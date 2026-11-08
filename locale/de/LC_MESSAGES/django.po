@@ -35789,3 +35789,7 @@ msgid "%(n)s× gemerkt diese Woche"
 msgid_plural "%(n)s× gemerkt diese Woche"
 msgstr[0] "%(n)s× gemerkt diese Woche"
 msgstr[1] "%(n)s× gemerkt diese Woche"
+
+#: PH-11
+msgid "Die lokale Plattform für Angebote, Termine und Geschäfte aus %(city)s. Sie kaufen und bezahlen direkt beim Geschäft."
+msgstr "Die lokale Plattform für Angebote, Termine und Geschäfte aus %(city)s. Sie kaufen und bezahlen direkt beim Geschäft."

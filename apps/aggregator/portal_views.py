@@ -1027,15 +1027,6 @@ def _intent_hint_links(request, hints, pool, q, filters, geo_carry, scope) -> li
     return out
 
 
-def _other_portals(request, portal) -> list[tuple[str, str]]:
-    from .models import AggregatorPortal
-
-    return [
-        (f"{request.scheme}://{p.host}/", p.title_text)
-        for p in AggregatorPortal.objects.filter(is_active=True).exclude(pk=portal.pk)[:12]
-    ]
-
-
 def _fav_ids(request) -> set:
     from . import auth
     from .models import FavoriteListing
@@ -1128,13 +1119,11 @@ def _render_home(request, portal):
         + [item for b in rows for item in b["items"]]
         + tops
     )
-    tiles_d = home.district_tiles(base, portal.city, open_set) if present["total"] else []
     reviews.attach_ratings(cards)
     # PH-3: «Endet in …» и часы работы на карточках — из общего снимка (0 запросов).
     from .portal_cards import prepare_cards
 
     prepare_cards(cards, snapshot=snapshot)
-    _axis, facets = _facet_choices(portal)
     canonical = request.build_absolute_uri(request.path)
     return render(
         request,
@@ -1156,8 +1145,6 @@ def _render_home(request, portal):
             # PH-2: меню «Kategorien» — из уже посчитанного presence, без запросов.
             "portal_menu": home.menu_sections(present, request.path),
             "featured": featured,
-            "facets": facets,
-            "district_tiles": tiles_d,
             "newbiz": newbiz,
             "shows_demo": portal.show_demo and any(getattr(c, "is_demo", False) for c in cards),
             "business_link": True,

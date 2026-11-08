@@ -1,11 +1,10 @@
-"""PH-5 → PH-11d2: быстрые фильтры сняты с главной (замок отсутствия); функция — до уборки PH-11e."""
+"""PH-5 → PH-11d2/e: быстрые фильтры сняты с главной (замок отсутствия), код удалён в PH-11e."""
 
 from datetime import timedelta
 
 import pytest
 from django.utils import timezone
 
-from apps.aggregator import portal_home_blocks as home
 from apps.aggregator.tests.test_portal_discover import _html, _listing, _portal
 
 pytestmark = [pytest.mark.django_db, pytest.mark.urls("config.urls_portal")]
@@ -32,9 +31,3 @@ def test_home_has_no_quick_filters_or_hero_chips():
     assert "data-home-quick-filters" not in body and "data-hero-chip" not in body
     assert "data-hero-stats" not in body and "data-section-tiles" not in body
     assert "data-portal-header-search" in body and "csrfmiddlewaretoken" not in body
-
-
-def test_empty_toggles_are_not_shown():
-    assert home.quick_filters({"offers": 0, "new_week": 0}, 0, "/") == []
-    keys = [f["key"] for f in home.quick_filters({"offers": 2, "new_week": 0}, 1, "/")]
-    assert keys == ["offen", "heute"]

@@ -7,8 +7,9 @@
 {% block main_attrs %} data-wide{% endblock %}
 {% block content %}
 {% comment %}PH-11d (макет K1): баннер · заголовок · quad-карточки · «Anzeigen» · «Das Beste aus jedem
-Bereich» · «Neu in <город>» · «Geschäfte» · «Top-Aktionen». Ряды блоков, плитки разделов, быстрые фильтры
-и ссылки на чужие порталы сняты (PH-11d2): навигация — шапка и мега-меню. Ряды
+Bereich» · «Neu in <город>» · «Geschäfte» · «Top-Aktionen». Ряды блоков, плитки разделов и районов,
+быстрые фильтры, «Branche» и ссылки на чужие порталы сняты (PH-11d2/e): навигация — шапка,
+мега-меню и подвал (районы и отрасли — там). Ряды
 блоков остаются только страховкой малого портала (нет «Das Beste»).{% endcomment %}
 {% include "aggregator/_portal_slider.html" %}
 {% include "aggregator/_portal_hero.html" %}
@@ -38,34 +39,4 @@ Bereich» · «Neu in <город>» · «Geschäfte» · «Top-Aktionen». Ря
 {% include "aggregator/_home_new_businesses.html" %}
 {% include "aggregator/_home_busy.html" %}
 {% include "aggregator/_home_top_actions.html" %}
-
-{% comment %}Районы и «Branche» — единственные ссылки главной на страницы районов и отраслей:
-остаются до тёмного подвала PH-11e (колонки «Stadtteile»/«Entdecken»), иначе страницы осиротеют.{% endcomment %}
-{% if district_tiles %}
-{% comment %}PH-6: районы плитками — число предложений и «offen» сейчас (один запрос).{% endcomment %}
-<section data-district-chips aria-labelledby="home-districts" class="mt-12 mb-10 grid grid-cols-1 lg:grid-cols-12 gap-5 items-center">
-  <div class="lg:col-span-4">
-    <h2 id="home-districts" class="text-2xl md:text-[28px] font-extrabold tracking-tight">{% trans "Deine Stadtteile" %}</h2>
-    <p class="mt-1 text-[15px] text-gray-600">{% blocktrans with city=portal.city %}Sieh nach, was in {{ city }} direkt um die Ecke los ist.{% endblocktrans %}</p>
-  </div>
-  <div class="min-w-0 lg:col-span-8 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-    {% for t in district_tiles %}
-    <a href="{% url 'portal-district' district=t.slug %}" data-district-tile="{{ t.slug }}" class="min-w-0 bg-white rounded-2xl border-2 border-gray-200 px-4 py-4 flex flex-col gap-1 hover:border-gray-900">
-      <span class="font-extrabold text-base text-gray-900 [overflow-wrap:anywhere]">{{ t.name }}</span>
-      <span class="text-[13px] text-gray-600">{% blocktrans count n=t.count %}{{ n }} Angebot{% plural %}{{ n }} Angebote{% endblocktrans %}</span>
-      {% if t.open %}<span class="text-[13px] font-semibold text-emerald-700">{% blocktrans with n=t.open %}{{ n }} offen{% endblocktrans %}</span>{% endif %}
-    </a>
-    {% endfor %}
-  </div>
-</section>
-{% endif %}
-
-{% if facets %}
-<div class="flex flex-wrap items-center gap-2 mb-6">
-  <span class="text-sm font-medium text-gray-500 mr-1">{% trans "Branche" %}:</span>
-  {% for v, label in facets %}
-    <a href="{% url 'portal-facet' facet=v %}" class="px-3 py-1.5 rounded-full text-sm border bg-white border-gray-200 text-gray-600 hover:border-gray-400">{{ label }}</a>
-  {% endfor %}
-</div>
-{% endif %}
 {% endblock %}

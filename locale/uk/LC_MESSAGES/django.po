@@ -36018,3 +36018,7 @@ msgstr[0] "зберегли %(n)s раз за тиждень"
 msgstr[1] "зберегли %(n)s рази за тиждень"
 msgstr[2] "зберегли %(n)s разів за тиждень"
 msgstr[3] "зберегли %(n)s рази за тиждень"
+
+#: PH-11
+msgid "Die lokale Plattform für Angebote, Termine und Geschäfte aus %(city)s. Sie kaufen und bezahlen direkt beim Geschäft."
+msgstr "Місцева платформа пропозицій, подій і магазинів міста %(city)s. Купуєте й платите ви безпосередньо в магазині."

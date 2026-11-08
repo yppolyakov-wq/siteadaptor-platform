@@ -36,7 +36,7 @@ def test_urgent_block_is_titled_endet_bald_and_sorted_by_end():
     assert angebote["title"] == "Endet bald" and "sort=endet" in angebote["more_url"]
 
 
-def test_open_block_only_open_businesses_and_district_tiles():
+def test_open_block_only_open_businesses():
     TenantFactory(schema_name="offen1", slug="offen1", opening_hours_structured=ALWAYS)
     TenantFactory(schema_name="zu1", slug="zu1", opening_hours_structured={})
     a = _listing("product", "Offen-Ware", schema="offen1", district="mitte")
@@ -47,8 +47,6 @@ def test_open_block_only_open_businesses_and_district_tiles():
     assert open_set == {"offen1"}
     block = home.open_block(base, open_set, path="/")
     assert [i.pk for i in block["items"]] == [a.pk] and block["more_url"].endswith("offen=1")
-    tiles = home.district_tiles(base, "Solingen", open_set)
-    assert tiles == [{"slug": "mitte", "name": tiles[0]["name"], "count": 2, "open": 1}]
 
 
 def test_home_renders_new_blocks_and_marked_ad_strip(django_assert_max_num_queries):
@@ -65,7 +63,9 @@ def test_home_renders_new_blocks_and_marked_ad_strip(django_assert_max_num_queri
     body = _html(portal)
     # PH-11d1: «Jetzt geöffnet» — карточкой под заголовком (или рядом-страховкой малого портала)
     assert 'data-quad="offen"' in body or 'data-home-block="offen"' in body
-    assert "data-district-tile=" in body
+    assert (
+        "/stadtteil/mitte/" in body.split("data-portal-footer", 1)[1]
+    )  # PH-11e: районы — в подвале
     assert "ANZEIGE" in body and "Bezahlte Platzierung" in body
     cache.clear()
     # 2026-11-05 (PH-6): + «Jetzt geöffnet» (1) и районы (1) поверх кап 17 главной.

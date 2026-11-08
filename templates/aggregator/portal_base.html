@@ -81,18 +81,7 @@
   </nav>
   {% endwith %}
 
-  <footer class="border-t border-gray-100 bg-white pb-24 sm:pb-0">
-    <div class="w-full px-4 md:px-6 lg:px-10 py-6 text-xs text-gray-400 flex flex-wrap items-center justify-between gap-3">
-      <span>© {% now "Y" %} {{ portal.title_text }} · siteadaptor</span>
-      {# T-8.8: Impressum/Datenschutz платформы (DDG §5) — страницы живут на основном домене. #}
-      <span class="flex items-center gap-3">
-        <a href="{% url 'portal-for-business' %}" class="hover:text-gray-600">{% trans "Für Unternehmen" %}</a>
-        {% if platform_legal.impressum %}<a href="{{ platform_legal.impressum }}" class="hover:text-gray-600">{% trans "Impressum" %}</a>{% endif %}
-        {% if platform_legal.datenschutz %}<a href="{{ platform_legal.datenschutz }}" class="hover:text-gray-600">{% trans "Datenschutz" %}</a>{% endif %}
-      </span>
-      {% if ui_languages %}<span class="md:hidden">{% include "tenants/_lang_switch.html" %}</span>{% endif %}
-    </div>
-  </footer>
+  {% include "aggregator/_portal_footer.html" %}
 {% include "aggregator/_pstat_beacon.html" %}
 </body>
 </html>

@@ -129,19 +129,6 @@ def test_tab_without_data_is_hidden():
     assert 'data-portal-tab="event"' in _html(portal, kind="alle")
 
 
-def test_section_tiles_only_nonempty_with_counts():
-    portal = _portal()
-    _listing("promotion", "Pizza", city_category="restaurants")
-    _listing("product", "Brot", city_category="brot-backwaren")
-    _listing("product", "Brötchen", city_category="brot-backwaren")
-    present = home.presence(listings_for(city="Solingen"))
-    tiles = {t["key"]: t for t in home.section_tiles(present, "/")}
-    assert set(tiles) == {"essen-gastronomie", "lebensmittel-getraenke"}
-    assert tiles["lebensmittel-getraenke"]["count"] == 2
-    assert tiles["essen-gastronomie"]["url"] == "/?kind=alle&kat=essen-gastronomie"
-    assert 'data-section-tile="mode-accessoires"' not in _html(portal)
-
-
 # --- objects.public() / демо ---------------------------------------------------------
 
 
@@ -349,12 +336,14 @@ def test_query_count_does_not_grow_with_data(django_assert_max_num_queries):
     # (1, кэш 15 минут; пул по pk — только когда просмотры есть).
     # 2026-11-08 (PH-11d2, осознанно 18 → 21): «Das Beste» (1), «Geschäfte» (2), «Top-Aktionen»
     # (1) минус «чужие порталы» (1). План §2: холодный рендер ≈ +6, корень кэширован.
-    with django_assert_max_num_queries(21):
+    # 2026-11-08 (PH-11e, осознанно 21 → 22): подвал (виды/отрасли/районы — 3, кэш 5 минут на
+    # всех страницах) вместо плиток районов и «Branche» главной (2).
+    with django_assert_max_num_queries(22):
         portal_views.portal_home(_get(portal))
     for i in range(30):
         _listing("product", f"Viel {i}", city_category="brot-backwaren")
     cache.clear()
-    with django_assert_max_num_queries(21):
+    with django_assert_max_num_queries(22):
         portal_views.portal_home(_get(portal))
 
 
