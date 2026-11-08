@@ -432,6 +432,7 @@ def business_type_cards(request=None) -> list[dict]:
                 "demo_url": demo_url,
                 # FB-26: какие чипы «Was verkaufen Sie?» подходят нише (фильтр на странице).
                 "chips": signup_directions.niche_chips(value),
+                "terms": signup_directions.search_terms(value),  # FB-26b: поиск ниши
             }
         )
     return cards

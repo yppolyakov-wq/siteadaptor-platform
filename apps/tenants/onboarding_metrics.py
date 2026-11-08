@@ -113,3 +113,36 @@ def summarize(rows: list[dict]) -> dict:
         "share_within_day": (len(within_day) / len(aged)) if aged else None,
         "steps": steps,
     }
+
+
+def signup_funnel(since, until=None) -> dict:
+    """FB-26c: воронка регистрации за период по `SignupRequest`.
+
+    Шаги: заявка отправлена → почта подтверждена (бизнес создан) → мастер завершён.
+    Брошенные заявки хранятся обезличенными (FUNNEL_RETENTION), поэтому их тоже видно.
+    Демо и быстрый старт сюда не попадают — у них нет заявки."""
+    from apps.tenants.models import SignupRequest
+
+    qs = SignupRequest.objects.filter(created_at__gte=since)
+    if until is not None:
+        qs = qs.filter(created_at__lt=until)
+    sent = confirmed = completed = 0
+    by_direction: dict[str, int] = {}
+    for req in qs.select_related("tenant").iterator():
+        sent += 1
+        for chip in req.directions or []:
+            by_direction[chip] = by_direction.get(chip, 0) + 1
+        if req.confirmed_at is None:
+            continue
+        confirmed += 1
+        tenant = req.tenant
+        if tenant is not None and onboarding.get_state(tenant).get("completed"):
+            completed += 1
+    return {
+        "sent": sent,
+        "confirmed": confirmed,
+        "completed": completed,
+        "confirm_rate": (confirmed / sent) if sent else None,
+        "complete_rate": (completed / sent) if sent else None,
+        "directions": by_direction,
+    }

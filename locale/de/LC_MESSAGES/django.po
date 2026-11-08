@@ -35587,3 +35587,15 @@ msgstr "z. B. Café, Restaurant, Imbiss"
 #: FB-24f
 msgid "Übersetzungen tragen Sie dort an der Variante ein."
 msgstr "Übersetzungen tragen Sie dort an der Variante ein."
+
+#: FB-26b
+msgid "Branche suchen"
+msgstr "Branche suchen"
+
+#: FB-26b
+msgid "Branche suchen, z. B. Friseur, Bioladen, Werkstatt"
+msgstr "Branche suchen, z. B. Friseur, Bioladen, Werkstatt"
+
+#: FB-26b
+msgid "Keine passende Branche — wählen Sie „Sonstiges“ oder überspringen Sie den Schritt."
+msgstr "Keine passende Branche — wählen Sie „Sonstiges“ oder überspringen Sie den Schritt."

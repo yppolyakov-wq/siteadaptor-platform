@@ -35810,3 +35810,15 @@ msgstr "напр. кафе, ресторан, закусочна"
 #: FB-24f
 msgid "Übersetzungen tragen Sie dort an der Variante ein."
 msgstr "Переклади вводяться там же, у варіанта."
+
+#: FB-26b
+msgid "Branche suchen"
+msgstr "Знайти галузь"
+
+#: FB-26b
+msgid "Branche suchen, z. B. Friseur, Bioladen, Werkstatt"
+msgstr "Знайти галузь, напр. перукарня, еко-магазин, автосервіс"
+
+#: FB-26b
+msgid "Keine passende Branche — wählen Sie „Sonstiges“ oder überspringen Sie den Schritt."
+msgstr "Відповідної галузі немає — оберіть «Інше» або пропустіть крок."
