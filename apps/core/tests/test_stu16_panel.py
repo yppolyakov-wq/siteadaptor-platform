@@ -170,7 +170,20 @@ def test_menu_builder_and_studio_share_one_target_source():
 
     tenant = TenantFactory(schema_name="public", slug="stu16s", name="S", disabled_modules=[])
     sets = menu_mod.target_sets(tenant)
-    assert set(sets) == {"archetypes", "categories", "category_parents", "pages", "promo_groups"}
+    # FB-23a (осознанно): + цели «конкретная запись» (товар/услуга/номер/событие/тур/акция)
+    assert set(sets) == {
+        "archetypes",
+        "categories",
+        "category_parents",
+        "pages",
+        "promo_groups",
+        "products",
+        "services",
+        "stays",
+        "events",
+        "tours",
+        "promotions",
+    }
     from apps.core import views as core_views
 
     req = RequestFactory().get("/dashboard/site/menu/")

@@ -19,7 +19,7 @@ from django.contrib.sessions.middleware import SessionMiddleware
 from django.test import RequestFactory
 
 from apps.catalog.models import Category, Product
-from apps.core import page_templates, setup_assistant
+from apps.core import setup_assistant
 from apps.tenants.tests.factories import TenantFactory
 
 pytestmark = pytest.mark.django_db
@@ -215,9 +215,12 @@ def _req(tenant, path, data=None):
 
 
 def test_tab_shows_plan_card(tenant, monkeypatch):
+    # FB-16: the helper lives on its own screen (the Sortiment tab is gone)
+    from apps.core import lite_cabinet
+
     monkeypatch.setattr(setup_assistant, "allowed_entities", lambda t, u: ALL)
-    body = page_templates.page_templates_sortiment(
-        _req(tenant, "/dashboard/seitenvorlagen/sortiment/", {"frage": TEXT})
+    body = lite_cabinet.setup_ask(
+        _req(tenant, "/dashboard/anlegen/", {"frage": TEXT})
     ).content.decode()
     assert "Käsekuchen" in body and "catalog/products/new/" in body
     assert 'name="frage"' in body

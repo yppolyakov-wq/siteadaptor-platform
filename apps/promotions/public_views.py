@@ -1374,6 +1374,9 @@ def _facet_pills(facets: dict, chips: dict, badge_chips) -> list:
     for key in ("groesse", "farbe"):
         for value in facets.get(key) or []:
             pills.append({"label": value, "qs": drop(key, value)})
+    for key in sorted(k for k in facets if k.startswith("opt_")):  # FB-24d
+        for value in facets.get(key) or []:
+            pills.append({"label": value, "qs": drop(key, value)})
     for key in ("diet", "badge", "herkunft", "kollektion", "q"):
         value = facets.get(key)
         if value:
@@ -1409,6 +1412,7 @@ _NARROWING_FACETS = (
     "marke",
     "kollektion",
     "bewertung",
+    "optionen",  # FB-24d
 )
 
 
@@ -1517,6 +1521,7 @@ def product_list(request, slug=None):
     herkunft, bewertung = sel["herkunft"], sel["bewertung"]
     groesse = sel.get("groesse") or []  # M2 Boutique: размеры (мультивыбор)
     farbe = sel.get("farbe") or []  # 2026-09-03: цвета (мультивыбор)
+    optionen = sel.get("optionen") or {}  # FB-24d: свои опции {код: [значения]}
     only_sale = sel.get("sale", False)  # 2026-09-03: только со скидкой
     only_heute = sel.get("heute", False)  # KA-12 GA-9: Tageskarte сегодня
     kollektion = sel.get("kollektion", "")  # M4-B Lookbook: подборка товаров
@@ -1833,6 +1838,7 @@ def product_list(request, slug=None):
         or herkunft
         or groesse
         or farbe
+        or optionen
         or only_sale
         or only_heute
         or kollektion
@@ -1884,6 +1890,8 @@ def product_list(request, slug=None):
         "herkunft": herkunft,  # UB2-3: Bio/Regional-происхождение
         "groesse": groesse,  # M2: размеры (список — мультивыбор)
         "farbe": farbe,  # 2026-09-03: цвета (список)
+        # FB-24d: свои опции — по ключу на тип (opt_<код>), мультивыбор
+        **{f"opt_{code}": values for code, values in optionen.items()},
         "sale": "1" if only_sale else "",  # 2026-09-03: только со скидкой
         "heute": "1" if only_heute else "",  # KA-12 GA-9
         "kollektion": kollektion,  # M4-B: подборка (лукбук)
@@ -2066,6 +2074,18 @@ def product_list(request, slug=None):
             # 2026-09-03: цвет — свотчи мультивыбора.
             "color_chips": chips["color_chips"],
             "active_farbe": farbe,
+            # FB-24d: ряды своих опций; выбранное — отметкой на значении (словарь по
+            # коду в шаблоне не читается).
+            "option_chips": [
+                {
+                    **row,
+                    "values": [
+                        {**v, "on": v["value"] in optionen.get(row["code"], [])}
+                        for v in row["values"]
+                    ],
+                }
+                for row in chips.get("option_chips", [])
+            ],
             # UB2-3: происхождение (Bio/Regional) — чипы реально указанных значений.
             "origin_chips": chips["origin_chips"],
             "active_herkunft": herkunft,

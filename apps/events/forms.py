@@ -10,7 +10,7 @@ from django import forms
 from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
 
-from apps.core import vat
+from apps.core import labels, vat
 from apps.core.form_fields import MoneyField
 from apps.core.i18n_input import OverlayI18nFormMixin
 
@@ -94,10 +94,19 @@ class EventForm(OverlayI18nFormMixin, forms.ModelForm):
         label=_("Anmelde-Felder (Vorlagen — zusätzlich zu freien Fragen)"),
     )
 
+    # FB-20: метка на карточке — общий реестр меток (как у товара).
+    badge = forms.ChoiceField(
+        required=False,
+        choices=labels.CHOICES,
+        label=_("Badge"),
+        help_text=_("Kleiner Aufkleber auf der Karte (z. B. „Neu“, „Beliebt“)."),
+    )
+
     class Meta:
         model = Event
         fields = (
             "title",
+            "badge",
             # MT-1: событие как заезд тур-продукта (пусто = самостоятельное событие).
             "tour",
             "description",

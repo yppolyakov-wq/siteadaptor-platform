@@ -210,3 +210,20 @@ def test_no_prefill_once_offer_exists(monkeypatch):
 
 def test_v4_constant_is_shared():
     assert V4["onboarding"]["flow"] == "v4"
+
+
+def test_fb15_quelle_step_shows_ai_notice_once(settings, isolated_ratelimit):
+    """FB-15: все три ИИ-функции шага включены и уходят в США — пометка ОДНА, не три."""
+    settings.AI_ENABLED = True
+    settings.AI_REQUIRE_EU = False
+    settings.AI_ROUTE_STRONG = ["anthropic"]
+    settings.AI_ROUTE_FAST = ["anthropic"]
+    settings.AI_TASKS_ENABLED = [
+        *settings.AI_TASKS_ENABLED,
+        "offer_photo_lines",
+        "site_import_extract",
+        "setup_plan",
+    ]
+    _tenant, owner = _quelle_owner()
+    html = owner().content.decode()
+    assert html.count("data-ai-notice") == 1

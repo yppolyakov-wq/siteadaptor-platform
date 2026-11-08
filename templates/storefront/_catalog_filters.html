@@ -8,7 +8,7 @@ test_storefront, test_listing_parity.
 свотчи цвета из реестра option_styles.COLOR_HEX.
 
 O-2 (Outlet): состояние и марка — те же правила показа, что у остальных осей.{% endcomment %}
-{% if catalog_show_filters and show_price_filter or catalog_show_filters and badge_chips or catalog_show_filters and show_stock_filter or catalog_show_filters and origin_chips or catalog_show_filters and show_rating_filter or catalog_show_filters and size_chips or catalog_show_filters and diet_chips or catalog_show_filters and color_chips or catalog_show_filters and condition_chips or catalog_show_filters and brand_chips or catalog_show_filters and sale_count or catalog_show_filters and heute_count %}
+{% if catalog_show_filters and show_price_filter or catalog_show_filters and badge_chips or catalog_show_filters and show_stock_filter or catalog_show_filters and origin_chips or catalog_show_filters and show_rating_filter or catalog_show_filters and size_chips or catalog_show_filters and option_chips or catalog_show_filters and diet_chips or catalog_show_filters and color_chips or catalog_show_filters and condition_chips or catalog_show_filters and brand_chips or catalog_show_filters and sale_count or catalog_show_filters and heute_count %}
 {% comment %}DS-10: панель отдаётся УЖЕ скрытой — CSS DS-6 делает видимую панель
 fixed-ящиком, и до инициализации JS она вспыхивала поверх контента. Без JS её
 показывает правило в <noscript> ниже (прогрессивное улучшение сохранено).{% endcomment %}
@@ -88,6 +88,20 @@ fixed-ящиком, и до инициализации JS она вспыхив�
     </div>
   </fieldset>
   {% endif %}
+  {% comment %}FB-24d: свои опции магазина (Material, Geschmack …) — чипы-чекбоксы по типу.{% endcomment %}
+  {% for ax in option_chips %}
+  <fieldset class="min-w-0" data-option-facet="{{ ax.code }}">
+    <legend class="block text-xs text-gray-500 mb-1">{{ ax.label }}</legend>
+    <div class="flex flex-wrap gap-1.5">
+      {% for v in ax.values %}
+      <label class="cursor-pointer">
+        <input type="checkbox" name="opt_{{ ax.code }}" value="{{ v.value }}" {% if v.on %}checked{% endif %} class="sr-only peer">
+        <span class="inline-flex items-center gap-1 rounded-lg border border-gray-300 px-2.5 py-1 text-sm text-gray-700 peer-checked:border-gray-900 peer-checked:bg-gray-900 peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-offset-1">{{ v.value }}<span class="text-[11px] opacity-60">{{ v.count }}</span></span>
+      </label>
+      {% endfor %}
+    </div>
+  </fieldset>
+  {% endfor %}
   {% if color_chips %}
   {% comment %}2026-09-03: цвет — свотчи. Кружок рисуется ТОЛЬКО по явному реестру
   COLOR_HEX; неизвестный оттенок показывает подпись (угадывать цвет по строке

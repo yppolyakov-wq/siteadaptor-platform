@@ -28,7 +28,7 @@ pytestmark = pytest.mark.django_db
 
 # Поля, которые collect() черновика читает ОТДЕЛЬНОЙ веткой (чекбокс шлётся по
 # checked, а не по value — общий перебор CB_DATA_FIELDS его бы не увидел).
-DRAFT_SPECIAL = {"show_button"}
+DRAFT_SPECIAL = {"show_button", "click_all"}  # FB-22b: «весь баннер ссылкой»
 
 
 def _editor_fields(tenant) -> dict[str, set[str]]:

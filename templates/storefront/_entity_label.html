@@ -1,0 +1,2 @@
+{% comment %}FB-20: метка сущности («Neu», «Beliebt») — тот же вид, что у товара. `label` —
+переводимая подпись (`obj.badge_label`), `cls` — позиция в карточке.{% endcomment %}{% if label %}<span class="{{ cls|default:'inline-block' }} bg-amber-400 text-amber-950 text-xs font-bold px-2.5 py-1 rounded-full shadow" data-entity-label>{{ label }}</span>{% endif %}

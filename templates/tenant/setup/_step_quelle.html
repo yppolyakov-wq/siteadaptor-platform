@@ -15,7 +15,6 @@
       <span class="flex flex-col gap-1">
         <span class="font-semibold">{{ o.label }}</span>
         <span class="text-sm text-gray-600">{{ o.hint }}</span>
-        {% if o.ai %}{% ai_notice "offer_photo_lines" %}{% endif %}
       </span>
     </label>
     {% if o.url %}
@@ -24,7 +23,6 @@
       <input id="id_site_url" type="url" name="site_url" value="{{ quelle_url }}" inputmode="url" autocomplete="url" placeholder="https://" class="ui-input block w-full">
       <label class="flex items-start gap-2 text-sm min-h-[44px]"><input type="checkbox" name="consent" value="1" class="h-5 w-5 mt-0.5 shrink-0"> <span>{% trans "Ich bin Inhaber dieser Website bzw. berechtigt, ihre Inhalte zu verwenden. Texte und Fotos dürfen übernommen werden." %}</span></label>
       <p class="text-xs text-gray-600">{% trans "Nur nötig, wenn Sie «Eigene Website» wählen. Der Import läuft im Hintergrund — Sie machen weiter." %}</p>
-      {% ai_notice "site_import_extract" %}
     </div>
     {% endif %}
     {% endfor %}
@@ -33,7 +31,8 @@
     <label for="id_sentence" class="block text-sm font-semibold">{% trans "Beschreiben Sie Ihr Geschäft in einem Satz" %}</label>
     <p id="sentence-hint" class="text-sm text-gray-600">{% trans "Optional. Wir machen daraus Zeilen für Ihr Angebot — Preise nur, wenn Sie sie schreiben." %}</p>
     <textarea id="id_sentence" name="sentence" rows="2" maxlength="{{ quelle_sentence_max }}" aria-describedby="sentence-hint" placeholder="{% trans "Zum Beispiel: Bäckerei: Brötchen 0,50 €, Brezel 0,80 €" %}" class="ui-input block w-full p-3 text-base">{{ quelle_sentence }}</textarea>
-    {% ai_notice "setup_plan" %}
   </div>
+  {% comment %}FB-15: одна пометка о ИИ на шаг (раньше — у фото, у импорта и у фразы).{% endcomment %}
+  <div class="mt-3">{% ai_notice "offer_photo_lines" "site_import_extract" "setup_plan" %}</div>
   {% include "tenant/_setup_buttons.html" %}
 </form>

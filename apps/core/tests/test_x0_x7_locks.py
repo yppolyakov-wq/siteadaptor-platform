@@ -65,6 +65,9 @@ EXPECTED_UNLISTED = frozenset(
         "lite-share",
         "lite-visibility",  # T-8.31c: «Sichtbar» — из LITE_NAV
         "lite-requests",  # KA-12 E8.9: «Anfragen» — из LITE_NAV
+        # [302] FB-16: шаблоны страниц — только в Website › Seitenvorlagen
+        "page-templates-sortiment",
+        "page-templates-aktionen",
         # [POST] приёмники и action-роуты
         "billing-checkout",
         "integrations-telegram-activate",  # T-8.29: POST с карточки «Integrationen»

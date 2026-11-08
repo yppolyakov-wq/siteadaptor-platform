@@ -60,7 +60,7 @@ def _cabinet_form(tenant, view, typ, code):
 
 def test_cabinet_has_the_root_template_tiles_without_preisliste():
     tenant = TenantFactory(schema_name="public", slug="dl21s", name="DL21S")
-    form = _cabinet_form(tenant, "page_templates_sortiment", "catalog", "catalog_page_style")
+    form = _cabinet_form(tenant, "page_templates_website", "catalog", "catalog_page_style")
     for code, _l, _h in category_styles.root_styles():
         assert f'name="value" value="{code}"' in form, code
     assert 'value="preisliste"' not in form  # прайс-вид — ось сетки, не шаблон
@@ -99,7 +99,7 @@ def test_overview_template_tiles_save_in_the_cabinet():
     tenant = TenantFactory(
         schema_name="public", slug="dl21p", name="DL21P", enabled_modules=["catalog", "promotions"]
     )
-    form = _cabinet_form(tenant, "page_templates_aktionen", "promos", "promo_page_style")
+    form = _cabinet_form(tenant, "page_templates_website", "promos", "promo_page_style")
     for code, _l, _h in group_styles.PROMO_PAGE_STYLES:
         assert f'name="value" value="{code}"' in form, code
     page_settings.write(tenant, "promo_page_style", "magazin")

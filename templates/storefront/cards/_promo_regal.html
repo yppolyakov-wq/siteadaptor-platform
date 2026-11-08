@@ -19,6 +19,7 @@
         {% if p.discount_style != 'mystery' and p.has_discount and p.discount_amount %}<span class="font-medium text-emerald-700 dark:text-emerald-400" data-savings>{% blocktrans with amount=p.discount_amount %}You save {{ amount }} €{% endblocktrans %}</span>{% endif %}
       </p>
       {% if p.group and not in_group %}<p class="mt-1 text-[10px] font-semibold uppercase tracking-wide text-gray-400" data-promo-group>{{ p.group_localized }}</p>{% endif %}
+      {% include "storefront/_entity_label.html" with label=p.badge_label cls="inline-block mb-1" %}
       <h3 class="mt-0.5 font-semibold leading-tight line-clamp-2" data-edit-model="promotion" data-edit-field="title" data-edit-pk="{{ p.pk }}">{{ p.title_text }}</h3>
       {% if preview %}{% include "storefront/_discount_display.html" with promo=p part="starts" %}
       {% else %}{% include "storefront/_discount_display.html" with promo=p part="countdown" size="sm" %}{% endif %}

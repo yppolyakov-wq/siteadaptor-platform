@@ -84,7 +84,27 @@
           <label>Website <input type="text" name="website" tabindex="-1" autocomplete="off"></label>
         </div>
 
-        {# 1. Тип бизнеса. #}
+        {% comment %}FB-26: 1. «Was verkaufen Sie?» — обязательно (решение владельца
+        2026-11-08: без направлений не понять, отель это или магазин); 2. ниша — по желанию.{% endcomment %}
+        <fieldset{% if form.directions.errors %} aria-describedby="{{ form.directions.auto_id }}_errors"{% endif %}>
+          <legend class="block text-sm font-medium text-gray-800 mb-1">{{ form.directions.label }}</legend>
+          <p class="text-xs text-gray-500 mb-2">{% trans "Mehrere möglich. Sie können es später jederzeit ändern." %}</p>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2" data-dir-chips>
+            {% for key, icon, label, hint, examples in direction_chips %}
+              <label class="flex items-start gap-3 bg-white border border-gray-200 rounded-xl px-4 py-3 cursor-pointer hover:border-indigo-300 has-[:checked]:border-indigo-500 has-[:checked]:bg-indigo-50">
+                <input type="checkbox" name="directions" value="{{ key }}"{% if key in form.directions.value %} checked{% endif %} class="mt-1 rounded text-indigo-600 border-gray-300 focus:ring-indigo-500">
+                <span class="min-w-0">
+                  <span class="flex items-center gap-2 text-sm font-medium text-gray-900"><span class="text-xl leading-none" aria-hidden="true">{{ icon }}</span>{{ label }}</span>
+                  <span class="block text-xs text-gray-500 mt-0.5">{{ hint }}</span>
+                  <span class="block text-xs text-gray-500 italic mt-0.5">{{ examples }}</span>
+                </span>
+              </label>
+            {% endfor %}
+          </div>
+          {% if form.directions.errors %}<div id="{{ form.directions.auto_id }}_errors" role="alert">{% for err in form.directions.errors %}<p class="text-xs text-red-600 mt-1">{{ err }}</p>{% endfor %}</div>{% endif %}
+        </fieldset>
+
+        {# 2. Ниша (необязательно). #}
         {% if preselected_type %}
           {% comment %}Пришли с Branchen-страницы (?type=) — отрасль уже выбрана. Показываем
              компактный баннер (а не весь пикер) + скрытое поле, чтобы страница читалась
@@ -106,10 +126,12 @@
         {% else %}
           {# Визуальные карточки (иконка + язык задач + живое демо). #}
           <div>
-            <p id="bt-label" class="block text-sm font-medium text-gray-800 mb-2">{{ form.business_type.label }}</p>
-            <div class="grid sm:grid-cols-2 gap-3" role="radiogroup" aria-labelledby="bt-label"{% if form.business_type.errors %} aria-describedby="{{ form.business_type.auto_id }}_errors"{% endif %}>
+            <p id="bt-label" class="block text-sm font-medium text-gray-800 mb-1">{{ form.business_type.label }}</p>
+            <p class="text-xs text-gray-500 mb-2">{% trans "Damit Texte, Beispiele und Aussehen passen. Keine passende Branche? Einfach überspringen." %}
+              <button type="button" class="hidden text-indigo-600 hover:text-indigo-800 font-medium underline" data-niche-all>{% trans "Alle Branchen zeigen" %}</button></p>
+            <div class="grid sm:grid-cols-2 gap-3" role="radiogroup" data-niche-cards aria-labelledby="bt-label"{% if form.business_type.errors %} aria-describedby="{{ form.business_type.auto_id }}_errors"{% endif %}>
               {% for bt in business_types %}
-                <label class="bt-card flex items-start gap-3 bg-white border border-gray-200 rounded-xl px-4 py-3 cursor-pointer hover:border-indigo-300">
+                <label data-chips="{{ bt.chips }}" class="bt-card flex items-start gap-3 bg-white border border-gray-200 rounded-xl px-4 py-3 cursor-pointer hover:border-indigo-300">
                   <input type="radio" name="business_type" value="{{ bt.value }}"
                          {% if form.business_type.value == bt.value %}checked{% endif %} class="mt-1 text-indigo-600 border-gray-300 focus:ring-indigo-500">
                   <span class="min-w-0">
@@ -197,6 +219,33 @@
 
         <p class="text-center text-xs text-gray-400">{% blocktrans %}Mit der Erstellung stimmst du unseren <a href="/agb/" class="underline hover:text-gray-600">Bedingungen</a> zu. Du kannst während der Testphase jederzeit kündigen.{% endblocktrans %}</p>
       </form>
+      <script>
+      (function () {
+        // FB-26: ниши, подходящие отмеченным направлениям, — сверху; остальные прячем
+        // до «Alle Branchen zeigen». Без JS видны все карточки.
+        var chips = document.querySelector("[data-dir-chips]");
+        var cards = document.querySelector("[data-niche-cards]");
+        var all = document.querySelector("[data-niche-all]");
+        if (!chips || !cards) return;
+        var showAll = false;
+        function sync() {
+          var on = Array.prototype.map.call(chips.querySelectorAll("input:checked"), function (i) { return i.value; });
+          var hidden = 0;
+          cards.querySelectorAll("[data-chips]").forEach(function (c) {
+            var mine = (c.getAttribute("data-chips") || "").split(" ").filter(Boolean);
+            var radio = c.querySelector("input");
+            var fit = !on.length || showAll || (radio && radio.checked) || radio.value === "other" ||
+              mine.some(function (k) { return on.indexOf(k) !== -1; });
+            c.classList.toggle("hidden", !fit);
+            if (!fit) hidden++;
+          });
+          if (all) all.classList.toggle("hidden", !hidden);
+        }
+        chips.addEventListener("change", sync);
+        if (all) all.addEventListener("click", function () { showAll = true; sync(); });
+        sync();
+      })();
+      </script>
     </div>
   </main>
 </div>

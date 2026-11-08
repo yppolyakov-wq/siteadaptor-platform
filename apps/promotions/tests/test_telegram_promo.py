@@ -406,3 +406,35 @@ def test_time_from_message_does_not_stick_to_changed_date(tg):
     )
     form.is_valid()
     assert str(form.cleaned_data.get("until_time")) == "18:00:00"
+
+
+def test_fb18_web_save_does_not_silently_drop_telegram_photos(tg, monkeypatch):
+    """FB-18: Telegram не отдал фото черновика → акция НЕ уходит без картинки молча:
+    ошибка у поля фото, ничего не создано, черновик свободен для повторной попытки."""
+    from django.contrib.auth import get_user_model
+    from django.contrib.messages.middleware import MessageMiddleware
+    from django.contrib.sessions.middleware import SessionMiddleware
+    from django.test import RequestFactory
+
+    from apps.promotions import views
+
+    monkeypatch.setattr(tp, "connection", type("C", (), {"schema_name": "public"})())
+    monkeypatch.setattr(views, "connection", type("C", (), {"schema_name": "public"})())
+    token, _p = _draft(tg)
+    draft = tp.load_draft("public", str(OWNER), token)
+    draft["photo_ids"] = ["file-1"]
+    tp.cache.set(tp._draft_key("public", str(OWNER), token), draft, tp.DRAFT_TTL)
+    monkeypatch.setattr(tp, "photos_from_telegram", lambda token, ids: ([], True))
+    user = get_user_model().objects.create_user(username=f"o{uuid.uuid4().hex[:6]}", password="x")
+    data = {k: v for k, v in draft.items() if k not in ("photo_ids", "warnings", "bot") and v}
+    data["entwurf"] = token
+    r = RequestFactory().post("/promotions/schnell/", data)
+    SessionMiddleware(lambda x: None).process_request(r)
+    MessageMiddleware(lambda x: None).process_request(r)
+    r.user, r.tenant = user, tg["tenant"]
+    view = getattr(views.promotion_quick, "__wrapped__", views.promotion_quick)
+    resp = view(r)
+    assert resp.status_code == 200
+    assert "Fotos aus Telegram konnten nicht geladen werden" in resp.content.decode()
+    assert Promotion.objects.count() == 0
+    assert tp.claim("public", token)  # черновик освобождён — можно сохранить снова

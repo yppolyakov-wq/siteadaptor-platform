@@ -35333,3 +35333,476 @@ msgstr "Прочитати PDF"
 
 msgid "%(n)s Zeilen aus der Datei passen nicht mehr in die Liste — bitte danach eintragen."
 msgstr "%(n)s рядків із файлу більше не вміщаються в список — внесіть їх потім."
+
+msgid "Die Fotos aus Telegram konnten nicht geladen werden. Bitte laden Sie das Foto hier hoch."
+msgstr "Не вдалося завантажити фото з Telegram. Завантажте фото тут."
+
+msgid "Nicht alle Fotos aus Telegram konnten übernommen werden."
+msgstr "Не всі фото з Telegram вдалося перенести."
+
+msgid "(ohne Namen)"
+msgstr "(без назви)"
+
+msgid "Als Unterpunkt einrücken"
+msgstr "Зробити підпунктом"
+
+msgid "Ansicht des Untermenüs"
+msgstr "Вигляд підменю"
+
+msgid "Auch Menüs & Pakete zeigen"
+msgstr "Показувати також меню й набори"
+
+msgid "Bereiche links, Unterpunkte rechts"
+msgstr "Розділи ліворуч, підпункти праворуч"
+
+msgid "Bild"
+msgstr "Зображення"
+
+msgid "Bild-Adresse"
+msgstr "Адреса зображення"
+
+msgid "Bilder mit Text"
+msgstr "Зображення з текстом"
+
+msgid "Bitte ein Ziel wählen — sonst erscheint der Punkt nicht."
+msgstr "Оберіть ціль — інакше пункт не з’явиться."
+
+msgid "Das Menü konnte nicht gespeichert werden."
+msgstr "Не вдалося зберегти меню."
+
+msgid "Eigene untere Leiste verwenden (sonst automatisch)"
+msgstr "Власна нижня панель (інакше автоматична)"
+
+msgid "Ein-/ausblenden"
+msgstr "Показати/приховати"
+
+msgid "Eine Ebene höher"
+msgstr "На рівень вище"
+
+msgid "Einfache Liste"
+msgstr "Простий список"
+
+msgid "Fußzeile"
+msgstr "Підвал"
+
+msgid "Kacheln, wenn Unterpunkte Bilder haben, sonst Liste"
+msgstr "Плитки, якщо в підпунктів є фото, інакше список"
+
+msgid "Kein Bild"
+msgstr "Без фото"
+
+msgid "Kopfzeile"
+msgstr "Шапка"
+
+msgid "Kopfzeile bleibt oben"
+msgstr "Шапка закріплена зверху"
+
+msgid "Kurzer Text"
+msgstr "Короткий текст"
+
+msgid "Mega"
+msgstr "Мега"
+
+msgid "Menü aus Kategorien"
+msgstr "Меню з категорій"
+
+msgid "Menü-Bereiche"
+msgstr "Розділи меню"
+
+msgid "Nach oben"
+msgstr "Вище"
+
+msgid "Nach unten"
+msgstr "Нижче"
+
+msgid "Punkt"
+msgstr "Пункт"
+
+msgid "Runde Bilder unter der Kopfzeile"
+msgstr "Круглі фото під шапкою"
+
+msgid "Spalte"
+msgstr "Колонка"
+
+msgid "Spalte löschen"
+msgstr "Видалити колонку"
+
+msgid "Spalten mit Links und Banner"
+msgstr "Колонки посилань і банер"
+
+msgid "Spalten mit Links unter der Website. Ohne Spalten bleibt die Fußzeile wie bisher (Adresse, Öffnungszeiten, Rechtliches)."
+msgstr "Колонки посилань унизу сайту. Без колонок підвал лишається як раніше (адреса, години роботи, правова інформація)."
+
+msgid "Spaltentitel"
+msgstr "Заголовок колонки"
+
+msgid "Suchen …"
+msgstr "Пошук …"
+
+msgid "Symbolleiste"
+msgstr "Смуга значків"
+
+msgid "Tour"
+msgstr "Тур"
+
+msgid "Ungespeicherte Änderungen"
+msgstr "Незбережені зміни"
+
+msgid "Ungespeicherte Änderungen gehen verloren."
+msgstr "Незбережені зміни буде втрачено."
+
+msgid "Untere Leiste (Handy)"
+msgstr "Нижня панель (телефон)"
+
+msgid "Unterkategorien automatisch anzeigen"
+msgstr "Показувати підкатегорії автоматично"
+
+msgid "Unterpunkt hinzufügen"
+msgstr "Додати підпункт"
+
+msgid "Vorschau (gespeicherter Stand)"
+msgstr "Попередній перегляд (збережена версія)"
+
+msgid "Vorschau der Website"
+msgstr "Попередній перегляд сайту"
+
+msgid "Wohin führt der Punkt?"
+msgstr "Куди веде пункт?"
+
+msgid "Wählen Sie links einen Punkt, um ihn zu bearbeiten."
+msgstr "Оберіть пункт ліворуч, щоб його змінити."
+
+msgid "Zentriert"
+msgstr "По центру"
+
+msgid "Ziehen Sie Punkte an eine neue Stelle — auf die Mitte eines Punktes gezogen wird er zum Unterpunkt. Bis zu drei Ebenen."
+msgstr "Перетягуйте пункти на нове місце — кинутий на середину іншого пункту стає підпунктом. До трьох рівнів."
+
+msgid "Übersetzungen"
+msgstr "Переклади"
+
+msgid "Abdunkeln"
+msgstr "Затемнення"
+
+msgid "Ganzes Bild verlinken"
+msgstr "Зробити посиланням усе зображення"
+
+msgid "Hell"
+msgstr "Світле"
+
+msgid "Keine"
+msgstr "Немає"
+
+msgid "Links"
+msgstr "Ліворуч"
+
+msgid "Mitte"
+msgstr "По центру"
+
+msgid "Oder eigene Adresse in «Button link». Ein gewähltes Ziel hat Vorrang."
+msgstr "Або власна адреса в «Button link». Обрана ціль має пріоритет."
+
+msgid "Rechts"
+msgstr "Праворуч"
+
+msgid "Schrift"
+msgstr "Колір тексту"
+
+msgid "Wohin führt der Banner?"
+msgstr "Куди веде банер?"
+
+msgid "Zeigen ab"
+msgstr "Показувати з"
+
+msgid "Zeigen bis"
+msgstr "Показувати до"
+
+msgid "Anpassen"
+msgstr "Вписування"
+
+msgid "Breit 16:9"
+msgstr "Широкий 16:9"
+
+msgid "Format"
+msgstr "Формат"
+
+msgid "Fotoformat je Bereich"
+msgstr "Формат фото за розділами"
+
+msgid "Ganz zeigen (mit Rand)"
+msgstr "Показати повністю (з полями)"
+
+msgid "Hoch 3:4"
+msgstr "Вертикальний 3:4"
+
+msgid "Leer = wie bei „Fotoform“. „Ganz zeigen“ schneidet nichts ab, sondern lässt Rand."
+msgstr "Порожньо — як у «Формі фото». «Показати повністю» нічого не обрізає, а залишає поля."
+
+msgid "Leistungen, Zimmer & Termine"
+msgstr "Послуги, номери та події"
+
+msgid "Menüs & Sets"
+msgstr "Набори та меню"
+
+msgid "Quadrat 1:1"
+msgstr "Квадрат 1:1"
+
+msgid "Quer 3:2"
+msgstr "Горизонтальний 3:2"
+
+msgid "Quer 4:3"
+msgstr "Горизонтальний 4:3"
+
+msgid "Zuschneiden"
+msgstr "Обрізати"
+
+msgid "Banner — außerhalb des Zeitraums"
+msgstr "Банер — поза періодом показу"
+
+msgid "Banner — klicken zum Bearbeiten"
+msgstr "Банер — натисніть, щоб змінити"
+
+msgid "Bild mit Text und Link — auf jeder Seite, mit Zeitraum"
+msgstr "Зображення з текстом і посиланням — на будь-якій сторінці, з датами показу"
+
+msgid "Fotos gespeichert. Bitte die markierten Felder korrigieren."
+msgstr "Фото збережено. Виправте, будь ласка, позначені поля."
+
+msgid "Alle Kombinationen der Optionen; vorhandene werden übersprungen."
+msgstr "Усі поєднання опцій; наявні пропускаються."
+
+msgid "Auswahl im Shop"
+msgstr "Вибір у магазині"
+
+msgid "Bitte einen Namen angeben (höchstens 30 Optionen)."
+msgstr "Вкажіть назву (не більше 30 опцій)."
+
+msgid "Die Werte stehen direkt an den Varianten (Feld im Produkt)."
+msgstr "Значення задаються прямо у варіантів (поле в товарі)."
+
+msgid "Dieser Wert wird von Varianten benutzt."
+msgstr "Це значення використовують варіанти."
+
+msgid "Eigene Option"
+msgstr "Своя опція"
+
+msgid "Für alles, was es im Standard nicht gibt — z. B. „Stoffart“ oder „Füllung“. Eigene Optionen erscheinen nur auf Ihrer Website."
+msgstr "Для всього, чого немає в стандарті, — наприклад «тип тканини» або «начинка». Свої опції видно лише на вашому сайті."
+
+msgid "Geschmack"
+msgstr "Смак"
+
+msgid "Gespeichert, Werte ergänzt."
+msgstr "Збережено, значення додано."
+
+msgid "Gewicht"
+msgstr "Вага"
+
+msgid "Höchstens drei Optionen pro Produkt."
+msgstr "Не більше трьох опцій на товар."
+
+msgid "Länge"
+msgstr "Довжина"
+
+msgid "Mit ✓ Google werden die Werte auch an Google Shopping und an die Filter im Stadtportal übergeben."
+msgstr "З ✓ Google значення передаються також у Google Shopping і у фільтри міського порталу."
+
+msgid "Option aktiviert."
+msgstr "Опцію увімкнено."
+
+msgid "Option angelegt."
+msgstr "Опцію створено."
+
+msgid "Option anlegen"
+msgstr "Створити опцію"
+
+msgid "Option ausgeblendet."
+msgstr "Опцію приховано."
+
+msgid "Option gelöscht."
+msgstr "Опцію видалено."
+
+msgid "Optionen"
+msgstr "Опції"
+
+msgid "Optionen des Produkts gespeichert."
+msgstr "Опції товару збережено."
+
+msgid "Optionen gelten für den ganzen Shop. Im Produkt wählen Sie unter „Varianten“, welche (höchstens drei) es hat."
+msgstr "Опції діють на весь магазин. У товарі на вкладці «Варіанти» ви обираєте, які з них у нього є (не більше трьох)."
+
+msgid "Optionen im Shop"
+msgstr "Опції магазину"
+
+msgid "Optionen dieses Produkts"
+msgstr "Опції цього товару"
+
+msgid "Optionen übernehmen"
+msgstr "Застосувати опції"
+
+msgid "Standard-Optionen"
+msgstr "Стандартні опції"
+
+msgid "Stückzahl"
+msgstr "Кількість штук"
+
+msgid "Volumen"
+msgstr "Об'єм"
+
+msgid "Wert gelöscht."
+msgstr "Значення видалено."
+
+msgid "Wert löschen"
+msgstr "Видалити значення"
+
+msgid "Werte"
+msgstr "Значення"
+
+msgid "Werte durch Komma"
+msgstr "Значення через кому"
+
+msgid "Werte hinzufügen (durch Komma getrennt)"
+msgstr "Додати значення (через кому)"
+
+msgid "Weitere Optionen anlegen"
+msgstr "Створити інші опції"
+
+msgid "Wird von Varianten benutzt — bitte nur ausblenden."
+msgstr "Використовується варіантами — можна лише приховати."
+
+msgid "höchstens drei"
+msgstr "не більше трьох"
+
+msgid "z. B. Baumwolle, Leinen"
+msgstr "наприклад бавовна, льон"
+
+msgid "z. B. Füllung"
+msgstr "наприклад начинка"
+
+msgid "Block hinzufügen"
+msgstr "Додати блок"
+
+msgid "Diese Änderung ist hier nicht möglich."
+msgstr "Ця зміна тут неможлива."
+
+msgid "Einblenden"
+msgstr "Показати"
+
+msgid "In Studio bearbeiten"
+msgstr "Змінити в Студії"
+
+msgid "In der Vorschau zeigen"
+msgstr "Показати в попередньому перегляді"
+
+msgid "Kopfzeile & Menü"
+msgstr "Шапка й меню"
+
+msgid "Noch keine eigenen Blöcke auf dieser Seite."
+msgstr "На цій сторінці ще немає своїх блоків."
+
+msgid "Sichtbare Blöcke"
+msgstr "Видимі блоки"
+
+msgid "Welche Blöcke auf welcher Seite stehen — und in welcher Reihenfolge."
+msgstr "Які блоки стоять на якій сторінці — і в якому порядку."
+
+#: FB-26
+msgid "Alle Branchen zeigen"
+msgstr "Показати всі галузі"
+
+#: FB-26
+msgid "Anfragen & Aufträge"
+msgstr "Заявки та замовлення"
+
+#: FB-26
+msgid "Bitte wählen Sie mindestens eine Richtung."
+msgstr "Оберіть хоча б один напрям."
+
+#: FB-26
+msgid "Damit Texte, Beispiele und Aussehen passen. Keine passende Branche? Einfach überspringen."
+msgstr "Щоб тексти, приклади й оформлення пасували. Немає відповідної галузі? Просто пропустіть."
+
+#: FB-26
+msgid "Gäste buchen Nächte."
+msgstr "Гості бронюють ночі."
+
+#: FB-26
+msgid "Ihre Branche (optional)"
+msgstr "Ваша галузь (необов’язково)"
+
+#: FB-26
+msgid "Kunden buchen eine Uhrzeit."
+msgstr "Клієнти записуються на час."
+
+#: FB-26
+msgid "Mehrere möglich. Sie können es später jederzeit ändern."
+msgstr "Можна кілька. Це можна змінити будь-коли пізніше."
+
+#: FB-26
+msgid "Plätze für Termine mit Datum."
+msgstr "Місця на заходи з датою."
+
+#: FB-26
+msgid "Speisekarte und Tischreservierung."
+msgstr "Меню та бронювання столиків."
+
+#: FB-26
+msgid "Speisen & Getränke"
+msgstr "Їжа та напої"
+
+#: FB-26
+msgid "Termine & Dienstleistungen"
+msgstr "Записи та послуги"
+
+#: FB-26
+msgid "Tickets & Touren"
+msgstr "Квитки та тури"
+
+#: FB-26
+msgid "Zimmer & Übernachtung"
+msgstr "Номери та проживання"
+
+
+#: FB-26
+msgid "Waren im Laden & zum Abholen"
+msgstr "Товари в магазині та самовивіз"
+
+#: FB-26
+msgid "Alles, was Sie verkaufen: Lebensmittel, Drogerie, Spielzeug, Mode, Technik …"
+msgstr "Усе, що ви продаєте: продукти, побутова хімія, іграшки, одяг, техніка …"
+
+#: FB-26
+msgid "z. B. Bäckerei, Hofladen, Drogerie, Spielwaren, Boutique"
+msgstr "напр. пекарня, фермерська крамниця, господарські товари, іграшки, бутик"
+
+#: FB-26
+msgid "Online-Shop mit Lieferung & Versand"
+msgstr "Інтернет-магазин з доставкою та відправленням"
+
+#: FB-26
+msgid "Kunden bestellen online, Sie liefern oder versenden."
+msgstr "Клієнти замовляють онлайн, ви доставляєте або відправляєте."
+
+#: FB-26
+msgid "z. B. Online-Shop, Manufaktur, Feinkost, Mode"
+msgstr "напр. інтернет-магазин, майстерня, делікатеси, одяг"
+
+#: FB-26
+msgid "z. B. Friseur, Kosmetik, Werkstatt, Massage"
+msgstr "напр. перукарня, косметологія, автосервіс, масаж"
+
+#: FB-26
+msgid "z. B. Hotel, Pension, Ferienwohnung"
+msgstr "напр. готель, гостьовий будинок, апартаменти"
+
+#: FB-26
+msgid "z. B. Kurse, Stadtführungen, Konzerte"
+msgstr "напр. курси, екскурсії, концерти"
+
+#: FB-26
+msgid "z. B. Handwerk, Catering, Reparatur"
+msgstr "напр. ремесло, кейтеринг, ремонт"
+
+#: FB-26
+msgid "z. B. Café, Restaurant, Imbiss"
+msgstr "напр. кафе, ресторан, закусочна"

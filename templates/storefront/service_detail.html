@@ -33,6 +33,7 @@ UA1-1 (E-1): страница-деталь услуги на едином кар
 <div id="buchen" class="space-y-4 scroll-mt-24">
   <div>
     {# L3c: показываем локализованное имя (перевод из name_i18n, иначе база). Инлайн-правка редактирует ПЛОСКОЕ base-поле (data-edit-field=name). #}
+    {% include "storefront/_entity_label.html" with label=service.badge_label cls="inline-block mb-2" %}
     <h1 class="text-2xl md:text-3xl font-bold" data-edit-model="service" data-edit-pk="{{ service.pk }}" data-edit-field="name">{{ service.name_localized }}</h1>
     <p class="text-gray-500 mt-1">{% blocktrans with m=service.duration_minutes %}{{ m }} min{% endblocktrans %}{% if service.price_cents %} · <span class="font-semibold text-gray-700" data-price-edit data-edit-model="service" data-price-field="price_eur" data-edit-pk="{{ service.pk }}" data-price="{{ service.price_eur|floatformat:2 }}">{{ service.price_eur|floatformat:2 }} €</span>{% endif %}</p>
   </div>

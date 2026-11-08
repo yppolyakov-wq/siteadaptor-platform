@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load i18n cabinet %}
+{% load i18n cabinet static %}
 {% block title %}{% trans "Aktion in 3 Klicks" %} · SiteAdaptor{% endblock %}
 {% block extra_head %}<meta name="description" content="{% trans 'Ihre Aktion in 3 Klicks online — mit eigener Seite, QR-Code und Aushang. Kostenlos, ohne Passwort.' %}">{% endblock %}
 
@@ -169,9 +169,9 @@ T-8.5e: шаги как у ассистента кабинета (Was · Preis u
       {% include "promotions/_city_category_fields.html" %}
       <label class="block">
         <span class="block text-sm font-medium mb-1">{{ form.city.label }}</span>
-        <input type="text" name="city" value="{{ form.city.value|default:'' }}" maxlength="100" required list="qs-cities"
+        <input type="text" name="city" value="{{ form.city.value|default:'' }}" maxlength="100" required list="qs-cities" data-city-suggest="{% static 'data/gemeinden_de.json' %}"
                autocomplete="address-level2" class="w-full rounded-xl border border-gray-300 px-3 py-2.5 text-base" data-qs-city {% if form.city.errors %}aria-invalid="true" aria-describedby="id_city_errors"{% endif %}>
-        <datalist id="qs-cities">{% for c in known_cities %}<option value="{{ c }}">{% endfor %}</datalist>
+        <datalist id="qs-cities">{% for c in known_cities %}<option value="{{ c }}">{% endfor %}</datalist><script src="{% static 'js/city-suggest.js' %}" defer></script>
         {% if form.city.errors %}<span class="block" id="id_city_errors">{% for e in form.city.errors %}<span class="block text-xs text-red-600 mt-1">{{ e }}</span>{% endfor %}</span>{% endif %}
       </label>
       {% comment %}T-8.5c: район — после города. Список всех районов реестра сгруппирован

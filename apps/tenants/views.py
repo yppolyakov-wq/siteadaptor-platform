@@ -11,7 +11,7 @@ from django.views import View
 
 from apps.core import ratelimit
 
-from . import archetype_pages, onboarding, signup
+from . import archetype_pages, onboarding, signup, signup_directions
 from .forms import BusinessSignupForm
 from .models import SignupRequest, Tenant
 from .services import login_url_for, start_business_provisioning
@@ -67,6 +67,7 @@ class BusinessSignupView(View):
         return {
             "form": form,
             "business_types": onboarding.business_type_cards(request),
+            "direction_chips": signup_directions.CHOICES,
             "ui_languages": ui_languages(),
             "preselected_type": preselected_type,
             # AB5.1: заметка «сначала письмо-подтверждение» под кнопкой.
@@ -79,7 +80,12 @@ class BusinessSignupView(View):
         pretype = (request.GET.get("type") or "").strip()
         preselected = pretype if pretype in dict(Tenant.BUSINESS_TYPES) else ""
         form = (
-            BusinessSignupForm(initial={"business_type": preselected})
+            BusinessSignupForm(
+                initial={
+                    "business_type": preselected,
+                    "directions": signup_directions.initial_for(preselected),
+                }
+            )
             if preselected
             else BusinessSignupForm()
         )
@@ -142,6 +148,7 @@ class BusinessSignupView(View):
             email=cd["email"],
             password=cd["password1"],
             partner_code=partner_code,
+            directions=cd["directions"],
         )
         return redirect("signup-waiting", slug=tenant.slug)
 
@@ -280,6 +287,7 @@ def signup_confirm(request, token):
             email=signup_req.email,
             password_hash=signup_req.password_hash,
             partner_code=signup_req.partner_code,
+            directions=signup_req.directions,
         )
         signup_req.confirmed_at = timezone.now()
         signup_req.tenant = tenant

@@ -130,6 +130,12 @@ def merchant_sale(product, variant, row_price) -> dict:
     return {"price": _money(charged, product.currency)}
 
 
+def _google_material(variant) -> str:
+    from apps.catalog.option_types import standard_variant_values
+
+    return standard_variant_values(variant).get("material", "")[:200]
+
+
 def _variant_image(variant, absolutize) -> str:
     """KA-12 WR-1: фото варианта (цвет) — в image_link его строки; нет — фото товара."""
     img = variant.primary_image
@@ -198,6 +204,9 @@ def _entries(product, *, product_url, absolutize, merchant=False):
                 # KA-12 WR-1 (E3.7): оси варианта — Google группирует по ним (одежда).
                 "size": row["variant"].size,
                 "color": row["variant"].color,
+                # FB-24e: стандартная опция «Material» — свой атрибут Google; прочие
+                # стандартные без атрибута Google в фид не идут.
+                "material": _google_material(row["variant"]),
                 **merchant_sale(product, row["variant"], merchant_row_price(product, row)),
             }
             for row in rows

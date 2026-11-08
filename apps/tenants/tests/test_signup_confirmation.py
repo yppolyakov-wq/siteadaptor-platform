@@ -22,6 +22,7 @@ FORM = {
     "business_name": "Blitz Bäckerei",
     "slug": "blitz-doi",
     "business_type": "bakery",
+    "directions": ["waren"],
     "city": "Hilden",
     "email": "owner@blitz-doi.test",
     "password1": "s3cretpass",

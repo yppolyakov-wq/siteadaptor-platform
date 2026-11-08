@@ -5552,7 +5552,8 @@ CAFE_MENUS = {
         "style": "classic",
         "sticky": True,
         "items": [
-            {"label": "Karte", "type": "archetype", "target": "catalog"},
+            # FB-23e: вид «Symbolleiste» — категории карты круглыми фото под шапкой.
+            {"label": "Karte", "type": "categories", "target": "", "layout": "strip"},
             {"label": "Reservieren", "type": "archetype", "target": "booking"},
             {"label": "Treue", "type": "archetype", "target": "loyalty"},
             # Аудит 2026-08-06 (фидбэк владельца «не везде есть акции»): акции
@@ -12455,17 +12456,40 @@ OUTLET_MENUS = {
         "sticky": True,
         "items": [
             {
+                # FB-23e: вид «Mega» — направления слева, их полки справа (auto).
                 "label": "Technik",
                 "type": "category",
                 "target": "notebooks-pcs",
+                "layout": "mega",
                 "children": [
-                    {"label": "Notebooks & PCs", "type": "category", "target": "notebooks-pcs"},
-                    {"label": "Smartphones", "type": "category", "target": "smartphones"},
-                    {"label": "TV, Audio & Foto", "type": "category", "target": "tv-audio-foto"},
-                    {"label": "Haushalt & Küche", "type": "category", "target": "haushalt-kueche"},
+                    {
+                        "label": "Notebooks & PCs",
+                        "type": "category",
+                        "auto": True,
+                        "target": "notebooks-pcs",
+                    },
+                    {
+                        "label": "Smartphones",
+                        "type": "category",
+                        "auto": True,
+                        "target": "smartphones",
+                    },
+                    {
+                        "label": "TV, Audio & Foto",
+                        "type": "category",
+                        "auto": True,
+                        "target": "tv-audio-foto",
+                    },
+                    {
+                        "label": "Haushalt & Küche",
+                        "type": "category",
+                        "auto": True,
+                        "target": "haushalt-kueche",
+                    },
                     {
                         "label": "Gaming & Smart Home",
                         "type": "category",
+                        "auto": True,
                         "target": "gaming-smarthome",
                     },
                 ],
@@ -12474,14 +12498,26 @@ OUTLET_MENUS = {
                 "label": "Mode",
                 "type": "category",
                 "target": "damenmode",
+                "layout": "mega",
                 "children": [
-                    {"label": "Damenmode", "type": "category", "target": "damenmode"},
-                    {"label": "Herrenmode", "type": "category", "target": "herrenmode"},
-                    {"label": "Schuhe", "type": "category", "target": "schuhe"},
-                    {"label": "Sport & Outdoor", "type": "category", "target": "sport-outdoor"},
+                    {"label": "Damenmode", "type": "category", "auto": True, "target": "damenmode"},
+                    {
+                        "label": "Herrenmode",
+                        "type": "category",
+                        "auto": True,
+                        "target": "herrenmode",
+                    },
+                    {"label": "Schuhe", "type": "category", "auto": True, "target": "schuhe"},
+                    {
+                        "label": "Sport & Outdoor",
+                        "type": "category",
+                        "auto": True,
+                        "target": "sport-outdoor",
+                    },
                     {
                         "label": "Taschen & Accessoires",
                         "type": "category",
+                        "auto": True,
                         "target": "taschen-accessoires",
                     },
                 ],
@@ -16626,28 +16662,70 @@ ONLINE_SHOP_MENUS = {
         "sticky": True,
         "items": [
             {
+                # FB-23e: вид «Spalten» — направления колонками, их подразделы ссылками
+                # (auto), справа баннер распродажи.
                 "label": "Sortiment",
                 "type": "archetype",
                 "target": "catalog",
+                "layout": "columns",
+                "image": "/static/demo/photos/shop-atelier-sale.webp",
+                "desc": "Sale bis −30 %",
                 "children": [
-                    {"label": "Mode & Basics", "type": "category", "target": "mode-basics"},
-                    {"label": "Schuhe", "type": "category", "target": "schuhe"},
+                    {
+                        "label": "Mode & Basics",
+                        "type": "category",
+                        "auto": True,
+                        "target": "mode-basics",
+                    },
+                    {"label": "Schuhe", "type": "category", "auto": True, "target": "schuhe"},
                     {
                         "label": "Taschen & Rucksäcke",
                         "type": "category",
+                        "auto": True,
                         "target": "taschen-rucksaecke",
                     },
                     {
                         "label": "Schmuck & Accessoires",
                         "type": "category",
+                        "auto": True,
                         "target": "schmuck-accessoires",
                     },
-                    {"label": "Wohnen & Textil", "type": "category", "target": "wohnen-textil"},
-                    {"label": "Küche & Tafel", "type": "category", "target": "kueche-tafel"},
-                    {"label": "Kaffee & Tee", "type": "category", "target": "kaffee-tee"},
-                    {"label": "Pflege & Bad", "type": "category", "target": "pflege-bad"},
-                    {"label": "Papeterie & Büro", "type": "category", "target": "papeterie-buero"},
-                    {"label": "Sport & Outdoor", "type": "category", "target": "sport-outdoor"},
+                    {
+                        "label": "Wohnen & Textil",
+                        "type": "category",
+                        "auto": True,
+                        "target": "wohnen-textil",
+                    },
+                    {
+                        "label": "Küche & Tafel",
+                        "type": "category",
+                        "auto": True,
+                        "target": "kueche-tafel",
+                    },
+                    {
+                        "label": "Kaffee & Tee",
+                        "type": "category",
+                        "auto": True,
+                        "target": "kaffee-tee",
+                    },
+                    {
+                        "label": "Pflege & Bad",
+                        "type": "category",
+                        "auto": True,
+                        "target": "pflege-bad",
+                    },
+                    {
+                        "label": "Papeterie & Büro",
+                        "type": "category",
+                        "auto": True,
+                        "target": "papeterie-buero",
+                    },
+                    {
+                        "label": "Sport & Outdoor",
+                        "type": "category",
+                        "auto": True,
+                        "target": "sport-outdoor",
+                    },
                 ],
             },
             {"label": "Sets", "type": "page", "target": "combos"},
@@ -24109,7 +24187,21 @@ WOHNWERK = DemoKit(
                     "table-lamp",
                 ),
                 _p("Vase Steinzeug", "34.00", "Handgedreht, 25 cm hoch.", "ceramic-vase"),
-                _p("Kissenbezug Leinen", "29.00", "50 × 50 cm, stonewashed.", "linen-cushion"),
+                # FB-24: демо своей оси «Material» рядом с цветом (фильтр и выбор на витрине).
+                {
+                    **_p(
+                        "Kissenbezug Leinen",
+                        "29.00",
+                        "50 × 50 cm, stonewashed.",
+                        "linen-cushion",
+                        variants=[
+                            {"label": f"{c} · {m}", "color": c, "options": {"material": m}}
+                            for c in ("Sand", "Grau")
+                            for m in ("Leinen", "Baumwolle")
+                        ],
+                    ),
+                    "option_axes": ["color", "material"],
+                },
             ],
         ),
         (
@@ -24858,6 +24950,9 @@ def apply_kit(tenant, key: str) -> bool:
                     sku=v.get("sku") or f"{product.sku}-{vsort + 1}",  # SH-19: артикул варианта
                     sort_order=vsort,
                 )
+                # FB-24: значения опций магазина у варианта ({"material": "Leinen"}).
+                for code, value in (v.get("options") or {}).items():
+                    _demo_set_option(variant, code, value)
                 if v.get("stock") is not None:
                     from apps.inventory.services import record_movement
 
@@ -24874,6 +24969,10 @@ def apply_kit(tenant, key: str) -> bool:
                 ProductVariant.objects.create(
                     product=product, label=vlabel, price=Decimal(vprice), sort_order=vsort
                 )
+        if item.get("option_axes"):  # FB-24: оси вариантов товара
+            from apps.catalog import options as _options
+
+            _options.set_product_axes(product, item["option_axes"])
         for gsort, group in enumerate(item.get("modifiers", [])):
             mg = ModifierGroup.objects.create(
                 product=product,
@@ -27371,3 +27470,17 @@ def _seed_kit_records(tenant, kit: DemoKit, refs: dict, products: list) -> None:
             subject="Entwurf: Sommer am See — Last-Minute-Wochen",
             body="Bald verfügbar: unsere Sommer-Specials mit Frühbucher- und Last-Minute-Rabatten.",
         )
+
+
+def _demo_set_option(variant, code, value) -> None:
+    """FB-24: значение опции у демо-варианта (стандартный тип включается сам)."""
+    from apps.catalog import option_types
+    from apps.catalog import options as _options
+    from apps.catalog.models import OptionType
+
+    if code in option_types.STANDARD:
+        option_type = _options.enable_standard(code)
+    else:
+        option_type = OptionType.objects.filter(code=code).first() or _options.add_custom(code)
+    if option_type is not None:
+        _options.set_variant_option(variant, option_type, value)

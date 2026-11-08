@@ -173,3 +173,18 @@ def test_flyer_links_on_done_screen_and_edit_page(user):
         _get(f"/promotions/{draft.pk}/edit/", user, tenant), pk=draft.pk
     ).content.decode()
     assert "data-flyer-links" not in edit
+
+
+def test_fb17_statistics_live_on_their_own_tab(user):
+    """FB-17: статистика акции — своя вкладка; на остальных вкладках её не видно."""
+    import re
+
+    tenant = _tenant()
+    promo = _promo()
+    edit = views.promotion_edit(
+        _get(f"/promotions/{promo.pk}/edit/", user, tenant), pk=promo.pk
+    ).content.decode()
+    assert 'data-pf-tab="stats"' in edit
+    panels = re.findall(r"<div[^>]*data-pf-panel=\"stats\"[^>]*>", edit)
+    assert len(panels) == 2  # карточка цифр + воронка по каналам
+    assert all("hidden" in p for p in panels)  # видна только после клика по вкладке

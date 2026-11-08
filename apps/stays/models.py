@@ -60,6 +60,16 @@ class StayUnit(I18nMixin, TimestampedModel):
         (TYPE_PITCH, _("Stellplatz")),
     ]
 
+    # FB-20: метка на карточке («Neu», «Beliebt») — реестр apps/core/labels.py.
+    badge = models.CharField(max_length=20, blank=True, default="")
+
+    @property
+    def badge_label(self) -> str:
+        """FB-20: переводимая подпись метки (на витрине — язык клиента)."""
+        from apps.core.labels import label_for
+
+        return label_for(self.badge)
+
     name = models.CharField(max_length=120)
     type = models.CharField(max_length=20, choices=TYPES, default=TYPE_ROOM)
     description = models.TextField(blank=True)

@@ -1255,6 +1255,11 @@ def units(request, pk=None):
                 "amenities",
                 "updated_at",
             ]
+            if "badge" in request.POST:  # FB-20: presence-guard (W0)
+                from apps.core.labels import clean as clean_label
+
+                unit.badge = clean_label(request.POST.get("badge"))
+                _uf.append("badge")
             _uf += apply_i18n_overlay(unit, request.POST, getattr(request, "tenant", None))  # L3d
             unit.save(update_fields=_uf)
             _add_unit_photos(unit, request.FILES.getlist("photos"), request)

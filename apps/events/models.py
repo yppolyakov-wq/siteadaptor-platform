@@ -239,6 +239,16 @@ class Event(I18nMixin, TimestampedModel):
         (STATUS_CANCELLED, _("Cancelled")),
     ]
 
+    # FB-20: метка на карточке («Neu», «Beliebt») — реестр apps/core/labels.py.
+    badge = models.CharField(max_length=20, blank=True, default="")
+
+    @property
+    def badge_label(self) -> str:
+        """FB-20: переводимая подпись метки (на витрине — язык клиента)."""
+        from apps.core.labels import label_for
+
+        return label_for(self.badge)
+
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True)
     # i18n (двуязычная витрина): переводы заголовка/описания {"de":..,"en":..}.

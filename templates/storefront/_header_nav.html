@@ -5,59 +5,21 @@
 (ряд + панель), JS лишь переключает видимость. Дропдауны групп —
 hover + focus-within (клавиатура/тап по chevron-пункту без url).{% endcomment %}
 {% for item in storefront_menu %}
-  {% if item.children %}
+  {% if item.children and item.layout != "strip" %}
     <div class="relative group shrink-0" data-nav-i="{{ forloop.counter0 }}">
       {% comment %}Фидбэк 2026-07-30: группа без собственной ссылки раскрывается
       КЛИКОМ (data-nav-group), а не только наведением — на тач-экранах и при
       клике «Aktionen» иначе ничего не происходит.{% endcomment %}
-      {% if item.url %}<a href="{{ item.url }}"{% else %}<button type="button" data-nav-group{% endif %} class="inline-flex items-center gap-1 whitespace-nowrap px-2.5 py-1.5 rounded-lg text-gray-700 hover:bg-gray-100 hover:text-gray-900 font-medium cursor-pointer">{{ item.label }} <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>{% if item.url %}</a>{% else %}</button>{% endif %}
+      {% if item.url %}<a href="{{ item.url }}"{% else %}<button type="button" data-nav-group{% endif %} class="inline-flex items-center gap-1 whitespace-nowrap px-2.5 py-1.5 rounded-lg text-gray-700 hover:bg-gray-100 hover:text-gray-900 font-medium cursor-pointer">{% include "storefront/menu/_icon.html" with node=item %}{{ item.label }} <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>{% if item.url %}</a>{% else %}</button>{% endif %}
       <div data-nav-panel class="absolute left-0 top-full pt-2 hidden group-hover:block group-focus-within:block z-30">
-        {% comment %}MEN-15: если у детей есть фото (узел «Kategorien»), панель —
-        сетка плиток; иначе прежний текстовый столбец. Фолбэк обязателен: у
-        большинства тенантов Category.images пуст.{% endcomment %}
-        {% if item.has_images %}
-        {% comment %}Ревью MEN-15: фиксированные 420px у пункта справа вылезали
-        за вьюпорт — правая колонка обрезалась и была некликабельна. Ширина
-        клампится по экрану, а положение при нехватке места подвинет JS
-        (`_base.html`, data-nav-panel).{% endcomment %}
-        {% comment %}MEN-20 (фидбэк «субменю разнообразить»): панель шире, под
-        названием — короткое описание категории (если владелец его заполнил).{% endcomment %}
-        <div class="bg-white rounded-xl shadow-lg ring-1 ring-black/5 p-3 grid grid-cols-2 gap-2 w-[560px] max-w-[calc(100vw-2rem)]">
-          {% for c in item.children %}
-            {% if c.image %}
-            <a href="{{ c.url }}" class="flex items-center gap-2.5 rounded-lg p-2 hover:bg-gray-50">
-              <img src="{{ c.image }}" alt="" loading="lazy" class="w-14 h-14 rounded-lg object-cover shrink-0">
-              <span class="min-w-0">
-                <span class="block text-sm font-medium text-gray-700 break-words">{{ c.label }}</span>
-                {% if c.desc %}<span class="block text-xs text-gray-500 leading-snug">{{ c.desc|truncatechars:60 }}</span>{% endif %}
-              </span>
-            </a>
-            {% else %}
-            {% comment %}Ревью MEN-15/стенд MEN-20: пункт без фото (ручной ребёнок
-            вроде «Menüs & Pakete» или категория без снимка) терялся голой строкой
-            среди плиток — теперь это полноширинная акцент-строка; серых квадратов
-            -заглушек по-прежнему нет.{% endcomment %}
-            <a href="{{ c.url }}" class="col-span-2 flex items-center justify-between rounded-lg border border-dashed border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-300">
-              <span class="min-w-0">
-                <span class="block break-words">{{ c.label }}</span>
-                {% if c.desc %}<span class="block text-xs font-normal text-gray-500 leading-snug">{{ c.desc|truncatechars:60 }}</span>{% endif %}
-              </span>
-              <span class="text-gray-400" aria-hidden="true">→</span>
-            </a>
-            {% endif %}
-          {% endfor %}
-        </div>
-        {% else %}
-        <div class="bg-white rounded-xl shadow-lg ring-1 ring-black/5 py-2 min-w-[200px]">
-          {% for c in item.children %}
-            <a href="{{ c.url }}" class="block px-4 py-2 whitespace-nowrap text-gray-700 hover:bg-gray-50">{{ c.label }}</a>
-          {% endfor %}
-        </div>
-        {% endif %}
+        {% comment %}FB-23b: вид панели — A list · B tiles · C mega · D columns
+        (`item.layout`; по умолчанию как раньше: плитки, если у подпунктов есть фото).{% endcomment %}
+        {% include "storefront/menu/_panel.html" %}
       </div>
     </div>
-  {% else %}
-    <a href="{{ item.url }}" data-nav-i="{{ forloop.counter0 }}" class="shrink-0 whitespace-nowrap px-2.5 py-1.5 rounded-lg text-gray-700 hover:bg-gray-100 hover:text-gray-900 font-medium">{{ item.label }}</a>
+  {% elif item.url %}
+    {% comment %}FB-23b: у вида G «Symbolleiste» подпункты — полоса под шапкой, сам пункт — ссылка.{% endcomment %}
+    <a href="{{ item.url }}" data-nav-i="{{ forloop.counter0 }}" class="shrink-0 inline-flex items-center gap-1 whitespace-nowrap px-2.5 py-1.5 rounded-lg text-gray-700 hover:bg-gray-100 hover:text-gray-900 font-medium">{% include "storefront/menu/_icon.html" with node=item %}{{ item.label }}</a>
   {% endif %}
 {% endfor %}
 {# Overflow-дропдаун: сюда fitNav переносит хвост, когда строка не влезает. #}

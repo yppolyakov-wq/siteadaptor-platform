@@ -261,15 +261,31 @@ main-колонка + правая колонка «Preis & Bestand»/«Kategori
           b.setAttribute("aria-expanded", open ? "true" : "false");
         });
       </script>
+      {% comment %}FB-24b: оси вариантов этого товара — типы опций магазина (≤ 3).{% endcomment %}
+      <form method="post" action="{% url 'catalog:product-axes' product.pk %}" class="mt-4 border-t border-gray-100 pt-3 text-sm" data-product-axes>
+        {% csrf_token %}
+        <fieldset>
+          <legend class="font-medium">{% trans "Optionen dieses Produkts" %} <span class="text-xs text-gray-400 font-normal">{% trans "höchstens drei" %}</span></legend>
+          <div class="flex flex-wrap gap-2 mt-2">
+            {% for a in axis_rows %}
+            <label class="flex items-center gap-1 rounded-full border border-gray-200 px-3 py-1"><input type="checkbox" name="axes" value="{{ a.code }}" {% if a.on %}checked{% endif %} class="rounded border-gray-300"> {{ a.label }}</label>
+            {% endfor %}
+            {% if 'catalog:option-list'|pkg_allowed:request.tenant %}<a href="{% url 'catalog:option-list' %}" class="text-indigo-600 text-xs self-center">{% trans "Weitere Optionen anlegen" %} →</a>{% endif %}
+          </div>
+        </fieldset>
+        <button class="ui-btn ui-btn-secondary mt-2">{% trans "Optionen übernehmen" %}</button>
+      </form>
       {% comment %}KA-12 WR-5: генератор «размеры × цвета» и фото на цвет — одним действием
-вместо десятков одиночных форм.{% endcomment %}
+вместо десятков одиночных форм. FB-24c: по осям товара (свои типы — полями axis_<код>).{% endcomment %}
       <form method="post" action="{% url 'catalog:variant-generate' product.pk %}" class="mt-4 border-t border-gray-100 pt-3 grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm" data-variant-generator>
         {% csrf_token %}
-        <p class="sm:col-span-2 font-medium">{% trans "Varianten erzeugen" %} <span class="text-xs text-gray-400 font-normal">{% trans "Alle Kombinationen aus Größen und Farben; vorhandene werden übersprungen." %}</span></p>
-        <label class="text-xs text-gray-500">{% trans "Größen" %}
-          <input name="sizes" type="text" placeholder="S, M, L, XL" class="ui-input block"></label>
-        <label class="text-xs text-gray-500">{% trans "Farben" %}
-          <input name="colors" type="text" placeholder="{% trans 'Schwarz, Blau, Rot' %}" class="ui-input block"></label>
+        <p class="sm:col-span-2 font-medium">{% trans "Varianten erzeugen" %} <span class="text-xs text-gray-400 font-normal">{% trans "Alle Kombinationen der Optionen; vorhandene werden übersprungen." %}</span></p>
+        {% if axes_has_size %}<label class="text-xs text-gray-500">{% trans "Größen" %}
+          <input name="sizes" type="text" placeholder="S, M, L, XL" class="ui-input block"></label>{% endif %}
+        {% if axes_has_color %}<label class="text-xs text-gray-500">{% trans "Farben" %}
+          <input name="colors" type="text" placeholder="{% trans 'Schwarz, Blau, Rot' %}" class="ui-input block"></label>{% endif %}
+        {% for a in axes_custom %}<label class="text-xs text-gray-500">{{ a.label }}
+          <input name="axis_{{ a.code }}" type="text" placeholder="{% trans 'Werte durch Komma' %}" class="ui-input block" data-axis="{{ a.code }}"></label>{% endfor %}
         <label class="text-xs text-gray-500">{% trans "Price" %}
           <input name="price" type="text" inputmode="decimal" placeholder="{% trans 'leer = Produktpreis' %}" class="ui-input block"></label>
         <label class="text-xs text-gray-500">{% trans "Stock" %}

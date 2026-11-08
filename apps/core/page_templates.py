@@ -45,7 +45,7 @@ SECTIONS = {
         ),
         "module": None,
         "url_name": "page-templates-sortiment",
-        "nav": "seitenvorlage",
+        "nav": "seitenvorlagen",  # FB-16: экран — только Website
         "title": _("Seitenvorlage"),
         "intro": _(
             "So zeigt Ihre Website Ihr Angebot: Listen, Kategorien und Detailseiten. "
@@ -56,7 +56,7 @@ SECTIONS = {
         "types": ("promos", "promo_group", "promo"),
         "module": "promotions",
         "url_name": "page-templates-aktionen",
-        "nav": "seitenvorlage-aktionen",
+        "nav": "seitenvorlagen",  # FB-16: экран — только Website
         "title": _("Seitenvorlage"),
         "intro": _(
             "So zeigt Ihre Website die Aktionsseite, eine Aktionsgruppe und eine einzelne "
@@ -80,10 +80,12 @@ SECTIONS = {
 def cabinet_url(type_code: str) -> str:
     """The cabinet screen that owns this page type's settings (`?typ=` selects it).
     A section tab beats the "website" screen; the latter shows every type."""
-    for key in ("sortiment", "aktionen", "website"):
-        if type_code in SECTIONS[key]["types"]:
-            return reverse(SECTIONS[key]["url_name"]) + "?" + urlencode({"typ": type_code})
-    return reverse(SECTIONS["website"]["url_name"])
+    # FB-16 (2026-11-07): page templates live ONLY under Website — the Sortiment and
+    # Aktionen tabs are gone (their old addresses redirect here).
+    url = reverse(SECTIONS["website"]["url_name"])
+    if type_code in SECTIONS["website"]["types"]:
+        return url + "?" + urlencode({"typ": type_code})
+    return url
 
 
 def _first(qs):
@@ -322,14 +324,27 @@ def _render(request, section: str):
     )
 
 
+def _legacy_redirect(request, section: str):
+    """FB-16: the old Sortiment/Aktionen tabs → the one Website screen. The type the
+    owner looked at is kept; without one the first type of the old tab is opened.
+    A setup-helper question (`?frage=`, the old ask bar) goes to its own screen."""
+    frage = (request.GET.get("frage") or "").strip()
+    if frage:
+        return redirect(reverse("setup-ask") + "?" + urlencode({"frage": frage}))
+    typ = request.GET.get("typ", "")
+    if typ not in SECTIONS[section]["types"]:
+        typ = SECTIONS[section]["types"][0]
+    return redirect(reverse(SECTIONS["website"]["url_name"]) + "?" + urlencode({"typ": typ}))
+
+
 @login_required
 def page_templates_sortiment(request):
-    return _render(request, "sortiment")
+    return _legacy_redirect(request, "sortiment")
 
 
 @login_required
 def page_templates_aktionen(request):
-    return _render(request, "aktionen")
+    return _legacy_redirect(request, "aktionen")
 
 
 @login_required

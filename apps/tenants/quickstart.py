@@ -174,10 +174,10 @@ class QuickStartForm(quick.QuickPromotionForm):
 
     def clean_city(self):
         """Известный город — каноническим написанием, иначе как ввели (без лишних пробелов)."""
-        from apps.core import districts
+        from apps.core import cities, districts
 
         city = " ".join((self.cleaned_data.get("city") or "").split())
-        return districts.city_label(city) or city
+        return districts.city_label(city) or cities.canonical(city)  # FB-19
 
     def clean(self):
         cleaned = super().clean()

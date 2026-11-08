@@ -785,6 +785,8 @@ class SignupRequest(models.Model):
     business_name = models.CharField(max_length=200)
     slug = models.SlugField(max_length=100)
     business_type = models.CharField(max_length=40)
+    #: FB-26: чипы «Was verkaufen Sie?» (signup_directions.KEYS).
+    directions = models.JSONField(default=list, blank=True)
     city = models.CharField(max_length=100)
     partner_code = models.CharField(max_length=40, blank=True)
     locale = models.CharField(max_length=8, default="de")

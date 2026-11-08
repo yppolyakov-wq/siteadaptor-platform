@@ -10,6 +10,9 @@ from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.utils.translation import gettext_lazy as _
 
+from apps.core import cities
+
+from . import signup_directions
 from .models import Tenant
 
 # Начинается с буквы/цифры: «-template» дал бы схему «_template» (шаблон T-10).
@@ -25,11 +28,24 @@ class BusinessSignupForm(forms.Form):
         max_length=100,
         help_text=_("{slug}.siteadaptor.de — nur a-z, 0-9 und Bindestrich."),
     )
-    business_type = forms.ChoiceField(label=_("Art des Geschäfts"), choices=Tenant.BUSINESS_TYPES)
-    city = forms.CharField(label=_("Stadt"), max_length=100)
+    # FB-26: направления — обязательны (иначе не понять, отель это или магазин).
+    directions = forms.MultipleChoiceField(
+        label=_("Was verkaufen Sie?"),
+        choices=[(c[0], c[2]) for c in signup_directions.CHOICES],
+        widget=forms.CheckboxSelectMultiple,
+        error_messages={"required": _("Bitte wählen Sie mindestens eine Richtung.")},
+    )
+    # FB-26: ниша — необязательно («Andere» или пусто → вывод из направлений).
+    business_type = forms.ChoiceField(
+        label=_("Ihre Branche (optional)"), choices=Tenant.BUSINESS_TYPES, required=False
+    )
+    city = forms.CharField(label=_("Stadt"), max_length=100, widget=cities.CityInput)
     email = forms.EmailField(label=_("Deine E-Mail"))
     password1 = forms.CharField(label=_("Passwort"), widget=forms.PasswordInput, min_length=8)
     password2 = forms.CharField(label=_("Passwort bestätigen"), widget=forms.PasswordInput)
+
+    def clean_city(self):
+        return cities.canonical(self.cleaned_data.get("city"))  # FB-19
 
     def clean_slug(self):
         slug = self.cleaned_data["slug"].lower()
@@ -53,6 +69,11 @@ class BusinessSignupForm(forms.Form):
 
     def clean(self):
         cleaned = super().clean()
+        chips = signup_directions.clean(cleaned.get("directions"))
+        cleaned["directions"] = chips
+        cleaned["business_type"] = signup_directions.resolve_type(
+            cleaned.get("business_type") or "", chips
+        )
         p1, p2 = cleaned.get("password1"), cleaned.get("password2")
         if p1 and p2 and p1 != p2:
             self.add_error("password2", _("Passwörter stimmen nicht überein."))
@@ -118,6 +139,7 @@ class BusinessSettingsForm(forms.ModelForm):
             # реквизиты — отдельная секция с собственным save/update_fields).
         ]
         widgets = {
+            "city": cities.CityInput,  # FB-19: подсказки городов
             "address": forms.Textarea(attrs={"rows": 2}),
             "opening_hours": forms.Textarea(attrs={"rows": 3}),
             # E9.5: телефон бизнеса — цифровая клавиатура и автозаполнение владельца.
@@ -217,6 +239,9 @@ class BusinessSettingsForm(forms.ModelForm):
                 "Unter dieser Rubrik erscheinen Ihr Unternehmen und Ihre Leistungen im Stadtportal."
             ),
         )
+
+    def clean_city(self):
+        return cities.canonical(self.cleaned_data.get("city"))  # FB-19
 
     def clean_district(self):
         from apps.core import districts

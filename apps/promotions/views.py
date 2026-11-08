@@ -769,7 +769,7 @@ def promotion_quick(request):
             from apps.telegram import bots
 
             bot = bots.for_kind(tg_draft.get("bot"))  # file_id привязан к боту черновика
-            uploads, _failed = (
+            uploads, failed = (
                 telegram_promo.photos_from_telegram(bot.token, tg_draft["photo_ids"])
                 if bot
                 else ([], True)
@@ -779,6 +779,19 @@ def promotion_quick(request):
                     images = quick.save_photos(uploads)
                 except ValidationError:
                     images = []
+            # FB-18: раньше акция МОЛЧА уходила без фото, если Telegram его не отдал.
+            if not images:
+                form.add_error(
+                    "photo",
+                    _(
+                        "Die Fotos aus Telegram konnten nicht geladen werden. Bitte laden "
+                        "Sie das Foto hier hoch."
+                    ),
+                )
+            elif failed:
+                messages.warning(
+                    request, _("Nicht alle Fotos aus Telegram konnten übernommen werden.")
+                )
         if not form.errors:
             try:
                 quick.publish_built(
@@ -1119,10 +1132,21 @@ def promotion_edit(request, pk):
         instance=promo,
         tenant=getattr(request, "tenant", None),
     )
-    if request.method == "POST" and form.is_valid():
-        promo = form.save()
-        _handle_promo_uploads(request, promo)
-        return redirect("promotions:promotion-edit", pk=promo.pk)
+    if request.method == "POST":
+        if form.is_valid():
+            promo = form.save()
+            _handle_promo_uploads(request, promo)
+            return redirect("promotions:promotion-edit", pk=promo.pk)
+        # FB-18b: акция уже есть — выбранные фото сохраняем и при ошибке в полях. Браузер
+        # не может вернуть файл в форму, и раньше фото молча пропадало вместе с ошибкой.
+        if request.FILES.getlist("images"):
+            before = len(promo.images or [])
+            _handle_promo_uploads(request, promo)
+            if len(promo.images or []) > before:
+                messages.info(
+                    request,
+                    _("Fotos gespeichert. Bitte die markierten Felder korrigieren."),
+                )
     # атрибуция: брони по каналам привлечения
     channel_stats = list(
         promo.reservations.values("source_channel").annotate(n=Count("id")).order_by("-n")

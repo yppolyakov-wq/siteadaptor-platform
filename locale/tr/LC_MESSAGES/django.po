@@ -35169,3 +35169,476 @@ msgstr "PDF'i oku"
 
 msgid "%(n)s Zeilen aus der Datei passen nicht mehr in die Liste — bitte danach eintragen."
 msgstr "Dosyadaki %(n)s satır artık listeye sığmıyor — lütfen sonra girin."
+
+msgid "Die Fotos aus Telegram konnten nicht geladen werden. Bitte laden Sie das Foto hier hoch."
+msgstr "Telegram'daki fotoğraflar yüklenemedi. Lütfen fotoğrafı buraya yükleyin."
+
+msgid "Nicht alle Fotos aus Telegram konnten übernommen werden."
+msgstr "Telegram'daki fotoğrafların hepsi aktarılamadı."
+
+msgid "(ohne Namen)"
+msgstr "(adsız)"
+
+msgid "Als Unterpunkt einrücken"
+msgstr "Alt öğe yap"
+
+msgid "Ansicht des Untermenüs"
+msgstr "Alt menü görünümü"
+
+msgid "Auch Menüs & Pakete zeigen"
+msgstr "Menü ve paketleri de göster"
+
+msgid "Bereiche links, Unterpunkte rechts"
+msgstr "Bölümler solda, alt öğeler sağda"
+
+msgid "Bild"
+msgstr "Görsel"
+
+msgid "Bild-Adresse"
+msgstr "Görsel adresi"
+
+msgid "Bilder mit Text"
+msgstr "Metinli görseller"
+
+msgid "Bitte ein Ziel wählen — sonst erscheint der Punkt nicht."
+msgstr "Lütfen bir hedef seçin — aksi halde öğe görünmez."
+
+msgid "Das Menü konnte nicht gespeichert werden."
+msgstr "Menü kaydedilemedi."
+
+msgid "Eigene untere Leiste verwenden (sonst automatisch)"
+msgstr "Özel alt çubuk kullan (aksi halde otomatik)"
+
+msgid "Ein-/ausblenden"
+msgstr "Göster/gizle"
+
+msgid "Eine Ebene höher"
+msgstr "Bir seviye yukarı"
+
+msgid "Einfache Liste"
+msgstr "Basit liste"
+
+msgid "Fußzeile"
+msgstr "Alt bilgi"
+
+msgid "Kacheln, wenn Unterpunkte Bilder haben, sonst Liste"
+msgstr "Alt öğelerin görseli varsa kutucuklar, yoksa liste"
+
+msgid "Kein Bild"
+msgstr "Görsel yok"
+
+msgid "Kopfzeile"
+msgstr "Üst bilgi"
+
+msgid "Kopfzeile bleibt oben"
+msgstr "Üst bilgi sabit kalsın"
+
+msgid "Kurzer Text"
+msgstr "Kısa metin"
+
+msgid "Mega"
+msgstr "Mega"
+
+msgid "Menü aus Kategorien"
+msgstr "Kategorilerden menü"
+
+msgid "Menü-Bereiche"
+msgstr "Menü alanları"
+
+msgid "Nach oben"
+msgstr "Yukarı taşı"
+
+msgid "Nach unten"
+msgstr "Aşağı taşı"
+
+msgid "Punkt"
+msgstr "Öğe"
+
+msgid "Runde Bilder unter der Kopfzeile"
+msgstr "Üst bilginin altında yuvarlak görseller"
+
+msgid "Spalte"
+msgstr "Sütun"
+
+msgid "Spalte löschen"
+msgstr "Sütunu sil"
+
+msgid "Spalten mit Links und Banner"
+msgstr "Bağlantı sütunları ve banner"
+
+msgid "Spalten mit Links unter der Website. Ohne Spalten bleibt die Fußzeile wie bisher (Adresse, Öffnungszeiten, Rechtliches)."
+msgstr "Web sitesinin altında bağlantı sütunları. Sütun yoksa alt bilgi eskisi gibi kalır (adres, çalışma saatleri, yasal bilgiler)."
+
+msgid "Spaltentitel"
+msgstr "Sütun başlığı"
+
+msgid "Suchen …"
+msgstr "Ara …"
+
+msgid "Symbolleiste"
+msgstr "Simge çubuğu"
+
+msgid "Tour"
+msgstr "Tur"
+
+msgid "Ungespeicherte Änderungen"
+msgstr "Kaydedilmemiş değişiklikler"
+
+msgid "Ungespeicherte Änderungen gehen verloren."
+msgstr "Kaydedilmemiş değişiklikler kaybolacak."
+
+msgid "Untere Leiste (Handy)"
+msgstr "Alt çubuk (telefon)"
+
+msgid "Unterkategorien automatisch anzeigen"
+msgstr "Alt kategorileri otomatik göster"
+
+msgid "Unterpunkt hinzufügen"
+msgstr "Alt öğe ekle"
+
+msgid "Vorschau (gespeicherter Stand)"
+msgstr "Önizleme (kaydedilen sürüm)"
+
+msgid "Vorschau der Website"
+msgstr "Web sitesi önizlemesi"
+
+msgid "Wohin führt der Punkt?"
+msgstr "Öğe nereye gidiyor?"
+
+msgid "Wählen Sie links einen Punkt, um ihn zu bearbeiten."
+msgstr "Düzenlemek için soldan bir öğe seçin."
+
+msgid "Zentriert"
+msgstr "Ortalı"
+
+msgid "Ziehen Sie Punkte an eine neue Stelle — auf die Mitte eines Punktes gezogen wird er zum Unterpunkt. Bis zu drei Ebenen."
+msgstr "Öğeleri yeni bir yere sürükleyin — bir öğenin ortasına bırakılan öğe alt öğe olur. En fazla üç seviye."
+
+msgid "Übersetzungen"
+msgstr "Çeviriler"
+
+msgid "Abdunkeln"
+msgstr "Karartma"
+
+msgid "Ganzes Bild verlinken"
+msgstr "Tüm görsele bağlantı ver"
+
+msgid "Hell"
+msgstr "Açık"
+
+msgid "Keine"
+msgstr "Yok"
+
+msgid "Links"
+msgstr "Sol"
+
+msgid "Mitte"
+msgstr "Orta"
+
+msgid "Oder eigene Adresse in «Button link». Ein gewähltes Ziel hat Vorrang."
+msgstr "Ya da «Button link» alanına kendi adresiniz. Seçilen hedef önceliklidir."
+
+msgid "Rechts"
+msgstr "Sağ"
+
+msgid "Schrift"
+msgstr "Yazı rengi"
+
+msgid "Wohin führt der Banner?"
+msgstr "Banner nereye gidiyor?"
+
+msgid "Zeigen ab"
+msgstr "Şu tarihten itibaren göster"
+
+msgid "Zeigen bis"
+msgstr "Şu tarihe kadar göster"
+
+msgid "Anpassen"
+msgstr "Sığdır"
+
+msgid "Breit 16:9"
+msgstr "Geniş 16:9"
+
+msgid "Format"
+msgstr "Biçim"
+
+msgid "Fotoformat je Bereich"
+msgstr "Alana göre fotoğraf biçimi"
+
+msgid "Ganz zeigen (mit Rand)"
+msgstr "Tamamını göster (kenarlı)"
+
+msgid "Hoch 3:4"
+msgstr "Dikey 3:4"
+
+msgid "Leer = wie bei „Fotoform“. „Ganz zeigen“ schneidet nichts ab, sondern lässt Rand."
+msgstr "Boş = “Fotoğraf biçimi” ile aynı. “Tamamını göster” kırpmaz, kenar boşluğu bırakır."
+
+msgid "Leistungen, Zimmer & Termine"
+msgstr "Hizmetler, odalar ve etkinlikler"
+
+msgid "Menüs & Sets"
+msgstr "Menüler ve setler"
+
+msgid "Quadrat 1:1"
+msgstr "Kare 1:1"
+
+msgid "Quer 3:2"
+msgstr "Yatay 3:2"
+
+msgid "Quer 4:3"
+msgstr "Yatay 4:3"
+
+msgid "Zuschneiden"
+msgstr "Kırp"
+
+msgid "Banner — außerhalb des Zeitraums"
+msgstr "Afiş — gösterim süresi dışında"
+
+msgid "Banner — klicken zum Bearbeiten"
+msgstr "Afiş — düzenlemek için tıklayın"
+
+msgid "Bild mit Text und Link — auf jeder Seite, mit Zeitraum"
+msgstr "Metin ve bağlantılı görsel — her sayfada, tarih aralığıyla"
+
+msgid "Fotos gespeichert. Bitte die markierten Felder korrigieren."
+msgstr "Fotoğraflar kaydedildi. Lütfen işaretli alanları düzeltin."
+
+msgid "Alle Kombinationen der Optionen; vorhandene werden übersprungen."
+msgstr "Seçeneklerin tüm kombinasyonları; mevcut olanlar atlanır."
+
+msgid "Auswahl im Shop"
+msgstr "Mağazada seçim"
+
+msgid "Bitte einen Namen angeben (höchstens 30 Optionen)."
+msgstr "Lütfen bir ad girin (en fazla 30 seçenek)."
+
+msgid "Die Werte stehen direkt an den Varianten (Feld im Produkt)."
+msgstr "Değerler doğrudan varyantlarda belirlenir (üründeki alan)."
+
+msgid "Dieser Wert wird von Varianten benutzt."
+msgstr "Bu değer varyantlar tarafından kullanılıyor."
+
+msgid "Eigene Option"
+msgstr "Özel seçenek"
+
+msgid "Für alles, was es im Standard nicht gibt — z. B. „Stoffart“ oder „Füllung“. Eigene Optionen erscheinen nur auf Ihrer Website."
+msgstr "Standartta olmayan her şey için — ör. “kumaş türü” veya “dolgu”. Özel seçenekler yalnızca sitenizde görünür."
+
+msgid "Geschmack"
+msgstr "Tat"
+
+msgid "Gespeichert, Werte ergänzt."
+msgstr "Kaydedildi, değerler eklendi."
+
+msgid "Gewicht"
+msgstr "Ağırlık"
+
+msgid "Höchstens drei Optionen pro Produkt."
+msgstr "Ürün başına en fazla üç seçenek."
+
+msgid "Länge"
+msgstr "Uzunluk"
+
+msgid "Mit ✓ Google werden die Werte auch an Google Shopping und an die Filter im Stadtportal übergeben."
+msgstr "✓ Google ile değerler Google Shopping'e ve şehir portalının filtrelerine de aktarılır."
+
+msgid "Option aktiviert."
+msgstr "Seçenek etkinleştirildi."
+
+msgid "Option angelegt."
+msgstr "Seçenek oluşturuldu."
+
+msgid "Option anlegen"
+msgstr "Seçenek oluştur"
+
+msgid "Option ausgeblendet."
+msgstr "Seçenek gizlendi."
+
+msgid "Option gelöscht."
+msgstr "Seçenek silindi."
+
+msgid "Optionen"
+msgstr "Seçenekler"
+
+msgid "Optionen des Produkts gespeichert."
+msgstr "Ürün seçenekleri kaydedildi."
+
+msgid "Optionen gelten für den ganzen Shop. Im Produkt wählen Sie unter „Varianten“, welche (höchstens drei) es hat."
+msgstr "Seçenekler tüm mağaza için geçerlidir. Üründe “Varyantlar” altında hangilerinin (en fazla üç) olduğunu seçersiniz."
+
+msgid "Optionen im Shop"
+msgstr "Mağazadaki seçenekler"
+
+msgid "Optionen dieses Produkts"
+msgstr "Bu ürünün seçenekleri"
+
+msgid "Optionen übernehmen"
+msgstr "Seçenekleri uygula"
+
+msgid "Standard-Optionen"
+msgstr "Standart seçenekler"
+
+msgid "Stückzahl"
+msgstr "Adet"
+
+msgid "Volumen"
+msgstr "Hacim"
+
+msgid "Wert gelöscht."
+msgstr "Değer silindi."
+
+msgid "Wert löschen"
+msgstr "Değeri sil"
+
+msgid "Werte"
+msgstr "Değerler"
+
+msgid "Werte durch Komma"
+msgstr "Değerler virgülle"
+
+msgid "Werte hinzufügen (durch Komma getrennt)"
+msgstr "Değer ekle (virgülle ayrılmış)"
+
+msgid "Weitere Optionen anlegen"
+msgstr "Başka seçenekler oluştur"
+
+msgid "Wird von Varianten benutzt — bitte nur ausblenden."
+msgstr "Varyantlar tarafından kullanılıyor — lütfen yalnızca gizleyin."
+
+msgid "höchstens drei"
+msgstr "en fazla üç"
+
+msgid "z. B. Baumwolle, Leinen"
+msgstr "ör. pamuk, keten"
+
+msgid "z. B. Füllung"
+msgstr "ör. dolgu"
+
+msgid "Block hinzufügen"
+msgstr "Blok ekle"
+
+msgid "Diese Änderung ist hier nicht möglich."
+msgstr "Bu değişiklik burada mümkün değil."
+
+msgid "Einblenden"
+msgstr "Göster"
+
+msgid "In Studio bearbeiten"
+msgstr "Studio'da düzenle"
+
+msgid "In der Vorschau zeigen"
+msgstr "Önizlemede göster"
+
+msgid "Kopfzeile & Menü"
+msgstr "Üst bilgi ve menü"
+
+msgid "Noch keine eigenen Blöcke auf dieser Seite."
+msgstr "Bu sayfada henüz özel blok yok."
+
+msgid "Sichtbare Blöcke"
+msgstr "Görünür bloklar"
+
+msgid "Welche Blöcke auf welcher Seite stehen — und in welcher Reihenfolge."
+msgstr "Hangi sayfada hangi bloklar var — ve hangi sırayla."
+
+#: FB-26
+msgid "Alle Branchen zeigen"
+msgstr "Tüm sektörleri göster"
+
+#: FB-26
+msgid "Anfragen & Aufträge"
+msgstr "Talepler ve siparişler"
+
+#: FB-26
+msgid "Bitte wählen Sie mindestens eine Richtung."
+msgstr "Lütfen en az bir seçenek belirleyin."
+
+#: FB-26
+msgid "Damit Texte, Beispiele und Aussehen passen. Keine passende Branche? Einfach überspringen."
+msgstr "Metinler, örnekler ve görünüm uysun diye. Uygun sektör yok mu? Atlayın."
+
+#: FB-26
+msgid "Gäste buchen Nächte."
+msgstr "Misafirler gece rezervasyonu yapar."
+
+#: FB-26
+msgid "Ihre Branche (optional)"
+msgstr "Sektörünüz (isteğe bağlı)"
+
+#: FB-26
+msgid "Kunden buchen eine Uhrzeit."
+msgstr "Müşteriler saat ayırtır."
+
+#: FB-26
+msgid "Mehrere möglich. Sie können es später jederzeit ändern."
+msgstr "Birden fazla seçilebilir. Daha sonra istediğiniz zaman değiştirebilirsiniz."
+
+#: FB-26
+msgid "Plätze für Termine mit Datum."
+msgstr "Tarihli etkinlikler için yerler."
+
+#: FB-26
+msgid "Speisekarte und Tischreservierung."
+msgstr "Menü ve masa rezervasyonu."
+
+#: FB-26
+msgid "Speisen & Getränke"
+msgstr "Yiyecek ve içecek"
+
+#: FB-26
+msgid "Termine & Dienstleistungen"
+msgstr "Randevular ve hizmetler"
+
+#: FB-26
+msgid "Tickets & Touren"
+msgstr "Biletler ve turlar"
+
+#: FB-26
+msgid "Zimmer & Übernachtung"
+msgstr "Odalar ve konaklama"
+
+
+#: FB-26
+msgid "Waren im Laden & zum Abholen"
+msgstr "Mağazada ve gel-al ürünler"
+
+#: FB-26
+msgid "Alles, was Sie verkaufen: Lebensmittel, Drogerie, Spielzeug, Mode, Technik …"
+msgstr "Sattığınız her şey: gıda, temizlik ürünleri, oyuncak, moda, elektronik …"
+
+#: FB-26
+msgid "z. B. Bäckerei, Hofladen, Drogerie, Spielwaren, Boutique"
+msgstr "ör. fırın, çiftlik dükkanı, drogeri, oyuncakçı, butik"
+
+#: FB-26
+msgid "Online-Shop mit Lieferung & Versand"
+msgstr "Teslimat ve kargolu online mağaza"
+
+#: FB-26
+msgid "Kunden bestellen online, Sie liefern oder versenden."
+msgstr "Müşteriler online sipariş verir, siz teslim eder ya da kargolarsınız."
+
+#: FB-26
+msgid "z. B. Online-Shop, Manufaktur, Feinkost, Mode"
+msgstr "ör. online mağaza, atölye, şarküteri, moda"
+
+#: FB-26
+msgid "z. B. Friseur, Kosmetik, Werkstatt, Massage"
+msgstr "ör. kuaför, güzellik salonu, oto servis, masaj"
+
+#: FB-26
+msgid "z. B. Hotel, Pension, Ferienwohnung"
+msgstr "ör. otel, pansiyon, tatil dairesi"
+
+#: FB-26
+msgid "z. B. Kurse, Stadtführungen, Konzerte"
+msgstr "ör. kurslar, şehir turları, konserler"
+
+#: FB-26
+msgid "z. B. Handwerk, Catering, Reparatur"
+msgstr "ör. zanaat, catering, tamir"
+
+#: FB-26
+msgid "z. B. Café, Restaurant, Imbiss"
+msgstr "ör. kafe, restoran, büfe"

@@ -375,17 +375,6 @@ ENTRIES: tuple[NavEntry, ...] = (
         search="gruppen rubriken typen mystery vorbestellung",
         group="aktionen",
     ),
-    # STU-19d: page template / grid / card form of the offer pages.
-    _e(
-        "marketing",
-        "page-templates-aktionen",
-        _("Seitenvorlage"),
-        "seitenvorlage-aktionen",
-        "promotions",
-        True,
-        "vorlage layout raster kartenform aktionsseite",
-        group="aktionen",
-    ),
     # T-8.4: ассистент «Schnell-Aktion» — вход из палитры (основной вход — «＋»
     # в списке акций и мобильная плавающая кнопка).
     _e(
@@ -591,20 +580,18 @@ ENTRIES: tuple[NavEntry, ...] = (
         True,
         direction="waren",
     ),
-    # STU-19b: page template / grid / card form of the catalog pages — moved out of
-    # the Studio panel (plan stu19 §2.2). Same gate as the catalog pages it controls.
-    # STU-19d: the tab covers every page of the offer (catalog, services, rooms,
-    # events, tours) — not only goods, so no "Waren" direction and no module gate:
-    # the screen itself shows only the types whose module is on.
+    # FB-24b: типы опций магазина (Größe, Farbe, Material … + свои) — направлению «Waren».
     _e(
         "sellables",
-        "page-templates-sortiment",
-        _("Seitenvorlage"),
-        "seitenvorlage",
-        None,
+        "catalog:option-list",
+        _("Optionen"),
+        "options",
+        "catalog",
         True,
-        "vorlage layout raster kartenform ansicht seitenvorlage",
+        "varianten groesse farbe material optionen",
+        direction="waren",
     ),
+    # FB-16: page templates live only under Website (Seitenvorlagen).
     _e("sellables", "collections:list", _("Kollektionen"), "collections", None, True, "lookbook"),
     # R2 (редизайн B, утверждённая структура): складская группа — подпункты
     # сайдбара «Sortiment» (ящик «Erweitert» на страницах больше не рендерится,
@@ -1058,6 +1045,16 @@ ENTRIES: tuple[NavEntry, ...] = (
         True,
         "vorlage layout raster kartenform startseite blog textseiten",
     ),
+    # FB-25: схема блоков всех страниц с уменьшенной живой страницей (правка — тут же).
+    _e(
+        "site",
+        "site-schema",
+        _("Seitenaufbau"),
+        "site-schema",
+        None,
+        True,
+        "aufbau schema bloecke struktur layout seiten",
+    ),
     _e("site", "site-seo", _("SEO"), "seo", None, True, "meta titel beschreibung robots"),
     # M21.1: старые адреса после переезда с другой платформы (301/410).
     _e(
@@ -1196,9 +1193,9 @@ UNIVERSAL: dict[str, str] = {
     "support:help": "помощь — у каждого",
     "design": "дизайн сайта — у каждого",
     "site-seo": "SEO сайта — у каждого",
+    "site-schema": "схема блоков страниц — у каждого",
     # STU-19d: the screens show only the page types whose module is on.
     "page-templates-website": "шаблоны всех страниц сайта — у каждого",
-    "page-templates-sortiment": "шаблоны страниц ассортимента — у каждого (типы по модулям)",
     "site-redirects": "переадресации старых адресов — у каждого",
     "domains": "домены — у каждого",
     "media-library": "медиатека — у каждого",

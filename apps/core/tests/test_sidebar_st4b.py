@@ -218,6 +218,8 @@ def test_sidebar_children_composition():
         "site-home",
         "design",
         "page-templates-website",
+        # FB-25 (осознанное дополнение): схема блоков страниц рядом с шаблонами
+        "site-schema",
         "site-seo",
         "site-redirects",
         "domains",
@@ -235,8 +237,9 @@ def test_sidebar_children_composition():
         "events:list",
         "events:tour-list",
         "catalog:category-list",
-        # STU-19b (осознанное дополнение): шаблон/сетка/карточка страниц каталога
-        "page-templates-sortiment",
+        # FB-24b (осознанное дополнение): типы опций магазина — рядом с категориями
+        "catalog:option-list",
+        # FB-16 (осознанно снято): шаблоны страниц — только в Website
         "collections:list",
         # R2: складская группа — подпункты Sortiment (ящика на страницах нет)
         "stock",

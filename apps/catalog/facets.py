@@ -35,6 +35,25 @@ def _with_size_axis(variants):
     return variants.annotate(size_axis=Coalesce(NullIf(F("size"), Value("")), legacy))
 
 
+def _option_params(params) -> dict:
+    """FB-24d: {код: [значения]} из ?opt_<код>=… — только активные типы магазина."""
+    keys = [k[4:] for k in getattr(params, "keys", lambda: [])() if str(k).startswith("opt_")]
+    if not keys:
+        return {}
+    from apps.catalog.models import OptionType
+
+    known = set(
+        OptionType.objects.filter(code__in=keys, is_active=True).values_list("code", flat=True)
+    )
+    out = {}
+    for code in keys:
+        if code in known:
+            values = _multi(params, f"opt_{code}")
+            if values:
+                out[code] = values
+    return out
+
+
 def _multi(params, name) -> list:
     """Значения мультивыбора: `?groesse=S&groesse=M` → ["S", "M"].
 
@@ -100,6 +119,9 @@ class CatalogFacets(FacetProvider):
             "sale": params.get("sale") == "1",
             # KA-12 GA-9: «Heute auf der Karte» — блюда Tageskarte, которые есть сегодня.
             "heute": params.get("heute") == "1",
+            # FB-24d: свои/стандартные типы опций магазина (кроме размера и цвета —
+            # у них свои ключи): ?opt_<код>=… мультивыбором, только известные коды.
+            "optionen": _option_params(params),
         }
 
     def apply(self, items, params):
@@ -128,7 +150,7 @@ class CatalogFacets(FacetProvider):
             items = self._only_available(items)
         if sel["herkunft"]:
             items = items.filter(origin=sel["herkunft"])
-        if sel["groesse"] or sel["farbe"]:
+        if sel["groesse"] or sel["farbe"] or sel["optionen"]:
             from django.db.models import Q
 
             # M4-A: размер = ось `size`, а где её нет — легаси-label (смешанный
@@ -147,6 +169,12 @@ class CatalogFacets(FacetProvider):
                 matched = matched.filter(size_axis__in=sel["groesse"])
             if sel["farbe"]:
                 matched = matched.filter(color__in=sel["farbe"])
+            # FB-24d: каждая ось — своя строка связи того же варианта (отдельный JOIN
+            # на каждый filter() по многозначной связи — ровно «И» между осями).
+            for code, values in sel["optionen"].items():
+                matched = matched.filter(
+                    option_links__option_type__code=code, option_links__value__value__in=values
+                )
             items = items.filter(pk__in=matched.values("product_id"))
         if sel["zustand"]:
             items = items.filter(condition=sel["zustand"])
@@ -260,6 +288,8 @@ class CatalogFacets(FacetProvider):
             "size_chips": self._size_chips(items),
             # 2026-09-03: цвет — свотчи из явного реестра option_styles.COLOR_HEX.
             "color_chips": self._color_chips(items),
+            # FB-24d: ряды своих опций (только типы с > 1 значением в срезе).
+            "option_chips": self._option_chips(items),
             # O-2 (Outlet): состояние и марка — те же правила, что у размера:
             # ось показываем, только когда в наборе БОЛЬШЕ ОДНОГО значения.
             "condition_chips": self._condition_chips(items),
@@ -345,6 +375,40 @@ class CatalogFacets(FacetProvider):
         )
         chips = [{"value": r["brand"], "count": r["n"]} for r in rows]
         return chips if len(chips) > 1 else []
+
+    @staticmethod
+    def _option_chips(items) -> list:
+        """FB-24d: значения опций магазина в срезе со счётчиком товаров."""
+        from django.db.models import Count, Min
+
+        from apps.catalog import option_types
+        from apps.catalog.models import VariantOption
+
+        rows = (
+            VariantOption.objects.filter(
+                variant__product__in=items,
+                variant__is_active=True,
+                option_type__is_active=True,
+            )
+            .values("option_type__code", "value__value")
+            .annotate(o=Min("value__sort_order"), n=Count("variant__product_id", distinct=True))
+            .order_by("o", "value__value")
+        )
+        by_code: dict[str, list] = {}
+        for r in rows:
+            by_code.setdefault(r["option_type__code"], []).append(
+                {"value": r["value__value"], "count": r["n"]}
+            )
+        if not by_code:
+            return []
+        from apps.catalog.models import OptionType
+
+        out = []
+        for t in OptionType.objects.filter(code__in=list(by_code)).order_by("sort_order", "id"):
+            values = by_code[t.code]
+            if len(values) > 1:
+                out.append({"code": t.code, "label": option_types.type_label(t), "values": values})
+        return out
 
     @staticmethod
     def _size_chips(items) -> list:

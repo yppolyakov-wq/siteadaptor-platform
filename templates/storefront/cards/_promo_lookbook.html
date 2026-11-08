@@ -8,6 +8,7 @@
     </div>
     <div class="pt-2.5">
       {% if p.group and not in_group %}<p class="text-[10px] uppercase tracking-[0.14em] text-gray-400 truncate" data-promo-group>{{ p.group_localized }}</p>{% endif %}
+      {% include "storefront/_entity_label.html" with label=p.badge_label cls="inline-block mb-1" %}
       <h3 class="mt-0.5 text-sm leading-snug line-clamp-2" data-edit-model="promotion" data-edit-field="title" data-edit-pk="{{ p.pk }}">{{ p.title_text }}</h3>
       <div class="mt-1 text-sm">{% include "storefront/_discount_display.html" with promo=p part="price_line" %}</div>
       {% if preview %}{% include "storefront/_discount_display.html" with promo=p part="starts" %}

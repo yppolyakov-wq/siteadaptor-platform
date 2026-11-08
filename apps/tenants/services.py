@@ -53,7 +53,15 @@ def _resolve_partner(code: str):
 
 
 def _new_tenant(
-    *, business_name, slug, business_type, city, email, partner_code="", wizard_v4=False
+    *,
+    business_name,
+    slug,
+    business_type,
+    city,
+    email,
+    partner_code="",
+    wizard_v4=False,
+    directions=None,
 ) -> Tenant:
     from apps.jobs.anfrage_presets import with_default
 
@@ -81,11 +89,21 @@ def _new_tenant(
         enabled_locales=["de", "en"],
         site_config=site_config,
     )
+    if directions:
+        # FB-26: «Was verkaufen Sie?» — модули по направлениям, ответ — в состояние мастера.
+        from . import signup_directions
+
+        chosen = signup_directions.directions_for(business_type, directions)
+        tenant.disabled_modules = signup_directions.disabled_modules(
+            business_type, chosen, online="online" in signup_directions.clean(directions)
+        )
+        tenant.site_config = {**tenant.site_config, "onboarding": {"v": 2, "directions": chosen}}
     if wizard_v4:
         # AIS-W W4-1: мастер v4 — сайт скрыт от гостей до «Website veröffentlichen».
         # Признак ставится при СОЗДАНИИ (иначе до первого захода в мастер сайт виден).
         tenant.published_at = None
-        tenant.site_config = {**site_config, "onboarding": {"v": 2, "flow": "v4"}}
+        state = dict(tenant.site_config.get("onboarding") or {"v": 2})
+        tenant.site_config = {**tenant.site_config, "onboarding": {**state, "flow": "v4"}}
     return tenant
 
 
@@ -100,6 +118,7 @@ def start_business_provisioning(
     password="",
     password_hash="",
     partner_code="",
+    directions=None,
 ):
     """Мгновенная часть регистрации: Tenant (БЕЗ схемы) + Domain + фоновая задача.
 
@@ -118,6 +137,7 @@ def start_business_provisioning(
         email=email,
         partner_code=partner_code,
         wizard_v4=getattr(settings, "SETUP_WIZARD_V4", False),
+        directions=directions,
     )
     tenant.provisioning_status = Tenant.PROVISIONING_PENDING
     tenant.auto_create_schema = False  # схему создаст фоновая задача

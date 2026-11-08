@@ -54,6 +54,7 @@ def test_signup_form_rejects_reserved_and_bad_slug():
     base = {
         "business_name": "X",
         "business_type": "bakery",
+        "directions": ["waren"],
         "city": "Y",
         "email": "a@b.test",
         "password1": "longenough1",
@@ -70,6 +71,7 @@ def test_signup_form_password_mismatch():
             "business_name": "X",
             "slug": "shop",
             "business_type": "bakery",
+            "directions": ["waren"],
             "city": "Y",
             "email": "a@b.test",
             "password1": "longenough1",

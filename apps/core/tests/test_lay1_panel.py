@@ -198,6 +198,6 @@ def test_apply_layout_to_all_has_no_second_source_of_truth():
     from apps.core import page_templates
     from apps.core.tests.test_stu19f_grid import _req
 
-    cab = page_templates.page_templates_sortiment(_req(tenant, data={"typ": "catalog"}))
+    cab = page_templates.page_templates_website(_req(tenant, data={"typ": "catalog"}))
     form = cab.content.decode().split('data-pt-setting="catalog_layout"', 1)[1]
     assert 'name="apply_all"' in form.split("</form>", 1)[0], "удобное действие потеряно"

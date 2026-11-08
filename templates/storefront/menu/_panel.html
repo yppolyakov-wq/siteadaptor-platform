@@ -1,0 +1,7 @@
+{% comment %}FB-23b: содержимое выпадающей панели пункта верхнего уровня по его виду
+(`item.layout`, решение владельца 2026-11-07): A list · B tiles · C mega · D columns.
+Вид G «strip» панели не имеет — его рисует полоса под шапкой (`_strip.html`).{% endcomment %}
+{% if item.layout == "mega" %}{% include "storefront/menu/_panel_mega.html" %}
+{% elif item.layout == "columns" %}{% include "storefront/menu/_panel_columns.html" %}
+{% elif item.layout == "tiles" %}{% include "storefront/menu/_panel_tiles.html" %}
+{% else %}{% include "storefront/menu/_panel_list.html" %}{% endif %}

@@ -35,7 +35,7 @@ min_persons, описание, цена под PAngV/DS-7b-гейтом, CTA «C
   {% comment %}STU-18c (Д-2): «Текст на фото» и «Ценник» предлагались на /kombi/ и
   молча ничего не делали — LAY-4 научил формам только `_sellable_card`. Разметка
   повторяет эталон, чтобы вид набора и товара совпадал.{% endcomment %}
-  {% if c.primary_image_url %}<span data-combo-img class="relative block {% if card_style == "lookbook" %}aspect-[3/4]{% elif card_style == "regal" %}aspect-square{% else %}aspect-[4/3]{% endif %} bg-gray-100" data-sf-media-box><img src="{{ c.primary_image_url }}" alt="{{ c.name_localized }}" loading="lazy" class="w-full h-full object-cover">
+  {% if c.primary_image_url %}<span data-combo-img class="relative block {% if card_style == "lookbook" %}aspect-[3/4]{% elif card_style == "regal" %}aspect-square{% else %}aspect-[4/3]{% endif %} bg-gray-100" data-sf-media-box data-sf-place="combo"><img src="{{ c.primary_image_url }}" alt="{{ c.name_localized }}" loading="lazy" class="w-full h-full object-cover">
     {% if card_style == "overlay" %}<span class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent px-4 pb-3 pt-10"><span class="text-white font-semibold text-lg">{{ c.name_localized }}</span></span>
     {% elif card_style == "etikett" and c.price %}{% if storefront_orders_active or site.menu_show_prices != False %}<span class="absolute bottom-2 right-2 rounded-lg bg-white/95 px-2 py-1 text-sm font-bold shadow ring-1 ring-black/5">{{ c.price }} {{ c.currency|cursym }}</span>{% endif %}{% endif %}</span>{% endif %}
   <span data-combo-body class="block {% if card_style == "lookbook" or card_style == "regal" %}px-4 py-3{% else %}p-5{% endif %}">

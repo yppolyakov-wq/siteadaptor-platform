@@ -4,8 +4,8 @@
 это уже ловили на HF-6).
 
 Контракт разметки: контейнер `[data-pick-ui]` идёт ПЕРЕД своим `select`
-(`[data-pick-select]`); кнопки `[data-pick]` несут `data-pick-value`. Для двух
-осей контейнеры помечены `data-pick-axis="color|size"` — доступные комбинации
+(`[data-pick-select]`); кнопки `[data-pick]` несут `data-pick-value`. Для осей
+контейнеры помечены `data-pick-axis="color|size|<код типа>"` (FB-24d) — доступные комбинации
 считаются по опциям селекта (второго источника правды нет).
 
 Выбор ВСЕГДА пишется в селект и сопровождается событием change — иначе не
@@ -52,23 +52,30 @@
       picked[axis] = on ? on.getAttribute("data-pick-value") : "";
     });
     var opts = Array.prototype.slice.call(sel.options);
-    Object.keys(boxes).forEach(function (axis) {
-      var other = axis === "color" ? "size" : "color";
+    var axes = Object.keys(boxes);
+    /* FB-24d: N осей. Размер/цвет — атрибуты data-size/data-color (M4-A), свои оси —
+       data-o-<код>. Кнопка доступна, если есть живая опция с этим значением и со ВСЕМИ
+       уже выбранными значениями других осей. */
+    function attr(o, axis) {
+      var name = axis === "size" || axis === "color" ? "data-" + axis : "data-o-" + axis;
+      return o.getAttribute(name) || "";
+    }
+    function fits(o, skip) {
+      return axes.every(function (a) {
+        return a === skip || !picked[a] || attr(o, a) === picked[a];
+      });
+    }
+    axes.forEach(function (axis) {
       boxes[axis].querySelectorAll("[data-pick]").forEach(function (b) {
         var value = b.getAttribute("data-pick-value");
-        var ok = opts.some(function (o) {
-          if (o.disabled) return false;
-          if ((o.dataset[axis] || "") !== value) return false;
-          return !picked[other] || (o.dataset[other] || "") === picked[other];
+        b.disabled = !opts.some(function (o) {
+          return !o.disabled && attr(o, axis) === value && fits(o, axis);
         });
-        b.disabled = !ok;
       });
     });
-    // Обе оси выбраны → находим сам вариант.
-    if (picked.color !== undefined && picked.size !== undefined && picked.color && picked.size) {
-      var hit = opts.filter(function (o) {
-        return !o.disabled && o.dataset.color === picked.color && o.dataset.size === picked.size;
-      })[0];
+    // Все оси выбраны → находим сам вариант.
+    if (axes.every(function (a) { return picked[a]; })) {
+      var hit = opts.filter(function (o) { return !o.disabled && o.value && fits(o, null); })[0];
       if (hit) setValue(sel, hit.value);
     }
   }
@@ -82,7 +89,8 @@
       var axis = ui.getAttribute("data-pick-axis");
       if (axis) {
         var opt = sel.options[sel.selectedIndex];
-        mark(ui, (opt && opt.dataset[axis]) || "");
+        var name = axis === "size" || axis === "color" ? "data-" + axis : "data-o-" + axis;
+        mark(ui, (opt && opt.getAttribute(name)) || "");
       } else {
         mark(ui, sel.value);
       }

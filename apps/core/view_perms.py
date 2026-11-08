@@ -236,6 +236,8 @@ RULES: dict[str, Rule] = {
     "catalog:category-image-primary": _r(S, SE),
     "catalog:category-inline-edit": _r(S, SE),
     "catalog:category-list": _r(S, SE),
+    "catalog:option-list": _r(S, SE),  # FB-24b
+    "catalog:product-axes": _r(S, SE),
     "catalog:category-city-map": _r(S, SE),  # UX-D D8.3
     "catalog:combo-create": _r(S, SE),
     "catalog:combo-delete": _r(S, "sortiment.delete"),
@@ -371,6 +373,7 @@ RULES: dict[str, Rule] = {
     "promotions:voucher-new": _r(M, ME),  # UX-D D6.4
     # --- Website ------------------------------------------------------------------
     "design": _r(W, WE),
+    "site-schema": _r(W, WE),  # FB-25
     "page-templates-sortiment": _r(W, WE),  # STU-19b
     "page-templates-aktionen": _r(W, WE),  # STU-19d
     "page-templates-website": _r(W, WE),  # STU-19d

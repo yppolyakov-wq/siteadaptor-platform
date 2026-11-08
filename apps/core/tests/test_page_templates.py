@@ -18,7 +18,6 @@ from django.conf import settings as dj_settings
 from django.contrib.auth import get_user_model
 from django.contrib.messages.middleware import MessageMiddleware
 from django.contrib.sessions.middleware import SessionMiddleware
-from django.http import Http404
 from django.test import RequestFactory
 from django.urls import reverse
 
@@ -35,7 +34,7 @@ def _tenant_urlconf(settings):
     settings.ROOT_URLCONF = "config.urls_tenant"
 
 
-def _req(tenant, method="get", data=None, path="/dashboard/seitenvorlagen/sortiment/"):
+def _req(tenant, method="get", data=None, path="/dashboard/seitenvorlagen/"):
     request = getattr(RequestFactory(), method)(path, data or {})
     SessionMiddleware(lambda r: None).process_request(request)
     MessageMiddleware(lambda r: None).process_request(request)
@@ -54,7 +53,7 @@ def tenant():
 
 def test_tab_shows_exactly_the_schema(tenant):
     for typ in ("catalog", "category", "product"):
-        html = page_templates.page_templates_sortiment(_req(tenant, data={"typ": typ}))
+        html = page_templates.page_templates_website(_req(tenant, data={"typ": typ}))
         body = html.content.decode()
         shown = {
             part.split('"')[0] for part in body.split('data-pt-setting="')[1:] if part.split('"')[0]
@@ -66,7 +65,7 @@ def test_tab_shows_exactly_the_schema(tenant):
 def test_post_writes_through_the_service_and_keeps_other_keys(tenant):
     tenant.site_config = {"seo": {"title": "X"}, "board": {"labels": {"a": "b"}}}
     tenant.save(update_fields=["site_config"])
-    resp = page_templates.page_templates_sortiment(
+    resp = page_templates.page_templates_website(
         _req(
             tenant, "post", {"setting": "catalog_page_style", "value": "magazin", "typ": "catalog"}
         )
@@ -81,7 +80,7 @@ def test_post_writes_through_the_service_and_keeps_other_keys(tenant):
 def test_garbage_post_changes_nothing(tenant):
     tenant.site_config = {"catalog_page_style": "kompakt"}
     tenant.save(update_fields=["site_config"])
-    page_templates.page_templates_sortiment(
+    page_templates.page_templates_website(
         _req(tenant, "post", {"setting": "catalog_page_style", "value": "<script>"})
     )
     tenant.refresh_from_db()
@@ -89,7 +88,7 @@ def test_garbage_post_changes_nothing(tenant):
 
 
 def test_unavailable_tile_is_disabled_with_reason(tenant):
-    body = page_templates.page_templates_sortiment(
+    body = page_templates.page_templates_website(
         _req(tenant, data={"typ": "category"})
     ).content.decode()
     i = body.index('name="value" value="regale"')
@@ -100,19 +99,33 @@ def test_unavailable_tile_is_disabled_with_reason(tenant):
 def test_without_any_page_type_the_screen_explains_instead_of_404(tenant, monkeypatch):
     """STU-19d: the menu entry is universal — a shop without any of the section's pages
     (e.g. "Nur Aktionen") gets an explanation, not a 404 behind a visible link."""
-    monkeypatch.setattr(type(tenant), "is_module_active", lambda self, key: False)
-    body = page_templates.page_templates_sortiment(_req(tenant)).content.decode()
+    # FB-16: the Website screen always has the home page — the empty case is forced
+    monkeypatch.setattr(page_settings, "active_types", lambda tenant, types: ())
+    body = page_templates.page_templates_website(_req(tenant)).content.decode()
     assert 'data-pt-setting="' not in body and "ui-empty" in body
 
 
 def test_menu_entry_and_permission_rule():
-    entry = next(e for e in nav_registry.ENTRIES if e.url_name == "page-templates-sortiment")
-    # STU-19d: the tab covers services/rooms/events too — the screen filters types
-    assert entry.module_key is None and entry.hub == "sellables"
-    assert reverse("page-templates-sortiment") == "/dashboard/seitenvorlagen/sortiment/"
-    rule = view_perms.RULES["page-templates-sortiment"]
-    assert rule.write == "website.edit"
-    assert nav_registry.ANCHOR_BY_NAV["seitenvorlage"] == nav_registry.ANCHOR_BY_NAV["categories"]
+    # FB-16: page templates live only under Website — no entry in Sortiment/Aktionen
+    names = {e.url_name for e in nav_registry.ENTRIES}
+    assert "page-templates-website" in names
+    assert "page-templates-sortiment" not in names and "page-templates-aktionen" not in names
+    entry = next(e for e in nav_registry.ENTRIES if e.url_name == "page-templates-website")
+    assert entry.module_key is None and entry.hub == "site"
+    assert view_perms.RULES["page-templates-website"].write == "website.edit"
+
+
+def test_fb16_old_tabs_redirect_to_website(tenant):
+    """FB-16: old addresses keep working — the type is kept, a question goes to the helper."""
+    resp = page_templates.page_templates_sortiment(_req(tenant, data={"typ": "category"}))
+    assert resp.status_code == 302 and resp["Location"] == "/dashboard/seitenvorlagen/?typ=category"
+    resp = page_templates.page_templates_sortiment(_req(tenant))
+    assert resp["Location"] == "/dashboard/seitenvorlagen/?typ=catalog"
+    resp = page_templates.page_templates_aktionen(_req(tenant, data={"typ": "catalog"}))
+    assert resp["Location"] == "/dashboard/seitenvorlagen/?typ=promos"
+    resp = page_templates.page_templates_sortiment(_req(tenant, data={"frage": "Brot 3 €"}))
+    assert resp["Location"].startswith("/dashboard/anlegen/?frage=")
+    assert page_templates.cabinet_url("promo_group") == "/dashboard/seitenvorlagen/?typ=promo_group"
 
 
 @pytest.fixture
@@ -183,14 +196,17 @@ def _modules(monkeypatch, tenant, active):
     monkeypatch.setattr(type(tenant), "is_module_active", lambda self, key: key in active)
 
 
-def test_aktionen_tab_needs_promotions(tenant, monkeypatch):
+def test_promo_types_need_promotions(tenant, monkeypatch):
+    """FB-16: the offer pages are types of the Website screen — shown only with the module."""
     _modules(monkeypatch, tenant, {"catalog"})
-    with pytest.raises(Http404):
-        page_templates.page_templates_aktionen(_req(tenant))
+    body = page_templates.page_templates_website(_req(tenant)).content.decode()
+    assert "?typ=promos" not in body
     _modules(monkeypatch, tenant, {"catalog", "promotions"})
-    body = page_templates.page_templates_aktionen(_req(tenant)).content.decode()
+    body = page_templates.page_templates_website(
+        _req(tenant, data={"typ": "promos"})
+    ).content.decode()
     assert 'data-pt-setting="promo_page_style"' in body
-    assert 'name="frage"' not in body  # the setup helper creates catalog things only
+    assert 'name="frage"' not in body  # the setup helper has its own screen
 
 
 def test_website_screen_lists_text_pages_and_hides_inactive_types(tenant, monkeypatch):
@@ -204,22 +220,22 @@ def test_website_screen_lists_text_pages_and_hides_inactive_types(tenant, monkey
     assert 'data-pt-setting="home_hero"' in body
 
 
-def test_sortiment_shows_services_when_booking_is_on(tenant, monkeypatch):
+def test_website_shows_services_when_booking_is_on(tenant, monkeypatch):
     _modules(monkeypatch, tenant, {"catalog", "booking"})
-    body = page_templates.page_templates_sortiment(
+    body = page_templates.page_templates_website(
         _req(tenant, data={"typ": "services"})
     ).content.decode()
     assert 'data-pt-setting="services_sort"' in body
 
 
-def test_section_writes_only_its_own_settings(tenant, monkeypatch):
-    """The Aktionen tab must not become a back door for unrelated settings."""
-    _modules(monkeypatch, tenant, {"catalog", "promotions"})
-    page_templates.page_templates_aktionen(
-        _req(tenant, "post", {"setting": "catalog_page_style", "value": "magazin"})
+def test_screen_writes_only_settings_of_active_types(tenant, monkeypatch):
+    """The screen must not become a back door for settings of switched-off pages."""
+    _modules(monkeypatch, tenant, {"catalog"})
+    page_templates.page_templates_website(
+        _req(tenant, "post", {"setting": "promo_page_style", "value": "magazin"})
     )
     tenant.refresh_from_db()
-    assert "catalog_page_style" not in (tenant.site_config or {})
+    assert "promo_page_style" not in (tenant.site_config or {})
 
 
 def test_preview_query_paths_get_the_right_separator():

@@ -3,7 +3,7 @@
 `data-card-imgs` при включённой опции). Параметры: p, ratio (классы бокса), side —
 боковое фото горизонтальной формы: высоту задаёт карточка (DL-24, форма фото витрины
 делает его миниатюрой по ширине колонки, а не раздувает за её пределы).{% endcomment %}
-<div class="relative {{ ratio|default:'aspect-square' }} bg-gray-100 overflow-hidden" data-sf-media-box{% if side %}="side"{% endif %}{% if storefront_card_slider and p.images|length > 1 %} data-card-imgs="{% for im in p.images %}{{ im.url }}{% if not forloop.last %}|{% endif %}{% endfor %}"{% endif %}>
+<div class="relative {{ ratio|default:'aspect-square' }} bg-gray-100 overflow-hidden" data-sf-media-box{% if side %}="side"{% endif %} data-sf-place="product"{% if storefront_card_slider and p.images|length > 1 %} data-card-imgs="{% for im in p.images %}{{ im.url }}{% if not forloop.last %}|{% endif %}{% endfor %}"{% endif %}>
   {% with img=p.primary_image %}
     {% if img %}
       <img src="{{ img.url }}" alt="{{ p }}" loading="lazy" decoding="async" class="w-full h-full object-cover group-hover:scale-[1.02] transition">

@@ -35,6 +35,7 @@ from apps.core.redirects_views import (
 )
 from apps.core.settings_home import einstellungen_home
 from apps.core.setup_google import setup_google as setup_google_view
+from apps.core.site_schema_views import site_schema_view
 from apps.core.storefront_profile import redirect_if_aktionen as _aktionen
 from apps.core.team import team_invite, team_join, team_member, team_view
 from apps.core.views import (
@@ -271,6 +272,8 @@ urlpatterns = [
     path("dashboard/site/", site_view, name="site"),
     # DL-7b: переключатель шаблонов вне Studio (подпункт Website).
     path("dashboard/design/", design_view, name="design"),
+    # FB-25: схема блоков всех типов страниц + уменьшенная живая страница
+    path("dashboard/site/aufbau/", site_schema_view, name="site-schema"),
     # STU-19b: page settings of a section in the cabinet (one writer: page_settings).
     path(
         "dashboard/seitenvorlagen/sortiment/",

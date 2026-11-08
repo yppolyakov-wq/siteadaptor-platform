@@ -53,8 +53,53 @@ def validate_image(uploaded) -> str:
     return fmt
 
 
+#: FB-18b: фото с камеры телефона (12–48 Мпикс) весят 5–15 МБ — раньше их молча
+#: отвергал лимит 5 МБ, и «фото пропадало» при правке акции из Mini App. Такие файлы
+#: уменьшаем до длинной стороны SHRINK_SIDE и сохраняем как обычные.
+MAX_UPLOAD_BYTES = 20 * 1024 * 1024
+SHRINK_SIDE = 2560
+
+
+def shrink_large_photo(uploaded):
+    """Большое фото (5–20 МБ, JPEG/PNG/WEBP) → уменьшенная копия ≤ 5 МБ, иначе тот же файл.
+
+    Ничего не решает за проверку: битый/чужой файл возвращается как есть, и
+    `validate_image` честно назовёт причину."""
+    import io
+
+    from django.core.files.base import ContentFile
+    from PIL import ImageOps
+
+    size = getattr(uploaded, "size", 0) or 0
+    if size <= MAX_IMAGE_BYTES or size > MAX_UPLOAD_BYTES:
+        return uploaded
+    try:
+        uploaded.seek(0)
+        with Image.open(uploaded, formats=list(_MIME)) as img:
+            if img.size[0] * img.size[1] > MAX_STRIP_PIXELS:
+                return uploaded
+            fmt = "JPEG" if img.format == "MPO" else img.format
+            img = ImageOps.exif_transpose(img)
+            img.thumbnail((SHRINK_SIDE, SHRINK_SIDE))
+            if fmt == "PNG" and img.mode in ("RGBA", "LA", "P"):
+                fmt = "WEBP"  # прозрачность сохраняем, а вес режем
+            if fmt == "JPEG" and img.mode not in ("RGB", "L"):
+                img = img.convert("RGB")
+            out = io.BytesIO()
+            img.save(out, format="JPEG" if fmt == "PNG" else fmt, quality=85)
+    except Exception:  # noqa: BLE001 — причину назовёт validate_image
+        return uploaded
+    finally:
+        uploaded.seek(0)
+    if out.tell() > MAX_IMAGE_BYTES:
+        return uploaded
+    name = getattr(uploaded, "name", "photo") or "photo"
+    return ContentFile(out.getvalue(), name=name)
+
+
 def save_product_image(uploaded, *, is_primary=False, sort_order=0, folder="products") -> dict:
     """Валидирует, сохраняет в storage и возвращает FileRef-dict."""
+    uploaded = shrink_large_photo(uploaded)
     fmt = validate_image(uploaded)
     name = f"{folder}/{uuid.uuid4().hex}.{_EXT[fmt]}"
     saved_name = default_storage.save(name, uploaded)

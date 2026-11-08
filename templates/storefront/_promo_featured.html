@@ -8,6 +8,7 @@
   </span>
   <span class="flex-1 p-5 md:p-6 flex flex-col justify-center min-w-0">
     {% include "storefront/_discount_display.html" with promo=p part="surprise" size="lg" %}
+    {% include "storefront/_entity_label.html" with label=p.badge_label cls="inline-block mb-1" %}
     <span class="block text-xl md:text-2xl font-bold leading-tight">{{ p.title_text }}</span>
     <span class="block mt-3">{% include "storefront/_discount_display.html" with promo=p part="price" %}</span>
     {% if p.lowest_30d is not None and p.discount_style != 'mystery' %}

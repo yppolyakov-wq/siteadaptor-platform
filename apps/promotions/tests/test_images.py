@@ -80,3 +80,58 @@ def test_set_primary(user):
     promo.refresh_from_db()
     assert promo.images[0]["is_primary"] is False
     assert promo.images[1]["is_primary"] is True
+
+
+# --- FB-18b: правка готовой акции не теряет фото ------------------------------------
+
+
+def _big_jpeg():
+    """Фото «с камеры телефона»: > 5 МБ (шум не сжимается)."""
+    import os
+
+    img = Image.frombytes("RGB", (2400, 1800), os.urandom(2400 * 1800 * 3))
+    buf = io.BytesIO()
+    img.save(buf, "JPEG", quality=100)
+    data = buf.getvalue()
+    assert len(data) > 5 * 1024 * 1024
+    return SimpleUploadedFile("kamera.jpg", data, content_type="image/jpeg")
+
+
+@pytest.mark.django_db
+def test_phone_photo_over_5mb_is_shrunk_not_rejected(user):
+    promo = PromotionFactory()
+    req = RequestFactory().post(
+        f"/promotions/{promo.pk}/edit/",
+        {
+            "title_de": "A",
+            "promo_type": "reservation",
+            "max_per_customer": "1",
+            "reservation_ttl_hours": "24",
+            "images": _big_jpeg(),
+        },
+    )
+    _attach(req, user)
+    assert views.promotion_edit(req, pk=promo.pk).status_code == 302
+    promo.refresh_from_db()
+    assert len(promo.images) == 1
+    assert promo.images[0]["size"] <= 5 * 1024 * 1024
+
+
+@pytest.mark.django_db
+def test_photo_survives_a_field_error_on_edit(user):
+    promo = PromotionFactory()
+    req = RequestFactory().post(
+        f"/promotions/{promo.pk}/edit/",
+        {
+            "title_de": "A",
+            "promo_type": "reservation",
+            "max_per_customer": "not-a-number",  # ошибка в поле
+            "reservation_ttl_hours": "24",
+            "images": _png(),
+        },
+    )
+    _attach(req, user)
+    resp = views.promotion_edit(req, pk=promo.pk)
+    assert resp.status_code == 200  # форма вернулась с ошибкой
+    promo.refresh_from_db()
+    assert len(promo.images) == 1, "выбранное фото не должно пропасть вместе с ошибкой"

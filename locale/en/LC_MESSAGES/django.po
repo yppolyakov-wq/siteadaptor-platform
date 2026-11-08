@@ -35023,3 +35023,476 @@ msgstr "Read PDF"
 
 msgid "%(n)s Zeilen aus der Datei passen nicht mehr in die Liste — bitte danach eintragen."
 msgstr "%(n)s lines from the file no longer fit in the list — please enter them afterwards."
+
+msgid "Die Fotos aus Telegram konnten nicht geladen werden. Bitte laden Sie das Foto hier hoch."
+msgstr "The photos from Telegram could not be loaded. Please upload the photo here."
+
+msgid "Nicht alle Fotos aus Telegram konnten übernommen werden."
+msgstr "Not all photos from Telegram could be taken over."
+
+msgid "(ohne Namen)"
+msgstr "(no name)"
+
+msgid "Als Unterpunkt einrücken"
+msgstr "Indent as sub-item"
+
+msgid "Ansicht des Untermenüs"
+msgstr "Submenu view"
+
+msgid "Auch Menüs & Pakete zeigen"
+msgstr "Also show menus & packages"
+
+msgid "Bereiche links, Unterpunkte rechts"
+msgstr "Sections left, sub-items right"
+
+msgid "Bild"
+msgstr "Image"
+
+msgid "Bild-Adresse"
+msgstr "Image address"
+
+msgid "Bilder mit Text"
+msgstr "Images with text"
+
+msgid "Bitte ein Ziel wählen — sonst erscheint der Punkt nicht."
+msgstr "Please choose a target — otherwise the item will not appear."
+
+msgid "Das Menü konnte nicht gespeichert werden."
+msgstr "The menu could not be saved."
+
+msgid "Eigene untere Leiste verwenden (sonst automatisch)"
+msgstr "Use a custom bottom bar (otherwise automatic)"
+
+msgid "Ein-/ausblenden"
+msgstr "Show/hide"
+
+msgid "Eine Ebene höher"
+msgstr "One level up"
+
+msgid "Einfache Liste"
+msgstr "Simple list"
+
+msgid "Fußzeile"
+msgstr "Footer"
+
+msgid "Kacheln, wenn Unterpunkte Bilder haben, sonst Liste"
+msgstr "Tiles if sub-items have images, otherwise a list"
+
+msgid "Kein Bild"
+msgstr "No image"
+
+msgid "Kopfzeile"
+msgstr "Header"
+
+msgid "Kopfzeile bleibt oben"
+msgstr "Header stays on top"
+
+msgid "Kurzer Text"
+msgstr "Short text"
+
+msgid "Mega"
+msgstr "Mega"
+
+msgid "Menü aus Kategorien"
+msgstr "Menu from categories"
+
+msgid "Menü-Bereiche"
+msgstr "Menu areas"
+
+msgid "Nach oben"
+msgstr "Move up"
+
+msgid "Nach unten"
+msgstr "Move down"
+
+msgid "Punkt"
+msgstr "Item"
+
+msgid "Runde Bilder unter der Kopfzeile"
+msgstr "Round images below the header"
+
+msgid "Spalte"
+msgstr "Column"
+
+msgid "Spalte löschen"
+msgstr "Delete column"
+
+msgid "Spalten mit Links und Banner"
+msgstr "Columns with links and banner"
+
+msgid "Spalten mit Links unter der Website. Ohne Spalten bleibt die Fußzeile wie bisher (Adresse, Öffnungszeiten, Rechtliches)."
+msgstr "Columns of links at the bottom of the website. Without columns the footer stays as before (address, opening hours, legal)."
+
+msgid "Spaltentitel"
+msgstr "Column title"
+
+msgid "Suchen …"
+msgstr "Search …"
+
+msgid "Symbolleiste"
+msgstr "Icon bar"
+
+msgid "Tour"
+msgstr "Tour"
+
+msgid "Ungespeicherte Änderungen"
+msgstr "Unsaved changes"
+
+msgid "Ungespeicherte Änderungen gehen verloren."
+msgstr "Unsaved changes will be lost."
+
+msgid "Untere Leiste (Handy)"
+msgstr "Bottom bar (phone)"
+
+msgid "Unterkategorien automatisch anzeigen"
+msgstr "Show subcategories automatically"
+
+msgid "Unterpunkt hinzufügen"
+msgstr "Add sub-item"
+
+msgid "Vorschau (gespeicherter Stand)"
+msgstr "Preview (saved version)"
+
+msgid "Vorschau der Website"
+msgstr "Website preview"
+
+msgid "Wohin führt der Punkt?"
+msgstr "Where does the item lead?"
+
+msgid "Wählen Sie links einen Punkt, um ihn zu bearbeiten."
+msgstr "Choose an item on the left to edit it."
+
+msgid "Zentriert"
+msgstr "Centred"
+
+msgid "Ziehen Sie Punkte an eine neue Stelle — auf die Mitte eines Punktes gezogen wird er zum Unterpunkt. Bis zu drei Ebenen."
+msgstr "Drag items to a new place — dropped onto the middle of an item, it becomes a sub-item. Up to three levels."
+
+msgid "Übersetzungen"
+msgstr "Translations"
+
+msgid "Abdunkeln"
+msgstr "Darken"
+
+msgid "Ganzes Bild verlinken"
+msgstr "Link the whole image"
+
+msgid "Hell"
+msgstr "Light"
+
+msgid "Keine"
+msgstr "None"
+
+msgid "Links"
+msgstr "Left"
+
+msgid "Mitte"
+msgstr "Centre"
+
+msgid "Oder eigene Adresse in «Button link». Ein gewähltes Ziel hat Vorrang."
+msgstr "Or your own address in «Button link». A chosen target takes priority."
+
+msgid "Rechts"
+msgstr "Right"
+
+msgid "Schrift"
+msgstr "Text colour"
+
+msgid "Wohin führt der Banner?"
+msgstr "Where does the banner lead?"
+
+msgid "Zeigen ab"
+msgstr "Show from"
+
+msgid "Zeigen bis"
+msgstr "Show until"
+
+msgid "Anpassen"
+msgstr "Fit"
+
+msgid "Breit 16:9"
+msgstr "Wide 16:9"
+
+msgid "Format"
+msgstr "Format"
+
+msgid "Fotoformat je Bereich"
+msgstr "Photo format per area"
+
+msgid "Ganz zeigen (mit Rand)"
+msgstr "Show whole (with margin)"
+
+msgid "Hoch 3:4"
+msgstr "Portrait 3:4"
+
+msgid "Leer = wie bei „Fotoform“. „Ganz zeigen“ schneidet nichts ab, sondern lässt Rand."
+msgstr "Empty = as in “Photo shape”. “Show whole” crops nothing and leaves a margin instead."
+
+msgid "Leistungen, Zimmer & Termine"
+msgstr "Services, rooms & events"
+
+msgid "Menüs & Sets"
+msgstr "Menus & sets"
+
+msgid "Quadrat 1:1"
+msgstr "Square 1:1"
+
+msgid "Quer 3:2"
+msgstr "Landscape 3:2"
+
+msgid "Quer 4:3"
+msgstr "Landscape 4:3"
+
+msgid "Zuschneiden"
+msgstr "Crop"
+
+msgid "Banner — außerhalb des Zeitraums"
+msgstr "Banner — outside its display period"
+
+msgid "Banner — klicken zum Bearbeiten"
+msgstr "Banner — click to edit"
+
+msgid "Bild mit Text und Link — auf jeder Seite, mit Zeitraum"
+msgstr "Image with text and link — on any page, with a date range"
+
+msgid "Fotos gespeichert. Bitte die markierten Felder korrigieren."
+msgstr "Photos saved. Please correct the highlighted fields."
+
+msgid "Alle Kombinationen der Optionen; vorhandene werden übersprungen."
+msgstr "All combinations of the options; existing ones are skipped."
+
+msgid "Auswahl im Shop"
+msgstr "Selection in the shop"
+
+msgid "Bitte einen Namen angeben (höchstens 30 Optionen)."
+msgstr "Please enter a name (at most 30 options)."
+
+msgid "Die Werte stehen direkt an den Varianten (Feld im Produkt)."
+msgstr "The values are set directly on the variants (field in the product)."
+
+msgid "Dieser Wert wird von Varianten benutzt."
+msgstr "This value is used by variants."
+
+msgid "Eigene Option"
+msgstr "Custom option"
+
+msgid "Für alles, was es im Standard nicht gibt — z. B. „Stoffart“ oder „Füllung“. Eigene Optionen erscheinen nur auf Ihrer Website."
+msgstr "For anything not in the standard set — e.g. “fabric type” or “filling”. Custom options appear only on your website."
+
+msgid "Geschmack"
+msgstr "Flavour"
+
+msgid "Gespeichert, Werte ergänzt."
+msgstr "Saved, values added."
+
+msgid "Gewicht"
+msgstr "Weight"
+
+msgid "Höchstens drei Optionen pro Produkt."
+msgstr "At most three options per product."
+
+msgid "Länge"
+msgstr "Length"
+
+msgid "Mit ✓ Google werden die Werte auch an Google Shopping und an die Filter im Stadtportal übergeben."
+msgstr "With ✓ Google the values are also passed to Google Shopping and to the filters of the city portal."
+
+msgid "Option aktiviert."
+msgstr "Option activated."
+
+msgid "Option angelegt."
+msgstr "Option created."
+
+msgid "Option anlegen"
+msgstr "Create option"
+
+msgid "Option ausgeblendet."
+msgstr "Option hidden."
+
+msgid "Option gelöscht."
+msgstr "Option deleted."
+
+msgid "Optionen"
+msgstr "Options"
+
+msgid "Optionen des Produkts gespeichert."
+msgstr "Product options saved."
+
+msgid "Optionen gelten für den ganzen Shop. Im Produkt wählen Sie unter „Varianten“, welche (höchstens drei) es hat."
+msgstr "Options apply to the whole shop. In the product, under “Variants”, you choose which ones (at most three) it has."
+
+msgid "Optionen im Shop"
+msgstr "Options in the shop"
+
+msgid "Optionen dieses Produkts"
+msgstr "Options of this product"
+
+msgid "Optionen übernehmen"
+msgstr "Apply options"
+
+msgid "Standard-Optionen"
+msgstr "Standard options"
+
+msgid "Stückzahl"
+msgstr "Quantity"
+
+msgid "Volumen"
+msgstr "Volume"
+
+msgid "Wert gelöscht."
+msgstr "Value deleted."
+
+msgid "Wert löschen"
+msgstr "Delete value"
+
+msgid "Werte"
+msgstr "Values"
+
+msgid "Werte durch Komma"
+msgstr "Values separated by commas"
+
+msgid "Werte hinzufügen (durch Komma getrennt)"
+msgstr "Add values (comma-separated)"
+
+msgid "Weitere Optionen anlegen"
+msgstr "Create more options"
+
+msgid "Wird von Varianten benutzt — bitte nur ausblenden."
+msgstr "Used by variants — please only hide it."
+
+msgid "höchstens drei"
+msgstr "at most three"
+
+msgid "z. B. Baumwolle, Leinen"
+msgstr "e.g. cotton, linen"
+
+msgid "z. B. Füllung"
+msgstr "e.g. filling"
+
+msgid "Block hinzufügen"
+msgstr "Add block"
+
+msgid "Diese Änderung ist hier nicht möglich."
+msgstr "This change is not possible here."
+
+msgid "Einblenden"
+msgstr "Show"
+
+msgid "In Studio bearbeiten"
+msgstr "Edit in Studio"
+
+msgid "In der Vorschau zeigen"
+msgstr "Show in preview"
+
+msgid "Kopfzeile & Menü"
+msgstr "Header & menu"
+
+msgid "Noch keine eigenen Blöcke auf dieser Seite."
+msgstr "No custom blocks on this page yet."
+
+msgid "Sichtbare Blöcke"
+msgstr "Visible blocks"
+
+msgid "Welche Blöcke auf welcher Seite stehen — und in welcher Reihenfolge."
+msgstr "Which blocks are on which page — and in what order."
+
+#: FB-26
+msgid "Alle Branchen zeigen"
+msgstr "Show all industries"
+
+#: FB-26
+msgid "Anfragen & Aufträge"
+msgstr "Inquiries & orders"
+
+#: FB-26
+msgid "Bitte wählen Sie mindestens eine Richtung."
+msgstr "Please choose at least one option."
+
+#: FB-26
+msgid "Damit Texte, Beispiele und Aussehen passen. Keine passende Branche? Einfach überspringen."
+msgstr "So that texts, examples and design fit. No matching industry? Just skip it."
+
+#: FB-26
+msgid "Gäste buchen Nächte."
+msgstr "Guests book nights."
+
+#: FB-26
+msgid "Ihre Branche (optional)"
+msgstr "Your industry (optional)"
+
+#: FB-26
+msgid "Kunden buchen eine Uhrzeit."
+msgstr "Customers book a time slot."
+
+#: FB-26
+msgid "Mehrere möglich. Sie können es später jederzeit ändern."
+msgstr "Several possible. You can change this at any time later."
+
+#: FB-26
+msgid "Plätze für Termine mit Datum."
+msgstr "Seats for dated events."
+
+#: FB-26
+msgid "Speisekarte und Tischreservierung."
+msgstr "Menu and table reservations."
+
+#: FB-26
+msgid "Speisen & Getränke"
+msgstr "Food & drinks"
+
+#: FB-26
+msgid "Termine & Dienstleistungen"
+msgstr "Appointments & services"
+
+#: FB-26
+msgid "Tickets & Touren"
+msgstr "Tickets & tours"
+
+#: FB-26
+msgid "Zimmer & Übernachtung"
+msgstr "Rooms & stays"
+
+
+#: FB-26
+msgid "Waren im Laden & zum Abholen"
+msgstr "Goods in store & for pickup"
+
+#: FB-26
+msgid "Alles, was Sie verkaufen: Lebensmittel, Drogerie, Spielzeug, Mode, Technik …"
+msgstr "Anything you sell: groceries, drugstore items, toys, fashion, electronics …"
+
+#: FB-26
+msgid "z. B. Bäckerei, Hofladen, Drogerie, Spielwaren, Boutique"
+msgstr "e.g. bakery, farm shop, drugstore, toy shop, boutique"
+
+#: FB-26
+msgid "Online-Shop mit Lieferung & Versand"
+msgstr "Online shop with delivery & shipping"
+
+#: FB-26
+msgid "Kunden bestellen online, Sie liefern oder versenden."
+msgstr "Customers order online, you deliver or ship."
+
+#: FB-26
+msgid "z. B. Online-Shop, Manufaktur, Feinkost, Mode"
+msgstr "e.g. online shop, craft maker, delicatessen, fashion"
+
+#: FB-26
+msgid "z. B. Friseur, Kosmetik, Werkstatt, Massage"
+msgstr "e.g. hairdresser, beauty salon, garage, massage"
+
+#: FB-26
+msgid "z. B. Hotel, Pension, Ferienwohnung"
+msgstr "e.g. hotel, guesthouse, holiday flat"
+
+#: FB-26
+msgid "z. B. Kurse, Stadtführungen, Konzerte"
+msgstr "e.g. classes, city tours, concerts"
+
+#: FB-26
+msgid "z. B. Handwerk, Catering, Reparatur"
+msgstr "e.g. trades, catering, repairs"
+
+#: FB-26
+msgid "z. B. Café, Restaurant, Imbiss"
+msgstr "e.g. café, restaurant, snack bar"

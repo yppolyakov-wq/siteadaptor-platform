@@ -1191,6 +1191,18 @@ def _variant_terms(product) -> list[str]:
         for term in ((size or "").strip().upper(), (color or "").strip()):
             if term:
                 terms.setdefault(term[:40], None)
+    # FB-24e: значения СТАНДАРТНЫХ опций (Material, Geschmack …) — поиск «Leinen» находит
+    # товар; свои типы владельца в каталог города не уходят.
+    from apps.catalog.models import VariantOption
+
+    for value in (
+        VariantOption.objects.filter(variant__product=product, variant__is_active=True)
+        .exclude(option_type__standard="")
+        .order_by("value__sort_order", "value_id")
+        .values_list("value__value", flat=True)
+    ):
+        if value and value.strip():
+            terms.setdefault(value.strip()[:40], None)
     return list(terms)[:VARIANT_TERMS_MAX]
 
 

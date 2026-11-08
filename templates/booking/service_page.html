@@ -96,6 +96,7 @@ Varianten» — свои мини-формы, вне #svc-form. Скрытое `
         {% if s.image_url %}<label class="text-sm text-gray-600"><input type="checkbox" name="remove_image" value="1"> {% trans "Remove photo" %}</label>{% endif %}
       </div>
     </div>
+    {% include "tenant/_badge_select.html" with current=s.badge %}
     <fieldset>
       <legend class="text-sm font-medium mb-1">{% trans "Wo sichtbar" %}</legend>
       <input type="hidden" name="is_video_present" value="1"><input type="hidden" name="hide_in_city_present" value="1">

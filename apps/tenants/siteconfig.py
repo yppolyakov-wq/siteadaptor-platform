@@ -170,6 +170,9 @@ REPEATABLE_BLOCKS = (
     "list",
     "stats",
     "newsletter",
+    # FB-22b: баннер на ЛЮБОЙ странице — свои фото/текст/ссылка/оформление/даты
+    # (поля слайда главной; рендер — заголовок h2, не h1 страницы).
+    "banner",
 )
 # LB-1: легаси-ключи C-блоков → канонический тип. Псевдоним принимается на ВСЕХ
 # входах конфига (главная, страницы, сохранённые шаблоны блоков) и приёмниками
@@ -545,6 +548,26 @@ def _clean_cblock_data(key: str, raw) -> dict:
             if v
         }
         return out
+    if key == "banner":
+        # FB-22b: та же санитизация, что у слайда главной (normalize_heroes: безопасные
+        # ссылки, цель из списка меню, оформление, даты); фото — в `url` (как у прочих
+        # C-блоков: 📷 на канве синхронизирует форму по {url}). Пустой баннер остаётся
+        # блоком — владелец заполняет его в панели.
+        slide = normalize_heroes([{**d, "image": d.get("url"), "title": d.get("title") or " "}])
+        h = slide[0] if slide else {}
+        out = {
+            "url": h.get("image", ""),
+            "title": _s(d.get("title"))[:200],
+            "text": h.get("text", ""),
+            "button_label": h.get("button_label", ""),
+            "button_url": h.get("button_url", ""),
+        }
+        for k in ("link", "align", "overlay", "tone", "starts", "ends", "click_all"):
+            if k in h:
+                out[k] = h[k]
+        if d.get("height") in ("sm", "lg"):
+            out["height"] = d["height"]
+        return out
     if key == "stats":
         # GK-4: полоса цифр — rows = [{value, label}] (НЕ "items": у dict в Django-
         # шаблоне .items — метод). Принимает и текст textarea «wert | label» построчно
@@ -636,6 +659,14 @@ CBLOCK_DEMO_DATA = {
     "newsletter": {
         "title": "Bleiben Sie auf dem Laufenden",
         "body": "Neuigkeiten und Angebote — kein Spam, jederzeit abbestellbar.",
+    },
+    # FB-22b: демо баннера (round-trip через _clean_cblock_data — замок).
+    "banner": {
+        "url": "",
+        "title": "Neu bei uns",
+        "text": "Schauen Sie vorbei — wir freuen uns auf Sie.",
+        "button_label": "Mehr erfahren",
+        "button_url": "",
     },
     # GK-4: демо ОБЯЗАНО быть байт-в-байт равно _clean_cblock_data("stats", demo)
     # (замок test_cblocks_builder: round-trip demo-данных).
@@ -1116,6 +1147,7 @@ CBLOCK_LABELS = {
     "list": _("Liste"),
     "stats": _("Numbers"),
     "newsletter": _("Newsletter"),
+    "banner": _("Banner"),
     "faq_ref": _("FAQ anzeigen"),
     "team_ref": _("Team anzeigen"),
     "gallery_ref": _("Galerie anzeigen"),
@@ -1907,6 +1939,13 @@ def normalize_site_defaults(raw) -> dict:
     # 3:2 / 4:3), поэтому ключ presence-minimal и golden-эталоны целы.
     if sd.get("media_shape") in ("round", "wide"):
         out["media_shape"] = sd["media_shape"]
+    # FB-21: формат фото по МЕСТАМ (product/promo/sellable/category/combo/tour) —
+    # {place: {ratio, fit}}; ключ только при непустом (presence-minimal, golden целы).
+    from apps.core import media_places
+
+    places = media_places.clean(sd.get("media_places"))
+    if places:
+        out["media_places"] = places
     # O-2 (2026-08-01): дефолтный вид выбора вариантов для всего магазина; товар
     # может его переопределить. Ключ ТОЛЬКО при валидном не-пустом значении
     # ("" = выпадающий список, как раньше → golden целы).
@@ -2579,9 +2618,46 @@ MENU_NODE_TYPES = (
     "url",
     "anchor",
     "group",
+    # FB-23a: пункт ведёт на конкретную сущность (target = её pk; тур — slug).
+    "product",
+    "service",
+    "stay",
+    "event",
+    "tour",
+    "promotion",
 )
 _MAX_MENU_ITEMS = 20  # потолок пунктов на уровень
-_MENU_MAX_DEPTH = 2  # глубина вложенности (родитель + дети)
+# FB-23a (решение владельца 2026-11-07): 3 уровня — как стандарт рынка (Shopify).
+_MENU_MAX_DEPTH = 3
+#: FB-23a: вид выпадающей панели пункта верхнего уровня. "" (ключа нет) = как раньше:
+#: плитки, если у подпунктов есть фото, иначе список. list · tiles · mega (как портал:
+#: слева подразделы, справа 3-й уровень) · columns (подразделы — колонки, 3-й уровень —
+#: ссылки под ними) · strip (полоса иконок/фото под шапкой).
+MENU_LAYOUTS = ("list", "tiles", "mega", "columns", "strip")
+_MENU_DESC_MAX = 120
+#: FB-23d: подвал из колонок ссылок — потолки.
+_FOOTER_MAX_COLUMNS = 6
+_FOOTER_MAX_LINKS = 12
+
+
+def _menu_href(value) -> str:
+    """Ссылка/картинка пункта меню: только http(s)/mailto/tel/относительные (правило
+    `siteui.safe_href`); `javascript:`, `data:`, `//host` → "" (узел-url тогда выпадет)."""
+    s = _s(value)[:500]
+    if s.startswith("//"):
+        return ""
+    low = s.lower()
+    if low.startswith(("http://", "https://", "mailto:", "tel:")) or s.startswith(("/", "#")):
+        return s
+    return ""
+
+
+def _menu_locales() -> tuple[str, ...]:
+    from django.conf import settings
+
+    return tuple(code for code, _name in settings.LANGUAGES)
+
+
 # Соответствие легаси-пунктов nav → узлы меню (для вывода menus.top из nav).
 _NAV_KEY_TO_NODE = {
     "offers": ("page", "home"),
@@ -2615,10 +2691,13 @@ def _clean_menu_node(raw, depth: int):
     if not label:
         return None
     ntype = raw.get("type") if raw.get("type") in MENU_NODE_TYPES else "url"
+    target = _s(raw.get("target"))
+    if ntype == "url":
+        target = _menu_href(target)  # FB-23a: javascript:/data: в шапку не пускаем
     node = {
         "label": label,
         "type": ntype,
-        "target": _s(raw.get("target")),
+        "target": target,
         "enabled": bool(raw.get("enabled", True)),
         "icon": _s(raw.get("icon"))[:8],
         "children": [],
@@ -2633,9 +2712,23 @@ def _clean_menu_node(raw, depth: int):
         node["with_combos"] = True
     li18n = raw.get("label_i18n")
     if isinstance(li18n, dict):
-        clean_li18n = {loc: _s(v) for loc, v in li18n.items() if loc in ("de", "en") and _s(v)}
+        # FB-23a: переводы на ВСЕ языки витрины (было только de/en).
+        allowed = _menu_locales()
+        clean_li18n = {loc: _s(v) for loc, v in li18n.items() if loc in allowed and _s(v)}
         if clean_li18n:
             node["label_i18n"] = clean_li18n
+    # FB-23a: фото и подпись пункта, авто-подкатегории у пункта-категории, вид
+    # выпадашки у верхнего уровня — все presence-minimal (легаси-меню не раздуваем).
+    image = _menu_href(raw.get("image"))
+    if image and not image.startswith(("mailto:", "tel:", "#")):
+        node["image"] = image
+    desc = _s(raw.get("desc"))[:_MENU_DESC_MAX]
+    if desc:
+        node["desc"] = desc
+    if ntype == "category" and raw.get("auto"):
+        node["auto"] = True
+    if depth == 1 and raw.get("layout") in MENU_LAYOUTS:
+        node["layout"] = raw["layout"]
     if depth < _MENU_MAX_DEPTH and isinstance(raw.get("children"), list):
         for child in raw["children"][:_MAX_MENU_ITEMS]:
             cleaned = _clean_menu_node(child, depth + 1)
@@ -2690,7 +2783,7 @@ def _normalize_menus(raw, nav: dict) -> dict:
     top = raw.get("top") if isinstance(raw.get("top"), dict) else {}
     bottom = raw.get("bottom") if isinstance(raw.get("bottom"), dict) else {}
     top_style = top.get("style")
-    return {
+    out = {
         "top": {
             "style": top_style if top_style in NAV_STYLES else nav["style"],
             "sticky": bool(top.get("sticky", nav["sticky"])),
@@ -2701,6 +2794,40 @@ def _normalize_menus(raw, nav: dict) -> dict:
             "items": _clean_menu_items(bottom.get("items")),
         },
     }
+    # FB-23d: подвал из колонок ссылок; нет колонок — ключа нет (прежний подвал
+    # байт-в-байт, golden целы).
+    footer = raw.get("footer") if isinstance(raw.get("footer"), dict) else {}
+    columns = _clean_footer_columns(footer.get("columns"))
+    if columns:
+        out["footer"] = {"columns": columns}
+    return out
+
+
+def _clean_footer_columns(raw) -> list[dict]:
+    out = []
+    if not isinstance(raw, list):
+        return out
+    allowed = _menu_locales()
+    for col in raw[:_FOOTER_MAX_COLUMNS]:
+        if not isinstance(col, dict):
+            continue
+        label = _s(col.get("label"))[:60]
+        links = []
+        for item in (col.get("items") or [])[:_FOOTER_MAX_LINKS]:
+            # ссылка подвала — лист: детей не бывает (глубина = последний уровень)
+            node = _clean_menu_node(item, _MENU_MAX_DEPTH)
+            if node is not None:
+                links.append(node)
+        if not label and not links:
+            continue
+        clean = {"label": label, "items": links}
+        li18n = col.get("label_i18n")
+        if isinstance(li18n, dict):
+            tr = {loc: _s(v)[:60] for loc, v in li18n.items() if loc in allowed and _s(v)}
+            if tr:
+                clean["label_i18n"] = tr
+        out.append(clean)
+    return out
 
 
 # Шрифты витрины (P2a). ТОЛЬКО системные стеки — без загрузки веб-шрифтов
@@ -2789,6 +2916,16 @@ def _s(value) -> str:
 _MAX_HEROES = 6  # потолок слайдов баннера-слайдера (M20U-2)
 
 
+#: FB-22: оформление слайда баннера. Нет ключа = прежний вид (по центру, тёмная вуаль,
+#: белый текст).
+HERO_SLIDE_STYLE = {
+    "align": ("left", "center", "right"),
+    "overlay": ("none", "light", "dark"),
+    "tone": ("light", "dark"),
+}
+_ISO_DAY = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+
+
 def normalize_heroes(raw) -> list[dict]:
     """M20U-2: слайды баннера → [{image, title, text, button_label, button_url}].
 
@@ -2804,8 +2941,23 @@ def normalize_heroes(raw) -> list[dict]:
             "title": _s(item.get("title"))[:200],
             "text": _s(item.get("text"))[:400],
             "button_label": _s(item.get("button_label"))[:60],
-            "button_url": _s(item.get("button_url"))[:300],
+            # FB-22: только безопасные схемы (как пункт меню) — javascript:/data: → ""
+            "button_url": _menu_href(item.get("button_url"))[:300],
         }
+        # FB-22: ссылка из списка целей меню («type:target»), оформление и даты показа —
+        # presence-minimal (старые слайды байт-в-байт).
+        link = _s(item.get("link"))
+        if ":" in link and link.split(":", 1)[0] in MENU_NODE_TYPES:
+            h["link"] = link[:200]
+        for key, allowed in HERO_SLIDE_STYLE.items():
+            if item.get(key) in allowed:
+                h[key] = item[key]
+        for key in ("starts", "ends"):
+            day = _s(item.get(key))
+            if _ISO_DAY.match(day):
+                h[key] = day
+        if item.get("click_all"):
+            h["click_all"] = True
         if h["image"] or h["title"] or h["text"]:
             out.append(h)
         if len(out) >= _MAX_HEROES:
