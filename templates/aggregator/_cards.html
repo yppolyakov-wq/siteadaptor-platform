@@ -1,6 +1,6 @@
 {% load i18n portal_brand %}{# Грид карточек листингов: ожидает items (AggregatorListing); опц. fav_ids + portal_user (сердечки P2.3b, только на порталах под логином). #}
 {% comment %}PH-7: layout="row" — на телефоне горизонтальная лента со snap (видна часть следующей карточки), с sm — обычная сетка.{% endcomment %}
-<div class="{% if layout == 'row' %}flex overflow-x-auto snap-x snap-mandatory gap-3 -mx-4 px-4 pb-1 sm:mx-0 sm:px-0 sm:pb-0 sm:overflow-visible sm:grid sm:grid-cols-2{% else %}grid grid-cols-2{% endif %} lg:grid-cols-3 lg:group-data-[wide]:grid-cols-4 gap-4 md:gap-6" {% if layout == 'row' %}data-card-row{% endif %}>
+<div class="{% if layout == 'row' %}flex overflow-x-auto snap-x snap-mandatory gap-3 -mx-4 px-4 pb-1 sm:mx-0 sm:px-0 sm:pb-0 sm:overflow-visible sm:grid sm:grid-cols-2{% elif flt_grid %}grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 lg:group-data-[flt-collapsed]/flt:grid-cols-4 xl:group-data-[flt-collapsed]/flt:grid-cols-5{% else %}grid grid-cols-2{% endif %}{% if not flt_grid %} lg:grid-cols-3 lg:group-data-[wide]:grid-cols-4{% endif %} gap-4 md:gap-6"{% if flt_grid %} data-flt-grid{% endif %} {% if layout == 'row' %}data-card-row{% endif %}>
   {% for l in items %}
     <div class="relative{% if layout == 'row' %} shrink-0 w-[72%] snap-start sm:w-auto{% endif %}" data-pstat="{{ l.pk }}">{# В5 V5-4: маячок показов считает карточку по этому pk #}
     {# D2.3: клик по оплаченной позиции считаем редирект-счётчиком (+rel=sponsored) #}

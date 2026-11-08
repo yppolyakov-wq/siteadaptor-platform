@@ -35818,3 +35818,23 @@ msgstr "Увесь %(city)s"
 #: PH-11
 msgid "Pizza, Friseur, Fahrrad, Kinderkino …"
 msgstr "Піца, перукар, велосипед, дитяче кіно …"
+
+#: PH-11
+msgid "Brotkrumen"
+msgstr "Навігаційний ланцюжок"
+
+#: PH-11
+msgid "Suchergebnisse"
+msgstr "Результати пошуку"
+
+#: PH-11
+msgid "Filter ausblenden"
+msgstr "Сховати фільтри"
+
+#: PH-11
+msgid "Filter einblenden"
+msgstr "Показати фільтри"
+
+#: PH-11
+msgid "Suchergebnisse für „%(q)s“"
+msgstr "Результати пошуку за «%(q)s»"

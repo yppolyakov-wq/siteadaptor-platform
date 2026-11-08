@@ -198,7 +198,8 @@ def test_filter_form_keeps_param_district_on_district_path_page():
     _seed()
     p = _portal()
     html = _html(p, "/stadtteil/wald/?stadtteil=mitte", district=WALD)
-    drawer = html.split('id="flt-drawer"', 1)[1]
+    # PH-11b: шторка теперь стоит ПЕРЕД выдачей (колонка слева) — режем строго до </dialog>
+    drawer = html.split('id="flt-drawer"', 1)[1].split("</dialog>", 1)[0]
     assert 'action="/"' in drawer
     assert 'name="stadtteil" value="wald" class="w-5 h-5" checked' in drawer
     assert 'name="stadtteil" value="mitte" class="w-5 h-5" checked' in drawer

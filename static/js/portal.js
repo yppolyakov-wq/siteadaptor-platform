@@ -51,11 +51,54 @@
     true
   );
 
-  // С JS ссылка «Alle Filter» и пилюли ▾ на телефоне открывают диалог — так и называем
-  document.querySelectorAll("[data-flt-open]").forEach(function (a) {
-    a.setAttribute("role", "button");
-    a.setAttribute("aria-haspopup", "dialog");
-  });
+  // PH-11b: с lg шторка показана колонкой слева, а «Alle Filter» сворачивает её.
+  var desktop = window.matchMedia("(min-width: 1024px)");
+  var STORE = "portal:fltCollapsed";
+  function fltLayout() {
+    return document.querySelector("[data-flt-layout]");
+  }
+  function isCollapsed() {
+    var l = fltLayout();
+    return !!(l && l.hasAttribute("data-flt-collapsed"));
+  }
+  function setCollapsed(collapsed, remember) {
+    var l = fltLayout();
+    if (!l) return;
+    if (collapsed) l.setAttribute("data-flt-collapsed", "");
+    else l.removeAttribute("data-flt-collapsed");
+    document.querySelectorAll("[data-flt-toggle-label]").forEach(function (s) {
+      s.textContent = s.getAttribute(collapsed ? "data-label-show" : "data-label-hide");
+    });
+    syncOpeners();
+    if (remember) {
+      try {
+        window.localStorage.setItem(STORE, collapsed ? "1" : "0");
+      } catch (err) {
+        /* приватный режим — просто не запоминаем */
+      }
+    }
+  }
+  // С JS ссылка «Alle Filter» — кнопка: на телефоне открывает диалог, с lg — сворачивает колонку
+  function syncOpeners() {
+    var toggle = desktop.matches && fltLayout();
+    document.querySelectorAll("[data-flt-open]").forEach(function (a) {
+      a.setAttribute("role", "button");
+      if (toggle) {
+        a.removeAttribute("aria-haspopup");
+        a.setAttribute("aria-expanded", isCollapsed() ? "false" : "true");
+      } else {
+        a.setAttribute("aria-haspopup", "dialog");
+        a.removeAttribute("aria-expanded");
+      }
+    });
+  }
+  try {
+    if (window.localStorage.getItem(STORE) === "1") setCollapsed(true, false);
+  } catch (err) {
+    /* нет хранилища — колонка видна */
+  }
+  syncOpeners();
+  if (desktop.addEventListener) desktop.addEventListener("change", syncOpeners);
   function syncSummaries() {
     document.querySelectorAll("[data-flt-pop] > summary").forEach(function (s) {
       if (mobile.matches) s.setAttribute("aria-haspopup", "dialog");
@@ -71,6 +114,11 @@
       return;
     }
     var open = e.target.closest("[data-flt-open]");
+    if (open && desktop.matches && fltLayout()) {
+      e.preventDefault();
+      setCollapsed(!isCollapsed(), true);
+      return;
+    }
     if (open && openDrawer("", open)) {
       e.preventDefault();
       return;
@@ -223,6 +271,7 @@
   });
   // «Alle Filter» с главной: лента открывается с шторкой фильтров.
   if (window.location.hash === "#filter") {
-    openDrawer("", null);
+    if (desktop.matches && fltLayout()) setCollapsed(false, false);
+    else openDrawer("", null);
   }
 })();

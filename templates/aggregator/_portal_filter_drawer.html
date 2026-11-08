@@ -1,0 +1,87 @@
+{% load i18n %}{% comment %}PH-11b (макеты P1/P2): ОДНА форма фильтров на две роли — на телефоне это шторка
+«Alle Filter» (<dialog>, открывается showModal), с lg это левая колонка выдачи (тот же элемент
+показан статично, `lg:block lg:static`). Поля не дублируются. Кнопка «Filter ausblenden»
+сворачивает колонку (data-flt-collapsed на обёртке, выбор помнит localStorage); без JS
+колонка просто видна. Без POST и csrf: страница может прийти из кэша (P0-1).{% endcomment %}
+{% if flt %}
+  <noscript><style>#flt-drawer{display:block;position:static;margin:1rem 0;max-width:none;width:auto;height:auto;max-height:none;box-shadow:none}</style></noscript>
+  <dialog id="flt-drawer" aria-labelledby="flt-drawer-title" class="p-0 m-0 ml-auto h-full max-h-none w-full max-w-none sm:max-w-md bg-white shadow-2xl backdrop:bg-black/40 lg:block lg:sticky lg:left-auto lg:right-auto lg:shrink-0 lg:w-[300px] lg:h-auto lg:m-0 lg:shadow-none lg:border lg:border-gray-200 lg:rounded-3xl lg:overflow-hidden lg:top-28 lg:group-data-[flt-collapsed]/flt:hidden">
+    <form method="get" action="{{ flt.action }}" class="flex flex-col h-full">
+      {% for k, v in flt.hidden %}<input type="hidden" name="{{ k }}" value="{{ v }}">{% endfor %}
+      <div class="flex items-center justify-between px-4 py-3 border-b border-gray-200">
+        <h2 id="flt-drawer-title" class="text-lg font-bold">{% trans "Filter" %}</h2>
+        <button type="button" data-flt-close aria-label="{% trans "Schließen" %}" class="lg:hidden w-11 h-11 inline-flex items-center justify-center rounded-full hover:bg-gray-100 text-xl"><span aria-hidden="true">✕</span></button>
+      </div>
+      <div class="flex-1 overflow-y-auto px-4 scroll-pb-24 lg:max-h-[calc(100vh-16rem)]">
+        {% if flt.sections %}
+        <fieldset data-flt-sec="bereich" class="py-4 border-b border-gray-100">
+          <legend tabindex="-1" class="font-semibold mb-2 focus:outline-none">{% trans "Bereich" %}</legend>
+          <div class="space-y-1">
+            {% for s in flt.sections %}
+              <label class="flex items-center gap-3 py-1.5 text-sm"><input type="checkbox" name="kat" value="{{ s.key }}" class="w-5 h-5"{% if s.checked %} checked{% endif %}><span class="flex-1">{{ s.label }}</span><span class="text-gray-500">{{ s.count }}</span></label>
+              {% for c in s.categories %}<label class="flex items-center gap-3 py-1 pl-8 text-sm"><input type="checkbox" name="kat" value="{{ c.key }}" class="w-5 h-5"{% if c.checked %} checked{% endif %}><span class="flex-1">{{ c.label }}</span><span class="text-gray-500">{{ c.count }}</span></label>{% endfor %}
+            {% endfor %}
+          </div>
+        </fieldset>
+        {% endif %}
+        {% if flt.districts %}
+        <fieldset data-flt-sec="stadtteil" class="py-4 border-b border-gray-100">
+          <legend tabindex="-1" class="font-semibold mb-2 focus:outline-none">{% trans "Stadtteil" %}</legend>
+          <div class="space-y-1">
+            {% for d in flt.districts %}<label class="flex items-center gap-3 py-1.5 text-sm"><input type="checkbox" name="stadtteil" value="{{ d.slug }}" class="w-5 h-5"{% if d.checked %} checked{% endif %}><span class="flex-1">{{ d.name }}</span><span class="text-gray-500">{{ d.count }}</span></label>{% endfor %}
+          </div>
+        </fieldset>
+        {% endif %}
+        <fieldset data-flt-sec="preis" class="py-4 border-b border-gray-100">
+          <legend tabindex="-1" class="font-semibold mb-2 focus:outline-none">{% trans "Preis" %}</legend>
+          <div class="flex items-end gap-2">
+            <label class="flex-1 text-sm">{% trans "Preis ab" %}<input type="text" inputmode="decimal" name="preis_von" value="{{ flt.filters.price_from|default_if_none:'' }}" class="mt-1 w-full rounded-lg border border-gray-300 px-2 py-2"></label>
+            <span class="pb-2" aria-hidden="true">–</span>
+            <label class="flex-1 text-sm">{% trans "Preis bis" %}<input type="text" inputmode="decimal" name="preis_bis" value="{{ flt.filters.price_to|default_if_none:'' }}" class="mt-1 w-full rounded-lg border border-gray-300 px-2 py-2"></label>
+          </div>
+        </fieldset>
+        {% if flt.tags %}
+        <fieldset data-flt-sec="merkmal" class="py-4 border-b border-gray-100">
+          <legend tabindex="-1" class="font-semibold mb-2 focus:outline-none">{% trans "Merkmale" %}</legend>
+          <div class="flex flex-wrap gap-2">
+            {% for t in flt.tags %}<label class="inline-flex items-center gap-2 px-3 py-2 rounded-full border border-gray-300 text-sm has-[:checked]:bg-gray-900 has-[:checked]:text-white has-[:checked]:border-gray-900 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-gray-900"><input type="checkbox" name="merkmal" value="{{ t.key }}" class="w-4 h-4"{% if t.checked %} checked{% endif %}>{{ t.label }} <span class="opacity-70">{{ t.count }}</span></label>{% endfor %}
+          </div>
+        </fieldset>
+        {% endif %}
+        <fieldset data-flt-sec="wann" class="py-4 border-b border-gray-100">
+          <legend tabindex="-1" class="font-semibold mb-2 focus:outline-none">{% trans "Wann" %}</legend>
+          <div class="flex flex-wrap gap-4 text-sm">
+            <label class="inline-flex items-center gap-2"><input type="radio" name="datum" value="" class="w-5 h-5"{% if not flt.filters.date %} checked{% endif %}>{% trans "Jederzeit" %}</label>
+            <label class="inline-flex items-center gap-2"><input type="radio" name="datum" value="heute" class="w-5 h-5"{% if flt.filters.date == "heute" %} checked{% endif %}>{% trans "Heute" %}</label>
+            <label class="inline-flex items-center gap-2"><input type="radio" name="datum" value="wochenende" class="w-5 h-5"{% if flt.filters.date == "wochenende" %} checked{% endif %}>{% trans "Am Wochenende" %}</label>
+          </div>
+        </fieldset>
+        <fieldset data-flt-sec="mehr" class="py-4 border-b border-gray-100 space-y-3 text-sm">
+          <legend class="sr-only">{% trans "Weitere Filter" %}</legend>
+          <label class="flex items-center gap-3"><input type="checkbox" name="offen" value="1" class="w-5 h-5"{% if flt.filters.open_now %} checked{% endif %}>{% trans "Jetzt geöffnet" %}</label>
+          <label class="flex items-center gap-3"><input type="checkbox" name="verfuegbar" value="1" class="w-5 h-5"{% if flt.filters.available %} checked{% endif %}>{% trans "Nur verfügbar" %}</label>
+          {% if flt.has_point %}
+          <label class="flex items-center gap-3">{% trans "Umkreis" %}
+            <select name="umkreis" data-radius-select class="rounded-lg border border-gray-300 bg-white px-2 py-1.5">
+              <option value="">{% trans "Egal" %}</option>
+              {% for km in flt.radius_choices %}<option value="{{ km }}"{% if flt.filters.radius_km == km %} selected{% endif %}>{{ km }} km</option>{% endfor %}
+            </select>
+          </label>
+          {% endif %}
+        </fieldset>
+        {% if flt.branches %}
+        <nav data-flt-sec="branche" aria-labelledby="flt-branche" class="py-4">
+          <p id="flt-branche" class="font-semibold mb-2">{% trans "Branche" %}</p>
+          <div class="flex flex-wrap gap-2">
+            {% for b in flt.branches %}<a href="{{ b.url }}"{% if "?" in b.url %} rel="nofollow"{% endif %} class="px-3 py-2 rounded-full text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 border {% if b.active %}bg-gray-900 text-white border-gray-900{% else %}bg-white border-gray-300 text-gray-700 hover:border-gray-500{% endif %}"{% if b.active %} aria-current="page"{% endif %}>{{ b.label }}</a>{% endfor %}
+          </div>
+        </nav>
+        {% endif %}
+      </div>
+      <div class="flex items-center gap-3 px-4 py-3 border-t border-gray-200 bg-white">
+        <a href="{{ flt.reset_url }}" rel="nofollow" class="px-4 py-3 rounded-xl border border-gray-300 text-sm font-medium">{% trans "Zurücksetzen" %}</a>
+        <button type="submit" class="flex-1 px-4 py-3 rounded-xl text-sm font-bold text-white" style="background: var(--portal-color)">{% trans "Treffer anzeigen" %}</button>
+      </div>
+    </form>
+  </dialog>
+{% endif %}

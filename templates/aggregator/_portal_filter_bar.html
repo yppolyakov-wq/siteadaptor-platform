@@ -5,10 +5,10 @@ csrf_token: страница может прийти из кэша публич�
 {% if flt %}
 <div data-flt class="mb-4">
   <div data-flt-bar class="relative flex gap-2 overflow-x-auto sm:overflow-visible sm:flex-wrap py-1 -mx-1 px-1 items-center">
-    <a href="#flt-drawer" data-flt-open="" rel="nofollow"
+    <a href="#flt-drawer" data-flt-open="" aria-controls="flt-drawer" rel="nofollow"
        class="shrink-0 inline-flex items-center gap-1.5 min-h-[44px] sm:min-h-0 px-3.5 py-2 rounded-full text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 font-medium border {% if flt.active_count %}text-white border-transparent{% else %}bg-white border-gray-300 text-gray-800 hover:border-gray-500{% endif %}"{% if flt.active_count %} style="background: var(--portal-color)"{% endif %}>
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="4" y1="7" x2="20" y2="7"></line><line x1="4" y1="12" x2="20" y2="12"></line><line x1="4" y1="17" x2="20" y2="17"></line></svg>
-      {% trans "Alle Filter" %}{% if flt.active_count %} · {{ flt.active_count }}<span class="sr-only"> {% trans "aktiv" %}</span>{% endif %}
+      <span class="lg:hidden">{% trans "Alle Filter" %}</span><span class="hidden lg:inline" data-flt-toggle-label data-label-hide="{% trans 'Filter ausblenden' %}" data-label-show="{% trans 'Filter einblenden' %}">{% trans "Filter ausblenden" %}</span>{% if flt.active_count %} · {{ flt.active_count }}<span class="sr-only"> {% trans "aktiv" %}</span>{% endif %}
     </a>
     {% if flt.sections %}
     <details data-flt-pop="bereich" class="relative shrink-0">
@@ -66,86 +66,6 @@ csrf_token: страница может прийти из кэша публич�
     </form>
   </div>
 
-  <noscript><style>#flt-drawer{display:block;position:static;margin:1rem 0;max-width:none;width:auto;height:auto;max-height:none;box-shadow:none}</style></noscript>
-  <dialog id="flt-drawer" aria-labelledby="flt-drawer-title" class="p-0 m-0 ml-auto h-full max-h-none w-full max-w-none sm:max-w-md bg-white shadow-2xl backdrop:bg-black/40">
-    <form method="get" action="{{ flt.action }}" class="flex flex-col h-full">
-      {% for k, v in flt.hidden %}<input type="hidden" name="{{ k }}" value="{{ v }}">{% endfor %}
-      <div class="flex items-center justify-between px-4 py-3 border-b border-gray-200">
-        <h2 id="flt-drawer-title" class="text-lg font-bold">{% trans "Filter" %}</h2>
-        <button type="button" data-flt-close aria-label="{% trans "Schließen" %}" class="w-11 h-11 inline-flex items-center justify-center rounded-full hover:bg-gray-100 text-xl"><span aria-hidden="true">✕</span></button>
-      </div>
-      <div class="flex-1 overflow-y-auto px-4 scroll-pb-24">
-        {% if flt.sections %}
-        <fieldset data-flt-sec="bereich" class="py-4 border-b border-gray-100">
-          <legend tabindex="-1" class="font-semibold mb-2 focus:outline-none">{% trans "Bereich" %}</legend>
-          <div class="space-y-1">
-            {% for s in flt.sections %}
-              <label class="flex items-center gap-3 py-1.5 text-sm"><input type="checkbox" name="kat" value="{{ s.key }}" class="w-5 h-5"{% if s.checked %} checked{% endif %}><span class="flex-1">{{ s.label }}</span><span class="text-gray-500">{{ s.count }}</span></label>
-              {% for c in s.categories %}<label class="flex items-center gap-3 py-1 pl-8 text-sm"><input type="checkbox" name="kat" value="{{ c.key }}" class="w-5 h-5"{% if c.checked %} checked{% endif %}><span class="flex-1">{{ c.label }}</span><span class="text-gray-500">{{ c.count }}</span></label>{% endfor %}
-            {% endfor %}
-          </div>
-        </fieldset>
-        {% endif %}
-        {% if flt.districts %}
-        <fieldset data-flt-sec="stadtteil" class="py-4 border-b border-gray-100">
-          <legend tabindex="-1" class="font-semibold mb-2 focus:outline-none">{% trans "Stadtteil" %}</legend>
-          <div class="space-y-1">
-            {% for d in flt.districts %}<label class="flex items-center gap-3 py-1.5 text-sm"><input type="checkbox" name="stadtteil" value="{{ d.slug }}" class="w-5 h-5"{% if d.checked %} checked{% endif %}><span class="flex-1">{{ d.name }}</span><span class="text-gray-500">{{ d.count }}</span></label>{% endfor %}
-          </div>
-        </fieldset>
-        {% endif %}
-        <fieldset data-flt-sec="preis" class="py-4 border-b border-gray-100">
-          <legend tabindex="-1" class="font-semibold mb-2 focus:outline-none">{% trans "Preis" %}</legend>
-          <div class="flex items-end gap-2">
-            <label class="flex-1 text-sm">{% trans "Preis ab" %}<input type="text" inputmode="decimal" name="preis_von" value="{{ flt.filters.price_from|default_if_none:'' }}" class="mt-1 w-full rounded-lg border border-gray-300 px-2 py-2"></label>
-            <span class="pb-2" aria-hidden="true">–</span>
-            <label class="flex-1 text-sm">{% trans "Preis bis" %}<input type="text" inputmode="decimal" name="preis_bis" value="{{ flt.filters.price_to|default_if_none:'' }}" class="mt-1 w-full rounded-lg border border-gray-300 px-2 py-2"></label>
-          </div>
-        </fieldset>
-        {% if flt.tags %}
-        <fieldset data-flt-sec="merkmal" class="py-4 border-b border-gray-100">
-          <legend tabindex="-1" class="font-semibold mb-2 focus:outline-none">{% trans "Merkmale" %}</legend>
-          <div class="flex flex-wrap gap-2">
-            {% for t in flt.tags %}<label class="inline-flex items-center gap-2 px-3 py-2 rounded-full border border-gray-300 text-sm has-[:checked]:bg-gray-900 has-[:checked]:text-white has-[:checked]:border-gray-900 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-gray-900"><input type="checkbox" name="merkmal" value="{{ t.key }}" class="w-4 h-4"{% if t.checked %} checked{% endif %}>{{ t.label }} <span class="opacity-70">{{ t.count }}</span></label>{% endfor %}
-          </div>
-        </fieldset>
-        {% endif %}
-        <fieldset data-flt-sec="wann" class="py-4 border-b border-gray-100">
-          <legend tabindex="-1" class="font-semibold mb-2 focus:outline-none">{% trans "Wann" %}</legend>
-          <div class="flex flex-wrap gap-4 text-sm">
-            <label class="inline-flex items-center gap-2"><input type="radio" name="datum" value="" class="w-5 h-5"{% if not flt.filters.date %} checked{% endif %}>{% trans "Jederzeit" %}</label>
-            <label class="inline-flex items-center gap-2"><input type="radio" name="datum" value="heute" class="w-5 h-5"{% if flt.filters.date == "heute" %} checked{% endif %}>{% trans "Heute" %}</label>
-            <label class="inline-flex items-center gap-2"><input type="radio" name="datum" value="wochenende" class="w-5 h-5"{% if flt.filters.date == "wochenende" %} checked{% endif %}>{% trans "Am Wochenende" %}</label>
-          </div>
-        </fieldset>
-        <fieldset data-flt-sec="mehr" class="py-4 border-b border-gray-100 space-y-3 text-sm">
-          <legend class="sr-only">{% trans "Weitere Filter" %}</legend>
-          <label class="flex items-center gap-3"><input type="checkbox" name="offen" value="1" class="w-5 h-5"{% if flt.filters.open_now %} checked{% endif %}>{% trans "Jetzt geöffnet" %}</label>
-          <label class="flex items-center gap-3"><input type="checkbox" name="verfuegbar" value="1" class="w-5 h-5"{% if flt.filters.available %} checked{% endif %}>{% trans "Nur verfügbar" %}</label>
-          {% if flt.has_point %}
-          <label class="flex items-center gap-3">{% trans "Umkreis" %}
-            <select name="umkreis" data-radius-select class="rounded-lg border border-gray-300 bg-white px-2 py-1.5">
-              <option value="">{% trans "Egal" %}</option>
-              {% for km in flt.radius_choices %}<option value="{{ km }}"{% if flt.filters.radius_km == km %} selected{% endif %}>{{ km }} km</option>{% endfor %}
-            </select>
-          </label>
-          {% endif %}
-        </fieldset>
-        {% if flt.branches %}
-        <nav data-flt-sec="branche" aria-labelledby="flt-branche" class="py-4">
-          <p id="flt-branche" class="font-semibold mb-2">{% trans "Branche" %}</p>
-          <div class="flex flex-wrap gap-2">
-            {% for b in flt.branches %}<a href="{{ b.url }}"{% if "?" in b.url %} rel="nofollow"{% endif %} class="px-3 py-2 rounded-full text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 border {% if b.active %}bg-gray-900 text-white border-gray-900{% else %}bg-white border-gray-300 text-gray-700 hover:border-gray-500{% endif %}"{% if b.active %} aria-current="page"{% endif %}>{{ b.label }}</a>{% endfor %}
-          </div>
-        </nav>
-        {% endif %}
-      </div>
-      <div class="flex items-center gap-3 px-4 py-3 border-t border-gray-200 bg-white">
-        <a href="{{ flt.reset_url }}" rel="nofollow" class="px-4 py-3 rounded-xl border border-gray-300 text-sm font-medium">{% trans "Zurücksetzen" %}</a>
-        <button type="submit" class="flex-1 px-4 py-3 rounded-xl text-sm font-bold text-white" style="background: var(--portal-color)">{% trans "Treffer anzeigen" %}</button>
-      </div>
-    </form>
-  </dialog>
 </div>
 <script src="{% static 'js/portal.js' %}" defer></script>
 {% endif %}

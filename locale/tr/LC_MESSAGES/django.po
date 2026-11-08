@@ -35654,3 +35654,23 @@ msgstr "Tüm %(city)s"
 #: PH-11
 msgid "Pizza, Friseur, Fahrrad, Kinderkino …"
 msgstr "Pizza, kuaför, bisiklet, çocuk sineması …"
+
+#: PH-11
+msgid "Brotkrumen"
+msgstr "Gezinme yolu"
+
+#: PH-11
+msgid "Suchergebnisse"
+msgstr "Arama sonuçları"
+
+#: PH-11
+msgid "Filter ausblenden"
+msgstr "Filtreleri gizle"
+
+#: PH-11
+msgid "Filter einblenden"
+msgstr "Filtreleri göster"
+
+#: PH-11
+msgid "Suchergebnisse für „%(q)s“"
+msgstr "“%(q)s” için arama sonuçları"

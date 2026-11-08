@@ -35595,3 +35595,23 @@ msgstr "Ganz %(city)s"
 #: PH-11
 msgid "Pizza, Friseur, Fahrrad, Kinderkino …"
 msgstr "Pizza, Friseur, Fahrrad, Kinderkino …"
+
+#: PH-11
+msgid "Brotkrumen"
+msgstr "Brotkrumen"
+
+#: PH-11
+msgid "Suchergebnisse"
+msgstr "Suchergebnisse"
+
+#: PH-11
+msgid "Filter ausblenden"
+msgstr "Filter ausblenden"
+
+#: PH-11
+msgid "Filter einblenden"
+msgstr "Filter einblenden"
+
+#: PH-11
+msgid "Suchergebnisse für „%(q)s“"
+msgstr "Suchergebnisse für „%(q)s“"

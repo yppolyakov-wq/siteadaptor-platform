@@ -22344,3 +22344,12 @@ CI пересекает полночь по Берлину; тест «Deal des 
   `_portal_search.html`) удалена; языки уехали в подвал до 2xl. Телефон: «Was» строкой, Wo/Wann
   второй. Замки `test_portal_header_ph11.py` (7); осознанно переписаны `test_portal_menu`
   (strip снят) и `test_flt_width` (шапка 1392 px). Стенд 1440/390: без переполнений.
+- **2026-11-08 · PH-11b — колонка фильтров выдачи (без миграций).** Шторка `#flt-drawer` вынесена в
+  `_portal_filter_drawer.html` и на `lg+` показана колонкой слева (`lg:block lg:sticky`) — ОДНА
+  форма на две роли, поля не дублируются. «Alle Filter» с lg = «Filter ausblenden/einblenden»
+  (`aria-expanded`, `data-flt-collapsed` на обёртке `group/flt`, выбор в localStorage; без JS
+  колонка видна). Сетка выдачи 3/4 колонки, при свёрнутой панели 4/5 (`data-flt-grid`). Крошки
+  «Startseite / Suchergebnisse», H1 «Suchergebnisse für „q“». Ревью 11a закрыто: шапка владеет
+  районом и временем (скрытые stadtteil/datum/offen не едут), видимый фокус полей. Замки
+  `test_portal_sidebar_ph11b.py` (6) + `test_portal_header_ph11.py` (10); стенд Playwright 1440:
+  свёртка 4→5, выбор переживает reload; 390: шторка modal.
