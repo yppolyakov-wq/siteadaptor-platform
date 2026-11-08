@@ -338,12 +338,14 @@ def test_query_count_does_not_grow_with_data(django_assert_max_num_queries):
     # (1) минус «чужие порталы» (1). План §2: холодный рендер ≈ +6, корень кэширован.
     # 2026-11-08 (PH-11e, осознанно 21 → 22): подвал (виды/отрасли/районы — 3, кэш 5 минут на
     # всех страницах) вместо плиток районов и «Branche» главной (2).
-    with django_assert_max_num_queries(22):
+    # 2026-11-08 (PH-12d, осознанно 22 → 23): «Endet heute» — свой запрос (фильтр по часам до
+    # среза; ревью silent-failure-hunter).
+    with django_assert_max_num_queries(23):
         portal_views.portal_home(_get(portal))
     for i in range(30):
         _listing("product", f"Viel {i}", city_category="brot-backwaren")
     cache.clear()
-    with django_assert_max_num_queries(22):
+    with django_assert_max_num_queries(23):
         portal_views.portal_home(_get(portal))
 
 

@@ -835,7 +835,7 @@ def svg_for(keyword: str, *, w: int = 800, h: int = 600, lock: int = 1, cap: str
     emoji = _emoji_for(keyword)
     # PH-12d: технический ключ («sg-biergarten», «ol-w-blazer») без `cap` — без подписи:
     # «Sg-biergarten» на витрине читалось как сломанная картинка; остаётся эмодзи.
-    technical = bool(re.match(r"^[a-z]{1,3}-", keyword or ""))
+    technical = bool(re.match(r"^(?:ol|sg)-", keyword or ""))  # аутлет / лёгкие демо Solingen
     caption = _xml_escape(cap.strip()[:60] or ("" if technical else _caption(keyword)))
     short = min(w, h)
     emoji_size = round(short * 0.42)

@@ -143,4 +143,61 @@ def test_placeholder_without_caption_for_technical_keys():
     assert "Sg-biergarten" not in svg_for("sg-biergarten")
     assert "Ol-w-blazer" not in svg_for("ol-w-blazer")
     assert "Croissant" in svg_for("croissant")  # человеческий ключ — подпись остаётся
+    assert "Tee" in svg_for("tee-nebel-sencha")  # короткое слово с дефисом — не технический ключ
     assert "Biergarten am Fluss" in svg_for("sg-biergarten", cap="Biergarten am Fluss")
+
+
+# --- ревью PH-12d -----------------------------------------------------------------------------
+
+
+def test_ending_today_looks_past_the_old_block_cap():
+    """8 ближайших «endet» у закрытого бизнеса прятали карточку целиком (фильтр шёл после
+    среза блока); теперь кандидаты берутся своим запросом до среза."""
+    TenantFactory(schema_name="zu", slug="zu", opening_hours_structured=_hours(False))
+    TenantFactory(schema_name="auf", slug="auf", opening_hours_structured=_hours(True))
+    for i in range(9):
+        _listing("promotion", f"Zu {i}", schema="zu", ends_at=_ends_today() - timedelta(minutes=1))
+    _listing("promotion", "Auf-Deal", schema="auf", ends_at=_ends_today())
+    _listing("event", "Film", city_category="kino", starts_at=timezone.now() + timedelta(days=1))
+    card = _endet_card(_html(_portal()))
+    assert "Auf-Deal" in card and "Zu 0" not in card
+
+
+def test_malformed_snapshot_shows_instead_of_hiding():
+    now = timezone.localtime()
+    ends = now + timedelta(hours=1)
+    bad = {"holiday": None, "status": {"open": False, "until": None, "next": ("Mo",)}}
+    assert home.usable_before(bad, ends, now) is True
+
+
+def test_new_businesses_are_newest_first_not_alphabetical():
+    from apps.aggregator.models import AggregatorListing
+
+    for i, days in ((1, 20), (2, 2), (3, 10), (4, 25), (5, 1), (6, 5), (7, 15)):
+        _biz(i)
+        AggregatorListing.objects.filter(tenant_schema=f"nb{i}").update(
+            created_at=timezone.now() - timedelta(days=days)
+        )
+    block = _html(_portal()).split("data-home-new-businesses", 1)[1].split("</section>", 1)[0]
+    assert "Laden 4" not in block  # самый старый из семи — за лимитом 6
+    assert block.index("Laden 5") < block.index("Laden 2") < block.index("Laden 6")
+
+
+def test_business_page_keeps_a_report_link():
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[3]
+    tpl = (root / "templates" / "aggregator" / "portal_business.html").read_text()
+    assert "data-report-link" in tpl and "business_card.pk" in tpl
+    view = (root / "apps" / "aggregator" / "reviews_views.py").read_text()
+    assert '"business_card": business_card' in view
+
+
+def test_best_by_section_survives_empty_open_set():
+    """PH-12e: пустой open_set → `IN ()`; Django сводит в константу, запрос не падает."""
+    from apps.aggregator.models import AggregatorListing
+
+    _listing("promotion", "Pizza", city_category="restaurants")
+    base = AggregatorListing.objects.all()
+    out = home.best_by_section(base, home.presence(base), set(), {}, path="/")
+    assert out and out[0]["items"][0].title["de"] == "Pizza"

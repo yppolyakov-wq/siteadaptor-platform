@@ -119,4 +119,5 @@
     <p class="text-gray-400 text-sm">{% trans "No reviews yet — be the first." %}</p>
   {% endif %}
 </div>
+{% if business_card %}{% url 'aggregator-report' business_card.pk as report_url %}{% if report_url %}<p class="mt-6 text-right"><a href="{{ report_url }}" rel="nofollow" data-report-link class="text-xs text-gray-400 hover:text-gray-600">⚑ {% trans "Melden" %}</a></p>{% endif %}{% endif %}
 {% endblock %}

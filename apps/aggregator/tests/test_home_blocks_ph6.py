@@ -72,7 +72,8 @@ def test_home_renders_new_blocks_and_marked_ad_strip(django_assert_max_num_queri
     # 2026-11-08 (PH-11d1b, осознанно 19 → 20): «Beliebt diese Woche» (1, кэш 15 минут).
     # 2026-11-08 (PH-11d2, осознанно 20 → 23): «Das Beste» (1), «Geschäfte» (2), «Top-Aktionen»
     # (1) минус «чужие порталы» (1).
-    with django_assert_max_num_queries(23):
+    # 2026-11-08 (PH-12d, осознанно 23 → 24): «Endet heute» — свой запрос.
+    with django_assert_max_num_queries(24):
         portal_views.portal_home(_get(portal))
 
 

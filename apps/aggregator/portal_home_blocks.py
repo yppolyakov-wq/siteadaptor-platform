@@ -569,25 +569,30 @@ def new_businesses(base_qs, *, path: str, now=None) -> dict | None:
 
     «Alle anzeigen» → лента бизнесов с `neu=1`. Меньше трёх — None (остаётся прежний блок
     «Lokale Unternehmen»)."""
-    from django.db.models import Exists, OuterRef
+    from django.db.models import Exists, OuterRef, Subquery
 
     now = now or timezone.now()
     # PH-12d: «Neu» — только бизнес с фото и хотя бы одним предложением (на проде в блок
     # попадали тестовые тенанты «Про»/«123» с пустой карточкой).
-    has_offer = base_qs.filter(tenant_schema=OuterRef("tenant_schema")).exclude(
-        listing_kind=L.KIND_BUSINESS
+    has_offer = (
+        base_qs.order_by()
+        .filter(tenant_schema=OuterRef("tenant_schema"))
+        .exclude(listing_kind=L.KIND_BUSINESS)
     )
-    qs = (
-        base_qs.filter(
+    one_per_business = (
+        base_qs.order_by()
+        .filter(
             listing_kind=L.KIND_BUSINESS, created_at__gte=now - timedelta(days=NEW_BUSINESS_DAYS)
         )
         .exclude(image={})
         .filter(Exists(has_offer))
         .order_by("tenant_schema", "-created_at")
         .distinct("tenant_schema")
+        .values("pk")
     )
-    items = sorted(qs[: NEW_BUSINESS_LIMIT * 2], key=lambda i: i.created_at, reverse=True)
-    items = items[:NEW_BUSINESS_LIMIT]
+    # Ревью: срез ПОСЛЕ distinct-по-схеме брал алфавитно первые схемы, а не новейшие.
+    qs = base_qs.filter(pk__in=Subquery(one_per_business)).order_by("-created_at", "-pk")
+    items = list(qs[:NEW_BUSINESS_LIMIT])
     if len(items) < NEW_BUSINESS_MIN:
         return None
     return {"items": items, "more_url": f"{path}?kind=business&neu=1"}
@@ -660,11 +665,14 @@ def usable_before(row, ends_at, now) -> bool:
     if not nxt:
         return False
     local_now = timezone.localtime(now)
-    if nxt[0] != weekday_abbr(local_now.weekday()):
-        return False
     try:
-        hh, mm = (int(x) for x in nxt[1].split(":"))
-    except (ValueError, AttributeError):
+        day, hhmm = nxt[0], nxt[1]
+        hh, mm = (int(x) for x in hhmm.split(":"))
+    except (ValueError, AttributeError, IndexError, TypeError):
+        # битый снимок — та же политика, что «часов нет»: не утверждаем «закрыто»
+        logger.warning("usable_before: malformed next=%r", nxt)
+        return True
+    if day != weekday_abbr(local_now.weekday()):
         return False
     opens = local_now.replace(hour=hh, minute=mm, second=0, microsecond=0)
     return opens < timezone.localtime(ends_at)
@@ -696,19 +704,23 @@ def quad_cards(
             used.update(i.pk for i in picked)
             cards.append({"key": key, "title": title, "items": picked, "more_url": url})
 
-    # 1. Endet heute — из блока «angebote» (порядок «Endet bald»): что кончается до полуночи.
+    # 1. Endet heute — что кончается до полуночи, ⊆ ленты ?kind=angebote&sort=endet.
+    # Ревью PH-12d: раньше брали из блока «angebote», обрезанного до 8, и фильтровали ПОСЛЕ
+    # среза — 8 ближайших у закрытых бизнесов прятали карточку целиком. Теперь свой запрос
+    # (+1), фильтр по часам — до среза.
     end_of_day = timezone.localtime(now).replace(hour=23, minute=59, second=59)
-    offers = by_key.get("angebote", {}).get("items", [])
+    ending = base_qs.filter(
+        listing_kind__in=GROUPS["angebote"], ends_at__gt=now, ends_at__lte=end_of_day
+    ).exclude(featured_until__gt=now)
+    offers = list(ending.order_by("ends_at", "-pk")[: QUAD_ITEMS * 6])
     add(
         "endet",
         _("Endet heute"),
         [
             i
             for i in offers
-            if i.ends_at
-            and i.ends_at <= end_of_day
             # PH-12d: закрытый до завтра бизнес — акция кончится раньше, чем до неё дойдут
-            and usable_before((snapshot or {}).get(i.tenant_schema), i.ends_at, now)
+            if usable_before((snapshot or {}).get(i.tenant_schema), i.ends_at, now)
         ],
         f"{path}?{urlencode({'kind': 'angebote', 'sort': 'endet'})}",
     )
@@ -823,6 +835,10 @@ def best_by_section(
         default=Value(""),
         output_field=CharField(),
     )
+    # PH-12e (database-reviewer, 2026-11-08): IN-список по открытым схемам оставлен намеренно —
+    # Postgres сам сводит константный IN к одному `= ANY(array)` (хэш с PG14), psycopg3
+    # биндит на клиенте (нет лимита параметров и churn'а prepared statements); узкое место
+    # запроса — Window-сортировка пула, а не этот список. Менять — только после EXPLAIN.
     open_first = Case(
         When(tenant_schema__in=sorted(open_set), then=Value(0)),
         default=Value(1),
