@@ -6,9 +6,9 @@
     <h2 id="home-newbiz" class="text-2xl md:text-[28px] font-extrabold tracking-tight">{% blocktrans with city=portal.city %}Neu in {{ city }}{% endblocktrans %}</h2>
     <a href="{{ newbiz.more_url }}" rel="nofollow" class="shrink-0 text-[15px] font-bold hover:underline" style="color: var(--portal-link)">{% trans "Alle anzeigen" %} <span aria-hidden="true">→</span></a>
   </div>
-  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 max-sm:flex max-sm:overflow-x-auto max-sm:snap-x max-sm:-mx-4 max-sm:px-4 max-sm:pb-1">
     {% for b in newbiz.items %}
-    <div class="bg-white rounded-2xl p-4 flex flex-col items-center gap-2 text-center" data-new-business="{{ b.tenant_slug }}">
+    <div class="relative bg-white rounded-2xl p-4 flex flex-col items-center gap-2 text-center max-sm:w-40 max-sm:shrink-0 max-sm:snap-start" data-new-business="{{ b.tenant_slug }}">
       <a href="{% url 'portal-business' slug=b.tenant_slug %}" class="flex flex-col items-center gap-2">
         {% if b.image.url %}<img src="{{ b.image.url }}" alt="" loading="lazy" class="w-[72px] h-[72px] rounded-full object-cover">{% else %}<span aria-hidden="true" class="w-[72px] h-[72px] rounded-full bg-orange-100 text-orange-800 grid place-items-center text-2xl font-extrabold">{{ b.business_name|slice:":1"|upper }}</span>{% endif %}
         <span class="font-bold text-[15px] text-gray-900">{{ b.business_name }}</span>

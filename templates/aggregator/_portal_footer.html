@@ -4,13 +4,14 @@ Für Unternehmen · Rechtliches; внизу © и языки. Ссылки то�
 portal_footer, кэш 5 минут). Здесь же единственные ссылки на страницы районов и отраслей
 (сняты с главной), поэтому они не сироты. Ссылок на чужие порталы нет (решение плана).{% endcomment %}
 <footer data-portal-footer class="bg-gray-900 text-gray-300 pb-24 sm:pb-0">
-  <div class="w-full px-4 md:px-6 lg:px-10 pt-11 pb-7 grid grid-cols-2 md:grid-cols-3 xl:grid-cols-[1.4fr_repeat(4,minmax(0,1fr))] gap-8">
-    <div class="col-span-2 md:col-span-3 xl:col-span-1 flex flex-col gap-3">
+  <div class="w-full px-4 md:px-6 lg:px-10 pt-11 pb-7 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-[1.4fr_repeat(4,minmax(0,1fr))] gap-0 sm:gap-8">
+    <div class="sm:col-span-2 md:col-span-3 xl:col-span-1 flex flex-col gap-3 max-sm:pb-5">
       <a href="{% url 'portal-home' %}" class="self-start text-[22px] font-extrabold tracking-tight text-white">{% if fwm.dark %}{{ fwm.dark }}{% endif %}<span class="text-orange-300">{{ fwm.accent }}</span></a>
       {% if portal.city %}<p class="text-sm leading-relaxed max-w-sm">{% blocktrans with city=portal.city %}Die lokale Plattform für Angebote, Termine und Geschäfte aus {{ city }}. Sie kaufen und bezahlen direkt beim Geschäft.{% endblocktrans %}</p>{% endif %}
     </div>
-    <nav aria-labelledby="foot-discover" class="min-w-0">
-      <h2 id="foot-discover" class="text-white text-sm font-bold mb-3">{% trans "Entdecken" context "nav" %}</h2>
+    <nav aria-labelledby="foot-discover" class="min-w-0 max-sm:border-t max-sm:border-white/10">
+      <details data-fold open class="group/fold max-md:pb-3">
+      <summary class="list-none flex items-center justify-between max-md:min-h-[3rem] cursor-pointer md:cursor-default md:pointer-events-none [&::-webkit-details-marker]:hidden"><h2 id="foot-discover" class="text-white text-sm font-bold md:mb-3">{% trans "Entdecken" context "nav" %}</h2><span aria-hidden="true" class="md:hidden text-gray-400 transition-transform group-open/fold:rotate-180">▾</span></summary>
       <ul class="space-y-2 text-sm [overflow-wrap:anywhere]">
         {% for k in foot.kinds %}<li><a href="{{ k.url }}" rel="nofollow" class="hover:text-white hover:underline">{{ k.label }}</a></li>{% endfor %}
       </ul>
@@ -20,34 +21,43 @@ portal_footer, кэш 5 минут). Здесь же единственные с
         {% for f in foot.facets %}<li><a href="{{ f.url }}" class="hover:text-white hover:underline">{{ f.label }}</a></li>{% endfor %}
       </ul>
       {% endif %}
+          </details>
     </nav>
     {% if foot.districts %}
-    <nav aria-labelledby="foot-districts" class="min-w-0">
-      <h2 id="foot-districts" class="text-white text-sm font-bold mb-3">{% trans "Stadtteile" %}</h2>
+    <nav aria-labelledby="foot-districts" class="min-w-0 max-sm:border-t max-sm:border-white/10">
+      <details data-fold open class="group/fold max-md:pb-3">
+      <summary class="list-none flex items-center justify-between max-md:min-h-[3rem] cursor-pointer md:cursor-default md:pointer-events-none [&::-webkit-details-marker]:hidden"><h2 id="foot-districts" class="text-white text-sm font-bold md:mb-3">{% trans "Stadtteile" %}</h2><span aria-hidden="true" class="md:hidden text-gray-400 transition-transform group-open/fold:rotate-180">▾</span></summary>
       <ul class="space-y-2 text-sm [overflow-wrap:anywhere]" data-footer-districts>
         {% for slug, name in foot.districts %}<li><a href="{% url 'portal-district' district=slug %}" class="hover:text-white hover:underline">{{ name }}</a></li>{% endfor %}
       </ul>
+          </details>
     </nav>
     {% endif %}
-    <nav aria-labelledby="foot-business" class="min-w-0">
-      <h2 id="foot-business" class="text-white text-sm font-bold mb-3">{% trans "Für Unternehmen" %}</h2>
+    <nav aria-labelledby="foot-business" class="min-w-0 max-sm:border-t max-sm:border-white/10">
+      <details data-fold open class="group/fold max-md:pb-3">
+      <summary class="list-none flex items-center justify-between max-md:min-h-[3rem] cursor-pointer md:cursor-default md:pointer-events-none [&::-webkit-details-marker]:hidden"><h2 id="foot-business" class="text-white text-sm font-bold md:mb-3">{% trans "Für Unternehmen" %}</h2><span aria-hidden="true" class="md:hidden text-gray-400 transition-transform group-open/fold:rotate-180">▾</span></summary>
       <ul class="space-y-2 text-sm [overflow-wrap:anywhere]">
         {% if foot.start_url %}<li><a href="{{ foot.start_url }}" class="hover:text-white hover:underline">{% trans "Jetzt Geschäft eintragen" %}</a></li>{% endif %}
         <li><a href="{% url 'portal-for-business' %}" class="hover:text-white hover:underline">{% trans "So funktioniert’s" %}</a></li>
       </ul>
+          </details>
     </nav>
     {# T-8.8: Impressum/Datenschutz платформы (DDG §5) — страницы живут на основном домене. #}
-    <nav aria-labelledby="foot-legal" class="min-w-0">
-      <h2 id="foot-legal" class="text-white text-sm font-bold mb-3">{% trans "Rechtliches" %}</h2>
+    <nav aria-labelledby="foot-legal" class="min-w-0 max-sm:border-t max-sm:border-white/10">
+      <details data-fold open class="group/fold max-md:pb-3">
+      <summary class="list-none flex items-center justify-between max-md:min-h-[3rem] cursor-pointer md:cursor-default md:pointer-events-none [&::-webkit-details-marker]:hidden"><h2 id="foot-legal" class="text-white text-sm font-bold md:mb-3">{% trans "Rechtliches" %}</h2><span aria-hidden="true" class="md:hidden text-gray-400 transition-transform group-open/fold:rotate-180">▾</span></summary>
       <ul class="space-y-2 text-sm [overflow-wrap:anywhere]">
         {% if platform_legal.impressum %}<li><a href="{{ platform_legal.impressum }}" class="hover:text-white hover:underline">{% trans "Impressum" %}</a></li>{% endif %}
         {% if platform_legal.datenschutz %}<li><a href="{{ platform_legal.datenschutz }}" class="hover:text-white hover:underline">{% trans "Datenschutz" %}</a></li>{% endif %}
         {% if foot.agb_url %}<li><a href="{{ foot.agb_url }}" class="hover:text-white hover:underline">{% trans "AGB" %}</a></li>{% endif %}
       </ul>
+          </details>
     </nav>
   </div>
   <div class="w-full px-4 md:px-6 lg:px-10 py-5 border-t border-white/10 flex flex-wrap items-center justify-between gap-3 text-xs text-gray-400">
     <span>© {% now "Y" %} {{ portal.title_text }} · siteadaptor</span>
     {% if ui_languages %}<span class="md:hidden">{% include "tenants/_lang_switch.html" %}</span>{% endif %}
   </div>
+  {% comment %}PH-13c (M5): на телефоне колонки подвала свёрнуты; без JS — раскрыты (details open).{% endcomment %}
+  <script>if (window.matchMedia && matchMedia("(max-width: 767px)").matches) { document.querySelectorAll("[data-portal-footer] details[data-fold]").forEach(function (d) { d.open = false; }); }</script>
 </footer>

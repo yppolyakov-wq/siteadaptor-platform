@@ -10,19 +10,19 @@
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
     {% for t in top_actions %}
     {% url 'aggregator-offer' t.pk as offer_url %}
-    <article data-top-action="{{ t.pk }}" class="relative bg-white border border-gray-200 rounded-3xl overflow-hidden grid sm:grid-cols-[minmax(0,240px)_1fr]">
-      <div class="relative min-h-[180px] bg-gray-100">
+    <article data-top-action="{{ t.pk }}" class="relative bg-white border border-gray-200 rounded-3xl overflow-hidden grid grid-cols-[112px_minmax(0,1fr)] sm:grid-cols-[minmax(0,240px)_1fr]">
+      <div class="relative min-h-[112px] sm:min-h-[180px] bg-gray-100">
         {% if t.image.url %}<img src="{{ t.image.url }}" alt="" loading="lazy" decoding="async" class="absolute inset-0 w-full h-full object-cover">{% endif %}
-        {% if t.discount_percent %}<span class="absolute left-3 top-3 bg-orange-700 text-white text-lg font-extrabold px-3 py-1 rounded-xl">−{{ t.discount_percent }} %</span>{% endif %}
+        {% if t.discount_percent %}<span class="absolute left-2 top-2 sm:left-3 sm:top-3 bg-orange-700 text-white text-sm sm:text-lg font-extrabold px-2 sm:px-3 py-0.5 sm:py-1 rounded-lg sm:rounded-xl">−{{ t.discount_percent }} %</span>{% endif %}
       </div>
-      <div class="p-5 flex flex-col gap-1.5">
+      <div class="p-3 sm:p-5 flex flex-col gap-1 sm:gap-1.5 min-w-0">
         <p class="text-[13px] text-gray-600">{{ t.business_name }}{% if t.district_name %} · {{ t.district_name }}{% endif %}</p>
-        <h3 id="top-{{ t.pk }}" class="text-xl font-extrabold leading-tight">{{ t.title_text }}</h3>
+        <h3 id="top-{{ t.pk }}" class="text-base sm:text-xl font-extrabold leading-tight">{{ t.title_text }}</h3>
         <p class="text-[13px] font-semibold text-emerald-700">{% blocktrans count n=t.saves %}{{ n }}× gemerkt diese Woche{% plural %}{{ n }}× gemerkt diese Woche{% endblocktrans %}</p>
         <div class="mt-auto pt-3 flex flex-wrap items-center gap-3">
-          {% if t.new_price %}<b class="text-2xl whitespace-nowrap">{{ t.new_price }} {{ t.currency|currency_sign }}</b>{% endif %}
+          {% if t.new_price %}<b class="text-lg sm:text-2xl whitespace-nowrap">{{ t.new_price }} {{ t.currency|currency_sign }}</b>{% endif %}
           {% if t.old_price and t.new_price and t.old_price > t.new_price %}<s class="text-gray-600 whitespace-nowrap">{{ t.old_price }} {{ t.currency|currency_sign }}</s>{% endif %}
-          <a href="{{ offer_url|default:t.portal_url }}" class="sm:ml-auto inline-flex items-center h-11 px-5 rounded-full text-white font-bold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900" style="background: var(--portal-color)">{{ t|card_action_for }}<span class="sr-only">: {{ t.title_text }}</span></a>
+          <a href="{{ offer_url|default:t.portal_url }}" class="sm:ml-auto inline-flex items-center h-10 sm:h-11 px-4 sm:px-5 rounded-full text-white font-bold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900" style="background: var(--portal-color)">{{ t|card_action_for }}<span class="sr-only">: {{ t.title_text }}</span></a>
         </div>
         {% if t.price_reference == "lowest30" and t.old_price %}<p class="text-xs text-gray-600">{% blocktrans with p=t.old_price %}Lowest price in the last 30 days: {{ p }} €{% endblocktrans %}</p>{% endif %}
       </div>

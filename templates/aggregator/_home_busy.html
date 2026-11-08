@@ -6,9 +6,9 @@
     <h2 id="busy-h" class="text-2xl md:text-[28px] font-extrabold tracking-tight">{% trans "Geschäfte, die gerade viel anbieten" %}</h2>
     <a href="{{ busy.more_url }}" rel="nofollow" class="shrink-0 text-[15px] font-bold hover:underline" style="color: var(--portal-link)">{% trans "Alle Geschäfte" %} <span aria-hidden="true">→</span></a>
   </div>
-  <ul class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+  <ul class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 max-sm:flex max-sm:overflow-x-auto max-sm:snap-x max-sm:-mx-4 max-sm:px-4 max-sm:pb-1">
     {% for s in busy.items %}
-    <li data-busy="{{ s.tenant_slug }}">
+    <li data-busy="{{ s.tenant_slug }}" class="relative max-sm:w-40 max-sm:shrink-0 max-sm:snap-start">
       <a href="{% url 'portal-business' slug=s.tenant_slug %}" class="group h-full flex flex-col bg-white border border-gray-200 rounded-2xl overflow-hidden hover:border-gray-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900">
         {% if s.image %}<img src="{{ s.image }}" alt="" loading="lazy" decoding="async" class="w-full h-28 object-cover">{% else %}<span aria-hidden="true" class="w-full h-28 grid place-items-center bg-orange-100 text-orange-900 text-3xl font-extrabold">{{ s.business_name|slice:":1"|upper }}</span>{% endif %}
         <span class="p-3 flex flex-col gap-0.5">
