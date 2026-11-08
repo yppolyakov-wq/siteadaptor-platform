@@ -86,7 +86,7 @@
 
         {% comment %}FB-26: 1. «Was verkaufen Sie?» — обязательно (решение владельца
         2026-11-08: без направлений не понять, отель это или магазин); 2. ниша — по желанию.{% endcomment %}
-        <fieldset{% if form.directions.errors %} aria-describedby="dir-errors"{% endif %}>
+        <fieldset{% if form.directions.errors %} aria-describedby="{{ form.directions.auto_id }}_errors"{% endif %}>
           <legend class="block text-sm font-medium text-gray-800 mb-1">{{ form.directions.label }}</legend>
           <p class="text-xs text-gray-500 mb-2">{% trans "Mehrere möglich. Sie können es später jederzeit ändern." %}</p>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-2" data-dir-chips>
@@ -101,7 +101,7 @@
               </label>
             {% endfor %}
           </div>
-          {% if form.directions.errors %}<div id="dir-errors" role="alert">{% for err in form.directions.errors %}<p class="text-xs text-red-600 mt-1">{{ err }}</p>{% endfor %}</div>{% endif %}
+          {% if form.directions.errors %}<div id="{{ form.directions.auto_id }}_errors" role="alert">{% for err in form.directions.errors %}<p class="text-xs text-red-600 mt-1">{{ err }}</p>{% endfor %}</div>{% endif %}
         </fieldset>
 
         {# 2. Ниша (необязательно). #}
