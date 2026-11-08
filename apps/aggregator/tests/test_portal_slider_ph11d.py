@@ -4,14 +4,23 @@ import re
 from datetime import timedelta
 
 import pytest
+from django.core.cache import cache
 from django.utils import timezone
 
 from apps.aggregator import portal_home_blocks as home
 from apps.aggregator import search
 from apps.aggregator.models import AggregatorListing
-from apps.aggregator.tests.test_portal_discover import _clear, _html, _listing, _portal  # noqa: F401 — autouse: кэш страниц
+from apps.aggregator.tests.test_portal_discover import _html, _listing, _portal
 
 pytestmark = [pytest.mark.django_db, pytest.mark.urls("config.urls_portal")]
+
+
+@pytest.fixture(autouse=True)
+def _clear_cache():
+    """Корень портала и меню кэшируются (Redis переживает прогоны и делится xdist-воркерами)."""
+    cache.clear()
+    yield
+    cache.clear()
 
 
 def _slides(html):
