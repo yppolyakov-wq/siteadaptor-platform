@@ -24,13 +24,15 @@
   <style>:root { --portal-color: {{ pc.color }}; --portal-ink: {{ pc.ink }}; --portal-link: {{ pc.link }}; } [style*="background: var(--portal-color"], [style*="background:var(--portal-color"], [style*="background-color: var(--portal-color"], [style*="background-color:var(--portal-color"] { color: var(--portal-ink) !important; }</style>
 </head>
 <body class="min-h-screen bg-gray-50 text-gray-900 antialiased flex flex-col">
-  <header class="sticky top-0 z-20 bg-white/95 backdrop-blur border-b border-gray-200">
+  <header class="relative md:sticky md:top-0 z-20 bg-white/95 backdrop-blur border-b border-gray-200">
     {% comment %}PH-11a (макет K1): шапка в одну строку — «Kategorien» · вордмарк · поиск «Was/Wo/Wann» ·
     язык/Merkzettel/вход. На телефоне поиск уходит второй строкой (Wo/Wann — под полем «Was»).
-    Полоса иконок разделов (PH-2) снята: единственная навигация по разделам — мега-меню.{% endcomment %}
+    Полоса иконок разделов (PH-2) снята: единственная навигация по разделам — мега-меню.
+    PH-13a (макет M5): на телефоне шапка НЕ липкая (липкой станет панель выдачи), ☰ — круг,
+    подпись бренда видна, язык виден, вход — в нижнем меню «Konto»; поиск — одна пилюля.{% endcomment %}
     {% portal_wordmark portal as wm %}
     <div class="w-full px-4 md:px-6 lg:px-10 py-3 md:py-4 flex flex-wrap md:flex-nowrap items-center gap-3 md:gap-4">
-      <a href="{% url 'portal-home' %}#kategorien" data-portal-menu-open class="shrink-0 inline-flex items-center gap-2 h-12 md:h-14 px-4 md:px-5 rounded-full text-white font-bold text-[15px]" style="background: var(--portal-color)">
+      <a href="{% url 'portal-home' %}#kategorien" data-portal-menu-open class="shrink-0 inline-flex items-center justify-center gap-2 h-11 w-11 sm:w-auto sm:h-12 md:h-14 sm:px-4 md:px-5 rounded-full text-white font-bold text-[15px]" style="background: var(--portal-color)">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h10M4 18h16"></path></svg>
         <span class="hidden sm:inline">{% trans "Kategorien" %}</span><span class="sm:hidden sr-only">{% trans "Kategorien" %}</span>
       </a>
@@ -38,18 +40,18 @@
         {% if portal.logo_url %}<img src="{{ portal.logo_url }}" alt="" class="h-8 w-8 rounded object-contain">{% endif %}
         <span class="flex flex-col min-w-0 leading-tight">
           <span class="text-xl md:text-[21px] font-extrabold tracking-tight truncate">{% if wm.dark %}<span class="text-gray-900">{{ wm.dark }}</span>{% endif %}<span style="color: var(--portal-link)">{{ wm.accent }}</span></span>
-          {% if portal.tagline_text %}<span class="hidden lg:block text-xs text-gray-500 truncate">{{ portal.tagline_text }}</span>{% endif %}
+          {% if portal.tagline_text %}<span class="hidden max-md:block lg:block text-[11px] md:text-xs text-gray-500 truncate">{{ portal.tagline_text }}</span>{% endif %}
         </span>
       </a>
       {% include "aggregator/_portal_header_search.html" %}
       <nav aria-label="{% trans 'Konto' %}" class="ml-auto md:ml-0 flex items-center gap-4 shrink-0 text-sm">
-        {% if ui_languages %}<span class="hidden md:inline-flex">{% include "aggregator/_portal_lang_menu.html" %}</span>{% endif %}
+        {% if ui_languages %}<span class="inline-flex">{% include "aggregator/_portal_lang_menu.html" %}</span>{% endif %}
         <a href="{% url 'portal-for-business' %}" class="hidden 2xl:inline text-gray-600 hover:underline">{% trans "Für Unternehmen" %}</a>
         <a href="{% if portal_user %}{% url 'portal-account' %}{% else %}{% url 'portal-login' %}?next=/konto/{% endif %}" rel="nofollow" class="hidden sm:inline md:hidden lg:inline text-gray-700 hover:underline">{% trans "Merkzettel" %}</a>
         {% if portal_user %}
-          <a href="{% url 'portal-account' %}" class="font-semibold hover:underline" style="color: var(--portal-link)">{% trans "My account" %}</a>
+          <a href="{% url 'portal-account' %}" class="hidden sm:inline font-semibold hover:underline" style="color: var(--portal-link)">{% trans "My account" %}</a>
         {% else %}
-          <a href="{% url 'portal-login' %}" class="font-semibold hover:underline" style="color: var(--portal-link)">{% trans "Sign in" %}</a>
+          <a href="{% url 'portal-login' %}" class="hidden sm:inline font-semibold hover:underline" style="color: var(--portal-link)">{% trans "Sign in" %}</a>
         {% endif %}
       </nav>
     </div>

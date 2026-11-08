@@ -2,33 +2,36 @@
 {% comment %}PH-11a (макет K1): поиск шапки «Was / Wo / Wann» — одна GET-форма на корень портала.
 «Wo» = район (?stadtteil=), «Wann» = jetzt (= offen=1) / heute / wochenende (?datum=). Текущие
 фильтры выдачи едут скрытыми (header_hidden — без полей, которые уже стоят в форме). Без
-пользовательских данных: страница кэшируется (P0-1).{% endcomment %}
+пользовательских данных: страница кэшируется (P0-1).
+PH-13a (макет M5): на телефоне форма — ОДНА пилюля-сетка: «Was» первой строкой, «Wo · Wann»
+второй, круг поиска справа на обе строки. Подписи Wo/Wann — только для читалок; поля и их
+число прежние (замки PH-11a). Шрифт полей 16 px: iOS иначе зумит при фокусе.{% endcomment %}
 <form method="get" action="{% url 'portal-home' %}" role="search" data-portal-search data-portal-header-search
-      class="order-last md:order-none basis-full md:basis-auto md:flex-1 min-w-0 flex flex-col md:flex-row md:items-stretch gap-2 md:gap-0 md:bg-white md:border-2 md:border-gray-900 md:rounded-full md:overflow-hidden md:shadow-[0_6px_20px_rgba(0,0,0,.10)] md:p-1.5 md:pl-0">
+      class="order-last md:order-none basis-full md:basis-auto md:flex-1 min-w-0 max-md:grid max-md:grid-cols-[minmax(0,1fr)_auto] max-md:items-center max-md:gap-x-2 max-md:bg-white max-md:border-2 max-md:border-gray-900 max-md:rounded-[28px] max-md:py-1 max-md:pl-5 max-md:pr-1.5 max-md:shadow-[0_4px_14px_rgba(0,0,0,.08)] max-md:focus-within:ring-2 max-md:focus-within:ring-gray-900 max-md:focus-within:ring-offset-2 md:flex md:flex-row md:items-stretch md:gap-0 md:bg-white md:border-2 md:border-gray-900 md:rounded-full md:overflow-hidden md:shadow-[0_6px_20px_rgba(0,0,0,.10)] md:p-1.5 md:pl-0">
   {% for k, v in header_hidden %}<input type="hidden" name="{{ k }}" value="{{ v }}">{% endfor %}
-  <div class="flex items-center gap-2 md:contents">
-    <label class="flex-1 min-w-0 flex flex-col justify-center bg-white focus-within:ring-2 focus-within:ring-inset focus-within:ring-gray-900 max-md:border-2 max-md:border-gray-900 max-md:rounded-full md:flex-[1.5] px-5 py-1.5 md:py-0.5 md:border-r md:border-gray-200">
-      <span class="text-xs font-bold text-gray-900">{% trans "Was" %}</span>
+  <div class="contents">
+    <label class="flex-1 min-w-0 flex flex-col justify-center bg-white md:focus-within:ring-2 md:focus-within:ring-inset md:focus-within:ring-gray-900 max-md:col-start-1 max-md:row-start-1 md:flex-[1.5] md:px-5 md:py-0.5 md:border-r md:border-gray-200">
+      <span class="max-md:sr-only text-xs font-bold text-gray-900">{% trans "Was" %}</span>
       <input type="search" name="q" value="{{ search_q|default:'' }}" maxlength="100"
              placeholder="{% trans 'Pizza, Friseur, Fahrrad, Kinderkino …' %}"
-             class="w-full min-w-0 bg-transparent border-0 p-0 text-base text-gray-900 outline-none focus:ring-0">
+             class="w-full min-w-0 bg-transparent border-0 p-0 text-base max-md:font-semibold text-gray-900 outline-none focus:ring-0">
     </label>
-    <button type="submit" class="md:hidden shrink-0 w-12 h-12 rounded-full text-white flex items-center justify-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900" style="background: var(--portal-color)">
+    <button type="submit" class="md:hidden max-md:col-start-2 max-md:row-start-1 max-md:row-span-2 shrink-0 w-11 h-11 rounded-full text-white flex items-center justify-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900" style="background: var(--portal-color)">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
       <span class="sr-only">{% trans "Suchen" %}</span>
     </button>
   </div>
-  <div class="flex gap-2 md:contents">
-    <label class="flex-1 min-w-0 flex flex-col justify-center bg-white focus-within:ring-2 focus-within:ring-inset focus-within:ring-gray-900 max-md:border max-md:border-gray-300 max-md:rounded-2xl px-4 md:px-5 py-1.5 md:py-0.5 md:border-r md:border-gray-200">
-      <span class="text-xs font-bold text-gray-900">{% trans "Wo" %}</span>
-      <select name="stadtteil" class="w-full bg-transparent border-0 p-0 text-base text-gray-900 outline-none focus:ring-0">
+  <div class="flex gap-3 md:contents max-md:col-start-1 max-md:row-start-2 min-w-0">
+    <label class="flex-1 min-w-0 flex flex-col justify-center bg-white md:focus-within:ring-2 md:focus-within:ring-inset md:focus-within:ring-gray-900 md:px-5 md:py-0.5 md:border-r md:border-gray-200">
+      <span class="max-md:sr-only text-xs font-bold text-gray-900">{% trans "Wo" %}</span>
+      <select name="stadtteil" class="w-full bg-transparent border-0 p-0 text-base max-md:text-gray-600 text-gray-900 outline-none focus:ring-0">
         <option value="">{% blocktrans with city=portal.city %}Ganz {{ city }}{% endblocktrans %}</option>
         {% for slug, name in dists %}<option value="{{ slug }}"{% if slug == header_wo %} selected{% endif %}>{{ name }}</option>{% endfor %}
       </select>
     </label>
-    <label class="flex-1 md:flex-[1.25] min-w-0 flex flex-col justify-center bg-white focus-within:ring-2 focus-within:ring-inset focus-within:ring-gray-900 max-md:border max-md:border-gray-300 max-md:rounded-2xl px-4 md:px-5 py-1.5 md:py-0.5">
-      <span class="text-xs font-bold text-gray-900">{% trans "Wann" %}</span>
-      <select name="datum" class="w-full bg-transparent border-0 p-0 text-base text-gray-900 outline-none focus:ring-0">
+    <label class="flex-1 md:flex-[1.25] min-w-0 flex flex-col justify-center bg-white md:focus-within:ring-2 md:focus-within:ring-inset md:focus-within:ring-gray-900 md:px-5 md:py-0.5">
+      <span class="max-md:sr-only text-xs font-bold text-gray-900">{% trans "Wann" %}</span>
+      <select name="datum" class="w-full bg-transparent border-0 p-0 text-base max-md:text-gray-600 text-gray-900 outline-none focus:ring-0">
         <option value="">{% trans "Jederzeit" %}</option>
         <option value="jetzt"{% if header_wann == "jetzt" %} selected{% endif %}>{% trans "Jetzt geöffnet" %}</option>
         <option value="heute"{% if header_wann == "heute" %} selected{% endif %}>{% trans "Heute" %}</option>
