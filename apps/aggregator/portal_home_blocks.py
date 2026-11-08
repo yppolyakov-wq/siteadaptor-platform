@@ -877,7 +877,13 @@ def best_by_section(
         default=Value(1),
         output_field=IntegerField(),
     )
-    order = [open_first, F("ends_at").asc(nulls_last=True), "-created_at", "-pk"]
+    end_of_day = timezone.localtime(now).replace(hour=23, minute=59, second=59)
+    ends_today = Case(
+        When(ends_at__lte=end_of_day, then=Value(0)), default=Value(1), output_field=IntegerField()
+    )
+    # «Zuerst, was heute nutzbar ist»: открытое сейчас → кончается сегодня → новое (а не
+    # «любая дата выше» — событие через месяц не обгоняет открытую лавку; ревью 2026-11-08).
+    order = [open_first, ends_today, "-created_at", "-pk"]
     rows = (
         base_qs.exclude(listing_kind=L.KIND_BUSINESS)
         .exclude(featured_until__gt=now)
@@ -891,7 +897,6 @@ def best_by_section(
     by_section: dict[str, list] = {}
     for item in rows:
         by_section.setdefault(item.best_section, []).append(item)
-    end_of_day = timezone.localtime(now).replace(hour=23, minute=59, second=59)
     out = []
     for key in top:
         items = by_section.get(key)
@@ -918,11 +923,13 @@ def best_by_section(
     return out
 
 
-def busy_businesses(base_qs, *, path: str) -> dict | None:
+def busy_businesses(base_qs, *, path: str, now=None) -> dict | None:
     """«Geschäfte, die gerade viel anbieten» — бизнесы пула по числу предложений: ОДИН
     агрегат + ОДИН запрос фото бизнес-карточек. Меньше BUSY_MIN — None."""
+    now = now or timezone.now()
     rows = list(
         base_qs.exclude(listing_kind=L.KIND_BUSINESS)
+        .exclude(featured_until__gt=now)  # оплата не поднимает бизнес в «органическом» блоке
         .order_by()
         .values("tenant_schema")
         # группа — бизнес (схема); имя и slug — из его строк (у одного бизнеса они одни)
@@ -950,7 +957,7 @@ def top_actions(base_qs, *, path: str, exclude_pks=(), now=None) -> list:
     now = now or timezone.now()
     since = now - timedelta(days=TOP_DAYS)
     items = list(
-        base_qs.filter(listing_kind=L.KIND_PROMOTION)
+        base_qs.filter(listing_kind=L.KIND_PROMOTION, favorited_by__created_at__gte=since)
         .exclude(featured_until__gt=now)
         .exclude(pk__in=list(exclude_pks))
         .annotate(saves=Count("favorited_by", filter=Q(favorited_by__created_at__gte=since)))

@@ -1100,6 +1100,9 @@ def _render_home(request, portal):
     )
     # Deal и «Anzeigen» уже на экране — в «Das Beste» и «Top-Aktionen» не повторяем.
     shown = {item.pk for item in featured} | ({deal.pk} if deal else set())
+    # Ряд карточек рисуется от двух карточек — исключаем только то, что реально на экране.
+    in_quad = {item.pk for c in quad for item in c["items"]} if len(quad) > 1 else set()
+    shown |= in_quad
     best = (
         home.best_by_section(
             base, present, open_set, snapshot, path=request.path, exclude_pks=shown
@@ -1109,7 +1112,6 @@ def _render_home(request, portal):
     )
     # Страховка малого портала: без «Das Beste» (мало данных или предложения без раздела)
     # главная не пустеет — ряды блоков остаются, без того, что уже показали карточки.
-    in_quad = {item.pk for c in quad for item in c["items"]} if len(quad) > 1 else set()
     rows = []
     if not best:
         for b in blocks:

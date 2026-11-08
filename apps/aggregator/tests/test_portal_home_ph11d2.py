@@ -181,3 +181,25 @@ def test_best_shows_full_rows_of_three():
         _listing("promotion", f"In {cat}", city_category=cat)
     html = _html(_portal())
     assert html.count("data-best-section=") == 3
+
+
+def test_best_does_not_repeat_items_from_the_cards():
+    now = timezone.localtime()
+    ends = min(
+        now + timedelta(minutes=30),
+        max(now.replace(hour=23, minute=59), now + timedelta(seconds=30)),
+    )
+    _weekend_event("Kinderkino")
+    for i in range(2):
+        _listing("promotion", f"Heute {i}", city_category="restaurants", ends_at=ends)
+    _listing("promotion", "Sonst", city_category="restaurants")
+    html = _html(_portal())
+    assert 'data-quad="endet"' in html
+    card = _section(html, "essen-gastronomie")
+    assert "Sonst" in card and "Heute 0" not in card and "Heute 1" not in card
+
+
+def test_language_switch_keeps_filters():
+    html = _html(_portal(), kind="alle", q="Brot")
+    menu = html.split("data-lang-menu", 1)[1].split("</details>", 1)[0]
+    assert "next=/%3Fkind%3Dalle%26q%3DBrot" in menu.replace("&amp;", "&") or "q%3DBrot" in menu

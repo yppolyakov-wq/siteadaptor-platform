@@ -7,7 +7,7 @@
   </summary>
   <ul class="absolute right-0 z-40 mt-2 w-28 rounded-xl bg-white border border-gray-200 shadow-lg p-1">
     {% for l in ui_languages %}
-    <li><a href="/sprache/?lang={{ l.code }}&amp;next={{ request.path|urlencode }}" lang="{{ l.code }}" hreflang="{{ l.code }}" class="block px-3 py-2 rounded-lg text-sm hover:bg-gray-50 {% if l.code == CUR_LANG %}font-bold text-gray-900{% else %}text-gray-700{% endif %}"{% if l.code == CUR_LANG %} aria-current="true"{% endif %}>{{ l.label }}</a></li>
+    <li><a href="/sprache/?lang={{ l.code }}&amp;next={{ request.get_full_path|urlencode }}" lang="{{ l.code }}" hreflang="{{ l.code }}" class="block px-3 py-2 rounded-lg text-sm hover:bg-gray-50 {% if l.code == CUR_LANG %}font-bold text-gray-900{% else %}text-gray-700{% endif %}"{% if l.code == CUR_LANG %} aria-current="true"{% endif %}>{{ l.label }}</a></li>
     {% endfor %}
   </ul>
 </details>
