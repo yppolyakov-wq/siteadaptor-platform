@@ -22372,3 +22372,18 @@ CI пересекает полночь по Берлину; тест «Deal des 
 заявки обезличиваются вместо удаления (180 дней). **STU-12j-демо:** у кита одежды полка
 «Taschen» с формой карточки «Regal» поверх «Lookbook» сайта (`DemoKit.category_card_styles`,
 `SEEDER_VERSION` 17).
+- **2026-11-08 · PH-11d1 — баннер-слайдер и quad-карточки главной (макет K1, без миграций).**
+  **d1a:** слайдер между шапкой и заголовком — бизнес-CTA с фото Müngstener Brücke (CC BY-SA 2.0,
+  подпись и лицензия на слайде, `static/portal/SOURCES.md`; кнопки quick-start и «Für
+  Unternehmen»), Deal des Tages (органика), «Am Wochenende» и «Aus der Region» (`home_stats` +
+  weekend/regional тем же условием, что фильтр ленты — число ⊆ ленты), «Neu in <город>».
+  Слайд без данных не рендерится; без JS — scroll-snap, с JS — стрелки/точки/«1 / N»,
+  невидимые слайды `inert`, без автопрокрутки (`portal_slides.py`, модуль в `portal.js`).
+  **d1b:** четыре карточки под заголовком (`quad_cards`): Endet heute · Beliebt diese Woche
+  (PortalStat за 7 дней по бизнесам пула и визитам людей, порог ≥3 просмотра и ≥4 позиции,
+  кэш 15 мин; иначе «Jetzt geöffnet») · Neu hinzugekommen · Am Wochenende. Пустая карточка не
+  рендерится, одна — не ряд. Ревью django-reviewer: оплаченное отсекается в карточках из
+  любого источника (блоки отсекали только ≤3 показанных в «Anzeigen»). Ревью a11y-architect:
+  Alt+← не перехватывается, фокус не падает на body при inert, точки 24 px, затемнение фото на
+  телефоне, подписи читаемы, карточки `role=group`. Кап запросов главной осознанно +1 (18/20).
+  Замки `test_portal_slider_ph11d.py` (6) + `test_portal_quad_ph11d.py` (11); переводы ×5.
