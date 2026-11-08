@@ -63,6 +63,9 @@
   {% include "storefront/_combo_grid.html" with combos=category_combos %}
 </section>
 {% endif %}
+{% if wegweiser_departments %}{% include "storefront/composition/_wegweiser_departments.html" with departments=wegweiser_departments summary=wegweiser_summary %}{% endif %}
+{% if wegweiser_guides %}{% include "storefront/composition/_wegweiser_guides.html" with guides=wegweiser_guides %}{% endif %}
+{% if wegweiser_focus %}{% include "storefront/composition/_wegweiser_focus.html" with panels=wegweiser_focus %}{% endif %}
 {% endblock %}
 
 {% block listing_facets %}
@@ -209,6 +212,9 @@
 строке инструментов — между ним и блюдами не должно быть ни плиток подкатегорий,
 ни панели фильтров (в шапке листинга он отрывался от своей сетки).{% endcomment %}
 {% block listing_toolbar %}
+{% comment %}Wegweiser W-2: над сеткой, из которой убраны товары «Im Fokus», — честный
+заголовок «Weitere Artikel» (при фильтре Fokus нет, сетка = вся выдача).{% endcomment %}
+{% if wegweiser_rest %}<h2 class="text-lg md:text-xl font-bold mb-3" data-wegweiser-rest>{% trans "Weitere Artikel" %}</h2>{% endif %}
 {% if category_combos and category_page_style == "sets" %}
   <h2 class="text-lg md:text-xl font-bold mb-3" data-category-dishes>{% trans "Einzelne Gerichte" %}</h2>
 {% endif %}

@@ -1,0 +1,10 @@
+{% load i18n %}
+{% comment %}Wegweiser W-3 (макет S1): «Schnell finden» — короткие входы со счётчиком.
+Каждый чип ведёт на существующий фасет, число на нём = число за ним
+(apps/catalog/wegweiser.py::guides). Параметры: guides.{% endcomment %}
+<section class="mb-8 flex flex-wrap items-center gap-2 rounded-2xl border border-gray-200 bg-white px-4 py-3" aria-labelledby="ww-guides-h" data-wegweiser-guides>
+  <h2 id="ww-guides-h" class="mr-2 text-base font-bold">{% trans "Schnell finden" %}</h2>
+  {% for g in guides %}
+  <a href="{{ g.url }}" class="inline-flex min-h-[2.5rem] items-center gap-1.5 rounded-full border border-gray-300 px-4 text-sm font-semibold text-gray-900 hover:border-gray-500">{{ g.label }} <span class="font-normal text-gray-500" data-guide-count>{{ g.count }}</span></a>
+  {% endfor %}
+</section>

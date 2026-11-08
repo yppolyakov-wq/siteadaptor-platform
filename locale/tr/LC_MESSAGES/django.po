@@ -35852,3 +35852,41 @@ msgstr[1] "bu hafta %(n)s kez kaydedildi"
 #: PH-11
 msgid "Die lokale Plattform für Angebote, Termine und Geschäfte aus %(city)s. Sie kaufen und bezahlen direkt beim Geschäft."
 msgstr "%(city)s'deki teklifler, etkinlikler ve işletmeler için yerel platform. Satın alma ve ödemeyi doğrudan işletmede yaparsınız."
+
+#: Wegweiser
+msgid "Wegweiser"
+msgstr "Yol gösterici"
+
+#: Wegweiser
+msgid "Bereiche als Kacheln mit Zahlen, darunter ein Fokus-Regal und alle Artikel."
+msgstr "Sayılarla bölüm kutucukları, altında öne çıkanlar rafı ve tüm ürünler."
+
+#: Wegweiser
+msgid "%(counter)s neu"
+msgid_plural "%(counter)s neu"
+msgstr[0] "%(counter)s yeni"
+msgstr[1] "%(counter)s yeni"
+
+#: Wegweiser
+msgid "%(n)s reduziert"
+msgstr "%(n)s indirimli"
+
+#: Wegweiser
+msgid "+%(n)s weitere"
+msgstr "+%(n)s daha"
+
+#: Wegweiser
+msgid "Im Fokus"
+msgstr "Öne çıkanlar"
+
+#: Wegweiser
+msgid "Weitere Artikel"
+msgstr "Diğer ürünler"
+
+#: Wegweiser
+msgid "Schnell finden"
+msgstr "Hızlı bul"
+
+#: Wegweiser
+msgid "Unter %(price)s €"
+msgstr "%(price)s € altı"

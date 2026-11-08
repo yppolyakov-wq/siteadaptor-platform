@@ -457,4 +457,63 @@ document.addEventListener("change", function (e) {
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
   else init();
 })();
+
+/* Wegweiser W-2: вкладки «Im Fokus» (WAI-ARIA Tabs). Без JS — полки подряд со своими
+   заголовками; скрипт показывает переключатель, прячет заголовки и неактивные панели.
+   Делегирование на document + повторная инициализация после sf:navigated: KAT-5
+   подменяет [data-listing-root] fetch'ем, прямые обработчики умерли бы. */
+(function () {
+  function select(root, key, focus) {
+    root.querySelectorAll("[data-focus-tab]").forEach(function (b) {
+      var on = b.getAttribute("data-focus-tab") === key;
+      b.setAttribute("aria-selected", on ? "true" : "false");
+      b.tabIndex = on ? 0 : -1;
+      b.classList.toggle("text-white", on);
+      b.style.background = on ? "var(--accent, #4f46e5)" : "";
+      b.style.borderColor = on ? "var(--accent, #4f46e5)" : "";
+      if (on && focus) b.focus();
+    });
+    root.querySelectorAll("[data-focus-panel]").forEach(function (p) {
+      p.hidden = p.getAttribute("data-focus-panel") !== key;
+    });
+  }
+  function init() {
+    document.querySelectorAll("[data-wegweiser-focus]").forEach(function (root) {
+      var list = root.querySelector("[data-focus-tabs]");
+      if (!list || root.hasAttribute("data-focus-ready")) return;
+      root.setAttribute("data-focus-ready", "");
+      list.hidden = false;
+      root.querySelectorAll("[data-focus-panel]").forEach(function (p) {
+        p.setAttribute("role", "tabpanel");
+        p.setAttribute("aria-labelledby", "ww-tab-" + p.getAttribute("data-focus-panel"));
+        p.tabIndex = 0;
+        var h = p.querySelector("[data-focus-heading]");
+        if (h) h.hidden = true;
+      });
+      var first = list.querySelector("[data-focus-tab]");
+      if (first) select(root, first.getAttribute("data-focus-tab"), false);
+    });
+  }
+  document.addEventListener("click", function (e) {
+    var b = e.target.closest && e.target.closest("[data-focus-tab]");
+    if (!b) return;
+    select(b.closest("[data-wegweiser-focus]"), b.getAttribute("data-focus-tab"), false);
+  });
+  document.addEventListener("keydown", function (e) {
+    var b = e.target.closest && e.target.closest("[data-focus-tab]");
+    if (!b) return;
+    var tabs = Array.prototype.slice.call(b.parentNode.querySelectorAll("[data-focus-tab]"));
+    var i = tabs.indexOf(b), n = tabs.length, j = -1;
+    if (e.key === "ArrowRight") j = (i + 1) % n;
+    else if (e.key === "ArrowLeft") j = (i - 1 + n) % n;
+    else if (e.key === "Home") j = 0;
+    else if (e.key === "End") j = n - 1;
+    if (j < 0) return;
+    e.preventDefault();
+    select(b.closest("[data-wegweiser-focus]"), tabs[j].getAttribute("data-focus-tab"), true);
+  });
+  document.addEventListener("sf:navigated", init);
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
+})();
 </script>

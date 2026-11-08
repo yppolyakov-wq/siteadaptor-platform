@@ -36022,3 +36022,43 @@ msgstr[3] "зберегли %(n)s рази за тиждень"
 #: PH-11
 msgid "Die lokale Plattform für Angebote, Termine und Geschäfte aus %(city)s. Sie kaufen und bezahlen direkt beim Geschäft."
 msgstr "Місцева платформа пропозицій, подій і магазинів міста %(city)s. Купуєте й платите ви безпосередньо в магазині."
+
+#: Wegweiser
+msgid "Wegweiser"
+msgstr "Путівник"
+
+#: Wegweiser
+msgid "Bereiche als Kacheln mit Zahlen, darunter ein Fokus-Regal und alle Artikel."
+msgstr "Розділи плитками з числами, нижче — полиця «У фокусі» і всі товари."
+
+#: Wegweiser
+msgid "%(counter)s neu"
+msgid_plural "%(counter)s neu"
+msgstr[0] "%(counter)s новий"
+msgstr[1] "%(counter)s нових"
+msgstr[2] "%(counter)s нових"
+msgstr[3] "%(counter)s нових"
+
+#: Wegweiser
+msgid "%(n)s reduziert"
+msgstr "%(n)s зі знижкою"
+
+#: Wegweiser
+msgid "+%(n)s weitere"
+msgstr "ще %(n)s"
+
+#: Wegweiser
+msgid "Im Fokus"
+msgstr "У фокусі"
+
+#: Wegweiser
+msgid "Weitere Artikel"
+msgstr "Інші товари"
+
+#: Wegweiser
+msgid "Schnell finden"
+msgstr "Швидкий пошук"
+
+#: Wegweiser
+msgid "Unter %(price)s €"
+msgstr "До %(price)s €"

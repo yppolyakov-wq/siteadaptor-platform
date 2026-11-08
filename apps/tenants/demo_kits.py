@@ -16944,7 +16944,14 @@ ONLINE_SHOP = DemoKit(
             "data": {"source": "combos", "out": "slider"},
         },
     ],
-    page_presets=[("cart", "vertrauen"), ("info", "geschichte"), ("catalog", "neu_sale")],
+    # Wegweiser (2026-11-08, макет S1): корень каталога — направления плитками с числами
+    # → «Schnell finden» → «Im Fokus» (Neu · Reduziert · Beliebt) → сетка без повторов.
+    # Пресет «neu_sale» снят: две его карусели стояли НАД направлениями, а сетка ниже
+    # повторяла «Neu» (дефекты прода 07.11). 5 колонок — как в макете (20 на страницу).
+    # Сетка — в config_patch, а не page_layouts: сборка boutique применяется позже
+    # page_layouts и задаёт каталогу cols4; config_patch идёт последним.
+    config_patch={"catalog_page_style": "wegweiser", "catalog_layout": {"preset": "cols5"}},
+    page_presets=[("cart", "vertrauen"), ("info", "geschichte")],
     size_tables={
         "mode-basics": "Größe | Brustumfang | Taille | Hüfte\n"
         "XS | 82–86 cm | 64–68 cm | 88–92 cm\n"

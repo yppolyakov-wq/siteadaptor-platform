@@ -165,6 +165,17 @@ COMPOSITIONS: dict[str, Composition] = {
             },
         ),
         _c(
+            # Wegweiser (2026-11-08, макет S1): только корень каталога. Направления
+            # плитками с числами → «Im Fokus» → сетка без повторов. Порядок 5 —
+            # сразу за Standard: это вид для большого ассортимента.
+            "wegweiser",
+            _("Wegweiser"),
+            _("Bereiche als Kacheln mit Zahlen, darunter ein Fokus-Regal und alle Artikel."),
+            frozenset({"catalog"}),
+            5,
+            recommended_grid="cols5",
+        ),
+        _c(
             "kopfbild",
             _("Mit Kopfbild"),
             _("Hero mit Foto und Beschreibung, Unterkategorien als Foto-Kacheln."),

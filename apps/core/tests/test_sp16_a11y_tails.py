@@ -102,4 +102,7 @@ def test_chat_fab_name_is_its_visible_label():
     base = (ROOT / "templates" / "storefront" / "_base.html").read_text()
     fab = base.split("data-chat-fab title=", 1)[1].split("</a>", 1)[0]
     assert "aria-label" not in fab
-    assert 'class="sr-only sm:not-sr-only lg:sr-only' in fab
+    # Wegweiser W-4 (2026-11-08): на планшете подпись делала кнопку широкой, и она
+    # закрывала корзину карточек — теперь кнопка-иконка на всех ширинах, а подпись
+    # остаётся в DOM и даёт имя (видимой подписи нет — 2.5.3 не нарушается).
+    assert 'class="sr-only text-sm font-medium" data-chat-fab-label' in fab

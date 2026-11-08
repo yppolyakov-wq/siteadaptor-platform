@@ -1,5 +1,23 @@
-{% load i18n %}{% if request.tenant.is_demo %}{% comment %}В1: витрина демо-бизнеса — честно говорим, что это пример.{% endcomment %}
+{% load i18n %}{% if request.tenant.is_demo or storefront_demo_design %}{% comment %}В1: витрина демо-бизнеса — честно говорим, что это пример.
+Wegweiser W-4 (2026-11-08): переключатель «Design testen» (DL-8e) переехал сюда из
+плавающей пилюли — по центру низа экрана она закрывала цену и корзину карточек.
+<details> — дропдаун без JS, открывается вниз, поверх страницы.{% endcomment %}
 <div class="bg-amber-50 border-b border-amber-200 text-amber-900 text-sm" role="note" data-demo-banner>
-  <div class="{{ storefront_page_width|default:'max-w-screen-2xl' }} mx-auto px-4 py-2"><strong>{% trans "Demo-Geschäft" %}</strong> — {% trans "dies ist ein Beispiel-Shop zum Ausprobieren." %}</div>
+  <div class="{{ storefront_page_width|default:'max-w-screen-2xl' }} mx-auto px-4 py-2 flex flex-wrap items-center gap-x-4 gap-y-2">
+    {% if request.tenant.is_demo %}<span><strong>{% trans "Demo-Geschäft" %}</strong> — {% trans "dies ist ein Beispiel-Shop zum Ausprobieren." %}</span>{% endif %}
+    {% if storefront_demo_design %}
+    <details class="relative ml-auto" data-demo-design>
+      <summary class="list-none cursor-pointer inline-flex items-center gap-2 bg-gray-900 text-white rounded-full px-4 min-h-[2.25rem] text-sm font-medium whitespace-nowrap">🎨 {% trans "Design testen" %}</summary>
+      <div class="absolute right-0 top-full mt-2 z-40 w-60 bg-white text-gray-900 rounded-xl shadow-xl border border-gray-200 p-1.5">
+        <a href="{% url 'storefront-design-testen' %}?tpl=standard&next={{ request.path|urlencode }}"
+           class="block rounded-lg px-3 py-1.5 text-sm hover:bg-gray-100{% if not storefront_demo_design.active %} font-semibold{% endif %}">{% trans "Standard" %}{% if not storefront_demo_design.active %} ✓{% endif %}</a>
+        {% for o in storefront_demo_design.options %}
+          <a href="{% url 'storefront-design-testen' %}?tpl={{ o.key }}&next={{ request.path|urlencode }}"
+             class="block rounded-lg px-3 py-1.5 text-sm hover:bg-gray-100{% if o.key == storefront_demo_design.active %} font-semibold{% endif %}">{{ o.label }}{% if o.key == storefront_demo_design.active %} ✓{% endif %}</a>
+        {% endfor %}
+      </div>
+    </details>
+    {% endif %}
+  </div>
 </div>
 {% endif %}

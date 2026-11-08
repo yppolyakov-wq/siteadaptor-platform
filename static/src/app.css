@@ -1682,7 +1682,7 @@ input[type="datetime-local"] {
 }
 @media (max-width: 639.98px) {
   :root:has([data-sf-bottom-nav]) { --sf-nav-h: calc(47px + max(2px, env(safe-area-inset-bottom))); }
-  :root:has([data-chat-fab]), :root:has([data-demo-design]) { --sf-fab-room: 4.5rem; }
+  :root:has([data-chat-fab]) { --sf-fab-room: 4.5rem; }
   :root:has([data-sf-presence]) { --sf-fab-room: 8.5rem; }
 }
 /* WCAG 2.4.11: элемент в фокусе не прячется под нижними слоями (Tab докручивает
@@ -1693,8 +1693,7 @@ input[type="datetime-local"] {
 [data-buybar] { bottom: var(--sf-nav-h, 0px); }
 @media (max-width: 1023.98px) {
   [data-sf-footer-inner] { padding-bottom: calc(1.5rem + var(--sf-buybar-h, 0px) + var(--sf-fab-room, 0px)); }
-  body:has([data-buybar]) [data-chat-fab],
-  body:has([data-buybar]) [data-demo-design] { bottom: calc(var(--sf-nav-h, 0px) + var(--sf-buybar-h) + 16px); }
+  body:has([data-buybar]) [data-chat-fab] { bottom: calc(var(--sf-nav-h, 0px) + var(--sf-buybar-h) + 16px); }
   body:has([data-buybar]) [data-sf-presence] { bottom: calc(var(--sf-nav-h, 0px) + var(--sf-buybar-h) + 76px); }
 }
 /* SP-16 (WCAG 1.4.10 Reflow): низкий экран — телефон боком, 400 % масштаб. Нижние
@@ -1710,12 +1709,8 @@ input[type="datetime-local"] {
   [data-sf-bottom-nav], [data-buybar], [data-chat-fab], [data-sf-presence] {
     position: static !important;
   }
-  /* выпадающий список «Design testen» позиционируется от самой пилюли */
-  [data-demo-design] { position: relative !important; left: auto !important; bottom: auto !important; transform: none !important; display: inline-block; }
   [data-chat-fab], [data-sf-presence] { display: inline-flex; }
-  [data-chat-fab], [data-sf-presence], [data-demo-design] { margin: 0.75rem 1rem; }
-  /* список дизайнов — вниз от пилюли и от её левого края (иначе уходил за экран) */
-  [data-demo-design] > div { left: 0 !important; transform: none !important; bottom: auto !important; top: 100%; }
+  [data-chat-fab], [data-sf-presence] { margin: 0.75rem 1rem; }
 }
 
 /* SP-1: «карта меню» колонками — пунктирная линия между колонками, как у книги. */

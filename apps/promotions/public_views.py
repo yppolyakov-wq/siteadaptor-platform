@@ -1418,6 +1418,10 @@ _NARROWING_FACETS = (
     "kollektion",
     "bewertung",
     "optionen",  # FB-24d
+    # Wegweiser (2026-11-08): «Nur reduzierte» и «Heute auf der Karte» тоже сужают
+    # выдачу — без них «?sale=1» на странице-полках (Regale) молча ничего не менял.
+    "sale",
+    "heute",
 )
 
 
@@ -1560,6 +1564,52 @@ def product_list(request, slug=None):
     # чипы (у большинства тенантов Category.images пуст, сетка серых
     # прямоугольников была бы хуже текста).
     categories_have_images = any(c.tile_image_url for c in categories)
+    # Wegweiser (2026-11-08, макет S1): на корне направления идут ПЕРВЫМИ — плитками с
+    # числами, выше блоков владельца (`listing_before`), где у демо стояли карусели
+    # «Neu»/«Reduziert». Фильтр = результат (O-7): покупатель ищет или фильтрует —
+    # витрина уступает место выдаче; на «Show more» шапку не повторяем.
+    ww_overview = bool(
+        not path_mode
+        and cat_style == "wegweiser"
+        and not _facets_narrow(sel, request.GET)
+        and not request.GET.get("badge")
+    )
+    wegweiser_mode = ww_overview and not request.GET.get("cursor")
+    wegweiser_departments, wegweiser_summary, wegweiser_focus = [], None, []
+    if ww_overview:
+        from apps.catalog import wegweiser as _ww
+
+        # «Im Fokus» считаем и на курсорных страницах: сетка исключает его товары на
+        # КАЖДОЙ странице, иначе вторая страница повторила бы то, что стояло в полке.
+        # Набор может смениться между запросами (новый товар) — тогда на стыке
+        # страниц возможен единичный повтор или пропуск; это приемлемо.
+        wegweiser_focus = _ww.focus_panels(
+            Product.objects.filter(is_active=True).select_related("category"), provider
+        )
+        products = products.exclude(pk__in=_ww.focus_ids(wegweiser_focus))
+        if wegweiser_focus and not request.GET.get("cursor"):
+            # карточка показывает промо-цену так же, как в сетке (SF-4b: «показано = продано»)
+            from .price_layer import attach_promos as _attach_promos_focus
+
+            _attach_promos_focus([p for panel in wegweiser_focus for p in panel["items"]])
+    wegweiser_guides = []
+    if wegweiser_mode:
+        wegweiser_departments = _ww.departments(categories)
+        from apps.catalog.combos import active_combos as _ww_combos
+
+        wegweiser_guides = _ww.guides(
+            Product.objects.filter(is_active=True),
+            provider,
+            chips,
+            combos=_ww_combos() if orders_active(request.tenant) else None,
+            combos_label=combo_labels(request.tenant.business_type)["combos_title"],
+        )
+        if wegweiser_departments:
+            wegweiser_summary = _ww.summary(
+                Product.objects.filter(is_active=True),
+                len(wegweiser_departments),
+                chips["sale_count"],
+            )
     # M20U-3: подкатегории выбранной категории — выводим карточками первыми.
     subcategories = (
         list(category.children.filter(is_active=True).order_by("sort_order", "slug"))
@@ -1995,7 +2045,14 @@ def product_list(request, slug=None):
             # DL-21.1: корень — те же композиции над корневыми направлениями.
             "root_list_hidden": (
                 not path_mode and cat_style in ("regale", "tabs", "navigator", "kompakt")
-            ),
+            )
+            # Wegweiser: направления уже стоят плитками выше — второй список не рисуем
+            or bool(wegweiser_departments),
+            "wegweiser_departments": wegweiser_departments,
+            "wegweiser_summary": wegweiser_summary,
+            "wegweiser_focus": wegweiser_focus if wegweiser_mode else [],
+            "wegweiser_rest": bool(wegweiser_mode and wegweiser_focus),
+            "wegweiser_guides": wegweiser_guides,
             "side_categories": subcategories if path_mode else categories,
             # STU-18d (d-pre): контракт под-сущностей для композиций «Kompakt» и
             # «Navigator» — метка и ССЫЛКА. Адрес знает только вьюха поверхности

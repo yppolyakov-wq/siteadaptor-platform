@@ -682,22 +682,8 @@
   {% endif %}
   {# LS-2: бейдж «Jetzt erreichbar — Video-Anruf» (пусто, если недоступен/нет номера). #}
   {% presence_fab %}
-  {% if storefront_demo_design %}
-  {% comment %}DL-8e: пилюля «Design testen» — ТОЛЬКО на демо-витринах (гейт по
-  слагам демо-китов в процессоре). Выбор живёт в сессии посетителя (read-only
-  оверлей, конфиг тенанта не пишется); <details> — дропап без JS.{% endcomment %}
-  <details class="fixed left-1/2 -translate-x-1/2 bottom-20 sm:bottom-5 z-40" data-demo-design>
-    <summary class="list-none cursor-pointer inline-flex items-center gap-2 bg-gray-900 text-white rounded-full shadow-lg px-4 py-2.5 text-sm font-medium whitespace-nowrap">🎨 {% trans "Design testen" %}</summary>
-    <div class="absolute bottom-12 left-1/2 -translate-x-1/2 w-60 bg-white text-gray-900 rounded-xl shadow-xl border border-gray-200 p-1.5">
-      <a href="{% url 'storefront-design-testen' %}?tpl=standard&next={{ request.path|urlencode }}"
-         class="block rounded-lg px-3 py-1.5 text-sm hover:bg-gray-100{% if not storefront_demo_design.active %} font-semibold{% endif %}">{% trans "Standard" %}{% if not storefront_demo_design.active %} ✓{% endif %}</a>
-      {% for o in storefront_demo_design.options %}
-        <a href="{% url 'storefront-design-testen' %}?tpl={{ o.key }}&next={{ request.path|urlencode }}"
-           class="block rounded-lg px-3 py-1.5 text-sm hover:bg-gray-100{% if o.key == storefront_demo_design.active %} font-semibold{% endif %}">{{ o.label }}{% if o.key == storefront_demo_design.active %} ✓{% endif %}</a>
-      {% endfor %}
-    </div>
-  </details>
-  {% endif %}
+  {% comment %}Wegweiser W-4 (2026-11-08): «Design testen» больше не плавает над
+  карточками — переключатель живёт в полосе демо наверху (_demo_banner.html).{% endcomment %}
   {% if storefront_inbox_enabled %}
   {# M22b: плавающая кнопка чата — доступна с любой страницы (над таб-баром на мобиле). #}
   {# DL-6: FAB — в акценте тенанта (жёсткий indigo игнорировал Look любого цвета). #}
@@ -706,7 +692,7 @@
   управление не находило кнопку. Подпись всегда в DOM: видна на sm–lg, иначе sr-only.{% endcomment %}
   <a href="{% url 'storefront-message' %}" data-chat-fab title="{% trans 'Ask us a question' %}"
      class="fixed right-4 bottom-20 sm:bottom-5 z-30 flex items-center gap-2 text-white rounded-full shadow-lg px-4 py-3 hover:opacity-90" style="background: var(--accent);">
-    <span class="text-lg leading-none" aria-hidden="true">💬</span><span class="sr-only sm:not-sr-only lg:sr-only text-sm font-medium" data-chat-fab-label>{% trans "Ask us" %}</span>
+    <span class="text-lg leading-none" aria-hidden="true">💬</span><span class="sr-only text-sm font-medium" data-chat-fab-label>{% trans "Ask us" %}</span>
   </a>
   {% endif %}
   {# Переключатель вида сетки «список ↔ плитка» — общий обработчик для всех страниц. #}

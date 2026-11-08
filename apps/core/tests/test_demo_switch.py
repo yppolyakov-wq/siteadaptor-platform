@@ -75,3 +75,18 @@ def test_session_overlay_renders_choice_on_demo_home():
     html = storefront_home(request).content.decode()
     assert ' data-sf-look="neon"' not in html
     assert "data-demo-design" not in html
+
+
+def test_design_switcher_lives_in_the_demo_banner_not_over_cards():
+    """Wegweiser W-4: пилюля «Design testen» висела fixed по центру низа и закрывала цену
+    и корзину карточек — теперь она в полосе демо наверху, в потоке страницы."""
+    import re
+
+    from apps.promotions.public_views import storefront_home
+
+    demo = TenantFactory.build(slug="aktionsmarkt", business_type="grocery")
+    html = storefront_home(_req("/", demo)).content.decode()
+    banner = re.search(r"<div[^>]*data-demo-banner.*?</details>", html, re.S).group(0)
+    assert "data-demo-design" in banner
+    details = re.search(r"<details[^>]*data-demo-design[^>]*>", html).group(0)
+    assert "fixed" not in details

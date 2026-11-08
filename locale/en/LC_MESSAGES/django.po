@@ -35706,3 +35706,41 @@ msgstr[1] "saved %(n)s× this week"
 #: PH-11
 msgid "Die lokale Plattform für Angebote, Termine und Geschäfte aus %(city)s. Sie kaufen und bezahlen direkt beim Geschäft."
 msgstr "The local platform for offers, events and shops from %(city)s. You buy and pay directly at the shop."
+
+#: Wegweiser
+msgid "Wegweiser"
+msgstr "Signpost"
+
+#: Wegweiser
+msgid "Bereiche als Kacheln mit Zahlen, darunter ein Fokus-Regal und alle Artikel."
+msgstr "Departments as tiles with counts, then a focus shelf and all items."
+
+#: Wegweiser
+msgid "%(counter)s neu"
+msgid_plural "%(counter)s neu"
+msgstr[0] "%(counter)s new"
+msgstr[1] "%(counter)s new"
+
+#: Wegweiser
+msgid "%(n)s reduziert"
+msgstr "%(n)s reduced"
+
+#: Wegweiser
+msgid "+%(n)s weitere"
+msgstr "+%(n)s more"
+
+#: Wegweiser
+msgid "Im Fokus"
+msgstr "In focus"
+
+#: Wegweiser
+msgid "Weitere Artikel"
+msgstr "More items"
+
+#: Wegweiser
+msgid "Schnell finden"
+msgstr "Quick finds"
+
+#: Wegweiser
+msgid "Unter %(price)s €"
+msgstr "Under %(price)s €"
