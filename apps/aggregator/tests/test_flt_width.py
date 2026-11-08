@@ -56,7 +56,8 @@ def test_portal_results_page_is_wide_with_four_column_cards():
     assert "max-w-screen-2xl" in main and "data-wide" in main
     # 2026-11-05: 4 колонки уже с lg (ряд = 4 карточки)
     assert "lg:group-data-[wide]:grid-cols-4" in html
-    assert html.count("max-w-screen-2xl") >= 3  # шапка, main, подвал
+    assert html.count("max-w-screen-2xl") >= 2  # main, подвал
+    assert "max-w-[1392px]" in html  # PH-11a: шапка по макету K1
 
 
 @override_settings(ROOT_URLCONF="config.urls_public")

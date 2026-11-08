@@ -16,6 +16,16 @@ def portal_wordmark(portal):
     return {"dark": dark, "accent": accent}
 
 
+@register.simple_tag
+def portal_districts(portal):
+    """PH-11a: районы города портала для «Wo» шапки — [(slug, name)] из реестра, без БД."""
+    from apps.core import districts
+
+    if portal is None:
+        return []
+    return [(d.slug, d.name) for d in districts.districts_for(getattr(portal, "city", ""))]
+
+
 @register.filter
 def card_action(kind):
     """PH-3: подпись пилюли действия карточки по виду листинга."""

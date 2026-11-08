@@ -35496,3 +35496,15 @@ msgstr "e.g. trades, catering, repairs"
 #: FB-26
 msgid "z. B. Café, Restaurant, Imbiss"
 msgstr "e.g. café, restaurant, snack bar"
+
+#: PH-11
+msgid "Was"
+msgstr "What"
+
+#: PH-11
+msgid "Ganz %(city)s"
+msgstr "All of %(city)s"
+
+#: PH-11
+msgid "Pizza, Friseur, Fahrrad, Kinderkino …"
+msgstr "Pizza, hairdresser, bike, kids' cinema …"

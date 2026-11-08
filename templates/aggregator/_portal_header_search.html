@@ -1,0 +1,44 @@
+{% load i18n portal_brand %}{% portal_districts portal as dists %}
+{% comment %}PH-11a (макет K1): поиск шапки «Was / Wo / Wann» — одна GET-форма на корень портала.
+«Wo» = район (?stadtteil=), «Wann» = jetzt (= offen=1) / heute / wochenende (?datum=). Текущие
+фильтры выдачи едут скрытыми (header_hidden — без полей, которые уже стоят в форме). Без
+пользовательских данных: страница кэшируется (P0-1).{% endcomment %}
+<form method="get" action="{% url 'portal-home' %}" role="search" data-portal-search data-portal-header-search
+      class="order-last md:order-none basis-full md:basis-auto md:flex-1 min-w-0 flex flex-col md:flex-row md:items-stretch gap-2 md:gap-0 md:bg-white md:border-2 md:border-gray-900 md:rounded-full md:overflow-hidden md:shadow-[0_6px_20px_rgba(0,0,0,.10)] md:p-1.5 md:pl-0">
+  {% for k, v in header_hidden %}<input type="hidden" name="{{ k }}" value="{{ v }}">{% endfor %}
+  <div class="flex items-center gap-2 md:contents">
+    <label class="flex-1 min-w-0 flex flex-col justify-center bg-white max-md:border-2 max-md:border-gray-900 max-md:rounded-full md:flex-[1.5] px-5 py-1.5 md:py-0.5 md:border-r md:border-gray-200">
+      <span class="text-xs font-bold text-gray-900">{% trans "Was" %}</span>
+      <input type="search" name="q" value="{{ search_q|default:'' }}" maxlength="100"
+             placeholder="{% trans 'Pizza, Friseur, Fahrrad, Kinderkino …' %}"
+             class="w-full min-w-0 bg-transparent border-0 p-0 text-base text-gray-900 outline-none focus:ring-0">
+    </label>
+    <button type="submit" class="md:hidden shrink-0 w-12 h-12 rounded-full text-white flex items-center justify-center" style="background: var(--portal-color)">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+      <span class="sr-only">{% trans "Suchen" %}</span>
+    </button>
+  </div>
+  <div class="flex gap-2 md:contents">
+    <label class="flex-1 min-w-0 flex flex-col justify-center bg-white max-md:border max-md:border-gray-300 max-md:rounded-2xl px-4 md:px-5 py-1.5 md:py-0.5 md:border-r md:border-gray-200">
+      <span class="text-xs font-bold text-gray-900">{% trans "Wo" %}</span>
+      <select name="stadtteil" class="w-full bg-transparent border-0 p-0 text-base text-gray-900 outline-none focus:ring-0">
+        <option value="">{% blocktrans with city=portal.city %}Ganz {{ city }}{% endblocktrans %}</option>
+        {% for slug, name in dists %}<option value="{{ slug }}"{% if slug == header_wo %} selected{% endif %}>{{ name }}</option>{% endfor %}
+      </select>
+    </label>
+    <label class="flex-1 md:flex-[1.25] min-w-0 flex flex-col justify-center bg-white max-md:border max-md:border-gray-300 max-md:rounded-2xl px-4 md:px-5 py-1.5 md:py-0.5">
+      <span class="text-xs font-bold text-gray-900">{% trans "Wann" %}</span>
+      <select name="datum" class="w-full bg-transparent border-0 p-0 text-base text-gray-900 outline-none focus:ring-0">
+        <option value="">{% trans "Jederzeit" %}</option>
+        <option value="jetzt"{% if header_wann == "jetzt" %} selected{% endif %}>{% trans "Jetzt geöffnet" %}</option>
+        <option value="heute"{% if header_wann == "heute" %} selected{% endif %}>{% trans "Heute" %}</option>
+        <option value="wochenende"{% if header_wann == "wochenende" %} selected{% endif %}>{% trans "Wochenende" %}</option>
+        {% if header_wann_custom %}<option value="{{ header_wann }}" selected>{{ header_wann }}</option>{% endif %}
+      </select>
+    </label>
+  </div>
+  <button type="submit" class="hidden md:flex shrink-0 self-center w-12 h-12 rounded-full text-white items-center justify-center" style="background: var(--portal-color)">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+    <span class="sr-only">{% trans "Suchen" %}</span>
+  </button>
+</form>

@@ -22333,3 +22333,14 @@ CI пересекает полночь по Берлину; тест «Deal des 
   Otto/Baymard/NN/g) — `docs/portal-home-variants-analysis-2026-11-07.md`. Канвас: V1 Heute-Feed ·
   V2 Karte+Liste · V3 Wochen-Magazin · V4 Navigator · Mobil · Sortiment «Wegweiser»; исходники
   `docs/design/portal-home-2026-11-07/`. Дальше — выбор варианта и хотфиксы §5 по решению владельца.
+
+- **2026-11-08 · PH-11a — шапка портала в одну строку (без миграций).** План редизайна по
+  утверждённым макетам K1/P1/P2 — `docs/ph11-portal-redesign-plan-2026-11-08.md` (агент planner,
+  решения В-1…В-6 по рекомендации). Шапка: «Kategorien» · вордмарк · одна GET-форма
+  «Was / Wo / Wann» (`q` · `stadtteil` из реестра районов · `datum=jetzt|heute|wochenende`) ·
+  Merkzettel · вход; `datum=jetzt` = `offen=1` в `search.parse_filters`; скрытые поля формы —
+  через `_header_search` без имён, уже стоящих в форме (иначе QueryDict.get перетирал выбор);
+  полоса иконок разделов снята (одна навигация — мега-меню); вторая форма поиска (hero и
+  `_portal_search.html`) удалена; языки уехали в подвал до 2xl. Телефон: «Was» строкой, Wo/Wann
+  второй. Замки `test_portal_header_ph11.py` (7); осознанно переписаны `test_portal_menu`
+  (strip снят) и `test_flt_width` (шапка 1392 px). Стенд 1440/390: без переполнений.

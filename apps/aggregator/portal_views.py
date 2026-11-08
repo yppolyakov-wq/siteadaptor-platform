@@ -278,6 +278,34 @@ def _seo_canonical(request, portal, district, facet, filters) -> tuple[str, bool
     return request.build_absolute_uri(request.get_full_path()), True
 
 
+def _header_search(hidden, filters, district) -> dict:
+    """PH-11a: поля шапки «Wo/Wann» + скрытые параметры БЕЗ того, что уже есть в полях.
+
+    «Wo» = первый выбранный район (или район пути `/stadtteil/<slug>/`), остальные районы
+    едут скрытыми. «Wann» = heute/wochenende/дата из `datum`, иначе «jetzt» при `offen=1`
+    («jetzt» сервер читает как offen=1). Дубль имени в форме молча перетёр бы выбор
+    (QueryDict.get берёт последнее значение) — поэтому поле убираем из скрытых."""
+    wo = filters.districts[0] if filters.districts else (district or "")
+    wann = filters.date or ("jetzt" if filters.open_now else "")
+    out, wo_taken = [], False
+    for key, value in hidden:
+        if key == "datum":
+            continue
+        if key == "offen" and wann == "jetzt":
+            continue
+        if key == "stadtteil" and value == wo and not wo_taken:
+            wo_taken = True
+            continue
+        out.append((key, value))
+    custom = wann not in ("", "jetzt", "heute", "wochenende")
+    return {
+        "header_hidden": out,
+        "header_wo": wo,
+        "header_wann": wann,
+        "header_wann_custom": custom,
+    }
+
+
 def _filter_ui(
     request,
     portal,
@@ -757,17 +785,20 @@ def portal_home(request, facet=None, district=None):
                 request, intent_hints, pool, q, filters, geo_carry, scope
             ),
             # T-8.20: новый запрос не сбрасывает вкладку и фильтры.
-            "search_hidden": [
-                (k, v)
-                for k, v in [
-                    ("kind", scope.kind_key if scope.kind_key != "alle" else ""),
-                    ("neu", "1" if scope.new_only else ""),
+            "search_hidden": (
+                search_hidden := [
+                    (k, v)
+                    for k, v in [
+                        ("kind", scope.kind_key if scope.kind_key != "alle" else ""),
+                        ("neu", "1" if scope.new_only else ""),
+                    ]
+                    + search_engine.carry("", filters)
+                    + geo_carry
+                    + [("roh", v) for v in request.GET.getlist("roh") if v == "ort"]
+                    if v
                 ]
-                + search_engine.carry("", filters)
-                + geo_carry
-                + [("roh", v) for v in request.GET.getlist("roh") if v == "ort"]
-                if v
-            ],
+            ),
+            **_header_search(search_hidden, filters, district),
             # T-8.20: блок фильтров и пилюли активных фильтров (только у городского портала).
             "flt": flt,
             # «Weitere» несёт текущие фильтры (вид/категорию/признак), иначе вторая

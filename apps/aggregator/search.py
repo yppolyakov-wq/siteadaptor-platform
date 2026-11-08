@@ -433,6 +433,9 @@ def parse_filters(request, *, city: str = "", point=None) -> SearchFilters:
     tags = tuple(dict.fromkeys(t for t in get.getlist("merkmal") if cc.normalize_tags([t])))
     district_list = parse_districts(get.getlist("stadtteil"), city=city)
     date = (get.get("datum") or "").strip()
+    # PH-11a: «Wann: Jetzt» шапки — одно поле формы; «jetzt» = «Jetzt geöffnet» (offen=1),
+    # дальше по канону живёт как offen=1 (canonical/carry не знают «datum=jetzt»).
+    open_now = get.get("offen") == "1" or date == "jetzt"
     if date not in ("heute", "wochenende") and _parse_day(date) is None:
         date = ""
     size = (get.get("groesse") or "").strip().upper()
@@ -451,7 +454,7 @@ def parse_filters(request, *, city: str = "", point=None) -> SearchFilters:
         price_to=_money(get.get("preis_bis")),
         date=date,
         available=get.get("verfuegbar") == "1",
-        open_now=get.get("offen") == "1",
+        open_now=open_now,
         sort=sort,
         radius_km=radius_km,
         size=size,

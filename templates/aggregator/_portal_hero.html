@@ -5,11 +5,6 @@
     {% if open_count %}<p class="inline-flex items-center gap-2 text-xs md:text-[13px] font-bold uppercase tracking-wider text-orange-300"><span aria-hidden="true" class="w-2 h-2 rounded-full bg-green-500"></span>{% now "l" %} · {% blocktrans count n=open_count %}{{ n }} Geschäft geöffnet{% plural %}{{ n }} Geschäfte geöffnet{% endblocktrans %}</p>{% endif %}
     <h1 id="hero-h" class="text-3xl md:text-5xl font-extrabold leading-[1.05] tracking-tight">{% blocktrans with city=portal.city %}Was gibt's heute in {{ city }}?{% endblocktrans %}</h1>
     <p class="text-base md:text-lg text-gray-300 max-w-xl">{% if portal.intro_text %}{{ portal.intro_text }}{% else %}{% blocktrans with city=portal.city %}Angebote von Läden, Cafés und Handwerkern aus {{ city }} — reservieren, abholen, direkt vor Ort.{% endblocktrans %}{% endif %}</p>
-    <form method="get" action="{% url 'portal-home' %}" role="search" data-portal-search class="flex gap-2 bg-white rounded-full p-1.5 pl-5 max-w-2xl">
-      <label for="portal-q" class="sr-only">{% trans "Suchen" %}</label>
-      <input id="portal-q" type="search" name="q" maxlength="100" placeholder="{% blocktrans with city=portal.city %}Was suchen Sie in {{ city }}?{% endblocktrans %}" class="flex-1 min-w-0 bg-transparent text-gray-900 outline-none text-base">
-      <button type="submit" class="shrink-0 rounded-full h-11 px-5 font-bold text-white" style="background: var(--portal-color)">{% trans "Suchen" %}</button>
-    </form>
     {% if hero_chips %}
     <div class="flex flex-wrap gap-2.5">
       {% for c in hero_chips %}<a href="{{ c.url }}" rel="nofollow" data-hero-chip class="inline-flex items-center h-11 px-4 rounded-full bg-white/10 border border-white/20 font-semibold text-sm hover:bg-white/20">{{ c.label }}</a>{% endfor %}

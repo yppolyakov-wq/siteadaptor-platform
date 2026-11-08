@@ -35642,3 +35642,15 @@ msgstr "ör. zanaat, catering, tamir"
 #: FB-26
 msgid "z. B. Café, Restaurant, Imbiss"
 msgstr "ör. kafe, restoran, büfe"
+
+#: PH-11
+msgid "Was"
+msgstr "Ne"
+
+#: PH-11
+msgid "Ganz %(city)s"
+msgstr "Tüm %(city)s"
+
+#: PH-11
+msgid "Pizza, Friseur, Fahrrad, Kinderkino …"
+msgstr "Pizza, kuaför, bisiklet, çocuk sineması …"

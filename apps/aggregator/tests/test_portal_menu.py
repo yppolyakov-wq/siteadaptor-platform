@@ -47,7 +47,9 @@ def test_home_has_menu_strip_anchor_and_no_csrf():
     portal = _portal()
     _seed_everything()
     body = _html(portal)
-    assert 'id="portal-menu"' in body and "data-portal-strip" in body
+    assert 'id="portal-menu"' in body
+    # PH-11a: полоса иконок разделов снята — навигация по разделам только через мега-меню.
+    assert "data-portal-strip" not in body
     assert 'id="kategorien"' in body
     assert 'href="/#kategorien" data-portal-menu-open' in body  # без JS — якорь главной
     assert "csrfmiddlewaretoken" not in body

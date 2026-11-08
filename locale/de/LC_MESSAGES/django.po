@@ -35583,3 +35583,15 @@ msgstr "z. B. Handwerk, Catering, Reparatur"
 #: FB-26
 msgid "z. B. Café, Restaurant, Imbiss"
 msgstr "z. B. Café, Restaurant, Imbiss"
+
+#: PH-11
+msgid "Was"
+msgstr "Was"
+
+#: PH-11
+msgid "Ganz %(city)s"
+msgstr "Ganz %(city)s"
+
+#: PH-11
+msgid "Pizza, Friseur, Fahrrad, Kinderkino …"
+msgstr "Pizza, Friseur, Fahrrad, Kinderkino …"

@@ -35806,3 +35806,15 @@ msgstr "напр. ремесло, кейтеринг, ремонт"
 #: FB-26
 msgid "z. B. Café, Restaurant, Imbiss"
 msgstr "напр. кафе, ресторан, закусочна"
+
+#: PH-11
+msgid "Was"
+msgstr "Що"
+
+#: PH-11
+msgid "Ganz %(city)s"
+msgstr "Увесь %(city)s"
+
+#: PH-11
+msgid "Pizza, Friseur, Fahrrad, Kinderkino …"
+msgstr "Піца, перукар, велосипед, дитяче кіно …"
