@@ -30,11 +30,11 @@ a{color:#C2410C;text-decoration:none}a:hover{color:#9A3412}
   </div>
 </header>
 
-<section aria-roledescription="Karussell" aria-label="Aktuelles in Solingen" style="max-width: 1392px; margin: 20px auto 0; padding: 0 24px">
-  <div style="position: relative; height: 320px; border-radius: 24px; overflow: hidden; background: #111827">
+<section aria-roledescription="Karussell" aria-label="Aktuelles in Solingen" style="max-width: 1600px; margin: 16px auto 0; padding: 0 12px">
+  <div style="position: relative; height: 360px; border-radius: 24px; overflow: hidden; background: #111827">
     <img src="{{slide.img}}" alt="" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover">
     <span style="position: absolute; inset: 0; background: linear-gradient(90deg, rgba(17,24,39,.88) 0%, rgba(17,24,39,.55) 45%, rgba(17,24,39,0) 75%)"></span>
-    <div role="group" aria-roledescription="Folie" aria-label="{{slide.label}}" style="position: relative; height: 100%; box-sizing: border-box; padding: 36px 48px; display: flex; flex-direction: column; justify-content: center; gap: 12px; max-width: 640px; color: #FFFFFF">
+    <div role="group" aria-roledescription="Folie" aria-label="{{slide.label}}" style="position: relative; height: 100%; box-sizing: border-box; padding: 36px 60px; display: flex; flex-direction: column; justify-content: center; gap: 12px; max-width: 680px; color: #FFFFFF">
       <span style="align-self: flex-start; background: {{slide.tagBg}}; color: #111827; font-size: 12px; font-weight: 800; letter-spacing: .04em; padding: 6px 12px; border-radius: 999px">{{slide.tag}}</span>
       <h2 style="margin: 0; font-size: 40px; line-height: 1.05; letter-spacing: -0.02em">{{slide.t}}</h2>
       <p style="margin: 0; font-size: 17px; line-height: 1.45; color: #E5E7EB">{{slide.s}}</p>
@@ -46,7 +46,7 @@ a{color:#C2410C;text-decoration:none}a:hover{color:#9A3412}
     <sc-if value="{{slide.credit}}" hint-placeholder-val="{{ true }}"><span style="position: absolute; right: 16px; bottom: 12px; font-size: 11px; color: rgba(255,255,255,.85); background: rgba(0,0,0,.35); padding: 3px 8px; border-radius: 6px">{{slide.credit}}</span></sc-if>
     <button type="button" aria-label="Vorherige Folie" onClick="{{prev}}" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 44px; height: 44px; border: 0; border-radius: 50%; background: rgba(255,255,255,.9); color: #111827; font-size: 22px; cursor: pointer">‹</button>
     <button type="button" aria-label="Nächste Folie" onClick="{{next}}" style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); width: 44px; height: 44px; border: 0; border-radius: 50%; background: rgba(255,255,255,.9); color: #111827; font-size: 22px; cursor: pointer">›</button>
-    <div style="position: absolute; left: 48px; bottom: 20px; display: flex; align-items: center; gap: 8px">
+    <div style="position: absolute; left: 60px; bottom: 20px; display: flex; align-items: center; gap: 8px">
       <sc-for list="{{dots}}" as="d" hint-placeholder-count="4">
         <button type="button" aria-label="{{d.label}}" aria-current="{{d.cur}}" onClick="{{d.pick}}" style="{{d.style}}"></button>
       </sc-for>
@@ -175,13 +175,13 @@ a{color:#C2410C;text-decoration:none}a:hover{color:#9A3412}
 </footer>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":3400}}'>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":3440}}'>
 class Component extends DCLogic {
   constructor(p){ super(p); this.state = { s: 0 }; }
   renderVals() {
     const B = '/_blob/', G = '#047857', A = '#B45309', X = '#9CA3AF';
     const slides = [
-      { img: B+'83643269ef74199d33a2fa1955421ff2', tag: 'FÜR UNTERNEHMEN', tagBg: '#FDBA74', label: 'Ihr Geschäft in Solingen', t: 'Ihr Geschäft in Solingen — werden Sie Teil davon', s: 'Verkaufen Sie Ihre Produkte online, veröffentlichen Sie Aktionen und Angebote — auf der lokalen Plattform, die die Geschäfte unserer Stadt stärkt.', cta: 'Jetzt Geschäft eintragen', cta2: 'So funktioniert’s', credit: 'Müngstener Brücke · Foto: Immanuel Giel, CC0' },
+      { img: B+'e666eb31e02a3738ad757a552821c325', tag: 'FÜR UNTERNEHMEN', tagBg: '#FDBA74', label: 'Ihr Geschäft in Solingen', t: 'Ihr Geschäft in Solingen — werden Sie Teil davon', s: 'Verkaufen Sie Ihre Produkte online, veröffentlichen Sie Aktionen und Angebote — auf der lokalen Plattform, die die Geschäfte unserer Stadt stärkt.', cta: 'Jetzt Geschäft eintragen', cta2: 'So funktioniert’s', credit: 'Müngstener Brücke · Foto: InterCityImpress, CC BY-SA 2.0' },
       { img: B+'d648274a4c4401071d4ca5a78902aa8e', tag: 'DEAL DES TAGES', tagBg: '#FCD34D', label: 'Deal des Tages', t: 'Feierabendtüte −50 %', s: 'Bäckerei Klingenbrot, Mitte — 5,00 € statt 10,00 €. Heute ab 17 Uhr, noch 6 Tüten.', cta: 'Jetzt zurücklegen', cta2: '', credit: '' },
       { img: B+'727b724abb015feeb7630cb82099d25f', tag: 'AM WOCHENENDE', tagBg: '#DDD6FE', label: 'Wochenende', t: '23 Ideen fürs Wochenende', s: 'Kinderkino, Wupper-Wanderung, Kabarett und Brunch — mit Datum und freien Plätzen.', cta: 'Wochenende ansehen', cta2: '', credit: '' },
       { img: B+'c069bad5ac76b4c30164485d0c45b605', tag: 'NEU IN SOLINGEN', tagBg: '#BFDBFE', label: 'Neu in Solingen', t: 'Café Morgenrot hat eröffnet', s: 'Frühstück, Kuchen des Tages und diese Woche Eröffnungs-Cappuccino −20 % in Mitte.', cta: 'Zum Café', cta2: '', credit: '' },

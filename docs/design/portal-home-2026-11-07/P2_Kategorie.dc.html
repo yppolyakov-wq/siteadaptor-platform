@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>SolingenMarkt – Essen &amp; Gastronomie</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#FFFFFF}
+a{color:#C2410C;text-decoration:none}a:hover{color:#9A3412}
+</style>
+</helmet>
+<div style="font-family: Inter, system-ui, sans-serif; color: #111827; background: #FFFFFF">
+<header style="background: #FFFFFF; border-bottom: 1px solid #E5E7EB">
+  <div style="max-width: 1392px; margin: 0 auto; padding: 16px 24px; display: flex; align-items: center; gap: 18px">
+    <button type="button" style="flex: 0 0 auto; display: flex; align-items: center; gap: 8px; background: #C2410C; color: #FFFFFF; border: 0; border-radius: 999px; padding: 0 20px; font: 700 15px Inter, sans-serif; min-height: 56px">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>Kategorien</button>
+    <span style="flex: 0 0 auto; display: flex; flex-direction: column"><span style="font-weight: 800; font-size: 21px; letter-spacing: -0.02em">Solingen<span style="color: #C2410C">Markt</span></span><span style="font-size: 12px; color: #4B5563">Alles aus der Klingenstadt</span></span>
+    <form role="search" style="flex: 1 1 auto; min-width: 0; display: grid; grid-template-columns: 1.7fr 1fr 1fr auto; align-items: center; background: #FFFFFF; border: 2px solid #111827; border-radius: 999px; box-shadow: 0 6px 20px rgba(0,0,0,.10); padding: 5px 5px 5px 0; min-height: 64px; box-sizing: border-box">
+      <label style="display: flex; flex-direction: column; padding: 2px 22px; border-right: 1px solid #E5E7EB; min-width: 0"><span style="font-size: 12px; font-weight: 700">Was</span><input type="search" placeholder="In Essen &amp; Gastronomie suchen …" style="border: 0; outline: none; font: 16px Inter, sans-serif; min-height: 26px; min-width: 0"></label>
+      <label style="display: flex; flex-direction: column; padding: 2px 22px; border-right: 1px solid #E5E7EB; min-width: 0"><span style="font-size: 12px; font-weight: 700">Wo</span><select style="border: 0; outline: none; font: 16px Inter, sans-serif; min-height: 26px; background: transparent"><option>Ganz Solingen</option></select></label>
+      <label style="display: flex; flex-direction: column; padding: 2px 22px; min-width: 0"><span style="font-size: 12px; font-weight: 700">Wann</span><select style="border: 0; outline: none; font: 16px Inter, sans-serif; min-height: 26px; background: transparent"><option>Jetzt</option></select></label>
+      <button type="submit" aria-label="Suchen" style="width: 50px; height: 50px; border: 0; border-radius: 50%; background: #C2410C; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.5" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button>
+    </form>
+    <nav aria-label="Konto" style="flex: 0 0 auto; display: flex; align-items: center; gap: 16px; font-size: 14px"><a href="#" style="color: #374151">DE ▾</a><a href="#" style="color: #374151">Merkzettel (3)</a><a href="#" style="font-weight: 600">Anmelden</a></nav>
+  </div>
+</header>
+
+<div style="max-width: 1392px; margin: 0 auto; padding: 22px 24px 40px; display: flex; flex-direction: column; gap: 18px">
+  <div style="display: flex; flex-direction: column; gap: 6px; padding-bottom: 16px; border-bottom: 1px solid #E5E7EB">
+    <h1 style="margin: 0; font-size: 32px; letter-spacing: -0.02em">Essen &amp; Gastronomie</h1>
+    <nav aria-label="Brotkrumen" style="font-size: 14px; color: #6B7280"><a href="#" style="color: #374151">Startseite</a> <span aria-hidden="true">/</span> Essen &amp; Gastronomie</nav>
+  </div>
+
+  <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px">
+    <button type="button" style="display: flex; align-items: center; gap: 8px; border: 1px solid #D1D5DB; background: #FFFFFF; border-radius: 999px; padding: 0 18px; font: 700 15px Inter, sans-serif; min-height: 46px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>Filter ▾</button>
+    <sc-for list="{{pills}}" as="p" hint-placeholder-count="5">
+      <button type="button" aria-pressed="{{p.on}}" style="{{p.style}}">{{p.t}}</button>
+    </sc-for>
+    <button type="button" style="margin-left: auto; display: flex; align-items: center; gap: 8px; border: 1px solid #D1D5DB; background: #FFFFFF; border-radius: 999px; padding: 0 18px; font: 700 15px Inter, sans-serif; min-height: 46px">☰ Kategorien ▾</button>
+  </div>
+
+  <div style="display: flex; flex-wrap: wrap; gap: 26px; align-items: flex-start">
+    <aside style="flex: 1 1 270px; max-width: 310px; display: flex; flex-direction: column; gap: 16px">
+      <nav aria-labelledby="cat-h" style="border: 1px solid #E5E7EB; border-radius: 22px; padding: 18px 16px; display: flex; flex-direction: column">
+        <h2 id="cat-h" style="margin: 0 0 10px; font-size: 20px">Kategorien</h2>
+        <sc-for list="{{tree}}" as="c" hint-placeholder-count="12">
+          <a href="#" aria-current="{{c.cur}}" style="{{c.style}}"><span style="flex: 1">{{c.t}}</span><span style="font-size: 12px; background: #F3F4F6; color: #374151; border-radius: 8px; padding: 2px 8px; font-weight: 600">{{c.n}}</span></a>
+        </sc-for>
+      </nav>
+      <div style="border: 1px solid #E5E7EB; border-radius: 22px; padding: 18px 16px; display: flex; flex-direction: column; gap: 8px">
+        <h2 style="margin: 0 0 4px; font-size: 18px">Gerade beliebt</h2>
+        <sc-for list="{{shops}}" as="s" hint-placeholder-count="3">
+          <a href="#" style="display: flex; align-items: center; gap: 10px; color: #111827; padding: 4px 0"><img src="{{s.img}}" alt="" style="width: 44px; height: 44px; border-radius: 10px; object-fit: cover"><span style="display: flex; flex-direction: column"><b style="font-size: 14px">{{s.t}}</b><span style="font-size: 12px; color: {{s.c}}; font-weight: 600">{{s.s}}</span></span></a>
+        </sc-for>
+      </div>
+    </aside>
+
+    <main style="flex: 999 1 640px; min-width: 0; display: flex; flex-direction: column; gap: 18px">
+      <section aria-label="Unterbereiche" style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 12px">
+        <sc-for list="{{subs}}" as="s" hint-placeholder-count="7">
+          <a href="#" style="display: flex; flex-direction: column; gap: 6px; color: #111827; text-align: center">
+            <img src="{{s.img}}" alt="" style="width: 100%; aspect-ratio: 1 / 1; object-fit: cover; border-radius: 16px; display: block">
+            <span style="font-size: 13px; font-weight: 700; line-height: 1.2">{{s.t}}</span>
+            <span style="font-size: 12px; color: #6B7280">{{s.n}}</span>
+          </a>
+        </sc-for>
+      </section>
+
+      <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 18px; font-size: 15px; color: #4B5563; border-top: 1px solid #F3F4F6; padding-top: 14px">
+        <span><b style="color: #111827">65</b> Angebote · <b style="color: #047857">19 jetzt geöffnet</b></span>
+        <label style="display: flex; align-items: center; gap: 6px">Sortieren nach: <select style="border: 0; color: #C2410C; font: 600 15px Inter, sans-serif; background: transparent"><option>Jetzt nutzbar zuerst</option><option>Endet bald</option><option>Neueste</option><option>Preis</option></select></label>
+        <label style="display: flex; align-items: center; gap: 6px">Zeigen: <select style="border: 0; color: #C2410C; font: 600 15px Inter, sans-serif; background: transparent"><option>24</option></select></label>
+        <div role="group" aria-label="Ansicht" style="margin-left: auto; display: flex; gap: 6px">
+          <button type="button" aria-pressed="true" aria-label="Kacheln" style="width: 40px; height: 40px; border: 1px solid #C2410C; border-radius: 10px; background: #FFF7ED; color: #C2410C; font-weight: 800">▦</button>
+          <button type="button" aria-pressed="false" aria-label="Liste" style="width: 40px; height: 40px; border: 1px solid #D1D5DB; border-radius: 10px; background: #FFFFFF; color: #374151; font-weight: 800">☰</button>
+          <button type="button" aria-pressed="false" aria-label="Karte" style="height: 40px; border: 1px solid #D1D5DB; border-radius: 10px; background: #FFFFFF; color: #374151; font: 600 14px Inter, sans-serif; padding: 0 12px">Karte</button>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px">
+        <sc-for list="{{cards}}" as="c" hint-placeholder-count="8">
+          <article style="display: flex; flex-direction: column">
+            <div style="position: relative; aspect-ratio: 1 / 1; border-radius: 16px; overflow: hidden; background: #F3F4F6">
+              <img src="{{c.img}}" alt="{{c.t}}" style="width: 100%; height: 100%; object-fit: cover; display: block">
+              <div style="position: absolute; left: 10px; top: 10px; display: flex; flex-direction: column; gap: 6px; align-items: flex-start">
+                <sc-if value="{{c.badge}}" hint-placeholder-val="{{ false }}"><span style="background: #C2410C; color: #FFFFFF; font-size: 13px; font-weight: 800; padding: 4px 10px; border-radius: 999px">{{c.badge}}</span></sc-if>
+                <sc-if value="{{c.tag}}" hint-placeholder-val="{{ false }}"><span style="background: {{c.tagBg}}; color: #111827; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 999px">{{c.tag}}</span></sc-if>
+              </div>
+              <button type="button" aria-label="Merken" style="position: absolute; right: 8px; top: 8px; width: 40px; height: 40px; border: 0; border-radius: 50%; background: rgba(255,255,255,.92)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#111827" stroke-width="2" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg></button>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 4px; padding: 10px 2px 0; flex: 1">
+              <a href="#" style="color: #111827; font-size: 16px; font-weight: 600; line-height: 1.3; min-height: 42px">{{c.t}}</a>
+              <span style="font-size: 13px; color: #6B7280">{{c.shop}} · {{c.area}}</span>
+              <span style="font-size: 13px; color: #374151">★ {{c.rating}}</span>
+              <span style="font-size: 14px; font-weight: 600; color: {{c.sc}}">{{c.status}}</span>
+              <div style="margin-top: auto; padding-top: 8px; display: flex; align-items: center; gap: 8px">
+                <span style="display: flex; flex-direction: column"><b style="font-size: 21px">{{c.p}}</b><s style="font-size: 13px; color: #6B7280">{{c.old}}</s></span>
+                <a href="#" style="margin-left: auto; background: #C2410C; color: #FFFFFF; border-radius: 999px; padding: 10px 14px; font-size: 13px; font-weight: 700">{{c.cta}}</a>
+              </div>
+            </div>
+          </article>
+        </sc-for>
+      </div>
+      <div style="display: flex; flex-direction: column; align-items: center; gap: 8px">
+        <span style="font-size: 13px; color: #6B7280">8 von 65 angezeigt</span>
+        <button type="button" style="border: 1px solid #111827; background: #FFFFFF; border-radius: 999px; padding: 12px 26px; font: 700 15px Inter, sans-serif; min-height: 44px">24 weitere laden</button>
+      </div>
+    </main>
+  </div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":2200}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const B = '/_blob/', G = '#047857', A = '#B45309', X = '#6B7280';
+    const pd = [['Preis', false], ['Stadtteil', false], ['Jetzt geöffnet', true], ['Lieferung', false], ['Vegetarisch', false], ['Angebote', false]];
+    const pills = pd.map(([t, on]) => ({ t: t + (on ? ' ✓' : ' ▾'), on: on ? 'true' : 'false', style: 'border-radius:999px;padding:0 16px;font:600 15px Inter,sans-serif;min-height:46px;' + (on ? 'border:0;background:#111827;color:#FFFFFF' : 'border:0;background:#F3F4F6;color:#111827') }));
+    const td = [['Lebensmittel & Getränke', '66', 0], ['Essen & Gastronomie', '65', 1], ['Restaurants', '11', 2], ['Cafés', '19', 2], ['Frühstück', '7', 2], ['Mittagessen', '8', 2], ['Catering', '6', 2], ['Takeaway', '7', 2], ['Lieferservice', '7', 2], ['Mode & Accessoires', '63', 0], ['Freizeit & Erlebnisse', '48', 0], ['Kinder & Familie', '41', 0], ['Beauty & Pflege', '40', 0], ['Alle 15 Bereiche', '670', 0]];
+    const tree = td.map(([t, n, lvl]) => ({ t, n, cur: lvl === 1 ? 'page' : 'false',
+      style: 'display:flex;align-items:center;gap:8px;min-height:38px;font-size:15px;color:#111827;' + (lvl === 1 ? 'font-weight:800;border-left:3px solid #C2410C;padding-left:10px;' : lvl === 2 ? 'padding-left:26px;' : 'padding-left:13px;') }));
+    const sub = (img, t, n) => ({ img: B+img, t, n });
+    const card = (img, badge, tag, tagBg, t, shop, area, rating, status, sc, p, old, cta) => ({ img: B+img, badge, tag, tagBg, t, shop, area, rating, status, sc, p, old, cta });
+    return {
+      pills, tree,
+      subs: [ sub('3d93fa50ae038d6dba492c5ba65525c2', 'Restaurants', '11'), sub('c069bad5ac76b4c30164485d0c45b605', 'Cafés', '19'), sub('45be92b64a3a1c78934c0dd2522248e4', 'Frühstück', '7'), sub('b6b8e6b3e5f638e21a9cc342057ef0f4', 'Mittagessen', '8'), sub('508fdfe870cd29b59a4e87aba6b48850', 'Catering', '6'), sub('0e59404bf9c844759892f46ea4ad7c9e', 'Takeaway', '7'), sub('4865b863ef9aa474b10bf70621e51ca9', 'Lieferservice', '7') ],
+      shops: [
+        { img: B+'c069bad5ac76b4c30164485d0c45b605', t: 'Café Morgenrot', s: 'neu · offen bis 18:00', c: G },
+        { img: B+'3d93fa50ae038d6dba492c5ba65525c2', t: 'Trattoria Lumetto', s: 'offen bis 23:00', c: G },
+        { img: B+'0e59404bf9c844759892f46ea4ad7c9e', t: 'Eiscafé Gelatino', s: 'öffnet So 10:00', c: X }
+      ],
+      cards: [
+        card('b6b8e6b3e5f638e21a9cc342057ef0f4', '', 'Endet heute', '#FECACA', 'Mittagstisch: Suppe des Tages', 'Café Ohligser Eck', 'Ohligs', '4,5 (19)', 'Geöffnet bis 15:00', G, '6,50 €', '', 'Zurücklegen'),
+        card('4865b863ef9aa474b10bf70621e51ca9', '−18 %', 'Beliebt', '#EDE9FE', 'Familienpaket: 2 Pizzen + Salat', 'Pizzabote Klingenstadt', 'Burg', '4,6 (38)', 'Geöffnet bis 23:00 · liefert', G, '24,90 €', '30,50 €', 'Bestellen'),
+        card('c069bad5ac76b4c30164485d0c45b605', '', 'Neu', '#BFDBFE', 'Frühstück für Zwei', 'Café Morgenrot', 'Mitte', '4,8 (6)', 'Geöffnet bis 14:00', G, '18,90 €', '', 'Tisch'),
+        card('3d93fa50ae038d6dba492c5ba65525c2', '', '', '', 'Tiramisu zum Mitnehmen', 'Trattoria Lumetto', 'Mitte', '4,7 (52)', 'Geöffnet bis 23:00', G, '6,90 €', '', 'Ansehen'),
+        card('44c38039eaec9144f7566345c54d5d93', '−22 %', '', '', 'Cappuccino + Croissant', 'Kaffeehaus Kronprinz', 'Mitte', '4,4 (31)', 'nur noch heute · bis 17:00', A, '4,20 €', '5,40 €', 'Zurücklegen'),
+        card('45be92b64a3a1c78934c0dd2522248e4', '', '', '', 'Sonntagsbrunch-Korb für 2', 'Backhaus Krume', 'Wald', '4,9 (24)', 'noch 2 Körbe · So 8–11', A, '24,00 €', '', 'Vorbestellen'),
+        card('508fdfe870cd29b59a4e87aba6b48850', '', '', '', 'Fingerfood-Box, 30 Stück', 'Tafelrunde Catering', 'Burg', '4,7 (12)', 'Bestellung 2 Tage vorher', X, '54,00 €', '', 'Anfragen'),
+        card('0e59404bf9c844759892f46ea4ad7c9e', '−38 %', '', '', 'Kugel-Montag: jede Kugel 1 €', 'Eiscafé Gelatino', 'Wald', '4,6 (40)', 'ab Mo · öffnet So 10:00', X, '1,00 €', '1,60 €', 'Merken')
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

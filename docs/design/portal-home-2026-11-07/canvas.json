@@ -4,7 +4,7 @@
   "boards": {
     "K1_Ueberblick.dc.html": {
       "expand": "fill",
-      "h": 3400,
+      "h": 3440,
       "title": "K1 · Komposition des Inhabers: Quad-Karten + Das Beste aus jedem Bereich",
       "w": 1440,
       "x": 0,
@@ -166,6 +166,22 @@
       "w": 1440,
       "x": 6080,
       "y": 5640
+    },
+    "P1_Suche.dc.html": {
+      "x": 3040,
+      "y": 13620,
+      "w": 1440,
+      "h": 2000,
+      "title": "P1 · Suchergebnisse (Seite)",
+      "expand": "fill"
+    },
+    "P2_Kategorie.dc.html": {
+      "x": 4560,
+      "y": 13620,
+      "w": 1440,
+      "h": 2200,
+      "title": "P2 · Kategorieseite „Essen & Gastronomie“",
+      "expand": "fill"
     }
   },
   "createdOnFiles": {
@@ -263,7 +279,7 @@
     },
     "t6": {
       "kind": "title1",
-      "maxW": 2960,
+      "maxW": 6000,
       "text": "Kompositionen des Inhabers — sauber gesetzt",
       "w": 240,
       "x": 0,
@@ -291,7 +307,9 @@
     "U3_MeinSamstag.dc.html",
     "M4_Tafel_Mobil.dc.html",
     "K1_Ueberblick.dc.html",
-    "K2_Woche.dc.html"
+    "K2_Woche.dc.html",
+    "P1_Suche.dc.html",
+    "P2_Kategorie.dc.html"
   ],
   "pages": [],
   "title": "SolingenMarkt Startseite — Varianten"
