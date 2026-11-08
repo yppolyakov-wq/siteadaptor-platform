@@ -35690,3 +35690,91 @@ msgstr "Önce aramanıza uyan ve şu anda kullanabileceğiniz teklifler; şu an 
 #: PH-11
 msgid "Unterbereiche"
 msgstr "Alt kategoriler"
+
+#: PH-11
+msgid "Müngstener Brücke bei Solingen"
+msgstr "Solingen yakınındaki Müngsten Köprüsü"
+
+#: PH-11
+msgid "Alle neuen Geschäfte"
+msgstr "Tüm yeni işletmeler"
+
+#: PH-11
+msgid "Aus der Region"
+msgstr "Bölgeden"
+
+#: PH-11
+msgid "Dein Geschäft in %(city)s — mitten in der Stadt, jetzt auch online"
+msgstr "%(city)s'deki işletmen — şehrin merkezinde, artık internette de"
+
+#: PH-11
+msgid "Erzeugt und gemacht in der Region — direkt von den Geschäften."
+msgstr "Bölgede üretildi ve yapıldı — doğrudan işletmelerden."
+
+#: PH-11
+msgid "Folie"
+msgstr "Slayt"
+
+#: PH-11
+msgid "Folie %(n)s"
+msgstr "Slayt %(n)s"
+
+#: PH-11
+msgid "Für Geschäfte · %(name)s"
+msgstr "İşletmeler için · %(name)s"
+
+#: PH-11
+msgid "Highlights in %(city)s"
+msgstr "%(city)s'de öne çıkanlar"
+
+#: PH-11
+msgid "Jetzt Geschäft eintragen"
+msgstr "İşletmeni şimdi ekle"
+
+#: PH-11
+msgid "Karussell"
+msgstr "Karusel"
+
+#: PH-11
+msgid "Märkte, Kurse, Konzerte und mehr — mit Termin und Ort."
+msgstr "Pazarlar, kurslar, konserler ve daha fazlası — tarih ve yeriyle."
+
+#: PH-11
+msgid "Nächste Folie"
+msgstr "Sonraki slayt"
+
+#: PH-11
+msgid "Programm ansehen"
+msgstr "Programı gör"
+
+#: PH-11
+msgid "Regional einkaufen"
+msgstr "Yerelden alışveriş yap"
+
+#: PH-11
+msgid "Schau vorbei und entdecke das Angebot."
+msgstr "Uğra ve tekliflerini keşfet."
+
+#: PH-11
+msgid "So funktioniert’s"
+msgstr "Nasıl çalışır"
+
+#: PH-11
+msgid "Verkaufe online, veröffentliche Aktionen und Angebote — auf der lokalen Plattform, die die Läden der Stadt unterstützt."
+msgstr "İnternetten sat, kampanya ve tekliflerini yayınla — şehrin dükkanlarını destekleyen yerel platformda."
+
+#: PH-11
+msgid "Vorherige Folie"
+msgstr "Önceki slayt"
+
+#: PH-11
+msgid "%(n)s Veranstaltung am Wochenende in %(city)s"
+msgid_plural "%(n)s Veranstaltungen am Wochenende in %(city)s"
+msgstr[0] "%(city)s'de hafta sonu %(n)s etkinlik"
+msgstr[1] "%(city)s'de hafta sonu %(n)s etkinlik"
+
+#: PH-11
+msgid "%(n)s regionales Angebot von hier"
+msgid_plural "%(n)s regionale Angebote von hier"
+msgstr[0] "Buradan %(n)s yerel teklif"
+msgstr[1] "Buradan %(n)s yerel teklif"

@@ -35867,3 +35867,95 @@ msgstr "Сначала то, что подходит под ваш запрос 
 #: PH-11
 msgid "Unterbereiche"
 msgstr "Подразделы"
+
+#: PH-11
+msgid "Müngstener Brücke bei Solingen"
+msgstr "Мюнгстенский мост под Золингеном"
+
+#: PH-11
+msgid "Alle neuen Geschäfte"
+msgstr "Все новые магазины"
+
+#: PH-11
+msgid "Aus der Region"
+msgstr "Из региона"
+
+#: PH-11
+msgid "Dein Geschäft in %(city)s — mitten in der Stadt, jetzt auch online"
+msgstr "Ваш бизнес в %(city)s — в центре города, теперь и онлайн"
+
+#: PH-11
+msgid "Erzeugt und gemacht in der Region — direkt von den Geschäften."
+msgstr "Выращено и сделано в регионе — прямо от магазинов."
+
+#: PH-11
+msgid "Folie"
+msgstr "Слайд"
+
+#: PH-11
+msgid "Folie %(n)s"
+msgstr "Слайд %(n)s"
+
+#: PH-11
+msgid "Für Geschäfte · %(name)s"
+msgstr "Для бизнеса · %(name)s"
+
+#: PH-11
+msgid "Highlights in %(city)s"
+msgstr "Главное в %(city)s"
+
+#: PH-11
+msgid "Jetzt Geschäft eintragen"
+msgstr "Добавить свой бизнес"
+
+#: PH-11
+msgid "Karussell"
+msgstr "Карусель"
+
+#: PH-11
+msgid "Märkte, Kurse, Konzerte und mehr — mit Termin und Ort."
+msgstr "Рынки, курсы, концерты и многое другое — с датой и местом."
+
+#: PH-11
+msgid "Nächste Folie"
+msgstr "Следующий слайд"
+
+#: PH-11
+msgid "Programm ansehen"
+msgstr "Смотреть программу"
+
+#: PH-11
+msgid "Regional einkaufen"
+msgstr "Покупать местное"
+
+#: PH-11
+msgid "Schau vorbei und entdecke das Angebot."
+msgstr "Заходите и знакомьтесь с предложениями."
+
+#: PH-11
+msgid "So funktioniert’s"
+msgstr "Как это работает"
+
+#: PH-11
+msgid "Verkaufe online, veröffentliche Aktionen und Angebote — auf der lokalen Plattform, die die Läden der Stadt unterstützt."
+msgstr "Продавайте онлайн, публикуйте акции и предложения — на местной платформе, которая поддерживает магазины города."
+
+#: PH-11
+msgid "Vorherige Folie"
+msgstr "Предыдущий слайд"
+
+#: PH-11
+msgid "%(n)s Veranstaltung am Wochenende in %(city)s"
+msgid_plural "%(n)s Veranstaltungen am Wochenende in %(city)s"
+msgstr[0] "%(n)s событие на выходных в %(city)s"
+msgstr[1] "%(n)s события на выходных в %(city)s"
+msgstr[2] "%(n)s событий на выходных в %(city)s"
+msgstr[3] "%(n)s события на выходных в %(city)s"
+
+#: PH-11
+msgid "%(n)s regionales Angebot von hier"
+msgid_plural "%(n)s regionale Angebote von hier"
+msgstr[0] "%(n)s местное предложение"
+msgstr[1] "%(n)s местных предложения"
+msgstr[2] "%(n)s местных предложений"
+msgstr[3] "%(n)s местных предложения"

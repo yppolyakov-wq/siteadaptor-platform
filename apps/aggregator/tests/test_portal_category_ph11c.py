@@ -4,7 +4,7 @@ import pytest
 
 from apps.aggregator import portal_views
 from apps.aggregator.search import SearchFilters
-from apps.aggregator.tests.test_portal_discover import _html, _listing, _portal
+from apps.aggregator.tests.test_portal_discover import _clear, _html, _listing, _portal  # noqa: F401 — autouse: кэш страниц
 
 pytestmark = [pytest.mark.django_db, pytest.mark.urls("config.urls_portal")]
 

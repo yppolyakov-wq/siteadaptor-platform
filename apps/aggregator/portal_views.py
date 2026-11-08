@@ -22,7 +22,7 @@ from apps.core.pagination import paginate
 from apps.core.seo import collectionpage_ld
 from apps.tenants.models import Tenant
 
-from . import portal_scope
+from . import portal_scope, portal_slides
 from .models import AggregatorListing
 from .views import SEARCH_RATE_LIMIT
 
@@ -1105,6 +1105,9 @@ def _render_home(request, portal):
             "portal": portal,
             "portal_tabs": home.tabs(present, "alle", request.path),
             "deal": deal,
+            "slides": portal_slides.slides(
+                portal, deal=deal, stats=stats, newbiz=newbiz, path=request.path
+            ),
             "stats": stats,
             "open_count": len(open_set),
             "hero_chips": home.hero_chips(present, stats, len(open_set), request.path),

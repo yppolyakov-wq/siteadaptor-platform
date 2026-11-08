@@ -284,6 +284,74 @@
       window.location.href = u.toString();
     });
   });
+  // PH-11d1: баннер-слайдер главной — стрелки, точки, «1 / N». Автопрокрутки нет (WCAG 2.2.2);
+  // без JS лента листается сама (scroll-snap). Невидимые слайды — inert: Tab не уходит за край.
+  document.querySelectorAll("[data-portal-slider]").forEach(function (root) {
+    var track = root.querySelector("[data-slider-track]");
+    var controls = root.querySelector("[data-slider-controls]");
+    if (!track || !controls) return;
+    var slides = track.querySelectorAll("[data-slide]");
+    var dots = root.querySelectorAll("[data-slider-dot]");
+    var counter = root.querySelector("[data-slider-counter]");
+    var reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
+    var n = slides.length;
+    controls.hidden = false;
+    function current() {
+      var i = Math.round(track.scrollLeft / Math.max(track.clientWidth, 1));
+      return Math.min(Math.max(i, 0), n - 1);
+    }
+    function go(i) {
+      i = (i + n) % n;
+      track.scrollTo({ left: i * track.clientWidth, behavior: reduce.matches ? "auto" : "smooth" });
+    }
+    var last = -1;
+    function sync() {
+      var i = current();
+      if (i === last) return;
+      last = i;
+      dots.forEach(function (d, k) {
+        if (k === i) d.setAttribute("aria-current", "true");
+        else d.removeAttribute("aria-current");
+      });
+      if (counter) counter.textContent = i + 1 + " / " + n;
+      slides.forEach(function (s, k) {
+        if (k === i) s.removeAttribute("inert");
+        else s.setAttribute("inert", "");
+      });
+    }
+    var queued = false;
+    track.addEventListener("scroll", function () {
+      if (queued) return;
+      queued = true;
+      window.requestAnimationFrame(function () {
+        queued = false;
+        sync();
+      });
+    });
+    window.addEventListener("resize", function () {
+      last = -1;
+      track.scrollLeft = current() * track.clientWidth;
+      sync();
+    });
+    root.querySelector("[data-slider-prev]").addEventListener("click", function () {
+      go(current() - 1);
+    });
+    root.querySelector("[data-slider-next]").addEventListener("click", function () {
+      go(current() + 1);
+    });
+    dots.forEach(function (d, k) {
+      d.addEventListener("click", function () {
+        go(k);
+      });
+    });
+    root.addEventListener("keydown", function (e) {
+      if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+      if (e.target.closest("input, select, textarea")) return;
+      e.preventDefault();
+      go(current() + (e.key === "ArrowRight" ? 1 : -1));
+    });
+    sync();
+  });
   // «Alle Filter» с главной: лента открывается с шторкой фильтров.
   if (window.location.hash === "#filter") {
     if (desktop.matches && fltLayout()) setCollapsed(false, false);

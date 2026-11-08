@@ -35544,3 +35544,91 @@ msgstr "First, what matches your search and what you can use right now; shops th
 #: PH-11
 msgid "Unterbereiche"
 msgstr "Subcategories"
+
+#: PH-11
+msgid "Müngstener Brücke bei Solingen"
+msgstr "Müngsten Bridge near Solingen"
+
+#: PH-11
+msgid "Alle neuen Geschäfte"
+msgstr "All new shops"
+
+#: PH-11
+msgid "Aus der Region"
+msgstr "From the region"
+
+#: PH-11
+msgid "Dein Geschäft in %(city)s — mitten in der Stadt, jetzt auch online"
+msgstr "Your shop in %(city)s — in the heart of the city, now online too"
+
+#: PH-11
+msgid "Erzeugt und gemacht in der Region — direkt von den Geschäften."
+msgstr "Grown and made in the region — straight from the shops."
+
+#: PH-11
+msgid "Folie"
+msgstr "Slide"
+
+#: PH-11
+msgid "Folie %(n)s"
+msgstr "Slide %(n)s"
+
+#: PH-11
+msgid "Für Geschäfte · %(name)s"
+msgstr "For businesses · %(name)s"
+
+#: PH-11
+msgid "Highlights in %(city)s"
+msgstr "Highlights in %(city)s"
+
+#: PH-11
+msgid "Jetzt Geschäft eintragen"
+msgstr "List your shop now"
+
+#: PH-11
+msgid "Karussell"
+msgstr "Carousel"
+
+#: PH-11
+msgid "Märkte, Kurse, Konzerte und mehr — mit Termin und Ort."
+msgstr "Markets, classes, concerts and more — with date and place."
+
+#: PH-11
+msgid "Nächste Folie"
+msgstr "Next slide"
+
+#: PH-11
+msgid "Programm ansehen"
+msgstr "See the programme"
+
+#: PH-11
+msgid "Regional einkaufen"
+msgstr "Shop local"
+
+#: PH-11
+msgid "Schau vorbei und entdecke das Angebot."
+msgstr "Drop by and discover what they offer."
+
+#: PH-11
+msgid "So funktioniert’s"
+msgstr "How it works"
+
+#: PH-11
+msgid "Verkaufe online, veröffentliche Aktionen und Angebote — auf der lokalen Plattform, die die Läden der Stadt unterstützt."
+msgstr "Sell online, publish deals and offers — on the local platform that supports the city's shops."
+
+#: PH-11
+msgid "Vorherige Folie"
+msgstr "Previous slide"
+
+#: PH-11
+msgid "%(n)s Veranstaltung am Wochenende in %(city)s"
+msgid_plural "%(n)s Veranstaltungen am Wochenende in %(city)s"
+msgstr[0] "%(n)s event this weekend in %(city)s"
+msgstr[1] "%(n)s events this weekend in %(city)s"
+
+#: PH-11
+msgid "%(n)s regionales Angebot von hier"
+msgid_plural "%(n)s regionale Angebote von hier"
+msgstr[0] "%(n)s regional offer from here"
+msgstr[1] "%(n)s regional offers from here"

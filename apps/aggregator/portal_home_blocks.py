@@ -467,12 +467,24 @@ def home_blocks(base_qs, *, city: str, path: str, exclude_pks=(), now=None) -> l
 
 def home_stats(base_qs, now=None) -> dict:
     """Цифры первого экрана — ОДИН aggregate по пулу портала (пул = «действует сейчас»)."""
+    from .search import date_window
+
     now = now or timezone.now()
+    # PH-11d1: слайды «Wochenende» и «Aus der Region» — те же условия, что лента по ссылке
+    # слайда (?kind=event&datum=wochenende / ?merkmal=regional): число ⊆ ленты.
+    start, end = date_window("wochenende", now=now)
+    weekend = (
+        Q(listing_kind=L.KIND_EVENT)
+        & (Q(starts_at__isnull=True) | Q(starts_at__lt=end))
+        & (Q(ends_at__isnull=True) | Q(ends_at__gte=start))
+    )
     return base_qs.order_by().aggregate(
         businesses=Count("tenant_schema", distinct=True),
         offers=Count("id", filter=Q(listing_kind__in=L.OFFER_KINDS)),
         new_week=Count("id", filter=Q(created_at__gte=now - timedelta(days=7))),
         cheap=Count("id", filter=Q(new_price__lte=10)),
+        weekend=Count("id", filter=weekend),
+        regional=Count("id", filter=Q(city_tags__contains=["regional"])),
     )
 
 
