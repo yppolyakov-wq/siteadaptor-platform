@@ -8,8 +8,9 @@
 {% block content %}
 {% if flt %}
 {% comment %}PH-11b: с lg — колонка фильтров слева (та же форма, что шторка на телефоне).{% endcomment %}
-<nav aria-label="{% trans 'Brotkrumen' %}" class="text-sm text-gray-500 mb-4" data-breadcrumbs><a href="{% url 'portal-home' %}" class="text-gray-700 hover:underline">{% trans "Startseite" %}</a> <span aria-hidden="true">/</span> {% if searching %}{% trans "Suchergebnisse" %}{% else %}{{ heading|default:portal.title_text }}{% endif %}</nav>
+<nav aria-label="{% trans 'Brotkrumen' %}" class="text-sm text-gray-500 mb-4" data-breadcrumbs><a href="{% url 'portal-home' %}" class="text-gray-700 hover:underline">{% trans "Startseite" %}</a> <span aria-hidden="true">/</span> {% if heading %}{{ heading }}{% elif searching and search_q %}{% trans "Suchergebnisse" %}{% else %}{{ portal.title_text }}{% endif %}</nav>
 <div data-flt-layout class="group/flt lg:flex lg:items-start lg:gap-8">
+<script>try{if(window.matchMedia("(min-width: 1024px)").matches&&localStorage.getItem("portal:fltCollapsed")==="1")document.currentScript.parentElement.setAttribute("data-flt-collapsed","")}catch(e){}</script>
 {% include "aggregator/_portal_filter_drawer.html" %}
 <div class="flex-1 min-w-0">
 {% endif %}

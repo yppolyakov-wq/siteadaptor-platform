@@ -51,3 +51,22 @@ def test_non_city_portal_keeps_old_layout():
 def test_search_heading_names_the_query():
     html = _feed(q="Herbst")
     assert "Suchergebnisse für „Herbst“" in html.split("<h1", 1)[1].split("</h1>", 1)[0]
+
+
+def test_search_heading_escapes_the_query():
+    html = _feed(q='<script>x</script>"')
+    h1 = html.split("<h1", 1)[1].split("</h1>", 1)[0]
+    assert "<script>x" not in h1 and "&lt;script&gt;" in h1
+
+
+def test_collapsed_state_applied_before_paint():
+    """Свёрнутая колонка не мигает: атрибут ставится до отрисовки, из того же localStorage."""
+    html = _feed(q="Herbst")
+    layout = html.split("data-flt-layout", 1)[1].split('id="flt-drawer"', 1)[0]
+    assert (
+        'localStorage.getItem("portal:fltCollapsed")' in layout and "data-flt-collapsed" in layout
+    )
+    assert (
+        "lg:group-data-[flt-collapsed]/flt:hidden"
+        in html.split('id="flt-drawer"', 1)[1].split(">", 1)[0]
+    )

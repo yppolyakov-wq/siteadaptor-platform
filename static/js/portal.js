@@ -81,15 +81,17 @@
   // С JS ссылка «Alle Filter» — кнопка: на телефоне открывает диалог, с lg — сворачивает колонку
   function syncOpeners() {
     var toggle = desktop.matches && fltLayout();
+    // с lg диалог — постоянная колонка: объявляем областью «Filter», а не диалогом
+    var drawer = getDrawer();
+    if (drawer && fltLayout()) {
+      if (toggle) drawer.setAttribute("role", "region");
+      else drawer.removeAttribute("role");
+    }
     document.querySelectorAll("[data-flt-open]").forEach(function (a) {
       a.setAttribute("role", "button");
-      if (toggle) {
-        a.removeAttribute("aria-haspopup");
-        a.setAttribute("aria-expanded", isCollapsed() ? "false" : "true");
-      } else {
-        a.setAttribute("aria-haspopup", "dialog");
-        a.removeAttribute("aria-expanded");
-      }
+      a.removeAttribute("aria-expanded"); // состояние передаёт сама подпись (ausblenden/einblenden)
+      if (toggle) a.removeAttribute("aria-haspopup");
+      else a.setAttribute("aria-haspopup", "dialog");
     });
   }
   try {
@@ -98,7 +100,20 @@
     /* нет хранилища — колонка видна */
   }
   syncOpeners();
-  if (desktop.addEventListener) desktop.addEventListener("change", syncOpeners);
+  function onBreakpoint() {
+    // шторка открыта модально на телефоне, окно выросло до lg — кнопки «закрыть» там нет
+    if (desktop.matches && fltLayout()) closeDrawer();
+    syncOpeners();
+  }
+  if (desktop.addEventListener) desktop.addEventListener("change", onBreakpoint);
+  // ссылка с role=button: Пробел должен нажимать, а не листать страницу
+  document.addEventListener("keydown", function (e) {
+    if (e.key !== " " && e.key !== "Spacebar") return;
+    var a = e.target.closest && e.target.closest("[data-flt-open]");
+    if (!a) return;
+    e.preventDefault();
+    a.click();
+  });
   function syncSummaries() {
     document.querySelectorAll("[data-flt-pop] > summary").forEach(function (s) {
       if (mobile.matches) s.setAttribute("aria-haspopup", "dialog");
