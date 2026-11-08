@@ -13,7 +13,7 @@
         {% for s in portal_menu %}
         <div data-portal-menu-row="{{ s.key }}">
           <a href="{{ s.url }}" data-portal-menu-section="{{ s.key }}" class="flex items-center gap-3.5 px-3 py-2.5 rounded-2xl hover:bg-orange-50 focus:bg-orange-50">
-            <span class="w-12 h-12 shrink-0 rounded-xl bg-orange-50 grid place-items-center" style="color: var(--portal-color)">
+            <span class="w-12 h-12 shrink-0 rounded-xl bg-orange-50 grid place-items-center" style="color: var(--portal-link)">
               <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ s.icon }}"></path></svg>
             </span>
             <span class="flex-1 min-w-0">
@@ -36,7 +36,7 @@
     <div class="hidden sm:flex flex-1 flex-col gap-4 p-7 overflow-y-auto">
       {% for s in portal_menu %}
       <section data-portal-menu-panel="{{ s.key }}" {% if not forloop.first %}hidden{% endif %} aria-labelledby="pmp-{{ s.key }}">
-        <p class="text-xs font-bold uppercase tracking-wide" style="color: var(--portal-color)">{{ s.label }}</p>
+        <p class="text-xs font-bold uppercase tracking-wide" style="color: var(--portal-link)">{{ s.label }}</p>
         <h3 id="pmp-{{ s.key }}" class="text-2xl font-extrabold mt-1 mb-4">{% blocktrans count n=s.count %}{{ n }} Angebot{% plural %}{{ n }} Angebote{% endblocktrans %}</h3>
         {% if s.subs %}
         <div class="grid grid-cols-2 gap-3">
@@ -48,7 +48,7 @@
           {% endfor %}
         </div>
         {% endif %}
-        <a href="{{ s.url }}" class="inline-flex items-center mt-4 min-h-[44px] font-bold hover:underline" style="color: var(--portal-color)">{% blocktrans with label=s.label %}Alles in {{ label }}{% endblocktrans %} <span aria-hidden="true">&nbsp;→</span></a>
+        <a href="{{ s.url }}" class="inline-flex items-center mt-4 min-h-[44px] font-bold hover:underline" style="color: var(--portal-link)">{% blocktrans with label=s.label %}Alles in {{ label }}{% endblocktrans %} <span aria-hidden="true">&nbsp;→</span></a>
       </section>
       {% endfor %}
     </div>

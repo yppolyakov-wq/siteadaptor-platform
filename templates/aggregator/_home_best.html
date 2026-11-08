@@ -29,7 +29,7 @@
         </li>
         {% endfor %}
       </ol>
-      <a href="{{ b.url }}" rel="nofollow" data-best-more="{{ b.count }}" class="mt-auto px-4 pt-3 pb-4 text-sm font-bold hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-gray-900" style="color: var(--portal-color)">{% blocktrans with n=b.count label=b.label %}Alle {{ n }} in {{ label }}{% endblocktrans %} <span aria-hidden="true">→</span></a>
+      <a href="{{ b.url }}" rel="nofollow" data-best-more="{{ b.count }}" class="mt-auto px-4 pt-3 pb-4 text-sm font-bold hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-gray-900" style="color: var(--portal-link)">{% blocktrans with n=b.count label=b.label %}Alle {{ n }} in {{ label }}{% endblocktrans %} <span aria-hidden="true">→</span></a>
     </article>
     {% endfor %}
   </div>

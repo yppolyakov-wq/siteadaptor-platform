@@ -5,7 +5,7 @@
   <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1 mb-4">
     <h2 id="top-h" class="text-2xl md:text-[28px] font-extrabold tracking-tight">{% trans "Top-Aktionen dieser Woche" %}</h2>
     <p class="text-sm text-gray-600">{% trans "die meistgemerkten Angebote" %}</p>
-    <a href="{% url 'portal-home' %}?kind=angebote" rel="nofollow" class="sm:ml-auto text-[15px] font-bold hover:underline" style="color: var(--portal-color)">{% trans "Alle Aktionen" %} <span aria-hidden="true">→</span></a>
+    <a href="{% url 'portal-home' %}?kind=angebote" rel="nofollow" class="sm:ml-auto text-[15px] font-bold hover:underline" style="color: var(--portal-link)">{% trans "Alle Aktionen" %} <span aria-hidden="true">→</span></a>
   </div>
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
     {% for t in top_actions %}

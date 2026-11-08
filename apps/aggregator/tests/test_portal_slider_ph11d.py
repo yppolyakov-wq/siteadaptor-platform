@@ -110,3 +110,22 @@ def test_home_heading_stays_below_slider_and_no_csrf():
     html = _html(_portal())
     assert html.index("data-portal-slider") < html.index('id="hero-h"')
     assert html.count("<h1") == 1 and "csrfmiddlewaretoken" not in html
+
+
+def test_page_heading_comes_first_and_slides_have_no_headings():
+    """PH-12c: h1 «Was gibt's heute …» — первый заголовок страницы; у слайдов — текст."""
+    _listing(
+        "promotion",
+        "Pizza-Deal",
+        discount_percent=40,
+        new_price=5,
+        image={"url": "https://x.test/a.jpg"},
+        city_category="restaurants",
+    )
+    html = _html(_portal())
+    # закрытые <dialog> (мега-меню, шторка) вне дерева доступности — их заголовки не в счёт
+    body = re.sub(r"<dialog\b.*?</dialog>", "", html.split("<body", 1)[1], flags=re.S)
+    assert body.index("<h1") < body.index("<h2")
+    slider = html.split("data-portal-slider", 1)[1].split("data-portal-hero", 1)[0]
+    assert "<h2" not in slider and "<h3" not in slider
+    assert 'aria-labelledby="slide-deal-h"' in slider and 'id="slide-deal-h"' in slider

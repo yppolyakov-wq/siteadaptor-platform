@@ -20,7 +20,8 @@
   <link rel="alternate" type="application/feed+json" title="{{ portal.title_text }} · JSON Feed" href="{% url 'portal-feed-json' %}">
   <link rel="alternate" type="application/atom+xml" title="{{ portal.title_text }} · Atom" href="{% url 'portal-feed-atom' %}">
   <link rel="stylesheet" href="{% static 'css/app.css' %}">
-  <style>:root { --portal-color: {{ portal.primary_color|default:"#111827" }}; }</style>
+  {% portal_colors portal as pc %}{% comment %}PH-12b: бренд + читаемые чернила поверх него и цвет ссылок на белом (WCAG ≥ 4,5:1 при любом цвете из админки).{% endcomment %}
+  <style>:root { --portal-color: {{ pc.color }}; --portal-ink: {{ pc.ink }}; --portal-link: {{ pc.link }}; } [style*="background: var(--portal-color)"], [style*="background:var(--portal-color)"] { color: var(--portal-ink) !important; }</style>
 </head>
 <body class="min-h-screen bg-gray-50 text-gray-900 antialiased flex flex-col">
   <header class="sticky top-0 z-20 bg-white/95 backdrop-blur border-b border-gray-200">
@@ -36,7 +37,7 @@
       <a href="{% url 'portal-home' %}" class="flex items-center gap-2 min-w-0 md:shrink-0" data-portal-wordmark>
         {% if portal.logo_url %}<img src="{{ portal.logo_url }}" alt="" class="h-8 w-8 rounded object-contain">{% endif %}
         <span class="flex flex-col min-w-0 leading-tight">
-          <span class="text-xl md:text-[21px] font-extrabold tracking-tight truncate">{% if wm.dark %}<span class="text-gray-900">{{ wm.dark }}</span>{% endif %}<span style="color: var(--portal-color)">{{ wm.accent }}</span></span>
+          <span class="text-xl md:text-[21px] font-extrabold tracking-tight truncate">{% if wm.dark %}<span class="text-gray-900">{{ wm.dark }}</span>{% endif %}<span style="color: var(--portal-link)">{{ wm.accent }}</span></span>
           {% if portal.tagline_text %}<span class="hidden lg:block text-xs text-gray-500 truncate">{{ portal.tagline_text }}</span>{% endif %}
         </span>
       </a>
@@ -46,9 +47,9 @@
         <a href="{% url 'portal-for-business' %}" class="hidden 2xl:inline text-gray-600 hover:underline">{% trans "Für Unternehmen" %}</a>
         <a href="{% if portal_user %}{% url 'portal-account' %}{% else %}{% url 'portal-login' %}?next=/konto/{% endif %}" rel="nofollow" class="hidden sm:inline md:hidden lg:inline text-gray-700 hover:underline">{% trans "Merkzettel" %}</a>
         {% if portal_user %}
-          <a href="{% url 'portal-account' %}" class="font-semibold hover:underline" style="color: var(--portal-color)">{% trans "My account" %}</a>
+          <a href="{% url 'portal-account' %}" class="font-semibold hover:underline" style="color: var(--portal-link)">{% trans "My account" %}</a>
         {% else %}
-          <a href="{% url 'portal-login' %}" class="font-semibold hover:underline" style="color: var(--portal-color)">{% trans "Sign in" %}</a>
+          <a href="{% url 'portal-login' %}" class="font-semibold hover:underline" style="color: var(--portal-link)">{% trans "Sign in" %}</a>
         {% endif %}
       </nav>
     </div>

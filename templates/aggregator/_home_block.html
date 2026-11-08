@@ -5,7 +5,7 @@
       <h2 id="home-block-{{ block.key }}" class="text-2xl md:text-[28px] font-extrabold tracking-tight">{{ block.title }}</h2>
       {% if block.subtitle %}<p class="mt-1 text-sm md:text-[15px] text-gray-600">{{ block.subtitle }}</p>{% endif %}
     </div>
-    <a href="{{ block.more_url }}" data-home-more class="shrink-0 text-[15px] font-bold hover:underline" style="color: var(--portal-color)">{% trans "Alle anzeigen" %} <span aria-hidden="true">→</span></a>
+    <a href="{{ block.more_url }}" data-home-more class="shrink-0 text-[15px] font-bold hover:underline" style="color: var(--portal-link)">{% trans "Alle anzeigen" %} <span aria-hidden="true">→</span></a>
   </div>
   {% include "aggregator/_cards.html" with items=block.items layout="row" %}
 </section>

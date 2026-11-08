@@ -131,3 +131,17 @@ def currency_sign(code):
     фид) остаётся кодом ISO; неизвестная валюта (CHF) — кодом."""
     code = (code or "").strip()
     return CURRENCY_SIGNS.get(code.upper(), code)
+
+
+@register.simple_tag
+def portal_colors(portal):
+    """PH-12b: цвета портала для `:root` — бренд (только `#rrggbb`, иначе тёмный — защита от
+    CSS-инъекции из админки), чернила поверх бренда (≥ 4,5:1) и цвет ссылок на белом."""
+    from apps.core import colors
+
+    color = colors.normalize_hex(getattr(portal, "primary_color", "") if portal else "")
+    return {
+        "color": color,
+        "ink": colors.ink_on(color),
+        "link": colors.readable_on_white(color),
+    }

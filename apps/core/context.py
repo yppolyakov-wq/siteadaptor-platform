@@ -139,34 +139,18 @@ _INK_LIGHT = "#ffffff"
 
 
 def _rel_luminance(hex_color: str) -> float:
-    """Относительная яркость WCAG 2.x (sRGB линеаризуется по каналам)."""
+    """Относительная яркость WCAG 2.x — общая функция `apps.core.colors` (PH-12b)."""
+    from apps.core import colors
 
-    def lin(c: int) -> float:
-        v = c / 255
-        return v / 12.92 if v <= 0.04045 else ((v + 0.055) / 1.055) ** 2.4
-
-    r, g, b = (int(hex_color[i : i + 2], 16) for i in (1, 3, 5))
-    return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b)
+    return colors.rel_luminance(hex_color)
 
 
 def _accent_ink(accent: str) -> str:
-    """DL-5/SP-17: цвет текста ПОВЕРХ акцент-фона — тот, что даёт БОЛЬШИЙ контраст.
+    """DL-5/SP-17: цвет текста поверх акцент-фона — `apps.core.colors.ink_on` (PH-12b: вынесено,
+    чтобы тем же правилом пользовался городской портал)."""
+    from apps.core import colors
 
-    Раньше решала гамма-яркость с порогом 0.62: средние тона (зелёный #22c55e,
-    оранжевый #f97316, голубой #0ea5e9) получали белый текст с контрастом 2.3–2.8:1
-    (WCAG 1.4.3 требует 4.5:1). Теперь считаем контраст обоих чернил по формуле
-    WCAG и берём лучший — без «магического» порога. Тёмные акценты (индиго и т.п.)
-    остаются с белым текстом. Не-hex/битое значение → белый (fail-safe)."""
-    accent = (accent or "").strip()
-    if len(accent) != 7 or not accent.startswith("#"):
-        return _INK_LIGHT
-    try:
-        lum = _rel_luminance(accent)
-    except ValueError:
-        return _INK_LIGHT
-    on_white = 1.05 / (lum + 0.05)
-    on_dark = (lum + 0.05) / (_rel_luminance(_INK_DARK) + 0.05)
-    return _INK_DARK if on_dark > on_white else _INK_LIGHT
+    return colors.ink_on(accent)
 
 
 def _storefront_bottom_nav(request, tenant):

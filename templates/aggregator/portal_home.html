@@ -75,7 +75,7 @@
 <section class="mb-8" data-firm-group>
   <div class="flex flex-wrap items-baseline justify-between gap-2 mb-3">
     <h2 class="text-lg font-bold">{% blocktrans with firm=firm_group.name %}Von {{ firm }}{% endblocktrans %}</h2>
-    <a href="{% url 'portal-business' slug=firm_group.slug %}" class="text-sm font-medium hover:underline" style="color: var(--portal-color)">{% blocktrans with firm=firm_group.name %}Alle Angebote von {{ firm }}{% endblocktrans %} →</a>
+    <a href="{% url 'portal-business' slug=firm_group.slug %}" class="text-sm font-medium hover:underline" style="color: var(--portal-link)">{% blocktrans with firm=firm_group.name %}Alle Angebote von {{ firm }}{% endblocktrans %} →</a>
   </div>
   {% include "aggregator/_cards.html" with items=firm_group.items %}
 </section>
