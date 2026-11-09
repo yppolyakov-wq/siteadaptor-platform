@@ -214,7 +214,6 @@ EXPECTED_UNLISTED = frozenset(
         "setup-ask",  # STU-19i: вход — плитка главной лёгкого кабинета/Mini App и Ctrl+K
         "setup",  # мастер — собственный хром (_base_setup)
         "setup-offer-scan",  # W4-4: JSON-опрос «Foto lesen» шага мастера (не экран)
-        "site-menu",  # области Studio: вход из рейки билдера, не из сайдбара
         "site-pages",
         "site-preview",
         "site-sections",

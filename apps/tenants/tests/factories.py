@@ -3,6 +3,13 @@ from factory.django import DjangoModelFactory
 
 from apps.tenants.models import Domain, Tenant
 
+#: Схемы тенантов, созданных фабрикой БЕЗ схемы. django-tenants при `save()` уже
+#: существующего тенанта создаёт схему, если её нет и `auto_create_schema` стоит
+#: (атрибут класса = True). Код, который перечитывает тенанта из БД и сохраняет,
+#: получает свежий объект с True — и тест молча гонял все миграции (~90 с).
+#: Корневой conftest пропускает create_schema для этих имён (CI-скорость, 2026-11-09).
+SCHEMALESS: set[str] = set()
+
 
 class TenantFactory(DjangoModelFactory):
     """Factory для Tenant.
@@ -43,6 +50,8 @@ class TenantFactory(DjangoModelFactory):
         auto_create_schema = kwargs.pop("auto_create_schema", False)
         obj = model_class(*args, **kwargs)
         obj.auto_create_schema = auto_create_schema
+        if not auto_create_schema:
+            SCHEMALESS.add(obj.schema_name)
         obj.save()
         return obj
 

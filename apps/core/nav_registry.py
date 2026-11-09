@@ -1035,6 +1035,16 @@ ENTRIES: tuple[NavEntry, ...] = (
     # Domains переехал из main-табов settings, Medien — из advanced settings.
     # DL-7b: переключатель шаблонов (сборки + Look'и) — первым подпунктом Website.
     _e("site", "design", _("Design"), "design", None, False, "vorlage look theme farben schrift"),
+    # FB-23c: меню сайта (шапка, нижняя панель, подвал) — раньше вход был только из Studio.
+    _e(
+        "site",
+        "site-menu",
+        _("Menü"),
+        "site-menu",
+        None,
+        False,
+        "menue navigation kopfzeile fusszeile untermenue links",
+    ),
     # STU-19d: every page of the site in one place (Studio keeps block order/texts).
     _e(
         "site",
@@ -1192,6 +1202,7 @@ UNIVERSAL: dict[str, str] = {
     "modules": "включение функций — у каждого",
     "support:help": "помощь — у каждого",
     "design": "дизайн сайта — у каждого",
+    "site-menu": "меню сайта — у каждого",
     "site-seo": "SEO сайта — у каждого",
     "site-schema": "схема блоков страниц — у каждого",
     # STU-19d: the screens show only the page types whose module is on.

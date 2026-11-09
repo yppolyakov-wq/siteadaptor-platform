@@ -217,6 +217,8 @@ def test_sidebar_children_composition():
     assert site == [
         "site-home",
         "design",
+        # FB-23c (осознанное дополнение): меню сайта — вход из сайдбара, не только из Studio
+        "site-menu",
         "page-templates-website",
         # FB-25 (осознанное дополнение): схема блоков страниц рядом с шаблонами
         "site-schema",
