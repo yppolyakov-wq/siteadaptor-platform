@@ -27,7 +27,7 @@
   <ul class="flex flex-wrap gap-1.5">
     {% for r in rows %}
     <li><a href="?seite={{ r.code }}" class="inline-flex items-center gap-1.5 shrink-0 rounded-full border px-3 py-1.5 text-sm {% if current and r.code == current.code %}border-indigo-200 bg-indigo-50 text-indigo-800 font-medium{% else %}border-gray-200 bg-white hover:bg-gray-50{% endif %}"{% if current and r.code == current.code %} aria-current="page"{% endif %}>
-        <span class="whitespace-nowrap">{{ r.label }}</span><span class="ui-badge" title="{% trans 'Sichtbare Blöcke' %}">{{ r.count }}</span>
+        <span class="whitespace-nowrap">{{ r.label }}</span><span class="ui-badge" title="{% trans 'Sichtbare Blöcke' %}"><span class="sr-only">{% trans "Sichtbare Blöcke" %}: </span>{{ r.count }}</span>
       </a></li>
     {% endfor %}
   </ul>

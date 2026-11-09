@@ -40,3 +40,18 @@ def test_bottom_nav_spans_full_width_and_sticks_to_bottom():
     assert "fixed inset-x-0 bottom-0" in nav
     assert "left-3" not in nav and "rounded-3xl" not in nav
     assert "safe-area-inset-bottom" in nav
+
+
+def test_merkzettel_links_go_to_the_saved_list_and_pills_are_outlined():
+    """a11y-ревью: «Merkzettel»/«Gemerkt» ведут к списку сохранённого, а не просто в кабинет;
+    плашки на фото обведены (1.4.11), у цены есть подпись для читалок."""
+    base = (TPL / "portal_base.html").read_text()
+    head = re.search(r'<a [^>]*data-head-icon="merkzettel"[^>]*>', base).group(0)
+    assert "#merkzettel" in head
+    bottom = base[base.index("data-portal-bottom-nav") :]
+    assert bottom.count("#merkzettel") >= 1
+    acc = (TPL / "portal_account.html").read_text()
+    assert 'id="merkzettel"' in acc
+    quad = (TPL / "_portal_quad.html").read_text()
+    assert quad.count("ring-white/70") == 2 and "ring-black/10" in quad
+    assert '<span class="sr-only">{% trans "Preis" %}: </span>' in quad

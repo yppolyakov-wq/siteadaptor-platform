@@ -39,7 +39,7 @@
 </div>
 
 <div class="max-w-5xl mx-auto mt-10">
-  <h2 class="text-xl font-bold mb-4">{% trans "Saved offers" %}</h2>
+  <h2 id="merkzettel" class="text-xl font-bold mb-4 scroll-mt-24">{% trans "Saved offers" %}</h2>
   {% if favorites %}
     {% include "aggregator/_cards.html" with items=favorites %}
   {% else %}
