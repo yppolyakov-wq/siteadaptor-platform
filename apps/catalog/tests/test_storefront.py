@@ -289,7 +289,13 @@ def test_product_detail_pangv_price_notes():
     req = _req(f"/sortiment/{product.pk}/")
     req.tenant.delivery_enabled = True
     body = public_views.product_detail(req, pk=product.pk).content.decode()
-    assert "zzgl. Versand" in body
+    assert "zzgl. Versand" not in body  # SHP-5: доставка бесплатна → приписки нет
+
+    req = _req(f"/sortiment/{product.pk}/")
+    req.tenant.delivery_enabled = True
+    req.tenant.delivery_fee_cents = 350
+    body = public_views.product_detail(req, pk=product.pk).content.decode()
+    assert "zzgl. Versandkosten" in body and "/versand/" in body
 
 
 def test_product_detail_inline_edit_markers():
