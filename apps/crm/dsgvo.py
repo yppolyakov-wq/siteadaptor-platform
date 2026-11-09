@@ -38,7 +38,18 @@ ERASURE_POLICY = {
     "loyalty.LoyaltyCard": ("delete", ()),
     "crm.CustomerNote": ("delete", ()),
     # Адреса на сделке — копии; счёт хранит свой снимок получателя (GoBD).
-    "orders.Order": ("clear", ("note", "shipping_address", "billing_name", "billing_address")),
+    "orders.Order": (
+        "clear",
+        (
+            "note",
+            "shipping_address",
+            "billing_name",
+            "billing_address",
+            # SHP-2: пункт выдачи — номер Packstation и DHL-PostNummer клиента
+            "pickup_point_ref",
+            "pickup_point_postnummer",
+        ),
+    ),
     "orders.Offer": ("clear", ("customer_name", "customer_email", "note")),
     "booking.Pass": ("keep", "money"),
     "booking.Booking": ("clear", ("note", "billing_address")),

@@ -36099,3 +36099,7 @@ msgstr "Teslim alma noktası numarası"
 #: SHP-2
 msgid "Sendung verfolgen"
 msgstr "Gönderiyi takip et"
+
+#: SHP-2
+msgid "Für diesen Warenkorb ist leider keine Versandart möglich. Bitte schreiben Sie uns."
+msgstr "Maalesef bu sepet için uygun bir gönderim yöntemi yok. Lütfen bize yazın."

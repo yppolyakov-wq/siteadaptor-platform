@@ -306,6 +306,21 @@ def update_delivery(order, *, fulfillment=None, address=None, shipping_cents=Non
     _require_editable(order, tenant)
     fields = ["updated_at"]
     if fulfillment in (Order.FULFILLMENT_PICKUP, Order.FULFILLMENT_DELIVERY):
+        if fulfillment != order.fulfillment:
+            # SHP-2 (ревью): снимок способа описывает ПРЕЖНИЙ способ — при смене
+            # «доставка ⇄ самовывоз» он лгал бы («Versand mit DHL» и ссылка отслеживания).
+            for name in (
+                "shipping_method_id",
+                "shipping_kind",
+                "shipping_carrier",
+                "shipping_service",
+                "shipping_label",
+                "pickup_point_type",
+                "pickup_point_ref",
+                "pickup_point_postnummer",
+            ):
+                setattr(order, name, "")
+                fields.append(name)
         order.fulfillment = fulfillment
         fields.append("fulfillment")
     if address is not None:

@@ -3,9 +3,13 @@
 акции и принятие предложения. Список — способы бизнеса (`orders.delivery_choice.context`):
 самовывоз, курьер, транспортные компании до двери или в пункт выдачи. Поле `fulfillment`
 (у прежних настроек значения pickup/delivery — форма и замки SH-24 не меняются). Один
-способ — без выбора, строкой. Блок адреса и пункта выдачи показывается по выбранному способу
-(без JS видны оба — сервер всё равно проверит). Цена считается заново на сервере.{% endcomment %}
-{% if not shipping_options %}
+способ — без выбора, строкой (и без JS работает целиком). При нескольких способах блоки
+адреса/пункта выдачи переключает JS (без JS — как раньше: адрес только для доставки по
+умолчанию). Цена считается заново на сервере. Ни один способ не берёт корзину (вес, размер,
+Sperrgut) — честный текст, а не обещание самовывоза.{% endcomment %}
+{% if no_shipping_possible %}
+  <p class="text-sm rounded-lg bg-amber-50 border border-amber-200 text-amber-900 px-3 py-2" data-no-shipping role="alert">{% trans "Für diesen Warenkorb ist leider keine Versandart möglich. Bitte schreiben Sie uns." %}</p>
+{% elif not shipping_options %}
   <input type="hidden" name="fulfillment" value="pickup">
   <p class="flex items-center gap-2 text-sm font-medium text-gray-700 rounded-lg bg-gray-50 border border-gray-200 px-3 py-2">
     🛍 {% trans "Pickup in store" %}{% if request.tenant.address %} <span class="font-normal text-gray-500">· {{ request.tenant.address }}</span>{% endif %}
@@ -109,6 +113,9 @@
         });
       }
       sync();
+      // блоки самовывоза (#pickup-select, #pickup-slot) стоят в корзине НИЖЕ партиала —
+      // при первом проходе их ещё нет в DOM (ревью SHP-2)
+      if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", sync);
     })();
   </script>
 {% endif %}

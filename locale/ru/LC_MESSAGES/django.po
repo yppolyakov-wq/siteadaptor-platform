@@ -36288,3 +36288,7 @@ msgstr "Номер пункта выдачи"
 #: SHP-2
 msgid "Sendung verfolgen"
 msgstr "Отследить посылку"
+
+#: SHP-2
+msgid "Für diesen Warenkorb ist leider keine Versandart möglich. Bitte schreiben Sie uns."
+msgstr "К сожалению, для этой корзины нет подходящего способа доставки. Напишите нам."

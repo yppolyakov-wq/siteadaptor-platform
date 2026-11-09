@@ -36040,3 +36040,7 @@ msgstr "Nummer der Abholstelle"
 #: SHP-2
 msgid "Sendung verfolgen"
 msgstr "Sendung verfolgen"
+
+#: SHP-2
+msgid "Für diesen Warenkorb ist leider keine Versandart möglich. Bitte schreiben Sie uns."
+msgstr "Für diesen Warenkorb ist leider keine Versandart möglich. Bitte schreiben Sie uns."

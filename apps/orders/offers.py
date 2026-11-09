@@ -118,6 +118,31 @@ def send_offer(conversation, *, lines, valid_until=None, note="", author=None):
 
 
 @transaction.atomic
+def parcel_for_offer(offer):
+    """SHP-2: профиль посылки предложения — вес товаров из строк с товаром; свободные строки
+    считаются «вес неизвестен» (способы с пределом веса/Sperrgut их не повезут)."""
+    from django.core.exceptions import ValidationError
+
+    from apps.catalog.models import Product
+
+    from .shipping import parcel_for
+
+    items, refs = [], {}
+    for line in offer.lines.all():
+        if line.kind == "product" and line.ref_id:
+            refs.setdefault(line.ref_id, 0)
+            refs[line.ref_id] += line.qty
+        else:
+            items.append((object(), None, line.qty))  # без веса → unknown_qty
+    try:
+        products = {str(p.pk): p for p in Product.objects.filter(pk__in=list(refs))}
+    except (ValueError, ValidationError):
+        products = {}
+    for ref, qty in refs.items():
+        items.append((products.get(ref) or object(), None, qty))
+    return parcel_for(items)
+
+
 def accept_offer(
     offer,
     *,

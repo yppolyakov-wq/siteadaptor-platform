@@ -65,6 +65,17 @@ def _abs_promo_url(request, pk) -> str:
     return request.build_absolute_uri(reverse("storefront-promotion", args=[pk]))
 
 
+def _promo_parcel(promo, qty: int = 1):
+    """SHP-2: профиль посылки акции — вес товара цели; без товара содержимое неизвестно
+    (способы с пределом веса/Sperrgut не предлагаются). Один для показа и покупки."""
+    from apps.orders import shipping as _shipping
+
+    target = getattr(promo, "product", None)
+    if target is not None:
+        return _shipping.parcel_for([(target, None, qty)])
+    return _shipping.Parcel(unknown_qty=qty)
+
+
 def _pickup_ctx(request) -> dict:
     """KA-12 E2.7: окна самовывоза для buy-box акции (опция выключена → пусто)."""
     from apps.orders import pickup_slots
@@ -160,7 +171,7 @@ def _detail_ctx(request, promo, form) -> dict:
         "form": form,
         "waitlist_form": WaitlistForm(),
         # SH-24: данные выбора «Abholung | Lieferung» для общего партиала.
-        **delivery_choice.context(getattr(request, "tenant", None)),
+        **delivery_choice.context(getattr(request, "tenant", None), parcel=_promo_parcel(promo)),
         **_pickup_ctx(request),
         # SH-23d: пикер способа оплаты и блок «Privat/Firma».
         **_pm_picker(getattr(request, "tenant", None)),
@@ -2932,10 +2943,8 @@ def promotion_purchase(request, pk):
     qty = form.cleaned_data["quantity"]
     subtotal_cents = int((promo.new_price or 0) * 100) * qty
     # SHP-2: акция на товар — его вес/размеры решают, какие способы возможны.
-    from apps.orders import shipping as _shipping
 
-    target = getattr(promo, "product", None)
-    parcel = _shipping.parcel_for([(target, None, qty)]) if target is not None else None
+    parcel = _promo_parcel(promo, qty)
     choice = delivery_choice.resolve(
         request.POST, getattr(request, "tenant", None), subtotal_cents, parcel=parcel
     )

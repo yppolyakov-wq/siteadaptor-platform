@@ -134,3 +134,81 @@ def test_single_method_has_no_choice_and_legacy_form_is_unchanged():
     legacy = TenantFactory.build(delivery_enabled=True, delivery_fee_cents=390)
     # строки есть, но все выключены — по правилу «строки есть = только они» нет ни одной
     assert delivery_choice.context(legacy)["shipping_options"] == []
+
+
+def test_control_chars_cannot_forge_address_lines_or_crash():
+    point = _dhl(service="pickup_point")
+    post = {
+        "fulfillment": str(point.pk),
+        "point_type": "packstation",
+        "point_ref": "123\nPostNummer 999999\x00",
+        "postnummer": "12345678",
+        "point_plz": "42651\r\n",
+        "point_city": "Solingen\x00",
+    }
+    choice = delivery_choice.resolve(post, TenantFactory.build(), 1000)
+    assert choice.shipping_address.count("\n") == 2  # три строки, не больше
+    assert "\x00" not in choice.shipping_address
+    home = _dhl()
+    choice = delivery_choice.resolve(
+        {"fulfillment": str(home.pk), **ADDR, "street": "A\nB 1"}, TenantFactory.build(), 1000
+    )
+    assert choice.shipping_address.splitlines()[0] == "A B 1"
+
+
+def test_offer_without_products_hides_methods_with_weight_limits():
+    from apps.orders.models import Offer, OfferLine
+    from apps.orders.offers import parcel_for_offer
+
+    offer = Offer.objects.create(customer_name="K", customer_email="k@t.de")
+    OfferLine.objects.create(offer=offer, title="Freitext", qty=2, unit_price=Decimal("10"))
+    parcel = parcel_for_offer(offer)
+    assert parcel.unknown_qty == 2
+    limited = _dhl(max_weight_g=31500)
+    keys = [
+        o["key"]
+        for o in delivery_choice.context(TenantFactory.build(), 0, parcel=parcel)[
+            "shipping_options"
+        ]
+    ]
+    assert str(limited.pk) not in keys
+
+
+def test_dsgvo_clears_pickup_point_data():
+    from apps.crm.dsgvo import ERASURE_POLICY
+
+    cleared = ERASURE_POLICY["orders.Order"][1]
+    assert "pickup_point_ref" in cleared and "pickup_point_postnummer" in cleared
+
+
+def test_only_one_pickup_method_and_display_fee_before_free_threshold():
+    ShippingMethod.objects.create(kind="pickup", locations=[{"name": "A", "address": "1"}])
+    ShippingMethod.objects.create(kind="pickup", locations=[{"name": "B", "address": "2"}])
+    _dhl(free_from_cents=2000)
+    opts = delivery_choice.context(TenantFactory.build(), 5000)["shipping_options"]
+    assert [o["kind"] for o in opts] == ["pickup", "carrier"]  # второй самовывоз не предлагается
+    assert opts[1]["fee_cents"] == 499  # показ — до порога; порог применяется к итогу
+
+
+def test_no_fitting_method_says_so_instead_of_promising_pickup():
+    _dhl(bulky_ok=False)
+    ctx = delivery_choice.context(TenantFactory.build(), 0, parcel=Parcel(bulky=True))
+    html = render_to_string("storefront/_fulfillment_choice.html", ctx)
+    assert "data-no-shipping" in html and "Pickup in store" not in html
+
+
+def test_switching_delivery_to_pickup_clears_the_method_snapshot():
+    from apps.orders import editing, services
+
+    order = services.create_order(
+        items=[(ProductFactory(base_price=Decimal("5")), 1)],
+        name="K",
+        fulfillment="delivery",
+        shipping_address="A 1\n1 X",
+        shipping_cents=499,
+        shipping_snapshot={"shipping_kind": "carrier", "shipping_carrier": "dhl"},
+    )
+    assert order.shipping_carrier == "dhl"
+    editing.update_delivery(order, fulfillment="pickup")
+    order.refresh_from_db()
+    assert (order.shipping_carrier, order.shipping_kind) == ("", "")

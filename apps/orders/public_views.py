@@ -1384,7 +1384,12 @@ def offer_page(request, token):
                 chosen = methods[0]
             # SH-24: способ получения — тот же разбор, что на чекауте корзины
             # (раньше принятие предложения всегда создавало заказ на самовывоз).
-            choice = delivery_choice.resolve(request.POST, tenant, int(offer.total * 100))
+            choice = delivery_choice.resolve(
+                request.POST,
+                tenant,
+                int(offer.total * 100),
+                parcel=offer_service.parcel_for_offer(offer),  # SHP-2: пределы способов
+            )
             if not choice:
                 messages.error(request, choice.error)
                 return redirect("storefront-offer", token=token)
@@ -1459,7 +1464,9 @@ def offer_page(request, token):
             if len(methods) > 1
             else [],
             # SH-24: данные выбора «Abholung | Lieferung» для общего партиала.
-            **delivery_choice.context(tenant),
+            **delivery_choice.context(
+                tenant, int(offer.total * 100), parcel=offer_service.parcel_for_offer(offer)
+            ),
             **pickup_slots.context(tenant),
         },
     )

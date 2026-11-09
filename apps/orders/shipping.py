@@ -159,9 +159,22 @@ def methods(tenant, *, active_only: bool = True) -> list[ShippingMethod]:
     Строки есть (даже все выключены) — действуют только они: выключить всё может лишь
     писатель, а он этого не допускает (SHP-3). Строк нет — прежние поля Tenant."""
     rows = _rows(tenant)
-    if rows:
-        return [m for m in rows if m.active] if active_only else list(rows)
-    return legacy_methods(tenant)
+    if not rows:
+        return legacy_methods(tenant)
+    if not active_only:
+        return list(rows)
+    # решение владельца: самовывоз — ОДИН способ со списком адресов; лишние строки
+    # самовывоза не предлагаются (иначе выбор адреса относился бы не к тому способу)
+    out, pickup_seen = [], False
+    for m in rows:
+        if not m.active:
+            continue
+        if m.kind == ShippingMethod.KIND_PICKUP:
+            if pickup_seen:
+                continue
+            pickup_seen = True
+        out.append(m)
+    return out
 
 
 def by_kind(items, kind: str) -> list[ShippingMethod]:

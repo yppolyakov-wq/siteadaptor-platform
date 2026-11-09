@@ -35953,3 +35953,7 @@ msgstr "Pickup point number"
 #: SHP-2
 msgid "Sendung verfolgen"
 msgstr "Track shipment"
+
+#: SHP-2
+msgid "Für diesen Warenkorb ist leider keine Versandart möglich. Bitte schreiben Sie uns."
+msgstr "Unfortunately, no shipping method is available for this cart. Please contact us."
