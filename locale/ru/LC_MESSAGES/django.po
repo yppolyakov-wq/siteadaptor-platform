@@ -36212,3 +36212,39 @@ msgstr "Доставка %(carrier)s"
 #: SHP-1
 msgid "Versandarten werden deaktiviert, nicht gelöscht."
 msgstr "Способы доставки не удаляются, а выключаются."
+
+#: SHP-1b
+msgid "Breite (cm)"
+msgstr "Ширина (см)"
+
+#: SHP-1b
+msgid "Höhe (cm)"
+msgstr "Высота (см)"
+
+#: SHP-1b
+msgid "Länge (cm)"
+msgstr "Длина (см)"
+
+#: SHP-1b
+msgid "Mit Verpackung, für die Versandkosten nach Gewicht. Leer = Standardgewicht der Versandart."
+msgstr "С упаковкой — для стоимости доставки по весу. Пусто = вес по умолчанию у способа доставки."
+
+#: SHP-1b
+msgid "Optional — nur um zu prüfen, ob das Paket passt."
+msgstr "Необязательно — только чтобы проверить, влезает ли в посылку."
+
+#: SHP-1b
+msgid "Passt in kein normales Paket — nur Versandarten für Sperrgut."
+msgstr "Не влезает в обычную посылку — только способы доставки для крупногабаритного."
+
+#: SHP-1b
+msgid "Sperrgut"
+msgstr "Крупногабаритный товар"
+
+#: SHP-1b
+msgid "Versandgewicht (g)"
+msgstr "Вес для отправки (г)"
+
+#: SHP-1b
+msgid "g"
+msgstr "г"

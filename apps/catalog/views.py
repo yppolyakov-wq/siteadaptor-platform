@@ -105,6 +105,12 @@ def _parse_price(raw):
     return value
 
 
+def _parse_weight(raw):
+    """SHP-1b: вес в граммах: целое 1…1 000 000, иначе None (пусто/мусор = «не знаю»)."""
+    value = _parse_int(raw)
+    return value if value and 0 < value <= 1_000_000 else None
+
+
 def _parse_int(raw):
     try:
         return int(raw)
@@ -296,6 +302,7 @@ def variant_add(request, pk):
             gtin=(request.POST.get("gtin") or "").strip(),
             price=_parse_price(request.POST.get("price")),
             content_amount=_parse_price(request.POST.get("content")),
+            shipping_weight_g=_parse_weight(request.POST.get("weight_g")),  # SHP-1b
             stock_quantity=_parse_int(request.POST.get("stock")),
             cost_price=_parse_price(request.POST.get("cost")),  # T5
             reorder_point=_parse_int(request.POST.get("reorder_point")),  # T5
@@ -492,6 +499,10 @@ def variant_update(request, pk, vid):
     variant.gtin = (request.POST.get("gtin") or "").strip()
     variant.is_active = bool(request.POST.get("is_active"))
     fields = []
+    # SHP-1b: вес варианта — только если форма его прислала (presence-guard, W0)
+    if request.POST.get("weight_present"):
+        variant.shipping_weight_g = _parse_weight(request.POST.get("weight_g"))
+        fields.append("shipping_weight_g")
     # M4-A: оси пишем ТОЛЬКО если форма их прислала (presence-guard, инвариант W0)
     # — иначе частичная форма стёрла бы размер/цвет.
     if request.POST.get("axes_present"):
@@ -1482,6 +1493,12 @@ _EXPORT_COLUMNS = (
     "category_slug",
     "brand",
     "is_active",
+    # SHP-1b: отправка (в конце — прежние колонки на своих местах)
+    "shipping_weight_g",
+    "length_cm",
+    "width_cm",
+    "height_cm",
+    "bulky",
 )
 
 
@@ -1521,6 +1538,9 @@ def products_export_csv(request):
                 _csv_safe(p.category.slug) if p.category_id else "",
                 _csv_safe(p.brand),
                 "1" if p.is_active else "0",
+                *("" if v is None else v for v in (p.shipping_weight_g, p.length_cm, p.width_cm)),
+                "" if p.height_cm is None else p.height_cm,
+                "1" if p.bulky else "0",
             ]
         )
         rows += 1

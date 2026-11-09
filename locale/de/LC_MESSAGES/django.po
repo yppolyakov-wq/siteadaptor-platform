@@ -35964,3 +35964,39 @@ msgstr "Versand mit %(carrier)s"
 #: SHP-1
 msgid "Versandarten werden deaktiviert, nicht gelöscht."
 msgstr "Versandarten werden deaktiviert, nicht gelöscht."
+
+#: SHP-1b
+msgid "Breite (cm)"
+msgstr "Breite (cm)"
+
+#: SHP-1b
+msgid "Höhe (cm)"
+msgstr "Höhe (cm)"
+
+#: SHP-1b
+msgid "Länge (cm)"
+msgstr "Länge (cm)"
+
+#: SHP-1b
+msgid "Mit Verpackung, für die Versandkosten nach Gewicht. Leer = Standardgewicht der Versandart."
+msgstr "Mit Verpackung, für die Versandkosten nach Gewicht. Leer = Standardgewicht der Versandart."
+
+#: SHP-1b
+msgid "Optional — nur um zu prüfen, ob das Paket passt."
+msgstr "Optional — nur um zu prüfen, ob das Paket passt."
+
+#: SHP-1b
+msgid "Passt in kein normales Paket — nur Versandarten für Sperrgut."
+msgstr "Passt in kein normales Paket — nur Versandarten für Sperrgut."
+
+#: SHP-1b
+msgid "Sperrgut"
+msgstr "Sperrgut"
+
+#: SHP-1b
+msgid "Versandgewicht (g)"
+msgstr "Versandgewicht (g)"
+
+#: SHP-1b
+msgid "g"
+msgstr "g"

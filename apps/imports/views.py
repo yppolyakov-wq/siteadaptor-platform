@@ -41,6 +41,12 @@ PRODUCT_FIELDS = [
     ("cost_price", _("Einkaufspreis")),
     ("vat_rate", _("MwSt.-Satz")),
     ("brand", _("Marke")),
+    # SHP-1b: Versand
+    ("shipping_weight_g", _("Versandgewicht (g)")),
+    ("length_cm", _("Länge (cm)")),
+    ("width_cm", _("Breite (cm)")),
+    ("height_cm", _("Höhe (cm)")),
+    ("bulky", _("Sperrgut")),
 ]
 
 # Выбор разделителя CSV (значение → подпись).
@@ -63,6 +69,7 @@ VARIANT_FIELDS = [
     ("gtin", _("EAN/GTIN")),
     ("price", _("Preis (leer = Produktpreis)")),
     ("content_amount", _("Inhalt (Grundpreis)")),
+    ("shipping_weight_g", _("Versandgewicht (g)")),
     ("stock_quantity", _("Lagerbestand")),
     ("is_active", _("Aktiv")),
 ]

@@ -204,6 +204,15 @@ class Product(SoftDeleteMixin, I18nMixin):
     ]
     unit = models.CharField(max_length=4, blank=True, choices=UNIT_CHOICES)
     content_amount = models.DecimalField(max_digits=10, decimal_places=3, null=True, blank=True)
+    # SHP-1b: вес и размеры ДЛЯ ОТПРАВКИ (брутто, с упаковкой) — не путать с content_amount
+    # (нетто для Grundpreis). Пусто = неизвестно: цену по весу считает «вес по умолчанию»
+    # способа доставки, иначе способ не предлагается (никогда 0 €).
+    shipping_weight_g = models.PositiveIntegerField(null=True, blank=True)
+    length_cm = models.PositiveSmallIntegerField(null=True, blank=True)
+    width_cm = models.PositiveSmallIntegerField(null=True, blank=True)
+    height_cm = models.PositiveSmallIntegerField(null=True, blank=True)
+    # Sperrgut: не влезает в обычную посылку — только способы с `bulky_ok` (Spedition)
+    bulky = models.BooleanField(default=False)
 
     stock_quantity = models.IntegerField(null=True, blank=True)
 
@@ -629,6 +638,8 @@ class ProductVariant(TimestampedModel):
     # PAngV (R2): контент варианта для Grundpreis (чай 100 г vs 250 г); пусто →
     # берётся Product.content_amount. Единица (unit) — на товаре.
     content_amount = models.DecimalField(max_digits=10, decimal_places=3, null=True, blank=True)
+    # SHP-1b: вес варианта для отправки (XL тяжелее S); пусто = вес товара
+    shipping_weight_g = models.PositiveIntegerField(null=True, blank=True)
     stock_quantity = models.IntegerField(null=True, blank=True)
     # T5 (R2/R4): Einkaufspreis (Fallback → Product.cost_price) + Meldebestand/
     # Sollbestand des Varianten-Bestands.

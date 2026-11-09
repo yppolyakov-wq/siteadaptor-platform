@@ -36023,3 +36023,39 @@ msgstr "%(carrier)s ile gönderim"
 #: SHP-1
 msgid "Versandarten werden deaktiviert, nicht gelöscht."
 msgstr "Gönderim yöntemleri silinmez, devre dışı bırakılır."
+
+#: SHP-1b
+msgid "Breite (cm)"
+msgstr "Genişlik (cm)"
+
+#: SHP-1b
+msgid "Höhe (cm)"
+msgstr "Yükseklik (cm)"
+
+#: SHP-1b
+msgid "Länge (cm)"
+msgstr "Uzunluk (cm)"
+
+#: SHP-1b
+msgid "Mit Verpackung, für die Versandkosten nach Gewicht. Leer = Standardgewicht der Versandart."
+msgstr "Ambalaj dahil, ağırlığa göre kargo ücreti için. Boş = gönderim yönteminin varsayılan ağırlığı."
+
+#: SHP-1b
+msgid "Optional — nur um zu prüfen, ob das Paket passt."
+msgstr "İsteğe bağlı — yalnızca paketin sığıp sığmadığını kontrol etmek için."
+
+#: SHP-1b
+msgid "Passt in kein normales Paket — nur Versandarten für Sperrgut."
+msgstr "Normal bir pakete sığmaz — yalnızca hacimli eşya gönderim yöntemleri."
+
+#: SHP-1b
+msgid "Sperrgut"
+msgstr "Hacimli eşya"
+
+#: SHP-1b
+msgid "Versandgewicht (g)"
+msgstr "Gönderim ağırlığı (g)"
+
+#: SHP-1b
+msgid "g"
+msgstr "g"

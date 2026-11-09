@@ -263,6 +263,12 @@ class ProductForm(OverlayI18nFormMixin, DynamicI18nFormMixin, forms.ModelForm):
             "cost_price",
             "reorder_point",
             "reorder_target",
+            # SHP-1b: вес/размеры для отправки + Sperrgut
+            "shipping_weight_g",
+            "length_cm",
+            "width_cm",
+            "height_cm",
+            "bulky",
             "origin",
             "ingredients",
             "material",
@@ -313,6 +319,11 @@ class ProductForm(OverlayI18nFormMixin, DynamicI18nFormMixin, forms.ModelForm):
             "condition_note": _("Hinweis zum Zustand"),
             "brand": _("Marke"),
             "list_price": _("UVP"),
+            "shipping_weight_g": _("Versandgewicht (g)"),
+            "length_cm": _("Länge (cm)"),
+            "width_cm": _("Breite (cm)"),
+            "height_cm": _("Höhe (cm)"),
+            "bulky": _("Sperrgut"),
         }
         # W2: подсказки под полями (шаблон теперь их выводит) — снимают непонятность.
         help_texts = {
@@ -346,6 +357,12 @@ class ProductForm(OverlayI18nFormMixin, DynamicI18nFormMixin, forms.ModelForm):
                 "„Karton geöffnet, Gerät neu“ oder „Kratzer am Standfuß“."
             ),
             "brand": _("Hersteller/Marke — wird als Filter auf der Website angeboten."),
+            "shipping_weight_g": _(
+                "Mit Verpackung, für die Versandkosten nach Gewicht. Leer = Standardgewicht "
+                "der Versandart."
+            ),
+            "length_cm": _("Optional — nur um zu prüfen, ob das Paket passt."),
+            "bulky": _("Passt in kein normales Paket — nur Versandarten für Sperrgut."),
             "list_price": _(
                 "Unverbindliche Preisempfehlung des Herstellers. Wird durchgestrichen "
                 "neben dem Preis gezeigt; nur eintragen, wenn sie echt ist."
@@ -380,6 +397,11 @@ class ProductForm(OverlayI18nFormMixin, DynamicI18nFormMixin, forms.ModelForm):
             "primary_action",
             "is_active",
             "list_price",  # O-1: UVP стоит рядом с ценой → тоже в рейле
+            "shipping_weight_g",  # SHP-1b: карточка «Versand» в рейле
+            "length_cm",
+            "width_cm",
+            "height_cm",
+            "bulky",
         ):
             if name in self.fields:
                 self.fields[name].widget.attrs["form"] = "product-form"

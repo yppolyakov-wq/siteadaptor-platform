@@ -148,6 +148,18 @@ class ProductProcessor(BaseProcessor):
         vat = _parse_vat(data.get("vat_rate"))
         if vat is not None:
             fields["vat_rate"] = vat
+        # SHP-1b: вес/размеры — только при значении в файле (пустая колонка не стирает)
+        for key, cap in (
+            ("shipping_weight_g", 1_000_000),
+            ("length_cm", 10_000),
+            ("width_cm", 10_000),
+            ("height_cm", 10_000),
+        ):
+            number = _parse_int(data.get(key))
+            if number is not None and 0 < number <= cap:
+                fields[key] = number
+        if str(data.get("bulky") or "").strip():
+            fields["bulky"] = _parse_bool(data.get("bulky"), default=False)
 
         if update_existing:
             # Поле синхронизации: по нему ищем существующий товар.
@@ -256,5 +268,8 @@ class ProductVariantProcessor(BaseProcessor):
             variant.label = label
         for key, value in fields.items():
             setattr(variant, key, value)
+        weight = _parse_int(data.get("shipping_weight_g"))  # SHP-1b: пусто — не трогаем
+        if weight is not None and 0 < weight <= 1_000_000:
+            variant.shipping_weight_g = weight
         variant.save()
         return variant

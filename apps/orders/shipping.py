@@ -48,6 +48,30 @@ class Parcel:
         )
 
 
+def parcel_for(items) -> Parcel:
+    """SHP-1b: профиль посылки из позиций корзины ``[(product, variant|None, qty), …]``.
+
+    Вес: вариант → товар → неизвестно (считается в ``unknown_qty``). Длинная сторона —
+    по размерам товара. Sperrgut — флажок товара."""
+    known = unknown = longest = 0
+    bulky = False
+    for product, variant, qty in items:
+        qty = max(0, int(qty or 0))
+        if not qty or product is None:
+            continue
+        weight = getattr(variant, "shipping_weight_g", None) if variant is not None else None
+        if weight is None:
+            weight = getattr(product, "shipping_weight_g", None)
+        if weight is None:
+            unknown += qty
+        else:
+            known += int(weight) * qty
+        sides = [getattr(product, f, None) or 0 for f in ("length_cm", "width_cm", "height_cm")]
+        longest = max(longest, *sides)
+        bulky = bulky or bool(getattr(product, "bulky", False))
+    return Parcel(known_g=known, unknown_qty=unknown, longest_cm=longest, bulky=bulky)
+
+
 def _rows(tenant) -> list[ShippingMethod] | None:
     """Все строки способов схемы ``tenant`` (одним запросом, мемо на объекте тенанта) или
     None — читать таблицу нельзя: соединение не в схеме этого бизнеса (public, beat,
