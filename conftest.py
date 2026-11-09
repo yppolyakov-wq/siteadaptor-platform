@@ -11,3 +11,26 @@ def _fresh_ai_config_cache():
     config.reset_cache()
     yield
     config.reset_cache()
+
+
+@pytest.fixture(autouse=True)
+def _no_hidden_schema_creation(monkeypatch):
+    """Тенант из фабрики без схемы не получает её «по дороге».
+
+    Перечитанный из БД тенант снова несёт auto_create_schema=True (атрибут класса),
+    и любой его save() создавал схему всеми миграциями. Схема нужна тесту — фабрика
+    с auto_create_schema=True, такие имена сюда не попадают.
+    """
+    from apps.tenants.models import Tenant
+    from apps.tenants.tests import factories
+
+    original = Tenant.create_schema
+
+    def create_schema(self, *args, **kwargs):
+        if self.schema_name in factories.SCHEMALESS:
+            return False
+        return original(self, *args, **kwargs)
+
+    monkeypatch.setattr(Tenant, "create_schema", create_schema)
+    yield
+    factories.SCHEMALESS.clear()
