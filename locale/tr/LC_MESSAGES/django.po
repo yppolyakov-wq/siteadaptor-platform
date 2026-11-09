@@ -35975,3 +35975,7 @@ msgstr "Tümünü temizle"
 #: PH-14
 msgid "„%(q)s“"
 msgstr "“%(q)s”"
+
+#: PH-14
+msgid "Standort nicht verfügbar"
+msgstr "Konum kullanılamıyor"

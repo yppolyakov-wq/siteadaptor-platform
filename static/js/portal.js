@@ -387,18 +387,30 @@
     else openDrawer("", null);
   }
 
-  // ---- PH-14: сортировка в панели — сразу при выборе (кнопка «OK» остаётся только без JS).
-  // «In der Nähe» без точки: берём геопозицию и дописываем lat/lng; отказ — выбор откатывается.
+  // ---- PH-14: сортировка в панели применяется сразу, но не на каждый шаг стрелки (WCAG 3.2.2):
+  // стрелки только выбирают, применяет Enter/уход фокуса; выбор мышью/касанием — сразу.
+  // «In der Nähe» без точки: геопозиция → lat/lng; отказ — выбор откатывается и объявляется.
   document.querySelectorAll("form[data-flt-sort]").forEach(function (form) {
     var ok = form.querySelector("[data-flt-sort-submit]");
     if (ok) ok.hidden = true;
     var sel = form.querySelector("[data-sort-select]");
     if (!sel) return;
-    var prev = sel.value;
-    sel.addEventListener("change", function () {
+    var status = form.querySelector("[data-sort-status]");
+    var applied = sel.value;
+    var keyNav = false;
+    function send() {
+      if (form.requestSubmit) form.requestSubmit();
+      else form.submit();
+    }
+    function apply() {
+      if (sel.value === applied) return;
       var needs = form.getAttribute("data-needs-point");
       if (needs && sel.value === needs) {
-        if (!navigator.geolocation) { sel.value = prev; return; }
+        var fail = function () {
+          sel.value = applied;
+          if (status) status.textContent = status.getAttribute("data-msg-geo") || "";
+        };
+        if (!navigator.geolocation) return fail();
         navigator.geolocation.getCurrentPosition(function (pos) {
           [["lat", pos.coords.latitude], ["lng", pos.coords.longitude]].forEach(function (kv) {
             var inp = form.querySelector('input[name="' + kv[0] + '"]');
@@ -410,11 +422,29 @@
             }
             inp.value = kv[1].toFixed(5);
           });
-          form.submit();
-        }, function () { sel.value = prev; });
+          applied = sel.value;
+          send();
+        }, fail);
         return;
       }
-      form.submit();
+      applied = sel.value;
+      send();
+    }
+    sel.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        keyNav = false;
+        apply();
+      } else if (/^(Arrow|Page|Home|End)/.test(e.key)) {
+        keyNav = true;
+      }
+    });
+    sel.addEventListener("change", function () {
+      if (!keyNav) apply();
+    });
+    sel.addEventListener("blur", function () {
+      keyNav = false;
+      apply();
     });
   });
 })();
