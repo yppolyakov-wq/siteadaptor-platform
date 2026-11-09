@@ -151,3 +151,50 @@ def test_delivery_tab_shows_list_outside_the_form_and_no_legacy_fields():
     form_start = html.index("data-payment-grid")
     assert html.index("data-shipping-methods") < form_start  # список — до большой формы
     assert 'name="delivery_enabled"' not in html  # прежнего писателя на вкладке нет
+
+
+# --- SHP-4: мастер «Verkauf öffnen» — три типа способов ------------------------------
+
+
+def test_wizard_kinds_create_and_switch_methods():
+    tenant = _tenant(delivery_enabled=False)
+    shipping_admin.set_kind(tenant, "carrier", True)  # «Ja, Versand» → DHL до двери 4,99
+    dhl = ShippingMethod.objects.get(kind="carrier")
+    assert (dhl.carrier, dhl.fee_cents, dhl.active) == ("dhl", 499, True)
+    assert shipping_admin.kind_active(tenant, "carrier")
+    shipping_admin.set_kind(tenant, "pickup", False)  # теперь можно: остаётся посылка
+    assert not shipping_admin.kind_active(tenant, "pickup")
+    with pytest.raises(shipping_admin.LastMethod):
+        shipping_admin.set_kind(tenant, "carrier", False)  # последний — нельзя
+    assert shipping_admin.kind_active(tenant, "carrier")  # откат: ничего не записано
+
+
+def test_wizard_answer_last_method_is_an_answer_error():
+    from apps.core import sell_questions
+
+    tenant = _tenant()
+    tenant.disabled_modules = []
+    request = _req("post", tenant=tenant)
+    with pytest.raises(sell_questions.AnswerError) as exc:
+        sell_questions.answer(request, "waren.pickup", "nein")  # самовывоз — единственный
+    assert str(exc.value) == "last"
+
+
+def test_garbage_limits_are_errors_not_silent_no_limit():
+    parsed = shipping_admin.parse({"carrier": "dhl", "max_weight_kg": "2kg"}, "carrier")
+    assert parsed.errors and parsed.values["max_weight_g"] is None
+    many = "\n".join(f"{i} | 1" for i in range(1, 30))
+    assert shipping_admin.parse({"carrier": "dhl", "weight_tiers": many}, "carrier").errors
+
+
+def test_legacy_writers_do_not_write_past_the_list():
+    from apps.orders.views import save_delivery, set_delivery_enabled
+
+    tenant = _tenant(delivery_enabled=False)
+    shipping_admin.materialize(tenant)  # строки есть — правда только в них
+    request = _req("post", {"delivery_enabled": "on", "delivery_fee_eur": "9"}, tenant=tenant)
+    save_delivery(tenant, request)
+    tenant.refresh_from_db()
+    assert tenant.delivery_fee_cents == 0  # устаревшая форма ничего не меняет
+    set_delivery_enabled(tenant, True)  # мастер прежним писателем → курьер-строка
+    assert shipping_admin.kind_active(tenant, "courier")

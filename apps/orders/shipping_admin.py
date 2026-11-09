@@ -74,14 +74,15 @@ def _kg_to_g(raw):
     return grams if 0 < grams <= MAX_WEIGHT_G else None
 
 
-def _lines(raw) -> list[list[str]]:
-    out = []
-    for line in str(raw or "").splitlines():
-        if line.strip():
-            out.append([part.strip() for part in line.split("|")])
-        if len(out) >= MAX_ROWS:
-            break
-    return out
+def _lines(raw, parsed=None) -> list[list[str]]:
+    rows = [
+        [part.strip() for part in line.split("|")]
+        for line in str(raw or "").splitlines()
+        if line.strip()
+    ]
+    if len(rows) > MAX_ROWS and parsed is not None:
+        parsed.errors.append(_("Höchstens %(n)s Zeilen.") % {"n": MAX_ROWS})
+    return rows[:MAX_ROWS]
 
 
 def parse(post, kind: str) -> Parsed:
@@ -97,12 +98,12 @@ def parse(post, kind: str) -> Parsed:
     if kind == ShippingMethod.KIND_PICKUP:
         v["locations"] = [
             {"name": row[0][:120], "address": (row[1] if len(row) > 1 else "")[:200]}
-            for row in _lines(post.get("locations"))
+            for row in _lines(post.get("locations"), parsed)
             if row[0]
         ]
     if kind == ShippingMethod.KIND_COURIER:
         zones = []
-        for row in _lines(post.get("zones")):
+        for row in _lines(post.get("zones"), parsed):
             plz = row[0][:200]
             if not plz:
                 continue
@@ -145,7 +146,7 @@ def parse(post, kind: str) -> Parsed:
             else "flat"
         )
         tiers = []
-        for row in _lines(post.get("weight_tiers")):
+        for row in _lines(post.get("weight_tiers"), parsed):
             grams = _kg_to_g(row[0])
             if grams is None or len(row) < 2:
                 parsed.errors.append(
@@ -166,16 +167,43 @@ def parse(post, kind: str) -> Parsed:
         v["weight_tiers"] = tiers
         if v["pricing"] == ShippingMethod.PRICING_WEIGHT and not tiers:
             parsed.errors.append(_("Für den Preis nach Gewicht mindestens eine Stufe angeben."))
-        v["packaging_g"] = _int(post.get("packaging_g"), low=0) or 0
-        v["default_item_g"] = _int(post.get("default_item_g"), low=0) or 0
-        v["max_weight_g"] = _kg_to_g(post.get("max_weight_kg"))
-        v["max_length_cm"] = _int(post.get("max_length_cm"), high=1000)
+        # необязательные числа: пусто = «нет», опечатка = ошибка (а не тихое «без предела»)
+        for name, key, conv in (
+            ("packaging_g", "packaging_g", lambda r: _int(r, low=0)),
+            ("default_item_g", "default_item_g", lambda r: _int(r, low=0)),
+            ("max_weight_kg", "max_weight_g", _kg_to_g),
+            ("max_length_cm", "max_length_cm", lambda r: _int(r, high=1000)),
+        ):
+            raw = (post.get(name) or "").strip()
+            value = conv(raw) if raw else None
+            if raw and value is None:
+                parsed.errors.append(_("„%(value)s“ ist keine gültige Zahl.") % {"value": raw[:20]})
+            v[key] = value
+        v["packaging_g"] = v["packaging_g"] or 0
+        v["default_item_g"] = v["default_item_g"] or 0
         v["bulky_ok"] = bool(post.get("bulky_ok"))
     return parsed
 
 
+def _lock() -> None:
+    """Блокировка списка способов схемы до конца транзакции (ревью SHP-3): два первых
+    сохранения одновременно иначе завели бы самовывоз и курьера дважды, а две «выключить»
+    обошли бы правило «последний способ»."""
+    from django.db import connection
+
+    with connection.cursor() as cursor:
+        cursor.execute(
+            "SELECT pg_advisory_xact_lock(hashtext(%s))",
+            [f"{getattr(connection, 'schema_name', '')}:shipping-methods"],
+        )
+
+
+@transaction.atomic
 def materialize(tenant) -> None:
-    """Первое сохранение: перенести прежние настройки в строки (только если строк нет)."""
+    """Первое сохранение: перенести прежние настройки в строки (только если строк нет).
+    Одной транзакцией под блокировкой: частичный перенос (самовывоз есть, курьера нет)
+    после сбоя молча потерял бы доставку."""
+    _lock()
     if shipping.has_stored():
         return
     for method in shipping.legacy_methods(tenant):
@@ -222,9 +250,13 @@ def create(tenant, kind: str, values: dict) -> ShippingMethod:
 
 @transaction.atomic
 def update(tenant, method: ShippingMethod, values: dict) -> ShippingMethod:
+    """Правка полей формы: строка перечитывается под блокировкой и пишутся ТОЛЬКО поля
+    формы — параллельный «Ausschalten»/порядок не откатываются устаревшей копией."""
+    _lock()
+    method = ShippingMethod.objects.select_for_update().get(pk=method.pk)
     for key, value in values.items():
         setattr(method, key, value)
-    method.save()
+    method.save(update_fields=[*values.keys(), "updated_at"])
     mirror_legacy(tenant)
     return method
 
@@ -233,6 +265,7 @@ def update(tenant, method: ShippingMethod, values: dict) -> ShippingMethod:
 def set_active(tenant, method: ShippingMethod, on: bool) -> None:
     """Включить/выключить. Последний включённый способ при открытых заказах — LastMethod."""
     materialize(tenant)
+    _lock()
     method = ShippingMethod.objects.select_for_update().get(pk=method.pk)
     if not on and method.active and _orders_open(tenant):
         others = ShippingMethod.objects.filter(active=True).exclude(pk=method.pk).exists()
@@ -246,6 +279,7 @@ def set_active(tenant, method: ShippingMethod, on: bool) -> None:
 @transaction.atomic
 def move(tenant, method: ShippingMethod, direction: int) -> None:
     """Сдвинуть способ вверх (-1) или вниз (+1) — порядок в корзине."""
+    _lock()
     rows = list(ShippingMethod.objects.select_for_update().order_by("sort_order", "created_at"))
     ids = [m.pk for m in rows]
     if method.pk not in ids:
@@ -259,4 +293,41 @@ def move(tenant, method: ShippingMethod, direction: int) -> None:
         if row.sort_order != pos:
             row.sort_order = pos
             row.save(update_fields=["sort_order", "updated_at"])
+    shipping.forget(tenant)
+
+
+#: SHP-4: способ, который мастер создаёт по галочке «да» (владелец уточнит на экране)
+KIND_DEFAULTS = {
+    ShippingMethod.KIND_PICKUP: {},
+    ShippingMethod.KIND_COURIER: {},
+    ShippingMethod.KIND_CARRIER: {
+        "carrier": "dhl",
+        "service": ShippingMethod.SERVICE_HOME,
+        "fee_cents": 499,
+        "delivery_time": "2–4 Tage",
+    },
+}
+
+
+def kind_active(tenant, kind: str) -> bool:
+    return any(m.kind == kind for m in shipping.methods(tenant))
+
+
+@transaction.atomic
+def set_kind(tenant, kind: str, on: bool) -> None:
+    """SHP-4 (мастер «Verkauf öffnen»): включить тип способа (существующие строки этого
+    типа — или новая с разумными значениями) либо выключить все строки типа. Последний
+    включённый способ выключить нельзя — LastMethod (ничего не записано: atomic)."""
+    materialize(tenant)
+    rows = list(ShippingMethod.objects.select_for_update().filter(kind=kind))
+    if on:
+        if not rows:
+            create(tenant, kind, dict(KIND_DEFAULTS.get(kind, {})))
+        for method in rows:
+            if not method.active:
+                set_active(tenant, method, True)
+    else:
+        for method in rows:
+            if method.active:
+                set_active(tenant, method, False)
     shipping.forget(tenant)

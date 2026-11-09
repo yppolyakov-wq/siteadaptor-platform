@@ -36311,3 +36311,59 @@ msgstr "ücretsiz"
 #: SHP-3
 msgid "kostenlos ab %(eur)s €"
 msgstr "%(eur)s € üzeri ücretsiz"
+
+#: SHP-4
+msgid "Abholorte"
+msgstr "Teslim alma yerleri"
+
+#: SHP-4
+msgid "Eine Stufe pro Zeile: bis kg | Preis €"
+msgstr "Her satıra bir kademe: kg'a kadar | fiyat €"
+
+#: SHP-4
+msgid "Eine pro Zeile: PLZ | Preis € | kostenlos ab € | Mindestwert €"
+msgstr "Her satıra bir tane: posta kodu | fiyat € | ücretsiz eşiği € | asgari tutar €"
+
+#: SHP-4
+msgid "Einer pro Zeile: Name | Adresse (leer = Ihre Adresse)"
+msgstr "Her satıra bir tane: ad | adres (boş = sizin adresiniz)"
+
+#: SHP-4
+msgid "Höchstens %(n)s Zeilen."
+msgstr "En fazla %(n)s satır."
+
+#: SHP-4
+msgid "Ja, Abholung"
+msgstr "Evet, teslim alma"
+
+#: SHP-4
+msgid "Ja, Versand"
+msgstr "Evet, kargo"
+
+#: SHP-4
+msgid "Können Kunden im Geschäft abholen?"
+msgstr "Müşteriler mağazadan teslim alabilir mi?"
+
+#: SHP-4
+msgid "Liefergebiete"
+msgstr "Teslimat bölgeleri"
+
+#: SHP-4
+msgid "Liefern Sie selbst in der Stadt (Kurier)?"
+msgstr "Şehir içinde kendiniz teslim ediyor musunuz (kurye)?"
+
+#: SHP-4
+msgid "Versanddienste und Preise"
+msgstr "Kargo firmaları ve fiyatlar"
+
+#: SHP-4
+msgid "Verschicken Sie per Paketdienst (DHL, Hermes …)?"
+msgstr "Kargo firmasıyla gönderiyor musunuz (DHL, Hermes …)?"
+
+#: SHP-4
+msgid "ausgeschaltet"
+msgstr "kapalı"
+
+#: SHP-4
+msgid "„%(value)s“ ist keine gültige Zahl."
+msgstr "“%(value)s” geçerli bir sayı değil."

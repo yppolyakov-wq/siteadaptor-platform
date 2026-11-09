@@ -36500,3 +36500,59 @@ msgstr "бесплатно"
 #: SHP-3
 msgid "kostenlos ab %(eur)s €"
 msgstr "бесплатно от %(eur)s €"
+
+#: SHP-4
+msgid "Abholorte"
+msgstr "Пункты самовывоза"
+
+#: SHP-4
+msgid "Eine Stufe pro Zeile: bis kg | Preis €"
+msgstr "Одна ступень в строке: до кг | цена €"
+
+#: SHP-4
+msgid "Eine pro Zeile: PLZ | Preis € | kostenlos ab € | Mindestwert €"
+msgstr "По одной в строке: индекс | цена € | бесплатно от € | минимум €"
+
+#: SHP-4
+msgid "Einer pro Zeile: Name | Adresse (leer = Ihre Adresse)"
+msgstr "По одному в строке: название | адрес (пусто = ваш адрес)"
+
+#: SHP-4
+msgid "Höchstens %(n)s Zeilen."
+msgstr "Не больше %(n)s строк."
+
+#: SHP-4
+msgid "Ja, Abholung"
+msgstr "Да, самовывоз"
+
+#: SHP-4
+msgid "Ja, Versand"
+msgstr "Да, отправка"
+
+#: SHP-4
+msgid "Können Kunden im Geschäft abholen?"
+msgstr "Могут ли покупатели забрать в магазине?"
+
+#: SHP-4
+msgid "Liefergebiete"
+msgstr "Зоны доставки"
+
+#: SHP-4
+msgid "Liefern Sie selbst in der Stadt (Kurier)?"
+msgstr "Доставляете сами по городу (курьер)?"
+
+#: SHP-4
+msgid "Versanddienste und Preise"
+msgstr "Службы доставки и цены"
+
+#: SHP-4
+msgid "Verschicken Sie per Paketdienst (DHL, Hermes …)?"
+msgstr "Отправляете транспортной компанией (DHL, Hermes …)?"
+
+#: SHP-4
+msgid "ausgeschaltet"
+msgstr "выключен"
+
+#: SHP-4
+msgid "„%(value)s“ ist keine gültige Zahl."
+msgstr "«%(value)s» — не число."

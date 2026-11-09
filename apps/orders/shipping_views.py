@@ -113,7 +113,9 @@ def list_context(tenant) -> dict:
                 "summary": summary(method),
             }
         )
-    return {"shipping_rows": rows, "shipping_legacy": not shipping.has_stored()}
+    # «прежние настройки» — по тем же строкам, что показаны (ревью SHP-3: живой запрос мог
+    # разойтись со списком вне схемы бизнеса)
+    return {"shipping_rows": rows, "shipping_legacy": all(not r["key"] for r in rows)}
 
 
 def _render_form(request, ctx):
@@ -149,8 +151,9 @@ def shipping_method_new(request):
     if request.method == "POST" and kind:
         parsed = shipping_admin.parse(request.POST, kind)
         if parsed.errors:
-            for error in parsed.errors:
-                messages.error(request, error)
+            if drawer_mod.is_drawer(request):  # в шторке ошибки — в шапке; на странице — блок
+                for error in parsed.errors:
+                    messages.error(request, error)
             return _render_form(request, _ctx(request, None, request.POST, kind, parsed.errors))
         shipping_admin.create(request.tenant, kind, parsed.values)
         messages.success(request, _("Versandart gespeichert."))
@@ -168,8 +171,9 @@ def shipping_method_edit(request, pk):
     if request.method == "POST":
         parsed = shipping_admin.parse(request.POST, method.kind)
         if parsed.errors:
-            for error in parsed.errors:
-                messages.error(request, error)
+            if drawer_mod.is_drawer(request):  # в шторке ошибки — в шапке; на странице — блок
+                for error in parsed.errors:
+                    messages.error(request, error)
             return _render_form(
                 request, _ctx(request, method, request.POST, method.kind, parsed.errors)
             )

@@ -79,7 +79,12 @@ def test_no_is_a_mark_and_data_stays_the_truth(shop):
     assert fresh.delivery_enabled is False
     assert fresh.site_config["verkauf"] == {"no": ["waren.delivery"]}
     assert sell_questions.state(fresh, sell_questions.BY_KEY["waren.delivery"]) == "nein"
-    fresh.delivery_enabled = True  # включили на экране оплаты — данные сильнее отметки
+    # включили на экране способов доставки — данные сильнее отметки (SHP-3: правда —
+    # список способов, флаг Tenant.delivery_enabled лишь его зеркало)
+    from apps.orders import shipping_admin
+
+    shipping_admin.set_kind(fresh, "courier", True)
+    fresh = Tenant.objects.get(pk=shop.pk)
     assert sell_questions.state(fresh, sell_questions.BY_KEY["waren.delivery"]) == "ja"
     _answer(shop, "waren.delivery", "ja")
     assert "verkauf" not in Tenant.objects.get(pk=shop.pk).site_config

@@ -56,10 +56,32 @@ def _orders(t) -> bool:
     return bool(t.is_module_active("orders"))  # сбой — строка «konnte nicht geladen werden»
 
 
-def _delivery_write(t, on):
-    from apps.orders.views import set_delivery_enabled
+def _kind_writer(kind: str) -> Callable:
+    """SHP-4: тип способа доставки — через единственный писатель способов. «Нет» для
+    последнего включённого способа — AnswerError("last") (ничего не записано)."""
 
-    set_delivery_enabled(t, on)
+    def write(t, on):
+        from apps.orders import shipping_admin
+
+        try:
+            shipping_admin.set_kind(t, kind, on)
+        except shipping_admin.LastMethod as exc:
+            raise AnswerError("last") from exc
+
+    return write
+
+
+def _kind_current(kind: str) -> Callable:
+    def current(t) -> bool:
+        from apps.orders import shipping_admin
+
+        return shipping_admin.kind_active(t, kind)
+
+    return current
+
+
+def _delivery_write(t, on):  # совместимость: прежний писатель «Liefern Sie auch?»
+    _kind_writer("courier")(t, on)
 
 
 def _vorkasse_write(t, on):
@@ -87,18 +109,44 @@ def _vorkasse_blocked(t) -> str:
 
 
 QUESTIONS: tuple[Question, ...] = (
+    # SHP-4 (решение владельца 2026-11-09): «как покупатель получает товар» — три типа
+    # способов; подробности (компании, цены, зоны, пункты) — на экране «Versandarten».
+    Question(
+        "waren.pickup",
+        "waren",
+        _("Können Kunden im Geschäft abholen?"),
+        _("Ja, Abholung"),
+        _("Nein"),
+        current=_kind_current("pickup"),
+        write=_kind_writer("pickup"),
+        applies=_orders,
+        more_url="payment-settings",
+        more_label=_("Versandarten"),
+    ),
     Question(
         "waren.delivery",
         "waren",
-        _("Liefern Sie auch?"),
+        _("Liefern Sie selbst in der Stadt (Kurier)?"),
         _("Ja, ich liefere"),
-        _("Nein, nur Abholung"),
-        current=lambda t: bool(getattr(t, "delivery_enabled", False)),
+        _("Nein"),
+        current=_kind_current("courier"),
         write=_delivery_write,
         applies=_orders,
         more_url="payment-settings",
         more_label=_("Liefergebiete und Gebühren"),
         note=_delivery_note,
+    ),
+    Question(
+        "waren.versand",
+        "waren",
+        _("Verschicken Sie per Paketdienst (DHL, Hermes …)?"),
+        _("Ja, Versand"),
+        _("Nein"),
+        current=_kind_current("carrier"),
+        write=_kind_writer("carrier"),
+        applies=_orders,
+        more_url="payment-settings",
+        more_label=_("Versanddienste und Preise"),
     ),
     Question(
         "waren.vorkasse",

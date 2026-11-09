@@ -36252,3 +36252,59 @@ msgstr "kostenlos"
 #: SHP-3
 msgid "kostenlos ab %(eur)s €"
 msgstr "kostenlos ab %(eur)s €"
+
+#: SHP-4
+msgid "Abholorte"
+msgstr "Abholorte"
+
+#: SHP-4
+msgid "Eine Stufe pro Zeile: bis kg | Preis €"
+msgstr "Eine Stufe pro Zeile: bis kg | Preis €"
+
+#: SHP-4
+msgid "Eine pro Zeile: PLZ | Preis € | kostenlos ab € | Mindestwert €"
+msgstr "Eine pro Zeile: PLZ | Preis € | kostenlos ab € | Mindestwert €"
+
+#: SHP-4
+msgid "Einer pro Zeile: Name | Adresse (leer = Ihre Adresse)"
+msgstr "Einer pro Zeile: Name | Adresse (leer = Ihre Adresse)"
+
+#: SHP-4
+msgid "Höchstens %(n)s Zeilen."
+msgstr "Höchstens %(n)s Zeilen."
+
+#: SHP-4
+msgid "Ja, Abholung"
+msgstr "Ja, Abholung"
+
+#: SHP-4
+msgid "Ja, Versand"
+msgstr "Ja, Versand"
+
+#: SHP-4
+msgid "Können Kunden im Geschäft abholen?"
+msgstr "Können Kunden im Geschäft abholen?"
+
+#: SHP-4
+msgid "Liefergebiete"
+msgstr "Liefergebiete"
+
+#: SHP-4
+msgid "Liefern Sie selbst in der Stadt (Kurier)?"
+msgstr "Liefern Sie selbst in der Stadt (Kurier)?"
+
+#: SHP-4
+msgid "Versanddienste und Preise"
+msgstr "Versanddienste und Preise"
+
+#: SHP-4
+msgid "Verschicken Sie per Paketdienst (DHL, Hermes …)?"
+msgstr "Verschicken Sie per Paketdienst (DHL, Hermes …)?"
+
+#: SHP-4
+msgid "ausgeschaltet"
+msgstr "ausgeschaltet"
+
+#: SHP-4
+msgid "„%(value)s“ ist keine gültige Zahl."
+msgstr "„%(value)s“ ist keine gültige Zahl."

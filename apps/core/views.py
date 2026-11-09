@@ -6622,6 +6622,14 @@ def verkauf_oeffnen(request):
                 messages.error(request, _("Dafür fehlt Ihnen die Berechtigung."))
             elif str(exc) == "blocked":
                 messages.error(request, _("Diese Frage lässt sich hier noch nicht beantworten."))
+            elif str(exc) == "last":
+                messages.error(
+                    request,
+                    _(
+                        "Mindestens eine Versandart muss aktiv bleiben, "
+                        "sonst können Kunden nicht bestellen."
+                    ),
+                )
             else:
                 messages.error(request, _("Diese Antwort wurde nicht gespeichert."))
         else:

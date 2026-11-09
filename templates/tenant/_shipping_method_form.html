@@ -15,7 +15,7 @@ Paketdienst — компания, до двери/пункт выдачи, це�
   {% csrf_token %}
   <input type="hidden" name="next" value="{{ next_url }}">
   <input type="hidden" name="kind" value="{{ kind }}">
-  {% if errors %}<div role="alert" class="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{% for e in errors %}<p>{{ e }}</p>{% endfor %}</div>{% endif %}
+  {% if errors %}<div role="alert" tabindex="-1" data-drawer-autofocus class="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{% for e in errors %}<p>{{ e }}</p>{% endfor %}</div>{% endif %}
 
   {% if kind == "carrier" %}
     <div class="grid sm:grid-cols-2 gap-3">
@@ -35,8 +35,8 @@ Paketdienst — компания, до двери/пункт выдачи, це�
     <input name="name" type="text" maxlength="80" value="{{ sv.name|default:'' }}" class="ui-input" placeholder="{% if kind == 'pickup' %}{% trans 'Abholung im Geschäft' %}{% elif kind == 'courier' %}{% trans 'Kurier in der Stadt' %}{% else %}{% trans 'Versand mit DHL' %}{% endif %}"></label>
   {% if kind != "pickup" %}
     <label class="block"><span class="block text-xs ui-muted mb-1">{% trans "Lieferzeit (z. B. „2–4 Tage“)" %}</span>
-      <input name="delivery_time" type="text" maxlength="60" value="{{ sv.delivery_time|default:'' }}" class="ui-input"></label>
-    <p class="text-xs ui-muted -mt-2">{% trans "Pflichtangabe im Online-Handel. Bitte ohne „ca.“ oder „voraussichtlich“." %}</p>
+      <input name="delivery_time" type="text" maxlength="60" value="{{ sv.delivery_time|default:'' }}" aria-describedby="ship-time-note" class="ui-input"></label>
+    <p id="ship-time-note" class="text-xs ui-muted -mt-2">{% trans "Pflichtangabe im Online-Handel. Bitte ohne „ca.“ oder „voraussichtlich“." %}</p>
   {% endif %}
 
   {% if kind == "carrier" %}
@@ -58,8 +58,9 @@ Paketdienst — компания, до двери/пункт выдачи, це�
   </div>
 
   {% if kind == "carrier" %}
-    <label class="block"><span class="block text-xs ui-muted mb-1">{% trans "Preis nach Gewicht — eine Stufe pro Zeile: bis kg | Preis €" %}</span>
-      <textarea name="weight_tiers" rows="4" class="ui-input font-mono text-sm" placeholder="2 | 4,99&#10;5 | 6,99&#10;10 | 9,99&#10;31,5 | 16,99">{{ sv.weight_tiers|default:'' }}</textarea></label>
+    <label class="block"><span class="block text-xs ui-muted mb-1">{% trans "Preis nach Gewicht" %}</span>
+      <span id="ship-tiers-hint" class="block text-xs ui-muted mb-1">{% trans "Eine Stufe pro Zeile: bis kg | Preis €" %}</span>
+      <textarea name="weight_tiers" rows="4" aria-describedby="ship-tiers-hint" class="ui-input font-mono text-sm" placeholder="2 | 4,99&#10;5 | 6,99&#10;10 | 9,99&#10;31,5 | 16,99">{{ sv.weight_tiers|default:'' }}</textarea></label>
     <div class="grid sm:grid-cols-2 gap-3">
       <label class="block"><span class="block text-xs ui-muted mb-1">{% trans "Verpackung (g, wird addiert)" %}</span>
         <input name="packaging_g" type="text" inputmode="numeric" value="{{ sv.packaging_g|default:'' }}" class="ui-input"></label>
@@ -74,15 +75,17 @@ Paketdienst — компания, до двери/пункт выдачи, це�
   {% endif %}
 
   {% if kind == "courier" %}
-    <label class="block"><span class="block text-xs ui-muted mb-1">{% trans "Liefergebiete — eine pro Zeile: PLZ | Preis € | kostenlos ab € | Mindestwert €" %}</span>
-      <textarea name="zones" rows="4" class="ui-input font-mono text-sm" placeholder="42651, 42653 | 2,50 | 30 |&#10;40 | 4,90">{{ sv.zones|default:'' }}</textarea></label>
-    <p class="text-xs ui-muted -mt-2">{% trans "Optional. Eine passende Postleitzahl ersetzt Preis, „kostenlos ab“ und Mindestwert oben." %}</p>
+    <label class="block"><span class="block text-xs ui-muted mb-1">{% trans "Liefergebiete" %}</span>
+      <span id="ship-zones-hint" class="block text-xs ui-muted mb-1">{% trans "Eine pro Zeile: PLZ | Preis € | kostenlos ab € | Mindestwert €" %}</span>
+      <textarea name="zones" rows="4" aria-describedby="ship-zones-hint ship-zones-note" class="ui-input font-mono text-sm" placeholder="42651, 42653 | 2,50 | 30 |&#10;40 | 4,90">{{ sv.zones|default:'' }}</textarea></label>
+    <p id="ship-zones-note" class="text-xs ui-muted -mt-2">{% trans "Optional. Eine passende Postleitzahl ersetzt Preis, „kostenlos ab“ und Mindestwert oben." %}</p>
     <label class="flex items-center gap-2 text-sm"><input type="checkbox" name="restrict_to_zones" {% if sv.restrict_to_zones %}checked{% endif %}> {% trans "Nur in diese Gebiete liefern" %}</label>
   {% endif %}
 
   {% if kind == "pickup" %}
-    <label class="block"><span class="block text-xs ui-muted mb-1">{% trans "Abholorte — einer pro Zeile: Name | Adresse (leer = Ihre Adresse)" %}</span>
-      <textarea name="locations" rows="3" class="ui-input">{{ sv.locations|default:'' }}</textarea></label>
+    <label class="block"><span class="block text-xs ui-muted mb-1">{% trans "Abholorte" %}</span>
+      <span id="ship-loc-hint" class="block text-xs ui-muted mb-1">{% trans "Einer pro Zeile: Name | Adresse (leer = Ihre Adresse)" %}</span>
+      <textarea name="locations" rows="3" aria-describedby="ship-loc-hint" class="ui-input">{{ sv.locations|default:'' }}</textarea></label>
   {% endif %}
 
   <label class="block"><span class="block text-xs ui-muted mb-1">{% trans "Hinweis für Kunden (optional)" %}</span>

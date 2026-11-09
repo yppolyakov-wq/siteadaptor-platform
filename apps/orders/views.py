@@ -761,7 +761,14 @@ def _zone_rows(tenant) -> list[dict]:
 def save_delivery(tenant, request) -> None:
     """W4-3: сохранить настройки доставки/Abholung (Versand + зоны + pickup). Извлечено
     из order_settings без изменения семантики — переиспользуется единым экраном
-    «Zahlung & Versand» (core.payment_settings)."""
+    «Zahlung & Versand» (core.payment_settings).
+
+    SHP-3: как только у бизнеса есть способы доставки (строки), эти поля больше не
+    правда — пишет только `orders.shipping_admin`; устаревшая форма ничего не меняет."""
+    from . import shipping
+
+    if shipping.has_stored():
+        return
     tenant.delivery_enabled = bool(request.POST.get("delivery_enabled"))
     tenant.delivery_fee_cents = _eur_to_cents(request.POST.get("delivery_fee_eur"))
     tenant.delivery_free_cents = _eur_to_cents(request.POST.get("delivery_free_eur"))
@@ -789,7 +796,14 @@ def save_delivery(tenant, request) -> None:
 
 def set_delivery_enabled(tenant, on: bool) -> None:
     """AIS W4-5a: УЗКИЙ писатель — только тумблер доставки. Зоны, сборы, точки самовывоза
-    и ограничение по зонам не трогаются (их правит экран «Zahlung & Lieferung»)."""
+    и ограничение по зонам не трогаются (их правит экран «Zahlung & Lieferung»).
+
+    SHP-3: при сохранённых способах — через единственный писатель (тип «курьер»)."""
+    from . import shipping, shipping_admin
+
+    if shipping.has_stored():
+        shipping_admin.set_kind(tenant, "courier", bool(on))
+        return
     tenant.delivery_enabled = bool(on)
     tenant.save(update_fields=["delivery_enabled", "updated_at"])
 
