@@ -164,6 +164,10 @@ class DemoKit:
     enable_modules: list = field(default_factory=list)
     # Конфиг доставки (Click&Collect + Lieferung) — задаётся на Tenant при apply_kit.
     delivery: dict = field(default_factory=dict)
+    # SHP-7: явные способы доставки (orders.ShippingMethod) — kwargs каждой строки
+    #   {kind, carrier, service, fee_cents, free_from_cents, pricing, weight_tiers, …}.
+    #   Пусто — способы как раньше из `delivery` (самовывоз + доставка).
+    shipping: list = field(default_factory=list)
     # 2026-09-03 (волна online_shop): способы оплаты. Ни один кит их не задавал,
     # поэтому пикер оплаты (E7/SH-23) не показывался НИ В ОДНОМ демо — доступен
     # был только «Zahlung vor Ort». Онлайн-оплата остаётся за Stripe-Connect
@@ -6346,6 +6350,25 @@ CLOTHING = DemoKit(
         "accessoires-guertel": "Größe | Bundweite (cm) | Gesamtlänge (cm)\n85 | 75–85 | 100\n"
         "95 | 85–95 | 110\n105 | 95–105 | 120",
     },
+    shipping=[
+        {
+            "kind": "carrier",
+            "carrier": "dhl",
+            "service": "home",
+            "fee_cents": 490,
+            "free_from_cents": 8000,
+            "delivery_time": "2–4 Werktage",
+        },
+        {
+            "kind": "carrier",
+            "carrier": "dhl",
+            "service": "pickup_point",
+            "fee_cents": 390,
+            "free_from_cents": 8000,
+            "delivery_time": "2–4 Werktage",
+        },
+        {"kind": "pickup"},
+    ],
     delivery={
         "enabled": True,
         "fee_cents": 490,
@@ -12629,6 +12652,27 @@ OUTLET = DemoKit(
     enable_modules=["orders", "crm"],
     # SH-24: у демо с заказом товара доставка включена — иначе выбор
     # «Abholung | Lieferung» на чекауте не показать.
+    shipping=[
+        {
+            "kind": "carrier",
+            "carrier": "dhl",
+            "service": "home",
+            "fee_cents": 490,
+            "free_from_cents": 5000,
+            "delivery_time": "2–4 Werktage",
+            "max_weight_g": 31500,
+        },
+        {
+            "kind": "carrier",
+            "carrier": "hermes",
+            "service": "pickup_point",
+            "fee_cents": 390,
+            "free_from_cents": 5000,
+            "delivery_time": "3–5 Werktage",
+            "max_weight_g": 25000,
+        },
+        {"kind": "pickup", "locations": [{"name": "Lagerverkauf Essen", "address": ""}]},
+    ],
     delivery={
         "enabled": True,
         "fee_cents": 490,
@@ -16891,6 +16935,44 @@ ONLINE_SHOP = DemoKit(
         "button_url": "/sortiment/",
     },
     enable_modules=["orders", "loyalty", "crm", "inbox", "blog"],
+    shipping=[
+        {
+            "kind": "courier",
+            "fee_cents": 290,
+            "free_from_cents": 5000,
+            "delivery_time": "am selben Tag",
+            "restrict_to_zones": True,
+            "zones": [{"plz": "40", "fee_cents": 290, "free_cents": 5000}],
+        },
+        {
+            "kind": "carrier",
+            "carrier": "dhl",
+            "service": "home",
+            "pricing": "weight",
+            "free_from_cents": 6000,
+            "delivery_time": "2–3 Werktage",
+            "default_item_g": 1000,
+            "packaging_g": 300,
+            "max_weight_g": 31500,
+            "max_length_cm": 120,
+            "weight_tiers": [
+                {"max_g": 2000, "fee_cents": 490},
+                {"max_g": 5000, "fee_cents": 690},
+                {"max_g": 10000, "fee_cents": 990},
+                {"max_g": 31500, "fee_cents": 1690},
+            ],
+        },
+        {
+            "kind": "carrier",
+            "carrier": "dpd",
+            "service": "pickup_point",
+            "fee_cents": 390,
+            "free_from_cents": 6000,
+            "delivery_time": "2–4 Werktage",
+            "max_weight_g": 20000,
+        },
+        {"kind": "pickup"},
+    ],
     delivery={
         "enabled": True,
         "fee_cents": 390,
@@ -25274,6 +25356,7 @@ def apply_kit(tenant, key: str) -> bool:
             if svc is None and un is None:
                 continue  # цель не досеялась (модуль выключен) — акцию не плодим
             _create_spec_promo(spec, service=svc, stay_unit=un)
+    _seed_shipping(tenant, kit)
     _seed_kit_records(tenant, kit, refs, created_products)
     if kit.seed_inbox:  # LS-3/4/6: демо «Прямой линии» + Sofort-Angebot
         _seed_kit_inbox()
@@ -26849,6 +26932,22 @@ def _seed_table_bookings(kit: DemoKit) -> None:
             )
         except Exception as exc:  # noqa: BLE001 — демо-сид не должен падать на одной брони
             log.warning("demo table booking skipped (%s %s): %s", table, hhmm, exc)
+
+
+def _seed_shipping(tenant, kit: DemoKit) -> None:
+    """SHP-7: способы доставки кита строками (Paketdienst до двери/в пункт выдачи, курьер по
+    зонам, самовывоз). Повторный засев не плодит строки (`--recreate` дропает схему)."""
+    if not kit.shipping:
+        return
+    from apps.orders.models import ShippingMethod
+
+    if ShippingMethod.objects.exists():
+        return
+    for i, spec in enumerate(kit.shipping):
+        ShippingMethod.objects.create(sort_order=i, **spec)
+    from apps.orders import shipping_admin
+
+    shipping_admin.mirror_legacy(tenant)  # флаг доставки + способы в каталоге города
 
 
 def _seed_kit_records(tenant, kit: DemoKit, refs: dict, products: list) -> None:

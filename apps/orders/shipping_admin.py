@@ -220,12 +220,28 @@ def _orders_open(tenant) -> bool:
 
 
 def mirror_legacy(tenant) -> None:
-    """Зеркало прежнего флага доставки для ещё не переведённых читателей (до SHP-5)."""
+    """Зеркало прежнего флага доставки для ещё не переведённых читателей (до SHP-5) и
+    способы получения в каталоге города (SHP-6) — после коммита записи."""
     shipping.forget(tenant)
     on = any(m.kind != ShippingMethod.KIND_PICKUP for m in shipping.stored(tenant))
     if bool(getattr(tenant, "delivery_enabled", False)) != on:
         tenant.delivery_enabled = on
         tenant.save(update_fields=["delivery_enabled", "updated_at"])
+    _refresh_city_listings(tenant)
+
+
+def _refresh_city_listings(tenant) -> None:
+    def run():
+        try:
+            from apps.aggregator.tasks import refresh_fulfilment
+
+            refresh_fulfilment(tenant)
+        except Exception:  # noqa: BLE001 — сохранение способа не падает из-за каталога
+            import logging
+
+            logging.getLogger(__name__).exception("city listings refresh failed")
+
+    transaction.on_commit(run)
 
 
 @transaction.atomic

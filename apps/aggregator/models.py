@@ -192,6 +192,9 @@ class AggregatorListing(I18nMixin, models.Model):
     # T-8.10d D-1a: марка товара (свой листинг товара или товар-цель акции; у mystery/
     # surprise — пусто, марка раскрыла бы товар). Ищется полнотекстом и фильтром ?marke=.
     brand = models.CharField(max_length=120, blank=True, default="")
+    # SHP-6: как бизнес отдаёт товар — ["pickup", "courier", "carrier"] (включённые способы
+    # доставки); метка «Abholung · Liefert · Versand» на странице предложения. Пусто — не знаем.
+    fulfilment = models.JSONField(default=list, blank=True)
 
     is_surprise = models.BooleanField(default=False)  # Überraschungstüte (Track B2)
     # Платное продвижение (P2.4a): до этого момента листинг закреплён сверху

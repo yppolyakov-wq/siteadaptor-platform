@@ -929,6 +929,8 @@ urlpatterns = [
     path("widerruf/", public_views.withdrawal, name="storefront-withdrawal"),
     # E-2/L5: AGB — страница есть только при заданном тексте (LegalDoc).
     path("agb/", public_views.agb, name="storefront-agb"),
+    # SHP-5: Versand & Lieferung — суммы доставки для приписки «zzgl. Versandkosten» (PAngV)
+    path("versand/", orders_public.shipping_info, name="storefront-shipping"),
     # A4: анонимное read-only превью черновика по share-токену.
     path("vorschau/<str:token>/", public_views.shared_preview, name="shared-preview"),
     # C.1: онлайн-форма Widerruf (заявление уходит продавцу).

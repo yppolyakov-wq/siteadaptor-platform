@@ -36233,3 +36233,47 @@ msgstr "Sell goods"
 #: SHP-4
 msgid "z. B. Bäckerei, Hofladen, Drogerie, Boutique, Online-Shop"
 msgstr "e.g. bakery, farm shop, drugstore, boutique, online shop"
+
+#: SHP-5
+msgid "Abholung im Geschäft."
+msgstr "Pickup in store."
+
+#: SHP-5
+msgid "Alle Preise inkl. MwSt. Die Versandkosten werden im Warenkorb vor der Bestellung angezeigt."
+msgstr "All prices include VAT. Shipping costs are shown in the cart before you order."
+
+#: SHP-5
+msgid "Erhältlich per"
+msgstr "Available via"
+
+#: SHP-5
+msgid "Lieferung in der Stadt"
+msgstr "Delivery in town"
+
+#: SHP-5
+msgid "Lieferzeit"
+msgstr "Delivery time"
+
+#: SHP-5
+msgid "Nur in diese Gebiete."
+msgstr "Only to these areas."
+
+#: SHP-5
+msgid "Versand & Lieferung"
+msgstr "Shipping & delivery"
+
+#: SHP-5
+msgid "Versandkosten"
+msgstr "Shipping costs"
+
+#: SHP-5
+msgid "bis %(kg)s kg: %(eur)s €"
+msgstr "up to %(kg)s kg: %(eur)s €"
+
+#: SHP-5
+msgid "zzgl. Versandkosten"
+msgstr "plus shipping"
+
+#: SHP-5
+msgid "Versandkosten, Lieferzeiten und Abholung bei %(name)s."
+msgstr "Shipping costs, delivery times and pickup at %(name)s."

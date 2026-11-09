@@ -1486,3 +1486,54 @@ def _offer_stripe_redirect(request, offer, order, tenant):
         order.payment_method = Order.METHOD_ON_SITE
         order.save(update_fields=["payment_method", "updated_at"])
         return redirect("storefront-offer", token=offer.token)
+
+
+def shipping_info(request):
+    """SHP-5: «Versand & Lieferung» — все включённые способы получения с ценами, сроками,
+    порогом «kostenlos ab» и минимумом (§ 6 PAngV: приписка «zzgl. Versandkosten» ведёт
+    сюда). Страница есть, пока магазин принимает заказы."""
+    _require_orders_active(request)
+    from . import shipping_views
+    from .models import ShippingMethod
+
+    rows = []
+    for method in shipping.methods(request.tenant):
+        tiers = []
+        if method.kind == ShippingMethod.KIND_CARRIER and method.pricing == "weight":
+            tiers = [
+                {
+                    "kg": shipping_views._kg(t["max_g"]),
+                    "eur": shipping_views._eur(t["fee_cents"]) or "0,00",
+                }
+                for t in method.weight_tiers or []
+                if isinstance(t, dict) and t.get("max_g")
+            ]
+        zones = [
+            {
+                "plz": z.get("plz", ""),
+                "eur": shipping_views._eur(z.get("fee_cents"))
+                if z.get("fee_cents") not in (None, "")
+                else "",
+            }
+            for z in (method.zones or [])
+            if isinstance(z, dict) and method.kind == ShippingMethod.KIND_COURIER
+        ]
+        rows.append(
+            {
+                "m": method,
+                "icon": shipping_views.KIND_ICONS.get(method.kind, "📦"),
+                "label": shipping.label(method),
+                "time": method.delivery_time_localized() if method.delivery_time else "",
+                "fee": shipping_views._eur(method.fee_cents),
+                "free": shipping_views._eur(method.free_from_cents),
+                "min": shipping_views._eur(method.min_order_cents),
+                "tiers": tiers,
+                "zones": zones,
+                "locations": [
+                    p for p in (method.locations or []) if isinstance(p, dict) and p.get("name")
+                ]
+                if method.kind == ShippingMethod.KIND_PICKUP
+                else [],
+            }
+        )
+    return render(request, "storefront/shipping_info.html", {"shipping_rows": rows})

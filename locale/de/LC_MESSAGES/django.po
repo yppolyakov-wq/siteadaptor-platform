@@ -36320,3 +36320,47 @@ msgstr "Waren verkaufen"
 #: SHP-4
 msgid "z. B. Bäckerei, Hofladen, Drogerie, Boutique, Online-Shop"
 msgstr "z. B. Bäckerei, Hofladen, Drogerie, Boutique, Online-Shop"
+
+#: SHP-5
+msgid "Abholung im Geschäft."
+msgstr "Abholung im Geschäft."
+
+#: SHP-5
+msgid "Alle Preise inkl. MwSt. Die Versandkosten werden im Warenkorb vor der Bestellung angezeigt."
+msgstr "Alle Preise inkl. MwSt. Die Versandkosten werden im Warenkorb vor der Bestellung angezeigt."
+
+#: SHP-5
+msgid "Erhältlich per"
+msgstr "Erhältlich per"
+
+#: SHP-5
+msgid "Lieferung in der Stadt"
+msgstr "Lieferung in der Stadt"
+
+#: SHP-5
+msgid "Lieferzeit"
+msgstr "Lieferzeit"
+
+#: SHP-5
+msgid "Nur in diese Gebiete."
+msgstr "Nur in diese Gebiete."
+
+#: SHP-5
+msgid "Versand & Lieferung"
+msgstr "Versand & Lieferung"
+
+#: SHP-5
+msgid "Versandkosten"
+msgstr "Versandkosten"
+
+#: SHP-5
+msgid "bis %(kg)s kg: %(eur)s €"
+msgstr "bis %(kg)s kg: %(eur)s €"
+
+#: SHP-5
+msgid "zzgl. Versandkosten"
+msgstr "zzgl. Versandkosten"
+
+#: SHP-5
+msgid "Versandkosten, Lieferzeiten und Abholung bei %(name)s."
+msgstr "Versandkosten, Lieferzeiten und Abholung bei %(name)s."

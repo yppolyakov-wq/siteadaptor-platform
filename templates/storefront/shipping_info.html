@@ -1,0 +1,50 @@
+{% extends "storefront/_base.html" %}
+{% load i18n siteui %}
+{% block title %}{% trans "Versand & Lieferung" %} — {{ request.tenant.name|default:"Shop" }}{% endblock %}
+{% block meta_description %}{% blocktrans with name=request.tenant.name|default:"Shop" %}Versandkosten, Lieferzeiten und Abholung bei {{ name }}.{% endblocktrans %}{% endblock %}
+
+{% block content %}
+{% comment %}SHP-5: страница стоимости доставки — куда ведёт приписка «zzgl. Versandkosten»
+(§ 6 PAngV). Те же способы и цены, что в корзине (`orders.shipping`), без отдельного текста
+владельца: цифры не могут разойтись с тем, что спишется.{% endcomment %}
+<a href="{% url 'storefront-home' %}" class="inline-flex items-center gap-1 text-sm hover:underline mb-4" style="color: var(--accent);">← {{ request.tenant.name|default:"Shop" }}</a>
+<article class="sf-card bg-white rounded-2xl shadow-sm p-6 {% text_width_class %}" data-shipping-info>
+  <h1 class="text-2xl font-bold mb-2">{% trans "Versand & Lieferung" %}</h1>
+  <p class="text-sm text-gray-600 mb-5">{% trans "Alle Preise inkl. MwSt. Die Versandkosten werden im Warenkorb vor der Bestellung angezeigt." %}</p>
+  <ul class="space-y-4">
+    {% for r in shipping_rows %}
+      <li class="rounded-xl border border-gray-200 p-4" data-shipping-row="{{ r.m.kind }}">
+        <h2 class="font-semibold"><span aria-hidden="true">{{ r.icon }}</span> {{ r.label }}</h2>
+        <dl class="mt-2 grid grid-cols-[auto,1fr] gap-x-4 gap-y-1 text-sm">
+          {% if r.m.kind == "pickup" %}
+            <dt class="text-gray-500">{% trans "Preis" %}</dt><dd>{% if r.fee %}{{ r.fee }} €{% else %}{% trans "kostenlos" %}{% endif %}</dd>
+            {% if r.locations %}
+              <dt class="text-gray-500">{% trans "Abholorte" %}</dt>
+              <dd>{% for p in r.locations %}<span class="block">{{ p.name }}{% if p.address %} — {{ p.address }}{% endif %}</span>{% endfor %}</dd>
+            {% elif request.tenant.address %}
+              <dt class="text-gray-500">{% trans "Abholort" %}</dt><dd>{{ request.tenant.address }}</dd>
+            {% endif %}
+          {% else %}
+            <dt class="text-gray-500">{% trans "Preis" %}</dt>
+            <dd>
+              {% if r.tiers %}
+                {% for t in r.tiers %}<span class="block">{% blocktrans with kg=t.kg eur=t.eur %}bis {{ kg }} kg: {{ eur }} €{% endblocktrans %}</span>{% endfor %}
+              {% elif r.fee %}{{ r.fee }} €{% else %}{% trans "kostenlos" %}{% endif %}
+            </dd>
+            {% if r.zones %}
+              <dt class="text-gray-500">{% trans "Liefergebiete" %}</dt>
+              <dd>{% for z in r.zones %}<span class="block">{% trans "PLZ" %} {{ z.plz }}{% if z.eur %}: {{ z.eur }} €{% endif %}</span>{% endfor %}{% if r.m.restrict_to_zones %}<span class="block text-gray-500">{% trans "Nur in diese Gebiete." %}</span>{% endif %}</dd>
+            {% endif %}
+            {% if r.free %}<dt class="text-gray-500">{% trans "Kostenlos ab" %}</dt><dd>{{ r.free }} €</dd>{% endif %}
+            {% if r.time %}<dt class="text-gray-500">{% trans "Lieferzeit" %}</dt><dd>{{ r.time }}</dd>{% endif %}
+          {% endif %}
+          {% if r.min %}<dt class="text-gray-500">{% trans "Mindestbestellwert" %}</dt><dd>{{ r.min }} €</dd>{% endif %}
+          {% if r.m.area_text %}<dt class="text-gray-500">{% trans "Hinweis" %}</dt><dd>{{ r.m.area_text }}</dd>{% endif %}
+        </dl>
+      </li>
+    {% empty %}
+      <li class="text-sm text-gray-600">{% trans "Abholung im Geschäft." %}</li>
+    {% endfor %}
+  </ul>
+</article>
+{% endblock %}

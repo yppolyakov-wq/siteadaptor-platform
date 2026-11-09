@@ -36555,3 +36555,47 @@ msgstr "Продаю товари"
 #: SHP-4
 msgid "z. B. Bäckerei, Hofladen, Drogerie, Boutique, Online-Shop"
 msgstr "наприклад, пекарня, фермерська крамниця, магазин побутової хімії, бутик, інтернет-магазин"
+
+#: SHP-5
+msgid "Abholung im Geschäft."
+msgstr "Самовивіз із магазину."
+
+#: SHP-5
+msgid "Alle Preise inkl. MwSt. Die Versandkosten werden im Warenkorb vor der Bestellung angezeigt."
+msgstr "Усі ціни з ПДВ. Вартість доставки видно в кошику до оформлення замовлення."
+
+#: SHP-5
+msgid "Erhältlich per"
+msgstr "Спосіб отримання"
+
+#: SHP-5
+msgid "Lieferung in der Stadt"
+msgstr "Доставка містом"
+
+#: SHP-5
+msgid "Lieferzeit"
+msgstr "Термін доставки"
+
+#: SHP-5
+msgid "Nur in diese Gebiete."
+msgstr "Лише в ці райони."
+
+#: SHP-5
+msgid "Versand & Lieferung"
+msgstr "Доставка та відправлення"
+
+#: SHP-5
+msgid "Versandkosten"
+msgstr "Вартість доставки"
+
+#: SHP-5
+msgid "bis %(kg)s kg: %(eur)s €"
+msgstr "до %(kg)s кг: %(eur)s €"
+
+#: SHP-5
+msgid "zzgl. Versandkosten"
+msgstr "плюс доставка"
+
+#: SHP-5
+msgid "Versandkosten, Lieferzeiten und Abholung bei %(name)s."
+msgstr "Вартість доставки, терміни й самовивіз — %(name)s."

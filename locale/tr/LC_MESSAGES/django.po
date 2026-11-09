@@ -36379,3 +36379,47 @@ msgstr "Ürün satmak"
 #: SHP-4
 msgid "z. B. Bäckerei, Hofladen, Drogerie, Boutique, Online-Shop"
 msgstr "örn. fırın, çiftlik dükkânı, kozmetik mağazası, butik, online mağaza"
+
+#: SHP-5
+msgid "Abholung im Geschäft."
+msgstr "Mağazadan teslim alma."
+
+#: SHP-5
+msgid "Alle Preise inkl. MwSt. Die Versandkosten werden im Warenkorb vor der Bestellung angezeigt."
+msgstr "Tüm fiyatlara KDV dahildir. Kargo ücreti sipariş öncesinde sepette gösterilir."
+
+#: SHP-5
+msgid "Erhältlich per"
+msgstr "Teslim şekli"
+
+#: SHP-5
+msgid "Lieferung in der Stadt"
+msgstr "Şehir içi teslimat"
+
+#: SHP-5
+msgid "Lieferzeit"
+msgstr "Teslimat süresi"
+
+#: SHP-5
+msgid "Nur in diese Gebiete."
+msgstr "Yalnızca bu bölgelere."
+
+#: SHP-5
+msgid "Versand & Lieferung"
+msgstr "Kargo ve teslimat"
+
+#: SHP-5
+msgid "Versandkosten"
+msgstr "Kargo ücreti"
+
+#: SHP-5
+msgid "bis %(kg)s kg: %(eur)s €"
+msgstr "%(kg)s kg'a kadar: %(eur)s €"
+
+#: SHP-5
+msgid "zzgl. Versandkosten"
+msgstr "kargo hariç"
+
+#: SHP-5
+msgid "Versandkosten, Lieferzeiten und Abholung bei %(name)s."
+msgstr "%(name)s: kargo ücretleri, teslimat süreleri ve teslim alma."

@@ -1,4 +1,4 @@
-{% load i18n seo siteui static l10n %}<!doctype html>
+{% load i18n seo siteui static l10n shipping_tags %}<!doctype html>
 <html lang="{{ request.LANGUAGE_CODE|default:'de' }}">
 <head>
   <meta charset="utf-8">
@@ -370,6 +370,7 @@
         <a href="{% url 'storefront-impressum' %}" class="hover:underline">{% trans "Imprint" %}</a>
         <a href="{% url 'storefront-privacy' %}" class="hover:underline">{% trans "Privacy" %}</a>
         <a href="{% url 'storefront-withdrawal' %}" class="hover:underline">{% trans "Cancellation" %}</a>
+        {% shipping_note as ship_note %}{% if ship_note %}<a href="{% url 'storefront-shipping' %}" class="hover:underline">{% trans "Versand & Lieferung" %}</a>{% endif %}
         {% agb_present as agb_on %}{% if agb_on %}<a href="{% url 'storefront-agb' %}" class="hover:underline">{% trans "AGB" %}</a>{% endif %}
         <a href="{% url 'storefront-newsletter' %}" class="hover:underline">{% trans "Newsletter" %}</a>
         {% house_rules_present as hr %}{% if hr %}<a href="{% url 'storefront-hausordnung' %}" class="hover:underline">{% trans "House rules" %}</a>{% endif %}

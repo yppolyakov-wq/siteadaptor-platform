@@ -174,7 +174,7 @@
         <div id="summary-delivery" class="hidden items-center justify-between text-gray-600"><span>🚚 {% trans "Delivery" %}</span><span data-delivery-fee></span></div>
         <div class="flex items-center justify-between font-bold text-base pt-1"><span>{% trans "Total" %}</span><span data-grand-total>{{ grand_total|default:total }} {{ currency|cursym }}</span></div>
         {# E-2/PAngV: MwSt.-Hinweis у Total (Versand — отдельной строкой выше при выборе доставки). #}
-        <p class="text-[11px] text-gray-400">{% trans "inkl. MwSt." %}</p>
+        <p class="text-[11px] text-gray-500">{% trans "inkl. MwSt." %}{% if delivery_enabled %} · <a href="{% url 'storefront-shipping' %}" class="underline" data-shipping-note>{% trans "Versandkosten" %}</a>{% endif %}</p>
       </div>
 
       {% if quote_cart %}

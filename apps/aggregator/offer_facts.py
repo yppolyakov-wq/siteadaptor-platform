@@ -37,6 +37,22 @@ def facts(listing) -> list[dict]:
         out.append(
             {"key": "payment", "label": _("Bezahlung"), "value": pgettext("payment", "Vor Ort")}
         )
+    # SHP-6: способы получения бизнеса — только для товаров/акций/наборов (у номера, записи
+    # и события доставки нет)
+    kinds = getattr(listing, "fulfilment", None) or []
+    if kinds and getattr(listing, "listing_kind", "") in ("product", "promotion", "menu"):
+        names = {
+            "pickup": _("Abholung"),
+            "courier": _("Lieferung in der Stadt"),
+            "carrier": _("Versand"),
+        }
+        out.append(
+            {
+                "key": "fulfilment",
+                "label": _("Erhältlich per"),
+                "value": " · ".join(str(names[k]) for k in kinds if k in names),
+            }
+        )
     if getattr(listing, "availability", "") == "sold_out":
         out.append({"key": "stock", "label": _("Verfügbar"), "value": _("Ausverkauft")})
     else:

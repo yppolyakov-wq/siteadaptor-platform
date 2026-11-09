@@ -376,7 +376,9 @@ def test_local_feed_constant_queries(isolated_ratelimit, django_assert_max_num_q
     for _ in range(6):
         p = _product()
         ProductVariant.objects.create(product=p, label="S", price=Decimal("5"), stock_quantity=1)
-    with django_assert_max_num_queries(6):
+    # SHP-6: +чтение способов доставки (есть ли самовывоз) — в проде один SELECT, в тесте
+    # схема t_mf не совпадает с public, и читатель добавляет 4 служебных запроса проверки.
+    with django_assert_max_num_queries(11):
         _local()
 
 
@@ -619,3 +621,13 @@ def test_variant_axes_and_own_photo_in_feed():
     assert "<g:size>L</g:size>" in xml and "<g:color>Rot</g:color>" in xml
     assert "/media/blau.webp</g:image_link>" in xml
     assert "/media/p.webp</g:image_link>" in xml  # без своего фото — фото товара
+
+
+def test_local_feed_empty_without_pickup(isolated_ratelimit):
+    """SHP-6: «в наличии в магазине рядом» — только когда покупатель может забрать сам."""
+    from apps.orders.models import ShippingMethod
+
+    _with_store()
+    _product(stock_quantity=3)
+    ShippingMethod.objects.create(kind="carrier", carrier="dhl", fee_cents=499)
+    assert "<item>" not in _local().content.decode()

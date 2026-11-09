@@ -1,5 +1,5 @@
 {% extends "storefront/detail.html" %}
-{% load i18n siteui richtext %}{% load siteui %}
+{% load i18n siteui richtext  shipping_tags %}{% load siteui %}
 {% block title %}{{ product }} — {{ request.tenant.name }}{% endblock %}
 {% block meta_description %}{{ product.description_text|striptags|default:product|truncatechars:160 }}{% endblock %}
 
@@ -57,7 +57,10 @@
     <p class="mt-0.5 text-xs text-gray-400">{% trans "Art.-Nr." %}: {{ product.sku }}</p>
   {% endif %}
   {# E-2/PAngV: Gesamtpreis-Hinweis у цены; правовая строка — немецкий msgid (паттерн §312j-кнопки). #}
-  <p class="mt-1 text-xs text-gray-400">{% trans "inkl. MwSt." %}{% if request.tenant.delivery_enabled %} · {% trans "zzgl. Versand" %}{% endif %}</p>
+  {% comment %}SHP-5 (§ 6 PAngV): «zzgl. Versandkosten» — ссылкой на страницу сумм «/versand/»; при
+  одном самовывозе приписки нет.{% endcomment %}
+  {% shipping_note as ship_note %}
+  <p class="mt-1 text-xs text-gray-500">{% trans "inkl. MwSt." %}{% if ship_note %} · <a href="{% url 'storefront-shipping' %}" class="underline" data-shipping-note>{% trans "zzgl. Versandkosten" %}</a>{% endif %}</p>
   {% comment %}P6 → SF-4b (вариант A): корзина теперь продаёт по промо-цене
   (create_order применяет тот же ценовой слой) — buy-box показывает её выше;
   rose-баннер остаётся ссылкой на страницу акции (описание/условия/срок).{% endcomment %}

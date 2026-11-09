@@ -254,9 +254,54 @@ def _own_image(url: str, tenant) -> dict:
     return {"url": hero} if hero else {}
 
 
+def _fulfilment(tenant) -> list[str] | None:
+    """SHP-6: включённые типы способов доставки бизнеса (чтение в его схеме; мемо на
+    объекте тенанта — один запрос на проход по всем его листингам).
+
+    Без онлайн-заказов — пусто (корзины нет, «Erhältlich per» не обещаем). Сбой чтения —
+    None: ключ не пишется, прежнее значение листинга остаётся (а не затирается пустым)."""
+    cached = getattr(tenant, "_agg_fulfilment", None)
+    if cached is not None:
+        return cached
+    try:
+        from apps.core.storefront_state import orders_active
+        from apps.orders import shipping
+
+        with schema_context(tenant.schema_name):
+            if not orders_active(tenant):
+                value = []
+            else:
+                kinds = {m.kind for m in shipping.methods(tenant)}
+                value = [k for k in ("pickup", "courier", "carrier") if k in kinds]
+    except Exception:  # noqa: BLE001 — каталог города не падает из-за способов доставки
+        logger.exception("fulfilment for %s failed", getattr(tenant, "schema_name", "?"))
+        return None
+    try:
+        tenant._agg_fulfilment = value
+    except Exception:  # noqa: BLE001
+        pass
+    return value
+
+
+def refresh_fulfilment(tenant) -> int:
+    """SHP-6: после правки способов доставки — только колонка `fulfilment` листингов
+    бизнеса (не поисковый индекс: способы получения не ищутся)."""
+    from .models import AggregatorListing
+
+    tenant.__dict__.pop("_agg_fulfilment", None)
+    value = _fulfilment(tenant)
+    if value is None:
+        return 0
+    return AggregatorListing.objects.filter(tenant_schema=tenant.schema_name).update(
+        fulfilment=value
+    )
+
+
 def _tenant_base_defaults(tenant) -> dict:
     """Денормализованные поля бизнеса, общие для всех видов листинга."""
+    fulfilment = _fulfilment(tenant)
     return {
+        **({"fulfilment": fulfilment} if fulfilment is not None else {}),
         "tenant_slug": tenant.slug,
         "business_name": tenant.name,
         "business_type": tenant.business_type,

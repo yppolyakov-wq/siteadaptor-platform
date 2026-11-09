@@ -44,10 +44,52 @@ def _money(value, currency: str) -> str:
 def _item_xml(fields: dict) -> str:
     parts = []
     for key, value in fields.items():
-        if value in (None, ""):
+        if value in (None, "", []):
+            continue
+        if isinstance(value, list):  # SHP-6: повторяемый составной атрибут (g:shipping)
+            for group in value:
+                inner = "".join(
+                    f"<g:{k}>{escape(str(v))}</g:{k}>"
+                    for k, v in group.items()
+                    if v not in (None, "")
+                )
+                parts.append(f"<g:{key}>{inner}</g:{key}>")
             continue
         parts.append(f"<g:{key}>{escape(str(value))}</g:{key}>")
     return "<item>" + "".join(parts) + "</item>"
+
+
+def merchant_shipping(tenant) -> list[dict]:
+    """SHP-6: `g:shipping` — включённые способы доставки с ОДНОЙ ценой по Германии.
+
+    PAngV/Google: стоимость доставки должна быть и в фиде. Способы с ценой по весу или
+    курьер с PLZ-зонами в фид не идут: их цена зависит от корзины/индекса —
+    такие тарифы владелец задаёт в Merchant Center (в фиде есть `g:shipping_weight`).
+    Порог «kostenlos ab» Google принимает только на уровне аккаунта — в фиде цена без
+    порога (не ниже реальной); минимальный заказ в фиде не выражается."""
+    from apps.orders import shipping
+
+    out = []
+    for method in shipping.methods(tenant):
+        if method.kind == "pickup" or method.pricing == "weight":
+            continue
+        if method.kind == "courier" and method.zones:  # цена зависит от PLZ
+            continue
+        out.append(
+            {
+                "country": "DE",
+                "service": shipping.label(method)[:100],
+                "price": _money(Decimal(method.fee_cents or 0) / 100, "EUR"),
+            }
+        )
+    return out
+
+
+def _shipping_weight(product, variant=None) -> str:
+    weight = getattr(variant, "shipping_weight_g", None) if variant is not None else None
+    if weight is None:
+        weight = getattr(product, "shipping_weight_g", None)
+    return f"{int(weight)} g" if weight else ""
 
 
 def _merchant_variants(product) -> list:
@@ -142,7 +184,7 @@ def _variant_image(variant, absolutize) -> str:
     return absolutize(img["url"]) if img and img.get("url") else ""
 
 
-def _entries(product, *, product_url, absolutize, merchant=False):
+def _entries(product, *, product_url, absolutize, merchant=False, shipping=None):
     """Записи фида для товара: по одной на активный вариант, иначе одна на товар.
 
     merchant=True (M23b.1, фид Merchant Center): марка из поля `Product.brand`, состояние по
@@ -187,6 +229,8 @@ def _entries(product, *, product_url, absolutize, merchant=False):
                 {
                     **base(rows[0]["id"], title, price, in_stock),
                     **merchant_sale(product, None, price),
+                    "shipping": shipping or [],
+                    "shipping_weight": _shipping_weight(product),
                 }
             ]
         return [
@@ -208,6 +252,8 @@ def _entries(product, *, product_url, absolutize, merchant=False):
                 # стандартные без атрибута Google в фид не идут.
                 "material": _google_material(row["variant"]),
                 **merchant_sale(product, row["variant"], merchant_row_price(product, row)),
+                "shipping": shipping or [],
+                "shipping_weight": _shipping_weight(product, row["variant"]),
             }
             for row in rows
         ]
@@ -269,7 +315,7 @@ def build_local_inventory_feed(*, products, store_code, title, link, description
 
 
 def build_google_feed(
-    *, products, title, link, description, product_url, absolutize, merchant=False
+    *, products, title, link, description, product_url, absolutize, merchant=False, shipping=None
 ):
     """RSS 2.0 (g:-namespace) строка по активным товарам.
 
@@ -281,7 +327,11 @@ def build_google_feed(
         items += [
             _item_xml(f)
             for f in _entries(
-                product, product_url=product_url, absolutize=absolutize, merchant=merchant
+                product,
+                product_url=product_url,
+                absolutize=absolutize,
+                merchant=merchant,
+                shipping=shipping,
             )
         ]
     head = (

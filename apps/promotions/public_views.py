@@ -3577,7 +3577,7 @@ def merchant_feed_xml(request, token):
     Неизвестный токен — 404; выключенный фид — пустой валидный фид (Google снимет товары
     быстрее, чем после 404). В фиде только товары, прошедшие `catalog.google.eligibility`."""
     from apps.catalog import google
-    from apps.catalog.feed import build_google_feed
+    from apps.catalog.feed import build_google_feed, merchant_shipping
 
     state, denied = _merchant_feed_guard(request, token)
     if denied:
@@ -3585,6 +3585,7 @@ def merchant_feed_xml(request, token):
     name = getattr(getattr(request, "tenant", None), "name", "") or "Shop"
     products = google.merchant_products() if state["enabled"] else []
     xml = build_google_feed(
+        shipping=merchant_shipping(request.tenant) if products else [],  # SHP-6
         products=products,
         title=name,
         link=request.build_absolute_uri(reverse("storefront-home")),
@@ -3608,6 +3609,11 @@ def merchant_local_xml(request, token):
     if denied:
         return denied
     store_code = state["store_code"] if state["enabled"] else ""
+    # SHP-6: «в наличии в магазине рядом» — только когда покупатель может забрать сам
+    from apps.orders import shipping as _shipping
+
+    if store_code and not any(m.kind == "pickup" for m in _shipping.methods(request.tenant)):
+        store_code = ""
     name = getattr(getattr(request, "tenant", None), "name", "") or "Shop"
     xml = build_local_inventory_feed(
         products=google.merchant_products() if store_code else [],
