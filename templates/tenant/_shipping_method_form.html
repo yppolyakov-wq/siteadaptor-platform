@@ -1,0 +1,96 @@
+{% load i18n %}
+{% comment %}SHP-3: форма способа доставки (шторка и страница). Новый способ без типа —
+сначала выбор типа (три ссылки). Поля по типу: самовывоз — адреса; курьер — зоны PLZ;
+Paketdienst — компания, до двери/пункт выдачи, цена pauschal или по весу, пределы, Sperrgut.
+Строки (адреса, зоны, ступени веса) — одна на строку через «|», как прежние поля.{% endcomment %}
+{% if not kind %}
+  <p class="text-sm mb-3">{% trans "Welche Versandart möchten Sie hinzufügen?" %}</p>
+  <div class="grid gap-2">
+    <a href="{% url 'shipping-method-new' %}?art=pickup" data-drawer class="ui-card block p-4 hover:bg-gray-50">🛍 <span class="font-medium">{% trans "Abholung im Geschäft" %}</span></a>
+    <a href="{% url 'shipping-method-new' %}?art=courier" data-drawer class="ui-card block p-4 hover:bg-gray-50">🚚 <span class="font-medium">{% trans "Kurier in der Stadt" %}</span></a>
+    <a href="{% url 'shipping-method-new' %}?art=carrier" data-drawer class="ui-card block p-4 hover:bg-gray-50">📦 <span class="font-medium">{% trans "Versand per Paketdienst" %}</span></a>
+  </div>
+{% else %}
+<form method="post" action="{% if method %}{% url 'shipping-method-edit' method.pk %}{% else %}{% url 'shipping-method-new' %}{% endif %}" data-drawer-form class="space-y-4" data-ship-form>
+  {% csrf_token %}
+  <input type="hidden" name="next" value="{{ next_url }}">
+  <input type="hidden" name="kind" value="{{ kind }}">
+  {% if errors %}<div role="alert" class="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{% for e in errors %}<p>{{ e }}</p>{% endfor %}</div>{% endif %}
+
+  {% if kind == "carrier" %}
+    <div class="grid sm:grid-cols-2 gap-3">
+      <label class="block"><span class="block text-xs ui-muted mb-1">{% trans "Versanddienst" %}</span>
+        <select name="carrier" class="ui-input">
+          {% for c in carrier_rows %}<option value="{{ c.code }}" {% if sv.carrier == c.code %}selected{% endif %}>{{ c.name }}</option>{% endfor %}
+        </select></label>
+      <label class="block"><span class="block text-xs ui-muted mb-1">{% trans "Zustellung" %}</span>
+        <select name="service" class="ui-input">
+          <option value="home" {% if sv.service != "pickup_point" %}selected{% endif %}>{% trans "bis an die Haustür" %}</option>
+          <option value="pickup_point" {% if sv.service == "pickup_point" %}selected{% endif %}>{% trans "an eine Abholstelle (Packstation, PaketShop)" %}</option>
+        </select></label>
+    </div>
+  {% endif %}
+
+  <label class="block"><span class="block text-xs ui-muted mb-1">{% trans "Name im Warenkorb (leer = automatisch)" %}</span>
+    <input name="name" type="text" maxlength="80" value="{{ sv.name|default:'' }}" class="ui-input" placeholder="{% if kind == 'pickup' %}{% trans 'Abholung im Geschäft' %}{% elif kind == 'courier' %}{% trans 'Kurier in der Stadt' %}{% else %}{% trans 'Versand mit DHL' %}{% endif %}"></label>
+  {% if kind != "pickup" %}
+    <label class="block"><span class="block text-xs ui-muted mb-1">{% trans "Lieferzeit (z. B. „2–4 Tage“)" %}</span>
+      <input name="delivery_time" type="text" maxlength="60" value="{{ sv.delivery_time|default:'' }}" class="ui-input"></label>
+    <p class="text-xs ui-muted -mt-2">{% trans "Pflichtangabe im Online-Handel. Bitte ohne „ca.“ oder „voraussichtlich“." %}</p>
+  {% endif %}
+
+  {% if kind == "carrier" %}
+    <fieldset class="space-y-2">
+      <legend class="text-xs ui-muted mb-1">{% trans "Preis" %}</legend>
+      <label class="flex items-center gap-2 text-sm"><input type="radio" name="pricing" value="flat" {% if sv.pricing != "weight" %}checked{% endif %}> {% trans "Pauschal" %}</label>
+      <label class="flex items-center gap-2 text-sm"><input type="radio" name="pricing" value="weight" {% if sv.pricing == "weight" %}checked{% endif %}> {% trans "Nach Gewicht" %}</label>
+    </fieldset>
+  {% endif %}
+  <div class="grid sm:grid-cols-3 gap-3">
+    {% if kind != "pickup" %}
+      <label class="block"><span class="block text-xs ui-muted mb-1">{% if kind == "carrier" %}{% trans "Preis (pauschal, €)" %}{% else %}{% trans "Preis (€)" %}{% endif %}</span>
+        <input name="fee" type="text" inputmode="decimal" value="{{ sv.fee|default:'' }}" class="ui-input"></label>
+      <label class="block"><span class="block text-xs ui-muted mb-1">{% trans "Kostenlos ab (€)" %}</span>
+        <input name="free_from" type="text" inputmode="decimal" value="{{ sv.free_from|default:'' }}" class="ui-input"></label>
+    {% endif %}
+    <label class="block"><span class="block text-xs ui-muted mb-1">{% trans "Mindestbestellwert (€)" %}</span>
+      <input name="min_order" type="text" inputmode="decimal" value="{{ sv.min_order|default:'' }}" class="ui-input"></label>
+  </div>
+
+  {% if kind == "carrier" %}
+    <label class="block"><span class="block text-xs ui-muted mb-1">{% trans "Preis nach Gewicht — eine Stufe pro Zeile: bis kg | Preis €" %}</span>
+      <textarea name="weight_tiers" rows="4" class="ui-input font-mono text-sm" placeholder="2 | 4,99&#10;5 | 6,99&#10;10 | 9,99&#10;31,5 | 16,99">{{ sv.weight_tiers|default:'' }}</textarea></label>
+    <div class="grid sm:grid-cols-2 gap-3">
+      <label class="block"><span class="block text-xs ui-muted mb-1">{% trans "Verpackung (g, wird addiert)" %}</span>
+        <input name="packaging_g" type="text" inputmode="numeric" value="{{ sv.packaging_g|default:'' }}" class="ui-input"></label>
+      <label class="block"><span class="block text-xs ui-muted mb-1">{% trans "Gewicht für Artikel ohne Angabe (g)" %}</span>
+        <input name="default_item_g" type="text" inputmode="numeric" value="{{ sv.default_item_g|default:'' }}" class="ui-input"></label>
+      <label class="block"><span class="block text-xs ui-muted mb-1">{% trans "Höchstgewicht (kg)" %}</span>
+        <input name="max_weight_kg" type="text" inputmode="decimal" value="{{ sv.max_weight_kg|default:'' }}" class="ui-input" placeholder="31,5"></label>
+      <label class="block"><span class="block text-xs ui-muted mb-1">{% trans "Längste Seite höchstens (cm)" %}</span>
+        <input name="max_length_cm" type="text" inputmode="numeric" value="{{ sv.max_length_cm|default:'' }}" class="ui-input" placeholder="120"></label>
+    </div>
+    <label class="flex items-start gap-2 text-sm"><input type="checkbox" name="bulky_ok" {% if sv.bulky_ok %}checked{% endif %}> <span>{% trans "Auch Sperrgut (Spedition)" %}<span class="block text-xs ui-muted">{% trans "Sonst wird diese Versandart bei Sperrgut im Warenkorb nicht angeboten." %}</span></span></label>
+  {% endif %}
+
+  {% if kind == "courier" %}
+    <label class="block"><span class="block text-xs ui-muted mb-1">{% trans "Liefergebiete — eine pro Zeile: PLZ | Preis € | kostenlos ab € | Mindestwert €" %}</span>
+      <textarea name="zones" rows="4" class="ui-input font-mono text-sm" placeholder="42651, 42653 | 2,50 | 30 |&#10;40 | 4,90">{{ sv.zones|default:'' }}</textarea></label>
+    <p class="text-xs ui-muted -mt-2">{% trans "Optional. Eine passende Postleitzahl ersetzt Preis, „kostenlos ab“ und Mindestwert oben." %}</p>
+    <label class="flex items-center gap-2 text-sm"><input type="checkbox" name="restrict_to_zones" {% if sv.restrict_to_zones %}checked{% endif %}> {% trans "Nur in diese Gebiete liefern" %}</label>
+  {% endif %}
+
+  {% if kind == "pickup" %}
+    <label class="block"><span class="block text-xs ui-muted mb-1">{% trans "Abholorte — einer pro Zeile: Name | Adresse (leer = Ihre Adresse)" %}</span>
+      <textarea name="locations" rows="3" class="ui-input">{{ sv.locations|default:'' }}</textarea></label>
+  {% endif %}
+
+  <label class="block"><span class="block text-xs ui-muted mb-1">{% trans "Hinweis für Kunden (optional)" %}</span>
+    <input name="area_text" type="text" maxlength="2000" value="{{ sv.area_text|default:'' }}" class="ui-input"></label>
+
+  <div class="flex justify-end gap-2 pt-2">
+    <a href="{{ next_url }}" class="ui-btn ui-btn-secondary" data-drawer-close>{% trans "Abbrechen" %}</a>
+    <button class="ui-btn ui-btn-primary">{% trans "Speichern" %}</button>
+  </div>
+</form>
+{% endif %}

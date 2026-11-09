@@ -42,11 +42,12 @@ def test_renders_orders_sections(settings):
     for name in ("vorkasse_enabled", "bank_iban", "orders_prepay"):
         assert f'name="{name}"' in html
     assert 'name="sec_vorkasse"' in html
-    # UX-D D9: доставка — на своей вкладке
+    # UX-D D9: доставка — на своей вкладке. SHP-3: там список способов доставки
+    # (`data-shipping-methods`), прежние поля доставки — только где списка нет (мастер).
     html = core_views.payment_settings(
         _req("get", _user("ps1b"), tenant, {"tab": "lieferung"})
     ).content.decode()
-    assert 'name="delivery_enabled"' in html and 'name="sec_delivery"' in html
+    assert "data-shipping-methods" in html and 'name="delivery_enabled"' not in html
 
 
 def test_saves_all_orders_sections(settings):
@@ -118,7 +119,7 @@ def test_orders_sections_hidden_when_orders_off(settings):
     html2 = core_views.payment_settings(
         _req("get", _user("ps6b"), jobs_only, {"tab": "lieferung"})
     ).content.decode()
-    assert 'name="sec_delivery"' in html2 and 'name="delivery_enabled"' in html2
+    assert "data-shipping-methods" in html2  # SHP-3: список способов
     html3 = core_views.payment_settings(_req("get", _user("ps6c"), jobs_only)).content.decode()
     assert 'name="sec_prepay"' not in html3  # блок «Abholung & Vorkasse» остаётся за orders
 
@@ -136,8 +137,9 @@ def test_tabs_split_payment_and_delivery(settings):
     deliv = core_views.payment_settings(
         _req("get", _user("ps9b"), tenant, {"tab": "lieferung"})
     ).content.decode()
-    assert "data-pay-delivery" in deliv and "data-pay-pickup" in deliv
-    assert 'name="pickup_slots_on"' in deliv and 'name="pickup_locations"' in deliv
+    # SHP-3: способы доставки — список над формой; в форме остаётся время самовывоза
+    assert "data-shipping-methods" in deliv and "data-pay-pickup" in deliv
+    assert 'name="pickup_slots_on"' in deliv and 'name="pickup_locations"' not in deliv
     assert 'name="vorkasse_enabled"' not in deliv and 'name="sec_invoice"' not in deliv
     assert 'name="tab" value="lieferung"' in deliv
 

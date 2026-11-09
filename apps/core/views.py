@@ -1413,7 +1413,11 @@ def payment_settings_context(request) -> dict:
     def _eur(cents):
         return f"{(cents or 0) / 100:.2f}"
 
+    from apps.orders import shipping_views as _ship_views
+
     return {
+        # SHP-3: способы доставки (список на вкладке «Lieferung & Abholung»)
+        **_ship_views.list_context(request.tenant),
         "orders_active": _mod.is_module_active(tenant, "orders"),
         # SH-24: доставка настраивается и у архетипов на jobs (кейтеринг).
         "jobs_active": _mod.is_module_active(tenant, "jobs"),

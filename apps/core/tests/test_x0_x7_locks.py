@@ -68,6 +68,8 @@ EXPECTED_UNLISTED = frozenset(
         # [302] FB-16: шаблоны страниц — только в Website › Seitenvorlagen
         "page-templates-sortiment",
         "page-templates-aktionen",
+        # [OK] SHP-3: «＋ Versandart» — вход из списка на вкладке «Lieferung & Abholung»
+        "shipping-method-new",
         # [POST] приёмники и action-роуты
         "billing-checkout",
         "integrations-telegram-activate",  # T-8.29: POST с карточки «Integrationen»

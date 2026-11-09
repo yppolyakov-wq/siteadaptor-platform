@@ -1,0 +1,49 @@
+{% load i18n %}
+{% comment %}SHP-3: список способов получения на вкладке «Lieferung & Abholung» — порядок
+(как в корзине), включатель, «Bearbeiten» шторкой, «＋ Versandart» по типам. Формы
+действий — отдельные POST (вне большой формы вкладки: вложенные <form> недопустимы).
+Пока строк нет — показываются прежние настройки; первое действие переносит их в строки.{% endcomment %}
+<section class="ui-card p-6 space-y-4" data-shipping-methods aria-labelledby="ship-methods-h">
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <h2 id="ship-methods-h" class="font-semibold">{% trans "Versandarten" %}</h2>
+    <details class="relative" data-ship-add>
+      <summary class="ui-btn ui-btn-primary cursor-pointer list-none">＋ {% trans "Versandart" %}</summary>
+      <div class="absolute right-0 z-20 mt-2 w-72 rounded-xl border border-gray-200 bg-white p-2 shadow-lg" role="menu">
+        <a role="menuitem" href="{% url 'shipping-method-new' %}?art=pickup" data-drawer class="block rounded-lg px-3 py-2 text-sm hover:bg-gray-50">🛍 <span class="font-medium">{% trans "Abholung im Geschäft" %}</span><span class="block text-xs text-gray-500">{% trans "Kunden holen selbst ab" %}</span></a>
+        <a role="menuitem" href="{% url 'shipping-method-new' %}?art=courier" data-drawer class="block rounded-lg px-3 py-2 text-sm hover:bg-gray-50">🚚 <span class="font-medium">{% trans "Kurier in der Stadt" %}</span><span class="block text-xs text-gray-500">{% trans "Sie liefern selbst — nach Postleitzahl" %}</span></a>
+        <a role="menuitem" href="{% url 'shipping-method-new' %}?art=carrier" data-drawer class="block rounded-lg px-3 py-2 text-sm hover:bg-gray-50">📦 <span class="font-medium">{% trans "Versand per Paketdienst" %}</span><span class="block text-xs text-gray-500">{% trans "DHL, Hermes, DPD … — an die Haustür oder Abholstelle" %}</span></a>
+      </div>
+    </details>
+  </div>
+  <p class="text-sm ui-muted">{% trans "So können Kunden ihre Bestellung bekommen. Die Reihenfolge gilt auch im Warenkorb." %}</p>
+  <ul class="divide-y divide-gray-100">
+    {% for r in shipping_rows %}
+      <li class="flex flex-wrap items-center gap-3 py-3" data-ship-row="{{ r.m.kind }}">
+        <span class="text-xl" aria-hidden="true">{{ r.icon }}</span>
+        <div class="min-w-0 flex-1">
+          <p class="font-medium {% if not r.m.active %}text-gray-400{% endif %}">{{ r.label }}{% if not r.m.active %} <span class="ml-1 rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-500">{% trans "aus" %}</span>{% endif %}</p>
+          <p class="text-xs ui-muted">{{ r.summary }}</p>
+        </div>
+        {% if r.key %}
+          <form method="post" action="{% url 'shipping-method-move' r.key %}" class="flex">
+            {% csrf_token %}
+            <button name="dir" value="up" class="ui-btn ui-btn-ghost px-2" aria-label="{% blocktrans with l=r.label %}{{ l }} nach oben{% endblocktrans %}" {% if forloop.first %}disabled{% endif %}>↑</button>
+            <button name="dir" value="down" class="ui-btn ui-btn-ghost px-2" aria-label="{% blocktrans with l=r.label %}{{ l }} nach unten{% endblocktrans %}" {% if forloop.last %}disabled{% endif %}>↓</button>
+          </form>
+          <form method="post" action="{% url 'shipping-method-toggle' r.key %}">
+            {% csrf_token %}<input type="hidden" name="on" value="{% if r.m.active %}0{% else %}1{% endif %}">
+            <button class="ui-btn ui-btn-ghost text-sm">{% if r.m.active %}{% trans "Ausschalten" %}{% else %}{% trans "Einschalten" %}{% endif %}</button>
+          </form>
+          <a href="{% url 'shipping-method-edit' r.key %}" data-drawer data-drawer-key="ship-{{ r.key }}" class="ui-btn ui-btn-secondary text-sm">{% trans "Bearbeiten" %}</a>
+        {% else %}
+          <form method="post" action="{% url 'shipping-legacy' r.m.kind %}" class="flex gap-2">
+            {% csrf_token %}
+            <input type="hidden" name="on" value="0">
+            <button name="action" value="toggle" class="ui-btn ui-btn-ghost text-sm">{% trans "Ausschalten" %}</button>
+            <button name="action" value="edit" class="ui-btn ui-btn-secondary text-sm">{% trans "Bearbeiten" %}</button>
+          </form>
+        {% endif %}
+      </li>
+    {% endfor %}
+  </ul>
+</section>

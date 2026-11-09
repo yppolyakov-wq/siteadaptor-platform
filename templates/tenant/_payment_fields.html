@@ -94,6 +94,10 @@
 гейтится модулем «orders» — кейтеринг/Handwerker живут на jobs, а доставка нужна
 и им (вопрос «привезём или заберёте» стоит в заявке).{% endcomment %}
 {% if orders_active or jobs_active %}{% if not pay_tab or pay_tab == "lieferung" %}
+  {% comment %}SHP-3: на вкладке «Lieferung & Abholung» способы доставки — список над формой
+  (`_shipping_methods.html`); прежние поля доставки/самовывоза живут только там, где списка
+  нет (слайд мастера) и пока у бизнеса нет сохранённых способов — иначе было бы два писателя.{% endcomment %}
+  {% if pay_tab != "lieferung" and shipping_legacy %}
   <fieldset class="ui-card p-6 space-y-3" data-pay-delivery>
     <input type="hidden" name="sec_delivery" value="1">
     <legend class="font-semibold mb-1">{% trans "Delivery (Versand)" %}</legend>
@@ -138,10 +142,18 @@
       </label>
     </div>
   </fieldset>
+  {% elif pay_tab != "lieferung" %}
+  <div class="ui-card p-6 text-sm" data-pay-shipping-link>
+    <p class="font-semibold mb-1">{% trans "Versandarten" %}</p>
+    <p class="ui-muted mb-2">{% for r in shipping_rows %}{% if r.m.active %}{{ r.icon }} {{ r.label }}{% if not forloop.last %} · {% endif %}{% endif %}{% endfor %}</p>
+    <a href="{% url 'payment-settings' %}?tab=lieferung" class="ui-btn ui-btn-secondary">{% trans "Versandarten verwalten" %} →</a>
+  </div>
+  {% endif %}
   {% comment %}UX-D D9: самовывоз — своя карточка (поля те же, сохраняются сентинелами
   sec_delivery/sec_pickup_slots первой карточки и своим).{% endcomment %}
   <fieldset class="ui-card p-6 space-y-3" data-pay-pickup>
-    <legend class="font-semibold mb-1">{% trans "Abholung" %}</legend>
+    <legend class="font-semibold mb-1">{% if pay_tab == "lieferung" %}🕒 {% trans "Abholzeit" %}{% else %}{% trans "Abholung" %}{% endif %}</legend>
+    {% if pay_tab != "lieferung" and shipping_legacy %}
     <div>
       <label class="block"><span class="block text-xs text-gray-500 mb-1">{% trans "Min. order for pickup (€, 0=none)" %}</span>
       <input name="pickup_min_eur" type="text" value="{{ pickup_min_eur }}" class="ui-input sm:w-1/3"></label>
@@ -151,6 +163,7 @@
       <textarea name="pickup_locations" rows="3" class="ui-input">{{ pickup_locations_text }}</textarea></label>
       <p class="text-xs text-gray-400 mt-1">{% trans "Leave empty for a single pickup at your address. Several lines = customer chooses in cart." %}</p>
     </div>
+    {% endif %}
     {% comment %}KA-W1: время самовывоза — свой сентинел sec_pickup_slots (запись одного
     ключа site_config, остальные поля секции не трогает).{% endcomment %}
     <div class="border-t border-gray-100 pt-3" data-pickup-slots-settings>

@@ -120,6 +120,11 @@ def stored(tenant, *, active_only: bool = True) -> list[ShippingMethod]:
     return [m for m in rows if m.active] if active_only else list(rows)
 
 
+def has_stored() -> bool:
+    """Есть ли строки способов в ТЕКУЩЕЙ схеме (писатель работает в схеме бизнеса)."""
+    return ShippingMethod.objects.exists()
+
+
 def is_legacy(method) -> bool:
     """Способ построен из прежних полей Tenant (не строка таблицы)."""
     return bool(getattr(method, "_legacy", False))

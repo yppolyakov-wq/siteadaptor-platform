@@ -425,6 +425,12 @@ RULES: dict[str, Rule] = {
     "languages": _r(CFG, CFGE),
     "notifications-settings": _r(CFG, CFGE),
     "payment-settings": _r(CFG, CFGE),  # IBAN — Vorbehalt внутри экрана
+    # SHP-3: способы доставки — та же настройка, что вкладка «Lieferung & Abholung»
+    "shipping-method-new": _r(CFG, CFGE),
+    "shipping-method-edit": _r(CFG, CFGE),
+    "shipping-method-toggle": _r(CFGE),
+    "shipping-method-move": _r(CFGE),
+    "shipping-legacy": _r(CFGE),
     "verkauf-oeffnen": _r(CFG, CFGE),  # AIS W4-5a: вопросы; запись — узкими писателями
     "next-step-hide": _r(CFG, CFGE),  # AIS W4-5c: «Später» у карточки главной
     "google-reviews-settings": _r(CFG, CFGE),

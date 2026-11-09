@@ -36103,3 +36103,211 @@ msgstr "Gönderiyi takip et"
 #: SHP-2
 msgid "Für diesen Warenkorb ist leider keine Versandart möglich. Bitte schreiben Sie uns."
 msgstr "Maalesef bu sepet için uygun bir gönderim yöntemi yok. Lütfen bize yazın."
+
+#: SHP-3
+msgid "%(field)s: Betrag nicht erkannt."
+msgstr "%(field)s: tutar anlaşılamadı."
+
+#: SHP-3
+msgid "%(field)s: höchstens 1000 €."
+msgstr "%(field)s: en fazla 1000 €."
+
+#: SHP-3
+msgid "%(l)s nach oben"
+msgstr "%(l)s yukarı taşı"
+
+#: SHP-3
+msgid "%(l)s nach unten"
+msgstr "%(l)s aşağı taşı"
+
+#: SHP-3
+msgid "%(n)s Abholorte"
+msgstr "%(n)s teslim alma yeri"
+
+#: SHP-3
+msgid "%(n)s Liefergebiete"
+msgstr "%(n)s teslimat bölgesi"
+
+#: SHP-3
+msgid "Abholorte — einer pro Zeile: Name | Adresse (leer = Ihre Adresse)"
+msgstr "Teslim alma yerleri — her satıra bir tane: Ad | Adres (boş = sizin adresiniz)"
+
+#: SHP-3
+msgid "Auch Sperrgut (Spedition)"
+msgstr "Hacimli eşya da (nakliye)"
+
+#: SHP-3
+msgid "Bitte einen Versanddienst wählen."
+msgstr "Lütfen bir kargo firması seçin."
+
+#: SHP-3
+msgid "DHL, Hermes, DPD … — an die Haustür oder Abholstelle"
+msgstr "DHL, Hermes, DPD … — kapıya veya teslim alma noktasına"
+
+#: SHP-3
+msgid "Dieser Versanddienst hat keine Abholstellen."
+msgstr "Bu kargo firmasının teslim alma noktası yok."
+
+#: SHP-3
+msgid "Für den Preis nach Gewicht mindestens eine Stufe angeben."
+msgstr "Ağırlığa göre fiyat için en az bir kademe girin."
+
+#: SHP-3
+msgid "Gewicht für Artikel ohne Angabe (g)"
+msgstr "Ağırlığı belirtilmemiş ürünler için ağırlık (g)"
+
+#: SHP-3
+msgid "Gewichtsstufe „%(row)s“ nicht erkannt."
+msgstr "“%(row)s” ağırlık kademesi anlaşılamadı."
+
+#: SHP-3
+msgid "Hinweis für Kunden (optional)"
+msgstr "Müşteriler için not (isteğe bağlı)"
+
+#: SHP-3
+msgid "Höchstgewicht (kg)"
+msgstr "Azami ağırlık (kg)"
+
+#: SHP-3
+msgid "Kostenlos ab"
+msgstr "Şu tutardan itibaren ücretsiz"
+
+#: SHP-3
+msgid "Kostenlos ab (€)"
+msgstr "Şu tutardan itibaren ücretsiz (€)"
+
+#: SHP-3
+msgid "Kunden holen selbst ab"
+msgstr "Müşteriler kendileri teslim alır"
+
+#: SHP-3
+msgid "Liefergebiet %(plz)s: Betrag nicht erkannt."
+msgstr "%(plz)s teslimat bölgesi: tutar anlaşılamadı."
+
+#: SHP-3
+msgid "Liefergebiete — eine pro Zeile: PLZ | Preis € | kostenlos ab € | Mindestwert €"
+msgstr "Teslimat bölgeleri — her satıra bir tane: posta kodu | fiyat € | ücretsiz eşiği € | asgari tutar €"
+
+#: SHP-3
+msgid "Lieferzeit (z. B. „2–4 Tage“)"
+msgstr "Teslimat süresi (örn. “2–4 gün”)"
+
+#: SHP-3
+msgid "Längste Seite höchstens (cm)"
+msgstr "En uzun kenar en fazla (cm)"
+
+#: SHP-3
+msgid "Mindestbestellwert"
+msgstr "Asgari sipariş tutarı"
+
+#: SHP-3
+msgid "Mindestbestellwert (€)"
+msgstr "Asgari sipariş tutarı (€)"
+
+#: SHP-3
+msgid "Mindestens eine Versandart muss aktiv bleiben, sonst können Kunden nicht bestellen."
+msgstr "En az bir gönderim yöntemi etkin kalmalıdır, aksi halde müşteriler sipariş veremez."
+
+#: SHP-3
+msgid "Name im Warenkorb (leer = automatisch)"
+msgstr "Sepetteki ad (boş = otomatik)"
+
+#: SHP-3
+msgid "Nur in diese Gebiete liefern"
+msgstr "Yalnızca bu bölgelere teslim et"
+
+#: SHP-3
+msgid "Optional. Eine passende Postleitzahl ersetzt Preis, „kostenlos ab“ und Mindestwert oben."
+msgstr "İsteğe bağlı. Eşleşen posta kodu yukarıdaki fiyatı, ücretsiz eşiğini ve asgari tutarı değiştirir."
+
+#: SHP-3
+msgid "Pflichtangabe im Online-Handel. Bitte ohne „ca.“ oder „voraussichtlich“."
+msgstr "Online satışta zorunlu bilgi (Almanya). Lütfen “yaklaşık” veya “tahmini” olmadan."
+
+#: SHP-3
+msgid "Preis (pauschal, €)"
+msgstr "Fiyat (sabit, €)"
+
+#: SHP-3
+msgid "Preis nach Gewicht — eine Stufe pro Zeile: bis kg | Preis €"
+msgstr "Ağırlığa göre fiyat — her satıra bir kademe: kg'a kadar | fiyat €"
+
+#: SHP-3
+msgid "Preis nach Gewicht"
+msgstr "Ağırlığa göre fiyat"
+
+#: SHP-3
+msgid "Sie liefern selbst — nach Postleitzahl"
+msgstr "Kendiniz teslim edersiniz — posta koduna göre"
+
+#: SHP-3
+msgid "So können Kunden ihre Bestellung bekommen. Die Reihenfolge gilt auch im Warenkorb."
+msgstr "Müşterilerin siparişlerini nasıl alabileceği. Sıralama sepette de geçerlidir."
+
+#: SHP-3
+msgid "Sonst wird diese Versandart bei Sperrgut im Warenkorb nicht angeboten."
+msgstr "Aksi halde sepette hacimli eşya varsa bu yöntem sunulmaz."
+
+#: SHP-3
+msgid "Verpackung (g, wird addiert)"
+msgstr "Ambalaj (g, eklenir)"
+
+#: SHP-3
+msgid "Versand mit DHL"
+msgstr "DHL ile gönderim"
+
+#: SHP-3
+msgid "Versandart"
+msgstr "Gönderim yöntemi"
+
+#: SHP-3
+msgid "Versandarten"
+msgstr "Gönderim yöntemleri"
+
+#: SHP-3
+msgid "Versandarten verwalten"
+msgstr "Gönderim yöntemlerini yönet"
+
+#: SHP-3
+msgid "Versandart gespeichert."
+msgstr "Gönderim yöntemi kaydedildi."
+
+#: SHP-3
+msgid "Versandart bearbeiten"
+msgstr "Gönderim yöntemini düzenle"
+
+#: SHP-3
+msgid "Neue Versandart"
+msgstr "Yeni gönderim yöntemi"
+
+#: SHP-3
+msgid "Versanddienst"
+msgstr "Kargo firması"
+
+#: SHP-3
+msgid "Welche Versandart möchten Sie hinzufügen?"
+msgstr "Hangi gönderim yöntemini eklemek istersiniz?"
+
+#: SHP-3
+msgid "Zustellung"
+msgstr "Teslimat"
+
+#: SHP-3
+msgid "an eine Abholstelle (Packstation, PaketShop)"
+msgstr "bir teslim alma noktasına (Packstation, PaketShop)"
+
+#: SHP-3
+msgid "ab %(eur)s € Bestellwert"
+msgstr "%(eur)s € sipariş tutarından itibaren"
+
+#: SHP-3
+msgid "an Ihrer Adresse"
+msgstr "adresinizde"
+
+#: SHP-3
+msgid "kostenlos"
+msgstr "ücretsiz"
+
+#: SHP-3
+msgid "kostenlos ab %(eur)s €"
+msgstr "%(eur)s € üzeri ücretsiz"

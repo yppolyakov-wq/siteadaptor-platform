@@ -1,0 +1,5 @@
+{% load i18n %}
+{% comment %}SHP-3: шторка способа доставки (shipping-method-new/edit?box=1).{% endcomment %}
+<div data-drawer-title="{% if method %}{% trans 'Versandart bearbeiten' %}{% else %}{% trans 'Neue Versandart' %}{% endif %}{% if kind_label %} · {{ kind_label }}{% endif %}" class="text-sm">
+  {% include "tenant/_shipping_method_form.html" %}
+</div>

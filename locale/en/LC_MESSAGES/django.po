@@ -35957,3 +35957,211 @@ msgstr "Track shipment"
 #: SHP-2
 msgid "Für diesen Warenkorb ist leider keine Versandart möglich. Bitte schreiben Sie uns."
 msgstr "Unfortunately, no shipping method is available for this cart. Please contact us."
+
+#: SHP-3
+msgid "%(field)s: Betrag nicht erkannt."
+msgstr "%(field)s: amount not recognised."
+
+#: SHP-3
+msgid "%(field)s: höchstens 1000 €."
+msgstr "%(field)s: at most €1000."
+
+#: SHP-3
+msgid "%(l)s nach oben"
+msgstr "Move %(l)s up"
+
+#: SHP-3
+msgid "%(l)s nach unten"
+msgstr "Move %(l)s down"
+
+#: SHP-3
+msgid "%(n)s Abholorte"
+msgstr "%(n)s pickup locations"
+
+#: SHP-3
+msgid "%(n)s Liefergebiete"
+msgstr "%(n)s delivery areas"
+
+#: SHP-3
+msgid "Abholorte — einer pro Zeile: Name | Adresse (leer = Ihre Adresse)"
+msgstr "Pickup locations — one per line: Name | Address (empty = your address)"
+
+#: SHP-3
+msgid "Auch Sperrgut (Spedition)"
+msgstr "Bulky goods too (freight forwarder)"
+
+#: SHP-3
+msgid "Bitte einen Versanddienst wählen."
+msgstr "Please choose a carrier."
+
+#: SHP-3
+msgid "DHL, Hermes, DPD … — an die Haustür oder Abholstelle"
+msgstr "DHL, Hermes, DPD … — to the door or a pickup point"
+
+#: SHP-3
+msgid "Dieser Versanddienst hat keine Abholstellen."
+msgstr "This carrier has no pickup points."
+
+#: SHP-3
+msgid "Für den Preis nach Gewicht mindestens eine Stufe angeben."
+msgstr "For weight-based pricing, enter at least one tier."
+
+#: SHP-3
+msgid "Gewicht für Artikel ohne Angabe (g)"
+msgstr "Weight for items without a weight (g)"
+
+#: SHP-3
+msgid "Gewichtsstufe „%(row)s“ nicht erkannt."
+msgstr "Weight tier “%(row)s” not recognised."
+
+#: SHP-3
+msgid "Hinweis für Kunden (optional)"
+msgstr "Note for customers (optional)"
+
+#: SHP-3
+msgid "Höchstgewicht (kg)"
+msgstr "Maximum weight (kg)"
+
+#: SHP-3
+msgid "Kostenlos ab"
+msgstr "Free from"
+
+#: SHP-3
+msgid "Kostenlos ab (€)"
+msgstr "Free from (€)"
+
+#: SHP-3
+msgid "Kunden holen selbst ab"
+msgstr "Customers pick up themselves"
+
+#: SHP-3
+msgid "Liefergebiet %(plz)s: Betrag nicht erkannt."
+msgstr "Delivery area %(plz)s: amount not recognised."
+
+#: SHP-3
+msgid "Liefergebiete — eine pro Zeile: PLZ | Preis € | kostenlos ab € | Mindestwert €"
+msgstr "Delivery areas — one per line: postcode | price € | free from € | minimum €"
+
+#: SHP-3
+msgid "Lieferzeit (z. B. „2–4 Tage“)"
+msgstr "Delivery time (e.g. “2–4 days”)"
+
+#: SHP-3
+msgid "Längste Seite höchstens (cm)"
+msgstr "Longest side at most (cm)"
+
+#: SHP-3
+msgid "Mindestbestellwert"
+msgstr "Minimum order value"
+
+#: SHP-3
+msgid "Mindestbestellwert (€)"
+msgstr "Minimum order value (€)"
+
+#: SHP-3
+msgid "Mindestens eine Versandart muss aktiv bleiben, sonst können Kunden nicht bestellen."
+msgstr "At least one shipping method must stay active, otherwise customers cannot order."
+
+#: SHP-3
+msgid "Name im Warenkorb (leer = automatisch)"
+msgstr "Name in the cart (empty = automatic)"
+
+#: SHP-3
+msgid "Nur in diese Gebiete liefern"
+msgstr "Deliver only to these areas"
+
+#: SHP-3
+msgid "Optional. Eine passende Postleitzahl ersetzt Preis, „kostenlos ab“ und Mindestwert oben."
+msgstr "Optional. A matching postcode replaces the price, “free from” and minimum above."
+
+#: SHP-3
+msgid "Pflichtangabe im Online-Handel. Bitte ohne „ca.“ oder „voraussichtlich“."
+msgstr "Mandatory in online retail (Germany). Please without “approx.” or “expected”."
+
+#: SHP-3
+msgid "Preis (pauschal, €)"
+msgstr "Price (flat, €)"
+
+#: SHP-3
+msgid "Preis nach Gewicht — eine Stufe pro Zeile: bis kg | Preis €"
+msgstr "Price by weight — one tier per line: up to kg | price €"
+
+#: SHP-3
+msgid "Preis nach Gewicht"
+msgstr "Price by weight"
+
+#: SHP-3
+msgid "Sie liefern selbst — nach Postleitzahl"
+msgstr "You deliver yourself — by postcode"
+
+#: SHP-3
+msgid "So können Kunden ihre Bestellung bekommen. Die Reihenfolge gilt auch im Warenkorb."
+msgstr "How customers can get their order. The order also applies in the cart."
+
+#: SHP-3
+msgid "Sonst wird diese Versandart bei Sperrgut im Warenkorb nicht angeboten."
+msgstr "Otherwise this method is not offered when the cart contains bulky goods."
+
+#: SHP-3
+msgid "Verpackung (g, wird addiert)"
+msgstr "Packaging (g, added)"
+
+#: SHP-3
+msgid "Versand mit DHL"
+msgstr "Shipping with DHL"
+
+#: SHP-3
+msgid "Versandart"
+msgstr "Shipping method"
+
+#: SHP-3
+msgid "Versandarten"
+msgstr "Shipping methods"
+
+#: SHP-3
+msgid "Versandarten verwalten"
+msgstr "Manage shipping methods"
+
+#: SHP-3
+msgid "Versandart gespeichert."
+msgstr "Shipping method saved."
+
+#: SHP-3
+msgid "Versandart bearbeiten"
+msgstr "Edit shipping method"
+
+#: SHP-3
+msgid "Neue Versandart"
+msgstr "New shipping method"
+
+#: SHP-3
+msgid "Versanddienst"
+msgstr "Carrier"
+
+#: SHP-3
+msgid "Welche Versandart möchten Sie hinzufügen?"
+msgstr "Which shipping method would you like to add?"
+
+#: SHP-3
+msgid "Zustellung"
+msgstr "Delivery"
+
+#: SHP-3
+msgid "an eine Abholstelle (Packstation, PaketShop)"
+msgstr "to a pickup point (Packstation, PaketShop)"
+
+#: SHP-3
+msgid "ab %(eur)s € Bestellwert"
+msgstr "from €%(eur)s order value"
+
+#: SHP-3
+msgid "an Ihrer Adresse"
+msgstr "at your address"
+
+#: SHP-3
+msgid "kostenlos"
+msgstr "free"
+
+#: SHP-3
+msgid "kostenlos ab %(eur)s €"
+msgstr "free from €%(eur)s"

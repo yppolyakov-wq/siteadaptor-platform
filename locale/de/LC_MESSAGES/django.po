@@ -36044,3 +36044,211 @@ msgstr "Sendung verfolgen"
 #: SHP-2
 msgid "Für diesen Warenkorb ist leider keine Versandart möglich. Bitte schreiben Sie uns."
 msgstr "Für diesen Warenkorb ist leider keine Versandart möglich. Bitte schreiben Sie uns."
+
+#: SHP-3
+msgid "%(field)s: Betrag nicht erkannt."
+msgstr "%(field)s: Betrag nicht erkannt."
+
+#: SHP-3
+msgid "%(field)s: höchstens 1000 €."
+msgstr "%(field)s: höchstens 1000 €."
+
+#: SHP-3
+msgid "%(l)s nach oben"
+msgstr "%(l)s nach oben"
+
+#: SHP-3
+msgid "%(l)s nach unten"
+msgstr "%(l)s nach unten"
+
+#: SHP-3
+msgid "%(n)s Abholorte"
+msgstr "%(n)s Abholorte"
+
+#: SHP-3
+msgid "%(n)s Liefergebiete"
+msgstr "%(n)s Liefergebiete"
+
+#: SHP-3
+msgid "Abholorte — einer pro Zeile: Name | Adresse (leer = Ihre Adresse)"
+msgstr "Abholorte — einer pro Zeile: Name | Adresse (leer = Ihre Adresse)"
+
+#: SHP-3
+msgid "Auch Sperrgut (Spedition)"
+msgstr "Auch Sperrgut (Spedition)"
+
+#: SHP-3
+msgid "Bitte einen Versanddienst wählen."
+msgstr "Bitte einen Versanddienst wählen."
+
+#: SHP-3
+msgid "DHL, Hermes, DPD … — an die Haustür oder Abholstelle"
+msgstr "DHL, Hermes, DPD … — an die Haustür oder Abholstelle"
+
+#: SHP-3
+msgid "Dieser Versanddienst hat keine Abholstellen."
+msgstr "Dieser Versanddienst hat keine Abholstellen."
+
+#: SHP-3
+msgid "Für den Preis nach Gewicht mindestens eine Stufe angeben."
+msgstr "Für den Preis nach Gewicht mindestens eine Stufe angeben."
+
+#: SHP-3
+msgid "Gewicht für Artikel ohne Angabe (g)"
+msgstr "Gewicht für Artikel ohne Angabe (g)"
+
+#: SHP-3
+msgid "Gewichtsstufe „%(row)s“ nicht erkannt."
+msgstr "Gewichtsstufe „%(row)s“ nicht erkannt."
+
+#: SHP-3
+msgid "Hinweis für Kunden (optional)"
+msgstr "Hinweis für Kunden (optional)"
+
+#: SHP-3
+msgid "Höchstgewicht (kg)"
+msgstr "Höchstgewicht (kg)"
+
+#: SHP-3
+msgid "Kostenlos ab"
+msgstr "Kostenlos ab"
+
+#: SHP-3
+msgid "Kostenlos ab (€)"
+msgstr "Kostenlos ab (€)"
+
+#: SHP-3
+msgid "Kunden holen selbst ab"
+msgstr "Kunden holen selbst ab"
+
+#: SHP-3
+msgid "Liefergebiet %(plz)s: Betrag nicht erkannt."
+msgstr "Liefergebiet %(plz)s: Betrag nicht erkannt."
+
+#: SHP-3
+msgid "Liefergebiete — eine pro Zeile: PLZ | Preis € | kostenlos ab € | Mindestwert €"
+msgstr "Liefergebiete — eine pro Zeile: PLZ | Preis € | kostenlos ab € | Mindestwert €"
+
+#: SHP-3
+msgid "Lieferzeit (z. B. „2–4 Tage“)"
+msgstr "Lieferzeit (z. B. „2–4 Tage“)"
+
+#: SHP-3
+msgid "Längste Seite höchstens (cm)"
+msgstr "Längste Seite höchstens (cm)"
+
+#: SHP-3
+msgid "Mindestbestellwert"
+msgstr "Mindestbestellwert"
+
+#: SHP-3
+msgid "Mindestbestellwert (€)"
+msgstr "Mindestbestellwert (€)"
+
+#: SHP-3
+msgid "Mindestens eine Versandart muss aktiv bleiben, sonst können Kunden nicht bestellen."
+msgstr "Mindestens eine Versandart muss aktiv bleiben, sonst können Kunden nicht bestellen."
+
+#: SHP-3
+msgid "Name im Warenkorb (leer = automatisch)"
+msgstr "Name im Warenkorb (leer = automatisch)"
+
+#: SHP-3
+msgid "Nur in diese Gebiete liefern"
+msgstr "Nur in diese Gebiete liefern"
+
+#: SHP-3
+msgid "Optional. Eine passende Postleitzahl ersetzt Preis, „kostenlos ab“ und Mindestwert oben."
+msgstr "Optional. Eine passende Postleitzahl ersetzt Preis, „kostenlos ab“ und Mindestwert oben."
+
+#: SHP-3
+msgid "Pflichtangabe im Online-Handel. Bitte ohne „ca.“ oder „voraussichtlich“."
+msgstr "Pflichtangabe im Online-Handel. Bitte ohne „ca.“ oder „voraussichtlich“."
+
+#: SHP-3
+msgid "Preis (pauschal, €)"
+msgstr "Preis (pauschal, €)"
+
+#: SHP-3
+msgid "Preis nach Gewicht — eine Stufe pro Zeile: bis kg | Preis €"
+msgstr "Preis nach Gewicht — eine Stufe pro Zeile: bis kg | Preis €"
+
+#: SHP-3
+msgid "Preis nach Gewicht"
+msgstr "Preis nach Gewicht"
+
+#: SHP-3
+msgid "Sie liefern selbst — nach Postleitzahl"
+msgstr "Sie liefern selbst — nach Postleitzahl"
+
+#: SHP-3
+msgid "So können Kunden ihre Bestellung bekommen. Die Reihenfolge gilt auch im Warenkorb."
+msgstr "So können Kunden ihre Bestellung bekommen. Die Reihenfolge gilt auch im Warenkorb."
+
+#: SHP-3
+msgid "Sonst wird diese Versandart bei Sperrgut im Warenkorb nicht angeboten."
+msgstr "Sonst wird diese Versandart bei Sperrgut im Warenkorb nicht angeboten."
+
+#: SHP-3
+msgid "Verpackung (g, wird addiert)"
+msgstr "Verpackung (g, wird addiert)"
+
+#: SHP-3
+msgid "Versand mit DHL"
+msgstr "Versand mit DHL"
+
+#: SHP-3
+msgid "Versandart"
+msgstr "Versandart"
+
+#: SHP-3
+msgid "Versandarten"
+msgstr "Versandarten"
+
+#: SHP-3
+msgid "Versandarten verwalten"
+msgstr "Versandarten verwalten"
+
+#: SHP-3
+msgid "Versandart gespeichert."
+msgstr "Versandart gespeichert."
+
+#: SHP-3
+msgid "Versandart bearbeiten"
+msgstr "Versandart bearbeiten"
+
+#: SHP-3
+msgid "Neue Versandart"
+msgstr "Neue Versandart"
+
+#: SHP-3
+msgid "Versanddienst"
+msgstr "Versanddienst"
+
+#: SHP-3
+msgid "Welche Versandart möchten Sie hinzufügen?"
+msgstr "Welche Versandart möchten Sie hinzufügen?"
+
+#: SHP-3
+msgid "Zustellung"
+msgstr "Zustellung"
+
+#: SHP-3
+msgid "an eine Abholstelle (Packstation, PaketShop)"
+msgstr "an eine Abholstelle (Packstation, PaketShop)"
+
+#: SHP-3
+msgid "ab %(eur)s € Bestellwert"
+msgstr "ab %(eur)s € Bestellwert"
+
+#: SHP-3
+msgid "an Ihrer Adresse"
+msgstr "an Ihrer Adresse"
+
+#: SHP-3
+msgid "kostenlos"
+msgstr "kostenlos"
+
+#: SHP-3
+msgid "kostenlos ab %(eur)s €"
+msgstr "kostenlos ab %(eur)s €"

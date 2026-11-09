@@ -1,0 +1,10 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{% if method %}{% trans "Versandart bearbeiten" %}{% else %}{% trans "Neue Versandart" %}{% endif %}{% endblock %}
+
+{% block dash_content %}
+{% comment %}SHP-3: страница способа доставки без JS (в кабинете — шторка).{% endcomment %}
+<a href="{% url 'payment-settings' %}?tab=lieferung" class="text-sm text-gray-500 hover:underline">← {% trans "Lieferung & Abholung" %}</a>
+<h1 class="ui-h1 mt-1 mb-4">{% if method %}{% trans "Versandart bearbeiten" %}{% else %}{% trans "Neue Versandart" %}{% endif %}{% if kind_label %} · {{ kind_label }}{% endif %}</h1>
+<div class="ui-card p-6 max-w-2xl">{% include "tenant/_shipping_method_form.html" %}</div>
+{% endblock %}

@@ -117,6 +117,7 @@ from apps.inventory.views_purchasing import maengel_pdf, purchasing_view
 from apps.jobs import public_views as jobs_public
 from apps.loyalty import public_views as loyalty_public
 from apps.orders import public_views as orders_public
+from apps.orders import shipping_views  # SHP-3
 from apps.promotions import assistant_views as promotions_assistant
 from apps.promotions import public_views
 from apps.publishing import views as publishing_views
@@ -232,6 +233,32 @@ urlpatterns = [
     path("dashboard/finder/", finder_settings, name="finder-settings"),
     # W4-3: единый экран «Zahlung & Versand» (свод оплаты/доставки).
     path("dashboard/settings/payments/", payment_settings, name="payment-settings"),
+    # SHP-3: способы доставки — форма (шторка), включение, порядок
+    path(
+        "dashboard/settings/versand/neu/",
+        shipping_views.shipping_method_new,
+        name="shipping-method-new",
+    ),
+    path(
+        "dashboard/settings/versand/<uuid:pk>/",
+        shipping_views.shipping_method_edit,
+        name="shipping-method-edit",
+    ),
+    path(
+        "dashboard/settings/versand/<uuid:pk>/aktiv/",
+        shipping_views.shipping_method_toggle,
+        name="shipping-method-toggle",
+    ),
+    path(
+        "dashboard/settings/versand/<uuid:pk>/reihenfolge/",
+        shipping_views.shipping_method_move,
+        name="shipping-method-move",
+    ),
+    path(
+        "dashboard/settings/versand/bisher/<str:kind>/",
+        shipping_views.shipping_legacy_toggle,
+        name="shipping-legacy",
+    ),
     # AIS W4-5a: «Verkauf öffnen» — вопросы по направлению вместо форм
     path("dashboard/verkauf-oeffnen/", verkauf_oeffnen, name="verkauf-oeffnen"),
     path("dashboard/naechster-schritt/spaeter/", next_step_hide, name="next-step-hide"),

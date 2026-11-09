@@ -36279,3 +36279,211 @@ msgstr "Відстежити посилку"
 #: SHP-2
 msgid "Für diesen Warenkorb ist leider keine Versandart möglich. Bitte schreiben Sie uns."
 msgstr "На жаль, для цього кошика немає відповідного способу доставки. Напишіть нам."
+
+#: SHP-3
+msgid "%(field)s: Betrag nicht erkannt."
+msgstr "%(field)s: суму не розпізнано."
+
+#: SHP-3
+msgid "%(field)s: höchstens 1000 €."
+msgstr "%(field)s: не більше 1000 €."
+
+#: SHP-3
+msgid "%(l)s nach oben"
+msgstr "%(l)s вище"
+
+#: SHP-3
+msgid "%(l)s nach unten"
+msgstr "%(l)s нижче"
+
+#: SHP-3
+msgid "%(n)s Abholorte"
+msgstr "Пунктів самовивозу: %(n)s"
+
+#: SHP-3
+msgid "%(n)s Liefergebiete"
+msgstr "Зон доставки: %(n)s"
+
+#: SHP-3
+msgid "Abholorte — einer pro Zeile: Name | Adresse (leer = Ihre Adresse)"
+msgstr "Пункти самовивозу — по одному в рядку: Назва | Адреса (порожньо = ваша адреса)"
+
+#: SHP-3
+msgid "Auch Sperrgut (Spedition)"
+msgstr "Зокрема великогабаритне (транспортна компанія)"
+
+#: SHP-3
+msgid "Bitte einen Versanddienst wählen."
+msgstr "Оберіть службу доставки."
+
+#: SHP-3
+msgid "DHL, Hermes, DPD … — an die Haustür oder Abholstelle"
+msgstr "DHL, Hermes, DPD … — до дверей або до пункту видачі"
+
+#: SHP-3
+msgid "Dieser Versanddienst hat keine Abholstellen."
+msgstr "У цієї служби доставки немає пунктів видачі."
+
+#: SHP-3
+msgid "Für den Preis nach Gewicht mindestens eine Stufe angeben."
+msgstr "Для ціни за вагою вкажіть хоча б один рівень."
+
+#: SHP-3
+msgid "Gewicht für Artikel ohne Angabe (g)"
+msgstr "Вага для товарів без вказаної ваги (г)"
+
+#: SHP-3
+msgid "Gewichtsstufe „%(row)s“ nicht erkannt."
+msgstr "Рівень ваги «%(row)s» не розпізнано."
+
+#: SHP-3
+msgid "Hinweis für Kunden (optional)"
+msgstr "Підказка для покупців (необов'язково)"
+
+#: SHP-3
+msgid "Höchstgewicht (kg)"
+msgstr "Максимальна вага (кг)"
+
+#: SHP-3
+msgid "Kostenlos ab"
+msgstr "Безкоштовно від"
+
+#: SHP-3
+msgid "Kostenlos ab (€)"
+msgstr "Безкоштовно від (€)"
+
+#: SHP-3
+msgid "Kunden holen selbst ab"
+msgstr "Покупці забирають самі"
+
+#: SHP-3
+msgid "Liefergebiet %(plz)s: Betrag nicht erkannt."
+msgstr "Зона доставки %(plz)s: суму не розпізнано."
+
+#: SHP-3
+msgid "Liefergebiete — eine pro Zeile: PLZ | Preis € | kostenlos ab € | Mindestwert €"
+msgstr "Зони доставки — по одній у рядку: індекс | ціна € | безкоштовно від € | мінімум €"
+
+#: SHP-3
+msgid "Lieferzeit (z. B. „2–4 Tage“)"
+msgstr "Термін доставки (наприклад, «2–4 дні»)"
+
+#: SHP-3
+msgid "Längste Seite höchstens (cm)"
+msgstr "Найдовша сторона не більше (см)"
+
+#: SHP-3
+msgid "Mindestbestellwert"
+msgstr "Мінімальна сума замовлення"
+
+#: SHP-3
+msgid "Mindestbestellwert (€)"
+msgstr "Мінімальна сума замовлення (€)"
+
+#: SHP-3
+msgid "Mindestens eine Versandart muss aktiv bleiben, sonst können Kunden nicht bestellen."
+msgstr "Хоча б один спосіб доставки має залишитися увімкненим, інакше покупці не зможуть замовити."
+
+#: SHP-3
+msgid "Name im Warenkorb (leer = automatisch)"
+msgstr "Назва в кошику (порожньо = автоматично)"
+
+#: SHP-3
+msgid "Nur in diese Gebiete liefern"
+msgstr "Доставляти лише в ці зони"
+
+#: SHP-3
+msgid "Optional. Eine passende Postleitzahl ersetzt Preis, „kostenlos ab“ und Mindestwert oben."
+msgstr "Необов'язково. Відповідний індекс замінює ціну, «безкоштовно від» і мінімум вище."
+
+#: SHP-3
+msgid "Pflichtangabe im Online-Handel. Bitte ohne „ca.“ oder „voraussichtlich“."
+msgstr "Обов'язково для онлайн-торгівлі (Німеччина). Без «приблизно» та «орієнтовно»."
+
+#: SHP-3
+msgid "Preis (pauschal, €)"
+msgstr "Ціна (фіксована, €)"
+
+#: SHP-3
+msgid "Preis nach Gewicht — eine Stufe pro Zeile: bis kg | Preis €"
+msgstr "Ціна за вагою — один рівень у рядку: до кг | ціна €"
+
+#: SHP-3
+msgid "Preis nach Gewicht"
+msgstr "Ціна за вагою"
+
+#: SHP-3
+msgid "Sie liefern selbst — nach Postleitzahl"
+msgstr "Ви доставляєте самі — за індексом"
+
+#: SHP-3
+msgid "So können Kunden ihre Bestellung bekommen. Die Reihenfolge gilt auch im Warenkorb."
+msgstr "Так покупці можуть отримати замовлення. Порядок такий самий і в кошику."
+
+#: SHP-3
+msgid "Sonst wird diese Versandart bei Sperrgut im Warenkorb nicht angeboten."
+msgstr "Інакше за великогабаритного товару в кошику цей спосіб не пропонується."
+
+#: SHP-3
+msgid "Verpackung (g, wird addiert)"
+msgstr "Пакування (г, додається)"
+
+#: SHP-3
+msgid "Versand mit DHL"
+msgstr "Доставка DHL"
+
+#: SHP-3
+msgid "Versandart"
+msgstr "Спосіб доставки"
+
+#: SHP-3
+msgid "Versandarten"
+msgstr "Способи доставки"
+
+#: SHP-3
+msgid "Versandarten verwalten"
+msgstr "Керувати способами доставки"
+
+#: SHP-3
+msgid "Versandart gespeichert."
+msgstr "Спосіб доставки збережено."
+
+#: SHP-3
+msgid "Versandart bearbeiten"
+msgstr "Змінити спосіб доставки"
+
+#: SHP-3
+msgid "Neue Versandart"
+msgstr "Новий спосіб доставки"
+
+#: SHP-3
+msgid "Versanddienst"
+msgstr "Служба доставки"
+
+#: SHP-3
+msgid "Welche Versandart möchten Sie hinzufügen?"
+msgstr "Який спосіб доставки додати?"
+
+#: SHP-3
+msgid "Zustellung"
+msgstr "Доставка"
+
+#: SHP-3
+msgid "an eine Abholstelle (Packstation, PaketShop)"
+msgstr "до пункту видачі (Packstation, PaketShop)"
+
+#: SHP-3
+msgid "ab %(eur)s € Bestellwert"
+msgstr "від %(eur)s € суми замовлення"
+
+#: SHP-3
+msgid "an Ihrer Adresse"
+msgstr "за вашою адресою"
+
+#: SHP-3
+msgid "kostenlos"
+msgstr "безкоштовно"
+
+#: SHP-3
+msgid "kostenlos ab %(eur)s €"
+msgstr "безкоштовно від %(eur)s €"
