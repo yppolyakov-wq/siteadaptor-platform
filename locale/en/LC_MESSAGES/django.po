@@ -35811,3 +35811,8 @@ msgstr "Order from the shop"
 #: PH-13a
 msgid "In %(label)s suchen …"
 msgstr "Search in %(label)s …"
+
+#: PH-13h
+msgctxt "payment"
+msgid "Vor Ort"
+msgstr "On site"

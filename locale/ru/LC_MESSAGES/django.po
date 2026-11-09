@@ -36146,3 +36146,8 @@ msgstr "Заказать у магазина"
 #: PH-13a
 msgid "In %(label)s suchen …"
 msgstr "Искать в разделе «%(label)s» …"
+
+#: PH-13h
+msgctxt "payment"
+msgid "Vor Ort"
+msgstr "На месте"

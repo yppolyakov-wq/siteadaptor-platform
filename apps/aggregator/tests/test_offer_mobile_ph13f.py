@@ -66,3 +66,12 @@ def test_share_button_is_hidden_until_the_browser_can_share():
     js = src[src.index("<script>") :]
     assert "navigator.share" in js and "b.hidden = false" in js
     assert "location.href" in js  # только адрес страницы, без данных посетителя
+
+
+def test_payment_on_site_is_not_the_in_person_inquiry_homonym():
+    from django.utils import translation
+
+    with translation.override("ru"):
+        facts = offer_facts.facts(_listing(action="reserve", tenant_schema="tp"))
+    pay = next(f for f in facts if f["key"] == "payment")
+    assert str(pay["value"]) == "На месте"  # не «Лично» — это источник заявки (jobs)

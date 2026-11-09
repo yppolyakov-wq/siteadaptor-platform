@@ -35957,3 +35957,8 @@ msgstr "İşletmeden sipariş verin"
 #: PH-13a
 msgid "In %(label)s suchen …"
 msgstr "%(label)s içinde ara …"
+
+#: PH-13h
+msgctxt "payment"
+msgid "Vor Ort"
+msgstr "Yerinde"

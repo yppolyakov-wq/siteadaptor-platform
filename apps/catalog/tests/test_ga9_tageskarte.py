@@ -20,15 +20,25 @@ from apps.tenants.tests.factories import TenantFactory
 
 pytestmark = pytest.mark.django_db
 
+
+@pytest.fixture(autouse=True)
+def _noon(monkeypatch):
+    """CI #3850: прогон у полуночи по Берлину ронял тесты «сегодня»."""
+    from apps.core.tests.clock import freeze_wednesday_noon
+
+    freeze_wednesday_noon(monkeypatch)
+
+
 TODAY = timezone.localdate()
 OTHER = (TODAY.weekday() + 1) % 7
 
 
 @pytest.fixture(autouse=True)
-def _fresh_today():
+def _fresh_today(_noon):  # после заморозки часов
     # Дата на каждый тест, не на импорт: прогон CI пересекает полночь по Берлину.
-    global TODAY
+    global TODAY, OTHER
     TODAY = timezone.localdate()
+    OTHER = (TODAY.weekday() + 1) % 7  # иначе после полуночи «другой» день = сегодняшний
 
 
 def _next(weekday):

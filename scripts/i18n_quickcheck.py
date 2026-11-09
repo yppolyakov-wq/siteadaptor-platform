@@ -28,17 +28,20 @@ TRANS = re.compile(r"{%\s*trans\s+([\"'])(.+?)\1")
 BLOCKTRANS = re.compile(r"{%\s*blocktrans[^%]*%}(.*?){%\s*endblocktrans\s*%}", re.S)
 # Python: _("…") / gettext("…") / gettext_lazy("…") — ТОЛЬКО строковый литерал
 # в одинарных кавычках без конкатенации (f-строки xgettext и так не берёт).
-PY_TRANS = re.compile(r"\b(?:_|gettext|gettext_lazy|pgettext|ngettext)\(\s*([\"'])(.+?)\1\s*[,)]")
+PY_TRANS = re.compile(r"\b(?:_|gettext|gettext_lazy|ngettext)\(\s*([\"'])(.+?)\1\s*[,)]")
 # Волна SH: длинная подсказка была РАЗБИТА на соседние литералы («…» «…»), и
 # проверка её не видела — msgid поймал только CI. Ловим склейку явно.
 PY_TRANS_JOINED = re.compile(
     # Литерал = две альтернативы по типу кавычки: тело исключает СВОЮ кавычку,
     # поэтому апостроф внутри двойных кавычек («we'll») склейку не рвёт, а
     # выражение не «перепрыгивает» через код между соседними строками.
-    r"\b(?:_|gettext|gettext_lazy|pgettext|ngettext)\(\s*"
+    r"\b(?:_|gettext|gettext_lazy|ngettext)\(\s*"
     r"((?:(?:\"(?:[^\"\\]|\\.)*\"|'(?:[^'\\]|\\.)*')\s*){2,})\)?",
     re.S,
 )
+# PH-13h: у pgettext(_lazy) первый литерал — КОНТЕКСТ, msgid — второй. Раньше
+# pgettext брался как gettext → контекст («payment») считался msgid (ложная тревога).
+PY_PTRANS = re.compile(r"\bpgettext(?:_lazy)?\(\s*([\"']).+?\1\s*,\s*([\"'])(.+?)\2\s*[,)]")
 LITERAL = re.compile(r"\"(?:[^\"\\]|\\.)*\"|'(?:[^'\\]|\\.)*'")
 # STU-15 (повтор класса DL-20): `_("…")` встречается и В ШАБЛОНАХ — в аргументах
 # `{% include … title=_("…") %}` и тегов. makemessages их берёт (templatize), а
@@ -103,6 +106,9 @@ def main(argv: list[str]) -> int:
                 if "%" in lit and "%(" not in lit:
                     lit = lit.replace("%", "%%")
                 wanted.add(lit)
+            for m in PY_PTRANS.finditer(src):
+                if "\\" not in m.group(3):
+                    wanted.add(m.group(3))
             for m in PY_TRANS.finditer(src):
                 lit = m.group(2)
                 if "\\" in lit:

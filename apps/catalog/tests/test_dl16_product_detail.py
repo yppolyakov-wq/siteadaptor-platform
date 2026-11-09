@@ -21,6 +21,14 @@ pytestmark = pytest.mark.django_db
 
 
 @pytest.fixture(autouse=True)
+def _noon(monkeypatch):
+    """CI #3850: прогон у полуночи по Берлину ронял тесты «сегодня»."""
+    from apps.core.tests.clock import freeze_wednesday_noon
+
+    freeze_wednesday_noon(monkeypatch)
+
+
+@pytest.fixture(autouse=True)
 def _urlconf(settings):
     settings.ROOT_URLCONF = "config.urls_tenant"
 

@@ -18,6 +18,14 @@ from apps.tenants.tests.factories import TenantFactory
 pytestmark = pytest.mark.django_db
 
 
+@pytest.fixture(autouse=True)
+def _noon(monkeypatch):
+    """CI #3850: прогон у полуночи по Берлину ронял тесты «сегодня»."""
+    from apps.core.tests.clock import freeze_wednesday_noon
+
+    freeze_wednesday_noon(monkeypatch)
+
+
 def _get(view, path, tenant):
     request = RequestFactory().get(path)
     request.session = import_module(dj_settings.SESSION_ENGINE).SessionStore()

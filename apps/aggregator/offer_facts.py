@@ -10,6 +10,7 @@
 from __future__ import annotations
 
 from django.utils.translation import gettext as _
+from django.utils.translation import pgettext
 
 #: способы, где покупатель платит в магазине при выдаче
 _PAY_ON_SITE = {"reserve", "coupon"}
@@ -33,7 +34,9 @@ def facts(listing) -> list[dict]:
     if how:
         out.append({"key": "how", "label": _("So bekommen Sie es"), "value": how})
     if action in _PAY_ON_SITE:
-        out.append({"key": "payment", "label": _("Bezahlung"), "value": _("Vor Ort")})
+        out.append(
+            {"key": "payment", "label": _("Bezahlung"), "value": pgettext("payment", "Vor Ort")}
+        )
     if getattr(listing, "availability", "") == "sold_out":
         out.append({"key": "stock", "label": _("Verfügbar"), "value": _("Ausverkauft")})
     else:

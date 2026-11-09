@@ -35898,3 +35898,8 @@ msgstr "Beim Geschäft bestellen"
 #: PH-13a
 msgid "In %(label)s suchen …"
 msgstr "In %(label)s suchen …"
+
+#: PH-13h
+msgctxt "payment"
+msgid "Vor Ort"
+msgstr "Vor Ort"

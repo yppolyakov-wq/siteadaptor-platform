@@ -18,6 +18,15 @@ from apps.tenants.onboarding_metrics import signup_funnel
 
 pytestmark = [pytest.mark.django_db, pytest.mark.urls("config.urls_public")]
 
+
+@pytest.fixture(autouse=True)
+def _noon(monkeypatch):
+    """CI #3850: прогон у полуночи по Берлину ронял тесты «сегодня»."""
+    from apps.core.tests.clock import freeze_wednesday_noon
+
+    freeze_wednesday_noon(monkeypatch)
+
+
 FORM = {
     "business_name": "Bioladen Mitte",
     "slug": "fb26c-bio",
