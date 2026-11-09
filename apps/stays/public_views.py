@@ -90,21 +90,12 @@ def _parse_rooms(params, unit):
     return max(1, min(n, unit.quantity))
 
 
+# 2026-11-09: расчёт «ab …» переехал в pricing — его же зовёт каталог города
+# (from_price.py), одна формула для витрины отеля и портала.
 def _occupancy_kwargs(unit, von, bis) -> dict:
-    """PMS-D: kwargs динамической цены для quote_total_cents.
+    from . import pricing
 
-    {} пока правила не заведены (цена байт-в-байт прежняя); включает ТОЛЬКО
-    витрина — стойка/reprice кабинета остаются на базовой цене (план
-    pms-d-occupancy-pricing-plan-2026-07-28)."""
-    from .models import StaySettings
-
-    rules = StaySettings.load().clean_occupancy_rules()
-    if not rules:
-        return {}
-    return {
-        "occupancy_rules": rules,
-        "occupancy_by_day": availability.occupancy_by_day(unit, von, bis),
-    }
+    return pricing.occupancy_kwargs(unit, von, bis)
 
 
 def _quote(unit, von, bis, guests, rooms=1):
@@ -127,32 +118,9 @@ def _quote(unit, von, bis, guests, rooms=1):
 
 
 def _unit_from_price_cents(unit, von, bis, rate_plans):
-    """Минимальная цена за диапазон (H2): дешевейший тариф, иначе база (H1).
-    G4: применяем авто-скидку (LOS/Frühbucher/Last-Minute), чтобы «ab … €» в поиске
-    отражала реальную к оплате цену проживания."""
     from . import pricing
 
-    occ = _occupancy_kwargs(unit, von, bis)  # PMS-D: честная «ab …» при спросе
-    if rate_plans:
-        room = min(
-            pricing.quote_total_cents(unit, von, bis, rate_plan=rp, **occ) for rp in rate_plans
-        )
-    else:
-        room = pricing.quote_total_cents(unit, von, bis, **occ)
-    # P6 «ценовой слой»: акция на номер участвует и в «ab …» поиска/листинга —
-    # тот же кандидат, что спишет book_stay.
-    from apps.promotions.price_layer import stay_promo as _stay_promo
-
-    promo_hit = _stay_promo(unit, von)
-    auto_cents, _label = pricing.auto_discount(
-        room,
-        (bis - von).days,
-        von,
-        unit=unit,
-        departure=bis,
-        extra=[(promo_hit[1], promo_hit[2])] if promo_hit else None,
-    )
-    return room - auto_cents
+    return pricing.from_price_cents(unit, von, bis, rate_plans)
 
 
 def _is_embed(request):

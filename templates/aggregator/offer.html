@@ -52,7 +52,9 @@
     </div>
     {% if listing.new_price is not None %}
       <div class="mt-4 flex items-baseline gap-3" data-offer-price>
-        <span class="text-3xl font-bold">{{ listing.new_price }} {{ listing.currency|currency_sign }}</span>
+        {% comment %}2026-11-09: та же подпись цены, что в карточке выдачи — «ab … / Nacht» у номера,
+        «ab» у набора, «/ Person» у услуги за человека (голая цифра читалась как цена номера целиком).{% endcomment %}
+        <span class="text-3xl font-bold">{% if listing.listing_kind == 'stay' or listing.listing_kind == 'menu' %}{% trans "from" %} {% endif %}{{ listing.new_price }} {{ listing.currency|currency_sign }}</span>{% if listing.listing_kind == 'stay' %}<span class="text-sm text-gray-500" data-offer-price-unit>/ {% trans "night" %}</span>{% elif listing.price_per_person %}<span class="text-sm text-gray-500" data-offer-price-unit>/ {% if listing.listing_kind == 'menu' %}{% trans "Gast" %}{% else %}{% trans "Person" %}{% endif %}</span>{% endif %}
         {% if listing.old_price and listing.old_price > listing.new_price %}{% if listing.price_reference == "uvp" %}<span class="text-sm text-gray-400">{% trans "UVP" %}</span> {% endif %}<span class="text-lg text-gray-400 line-through">{{ listing.old_price }} {{ listing.currency|currency_sign }}</span>{% endif %}
       </div>
       {% if listing.price_reference == "lowest30" and listing.old_price %}
@@ -76,7 +78,7 @@
       {% comment %}PH-13g (M8): тот же единственный CTA — на телефоне в закреплённой панели снизу
       вместе с ценой; на md+ — в потоке, как раньше.{% endcomment %}
       <div data-offer-buybar class="max-md:fixed max-md:inset-x-0 max-md:bottom-0 max-md:z-30 max-md:bg-white max-md:border-t max-md:border-gray-200 max-md:px-4 max-md:pt-3 max-md:pb-[max(.75rem,env(safe-area-inset-bottom))] max-md:shadow-[0_-6px_18px_rgba(0,0,0,.08)] max-md:flex max-md:items-center max-md:gap-3">
-        {% if listing.new_price is not None %}<span class="md:hidden shrink-0 text-xl font-extrabold whitespace-nowrap">{{ listing.new_price }} {{ listing.currency|currency_sign }}</span>{% endif %}
+        {% if listing.new_price is not None %}<span class="md:hidden shrink-0 text-xl font-extrabold whitespace-nowrap">{% if listing.listing_kind == 'stay' or listing.listing_kind == 'menu' %}{% trans "from" %} {% endif %}{{ listing.new_price }} {{ listing.currency|currency_sign }}{% if listing.listing_kind == 'stay' %}<span class="text-xs font-medium text-gray-500"> / {% trans "night" %}</span>{% endif %}</span>{% endif %}
         {% url 'aggregator-outbound' listing.pk as out_url %}
         <a href="{{ out_url|default:listing.portal_url }}" rel="nofollow" data-offer-cta
            class="block w-full max-md:flex-1 max-md:min-w-0 max-md:truncate text-center rounded-xl bg-gray-900 text-white px-5 py-3 font-semibold hover:bg-gray-800">{% blocktrans with name=listing.business_name %}Zum Angebot bei {{ name }} →{% endblocktrans %}</a>

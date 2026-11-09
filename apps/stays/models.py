@@ -8,6 +8,8 @@
 Stripe-Connect-оплату (P2.5b/c), finance, notifications и реестр модулей.
 """
 
+import contextlib
+import contextvars
 from decimal import Decimal
 
 from django.db import models
@@ -17,6 +19,11 @@ from apps.core import payment_methods
 from apps.core.models import I18nMixin, TimestampedModel
 from apps.promotions.models import Customer
 from apps.secrets.fields import EncryptedTextField
+
+# 2026-11-09: память StaySettings.load() на время StaySettings.memo() (расчёт «ab»).
+_SETTINGS_MEMO: contextvars.ContextVar[dict | None] = contextvars.ContextVar(
+    "stays_settings_memo", default=None
+)
 
 # H3: каталог удобств номера (key, метка DE, эмодзи) — чек-лист на юните,
 # иконки на витрине. Узкий фиксированный список под малый отель DACH.
@@ -821,7 +828,29 @@ class StaySettings(I18nMixin, TimestampedModel):
 
     @classmethod
     def load(cls):
-        """Единственная строка настроек схемы (создаёт дефолтную при первом обращении)."""
+        """Единственная строка настроек схемы (создаёт дефолтную при первом обращении).
+
+        2026-11-09: внутри ``StaySettings.memo()`` (расчёт «ab» каталога города по
+        десяткам заездов) — одна строка на весь расчёт вместо трёх запросов на заезд.
+        Вне контекста — всегда свежее чтение (бронь, кабинет)."""
+        memo = _SETTINGS_MEMO.get()
+        if memo is not None:
+            if "obj" not in memo:
+                memo["obj"] = cls._load()
+            return memo["obj"]
+        return cls._load()
+
+    @classmethod
+    @contextlib.contextmanager
+    def memo(cls):
+        token = _SETTINGS_MEMO.set({})
+        try:
+            yield
+        finally:
+            _SETTINGS_MEMO.reset(token)
+
+    @classmethod
+    def _load(cls):
         obj = cls.objects.first()
         if obj is None:
             obj = cls.objects.create()

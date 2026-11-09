@@ -49,6 +49,17 @@ class AggregatorConfig(AppConfig):
         )
         post_save.connect(resync_on_event_save, sender=Event, dispatch_uid="agg_resync_event_save")
 
+        # 2026-11-09: честная «ab … / Nacht» номера зависит от сезонов, тарифов, цен по
+        # дням, броней и блокировок — их правка пересчитывает номера схемы (окно 30 с).
+        from apps.stays.models import NightRate, RatePlan, SeasonRate, StayBooking, UnitBlock
+
+        from .stay_reprice import on_change as stay_price_changed
+
+        for model in (SeasonRate, RatePlan, NightRate, StayBooking, UnitBlock):
+            uid = f"agg_stay_reprice_{model.__name__.lower()}"
+            post_save.connect(stay_price_changed, sender=model, dispatch_uid=f"{uid}_save")
+            post_delete.connect(stay_price_changed, sender=model, dispatch_uid=f"{uid}_delete")
+
         # MEN-5: наборы меню (Combo) — правка самого набора И его состава
         # (группы/опции правятся гранулярно → пересинк родителя, dedupe по id).
         from apps.catalog.models import Combo, ComboGroup, ComboOption

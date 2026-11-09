@@ -441,6 +441,11 @@ def apply_plan(
         for unit_id, del_days in to_delete.items():
             NightRate.objects.filter(unit_id=unit_id, day__in=del_days).delete()
         counts = plan.counts()
+        # 2026-11-09: массовая запись (bulk_create) сигналов не шлёт — честная «ab» номеров
+        # в каталоге города пересчитывается явно (один проход на окно, после коммита).
+        from apps.aggregator.stay_reprice import schedule as _reprice_city
+
+        _reprice_city()
         # Свой savepoint: сбой INSERT аудита иначе пометил бы внешнюю транзакцию
         # needs_rollback — правка цен молча откатилась бы при «успешном» ответе.
         with transaction.atomic():

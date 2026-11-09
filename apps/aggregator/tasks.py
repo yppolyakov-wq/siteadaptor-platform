@@ -7,6 +7,7 @@ archived → remove). Резистентна к отсутствию акции/
 """
 
 import logging
+import re
 from decimal import Decimal
 
 from celery import shared_task
@@ -19,6 +20,42 @@ logger = logging.getLogger(__name__)
 
 # = AggregatorListing.AVAILABILITY_SOLD_OUT (модель импортируется в задачах лениво).
 AVAILABILITY_SOLD_OUT = "sold_out"
+
+
+# 2026-11-09 (фидбэк владельца «описание не попадает в портал»): описание предложения
+# копируется ПОЛНОСТЬЮ на всех языках (было — первые 300 знаков и у номеров/событий только
+# немецкий). Разметка rich-text (SR-3) снимается: портал выводит текст как текст.
+# Потолок — защита индекса поиска и фида от «простыни», а не обрезка обычного описания.
+TEASER_MAX = 2000
+
+
+def _plain(text) -> str:
+    import html as _html
+
+    from django.utils.html import strip_tags
+
+    raw = str(text or "")
+    if "<" in raw:
+        raw = re.sub(r"(?i)<br\s*/?>|</(p|li|h[1-6]|div)>", "\n", raw)
+        raw = _html.unescape(strip_tags(raw))
+    lines = [" ".join(line.split()) for line in raw.replace("\r", "").split("\n")]
+    text = re.sub(r"\n{3,}", "\n\n", "\n".join(lines)).strip()
+    if len(text) > TEASER_MAX:
+        cut = text[:TEASER_MAX]
+        text = (cut.rsplit(" ", 1)[0] if " " in cut[-80:] else cut).rstrip() + " …"
+    return text
+
+
+def _description_i18n(value) -> dict:
+    """{язык: текст} для каталога города: все языки, без HTML, до TEASER_MAX."""
+    if not isinstance(value, dict):
+        return {}
+    out = {}
+    for code, text in value.items():
+        clean = _plain(text)
+        if clean:
+            out[code] = clean
+    return out
 
 
 # В2/В4: поля, которые пишет КАЖДЫЙ построитель снимка. `_upsert_listing` сравнивает только
@@ -82,7 +119,7 @@ def _snapshot(promotion_id, tenant=None):
     return {
         "status": promo.status,
         "title": promo.title or {},
-        "teaser": promo.description or {},
+        "teaser": _description_i18n(promo.description),
         "image": promo.primary_image or {},
         "currency": promo.currency,
         # SF-7: цена сравнения — только если снижение законно объявить (§11 PAngV).
@@ -384,19 +421,23 @@ def sync_aggregator_listing(*, tenant_schema, promotion_id):
 def _stay_snapshot(unit_id):
     """Снимок юнита размещения в ТЕКУЩЕЙ (tenant) схеме → dict или None.
 
-    Листим, только пока юнит активен (is_active). Цена — «ab price_cents/Nacht»
-    (минимальная база; сезон/выходные считаются на витрине при выборе дат)."""
+    Листим, только пока юнит активен (is_active). Цена (2026-11-09) — честная
+    «ab … / Nacht»: минимум за ночь среди реально бронируемых заездов ближайших дней
+    тем же расчётом, что витрина отеля (`stays.from_price`); ничего не бронируется →
+    без цены (а не устаревшая базовая цифра)."""
     from decimal import Decimal
 
+    from apps.stays.from_price import lowest_nightly_cents
     from apps.stays.models import StayUnit
 
-    unit = StayUnit.objects.filter(id=unit_id).first()
+    unit = StayUnit.objects.filter(id=unit_id).prefetch_related("season_rates").first()
     if unit is None or not unit.is_active:
         return None
+    lowest = lowest_nightly_cents(unit)
     return {
-        "title": {"de": unit.name},
-        "teaser": {"de": (unit.description or "")[:300]} if unit.description else {},
-        "new_price": (Decimal(unit.price_cents) / 100) if unit.price_cents else None,
+        "title": unit.name_i18n_full,
+        "teaser": _description_i18n(unit.description_i18n_full),
+        "new_price": (Decimal(lowest) / 100) if lowest else None,
         "image_url": unit.image_url,
     }
 
@@ -446,6 +487,23 @@ def sync_stay_listing(tenant_schema, unit_id) -> str:
 
 
 @idempotent_task()
+def reprice_stay_listings(*, tenant_schema):
+    """2026-11-09: пересчитать честную «ab» всех активных номеров схемы (stay_reprice)."""
+    from apps.tenants.models import Tenant
+
+    tenant = Tenant.objects.filter(schema_name=tenant_schema).first()
+    if tenant is None or not tenant.is_module_active("stays"):
+        return {"result": "skipped"}
+    from apps.stays.models import StayUnit
+
+    with schema_context(tenant_schema):
+        ids = [str(i) for i in StayUnit.objects.filter(is_active=True).values_list("id", flat=True)]
+    for unit_id in ids:
+        sync_stay_listing(tenant_schema, unit_id)
+    return {"result": len(ids)}
+
+
+@idempotent_task()
 def sync_aggregator_stay(*, tenant_schema, unit_id):
     """Beat/hook: материализовать листинг размещения в агрегаторе."""
     return {"result": sync_stay_listing(tenant_schema, unit_id)}
@@ -465,8 +523,8 @@ def _event_snapshot(event_id):
     if event is None or not event.is_published or event.starts_at < timezone.now():
         return None
     return {
-        "title": {"de": event.title},
-        "teaser": {"de": (event.description or "")[:300]} if event.description else {},
+        "title": event.i18n_full("title", "title_i18n"),
+        "teaser": _description_i18n(event.i18n_full("description", "description_i18n")),
         "new_price": (Decimal(event.price_cents) / 100) if event.price_cents else None,
         "starts_at": event.starts_at,
         "ends_at": event.ends_at,
@@ -984,7 +1042,7 @@ def _menu_snapshot(combo_id):
         diets = dish_diets if diets is None else (diets & dish_diets)
     return {
         "title": {"de": combo.name, **(combo.name_i18n or {})},
-        "teaser": ({"de": combo.description[:300]} if combo.description else {}),
+        "teaser": _description_i18n(combo.i18n_full("description", "description_i18n")),
         "new_price": price or None,
         "currency": combo.currency or "EUR",
         "image": (combo.images or [{}])[0] if combo.images else {},
@@ -1261,7 +1319,7 @@ def _product_snapshot(product_id):
         "external_url": product.external_url,
         "variant_terms": _variant_terms(product),
         "title": {**(product.name or {})},
-        "teaser": {k: str(v)[:300] for k, v in (product.description or {}).items() if v},
+        "teaser": _description_i18n(product.description),
         "image": image,
         "currency": product.currency or "EUR",
         "new_price": price,
@@ -1358,7 +1416,7 @@ def _service_snapshot(service_id):
     teaser = service.description_i18n_full
     return {
         "title": service.name_i18n_full,
-        "teaser": {k: str(v)[:300] for k, v in (teaser or {}).items() if v},
+        "teaser": _description_i18n(teaser),
         "image": image,
         "new_price": (
             (Decimal(service.price_cents) / 100).quantize(Decimal("0.01"))
@@ -1432,7 +1490,7 @@ def _business_text(tenant) -> dict:
     """Описание предприятия: «Über uns» витрины, иначе подзаголовок баннера."""
     config = tenant.site_config or {}
     text = (config.get("about_text") or config.get("hero_text") or "").strip()
-    return {"de": text[:300]} if text else {}
+    return _description_i18n({"de": text})
 
 
 def sync_business_listing(tenant_schema) -> str:

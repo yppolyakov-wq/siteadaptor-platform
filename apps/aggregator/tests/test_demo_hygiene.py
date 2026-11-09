@@ -299,3 +299,16 @@ def test_demo_notice_is_dismissible_popup_without_cookie():
     assert "data-[toast]:fixed" in html and "portal:demoNoticeClosed" in html
     assert "localStorage" in html and "document.cookie" not in html
     assert not resp.cookies
+
+
+@override_settings(ROOT_URLCONF="config.urls_public")
+def test_offer_page_stay_price_reads_from_per_night():
+    """2026-11-09: на странице предложения у номера — «ab … / Nacht», как в карточке
+    выдачи (голая цифра читалась как цена номера целиком)."""
+    from decimal import Decimal
+
+    stay = _listing(listing_kind=AggregatorListing.KIND_STAY, new_price=Decimal("79"))
+    html = _html(views.offer_page(_get(f"/entdecken/angebot/{stay.pk}/"), stay.pk))
+    assert "data-offer-price-unit" in html
+    price = html[html.index("data-offer-price>") :][:600]
+    assert "79" in price and ("ab " in price or "from " in price)
