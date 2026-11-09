@@ -142,17 +142,31 @@ def map_points(cards) -> list:
     ]
 
 
+VIEW_MODES = ("liste", "karte")
+
+
+def view_mode(request) -> str:
+    """PH-14: вид выдачи из `?ansicht=` — "" (Kacheln), "liste" или "karte"; мусор = Kacheln."""
+    v = (request.GET.get("ansicht") or "").strip()
+    return v if v in VIEW_MODES else ""
+
+
 def map_view(request) -> dict:
     """Блок Б2: список по умолчанию, карта — по кнопке или `?ansicht=karte`.
 
-    Ссылки переключателя сохраняют текущий запрос (без курсора листания);
-    признаётся только значение `karte`, мусор = список."""
+    PH-14: три вида — Kacheln (без параметра), Liste (`ansicht=liste`, строки), Karte. Ссылки
+    переключателя сохраняют текущий запрос (без курсора листания); мусор = Kacheln."""
     from urllib.parse import urlencode
 
     params = [(k, x) for k, values in request.GET.lists() for x in values]
     keep = [(k, v) for k, v in params if k not in ("ansicht", "cursor")]
+    mode = view_mode(request)
+    grid_url = "?" + urlencode(keep) if keep else "?"
     return {
-        "open": request.GET.get("ansicht") == "karte",
-        "list_url": "?" + urlencode(keep) if keep else "?",
+        "mode": mode,
+        "open": mode == "karte",
+        "list_url": grid_url,  # легаси-имя (_map.html вне панели PH-14): «без карты»
+        "grid_url": grid_url,
+        "rows_url": "?" + urlencode(keep + [("ansicht", "liste")]),
         "map_url": "?" + urlencode(keep + [("ansicht", "karte")]),
     }

@@ -1,4 +1,6 @@
 {% load i18n sf_map %}{# Карта листингов (G8c): ожидает map_points (list) + near_active + map_view (блок Б2). Подложка — В3 sf_map_loader. #}
+{% comment %}PH-14: в выдаче с панелью фильтров переключатель вида и «рядом» живут в панели.{% endcomment %}
+{% if not map_toggle_in_bar %}
 <div class="mb-4 flex flex-wrap items-center gap-3">
   {% if map_points and map_view %}
   {% comment %}Блок Б2: список по умолчанию, карта — по кнопке (без JS — ссылкой ?ansicht=karte).
@@ -11,6 +13,7 @@
   <button type="button" id="agg-near-me" class="hidden text-sm font-medium rounded-lg px-4 py-2 bg-white border border-gray-300 hover:border-indigo-400">📍 {% trans "Near me" %}</button>
   {% if near_active %}<a href="?" class="text-sm text-gray-500 hover:underline">{% trans "Reset" %}</a>{% endif %}
 </div>
+{% endif %}
 {% if map_points %}
   <div id="agg-map" data-sf-map class="{% if map_view and not map_view.open %}hidden {% endif %}w-full h-72 rounded-2xl overflow-hidden mb-6 relative z-0" data-down-text="{% trans "Karte nicht verfügbar" %}"{% if not map_view or map_view.open %} data-map-open{% endif %}></div>
   {{ map_points|json_script:"agg-map-data" }}

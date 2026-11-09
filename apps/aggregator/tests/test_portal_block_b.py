@@ -124,7 +124,8 @@ def test_map_is_hidden_by_default_and_leaflet_not_loaded():
     html = _html(p, "/stadtteil/wald/", district="wald")
     assert 'src="https://unpkg.com/leaflet' not in html  # Leaflet грузится только по клику
     assert 'id="agg-map-data"' in html
-    assert "data-map-toggle" in html
+    # PH-14: на странице с панелью фильтров переключатель вида — в панели (Kacheln/Liste/Karte)
+    assert 'data-view="karte"' in html and "data-map-toggle" not in html
     assert "data-map-open" not in html
 
 

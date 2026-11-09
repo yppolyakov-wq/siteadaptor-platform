@@ -36143,3 +36143,11 @@ msgstr "На місці"
 msgctxt "badge"
 msgid "Neu"
 msgstr "Новинка"
+
+#: PH-14
+msgid "Alle löschen"
+msgstr "Скинути все"
+
+#: PH-14
+msgid "„%(q)s“"
+msgstr "«%(q)s»"

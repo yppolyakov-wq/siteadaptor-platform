@@ -386,4 +386,35 @@
     if (desktop.matches && fltLayout()) setCollapsed(false, false);
     else openDrawer("", null);
   }
+
+  // ---- PH-14: сортировка в панели — сразу при выборе (кнопка «OK» остаётся только без JS).
+  // «In der Nähe» без точки: берём геопозицию и дописываем lat/lng; отказ — выбор откатывается.
+  document.querySelectorAll("form[data-flt-sort]").forEach(function (form) {
+    var ok = form.querySelector("[data-flt-sort-submit]");
+    if (ok) ok.hidden = true;
+    var sel = form.querySelector("[data-sort-select]");
+    if (!sel) return;
+    var prev = sel.value;
+    sel.addEventListener("change", function () {
+      var needs = form.getAttribute("data-needs-point");
+      if (needs && sel.value === needs) {
+        if (!navigator.geolocation) { sel.value = prev; return; }
+        navigator.geolocation.getCurrentPosition(function (pos) {
+          [["lat", pos.coords.latitude], ["lng", pos.coords.longitude]].forEach(function (kv) {
+            var inp = form.querySelector('input[name="' + kv[0] + '"]');
+            if (!inp) {
+              inp = document.createElement("input");
+              inp.type = "hidden";
+              inp.name = kv[0];
+              form.appendChild(inp);
+            }
+            inp.value = kv[1].toFixed(5);
+          });
+          form.submit();
+        }, function () { sel.value = prev; });
+        return;
+      }
+      form.submit();
+    });
+  });
 })();

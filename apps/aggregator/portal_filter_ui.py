@@ -51,8 +51,8 @@ def state_params(request, *, scope, q, filters, area, point) -> list[tuple[str, 
     if point is not None:
         out += geo.carry(*point)
     out += [("roh", v) for v in request.GET.getlist("roh") if v == "ort"]
-    if request.GET.get("ansicht") == "karte":
-        out.append(("ansicht", "karte"))
+    if geo.view_mode(request):  # PH-14: вид (Liste/Karte) переживает фильтры
+        out.append(("ansicht", geo.view_mode(request)))
     out += hotel_params(request)
     return out
 
@@ -225,11 +225,11 @@ def build(
     hidden = [(k, v) for k, v in params if k not in drawer_keys]
     sort_hidden = [(k, v) for k, v in params if k != "sort"]
     price_hidden = [(k, v) for k, v in params if k not in ("preis_von", "preis_bis")]
-    sorts = [("", _("Relevanz") if q else _("Standard"))] + [
-        (k, label)
-        for k, label in search_engine.SORT_LABELS.items()
-        if k != "naehe" or point is not None
-    ]
+    # PH-14: «In der Nähe» — всегда пункт сортировки (вместо отдельной кнопки «In meiner Nähe»):
+    # без точки скрипт берёт геолокацию и дописывает lat/lng; без JS/разрешения сервер
+    # «naehe» без точки игнорирует (search.parse) — выдача просто прежняя.
+    sorts = [("", _("Relevanz") if q else _("Standard"))] + list(search_engine.SORT_LABELS.items())
+    sort_label = dict(sorts).get(filters.sort or "", sorts[0][1])
     # «Branche» — ссылками: отрасль задаётся путём, GET-форма её не выразит (§13.9).
     branches = []
     if axis == "business_type" and facets:
@@ -262,6 +262,7 @@ def build(
         "open_pill": open_pill,
         "filters": filters,
         "sorts": sorts,
+        "sort_label": sort_label,
         "has_point": point is not None,
         "radius_choices": geo.RADIUS_CHOICES,
         "branches": branches,

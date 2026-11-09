@@ -826,6 +826,10 @@ def portal_home(request, facet=None, district=None):
             "hits": hits,
             "hits_capped": hits_capped,
             "map_view": geo.map_view(request),  # блок Б2
+            # PH-14: «Liste» — строки на всех ширинах; поиск на телефоне — строки (PH-13d)
+            "cards_layout": (
+                "rows" if geo.view_mode(request) == "liste" else ("list" if q else "")
+            ),
             "category_chips": category_chips,  # T-8.13a
             "kind_chips": kind_chips,  # T-8.11
             "portal_tabs": portal_tabs,  # T-8.19
@@ -864,7 +868,7 @@ def portal_home(request, facet=None, district=None):
                 ]
                 + search_engine.carry(q, filters)
                 + geo_carry
-                + ([("ansicht", "karte")] if request.GET.get("ansicht") == "karte" else [])
+                + ([("ansicht", geo.view_mode(request))] if geo.view_mode(request) else [])
             ),
             # T-8.15: портал показывает демо-бизнесы — честная полоса «Vorschau».
             "shows_demo": portal.show_demo

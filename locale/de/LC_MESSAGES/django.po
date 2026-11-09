@@ -35908,3 +35908,11 @@ msgstr "Vor Ort"
 msgctxt "badge"
 msgid "Neu"
 msgstr "Neu"
+
+#: PH-14
+msgid "Alle löschen"
+msgstr "Alle löschen"
+
+#: PH-14
+msgid "„%(q)s“"
+msgstr "„%(q)s“"

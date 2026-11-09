@@ -35967,3 +35967,11 @@ msgstr "Yerinde"
 msgctxt "badge"
 msgid "Neu"
 msgstr "Yeni"
+
+#: PH-14
+msgid "Alle löschen"
+msgstr "Tümünü temizle"
+
+#: PH-14
+msgid "„%(q)s“"
+msgstr "“%(q)s”"

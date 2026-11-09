@@ -1,5 +1,8 @@
 {% load i18n %}{% comment %}T-8.10d: подписка на набор фильтров выдачи — ССЫЛКА (GET), кэш P0-1. Ожидает search_follow (follow.Target) и search_follow_qs.{% endcomment %}
-{% if search_follow %}
+{% if search_follow and compact %}
+{% comment %}PH-14: значок у заголовка выдачи (имя — sr-only + title; что именно — в подписи ссылки).{% endcomment %}
+<a href="{% url 'aggregator-follow' %}?{{ search_follow_qs }}&next={{ request.get_full_path|urlencode }}" rel="nofollow" data-search-follow title="{% trans "Benachrichtigen, wenn es so etwas gibt" %}: {{ search_follow.label }}" class="inline-flex items-center justify-center h-11 w-11 rounded-full border border-gray-300 bg-white text-gray-800 hover:border-gray-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M6 16V11a6 6 0 1 1 12 0v5l1.5 2h-15zM10 20a2 2 0 0 0 4 0"></path></svg><span class="sr-only">{% trans "Benachrichtigen, wenn es so etwas gibt" %}: {{ search_follow.label }}</span></a>
+{% elif search_follow %}
 <p class="mb-4 flex flex-wrap items-center gap-2 text-sm" data-search-follow>
   <a href="{% url 'aggregator-follow' %}?{{ search_follow_qs }}&next={{ request.get_full_path|urlencode }}" rel="nofollow" class="inline-flex items-center gap-1 rounded-full border border-gray-300 bg-white px-3 py-1.5 font-medium hover:border-gray-500">🔔 {% trans "Benachrichtigen, wenn es so etwas gibt" %}</a>
   <span class="text-gray-500">{{ search_follow.label }}</span>

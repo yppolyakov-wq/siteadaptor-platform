@@ -27,13 +27,12 @@ def test_filter_bar_is_sticky_only_on_phones():
     assert " sticky" not in bar.replace("max-md:sticky", "")
 
 
-def test_count_and_sort_stay_on_one_row_on_phones():
+def test_sort_lives_in_the_toolbar_row_with_an_accessible_name():
+    """PH-14: сортировка — в той же строке, что фильтры; подпись — только для читалок."""
     src = (TPL / "_portal_filter_bar.html").read_text()
-    sort = src[
-        src.index("data-flt-sort>") - 200 : src.index("</form>", src.index("data-flt-sort>"))
-    ]
-    assert 'for="flt-sort" class="max-sm:sr-only' in sort  # подпись — только для читалок
-    assert "max-sm:flex-nowrap" in src
+    bar = src[src.index("<div data-flt-bar") : src.index("data-flt-applied")]
+    assert "data-flt-sort" in bar and "data-view-switch" in bar
+    assert '<span class="sr-only">{% trans "Sortieren" %}</span>' in bar
 
 
 def test_ok_button_is_not_translated_as_a_word_of_approval():

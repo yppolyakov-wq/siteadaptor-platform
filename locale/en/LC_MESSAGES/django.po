@@ -35821,3 +35821,11 @@ msgstr "On site"
 msgctxt "badge"
 msgid "Neu"
 msgstr "New"
+
+#: PH-14
+msgid "Alle löschen"
+msgstr "Clear all"
+
+#: PH-14
+msgid "„%(q)s“"
+msgstr "“%(q)s”"
