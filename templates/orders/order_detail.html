@@ -152,11 +152,13 @@ Netto. Теперь тот же общий партиал, что у остал�
   сам является настройкой заказа (владелец меняет «Abholung ⇄ Lieferung»).{% endcomment %}
   <div class="ui-card p-5" data-deal-block="delivery">
     <p class="text-xs font-medium text-gray-500 mb-2">{% if order.is_delivery %}🚚 {% trans "Delivery" %}{% else %}📍 {% trans "Abholung" %}{% endif %}</p>
+    {% if order.shipping_label %}<p class="text-sm font-medium text-gray-800" data-shipping-label>{{ order.shipping_label }}</p>{% endif %}
     {% if order.pickup_location %}<p class="text-sm text-gray-600">{{ order.pickup_location }}</p>{% endif %}
     {% if order.pickup_slot and not order.is_delivery %}<p class="text-sm font-medium text-gray-800" data-pickup-slot>🕒 {{ order.pickup_slot|date:"D d.m., H:i" }}</p>{% endif %}
     {% if order.is_delivery %}
       {% if order.shipping_address %}<p class="text-sm text-gray-600 whitespace-pre-line">{{ order.shipping_address }}</p>{% endif %}
-      {% if order.tracking_code %}<p class="text-sm text-gray-500 mt-2">{% trans "Tracking" %}: <span class="font-mono">{{ order.tracking_code }}</span></p>{% endif %}
+      {% if order.shipping_weight_g %}<p class="text-xs text-gray-500 mt-1">{% blocktrans with g=order.shipping_weight_g %}Gewicht: {{ g }} g{% endblocktrans %}</p>{% endif %}
+      {% if order.tracking_code %}<p class="text-sm text-gray-500 mt-2">{% trans "Tracking" %}: {% if order.tracking_url %}<a href="{{ order.tracking_url }}" target="_blank" rel="noopener" class="font-mono underline">{{ order.tracking_code }}</a>{% else %}<span class="font-mono">{{ order.tracking_code }}</span>{% endif %}</p>{% endif %}
       {% if order.shipped_at %}<p class="text-xs text-gray-400 mt-1">{% trans "Shipped" %}: {{ order.shipped_at }}</p>{% endif %}
     {% endif %}
     {% if editable %}

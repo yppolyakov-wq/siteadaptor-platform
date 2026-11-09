@@ -35913,3 +35913,43 @@ msgstr "Shipping weight (g)"
 #: SHP-1b
 msgid "g"
 msgstr "g"
+
+#: SHP-2
+msgid "Abholstelle"
+msgstr "Pickup point"
+
+#: SHP-2
+msgid "Abholstelle finden"
+msgstr "Find a pickup point"
+
+#: SHP-2
+msgid "Bitte geben Sie die Abholstelle an (Nummer, PLZ und Ort)."
+msgstr "Please enter the pickup point (number, postal code and city)."
+
+#: SHP-2
+msgid "Bitte wählen Sie, wie Sie die Bestellung erhalten möchten."
+msgstr "Please choose how you would like to receive your order."
+
+#: SHP-2
+msgid "DHL-PostNummer (für die Packstation)"
+msgstr "DHL PostNumber (for the Packstation)"
+
+#: SHP-2
+msgid "Diese Versandart ist für Ihre Bestellung leider nicht möglich."
+msgstr "Unfortunately, this shipping method is not available for your order."
+
+#: SHP-2
+msgid "Für die Packstation brauchen wir Ihre DHL-PostNummer."
+msgstr "For the Packstation we need your DHL PostNumber."
+
+#: SHP-2
+msgid "Gewicht: %(g)s g"
+msgstr "Weight: %(g)s g"
+
+#: SHP-2
+msgid "Nummer der Abholstelle"
+msgstr "Pickup point number"
+
+#: SHP-2
+msgid "Sendung verfolgen"
+msgstr "Track shipment"

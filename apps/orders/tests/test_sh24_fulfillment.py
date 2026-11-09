@@ -91,7 +91,10 @@ def test_delivery_is_fail_closed_without_the_setting():
 
 
 def test_context_is_empty_without_delivery():
-    assert delivery_choice.context(_tenant()) == {"delivery_enabled": False}
+    # SHP-2: контекст несёт и список способов — без доставки в нём только самовывоз
+    empty = delivery_choice.context(_tenant())
+    assert not empty["delivery_enabled"]
+    assert [o["kind"] for o in empty["shipping_options"]] == ["pickup"]
     ctx = delivery_choice.context(_delivery_tenant())
     assert ctx["delivery_enabled"] and ctx["delivery_fee_eur"] == "3.50"
 

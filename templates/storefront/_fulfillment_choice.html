@@ -1,51 +1,114 @@
 {% load i18n %}
-{% comment %}SH-24: выбор «Abholung | Lieferung» — ОДИН партиал на корзину,
-покупку по акции и принятие предложения (раньше выбор был только в корзине, а
-две другие поверхности молча форсили самовывоз). Поля те же (`fulfillment`,
-`street`/`plz`/`city`), поэтому серверный разбор общий — `orders.delivery_choice`.
-Без доставки у бизнеса партиал печатает честную строку «самовывоз».{% endcomment %}
-{% if delivery_enabled %}
-  <div>
-    <h2 class="font-semibold mb-2">{% trans "How would you like to get it?" %}</h2>
-    <div class="grid grid-cols-2 gap-2" data-fulfillment-switch>
-      <label class="sf-seg flex items-center justify-center gap-2 text-sm font-medium rounded-lg border border-gray-200 px-3 py-2.5 cursor-pointer"><input type="radio" name="fulfillment" value="pickup" class="sr-only" checked> 🛍 {% trans "Pickup" %}</label>
-      <label class="sf-seg flex items-center justify-center gap-2 text-sm font-medium rounded-lg border border-gray-200 px-3 py-2.5 cursor-pointer"><input type="radio" name="fulfillment" value="delivery" class="sr-only"> 🚚 {% trans "Delivery" %}</label>
-    </div>
-    {% if delivery_fee_eur %}<p class="text-xs text-gray-400 mt-1">{% blocktrans with f=delivery_fee_eur %}Delivery {{ f }} €{% endblocktrans %}{% if delivery_free_cents %} · {% blocktrans with f=delivery_free_eur %}free from {{ f }} €{% endblocktrans %}{% endif %}{% if delivery_min_cents %} · {% blocktrans with m=delivery_min_eur %}min. {{ m }} €{% endblocktrans %}{% endif %}</p>{% endif %}
-  </div>
-  <div id="delivery-address" class="hidden grid sm:grid-cols-2 gap-3">
-    <div class="sm:col-span-2">
-      <label class="block text-sm font-medium mb-1" for="ff-street">{% trans "Street & no." %}</label>
-      <input id="ff-street" name="street" type="text" class="w-full rounded-lg border border-gray-300 px-3 py-2">
-    </div>
-    <div>
-      <label class="block text-sm font-medium mb-1" for="ff-plz">{% trans "Postal code" %}</label>
-      <input id="ff-plz" name="plz" type="text" class="w-full rounded-lg border border-gray-300 px-3 py-2">
-    </div>
-    <div>
-      <label class="block text-sm font-medium mb-1" for="ff-city">{% trans "City" %}</label>
-      <input id="ff-city" name="city" type="text" class="w-full rounded-lg border border-gray-300 px-3 py-2">
-    </div>
-  </div>
-{% else %}
+{% comment %}SH-24 → SHP-2: выбор способа получения — ОДИН партиал на корзину, покупку по
+акции и принятие предложения. Список — способы бизнеса (`orders.delivery_choice.context`):
+самовывоз, курьер, транспортные компании до двери или в пункт выдачи. Поле `fulfillment`
+(у прежних настроек значения pickup/delivery — форма и замки SH-24 не меняются). Один
+способ — без выбора, строкой. Блок адреса и пункта выдачи показывается по выбранному способу
+(без JS видны оба — сервер всё равно проверит). Цена считается заново на сервере.{% endcomment %}
+{% if not shipping_options %}
   <input type="hidden" name="fulfillment" value="pickup">
   <p class="flex items-center gap-2 text-sm font-medium text-gray-700 rounded-lg bg-gray-50 border border-gray-200 px-3 py-2">
     🛍 {% trans "Pickup in store" %}{% if request.tenant.address %} <span class="font-normal text-gray-500">· {{ request.tenant.address }}</span>{% endif %}
   </p>
+{% elif shipping_options|length == 1 %}
+  {% with o=shipping_options.0 %}
+    <input type="hidden" name="fulfillment" value="{{ o.key }}" data-ship-option data-kind="{{ o.kind }}" data-fee-cents="{{ o.fee_cents }}" data-free-cents="{{ o.free_cents }}" data-address="{% if o.needs_address %}1{% endif %}" data-point="{% if o.point %}1{% endif %}">
+    <p class="flex flex-wrap items-center gap-x-2 text-sm font-medium text-gray-700 rounded-lg bg-gray-50 border border-gray-200 px-3 py-2">
+      {% if o.kind == "pickup" %}🛍 {% trans "Pickup in store" %}{% if request.tenant.address %} <span class="font-normal text-gray-500">· {{ request.tenant.address }}</span>{% endif %}{% else %}{% if o.kind == "courier" %}🚚{% else %}📦{% endif %} {{ o.label }}{% if o.time %} <span class="font-normal text-gray-500">· {{ o.time }}</span>{% endif %} <span class="font-normal text-gray-500">· {% if o.fee_cents %}{{ o.fee_eur }} €{% else %}{% trans "free" %}{% endif %}{% if o.free_cents %} · {% blocktrans with f=o.free_eur %}free from {{ f }} €{% endblocktrans %}{% endif %}</span>{% endif %}
+    </p>
+  {% endwith %}
+{% else %}
+  <div>
+    <h2 class="font-semibold mb-2">{% trans "How would you like to get it?" %}</h2>
+    <div class="grid {% if shipping_options|length == 2 %}grid-cols-2{% else %}grid-cols-1{% endif %} gap-2" data-fulfillment-switch role="radiogroup" aria-label="{% trans 'How would you like to get it?' %}">
+      {% for o in shipping_options %}
+        <label class="sf-seg flex items-center {% if shipping_options|length == 2 %}justify-center text-center{% endif %} gap-2 text-sm font-medium rounded-lg border border-gray-200 px-3 py-2.5 cursor-pointer">
+          <input type="radio" name="fulfillment" value="{{ o.key }}" class="sr-only" {% if forloop.first %}checked{% endif %} data-ship-option data-kind="{{ o.kind }}" data-fee-cents="{{ o.fee_cents }}" data-free-cents="{{ o.free_cents }}" data-address="{% if o.needs_address %}1{% endif %}" data-point="{% if o.point %}1{% endif %}">
+          <span>{% if o.kind == "pickup" %}🛍{% elif o.kind == "courier" %}🚚{% else %}📦{% endif %} {{ o.label }}{% if shipping_options|length > 2 %}<span class="block text-xs font-normal text-gray-500">{% if o.time %}{{ o.time }} · {% endif %}{% if o.kind == "pickup" %}{% trans "free" %}{% elif o.fee_cents %}{{ o.fee_eur }} €{% else %}{% trans "free" %}{% endif %}{% if o.free_cents and o.kind != "pickup" %} · {% blocktrans with f=o.free_eur %}free from {{ f }} €{% endblocktrans %}{% endif %}</span>{% endif %}</span>
+        </label>
+      {% endfor %}
+    </div>
+    {% if shipping_options|length == 2 and delivery_fee_eur %}<p class="text-xs text-gray-400 mt-1">{% blocktrans with f=delivery_fee_eur %}Delivery {{ f }} €{% endblocktrans %}{% if delivery_free_cents %} · {% blocktrans with f=delivery_free_eur %}free from {{ f }} €{% endblocktrans %}{% endif %}{% if delivery_min_cents %} · {% blocktrans with m=delivery_min_eur %}min. {{ m }} €{% endblocktrans %}{% endif %}</p>{% endif %}
+  </div>
 {% endif %}
 {% if delivery_enabled %}
+  {# Адрес — для курьера и доставки до двери. #}
+  <div id="delivery-address" class="{% if shipping_options|length != 1 or not shipping_options.0.needs_address %}hidden {% endif %}grid sm:grid-cols-2 gap-3 border-t border-gray-100 pt-4" data-ship-address>
+    <div class="sm:col-span-2">
+      <label class="block text-sm font-medium mb-1" for="ff-street">{% trans "Street & no." %}</label>
+      <input id="ff-street" name="street" type="text" autocomplete="street-address" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1" for="ff-plz">{% trans "Postal code" %}</label>
+      <input id="ff-plz" name="plz" type="text" inputmode="numeric" autocomplete="postal-code" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1" for="ff-city">{% trans "City" %}</label>
+      <input id="ff-city" name="city" type="text" autocomplete="address-level2" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+  </div>
+  {% for o in shipping_options %}{% if o.point %}
+    {# Пункт выдачи компании (Packstation, Postfiliale, PaketShop) — поля, без карты (v1). #}
+    <div id="point-{{ o.key }}" class="{% if shipping_options|length != 1 %}hidden {% endif %}grid sm:grid-cols-2 gap-3 border-t border-gray-100 pt-4" data-ship-point="{{ o.key }}">
+      {% if o.point_types|length > 1 %}
+        <div class="sm:col-span-2">
+          <label class="block text-sm font-medium mb-1" for="ff-ptype-{{ forloop.counter }}">{% trans "Abholstelle" %}</label>
+          <select id="ff-ptype-{{ forloop.counter }}" name="point_type" class="w-full rounded-lg border border-gray-300 px-3 py-2"{% if shipping_options|length != 1 %} disabled{% endif %}>
+            {% for code, label in o.point_types %}<option value="{{ code }}">{{ label }}</option>{% endfor %}
+          </select>
+        </div>
+      {% else %}
+        <input type="hidden" name="point_type" value="{{ o.point_types.0.0 }}"{% if shipping_options|length != 1 %} disabled{% endif %}>
+      {% endif %}
+      <div class="sm:col-span-2">
+        <label class="block text-sm font-medium mb-1" for="ff-pref-{{ forloop.counter }}">{% trans "Nummer der Abholstelle" %}</label>
+        <input id="ff-pref-{{ forloop.counter }}" name="point_ref" type="text" class="w-full rounded-lg border border-gray-300 px-3 py-2"{% if shipping_options|length != 1 %} disabled{% endif %}>
+        {% if o.finder %}<a href="{{ o.finder }}" target="_blank" rel="noopener" class="text-xs text-indigo-700 underline mt-1 inline-block">{% trans "Abholstelle finden" %} ↗</a>{% endif %}
+      </div>
+      {% if o.needs_postnummer %}
+        <div class="sm:col-span-2">
+          <label class="block text-sm font-medium mb-1" for="ff-postnr-{{ forloop.counter }}">{% trans "DHL-PostNummer (für die Packstation)" %}</label>
+          <input id="ff-postnr-{{ forloop.counter }}" name="postnummer" type="text" inputmode="numeric" class="w-full rounded-lg border border-gray-300 px-3 py-2"{% if shipping_options|length != 1 %} disabled{% endif %}>
+        </div>
+      {% endif %}
+      <div>
+        <label class="block text-sm font-medium mb-1" for="ff-pplz-{{ forloop.counter }}">{% trans "Postal code" %}</label>
+        <input id="ff-pplz-{{ forloop.counter }}" name="point_plz" type="text" inputmode="numeric" class="w-full rounded-lg border border-gray-300 px-3 py-2"{% if shipping_options|length != 1 %} disabled{% endif %}>
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1" for="ff-pcity-{{ forloop.counter }}">{% trans "City" %}</label>
+        <input id="ff-pcity-{{ forloop.counter }}" name="point_city" type="text" class="w-full rounded-lg border border-gray-300 px-3 py-2"{% if shipping_options|length != 1 %} disabled{% endif %}>
+      </div>
+    </div>
+  {% endif %}{% endfor %}
   <script>
-    // SH-24: адрес показывается при выборе «Lieferung». Делегирование на
-    // document — партиал может приехать fetch-свопом (урок HF: инлайн-биндинг
-    // внутри свапаемой зоны умирает после первой подмены).
+    // SHP-2: блоки адреса/пункта выдачи/самовывоза — по выбранному способу. Поля чужих
+    // пунктов выдачи выключены (disabled), чтобы в POST ушли поля ровно одного способа.
+    // Делегирование на document: партиал может приехать fetch-свопом (урок HF).
     (function () {
-      if (window.__ffChoiceBound) return;
-      window.__ffChoiceBound = true;
-      document.addEventListener("change", function (e) {
-        if (!e.target || e.target.name !== "fulfillment") return;
-        var addr = document.getElementById("delivery-address");
-        if (addr) addr.classList.toggle("hidden", e.target.value !== "delivery");
-      });
+      function sync() {
+        var o = document.querySelector('[data-ship-option]:checked') || document.querySelector('input[type=hidden][data-ship-option]');
+        if (!o) return;
+        var addr = document.querySelector('[data-ship-address]');
+        if (addr) addr.classList.toggle("hidden", o.dataset.address !== "1");
+        document.querySelectorAll('[data-ship-point]').forEach(function (box) {
+          var on = o.dataset.point === "1" && box.dataset.shipPoint === o.value;
+          box.classList.toggle("hidden", !on);
+          box.querySelectorAll("input, select").forEach(function (el) { el.disabled = !on; });
+        });
+        var pickup = o.dataset.kind === "pickup";
+        ["pickup-select", "pickup-slot"].forEach(function (id) {
+          var el = document.getElementById(id);
+          if (el) el.classList.toggle("hidden", !pickup);
+        });
+      }
+      if (!window.__shipChoiceBound) {
+        window.__shipChoiceBound = true;
+        document.addEventListener("change", function (e) {
+          if (e.target && e.target.name === "fulfillment") sync();
+        });
+      }
+      sync();
     })();
   </script>
 {% endif %}

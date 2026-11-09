@@ -36248,3 +36248,43 @@ msgstr "Вес для отправки (г)"
 #: SHP-1b
 msgid "g"
 msgstr "г"
+
+#: SHP-2
+msgid "Abholstelle"
+msgstr "Пункт выдачи"
+
+#: SHP-2
+msgid "Abholstelle finden"
+msgstr "Найти пункт выдачи"
+
+#: SHP-2
+msgid "Bitte geben Sie die Abholstelle an (Nummer, PLZ und Ort)."
+msgstr "Укажите пункт выдачи (номер, индекс и город)."
+
+#: SHP-2
+msgid "Bitte wählen Sie, wie Sie die Bestellung erhalten möchten."
+msgstr "Выберите, как вы хотите получить заказ."
+
+#: SHP-2
+msgid "DHL-PostNummer (für die Packstation)"
+msgstr "DHL PostNummer (для Packstation)"
+
+#: SHP-2
+msgid "Diese Versandart ist für Ihre Bestellung leider nicht möglich."
+msgstr "К сожалению, этот способ доставки недоступен для вашего заказа."
+
+#: SHP-2
+msgid "Für die Packstation brauchen wir Ihre DHL-PostNummer."
+msgstr "Для Packstation нужен ваш DHL PostNummer."
+
+#: SHP-2
+msgid "Gewicht: %(g)s g"
+msgstr "Вес: %(g)s г"
+
+#: SHP-2
+msgid "Nummer der Abholstelle"
+msgstr "Номер пункта выдачи"
+
+#: SHP-2
+msgid "Sendung verfolgen"
+msgstr "Отследить посылку"

@@ -241,6 +241,29 @@ def delivery_quote(tenant, subtotal_cents: int, plz: str = "") -> dict:
     return {"deliverable": True, "fee_cents": fee, "min_cents": min_c, "free_cents": free}
 
 
+_SNAPSHOT_FIELDS = {
+    "shipping_method_id": 36,
+    "shipping_kind": 10,
+    "shipping_carrier": 20,
+    "shipping_service": 16,
+    "shipping_label": 160,
+    "pickup_point_type": 16,
+    "pickup_point_ref": 40,
+    "pickup_point_postnummer": 20,
+}
+
+
+def _shipping_fields(snapshot) -> dict:
+    """SHP-2: поля снимка способа для Order — белый список, обрезка по длине поля."""
+    if not isinstance(snapshot, dict):
+        return {}
+    out = {k: str(snapshot.get(k) or "")[:n] for k, n in _SNAPSHOT_FIELDS.items()}
+    weight = snapshot.get("shipping_weight_g")
+    if isinstance(weight, int) and 0 < weight <= 10_000_000:
+        out["shipping_weight_g"] = weight
+    return out
+
+
 def shipping_cost(tenant, subtotal_cents: int, plz: str = "") -> int:
     """Стоимость доставки в центах — обёртка над delivery_quote (0, если недоступна)."""
     return delivery_quote(tenant, subtotal_cents, plz)["fee_cents"]
@@ -311,6 +334,7 @@ def create_order(
     expected_promos=None,
     with_gift=False,
     channel="",
+    shipping_snapshot=None,
 ):
     """Создать заказ из позиций со снимками цены/названия.
 
@@ -477,6 +501,8 @@ def create_order(
         fulfillment=Order.FULFILLMENT_DELIVERY if delivery else Order.FULFILLMENT_PICKUP,
         shipping_address=(shipping_address or "").strip()[:1000] if delivery else "",
         shipping_cents=shipping,
+        # SHP-2: снимок способа (компания, пункт выдачи, подпись) — только известные поля
+        **_shipping_fields(shipping_snapshot),
         # E-7: способ оплаты известен ДО создания (пикер checkout) — письмо
         # `created` рендерится внутри этой функции и должно его видеть.
         payment_method=payment_method,

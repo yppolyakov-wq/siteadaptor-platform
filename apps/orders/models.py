@@ -117,6 +117,19 @@ class Order(TimestampedModel):
     # действует признак «код = сертификат», `finance.certificate_cents`).
     voucher_paid_cents = models.PositiveIntegerField(default=0)
     tracking_code = models.CharField(max_length=100, blank=True)  # номер DHL/Hermes
+    # SHP-2: снимок способа получения на момент заказа (способ могут переименовать,
+    # переоценить или выключить — заказ помнит, как его отдавать). id — строкой, не FK:
+    # способ не удаляют, но заказ не должен от него зависеть. Пусто — легаси-заказ.
+    shipping_method_id = models.CharField(max_length=36, blank=True)
+    shipping_kind = models.CharField(max_length=10, blank=True)  # pickup|courier|carrier
+    shipping_carrier = models.CharField(max_length=20, blank=True)  # orders.carriers
+    shipping_service = models.CharField(max_length=16, blank=True)  # home|pickup_point
+    shipping_label = models.CharField(max_length=160, blank=True)  # «Versand mit DHL · 2–4 Tage»
+    # пункт выдачи компании: тип (packstation|postfiliale|paketshop), номер, PostNummer DHL
+    pickup_point_type = models.CharField(max_length=16, blank=True)
+    pickup_point_ref = models.CharField(max_length=40, blank=True)
+    pickup_point_postnummer = models.CharField(max_length=20, blank=True)
+    shipping_weight_g = models.PositiveIntegerField(null=True, blank=True)  # вес посылки
     # SH-8 (решение владельца 2026-08-20 «второй номер = ВНЕШНИЙ»): номер этого
     # заказа в чужой системе — касса, маркетплейс, бумажный журнал. Свободное
     # поле (форматы у всех разные), НЕ unique (внешние номера бывают повторными),
@@ -160,6 +173,13 @@ class Order(TimestampedModel):
 
     def __str__(self):
         return self.reference_code
+
+    @property
+    def tracking_url(self) -> str:
+        """SHP-2: ссылка отслеживания по компании снимка (пусто — без компании/номера)."""
+        from .carriers import tracking_url
+
+        return tracking_url(self.shipping_carrier, self.tracking_code)
 
     @property
     def is_delivery(self) -> bool:

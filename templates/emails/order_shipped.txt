@@ -1,9 +1,12 @@
 {% load i18n %}{% blocktrans with name=customer.name %}Hallo {{ name }},{% endblocktrans %}
 
 {% blocktrans with code=order.reference_code %}Ihre Bestellung {{ code }} ist unterwegs! 🚚{% endblocktrans %}
-{% if order.tracking_code %}
+{% if order.shipping_label %}
+{{ order.shipping_label }}
+{% endif %}{% if order.tracking_code %}
 {% trans "Sendungsnummer" %}: {{ order.tracking_code }}
-{% endif %}{% if order.shipping_address %}
+{% if order.tracking_url %}{% trans "Sendung verfolgen" %}: {{ order.tracking_url|safe }}
+{% endif %}{% endif %}{% if order.shipping_address %}
 {% trans "Lieferadresse" %}:
 {{ order.shipping_address }}
 {% endif %}

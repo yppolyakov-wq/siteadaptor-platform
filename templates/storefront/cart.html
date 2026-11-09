@@ -79,42 +79,9 @@
           <textarea id="id_note" name="note" rows="2" class="w-full rounded-lg border border-gray-300 px-3 py-2" placeholder="{% trans 'e.g. allergies, extra wishes' %}"></textarea>
         </div>
       {% else %}
-        {% if delivery_enabled %}
-          <div>
-            <h2 class="font-semibold mb-2">{% trans "How would you like to get it?" %}</h2>
-            {% comment %}SH-24 (фидбэк «нужна опция доставки: самовывоз или доставка»):
-            сегмент-контроль вместо двух неприметных радио. Значения и name прежние —
-            приёмник и замки доставки не тронуты; выбранная половина подсвечивается
-            через :has(:checked), без JS.{% endcomment %}
-            <div class="grid grid-cols-2 gap-2" data-fulfillment-switch>
-              <label class="sf-seg flex items-center justify-center gap-2 text-sm font-medium rounded-lg border border-gray-200 px-3 py-2.5 cursor-pointer"><input type="radio" name="fulfillment" value="pickup" class="sr-only" checked> 🛍 {% trans "Pickup" %}</label>
-              <label class="sf-seg flex items-center justify-center gap-2 text-sm font-medium rounded-lg border border-gray-200 px-3 py-2.5 cursor-pointer"><input type="radio" name="fulfillment" value="delivery" class="sr-only"> 🚚 {% trans "Delivery" %}</label>
-            </div>
-            <p class="text-xs text-gray-400 mt-1">{% blocktrans with f=delivery_fee_eur %}Delivery {{ f }} €{% endblocktrans %}{% if delivery_free_cents %} · {% blocktrans with f=delivery_free_eur %}free from {{ f }} €{% endblocktrans %}{% endif %}{% if delivery_min_cents %} · {% blocktrans with m=delivery_min_eur %}min. {{ m }} €{% endblocktrans %}{% endif %}</p>
-          </div>
-          {# Адрес — только для доставки (показывается JS'ом при выборе Lieferung). #}
-          <div id="delivery-address" class="hidden grid sm:grid-cols-2 gap-3 border-t border-gray-100 pt-4">
-            <div class="sm:col-span-2">
-              <label class="block text-sm font-medium mb-1" for="id_street">{% trans "Street & no." %}</label>
-              <input id="id_street" name="street" type="text" class="w-full rounded-lg border border-gray-300 px-3 py-2">
-            </div>
-            <div>
-              <label class="block text-sm font-medium mb-1" for="id_plz">{% trans "Postal code" %}</label>
-              <input id="id_plz" name="plz" type="text" class="w-full rounded-lg border border-gray-300 px-3 py-2">
-            </div>
-            <div>
-              <label class="block text-sm font-medium mb-1" for="id_city">{% trans "City" %}</label>
-              <input id="id_city" name="city" type="text" class="w-full rounded-lg border border-gray-300 px-3 py-2">
-            </div>
-          </div>
-        {% else %}
-          {% comment %}Фидбэк 2026-07-30: без доставки шаг «как получить» скрывался
-          молча — теперь способ получения назван явно (Abholung im Geschäft).{% endcomment %}
-          <input type="hidden" name="fulfillment" value="pickup">
-          <p class="flex items-center gap-2 text-sm font-medium text-gray-700 rounded-lg bg-gray-50 border border-gray-200 px-3 py-2">
-            🛍 {% trans "Pickup in store" %}{% if request.tenant.address %} <span class="font-normal text-gray-500">· {{ request.tenant.address }}</span>{% endif %}
-          </p>
-        {% endif %}
+        {% comment %}SHP-2: способы получения — общий партиал (корзина, акция, предложение):
+        список способов бизнеса, адрес/пункт выдачи по выбранному способу.{% endcomment %}
+        {% include "storefront/_fulfillment_choice.html" %}
 
         {# E7-2: способ оплаты — только при >1 доступного (первый — дефолт). #}
         {% comment %}SH-23: «кто покупает» — перед способом оплаты (счёт только фирме).{% endcomment %}
@@ -237,11 +204,10 @@
             var free = +sum.dataset.freeCents, sym = sum.dataset.sym;
             function eur(c) { return (c / 100).toFixed(2).replace(".", ",") + " " + sym; }
             function apply() {
-              var d = document.querySelector('input[name=fulfillment]:checked');
-              var delivery = d && d.value === "delivery";
-              if (addr) addr.classList.toggle("hidden", !delivery);
-              if (pickupSel) pickupSel.classList.toggle("hidden", delivery);
-              if (pickupSlot) pickupSlot.classList.toggle("hidden", delivery);
+              // SHP-2: сбор и порог — у выбранного способа (партиал способов кладёт их в data-*)
+              var d = document.querySelector('[data-ship-option]:checked') || document.querySelector('input[type=hidden][data-ship-option]');
+              var delivery = !!d && d.dataset.kind !== "pickup";
+              if (d) { fee = +d.dataset.feeCents || 0; free = +d.dataset.freeCents || 0; }
               var f = delivery ? (free && grand >= free ? 0 : fee) : 0;
               line.classList.toggle("hidden", !delivery);
               line.classList.toggle("flex", delivery);

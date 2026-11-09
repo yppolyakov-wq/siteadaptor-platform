@@ -120,6 +120,11 @@ def stored(tenant, *, active_only: bool = True) -> list[ShippingMethod]:
     return [m for m in rows if m.active] if active_only else list(rows)
 
 
+def is_legacy(method) -> bool:
+    """Способ построен из прежних полей Tenant (не строка таблицы)."""
+    return bool(getattr(method, "_legacy", False))
+
+
 def legacy_methods(tenant) -> list[ShippingMethod]:
     """Способы из прежних полей Tenant — НЕ сохраняются (`_state.adding`)."""
     out = [
@@ -143,6 +148,8 @@ def legacy_methods(tenant) -> list[ShippingMethod]:
                 sort_order=1,
             )
         )
+    for method in out:
+        method._legacy = True
     return out
 
 
@@ -166,6 +173,10 @@ def label(method: ShippingMethod) -> str:
     own = method.name_localized()
     if own:
         return own
+    if is_legacy(method):
+        # прежние настройки (строк нет): подписи, что покупатель видел до SHP — «Abholung» /
+        # «Lieferung» (доставка тогда значила и курьера, и посылку)
+        return str(_("Pickup") if method.kind == ShippingMethod.KIND_PICKUP else _("Delivery"))
     if method.kind == ShippingMethod.KIND_CARRIER:
         carrier = carriers.get(method.carrier)
         name = str(carrier.name) if carrier else str(_("Versand"))

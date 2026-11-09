@@ -2931,7 +2931,14 @@ def promotion_purchase(request, pk):
     # SH-24: способ получения — тот же разбор, что на чекауте корзины.
     qty = form.cleaned_data["quantity"]
     subtotal_cents = int((promo.new_price or 0) * 100) * qty
-    choice = delivery_choice.resolve(request.POST, getattr(request, "tenant", None), subtotal_cents)
+    # SHP-2: акция на товар — его вес/размеры решают, какие способы возможны.
+    from apps.orders import shipping as _shipping
+
+    target = getattr(promo, "product", None)
+    parcel = _shipping.parcel_for([(target, None, qty)]) if target is not None else None
+    choice = delivery_choice.resolve(
+        request.POST, getattr(request, "tenant", None), subtotal_cents, parcel=parcel
+    )
     if not choice:
         if token_key:
             cache.delete(token_key)
@@ -2963,6 +2970,7 @@ def promotion_purchase(request, pk):
             fulfillment="delivery" if choice.delivery else "pickup",
             shipping_cents=choice.shipping_cents,
             shipping_address=choice.shipping_address,
+            shipping_snapshot=choice.snapshot,  # SHP-2
             # SH-23d: покупка по акции получила способ оплаты и тип покупателя —
             # раньше заказ по акции всегда шёл «payment_method=пусто» и ни Stripe,
             # ни Vorkasse, ни счёт юрлицу к ней не применялись.

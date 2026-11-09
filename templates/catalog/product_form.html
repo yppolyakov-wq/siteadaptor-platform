@@ -233,6 +233,8 @@ main-колонка + правая колонка «Preis & Bestand»/«Kategori
           <button type="button" class="sm:hidden text-xs text-indigo-700 px-2 py-1.5" data-variant-more-toggle aria-expanded="false">⋯ {% trans "Mehr" %}</button>
           <span class="hidden sm:contents" data-variant-more>
           <input name="content" type="text" inputmode="decimal" value="{{ v.content_amount|default_if_none:'' }}" placeholder="{% trans 'Content' %}" class="w-20 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="{% trans 'Content' %}">
+          <input type="hidden" name="weight_present" value="1">
+          <input name="weight_g" type="text" inputmode="numeric" value="{{ v.shipping_weight_g|default_if_none:'' }}" placeholder="{% trans 'g' %}" class="w-16 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="{% trans 'Versandgewicht (g)' %}" title="{% trans 'Versandgewicht (g)' %}">
           <input name="stock" type="number" value="{{ v.stock_quantity|default_if_none:'' }}" placeholder="∞" class="w-20 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="{% trans 'Stock' %}">
           <input name="cost" type="text" inputmode="decimal" value="{{ v.cost_price|default_if_none:'' }}" placeholder="{% trans 'EK' %}" class="w-16 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="{% trans 'Einkaufspreis' %}">
           <input name="reorder_point" type="number" value="{{ v.reorder_point|default_if_none:'' }}" placeholder="{% trans 'Meld.' %}" class="w-16 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="{% trans 'Meldebestand' %}">
@@ -426,6 +428,19 @@ main-колонка + правая колонка «Preis & Bestand»/«Kategori
             {% for field in form %}{% if field.name == 'unit' or field.name == 'content_amount' or field.name == 'currency' or field.name == 'cost_price' or field.name == 'reorder_target' or field.name == 'primary_action' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}
           </div>
         </details>
+      </div>
+
+      {% comment %}SHP-1b: вес и размеры для отправки (брутто) — цена доставки по весу и проверка
+      «влезает ли в посылку». Не путать с «Inhalt» (нетто, для Grundpreis).{% endcomment %}
+      <div class="ui-card p-5 space-y-3" data-shipping-card>
+        <p class="text-sm font-semibold">📦 {% trans "Versand" %}</p>
+        {% for field in form %}{% if field.name == 'shipping_weight_g' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}
+        <div class="grid grid-cols-3 gap-2">
+          {% for field in form %}{% if field.name == 'length_cm' or field.name == 'width_cm' or field.name == 'height_cm' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}
+        </div>
+        {% for field in form %}{% if field.name == 'bulky' %}
+          <label class="flex items-start gap-2 text-sm">{% render_field field %} <span><span class="font-medium">{{ field.label }}</span><span class="block text-xs ui-muted">{{ field.help_text }}</span></span></label>
+        {% endif %}{% endfor %}
       </div>
 
       <div class="ui-card p-5 space-y-3">

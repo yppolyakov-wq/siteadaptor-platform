@@ -36000,3 +36000,43 @@ msgstr "Versandgewicht (g)"
 #: SHP-1b
 msgid "g"
 msgstr "g"
+
+#: SHP-2
+msgid "Abholstelle"
+msgstr "Abholstelle"
+
+#: SHP-2
+msgid "Abholstelle finden"
+msgstr "Abholstelle finden"
+
+#: SHP-2
+msgid "Bitte geben Sie die Abholstelle an (Nummer, PLZ und Ort)."
+msgstr "Bitte geben Sie die Abholstelle an (Nummer, PLZ und Ort)."
+
+#: SHP-2
+msgid "Bitte wählen Sie, wie Sie die Bestellung erhalten möchten."
+msgstr "Bitte wählen Sie, wie Sie die Bestellung erhalten möchten."
+
+#: SHP-2
+msgid "DHL-PostNummer (für die Packstation)"
+msgstr "DHL-PostNummer (für die Packstation)"
+
+#: SHP-2
+msgid "Diese Versandart ist für Ihre Bestellung leider nicht möglich."
+msgstr "Diese Versandart ist für Ihre Bestellung leider nicht möglich."
+
+#: SHP-2
+msgid "Für die Packstation brauchen wir Ihre DHL-PostNummer."
+msgstr "Für die Packstation brauchen wir Ihre DHL-PostNummer."
+
+#: SHP-2
+msgid "Gewicht: %(g)s g"
+msgstr "Gewicht: %(g)s g"
+
+#: SHP-2
+msgid "Nummer der Abholstelle"
+msgstr "Nummer der Abholstelle"
+
+#: SHP-2
+msgid "Sendung verfolgen"
+msgstr "Sendung verfolgen"

@@ -21,7 +21,7 @@ from apps.catalog.combos import combo_labels
 from apps.core import closures, page_settings, ratelimit, readiness
 from apps.core.storefront_state import orders_active
 
-from . import delivery_choice, pickup_slots
+from . import delivery_choice, pickup_slots, shipping
 from . import payments as order_payments
 from .models import Offer, Order
 from .services import EmptyOrder, OutOfStock, create_order
@@ -853,7 +853,6 @@ def cart_view(request):
         )
     total = sum((r["line_total"] for r in rows + combo_rows), start=Decimal("0"))
     tenant = getattr(request, "tenant", None)
-    delivery_enabled = getattr(tenant, "delivery_enabled", False)
     currency = (
         items[0][0].currency
         if items
@@ -896,8 +895,9 @@ def cart_view(request):
         "currency": currency,
         # R5: центы для JS-реактивности доставки (итог меняется при выборе).
         "grand_cents": int((total - discount) * 100),
-        # Точки самовывоза (селектор в корзине при наличии нескольких).
-        "pickup_points": getattr(tenant, "pickup_points", []),
+        # Точки самовывоза (селектор в корзине при наличии нескольких) — у способа
+        # самовывоза (SHP-2); без сохранённых способов это прежние точки бизнеса.
+        "pickup_points": [],
     }
     # T1 upsell «Passt dazu»: товары не из корзины, рекомендованные вперёд.
     if rows:
@@ -911,18 +911,20 @@ def cart_view(request):
             .exclude(pk__in=in_cart_ids)
             .order_by("-is_featured", "-created_at")[:4]
         )
-    if delivery_enabled:
-        ctx["delivery_enabled"] = True
-        ctx["delivery_fee_cents"] = getattr(tenant, "delivery_fee_cents", 0)
-        ctx["delivery_fee_eur"] = f"{getattr(tenant, 'delivery_fee_cents', 0) / 100:.2f}"
-        ctx["delivery_free_eur"] = f"{getattr(tenant, 'delivery_free_cents', 0) / 100:.2f}"
-        ctx["delivery_free_cents"] = getattr(tenant, "delivery_free_cents", 0)
-        ctx["delivery_min_eur"] = f"{getattr(tenant, 'delivery_min_cents', 0) / 100:.2f}"
-        ctx["delivery_min_cents"] = getattr(tenant, "delivery_min_cents", 0)
-        ctx["delivery_area"] = getattr(tenant, "delivery_area", "")
+    # SHP-2: способы получения — общий партиал и тот же разбор, что на чекауте; вес и
+    # размеры корзины скрывают способы, которые её не повезут.
+    _parcel = shipping.parcel_for((p, v, q) for p, v, _o, q in items)
+    ctx.update(delivery_choice.context(tenant, int((total - discount) * 100), parcel=_parcel))
+    ctx["pickup_points"] = next(
+        (o["locations"] for o in ctx["shipping_options"] if o["kind"] == "pickup"), []
+    )
+    if ctx.get("delivery_enabled"):
+        ctx["delivery_area"] = next(
+            (o["area"] for o in ctx["shipping_options"] if o["kind"] != "pickup"), ""
+        )
         # M4-D (план m4-boutique-plan-2026-07-30): «Noch X € bis kostenlosem
         # Versand» — остаток до бесплатной доставки (0 = порог достигнут/не задан).
-        _free = getattr(tenant, "delivery_free_cents", 0) or 0
+        _free = ctx.get("delivery_free_cents") or 0
         _grand = int(ctx.get("grand_cents") or 0)
         _gap = max(0, _free - _grand) if _free else 0
         ctx["delivery_free_gap_cents"] = _gap
@@ -1061,7 +1063,10 @@ def checkout(request):
     subtotal_cents = int(subtotal * 100)
     # SH-24: разбор «Abholung | Lieferung» — общий с покупкой по акции и
     # принятием предложения (тексты ошибок и правила прежние, замки доставки целы).
-    choice = delivery_choice.resolve(request.POST, tenant, subtotal_cents)
+    # SHP-2: способ — из списка способов бизнеса; вес/размеры корзины решают, какие
+    # способы вообще возможны (минимум для самовывоза проверяет тот же разбор).
+    parcel = shipping.parcel_for((p, v, q) for p, v, _o, q in items)
+    choice = delivery_choice.resolve(request.POST, tenant, subtotal_cents, parcel=parcel)
     if not choice:
         messages.error(request, choice.error)
         return redirect("storefront-cart")
@@ -1070,16 +1075,12 @@ def checkout(request):
     shipping_address = choice.shipping_address
     pickup_location = ""
     if not delivery:
-        pickup_min = getattr(tenant, "pickup_min_cents", 0) or 0
-        if pickup_min and subtotal_cents < pickup_min:
-            messages.error(
-                request,
-                _("Minimum order for pickup is %(min)s €.")
-                % {"min": f"{pickup_min / 100:.2f}".replace(".", ",")},
-            )
-            return redirect("storefront-cart")
-        # Точка самовывоза (если у бизнеса их несколько): валидируем по списку.
-        points = getattr(tenant, "pickup_points", [])
+        # Точка самовывоза (если у способа их несколько): валидируем по списку способа.
+        points = [
+            pt
+            for pt in (choice.method.locations or [])
+            if isinstance(pt, dict) and (pt.get("name") or "").strip()
+        ]
         if len(points) > 1:
             chosen = (request.POST.get("pickup_location") or "").strip()
             valid = {p["name"] for p in points}
@@ -1183,6 +1184,7 @@ def checkout(request):
             fulfillment=Order.FULFILLMENT_DELIVERY if delivery else Order.FULFILLMENT_PICKUP,
             shipping_address=shipping_address,
             shipping_cents=shipping_cents,
+            shipping_snapshot=choice.snapshot,  # SHP-2
             voucher_code=request.session.get(PROMO_SESSION_KEY, ""),
             payment_method=chosen_method,
             # SH-23: кто покупает + реквизиты фирмы (§14 UStG на счёте).
@@ -1403,6 +1405,7 @@ def offer_page(request, token):
                     fulfillment="delivery" if choice.delivery else "pickup",
                     shipping_cents=choice.shipping_cents,
                     shipping_address=choice.shipping_address,
+                    shipping_snapshot=choice.snapshot,  # SHP-2
                     pickup_slot=slot,
                     pickup_capacity=slot_capacity,
                 )

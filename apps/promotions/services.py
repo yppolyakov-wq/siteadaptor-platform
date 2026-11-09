@@ -337,6 +337,7 @@ def purchase(
     pickup_slot=None,
     pickup_capacity=0,
     channel="",
+    shipping_snapshot=None,
 ):
     """P2 «ценовой слой»: чекаут акции СТАНДАРТНЫМ заказом (план
     promo-price-layer-plan-2026-08-03).
@@ -409,6 +410,7 @@ def purchase(
         # SH-24: покупка по акции знает способ получения (раньше форсила
         # самовывоз — у бизнеса с доставкой заказ по акции молча ехал «на вынос»).
         fulfillment=fulfillment or "pickup",
+        shipping_snapshot=shipping_snapshot,  # SHP-2
         shipping_cents=shipping_cents,
         shipping_address=shipping_address,
         # SH-23d: способ оплаты и покупатель — как у обычного чекаута.
