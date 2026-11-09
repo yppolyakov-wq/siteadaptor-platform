@@ -35833,3 +35833,47 @@ msgstr "“%(q)s”"
 #: PH-14
 msgid "Standort nicht verfügbar"
 msgstr "Location not available"
+
+#: SHP-1
+msgid "Abholung im Geschäft"
+msgstr "Pickup in store"
+
+#: SHP-1
+msgid "Kurier in der Stadt"
+msgstr "Local courier"
+
+#: SHP-1
+msgid "Versand per Paketdienst"
+msgstr "Shipping by parcel carrier"
+
+#: SHP-1
+msgid "bis an die Haustür"
+msgstr "to the door"
+
+#: SHP-1
+msgid "an eine Abholstelle"
+msgstr "to a pickup point"
+
+#: SHP-1
+msgid "Pauschal"
+msgstr "Flat rate"
+
+#: SHP-1
+msgid "Nach Gewicht"
+msgstr "By weight"
+
+#: SHP-1
+msgid "Andere Versanddienste"
+msgstr "Other carriers"
+
+#: SHP-1
+msgid "%(carrier)s an eine Abholstelle"
+msgstr "%(carrier)s to a pickup point"
+
+#: SHP-1
+msgid "Versand mit %(carrier)s"
+msgstr "Shipping with %(carrier)s"
+
+#: SHP-1
+msgid "Versandarten werden deaktiviert, nicht gelöscht."
+msgstr "Shipping methods are deactivated, not deleted."

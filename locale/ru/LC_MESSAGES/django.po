@@ -36168,3 +36168,47 @@ msgstr "«%(q)s»"
 #: PH-14
 msgid "Standort nicht verfügbar"
 msgstr "Местоположение недоступно"
+
+#: SHP-1
+msgid "Abholung im Geschäft"
+msgstr "Самовывоз из магазина"
+
+#: SHP-1
+msgid "Kurier in der Stadt"
+msgstr "Курьер по городу"
+
+#: SHP-1
+msgid "Versand per Paketdienst"
+msgstr "Доставка транспортной компанией"
+
+#: SHP-1
+msgid "bis an die Haustür"
+msgstr "до двери"
+
+#: SHP-1
+msgid "an eine Abholstelle"
+msgstr "в пункт выдачи"
+
+#: SHP-1
+msgid "Pauschal"
+msgstr "Фиксированная цена"
+
+#: SHP-1
+msgid "Nach Gewicht"
+msgstr "По весу"
+
+#: SHP-1
+msgid "Andere Versanddienste"
+msgstr "Другие службы доставки"
+
+#: SHP-1
+msgid "%(carrier)s an eine Abholstelle"
+msgstr "%(carrier)s в пункт выдачи"
+
+#: SHP-1
+msgid "Versand mit %(carrier)s"
+msgstr "Доставка %(carrier)s"
+
+#: SHP-1
+msgid "Versandarten werden deaktiviert, nicht gelöscht."
+msgstr "Способы доставки не удаляются, а выключаются."

@@ -35920,3 +35920,47 @@ msgstr "„%(q)s“"
 #: PH-14
 msgid "Standort nicht verfügbar"
 msgstr "Standort nicht verfügbar"
+
+#: SHP-1
+msgid "Abholung im Geschäft"
+msgstr "Abholung im Geschäft"
+
+#: SHP-1
+msgid "Kurier in der Stadt"
+msgstr "Kurier in der Stadt"
+
+#: SHP-1
+msgid "Versand per Paketdienst"
+msgstr "Versand per Paketdienst"
+
+#: SHP-1
+msgid "bis an die Haustür"
+msgstr "bis an die Haustür"
+
+#: SHP-1
+msgid "an eine Abholstelle"
+msgstr "an eine Abholstelle"
+
+#: SHP-1
+msgid "Pauschal"
+msgstr "Pauschal"
+
+#: SHP-1
+msgid "Nach Gewicht"
+msgstr "Nach Gewicht"
+
+#: SHP-1
+msgid "Andere Versanddienste"
+msgstr "Andere Versanddienste"
+
+#: SHP-1
+msgid "%(carrier)s an eine Abholstelle"
+msgstr "%(carrier)s an eine Abholstelle"
+
+#: SHP-1
+msgid "Versand mit %(carrier)s"
+msgstr "Versand mit %(carrier)s"
+
+#: SHP-1
+msgid "Versandarten werden deaktiviert, nicht gelöscht."
+msgstr "Versandarten werden deaktiviert, nicht gelöscht."

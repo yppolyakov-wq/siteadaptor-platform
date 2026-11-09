@@ -16,7 +16,7 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 from apps.core import payment_methods
-from apps.core.models import TimestampedModel
+from apps.core.models import I18nMixin, TimestampedModel
 from apps.promotions.models import Customer
 
 
@@ -437,3 +437,103 @@ class OfferLine(TimestampedModel):
     @property
     def line_total(self):
         return self.unit_price * self.qty
+
+
+class ShippingMethodDeleteForbidden(Exception):
+    """SHP-1: способ доставки не удаляют, а выключают."""
+
+
+class _ShippingMethodQuerySet(models.QuerySet):
+    def delete(self):
+        raise ShippingMethodDeleteForbidden("ShippingMethod: deactivate, do not delete")
+
+
+_ShippingMethodManager = models.Manager.from_queryset(_ShippingMethodQuerySet)
+
+
+class ShippingMethod(I18nMixin, TimestampedModel):
+    """SHP-1: способ получения заказа — строка списка «Lieferung & Abholung».
+
+    План `docs/ful-fulfilment-modes-plan-2026-11-09.md`. Типы: самовывоз (адреса пунктов —
+    `locations`), курьер по городу (зоны PLZ — та же форма, что `Tenant.delivery_zones`) и
+    транспортная компания (`carrier` из `orders.carriers`, до двери или пункт выдачи).
+
+    Переход: пока у бизнеса нет ни одной строки, читатель `orders.shipping.methods`
+    строит способы В ПАМЯТИ из прежних полей Tenant (`delivery_*`, `pickup_*`) — поведение
+    существующих бизнесов не меняется без их действия. Удалять способ нельзя (только
+    выключать): заказы хранят снимок, а «нет строк» значит «прежние настройки».
+    """
+
+    KIND_PICKUP = "pickup"
+    KIND_COURIER = "courier"
+    KIND_CARRIER = "carrier"
+    KINDS = [
+        (KIND_PICKUP, _("Abholung im Geschäft")),
+        (KIND_COURIER, _("Kurier in der Stadt")),
+        (KIND_CARRIER, _("Versand per Paketdienst")),
+    ]
+    SERVICE_HOME = "home"
+    SERVICE_POINT = "pickup_point"
+    SERVICES = [
+        (SERVICE_HOME, _("bis an die Haustür")),
+        (SERVICE_POINT, _("an eine Abholstelle")),
+    ]
+    PRICING_FLAT = "flat"
+    PRICING_WEIGHT = "weight"
+    PRICINGS = [(PRICING_FLAT, _("Pauschal")), (PRICING_WEIGHT, _("Nach Gewicht"))]
+
+    kind = models.CharField(max_length=10, choices=KINDS)
+    carrier = models.CharField(max_length=20, blank=True, default="")
+    service = models.CharField(max_length=16, blank=True, default="", choices=SERVICES)
+    # пусто — подпись по типу/компании (`orders.shipping.label`)
+    name = models.CharField(max_length=80, blank=True, default="")
+    name_i18n = models.JSONField(default=dict, blank=True)
+    # срок для покупателя (Art. 246a § 1 Nr. 7 EGBGB): «2–4 Tage», без «ca.»
+    delivery_time = models.CharField(max_length=60, blank=True, default="")
+    delivery_time_i18n = models.JSONField(default=dict, blank=True)
+    fee_cents = models.PositiveIntegerField(default=0)
+    free_from_cents = models.PositiveIntegerField(default=0)  # 0 — без порога
+    min_order_cents = models.PositiveIntegerField(default=0)  # 0 — без минимума
+    pricing = models.CharField(max_length=8, default=PRICING_FLAT, choices=PRICINGS)
+    # [{"max_g": int, "fee_cents": int}] по возрастанию; тяжелее последней — не предлагать
+    weight_tiers = models.JSONField(default=list, blank=True)
+    packaging_g = models.PositiveIntegerField(default=0)  # вес упаковки к весу корзины
+    max_weight_g = models.PositiveIntegerField(null=True, blank=True)
+    max_length_cm = models.PositiveSmallIntegerField(null=True, blank=True)
+    # SHP-1b: вес позиции без указанного веса (иначе цена по весу неизвестна → способ скрыт)
+    default_item_g = models.PositiveIntegerField(default=0)
+    # Sperrgut: только способы с этим флажком (Spedition) возят громоздкое
+    bulky_ok = models.BooleanField(default=False)
+    # курьер: [{"plz","fee_cents","free_cents","min_cents"}] — форма Tenant.delivery_zones
+    zones = models.JSONField(default=list, blank=True)
+    restrict_to_zones = models.BooleanField(default=False)
+    area_text = models.TextField(blank=True, default="")  # зона/условия — текст покупателю
+    # самовывоз: [{"name","address"}]; пусто — адрес бизнеса
+    locations = models.JSONField(default=list, blank=True)
+    active = models.BooleanField(default=True)
+    sort_order = models.PositiveSmallIntegerField(default=0)
+
+    class Meta:
+        ordering = ["sort_order", "created_at"]
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(kind__in=["pickup", "courier", "carrier"]),
+                name="orders_shipping_kind_valid",
+            ),
+        ]
+
+    objects = _ShippingMethodManager()
+
+    def __str__(self):
+        return self.name or self.get_kind_display()
+
+    def delete(self, *args, **kwargs):
+        # «Нет строк» = прежние настройки Tenant: удаление последней строки молча вернуло
+        # бы старый самовывоз/доставку. Способ только выключают (`active=False`).
+        raise ShippingMethodDeleteForbidden(_("Versandarten werden deaktiviert, nicht gelöscht."))
+
+    def name_localized(self, locale: str | None = None) -> str:
+        return self.get_overlay("name", "name_i18n", locale)
+
+    def delivery_time_localized(self, locale: str | None = None) -> str:
+        return self.get_overlay("delivery_time", "delivery_time_i18n", locale)

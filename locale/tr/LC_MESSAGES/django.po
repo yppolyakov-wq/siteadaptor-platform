@@ -35979,3 +35979,47 @@ msgstr "“%(q)s”"
 #: PH-14
 msgid "Standort nicht verfügbar"
 msgstr "Konum kullanılamıyor"
+
+#: SHP-1
+msgid "Abholung im Geschäft"
+msgstr "Mağazadan teslim alma"
+
+#: SHP-1
+msgid "Kurier in der Stadt"
+msgstr "Şehir içi kurye"
+
+#: SHP-1
+msgid "Versand per Paketdienst"
+msgstr "Kargo ile gönderim"
+
+#: SHP-1
+msgid "bis an die Haustür"
+msgstr "kapıya kadar"
+
+#: SHP-1
+msgid "an eine Abholstelle"
+msgstr "teslim alma noktasına"
+
+#: SHP-1
+msgid "Pauschal"
+msgstr "Sabit ücret"
+
+#: SHP-1
+msgid "Nach Gewicht"
+msgstr "Ağırlığa göre"
+
+#: SHP-1
+msgid "Andere Versanddienste"
+msgstr "Diğer kargo firmaları"
+
+#: SHP-1
+msgid "%(carrier)s an eine Abholstelle"
+msgstr "%(carrier)s teslim alma noktasına"
+
+#: SHP-1
+msgid "Versand mit %(carrier)s"
+msgstr "%(carrier)s ile gönderim"
+
+#: SHP-1
+msgid "Versandarten werden deaktiviert, nicht gelöscht."
+msgstr "Gönderim yöntemleri silinmez, devre dışı bırakılır."
