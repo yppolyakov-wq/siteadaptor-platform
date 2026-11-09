@@ -18,7 +18,7 @@ Sperrgut) — честный текст, а не обещание самовыв
   {% with o=shipping_options.0 %}
     <input type="hidden" name="fulfillment" value="{{ o.key }}" data-ship-option data-kind="{{ o.kind }}" data-fee-cents="{{ o.fee_cents }}" data-free-cents="{{ o.free_cents }}" data-address="{% if o.needs_address %}1{% endif %}" data-point="{% if o.point %}1{% endif %}">
     <p class="flex flex-wrap items-center gap-x-2 text-sm font-medium text-gray-700 rounded-lg bg-gray-50 border border-gray-200 px-3 py-2">
-      {% if o.kind == "pickup" %}🛍 {% trans "Pickup in store" %}{% if request.tenant.address %} <span class="font-normal text-gray-500">· {{ request.tenant.address }}</span>{% endif %}{% else %}{% if o.kind == "courier" %}🚚{% else %}📦{% endif %} {{ o.label }}{% if o.time %} <span class="font-normal text-gray-500">· {{ o.time }}</span>{% endif %} <span class="font-normal text-gray-500">· {% if o.fee_cents %}{{ o.fee_eur }} €{% else %}{% trans "free" %}{% endif %}{% if o.free_cents %} · {% blocktrans with f=o.free_eur %}free from {{ f }} €{% endblocktrans %}{% endif %}</span>{% endif %}
+      {% if o.kind == "pickup" %}🛍 {% trans "Pickup in store" %}{% if request.tenant.address %} <span class="font-normal text-gray-500">· {{ request.tenant.address }}</span>{% endif %}{% else %}{% if o.kind == "courier" %}🚚{% else %}📦{% endif %} {{ o.label }}{% if o.time %} <span class="font-normal text-gray-500">· {{ o.time }}</span>{% endif %} <span class="font-normal text-gray-500">· {% if o.fee_cents %}{{ o.fee_text }} €{% else %}{% trans "free" %}{% endif %}{% if o.free_cents %} · {% blocktrans with f=o.free_text %}free from {{ f }} €{% endblocktrans %}{% endif %}</span>{% endif %}
     </p>
   {% endwith %}
 {% else %}
@@ -28,7 +28,7 @@ Sperrgut) — честный текст, а не обещание самовыв
       {% for o in shipping_options %}
         <label class="sf-seg flex items-center {% if shipping_options|length == 2 %}justify-center text-center{% endif %} gap-2 text-sm font-medium rounded-lg border border-gray-200 px-3 py-2.5 cursor-pointer">
           <input type="radio" name="fulfillment" value="{{ o.key }}" class="sr-only" {% if forloop.first %}checked{% endif %} data-ship-option data-kind="{{ o.kind }}" data-fee-cents="{{ o.fee_cents }}" data-free-cents="{{ o.free_cents }}" data-address="{% if o.needs_address %}1{% endif %}" data-point="{% if o.point %}1{% endif %}">
-          <span>{% if o.kind == "pickup" %}🛍{% elif o.kind == "courier" %}🚚{% else %}📦{% endif %} {{ o.label }}{% if shipping_options|length > 2 %}<span class="block text-xs font-normal text-gray-500">{% if o.time %}{{ o.time }} · {% endif %}{% if o.kind == "pickup" %}{% trans "free" %}{% elif o.fee_cents %}{{ o.fee_eur }} €{% else %}{% trans "free" %}{% endif %}{% if o.free_cents and o.kind != "pickup" %} · {% blocktrans with f=o.free_eur %}free from {{ f }} €{% endblocktrans %}{% endif %}</span>{% endif %}</span>
+          <span>{% if o.kind == "pickup" %}🛍{% elif o.kind == "courier" %}🚚{% else %}📦{% endif %} {{ o.label }}{% if shipping_options|length > 2 %}<span class="block text-xs font-normal text-gray-500">{% if o.time %}{{ o.time }} · {% endif %}{% if o.kind == "pickup" %}{% trans "free" %}{% elif o.fee_cents %}{{ o.fee_text }} €{% else %}{% trans "free" %}{% endif %}{% if o.free_cents and o.kind != "pickup" %} · {% blocktrans with f=o.free_text %}free from {{ f }} €{% endblocktrans %}{% endif %}</span>{% endif %}</span>
         </label>
       {% endfor %}
     </div>

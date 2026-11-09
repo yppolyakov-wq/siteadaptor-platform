@@ -214,6 +214,9 @@ def _option(method, subtotal_cents: int, parcel) -> dict | None:
         "time": method.delivery_time_localized() if method.delivery_time else "",
         "fee_cents": fee,
         "fee_eur": f"{fee / 100:.2f}",
+        # показ в списке — по-немецки, с запятой («3,99 €»)
+        "fee_text": _eur(fee),
+        "free_text": _eur(method.free_from_cents),
         "free_cents": method.free_from_cents,
         "free_eur": f"{method.free_from_cents / 100:.2f}",
         "min_cents": method.min_order_cents,
