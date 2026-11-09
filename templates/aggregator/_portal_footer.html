@@ -1,8 +1,8 @@
 {% load i18n portal_brand %}{% portal_footer portal as foot %}{% portal_wordmark portal as fwm %}
-{% comment %}PH-11e (макет K1): тёмный подвал в пять колонок — бренд · Entdecken (+ Branche) · Stadtteile ·
+{% comment %}PH-11e (макет K1): тёмный подвал в пять колонок — бренд · Entdecken · Stadtteile ·
 Für Unternehmen · Rechtliches; внизу © и языки. Ссылки только на непустые ленты (данные — тег
-portal_footer, кэш 5 минут). Здесь же единственные ссылки на страницы районов и отраслей
-(сняты с главной), поэтому они не сироты. Ссылок на чужие порталы нет (решение плана).{% endcomment %}
+portal_footer, кэш 5 минут). Здесь же единственные ссылки на страницы районов (сняты с главной). Отрасли («Branche») из
+подвала убраны по решению владельца 2026-11-09 — их страницы остаются в sitemap. Ссылок на чужие порталы нет (решение плана).{% endcomment %}
 <footer data-portal-footer class="bg-gray-900 text-gray-300 pb-24 sm:pb-0">
   <div class="w-full px-4 md:px-6 lg:px-10 pt-11 pb-7 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-[1.4fr_repeat(4,minmax(0,1fr))] gap-0 sm:gap-8">
     <div class="sm:col-span-2 md:col-span-3 xl:col-span-1 flex flex-col gap-3 max-sm:pb-5">
@@ -15,12 +15,6 @@ portal_footer, кэш 5 минут). Здесь же единственные с
       <ul class="space-y-2 text-sm [overflow-wrap:anywhere]">
         {% for k in foot.kinds %}<li><a href="{{ k.url }}" rel="nofollow" class="hover:text-white hover:underline">{{ k.label }}</a></li>{% endfor %}
       </ul>
-      {% if foot.facets %}
-      <h3 class="mt-5 mb-2 text-white text-sm font-bold">{% trans "Branche" %}</h3>
-      <ul class="space-y-2 text-sm [overflow-wrap:anywhere]" data-footer-facets>
-        {% for f in foot.facets %}<li><a href="{{ f.url }}" class="hover:text-white hover:underline">{{ f.label }}</a></li>{% endfor %}
-      </ul>
-      {% endif %}
           </details>
     </nav>
     {% if foot.districts %}

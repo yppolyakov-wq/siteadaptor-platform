@@ -11,8 +11,9 @@
 <nav aria-label="{% trans 'Brotkrumen' %}" class="{% if search_q %}max-md:hidden {% endif %}text-sm text-gray-500 mb-4" data-breadcrumbs><a href="{% url 'portal-home' %}" class="text-gray-700 hover:underline">{% trans "Startseite" %}</a> <span aria-hidden="true">/</span> {% if heading %}{{ heading }}{% elif searching and search_q %}{% trans "Suchergebnisse" %}{% else %}{{ portal.title_text }}{% endif %}</nav>
 <div data-flt-layout class="group/flt lg:flex lg:items-start lg:gap-8">
 <script>try{if(window.matchMedia("(min-width: 1024px)").matches&&localStorage.getItem("portal:fltCollapsed")==="1")document.currentScript.parentElement.setAttribute("data-flt-collapsed","")}catch(e){}</script>
-<div class="contents lg:flex lg:flex-col lg:gap-4 lg:w-[300px] lg:shrink-0 lg:self-stretch{% if not cat_tree %} lg:group-data-[flt-collapsed]/flt:hidden{% endif %}">
-{% include "aggregator/_portal_category_tree.html" %}
+{% comment %}2026-11-09 (решение владельца): разделы — только группой «Bereich» в фильтре; отдельное
+дерево разделов над фильтром и кнопка «Alle Bereiche» сняты (дублировали фильтр).{% endcomment %}
+<div class="contents lg:flex lg:flex-col lg:gap-4 lg:w-[300px] lg:shrink-0 lg:self-stretch lg:group-data-[flt-collapsed]/flt:hidden">
 {% include "aggregator/_portal_filter_drawer.html" %}
 </div>
 <div class="flex-1 min-w-0">
@@ -35,9 +36,6 @@
 {% if not searching and not flt %}{% include "aggregator/_portal_district_chips.html" %}{% endif %}
 
 {% include "aggregator/_portal_tabs.html" with tabs=portal_tabs %}
-{% comment %}PH-13e (M7): на телефоне дерева разделов нет (оно колонкой с lg) — вход во все разделы
-открывает то же мега-меню, что ☰ в шапке; без JS ведёт на якорь главной.{% endcomment %}
-{% if cat_nav %}<a href="{% url 'portal-home' %}#kategorien" data-portal-menu-open data-all-categories class="lg:hidden mb-4 inline-flex items-center gap-2 min-h-[2.75rem] px-4 rounded-full border border-gray-300 bg-white text-sm font-bold text-gray-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h10M4 18h16"></path></svg>{% trans "Alle Bereiche" %}</a>{% endif %}
 {% include "aggregator/_portal_subcategory_tiles.html" %}
 {% include "aggregator/_portal_filter_bar.html" %}
 {% include "aggregator/_search_intent_chips.html" %}

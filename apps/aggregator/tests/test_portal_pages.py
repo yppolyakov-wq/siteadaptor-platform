@@ -117,13 +117,15 @@ def test_city_portal_facet_filters_by_business_type():
 
 
 @override_settings(ROOT_URLCONF="config.urls_portal")
-def test_city_portal_lists_type_chips():
+def test_city_portal_type_pages_stay_in_sitemap():
+    """2026-11-09: «Branche» убран из подвала (решение владельца) — страницы отраслей живы и
+    находятся роботом через sitemap."""
     p = _portal()
     _listing(business_type="bakery")
     _listing(business_type="butcher")
-    resp = portal_views.portal_home(_get(p))
-    assert b"/bakery/" in resp.content
-    assert b"/butcher/" in resp.content
+    urls = [u for u, _m in portal_views._sitemap_urls(_get(p), p)]
+    assert any(u.endswith("/bakery/") for u in urls)
+    assert any(u.endswith("/butcher/") for u in urls)
 
 
 def test_unknown_facet_raises_404():

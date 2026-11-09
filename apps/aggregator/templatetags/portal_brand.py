@@ -73,7 +73,7 @@ def portal_footer(portal):
         return data
     data, ttl = _footer_data(portal), FOOTER_CACHE
     if data is None:  # ошибка БД: подвал на КАЖДОЙ странице — не роняем страницу, пусто ненадолго
-        data, ttl = {"kinds": [], "facets": [], "districts": []}, 30
+        data, ttl = {"kinds": [], "districts": []}, 30
     try:
         cache.set(key, data, ttl)
     except Exception:  # noqa: BLE001
@@ -85,7 +85,7 @@ def _footer_data(portal) -> dict | None:
     """Ссылки подвала (запросы к БД). None — ошибка: вызывающий отдаёт пустой подвал."""
     import logging
 
-    from django.urls import NoReverseMatch, reverse
+    from django.urls import reverse
 
     from apps.aggregator import portal_home_blocks as home
     from apps.aggregator import portal_scope, portal_views
@@ -96,13 +96,6 @@ def _footer_data(portal) -> dict | None:
         kinds = set(
             portal_scope.pool(portal).order_by().values_list("listing_kind", flat=True).distinct()
         )
-        _axis, values = portal_views._facet_choices(portal)
-        facets = []
-        for value, label in values:
-            try:  # свободная ось «city» — сырая строка из данных: «/» маршрут не примет
-                facets.append({"label": str(label), "url": reverse("portal-facet", args=[value])})
-            except NoReverseMatch:
-                continue
         return {
             "kinds": [
                 {
@@ -112,7 +105,6 @@ def _footer_data(portal) -> dict | None:
                 for t in home.TABS
                 if t.key != "alle" and kinds & set(t.kinds)
             ],
-            "facets": facets,
             "districts": portal_views._district_choices(portal),
             "start_url": platform_url("quick-start"),
             "agb_url": platform_url("platform-agb"),

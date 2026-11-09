@@ -31,8 +31,7 @@ def test_subcategory_tiles_are_compact_on_phones():
     assert "max-sm:border-0" in tiles
 
 
-def test_section_page_offers_all_categories_on_phones():
+def test_section_page_has_no_second_category_list():
+    """2026-11-09: «Alle Bereiche» и дерево сняты — разделы только в фильтре."""
     html = _section_page()
-    link = re.search(r"<a[^>]*data-all-categories[^>]*>", html).group(0)
-    assert "lg:hidden" in link and "data-portal-menu-open" in link and "#kategorien" in link
-    assert html.count("data-category-tree") == 1  # дерево не дублируется
+    assert "data-all-categories" not in html and "data-category-tree" not in html

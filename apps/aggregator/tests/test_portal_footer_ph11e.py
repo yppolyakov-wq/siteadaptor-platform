@@ -27,7 +27,8 @@ def test_footer_has_five_columns_and_only_non_empty_links():
         assert heading in foot
     assert "?kind=angebote" in foot and "?kind=event" not in foot  # событий нет — ссылки нет
     assert "/stadtteil/wald/" in foot and "/stadtteil/mitte/" not in foot
-    assert "/bakery/" in foot.split("data-footer-facets", 1)[1]
+    # 2026-11-09 (решение владельца): «Branche» из подвала убран
+    assert "data-footer-facets" not in foot and "/bakery/" not in foot
     assert "Impressum" in foot and "Datenschutz" in foot
 
 
@@ -47,7 +48,7 @@ def test_footer_data_is_cached(django_assert_num_queries):
     p = _portal()
     _listing("promotion", "Pizza", district="wald", business_type="bakery")
     first = portal_footer(p)
-    assert first["districts"] and first["facets"] and first["kinds"]
+    assert first["districts"] and first["kinds"] and "facets" not in first
     with django_assert_num_queries(0):
         assert portal_footer(p) == first
 
