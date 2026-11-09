@@ -1202,6 +1202,7 @@ UNIVERSAL: dict[str, str] = {
     "modules": "включение функций — у каждого",
     "support:help": "помощь — у каждого",
     "design": "дизайн сайта — у каждого",
+    "site-menu": "меню сайта — у каждого",
     "site-seo": "SEO сайта — у каждого",
     "site-schema": "схема блоков страниц — у каждого",
     # STU-19d: the screens show only the page types whose module is on.
