@@ -286,3 +286,16 @@ def test_admin_marking_internal_removes_snapshots(django_capture_on_commit_callb
     with django_capture_on_commit_callbacks(execute=False):
         admin.save_model(RequestFactory().post("/admin/"), biz, form, change=True)
     assert not AggregatorListing.objects.filter(tenant_schema=biz.schema_name).exists()
+
+
+@override_settings(ROOT_URLCONF="config.urls_portal")
+def test_demo_notice_is_dismissible_popup_without_cookie():
+    """2026-11-09: плашка демо — маленькое окно с ✕ (при JS); закрытие помнит
+    localStorage, а не кука (кэш P0-1); без JS кнопка скрыта, полоса в потоке."""
+    _listing(is_demo=True)
+    resp = portal_views.portal_home(_get("/", _portal(show_demo=True)))
+    html = _html(resp)
+    assert "data-demo-notice-close hidden" in html
+    assert "data-[toast]:fixed" in html and "portal:demoNoticeClosed" in html
+    assert "localStorage" in html and "document.cookie" not in html
+    assert not resp.cookies

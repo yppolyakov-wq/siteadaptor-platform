@@ -1,3 +1,35 @@
-{% load i18n %}{% comment %}T-8.15/T-8.26: страница показывает демо-бизнесы — честно об этом. Один партиал на портал-превью и /entdecken/ (тот же msgid).{% endcomment %}{% if shows_demo %}
-<p data-demo-notice class="mb-6 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-sm px-4 py-3">{% trans "Vorschau mit Beispielgeschäften: Die mit «Demo» markierten Angebote sind erfunden und zeigen, wie das Portal funktionieren wird." %}</p>
+{% load i18n %}{% comment %}T-8.15/T-8.26: страница показывает демо-бизнесы — честно об этом. Один партиал на портал-превью и /entdecken/ (тот же msgid).
+2026-11-09 (фидбэк владельца): при JS — маленькое окно вверху экрана с ✕ (атрибут data-toast включает
+вид окна), закрытие запоминается в браузере (localStorage, без cookie и без данных на сервере — страница
+кэшируется, P0-1). Без JS — прежняя полоса в потоке; фокус
+клавиатуры вне окна тоже возвращает полосу (2.4.11), после ✕ фокус уходит на h1. Метки «Demo» на карточках остаются всегда.{% endcomment %}{% if shows_demo %}
+<div data-demo-notice role="note" class="mb-6 flex items-start gap-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-sm px-4 py-3 data-[toast]:fixed data-[toast]:z-40 data-[toast]:mb-0 data-[toast]:top-[calc(0.5rem+env(safe-area-inset-top))] data-[toast]:inset-x-2 data-[toast]:mx-auto data-[toast]:max-w-sm data-[toast]:py-2.5 data-[toast]:pr-2 data-[toast]:text-[13px] data-[toast]:leading-snug data-[toast]:shadow-lg">
+  <p class="flex-1 min-w-0">{% trans "Vorschau mit Beispielgeschäften: Die mit «Demo» markierten Angebote sind erfunden und zeigen, wie das Portal funktionieren wird." %}</p>
+  <button type="button" data-demo-notice-close hidden class="shrink-0 -my-1 inline-flex items-center justify-center h-8 w-8 rounded-full text-amber-900 hover:bg-amber-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-amber-900 focus-visible:outline-offset-2"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"></path></svg><span class="sr-only">{% trans "Schließen" %}</span></button>
+</div>
+<script>
+(function () {
+  var box = document.currentScript.previousElementSibling;
+  var KEY = "portal:demoNoticeClosed";
+  try {
+    if (localStorage.getItem(KEY) === "1") { box.remove(); return; }
+  } catch (e) {}
+  box.setAttribute("data-toast", "");
+  var btn = box.querySelector("[data-demo-notice-close]");
+  btn.hidden = false;
+  btn.addEventListener("click", function () {
+    try { localStorage.setItem(KEY, "1"); } catch (e) {}
+    var next = document.querySelector("h1") || document.querySelector("main");
+    box.remove();
+    if (next) {
+      if (!next.hasAttribute("tabindex")) next.setAttribute("tabindex", "-1");
+      next.focus({ preventScroll: true });
+    }
+  });
+  // WCAG 2.4.11: фокус клавиатуры вне окна — окно возвращается полосой в поток, не закрывая фокус.
+  document.addEventListener("focusin", function (e) {
+    if (!box.contains(e.target)) box.removeAttribute("data-toast");
+  });
+})();
+</script>
 {% endif %}
