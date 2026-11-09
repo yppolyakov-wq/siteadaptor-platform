@@ -3,7 +3,7 @@
   {% if map_points and map_view %}
   {% comment %}Блок Б2: список по умолчанию, карта — по кнопке (без JS — ссылкой ?ansicht=karte).
   Leaflet грузится только когда карту открыли.{% endcomment %}
-  <div class="inline-flex rounded-lg border border-gray-300 overflow-hidden text-sm font-medium" role="group" data-map-toggle>
+  <div class="inline-flex rounded-lg border border-gray-300 overflow-hidden text-sm font-medium" role="group" aria-label="{% trans 'Ansicht' %}" data-map-toggle>
     <a href="{{ map_view.list_url }}" rel="nofollow" data-map-list{% if not map_view.open %} aria-current="page"{% endif %} class="px-3 py-2 {% if map_view.open %}bg-white text-gray-700{% else %}bg-gray-900 text-white{% endif %}">☰ {% trans "Liste" %}</a>
     <a href="{{ map_view.map_url }}" rel="nofollow" data-map-show{% if map_view.open %} aria-current="page"{% endif %} class="px-3 py-2 {% if map_view.open %}bg-gray-900 text-white{% else %}bg-white text-gray-700{% endif %}">🗺 {% trans "Map" %}</a>
   </div>

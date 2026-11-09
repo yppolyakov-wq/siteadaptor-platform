@@ -675,8 +675,9 @@ def usable_before(row, ends_at, now) -> bool:
     if day != weekday_abbr(local_now.weekday()):
         return False
     opens = local_now.replace(hour=hh, minute=mm, second=0, microsecond=0)
-    # тот же день недели, но время уже прошло, а бизнес закрыт — это открытие через неделю
-    return local_now <= opens < timezone.localtime(ends_at)
+    # тот же день недели, но время уже прошло, а бизнес закрыт — это открытие через неделю.
+    # Минута допуска: снимок часов, построенный за миг до открытия, не делает бизнес «закрытым».
+    return local_now - timedelta(minutes=1) <= opens < timezone.localtime(ends_at)
 
 
 def quad_cards(

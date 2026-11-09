@@ -53,3 +53,16 @@ def test_one_cta_in_a_sticky_phone_bar_and_no_bottom_nav():
     assert "max-md:fixed" in bar and "max-md:bottom-0" in bar
     assert "data-portal-bottom-nav" not in html  # панель покупки вместо меню
     assert "inkl. MwSt" not in html  # признака НДС у листинга нет — не выдумываем
+
+
+def test_share_button_is_hidden_until_the_browser_can_share():
+    from pathlib import Path
+
+    src = (
+        Path(__file__).resolve().parents[3] / "templates" / "aggregator" / "offer.html"
+    ).read_text()
+    btn = src[src.index("<button") : src.index(">", src.index("<button"))]
+    assert "data-offer-share" in btn and " hidden" in btn and 'type="button"' in btn
+    js = src[src.index("<script>") :]
+    assert "navigator.share" in js and "b.hidden = false" in js
+    assert "location.href" in js  # только адрес страницы, без данных посетителя

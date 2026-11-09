@@ -3,7 +3,7 @@
 Ссылки ведут на query-вариации (noindex) → rel="nofollow" (план §12.4). Ни одной POST-формы и
 csrf_token: страница может прийти из кэша публичных страниц (P0-1).{% endcomment %}
 {% if flt %}
-<div data-flt class="mb-4 max-md:sticky max-md:top-0 max-md:z-20 max-md:bg-gray-50 max-md:-mx-4 max-md:px-4 max-md:pb-2 max-md:border-b max-md:border-gray-200">
+<div data-flt class="mb-4 max-md:[@media(max-height:480px)]:static max-md:sticky max-md:top-0 max-md:z-20 max-md:bg-gray-50 max-md:-mx-4 max-md:px-4 max-md:pb-2 max-md:border-b max-md:border-gray-200">
   <div data-flt-bar class="relative flex gap-2 overflow-x-auto sm:overflow-visible sm:flex-wrap py-1 -mx-1 px-1 items-center">
     <a href="#flt-drawer" data-flt-open="" aria-controls="flt-drawer" rel="nofollow"
        class="shrink-0 inline-flex items-center gap-1.5 min-h-[44px] sm:min-h-0 px-3.5 py-2 rounded-full text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 font-medium border {% if flt.active_count %}text-white border-transparent{% else %}bg-white border-gray-300 text-gray-800 hover:border-gray-500{% endif %}"{% if flt.active_count %} style="background: var(--portal-color)"{% endif %}>

@@ -339,6 +339,8 @@ def _header_search(hidden, filters, district) -> dict:
         "header_wo": wo,
         "header_wann": wann,
         "header_wann_custom": custom,
+        # PH-13a: подсказка «In <раздел> suchen» честна, только если раздел едет в форме
+        "header_scoped": any(k == "kat" for k, _v in out),
     }
 
 

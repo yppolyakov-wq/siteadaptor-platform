@@ -43,3 +43,13 @@ def test_ok_button_is_not_translated_as_a_word_of_approval():
     for loc in ("ru", "uk"):
         e = polib.pofile(str(root / loc / "LC_MESSAGES" / "django.po")).find("OK")
         assert e.msgstr == "OK", loc  # «Хорошо»/«Гаразд» — омоним на кнопке «применить»
+
+
+def test_sticky_panel_does_not_hide_focus_and_yields_on_short_screens():
+    base = (TPL / "portal_base.html").read_text()
+    html_tag = base[base.index("<html") : base.index(">", base.index("<html"))]
+    # 2.4.11: фокус не прячется под закреплённой панелью и нижним меню
+    assert "max-md:scroll-pt-" in html_tag and "max-md:scroll-pb-" in html_tag
+    src = (TPL / "_portal_filter_bar.html").read_text()
+    assert "[@media(max-height:480px)]:static" in src  # ландшафт/зум — без закрепления
+    assert "aria-label=" in (TPL / "_map.html").read_text().split("data-map-toggle")[0][-200:]

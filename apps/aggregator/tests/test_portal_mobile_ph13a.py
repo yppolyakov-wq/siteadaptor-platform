@@ -79,3 +79,36 @@ def test_section_page_search_placeholder_names_the_section():
     ph = re.search(r'placeholder="([^"]*)"', form).group(1)
     assert ph.startswith("In ") and ph.endswith("suchen …") and "Pizza, Friseur" not in ph
     assert 'name="kat"' in form  # подсказка «в разделе» честная: раздел едет в форме
+
+
+def test_section_placeholder_only_when_section_is_carried_by_the_form():
+    from apps.aggregator.portal_views import _header_search
+    from apps.aggregator.search import SearchFilters
+
+    f = SearchFilters()
+    assert _header_search([("kat", "essen-gastronomie")], f, "")["header_scoped"] is True
+    assert _header_search([("merkmal", "vegan")], f, "")["header_scoped"] is False
+    # /entdecken/ не передаёт header_hidden → подсказка обычная, не «в разделе»
+    from django.template.loader import render_to_string
+
+    out = render_to_string(
+        "aggregator/_portal_header_search.html",
+        {"category_chips": {"label": "Essen"}, "portal": None},
+    )
+    assert "In Essen suchen" not in out
+
+
+def test_opening_snapshot_one_minute_old_still_counts_as_today():
+    from datetime import timedelta
+
+    from django.utils import timezone
+
+    from apps.aggregator import portal_home_blocks as home
+    from apps.tenants.openinghours import weekday_abbr
+
+    now = timezone.localtime().replace(hour=11, minute=0, second=20, microsecond=0)
+    row = {
+        "holiday": None,
+        "status": {"open": False, "next": (weekday_abbr(now.weekday()), "11:00")},
+    }
+    assert home.usable_before(row, now + timedelta(hours=1), now) is True

@@ -30,6 +30,9 @@
     {% elif listing.discount_percent %}
       <span class="absolute top-3 left-3 bg-red-600 text-white text-sm font-bold px-3 py-1 rounded-full shadow">−{{ listing.discount_percent }} %</span>
     {% endif %}
+    {% comment %}PH-13g: «Teilen» — системное окно телефона (navigator.share). Без поддержки кнопка
+    скрыта (hidden до скрипта): в HTML нет данных посетителя, страница кэшируется.{% endcomment %}
+    <button type="button" data-offer-share hidden class="absolute top-3 right-3 inline-flex items-center justify-center h-11 w-11 rounded-full bg-white/95 text-gray-900 shadow focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 8l5-5 5 5M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"></path></svg><span class="sr-only">{% trans "Teilen" %}</span></button>
     {% if listing.is_demo %}
       <span data-demo-badge class="absolute bottom-3 right-3 bg-gray-900/80 text-white text-xs font-semibold px-2 py-0.5 rounded-full">{% trans "Demo" %}</span>
     {% endif %}
@@ -118,4 +121,14 @@
   </section>
 {% endif %}
 <div class="md:hidden h-24" aria-hidden="true"></div>
+<script>
+(function () {
+  var b = document.querySelector("[data-offer-share]");
+  if (!b || !navigator.share) return;
+  b.hidden = false;
+  b.addEventListener("click", function () {
+    navigator.share({ title: document.title, url: location.href }).catch(function () {});
+  });
+})();
+</script>
 {% endblock %}
