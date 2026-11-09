@@ -4339,7 +4339,7 @@ def menu_builder_view(request):
         "locales": form_locales(tenant)[1:],
         "media": media,
     }
-    return render(request, "tenant/site_menu.html", {"nav": "site", "builder": builder})
+    return render(request, "tenant/site_menu.html", {"nav": "site-menu", "builder": builder})
 
 
 @login_required
