@@ -829,10 +829,10 @@ def portal_home(request, facet=None, district=None):
             "hits": hits,
             "hits_capped": hits_capped,
             "map_view": geo.map_view(request),  # блок Б2
-            # PH-14: «Liste» — строки на всех ширинах; поиск на телефоне — строки (PH-13d)
-            "cards_layout": (
-                "rows" if geo.view_mode(request) == "liste" else ("list" if q else "")
-            ),
+            # PH-14: «Liste» — строки на всех ширинах. 2026-11-09 (фидбэк владельца): «Kacheln»
+            # и в поиске на телефоне — плитка 2 в ряд (фото во всю ширину, название под ним);
+            # прежние строки PH-13d в поиске дублировали «Liste».
+            "cards_layout": "rows" if geo.view_mode(request) == "liste" else "",
             "category_chips": category_chips,  # T-8.13a
             "kind_chips": kind_chips,  # T-8.11
             "portal_tabs": portal_tabs,  # T-8.19

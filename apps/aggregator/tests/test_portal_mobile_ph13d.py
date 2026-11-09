@@ -1,4 +1,4 @@
-"""PH-13d: выдача поиска на телефоне по макету M6 — карточки строками (фото 116 px слева),
+"""PH-13d: выдача поиска на телефоне (макет M6; с 2026-11-09 — плитка 2 в ряд, строки — «Liste»),
 «Später geöffnet · N». Раздел без поиска остаётся плиткой; с sm разметка прежняя."""
 
 import re
@@ -18,25 +18,34 @@ def _clear_cache():
     cache.clear()
 
 
-def test_search_results_are_rows_on_phones():
+def test_search_results_are_tiles_two_per_row_on_phones():
+    """2026-11-09 (фидбэк владельца): «Kacheln» на телефоне — плитка 2 в ряд, фото во всю
+    ширину; строки — только в «Liste» (раньше поиск на телефоне дублировал «Liste»)."""
     _listing("promotion", "Pizza Margherita")
     _listing("promotion", "Pizza Salami")
     html = _html(_portal(), q="Pizza")
-    grid = re.search(r"<div[^>]*data-card-list[^>]*>", html)
-    assert grid and "max-sm:grid-cols-1" in grid.group(0)
-    assert "max-sm:w-[116px]" in html and "max-sm:flex-row" in html
+    grid = re.search(r"<div[^>]*data-flt-grid[^>]*>", html).group(0)
+    assert "grid-cols-2" in grid and "max-sm:grid-cols-1" not in grid
+    assert "data-card-list" not in html and "max-sm:w-[116px]" not in html
+    assert "max-sm:aspect-square" in html  # фото крупно, как в каталоге
+
+
+def test_liste_view_keeps_rows_in_search():
+    _listing("promotion", "Pizza Margherita")
+    html = _html(_portal(), q="Pizza", ansicht="liste")
+    assert "data-card-rows" in html
 
 
 def test_category_page_without_search_keeps_tiles():
     _listing("promotion", "Pizza", city_category="restaurants")
     html = _html(_portal(), kind="alle", kat="essen-gastronomie")
-    assert "data-card-list" not in html
+    assert "data-card-list" not in html and "data-card-rows" not in html
 
 
 def test_desktop_grid_classes_stay():
     _listing("promotion", "Pizza Margherita")
     html = _html(_portal(), q="Pizza")
-    grid = re.search(r"<div[^>]*data-card-list[^>]*>", html).group(0)
+    grid = re.search(r"<div[^>]*data-flt-grid[^>]*>", html).group(0)
     assert "xl:grid-cols-4" in grid or "lg:grid-cols-3" in grid
 
 

@@ -1,7 +1,8 @@
 {% load i18n portal_brand %}{# Грид карточек листингов: ожидает items (AggregatorListing); опц. fav_ids + portal_user (сердечки P2.3b, только на порталах под логином). #}
 {% comment %}PH-7: layout="row" — на телефоне горизонтальная лента со snap (видна часть следующей карточки), с sm — обычная сетка.
 PH-13d (макет M6): layout="list" — на телефоне строки (фото 116 px слева, текст справа), с sm — прежняя сетка.
-PH-14: layout="rows" (вид «Liste», ?ansicht=liste) — строки на ВСЕХ ширинах.{% endcomment %}
+PH-14: layout="rows" (вид «Liste», ?ansicht=liste) — строки на ВСЕХ ширинах.
+2026-11-09: «Kacheln» выдачи/раздела на телефоне — плитка 2 в ряд с квадратным фото.{% endcomment %}
 <div class="{% if layout == 'rows' %}grid grid-cols-1 gap-3{% elif layout == 'row' %}flex overflow-x-auto snap-x snap-mandatory gap-3 -mx-4 px-4 pb-1 sm:mx-0 sm:px-0 sm:pb-0 sm:overflow-visible sm:grid sm:grid-cols-2{% elif flt_grid %}grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 lg:group-data-[flt-collapsed]/flt:grid-cols-4 xl:group-data-[flt-collapsed]/flt:grid-cols-5{% else %}grid grid-cols-2{% endif %}{% if not flt_grid and layout != 'rows' %} lg:grid-cols-3 lg:group-data-[wide]:grid-cols-4{% endif %}{% if layout != 'rows' %} gap-4 md:gap-6{% endif %}{% if layout == 'list' %} max-sm:grid-cols-1 max-sm:gap-0 max-sm:divide-y max-sm:divide-gray-200{% endif %}"{% if flt_grid %} data-flt-grid{% endif %} {% if layout == 'row' %}data-card-row{% endif %}{% if layout == 'list' %} data-card-list{% endif %}{% if layout == 'rows' %} data-card-rows{% endif %}>
   {% for l in items %}
     <div class="relative{% if layout == 'row' %} shrink-0 w-[72%] snap-start sm:w-auto{% endif %}" data-pstat="{{ l.pk }}">{# В5 V5-4: маячок показов считает карточку по этому pk #}
@@ -12,7 +13,7 @@ PH-14: layout="rows" (вид «Liste», ?ansicht=liste) — строки на В
     <a href="{% if l.is_featured_now %}{% url 'aggregator-featured-click' l.pk %}{% else %}{{ offer_url|default:l.portal_url }}{% endif %}"{% if l.is_featured_now %} rel="sponsored nofollow"{% endif %}
        class="group flex {% if layout == 'rows' %}flex-row{% else %}flex-col{% endif %} h-full bg-white rounded-[18px] shadow-[0_1px_2px_rgba(17,24,39,.06),0_8px_24px_rgba(17,24,39,.06)] overflow-hidden hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-orange-600 transition{% if layout == 'list' %} max-sm:flex-row max-sm:gap-3 max-sm:py-3 max-sm:rounded-none max-sm:shadow-none max-sm:bg-transparent max-sm:overflow-visible{% endif %}">
       {% comment %}PH-3 (макет Card.dc.html): фото 4:3, бейджи слева сверху, «Endet in …» отдельной строкой.{% endcomment %}
-      <div class="relative {% if layout == 'rows' %}w-28 h-28 sm:w-44 sm:h-auto sm:min-h-[8.5rem] shrink-0{% else %}aspect-[4/3]{% endif %} bg-gray-100{% if layout == 'list' %} max-sm:w-[116px] max-sm:h-[116px] max-sm:aspect-auto max-sm:shrink-0 max-sm:rounded-2xl max-sm:overflow-hidden{% endif %}">
+      <div class="relative {% if layout == 'rows' %}w-28 h-28 sm:w-44 sm:h-auto sm:min-h-[8.5rem] shrink-0{% else %}aspect-[4/3]{% if flt_grid %} max-sm:aspect-square{% endif %}{% endif %} bg-gray-100{% if layout == 'list' %} max-sm:w-[116px] max-sm:h-[116px] max-sm:aspect-auto max-sm:shrink-0 max-sm:rounded-2xl max-sm:overflow-hidden{% endif %}">
         {% if l.image.url %}
           <img src="{{ l.image.url }}" alt="{{ l.title_text }}" loading="lazy" decoding="async"
                class="w-full h-full object-cover group-hover:scale-[1.02] transition">
