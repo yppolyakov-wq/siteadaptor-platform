@@ -35903,3 +35903,8 @@ msgstr "In %(label)s suchen …"
 msgctxt "payment"
 msgid "Vor Ort"
 msgstr "Vor Ort"
+
+#: 2026-11-09 quad badge
+msgctxt "badge"
+msgid "Neu"
+msgstr "Neu"

@@ -105,3 +105,14 @@ def test_screen_renders_pages_and_preview():
     assert "data-schema-blocks" in body and "data-schema-frame" in body
     assert "/sortiment/?preview=1" in body
     assert 'aria-current="page"' in body
+
+
+def test_page_types_are_a_row_on_top_not_a_left_column():
+    """2026-11-09 (фидбэк владельца): типы страниц — строкой сверху, схеме и превью вся ширина."""
+    from pathlib import Path
+
+    src = (Path(__file__).resolve().parents[3] / "templates/tenant/site_schema.html").read_text()
+    pages = src.index("data-schema-pages")
+    assert pages < src.index("data-site-schema")  # над сеткой, а не в ней
+    grid = src[src.index('<div class="grid', pages) :].split(">", 1)[0]
+    assert "14rem" not in grid

@@ -36138,3 +36138,8 @@ msgstr "Шукати в розділі «%(label)s» …"
 msgctxt "payment"
 msgid "Vor Ort"
 msgstr "На місці"
+
+#: 2026-11-09 quad badge
+msgctxt "badge"
+msgid "Neu"
+msgstr "Новинка"

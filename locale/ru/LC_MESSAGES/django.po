@@ -36151,3 +36151,8 @@ msgstr "Искать в разделе «%(label)s» …"
 msgctxt "payment"
 msgid "Vor Ort"
 msgstr "На месте"
+
+#: 2026-11-09 quad badge
+msgctxt "badge"
+msgid "Neu"
+msgstr "Новинка"

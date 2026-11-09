@@ -35,8 +35,9 @@ def test_language_menu_is_visible_on_phones():
 
 def test_sign_in_moves_to_bottom_nav_on_phones():
     header = _header(_html(_portal()))
-    link = re.search(r'<a href="/konto/login/" class="[^"]*"', header)
-    assert link and "hidden sm:inline" in link.group(0)
+    # 2026-11-09: вход — значком (data-head-icon), на телефоне скрыт (есть «Konto» внизу)
+    link = re.search(r'<a href="/konto/login/"[^>]*data-head-icon="login"[^>]*>', header)
+    assert link and "hidden sm:inline-flex" in link.group(0)
 
 
 def test_phone_search_is_one_pill_with_wo_wann_inside():

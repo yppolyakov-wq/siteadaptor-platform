@@ -47,14 +47,16 @@
         </span>
       </a>
       {% include "aggregator/_portal_header_search.html" %}
-      <nav aria-label="{% trans 'Konto' %}" class="ml-auto md:ml-0 flex items-center gap-4 shrink-0 text-sm">
+      <nav aria-label="{% trans 'Konto' %}" class="ml-auto md:ml-0 flex items-center gap-2 shrink-0 text-sm">
         {% if ui_languages %}<span class="inline-flex">{% include "aggregator/_portal_lang_menu.html" %}</span>{% endif %}
-        <a href="{% url 'portal-for-business' %}" class="hidden 2xl:inline text-gray-600 hover:underline">{% trans "Für Unternehmen" %}</a>
-        <a href="{% if portal_user %}{% url 'portal-account' %}{% else %}{% url 'portal-login' %}?next=/konto/{% endif %}" rel="nofollow" class="hidden sm:inline md:hidden lg:inline text-gray-700 hover:underline">{% trans "Merkzettel" %}</a>
+        {% comment %}2026-11-09 (фидбэк владельца): Für Unternehmen · Merkzettel · Anmelden — значками;
+        имя — sr-only + title (подсказка мышью). На телефоне вход — нижнее меню «Konto».{% endcomment %}
+        <a href="{% url 'portal-for-business' %}" data-head-icon="business" title="{% trans "Für Unternehmen" %}" class="hidden sm:inline-flex md:hidden lg:inline-flex items-center justify-center h-11 w-11 rounded-full border border-gray-200 bg-white text-gray-800 hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9l1.5-5h15L21 9"></path><path d="M4 9v11h16V9"></path><path d="M3 9h18"></path><path d="M9 20v-6h6v6"></path></svg><span class="sr-only">{% trans "Für Unternehmen" %}</span></a>
+        <a href="{% if portal_user %}{% url 'portal-account' %}{% else %}{% url 'portal-login' %}?next=/konto/{% endif %}" rel="nofollow" data-head-icon="merkzettel" title="{% trans "Merkzettel" %}" class="hidden sm:inline-flex md:hidden lg:inline-flex items-center justify-center h-11 w-11 rounded-full border border-gray-200 bg-white text-gray-800 hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8z"></path></svg><span class="sr-only">{% trans "Merkzettel" %}</span></a>
         {% if portal_user %}
-          <a href="{% url 'portal-account' %}" class="hidden sm:inline font-semibold hover:underline" style="color: var(--portal-link)">{% trans "My account" %}</a>
+          <a href="{% url 'portal-account' %}" data-head-icon="account" title="{% trans "My account" %}" class="hidden sm:inline-flex items-center justify-center h-11 w-11 rounded-full border border-gray-200 bg-white text-gray-800 hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path></svg><span class="sr-only">{% trans "My account" %}</span></a>
         {% else %}
-          <a href="{% url 'portal-login' %}" class="hidden sm:inline font-semibold hover:underline" style="color: var(--portal-link)">{% trans "Sign in" %}</a>
+          <a href="{% url 'portal-login' %}" data-head-icon="login" title="{% trans "Sign in" %}" class="hidden sm:inline-flex items-center justify-center h-11 w-11 rounded-full border border-gray-200 bg-white text-gray-800 hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path></svg><span class="sr-only">{% trans "Sign in" %}</span></a>
         {% endif %}
       </nav>
     </div>
@@ -71,9 +73,10 @@
 
   {% comment %}PH-13g: блок — страница предложения заменяет меню панелью покупки (макет M8).{% endcomment %}
   {% block bottom_nav %}
-  {% comment %}PH-7: нижнее меню на телефоне (sm:hidden) — Entdecken · Karte · Gemerkt · Konto.{% endcomment %}
+  {% comment %}PH-7: нижнее меню на телефоне (sm:hidden) — Entdecken · Karte · Gemerkt · Konto.
+  2026-11-09: на всю ширину и прижато к низу экрана (с отступом под системную полосу iPhone).{% endcomment %}
   {% with rn=request.resolver_match.url_name %}
-  <nav aria-label="{% trans 'Navigation' %}" data-portal-bottom-nav class="sm:hidden fixed left-3 right-3 bottom-3 z-30 bg-gray-900 rounded-3xl p-1.5 grid grid-cols-4 shadow-xl" style="margin-bottom: env(safe-area-inset-bottom)">
+  <nav aria-label="{% trans 'Navigation' %}" data-portal-bottom-nav class="sm:hidden fixed inset-x-0 bottom-0 z-30 bg-gray-900 px-1.5 pt-1.5 grid grid-cols-4 shadow-[0_-4px_16px_rgba(0,0,0,.18)]" style="padding-bottom: calc(0.375rem + env(safe-area-inset-bottom))">
     <a href="{% url 'portal-home' %}"{% if rn == 'portal-home' and not request.GET %} aria-current="page"{% endif %} class="flex flex-col items-center gap-0.5 py-2 rounded-2xl text-[11px] font-bold {% if rn == 'portal-home' and not request.GET %}bg-orange-300 text-gray-900{% else %}text-gray-200{% endif %}">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M15.5 8.5l-2 5-5 2 2-5z"></path></svg>{% trans "Entdecken" context "nav" %}
     </a>

@@ -12,9 +12,13 @@
       <li>
         {% if l.listing_kind == 'business' %}{% url 'portal-business' slug=l.tenant_slug as offer_url %}{% else %}{% url 'aggregator-offer' l.pk as offer_url %}{% endif %}
         <a href="{{ offer_url|default:l.portal_url }}" class="group block rounded-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900">
-          <span class="block aspect-square max-sm:aspect-[4/3] rounded-xl overflow-hidden bg-gray-100">{% if l.image.url %}<img src="{{ l.image.url }}" alt="" loading="lazy" decoding="async" class="w-full h-full object-cover group-hover:scale-105 transition-transform">{% endif %}</span>
-          <span class="mt-1.5 block text-[13px] font-semibold leading-snug line-clamp-2 text-gray-900 group-hover:underline">{{ l.title_text }}</span>
-          {% if l.discount_percent %}<span class="block text-xs font-bold text-orange-700">−{{ l.discount_percent }} %</span>{% elif l.new_price %}<span class="block text-xs text-gray-600">{{ l.new_price }} {{ l.currency|currency_sign }}</span>{% endif %}
+          {% comment %}2026-11-09 (фидбэк владельца): метка (скидка / «neu») и цена — ПОВЕРХ фото,
+          название — одной строкой с обрезкой (полное имя — в title).{% endcomment %}
+          <span class="relative block aspect-square max-sm:aspect-[4/3] rounded-xl overflow-hidden bg-gray-100">{% if l.image.url %}<img src="{{ l.image.url }}" alt="" loading="lazy" decoding="async" class="w-full h-full object-cover group-hover:scale-105 transition-transform">{% endif %}
+            {% if l.discount_percent %}<span data-quad-badge class="absolute top-2 left-2 max-w-[calc(100%-1rem)] truncate rounded-full bg-orange-700 px-2 py-0.5 text-xs font-bold text-white shadow">−{{ l.discount_percent }} %</span>{% elif c.key == "neu" %}<span data-quad-badge class="absolute top-2 left-2 rounded-full bg-orange-700 px-2 py-0.5 text-xs font-bold text-white shadow">{% trans "Neu" context "badge" %}</span>{% endif %}
+            {% if l.new_price %}<span data-quad-price class="absolute bottom-2 left-2 max-w-[calc(100%-1rem)] truncate rounded-full bg-white/95 px-2 py-0.5 text-xs font-bold text-gray-900 shadow">{{ l.new_price }} {{ l.currency|currency_sign }}</span>{% endif %}
+          </span>
+          <span class="mt-1.5 block text-[13px] font-semibold leading-snug truncate text-gray-900 group-hover:underline" title="{{ l.title_text }}">{{ l.title_text }}</span>
         </a>
       </li>
       {% endfor %}

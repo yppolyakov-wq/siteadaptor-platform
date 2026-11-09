@@ -4,7 +4,7 @@
 
 {% block dash_content %}
 {% comment %}FB-25 (решения владельца 2026-11-07: отдельный экран, правка блоков нужна).
-Слева — типы страниц, по центру — схема блоков выбранной страницы с правкой (видимость,
+Сверху — типы страниц, слева — схема блоков выбранной страницы с правкой (видимость,
 порядок, удаление, «＋ Block»), справа — уменьшенная живая страница. Тонкие настройки блока
 — в Студии.{% endcomment %}
 <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
@@ -21,17 +21,19 @@
   {% endfor %}
 {% endif %}
 
-<div class="grid grid-cols-1 lg:grid-cols-[14rem_minmax(0,1fr)] xl:grid-cols-[14rem_minmax(0,1fr)_minmax(0,1fr)] gap-4 items-start" data-site-schema>
-  <nav aria-label="{% trans 'Seiten' %}" class="ui-card p-2">
-    <ul class="space-y-0.5">
-      {% for r in rows %}
-      <li><a href="?seite={{ r.code }}" class="flex items-center justify-between gap-2 rounded-lg px-3 py-2 text-sm {% if current and r.code == current.code %}bg-indigo-50 text-indigo-800 font-medium{% else %}hover:bg-gray-50{% endif %}"{% if current and r.code == current.code %} aria-current="page"{% endif %}>
-        <span class="truncate">{{ r.label }}</span><span class="ui-badge" title="{% trans 'Sichtbare Blöcke' %}">{{ r.count }}</span>
+{% comment %}2026-11-09 (фидбэк владельца): типы страниц — строкой пилюль СВЕРХУ, а не колонкой
+слева: схеме блоков и превью достаётся вся ширина.{% endcomment %}
+<nav aria-label="{% trans 'Seiten' %}" class="ui-card p-2 mb-4" data-schema-pages>
+  <ul class="flex flex-wrap gap-1.5">
+    {% for r in rows %}
+    <li><a href="?seite={{ r.code }}" class="inline-flex items-center gap-1.5 shrink-0 rounded-full border px-3 py-1.5 text-sm {% if current and r.code == current.code %}border-indigo-200 bg-indigo-50 text-indigo-800 font-medium{% else %}border-gray-200 bg-white hover:bg-gray-50{% endif %}"{% if current and r.code == current.code %} aria-current="page"{% endif %}>
+        <span class="whitespace-nowrap">{{ r.label }}</span><span class="ui-badge" title="{% trans 'Sichtbare Blöcke' %}">{{ r.count }}</span>
       </a></li>
-      {% endfor %}
-    </ul>
-  </nav>
+    {% endfor %}
+  </ul>
+</nav>
 
+<div class="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] gap-4 items-start" data-site-schema>
   <section class="ui-card p-4" aria-labelledby="schema-title">
     <h2 id="schema-title" class="font-semibold mb-3">{{ current.label }}</h2>
     <ol class="space-y-2" data-schema-blocks>
@@ -70,7 +72,7 @@
   </section>
 
   {% if current.preview_url %}
-  <section class="ui-card p-2 lg:col-span-2 xl:col-span-1" aria-label="{% trans 'Vorschau' %}">
+  <section class="ui-card p-2" aria-label="{% trans 'Vorschau' %}">
     <div class="relative w-full overflow-hidden rounded-lg bg-gray-100" style="height: 70vh" data-schema-frame-box>
       <iframe src="{{ current.preview_url }}?preview=1" title="{% trans 'Vorschau' %}: {{ current.label }}" loading="lazy"
               class="absolute top-0 left-0 border-0 origin-top-left" style="width: 1280px; height: 2000px" data-schema-frame></iframe>

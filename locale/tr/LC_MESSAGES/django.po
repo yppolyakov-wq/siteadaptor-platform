@@ -35962,3 +35962,8 @@ msgstr "%(label)s içinde ara …"
 msgctxt "payment"
 msgid "Vor Ort"
 msgstr "Yerinde"
+
+#: 2026-11-09 quad badge
+msgctxt "badge"
+msgid "Neu"
+msgstr "Yeni"
