@@ -5957,7 +5957,7 @@ msgstr "Мин. остаток ≤"
 
 #: templates/inventory/stock.html:177
 msgid "OK"
-msgstr "Хорошо"
+msgstr "OK"
 
 #: templates/inventory/stock.html:185
 msgid "Produkt"
@@ -36142,3 +36142,7 @@ msgstr "Отправить запрос в магазин"
 #: PH-13f
 msgid "Beim Geschäft bestellen"
 msgstr "Заказать у магазина"
+
+#: PH-13a
+msgid "In %(label)s suchen …"
+msgstr "Искать в разделе «%(label)s» …"

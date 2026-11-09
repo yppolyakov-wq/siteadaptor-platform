@@ -123,6 +123,14 @@ def test_usable_today_helper_rules():
     assert home.usable_before({"holiday": None, "status": {"open": True}}, ends, now) is True
     assert home.usable_before({"holiday": "x", "status": None}, ends, now) is False
     assert home.usable_before(closed_all_day, ends, now) is False
+    # тот же день недели, но время открытия уже прошло — это следующая неделя, не «сегодня»
+    from apps.tenants.openinghours import weekday_abbr
+
+    today = weekday_abbr(now.weekday())
+    passed = {"holiday": None, "status": {"open": False, "until": None, "next": (today, "08:00")}}
+    later = {"holiday": None, "status": {"open": False, "until": None, "next": (today, "11:00")}}
+    assert home.usable_before(passed, ends, now) is False
+    assert home.usable_before(later, ends, now) is True
 
 
 # --- d3 «Melden» ------------------------------------------------------------------------------

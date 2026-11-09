@@ -32,11 +32,14 @@
     подпись бренда видна, язык виден, вход — в нижнем меню «Konto»; поиск — одна пилюля.{% endcomment %}
     {% portal_wordmark portal as wm %}
     <div class="w-full px-4 md:px-6 lg:px-10 py-3 md:py-4 flex flex-wrap md:flex-nowrap items-center gap-3 md:gap-4">
-      <a href="{% url 'portal-home' %}#kategorien" data-portal-menu-open class="shrink-0 inline-flex items-center justify-center gap-2 h-11 w-11 sm:w-auto sm:h-12 md:h-14 sm:px-4 md:px-5 rounded-full text-white font-bold text-[15px]" style="background: var(--portal-color)">
+      {% comment %}PH-13a (макет M6): в выдаче поиска на телефоне шапка компактная — «←» к началу
+      портала вместо ☰ и вордмарка (обычная ссылка, без history.back: страница из кэша и ссылки).{% endcomment %}
+      {% if search_q %}<a href="{% url 'portal-home' %}" data-header-back class="md:hidden shrink-0 inline-flex items-center justify-center h-11 w-11 rounded-full border border-gray-300 bg-white text-gray-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg><span class="sr-only">{% trans "Zur Startseite" %}</span></a>{% endif %}
+      <a href="{% url 'portal-home' %}#kategorien" data-portal-menu-open class="{% if search_q %}max-md:hidden {% endif %}shrink-0 inline-flex items-center justify-center gap-2 h-11 w-11 sm:w-auto sm:h-12 md:h-14 sm:px-4 md:px-5 rounded-full text-white font-bold text-[15px]" style="background: var(--portal-color)">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h10M4 18h16"></path></svg>
         <span class="hidden sm:inline">{% trans "Kategorien" %}</span><span class="sm:hidden sr-only">{% trans "Kategorien" %}</span>
       </a>
-      <a href="{% url 'portal-home' %}" class="flex items-center gap-2 min-w-0 md:shrink-0" data-portal-wordmark>
+      <a href="{% url 'portal-home' %}" class="{% if search_q %}max-md:hidden {% endif %}flex items-center gap-2 min-w-0 md:shrink-0" data-portal-wordmark>
         {% if portal.logo_url %}<img src="{{ portal.logo_url }}" alt="" class="h-8 w-8 rounded object-contain">{% endif %}
         <span class="flex flex-col min-w-0 leading-tight">
           <span class="text-xl md:text-[21px] font-extrabold tracking-tight truncate">{% if wm.dark %}<span class="text-gray-900">{{ wm.dark }}</span>{% endif %}<span style="color: var(--portal-link)">{{ wm.accent }}</span></span>

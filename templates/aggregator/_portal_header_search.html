@@ -13,7 +13,7 @@ PH-13a (макет M5): на телефоне форма — ОДНА пилюл
     <label class="flex-1 min-w-0 flex flex-col justify-center bg-white md:focus-within:ring-2 md:focus-within:ring-inset md:focus-within:ring-gray-900 max-md:col-start-1 max-md:row-start-1 md:flex-[1.5] md:px-5 md:py-0.5 md:border-r md:border-gray-200">
       <span class="max-md:sr-only text-xs font-bold text-gray-900">{% trans "Was" %}</span>
       <input type="search" name="q" value="{{ search_q|default:'' }}" maxlength="100"
-             placeholder="{% trans 'Pizza, Friseur, Fahrrad, Kinderkino …' %}"
+             placeholder="{% if category_chips.label and not search_q %}{% blocktrans with label=category_chips.label %}In {{ label }} suchen …{% endblocktrans %}{% else %}{% trans 'Pizza, Friseur, Fahrrad, Kinderkino …' %}{% endif %}"
              class="w-full min-w-0 bg-transparent border-0 p-0 text-base max-md:font-semibold text-gray-900 outline-none focus:ring-0">
     </label>
     <button type="submit" class="md:hidden max-md:col-start-2 max-md:row-start-1 max-md:row-span-2 shrink-0 w-11 h-11 rounded-full text-white flex items-center justify-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900" style="background: var(--portal-color)">

@@ -47,3 +47,35 @@ def test_phone_search_is_one_pill_with_wo_wann_inside():
     for label in ("Wo", "Wann"):
         assert re.search(rf'<span class="[^"]*max-md:sr-only[^"]*">{label}</span>', form), label
     assert form.count('name="stadtteil"') == 1 and form.count('name="datum"') == 1
+
+
+# --- PH-13a (остаток): компактная шапка выдачи и подсказка раздела --------------------------
+
+
+def test_search_results_header_is_compact_on_phones():
+    from apps.aggregator.tests.test_portal_discover import _listing
+
+    _listing("promotion", "Pizza Margherita")
+    head = _header(_html(_portal(), q="Pizza"))
+    back = re.search(r"<a[^>]*data-header-back[^>]*>", head).group(0)
+    assert "md:hidden" in back and 'href="/"' in back  # ссылка, не history.back
+    menu = re.search(r"<a[^>]*data-portal-menu-open[^>]*>", head).group(0)
+    word = re.search(r"<a[^>]*data-portal-wordmark[^>]*>", head).group(0)
+    assert "max-md:hidden" in menu and "max-md:hidden" in word
+
+
+def test_home_header_keeps_menu_and_wordmark_without_back_link():
+    head = _header(_html(_portal()))
+    assert "data-header-back" not in head
+    menu = re.search(r"<a[^>]*data-portal-menu-open[^>]*>", head).group(0)
+    assert "max-md:hidden" not in menu
+
+
+def test_section_page_search_placeholder_names_the_section():
+    from apps.aggregator.tests.test_portal_discover import _listing
+
+    _listing("promotion", "Pasta-Abend", city_category="restaurants")
+    form = _form(_html(_portal(), kat="essen-gastronomie"))
+    ph = re.search(r'placeholder="([^"]*)"', form).group(1)
+    assert ph.startswith("In ") and ph.endswith("suchen …") and "Pizza, Friseur" not in ph
+    assert 'name="kat"' in form  # подсказка «в разделе» честная: раздел едет в форме

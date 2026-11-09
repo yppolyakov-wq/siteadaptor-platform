@@ -35953,3 +35953,7 @@ msgstr "İşletmeye talep gönderin"
 #: PH-13f
 msgid "Beim Geschäft bestellen"
 msgstr "İşletmeden sipariş verin"
+
+#: PH-13a
+msgid "In %(label)s suchen …"
+msgstr "%(label)s içinde ara …"

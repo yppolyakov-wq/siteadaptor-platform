@@ -5944,7 +5944,7 @@ msgstr "Мін. залишок ≤"
 
 #: templates/inventory/stock.html:177
 msgid "OK"
-msgstr "Гаразд"
+msgstr "OK"
 
 #: templates/inventory/stock.html:185
 msgid "Produkt"
@@ -36129,3 +36129,7 @@ msgstr "Надіслати запит до магазину"
 #: PH-13f
 msgid "Beim Geschäft bestellen"
 msgstr "Замовити в магазині"
+
+#: PH-13a
+msgid "In %(label)s suchen …"
+msgstr "Шукати в розділі «%(label)s» …"

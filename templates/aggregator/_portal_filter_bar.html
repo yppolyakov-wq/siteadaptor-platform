@@ -3,7 +3,7 @@
 Ссылки ведут на query-вариации (noindex) → rel="nofollow" (план §12.4). Ни одной POST-формы и
 csrf_token: страница может прийти из кэша публичных страниц (P0-1).{% endcomment %}
 {% if flt %}
-<div data-flt class="mb-4">
+<div data-flt class="mb-4 max-md:sticky max-md:top-0 max-md:z-20 max-md:bg-gray-50 max-md:-mx-4 max-md:px-4 max-md:pb-2 max-md:border-b max-md:border-gray-200">
   <div data-flt-bar class="relative flex gap-2 overflow-x-auto sm:overflow-visible sm:flex-wrap py-1 -mx-1 px-1 items-center">
     <a href="#flt-drawer" data-flt-open="" aria-controls="flt-drawer" rel="nofollow"
        class="shrink-0 inline-flex items-center gap-1.5 min-h-[44px] sm:min-h-0 px-3.5 py-2 rounded-full text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 font-medium border {% if flt.active_count %}text-white border-transparent{% else %}bg-white border-gray-300 text-gray-800 hover:border-gray-500{% endif %}"{% if flt.active_count %} style="background: var(--portal-color)"{% endif %}>
@@ -54,12 +54,12 @@ csrf_token: страница может прийти из кэша публич�
     {% for p in flt.pills %}<a href="{{ p.url }}" rel="nofollow" data-flt-pill class="shrink-0 inline-flex items-center gap-1 min-h-[44px] sm:min-h-0 px-3.5 py-2 rounded-full text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 bg-gray-900 text-white">{{ p.label }} <span aria-hidden="true">✕</span><span class="sr-only">{% trans "Filter entfernen" %}</span></a>{% endfor %}
   </div>
 
-  <div class="mt-3 flex flex-wrap items-center justify-between gap-3">
+  <div class="mt-3 flex max-sm:flex-nowrap flex-wrap items-center justify-between gap-3">
     <p class="text-sm" role="status"><strong class="font-semibold text-gray-900" data-hit-count>{% blocktrans count n=flt.hits %}{{ n }} Treffer{% plural %}{{ n }} Treffer{% endblocktrans %}</strong></p>
-    <form method="get" action="{{ flt.action }}" class="flex items-center gap-2 text-sm" data-flt-sort>
+    <form method="get" action="{{ flt.action }}" class="flex items-center gap-2 text-sm min-w-0" data-flt-sort>
       {% for k, v in flt.sort_hidden %}<input type="hidden" name="{{ k }}" value="{{ v }}">{% endfor %}
-      <label for="flt-sort" class="text-gray-600">{% trans "Sortieren" %}:</label>
-      <select id="flt-sort" name="sort" data-sort-select class="rounded-lg border border-gray-300 bg-white px-2 py-1.5">
+      <label for="flt-sort" class="max-sm:sr-only text-gray-600">{% trans "Sortieren" %}:</label>
+      <select id="flt-sort" name="sort" data-sort-select class="min-w-0 max-sm:max-w-[11rem] rounded-lg border border-gray-300 bg-white px-2 py-1.5">
         {% for key, label in flt.sorts %}<option value="{{ key }}"{% if flt.filters.sort == key %} selected{% endif %}>{{ label }}</option>{% endfor %}
       </select>
       <button type="submit" data-flt-sort-submit class="rounded-lg border border-gray-300 bg-white px-2 py-1.5">{% trans "OK" %}</button>

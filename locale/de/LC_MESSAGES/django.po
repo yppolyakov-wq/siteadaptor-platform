@@ -35894,3 +35894,7 @@ msgstr "Anfrage an das Geschäft senden"
 #: PH-13f
 msgid "Beim Geschäft bestellen"
 msgstr "Beim Geschäft bestellen"
+
+#: PH-13a
+msgid "In %(label)s suchen …"
+msgstr "In %(label)s suchen …"
