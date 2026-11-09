@@ -131,8 +131,10 @@ jobs:
         # оптимизации (известный кандидат: billing webhook-тесты по ~60 с).
         run: |
           case "${{ matrix.group }}" in
-            g1) TARGET="apps/core apps/billing apps/aggregator" ;;
-            g2) TARGET="apps/tenants apps/catalog apps/orders apps/inventory" ;;
-            g3) TARGET=". --ignore=apps/core --ignore=apps/billing --ignore=apps/aggregator --ignore=apps/tenants --ignore=apps/catalog --ignore=apps/orders --ignore=apps/inventory" ;;
+            # T-12 (2026-11-09): после снятия скрытого create_schema в тестах g1 — 5 мин,
+            # узким местом стал apps/tenants (там схемы создаются по-настоящему) — своя группа.
+            g1) TARGET="apps/core apps/billing apps/aggregator apps/catalog" ;;
+            g2) TARGET="apps/tenants" ;;
+            g3) TARGET=". --ignore=apps/core --ignore=apps/billing --ignore=apps/aggregator --ignore=apps/catalog --ignore=apps/tenants" ;;
           esac
           uv run pytest -ra -n auto --dist loadscope --durations=15 $TARGET

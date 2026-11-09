@@ -21,6 +21,19 @@ pytestmark = pytest.mark.django_db
 
 
 @pytest.fixture(autouse=True)
+def _isolated_ratelimit(monkeypatch):
+    """Лимит инвайтов считается по схеме (`public` у всех тестов) в общем Redis
+    xdist-воркеров: чужие инвайты исчерпывали лимит → issue_invite() = None → 404."""
+    import uuid
+
+    from django.core.cache.backends.locmem import LocMemCache
+
+    from apps.core import ratelimit
+
+    monkeypatch.setattr(ratelimit, "cache", LocMemCache(f"rl-team-{uuid.uuid4()}", {}))
+
+
+@pytest.fixture(autouse=True)
 def _urlconf(settings):
     settings.ROOT_URLCONF = "config.urls_tenant"
 

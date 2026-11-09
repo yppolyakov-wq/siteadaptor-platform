@@ -14,7 +14,7 @@ def _fresh_ai_config_cache():
 
 
 @pytest.fixture(autouse=True)
-def _no_hidden_schema_creation(monkeypatch):
+def _no_hidden_schema_creation():
     """Тенант из фабрики без схемы не получает её «по дороге».
 
     Перечитанный из БД тенант снова несёт auto_create_schema=True (атрибут класса),
@@ -43,6 +43,11 @@ def _no_hidden_schema_creation(monkeypatch):
             return False
         return original(self, *args, **kwargs)
 
-    monkeypatch.setattr(Tenant, "create_schema", create_schema)
-    yield
-    factories.SCHEMALESS.clear()
+    # Без monkeypatch: autouse-запрос его менял бы порядок разборки у тестов,
+    # которые сами патчат через monkeypatch (их undo шёл бы после отката БД).
+    Tenant.create_schema = create_schema
+    try:
+        yield
+    finally:
+        Tenant.create_schema = original
+        factories.SCHEMALESS.clear()

@@ -39,7 +39,7 @@ def _private_cache(monkeypatch):
     а ключ `today:public:<дата>` у всех воркеров общий (чужой кэш = чужие подсказки)."""
     from django.core.cache.backends.locmem import LocMemCache
 
-    monkeypatch.setattr(today_mod, "cache", LocMemCache(f"today-{id(monkeypatch)}", {}))
+    monkeypatch.setattr(today_mod, "cache", LocMemCache(f"today-{uuid.uuid4().hex}", {}))
 
 
 @pytest.fixture
