@@ -301,6 +301,21 @@ def gap_discount(unit, arrival, departure, settings, today=None) -> tuple[int, s
     return percent, _("Lücken-Deal −%(pct)s%%") % {"pct": percent}
 
 
+def _label_locale() -> str:
+    """Язык бизнеса для подписи скидки. Внутри ``StaySettings.memo()`` (расчёт «ab»
+    каталога города по десяткам заездов) — один запрос к тенанту на весь расчёт."""
+    from apps.notifications.services import tenant_locale
+
+    from .models import _SETTINGS_MEMO
+
+    memo = _SETTINGS_MEMO.get()
+    if memo is None:
+        return tenant_locale()
+    if "locale" not in memo:
+        memo["locale"] = tenant_locale()
+    return memo["locale"]
+
+
 def auto_discount(
     lodging_cents,
     nights,
@@ -339,9 +354,7 @@ def auto_discount(
     # кнопку (иначе одна и та же бронь получала бы разный текст).
     from django.utils import translation
 
-    from apps.notifications.services import tenant_locale
-
-    with translation.override(tenant_locale()):
+    with translation.override(_label_locale()):
         for rule in settings.clean_auto_rules():
             kind, threshold, percent = rule["kind"], rule["threshold"], rule["percent"]
             if kind == StaySettings.KIND_LOS and nights >= threshold:

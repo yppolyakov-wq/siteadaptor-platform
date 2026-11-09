@@ -35,7 +35,7 @@ def _plain(text) -> str:
     from django.utils.html import strip_tags
 
     raw = str(text or "")
-    if "<" in raw:
+    if re.search(r"</?[a-zA-Z][^>]*>", raw):  # настоящий тег, а не «ab <50 €»
         raw = re.sub(r"(?i)<br\s*/?>|</(p|li|h[1-6]|div)>", "\n", raw)
         raw = _html.unescape(strip_tags(raw))
     lines = [" ".join(line.split()) for line in raw.replace("\r", "").split("\n")]
@@ -498,9 +498,14 @@ def reprice_stay_listings(*, tenant_schema):
 
     with schema_context(tenant_schema):
         ids = [str(i) for i in StayUnit.objects.filter(is_active=True).values_list("id", flat=True)]
+    done = 0
     for unit_id in ids:
-        sync_stay_listing(tenant_schema, unit_id)
-    return {"result": len(ids)}
+        try:  # сбой одного номера не останавливает остальные (ночная сверка догонит)
+            sync_stay_listing(tenant_schema, unit_id)
+            done += 1
+        except Exception:
+            logger.exception("stay reprice failed: %s %s", tenant_schema, unit_id)
+    return {"result": done}
 
 
 @idempotent_task()

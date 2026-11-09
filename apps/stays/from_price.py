@@ -38,7 +38,18 @@ def _lowest(unit, *, today, horizon):
         return None
     today = today or timezone.localdate()
     plans = rate_plans_mod.plans_for(unit, rate_plans_mod.active_plans())
-    _days, rows = availability.occupancy_grid([unit], today, horizon + MAX_NIGHTS)
+    span = horizon + MAX_NIGHTS
+    _days, rows = availability.occupancy_grid([unit], today, span)
+    # цены и ограничения дней — ОДНИМ запросом на окно; ниже окно каждого заезда
+    # кладётся в кэш, который читают restrictions и pricing (`night_rates_for`)
+    window = pricing.night_rates_window([unit.pk], today, today + timedelta(days=span))[unit.pk]
+    cache = unit.__dict__.setdefault("_night_rates_cache", {})
+
+    def prime(arrival, departure):
+        cache[(arrival, departure)] = {
+            day: nr for day, nr in window.items() if arrival <= day <= departure
+        }
+
     free = {cell["day"]: cell["free"] for cell in rows[0][1]} if rows else {}
     base_nights = max(1, unit.min_nights)
     best = None
@@ -47,21 +58,25 @@ def _lowest(unit, *, today, horizon):
         nights = base_nights
         if any(free.get(arrival + timedelta(days=k), 0) < 1 for k in range(nights)):
             continue
+        prime(arrival, arrival + timedelta(days=nights))
         hit = restrictions.violation(unit, arrival, arrival + timedelta(days=nights), today=today)
         if hit and hit[0] == "rule_min_nights" and hit[1] and nights < hit[1] <= MAX_NIGHTS:
             nights = hit[1]
             if any(free.get(arrival + timedelta(days=k), 0) < 1 for k in range(nights)):
                 continue
+            prime(arrival, arrival + timedelta(days=nights))
             hit = restrictions.violation(
                 unit, arrival, arrival + timedelta(days=nights), today=today
             )
         if hit:
             continue
         departure = arrival + timedelta(days=nights)
-        if not availability.range_available(unit, arrival, departure):
-            continue
         total = pricing.from_price_cents(unit, arrival, departure, plans)
         per_night = -(-total // nights)
-        if best is None or per_night < best:
+        # решающая проверка наличия (та же, что у брони) — только для заезда, который
+        # действительно опускает минимум: сетка выше уже отсекла занятые ночи
+        if (best is None or per_night < best) and availability.range_available(
+            unit, arrival, departure
+        ):
             best = per_night
     return best

@@ -51,11 +51,27 @@ class AggregatorConfig(AppConfig):
 
         # 2026-11-09: честная «ab … / Nacht» номера зависит от сезонов, тарифов, цен по
         # дням, броней и блокировок — их правка пересчитывает номера схемы (окно 30 с).
-        from apps.stays.models import NightRate, RatePlan, SeasonRate, StayBooking, UnitBlock
+        from apps.promotions.models import Promotion
+        from apps.stays.models import (
+            NightRate,
+            RatePlan,
+            SeasonRate,
+            StayBooking,
+            StaySettings,
+            UnitBlock,
+        )
 
         from .stay_reprice import on_change as stay_price_changed
+        from .stay_reprice import on_promotion_change
 
-        for model in (SeasonRate, RatePlan, NightRate, StayBooking, UnitBlock):
+        post_save.connect(
+            on_promotion_change, sender=Promotion, dispatch_uid="agg_stay_reprice_promo_save"
+        )
+        post_delete.connect(
+            on_promotion_change, sender=Promotion, dispatch_uid="agg_stay_reprice_promo_delete"
+        )
+        # StaySettings (окно бронирования, правила продаж, авто-скидки) — на все номера
+        for model in (SeasonRate, RatePlan, NightRate, StayBooking, UnitBlock, StaySettings):
             uid = f"agg_stay_reprice_{model.__name__.lower()}"
             post_save.connect(stay_price_changed, sender=model, dispatch_uid=f"{uid}_save")
             post_delete.connect(stay_price_changed, sender=model, dispatch_uid=f"{uid}_delete")
