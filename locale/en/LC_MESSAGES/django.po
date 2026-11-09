@@ -36221,3 +36221,15 @@ msgstr "switched off"
 #: SHP-4
 msgid "„%(value)s“ ist keine gültige Zahl."
 msgstr "“%(value)s” is not a valid number."
+
+#: SHP-4
+msgid "Alles, was Sie verkaufen: Lebensmittel, Drogerie, Spielzeug, Mode, Technik … Abholung, Lieferung oder Versand legen Sie danach fest."
+msgstr "Everything you sell: groceries, drugstore items, toys, fashion, electronics … You set up pickup, delivery or shipping afterwards."
+
+#: SHP-4
+msgid "Waren verkaufen"
+msgstr "Sell goods"
+
+#: SHP-4
+msgid "z. B. Bäckerei, Hofladen, Drogerie, Boutique, Online-Shop"
+msgstr "e.g. bakery, farm shop, drugstore, boutique, online shop"

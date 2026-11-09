@@ -36556,3 +36556,15 @@ msgstr "выключен"
 #: SHP-4
 msgid "„%(value)s“ ist keine gültige Zahl."
 msgstr "«%(value)s» — не число."
+
+#: SHP-4
+msgid "Alles, was Sie verkaufen: Lebensmittel, Drogerie, Spielzeug, Mode, Technik … Abholung, Lieferung oder Versand legen Sie danach fest."
+msgstr "Всё, что вы продаёте: продукты, бытовая химия, игрушки, одежда, техника … Самовывоз, доставку или отправку настроите потом."
+
+#: SHP-4
+msgid "Waren verkaufen"
+msgstr "Продаю товары"
+
+#: SHP-4
+msgid "z. B. Bäckerei, Hofladen, Drogerie, Boutique, Online-Shop"
+msgstr "например, пекарня, фермерская лавка, магазин бытовой химии, бутик, интернет-магазин"

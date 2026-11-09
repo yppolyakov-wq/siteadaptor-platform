@@ -120,14 +120,18 @@ def test_preselected_niche_prefills_chips(settings):
     assert 'value="gastro" checked' in html
 
 
-def test_online_chip_enables_orders_and_infers_online_shop():
-    """Фидбэк 2026-11-08: «продаю онлайн» — отдельный ответ, он сразу включает заказы."""
-    form = _form(directions=["online"])
-    assert form.is_valid() and form.cleaned_data["business_type"] == "online_shop"
+def test_old_online_chip_still_understood_but_no_longer_offered():
+    """SHP (2026-11-09): «в лавке» и «онлайн с доставкой» — один пункт «Waren» (способы
+    получения спрашивает мастер). Новая форма «online» не принимает; старые заявки с ним
+    по-прежнему включают заказы и выводят тип online_shop."""
+    assert not _form(directions=["online"]).is_valid()
+    assert signup_directions.clean(["online"]) == ["online"]
+    assert signup_directions.resolve_type("", ["online"]) == "online_shop"
     chosen = signup_directions.directions_for("retail", ["online"])
     assert chosen == ["waren"]
     assert "orders" not in signup_directions.disabled_modules("retail", chosen, online=True)
     assert "orders" in signup_directions.disabled_modules("other", ["waren"])
+    assert signup_directions.initial_for("online_shop") == ["waren"]
 
 
 def test_page_shows_examples_for_every_choice(settings):
@@ -136,6 +140,6 @@ def test_page_shows_examples_for_every_choice(settings):
     request.session = {}
     html = views.BusinessSignupView.as_view()(request).content.decode()
     assert "Spielzeug" in html and "Drogerie" in html  # «любые товары», не только еда
-    assert 'value="online"' in html
+    assert 'value="online"' not in html  # SHP: один пункт «Waren verkaufen»
     for chip in signup_directions.CHOICES:
         assert str(chip[4]) in html

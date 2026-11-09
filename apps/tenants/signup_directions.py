@@ -19,22 +19,21 @@ from types import SimpleNamespace
 from django.utils.translation import gettext_lazy as _
 
 #: (ключ, иконка, подпись, подсказка, примеры типов) — порядок чипов на странице.
-#: Фидбэк владельца 2026-11-08: «продаю» — это ЛЮБЫЕ товары (не только еда), с примерами,
-#: и не только в магазине/самовывоз, но и онлайн с доставкой — отдельный чип «online».
+#: Фидбэк владельца 2026-11-08: «продаю» — это ЛЮБЫЕ товары (не только еда), с примерами.
+#: SHP (2026-11-09, фидбэк «два пункта одинаковы»): «в лавке/самовывоз» и «онлайн с
+#: доставкой» — ОДИН пункт «Waren»: это не разные направления, а способы получения товара;
+#: при регистрации их не спрашиваем — выбор в мастере «Verkauf öffnen», настройка —
+#: «Versandarten». Прежний чип «online» понимается у старых заявок (LEGACY_KEYS).
 CHOICES: tuple[tuple[str, str, str, str, str], ...] = (
     (
         "waren",
         "🛍️",
-        _("Waren im Laden & zum Abholen"),
-        _("Alles, was Sie verkaufen: Lebensmittel, Drogerie, Spielzeug, Mode, Technik …"),
-        _("z. B. Bäckerei, Hofladen, Drogerie, Spielwaren, Boutique"),
-    ),
-    (
-        "online",
-        "📦",
-        _("Online-Shop mit Lieferung & Versand"),
-        _("Kunden bestellen online, Sie liefern oder versenden."),
-        _("z. B. Online-Shop, Manufaktur, Feinkost, Mode"),
+        _("Waren verkaufen"),
+        _(
+            "Alles, was Sie verkaufen: Lebensmittel, Drogerie, Spielzeug, Mode, Technik … "
+            "Abholung, Lieferung oder Versand legen Sie danach fest."
+        ),
+        _("z. B. Bäckerei, Hofladen, Drogerie, Boutique, Online-Shop"),
     ),
     (
         "termine",
@@ -73,6 +72,8 @@ CHOICES: tuple[tuple[str, str, str, str, str], ...] = (
     ),
 )
 KEYS: tuple[str, ...] = tuple(c[0] for c in CHOICES)
+#: чипы прежних версий формы — понимаются у неподтверждённых заявок (SignupRequest)
+LEGACY_KEYS: tuple[str, ...] = ("online",)
 
 #: Чип регистрации → направления реестра.
 _EXPAND = {"gastro": ("speisekarte", "tisch"), "online": ("waren",)}
@@ -86,9 +87,9 @@ _SWITCHABLE = ("termine", "tisch", "zimmer", "tickets", "anfragen")
 
 
 def clean(keys) -> list[str]:
-    """Только известные чипы, без дублей, в порядке страницы."""
+    """Только известные чипы, без дублей, в порядке страницы (прежние — в конце)."""
     picked = {k for k in keys or () if isinstance(k, str)}
-    return [k for k in KEYS if k in picked]
+    return [k for k in (*KEYS, *LEGACY_KEYS) if k in picked]
 
 
 def resolve_type(niche: str, chips) -> str:
@@ -142,21 +143,17 @@ def initial_for(business_type: str) -> list[str]:
     """Предвыбор чипов по нише (пришли с Branchen-страницы `?type=`)."""
     from apps.core import directions
 
-    out = ["online"] if business_type == "online_shop" else []
+    out = ["waren"] if business_type == "online_shop" else []
     for key in directions.defaults_for(business_type):
         chip = "gastro" if key in ("speisekarte", "tisch") else key
-        if chip not in out and not (chip == "waren" and "online" in out):
+        if chip not in out:
             out.append(chip)
-    return clean(out)
+    return [k for k in clean(out) if k in KEYS]
 
 
 def niche_chips(business_type: str) -> str:
     """Чипы, которые подходят нише, — пробелами (атрибут карточки для фильтра на странице)."""
-    chips = initial_for(business_type)
-    # Магазин и онлайн-магазин — одна витрина товаров: ниша товаров подходит обоим чипам.
-    if "waren" in chips or "online" in chips:
-        chips = clean([*chips, "waren", "online"])
-    return " ".join(chips)
+    return " ".join(initial_for(business_type))
 
 
 #: FB-26b: слова, по которым владелец ищет свою нишу (ищут по своему названию бизнеса,
