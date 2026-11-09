@@ -62,7 +62,9 @@ def test_search_results_header_is_compact_on_phones():
     assert "md:hidden" in back and 'href="/"' in back  # ссылка, не history.back
     menu = re.search(r"<a[^>]*data-portal-menu-open[^>]*>", head).group(0)
     word = re.search(r"<a[^>]*data-portal-wordmark[^>]*>", head).group(0)
-    assert "max-md:hidden" in menu and "max-md:hidden" in word
+    assert "max-md:hidden" in menu
+    # фидбэк 2026-11-09: бренд в компактной шапке остаётся (без подписи) — логотип не пропадает
+    assert "max-md:hidden" not in word
 
 
 def test_home_header_keeps_menu_and_wordmark_without_back_link():

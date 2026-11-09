@@ -39,11 +39,13 @@
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h10M4 18h16"></path></svg>
         <span class="hidden sm:inline">{% trans "Kategorien" %}</span><span class="sm:hidden sr-only">{% trans "Kategorien" %}</span>
       </a>
-      <a href="{% url 'portal-home' %}" class="{% if search_q %}max-md:hidden {% endif %}flex items-center gap-2 min-w-0 md:shrink-0" data-portal-wordmark>
+      {% comment %}2026-11-09 (фидбэк владельца «пропадает логотип»): в компактной шапке выдачи бренд остаётся
+      рядом с «←» — без подписи (строка не переносится).{% endcomment %}
+      <a href="{% url 'portal-home' %}" class="flex items-center gap-2 min-w-0 {% if search_q %}max-md:flex-1 {% endif %}md:shrink-0" data-portal-wordmark>
         {% if portal.logo_url %}<img src="{{ portal.logo_url }}" alt="" class="h-8 w-8 rounded object-contain">{% endif %}
         <span class="flex flex-col min-w-0 leading-tight">
           <span class="text-xl md:text-[21px] font-extrabold tracking-tight truncate">{% if wm.dark %}<span class="text-gray-900">{{ wm.dark }}</span>{% endif %}<span style="color: var(--portal-link)">{{ wm.accent }}</span></span>
-          {% if portal.tagline_text %}<span class="hidden max-md:block lg:block text-[11px] md:text-xs text-gray-500 truncate">{{ portal.tagline_text }}</span>{% endif %}
+          {% if portal.tagline_text %}<span class="hidden {% if not search_q %}max-md:block {% endif %}lg:block text-[11px] md:text-xs text-gray-500 truncate">{{ portal.tagline_text }}</span>{% endif %}
         </span>
       </a>
       {% include "aggregator/_portal_header_search.html" %}
