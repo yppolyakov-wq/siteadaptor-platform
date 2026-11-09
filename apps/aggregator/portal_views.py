@@ -537,7 +537,10 @@ def portal_home(request, facet=None, district=None):
     ] + geo_carry
     # T-8.26 п.4 (Р-5): вкладки НЕ сбрасывают раздел/признак, а их видимость считается
     # по пулу С разделом — показанная вкладка ⇒ непустая выдача.
-    tab_carry = list(search_engine.carry(q, filters)) + geo_carry
+    # PH-14: вид (Liste/Karte) тоже не сбрасывается вкладками, чипами, новым запросом и
+    # подсказками намерения — иначе «Produkte» возвращал бы плитки (django-ревью PH-14).
+    view_carry = [("ansicht", geo.view_mode(request))] if geo.view_mode(request) else []
+    tab_carry = list(search_engine.carry(q, filters)) + geo_carry + view_carry
     # Блок А2: чипы района и отрасли меняют только район/отрасль — запрос, фильтры,
     # сортировка и вкладка остаются. `stadtteil` задаёт сам чип (путём), курсор —
     # позиция в старой выдаче, его не переносим.
@@ -837,9 +840,11 @@ def portal_home(request, facet=None, district=None):
             "search_kind": scope.kind_key,
             "search_mode": broad.mode,
             # T-8.26 п.5a: пилюли «Erkannt: …» (✕ = запрос без фразы / roh=ort у района)
-            "intent_chips": _intent_chip_links(request, intent_chips, filters, geo_carry, scope),
+            "intent_chips": _intent_chip_links(
+                request, intent_chips, filters, geo_carry + view_carry, scope
+            ),
             "intent_hints": _intent_hint_links(
-                request, intent_hints, pool, q, filters, geo_carry, scope
+                request, intent_hints, pool, q, filters, geo_carry + view_carry, scope
             ),
             # T-8.20: новый запрос не сбрасывает вкладку и фильтры.
             "search_hidden": (
@@ -851,6 +856,7 @@ def portal_home(request, facet=None, district=None):
                     ]
                     + search_engine.carry("", filters)
                     + geo_carry
+                    + view_carry
                     + [("roh", v) for v in request.GET.getlist("roh") if v == "ort"]
                     if v
                 ]

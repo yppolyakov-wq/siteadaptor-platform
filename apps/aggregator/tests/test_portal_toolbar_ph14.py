@@ -92,3 +92,12 @@ def test_toolbar_has_no_csrf_or_post():
     html = _html(_seed(), q="Pizza")
     flt = html.split("data-flt ", 1)[1].split("<script", 1)[0]
     assert "csrfmiddlewaretoken" not in flt and 'method="post"' not in flt.lower()
+
+
+def test_kind_tabs_and_new_search_keep_the_list_view():
+    """django-ревью PH-14: вкладка «Produkte» и новый запрос не возвращают плитки."""
+    html = _html(_seed(), q="Pizza", ansicht="liste")
+    tab = re.search(r'<a href="([^"]*)" data-portal-tab="product"', html).group(1)
+    assert "ansicht=liste" in tab.replace("&amp;", "&")
+    head = html.split("data-portal-header-search", 1)[1].split("</form>", 1)[0]
+    assert 'name="ansicht" value="liste"' in head

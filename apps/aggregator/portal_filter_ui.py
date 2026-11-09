@@ -229,7 +229,6 @@ def build(
     # без точки скрипт берёт геолокацию и дописывает lat/lng; без JS/разрешения сервер
     # «naehe» без точки игнорирует (search.parse) — выдача просто прежняя.
     sorts = [("", _("Relevanz") if q else _("Standard"))] + list(search_engine.SORT_LABELS.items())
-    sort_label = dict(sorts).get(filters.sort or "", sorts[0][1])
     # «Branche» — ссылками: отрасль задаётся путём, GET-форма её не выразит (§13.9).
     branches = []
     if axis == "business_type" and facets:
@@ -262,7 +261,6 @@ def build(
         "open_pill": open_pill,
         "filters": filters,
         "sorts": sorts,
-        "sort_label": sort_label,
         "has_point": point is not None,
         "radius_choices": geo.RADIUS_CHOICES,
         "branches": branches,
