@@ -36599,3 +36599,19 @@ msgstr "плюс доставка"
 #: SHP-5
 msgid "Versandkosten, Lieferzeiten und Abholung bei %(name)s."
 msgstr "Вартість доставки, терміни й самовивіз — %(name)s."
+
+#: NT-A1
+msgid "Ganzer Bereich %(sec)s"
+msgstr "Увесь розділ «%(sec)s»"
+
+#: NT-A1
+msgid "Merkmal"
+msgstr "Ознака"
+
+#: NT-A1
+msgid "Neue Angebote und Produkte dazu — als E-Mail-Übersicht. Nur das, was Sie ausgewählt haben."
+msgstr "Нові пропозиції й товари на цю тему — зведенням на e-mail. Лише те, що ви обрали."
+
+#: NT-A1
+msgid "Nur %(cat)s"
+msgstr "Лише «%(cat)s»"

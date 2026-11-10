@@ -36277,3 +36277,19 @@ msgstr "plus shipping"
 #: SHP-5
 msgid "Versandkosten, Lieferzeiten und Abholung bei %(name)s."
 msgstr "Shipping costs, delivery times and pickup at %(name)s."
+
+#: NT-A1
+msgid "Ganzer Bereich %(sec)s"
+msgstr "Whole section %(sec)s"
+
+#: NT-A1
+msgid "Merkmal"
+msgstr "Feature"
+
+#: NT-A1
+msgid "Neue Angebote und Produkte dazu — als E-Mail-Übersicht. Nur das, was Sie ausgewählt haben."
+msgstr "New offers and products for this — as an e-mail summary. Only what you selected."
+
+#: NT-A1
+msgid "Nur %(cat)s"
+msgstr "Only %(cat)s"

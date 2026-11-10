@@ -776,11 +776,18 @@ class FollowSubscription(models.Model):
     TARGET_DISTRICT = "district"
     # T-8.10d: подписка на набор фильтров поиска (район, категория, слово, марка, компания…).
     TARGET_QUERY = "query"
+    # NT-A1: отдельная категория справочника, признак (vegan/halal/…) и марка товара.
+    TARGET_CATEGORY = "category"
+    TARGET_TAG = "tag"
+    TARGET_BRAND = "brand"
     TARGETS = [
         (TARGET_BUSINESS, _("Unternehmen")),
         (TARGET_SECTION, _("Bereich")),
         (TARGET_DISTRICT, _("Stadtteil")),
         (TARGET_QUERY, _("Suche")),
+        (TARGET_CATEGORY, _("Kategorie")),
+        (TARGET_TAG, _("Merkmal")),
+        (TARGET_BRAND, _("Marke")),
     ]
     FREQ_DAILY = "daily"
     FREQ_WEEKLY = "weekly"
@@ -796,7 +803,8 @@ class FollowSubscription(models.Model):
 
     user = models.ForeignKey(PortalUser, on_delete=models.CASCADE, related_name="follows")
     target_kind = models.CharField(max_length=20, choices=TARGETS)
-    # schema_name бизнеса | ключ раздела city_categories | slug района | sha256 набора (query)
+    # schema_name бизнеса | ключ раздела/категории city_categories | slug района | sha256
+    # набора (query) | ключ признака | марка (как в каталоге, сравнение без регистра)
     target_key = models.CharField(max_length=100)
     # T-8.10d: канонический набор фильтров {"v": 1, "p": [[ключ, значение], …]}; у прочих
     # видов пусто. Только публичные параметры поиска — без координат и радиуса.

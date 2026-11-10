@@ -98,6 +98,8 @@ def follow_page(request):
         "user": user,
         "following": follow.is_following(user, target),
         "back_url": _safe_next(request, _home_url(portal)),
+        # NT-A1 (Р-NT1): у категории — переход «весь раздел» (и обратно) той же страницей.
+        "scope_switch": follow.scope_switch(request.GET, target),
         # T-8.10d: что из фильтров поиска подписка не переносит (дата, «geöffnet», радиус).
         "dropped_filters": follow_query.dropped(request.GET)
         if target.kind == FollowSubscription.TARGET_QUERY

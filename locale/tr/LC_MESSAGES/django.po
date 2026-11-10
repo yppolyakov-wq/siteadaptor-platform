@@ -36423,3 +36423,19 @@ msgstr "kargo hariç"
 #: SHP-5
 msgid "Versandkosten, Lieferzeiten und Abholung bei %(name)s."
 msgstr "%(name)s: kargo ücretleri, teslimat süreleri ve teslim alma."
+
+#: NT-A1
+msgid "Ganzer Bereich %(sec)s"
+msgstr "Tüm bölüm: %(sec)s"
+
+#: NT-A1
+msgid "Merkmal"
+msgstr "Özellik"
+
+#: NT-A1
+msgid "Neue Angebote und Produkte dazu — als E-Mail-Übersicht. Nur das, was Sie ausgewählt haben."
+msgstr "Buna uygun yeni teklifler ve ürünler — e-posta özeti olarak. Yalnızca seçtikleriniz."
+
+#: NT-A1
+msgid "Nur %(cat)s"
+msgstr "Yalnızca %(cat)s"

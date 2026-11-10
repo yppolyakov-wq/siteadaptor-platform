@@ -42,6 +42,13 @@ def _cfg(key: str, default):
 # --- цели -------------------------------------------------------------------------------
 
 
+MAX_FOLLOWS = 40  # NT-A1 (Р-NT3): было 20 — центр подписок даёт выбрать категории
+
+
+def max_follows() -> int:
+    return int(_cfg("max_follows", MAX_FOLLOWS))
+
+
 class FollowLimitReached(Exception):
     """T-8.10d Р-1: у жителя уже максимум подписок (всего или подписок на поиск)."""
 
@@ -74,6 +81,13 @@ class Target:
         if self.kind == FollowSubscription.TARGET_SECTION:
             section = cc.section(self.key)
             return str(section.label) if section else self.key
+        if self.kind == FollowSubscription.TARGET_CATEGORY:
+            category = cc.category(self.key)
+            return str(category.label) if category else self.key
+        if self.kind == FollowSubscription.TARGET_TAG:
+            return str(cc.tag_label(self.key) or self.key)
+        if self.kind == FollowSubscription.TARGET_BRAND:
+            return brand_label(self.key)
         return districts.label(self.city, self.key) or self.key
 
     @property
@@ -100,7 +114,54 @@ class Target:
             return [("art", "suche"), ("city", self.city), *self.query]
         if self.kind == FollowSubscription.TARGET_SECTION:
             return [("bereich", self.key)]
+        if self.kind == FollowSubscription.TARGET_CATEGORY:
+            return [("bereich", self.key)]
+        if self.kind == FollowSubscription.TARGET_TAG:
+            return [("merkmal", self.key)]
+        if self.kind == FollowSubscription.TARGET_BRAND:
+            return [("marke", self.key)]
         return [("stadtteil", self.key)]
+
+
+#: NT-A1: виды, которые ведёт центр подписок (diff по ним), и «узкие» интересы.
+CENTER_KINDS = (
+    FollowSubscription.TARGET_SECTION,
+    FollowSubscription.TARGET_CATEGORY,
+    FollowSubscription.TARGET_DISTRICT,
+    FollowSubscription.TARGET_TAG,
+    FollowSubscription.TARGET_BRAND,
+)
+
+
+#: NT-A1: виды «одного условия» поиска (своя цель, выборка — путём «Alle anzeigen»).
+SINGLE_PARAMS = {
+    FollowSubscription.TARGET_CATEGORY: "kat",
+    FollowSubscription.TARGET_TAG: "merkmal",
+    FollowSubscription.TARGET_BRAND: "marke",
+}
+SINGLE_KINDS = tuple(SINGLE_PARAMS)
+
+
+def single_pairs(sub) -> tuple[tuple[str, str], ...]:
+    return ((SINGLE_PARAMS[sub.target_kind], sub.target_key),)
+
+
+def brand_key(value: str) -> str:
+    """Ключ марки: очищенное значение без регистра (Bosch = bosch — одна подписка)."""
+    from .search import clean_brand
+
+    return clean_brand(value or "").casefold()
+
+
+def brand_label(key: str) -> str:
+    """Подпись марки так, как её пишет каталог (первое совпадение без регистра)."""
+    name = (
+        AggregatorListing.objects.filter(brand__iexact=key)
+        .exclude(brand="")
+        .values_list("brand", flat=True)
+        .first()
+    )
+    return name or key
 
 
 def business_target(tenant) -> Target | None:
@@ -117,8 +178,9 @@ def business_target(tenant) -> Target | None:
 def parse_target(params, *, portal) -> Target | None:
     """`?unternehmen=<slug>` | `?bereich=<раздел|категория>` | `?stadtteil=<slug>` → Target.
 
-    Раздел и район требуют города портала (область сводки); категория сворачивается в
-    свой раздел (Р-1b). Незнакомое → None. T-8.10d: `?art=suche&…` — набор фильтров поиска.
+    Раздел и район требуют города портала (область сводки). NT-A1 (Р-NT1): категория —
+    своя цель, `&umfang=bereich` — её раздел целиком; `?merkmal=` — признак, `?marke=` —
+    марка. Незнакомое → None. T-8.10d: `?art=suche&…` — набор фильтров поиска.
     """
     if (params.get("art") or "") == "suche":
         return query_target(params, portal=portal)
@@ -135,13 +197,43 @@ def parse_target(params, *, portal) -> Target | None:
             return Target(FollowSubscription.TARGET_SECTION, bereich, city)
         category = cc.category(bereich)
         if category:
-            return Target(FollowSubscription.TARGET_SECTION, category.section, city)
+            if (params.get("umfang") or "") == "bereich":
+                return Target(FollowSubscription.TARGET_SECTION, category.section, city)
+            return Target(FollowSubscription.TARGET_CATEGORY, category.key, city)
         return None
+    merkmal = (params.get("merkmal") or "").strip()
+    if merkmal and city:
+        return (
+            Target(FollowSubscription.TARGET_TAG, merkmal, city) if cc.tag_label(merkmal) else None
+        )
+    marke = brand_key(params.get("marke") or "")
+    if marke and city:
+        return Target(FollowSubscription.TARGET_BRAND, marke, city)
     stadtteil = (params.get("stadtteil") or "").strip()
     if stadtteil and city:
         slug = districts.normalize(city, stadtteil)
         return Target(FollowSubscription.TARGET_DISTRICT, slug, city) if slug else None
     return None
+
+
+def scope_switch(params, target: Target) -> dict | None:
+    """Ссылка-переключатель «Nur <Kategorie> / Ganzer Bereich» страницы «Folgen».
+
+    Только когда страница открыта по категории (`?bereich=<категория>`): у категории —
+    ссылка на её раздел, у раздела (`umfang=bereich`) — обратно на категорию."""
+    category = cc.category((params.get("bereich") or "").strip())
+    if category is None:
+        return None
+    section = cc.section(category.section)
+    if target.kind == FollowSubscription.TARGET_CATEGORY:
+        return {
+            "label": _("Ganzer Bereich %(sec)s") % {"sec": section.label if section else ""},
+            "query": urlencode([("bereich", category.key), ("umfang", "bereich")]),
+        }
+    return {
+        "label": _("Nur %(cat)s") % {"cat": category.label},
+        "query": urlencode([("bereich", category.key)]),
+    }
 
 
 def query_target(params, *, portal) -> Target | None:
@@ -260,7 +352,7 @@ def _check_cap(user, target: Target) -> None:
     if find(user, target) is not None:
         return  # повтор существующей подписки — не новая
     follows = FollowSubscription.objects.filter(user=user)
-    if follows.count() >= int(_cfg("max_follows", 20)):
+    if follows.count() >= max_follows():
         raise FollowLimitReached
     if target.kind == FollowSubscription.TARGET_QUERY and follows.filter(
         target_kind=FollowSubscription.TARGET_QUERY
@@ -475,6 +567,12 @@ def items_for(sub: FollowSubscription, *, since, now=None):
         from . import follow_query
 
         qs = follow_query.queryset(sub)
+    elif sub.target_kind in SINGLE_KINDS:
+        # NT-A1: категория/признак/марка — путём «Alle anzeigen» (поиск с одним условием):
+        # вид выдачи (товары или предложения) решается так же, как на странице портала.
+        from . import follow_query
+
+        qs = follow_query.queryset(sub, pairs=single_pairs(sub))
     elif sub.target_kind == FollowSubscription.TARGET_SECTION:
         qs = scoped(
             city=sub.city,
@@ -539,22 +637,21 @@ def scope_url(sub: FollowSubscription, *, ch: str = "digest") -> str:
                 None, "aggregator-index", params=[("city", sub.city), *pairs, ("ch", ch)]
             )
         return absolute(portal, "portal-home", params=[*pairs, ("neu", "1"), ("ch", ch)])
+    param = {
+        FollowSubscription.TARGET_SECTION: "kat",
+        FollowSubscription.TARGET_CATEGORY: "kat",
+        FollowSubscription.TARGET_TAG: "merkmal",
+        FollowSubscription.TARGET_BRAND: "marke",
+    }.get(sub.target_kind, "stadtteil")
     if portal is None:  # без портала область раздела/района — /entdecken/ по городу
         return absolute(
             None,
             "aggregator-index",
-            params=[
-                ("city", sub.city),
-                (
-                    "kat" if sub.target_kind == FollowSubscription.TARGET_SECTION else "stadtteil",
-                    sub.target_key,
-                ),
-                ("ch", ch),
-            ],
+            params=[("city", sub.city), (param, sub.target_key), ("ch", ch)],
         )
-    if sub.target_kind == FollowSubscription.TARGET_SECTION:
+    if param != "stadtteil":
         return absolute(
-            portal, "portal-home", params=[("kat", sub.target_key), ("neu", "1"), ("ch", ch)]
+            portal, "portal-home", params=[(param, sub.target_key), ("neu", "1"), ("ch", ch)]
         )
     return absolute(
         portal,

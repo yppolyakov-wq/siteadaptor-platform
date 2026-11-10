@@ -37,7 +37,7 @@ from .models import FollowDigest, FollowSubscription, PortalChat, PortalUser
 log = logging.getLogger(__name__)
 
 ITEMS_PER_FOLLOW = 5
-MAX_FOLLOWS_PER_MAIL = 20
+MAX_ITEMS_PER_MAIL = 60  # NT-A1 (Р-NT3): потолок позиций в одном письме
 MAX_ITEM_KEYS = 200
 RECENT_SENT_DAYS = 15  # ≥ NEW_DAYS: глубже since_for не заглядывает
 OVERFETCH = 50  # строк на подписку: отсеять уже показанное без LIMIT «по числу seen»
@@ -48,6 +48,14 @@ INSTANT_SLOT_MINUTES = 15
 
 def _cfg(key: str, default):
     return getattr(settings, "AGGREGATOR_FOLLOW", {}).get(key, default)
+
+
+def max_follows_per_mail() -> int:
+    """Сколько подписок одного жителя разбирает письмо — все (= лимит подписок), иначе
+    подписки сверх «первых N» молча не приходили бы никогда (NT-A1)."""
+    from .follow import max_follows
+
+    return max_follows()
 
 
 # --- периоды ------------------------------------------------------------------------------
@@ -172,19 +180,30 @@ def build_digest(user: PortalUser, subs: list[FollowSubscription], *, now=None) 
     digest = Digest(user=user, portal=portal)
     # T-8.10d: узкое первым — компания, затем поиски, затем раздел/район: предложение,
     # совпавшее с несколькими подписками, встаёт под самую точную подпись (и один раз).
+    # NT-A1 (Р-NT2): категория/признак/марка уже раздела/района — встают раньше них.
     order = {
         FollowSubscription.TARGET_BUSINESS: 0,
         FollowSubscription.TARGET_QUERY: 1,
+        FollowSubscription.TARGET_CATEGORY: 2,
+        FollowSubscription.TARGET_TAG: 2,
+        FollowSubscription.TARGET_BRAND: 2,
     }
-    subs = sorted(subs, key=lambda s: order.get(s.target_kind, 2))
-    for sub in subs[:MAX_FOLLOWS_PER_MAIL]:
+    subs = sorted(subs, key=lambda s: order.get(s.target_kind, 3))
+    # NT-A1 (Р-NT3): в письмо — все подписки жителя (не «первые 20»), но не больше
+    # `max_items_per_mail` позиций — иначе 40 подписок × 5 = 200 строк в одном письме.
+    max_items = int(_cfg("max_items_per_mail", MAX_ITEMS_PER_MAIL))
+    shown_total = 0
+    for sub in subs[: max_follows_per_mail()]:
+        if shown_total >= max_items:
+            break
         since = follow.since_for(sub, now)
         qs = follow.items_for(sub, since=since, now=now)
         window = list(qs[:OVERFETCH])  # одна выборка на подписку
         fresh = [item for item in window if follow.item_key(item) not in seen and _prepare(item)]
         if not fresh:
             continue
-        shown = fresh[:per_follow]
+        shown = fresh[: min(per_follow, max_items - shown_total)]
+        shown_total += len(shown)
         seen |= {follow.item_key(item) for item in shown}  # дедуп внутри одного письма
         # Точное «Alle anzeigen (N)» — только если окно срезано; иначе N = число свежих.
         total = qs.count() - (len(window) - len(fresh)) if len(window) == OVERFETCH else len(fresh)

@@ -84,9 +84,9 @@ def _req(method, path, data=None, portal=None, user=None):
     return request
 
 
-def _query_sub(user, portal, params, *, confirmed_days_ago=1):
+def _query_sub(user, portal, params, *, confirmed_days_ago=1, any_kind=False):
     target = follow.parse_target(_qd(art="suche", **params), portal=portal)
-    assert target is not None and target.kind == "query", target
+    assert target is not None and (any_kind or target.kind == "query"), target
     sub = follow.follow_now(user, target, frequency="daily", portal=portal)
     FollowSubscription.objects.filter(pk=sub.pk).update(
         confirmed_at=timezone.now() - timedelta(days=confirmed_days_ago)
@@ -159,10 +159,13 @@ def test_single_legacy_maps_to_old_target():
     assert biz == follow.Target("business", tenant.schema_name)
 
 
-def test_category_stays_query():
+def test_single_category_becomes_category_target():
+    """NT-A1 (Р-NT4): одна категория — своя цель, не поиск (центр подписок её видит)."""
     portal = _portal()
     target = follow.parse_target(_qd(art="suche", kat="obst-gemuese"), portal=portal)
-    assert target.kind == "query" and target.query == (("kat", "obst-gemuese"),)
+    assert target == follow.Target("category", "obst-gemuese", CITY)
+    two = follow.parse_target(_qd(art="suche", kat="obst-gemuese", merkmal="bio"), portal=portal)
+    assert two.kind == "query"
 
 
 def test_business_scoped_query_rejected_when_demo_or_withheld():
@@ -301,7 +304,8 @@ def test_alle_anzeigen_superset_of_mail(isolated_ratelimit):
     _listing(tenant, title={"de": "Tomaten rot"}, brand="Sonnenhof")
     _listing(other, title={"de": "Tomaten gelb"}, brand="Sonnenhof")
     for params in cases:
-        sub = _query_sub(user, portal, params)
+        # NT-A1: одно условие «категория / марка» — свой вид цели; тот же замок ⊇.
+        sub = _query_sub(user, portal, params, any_kind=True)
         digest = follow_digest.build_digest(user, [sub], now=timezone.now())
         assert digest is not None, params
         url = digest.sections[0].more_url

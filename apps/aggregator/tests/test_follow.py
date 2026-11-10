@@ -100,10 +100,13 @@ def test_parse_target_business_section_category_district():
     assert follow.parse_target(
         {"bereich": "lebensmittel-getraenke"}, portal=portal
     ) == follow.Target("section", "lebensmittel-getraenke", "Solingen")
-    # категория сворачивается в свой раздел (Р-1b)
-    assert follow.parse_target({"bereich": "brot-backwaren"}, portal=portal).key == (
-        "lebensmittel-getraenke"
+    # NT-A1 (Р-NT1, пересмотр Р-1b): категория — своя цель; раздел — по `umfang=bereich`
+    assert follow.parse_target({"bereich": "brot-backwaren"}, portal=portal) == follow.Target(
+        "category", "brot-backwaren", "Solingen"
     )
+    assert follow.parse_target(
+        {"bereich": "brot-backwaren", "umfang": "bereich"}, portal=portal
+    ) == follow.Target("section", "lebensmittel-getraenke", "Solingen")
     assert follow.parse_target({"stadtteil": "Ohligs"}, portal=portal) == follow.Target(
         "district", "ohligs-aufderhoehe-merscheid", "Solingen"
     )

@@ -223,6 +223,15 @@ def legacy(pairs, *, city: str):
         return FollowSubscription.TARGET_BUSINESS, value
     if name == "kat" and cc.section(value):
         return FollowSubscription.TARGET_SECTION, value
+    # NT-A1 (Р-NT4): одно условие «категория / признак / марка» — своя цель, не поиск.
+    if name == "kat" and cc.category(value):
+        return FollowSubscription.TARGET_CATEGORY, value
+    if name == "merkmal" and cc.tag_label(value):
+        return FollowSubscription.TARGET_TAG, value
+    if name == "marke":
+        from .follow import brand_key
+
+        return (FollowSubscription.TARGET_BRAND, brand_key(value)) if brand_key(value) else None
     if name == "stadtteil":
         return FollowSubscription.TARGET_DISTRICT, value
     return None
@@ -297,18 +306,19 @@ def url_params(pairs) -> list[tuple[str, str]]:
 # --- выборка письма ---------------------------------------------------------------------
 
 
-def queryset(sub):
+def queryset(sub, pairs=None):
     """Выдача подписки — ТЕМ ЖЕ путём, что страница по ссылке «Alle anzeigen» (⊇ письма).
 
     Демо и скрытое — никогда (даже на превью-портале), журнал поиска не пишется,
-    фолбэк опечаток выключен: письмо не уходит по «похожему» слову."""
+    фолбэк опечаток выключен: письмо не уходит по «похожему» слову.
+    NT-A1: `pairs` — набор для видов-«одного условия» (категория/признак/марка)."""
     from . import portal_home_blocks as home
     from . import search
     from .models import AggregatorListing
     from .portal_views import _district_pool
     from .views import listings_for
 
-    pairs = from_stored(sub.query)
+    pairs = tuple(pairs) if pairs is not None else from_stored(sub.query)
     if not pairs:
         return AggregatorListing.objects.none()
     qd = _params(pairs)

@@ -36364,3 +36364,19 @@ msgstr "zzgl. Versandkosten"
 #: SHP-5
 msgid "Versandkosten, Lieferzeiten und Abholung bei %(name)s."
 msgstr "Versandkosten, Lieferzeiten und Abholung bei %(name)s."
+
+#: NT-A1
+msgid "Ganzer Bereich %(sec)s"
+msgstr "Ganzer Bereich %(sec)s"
+
+#: NT-A1
+msgid "Merkmal"
+msgstr "Merkmal"
+
+#: NT-A1
+msgid "Neue Angebote und Produkte dazu — als E-Mail-Übersicht. Nur das, was Sie ausgewählt haben."
+msgstr "Neue Angebote und Produkte dazu — als E-Mail-Übersicht. Nur das, was Sie ausgewählt haben."
+
+#: NT-A1
+msgid "Nur %(cat)s"
+msgstr "Nur %(cat)s"
