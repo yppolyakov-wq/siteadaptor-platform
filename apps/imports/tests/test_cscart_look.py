@@ -41,3 +41,14 @@ def test_detail_place_changes_only_ratio_not_width():
     assert '[data-sf-place="detail"]' in css and "aspect-ratio:1 / 1" in css
     assert "width:62%" not in css and "width:auto" not in css  # лента 88 % на телефоне цела
     assert "object-fit:contain" in css
+
+
+def test_week_lines_merge_equal_days():
+    from django.utils import translation
+
+    from apps.tenants import openinghours
+
+    hours = {str(d): ["10:00", "18:00"] for d in range(5)} | {"5": ["10:00", "14:00"]}
+    with translation.override("de"):
+        assert openinghours.week_lines(hours) == ["Mo–Fr 10:00–18:00", "Sa 10:00–14:00"]
+    assert openinghours.week_lines({}) == []

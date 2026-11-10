@@ -96,3 +96,22 @@ def today_label(structured, now: datetime) -> str:
     hours = normalize(structured)
     rng = hours.get(str(now.weekday()))
     return f"{rng[0]}–{rng[1]}" if rng else gettext("Closed")
+
+
+def week_lines(structured) -> list[str]:
+    """M21.5: неделя строками для подвала — подряд идущие дни с одинаковыми часами
+    сливаются: «Mo–Fr 10:00–18:00», «Sa 10:00–14:00». Закрытые дни не выводятся."""
+    hours = normalize(structured)
+    lines, wd = [], 0
+    while wd < 7:
+        rng = hours.get(str(wd))
+        if not rng:
+            wd += 1
+            continue
+        end = wd
+        while end + 1 < 7 and hours.get(str(end + 1)) == rng:
+            end += 1
+        days = weekday_abbr(wd) if end == wd else f"{weekday_abbr(wd)}–{weekday_abbr(end)}"
+        lines.append(f"{days} {rng[0]}–{rng[1]}")
+        wd = end + 1
+    return lines

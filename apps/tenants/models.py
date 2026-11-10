@@ -490,6 +490,12 @@ class Tenant(TenantMixin):
 
         return resolve_overlay(self.service_area_note, self.service_area_note_i18n, locale)
 
+    def opening_hours_week(self) -> list[str]:
+        """M21.5: часы по неделе строками (сетка часов) — для колонки «Kontakt» подвала."""
+        from . import openinghours
+
+        return openinghours.week_lines(self.opening_hours_structured)
+
     def todays_hours(self) -> str:
         from django.utils import timezone
 

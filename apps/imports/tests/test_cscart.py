@@ -697,3 +697,50 @@ def test_export_codes_report_missing():
     assert cscart.missing_codes(codes) == ["HT2"]
     full = cscart.read_export_codes('Product code;Status;Price\n"HT3";"A";"1"\n"HT4";"D";"1"\n')
     assert full == {"HT3"}  # выключенный в старом магазине — не «недостающий»
+
+
+@pytest.mark.django_db
+def test_cleanup_keeps_sold_and_edited_website_import_products():
+    """Ревью безопасности M21.5: проданный или правленный после импорта товар Г1 —
+    не «дубль», cleanup его оставляет и называет отдельно."""
+    from datetime import timedelta
+
+    from django.utils import timezone
+
+    from apps.catalog.models import Product
+    from apps.catalog.tests.test_product_reviews import _buy
+    from apps.imports.models import SiteImportItem, SiteImportRun
+    from apps.tenants.tests.factories import TenantFactory
+
+    tenant = TenantFactory(schema_name="public")
+    sold = Product.objects.create(name={"de": "Verkauft"}, base_price="5.00")
+    edited = Product.objects.create(name={"de": "Bearbeitet"}, base_price="5.00")
+    run = SiteImportRun.objects.create(
+        start_url="https://x/", host="x", consent_at=timezone.now(), consent_version="1"
+    )
+    long_ago = timezone.now() - timedelta(days=3)
+    for p in (sold, edited):
+        SiteImportItem.objects.create(
+            run=run,
+            kind="product",
+            fingerprint="f",
+            identity_key=str(p.pk),
+            target_kind="product",
+            target_id=str(p.pk),
+            applied_at=long_ago,
+        )
+    SiteImportItem.objects.create(
+        run=run,
+        kind="product",
+        fingerprint="f",
+        identity_key="x",
+        target_kind="product",
+        target_id="not-a-uuid",
+    )
+    _buy(sold, "kunde@example.com", ref="O-M215")
+    Product.objects.filter(pk=sold.pk).update(updated_at=long_ago)
+
+    notes = cscart.cleanup_foreign(tenant, apply=True)
+    assert "kept (has orders): Verkauft" in notes
+    assert "kept (edited after import): Bearbeitet" in notes
+    assert Product.objects.filter(pk__in=[sold.pk, edited.pk]).count() == 2

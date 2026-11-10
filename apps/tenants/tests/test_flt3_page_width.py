@@ -20,8 +20,10 @@ def test_page_width_is_presence_minimal(raw, kept):
 
 
 def test_width_classes():
-    assert siteconfig.PAGE_WIDTH_CLASSES[""] == "max-w-screen-2xl"  # решение владельца: 1536
-    assert siteconfig.PAGE_WIDTH_CLASSES["normal"] == "max-w-7xl"  # прежний вид
+    # M21.5 (решение владельца 2026-11-10): по умолчанию — на всю ширину у всех сайтов
+    assert siteconfig.PAGE_WIDTH_CLASSES[""] == "max-w-none"
+    assert siteconfig.PAGE_WIDTH_CLASSES["wide"] == "max-w-screen-2xl"  # прежние 1536 px
+    assert siteconfig.PAGE_WIDTH_CLASSES["normal"] == "max-w-7xl"
     assert siteconfig.PAGE_WIDTH_CLASSES["full"] == "max-w-none"
 
 

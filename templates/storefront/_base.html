@@ -353,13 +353,14 @@
           </ul>
         </div>
         {% endfor %}
-        {% if request.tenant.address or request.tenant.public_phone or request.tenant.opening_hours %}
+        {% if request.tenant.address or request.tenant.public_phone or request.tenant.public_email or request.tenant.opening_hours or request.tenant.opening_hours_structured %}
         <div class="min-w-0 col-span-2 sm:col-span-1 text-gray-600 space-y-1.5" data-footer-contact>
           <p class="text-base font-semibold text-gray-800 mb-2">{% trans "Kontakt" %}</p>
           {% if request.tenant.address %}<p>{{ request.tenant.address }}</p>{% endif %}
           {% if request.tenant.public_phone %}<p><a href="tel:{{ request.tenant.public_phone }}" class="hover:underline">{{ request.tenant.public_phone }}</a></p>{% endif %}
           {% if request.tenant.public_email %}<p><a href="mailto:{{ request.tenant.public_email }}" class="hover:underline break-all">{{ request.tenant.public_email }}</a></p>{% endif %}
-          {% if request.tenant.opening_hours %}<p class="whitespace-pre-line">{{ request.tenant.opening_hours_localized }}</p>{% endif %}
+          {% if request.tenant.opening_hours %}<p class="whitespace-pre-line">{{ request.tenant.opening_hours_localized }}</p>{% else %}{% for line in request.tenant.opening_hours_week %}<p>{{ line }}</p>{% endfor %}{% endif %}
+          {% if request.tenant.map_url %}<p><a href="{{ request.tenant.map_url }}" target="_blank" rel="noopener" class="hover:underline">🗺 {% trans "Map" %}</a></p>{% endif %}
         </div>
         {% endif %}
       </nav>

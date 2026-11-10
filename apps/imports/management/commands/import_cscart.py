@@ -131,7 +131,9 @@ class Command(BaseCommand):
         )
         for err in site.errors[:30]:
             self.stdout.write(f"  ! {err}")
-        if opts["cleanup"] and tenant is not None:
+        if opts["cleanup"] and tenant is None:
+            self.stdout.write("  cleanup: skipped (business does not exist yet)")
+        elif opts["cleanup"]:
             with schema_context(schema):
                 for note in cscart.cleanup_foreign(tenant, apply=opts["apply"]):
                     self.stdout.write(f"  cleanup: {note}")

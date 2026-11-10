@@ -1451,7 +1451,7 @@ def products_bulk_visibility(request):
     visible = request.POST.get("action") == "show"
     if not products:
         messages.error(request, _("Bitte zuerst Produkte auswählen."))
-        return redirect("sellable-manage")
+        return _bulk_back(request)
     changed = 0
     with transaction.atomic():
         for product in products:

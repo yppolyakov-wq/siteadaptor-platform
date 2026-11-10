@@ -61,7 +61,10 @@ def test_every_marked_box_in_storefront_names_a_known_place():
         if f.name == "_base.html":
             continue
         text = f.read_text()
-        assert text.count("data-sf-media-box") == text.count("data-sf-place="), f
+        # M21.5: «detail» — галерея детали; общая форма кадра DL-10 (round/wide по
+        # data-sf-media-box) её намеренно не трогает, поэтому бокса там нет.
+        detail = text.count('data-sf-place="detail"')
+        assert text.count("data-sf-media-box") == text.count("data-sf-place=") - detail, f
         for code in media_places.PLACES:
             text = text.replace(f'data-sf-place="{code}"', "")
         assert "data-sf-place=" not in text, f
@@ -90,3 +93,9 @@ def test_design_page_shows_and_saves_places():
     # без блока карточек в POST настройка не стирается
     cfg = _post(tenant, {"action": "design_settings", "font": "serif"})
     assert cfg["site_defaults"]["media_places"] == places
+
+
+def test_detail_place_lives_only_on_the_gallery_main_photo():
+    text = (TEMPLATES / "_media_gallery.html").read_text()
+    assert text.count('data-sf-place="detail"') == 2  # лента телефона + большое фото
+    assert "data-sf-media-box" not in text

@@ -24,6 +24,7 @@ import logging
 import re
 import time
 from dataclasses import dataclass, field
+from datetime import timedelta
 from decimal import Decimal, InvalidOperation
 from urllib.parse import parse_qs, urljoin, urlsplit
 
@@ -1036,6 +1037,16 @@ def _order_categories_by_menu(nodes: list) -> None:
         Category.objects.filter(slug=slug).update(sort_order=pos)
 
 
+def _is_uuid(value) -> bool:
+    import uuid
+
+    try:
+        uuid.UUID(str(value))
+    except (TypeError, ValueError):
+        return False
+    return True
+
+
 def _de(value) -> str:
     return value.get("de", "") if isinstance(value, dict) else str(value or "")
 
@@ -1059,12 +1070,18 @@ def cleanup_foreign(tenant, *, apply: bool = False) -> list:
         notes.append("demo content: remove")
         if apply:
             demo.clear_demo(tenant)
-    ids = [
-        t
-        for t in SiteImportItem.objects.filter(target_kind="product")
+    # цель → когда импортёр её последний раз записал (правки владельца позже — не дубль)
+    applied: dict = {}
+    for target, at in (
+        SiteImportItem.objects.filter(target_kind="product")
         .exclude(target_id="")
-        .values_list("target_id", flat=True)
-    ]
+        .values_list("target_id", "applied_at")
+    ):
+        if at and (target not in applied or (applied[target] and at > applied[target])):
+            applied[target] = at
+        else:
+            applied.setdefault(target, at)
+    ids = [t for t in applied if _is_uuid(t)]  # чужая строка в target_id — не падать
     # товар, который ведёт сам перенос (метка cscart), не трогаем никогда — даже если
     # Г1 позже сопоставил с ним свою позицию
     products = list(
@@ -1072,9 +1089,23 @@ def cleanup_foreign(tenant, *, apply: bool = False) -> list:
         .exclude(metadata__has_key="cscart")
         .select_related("category")
     )
-    category_ids = {p.category_id for p in products if p.category_id}
+    # ревью безопасности: проданный или правленный после импорта товар — уже не «дубль»,
+    # его не удаляем, а показываем отдельно (решает владелец)
+    from apps.orders.models import OrderItem
+
+    sold = set(OrderItem.objects.filter(product__in=products).values_list("product_id", flat=True))
+    doomed = []
     for p in products:
-        notes.append(f"website-import duplicate: {_de(p.name)}")
+        at = applied.get(str(p.pk))
+        if p.pk in sold:
+            notes.append(f"kept (has orders): {_de(p.name)}")
+        elif at and p.updated_at and p.updated_at > at + timedelta(minutes=1):
+            notes.append(f"kept (edited after import): {_de(p.name)}")
+        else:
+            doomed.append(p)
+            notes.append(f"website-import duplicate: {_de(p.name)}")
+    products = doomed
+    category_ids = {p.category_id for p in products if p.category_id}
     if apply:
         for p in products:
             p.delete()  # soft-delete, как кнопка «Löschen» в кабинете
