@@ -223,3 +223,16 @@ def test_unknown_brand_rejected_and_unshown_brand_kept():
     assert follow_center.normalize(_sel(brands={"erfunden"}), portal).brands == set()
     follow_center.apply(user, _sel(tags={"bio"}), frequency="daily", portal=portal)
     assert ("brand", "nischenmarke") in _kinds(user)  # не показана в списке — не снимается
+
+
+def test_apply_without_frequency_keeps_chosen_frequency():
+    """Ревью NT: бот сохраняет категории раздела с пустой частотой — выбранная жителем
+    «wöchentlich» у прочих подписок центра не сбрасывается в «täglich»."""
+    portal = _portal()
+    user = _user()
+    follow_center.apply(user, _sel(tags={"vegan"}), frequency="weekly", portal=portal)
+    follow_center.apply(user, _sel(tags={"vegan", "bio"}), frequency="", portal=portal)
+    freqs = dict(
+        FollowSubscription.objects.filter(user=user).values_list("target_key", "frequency")
+    )
+    assert freqs["vegan"] == "weekly"

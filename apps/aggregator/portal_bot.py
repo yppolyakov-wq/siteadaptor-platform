@@ -633,7 +633,9 @@ def _center_confirm(bot, uid, center: dict, lang) -> str:
         follow_center.apply(
             chat.user,
             desired,
-            frequency=FollowSubscription.FREQ_DAILY,
+            # ревью NT: пустая частота — не перезаписывать выбранную жителем частоту
+            # прочих подписок центра (новые строки получают ежедневную по умолчанию)
+            frequency="",
             portal=bot.portal,
             source_host=f"tg:@{bot.bot_username}"[:253],
             channel=channel,

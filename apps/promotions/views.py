@@ -2144,20 +2144,39 @@ def newsletter_campaigns(request):
             ).delete()
         return redirect("promotions:newsletter")
 
+    from django.db.models import Count, Exists, OuterRef
+
+    from .models import CustomerNewsletterTopic
+
+    # Ревью NT: адресаты тем — тремя агрегатами, а не COUNT на каждую тему/черновик.
+    base = consented_customers()
+    total = base.count()
+    rows = CustomerNewsletterTopic.objects.filter(customer=OuterRef("pk"))
+    everything = base.filter(~Exists(rows)).count()  # без выбора тем = получают всё
+    per_topic = dict(
+        CustomerNewsletterTopic.objects.filter(customer__in=base)
+        .values("topic_id")
+        .annotate(n=Count("customer_id"))
+        .values_list("topic_id", "n")
+    )
+
+    def audience(topic_id):
+        return total if topic_id is None else everything + per_topic.get(topic_id, 0)
+
     topics = list(NewsletterTopic.objects.all())
     for t in topics:
-        t.audience = consented_customers(topic=t).count()
+        t.audience = audience(t.pk)
     campaigns = list(NewsletterCampaign.objects.select_related("topic")[:100])
     for c in campaigns:
         if c.status == NewsletterCampaign.STATUS_DRAFT:
-            c.audience = consented_customers(topic=c.topic).count()
+            c.audience = audience(c.topic_id)
     return render(
         request,
         "promotions/newsletter.html",
         {
             "nav": "newsletter",  # W7b: своя вкладка в Marketing-хабе
             "campaigns": campaigns,
-            "consented": consented_customers().count(),
+            "consented": total,
             "topics": topics,
             "active_topics": [t for t in topics if t.is_active],
             "max_topics": MAX_NEWSLETTER_TOPICS,

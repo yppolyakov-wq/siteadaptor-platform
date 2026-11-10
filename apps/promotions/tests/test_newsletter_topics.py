@@ -389,3 +389,36 @@ def test_account_profile_sets_topics_with_sentinel_only(monkeypatch):
     # из кабинета клиента можно и расширить (вошедший — подтверждённая личность)
     post({"name": "A", "marketing": "on", "topics_present": "1"})
     assert newsletter.selected_topic_ids(c) == set()
+
+
+@pytest.mark.urls("config.urls_tenant")
+def test_cabinet_audience_matches_consented_customers():
+    """Ревью NT: агрегат адресатов совпадает с фильтром отправки."""
+    from django.contrib.messages.storage.fallback import FallbackStorage
+
+    from apps.promotions import views
+
+    lunch, events = _topics()
+    _customer()
+    only_lunch = _customer()
+    newsletter.set_topics(only_lunch, [lunch.pk], source="form")
+    NewsletterCampaign.objects.create(subject="S", body="B", topic=events)
+    req = _ip_req()
+    req.session = {}
+    req._messages = FallbackStorage(req)
+    req.user = _owner()
+    captured = {}
+    import unittest.mock as m
+
+    def fake_render(request, template, ctx):
+        captured.update(ctx)
+        from django.http import HttpResponse
+
+        return HttpResponse("")
+
+    with m.patch.object(views, "render", fake_render):
+        views.newsletter_campaigns(req)
+    by_name = {t.name: t.audience for t in captured["topics"]}
+    assert by_name["Mittagstisch"] == newsletter.consented_customers(lunch).count() == 2
+    assert by_name["Events"] == newsletter.consented_customers(events).count() == 1
+    assert captured["campaigns"][0].audience == 1
