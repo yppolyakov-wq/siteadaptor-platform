@@ -36909,3 +36909,48 @@ msgstr "Пункт меню цієї сторінки більше не пока
 
 msgid "Darauf habe ich keine sichere Antwort. Schreiben Sie uns im Tab „Support“ — dort hilft Ihnen ein Mensch weiter."
 msgstr "На це в мене немає точної відповіді. Напишіть нам у вкладці «Підтримка» — там вам допоможе людина."
+
+#, python-format
+msgid "%(n)s Packungen aus dem Verkauf"
+msgstr "%(n)s фасувань знято з продажу"
+
+#, python-format
+msgid "Aktion „%(a)s“ unbekannt (leer, nur oder löschen)."
+msgstr "Невідома дія «%(a)s» (порожньо, nur або löschen)."
+
+msgid "Aktion: leer = Preis · nur = nur diese Packung · löschen"
+msgstr "Дія: порожньо = ціна · nur = лише це фасування · löschen = видалити"
+
+msgid "Artikel *"
+msgstr "Артикул *"
+
+msgid "Artikel nicht gefunden."
+msgstr "Артикул не знайдено."
+
+#, python-format
+msgid "Packung %(s)s gibt es nicht (vorhanden: %(packs)s)."
+msgstr "Фасування %(s)s немає (є: %(packs)s)."
+
+msgid "Packung (z. B. 100 g)"
+msgstr "Фасування (наприклад, 100 г)"
+
+#, python-format
+msgid "Packung „%(s)s“ nicht lesbar (z. B. 100 g)."
+msgstr "Фасування «%(s)s» не розпізнано (наприклад, 100 г)."
+
+#, python-format
+msgid "Preis „%(p)s“ nicht lesbar."
+msgstr "Ціну «%(p)s» не розпізнано."
+
+msgid "Preisliste (Preise & Packungen)"
+msgstr "Прайс-лист (ціни та фасування)"
+
+msgid "Preisliste: Jede Zeile ändert einen vorhandenen Artikel — neue Produkte entstehen nicht. Aktion leer = Preis der Packung, „nur“ = der Artikel wird nur noch in dieser Packung verkauft, „löschen“ = Artikel löschen. Die Vorschau zeigt Fehler vor dem Speichern."
+msgstr "Прайс-лист: кожен рядок змінює наявний артикул — нові товари не створюються. Дія порожньо = ціна фасування, «nur» = товар продається лише в цьому фасуванні, «löschen» = видалити товар. Попередній перегляд покаже помилки до збереження."
+
+msgid "gelöscht"
+msgstr "видалено"
+
+#, python-format
+msgid "nur %(s)s: %(old)s → %(new)s"
+msgstr "лише %(s)s: %(old)s → %(new)s"

@@ -29,14 +29,14 @@
         </tr>
       </thead>
       <tbody>
-        {% for header in headers %}
+        {% for col in columns %}
         <tr class="border-t border-gray-100">
-          <td class="px-4 py-2 font-mono">{{ header }}</td>
+          <td class="px-4 py-2 font-mono">{{ col.name }}</td>
           <td class="px-4 py-2">
-            <select aria-label="{{ header }}" name="map__{{ header }}" class="ui-input">
+            <select aria-label="{{ col.name }}" name="map__{{ col.name }}" class="ui-input">
               <option value="">{% trans "— ignore —" %}</option>
               {% for value, label in fields %}
-              <option value="{{ value }}">{{ label }}</option>
+              <option value="{{ value }}"{% if value == col.guess %} selected{% endif %}>{{ label }}</option>
               {% endfor %}
             </select>
           </td>
@@ -48,6 +48,9 @@
     </table>
   </div>
 
+  {% if is_price_list %}
+  <p class="ui-card p-4 text-sm" data-price-list-hint>{% trans "Preisliste: Jede Zeile ändert einen vorhandenen Artikel — neue Produkte entstehen nicht. Aktion leer = Preis der Packung, „nur“ = der Artikel wird nur noch in dieser Packung verkauft, „löschen“ = Artikel löschen. Die Vorschau zeigt Fehler vor dem Speichern." %}</p>
+  {% else %}
   <label class="flex items-center gap-2 text-sm">
     <input type="checkbox" name="update_existing" class="rounded border-gray-300" />
     {% trans "Update existing products instead of creating duplicates" %}
@@ -62,6 +65,7 @@
     </select></label>
     <p class="text-xs ui-muted mt-1">{% trans "Used only when 'Update existing' is on." %}</p>
   </div>
+  {% endif %}
 
   <button type="submit" class="ui-btn ui-btn-primary">
     {% trans "Start preview" %}

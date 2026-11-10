@@ -93,6 +93,39 @@ PROMOTION_FIELDS = [
     ("ends_at", _("Ende (YYYY-MM-DD HH:MM)")),
 ]
 
+# M21.7: прайс-лист — цены и фасовки по артикулам (правила apps/catalog/price_list.py).
+PRICE_LIST_FIELDS = [
+    ("sku", _("Artikel *")),
+    ("size", _("Packung (z. B. 100 g)")),
+    ("price", _("Preis")),
+    ("action", _("Aktion: leer = Preis · nur = nur diese Packung · löschen")),
+]
+
+# M21.7: автоподбор колонок по заголовку файла (регистр и «ä/ae» не важны). Владелец
+# может поменять выбор; без совпадения колонка остаётся «— ignorieren —».
+COLUMN_ALIASES = {
+    "price_list": {
+        "sku": ("artikel", "art", "art.-nr.", "artikelnummer", "sku", "артикул"),
+        "size": ("groesse", "größe", "packung", "gewicht", "size", "фасовка", "вес"),
+        "price": ("preis", "price", "vk", "цена"),
+        "action": ("aktion", "action", "действие"),
+    },
+    "product": {
+        "sku": ("artikel", "art.-nr.", "artikelnummer", "sku"),
+        "name_de": ("name", "name_de", "bezeichnung", "produkt"),
+        "base_price": ("preis", "price", "base_price"),
+    },
+}
+
+
+def guess_column(resource_type: str, header: str) -> str:
+    key = (header or "").strip().lower()
+    for field, aliases in COLUMN_ALIASES.get(resource_type, {}).items():
+        if key == field or key in aliases:
+            return field
+    return ""
+
+
 # Поле, по которому ищем существующую запись при обновлении.
 MATCH_FIELD_CHOICES = [
     ("sku", _("SKU")),
@@ -103,19 +136,27 @@ RESOURCE_CHOICES = [
     ("product", _("Produkte")),
     ("product_variant", _("Produktvarianten")),
     ("promotion", _("Aktionen")),
+    ("price_list", _("Preisliste (Preise & Packungen)")),
 ]
 RESOURCE_FIELDS = {
     "product": PRODUCT_FIELDS,
     "product_variant": VARIANT_FIELDS,
     "promotion": PROMOTION_FIELDS,
+    "price_list": PRICE_LIST_FIELDS,
 }
 RESOURCE_MATCH_FIELDS = {
     "product": MATCH_FIELD_CHOICES,
     # Вариант всегда upsert по (товар, label) — поле синхронизации не выбирается.
     "product_variant": [("label", _("Variante (label)"))],
     "promotion": [("title_de", _("Titel (DE)"))],
+    "price_list": [("sku", _("Artikel"))],
 }
-RESOURCE_DEFAULT_MATCH = {"product": "sku", "product_variant": "label", "promotion": "title_de"}
+RESOURCE_DEFAULT_MATCH = {
+    "product": "sku",
+    "product_variant": "label",
+    "promotion": "title_de",
+    "price_list": "sku",
+}
 
 
 @login_required
@@ -179,7 +220,8 @@ def import_map(request, pk):
         job.options = {
             **(job.options or {}),
             "delimiter": delimiter,
-            "update_existing": bool(request.POST.get("update_existing")),
+            "update_existing": bool(request.POST.get("update_existing"))
+            or job.resource_type == "price_list",
             "match_field": request.POST.get("match_field") or default_match,
         }
         job.status = "mapped"
@@ -200,6 +242,8 @@ def import_map(request, pk):
         {
             "job": job,
             "headers": headers,
+            "columns": [{"name": h, "guess": guess_column(job.resource_type, h)} for h in headers],
+            "is_price_list": job.resource_type == "price_list",
             "fields": RESOURCE_FIELDS.get(job.resource_type, PRODUCT_FIELDS),
             "delimiters": DELIMITER_CHOICES,
             "match_fields": RESOURCE_MATCH_FIELDS.get(job.resource_type, MATCH_FIELD_CHOICES),

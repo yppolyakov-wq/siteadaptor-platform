@@ -763,8 +763,9 @@ def _save_product(p: CsProduct, category, vat: Decimal, stats: ApplyStats):
     return product
 
 
-#: M21.7: метка в Product.metadata — цены/фасовки задал владелец, импорт их не синхронизирует.
-OWNER_PRICES_KEY = "prices_by_owner"
+#: M21.7: метка в Product.metadata — цены/фасовки задал владелец (прайс-лист), импорт их
+#: не синхронизирует. Источник — apps.catalog.price_list.
+from apps.catalog.price_list import OWNER_PRICES_KEY  # noqa: E402
 
 
 def _save_variants(product, p: CsProduct, fetch_image, stats: ApplyStats) -> None:

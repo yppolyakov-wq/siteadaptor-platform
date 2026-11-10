@@ -36674,3 +36674,48 @@ msgstr "Der Menüpunkt zu dieser Seite wird nicht mehr angezeigt — bitte im Me
 
 msgid "Darauf habe ich keine sichere Antwort. Schreiben Sie uns im Tab „Support“ — dort hilft Ihnen ein Mensch weiter."
 msgstr "Darauf habe ich keine sichere Antwort. Schreiben Sie uns im Tab „Support“ — dort hilft Ihnen ein Mensch weiter."
+
+#, python-format
+msgid "%(n)s Packungen aus dem Verkauf"
+msgstr "%(n)s Packungen aus dem Verkauf"
+
+#, python-format
+msgid "Aktion „%(a)s“ unbekannt (leer, nur oder löschen)."
+msgstr "Aktion „%(a)s“ unbekannt (leer, nur oder löschen)."
+
+msgid "Aktion: leer = Preis · nur = nur diese Packung · löschen"
+msgstr "Aktion: leer = Preis · nur = nur diese Packung · löschen"
+
+msgid "Artikel *"
+msgstr "Artikel *"
+
+msgid "Artikel nicht gefunden."
+msgstr "Artikel nicht gefunden."
+
+#, python-format
+msgid "Packung %(s)s gibt es nicht (vorhanden: %(packs)s)."
+msgstr "Packung %(s)s gibt es nicht (vorhanden: %(packs)s)."
+
+msgid "Packung (z. B. 100 g)"
+msgstr "Packung (z. B. 100 g)"
+
+#, python-format
+msgid "Packung „%(s)s“ nicht lesbar (z. B. 100 g)."
+msgstr "Packung „%(s)s“ nicht lesbar (z. B. 100 g)."
+
+#, python-format
+msgid "Preis „%(p)s“ nicht lesbar."
+msgstr "Preis „%(p)s“ nicht lesbar."
+
+msgid "Preisliste (Preise & Packungen)"
+msgstr "Preisliste (Preise & Packungen)"
+
+msgid "Preisliste: Jede Zeile ändert einen vorhandenen Artikel — neue Produkte entstehen nicht. Aktion leer = Preis der Packung, „nur“ = der Artikel wird nur noch in dieser Packung verkauft, „löschen“ = Artikel löschen. Die Vorschau zeigt Fehler vor dem Speichern."
+msgstr "Preisliste: Jede Zeile ändert einen vorhandenen Artikel — neue Produkte entstehen nicht. Aktion leer = Preis der Packung, „nur“ = der Artikel wird nur noch in dieser Packung verkauft, „löschen“ = Artikel löschen. Die Vorschau zeigt Fehler vor dem Speichern."
+
+msgid "gelöscht"
+msgstr "gelöscht"
+
+#, python-format
+msgid "nur %(s)s: %(old)s → %(new)s"
+msgstr "nur %(s)s: %(old)s → %(new)s"

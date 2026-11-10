@@ -36733,3 +36733,48 @@ msgstr "Bu sayfanın menü öğesi artık gösterilmiyor — lütfen menüden ka
 
 msgid "Darauf habe ich keine sichere Antwort. Schreiben Sie uns im Tab „Support“ — dort hilft Ihnen ein Mensch weiter."
 msgstr "Buna kesin bir cevabım yok. Bize „Destek“ sekmesinden yazın — orada bir kişi size yardımcı olur."
+
+#, python-format
+msgid "%(n)s Packungen aus dem Verkauf"
+msgstr "%(n)s paket satıştan kaldırıldı"
+
+#, python-format
+msgid "Aktion „%(a)s“ unbekannt (leer, nur oder löschen)."
+msgstr "Bilinmeyen işlem „%(a)s“ (boş, nur veya löschen)."
+
+msgid "Aktion: leer = Preis · nur = nur diese Packung · löschen"
+msgstr "İşlem: boş = fiyat · nur = sadece bu paket · löschen"
+
+msgid "Artikel *"
+msgstr "Ürün no. *"
+
+msgid "Artikel nicht gefunden."
+msgstr "Ürün bulunamadı."
+
+#, python-format
+msgid "Packung %(s)s gibt es nicht (vorhanden: %(packs)s)."
+msgstr "%(s)s paketi yok (mevcut: %(packs)s)."
+
+msgid "Packung (z. B. 100 g)"
+msgstr "Paket (ör. 100 g)"
+
+#, python-format
+msgid "Packung „%(s)s“ nicht lesbar (z. B. 100 g)."
+msgstr "Paket „%(s)s“ okunamadı (ör. 100 g)."
+
+#, python-format
+msgid "Preis „%(p)s“ nicht lesbar."
+msgstr "Fiyat „%(p)s“ okunamadı."
+
+msgid "Preisliste (Preise & Packungen)"
+msgstr "Fiyat listesi (fiyatlar ve paketler)"
+
+msgid "Preisliste: Jede Zeile ändert einen vorhandenen Artikel — neue Produkte entstehen nicht. Aktion leer = Preis der Packung, „nur“ = der Artikel wird nur noch in dieser Packung verkauft, „löschen“ = Artikel löschen. Die Vorschau zeigt Fehler vor dem Speichern."
+msgstr "Fiyat listesi: her satır mevcut bir ürünü değiştirir — yeni ürün oluşturulmaz. İşlem boş = paketin fiyatı, „nur“ = ürün yalnızca bu pakette satılır, „löschen“ = ürünü sil. Önizleme, kaydetmeden önce hataları gösterir."
+
+msgid "gelöscht"
+msgstr "silindi"
+
+#, python-format
+msgid "nur %(s)s: %(old)s → %(new)s"
+msgstr "sadece %(s)s: %(old)s → %(new)s"

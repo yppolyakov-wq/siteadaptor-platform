@@ -36587,3 +36587,48 @@ msgstr "The menu item for this page is no longer shown — please remove it from
 
 msgid "Darauf habe ich keine sichere Antwort. Schreiben Sie uns im Tab „Support“ — dort hilft Ihnen ein Mensch weiter."
 msgstr "I don't have a reliable answer to that. Write to us in the “Support” tab — a person will help you there."
+
+#, python-format
+msgid "%(n)s Packungen aus dem Verkauf"
+msgstr "%(n)s packs taken off sale"
+
+#, python-format
+msgid "Aktion „%(a)s“ unbekannt (leer, nur oder löschen)."
+msgstr "Unknown action “%(a)s” (empty, nur or löschen)."
+
+msgid "Aktion: leer = Preis · nur = nur diese Packung · löschen"
+msgstr "Action: empty = price · nur = only this pack · löschen"
+
+msgid "Artikel *"
+msgstr "Article no. *"
+
+msgid "Artikel nicht gefunden."
+msgstr "Article not found."
+
+#, python-format
+msgid "Packung %(s)s gibt es nicht (vorhanden: %(packs)s)."
+msgstr "There is no %(s)s pack (available: %(packs)s)."
+
+msgid "Packung (z. B. 100 g)"
+msgstr "Pack (e.g. 100 g)"
+
+#, python-format
+msgid "Packung „%(s)s“ nicht lesbar (z. B. 100 g)."
+msgstr "Pack “%(s)s” not readable (e.g. 100 g)."
+
+#, python-format
+msgid "Preis „%(p)s“ nicht lesbar."
+msgstr "Price “%(p)s” not readable."
+
+msgid "Preisliste (Preise & Packungen)"
+msgstr "Price list (prices & packs)"
+
+msgid "Preisliste: Jede Zeile ändert einen vorhandenen Artikel — neue Produkte entstehen nicht. Aktion leer = Preis der Packung, „nur“ = der Artikel wird nur noch in dieser Packung verkauft, „löschen“ = Artikel löschen. Die Vorschau zeigt Fehler vor dem Speichern."
+msgstr "Price list: each row changes an existing article — no new products are created. Action empty = price of the pack, “nur” = the article is sold only in this pack, “löschen” = delete the article. The preview shows errors before saving."
+
+msgid "gelöscht"
+msgstr "deleted"
+
+#, python-format
+msgid "nur %(s)s: %(old)s → %(new)s"
+msgstr "only %(s)s: %(old)s → %(new)s"
