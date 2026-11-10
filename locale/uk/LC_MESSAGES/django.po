@@ -36829,3 +36829,16 @@ msgstr "Сторінки товару"
 
 msgid "Logo-Größe"
 msgstr "Розмір логотипа"
+
+#, python-format
+msgid "%(n)s Produkte gelöscht."
+msgstr "Видалено товарів: %(n)s."
+
+msgid "Alle angezeigten auswählen"
+msgstr "Вибрати всі показані"
+
+msgid "Pro Seite:"
+msgstr "На сторінці:"
+
+msgid "Einträge pro Seite"
+msgstr "Записів на сторінці"

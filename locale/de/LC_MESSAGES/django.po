@@ -36594,3 +36594,16 @@ msgstr "Detailseiten"
 
 msgid "Logo-Größe"
 msgstr "Logo-Größe"
+
+#, python-format
+msgid "%(n)s Produkte gelöscht."
+msgstr "%(n)s Produkte gelöscht."
+
+msgid "Alle angezeigten auswählen"
+msgstr "Alle angezeigten auswählen"
+
+msgid "Pro Seite:"
+msgstr "Pro Seite:"
+
+msgid "Einträge pro Seite"
+msgstr "Einträge pro Seite"

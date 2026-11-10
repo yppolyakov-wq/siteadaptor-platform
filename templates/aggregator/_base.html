@@ -22,7 +22,7 @@
 </head>
 <body class="min-h-screen bg-gray-50 text-gray-900 antialiased flex flex-col">
   <header class="sticky top-0 z-20 bg-white/90 backdrop-blur border-b border-gray-100">
-    <div class="max-w-screen-2xl mx-auto px-4 md:px-6 h-14 flex items-center justify-between">
+    <div class="max-w-none mx-auto px-4 md:px-6 h-14 flex items-center justify-between">
       <a href="{% url 'aggregator-index' %}" class="text-lg font-bold tracking-tight">siteadaptor</a>
       <div class="flex items-center gap-3">
       {% if ui_languages %}<span class="hidden sm:inline-flex">{% include "tenants/_lang_switch.html" %}</span>{% endif %}
@@ -45,7 +45,7 @@
   </main>
 
   <footer class="border-t border-gray-100 bg-white">
-    <div class="max-w-screen-2xl mx-auto px-4 md:px-6 py-6 text-xs text-gray-400 flex flex-wrap items-center justify-between gap-3">
+    <div class="max-w-none mx-auto px-4 md:px-6 py-6 text-xs text-gray-400 flex flex-wrap items-center justify-between gap-3">
       <span>© {% now "Y" %} siteadaptor</span>
       <span class="flex items-center gap-3">
         <a href="{% url 'platform-impressum' %}" class="hover:text-gray-600">{% trans "Impressum" %}</a>

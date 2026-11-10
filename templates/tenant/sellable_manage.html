@@ -65,11 +65,24 @@ Kategorie/Status (строго товарные — активный фильт�
 {% comment %}Фидбэк 2026-08-04 «Zusammenführen»: форма-приёмник чекбоксов вида
 «Liste» — вне секций, переживает любые перестановки разметки.{% endcomment %}
 {% if sortiment_view == "liste" and catalog_active %}
-<form id="merge-form" method="post" action="{% url 'catalog:products-merge' %}">{% csrf_token %}</form>
+<form id="merge-form" method="post" action="{% url 'catalog:products-merge' %}">{% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}"></form>
 {% endif %}
 
 {% for s in sections %}
   <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mt-6 mb-2">{{ s.label }} <span class="text-gray-300">({{ s.count }})</span></h2>
+  {% comment %}M21.5: при постраничном списке — размер страницы и пейджер СВЕРХУ тоже
+  (длинный список не надо прокручивать до конца, чтобы листать).{% endcomment %}
+  {% if s.page %}
+  <div class="flex flex-wrap items-center justify-between gap-x-4" data-pager-top>
+    {% list_pager s.page %}
+    <nav class="flex items-center gap-1 text-sm text-gray-600" aria-label="{% trans 'Einträge pro Seite' %}" data-per-page>
+      <span class="mr-1">{% trans "Pro Seite:" %}</span>
+      {% for n in per_page_options %}
+        {% if n == per_page %}<span class="rounded-full bg-gray-900 text-white px-2.5 py-1" aria-current="true">{{ n }}</span>{% else %}<a href="{% query_with 'pro_seite' n %}" class="rounded-full bg-white shadow-sm px-2.5 py-1 hover:bg-gray-50">{{ n }}</a>{% endif %}
+      {% endfor %}
+    </nav>
+  </div>
+  {% endif %}
   {% if sortiment_view == "liste" %}
     {% include "tenant/_sellable_manage_liste.html" with s=s %}
   {% else %}

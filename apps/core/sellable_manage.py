@@ -218,6 +218,7 @@ def sellable_manage_sections_for(
     active: str = "",
     kind_only: str = "",
     page_raw: str | None = None,
+    per_page: int | None = None,
 ) -> list[dict]:
     """Секции обзора: по одному активному sellable-kind С ХОТЯ БЫ одной сущностью
     (пустые не шумят — их «＋ Neu» есть в `add_options`). Порядок — MANAGE_KINDS.
@@ -275,7 +276,9 @@ def sellable_manage_sections_for(
         if page_raw is not None:
             from apps.core.pagination import paginate_queryset
 
-            page = paginate_queryset(qs, page_raw=page_raw)
+            page = paginate_queryset(
+                qs, page_raw=page_raw, **({"per_page": per_page} if per_page else {})
+            )
             rows = page.items
         else:
             rows = list(qs[:limit])

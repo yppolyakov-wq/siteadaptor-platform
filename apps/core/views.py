@@ -5869,6 +5869,7 @@ def status_manager_save(request, kind):
 
 #: KA-P4a: позиций одного вида в обзоре Sortiment; дальше — «Alle N anzeigen».
 SORTIMENT_OVERVIEW_LIMIT = 50
+SORTIMENT_PAGE_SIZES = (20, 50, 100)  # M21.5: «20 / 50 / 100 pro Seite»
 
 
 def _pop_sellable_undo(request, sm):
@@ -5914,6 +5915,15 @@ def sellable_manage(request):
     kind_only = request.GET.get("art") or ""
     if kind_only not in sm.MANAGE_KINDS:
         kind_only = ""
+    # M21.5: размер страницы списка — 20/50/100 (по умолчанию 50, как у всех списков).
+    from apps.core.pagination import CABINET_PAGE_SIZE
+
+    try:
+        per_page = int(request.GET.get("pro_seite") or 0)
+    except ValueError:
+        per_page = 0
+    if per_page not in SORTIMENT_PAGE_SIZES:
+        per_page = CABINET_PAGE_SIZE
     # SR-1: вид Kacheln ↔ Liste — явный GET сильнее сохранённого (паттерн
     # sales_page.resolve_view), персист — POST-сеттер `sortiment-view`.
     requested = request.GET.get("ansicht") or ""
@@ -5955,11 +5965,12 @@ def sellable_manage(request):
         sortiment_fields,
         search_value=q,
         search_label=_("Suche im Sortiment…"),
-        keep=("art", "ansicht"),
-        exclude=("art", "ansicht"),
+        keep=("art", "ansicht", "pro_seite"),
+        exclude=("art", "ansicht", "pro_seite"),
         force=(
             ("art", kind_only),
             ("ansicht", requested if requested in ("kacheln", "liste") else ""),
+            ("pro_seite", str(per_page) if per_page != CABINET_PAGE_SIZE else ""),
         ),
     )
     return render(
@@ -5985,8 +5996,11 @@ def sellable_manage(request):
                 active=active,
                 limit=SORTIMENT_OVERVIEW_LIMIT,
                 kind_only=kind_only,
-                page_raw=(request.GET.get("seite") or "1") if kind_only else None,
+                page_raw=(request.GET.get("seite") or "1") if (kind_only or category) else None,
+                per_page=per_page,
             ),
+            "per_page": per_page,
+            "per_page_options": SORTIMENT_PAGE_SIZES,
             "kind_only": kind_only,
             "sortiment_lf": sortiment_lf,
             "add_options": sm.add_options(tenant),
@@ -5998,6 +6012,7 @@ def sellable_manage(request):
             "promotions_active": tenant.is_module_active("promotions"),
             # KA-12 WR-6: массовая правка цен и выгрузка — по праву (сервер проверяет сам).
             "can_edit_prices": _perm_chrome(request.user, "preise.edit"),
+            "can_delete_products": _perm_chrome(request.user, "sortiment.delete"),
             "can_export_products": _perm_chrome(request.user, "lager.export"),
             # ST-5a: карточный грид.
             # Во вьюхе (не processor) — как dashboard: работает и на public-схеме.

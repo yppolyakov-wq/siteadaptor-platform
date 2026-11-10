@@ -1224,3 +1224,26 @@ try { (function () {
       });
   });
 })(); } catch (e) { console.error(e); }
+// ---- tenant/_sellable_manage_liste.html (M21.5: «alle angezeigten auswählen») ----
+try { (function () {
+  // Ставит/снимает галочки только у строк ЭТОЙ таблицы (показанная страница),
+  // не у всего каталога; ручное снятие строки возвращает шапку в «частично».
+  document.addEventListener("change", function (e) {
+    var t = e.target;
+    var box = t.closest && t.closest(".ui-card");
+    if (!box) return;
+    var rows = box.querySelectorAll('input[type=checkbox][name="ids"]');
+    var head = box.querySelector("input[data-check-all]");
+    if (!head) return;
+    if (t === head) {
+      rows.forEach(function (r) { r.checked = head.checked; });
+      head.indeterminate = false;
+      return;
+    }
+    if (t.name !== "ids") return;
+    var on = 0;
+    rows.forEach(function (r) { if (r.checked) on += 1; });
+    head.checked = on === rows.length && on > 0;
+    head.indeterminate = on > 0 && on < rows.length;
+  });
+})(); } catch (e) { console.error(e); }

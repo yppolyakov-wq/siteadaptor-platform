@@ -1090,10 +1090,21 @@ def read_export_codes(text: str) -> set:
     import csv
     import io
 
+    csv.field_size_limit(8 * 1024 * 1024)  # описания товаров в полной выгрузке длинные
     reader = csv.reader(io.StringIO(text.lstrip("\ufeff")), delimiter=";")
-    header = next(reader, [])
-    col = next((i for i, h in enumerate(header) if h.strip().lower() == "product code"), 0)
-    return {row[col].strip() for row in reader if len(row) > col and row[col].strip()}
+    header = [h.strip().lower() for h in next(reader, [])]
+    col = header.index("product code") if "product code" in header else 0
+    # полная выгрузка несёт «Status»: D (выключен в магазине) на сайте и не был —
+    # такие коды «недостающими» не считаем
+    status = header.index("status") if "status" in header else None
+    out = set()
+    for row in reader:
+        if len(row) <= col or not row[col].strip():
+            continue
+        if status is not None and len(row) > status and row[status].strip().upper() == "D":
+            continue
+        out.add(row[col].strip())
+    return out
 
 
 def missing_codes(codes: set) -> list:

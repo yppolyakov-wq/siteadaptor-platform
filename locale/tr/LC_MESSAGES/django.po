@@ -36653,3 +36653,16 @@ msgstr "Ürün sayfaları"
 
 msgid "Logo-Größe"
 msgstr "Logo boyutu"
+
+#, python-format
+msgid "%(n)s Produkte gelöscht."
+msgstr "%(n)s ürün silindi."
+
+msgid "Alle angezeigten auswählen"
+msgstr "Gösterilenlerin tümünü seç"
+
+msgid "Pro Seite:"
+msgstr "Sayfa başına:"
+
+msgid "Einträge pro Seite"
+msgstr "Sayfa başına kayıt"

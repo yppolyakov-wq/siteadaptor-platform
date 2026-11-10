@@ -15,6 +15,7 @@ urlpatterns = [
         name="products-bulk-visibility",
     ),
     path("products/bulk/price/", views.products_bulk_price, name="products-bulk-price"),
+    path("products/bulk/delete/", views.products_bulk_delete, name="products-bulk-delete"),
     path("products/export.csv", views.products_export_csv, name="products-export-csv"),
     path("products/new/", views.product_create, name="product-create"),
     path("products/<uuid:pk>/edit/", views.product_edit, name="product-edit"),

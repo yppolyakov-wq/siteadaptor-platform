@@ -5,7 +5,7 @@
 
 {% block structured_data %}{% if ld_itemlist %}<script type="application/ld+json">{{ ld_itemlist|safe }}</script>{% endif %}{% endblock %}
 
-{% block main_width %}max-w-screen-2xl{% endblock %}{% block main_attrs %} data-wide{% endblock %}
+{% block main_width %}max-w-none{% endblock %}{% block main_attrs %} data-wide{% endblock %}
 {% block content %}
 {% include "aggregator/_demo_notice.html" %}
 <div class="mb-6">

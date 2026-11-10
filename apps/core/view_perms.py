@@ -268,6 +268,7 @@ RULES: dict[str, Rule] = {
     "catalog:products-merge": _r(S, SE),
     "catalog:products-bulk-visibility": _r(S, SE),
     "catalog:products-bulk-price": _r(S, "preise.edit"),
+    "catalog:products-bulk-delete": _r(S, "sortiment.delete"),
     "catalog:products-export-csv": _r("lager.export"),
     "catalog:variant-add": _r(S, SE),
     "catalog:variant-generate": _r(S, SE),

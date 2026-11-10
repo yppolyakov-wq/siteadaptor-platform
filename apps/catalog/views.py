@@ -1411,6 +1411,33 @@ def _is_uuid_str(value) -> bool:
     return True
 
 
+def _bulk_back(request):
+    """M21.5: вернуть на ту же страницу списка (фильтры, страница, размер страницы)."""
+    from django.urls import reverse
+
+    from apps.core.owner_login import safe_next
+
+    return redirect(safe_next(request, request.POST.get("next", ""), reverse("sellable-manage")))
+
+
+@login_required
+@require_POST
+def products_bulk_delete(request):
+    """M21.5: удалить выбранные товары — тем же soft-delete, что одиночное «Löschen»
+    (история заказов цела; право — как у одиночного удаления, `sortiment.delete`)."""
+    from django.db import transaction
+
+    products = _bulk_products(request)
+    if not products:
+        messages.error(request, _("Bitte zuerst Produkte auswählen."))
+        return _bulk_back(request)
+    with transaction.atomic():
+        for product in products:
+            product.delete()
+    messages.success(request, _("%(n)s Produkte gelöscht.") % {"n": len(products)})
+    return _bulk_back(request)
+
+
 @login_required
 @require_POST
 def products_bulk_visibility(request):
@@ -1432,7 +1459,7 @@ def products_bulk_visibility(request):
                 toggle_visibility("product", product.pk, visible)
                 changed += 1
     messages.success(request, _("%(n)s Produkte aktualisiert.") % {"n": changed})
-    return redirect("sellable-manage")
+    return _bulk_back(request)
 
 
 @login_required
@@ -1447,20 +1474,20 @@ def products_bulk_price(request):
     products = _bulk_products(request)
     if not products or amount is None or mode not in bulk_price.MODES:
         messages.error(request, _("Bitte Produkte auswählen und einen Betrag angeben."))
-        return redirect("sellable-manage")
+        return _bulk_back(request)
     if mode == "pct" and not bulk_price.PCT_MIN <= amount <= bulk_price.PCT_MAX:
         messages.error(request, _("Prozent zwischen −90 und 500."))
-        return redirect("sellable-manage")
+        return _bulk_back(request)
     # ревью WR-6: «1e30» → InvalidOperation/overflow; одна проверка с помощником (A-4d)
     if not bulk_price.valid(mode, amount):
         messages.error(request, _("Bitte Produkte auswählen und einen Betrag angeben."))
-        return redirect("sellable-manage")
+        return _bulk_back(request)
     from django.db import transaction
 
     with transaction.atomic():
         changed = _apply_bulk_price(products, mode, amount)
     messages.success(request, _("%(n)s Preise geändert.") % {"n": changed})
-    return redirect("sellable-manage")
+    return _bulk_back(request)
 
 
 def _apply_bulk_price(products, mode, amount) -> int:

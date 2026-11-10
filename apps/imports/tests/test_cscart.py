@@ -695,3 +695,5 @@ def test_export_codes_report_missing():
     p = Product.objects.create(name={"de": "Assam"}, base_price="7.00", sku="HT1")
     ProductVariant.objects.create(product=p, label="100 g", price="7.00", sku="HT1.1")
     assert cscart.missing_codes(codes) == ["HT2"]
+    full = cscart.read_export_codes('Product code;Status;Price\n"HT3";"A";"1"\n"HT4";"D";"1"\n')
+    assert full == {"HT3"}  # выключенный в старом магазине — не «недостающий»
