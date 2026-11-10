@@ -53,6 +53,13 @@ contenteditable и синкает HTML обратно (на вводе и на s
       out.appendChild(el);
     });
   }
+  // Без разметки — обычный текст (иначе «Tom & Jerry» ушло бы как «&amp;»); пустой
+  // редактор («<br>») — пустая строка (перевод падает на базу).
+  function value(area) {
+    if (!area.textContent.trim() && !area.querySelector("img")) return "";
+    var html = area.innerHTML;
+    return RICH_RE.test(html) ? html : area.textContent;
+  }
   function fill(area, v, page) {
     area.textContent = "";
     if (!RICH_RE.test(v)) {
@@ -127,7 +134,7 @@ contenteditable и синкает HTML обратно (на вводе и на s
       });
       bar.appendChild(b);
     });
-    function sync() { ta.value = area.innerHTML; }
+    function sync() { ta.value = value(area); }
     area.addEventListener("input", sync);
     ta.classList.add("hidden");
     ta.insertAdjacentElement("afterend", wrap);
@@ -141,7 +148,7 @@ contenteditable и синкает HTML обратно (на вводе и на s
           // каждая textarea синкается своим редактором на input; страховка —
           // финальный проход по соседним .rte-area
           var a = t.nextElementSibling && t.nextElementSibling.querySelector(".rte-area");
-          if (a) t.value = a.innerHTML;
+          if (a) t.value = value(a);
         });
       });
     }

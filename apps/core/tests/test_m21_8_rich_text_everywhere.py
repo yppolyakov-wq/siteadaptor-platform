@@ -131,3 +131,16 @@ def test_editor_never_puts_stored_value_raw_into_innerhtml():
     js = (ROOT / "templates/catalog/_richtext_editor.html").read_text()
     assert "DOMParser" in js and "function safeCopy" in js
     assert not re.search(r"area\.innerHTML\s*=\s*(v|ta\.value)", js)
+
+
+def test_empty_text_keeps_canvas_anchor_only_with_edit_attrs():
+    attrs = 'edit_model="event" edit_pk=7 edit_field="description"'
+    out = _render("{% rich_block t " + attrs + " %}", t="")
+    assert 'data-edit-field="description"' in out and out.endswith("></div>")
+    assert _render("{% rich_block t %}", t="") == ""
+
+
+def test_editor_saves_plain_text_as_text_and_empty_as_empty():
+    js = (ROOT / "templates/catalog/_richtext_editor.html").read_text()
+    assert "function value(area)" in js and "area.textContent" in js
+    assert "ta.value = value(area)" in js

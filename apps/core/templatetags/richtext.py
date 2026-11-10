@@ -35,6 +35,15 @@ def rich_block(text, css="", edit_model="", edit_pk="", edit_field="", mode=""):
     инлайн-правка пишет текст и снесла бы форматирование — его правят в форме."""
     text = text or ""
     if not str(text).strip():
+        # Пустое поле с правкой на канве: якорь остаётся (дописать описание инлайн).
+        if edit_model and edit_field:
+            return format_html(
+                '<div class="{}" data-edit-model="{}" data-edit-pk="{}" data-edit-field="{}"></div>',
+                f"{css} whitespace-pre-line".strip(),
+                edit_model,
+                edit_pk,
+                edit_field,
+            )
         return ""
     if richtext.is_rich(text):
         return format_html(
