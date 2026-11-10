@@ -223,6 +223,8 @@ def test_sidebar_children_composition():
         # FB-25 (осознанное дополнение): схема блоков страниц рядом с шаблонами
         "site-schema",
         "site-seo",
+        # M21.6 (осознанное дополнение): свои страницы сайта — перед переадресациями
+        "content-pages",
         "site-redirects",
         "domains",
         "media-library",

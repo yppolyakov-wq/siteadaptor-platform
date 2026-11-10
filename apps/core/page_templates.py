@@ -145,13 +145,30 @@ def _object_path(type_code: str) -> str:
 
         obj = _first(Collection.objects.filter(is_active=True).exclude(images=[]).order_by("pk"))
         return reverse("storefront-lookbook", args=[obj.slug]) if obj and obj.slug else ""
+    if type_code == "content_page":
+        from apps.core import content_pages
+        from apps.core.models import ContentPage
+
+        # M21.6: системные slug'и показываются на своей странице — превью их не берёт.
+        obj = _first(
+            ContentPage.objects.filter(is_published=True)
+            .exclude(slug__in=list(content_pages.SYSTEM_PAGES))
+            .order_by("sort_order", "pk")
+        )
+        return reverse("storefront-content-page", args=[obj.slug]) if obj else ""
     return ""
 
 
 def _preview_path(type_code: str) -> str:
     """Storefront page that shows this type; "" when there is nothing to show yet."""
     page = studio_pages.page_type(type_code)
-    if page.object_kind or type_code in ("category", "product", "promo_group", "lookbook"):
+    if page.object_kind or type_code in (
+        "category",
+        "product",
+        "promo_group",
+        "lookbook",
+        "content_page",
+    ):
         return _object_path(type_code)
     for name in page.url_names:
         try:

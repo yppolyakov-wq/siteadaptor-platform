@@ -267,6 +267,7 @@ def test_every_type_has_a_preview_strategy():
             "event",
             "blog_post",
             "lookbook",
+            "content_page",  # M21.6: своя страница — по slug
         }, page.code
 
 

@@ -183,6 +183,8 @@ def test_menu_builder_and_studio_share_one_target_source():
         "events",
         "tours",
         "promotions",
+        # M21.6 (осознанно): свои страницы сайта
+        "content_pages",
     }
     from apps.core import views as core_views
 
