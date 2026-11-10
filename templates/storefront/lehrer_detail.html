@@ -1,5 +1,5 @@
 {% extends "storefront/_base.html" %}
-{% load i18n %}
+{% load i18n richtext %}
 {% block title %}{{ teacher.name }} — {{ request.tenant.name }}{% endblock %}
 
 {% block content %}
@@ -16,7 +16,7 @@
       </div>
     </div>
   </div>
-  {% if teacher.bio %}<p class="text-gray-700 whitespace-pre-line mb-6">{{ teacher.bio_localized }}</p>{% endif %}
+  {% if teacher.bio %}{% rich_block teacher.bio_localized css="text-gray-700 mb-6" %}{% endif %}
 
   {% if tours %}
     {% comment %}MT-D4: поездки, которые ведёт этот гид.{% endcomment %}

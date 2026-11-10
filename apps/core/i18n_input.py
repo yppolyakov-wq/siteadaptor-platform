@@ -11,6 +11,8 @@
 from django.conf import settings
 from django.utils.text import format_lazy
 
+from apps.core.richtext import clean_input
+
 
 def extra_locales(tenant) -> list[str]:
     """Локали доп. инпутов формы: активные локали тенанта минус базовая.
@@ -22,6 +24,10 @@ def extra_locales(tenant) -> list[str]:
         return [loc for loc in tenant.active_locales if loc != base]
     except Exception:  # noqa: BLE001 — ввод переводов не должен ломать CRUD
         return []
+
+
+#: M21.8: overlay-поля длинного текста (визуальный редактор) — санитайз при записи.
+RICH_OVERLAY_FIELDS = frozenset({"description", "bio", "house_rules", "body"})
 
 
 def apply_i18n_overlay(obj, post, tenant, fields=("name", "description")) -> list[str]:
@@ -44,6 +50,8 @@ def apply_i18n_overlay(obj, post, tenant, fields=("name", "description")) -> lis
                 continue
             touched = True
             val = val.strip()
+            if f in RICH_OVERLAY_FIELDS:  # M21.8: длинный текст с визуального редактора
+                val = clean_input(val)
             if val:
                 overlay[loc] = val
             else:
@@ -173,7 +181,10 @@ class DynamicI18nFormMixin:
                         ),
                         max_length=opts.get("max_length"),
                         required=False,
-                        widget=dj_forms.Textarea(attrs={"rows": 3})
+                        # M21.8: «rich» — визуальный редактор и у переводов (data-rte).
+                        widget=dj_forms.Textarea(
+                            attrs={"rows": 3, **({"data-rte": "text"} if opts.get("rich") else {})}
+                        )
                         if opts.get("textarea")
                         else None,
                     )
@@ -183,7 +194,10 @@ class DynamicI18nFormMixin:
                         self.fields[fname].initial = src.get(loc, "")
 
     def collect_i18n(self, f) -> dict:
-        return {loc: (self.cleaned_data.get(f"{f}_{loc}") or "") for loc in self._i18n_locales}
+        return {
+            loc: clean_input(self.cleaned_data.get(f"{f}_{loc}") or "")
+            for loc in self._i18n_locales
+        }
 
 
 class OverlayI18nFormMixin:
@@ -250,6 +264,11 @@ class OverlayI18nFormMixin:
         self.fields = ordered
 
     def _post_clean(self):
+        # M21.8: поля с визуальным редактором (виджет data-rte) — санитайз ДО записи в
+        # instance (и база, и переводы).
+        for key, field in self.fields.items():
+            if "data-rte" in getattr(field.widget, "attrs", {}) and key in self.cleaned_data:
+                self.cleaned_data[key] = clean_input(self.cleaned_data[key])
         super()._post_clean()
         if not self.is_bound or not getattr(self, "_overlay_locales", None):
             return

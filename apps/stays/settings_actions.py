@@ -19,6 +19,7 @@ from django.urls import reverse
 from django.utils.translation import gettext as _
 
 from apps.core.i18n_input import apply_i18n_overlay
+from apps.core.richtext import clean_input
 
 from .form_input import _eur_to_cents, _int, _parse_hour, _rateplan_pk, _rateplan_scope
 from .models import RatePlan, StaySettings
@@ -117,7 +118,7 @@ def house_rules(request) -> None:
         messages.error(request, _("Die Hausordnung dürfen Sie nicht ändern."))
         return
     settings_obj = StaySettings.load()
-    settings_obj.house_rules = request.POST.get("house_rules", "").strip()[:8000]
+    settings_obj.house_rules = clean_input(request.POST.get("house_rules", "").strip()[:8000])
     fields = ["house_rules", "updated_at"]
     # E9.10: переводы Hausordnung — в той же форме (выпадашка у заголовка).
     fields += apply_i18n_overlay(

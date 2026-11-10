@@ -10,6 +10,8 @@ import json
 
 from django.core.serializers.json import DjangoJSONEncoder
 
+from apps.core import richtext
+
 # business_type тенанта → более конкретный тип schema.org (точнее LocalBusiness)
 _SCHEMA_TYPES = {
     "bakery": "Bakery",
@@ -172,7 +174,7 @@ def offer_ld(promo, *, url: str, image_url: str = "") -> str:
         "url": url,
     }
     if promo.description_text:
-        data["description"] = promo.description_text
+        data["description"] = richtext.to_plain(promo.description_text)  # M21.8
     if image_url:
         data["image"] = image_url
     # SF-1.4: mystery прячет цену до раскрытия — Offer с точной ценой в исходнике

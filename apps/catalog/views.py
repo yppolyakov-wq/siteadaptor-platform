@@ -18,6 +18,7 @@ from django.views.decorators.http import require_POST
 from apps.core import card_forms, freshness, vat
 from apps.core.archetypes import FOOD_BUSINESS_TYPES as _FOOD_BUSINESS_TYPES
 from apps.core.i18n_input import apply_i18n_overlay, extra_locales, i18n_inputs_for
+from apps.core.richtext import clean_input
 from apps.inventory.services import log_catalog_change
 
 from . import category_styles, writers
@@ -1185,7 +1186,7 @@ def combo_create(request):
         else:
             combo = Combo(
                 name=name,
-                description=(request.POST.get("description") or "").strip(),
+                description=clean_input((request.POST.get("description") or "").strip()),
                 price=price,
                 sort_order=_parse_int(request.POST.get("sort")) or 0,
                 is_active=bool(request.POST.get("is_active")),
@@ -1217,7 +1218,7 @@ def combo_edit(request, pk):
         price = _parse_price(request.POST.get("price"))
         if price is not None:
             combo.price = price
-        combo.description = (request.POST.get("description") or "").strip()
+        combo.description = clean_input((request.POST.get("description") or "").strip())
         combo.sort_order = _parse_int(request.POST.get("sort")) or 0
         combo.is_active = bool(request.POST.get("is_active"))
         # VAT-2: чужое значение оставляет прежнюю ставку (защита от подмены).

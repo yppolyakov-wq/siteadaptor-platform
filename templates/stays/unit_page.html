@@ -64,7 +64,7 @@ CSS. Фото, сезоны, блокировки, комнаты, iCal — св
     <div class="sm:col-span-3">
       <div data-i18n-loc="{{ base_loc }}" lang="{{ base_loc }}">
         <label class="block"><span class="block text-xs font-medium text-gray-500 mb-1">{% trans "Description" %}</span>
-        <textarea name="description" rows="3" class="ui-input" placeholder="{% trans 'Beschreibung des Zimmers (Ausstattung, Aussicht …)' %}">{{ u.description }}</textarea></label>
+        <textarea name="description" rows="3" class="ui-input" data-rte placeholder="{% trans 'Beschreibung des Zimmers (Ausstattung, Aussicht …)' %}">{{ u.description }}</textarea></label>
       </div>
       {# E9.10: переводы — группой на язык; видна выбранная в выпадашке у заголовка. #}
       {% regroup u.i18n_inputs by locale as by_loc %}
@@ -72,7 +72,7 @@ CSS. Фото, сезоны, блокировки, комнаты, iCal — св
       <div data-i18n-loc="{{ grp.grouper }}" lang="{{ grp.grouper }}" class="hidden space-y-2">
         {% for inp in grp.list %}
           <label class="block"><span class="block text-xs font-medium text-gray-500 mb-1">{% if inp.field == 'name' %}{% trans "Name" %}{% else %}{% trans "Description" %}{% endif %} ({{ inp.locale|upper }})</span>
-          {% if inp.field == 'name' %}<input name="{{ inp.input_name }}" type="text" value="{{ inp.value }}" class="ui-input">{% else %}<textarea name="{{ inp.input_name }}" rows="3" class="ui-input">{{ inp.value }}</textarea>{% endif %}</label>
+          {% if inp.field == 'name' %}<input name="{{ inp.input_name }}" type="text" value="{{ inp.value }}" class="ui-input">{% else %}<textarea name="{{ inp.input_name }}" rows="3" class="ui-input" data-rte>{{ inp.value }}</textarea>{% endif %}</label>
         {% endfor %}
       </div>
       {% endfor %}
@@ -306,4 +306,5 @@ CSS. Фото, сезоны, блокировки, комнаты, iCal — св
 {% include "core/_object_preview.html" with kind="stay" obj=u url=unit_url %}
 </div>
 </div>
+{% include "catalog/_richtext_editor.html" %}
 {% endblock %}

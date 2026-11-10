@@ -23,6 +23,49 @@ contenteditable и синкает HTML обратно (на вводе и на s
   "use strict";
   if (window.__rteBound) return;
   window.__rteBound = true;
+  var RICH_RE = /<\/?(?:p|br|b|strong|i|em|u|ul|ol|li|a|h[234]|div|img|figure|blockquote)(?=[\s\/>])/i;
+  var TAGS = { P: 1, BR: 1, B: 1, STRONG: 1, I: 1, EM: 1, U: 1, UL: 1, OL: 1, LI: 1, A: 1 };
+  var PAGE_TAGS = { H2: 1, H3: 1, H4: 1, DIV: 1, IMG: 1, FIGURE: 1, BLOCKQUOTE: 1 };
+  function safeCopy(node, page, out) {
+    node.childNodes.forEach(function (ch) {
+      if (ch.nodeType === 3) { out.appendChild(document.createTextNode(ch.nodeValue)); return; }
+      if (ch.nodeType !== 1) return;
+      var tag = ch.tagName;
+      if (!TAGS[tag] && !(page && PAGE_TAGS[tag])) {
+        if (tag !== "SCRIPT" && tag !== "STYLE") safeCopy(ch, page, out);  // текст оставляем
+        return;
+      }
+      var el = document.createElement(tag);
+      if (tag === "A") {
+        var href = ch.getAttribute("href") || "";
+        if (/^(https?:|mailto:|tel:)/i.test(href)) el.setAttribute("href", href);
+      } else if (tag === "IMG") {
+        var src = ch.getAttribute("src") || "";
+        if (!/^\/media\//.test(src) || /\.\.|\\|%2f|%5c/i.test(src)) return;
+        el.setAttribute("src", src);
+        el.setAttribute("alt", ch.getAttribute("alt") || "");
+      }
+      var cls = (ch.getAttribute("class") || "").split(/\s+/).filter(function (c) {
+        return /^sf-(?:grid|center|col-(?:[1-9]|1[0-6]))$/.test(c);
+      });
+      if (page && cls.length) el.setAttribute("class", cls.join(" "));
+      safeCopy(ch, page, el);
+      out.appendChild(el);
+    });
+  }
+  function fill(area, v, page) {
+    area.textContent = "";
+    if (!RICH_RE.test(v)) {
+      v.split("\n").forEach(function (line, i) {
+        if (i) area.appendChild(document.createElement("br"));
+        area.appendChild(document.createTextNode(line));
+      });
+      return;
+    }
+    // DOMParser — инертный документ: скрипты и on*-обработчики там не исполняются.
+    var doc = new DOMParser().parseFromString("<body>" + v + "</body>", "text/html");
+    safeCopy(doc.body, page, area);
+  }
   function enhance(ta) {
     if (ta.dataset.rteDone) return;
     ta.dataset.rteDone = "1";
@@ -55,9 +98,9 @@ contenteditable и синкает HTML обратно (на вводе и на s
       if (lab) area.setAttribute("aria-label", lab.textContent.trim());
     }
     if (ta.dataset.rte === "page") area.setAttribute("data-rte-page", "");
-    var v = ta.value || "";
-    // плоский легаси-текст: переносы становятся <br>, HTML идёт как есть
-    area.innerHTML = v.indexOf("<") === -1 ? v.replace(/\n/g, "<br>") : v;
+    // M21.8 (security-review): значение textarea в innerHTML — только через белый
+    // список (как санитайзер сервера). Плоский текст — текстом, переносы → <br>.
+    fill(area, ta.value || "", ta.dataset.rte === "page");
     CMDS.forEach(function (c) {
       var b = document.createElement("button");
       b.type = "button";
@@ -105,7 +148,8 @@ contenteditable и синкает HTML обратно (на вводе и на s
   }
   function init() {
     document
-      .querySelectorAll('[data-richtext-scope] textarea[name^="description"], [data-richtext-scope] textarea[data-rte]')
+      // M21.8: любое поле с data-rte (описания, правовые тексты, блог …) в любом кабинете.
+      .querySelectorAll('[data-richtext-scope] textarea[name^="description"], textarea[data-rte]')
       .forEach(enhance);
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);

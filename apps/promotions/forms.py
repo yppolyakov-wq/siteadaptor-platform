@@ -37,11 +37,13 @@ class PromotionForm(DynamicI18nFormMixin, forms.ModelForm):
     # L3d.5: база (de) статическая, прочие локали — динамически (см. i18n_input).
     title_de = forms.CharField(label=_("Title (DE)"), max_length=200)
     description_de = forms.CharField(
-        label=_("Description (DE)"), widget=forms.Textarea(attrs={"rows": 3}), required=False
+        label=_("Description (DE)"),
+        widget=forms.Textarea(attrs={"rows": 3, "data-rte": "text"}),
+        required=False,
     )
     i18n_fields = (
         ("title", {"label": _("Titel"), "max_length": 200}),
-        ("description", {"label": _("Beschreibung"), "textarea": True}),
+        ("description", {"label": _("Beschreibung"), "textarea": True, "rich": True}),
     )
     starts_at = _DateTimeLocal(label=_("Starts at"))
     ends_at = _DateTimeLocal(label=_("Ends at"))

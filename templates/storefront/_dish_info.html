@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load i18n richtext %}
 {% comment %}MEN-3: попап блюда из состава набора (fetch → #quick-modal, как
 _quick_add). Read-only: крупное фото + описание + диеты/аллергены/Zusatzstoffe.
 Ожидает product.
@@ -37,7 +37,7 @@ MEN-17 (фидбэк владельца «сделай окно просмотр
       <div class="p-5 sm:flex-1">
         <h3 class="font-bold text-xl leading-tight pr-8">{{ product }}</h3>
         {% if product.diet_badges %}<p class="mt-1.5 text-sm text-gray-600">{% for d in product.diet_badges %}<span class="mr-2" title="{{ d.label }}">{{ d.icon }} {{ d.label }}</span>{% endfor %}</p>{% endif %}
-        {% if product.description_text %}<p class="mt-2 text-sm text-gray-600 whitespace-pre-line">{{ product.description_text }}</p>{% endif %}
+        {% rich_block product.description_text css="mt-2 text-sm text-gray-600" %}
         {% if product.allergen_labels %}<p class="mt-3 text-xs text-gray-400"><span class="font-medium">{% trans "Allergens" %}:</span> {{ product.allergen_labels|join:", " }}</p>{% endif %}
         {% if product.additive_labels %}<p class="mt-1 text-xs text-gray-400">{{ product.additive_labels|join:", " }}</p>{% endif %}
       </div>

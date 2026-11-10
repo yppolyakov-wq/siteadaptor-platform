@@ -1,5 +1,5 @@
 {% extends "storefront/listing.html" %}
-{% load i18n siteui %}
+{% load i18n siteui richtext %}
 {% comment %}O-9: у направления и полки — своё имя во вкладке и в выдаче поиска.
 Раньше все страницы каталога звались одинаково («Unsere Produkte»): десять
 открытых вкладок были неразличимы, а поисковик видел дубли.{% endcomment %}
@@ -35,7 +35,7 @@
   {# «Категории с описанием»: описание выбранной категории (правится в кабинете: Catalog → Categories). #}
   {% comment %}KAT-1: у шаблонов kopfbild/sets описание живёт в hero-шапке ниже —
   плоский абзац не дублируем (Standard "" — прежний вид байт-в-байт).{% endcomment %}
-  {% if category_description and not show_category_header %}<p class="mt-2 text-gray-700 whitespace-pre-line max-w-2xl">{{ category_description }}</p>{% endif %}
+  {% if not show_category_header %}{% rich_block category_description css="mt-2 text-gray-700 max-w-2xl" %}{% endif %}
   {% comment %}Фидбэк 2026-08-07 («откуда-то взялось комбо-меню»): карточки
   наборов стояли ПЕРВЫМ блоком каталога, раньше категорий и товаров. Наверху
   остаётся компактная ссылка, а сами карточки — под сеткой товаров.{% endcomment %}

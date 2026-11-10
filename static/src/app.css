@@ -1869,3 +1869,16 @@ html:has(dialog.ui-drawer[open]) { overflow: hidden; }
   box-shadow: 0 0 0 4px #fff;
 }
 
+
+/* M21.8: текст с визуального редактора (описания, правовые тексты, блог) — один стиль
+   везде; раньше жил inline-блоком в описании товара. */
+.rich-text ul { list-style: disc; padding-left: 1.25rem; margin: .5rem 0; }
+.rich-text ol { list-style: decimal; padding-left: 1.25rem; margin: .5rem 0; }
+.rich-text p { margin: .5rem 0; }
+.rich-text p:first-child { margin-top: 0; }
+.rich-text a { text-decoration: underline; }
+.rich-text h2 { font-size: 1.25rem; font-weight: 700; margin: 1.25rem 0 .5rem; }
+.rich-text h3 { font-size: 1.05rem; font-weight: 600; margin: 1rem 0 .4rem; }
+.rich-text h4 { font-weight: 600; margin: .75rem 0 .3rem; }
+.rich-text blockquote { border-left: 4px solid var(--accent, #6366f1); padding-left: 1rem; }
+.rich-text img { display: inline-block; max-width: 100%; height: auto; vertical-align: top; }

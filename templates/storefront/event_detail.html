@@ -1,5 +1,5 @@
 {% extends "storefront/detail.html" %}
-{% load i18n siteui attribution %}
+{% load i18n siteui attribution richtext %}
 {% block title %}{{ event.title_text }} — {{ request.tenant.name }}{% endblock %}
 
 {% block detail_back %}{% funnel_steps "event" 2 %}<a href="{% url 'storefront-events' %}" class="text-sm text-gray-500 hover:underline">← {% trans "All events" %}</a>{% endblock %}
@@ -41,7 +41,7 @@
 
 {% block detail_body %}{% with L=event.landing %}
   {# H1.2: всегда рендерим (с маркером) — описание правится инлайн на канве, даже пустое. #}
-  <p class="text-gray-700 whitespace-pre-line mt-8" data-edit-model="event" data-edit-pk="{{ event.pk }}" data-edit-field="description">{{ event.description_text }}</p>
+  {% rich_block event.description_text css="text-gray-700 mt-8" edit_model="event" edit_pk=event.pk edit_field="description" %}
 
   {% comment %}2.–13c. Тематические секции — порядок/видимость из event_detail_order
   (M20U-4). SE-2b-2: обёртка data-sf-section — клик на канве открывает инспектор

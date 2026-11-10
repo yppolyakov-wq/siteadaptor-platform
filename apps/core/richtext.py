@@ -40,6 +40,12 @@ def sanitize(html: str) -> str:
     ).strip()
 
 
+_RICH_TAG_RE = re.compile(
+    r"</?(?:p|br|b|strong|i|em|u|ul|ol|li|a|h[234]|div|img|figure|blockquote)(?=[\s/>])",
+    re.I,
+)
+
+
 def is_rich(text: str) -> bool:
     """Есть ли в тексте разметка нашего allowlist (для выбора режима рендера).
 
@@ -49,8 +55,8 @@ def is_rich(text: str) -> bool:
     """
     if not isinstance(text, str):
         return False
-    lowered = text.lower()
-    return any(f"<{t}" in lowered for t in ALLOWED_TAGS)
+    # M21.8: граница тега обязательна — «<info@shop.de>» в Impressum не тег <i>.
+    return bool(_RICH_TAG_RE.search(text))
 
 
 # M21.6: свои страницы сайта — то же правило, что у описаний, плюс заголовки, цитата и
@@ -115,7 +121,6 @@ def sanitize_page(html: str) -> str:
     ).strip()
 
 
-_TAG_RE = re.compile(r"</?[a-zA-Z][^>]*>")
 _BLOCK_END_RE = re.compile(r"(?i)<br\s*/?>|</(p|li|h[1-6]|div|blockquote)>")
 
 
@@ -127,7 +132,18 @@ def to_plain(text) -> str:
     from django.utils.html import strip_tags
 
     raw = str(text or "")
-    if _TAG_RE.search(raw):
+    if is_rich(raw):
         raw = html_lib.unescape(strip_tags(_BLOCK_END_RE.sub("\n", raw)))
     lines = [" ".join(line.split()) for line in raw.replace("\r", "").split("\n")]
     return re.sub(r"\n{3,}", "\n\n", "\n".join(lines)).strip()
+
+
+def clean_input(value):
+    """Ввод с визуального редактора перед записью: HTML → санитайз (второй рубеж — на
+    рендере); плоский текст не трогаем (переносы строк целы)."""
+    return sanitize(value) if isinstance(value, str) and is_rich(value) else value
+
+
+def clean_page_input(value):
+    """То же для своих страниц и правовых текстов (правила ``sanitize_page``)."""
+    return sanitize_page(value) if isinstance(value, str) and is_rich(value) else value

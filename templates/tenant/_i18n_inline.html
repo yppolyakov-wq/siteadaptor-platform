@@ -8,7 +8,7 @@
 <div data-i18n-loc="{{ grp.grouper }}" class="hidden {{ wrap_class|default:'space-y-2' }}">
   {% for inp in grp.list %}
   <label class="block {{ field_class }}"><span class="block text-xs font-medium text-gray-500 mb-1">{{ inp.label }} ({{ inp.locale|upper }})</span>
-    {% if inp.multiline %}<textarea name="{{ inp.input_name }}" rows="3" class="ui-input">{{ inp.value }}</textarea>{% else %}<input name="{{ inp.input_name }}" type="text" value="{{ inp.value }}" class="ui-input">{% endif %}</label>
+    {% if inp.multiline %}<textarea name="{{ inp.input_name }}" rows="3" class="ui-input"{% if rich %} data-rte{% endif %}>{{ inp.value }}</textarea>{% else %}<input name="{{ inp.input_name }}" type="text" value="{{ inp.value }}" class="ui-input">{% endif %}</label>
   {% endfor %}
 </div>
 {% endfor %}

@@ -29,6 +29,7 @@ from apps.core.fsm import GuestCheckedIn, IllegalTransition
 from apps.core.i18n_input import apply_i18n_overlay, extra_locales, i18n_inputs_for
 from apps.core.owner_login import local_next
 from apps.core.permissions import has_perm
+from apps.core.richtext import clean_input
 from apps.core.roles import audit_export
 from apps.core.templatetags.cabinet import can_open
 from apps.core.view_perms import perm_required
@@ -1188,7 +1189,7 @@ def units(request, pk=None):
                 unit = StayUnit.objects.create(
                     name=name,
                     type=request.POST.get("type", StayUnit.TYPE_ROOM),
-                    description=request.POST.get("description", "").strip()[:5000],
+                    description=clean_input(request.POST.get("description", "").strip()[:5000]),
                     quantity=_int(request.POST.get("quantity", "1"), 1, 1, 999),
                     price_cents=_eur_to_cents(request.POST.get("price_eur")),
                     weekend_price_cents=_eur_to_cents(request.POST.get("weekend_price_eur")),
@@ -1211,7 +1212,7 @@ def units(request, pk=None):
                 return redirect("stays:unit-edit", pk=unit.pk)
         elif action == "unit_settings":
             unit = get_object_or_404(StayUnit, pk=request.POST.get("unit"))
-            unit.description = request.POST.get("description", "").strip()[:5000]
+            unit.description = clean_input(request.POST.get("description", "").strip()[:5000])
             # L3d: name правится при явно присланном поле (presence-guard).
             _new_name = request.POST.get("name")
             if _new_name is not None and _new_name.strip():

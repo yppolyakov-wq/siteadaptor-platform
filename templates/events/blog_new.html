@@ -27,13 +27,13 @@
     <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Short summary (optional)" %}</span>
       <input name="excerpt" type="text" value="{{ form_data.excerpt }}" class="ui-input"></label>
     <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Text" %}</span>
-      <textarea name="body" rows="10" class="ui-input">{{ form_data.body }}</textarea></label>
+      <textarea name="body" rows="10" class="ui-input" data-rte>{{ form_data.body }}</textarea></label>
   </div>
   {% for loc in extra_locales %}
   <div data-i18n-loc="{{ loc }}" class="hidden space-y-3">
     <input name="title_{{ loc }}" type="text" aria-label="{% trans 'Title' %} ({{ loc|upper }})" placeholder="{% trans 'Title' %} ({{ loc|upper }})" class="ui-input">
     <input name="excerpt_{{ loc }}" type="text" aria-label="{% trans 'Short summary (optional)' %} ({{ loc|upper }})" placeholder="{% trans 'Short summary (optional)' %} ({{ loc|upper }})" class="ui-input">
-    <textarea name="body_{{ loc }}" rows="5" aria-label="{% trans 'Text' %} ({{ loc|upper }})" placeholder="{% trans 'Text' %} ({{ loc|upper }})" class="ui-input"></textarea>
+    <textarea name="body_{{ loc }}" data-rte rows="5" aria-label="{% trans 'Text' %} ({{ loc|upper }})" placeholder="{% trans 'Text' %} ({{ loc|upper }})" class="ui-input"></textarea>
   </div>
   {% endfor %}
   <div>
@@ -47,4 +47,5 @@
   </label>
   <button type="submit" class="ui-btn ui-btn-primary">{% trans "Create post" %}</button>
 </form>
+{% include "catalog/_richtext_editor.html" %}
 {% endblock %}

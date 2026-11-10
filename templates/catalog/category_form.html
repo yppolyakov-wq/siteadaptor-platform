@@ -126,4 +126,5 @@ main-колонка (языки/название/описание/фото) + п
     <form id="cf-img-del-{{ img.id }}" method="post" action="{% url 'catalog:category-image-delete' category.pk img.id %}" class="hidden">{% csrf_token %}</form>
   {% endfor %}{% endif %}
 </div>
+{% include "catalog/_richtext_editor.html" %}
 {% endblock %}

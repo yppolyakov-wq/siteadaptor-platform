@@ -19,6 +19,8 @@ from django.db import connection
 from django.utils.translation import gettext as _
 from django_tenants.utils import schema_context
 
+from apps.core import richtext
+
 from .secrets import decrypted_config
 
 logger = logging.getLogger("publishing")
@@ -132,7 +134,7 @@ def _meta_version() -> str:
 def _promo_caption(promotion) -> str:
     text = promotion.title_text
     if promotion.description_text:
-        text = f"{text}\n\n{promotion.description_text}"
+        text = f"{text}\n\n{richtext.to_plain(promotion.description_text)}"
     return text
 
 
@@ -182,7 +184,7 @@ def content_for(publication) -> PostContent:
         promotion = publication.promotion
         return PostContent(
             title=promotion.title_text,
-            description=promotion.description_text,
+            description=richtext.to_plain(promotion.description_text),
             caption=_promo_caption(promotion),
             image_url=_promo_image_url(promotion),
             link_url=_promo_public_url(promotion),

@@ -25,11 +25,13 @@ class CategoryForm(OverlayI18nFormMixin, DynamicI18nFormMixin, forms.ModelForm):
     # active_locales тенанта (без тенанта — весь реестр, паритет).
     name_de = forms.CharField(label=_("Name (DE)"), max_length=200)
     description_de = forms.CharField(
-        label=_("Description (DE)"), widget=forms.Textarea(attrs={"rows": 3}), required=False
+        label=_("Description (DE)"),
+        widget=forms.Textarea(attrs={"rows": 3, "data-rte": "text"}),
+        required=False,
     )
     i18n_fields = (
         ("name", {"label": _("Name"), "max_length": 200}),
-        ("description", {"label": _("Beschreibung"), "textarea": True}),
+        ("description", {"label": _("Beschreibung"), "textarea": True, "rich": True}),
     )
 
     # KAT-1: шаблон страницы категории (реестр category_styles; "" = Standard).
@@ -192,11 +194,13 @@ class ProductForm(OverlayI18nFormMixin, DynamicI18nFormMixin, forms.ModelForm):
     # L3d.5: см. CategoryForm — динамические per-locale поля.
     name_de = forms.CharField(label=_("Name (DE)"), max_length=200)
     description_de = forms.CharField(
-        label=_("Description (DE)"), widget=forms.Textarea(attrs={"rows": 3}), required=False
+        label=_("Description (DE)"),
+        widget=forms.Textarea(attrs={"rows": 3, "data-rte": "text"}),
+        required=False,
     )
     i18n_fields = (
         ("name", {"label": _("Name"), "max_length": 200}),
-        ("description", {"label": _("Beschreibung"), "textarea": True}),
+        ("description", {"label": _("Beschreibung"), "textarea": True, "rich": True}),
     )
     # Lebensmittel-Kennzeichnung (LMIV, R4): аллергены чекбоксами (JSONField на модели).
     allergens = forms.MultipleChoiceField(

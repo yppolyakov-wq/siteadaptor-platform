@@ -27,6 +27,7 @@ from apps.core import (
     view_perms,
 )
 from apps.core.permissions import has_perm
+from apps.core.richtext import clean_page_input
 from apps.core.view_perms import perm_required
 from apps.promotions import group_styles
 from apps.tenants import domains
@@ -1803,7 +1804,9 @@ def legal_docs_view(request):
                 if val is None:
                     continue
                 if val.strip():
-                    LegalDoc.objects.update_or_create(kind=kind, locale=loc, defaults={"text": val})
+                    LegalDoc.objects.update_or_create(
+                        kind=kind, locale=loc, defaults={"text": clean_page_input(val)}
+                    )
                 else:
                     LegalDoc.objects.filter(kind=kind, locale=loc).delete()
         messages.success(request, _("Saved."))

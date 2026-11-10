@@ -99,7 +99,7 @@
           <div data-i18n-loc="{{ cell.locale }}"{% if cell.locale != legal_shown_locale %} class="hidden"{% endif %}>
             <label class="block text-sm font-medium mb-1" for="doc_{{ k.kind }}_{{ cell.locale }}">{{ cell.locale_label }} <span class="text-gray-500 uppercase text-xs">{{ cell.locale }}</span></label>
             <textarea id="doc_{{ k.kind }}_{{ cell.locale }}" name="doc_{{ k.kind }}_{{ cell.locale }}" lang="{{ cell.locale }}" rows="14"
-                      class="ui-input">{{ cell.text }}</textarea>
+                      class="ui-input" data-rte="page">{{ cell.text }}</textarea>
             {% if not cell.text and cell.fallback %}
               <details class="mt-1 text-xs text-gray-500">
                 <summary class="cursor-pointer">{% trans "Preview of the automatic text" %}</summary>
@@ -113,4 +113,5 @@
     <button type="submit" class="ui-btn ui-btn-primary">{% trans "Save" %}</button>
   </form>
 </div>
+{% include "catalog/_richtext_editor.html" %}
 {% endblock %}

@@ -1,5 +1,5 @@
 {% extends "tenant/_base_dashboard.html" %}
-{% load i18n cabinet %}
+{% load i18n cabinet richtext %}
 {% block dash_title %}{% trans "Unterkunft" %}{% endblock %}
 
 {% block dash_content %}
@@ -68,13 +68,13 @@ Hausordnung — своя форма и своё право (hausordnung.edit); �
     {% csrf_token %}
     <input type="hidden" name="action" value="house_rules">
     <label class="block"><span class="sr-only">{% trans "Hausordnung" %}</span>
-{% i18n_base_locale as base_loc %}<div data-i18n-loc="{{ base_loc }}">      <textarea name="house_rules" rows="5" class="ui-input" placeholder="{% trans 'Check-in ab 15:00, Check-out bis 11:00; Haustiere auf Anfrage; Nichtraucher; Ruhezeiten 22–7 Uhr; Kaution …' %}">{{ stay_settings.house_rules }}</textarea></div></label>
-    {% include "tenant/_i18n_inline.html" with obj=stay_settings fields="house_rules" wrap_class="mt-2 space-y-2" %}
+{% i18n_base_locale as base_loc %}<div data-i18n-loc="{{ base_loc }}">      <textarea name="house_rules" rows="5" class="ui-input" data-rte placeholder="{% trans 'Check-in ab 15:00, Check-out bis 11:00; Haustiere auf Anfrage; Nichtraucher; Ruhezeiten 22–7 Uhr; Kaution …' %}">{{ stay_settings.house_rules }}</textarea></div></label>
+    {% include "tenant/_i18n_inline.html" with obj=stay_settings fields="house_rules" wrap_class="mt-2 space-y-2" rich=1 %}
     <button class="ui-btn ui-btn-primary mt-3">{% trans "Save" %}</button>
   </form>
   {% else %}
   <p class="mb-2 text-sm text-gray-600" data-house-rules-locked>{% trans "Die Hausordnung ändern Sie nur mit dem Recht „Hausordnung bearbeiten“ (Team & Zugriff)." %}</p>
-  {% if stay_settings.house_rules %}<p class="text-sm whitespace-pre-line text-gray-700" data-house-rules-state>{{ stay_settings.house_rules }}</p>{% else %}<p class="text-sm text-gray-500" data-house-rules-state>{% trans "Noch keine Hausordnung." %}</p>{% endif %}
+  {% if stay_settings.house_rules %}<div data-house-rules-state>{% rich_block stay_settings.house_rules css="text-sm text-gray-700" %}</div>{% else %}<p class="text-sm text-gray-500" data-house-rules-state>{% trans "Noch keine Hausordnung." %}</p>{% endif %}
   {% endif %}
 </section>
 </div>
@@ -123,4 +123,5 @@ Hausordnung — своя форма и своё право (hausordnung.edit); �
 </section>
 </div>
 </div>
+{% include "catalog/_richtext_editor.html" %}
 {% endblock %}

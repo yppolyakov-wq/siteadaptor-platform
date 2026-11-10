@@ -15,6 +15,7 @@ from django.views.decorators.http import require_POST
 from apps.core import refunds
 from apps.core import transactions as core_transactions
 from apps.core.csv_safe import csv_safe
+from apps.core.richtext import clean_input
 from apps.core.roles import audit_export
 from apps.core.view_perms import perm_required
 
@@ -594,7 +595,7 @@ def _create_blog_post(request):
             title=title[:200],
             slug=slug[:220],
             excerpt=request.POST.get("excerpt", "").strip()[:300],
-            body=request.POST.get("body", "").strip(),
+            body=clean_input(request.POST.get("body", "").strip()),
             cover=_uploaded_cover(request),
             is_published=published,
             published_at=publish_at or (timezone.now() if published else None),
@@ -712,7 +713,7 @@ def blog_edit(request, pk):
             return redirect("blog-list")
         post.title = request.POST.get("title", post.title).strip()[:200]
         post.excerpt = request.POST.get("excerpt", "").strip()[:300]
-        post.body = request.POST.get("body", "").strip()
+        post.body = clean_input(request.POST.get("body", "").strip())
         # E9.10: переводы — presence-guard в apply_i18n_overlay (нет поля — не трогаем).
         from apps.core.i18n_input import apply_i18n_overlay
 

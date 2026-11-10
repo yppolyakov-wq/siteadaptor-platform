@@ -146,13 +146,13 @@ Varianten» — свои мини-формы, вне #svc-form. Скрытое `
   <div data-pf-panel="text" class="space-y-4{% if active_tab != 'text' %} hidden{% endif %}">
     <div data-i18n-loc="{{ base_loc }}">
       <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Description (what's included)" %}</span>
-      <textarea name="description" rows="3" class="ui-input">{{ s.description }}</textarea></label>
+      <textarea name="description" rows="3" class="ui-input" data-rte>{{ s.description }}</textarea></label>
       {% text_draft_button "service" s %}
     </div>
     {% for inp in s.i18n_inputs %}{% if inp.field != 'name' %}
     <div data-i18n-loc="{{ inp.locale }}" class="hidden">
       <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Description (what's included)" %} ({{ inp.locale|upper }})</span>
-      <textarea name="{{ inp.input_name }}" rows="3" lang="{{ inp.locale }}" class="ui-input">{{ inp.value }}</textarea></label>
+      <textarea name="{{ inp.input_name }}" rows="3" lang="{{ inp.locale }}" class="ui-input" data-rte>{{ inp.value }}</textarea></label>
     </div>
     {% endif %}{% endfor %}
     <input type="hidden" name="attributes_present" value="1">
@@ -269,4 +269,5 @@ Varianten» — свои мини-формы, вне #svc-form. Скрытое `
 {% include "core/_object_preview.html" with kind="service" obj=s url=svc_url %}
 </div>
 </div>
+{% include "catalog/_richtext_editor.html" %}
 {% endblock %}

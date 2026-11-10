@@ -22,7 +22,7 @@
   <div data-i18n-loc="{{ base_loc }}" class="space-y-3">
     <input aria-label="{% trans "Title" %}" name="title" type="text" required value="{{ post.title }}" class="ui-input">
     <input name="excerpt" type="text" value="{{ post.excerpt }}" aria-label="{% trans 'Short summary (optional)' %}" placeholder="{% trans 'Short summary (optional)' %}" class="ui-input">
-    <textarea aria-label="{% trans "Text" %}" name="body" rows="8" class="ui-input">{{ post.body }}</textarea>
+    <textarea aria-label="{% trans "Text" %}" name="body" rows="8" class="ui-input" data-rte>{{ post.body }}</textarea>
   </div>
   {% regroup i18n_inputs by locale as by_loc %}
   {% for grp in by_loc %}
@@ -30,7 +30,7 @@
     {% for inp in grp.list %}
       {% if inp.field == "title" %}<input aria-label="{% trans "Title" %} ({{ inp.locale|upper }})" placeholder="{% trans "Title" %} ({{ inp.locale|upper }})" name="{{ inp.input_name }}" type="text" value="{{ inp.value }}" class="ui-input">
       {% elif inp.field == "excerpt" %}<input aria-label="{% trans 'Short summary (optional)' %} ({{ inp.locale|upper }})" placeholder="{% trans 'Short summary (optional)' %} ({{ inp.locale|upper }})" name="{{ inp.input_name }}" type="text" value="{{ inp.value }}" class="ui-input">
-      {% else %}<textarea aria-label="{% trans "Text" %} ({{ inp.locale|upper }})" placeholder="{% trans "Text" %} ({{ inp.locale|upper }})" name="{{ inp.input_name }}" rows="8" class="ui-input">{{ inp.value }}</textarea>{% endif %}
+      {% else %}<textarea aria-label="{% trans "Text" %} ({{ inp.locale|upper }})" placeholder="{% trans "Text" %} ({{ inp.locale|upper }})" name="{{ inp.input_name }}" rows="8" class="ui-input" data-rte>{{ inp.value }}</textarea>{% endif %}
     {% endfor %}
   </div>
   {% endfor %}
@@ -59,4 +59,5 @@
     <button name="action" value="delete" class="ml-auto text-sm text-red-600 hover:underline" onclick="return confirm('{% trans "Delete this post?" %}')">{% trans "Delete" %}</button>
   </div>
 </form>
+{% include "catalog/_richtext_editor.html" %}
 {% endblock %}

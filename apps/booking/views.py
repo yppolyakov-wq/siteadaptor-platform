@@ -35,6 +35,7 @@ from apps.core.i18n_input import (
     save_row_translations,
 )
 from apps.core.owner_login import local_next
+from apps.core.richtext import clean_input
 
 from . import services, table_rules
 from .models import (
@@ -1402,7 +1403,7 @@ def services_view(request, pk=None):
             # DC-8: ставка НДС — presence-guard (поле есть только в форме услуги).
             if request.POST.get("vat_rate") is not None:
                 service.vat_rate = vat.parse_rate(request.POST.get("vat_rate"), service.vat_rate)
-            service.description = request.POST.get("description", "").strip()  # A3
+            service.description = clean_input(request.POST.get("description", "").strip())  # A3
             fields = ["duration_minutes", "price_cents", "vat_rate", "description", "updated_at"]
             freshness.stamp(service)  # Г3: Save владельца = «услуга актуальна»
             fields.append("confirmed_at")

@@ -167,7 +167,7 @@ class EventForm(OverlayI18nFormMixin, forms.ModelForm):
             "waiver_text": forms.Textarea(
                 attrs={"rows": 4, "placeholder": _("leer = Standardtext")}
             ),
-            "description": forms.Textarea(attrs={"rows": 3}),
+            "description": forms.Textarea(attrs={"rows": 3, "data-rte": "text"}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -302,7 +302,7 @@ class TourForm(OverlayI18nFormMixin, forms.ModelForm):
         }
         widgets = {
             "summary": forms.Textarea(attrs={"rows": 2}),
-            "description": forms.Textarea(attrs={"rows": 5}),
+            "description": forms.Textarea(attrs={"rows": 5, "data-rte": "text"}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -355,7 +355,7 @@ class TeacherForm(OverlayI18nFormMixin, forms.ModelForm):
     class Meta:
         model = Teacher
         fields = ("name", "title", "bio", "photo_url", "website", "instagram", "is_active")
-        widgets = {"bio": forms.Textarea(attrs={"rows": 4})}
+        widgets = {"bio": forms.Textarea(attrs={"rows": 4, "data-rte": "text"})}
         labels = {
             "name": _("Name"),
             "title": _("Title"),

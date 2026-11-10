@@ -1,12 +1,12 @@
 {% extends "storefront/_base.html" %}
-{% load i18n siteui widget_tweaks attribution %}
+{% load i18n siteui widget_tweaks attribution richtext %}
 {% block title %}{{ promotion.title_text }} — {{ request.tenant.name|default:"Shop" }}{% endblock %}
-{% block meta_description %}{{ promotion.description_text|default:promotion.title_text }}{% endblock %}
+{% block meta_description %}{{ promotion.description_text|striptags|default:promotion.title_text }}{% endblock %}
 
 {% block og %}
   <meta property="og:type" content="product">
   <meta property="og:title" content="{{ promotion.title_text }}">
-  <meta property="og:description" content="{{ promotion.description_text|default:promotion.title_text }}">
+  <meta property="og:description" content="{{ promotion.description_text|striptags|default:promotion.title_text }}">
   <meta property="og:url" content="{{ share_url }}">
   {% if og_image %}<meta property="og:image" content="{{ og_image }}">{% endif %}
   <meta name="twitter:card" content="{% if og_image %}summary_large_image{% else %}summary{% endif %}">
@@ -211,7 +211,7 @@
     </div>
 
     {% if promotion.description_text %}
-      <p class="mt-4 text-gray-600 whitespace-pre-line">{{ promotion.description_text }}</p>
+      {% rich_block promotion.description_text css="mt-4 text-gray-600" %}
     {% endif %}
 
     {# Поделиться + QR #}

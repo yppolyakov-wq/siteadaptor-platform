@@ -29,7 +29,7 @@
       </div>
       <div>
         <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Description" %}</span>
-        <textarea name="description" rows="2" class="ui-input">{{ combo.description|default:'' }}</textarea></label>
+        <textarea name="description" rows="2" class="ui-input" data-rte>{{ combo.description|default:'' }}</textarea></label>
       </div>
     </div>
     {# L3d/E9.10: переводы — группой на язык, видна та, что выбрана в выпадашке. #}
@@ -40,7 +40,7 @@
         {% for inp in grp.list %}
         <div>
           <label class="block"><span class="block text-sm font-medium mb-1">{% if inp.field == 'name' %}{% trans "Name" %}{% else %}{% trans "Description" %}{% endif %} ({{ inp.locale|upper }})</span>
-          {% if inp.field == 'name' %}<input name="{{ inp.input_name }}" value="{{ inp.value }}" class="ui-input">{% else %}<textarea name="{{ inp.input_name }}" rows="2" class="ui-input">{{ inp.value }}</textarea>{% endif %}</label>
+          {% if inp.field == 'name' %}<input name="{{ inp.input_name }}" value="{{ inp.value }}" class="ui-input">{% else %}<textarea name="{{ inp.input_name }}" rows="2" class="ui-input" data-rte>{{ inp.value }}</textarea>{% endif %}</label>
         </div>
         {% endfor %}
       </div>
@@ -54,7 +54,7 @@
         </div>
         <div>
           <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Description" %} ({{ loc|upper }})</span>
-          <textarea name="description_{{ loc }}" rows="2" class="ui-input"></textarea></label>
+          <textarea name="description_{{ loc }}" rows="2" class="ui-input" data-rte></textarea></label>
         </div>
       </div>
       {% endfor %}
@@ -227,4 +227,5 @@
   </aside>
   </div>
 </div>
+{% include "catalog/_richtext_editor.html" %}
 {% endblock %}

@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load i18n richtext %}
 {% comment %}Багфикс 2026-07-27 (фидбэк владельца: «при выборе даты/столика страница
 обновляется»): динамическая часть страницы слотов — пикер мастера/ресурса,
 календарь, навигация по дням, сетка стартов и buy-box — вынесена в партиал.
@@ -25,7 +25,7 @@
       {% if chosen_resource.photo_url %}<img src="{{ chosen_resource.photo_url }}" alt="{{ chosen_resource.name }}" class="w-14 h-14 rounded-full object-cover shrink-0">{% endif %}
       <div>
         <p class="font-medium text-sm">{{ chosen_resource.name_localized }}{% if chosen_resource.title %} · <span class="text-gray-500">{{ chosen_resource.title_localized }}</span>{% endif %}</p>
-        <p class="text-sm text-gray-600 mt-0.5 whitespace-pre-line">{{ chosen_resource.bio_localized }}</p>
+        {% rich_block chosen_resource.bio_localized css="text-sm text-gray-600 mt-0.5" %}
       </div>
     </div>
   {% endif %}

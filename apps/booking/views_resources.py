@@ -22,6 +22,7 @@ from django.utils.translation import gettext as _
 
 from apps.core import drawer as drawer_mod
 from apps.core.i18n_input import apply_i18n_overlay, save_row_translations
+from apps.core.richtext import clean_input
 
 from .models import AvailabilityRule, Resource
 
@@ -251,7 +252,7 @@ def _profile(request):
 
     resource = get_object_or_404(Resource, pk=request.POST.get("resource"))
     resource.title = request.POST.get("title", "").strip()[:120]
-    resource.bio = request.POST.get("bio", "").strip()[:2000]
+    resource.bio = clean_input(request.POST.get("bio", "").strip()[:2000])
     fields = ["title", "bio", "updated_at"]
     # E9.10: переводы имени/роли/био мастера — в той же форме профиля.
     fields += apply_i18n_overlay(

@@ -1,5 +1,5 @@
-{% load i18n %}
+{% load i18n richtext %}
 <div class="mt-8">
   <h2 class="text-lg font-semibold mb-2">{% trans "About this service" %}</h2>
-  <p class="text-gray-600 whitespace-pre-line" data-edit-model="service" data-edit-pk="{{ service.pk }}" data-edit-field="description">{{ service.description_localized }}</p>
+  {% rich_block service.description_localized css="text-gray-600" edit_model="service" edit_pk=service.pk edit_field="description" %}
 </div>

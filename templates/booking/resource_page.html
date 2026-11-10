@@ -124,7 +124,7 @@ resource_settings/resource_profile писали поля безусловно �
       <label class="block"><span class="block text-xs font-medium text-gray-600 mb-1">{% trans "Rolle" %}</span>
       <input name="title" type="text" maxlength="120" value="{{ r.title }}" lang="{{ base_loc }}" placeholder="{% trans 'Role (e.g. Stylist, Master)' %}" class="ui-input"></label>
       <label class="block"><span class="block text-xs font-medium text-gray-600 mb-1">{% trans "Short bio (optional)" %}</span>
-      <textarea name="bio" rows="3" lang="{{ base_loc }}" class="ui-input">{{ r.bio }}</textarea></label>
+      <textarea name="bio" rows="3" lang="{{ base_loc }}" class="ui-input" data-rte>{{ r.bio }}</textarea></label>
     </div>
     {% for grp in by_loc %}
     <div data-i18n-loc="{{ grp.grouper }}" class="hidden space-y-2">
@@ -133,7 +133,7 @@ resource_settings/resource_profile писали поля безусловно �
         <input name="{{ inp.input_name }}" type="text" value="{{ inp.value }}" lang="{{ inp.locale }}" class="ui-input"></label>
       {% elif inp.field == 'bio' %}
         <label class="block"><span class="block text-xs font-medium text-gray-600 mb-1">{% trans "Short bio (optional)" %} ({{ inp.locale|upper }})</span>
-        <textarea name="{{ inp.input_name }}" rows="3" lang="{{ inp.locale }}" class="ui-input">{{ inp.value }}</textarea></label>
+        <textarea name="{{ inp.input_name }}" rows="3" lang="{{ inp.locale }}" class="ui-input" data-rte>{{ inp.value }}</textarea></label>
       {% endif %}{% endfor %}
     </div>
     {% endfor %}
@@ -221,4 +221,5 @@ resource_settings/resource_profile писали поля безусловно �
 </div>
 {% endif %}
 </div>
+{% include "catalog/_richtext_editor.html" %}
 {% endblock %}

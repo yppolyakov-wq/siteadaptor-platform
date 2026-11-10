@@ -54,4 +54,5 @@
     {% if event %}<a href="{% url 'events:detail' event.pk %}" class="text-sm text-gray-500">{% trans "Cancel" %}</a>{% endif %}
   </div>
 </form>
+{% include "catalog/_richtext_editor.html" %}
 {% endblock %}

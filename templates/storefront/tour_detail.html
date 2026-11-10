@@ -1,5 +1,5 @@
 {% extends "storefront/detail.html" %}
-{% load i18n %}
+{% load i18n richtext %}
 {% comment %}
 MT-1: страница тур-продукта. Контент живёт здесь, продажа — на заездах (Event),
 поэтому buy-box не дублируется: каждый заезд ведёт на свою страницу события с
@@ -7,7 +7,7 @@ MT-1: страница тур-продукта. Контент живёт зде
 {% endcomment %}
 
 {% block title %}{{ tour.title_text }} — {{ request.tenant.name }}{% endblock %}
-{% block meta_description %}{{ tour.summary_text|default:tour.description_text|truncatechars:160 }}{% endblock %}
+{% block meta_description %}{{ tour.summary_text|default:tour.description_text|striptags|truncatechars:160 }}{% endblock %}
 
 {% block detail_back %}<a href="{% url 'storefront-tours' %}" class="text-sm text-gray-500 hover:underline">← {% trans "All tours" %}</a>{% endblock %}
 
@@ -57,7 +57,7 @@ MT-1: страница тур-продукта. Контент живёт зде
 
 {% block detail_body %}{% with L=tour.landing %}
   {% if tour.description_text %}
-    <div class="prose max-w-none mb-8"><p class="whitespace-pre-line">{{ tour.description_text }}</p></div>
+    <div class="prose max-w-none mb-8">{% rich_block tour.description_text %}</div>
   {% endif %}
 
   {% include "storefront/_route.html" %}
