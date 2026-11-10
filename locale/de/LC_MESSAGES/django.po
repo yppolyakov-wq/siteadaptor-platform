@@ -36668,3 +36668,6 @@ msgstr "Wird auf der Seite „Über uns“ angezeigt"
 
 msgid "Zwischenüberschrift"
 msgstr "Zwischenüberschrift"
+
+msgid "Der Menüpunkt zu dieser Seite wird nicht mehr angezeigt — bitte im Menü entfernen."
+msgstr "Der Menüpunkt zu dieser Seite wird nicht mehr angezeigt — bitte im Menü entfernen."

@@ -67,11 +67,22 @@ def _local_image_only(tag: str, attribute: str, value: str):
     if tag == "img" and attribute == "src":
         from django.conf import settings
 
-        media = (getattr(settings, "MEDIA_URL", "") or "").strip()
-        allowed = value.startswith("/") and not value.startswith("//")
-        if media.startswith(("http://", "https://")) and value.startswith(media):
-            allowed = True
-        return value if allowed else None
+        media = (getattr(settings, "MEDIA_URL", "") or "/media/").strip()
+        # Ревью M21.6: «/\\host/x» браузер читает как «//host/x» (WHATWG) — поэтому не
+        # «любой путь от корня», а только папка медиа, без обратных слэшей, пробелов,
+        # управляющих символов и кодированных «/» или «\\».
+        lowered = value.lower()
+        if (
+            not value.startswith(media)
+            or media in ("", "/")
+            or any(ch in value for ch in "\\ \t\r\n")
+            or any(ord(ch) < 32 for ch in value)
+            or "%2f" in lowered
+            or "%5c" in lowered
+            or "/../" in value
+        ):
+            return None
+        return value
     if tag == "img" and attribute in ("width", "height"):
         return value if value.isdigit() and len(value) <= 4 else None
     return value

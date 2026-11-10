@@ -36903,3 +36903,6 @@ msgstr "Показується на сторінці «Про нас»"
 
 msgid "Zwischenüberschrift"
 msgstr "Підзаголовок"
+
+msgid "Der Menüpunkt zu dieser Seite wird nicht mehr angezeigt — bitte im Menü entfernen."
+msgstr "Пункт меню цієї сторінки більше не показується — видаліть його в меню."

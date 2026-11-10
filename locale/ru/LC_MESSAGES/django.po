@@ -36916,3 +36916,6 @@ msgstr "Показывается на странице «О нас»"
 
 msgid "Zwischenüberschrift"
 msgstr "Подзаголовок"
+
+msgid "Der Menüpunkt zu dieser Seite wird nicht mehr angezeigt — bitte im Menü entfernen."
+msgstr "Пункт меню этой страницы больше не показывается — удалите его в меню."

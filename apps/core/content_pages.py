@@ -10,8 +10,10 @@
 
 from __future__ import annotations
 
+import copy
 import re
 
+from django.db import IntegrityError, connection, transaction
 from django.urls import NoReverseMatch, reverse
 from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
@@ -51,7 +53,7 @@ def clean_slug(value: str, *, exclude_pk=None) -> str:
         raise PageError(_("Bitte eine Adresse aus Buchstaben, Ziffern und „-“ angeben."))
     taken = ContentPage.objects.filter(slug=slug)
     if exclude_pk is not None:
-        taken = taken.exclude(pk=exclude_pk)
+        taken = taken.exclude(pk=exclude_pk)  # pk есть и у несохранённой: исключит ничто
     if taken.exists():
         raise PageError(_("Diese Adresse ist schon vergeben."))
     return slug
@@ -62,12 +64,75 @@ def save_page(page, *, title: str, slug: str, body: str, is_published: bool):
     title = (title or "").strip()[:200]
     if not title:
         raise PageError(_("Bitte einen Titel angeben."))
+    old_slug = "" if page._state.adding else page.slug
+    new_slug = clean_slug(slug or old_slug or title, exclude_pk=page.pk)
     page.title = title
-    page.slug = clean_slug(slug or title, exclude_pk=page.pk if page.pk else None)
+    page.slug = new_slug
     page.body = sanitize_page(body or "")
     page.is_published = bool(is_published)
-    page.save()
+    try:
+        with transaction.atomic():
+            page.save()
+    except IntegrityError as exc:  # тот же адрес сохранили параллельно
+        raise PageError(_("Diese Adresse ist schon vergeben.")) from exc
+    if old_slug and old_slug != new_slug:
+        retarget_menus(old_slug, new_slug)
     return page
+
+
+def _walk_nodes(nodes, old: str, new: str | None) -> int:
+    """Пункты меню ``cpage:old`` → ``cpage:new`` (new=None — только посчитать)."""
+    hits = 0
+    for node in nodes if isinstance(nodes, list) else []:
+        if not isinstance(node, dict):
+            continue
+        if node.get("type") == "cpage" and node.get("target") == old:
+            hits += 1
+            if new is not None:
+                node["target"] = new
+        hits += _walk_nodes(node.get("children"), old, new)
+        hits += _walk_nodes(node.get("items"), old, new)
+    return hits
+
+
+def _menu_lists(config: dict):
+    menus = config.get("menus") if isinstance(config.get("menus"), dict) else {}
+    for key in ("top", "bottom"):
+        part = menus.get(key)
+        if isinstance(part, dict):
+            yield part.get("items")
+    footer = menus.get("footer")
+    if isinstance(footer, dict):
+        yield footer.get("columns")
+
+
+def menu_references(slug: str, tenant=None) -> int:
+    """Сколько пунктов меню/подвала ведут на страницу (предупреждение перед удалением)."""
+    tenant = tenant or getattr(connection, "tenant", None)
+    config = getattr(tenant, "site_config", None) or {}
+    return sum(_walk_nodes(nodes, slug, None) for nodes in _menu_lists(config))
+
+
+def retarget_menus(old: str, new: str) -> int:
+    """После смены адреса страницы пункты меню и подвала ведут на новый адрес (иначе
+    пункт молча выпал бы из меню). Пишет только ``site_config["menus"]``."""
+    from apps.tenants.models import Tenant
+
+    tenant = getattr(connection, "tenant", None)
+    if tenant is None or not getattr(tenant, "pk", None):
+        return 0
+    with transaction.atomic():
+        fresh = Tenant.objects.select_for_update().filter(pk=tenant.pk).first()
+        if fresh is None:
+            return 0
+        config = dict(fresh.site_config or {})
+        config["menus"] = copy.deepcopy(config.get("menus") or {})
+        hits = sum(_walk_nodes(nodes, old, new) for nodes in _menu_lists(config))
+        if hits:
+            fresh.site_config = config
+            fresh.save(update_fields=["site_config"])
+            tenant.site_config = config
+    return hits
 
 
 def system_url(slug: str, tenant=None) -> str | None:
@@ -99,13 +164,39 @@ def page_url(page, tenant=None) -> str:
 
 
 def published(slug: str):
-    """Опубликованная страница по slug или None (ошибки БД не роняют чужую страницу)."""
+    """Опубликованная страница по slug или None (ошибки БД не роняют чужую страницу;
+    savepoint — чтобы сбой не сломал внешнюю транзакцию)."""
+    from django.db import DatabaseError, transaction
+
     from apps.core.models import ContentPage
 
     try:
-        return ContentPage.objects.filter(slug=slug, is_published=True).first()
-    except Exception:  # noqa: BLE001 — системная страница живёт и без своего текста
+        with transaction.atomic():
+            return ContentPage.objects.filter(slug=slug, is_published=True).first()
+    except DatabaseError:
         return None
+
+
+def published_urls(tenant=None) -> dict:
+    """{slug: адрес} всех опубликованных страниц — одним запросом (для меню)."""
+    from django.db import DatabaseError, transaction
+
+    from apps.core.models import ContentPage
+
+    try:
+        with transaction.atomic():
+            slugs = list(
+                ContentPage.objects.filter(is_published=True).values_list("slug", flat=True)
+            )
+    except DatabaseError:
+        return {}
+    out = {}
+    for slug in slugs:
+        try:
+            out[slug] = system_url(slug, tenant) or reverse("storefront-content-page", args=[slug])
+        except NoReverseMatch:
+            continue
+    return out
 
 
 def system_body(slug: str) -> str:

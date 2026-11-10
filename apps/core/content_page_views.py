@@ -17,21 +17,26 @@ from apps.core.models import ContentPage
 from apps.core.richtext import sanitize_page
 
 
-def _is_team(request) -> bool:
+def _can_preview(request) -> bool:
+    """Черновик видит тот, кто может открыть «Website › Seiten» (ревью: не любой
+    сотрудник кабинета)."""
+    from apps.core import view_perms
     from apps.core.roles import has_cabinet_access
 
     user = getattr(request, "user", None)
-    return bool(user and user.is_authenticated and has_cabinet_access(user))
+    if not (user and user.is_authenticated and has_cabinet_access(user)):
+        return False
+    return view_perms.allowed(user, "content-pages", "GET")
 
 
 def storefront_page(request, slug):
     page = ContentPage.objects.filter(slug=slug).first()
-    if page is None or (not page.is_published and not _is_team(request)):
+    if page is None or (not page.is_published and not _can_preview(request)):
         raise Http404
     target = content_pages.system_url(page.slug, getattr(request, "tenant", None))
     if target and page.is_published:
         return redirect(target, permanent=True)
-    return render(
+    response = render(
         request,
         "storefront/content_page.html",
         {
@@ -41,6 +46,9 @@ def storefront_page(request, slug):
             "is_draft": not page.is_published,
         },
     )
+    if not page.is_published:
+        response["Cache-Control"] = "private, no-store"  # черновик не кэшируется
+    return response
 
 
 # --- кабинет ------------------------------------------------------------------------
@@ -69,6 +77,9 @@ def _form(request, page, *, created: bool):
             )
         except content_pages.PageError as exc:
             messages.error(request, str(exc))
+            # Ввод не теряем: форма показывает то, что набрал владелец.
+            page.title = request.POST.get("title", "")[:200]
+            page.slug = request.POST.get("slug", "")[: content_pages.SLUG_MAX]
             page.body = sanitize_page(request.POST.get("body", ""))
         else:
             messages.success(request, _("Seite angelegt.") if created else _("Seite gespeichert."))
@@ -105,6 +116,16 @@ def page_edit(request, pk):
 @login_required
 @require_POST
 def page_delete(request, pk):
-    if ContentPage.objects.filter(pk=pk).delete()[0]:
+    page = ContentPage.objects.filter(pk=pk).first()
+    if page is not None:
+        refs = content_pages.menu_references(page.slug, getattr(request, "tenant", None))
+        page.delete()
         messages.success(request, _("Seite gelöscht."))
+        if refs:
+            messages.warning(
+                request,
+                _(
+                    "Der Menüpunkt zu dieser Seite wird nicht mehr angezeigt — bitte im Menü entfernen."
+                ),
+            )
     return redirect("content-pages")

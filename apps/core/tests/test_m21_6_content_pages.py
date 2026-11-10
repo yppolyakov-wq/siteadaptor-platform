@@ -58,6 +58,23 @@ def test_sanitize_page_keeps_headings_and_local_images_drops_the_rest():
     assert "<p>Text</p>" in out
 
 
+@pytest.mark.parametrize(
+    "src",
+    [
+        "/\\evil.example/x.png",
+        "/media\\..\\x.png",
+        "/media/%2f%2fevil/x.png",
+        "/media/%5Cevil.png",
+        "/media/../dashboard/",
+        "/dashboard/site/seiten/",
+        "/media/a b.png",
+        "data:image/png;base64,AAAA",
+    ],
+)
+def test_sanitize_page_rejects_image_tricks(src):
+    assert "src=" not in sanitize_page(f'<img src="{src}">')
+
+
 # --- витрина -------------------------------------------------------------------------
 
 
@@ -76,9 +93,15 @@ def test_published_page_renders_and_draft_is_404_for_visitors():
 def test_draft_is_visible_to_team_member(monkeypatch):
     ContentPage.objects.create(slug="neu", title="Neu", body="<p>x</p>", is_published=False)
     monkeypatch.setattr("apps.core.roles.has_cabinet_access", lambda user: True)
+    rights = {"ok": True}
+    monkeypatch.setattr("apps.core.view_perms.allowed", lambda user, name, method: rights["ok"])
     user = SimpleNamespace(is_authenticated=True)
-    body = views.storefront_page(_req("/seite/neu/", user=user), "neu").content.decode()
-    assert "Entwurf" in body
+    resp = views.storefront_page(_req("/seite/neu/", user=user), "neu")
+    assert "Entwurf" in resp.content.decode()
+    assert "no-store" in resp["Cache-Control"]  # черновик не кэшируется
+    rights["ok"] = False  # сотрудник без права на сайт черновик не видит
+    with pytest.raises(Http404):
+        views.storefront_page(_req("/seite/neu/", user=user), "neu")
 
 
 def test_render_sanitizes_again_even_if_db_holds_raw_html():
@@ -177,13 +200,61 @@ def test_cabinet_views_require_login_and_have_rules_and_nav_entry():
 def test_menu_cpage_node_links_only_published_page():
     from apps.tenants import menu
 
-    tenant = TenantFactory.build(schema_name="public")
+    def fresh():  # карта ссылок мемоизируется на объекте тенанта (на запрос)
+        return TenantFactory.build(schema_name="public")
+
     ContentPage.objects.create(slug="zahlung", title="Zahlungsarten")
     node = {"label": "Zahlung", "type": "cpage", "target": "zahlung", "children": []}
-    assert menu._node_url(tenant, node) == "/seite/zahlung/"
+    assert menu._node_url(fresh(), node) == "/seite/zahlung/"
     ContentPage.objects.filter(slug="zahlung").update(is_published=False)
-    assert menu._node_url(tenant, node) is None
-    assert menu._node_url(tenant, {**node, "target": "nope"}) is None
+    assert menu._node_url(fresh(), node) is None
+    assert menu._node_url(fresh(), {**node, "target": "nope"}) is None
     ContentPage.objects.filter(slug="zahlung").update(is_published=True)
-    values = {o["value"] for o in menu.target_options(tenant)}
+    values = {o["value"] for o in menu.target_options(fresh())}
     assert "cpage:zahlung" in values
+
+
+def test_rename_keeps_menu_links_and_typed_input_survives_errors(monkeypatch):
+    from django.db import connection
+
+    tenant = TenantFactory(
+        schema_name="public",
+        slug="cp-ren",
+        site_config={
+            "menus": {
+                "footer": {
+                    "columns": [{"label": "K", "items": [{"type": "cpage", "target": "zahlung"}]}]
+                }
+            }
+        },
+    )
+    monkeypatch.setattr(connection, "tenant", tenant, raising=False)
+    page = ContentPage.objects.create(slug="zahlung", title="Zahlung")
+    content_pages.save_page(page, title="Zahlung", slug="bezahlen", body="", is_published=True)
+    tenant.refresh_from_db()
+    item = tenant.site_config["menus"]["footer"]["columns"][0]["items"][0]
+    assert item["target"] == "bezahlen"
+    assert content_pages.menu_references("bezahlen", tenant) == 1
+
+    # пустое поле адреса не меняет существующий адрес (пункты меню не теряются)
+    content_pages.save_page(page, title="Anders", slug="", body="", is_published=True)
+    assert page.slug == "bezahlen"
+
+    ContentPage.objects.create(slug="versand", title="Versand")
+    resp = views.page_edit(
+        _req(method="post", user=_user(), data={"title": "Neu", "slug": "versand"}), page.pk
+    )
+    assert 'value="versand"' in resp.content.decode()  # набранное не потерялось
+    page.refresh_from_db()
+    assert page.slug == "bezahlen"
+
+
+def test_menu_resolves_all_cpage_links_with_one_query(django_assert_max_num_queries):
+    from apps.tenants import menu
+
+    for slug in ("a", "b", "c"):
+        ContentPage.objects.create(slug=slug, title=slug)
+    tenant = TenantFactory.build(schema_name="public")
+    with django_assert_max_num_queries(3):  # savepoint + select, не по пункту
+        urls = [menu._node_url(tenant, {"type": "cpage", "target": s}) for s in "abcx"]
+    assert urls == ["/seite/a/", "/seite/b/", "/seite/c/", None]

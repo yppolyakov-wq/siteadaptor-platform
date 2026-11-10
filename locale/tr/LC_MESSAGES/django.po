@@ -36727,3 +36727,6 @@ msgstr "„Hakkımızda“ sayfasında gösterilir"
 
 msgid "Zwischenüberschrift"
 msgstr "Ara başlık"
+
+msgid "Der Menüpunkt zu dieser Seite wird nicht mehr angezeigt — bitte im Menü entfernen."
+msgstr "Bu sayfanın menü öğesi artık gösterilmiyor — lütfen menüden kaldırın."

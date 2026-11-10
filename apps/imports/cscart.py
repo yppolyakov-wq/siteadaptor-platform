@@ -1282,6 +1282,7 @@ def apply_pages(site: ScrapedSite, config: dict, *, fetch_image=None) -> list:
     from apps.tenants import siteconfig
 
     notes = []
+    changed = False
     blocks = dict(config.get("page_blocks") or {})
     info = list(blocks.get("info") or [])
     for key, slug, fallback in PAGE_IMPORTS:
@@ -1292,6 +1293,20 @@ def apply_pages(site: ScrapedSite, config: dict, *, fetch_image=None) -> list:
         if key == "about":
             title = fallback
         legacy_text = strip_dangling(html_to_text(raw))
+        page = ContentPage.objects.filter(slug=slug).first()
+        if page is None:
+            images = len(_IMG_RE.findall(raw))
+            body = page_html(raw, site.base, fetch_image)
+            if not body:
+                continue  # страницы нет — прежний блок на «Über uns» остаётся
+            page = ContentPage.objects.create(slug=slug, title=title[:200], body=body)
+            notes.append(f"page created: {content_pages.page_url(page)} ({title})")
+            kept = body.count("<img")
+            if images > kept:
+                notes.append(
+                    f"page {slug}: {images - kept} of {images} images not transferred "
+                    "(SVG, failed download or --no-images) — add them in Website › Seiten"
+                )
         before = len(info)
         info = [
             b
@@ -1303,19 +1318,14 @@ def apply_pages(site: ScrapedSite, config: dict, *, fetch_image=None) -> list:
             )
         ]
         if len(info) < before:
+            changed = True
             notes.append(f"about page: text block «{title}» moved to its own page")
-        page = ContentPage.objects.filter(slug=slug).first()
-        if page is None:
-            body = page_html(raw, site.base, fetch_image)
-            if not body:
-                continue
-            page = ContentPage.objects.create(slug=slug, title=title[:200], body=body)
-            notes.append(f"page created: {content_pages.page_url(page)} ({title})")
         if key == "zahlung" and page.is_published:
             # STATIC_ROUTES вели старый адрес на «Über uns» — теперь на свою страницу.
             _redirect("/versand-de/", content_pages.page_url(page), ApplyStats())
-    blocks["info"] = info
-    config["page_blocks"] = siteconfig.normalize_page_blocks(blocks)
+    if changed:
+        blocks["info"] = info
+        config["page_blocks"] = siteconfig.normalize_page_blocks(blocks)
     return notes
 
 

@@ -422,13 +422,20 @@ def _promotion_url(target):
     return _reverse_args("storefront-promotion", target)
 
 
-def _cpage_url(slug):
+def _cpage_url(tenant, slug):
     """M21.6: ссылка на свою страницу — только опубликованную (системный slug ведёт
-    на свою системную страницу)."""
+    на свою системную страницу). Один запрос на рендер меню: карта slug → адрес
+    мемоизируется на объекте тенанта (как `_page_has_content`)."""
     from apps.core import content_pages
 
-    page = content_pages.published(slug)
-    return content_pages.page_url(page) if page else None
+    memo = getattr(tenant, "_cpage_urls", None)
+    if memo is None:
+        memo = content_pages.published_urls(tenant)
+        try:
+            tenant._cpage_urls = memo
+        except AttributeError:
+            pass
+    return memo.get(slug)
 
 
 _ENTITY_URLS = {
@@ -438,7 +445,7 @@ _ENTITY_URLS = {
     "event": ("events", _event_url),
     "tour": ("events", _tour_url),
     "promotion": ("promotions", _promotion_url),
-    "cpage": (None, _cpage_url),  # без модуля: свои страницы есть у каждого
+    "cpage": (None, None),  # без модуля; ссылку строит _node_url (_cpage_url)
 }
 
 
@@ -456,6 +463,8 @@ def _node_url(tenant, node: dict):
     ntype, target = node["type"], node["target"]
     if _hidden_by_profile(tenant, node):
         return None
+    if ntype == "cpage":
+        return _cpage_url(tenant, target) if target else None
     if ntype in _ENTITY_URLS:
         return _entity_url(tenant, ntype, target)
     if ntype == "archetype":

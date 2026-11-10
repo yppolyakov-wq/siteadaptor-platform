@@ -36581,3 +36581,6 @@ msgstr "Shown on the “About us” page"
 
 msgid "Zwischenüberschrift"
 msgstr "Subheading"
+
+msgid "Der Menüpunkt zu dieser Seite wird nicht mehr angezeigt — bitte im Menü entfernen."
+msgstr "The menu item for this page is no longer shown — please remove it from the menu."
