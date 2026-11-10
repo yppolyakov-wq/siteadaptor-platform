@@ -87,3 +87,12 @@ def test_feed_view_renders_xml():
     body = resp.content.decode()
     assert "Bäckerei Müller" in body
     assert str(product.pk) in body
+
+
+def test_feed_description_drops_rich_text_tags():
+    """M21.8: описание с форматированием (SR-3) — в фид текстом, без <p>/<strong>."""
+    product = ProductFactory(
+        name={"de": "Sencha"}, description={"de": "<p>Japanischer <strong>Grüntee</strong></p>"}
+    )
+    xml = _build([product])
+    assert "<g:description>Japanischer Grüntee</g:description>" in xml

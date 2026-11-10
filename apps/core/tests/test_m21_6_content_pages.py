@@ -284,3 +284,12 @@ def test_tab_query_opens_tab_in_shared_switch():
 
     js = Path("templates/tenant/_i18n_switch.html").read_text()
     assert '.get("tab")' in js and "setTab(tab)" in js
+
+
+def test_to_plain_strips_rich_text_but_keeps_plain_angle_text():
+    from apps.core.richtext import to_plain
+
+    assert to_plain("<p>Grüner <b>Tee</b> &amp; Kräuter</p><ul><li>100 g</li></ul>") == (
+        "Grüner Tee & Kräuter\n100 g"
+    )
+    assert to_plain("ab <50 € pro Packung") == "ab <50 € pro Packung"

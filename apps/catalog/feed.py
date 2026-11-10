@@ -15,6 +15,8 @@ from xml.sax.saxutils import escape as _escape
 
 from django.utils import timezone
 
+from apps.core import richtext
+
 # M23b.1: управляющие символы (кроме \t \n \r) запрещены в XML 1.0 — один такой символ
 # в названии товара делал весь фид нечитаемым для площадки.
 _XML_ILLEGAL = re.compile("[\x00-\x08\x0b\x0c\x0e-\x1f\ud800-\udfff\ufffe\uffff]")
@@ -193,7 +195,8 @@ def _entries(product, *, product_url, absolutize, merchant=False, shipping=None)
     img = product.primary_image
     image_link = absolutize(img["url"]) if img and img.get("url") else ""
     title = product.name_text or str(product)
-    description = product.description_text or title
+    # M21.8: описание с форматированием (SR-3) — в фид без HTML-тегов.
+    description = richtext.to_plain(product.description_text) or title
     legacy_brand = product.metadata.get("brand") if isinstance(product.metadata, dict) else ""
     if merchant:
         brand = product.brand or legacy_brand or ""

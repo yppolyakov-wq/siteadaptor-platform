@@ -113,3 +113,21 @@ def sanitize_page(html: str) -> str:
         link_rel="noopener noreferrer",
         attribute_filter=_local_image_only,
     ).strip()
+
+
+_TAG_RE = re.compile(r"</?[a-zA-Z][^>]*>")
+_BLOCK_END_RE = re.compile(r"(?i)<br\s*/?>|</(p|li|h[1-6]|div|blockquote)>")
+
+
+def to_plain(text) -> str:
+    """Rich-text → обычный текст для фидов, PDF, писем и JSON-LD: блоки — переносами,
+    сущности раскрыты. Плоский текст («ab <50 €») не трогается."""
+    import html as html_lib
+
+    from django.utils.html import strip_tags
+
+    raw = str(text or "")
+    if _TAG_RE.search(raw):
+        raw = html_lib.unescape(strip_tags(_BLOCK_END_RE.sub("\n", raw)))
+    lines = [" ".join(line.split()) for line in raw.replace("\r", "").split("\n")]
+    return re.sub(r"\n{3,}", "\n\n", "\n".join(lines)).strip()

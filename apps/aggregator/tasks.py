@@ -7,7 +7,6 @@ archived → remove). Резистентна к отсутствию акции/
 """
 
 import logging
-import re
 from decimal import Decimal
 
 from celery import shared_task
@@ -30,16 +29,9 @@ TEASER_MAX = 2000
 
 
 def _plain(text) -> str:
-    import html as _html
+    from apps.core.richtext import to_plain
 
-    from django.utils.html import strip_tags
-
-    raw = str(text or "")
-    if re.search(r"</?[a-zA-Z][^>]*>", raw):  # настоящий тег, а не «ab <50 €»
-        raw = re.sub(r"(?i)<br\s*/?>|</(p|li|h[1-6]|div)>", "\n", raw)
-        raw = _html.unescape(strip_tags(raw))
-    lines = [" ".join(line.split()) for line in raw.replace("\r", "").split("\n")]
-    text = re.sub(r"\n{3,}", "\n\n", "\n".join(lines)).strip()
+    text = to_plain(text)
     if len(text) > TEASER_MAX:
         cut = text[:TEASER_MAX]
         text = (cut.rsplit(" ", 1)[0] if " " in cut[-80:] else cut).rstrip() + " …"

@@ -14,6 +14,7 @@ from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import mm
 from reportlab.pdfgen import canvas
 
+from apps.core import richtext
 from apps.core.documents import fonts, money
 
 _INK = (0.10, 0.10, 0.12)
@@ -121,7 +122,7 @@ def build_menu_pdf(tenant, groups) -> bytes:
             price_txt = _("Preis auf Anfrage") if p.price_on_request else money(p.base_price)
             c.drawRightString(right, y, price_txt)
             diets = _diet_labels(p)
-            desc = (p.get_i18n("description") or "").strip().replace("\n", " ")
+            desc = richtext.to_plain(p.get_i18n("description")).replace("\n", " ")
             # KA-12 GA-9: Tageskarte — «nur Mo · Mi» первым в подстроке.
             days = p.weekdays_label
             only = _("nur %(days)s") % {"days": days} if days else ""
