@@ -364,14 +364,13 @@ def page_title(html: str) -> str:
 class CsHome:
     banners: list = field(default_factory=list)  # URL картинок слайдера по порядку
     tiles: list = field(default_factory=list)  # [(путь категории, URL картинки)]
-    menu: list = field(default_factory=list)  # [(подпись, путь или полный URL)]
+    menu: list = field(default_factory=list)  # дерево [{label, url, children}]
     logo_url: str = ""
     footer_text: str = ""
 
 
 def parse_home(html: str, base: str) -> CsHome:
     home = CsHome()
-    host = urlsplit(base).netloc
     for block in re.findall(r'class="ty-banner__image-item[^"]*"[^>]*>(.*?)</div>', html, re.S):
         m = re.search(r'(?:data-src|src)="([^"]+)"', block)
         if m:
@@ -384,12 +383,7 @@ def parse_home(html: str, base: str) -> CsHome:
         path = path_of(urljoin(base, html_lib.unescape(href).strip()))
         if path:
             home.tiles.append((path, urljoin(base, html_lib.unescape(src))))
-    for href, label in re.findall(
-        r'<a\s+href="([^"]+)"\s+class="ty-menu__item-link"[^>]*>\s*([^<]+?)\s*</a>', html
-    ):
-        url = urljoin(base, html_lib.unescape(href).strip())
-        if urlsplit(url).netloc == host:
-            home.menu.append((nice_name(label), url))
+    home.menu = parse_menu(html, base)
     m = re.search(r'ty-logo-container__image[^>]+src="([^"]+)"', html) or re.search(
         r'<img[^>]+src="([^"]+/images/logos/[^"]+\.(?:png|jpe?g|webp|svg))"', html
     )
@@ -397,6 +391,54 @@ def parse_home(html: str, base: str) -> CsHome:
     footer = html.find("ty-footer")
     home.footer_text = html_to_text(html[footer:]) if footer >= 0 else ""
     return home
+
+
+# Подпись ссылки ≤1000 знаков и область ≤500 КБ — линейный разбор чужой страницы.
+MENU_REGION_MAX = 500_000
+_MENU_TOKEN_RE = re.compile(r"<li\b|</li>|<a\b([^>]*)>(.{0,1000}?)</a>", re.S | re.I)
+
+
+def parse_menu(html: str, base: str) -> list:
+    """Верхнее меню CS-Cart деревом по вложенности ``<li>`` (до 3 уровней).
+
+    Пункт — ссылка с классом ``ty-menu__item-link``/``ty-menu__submenu-link``; подпись —
+    дословно (как в оригинале). Без ``href`` (переключатель «Menü») и чужой хост — мимо."""
+    host = urlsplit(base).netloc
+    start = html.find("ty-menu__items")
+    if start < 0:
+        return []
+    end = html.find("tygh-content", start)
+    region = html[start : end if end > 0 else len(html)][:MENU_REGION_MAX]
+    roots: list = []
+    stack: list = []  # на каждый открытый <li>: узел меню или None
+    for m in _MENU_TOKEN_RE.finditer(region):
+        token = m.group(0)
+        if token.lower().startswith("<li"):
+            stack.append(None)
+            continue
+        if token.lower() == "</li>":
+            if stack:
+                stack.pop()
+            continue
+        attrs = m.group(1) or ""
+        if not re.search(r'class="[^"]*ty-menu__(?:item|submenu)-link', attrs):
+            continue
+        href = re.search(r'href="([^"]*)"', attrs)
+        label = re.sub(r"\s+", " ", html_lib.unescape(re.sub(r"<[^>]+>", "", m.group(2)))).strip()
+        if not href or not href.group(1).strip() or not label:
+            continue
+        url = urljoin(base, html_lib.unescape(href.group(1)).strip())
+        if urlsplit(url).netloc != host:
+            continue
+        node = {"label": label[:80], "url": url, "children": []}
+        parent = next((n for n in reversed(stack[:-1]) if n is not None), None)
+        if parent is not None:
+            parent["children"].append(node)
+        else:
+            roots.append(node)
+        if stack and stack[-1] is None:
+            stack[-1] = node
+    return roots
 
 
 _DAYS = {"mo": 0, "di": 1, "mi": 2, "do": 3, "fr": 4, "sa": 5, "so": 6}
@@ -883,6 +925,7 @@ class DesignOptions:
     hero_button_url: str = "/sortiment/"
     skip_banners: tuple = ()  # 1-based номера баннеров, которые не переносим
     banner_crop: tuple | None = None  # (верх, низ) долями высоты — полоса без надписей
+    replace_menu: bool = False  # перезаписать уже собранное меню (и порядок разделов)
 
 
 def _category_by_old_path(path: str):
@@ -896,35 +939,113 @@ def _category_by_old_path(path: str):
     return Category.objects.filter(slug=rule.target.strip("/").split("/")[-1]).first()
 
 
-def _menu_nodes(home: CsHome) -> list:
-    """Меню старого сайта → узлы конструктора меню (категории — по новым слагам)."""
-    nodes = []
-    for label, url in home.menu:
-        parts = urlsplit(url)
+def _old_path_target(path: str):
+    """Старый путь → (вид, новая цель): ("category", slug) | ("url", путь) | None.
+
+    Сначала точная переадресация импорта; иначе — по ХВОСТУ пути: в меню CS-Cart
+    встречаются битые ссылки (``/klassisch-schwarzertee/kenia-und-nepal/`` без раздела),
+    сопоставляем их с единственной перенесённой страницей, путь которой так кончается."""
+    from apps.catalog.models import Category
+    from apps.core.legacy_redirects import match, normalize_path
+    from apps.core.models import LegacyRedirect
+
+    norm = normalize_path(path)
+    rule = match(norm, "")
+    if rule is None and norm != "/":
+        tail = [
+            r
+            for r in LegacyRedirect.objects.filter(
+                origin="import", source_query="", source_path__endswith=norm
+            )
+            if r.status == LegacyRedirect.STATUS_MOVED
+        ]
+        rule = tail[0] if len(tail) == 1 else None
+    if rule is None or not rule.target:
+        return None
+    parts = rule.target.strip("/").split("/")
+    if len(parts) == 2 and parts[0] == "sortiment":
+        if Category.objects.filter(slug=parts[1]).exists():
+            return ("category", parts[1])
+    return ("url", rule.target)
+
+
+# Списки CS-Cart в меню → цели витрины (подпись пункта остаётся оригинальной).
+DISPATCH_MENU = {
+    "products.newest": ("url", "/sortiment/?sort=newest"),
+    "products.bestsellers": ("url", "/sortiment/"),
+    # гаснет сам, если модуль акций выключен (узел меню без адреса не рисуется)
+    "products.on_sale": ("archetype", "promotions"),
+}
+# Витрина только на немецком: английские подписи CS-Cart по умолчанию → немецкие.
+DISPATCH_LABELS_DE = {
+    "products.newest": "Neuheiten",
+    "products.bestsellers": "Bestseller",
+    "products.on_sale": "Angebote",
+}
+_CSCART_EN_LABELS = {"newest", "new", "new products", "bestsellers", "sales", "sale", "on sale"}
+
+
+def _menu_nodes(menu: list) -> list:
+    """Дерево меню старого сайта → узлы конструктора меню, как в оригинале."""
+    out = []
+    for item in menu:
+        parts = urlsplit(item["url"])
         dispatch = (parse_qs(parts.query).get("dispatch") or [""])[0]
-        if dispatch == "products.newest":
-            nodes.append({"label": "Neu", "type": "url", "target": "/sortiment/?sort=newest"})
-            continue
         if dispatch:
-            continue  # bestsellers/on_sale: у старого сайта пусты, у нас — без аналога
-        category = _category_by_old_path(path_of(url))
-        if category is None:
+            target = DISPATCH_MENU.get(dispatch)
+        else:
+            target = _old_path_target(parts.path)
+        children = _menu_nodes(item.get("children") or [])
+        if target is None and not children:
             continue
-        # Пункт CS-Cart, ведущий в подкатегорию («Weisser» → …/aromatisch), — на весь
-        # раздел с подменю: иначе соседние подкатегории из меню недостижимы.
-        while category.parent_id is not None and category.parent.is_active:
-            category = category.parent
-        if any(n.get("target") == category.slug for n in nodes):
-            continue
-        has_children = category.children.filter(is_active=True).exists()
-        nodes.append(
-            {
-                "label": label,
-                "type": "categories" if has_children else "category",
-                "target": category.slug,
-            }
-        )
-    return nodes
+        ntype, value = target or ("group", "")
+        label = item["label"]
+        if dispatch in DISPATCH_LABELS_DE and label.lower() in _CSCART_EN_LABELS:
+            label = DISPATCH_LABELS_DE[dispatch]
+        out.append({"label": label, "type": ntype, "target": value, "children": children})
+    return out
+
+
+def _count_nodes(nodes: list) -> int:
+    return sum(1 + _count_nodes(n.get("children") or []) for n in nodes)
+
+
+def _order_categories_by_menu(nodes: list) -> None:
+    """Порядок разделов каталога = порядок меню оригинала (не карты сайта)."""
+    from apps.catalog.models import Category
+
+    seen: list = []
+
+    def walk(items):
+        for n in items:
+            if n["type"] == "category" and n["target"] not in seen:
+                seen.append(n["target"])
+            walk(n["children"])
+
+    walk(nodes)
+    by_slug = {c.slug: c for c in Category.objects.filter(slug__in=seen)}
+    # раздел, в который ведёт только его подкатегория (GRÜNER → …/aromatisch), тоже в строй
+    for slug in list(seen):
+        cat = by_slug.get(slug)
+        while cat is not None and cat.parent_id:
+            cat = cat.parent
+            if cat.slug not in seen:
+                seen.insert(seen.index(slug), cat.slug)
+                by_slug[cat.slug] = cat
+    for pos, slug in enumerate(seen):
+        Category.objects.filter(slug=slug).update(sort_order=pos)
+
+
+def apply_locales(tenant, locales: list) -> None:
+    """Языки витрины бизнеса (первый — основной). Неизвестный код → ValueError."""
+    from django.conf import settings
+
+    known = {code for code, _name in settings.LANGUAGES}
+    if not locales or any(code not in known for code in locales):
+        raise ValueError(f"unknown locale in {locales!r}")
+    tenant.enabled_locales = list(dict.fromkeys(locales))
+    tenant.default_locale = tenant.enabled_locales[0]
+    tenant.save(update_fields=["enabled_locales", "default_locale"])
 
 
 def apply_design(
@@ -1001,14 +1122,24 @@ def apply_design(
         )
 
     # 4. Меню (только если владелец своё ещё не собирал).
-    if "menus" not in (tenant.site_config or {}):
-        nodes = _menu_nodes(home)
+    if options.replace_menu or "menus" not in (tenant.site_config or {}):
+        nodes = _menu_nodes(home.menu)
         if nodes:
             nav = siteconfig.normalize(config)["nav"]
-            config["menus"] = siteconfig._normalize_menus(
-                {"top": {"items": nodes}, "bottom": {"enabled": False, "items": []}}, nav
-            )
+            # Повтор с replace_menu меняет только пункты верхнего меню: нижнее меню,
+            # стиль и «липкость» шапки — настройки владельца, их не трогаем.
+            old = config.get("menus") if isinstance(config.get("menus"), dict) else {}
+            top = {**(old.get("top") or {}), "items": nodes}
+            bottom = old.get("bottom") or {"enabled": False, "items": []}
+            config["menus"] = siteconfig._normalize_menus({"top": top, "bottom": bottom}, nav)
+            _order_categories_by_menu(nodes)
             notes.append(f"menu items: {len(nodes)}")
+            kept = _count_nodes(config["menus"]["top"]["items"])
+            if kept < _count_nodes(nodes):
+                notes.append(
+                    f"menu shortened: {kept} of {_count_nodes(nodes)} entries kept "
+                    "(max 3 levels, 20 items per level)"
+                )
 
     # 5. Versand / Zahlungsarten — текстовыми блоками на «Über uns».
     blocks = dict(config.get("page_blocks") or {})

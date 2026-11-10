@@ -45,12 +45,20 @@ hover + focus-within (клавиатура/тап по chevron-пункту бе
               <span class="text-gray-400" aria-hidden="true">→</span>
             </a>
             {% endif %}
+            {% if c.children %}
+            <div class="col-span-2 flex flex-wrap gap-1.5 px-2 pb-1">
+              {% for g in c.children %}<a href="{{ g.url }}" data-nav-l3 class="rounded-full border border-gray-200 px-2.5 py-1 text-xs text-gray-600 hover:bg-gray-50">{{ g.label }}</a>{% endfor %}
+            </div>
+            {% endif %}
           {% endfor %}
         </div>
         {% else %}
         <div class="bg-white rounded-xl shadow-lg ring-1 ring-black/5 py-2 min-w-[200px]">
           {% for c in item.children %}
-            <a href="{{ c.url }}" class="block px-4 py-2 whitespace-nowrap text-gray-700 hover:bg-gray-50">{{ c.label }}</a>
+            {% if c.url %}<a href="{{ c.url }}" class="block px-4 py-2 whitespace-nowrap text-gray-700 hover:bg-gray-50{% if c.children %} font-medium{% endif %}">{{ c.label }}</a>{% else %}<div class="px-4 pt-2 pb-1 text-xs font-semibold uppercase tracking-wide text-gray-400 whitespace-nowrap">{{ c.label }}</div>{% endif %}
+            {% for g in c.children %}
+              <a href="{{ g.url }}" data-nav-l3 class="block pl-8 pr-4 py-1.5 whitespace-nowrap text-sm text-gray-600 hover:bg-gray-50">{{ g.label }}</a>
+            {% endfor %}
           {% endfor %}
         </div>
         {% endif %}
@@ -81,7 +89,10 @@ hover + focus-within (клавиатура/тап по chevron-пункту бе
         нельзя — видимость строк переключает общий JS («hidden» ↔ «block»),
         поэтому фото выравниваем как inline-элемент.{% endcomment %}
         {% for c in item.children %}
-          <a href="{{ c.url }}" data-nav-p="{{ forloop.parentloop.counter0 }}" class="hidden px-4 py-2 pl-7 whitespace-nowrap text-gray-600 hover:bg-gray-50">{% if c.image %}<img src="{{ c.image }}" alt="" loading="lazy" class="inline-block align-middle mr-2 w-8 h-8 rounded object-cover">{% endif %}{{ c.label }}</a>
+          {% if c.url %}<a href="{{ c.url }}" data-nav-p="{{ forloop.parentloop.counter0 }}" class="hidden px-4 py-2 pl-7 whitespace-nowrap text-gray-600 hover:bg-gray-50">{% if c.image %}<img src="{{ c.image }}" alt="" loading="lazy" class="inline-block align-middle mr-2 w-8 h-8 rounded object-cover">{% endif %}{{ c.label }}</a>{% else %}<div data-nav-p="{{ forloop.parentloop.counter0 }}" class="hidden px-4 pt-2 pb-1 pl-7 text-xs font-semibold uppercase tracking-wide text-gray-400 whitespace-nowrap">{{ c.label }}</div>{% endif %}
+          {% for g in c.children %}
+            <a href="{{ g.url }}" data-nav-p="{{ forloop.parentloop.parentloop.counter0 }}" class="hidden px-4 py-1.5 pl-11 whitespace-nowrap text-sm text-gray-500 hover:bg-gray-50">{{ g.label }}</a>
+          {% endfor %}
         {% endfor %}
       {% endfor %}
     </div>

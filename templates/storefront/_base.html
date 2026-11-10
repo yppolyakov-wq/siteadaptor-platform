@@ -173,7 +173,10 @@
         {% comment %}MEN-15: у категорий — мини-фото 32px в строке (плитки на
         телефоне съели бы весь экран); без фото строка прежняя.{% endcomment %}
         {% for c in item.children %}
-          <a href="{{ c.url }}" class="flex items-center gap-2 py-2 pl-4 text-gray-600 hover:text-gray-900">{% if c.image %}<img src="{{ c.image }}" alt="" loading="lazy" class="w-8 h-8 rounded object-cover shrink-0">{% endif %}{{ c.label }}</a>
+          {% if c.url %}<a href="{{ c.url }}" class="flex items-center gap-2 py-2 pl-4 text-gray-600 hover:text-gray-900">{% if c.image %}<img src="{{ c.image }}" alt="" loading="lazy" class="w-8 h-8 rounded object-cover shrink-0">{% endif %}{{ c.label }}</a>{% else %}<div class="pt-2 pb-1 pl-4 text-xs font-semibold uppercase tracking-wide text-gray-400">{{ c.label }}</div>{% endif %}
+          {% for g in c.children %}
+            <a href="{{ g.url }}" class="block py-1.5 pl-8 text-sm text-gray-500 hover:text-gray-900">{{ g.label }}</a>
+          {% endfor %}
         {% endfor %}
       {% endfor %}
     </nav>

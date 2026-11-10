@@ -2572,7 +2572,9 @@ MENU_NODE_TYPES = (
     "group",
 )
 _MAX_MENU_ITEMS = 20  # потолок пунктов на уровень
-_MENU_MAX_DEPTH = 2  # глубина вложенности (родитель + дети)
+# M21: 3 уровня — меню, перенесённые с CS-Cart («Schwarzer → Klassisch → Assam»);
+# третий уровень рисуется отступом в той же панели, плитки фото — только у второго.
+_MENU_MAX_DEPTH = 3  # глубина вложенности (родитель + дети + внуки)
 # Соответствие легаси-пунктов nav → узлы меню (для вывода menus.top из nav).
 _NAV_KEY_TO_NODE = {
     "offers": ("page", "home"),
@@ -2602,7 +2604,7 @@ def _clean_menu_node(raw, depth: int):
     ограничена _MENU_MAX_DEPTH (дети дальше не разбираются)."""
     if not isinstance(raw, dict):
         return None
-    label = _s(raw.get("label"))
+    label = _s(raw.get("label"))[:80]
     if not label:
         return None
     ntype = raw.get("type") if raw.get("type") in MENU_NODE_TYPES else "url"

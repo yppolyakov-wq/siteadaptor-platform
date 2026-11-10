@@ -61,6 +61,32 @@ def _money(raw):
     return value if value >= 0 else None
 
 
+BRANCH_MAX_DEPTH = 6  # предохранитель от петли в дереве (parent → потомок)
+
+
+def branch_ids(slug: str) -> set:
+    """Живая категория по слагу и все её живые потомки (по запросу на уровень).
+
+    Выключенная ветка обрывает спуск: товары под ней на витрину не выходят."""
+    from .models import Category
+
+    level = set(Category.objects.filter(slug=slug, is_active=True).values_list("id", flat=True))
+    seen = set(level)
+    for _depth in range(BRANCH_MAX_DEPTH):
+        if not level:
+            break
+        level = (
+            set(
+                Category.objects.filter(parent_id__in=level, is_active=True).values_list(
+                    "id", flat=True
+                )
+            )
+            - seen
+        )
+        seen |= level
+    return seen
+
+
 class CatalogFacets(FacetProvider):
     kind = "product"
     default_sort = "newest"
@@ -107,12 +133,14 @@ class CatalogFacets(FacetProvider):
         if sel["kategorie"]:
             from django.db.models import Q
 
-            # KAT-1: категория-контейнер включает товары ПРЯМЫХ детей — иначе
+            # KAT-1: категория-контейнер включает товары своих подкатегорий — иначе
             # страница /sortiment/<slug>/ родителя без собственных товаров была
             # бы пустой сеткой под шапкой (осознанная смена семантики фасета).
+            # M21 (переезд с CS-Cart, 3 уровня «Schwarzer → Klassisch → Assam»):
+            # ВСЕ уровни вниз, а не только прямые дети — иначе раздел показывал
+            # 20 из 48 сортов, как и любой магазин с глубоким деревом.
             items = items.filter(
-                Q(category__slug=sel["kategorie"])
-                | Q(category__parent__slug=sel["kategorie"], category__parent__is_active=True),
+                category_id__in=branch_ids(sel["kategorie"]),
                 category__is_active=True,
             )
         if sel["diet"]:

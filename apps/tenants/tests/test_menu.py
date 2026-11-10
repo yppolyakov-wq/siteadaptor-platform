@@ -40,7 +40,10 @@ def test_custom_menu_normalized_with_depth_and_type_guard():
                                 {"label": ""},  # без подписи → отброшен
                                 {
                                     "label": "Tief",
-                                    "children": [{"label": "Zu tief"}],  # глубина >2 → дети режутся
+                                    # M21: третий уровень хранится, четвёртый режется.
+                                    "children": [
+                                        {"label": "Dritte", "children": [{"label": "Zu tief"}]}
+                                    ],
                                 },
                             ],
                         },
@@ -62,7 +65,8 @@ def test_custom_menu_normalized_with_depth_and_type_guard():
     child_labels = [c["label"] for c in parent["children"]]
     assert child_labels == ["Fastfood", "Tief"]  # пустой выброшен
     deep = next(c for c in parent["children"] if c["label"] == "Tief")
-    assert deep["children"] == []  # глубже 2 уровней не разбираем
+    assert [c["label"] for c in deep["children"]] == ["Dritte"]
+    assert deep["children"][0]["children"] == []  # глубже 3 уровней не разбираем
     assert cfg["menus"]["bottom"]["enabled"] is True
 
 
