@@ -36722,3 +36722,22 @@ msgstr "nur %(s)s: %(old)s → %(new)s"
 
 msgid "Die Prüfung ist fehlgeschlagen. Bitte laden Sie die Datei erneut hoch oder wenden Sie sich an den Support."
 msgstr "Die Prüfung ist fehlgeschlagen. Bitte laden Sie die Datei erneut hoch oder wenden Sie sich an den Support."
+
+msgid "Rechtliche Seiten"
+msgstr "Rechtliche Seiten"
+
+msgid "Impressum, Datenschutz, Widerruf und AGB sind gesetzlich vorgeschrieben und können nicht gelöscht werden. Ohne eigenen Text wird er automatisch aus Ihren Geschäftsdaten erstellt."
+msgstr "Impressum, Datenschutz, Widerruf und AGB sind gesetzlich vorgeschrieben und können nicht gelöscht werden. Ohne eigenen Text wird er automatisch aus Ihren Geschäftsdaten erstellt."
+
+msgid "Eigener Text"
+msgstr "Eigener Text"
+
+msgid "Automatisch erstellt"
+msgstr "Automatisch erstellt"
+
+msgid "Kein Text – Seite ausgeblendet"
+msgstr "Kein Text – Seite ausgeblendet"
+
+#, python-format
+msgid "%(t)s bearbeiten"
+msgstr "%(t)s bearbeiten"

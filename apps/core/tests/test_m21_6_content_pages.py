@@ -258,3 +258,29 @@ def test_menu_resolves_all_cpage_links_with_one_query(django_assert_max_num_quer
     with django_assert_max_num_queries(3):  # savepoint + select, не по пункту
         urls = [menu._node_url(tenant, {"type": "cpage", "target": s}) for s in "abcx"]
     assert urls == ["/seite/a/", "/seite/b/", "/seite/c/", None]
+
+
+def test_legal_pages_listed_with_state_and_link_to_legal_tab():
+    """M21.6: Impressum/Datenschutz/Widerruf/AGB — строками списка «Seiten» (без удаления)."""
+    from apps.core.models import LegalDoc
+
+    LegalDoc.objects.create(kind="impressum", locale="de", text="Teeladen Haan")
+    rows = {r.kind: r for r in views._legal_pages(_req())}
+    assert list(rows) == ["impressum", "datenschutz", "widerruf", "agb"]
+    assert (rows["impressum"].state, rows["datenschutz"].state, rows["agb"].state) == (
+        "own",
+        "auto",
+        "off",
+    )
+    assert rows["impressum"].url == "/impressum/" and rows["agb"].url == "/agb/"
+
+    html = views.pages_list(_req(user=_user())).content.decode()
+    assert 'data-legal-row="impressum"' in html and 'data-legal-row="agb"' in html
+
+
+def test_tab_query_opens_tab_in_shared_switch():
+    """«?tab=agb» со списка «Seiten» открывает вкладку AGB на «Recht & Steuern»."""
+    from pathlib import Path
+
+    js = Path("templates/tenant/_i18n_switch.html").read_text()
+    assert '.get("tab")' in js and "setTab(tab)" in js

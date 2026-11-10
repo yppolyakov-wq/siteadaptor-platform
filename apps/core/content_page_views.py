@@ -60,7 +60,46 @@ def pages_list(request):
     for page in pages:
         page.url = content_pages.page_url(page)
         page.system_label = content_pages.SYSTEM_LABELS.get(page.slug, "")
-    return render(request, "tenant/content_pages.html", {"pages": pages, "nav": "content-pages"})
+    return render(
+        request,
+        "tenant/content_pages.html",
+        {"pages": pages, "legal_pages": _legal_pages(request), "nav": "content-pages"},
+    )
+
+
+#: M21.6: правовые страницы витрины — живут в «Recht & Steuern» (LegalDoc), в списке
+#: «Seiten» показываем их строками со ссылкой туда (удалить нельзя — закон).
+_LEGAL_PAGES = (
+    ("impressum", "storefront-impressum"),
+    ("datenschutz", "storefront-privacy"),
+    ("widerruf", "storefront-withdrawal"),
+    ("agb", "storefront-agb"),
+)
+
+
+def _legal_pages(request) -> list:
+    from django.urls import reverse
+
+    from apps.core.models import LegalDoc
+
+    tenant = getattr(request, "tenant", None)
+    locale = (getattr(tenant, "default_locale", "") or "de").split("-")[0]
+    own = set(
+        LegalDoc.objects.filter(locale=locale).exclude(text="").values_list("kind", flat=True)
+    )
+    labels = dict(LegalDoc.KIND_CHOICES)
+    rows = []
+    for kind, url_name in _LEGAL_PAGES:
+        if kind in own:
+            state = "own"
+        elif kind == "agb":
+            state = "off"  # без текста страницы /agb/ нет
+        else:
+            state = "auto"
+        rows.append(
+            SimpleNamespace(kind=kind, title=labels[kind], url=reverse(url_name), state=state)
+        )
+    return rows
 
 
 def _form(request, page, *, created: bool):

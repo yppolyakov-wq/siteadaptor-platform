@@ -36635,3 +36635,22 @@ msgstr "only %(s)s: %(old)s → %(new)s"
 
 msgid "Die Prüfung ist fehlgeschlagen. Bitte laden Sie die Datei erneut hoch oder wenden Sie sich an den Support."
 msgstr "The check failed. Please upload the file again or contact support."
+
+msgid "Rechtliche Seiten"
+msgstr "Legal pages"
+
+msgid "Impressum, Datenschutz, Widerruf und AGB sind gesetzlich vorgeschrieben und können nicht gelöscht werden. Ohne eigenen Text wird er automatisch aus Ihren Geschäftsdaten erstellt."
+msgstr "Imprint, privacy policy, withdrawal and terms are required by law and cannot be deleted. Without your own text, it is created automatically from your business data."
+
+msgid "Eigener Text"
+msgstr "Own text"
+
+msgid "Automatisch erstellt"
+msgstr "Created automatically"
+
+msgid "Kein Text – Seite ausgeblendet"
+msgstr "No text – page hidden"
+
+#, python-format
+msgid "%(t)s bearbeiten"
+msgstr "Edit %(t)s"

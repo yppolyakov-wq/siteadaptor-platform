@@ -278,6 +278,10 @@
   // T-8.5b: прямая ссылка на перевод — «?sprache=en» открывает форму сразу в этом
   // языке (вход «In weitere Sprachen übersetzen» с экрана «Fertig»).
   function openFromUrl() {
+    // M21.6: «?tab=<ключ>» открывает вкладку (список «Seiten» → «Recht»: Impressum);
+    // ключ без кнопки setTab игнорирует.
+    var tab = new URLSearchParams(window.location.search).get("tab") || "";
+    if (/^[a-z0-9_-]{1,32}$/.test(tab)) setTab(tab);
     var want = new URLSearchParams(window.location.search).get("sprache") || "";
     if (!/^[a-z]{2,3}$/.test(want)) return;
     var known = Array.prototype.some.call(

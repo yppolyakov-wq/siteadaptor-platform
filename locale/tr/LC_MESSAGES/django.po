@@ -36781,3 +36781,22 @@ msgstr "sadece %(s)s: %(old)s → %(new)s"
 
 msgid "Die Prüfung ist fehlgeschlagen. Bitte laden Sie die Datei erneut hoch oder wenden Sie sich an den Support."
 msgstr "Kontrol başarısız oldu. Lütfen dosyayı yeniden yükleyin veya destekle iletişime geçin."
+
+msgid "Rechtliche Seiten"
+msgstr "Yasal sayfalar"
+
+msgid "Impressum, Datenschutz, Widerruf und AGB sind gesetzlich vorgeschrieben und können nicht gelöscht werden. Ohne eigenen Text wird er automatisch aus Ihren Geschäftsdaten erstellt."
+msgstr "Künye, gizlilik, cayma hakkı ve genel şartlar yasal olarak zorunludur ve silinemez. Kendi metniniz yoksa metin işletme bilgilerinizden otomatik oluşturulur."
+
+msgid "Eigener Text"
+msgstr "Kendi metin"
+
+msgid "Automatisch erstellt"
+msgstr "Otomatik oluşturuldu"
+
+msgid "Kein Text – Seite ausgeblendet"
+msgstr "Metin yok – sayfa gizli"
+
+#, python-format
+msgid "%(t)s bearbeiten"
+msgstr "%(t)s düzenle"

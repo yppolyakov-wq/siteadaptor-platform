@@ -36957,3 +36957,22 @@ msgstr "лише %(s)s: %(old)s → %(new)s"
 
 msgid "Die Prüfung ist fehlgeschlagen. Bitte laden Sie die Datei erneut hoch oder wenden Sie sich an den Support."
 msgstr "Перевірка не вдалася. Завантажте файл ще раз або напишіть у підтримку."
+
+msgid "Rechtliche Seiten"
+msgstr "Правові сторінки"
+
+msgid "Impressum, Datenschutz, Widerruf und AGB sind gesetzlich vorgeschrieben und können nicht gelöscht werden. Ohne eigenen Text wird er automatisch aus Ihren Geschäftsdaten erstellt."
+msgstr "Impressum, політика конфіденційності, відмова від договору та AGB обов'язкові за законом, видалити їх не можна. Без власного тексту він створюється автоматично з даних вашого бізнесу."
+
+msgid "Eigener Text"
+msgstr "Власний текст"
+
+msgid "Automatisch erstellt"
+msgstr "Створено автоматично"
+
+msgid "Kein Text – Seite ausgeblendet"
+msgstr "Немає тексту — сторінку приховано"
+
+#, python-format
+msgid "%(t)s bearbeiten"
+msgstr "Змінити: %(t)s"
