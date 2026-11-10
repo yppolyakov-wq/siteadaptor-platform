@@ -61,6 +61,7 @@ def test_category_items_are_exactly_category_scope():
 
 
 def test_tag_and_brand_items():
+    follow.brand_label.cache_clear()
     portal = _portal()
     tenant = _tenant()
     vegan = _listing(tenant, city_tags=["vegan"])
@@ -150,3 +151,17 @@ def test_follow_page_offers_section_switch_for_category():
     req = _req("get", "/folgen/", {"bereich": "brot-backwaren", "umfang": "bereich"}, portal=portal)
     html = follow_views.follow_page(req).content.decode()
     assert 'href="?bereich=brot-backwaren"' in html
+
+
+def test_doi_payload_keys_revalidated():
+    """Подписанный, но устаревший токен с неизвестным ключом не создаёт пустую подписку."""
+    ok = {"k": "category", "t": "brot-backwaren", "c": CITY}
+    assert follow.target_from_payload(ok) == follow.Target("category", "brot-backwaren", CITY)
+    for bad in (
+        {"k": "category", "t": "weg", "c": CITY},
+        {"k": "category", "t": "lebensmittel-getraenke", "c": CITY},  # раздел ≠ категория
+        {"k": "tag", "t": "erfunden", "c": CITY},
+        {"k": "brand", "t": "Bosch", "c": CITY},  # не нормализованный ключ
+        {"k": "tag", "t": "vegan", "c": ""},
+    ):
+        assert follow.target_from_payload(bad) is None, bad

@@ -2,13 +2,12 @@
 
 До NT такие подписки жили как вид «query» (sha256 набора). Теперь у них отдельный вид, и центр
 подписок видит их как отмеченные пункты. Дубль (житель уже подписан на ту же цель новым видом)
-сливается: остаётся одна строка с более ранней датой согласия (Art. 7 DSGVO). Идемпотентно:
+сливается: остаётся одна строка с более ранней датой согласия (Art. 7 DSGVO); частота и
+портал — у оставшейся строки (её житель выбирал позже, через новый вид). Идемпотентно:
 повторный прогон ничего не находит. Обратный ход — noop (строки нового вида остаются валидными).
 """
 
 from django.db import migrations
-
-BRAND_MAX = 60  # = search.BRAND_MAX
 
 
 def _target(pairs, cc):
@@ -23,7 +22,9 @@ def _target(pairs, cc):
     if name == "merkmal" and cc.tag_label(value):
         return "tag", value
     if name == "marke":
-        key = " ".join(value.split())[:BRAND_MAX].casefold()
+        from apps.aggregator.search import clean_brand
+
+        key = clean_brand(value).casefold()  # = follow.brand_key
         return ("brand", key) if key else None
     return None
 

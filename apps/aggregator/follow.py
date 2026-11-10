@@ -15,6 +15,7 @@ from __future__ import annotations
 import secrets
 from dataclasses import dataclass
 from datetime import timedelta
+from functools import lru_cache
 from urllib.parse import urlencode
 
 from django.conf import settings
@@ -153,8 +154,12 @@ def brand_key(value: str) -> str:
     return clean_brand(value or "").casefold()
 
 
+@lru_cache(maxsize=512)
 def brand_label(key: str) -> str:
-    """Подпись марки так, как её пишет каталог (первое совпадение без регистра)."""
+    """Подпись марки так, как её пишет каталог (первое совпадение без регистра).
+
+    Мемо на процесс: подпись нужна сводке/странице управления на каждую подписку-марку
+    (до 40) — без кэша это запрос на строку."""
     name = (
         AggregatorListing.objects.filter(brand__iexact=key)
         .exclude(brand="")
@@ -225,14 +230,21 @@ def scope_switch(params, target: Target) -> dict | None:
     if category is None:
         return None
     section = cc.section(category.section)
+    # Прочие параметры (next, city) сохраняем — меняются только bereich/umfang.
+    rest = [
+        (k, v)
+        for k in params
+        if k not in ("bereich", "umfang")
+        for v in (params.getlist(k) if hasattr(params, "getlist") else [params[k]])
+    ]
     if target.kind == FollowSubscription.TARGET_CATEGORY:
         return {
             "label": _("Ganzer Bereich %(sec)s") % {"sec": section.label if section else ""},
-            "query": urlencode([("bereich", category.key), ("umfang", "bereich")]),
+            "query": urlencode([*rest, ("bereich", category.key), ("umfang", "bereich")]),
         }
     return {
         "label": _("Nur %(cat)s") % {"cat": category.label},
-        "query": urlencode([("bereich", category.key)]),
+        "query": urlencode([*rest, ("bereich", category.key)]),
     }
 
 
@@ -270,6 +282,19 @@ def target_from_payload(payload: dict) -> Target | None:
     """Цель из DOI-токена. Набор поиска ПЕРЕПРОВЕРЯЕТСЯ белым списком: подпись подписью,
     но правила канонизации могли измениться, пока письмо лежало."""
     kind = payload.get("k", "")
+    if kind in SINGLE_KINDS:
+        # NT-A1: ключ перепроверяется — реестр мог измениться, пока письмо лежало.
+        key = payload.get("t", "")
+        valid = {
+            FollowSubscription.TARGET_CATEGORY: lambda k: (
+                cc.category(k) is not None and cc.section(k) is None
+            ),
+            FollowSubscription.TARGET_TAG: lambda k: bool(cc.tag_label(k)),
+            FollowSubscription.TARGET_BRAND: lambda k: bool(k) and brand_key(k) == k,
+        }[kind](key)
+        if not valid or not payload.get("c"):
+            return None
+        return Target(kind, key, payload.get("c", ""))
     if kind != FollowSubscription.TARGET_QUERY:
         return Target(kind, payload.get("t", ""), payload.get("c", ""))
     from . import follow_query
