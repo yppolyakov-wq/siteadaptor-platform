@@ -1,14 +1,31 @@
 <html><body>
 <div class="ty-logo-container"><a href="https://shop.example/"><img class="ty-pict  ty-logo-container__image   cm-image" src="https://shop.example/images/logos/8/Logo.jpg" /></a></div>
-<ul>
-<li><a  href="/schwarzertee/" class="ty-menu__item-link" >
-   SCHWARZER
-</a></li>
-<li><a href="https://shop.example/grunertee/" class="ty-menu__item-link" > GRÜNER </a></li>
-<li><a href="/schwarzertee/klassisch/assam/" class="ty-menu__item-link" > ASSAM </a></li>
-<li><a href="https://shop.example/index.php?dispatch=products.newest" class="ty-menu__item-link" > Newest </a></li>
-<li><a href="https://shop.example/index.php?dispatch=products.on_sale" class="ty-menu__item-link" > Sales </a></li>
-<li><a href="https://other.example/x/" class="ty-menu__item-link" > Fremd </a></li>
+<ul class="ty-menu__items cm-responsive-menu">
+<li class="ty-menu__item"><a class="ty-menu__item-link">Menü</a></li>
+<li class="ty-menu__item cm-menu-item-responsive ">
+  <a class="ty-menu__item-toggle visible-phone cm-responsive-menu-toggle"><span class="ty-icon"></span></a>
+  <a  href="/schwarzertee/" class="ty-menu__item-link" >
+     SCHWARZER
+  </a>
+  <div class="ty-menu__submenu"><ul class="ty-menu__submenu-items">
+    <li class="ty-top-mine__submenu-col">
+      <div class="ty-menu__submenu-item-header"><a href="/schwarzertee/klassisch" class="ty-menu__submenu-link" >Klassisch</a></div>
+      <a class="ty-menu__item-toggle visible-phone"><span></span></a>
+      <div class="ty-menu__submenu"><ul class="ty-menu__submenu-list">
+        <li class="ty-menu__submenu-item"><a href="/klassisch/assam/"   class="ty-menu__submenu-link" >Assam</a></li>
+        <li class="ty-menu__submenu-item"><a href="/schwarzertee/klassisch/assam/assam-ctc/" class="ty-menu__submenu-link" >Assam CTC</a></li>
+      </ul></div>
+    </li>
+    <li class="ty-top-mine__submenu-col">
+      <div class="ty-menu__submenu-item-header"><a href="/schwarzertee/aromatisch/" class="ty-menu__submenu-link" >Aromatisch</a></div>
+    </li>
+  </ul></div>
+</li>
+<li class="ty-menu__item"><a  href="https://shop.example/grunertee/aromatisch" class="ty-menu__item-link" > GRÜNER </a></li>
+<li class="ty-menu__item"><a href="https://shop.example/index.php?dispatch=products.newest" class="ty-menu__item-link" > Newest </a></li>
+<li class="ty-menu__item"><a href="https://shop.example/index.php?dispatch=products.bestsellers" class="ty-menu__item-link" > Bestsellers </a></li>
+<li class="ty-menu__item"><a href="https://shop.example/index.php?dispatch=products.on_sale" class="ty-menu__item-link" > Sales </a></li>
+<li class="ty-menu__item"><a href="https://other.example/x/" class="ty-menu__item-link" > Fremd </a></li>
 </ul>
 <div class="banners owl-carousel">
   <div class="ty-banner__image-item ty-scroller__item"><img class="ty-banner__image" src="https://shop.example/images/promo/9/b1.jpg" /></div>

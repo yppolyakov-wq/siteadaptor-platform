@@ -317,7 +317,33 @@ def test_parse_home_banners_tiles_menu_logo_footer():
         ("schwarzertee", BASE + "images/promo/9/black.png"),
         ("grunertee", BASE + "images/promo/9/green.png"),
     ]
-    assert [label for label, _u in home.menu] == ["Schwarzer", "Grüner", "Assam", "Newest", "Sales"]
+
+    # M21.4: меню — деревом, подписи дословно (как в оригинале), без пунктов без ссылки
+    # («Menü» — переключатель телефона) и чужих хостов.
+    def tree(nodes):
+        return [(n["label"], n["url"].replace(BASE, "/"), tree(n["children"])) for n in nodes]
+
+    assert tree(home.menu) == [
+        (
+            "SCHWARZER",
+            "/schwarzertee/",
+            [
+                (
+                    "Klassisch",
+                    "/schwarzertee/klassisch",
+                    [
+                        ("Assam", "/klassisch/assam/", []),
+                        ("Assam CTC", "/schwarzertee/klassisch/assam/assam-ctc/", []),
+                    ],
+                ),
+                ("Aromatisch", "/schwarzertee/aromatisch/", []),
+            ],
+        ),
+        ("GRÜNER", "/grunertee/aromatisch", []),
+        ("Newest", "/index.php?dispatch=products.newest", []),
+        ("Bestsellers", "/index.php?dispatch=products.bestsellers", []),
+        ("Sales", "/index.php?dispatch=products.on_sale", []),
+    ]
     assert home.logo_url == BASE + "images/logos/8/Logo.jpg"
     assert "Marktpassage 2" in home.footer_text
 
@@ -399,12 +425,41 @@ def test_apply_design_like_old_site_and_keeps_owner_edits_on_rerun():
     order = [s["key"] for s in cfg["sections"] if s.get("enabled")][:4]
     assert order == ["hero", "categories", "products", "about"]
     assert Category.objects.get(slug="schwarzertee").images
-    items = cfg["menus"]["top"]["items"]
-    assert [(i["label"], i["type"], i["target"]) for i in items] == [
-        ("Schwarzer", "categories", "schwarzertee"),
-        ("Grüner", "categories", "grunertee"),
-        ("Neu", "url", "/sortiment/?sort=newest"),
+
+    def nodes(items):
+        return [(i["label"], i["type"], i["target"], nodes(i["children"])) for i in items]
+
+    product_url = Product.objects.get(sku="HT105").get_absolute_url()
+    assert nodes(cfg["menus"]["top"]["items"]) == [
+        (
+            "SCHWARZER",
+            "category",
+            "schwarzertee",
+            [
+                (
+                    "Klassisch",
+                    "category",
+                    "klassisch",
+                    [
+                        # битая ссылка оригинала (без /schwarzertee/) — по хвосту пути
+                        ("Assam", "category", "assam", []),
+                        ("Assam CTC", "url", product_url, []),
+                    ],
+                ),
+                ("Aromatisch", "category", "aromatisch", []),
+            ],
+        ),
+        # как в оригинале: пункт ведёт прямо в подкатегорию, без подъёма к разделу
+        ("GRÜNER", "category", "grunertee-aromatisch", []),
+        ("Neuheiten", "url", "/sortiment/?sort=newest", []),
+        ("Bestseller", "url", "/sortiment/", []),
+        ("Angebote", "archetype", "promotions", []),
     ]
+    # порядок разделов каталога — по меню оригинала
+    roots = list(Category.objects.filter(parent=None).order_by("sort_order"))
+    assert [c.slug for c in roots] == ["schwarzertee", "grunertee"]
+    kids = Category.objects.filter(parent__slug="schwarzertee").order_by("sort_order")
+    assert [c.slug for c in kids] == ["klassisch", "aromatisch"]
     info = cfg["page_blocks"]["info"]
     assert info[0]["data"]["title"] == "Versand"
     assert "wie folgt" not in info[0]["data"]["body"]
@@ -422,6 +477,26 @@ def test_apply_design_like_old_site_and_keeps_owner_edits_on_rerun():
     tenant.refresh_from_db()
     cfg = siteconfig.normalize(tenant.site_config)
     assert cfg["heroes"][0]["title"] == "Eigener" and tenant.primary_color == "#123456"
+    cfg_raw = dict(tenant.site_config)
+    cfg_raw["menus"] = {
+        "top": {"items": [{"label": "Eigenes", "type": "url", "target": "/x/"}], "sticky": False},
+        "bottom": {"enabled": True, "items": [{"label": "Fuß", "type": "url", "target": "/y/"}]},
+    }
+    tenant.site_config = cfg_raw
+    tenant.save(update_fields=["site_config"])
+    cscart.apply_design(tenant, site, options=options, fetch_image=fetch_image)
+    tenant.refresh_from_db()
+    assert siteconfig.normalize(tenant.site_config)["menus"]["top"]["items"][0]["label"] == (
+        "Eigenes"
+    )
+    options.replace_menu = True
+    cscart.apply_design(tenant, site, options=options, fetch_image=fetch_image)
+    tenant.refresh_from_db()
+    top = siteconfig.normalize(tenant.site_config)["menus"]["top"]["items"]
+    assert top[0]["label"] == "SCHWARZER"
+    menus = siteconfig.normalize(tenant.site_config)["menus"]
+    # нижнее меню и «липкость» шапки — владельца, replace_menu их не трогает
+    assert menus["bottom"]["items"][0]["label"] == "Fuß" and menus["top"]["sticky"] is False
     assert len(cfg["page_blocks"]["info"]) == 1
 
 
@@ -511,3 +586,49 @@ def test_command_create_requires_owner_data_and_creates(monkeypatch):
     )
     assert created["slug"] == "haanerteeladen" and created["business_type"] == "online_shop"
     assert created["email"] == "shop@haanerteeladen.de" and len(created["password"]) > 20
+    from apps.tenants.models import Tenant
+
+    shop = Tenant.objects.get(schema_name="haanerteeladen")
+    assert shop.enabled_locales == ["de"] and shop.default_locale == "de"
+
+
+@pytest.mark.django_db
+def test_command_rerun_passes_replace_menu_and_locales(monkeypatch):
+    from django.core.management import call_command
+    from django.core.management.base import CommandError
+
+    from apps.tenants.tests.factories import TenantFactory
+
+    TenantFactory(schema_name="teeladen", enabled_locales=["de", "en"], default_locale="de")
+    monkeypatch.setattr(cscart, "scrape", lambda *a, **k: cscart.ScrapedSite(base=BASE))
+    seen = {}
+    monkeypatch.setattr(
+        "apps.imports.cscart.apply_design",
+        lambda *a, **k: seen.update(options=k["options"]) or [],
+    )
+    monkeypatch.setattr(
+        "apps.imports.management.commands.import_cscart.schema_context",
+        lambda _s: __import__("contextlib").nullcontext(),
+    )
+    with pytest.raises(CommandError):
+        call_command("import_cscart", schema="teeladen", url=BASE, locales="de,xx")
+    call_command(
+        "import_cscart", schema="teeladen", url=BASE, apply=True, replace_menu=True, locales="de"
+    )
+    from apps.tenants.models import Tenant
+
+    shop = Tenant.objects.get(schema_name="teeladen")
+    assert seen["options"].replace_menu is True
+    assert shop.enabled_locales == ["de"]
+
+
+@pytest.mark.django_db
+def test_apply_locales_sets_only_german():
+    from apps.tenants.tests.factories import TenantFactory
+
+    tenant = TenantFactory(schema_name="public", enabled_locales=["de", "en"], default_locale="en")
+    cscart.apply_locales(tenant, ["de"])
+    tenant.refresh_from_db()
+    assert tenant.enabled_locales == ["de"] and tenant.default_locale == "de"
+    with pytest.raises(ValueError):
+        cscart.apply_locales(tenant, ["xx"])

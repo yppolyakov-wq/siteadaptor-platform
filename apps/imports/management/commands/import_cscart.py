@@ -43,6 +43,19 @@ class Command(BaseCommand):
             default="",
             help="Полоса баннера без надписей, доли высоты «верх:низ», напр. 0.30:0.72.",
         )
+        parser.add_argument(
+            "--replace-menu",
+            action="store_true",
+            help=(
+                "Перезаписать верхнее меню меню старого магазина и порядок разделов "
+                "каталога по нему (иначе — только если меню нет)."
+            ),
+        )
+        parser.add_argument(
+            "--locales",
+            default="",
+            help="Языки витрины через запятую, первый — основной (напр. de). С --create — de.",
+        )
         # Создать магазин, если его ещё нет (вместо регистрации на сайте).
         parser.add_argument("--create", action="store_true", help="Создать бизнес-получатель.")
         parser.add_argument("--name", default="", help="Название бизнеса (для --create).")
@@ -76,6 +89,16 @@ class Command(BaseCommand):
             if not 0 <= top < bottom <= 1:
                 raise CommandError("--banner-crop must satisfy 0 <= top < bottom <= 1")
             crop = (top, bottom)
+        locales = [x.strip() for x in opts["locales"].split(",") if x.strip()]
+        if not locales and tenant is None:
+            locales = ["de"]
+        if locales:
+            from django.conf import settings
+
+            known = {code for code, _ in settings.LANGUAGES}
+            unknown = [x for x in locales if x not in known]
+            if unknown:
+                raise CommandError(f"unknown --locales: {', '.join(unknown)}")
         url = opts["url"].strip()
         if not url.startswith(("https://", "http://")):
             raise CommandError("--url must start with http(s)://")
@@ -115,9 +138,13 @@ class Command(BaseCommand):
                         hero_button_url=opts["hero_url"],
                         skip_banners=tuple(opts["skip_banner"]),
                         banner_crop=crop,
+                        replace_menu=opts["replace_menu"],
                     ),
                     with_images=not opts["no_images"],
                 )
+        if locales:
+            cscart.apply_locales(tenant, locales)
+            design_notes.append(f"storefront languages: {', '.join(locales)}")
         self.stdout.write(
             self.style.SUCCESS(
                 f"done: {stats.categories_created} categories, {stats.products_created} new / "

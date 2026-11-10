@@ -2687,7 +2687,7 @@ def _clean_menu_node(raw, depth: int):
     ограничена _MENU_MAX_DEPTH (дети дальше не разбираются)."""
     if not isinstance(raw, dict):
         return None
-    label = _s(raw.get("label"))
+    label = _s(raw.get("label"))[:80]
     if not label:
         return None
     ntype = raw.get("type") if raw.get("type") in MENU_NODE_TYPES else "url"

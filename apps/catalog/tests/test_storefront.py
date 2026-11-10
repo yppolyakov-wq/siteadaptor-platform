@@ -738,3 +738,21 @@ def test_plain_description_keeps_legacy_branch():
     ).content.decode()
     assert "whitespace-pre-line" in body
     assert "Zeile 1\nZeile 2" in body
+
+
+def test_category_page_includes_products_of_all_nested_levels():
+    """M21: дерево CS-Cart «Schwarzertee → Klassisch → Assam» — раздел показывает и
+    сорта третьего уровня; выключенная ветка обрывает спуск."""
+    from apps.catalog.facets import branch_ids
+
+    top = CategoryFactory(slug="schwarzertee", name={"de": "Schwarzertee"})
+    mid = CategoryFactory(slug="klassisch", name={"de": "Klassisch"}, parent=top)
+    leaf = CategoryFactory(slug="assam", name={"de": "Assam"}, parent=mid)
+    off = CategoryFactory(slug="alt", name={"de": "Alt"}, parent=mid, is_active=False)
+    deep = CategoryFactory(slug="unter-alt", name={"de": "UnterAlt"}, parent=off)
+    ProductFactory(name={"de": "AssamCTC"}, category=leaf)
+    ProductFactory(name={"de": "VersteckterTee"}, category=deep)
+
+    assert branch_ids("schwarzertee") == {top.pk, mid.pk, leaf.pk}
+    body = public_views.product_list(_req(params={"kategorie": "schwarzertee"})).content.decode()
+    assert "AssamCTC" in body and "VersteckterTee" not in body
