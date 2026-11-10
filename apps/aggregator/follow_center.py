@@ -105,9 +105,31 @@ def tags(portal) -> list[tuple[str, str]]:
     return [(key, str(label)) for key, label in cc.TAGS if not theme or key in theme]
 
 
+BRANDS_TTL = 300
+
+
 def brands(portal) -> list[tuple[str, str]]:
     """Марки, которые реально есть в каталоге области (самые частые первыми), [(ключ, подпись)].
-    Пока марок нет — пусто, блок не показывается."""
+    Пока марок нет — пусто, блок не показывается. Кэш 5 минут: агрегат по пулу не должен
+    выполняться на каждый анонимный GET/POST центра."""
+    from django.core.cache import cache
+
+    key = f"follow-center-brands:{getattr(portal, 'pk', 0)}"
+    try:
+        cached = cache.get(key)
+    except Exception:  # noqa: BLE001 — кэш недоступен: считаем без него
+        cached = None
+    if cached is not None:
+        return cached
+    value = _brands(portal)
+    try:
+        cache.set(key, value, BRANDS_TTL)
+    except Exception:  # noqa: BLE001
+        pass
+    return value
+
+
+def _brands(portal) -> list[tuple[str, str]]:
     from . import portal_scope
 
     rows = (
@@ -172,7 +194,8 @@ def normalize(raw: Selection, portal) -> Selection:
         slug = districts.normalize(city, value) if city else ""
         if slug:
             district_keys.add(slug)
-    brand_keys = {follow.brand_key(b) for b in raw.brands} - {""}
+    shown_brands = {k for k, _l in brands(portal)}
+    brand_keys = {follow.brand_key(b) for b in raw.brands} & shown_brands
     return Selection(
         sections=sections,
         categories=categories,
@@ -180,6 +203,21 @@ def normalize(raw: Selection, portal) -> Selection:
         tags={k for k in raw.tags if k in tag_keys},
         brands=brand_keys,
     )
+
+
+def visible_targets(portal) -> set[tuple[str, str]]:
+    """Что центр ЭТОГО портала показывает галочками. Сохранение снимает только из этого
+    множества: тематический портал не стирает подписки, выбранные на основном (и марки,
+    поставленные кнопкой поиска, но не попавшие в список частых)."""
+    out = set()
+    for node in tree(portal):
+        if node["whole"]:
+            out.add((FollowSubscription.TARGET_SECTION, node["section"].key))
+        out |= {(FollowSubscription.TARGET_CATEGORY, c.key) for c in node["categories"]}
+    out |= {(FollowSubscription.TARGET_TAG, k) for k, _l in tags(portal)}
+    out |= {(FollowSubscription.TARGET_BRAND, k) for k, _l in brands(portal)}
+    out |= {(FollowSubscription.TARGET_DISTRICT, k) for k, _l in district_choices(portal)}
+    return out
 
 
 def from_post(data, portal) -> Selection:
@@ -230,7 +268,8 @@ def apply(
             (k, key): pk for pk, k, key in center.values_list("pk", "target_kind", "target_key")
         }
         to_add = want - set(have)
-        to_remove = [] if mode == "add" else [pk for t, pk in have.items() if t not in want]
+        visible = visible_targets(portal) if mode == "set" else set()
+        to_remove = [pk for t, pk in have.items() if t in visible and t not in want]
         total = mine.count() - len(to_remove) + len(to_add)
         if to_add and total > follow.max_follows():
             raise follow.FollowLimitReached
@@ -306,12 +345,12 @@ def confirm(payload: dict, *, source_host: str = "") -> tuple[PortalUser | None,
     email = (payload.get("e") or "").strip().lower()
     with transaction.atomic():
         user, _created = PortalUser.objects.get_or_create(email=email)
+        if not user.is_active:
+            return None, Result()
         locale = follow.normalize_locale(payload.get("l", ""))
         if user.locale != locale:
             user.locale = locale
             user.save(update_fields=["locale", "updated_at"])
-        if not user.is_active:
-            return None, Result()
         result = apply(
             user,
             selection,

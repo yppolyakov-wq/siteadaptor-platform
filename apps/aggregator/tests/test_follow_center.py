@@ -191,3 +191,35 @@ def test_center_token_revalidated():
     sel = follow_center.selection_of(payload, portal)
     assert sel.categories == {"brot-backwaren"} and sel.tags == set()
     assert timezone.now()
+
+
+def test_theme_portal_save_keeps_foreign_subscriptions():
+    main = _portal()
+    themed = _portal(theme_categories=["brot-backwaren"], theme_tags=["vegan"])
+    user = _user()
+    follow_center.apply(
+        user, _sel(categories={"obst-gemuese"}, tags={"halal"}), frequency="daily", portal=main
+    )
+    follow_center.apply(user, _sel(categories={"brot-backwaren"}), frequency="daily", portal=themed)
+    assert {
+        ("category", "obst-gemuese"),
+        ("tag", "halal"),
+        ("category", "brot-backwaren"),
+    } <= _kinds(user)
+
+
+def test_unknown_brand_rejected_and_unshown_brand_kept():
+    portal = _portal()
+    user = _user()
+    FollowSubscription.objects.create(
+        user=user,
+        target_kind="brand",
+        target_key="nischenmarke",
+        city=CITY,
+        portal=portal,
+        token=uuid.uuid4().hex,
+        confirmed_at=timezone.now(),
+    )
+    assert follow_center.normalize(_sel(brands={"erfunden"}), portal).brands == set()
+    follow_center.apply(user, _sel(tags={"bio"}), frequency="daily", portal=portal)
+    assert ("brand", "nischenmarke") in _kinds(user)  # не показана в списке — не снимается
