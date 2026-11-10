@@ -36439,3 +36439,47 @@ msgstr "Buna uygun yeni teklifler ve ürünler — e-posta özeti olarak. Yalnı
 #: NT-A1
 msgid "Nur %(cat)s"
 msgstr "Yalnızca %(cat)s"
+
+#: NT-A2
+msgid "Benachrichtigungen auswählen"
+msgstr "Bildirimleri seç"
+
+#: NT-A2
+msgid "Benachrichtigungen bestätigt"
+msgstr "Bildirimler onaylandı"
+
+#: NT-A2
+msgid "Bereiche und Kategorien"
+msgstr "Bölümler ve kategoriler"
+
+#: NT-A2
+msgid "Bitte wählen Sie mindestens ein Thema."
+msgstr "Lütfen en az bir konu seçin."
+
+#: NT-A2
+msgid "Ein ganzer Bereich enthält alle seine Kategorien."
+msgstr "Bir bölümün tamamı tüm kategorilerini içerir."
+
+#: NT-A2
+msgid "Marken"
+msgstr "Markalar"
+
+#: NT-A2
+msgid "Sie erhalten Benachrichtigungen zu:"
+msgstr "Şu konularda bildirim alacaksınız:"
+
+#: NT-A2
+msgid "Sie können höchstens %(n)s Benachrichtigungen haben. Wählen Sie lieber einen ganzen Bereich statt einzelner Kategorien."
+msgstr "En fazla %(n)s bildiriminiz olabilir. Tek tek kategoriler yerine bölümün tamamını seçin."
+
+#: NT-A2
+msgid "Wählen Sie, worüber wir Sie informieren: ganze Bereiche, einzelne Kategorien, Stadtteile, Merkmale oder Marken. Sie bekommen nur das, was Sie ausgewählt haben."
+msgstr "Neler hakkında bilgilendirileceğinizi seçin: bölümlerin tamamı, tek kategoriler, semtler, özellikler veya markalar. Yalnızca seçtiklerinizi alırsınız."
+
+#: NT-A2
+msgid "Zum Beispiel alles Vegane oder Halal — in allen Bereichen."
+msgstr "Örneğin vegan veya helal olan her şey — tüm bölümlerde."
+
+#: NT-A2
+msgid "Weitere Benachrichtigungen auswählen"
+msgstr "Daha fazla bildirim seç"

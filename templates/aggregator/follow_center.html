@@ -1,0 +1,127 @@
+{% extends base_template %}
+{% load i18n %}
+{% block title %}{% trans "Benachrichtigungen auswählen" %}{% endblock %}
+{% block content %}
+<div class="max-w-3xl mx-auto px-4 py-8" data-follow-center>
+  <a href="{% if user %}{% url 'portal-account' %}#folgen{% else %}{{ home_url }}{% endif %}" class="text-sm text-gray-500 hover:underline">← {% trans "Zurück" %}</a>
+  <h1 class="mt-2 text-xl font-bold">🔔 {% trans "Benachrichtigungen auswählen" %}</h1>
+  <p class="mt-1 text-sm text-gray-600">{% trans "Wählen Sie, worüber wir Sie informieren: ganze Bereiche, einzelne Kategorien, Stadtteile, Merkmale oder Marken. Sie bekommen nur das, was Sie ausgewählt haben." %}</p>
+  {% if saved %}<p class="mt-4 rounded-lg bg-green-50 p-3 text-sm text-green-900" role="status" data-follow-saved>✓ {% trans "Gespeichert." %}</p>{% endif %}
+  {% if limit_reached %}<p class="mt-4 rounded-lg bg-amber-50 p-3 text-sm text-amber-900" role="alert" data-follow-limit>{% blocktrans with n=max_follows %}Sie können höchstens {{ n }} Benachrichtigungen haben. Wählen Sie lieber einen ganzen Bereich statt einzelner Kategorien.{% endblocktrans %}</p>{% endif %}
+  {% if empty_selection %}<p class="mt-4 rounded-lg bg-amber-50 p-3 text-sm text-amber-900" role="alert" data-follow-empty>{% trans "Bitte wählen Sie mindestens ein Thema." %}</p>{% endif %}
+
+  <form method="post" class="mt-6 space-y-6" data-follow-tree>
+    {% csrf_token %}
+    <section aria-labelledby="ft-bereiche">
+      <h2 id="ft-bereiche" class="text-base font-semibold">{% trans "Bereiche und Kategorien" %}</h2>
+      <p class="text-xs text-gray-500">{% trans "Ein ganzer Bereich enthält alle seine Kategorien." %}</p>
+      <div class="mt-3 grid gap-3 md:grid-cols-2">
+        {% for node in tree %}
+        <fieldset class="rounded-2xl border border-gray-200 bg-white p-3" data-ft-section="{{ node.section.key }}">
+          <legend class="sr-only">{{ node.section.label }}</legend>
+          {% if node.whole %}
+          <label class="flex items-center gap-2 font-medium text-sm">
+            <input type="checkbox" name="bereich" value="{{ node.section.key }}" data-ft-whole{% if node.section.key in sel.sections %} checked{% endif %}>
+            <span aria-hidden="true">{{ node.section.icon }}</span> {{ node.section.label }}
+          </label>
+          {% else %}
+          <p class="flex items-center gap-2 font-medium text-sm"><span aria-hidden="true">{{ node.section.icon }}</span> {{ node.section.label }}</p>
+          {% endif %}
+          <ul class="mt-2 grid gap-1 pl-6 text-sm">
+            {% for cat in node.categories %}
+            <li><label class="flex items-center gap-2">
+              <input type="checkbox" name="kategorie" value="{{ cat.key }}" data-ft-cat{% if cat.key in sel.categories or node.section.key in sel.sections %} checked{% endif %}>
+              {{ cat.label }}
+            </label></li>
+            {% endfor %}
+          </ul>
+        </fieldset>
+        {% endfor %}
+      </div>
+    </section>
+
+    {% if district_choices %}
+    <fieldset>
+      <legend class="text-base font-semibold">{% trans "Stadtteile" %}</legend>
+      <div class="mt-2 flex flex-wrap gap-2">
+        {% for slug, label in district_choices %}
+        <label class="inline-flex items-center gap-1.5 rounded-full border border-gray-300 px-3 py-1.5 text-sm"><input type="checkbox" name="stadtteil" value="{{ slug }}"{% if slug in sel.districts %} checked{% endif %}> {{ label }}</label>
+        {% endfor %}
+      </div>
+    </fieldset>
+    {% endif %}
+
+    {% if tags %}
+    <fieldset>
+      <legend class="text-base font-semibold">{% trans "Merkmale" %}</legend>
+      <p class="text-xs text-gray-500">{% trans "Zum Beispiel alles Vegane oder Halal — in allen Bereichen." %}</p>
+      <div class="mt-2 flex flex-wrap gap-2">
+        {% for key, label in tags %}
+        <label class="inline-flex items-center gap-1.5 rounded-full border border-gray-300 px-3 py-1.5 text-sm"><input type="checkbox" name="merkmal" value="{{ key }}"{% if key in sel.tags %} checked{% endif %}> {{ label }}</label>
+        {% endfor %}
+      </div>
+    </fieldset>
+    {% endif %}
+
+    {% if brands %}
+    <fieldset data-ft-brands>
+      <legend class="text-base font-semibold">{% trans "Marken" %}</legend>
+      <div class="mt-2 flex flex-wrap gap-2">
+        {% for key, label in brands %}
+        <label class="inline-flex items-center gap-1.5 rounded-full border border-gray-300 px-3 py-1.5 text-sm"><input type="checkbox" name="marke" value="{{ key }}"{% if key in sel.brands %} checked{% endif %}> {{ label }}</label>
+        {% endfor %}
+      </div>
+    </fieldset>
+    {% endif %}
+
+    <fieldset>
+      <legend class="text-base font-semibold">{% trans "Wie oft?" %}</legend>
+      <div class="mt-2 flex flex-wrap gap-2">
+        {% for key, label in frequencies %}
+        <label class="inline-flex items-center gap-1.5 rounded-full border border-gray-300 px-3 py-1.5 text-sm"><input type="radio" name="frequency" value="{{ key }}"{% if key == frequency %} checked{% endif %}> {{ label }}</label>
+        {% endfor %}
+      </div>
+      <p class="mt-1 text-xs text-gray-500">{% trans "Täglich um 8 Uhr oder montags — nur, wenn es etwas Neues gibt." %}</p>
+    </fieldset>
+
+    {% if not user %}
+    <input type="hidden" name="stamp" value="{{ form.stamp.value|default:'' }}">
+    <div class="hidden" aria-hidden="true"><label>Website<input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
+    <label class="block text-sm font-medium">{% trans "E-Mail" %}
+      <input type="email" name="email" required autocomplete="email" class="mt-1 w-full max-w-sm rounded-lg border border-gray-300 px-3 py-2">
+    </label>
+    <p class="text-xs text-gray-500">{% trans "Wir senden Ihnen einen Bestätigungslink. Erst nach dem Klick ist das Abonnement aktiv (Double-Opt-In). Abmeldung jederzeit mit einem Klick in jeder E-Mail." %}
+      {% if platform_legal.datenschutz %}<a href="{{ platform_legal.datenschutz }}" class="underline">{% trans "Datenschutz" %}</a>{% endif %}</p>
+    {% else %}
+    <p class="text-sm text-gray-600">{{ user.email }}</p>
+    {% endif %}
+    <div class="sticky bottom-0 bg-white/95 py-3">
+      <button type="submit" class="rounded-lg px-5 py-2.5 text-sm font-medium text-white" style="background: var(--portal-color, #4f46e5)">{% if user %}{% trans "Speichern" %}{% else %}{% trans "Bestätigungslink senden" %}{% endif %}</button>
+    </div>
+  </form>
+</div>
+<script>
+(function () {
+  // Раздел целиком отмечает свои категории; частично выбранный — «indeterminate».
+  // Без JS форма работает: сервер сам сворачивает категории в раздел.
+  function sync(box) {
+    var whole = box.querySelector("[data-ft-whole]");
+    if (!whole) return;
+    var cats = box.querySelectorAll("[data-ft-cat]");
+    var on = 0;
+    cats.forEach(function (c) { if (c.checked) on++; });
+    whole.checked = cats.length > 0 && on === cats.length;
+    whole.indeterminate = on > 0 && on < cats.length;
+  }
+  document.addEventListener("change", function (e) {
+    var box = e.target.closest && e.target.closest("[data-ft-section]");
+    if (!box) return;
+    if (e.target.matches("[data-ft-whole]")) {
+      box.querySelectorAll("[data-ft-cat]").forEach(function (c) { c.checked = e.target.checked; });
+    }
+    sync(box);
+  });
+  document.querySelectorAll("[data-ft-section]").forEach(sync);
+})();
+</script>
+{% endblock %}

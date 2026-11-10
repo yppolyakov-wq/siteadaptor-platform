@@ -36380,3 +36380,47 @@ msgstr "Neue Angebote und Produkte dazu — als E-Mail-Übersicht. Nur das, was 
 #: NT-A1
 msgid "Nur %(cat)s"
 msgstr "Nur %(cat)s"
+
+#: NT-A2
+msgid "Benachrichtigungen auswählen"
+msgstr "Benachrichtigungen auswählen"
+
+#: NT-A2
+msgid "Benachrichtigungen bestätigt"
+msgstr "Benachrichtigungen bestätigt"
+
+#: NT-A2
+msgid "Bereiche und Kategorien"
+msgstr "Bereiche und Kategorien"
+
+#: NT-A2
+msgid "Bitte wählen Sie mindestens ein Thema."
+msgstr "Bitte wählen Sie mindestens ein Thema."
+
+#: NT-A2
+msgid "Ein ganzer Bereich enthält alle seine Kategorien."
+msgstr "Ein ganzer Bereich enthält alle seine Kategorien."
+
+#: NT-A2
+msgid "Marken"
+msgstr "Marken"
+
+#: NT-A2
+msgid "Sie erhalten Benachrichtigungen zu:"
+msgstr "Sie erhalten Benachrichtigungen zu:"
+
+#: NT-A2
+msgid "Sie können höchstens %(n)s Benachrichtigungen haben. Wählen Sie lieber einen ganzen Bereich statt einzelner Kategorien."
+msgstr "Sie können höchstens %(n)s Benachrichtigungen haben. Wählen Sie lieber einen ganzen Bereich statt einzelner Kategorien."
+
+#: NT-A2
+msgid "Wählen Sie, worüber wir Sie informieren: ganze Bereiche, einzelne Kategorien, Stadtteile, Merkmale oder Marken. Sie bekommen nur das, was Sie ausgewählt haben."
+msgstr "Wählen Sie, worüber wir Sie informieren: ganze Bereiche, einzelne Kategorien, Stadtteile, Merkmale oder Marken. Sie bekommen nur das, was Sie ausgewählt haben."
+
+#: NT-A2
+msgid "Zum Beispiel alles Vegane oder Halal — in allen Bereichen."
+msgstr "Zum Beispiel alles Vegane oder Halal — in allen Bereichen."
+
+#: NT-A2
+msgid "Weitere Benachrichtigungen auswählen"
+msgstr "Weitere Benachrichtigungen auswählen"

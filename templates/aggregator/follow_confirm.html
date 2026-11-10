@@ -4,7 +4,12 @@
 {% block content %}
 <div class="max-w-md mx-auto bg-white rounded-2xl shadow-sm p-6 md:p-8 text-center" data-follow-confirm>
   <h1 class="text-2xl font-bold mb-2">{% trans "Abonnement bestätigen" %}</h1>
+  {% if center_labels %}
+  <p class="text-sm text-gray-500 mb-2">{% trans "Sie erhalten Benachrichtigungen zu:" %}</p>
+  <ul class="mb-6 text-sm text-left list-disc pl-6" data-follow-center-labels>{% for label in center_labels %}<li>{{ label }}</li>{% endfor %}</ul>
+  {% else %}
   <p class="text-sm text-gray-500 mb-6">{{ target.kind_label }}: <strong>{{ target.label }}</strong></p>
+  {% endif %}
   {% if limit_reached %}<p class="mb-4 rounded-lg bg-amber-50 p-3 text-sm text-amber-900" data-follow-limit>{% trans "Sie folgen bereits der maximalen Anzahl von Themen. Bitte entfernen Sie zuerst eines." %}</p>{% else %}
   <form method="post">
     {% csrf_token %}

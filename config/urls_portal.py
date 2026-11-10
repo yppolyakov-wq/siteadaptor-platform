@@ -54,6 +54,8 @@ urlpatterns = [
     ),
     # T-8.7 «Folgen»: подписки жителя (имена общие с urls_public — {% url %} везде).
     path("folgen/", follow_views.follow_page, name="aggregator-follow"),
+    # NT-A2: центр подписок — выбор галочками (разделы/категории/районы/признаки/марки).
+    path("folgen/auswahl/", follow_views.follow_center_view, name="aggregator-follow-center"),
     path(
         "folgen/bestaetigen/<str:token>/",
         follow_views.follow_confirm,

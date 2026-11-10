@@ -27,7 +27,7 @@ from django.views.decorators.http import require_POST
 from apps.core import ratelimit
 from apps.tenants import quickstart
 
-from . import auth, follow, follow_query
+from . import auth, follow, follow_center, follow_query
 from .models import FollowSubscription, PortalUser
 
 IP_RL = (10, 600)
@@ -55,6 +55,29 @@ def _stamp_fresh(stamp: str) -> bool:
         return bool(cache.add(key, "1", STAMP_TTL))
     except Exception:  # noqa: BLE001 — кэш недоступен: fail-open, лимиты ниже держат
         return True
+
+
+def _doi_guard(request, form) -> str | None:
+    """Анонимная DOI-форма: honeypot, метка времени (одноразовая), лимиты IP/адреса/платформы.
+    Адрес — если письмо можно слать, иначе None (ответ вызывающего одинаков в обоих случаях)."""
+    ip = ratelimit.client_ip(request)
+    if not (
+        form.is_valid()
+        and not form.cleaned_data["website"]
+        and not quickstart.too_fast(form.cleaned_data["stamp"])
+        and _stamp_fresh(form.cleaned_data["stamp"])
+        and not ratelimit.hit("follow_ip", ip, limit=IP_RL[0], window=IP_RL[1])
+    ):
+        return None
+    email = form.cleaned_data["email"].lower()
+    # В ключах лимита — хэш, не адрес (e-mail не должен лежать в Redis открыто).
+    ident = hashlib.sha256(email.encode()).hexdigest()
+    over = (
+        ratelimit.hit("follow_email", ident, limit=EMAIL_RL[0], window=EMAIL_RL[1])
+        | ratelimit.hit("follow_email_day", ident, limit=EMAIL_RL_DAY[0], window=EMAIL_RL_DAY[1])
+        | ratelimit.hit("follow_global", "all", limit=GLOBAL_RL[0], window=GLOBAL_RL[1])
+    )
+    return None if over else email
 
 
 def _base_template(portal) -> str:
@@ -116,41 +139,24 @@ def follow_page(request):
             except follow.FollowLimitReached:
                 return render(request, "aggregator/follow.html", {**context, "limit_reached": True})
             return render(request, "aggregator/follow_done.html", {**context, "following": True})
-        ip = ratelimit.client_ip(request)
-        if (
-            form.is_valid()
-            and not form.cleaned_data["website"]
-            and not quickstart.too_fast(form.cleaned_data["stamp"])
-            and _stamp_fresh(form.cleaned_data["stamp"])
-            and not ratelimit.hit("follow_ip", ip, limit=IP_RL[0], window=IP_RL[1])
-        ):
-            email = form.cleaned_data["email"].lower()
-            # В ключах лимита — хэш, не адрес (e-mail не должен лежать в Redis открыто).
-            ident = hashlib.sha256(email.encode()).hexdigest()
-            over = (
-                ratelimit.hit("follow_email", ident, limit=EMAIL_RL[0], window=EMAIL_RL[1])
-                | ratelimit.hit(
-                    "follow_email_day", ident, limit=EMAIL_RL_DAY[0], window=EMAIL_RL_DAY[1]
-                )
-                | ratelimit.hit("follow_global", "all", limit=GLOBAL_RL[0], window=GLOBAL_RL[1])
-            )
-            if not over:
-                from .tasks import send_follow_confirm_email
+        email = _doi_guard(request, form)
+        if email:
+            from .tasks import send_follow_confirm_email
 
-                locale = follow.normalize_locale(getattr(request, "LANGUAGE_CODE", "") or "")
-                token = follow.make_doi_token(
-                    email=email,
-                    target=target,
-                    frequency=form.cleaned_data["frequency"],
-                    portal=portal,
-                    locale=locale,
-                )
-                send_follow_confirm_email.delay(
-                    dedupe_key=f"follow-doi:{hashlib.sha256(token.encode()).hexdigest()}",
-                    email=email,
-                    url=follow.confirm_url(portal, token),
-                    locale=locale,
-                )
+            locale = follow.normalize_locale(getattr(request, "LANGUAGE_CODE", "") or "")
+            token = follow.make_doi_token(
+                email=email,
+                target=target,
+                frequency=form.cleaned_data["frequency"],
+                portal=portal,
+                locale=locale,
+            )
+            send_follow_confirm_email.delay(
+                dedupe_key=f"follow-doi:{hashlib.sha256(token.encode()).hexdigest()}",
+                email=email,
+                url=follow.confirm_url(portal, token),
+                locale=locale,
+            )
         # ответ одинаков при любом исходе (анти-энумерация / тихий rate-limit)
         return render(request, "aggregator/follow_check_inbox.html", context)
     form = FollowForm(initial={"stamp": quickstart.form_stamp()})
@@ -170,6 +176,8 @@ def follow_confirm(request, token):
         return _token_response(
             render(request, "aggregator/follow_invalid.html", context, status=400)
         )
+    if follow_center.is_center_payload(payload):
+        return _center_confirm(request, payload, context)
     target = follow.target_from_payload(payload)
     if target is None:
         return _token_response(
@@ -335,3 +343,148 @@ def follow_toggle(request):
         except follow.FollowLimitReached:  # T-8.10d: лимит — понятное сообщение, не 500
             return redirect(f"{fallback}?limit=1#folgen")
     return redirect(_safe_next(request, fallback))
+
+
+# --- NT-A2: центр подписок ------------------------------------------------------------------
+
+
+def _center_context(request, portal, user, selection, **extra):
+    return {
+        "portal": portal,
+        "base_template": _base_template(portal),
+        "home_url": _home_url(portal),
+        "user": user,
+        "tree": follow_center.tree(portal),
+        "tags": follow_center.tags(portal),
+        "brands": follow_center.brands(portal),
+        "district_choices": follow_center.district_choices(portal),
+        "sel": selection,
+        "frequency": extra.pop("frequency", "") or FollowSubscription.FREQ_DAILY,
+        "frequencies": [
+            (k, label)
+            for k, label in FollowSubscription.FREQUENCIES
+            if k != FollowSubscription.FREQ_INSTANT
+        ],
+        "max_follows": follow.max_follows(),
+        **extra,
+    }
+
+
+def _center_frequency(user, city) -> str:
+    sub = (
+        FollowSubscription.objects.filter(user=user, city=city, target_kind__in=follow.CENTER_KINDS)
+        .order_by("-updated_at")
+        .first()
+    )
+    return sub.frequency if sub else FollowSubscription.FREQ_DAILY
+
+
+def follow_center_view(request):
+    """«Benachrichtigungen auswählen»: дерево разделов/категорий, районы, признаки, марки.
+
+    Вошедший сохраняет сразу (PRG); аноним получает ОДНО письмо подтверждения на весь выбор.
+    Страница не кэшируется (`never_cache` — у вошедшего она персональная)."""
+    portal = getattr(request, "portal", None)
+    city = follow_center.city_of(portal)
+    if portal is None or not city:
+        raise Http404
+    user = auth.current_portal_user(request)
+    channel = FollowSubscription.CHANNEL_EMAIL
+    if request.method == "POST":
+        selection = follow_center.from_post(request.POST, portal)
+        frequency = request.POST.get("frequency", "")
+        if user is not None:
+            try:
+                follow_center.apply(
+                    user,
+                    selection,
+                    frequency=frequency,
+                    portal=portal,
+                    source_host=request.get_host(),
+                    channel=channel,
+                )
+            except follow.FollowLimitReached:
+                ctx = _center_context(
+                    request, portal, user, selection, frequency=frequency, limit_reached=True
+                )
+                return _token_response(render(request, "aggregator/follow_center.html", ctx))
+            return _token_response(redirect(f"{request.path}?ok=1"))
+        form = FollowForm(request.POST)
+        if not len(selection) or len(selection) > follow.max_follows():
+            ctx = _center_context(
+                request,
+                portal,
+                None,
+                selection,
+                frequency=frequency,
+                form=FollowForm(initial={"stamp": quickstart.form_stamp()}),
+                empty_selection=not len(selection),
+                limit_reached=len(selection) > follow.max_follows(),
+            )
+            return _token_response(render(request, "aggregator/follow_center.html", ctx))
+        email = _doi_guard(request, form)
+        if email:
+            from .tasks import send_follow_confirm_email
+
+            locale = follow.normalize_locale(getattr(request, "LANGUAGE_CODE", "") or "")
+            token = follow_center.make_token(
+                email=email,
+                selection=selection,
+                frequency=frequency,
+                portal=portal,
+                locale=locale,
+            )
+            send_follow_confirm_email.delay(
+                dedupe_key=f"follow-doi:{hashlib.sha256(token.encode()).hexdigest()}",
+                email=email,
+                url=follow.confirm_url(portal, token),
+                locale=locale,
+            )
+        # ответ одинаков при любом исходе (анти-энумерация / тихий rate-limit)
+        ctx = {"portal": portal, "base_template": _base_template(portal)}
+        return _token_response(render(request, "aggregator/follow_check_inbox.html", ctx))
+    selection = follow_center.state(user, city, channel)
+    ctx = _center_context(
+        request,
+        portal,
+        user,
+        selection,
+        frequency=_center_frequency(user, city) if user else "",
+        saved=request.GET.get("ok") == "1",
+        form=None if user else FollowForm(initial={"stamp": quickstart.form_stamp()}),
+    )
+    return _token_response(render(request, "aggregator/follow_center.html", ctx))
+
+
+def _center_confirm(request, payload, context):
+    """Подтверждение DOI v2: GET показывает выбор, POST добавляет (не удаляет ничего)."""
+    portal = follow_center.portal_of(payload)
+    selection = follow_center.selection_of(payload, portal) if portal else None
+    if portal is None or not selection or not len(selection):
+        return _token_response(
+            render(request, "aggregator/follow_invalid.html", context, status=400)
+        )
+    context = {**context, "center_labels": follow_center.labels(selection, portal)}
+    if request.method == "POST":
+        try:
+            user, _result = follow_center.confirm(payload, source_host=request.get_host())
+        except follow.FollowLimitReached:
+            return _token_response(
+                render(
+                    request,
+                    "aggregator/follow_confirm.html",
+                    {**context, "limit_reached": True},
+                )
+            )
+        if user is None:
+            return _token_response(
+                render(request, "aggregator/follow_invalid.html", context, status=400)
+            )
+        return _token_response(
+            render(
+                request,
+                "aggregator/follow_done.html",
+                {**context, "following": True, "confirmed": True},
+            )
+        )
+    return _token_response(render(request, "aggregator/follow_confirm.html", context))

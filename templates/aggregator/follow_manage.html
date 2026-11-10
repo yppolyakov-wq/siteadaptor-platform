@@ -6,6 +6,7 @@
   <h1 class="text-xl font-bold">{% trans "Meine Abonnements" %}</h1>
   <p class="mt-1 text-sm text-gray-500">{{ user.email }}</p>
   {% include "aggregator/_follow_rows.html" with rows=rows action_url=request.path %}
+  {% if portal.city %}<a href="{% url 'aggregator-follow-center' %}" class="mt-3 inline-block text-sm font-medium underline" data-follow-center-link>{% trans "Weitere Benachrichtigungen auswählen" %}</a>{% endif %}
   {% if rows %}
   <form method="post" class="mt-6">
     {% csrf_token %}

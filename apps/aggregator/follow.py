@@ -352,8 +352,12 @@ def load_doi_token(token: str) -> dict | None:
         payload = signing.loads(token or "", salt=DOI_SALT, max_age=ttl)
     except (signing.BadSignature, TypeError, ValueError):
         return None
-    if not isinstance(payload, dict) or not payload.get("e") or not payload.get("k"):
+    if not isinstance(payload, dict) or not payload.get("e"):
         return None
+    if not payload.get("k") and not (
+        payload.get("v") == 2 and isinstance(payload.get("sel"), dict)
+    ):
+        return None  # NT-A2: v2 — выбор центра подписок вместо одной цели
     return payload
 
 

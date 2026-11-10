@@ -36628,3 +36628,47 @@ msgstr "Новые предложения и товары по этой теме
 #: NT-A1
 msgid "Nur %(cat)s"
 msgstr "Только «%(cat)s»"
+
+#: NT-A2
+msgid "Benachrichtigungen auswählen"
+msgstr "Выбрать уведомления"
+
+#: NT-A2
+msgid "Benachrichtigungen bestätigt"
+msgstr "Уведомления подтверждены"
+
+#: NT-A2
+msgid "Bereiche und Kategorien"
+msgstr "Разделы и категории"
+
+#: NT-A2
+msgid "Bitte wählen Sie mindestens ein Thema."
+msgstr "Выберите хотя бы одну тему."
+
+#: NT-A2
+msgid "Ein ganzer Bereich enthält alle seine Kategorien."
+msgstr "Весь раздел включает все его категории."
+
+#: NT-A2
+msgid "Marken"
+msgstr "Марки"
+
+#: NT-A2
+msgid "Sie erhalten Benachrichtigungen zu:"
+msgstr "Вы будете получать уведомления о:"
+
+#: NT-A2
+msgid "Sie können höchstens %(n)s Benachrichtigungen haben. Wählen Sie lieber einen ganzen Bereich statt einzelner Kategorien."
+msgstr "Уведомлений может быть не больше %(n)s. Лучше выберите весь раздел вместо отдельных категорий."
+
+#: NT-A2
+msgid "Wählen Sie, worüber wir Sie informieren: ganze Bereiche, einzelne Kategorien, Stadtteile, Merkmale oder Marken. Sie bekommen nur das, was Sie ausgewählt haben."
+msgstr "Выберите, о чём сообщать: целые разделы, отдельные категории, районы, признаки или марки. Вы получаете только то, что выбрали."
+
+#: NT-A2
+msgid "Zum Beispiel alles Vegane oder Halal — in allen Bereichen."
+msgstr "Например, всё веганское или халяльное — во всех разделах."
+
+#: NT-A2
+msgid "Weitere Benachrichtigungen auswählen"
+msgstr "Выбрать ещё уведомления"
