@@ -632,3 +632,66 @@ def test_apply_locales_sets_only_german():
     assert tenant.enabled_locales == ["de"] and tenant.default_locale == "de"
     with pytest.raises(ValueError):
         cscart.apply_locales(tenant, ["xx"])
+
+
+@pytest.mark.django_db
+def test_cleanup_removes_demo_and_website_import_duplicates_only():
+    """M21.5: дубли второго импортёра (Г1) и демо уходят; перенос CS-Cart и чужие
+    категории целы; без apply — только список."""
+    from django.utils import timezone
+
+    from apps.catalog.models import Category, Product
+    from apps.imports.models import SiteImportItem, SiteImportRun
+    from apps.tenants import demo
+    from apps.tenants.tests.factories import TenantFactory
+
+    tenant = TenantFactory(schema_name="public")
+    g1_cat = Category.objects.create(name={"de": "Schwarzer Tee"}, slug="schwarzer-tee")
+    dup = Product.objects.create(name={"de": "Chai"}, base_price="6.50", category=g1_cat)
+    moved_cat = Category.objects.create(name={"de": "Schwarzertee"}, slug="schwarzertee")
+    moved = Product.objects.create(
+        name={"de": "Assam"},
+        base_price="7.60",
+        category=moved_cat,
+        metadata={"cscart": {"url": "https://x/assam/"}},
+    )
+    run = SiteImportRun.objects.create(
+        start_url="https://x/", host="x", consent_at=timezone.now(), consent_version="1"
+    )
+    for target in (dup, moved):  # даже связанный с Г1 товар переноса не трогаем
+        SiteImportItem.objects.create(
+            run=run,
+            kind="product",
+            fingerprint="f",
+            identity_key=str(target.pk),
+            target_kind="product",
+            target_id=str(target.pk),
+        )
+    demo.load_demo(tenant)
+    tenant.refresh_from_db()
+    assert demo.has_demo(tenant)
+
+    notes = cscart.cleanup_foreign(tenant)
+    assert "demo content: remove" in notes and "website-import duplicate: Chai" in notes
+    assert Product.objects.filter(pk=dup.pk).exists()  # dry-run ничего не удаляет
+
+    cscart.cleanup_foreign(tenant, apply=True)
+    tenant.refresh_from_db()
+    assert not demo.has_demo(tenant)
+    assert not Product.objects.filter(pk=dup.pk).exists()
+    assert not Category.objects.filter(pk=g1_cat.pk).exists()
+    assert Product.objects.filter(pk=moved.pk).exists()
+    assert Category.objects.filter(pk=moved_cat.pk).exists()
+
+
+@pytest.mark.django_db
+def test_export_codes_report_missing():
+    from apps.catalog.models import Product, ProductVariant
+
+    codes = cscart.read_export_codes(
+        '﻿Product code;Language\n"HT1";"de"\n"HT1.1";"de"\n"HT2";"de"\n'
+    )
+    assert codes == {"HT1", "HT1.1", "HT2"}
+    p = Product.objects.create(name={"de": "Assam"}, base_price="7.00", sku="HT1")
+    ProductVariant.objects.create(product=p, label="100 g", price="7.00", sku="HT1.1")
+    assert cscart.missing_codes(codes) == ["HT2"]

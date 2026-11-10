@@ -108,9 +108,18 @@ Look'и; применение POST'ом — сохраняется сразу. �
         <input type="hidden" name="sd_page_width_present" value="1">
         <span class="block font-medium mb-1">{% trans "Seitenbreite" %}</span>
         <select name="sd_page_width" class="ui-input">
-          <option value="" {% if not sd.page_width %}selected{% endif %}>{% trans "Breit (1536 px)" %}</option>
+          <option value="" {% if not sd.page_width or sd.page_width == "full" %}selected{% endif %}>{% trans "Volle Breite" %}</option>
+          <option value="wide" {% if sd.page_width == "wide" %}selected{% endif %}>{% trans "Breit (1536 px)" %}</option>
           <option value="normal" {% if sd.page_width == "normal" %}selected{% endif %}>{% trans "Normal (1280 px)" %}</option>
-          <option value="full" {% if sd.page_width == "full" %}selected{% endif %}>{% trans "Volle Breite" %}</option>
+        </select>
+      </label>
+      <label class="block text-sm">
+        <input type="hidden" name="sd_logo_size_present" value="1">
+        <span class="block font-medium mb-1">{% trans "Logo-Größe" %}</span>
+        <select name="sd_logo_size" class="ui-input">
+          <option value="" {% if not sd.logo_size %}selected{% endif %}>{% trans "Standard" %}</option>
+          <option value="l" {% if sd.logo_size == "l" %}selected{% endif %}>{% trans "Groß" %}</option>
+          <option value="xl" {% if sd.logo_size == "xl" %}selected{% endif %}>{% trans "Sehr groß" %}</option>
         </select>
       </label>
       <label class="flex items-center gap-2 text-sm">

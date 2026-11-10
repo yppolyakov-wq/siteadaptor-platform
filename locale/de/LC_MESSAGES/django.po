@@ -36588,3 +36588,9 @@ msgstr "z. B. Mittagstisch"
 #: NT-B4
 msgid "off"
 msgstr "aus"
+
+msgid "Detailseiten"
+msgstr "Detailseiten"
+
+msgid "Logo-Größe"
+msgstr "Logo-Größe"

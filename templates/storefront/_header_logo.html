@@ -4,5 +4,5 @@
 shrink-0 (места хватает).{% endcomment %}
 {# STU-12f: слот медиа (лого) — клик в Студии открывает загрузку логотипа. #}
 <a href="{% url 'storefront-home' %}" data-sf-media-slot="logo" class="min-w-0 sm:shrink-0 flex items-center gap-2 font-bold tracking-tight">
-  {% if request.tenant.logo_url %}<img src="{{ request.tenant.logo_url }}" alt="{{ request.tenant.name|default:'' }}" class="h-8 w-auto max-w-[170px] object-contain">{% else %}<span class="text-lg truncate">{{ request.tenant.name|default:"Shop" }}</span>{% endif %}
+  {% if request.tenant.logo_url %}<img src="{{ request.tenant.logo_url }}" alt="{{ request.tenant.name|default:'' }}" class="{% if storefront_logo_size == 'xl' %}h-12 sm:h-16 max-w-[200px] sm:max-w-[300px]{% elif storefront_logo_size == 'l' %}h-10 sm:h-12 max-w-[180px] sm:max-w-[240px]{% else %}h-8 max-w-[170px]{% endif %} w-auto object-contain">{% else %}<span class="text-lg truncate">{{ request.tenant.name|default:"Shop" }}</span>{% endif %}
 </a>

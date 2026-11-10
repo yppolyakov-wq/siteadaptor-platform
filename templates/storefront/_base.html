@@ -143,7 +143,7 @@
      На публичной витрине атрибут инертен (его читает только редактор).{% endcomment %}
   <header data-sf-section="header" class="{% if storefront_nav_sticky %}sticky top-0 {% endif %}z-20 bg-white/90 backdrop-blur border-b border-gray-100">
     {% if style == 'centered' %}
-    <div class="{{ storefront_page_width|default:'max-w-screen-2xl' }} mx-auto px-4 py-2 flex items-center flex-col gap-1">
+    <div class="{{ storefront_page_width|default:'max-w-none' }} mx-auto px-4 py-2 flex items-center flex-col gap-1">
       <div class="w-full flex items-center justify-between sm:justify-center">
         {% include "storefront/_header_logo.html" %}
         <div class="flex items-center gap-2">{% include "storefront/_header_icons.html" %}</div>
@@ -155,7 +155,7 @@
     </div>
     {% else %}
     {# NAV-v2 (референс UniTheme): classic/minimal — «лого | меню | иконки» одной строкой. #}
-    <div class="{{ storefront_page_width|default:'max-w-screen-2xl' }} mx-auto px-4 h-14 flex items-center gap-2">
+    <div class="{{ storefront_page_width|default:'max-w-none' }} mx-auto px-4 {% if storefront_logo_size == 'xl' %}h-16 sm:h-20{% elif storefront_logo_size == 'l' %}h-14 sm:h-16{% else %}h-14{% endif %} flex items-center gap-2">
       {% include "storefront/_header_logo.html" %}
       <nav id="sf-nav-desktop" class="text-sm {% if style == 'minimal' %}hidden{% else %}hidden sm:flex{% endif %} items-center gap-1 flex-1 min-w-0 overflow-hidden hover:overflow-visible focus-within:overflow-visible px-2">
         {% include "storefront/_header_nav.html" %}
@@ -325,7 +325,7 @@
 
   {% include "storefront/_demo_banner.html" %}
   {% holiday_banner %}
-  <main class="flex-1 w-full {{ storefront_page_width|default:'max-w-screen-2xl' }} mx-auto px-4 py-6 md:py-10">
+  <main class="flex-1 w-full {{ storefront_page_width|default:'max-w-none' }} mx-auto px-4 py-6 md:py-10">
     {% if messages %}
       {% for m in messages %}
         <div role="status" class="mb-4 rounded-xl px-4 py-3 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
@@ -338,30 +338,43 @@
   <footer data-sf-section="footer" class="border-t border-gray-100 bg-white">
     {% comment %}MA-L: data-sf-footer-inner — нижний запас на телефоне под плавающие кнопки и
     панель покупки задаёт app.css (иначе они закрывали ссылки права).{% endcomment %}
-    <div class="{{ storefront_page_width|default:'max-w-screen-2xl' }} mx-auto px-4 py-6 text-xs text-gray-500 space-y-3" data-sf-footer-inner>
+    <div class="{{ storefront_page_width|default:'max-w-none' }} mx-auto px-4 py-6 text-xs text-gray-500 space-y-3" data-sf-footer-inner>
       {% comment %}FB-23d: колонки ссылок из «Website › Menü › Fußzeile»; без колонок блока нет
       (подвал прежний). Правовая строка ниже остаётся всегда (Impressum — обязателен).{% endcomment %}
       {% if storefront_footer_menu %}
-      <nav aria-label="{% trans "Fußzeile" %}" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-x-6 gap-y-4 pb-3 text-sm" data-footer-columns>
+      {% comment %}M21.5: при колонках ссылок контакты бизнеса — своей колонкой «Kontakt» в
+      том же ряду (как подвал магазина до переезда), а не строками под ним.{% endcomment %}
+      <nav aria-label="{% trans "Fußzeile" %}" class="grid grid-cols-2 sm:grid-cols-3 {% if storefront_footer_menu|length < 4 %}lg:grid-cols-4{% else %}lg:grid-cols-6{% endif %} gap-x-6 gap-y-6 pb-4 text-sm" data-footer-columns>
         {% for col in storefront_footer_menu %}
         <div class="min-w-0">
-          {% if col.label %}<p class="font-semibold text-gray-800 mb-2">{{ col.label }}</p>{% endif %}
+          {% if col.label %}<p class="text-base font-semibold text-gray-800 mb-2">{{ col.label }}</p>{% endif %}
           <ul class="space-y-1.5">
             {% for link in col.items %}<li><a href="{{ link.url }}" class="text-gray-600 hover:text-gray-900 hover:underline inline-flex items-center gap-1.5">{% include "storefront/menu/_icon.html" with node=link %}{{ link.label }}</a></li>{% endfor %}
           </ul>
         </div>
         {% endfor %}
+        {% if request.tenant.address or request.tenant.public_phone or request.tenant.opening_hours %}
+        <div class="min-w-0 col-span-2 sm:col-span-1 text-gray-600 space-y-1.5" data-footer-contact>
+          <p class="text-base font-semibold text-gray-800 mb-2">{% trans "Kontakt" %}</p>
+          {% if request.tenant.address %}<p>{{ request.tenant.address }}</p>{% endif %}
+          {% if request.tenant.public_phone %}<p><a href="tel:{{ request.tenant.public_phone }}" class="hover:underline">{{ request.tenant.public_phone }}</a></p>{% endif %}
+          {% if request.tenant.public_email %}<p><a href="mailto:{{ request.tenant.public_email }}" class="hover:underline break-all">{{ request.tenant.public_email }}</a></p>{% endif %}
+          {% if request.tenant.opening_hours %}<p class="whitespace-pre-line">{{ request.tenant.opening_hours_localized }}</p>{% endif %}
+        </div>
+        {% endif %}
       </nav>
       {% endif %}
       {# H1.2: тэглайн подвала — правится инлайн на канве; пустой скрыт на публичной, виден/правится под ?preview=1. #}
       {% if storefront_footer_text or request.GET.preview == '1' %}<p class="text-sm text-gray-600 whitespace-pre-line max-w-2xl" data-edit="footer_text">{{ storefront_footer_text }}</p>{% endif %}
       {% if request.tenant %}
+        {% if not storefront_footer_menu %}
         <div class="flex flex-wrap gap-x-6 gap-y-1">
           {% if request.tenant.address %}<span>📍 {{ request.tenant.address }}</span>{% endif %}
           {% if request.tenant.public_phone %}<a href="tel:{{ request.tenant.public_phone }}" class="hover:underline">📞 {{ request.tenant.public_phone }}</a>{% endif %}
           {% if request.tenant.map_url %}<a href="{{ request.tenant.map_url }}" target="_blank" rel="noopener" class="hover:underline">🗺 {% trans "Map" %}</a>{% endif %}
         </div>
         {% if request.tenant.opening_hours %}<div class="whitespace-pre-line text-gray-400">🕒 {{ request.tenant.opening_hours_localized }}</div>{% endif %}
+        {% endif %}
         {# GK-9: соцпрофили бизнеса — иконки-ряд (пусто → ничего) #}
         {% include "storefront/_social_icons.html" with links=request.tenant.social_links %}
       {% endif %}

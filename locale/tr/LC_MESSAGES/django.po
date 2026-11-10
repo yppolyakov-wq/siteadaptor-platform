@@ -36647,3 +36647,9 @@ msgstr "ör. Öğle menüsü"
 #: NT-B4
 msgid "off"
 msgstr "kapalı"
+
+msgid "Detailseiten"
+msgstr "Ürün sayfaları"
+
+msgid "Logo-Größe"
+msgstr "Logo boyutu"

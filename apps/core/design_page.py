@@ -95,6 +95,8 @@ def _save_design_settings(request) -> None:
         sd["card_slider"] = post.get("sd_card_slider") == "on"
     if post.get("sd_page_width_present") == "1":  # FLT-3a: ширина витрины
         sd["page_width"] = post.get("sd_page_width", "")
+    if post.get("sd_logo_size_present") == "1":  # M21.5: размер логотипа в шапке
+        sd["logo_size"] = post.get("sd_logo_size", "")
     if post.get("sd_page_bg_present") == "1":  # свой сентинел (как в билдере)
         sd["page_bg"] = post.get("sd_page_bg", "") if post.get("sd_page_bg_on") == "on" else ""
     cfg["site_defaults"] = sd

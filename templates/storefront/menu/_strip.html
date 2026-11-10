@@ -3,7 +3,7 @@
 иконки — первая буква.{% endcomment %}
 {% for item in storefront_menu %}{% if item.layout == "strip" and item.children %}
 <nav aria-label="{{ item.label }}" class="border-b border-gray-100 bg-white" data-menu-layout="strip">
-  <ul class="{{ storefront_page_width|default:'max-w-screen-2xl' }} mx-auto px-4 py-3 flex gap-4 overflow-x-auto">
+  <ul class="{{ storefront_page_width|default:'max-w-none' }} mx-auto px-4 py-3 flex gap-4 overflow-x-auto">
     {% for c in item.children %}
     <li class="shrink-0">
       <a href="{{ c.url|default:'#' }}" class="flex flex-col items-center gap-1.5 w-20 text-center text-xs font-medium text-gray-700 hover:text-gray-900">

@@ -105,6 +105,9 @@
   "Gegenkonto (ohne BU-Schlüssel)"
  ],
  "apps/imports/cscart.py": [
+  "Kundendienst",
+  "Versand & Zahlung",
+  "Wunschzettel",
   "Zahlungsarten",
   "\\b\\d{5}\\s+([A-ZÄÖÜ][\\wäöüß .-]+)$"
  ],

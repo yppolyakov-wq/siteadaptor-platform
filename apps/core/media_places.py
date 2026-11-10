@@ -27,6 +27,9 @@ PLACES = {
     "category": _("Kategorien"),
     "combo": _("Menüs & Sets"),
     "tour": _("Touren"),
+    # M21.5: главное фото страницы товара/услуги/номера (галерея). Раньше — жёстко 4:3
+    # с обрезкой, круглую тарелку чая срезало снизу.
+    "detail": _("Detailseiten"),
 }
 
 #: код пропорции → CSS aspect-ratio ("round" — круг по центру карточки).
@@ -88,7 +91,12 @@ def css(places) -> str:
     for place, item in clean(places).items():
         box = f'body [data-sf-place="{place}"]:not([data-sf-media-box="side"])'
         ratio = item.get("ratio")
-        if ratio:
+        if ratio and place == "detail":
+            # ширину галереи задаёт её раскладка (лента на телефоне — 88 %), поэтому
+            # меняем только пропорцию; «круг» здесь — квадрат (кадр на всю колонку)
+            ratio = "1-1" if ratio == "round" else ratio
+            rules.append(box + "{aspect-ratio:" + RATIOS[ratio] + "!important;}")
+        elif ratio:
             decl = f"aspect-ratio:{RATIOS[ratio]}!important;height:auto!important;"
             if ratio == "round":
                 decl += "width:62%;margin:.75rem auto 0;border-radius:9999px;overflow:hidden;"

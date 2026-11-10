@@ -56,6 +56,19 @@ class Command(BaseCommand):
             default="",
             help="Языки витрины через запятую, первый — основной (напр. de). С --create — de.",
         )
+        parser.add_argument(
+            "--cleanup",
+            action="store_true",
+            help=(
+                "Убрать то, чего нет в оригинале: демо-контент платформы и дубли "
+                "второго импортёра («Website importieren»). Без --apply — только список."
+            ),
+        )
+        parser.add_argument(
+            "--codes",
+            default="",
+            help="CSV-выгрузка CS-Cart (колонка «Product code»): после импорта показать недостающие.",
+        )
         # Создать магазин, если его ещё нет (вместо регистрации на сайте).
         parser.add_argument("--create", action="store_true", help="Создать бизнес-получатель.")
         parser.add_argument("--name", default="", help="Название бизнеса (для --create).")
@@ -99,6 +112,13 @@ class Command(BaseCommand):
             unknown = [x for x in locales if x not in known]
             if unknown:
                 raise CommandError(f"unknown --locales: {', '.join(unknown)}")
+        codes = set()
+        if opts["codes"]:
+            try:
+                with open(opts["codes"], encoding="utf-8-sig") as fh:
+                    codes = cscart.read_export_codes(fh.read())
+            except OSError as exc:
+                raise CommandError(f"cannot read --codes: {exc}") from exc
         url = opts["url"].strip()
         if not url.startswith(("https://", "http://")):
             raise CommandError("--url must start with http(s)://")
@@ -111,6 +131,10 @@ class Command(BaseCommand):
         )
         for err in site.errors[:30]:
             self.stdout.write(f"  ! {err}")
+        if opts["cleanup"] and tenant is not None:
+            with schema_context(schema):
+                for note in cscart.cleanup_foreign(tenant, apply=opts["apply"]):
+                    self.stdout.write(f"  cleanup: {note}")
         if not opts["apply"]:
             if tenant is None:
                 self.stdout.write(f"would create business {opts['name']!r} ({schema})")
@@ -155,6 +179,12 @@ class Command(BaseCommand):
         )
         for note in [*design_notes, *stats.notes]:
             self.stdout.write(f"  - {note}")
+        if codes:
+            with schema_context(schema):
+                missing = cscart.missing_codes(codes)
+            self.stdout.write(f"export codes: {len(codes)}, missing after import: {len(missing)}")
+            for code in missing:
+                self.stdout.write(f"  ? {code}")
 
     def _check_create_args(self, opts, schema):
         from django.core.validators import validate_email

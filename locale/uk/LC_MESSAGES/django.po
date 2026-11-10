@@ -36823,3 +36823,9 @@ msgstr "напр. Обідне меню"
 #: NT-B4
 msgid "off"
 msgstr "вимк."
+
+msgid "Detailseiten"
+msgstr "Сторінки товару"
+
+msgid "Logo-Größe"
+msgstr "Розмір логотипа"

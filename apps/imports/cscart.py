@@ -1036,6 +1036,75 @@ def _order_categories_by_menu(nodes: list) -> None:
         Category.objects.filter(slug=slug).update(sort_order=pos)
 
 
+def _de(value) -> str:
+    return value.get("de", "") if isinstance(value, dict) else str(value or "")
+
+
+def cleanup_foreign(tenant, *, apply: bool = False) -> list:
+    """M21.5: убрать из перенесённого магазина то, чего нет в оригинале.
+
+    Два источника «чужого» после переезда: демо-контент платформы («Demo-Inhalte
+    laden» — категория «Beliebt», образцы товаров, демо-акции) и товары второго
+    импортёра («Website importieren», Г1), который берёт с того же сайта только
+    JSON-LD — без фасовок, отдельной категорией, то есть дублями. Удаляем ровно их:
+    демо — штатным `clear_demo` (по сохранённым id), Г1 — по целям его позиций;
+    категория уходит, только если после этого в ней не осталось товаров и подкатегорий.
+    По умолчанию — только список (dry-run)."""
+    from apps.catalog.models import Category, Product
+    from apps.imports.models import SiteImportItem
+    from apps.tenants import demo
+
+    notes: list = []
+    if demo.has_demo(tenant):
+        notes.append("demo content: remove")
+        if apply:
+            demo.clear_demo(tenant)
+    ids = [
+        t
+        for t in SiteImportItem.objects.filter(target_kind="product")
+        .exclude(target_id="")
+        .values_list("target_id", flat=True)
+    ]
+    # товар, который ведёт сам перенос (метка cscart), не трогаем никогда — даже если
+    # Г1 позже сопоставил с ним свою позицию
+    products = list(
+        Product.objects.filter(pk__in=ids)
+        .exclude(metadata__has_key="cscart")
+        .select_related("category")
+    )
+    category_ids = {p.category_id for p in products if p.category_id}
+    for p in products:
+        notes.append(f"website-import duplicate: {_de(p.name)}")
+    if apply:
+        for p in products:
+            p.delete()  # soft-delete, как кнопка «Löschen» в кабинете
+        for cat in Category.objects.filter(pk__in=category_ids):
+            if not Product.objects.filter(category=cat).exists() and not cat.children.exists():
+                notes.append(f"empty category removed: {_de(cat.name) or cat.slug}")
+                cat.delete()
+    return notes
+
+
+def read_export_codes(text: str) -> set:
+    """M21.5: артикулы из выгрузки CS-Cart («Product code» — первая колонка, `;`)."""
+    import csv
+    import io
+
+    reader = csv.reader(io.StringIO(text.lstrip("\ufeff")), delimiter=";")
+    header = next(reader, [])
+    col = next((i for i, h in enumerate(header) if h.strip().lower() == "product code"), 0)
+    return {row[col].strip() for row in reader if len(row) > col and row[col].strip()}
+
+
+def missing_codes(codes: set) -> list:
+    """Артикулы выгрузки, которых нет ни у товара, ни у фасовки (после импорта)."""
+    from apps.catalog.models import Product, ProductVariant
+
+    ours = set(Product.objects.exclude(sku="").values_list("sku", flat=True))
+    ours |= set(ProductVariant.objects.exclude(sku="").values_list("sku", flat=True))
+    return sorted(codes - ours)
+
+
 def apply_locales(tenant, locales: list) -> None:
     """Языки витрины бизнеса (первый — основной). Неизвестный код → ValueError."""
     from django.conf import settings
@@ -1183,7 +1252,48 @@ def apply_design(
         tenant.opening_hours_structured = hours
         fields.add("opening_hours_structured")
 
+    # 8. M21.5: вид как у старого магазина — фото целиком (круглые тарелки чая не
+    #    срезаются), логотип крупнее, подвал колонками. Только незаданное владельцем.
+    sd = dict(config.get("site_defaults") or {})
+    if not sd.get("media_places"):
+        whole = {"ratio": "1-1", "fit": "contain"}
+        sd["media_places"] = {"product": whole, "detail": whole}
+        notes.append("photos: square, whole image (cards and product page)")
+    if not sd.get("logo_size"):
+        sd["logo_size"] = "l"
+    config["site_defaults"] = sd
+    menus = dict(config.get("menus") or {})
+    if not (menus.get("footer") or {}).get("columns"):
+        nav = siteconfig.normalize(config)["nav"]
+        menus["footer"] = {"columns": FOOTER_COLUMNS}
+        config["menus"] = siteconfig._normalize_menus(menus, nav)
+        notes.append("footer columns like the old shop")
+
     tenant.site_config = config
     fields.add("site_config")
     tenant.save(update_fields=sorted(fields))
     return notes
+
+
+#: Подвал старого магазина (Mein Konto · Kundendienst · Über uns; контакты платформа
+#: рисует сама колонкой «Kontakt» из данных бизнеса). «Vergleichsliste» у нас нет.
+FOOTER_COLUMNS = [
+    {"label": "Mein Konto", "items": [{"label": "Anmelden", "type": "page", "target": "account"}]},
+    {
+        "label": "Kundendienst",
+        "items": [
+            {"label": "Versand & Zahlung", "type": "page", "target": "about"},
+            {"label": "Wunschzettel", "type": "page", "target": "wishlist"},
+            {"label": "Kontakt", "type": "page", "target": "contact"},
+        ],
+    },
+    {
+        "label": "Über uns",
+        "items": [
+            {"label": "Über uns", "type": "page", "target": "about"},
+            {"label": "Datenschutz", "type": "url", "target": "/datenschutz/"},
+            {"label": "AGB", "type": "url", "target": "/agb/"},
+            {"label": "Impressum", "type": "url", "target": "/impressum/"},
+        ],
+    },
+]

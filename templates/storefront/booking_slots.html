@@ -7,7 +7,7 @@
 <section class="relative left-1/2 -translate-x-1/2 w-screen -mt-6 md:-mt-10 mb-6 text-white bg-cover bg-center"
          style="background: var(--accent);">
   <div class="bg-black/15">
-    <div class="{{ storefront_page_width|default:'max-w-screen-2xl' }} mx-auto px-4 py-8 md:py-12">
+    <div class="{{ storefront_page_width|default:'max-w-none' }} mx-auto px-4 py-8 md:py-12">
       <a href="{% url 'storefront-termin' %}{% if embed %}?embed=1{% endif %}" class="text-sm text-white/80 hover:text-white">← {% trans "Back" %}</a>
       <h1 class="text-3xl md:text-4xl font-bold mt-1 drop-shadow">🍽 {% if table_mode %}{% trans "Tisch reservieren" %}{% else %}{{ resource.name }}{% endif %}</h1>
       <p class="mt-1 text-white/90">{% trans "Reserve your spot online — pick a day and time." %}</p>

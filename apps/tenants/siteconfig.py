@@ -1906,8 +1906,17 @@ def section_visual(config, key) -> dict:
 
 
 # FLT-3a: ширина контейнера витрины (шапка, main, подвал) → класс Tailwind.
-PAGE_WIDTHS = ("normal", "full")
-PAGE_WIDTH_CLASSES = {"": "max-w-screen-2xl", "normal": "max-w-7xl", "full": "max-w-none"}
+# M21.5 (решение владельца 2026-11-10): по умолчанию — на всю ширину у всех сайтов;
+# прежние 1536 px — явное «wide», 1280 px — «normal». «full» = то же, что дефолт
+# (сохранённые конфиги с ним продолжают работать).
+PAGE_WIDTHS = ("normal", "wide", "full")
+LOGO_SIZES = ("l", "xl")
+PAGE_WIDTH_CLASSES = {
+    "": "max-w-none",
+    "wide": "max-w-screen-2xl",
+    "normal": "max-w-7xl",
+    "full": "max-w-none",
+}
 
 
 def normalize_site_defaults(raw) -> dict:
@@ -1988,10 +1997,13 @@ def normalize_site_defaults(raw) -> dict:
     # не было изначально, поэтому "" и «Volle Breite» рисовали одно и то же.
     if sd.get("text_width") in ("narrow", "wide", "full"):
         out["text_width"] = sd["text_width"]
-    # FLT-3a: ширина витрины. "" = 1536 px (решение владельца 2026-11-04: «Breit» по
-    # умолчанию); "normal" — прежние 1280 px; "full" — без ограничения.
+    # FLT-3a/M21.5: ширина витрины. "" = на всю ширину; "wide" — 1536 px;
+    # "normal" — 1280 px; "full" — то же, что "".
     if sd.get("page_width") in PAGE_WIDTHS:
         out["page_width"] = sd["page_width"]
+    # M21.5: размер логотипа в шапке ("" = прежние 32 px).
+    if sd.get("logo_size") in LOGO_SIZES:
+        out["logo_size"] = sd["logo_size"]
     return out
 
 

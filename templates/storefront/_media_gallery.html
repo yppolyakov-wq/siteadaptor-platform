@@ -13,7 +13,7 @@
   <div class="md:hidden">
     <div class="flex gap-2 overflow-x-auto snap-x snap-mandatory pb-1" data-media-strip data-sf-slider>
       {% for img in images %}
-      <button type="button" class="js-media-strip-item snap-center shrink-0 w-[88%] aspect-[4/3] rounded-2xl overflow-hidden bg-gray-100" data-index="{{ forloop.counter0 }}" aria-label="{% trans 'Enlarge photo' %} {{ forloop.counter }}">
+      <button type="button" class="js-media-strip-item snap-center shrink-0 w-[88%] aspect-[4/3] rounded-2xl overflow-hidden bg-gray-100" data-sf-place="detail" data-index="{{ forloop.counter0 }}" aria-label="{% trans 'Enlarge photo' %} {{ forloop.counter }}">
         <img class="w-full h-full object-cover" src="{{ img.url|default:img }}" alt="{{ alt|default:'' }}"{% if not forloop.first %} loading="lazy"{% endif %}>
       </button>
       {% endfor %}
@@ -46,7 +46,7 @@
       {% endif %}
     </div>
     {% endif %}
-    <button type="button" class="js-media-zoom block flex-1 min-w-0 aspect-[4/3] rounded-2xl overflow-hidden bg-gray-100 cursor-zoom-in" aria-label="{% trans 'Enlarge photo' %}">
+    <button type="button" class="js-media-zoom block flex-1 min-w-0 aspect-[4/3] rounded-2xl overflow-hidden bg-gray-100 cursor-zoom-in" data-sf-place="detail" aria-label="{% trans 'Enlarge photo' %}">
       <img class="js-media-main w-full h-full object-cover" src="{{ images.0.url|default:images.0 }}" alt="{{ alt|default:'' }}">
     </button>
   </div>

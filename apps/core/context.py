@@ -648,8 +648,10 @@ def modules_nav(request):
         "storefront_text_width": cfg["site_defaults"].get("text_width", ""),
         # FLT-3a: ширина витрины — класс контейнера (draft-aware, как text_width).
         "storefront_page_width": siteconfig.PAGE_WIDTH_CLASSES.get(
-            cfg["site_defaults"].get("page_width", ""), "max-w-screen-2xl"
+            cfg["site_defaults"].get("page_width", ""), "max-w-none"
         ),
+        # M21.5: размер логотипа ("" | l | xl) — высота шапки следует за ним.
+        "storefront_logo_size": cfg["site_defaults"].get("logo_size", ""),
         # DL-2: ХРОМ карточек ("" | hard | hairline | line) — рамка/тень
         # семейства Look'а; body несёт data-sf-chrome, правила в _base.html.
         "storefront_card_chrome": cfg["site_defaults"].get("card_chrome", ""),

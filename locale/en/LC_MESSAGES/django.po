@@ -36501,3 +36501,9 @@ msgstr "e.g. Lunch menu"
 #: NT-B4
 msgid "off"
 msgstr "off"
+
+msgid "Detailseiten"
+msgstr "Detail pages"
+
+msgid "Logo-Größe"
+msgstr "Logo size"
