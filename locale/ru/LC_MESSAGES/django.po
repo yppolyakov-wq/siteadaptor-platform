@@ -36688,3 +36688,39 @@ msgstr "Отписаться сразу от нескольких"
 #: NT-A3
 msgid "Welche Benachrichtigungen möchten Sie beenden?"
 msgstr "Какие уведомления отключить?"
+
+#: NT-A4
+msgid "%(section)s: %(names)s"
+msgstr "%(section)s: %(names)s"
+
+#: NT-A4
+msgid "Alle beenden"
+msgstr "Завершить все"
+
+#: NT-A4
+msgid "Ja, speichern"
+msgstr "Да, сохранить"
+
+#: NT-A4
+msgid "Kategorien wählen"
+msgstr "Выбрать категории"
+
+#: NT-A4
+msgid "Neue Angebote kommen einmal täglich hier im Chat. Beenden jederzeit mit /folgen."
+msgstr "Новые предложения приходят сюда в чат раз в день. Отключить можно в любой момент: /folgen."
+
+#: NT-A4
+msgid "Speichern (%(n)s)"
+msgstr "Сохранить (%(n)s)"
+
+#: NT-A4
+msgid "Welche Kategorien?"
+msgstr "Какие категории?"
+
+#: NT-A4
+msgid "Welche Kategorien? Tippen zum Auswählen, dann speichern."
+msgstr "Какие категории? Нажмите, чтобы выбрать, затем сохраните."
+
+#: NT-A4
+msgid "keine"
+msgstr "ничего"

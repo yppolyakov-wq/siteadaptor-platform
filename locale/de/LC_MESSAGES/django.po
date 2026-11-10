@@ -36440,3 +36440,39 @@ msgstr "Mehrere auf einmal abbestellen"
 #: NT-A3
 msgid "Welche Benachrichtigungen möchten Sie beenden?"
 msgstr "Welche Benachrichtigungen möchten Sie beenden?"
+
+#: NT-A4
+msgid "%(section)s: %(names)s"
+msgstr "%(section)s: %(names)s"
+
+#: NT-A4
+msgid "Alle beenden"
+msgstr "Alle beenden"
+
+#: NT-A4
+msgid "Ja, speichern"
+msgstr "Ja, speichern"
+
+#: NT-A4
+msgid "Kategorien wählen"
+msgstr "Kategorien wählen"
+
+#: NT-A4
+msgid "Neue Angebote kommen einmal täglich hier im Chat. Beenden jederzeit mit /folgen."
+msgstr "Neue Angebote kommen einmal täglich hier im Chat. Beenden jederzeit mit /folgen."
+
+#: NT-A4
+msgid "Speichern (%(n)s)"
+msgstr "Speichern (%(n)s)"
+
+#: NT-A4
+msgid "Welche Kategorien?"
+msgstr "Welche Kategorien?"
+
+#: NT-A4
+msgid "Welche Kategorien? Tippen zum Auswählen, dann speichern."
+msgstr "Welche Kategorien? Tippen zum Auswählen, dann speichern."
+
+#: NT-A4
+msgid "keine"
+msgstr "keine"

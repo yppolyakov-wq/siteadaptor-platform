@@ -36353,3 +36353,39 @@ msgstr "Unsubscribe from several at once"
 #: NT-A3
 msgid "Welche Benachrichtigungen möchten Sie beenden?"
 msgstr "Which notifications do you want to stop?"
+
+#: NT-A4
+msgid "%(section)s: %(names)s"
+msgstr "%(section)s: %(names)s"
+
+#: NT-A4
+msgid "Alle beenden"
+msgstr "End all"
+
+#: NT-A4
+msgid "Ja, speichern"
+msgstr "Yes, save"
+
+#: NT-A4
+msgid "Kategorien wählen"
+msgstr "Choose categories"
+
+#: NT-A4
+msgid "Neue Angebote kommen einmal täglich hier im Chat. Beenden jederzeit mit /folgen."
+msgstr "New offers arrive here in the chat once a day. Stop any time with /folgen."
+
+#: NT-A4
+msgid "Speichern (%(n)s)"
+msgstr "Save (%(n)s)"
+
+#: NT-A4
+msgid "Welche Kategorien?"
+msgstr "Which categories?"
+
+#: NT-A4
+msgid "Welche Kategorien? Tippen zum Auswählen, dann speichern."
+msgstr "Which categories? Tap to select, then save."
+
+#: NT-A4
+msgid "keine"
+msgstr "none"

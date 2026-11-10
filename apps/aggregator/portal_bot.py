@@ -55,7 +55,12 @@ CALLBACKS = {
     "fq": re.compile(rf"^fq:({_TOKEN})$"),
     "fy": re.compile(rf"^fy:({_TOKEN})$"),
     "fn": re.compile(r"^fn$"),
-    "ls": re.compile(r"^ls$"),
+    "ls": re.compile(r"^ls(?::([0-9]))?$"),
+    # NT-A4: категории раздела переключателями ☐/✅ и «все абонементы — конец».
+    "kc": re.compile(rf"^kc:({_KEY})$"),
+    "kt": re.compile(rf"^kt:({_TOKEN}):([0-9]{{1,2}})$"),
+    "ks": re.compile(rf"^ks:({_TOKEN})$"),
+    "wo": re.compile(r"^wo$"),
     "u": re.compile(r"^u:([0-9]{1,12})$"),
     "pd": re.compile(rf"^pd:(ask|no|yes:{_TOKEN})$"),
     # H-7i: язык (Art. 16) и отказ от всех подписок (Art. 21).
@@ -149,7 +154,11 @@ def handle(bot_pk: int, update: dict) -> str:
                 return "limited"
             _touch(bot, uid)
             return _callback(
-                bot, uid, str(callback.get("data") or ""), callback.get("language_code")
+                bot,
+                uid,
+                str(callback.get("data") or ""),
+                callback.get("language_code"),
+                message_id=callback.get("message_id"),
             )
     message = update.get("message") or {}
     if message.get("chat_type") != "private" or message.get("is_bot"):
@@ -264,7 +273,7 @@ def _start(bot, uid) -> str:
     return "start"
 
 
-def _callback(bot, uid, data: str, lang) -> str:
+def _callback(bot, uid, data: str, lang, message_id=None) -> str:
     parsed = parse_callback(data)
     if parsed is None:
         send(bot, uid, _("Diese Schaltfläche ist veraltet."), _menu(bot.portal))
@@ -294,7 +303,15 @@ def _callback(bot, uid, data: str, lang) -> str:
         send(bot, uid, _("Kein Abo angelegt."))
         return "follow_declined"
     if head == "ls":
-        return _list_follows(bot, uid)
+        return _list_follows(bot, uid, page=int(args[0] or 0))
+    if head == "kc":
+        return _categories(bot, uid, args[0])
+    if head == "kt":
+        return _category_toggle(bot, uid, args[0], int(args[1]), message_id)
+    if head == "ks":
+        return _categories_save(bot, uid, args[0], lang)
+    if head == "wo":
+        return _object_ask(bot, uid)
     if head == "u":
         return _unfollow(bot, uid, int(args[0]))
     if head == "pd":
@@ -467,9 +484,167 @@ def _search_section(bot, uid, key: str) -> str:
         bot,
         uid,
         _("Neue Angebote aus diesem Bereich hier bekommen?"),
-        {"inline_keyboard": [[{"text": "🔔 " + _("Folgen"), "callback_data": f"fk:{key}"}]]},
+        {
+            "inline_keyboard": [
+                [{"text": "🔔 " + _("Folgen"), "callback_data": f"fk:{key}"}],
+                [{"text": "🗂 " + _("Kategorien wählen"), "callback_data": f"kc:{key}"}],
+            ]
+        },
     )
     return result
+
+
+# --- NT-A4: категории раздела переключателями ---------------------------------------------
+
+
+def _cats_key(bot, uid, nonce: str) -> str:
+    return f"pbot:kc:{bot.pk}:{int(uid)}:{nonce}"
+
+
+def _section_categories(key: str) -> list:
+    from apps.core import city_categories as cc
+
+    return [c for c in cc.CATEGORIES if c.section == key]
+
+
+def _cats_markup(nonce: str, cats, selected) -> dict:
+    rows = [
+        [
+            {
+                "text": ("✅ " if c.key in selected else "☐ ") + _clean(str(c.label), 40),
+                "callback_data": f"kt:{nonce}:{i}",
+            }
+        ]
+        for i, c in enumerate(cats)
+    ]
+    rows.append(
+        [
+            {
+                "text": "💾 " + _("Speichern (%(n)s)") % {"n": len(selected)},
+                "callback_data": f"ks:{nonce}",
+            }
+        ]
+    )
+    return {"inline_keyboard": rows}
+
+
+def _categories(bot, uid, key: str) -> str:
+    """Категории раздела ☐/✅; начальный выбор — текущие Telegram-подписки жителя."""
+    from apps.core import city_categories as cc
+
+    from . import follow_center
+
+    if not cc.section(key):
+        send(bot, uid, _("Diese Schaltfläche ist veraltet."))
+        return "stale"
+    cats = _section_categories(key)
+    chat = PortalChat.objects.filter(bot=bot, chat_id=int(uid)).select_related("user").first()
+    city = follow_center.city_of(bot.portal)
+    state = follow_center.state(
+        chat.user if chat else None, city, FollowSubscription.CHANNEL_TELEGRAM
+    )
+    selected = [c.key for c in cats if c.key in state.categories or key in state.sections]
+    nonce = secrets.token_urlsafe(9)
+    cache.set(_cats_key(bot, uid, nonce), {"sec": key, "sel": selected}, STATE_TTL)
+    send(
+        bot,
+        uid,
+        "🗂 " + _("Welche Kategorien? Tippen zum Auswählen, dann speichern."),
+        _cats_markup(nonce, cats, selected),
+    )
+    return "categories"
+
+
+def _category_toggle(bot, uid, nonce: str, index: int, message_id) -> str:
+    from apps.telegram import services
+
+    state = cache.get(_cats_key(bot, uid, nonce))
+    cats = _section_categories(state["sec"]) if state else []
+    if not state or index >= len(cats):
+        send(bot, uid, _("Diese Schaltfläche ist veraltet."))
+        return "stale"
+    selected = list(state["sel"])
+    key = cats[index].key
+    if key in selected:
+        selected.remove(key)
+    else:
+        selected.append(key)
+    cache.set(_cats_key(bot, uid, nonce), {"sec": state["sec"], "sel": selected}, STATE_TTL)
+    markup = _cats_markup(nonce, cats, selected)
+    if message_id:
+        services.edit_message_reply_markup(bot.token, uid, message_id, markup)
+    else:  # без номера сообщения — новое сообщение (старое могло истечь)
+        send(bot, uid, "🗂 " + _("Welche Kategorien?"), markup)
+    return "category_toggled"
+
+
+def _categories_save(bot, uid, nonce: str, lang) -> str:
+    """Сохранить выбор раздела — через согласие «Ja, folgen» (UWG §7), как одна подписка."""
+    from apps.core import city_categories as cc
+
+    state = cache.get(_cats_key(bot, uid, nonce))
+    if not state:
+        send(bot, uid, _("Diese Schaltfläche ist veraltet."))
+        return "stale"
+    cats = {c.key: c for c in _section_categories(state["sec"])}
+    selected = [k for k in state["sel"] if k in cats]
+    ask = secrets.token_urlsafe(9)
+    cache.set(_ask_key(bot, uid, ask), {"center": {"sec": state["sec"], "sel": selected}}, ASK_TTL)
+    section = cc.section(state["sec"])
+    names = ", ".join(_clean(str(cats[k].label), 40) for k in selected) or _("keine")
+    text = "\n".join(
+        [
+            "🔔 " + _("%(section)s: %(names)s") % {"section": section.label, "names": names},
+            _("Neue Angebote kommen einmal täglich hier im Chat. Beenden jederzeit mit /folgen."),
+        ]
+    )
+    rows = [
+        [{"text": "✅ " + _("Ja, speichern"), "callback_data": f"fy:{ask}"}],
+        [{"text": "❌ " + _("Nein"), "callback_data": "fn"}],
+    ]
+    send(bot, uid, text, {"inline_keyboard": rows})
+    return "categories_asked"
+
+
+def _center_confirm(bot, uid, center: dict, lang) -> str:
+    from . import follow, follow_center
+
+    city = follow_center.city_of(bot.portal)
+    sec = center.get("sec") or ""
+    try:
+        chat = chat_user(bot, uid, lang)
+    except NewChatsLimited:
+        send(bot, uid, _("Zu viele Anfragen — bitte kurz warten."))
+        return "limited"
+    channel = FollowSubscription.CHANNEL_TELEGRAM
+    # Diff — только внутри ЭТОГО раздела: остальные Telegram-подписки жителя не трогаем.
+    current = follow_center.state(chat.user, city, channel)
+    members = {c.key for c in _section_categories(sec)}
+    desired = follow_center.Selection(
+        sections={s for s in current.sections if s != sec},
+        categories={c for c in current.categories if c not in members}
+        | {c for c in center.get("sel") or [] if c in members},
+        districts=set(current.districts),
+        tags=set(current.tags),
+        brands=set(current.brands),
+    )
+    desired = follow_center.normalize(desired, bot.portal)
+    try:
+        follow_center.apply(
+            chat.user,
+            desired,
+            frequency=FollowSubscription.FREQ_DAILY,
+            portal=bot.portal,
+            source_host=f"tg:@{bot.bot_username}"[:253],
+            channel=channel,
+        )
+    except follow.FollowLimitReached:
+        send(
+            bot, uid, _("Sie haben schon die maximale Zahl an Abos. Beenden Sie eines mit /folgen.")
+        )
+        return "follow_limit"
+    send(bot, uid, "✅ " + _("Gespeichert."), _menu(bot.portal))
+    return "categories_saved"
 
 
 def _search_district(bot, uid, slug: str) -> str:
@@ -616,6 +791,8 @@ def _follow_confirm(bot, uid, nonce: str, lang) -> str:
     if not payload or not cache.delete(key):
         send(bot, uid, _("Diese Schaltfläche ist veraltet."))
         return "stale"
+    if "center" in payload:  # NT-A4: выбор категорий раздела
+        return _center_confirm(bot, uid, payload["center"], lang)
     query = tuple(tuple(p) for p in payload.get("q") or ())
     target = follow.Target(payload["k"], payload["t"], payload.get("c", ""), query=query)
     if target.kind == FollowSubscription.TARGET_QUERY and follow_query.key(query) != target.key:
@@ -649,7 +826,10 @@ def _follow_confirm(bot, uid, nonce: str, lang) -> str:
     return "followed"
 
 
-def _list_follows(bot, uid) -> str:
+LIST_PAGE = 10  # NT-A4: подписок до 40 — список страницами
+
+
+def _list_follows(bot, uid, page: int = 0) -> str:
     from . import follow
 
     chat = PortalChat.objects.filter(bot=bot, chat_id=int(uid)).select_related("user").first()
@@ -657,10 +837,21 @@ def _list_follows(bot, uid) -> str:
     if not subs:
         send(bot, uid, _("Sie haben noch keine Abos. Suchen Sie etwas und tippen Sie auf 🔔."))
         return "follows_empty"
+    pages = (len(subs) - 1) // LIST_PAGE + 1
+    page = max(0, min(page, pages - 1))
+    chunk = subs[page * LIST_PAGE : (page + 1) * LIST_PAGE]
     rows = [
         [{"text": "✖ " + _clean(follow.describe(sub), 50), "callback_data": f"u:{sub.pk}"}]
-        for sub in subs[:20]
+        for sub in chunk
     ]
+    nav = []
+    if page > 0:
+        nav.append({"text": "◀", "callback_data": f"ls:{page - 1}"})
+    if page + 1 < pages:
+        nav.append({"text": "▶", "callback_data": f"ls:{page + 1}"})
+    if nav:
+        rows.append(nav)
+    rows.append([{"text": "🗑 " + _("Alle beenden"), "callback_data": "wo"}])
     send(bot, uid, "🔔 " + _("Ihre Abos — tippen zum Beenden:"), {"inline_keyboard": rows})
     return "follows"
 

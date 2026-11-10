@@ -36499,3 +36499,39 @@ msgstr "Birkaçından aynı anda çık"
 #: NT-A3
 msgid "Welche Benachrichtigungen möchten Sie beenden?"
 msgstr "Hangi bildirimleri sonlandırmak istiyorsunuz?"
+
+#: NT-A4
+msgid "%(section)s: %(names)s"
+msgstr "%(section)s: %(names)s"
+
+#: NT-A4
+msgid "Alle beenden"
+msgstr "Tümünü bitir"
+
+#: NT-A4
+msgid "Ja, speichern"
+msgstr "Evet, kaydet"
+
+#: NT-A4
+msgid "Kategorien wählen"
+msgstr "Kategori seç"
+
+#: NT-A4
+msgid "Neue Angebote kommen einmal täglich hier im Chat. Beenden jederzeit mit /folgen."
+msgstr "Yeni teklifler günde bir kez burada sohbette gelir. İstediğiniz zaman /folgen ile durdurun."
+
+#: NT-A4
+msgid "Speichern (%(n)s)"
+msgstr "Kaydet (%(n)s)"
+
+#: NT-A4
+msgid "Welche Kategorien?"
+msgstr "Hangi kategoriler?"
+
+#: NT-A4
+msgid "Welche Kategorien? Tippen zum Auswählen, dann speichern."
+msgstr "Hangi kategoriler? Seçmek için dokunun, sonra kaydedin."
+
+#: NT-A4
+msgid "keine"
+msgstr "hiçbiri"

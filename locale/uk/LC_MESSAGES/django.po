@@ -36675,3 +36675,39 @@ msgstr "Відписатися одразу від кількох"
 #: NT-A3
 msgid "Welche Benachrichtigungen möchten Sie beenden?"
 msgstr "Які сповіщення вимкнути?"
+
+#: NT-A4
+msgid "%(section)s: %(names)s"
+msgstr "%(section)s: %(names)s"
+
+#: NT-A4
+msgid "Alle beenden"
+msgstr "Завершити всі"
+
+#: NT-A4
+msgid "Ja, speichern"
+msgstr "Так, зберегти"
+
+#: NT-A4
+msgid "Kategorien wählen"
+msgstr "Обрати категорії"
+
+#: NT-A4
+msgid "Neue Angebote kommen einmal täglich hier im Chat. Beenden jederzeit mit /folgen."
+msgstr "Нові пропозиції надходять сюди в чат раз на день. Вимкнути можна будь-коли: /folgen."
+
+#: NT-A4
+msgid "Speichern (%(n)s)"
+msgstr "Зберегти (%(n)s)"
+
+#: NT-A4
+msgid "Welche Kategorien?"
+msgstr "Які категорії?"
+
+#: NT-A4
+msgid "Welche Kategorien? Tippen zum Auswählen, dann speichern."
+msgstr "Які категорії? Натисніть, щоб обрати, потім збережіть."
+
+#: NT-A4
+msgid "keine"
+msgstr "нічого"
