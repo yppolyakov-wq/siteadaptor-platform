@@ -3171,11 +3171,13 @@ def newsletter_preferences(request, token):
     saved = ""
     if request.method == "POST" and subscribed:
         action = request.POST.get("action", "")
-        if action == "all_off" or not topics:
+        # Ревью NT-B: тем в магазине нет (все выключены) — «Speichern» ничего не делает,
+        # отписка только явной кнопкой.
+        if action == "all_off":
             customer.unsubscribed = True
             customer.save(update_fields=["unsubscribed", "updated_at"])
             subscribed, saved = False, "off"
-        else:
+        elif topics:
             # только СУЖЕНИЕ: темы, которых у клиента не было, отсюда не добавляются
             wanted = {str(v) for v in request.POST.getlist("thema")} & selected
             if not wanted:
@@ -3227,7 +3229,10 @@ def newsletter_signup(request):
         # NT-B2: темы из формы (пусто = все); применяются только после клика в письме.
         topics = _topic_choice(request.POST.getlist("thema"))
         subscribed = customer.marketing_opt_in and not customer.unsubscribed
-        same = topics is None or set(topics) == newsletter.selected_topic_ids(customer)
+        # полный выбор = «все темы» (ревью NT-B: иначе каждый повтор формы слал DOI)
+        active_ids = {str(t.pk) for t in _active_topics()}
+        current = newsletter.selected_topic_ids(customer) or active_ids
+        same = topics is None or (set(topics) or active_ids) == current
         # нейтральный ответ независимо от статуса (не раскрываем, подписан ли e-mail);
         # уже подтверждённому подписчику с тем же выбором письмо повторно НЕ шлём
         if not subscribed or not same:

@@ -33,6 +33,14 @@
     <input type="checkbox" name="marketing" {% if customer.marketing_opt_in and not customer.unsubscribed %}checked{% endif %} class="rounded border-gray-300">
     {% trans "Send me offers and news by e-mail" %}
   </label>
+  {% if topics %}
+  <fieldset class="ml-6" data-account-topics>
+    <input type="hidden" name="topics_present" value="1">
+    <legend class="text-sm font-medium mb-1">{% trans "Worüber möchten Sie Neuigkeiten?" %}</legend>
+    {% for t in topics %}<label class="flex items-center gap-2 text-sm"><input type="checkbox" name="thema" value="{{ t.pk }}"{% if t.pk|stringformat:"s" in selected_topics %} checked{% endif %} class="rounded border-gray-300"> {{ t.name_localized }}</label>{% endfor %}
+    <p class="text-xs text-gray-500 mt-1">{% trans "Keine Auswahl = alle Themen." %}</p>
+  </fieldset>
+  {% endif %}
   <button type="submit" class="text-white rounded-lg px-4 py-3 font-medium" style="background: var(--accent);">{% trans "Save" %}</button>
 </form>
 

@@ -29,6 +29,16 @@
       <label class="block text-sm font-medium mb-1" for="id_body">{% trans "Message" %}</label>
       <textarea id="id_body" name="body" rows="6" required class="ui-input"></textarea>
     </div>
+    {% if active_topics %}
+    <div>
+      <label class="block text-sm font-medium mb-1" for="id_topic">{% trans "Newsletter topic" %}</label>
+      <select id="id_topic" name="topic" class="ui-input">
+        <option value="">{% trans "All topics" %} · {{ consented }}</option>
+        {% for t in active_topics %}<option value="{{ t.pk }}">{{ t.name }} · {{ t.audience }}</option>{% endfor %}
+      </select>
+      <p class="text-xs text-gray-600 mt-1">{% trans "Goes to subscribers of this topic and to everyone who has not chosen topics." %}</p>
+    </div>
+    {% endif %}
     <button class="ui-btn ui-btn-primary">{% trans "Save draft" %}</button>
   </form>
 
@@ -37,11 +47,12 @@
     {% for c in campaigns %}
       <div class="p-4 flex items-start justify-between gap-3">
         <div class="min-w-0">
-          <p class="font-medium">{{ c.subject }}
+          <p class="font-medium">{{ c.subject }}{% if c.topic %} <span class="text-xs bg-gray-100 text-gray-700 rounded-full px-2 py-0.5 ml-1">{{ c.topic.name }}</span>{% endif %}
             {% if c.status == 'sent' %}<span class="text-xs bg-emerald-100 text-emerald-700 rounded-full px-2 py-0.5 ml-1">{% trans "sent" %}</span>
             {% else %}<span class="text-xs bg-amber-100 text-amber-800 rounded-full px-2 py-0.5 ml-1">{% trans "draft" %}</span>{% endif %}
           </p>
           <p class="text-xs text-gray-500 mt-1 whitespace-pre-line line-clamp-2">{{ c.body }}</p>
+          {% if c.status == 'draft' %}<p class="text-xs ui-muted mt-1">{% blocktrans count n=c.audience %}{{ n }} recipient{% plural %}{{ n }} recipients{% endblocktrans %}</p>{% endif %}
           {% if c.status == 'sent' %}<p class="text-xs ui-muted mt-1">{{ c.sent_at|date:"d.m.Y H:i" }} · {% blocktrans count n=c.recipient_count %}{{ n }} recipient{% plural %}{{ n }} recipients{% endblocktrans %}</p>{% endif %}
         </div>
         {% if c.status == 'draft' %}
@@ -64,5 +75,37 @@
     {% endfor %}
   </div>
   </div>
+
+  {% comment %}NT-B4: темы рассылки. Гость выбирает их при подписке; без выбора получает всё.{% endcomment %}
+  <section class="ui-card p-5 mt-6" aria-labelledby="nl-topics-h">
+    <h2 id="nl-topics-h" class="ui-h2">{% trans "Topics" %}</h2>
+    <p class="text-sm text-gray-600 mt-1">{% trans "Guests pick topics when subscribing. No choice means they get everything." %}</p>
+    {% if topics %}
+    <ul class="mt-3 divide-y divide-gray-100">
+      {% for t in topics %}
+      <li class="py-2 flex flex-wrap items-center justify-between gap-2">
+        <span class="min-w-0">{{ t.name }}{% if not t.is_active %} <span class="text-xs bg-gray-100 text-gray-600 rounded-full px-2 py-0.5 ml-1">{% trans "off" %}</span>{% endif %}
+          <span class="text-xs ui-muted ml-1">{% blocktrans count n=t.audience %}{{ n }} recipient{% plural %}{{ n }} recipients{% endblocktrans %}</span></span>
+        <span class="flex items-center gap-2">
+          <form method="post">{% csrf_token %}<input type="hidden" name="action" value="topic_toggle"><input type="hidden" name="topic" value="{{ t.pk }}">
+            <button class="ui-btn ui-btn-sm">{% if t.is_active %}{% trans "Turn off" %}{% else %}{% trans "Turn on" %}{% endif %}</button></form>
+          <form method="post">{% csrf_token %}<input type="hidden" name="action" value="topic_delete"><input type="hidden" name="topic" value="{{ t.pk }}">
+            <button class="text-sm text-red-600 hover:underline" aria-label="{% blocktrans with name=t.name %}Delete topic {{ name }}{% endblocktrans %}">{% trans "Delete" %}</button></form>
+        </span>
+      </li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+    {% if topics|length < max_topics %}
+    <form method="post" class="mt-3 flex flex-wrap items-end gap-2">
+      {% csrf_token %}<input type="hidden" name="action" value="topic_add">
+      <div class="grow min-w-0">
+        <label class="block text-sm font-medium mb-1" for="id_topic_name">{% trans "New topic" %}</label>
+        <input id="id_topic_name" name="name" type="text" required maxlength="80" class="ui-input" placeholder="{% trans 'e.g. Lunch menu' %}">
+      </div>
+      <button class="ui-btn ui-btn-primary">{% trans "Add" %}</button>
+    </form>
+    {% endif %}
+  </section>
 </div>
 {% endblock %}

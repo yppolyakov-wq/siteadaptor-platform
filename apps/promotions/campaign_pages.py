@@ -33,6 +33,7 @@ def create_campaign(form) -> CouponCampaign:
         tag=(d.get("tag") or "").strip().lower(),
         inactive_days=d.get("inactive_days"),
         top_ltv=d.get("top_ltv"),
+        topic=d.get("topic"),
         discount_percent=d.get("discount_percent"),
         discount_cents=int(d["discount_eur"] * 100) if d.get("discount_eur") else None,
         min_order_cents=int(d["min_order_eur"] * 100) if d.get("min_order_eur") else 0,

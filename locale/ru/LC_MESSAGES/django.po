@@ -36768,3 +36768,71 @@ msgstr "Выбрать темы: %(url)s"
 #: NT-B
 msgid "Worüber möchten Sie Neuigkeiten?"
 msgstr "О чём вам присылать новости?"
+
+#: NT-B4
+msgid "All topics"
+msgstr "Все темы"
+
+#: NT-B4
+msgid "Delete topic %(name)s"
+msgstr "Удалить тему %(name)s"
+
+#: NT-B4
+msgid "Dieses Thema gibt es nicht mehr."
+msgstr "Этой темы больше нет."
+
+#: NT-B4
+msgid "Dieses Thema gibt es schon."
+msgstr "Такая тема уже есть."
+
+#: NT-B4
+msgid "Goes to subscribers of this topic and to everyone who has not chosen topics."
+msgstr "Получат подписчики этой темы и все, кто темы не выбирал."
+
+#: NT-B4
+msgid "Guests pick topics when subscribing. No choice means they get everything."
+msgstr "Гости выбирают темы при подписке. Без выбора получают всё."
+
+#: NT-B4
+msgid "Höchstens %(n)s Themen. Bitte erst eines entfernen."
+msgstr "Не больше %(n)s тем. Сначала удалите одну."
+
+#: NT-B4
+msgid "New topic"
+msgstr "Новая тема"
+
+#: NT-B4
+msgid "Newsletter topic"
+msgstr "Тема рассылки"
+
+#: NT-B4
+msgid "Thema angelegt."
+msgstr "Тема создана."
+
+#: NT-B4
+msgid "Thema gelöscht."
+msgstr "Тема удалена."
+
+#: NT-B4
+msgid "Topics"
+msgstr "Темы"
+
+#: NT-B4
+msgid "Turn off"
+msgstr "Выключить"
+
+#: NT-B4
+msgid "Turn on"
+msgstr "Включить"
+
+#: NT-B4
+msgid "Zu diesem Thema gibt es Kampagnen. Sie können es nur ausschalten."
+msgstr "По этой теме есть кампании. Её можно только выключить."
+
+#: NT-B4
+msgid "e.g. Lunch menu"
+msgstr "напр. Обеденное меню"
+
+#: NT-B4
+msgid "off"
+msgstr "выкл."

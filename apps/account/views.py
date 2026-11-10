@@ -182,14 +182,33 @@ def profile_view(request):
                 "updated_at",
             ]
         )
+        # NT-B5: темы рассылки — только при показанном блоке (сентинел, W0) и согласии.
+        if opt and request.POST.get("topics_present"):
+            from apps.promotions import newsletter
+            from apps.promotions.models import CustomerNewsletterTopic
+
+            newsletter.set_topics(
+                customer,
+                request.POST.getlist("thema"),
+                source=CustomerNewsletterTopic.SOURCE_ACCOUNT,
+            )
         messages.success(request, _("Saved."))
         return redirect("account-profile")
+    from apps.promotions import newsletter
+    from apps.promotions.models import NewsletterTopic
     from apps.telegram.notify import deep_link
 
+    topics = list(NewsletterTopic.objects.filter(is_active=True))
     return render(
         request,
         "konto/profile.html",
-        {"customer": customer, "telegram_link": deep_link(customer)},
+        {
+            "customer": customer,
+            "telegram_link": deep_link(customer),
+            "topics": topics,
+            "selected_topics": newsletter.selected_topic_ids(customer)
+            or {str(t.pk) for t in topics},
+        },
     )
 
 

@@ -36579,3 +36579,71 @@ msgstr "Konu seç: %(url)s"
 #: NT-B
 msgid "Worüber möchten Sie Neuigkeiten?"
 msgstr "Hangi konularda haber almak istersiniz?"
+
+#: NT-B4
+msgid "All topics"
+msgstr "Tüm konular"
+
+#: NT-B4
+msgid "Delete topic %(name)s"
+msgstr "%(name)s konusunu sil"
+
+#: NT-B4
+msgid "Dieses Thema gibt es nicht mehr."
+msgstr "Bu konu artık yok."
+
+#: NT-B4
+msgid "Dieses Thema gibt es schon."
+msgstr "Bu konu zaten var."
+
+#: NT-B4
+msgid "Goes to subscribers of this topic and to everyone who has not chosen topics."
+msgstr "Bu konunun abonelerine ve konu seçmemiş herkese gider."
+
+#: NT-B4
+msgid "Guests pick topics when subscribing. No choice means they get everything."
+msgstr "Misafirler abone olurken konu seçer. Seçim yoksa her şeyi alırlar."
+
+#: NT-B4
+msgid "Höchstens %(n)s Themen. Bitte erst eines entfernen."
+msgstr "En fazla %(n)s konu. Lütfen önce birini kaldırın."
+
+#: NT-B4
+msgid "New topic"
+msgstr "Yeni konu"
+
+#: NT-B4
+msgid "Newsletter topic"
+msgstr "Bülten konusu"
+
+#: NT-B4
+msgid "Thema angelegt."
+msgstr "Konu oluşturuldu."
+
+#: NT-B4
+msgid "Thema gelöscht."
+msgstr "Konu silindi."
+
+#: NT-B4
+msgid "Topics"
+msgstr "Konular"
+
+#: NT-B4
+msgid "Turn off"
+msgstr "Kapat"
+
+#: NT-B4
+msgid "Turn on"
+msgstr "Aç"
+
+#: NT-B4
+msgid "Zu diesem Thema gibt es Kampagnen. Sie können es nur ausschalten."
+msgstr "Bu konuya ait kampanyalar var. Yalnızca kapatabilirsiniz."
+
+#: NT-B4
+msgid "e.g. Lunch menu"
+msgstr "ör. Öğle menüsü"
+
+#: NT-B4
+msgid "off"
+msgstr "kapalı"

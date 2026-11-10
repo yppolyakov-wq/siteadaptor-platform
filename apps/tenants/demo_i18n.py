@@ -612,9 +612,11 @@ def _translate_side_models(locales) -> None:
     from apps.core.models import Extra
     from apps.jobs.models import Job, JobLine
     from apps.loyalty.models import LoyaltyProgram, Voucher
+    from apps.promotions.models import NewsletterTopic
     from apps.reviews.models import Review
 
     simple = (
+        (NewsletterTopic, ("name",)),  # NT-B5
         (Resource, ("name", "title", "bio")),
         (PassPlan, ("label",)),
         (Extra, ("label",)),

@@ -1410,6 +1410,19 @@ def test_cafe_seeds_active_winback_campaign():
     assert wb.status == CouponCampaign.STATUS_ACTIVE and wb.discount_percent == 10
 
 
+def test_cafe_seeds_newsletter_topics_with_mixed_audience():
+    """NT-B5: темы рассылки кафе; часть клиентов с согласием выбрала тему, часть — «все»."""
+    from apps.promotions import newsletter
+    from apps.promotions.models import CustomerNewsletterTopic, NewsletterTopic
+
+    t = TenantFactory(slug="ntb5", name="NTB5", business_type="cafe")
+    assert demo_kits.apply_kit(t, "cafe")
+    names = set(NewsletterTopic.objects.values_list("name", flat=True))
+    assert {"Mittagstisch", "Neue Kuchen", "Events & Brunch"} <= names
+    if newsletter.consented_customers().count() > 1:
+        assert CustomerNewsletterTopic.objects.exists()
+
+
 def test_apply_catering_kit_jobs_speisekarte_browse_only():
     """GK-1 Catering: ядро jobs (Event-Anfrage AF-1 → Angebot) + Speisekarte
     browse-only (catalog core, orders у типа выключен) + пресеты AF в конфиге."""

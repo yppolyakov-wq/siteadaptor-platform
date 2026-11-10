@@ -36520,3 +36520,71 @@ msgstr "Themen wählen: %(url)s"
 #: NT-B
 msgid "Worüber möchten Sie Neuigkeiten?"
 msgstr "Worüber möchten Sie Neuigkeiten?"
+
+#: NT-B4
+msgid "All topics"
+msgstr "Alle Themen"
+
+#: NT-B4
+msgid "Delete topic %(name)s"
+msgstr "Thema %(name)s löschen"
+
+#: NT-B4
+msgid "Dieses Thema gibt es nicht mehr."
+msgstr "Dieses Thema gibt es nicht mehr."
+
+#: NT-B4
+msgid "Dieses Thema gibt es schon."
+msgstr "Dieses Thema gibt es schon."
+
+#: NT-B4
+msgid "Goes to subscribers of this topic and to everyone who has not chosen topics."
+msgstr "Geht an Abonnenten dieses Themas und an alle, die keine Themen gewählt haben."
+
+#: NT-B4
+msgid "Guests pick topics when subscribing. No choice means they get everything."
+msgstr "Gäste wählen Themen bei der Anmeldung. Ohne Auswahl erhalten sie alles."
+
+#: NT-B4
+msgid "Höchstens %(n)s Themen. Bitte erst eines entfernen."
+msgstr "Höchstens %(n)s Themen. Bitte erst eines entfernen."
+
+#: NT-B4
+msgid "New topic"
+msgstr "Neues Thema"
+
+#: NT-B4
+msgid "Newsletter topic"
+msgstr "Newsletter-Thema"
+
+#: NT-B4
+msgid "Thema angelegt."
+msgstr "Thema angelegt."
+
+#: NT-B4
+msgid "Thema gelöscht."
+msgstr "Thema gelöscht."
+
+#: NT-B4
+msgid "Topics"
+msgstr "Themen"
+
+#: NT-B4
+msgid "Turn off"
+msgstr "Ausschalten"
+
+#: NT-B4
+msgid "Turn on"
+msgstr "Einschalten"
+
+#: NT-B4
+msgid "Zu diesem Thema gibt es Kampagnen. Sie können es nur ausschalten."
+msgstr "Zu diesem Thema gibt es Kampagnen. Sie können es nur ausschalten."
+
+#: NT-B4
+msgid "e.g. Lunch menu"
+msgstr "z. B. Mittagstisch"
+
+#: NT-B4
+msgid "off"
+msgstr "aus"

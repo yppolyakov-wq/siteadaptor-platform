@@ -747,6 +747,13 @@ class CouponCampaignForm(forms.Form):
         label=_("No purchase for N days"), min_value=1, required=False
     )
     top_ltv = forms.IntegerField(label=_("Top N by revenue"), min_value=1, required=False)
+    # NT-B4: тема рассылки — получат подписчики темы и те, кто тем не выбирал.
+    topic = forms.ModelChoiceField(
+        label=_("Newsletter topic"),
+        queryset=None,
+        required=False,
+        empty_label=_("All topics"),
+    )
     # Параметры кода.
     discount_percent = forms.IntegerField(
         label=_("Discount %"), min_value=1, max_value=100, required=False
@@ -765,6 +772,12 @@ class CouponCampaignForm(forms.Form):
     body = forms.CharField(
         label=_("Message"), widget=forms.Textarea(attrs={"rows": 4}), required=False
     )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        from .models import NewsletterTopic
+
+        self.fields["topic"].queryset = NewsletterTopic.objects.filter(is_active=True)
 
     def clean(self):
         cleaned = super().clean()

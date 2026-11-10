@@ -36755,3 +36755,71 @@ msgstr "Вибрати теми: %(url)s"
 #: NT-B
 msgid "Worüber möchten Sie Neuigkeiten?"
 msgstr "Про що вам надсилати новини?"
+
+#: NT-B4
+msgid "All topics"
+msgstr "Усі теми"
+
+#: NT-B4
+msgid "Delete topic %(name)s"
+msgstr "Видалити тему %(name)s"
+
+#: NT-B4
+msgid "Dieses Thema gibt es nicht mehr."
+msgstr "Цієї теми більше немає."
+
+#: NT-B4
+msgid "Dieses Thema gibt es schon."
+msgstr "Така тема вже є."
+
+#: NT-B4
+msgid "Goes to subscribers of this topic and to everyone who has not chosen topics."
+msgstr "Отримають підписники цієї теми та всі, хто теми не обирав."
+
+#: NT-B4
+msgid "Guests pick topics when subscribing. No choice means they get everything."
+msgstr "Гості обирають теми під час підписки. Без вибору отримують усе."
+
+#: NT-B4
+msgid "Höchstens %(n)s Themen. Bitte erst eines entfernen."
+msgstr "Не більше %(n)s тем. Спочатку видаліть одну."
+
+#: NT-B4
+msgid "New topic"
+msgstr "Нова тема"
+
+#: NT-B4
+msgid "Newsletter topic"
+msgstr "Тема розсилки"
+
+#: NT-B4
+msgid "Thema angelegt."
+msgstr "Тему створено."
+
+#: NT-B4
+msgid "Thema gelöscht."
+msgstr "Тему видалено."
+
+#: NT-B4
+msgid "Topics"
+msgstr "Теми"
+
+#: NT-B4
+msgid "Turn off"
+msgstr "Вимкнути"
+
+#: NT-B4
+msgid "Turn on"
+msgstr "Увімкнути"
+
+#: NT-B4
+msgid "Zu diesem Thema gibt es Kampagnen. Sie können es nur ausschalten."
+msgstr "За цією темою є кампанії. Її можна лише вимкнути."
+
+#: NT-B4
+msgid "e.g. Lunch menu"
+msgstr "напр. Обідне меню"
+
+#: NT-B4
+msgid "off"
+msgstr "вимк."

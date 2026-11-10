@@ -6,6 +6,8 @@
 отпиской в каждом письме (RFC 8058).
 """
 
+import time
+
 from django.core import signing
 from django.core.exceptions import ValidationError
 from django.urls import reverse
@@ -25,12 +27,16 @@ def doi_token(customer, topics=None) -> str:
     if topics is None:
         return signing.dumps(str(customer.pk), salt=_DOI_SALT)
     return signing.dumps(
-        {"c": str(customer.pk), "t": sorted(str(t) for t in topics)}, salt=_DOI_SALT
+        {"c": str(customer.pk), "t": sorted(str(t) for t in topics), "i": int(time.time())},
+        salt=_DOI_SALT,
     )
 
 
 def load_doi(token: str):
-    """(Customer, темы | None) по DOI-токену; (None, None) при плохой подписи."""
+    """(Customer, темы | None) по DOI-токену; (None, None) при плохой подписи.
+
+    Ревью NT-B: темы токена, выданного раньше последней правки выбора клиентом, не
+    применяются (None) — старая ссылка не расширяет то, что клиент потом сузил."""
     try:
         value = signing.loads(token, salt=_DOI_SALT, max_age=60 * 60 * 24 * 14)  # 14 дней
     except signing.BadSignature:
@@ -44,6 +50,22 @@ def load_doi(token: str):
         customer = Customer.objects.filter(pk=pk).first()
     except (ValueError, TypeError, ValidationError):
         customer = None
+    if customer is not None and topics is not None:
+        from datetime import UTC, datetime
+
+        from .models import CustomerNewsletterTopic
+
+        issued = value.get("i") if isinstance(value, dict) else None
+        changed = (
+            CustomerNewsletterTopic.objects.filter(customer=customer)
+            .order_by("-confirmed_at")
+            .values_list("confirmed_at", flat=True)
+            .first()
+        )
+        if changed and (
+            not isinstance(issued, int) or datetime.fromtimestamp(issued, UTC) < changed
+        ):
+            topics = None
     return customer, topics
 
 
@@ -96,21 +118,26 @@ def set_topics(customer, topic_ids, *, source: str) -> str:
         str(pk)
         for pk in NewsletterTopic.objects.filter(is_active=True).values_list("pk", flat=True)
     }
-    wanted = {str(t) for t in topic_ids} & active  # pk — UUID: сравниваем строками
+    requested = {str(t) for t in topic_ids}  # pk — UUID: сравниваем строками
+    wanted = requested & active
     with transaction.atomic():
         Customer.objects.select_for_update().filter(pk=customer.pk).first()
-        have = {
-            str(pk)
-            for pk in CustomerNewsletterTopic.objects.filter(customer=customer).values_list(
-                "topic_id", flat=True
-            )
-        }
-        if not wanted or wanted == active:  # «все темы» — строк не храним
-            CustomerNewsletterTopic.objects.filter(customer=customer).delete()
+        rows = CustomerNewsletterTopic.objects.filter(customer=customer)
+        have = {str(pk) for pk in rows.values_list("topic_id", flat=True)}
+        # Ревью NT-B: просили конкретные темы, но все уже выключены — ничего не меняем
+        # (иначе пустой выбор молча стал бы «все темы», включая будущие).
+        if requested and not wanted:
+            return "some" if have else "all"
+        # Выключенные темы клиента держим: «сохранил A при выключенной B» не должно
+        # схлопнуться в «всё».
+        keep = wanted | (have - active)
+        # «все темы» — строк не храним. Со страницы настроек выбор только СУЖАЕТСЯ:
+        # клиент с отдельными темами там «всё» (вкл. будущие темы) не получает.
+        widen_ok = not have or source != CustomerNewsletterTopic.SOURCE_PREFERENCES
+        if not requested or (keep == active and widen_ok):
+            rows.delete()
             return "all"
-        CustomerNewsletterTopic.objects.filter(customer=customer).exclude(
-            topic_id__in=wanted
-        ).delete()
+        rows.exclude(topic_id__in=keep).delete()
         CustomerNewsletterTopic.objects.bulk_create(
             [
                 CustomerNewsletterTopic(customer=customer, topic_id=t, source=source)
@@ -118,6 +145,8 @@ def set_topics(customer, topic_ids, *, source: str) -> str:
             ],
             ignore_conflicts=True,
         )
+        # Метка изменения выбора: старый DOI-токен, выданный ДО неё, тем не расширяет.
+        rows.filter(topic_id__in=wanted).update(confirmed_at=timezone.now())
     return "some"
 
 
@@ -207,14 +236,21 @@ def maybe_send_doi(customer, *, base_url) -> bool:
     return True
 
 
-def _prefs_line(customer, base_url: str) -> str:
-    """NT-B3: строка «Themen wählen» в подвале — только если в магазине есть темы."""
+def _prefs_line(customer, base_url: str, _cache: dict | None = None) -> str:
+    """NT-B3: строка «Themen wählen» в подвале — только если в магазине есть темы.
+
+    `_cache` — общий словарь на одну рассылку: наличие тем и язык письма считаются
+    один раз, а не на каждого получателя (ревью NT-B: N+1)."""
     from .models import NewsletterTopic
 
-    if not NewsletterTopic.objects.filter(is_active=True).exists():
+    cache = _cache if _cache is not None else {}
+    if "on" not in cache:
+        cache["on"] = NewsletterTopic.objects.filter(is_active=True).exists()
+        cache["locale"] = email_locale() if cache["on"] else None
+    if not cache["on"]:
         return ""
     url = f"{base_url}{reverse('storefront-newsletter-preferences', args=[customer.unsubscribe_token])}"
-    with translation.override(email_locale()):
+    with translation.override(cache["locale"]):
         return "\n" + _("Themen wählen: %(url)s") % {"url": url}
 
 
@@ -252,6 +288,7 @@ def send_coupon_campaign(campaign, *, base_url: str, customers=None) -> int:
             topic=campaign.topic,
         )
     count = 0
+    prefs_cache: dict = {}
     for customer in customers:
         # Реюз кода — только у ручной кампании (идемпотентность одной отправки);
         # auto-winback выдаёт новый код каждое окно (дедуп окна — в beat-задаче).
@@ -280,7 +317,7 @@ def send_coupon_campaign(campaign, *, base_url: str, customers=None) -> int:
             body_parts.append(_("Ihr persönlicher Code: %(code)s") % {"code": voucher.code})
         if terms:
             body_parts.append(terms)
-        body_parts.append(f"—\nAbmelden: {unsub}{_prefs_line(customer, base_url)}")
+        body_parts.append(f"—\nAbmelden: {unsub}{_prefs_line(customer, base_url, prefs_cache)}")
         notify(
             dedupe_key=f"coupon:{campaign.id}:{customer.id}:{voucher.code}",
             type="coupon_campaign",
@@ -322,6 +359,7 @@ def send_campaign(campaign: NewsletterCampaign, *, base_url: str) -> int:
     if campaign.status == NewsletterCampaign.STATUS_SENT:
         return campaign.recipient_count
     count = 0
+    prefs_cache: dict = {}
     for customer in consented_customers(campaign.topic):
         unsub = f"{base_url}{reverse('storefront-unsubscribe', args=[customer.unsubscribe_token])}"
         notify(
@@ -329,7 +367,7 @@ def send_campaign(campaign: NewsletterCampaign, *, base_url: str) -> int:
             type="newsletter_campaign",
             recipient=customer.email,
             subject=campaign.subject,
-            body=f"{campaign.body}\n\n—\nAbmelden: {unsub}{_prefs_line(customer, base_url)}",
+            body=f"{campaign.body}\n\n—\nAbmelden: {unsub}{_prefs_line(customer, base_url, prefs_cache)}",
             headers={
                 "List-Unsubscribe": f"<{unsub}>",
                 "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
@@ -344,7 +382,7 @@ def send_campaign(campaign: NewsletterCampaign, *, base_url: str) -> int:
             dedupe_key=f"campaign:{campaign.id}:{customer.id}:tg",
             text=(
                 f"{campaign.subject}\n\n{campaign.body}\n\n—\nAbmelden: {unsub}"
-                f"{_prefs_line(customer, base_url)}"
+                f"{_prefs_line(customer, base_url, prefs_cache)}"
             ),
         )
         count += 1

@@ -2109,7 +2109,7 @@ def coupon_campaigns(request):
 def newsletter_campaigns(request):
     """G3: рассылки гостям — список кампаний + создание/отправка. Отправляем только
     подтвердившим opt-in (UWG §7)."""
-    from .models import NewsletterCampaign
+    from .models import NewsletterCampaign, NewsletterTopic
     from .newsletter import consented_customers
 
     if request.method == "POST":
@@ -2117,11 +2117,21 @@ def newsletter_campaigns(request):
         if action == "create":
             subject = (request.POST.get("subject") or "").strip()[:200]
             body = (request.POST.get("body") or "").strip()
+            # NT-B4: тема — только активная своя; мусор = «все темы» не подставляем молча.
+            topic = None
+            raw_topic = (request.POST.get("topic") or "").strip()
+            if raw_topic:
+                topic = NewsletterTopic.objects.filter(pk=_uuid_or_none(raw_topic)).first()
+                if topic is None or not topic.is_active:
+                    messages.error(request, _("Dieses Thema gibt es nicht mehr."))
+                    return redirect("promotions:newsletter")
             if subject and body:
-                NewsletterCampaign.objects.create(subject=subject, body=body)
+                NewsletterCampaign.objects.create(subject=subject, body=body, topic=topic)
                 messages.success(request, _("Entwurf gespeichert."))
             else:
                 messages.error(request, _("Bitte Betreff und Text eingeben."))
+        elif action in ("topic_add", "topic_toggle", "topic_delete"):
+            _newsletter_topic_action(request, action)
         elif action == "send":
             from .newsletter import send_campaign
 
@@ -2134,12 +2144,75 @@ def newsletter_campaigns(request):
             ).delete()
         return redirect("promotions:newsletter")
 
+    topics = list(NewsletterTopic.objects.all())
+    for t in topics:
+        t.audience = consented_customers(topic=t).count()
+    campaigns = list(NewsletterCampaign.objects.select_related("topic")[:100])
+    for c in campaigns:
+        if c.status == NewsletterCampaign.STATUS_DRAFT:
+            c.audience = consented_customers(topic=c.topic).count()
     return render(
         request,
         "promotions/newsletter.html",
         {
             "nav": "newsletter",  # W7b: своя вкладка в Marketing-хабе
-            "campaigns": list(NewsletterCampaign.objects.all()[:100]),
+            "campaigns": campaigns,
             "consented": consented_customers().count(),
+            "topics": topics,
+            "active_topics": [t for t in topics if t.is_active],
+            "max_topics": MAX_NEWSLETTER_TOPICS,
         },
     )
+
+
+MAX_NEWSLETTER_TOPICS = 20
+
+
+def _uuid_or_none(raw):
+    import uuid
+
+    try:
+        return uuid.UUID(str(raw))
+    except (TypeError, ValueError):
+        return None
+
+
+def _newsletter_topic_action(request, action):
+    """NT-B4: темы рассылки владельцем. Удалить можно только тему без кампаний (PROTECT
+    держит историю «кому что шло») — иначе её выключают: подписчики темы получат
+    кампании «для всех», выбор темы в форме подписки пропадёт."""
+    from django.db.models import ProtectedError
+
+    from .models import NewsletterTopic
+
+    if action == "topic_add":
+        name = (request.POST.get("name") or "").strip()[:80]
+        if not name:
+            messages.error(request, _("Bitte einen Namen eingeben."))
+        elif NewsletterTopic.objects.count() >= MAX_NEWSLETTER_TOPICS:
+            messages.error(
+                request,
+                _("Höchstens %(n)s Themen. Bitte erst eines entfernen.")
+                % {"n": MAX_NEWSLETTER_TOPICS},
+            )
+        elif NewsletterTopic.objects.filter(name__iexact=name).exists():
+            messages.error(request, _("Dieses Thema gibt es schon."))
+        else:
+            NewsletterTopic.objects.create(name=name, position=NewsletterTopic.objects.count())
+            messages.success(request, _("Thema angelegt."))
+        return
+    topic = NewsletterTopic.objects.filter(pk=_uuid_or_none(request.POST.get("topic"))).first()
+    if topic is None:
+        return
+    if action == "topic_toggle":
+        topic.is_active = not topic.is_active
+        topic.save(update_fields=["is_active", "updated_at"])
+        return
+    try:
+        topic.delete()
+        messages.success(request, _("Thema gelöscht."))
+    except ProtectedError:
+        messages.error(
+            request,
+            _("Zu diesem Thema gibt es Kampagnen. Sie können es nur ausschalten."),
+        )

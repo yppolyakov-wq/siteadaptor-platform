@@ -85,7 +85,9 @@ def test_set_topics_all_and_narrowing():
     assert not CustomerNewsletterTopic.objects.filter(customer=c).exists()
     assert newsletter.set_topics(c, [lunch.pk], source="preferences") == "some"
     assert newsletter.selected_topic_ids(c) == {str(lunch.pk)}
-    assert newsletter.set_topics(c, ["x", "999999"], source="form") == "all"
+    # мусор вместо тем — выбор не трогаем (ревью NT-B: иначе молча «все темы»)
+    assert newsletter.set_topics(c, ["x", "999999"], source="form") == "some"
+    assert newsletter.selected_topic_ids(c) == {str(lunch.pk)}
 
 
 def test_topic_with_campaign_protected():
@@ -216,3 +218,174 @@ def test_campaign_footer_has_prefs_link_only_with_topics(monkeypatch):
         NewsletterCampaign.objects.create(subject="S2", body="B"), base_url="https://x"
     )
     assert "/newsletter/einstellungen/" in bodies[-1]
+
+
+# --- Ревью NT-B: тихое расширение, отписка без тем, старый токен, повтор DOI ------------
+
+
+def test_inactive_topic_does_not_collapse_to_all():
+    lunch, events = _topics()
+    c = _customer()
+    newsletter.set_topics(c, [lunch.pk, events.pk], source="form")
+    newsletter.set_topics(c, [lunch.pk], source="form")
+    events.is_active = False
+    events.save()
+    # клиент оставил lunch при выключенной events — НЕ «все темы» (будущие не придут)
+    newsletter.set_topics(c, [lunch.pk], source="preferences")
+    assert CustomerNewsletterTopic.objects.filter(customer=c).exists()
+    future = NewsletterTopic.objects.create(name="Neu")
+    assert c not in set(newsletter.consented_customers(future))
+
+
+def test_token_with_only_inactive_topics_keeps_selection():
+    lunch, events = _topics()
+    NewsletterTopic.objects.create(name="Kuchen")
+    c = _customer(marketing_opt_in=False, marketing_opt_in_at=None)
+    token = newsletter.doi_token(c, [str(events.pk)])
+    events.is_active = False
+    events.save()
+    _cust, topics = newsletter.load_doi(token)
+    assert newsletter.set_topics(c, topics, source="form") == "all"
+    # но у клиента с выбором ничего не меняется
+    newsletter.set_topics(c, [lunch.pk], source="form")
+    newsletter.set_topics(c, [str(events.pk)], source="form")
+    assert newsletter.selected_topic_ids(c) == {str(lunch.pk)}
+
+
+def test_stale_doi_token_does_not_widen_after_narrowing():
+    lunch, events = _topics()
+    c = _customer()
+    token = newsletter.doi_token(c, [str(lunch.pk), str(events.pk)])
+    import time as _time
+
+    _time.sleep(1.1)
+    newsletter.set_topics(c, [events.pk], source="preferences")
+    _cust, topics = newsletter.load_doi(token)
+    assert topics is None
+
+
+@pytest.mark.urls("config.urls_tenant")
+def test_preferences_without_topics_save_does_not_unsubscribe():
+    from apps.promotions import public_views
+
+    c = _customer()
+    public_views.newsletter_preferences(_ip_req("post", {"action": "save"}), c.unsubscribe_token)
+    c.refresh_from_db()
+    assert not c.unsubscribed
+
+
+def test_full_selection_by_subscriber_sends_no_new_doi():
+    from unittest import mock
+
+    from apps.promotions import public_views
+
+    lunch, events = _topics()
+    c = _customer()
+    with mock.patch.object(newsletter, "send_doi_email") as doi:
+        public_views.newsletter_signup(
+            _ip_req("post", {"email": c.email, "thema": [str(lunch.pk), str(events.pk)]})
+        )
+    assert not doi.called
+
+
+def test_prefs_line_queries_once_per_send(django_assert_max_num_queries):
+    _topics()
+    customers = [_customer() for _ in range(5)]
+    cache: dict = {}
+    newsletter._prefs_line(customers[0], "https://x.test", cache)
+    with django_assert_max_num_queries(0):
+        for c in customers:
+            newsletter._prefs_line(c, "https://x.test", cache)
+
+
+# --- NT-B4: темы в кабинете -------------------------------------------------------------
+
+
+def _cabinet_post(data):
+    from apps.promotions import views
+
+    req = _ip_req("post", data)
+    from django.contrib.messages.storage.fallback import FallbackStorage
+
+    req.session = {}
+    req._messages = FallbackStorage(req)
+    req.user = _owner()
+    return views.newsletter_campaigns(req)
+
+
+def _owner():
+    from django.contrib.auth import get_user_model
+
+    U = get_user_model()
+    name = uuid.uuid4().hex
+    return U.objects.create_user(username=name, email=f"{name}@o.test", password="x")
+
+
+@pytest.mark.urls("config.urls_tenant")
+def test_cabinet_topic_add_toggle_and_protected_delete():
+    _cabinet_post({"action": "topic_add", "name": "Mittagstisch"})
+    _cabinet_post({"action": "topic_add", "name": "mittagstisch"})  # дубль
+    assert NewsletterTopic.objects.count() == 1
+    t = NewsletterTopic.objects.get()
+    _cabinet_post({"action": "topic_toggle", "topic": str(t.pk)})
+    t.refresh_from_db()
+    assert not t.is_active
+    _cabinet_post({"action": "topic_toggle", "topic": str(t.pk)})
+    _cabinet_post({"action": "create", "subject": "Hallo", "body": "Text", "topic": str(t.pk)})
+    camp = NewsletterCampaign.objects.get()
+    assert camp.topic == t
+    _cabinet_post({"action": "topic_delete", "topic": str(t.pk)})
+    assert NewsletterTopic.objects.filter(pk=t.pk).exists()  # PROTECT → только выключить
+    _cabinet_post({"action": "topic_delete", "topic": "kaputt"})  # мусор — без 500
+
+
+@pytest.mark.urls("config.urls_tenant")
+def test_cabinet_campaign_rejects_inactive_topic():
+    t = NewsletterTopic.objects.create(name="Alt", is_active=False)
+    _cabinet_post({"action": "create", "subject": "Hallo", "body": "Text", "topic": str(t.pk)})
+    assert not NewsletterCampaign.objects.exists()
+
+
+def test_coupon_campaign_form_takes_active_topic_only():
+    from apps.promotions.campaign_pages import create_campaign
+    from apps.promotions.forms import CouponCampaignForm
+
+    on = NewsletterTopic.objects.create(name="An")
+    off = NewsletterTopic.objects.create(name="Aus", is_active=False)
+    base = {"name": "K", "discount_percent": 10, "valid_days": 30, "subject": "S"}
+    assert not CouponCampaignForm({**base, "topic": str(off.pk)}).is_valid()
+    form = CouponCampaignForm({**base, "topic": str(on.pk)})
+    assert form.is_valid(), form.errors
+    assert create_campaign(form).topic == on
+
+
+# --- NT-B5: темы в личном кабинете клиента ---------------------------------------------
+
+
+@pytest.mark.urls("config.urls_tenant")
+def test_account_profile_sets_topics_with_sentinel_only(monkeypatch):
+    from django.contrib.messages.storage.fallback import FallbackStorage
+
+    from apps.account import auth, views
+
+    lunch, events = _topics()
+    c = _customer()
+    monkeypatch.setattr(auth, "current_customer", lambda request: c)
+    monkeypatch.setattr(views, "_require_account_active", lambda request: None)
+
+    def post(data):
+        req = _ip_req("post", data)
+        req.session = {}
+        req._messages = FallbackStorage(req)
+        return views.profile_view(req)
+
+    # без сентинела (старая форма) темы не трогаются
+    post({"name": "A", "marketing": "on", "thema": [str(lunch.pk)]})
+    assert newsletter.selected_topic_ids(c) == set()
+    post({"name": "A", "marketing": "on", "topics_present": "1", "thema": [str(lunch.pk)]})
+    assert newsletter.selected_topic_ids(c) == {str(lunch.pk)}
+    row = CustomerNewsletterTopic.objects.get(customer=c)
+    assert row.source == CustomerNewsletterTopic.SOURCE_ACCOUNT
+    # из кабинета клиента можно и расширить (вошедший — подтверждённая личность)
+    post({"name": "A", "marketing": "on", "topics_present": "1"})
+    assert newsletter.selected_topic_ids(c) == set()

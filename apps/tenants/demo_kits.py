@@ -381,6 +381,9 @@ class DemoKit:
     # B4/LS-5: активная auto-win-back кампания {"inactive_days", "percent",
     # "subject"} — видна в Kampagnen и в обзоре напоминаний Marketing-центра.
     winback: dict = field(default_factory=dict)
+    # NT-B5: темы рассылки магазина (названия) — видны в форме подписки и в Newsletter;
+    # у части демо-клиентов с согласием выбираются первые темы.
+    newsletter_topics: tuple = ()
     # DL-1/DL-3: языки витрины демо-кита — включают переключатель языка (скрытый блок
     # в шапке) и определяют, какие локали видны. Дефолт — все 5 языков реестра/кабинета
     # (немецкий контент = база + оверлеи en/ru/uk/tr из demo_i18n). Первый =
@@ -5601,6 +5604,7 @@ CAFE = DemoKit(
     card_style="compact",  # ST-7c: строка-прайс (меню)
     variant_style="buttons",  # O-2: размеры/объёмы кнопками
     winback={"inactive_days": 60, "percent": 10},  # B4/LS-5
+    newsletter_topics=("Mittagstisch", "Neue Kuchen", "Events & Brunch"),  # NT-B5
     # DS-5c: компактный прайс на главной (много позиций у кофейни), страница
     # меню — прайс с мини-фото (config_patch).
     # DS-8 (Fokus для кафе): сплит-баннер, компакт-карта на главной, фото-прайс
@@ -25364,6 +25368,8 @@ def apply_kit(tenant, key: str) -> bool:
         _seed_kit_threads(kit)
     if kit.winback:  # B4/LS-5: активная auto-win-back кампания
         _seed_kit_winback(kit)
+    if kit.newsletter_topics:  # NT-B5: темы рассылки
+        _seed_newsletter_topics(kit)
     _seed_demo_lots(kit, created_products)  # E1.5: демо-партии/MHD (еда)
     _seed_demo_purchasing(kit, created_products)  # E3: демо-закупки (Lieferant+Bestellung)
     _seed_kit_reviews(tenant, kit)
@@ -26828,6 +26834,28 @@ def _seed_kit_threads(kit: DemoKit) -> None:
             # created_at — auto_now_add: время из спеки ставим вторым шагом.
             Message.objects.filter(pk=msg.pk).update(
                 created_at=now - timedelta(minutes=minutes_ago)
+            )
+
+
+def _seed_newsletter_topics(kit):
+    """NT-B5: темы рассылки + выбор у каждого второго клиента с согласием (остальные —
+    «все темы»), чтобы в Newsletter были видны разные адресаты темы."""
+    from apps.promotions import newsletter
+    from apps.promotions.models import Customer, CustomerNewsletterTopic, NewsletterTopic
+
+    topics = [
+        NewsletterTopic.objects.get_or_create(name=name, defaults={"position": i})[0]
+        for i, name in enumerate(kit.newsletter_topics)
+    ]
+    consented = Customer.objects.filter(marketing_opt_in=True, unsubscribed=False).order_by(
+        "created_at"
+    )
+    for i, customer in enumerate(consented):
+        if i % 2:
+            newsletter.set_topics(
+                customer,
+                [topics[i % len(topics)].pk],
+                source=CustomerNewsletterTopic.SOURCE_FORM,
             )
 
 

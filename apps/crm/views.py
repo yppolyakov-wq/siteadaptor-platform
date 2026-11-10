@@ -175,6 +175,10 @@ def customer_detail(request, pk):
             "nav": "crm",
             "customer": customer,
             "form": form,
+            # NT-B5: выбранные темы рассылки (пусто = «все темы») — видны при согласии.
+            "newsletter_topics": [
+                row.topic for row in customer.newsletter_topics.select_related("topic")
+            ],
             "note_form": NoteForm(),
             # E6.4b: заметки мастера живут в «Behandlungshistorie» (с автором и удалением).
             "notes": customer.crm_notes.filter(kind="note")[:50],
