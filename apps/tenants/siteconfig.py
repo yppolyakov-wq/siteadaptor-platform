@@ -2637,6 +2637,8 @@ MENU_NODE_TYPES = (
     "event",
     "tour",
     "promotion",
+    # M21.6: своя страница сайта (target = slug core.ContentPage).
+    "cpage",
 )
 _MAX_MENU_ITEMS = 20  # потолок пунктов на уровень
 # FB-23a (решение владельца 2026-11-07): 3 уровня — как стандарт рынка (Shopify).

@@ -1090,6 +1090,7 @@ def about_page(request):
     """Отдельная страница «О компании» /ueber-uns/ (S8): тексты about + контакты."""
     from django.utils.translation import get_language
 
+    from apps.core import content_pages
     from apps.tenants import siteconfig
 
     site = siteconfig.localize(
@@ -1099,7 +1100,13 @@ def about_page(request):
     return render(
         request,
         "storefront/about.html",
-        {"site": site, "sections": [], "section_row": _section_row(site, "contact")},
+        {
+            "site": site,
+            "sections": [],
+            "section_row": _section_row(site, "contact"),
+            # M21.6: своя страница slug=ueber-uns — текст с картинками вместо about_text.
+            "page_body": content_pages.system_body("ueber-uns"),
+        },
     )
 
 

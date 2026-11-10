@@ -460,9 +460,11 @@ def test_apply_design_like_old_site_and_keeps_owner_edits_on_rerun():
     assert [c.slug for c in roots] == ["schwarzertee", "grunertee"]
     kids = Category.objects.filter(parent__slug="schwarzertee").order_by("sort_order")
     assert [c.slug for c in kids] == ["klassisch", "aromatisch"]
-    info = cfg["page_blocks"]["info"]
-    assert info[0]["data"]["title"] == "Versand"
-    assert "wie folgt" not in info[0]["data"]["body"]
+    # M21.6: Versand — своя страница (раньше текстовый блок на «Über uns»).
+    from apps.core.models import ContentPage
+
+    assert "page_blocks" not in cfg or not cfg["page_blocks"].get("info")
+    assert ContentPage.objects.get(slug="versand").title == "Versand"
     assert tenant.logo_url and tenant.primary_color == "#28328c"
     assert tenant.address == "Marktpassage 2, 42781 Haan" and tenant.contact_phone == "02129 54862"
     assert tenant.opening_hours_structured["5"] == ["10:00", "14:00"]
@@ -497,7 +499,7 @@ def test_apply_design_like_old_site_and_keeps_owner_edits_on_rerun():
     menus = siteconfig.normalize(tenant.site_config)["menus"]
     # нижнее меню и «липкость» шапки — владельца, replace_menu их не трогает
     assert menus["bottom"]["items"][0]["label"] == "Fuß" and menus["top"]["sticky"] is False
-    assert len(cfg["page_blocks"]["info"]) == 1
+    assert ContentPage.objects.filter(slug="versand").count() == 1
 
 
 def test_save_image_crop_keeps_middle_band(monkeypatch):
@@ -818,3 +820,81 @@ def test_fix_impressum_command(monkeypatch):
     )
     saved = LegalDoc.objects.get(kind="impressum").text
     assert "odr" not in saved and "Inhaber: Irina Schweizer" in saved
+
+
+@pytest.mark.django_db
+def test_apply_pages_creates_own_pages_with_rehosted_images_and_moves_old_blocks():
+    from apps.core.models import ContentPage
+
+    versand = (
+        '<div class="span8"><p><br></p><figure><img src="/images/DHL.png?1"></figure>'
+        "<p>Wir versenden mit DHL.</p></div>"
+    )
+    site = cscart.ScrapedSite(
+        base=BASE,
+        pages={
+            "versand": versand,
+            "versand_title": "Versand",
+            "zahlung": "<p>PayPal <b>oder</b> bar.</p>",
+            "zahlung_title": "Zahlungsarten",
+            "about": '<p><img src="https://evil.example/x.png"> Tee ist gut.</p>',
+        },
+    )
+    old_block = {
+        "key": "text",
+        "enabled": True,
+        "data": {"title": "Versand", "body": cscart.strip_dangling(cscart.html_to_text(versand))},
+    }
+    own_block = {"key": "text", "enabled": True, "data": {"title": "Eigen", "body": "Mein Text"}}
+    config = {"page_blocks": {"info": [old_block, own_block]}}
+    seen = []
+
+    def fetch(url):
+        seen.append(url)
+        return _jpeg()
+
+    notes = cscart.apply_pages(site, config, fetch_image=fetch)
+    pages = {p.slug: p for p in ContentPage.objects.all()}
+    assert set(pages) == {"versand", "zahlung", "ueber-uns"}
+    assert "https://shop.example/images/DHL.png?1" in seen
+    assert "<img" in pages["versand"].body and "shop.example" not in pages["versand"].body
+    assert "<p><br></p>" not in pages["versand"].body
+    assert pages["zahlung"].body == "<p>PayPal <b>oder</b> bar.</p>"
+    assert pages["ueber-uns"].title == "Über uns" and "Tee ist gut." in pages["ueber-uns"].body
+    bodies = [b["data"].get("body") for b in config["page_blocks"]["info"]]
+    assert bodies == ["Mein Text"]  # блок M21.3 снят, блок владельца на месте
+    assert any("page created" in n for n in notes)
+
+    from apps.core.models import LegacyRedirect
+
+    rule = LegacyRedirect.objects.get(source_path="/versand-de")
+    assert rule.target == "/seite/zahlung/"
+
+    # повтор не перезаписывает правку владельца
+    ContentPage.objects.filter(slug="zahlung").update(body="<p>Eigene Zahlung</p>")
+    cscart.apply_pages(site, {}, fetch_image=fetch)
+    assert ContentPage.objects.get(slug="zahlung").body == "<p>Eigene Zahlung</p>"
+
+
+def test_split_versand_link_replaces_only_untouched_link():
+    menus = {
+        "footer": {
+            "columns": [
+                {
+                    "label": "Kundendienst",
+                    "items": [
+                        {"label": "Versand & Zahlung", "type": "page", "target": "about"},
+                        {"label": "Kontakt", "type": "page", "target": "contact"},
+                    ],
+                }
+            ]
+        }
+    }
+    assert cscart._split_versand_link(menus) is True
+    items = menus["footer"]["columns"][0]["items"]
+    assert [(i["type"], i["target"]) for i in items] == [
+        ("cpage", "versand"),
+        ("cpage", "zahlung"),
+        ("page", "contact"),
+    ]
+    assert cscart._split_versand_link(menus) is False

@@ -36607,3 +36607,64 @@ msgstr "Pro Seite:"
 
 msgid "Einträge pro Seite"
 msgstr "Einträge pro Seite"
+
+msgid "Absatz"
+msgstr "Absatz"
+
+msgid "Alle Seiten"
+msgstr "Alle Seiten"
+
+msgid "Bilder: zuerst unter Website › Medien hochladen, dann hier mit „Bild“ die Adresse einfügen."
+msgstr "Bilder: zuerst unter Website › Medien hochladen, dann hier mit „Bild“ die Adresse einfügen."
+
+msgid "Bitte eine Adresse aus Buchstaben, Ziffern und „-“ angeben."
+msgstr "Bitte eine Adresse aus Buchstaben, Ziffern und „-“ angeben."
+
+msgid "Eigene Seite"
+msgstr "Eigene Seite"
+
+msgid "Eigene Seiten"
+msgstr "Eigene Seiten"
+
+msgid "Eigene Seiten Ihrer Website, zum Beispiel Versand, Zahlungsarten oder Über uns. Eine Seite erscheint im Menü, wenn Sie sie dort unter „Eigene Seite“ hinzufügen."
+msgstr "Eigene Seiten Ihrer Website, zum Beispiel Versand, Zahlungsarten oder Über uns. Eine Seite erscheint im Menü, wenn Sie sie dort unter „Eigene Seite“ hinzufügen."
+
+msgid "Entwurf — nur für Ihr Team sichtbar."
+msgstr "Entwurf — nur für Ihr Team sichtbar."
+
+msgid "Leer lassen — die Adresse entsteht aus dem Titel."
+msgstr "Leer lassen — die Adresse entsteht aus dem Titel."
+
+msgid "Neue Seite"
+msgstr "Neue Seite"
+
+msgid "Noch keine eigenen Seiten."
+msgstr "Noch keine eigenen Seiten."
+
+msgid "Seite angelegt."
+msgstr "Seite angelegt."
+
+msgid "Seite gelöscht."
+msgstr "Seite gelöscht."
+
+msgid "Seite gespeichert."
+msgstr "Seite gespeichert."
+
+msgid "Seite löschen"
+msgstr "Seite löschen"
+
+#, python-format
+msgid "Seite „%(t)s“ löschen"
+msgstr "Seite „%(t)s“ löschen"
+
+msgid "Veröffentlicht (für Besucher sichtbar)"
+msgstr "Veröffentlicht (für Besucher sichtbar)"
+
+msgid "Wird auf der Seite „Versand“ angezeigt"
+msgstr "Wird auf der Seite „Versand“ angezeigt"
+
+msgid "Wird auf der Seite „Über uns“ angezeigt"
+msgstr "Wird auf der Seite „Über uns“ angezeigt"
+
+msgid "Zwischenüberschrift"
+msgstr "Zwischenüberschrift"

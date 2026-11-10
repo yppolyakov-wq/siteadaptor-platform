@@ -49,3 +49,44 @@ def is_rich(text: str) -> bool:
         return False
     lowered = text.lower()
     return any(f"<{t}" in lowered for t in ALLOWED_TAGS)
+
+
+# M21.6: свои страницы сайта — то же правило, что у описаний, плюс заголовки, цитата и
+# картинки. ``style``/``class``/``on*`` не проходят ни у одного тега.
+PAGE_ALLOWED_TAGS = ALLOWED_TAGS | {"h2", "h3", "h4", "img", "figure", "blockquote"}
+PAGE_ALLOWED_ATTRIBUTES = {
+    "a": {"href", "target"},
+    "img": {"src", "alt", "width", "height"},
+}
+
+
+def _local_image_only(tag: str, attribute: str, value: str):
+    """Картинка страницы — только с нашего сервера (относительный путь или адрес
+    хранилища медиа). Чужая картинка = запрос посетителя к стороннему серверу без
+    согласия (DSGVO) и «битая» страница, когда тот сервер её уберёт."""
+    if tag == "img" and attribute == "src":
+        from django.conf import settings
+
+        media = (getattr(settings, "MEDIA_URL", "") or "").strip()
+        allowed = value.startswith("/") and not value.startswith("//")
+        if media.startswith(("http://", "https://")) and value.startswith(media):
+            allowed = True
+        return value if allowed else None
+    if tag == "img" and attribute in ("width", "height"):
+        return value if value.isdigit() and len(value) <= 4 else None
+    return value
+
+
+def sanitize_page(html: str) -> str:
+    """HTML своей страницы сайта (`core.ContentPage`): узкий allowlist + картинки
+    только с нашего сервера. Как ``sanitize`` — при сохранении и при показе."""
+    if not isinstance(html, str) or not html.strip():
+        return ""
+    return nh3.clean(
+        html,
+        tags=PAGE_ALLOWED_TAGS,
+        attributes=PAGE_ALLOWED_ATTRIBUTES,
+        url_schemes=ALLOWED_URL_SCHEMES,
+        link_rel="noopener noreferrer",
+        attribute_filter=_local_image_only,
+    ).strip()

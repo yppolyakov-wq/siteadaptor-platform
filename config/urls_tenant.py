@@ -16,6 +16,7 @@ from apps.collections import public_views as collections_public
 from apps.community import views as community_views
 from apps.core import (
     assistant_views,
+    content_page_views,
     extras_pages,
     health,
     lite_cabinet,
@@ -324,6 +325,17 @@ urlpatterns = [
     path("dashboard/site/menu/", menu_builder_view, name="site-menu"),
     path("dashboard/site/seo/", seo_settings_view, name="site-seo"),
     # M21.1: старые адреса после переезда (301/410 на 404 витрины).
+    # M21.6: свои страницы сайта (создать · изменить · удалить).
+    path("dashboard/site/seiten/", content_page_views.pages_list, name="content-pages"),
+    path("dashboard/site/seiten/neu/", content_page_views.page_new, name="content-page-new"),
+    path(
+        "dashboard/site/seiten/<uuid:pk>/", content_page_views.page_edit, name="content-page-edit"
+    ),
+    path(
+        "dashboard/site/seiten/<uuid:pk>/loeschen/",
+        content_page_views.page_delete,
+        name="content-page-delete",
+    ),
     path("dashboard/site/weiterleitungen/", redirects_view, name="site-redirects"),
     path("dashboard/site/weiterleitungen/import/", redirects_import, name="site-redirects-import"),
     path(
@@ -606,6 +618,7 @@ urlpatterns = [
     path("aktionen/", public_views.promotion_list, name="storefront-aktionen"),
     path("treue/", public_views.loyalty_page, name="storefront-loyalty"),
     path("ueber-uns/", public_views.about_page, name="storefront-about"),
+    path("seite/<slug:slug>/", content_page_views.storefront_page, name="storefront-content-page"),
     # ST-8: отдельные страницы (запрос владельца «не разделы на главной»).
     # Гейт — наличие контента: пусто → 404, пункт меню гаснет сам.
     path("galerie/", public_views.gallery_page, name="storefront-gallery"),

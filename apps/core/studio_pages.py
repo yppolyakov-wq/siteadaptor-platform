@@ -594,6 +594,8 @@ PAGE_TYPES: tuple[PageType, ...] = (
         block_host="cart",
     ),
     PageType("text", _("Über uns"), ("storefront-about",), ("text_width",), block_host="info"),
+    # M21.6: своя страница сайта (`core.ContentPage`) — текст правится в «Website › Seiten».
+    PageType("content_page", _("Eigene Seite"), ("storefront-content-page",), ("text_width",)),
     # STU-14: раньше все четыре страницы делили хост `info`, а выводился он ТОЛЬКО на
     # «О нас» — блок, поставленный на команду или галерею, не появлялся нигде.
     PageType("team", _("Team"), ("storefront-team",), ("text_width",), block_host="team"),

@@ -39,6 +39,7 @@ from apps.core import card_forms, compositions, studio_pages
 #: (a hotel has no "Termine" page). None = always there (text pages, home).
 TYPE_MODULES: dict[str, str | None] = {
     "home": None,
+    "content_page": None,  # M21.6: свои страницы есть у каждого
     "catalog": "catalog",
     "category": "catalog",
     "product": "catalog",

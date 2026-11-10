@@ -114,6 +114,7 @@
   "^DE-(?:ÖKO|OEKO)-\\d{3}$",
   "^\\s*Öko-Kontrollstelle\\s*:?\\s*$",
   "empty «Öko-Kontrollstelle» line removed — Bio products need the code (DE-ÖKO-0xx, Art. 32 VO (EU) 2018/848): rerun with --oeko-code",
+  "footer: «Versand & Zahlung» → own pages Versand, Zahlungsarten",
   "«Geschäftsführer» → «Inhaber» (Einzelunternehmen hat keinen Geschäftsführer)",
   "ÖKO",
   "Öko-Kontrollstelle:"

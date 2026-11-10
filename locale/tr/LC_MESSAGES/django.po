@@ -36666,3 +36666,64 @@ msgstr "Sayfa başına:"
 
 msgid "Einträge pro Seite"
 msgstr "Sayfa başına kayıt"
+
+msgid "Absatz"
+msgstr "Paragraf"
+
+msgid "Alle Seiten"
+msgstr "Tüm sayfalar"
+
+msgid "Bilder: zuerst unter Website › Medien hochladen, dann hier mit „Bild“ die Adresse einfügen."
+msgstr "Görseller: önce Web sitesi › Medya altında yükleyin, ardından buraya „Görsel“ ile adresi ekleyin."
+
+msgid "Bitte eine Adresse aus Buchstaben, Ziffern und „-“ angeben."
+msgstr "Lütfen harf, rakam ve „-“ içeren bir adres girin."
+
+msgid "Eigene Seite"
+msgstr "Kendi sayfa"
+
+msgid "Eigene Seiten"
+msgstr "Kendi sayfalar"
+
+msgid "Eigene Seiten Ihrer Website, zum Beispiel Versand, Zahlungsarten oder Über uns. Eine Seite erscheint im Menü, wenn Sie sie dort unter „Eigene Seite“ hinzufügen."
+msgstr "Web sitenizin kendi sayfaları, örneğin kargo, ödeme yöntemleri veya hakkımızda. Bir sayfa, menüde „Kendi sayfa“ altında eklediğinizde görünür."
+
+msgid "Entwurf — nur für Ihr Team sichtbar."
+msgstr "Taslak — yalnızca ekibiniz görebilir."
+
+msgid "Leer lassen — die Adresse entsteht aus dem Titel."
+msgstr "Boş bırakın — adres başlıktan oluşturulur."
+
+msgid "Neue Seite"
+msgstr "Yeni sayfa"
+
+msgid "Noch keine eigenen Seiten."
+msgstr "Henüz kendi sayfanız yok."
+
+msgid "Seite angelegt."
+msgstr "Sayfa oluşturuldu."
+
+msgid "Seite gelöscht."
+msgstr "Sayfa silindi."
+
+msgid "Seite gespeichert."
+msgstr "Sayfa kaydedildi."
+
+msgid "Seite löschen"
+msgstr "Sayfayı sil"
+
+#, python-format
+msgid "Seite „%(t)s“ löschen"
+msgstr "„%(t)s“ sayfasını sil"
+
+msgid "Veröffentlicht (für Besucher sichtbar)"
+msgstr "Yayında (ziyaretçiler görebilir)"
+
+msgid "Wird auf der Seite „Versand“ angezeigt"
+msgstr "„Kargo“ sayfasında gösterilir"
+
+msgid "Wird auf der Seite „Über uns“ angezeigt"
+msgstr "„Hakkımızda“ sayfasında gösterilir"
+
+msgid "Zwischenüberschrift"
+msgstr "Ara başlık"

@@ -458,6 +458,36 @@ class LegacyRedirect(TimestampedModel):
         return f"{self.source_path}{q} → {self.target or self.status}"
 
 
+class ContentPage(I18nMixin, TimestampedModel):
+    """M21.6: своя страница сайта владельца (Versand, Zahlungsarten, Über uns, …).
+
+    Адрес — ``/seite/<slug>/``; slug из ``apps.core.content_pages.SYSTEM_PAGES``
+    выводится на своей системной странице (``versand`` → ``/versand/``). HTML тела
+    чистится ``richtext.sanitize_page`` при сохранении и при показе. Логика —
+    ``apps/core/content_pages.py``.
+    """
+
+    slug = models.SlugField(max_length=80, unique=True)
+    title = models.CharField(max_length=200)
+    title_i18n = models.JSONField(default=dict, blank=True)
+    body = models.TextField(blank=True, default="")
+    body_i18n = models.JSONField(default=dict, blank=True)
+    is_published = models.BooleanField(default=True)
+    sort_order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ["sort_order", "title"]
+
+    def __str__(self):
+        return self.slug
+
+    def title_localized(self, locale: str | None = None) -> str:
+        return self.get_overlay("title", "title_i18n", locale)
+
+    def body_localized(self, locale: str | None = None) -> str:
+        return self.get_overlay("body", "body_i18n", locale)
+
+
 class AssistantTurn(models.Model):
     """AIS A-3d: история переписки с помощником кабинета (решение владельца — в базе,
     90 дней; docs/ais-a3-assistant-panel-plan-2026-11-06.md §2).

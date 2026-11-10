@@ -13,6 +13,10 @@ contenteditable и синкает HTML обратно (на вводе и на s
   .rte-area ul { list-style: disc; padding-left: 1.25rem; }
   .rte-area ol { list-style: decimal; padding-left: 1.25rem; }
   .rte-area a { color: #4f46e5; text-decoration: underline; }
+  .rte-area h2 { font-size: 1.25rem; font-weight: 700; margin: .75rem 0 .25rem; }
+  .rte-area h3 { font-size: 1.05rem; font-weight: 600; margin: .5rem 0 .25rem; }
+  .rte-area img { max-width: 240px; height: auto; display: inline-block; border-radius: .5rem; }
+  .rte-area[data-rte-page] { min-height: 320px; }
 </style>
 <script>
 (function () {
@@ -33,9 +37,24 @@ contenteditable и синкает HTML обратно (на вводе и на s
       ["1.", "insertOrderedList", "{% trans 'Numbered list' %}"],
       ["🔗", "createLink", "{% trans 'Link' %}"],
     ];
+    // M21.6: свои страницы сайта — ещё заголовки, обычный абзац и картинка.
+    if (ta.dataset.rte === "page") {
+      CMDS = [
+        ["H2", "h2", "{% trans 'Überschrift' %}"],
+        ["H3", "h3", "{% trans 'Zwischenüberschrift' %}"],
+        ["¶", "p", "{% trans 'Absatz' %}"],
+      ].concat(CMDS, [["🖼", "insertImage", "{% trans 'Bild' %}"]]);
+    }
     var area = document.createElement("div");
     area.className = "rte-area";
     area.contentEditable = "true";
+    area.setAttribute("role", "textbox");
+    area.setAttribute("aria-multiline", "true");
+    if (ta.id) {
+      var lab = document.querySelector('label[for="' + ta.id + '"]');
+      if (lab) area.setAttribute("aria-label", lab.textContent.trim());
+    }
+    if (ta.dataset.rte === "page") area.setAttribute("data-rte-page", "");
     var v = ta.value || "";
     // плоский легаси-текст: переносы становятся <br>, HTML идёт как есть
     area.innerHTML = v.indexOf("<") === -1 ? v.replace(/\n/g, "<br>") : v;
@@ -44,6 +63,7 @@ contenteditable и синкает HTML обратно (на вводе и на s
       b.type = "button";
       b.textContent = c[0];
       b.title = c[2];
+      b.setAttribute("aria-label", c[2]);
       if (c[0] === "B") b.style.fontWeight = "700";
       if (c[0] === "I") b.style.fontStyle = "italic";
       if (c[0] === "U") b.style.textDecoration = "underline";
@@ -52,6 +72,11 @@ contenteditable и синкает HTML обратно (на вводе и на s
         if (c[1] === "createLink") {
           var url = window.prompt("URL (https://…)", "https://");
           if (url) document.execCommand("createLink", false, url);
+        } else if (c[1] === "insertImage") {
+          var src = window.prompt("{% trans 'Bild-Adresse' %} (/media/…)", "/media/");
+          if (src) document.execCommand("insertImage", false, src);
+        } else if (c[1] === "h2" || c[1] === "h3" || c[1] === "p") {
+          document.execCommand("formatBlock", false, c[1]);
         } else {
           document.execCommand(c[1], false, null);
         }
@@ -80,7 +105,7 @@ contenteditable и синкает HTML обратно (на вводе и на s
   }
   function init() {
     document
-      .querySelectorAll('[data-richtext-scope] textarea[name^="description"]')
+      .querySelectorAll('[data-richtext-scope] textarea[name^="description"], [data-richtext-scope] textarea[data-rte]')
       .forEach(enhance);
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);

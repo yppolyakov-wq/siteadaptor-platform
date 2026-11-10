@@ -1536,4 +1536,11 @@ def shipping_info(request):
                 else [],
             }
         )
-    return render(request, "storefront/shipping_info.html", {"shipping_rows": rows})
+    from apps.core import content_pages
+
+    # M21.6: свой текст владельца «Versand» (страница slug=versand) — над способами.
+    return render(
+        request,
+        "storefront/shipping_info.html",
+        {"shipping_rows": rows, "page_body": content_pages.system_body("versand")},
+    )

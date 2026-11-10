@@ -422,6 +422,15 @@ def _promotion_url(target):
     return _reverse_args("storefront-promotion", target)
 
 
+def _cpage_url(slug):
+    """M21.6: ссылка на свою страницу — только опубликованную (системный slug ведёт
+    на свою системную страницу)."""
+    from apps.core import content_pages
+
+    page = content_pages.published(slug)
+    return content_pages.page_url(page) if page else None
+
+
 _ENTITY_URLS = {
     "product": ("catalog", _product_url),
     "service": ("booking", _service_url),
@@ -429,12 +438,13 @@ _ENTITY_URLS = {
     "event": ("events", _event_url),
     "tour": ("events", _tour_url),
     "promotion": ("promotions", _promotion_url),
+    "cpage": (None, _cpage_url),  # без модуля: свои страницы есть у каждого
 }
 
 
 def _entity_url(tenant, ntype: str, target: str):
     module, loader = _ENTITY_URLS[ntype]
-    if not target or not modules.is_module_active(tenant, module):
+    if not target or (module and not modules.is_module_active(tenant, module)):
         return None
     try:
         return loader(target)
@@ -802,10 +812,21 @@ _ENTITY_TARGET_LIMIT = 200
 
 def _entity_targets(tenant) -> dict:
     """FB-23a: цели «конкретная запись» — только включённых модулей и видимые."""
-    out = {key: [] for key in ("products", "services", "stays", "events", "tours", "promotions")}
+    out = {
+        key: []
+        for key in (
+            "products",
+            "services",
+            "stays",
+            "events",
+            "tours",
+            "promotions",
+            "content_pages",
+        )
+    }
 
     def _add(key, module, rows, label):
-        if not modules.is_module_active(tenant, module):
+        if module and not modules.is_module_active(tenant, module):
             return
         try:
             out[key] = [
@@ -818,6 +839,7 @@ def _entity_targets(tenant) -> dict:
 
     from apps.booking.models import Service
     from apps.catalog.models import Product
+    from apps.core.models import ContentPage
     from apps.events.models import Event, Tour
     from apps.promotions.models import Promotion
     from apps.stays.models import StayUnit
@@ -864,6 +886,12 @@ def _entity_targets(tenant) -> dict:
         lambda: ((str(o.pk), o) for o in Promotion.objects.filter(Promotion.on_sale_q())[:lim]),
         lambda o: o.title_text,
     )
+    _add(
+        "content_pages",
+        None,
+        lambda: ((o.slug, o) for o in ContentPage.objects.filter(is_published=True)[:lim]),
+        lambda o: o.title_localized(),
+    )
     return out
 
 
@@ -893,6 +921,7 @@ def target_options(tenant) -> list[dict]:
         (_("Veranstaltungen"), "event", sets["events"]),
         (_("Touren"), "tour", sets["tours"]),
         (_("Aktionen"), "promotion", sets["promotions"]),
+        (_("Eigene Seiten"), "cpage", sets["content_pages"]),
     )
     pairs = []
     for label, ntype, items in groups:

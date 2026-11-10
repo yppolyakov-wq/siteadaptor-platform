@@ -36520,3 +36520,64 @@ msgstr "Per page:"
 
 msgid "Einträge pro Seite"
 msgstr "Items per page"
+
+msgid "Absatz"
+msgstr "Paragraph"
+
+msgid "Alle Seiten"
+msgstr "All pages"
+
+msgid "Bilder: zuerst unter Website › Medien hochladen, dann hier mit „Bild“ die Adresse einfügen."
+msgstr "Images: first upload them under Website › Media, then insert the address here with “Image”."
+
+msgid "Bitte eine Adresse aus Buchstaben, Ziffern und „-“ angeben."
+msgstr "Please enter an address made of letters, digits and “-”."
+
+msgid "Eigene Seite"
+msgstr "Own page"
+
+msgid "Eigene Seiten"
+msgstr "Own pages"
+
+msgid "Eigene Seiten Ihrer Website, zum Beispiel Versand, Zahlungsarten oder Über uns. Eine Seite erscheint im Menü, wenn Sie sie dort unter „Eigene Seite“ hinzufügen."
+msgstr "Your website's own pages, for example shipping, payment methods or about us. A page appears in the menu once you add it there under “Own page”."
+
+msgid "Entwurf — nur für Ihr Team sichtbar."
+msgstr "Draft — visible to your team only."
+
+msgid "Leer lassen — die Adresse entsteht aus dem Titel."
+msgstr "Leave empty — the address is made from the title."
+
+msgid "Neue Seite"
+msgstr "New page"
+
+msgid "Noch keine eigenen Seiten."
+msgstr "No own pages yet."
+
+msgid "Seite angelegt."
+msgstr "Page created."
+
+msgid "Seite gelöscht."
+msgstr "Page deleted."
+
+msgid "Seite gespeichert."
+msgstr "Page saved."
+
+msgid "Seite löschen"
+msgstr "Delete page"
+
+#, python-format
+msgid "Seite „%(t)s“ löschen"
+msgstr "Delete page “%(t)s”"
+
+msgid "Veröffentlicht (für Besucher sichtbar)"
+msgstr "Published (visible to visitors)"
+
+msgid "Wird auf der Seite „Versand“ angezeigt"
+msgstr "Shown on the “Shipping” page"
+
+msgid "Wird auf der Seite „Über uns“ angezeigt"
+msgstr "Shown on the “About us” page"
+
+msgid "Zwischenüberschrift"
+msgstr "Subheading"

@@ -36855,3 +36855,64 @@ msgstr "На странице:"
 
 msgid "Einträge pro Seite"
 msgstr "Записей на странице"
+
+msgid "Absatz"
+msgstr "Абзац"
+
+msgid "Alle Seiten"
+msgstr "Все страницы"
+
+msgid "Bilder: zuerst unter Website › Medien hochladen, dann hier mit „Bild“ die Adresse einfügen."
+msgstr "Изображения: сначала загрузите в «Сайт › Медиа», затем вставьте здесь адрес кнопкой «Изображение»."
+
+msgid "Bitte eine Adresse aus Buchstaben, Ziffern und „-“ angeben."
+msgstr "Укажите адрес из букв, цифр и «-»."
+
+msgid "Eigene Seite"
+msgstr "Своя страница"
+
+msgid "Eigene Seiten"
+msgstr "Свои страницы"
+
+msgid "Eigene Seiten Ihrer Website, zum Beispiel Versand, Zahlungsarten oder Über uns. Eine Seite erscheint im Menü, wenn Sie sie dort unter „Eigene Seite“ hinzufügen."
+msgstr "Свои страницы сайта, например «Доставка», «Способы оплаты» или «О нас». Страница появится в меню, когда вы добавите её туда как «Своя страница»."
+
+msgid "Entwurf — nur für Ihr Team sichtbar."
+msgstr "Черновик — видно только вашей команде."
+
+msgid "Leer lassen — die Adresse entsteht aus dem Titel."
+msgstr "Оставьте пустым — адрес возьмётся из заголовка."
+
+msgid "Neue Seite"
+msgstr "Новая страница"
+
+msgid "Noch keine eigenen Seiten."
+msgstr "Своих страниц пока нет."
+
+msgid "Seite angelegt."
+msgstr "Страница создана."
+
+msgid "Seite gelöscht."
+msgstr "Страница удалена."
+
+msgid "Seite gespeichert."
+msgstr "Страница сохранена."
+
+msgid "Seite löschen"
+msgstr "Удалить страницу"
+
+#, python-format
+msgid "Seite „%(t)s“ löschen"
+msgstr "Удалить страницу «%(t)s»"
+
+msgid "Veröffentlicht (für Besucher sichtbar)"
+msgstr "Опубликована (видна посетителям)"
+
+msgid "Wird auf der Seite „Versand“ angezeigt"
+msgstr "Показывается на странице «Доставка»"
+
+msgid "Wird auf der Seite „Über uns“ angezeigt"
+msgstr "Показывается на странице «О нас»"
+
+msgid "Zwischenüberschrift"
+msgstr "Подзаголовок"

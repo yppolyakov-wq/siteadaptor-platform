@@ -1,0 +1,55 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n cabinet %}
+{% block dash_title %}{% trans "Seiten" %}{% endblock %}
+
+{% block dash_content %}
+{% comment %}M21.6: свои страницы сайта — список, «＋ Neue Seite», правка, удаление.{% endcomment %}
+<div class="max-w-6xl">
+  <div class="flex flex-wrap items-end justify-between gap-3 mb-1">
+    <h1 class="ui-h1">{% nav_title _("Seiten") %}</h1>
+    {% if 'content-page-new'|can_open:request %}<a href="{% url 'content-page-new' %}" class="ui-btn ui-btn-primary" data-page-new>＋ {% trans "Neue Seite" %}</a>{% endif %}
+  </div>
+  <p class="text-gray-500 mb-4 text-sm">{% trans "Eigene Seiten Ihrer Website, zum Beispiel Versand, Zahlungsarten oder Über uns. Eine Seite erscheint im Menü, wenn Sie sie dort unter „Eigene Seite“ hinzufügen." %}</p>
+
+  {% include "tenant/_settings_messages.html" %}
+
+  {% if pages %}
+  <div class="ui-card overflow-x-auto">
+    <table class="ui-table">
+      <thead>
+        <tr>
+          <th scope="col">{% trans "Titel" %}</th>
+          <th scope="col">{% trans "Adresse" %}</th>
+          <th scope="col">{% trans "Status" %}</th>
+          <th scope="col"><span class="sr-only">{% trans "Aktionen" %}</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in pages %}
+        <tr data-page-row="{{ p.slug }}">
+          <td><a href="{% url 'content-page-edit' p.pk %}" class="font-medium text-indigo-600 hover:underline">{{ p.title }}</a>
+            {% if p.system_label %}<span class="block text-xs text-gray-500">{{ p.system_label }}</span>{% endif %}</td>
+          <td class="break-all"><a href="{{ p.url }}" target="_blank" rel="noopener" class="text-gray-600 hover:underline">{{ p.url }}</a></td>
+          <td>{% if p.is_published %}<span class="ui-badge ui-tone-ok">{% trans "Veröffentlicht" %}</span>{% else %}<span class="ui-badge ui-tone-off">{% trans "Entwurf" %}</span>{% endif %}</td>
+          <td class="text-right whitespace-nowrap">
+            <a href="{% url 'content-page-edit' p.pk %}" class="ui-btn ui-btn-sm">{% trans "Bearbeiten" %}</a>
+            {% if 'content-page-new'|can_open:request %}
+            <form method="post" action="{% url 'content-page-delete' p.pk %}" class="inline">
+              {% csrf_token %}
+              <button class="ui-btn ui-btn-sm ui-btn-danger" data-confirm-tap="{% trans 'Wirklich löschen?' %}" aria-label="{% blocktrans with t=p.title %}Seite „{{ t }}“ löschen{% endblocktrans %}">{% trans "Löschen" %}</button>
+            </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="ui-card p-8 text-center">
+    <p class="ui-muted mb-3">{% trans "Noch keine eigenen Seiten." %}</p>
+    {% if 'content-page-new'|can_open:request %}<a href="{% url 'content-page-new' %}" class="ui-btn ui-btn-primary">＋ {% trans "Neue Seite" %}</a>{% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

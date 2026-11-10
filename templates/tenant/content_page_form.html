@@ -1,0 +1,49 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n cabinet %}
+{% block dash_title %}{% if created %}{% trans "Neue Seite" %}{% else %}{{ page.title }}{% endif %}{% endblock %}
+
+{% block dash_content %}
+{% comment %}M21.6: правка своей страницы. Текст — визуальный редактор SR-3 с заголовками и
+картинками (textarea остаётся в DOM — W0; HTML чистит сервер).{% endcomment %}
+<div class="max-w-6xl">
+  <a href="{% url 'content-pages' %}" class="text-sm text-indigo-600 hover:underline">← {% trans "Alle Seiten" %}</a>
+  <div class="flex flex-wrap items-end justify-between gap-3 mt-2 mb-4">
+    <h1 class="ui-h1">{% if created %}{% trans "Neue Seite" %}{% else %}{{ page.title }}{% endif %}</h1>
+    {% if page_url %}<a href="{{ page_url }}" target="_blank" rel="noopener" class="ui-btn">{% trans "Auf der Website ansehen" %} ↗</a>{% endif %}
+  </div>
+
+  {% include "tenant/_settings_messages.html" %}
+
+  <form method="post" class="ui-card p-6 space-y-4" data-richtext-scope data-page-form>
+    {% csrf_token %}
+    <div class="grid gap-4 md:grid-cols-2">
+      <label class="block text-sm font-medium">{% trans "Titel" %}
+        <input type="text" name="title" value="{{ page.title }}" required maxlength="200" class="ui-input mt-1 w-full">
+      </label>
+      <label class="block text-sm font-medium">{% trans "Adresse" %}
+        <span class="mt-1 flex items-center gap-1"><span class="text-gray-500 text-sm" aria-hidden="true">/seite/</span>
+          <input type="text" name="slug" value="{{ page.slug }}" maxlength="80" pattern="[a-z0-9\-]*" class="ui-input w-full" aria-describedby="slug-hint"></span>
+        <span id="slug-hint" class="block text-xs text-gray-500 font-normal mt-1">{% trans "Leer lassen — die Adresse entsteht aus dem Titel." %}{% if system_label %} {{ system_label }}.{% endif %}</span>
+      </label>
+    </div>
+    <label class="block text-sm font-medium" for="page-body">{% trans "Text" %}</label>
+    <textarea id="page-body" name="body" rows="16" data-rte="page" class="ui-input w-full">{{ page.body }}</textarea>
+    <p class="text-xs text-gray-500">{% trans "Bilder: zuerst unter Website › Medien hochladen, dann hier mit „Bild“ die Adresse einfügen." %}</p>
+    <label class="flex items-center gap-2 text-sm">
+      <input type="checkbox" name="is_published" value="1" {% if page.is_published %}checked{% endif %}>
+      {% trans "Veröffentlicht (für Besucher sichtbar)" %}
+    </label>
+    {% if 'content-page-new'|can_open:request %}
+    <button class="ui-btn ui-btn-primary">{% trans "Speichern" %}</button>
+    {% endif %}
+  </form>
+
+  {% if is_saved and 'content-page-new'|can_open:request %}
+  <form method="post" action="{% url 'content-page-delete' page.pk %}" class="mt-4">
+    {% csrf_token %}
+    <button class="ui-btn ui-btn-danger" data-confirm-tap="{% trans 'Wirklich löschen?' %}">{% trans "Seite löschen" %}</button>
+  </form>
+  {% endif %}
+</div>
+{% include "catalog/_richtext_editor.html" %}
+{% endblock %}

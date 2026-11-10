@@ -1239,6 +1239,86 @@ def apply_locales(tenant, locales: list) -> None:
     tenant.save(update_fields=["enabled_locales", "default_locale"])
 
 
+#: M21.6: страницы старого магазина → свои страницы сайта (ключ ScrapedSite.pages,
+#: slug страницы, заголовок по умолчанию). Тексты, которые M21.3 клал блоками на
+#: «Über uns», снимаются, если владелец их не менял.
+PAGE_IMPORTS = (
+    ("versand", "versand", "Versand"),
+    ("zahlung", "zahlung", "Zahlungsarten"),
+    ("about", "ueber-uns", "Über uns"),
+)
+_IMG_RE = re.compile(r"<img\b[^>]*>", re.I)
+_IMG_SRC_RE = re.compile(r"""\bsrc\s*=\s*["']([^"']+)["']""", re.I)
+_EMPTY_P_RE = re.compile(r"<p>\s*(?:<br\s*/?>|&nbsp;|\s)*</p>", re.I)
+
+
+def page_html(html: str, base: str, fetch_image=None) -> str:
+    """HTML страницы старого магазина → тело своей страницы: картинки перезалиты к нам
+    (чужие ссылки на картинки санитайзер всё равно режет), пустые абзацы убраны."""
+    from apps.core.richtext import sanitize_page
+
+    def _img(match):
+        tag = match.group(0)
+        src = _IMG_SRC_RE.search(tag)
+        if not src or fetch_image is None:
+            return ""
+        ref = _save_image(urljoin(base, html_lib.unescape(src.group(1))), fetch_image)
+        if not ref or not ref.get("url"):
+            return ""
+        return f'<img src="{html_lib.escape(ref["url"])}" alt="">'
+
+    body = _IMG_RE.sub(_img, html or "")
+    body = sanitize_page(body)
+    body = _EMPTY_P_RE.sub("", body)
+    return body.strip()
+
+
+def apply_pages(site: ScrapedSite, config: dict, *, fetch_image=None) -> list:
+    """Создать свои страницы из страниц старого магазина (только если их ещё нет) и
+    снять прежние текстовые блоки этих страниц с «Über uns». ``config`` правится на
+    месте — его сохраняет вызывающий (apply_design)."""
+    from apps.core import content_pages
+    from apps.core.models import ContentPage
+    from apps.tenants import siteconfig
+
+    notes = []
+    blocks = dict(config.get("page_blocks") or {})
+    info = list(blocks.get("info") or [])
+    for key, slug, fallback in PAGE_IMPORTS:
+        raw = site.pages.get(key, "")
+        if not raw:
+            continue
+        title = site.pages.get(key + "_title") or fallback
+        if key == "about":
+            title = fallback
+        legacy_text = strip_dangling(html_to_text(raw))
+        before = len(info)
+        info = [
+            b
+            for b in info
+            if not (
+                isinstance(b, dict)
+                and b.get("key") == "text"
+                and (b.get("data") or {}).get("body") == legacy_text
+            )
+        ]
+        if len(info) < before:
+            notes.append(f"about page: text block «{title}» moved to its own page")
+        page = ContentPage.objects.filter(slug=slug).first()
+        if page is None:
+            body = page_html(raw, site.base, fetch_image)
+            if not body:
+                continue
+            page = ContentPage.objects.create(slug=slug, title=title[:200], body=body)
+            notes.append(f"page created: {content_pages.page_url(page)} ({title})")
+        if key == "zahlung" and page.is_published:
+            # STATIC_ROUTES вели старый адрес на «Über uns» — теперь на свою страницу.
+            _redirect("/versand-de/", content_pages.page_url(page), ApplyStats())
+    blocks["info"] = info
+    config["page_blocks"] = siteconfig.normalize_page_blocks(blocks)
+    return notes
+
+
 def apply_design(
     tenant, site: ScrapedSite, *, options=None, with_images=True, fetch_image=None
 ) -> list:
@@ -1332,19 +1412,8 @@ def apply_design(
                     "(max 3 levels, 20 items per level)"
                 )
 
-    # 5. Versand / Zahlungsarten — текстовыми блоками на «Über uns».
-    blocks = dict(config.get("page_blocks") or {})
-    info = list(blocks.get("info") or [])
-    titles = {(b.get("data") or {}).get("title") for b in info if isinstance(b, dict)}
-    for key, fallback in (("versand", "Versand"), ("zahlung", "Zahlungsarten")):
-        body = strip_dangling(html_to_text(site.pages.get(key, "")))
-        title = site.pages.get(key + "_title") or fallback
-        if body and title not in titles:
-            info.append({"key": "text", "enabled": True, "data": {"title": title, "body": body}})
-            notes.append(f"page block on about page: {title}")
-    if info:
-        blocks["info"] = info
-        config["page_blocks"] = siteconfig.normalize_page_blocks(blocks)
+    # 5. M21.6: Versand / Zahlungsarten / Über uns — своими страницами (с картинками).
+    notes += apply_pages(site, config, fetch_image=fetch_image)
 
     # 6. Логотип и фирменный цвет (цвет — из логотипа, только при первом переносе).
     if fetch_image and home.logo_url and not tenant.logo_url:
@@ -1383,18 +1452,60 @@ def apply_design(
         notes.append("photos: square, whole image (cards and product page)")
     if not sd.get("logo_size"):
         sd["logo_size"] = "l"
+    # M21.6: текстовые страницы (Über uns, Versand, право) — во всю ширину.
+    if not sd.get("text_width"):
+        sd["text_width"] = "full"
+        notes.append("text pages: full width")
     config["site_defaults"] = sd
     menus = dict(config.get("menus") or {})
+    nav = siteconfig.normalize(config)["nav"]
     if not (menus.get("footer") or {}).get("columns"):
-        nav = siteconfig.normalize(config)["nav"]
         menus["footer"] = {"columns": FOOTER_COLUMNS}
         config["menus"] = siteconfig._normalize_menus(menus, nav)
         notes.append("footer columns like the old shop")
+    elif _split_versand_link(menus):
+        config["menus"] = siteconfig._normalize_menus(menus, nav)
+        notes.append("footer: «Versand & Zahlung» → own pages Versand, Zahlungsarten")
 
     tenant.site_config = config
     fields.add("site_config")
     tenant.save(update_fields=sorted(fields))
     return notes
+
+
+#: M21.6: Versand и Zahlungsarten — свои страницы (были одной ссылкой на «Über uns»).
+_VERSAND_LINKS = (
+    {"label": "Versand", "type": "cpage", "target": "versand"},
+    {"label": "Zahlungsarten", "type": "cpage", "target": "zahlung"},
+)
+
+
+def _split_versand_link(menus: dict) -> bool:
+    """Ссылку M21.5 «Versand & Zahlung → Über uns» в подвале заменить двумя ссылками
+    на свои страницы. Только эту, нетронутую владельцем; правит ``menus`` на месте."""
+    footer = dict(menus.get("footer") or {})
+    changed = False
+    columns = []
+    for col in footer.get("columns") or []:
+        if not isinstance(col, dict):
+            columns.append(col)
+            continue
+        items = []
+        for item in col.get("items") or []:
+            if (
+                isinstance(item, dict)
+                and item.get("label") == "Versand & Zahlung"
+                and item.get("type") == "page"
+                and item.get("target") == "about"
+            ):
+                items.extend(dict(link) for link in _VERSAND_LINKS)
+                changed = True
+            else:
+                items.append(item)
+        columns.append({**col, "items": items})
+    if changed:
+        menus["footer"] = {**footer, "columns": columns}
+    return changed
 
 
 #: Подвал старого магазина (Mein Konto · Kundendienst · Über uns; контакты платформа
@@ -1404,7 +1515,7 @@ FOOTER_COLUMNS = [
     {
         "label": "Kundendienst",
         "items": [
-            {"label": "Versand & Zahlung", "type": "page", "target": "about"},
+            *_VERSAND_LINKS,
             {"label": "Wunschzettel", "type": "page", "target": "wishlist"},
             {"label": "Kontakt", "type": "page", "target": "contact"},
         ],

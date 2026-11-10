@@ -1066,6 +1066,16 @@ ENTRIES: tuple[NavEntry, ...] = (
         "aufbau schema bloecke struktur layout seiten",
     ),
     _e("site", "site-seo", _("SEO"), "seo", None, True, "meta titel beschreibung robots"),
+    # M21.6: свои страницы сайта (Versand, Zahlungsarten, …): создать · изменить · удалить.
+    _e(
+        "site",
+        "content-pages",
+        _("Seiten"),
+        "content-pages",
+        None,
+        True,
+        "eigene seiten textseiten versand zahlung inhalte cms",
+    ),
     # M21.1: старые адреса после переезда с другой платформы (301/410).
     _e(
         "site",
@@ -1208,6 +1218,7 @@ UNIVERSAL: dict[str, str] = {
     # STU-19d: the screens show only the page types whose module is on.
     "page-templates-website": "шаблоны всех страниц сайта — у каждого",
     "site-redirects": "переадресации старых адресов — у каждого",
+    "content-pages": "свои страницы сайта — у каждого",
     "domains": "домены — у каждого",
     "media-library": "медиатека — у каждого",
     "sellable-manage": "обзор ассортимента — у каждого",
