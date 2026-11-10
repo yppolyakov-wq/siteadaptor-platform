@@ -750,6 +750,9 @@ def _save_product(p: CsProduct, category, vat: Decimal, stats: ApplyStats):
             product.is_active = False
         product.save()
         stats.products_created += 1
+    elif (product.metadata or {}).get(OWNER_PRICES_KEY):
+        # M21.7: цены и фасовки задал владелец (update_prices) — старый сайт их не трогает.
+        stats.products_updated += 1
     else:
         for key, value in fields.items():
             setattr(product, key, value)
@@ -760,9 +763,15 @@ def _save_product(p: CsProduct, category, vat: Decimal, stats: ApplyStats):
     return product
 
 
+#: M21.7: метка в Product.metadata — цены/фасовки задал владелец, импорт их не синхронизирует.
+OWNER_PRICES_KEY = "prices_by_owner"
+
+
 def _save_variants(product, p: CsProduct, fetch_image, stats: ApplyStats) -> None:
     from apps.catalog.models import ProductVariant
 
+    if (product.metadata or {}).get(OWNER_PRICES_KEY):
+        return  # M21.7: фасовки и цены — владельца (update_prices)
     priced = [v for v in p.variants if v.price > 0]
     if 0 < len(priced) < len(p.variants):  # все без цены — уже отмечено у товара
         stats.notes.append(f"variants without price skipped: {p.sku} {p.name}")
