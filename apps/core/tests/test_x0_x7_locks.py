@@ -110,6 +110,7 @@ EXPECTED_UNLISTED = frozenset(
         # KA-12 WR-6: POST-действия и выгрузка из списка «Sortiment» (вход — кнопки списка).
         "catalog:products-bulk-visibility",
         "catalog:products-bulk-price",
+        "catalog:products-bulk-delete",  # M21.5: кнопка «🗑 Löschen» списка
         "catalog:products-export-csv",
         "channel-config",
         # POST-only приёмник панели «Anfrage-Formular» (её UI живёт на «Abläufe»
