@@ -36778,3 +36778,6 @@ msgstr "silindi"
 #, python-format
 msgid "nur %(s)s: %(old)s → %(new)s"
 msgstr "sadece %(s)s: %(old)s → %(new)s"
+
+msgid "Die Prüfung ist fehlgeschlagen. Bitte laden Sie die Datei erneut hoch oder wenden Sie sich an den Support."
+msgstr "Kontrol başarısız oldu. Lütfen dosyayı yeniden yükleyin veya destekle iletişime geçin."

@@ -36967,3 +36967,6 @@ msgstr "удалён"
 #, python-format
 msgid "nur %(s)s: %(old)s → %(new)s"
 msgstr "только %(s)s: %(old)s → %(new)s"
+
+msgid "Die Prüfung ist fehlgeschlagen. Bitte laden Sie die Datei erneut hoch oder wenden Sie sich an den Support."
+msgstr "Проверка не удалась. Загрузите файл ещё раз или напишите в поддержку."

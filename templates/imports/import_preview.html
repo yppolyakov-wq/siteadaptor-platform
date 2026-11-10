@@ -22,8 +22,12 @@
   </div>
 </div>
 
-{% if job.status != "previewed" %}
-  <p class="text-sm text-gray-500 mb-6">{% trans "Status" %}: {{ job.status }} — {% trans "preview is being prepared…" %}</p>
+{% if job.status == "failed" %}
+  <p class="text-sm text-red-700 mb-6" role="alert" data-import-failed>{% trans "Die Prüfung ist fehlgeschlagen. Bitte laden Sie die Datei erneut hoch oder wenden Sie sich an den Support." %}</p>
+{% elif job.status != "previewed" %}
+  <p class="text-sm text-gray-500 mb-6" role="status" data-import-pending>{% trans "Status" %}: {{ job.status }} — {% trans "preview is being prepared…" %}</p>
+  {% comment %}M21.7: проверка идёт в фоне — страница перечитывает себя, пока не готово.{% endcomment %}
+  <script>setTimeout(function () { location.reload(); }, 3000);</script>
 {% endif %}
 
 {% if error_rows %}

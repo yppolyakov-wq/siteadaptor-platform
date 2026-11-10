@@ -36719,3 +36719,6 @@ msgstr "gelöscht"
 #, python-format
 msgid "nur %(s)s: %(old)s → %(new)s"
 msgstr "nur %(s)s: %(old)s → %(new)s"
+
+msgid "Die Prüfung ist fehlgeschlagen. Bitte laden Sie die Datei erneut hoch oder wenden Sie sich an den Support."
+msgstr "Die Prüfung ist fehlgeschlagen. Bitte laden Sie die Datei erneut hoch oder wenden Sie sich an den Support."

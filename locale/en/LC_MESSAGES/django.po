@@ -36632,3 +36632,6 @@ msgstr "deleted"
 #, python-format
 msgid "nur %(s)s: %(old)s → %(new)s"
 msgstr "only %(s)s: %(old)s → %(new)s"
+
+msgid "Die Prüfung ist fehlgeschlagen. Bitte laden Sie die Datei erneut hoch oder wenden Sie sich an den Support."
+msgstr "The check failed. Please upload the file again or contact support."
