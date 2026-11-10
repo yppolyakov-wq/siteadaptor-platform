@@ -936,6 +936,12 @@ urlpatterns = [
     # C.1: онлайн-форма Widerruf (заявление уходит продавцу).
     path("widerruf-formular/", public_views.withdrawal_form, name="storefront-withdrawal-form"),
     path("u/<uuid:token>/", public_views.unsubscribe, name="storefront-unsubscribe"),
+    # NT-B3: темы рассылки по ссылке из письма — сузить или отписаться от всех.
+    path(
+        "newsletter/einstellungen/<uuid:token>/",
+        public_views.newsletter_preferences,
+        name="storefront-newsletter-preferences",
+    ),
     # G3: подписка на рассылку (Double-Opt-In) + подтверждение по ссылке.
     path("newsletter/", public_views.newsletter_signup, name="storefront-newsletter"),
     path(

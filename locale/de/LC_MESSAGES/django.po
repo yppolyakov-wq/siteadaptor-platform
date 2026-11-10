@@ -36476,3 +36476,47 @@ msgstr "Welche Kategorien? Tippen zum Auswählen, dann speichern."
 #: NT-A4
 msgid "keine"
 msgstr "keine"
+
+#: NT-B
+msgid "Anmeldeformular"
+msgstr "Anmeldeformular"
+
+#: NT-B
+msgid "Erneut anmelden"
+msgstr "Erneut anmelden"
+
+#: NT-B
+msgid "Keine Auswahl = alle Themen."
+msgstr "Keine Auswahl = alle Themen."
+
+#: NT-B
+msgid "Kundenkonto"
+msgstr "Kundenkonto"
+
+#: NT-B
+msgid "Nehmen Sie alle Häkchen weg, um sich ganz abzumelden."
+msgstr "Nehmen Sie alle Häkchen weg, um sich ganz abzumelden."
+
+#: NT-B
+msgid "Nur einzelne Themen abbestellen"
+msgstr "Nur einzelne Themen abbestellen"
+
+#: NT-B
+msgid "Sie erhalten derzeit keinen Newsletter."
+msgstr "Sie erhalten derzeit keinen Newsletter."
+
+#: NT-B
+msgid "Sie sind abgemeldet und erhalten keinen Newsletter mehr."
+msgstr "Sie sind abgemeldet und erhalten keinen Newsletter mehr."
+
+#: NT-B
+msgid "Themen wählen"
+msgstr "Themen wählen"
+
+#: NT-B
+msgid "Themen wählen: %(url)s"
+msgstr "Themen wählen: %(url)s"
+
+#: NT-B
+msgid "Worüber möchten Sie Neuigkeiten?"
+msgstr "Worüber möchten Sie Neuigkeiten?"

@@ -84,6 +84,64 @@ class Customer(TimestampedModel):
         return self.name or self.email or str(self.pk)
 
 
+class NewsletterTopic(TimestampedModel, I18nMixin):
+    """NT-B1: тема рассылки магазина («Mittagstisch», «Events», «Neue Kuchen»).
+
+    Клиент без выбранных тем получает ВСЁ (и будущие темы); выбрал — только эти. Кампания
+    с темой уходит подписчикам этой темы и подписчикам «всего». Тему с кампаниями удалить
+    нельзя (PROTECT) — только выключить, иначе потеряется история «кому что шло»."""
+
+    name = models.CharField(max_length=80)
+    name_i18n = models.JSONField(default=dict, blank=True)
+    position = models.PositiveSmallIntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+    # Подсказка владельцу (тема о категории товаров); авто-рассылок по ней нет.
+    category = models.ForeignKey(
+        "catalog.Category", on_delete=models.SET_NULL, null=True, blank=True, related_name="+"
+    )
+
+    class Meta:
+        ordering = ["position", "name"]
+
+    def __str__(self):
+        return self.name
+
+    @property
+    def name_localized(self) -> str:
+        return self.get_overlay("name", "name_i18n")
+
+
+class CustomerNewsletterTopic(models.Model):
+    """NT-B1: выбранная клиентом тема. Нет строк = «все темы». `confirmed_at` + `source` —
+    доказательство согласия (Art. 7 DSGVO) вместе с `Customer.marketing_opt_in_at`."""
+
+    SOURCE_FORM = "form"
+    SOURCE_PREFERENCES = "preferences"
+    SOURCE_CABINET = "cabinet"
+    SOURCE_ACCOUNT = "account"
+    SOURCES = [
+        (SOURCE_FORM, _("Anmeldeformular")),
+        (SOURCE_PREFERENCES, _("Einstellungen")),
+        (SOURCE_CABINET, _("Kabinett")),
+        (SOURCE_ACCOUNT, _("Kundenkonto")),
+    ]
+
+    customer = models.ForeignKey(
+        "promotions.Customer", on_delete=models.CASCADE, related_name="newsletter_topics"
+    )
+    topic = models.ForeignKey(NewsletterTopic, on_delete=models.CASCADE, related_name="members")
+    confirmed_at = models.DateTimeField(default=timezone.now)
+    source = models.CharField(max_length=12, choices=SOURCES, default=SOURCE_FORM)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["customer", "topic"], name="customer_topic_uniq")
+        ]
+
+    def __str__(self):
+        return f"{self.customer_id} → {self.topic_id}"
+
+
 class NewsletterCampaign(TimestampedModel):
     """G3: e-mail-рассылка гостям (UWG §7 — только подтвердившим opt-in).
 
@@ -97,6 +155,10 @@ class NewsletterCampaign(TimestampedModel):
 
     subject = models.CharField(max_length=200)
     body = models.TextField()
+    # NT-B1: тема рассылки; пусто = «An alle Abonnenten».
+    topic = models.ForeignKey(
+        NewsletterTopic, on_delete=models.PROTECT, null=True, blank=True, related_name="campaigns"
+    )
     status = models.CharField(max_length=10, choices=STATUSES, default=STATUS_DRAFT)
     sent_at = models.DateTimeField(null=True, blank=True)
     recipient_count = models.PositiveIntegerField(default=0)
@@ -156,6 +218,14 @@ class CouponCampaign(TimestampedModel):
     # Письмо (DE, авторский текст владельца — как NewsletterCampaign).
     subject = models.CharField(max_length=200)
     body = models.TextField(blank=True)
+    # NT-B1: тема рассылки; пусто = все согласившиеся (как раньше).
+    topic = models.ForeignKey(
+        NewsletterTopic,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="coupon_campaigns",
+    )
 
     status = models.CharField(max_length=10, choices=STATUSES, default=STATUS_DRAFT)
     sent_at = models.DateTimeField(null=True, blank=True)

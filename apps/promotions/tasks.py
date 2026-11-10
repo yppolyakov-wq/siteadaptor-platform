@@ -478,6 +478,7 @@ def send_due_winback_coupons(now=None, base_url=None) -> int:
                 inactive_days=days,
                 top_ltv=campaign.top_ltv,
                 exclude_ids=list(recent_ids),
+                topic=campaign.topic,
             )
         )
         if not customers:
@@ -526,7 +527,9 @@ def send_due_birthday_coupons(today=None, base_url=None) -> int:
         recent_ids = campaign.vouchers.filter(
             created_at__gte=timezone.now() - timedelta(days=300), customer__isnull=False
         ).values_list("customer_id", flat=True)
-        base = segment_customers(tag=campaign.tag, exclude_ids=list(recent_ids))
+        base = segment_customers(
+            tag=campaign.tag, exclude_ids=list(recent_ids), topic=campaign.topic
+        )
         from django.db.models import Q
 
         cond = Q()

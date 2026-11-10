@@ -3133,15 +3133,72 @@ def unsubscribe(request, token):
     (`List-Unsubscribe-Post`) — поэтому без CSRF: доказательство — сам токен."""
     customer = Customer.objects.filter(unsubscribe_token=token).first()
     if request.method != "POST":
+        from .models import NewsletterTopic
+
+        prefs_url = (
+            reverse("storefront-newsletter-preferences", args=[token])
+            if customer is not None and NewsletterTopic.objects.filter(is_active=True).exists()
+            else ""
+        )
         return render(
             request,
             "storefront/unsubscribed.html",
-            {"ok": customer is not None, "confirm": customer is not None},
+            {"ok": customer is not None, "confirm": customer is not None, "prefs_url": prefs_url},
         )
     if customer is not None and not customer.unsubscribed:
         customer.unsubscribed = True
         customer.save(update_fields=["unsubscribed", "updated_at"])
     return render(request, "storefront/unsubscribed.html", {"ok": customer is not None})
+
+
+def newsletter_preferences(request, token):
+    """NT-B3: «Themen wählen» по ссылке из письма (токен = `unsubscribe_token`).
+
+    GET показывает темы с текущими отметками (без выбора тем — отмечены все). POST сужает
+    выбор или отписывает от всего; РАСШИРИТЬ выбор у отписавшегося нельзя без нового
+    подтверждения по почте (UWG §7) — для него только «Erneut anmelden»."""
+    from . import newsletter
+    from .models import CustomerNewsletterTopic
+
+    if ratelimit.hit("news-pref", ratelimit.client_ip(request), limit=60, window=600):
+        return render(request, "storefront/newsletter.html", {"state": "error"}, status=429)
+    customer = Customer.objects.filter(unsubscribe_token=token).first()
+    if customer is None:
+        raise Http404
+    topics = _active_topics()
+    selected = newsletter.selected_topic_ids(customer) or {str(t.pk) for t in topics}
+    subscribed = customer.marketing_opt_in and not customer.unsubscribed
+    saved = ""
+    if request.method == "POST" and subscribed:
+        action = request.POST.get("action", "")
+        if action == "all_off" or not topics:
+            customer.unsubscribed = True
+            customer.save(update_fields=["unsubscribed", "updated_at"])
+            subscribed, saved = False, "off"
+        else:
+            # только СУЖЕНИЕ: темы, которых у клиента не было, отсюда не добавляются
+            wanted = {str(v) for v in request.POST.getlist("thema")} & selected
+            if not wanted:
+                customer.unsubscribed = True
+                customer.save(update_fields=["unsubscribed", "updated_at"])
+                subscribed, saved = False, "off"
+            else:
+                newsletter.set_topics(
+                    customer, wanted, source=CustomerNewsletterTopic.SOURCE_PREFERENCES
+                )
+                selected = newsletter.selected_topic_ids(customer) or {str(t.pk) for t in topics}
+                saved = "ok"
+    return render(
+        request,
+        "storefront/newsletter_preferences.html",
+        {
+            "customer": customer,
+            "topics": topics,
+            "selected": selected,
+            "subscribed": subscribed,
+            "saved": saved,
+        },
+    )
 
 
 def newsletter_signup(request):
@@ -3167,28 +3224,57 @@ def newsletter_signup(request):
             customer = Customer.objects.create(
                 name=name, email=email, created_source=Customer.SOURCE_MANUAL
             )
+        # NT-B2: темы из формы (пусто = все); применяются только после клика в письме.
+        topics = _topic_choice(request.POST.getlist("thema"))
+        subscribed = customer.marketing_opt_in and not customer.unsubscribed
+        same = topics is None or set(topics) == newsletter.selected_topic_ids(customer)
         # нейтральный ответ независимо от статуса (не раскрываем, подписан ли e-mail);
-        # уже подтверждённому подписчику письмо повторно НЕ шлём (анти-спам)
-        if not (customer.marketing_opt_in and not customer.unsubscribed):
+        # уже подтверждённому подписчику с тем же выбором письмо повторно НЕ шлём
+        if not subscribed or not same:
             newsletter.send_doi_email(
-                customer, base_url=request.build_absolute_uri("/").rstrip("/")
+                customer, base_url=request.build_absolute_uri("/").rstrip("/"), topics=topics
             )
         state = "sent"
-    return render(request, "storefront/newsletter.html", {"state": state})
+    return render(
+        request,
+        "storefront/newsletter.html",
+        {"state": state, "topics": _active_topics()},
+    )
+
+
+def _active_topics():
+    from .models import NewsletterTopic
+
+    return list(NewsletterTopic.objects.filter(is_active=True))
+
+
+def _topic_choice(values):
+    """Выбранные в форме темы (строки pk) или None, если в магазине тем нет."""
+    active = {str(t.pk) for t in _active_topics()}
+    if not active:
+        return None
+    return sorted({str(v) for v in values} & active)
 
 
 def newsletter_confirm(request, token):
     """G3: подтверждение Double-Opt-In по подписанной ссылке из письма."""
     from . import newsletter
 
-    customer = newsletter.load_doi_token(token)
+    customer, topics = newsletter.load_doi(token)
     if customer is None:
         return render(request, "storefront/newsletter.html", {"state": "error"})
     # SEC-E-L1 / UWG §7: согласие — действие человека. GET (сканер ссылок почты) только
     # показывает кнопку; подписку подтверждает POST.
     if request.method != "POST":
         return render(request, "storefront/newsletter.html", {"state": "confirm_ask"})
-    newsletter.confirm_opt_in(customer)
+    from django.db import transaction
+
+    from .models import CustomerNewsletterTopic
+
+    with transaction.atomic():
+        newsletter.confirm_opt_in(customer)
+        if topics is not None:  # NT-B2: выбор тем из формы (пусто = все)
+            newsletter.set_topics(customer, topics, source=CustomerNewsletterTopic.SOURCE_FORM)
     return render(request, "storefront/newsletter.html", {"state": "confirmed"})
 
 

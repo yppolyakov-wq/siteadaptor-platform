@@ -37,6 +37,8 @@ ERASURE_POLICY = {
     "loyalty.Voucher": ("keep", "money"),
     "loyalty.LoyaltyCard": ("delete", ()),
     "crm.CustomerNote": ("delete", ()),
+    # NT-B5: выбранные темы рассылки — только согласие, без основания хранить.
+    "promotions.CustomerNewsletterTopic": ("delete", ()),
     # Адреса на сделке — копии; счёт хранит свой снимок получателя (GoBD).
     "orders.Order": (
         "clear",

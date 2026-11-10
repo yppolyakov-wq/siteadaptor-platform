@@ -7,6 +7,7 @@
 """
 
 from django.core import signing
+from django.core.exceptions import ValidationError
 from django.urls import reverse
 from django.utils import timezone, translation
 from django.utils.translation import gettext as _
@@ -18,17 +19,37 @@ from .models import Customer, NewsletterCampaign
 _DOI_SALT = "newsletter-doi"
 
 
-def doi_token(customer) -> str:
-    return signing.dumps(str(customer.pk), salt=_DOI_SALT)
+def doi_token(customer, topics=None) -> str:
+    """NT-B2: с темами — {"c": pk, "t": [ids]}; без тем — прежняя строка pk (ссылки
+    в уже отправленных письмах подтверждаются как раньше)."""
+    if topics is None:
+        return signing.dumps(str(customer.pk), salt=_DOI_SALT)
+    return signing.dumps(
+        {"c": str(customer.pk), "t": sorted(str(t) for t in topics)}, salt=_DOI_SALT
+    )
+
+
+def load_doi(token: str):
+    """(Customer, темы | None) по DOI-токену; (None, None) при плохой подписи."""
+    try:
+        value = signing.loads(token, salt=_DOI_SALT, max_age=60 * 60 * 24 * 14)  # 14 дней
+    except signing.BadSignature:
+        return None, None
+    topics = None
+    if isinstance(value, dict):
+        pk, topics = value.get("c"), [str(t) for t in value.get("t") or []][:50]
+    else:
+        pk = value
+    try:
+        customer = Customer.objects.filter(pk=pk).first()
+    except (ValueError, TypeError, ValidationError):
+        customer = None
+    return customer, topics
 
 
 def load_doi_token(token: str):
     """Customer по DOI-токену (или None при плохой подписи/отсутствии)."""
-    try:
-        pk = signing.loads(token, salt=_DOI_SALT, max_age=60 * 60 * 24 * 14)  # 14 дней
-    except signing.BadSignature:
-        return None
-    return Customer.objects.filter(pk=pk).first()
+    return load_doi(token)[0]
 
 
 def confirm_opt_in(customer) -> bool:
@@ -44,12 +65,75 @@ def confirm_opt_in(customer) -> bool:
     return True
 
 
-def consented_customers():
-    """Получатели рассылки: подтвердившие opt-in, не отписавшиеся, с e-mail."""
-    return Customer.objects.filter(marketing_opt_in=True, unsubscribed=False).exclude(email="")
+def consented_customers(topic=None):
+    """Получатели рассылки: подтвердившие opt-in, не отписавшиеся, с e-mail.
+
+    NT-B1: с темой — те, у кого тема выбрана, И те, кто тем не выбирал («всё»). Только
+    `Exists`, без JOIN: поверх набора `segment_customers` считает Max/Sum, JOIN по темам
+    размножил бы суммы LTV."""
+    from django.db.models import Exists, OuterRef
+
+    from .models import CustomerNewsletterTopic
+
+    qs = Customer.objects.filter(marketing_opt_in=True, unsubscribed=False).exclude(email="")
+    if topic is None:
+        return qs
+    rows = CustomerNewsletterTopic.objects.filter(customer=OuterRef("pk"))
+    return qs.filter(~Exists(rows) | Exists(rows.filter(topic=topic)))
 
 
-def segment_customers(*, tag="", inactive_days=None, top_ltv=None, exclude_ids=None):
+def set_topics(customer, topic_ids, *, source: str) -> str:
+    """NT-B1: ЕДИНСТВЕННЫЙ писатель тем клиента. `topic_ids` — выбранные темы (пусто =
+    «все темы»). Возвращает «all» | «some» | «none». Сужение — здесь; расширение у
+    отписавшегося не делаем (нужно новое подтверждение DOI — проверяет вызывающий).
+
+    Снял все темы при существующих темах в магазине — отписка от рассылки целиком."""
+    from django.db import transaction
+
+    from .models import CustomerNewsletterTopic, NewsletterTopic
+
+    active = {
+        str(pk)
+        for pk in NewsletterTopic.objects.filter(is_active=True).values_list("pk", flat=True)
+    }
+    wanted = {str(t) for t in topic_ids} & active  # pk — UUID: сравниваем строками
+    with transaction.atomic():
+        Customer.objects.select_for_update().filter(pk=customer.pk).first()
+        have = {
+            str(pk)
+            for pk in CustomerNewsletterTopic.objects.filter(customer=customer).values_list(
+                "topic_id", flat=True
+            )
+        }
+        if not wanted or wanted == active:  # «все темы» — строк не храним
+            CustomerNewsletterTopic.objects.filter(customer=customer).delete()
+            return "all"
+        CustomerNewsletterTopic.objects.filter(customer=customer).exclude(
+            topic_id__in=wanted
+        ).delete()
+        CustomerNewsletterTopic.objects.bulk_create(
+            [
+                CustomerNewsletterTopic(customer=customer, topic_id=t, source=source)
+                for t in sorted(wanted - have)
+            ],
+            ignore_conflicts=True,
+        )
+    return "some"
+
+
+def selected_topic_ids(customer) -> set[str]:
+    """Выбранные темы клиента (строки pk); пусто = «все»."""
+    from .models import CustomerNewsletterTopic
+
+    return {
+        str(pk)
+        for pk in CustomerNewsletterTopic.objects.filter(customer=customer).values_list(
+            "topic_id", flat=True
+        )
+    }
+
+
+def segment_customers(*, tag="", inactive_days=None, top_ltv=None, exclude_ids=None, topic=None):
     """B4/CM-9: сегмент ПОВЕРХ consented_customers() (UWG-гейт по построению).
 
     Фильтры комбинируются AND; всё пустое = вся opt-in-база.
@@ -64,7 +148,7 @@ def segment_customers(*, tag="", inactive_days=None, top_ltv=None, exclude_ids=N
 
     from django.db.models import Max, Sum
 
-    qs = consented_customers()
+    qs = consented_customers(topic)
     if tag:
         qs = qs.filter(tags__contains=[tag.strip().lower()])
     if inactive_days:
@@ -80,9 +164,11 @@ def segment_customers(*, tag="", inactive_days=None, top_ltv=None, exclude_ids=N
     return qs
 
 
-def send_doi_email(customer, *, base_url: str) -> None:
-    """Письмо Double-Opt-In со ссылкой подтверждения (UWG §7)."""
-    link = f"{base_url}{reverse('storefront-newsletter-confirm', args=[doi_token(customer)])}"
+def send_doi_email(customer, *, base_url: str, topics=None) -> None:
+    """Письмо Double-Opt-In со ссылкой подтверждения (UWG §7). NT-B2: `topics` — выбор
+    тем из формы; темы применяются только после клика (подтверждение из ящика)."""
+    token = doi_token(customer, topics)
+    link = f"{base_url}{reverse('storefront-newsletter-confirm', args=[token])}"
     from django.utils import translation
     from django.utils.translation import gettext as _
 
@@ -95,8 +181,15 @@ def send_doi_email(customer, *, base_url: str) -> None:
             "Wenn Sie sich nicht angemeldet haben, ignorieren Sie diese E-Mail."
         ) % {"link": link}
         subject = _("Bitte bestätigen Sie Ihre Newsletter-Anmeldung")
+    import hashlib
+
+    suffix = (
+        ":" + hashlib.sha256(",".join(sorted(map(str, topics))).encode()).hexdigest()[:10]
+        if topics is not None
+        else ""
+    )
     notify(
-        dedupe_key=f"doi:{customer.id}:{timezone.localdate().isoformat()}",
+        dedupe_key=f"doi:{customer.id}:{timezone.localdate().isoformat()}{suffix}",
         type="newsletter_doi",
         recipient=customer.email,
         subject=subject,
@@ -112,6 +205,17 @@ def maybe_send_doi(customer, *, base_url) -> bool:
         return False
     send_doi_email(customer, base_url=base_url)
     return True
+
+
+def _prefs_line(customer, base_url: str) -> str:
+    """NT-B3: строка «Themen wählen» в подвале — только если в магазине есть темы."""
+    from .models import NewsletterTopic
+
+    if not NewsletterTopic.objects.filter(is_active=True).exists():
+        return ""
+    url = f"{base_url}{reverse('storefront-newsletter-preferences', args=[customer.unsubscribe_token])}"
+    with translation.override(email_locale()):
+        return "\n" + _("Themen wählen: %(url)s") % {"url": url}
 
 
 def _coupon_terms(campaign) -> str:
@@ -145,6 +249,7 @@ def send_coupon_campaign(campaign, *, base_url: str, customers=None) -> int:
             tag=campaign.tag,
             inactive_days=campaign.inactive_days,
             top_ltv=campaign.top_ltv,
+            topic=campaign.topic,
         )
     count = 0
     for customer in customers:
@@ -175,7 +280,7 @@ def send_coupon_campaign(campaign, *, base_url: str, customers=None) -> int:
             body_parts.append(_("Ihr persönlicher Code: %(code)s") % {"code": voucher.code})
         if terms:
             body_parts.append(terms)
-        body_parts.append(f"—\nAbmelden: {unsub}")
+        body_parts.append(f"—\nAbmelden: {unsub}{_prefs_line(customer, base_url)}")
         notify(
             dedupe_key=f"coupon:{campaign.id}:{customer.id}:{voucher.code}",
             type="coupon_campaign",
@@ -217,14 +322,14 @@ def send_campaign(campaign: NewsletterCampaign, *, base_url: str) -> int:
     if campaign.status == NewsletterCampaign.STATUS_SENT:
         return campaign.recipient_count
     count = 0
-    for customer in consented_customers():
+    for customer in consented_customers(campaign.topic):
         unsub = f"{base_url}{reverse('storefront-unsubscribe', args=[customer.unsubscribe_token])}"
         notify(
             dedupe_key=f"campaign:{campaign.id}:{customer.id}",
             type="newsletter_campaign",
             recipient=customer.email,
             subject=campaign.subject,
-            body=f"{campaign.body}\n\n—\nAbmelden: {unsub}",
+            body=f"{campaign.body}\n\n—\nAbmelden: {unsub}{_prefs_line(customer, base_url)}",
             headers={
                 "List-Unsubscribe": f"<{unsub}>",
                 "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
@@ -237,7 +342,10 @@ def send_campaign(campaign: NewsletterCampaign, *, base_url: str) -> int:
             customer,
             type="newsletter_campaign",
             dedupe_key=f"campaign:{campaign.id}:{customer.id}:tg",
-            text=f"{campaign.subject}\n\n{campaign.body}\n\n—\nAbmelden: {unsub}",
+            text=(
+                f"{campaign.subject}\n\n{campaign.body}\n\n—\nAbmelden: {unsub}"
+                f"{_prefs_line(customer, base_url)}"
+            ),
         )
         count += 1
     campaign.status = NewsletterCampaign.STATUS_SENT

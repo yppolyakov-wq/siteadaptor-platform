@@ -36535,3 +36535,47 @@ msgstr "Hangi kategoriler? Seçmek için dokunun, sonra kaydedin."
 #: NT-A4
 msgid "keine"
 msgstr "hiçbiri"
+
+#: NT-B
+msgid "Anmeldeformular"
+msgstr "Kayıt formu"
+
+#: NT-B
+msgid "Erneut anmelden"
+msgstr "Yeniden abone ol"
+
+#: NT-B
+msgid "Keine Auswahl = alle Themen."
+msgstr "Seçim yok = tüm konular."
+
+#: NT-B
+msgid "Kundenkonto"
+msgstr "Müşteri hesabı"
+
+#: NT-B
+msgid "Nehmen Sie alle Häkchen weg, um sich ganz abzumelden."
+msgstr "Tamamen abonelikten çıkmak için tüm işaretleri kaldırın."
+
+#: NT-B
+msgid "Nur einzelne Themen abbestellen"
+msgstr "Yalnızca bazı konulardan çık"
+
+#: NT-B
+msgid "Sie erhalten derzeit keinen Newsletter."
+msgstr "Şu anda bülten almıyorsunuz."
+
+#: NT-B
+msgid "Sie sind abgemeldet und erhalten keinen Newsletter mehr."
+msgstr "Abonelikten çıktınız, artık bülten almayacaksınız."
+
+#: NT-B
+msgid "Themen wählen"
+msgstr "Konu seç"
+
+#: NT-B
+msgid "Themen wählen: %(url)s"
+msgstr "Konu seç: %(url)s"
+
+#: NT-B
+msgid "Worüber möchten Sie Neuigkeiten?"
+msgstr "Hangi konularda haber almak istersiniz?"

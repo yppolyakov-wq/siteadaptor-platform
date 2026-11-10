@@ -1,0 +1,33 @@
+{% extends "storefront/_base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Themen wählen" %} — {{ request.tenant.name }}{% endblock %}
+{% block content %}
+<div class="max-w-lg mx-auto">
+  <div class="sf-card bg-white rounded-2xl shadow-sm p-6 md:p-8" data-newsletter-preferences>
+    <h1 class="text-2xl font-bold mb-2">{% trans "Themen wählen" %}</h1>
+    {% if saved == "ok" %}<p class="mb-4 rounded-lg bg-green-50 p-3 text-sm text-green-900" role="status">✓ {% trans "Gespeichert." %}</p>{% endif %}
+    {% if not subscribed %}
+      <p class="text-gray-600">{% if saved == "off" %}{% trans "Sie sind abgemeldet und erhalten keinen Newsletter mehr." %}{% else %}{% trans "Sie erhalten derzeit keinen Newsletter." %}{% endif %}</p>
+      <a href="{% url 'storefront-newsletter' %}" class="ui-btn ui-btn-secondary mt-5 inline-block">{% trans "Erneut anmelden" %}</a>
+    {% else %}
+      <p class="text-gray-600 mb-4">{{ customer.email }}</p>
+      <form method="post" class="space-y-4">
+        {% csrf_token %}
+        {% if topics %}
+        <fieldset>
+          <legend class="block text-sm font-medium mb-2">{% trans "Worüber möchten Sie Neuigkeiten?" %}</legend>
+          <ul class="space-y-2">
+            {% for t in topics %}
+            <li><label class="flex items-center gap-2 text-sm"><input type="checkbox" name="thema" value="{{ t.pk }}"{% if t.pk|stringformat:"s" in selected %} checked{% endif %}> {{ t.name_localized }}</label></li>
+            {% endfor %}
+          </ul>
+          <p class="mt-2 text-xs text-gray-500">{% trans "Nehmen Sie alle Häkchen weg, um sich ganz abzumelden." %}</p>
+        </fieldset>
+        <button type="submit" name="action" value="save" class="ui-btn ui-btn-primary">{% trans "Speichern" %}</button>
+        {% endif %}
+        <button type="submit" name="action" value="all_off" class="ui-btn ui-btn-secondary">{% trans "Alle abbestellen" %}</button>
+      </form>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

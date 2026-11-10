@@ -39,6 +39,17 @@
           <label class="block text-sm font-medium mb-1" for="id_email">{% trans "Email" %} *</label>
           <input autocomplete="email" id="id_email" name="email" type="email" required class="w-full rounded-lg border border-gray-300 px-3 py-2">
         </div>
+        {% if topics %}
+        <fieldset data-newsletter-topics>
+          <legend class="block text-sm font-medium mb-1">{% trans "Worüber möchten Sie Neuigkeiten?" %}</legend>
+          <div class="flex flex-wrap gap-2">
+            {% for t in topics %}
+            <label class="inline-flex items-center gap-1.5 rounded-full border border-gray-300 px-3 py-1.5 text-sm"><input type="checkbox" name="thema" value="{{ t.pk }}"> {{ t.name_localized }}</label>
+            {% endfor %}
+          </div>
+          <p class="mt-1 text-xs text-gray-500">{% trans "Keine Auswahl = alle Themen." %}</p>
+        </fieldset>
+        {% endif %}
         <button type="submit" class="w-full text-white rounded-lg px-4 py-3 font-medium hover:opacity-90" style="background: var(--accent);">{% trans "Subscribe" %}</button>
         <p class="text-xs text-gray-400">{% trans "By subscribing you agree to receive marketing emails." %}</p>
         {% include "storefront/_privacy_note.html" %}

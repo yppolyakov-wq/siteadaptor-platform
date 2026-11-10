@@ -10,6 +10,7 @@
     <form method="post" class="mt-6">
       <button type="submit" class="ui-btn ui-btn-primary">{% trans "Unsubscribe" %}</button>
     </form>
+    {% if prefs_url %}<a href="{{ prefs_url }}" class="mt-4 inline-block text-sm underline" data-newsletter-prefs-link>{% trans "Nur einzelne Themen abbestellen" %}</a>{% endif %}
   {% elif ok %}
     <div class="text-4xl mb-3">✅</div>
     <h1 class="text-xl font-bold mb-2">{% trans "You have been unsubscribed" %}</h1>

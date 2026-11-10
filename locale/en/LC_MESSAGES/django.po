@@ -36389,3 +36389,47 @@ msgstr "Which categories? Tap to select, then save."
 #: NT-A4
 msgid "keine"
 msgstr "none"
+
+#: NT-B
+msgid "Anmeldeformular"
+msgstr "Sign-up form"
+
+#: NT-B
+msgid "Erneut anmelden"
+msgstr "Subscribe again"
+
+#: NT-B
+msgid "Keine Auswahl = alle Themen."
+msgstr "No selection = all topics."
+
+#: NT-B
+msgid "Kundenkonto"
+msgstr "Customer account"
+
+#: NT-B
+msgid "Nehmen Sie alle Häkchen weg, um sich ganz abzumelden."
+msgstr "Remove all ticks to unsubscribe completely."
+
+#: NT-B
+msgid "Nur einzelne Themen abbestellen"
+msgstr "Unsubscribe from individual topics only"
+
+#: NT-B
+msgid "Sie erhalten derzeit keinen Newsletter."
+msgstr "You are currently not receiving the newsletter."
+
+#: NT-B
+msgid "Sie sind abgemeldet und erhalten keinen Newsletter mehr."
+msgstr "You have unsubscribed and will no longer receive the newsletter."
+
+#: NT-B
+msgid "Themen wählen"
+msgstr "Choose topics"
+
+#: NT-B
+msgid "Themen wählen: %(url)s"
+msgstr "Choose topics: %(url)s"
+
+#: NT-B
+msgid "Worüber möchten Sie Neuigkeiten?"
+msgstr "What would you like to hear about?"

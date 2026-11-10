@@ -2075,7 +2075,7 @@ def coupon_campaigns(request):
     for c in campaigns:
         if c.status == CouponCampaign.STATUS_DRAFT:
             c.segment_count = segment_customers(
-                tag=c.tag, inactive_days=c.inactive_days, top_ltv=c.top_ltv
+                tag=c.tag, inactive_days=c.inactive_days, top_ltv=c.top_ltv, topic=c.topic
             ).count()
 
     # B4.3: prefill из CRM («Kampagne für diese Auswahl» передаёт ?tag=) — UX-D D8.2:

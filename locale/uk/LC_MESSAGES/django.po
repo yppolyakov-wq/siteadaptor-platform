@@ -36711,3 +36711,47 @@ msgstr "Які категорії? Натисніть, щоб обрати, по
 #: NT-A4
 msgid "keine"
 msgstr "нічого"
+
+#: NT-B
+msgid "Anmeldeformular"
+msgstr "Форма підписки"
+
+#: NT-B
+msgid "Erneut anmelden"
+msgstr "Підписатися знову"
+
+#: NT-B
+msgid "Keine Auswahl = alle Themen."
+msgstr "Нічого не вибрано = усі теми."
+
+#: NT-B
+msgid "Kundenkonto"
+msgstr "Особистий кабінет"
+
+#: NT-B
+msgid "Nehmen Sie alle Häkchen weg, um sich ganz abzumelden."
+msgstr "Зніміть усі позначки, щоб відписатися повністю."
+
+#: NT-B
+msgid "Nur einzelne Themen abbestellen"
+msgstr "Відписатися лише від окремих тем"
+
+#: NT-B
+msgid "Sie erhalten derzeit keinen Newsletter."
+msgstr "Зараз ви не отримуєте розсилку."
+
+#: NT-B
+msgid "Sie sind abgemeldet und erhalten keinen Newsletter mehr."
+msgstr "Ви відписалися й більше не отримуєте розсилку."
+
+#: NT-B
+msgid "Themen wählen"
+msgstr "Вибрати теми"
+
+#: NT-B
+msgid "Themen wählen: %(url)s"
+msgstr "Вибрати теми: %(url)s"
+
+#: NT-B
+msgid "Worüber möchten Sie Neuigkeiten?"
+msgstr "Про що вам надсилати новини?"
