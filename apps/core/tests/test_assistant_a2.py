@@ -534,3 +534,14 @@ def test_old_entry_version_is_404(ai_task_on, bakery):
     cache.set(assistant_ai._job_key("public", user.pk, job), {"state": "done"}, 60)
     with pytest.raises(Http404):
         assistant_views.assistant_answer(_req(bakery, user=user, drawer=True), job)
+
+
+def test_model_unknown_without_articles_is_not_called_unavailable(ai_task_on, bakery):
+    """Прод 2026-11-10: модель ответила «не знаю» («1346 надо удалить»), статей не нашлось —
+    экран писал «ИИ-помощник недоступен», хотя ИИ работал. «Недоступен» — только при сбое."""
+    gen, run = _model({**GOOD, "unknown": True})
+    with gen, run, mock.patch("apps.core.help_articles.ranked", return_value=[]):
+        user, got = _ask(bakery, "1346 qwzx", seite="")
+    _resp, html = _answer_html(bakery, user, got["job"])
+    assert "gerade nicht verfügbar" not in html
+    assert "keine sichere Antwort" in html

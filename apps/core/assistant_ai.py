@@ -965,11 +965,9 @@ def _present(request, entry: dict) -> dict:
                 item["open"] = False
                 articles.append(item)
     action_note = _action_note(entry)
-    unavailable = (
-        outcome == "fallback"
-        and not action_note
-        and (entry.get("code") in SYSTEM_CODES or not articles)
-    )
+    # Прод 2026-11-10: «недоступен» — только при настоящем сбое. Модель, честно ответившая
+    # «не знаю» без подходящих статей, раньше тоже давала «ИИ недоступен» — хотя ИИ работал.
+    unavailable = outcome == "fallback" and not action_note and entry.get("code") in SYSTEM_CODES
     return {
         "state": "done",
         "outcome": outcome,

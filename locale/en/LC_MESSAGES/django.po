@@ -36584,3 +36584,6 @@ msgstr "Subheading"
 
 msgid "Der Menüpunkt zu dieser Seite wird nicht mehr angezeigt — bitte im Menü entfernen."
 msgstr "The menu item for this page is no longer shown — please remove it from the menu."
+
+msgid "Darauf habe ich keine sichere Antwort. Schreiben Sie uns im Tab „Support“ — dort hilft Ihnen ein Mensch weiter."
+msgstr "I don't have a reliable answer to that. Write to us in the “Support” tab — a person will help you there."

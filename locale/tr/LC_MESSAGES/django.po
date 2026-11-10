@@ -36730,3 +36730,6 @@ msgstr "Ara başlık"
 
 msgid "Der Menüpunkt zu dieser Seite wird nicht mehr angezeigt — bitte im Menü entfernen."
 msgstr "Bu sayfanın menü öğesi artık gösterilmiyor — lütfen menüden kaldırın."
+
+msgid "Darauf habe ich keine sichere Antwort. Schreiben Sie uns im Tab „Support“ — dort hilft Ihnen ein Mensch weiter."
+msgstr "Buna kesin bir cevabım yok. Bize „Destek“ sekmesinden yazın — orada bir kişi size yardımcı olur."

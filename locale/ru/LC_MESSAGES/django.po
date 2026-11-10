@@ -36919,3 +36919,6 @@ msgstr "Подзаголовок"
 
 msgid "Der Menüpunkt zu dieser Seite wird nicht mehr angezeigt — bitte im Menü entfernen."
 msgstr "Пункт меню этой страницы больше не показывается — удалите его в меню."
+
+msgid "Darauf habe ich keine sichere Antwort. Schreiben Sie uns im Tab „Support“ — dort hilft Ihnen ein Mensch weiter."
+msgstr "На это у меня нет точного ответа. Напишите нам во вкладке «Поддержка» — там вам поможет человек."
