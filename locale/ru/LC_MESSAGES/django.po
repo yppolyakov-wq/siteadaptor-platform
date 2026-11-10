@@ -36672,3 +36672,19 @@ msgstr "Например, всё веганское или халяльное �
 #: NT-A2
 msgid "Weitere Benachrichtigungen auswählen"
 msgstr "Выбрать ещё уведомления"
+
+#: NT-A3
+msgid "Alle abbestellen"
+msgstr "Отписаться от всех"
+
+#: NT-A3
+msgid "Ausgewählte abbestellen"
+msgstr "Отписаться от выбранных"
+
+#: NT-A3
+msgid "Mehrere auf einmal abbestellen"
+msgstr "Отписаться сразу от нескольких"
+
+#: NT-A3
+msgid "Welche Benachrichtigungen möchten Sie beenden?"
+msgstr "Какие уведомления отключить?"

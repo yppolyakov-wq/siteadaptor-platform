@@ -1,0 +1,20 @@
+{% load i18n %}{% comment %}NT-A3: список подписок с галочками — частичная или полная отписка. Ожидает rows=[{sub,label,checked}], action_url, heading.{% endcomment %}
+<form method="post" action="{{ action_url }}" class="mt-4 text-left" data-follow-select>
+  {% csrf_token %}
+  <fieldset>
+    <legend class="text-sm font-medium">{{ heading }}</legend>
+    <ul class="mt-2 divide-y divide-gray-100 rounded-2xl border border-gray-200 bg-white">
+      {% for r in rows %}
+      <li class="px-4 py-2.5"><label class="flex items-center gap-3 text-sm">
+        <input type="checkbox" name="subs" value="{{ r.sub.token }}"{% if r.checked %} checked{% endif %}>
+        <span class="flex-1">{{ r.label }}</span>
+        <span class="text-xs text-gray-400">{{ r.sub.get_frequency_display }}</span>
+      </label></li>
+      {% endfor %}
+    </ul>
+  </fieldset>
+  <div class="mt-4 flex flex-wrap gap-3">
+    <button type="submit" name="action" value="remove_selected" class="rounded-lg px-4 py-2 text-sm font-medium text-white bg-red-600">{% trans "Ausgewählte abbestellen" %}</button>
+    <button type="submit" name="action" value="remove_all" class="rounded-lg border border-red-300 px-4 py-2 text-sm font-medium text-red-700">{% trans "Alle abbestellen" %}</button>
+  </div>
+</form>

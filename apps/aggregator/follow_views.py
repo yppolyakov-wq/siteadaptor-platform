@@ -239,6 +239,16 @@ def follow_manage(request, token):
                     )
             elif action == "frequency":
                 follow.set_frequency(sub, request.POST.get("frequency", ""))
+        elif action == "remove_selected":  # NT-A3: галочки списка
+            follow.unsubscribe_selected(user, request.POST.getlist("subs"))
+            if not PortalUser.objects.filter(pk=user.pk).exists() or not user.follows.exists():
+                return _token_response(
+                    render(
+                        request,
+                        "aggregator/follow_unsubscribed.html",
+                        {**context, "all": True},
+                    )
+                )
         elif action == "remove_all":
             follow.unsubscribe_all(user)
             return _token_response(
@@ -258,8 +268,13 @@ def follow_manage(request, token):
         }
         for sub in follow.user_follows(user)
     ]
+    select_rows = [{"sub": r["sub"], "label": r["label"], "checked": False} for r in rows]
     return _token_response(
-        render(request, "aggregator/follow_manage.html", {**context, "user": user, "rows": rows})
+        render(
+            request,
+            "aggregator/follow_manage.html",
+            {**context, "user": user, "rows": rows, "select_rows": select_rows},
+        )
     )
 
 
@@ -281,18 +296,36 @@ def follow_unsubscribe(request, token):
         return _token_response(
             render(request, "aggregator/follow_invalid.html", context, status=404)
         )
+    owner = sub.user if sub is not None else user
     if request.method == "POST":
-        if sub is not None:
-            follow.unsubscribe(sub)
+        action = request.POST.get("action", "")
+        # NT-A3: форма страницы — выбранные или все; без `action` — RFC 8058 one-click
+        # почтовой программы (тело List-Unsubscribe=One-Click): прежнее поведение.
+        if action == "remove_selected":
+            follow.unsubscribe_selected(owner, request.POST.getlist("subs"))
+            gone = not FollowSubscription.objects.filter(user_id=owner.pk).exists()
             return _token_response(
-                render(request, "aggregator/follow_unsubscribed.html", {**context, "all": False})
+                render(request, "aggregator/follow_unsubscribed.html", {**context, "all": gone})
             )
-        follow.unsubscribe_all(user)
+        if action == "remove_all" or sub is None:
+            follow.unsubscribe_all(owner)
+            return _token_response(
+                render(request, "aggregator/follow_unsubscribed.html", {**context, "all": True})
+            )
+        follow.unsubscribe(sub)
         return _token_response(
-            render(request, "aggregator/follow_unsubscribed.html", {**context, "all": True})
+            render(request, "aggregator/follow_unsubscribed.html", {**context, "all": False})
         )
     if request.method != "GET":
         return HttpResponseNotAllowed(["GET", "POST"])
+    rows = [
+        {
+            "sub": s,
+            "label": follow.describe(s),
+            "checked": sub is None or s.pk == sub.pk,
+        }
+        for s in follow.user_follows(owner)
+    ]
     return _token_response(
         render(
             request,
@@ -301,7 +334,8 @@ def follow_unsubscribe(request, token):
                 **context,
                 "label": follow.describe(sub) if sub is not None else "",
                 "all": sub is None,
-                "manage_url": follow.manage_url(user, portal) if user is not None else "",
+                "rows": rows,
+                "manage_url": follow.manage_url(owner, portal),
             },
         )
     )

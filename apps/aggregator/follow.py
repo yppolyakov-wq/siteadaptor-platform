@@ -542,6 +542,19 @@ def unsubscribe_all(user: PortalUser) -> int:
     return int(count)
 
 
+def unsubscribe_selected(user: PortalUser, tokens) -> int:
+    """NT-A3: снять выбранные подписки жителя (чужие токены игнорируются). Одна транзакция
+    под блокировкой жителя; последняя подписка неявного жителя удаляет и его (как `unsubscribe`)."""
+    tokens = [str(t)[:64] for t in list(tokens)[: max_follows() + 10] if t]
+    if not tokens:
+        return 0
+    with transaction.atomic():
+        PortalUser.objects.select_for_update().filter(pk=user.pk).first()
+        count, _ = FollowSubscription.objects.filter(user=user, token__in=tokens).delete()
+    forget_if_empty(user)
+    return int(count)
+
+
 def by_token(token: str) -> FollowSubscription | None:
     if not token:
         return None

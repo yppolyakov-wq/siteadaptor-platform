@@ -36337,3 +36337,19 @@ msgstr "For example everything vegan or halal — in all sections."
 #: NT-A2
 msgid "Weitere Benachrichtigungen auswählen"
 msgstr "Choose more notifications"
+
+#: NT-A3
+msgid "Alle abbestellen"
+msgstr "Unsubscribe from all"
+
+#: NT-A3
+msgid "Ausgewählte abbestellen"
+msgstr "Unsubscribe selected"
+
+#: NT-A3
+msgid "Mehrere auf einmal abbestellen"
+msgstr "Unsubscribe from several at once"
+
+#: NT-A3
+msgid "Welche Benachrichtigungen möchten Sie beenden?"
+msgstr "Which notifications do you want to stop?"

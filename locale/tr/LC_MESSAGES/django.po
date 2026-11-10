@@ -36483,3 +36483,19 @@ msgstr "Örneğin vegan veya helal olan her şey — tüm bölümlerde."
 #: NT-A2
 msgid "Weitere Benachrichtigungen auswählen"
 msgstr "Daha fazla bildirim seç"
+
+#: NT-A3
+msgid "Alle abbestellen"
+msgstr "Tümünden çık"
+
+#: NT-A3
+msgid "Ausgewählte abbestellen"
+msgstr "Seçilenlerden çık"
+
+#: NT-A3
+msgid "Mehrere auf einmal abbestellen"
+msgstr "Birkaçından aynı anda çık"
+
+#: NT-A3
+msgid "Welche Benachrichtigungen möchten Sie beenden?"
+msgstr "Hangi bildirimleri sonlandırmak istiyorsunuz?"
