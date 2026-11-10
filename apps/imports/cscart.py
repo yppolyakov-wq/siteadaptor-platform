@@ -877,6 +877,79 @@ def parse_impressum(text: str) -> dict:
     return out
 
 
+# M21.6: Impressum старого сайта — привести к действующему праву.
+# Ссылка на ODR-платформу ЕС: платформа закрыта 20.07.2025 (VO (EU) 2024/3228),
+# ссылка на неё больше не обязательна и ведёт в никуда. Убираем целое предложение.
+_ODR_SENTENCE_RE = re.compile(
+    r"[^\n.]*(?:Online-Streitbeilegung|OS-Plattform)[^\n]*?ec\.europa\.eu/consumers/odr/?\S*?"
+    r"\.?(?=\s|$)\s*",
+    re.I,
+)
+_ODR_URL_RE = re.compile(r"\S*ec\.europa\.eu/consumers/odr\S*", re.I)
+_OEKO_CODE_RE = re.compile(r"^DE-(?:ÖKO|OEKO)-\d{3}$", re.I)
+_EMPTY_OEKO_RE = re.compile(r"^\s*Öko-Kontrollstelle\s*:?\s*$", re.I | re.M)
+_MANAGER_RE = re.compile(r"^(\s*)Geschäftsführer(?:in)?\s*:", re.M)
+
+
+def clean_impressum(
+    text: str, *, oeko_code: str = "", renames: tuple[tuple[str, str], ...] = ()
+) -> tuple[str, list[str]]:
+    """Убрать устаревшее и неверное из Impressum; ничего не выдумывать.
+
+    - ODR-предложение/ссылка — удалить;
+    - «Geschäftsführer» у Einzelunternehmen (это обозначение GmbH) → «Inhaber»;
+    - пустая строка «Öko-Kontrollstelle» → строка с кодом, если он дан, иначе удалить
+      (пустая строка ничего не сообщает) и сказать, что код нужен;
+    - ``renames`` — точные замены, напр. имя в порядке «Vorname Nachname».
+    """
+    notes = []
+    out = text or ""
+    if _ODR_URL_RE.search(out):
+        out = _ODR_SENTENCE_RE.sub("", out)
+        out = "\n".join(line for line in out.split("\n") if not _ODR_URL_RE.search(line))
+        notes.append("ODR link removed (EU platform closed 20.07.2025)")
+    if re.search(r"\bEinzelunternehm", out) and _MANAGER_RE.search(out):
+        out = _MANAGER_RE.sub(r"\1Inhaber:", out)
+        notes.append("«Geschäftsführer» → «Inhaber» (Einzelunternehmen hat keinen Geschäftsführer)")
+    if _EMPTY_OEKO_RE.search(out):
+        code = (oeko_code or "").strip().upper().replace("OEKO", "ÖKO")
+        if code:
+            out = _EMPTY_OEKO_RE.sub(f"Öko-Kontrollstelle: {code}", out)
+            notes.append(f"Öko-Kontrollstelle: {code}")
+        else:
+            out = _EMPTY_OEKO_RE.sub("", out)
+            notes.append(
+                "empty «Öko-Kontrollstelle» line removed — Bio products need the code "
+                "(DE-ÖKO-0xx, Art. 32 VO (EU) 2018/848): rerun with --oeko-code"
+            )
+    for old, new in renames:
+        if old and old in out:
+            out = out.replace(old, new)
+            notes.append(f"«{old}» → «{new}»")
+    out = re.sub(r"[ \t]+\n", "\n", out)
+    out = re.sub(r"\n{3,}", "\n\n", out).strip()
+    return out, notes
+
+
+def impressum_gaps(text: str) -> list[str]:
+    """Что § 5 DDG требует и чего не видно в тексте (проверка, не генерация)."""
+    t = text or ""
+    gaps = []
+    if not re.search(r"\b\d{5}\s+\S", t):
+        gaps.append("postal address (street, postcode, city)")
+    if not re.search(r"[\w.+-]+@[\w-]+\.[\w.-]+", t):
+        gaps.append("e-mail address")
+    if not re.search(r"(?:Telefon|Tel\.?|Fon)\s*:?\s*[+\d(]", t, re.I):
+        gaps.append("phone (fast contact)")
+    if not re.search(r"\bDE\s?\d{9}\b|Steuernummer|§\s*19\s*UStG", t):
+        gaps.append("VAT ID (if the business has one)")
+    if re.search(r"\b(?:GmbH|UG|AG|KG|OHG|e\.K\.)\b", t) and not re.search(
+        r"Registergericht|Amtsgericht|HR[AB]\s*\d", t
+    ):
+        gaps.append("register court and number")
+    return gaps
+
+
 def apply_legal(tenant, site: ScrapedSite) -> list:
     """Impressum старого сайта → LegalDoc (если своего нет) + пустые поля бизнеса.
 
@@ -889,10 +962,17 @@ def apply_legal(tenant, site: ScrapedSite) -> list:
     if not text:
         return notes
     if not LegalDoc.objects.filter(kind="impressum", locale="de").exclude(text="").exists():
-        LegalDoc.objects.update_or_create(kind="impressum", locale="de", defaults={"text": text})
+        cleaned, fixes = clean_impressum(text)
+        LegalDoc.objects.update_or_create(kind="impressum", locale="de", defaults={"text": cleaned})
         notes.append("Impressum imported into LegalDoc — owner must review")
-    if "ec.europa.eu/consumers/odr" in text:
-        notes.append("Impressum links the EU ODR platform (closed 20.07.2025) — remove that line")
+        notes += [f"Impressum: {f}" for f in fixes]
+    elif "ec.europa.eu/consumers/odr" in (
+        LegalDoc.objects.filter(kind="impressum", locale="de")
+        .values_list("text", flat=True)
+        .first()
+        or ""
+    ):
+        notes.append("Impressum links the EU ODR platform (closed 20.07.2025) — run fix_impressum")
     fields = []
     for name, value in parse_impressum(text).items():
         if value and not getattr(tenant, name):

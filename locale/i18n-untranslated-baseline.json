@@ -109,7 +109,20 @@
   "Versand & Zahlung",
   "Wunschzettel",
   "Zahlungsarten",
-  "\\b\\d{5}\\s+([A-ZÄÖÜ][\\wäöüß .-]+)$"
+  "\\b\\d{5}\\s+([A-ZÄÖÜ][\\wäöüß .-]+)$",
+  "^(\\s*)Geschäftsführer(?:in)?\\s*:",
+  "^DE-(?:ÖKO|OEKO)-\\d{3}$",
+  "^\\s*Öko-Kontrollstelle\\s*:?\\s*$",
+  "empty «Öko-Kontrollstelle» line removed — Bio products need the code (DE-ÖKO-0xx, Art. 32 VO (EU) 2018/848): rerun with --oeko-code",
+  "«Geschäftsführer» → «Inhaber» (Einzelunternehmen hat keinen Geschäftsführer)",
+  "ÖKO",
+  "Öko-Kontrollstelle:"
+ ],
+ "apps/imports/management/commands/fix_impressum.py": [
+  "! Bio products in the catalog: Öko-Kontrollstelle code required (--oeko-code DE-ÖKO-0xx)",
+  "--oeko-code: format DE-ÖKO-012",
+  "\\b(?:bio|öko)\\b",
+  "Öko-Kontrollstelle:"
  ],
  "apps/inbox/ai_reply.py": [
   "(?<!ge)n[uü]ss|(?:^|(?<=[rl]))eier|"

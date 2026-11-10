@@ -744,3 +744,77 @@ def test_cleanup_keeps_sold_and_edited_website_import_products():
     assert "kept (has orders): Verkauft" in notes
     assert "kept (edited after import): Bearbeitet" in notes
     assert Product.objects.filter(pk__in=[sold.pk, edited.pk]).count() == 2
+
+
+IMPRESSUM_FULL = (
+    "Einzelunternehmen Schweizer Irina\nLuhnstrasse 90,\n42277 Wuppertal\nDeutschland\n"
+    "Telefon: 02129 54862\nMail: shop@haanerteeladen.de\nGeschäftsführer: Schweizer Irina\n"
+    "Umsatzsteuer-Identifikationsnummer(n): DE365326787\n"
+    "Verantwortlich gemäß § 18 MStV: Schweizer Irina\nÖko-Kontrollstelle \n"
+    "Die Europäische Kommission stellt eine Plattform zur Online-Streitbeilegung (OS) bereit, "
+    "die Sie hier finden https://ec.europa.eu/consumers/odr/. Wir sind bereit, an einem "
+    "außergerichtlichen Schlichtungsverfahren vor einer Verbraucherschlichtungsstelle "
+    "teilzunehmen. Zuständig ist die Universalschlichtungsstelle des Bundes."
+)
+
+
+def test_clean_impressum_removes_odr_and_fixes_terms():
+    text, notes = cscart.clean_impressum(
+        IMPRESSUM_FULL,
+        oeko_code="DE-ÖKO-006",
+        renames=(("Schweizer Irina", "Irina Schweizer"),),
+    )
+    assert "ec.europa.eu" not in text and "Online-Streitbeilegung" not in text
+    assert text.startswith("Einzelunternehmen Irina Schweizer")
+    assert "Inhaber: Irina Schweizer" in text and "Geschäftsführer" not in text
+    assert "Öko-Kontrollstelle: DE-ÖKO-006" in text
+    # Schlichtung bleibt — die Teilnahmeerklärung ist eine Entscheidung des Händlers.
+    assert text.endswith("Universalschlichtungsstelle des Bundes.")
+    assert "Wir sind bereit" in text
+    assert cscart.impressum_gaps(text) == []
+    assert len(notes) == 4
+
+
+def test_clean_impressum_without_code_drops_empty_line_and_says_so():
+    text, notes = cscart.clean_impressum(IMPRESSUM_FULL)
+    assert "Öko-Kontrollstelle" not in text
+    assert any("--oeko-code" in n for n in notes)
+    assert cscart.clean_impressum(text)[1] == []  # идемпотентно
+
+
+def test_impressum_gaps_names_missing_items():
+    gaps = cscart.impressum_gaps("Muster GmbH\nMusterweg 1")
+    assert {"e-mail address", "register court and number"} <= set(gaps)
+
+
+@pytest.mark.django_db
+def test_fix_impressum_command(monkeypatch):
+    from django.core.management import call_command
+    from django.core.management.base import CommandError
+
+    from apps.tenants.tests.factories import TenantFactory
+
+    TenantFactory(schema_name="teeladen")
+    monkeypatch.setattr(
+        "apps.imports.management.commands.fix_impressum.schema_context",
+        lambda _s: __import__("contextlib").nullcontext(),
+    )
+    LegalDoc.objects.update_or_create(
+        kind="impressum", locale="de", defaults={"text": IMPRESSUM_FULL}
+    )
+    with pytest.raises(CommandError):
+        call_command("fix_impressum", schema="teeladen", oeko_code="DE-123")
+    out = io.StringIO()
+    call_command("fix_impressum", schema="teeladen", stdout=out)
+    assert "dry-run" in out.getvalue()
+    assert "odr" in LegalDoc.objects.get(kind="impressum").text
+    call_command(
+        "fix_impressum",
+        schema="teeladen",
+        apply=True,
+        oeko_code="DE-ÖKO-006",
+        rename=["Schweizer Irina=Irina Schweizer"],
+        stdout=io.StringIO(),
+    )
+    saved = LegalDoc.objects.get(kind="impressum").text
+    assert "odr" not in saved and "Inhaber: Irina Schweizer" in saved
