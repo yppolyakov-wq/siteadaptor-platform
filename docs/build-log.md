@@ -22656,4 +22656,18 @@ WCAG 3.2.2; кольца фокуса не режутся; границы сег
   при колонках ссылок, ширина витрины и `/entdecken/` по умолчанию — вся (1536 px — «Breit»).
   Кабинет «Sortiment»: массовое удаление, «alle angezeigten auswählen», 20/50/100 на страницу,
   пейджер сверху и снизу, возврат на ту же страницу после массовых действий.
+- **M21.6 (⚠️ миграция `core/0018`, 2026-11-10):** фидбэк haanerteeladen. (1) `fix_impressum`
+  (без миграций): ODR-ссылка убрана (платформа ЕС закрыта 20.07.2025), «Geschäftsführer» →
+  «Inhaber» у Einzelunternehmen, пустая «Öko-Kontrollstelle» → код `--oeko-code` или удаление с
+  предупреждением, `--rename`, проверка § 5 DDG; импорт чистит Impressum сразу. (2) Свои страницы
+  сайта `core.ContentPage` (`apps/core/content_pages.py`): `/seite/<slug>/`, системные slug'и
+  `versand`/`ueber-uns` выводятся на `/versand/` и `/ueber-uns/` (второй адрес → 301), черновик —
+  только с правом на сайт (`no-store`), HTML — `richtext.sanitize_page` (h2-h4/img/figure/
+  blockquote; картинки только из `MEDIA_URL`), пункт меню `cpage` (одна выборка на рендер меню,
+  переименование переводит пункты меню), кабинет «Website › Seiten» (список/создать/правка/
+  удалить, редактор SR-3 + H2/H3/¶/Bild). Импорт CS-Cart создаёт Versand/Zahlungsarten/Über uns
+  с перезалитыми картинками, снимает прежние блоки M21.3, `/versand-de/` → `/seite/zahlung/`,
+  подвал «Versand & Zahlung» → две ссылки, `text_width=full`. ECC: django-reviewer +
+  security-reviewer (обход `/\host` в картинках, слаги/меню, гонка, порядок шагов импорта —
+  исправлено), стенд `scripts/content_pages_stand.py` 18/18. План `m21-6-content-pages-plan-2026-11-10.md`.
 
