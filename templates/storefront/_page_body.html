@@ -9,9 +9,20 @@
   .sf-page-body ul { list-style: disc; padding-left: 1.25rem; }
   .sf-page-body ol { list-style: decimal; padding-left: 1.25rem; }
   .sf-page-body a { color: var(--accent); text-decoration: underline; }
-  .sf-page-body img { display: inline-block; max-width: 100%; height: auto; border-radius: .75rem; vertical-align: top; }
+  .sf-page-body img { display: inline-block; max-width: 100%; height: auto; vertical-align: top; }
   .sf-page-body figure { margin: 0; }
   .sf-page-body blockquote { border-left: 4px solid var(--accent); padding-left: 1rem; color: #4b5563; }
+  .sf-page-body .sf-center { text-align: center; }
+  .sf-page-body .sf-center img { margin-left: auto; margin-right: auto; }
+  .sf-page-body [class*="sf-col-"] + [class*="sf-col-"] { margin-top: 1.5rem; }
+  @media (min-width: 768px) {
+    .sf-page-body div:has(> [class*="sf-col-"]) { display: grid; grid-template-columns: repeat(16, minmax(0, 1fr)); column-gap: 2rem; row-gap: 1.5rem; }
+    .sf-page-body :where(div:has(> [class*="sf-col-"]) > *) { grid-column: span 16; }
+    .sf-page-body [class*="sf-col-"] + [class*="sf-col-"] { margin-top: 0; }
+    .sf-page-body .sf-col-4 { grid-column: span 4; } .sf-page-body .sf-col-6 { grid-column: span 6; }
+    .sf-page-body .sf-col-8 { grid-column: span 8; } .sf-page-body .sf-col-12 { grid-column: span 12; }
+  }
+  .sf-page-body [class*="sf-col-"] > * + * { margin-top: .9rem; }
   .dark .sf-page-body { color: #d1d5db; }
   .dark .sf-page-body h2, .dark .sf-page-body h3, .dark .sf-page-body h4 { color: #f9fafb; }
 </style>

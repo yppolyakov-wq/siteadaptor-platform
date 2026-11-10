@@ -1,6 +1,7 @@
 """M21.2: перенос магазина CS-Cart — разбор, запись, переадресации."""
 
 import io
+import re
 from decimal import Decimal
 from pathlib import Path
 
@@ -898,3 +899,47 @@ def test_split_versand_link_replaces_only_untouched_link():
         ("page", "contact"),
     ]
     assert cscart._split_versand_link(menus) is False
+
+
+def _png_rgba():
+    buf = io.BytesIO()
+    Image.new("RGBA", (40, 20), (0, 0, 0, 0)).save(buf, "PNG")
+    return _Got(buf.getvalue())
+
+
+@pytest.mark.django_db
+def test_page_html_keeps_layout_centering_and_transparency(settings, tmp_path):
+    settings.MEDIA_ROOT = str(tmp_path)
+    raw = (
+        '<div class="span8"><p><img src="/images/a.png" width="380"></p><p>DHL</p></div>'
+        '<div class="span8 text-center"><p style="text-align: center;">Abholung</p></div>'
+        '<div class="row" onclick="x"><p class="evil">t</p></div>'
+    )
+    body = cscart.page_html(raw, BASE, lambda url: _png_rgba())
+    assert body.startswith('<div class="sf-grid">')
+    assert '<div class="sf-col-8">' in body and '<div class="sf-col-8 sf-center">' in body
+    assert '<p class="sf-center">Abholung</p>' in body
+    assert 'width="380"' in body
+    assert "onclick" not in body and "evil" not in body and "row" not in body
+    from django.core.files.storage import default_storage
+    from PIL import Image as PILImage
+
+    src = re.search(r'src="([^"]+)"', body).group(1)
+    with default_storage.open(src.split("/media/", 1)[1]) as fh, PILImage.open(fh) as img:
+        assert img.mode == "RGBA"  # прозрачный логотип не получает чёрный фон
+
+
+@pytest.mark.django_db
+def test_refresh_pages_rebuilds_untouched_and_keeps_edited():
+    from apps.core.models import ContentPage
+
+    site = cscart.ScrapedSite(base=BASE, pages={"zahlung": "<p>Neu</p>", "about": "<p>Neu</p>"})
+    ContentPage.objects.create(slug="zahlung", title="Zahlungsarten", body="<p>Alt</p>")
+    edited = ContentPage.objects.create(slug="ueber-uns", title="Über uns", body="<p>Eigen</p>")
+    ContentPage.objects.filter(pk=edited.pk).update(
+        created_at=edited.created_at - __import__("datetime").timedelta(days=1)
+    )
+    notes = cscart.apply_pages(site, {}, refresh=True)
+    assert ContentPage.objects.get(slug="zahlung").body == "<p>Neu</p>"
+    assert ContentPage.objects.get(slug="ueber-uns").body == "<p>Eigen</p>"
+    assert any("kept (edited" in n for n in notes)

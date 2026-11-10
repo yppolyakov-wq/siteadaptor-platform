@@ -17,3 +17,7 @@ from config.settings.development import *  # noqa: F401,F403
 
 INSTALLED_APPS = [a for a in INSTALLED_APPS if a != "debug_toolbar"]  # noqa: F405
 MIDDLEWARE = [m for m in MIDDLEWARE if "debug_toolbar" not in m]  # noqa: F405
+
+# Стенд хранит медиа на диске (development) — раздаёт их сам, даже если в окружении
+# задан ключ S3 (иначе картинки на стенде отдают 404).
+SERVE_MEDIA = True

@@ -1542,5 +1542,9 @@ def shipping_info(request):
     return render(
         request,
         "storefront/shipping_info.html",
-        {"shipping_rows": rows, "page_body": content_pages.system_body("versand")},
+        {
+            "shipping_rows": rows,
+            "page_body": content_pages.system_body("versand"),
+            "page_title": content_pages.system_title("versand"),
+        },
     )

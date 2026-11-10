@@ -203,3 +203,9 @@ def system_body(slug: str) -> str:
     """Текст своей страницы для системной (уже санитайзнутый), «» — нет такой."""
     page = published(slug)
     return sanitize_page(page.body_localized()) if page else ""
+
+
+def system_title(slug: str) -> str:
+    """Заголовок своей страницы для системной («» — нет такой)."""
+    page = published(slug)
+    return page.title_localized() if page else ""

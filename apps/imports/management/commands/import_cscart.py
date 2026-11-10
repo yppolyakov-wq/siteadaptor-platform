@@ -44,6 +44,11 @@ class Command(BaseCommand):
             help="Полоса баннера без надписей, доли высоты «верх:низ», напр. 0.30:0.72.",
         )
         parser.add_argument(
+            "--refresh-pages",
+            action="store_true",
+            help="Пересобрать страницы Versand/Zahlung/Über uns, если их не правили.",
+        )
+        parser.add_argument(
             "--replace-menu",
             action="store_true",
             help=(
@@ -165,6 +170,7 @@ class Command(BaseCommand):
                         skip_banners=tuple(opts["skip_banner"]),
                         banner_crop=crop,
                         replace_menu=opts["replace_menu"],
+                        refresh_pages=opts["refresh_pages"],
                     ),
                     with_images=not opts["no_images"],
                 )

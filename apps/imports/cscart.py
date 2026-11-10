@@ -673,7 +673,9 @@ def _category_for(cat: CsCategory, by_path: dict, stats: ApplyStats):
     return category
 
 
-def _save_image(url: str, fetch_image, crop: tuple | None = None) -> dict | None:
+def _save_image(
+    url: str, fetch_image, crop: tuple | None = None, *, keep_alpha: bool = False
+) -> dict | None:
     """Скачать → проверить → webp. ``crop`` — (верх, низ) долями высоты: вырезать
     полосу без нарисованных надписей (баннеры CS-Cart несут текст в самой картинке)."""
     from PIL import Image
@@ -689,7 +691,11 @@ def _save_image(url: str, fetch_image, crop: tuple | None = None) -> dict | None
                 return None
             img.verify()
         with Image.open(io.BytesIO(got.body)) as img:
-            img = img.convert("RGB")
+            # M21.6: логотипы оплаты/доставки — PNG с прозрачностью; RGB давал чёрный фон.
+            transparent = img.mode in ("RGBA", "LA") or (
+                img.mode == "P" and "transparency" in img.info
+            )
+            img = img.convert("RGBA" if keep_alpha and transparent else "RGB")
             if crop:
                 top, bottom = crop
                 img = img.crop((0, int(img.height * top), img.width, int(img.height * bottom)))
@@ -1017,6 +1023,7 @@ class DesignOptions:
     skip_banners: tuple = ()  # 1-based номера баннеров, которые не переносим
     banner_crop: tuple | None = None  # (верх, низ) долями высоты — полоса без надписей
     replace_menu: bool = False  # перезаписать уже собранное меню (и порядок разделов)
+    refresh_pages: bool = False  # M21.6: пересобрать свои страницы, если владелец их не правил
 
 
 def _category_by_old_path(path: str):
@@ -1259,7 +1266,26 @@ PAGE_IMPORTS = (
 )
 _IMG_RE = re.compile(r"<img\b[^>]*>", re.I)
 _IMG_SRC_RE = re.compile(r"""\bsrc\s*=\s*["']([^"']+)["']""", re.I)
-_EMPTY_P_RE = re.compile(r"<p>\s*(?:<br\s*/?>|&nbsp;|\s)*</p>", re.I)
+_EMPTY_P_RE = re.compile(r"<p[^>]*>\s*(?:<br\s*/?>|&nbsp;|\s)*</p>", re.I)
+_CLASS_RE = re.compile(r"""\bclass\s*=\s*["']([^"']*)["']""", re.I)
+_STYLE_CENTER_RE = re.compile(r"""\bstyle\s*=\s*["'][^"']*text-align\s*:\s*center""", re.I)
+_BLOCK_TAG_RE = re.compile(r"<(div|p|figure)\b([^>]*)>", re.I)
+
+
+def _layout_classes(attrs: str) -> str:
+    """Сетка и выравнивание CS-Cart (span1..16, text-center, style center) → наши
+    классы из белого списка санитайзера (``sf-col-N``, ``sf-center``)."""
+    found = []
+    m = _CLASS_RE.search(attrs)
+    for name in m.group(1).split() if m else []:
+        span = re.fullmatch(r"span(\d{1,2})", name)
+        if span and 1 <= int(span.group(1)) <= 16:
+            found.append(f"sf-col-{int(span.group(1))}")
+        elif name == "text-center":
+            found.append("sf-center")
+    if _STYLE_CENTER_RE.search(attrs) and "sf-center" not in found:
+        found.append("sf-center")
+    return " ".join(dict.fromkeys(found))
 
 
 def page_html(html: str, base: str, fetch_image=None) -> str:
@@ -1272,18 +1298,38 @@ def page_html(html: str, base: str, fetch_image=None) -> str:
         src = _IMG_SRC_RE.search(tag)
         if not src or fetch_image is None:
             return ""
-        ref = _save_image(urljoin(base, html_lib.unescape(src.group(1))), fetch_image)
+        ref = _save_image(
+            urljoin(base, html_lib.unescape(src.group(1))), fetch_image, keep_alpha=True
+        )
         if not ref or not ref.get("url"):
             return ""
-        return f'<img src="{html_lib.escape(ref["url"])}" alt="">'
+        dims = "".join(
+            f' {name}="{m.group(1)}"'
+            for name in ("width", "height")
+            if (m := re.search(rf"""\b{name}\s*=\s*["']?(\d{{1,4}})""", tag, re.I))
+        )
+        return f'<img src="{html_lib.escape(ref["url"])}" alt=""{dims}>'
+
+    def _block(match):
+        tag, attrs = match.group(1).lower(), match.group(2)
+        classes = _layout_classes(attrs)
+        return f'<{tag} class="{classes}">' if classes else f"<{tag}>"
 
     body = _IMG_RE.sub(_img, html or "")
+    body = _BLOCK_TAG_RE.sub(_block, body)
+    if "sf-col-" in body:
+        body = f'<div class="sf-grid">{body}</div>'
     body = sanitize_page(body)
     body = _EMPTY_P_RE.sub("", body)
     return body.strip()
 
 
-def apply_pages(site: ScrapedSite, config: dict, *, fetch_image=None) -> list:
+def _untouched(page) -> bool:
+    """Страницу после импорта не сохраняли (правка владельца сдвигает updated_at)."""
+    return (page.updated_at - page.created_at).total_seconds() < 60
+
+
+def apply_pages(site: ScrapedSite, config: dict, *, fetch_image=None, refresh=False) -> list:
     """Создать свои страницы из страниц старого магазина (только если их ещё нет) и
     снять прежние текстовые блоки этих страниц с «Über uns». ``config`` правится на
     месте — его сохраняет вызывающий (apply_design)."""
@@ -1304,6 +1350,15 @@ def apply_pages(site: ScrapedSite, config: dict, *, fetch_image=None) -> list:
             title = fallback
         legacy_text = strip_dangling(html_to_text(raw))
         page = ContentPage.objects.filter(slug=slug).first()
+        if page is not None and refresh and _untouched(page):
+            body = page_html(raw, site.base, fetch_image)
+            if body and body != page.body:
+                page.body = body
+                page.save(update_fields=["body"])
+                ContentPage.objects.filter(pk=page.pk).update(created_at=page.updated_at)
+                notes.append(f"page refreshed: {content_pages.page_url(page)} ({page.title})")
+        elif page is not None and refresh:
+            notes.append(f"page kept (edited by owner): {content_pages.page_url(page)}")
         if page is None:
             images = len(_IMG_RE.findall(raw))
             body = page_html(raw, site.base, fetch_image)
@@ -1433,7 +1488,7 @@ def apply_design(
                 )
 
     # 5. M21.6: Versand / Zahlungsarten / Über uns — своими страницами (с картинками).
-    notes += apply_pages(site, config, fetch_image=fetch_image)
+    notes += apply_pages(site, config, fetch_image=fetch_image, refresh=options.refresh_pages)
 
     # 6. Логотип и фирменный цвет (цвет — из логотипа, только при первом переносе).
     if fetch_image and home.logo_url and not tenant.logo_url:

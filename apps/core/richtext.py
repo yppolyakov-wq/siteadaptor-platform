@@ -15,6 +15,8 @@
 
 from __future__ import annotations
 
+import re
+
 import nh3
 
 # Ровно набор тулбара: жирный/курсив/подчёркивание, списки, ссылка, абзацы.
@@ -53,11 +55,18 @@ def is_rich(text: str) -> bool:
 
 # M21.6: свои страницы сайта — то же правило, что у описаний, плюс заголовки, цитата и
 # картинки. ``style``/``class``/``on*`` не проходят ни у одного тега.
-PAGE_ALLOWED_TAGS = ALLOWED_TAGS | {"h2", "h3", "h4", "img", "figure", "blockquote"}
+PAGE_ALLOWED_TAGS = ALLOWED_TAGS | {"h2", "h3", "h4", "img", "figure", "blockquote", "div"}
 PAGE_ALLOWED_ATTRIBUTES = {
     "a": {"href", "target"},
     "img": {"src", "alt", "width", "height"},
+    # M21.6: только классы раскладки из белого списка (_PAGE_CLASS_RE).
+    "div": {"class"},
+    "p": {"class"},
+    "figure": {"class"},
+    "h2": {"class"},
+    "h3": {"class"},
 }
+_PAGE_CLASS_RE = re.compile(r"^sf-(?:grid|center|col-(?:[1-9]|1[0-6]))$")
 
 
 def _local_image_only(tag: str, attribute: str, value: str):
@@ -85,6 +94,9 @@ def _local_image_only(tag: str, attribute: str, value: str):
         return value
     if tag == "img" and attribute in ("width", "height"):
         return value if value.isdigit() and len(value) <= 4 else None
+    if attribute == "class":
+        kept = [c for c in value.split() if _PAGE_CLASS_RE.match(c)]
+        return " ".join(kept) or None
     return value
 
 

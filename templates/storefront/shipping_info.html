@@ -9,8 +9,14 @@
 владельца: цифры не могут разойтись с тем, что спишется.{% endcomment %}
 <a href="{% url 'storefront-home' %}" class="inline-flex items-center gap-1 text-sm hover:underline mb-4" style="color: var(--accent);">← {{ request.tenant.name|default:"Shop" }}</a>
 <article class="sf-card bg-white rounded-2xl shadow-sm p-6 {% text_width_class %}" data-shipping-info>
-  <h1 class="text-2xl font-bold mb-2">{% trans "Versand & Lieferung" %}</h1>
-  {% if page_body %}<div class="mb-6">{% include "storefront/_page_body.html" with body=page_body %}</div>{% endif %}
+  {% if page_body %}
+    {% comment %}M21.6: свой текст владельца первым; цены доставки — под ним разделом «Versandkosten» (§ 6 PAngV: сюда ведёт «zzgl. Versandkosten»).{% endcomment %}
+    <h1 class="text-2xl font-bold mb-5">{{ page_title|default:_("Versand") }}</h1>
+    <div class="mb-8">{% include "storefront/_page_body.html" with body=page_body %}</div>
+    <h2 class="text-lg font-semibold mb-2" data-shipping-costs>{% trans "Versandkosten" %}</h2>
+  {% else %}
+    <h1 class="text-2xl font-bold mb-2">{% trans "Versand & Lieferung" %}</h1>
+  {% endif %}
   <p class="text-sm text-gray-600 mb-5">{% trans "Alle Preise inkl. MwSt. Die Versandkosten werden im Warenkorb vor der Bestellung angezeigt." %}</p>
   <ul class="space-y-4">
     {% for r in shipping_rows %}
