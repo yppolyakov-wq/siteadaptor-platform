@@ -65,6 +65,13 @@
    "w": 390,
    "h": 1040,
    "title": "D2 · Design (Telefon)"
+  },
+  "L4_Auswahl.dc.html": {
+   "x": 2010,
+   "y": 1020,
+   "w": 1440,
+   "h": 900,
+   "title": "L4 · Seitenlayout: Block «Kategorien» — einzeln gewählt, Breite ⅔, drei Texte je ⅓"
   }
  },
  "order": [
@@ -75,7 +82,8 @@
   "D1_Design.dc.html",
   "L3_Mobil.dc.html",
   "S3_Mobil.dc.html",
-  "D2_Mobil.dc.html"
+  "D2_Mobil.dc.html",
+  "L4_Auswahl.dc.html"
  ],
  "notes": {
   "t1": {

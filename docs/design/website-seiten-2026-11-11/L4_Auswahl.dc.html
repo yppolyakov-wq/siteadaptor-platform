@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Seitenlayout – Block «Kategorien», einzeln gewählt, Breite ⅔</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#4338ca}a:hover{color:#3730a3}
+.sb a{display:block;padding:9px 12px;border-radius:10px;color:#374151;text-decoration:none;font-size:14px}
+.sb .sub a{padding:7px 12px 7px 36px;font-size:13px;color:#4b5563}
+.sb .on{background:#4f46e5;color:#fff;font-weight:600}
+.sb .sub .cur{background:#eef2ff;color:#3730a3;font-weight:600}
+.btn{border:1px solid #d1d5db;background:#fff;border-radius:10px;padding:9px 14px;font:600 14px Inter,sans-serif;color:#111827;cursor:pointer}
+.row{display:flex;gap:10px}
+.b{flex:1;min-width:0;text-align:left;border:1px solid #d1d5db;background:#fff;border-radius:12px;padding:12px 14px;font:14px Inter,sans-serif;color:#111827;cursor:pointer;display:flex;flex-direction:column;gap:8px}
+.b b{font-weight:600}
+.b small{font-size:12px;color:#4b5563}
+.b.sel{border:2px solid #4f46e5;padding:11px 13px;box-shadow:0 0 0 3px #e0e7ff}
+.b.fix{background:#f9fafb;color:#4b5563;border-style:dashed}
+.ph{display:grid;gap:6px}
+.ph i{display:block;height:34px;border-radius:6px;background:#e5e7eb}
+.w{font-size:12px;font-weight:600;color:#3730a3;background:#eef2ff;border-radius:999px;padding:2px 8px;align-self:flex-start}
+.add{border:1px dashed #9ca3af;background:transparent;border-radius:10px;padding:6px;font:600 13px Inter,sans-serif;color:#374151;cursor:pointer}
+.pn h3{margin:0 0 8px;font-size:13px;font-weight:600;color:#374151}
+.pn select,.pn input[type=search]{width:100%;box-sizing:border-box;min-height:40px;font:14px Inter,sans-serif;padding:0 10px;border:1px solid #d1d5db;border-radius:10px;background:#fff}
+.opt{display:grid;gap:6px}
+.opt label{border:1px solid #d1d5db;border-radius:10px;padding:8px 4px;text-align:center;font-size:13px;font-weight:500;cursor:pointer}
+.opt .cur{border:2px solid #4f46e5;background:#eef2ff;padding:7px 3px;font-weight:600}
+.seg a{padding:7px 12px;border-radius:999px;font-size:13px;font-weight:600;color:#374151;text-decoration:none}
+.seg .cur{background:#4f46e5;color:#fff}
+.pick{display:flex;align-items:center;gap:8px;border:1px solid #e5e7eb;border-radius:10px;padding:4px 4px 4px 10px;font-size:14px}
+.pick span{flex:1}
+.ib{width:32px;height:32px;border:0;background:transparent;border-radius:8px;color:#374151;cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
+.ib[disabled]{color:#c4c8cf}
+.ib svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+</style>
+</helmet>
+<div style="width:1440px;height:900px;box-sizing:border-box;background:#F2F4F7;font-family:Inter,system-ui,sans-serif;color:#111827;display:flex;gap:24px;padding:16px">
+  <nav class="sb" aria-label="Hauptmenü" style="width:232px;flex:none;background:#fff;border-radius:16px;padding:16px 12px;box-sizing:border-box">
+    <div style="font-weight:700;font-size:17px;padding:4px 12px 14px">Haaner Teeladen</div>
+    <a href="#">Übersicht</a><a href="#">Verkäufe</a><a href="#">Sortiment</a><a href="#">Marketing &amp; Kunden</a>
+    <a href="#" class="on">Website</a>
+    <div class="sub">
+      <a href="#">Studio</a><a href="D1_Design.dc.html">Design</a><a href="#">Menü</a>
+      <a href="Main.dc.html" class="cur" aria-current="page">Seitenlayout</a>
+      <a href="S1_Seiten.dc.html">Seiten</a><a href="#">SEO</a><a href="#">Weiterleitungen</a><a href="#">Domains</a><a href="#">Medien</a>
+    </div>
+    <a href="#">Einstellungen</a>
+  </nav>
+  <main style="flex:1;min-width:0;display:flex;flex-direction:column;gap:14px;padding-top:8px">
+    <div style="display:flex;align-items:center;gap:14px">
+      <h1 style="margin:0;font-size:24px;font-weight:700">Seitenlayout</h1>
+      <label for="pt" style="position:absolute;left:-9999px">Seitentyp</label>
+      <select id="pt" style="min-height:42px;font:600 15px Inter,sans-serif;padding:0 12px;border:1px solid #d1d5db;border-radius:10px;background:#fff"><option>Startseite</option></select>
+      <div class="seg" role="group" aria-label="Ansicht" style="display:flex;gap:2px;background:#e5e7eb;border-radius:999px;padding:3px"><a href="#" class="cur" aria-current="true">Computer</a><a href="L3_Mobil.dc.html">Telefon</a></div>
+      <span style="flex:1"></span>
+      <span role="status" style="font-size:13px;color:#92400e">Entwurf · 4 Änderungen</span>
+      <a href="#" style="font-size:14px;font-weight:600;text-decoration:none">Vorschau</a>
+      <button class="btn">Verwerfen</button>
+      <button class="btn" style="background:#4f46e5;border-color:#4f46e5;color:#fff">Speichern</button>
+    </div>
+    <div style="display:flex;gap:16px;flex:1;min-height:0">
+      <section aria-label="Schema der Startseite" style="flex:1;min-width:0;background:#fff;border-radius:16px;padding:16px;box-sizing:border-box;display:flex;flex-direction:column;gap:10px">
+        <div class="row"><button class="b fix"><b>Kopfzeile &amp; Menü</b></button></div>
+        <div class="row"><button class="b"><b>Banner</b><small>3 Folien · Slider</small></button></div>
+        <div class="row">
+          <button class="b"><span class="w">½</span><b>Text</b><small>«Tee aus kleinen Gärten …»</small></button>
+          <button class="b"><span class="w">½</span><b>Foto</b><small>teegarten.jpg</small></button>
+        </div>
+        <div class="row"><button class="b"><b>Produkte</b><small>Neuheiten · 8 Stück · Raster 4 Spalten</small><div class="ph" style="grid-template-columns:repeat(4,minmax(0,1fr))"><i></i><i></i><i></i><i></i></div></button></div>
+        <div class="row">
+          <button class="b" style="flex:1"><span class="w">⅓</span><b>Textseite</b><small>aus «Über uns»</small><div class="ph"><i style="height:10px;width:90%"></i><i style="height:10px;width:75%"></i><i style="height:10px;width:60%"></i></div></button>
+          <button class="b sel" aria-pressed="true" style="flex:2"><span class="w">⅔</span><b>Kategorien</b><small>einzeln gewählt · 4 · Kacheln</small><div class="ph" style="grid-template-columns:repeat(4,minmax(0,1fr))"><i style="height:56px;background:#dbe4d6"></i><i style="height:56px;background:#dbe4d6"></i><i style="height:56px;background:#dbe4d6"></i><i style="height:56px;background:#dbe4d6"></i></div></button>
+        </div>
+        <div class="row">
+          <button class="b"><span class="w">⅓</span><b>Text</b><small>«Frisch abgefüllt»</small></button>
+          <button class="b"><span class="w">⅓</span><b>Text</b><small>«Versand ab 39 € frei»</small></button>
+          <button class="b"><span class="w">⅓</span><b>Text</b><small>«Beratung im Laden»</small></button>
+        </div>
+        <button class="add">+ Block hinzufügen</button>
+        <div class="row"><button class="b fix"><b>Fußzeile</b></button></div>
+      </section>
+      <aside class="pn" aria-labelledby="pb" style="width:320px;flex:none;background:#fff;border-radius:16px;padding:16px;box-sizing:border-box;display:flex;flex-direction:column;gap:14px;overflow:auto">
+        <div style="display:flex;justify-content:space-between;align-items:center"><h2 id="pb" style="margin:0;font-size:17px;font-weight:700">Kategorien</h2><button class="btn" aria-label="Block Kategorien ausblenden oder entfernen" style="padding:6px 10px">⋯</button></div>
+        <div><h3>Welche</h3>
+          <div class="opt" style="grid-template-columns:repeat(3,minmax(0,1fr))"><label>Alle</label><label>Regel</label><label class="cur">Einzeln</label></div>
+          <div style="display:flex;flex-direction:column;gap:6px;margin-top:8px">
+            <div class="pick"><span>Grüner Tee</span><button class="ib" disabled aria-label="Grüner Tee nach oben"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button><button class="ib" aria-label="Grüner Tee nach unten"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12l7 7 7-7"/></svg></button><button class="ib" aria-label="Grüner Tee entfernen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+            <div class="pick"><span>Schwarzer Tee</span><button class="ib" aria-label="Schwarzer Tee nach oben"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button><button class="ib" aria-label="Schwarzer Tee nach unten"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12l7 7 7-7"/></svg></button><button class="ib" aria-label="Schwarzer Tee entfernen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+            <div class="pick"><span>Kräutertee</span><button class="ib" aria-label="Kräutertee nach oben"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button><button class="ib" aria-label="Kräutertee nach unten"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12l7 7 7-7"/></svg></button><button class="ib" aria-label="Kräutertee entfernen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+            <div class="pick"><span>Zubehör</span><button class="ib" aria-label="Zubehör nach oben"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button><button class="ib" disabled aria-label="Zubehör nach unten"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12l7 7 7-7"/></svg></button><button class="ib" aria-label="Zubehör entfernen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+            <input type="search" aria-label="Kategorie suchen und hinzufügen" placeholder="Kategorie suchen und hinzufügen">
+          </div>
+        </div>
+        <div><h3>Wie</h3><div class="opt" style="grid-template-columns:repeat(3,minmax(0,1fr))"><label class="cur">Kacheln</label><label>Slider</label><label>Liste</label></div></div>
+        <div><h3>Breite</h3>
+          <div class="opt" style="grid-template-columns:repeat(4,minmax(0,1fr))"><label>Ganz</label><label class="cur">⅔</label><label>½</label><label>⅓</label><label>¼</label><label>⅕</label><label>⅙</label></div>
+          <label style="display:flex;gap:8px;align-items:center;font-size:13px;color:#374151;margin-top:10px"><input type="checkbox"> Neue Zeile beginnen</label>
+          <p style="margin:6px 0 0;font-size:12px;line-height:1.5;color:#4b5563">Steht neben «Textseite» (⅓). Auf dem Telefon untereinander.</p>
+        </div>
+        <div style="margin-top:auto;border-top:1px solid #e5e7eb;padding-top:12px"><a href="#" style="font-size:14px;font-weight:600;text-decoration:none">Kategorien bearbeiten → Sortiment</a></div>
+      </aside>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
