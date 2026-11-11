@@ -100,7 +100,13 @@ jobs:
         # msgfmt напрямую (без Django-настроек); --check-format ловит битые
         # placeholder'ы в переводах.
         run: |
-          sudo apt-get install -y --no-install-recommends gettext
+          # Зеркала Ubuntu на раннере временами недоступны — повторяем с обновлением индекса.
+          for try in 1 2 3 4 5; do
+            sudo apt-get install -y --no-install-recommends gettext && break
+            sleep 30
+            sudo apt-get update || true
+          done
+          command -v msgfmt
           for po in locale/*/LC_MESSAGES/django.po; do
             msgfmt --check-format -o "${po%.po}.mo" "$po"
           done
