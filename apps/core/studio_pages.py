@@ -593,9 +593,17 @@ PAGE_TYPES: tuple[PageType, ...] = (
         ("cart_upsell", "product_card_form"),
         block_host="cart",
     ),
-    PageType("text", _("Über uns"), ("storefront-about",), ("text_width",), block_host="info"),
-    # M21.6: своя страница сайта (`core.ContentPage`) — текст правится в «Website › Seiten».
-    PageType("content_page", _("Eigene Seite"), ("storefront-content-page",), ("text_width",)),
+    # M21.11 P3 (решение владельца): ОДИН тип «Seite» для всех текстовых страниц —
+    # «Über uns», свои страницы (`core.ContentPage`) и «Versand». Набор блоков общий
+    # (хост `info`): владелец мелкого бизнеса собирает один раз, без схемы на каждую
+    # страницу. Код `text` оставлен: на нём живут Seitenvorlagen и замки.
+    PageType(
+        "text",
+        _("Seite"),
+        ("storefront-about", "storefront-content-page", "storefront-shipping"),
+        ("text_width",),
+        block_host="info",
+    ),
     # STU-14: раньше все четыре страницы делили хост `info`, а выводился он ТОЛЬКО на
     # «О нас» — блок, поставленный на команду или галерею, не появлялся нигде.
     PageType("team", _("Team"), ("storefront-team",), ("text_width",), block_host="team"),
@@ -685,8 +693,9 @@ PAGE_TYPES: tuple[PageType, ...] = (
             "storefront-withdrawal",
             "storefront-agb",
         ),
+        # M21.11 P3: под правовыми текстами блоков нет (решение владельца) — страница
+        # остаётся чистым текстом; тип нужен только для ширины текста.
         ("text_width",),
-        block_host="legal",
     ),
 )
 
