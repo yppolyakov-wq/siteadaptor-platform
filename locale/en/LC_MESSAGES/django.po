@@ -37120,3 +37120,18 @@ msgstr[1] "%(n)s changes not yet on the website"
 
 msgid "Es gibt keinen Entwurf mehr – bitte die Änderungen erneut vornehmen."
 msgstr "There is no draft any more – please make the changes again."
+
+msgid "Ganz"
+msgstr "Full"
+
+msgid "Randlos"
+msgstr "Edge to edge"
+
+msgid "Schmale Blöcke stehen am Computer nebeneinander, auf dem Telefon untereinander."
+msgstr "Narrow blocks stand side by side on a computer and one below the other on a phone."
+
+msgid "Beginnt eine neue Zeile ✓"
+msgstr "Starts a new row ✓"
+
+msgid "Neue Zeile beginnen"
+msgstr "Start a new row"

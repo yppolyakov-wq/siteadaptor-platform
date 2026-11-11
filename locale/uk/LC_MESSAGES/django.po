@@ -37444,3 +37444,18 @@ msgstr[3] "%(n)s зміни ще не на сайті"
 
 msgid "Es gibt keinen Entwurf mehr – bitte die Änderungen erneut vornehmen."
 msgstr "Чернетки більше немає — внесіть зміни знову."
+
+msgid "Ganz"
+msgstr "Повністю"
+
+msgid "Randlos"
+msgstr "На весь екран"
+
+msgid "Schmale Blöcke stehen am Computer nebeneinander, auf dem Telefon untereinander."
+msgstr "Вузькі блоки на комп'ютері стоять поруч, на телефоні — один під одним."
+
+msgid "Beginnt eine neue Zeile ✓"
+msgstr "Починає новий ряд ✓"
+
+msgid "Neue Zeile beginnen"
+msgstr "Почати новий ряд"

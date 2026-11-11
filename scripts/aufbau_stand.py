@@ -93,6 +93,25 @@ with sync_playwright() as p:
         pg.click("[data-schema-draft] button[value=save]")
         pg.wait_for_load_state()
         check(pg.locator("[data-schema-draft]").count() == 0, "удаление сохранено")
+        # R3: два блока по ½ встают в один ряд
+        for kind in ("text", "image"):
+            pg.select_option("select[name=type]", kind)
+            pg.click("button:has-text('Hinzufügen')")
+            pg.wait_for_load_state()
+            pg.click("[data-schema-width] button[value=w12]")
+            pg.wait_for_load_state()
+        pair = pg.locator("[data-schema-row]").filter(has=pg.locator("[data-schema-block]")).last
+        n = pair.locator("[data-schema-block]").count()
+        check(n == 2, f"два блока по ½ — в одном ряду схемы ({n})")
+        if w >= 1024:
+            boxes = [x.bounding_box() for x in pair.locator("[data-schema-block]").all()]
+            check(abs(boxes[0]["y"] - boxes[1]["y"]) < 4, "на компьютере они стоят рядом")
+        else:
+            boxes = [x.bounding_box() for x in pair.locator("[data-schema-block]").all()]
+            check(boxes[1]["y"] > boxes[0]["y"] + 20, "на телефоне — друг под другом")
+        pg.screenshot(path=f"{OUT}/r3_{w}.png", full_page=True)
+        pg.click("[data-schema-draft] button[value=discard]")
+        pg.wait_for_load_state()
         check(not errs, "без JS-ошибок: " + "; ".join(errs[:2]))
         ctx.close()
 print(f"\n{ok}/{ok + len(fail)}")

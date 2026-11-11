@@ -48,7 +48,13 @@ def site_schema_view(request):
                 ref = ""
             else:
                 ref = aufbau_draft.op(
-                    request, tenant, code, op, ref=ref, block_type=request.POST.get("type", "")
+                    request,
+                    tenant,
+                    code,
+                    op,
+                    ref=ref,
+                    block_type=request.POST.get("type", ""),
+                    value=request.POST.get("value", ""),
                 )
         except site_schema.SchemaError:
             messages.error(request, _("Diese Änderung ist hier nicht möglich."))

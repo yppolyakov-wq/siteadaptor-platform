@@ -96,7 +96,7 @@ def overlay(config: dict, draft: dict) -> dict:
 
 def changes(saved: dict, draft: dict) -> int:
     """Число несохранённых изменений: добавлено + удалено + скрыто/показано +
-    порядок (один раз) + карточка контактов."""
+    ширина + порядок (один раз) + карточка контактов."""
 
     def ident(item):
         return item.get("id") or item.get("key")
@@ -107,6 +107,13 @@ def changes(saved: dict, draft: dict) -> int:
     count = len(set(new) - set(old)) + len(set(old) - set(new))
     count += sum(
         1 for k in common if bool(old[k].get("enabled", True)) != bool(new[k].get("enabled", True))
+    )
+    # FB-27 R3: ширина и «с новой строки» — одно изменение на блок.
+    count += sum(
+        1
+        for k in common
+        if (old[k].get("width") or "contained", bool(old[k].get("newline")))
+        != (new[k].get("width") or "contained", bool(new[k].get("newline")))
     )
     if [k for k in old if k in new] != common:
         count += 1
@@ -127,7 +134,15 @@ def info(request, config: dict, code: str) -> dict:
     }
 
 
-def op(request, tenant, code: str, op_name: str, ref: str = "", block_type: str = "") -> str:
+def op(
+    request,
+    tenant,
+    code: str,
+    op_name: str,
+    ref: str = "",
+    block_type: str = "",
+    value: str = "",
+) -> str:
     """Одна правка схемы — в черновик (база не меняется). SchemaError на недопустимом."""
     from apps.tenants import siteconfig
 
@@ -142,7 +157,7 @@ def op(request, tenant, code: str, op_name: str, ref: str = "", block_type: str 
             raise site_schema.SchemaError("fixed")
         draft["contact"] = not draft.get("contact", True)
     else:
-        ref = site_schema.mutate(draft["items"], code, op_name, ref, block_type)
+        ref = site_schema.mutate(draft["items"], code, op_name, ref, block_type, value)
     current = {k: draft[k] for k in saved}
     # Вернулись к сохранённому (скрыл и снова показал) — черновика нет.
     clean = _fingerprint(current) == _fingerprint(saved) == draft.get("base")

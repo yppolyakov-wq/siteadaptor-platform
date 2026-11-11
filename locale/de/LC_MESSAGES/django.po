@@ -37207,3 +37207,18 @@ msgstr[1] "%(n)s Änderungen noch nicht auf der Website"
 
 msgid "Es gibt keinen Entwurf mehr – bitte die Änderungen erneut vornehmen."
 msgstr "Es gibt keinen Entwurf mehr – bitte die Änderungen erneut vornehmen."
+
+msgid "Ganz"
+msgstr "Ganz"
+
+msgid "Randlos"
+msgstr "Randlos"
+
+msgid "Schmale Blöcke stehen am Computer nebeneinander, auf dem Telefon untereinander."
+msgstr "Schmale Blöcke stehen am Computer nebeneinander, auf dem Telefon untereinander."
+
+msgid "Beginnt eine neue Zeile ✓"
+msgstr "Beginnt eine neue Zeile ✓"
+
+msgid "Neue Zeile beginnen"
+msgstr "Neue Zeile beginnen"

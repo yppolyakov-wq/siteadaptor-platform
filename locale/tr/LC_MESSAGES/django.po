@@ -37266,3 +37266,18 @@ msgstr[1] "%(n)s değişiklik henüz web sitesinde değil"
 
 msgid "Es gibt keinen Entwurf mehr – bitte die Änderungen erneut vornehmen."
 msgstr "Artık taslak yok – lütfen değişiklikleri yeniden yapın."
+
+msgid "Ganz"
+msgstr "Tam"
+
+msgid "Randlos"
+msgstr "Kenardan kenara"
+
+msgid "Schmale Blöcke stehen am Computer nebeneinander, auf dem Telefon untereinander."
+msgstr "Dar bloklar bilgisayarda yan yana, telefonda alt alta durur."
+
+msgid "Beginnt eine neue Zeile ✓"
+msgstr "Yeni satır başlatır ✓"
+
+msgid "Neue Zeile beginnen"
+msgstr "Yeni satır başlat"

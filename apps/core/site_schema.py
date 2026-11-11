@@ -249,6 +249,9 @@ def blocks_for(config: dict, code: str, host: str | None = None) -> list[dict]:
                 "newline": bool(item.get("newline")),
                 "width_label": WIDTH_LABELS.get(item.get("width") or "", ""),
                 "flex": WIDTH_FLEX.get(item.get("width") or "", 12),
+                "widths": width_choices(item) if cblock else [],
+                "width_value": item.get("width") or "contained",
+                "narrow": cblock and item.get("width") in siteconfig.NARROW_WIDTHS,
             }
         )
     for b in out:
@@ -256,6 +259,9 @@ def blocks_for(config: dict, code: str, host: str | None = None) -> list[dict]:
         b.setdefault("newline", False)
         b.setdefault("width_label", "")
         b.setdefault("flex", 12)
+        b.setdefault("widths", [])
+        b.setdefault("width_value", "contained")
+        b.setdefault("narrow", False)
     # FB-27 R1: «выше/ниже» двигает блок среди ВИДИМЫХ — скрытый сосед не «съедает»
     # нажатие (раньше порядок на странице не менялся, а кнопка была активна).
     movable = [b for b in out if not b["fixed"] and b["enabled"]]
@@ -285,6 +291,28 @@ _TYPE_GROUPS = (
     ("anfragen", gettext_lazy("Anfragen"), "jobs", ("anfrage",)),
 )
 _CONTENT_GROUP = gettext_lazy("Inhalte")
+
+
+#: FB-27 R3 (решение владельца Q1): блоки-сетки (списки товаров/акций/категорий, галерея,
+#: команда, отзывы) не сужаются сильнее половины — карточки в них сжимались бы; простые
+#: блоки (текст, фото, кнопка, баннер, контакты) — до ⅙.
+_WIDE_ONLY_BLOCKS = frozenset({"list", "gallery_ref", "team_ref", "testimonials_ref"})
+_WIDTH_ORDER = ("contained", "w23", "w12", "w13", "w14", "w15", "w16")
+_WIDE_WIDTHS = ("contained", "w23", "w12")
+
+
+def width_choices(item: dict) -> list[tuple[str, str]]:
+    """Ширины, которые можно выбрать этому блоку: [(значение, подпись)]. Уже
+    выбранная ширина остаётся в списке, даже если новой её не выбрать (W0)."""
+    from apps.tenants import siteconfig
+
+    key = siteconfig.cblock_type(item.get("key")) or item.get("key") or ""
+    allowed = list(_WIDE_WIDTHS if key in _WIDE_ONLY_BLOCKS else _WIDTH_ORDER)
+    current = item.get("width") or "contained"
+    if current not in allowed and current in siteconfig.CBLOCK_WIDTHS:
+        allowed.append(current)
+    labels = {"contained": str(_("Ganz")), "full": str(_("Randlos")), **WIDTH_LABELS}
+    return [(v, labels.get(v, v)) for v in allowed]
 
 
 def structure_types(tenant) -> list:
@@ -415,7 +443,9 @@ def load_items(config: dict, home: bool, host: str) -> list[dict]:
     )
 
 
-def mutate(items: list[dict], code: str, op: str, ref: str = "", block_type: str = "") -> str:
+def mutate(
+    items: list[dict], code: str, op: str, ref: str = "", block_type: str = "", value: str = ""
+) -> str:
     """Одна правка списка блоков НА МЕСТЕ (без записи): общая для немедленной правки
     и черновика. Возвращает ref блока (у `add` — id нового)."""
     from apps.tenants import siteconfig
@@ -455,6 +485,23 @@ def mutate(items: list[dict], code: str, op: str, ref: str = "", block_type: str
         if main or not item.get("id"):
             raise SchemaError("fixed")  # фикс-секции и основной список не удаляются
         items.pop(idx)
+    elif op == "width":
+        # FB-27 R3: ширина — только у своих блоков; узкие соседи встают в один ряд.
+        if main or not item.get("id"):
+            raise SchemaError("fixed")
+        if value not in {v for v, _label in width_choices(item)}:
+            raise SchemaError("width")
+        item["width"] = value
+        if value not in siteconfig.NARROW_WIDTHS:
+            item.pop("newline", None)
+            item.pop("pos", None)
+    elif op == "newline":
+        if main or not item.get("id") or item.get("width") not in siteconfig.NARROW_WIDTHS:
+            raise SchemaError("width")
+        if item.get("newline"):
+            item.pop("newline", None)
+        else:
+            item["newline"] = True
     else:
         raise SchemaError("op")
     return ref
@@ -477,7 +524,7 @@ def store_items(config: dict, home: bool, host: str, items: list[dict]) -> None:
 
 
 @transaction.atomic
-def apply(tenant, code: str, op: str, ref: str = "", block_type: str = "") -> str:
+def apply(tenant, code: str, op: str, ref: str = "", block_type: str = "", value: str = "") -> str:
     """Одна правка схемы страницы `code` СРАЗУ в базу. Бросает SchemaError на
     недопустимом. Возвращает ref блока, с которым работали (у `add` — id нового).
     Экран «Seitenaufbau» правит через черновик (`aufbau_draft`), это — для прочих."""
@@ -496,7 +543,7 @@ def apply(tenant, code: str, op: str, ref: str = "", block_type: str = "") -> st
             config["about_contact"] = False
     else:
         items = load_items(config, home, host)
-        ref = mutate(items, code, op, ref, block_type)
+        ref = mutate(items, code, op, ref, block_type, value)
         store_items(config, home, host, items)
     locked.site_config = siteconfig.normalize(config)
     locked.save(update_fields=["site_config", "updated_at"])

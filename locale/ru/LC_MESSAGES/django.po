@@ -37457,3 +37457,18 @@ msgstr[3] "%(n)s изменения ещё не на сайте"
 
 msgid "Es gibt keinen Entwurf mehr – bitte die Änderungen erneut vornehmen."
 msgstr "Черновика больше нет — внесите изменения заново."
+
+msgid "Ganz"
+msgstr "Целиком"
+
+msgid "Randlos"
+msgstr "Во весь экран"
+
+msgid "Schmale Blöcke stehen am Computer nebeneinander, auf dem Telefon untereinander."
+msgstr "Узкие блоки на компьютере стоят рядом, на телефоне — друг под другом."
+
+msgid "Beginnt eine neue Zeile ✓"
+msgstr "Начинает новый ряд ✓"
+
+msgid "Neue Zeile beginnen"
+msgstr "Начать новый ряд"
