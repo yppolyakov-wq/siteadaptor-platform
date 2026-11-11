@@ -36675,3 +36675,15 @@ msgstr "Please choose an image."
 
 msgid "🖼 lädt ein Bild von Ihrem Computer hoch, ↔ zentriert einen Absatz, ▥ teilt den Text in zwei Spalten."
 msgstr "🖼 uploads an image from your computer, ↔ centers a paragraph, ▥ splits the text into two columns."
+
+msgid "Versandarten unter dem Text"
+msgstr "Shipping methods below the text"
+
+msgid "Ihre Versandarten mit Preisen unter dem Text anzeigen"
+msgstr "Show your shipping methods with prices below the text"
+
+msgid "Die Liste kommt aus „Zahlung & Lieferung“. Blenden Sie sie nur aus, wenn Ihr Text die Versandkosten selbst nennt – Kundinnen und Kunden müssen sie vor der Bestellung finden."
+msgstr "The list comes from “Payment & delivery”. Only hide it if your text states the shipping costs itself – customers must be able to find them before ordering."
+
+msgid "Versandarten ändern"
+msgstr "Change shipping methods"

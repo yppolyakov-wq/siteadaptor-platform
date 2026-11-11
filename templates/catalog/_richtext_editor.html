@@ -19,8 +19,13 @@ contenteditable и синкает HTML обратно (на вводе и на s
   .rte-area[data-rte-page] { min-height: 320px; }
   .rte-area .sf-center { text-align: center; }
   .rte-area .sf-center img { margin-left: auto; margin-right: auto; }
-  .rte-area .sf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; border: 1px dashed #c7d2fe; border-radius: .5rem; padding: .5rem; margin: .5rem 0; }
-  .rte-area [class*="sf-col-"] { min-width: 0; }
+  /* M21.9: та же сетка из 16 колонок, что на витрине (_page_body.html) — колонки
+     импорта лежат на уровень глубже .sf-grid, поэтому сетка — у РОДИТЕЛЯ колонок. */
+  .rte-area div:has(> [class*="sf-col-"]) { display: grid; grid-template-columns: repeat(16, minmax(0, 1fr)); gap: 1rem; margin: .5rem 0; }
+  .rte-area :where(div:has(> [class*="sf-col-"]) > *) { grid-column: span 16; }
+  .rte-area [class*="sf-col-"] { min-width: 0; border: 1px dashed #c7d2fe; border-radius: .5rem; padding: .5rem; }
+  .rte-area .sf-col-4 { grid-column: span 4; } .rte-area .sf-col-6 { grid-column: span 6; }
+  .rte-area .sf-col-8 { grid-column: span 8; } .rte-area .sf-col-12 { grid-column: span 12; }
 </style>
 <script>
 (function () {
@@ -146,7 +151,14 @@ contenteditable и синкает HTML обратно (на вводе и на s
           if (!res.ok || !res.d.url) throw new Error(res.d.error || "");
           area.focus();
           restore(area, range);
-          document.execCommand("insertImage", false, res.d.url);
+          // Картинка своей строкой: текст после неё начинается с новой строки (как на витрине).
+          var img = document.createElement("img");
+          img.src = res.d.url;
+          img.alt = "";
+          var holder = document.createElement("div");
+          holder.appendChild(img);
+          holder.appendChild(document.createElement("br"));
+          document.execCommand("insertHTML", false, holder.innerHTML);
           if (status) status.textContent = "";
           done();
         })

@@ -36762,3 +36762,15 @@ msgstr "Bitte ein Bild wählen."
 
 msgid "🖼 lädt ein Bild von Ihrem Computer hoch, ↔ zentriert einen Absatz, ▥ teilt den Text in zwei Spalten."
 msgstr "🖼 lädt ein Bild von Ihrem Computer hoch, ↔ zentriert einen Absatz, ▥ teilt den Text in zwei Spalten."
+
+msgid "Versandarten unter dem Text"
+msgstr "Versandarten unter dem Text"
+
+msgid "Ihre Versandarten mit Preisen unter dem Text anzeigen"
+msgstr "Ihre Versandarten mit Preisen unter dem Text anzeigen"
+
+msgid "Die Liste kommt aus „Zahlung & Lieferung“. Blenden Sie sie nur aus, wenn Ihr Text die Versandkosten selbst nennt – Kundinnen und Kunden müssen sie vor der Bestellung finden."
+msgstr "Die Liste kommt aus „Zahlung & Lieferung“. Blenden Sie sie nur aus, wenn Ihr Text die Versandkosten selbst nennt – Kundinnen und Kunden müssen sie vor der Bestellung finden."
+
+msgid "Versandarten ändern"
+msgstr "Versandarten ändern"

@@ -474,6 +474,9 @@ class ContentPage(I18nMixin, TimestampedModel):
     body_i18n = models.JSONField(default=dict, blank=True)
     is_published = models.BooleanField(default=True)
     sort_order = models.PositiveIntegerField(default=0)
+    # M21.9: только у «Versand» — список способов доставки из «Zahlung & Lieferung»
+    # под текстом владельца (выключить можно, если цены написаны в самом тексте).
+    show_shipping_methods = models.BooleanField(default=True)
 
     class Meta:
         ordering = ["sort_order", "title"]

@@ -13,10 +13,12 @@
     {% comment %}M21.6: свой текст владельца первым; цены доставки — под ним разделом «Versandkosten» (§ 6 PAngV: сюда ведёт «zzgl. Versandkosten»).{% endcomment %}
     <h1 class="text-2xl font-bold mb-5">{{ page_title|default:_("Versand") }}</h1>
     <div class="mb-8">{% include "storefront/_page_body.html" with body=page_body %}</div>
-    <h2 class="text-lg font-semibold mb-2" data-shipping-costs>{% trans "Versandkosten" %}</h2>
+    {% if show_methods %}<h2 class="text-lg font-semibold mb-2" data-shipping-costs>{% trans "Versandkosten" %}</h2>{% endif %}
   {% else %}
     <h1 class="text-2xl font-bold mb-2">{% trans "Versand & Lieferung" %}</h1>
   {% endif %}
+  {% comment %}M21.9: владелец может снять список под своим текстом (галочка у страницы «Versand»); без своего текста список показывается всегда.{% endcomment %}
+  {% if show_methods or not page_body %}
   <p class="text-sm text-gray-600 mb-5">{% trans "Alle Preise inkl. MwSt. Die Versandkosten werden im Warenkorb vor der Bestellung angezeigt." %}</p>
   <ul class="space-y-4">
     {% for r in shipping_rows %}
@@ -53,5 +55,6 @@
       <li class="text-sm text-gray-600">{% trans "Abholung im Geschäft." %}</li>
     {% endfor %}
   </ul>
+  {% endif %}
 </article>
 {% endblock %}

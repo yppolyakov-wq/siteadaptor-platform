@@ -37010,3 +37010,15 @@ msgstr "Выберите изображение."
 
 msgid "🖼 lädt ein Bild von Ihrem Computer hoch, ↔ zentriert einen Absatz, ▥ teilt den Text in zwei Spalten."
 msgstr "🖼 загружает изображение с компьютера, ↔ выравнивает абзац по центру, ▥ делит текст на две колонки."
+
+msgid "Versandarten unter dem Text"
+msgstr "Способы доставки под текстом"
+
+msgid "Ihre Versandarten mit Preisen unter dem Text anzeigen"
+msgstr "Показывать под текстом ваши способы доставки с ценами"
+
+msgid "Die Liste kommt aus „Zahlung & Lieferung“. Blenden Sie sie nur aus, wenn Ihr Text die Versandkosten selbst nennt – Kundinnen und Kunden müssen sie vor der Bestellung finden."
+msgstr "Список берётся из «Оплата и доставка». Скрывайте его, только если ваш текст сам называет стоимость доставки — покупатели должны найти её до заказа."
+
+msgid "Versandarten ändern"
+msgstr "Изменить способы доставки"

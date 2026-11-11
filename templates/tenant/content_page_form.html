@@ -34,6 +34,19 @@
       <input type="checkbox" name="is_published" value="1" {% if page.is_published %}checked{% endif %}>
       {% trans "Veröffentlicht (für Besucher sichtbar)" %}
     </label>
+    {% if saved_slug == "versand" %}
+    {% comment %}M21.9: под текстом «Versand» витрина показывает способы доставки — их правят в «Zahlung & Lieferung».{% endcomment %}
+    <fieldset class="rounded-xl border border-gray-200 p-4 space-y-2" data-shipping-methods-setting>
+      <legend class="px-1 text-sm font-medium">{% trans "Versandarten unter dem Text" %}</legend>
+      <input type="hidden" name="shipping_present" value="1">
+      <label class="flex items-center gap-2 text-sm">
+        <input type="checkbox" name="show_shipping_methods" value="1" {% if page.show_shipping_methods %}checked{% endif %}>
+        {% trans "Ihre Versandarten mit Preisen unter dem Text anzeigen" %}
+      </label>
+      <p class="text-xs text-gray-500">{% trans "Die Liste kommt aus „Zahlung & Lieferung“. Blenden Sie sie nur aus, wenn Ihr Text die Versandkosten selbst nennt – Kundinnen und Kunden müssen sie vor der Bestellung finden." %}
+        {% if 'payment-settings'|can_open:request %}<a href="{% url 'payment-settings' %}?tab=lieferung" class="text-indigo-700 underline">{% trans "Versandarten ändern" %} →</a>{% endif %}</p>
+    </fieldset>
+    {% endif %}
     {% if 'content-page-new'|can_open:request %}
     <button class="ui-btn ui-btn-primary">{% trans "Speichern" %}</button>
     {% endif %}

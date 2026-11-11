@@ -1546,5 +1546,6 @@ def shipping_info(request):
             "shipping_rows": rows,
             "page_body": content_pages.system_body("versand"),
             "page_title": content_pages.system_title("versand"),
+            "show_methods": content_pages.system_shows_shipping_methods("versand"),
         },
     )

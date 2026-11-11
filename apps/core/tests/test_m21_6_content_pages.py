@@ -293,3 +293,51 @@ def test_to_plain_strips_rich_text_but_keeps_plain_angle_text():
         "Grüner Tee & Kräuter\n100 g"
     )
     assert to_plain("ab <50 € pro Packung") == "ab <50 € pro Packung"
+
+
+def test_versand_page_can_hide_the_shipping_methods_list(monkeypatch):
+    """M21.9: владелец снимает список способов под своим текстом «Versand»."""
+    from apps.orders import public_views
+
+    monkeypatch.setattr(public_views, "_require_orders_active", lambda request: None)
+    page = ContentPage.objects.create(slug="versand", title="Versand", body="<p>Mit DHL</p>")
+    shown = public_views.shipping_info(_req("/versand/")).content.decode()
+    assert "data-shipping-costs" in shown and "<ul" in shown.split("Mit DHL")[1]
+
+    page.show_shipping_methods = False
+    page.save()
+    hidden = public_views.shipping_info(_req("/versand/")).content.decode()
+    assert "Mit DHL" in hidden and "data-shipping-costs" not in hidden
+    assert "data-shipping-row" not in hidden and "Abholung im Geschäft." not in hidden
+
+
+def test_versand_form_writes_toggle_only_with_sentinel():
+    user = _user()
+    page = ContentPage.objects.create(slug="versand", title="Versand", body="<p>x</p>")
+    html = views.page_edit(_req(user=user), page.pk).content.decode()
+    assert "data-shipping-methods-setting" in html and 'name="shipping_present"' in html
+
+    base = {"title": "Versand", "slug": "versand", "body": "<p>x</p>", "is_published": "1"}
+    views.page_edit(_req(method="post", user=user, data={**base, "shipping_present": "1"}), page.pk)
+    page.refresh_from_db()
+    assert page.show_shipping_methods is False  # галочка снята
+
+    views.page_edit(_req(method="post", user=user, data=base), page.pk)  # формы без поля
+    page.refresh_from_db()
+    assert page.show_shipping_methods is False  # не тронуто
+
+    other = ContentPage.objects.create(slug="zahlung", title="Zahlung", body="<p>y</p>")
+    assert (
+        "data-shipping-methods-setting"
+        not in views.page_edit(_req(user=user), other.pk).content.decode()
+    )
+
+
+def test_editor_columns_use_parent_grid_like_storefront():
+    """M21.9: колонки импорта лежат на уровень глубже .sf-grid — редактор, как витрина,
+    строит сетку у родителя колонок (иначе всё в одной колонке)."""
+    from pathlib import Path
+
+    js = Path("templates/catalog/_richtext_editor.html").read_text()
+    assert '.rte-area div:has(> [class*="sf-col-"])' in js
+    assert ".rte-area .sf-grid { display: grid" not in js

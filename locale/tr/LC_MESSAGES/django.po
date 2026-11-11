@@ -36821,3 +36821,15 @@ msgstr "Lütfen bir görsel seçin."
 
 msgid "🖼 lädt ein Bild von Ihrem Computer hoch, ↔ zentriert einen Absatz, ▥ teilt den Text in zwei Spalten."
 msgstr "🖼 bilgisayarınızdan bir görsel yükler, ↔ bir paragrafı ortalar, ▥ metni iki sütuna böler."
+
+msgid "Versandarten unter dem Text"
+msgstr "Metnin altında gönderim yöntemleri"
+
+msgid "Ihre Versandarten mit Preisen unter dem Text anzeigen"
+msgstr "Gönderim yöntemlerinizi fiyatlarıyla metnin altında göster"
+
+msgid "Die Liste kommt aus „Zahlung & Lieferung“. Blenden Sie sie nur aus, wenn Ihr Text die Versandkosten selbst nennt – Kundinnen und Kunden müssen sie vor der Bestellung finden."
+msgstr "Liste „Ödeme ve teslimat“ bölümünden gelir. Yalnızca metniniz gönderim ücretlerini kendisi belirtiyorsa gizleyin – müşteriler bunları sipariş vermeden önce bulabilmelidir."
+
+msgid "Versandarten ändern"
+msgstr "Gönderim yöntemlerini değiştir"

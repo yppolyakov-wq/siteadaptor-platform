@@ -113,6 +113,10 @@ def _form(request, page, *, created: bool):
                 slug=request.POST.get("slug", ""),
                 body=request.POST.get("body", ""),
                 is_published=request.POST.get("is_published") == "1",
+                # M21.9: галочка есть только у «Versand» — без сентинела поле не трогаем.
+                show_shipping_methods=(request.POST.get("show_shipping_methods") == "1")
+                if request.POST.get("shipping_present")
+                else None,
             )
         except content_pages.PageError as exc:
             messages.error(request, str(exc))
@@ -135,6 +139,7 @@ def _form(request, page, *, created: bool):
             if saved_slug
             else "",
             "is_saved": bool(saved_slug),
+            "saved_slug": saved_slug,
             "system_label": content_pages.SYSTEM_LABELS.get(saved_slug, ""),
             "nav": "content-pages",
         },

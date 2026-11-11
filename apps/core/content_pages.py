@@ -59,7 +59,9 @@ def clean_slug(value: str, *, exclude_pk=None) -> str:
     return slug
 
 
-def save_page(page, *, title: str, slug: str, body: str, is_published: bool):
+def save_page(
+    page, *, title: str, slug: str, body: str, is_published: bool, show_shipping_methods=None
+):
     """Единственный писатель полей страницы из кабинета (HTML — через санитайзер)."""
     title = (title or "").strip()[:200]
     if not title:
@@ -70,6 +72,8 @@ def save_page(page, *, title: str, slug: str, body: str, is_published: bool):
     page.slug = new_slug
     page.body = sanitize_page(body or "")
     page.is_published = bool(is_published)
+    if show_shipping_methods is not None:  # None — поля в форме не было (не трогаем)
+        page.show_shipping_methods = bool(show_shipping_methods)
     try:
         with transaction.atomic():
             page.save()
@@ -209,3 +213,10 @@ def system_title(slug: str) -> str:
     """Заголовок своей страницы для системной («» — нет такой)."""
     page = published(slug)
     return page.title_localized() if page else ""
+
+
+def system_shows_shipping_methods(slug: str = "versand") -> bool:
+    """M21.9: показывать ли под текстом «Versand» способы доставки (без своей
+    страницы — показываем всегда: это единственная информация о доставке)."""
+    page = published(slug)
+    return page.show_shipping_methods if page else True
