@@ -37,6 +37,7 @@ PRIVATE_PREFIXES = frozenset({"imports", "documents"})
 PUBLIC_PREFIXES = frozenset(
     {
         "products",
+        "pages",  # M21.8 B4: картинки своих страниц (видны на витрине)
         "variants",
         "categories",
         "combos",

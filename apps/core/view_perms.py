@@ -389,6 +389,7 @@ RULES: dict[str, Rule] = {
     "content-page-new": _r(W, WE),
     "content-page-edit": _r(W, WE),
     "content-page-delete": _r(W, WE),
+    "content-page-image": _r(WE, WE),  # M21.8 B4: загрузка картинки в редакторе страницы
     "site-redirects": _r(W, WE),
     "site-redirects-import": _r(W, WE),
     "site-redirects-export": _r(W, WE),

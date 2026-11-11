@@ -27,8 +27,9 @@
       </label>
     </div>
     <label class="block text-sm font-medium" for="page-body">{% trans "Text" %}</label>
-    <textarea id="page-body" name="body" rows="16" data-rte="page" class="ui-input w-full">{{ page.body }}</textarea>
-    <p class="text-xs text-gray-500">{% trans "Bilder: zuerst unter Website › Medien hochladen, dann hier mit „Bild“ die Adresse einfügen." %}</p>
+    <textarea id="page-body" name="body" rows="16" data-rte="page" data-rte-upload="{% url 'content-page-image' %}" class="ui-input w-full">{{ page.body }}</textarea>
+    <p class="text-sm text-gray-600 min-h-[1.25rem]" role="status" aria-live="polite" data-rte-status></p>
+    <p class="text-xs text-gray-500">{% trans "🖼 lädt ein Bild von Ihrem Computer hoch, ↔ zentriert einen Absatz, ▥ teilt den Text in zwei Spalten." %}</p>
     <label class="flex items-center gap-2 text-sm">
       <input type="checkbox" name="is_published" value="1" {% if page.is_published %}checked{% endif %}>
       {% trans "Veröffentlicht (für Besucher sichtbar)" %}

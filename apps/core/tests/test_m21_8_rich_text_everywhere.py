@@ -144,3 +144,129 @@ def test_editor_saves_plain_text_as_text_and_empty_as_empty():
     js = (ROOT / "templates/catalog/_richtext_editor.html").read_text()
     assert "function value(area)" in js and "area.textContent" in js
     assert "ta.value = value(area)" in js
+
+
+# --- B4: картинка с компьютера, по центру, две колонки -------------------------------
+
+
+def _png_upload(name="bild.png"):
+    import io
+
+    from django.core.files.uploadedfile import SimpleUploadedFile
+    from PIL import Image
+
+    buf = io.BytesIO()
+    Image.new("RGB", (8, 8), "red").save(buf, "PNG")
+    return SimpleUploadedFile(name, buf.getvalue(), content_type="image/png")
+
+
+def _upload_req(files, user=None):
+    from django.contrib.auth.models import AnonymousUser
+    from django.test import RequestFactory
+
+    from apps.tenants.tests.factories import TenantFactory
+
+    req = RequestFactory().post("/dashboard/site/seiten/bild/", files)
+    req.user = user or AnonymousUser()
+    req.tenant = TenantFactory.build(schema_name="public", slug="b4", name="B4")
+    return req
+
+
+@pytest.mark.django_db
+def test_page_image_upload_saves_local_image_and_needs_login(settings):
+    from django.contrib.auth import get_user_model
+
+    from apps.core.content_page_views import page_image_upload
+    from apps.core.richtext import sanitize_page
+
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    anon = page_image_upload(_upload_req({"image": _png_upload()}))
+    assert anon.status_code == 302  # без входа — на логин
+
+    user = get_user_model().objects.create_user(username="b4-owner", password="pw1234567")
+    resp = page_image_upload(_upload_req({"image": _png_upload()}, user))
+    import json
+
+    url = json.loads(resp.content)["url"]
+    assert resp.status_code == 200 and url.startswith(settings.MEDIA_URL)
+    # адрес проходит санитайзер страниц — картинка не пропадёт при сохранении
+    assert url in sanitize_page(f'<p><img src="{url}" alt=""></p>')
+
+    from django.core.files.uploadedfile import SimpleUploadedFile
+
+    fake = SimpleUploadedFile("x.png", b"kein bild", content_type="image/png")
+    bad = page_image_upload(_upload_req({"image": fake}, user))
+    assert b"error" in bad.content
+    assert bad.status_code == 400
+
+
+def test_page_image_upload_has_write_rule_and_route():
+    from django.urls import reverse
+
+    from apps.core import view_perms
+
+    assert view_perms.RULES["content-page-image"] == view_perms._r(view_perms.WE, view_perms.WE)
+    assert reverse("content-page-image", urlconf="config.urls_tenant").endswith("/seiten/bild/")
+
+
+@pytest.mark.django_db
+def test_media_library_keeps_images_used_inside_pages_and_legal_texts():
+    """Картинка в тексте страницы/правового документа занята — медиатека её не удалит."""
+    from django.conf import settings
+
+    from apps.core import media_registry
+    from apps.core.models import ContentPage, LegalDoc
+
+    m = settings.MEDIA_URL
+    ContentPage.objects.create(
+        slug="versand", title="Versand", body=f'<p><img src="{m}pages/a.webp" alt=""></p>'
+    )
+    LegalDoc.objects.create(kind="impressum", locale="de", text=f'<img src="{m}pages/b.webp">')
+    used = media_registry.used_paths()
+    assert {"pages/a.webp", "pages/b.webp"} <= used
+
+
+def test_columns_and_center_survive_the_page_sanitizer():
+    from apps.core.richtext import sanitize_page
+
+    html = (
+        '<div class="sf-grid"><div class="sf-col-8"><p>A</p></div>'
+        '<div class="sf-col-8"><p class="sf-center">B</p></div></div>'
+    )
+    assert sanitize_page(html) == html
+    out = _render('{% rich_block t mode="page" %}', t=html)
+    assert 'class="sf-grid"' in out and 'class="sf-center"' in out
+
+
+def test_editor_has_upload_center_and_columns_in_page_mode():
+    js = (ROOT / "templates/catalog/_richtext_editor.html").read_text()
+    for marker in ('"center"', '"columns"', "function pickAndUpload", "data-rte-status"):
+        assert marker in js, marker
+    form = (ROOT / "templates/tenant/content_page_form.html").read_text()
+    assert "data-rte-upload=\"{% url 'content-page-image' %}\"" in form
+
+
+@pytest.mark.django_db
+def test_page_image_upload_strips_exif(settings):
+    import io
+    import json
+
+    from django.contrib.auth import get_user_model
+    from django.core.files.storage import default_storage
+    from django.core.files.uploadedfile import SimpleUploadedFile
+    from PIL import Image
+
+    from apps.core.content_page_views import page_image_upload
+
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    img = Image.new("RGB", (16, 16), "blue")
+    exif = Image.Exif()
+    exif[0x010F] = "Telefon-Hersteller"  # Make
+    buf = io.BytesIO()
+    img.save(buf, "JPEG", exif=exif)
+    up = SimpleUploadedFile("foto.jpg", buf.getvalue(), content_type="image/jpeg")
+    user = get_user_model().objects.create_user(username="b4-exif", password="pw1234567")
+    url = json.loads(page_image_upload(_upload_req({"image": up}, user)).content)["url"]
+    path = url[len(settings.MEDIA_URL) :]
+    with default_storage.open(path) as fh, Image.open(fh) as saved:
+        assert not saved.getexif()

@@ -36654,3 +36654,24 @@ msgstr "No text – page hidden"
 #, python-format
 msgid "%(t)s bearbeiten"
 msgstr "Edit %(t)s"
+
+msgid "Spalte 1"
+msgstr "Column 1"
+
+msgid "Spalte 2"
+msgstr "Column 2"
+
+msgid "Bild wird hochgeladen …"
+msgstr "Uploading image …"
+
+msgid "Das Bild konnte nicht hochgeladen werden."
+msgstr "The image could not be uploaded."
+
+msgid "Zu viele Uploads. Bitte später erneut."
+msgstr "Too many uploads. Please try again later."
+
+msgid "Bitte ein Bild wählen."
+msgstr "Please choose an image."
+
+msgid "🖼 lädt ein Bild von Ihrem Computer hoch, ↔ zentriert einen Absatz, ▥ teilt den Text in zwei Spalten."
+msgstr "🖼 uploads an image from your computer, ↔ centers a paragraph, ▥ splits the text into two columns."

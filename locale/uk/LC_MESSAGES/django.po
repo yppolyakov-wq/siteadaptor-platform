@@ -36976,3 +36976,24 @@ msgstr "Немає тексту — сторінку приховано"
 #, python-format
 msgid "%(t)s bearbeiten"
 msgstr "Змінити: %(t)s"
+
+msgid "Spalte 1"
+msgstr "Колонка 1"
+
+msgid "Spalte 2"
+msgstr "Колонка 2"
+
+msgid "Bild wird hochgeladen …"
+msgstr "Завантажуємо зображення …"
+
+msgid "Das Bild konnte nicht hochgeladen werden."
+msgstr "Не вдалося завантажити зображення."
+
+msgid "Zu viele Uploads. Bitte später erneut."
+msgstr "Забагато завантажень. Спробуйте пізніше."
+
+msgid "Bitte ein Bild wählen."
+msgstr "Виберіть зображення."
+
+msgid "🖼 lädt ein Bild von Ihrem Computer hoch, ↔ zentriert einen Absatz, ▥ teilt den Text in zwei Spalten."
+msgstr "🖼 завантажує зображення з комп'ютера, ↔ вирівнює абзац по центру, ▥ ділить текст на дві колонки."

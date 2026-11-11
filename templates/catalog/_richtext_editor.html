@@ -17,6 +17,10 @@ contenteditable и синкает HTML обратно (на вводе и на s
   .rte-area h3 { font-size: 1.05rem; font-weight: 600; margin: .5rem 0 .25rem; }
   .rte-area img { max-width: 240px; height: auto; display: inline-block; border-radius: .5rem; }
   .rte-area[data-rte-page] { min-height: 320px; }
+  .rte-area .sf-center { text-align: center; }
+  .rte-area .sf-center img { margin-left: auto; margin-right: auto; }
+  .rte-area .sf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; border: 1px dashed #c7d2fe; border-radius: .5rem; padding: .5rem; margin: .5rem 0; }
+  .rte-area [class*="sf-col-"] { min-width: 0; }
 </style>
 <script>
 (function () {
@@ -60,6 +64,98 @@ contenteditable и синкает HTML обратно (на вводе и на s
     var html = area.innerHTML;
     return RICH_RE.test(html) ? html : area.textContent;
   }
+  // --- M21.8 B4: страница — по центру, две колонки, картинка с компьютера ---------
+  var saved = null;
+  var BLOCKS = /^(P|H2|H3|H4|DIV|FIGURE|BLOCKQUOTE|UL|OL)$/;
+  function currentRange(area) {
+    var sel = window.getSelection();
+    if (!sel || !sel.rangeCount) return null;
+    var r = sel.getRangeAt(0);
+    return area.contains(r.commonAncestorContainer) ? r.cloneRange() : null;
+  }
+  function restore(area, range) {
+    var sel = window.getSelection();
+    sel.removeAllRanges();
+    if (range) { sel.addRange(range); return; }
+    var r = document.createRange();
+    r.selectNodeContents(area);
+    r.collapse(false);
+    sel.addRange(r);
+  }
+  function blockOf(area) {
+    var sel = window.getSelection();
+    var n = sel && sel.rangeCount ? sel.getRangeAt(0).startContainer : null;
+    while (n && n !== area) {
+      if (n.nodeType === 1 && BLOCKS.test(n.tagName) && !(n.classList.contains("sf-grid") || /\bsf-col-/.test(n.className))) return n;
+      n = n.parentNode;
+    }
+    return null;
+  }
+  function toggleCenter(area) {
+    var b = blockOf(area);
+    if (!b) {
+      document.execCommand("formatBlock", false, "p");
+      b = blockOf(area);
+    }
+    if (b) b.classList.toggle("sf-center");
+  }
+  function insertColumns(area) {
+    var grid = document.createElement("div");
+    grid.className = "sf-grid";
+    ["{% trans 'Spalte 1' %}", "{% trans 'Spalte 2' %}"].forEach(function (label) {
+      var col = document.createElement("div");
+      col.className = "sf-col-8";
+      var p = document.createElement("p");
+      p.textContent = label;
+      col.appendChild(p);
+      grid.appendChild(col);
+    });
+    var after = document.createElement("p");
+    after.appendChild(document.createElement("br"));
+    var top = blockOf(area);
+    while (top && top.parentNode !== area) top = top.parentNode;
+    if (top) {
+      top.parentNode.insertBefore(after, top.nextSibling);
+      top.parentNode.insertBefore(grid, after);
+    } else {
+      area.appendChild(grid);
+      area.appendChild(after);
+    }
+    // Курсор — в первую колонку, её подпись выделена: набор текста её заменит.
+    var r = document.createRange();
+    r.selectNodeContents(grid.querySelector("p"));
+    restore(area, r);
+  }
+  function pickAndUpload(ta, area, range, done) {
+    var input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/jpeg,image/png,image/webp";
+    input.addEventListener("change", function () {
+      var file = input.files && input.files[0];
+      if (!file) return;
+      var form = ta.closest("form");
+      var csrf = form && form.querySelector('[name="csrfmiddlewaretoken"]');
+      var body = new FormData();
+      body.append("image", file);
+      body.append("csrfmiddlewaretoken", csrf ? csrf.value : "");
+      var status = ta.parentNode.querySelector("[data-rte-status]");
+      if (status) status.textContent = "{% trans 'Bild wird hochgeladen …' %}";
+      fetch(ta.dataset.rteUpload, { method: "POST", body: body, credentials: "same-origin" })
+        .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+        .then(function (res) {
+          if (!res.ok || !res.d.url) throw new Error(res.d.error || "");
+          area.focus();
+          restore(area, range);
+          document.execCommand("insertImage", false, res.d.url);
+          if (status) status.textContent = "";
+          done();
+        })
+        .catch(function (e) {
+          if (status) status.textContent = e.message || "{% trans 'Das Bild konnte nicht hochgeladen werden.' %}";
+        });
+    });
+    input.click();
+  }
   function fill(area, v, page) {
     area.textContent = "";
     if (!RICH_RE.test(v)) {
@@ -93,7 +189,11 @@ contenteditable и синкает HTML обратно (на вводе и на s
         ["H2", "h2", "{% trans 'Überschrift' %}"],
         ["H3", "h3", "{% trans 'Zwischenüberschrift' %}"],
         ["¶", "p", "{% trans 'Absatz' %}"],
-      ].concat(CMDS, [["🖼", "insertImage", "{% trans 'Bild' %}"]]);
+      ].concat(CMDS, [
+        ["↔", "center", "{% trans 'Zentriert' %}"],
+        ["▥", "columns", "{% trans 'Zwei Spalten' %}"],
+        ["🖼", "insertImage", "{% trans 'Bild' %}"],
+      ]);
     }
     var area = document.createElement("div");
     area.className = "rte-area";
@@ -117,9 +217,19 @@ contenteditable и синкает HTML обратно (на вводе и на s
       if (c[0] === "B") b.style.fontWeight = "700";
       if (c[0] === "I") b.style.fontStyle = "italic";
       if (c[0] === "U") b.style.textDecoration = "underline";
+      // Выбор файла уводит фокус — место вставки запоминаем до клика (mousedown).
+      b.addEventListener("mousedown", function () { saved = currentRange(area); });
       b.addEventListener("click", function () {
         area.focus();
-        if (c[1] === "createLink") {
+        if (c[1] === "insertImage" && ta.dataset.rteUpload) {
+          pickAndUpload(ta, area, saved, sync);
+          return;
+        }
+        if (c[1] === "center") {
+          toggleCenter(area);
+        } else if (c[1] === "columns") {
+          insertColumns(area);
+        } else if (c[1] === "createLink") {
           var url = window.prompt("URL (https://…)", "https://");
           if (url) document.execCommand("createLink", false, url);
         } else if (c[1] === "insertImage") {

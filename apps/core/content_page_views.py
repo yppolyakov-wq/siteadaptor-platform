@@ -7,7 +7,7 @@ from types import SimpleNamespace
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.http import Http404
+from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
@@ -168,3 +168,40 @@ def page_delete(request, pk):
                 ),
             )
     return redirect("content-pages")
+
+
+@login_required
+@require_POST
+def page_image_upload(request):
+    """M21.8 B4: «🖼 Bild» в редакторе своей страницы — файл с компьютера.
+
+    Тот же путь, что фото товара (проверка формата/размера, реестр медиа) + снятие
+    EXIF (SEC-G14);
+    ответ — адрес картинки у нас (санитайзер страниц пропускает только /media/…)."""
+    from django.core.exceptions import ValidationError
+
+    from apps.catalog.images import (
+        save_product_image,
+        shrink_large_photo,
+        strip_metadata,
+        validate_image,
+    )
+    from apps.core import ratelimit
+
+    tenant = getattr(request, "tenant", None)
+    ident = f"{getattr(tenant, 'schema_name', '')}:{request.user.pk}"
+    if ratelimit.hit("page-image", ident, limit=60, window=3600):
+        return JsonResponse({"error": _("Zu viele Uploads. Bitte später erneut.")}, status=429)
+    uploaded = request.FILES.get("image")
+    if uploaded is None:
+        return JsonResponse({"error": _("Bitte ein Bild wählen.")}, status=400)
+    try:
+        uploaded = shrink_large_photo(uploaded)
+        # Картинка страницы публична — без EXIF (GPS-координаты, модель телефона).
+        uploaded = strip_metadata(uploaded, validate_image(uploaded))
+        ref = save_product_image(uploaded, folder="pages")
+    except ValidationError as exc:
+        return JsonResponse({"error": " ".join(exc.messages)}, status=400)
+    except ValueError:  # слишком большое изображение для перекодирования
+        return JsonResponse({"error": _("Das Bild konnte nicht hochgeladen werden.")}, status=400)
+    return JsonResponse({"url": ref["url"]})

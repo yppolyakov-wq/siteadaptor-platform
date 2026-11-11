@@ -94,6 +94,7 @@ EXPECTED_UNLISTED = frozenset(
         "finance:invoice-new",  # UX-D D6.5: «＋ Neue Rechnung» (кнопка списка счетов)
         "collections:new",  # UX-D D6.3: «＋ Kollektion» (кнопка списка, шторка)
         "content-page-new",  # M21.6: «＋ Neue Seite» — кнопка списка «Seiten»
+        "content-page-image",  # [POST] M21.8 B4: «🖼 Bild» редактора страницы
         "team-invite",  # UX-D D6.6: «＋ Mitarbeiter einladen» (кнопка списка Team)
         "channel-disconnect",  # UX-D D6.6: POST «Trennen» на странице каналов
         "blog-new",  # UX-D D7.4: «＋ Neuer Beitrag» (кнопка списка блога)

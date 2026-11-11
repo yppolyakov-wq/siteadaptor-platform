@@ -329,6 +329,11 @@ urlpatterns = [
     path("dashboard/site/seiten/", content_page_views.pages_list, name="content-pages"),
     path("dashboard/site/seiten/neu/", content_page_views.page_new, name="content-page-new"),
     path(
+        "dashboard/site/seiten/bild/",
+        content_page_views.page_image_upload,
+        name="content-page-image",
+    ),
+    path(
         "dashboard/site/seiten/<uuid:pk>/", content_page_views.page_edit, name="content-page-edit"
     ),
     path(

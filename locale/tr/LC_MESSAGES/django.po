@@ -36800,3 +36800,24 @@ msgstr "Metin yok – sayfa gizli"
 #, python-format
 msgid "%(t)s bearbeiten"
 msgstr "%(t)s düzenle"
+
+msgid "Spalte 1"
+msgstr "Sütun 1"
+
+msgid "Spalte 2"
+msgstr "Sütun 2"
+
+msgid "Bild wird hochgeladen …"
+msgstr "Görsel yükleniyor …"
+
+msgid "Das Bild konnte nicht hochgeladen werden."
+msgstr "Görsel yüklenemedi."
+
+msgid "Zu viele Uploads. Bitte später erneut."
+msgstr "Çok fazla yükleme. Lütfen daha sonra tekrar deneyin."
+
+msgid "Bitte ein Bild wählen."
+msgstr "Lütfen bir görsel seçin."
+
+msgid "🖼 lädt ein Bild von Ihrem Computer hoch, ↔ zentriert einen Absatz, ▥ teilt den Text in zwei Spalten."
+msgstr "🖼 bilgisayarınızdan bir görsel yükler, ↔ bir paragrafı ortalar, ▥ metni iki sütuna böler."

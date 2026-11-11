@@ -36741,3 +36741,24 @@ msgstr "Kein Text – Seite ausgeblendet"
 #, python-format
 msgid "%(t)s bearbeiten"
 msgstr "%(t)s bearbeiten"
+
+msgid "Spalte 1"
+msgstr "Spalte 1"
+
+msgid "Spalte 2"
+msgstr "Spalte 2"
+
+msgid "Bild wird hochgeladen …"
+msgstr "Bild wird hochgeladen …"
+
+msgid "Das Bild konnte nicht hochgeladen werden."
+msgstr "Das Bild konnte nicht hochgeladen werden."
+
+msgid "Zu viele Uploads. Bitte später erneut."
+msgstr "Zu viele Uploads. Bitte später erneut."
+
+msgid "Bitte ein Bild wählen."
+msgstr "Bitte ein Bild wählen."
+
+msgid "🖼 lädt ein Bild von Ihrem Computer hoch, ↔ zentriert einen Absatz, ▥ teilt den Text in zwei Spalten."
+msgstr "🖼 lädt ein Bild von Ihrem Computer hoch, ↔ zentriert einen Absatz, ▥ teilt den Text in zwei Spalten."

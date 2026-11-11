@@ -9,6 +9,8 @@ Demo-FileRef (SVG-вьюха /medien/demo.svg, без "path") реестром �
 jobs.JobPhoto (ImageField) — отдельная система, вне CM-4.
 """
 
+import re
+
 from django.core.files.storage import default_storage
 
 
@@ -57,6 +59,32 @@ def _site_config_refs(tenant):
     return [r for r in refs if isinstance(r, dict)]
 
 
+_IMG_SRC_RE = re.compile(r"""<img\b[^>]*\bsrc\s*=\s*["']([^"']+)["']""", re.I)
+
+
+def _html_image_refs():
+    """M21.8: картинки ВНУТРИ текста — свои страницы (импорт CS-Cart и «🖼 Bild»
+    редактора) и правовые тексты. Без этого медиатека считала их свободными и давала
+    удалить — страница «Versand» оставалась с битой картинкой."""
+    from django.conf import settings
+
+    from apps.core.models import ContentPage, LegalDoc
+
+    prefix = settings.MEDIA_URL or "/media/"
+
+    def refs(html):
+        for src in _IMG_SRC_RE.findall(html or ""):
+            if src.startswith(prefix):
+                yield {"path": src[len(prefix) :], "url": src}
+
+    for page in ContentPage.objects.all():
+        yield from refs(page.body)
+        for text in (page.body_i18n or {}).values():
+            yield from refs(text if isinstance(text, str) else "")
+    for doc in LegalDoc.objects.all():
+        yield from refs(doc.text)
+
+
 def iter_all_refs(tenant=None):
     """Все FileRef-dict'ы тенанта (включая копии) — генератор.
 
@@ -73,6 +101,7 @@ def iter_all_refs(tenant=None):
                 yield ref
     for _svc, _field, refs in _service_images():
         yield from refs
+    yield from _html_image_refs()
     if tenant is not None:
         yield from _site_config_refs(tenant)
 

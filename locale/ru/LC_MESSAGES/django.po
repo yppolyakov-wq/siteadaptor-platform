@@ -36989,3 +36989,24 @@ msgstr "Нет текста — страница скрыта"
 #, python-format
 msgid "%(t)s bearbeiten"
 msgstr "Изменить: %(t)s"
+
+msgid "Spalte 1"
+msgstr "Колонка 1"
+
+msgid "Spalte 2"
+msgstr "Колонка 2"
+
+msgid "Bild wird hochgeladen …"
+msgstr "Загружаем изображение …"
+
+msgid "Das Bild konnte nicht hochgeladen werden."
+msgstr "Не удалось загрузить изображение."
+
+msgid "Zu viele Uploads. Bitte später erneut."
+msgstr "Слишком много загрузок. Попробуйте позже."
+
+msgid "Bitte ein Bild wählen."
+msgstr "Выберите изображение."
+
+msgid "🖼 lädt ein Bild von Ihrem Computer hoch, ↔ zentriert einen Absatz, ▥ teilt den Text in zwei Spalten."
+msgstr "🖼 загружает изображение с компьютера, ↔ выравнивает абзац по центру, ▥ делит текст на две колонки."
