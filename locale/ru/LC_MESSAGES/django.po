@@ -37472,3 +37472,27 @@ msgstr "Начинает новый ряд ✓"
 
 msgid "Neue Zeile beginnen"
 msgstr "Начать новый ряд"
+
+msgid "ganze Breite"
+msgstr "вся ширина"
+
+msgid "randlos, über die ganze Bildschirmbreite"
+msgstr "без полей, на всю ширину экрана"
+
+msgid "zwei Drittel"
+msgstr "две трети"
+
+msgid "die Hälfte"
+msgstr "половина"
+
+msgid "ein Drittel"
+msgstr "одна треть"
+
+msgid "ein Viertel"
+msgstr "одна четверть"
+
+msgid "ein Fünftel"
+msgstr "одна пятая"
+
+msgid "ein Sechstel"
+msgstr "одна шестая"

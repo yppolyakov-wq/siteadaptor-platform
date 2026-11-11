@@ -37281,3 +37281,27 @@ msgstr "Yeni satır başlatır ✓"
 
 msgid "Neue Zeile beginnen"
 msgstr "Yeni satır başlat"
+
+msgid "ganze Breite"
+msgstr "tam genişlik"
+
+msgid "randlos, über die ganze Bildschirmbreite"
+msgstr "kenardan kenara, tüm ekran genişliğinde"
+
+msgid "zwei Drittel"
+msgstr "üçte iki"
+
+msgid "die Hälfte"
+msgstr "yarım"
+
+msgid "ein Drittel"
+msgstr "üçte bir"
+
+msgid "ein Viertel"
+msgstr "dörtte bir"
+
+msgid "ein Fünftel"
+msgstr "beşte bir"
+
+msgid "ein Sechstel"
+msgstr "altıda bir"

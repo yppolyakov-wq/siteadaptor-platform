@@ -47,7 +47,7 @@ def test_every_width_down_to_a_sixth_is_offered_for_a_simple_block():
     ref = site_schema.apply(tenant, "text", "add", block_type="text")
     cfg = siteconfig.normalize(tenant.site_config)
     block = next(x for x in site_schema.blocks_for(cfg, "text") if x["ref"] == ref)
-    assert [v for v, _l in block["widths"]] == [
+    assert [w[0] for w in block["widths"]] == [
         "contained", "w23", "w12", "w13", "w14", "w15", "w16",
     ]  # fmt: skip
 
@@ -58,7 +58,7 @@ def test_list_blocks_do_not_go_narrower_than_a_half():
     ref = site_schema.apply(tenant, "text", "add", block_type="list")
     cfg = siteconfig.normalize(tenant.site_config)
     block = next(x for x in site_schema.blocks_for(cfg, "text") if x["ref"] == ref)
-    assert [v for v, _l in block["widths"]] == ["contained", "w23", "w12"]
+    assert [w[0] for w in block["widths"]] == ["contained", "w23", "w12"]
     with pytest.raises(site_schema.SchemaError):
         site_schema.apply(tenant, "text", "width", ref=ref, value="w16")
 
@@ -73,7 +73,7 @@ def test_existing_narrow_list_keeps_its_width():
     Tenant.objects.filter(pk=tenant.pk).update(site_config=cfg)
     cfg = siteconfig.normalize(Tenant.objects.get(pk=tenant.pk).site_config)
     block = next(x for x in site_schema.blocks_for(cfg, "text") if x["ref"] == ref)
-    assert "w13" in [v for v, _l in block["widths"]]
+    assert "w13" in [w[0] for w in block["widths"]]
 
 
 def test_width_is_refused_for_fixed_rows_and_garbage():
@@ -104,7 +104,7 @@ def test_width_counts_as_a_change():
     b = Browser(_tenant())
     ref = site_schema.apply(b.tenant, "text", "add", block_type="text")
     b.post(seite="text", op="width", ref=ref, value="w13")
-    assert "1 Änderung" in b.get("?seite=text")
+    assert "data-schema-draft" in b.get("?seite=text")
     b.post(seite="text", op="width", ref=ref, value="contained")
     assert "data-schema-draft" not in b.get("?seite=text")
 
@@ -114,3 +114,35 @@ def test_panel_offers_width_only_for_own_blocks():
     ref = site_schema.apply(b.tenant, "text", "add", block_type="text")
     assert "data-schema-width" in b.get(f"?seite=text&block={ref}")
     assert "data-schema-width" not in b.get("?seite=home&block=hero")
+
+
+@pytest.mark.parametrize(
+    "block_type", ["banner", "stats", "newsletter", "image_text", "promo", "faq_ref", "anfrage_ref"]
+)
+def test_only_simple_blocks_go_narrower_than_a_half(block_type):
+    """Формы, баннер, цифры и сетки в ⅙ ширины ломаются — им не уже половины."""
+    tenant = _tenant()
+    ref = site_schema.apply(tenant, "text", "add", block_type=block_type)
+    with pytest.raises(site_schema.SchemaError):
+        site_schema.apply(tenant, "text", "width", ref=ref, value="w13")
+    site_schema.apply(tenant, "text", "width", ref=ref, value="w12")
+
+
+def test_width_works_for_own_blocks_on_the_home_page():
+    b = Browser(_tenant())
+    refs = [site_schema.apply(b.tenant, "home", "add", block_type="text") for _ in range(2)]
+    for ref in refs:
+        b.post(seite="home", op="width", ref=ref, value="w12")
+    b.post(seite="home", op="save")
+    cfg = siteconfig.normalize(Tenant.objects.get(pk=b.tenant.pk).site_config)
+    own = [x for x in cfg["sections"] if x.get("id") in refs]
+    assert [x["width"] for x in own] == ["w12", "w12"]
+    rows = [g for g in siteconfig.group_block_rows(cfg["sections"]) if g.get("key") == "_row"]
+    assert len(rows) == 1 and [x["id"] for x in rows[0]["row"]] == refs
+
+
+def test_widths_are_named_in_words_for_screen_readers():
+    b = Browser(_tenant())
+    ref = site_schema.apply(b.tenant, "text", "add", block_type="text")
+    html = b.get(f"?seite=text&block={ref}")
+    assert 'aria-label="ein Sechstel"' in html and 'aria-label="die Hälfte"' in html

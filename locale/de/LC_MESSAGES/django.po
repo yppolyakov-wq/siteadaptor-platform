@@ -37222,3 +37222,27 @@ msgstr "Beginnt eine neue Zeile ✓"
 
 msgid "Neue Zeile beginnen"
 msgstr "Neue Zeile beginnen"
+
+msgid "ganze Breite"
+msgstr "ganze Breite"
+
+msgid "randlos, über die ganze Bildschirmbreite"
+msgstr "randlos, über die ganze Bildschirmbreite"
+
+msgid "zwei Drittel"
+msgstr "zwei Drittel"
+
+msgid "die Hälfte"
+msgstr "die Hälfte"
+
+msgid "ein Drittel"
+msgstr "ein Drittel"
+
+msgid "ein Viertel"
+msgstr "ein Viertel"
+
+msgid "ein Fünftel"
+msgstr "ein Fünftel"
+
+msgid "ein Sechstel"
+msgstr "ein Sechstel"

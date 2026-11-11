@@ -230,6 +230,7 @@ def blocks_for(config: dict, code: str, host: str | None = None) -> list[dict]:
             }
         )
     main_label = _("Hauptliste")  # не внутри f-строки: xgettext её не извлекает
+    names = width_names()
     for item in items:
         key = item.get("key", "")
         main = siteconfig.is_main_marker(item)
@@ -249,7 +250,9 @@ def blocks_for(config: dict, code: str, host: str | None = None) -> list[dict]:
                 "newline": bool(item.get("newline")),
                 "width_label": WIDTH_LABELS.get(item.get("width") or "", ""),
                 "flex": WIDTH_FLEX.get(item.get("width") or "", 12),
-                "widths": width_choices(item) if cblock else [],
+                "widths": [(v, lab, names.get(v, lab)) for v, lab in width_choices(item)]
+                if cblock
+                else [],
                 "width_value": item.get("width") or "contained",
                 "narrow": cblock and item.get("width") in siteconfig.NARROW_WIDTHS,
             }
@@ -293,10 +296,11 @@ _TYPE_GROUPS = (
 _CONTENT_GROUP = gettext_lazy("Inhalte")
 
 
-#: FB-27 R3 (решение владельца Q1): блоки-сетки (списки товаров/акций/категорий, галерея,
-#: команда, отзывы) не сужаются сильнее половины — карточки в них сжимались бы; простые
-#: блоки (текст, фото, кнопка, баннер, контакты) — до ⅙.
-_WIDE_ONLY_BLOCKS = frozenset({"list", "gallery_ref", "team_ref", "testimonials_ref"})
+#: FB-27 R3 (решение владельца Q1): до ⅙ сужаются только ПРОСТЫЕ блоки. Всё остальное —
+#: сетки карточек, формы, баннер, цифры, рассылка — не уже половины: в узкой колонке
+#: (⅙ ≈ 128 px на планшете) карточки и поля ввода ломаются. Белый список, а не чёрный:
+#: новый тип блока по умолчанию остаётся широким.
+_NARROW_OK_BLOCKS = frozenset({"text", "image", "button", "spacer"})
 _WIDTH_ORDER = ("contained", "w23", "w12", "w13", "w14", "w15", "w16")
 _WIDE_WIDTHS = ("contained", "w23", "w12")
 
@@ -307,12 +311,26 @@ def width_choices(item: dict) -> list[tuple[str, str]]:
     from apps.tenants import siteconfig
 
     key = siteconfig.cblock_type(item.get("key")) or item.get("key") or ""
-    allowed = list(_WIDE_WIDTHS if key in _WIDE_ONLY_BLOCKS else _WIDTH_ORDER)
+    allowed = list(_WIDTH_ORDER if key in _NARROW_OK_BLOCKS else _WIDE_WIDTHS)
     current = item.get("width") or "contained"
     if current not in allowed and current in siteconfig.CBLOCK_WIDTHS:
         allowed.append(current)
     labels = {"contained": str(_("Ganz")), "full": str(_("Randlos")), **WIDTH_LABELS}
     return [(v, labels.get(v, v)) for v in allowed]
+
+
+def width_names() -> dict[str, str]:
+    """Ширина словами — для читалок (глиф «⅙» они произносят как придётся)."""
+    return {
+        "contained": str(_("ganze Breite")),
+        "full": str(_("randlos, über die ganze Bildschirmbreite")),
+        "w23": str(_("zwei Drittel")),
+        "w12": str(_("die Hälfte")),
+        "w13": str(_("ein Drittel")),
+        "w14": str(_("ein Viertel")),
+        "w15": str(_("ein Fünftel")),
+        "w16": str(_("ein Sechstel")),
+    }
 
 
 def structure_types(tenant) -> list:

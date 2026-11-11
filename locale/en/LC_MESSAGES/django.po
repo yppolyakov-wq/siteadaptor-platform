@@ -37135,3 +37135,27 @@ msgstr "Starts a new row ✓"
 
 msgid "Neue Zeile beginnen"
 msgstr "Start a new row"
+
+msgid "ganze Breite"
+msgstr "full width"
+
+msgid "randlos, über die ganze Bildschirmbreite"
+msgstr "edge to edge, across the whole screen"
+
+msgid "zwei Drittel"
+msgstr "two thirds"
+
+msgid "die Hälfte"
+msgstr "half"
+
+msgid "ein Drittel"
+msgstr "one third"
+
+msgid "ein Viertel"
+msgstr "one quarter"
+
+msgid "ein Fünftel"
+msgstr "one fifth"
+
+msgid "ein Sechstel"
+msgstr "one sixth"
