@@ -19,7 +19,8 @@ def _t(rel):
 def test_tabs_linked_to_panels():
     for rel, prefix in (
         ("promotions/promotion_form.html", "pf"),
-        ("tenant/legal_docs.html", "lg"),
+        # M21.10 (осознанная переписка): правовые тексты ушли из «Recht & Steuern» в
+        # «Seiten» (legal_page_form, язык — выпадашкой E9.10); вкладок там больше нет.
     ):
         text = _t(rel)
         assert f'aria-controls="{prefix}-panel-' in text and 'role="tabpanel"' in text
@@ -30,7 +31,7 @@ def test_contrast_and_names():
     assert "text-gray-400" not in _t("catalog/_pf_field.html").split("_helptext")[0][-120:]
     assert "bg-amber-500 text-white" not in _t("promotions/_text_check_results.html")
     assert 'aria-current="page"' in _t("storefront/promo_page/_type_chips.html")
-    assert 'lang="{{ cell.locale }}"' in _t("tenant/legal_docs.html")
+    assert 'lang="{{ cell.locale }}"' in _t("tenant/legal_page_form.html")  # M21.10
     # UX-D D3.1 (осознанная переписка): чипы удаления правил — на странице ресурса
     assert "{{ it.day }} {{ g.time }}" in _t("booking/resource_page.html")
     # UX-D D5.3 (осознанная переписка): мобильный якорь к форме не нужен — формы нет,

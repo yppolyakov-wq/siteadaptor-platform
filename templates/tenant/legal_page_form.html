@@ -35,7 +35,7 @@
       <details class="mt-1 text-xs text-gray-500" data-legal-fallback>
         <summary class="cursor-pointer">{% trans "Preview of the automatic text" %}</summary>
         <pre class="mt-1 whitespace-pre-wrap font-sans text-gray-500 bg-gray-50 rounded-lg p-3">{{ cell.fallback }}</pre>
-        <textarea hidden data-fallback-for="doc_{{ cell.locale }}">{{ cell.fallback }}</textarea>
+        <div hidden data-fallback-for="doc_{{ cell.locale }}">{{ cell.fallback }}</div>
         <button type="button" class="ui-btn ui-btn-sm mt-2" data-take-fallback="doc_{{ cell.locale }}">{% trans "Automatischen Text übernehmen" %}</button>
       </details>
       {% endif %}
@@ -55,7 +55,7 @@
     var ta = document.getElementById(id);
     var src = document.querySelector('[data-fallback-for="' + id + '"]');
     if (!ta || !src) return;
-    ta.value = src.value;
+    ta.value = src.textContent;
     ta.dispatchEvent(new CustomEvent("rte:set"));
   });
 })();
