@@ -55,12 +55,13 @@ def _req(path="/x/", method="get", data=None, user=None, tenant=None):
 # --- хаб ---------------------------------------------------------------------------
 
 
-def test_hub_shows_system_legal_and_own_groups(orders_on):
+def test_hub_shows_all_pages_in_one_list(orders_on):
+    """M21.11 (осознанная переписка M21.10): одна таблица без групп."""
     ContentPage.objects.create(slug="zahlungsarten", title="Zahlungsarten", is_published=True)
     html = views.pages_list(_req()).content.decode()
-    assert 'data-system-row="ueber-uns"' in html and 'data-system-row="versand"' in html
-    assert 'data-legal-row="datenschutz"' in html
-    assert 'data-page-row="zahlungsarten"' in html
+    assert html.count("data-pages-list") == 1 and "data-system-pages" not in html
+    for key in ("system:ueber-uns", "system:versand", "legal:datenschutz", "page:zahlungsarten"):
+        assert f'data-page-row="{key}"' in html
     # системная без своей страницы — «Bearbeiten» ведёт на форму-заготовку (GET без записи)
     assert "/dashboard/site/seiten/system/versand/" in html
     assert not ContentPage.objects.filter(slug__in=["versand", "ueber-uns"]).exists()
@@ -76,12 +77,20 @@ def test_versand_only_while_shop_takes_orders(monkeypatch):
         views.page_system(_req(), "versand")
 
 
-def test_staff_sees_legal_rows_locked():
-    req = _req(user=_user(Membership.ROLE_STAFF))
-    assert not view_perms.allowed(req.user, "legal-page-edit", "GET")
-    html = views.pages_list(req).content.decode()
-    assert "data-legal-locked" in html
-    assert "/dashboard/site/seiten/recht/" not in html
+def test_staff_and_admin_see_list_read_only():
+    """M21.11: правка любой страницы — право seiten.edit, по умолчанию только владелец."""
+    for role in (Membership.ROLE_STAFF, Membership.ROLE_ADMIN):
+        req = _req(user=_user(role))
+        for name in (
+            "legal-page-edit",
+            "content-page-edit",
+            "content-page-new",
+            "content-page-system",
+        ):
+            assert not view_perms.allowed(req.user, name, "GET"), (role, name)
+        html = views.pages_list(req).content.decode()
+        assert "data-pages-readonly" in html
+        assert "/dashboard/site/seiten/recht/" not in html and "data-page-new" not in html
 
 
 # --- системные страницы ------------------------------------------------------------
@@ -295,14 +304,36 @@ def test_empty_html_deletes_so_auto_text_returns(empty):
     assert not LegalDoc.objects.exists()
 
 
-def test_legal_page_edit_has_view_level_floor_guard():
-    assert getattr(views.legal_page_edit, "_required_perm", None) == view_perms.FLOOR
+def test_every_page_edit_view_is_guarded_by_seiten_edit():
+    for fn in (
+        views.legal_page_edit,
+        views.page_new,
+        views.page_edit,
+        views.page_system,
+        views.page_delete,
+        views.page_image_upload,
+    ):
+        assert getattr(fn, "_required_perm", None) == "seiten.edit", fn.__name__
+
+
+def test_owner_can_grant_seiten_edit_to_helper():
+    from apps.core import perm_grants, permissions
+
+    staff = _user(Membership.ROLE_STAFF)
+    assert not permissions.has_perm(staff, "seiten.edit")
+    m = Membership.objects.get(user=staff)
+    m.permissions = {"add": ["seiten.edit"], "remove": [], "template": ""}
+    m.save(update_fields=["permissions"])
+    staff = type(staff).objects.get(pk=staff.pk)
+    assert permissions.has_perm(staff, "seiten.edit")
+    assert view_perms.allowed(staff, "legal-page-edit", "POST")
+    assert perm_grants  # единственный писатель дельты — модуль существует
 
 
 def test_agb_text_only_in_second_language_counts_as_own():
     LegalDoc.objects.create(kind="agb", locale="en", text="Terms")
-    rows = {r.kind: r for r in views._legal_pages(_req())}
-    assert rows["agb"].state == "own" and rows["agb"].langs == ["en"]
+    rows = {r.key: r for r in content_pages.all_rows(_tenant())}
+    assert rows["legal:agb"].state == "own" and rows["legal:agb"].langs == ["en"]
 
 
 def test_new_own_page_cannot_take_a_system_address():

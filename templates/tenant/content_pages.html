@@ -3,110 +3,69 @@
 {% block dash_title %}{% trans "Seiten" %}{% endblock %}
 
 {% block dash_content %}
-{% comment %}M21.6: свои страницы сайта — список, «＋ Neue Seite», правка, удаление.{% endcomment %}
+{% comment %}M21.11 (решение владельца): ОДИН список всех текстовых страниц сайта —
+системные, правовые и свои вперемешку, без групп. Вид — меткой «Art». Правит тот, у кого
+право «Seiten bearbeiten» (по умолчанию владелец); остальные видят список без кнопок.
+Impressum и Datenschutz удалить нельзя (§ 5 DDG): у правовых кнопки «Löschen» нет вовсе —
+пустое поле в форме возвращает автоматический текст.{% endcomment %}
 <div class="max-w-6xl">
   <div class="flex flex-wrap items-end justify-between gap-3 mb-1">
     <h1 class="ui-h1">{% nav_title _("Seiten") %}</h1>
     {% if 'content-page-new'|can_open:request %}<a href="{% url 'content-page-new' %}" class="ui-btn ui-btn-primary" data-page-new>＋ {% trans "Neue Seite" %}</a>{% endif %}
   </div>
   <p class="text-gray-500 mb-4 text-sm">{% trans "Alle Textseiten Ihrer Website an einem Ort: Über uns, Versand, Rechtstexte und eigene Seiten. In das Menü kommt eine Seite über „Website › Menü“." %}</p>
+  {% if not 'content-page-new'|can_open:request %}
+  <p class="ui-card p-3 mb-4 text-sm text-gray-600" data-pages-readonly><span aria-hidden="true">🔒</span> {% trans "Seiten bearbeitet die Inhaberin oder der Inhaber. Das Recht „Seiten bearbeiten“ wird unter „Team & Zugriff“ vergeben." %}</p>
+  {% endif %}
 
   {% include "tenant/_settings_messages.html" %}
 
-  {% comment %}M21.10: системные страницы — у каждого бизнеса; без своей страницы витрина показывает стандартный вид.{% endcomment %}
-  {% if system_pages %}
-  <h2 class="ui-h2 mb-1">{% trans "Seiten Ihrer Website" %}</h2>
-  <div class="ui-card overflow-x-auto mb-8" data-system-pages>
+  <div class="ui-card overflow-x-auto" data-pages-list>
     <table class="ui-table">
+      <caption class="sr-only">{% trans "Seiten" %}</caption>
       <thead>
         <tr>
           <th scope="col">{% trans "Titel" %}</th>
-          <th scope="col">{% trans "Adresse" %}</th>
+          <th scope="col">{% trans "Art" %}</th>
           <th scope="col">{% trans "Status" %}</th>
+          <th scope="col">{% trans "Sichtbar" %}</th>
           <th scope="col"><span class="sr-only">{% trans "Aktionen" %}</span></th>
         </tr>
       </thead>
       <tbody>
-        {% for p in system_pages %}
-        <tr data-system-row="{{ p.slug }}">
-          <td class="font-medium">{{ p.title }}</td>
-          <td class="break-all"><a href="{{ p.url }}" target="_blank" rel="noopener" class="text-gray-600 hover:underline">{{ p.url }}</a></td>
-          <td>{% if p.state == "own" %}<span class="ui-badge ui-tone-ok">{% trans "Eigener Text" %}</span>{% if p.langs|length > 1 %} <span class="text-xs text-gray-500 uppercase">{{ p.langs|join:" · " }}</span>{% endif %}{% elif p.state == "draft" %}<span class="ui-badge ui-tone-off">{% trans "Entwurf" %}</span>{% elif p.slug == "versand" %}<span class="ui-badge ui-tone-new">{% trans "Nur Versandarten" %}</span>{% else %}<span class="ui-badge ui-tone-new">{% trans "Text von der Startseite" %}</span>{% endif %}</td>
-          <td class="text-right whitespace-nowrap">
-            {% if p.page %}
-            <a href="{% url 'content-page-edit' p.page.pk %}" class="ui-btn ui-btn-sm" aria-label="{% blocktrans with t=p.title %}{{ t }} bearbeiten{% endblocktrans %}">{% trans "Bearbeiten" %}</a>
-            {% else %}
-            <a href="{% url 'content-page-system' p.slug %}" class="ui-btn ui-btn-sm" aria-label="{% blocktrans with t=p.title %}{{ t }} bearbeiten{% endblocktrans %}">{% trans "Bearbeiten" %}</a>
-            {% endif %}
+        {% for r in rows %}
+        <tr data-page-row="{{ r.key }}">
+          <td>
+            {% if 'content-page-edit'|can_open:request %}<a href="{% url r.edit_name r.edit_arg %}" class="font-medium text-indigo-700 hover:underline">{{ r.title }}</a>{% else %}<span class="font-medium">{{ r.title }}</span>{% endif %}
+            {% if r.url and r.state != "off" %}<a href="{{ r.url }}" target="_blank" rel="noopener" class="block text-xs text-gray-500 hover:underline break-all">{{ r.url }}<span class="sr-only"> ({% trans "neuer Tab" %})</span></a>{% endif %}
           </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-  {% endif %}
-
-  <h2 class="ui-h2 mb-1">{% trans "Eigene Seiten" %}</h2>
-  {% if pages %}
-  <div class="ui-card overflow-x-auto">
-    <table class="ui-table">
-      <thead>
-        <tr>
-          <th scope="col">{% trans "Titel" %}</th>
-          <th scope="col">{% trans "Adresse" %}</th>
-          <th scope="col">{% trans "Status" %}</th>
-          <th scope="col"><span class="sr-only">{% trans "Aktionen" %}</span></th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for p in pages %}
-        <tr data-page-row="{{ p.slug }}">
-          <td><a href="{% url 'content-page-edit' p.pk %}" class="font-medium text-indigo-600 hover:underline">{{ p.title }}</a>
-            {% if p.system_label %}<span class="block text-xs text-gray-500">{{ p.system_label }}</span>{% endif %}</td>
-          <td class="break-all"><a href="{{ p.url }}" target="_blank" rel="noopener" class="text-gray-600 hover:underline">{{ p.url }}</a></td>
-          <td>{% if p.is_published %}<span class="ui-badge ui-tone-ok">{% trans "Veröffentlicht" %}</span>{% else %}<span class="ui-badge ui-tone-off">{% trans "Entwurf" %}</span>{% endif %}</td>
+          <td>{% if r.art %}<span class="ui-badge ui-tone-new">{{ r.art }}</span>{% else %}<span class="text-xs text-gray-500">{% trans "Eigene Seite" %}</span>{% endif %}</td>
+          <td>
+            {% if r.state == "own" %}<span class="ui-badge ui-tone-ok">{% trans "Eigener Text" %}</span>{% if r.langs|length > 1 %} <span class="text-xs text-gray-500 uppercase">{{ r.langs|join:" · " }}</span>{% endif %}
+            {% elif r.state == "draft" %}<span class="ui-badge ui-tone-off">{% trans "Entwurf" %}</span>
+            {% elif r.state == "off" %}<span class="ui-badge ui-tone-off">{% trans "Kein Text – Seite ausgeblendet" %}</span>
+            {% elif r.key == "system:versand" %}<span class="ui-badge ui-tone-new">{% trans "Nur Versandarten" %}</span>
+            {% elif r.key == "system:ueber-uns" %}<span class="ui-badge ui-tone-new">{% trans "Text von der Startseite" %}</span>
+            {% else %}<span class="ui-badge ui-tone-new">{% trans "Automatisch erstellt" %}</span>{% endif %}
+          </td>
+          <td class="text-sm text-gray-600" data-page-places>
+            {% if "menu" in r.places %}{% trans "im Menü" %}{% if "footer" in r.places %} · {% endif %}{% endif %}{% if "footer" in r.places %}{% trans "im Footer" %}{% endif %}
+            {% if not r.places %}<span class="text-gray-500">{% trans "nicht verlinkt" %}</span>{% endif %}
+          </td>
           <td class="text-right whitespace-nowrap">
-            <a href="{% url 'content-page-edit' p.pk %}" class="ui-btn ui-btn-sm" aria-label="{% blocktrans with t=p.title %}{{ t }} bearbeiten{% endblocktrans %}">{% trans "Bearbeiten" %}</a>
-            {% if 'content-page-new'|can_open:request %}
-            <form method="post" action="{% url 'content-page-delete' p.pk %}" class="inline">
+            {% if 'content-page-edit'|can_open:request %}
+            <a href="{% url r.edit_name r.edit_arg %}" class="ui-btn ui-btn-sm" aria-label="{% blocktrans with t=r.title %}{{ t }} bearbeiten{% endblocktrans %}">{% trans "Bearbeiten" %}</a>
+            {% if r.deletable %}
+            <form method="post" action="{% url 'content-page-delete' r.page.pk %}" class="inline">
               {% csrf_token %}
-              <button class="ui-btn ui-btn-sm ui-btn-danger" data-confirm-tap="{% trans 'Wirklich löschen?' %}" aria-label="{% blocktrans with t=p.title %}Seite „{{ t }}“ löschen{% endblocktrans %}">{% trans "Löschen" %}</button>
+              {% if r.kind == "system" %}
+              <button class="ui-btn ui-btn-sm ui-btn-danger" data-confirm-tap="{% trans 'Wirklich löschen?' %}" aria-label="{% blocktrans with t=r.title %}Eigenen Text von „{{ t }}“ entfernen{% endblocktrans %}">{% trans "Zurücksetzen" %}</button>
+              {% else %}
+              <button class="ui-btn ui-btn-sm ui-btn-danger" data-confirm-tap="{% trans 'Wirklich löschen?' %}" aria-label="{% blocktrans with t=r.title %}Seite „{{ t }}“ löschen{% endblocktrans %}">{% trans "Löschen" %}</button>
+              {% endif %}
             </form>
             {% endif %}
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-  {% else %}
-  <div class="ui-card p-8 text-center">
-    <p class="ui-muted mb-3">{% trans "Noch keine eigenen Seiten." %}</p>
-    {% if 'content-page-new'|can_open:request %}<a href="{% url 'content-page-new' %}" class="ui-btn ui-btn-primary">＋ {% trans "Neue Seite" %}</a>{% endif %}
-  </div>
-  {% endif %}
-
-  {% comment %}M21.10: правовые тексты правятся здесь же (только владелец — § 5 DDG); удалить нельзя.{% endcomment %}
-  <h2 class="ui-h2 mt-8 mb-1">{% trans "Rechtliche Seiten" %}</h2>
-  <p class="text-gray-500 mb-3 text-sm">{% trans "Impressum, Datenschutz, Widerruf und AGB sind gesetzlich vorgeschrieben und können nicht gelöscht werden. Ohne eigenen Text wird er automatisch aus Ihren Geschäftsdaten erstellt." %}</p>
-  <div class="ui-card overflow-x-auto" data-legal-pages>
-    <table class="ui-table">
-      <thead>
-        <tr>
-          <th scope="col">{% trans "Titel" %}</th>
-          <th scope="col">{% trans "Adresse" %}</th>
-          <th scope="col">{% trans "Status" %}</th>
-          <th scope="col"><span class="sr-only">{% trans "Aktionen" %}</span></th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for p in legal_pages %}
-        <tr data-legal-row="{{ p.kind }}">
-          <td class="font-medium">{{ p.title }}</td>
-          <td class="break-all">{% if p.state != "off" %}<a href="{{ p.url }}" target="_blank" rel="noopener" class="text-gray-600 hover:underline">{{ p.url }}</a>{% else %}<span class="ui-muted">{{ p.url }}</span>{% endif %}</td>
-          <td>{% if p.state == "own" %}<span class="ui-badge ui-tone-ok">{% trans "Eigener Text" %}</span>{% if p.langs|length > 1 %} <span class="text-xs text-gray-500 uppercase">{{ p.langs|join:" · " }}</span>{% endif %}{% elif p.state == "auto" %}<span class="ui-badge ui-tone-new">{% trans "Automatisch erstellt" %}</span>{% else %}<span class="ui-badge ui-tone-off">{% trans "Kein Text – Seite ausgeblendet" %}</span>{% endif %}</td>
-          <td class="text-right whitespace-nowrap">
-            {% if 'legal-page-edit'|can_open:request %}<a href="{% url 'legal-page-edit' p.kind %}" class="ui-btn ui-btn-sm" aria-label="{% blocktrans with t=p.title %}{{ t }} bearbeiten{% endblocktrans %}">{% trans "Bearbeiten" %}</a>{% else %}<span class="text-xs text-gray-500" data-legal-locked><span aria-hidden="true">🔒</span> {% trans "Nur Inhaber/in" %}</span>{% endif %}
+            {% endif %}
           </td>
         </tr>
         {% endfor %}

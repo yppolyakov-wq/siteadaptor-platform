@@ -34,6 +34,8 @@ SYSTEM_TITLES = {
     "ueber-uns": _("Über uns"),
     "versand": _("Versand & Zahlung"),
 }
+#: M21.11: метка вида в строке списка «Seiten».
+SYSTEM_ART = {"ueber-uns": _("Über uns"), "versand": _("Versand")}
 SLUG_MAX = 80
 #: M21.10: потолок текста страницы (DoS через гигантский POST/nh3).
 BODY_MAX = 200_000
@@ -297,4 +299,138 @@ def system_rows(tenant=None) -> list:
                 state=state,
             )
         )
+    return rows
+
+
+# --- M21.11: один список всех страниц ---------------------------------------------------
+
+#: Правовые страницы: вид → url-name витрины. Impressum и Datenschutz нельзя удалить
+#: (§ 5 DDG, Art. 13 DSGVO); остальные «удаляются» очисткой своего текста в форме.
+LEGAL_PAGES = (
+    ("impressum", "storefront-impressum"),
+    ("datenschutz", "storefront-privacy"),
+    ("widerruf", "storefront-withdrawal"),
+    ("agb", "storefront-agb"),
+)
+#: Ссылки подвала, которые витрина ставит сама (`storefront/_base.html`).
+_AUTO_FOOTER = {"impressum", "datenschutz", "widerruf"}
+
+
+def _menu_urls(tenant) -> tuple[set, set]:
+    """Адреса пунктов шапки/нижнего меню и колонок подвала (fail-safe: пусто)."""
+    from apps.tenants import menu
+
+    def walk(items, out):
+        for item in items or []:
+            if item.get("url"):
+                out.add(item["url"].split("#")[0])
+            walk(item.get("children"), out)
+
+    in_menu, in_footer = set(), set()
+    try:
+        walk(menu.resolve_menu(tenant, "top"), in_menu)
+        walk(menu.resolve_menu(tenant, "bottom"), in_menu)
+        for col in menu.resolve_footer(tenant):
+            walk(col.get("items"), in_footer)
+    except Exception:  # noqa: BLE001 — колонка «Sichtbar» не роняет список страниц
+        pass
+    return in_menu, in_footer
+
+
+def all_rows(tenant=None) -> list:
+    """Строки списка «Seiten» — системные, правовые и свои вперемешку (решение
+    владельца M21.11: без групп). Только чтение. Порядок: страницы, на которые есть
+    ссылка с сайта (меню/подвал), затем остальные; внутри — по названию."""
+    from types import SimpleNamespace
+
+    from django.db import DatabaseError
+
+    from apps.core.models import ContentPage, LegalDoc
+
+    tenant = tenant or getattr(connection, "tenant", None)
+    in_menu, in_footer = _menu_urls(tenant)
+    locale = (getattr(tenant, "default_locale", "") or "de").split("-")[0]
+
+    def where(url, auto_footer=False):
+        places = []
+        if url and url in in_menu:
+            places.append("menu")
+        if auto_footer or (url and url in in_footer):
+            places.append("footer")
+        return places
+
+    rows = []
+    system = {row.slug: row for row in system_rows(tenant)}
+    for slug, row in system.items():
+        rows.append(
+            SimpleNamespace(
+                key=f"system:{slug}",
+                kind="system",
+                art=str(SYSTEM_ART[slug]),
+                title=row.title,
+                url=row.url,
+                state=row.state,
+                langs=[],
+                page=row.page,
+                edit_name="content-page-edit" if row.page else "content-page-system",
+                edit_arg=row.page.pk if row.page else slug,
+                deletable=bool(row.page),
+                places=where(row.url, auto_footer=(slug == "versand")),
+            )
+        )
+    try:
+        langs: dict = {}
+        for kind, loc in (
+            LegalDoc.objects.exclude(text="").values_list("kind", "locale").order_by("locale")
+        ):
+            langs.setdefault(kind, []).append(loc)
+    except DatabaseError:
+        langs = {}
+    labels = dict(LegalDoc.KIND_CHOICES)
+    for kind, url_name in LEGAL_PAGES:
+        have = langs.get(kind, [])
+        if locale in have or (kind == "agb" and have):
+            state = "own"
+        elif kind == "agb":
+            state = "off"  # без текста страницы /agb/ нет
+        else:
+            state = "auto"
+        url = reverse(url_name)
+        rows.append(
+            SimpleNamespace(
+                key=f"legal:{kind}",
+                kind="legal",
+                art=str(labels[kind]),
+                title=str(labels[kind]),
+                url=url,
+                state=state,
+                langs=have,
+                page=None,
+                edit_name="legal-page-edit",
+                edit_arg=kind,
+                deletable=False,
+                places=where(
+                    url, auto_footer=kind in _AUTO_FOOTER or (kind == "agb" and state == "own")
+                ),
+            )
+        )
+    for page in ContentPage.objects.exclude(slug__in=list(system)):
+        url = page_url(page, tenant)
+        rows.append(
+            SimpleNamespace(
+                key=f"page:{page.slug}",
+                kind="own",
+                art="",
+                title=page.title,
+                url=url,
+                state="own" if page.is_published else "draft",
+                langs=[],
+                page=page,
+                edit_name="content-page-edit",
+                edit_arg=page.pk,
+                deletable=True,
+                places=where(url) if page.is_published else [],
+            )
+        )
+    rows.sort(key=lambda r: (not r.places, r.title.lower()))
     return rows

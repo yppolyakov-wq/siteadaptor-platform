@@ -37141,3 +37141,25 @@ msgstr "Текст вставлено — Ctrl+Z скасує."
 
 msgid "Diese Adresse ist für eine Seite Ihrer Website reserviert."
 msgstr "Ця адреса зайнята сторінкою вашого сайту."
+
+#, python-format
+msgid "Eigenen Text von „%(t)s“ entfernen"
+msgstr "Видалити власний текст сторінки «%(t)s»"
+
+msgid "Seiten bearbeiten (Texte, Impressum, AGB)"
+msgstr "Редагувати сторінки (тексти, Impressum, AGB)"
+
+msgid "Seiten bearbeitet die Inhaberin oder der Inhaber. Das Recht „Seiten bearbeiten“ wird unter „Team & Zugriff“ vergeben."
+msgstr "Сторінки редагує власник. Право «Редагувати сторінки» надається в «Команда й доступ»."
+
+msgid "im Footer"
+msgstr "у підвалі"
+
+msgid "im Menü"
+msgstr "у меню"
+
+msgid "neuer Tab"
+msgstr "нова вкладка"
+
+msgid "nicht verlinkt"
+msgstr "ніде не вказана"

@@ -36965,3 +36965,25 @@ msgstr "Metin eklendi – Ctrl+Z ile geri alabilirsiniz."
 
 msgid "Diese Adresse ist für eine Seite Ihrer Website reserviert."
 msgstr "Bu adres web sitenizin bir sayfası için ayrılmıştır."
+
+#, python-format
+msgid "Eigenen Text von „%(t)s“ entfernen"
+msgstr "„%(t)s“ sayfasının kendi metnini kaldır"
+
+msgid "Seiten bearbeiten (Texte, Impressum, AGB)"
+msgstr "Sayfaları düzenle (metinler, künye, genel şartlar)"
+
+msgid "Seiten bearbeitet die Inhaberin oder der Inhaber. Das Recht „Seiten bearbeiten“ wird unter „Team & Zugriff“ vergeben."
+msgstr "Sayfaları işletme sahibi düzenler. “Sayfaları düzenle” yetkisi “Ekip ve erişim” altında verilir."
+
+msgid "im Footer"
+msgstr "altbilgide"
+
+msgid "im Menü"
+msgstr "menüde"
+
+msgid "neuer Tab"
+msgstr "yeni sekme"
+
+msgid "nicht verlinkt"
+msgstr "bağlantı yok"

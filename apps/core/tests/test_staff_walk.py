@@ -150,7 +150,10 @@ def test_perm_decorated_views_match_their_route_rule():
         if not key:
             continue
         name = resolve(
-            "/" + route.replace("<uuid:pk>", str(uuid4())).replace("<slug:kind>", "agb")
+            "/"
+            + route.replace("<uuid:pk>", str(uuid4()))
+            .replace("<slug:kind>", "agb")
+            .replace("<slug:slug>", "versand")
         ).view_name
         rule = view_perms.rule_for(name)
         if rule is None or key not in (rule.read, rule.write):
@@ -165,7 +168,10 @@ def test_decorated_list_of_yesterday_is_still_guarded_on_the_view():
         if getattr(callback, "_required_perm", ""):
             try:
                 name = resolve(
-                    "/" + route.replace("<uuid:pk>", str(uuid4())).replace("<slug:kind>", "agb")
+                    "/"
+                    + route.replace("<uuid:pk>", str(uuid4()))
+                    .replace("<slug:kind>", "agb")
+                    .replace("<slug:slug>", "versand")
                 ).view_name
             except Exception:  # noqa: BLE001 — путь с другими параметрами
                 continue

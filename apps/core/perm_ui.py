@@ -65,6 +65,7 @@ LABELS = {
     "stadtportal.view": _("Stadtportal-Statistik ansehen"),
     "website.view": _("Website ansehen"),
     "website.edit": _("Website gestalten"),
+    "seiten.edit": _("Seiten bearbeiten (Texte, Impressum, AGB)"),
     "domains.view": _("Domains ansehen"),
     "domains.edit": _("Domains verwalten"),
     "finanzen.kennzahlen": _("Kennzahlen ansehen"),

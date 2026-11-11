@@ -15,7 +15,7 @@ from django.views.decorators.http import require_POST
 from apps.core import content_pages
 from apps.core.models import ContentPage
 from apps.core.richtext import sanitize_page
-from apps.core.view_perms import FLOOR, perm_required
+from apps.core.view_perms import perm_required
 
 
 def _can_preview(request) -> bool:
@@ -57,71 +57,13 @@ def storefront_page(request, slug):
 
 @login_required
 def pages_list(request):
-    """M21.10: ОДИН центр всех текстовых страниц сайта — системные (Über uns, Versand),
-    правовые (Impressum, Datenschutz, Widerruf, AGB) и свои."""
-    tenant = getattr(request, "tenant", None)
-    # Системные — своей группой; «Versand» при выключенном магазине (страницы нет)
-    # остаётся в «своих», чтобы текст не потерялся из виду.
-    system = content_pages.system_rows(tenant)
-    shown = {row.slug for row in system}
-    pages = [p for p in ContentPage.objects.all() if p.slug not in shown]
-    for page in pages:
-        page.url = content_pages.page_url(page)
-        page.system_label = content_pages.SYSTEM_LABELS.get(page.slug, "")
+    """M21.11: ОДИН список всех текстовых страниц сайта — системные (Über uns, Versand),
+    правовые и свои вперемешку, без групп (решение владельца)."""
     return render(
         request,
         "tenant/content_pages.html",
-        {
-            "pages": pages,
-            "system_pages": system,
-            "legal_pages": _legal_pages(request),
-            "nav": "content-pages",
-        },
+        {"rows": content_pages.all_rows(getattr(request, "tenant", None)), "nav": "content-pages"},
     )
-
-
-#: M21.6: правовые страницы витрины — живут в «Recht & Steuern» (LegalDoc), в списке
-#: «Seiten» показываем их строками со ссылкой туда (удалить нельзя — закон).
-_LEGAL_PAGES = (
-    ("impressum", "storefront-impressum"),
-    ("datenschutz", "storefront-privacy"),
-    ("widerruf", "storefront-withdrawal"),
-    ("agb", "storefront-agb"),
-)
-
-
-def _legal_pages(request) -> list:
-    from django.urls import reverse
-
-    from apps.core.models import LegalDoc
-
-    tenant = getattr(request, "tenant", None)
-    locale = (getattr(tenant, "default_locale", "") or "de").split("-")[0]
-    langs: dict = {}
-    for kind, loc in (
-        LegalDoc.objects.exclude(text="").values_list("kind", "locale").order_by("locale")
-    ):
-        langs.setdefault(kind, []).append(loc)
-    labels = dict(LegalDoc.KIND_CHOICES)
-    rows = []
-    for kind, url_name in _LEGAL_PAGES:
-        # Свой текст хотя бы на одном языке (AGB только на en тоже видна en-посетителю).
-        if locale in langs.get(kind, ()) or (kind == "agb" and langs.get(kind)):
-            state = "own"
-        elif kind == "agb":
-            state = "off"  # без текста страницы /agb/ нет
-        else:
-            state = "auto"
-        rows.append(
-            SimpleNamespace(
-                kind=kind,
-                title=labels[kind],
-                url=reverse(url_name),
-                state=state,
-                langs=langs.get(kind, []),
-            )
-        )
-    return rows
 
 
 def _form(request, page, *, created: bool):
@@ -172,11 +114,13 @@ def _form(request, page, *, created: bool):
 
 
 @login_required
+@perm_required("seiten.edit")
 def page_new(request):
     return _form(request, ContentPage(is_published=True), created=True)
 
 
 @login_required
+@perm_required("seiten.edit")
 def page_system(request, slug):
     """M21.10: «Bearbeiten» системной страницы (Über uns, Versand). Есть своя страница —
     открываем её; нет — форма с несохранённой заготовкой: GET ничего не пишет
@@ -191,12 +135,14 @@ def page_system(request, slug):
 
 
 @login_required
+@perm_required("seiten.edit")
 def page_edit(request, pk):
     page = get_object_or_404(ContentPage, pk=pk)
     return _form(request, page, created=False)
 
 
 @login_required
+@perm_required("seiten.edit")
 @require_POST
 def page_delete(request, pk):
     page = ContentPage.objects.filter(pk=pk).first()
@@ -215,6 +161,7 @@ def page_delete(request, pk):
 
 
 @login_required
+@perm_required("seiten.edit")
 @require_POST
 def page_image_upload(request):
     """M21.8 B4: «🖼 Bild» в редакторе своей страницы — файл с компьютера.
@@ -255,7 +202,7 @@ def page_image_upload(request):
 
 
 @login_required
-@perm_required(FLOOR)
+@perm_required("seiten.edit")
 def legal_page_edit(request, kind):
     """Правовой текст (Impressum/Datenschutz/Widerruf/AGB) по языкам — тот же редактор,
     что у страниц. Хранилище — ``LegalDoc``, писатель — ``legal.save_legal_doc``.
@@ -302,7 +249,7 @@ def legal_page_edit(request, kind):
         }
         for loc in locales
     ]
-    url_name = dict(_LEGAL_PAGES)[kind]
+    url_name = dict(content_pages.LEGAL_PAGES)[kind]
     from django.urls import reverse
 
     return render(

@@ -135,9 +135,14 @@ def test_versand_text_shows_above_shipping_methods(monkeypatch):
 
 
 def _user():
+    """M21.11: правка страниц — право seiten.edit (по умолчанию у владельца)."""
     from django.contrib.auth import get_user_model
 
-    return get_user_model().objects.create_user(username="owner-cp", password="pw1234567")
+    from apps.core.models import Membership
+
+    user = get_user_model().objects.create_user(username="owner-cp", password="pw1234567")
+    Membership.objects.create(user=user, role=Membership.ROLE_OWNER)
+    return user
 
 
 def test_create_edit_delete_page():
@@ -266,8 +271,11 @@ def test_legal_pages_listed_with_state_and_link_to_legal_tab():
     from apps.core.models import LegalDoc
 
     LegalDoc.objects.create(kind="impressum", locale="de", text="Teeladen Haan")
-    rows = {r.kind: r for r in views._legal_pages(_req())}
-    assert list(rows) == ["impressum", "datenschutz", "widerruf", "agb"]
+    rows = {
+        r.key.split(":")[1]: r for r in content_pages.all_rows(_req().tenant) if r.kind == "legal"
+    }
+    assert set(rows) == {"impressum", "datenschutz", "widerruf", "agb"}
+    assert not any(r.deletable for r in rows.values())  # M21.11: правовые не удаляются
     assert (rows["impressum"].state, rows["datenschutz"].state, rows["agb"].state) == (
         "own",
         "auto",
@@ -275,12 +283,9 @@ def test_legal_pages_listed_with_state_and_link_to_legal_tab():
     )
     assert rows["impressum"].url == "/impressum/" and rows["agb"].url == "/agb/"
 
-    from apps.core.models import Membership
-
     owner = _user()
-    Membership.objects.create(user=owner, role=Membership.ROLE_OWNER)
     html = views.pages_list(_req(user=owner)).content.decode()
-    assert 'data-legal-row="impressum"' in html and 'data-legal-row="agb"' in html
+    assert 'data-page-row="legal:impressum"' in html and 'data-page-row="legal:agb"' in html
     assert "/dashboard/site/seiten/recht/agb/" in html
 
 

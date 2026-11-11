@@ -36819,3 +36819,25 @@ msgstr "Text inserted – Ctrl+Z undoes it."
 
 msgid "Diese Adresse ist für eine Seite Ihrer Website reserviert."
 msgstr "This address is reserved for one of your website pages."
+
+#, python-format
+msgid "Eigenen Text von „%(t)s“ entfernen"
+msgstr "Remove own text of “%(t)s”"
+
+msgid "Seiten bearbeiten (Texte, Impressum, AGB)"
+msgstr "Edit pages (texts, imprint, terms)"
+
+msgid "Seiten bearbeitet die Inhaberin oder der Inhaber. Das Recht „Seiten bearbeiten“ wird unter „Team & Zugriff“ vergeben."
+msgstr "Pages are edited by the owner. The “Edit pages” permission is granted under “Team & access”."
+
+msgid "im Footer"
+msgstr "in footer"
+
+msgid "im Menü"
+msgstr "in menu"
+
+msgid "neuer Tab"
+msgstr "new tab"
+
+msgid "nicht verlinkt"
+msgstr "not linked"

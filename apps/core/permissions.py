@@ -80,6 +80,9 @@ _ALL = (
     # Website
     _p("website.view", "website"),
     _p("website.edit", "website", ["website.view"]),
+    # M21.11 (решение владельца): тексты страниц сайта, включая Impressum/Datenschutz/
+    # Widerruf/AGB, — по умолчанию только владелец, помощнику выдаётся точечно.
+    _p("seiten.edit", "website", ["website.view"], sensitive=True),
     _p("domains.view", "website"),
     _p("domains.edit", "website", ["domains.view"], sensitive=True),
     # Zahlen & Finanzen
@@ -126,6 +129,7 @@ _OWNER_ONLY_TODAY = frozenset(
         "kunden.export",
         "kunden.dsgvo",
         "kanaele.edit",
+        "seiten.edit",
         "stadtportal.view",
         "finanzen.bank",
         "betriebsferien.ganz",

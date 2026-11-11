@@ -36906,3 +36906,25 @@ msgstr "Text übernommen – Strg+Z macht es rückgängig."
 
 msgid "Diese Adresse ist für eine Seite Ihrer Website reserviert."
 msgstr "Diese Adresse ist für eine Seite Ihrer Website reserviert."
+
+#, python-format
+msgid "Eigenen Text von „%(t)s“ entfernen"
+msgstr "Eigenen Text von „%(t)s“ entfernen"
+
+msgid "Seiten bearbeiten (Texte, Impressum, AGB)"
+msgstr "Seiten bearbeiten (Texte, Impressum, AGB)"
+
+msgid "Seiten bearbeitet die Inhaberin oder der Inhaber. Das Recht „Seiten bearbeiten“ wird unter „Team & Zugriff“ vergeben."
+msgstr "Seiten bearbeitet die Inhaberin oder der Inhaber. Das Recht „Seiten bearbeiten“ wird unter „Team & Zugriff“ vergeben."
+
+msgid "im Footer"
+msgstr "im Footer"
+
+msgid "im Menü"
+msgstr "im Menü"
+
+msgid "neuer Tab"
+msgstr "neuer Tab"
+
+msgid "nicht verlinkt"
+msgstr "nicht verlinkt"

@@ -45,6 +45,8 @@ V, E = "verkaeufe.view", "verkaeufe.edit"
 S, SE = "sortiment.view", "sortiment.edit"
 M, ME = "marketing.view", "marketing.edit"
 W, WE = "website.view", "website.edit"
+#: M21.11: тексты страниц (вкл. правовые) — по умолчанию только владелец.
+PG = "seiten.edit"
 CFG, CFGE = "einstellungen.view", "einstellungen.edit"
 A, AE = "ablaeufe.view", "ablaeufe.edit"
 L, LE = "lager.view", "lager.edit"
@@ -386,14 +388,14 @@ RULES: dict[str, Rule] = {
     "site-sections": _r(W, WE),
     "site-seo": _r(W, WE),
     "content-pages": _r(W, WE),
-    "content-page-new": _r(W, WE),
-    "content-page-edit": _r(W, WE),
-    "content-page-delete": _r(W, WE),
+    "content-page-new": _r(PG, PG),
+    "content-page-edit": _r(PG, PG),
+    "content-page-delete": _r(PG, PG),
     # M21.8 B4: загрузка картинки в редакторе страницы
-    "content-page-image": _r(WE, WE),
-    # M21.10: системная страница (Über uns, Versand); правовой текст — только владелец
-    "content-page-system": _r(W, WE),
-    "legal-page-edit": _r(FLOOR),
+    "content-page-image": _r(PG, PG),
+    # M21.10/M21.11: системные и правовые страницы — то же право «Seiten bearbeiten»
+    "content-page-system": _r(PG, PG),
+    "legal-page-edit": _r(PG, PG),
     "site-redirects": _r(W, WE),
     "site-redirects-import": _r(W, WE),
     "site-redirects-export": _r(W, WE),
