@@ -36997,3 +36997,33 @@ msgstr "Contact & opening hours"
 
 msgid "Welche Seite?"
 msgstr "Which page?"
+
+msgid "Bild zugeschnitten."
+msgstr "Image cropped."
+
+msgid "Bild zuschneiden"
+msgstr "Crop image"
+
+msgid "Bildausschnitt"
+msgstr "Image section"
+
+msgid "Breite in Prozent"
+msgstr "Width in percent"
+
+msgid "Das Bild ist zu groß zum Zuschneiden."
+msgstr "The image is too large to crop."
+
+msgid "Dieses Bild kann nicht zugeschnitten werden."
+msgstr "This image cannot be cropped."
+
+msgid "Oder an der Ecke des Bildes ziehen."
+msgstr "Or drag the corner of the image."
+
+msgid "Rahmen ziehen oder an den Ecken größer/kleiner machen. Pfeiltasten verschieben, mit Umschalt ändern sie die Größe."
+msgstr "Drag the frame or resize it at the corners. Arrow keys move it; with Shift they change its size."
+
+msgid "Seitenverhältnis"
+msgstr "Aspect ratio"
+
+msgid "Ungültiger Bildausschnitt."
+msgstr "Invalid image section."

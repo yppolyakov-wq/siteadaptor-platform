@@ -250,6 +250,27 @@ def page_image_upload(request):
     return JsonResponse({"url": ref["url"]})
 
 
+@login_required
+@perm_required("seiten.edit")
+@require_POST
+def page_image_crop(request):
+    """M21.11: «✂ Zuschneiden» в окне фото — новая обрезанная копия, ответ — её адрес."""
+    from apps.core import page_images, ratelimit
+
+    tenant = getattr(request, "tenant", None)
+    ident = f"{getattr(tenant, 'schema_name', '')}:{request.user.pk}"
+    if ratelimit.hit("page-image", ident, limit=60, window=3600):
+        return JsonResponse({"error": _("Zu viele Uploads. Bitte später erneut.")}, status=429)
+    try:
+        url = page_images.crop_page_image(
+            request.POST.get("src", ""),
+            [request.POST.get(k) for k in ("x", "y", "w", "h")],
+        )
+    except page_images.CropError as exc:
+        return JsonResponse({"error": str(exc)}, status=400)
+    return JsonResponse({"url": url})
+
+
 # --- M21.10: правовые тексты прямо в «Seiten» ----------------------------------------
 
 

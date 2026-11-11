@@ -334,6 +334,11 @@ urlpatterns = [
         name="content-page-image",
     ),
     path(
+        "dashboard/site/seiten/bild/zuschneiden/",
+        content_page_views.page_image_crop,
+        name="content-page-image-crop",
+    ),
+    path(
         "dashboard/site/seiten/medien/",
         content_page_views.page_media_list,
         name="content-page-media",

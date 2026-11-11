@@ -53,6 +53,21 @@ Esc — обратно), выравнивание текста, H4, цитата
   .rte-area [class*="sf-col-"] { min-width: 0; border: 1px dashed #c7d2fe; border-radius: .5rem; padding: .5rem; }
   .rte-area .sf-col-4 { grid-column: span 4; } .rte-area .sf-col-6 { grid-column: span 6; }
   .rte-area .sf-col-8 { grid-column: span 8; } .rte-area .sf-col-12 { grid-column: span 12; }
+  /* M21.11: ширина фото (шаг 5 %) + ручка на углу + окно кадрирования */
+  .rte-area .sf-w-10 { width: 10%; } .rte-area .sf-w-15 { width: 15%; } .rte-area .sf-w-20 { width: 20%; } .rte-area .sf-w-25 { width: 25%; } .rte-area .sf-w-30 { width: 30%; } .rte-area .sf-w-35 { width: 35%; } .rte-area .sf-w-40 { width: 40%; } .rte-area .sf-w-45 { width: 45%; } .rte-area .sf-w-50 { width: 50%; } .rte-area .sf-w-55 { width: 55%; } .rte-area .sf-w-60 { width: 60%; } .rte-area .sf-w-65 { width: 65%; } .rte-area .sf-w-70 { width: 70%; } .rte-area .sf-w-75 { width: 75%; } .rte-area .sf-w-80 { width: 80%; } .rte-area .sf-w-85 { width: 85%; } .rte-area .sf-w-90 { width: 90%; } .rte-area .sf-w-95 { width: 95%; } .rte-area .sf-w-100 { width: 100%; }
+  .rte-area figure .rte-resize { position: absolute; right: -6px; bottom: -6px; width: 16px; height: 16px; border-radius: 4px; background: #4f46e5; border: 2px solid #fff; box-shadow: 0 0 0 1px #4f46e5; cursor: nwse-resize; touch-action: none; display: none; }
+  .rte-area figure.rte-sel .rte-resize, .rte-area figure:hover .rte-resize, .rte-area figure:focus .rte-resize { display: block; }
+  .rte-area figure.sf-float-right .rte-resize { right: auto; left: -6px; cursor: nesw-resize; }
+  .rte-area figure[data-rte-w]::before { content: attr(data-rte-w); position: absolute; right: 4px; top: 4px; z-index: 1; background: #111827; color: #fff; font-size: 12px; padding: 1px 6px; border-radius: 6px; }
+  .rte-crop { border: 0; border-radius: .75rem; padding: 1rem; max-width: min(56rem, 96vw); width: 100%; }
+  .rte-crop::backdrop { background: rgba(17,24,39,.6); }
+  .rte-crop-stage { position: relative; display: inline-block; max-width: 100%; user-select: none; touch-action: none; }
+  .rte-crop-stage img { display: block; max-width: 100%; max-height: 65vh; }
+  .rte-crop-box { position: absolute; box-shadow: 0 0 0 9999px rgba(0,0,0,.5); outline: 2px solid #fff; cursor: move; }
+  .rte-crop-box:focus-visible { outline: 3px solid #4f46e5; }
+  .rte-crop-box i { position: absolute; width: 14px; height: 14px; background: #fff; border: 2px solid #4f46e5; border-radius: 3px; }
+  .rte-crop-box i[data-h="nw"] { left: -8px; top: -8px; cursor: nwse-resize; } .rte-crop-box i[data-h="ne"] { right: -8px; top: -8px; cursor: nesw-resize; }
+  .rte-crop-box i[data-h="sw"] { left: -8px; bottom: -8px; cursor: nesw-resize; } .rte-crop-box i[data-h="se"] { right: -8px; bottom: -8px; cursor: nwse-resize; }
   /* M21.11 P5 */
   .rte-area a.sf-btn { display: inline-block; background: #4f46e5; color: #fff; padding: .35rem .9rem; border-radius: .5rem; text-decoration: none; font-weight: 600; }
   .rte-area .sf-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: .5rem; margin: .5rem 0; }
@@ -152,6 +167,16 @@ Esc — обратно), выравнивание текста, H4, цитата
     done: "{% trans 'Fertig' as t %}{{ t|escapejs }}",
     close: "{% trans 'Schließen' as t %}{{ t|escapejs }}",
     sizes: [["sm", "S · 25 %"], ["md", "M · 50 %"], ["lg", "L · 75 %"], ["full", "{% trans 'Volle Breite' as t %}{{ t|escapejs }}"]],
+    width: "{% trans 'Breite in Prozent' as t %}{{ t|escapejs }}",
+    widthHelp: "{% trans 'Oder an der Ecke des Bildes ziehen.' as t %}{{ t|escapejs }}",
+    crop: "{% trans 'Zuschneiden' as t %}{{ t|escapejs }}",
+    cropTitle: "{% trans 'Bild zuschneiden' as t %}{{ t|escapejs }}",
+    cropHelp: "{% trans 'Rahmen ziehen oder an den Ecken größer/kleiner machen. Pfeiltasten verschieben, mit Umschalt ändern sie die Größe.' as t %}{{ t|escapejs }}",
+    cropArea: "{% trans 'Bildausschnitt' as t %}{{ t|escapejs }}",
+    cropDone: "{% trans 'Bild zugeschnitten.' as t %}{{ t|escapejs }}",
+    cancel: "{% trans 'Abbrechen' as t %}{{ t|escapejs }}",
+    ratio: "{% trans 'Seitenverhältnis' as t %}{{ t|escapejs }}",
+    free: "{% trans 'Frei' as t %}{{ t|escapejs }}",
     positions: [
       ["left", "{% trans 'Links, Text daneben' as t %}{{ t|escapejs }}"],
       ["center", "{% trans 'Mittig' as t %}{{ t|escapejs }}"],
@@ -187,7 +212,7 @@ Esc — обратно), выравнивание текста, H4, цитата
     });
   }
   // Служебные атрибуты редактора (фокус фигуры, пометки) в сохранённый HTML не идут.
-  var EDITOR_ATTRS = ["contenteditable", "tabindex", "data-decorative", "data-new", "data-rte-warn", "aria-label", "role"];
+  var EDITOR_ATTRS = ["contenteditable", "tabindex", "data-decorative", "data-new", "data-rte-warn", "data-rte-w", "aria-label", "role"];
   function cleanClone(area) {
     var c = area.cloneNode(true);
     c.querySelectorAll("figure").forEach(function (el) {
@@ -196,6 +221,7 @@ Esc — обратно), выравнивание текста, H4, цитата
       if (!el.getAttribute("class")) el.removeAttribute("class");
     });
     c.querySelectorAll("details").forEach(function (d) { d.removeAttribute("open"); });
+    c.querySelectorAll(".rte-resize").forEach(function (h) { h.remove(); });
     return c;
   }
   // Без разметки — обычный текст (иначе «Tom & Jerry» ушло бы как «&amp;»); пустой
@@ -333,6 +359,29 @@ Esc — обратно), выравнивание текста, H4, цитата
     fig.setAttribute("aria-label", T.image + ": " + (alt || (missing ? T.altShort : T.decorative)));
     fig.setAttribute("data-rte-warn", T.altShort);
     fig.classList.toggle("rte-noalt", missing);
+    // M21.11: ручка ширины на углу (только мышь/палец; с клавиатуры — поле в окне фото).
+    if (!fig.querySelector(".rte-resize")) {
+      var h = document.createElement("span");
+      h.className = "rte-resize";
+      h.setAttribute("aria-hidden", "true");
+      fig.appendChild(h);
+    }
+  }
+  // M21.11: ширина фото в % (шаг 5). Старые классы S/M/L/Voll читаются как 25/50/75/100.
+  var OLD_W = { sm: 25, md: 50, lg: 75, full: 100 };
+  function figWidth(fig) {
+    var m = /\bsf-w-(\d+)\b/.exec(fig.className);
+    if (m) return +m[1];
+    var o = /\bsf-img-(sm|md|lg|full)\b/.exec(fig.className);
+    return o ? OLD_W[o[1]] : 100;
+  }
+  function setFigWidth(fig, pct) {
+    pct = Math.max(10, Math.min(100, Math.round(pct / 5) * 5));
+    Array.prototype.slice.call(fig.classList).forEach(function (c) {
+      if (/^sf-(?:w-\d+|img-(?:sm|md|lg|full))$/.test(c)) fig.classList.remove(c);
+    });
+    fig.classList.add("sf-w-" + pct);
+    return pct;
   }
   function wrapImage(img) {
     if (img.parentNode && img.parentNode.tagName === "FIGURE") return img.parentNode;
@@ -452,14 +501,174 @@ Esc — обратно), выравнивание текста, H4, цитата
     fs.appendChild(box);
     return fs;
   }
-  function figSize(fig) {
-    var m = /\bsf-img-(sm|md|lg|full)\b/.exec(fig.className);
-    return m ? m[1] : "full";
-  }
   function figPos(fig) {
     if (fig.classList.contains("sf-float-left")) return "left";
     if (fig.classList.contains("sf-float-right")) return "right";
     return "center";
+  }
+  // --- M21.11: кадрирование — рамка поверх фото, обрезает сервер (новый файл) -------
+  function openCrop(ta, area, fig, img) {
+    var dlg = document.createElement("dialog");
+    dlg.className = "rte-crop";
+    dlg.setAttribute("aria-labelledby", "rte-crop-h");
+    var h = document.createElement("h2");
+    h.id = "rte-crop-h";
+    h.className = "font-semibold mb-2";
+    h.textContent = T.cropTitle;
+    dlg.appendChild(h);
+    var help = document.createElement("p");
+    help.className = "rte-help mb-2";
+    help.id = "rte-crop-help";
+    help.textContent = T.cropHelp;
+    dlg.appendChild(help);
+    var ratios = [[T.free, 0], ["1:1", 1], ["4:3", 4 / 3], ["3:2", 3 / 2], ["16:9", 16 / 9]];
+    var ratio = 0;
+    var rRow = document.createElement("div");
+    rRow.className = "rte-opts mb-2";
+    rRow.setAttribute("role", "group");
+    rRow.setAttribute("aria-label", T.ratio);
+    var stage = document.createElement("div");
+    stage.className = "rte-crop-stage";
+    var pic = document.createElement("img");
+    pic.setAttribute("src", img.getAttribute("src"));
+    pic.setAttribute("alt", "");
+    stage.appendChild(pic);
+    var box = document.createElement("div");
+    box.className = "rte-crop-box";
+    box.tabIndex = 0;
+    box.setAttribute("role", "group");
+    box.setAttribute("aria-label", T.cropArea);
+    box.setAttribute("aria-describedby", "rte-crop-help");
+    ["nw", "ne", "sw", "se"].forEach(function (k) {
+      var i = document.createElement("i");
+      i.setAttribute("data-h", k);
+      i.setAttribute("aria-hidden", "true");
+      box.appendChild(i);
+    });
+    stage.appendChild(box);
+    // рамка в долях 0…1 от картинки
+    var r = { x: 0.1, y: 0.1, w: 0.8, h: 0.8 };
+    function draw() {
+      box.style.left = r.x * 100 + "%";
+      box.style.top = r.y * 100 + "%";
+      box.style.width = r.w * 100 + "%";
+      box.style.height = r.h * 100 + "%";
+    }
+    function clamp() {
+      var min = 0.05;
+      r.w = Math.max(min, Math.min(1, r.w));
+      r.h = Math.max(min, Math.min(1, r.h));
+      r.x = Math.max(0, Math.min(1 - r.w, r.x));
+      r.y = Math.max(0, Math.min(1 - r.h, r.y));
+    }
+    function applyRatio() {
+      if (!ratio || !pic.naturalWidth) return;
+      var k = ratio * pic.naturalHeight / pic.naturalWidth;  // w/h в долях
+      r.h = Math.min(r.h, r.w / k);
+      r.w = r.h * k;
+      if (r.w > 1) { r.w = 1; r.h = 1 / k; }
+      clamp();
+      draw();
+    }
+    ratios.forEach(function (rt, idx) {
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "ui-btn ui-btn-sm";
+      b.textContent = rt[0];
+      b.setAttribute("aria-pressed", idx === 0 ? "true" : "false");
+      b.addEventListener("click", function () {
+        ratio = rt[1];
+        rRow.querySelectorAll("button").forEach(function (x) { x.setAttribute("aria-pressed", "false"); });
+        b.setAttribute("aria-pressed", "true");
+        applyRatio();
+        box.focus();
+      });
+      rRow.appendChild(b);
+    });
+    dlg.appendChild(rRow);
+    dlg.appendChild(stage);
+    var msg = document.createElement("p");
+    msg.className = "rte-help";
+    msg.setAttribute("role", "status");
+    dlg.appendChild(msg);
+    var row = document.createElement("div");
+    row.style.cssText = "display:flex;justify-content:flex-end;gap:8px;margin-top:.75rem";
+    var no = document.createElement("button");
+    no.type = "button";
+    no.className = "ui-btn ui-btn-sm";
+    no.textContent = T.cancel;
+    var ok = document.createElement("button");
+    ok.type = "button";
+    ok.className = "ui-btn ui-btn-sm ui-btn-primary";
+    ok.textContent = "✂ " + T.crop;
+    row.appendChild(no);
+    row.appendChild(ok);
+    dlg.appendChild(row);
+    var drag = null;
+    stage.addEventListener("pointerdown", function (e) {
+      var hnd = e.target.getAttribute && e.target.getAttribute("data-h");
+      if (!hnd && e.target !== box) return;
+      e.preventDefault();
+      stage.setPointerCapture(e.pointerId);
+      drag = { h: hnd || "move", sx: e.clientX, sy: e.clientY, r: { x: r.x, y: r.y, w: r.w, h: r.h } };
+    });
+    stage.addEventListener("pointermove", function (e) {
+      if (!drag) return;
+      var rect = pic.getBoundingClientRect();
+      var dx = (e.clientX - drag.sx) / rect.width, dy = (e.clientY - drag.sy) / rect.height;
+      var o = drag.r;
+      if (drag.h === "move") { r.x = o.x + dx; r.y = o.y + dy; }
+      else {
+        if (drag.h.indexOf("w") >= 0) { r.x = o.x + dx; r.w = o.w - dx; } else { r.w = o.w + dx; }
+        if (drag.h.indexOf("n") >= 0) { r.y = o.y + dy; r.h = o.h - dy; } else { r.h = o.h + dy; }
+        if (ratio && pic.naturalWidth) r.h = r.w / (ratio * pic.naturalHeight / pic.naturalWidth);
+      }
+      clamp();
+      draw();
+    });
+    stage.addEventListener("pointerup", function () { drag = null; });
+    box.addEventListener("keydown", function (e) {
+      var step = 0.02, d = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[e.key];
+      if (!d) return;
+      e.preventDefault();
+      if (e.shiftKey) { r.w += d[0] * step; r.h += d[1] * step; if (ratio && pic.naturalWidth) r.h = r.w / (ratio * pic.naturalHeight / pic.naturalWidth); }
+      else { r.x += d[0] * step; r.y += d[1] * step; }
+      clamp();
+      draw();
+    });
+    function close() {
+      dlg.close();
+      dlg.remove();
+      fig.focus();
+    }
+    no.addEventListener("click", close);
+    dlg.addEventListener("cancel", function (e) { e.preventDefault(); close(); });
+    ok.addEventListener("click", function () {
+      var form = ta.closest("form");
+      var csrf = form && form.querySelector('[name="csrfmiddlewaretoken"]');
+      var body = new FormData();
+      body.append("src", img.getAttribute("src"));
+      ["x", "y", "w", "h"].forEach(function (k) { body.append(k, r[k].toFixed(4)); });
+      body.append("csrfmiddlewaretoken", csrf ? csrf.value : "");
+      ok.disabled = true;
+      msg.textContent = T.upload;
+      fetch(ta.dataset.rteCrop, { method: "POST", body: body, credentials: "same-origin" })
+        .then(function (res) { return res.json().then(function (d) { return { ok: res.ok, d: d }; }); })
+        .then(function (res) {
+          if (!res.ok || !res.d.url) throw new Error(res.d.error || "");
+          img.setAttribute("src", res.d.url);
+          close();
+          if (area.__rte) { area.__rte.sync(); area.__rte.snapshot(); }
+          status(area, T.cropDone);
+        })
+        .catch(function (e) { ok.disabled = false; msg.textContent = e.message || T.uploadFail; });
+    });
+    (area.closest(".rte-wrap") || document.body).appendChild(dlg);
+    draw();
+    if (pic.complete) applyRatio(); else pic.addEventListener("load", applyRatio);
+    closeImage(false);
+    dlg.showModal();
+    box.focus();
   }
   function textField(id, label, val, max) {
     var lab = document.createElement("label");
@@ -520,11 +729,38 @@ Esc — обратно), выравнивание текста, H4, цитата
       }
       if (msg) status(area, msg);
     }
-    pop.appendChild(radioGroup(uid + "-s", T.size, T.sizes, figSize(fig), function (v, label) {
-      fig.classList.remove("sf-img-sm", "sf-img-md", "sf-img-lg", "sf-img-full");
-      fig.classList.add("sf-img-" + v);
-      changed(T.size + ": " + label);
-    }));
+    var wPair = textField(uid + "-w", T.width, String(figWidth(fig)), 3);
+    var wIn = wPair[1];
+    wIn.type = "number";
+    wIn.min = "10";
+    wIn.max = "100";
+    wIn.step = "5";
+    wIn.setAttribute("aria-describedby", uid + "-wh");
+    wIn.addEventListener("change", function () {
+      var v = parseInt(wIn.value, 10);
+      if (isNaN(v)) return;
+      wIn.value = setFigWidth(fig, v);
+      changed(T.width + ": " + wIn.value + " %");
+    });
+    var wRow = document.createElement("div");
+    wRow.className = "rte-opts";
+    [25, 50, 75, 100].forEach(function (v) {
+      var qb = document.createElement("button");
+      qb.type = "button";
+      qb.className = "ui-btn ui-btn-sm";
+      qb.textContent = v + " %";
+      qb.addEventListener("click", function () { wIn.value = setFigWidth(fig, v); changed(T.width + ": " + v + " %"); });
+      wRow.appendChild(qb);
+    });
+    var wHelp = document.createElement("p");
+    wHelp.className = "rte-help";
+    wHelp.id = uid + "-wh";
+    wHelp.textContent = T.widthHelp;
+    pop.appendChild(wPair[0]);
+    pop.appendChild(wIn);
+    pop.appendChild(wRow);
+    pop.appendChild(wHelp);
+    pop.__setWidth = function (v) { wIn.value = v; };
     pop.appendChild(radioGroup(uid + "-p", T.position, T.positions, figPos(fig), function (v, label) {
       fig.classList.remove("sf-float-left", "sf-float-right", "sf-center");
       fig.classList.add(v === "center" ? "sf-center" : "sf-float-" + v);
@@ -612,6 +848,14 @@ Esc — обратно), выравнивание текста, H4, цитата
         });
       });
       pop.appendChild(rep);
+    }
+    if (ta0 && ta0.dataset.rteCrop) {
+      var cropBtn = document.createElement("button");
+      cropBtn.type = "button";
+      cropBtn.className = "ui-btn ui-btn-sm mt-2 ml-1";
+      cropBtn.textContent = "✂ " + T.crop;
+      cropBtn.addEventListener("click", function () { openCrop(ta0, area, fig, img); });
+      pop.appendChild(cropBtn);
     }
     var row = document.createElement("div");
     row.style.cssText = "display:flex;justify-content:space-between;gap:8px;margin-top:.75rem";
@@ -1356,6 +1600,39 @@ Esc — обратно), выравнивание текста, H4, цитата
       snapshot();
       openImage(area, fig);
     });
+    // M21.11: ширина фото — тянуть за ручку на углу (шаг 5 %, значок «45 %» во время).
+    var rs = null;
+    area.addEventListener("pointerdown", function (e) {
+      var hnd = e.target.closest && e.target.closest(".rte-resize");
+      if (!hnd || !area.contains(hnd)) return;
+      e.preventDefault();
+      e.stopPropagation();
+      var fig = hnd.parentNode;
+      var cs = getComputedStyle(area);
+      var inner = area.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+      var fr = fig.getBoundingClientRect();
+      rs = { fig: fig, inner: inner, left: fr.left, right: fr.right, rtl: fig.classList.contains("sf-float-right") };
+      hnd.setPointerCapture(e.pointerId);
+    });
+    area.addEventListener("pointermove", function (e) {
+      if (!rs) return;
+      var px = rs.rtl ? rs.right - e.clientX : e.clientX - rs.left;
+      var pct = setFigWidth(rs.fig, px / rs.inner * 100);
+      rs.fig.setAttribute("data-rte-w", pct + " %");
+      rs.pct = pct;
+    });
+    function endResize() {
+      if (!rs) return;
+      var done = rs;
+      rs = null;
+      done.fig.removeAttribute("data-rte-w");
+      if (pop && pop.__fig === done.fig && pop.__setWidth) pop.__setWidth(figWidth(done.fig));
+      sync();
+      snapshot();
+      if (done.pct) status(area, T.width + ": " + done.pct + " %");
+    }
+    area.addEventListener("pointerup", endResize);
+    area.addEventListener("pointercancel", endResize);
     // Вставка из буфера — через белый список (стили, скрипты, on* из Word/сайтов не попадут).
     area.addEventListener("paste", function (e) {
       var cd = e.clipboardData;

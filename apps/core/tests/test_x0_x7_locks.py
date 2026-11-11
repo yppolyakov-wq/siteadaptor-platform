@@ -96,6 +96,7 @@ EXPECTED_UNLISTED = frozenset(
         "content-page-new",  # M21.6: «＋ Neue Seite» — кнопка списка «Seiten»
         "content-page-image",  # [POST] M21.8 B4: «🖼 Bild» редактора страницы
         "content-page-media",  # [JSON] M21.11 P5: «🗂 Aus der Mediathek» редактора страницы
+        "content-page-image-crop",  # [POST] M21.11: «✂ Zuschneiden» в окне фото
         "team-invite",  # UX-D D6.6: «＋ Mitarbeiter einladen» (кнопка списка Team)
         "channel-disconnect",  # UX-D D6.6: POST «Trennen» на странице каналов
         "blog-new",  # UX-D D7.4: «＋ Neuer Beitrag» (кнопка списка блога)

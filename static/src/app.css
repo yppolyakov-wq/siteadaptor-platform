@@ -1910,6 +1910,48 @@ html:has(dialog.ui-drawer[open]) { overflow: hidden; }
 }
 .dark .sf-page-body figcaption, .dark .rich-text figcaption { color: #9ca3af; }
 .dark .sf-page-body hr, .dark .rich-text hr { border-top-color: #374151; }
+/* M21.11: ширина фото перетаскиванием угла (шаг 5 %). На телефоне узкое фото
+   вдвое шире (иначе текста рядом не видно), от 50 % — во всю ширину. */
+.sf-page-body .sf-w-10, .rich-text .sf-w-10 { width: 10%; }
+.sf-page-body .sf-w-15, .rich-text .sf-w-15 { width: 15%; }
+.sf-page-body .sf-w-20, .rich-text .sf-w-20 { width: 20%; }
+.sf-page-body .sf-w-25, .rich-text .sf-w-25 { width: 25%; }
+.sf-page-body .sf-w-30, .rich-text .sf-w-30 { width: 30%; }
+.sf-page-body .sf-w-35, .rich-text .sf-w-35 { width: 35%; }
+.sf-page-body .sf-w-40, .rich-text .sf-w-40 { width: 40%; }
+.sf-page-body .sf-w-45, .rich-text .sf-w-45 { width: 45%; }
+.sf-page-body .sf-w-50, .rich-text .sf-w-50 { width: 50%; }
+.sf-page-body .sf-w-55, .rich-text .sf-w-55 { width: 55%; }
+.sf-page-body .sf-w-60, .rich-text .sf-w-60 { width: 60%; }
+.sf-page-body .sf-w-65, .rich-text .sf-w-65 { width: 65%; }
+.sf-page-body .sf-w-70, .rich-text .sf-w-70 { width: 70%; }
+.sf-page-body .sf-w-75, .rich-text .sf-w-75 { width: 75%; }
+.sf-page-body .sf-w-80, .rich-text .sf-w-80 { width: 80%; }
+.sf-page-body .sf-w-85, .rich-text .sf-w-85 { width: 85%; }
+.sf-page-body .sf-w-90, .rich-text .sf-w-90 { width: 90%; }
+.sf-page-body .sf-w-95, .rich-text .sf-w-95 { width: 95%; }
+.sf-page-body .sf-w-100, .rich-text .sf-w-100 { width: 100%; }
+@media (max-width: 639px) {
+  .sf-page-body .sf-w-10, .rich-text .sf-w-10 { width: 20%; }
+  .sf-page-body .sf-w-15, .rich-text .sf-w-15 { width: 30%; }
+  .sf-page-body .sf-w-20, .rich-text .sf-w-20 { width: 40%; }
+  .sf-page-body .sf-w-25, .rich-text .sf-w-25 { width: 50%; }
+  .sf-page-body .sf-w-30, .rich-text .sf-w-30 { width: 60%; }
+  .sf-page-body .sf-w-35, .rich-text .sf-w-35 { width: 70%; }
+  .sf-page-body .sf-w-40, .rich-text .sf-w-40 { width: 80%; }
+  .sf-page-body .sf-w-45, .rich-text .sf-w-45 { width: 90%; }
+  .sf-page-body .sf-w-50, .rich-text .sf-w-50 { width: 100%; }
+  .sf-page-body .sf-w-55, .rich-text .sf-w-55 { width: 100%; }
+  .sf-page-body .sf-w-60, .rich-text .sf-w-60 { width: 100%; }
+  .sf-page-body .sf-w-65, .rich-text .sf-w-65 { width: 100%; }
+  .sf-page-body .sf-w-70, .rich-text .sf-w-70 { width: 100%; }
+  .sf-page-body .sf-w-75, .rich-text .sf-w-75 { width: 100%; }
+  .sf-page-body .sf-w-80, .rich-text .sf-w-80 { width: 100%; }
+  .sf-page-body .sf-w-85, .rich-text .sf-w-85 { width: 100%; }
+  .sf-page-body .sf-w-90, .rich-text .sf-w-90 { width: 100%; }
+  .sf-page-body .sf-w-95, .rich-text .sf-w-95 { width: 100%; }
+}
+
 /* M21.11 P5: стиль абзаца (вводный · мелкий · плашка) и три колонки. */
 .sf-page-body a.sf-btn, .rich-text a.sf-btn { display: inline-block; background: var(--accent, #4f46e5); color: var(--accent-ink, #fff); padding: .65rem 1.25rem; border-radius: .6rem; font-weight: 600; text-decoration: none; }
 .sf-page-body a.sf-btn:hover, .rich-text a.sf-btn:hover { opacity: .9; }

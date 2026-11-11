@@ -37143,3 +37143,33 @@ msgstr "İletişim ve çalışma saatleri"
 
 msgid "Welche Seite?"
 msgstr "Hangi sayfa?"
+
+msgid "Bild zugeschnitten."
+msgstr "Görsel kırpıldı."
+
+msgid "Bild zuschneiden"
+msgstr "Görseli kırp"
+
+msgid "Bildausschnitt"
+msgstr "Görsel bölümü"
+
+msgid "Breite in Prozent"
+msgstr "Yüzde olarak genişlik"
+
+msgid "Das Bild ist zu groß zum Zuschneiden."
+msgstr "Görsel kırpmak için çok büyük."
+
+msgid "Dieses Bild kann nicht zugeschnitten werden."
+msgstr "Bu görsel kırpılamaz."
+
+msgid "Oder an der Ecke des Bildes ziehen."
+msgstr "Ya da görselin köşesinden sürükleyin."
+
+msgid "Rahmen ziehen oder an den Ecken größer/kleiner machen. Pfeiltasten verschieben, mit Umschalt ändern sie die Größe."
+msgstr "Çerçeveyi sürükleyin veya köşelerinden büyütüp küçültün. Ok tuşları taşır, Shift ile boyutu değiştirir."
+
+msgid "Seitenverhältnis"
+msgstr "En boy oranı"
+
+msgid "Ungültiger Bildausschnitt."
+msgstr "Geçersiz görsel bölümü."

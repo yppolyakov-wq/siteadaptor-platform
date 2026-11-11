@@ -37332,3 +37332,33 @@ msgstr "Контакты и часы работы"
 
 msgid "Welche Seite?"
 msgstr "Какая страница?"
+
+msgid "Bild zugeschnitten."
+msgstr "Фото обрезано."
+
+msgid "Bild zuschneiden"
+msgstr "Обрезать фото"
+
+msgid "Bildausschnitt"
+msgstr "Область кадра"
+
+msgid "Breite in Prozent"
+msgstr "Ширина в процентах"
+
+msgid "Das Bild ist zu groß zum Zuschneiden."
+msgstr "Фото слишком большое для обрезки."
+
+msgid "Dieses Bild kann nicht zugeschnitten werden."
+msgstr "Это фото нельзя обрезать."
+
+msgid "Oder an der Ecke des Bildes ziehen."
+msgstr "Или потяните за угол фото."
+
+msgid "Rahmen ziehen oder an den Ecken größer/kleiner machen. Pfeiltasten verschieben, mit Umschalt ändern sie die Größe."
+msgstr "Перетащите рамку или меняйте размер за углы. Стрелки сдвигают рамку, со Shift — меняют размер."
+
+msgid "Seitenverhältnis"
+msgstr "Соотношение сторон"
+
+msgid "Ungültiger Bildausschnitt."
+msgstr "Неверная область кадра."

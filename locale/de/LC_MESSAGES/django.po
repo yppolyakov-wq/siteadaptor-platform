@@ -37084,3 +37084,33 @@ msgstr "Kontakt & Öffnungszeiten"
 
 msgid "Welche Seite?"
 msgstr "Welche Seite?"
+
+msgid "Bild zugeschnitten."
+msgstr "Bild zugeschnitten."
+
+msgid "Bild zuschneiden"
+msgstr "Bild zuschneiden"
+
+msgid "Bildausschnitt"
+msgstr "Bildausschnitt"
+
+msgid "Breite in Prozent"
+msgstr "Breite in Prozent"
+
+msgid "Das Bild ist zu groß zum Zuschneiden."
+msgstr "Das Bild ist zu groß zum Zuschneiden."
+
+msgid "Dieses Bild kann nicht zugeschnitten werden."
+msgstr "Dieses Bild kann nicht zugeschnitten werden."
+
+msgid "Oder an der Ecke des Bildes ziehen."
+msgstr "Oder an der Ecke des Bildes ziehen."
+
+msgid "Rahmen ziehen oder an den Ecken größer/kleiner machen. Pfeiltasten verschieben, mit Umschalt ändern sie die Größe."
+msgstr "Rahmen ziehen oder an den Ecken größer/kleiner machen. Pfeiltasten verschieben, mit Umschalt ändern sie die Größe."
+
+msgid "Seitenverhältnis"
+msgstr "Seitenverhältnis"
+
+msgid "Ungültiger Bildausschnitt."
+msgstr "Ungültiger Bildausschnitt."
