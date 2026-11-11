@@ -74,6 +74,7 @@ LEGACY_DECORATED = {
     "content-page-edit": ROLE_OWNER_ONLY,
     "content-page-delete": ROLE_OWNER_ONLY,
     "content-page-image": ROLE_OWNER_ONLY,
+    "content-page-media": ROLE_OWNER_ONLY,
     "content-page-system": ROLE_OWNER_ONLY,
     "crm:customer-export": ROLE_OWNER_ONLY,
     "crm:customer-dsgvo": ROLE_OWNER_ONLY,

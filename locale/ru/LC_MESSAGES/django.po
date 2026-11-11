@@ -37266,3 +37266,63 @@ msgstr "Черновик удалён."
 
 msgid "Tab rückt Listenpunkte ein · Alt+F10 springt zur Symbolleiste"
 msgstr "Tab сдвигает пункт списка · Alt+F10 — к панели инструментов"
+
+msgid "Antwort"
+msgstr "Ответ"
+
+msgid "Aus der Mediathek"
+msgstr "Из медиатеки"
+
+msgid "Bild ersetzen"
+msgstr "Заменить фото"
+
+msgid "Bild ersetzt."
+msgstr "Фото заменено."
+
+msgid "Bild verlinkt."
+msgstr "К фото добавлена ссылка."
+
+msgid "Bildergalerie"
+msgstr "Галерея фото"
+
+msgid "Bitte eine Adresse mit https:// oder eine eigene Seite (/…) angeben."
+msgstr "Укажите адрес с https:// или свою страницу (/…)."
+
+msgid "Frage"
+msgstr "Вопрос"
+
+msgid "Frage & Antwort (aufklappbar)"
+msgstr "Вопрос и ответ (раскрывающийся)"
+
+msgid "Galerie eingefügt. Bitte jedes Bild beschreiben (Klick auf das Bild)."
+msgstr "Галерея вставлена. Опишите каждое фото (щёлкните по нему)."
+
+msgid "Keine passende Seite."
+msgstr "Подходящей страницы нет."
+
+msgid "Link beim Klick auf das Bild (optional)"
+msgstr "Ссылка при клике на фото (необязательно)"
+
+msgid "Link eingefügt."
+msgstr "Ссылка вставлена."
+
+msgid "Link vom Bild entfernt."
+msgstr "Ссылка у фото удалена."
+
+msgid "Link zu einer Seite"
+msgstr "Ссылка на страницу"
+
+msgid "Noch keine Bilder in der Mediathek."
+msgstr "В медиатеке пока нет фото."
+
+msgid "Oder Adresse (https://… oder /seite/…)"
+msgstr "Или адрес (https://… или /seite/…)"
+
+msgid "Schaltfläche einfügen"
+msgstr "Вставить кнопку"
+
+msgid "Seite suchen"
+msgstr "Найти страницу"
+
+msgid "Text der Schaltfläche"
+msgstr "Текст кнопки"

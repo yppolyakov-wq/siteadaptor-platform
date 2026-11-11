@@ -37018,3 +37018,63 @@ msgstr "Entwurf verworfen."
 
 msgid "Tab rückt Listenpunkte ein · Alt+F10 springt zur Symbolleiste"
 msgstr "Tab rückt Listenpunkte ein · Alt+F10 springt zur Symbolleiste"
+
+msgid "Antwort"
+msgstr "Antwort"
+
+msgid "Aus der Mediathek"
+msgstr "Aus der Mediathek"
+
+msgid "Bild ersetzen"
+msgstr "Bild ersetzen"
+
+msgid "Bild ersetzt."
+msgstr "Bild ersetzt."
+
+msgid "Bild verlinkt."
+msgstr "Bild verlinkt."
+
+msgid "Bildergalerie"
+msgstr "Bildergalerie"
+
+msgid "Bitte eine Adresse mit https:// oder eine eigene Seite (/…) angeben."
+msgstr "Bitte eine Adresse mit https:// oder eine eigene Seite (/…) angeben."
+
+msgid "Frage"
+msgstr "Frage"
+
+msgid "Frage & Antwort (aufklappbar)"
+msgstr "Frage & Antwort (aufklappbar)"
+
+msgid "Galerie eingefügt. Bitte jedes Bild beschreiben (Klick auf das Bild)."
+msgstr "Galerie eingefügt. Bitte jedes Bild beschreiben (Klick auf das Bild)."
+
+msgid "Keine passende Seite."
+msgstr "Keine passende Seite."
+
+msgid "Link beim Klick auf das Bild (optional)"
+msgstr "Link beim Klick auf das Bild (optional)"
+
+msgid "Link eingefügt."
+msgstr "Link eingefügt."
+
+msgid "Link vom Bild entfernt."
+msgstr "Link vom Bild entfernt."
+
+msgid "Link zu einer Seite"
+msgstr "Link zu einer Seite"
+
+msgid "Noch keine Bilder in der Mediathek."
+msgstr "Noch keine Bilder in der Mediathek."
+
+msgid "Oder Adresse (https://… oder /seite/…)"
+msgstr "Oder Adresse (https://… oder /seite/…)"
+
+msgid "Schaltfläche einfügen"
+msgstr "Schaltfläche einfügen"
+
+msgid "Seite suchen"
+msgstr "Seite suchen"
+
+msgid "Text der Schaltfläche"
+msgstr "Text der Schaltfläche"

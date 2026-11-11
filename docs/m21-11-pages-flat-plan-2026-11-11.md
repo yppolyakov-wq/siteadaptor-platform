@@ -159,11 +159,11 @@
 ## 4. Инкременты (после «ок»)
 | № | Что | Миграции |
 |---|---|---|
-| P1 | Один список (Р-1), метки и колонки, защита от удаления (Р-2), одна форма (Р-4) | нет |
-| P2 | Право «Seiten bearbeiten» (Р-3а) или жёсткий гейт (Р-3б), сотрудник — только чтение | нет (E6.7 хранит дельтой) |
-| P3 | Один тип «Seite» в Seitenaufbau / Studio, перенос блоков `info` в общий набор (Р-5) | нет |
-| P4 | Заготовки «＋ Neue Seite» (Р-6) | нет |
-| P5 | Редактор, пакет v1 из §3 | нет |
+| P1 ✅ | Один список (Р-1), метки и колонки, защита от удаления (Р-2), одна форма (Р-4) | нет |
+| P2 ✅ | Право «Seiten bearbeiten» (Р-3а) или жёсткий гейт (Р-3б), сотрудник — только чтение | нет (E6.7 хранит дельтой) |
+| P3 ✅ | Один тип «Seite» в Seitenaufbau / Studio, перенос блоков `info` в общий набор (Р-5) | нет |
+| P4 ✅ | Заготовки «＋ Neue Seite» (Р-6) | нет |
+| P5 ✅ | Редактор, пакет 🟢 из §3 (P5a символы/абзацы/инструменты, P5b вставки) | нет |
 | P6 | По отдельному решению: таблица / видео / PDF / оглавление / история версий | история — да |
 
 ## 5. ECC-прогоны
@@ -194,3 +194,25 @@
 - Shopware: forum.shopware.com — «Kategorie vs Erlebniswelt», «wo werden AGB angelegt».
 - WordPress: core.trac.wordpress.org #44079, #44194.
 - CS-Cart: docs.cs-cart.com — Website › Pages.
+
+## 9. Исполнение (2026-11-11)
+- **P1+P2:** один список «Seiten» (`content_pages.all_rows`: Art/Status/Sichtbar), правовые без
+  удаления; право `seiten.edit` (sensitive, по умолчанию только владелец, выдаётся в Team) на все
+  экраны правки страниц, включая правовые. Список читают права Website — кнопок без права нет.
+- **P3:** тип Studio `text` («Seite») = Über uns + свои страницы + Versand, общий хост блоков `info`
+  (выводится в `content_page.html` и `shipping_info.html`); хост `legal` снят — под правовыми
+  текстами блоков нет, старые блоки normalize отбрасывает. Тип `content_page` удалён.
+- **P4:** `apps/core/page_starters.py` — Leer / Häufige Fragen / Öffnungszeiten & Anfahrt / Zahlungsarten;
+  GET `?vorlage=` только заполняет форму (данные бизнеса экранируются + `sanitize_page`).
+- **P5a:** зачёркнутый, sup/sub, «убрать форматирование», стиль абзаца `sf-lead/sf-small/sf-note`
+  (взаимоисключающие), вложенный список Tab (без ловушки фокуса), три колонки `sf-grid3`, эмодзи,
+  Strg+Shift+V, полный экран (модальный: inert, Esc), черновик в localStorage (ключ = пользователь +
+  адрес + поле, TTL 7 дней, восстановление через белый список).
+- **P5b:** «📄 Link zu einer Seite» (цели меню → `menu.link_targets`, тег `rte_link_targets`),
+  кнопка-призыв `a.sf-btn`, раскрывашка `details/summary`, галерея `sf-gallery` (до 12 фото),
+  медиатека (`content-page-media`, JSON, только `/media/…`), у фото — ссылка и «Bild ersetzen».
+  Попутно: клик по плашке «Bildbeschreibung fehlt» открывает окно фото.
+- **ECC:** security-reviewer (без HIGH; учтены ключ черновика и TTL), a11y-architect (2 блокера +
+  4 серьёзных — исправлены, замки на стенде). Стенды: `editor_p5_stand.py` 31/31,
+  `editor_p5b_stand.py` 20/20.
+- **Дальше:** P6 (🟡 без миграций), P7 (история версий, ⚠ миграция).

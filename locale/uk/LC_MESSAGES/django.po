@@ -37253,3 +37253,63 @@ msgstr "Чернетку видалено."
 
 msgid "Tab rückt Listenpunkte ein · Alt+F10 springt zur Symbolleiste"
 msgstr "Tab зсуває пункт списку · Alt+F10 — до панелі інструментів"
+
+msgid "Antwort"
+msgstr "Відповідь"
+
+msgid "Aus der Mediathek"
+msgstr "З медіатеки"
+
+msgid "Bild ersetzen"
+msgstr "Замінити фото"
+
+msgid "Bild ersetzt."
+msgstr "Фото замінено."
+
+msgid "Bild verlinkt."
+msgstr "До фото додано посилання."
+
+msgid "Bildergalerie"
+msgstr "Галерея фото"
+
+msgid "Bitte eine Adresse mit https:// oder eine eigene Seite (/…) angeben."
+msgstr "Вкажіть адресу з https:// або свою сторінку (/…)."
+
+msgid "Frage"
+msgstr "Питання"
+
+msgid "Frage & Antwort (aufklappbar)"
+msgstr "Питання й відповідь (розгортається)"
+
+msgid "Galerie eingefügt. Bitte jedes Bild beschreiben (Klick auf das Bild)."
+msgstr "Галерею вставлено. Опишіть кожне фото (клацніть по ньому)."
+
+msgid "Keine passende Seite."
+msgstr "Відповідної сторінки немає."
+
+msgid "Link beim Klick auf das Bild (optional)"
+msgstr "Посилання при кліку на фото (необов’язково)"
+
+msgid "Link eingefügt."
+msgstr "Посилання вставлено."
+
+msgid "Link vom Bild entfernt."
+msgstr "Посилання у фото видалено."
+
+msgid "Link zu einer Seite"
+msgstr "Посилання на сторінку"
+
+msgid "Noch keine Bilder in der Mediathek."
+msgstr "У медіатеці ще немає фото."
+
+msgid "Oder Adresse (https://… oder /seite/…)"
+msgstr "Або адреса (https://… або /seite/…)"
+
+msgid "Schaltfläche einfügen"
+msgstr "Вставити кнопку"
+
+msgid "Seite suchen"
+msgstr "Знайти сторінку"
+
+msgid "Text der Schaltfläche"
+msgstr "Текст кнопки"

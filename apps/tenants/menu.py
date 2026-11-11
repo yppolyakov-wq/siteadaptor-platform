@@ -985,3 +985,27 @@ def target_options(tenant) -> list[dict]:
             }
         )
     return out
+
+
+def link_targets(tenant, limit: int = 300) -> list[dict]:
+    """M21.11 P5: цели «📄 Link zu einer Seite» редактора страниц — те же записи, что
+    у меню, но готовой ссылкой: [{group, label, url}]. Только то, что витрина сейчас
+    откроет (адрес строит тот же `_node_url`, что рисует меню). «Alle Kategorien» —
+    узел меню, а не страница, поэтому здесь его нет."""
+    out: list[dict] = []
+    for opt in target_options(tenant):
+        if not opt["available"]:
+            continue
+        ntype, _sep, target = opt["value"].partition(":")
+        if ntype == "categories":
+            continue
+        node = {"type": ntype, "target": target, "label": opt["label"], "children": []}
+        try:
+            url = _node_url(tenant, node)
+        except Exception:  # noqa: BLE001 — одна битая цель не роняет форму
+            url = None
+        if url and url.startswith("/") and not url.startswith("//"):
+            out.append({"group": opt["group"], "label": opt["label"], "url": url})
+        if len(out) >= limit:
+            break
+    return out

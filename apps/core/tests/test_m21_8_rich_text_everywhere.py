@@ -184,6 +184,10 @@ def test_page_image_upload_saves_local_image_and_needs_login(settings):
     assert anon.status_code == 302  # без входа — на логин
 
     user = get_user_model().objects.create_user(username="b4-owner", password="pw1234567")
+    from apps.core.models import Membership
+
+    # M21.11: загрузка фото страницы — право «Seiten bearbeiten» (по умолчанию владелец).
+    Membership.objects.create(user=user, role=Membership.ROLE_OWNER)
     resp = page_image_upload(_upload_req({"image": _png_upload()}, user))
     import json
 
@@ -205,7 +209,8 @@ def test_page_image_upload_has_write_rule_and_route():
 
     from apps.core import view_perms
 
-    assert view_perms.RULES["content-page-image"] == view_perms._r(view_perms.WE, view_perms.WE)
+    # M21.11 (осознанная переписка): страницы правит право «Seiten bearbeiten».
+    assert view_perms.RULES["content-page-image"] == view_perms._r(view_perms.PG, view_perms.PG)
     assert reverse("content-page-image", urlconf="config.urls_tenant").endswith("/seiten/bild/")
 
 
@@ -266,6 +271,10 @@ def test_page_image_upload_strips_exif(settings):
     img.save(buf, "JPEG", exif=exif)
     up = SimpleUploadedFile("foto.jpg", buf.getvalue(), content_type="image/jpeg")
     user = get_user_model().objects.create_user(username="b4-exif", password="pw1234567")
+    from apps.core.models import Membership
+
+    # M21.11: загрузка фото страницы — право «Seiten bearbeiten» (по умолчанию владелец).
+    Membership.objects.create(user=user, role=Membership.ROLE_OWNER)
     url = json.loads(page_image_upload(_upload_req({"image": up}, user)).content)["url"]
     path = url[len(settings.MEDIA_URL) :]
     with default_storage.open(path) as fh, Image.open(fh) as saved:

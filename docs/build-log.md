@@ -22735,3 +22735,17 @@ Impressum/Datenschutz/AGB — в «Seiten», редактор во всех те
 - Замки: test_m21_10_text_pages_hub (40), test_m21_10_menu_targets (6); стенд
   `scripts/text_pages_stand.py` 38/38. Грабля: обходчик test_staff_walk подставлял только
   `<uuid:pk>` — научен `<slug:kind>`.
+
+## 2026-11-11 — M21.11 P1–P5: «Seiten» одним списком + право «Seiten bearbeiten» + один тип «Seite» + заготовки + пакет 🟢 редактора (без миграций)
+- Решения владельца: один список без деления; правит только владелец (право выдаётся помощнику);
+  «структура страницы» — только для общего типа «Seite»; редактор — всё 🟢 и 🟡 кроме 🔴.
+- P1+P2 `content_pages.all_rows` + `seiten.edit` (permissions/view_perms/perm_ui/legacy-паритет);
+  P3 тип `text` = Über uns + свои + Versand (хост `info`), хост `legal` снят; P4 `page_starters`;
+  P5a/P5b редактор (см. план §9). Новый эндпоинт `content-page-media` (JSON медиатеки).
+- ECC: security + a11y ревью закрыты; стенды 31/31 и 20/20.
+- Грабли: (1) фоновый широкий pytest + параллельные точечные прогоны на одной `--reuse-db` →
+  DuplicateColumn (повтор §6 pitfalls — не запускать pytest, пока идёт широкий); (2) стенд без
+  `locale="de-DE"` ищет «Speichern», а кнопка «Save»; (3) Chrome кладёт вложенный список РЯДОМ с
+  пунктом (`<ul><li/><ul>…</ul></ul>`) — проверка «можно выдвинуть» смотрит на UL/OL/LI предка.
+- Замки: test_m21_11_page_type (5), test_m21_11_starters (6), test_m21_11_editor_p5 (9);
+  переписаны осознанно: test_m21_8 (право загрузки фото), test_page_templates, test_studio_pages.

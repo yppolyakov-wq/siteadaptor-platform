@@ -45,7 +45,7 @@ def sanitize(html: str) -> str:
 #: в JS редактора (``editor_rules``).
 RICH_TAG_SOURCE = (
     r"</?(?:p|br|b|strong|i|em|u|ul|ol|li|a|h[234]|div|img|figure|figcaption|blockquote|hr"
-    r"|s|strike|sup|sub)"
+    r"|s|strike|sup|sub|details|summary)"
     r"(?=[\s/>])"
 )
 _RICH_TAG_RE = re.compile(RICH_TAG_SOURCE, re.I)
@@ -81,9 +81,13 @@ PAGE_ALLOWED_TAGS = ALLOWED_TAGS | {
     "strike",
     "sup",
     "sub",
+    # M21.11 P5: раскрывающийся блок «Frage/Antwort».
+    "details",
+    "summary",
 }
 PAGE_ALLOWED_ATTRIBUTES = {
-    "a": {"href", "target"},
+    # M21.11 P5: класс у ссылки — только кнопка-призыв (sf-btn).
+    "a": {"href", "target", "class"},
     "img": {"src", "alt", "width", "height"},
     # M21.6/M21.10: только классы раскладки из белого списка (PAGE_CLASS_SOURCE).
     "div": {"class"},
@@ -101,7 +105,7 @@ PAGE_CLASS_SOURCE = (
     r"sf-(?:grid|col-(?:[1-9]|1[0-6])|center|left|right|justify"
     r"|img-(?:sm|md|lg|full)|float-(?:left|right)"
     # M21.11 P5: стиль абзаца — вводный, мелкий, плашка «Hinweis»; три колонки.
-    r"|lead|small|note|grid3)"
+    r"|lead|small|note|grid3|btn|gallery)"
 )
 _PAGE_CLASS_RE = re.compile(PAGE_CLASS_SOURCE)
 #: Взаимоисключающие группы: в атрибуте остаётся последний класс группы.

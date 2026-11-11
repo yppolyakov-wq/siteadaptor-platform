@@ -393,6 +393,7 @@ RULES: dict[str, Rule] = {
     "content-page-delete": _r(PG, PG),
     # M21.8 B4: загрузка картинки в редакторе страницы
     "content-page-image": _r(PG, PG),
+    "content-page-media": _r(PG, PG),
     # M21.10/M21.11: системные и правовые страницы — то же право «Seiten bearbeiten»
     "content-page-system": _r(PG, PG),
     "legal-page-edit": _r(PG, PG),

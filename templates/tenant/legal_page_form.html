@@ -1,5 +1,5 @@
 {% extends "tenant/_base_dashboard.html" %}
-{% load i18n cabinet %}
+{% load i18n cabinet richtext %}
 {% block dash_title %}{{ label }}{% endblock %}
 
 {% block dash_content %}
@@ -29,7 +29,7 @@
     <div data-i18n-loc="{{ cell.locale }}"{% if cell.locale != legal_shown_locale %} class="hidden"{% endif %}>
       <label class="block text-sm font-medium mb-1" for="doc_{{ cell.locale }}">{% trans "Text" %} <span class="text-gray-500 uppercase text-xs">{{ cell.locale }}</span></label>
       <textarea id="doc_{{ cell.locale }}" name="doc_{{ cell.locale }}" lang="{{ cell.locale }}" rows="16"
-                class="ui-input w-full" data-rte="page"{% if 'content-page-image'|lite_allowed:request %} data-rte-upload="{% url 'content-page-image' %}"{% endif %}>{{ cell.text }}</textarea>
+                class="ui-input w-full" data-rte="page"{% if 'content-page-image'|lite_allowed:request %} data-rte-upload="{% url 'content-page-image' %}" data-rte-media="{% url 'content-page-media' %}"{% endif %}>{{ cell.text }}</textarea>
       <p class="text-sm text-gray-600 min-h-[1.25rem]" role="status" aria-live="polite" data-rte-status></p>
       {% if cell.fallback %}
       <details class="mt-1 text-xs text-gray-500" data-legal-fallback>
@@ -60,5 +60,6 @@
   });
 })();
 </script>
+{% rte_link_targets %}
 {% include "catalog/_richtext_editor.html" %}
 {% endblock %}

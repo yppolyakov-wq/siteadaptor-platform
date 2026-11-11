@@ -37077,3 +37077,63 @@ msgstr "Taslak silindi."
 
 msgid "Tab rückt Listenpunkte ein · Alt+F10 springt zur Symbolleiste"
 msgstr "Tab liste öğesine girinti ekler · Alt+F10 araç çubuğuna gider"
+
+msgid "Antwort"
+msgstr "Cevap"
+
+msgid "Aus der Mediathek"
+msgstr "Medya kütüphanesinden"
+
+msgid "Bild ersetzen"
+msgstr "Görseli değiştir"
+
+msgid "Bild ersetzt."
+msgstr "Görsel değiştirildi."
+
+msgid "Bild verlinkt."
+msgstr "Görsele bağlantı eklendi."
+
+msgid "Bildergalerie"
+msgstr "Görsel galerisi"
+
+msgid "Bitte eine Adresse mit https:// oder eine eigene Seite (/…) angeben."
+msgstr "Lütfen https:// ile başlayan bir adres veya kendi sayfanızı (/…) girin."
+
+msgid "Frage"
+msgstr "Soru"
+
+msgid "Frage & Antwort (aufklappbar)"
+msgstr "Soru ve cevap (açılır)"
+
+msgid "Galerie eingefügt. Bitte jedes Bild beschreiben (Klick auf das Bild)."
+msgstr "Galeri eklendi. Lütfen her görseli açıklayın (görsele tıklayın)."
+
+msgid "Keine passende Seite."
+msgstr "Eşleşen sayfa yok."
+
+msgid "Link beim Klick auf das Bild (optional)"
+msgstr "Görsele tıklanınca bağlantı (isteğe bağlı)"
+
+msgid "Link eingefügt."
+msgstr "Bağlantı eklendi."
+
+msgid "Link vom Bild entfernt."
+msgstr "Görselden bağlantı kaldırıldı."
+
+msgid "Link zu einer Seite"
+msgstr "Bir sayfaya bağlantı"
+
+msgid "Noch keine Bilder in der Mediathek."
+msgstr "Medya kütüphanesinde henüz görsel yok."
+
+msgid "Oder Adresse (https://… oder /seite/…)"
+msgstr "Veya adres (https://… ya da /seite/…)"
+
+msgid "Schaltfläche einfügen"
+msgstr "Düğme ekle"
+
+msgid "Seite suchen"
+msgstr "Sayfa ara"
+
+msgid "Text der Schaltfläche"
+msgstr "Düğme metni"

@@ -334,6 +334,11 @@ urlpatterns = [
         name="content-page-image",
     ),
     path(
+        "dashboard/site/seiten/medien/",
+        content_page_views.page_media_list,
+        name="content-page-media",
+    ),
+    path(
         "dashboard/site/seiten/<uuid:pk>/", content_page_views.page_edit, name="content-page-edit"
     ),
     # M21.10: системные страницы (Über uns, Versand) и правовые тексты — тоже в «Seiten».

@@ -36931,3 +36931,63 @@ msgstr "Draft discarded."
 
 msgid "Tab rückt Listenpunkte ein · Alt+F10 springt zur Symbolleiste"
 msgstr "Tab indents list items · Alt+F10 jumps to the toolbar"
+
+msgid "Antwort"
+msgstr "Answer"
+
+msgid "Aus der Mediathek"
+msgstr "From the media library"
+
+msgid "Bild ersetzen"
+msgstr "Replace image"
+
+msgid "Bild ersetzt."
+msgstr "Image replaced."
+
+msgid "Bild verlinkt."
+msgstr "Image linked."
+
+msgid "Bildergalerie"
+msgstr "Image gallery"
+
+msgid "Bitte eine Adresse mit https:// oder eine eigene Seite (/…) angeben."
+msgstr "Please enter an address starting with https:// or one of your pages (/…)."
+
+msgid "Frage"
+msgstr "Question"
+
+msgid "Frage & Antwort (aufklappbar)"
+msgstr "Question & answer (collapsible)"
+
+msgid "Galerie eingefügt. Bitte jedes Bild beschreiben (Klick auf das Bild)."
+msgstr "Gallery inserted. Please describe each image (click the image)."
+
+msgid "Keine passende Seite."
+msgstr "No matching page."
+
+msgid "Link beim Klick auf das Bild (optional)"
+msgstr "Link when the image is clicked (optional)"
+
+msgid "Link eingefügt."
+msgstr "Link inserted."
+
+msgid "Link vom Bild entfernt."
+msgstr "Link removed from image."
+
+msgid "Link zu einer Seite"
+msgstr "Link to a page"
+
+msgid "Noch keine Bilder in der Mediathek."
+msgstr "No images in the media library yet."
+
+msgid "Oder Adresse (https://… oder /seite/…)"
+msgstr "Or address (https://… or /seite/…)"
+
+msgid "Schaltfläche einfügen"
+msgstr "Insert button"
+
+msgid "Seite suchen"
+msgstr "Search page"
+
+msgid "Text der Schaltfläche"
+msgstr "Button text"

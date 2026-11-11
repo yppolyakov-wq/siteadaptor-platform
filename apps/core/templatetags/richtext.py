@@ -75,3 +75,19 @@ def rte_rules_json():
     from django.utils.html import json_script
 
     return json_script(richtext.editor_rules(), "rte-rules")
+
+
+@register.simple_tag(takes_context=True)
+def rte_link_targets(context):
+    """M21.11 P5: список своих страниц/записей для «📄 Link zu einer Seite» (JSON)."""
+    from django.utils.html import json_script
+
+    from apps.tenants import menu
+
+    request = context.get("request")
+    tenant = getattr(request, "tenant", None)
+    try:
+        items = menu.link_targets(tenant) if tenant is not None else []
+    except Exception:  # noqa: BLE001 — без списка кнопка просто попросит адрес
+        items = []
+    return json_script(items, "rte-link-targets")

@@ -173,6 +173,34 @@ def page_delete(request, pk):
 
 @login_required
 @perm_required("seiten.edit")
+def page_media_list(request):
+    """M21.11 P5: «🗂 Aus der Mediathek» — уже загруженные картинки бизнеса (JSON).
+
+    Только чтение; только адреса нашей папки медиа (санитайзер страниц иных не
+    пропустит). Подпись — описание картинки на языке бизнеса, если оно есть."""
+    from django.conf import settings
+
+    from apps.core import media_registry
+    from apps.core.models import MediaAsset
+
+    if not MediaAsset.objects.exists():
+        media_registry.backfill(getattr(request, "tenant", None))
+    media = (getattr(settings, "MEDIA_URL", "") or "/media/").strip()
+    items = []
+    assets = MediaAsset.objects.filter(mime_type__startswith="image/").order_by("-created_at")
+    for a in assets[:120]:
+        url = a.url or ""
+        if not url.startswith(media) or media in ("", "/"):
+            continue
+        alt = a.alt.get("de", "") if isinstance(a.alt, dict) else ""
+        items.append({"url": url, "alt": str(alt)[:300]})
+        if len(items) >= 60:
+            break
+    return JsonResponse({"items": items})
+
+
+@login_required
+@perm_required("seiten.edit")
 @require_POST
 def page_image_upload(request):
     """M21.8 B4: «🖼 Bild» в редакторе своей страницы — файл с компьютера.

@@ -1911,6 +1911,15 @@ html:has(dialog.ui-drawer[open]) { overflow: hidden; }
 .dark .sf-page-body figcaption, .dark .rich-text figcaption { color: #9ca3af; }
 .dark .sf-page-body hr, .dark .rich-text hr { border-top-color: #374151; }
 /* M21.11 P5: стиль абзаца (вводный · мелкий · плашка) и три колонки. */
+.sf-page-body a.sf-btn, .rich-text a.sf-btn { display: inline-block; background: var(--accent, #4f46e5); color: var(--accent-ink, #fff); padding: .65rem 1.25rem; border-radius: .6rem; font-weight: 600; text-decoration: none; }
+.sf-page-body a.sf-btn:hover, .rich-text a.sf-btn:hover { opacity: .9; }
+.sf-page-body .sf-gallery, .rich-text .sf-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: .75rem; clear: both; }
+.sf-page-body .sf-gallery figure, .rich-text .sf-gallery figure { margin: 0; width: auto; }
+.sf-page-body .sf-gallery img, .rich-text .sf-gallery img { aspect-ratio: 4 / 3; object-fit: cover; }
+.sf-page-body details, .rich-text details { border: 1px solid #e5e7eb; border-radius: .75rem; padding: .75rem 1rem; }
+.sf-page-body summary, .rich-text summary { cursor: pointer; font-weight: 600; }
+.sf-page-body details[open] > summary, .rich-text details[open] > summary { margin-bottom: .5rem; }
+.dark .sf-page-body details, .dark .rich-text details { border-color: #374151; }
 .sf-page-body .sf-lead, .rich-text .sf-lead { font-size: 1.15rem; line-height: 1.6; color: #1f2937; }
 .sf-page-body .sf-small, .rich-text .sf-small { font-size: .875rem; color: #4b5563; }
 .sf-page-body .sf-note, .rich-text .sf-note { background: #f3f4f6; border-left: 4px solid var(--accent, #4f46e5); border-radius: .5rem; padding: .75rem 1rem; }

@@ -1,5 +1,5 @@
 {% extends "tenant/_base_dashboard.html" %}
-{% load i18n cabinet %}
+{% load i18n cabinet richtext %}
 {% block dash_title %}{% if created %}{% trans "Neue Seite" %}{% else %}{{ page.title }}{% endif %}{% endblock %}
 
 {% block dash_content %}
@@ -36,7 +36,7 @@
       {% endif %}
     </div>
     <label class="block text-sm font-medium" for="page-body">{% trans "Text" %}</label>
-    <textarea id="page-body" name="body" rows="16" data-rte="page" data-rte-upload="{% url 'content-page-image' %}" class="ui-input w-full">{{ page.body }}</textarea>
+    <textarea id="page-body" name="body" rows="16" data-rte="page" data-rte-upload="{% url 'content-page-image' %}" data-rte-media="{% url 'content-page-media' %}" class="ui-input w-full">{{ page.body }}</textarea>
     <p class="text-sm text-gray-600 min-h-[1.25rem]" role="status" aria-live="polite" data-rte-status></p>
     <p class="text-xs text-gray-500">{% trans "🖼 lädt ein Bild von Ihrem Computer hoch, ↔ zentriert einen Absatz, ▥ teilt den Text in zwei Spalten." %}</p>
     <label class="flex items-center gap-2 text-sm">
@@ -72,5 +72,6 @@
   </form>
   {% endif %}
 </div>
+{% rte_link_targets %}
 {% include "catalog/_richtext_editor.html" %}
 {% endblock %}

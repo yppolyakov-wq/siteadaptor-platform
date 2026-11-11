@@ -54,6 +54,11 @@ Esc — обратно), выравнивание текста, H4, цитата
   .rte-area .sf-col-4 { grid-column: span 4; } .rte-area .sf-col-6 { grid-column: span 6; }
   .rte-area .sf-col-8 { grid-column: span 8; } .rte-area .sf-col-12 { grid-column: span 12; }
   /* M21.11 P5 */
+  .rte-area a.sf-btn { display: inline-block; background: #4f46e5; color: #fff; padding: .35rem .9rem; border-radius: .5rem; text-decoration: none; font-weight: 600; }
+  .rte-area .sf-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: .5rem; margin: .5rem 0; }
+  .rte-area .sf-gallery figure { margin: 0; width: auto; }
+  .rte-area details { border: 1px solid #d1d5db; border-radius: .5rem; padding: .5rem .75rem; margin: .5rem 0; }
+  .rte-area summary { font-weight: 600; cursor: text; }
   .rte-area .sf-lead { font-size: 1.05rem; } .rte-area .sf-small { font-size: .8rem; color: #4b5563; }
   .rte-area .sf-note { background: #f3f4f6; border-left: 4px solid #6366f1; border-radius: .5rem; padding: .5rem .75rem; }
   .rte-area .sf-grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; margin: .5rem 0; }
@@ -84,6 +89,8 @@ Esc — обратно), выравнивание текста, H4, цитата
   var RICH_RE = new RegExp(RULES.rich, "i");
   var CLS_RE = new RegExp("^(?:" + RULES.cls + ")$");
   function set(list) { var o = {}; list.forEach(function (t) { o[t] = 1; }); return o; }
+  // Ссылка: своя страница («/…», не «//…») или https/mailto/tel.
+  function safeUrl(u) { return /^(https?:\/\/|mailto:|tel:)/i.test(u) || /^\/(?![\/\\])\S*$/.test(u); }
   var TAGS = set(RULES.tags), PAGE_TAGS = set(RULES.pageTags), CLASS_TAGS = set(RULES.classTags);
   var T = {
     upload: "{% trans 'Bild wird hochgeladen …' as t %}{{ t|escapejs }}",
@@ -103,6 +110,27 @@ Esc — обратно), выравнивание текста, H4, цитата
     pastedText: "{% trans 'Als reiner Text eingefügt.' as t %}{{ t|escapejs }}",
     fullOn: "{% trans 'Vollbild – Esc beendet.' as t %}{{ t|escapejs }}",
     fullOff: "{% trans 'Vollbild beendet.' as t %}{{ t|escapejs }}",
+    pageLink: "{% trans 'Link zu einer Seite' as t %}{{ t|escapejs }}",
+    ctaButton: "{% trans 'Schaltfläche einfügen' as t %}{{ t|escapejs }}",
+    faq: "{% trans 'Frage & Antwort (aufklappbar)' as t %}{{ t|escapejs }}",
+    gallery: "{% trans 'Bildergalerie' as t %}{{ t|escapejs }}",
+    mediaLib: "{% trans 'Aus der Mediathek' as t %}{{ t|escapejs }}",
+    search: "{% trans 'Seite suchen' as t %}{{ t|escapejs }}",
+    orUrl: "{% trans 'Oder Adresse (https://… oder /seite/…)' as t %}{{ t|escapejs }}",
+    btnText: "{% trans 'Text der Schaltfläche' as t %}{{ t|escapejs }}",
+    insert: "{% trans 'Einfügen' as t %}{{ t|escapejs }}",
+    question: "{% trans 'Frage' as t %}{{ t|escapejs }}",
+    answer: "{% trans 'Antwort' as t %}{{ t|escapejs }}",
+    noMedia: "{% trans 'Noch keine Bilder in der Mediathek.' as t %}{{ t|escapejs }}",
+    noMatch: "{% trans 'Keine passende Seite.' as t %}{{ t|escapejs }}",
+    badUrl: "{% trans 'Bitte eine Adresse mit https:// oder eine eigene Seite (/…) angeben.' as t %}{{ t|escapejs }}",
+    linked: "{% trans 'Link eingefügt.' as t %}{{ t|escapejs }}",
+    imgLink: "{% trans 'Link beim Klick auf das Bild (optional)' as t %}{{ t|escapejs }}",
+    imgLinked: "{% trans 'Bild verlinkt.' as t %}{{ t|escapejs }}",
+    imgUnlinked: "{% trans 'Link vom Bild entfernt.' as t %}{{ t|escapejs }}",
+    replace: "{% trans 'Bild ersetzen' as t %}{{ t|escapejs }}",
+    replaced: "{% trans 'Bild ersetzt.' as t %}{{ t|escapejs }}",
+    galleryDone: "{% trans 'Galerie eingefügt. Bitte jedes Bild beschreiben (Klick auf das Bild).' as t %}{{ t|escapejs }}",
     indented: "{% trans 'Eingerückt.' as t %}{{ t|escapejs }}",
     outdented: "{% trans 'Ausgerückt.' as t %}{{ t|escapejs }}",
     draftDropped: "{% trans 'Entwurf verworfen.' as t %}{{ t|escapejs }}",
@@ -143,7 +171,7 @@ Esc — обратно), выравнивание текста, H4, цитата
       var el = document.createElement(tag);
       if (tag === "A") {
         var href = ch.getAttribute("href") || "";
-        if (/^(https?:|mailto:|tel:)/i.test(href)) el.setAttribute("href", href);
+        if (/^(https?:|mailto:|tel:)/i.test(href) || (page && /^\/(?![\/\\])/.test(href))) el.setAttribute("href", href);
       } else if (tag === "IMG") {
         var src = ch.getAttribute("src") || "";
         if (!/^\/media\//.test(src) || /\.\.|\\|%2f|%5c/i.test(src)) return;
@@ -167,6 +195,7 @@ Esc — обратно), выравнивание текста, H4, цитата
       el.classList.remove("rte-sel", "rte-noalt");
       if (!el.getAttribute("class")) el.removeAttribute("class");
     });
+    c.querySelectorAll("details").forEach(function (d) { d.removeAttribute("open"); });
     return c;
   }
   // Без разметки — обычный текст (иначе «Tom & Jerry» ушло бы как «&amp;»); пустой
@@ -315,6 +344,41 @@ Esc — обратно), выравнивание текста, H4, цитата
   }
   function prepAll(area) {
     area.querySelectorAll("figure").forEach(function (f) { if (f.querySelector("img")) prepFigure(f); });
+    // Раскрывашка в редакторе всегда открыта — ответ виден и правится (open не сохраняется).
+    area.querySelectorAll("details").forEach(function (d) { d.open = true; });
+  }
+  // M21.11 P5: одна загрузка → адрес картинки (общая для фото, галереи и «ersetzen»).
+  function uploadOne(ta, area, file) {
+    var form = ta.closest("form");
+    var csrf = form && form.querySelector('[name="csrfmiddlewaretoken"]');
+    var body = new FormData();
+    body.append("image", file);
+    body.append("csrfmiddlewaretoken", csrf ? csrf.value : "");
+    status(area, T.upload);
+    return fetch(ta.dataset.rteUpload, { method: "POST", body: body, credentials: "same-origin" })
+      .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+      .then(function (res) {
+        if (!res.ok || !res.d.url) throw new Error(res.d.error || "");
+        return res.d.url;
+      });
+  }
+  function newFigure(src, alt) {
+    var fig = document.createElement("figure");
+    fig.className = "sf-img-full";
+    fig.setAttribute("data-new", "");
+    var img = document.createElement("img");
+    img.setAttribute("src", src);
+    img.setAttribute("alt", alt || "");
+    fig.appendChild(img);
+    return fig;
+  }
+  function pickFiles(multiple, cb) {
+    var input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/jpeg,image/png,image/webp";
+    input.multiple = !!multiple;
+    input.addEventListener("change", function () { if (input.files && input.files.length) cb(Array.prototype.slice.call(input.files, 0, 12)); });
+    input.click();
   }
   function pickAndUpload(ta, area, range, done) {
     var input = document.createElement("input");
@@ -515,6 +579,40 @@ Esc — обратно), выравнивание текста, H4, цитата
     });
     pop.appendChild(capPair[0]);
     pop.appendChild(cap);
+    // M21.11 P5: фото-ссылка (свой адрес или https://) и замена файла.
+    var link0 = img.parentNode && img.parentNode.tagName === "A" ? img.parentNode.getAttribute("href") || "" : "";
+    var lnPair = textField(uid + "-ln", T.imgLink, link0, 500);
+    var ln = lnPair[1];
+    ln.addEventListener("change", function () {
+      var url = ln.value.trim();
+      var a0 = img.parentNode && img.parentNode.tagName === "A" ? img.parentNode : null;
+      if (!url) {
+        if (a0) { a0.parentNode.insertBefore(img, a0); a0.remove(); changed(T.imgUnlinked); }
+        return;
+      }
+      if (!safeUrl(url)) { status(area, T.badUrl); return; }
+      if (!a0) { a0 = document.createElement("a"); img.parentNode.insertBefore(a0, img); a0.appendChild(img); }
+      a0.setAttribute("href", url);
+      changed(T.imgLinked);
+    });
+    pop.appendChild(lnPair[0]);
+    pop.appendChild(ln);
+    var ta0 = area.__ta;
+    if (ta0 && ta0.dataset.rteUpload) {
+      var rep = document.createElement("button");
+      rep.type = "button";
+      rep.className = "ui-btn ui-btn-sm mt-2";
+      rep.textContent = T.replace;
+      rep.addEventListener("click", function () {
+        pickFiles(false, function (files) {
+          uploadOne(ta0, area, files[0]).then(function (url) {
+            img.setAttribute("src", url);
+            changed(T.replaced);
+          }).catch(function (e) { status(area, e.message || T.uploadFail); });
+        });
+      });
+      pop.appendChild(rep);
+    }
     var row = document.createElement("div");
     row.style.cssText = "display:flex;justify-content:space-between;gap:8px;margin-top:.75rem";
     var rm = document.createElement("button");
@@ -636,6 +734,11 @@ Esc — обратно), выравнивание текста, H4, цитата
           ["▥", "columns", "{% trans 'Zwei Spalten' as t %}{{ t|escapejs }}"],
           ["▦", "columns3", "{% trans 'Drei Spalten' as t %}{{ t|escapejs }}"],
           ["☺", "emoji", "{% trans 'Emoji einfügen' as t %}{{ t|escapejs }}"],
+          ["📄", "pageLink", "{% trans 'Link zu einer Seite' as t %}{{ t|escapejs }}"],
+          ["▭", "ctaButton", "{% trans 'Schaltfläche einfügen' as t %}{{ t|escapejs }}"],
+          ["❓", "faq", "{% trans 'Frage & Antwort (aufklappbar)' as t %}{{ t|escapejs }}"],
+          ["▤", "gallery", "{% trans 'Bildergalerie' as t %}{{ t|escapejs }}"],
+          ["🗂", "mediaLib", "{% trans 'Aus der Mediathek' as t %}{{ t|escapejs }}"],
           ["―", "hr", "{% trans 'Trennlinie' as t %}{{ t|escapejs }}"],
         ]],
       ]);
@@ -702,6 +805,7 @@ Esc — обратно), выравнивание текста, H4, цитата
       refresh();
     }
     area.__rte = { snapshot: snapshot, sync: sync };
+    area.__ta = ta;
     var pasteAsText = false;
     // --- M21.11 P5: полный экран ---------------------------------------------------------
     // a11y-ревью: полный экран = модальная область — остальная страница inert,
@@ -790,7 +894,227 @@ Esc — обратно), выравнивание текста, H4, цитата
     }
     document.addEventListener("click", function (e) {
       if (emojiPop && !emojiPop.contains(e.target) && !(byCmd.emoji && byCmd.emoji.contains(e.target))) closeEmoji(false);
+      if (panel && !panel.contains(e.target) && !(panel.__btn && panel.__btn.contains(e.target))) closePanel(false);
     });
+    // --- M21.11 P5: общее окно-панель (ссылка/кнопка/медиатека) ---------------------------
+    var panel = null;
+    function closePanel(focus) {
+      if (!panel) return;
+      if (panel.__btn) panel.__btn.setAttribute("aria-expanded", "false");
+      panel.remove();
+      panel = null;
+      if (focus) { area.focus(); restore(area, saved); }
+    }
+    function openPanel(cmd, label) {
+      closePanel(false);
+      closeEmoji(false);
+      panel = document.createElement("div");
+      panel.className = "rte-pop";
+      panel.setAttribute("role", "dialog");
+      panel.setAttribute("aria-label", label);
+      panel.style.top = (bar.offsetHeight + 4) + "px";
+      panel.style.left = "0";
+      panel.__btn = byCmd[cmd];
+      if (panel.__btn) panel.__btn.setAttribute("aria-expanded", "true");
+      var h = document.createElement("h2");
+      h.className = "font-semibold mb-2";
+      h.textContent = label;
+      panel.appendChild(h);
+      panel.addEventListener("keydown", function (e) {
+        if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); closePanel(true); }
+      });
+      panel.addEventListener("focusout", function (e) {
+        var to = e.relatedTarget;
+        if (panel && to && !panel.contains(to) && to !== panel.__btn) closePanel(false);
+      });
+      wrap.appendChild(panel);
+      return panel;
+    }
+    function linkTargets() {
+      var el = document.getElementById("rte-link-targets");
+      try { return el ? JSON.parse(el.textContent) : []; } catch (e) { return []; }
+    }
+    function insertLink(cmd, url, text) {
+      var keep = saved;
+      closePanel(false);
+      area.focus();
+      restore(area, keep || currentRange(area));
+      if (cmd === "ctaButton") {
+        var p = document.createElement("p");
+        var a = document.createElement("a");
+        a.className = "sf-btn";
+        a.setAttribute("href", url);
+        a.textContent = text || url;
+        p.appendChild(a);
+        insertBlockAfterCurrent(area, p, emptyPara());
+      } else {
+        var r = currentRange(area);
+        if (r && !r.collapsed) {
+          document.execCommand("createLink", false, url);
+        } else if (r) {
+          var a2 = document.createElement("a");
+          a2.setAttribute("href", url);
+          a2.textContent = text || url;
+          r.insertNode(a2);
+          r.setStartAfter(a2);
+          r.collapse(true);
+          restore(area, r);
+        }
+      }
+      sync();
+      snapshot();
+      status(area, T.linked);
+    }
+    function openLinkPicker(cmd) {
+      var pn = openPanel(cmd, cmd === "ctaButton" ? T.ctaButton : T.pageLink);
+      var uid = area.id + "-lp";
+      var txt = null;
+      if (cmd === "ctaButton") {
+        var tp = textField(uid + "-t", T.btnText, "", 80);
+        txt = tp[1];
+        pn.appendChild(tp[0]);
+        pn.appendChild(txt);
+      }
+      var sp = textField(uid + "-q", T.search, "", 80);
+      var q = sp[1];
+      q.setAttribute("type", "search");
+      q.setAttribute("aria-controls", uid + "-list");
+      pn.appendChild(sp[0]);
+      pn.appendChild(q);
+      var list = document.createElement("ul");
+      list.id = uid + "-list";
+      list.style.cssText = "max-height:14rem;overflow:auto;margin:.25rem 0";
+      pn.appendChild(list);
+      var none = document.createElement("p");
+      none.className = "rte-help";
+      none.setAttribute("role", "status");
+      pn.appendChild(none);
+      var all = linkTargets();
+      function draw() {
+        var term = q.value.trim().toLowerCase();
+        list.textContent = "";
+        var shown = 0;
+        all.forEach(function (t) {
+          if (shown >= 40) return;
+          if (term && (t.label + " " + t.group).toLowerCase().indexOf(term) < 0) return;
+          shown++;
+          var li = document.createElement("li");
+          var b = document.createElement("button");
+          b.type = "button";
+          b.className = "w-full text-left rounded px-2 py-1 hover:bg-gray-100 focus-visible:bg-gray-100";
+          b.textContent = t.label;
+          var g = document.createElement("span");
+          g.className = "text-xs text-gray-500";
+          g.textContent = " · " + t.group;
+          b.appendChild(g);
+          b.addEventListener("click", function () { insertLink(cmd, t.url, (txt && txt.value.trim()) || t.label); });
+          li.appendChild(b);
+          list.appendChild(li);
+        });
+        none.textContent = shown ? "" : T.noMatch;
+      }
+      q.addEventListener("input", draw);
+      draw();
+      var up = textField(uid + "-u", T.orUrl, "", 500);
+      var u = up[1];
+      pn.appendChild(up[0]);
+      pn.appendChild(u);
+      var go = document.createElement("button");
+      go.type = "button";
+      go.className = "ui-btn ui-btn-sm ui-btn-primary mt-2";
+      go.textContent = T.insert;
+      go.addEventListener("click", function () {
+        var url = u.value.trim();
+        if (!safeUrl(url)) { status(area, T.badUrl); u.focus(); return; }
+        insertLink(cmd, url, txt && txt.value.trim());
+      });
+      pn.appendChild(go);
+      (txt || q).focus();
+    }
+    function insertFaq() {
+      var d = document.createElement("details");
+      d.open = true;
+      var sm = document.createElement("summary");
+      sm.textContent = T.question;
+      var ans = document.createElement("p");
+      ans.textContent = T.answer;
+      d.appendChild(sm);
+      d.appendChild(ans);
+      insertBlockAfterCurrent(area, d, emptyPara());
+      var r = document.createRange();
+      r.selectNodeContents(sm);
+      restore(area, r);
+    }
+    function insertGallery() {
+      var keep = saved;
+      pickFiles(true, function (files) {
+        var gal = document.createElement("div");
+        gal.className = "sf-gallery";
+        var chain = Promise.resolve();
+        files.forEach(function (f) {
+          chain = chain.then(function () {
+            return uploadOne(ta, area, f).then(function (url) {
+              var fig = newFigure(url, "");
+              gal.appendChild(fig);
+              prepFigure(fig);
+            });
+          });
+        });
+        chain.catch(function (e) { status(area, e.message || T.uploadFail); }).then(function () {
+          if (!gal.children.length) return;
+          area.focus();
+          restore(area, keep || currentRange(area));
+          insertBlockAfterCurrent(area, gal, emptyPara());
+          sync();
+          snapshot();
+          status(area, T.galleryDone);
+        });
+      });
+    }
+    function openMedia() {
+      var pn = openPanel("mediaLib", T.mediaLib);
+      var grid = document.createElement("div");
+      grid.style.cssText = "display:grid;grid-template-columns:repeat(4,1fr);gap:4px;max-height:16rem;overflow:auto";
+      pn.appendChild(grid);
+      var msg = document.createElement("p");
+      msg.className = "rte-help";
+      msg.setAttribute("role", "status");
+      pn.appendChild(msg);
+      fetch(ta.dataset.rteMedia, { credentials: "same-origin" })
+        .then(function (r) { return r.json(); })
+        .then(function (d) {
+          var items = (d && d.items) || [];
+          if (!items.length) { msg.textContent = T.noMedia; return; }
+          items.forEach(function (it, i) {
+            if (!/^\/media\//.test(it.url) || /\.\.|\\|%2f|%5c/i.test(it.url)) return;
+            var b = document.createElement("button");
+            b.type = "button";
+            b.setAttribute("aria-label", it.alt || (T.image + " " + (i + 1)));
+            b.style.cssText = "aspect-ratio:1;border-radius:6px;overflow:hidden;min-height:44px";
+            var im = document.createElement("img");
+            im.setAttribute("src", it.url);
+            im.setAttribute("alt", "");
+            im.style.cssText = "width:100%;height:100%;object-fit:cover";
+            b.appendChild(im);
+            b.addEventListener("click", function () {
+              var keep = saved;
+              closePanel(false);
+              area.focus();
+              restore(area, keep || currentRange(area));
+              var fig = newFigure(it.url, it.alt || "");
+              insertBlockAfterCurrent(area, fig, emptyPara());
+              prepFigure(fig);
+              sync();
+              snapshot();
+              openImage(area, fig);
+            });
+            grid.appendChild(b);
+          });
+          var first = grid.querySelector("button");
+          if (first) first.focus();
+        })
+        .catch(function () { msg.textContent = T.uploadFail; });
+    }
     GROUPS.forEach(function (g) {
       var grp = document.createElement("div");
       grp.className = "rte-group";
@@ -810,7 +1134,7 @@ Esc — обратно), выравнивание текста, H4, цитата
         if (c[3]) b.setAttribute("aria-pressed", "false");
         var keys = { undo: "Control+Z", redo: "Control+Y", imageSettings: "F2", bold: "Control+B", italic: "Control+I", underline: "Control+U" };
         if (keys[c[1]]) b.setAttribute("aria-keyshortcuts", keys[c[1]]);
-        if (c[1] === "emoji") { b.setAttribute("aria-haspopup", "dialog"); b.setAttribute("aria-expanded", "false"); }
+        if (/^(emoji|pageLink|ctaButton|mediaLib)$/.test(c[1])) { b.setAttribute("aria-haspopup", "dialog"); b.setAttribute("aria-expanded", "false"); }
         if (c[0] === "B") b.style.fontWeight = "700";
         if (c[0] === "I") b.style.fontStyle = "italic";
         if (c[0] === "U") b.style.textDecoration = "underline";
@@ -828,6 +1152,9 @@ Esc — обратно), выравнивание текста, H4, цитата
       });
       bar.appendChild(grp);
     });
+    if (byCmd.gallery && !ta.dataset.rteUpload) byCmd.gallery.hidden = true;
+    if (byCmd.mediaLib && !ta.dataset.rteMedia) byCmd.mediaLib.hidden = true;
+    buttons = buttons.filter(function (x) { return !x.hidden; });
     function selectedFigure() {
       var sel = area.querySelector("figure.rte-sel");
       if (sel) return sel;
@@ -873,6 +1200,17 @@ Esc — обратно), выравнивание текста, H4, цитата
       } else if (cmd === "emoji") {
         openEmoji();
         return;
+      } else if (cmd === "pageLink" || cmd === "ctaButton") {
+        openLinkPicker(cmd);
+        return;
+      } else if (cmd === "mediaLib") {
+        openMedia();
+        return;
+      } else if (cmd === "gallery") {
+        if (ta.dataset.rteUpload) insertGallery();
+        return;
+      } else if (cmd === "faq") {
+        insertFaq();
       } else if (cmd === "hr") {
         insertRule(area);
       } else if (cmd === "createLink") {
@@ -963,6 +1301,20 @@ Esc — обратно), выравнивание текста, H4, цитата
         return;
       }
       if (mod && e.shiftKey && k === "v") { pasteAsText = true; setTimeout(function () { pasteAsText = false; }, 400); }
+      if (e.key === "Enter" && !e.shiftKey) {
+        var r0 = currentRange(area), sn = r0 ? r0.startContainer : null;
+        var summ = sn && (sn.nodeType === 1 ? sn : sn.parentNode).closest ? (sn.nodeType === 1 ? sn : sn.parentNode).closest("summary") : null;
+        if (summ && area.contains(summ)) {
+          // Enter в вопросе — к ответу (иначе Chrome сворачивает раскрывашку).
+          e.preventDefault();
+          var ans = summ.nextElementSibling || summ.parentNode.appendChild(emptyPara());
+          var rr = document.createRange();
+          rr.selectNodeContents(ans);
+          rr.collapse(true);
+          restore(area, rr);
+          return;
+        }
+      }
       if (e.key === "Tab" && !mod && !e.altKey) {
         var li = blockOf(area);
         // Chrome кладёт вложенный список рядом с пунктом (<ul><li/><ul>…</ul></ul>).
@@ -992,7 +1344,11 @@ Esc — обратно), выравнивание текста, H4, цитата
     });
     area.addEventListener("click", function (e) {
       if (!page) return;
-      var img = e.target.closest && e.target.closest("img");
+      // Клик по вопросу — правка текста, а не сворачивание раскрывашки.
+      if (e.target.closest && e.target.closest("summary") && area.contains(e.target)) e.preventDefault();
+      // Клик по плашке «Bildbeschreibung fehlt» (::after фигуры) — тоже окно фото.
+      var hitFig = e.target.closest && e.target.closest("figure");
+      var img = e.target.closest && (e.target.closest("img") || (hitFig && hitFig.querySelector("img")));
       if (!img || !area.contains(img)) return;
       var fig = wrapImage(img);
       prepFigure(fig);
