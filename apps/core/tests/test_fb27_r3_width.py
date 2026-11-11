@@ -233,3 +233,64 @@ def test_content_change_counts_and_reverts():
     assert "data-schema-draft" in b.get("?seite=text")
     b.post(seite="text", op="update", ref=ref, panel_present="1", f_label=label)
     assert "data-schema-draft" not in b.get("?seite=text")
+
+
+def test_long_text_is_not_cut_off():
+    """Панель не обрезает текст молча (у Студии лимита нет)."""
+    b = Browser(_tenant())
+    ref = site_schema.apply(b.tenant, "text", "add", block_type="text")
+    long_text = "Zeile\n" * 2000  # 12 000 знаков
+    b.post(seite="text", op="update", ref=ref, panel_present="1", f_body=long_text)
+    b.post(seite="text", op="save")
+    assert len(_blocks(b.tenant)[0]["data"]["body"]) >= 11_900
+
+
+def test_browser_line_endings_do_not_create_a_change():
+    b = Browser(_tenant())
+    ref = site_schema.apply(b.tenant, "text", "add", block_type="text")
+    site_schema.apply(b.tenant, "text", "update", ref=ref, fields={"body": "eins\nzwei"})
+    title = _blocks(b.tenant)[0]["data"]["title"]
+    b.post(
+        seite="text", op="update", ref=ref, panel_present="1", f_title=title, f_body="eins\r\nzwei"
+    )
+    assert "data-schema-draft" not in b.get("?seite=text")
+
+
+def test_update_without_fields_leaves_the_block_alone():
+    """Без сентинела блок не канонизируется — ложного черновика нет."""
+    tenant = _tenant()
+    items = [{"id": "a1", "key": "image_text", "enabled": True, "data": {"title": "T", "alt": "x"}}]
+    before = [dict(items[0], data=dict(items[0]["data"]))]
+    site_schema.mutate(items, "text", "update", ref="a1", fields=None)
+    assert items == before
+    del tenant
+
+
+def test_unsafe_button_link_is_refused_on_write():
+    tenant = _tenant()
+    ref = site_schema.apply(tenant, "text", "add", block_type="button")
+    for bad in ("javascript:alert(1)", "data:text/html,x", "//evil.example"):
+        with pytest.raises(site_schema.SchemaError):
+            site_schema.apply(tenant, "text", "update", ref=ref, fields={"url": bad})
+    site_schema.apply(tenant, "text", "update", ref=ref, fields={"url": "/kontakt/"})
+    assert _blocks(tenant)[0]["data"]["url"] == "/kontakt/"
+
+
+def test_panel_writes_the_base_language_and_keeps_translations():
+    tenant = _tenant()
+    cfg = siteconfig.normalize(
+        {
+            "page_blocks": {
+                "info": [{"id": "a1", "key": "text", "enabled": True, "data": {"title": "Eins"}}]
+            },
+            "i18n": {"ru": {"page_blocks": {"info": [{"id": "a1", "data": {"title": "Один"}}]}}},
+        }
+    )
+    Tenant.objects.filter(pk=tenant.pk).update(site_config=cfg)
+    b = Browser(tenant)
+    b.post(seite="text", op="update", ref="a1", panel_present="1", f_title="Neu")
+    b.post(seite="text", op="save")
+    stored = siteconfig.normalize(Tenant.objects.get(pk=tenant.pk).site_config)
+    assert stored["page_blocks"]["info"][-1]["data"]["title"] == "Neu"
+    ru = siteconfig.localize(stored, "ru")["page_blocks"]["info"][-1]["data"]["title"]
+    assert ru == "Один"  # перевод цел

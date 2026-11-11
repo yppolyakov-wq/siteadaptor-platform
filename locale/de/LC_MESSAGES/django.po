@@ -37252,3 +37252,6 @@ msgstr "Beschriftung"
 
 msgid "Bildunterschrift"
 msgstr "Bildunterschrift"
+
+msgid "Hier steht der Text der Hauptsprache. Übersetzungen ändern Sie direkt auf der Seite."
+msgstr "Hier steht der Text der Hauptsprache. Übersetzungen ändern Sie direkt auf der Seite."

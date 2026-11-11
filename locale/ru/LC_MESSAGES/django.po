@@ -37502,3 +37502,6 @@ msgstr "Надпись"
 
 msgid "Bildunterschrift"
 msgstr "Подпись к фото"
+
+msgid "Hier steht der Text der Hauptsprache. Übersetzungen ändern Sie direkt auf der Seite."
+msgstr "Здесь текст на основном языке. Переводы меняются прямо на странице."

@@ -155,10 +155,11 @@
         {% if f.kind == "area" %}
         <textarea id="schema-f-{{ f.name }}" name="f_{{ f.name }}" rows="5" class="ui-input w-full">{{ f.value }}</textarea>
         {% else %}
-        <input id="schema-f-{{ f.name }}" name="f_{{ f.name }}" value="{{ f.value }}" class="ui-input w-full">
+        <input type="text" id="schema-f-{{ f.name }}" name="f_{{ f.name }}" value="{{ f.value }}" class="ui-input w-full">
         {% endif %}
       </div>
       {% endfor %}
+      {% if multi_lang %}<p class="text-xs text-gray-600">{% trans "Hier steht der Text der Hauptsprache. Übersetzungen ändern Sie direkt auf der Seite." %}</p>{% endif %}
       <button name="op" value="update" class="ui-btn ui-btn-primary w-full">{% trans "Übernehmen" %}</button>
     </form>
     {% endif %}

@@ -23,7 +23,13 @@ def _url(code: str, block: str = "") -> str:
 def _panel_fields(post) -> dict | None:
     if post.get("panel_present") != "1":
         return None
-    return {k[2:]: v for k, v in post.items() if k.startswith("f_")}
+    # Браузер шлёт переводы строк textarea как \r\n: без нормализации «Übernehmen» без
+    # правок выглядело бы изменением, а в конфиг попадал бы CRLF.
+    return {
+        k[2:]: v.replace("\r\n", "\n").replace("\r", "\n")
+        for k, v in post.items()
+        if k.startswith("f_")
+    }
 
 
 @login_required
@@ -120,5 +126,7 @@ def site_schema_view(request):
             "studio_url": studio,
             "draft": draft_info if draft else None,
             "other_drafts": other_drafts,
+            # Панель правит текст ОСНОВНОГО языка; при нескольких языках — подсказка.
+            "multi_lang": len(tenant.active_locales) > 1,
         },
     )

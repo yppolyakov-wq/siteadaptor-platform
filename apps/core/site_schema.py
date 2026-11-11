@@ -325,7 +325,6 @@ PANEL_FIELDS = {
     ),
     "image": (("caption", gettext_lazy("Bildunterschrift"), "line"),),
 }
-PANEL_FIELD_MAX = 4000
 
 
 def panel_fields(item: dict) -> list[dict]:
@@ -561,10 +560,20 @@ def mutate(
         allowed = [name for name, _label, _kind in PANEL_FIELDS.get(key, ())]
         if main or not item.get("id") or not allowed:
             raise SchemaError("fields")
+        sent = {n: str(fields[n]) for n in allowed if fields is not None and n in fields}
         data = dict(item.get("data") or {})
-        for name in allowed:
-            if fields is not None and name in fields:
-                data[name] = str(fields[name])[:PANEL_FIELD_MAX]
+        # Ничего не прислано или не изменилось — блок не трогаем вовсе (иначе канонизация
+        # данных создала бы «правку», которой владелец не делал).
+        if all(data.get(n, "") == v for n, v in sent.items()):
+            return ref
+        if key == "button" and sent.get("url"):
+            # Небезопасная схема (javascript:, data:, //host) отбрасывается уже при записи;
+            # витрина дополнительно фильтрует на выводе (`safe_href`).
+            from apps.tenants.templatetags.siteui import safe_href
+
+            if safe_href(sent["url"]) == "#" and sent["url"].strip() != "#":
+                raise SchemaError("url")
+        data.update(sent)
         item["data"] = siteconfig._clean_cblock_data(key, data)
     elif op == "newline":
         if main or not item.get("id") or item.get("width") not in siteconfig.NARROW_WIDTHS:
