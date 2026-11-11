@@ -9,7 +9,7 @@ from django.urls import reverse
 from django.utils.http import urlencode
 from django.utils.translation import gettext as _
 
-from apps.core import site_schema
+from apps.core import page_settings, site_schema
 
 
 def _url(code: str, block: str = "") -> str:
@@ -58,6 +58,30 @@ def site_schema_view(request):
                 aufbau_draft.discard(request, code)
                 messages.success(request, _("Änderungen verworfen."))
                 ref = ""
+            elif op == "setting":
+                # FB-27 R4: настройка типа страницы — в черновик. `out_mode` — сентинел
+                # оси вывода: без него сохранённые ряды/лента остаются как были.
+                output = (
+                    page_settings.output_payload(request.POST, "out")
+                    if "out_mode" in request.POST
+                    else None
+                )
+                skipped = aufbau_draft.setting_op(
+                    request,
+                    tenant,
+                    code,
+                    request.POST.get("setting", ""),
+                    request.POST.get("value", ""),
+                    output=output,
+                    apply_all=request.POST.get("apply_all") == "1",
+                )
+                if skipped:
+                    messages.warning(
+                        request,
+                        _(
+                            "Nicht auf alle Listen übertragen – dort gibt es diese Darstellung nicht."
+                        ),
+                    )
             else:
                 ref = aufbau_draft.op(
                     request,
@@ -71,7 +95,7 @@ def site_schema_view(request):
                     # той же страницы не должны стирать текст блока).
                     fields=_panel_fields(request.POST),
                 )
-        except site_schema.SchemaError:
+        except (site_schema.SchemaError, page_settings.PageSettingError):
             messages.error(request, _("Diese Änderung ist hier nicht möglich."))
         except aufbau_draft.DraftConflict:
             messages.error(
@@ -82,7 +106,13 @@ def site_schema_view(request):
                 ),
             )
         # Блок остаётся выбранным (новый — тоже), удалённый — нет.
-        return redirect(_url(code, "" if op == "delete" else ref))
+        target = _url(code, "" if op == "delete" else ref)
+        if op == "setting" and "#" in target:
+            # Настройка, которую только что меняли, остаётся раскрытой.
+            base, anchor = target.split("#", 1)
+            opened = urlencode({"offen": request.POST.get("setting", "")})
+            target = f"{base}&{opened}#{anchor}"
+        return redirect(target)
     saved = siteconfig.normalize(tenant.site_config)
     groups = site_schema.type_groups(tenant, saved)
     rows = [r for _label, items in groups for r in items]
@@ -99,6 +129,22 @@ def site_schema_view(request):
 
         selected["groups"] = list_panel.groups(request, config, selected["list_data"])
         selected["result"] = list_panel.result(request, config, selected["list_data"])
+    # FB-27 R4: настройки типа страницы — в панели «★ Hauptliste», а у страниц без
+    # основного списка — на строке «Einstellungen der Seite».
+    page_row, settings = None, []
+    try:
+        has_settings = bool(site_schema.setting_codes(tenant, code))
+    except site_schema.SchemaError:
+        has_settings = False
+    if has_settings:
+        main = next((b for b in blocks if b["main"]), None)
+        if main is None:
+            page_row = {
+                "ref": site_schema.PAGE_REF,
+                "active": request.GET.get("block") == site_schema.PAGE_REF,
+            }
+        if (selected and selected["main"]) or (page_row and page_row["active"]):
+            settings = site_schema.settings_groups(tenant, code, config)
     preview_url = current.preview_url if current else ""
     studio = reverse("site-home")
     if preview_url:
@@ -131,6 +177,11 @@ def site_schema_view(request):
             "studio_url": studio,
             "draft": draft_info if draft else None,
             "other_drafts": other_drafts,
+            "page_row": page_row,
+            "settings": settings,
+            "settings_ref": selected["ref"] if selected else site_schema.PAGE_REF,
+            "shared_settings": site_schema.SHARED_SETTINGS,
+            "open_setting": request.GET.get("offen", ""),
             # Панель правит текст ОСНОВНОГО языка; при нескольких языках — подсказка.
             "multi_lang": len(tenant.active_locales) > 1,
         },

@@ -66,6 +66,14 @@
         <span>{% trans "Kopfzeile & Menü" %}</span>
         {% if 'site-menu'|can_open:request %}<a href="{% url 'site-menu' %}" class="inline-flex items-center min-h-[24px] text-indigo-700 hover:underline">{% trans "Menü bearbeiten" %}</a>{% endif %}
       </li>
+      {% if page_row %}
+      <li><a href="?seite={{ code|urlencode }}&amp;block={{ page_row.ref }}#schema-panel"
+             class="block rounded-xl border px-3 py-2.5 text-sm min-h-[44px] {% if page_row.active %}border-2 border-indigo-700 bg-white{% else %}border-indigo-400 bg-indigo-50{% endif %}"
+             data-schema-block="{{ page_row.ref }}" aria-controls="schema-panel"{% if page_row.active %} aria-current="true"{% endif %}>
+          <span class="font-medium">{% trans "Einstellungen der Seite" %}</span>
+          <span class="block text-xs text-gray-600">{% trans "Darstellung, Kartenform, Textbreite" %}</span>
+      </a></li>
+      {% endif %}
       {% for row in layout.rows %}
       <li><ul class="flex flex-col md:flex-row gap-2" data-schema-row{% if row|length > 1 %} aria-label="{% trans 'Blöcke nebeneinander' %}: {{ row|length }}"{% endif %}>
         {% for b in row %}
@@ -119,6 +127,7 @@
       <div class="flex gap-2"><dt class="text-gray-600">{% trans "Status" %}:</dt><dd>{% if selected.main %}{% trans "Hauptliste der Seite" %}{% elif selected.enabled %}{% trans "sichtbar" %}{% else %}{% trans "ausgeblendet" %}{% endif %}</dd></div>
       {% if selected.width_label %}<div class="flex gap-2"><dt class="text-gray-600">{% trans "Breite" %}:</dt><dd>{{ selected.width_label }}</dd></div>{% endif %}
     </dl>
+    {% if selected.main and settings %}{% include "tenant/_schema_settings.html" %}{% endif %}
     {% if confirm_remove and selected.cblock %}
     <form method="post" class="mt-4 rounded-xl bg-red-50 p-3 space-y-3" data-schema-confirm>
       {% csrf_token %}
@@ -234,6 +243,9 @@
     {% endif %}
     <p class="mt-4 border-t border-gray-200 pt-3 text-sm text-gray-600">{% trans "Texte, Fotos und Aussehen des Blocks ändern Sie direkt auf der Seite." %}
       <a href="{{ studio_url }}" class="inline-flex items-center min-h-[44px] text-indigo-700 underline">{% trans "Auf der Seite bearbeiten" %}</a></p>
+    {% elif page_row.active %}
+    <h2 id="schema-panel-title" class="font-semibold text-lg">{% trans "Einstellungen der Seite" %}</h2>
+    {% include "tenant/_schema_settings.html" %}
     {% else %}
     <h2 id="schema-panel-title" class="font-semibold">{% trans "Block wählen" %}</h2>
     <p class="mt-2 text-sm text-gray-600">{% trans "Tippen Sie links auf einen Block, um ihn zu verschieben, auszublenden oder zu entfernen." %}</p>

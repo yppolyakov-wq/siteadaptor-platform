@@ -37532,3 +37532,15 @@ msgstr[3] "Сейчас показывает %(n)s записи (из %(total)s)
 
 msgid "Die weiteren Felder passen sich nach „Übernehmen“ an."
 msgstr "Остальные поля подстроятся после «Применить»."
+
+msgid "Einstellungen der Seite"
+msgstr "Настройки страницы"
+
+msgid "Darstellung, Kartenform, Textbreite"
+msgstr "Вид, форма карточки, ширина текста"
+
+msgid "gilt für alle Seiten"
+msgstr "действует на всех страницах"
+
+msgid "Nicht auf alle Listen übertragen – dort gibt es diese Darstellung nicht."
+msgstr "Перенесено не на все списки — там такого вида нет."

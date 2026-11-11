@@ -1,0 +1,51 @@
+{% load i18n %}{% comment %}FB-27 R4: настройки типа страницы в панели «Seitenaufbau». Форма на
+настройку (поля `value`, `out_*`, `apply_all` — те же, что были у «Seitenvorlagen»);
+значение идёт в черновик страницы и попадает на сайт по «Speichern».{% endcomment %}
+<div class="mt-4 space-y-2" data-schema-settings>
+{% for g in settings %}
+  {% if g.label %}<h3 class="text-sm font-bold text-gray-900 border-t border-gray-200 pt-3">{{ g.label }}</h3>{% endif %}
+  {% for row in g.settings %}{% with s=row.s %}
+  <details class="rounded-xl border border-gray-300" data-schema-setting-box="{{ s.code }}"{% if open_setting == s.code %} open{% endif %}>
+  <summary class="flex items-center justify-between gap-2 px-3 min-h-[44px] cursor-pointer text-sm">
+    <span class="font-semibold">{{ s.label }}</span>
+    <span class="text-gray-700 text-right">{{ row.current }}</span>
+  </summary>
+  <form method="post" class="border-t border-gray-200 p-3" data-schema-setting="{{ s.code }}">
+    {% csrf_token %}
+    <input type="hidden" name="seite" value="{{ code }}">
+    <input type="hidden" name="ref" value="{{ settings_ref }}">
+    <input type="hidden" name="op" value="setting">
+    <input type="hidden" name="setting" value="{{ s.code }}">
+    <fieldset>
+      <legend class="sr-only">{{ s.label }}</legend>
+      {% if s.code in shared_settings %}<p class="text-xs text-gray-600 mb-2">{% trans "gilt für alle Seiten" %}</p>{% endif %}
+          {% if s.kind == "bool" %}
+            <div class="flex gap-2">
+              {% for c in s.choices %}
+                <label class="inline-flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 min-h-[44px] cursor-pointer has-[:checked]:border-indigo-700 has-[:focus-visible]:outline has-[:focus-visible]:outline-[3px] has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-indigo-600">
+                  <input type="radio" name="value" value="{{ c.value }}" {% if c.value == "1" and s.value %}checked{% elif c.value == "0" and not s.value %}checked{% endif %}>
+                  <span>{{ c.label }}</span>
+                </label>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="grid grid-cols-2 gap-2">
+              {% for c in s.choices %}
+                <label class="flex flex-col gap-1 rounded-xl border p-2 text-xs min-h-[44px] group {% if c.available %}cursor-pointer border-gray-200 has-[:checked]:border-2 has-[:checked]:border-indigo-700 has-[:checked]:bg-indigo-50 has-[:focus-visible]:outline has-[:focus-visible]:outline-[3px] has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-indigo-600{% else %}border-dashed border-gray-300 bg-gray-50 text-gray-600{% endif %}">
+                  <input type="radio" name="value" value="{{ c.value }}" class="sr-only" {% if c.value == s.value %}checked{% endif %}{% if not c.available %} disabled aria-describedby="r-{{ s.code }}-{{ forloop.counter }}"{% endif %}>
+                  {% if s.thumb == "card" %}{% include "tenant/_cardform_thumb.html" with key=c.value %}{% elif s.thumb == "page" %}{% include "tenant/_pagelayout_thumb.html" with key=c.value %}{% endif %}
+                  <span>{{ c.label }}<span class="hidden group-has-[:checked]:inline font-semibold text-indigo-700"> ✓</span></span>
+                  {% if c.hint %}<span class="sr-only">{{ c.hint }}</span>{% endif %}
+                  {% if not c.available %}<span id="r-{{ s.code }}-{{ forloop.counter }}" class="text-[11px]">{{ c.reason }}</span>{% endif %}
+                </label>
+              {% endfor %}
+            </div>
+          {% endif %}
+    </fieldset>
+    {% if s.kind == "layout" %}{% include "tenant/_pt_output.html" with layout=s.layout paginates=s.paginates code=s.code apply_all=s.apply_all standard=s.value|yesno:",1" %}{% endif %}
+    <button type="submit" class="ui-btn ui-btn-secondary w-full mt-3">{% trans "Übernehmen" %}<span class="sr-only">: {{ s.label }}</span></button>
+  </form>
+  </details>
+  {% endwith %}{% endfor %}
+{% endfor %}
+</div>

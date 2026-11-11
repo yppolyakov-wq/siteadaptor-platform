@@ -68,6 +68,16 @@ def _preview_url(pt) -> str:
     return ""
 
 
+#: FB-27 R4: страницы, у которых блоки есть, а `block_host` в реестре типов не объявлен
+#: (обзор акций: хост «promos» выводится шаблоном и знает основной список). Здесь, а не
+#: в `studio_pages`: объявление там изменило бы и панель Студии.
+EXTRA_HOSTS = {"promos": "promos"}
+
+
+def _host(pt) -> str:
+    return pt.block_host or EXTRA_HOSTS.get(pt.code, "")
+
+
 _STRUCT_FIELDS = ("key", "id", "enabled", "width", "pos", "newline")
 
 
@@ -101,14 +111,14 @@ def page_rows(config: dict) -> list[PageRow]:
     """Типы страниц со своими блоками (главная первой) + число видимых блоков."""
     rows = []
     for pt in studio_pages.PAGE_TYPES:
-        if pt.code != "home" and not pt.block_host:
+        if pt.code != "home" and not _host(pt):
             continue
         blocks = blocks_for(config, pt.code)
         rows.append(
             PageRow(
                 code=pt.code,
                 label=str(pt.label),
-                host=pt.block_host if pt.code != "home" else "",
+                host=_host(pt) if pt.code != "home" else "",
                 count=sum(1 for b in blocks if b["enabled"] and not b["main"]),
                 preview_url=_preview_url(pt),
             )
@@ -121,7 +131,7 @@ def _page_type(code: str):
     if "@" in code and base != "text":  # подстраницы есть только у типа «Seite»
         return None
     for pt in studio_pages.PAGE_TYPES:
-        if pt.code == base and (pt.code == "home" or pt.block_host):
+        if pt.code == base and (pt.code == "home" or _host(pt)):
             return pt
     return None
 
@@ -179,7 +189,7 @@ def host_for(code: str, known_slugs: set[str] | None = None) -> str:
     if pt is None or pt.code == "home":
         return ""
     if "@" not in code:
-        return pt.block_host
+        return _host(pt)
     if pt.code != TEXT:
         return ""
     host = code.split("@", 1)[1]
@@ -382,11 +392,11 @@ def structure_types(tenant) -> list:
     out, hosts = [], set()
     for pt in studio_pages.PAGE_TYPES:
         if pt.code != "home":
-            if not pt.block_host or pt.block_host in hosts:
+            if not _host(pt) or _host(pt) in hosts:
                 continue
             if not page_settings.type_active(tenant, pt.code):
                 continue
-            hosts.add(pt.block_host)
+            hosts.add(_host(pt))
         out.append(pt)
     return out
 
@@ -600,6 +610,71 @@ def mutate(
     else:
         raise SchemaError("op")
     return ref
+
+
+#: FB-27 R4: чьи ещё настройки правятся на строке типа — у этих типов своей строки в
+#: «Seitenaufbau» нет (категория делит блоки с каталогом, страницы акций — с обзором).
+SETTINGS_FOLLOWERS = {"catalog": ("category",), "promos": ("promo_group", "promo")}
+
+
+def setting_types(tenant, code: str) -> list[str]:
+    """Типы страниц, чьи настройки правятся на строке `code` (сам тип первым)."""
+    from apps.core import page_settings
+
+    pt, _host, _home = resolve(tenant, code)
+    out = [pt.code]
+    out += [t for t in SETTINGS_FOLLOWERS.get(pt.code, ()) if page_settings.type_active(tenant, t)]
+    return out
+
+
+def setting_codes(tenant, code: str) -> list[str]:
+    """Коды настроек, которые можно менять на строке `code` (по порядку, без повторов)."""
+    from apps.core import page_settings
+
+    out: list[str] = []
+    for type_code in setting_types(tenant, code):
+        for s in page_settings.cabinet_settings(type_code):
+            if s.code not in out and page_settings.applies(tenant, s):
+                out.append(s.code)
+    return out
+
+
+#: Строка «Einstellungen der Seite» — у страниц без основного списка (главная, детали,
+#: корзина, текстовые): настройки типа некуда больше положить.
+PAGE_REF = "__page"
+#: Ключи сайта, общие для многих страниц — панель подписывает их «gilt für alle Seiten».
+SHARED_SETTINGS = frozenset({"product_card_form", "promo_card_form", "text_width"})
+
+
+def settings_groups(tenant, code: str, config: dict) -> list[dict]:
+    """Настройки строки `code` по значениям `config` (черновик): [{label, settings}].
+    Первая группа — сам тип (без заголовка), дальше типы без своей строки."""
+    from apps.core import page_settings
+
+    seen: set[str] = set()
+    out = []
+    for i, type_code in enumerate(setting_types(tenant, code)):
+        found = page_settings.schema(tenant, (type_code,), config=config)
+        if not found:
+            continue
+        rows = [s for s in found[0].settings if s.code not in seen]
+        seen.update(s.code for s in rows)
+        if rows:
+            out.append(
+                {
+                    "label": "" if i == 0 else str(found[0].label),
+                    "settings": [{"s": s, "current": _current_label(s)} for s in rows],
+                }
+            )
+    return out
+
+
+def _current_label(state) -> str:
+    """Текущее значение настройки словами — для свёрнутой строки панели."""
+    if state.kind == "bool":
+        want = "1" if state.value else "0"
+        return next((str(c.label) for c in state.choices if c.value == want), "")
+    return next((str(c.label) for c in state.choices if c.value == state.value), str(state.value))
 
 
 def store_items(config: dict, home: bool, host: str, items: list[dict]) -> None:

@@ -193,6 +193,35 @@ with sync_playwright() as p:
         pg.wait_for_load_state()
         pg.click("[data-schema-draft] button[value=save]")
         pg.wait_for_load_state()
+        # R4: настройки типа страницы — в панели «★ Hauptliste» и на строке настроек
+        pg.goto(U + "/dashboard/site/aufbau/?seite=catalog")
+        pg.locator("[data-schema-block]").filter(has_text="Hauptliste").first.click()
+        pg.wait_for_load_state()
+        n = pg.locator("[data-schema-setting]").count()
+        check(n >= 4, f"у каталога настройки типа в панели основного списка ({n})")
+        over = pg.evaluate("document.documentElement.scrollWidth - window.innerWidth")
+        check(over <= 0, f"панель настроек без горизонтального вылета ({over})")
+        pg.screenshot(path=f"{OUT}/r4_{w}.png", full_page=True)
+        pg.click("[data-schema-setting-box=catalog_filters] summary")
+        form = pg.locator("[data-schema-setting=catalog_filters]")
+        form.locator("input[value='0']").check()
+        form.locator("button[type=submit]").click()
+        pg.wait_for_load_state()
+        check(pg.locator("[data-schema-draft]").count() == 1, "настройка ушла в черновик")
+        check(
+            pg.locator("[data-schema-setting-box=catalog_filters][open]").count() == 1,
+            "изменённая настройка осталась раскрытой",
+        )
+        pg.screenshot(path=f"{OUT}/r4_{w}.png", full_page=True)
+        pg.click("[data-schema-draft] button[value=discard]")
+        pg.wait_for_load_state()
+        pg.goto(U + "/dashboard/site/aufbau/?seite=text")
+        pg.click("[data-schema-block=__page]")
+        pg.wait_for_load_state()
+        check(
+            pg.locator("[data-schema-setting=text_width]").count() == 1,
+            "у текстовой страницы — строка «Einstellungen der Seite»",
+        )
         check(not errs, "без JS-ошибок: " + "; ".join(errs[:2]))
         ctx.close()
 print(f"\n{ok}/{ok + len(fail)}")

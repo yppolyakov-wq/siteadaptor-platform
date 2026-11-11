@@ -69,7 +69,8 @@ def test_action_goes_to_draft_not_to_the_site():
     assert _saved_refs(b.tenant) == []  # на сайте ничего
     html = b.get("?seite=text")
     assert "data-schema-draft" in html and 'value="save"' in html and 'value="discard"' in html
-    assert html.count("data-schema-block=") == 2  # карточка контактов + новый блок
+    # строка настроек страницы (R4) + карточка контактов + новый блок
+    assert html.count("data-schema-block=") == 3
 
 
 def test_save_publishes_and_clears_the_draft():

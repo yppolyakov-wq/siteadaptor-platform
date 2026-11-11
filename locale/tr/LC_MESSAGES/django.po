@@ -37339,3 +37339,15 @@ msgstr[1] "Şu anda %(n)s kayıt gösteriyor (%(total)s içinden)."
 
 msgid "Die weiteren Felder passen sich nach „Übernehmen“ an."
 msgstr "Diğer alanlar “Uygula”dan sonra uyum sağlar."
+
+msgid "Einstellungen der Seite"
+msgstr "Sayfa ayarları"
+
+msgid "Darstellung, Kartenform, Textbreite"
+msgstr "Görünüm, kart biçimi, metin genişliği"
+
+msgid "gilt für alle Seiten"
+msgstr "tüm sayfalar için geçerlidir"
+
+msgid "Nicht auf alle Listen übertragen – dort gibt es diese Darstellung nicht."
+msgstr "Tüm listelere aktarılmadı – orada bu görünüm yok."

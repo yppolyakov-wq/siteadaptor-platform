@@ -43,6 +43,35 @@ def _fingerprint(state: dict) -> str:
     return hashlib.sha1(raw, usedforsecurity=False).hexdigest()[:16]
 
 
+def _keys_fingerprint(config: dict, codes) -> str:
+    """Отпечаток сохранённых значений настроек типа (FB-27 R4). Многие ключи общие для
+    нескольких страниц (форма карточки, ширина текста) — так видно, что значение успели
+    изменить на другой странице."""
+    from apps.core import page_settings
+
+    return _fingerprint({c: page_settings.stored(config, c) for c in codes or ()})
+
+
+def _settings(draft: dict) -> dict:
+    pending = draft.get("settings")
+    return pending if isinstance(pending, dict) else {}
+
+
+def _apply_settings(config: dict, draft: dict) -> dict:
+    """Настройки черновика поверх `config` (для показа и превью). Недопустимая запись
+    пропускается: превью не должно падать из-за устаревшего черновика."""
+    from apps.core import page_settings
+
+    for code, entry in _settings(draft).items():
+        try:
+            config = page_settings.apply_override(
+                config, code, (entry or {}).get("v"), (entry or {}).get("o")
+            )
+        except (page_settings.PageSettingError, KeyError, TypeError, ValueError):
+            continue
+    return config
+
+
 def _all(request) -> dict:
     session = getattr(request, "session", None)
     drafts = session.get(SESSION_KEY) if session is not None else None
@@ -91,7 +120,7 @@ def overlay(config: dict, draft: dict) -> dict:
             out.pop("about_contact", None)
         else:
             out["about_contact"] = False
-    return out
+    return _apply_settings(out, draft)
 
 
 def changes(saved: dict, draft: dict) -> int:
@@ -121,6 +150,8 @@ def changes(saved: dict, draft: dict) -> int:
         count += 1
     if "contact" in draft and bool(draft["contact"]) != bool(saved.get("contact", True)):
         count += 1
+    # FB-27 R4: настройки типа страницы — по одному изменению на настройку.
+    count += len(_settings(draft))
     return count
 
 
@@ -132,8 +163,15 @@ def info(request, config: dict, code: str) -> dict:
     saved = _saved_state(config, bool(draft.get("home")), str(draft.get("host") or ""))
     return {
         "count": changes(saved, draft),
-        "conflict": _fingerprint(saved) != draft.get("base"),
+        "conflict": _fingerprint(saved) != draft.get("base") or _keys_conflict(config, draft),
     }
+
+
+def _keys_conflict(config: dict, draft: dict) -> bool:
+    """Значение настройки, которую держит черновик, успели изменить в другом месте."""
+    if "kbase" not in draft:  # черновик без настроек (или начатый до R4)
+        return False
+    return _keys_fingerprint(config, draft.get("kcodes")) != draft["kbase"]
 
 
 def op(
@@ -161,11 +199,81 @@ def op(
         draft["contact"] = not draft.get("contact", True)
     else:
         ref = site_schema.mutate(draft["items"], code, op_name, ref, block_type, value, fields)
-    current = {k: draft[k] for k in saved}
+    return _settle(request, code, draft, saved, ref)
+
+
+def _settle(request, code: str, draft: dict, saved: dict, ref: str = "") -> str:
+    current = {k: draft.get(k) for k in saved}
     # Вернулись к сохранённому (скрыл и снова показал) — черновика нет.
-    clean = _fingerprint(current) == _fingerprint(saved) == draft.get("base")
+    clean = _fingerprint(current) == _fingerprint(saved) == draft.get("base") and not _settings(
+        draft
+    )
     _put(request, code, None if clean else draft)
     return ref
+
+
+def setting_op(
+    request,
+    tenant,
+    code: str,
+    setting: str,
+    value,
+    output: dict | None = None,
+    apply_all: bool = False,
+) -> list[str]:
+    """FB-27 R4: настройка типа страницы — в черновик. Возвращает коды «на все списки»,
+    которым значение не подошло (их пропустили). SchemaError / PageSettingError — если
+    саму настройку здесь менять нельзя или значение недопустимо."""
+    from apps.core import page_settings
+    from apps.tenants import siteconfig
+
+    _pt, host, home = site_schema.resolve(tenant, code)
+    codes = site_schema.setting_codes(tenant, code)
+    if setting not in codes:
+        raise site_schema.SchemaError("setting")
+    config = siteconfig.normalize(tenant.site_config)
+    saved = _saved_state(config, home, host)
+    draft = get(request, code)
+    if not draft:
+        draft = {**copy.deepcopy(saved), "base": _fingerprint(saved), "home": home, "host": host}
+    targets = [setting]
+    if apply_all and setting in page_settings.APPLY_ALL_LAYOUTS:
+        targets += [
+            other
+            for other in page_settings.APPLY_ALL_LAYOUTS
+            if other != setting
+            and page_settings.type_active(tenant, page_settings.APPLY_ALL_TYPES[other])
+        ]
+    pending = dict(_settings(draft))
+    gate = page_settings.composition_gate(config)
+    skipped = []
+    for target in targets:
+        shown = _apply_settings(copy.deepcopy(config), {"settings": pending})
+        try:
+            cleaned = page_settings.validate(tenant, target, value, gate, config=shown)
+            after = page_settings.apply_override(config, target, cleaned, output)
+        except page_settings.PageSettingError:
+            if target == setting:
+                raise
+            skipped.append(target)
+            continue
+        # Равно сохранённому — записи в черновике нет («вернул как было»).
+        same = siteconfig.normalize(after) == config
+        if same:
+            pending.pop(target, None)
+        else:
+            pending[target] = {"v": cleaned, "o": output}
+    if pending:
+        draft["settings"] = pending
+        if "kbase" not in draft:
+            tracked = sorted(set(codes) | set(pending))
+            draft["kcodes"] = tracked
+            draft["kbase"] = _keys_fingerprint(config, tracked)
+    else:
+        for key in ("settings", "kbase", "kcodes"):
+            draft.pop(key, None)
+    _settle(request, code, draft, saved)
+    return skipped
 
 
 def discard(request, code: str) -> None:
@@ -192,7 +300,10 @@ def commit(request, tenant, code: str, *, force: bool = False) -> bool:
         raise
     locked = Tenant.objects.select_for_update().get(pk=tenant.pk)
     config = siteconfig.normalize(locked.site_config)
-    if not force and _fingerprint(_saved_state(config, home, host)) != draft.get("base"):
+    if not force and (
+        _fingerprint(_saved_state(config, home, host)) != draft.get("base")
+        or _keys_conflict(config, draft)
+    ):
         raise DraftConflict(code)
     site_schema.store_items(config, home, host, copy.deepcopy(draft["items"]))
     if host == "info" and "contact" in draft:
@@ -200,6 +311,13 @@ def commit(request, tenant, code: str, *, force: bool = False) -> bool:
             config.pop("about_contact", None)
         else:
             config["about_contact"] = False
+    if _settings(draft):
+        # FB-27 R4: настройки типа — в той же транзакции, что блоки; каждая проверяется
+        # заново по заблокированной строке. Недопустимая → PageSettingError, ничего не
+        # записано, черновик остаётся.
+        from apps.core import page_settings
+
+        config = page_settings.apply_many(locked, config, _settings(draft))
     locked.site_config = siteconfig.normalize(config)
     locked.save(update_fields=["site_config", "updated_at"])
     tenant.site_config = locked.site_config

@@ -359,6 +359,14 @@ def current_value(raw_cfg: dict, setting: studio_pages.Setting, normalized: dict
     return ("" if value is None else str(value)), is_set
 
 
+def stored(cfg: dict, code: str):
+    """What the config holds for a setting (layout dict, string, bool or None) —
+    used to tell "changed" from "same as saved" without knowing each key's shape."""
+    setting = studio_pages.SETTINGS[code]
+    path = (_LAYOUT_KEYS[code],) if kind_of(setting) == KIND_LAYOUT else setting.site_key
+    return _walk(cfg or {}, path)[0]
+
+
 def composition_gate(config: dict | None = None) -> dict[str, set[str]]:
     """Composition codes that have nothing to show on THIS storefront.
 
@@ -481,14 +489,18 @@ def active_types(tenant, types: tuple[str, ...] | None = None) -> tuple[str, ...
     )
 
 
-def schema(tenant, types: tuple[str, ...] | None = None) -> list[TypeSchema]:
+def schema(
+    tenant, types: tuple[str, ...] | None = None, config: dict | None = None
+) -> list[TypeSchema]:
     """Machine-readable description for the cabinet tab and the AI helper.
 
     Types whose module is off are skipped (a passed-in tuple is filtered too).
+    `config` (FB-27 R4): describe THIS raw config instead of the saved one — the
+    «Seitenaufbau» panel shows the values of its unsaved draft.
     """
     from apps.tenants import siteconfig
 
-    raw = tenant.site_config or {}
+    raw = (tenant.site_config or {}) if config is None else config
     gate = composition_gate(raw)
     normalized = siteconfig.normalize(raw)
     out = []
@@ -610,7 +622,7 @@ def apply_override(cfg: dict, code: str, value, output: dict | None = None) -> d
     return out
 
 
-def validate(tenant, code: str, value, gate: dict | None = None):
+def validate(tenant, code: str, value, gate: dict | None = None, config: dict | None = None):
     """Return the cleaned value or raise PageSettingError (shared by write/preview)."""
     setting = studio_pages.SETTINGS.get(code or "")
     if setting is None or is_studio_only(setting):
@@ -623,9 +635,43 @@ def validate(tenant, code: str, value, gate: dict | None = None):
         raise PageSettingError(f"setting {code!r} is not offered for this business")
     if not applies(tenant, setting):
         raise PageSettingError(f"setting {code!r} does not apply to this business")
-    raw = tenant.site_config or {}
+    raw = (tenant.site_config or {}) if config is None else config
     current, _set = current_value(raw, setting)
     return _clean(setting, value, composition_gate(raw) if gate is None else gate, current)
+
+
+def apply_many(tenant, cfg: dict, pending: dict, gate: dict | None = None) -> dict:
+    """FB-27 R4: several settings onto a COPY of raw `cfg` — all or nothing.
+
+    `pending`: {code: {"v": value, "o": output dict | None}}. Each value is validated
+    against the config as it stands after the previous ones; the first invalid entry
+    raises PageSettingError and nothing is returned (the caller writes nothing)."""
+    out = dict(cfg or {})
+    if gate is None:
+        gate = composition_gate(out)
+    for code, entry in (pending or {}).items():
+        entry = entry if isinstance(entry, dict) else {}
+        cleaned = validate(tenant, code, entry.get("v"), gate, config=out)
+        output = entry.get("o")
+        if output is not None and kind_of(studio_pages.SETTINGS[code]) != KIND_LAYOUT:
+            raise PageSettingError(f"{code} has no output axis")
+        out = apply_override(out, code, cleaned, output)
+    return out
+
+
+def write_many(tenant, pending: dict) -> dict:
+    """Several site-level settings in ONE transaction (all or nothing)."""
+    from apps.core.pagecache import bump_storefront_cache
+    from apps.tenants.models import Tenant
+
+    gate = composition_gate(tenant.site_config or {})
+    with transaction.atomic():
+        locked = Tenant.objects.select_for_update().get(pk=tenant.pk)
+        new_cfg = apply_many(locked, locked.site_config or {}, pending, gate)
+        Tenant.objects.filter(pk=locked.pk).update(site_config=new_cfg)
+        transaction.on_commit(lambda: bump_storefront_cache(locked.schema_name))
+    tenant.site_config = new_cfg
+    return new_cfg
 
 
 def write(tenant, code: str, value, output: dict | None = None) -> object:

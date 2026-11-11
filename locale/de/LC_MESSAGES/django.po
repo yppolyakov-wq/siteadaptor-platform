@@ -37280,3 +37280,15 @@ msgstr[1] "Zeigt derzeit %(n)s Einträge (von %(total)s)."
 
 msgid "Die weiteren Felder passen sich nach „Übernehmen“ an."
 msgstr "Die weiteren Felder passen sich nach „Übernehmen“ an."
+
+msgid "Einstellungen der Seite"
+msgstr "Einstellungen der Seite"
+
+msgid "Darstellung, Kartenform, Textbreite"
+msgstr "Darstellung, Kartenform, Textbreite"
+
+msgid "gilt für alle Seiten"
+msgstr "gilt für alle Seiten"
+
+msgid "Nicht auf alle Listen übertragen – dort gibt es diese Darstellung nicht."
+msgstr "Nicht auf alle Listen übertragen – dort gibt es diese Darstellung nicht."

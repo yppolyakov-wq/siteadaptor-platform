@@ -37519,3 +37519,15 @@ msgstr[3] "Зараз показує %(n)s запису (із %(total)s)."
 
 msgid "Die weiteren Felder passen sich nach „Übernehmen“ an."
 msgstr "Інші поля підлаштуються після «Застосувати»."
+
+msgid "Einstellungen der Seite"
+msgstr "Налаштування сторінки"
+
+msgid "Darstellung, Kartenform, Textbreite"
+msgstr "Вигляд, форма картки, ширина тексту"
+
+msgid "gilt für alle Seiten"
+msgstr "діє на всіх сторінках"
+
+msgid "Nicht auf alle Listen übertragen – dort gibt es diese Darstellung nicht."
+msgstr "Перенесено не на всі списки — там такого вигляду немає."

@@ -37193,3 +37193,15 @@ msgstr[1] "Currently shows %(n)s entries (of %(total)s)."
 
 msgid "Die weiteren Felder passen sich nach „Übernehmen“ an."
 msgstr "The other fields adapt after “Apply”."
+
+msgid "Einstellungen der Seite"
+msgstr "Page settings"
+
+msgid "Darstellung, Kartenform, Textbreite"
+msgstr "Display, card shape, text width"
+
+msgid "gilt für alle Seiten"
+msgstr "applies to all pages"
+
+msgid "Nicht auf alle Listen übertragen – dort gibt es diese Darstellung nicht."
+msgstr "Not applied to all lists – this display does not exist there."
