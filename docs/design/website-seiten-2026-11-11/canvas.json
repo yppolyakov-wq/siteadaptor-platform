@@ -4,7 +4,7 @@
   "v": 1,
   "at": "2026-11-11T15:45:00Z"
  },
- "title": "Website: Seitenlayout & Seiten",
+ "title": "Website: Seitenaufbau & Seiten",
  "launch": {
   "view": "canvas"
  },
@@ -15,14 +15,14 @@
    "y": 0,
    "w": 1440,
    "h": 900,
-   "title": "L1 · Seitenlayout: Schema der Startseite, Block «Produkte»"
+   "title": "L1 · Seitenaufbau: Schema der Startseite, Block «Produkte»"
   },
   "L2_Darstellung.dc.html": {
    "x": 1520,
    "y": 0,
    "w": 1440,
    "h": 900,
-   "title": "L2 · Seitenlayout: Katalog, Hauptliste + «Block hinzufügen»"
+   "title": "L2 · Seitenaufbau: Katalog, Hauptliste + «Block hinzufügen»"
   },
   "S1_Seiten.dc.html": {
    "x": 3040,
@@ -50,7 +50,7 @@
    "y": 1020,
    "w": 390,
    "h": 1040,
-   "title": "L3 · Seitenlayout (Telefon): Block «Text», Breite"
+   "title": "L3 · Seitenaufbau (Telefon): Block «Text», Breite"
   },
   "S3_Mobil.dc.html": {
    "x": 470,
@@ -71,7 +71,7 @@
    "y": 1020,
    "w": 1440,
    "h": 900,
-   "title": "L4 · Seitenlayout: Block «Kategorien» — einzeln gewählt, Breite ⅔, drei Texte je ⅓"
+   "title": "L4 · Seitenaufbau: Block «Kategorien» — einzeln gewählt, Breite ⅔, drei Texte je ⅓"
   }
  },
  "order": [
@@ -89,7 +89,7 @@
   "t1": {
    "x": 0,
    "y": -300,
-   "text": "Website: Seitenlayout · Seiten · Design",
+   "text": "Website: Seitenaufbau · Seiten · Design",
    "kind": "title1",
    "maxW": 7520
   },
@@ -97,7 +97,7 @@
    "x": 1410,
    "y": 1020,
    "w": 520,
-   "text": "Was sich ändert\n\n1. «Seitenaufbau» + «Seitenvorlagen» = ein Bildschirm «Seitenlayout». Statt Liste und Vorschau: ein Schema der Seite. Seitentyp oben, rechts die Einstellungen des gewählten Blocks.\n2. Zwei Spalten: Breite am Block (Ganz … ⅙). Schmale Nachbarn stehen in einer Zeile; auf dem Telefon immer untereinander. Listen mit Karten bleiben in voller Breite.\n3. Ein Block wählt nur aus: Was zeigen · Welche (Regel, Kategorie, einzeln) · Wie (Raster, Slider). Der Inhalt wird an der Quelle bearbeitet; kurzer Text, Foto, Schaltfläche direkt im Block.\n4. Die Hauptliste (Katalog, Aktionen …) ist ein Block im Schema – der Reiter «Darstellung» entfällt.\n5. Entwurf + «Speichern»; «+ Block» mit fertigen Zeilen.\n6. «Seiten» bleibt für Textseiten; «Design» mit Reitern.",
+   "text": "Was sich ändert\n\n1. «Seitenaufbau» + «Seitenvorlagen» = ein Bildschirm «Seitenaufbau». Statt Liste und Vorschau: ein Schema der Seite. Seitentyp oben, rechts die Einstellungen des gewählten Blocks.\n2. Zwei Spalten: Breite am Block (Ganz … ⅙). Schmale Nachbarn stehen in einer Zeile; auf dem Telefon immer untereinander. Listen mit Karten bleiben in voller Breite.\n3. Ein Block wählt nur aus: Was zeigen · Welche (Regel, Kategorie, einzeln) · Wie (Raster, Slider). Der Inhalt wird an der Quelle bearbeitet; kurzer Text, Foto, Schaltfläche direkt im Block.\n4. Die Hauptliste (Katalog, Aktionen …) ist ein Block im Schema – der Reiter «Darstellung» entfällt.\n5. Entwurf + «Speichern»; «+ Block» mit fertigen Zeilen.\n6. «Seiten» bleibt für Textseiten; «Design» mit Reitern.",
    "fill": "blue"
   }
  },
