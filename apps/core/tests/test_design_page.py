@@ -97,3 +97,18 @@ def test_templates_for_hides_foreign_presets():
         assert ts, bt
         for t in ts:
             assert (not t["recommended_for"]) or bt in t["recommended_for"], (bt, t["key"])
+
+
+def test_wishlist_checkbox_shows_archetype_default():
+    """FB-27: у магазина Merkzettel включён по типу бизнеса без ключа в конфиге —
+    чекбокс обязан быть отмечен, иначе «Save» молча выключал опцию."""
+    import re
+
+    shop = TenantFactory(business_type="online_shop")
+    html = design_view(_req(shop)).content.decode()
+    box = re.search(r'<input[^>]*name="wishlist"[^>]*>', html).group(0)
+    assert "checked" in box
+    cafe = TenantFactory(business_type="cafe")
+    html = design_view(_req(cafe)).content.decode()
+    box = re.search(r'<input[^>]*name="wishlist"[^>]*>', html).group(0)
+    assert "checked" not in box

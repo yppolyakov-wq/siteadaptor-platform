@@ -15,6 +15,7 @@ from django.utils.translation import gettext as _
 
 from apps.catalog.option_styles import VARIANT_STYLES
 from apps.core import media_places
+from apps.orders.wishlist import enabled as wishlist_enabled
 from apps.tenants import sitetemplates
 
 STUDIO_PREFIX = "/dashboard/site/home/"
@@ -175,7 +176,9 @@ def design_view(request):
             "theme": cfg.get("theme", ""),
             "sd": sd,
             "quick_add": cfg.get("quick_add", False),
-            "wishlist": cfg.get("wishlist", False),
+            # FB-27: дефолт Merkzettel зависит от типа бизнеса — показываем фактическое
+            # состояние, иначе «Save» молча выключал его у магазинов.
+            "wishlist": wishlist_enabled(tenant),
             "variant_style_options": VARIANT_STYLES,
             "media_place_rows": media_places.rows(sd.get("media_places")),
             "media_ratio_options": media_places.RATIO_LABELS.items(),
