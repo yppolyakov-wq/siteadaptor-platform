@@ -36916,3 +36916,18 @@ msgstr "Full screen"
 
 msgid "Vollbild – Esc beendet."
 msgstr "Full screen – press Esc to exit."
+
+msgid "Vollbild beendet."
+msgstr "Full screen closed."
+
+msgid "Eingerückt."
+msgstr "Indented."
+
+msgid "Ausgerückt."
+msgstr "Outdented."
+
+msgid "Entwurf verworfen."
+msgstr "Draft discarded."
+
+msgid "Tab rückt Listenpunkte ein · Alt+F10 springt zur Symbolleiste"
+msgstr "Tab indents list items · Alt+F10 jumps to the toolbar"

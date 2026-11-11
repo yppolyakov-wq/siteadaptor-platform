@@ -37062,3 +37062,18 @@ msgstr "Tam ekran"
 
 msgid "Vollbild – Esc beendet."
 msgstr "Tam ekran – çıkmak için Esc."
+
+msgid "Vollbild beendet."
+msgstr "Tam ekrandan çıkıldı."
+
+msgid "Eingerückt."
+msgstr "Girinti eklendi."
+
+msgid "Ausgerückt."
+msgstr "Girinti kaldırıldı."
+
+msgid "Entwurf verworfen."
+msgstr "Taslak silindi."
+
+msgid "Tab rückt Listenpunkte ein · Alt+F10 springt zur Symbolleiste"
+msgstr "Tab liste öğesine girinti ekler · Alt+F10 araç çubuğuna gider"

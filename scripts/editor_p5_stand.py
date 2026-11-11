@@ -105,6 +105,13 @@ def main():  # noqa: PLR0915 — один линейный сценарий ст
         check(area.locator("ul ul li, ul li ul li").count() >= 1, "Tab — вложенный список")
         page.keyboard.press("Shift+Tab")
         check(area.locator("ul ul").count() == 0, "Shift+Tab — обратно")
+        # a11y: в первом пункте Tab не ловушка — фокус уходит из текста.
+        area.locator("li >> nth=0").click()
+        page.keyboard.press("Tab")
+        left = page.evaluate("() => !document.activeElement.classList.contains('rte-area')")
+        check(left, "Tab в первом пункте уводит фокус (нет ловушки)")
+        area.locator("li >> nth=1").click()
+        page.keyboard.press("End")
         page.keyboard.press("Enter")
         page.keyboard.press("Enter")
 
@@ -140,6 +147,17 @@ def main():  # noqa: PLR0915 — один линейный сценарий ст
         print("Vollbild")
         page.click("[data-rte-cmd=fullscreen]")
         check(page.locator(".rte-wrap.rte-full").count() == 1, "полный экран")
+        check(
+            page.evaluate(
+                "() => document.querySelector('header, nav, aside')?.closest('[inert]') !== null"
+            ),
+            "страница под оверлеем inert",
+        )
+        check(page.get_attribute(".rte-wrap", "aria-modal") == "true", "aria-modal")
+        page.focus("[data-rte-cmd=bold]")
+        page.keyboard.press("Escape")
+        check(page.locator(".rte-wrap.rte-full").count() == 0, "Esc с кнопки панели выходит")
+        page.click("[data-rte-cmd=fullscreen]")
         area.click()
         page.keyboard.press("Escape")
         check(page.locator(".rte-wrap.rte-full").count() == 0, "Esc выходит")

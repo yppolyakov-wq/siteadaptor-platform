@@ -37251,3 +37251,18 @@ msgstr "Во весь экран"
 
 msgid "Vollbild – Esc beendet."
 msgstr "Во весь экран – Esc для выхода."
+
+msgid "Vollbild beendet."
+msgstr "Полноэкранный режим выключен."
+
+msgid "Eingerückt."
+msgstr "Сдвинуто вправо."
+
+msgid "Ausgerückt."
+msgstr "Сдвинуто влево."
+
+msgid "Entwurf verworfen."
+msgstr "Черновик удалён."
+
+msgid "Tab rückt Listenpunkte ein · Alt+F10 springt zur Symbolleiste"
+msgstr "Tab сдвигает пункт списка · Alt+F10 — к панели инструментов"

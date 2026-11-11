@@ -37003,3 +37003,18 @@ msgstr "Vollbild"
 
 msgid "Vollbild – Esc beendet."
 msgstr "Vollbild – Esc beendet."
+
+msgid "Vollbild beendet."
+msgstr "Vollbild beendet."
+
+msgid "Eingerückt."
+msgstr "Eingerückt."
+
+msgid "Ausgerückt."
+msgstr "Ausgerückt."
+
+msgid "Entwurf verworfen."
+msgstr "Entwurf verworfen."
+
+msgid "Tab rückt Listenpunkte ein · Alt+F10 springt zur Symbolleiste"
+msgstr "Tab rückt Listenpunkte ein · Alt+F10 springt zur Symbolleiste"
