@@ -37177,3 +37177,9 @@ msgstr "Welche Blöcke auf der Seite stehen und in welcher Reihenfolge. Schmale 
 
 msgid "öffnet in neuem Tab"
 msgstr "öffnet in neuem Tab"
+
+msgid "Seite wählen"
+msgstr "Seite wählen"
+
+msgid "Blöcke nebeneinander"
+msgstr "Blöcke nebeneinander"

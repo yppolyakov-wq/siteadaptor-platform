@@ -16,7 +16,8 @@ def _url(code: str, block: str = "") -> str:
     query = {"seite": code}
     if block:
         query["block"] = block
-    return f"{reverse('site-schema')}?{urlencode(query)}"
+    # Якорь панели: после действия фокус возвращается к блоку, а не в начало страницы.
+    return f"{reverse('site-schema')}?{urlencode(query)}" + ("#schema-panel" if block else "")
 
 
 @login_required
@@ -29,12 +30,14 @@ def site_schema_view(request):
         op = request.POST.get("op", "")
         ref = request.POST.get("ref", "")
         try:
-            site_schema.apply(tenant, code, op, ref=ref, block_type=request.POST.get("type", ""))
+            ref = site_schema.apply(
+                tenant, code, op, ref=ref, block_type=request.POST.get("type", "")
+            )
             messages.success(request, _("Gespeichert."))
         except site_schema.SchemaError:
             messages.error(request, _("Diese Änderung ist hier nicht möglich."))
-        # FB-27 R1: блок остаётся выбранным (кроме удалённого) — панель не «прыгает».
-        return redirect(_url(code, "" if op in ("delete", "add") else ref))
+        # FB-27 R1: блок остаётся выбранным (новый — тоже), удалённый — нет.
+        return redirect(_url(code, "" if op == "delete" else ref))
     config = siteconfig.normalize(tenant.site_config)
     groups = site_schema.type_groups(tenant, config)
     rows = [r for _label, items in groups for r in items]

@@ -37412,3 +37412,9 @@ msgstr "Які блоки стоять на сторінці та в якому 
 
 msgid "öffnet in neuem Tab"
 msgstr "відкриється в новій вкладці"
+
+msgid "Seite wählen"
+msgstr "Виберіть сторінку"
+
+msgid "Blöcke nebeneinander"
+msgstr "Блоки поруч"

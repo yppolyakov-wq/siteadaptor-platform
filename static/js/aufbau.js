@@ -1,15 +1,11 @@
-/* FB-27 R1: «Seitenaufbau». Без JS экран работает целиком (select + «Öffnen»). */
+/* FB-27 R1: «Seitenaufbau». Экран работает без JS; здесь только фокус.
+   Тип страницы меняется кнопкой «Öffnen», не по change: стрелки в списке на Windows
+   сразу шлют change, и страница перезагружалась бы при просмотре списка (WCAG 3.2.2). */
 (function () {
   "use strict";
-  // Смена типа страницы — сразу; кнопка «Öffnen» нужна только без JS.
-  document.querySelectorAll("[data-autosubmit-hide]").forEach(function (b) { b.style.display = "none"; });
-  document.addEventListener("change", function (e) {
-    var sel = e.target.closest && e.target.closest("select[data-autosubmit]");
-    if (sel && sel.form) sel.form.submit();
-  });
-  // После выбора блока фокус — в панель (телефон: панель стоит под схемой).
+  // После выбора блока или действия фокус — в панель (на телефоне она под схемой).
   if (location.hash === "#schema-panel") {
     var panel = document.getElementById("schema-panel");
-    if (panel && panel.querySelector("[data-schema-confirm], form")) panel.focus({ preventScroll: false });
+    if (panel) panel.focus();
   }
 })();

@@ -168,8 +168,11 @@ def text_pages() -> list[SubPage]:
     return out
 
 
-def host_for(code: str) -> str:
-    """Хост блоков строки схемы ("" у главной). Неизвестная подстраница → ""."""
+def host_for(code: str, known_slugs: set[str] | None = None) -> str:
+    """Хост блоков строки схемы ("" у главной). Неизвестная подстраница → "".
+
+    `known_slugs` — слаги существующих страниц, если вызывающий уже загрузил их
+    (список опций): без него каждая опция стоила бы запроса."""
     from apps.tenants import siteconfig
 
     pt = _page_type(code)
@@ -187,19 +190,23 @@ def host_for(code: str) -> str:
         # хосты-призраки и вытеснял настоящие (у page_blocks общий потолок хостов).
         from apps.core.models import ContentPage
 
-        if ContentPage.objects.filter(slug=host.split(":", 1)[1]).exists():
+        slug = host.split(":", 1)[1]
+        if known_slugs is not None:
+            return host if slug in known_slugs else ""
+        if ContentPage.objects.filter(slug=slug).exists():
             return host
     return ""
 
 
-def blocks_for(config: dict, code: str) -> list[dict]:
+def blocks_for(config: dict, code: str, host: str | None = None) -> list[dict]:
     """Строки схемы: {ref, key, label, enabled, main, cblock, summary} по порядку страницы."""
     from apps.tenants import siteconfig
 
     pt = _page_type(code)
     if pt is None:
         return []
-    host = host_for(code)
+    if host is None:
+        host = host_for(code)
     if pt.code == "home":
         items = config.get("sections") or []
     elif not host:
@@ -249,7 +256,11 @@ def blocks_for(config: dict, code: str) -> list[dict]:
         b.setdefault("newline", False)
         b.setdefault("width_label", "")
         b.setdefault("flex", 12)
-    movable = [b for b in out if not b["fixed"]]
+    # FB-27 R1: «выше/ниже» двигает блок среди ВИДИМЫХ — скрытый сосед не «съедает»
+    # нажатие (раньше порядок на странице не менялся, а кнопка была активна).
+    movable = [b for b in out if not b["fixed"] and b["enabled"]]
+    for b in out:
+        b["can_up"] = b["can_down"] = False
     for i, b in enumerate(movable):
         b["can_up"] = i > 0
         b["can_down"] = i < len(movable) - 1
@@ -295,13 +306,22 @@ def structure_types(tenant) -> list:
     return out
 
 
-def _row(config: dict, pt, code: str | None = None, label: str = "", preview: str = "") -> PageRow:
+def _row(
+    config: dict,
+    pt,
+    code: str | None = None,
+    label: str = "",
+    preview: str = "",
+    host: str | None = None,
+) -> PageRow:
     code = code or pt.code
-    blocks = blocks_for(config, code)
+    if host is None:
+        host = host_for(code)
+    blocks = blocks_for(config, code, host=host)
     return PageRow(
         code=code,
         label=label or str(pt.label),
-        host=host_for(code),
+        host=host,
         count=sum(1 for b in blocks if b["enabled"] and not b["main"] and not b["fixed"]),
         preview_url=preview or _preview_url(pt),
     )
@@ -330,7 +350,7 @@ def type_groups(tenant, config: dict) -> list[tuple[str, list[PageRow]]]:
             continue
         if code == TEXT:
             content.extend(
-                _row(config, pt, code=p.code, label=p.label, preview=p.preview_url)
+                _row(config, pt, code=p.code, label=p.label, preview=p.preview_url, host=p.host)
                 for p in text_pages()
             )
         else:
@@ -367,13 +387,19 @@ class SchemaError(ValueError):
 
 
 @transaction.atomic
-def apply(tenant, code: str, op: str, ref: str = "", block_type: str = "") -> None:
-    """Одна правка схемы страницы `code`. Бросает SchemaError на недопустимом."""
+def apply(tenant, code: str, op: str, ref: str = "", block_type: str = "") -> str:
+    """Одна правка схемы страницы `code`. Бросает SchemaError на недопустимом.
+    Возвращает ref блока, с которым работали (у `add` — id нового блока)."""
+    from apps.core import page_settings
     from apps.tenants import siteconfig
     from apps.tenants.models import Tenant
 
     pt = _page_type(code)
     if pt is None:
+        raise SchemaError("page")
+    # FB-27 R1: тип, которого у бизнеса нет, не правится и POST'ом в обход экрана —
+    # иначе появлялись бы блоки «в запас», всплывающие при включении модуля.
+    if pt.code != "home" and not page_settings.type_active(tenant, pt.code):
         raise SchemaError("page")
     host = host_for(code)
     home = pt.code == "home"
@@ -391,7 +417,7 @@ def apply(tenant, code: str, op: str, ref: str = "", block_type: str = "") -> No
         locked.site_config = siteconfig.normalize(config)
         locked.save(update_fields=["site_config", "updated_at"])
         tenant.site_config = locked.site_config
-        return
+        return ref
     if home:
         items = copy.deepcopy(config.get("sections") or [])
     else:
@@ -409,6 +435,7 @@ def apply(tenant, code: str, op: str, ref: str = "", block_type: str = "") -> No
             "data": copy.deepcopy(siteconfig.CBLOCK_DEMO_DATA.get(block_type, {})),
         }
         items.append(new)
+        ref = new["id"]
     else:
         if idx is None:
             raise SchemaError("block")
@@ -419,9 +446,16 @@ def apply(tenant, code: str, op: str, ref: str = "", block_type: str = "") -> No
                 raise SchemaError("main")
             item["enabled"] = not item.get("enabled", True)
         elif op in ("up", "down"):
-            j = idx - 1 if op == "up" else idx + 1
+            step = -1 if op == "up" else 1
+            j = idx + step
+            if main or item.get("enabled", True):
+                # через скрытых соседей — до ближайшего видимого (см. blocks_for)
+                while 0 <= j < len(items) and not (
+                    siteconfig.is_main_marker(items[j]) or items[j].get("enabled", True)
+                ):
+                    j += step
             if 0 <= j < len(items):
-                items[idx], items[j] = items[j], items[idx]
+                items.insert(j, items.pop(idx))
         elif op == "delete":
             if main or not item.get("id"):
                 raise SchemaError("fixed")  # фикс-секции и основной список не удаляются
@@ -441,3 +475,4 @@ def apply(tenant, code: str, op: str, ref: str = "", block_type: str = "") -> No
     locked.site_config = siteconfig.normalize(config)
     locked.save(update_fields=["site_config", "updated_at"])
     tenant.site_config = locked.site_config
+    return ref

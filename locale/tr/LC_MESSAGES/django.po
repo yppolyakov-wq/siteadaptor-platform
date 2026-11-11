@@ -37236,3 +37236,9 @@ msgstr "Sayfada hangi blokların hangi sırayla durduğu. Dar bloklar yan yana d
 
 msgid "öffnet in neuem Tab"
 msgstr "yeni sekmede açılır"
+
+msgid "Seite wählen"
+msgstr "Sayfa seçin"
+
+msgid "Blöcke nebeneinander"
+msgstr "Yan yana bloklar"

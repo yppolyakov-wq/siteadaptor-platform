@@ -16,6 +16,7 @@ from apps.core import page_settings, site_schema
 from apps.core.modules import default_disabled_for
 from apps.core.site_schema_views import site_schema_view
 from apps.tenants import siteconfig
+from apps.tenants.models import Tenant
 from apps.tenants.tests.factories import TenantFactory
 
 pytestmark = pytest.mark.django_db
@@ -163,9 +164,75 @@ def test_action_keeps_the_block_selected():
     assert "seite=text" in resp["Location"] and f"block={ref}" in resp["Location"]
 
 
+def _without(module):
+    return TenantFactory(
+        business_type="online_shop",
+        disabled_modules=sorted({*default_disabled_for("online_shop"), module}),
+    )
+
+
 def test_inactive_type_cannot_be_opened_by_address():
-    tenant = _biz("online_shop")
-    if page_settings.type_active(tenant, "stays"):
-        pytest.skip("у типа бизнеса включены номера")
+    tenant = _without("stays")
+    assert not page_settings.type_active(tenant, "stays")
     html = site_schema_view(_request("get", tenant, query="?seite=stays")).content.decode()
     assert 'option value="home" selected' in html
+
+
+def test_inactive_type_cannot_be_edited_by_post():
+    """Экран не предлагает тип — значит и POST в обход экрана его не правит."""
+    tenant = _without("stays")
+    with pytest.raises(site_schema.SchemaError):
+        site_schema.apply(tenant, "stays", "add", block_type="text")
+    resp = site_schema_view(
+        _request("post", tenant, {"seite": "stays", "op": "add", "type": "text"})
+    )
+    assert resp.status_code == 302
+    tenant.refresh_from_db()
+    blocks = siteconfig.normalize(tenant.site_config).get("page_blocks") or {}
+    assert not blocks.get("stay_rooms")
+
+
+def test_move_skips_hidden_neighbours():
+    """Скрытый блок между двумя видимыми не «съедает» нажатие «Nach oben»."""
+    tenant = _biz("online_shop")
+    refs = [site_schema.apply(tenant, "text", "add", block_type="text") for _ in range(3)]
+    site_schema.apply(tenant, "text", "toggle", ref=refs[1])
+    site_schema.apply(tenant, "text", "up", ref=refs[2])
+    cfg = siteconfig.normalize(tenant.site_config)
+    visible = [
+        b["ref"] for b in site_schema.blocks_for(cfg, "text") if b["enabled"] and b["cblock"]
+    ]
+    assert visible == [refs[2], refs[0]]
+    first = next(b for b in site_schema.blocks_for(cfg, "text") if b["ref"] == refs[2])
+    assert first["can_up"] is False and first["can_down"] is True
+
+
+def test_new_block_is_selected_after_adding():
+    tenant = _biz("online_shop")
+    resp = site_schema_view(
+        _request("post", tenant, {"seite": "text", "op": "add", "type": "text"})
+    )
+    cfg = siteconfig.normalize(Tenant.objects.get(pk=tenant.pk).site_config)
+    ref = next(b["ref"] for b in site_schema.blocks_for(cfg, "text") if b["cblock"])
+    assert f"block={ref}" in resp["Location"] and resp["Location"].endswith("#schema-panel")
+
+
+def test_type_select_costs_no_query_per_text_page(django_assert_max_num_queries):
+    from apps.core.models import ContentPage
+
+    tenant = _biz("online_shop")
+    for i in range(12):
+        ContentPage.objects.create(slug=f"s{i}", title=f"Seite {i}", body="x", is_published=True)
+    cfg = siteconfig.normalize(tenant.site_config)
+    with django_assert_max_num_queries(8):
+        site_schema.type_groups(tenant, cfg)
+
+
+def test_page_type_changes_by_button_not_on_change():
+    """WCAG 3.2.2: стрелки в списке на Windows шлют change — автоперехода нет."""
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[3]
+    assert "submit()" not in (root / "static/js/aufbau.js").read_text()
+    html = site_schema_view(_request("get", _biz("online_shop"))).content.decode()
+    assert "Öffnen" in html

@@ -37090,3 +37090,9 @@ msgstr "Which blocks are on the page and in what order. Narrow blocks stand side
 
 msgid "öffnet in neuem Tab"
 msgstr "opens in a new tab"
+
+msgid "Seite wählen"
+msgstr "Choose a page"
+
+msgid "Blöcke nebeneinander"
+msgstr "Blocks side by side"

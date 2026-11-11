@@ -44,21 +44,19 @@ with sync_playwright() as p:
         pg.wait_for_load_state()
         print(f"--- {w}px")
         check(pg.locator("select#schema-seite").count() == 1, "select типа страницы")
-        check(
-            not pg.locator("[data-autosubmit-hide]").is_visible(), "кнопка «Öffnen» скрыта при JS"
-        )
+        check(pg.locator("[data-schema-type] button").is_visible(), "кнопка «Öffnen» видна")
         opts = pg.locator("select#schema-seite option").all_inner_texts()
         print("    типы:", " | ".join(o.strip() for o in opts))
         pg.select_option("select#schema-seite", "text")
+        pg.click("[data-schema-type] button")
         pg.wait_for_url(lambda u: "seite=text" in u, timeout=5000)
-        check("seite=text" in pg.url, "смена типа без кнопки")
+        check("seite=text" in pg.url, "смена типа кнопкой «Öffnen»")
         # добавить два блока и проверить панель
         pg.select_option("select[name=type]", "text")
         pg.click("button:has-text('Hinzufügen')")
         pg.wait_for_load_state()
-        blk = pg.locator("[data-schema-row] [data-schema-block]").last
-        blk.click()
-        pg.wait_for_load_state()
+        focused = pg.evaluate("document.activeElement && document.activeElement.id")
+        check(focused == "schema-panel", "после добавления фокус в панели нового блока")
         check(
             pg.locator("[data-schema-panel] button[value=toggle]").count() == 1,
             "панель блока с «Ausblenden»",
