@@ -231,13 +231,25 @@ def groups(request, cfg: dict, data: dict) -> list[dict]:
             hint=_("Die weiteren Felder passen sich nach „Übernehmen“ an."),
         ),
         _line("title", _("Überschrift"), data.get("title")),
-        _line("intro", _("Einleitung"), data.get("intro")),
+        # многострочное: в однострочном поле браузер склеил бы переводы строк, и
+        # «Übernehmen» без правок изменило бы текст
+        _line("intro", _("Einleitung"), data.get("intro"), kind="area"),
     ]
 
     which = _which_fields(source, data, lists)
     sorts = [(k, lab) for k, lab, srcs in hint["sorts"] if source in srcs.split()]
     if siteconfig.list_sort_keys(source) and sorts:
-        which.append(_select("sort", _("Sortierung"), data.get("sort"), sorts))
+        stored = data.get("sort") or ""
+        if stored and stored not in {k for k, _lab in sorts}:
+            # Явно записанный ключ сортировки по умолчанию («newest» у товаров) — тот же
+            # пункт, что пустой: пункт получает сохранённое значение, чтобы «Übernehmen»
+            # без правок вернуло ровно его.
+            from apps.core.facets import provider_for
+
+            facets = siteconfig.LIST_SOURCES[source]["facets"]
+            if facets and stored == provider_for(facets).default_sort:
+                sorts = [(stored if k == "" else k, lab) for k, lab in sorts]
+        which.append(_select("sort", _("Sortierung"), stored, sorts))
     limit = _line("limit", _("Höchstens"), data.get("limit"), kind="number")
     limit["hint"] = _("Leer = %(n)s. Höchstens %(max)s.") % {
         "n": hint["limit"],

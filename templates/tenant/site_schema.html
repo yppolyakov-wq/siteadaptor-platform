@@ -186,6 +186,8 @@
           <select id="schema-l-{{ f.name }}" name="f_{{ f.name }}" class="ui-input w-full scroll-mb-28"{% if f.hint %} aria-describedby="schema-l-{{ f.name }}-hint"{% endif %}>
             {% for value, label in f.options %}<option value="{{ value }}"{% if value == f.value %} selected{% endif %}>{{ label }}</option>{% endfor %}
           </select>
+          {% elif f.kind == "area" %}
+          <textarea id="schema-l-{{ f.name }}" name="f_{{ f.name }}" rows="2" class="ui-input w-full scroll-mb-28">{{ f.value }}</textarea>
           {% elif f.kind == "number" %}
           <input type="text" inputmode="numeric" autocomplete="off" id="schema-l-{{ f.name }}" name="f_{{ f.name }}" value="{{ f.value }}" class="ui-input w-full scroll-mb-28"{% if f.hint %} aria-describedby="schema-l-{{ f.name }}-hint"{% endif %}>
           {% else %}

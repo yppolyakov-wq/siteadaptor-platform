@@ -163,3 +163,61 @@ def test_panel_says_how_many_entries_the_block_shows():
     site_schema.apply(b.tenant, "text", "update", ref=ref, fields={"source": "products"})
     html = b.get(f"?seite=text&block={ref}")
     assert "Zeigt derzeit 2 Einträge (von 2)." in html
+
+
+def _panel_values(html):
+    """Что браузер отправит из формы панели, если ничего не трогать."""
+    import re
+    from html import unescape
+
+    form = html[html.index("data-schema-list") :]
+    form = form[: form.index("</form>")]
+    out = {}
+    for name, body in re.findall(r'<select[^>]*name="(f_\w+)"[^>]*>(.*?)</select>', form, re.S):
+        picked = re.search(r'<option value="([^"]*)" selected', body)
+        first = re.search(r'<option value="([^"]*)"', body)
+        out[name] = unescape((picked or first).group(1))
+    for tag in re.findall(r"<input[^>]*>", form):
+        name = re.search(r'name="(f_\w+)"', tag)
+        if name:
+            out[name.group(1)] = unescape(re.search(r'value="([^"]*)"', tag).group(1))
+    for name, body in re.findall(r'<textarea[^>]*name="(f_\w+)"[^>]*>(.*?)</textarea>', form, re.S):
+        out[name] = unescape(body)
+    return out
+
+
+@pytest.mark.parametrize(
+    "data",
+    [
+        {"source": "promotions", "type": "Räumung", "phase": "upcoming", "ziel": "product"},
+        {"source": "promotions", "endet": "woche", "rabatt": 30, "sort": "rabatt"},
+        {"source": "products", "category": "weg", "only": "sale", "sort": "newest", "limit": 7,
+         "cols": 4, "rows": 2, "out": "slider", "speed": 5, "card": "deal",
+         "style": "preisliste", "title": "T", "intro": "eins\nzwei"},
+        {"source": "products", "collection": "fort", "sort": "featured"},
+        {"source": "services", "only": "video"},
+        {"source": "events", "event_category": "Yoga & mehr", "only": "soon"},
+        {"source": "tours", "country": "Nepal"},
+        {"source": "categories", "category": "weg", "style": "tall"},
+        {"source": "reviews", "entity": "event", "stars": 4, "only": "text", "sort": "best"},
+        {"source": "stays"},
+        {"source": "combos"},
+        {"source": "blog"},
+    ],
+)  # fmt: skip
+def test_untouched_panel_never_changes_the_block(data):
+    """Класс W0: «Übernehmen» без единой правки не меняет блок — для каждого источника
+    и для значений, которых уже нет среди пунктов."""
+    tenant = _tenant()
+    cfg = siteconfig.normalize(
+        {"page_blocks": {"info": [{"id": "a1", "key": "list", "enabled": True, "data": data}]}}
+    )
+    Tenant.objects.filter(pk=tenant.pk).update(site_config=cfg)
+    tenant.refresh_from_db()
+    before = _data(tenant)
+    b = Browser(tenant)
+    values = _panel_values(b.get("?seite=text&block=a1"))
+    assert "f_source" in values
+    b.post(seite="text", op="update", ref="a1", panel_present="1", **values)
+    assert "data-schema-draft" not in b.get("?seite=text"), values
+    assert _data(tenant) == before
