@@ -67,5 +67,7 @@ def test_schema_preview_shows_saved_state_not_studio_draft():
     req2 = RequestFactory().get("/ueber-uns/", {"preview": "1"})
     req2.tenant, req2.session = req.tenant, req.session
     assert page_settings.raw_config(req2) is draft  # Студия по-прежнему видит черновик
-    tpl = (TEMPLATES.parent / "tenant" / "site_schema.html").read_text()
-    assert "stand=saved" in tpl
+    # FB-27 R2: ссылку превью собирает вьюха — сохранённое, а при черновике схемы
+    # `aufbau=<code>`; черновик Студии не попадает туда ни в одном случае.
+    view = (TEMPLATES.parent.parent / "apps" / "core" / "site_schema_views.py").read_text()
+    assert '"stand": "saved"' in view and '"aufbau": code' in view

@@ -57,6 +57,19 @@ with sync_playwright() as p:
         pg.wait_for_load_state()
         focused = pg.evaluate("document.activeElement && document.activeElement.id")
         check(focused == "schema-panel", "после добавления фокус в панели нового блока")
+        check(pg.locator("[data-schema-draft]").count() == 1, "после правки — полоса черновика")
+        with pg.context.expect_page() as pop:
+            pg.click("a:has-text('Vorschau')")
+        pv = pop.value
+        pv.wait_for_load_state()
+        shown = "aufbau=text" in pv.url and pv.locator("[data-sf-section]").count() >= 1
+        check(shown, "превью показывает черновик")
+        pv.close()
+        pg.click("[data-schema-draft] button[value=save]")
+        pg.wait_for_load_state()
+        check(pg.locator("[data-schema-draft]").count() == 0, "«Speichern» — черновика нет")
+        pg.locator("[data-schema-row] [data-schema-block]").last.click()
+        pg.wait_for_load_state()
         check(
             pg.locator("[data-schema-panel] button[value=toggle]").count() == 1,
             "панель блока с «Ausblenden»",
@@ -77,6 +90,9 @@ with sync_playwright() as p:
         pg.click("button[value=delete]")
         pg.wait_for_load_state()
         check(pg.locator("[data-schema-hidden]").count() == 0, "блок удалён")
+        pg.click("[data-schema-draft] button[value=save]")
+        pg.wait_for_load_state()
+        check(pg.locator("[data-schema-draft]").count() == 0, "удаление сохранено")
         check(not errs, "без JS-ошибок: " + "; ".join(errs[:2]))
         ctx.close()
 print(f"\n{ok}/{ok + len(fail)}")

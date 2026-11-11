@@ -386,44 +386,40 @@ class SchemaError(ValueError):
     """Недопустимая операция схемы (неизвестный тип/блок/операция)."""
 
 
-@transaction.atomic
-def apply(tenant, code: str, op: str, ref: str = "", block_type: str = "") -> str:
-    """Одна правка схемы страницы `code`. Бросает SchemaError на недопустимом.
-    Возвращает ref блока, с которым работали (у `add` — id нового блока)."""
+def resolve(tenant, code: str):
+    """(pt, host, home) строки схемы либо SchemaError. Тип, которого у бизнеса нет,
+    не правится и POST'ом в обход экрана — иначе появлялись бы блоки «в запас»,
+    всплывающие при включении модуля (FB-27 R1)."""
     from apps.core import page_settings
-    from apps.tenants import siteconfig
-    from apps.tenants.models import Tenant
 
     pt = _page_type(code)
     if pt is None:
         raise SchemaError("page")
-    # FB-27 R1: тип, которого у бизнеса нет, не правится и POST'ом в обход экрана —
-    # иначе появлялись бы блоки «в запас», всплывающие при включении модуля.
     if pt.code != "home" and not page_settings.type_active(tenant, pt.code):
         raise SchemaError("page")
     host = host_for(code)
     home = pt.code == "home"
     if not home and not host:
         raise SchemaError("page")
-    locked = Tenant.objects.select_for_update().get(pk=tenant.pk)
-    config = siteconfig.normalize(locked.site_config)
-    if host == "info" and ref == CONTACT_REF:
-        if op != "toggle":
-            raise SchemaError("fixed")
-        if config.get("about_contact") is False:
-            config.pop("about_contact", None)
-        else:
-            config["about_contact"] = False
-        locked.site_config = siteconfig.normalize(config)
-        locked.save(update_fields=["site_config", "updated_at"])
-        tenant.site_config = locked.site_config
-        return ref
+    return pt, host, home
+
+
+def load_items(config: dict, home: bool, host: str) -> list[dict]:
+    """Копия блоков страницы в том виде, в котором их правит схема."""
+    from apps.tenants import siteconfig
+
     if home:
-        items = copy.deepcopy(config.get("sections") or [])
-    else:
-        items = copy.deepcopy(
-            siteconfig.main_list_sequence(host, (config.get("page_blocks") or {}).get(host, []))
-        )
+        return copy.deepcopy(config.get("sections") or [])
+    return copy.deepcopy(
+        siteconfig.main_list_sequence(host, (config.get("page_blocks") or {}).get(host, []))
+    )
+
+
+def mutate(items: list[dict], code: str, op: str, ref: str = "", block_type: str = "") -> str:
+    """Одна правка списка блоков НА МЕСТЕ (без записи): общая для немедленной правки
+    и черновика. Возвращает ref блока (у `add` — id нового)."""
+    from apps.tenants import siteconfig
+
     idx = next((i for i, it in enumerate(items) if (it.get("id") or it.get("key")) == ref), None)
     if op == "add":
         if block_type not in dict(add_options(code)):
@@ -435,43 +431,73 @@ def apply(tenant, code: str, op: str, ref: str = "", block_type: str = "") -> st
             "data": copy.deepcopy(siteconfig.CBLOCK_DEMO_DATA.get(block_type, {})),
         }
         items.append(new)
-        ref = new["id"]
+        return new["id"]
+    if idx is None:
+        raise SchemaError("block")
+    item = items[idx]
+    main = siteconfig.is_main_marker(item)
+    if op == "toggle":
+        if main:
+            raise SchemaError("main")
+        item["enabled"] = not item.get("enabled", True)
+    elif op in ("up", "down"):
+        step = -1 if op == "up" else 1
+        j = idx + step
+        if main or item.get("enabled", True):
+            # через скрытых соседей — до ближайшего видимого (см. blocks_for)
+            while 0 <= j < len(items) and not (
+                siteconfig.is_main_marker(items[j]) or items[j].get("enabled", True)
+            ):
+                j += step
+        if 0 <= j < len(items):
+            items.insert(j, items.pop(idx))
+    elif op == "delete":
+        if main or not item.get("id"):
+            raise SchemaError("fixed")  # фикс-секции и основной список не удаляются
+        items.pop(idx)
     else:
-        if idx is None:
-            raise SchemaError("block")
-        item = items[idx]
-        main = siteconfig.is_main_marker(item)
-        if op == "toggle":
-            if main:
-                raise SchemaError("main")
-            item["enabled"] = not item.get("enabled", True)
-        elif op in ("up", "down"):
-            step = -1 if op == "up" else 1
-            j = idx + step
-            if main or item.get("enabled", True):
-                # через скрытых соседей — до ближайшего видимого (см. blocks_for)
-                while 0 <= j < len(items) and not (
-                    siteconfig.is_main_marker(items[j]) or items[j].get("enabled", True)
-                ):
-                    j += step
-            if 0 <= j < len(items):
-                items.insert(j, items.pop(idx))
-        elif op == "delete":
-            if main or not item.get("id"):
-                raise SchemaError("fixed")  # фикс-секции и основной список не удаляются
-            items.pop(idx)
-        else:
-            raise SchemaError("op")
+        raise SchemaError("op")
+    return ref
+
+
+def store_items(config: dict, home: bool, host: str, items: list[dict]) -> None:
+    """Кладёт блоки страницы в `config` (на месте) и выравнивает переводы C-блоков."""
+    from apps.tenants import siteconfig
+
     if home:
         siteconfig.realign_block_overlays(config, new_sections=items)
         config["sections"] = items
+        return
+    # ВСЕ хосты: выравнивание сверяет каждый хост оверлея с новым набором, и
+    # переданный один хост стёр бы переводы блоков остальных страниц.
+    page_blocks = dict(config.get("page_blocks") or {})
+    page_blocks[host] = items
+    siteconfig.realign_block_overlays(config, new_page_blocks=page_blocks)
+    config["page_blocks"] = page_blocks
+
+
+@transaction.atomic
+def apply(tenant, code: str, op: str, ref: str = "", block_type: str = "") -> str:
+    """Одна правка схемы страницы `code` СРАЗУ в базу. Бросает SchemaError на
+    недопустимом. Возвращает ref блока, с которым работали (у `add` — id нового).
+    Экран «Seitenaufbau» правит через черновик (`aufbau_draft`), это — для прочих."""
+    from apps.tenants import siteconfig
+    from apps.tenants.models import Tenant
+
+    _pt, host, home = resolve(tenant, code)
+    locked = Tenant.objects.select_for_update().get(pk=tenant.pk)
+    config = siteconfig.normalize(locked.site_config)
+    if host == "info" and ref == CONTACT_REF:
+        if op != "toggle":
+            raise SchemaError("fixed")
+        if config.get("about_contact") is False:
+            config.pop("about_contact", None)
+        else:
+            config["about_contact"] = False
     else:
-        # ВСЕ хосты: выравнивание сверяет каждый хост оверлея с новым набором, и
-        # переданный один хост стёр бы переводы блоков остальных страниц.
-        page_blocks = dict(config.get("page_blocks") or {})
-        page_blocks[host] = items
-        siteconfig.realign_block_overlays(config, new_page_blocks=page_blocks)
-        config["page_blocks"] = page_blocks
+        items = load_items(config, home, host)
+        ref = mutate(items, code, op, ref, block_type)
+        store_items(config, home, host, items)
     locked.site_config = siteconfig.normalize(config)
     locked.save(update_fields=["site_config", "updated_at"])
     tenant.site_config = locked.site_config

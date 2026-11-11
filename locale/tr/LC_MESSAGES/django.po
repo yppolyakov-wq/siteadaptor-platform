@@ -37242,3 +37242,24 @@ msgstr "Sayfa seçin"
 
 msgid "Blöcke nebeneinander"
 msgstr "Yan yana bloklar"
+
+msgid "Änderungen verworfen."
+msgstr "Değişiklikler atıldı."
+
+msgid "Diese Seite wurde inzwischen an anderer Stelle geändert. Ihr Entwurf wurde nicht gespeichert."
+msgstr "Bu sayfa bu arada başka bir yerde değiştirildi. Taslağınız kaydedilmedi."
+
+msgid "Diese Seite wurde inzwischen an anderer Stelle geändert. Sie können Ihren Entwurf verwerfen oder ihn trotzdem speichern – dann gehen die anderen Änderungen verloren."
+msgstr "Bu sayfa bu arada başka bir yerde değiştirildi. Taslağınızı atabilir veya yine de kaydedebilirsiniz – bu durumda diğer değişiklikler kaybolur."
+
+msgid "Trotzdem speichern"
+msgstr "Yine de kaydet"
+
+msgid "Ungespeicherte Entwürfe auch bei"
+msgstr "Kaydedilmemiş taslaklar şurada da var"
+
+#, python-format
+msgid "%(n)s Änderung noch nicht auf der Website"
+msgid_plural "%(n)s Änderungen noch nicht auf der Website"
+msgstr[0] "%(n)s değişiklik henüz web sitesinde değil"
+msgstr[1] "%(n)s değişiklik henüz web sitesinde değil"

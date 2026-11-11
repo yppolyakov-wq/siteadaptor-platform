@@ -37431,3 +37431,26 @@ msgstr "Выберите страницу"
 
 msgid "Blöcke nebeneinander"
 msgstr "Блоки рядом"
+
+msgid "Änderungen verworfen."
+msgstr "Изменения отменены."
+
+msgid "Diese Seite wurde inzwischen an anderer Stelle geändert. Ihr Entwurf wurde nicht gespeichert."
+msgstr "Эту страницу тем временем изменили в другом месте. Ваш черновик не сохранён."
+
+msgid "Diese Seite wurde inzwischen an anderer Stelle geändert. Sie können Ihren Entwurf verwerfen oder ihn trotzdem speichern – dann gehen die anderen Änderungen verloren."
+msgstr "Эту страницу тем временем изменили в другом месте. Можно отменить черновик или всё равно сохранить его — тогда другие изменения пропадут."
+
+msgid "Trotzdem speichern"
+msgstr "Всё равно сохранить"
+
+msgid "Ungespeicherte Entwürfe auch bei"
+msgstr "Несохранённые черновики также у"
+
+#, python-format
+msgid "%(n)s Änderung noch nicht auf der Website"
+msgid_plural "%(n)s Änderungen noch nicht auf der Website"
+msgstr[0] "%(n)s изменение ещё не на сайте"
+msgstr[1] "%(n)s изменения ещё не на сайте"
+msgstr[2] "%(n)s изменений ещё не на сайте"
+msgstr[3] "%(n)s изменения ещё не на сайте"

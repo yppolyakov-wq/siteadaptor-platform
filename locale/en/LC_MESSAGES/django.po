@@ -37096,3 +37096,24 @@ msgstr "Choose a page"
 
 msgid "Blöcke nebeneinander"
 msgstr "Blocks side by side"
+
+msgid "Änderungen verworfen."
+msgstr "Changes discarded."
+
+msgid "Diese Seite wurde inzwischen an anderer Stelle geändert. Ihr Entwurf wurde nicht gespeichert."
+msgstr "This page has been changed elsewhere in the meantime. Your draft was not saved."
+
+msgid "Diese Seite wurde inzwischen an anderer Stelle geändert. Sie können Ihren Entwurf verwerfen oder ihn trotzdem speichern – dann gehen die anderen Änderungen verloren."
+msgstr "This page has been changed elsewhere in the meantime. You can discard your draft or save it anyway – the other changes will then be lost."
+
+msgid "Trotzdem speichern"
+msgstr "Save anyway"
+
+msgid "Ungespeicherte Entwürfe auch bei"
+msgstr "Unsaved drafts also on"
+
+#, python-format
+msgid "%(n)s Änderung noch nicht auf der Website"
+msgid_plural "%(n)s Änderungen noch nicht auf der Website"
+msgstr[0] "%(n)s change not yet on the website"
+msgstr[1] "%(n)s changes not yet on the website"

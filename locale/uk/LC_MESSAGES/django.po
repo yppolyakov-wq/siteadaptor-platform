@@ -37418,3 +37418,26 @@ msgstr "Виберіть сторінку"
 
 msgid "Blöcke nebeneinander"
 msgstr "Блоки поруч"
+
+msgid "Änderungen verworfen."
+msgstr "Зміни скасовано."
+
+msgid "Diese Seite wurde inzwischen an anderer Stelle geändert. Ihr Entwurf wurde nicht gespeichert."
+msgstr "Цю сторінку тим часом змінили в іншому місці. Вашу чернетку не збережено."
+
+msgid "Diese Seite wurde inzwischen an anderer Stelle geändert. Sie können Ihren Entwurf verwerfen oder ihn trotzdem speichern – dann gehen die anderen Änderungen verloren."
+msgstr "Цю сторінку тим часом змінили в іншому місці. Можна скасувати чернетку або все одно зберегти її — тоді інші зміни зникнуть."
+
+msgid "Trotzdem speichern"
+msgstr "Усе одно зберегти"
+
+msgid "Ungespeicherte Entwürfe auch bei"
+msgstr "Незбережені чернетки також у"
+
+#, python-format
+msgid "%(n)s Änderung noch nicht auf der Website"
+msgid_plural "%(n)s Änderungen noch nicht auf der Website"
+msgstr[0] "%(n)s зміна ще не на сайті"
+msgstr[1] "%(n)s зміни ще не на сайті"
+msgstr[2] "%(n)s змін ще не на сайті"
+msgstr[3] "%(n)s зміни ще не на сайті"

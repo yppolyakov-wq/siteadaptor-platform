@@ -37183,3 +37183,24 @@ msgstr "Seite wählen"
 
 msgid "Blöcke nebeneinander"
 msgstr "Blöcke nebeneinander"
+
+msgid "Änderungen verworfen."
+msgstr "Änderungen verworfen."
+
+msgid "Diese Seite wurde inzwischen an anderer Stelle geändert. Ihr Entwurf wurde nicht gespeichert."
+msgstr "Diese Seite wurde inzwischen an anderer Stelle geändert. Ihr Entwurf wurde nicht gespeichert."
+
+msgid "Diese Seite wurde inzwischen an anderer Stelle geändert. Sie können Ihren Entwurf verwerfen oder ihn trotzdem speichern – dann gehen die anderen Änderungen verloren."
+msgstr "Diese Seite wurde inzwischen an anderer Stelle geändert. Sie können Ihren Entwurf verwerfen oder ihn trotzdem speichern – dann gehen die anderen Änderungen verloren."
+
+msgid "Trotzdem speichern"
+msgstr "Trotzdem speichern"
+
+msgid "Ungespeicherte Entwürfe auch bei"
+msgstr "Ungespeicherte Entwürfe auch bei"
+
+#, python-format
+msgid "%(n)s Änderung noch nicht auf der Website"
+msgid_plural "%(n)s Änderungen noch nicht auf der Website"
+msgstr[0] "%(n)s Änderung noch nicht auf der Website"
+msgstr[1] "%(n)s Änderungen noch nicht auf der Website"

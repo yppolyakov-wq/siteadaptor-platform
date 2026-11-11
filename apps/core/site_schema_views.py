@@ -22,6 +22,7 @@ def _url(code: str, block: str = "") -> str:
 
 @login_required
 def site_schema_view(request):
+    from apps.core import aufbau_draft
     from apps.tenants import siteconfig
 
     tenant = request.tenant
@@ -29,27 +30,56 @@ def site_schema_view(request):
     if request.method == "POST":
         op = request.POST.get("op", "")
         ref = request.POST.get("ref", "")
+        # FB-27 R2: правки копятся в черновике, на сайт попадают по «Speichern».
         try:
-            ref = site_schema.apply(
-                tenant, code, op, ref=ref, block_type=request.POST.get("type", "")
-            )
-            messages.success(request, _("Gespeichert."))
+            if op == "save":
+                aufbau_draft.commit(request, tenant, code, force=request.POST.get("force") == "1")
+                messages.success(request, _("Gespeichert."))
+                ref = ""
+            elif op == "discard":
+                aufbau_draft.discard(request, code)
+                messages.success(request, _("Änderungen verworfen."))
+                ref = ""
+            else:
+                ref = aufbau_draft.op(
+                    request, tenant, code, op, ref=ref, block_type=request.POST.get("type", "")
+                )
         except site_schema.SchemaError:
             messages.error(request, _("Diese Änderung ist hier nicht möglich."))
-        # FB-27 R1: блок остаётся выбранным (новый — тоже), удалённый — нет.
+        except aufbau_draft.DraftConflict:
+            messages.error(
+                request,
+                _(
+                    "Diese Seite wurde inzwischen an anderer Stelle geändert. "
+                    "Ihr Entwurf wurde nicht gespeichert."
+                ),
+            )
+        # Блок остаётся выбранным (новый — тоже), удалённый — нет.
         return redirect(_url(code, "" if op == "delete" else ref))
-    config = siteconfig.normalize(tenant.site_config)
-    groups = site_schema.type_groups(tenant, config)
+    saved = siteconfig.normalize(tenant.site_config)
+    groups = site_schema.type_groups(tenant, saved)
     rows = [r for _label, items in groups for r in items]
     # Тип, которого у бизнеса нет (или мусор в адресе), не открывается — главная.
     current = next((r for r in rows if r.code == code), rows[0] if rows else None)
     code = current.code if current else "home"
-    blocks = site_schema.blocks_for(config, code)
+    draft = aufbau_draft.get(request, code)
+    config = aufbau_draft.overlay(saved, draft) if draft else saved
+    draft_info = aufbau_draft.info(request, saved, code)
+    blocks = site_schema.blocks_for(config, code, host=current.host if current else None)
     selected = next((b for b in blocks if b["ref"] == request.GET.get("block")), None)
     preview_url = current.preview_url if current else ""
     studio = reverse("site-home")
     if preview_url:
         studio = f"{studio}?{urlencode({'page': preview_url})}"
+    preview_query = (
+        {"preview": "1", "aufbau": code} if draft else {"preview": "1", "stand": "saved"}
+    )
+    labels = {r.code: r.label for r in rows}
+    other_drafts = [
+        {"code": c, "label": labels[c]}
+        for c in aufbau_draft.dirty_codes(request)
+        if c != code and c in labels
+    ]
     return render(
         request,
         "tenant/site_schema.html",
@@ -59,11 +89,14 @@ def site_schema_view(request):
             "current": current,
             "code": code,
             "preview_url": preview_url,
+            "preview_query": urlencode(preview_query),
             "blocks": blocks,
             "layout": site_schema.schema_layout(blocks),
             "selected": selected,
             "confirm_remove": bool(selected) and request.GET.get("entfernen") == "1",
             "add_options": site_schema.add_options(code),
             "studio_url": studio,
+            "draft": draft_info if draft else None,
+            "other_drafts": other_drafts,
         },
     )

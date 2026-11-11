@@ -707,6 +707,19 @@ def preview_raw(request) -> tuple[dict, bool]:
             request._stu19_tpl_cfg = cached
         if cached:
             return cached, True
+    # FB-27 R2: `?preview=1&aufbau=<code>` — сохранённое + черновик «Seitenaufbau» этой
+    # страницы. Только члену команды с правом сайта (иначе игнорируется — без лишних
+    # запросов и некэшируемых вариантов для ботов); черновик Студии сюда не попадает.
+    aufbau = request.GET.get("aufbau") or ""
+    if aufbau and _may_preview(request):
+        cached = getattr(request, "_aufbau_cfg", None)
+        if cached is None:
+            from apps.core import aufbau_draft
+
+            draft = aufbau_draft.get(request, aufbau[:120])
+            cached = aufbau_draft.overlay(saved, draft) if draft else saved
+            request._aufbau_cfg = cached
+        return cached, False
     session = getattr(request, "session", None)
     draft = session.get("site_preview_draft") if session is not None else None
     if isinstance(draft, dict):

@@ -21,7 +21,7 @@
   </form>
   <span class="flex-1"></span>
   <a href="{{ studio_url }}" class="ui-btn ui-btn-secondary">{% trans "Auf der Seite bearbeiten" %}</a>
-  {% if preview_url %}<a href="{{ preview_url }}?preview=1&amp;stand=saved" target="_blank" rel="noopener" class="ui-btn ui-btn-secondary">{% trans "Vorschau" %}<span class="sr-only"> ({% trans "öffnet in neuem Tab" %})</span></a>{% endif %}
+  {% if preview_url %}<a href="{{ preview_url }}?{{ preview_query }}" target="_blank" rel="noopener" class="ui-btn ui-btn-secondary">{% trans "Vorschau" %}<span class="sr-only"> ({% trans "öffnet in neuem Tab" %})</span></a>{% endif %}
 </div>
 <p class="ui-muted text-sm mb-4">{% trans "Welche Blöcke auf der Seite stehen und in welcher Reihenfolge. Schmale Blöcke stehen nebeneinander." %}</p>
 
@@ -29,6 +29,33 @@
   {% for m in messages %}
     <div role="{% if m.tags == 'error' %}alert{% else %}status{% endif %}" class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
   {% endfor %}
+{% endif %}
+
+{% if draft %}
+{% comment %}FB-27 R2: правки — в черновике, на сайт попадают по «Speichern».{% endcomment %}
+<form method="post" class="ui-card p-3 mb-4 flex flex-wrap items-center gap-3 border border-amber-300" data-schema-draft>
+  {% csrf_token %}
+  <input type="hidden" name="seite" value="{{ code }}">
+  <p role="status" class="flex-1 min-w-[12rem] text-sm text-amber-900">
+    <strong>{% trans "Entwurf" %}</strong> ·
+    {% blocktrans count n=draft.count %}{{ n }} Änderung noch nicht auf der Website{% plural %}{{ n }} Änderungen noch nicht auf der Website{% endblocktrans %}
+  </p>
+  <button name="op" value="discard" class="ui-btn ui-btn-secondary">{% trans "Verwerfen" %}</button>
+  {% if not draft.conflict %}<button name="op" value="save" class="ui-btn ui-btn-primary">{% trans "Speichern" %}</button>{% endif %}
+</form>
+{% if draft.conflict %}
+<form method="post" class="ui-card p-3 mb-4 border border-red-300 space-y-2" data-schema-conflict>
+  {% csrf_token %}
+  <input type="hidden" name="seite" value="{{ code }}">
+  <input type="hidden" name="force" value="1">
+  <p class="text-sm text-red-800">{% trans "Diese Seite wurde inzwischen an anderer Stelle geändert. Sie können Ihren Entwurf verwerfen oder ihn trotzdem speichern – dann gehen die anderen Änderungen verloren." %}</p>
+  <button name="op" value="save" class="ui-btn ui-btn-danger-outline">{% trans "Trotzdem speichern" %}</button>
+</form>
+{% endif %}
+{% endif %}
+{% if other_drafts %}
+<p class="mb-4 text-sm text-amber-900" data-schema-other-drafts>{% trans "Ungespeicherte Entwürfe auch bei" %}:
+  {% for d in other_drafts %}<a href="?seite={{ d.code|urlencode }}" class="inline-flex items-center min-h-[24px] underline">{{ d.label }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}</p>
 {% endif %}
 
 <div class="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_20rem] gap-4 items-start" data-site-schema>
