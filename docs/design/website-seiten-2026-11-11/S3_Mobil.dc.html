@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Seiten – Telefon</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#4338ca}a:hover{color:#3730a3}
+.pc{display:flex;align-items:center;gap:8px;background:#fff;border-radius:14px;padding:12px 6px 12px 14px}
+.pc a.t{font-size:16px;font-weight:600;text-decoration:none;display:block;min-height:24px}
+.pc small{display:block;font-size:13px;color:#4b5563;margin-top:2px}
+.bd{display:inline-block;font-size:12px;font-weight:600;border-radius:999px;padding:3px 10px;margin-top:6px}
+.ok{background:#ecfdf5;color:#047857}.nt{background:#f3f4f6;color:#374151}.wr{background:#fffbeb;color:#92400e}
+.ib{width:44px;height:44px;border:0;background:transparent;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;color:#374151;flex:none}
+.ib svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
+h2{margin:6px 0 0;font-size:14px;font-weight:700;color:#374151}
+.tb a{flex:1;display:flex;flex-direction:column;align-items:center;font-size:11px;color:#4b5563;text-decoration:none;padding:8px 0}
+</style>
+</helmet>
+<div style="width:390px;height:1040px;box-sizing:border-box;background:#F2F4F7;font-family:Inter,system-ui,sans-serif;color:#111827;position:relative;padding:16px 16px 96px;display:flex;flex-direction:column;gap:10px">
+  <div style="display:flex;justify-content:space-between;align-items:center"><button class="ib" aria-label="Menü öffnen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button><span style="font-size:13px;color:#4b5563">Website › Seiten</span><span style="width:44px"></span></div>
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+    <h1 style="margin:0;font-size:22px;font-weight:700">Seiten</h1>
+    <button style="border:0;background:#4f46e5;color:#fff;border-radius:12px;padding:0 16px;min-height:44px;font:600 15px Inter,sans-serif">+ Neue Seite</button>
+  </div>
+  <h2>Ihre Seiten</h2>
+  <div class="pc"><div style="flex:1;min-width:0"><a class="t" href="#">Über uns</a><small>/ueber-uns/ · im Menü</small><span class="bd ok">Eigener Text</span></div><button class="ib" aria-label="Mehr zu Über uns"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg></button></div>
+  <div class="pc"><div style="flex:1;min-width:0"><a class="t" href="#">Versand &amp; Zahlung</a><small>/versand/ · in der Fußzeile</small><span class="bd nt">Nur Versandarten</span></div><button class="ib" aria-label="Mehr zu Versand &amp; Zahlung"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg></button></div>
+  <div class="pc"><div style="flex:1;min-width:0"><a class="t" href="#">Zahlungsarten</a><small>/zahlung/ · in der Fußzeile</small><span class="bd ok">Veröffentlicht</span></div><button class="ib" aria-label="Mehr zu Zahlungsarten"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg></button></div>
+  <div class="pc"><div style="flex:1;min-width:0"><a class="t" href="#">Tee richtig zubereiten</a><small>/zubereitung/ · nicht verlinkt</small><span class="bd wr">Entwurf</span></div><button class="ib" aria-label="Mehr zu Tee richtig zubereiten"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg></button></div>
+  <h2>Rechtliches</h2>
+  <div class="pc"><div style="flex:1;min-width:0"><a class="t" href="#">Impressum</a><small>/impressum/ · in der Fußzeile</small><span class="bd ok">Eigener Text</span></div><button class="ib" aria-label="Mehr zu Impressum"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg></button></div>
+  <div class="pc"><div style="flex:1;min-width:0"><a class="t" href="#">Datenschutz</a><small>/datenschutz/ · in der Fußzeile</small><span class="bd nt">Automatisch erstellt</span></div><button class="ib" aria-label="Mehr zu Datenschutz"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg></button></div>
+  <div class="pc"><div style="flex:1;min-width:0"><a class="t" href="#">AGB</a><small>noch kein Text</small><span class="bd wr">Ausgeblendet – Text fehlt</span></div><button class="ib" aria-label="Mehr zu AGB"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg></button></div>
+  <nav class="tb" aria-label="Schnellzugriff" style="position:absolute;left:16px;right:16px;bottom:14px;background:#fff;border-radius:22px;box-shadow:0 6px 24px rgba(16,24,40,.12);display:flex;padding:4px 6px">
+    <a href="#">Übersicht</a><a href="#">Verkäufe</a><a href="#" style="color:#3730a3;font-weight:600">Neu</a><a href="#">Nachrichten</a><a href="#">Mehr</a>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1040}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

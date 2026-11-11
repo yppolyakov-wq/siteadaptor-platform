@@ -1,0 +1,23 @@
+{
+  "v": 3,
+  "createdOnFiles": {"v": 1, "at": "2026-11-11T15:45:00Z"},
+  "title": "Website: Seitenlayout & Seiten",
+  "launch": {"view": "canvas"},
+  "pages": [],
+  "boards": {
+    "Main.dc.html": {"x": 0, "y": 0, "w": 1440, "h": 900, "title": "L1 · Seitenlayout › Blöcke (Desktop)"},
+    "L2_Darstellung.dc.html": {"x": 1520, "y": 0, "w": 1440, "h": 900, "title": "L2 · Seitenlayout › Darstellung (Desktop)"},
+    "S1_Seiten.dc.html": {"x": 3040, "y": 0, "w": 1440, "h": 900, "title": "S1 · Seiten — Liste (Desktop)"},
+    "S2_Seite.dc.html": {"x": 4560, "y": 0, "w": 1440, "h": 900, "title": "S2 · Seite bearbeiten: Text · Blöcke (Desktop)"},
+    "D1_Design.dc.html": {"x": 6080, "y": 0, "w": 1440, "h": 900, "title": "D1 · Design mit Reitern (Desktop)"},
+    "L3_Mobil.dc.html": {"x": 0, "y": 1020, "w": 390, "h": 1040, "title": "L3 · Seitenlayout (Telefon)"},
+    "S3_Mobil.dc.html": {"x": 470, "y": 1020, "w": 390, "h": 1040, "title": "S3 · Seiten (Telefon)"},
+    "D2_Mobil.dc.html": {"x": 940, "y": 1020, "w": 390, "h": 1040, "title": "D2 · Design (Telefon)"}
+  },
+  "order": ["Main.dc.html", "L2_Darstellung.dc.html", "S1_Seiten.dc.html", "S2_Seite.dc.html", "D1_Design.dc.html", "L3_Mobil.dc.html", "S3_Mobil.dc.html", "D2_Mobil.dc.html"],
+  "notes": {
+    "t1": {"x": 0, "y": -300, "text": "Website: Seitenlayout · Seiten · Design", "kind": "title1", "maxW": 7520},
+    "n1": {"x": 1410, "y": 1020, "w": 520, "text": "Was sich ändert\n\n1. «Seitenaufbau» + «Seitenvorlagen» = ein Bildschirm «Seitenlayout»: Seitentyp links, Reiter Blöcke / Darstellung, eine Vorschau.\n2. Nur Seitentypen, die es im Geschäft gibt; die wichtigste Seite zuerst.\n3. «Seiten» bleibt für Textseiten; Text und Blöcke einer Seite an einem Ort.\n4. «Design»: fertige Designs zuerst, Einstellungen in Reitern, ein Speichern.\n5. Telefon: Auswahlliste statt 26 Pillen, Karten statt Tabelle, Ziele ab 44 px.", "fill": "blue"}
+  },
+  "designSystems": []
+}

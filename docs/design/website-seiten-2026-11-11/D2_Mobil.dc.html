@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Design – Telefon</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#4338ca}a:hover{color:#3730a3}
+.ib{width:44px;height:44px;border:0;background:transparent;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;color:#374151}
+.ib svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
+.seg a{white-space:nowrap;padding:11px 14px;border-radius:999px;font-size:14px;font-weight:600;color:#374151;text-decoration:none}
+.seg .cur{background:#4f46e5;color:#fff}
+.card{background:#fff;border-radius:16px;overflow:hidden}
+.card h3{margin:0;font-size:16px;font-weight:700}
+.card p{margin:4px 0 0;font-size:14px;color:#4b5563;line-height:1.45}
+.pv{height:120px;display:flex;flex-direction:column;gap:6px;padding:12px}
+.pv i{display:block;border-radius:5px}
+.btn{border:1px solid #d1d5db;background:#fff;border-radius:12px;padding:0 16px;min-height:44px;font:600 15px Inter,sans-serif;color:#111827;display:inline-flex;align-items:center;text-decoration:none}
+.tb a{flex:1;display:flex;flex-direction:column;align-items:center;font-size:11px;color:#4b5563;text-decoration:none;padding:8px 0}
+</style>
+</helmet>
+<div style="width:390px;height:1040px;box-sizing:border-box;background:#F2F4F7;font-family:Inter,system-ui,sans-serif;color:#111827;position:relative;padding:16px 16px 96px;display:flex;flex-direction:column;gap:12px">
+  <div style="display:flex;justify-content:space-between;align-items:center"><button class="ib" aria-label="Menü öffnen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button><span style="font-size:13px;color:#4b5563">Website › Design</span><span style="width:44px"></span></div>
+  <h1 style="margin:0;font-size:22px;font-weight:700">Design</h1>
+  <nav class="seg" aria-label="Bereiche" style="display:flex;gap:4px;background:#e5e7eb;border-radius:999px;padding:4px;overflow-x:auto"><a href="#" class="cur" aria-current="page">Fertige Designs</a><a href="#">Farben &amp; Schrift</a><a href="#">Karten &amp; Fotos</a></nav>
+  <p style="margin:0;font-size:14px;color:#4b5563">Empfohlen für Online-Shops. Ihre Texte und Blöcke bleiben.</p>
+  <article class="card" aria-current="true" style="outline:2px solid #4f46e5">
+    <div class="pv" style="background:#f6f1e7"><i style="height:36px;background:#3f5d45"></i><div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;flex:1"><i style="background:#fff"></i><i style="background:#fff"></i><i style="background:#fff"></i></div></div>
+    <div style="padding:12px 14px 14px;display:flex;justify-content:space-between;align-items:center;gap:10px"><div><h3>Boutique</h3><p>Warm, viel Luft, Serifenschrift.</p></div><span style="font-size:12px;font-weight:600;background:#eef2ff;color:#3730a3;border-radius:999px;padding:4px 10px">Aktiv</span></div>
+  </article>
+  <article class="card">
+    <div class="pv" style="background:#fff"><i style="height:36px;background:#111827"></i><div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;flex:1"><i style="background:#f3f4f6"></i><i style="background:#f3f4f6"></i><i style="background:#f3f4f6"></i><i style="background:#f3f4f6"></i></div></div>
+    <div style="padding:12px 14px 14px;display:flex;flex-direction:column;gap:10px"><div><h3>Klar</h3><p>Schwarz-weiß, sachlich, vier Produkte je Reihe.</p></div><div style="display:flex;gap:8px"><button class="btn" aria-label="Klar übernehmen" style="background:#4f46e5;border-color:#4f46e5;color:#fff">Übernehmen</button><a href="#" class="btn" aria-label="Vorschau: Klar">Vorschau</a></div></div>
+  </article>
+  <article class="card">
+    <div class="pv" style="background:#fff7ed"><i style="height:36px;background:#c2410c"></i><div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;flex:1"><i style="background:#fed7aa"></i><i style="background:#fed7aa"></i><i style="background:#fed7aa"></i></div></div>
+    <div style="padding:12px 14px 14px;display:flex;flex-direction:column;gap:10px"><div><h3>Angebote zuerst</h3><p>Kräftige Preise, Aktionen oben.</p></div><div style="display:flex;gap:8px"><button class="btn" aria-label="Angebote zuerst übernehmen" style="background:#4f46e5;border-color:#4f46e5;color:#fff">Übernehmen</button><a href="#" class="btn" aria-label="Vorschau: Angebote zuerst">Vorschau</a></div></div>
+  </article>
+  <a href="#" style="font-size:14px;font-weight:600;padding:8px 0">Alle 18 Designs anzeigen</a>
+  <nav class="tb" aria-label="Schnellzugriff" style="position:absolute;left:16px;right:16px;bottom:14px;background:#fff;border-radius:22px;box-shadow:0 6px 24px rgba(16,24,40,.12);display:flex;padding:4px 6px">
+    <a href="#">Übersicht</a><a href="#">Verkäufe</a><a href="#" style="color:#3730a3;font-weight:600">Neu</a><a href="#">Nachrichten</a><a href="#">Mehr</a>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1040}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Seite bearbeiten – Blöcke</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#4338ca}a:hover{color:#3730a3}
+.sb a{display:block;padding:9px 12px;border-radius:10px;color:#374151;text-decoration:none;font-size:14px}
+.sb .sub a{padding:7px 12px 7px 36px;font-size:13px;color:#4b5563}
+.sb .on{background:#4f46e5;color:#fff;font-weight:600}
+.sb .sub .cur{background:#eef2ff;color:#3730a3;font-weight:600}
+.btn{border:1px solid #d1d5db;background:#fff;border-radius:10px;padding:9px 14px;font:600 14px Inter,sans-serif;color:#111827;cursor:pointer}
+.tab{padding:10px 4px;margin-right:22px;font-size:14px;font-weight:600;color:#4b5563;text-decoration:none;border-bottom:2px solid transparent}
+.tab.cur{color:#3730a3;border-color:#4f46e5}
+.blk{display:flex;align-items:center;gap:8px;padding:8px 8px 8px 14px;border:1px solid #e5e7eb;border-radius:12px;background:#fff;font-size:14px}
+.blk .nm{flex:1;font-weight:500}
+.ib{width:36px;height:36px;border:0;background:transparent;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;color:#374151;cursor:pointer}
+.ib[disabled]{color:#c4c8cf}
+.ib svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+</style>
+</helmet>
+<div style="width:1440px;height:900px;box-sizing:border-box;background:#F2F4F7;font-family:Inter,system-ui,sans-serif;color:#111827;display:flex;gap:24px;padding:16px">
+  <nav class="sb" aria-label="Hauptmenü" style="width:232px;flex:none;background:#fff;border-radius:16px;padding:16px 12px;box-sizing:border-box">
+    <div style="font-weight:700;font-size:17px;padding:4px 12px 14px">Haaner Teeladen</div>
+    <a href="#">Übersicht</a><a href="#">Verkäufe</a><a href="#">Sortiment</a><a href="#">Marketing &amp; Kunden</a>
+    <a href="#" class="on">Website</a>
+    <div class="sub">
+      <a href="#">Studio</a><a href="#">Design</a><a href="#">Menü</a><a href="Main.dc.html">Seitenlayout</a>
+      <a href="S1_Seiten.dc.html" class="cur" aria-current="page">Seiten</a>
+      <a href="#">SEO</a><a href="#">Weiterleitungen</a><a href="#">Domains</a><a href="#">Medien</a>
+    </div>
+    <a href="#">Einstellungen</a>
+  </nav>
+  <main style="flex:1;min-width:0;display:flex;flex-direction:column;gap:14px;padding-top:8px">
+    <a href="S1_Seiten.dc.html" style="font-size:13px;text-decoration:none">← Alle Seiten</a>
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:16px">
+      <div><h1 style="margin:0;font-size:24px;font-weight:700">Über uns</h1><p style="margin:4px 0 0;font-size:13px;color:#4b5563">/ueber-uns/ · im Menü verlinkt</p></div>
+      <a href="#" class="btn" style="text-decoration:none">Seite ansehen</a>
+    </div>
+    <nav aria-label="Bereiche der Seite" style="border-bottom:1px solid #e5e7eb;display:flex">
+      <a href="#" class="tab">Text</a><a href="#" class="tab cur" aria-current="page">Blöcke</a><a href="#" class="tab">Suchmaschinen</a>
+    </nav>
+    <div style="display:flex;gap:16px;flex:1;min-height:0">
+      <section aria-labelledby="hb" style="width:480px;flex:none;background:#fff;border-radius:16px;padding:16px;box-sizing:border-box;display:flex;flex-direction:column;gap:12px">
+        <h2 id="hb" style="margin:0;font-size:16px;font-weight:700">Blöcke dieser Seite</h2>
+        <p style="margin:0;font-size:13px;color:#4b5563">Stehen unter Ihrem Text. Nur für diese Seite.</p>
+        <div class="blk" style="background:#f9fafb;color:#4b5563"><span class="nm">Ihr Text</span><a href="#" style="font-size:13px">Text bearbeiten</a></div>
+        <div class="blk"><span class="nm">Kontakt &amp; Öffnungszeiten</span>
+          <button class="ib" disabled aria-label="Kontakt nach oben"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
+          <button class="ib" aria-label="Kontakt nach unten"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12l7 7 7-7"/></svg></button>
+          <button class="ib" aria-label="Kontakt ausblenden"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+        </div>
+        <div class="blk"><span class="nm">Team</span>
+          <button class="ib" aria-label="Team nach oben"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
+          <button class="ib" disabled aria-label="Team nach unten"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12l7 7 7-7"/></svg></button>
+          <button class="ib" aria-label="Team ausblenden"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+        </div>
+        <button class="btn" style="align-self:flex-start">+ Block hinzufügen</button>
+        <p style="margin:auto 0 0;font-size:13px;color:#4b5563;border-top:1px solid #e5e7eb;padding-top:12px">Schrift und Textbreite aller Textseiten: <a href="L2_Darstellung.dc.html">Seitenlayout › Textseiten</a></p>
+      </section>
+      <section aria-label="Vorschau" style="flex:1;min-width:0;background:#fff;border-radius:16px;padding:14px;box-sizing:border-box;display:flex;flex-direction:column;gap:10px">
+        <div style="font-size:13px;color:#4b5563">Vorschau · gespeicherter Stand</div>
+        <div style="flex:1;border:1px solid #e5e7eb;border-radius:12px;display:flex;flex-direction:column;gap:12px;padding:16px;background:#fafafa">
+          <div style="height:26px;background:#fff;border-radius:6px;border:1px solid #e5e7eb"></div>
+          <div style="font-weight:700;font-size:18px">Über uns</div>
+          <div style="height:10px;width:92%;background:#e5e7eb;border-radius:4px"></div><div style="height:10px;width:88%;background:#e5e7eb;border-radius:4px"></div><div style="height:10px;width:70%;background:#e5e7eb;border-radius:4px"></div>
+          <div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:14px;font-size:13px"><b>Kontakt &amp; Öffnungszeiten</b><div style="color:#4b5563;margin-top:6px">Mo–Fr 9–18 Uhr · Sa 9–14 Uhr</div></div>
+          <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px"><div style="height:110px;background:#e5e7eb;border-radius:10px"></div><div style="height:110px;background:#e5e7eb;border-radius:10px"></div><div style="height:110px;background:#e5e7eb;border-radius:10px"></div></div>
+        </div>
+      </section>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
