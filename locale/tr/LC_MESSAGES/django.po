@@ -37316,8 +37316,8 @@ msgid "Hier steht der Text der Hauptsprache. Übersetzungen ändern Sie direkt a
 msgstr "Burada ana dildeki metin yer alır. Çevirileri doğrudan sayfada değiştirirsiniz."
 
 #, python-format
-msgid "Leer = %(n)s"
-msgstr "Boş = %(n)s"
+msgid "Leer = %(n)s. Höchstens %(max)s."
+msgstr "Boş = %(n)s. En fazla %(max)s."
 
 msgid "Was zeigen"
 msgstr "Ne gösterilsin"
@@ -37336,3 +37336,6 @@ msgid "Zeigt derzeit %(n)s Eintrag (von %(total)s)."
 msgid_plural "Zeigt derzeit %(n)s Einträge (von %(total)s)."
 msgstr[0] "Şu anda %(n)s kayıt gösteriyor (%(total)s içinden)."
 msgstr[1] "Şu anda %(n)s kayıt gösteriyor (%(total)s içinden)."
+
+msgid "Die weiteren Felder passen sich nach „Übernehmen“ an."
+msgstr "Diğer alanlar “Uygula”dan sonra uyum sağlar."

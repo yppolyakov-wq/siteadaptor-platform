@@ -37257,8 +37257,8 @@ msgid "Hier steht der Text der Hauptsprache. Übersetzungen ändern Sie direkt a
 msgstr "Hier steht der Text der Hauptsprache. Übersetzungen ändern Sie direkt auf der Seite."
 
 #, python-format
-msgid "Leer = %(n)s"
-msgstr "Leer = %(n)s"
+msgid "Leer = %(n)s. Höchstens %(max)s."
+msgstr ""
 
 msgid "Was zeigen"
 msgstr "Was zeigen"
@@ -37277,3 +37277,6 @@ msgid "Zeigt derzeit %(n)s Eintrag (von %(total)s)."
 msgid_plural "Zeigt derzeit %(n)s Einträge (von %(total)s)."
 msgstr[0] "Zeigt derzeit %(n)s Eintrag (von %(total)s)."
 msgstr[1] "Zeigt derzeit %(n)s Einträge (von %(total)s)."
+
+msgid "Die weiteren Felder passen sich nach „Übernehmen“ an."
+msgstr "Die weiteren Felder passen sich nach „Übernehmen“ an."

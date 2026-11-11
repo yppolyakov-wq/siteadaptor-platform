@@ -37494,8 +37494,8 @@ msgid "Hier steht der Text der Hauptsprache. Übersetzungen ändern Sie direkt a
 msgstr "Тут текст основною мовою. Переклади змінюються просто на сторінці."
 
 #, python-format
-msgid "Leer = %(n)s"
-msgstr "Порожньо = %(n)s"
+msgid "Leer = %(n)s. Höchstens %(max)s."
+msgstr "Порожньо = %(n)s. Не більше %(max)s."
 
 msgid "Was zeigen"
 msgstr "Що показати"
@@ -37516,3 +37516,6 @@ msgstr[0] "Зараз показує %(n)s запис (із %(total)s)."
 msgstr[1] "Зараз показує %(n)s записи (із %(total)s)."
 msgstr[2] "Зараз показує %(n)s записів (із %(total)s)."
 msgstr[3] "Зараз показує %(n)s запису (із %(total)s)."
+
+msgid "Die weiteren Felder passen sich nach „Übernehmen“ an."
+msgstr "Інші поля підлаштуються після «Застосувати»."

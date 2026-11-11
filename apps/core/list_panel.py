@@ -221,7 +221,15 @@ def groups(request, cfg: dict, data: dict) -> list[dict]:
         sources.append((source, f"{siteconfig.LIST_SOURCES[source]['label']} ({off})"))
 
     what = [
-        _select("source", _("Was wird gezeigt"), source, sources),
+        _select(
+            "source",
+            _("Was wird gezeigt"),
+            source,
+            sources,
+            # Поля ниже рисует сервер: без подсказки смена источника выглядела бы
+            # сломанной — ничего не меняется до «Übernehmen».
+            hint=_("Die weiteren Felder passen sich nach „Übernehmen“ an."),
+        ),
         _line("title", _("Überschrift"), data.get("title")),
         _line("intro", _("Einleitung"), data.get("intro")),
     ]
@@ -231,7 +239,10 @@ def groups(request, cfg: dict, data: dict) -> list[dict]:
     if siteconfig.list_sort_keys(source) and sorts:
         which.append(_select("sort", _("Sortierung"), data.get("sort"), sorts))
     limit = _line("limit", _("Höchstens"), data.get("limit"), kind="number")
-    limit["hint"] = _("Leer = %(n)s") % {"n": hint["limit"]}
+    limit["hint"] = _("Leer = %(n)s. Höchstens %(max)s.") % {
+        "n": hint["limit"],
+        "max": siteconfig.LIST_LIMIT_MAX,
+    }
     which.append(limit)
 
     how = []
