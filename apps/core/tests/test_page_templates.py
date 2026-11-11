@@ -22,7 +22,8 @@ from django.test import RequestFactory
 from django.urls import reverse
 
 from apps.catalog.tests.factories import CategoryFactory, ProductFactory
-from apps.core import nav_registry, page_settings, page_templates, view_perms
+from apps.core import nav_registry, page_settings, page_templates, site_schema, view_perms
+from apps.core.tests.schema_settings import settings_screen
 from apps.promotions import public_views
 from apps.tenants.tests.factories import TenantFactory
 
@@ -52,80 +53,95 @@ def tenant():
 
 
 def test_tab_shows_exactly_the_schema(tenant):
-    for typ in ("catalog", "category", "product"):
-        html = page_templates.page_templates_website(_req(tenant, data={"typ": typ}))
+    """FB-27 R4: панель «Seitenaufbau» показывает ровно настройки своей строки — тип
+    страницы и типы без своей строки (категория — на строке каталога)."""
+    for typ in ("catalog", "product"):
+        html = settings_screen(_req(tenant, data={"typ": typ}))
         body = html.content.decode()
         shown = {
             part.split('"')[0] for part in body.split('data-pt-setting="')[1:] if part.split('"')[0]
         }
-        expected = {s.code for s in page_settings.schema(tenant, (typ,))[0].settings}
-        assert shown == expected, typ
+        assert shown == set(site_schema.setting_codes(tenant, typ)), typ
+    assert "category_page_style" in site_schema.setting_codes(tenant, "catalog")
 
 
 def test_post_writes_through_the_service_and_keeps_other_keys(tenant):
-    tenant.site_config = {"seo": {"title": "X"}, "board": {"labels": {"a": "b"}}}
+    from apps.tenants import siteconfig
+
+    # «Speichern» в «Seitenaufbau» хранит конфиг нормализованным (как Save Студии) —
+    # чужие ключи сверяются в том виде, в каком их читает сайт.
+    original = {
+        "seo": {"templates": {"home": {"title": "X"}}},
+        "board": {"labels": {"intake": "Neu"}},
+    }
+    before = siteconfig.normalize(original)
+    assert before["seo"] and before.get("board")
+    tenant.site_config = original
     tenant.save(update_fields=["site_config"])
-    resp = page_templates.page_templates_website(
+    resp = settings_screen(
         _req(
             tenant, "post", {"setting": "catalog_page_style", "value": "magazin", "typ": "catalog"}
         )
     )
-    assert resp.status_code == 302 and resp["Location"].endswith("?typ=catalog")
+    assert resp.status_code == 302 and "seite=catalog" in resp["Location"]
     tenant.refresh_from_db()
     assert tenant.site_config["catalog_page_style"] == "magazin"
-    assert tenant.site_config["seo"] == {"title": "X"}
-    assert tenant.site_config["board"] == {"labels": {"a": "b"}}
+    assert tenant.site_config["seo"] == before["seo"]
+    assert tenant.site_config["board"] == before["board"]
 
 
 def test_garbage_post_changes_nothing(tenant):
     tenant.site_config = {"catalog_page_style": "kompakt"}
     tenant.save(update_fields=["site_config"])
-    page_templates.page_templates_website(
-        _req(tenant, "post", {"setting": "catalog_page_style", "value": "<script>"})
-    )
+    settings_screen(_req(tenant, "post", {"setting": "catalog_page_style", "value": "<script>"}))
     tenant.refresh_from_db()
     assert tenant.site_config == {"catalog_page_style": "kompakt"}
 
 
 def test_unavailable_tile_is_disabled_with_reason(tenant):
-    body = page_templates.page_templates_website(
-        _req(tenant, data={"typ": "category"})
-    ).content.decode()
+    body = settings_screen(_req(tenant, data={"typ": "category"})).content.decode()
     i = body.index('name="value" value="regale"')
     tile = body[i : i + 300]
     assert "disabled" in tile and "aria-describedby" in tile
 
 
-def test_without_any_page_type_the_screen_explains_instead_of_404(tenant, monkeypatch):
-    """STU-19d: the menu entry is universal — a shop without any of the section's pages
-    (e.g. "Nur Aktionen") gets an explanation, not a 404 behind a visible link."""
-    # FB-16: the Website screen always has the home page — the empty case is forced
-    monkeypatch.setattr(page_settings, "active_types", lambda tenant, types: ())
-    body = page_templates.page_templates_website(_req(tenant)).content.decode()
-    assert 'data-pt-setting="' not in body and "ui-empty" in body
+def test_old_screen_is_gone_and_its_address_redirects(tenant):
+    """FB-27 R4 (решение владельца «убрать сразу»): экрана «Seitenvorlagen» нет — адрес
+    ведёт в «Seitenaufbau», на строку с настройками запрошенного типа."""
+    resp = page_templates.page_templates_website(_req(tenant, data={"typ": "catalog"}))
+    assert resp.status_code == 302
+    assert resp["Location"] == "/dashboard/site/aufbau/?seite=catalog&block=main#schema-panel"
+    resp = page_templates.page_templates_website(_req(tenant))
+    assert resp.status_code == 302 and resp["Location"] == "/dashboard/site/aufbau/"
+    assert not (Path(dj_settings.BASE_DIR) / "templates/tenant/page_templates.html").exists()
 
 
 def test_menu_entry_and_permission_rule():
-    # FB-16: page templates live only under Website — no entry in Sortiment/Aktionen
+    # FB-27 R4: пункта «Seitenvorlagen» в меню нет; настройки — в «Seitenaufbau»
     names = {e.url_name for e in nav_registry.ENTRIES}
-    assert "page-templates-website" in names
-    assert "page-templates-sortiment" not in names and "page-templates-aktionen" not in names
-    entry = next(e for e in nav_registry.ENTRIES if e.url_name == "page-templates-website")
-    assert entry.module_key is None and entry.hub == "site"
+    assert "site-schema" in names
+    assert not {n for n in names if n.startswith("page-templates-")}
+    # старые адреса живут как 302 — право у них прежнее и не слабее нового экрана
     assert view_perms.RULES["page-templates-website"].write == "website.edit"
+    assert view_perms.RULES["site-schema"].write == "website.edit"
 
 
-def test_fb16_old_tabs_redirect_to_website(tenant):
-    """FB-16: old addresses keep working — the type is kept, a question goes to the helper."""
+def test_old_addresses_redirect_to_the_row_that_owns_the_type(tenant):
+    """Старые адреса работают: тип сохраняется, вопрос уходит помощнику."""
+    base = "/dashboard/site/aufbau/?seite="
     resp = page_templates.page_templates_sortiment(_req(tenant, data={"typ": "category"}))
-    assert resp.status_code == 302 and resp["Location"] == "/dashboard/seitenvorlagen/?typ=category"
+    assert resp.status_code == 302
+    assert resp["Location"] == base + "catalog&block=main#schema-panel"  # категория — у каталога
     resp = page_templates.page_templates_sortiment(_req(tenant))
-    assert resp["Location"] == "/dashboard/seitenvorlagen/?typ=catalog"
-    resp = page_templates.page_templates_aktionen(_req(tenant, data={"typ": "catalog"}))
-    assert resp["Location"] == "/dashboard/seitenvorlagen/?typ=promos"
+    assert resp["Location"] == base + "catalog&block=main#schema-panel"
+    resp = page_templates.page_templates_aktionen(_req(tenant))
+    assert resp["Location"] == base + "promos&block=main#schema-panel"
     resp = page_templates.page_templates_sortiment(_req(tenant, data={"frage": "Brot 3 €"}))
     assert resp["Location"].startswith("/dashboard/anlegen/?frage=")
-    assert page_templates.cabinet_url("promo_group") == "/dashboard/seitenvorlagen/?typ=promo_group"
+    assert page_templates.cabinet_url("promo_group") == base + "promos&block=main#schema-panel"
+    assert page_templates.cabinet_url("product") == base + "product&block=__page#schema-panel"
+    assert page_templates.cabinet_url("legal") == base + "text&block=__page#schema-panel"
+    assert page_templates.cabinet_url("<x>") == "/dashboard/site/aufbau/"
 
 
 @pytest.fixture
@@ -173,8 +189,8 @@ def test_studio_links_to_the_tab():
     # STU-19e: the moved settings are summaries — their links come from cabinet_url
     for code in ("catalog_page_style", "category_page_style", "product_detail_layout"):
         assert f"stu19.{code}" in html
-    for typ in ("catalog", "category", "product"):
-        assert page_templates.cabinet_url(typ).endswith(f"?typ={typ}")
+    for typ, row in (("catalog", "catalog"), ("category", "catalog"), ("product", "product")):
+        assert f"?seite={row}&" in page_templates.cabinet_url(typ)
 
 
 def test_anonymous_visitor_cannot_use_tpl(category_tree):
@@ -197,53 +213,36 @@ def _modules(monkeypatch, tenant, active):
 
 
 def test_promo_types_need_promotions(tenant, monkeypatch):
-    """FB-16: the offer pages are types of the Website screen — shown only with the module."""
+    """Страницы акций — строка «Seitenaufbau» только при включённом модуле."""
     _modules(monkeypatch, tenant, {"catalog"})
-    body = page_templates.page_templates_website(_req(tenant)).content.decode()
-    assert "?typ=promos" not in body
+    codes = {t.code for t in site_schema.structure_types(tenant)}
+    assert "promos" not in codes
     _modules(monkeypatch, tenant, {"catalog", "promotions"})
-    body = page_templates.page_templates_website(
-        _req(tenant, data={"typ": "promos"})
-    ).content.decode()
+    body = settings_screen(_req(tenant, data={"typ": "promos"})).content.decode()
     assert 'data-pt-setting="promo_page_style"' in body
     assert 'name="frage"' not in body  # the setup helper has its own screen
 
 
-def test_website_screen_lists_text_pages_and_hides_inactive_types(tenant, monkeypatch):
+def test_screen_lists_text_pages_and_hides_inactive_types(tenant, monkeypatch):
     _modules(monkeypatch, tenant, {"catalog"})
-    body = page_templates.page_templates_website(_req(tenant)).content.decode()
-    assert "?typ=text" in body and "?typ=catalog" in body
-    assert "?typ=services" not in body and "?typ=stays" not in body
-    body = page_templates.page_templates_website(
-        _req(tenant, data={"typ": "home"})
-    ).content.decode()
+    codes = {t.code for t in site_schema.structure_types(tenant)}
+    assert {"text", "catalog"} <= codes and not {"services", "stays"} & codes
+    body = settings_screen(_req(tenant, data={"typ": "home"})).content.decode()
     assert 'data-pt-setting="home_hero"' in body
 
 
 def test_website_shows_services_when_booking_is_on(tenant, monkeypatch):
     _modules(monkeypatch, tenant, {"catalog", "booking"})
-    body = page_templates.page_templates_website(
-        _req(tenant, data={"typ": "services"})
-    ).content.decode()
+    body = settings_screen(_req(tenant, data={"typ": "services"})).content.decode()
     assert 'data-pt-setting="services_sort"' in body
 
 
 def test_screen_writes_only_settings_of_active_types(tenant, monkeypatch):
     """The screen must not become a back door for settings of switched-off pages."""
     _modules(monkeypatch, tenant, {"catalog"})
-    page_templates.page_templates_website(
-        _req(tenant, "post", {"setting": "promo_page_style", "value": "magazin"})
-    )
+    settings_screen(_req(tenant, "post", {"setting": "promo_page_style", "value": "magazin"}))
     tenant.refresh_from_db()
     assert "promo_page_style" not in (tenant.site_config or {})
-
-
-def test_preview_query_paths_get_the_right_separator():
-    assert page_templates._with_preview("/aktionen/?gruppe=A", "x:y") == (
-        "/aktionen/?gruppe=A&preview=1&tpl=x%3Ay"
-    )
-    assert page_templates._with_preview("/termin/") == "/termin/?preview=1"
-    assert page_templates._with_preview("") == ""
 
 
 def test_every_type_has_a_preview_strategy():
@@ -270,11 +269,11 @@ def test_every_type_has_a_preview_strategy():
         }, page.code
 
 
-def test_every_preview_path_runs(tenant):
-    """Review lesson (STU-19e-2): `_object_path` referenced a constant that does not
-    exist — no test executed it. Run every type's preview path for real."""
+def test_every_row_has_a_preview_path_that_runs(tenant):
+    """Урок STU-19e-2: путь превью обязан выполняться у каждого типа, а не только
+    существовать в коде."""
     from apps.core import studio_pages
 
     for page in studio_pages.PAGE_TYPES:
-        path = page_templates._preview_path(page.code)
+        path = site_schema._preview_url(page)
         assert path == "" or path.startswith("/"), (page.code, path)

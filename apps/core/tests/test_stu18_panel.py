@@ -162,15 +162,13 @@ def test_shelves_are_not_offered_without_sub_entities(settings):
     значило бы оставить владельца гадать, почему выбор исчез.
     """
     # STU-19e-2: the catalog template tiles moved to the cabinet tab — same rule there.
-    from apps.core import page_templates
+    from apps.core.tests.schema_settings import settings_screen
     from apps.core.tests.test_page_templates import _req
     from apps.tenants.tests.factories import TenantFactory
 
     settings.ROOT_URLCONF = "config.urls_tenant"
     tenant = TenantFactory(business_type="restaurant")
-    markup = page_templates.page_templates_website(
-        _req(tenant, data={"typ": "catalog"})
-    ).content.decode()
+    markup = settings_screen(_req(tenant, data={"typ": "catalog"})).content.decode()
 
     for key in ("regale", "tabs", "sets"):
         tiles = re.findall(r'<input[^>]*name="value" value="' + key + r'"[^>]*>', markup)

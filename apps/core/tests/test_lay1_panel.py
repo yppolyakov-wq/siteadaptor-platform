@@ -195,9 +195,9 @@ def test_apply_layout_to_all_has_no_second_source_of_truth():
     assert 'id="apply-all-preset"' not in body, "второй селектор раскладки остался"
     # STU-19f-2 (осознанно): сетки переехали в кабинет — действие переехало вместе с
     # ними (галочка у сетки), значения у него по-прежнему своего нет
-    from apps.core import page_templates
+    from apps.core.tests.schema_settings import settings_screen
     from apps.core.tests.test_stu19f_grid import _req
 
-    cab = page_templates.page_templates_website(_req(tenant, data={"typ": "catalog"}))
+    cab = settings_screen(_req(tenant, data={"typ": "catalog"}))
     form = cab.content.decode().split('data-pt-setting="catalog_layout"', 1)[1]
     assert 'name="apply_all"' in form.split("</form>", 1)[0], "удобное действие потеряно"

@@ -37348,6 +37348,5 @@ msgstr "Görünüm, kart biçimi, metin genişliği"
 
 msgid "gilt für alle Seiten"
 msgstr "tüm sayfalar için geçerlidir"
-
-msgid "Nicht auf alle Listen übertragen – dort gibt es diese Darstellung nicht."
-msgstr "Tüm listelere aktarılmadı – orada bu görünüm yok."
+msgid "Nicht gespeichert: Eine Einstellung im Entwurf ist nicht mehr möglich. Bitte die Einstellungen prüfen oder den Entwurf verwerfen."
+msgstr "Kaydedilmedi: taslaktaki bir ayar artık mümkün değil. Lütfen ayarları kontrol edin veya taslağı atın."

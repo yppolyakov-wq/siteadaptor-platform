@@ -1045,16 +1045,6 @@ ENTRIES: tuple[NavEntry, ...] = (
         False,
         "menue navigation kopfzeile fusszeile untermenue links",
     ),
-    # STU-19d: every page of the site in one place (Studio keeps block order/texts).
-    _e(
-        "site",
-        "page-templates-website",
-        _("Seitenvorlagen"),
-        "seitenvorlagen",
-        None,
-        True,
-        "vorlage layout raster kartenform startseite blog textseiten",
-    ),
     # FB-25: схема блоков всех страниц с уменьшенной живой страницей (правка — тут же).
     _e(
         "site",
@@ -1215,8 +1205,6 @@ UNIVERSAL: dict[str, str] = {
     "site-menu": "меню сайта — у каждого",
     "site-seo": "SEO сайта — у каждого",
     "site-schema": "схема блоков страниц — у каждого",
-    # STU-19d: the screens show only the page types whose module is on.
-    "page-templates-website": "шаблоны всех страниц сайта — у каждого",
     "site-redirects": "переадресации старых адресов — у каждого",
     "content-pages": "свои страницы сайта — у каждого",
     "domains": "домены — у каждого",

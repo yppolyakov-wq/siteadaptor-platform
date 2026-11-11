@@ -56,9 +56,9 @@ def _save(tenant, data):
 
 
 def _cabinet(tenant, view, typ):
-    from apps.core import page_templates
+    from apps.core.tests.schema_settings import settings_screen
 
-    resp = getattr(page_templates, view)(
+    resp = settings_screen(
         _request("get", f"/dashboard/seitenvorlagen/?typ={typ}", {"typ": typ}, tenant)
     )
     assert resp.status_code == 200
@@ -82,7 +82,8 @@ def test_studio_row_is_a_summary_not_a_picker():
     body = _body(tenant)
     assert 'name="sd_category_page_style"' not in body
     assert 'name="sd_promo_group_style"' not in body
-    assert "/dashboard/seitenvorlagen/?typ=category" in body
+    # FB-27 R4: настройки категории правятся на строке каталога в «Seitenaufbau»
+    assert "/dashboard/site/aufbau/?seite=catalog" in body
 
 
 def test_cabinet_saves_the_site_wide_page_template():

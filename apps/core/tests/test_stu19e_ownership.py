@@ -60,7 +60,7 @@ def test_studio_shows_summaries_with_cabinet_links(tenant):
         _request("get", "/dashboard/site/home/", tenant=tenant)
     ).content.decode()
     assert body.count("data-stu19-summary") >= len(page_settings.CABINET_OWNED) - 6
-    assert "/dashboard/seitenvorlagen/?typ=stays" in body
+    assert "/dashboard/site/aufbau/?seite=stays" in body  # FB-27 R4
     assert 'name="stays_page_style"' not in body and 'name="sd_layout"' not in body
 
 
@@ -71,4 +71,6 @@ def test_every_owned_setting_has_a_cabinet_screen():
         types = [t.code for t in studio_pages.PAGE_TYPES if code in t.settings]
         assert types, code
         for t in types:
-            assert page_templates.cabinet_url(t).startswith("/dashboard/seitenvorlagen/")
+            # FB-27 R4: экран настроек типа — строка «Seitenaufbau» (с выбранной строкой)
+            url = page_templates.cabinet_url(t)
+            assert url.startswith("/dashboard/site/aufbau/?seite=") and "block=" in url, (t, url)

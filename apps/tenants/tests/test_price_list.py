@@ -278,7 +278,7 @@ def _cabinet(tenant, typ, method="get", data=None):
     from django.contrib.messages.middleware import MessageMiddleware
     from django.contrib.sessions.middleware import SessionMiddleware
 
-    from apps.core import page_templates
+    from apps.core.tests.schema_settings import settings_screen
 
     path = "/dashboard/seitenvorlagen/"
     request = getattr(RequestFactory(), method)(path, data if data is not None else {"typ": typ})
@@ -291,7 +291,7 @@ def _cabinet(tenant, typ, method="get", data=None):
         username=f"pl-{o}", email=f"pl-{o}@t.de", password="pw12345678"
     )
     request.tenant = tenant
-    return page_templates.page_templates_website(request)
+    return settings_screen(request)
 
 
 def test_studio_picker_offers_every_price_view(settings):

@@ -65,9 +65,10 @@ EXPECTED_UNLISTED = frozenset(
         "lite-share",
         "lite-visibility",  # T-8.31c: «Sichtbar» — из LITE_NAV
         "lite-requests",  # KA-12 E8.9: «Anfragen» — из LITE_NAV
-        # [302] FB-16: шаблоны страниц — только в Website › Seitenvorlagen
+        # [302] FB-27 R4: «Seitenvorlagen» снесены — настройки типа в «Seitenaufbau»
         "page-templates-sortiment",
         "page-templates-aktionen",
+        "page-templates-website",
         # [OK] SHP-3: «＋ Versandart» — вход из списка на вкладке «Lieferung & Abholung»
         "shipping-method-new",
         # [POST] приёмники и action-роуты

@@ -67,7 +67,7 @@ def _apply_settings(config: dict, draft: dict) -> dict:
             config = page_settings.apply_override(
                 config, code, (entry or {}).get("v"), (entry or {}).get("o")
             )
-        except (page_settings.PageSettingError, KeyError, TypeError, ValueError):
+        except (page_settings.PageSettingError, AttributeError, KeyError, TypeError, ValueError):
             continue
     return config
 
@@ -298,6 +298,12 @@ def commit(request, tenant, code: str, *, force: bool = False) -> bool:
         # записать — убираем его, иначе он висел бы невидимым до конца сессии.
         _put(request, code, None)
         raise
+    gate = None
+    if _settings(draft):
+        from apps.core import page_settings
+
+        # ~10 EXISTS по таблицам тенанта — до блокировки строки, как в `write`
+        gate = page_settings.composition_gate(tenant.site_config or {})
     locked = Tenant.objects.select_for_update().get(pk=tenant.pk)
     config = siteconfig.normalize(locked.site_config)
     if not force and (
@@ -315,9 +321,7 @@ def commit(request, tenant, code: str, *, force: bool = False) -> bool:
         # FB-27 R4: настройки типа — в той же транзакции, что блоки; каждая проверяется
         # заново по заблокированной строке. Недопустимая → PageSettingError, ничего не
         # записано, черновик остаётся.
-        from apps.core import page_settings
-
-        config = page_settings.apply_many(locked, config, _settings(draft))
+        config = page_settings.apply_many(locked, config, _settings(draft), gate)
     locked.site_config = siteconfig.normalize(config)
     locked.save(update_fields=["site_config", "updated_at"])
     tenant.site_config = locked.site_config

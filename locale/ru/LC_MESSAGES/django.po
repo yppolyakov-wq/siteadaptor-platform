@@ -37541,6 +37541,5 @@ msgstr "Вид, форма карточки, ширина текста"
 
 msgid "gilt für alle Seiten"
 msgstr "действует на всех страницах"
-
-msgid "Nicht auf alle Listen übertragen – dort gibt es diese Darstellung nicht."
-msgstr "Перенесено не на все списки — там такого вида нет."
+msgid "Nicht gespeichert: Eine Einstellung im Entwurf ist nicht mehr möglich. Bitte die Einstellungen prüfen oder den Entwurf verwerfen."
+msgstr "Не сохранено: одна из настроек черновика больше недоступна. Проверьте настройки или отбросьте черновик."

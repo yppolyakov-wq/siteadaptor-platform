@@ -197,8 +197,8 @@ ACTIONS[PAGE_SETTING] = ActionSpec(
     gettext_lazy("Seite einstellen"),
     "",  # модуль типа страницы проверяет сам page_settings.validate
     "website.edit",
-    "page-templates-website",
-    "page-templates-website",
+    "site-schema",
+    "site-schema",
     (FieldSpec("value", gettext_lazy("Neue Einstellung"), "setting", True),),
     "page",
 )

@@ -214,3 +214,66 @@ def test_panel_shows_the_draft_value_not_the_saved_one(_urlconf):
     form = html[html.index('data-schema-setting="catalog_filters"') :]
     form = form[: form.index("</form>")]
     assert 'value="0" checked' in form
+
+
+# ───────────── по ревью R4a–c ─────────────
+
+
+def test_commit_equals_single_writes(_urlconf):
+    """Запись черновика (по нормализованному конфигу) = те же `write` по одному."""
+    one = _tenant()
+    b = Browser(_tenant())
+    steps = [
+        ("catalog_sort", "price_asc", {}),
+        ("catalog_filters", "0", {}),
+        ("catalog_layout", "cols4", {"out_mode": "grid", "out_rows": "2", "out_tail": "show"}),
+    ]
+    for code, value, extra in steps:
+        out = page_settings.output_payload(extra, "out") if extra else None
+        page_settings.write(one, code, value, out)
+        b.post(seite="catalog", op="setting", setting=code, value=value, **extra)
+    b.post(seite="catalog", op="save")
+    assert _saved(b.tenant) == _saved(one)
+
+
+def test_missing_value_is_refused_not_read_as_standard(_urlconf):
+    """Отключённая плитка не отправляется: без `value` настройка не трогается."""
+    b = Browser(_tenant())
+    page_settings.write(b.tenant, "catalog_sort", "price_asc")
+    _resp, msgs = b.post(seite="catalog", op="setting", setting="catalog_sort")
+    assert msgs and "nicht möglich" in msgs[0]
+    assert "data-schema-draft" not in b.get("?seite=catalog")
+
+
+def test_save_with_a_setting_that_became_impossible_keeps_the_draft(_urlconf, monkeypatch):
+    b = Browser(_tenant())
+    b.post(seite="catalog", op="setting", setting="catalog_sort", value="price_asc")
+
+    def refuse(*args, **kwargs):
+        raise page_settings.PageSettingError("gone")
+
+    monkeypatch.setattr(page_settings, "apply_many", refuse)
+    before = _saved(b.tenant)
+    _resp, msgs = b.post(seite="catalog", op="save")
+    assert msgs and msgs[0].startswith("Nicht gespeichert")
+    assert _saved(b.tenant) == before
+    monkeypatch.undo()
+    assert "data-schema-draft" in b.get("?seite=catalog")
+
+
+def test_apply_all_reaches_only_lists_of_active_modules(_urlconf):
+    """Магазин: «на все списки» не пишет раскладку номеров и событий (модули выключены)."""
+    b = Browser(_tenant())
+    b.post(
+        seite="catalog", op="setting", setting="catalog_layout", value="cols4",
+        out_mode="grid", apply_all="1",
+    )  # fmt: skip
+    req = b._request("get")
+    pending = aufbau_draft.get(req, "catalog")["settings"]
+    assert "catalog_layout" in pending
+    active = {
+        code
+        for code in page_settings.APPLY_ALL_LAYOUTS
+        if page_settings.type_active(b.tenant, page_settings.APPLY_ALL_TYPES[code])
+    }
+    assert set(pending) <= active

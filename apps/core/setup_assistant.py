@@ -568,7 +568,7 @@ def for_request(plan: Plan, request) -> Plan:
         replace(s, reachable=reachable(request, ENTITIES[s.entity]["url_name"])) for s in plan.steps
     )
     link = plan.template_link
-    if link and not reachable(request, "page-templates-website"):
+    if link and not reachable(request, "site-schema"):
         link = ""
     return replace(plan, steps=steps, template_link=link)
 
@@ -643,7 +643,7 @@ def plan_from_rules(text: str, tenant, allowed: list[str]) -> Plan:
     ]
     link = ""
     if wants_template or not steps:
-        link = reverse("page-templates-website")
+        link = reverse("site-schema")
     return Plan(steps=tuple(steps), source="rules", note=note, template_link=link)
 
 
@@ -857,7 +857,7 @@ def _from_ai(data: dict, text: str, tenant, allowed: list[str]) -> Plan:
         steps.append(
             _step(entity, name, price, parent if entity == ENTITY_PRODUCT else "", tenant, duration)
         )
-    link = reverse("page-templates-website") if data.get("wants_template") else ""
+    link = reverse("site-schema") if data.get("wants_template") else ""
     return Plan(steps=tuple(steps), source="ai", template_link=link)
 
 

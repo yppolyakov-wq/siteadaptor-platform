@@ -55,10 +55,10 @@ def _cabinet(tenant, typ, method="get", data=None):
 
     from django.contrib.auth import get_user_model
 
-    from apps.core import page_templates
+    from apps.core.tests.schema_settings import settings_screen
 
     path = "/dashboard/seitenvorlagen/"
-    view = page_templates.page_templates_website  # FB-16: один экран Website
+    view = settings_screen  # FB-27 R4: настройки типа — в «Seitenaufbau»
     req = _request(method, path, data if data is not None else {"typ": typ}, tenant)
     o = uuid.uuid4().hex[:8]
     req.user = get_user_model().objects.create_user(f"cf-{o}", f"cf-{o}@t.de", "pw12345678")

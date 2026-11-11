@@ -617,6 +617,27 @@ def mutate(
 SETTINGS_FOLLOWERS = {"catalog": ("category",), "promos": ("promo_group", "promo")}
 
 
+def settings_url(type_code: str, setting: str = "") -> str:
+    """Адрес строки «Seitenaufbau», где правятся настройки типа `type_code` (замена
+    экрана «Seitenvorlagen»). Тип без своей строки ведёт на строку-хозяина; неизвестный
+    — просто на экран. `setting` — какую настройку раскрыть."""
+    from urllib.parse import urlencode
+
+    from apps.tenants import siteconfig
+
+    owner = next((row for row, more in SETTINGS_FOLLOWERS.items() if type_code in more), "")
+    code = owner or ("text" if type_code == "legal" else type_code)
+    pt = _page_type(code)
+    url = reverse("site-schema")
+    if pt is None:
+        return url
+    block = siteconfig.MAIN_LIST_KEY if _host(pt) in siteconfig.MAIN_LIST_HOSTS else PAGE_REF
+    query = {"seite": pt.code, "block": block}
+    if setting:
+        query["offen"] = setting
+    return f"{url}?{urlencode(query)}#schema-panel"
+
+
 def setting_types(tenant, code: str) -> list[str]:
     """Типы страниц, чьи настройки правятся на строке `code` (сам тип первым)."""
     from apps.core import page_settings

@@ -37202,6 +37202,5 @@ msgstr "Display, card shape, text width"
 
 msgid "gilt für alle Seiten"
 msgstr "applies to all pages"
-
-msgid "Nicht auf alle Listen übertragen – dort gibt es diese Darstellung nicht."
-msgstr "Not applied to all lists – this display does not exist there."
+msgid "Nicht gespeichert: Eine Einstellung im Entwurf ist nicht mehr möglich. Bitte die Einstellungen prüfen oder den Entwurf verwerfen."
+msgstr "Not saved: a setting in the draft is no longer possible. Please check the settings or discard the draft."

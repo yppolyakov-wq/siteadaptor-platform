@@ -19,7 +19,8 @@ from django.contrib.messages.middleware import MessageMiddleware
 from django.contrib.sessions.middleware import SessionMiddleware
 from django.test import RequestFactory
 
-from apps.core import page_settings, page_templates, views
+from apps.core import page_settings, views
+from apps.core.tests.schema_settings import settings_screen
 from apps.tenants import siteconfig
 from apps.tenants.tests.factories import TenantFactory
 
@@ -59,14 +60,14 @@ def _tenant(slug):
 
 def _cabinet(tenant, typ):
     path = "/dashboard/seitenvorlagen/"
-    resp = page_templates.page_templates_website(_request("get", path, {"typ": typ}, tenant))
+    resp = settings_screen(_request("get", path, {"typ": typ}, tenant))
     assert resp.status_code == 200
     return resp.content.decode()
 
 
 def _cabinet_save(tenant, data):
     path = "/dashboard/seitenvorlagen/"
-    resp = page_templates.page_templates_website(_request("post", path, data, tenant))
+    resp = settings_screen(_request("post", path, data, tenant))
     assert resp.status_code == 302
     tenant.refresh_from_db()
     return siteconfig.normalize(tenant.site_config)

@@ -10,7 +10,7 @@
     <span class="font-semibold">{{ s.label }}</span>
     <span class="text-gray-700 text-right">{{ row.current }}</span>
   </summary>
-  <form method="post" class="border-t border-gray-200 p-3" data-schema-setting="{{ s.code }}">
+  <form method="post" class="border-t border-gray-200 p-3" data-schema-setting="{{ s.code }}" data-pt-setting="{{ s.code }}">
     {% csrf_token %}
     <input type="hidden" name="seite" value="{{ code }}">
     <input type="hidden" name="ref" value="{{ settings_ref }}">

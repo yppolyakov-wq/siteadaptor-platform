@@ -61,6 +61,11 @@ def site_schema_view(request):
             elif op == "setting":
                 # FB-27 R4: настройка типа страницы — в черновик. `out_mode` — сентинел
                 # оси вывода: без него сохранённые ряды/лента остаются как были.
+                if "value" not in request.POST:
+                    # Сохранённое значение больше нельзя выбрать (плитка отключена) —
+                    # браузер не прислал ничего. Пустое значение означало бы «Standard»
+                    # и молча стёрло бы настройку.
+                    raise site_schema.SchemaError("value")
                 output = (
                     page_settings.output_payload(request.POST, "out")
                     if "out_mode" in request.POST
@@ -76,11 +81,16 @@ def site_schema_view(request):
                     apply_all=request.POST.get("apply_all") == "1",
                 )
                 if skipped:
+                    from apps.core import studio_pages
+
+                    names = [
+                        str(studio_pages.page_type(page_settings.APPLY_ALL_TYPES[c]).label)
+                        for c in skipped
+                    ]
                     messages.warning(
                         request,
-                        _(
-                            "Nicht auf alle Listen übertragen – dort gibt es diese Darstellung nicht."
-                        ),
+                        _("Nicht übernommen (diese Ansicht gibt es dort nicht): %(lists)s")
+                        % {"lists": ", ".join(names)},
                     )
             else:
                 ref = aufbau_draft.op(
@@ -95,7 +105,20 @@ def site_schema_view(request):
                     # той же страницы не должны стирать текст блока).
                     fields=_panel_fields(request.POST),
                 )
-        except (site_schema.SchemaError, page_settings.PageSettingError):
+        except page_settings.PageSettingError:
+            if op == "save":
+                # Черновик остаётся: владелец видит, что именно не записалось, и может
+                # поправить настройку или отбросить черновик.
+                messages.error(
+                    request,
+                    _(
+                        "Nicht gespeichert: Eine Einstellung im Entwurf ist nicht mehr "
+                        "möglich. Bitte die Einstellungen prüfen oder den Entwurf verwerfen."
+                    ),
+                )
+            else:
+                messages.error(request, _("Diese Änderung ist hier nicht möglich."))
+        except site_schema.SchemaError:
             messages.error(request, _("Diese Änderung ist hier nicht möglich."))
         except aufbau_draft.DraftConflict:
             messages.error(

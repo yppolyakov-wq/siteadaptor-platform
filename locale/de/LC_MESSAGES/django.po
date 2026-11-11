@@ -37289,6 +37289,5 @@ msgstr "Darstellung, Kartenform, Textbreite"
 
 msgid "gilt für alle Seiten"
 msgstr "gilt für alle Seiten"
-
-msgid "Nicht auf alle Listen übertragen – dort gibt es diese Darstellung nicht."
-msgstr "Nicht auf alle Listen übertragen – dort gibt es diese Darstellung nicht."
+msgid "Nicht gespeichert: Eine Einstellung im Entwurf ist nicht mehr möglich. Bitte die Einstellungen prüfen oder den Entwurf verwerfen."
+msgstr "Nicht gespeichert: Eine Einstellung im Entwurf ist nicht mehr möglich. Bitte die Einstellungen prüfen oder den Entwurf verwerfen."

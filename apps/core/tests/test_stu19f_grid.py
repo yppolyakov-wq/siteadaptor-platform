@@ -18,7 +18,8 @@ from django.contrib.sessions.middleware import SessionMiddleware
 from django.http import QueryDict
 from django.test import RequestFactory
 
-from apps.core import page_settings, page_templates, views
+from apps.core import page_settings, views
+from apps.core.tests.schema_settings import settings_screen
 from apps.tenants.tests.factories import TenantFactory
 
 pytestmark = pytest.mark.django_db
@@ -93,7 +94,7 @@ def test_output_payload_collects_only_filled_fields():
 
 
 def test_cabinet_post_writes_the_output_block(tenant):
-    resp = page_templates.page_templates_website(
+    resp = settings_screen(
         _req(
             tenant,
             "post",
@@ -116,7 +117,7 @@ def test_cabinet_post_writes_the_output_block(tenant):
 
 def test_cabinet_post_without_the_block_keeps_the_axis(tenant):
     page_settings.write(tenant, "catalog_layout", "cols4", output={"rows": "3"})
-    page_templates.page_templates_website(
+    settings_screen(
         _req(tenant, "post", {"setting": "catalog_layout", "typ": "catalog", "value": "cols2"})
     )
     layout = _layout(tenant)
@@ -124,13 +125,13 @@ def test_cabinet_post_without_the_block_keeps_the_axis(tenant):
 
 
 def test_screen_shows_the_block_for_grids_and_page_size_only_when_paginated(tenant):
-    body = page_templates.page_templates_website(_req(tenant, data={"typ": "catalog"}))
+    body = settings_screen(_req(tenant, data={"typ": "catalog"}))
     html = body.content.decode()
     form = html.split('data-pt-setting="catalog_layout"', 1)[1].split("</form>", 1)[0]
     assert 'name="out_mode"' in form and 'name="out_page_size"' in form
     sort_form = html.split('data-pt-setting="catalog_sort"', 1)[1].split("</form>", 1)[0]
     assert 'name="out_mode"' not in sort_form
-    detail = page_templates.page_templates_website(_req(tenant, data={"typ": "product"}))
+    detail = settings_screen(_req(tenant, data={"typ": "product"}))
     related = detail.content.decode().split('data-pt-setting="product_related"', 1)[1]
     related = related.split("</form>", 1)[0]
     assert 'name="out_mode"' in related and 'name="out_page_size"' not in related
@@ -184,7 +185,7 @@ def test_studio_shows_grid_summaries_not_controls():
 
 def test_apply_all_copies_the_grid_to_the_other_lists():
     t = TenantFactory(business_type="bakery", enabled_modules=["catalog", "events", "stays"])
-    page_templates.page_templates_website(
+    settings_screen(
         _req(
             t,
             "post",
@@ -219,7 +220,7 @@ def test_changing_the_preset_really_changes_the_columns(tenant):
 
 def test_output_block_is_hidden_while_standard(tenant):
     t = TenantFactory(business_type="bakery", enabled_modules=["catalog", "booking"])
-    body = page_templates.page_templates_website(_req(t, data={"typ": "services"}))
+    body = settings_screen(_req(t, data={"typ": "services"}))
     form = body.content.decode().split('data-pt-setting="service_layout"', 1)[1]
     form = form.split("</form>", 1)[0]
     i = form.index("<fieldset", form.index("data-pt-output") - 120)
@@ -242,7 +243,7 @@ def test_apply_all_names_the_lists_it_skipped():
             "apply_all": "1",
         },
     )
-    page_templates.page_templates_website(req)
+    settings_screen(req)
     texts = [str(m) for m in get_messages(req)]
     assert any("Nicht übernommen" in m for m in texts), texts
 

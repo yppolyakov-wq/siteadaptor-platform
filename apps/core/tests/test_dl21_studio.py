@@ -49,9 +49,9 @@ def _save(tenant, data):
 
 
 def _cabinet_form(tenant, view, typ, code):
-    from apps.core import page_templates
+    from apps.core.tests.schema_settings import settings_screen
 
-    body = getattr(page_templates, view)(
+    body = settings_screen(
         _request("get", "/dashboard/seitenvorlagen/", {"typ": typ}, tenant)
     ).content.decode()
     i = body.index(f'data-pt-setting="{code}"')
