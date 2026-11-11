@@ -37163,3 +37163,30 @@ msgstr "нова вкладка"
 
 msgid "nicht verlinkt"
 msgstr "ніде не вказана"
+
+msgid "Bitte ergänzen."
+msgstr "Будь ласка, доповніть."
+
+msgid "Folgende Zahlungsarten bieten wir an:"
+msgstr "Ми пропонуємо такі способи оплати:"
+
+msgid "Häufige Fragen"
+msgstr "Поширені запитання"
+
+msgid "Kann ich etwas zurückgeben?"
+msgstr "Чи можна повернути товар?"
+
+msgid "Leere Seite"
+msgstr "Порожня сторінка"
+
+msgid "Wie kann ich bestellen?"
+msgstr "Як зробити замовлення?"
+
+msgid "Wie lange dauert die Lieferung?"
+msgstr "Скільки триває доставка?"
+
+msgid "Zahlungsarten"
+msgstr "Способи оплати"
+
+msgid "Öffnungszeiten & Anfahrt"
+msgstr "Години роботи та як дістатися"

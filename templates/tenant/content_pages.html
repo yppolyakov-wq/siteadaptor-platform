@@ -11,7 +11,17 @@ Impressum и Datenschutz удалить нельзя (§ 5 DDG): у правов
 <div class="max-w-6xl">
   <div class="flex flex-wrap items-end justify-between gap-3 mb-1">
     <h1 class="ui-h1">{% nav_title _("Seiten") %}</h1>
-    {% if 'content-page-new'|can_open:request %}<a href="{% url 'content-page-new' %}" class="ui-btn ui-btn-primary" data-page-new>＋ {% trans "Neue Seite" %}</a>{% endif %}
+    {% if 'content-page-new'|can_open:request %}
+    {% comment %}M21.11 P4: новая страница — пустая или заготовка из данных бизнеса.{% endcomment %}
+    <details class="relative" data-page-new>
+      <summary class="ui-btn ui-btn-primary cursor-pointer list-none">＋ {% trans "Neue Seite" %} <span aria-hidden="true">▾</span></summary>
+      <ul class="absolute right-0 z-10 mt-1 w-64 ui-card p-1 shadow-lg">
+        {% for key, label in starters %}
+        <li><a href="{% url 'content-page-new' %}{% if key != 'leer' %}?vorlage={{ key }}{% endif %}" class="block rounded-md px-3 py-2 text-sm hover:bg-gray-50" data-page-starter="{{ key }}">{{ label }}</a></li>
+        {% endfor %}
+      </ul>
+    </details>
+    {% endif %}
   </div>
   <p class="text-gray-500 mb-4 text-sm">{% trans "Alle Textseiten Ihrer Website an einem Ort: Über uns, Versand, Rechtstexte und eigene Seiten. In das Menü kommt eine Seite über „Website › Menü“." %}</p>
   {% if not 'content-page-new'|can_open:request %}

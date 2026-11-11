@@ -36987,3 +36987,30 @@ msgstr "yeni sekme"
 
 msgid "nicht verlinkt"
 msgstr "bağlantı yok"
+
+msgid "Bitte ergänzen."
+msgstr "Lütfen tamamlayın."
+
+msgid "Folgende Zahlungsarten bieten wir an:"
+msgstr "Sunduğumuz ödeme yöntemleri:"
+
+msgid "Häufige Fragen"
+msgstr "Sık sorulan sorular"
+
+msgid "Kann ich etwas zurückgeben?"
+msgstr "Bir şeyi iade edebilir miyim?"
+
+msgid "Leere Seite"
+msgstr "Boş sayfa"
+
+msgid "Wie kann ich bestellen?"
+msgstr "Nasıl sipariş verebilirim?"
+
+msgid "Wie lange dauert die Lieferung?"
+msgstr "Teslimat ne kadar sürer?"
+
+msgid "Zahlungsarten"
+msgstr "Ödeme yöntemleri"
+
+msgid "Öffnungszeiten & Anfahrt"
+msgstr "Çalışma saatleri ve ulaşım"

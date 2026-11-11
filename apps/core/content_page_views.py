@@ -12,7 +12,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
-from apps.core import content_pages
+from apps.core import content_pages, page_starters
 from apps.core.models import ContentPage
 from apps.core.richtext import sanitize_page
 from apps.core.view_perms import perm_required
@@ -62,7 +62,11 @@ def pages_list(request):
     return render(
         request,
         "tenant/content_pages.html",
-        {"rows": content_pages.all_rows(getattr(request, "tenant", None)), "nav": "content-pages"},
+        {
+            "rows": content_pages.all_rows(getattr(request, "tenant", None)),
+            "starters": page_starters.STARTERS,
+            "nav": "content-pages",
+        },
     )
 
 
@@ -116,7 +120,14 @@ def _form(request, page, *, created: bool):
 @login_required
 @perm_required("seiten.edit")
 def page_new(request):
-    return _form(request, ContentPage(is_published=True), created=True)
+    """M21.11 P4: «＋ Neue Seite» — пустая или заготовка (`?vorlage=`). GET ничего не
+    пишет: заготовка только заполняет форму, страница появится по «Speichern»."""
+    page = ContentPage(is_published=True)
+    if request.method == "GET":
+        page.title, page.body = page_starters.build(
+            request.GET.get("vorlage", ""), getattr(request, "tenant", None)
+        )
+    return _form(request, page, created=True)
 
 
 @login_required

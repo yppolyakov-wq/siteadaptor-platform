@@ -36841,3 +36841,30 @@ msgstr "new tab"
 
 msgid "nicht verlinkt"
 msgstr "not linked"
+
+msgid "Bitte ergänzen."
+msgstr "Please complete."
+
+msgid "Folgende Zahlungsarten bieten wir an:"
+msgstr "We offer the following payment methods:"
+
+msgid "Häufige Fragen"
+msgstr "Frequently asked questions"
+
+msgid "Kann ich etwas zurückgeben?"
+msgstr "Can I return something?"
+
+msgid "Leere Seite"
+msgstr "Blank page"
+
+msgid "Wie kann ich bestellen?"
+msgstr "How can I order?"
+
+msgid "Wie lange dauert die Lieferung?"
+msgstr "How long does delivery take?"
+
+msgid "Zahlungsarten"
+msgstr "Payment methods"
+
+msgid "Öffnungszeiten & Anfahrt"
+msgstr "Opening hours & directions"

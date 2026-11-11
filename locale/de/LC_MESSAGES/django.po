@@ -36928,3 +36928,30 @@ msgstr "neuer Tab"
 
 msgid "nicht verlinkt"
 msgstr "nicht verlinkt"
+
+msgid "Bitte ergänzen."
+msgstr "Bitte ergänzen."
+
+msgid "Folgende Zahlungsarten bieten wir an:"
+msgstr "Folgende Zahlungsarten bieten wir an:"
+
+msgid "Häufige Fragen"
+msgstr "Häufige Fragen"
+
+msgid "Kann ich etwas zurückgeben?"
+msgstr "Kann ich etwas zurückgeben?"
+
+msgid "Leere Seite"
+msgstr "Leere Seite"
+
+msgid "Wie kann ich bestellen?"
+msgstr "Wie kann ich bestellen?"
+
+msgid "Wie lange dauert die Lieferung?"
+msgstr "Wie lange dauert die Lieferung?"
+
+msgid "Zahlungsarten"
+msgstr "Zahlungsarten"
+
+msgid "Öffnungszeiten & Anfahrt"
+msgstr "Öffnungszeiten & Anfahrt"

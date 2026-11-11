@@ -37176,3 +37176,30 @@ msgstr "новая вкладка"
 
 msgid "nicht verlinkt"
 msgstr "нигде не указана"
+
+msgid "Bitte ergänzen."
+msgstr "Пожалуйста, дополните."
+
+msgid "Folgende Zahlungsarten bieten wir an:"
+msgstr "Мы предлагаем следующие способы оплаты:"
+
+msgid "Häufige Fragen"
+msgstr "Частые вопросы"
+
+msgid "Kann ich etwas zurückgeben?"
+msgstr "Можно ли вернуть товар?"
+
+msgid "Leere Seite"
+msgstr "Пустая страница"
+
+msgid "Wie kann ich bestellen?"
+msgstr "Как сделать заказ?"
+
+msgid "Wie lange dauert die Lieferung?"
+msgstr "Сколько длится доставка?"
+
+msgid "Zahlungsarten"
+msgstr "Способы оплаты"
+
+msgid "Öffnungszeiten & Anfahrt"
+msgstr "Часы работы и как добраться"
