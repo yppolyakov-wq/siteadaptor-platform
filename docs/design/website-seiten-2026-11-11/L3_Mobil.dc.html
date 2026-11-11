@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
 <meta charset="utf-8">
-<title>Seitenlayout – Telefon</title>
+<title>Seitenlayout – Telefon, Block «Text»</title>
 <script src="./support.js"></script>
 </head>
 <body>
@@ -12,58 +12,45 @@
 <style>
 body{margin:0}
 a{color:#4338ca}a:hover{color:#3730a3}
-.blk{display:flex;align-items:center;gap:4px;padding:6px 4px 6px 14px;border:1px solid #e5e7eb;border-radius:12px;background:#fff;font-size:15px}
-.blk .nm{flex:1;font-weight:500}
-.ib{width:44px;height:44px;border:0;background:transparent;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;color:#374151}
-.ib[disabled]{color:#c4c8cf}
-.ib svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.seg a{flex:1;text-align:center;padding:11px 0;border-radius:999px;font-size:15px;font-weight:600;color:#374151;text-decoration:none}
-.seg .cur{background:#4f46e5;color:#fff}
-.btn{border:1px solid #d1d5db;background:#fff;border-radius:12px;padding:12px 14px;font:600 15px Inter,sans-serif;color:#111827;min-height:44px}
-.tb a{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;color:#4b5563;text-decoration:none;padding:8px 0}
+.b{width:100%;box-sizing:border-box;text-align:left;border:1px solid #d1d5db;background:#fff;border-radius:12px;padding:10px 14px;min-height:48px;font:15px Inter,sans-serif;color:#111827;display:flex;align-items:center;gap:8px}
+.b b{font-weight:600;flex:1}
+.b small{font-size:13px;color:#4b5563}
+.b.sel{border:2px solid #4f46e5;padding:9px 13px;box-shadow:0 0 0 3px #e0e7ff}
+.b.fix{background:#f9fafb;color:#4b5563;border-style:dashed}
+.w{font-size:12px;font-weight:600;color:#3730a3;background:#eef2ff;border-radius:999px;padding:2px 8px}
+.pairbox{border-left:3px solid #c7d2fe;padding-left:8px;display:flex;flex-direction:column;gap:6px}
+.opt{display:grid;gap:6px}
+.opt label{border:1px solid #d1d5db;border-radius:10px;min-height:44px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:500}
+.opt .cur{border:2px solid #4f46e5;background:#eef2ff;font-weight:600}
+.btn{border:1px solid #d1d5db;background:#fff;border-radius:12px;padding:0 14px;min-height:44px;font:600 15px Inter,sans-serif;color:#111827}
+h3{margin:0 0 6px;font-size:13px;font-weight:600;color:#374151}
 </style>
 </helmet>
-<div style="width:390px;height:1040px;box-sizing:border-box;background:#F2F4F7;font-family:Inter,system-ui,sans-serif;color:#111827;position:relative;padding:16px 16px 96px;display:flex;flex-direction:column;gap:14px">
-  <div style="display:flex;justify-content:space-between;align-items:center"><button class="ib" aria-label="Menü öffnen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button><span style="font-size:13px;color:#4b5563">Website › Seitenlayout</span><span style="width:44px"></span></div>
-  <h1 style="margin:0;font-size:22px;font-weight:700">Seitenlayout</h1>
-  <div>
-    <label for="pt" style="font-size:13px;font-weight:600;color:#374151">Seitentyp</label>
-    <select id="pt" style="margin-top:6px;width:100%;min-height:48px;font:600 16px Inter,sans-serif;padding:0 12px;border:1px solid #d1d5db;border-radius:12px;background:#fff">
-      <optgroup label="Ihr Shop"><option>Startseite · 4 Blöcke</option><option>Katalog</option><option>Kategorie</option><option>Produktseite</option><option>Warenkorb</option></optgroup>
-      <optgroup label="Aktionen"><option>Aktionen</option><option>Aktionsseite</option></optgroup>
-      <optgroup label="Inhalte"><option>Textseiten</option><option>Kontakt</option></optgroup>
-    </select>
+<div style="width:390px;height:1040px;box-sizing:border-box;background:#F2F4F7;font-family:Inter,system-ui,sans-serif;color:#111827;position:relative;padding:14px 16px 0;display:flex;flex-direction:column;gap:10px;overflow:hidden">
+  <div style="display:flex;align-items:center;gap:8px">
+    <label for="pt" style="position:absolute;left:-9999px">Seitentyp</label>
+    <select id="pt" style="flex:1;min-height:44px;font:600 16px Inter,sans-serif;padding:0 10px;border:1px solid #d1d5db;border-radius:12px;background:#fff"><option>Startseite</option></select>
+    <button class="btn" style="background:#4f46e5;border-color:#4f46e5;color:#fff">Speichern</button>
   </div>
-  <nav class="seg" aria-label="Bereich" style="display:flex;gap:4px;background:#e5e7eb;border-radius:999px;padding:4px"><a href="#" class="cur" aria-current="page">Blöcke</a><a href="#">Darstellung</a></nav>
-  <section aria-label="Blöcke der Startseite" style="background:#fff;border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:10px">
-    <div class="blk"><span class="nm">Banner</span>
-      <button class="ib" disabled aria-label="Banner nach oben"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
-      <button class="ib" aria-label="Banner nach unten"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12l7 7 7-7"/></svg></button>
-      <button class="ib" aria-label="Mehr zu Banner"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg></button>
-    </div>
-    <div class="blk"><span class="nm">Kategorien</span>
-      <button class="ib" aria-label="Kategorien nach oben"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
-      <button class="ib" aria-label="Kategorien nach unten"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12l7 7 7-7"/></svg></button>
-      <button class="ib" aria-label="Mehr zu Kategorien"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg></button>
-    </div>
-    <div class="blk"><span class="nm">Aktuelle Angebote</span>
-      <button class="ib" aria-label="Aktuelle Angebote nach oben"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
-      <button class="ib" aria-label="Aktuelle Angebote nach unten"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12l7 7 7-7"/></svg></button>
-      <button class="ib" aria-label="Mehr zu Aktuelle Angebote"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg></button>
-    </div>
-    <div class="blk"><span class="nm">Produkte</span>
-      <button class="ib" aria-label="Produkte nach oben"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
-      <button class="ib" disabled aria-label="Produkte nach unten"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12l7 7 7-7"/></svg></button>
-      <button class="ib" aria-label="Mehr zu Produkte"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg></button>
-    </div>
-    <button class="btn">+ Block hinzufügen</button>
-    <details><summary style="font-size:14px;font-weight:600;color:#374151;padding:10px 0;min-height:24px">Ausgeblendet (3)</summary></details>
+  <p role="status" style="margin:0;font-size:13px;color:#92400e">Entwurf · 3 Änderungen · <a href="#">Verwerfen</a> · <a href="#">Vorschau</a></p>
+  <button class="b fix"><b>Kopfzeile &amp; Menü</b></button>
+  <button class="b"><b>Banner</b><small>3 Folien</small></button>
+  <div class="pairbox" aria-label="Zeile mit zwei Blöcken – am Computer nebeneinander">
+    <button class="b sel" aria-pressed="true"><b>Text</b><span class="w">½</span></button>
+    <button class="b"><b>Foto</b><span class="w">½</span></button>
+  </div>
+  <button class="b"><b>Produkte</b><small>Neuheiten · 8</small></button>
+  <button class="b"><b>Aktionen</b><small>Endet bald</small></button>
+  <section aria-labelledby="sh" style="position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:20px 20px 0 0;box-shadow:0 -8px 28px rgba(16,24,40,.16);padding:10px 16px 20px;display:flex;flex-direction:column;gap:14px">
+    <div style="width:40px;height:4px;border-radius:2px;background:#d1d5db;align-self:center"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center"><h2 id="sh" style="margin:0;font-size:18px;font-weight:700">Text</h2><button class="btn" aria-label="Schließen" style="padding:0 12px">Fertig</button></div>
+    <div><label for="tx" style="font-size:13px;font-weight:600;color:#374151">Ihr Text</label>
+      <textarea id="tx" rows="3" style="margin-top:6px;width:100%;box-sizing:border-box;font:16px/1.4 Inter,sans-serif;padding:10px 12px;border:1px solid #d1d5db;border-radius:12px">Tee aus kleinen Gärten – direkt importiert, frisch abgefüllt in Haan.</textarea></div>
+    <div><h3>Breite am Computer</h3>
+      <div class="opt" style="grid-template-columns:repeat(6,minmax(0,1fr))"><label>Ganz</label><label>⅔</label><label class="cur">½</label><label>⅓</label><label>¼</label><label>⅙</label></div>
+      <p style="margin:8px 0 0;font-size:13px;line-height:1.45;color:#4b5563">Steht neben «Foto». Auf dem Telefon stehen die Blöcke immer untereinander.</p></div>
+    <div style="display:flex;gap:8px"><button class="btn" style="flex:1">Nach oben</button><button class="btn" style="flex:1">Nach unten</button><button class="btn" aria-label="Text ausblenden oder entfernen">⋯</button></div>
   </section>
-  <a href="#" class="btn" style="text-align:center;text-decoration:none">Vorschau öffnen</a>
-  <p role="status" style="margin:0;font-size:14px;color:#047857;background:#ecfdf5;border-radius:12px;padding:10px 12px">«Kategorien» nach oben verschoben.</p>
-  <nav class="tb" aria-label="Schnellzugriff" style="position:absolute;left:16px;right:16px;bottom:14px;background:#fff;border-radius:22px;box-shadow:0 6px 24px rgba(16,24,40,.12);display:flex;padding:4px 6px">
-    <a href="#">Übersicht</a><a href="#">Verkäufe</a><a href="#" style="color:#3730a3;font-weight:600">Neu</a><a href="#">Nachrichten</a><a href="#">Mehr</a>
-  </nav>
 </div>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1040}}'>

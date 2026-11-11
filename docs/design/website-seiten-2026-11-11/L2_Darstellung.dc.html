@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
 <meta charset="utf-8">
-<title>Seitenlayout – Darstellung</title>
+<title>Seitenlayout – Katalog, Hauptliste und Block hinzufügen</title>
 <script src="./support.js"></script>
 </head>
 <body>
@@ -16,19 +16,27 @@ a{color:#4338ca}a:hover{color:#3730a3}
 .sb .sub a{padding:7px 12px 7px 36px;font-size:13px;color:#4b5563}
 .sb .on{background:#4f46e5;color:#fff;font-weight:600}
 .sb .sub .cur{background:#eef2ff;color:#3730a3;font-weight:600}
-.pt a{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-radius:10px;color:#1f2937;text-decoration:none;font-size:14px}
-.pt .cur{background:#eef2ff;color:#3730a3;font-weight:600}
-.pt small{color:#4b5563;font-size:12px}
-.grp{font-size:12px;font-weight:600;color:#4b5563;margin:14px 12px 4px}
-.tab{padding:9px 16px;border-radius:999px;font-size:14px;font-weight:600;color:#374151;text-decoration:none}
-.tab.cur{background:#4f46e5;color:#fff}
 .btn{border:1px solid #d1d5db;background:#fff;border-radius:10px;padding:9px 14px;font:600 14px Inter,sans-serif;color:#111827;cursor:pointer}
-.tile{display:flex;flex-direction:column;gap:8px;border:1px solid #d1d5db;border-radius:12px;padding:10px;font-size:13px;font-weight:500;color:#111827;cursor:pointer;min-height:44px}
-.tile.cur{border:2px solid #4f46e5;background:#eef2ff;padding:9px}
-.tile i{display:block;height:44px;border-radius:6px;background:#e5e7eb}
-.set h3{margin:0 0 8px;font-size:14px;font-weight:600}
-.set h3 span{font-weight:400;color:#4b5563}
-select{font:14px Inter,sans-serif;padding:10px 12px;border:1px solid #d1d5db;border-radius:10px;background:#fff;width:100%;min-height:44px}
+.row{display:flex;gap:10px}
+.b{flex:1;min-width:0;text-align:left;border:1px solid #d1d5db;background:#fff;border-radius:12px;padding:12px 14px;font:14px Inter,sans-serif;color:#111827;cursor:pointer;display:flex;flex-direction:column;gap:8px}
+.b b{font-weight:600}
+.b small{font-size:12px;color:#4b5563}
+.b.sel{border:2px solid #4f46e5;padding:11px 13px;box-shadow:0 0 0 3px #e0e7ff}
+.b.fix{background:#f9fafb;color:#4b5563;border-style:dashed}
+.ph{display:grid;gap:6px}
+.ph i{display:block;height:34px;border-radius:6px;background:#e5e7eb}
+.w{font-size:12px;font-weight:600;color:#3730a3;background:#eef2ff;border-radius:999px;padding:2px 8px;align-self:flex-start}
+.pn h3{margin:0 0 8px;font-size:13px;font-weight:600;color:#374151}
+.pn select{width:100%;min-height:40px;font:14px Inter,sans-serif;padding:0 10px;border:1px solid #d1d5db;border-radius:10px;background:#fff}
+.opt{display:grid;gap:6px}
+.opt label{border:1px solid #d1d5db;border-radius:10px;padding:8px 6px;text-align:center;font-size:13px;font-weight:500;cursor:pointer}
+.opt .cur{border:2px solid #4f46e5;background:#eef2ff;padding:7px 5px;font-weight:600}
+.seg a{padding:7px 12px;border-radius:999px;font-size:13px;font-weight:600;color:#374151;text-decoration:none}
+.seg .cur{background:#4f46e5;color:#fff}
+.mn h4{margin:0 0 6px;font-size:12px;font-weight:600;color:#4b5563}
+.mn button{border:1px solid #e5e7eb;background:#fff;border-radius:10px;padding:9px 10px;font:500 13px Inter,sans-serif;color:#111827;text-align:left;cursor:pointer;min-height:40px}
+.mn .pair{display:flex;gap:4px;margin-bottom:6px}
+.mn .pair i{display:block;height:18px;border-radius:4px;background:#c7d2fe}
 </style>
 </helmet>
 <div style="width:1440px;height:900px;box-sizing:border-box;background:#F2F4F7;font-family:Inter,system-ui,sans-serif;color:#111827;display:flex;gap:24px;padding:16px">
@@ -37,83 +45,59 @@ select{font:14px Inter,sans-serif;padding:10px 12px;border:1px solid #d1d5db;bor
     <a href="#">Übersicht</a><a href="#">Verkäufe</a><a href="#">Sortiment</a><a href="#">Marketing &amp; Kunden</a>
     <a href="#" class="on">Website</a>
     <div class="sub">
-      <a href="#">Studio</a><a href="#">Design</a><a href="#">Menü</a>
-      <a href="#" class="cur" aria-current="page">Seitenlayout</a>
-      <a href="#">Seiten</a><a href="#">SEO</a><a href="#">Weiterleitungen</a><a href="#">Domains</a><a href="#">Medien</a>
+      <a href="#">Studio</a><a href="D1_Design.dc.html">Design</a><a href="#">Menü</a>
+      <a href="Main.dc.html" class="cur" aria-current="page">Seitenlayout</a>
+      <a href="S1_Seiten.dc.html">Seiten</a><a href="#">SEO</a><a href="#">Weiterleitungen</a><a href="#">Domains</a><a href="#">Medien</a>
     </div>
     <a href="#">Einstellungen</a>
   </nav>
-  <main style="flex:1;min-width:0;display:flex;flex-direction:column;gap:16px;padding-top:8px">
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px">
-      <div>
-        <h1 style="margin:0;font-size:24px;font-weight:700">Seitenlayout</h1>
-        <p style="margin:6px 0 0;font-size:14px;color:#4b5563">Welche Blöcke eine Seite hat und wie sie aussieht. Gilt für alle Seiten dieses Typs.</p>
-      </div>
-      <button class="btn">Im Studio öffnen</button>
+  <main style="flex:1;min-width:0;display:flex;flex-direction:column;gap:14px;padding-top:8px">
+    <div style="display:flex;align-items:center;gap:14px">
+      <h1 style="margin:0;font-size:24px;font-weight:700">Seitenlayout</h1>
+      <label for="pt" style="position:absolute;left:-9999px">Seitentyp</label>
+      <select id="pt" style="min-height:42px;font:600 15px Inter,sans-serif;padding:0 12px;border:1px solid #d1d5db;border-radius:10px;background:#fff"><option>Katalog</option></select>
+      <div class="seg" role="group" aria-label="Ansicht" style="display:flex;gap:2px;background:#e5e7eb;border-radius:999px;padding:3px"><a href="#" class="cur" aria-current="true">Computer</a><a href="L3_Mobil.dc.html">Telefon</a></div>
+      <span style="font-size:13px;color:#4b5563">Gilt für die Katalogseite und alle Kategorien ohne eigenes Layout.</span>
+      <span style="flex:1"></span>
+      <a href="#" style="font-size:14px;font-weight:600;text-decoration:none">Vorschau</a>
+      <button class="btn" disabled style="color:#6b7280">Gespeichert</button>
     </div>
     <div style="display:flex;gap:16px;flex:1;min-height:0">
-      <nav class="pt" aria-label="Seitentyp" style="width:236px;flex:none;background:#fff;border-radius:16px;padding:10px 8px;box-sizing:border-box">
-        <div class="grp" style="margin-top:6px">Ihr Shop</div>
-        <a href="Main.dc.html"><span>Startseite</span><small>4 Blöcke</small></a>
-        <a href="#" class="cur" aria-current="true"><span>Katalog</span><small>2</small></a>
-        <a href="#"><span>Kategorie</span><small>2</small></a>
-        <a href="#"><span>Produktseite</span><small>5</small></a>
-        <a href="#"><span>Warenkorb</span><small>1</small></a>
-        <a href="#"><span>Merkzettel</span><small>0</small></a>
-        <div class="grp">Aktionen</div>
-        <a href="#"><span>Aktionen</span><small>1</small></a>
-        <a href="#"><span>Aktionsseite</span><small>3</small></a>
-        <div class="grp">Inhalte</div>
-        <a href="#"><span>Textseiten</span><small>6 Seiten</small></a>
-        <a href="#"><span>Kontakt</span><small>1</small></a>
-        <a href="#"><span>Bewertungen</span><small>0</small></a>
-      </nav>
-      <form aria-labelledby="h-kat" style="width:430px;flex:none;background:#fff;border-radius:16px;box-sizing:border-box;display:flex;flex-direction:column;overflow:hidden">
-        <div style="padding:16px;display:flex;flex-direction:column;gap:18px;flex:1;overflow:auto">
-          <div style="display:flex;justify-content:space-between;align-items:center">
-            <h2 id="h-kat" style="margin:0;font-size:18px;font-weight:700">Katalog</h2>
-            <div style="display:flex;gap:4px;background:#f3f4f6;border-radius:999px;padding:3px"><a href="Main.dc.html" class="tab">Blöcke</a><a href="#" class="tab cur" aria-current="page">Darstellung</a></div>
-          </div>
-          <div class="set"><h3>Aufbau der Seite <span>· Wegweiser</span></h3>
-            <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px">
-              <label class="tile"><i></i>Raster</label>
-              <label class="tile cur"><i style="background:#c7d2fe"></i>Wegweiser</label>
-              <label class="tile"><i></i>Mit Kopfbild</label>
-              <label class="tile"><i></i>Regale</label>
-              <label class="tile"><i></i>Reiter</label>
-              <label class="tile"><i></i>Preisliste</label>
-            </div>
-          </div>
-          <div class="set"><h3>Raster <span>· 4 Spalten</span></h3>
-            <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px">
-              <div><label for="c1" style="font-size:12px;color:#4b5563">Spalten am Computer</label><select id="c1"><option>4</option></select></div>
-              <div><label for="c2" style="font-size:12px;color:#4b5563">Produkte pro Seite</label><select id="c2"><option>24</option></select></div>
-            </div>
-          </div>
-          <div class="set"><h3>Produktkarte <span>· Regal</span></h3>
-            <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px">
-              <label class="tile"><i></i>Standard</label><label class="tile cur"><i style="background:#c7d2fe"></i>Regal</label><label class="tile"><i></i>Lookbook</label>
-            </div>
-          </div>
-          <div class="set"><h3>Sortierung <span>· Neueste zuerst</span></h3><select aria-label="Sortierung"><option>Neueste zuerst</option></select></div>
+      <section aria-label="Schema des Katalogs" style="flex:1;min-width:0;background:#fff;border-radius:16px;padding:16px;box-sizing:border-box;display:flex;flex-direction:column;gap:10px;position:relative">
+        <div class="row"><button class="b fix"><b>Kopfzeile &amp; Menü</b></button></div>
+        <div class="row"><button class="b"><b>Banner</b><small>Kopfbild der Kategorie</small></button></div>
+        <div class="row"><button class="b sel" aria-pressed="true"><b>Hauptliste · Produkte</b><small>Vorlage «Wegweiser» · Raster 4 Spalten · Karte «Regal» · 24 pro Seite</small><div class="ph" style="grid-template-columns:repeat(4,minmax(0,1fr))"><i style="height:26px;background:#dbe4d6"></i><i style="height:26px;background:#dbe4d6"></i><i style="height:26px;background:#dbe4d6"></i><i style="height:26px;background:#dbe4d6"></i><i style="height:52px"></i><i style="height:52px"></i><i style="height:52px"></i><i style="height:52px"></i><i style="height:52px"></i><i style="height:52px"></i><i style="height:52px"></i><i style="height:52px"></i></div></button></div>
+        <div class="row">
+          <button class="b"><span class="w">½</span><b>Text</b><small>«Fragen zur Bestellung?»</small></button>
+          <button class="b"><span class="w">½</span><b>Kontakt &amp; Öffnungszeiten</b><small>aus Ihren Geschäftsdaten</small></button>
         </div>
-        <div style="border-top:1px solid #e5e7eb;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;background:#fff">
-          <span role="status" style="font-size:13px;color:#92400e">2 Änderungen nicht gespeichert</span>
-          <div style="display:flex;gap:8px"><button type="button" class="btn">Verwerfen</button><button class="btn" style="background:#4f46e5;border-color:#4f46e5;color:#fff">Speichern</button></div>
-        </div>
-      </form>
-      <section aria-label="Vorschau" style="flex:1;min-width:0;background:#fff;border-radius:16px;padding:14px;box-sizing:border-box;display:flex;flex-direction:column;gap:10px">
-        <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;color:#4b5563"><span>Vorschau · mit Ihren Änderungen</span><div style="display:flex;gap:4px;background:#f3f4f6;border-radius:999px;padding:3px"><a href="#" class="tab cur" style="padding:6px 12px;font-size:13px">Desktop</a><a href="#" class="tab" style="padding:6px 12px;font-size:13px">Telefon</a></div></div>
-        <div style="flex:1;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;display:flex;flex-direction:column;gap:12px;padding:12px;background:#fafafa">
-          <div style="height:26px;background:#fff;border-radius:6px;border:1px solid #e5e7eb"></div>
-          <div style="font-weight:700;font-size:16px">Sortiment</div>
-          <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px"><div style="height:64px;background:#dbe4d6;border-radius:8px"></div><div style="height:64px;background:#dbe4d6;border-radius:8px"></div><div style="height:64px;background:#dbe4d6;border-radius:8px"></div><div style="height:64px;background:#dbe4d6;border-radius:8px"></div></div>
-          <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px">
-            <div style="height:120px;background:#fff;border:1px solid #e5e7eb;border-radius:8px"></div><div style="height:120px;background:#fff;border:1px solid #e5e7eb;border-radius:8px"></div><div style="height:120px;background:#fff;border:1px solid #e5e7eb;border-radius:8px"></div><div style="height:120px;background:#fff;border:1px solid #e5e7eb;border-radius:8px"></div>
-            <div style="height:120px;background:#fff;border:1px solid #e5e7eb;border-radius:8px"></div><div style="height:120px;background:#fff;border:1px solid #e5e7eb;border-radius:8px"></div><div style="height:120px;background:#fff;border:1px solid #e5e7eb;border-radius:8px"></div><div style="height:120px;background:#fff;border:1px solid #e5e7eb;border-radius:8px"></div>
-          </div>
+        <button aria-expanded="true" style="border:1px dashed #4f46e5;background:#eef2ff;border-radius:10px;padding:6px;font:600 13px Inter,sans-serif;color:#3730a3;cursor:pointer">+ Block hinzufügen</button>
+        <div class="row"><button class="b fix"><b>Fußzeile</b></button></div>
+        <div class="mn" role="dialog" aria-label="Block hinzufügen" style="position:absolute;left:16px;right:16px;bottom:74px;background:#fff;border:1px solid #d1d5db;border-radius:14px;box-shadow:0 12px 32px rgba(16,24,40,.16);padding:14px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px">
+          <div><h4>Aus Ihrem Shop</h4><div style="display:grid;gap:6px"><button>Produkte</button><button>Kategorien</button><button>Aktionen</button><button>Textseite einbinden</button><button>Banner</button></div></div>
+          <div><h4>Einfach</h4><div style="display:grid;gap:6px"><button>Text</button><button>Foto</button><button>Schaltfläche</button><button>Kontakt &amp; Öffnungszeiten</button><button>Häufige Fragen</button></div></div>
+          <div><h4>Fertige Zeilen</h4><div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px">
+            <button><div class="pair"><i style="flex:1"></i><i style="flex:1;background:#fde8d8"></i></div>Text + Foto</button>
+            <button><div class="pair"><i style="flex:1;background:#fde8d8"></i><i style="flex:1"></i></div>Foto + Text</button>
+            <button><div class="pair"><i style="flex:1"></i><i style="flex:1"></i><i style="flex:1"></i></div>Drei Karten</button>
+            <button><div class="pair"><i style="flex:2"></i><i style="flex:1;background:#dbe4d6"></i></div>Text + Kontakt</button>
+          </div></div>
         </div>
       </section>
+      <aside class="pn" aria-labelledby="pb" style="width:320px;flex:none;background:#fff;border-radius:16px;padding:16px;box-sizing:border-box;display:flex;flex-direction:column;gap:16px;overflow:auto">
+        <h2 id="pb" style="margin:0;font-size:17px;font-weight:700">Hauptliste · Produkte</h2>
+        <p style="margin:-8px 0 0;font-size:13px;color:#4b5563">Zeigt die Produkte der geöffneten Kategorie. Kann nicht entfernt werden.</p>
+        <div><h3>Aufbau der Seite</h3>
+          <div class="opt" style="grid-template-columns:repeat(3,minmax(0,1fr))"><label>Raster</label><label class="cur">Wegweiser</label><label>Kopfbild</label><label>Regale</label><label>Reiter</label><label>Preisliste</label></div>
+        </div>
+        <div><h3>Wie</h3>
+          <div class="opt" style="grid-template-columns:repeat(3,minmax(0,1fr))"><label class="cur">Raster</label><label>Slider</label><label>Liste</label></div>
+          <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:8px"><select aria-label="Spalten"><option>4 Spalten</option></select><select aria-label="Pro Seite"><option>24 pro Seite</option></select></div>
+        </div>
+        <div><h3>Produktkarte</h3><div class="opt" style="grid-template-columns:repeat(3,minmax(0,1fr))"><label>Standard</label><label class="cur">Regal</label><label>Lookbook</label></div></div>
+        <div><h3>Sortierung</h3><select aria-label="Sortierung"><option>Neueste zuerst</option></select></div>
+        <div style="margin-top:auto;border-top:1px solid #e5e7eb;padding-top:12px"><a href="#" style="font-size:14px;font-weight:600;text-decoration:none">Kategorien bearbeiten → Sortiment</a></div>
+      </aside>
     </div>
   </main>
 </div>
