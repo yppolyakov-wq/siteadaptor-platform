@@ -37383,3 +37383,6 @@ msgstr "Влево"
 
 msgid "Nach rechts"
 msgstr "Вправо"
+
+msgid "Der Seitenaufbau wurde inzwischen an anderer Stelle geändert. Ihre Eingaben hier wurden nicht gespeichert – bitte erneut vornehmen."
+msgstr "Структура страницы тем временем была изменена в другом месте. Ваши правки здесь не сохранены — внесите их заново."

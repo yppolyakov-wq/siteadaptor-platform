@@ -7,6 +7,7 @@ from urllib.parse import quote
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
@@ -27,6 +28,7 @@ from apps.core import (
     view_perms,
 )
 from apps.core.permissions import has_perm
+from apps.core.site_schema import structure_hash as site_schema_hash
 from apps.core.view_perms import perm_required
 from apps.promotions import group_styles
 from apps.tenants import domains
@@ -2084,7 +2086,18 @@ def _add_block_fetch_response(request, new_id, host):
         },
         request=request,
     )
-    return JsonResponse({"ok": True, "id": new_id, "host": host, "row_html": row_html})
+    from apps.core import site_schema
+
+    return JsonResponse(
+        {
+            "ok": True,
+            "id": new_id,
+            "host": host,
+            "row_html": row_html,
+            # FB-27 R0: вставка без перезагрузки меняет структуру — форма получает новый отпечаток.
+            "struct_hash": site_schema.structure_hash(request.tenant.site_config),
+        }
+    )
 
 
 def _menu_target_options(request):
@@ -2483,6 +2496,30 @@ def home_builder_view(request):
             # STU-12f: «＋ Kategorie» вызывается с канвы любой страницы — возвращаем туда же.
             return _redirect_builder(request)
         from apps.core import archetypes
+
+        # FB-27 R0: форма несёт отпечаток структуры, с которой была открыта. Если схему
+        # тем временем изменили в другом месте (вторая вкладка, «Seitenaufbau»), этот Save
+        # откатил бы её — отказываем и ничего не пишем. Без поля (старые формы) — как прежде.
+        posted_hash = (request.POST.get("struct_hash") or "").strip()
+        if posted_hash:
+            from apps.core import site_schema
+            from apps.tenants.models import Tenant
+
+            fresh = Tenant.objects.only("site_config").get(pk=request.tenant.pk).site_config
+            if posted_hash != site_schema.structure_hash(fresh):
+                published = fresh if isinstance(fresh, dict) else {}
+                stale = {k: v for k, v in published.items() if not k.startswith("_draft")}
+                Tenant.objects.filter(pk=request.tenant.pk).update(site_config=stale)
+                if hasattr(request, "session"):
+                    request.session.pop("site_preview_draft", None)
+                messages.error(
+                    request,
+                    _(
+                        "Der Seitenaufbau wurde inzwischen an anderer Stelle geändert. "
+                        "Ihre Eingaben hier wurden nicht gespeichert – bitte erneut vornehmen."
+                    ),
+                )
+                return _redirect_builder(request)
 
         config = siteconfig.normalize(request.tenant.site_config)
         # LAY-6b: панель показывает тексты ВЫБРАННОЙ локали, поэтому Save приносит их
@@ -3250,6 +3287,8 @@ def home_builder_view(request):
             "nav": "site",
             # LAY-6a: язык контента (= язык канвы) и выбор из включённых локалей.
             "content_loc": content_loc,
+            # FB-27 R0: отпечаток СОХРАНЁННОЙ структуры (не черновика) — см. Save.
+            "struct_hash": site_schema_hash(request.tenant.site_config),
             "content_locales": [
                 {"code": code, "label": label}
                 for code, label in settings.LANGUAGES
@@ -3983,17 +4022,22 @@ def site_preview_draft(request):
     # из истории, так что опубликованная витрина и история остаются чистыми.
     from apps.tenants.models import Tenant
 
-    published = request.tenant.site_config if isinstance(request.tenant.site_config, dict) else {}
     # LAY-6b: черновик помечаем языком, на котором он набран. Иначе русский черновик
     # восстановился бы в НЕМЕЦКОЙ форме, и следующий Save записал бы русские строки в
     # базу — та самая порча, ради которой затевалась волна.
-    new_cfg = {
-        **published,
-        "_draft": draft,
-        "_draft_ts": timezone.now().isoformat(),
-        "_draft_lang": siteconfig.content_locale(request, request.tenant),
-    }
-    Tenant.objects.filter(pk=request.tenant.pk).update(site_config=new_cfg)
+    # FB-27 R0: опубликованное берём СВЕЖЕЙ строкой под блокировкой, а не из
+    # `request.tenant` — тот загружен в начале запроса, и схема, сохранённая тем
+    # временем в «Seitenaufbau», была бы стёрта.
+    with transaction.atomic():
+        row = Tenant.objects.select_for_update().only("site_config").get(pk=request.tenant.pk)
+        published = row.site_config if isinstance(row.site_config, dict) else {}
+        new_cfg = {
+            **published,
+            "_draft": draft,
+            "_draft_ts": timezone.now().isoformat(),
+            "_draft_lang": siteconfig.content_locale(request, request.tenant),
+        }
+        Tenant.objects.filter(pk=row.pk).update(site_config=new_cfg)
     return HttpResponse(status=204)
 
 

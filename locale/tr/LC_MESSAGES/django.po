@@ -37194,3 +37194,6 @@ msgstr "Sola"
 
 msgid "Nach rechts"
 msgstr "Sağa"
+
+msgid "Der Seitenaufbau wurde inzwischen an anderer Stelle geändert. Ihre Eingaben hier wurden nicht gespeichert – bitte erneut vornehmen."
+msgstr "Sayfa yapısı bu arada başka bir yerde değiştirildi. Buradaki girişleriniz kaydedilmedi – lütfen yeniden yapın."

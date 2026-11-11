@@ -37135,3 +37135,6 @@ msgstr "Nach links"
 
 msgid "Nach rechts"
 msgstr "Nach rechts"
+
+msgid "Der Seitenaufbau wurde inzwischen an anderer Stelle geändert. Ihre Eingaben hier wurden nicht gespeichert – bitte erneut vornehmen."
+msgstr "Der Seitenaufbau wurde inzwischen an anderer Stelle geändert. Ihre Eingaben hier wurden nicht gespeichert – bitte erneut vornehmen."

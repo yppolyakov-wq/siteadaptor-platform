@@ -179,6 +179,7 @@
          тексты (перевод — в оверлей, база цела). Берём из формы, а не из куки: владелец
          мог переключить язык в соседней вкладке уже после открытия редактора.{% endcomment %}
       <input type="hidden" name="content_lang" value="{{ content_loc }}">
+      <input type="hidden" name="struct_hash" value="{{ struct_hash }}">
 
       {% comment %}STU-12g (1B): область «Тема» удалена — глобальный дизайн (акцент, шрифт,
       типографика, тема, «Карточки и фото», Look/Startpaket, шаблоны витрины) живёт на
@@ -3255,6 +3256,8 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
     }).then(function (r) { return r.ok ? r.json() : Promise.reject("http"); })
       .then(function (j) {
         if (!j || !j.ok || !j.row_html) return Promise.reject("payload");
+        var sh = form.querySelector('input[name="struct_hash"]');
+        if (sh && j.struct_hash) sh.value = j.struct_hash;
         // (имя НЕ "container": иначе negation-токен из проверки on-falsy попал бы в
         //  Tailwind-сканер как класс и подмешал бы important-container в app.css.)
         var hostBox = form.querySelector('.page-block[data-page-key="' + j.host + '"] > .space-y-3');

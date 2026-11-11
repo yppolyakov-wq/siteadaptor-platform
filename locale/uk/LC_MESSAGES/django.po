@@ -37370,3 +37370,6 @@ msgstr "Ліворуч"
 
 msgid "Nach rechts"
 msgstr "Праворуч"
+
+msgid "Der Seitenaufbau wurde inzwischen an anderer Stelle geändert. Ihre Eingaben hier wurden nicht gespeichert – bitte erneut vornehmen."
+msgstr "Структуру сторінки тим часом було змінено в іншому місці. Ваші правки тут не збережено — внесіть їх знову."

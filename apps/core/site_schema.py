@@ -67,6 +67,35 @@ def _preview_url(pt) -> str:
     return ""
 
 
+_STRUCT_FIELDS = ("key", "id", "enabled", "width", "pos", "newline")
+
+
+def structure_hash(config) -> str:
+    """FB-27 R0: отпечаток СТРУКТУРЫ сайта — порядок, состав, видимость и ширина блоков
+    главной и всех страниц. Тексты, фото и стили в него не входят.
+
+    Нужен как предохранитель «два писателя»: Студия и «Seitenaufbau» пишут одни ключи
+    (`sections`, `page_blocks`); форма с устаревшим отпечатком не должна перезаписать
+    схему, сохранённую тем временем в другом месте."""
+    import hashlib
+    import json
+
+    from apps.tenants import siteconfig
+
+    cfg = siteconfig.normalize(config if isinstance(config, dict) else {})
+
+    def rows(items):
+        return [[s.get(f) for f in _STRUCT_FIELDS] for s in (items or []) if isinstance(s, dict)]
+
+    blocks = cfg.get("page_blocks") if isinstance(cfg.get("page_blocks"), dict) else {}
+    payload = {
+        "sections": rows(cfg.get("sections")),
+        "page_blocks": {host: rows(blocks[host]) for host in sorted(blocks)},
+    }
+    raw = json.dumps(payload, sort_keys=True, default=str).encode()
+    return hashlib.sha1(raw, usedforsecurity=False).hexdigest()[:16]
+
+
 def page_rows(config: dict) -> list[PageRow]:
     """Типы страниц со своими блоками (главная первой) + число видимых блоков."""
     rows = []

@@ -37048,3 +37048,6 @@ msgstr "To the left"
 
 msgid "Nach rechts"
 msgstr "To the right"
+
+msgid "Der Seitenaufbau wurde inzwischen an anderer Stelle geändert. Ihre Eingaben hier wurden nicht gespeichert – bitte erneut vornehmen."
+msgstr "The page structure has been changed elsewhere in the meantime. Your entries here were not saved – please make them again."
