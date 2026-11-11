@@ -37326,3 +37326,9 @@ msgstr "Найти страницу"
 
 msgid "Text der Schaltfläche"
 msgstr "Текст кнопки"
+
+msgid "Kontakt & Öffnungszeiten"
+msgstr "Контакты и часы работы"
+
+msgid "Welche Seite?"
+msgstr "Какая страница?"

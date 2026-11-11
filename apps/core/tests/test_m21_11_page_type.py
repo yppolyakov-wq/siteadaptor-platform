@@ -31,9 +31,15 @@ def test_legal_pages_have_no_blocks():
     assert "page_blocks" not in (TEMPLATES / "legal.html").read_text()
 
 
-def test_every_page_of_the_type_renders_the_shared_blocks():
-    for name in ("about.html", "content_page.html", "shipping_info.html"):
-        assert '{% page_blocks "info" %}' in (TEMPLATES / name).read_text(), name
+def test_every_text_page_renders_its_own_blocks():
+    """M21.11 (решение владельца): у каждой страницы типа «Seite» свой набор блоков."""
+    assert '{% page_blocks "info" %}' in (TEMPLATES / "about.html").read_text()
+    assert '{% page_blocks "versand" %}' in (TEMPLATES / "shipping_info.html").read_text()
+    assert "{% page_blocks pb_host %}" in (TEMPLATES / "content_page.html").read_text()
+    assert siteconfig.is_page_block_host("versand")
+    assert siteconfig.is_page_block_host("seite:zahlung-und-versand")
+    for bad in ("seite:", "seite:Bad", "seite:a/b", "seite:" + "x" * 120):
+        assert not siteconfig.is_page_block_host(bad), bad
 
 
 def test_normalize_drops_legacy_legal_blocks():

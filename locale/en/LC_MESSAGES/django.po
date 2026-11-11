@@ -36991,3 +36991,9 @@ msgstr "Search page"
 
 msgid "Text der Schaltfläche"
 msgstr "Button text"
+
+msgid "Kontakt & Öffnungszeiten"
+msgstr "Contact & opening hours"
+
+msgid "Welche Seite?"
+msgstr "Which page?"

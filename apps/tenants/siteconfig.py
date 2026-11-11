@@ -1095,7 +1095,8 @@ PAGE_BLOCK_HOSTS = (
     "product_detail",
     "service_detail",
     "stay_detail",
-    "info",
+    "info",  # «Über uns» (M21.11: только она — у каждой страницы свой набор)
+    "versand",  # M21.11: «Versand» — свой набор блоков
     "blog",
     # STU-14: страницы, у которых блоков не было вовсе. Каждый хост ОБЯЗАН выводиться
     # шаблоном витрины (замок `test_every_declared_block_host_is_actually_rendered`) —
@@ -1168,13 +1169,22 @@ _MAX_CATEGORY_HOSTS = 40
 # регистр значим): у живого тенанта категория вполне может называться
 # «Sommer_2026», и узкий шаблон молча выбросил бы её блоки.
 _CATEGORY_HOST_RE = re.compile(r"^catalog:[-\w]{1,60}$")
+#: M21.11 (решение владельца): у КАЖДОЙ своей страницы свой набор блоков — хост
+#: «seite:<slug>» (slug — тот же алфавит, что адрес страницы).
+_CONTENT_PAGE_HOST_RE = re.compile(r"^seite:[a-z0-9]+(?:-[a-z0-9]+)*$")
 
 
 def is_page_block_host(host) -> bool:
     """UC6-7 + KAT-1: допустимый хост page_blocks — фикс-страница или категория."""
     if not isinstance(host, str):
         return False
-    return host in PAGE_BLOCK_HOSTS or bool(_CATEGORY_HOST_RE.match(host))
+    if len(host) > 100:
+        return False
+    return (
+        host in PAGE_BLOCK_HOSTS
+        or bool(_CATEGORY_HOST_RE.match(host))
+        or bool(_CONTENT_PAGE_HOST_RE.match(host))
+    )
 
 
 # LB-2 (план lb-list-blocks §11, решение владельца Р-1а): страницы с ОСНОВНЫМ списком
@@ -4862,6 +4872,10 @@ def _normalize_impl(config) -> dict:
     normalized["catalog_subcats_first"] = bool(config.get("catalog_subcats_first", True))
     # Показывать ли блок кросс-селла («Passt dazu») в корзине. Дефолт True (как было).
     normalized["cart_show_upsell"] = bool(config.get("cart_show_upsell", True))
+    # M21.11: карточка «Kontakt & Öffnungszeiten» на «Über uns» выключается в
+    # «Seitenaufbau». Presence-minimal: ключ живёт только как False (по умолчанию видна).
+    if config.get("about_contact") is False:
+        normalized["about_contact"] = False
     # M20U-7 (per-page): раскладка сетки номеров /unterkunft/. Дефолт cols3 mobile1
     # воспроизводит прежнюю сетку (grid-cols-1 sm:2 lg:3).
     normalized["stay_index_layout"] = normalize_layout(

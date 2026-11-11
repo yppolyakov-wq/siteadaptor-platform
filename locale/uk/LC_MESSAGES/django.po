@@ -37313,3 +37313,9 @@ msgstr "Знайти сторінку"
 
 msgid "Text der Schaltfläche"
 msgstr "Текст кнопки"
+
+msgid "Kontakt & Öffnungszeiten"
+msgstr "Контакти та години роботи"
+
+msgid "Welche Seite?"
+msgstr "Яка сторінка?"

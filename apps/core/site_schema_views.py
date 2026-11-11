@@ -33,11 +33,20 @@ def site_schema_view(request):
         return redirect(f"{reverse('site-schema')}?{urlencode({'seite': code})}")
     config = siteconfig.normalize(tenant.site_config)
     rows = site_schema.page_rows(config)
-    current = next((r for r in rows if r.code == code), rows[0] if rows else None)
-    code = current.code if current else "home"
+    base = code.split("@", 1)[0]
+    current = next((r for r in rows if r.code == base), rows[0] if rows else None)
+    # M21.11: у типа «Seite» — выбор страницы (у каждой свой набор блоков).
+    sub_pages, sub = [], None
+    if current and current.code == site_schema.TEXT:
+        sub_pages = site_schema.text_pages()
+        sub = next((p for p in sub_pages if p.code == code), sub_pages[0])
+        code = sub.code
+    else:
+        code = current.code if current else "home"
+    preview_url = sub.preview_url if sub else (current.preview_url if current else "")
     studio = reverse("site-home")
-    if current and current.preview_url:
-        studio = f"{studio}?{urlencode({'page': current.preview_url})}"
+    if preview_url:
+        studio = f"{studio}?{urlencode({'page': preview_url})}"
     return render(
         request,
         "tenant/site_schema.html",
@@ -45,6 +54,10 @@ def site_schema_view(request):
             "nav": "site-schema",
             "rows": rows,
             "current": current,
+            "code": code,
+            "sub_pages": sub_pages,
+            "sub": sub,
+            "preview_url": preview_url,
             "blocks": site_schema.blocks_for(config, code),
             "add_options": site_schema.add_options(code),
             "studio_url": studio,

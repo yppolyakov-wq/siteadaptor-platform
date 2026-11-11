@@ -46,6 +46,7 @@ def storefront_page(request, slug):
             "page_title": page.title_localized(),
             "page_body": sanitize_page(page.body_localized()),
             "is_draft": not page.is_published,
+            "pb_host": f"seite:{page.slug}",
         },
     )
     if not page.is_published:

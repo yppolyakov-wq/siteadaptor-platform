@@ -33,9 +33,20 @@
   </ul>
 </nav>
 
+{% if sub_pages %}
+{% comment %}M21.11: тип «Seite» — у каждой страницы свой набор блоков.{% endcomment %}
+<nav aria-label="{% trans 'Welche Seite?' %}" class="ui-card p-2 mb-4" data-schema-subpages>
+  <ul class="flex flex-wrap gap-1.5">
+    {% for p in sub_pages %}
+    <li><a href="?seite={{ p.code|urlencode }}" class="inline-flex items-center rounded-full border px-3 py-1.5 text-sm {% if p.code == code %}border-indigo-200 bg-indigo-50 text-indigo-800 font-medium{% else %}border-gray-200 bg-white hover:bg-gray-50{% endif %}"{% if p.code == code %} aria-current="page"{% endif %}>{{ p.label }}</a></li>
+    {% endfor %}
+  </ul>
+</nav>
+{% endif %}
+
 <div class="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] gap-4 items-start" data-site-schema>
   <section class="ui-card p-4" aria-labelledby="schema-title">
-    <h2 id="schema-title" class="font-semibold mb-3">{{ current.label }}</h2>
+    <h2 id="schema-title" class="font-semibold mb-3">{% if sub %}{{ current.label }} · {{ sub.label }}{% else %}{{ current.label }}{% endif %}</h2>
     <ol class="space-y-2" data-schema-blocks>
       <li class="rounded-lg border border-dashed border-gray-200 px-3 py-2 text-xs ui-muted">{% trans "Kopfzeile & Menü" %}</li>
       {% for b in blocks %}
@@ -46,10 +57,10 @@
         </button>
         <form method="post" class="flex items-center gap-1">
           {% csrf_token %}
-          <input type="hidden" name="seite" value="{{ current.code }}">
+          <input type="hidden" name="seite" value="{{ code }}">
           <input type="hidden" name="ref" value="{{ b.ref }}">
-          {% if not forloop.first %}<button name="op" value="up" class="tap44 rounded px-2 hover:bg-gray-100" aria-label="{% trans 'Nach oben' %}: {{ b.label }}">↑</button>{% endif %}
-          {% if not forloop.last %}<button name="op" value="down" class="tap44 rounded px-2 hover:bg-gray-100" aria-label="{% trans 'Nach unten' %}: {{ b.label }}">↓</button>{% endif %}
+          {% if b.can_up %}<button name="op" value="up" class="tap44 rounded px-2 hover:bg-gray-100" aria-label="{% trans 'Nach oben' %}: {{ b.label }}">↑</button>{% endif %}
+          {% if b.can_down %}<button name="op" value="down" class="tap44 rounded px-2 hover:bg-gray-100" aria-label="{% trans 'Nach unten' %}: {{ b.label }}">↓</button>{% endif %}
           {% if not b.main %}<button name="op" value="toggle" class="tap44 rounded px-2 hover:bg-gray-100" aria-label="{% if b.enabled %}{% trans 'Ausblenden' %}{% else %}{% trans 'Einblenden' %}{% endif %}: {{ b.label }}">{% if b.enabled %}👁{% else %}◌{% endif %}</button>{% endif %}
           {% if b.cblock %}<button name="op" value="delete" data-confirm-tap="{% trans 'Wirklich löschen?' %}" class="tap44 rounded px-2 text-red-600 hover:bg-red-50" aria-label="{% trans 'Löschen' %}: {{ b.label }}">✕</button>{% endif %}
         </form>
@@ -61,7 +72,7 @@
     </ol>
     <form method="post" class="mt-4 flex flex-wrap items-end gap-2">
       {% csrf_token %}
-      <input type="hidden" name="seite" value="{{ current.code }}">
+      <input type="hidden" name="seite" value="{{ code }}">
       <input type="hidden" name="op" value="add">
       <label class="text-sm flex-1 min-w-[10rem]"><span class="block text-xs ui-muted mb-1">{% trans "Block hinzufügen" %}</span>
         <select name="type" class="ui-input w-full">
@@ -71,10 +82,10 @@
     </form>
   </section>
 
-  {% if current.preview_url %}
+  {% if preview_url %}
   <section class="ui-card p-2" aria-label="{% trans 'Vorschau' %}">
     <div class="relative w-full overflow-hidden rounded-lg bg-gray-100" style="height: 70vh" data-schema-frame-box>
-      <iframe src="{{ current.preview_url }}?preview=1&amp;stand=saved" title="{% trans 'Vorschau' %}: {{ current.label }}" loading="lazy"
+      <iframe src="{{ preview_url }}?preview=1&amp;stand=saved" title="{% trans 'Vorschau' %}: {{ current.label }}" loading="lazy"
               class="absolute top-0 left-0 border-0 origin-top-left" style="width: 1280px; height: 2000px" data-schema-frame></iframe>
     </div>
   </section>

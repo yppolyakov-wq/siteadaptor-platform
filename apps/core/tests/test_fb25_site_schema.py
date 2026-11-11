@@ -116,3 +116,20 @@ def test_page_types_are_a_row_on_top_not_a_left_column():
     assert pages < src.index("data-site-schema")  # над сеткой, а не в ней
     grid = src[src.index('<div class="grid', pages) :].split(">", 1)[0]
     assert "14rem" not in grid
+
+
+def test_text_type_offers_each_page_with_its_own_preview():
+    """M21.11: у типа «Seite» выбор страницы — Über uns, Versand и свои страницы."""
+    from apps.core.models import ContentPage
+
+    ContentPage.objects.create(slug="zahlung", title="Zahlung", is_published=True)
+    t = _tenant()
+    req = RequestFactory().get("/dashboard/site/aufbau/", {"seite": "text@seite:zahlung"})
+    SessionMiddleware(lambda r: None).process_request(req)
+    MessageMiddleware(lambda r: None).process_request(req)
+    req.user = SimpleNamespace(is_authenticated=True)
+    req.tenant = t
+    body = site_schema_view(req).content.decode()
+    assert "data-schema-subpages" in body
+    assert "/zahlung/?preview=1&amp;stand=saved" in body
+    assert 'value="text@seite:zahlung"' in body

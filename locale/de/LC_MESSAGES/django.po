@@ -37078,3 +37078,9 @@ msgstr "Seite suchen"
 
 msgid "Text der Schaltfläche"
 msgstr "Text der Schaltfläche"
+
+msgid "Kontakt & Öffnungszeiten"
+msgstr "Kontakt & Öffnungszeiten"
+
+msgid "Welche Seite?"
+msgstr "Welche Seite?"

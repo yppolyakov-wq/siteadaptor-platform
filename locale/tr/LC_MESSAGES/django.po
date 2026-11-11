@@ -37137,3 +37137,9 @@ msgstr "Sayfa ara"
 
 msgid "Text der Schaltfläche"
 msgstr "Düğme metni"
+
+msgid "Kontakt & Öffnungszeiten"
+msgstr "İletişim ve çalışma saatleri"
+
+msgid "Welche Seite?"
+msgstr "Hangi sayfa?"
