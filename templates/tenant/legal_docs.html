@@ -3,32 +3,28 @@
 {% block dash_title %}{% trans "Legal" %}{% endblock %}
 
 {% block dash_content %}
-{% comment %}SP-4 (аудит пространства 2026-11-02): реквизиты и четыре правовых текста шли
-стопкой (~2300 px) — теперь вкладки. Механика вкладок — общий партиал языка
-(_i18n_switch.html через lang_switch): все панели в DOM, Save отправляет всё (W0);
-ошибка поля в скрытой вкладке открывает её сама.{% endcomment %}
+{% comment %}M21.10: здесь — только налоговые и Impressum-реквизиты; тексты правовых
+страниц — в «Website › Seiten» (legal-page-edit).{% endcomment %}
 <div class="max-w-5xl">
-  {# E9.10: язык правовых текстов — одна выпадашка рядом с заголовком. #}
-  <div class="flex items-center gap-3 flex-wrap mb-1">
-    <h1 class="ui-h1">{% nav_title _("Recht & Steuern") %}</h1>
-    {% lang_switch %}
-  </div>
-  <p class="text-gray-500 mb-4 text-sm">{% trans "Legal pages of your website — per language. Leave a field empty to use the automatic text from your business data." %}</p>
+  <h1 class="ui-h1 mb-1">{% nav_title _("Recht & Steuern") %}</h1>
 
   {% include "tenant/_settings_messages.html" %}
   {% include "tenant/_impressum_missing.html" with missing=impressum_missing %}
 
+  {% comment %}M21.10: правовые тексты правятся в «Website › Seiten» — здесь ссылки.{% endcomment %}
+  <section class="ui-card p-5 mb-4" data-legal-text-links>
+    <h2 class="ui-h2 mb-1">{% trans "Rechtstexte" %}</h2>
+    <p class="text-sm text-gray-500 mb-3">{% trans "Impressum, Datenschutz, Widerruf und AGB bearbeiten Sie wie alle Seiten Ihrer Website." %}</p>
+    <div class="flex flex-wrap gap-2">
+      {% for k in kinds %}<a href="{% url 'legal-page-edit' k.kind %}" class="ui-btn ui-btn-sm">{{ k.label }}</a>{% endfor %}
+    </div>
+  </section>
+
   <form method="post" class="space-y-4">
     {% csrf_token %}
-    <div class="ui-tabs flex-nowrap overflow-x-auto p-1 -m-1" role="tablist" aria-label="{% trans "Legal" %}" data-legal-tabs>
-      <button type="button" data-pf-tab="steuer" id="lg-tab-steuer" aria-controls="lg-panel-steuer" class="ui-tab shrink-0 whitespace-nowrap" role="tab" aria-selected="true" tabindex="0">{% trans "Steuern & Unternehmensangaben" %}</button>
-      {% for k in kinds %}
-      <button type="button" data-pf-tab="{{ k.kind }}" id="lg-tab-{{ k.kind }}" aria-controls="lg-panel-{{ k.kind }}" class="ui-tab shrink-0 whitespace-nowrap" role="tab" aria-selected="false" tabindex="-1">{{ k.label }}</button>
-      {% endfor %}
-    </div>
     {# W9-5: реквизиты — раньше в «Mein Geschäft»; единственный редактор теперь тут. #}
-    <fieldset class="ui-card p-6 space-y-3" data-pf-panel="steuer" id="lg-panel-steuer" role="tabpanel" aria-labelledby="lg-tab-steuer">
-      <legend class="sr-only">{% trans "Steuern & Unternehmensangaben" %}</legend>
+    <fieldset class="ui-card p-6 space-y-3" data-steuer>
+      <legend class="px-1 text-base font-semibold">{% trans "Steuern & Unternehmensangaben" %}</legend>
       <input type="hidden" name="sec_steuer" value="1">
       <div class="grid sm:grid-cols-2 gap-4">
         <div>
@@ -87,31 +83,7 @@
         <input id="legal_responsible" name="legal_responsible" value="{{ steuer.legal_responsible }}" class="ui-input">
       </div>
     </fieldset>
-    {% for k in kinds %}
-      <fieldset class="ui-card p-6 space-y-3 hidden" data-pf-panel="{{ k.kind }}" id="lg-panel-{{ k.kind }}" role="tabpanel" aria-labelledby="lg-tab-{{ k.kind }}">
-        <legend class="sr-only">{{ k.label }}</legend>
-        {% if k.kind == "agb" %}
-          <p class="text-xs ui-muted mb-2">{% trans "Optional. The AGB page and its footer link appear only when a text is set." %}</p>
-        {% else %}
-          <p class="text-xs ui-muted mb-2">{% trans "Empty = automatic text generated from your business data (shown below)." %}</p>
-        {% endif %}
-        {% for cell in k.cells %}
-          <div data-i18n-loc="{{ cell.locale }}"{% if cell.locale != legal_shown_locale %} class="hidden"{% endif %}>
-            <label class="block text-sm font-medium mb-1" for="doc_{{ k.kind }}_{{ cell.locale }}">{{ cell.locale_label }} <span class="text-gray-500 uppercase text-xs">{{ cell.locale }}</span></label>
-            <textarea id="doc_{{ k.kind }}_{{ cell.locale }}" name="doc_{{ k.kind }}_{{ cell.locale }}" lang="{{ cell.locale }}" rows="14"
-                      class="ui-input" data-rte="page">{{ cell.text }}</textarea>
-            {% if not cell.text and cell.fallback %}
-              <details class="mt-1 text-xs text-gray-500">
-                <summary class="cursor-pointer">{% trans "Preview of the automatic text" %}</summary>
-                <pre class="mt-1 whitespace-pre-wrap font-sans text-gray-500 bg-gray-50 rounded-lg p-3">{{ cell.fallback }}</pre>
-              </details>
-            {% endif %}
-          </div>
-        {% endfor %}
-      </fieldset>
-    {% endfor %}
     <button type="submit" class="ui-btn ui-btn-primary">{% trans "Save" %}</button>
   </form>
 </div>
-{% include "catalog/_richtext_editor.html" %}
 {% endblock %}

@@ -1,0 +1,62 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n cabinet %}
+{% block dash_title %}{{ label }}{% endblock %}
+
+{% block dash_content %}
+{% comment %}M21.10: правовой текст в «Seiten» — тот же редактор, что у страниц; по языкам
+(одна выпадашка E9.10, все поля в DOM — W0). Пусто = автотекст из данных бизнеса.{% endcomment %}
+<div class="max-w-6xl">
+  <a href="{% url 'content-pages' %}" class="text-sm text-indigo-600 hover:underline">← {% trans "Alle Seiten" %}</a>
+  <div class="flex flex-wrap items-center justify-between gap-3 mt-2 mb-1">
+    <div class="flex items-center gap-3 flex-wrap">
+      <h1 class="ui-h1">{{ label }}</h1>
+      {% lang_switch %}
+    </div>
+    <a href="{{ page_url }}" target="_blank" rel="noopener" class="ui-btn">{% trans "Auf der Website ansehen" %} ↗</a>
+  </div>
+  <p class="text-gray-500 mb-4 text-sm">
+    {% if kind == "agb" %}{% trans "Optional. The AGB page and its footer link appear only when a text is set." %}{% else %}{% trans "Empty = automatic text generated from your business data (shown below)." %}{% endif %}
+    {% if 'legal-docs'|can_open:request %}<a href="{% url 'legal-docs' %}" class="text-indigo-700 underline">{% trans "Steuern & Unternehmensangaben" %} →</a>{% endif %}
+  </p>
+
+  {% include "tenant/_settings_messages.html" %}
+
+  <form method="post" class="ui-card p-6 space-y-4" data-legal-page-form>
+    {% csrf_token %}
+    {% for cell in cells %}
+    <div data-i18n-loc="{{ cell.locale }}"{% if cell.locale != legal_shown_locale %} class="hidden"{% endif %}>
+      <label class="block text-sm font-medium mb-1" for="doc_{{ cell.locale }}">{% trans "Text" %} <span class="text-gray-500 uppercase text-xs">{{ cell.locale }}</span></label>
+      <textarea id="doc_{{ cell.locale }}" name="doc_{{ cell.locale }}" lang="{{ cell.locale }}" rows="16"
+                class="ui-input w-full" data-rte="page" data-rte-upload="{% url 'content-page-image' %}">{{ cell.text }}</textarea>
+      <p class="text-sm text-gray-600 min-h-[1.25rem]" role="status" aria-live="polite" data-rte-status></p>
+      {% if cell.fallback %}
+      <details class="mt-1 text-xs text-gray-500" data-legal-fallback>
+        <summary class="cursor-pointer">{% trans "Preview of the automatic text" %}</summary>
+        <pre class="mt-1 whitespace-pre-wrap font-sans text-gray-500 bg-gray-50 rounded-lg p-3">{{ cell.fallback }}</pre>
+        <textarea hidden data-fallback-for="doc_{{ cell.locale }}">{{ cell.fallback }}</textarea>
+        <button type="button" class="ui-btn ui-btn-sm mt-2" data-take-fallback="doc_{{ cell.locale }}">{% trans "Automatischen Text übernehmen" %}</button>
+      </details>
+      {% endif %}
+    </div>
+    {% endfor %}
+    <button class="ui-btn ui-btn-primary">{% trans "Speichern" %}</button>
+  </form>
+</div>
+<script>
+(function () {
+  "use strict";
+  // M21.10: автотекст → в поле (как стартовый текст для правки); запись — только «Speichern».
+  document.addEventListener("click", function (e) {
+    var btn = e.target.closest("[data-take-fallback]");
+    if (!btn) return;
+    var id = btn.getAttribute("data-take-fallback");
+    var ta = document.getElementById(id);
+    var src = document.querySelector('[data-fallback-for="' + id + '"]');
+    if (!ta || !src) return;
+    ta.value = src.value;
+    ta.dispatchEvent(new CustomEvent("rte:set"));
+  });
+})();
+</script>
+{% include "catalog/_richtext_editor.html" %}
+{% endblock %}

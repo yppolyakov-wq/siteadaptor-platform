@@ -27,7 +27,6 @@ from apps.core import (
     view_perms,
 )
 from apps.core.permissions import has_perm
-from apps.core.richtext import clean_page_input
 from apps.core.view_perms import perm_required
 from apps.promotions import group_styles
 from apps.tenants import domains
@@ -1740,19 +1739,15 @@ def _lite_impressum_missing(tenant):
 @login_required
 @perm_required(view_perms.FLOOR)
 def legal_docs_view(request):
-    """L5/E-2: кабинет «Recht» — правовые тексты витрины per-locale (LegalDoc).
+    """L5/E-2: кабинет «Recht & Steuern» — налоговые и Impressum-реквизиты.
 
-    4 вида (Impressum/Datenschutz/Widerruf/AGB) × активные локали тенанта.
-    Пустая textarea = строка удаляется → работает фолбэк-цепочка legal.py
-    (плоское поле настроек / автотекст); для AGB пусто = страницы /agb/ нет.
-    Presence-guard: трогаем только присланные поля (name=doc_<kind>_<locale>).
+    M21.10: сами правовые тексты (LegalDoc) правятся в «Website › Seiten»
+    (`legal-page-edit`); здесь — ссылки на них.
     """
-    from apps.core.legal import legal_text
     from apps.core.models import LegalDoc
     from apps.finance import ustva
 
     tenant = request.tenant
-    locales = tenant.active_locales
     if request.method == "POST":
         # W9-5: реквизиты (USt-IdNr./Steuernummer/§19/Register/Verantwortlicher)
         # переехали сюда из «Mein Geschäft» — свой сентинел + update_fields
@@ -1798,46 +1793,12 @@ def legal_docs_view(request):
                     "updated_at",
                 ]
             )
-        for kind, _label in LegalDoc.KIND_CHOICES:
-            for loc in locales:
-                val = request.POST.get(f"doc_{kind}_{loc}")
-                if val is None:
-                    continue
-                if val.strip():
-                    LegalDoc.objects.update_or_create(
-                        kind=kind, locale=loc, defaults={"text": clean_page_input(val)}
-                    )
-                else:
-                    LegalDoc.objects.filter(kind=kind, locale=loc).delete()
+        # M21.10: правовые ТЕКСТЫ правятся в «Website › Seiten» (legal-page-edit,
+        # единственный писатель legal.save_legal_doc). Старые поля doc_* из
+        # закешированной формы здесь игнорируются — ничего не пишут и не удаляют.
         messages.success(request, _("Saved."))
         return redirect("legal-docs")
-    docs = {(d.kind, d.locale): d.text for d in LegalDoc.objects.filter(locale__in=locales)}
-    lang_names = dict(settings.LANGUAGES)
-    # E9.10: язык ввода — одна выпадашка у заголовка (как у товара/услуги);
-    # видна ячейка одного языка: базового, а если он не включён — первого.
-    shown = settings.LANGUAGE_CODE if settings.LANGUAGE_CODE in locales else locales[0]
-    i18n_groups = [
-        {"code": loc, "label": str(lang_names.get(loc, loc.upper())), "is_base": loc == shown}
-        for loc in locales
-    ]
-    kinds = [
-        {
-            "kind": kind,
-            "label": label,
-            "has_fallback": kind != "agb",
-            "cells": [
-                {
-                    "locale": loc,
-                    "locale_label": lang_names.get(loc, loc.upper()),
-                    "text": docs.get((kind, loc), ""),
-                    # что покажет витрина при пустом поле (превью фолбэка)
-                    "fallback": "" if kind == "agb" else legal_text(tenant, kind, locale=loc),
-                }
-                for loc in locales
-            ],
-        }
-        for kind, label in LegalDoc.KIND_CHOICES
-    ]
+    kinds = [{"kind": kind, "label": label} for kind, label in LegalDoc.KIND_CHOICES]
     return render(
         request,
         "tenant/legal_docs.html",
@@ -1849,9 +1810,6 @@ def legal_docs_view(request):
             "tax_regime": ustva.regime_of(tenant),
             "legal_forms": tenant.LEGAL_FORMS,
             "impressum_missing": _lite_impressum_missing(tenant),
-            "i18n_groups": i18n_groups,
-            "i18n_multi": len(i18n_groups) > 1,
-            "legal_shown_locale": shown,
         },
     )
 

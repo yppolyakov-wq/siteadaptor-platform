@@ -340,7 +340,7 @@ def lang_switch(context):
 
 
 #: AIS-5: экраны, где машинный перевод не предлагаем (правовые тексты — юридический риск).
-NO_TRANSLATE_SCREENS = frozenset({"legal-docs"})
+NO_TRANSLATE_SCREENS = frozenset({"legal-docs", "legal-page-edit"})
 
 
 @register.simple_tag(takes_context=True)

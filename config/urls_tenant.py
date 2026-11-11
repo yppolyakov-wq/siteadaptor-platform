@@ -336,6 +336,17 @@ urlpatterns = [
     path(
         "dashboard/site/seiten/<uuid:pk>/", content_page_views.page_edit, name="content-page-edit"
     ),
+    # M21.10: системные страницы (Über uns, Versand) и правовые тексты — тоже в «Seiten».
+    path(
+        "dashboard/site/seiten/system/<slug:slug>/",
+        content_page_views.page_system,
+        name="content-page-system",
+    ),
+    path(
+        "dashboard/site/seiten/recht/<slug:kind>/",
+        content_page_views.legal_page_edit,
+        name="legal-page-edit",
+    ),
     path(
         "dashboard/site/seiten/<uuid:pk>/loeschen/",
         content_page_views.page_delete,

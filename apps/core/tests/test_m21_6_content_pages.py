@@ -261,7 +261,8 @@ def test_menu_resolves_all_cpage_links_with_one_query(django_assert_max_num_quer
 
 
 def test_legal_pages_listed_with_state_and_link_to_legal_tab():
-    """M21.6: Impressum/Datenschutz/Widerruf/AGB — строками списка «Seiten» (без удаления)."""
+    """M21.6/M21.10: Impressum/Datenschutz/Widerruf/AGB — строками «Seiten» (без удаления),
+    «Bearbeiten» ведёт в редактор правового текста там же."""
     from apps.core.models import LegalDoc
 
     LegalDoc.objects.create(kind="impressum", locale="de", text="Teeladen Haan")
@@ -274,8 +275,13 @@ def test_legal_pages_listed_with_state_and_link_to_legal_tab():
     )
     assert rows["impressum"].url == "/impressum/" and rows["agb"].url == "/agb/"
 
-    html = views.pages_list(_req(user=_user())).content.decode()
+    from apps.core.models import Membership
+
+    owner = _user()
+    Membership.objects.create(user=owner, role=Membership.ROLE_OWNER)
+    html = views.pages_list(_req(user=owner)).content.decode()
     assert 'data-legal-row="impressum"' in html and 'data-legal-row="agb"' in html
+    assert "/dashboard/site/seiten/recht/agb/" in html
 
 
 def test_tab_query_opens_tab_in_shared_switch():

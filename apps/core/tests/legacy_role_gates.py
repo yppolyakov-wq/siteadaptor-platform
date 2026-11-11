@@ -67,6 +67,8 @@ def legacy_role_for_path(path: str) -> str:
 
 # Вьюхи под @owner_required / @finance_export_required до E6.7c-4 (имя маршрута → роль).
 LEGACY_DECORATED = {
+    # M21.10: правовые тексты в «Seiten» — как прежде в «Recht & Steuern», только владелец.
+    "legal-page-edit": ROLE_OWNER_ONLY,
     "crm:customer-export": ROLE_OWNER_ONLY,
     "crm:customer-dsgvo": ROLE_OWNER_ONLY,
     "crm:customer-dsgvo-export": ROLE_OWNER_ONLY,

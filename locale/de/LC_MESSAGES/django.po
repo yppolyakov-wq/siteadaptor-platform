@@ -36774,3 +36774,123 @@ msgstr "Die Liste kommt aus „Zahlung & Lieferung“. Blenden Sie sie nur aus, 
 
 msgid "Versandarten ändern"
 msgstr "Versandarten ändern"
+
+msgid "Alle Textseiten Ihrer Website an einem Ort: Über uns, Versand, Rechtstexte und eigene Seiten. In das Menü kommt eine Seite über „Website › Menü“."
+msgstr "Alle Textseiten Ihrer Website an einem Ort: Über uns, Versand, Rechtstexte und eigene Seiten. In das Menü kommt eine Seite über „Website › Menü“."
+
+msgid "Ausrichtung"
+msgstr "Ausrichtung"
+
+msgid "Automatischen Text übernehmen"
+msgstr "Automatischen Text übernehmen"
+
+msgid "Beschreiben Sie, was zu sehen ist."
+msgstr "Beschreiben Sie, was zu sehen ist."
+
+msgid "Bild einfügen"
+msgstr "Bild einfügen"
+
+msgid "Bild eingefügt. Bitte eine Bildbeschreibung eingeben."
+msgstr "Bild eingefügt. Bitte eine Bildbeschreibung eingeben."
+
+msgid "Bild entfernen"
+msgstr "Bild entfernen"
+
+msgid "Bild entfernt."
+msgstr "Bild entfernt."
+
+msgid "Bildbeschreibung (für Screenreader und Suchmaschinen)"
+msgstr "Bildbeschreibung (für Screenreader und Suchmaschinen)"
+
+msgid "Bildbeschreibung fehlt"
+msgstr "Bildbeschreibung fehlt"
+
+msgid "Bildeinstellungen (F2)"
+msgstr "Bildeinstellungen (F2)"
+
+msgid "Bildunterschrift (sichtbar, optional)"
+msgstr "Bildunterschrift (sichtbar, optional)"
+
+msgid "Bitte das Bild beschreiben oder als dekorativ markieren."
+msgstr "Bitte das Bild beschreiben oder als dekorativ markieren."
+
+msgid "Blocksatz"
+msgstr "Blocksatz"
+
+msgid "Dekoratives Bild (keine Beschreibung nötig)"
+msgstr "Dekoratives Bild (keine Beschreibung nötig)"
+
+msgid "Der Text ist zu lang."
+msgstr "Der Text ist zu lang."
+
+msgid "Eigenen Text löschen (Standard wiederherstellen)"
+msgstr "Eigenen Text löschen (Standard wiederherstellen)"
+
+msgid "Einfügen"
+msgstr "Einfügen"
+
+msgid "Fett (B)"
+msgstr "Fett (B)"
+
+msgid "Impressum, Datenschutz, Widerruf und AGB bearbeiten Sie wie alle Seiten Ihrer Website."
+msgstr "Impressum, Datenschutz, Widerruf und AGB bearbeiten Sie wie alle Seiten Ihrer Website."
+
+msgid "Kleine Überschrift"
+msgstr "Kleine Überschrift"
+
+msgid "Kursiv (I)"
+msgstr "Kursiv (I)"
+
+msgid "Link-Adresse (https://…)"
+msgstr "Link-Adresse (https://…)"
+
+msgid "Links, Text daneben"
+msgstr "Links, Text daneben"
+
+msgid "Listen"
+msgstr "Listen"
+
+msgid "Mittig"
+msgstr "Mittig"
+
+msgid "Nummerierte Liste"
+msgstr "Nummerierte Liste"
+
+msgid "Nur Inhaber/in"
+msgstr "Nur Inhaber/in"
+
+msgid "Nur Versandarten"
+msgstr "Nur Versandarten"
+
+msgid "Rechts, Text daneben"
+msgstr "Rechts, Text daneben"
+
+msgid "Rechtsbündig"
+msgstr "Rechtsbündig"
+
+msgid "Rückgängig (Strg+Z)"
+msgstr "Rückgängig (Strg+Z)"
+
+msgid "Seiten Ihrer Website"
+msgstr "Seiten Ihrer Website"
+
+msgid "Text von der Startseite"
+msgstr "Text von der Startseite"
+
+msgid "Textformatierung"
+msgstr "Textformatierung"
+
+msgid "Trennlinie"
+msgstr "Trennlinie"
+
+msgid "Unterstrichen (U)"
+msgstr "Unterstrichen (U)"
+
+msgid "Versand & Zahlung"
+msgstr "Versand & Zahlung"
+
+msgid "Wiederholen (Strg+Y)"
+msgstr "Wiederholen (Strg+Y)"
+
+msgid "Zeichen"
+msgstr "Zeichen"

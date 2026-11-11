@@ -1882,3 +1882,31 @@ html:has(dialog.ui-drawer[open]) { overflow: hidden; }
 .rich-text h4 { font-weight: 600; margin: .75rem 0 .3rem; }
 .rich-text blockquote { border-left: 4px solid var(--accent, #6366f1); padding-left: 1rem; }
 .rich-text img { display: inline-block; max-width: 100%; height: auto; vertical-align: top; }
+
+/* M21.10: разметка страниц сайта и правовых текстов (редактор «Seiten»). Только классы
+   белого списка richtext.PAGE_CLASS_SOURCE; без position/vw — пользовательский HTML не
+   выходит за свою колонку. На узком экране фото не обтекается (float снят). */
+.sf-page-body { display: flow-root; }
+.sf-page-body .sf-left, .rich-text .sf-left { text-align: left; }
+.sf-page-body .sf-center, .rich-text .sf-center { text-align: center; }
+.sf-page-body .sf-right, .rich-text .sf-right { text-align: right; }
+.sf-page-body hr, .rich-text hr { border: 0; border-top: 1px solid #e5e7eb; margin: 1.5rem 0; clear: both; }
+.sf-page-body h2, .sf-page-body h3, .rich-text h2, .rich-text h3 { clear: both; }
+.sf-page-body figure, .rich-text figure { margin: 1rem 0; max-width: 100%; }
+.sf-page-body figure img, .rich-text figure img { display: block; width: 100%; height: auto; border-radius: .5rem; }
+.sf-page-body figcaption, .rich-text figcaption { margin-top: .4rem; font-size: .875rem; color: #4b5563; }
+.sf-page-body figure.sf-center, .rich-text figure.sf-center { margin-left: auto; margin-right: auto; }
+.sf-page-body .sf-img-sm, .rich-text .sf-img-sm { width: 25%; min-width: 120px; }
+.sf-page-body .sf-img-md, .rich-text .sf-img-md { width: 50%; }
+.sf-page-body .sf-img-lg, .rich-text .sf-img-lg { width: 75%; }
+.sf-page-body .sf-img-full, .rich-text .sf-img-full { width: 100%; }
+@media (min-width: 640px) {
+  .sf-page-body .sf-justify, .rich-text .sf-justify { text-align: justify; hyphens: auto; }
+  .sf-page-body figure.sf-float-left, .rich-text figure.sf-float-left { float: left; margin: .25rem 1.5rem 1rem 0; }
+  .sf-page-body figure.sf-float-right, .rich-text figure.sf-float-right { float: right; margin: .25rem 0 1rem 1.5rem; }
+}
+@media (max-width: 639px) {
+  .sf-page-body .sf-img-sm, .sf-page-body .sf-img-md, .rich-text .sf-img-sm, .rich-text .sf-img-md { width: 100%; }
+}
+.dark .sf-page-body figcaption, .dark .rich-text figcaption { color: #9ca3af; }
+.dark .sf-page-body hr, .dark .rich-text hr { border-top-color: #374151; }

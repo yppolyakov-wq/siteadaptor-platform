@@ -73,6 +73,7 @@ _AKTIONEN_VIEWS = frozenset(
         "support:thread",
         "betriebsferien",  # KA-12 О-8: каникулы — и в лёгком пакете
         "legal-docs",
+        "legal-page-edit",  # M21.10: правовые тексты — и в лёгком пакете
         "owner-confirm-resend",
         "set-cabinet-lang",
         "account_logout",

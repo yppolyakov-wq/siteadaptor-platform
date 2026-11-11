@@ -37022,3 +37022,123 @@ msgstr "Список берётся из «Оплата и доставка». �
 
 msgid "Versandarten ändern"
 msgstr "Изменить способы доставки"
+
+msgid "Alle Textseiten Ihrer Website an einem Ort: Über uns, Versand, Rechtstexte und eigene Seiten. In das Menü kommt eine Seite über „Website › Menü“."
+msgstr "Все текстовые страницы сайта в одном месте: «О нас», доставка, правовые тексты и свои страницы. В меню страница добавляется в «Сайт › Меню»."
+
+msgid "Ausrichtung"
+msgstr "Выравнивание"
+
+msgid "Automatischen Text übernehmen"
+msgstr "Взять автоматический текст"
+
+msgid "Beschreiben Sie, was zu sehen ist."
+msgstr "Опишите, что изображено."
+
+msgid "Bild einfügen"
+msgstr "Вставить фото"
+
+msgid "Bild eingefügt. Bitte eine Bildbeschreibung eingeben."
+msgstr "Фото вставлено. Добавьте, пожалуйста, описание фото."
+
+msgid "Bild entfernen"
+msgstr "Удалить фото"
+
+msgid "Bild entfernt."
+msgstr "Фото удалено."
+
+msgid "Bildbeschreibung (für Screenreader und Suchmaschinen)"
+msgstr "Описание фото (для экранных дикторов и поисковиков)"
+
+msgid "Bildbeschreibung fehlt"
+msgstr "Нет описания фото"
+
+msgid "Bildeinstellungen (F2)"
+msgstr "Настройки фото (F2)"
+
+msgid "Bildunterschrift (sichtbar, optional)"
+msgstr "Подпись под фото (видна, необязательно)"
+
+msgid "Bitte das Bild beschreiben oder als dekorativ markieren."
+msgstr "Опишите фото или отметьте его как декоративное."
+
+msgid "Blocksatz"
+msgstr "По ширине"
+
+msgid "Dekoratives Bild (keine Beschreibung nötig)"
+msgstr "Декоративное фото (описание не нужно)"
+
+msgid "Der Text ist zu lang."
+msgstr "Текст слишком длинный."
+
+msgid "Eigenen Text löschen (Standard wiederherstellen)"
+msgstr "Удалить свой текст (вернуть стандартный)"
+
+msgid "Einfügen"
+msgstr "Вставка"
+
+msgid "Fett (B)"
+msgstr "Жирный (B)"
+
+msgid "Impressum, Datenschutz, Widerruf und AGB bearbeiten Sie wie alle Seiten Ihrer Website."
+msgstr "Impressum, политику конфиденциальности, отказ от договора и AGB вы редактируете как все страницы сайта."
+
+msgid "Kleine Überschrift"
+msgstr "Малый заголовок"
+
+msgid "Kursiv (I)"
+msgstr "Курсив (I)"
+
+msgid "Link-Adresse (https://…)"
+msgstr "Адрес ссылки (https://…)"
+
+msgid "Links, Text daneben"
+msgstr "Слева, текст рядом"
+
+msgid "Listen"
+msgstr "Списки"
+
+msgid "Mittig"
+msgstr "По центру"
+
+msgid "Nummerierte Liste"
+msgstr "Нумерованный список"
+
+msgid "Nur Inhaber/in"
+msgstr "Только владелец"
+
+msgid "Nur Versandarten"
+msgstr "Только способы доставки"
+
+msgid "Rechts, Text daneben"
+msgstr "Справа, текст рядом"
+
+msgid "Rechtsbündig"
+msgstr "По правому краю"
+
+msgid "Rückgängig (Strg+Z)"
+msgstr "Отменить (Ctrl+Z)"
+
+msgid "Seiten Ihrer Website"
+msgstr "Страницы вашего сайта"
+
+msgid "Text von der Startseite"
+msgstr "Текст с главной страницы"
+
+msgid "Textformatierung"
+msgstr "Форматирование текста"
+
+msgid "Trennlinie"
+msgstr "Разделительная линия"
+
+msgid "Unterstrichen (U)"
+msgstr "Подчёркнутый (U)"
+
+msgid "Versand & Zahlung"
+msgstr "Доставка и оплата"
+
+msgid "Wiederholen (Strg+Y)"
+msgstr "Повторить (Ctrl+Y)"
+
+msgid "Zeichen"
+msgstr "Символы"

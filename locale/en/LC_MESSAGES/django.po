@@ -36687,3 +36687,123 @@ msgstr "The list comes from “Payment & delivery”. Only hide it if your text 
 
 msgid "Versandarten ändern"
 msgstr "Change shipping methods"
+
+msgid "Alle Textseiten Ihrer Website an einem Ort: Über uns, Versand, Rechtstexte und eigene Seiten. In das Menü kommt eine Seite über „Website › Menü“."
+msgstr "All text pages of your website in one place: About us, shipping, legal texts and your own pages. Add a page to the menu under “Website › Menu”."
+
+msgid "Ausrichtung"
+msgstr "Alignment"
+
+msgid "Automatischen Text übernehmen"
+msgstr "Use the automatic text"
+
+msgid "Beschreiben Sie, was zu sehen ist."
+msgstr "Describe what can be seen."
+
+msgid "Bild einfügen"
+msgstr "Insert image"
+
+msgid "Bild eingefügt. Bitte eine Bildbeschreibung eingeben."
+msgstr "Image inserted. Please enter an image description."
+
+msgid "Bild entfernen"
+msgstr "Remove image"
+
+msgid "Bild entfernt."
+msgstr "Image removed."
+
+msgid "Bildbeschreibung (für Screenreader und Suchmaschinen)"
+msgstr "Image description (for screen readers and search engines)"
+
+msgid "Bildbeschreibung fehlt"
+msgstr "Image description missing"
+
+msgid "Bildeinstellungen (F2)"
+msgstr "Image settings (F2)"
+
+msgid "Bildunterschrift (sichtbar, optional)"
+msgstr "Caption (visible, optional)"
+
+msgid "Bitte das Bild beschreiben oder als dekorativ markieren."
+msgstr "Please describe the image or mark it as decorative."
+
+msgid "Blocksatz"
+msgstr "Justified"
+
+msgid "Dekoratives Bild (keine Beschreibung nötig)"
+msgstr "Decorative image (no description needed)"
+
+msgid "Der Text ist zu lang."
+msgstr "The text is too long."
+
+msgid "Eigenen Text löschen (Standard wiederherstellen)"
+msgstr "Delete own text (restore default)"
+
+msgid "Einfügen"
+msgstr "Insert"
+
+msgid "Fett (B)"
+msgstr "Bold (B)"
+
+msgid "Impressum, Datenschutz, Widerruf und AGB bearbeiten Sie wie alle Seiten Ihrer Website."
+msgstr "You edit the imprint, privacy policy, withdrawal and terms like all pages of your website."
+
+msgid "Kleine Überschrift"
+msgstr "Small heading"
+
+msgid "Kursiv (I)"
+msgstr "Italic (I)"
+
+msgid "Link-Adresse (https://…)"
+msgstr "Link address (https://…)"
+
+msgid "Links, Text daneben"
+msgstr "Left, text beside"
+
+msgid "Listen"
+msgstr "Lists"
+
+msgid "Mittig"
+msgstr "Centered"
+
+msgid "Nummerierte Liste"
+msgstr "Numbered list"
+
+msgid "Nur Inhaber/in"
+msgstr "Owner only"
+
+msgid "Nur Versandarten"
+msgstr "Shipping methods only"
+
+msgid "Rechts, Text daneben"
+msgstr "Right, text beside"
+
+msgid "Rechtsbündig"
+msgstr "Align right"
+
+msgid "Rückgängig (Strg+Z)"
+msgstr "Undo (Ctrl+Z)"
+
+msgid "Seiten Ihrer Website"
+msgstr "Pages of your website"
+
+msgid "Text von der Startseite"
+msgstr "Text from the home page"
+
+msgid "Textformatierung"
+msgstr "Text formatting"
+
+msgid "Trennlinie"
+msgstr "Divider"
+
+msgid "Unterstrichen (U)"
+msgstr "Underline (U)"
+
+msgid "Versand & Zahlung"
+msgstr "Shipping & payment"
+
+msgid "Wiederholen (Strg+Y)"
+msgstr "Redo (Ctrl+Y)"
+
+msgid "Zeichen"
+msgstr "Characters"

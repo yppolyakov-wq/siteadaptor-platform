@@ -56,14 +56,26 @@ def storefront_page(request, slug):
 
 @login_required
 def pages_list(request):
-    pages = list(ContentPage.objects.all())
+    """M21.10: ОДИН центр всех текстовых страниц сайта — системные (Über uns, Versand),
+    правовые (Impressum, Datenschutz, Widerruf, AGB) и свои."""
+    tenant = getattr(request, "tenant", None)
+    # Системные — своей группой; «Versand» при выключенном магазине (страницы нет)
+    # остаётся в «своих», чтобы текст не потерялся из виду.
+    system = content_pages.system_rows(tenant)
+    shown = {row.slug for row in system}
+    pages = [p for p in ContentPage.objects.all() if p.slug not in shown]
     for page in pages:
         page.url = content_pages.page_url(page)
         page.system_label = content_pages.SYSTEM_LABELS.get(page.slug, "")
     return render(
         request,
         "tenant/content_pages.html",
-        {"pages": pages, "legal_pages": _legal_pages(request), "nav": "content-pages"},
+        {
+            "pages": pages,
+            "system_pages": system,
+            "legal_pages": _legal_pages(request),
+            "nav": "content-pages",
+        },
     )
 
 
@@ -84,25 +96,34 @@ def _legal_pages(request) -> list:
 
     tenant = getattr(request, "tenant", None)
     locale = (getattr(tenant, "default_locale", "") or "de").split("-")[0]
-    own = set(
-        LegalDoc.objects.filter(locale=locale).exclude(text="").values_list("kind", flat=True)
-    )
+    langs: dict = {}
+    for kind, loc in (
+        LegalDoc.objects.exclude(text="").values_list("kind", "locale").order_by("locale")
+    ):
+        langs.setdefault(kind, []).append(loc)
     labels = dict(LegalDoc.KIND_CHOICES)
     rows = []
     for kind, url_name in _LEGAL_PAGES:
-        if kind in own:
+        if locale in langs.get(kind, ()):
             state = "own"
         elif kind == "agb":
             state = "off"  # без текста страницы /agb/ нет
         else:
             state = "auto"
         rows.append(
-            SimpleNamespace(kind=kind, title=labels[kind], url=reverse(url_name), state=state)
+            SimpleNamespace(
+                kind=kind,
+                title=labels[kind],
+                url=reverse(url_name),
+                state=state,
+                langs=langs.get(kind, []),
+            )
         )
     return rows
 
 
 def _form(request, page, *, created: bool):
+    """Форма страницы. Системная (Über uns/Versand) — с закреплённым адресом."""
     # UUID-pk есть и у несохранённой страницы — признак записи в БД только _state.
     saved_slug = "" if page._state.adding else page.slug
     if request.method == "POST":
@@ -140,7 +161,8 @@ def _form(request, page, *, created: bool):
             else "",
             "is_saved": bool(saved_slug),
             "saved_slug": saved_slug,
-            "system_label": content_pages.SYSTEM_LABELS.get(saved_slug, ""),
+            "system_label": content_pages.SYSTEM_LABELS.get(saved_slug or page.slug, ""),
+            "is_system": (saved_slug or page.slug) in content_pages.SYSTEM_PAGES,
             "nav": "content-pages",
         },
     )
@@ -149,6 +171,20 @@ def _form(request, page, *, created: bool):
 @login_required
 def page_new(request):
     return _form(request, ContentPage(is_published=True), created=True)
+
+
+@login_required
+def page_system(request, slug):
+    """M21.10: «Bearbeiten» системной страницы (Über uns, Versand). Есть своя страница —
+    открываем её; нет — форма с несохранённой заготовкой: GET ничего не пишет
+    (security-review), страница появляется только по «Speichern» (POST + CSRF)."""
+    tenant = getattr(request, "tenant", None)
+    if not content_pages.system_available(slug, tenant):
+        raise Http404
+    page = ContentPage.objects.filter(slug=slug).first()
+    if page is not None:
+        return redirect("content-page-edit", pk=page.pk)
+    return _form(request, content_pages.initial_system_page(slug, tenant), created=True)
 
 
 @login_required
@@ -210,3 +246,68 @@ def page_image_upload(request):
     except ValueError:  # слишком большое изображение для перекодирования
         return JsonResponse({"error": _("Das Bild konnte nicht hochgeladen werden.")}, status=400)
     return JsonResponse({"url": ref["url"]})
+
+
+# --- M21.10: правовые тексты прямо в «Seiten» ----------------------------------------
+
+
+@login_required
+def legal_page_edit(request, kind):
+    """Правовой текст (Impressum/Datenschutz/Widerruf/AGB) по языкам — тот же редактор,
+    что у страниц. Хранилище — ``LegalDoc``, писатель — ``legal.save_legal_doc``.
+    Право — только владелец (``view_perms``: FLOOR на GET и POST, § 5 DDG)."""
+    from django.conf import settings
+
+    from apps.core import legal
+    from apps.core.models import LegalDoc
+
+    labels = dict(LegalDoc.KIND_CHOICES)
+    if kind not in labels:
+        raise Http404
+    tenant = request.tenant
+    locales = list(tenant.active_locales)
+    if request.method == "POST":
+        for loc in locales:
+            value = request.POST.get(f"doc_{loc}")
+            if value is None:  # presence-guard: чужие языки не трогаем
+                continue
+            legal.save_legal_doc(kind, loc, value)
+        messages.success(request, _("Gespeichert."))
+        return redirect("legal-page-edit", kind=kind)
+    docs = dict(LegalDoc.objects.filter(kind=kind).values_list("locale", "text"))
+    names = dict(settings.LANGUAGES)
+    shown = settings.LANGUAGE_CODE if settings.LANGUAGE_CODE in locales else locales[0]
+    cells = [
+        {
+            "locale": loc,
+            "locale_label": str(names.get(loc, loc.upper())),
+            "text": docs.get(loc, ""),
+            # что покажет витрина при пустом поле — и чем можно заполнить поле
+            "fallback": ""
+            if kind == "agb"
+            else legal.legal_text(tenant, kind, locale=loc)
+            if not docs.get(loc)
+            else "",
+        }
+        for loc in locales
+    ]
+    url_name = dict(_LEGAL_PAGES)[kind]
+    from django.urls import reverse
+
+    return render(
+        request,
+        "tenant/legal_page_form.html",
+        {
+            "kind": kind,
+            "label": labels[kind],
+            "cells": cells,
+            "page_url": reverse(url_name),
+            "legal_shown_locale": shown,
+            "i18n_groups": [
+                {"code": loc, "label": str(names.get(loc, loc.upper())), "is_base": loc == shown}
+                for loc in locales
+            ],
+            "i18n_multi": len(locales) > 1,
+            "nav": "content-pages",
+        },
+    )

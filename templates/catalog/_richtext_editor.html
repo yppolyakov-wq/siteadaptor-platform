@@ -1,40 +1,105 @@
-{% load i18n %}
-{% comment %}SR-3: лёгкий визуальный редактор описания (B/I/U · списки · ссылка)
-без внешних библиотек. Прогрессивное улучшение: textarea ОСТАЁТСЯ в DOM (W0) и
-несёт значение — без JS форма работает как раньше; скрипт прячет её, рисует
-contenteditable и синкает HTML обратно (на вводе и на submit). Санитайз —
-на сервере (сохранение + рендер), клиент ничего не чистит.{% endcomment %}
+{% load i18n richtext %}
+{% comment %}SR-3 / M21.8 / M21.10: визуальный редактор без внешних библиотек. Прогрессивное
+улучшение: textarea ОСТАЁТСЯ в DOM (W0) и несёт значение — без JS форма работает как
+раньше; скрипт прячет её, рисует contenteditable и синкает HTML обратно (на вводе и на
+submit). Граница безопасности — сервер (sanitize/sanitize_page при записи и при показе);
+белый список клиента приходит из того же источника (richtext.editor_rules) — это UX.
+M21.10: панель — role=toolbar с roving tabindex (←/→, Home/End, Alt+F10 из текста,
+Esc — обратно), выравнивание текста, H4, цитата, разделитель, своя история отмены,
+окно настроек фото (размер · положение · описание · подпись), вставка из буфера
+через белый список.{% endcomment %}
+{% rte_rules_json %}
 <style>
-  .rte-bar { display: flex; gap: 2px; padding: 4px 6px; border: 1px solid #e5e7eb; border-bottom: 0; border-radius: .75rem .75rem 0 0; background: #fafbfc; }
-  .rte-bar button { width: 28px; height: 26px; border-radius: 6px; font-size: 13px; color: #374151; }
+  .rte-bar { display: flex; flex-wrap: wrap; gap: 2px 6px; padding: 4px 6px; border: 1px solid #6b7280; border-bottom: 0; border-radius: .75rem .75rem 0 0; background: #fafbfc; }
+  .rte-group { display: flex; gap: 2px; }
+  .rte-bar button { min-width: 28px; height: 28px; padding: 0 4px; border-radius: 6px; font-size: 13px; color: #374151; }
   .rte-bar button:hover { background: #eef2ff; color: #4338ca; }
-  .rte-area { min-height: 96px; border: 1px solid #e5e7eb; border-radius: 0 0 .75rem .75rem; padding: .5rem .75rem; font-size: .875rem; }
-  .rte-area:focus { outline: none; border-color: #a5b4fc; }
+  .rte-bar button[aria-pressed="true"] { background: #e0e7ff; color: #3730a3; box-shadow: inset 0 0 0 1px #6366f1; }
+  .rte-bar button[aria-disabled="true"] { opacity: .45; }
+  .rte-bar button:focus-visible, .rte-pop :focus-visible { outline: 2px solid #4f46e5; outline-offset: 2px; }
+  @media (pointer: coarse) { .rte-bar button { min-width: 44px; height: 44px; } }
+  .rte-area { min-height: 96px; border: 1px solid #6b7280; border-radius: 0 0 .75rem .75rem; padding: .5rem .75rem; font-size: .875rem; display: flow-root; }
+  .rte-area:focus { outline: 2px solid #4f46e5; outline-offset: 2px; }
   .rte-area ul { list-style: disc; padding-left: 1.25rem; }
   .rte-area ol { list-style: decimal; padding-left: 1.25rem; }
   .rte-area a { color: #4f46e5; text-decoration: underline; }
   .rte-area h2 { font-size: 1.25rem; font-weight: 700; margin: .75rem 0 .25rem; }
   .rte-area h3 { font-size: 1.05rem; font-weight: 600; margin: .5rem 0 .25rem; }
+  .rte-area h4 { font-weight: 600; margin: .5rem 0 .25rem; }
+  .rte-area blockquote { border-left: 4px solid #6366f1; padding-left: .75rem; color: #4b5563; }
+  .rte-area hr { border: 0; border-top: 1px solid #9ca3af; margin: 1rem 0; clear: both; }
   .rte-area img { max-width: 240px; height: auto; display: inline-block; border-radius: .5rem; }
+  .rte-area figure { margin: .5rem 0; max-width: 100%; cursor: pointer; position: relative; }
+  .rte-area figure img { max-width: 100%; width: 100%; display: block; }
+  .rte-area figure:focus { outline: 2px solid #4f46e5; outline-offset: 2px; }
+  .rte-area figure.rte-sel { outline: 3px solid #4f46e5; outline-offset: 2px; }
+  .rte-area figure.rte-noalt::after { content: "⚠ {% trans 'Bildbeschreibung fehlt' as t %}{{ t|escapejs }}"; position: absolute; left: 4px; top: 4px; background: #fffbeb; color: #92400e; border: 1px solid #b45309; border-radius: 6px; font-size: 12px; padding: 1px 6px; }
+  .rte-area figcaption { font-size: .8rem; color: #4b5563; margin-top: .25rem; }
+  .rte-area .sf-img-sm { width: 25%; min-width: 120px; } .rte-area .sf-img-md { width: 50%; }
+  .rte-area .sf-img-lg { width: 75%; } .rte-area .sf-img-full { width: 100%; }
+  .rte-area .sf-float-left { float: left; margin: .25rem 1rem .5rem 0; }
+  .rte-area .sf-float-right { float: right; margin: .25rem 0 .5rem 1rem; }
+  .rte-area figure.sf-center { margin-left: auto; margin-right: auto; }
   .rte-area[data-rte-page] { min-height: 320px; }
-  .rte-area .sf-center { text-align: center; }
+  .rte-area .sf-left { text-align: left; } .rte-area .sf-center { text-align: center; }
+  .rte-area .sf-right { text-align: right; } .rte-area .sf-justify { text-align: justify; }
   .rte-area .sf-center img { margin-left: auto; margin-right: auto; }
-  /* M21.9: та же сетка из 16 колонок, что на витрине (_page_body.html) — колонки
-     импорта лежат на уровень глубже .sf-grid, поэтому сетка — у РОДИТЕЛЯ колонок. */
+  /* M21.9: та же сетка из 16 колонок, что на витрине — колонки импорта лежат на уровень
+     глубже .sf-grid, поэтому сетка — у РОДИТЕЛЯ колонок. */
   .rte-area div:has(> [class*="sf-col-"]) { display: grid; grid-template-columns: repeat(16, minmax(0, 1fr)); gap: 1rem; margin: .5rem 0; }
   .rte-area :where(div:has(> [class*="sf-col-"]) > *) { grid-column: span 16; }
   .rte-area [class*="sf-col-"] { min-width: 0; border: 1px dashed #c7d2fe; border-radius: .5rem; padding: .5rem; }
   .rte-area .sf-col-4 { grid-column: span 4; } .rte-area .sf-col-6 { grid-column: span 6; }
   .rte-area .sf-col-8 { grid-column: span 8; } .rte-area .sf-col-12 { grid-column: span 12; }
+  .rte-pop { position: absolute; z-index: 60; width: min(22rem, calc(100vw - 2rem)); background: #fff; color: #111827; border: 1px solid #6b7280; border-radius: .75rem; box-shadow: 0 10px 30px rgba(0,0,0,.15); padding: .75rem 1rem; font-size: .875rem; }
+  .rte-pop fieldset { border: 0; padding: 0; margin: .5rem 0; }
+  .rte-pop legend { font-weight: 600; margin-bottom: .25rem; }
+  .rte-pop .rte-opts { display: flex; flex-wrap: wrap; gap: 4px; }
+  .rte-pop .rte-opts label { display: inline-flex; align-items: center; gap: 4px; min-height: 32px; padding: 0 8px; border: 1px solid #9ca3af; border-radius: 8px; cursor: pointer; }
+  .rte-pop input[type=text] { width: 100%; border: 1px solid #6b7280; border-radius: 8px; padding: 4px 8px; }
+  .rte-pop .rte-help { font-size: .8rem; margin-top: 2px; }
+  @media (max-width: 639px) { .rte-pop { position: fixed; left: 0 !important; right: 0; bottom: 0; top: auto !important; width: auto; max-height: 70vh; overflow: auto; border-radius: .75rem .75rem 0 0; } }
 </style>
 <script>
 (function () {
   "use strict";
   if (window.__rteBound) return;
   window.__rteBound = true;
-  var RICH_RE = /<\/?(?:p|br|b|strong|i|em|u|ul|ol|li|a|h[234]|div|img|figure|blockquote)(?=[\s\/>])/i;
-  var TAGS = { P: 1, BR: 1, B: 1, STRONG: 1, I: 1, EM: 1, U: 1, UL: 1, OL: 1, LI: 1, A: 1 };
-  var PAGE_TAGS = { H2: 1, H3: 1, H4: 1, DIV: 1, IMG: 1, FIGURE: 1, BLOCKQUOTE: 1 };
+  var RULES = JSON.parse(document.getElementById("rte-rules").textContent);
+  var RICH_RE = new RegExp(RULES.rich, "i");
+  var CLS_RE = new RegExp("^(?:" + RULES.cls + ")$");
+  function set(list) { var o = {}; list.forEach(function (t) { o[t] = 1; }); return o; }
+  var TAGS = set(RULES.tags), PAGE_TAGS = set(RULES.pageTags), CLASS_TAGS = set(RULES.classTags);
+  var T = {
+    upload: "{% trans 'Bild wird hochgeladen …' as t %}{{ t|escapejs }}",
+    uploadFail: "{% trans 'Das Bild konnte nicht hochgeladen werden.' as t %}{{ t|escapejs }}",
+    inserted: "{% trans 'Bild eingefügt. Bitte eine Bildbeschreibung eingeben.' as t %}{{ t|escapejs }}",
+    removed: "{% trans 'Bild entfernt.' as t %}{{ t|escapejs }}",
+    undone: "{% trans 'Rückgängig' as t %}{{ t|escapejs }}",
+    redone: "{% trans 'Wiederholen' as t %}{{ t|escapejs }}",
+    col1: "{% trans 'Spalte 1' as t %}{{ t|escapejs }}",
+    col2: "{% trans 'Spalte 2' as t %}{{ t|escapejs }}",
+    toolbar: "{% trans 'Textformatierung' as t %}{{ t|escapejs }}",
+    linkUrl: "{% trans 'Link-Adresse (https://…)' as t %}{{ t|escapejs }}",
+    image: "{% trans 'Bild' as t %}{{ t|escapejs }}",
+    size: "{% trans 'Größe' as t %}{{ t|escapejs }}",
+    position: "{% trans 'Position' as t %}{{ t|escapejs }}",
+    alt: "{% trans 'Bildbeschreibung (für Screenreader und Suchmaschinen)' as t %}{{ t|escapejs }}",
+    altHelp: "{% trans 'Beschreiben Sie, was zu sehen ist.' as t %}{{ t|escapejs }}",
+    altMissing: "{% trans 'Bitte das Bild beschreiben oder als dekorativ markieren.' as t %}{{ t|escapejs }}",
+    decorative: "{% trans 'Dekoratives Bild (keine Beschreibung nötig)' as t %}{{ t|escapejs }}",
+    caption: "{% trans 'Bildunterschrift (sichtbar, optional)' as t %}{{ t|escapejs }}",
+    remove: "{% trans 'Bild entfernen' as t %}{{ t|escapejs }}",
+    done: "{% trans 'Fertig' as t %}{{ t|escapejs }}",
+    close: "{% trans 'Schließen' as t %}{{ t|escapejs }}",
+    sizes: [["sm", "S · 25 %"], ["md", "M · 50 %"], ["lg", "L · 75 %"], ["full", "{% trans 'Volle Breite' as t %}{{ t|escapejs }}"]],
+    positions: [
+      ["left", "{% trans 'Links, Text daneben' as t %}{{ t|escapejs }}"],
+      ["center", "{% trans 'Mittig' as t %}{{ t|escapejs }}"],
+      ["right", "{% trans 'Rechts, Text daneben' as t %}{{ t|escapejs }}"],
+    ],
+  };
+  // --- белый список (зеркало richtext.sanitize/sanitize_page) -------------------------
   function safeCopy(node, page, out) {
     node.childNodes.forEach(function (ch) {
       if (ch.nodeType === 3) { out.appendChild(document.createTextNode(ch.nodeValue)); return; }
@@ -52,26 +117,41 @@ contenteditable и синкает HTML обратно (на вводе и на s
         var src = ch.getAttribute("src") || "";
         if (!/^\/media\//.test(src) || /\.\.|\\|%2f|%5c/i.test(src)) return;
         el.setAttribute("src", src);
-        el.setAttribute("alt", ch.getAttribute("alt") || "");
+        el.setAttribute("alt", (ch.getAttribute("alt") || "").slice(0, RULES.altMax));
       }
-      var cls = (ch.getAttribute("class") || "").split(/\s+/).filter(function (c) {
-        return /^sf-(?:grid|center|col-(?:[1-9]|1[0-6]))$/.test(c);
-      });
-      if (page && cls.length) el.setAttribute("class", cls.join(" "));
+      if (page && CLASS_TAGS[tag]) {
+        var cls = (ch.getAttribute("class") || "").split(/\s+/).filter(function (c) { return CLS_RE.test(c); });
+        if (cls.length) el.setAttribute("class", cls.join(" "));
+      }
       safeCopy(ch, page, el);
       out.appendChild(el);
     });
   }
+  // Служебные атрибуты редактора (фокус фигуры, пометки) в сохранённый HTML не идут.
+  var EDITOR_ATTRS = ["contenteditable", "tabindex", "data-decorative", "aria-label", "role"];
+  function cleanClone(area) {
+    var c = area.cloneNode(true);
+    c.querySelectorAll("figure").forEach(function (el) {
+      EDITOR_ATTRS.forEach(function (a) { el.removeAttribute(a); });
+      el.classList.remove("rte-sel", "rte-noalt");
+      if (!el.getAttribute("class")) el.removeAttribute("class");
+    });
+    return c;
+  }
   // Без разметки — обычный текст (иначе «Tom & Jerry» ушло бы как «&amp;»); пустой
   // редактор («<br>») — пустая строка (перевод падает на базу).
   function value(area) {
-    if (!area.textContent.trim() && !area.querySelector("img")) return "";
-    var html = area.innerHTML;
+    if (!area.textContent.trim() && !area.querySelector("img,hr")) return "";
+    var html = cleanClone(area).innerHTML;
     return RICH_RE.test(html) ? html : area.textContent;
   }
-  // --- M21.8 B4: страница — по центру, две колонки, картинка с компьютера ---------
+  function status(area, text) {
+    var s = area.__status || (area.closest("form") || document).querySelector("[data-rte-status]");
+    if (s) s.textContent = text || "";
+  }
+  // --- выделение и блоки --------------------------------------------------------------
   var saved = null;
-  var BLOCKS = /^(P|H2|H3|H4|DIV|FIGURE|BLOCKQUOTE|UL|OL)$/;
+  var BLOCKS = /^(P|H2|H3|H4|DIV|FIGURE|BLOCKQUOTE|LI)$/;
   function currentRange(area) {
     var sel = window.getSelection();
     if (!sel || !sel.rangeCount) return null;
@@ -96,18 +176,39 @@ contenteditable и синкает HTML обратно (на вводе и на s
     }
     return null;
   }
-  function toggleCenter(area) {
+  var ALIGN = ["sf-left", "sf-center", "sf-right", "sf-justify"];
+  function setAlign(area, cls) {
     var b = blockOf(area);
     if (!b) {
       document.execCommand("formatBlock", false, "p");
       b = blockOf(area);
     }
-    if (b) b.classList.toggle("sf-center");
+    if (!b) return;
+    var on = b.classList.contains(cls);
+    ALIGN.forEach(function (c) { b.classList.remove(c); });
+    if (!on) b.classList.add(cls);
+    if (!b.getAttribute("class")) b.removeAttribute("class");
+  }
+  function insertBlockAfterCurrent(area, el, after) {
+    var top = blockOf(area);
+    while (top && top.parentNode !== area) top = top.parentNode;
+    if (top) {
+      top.parentNode.insertBefore(after, top.nextSibling);
+      top.parentNode.insertBefore(el, after);
+    } else {
+      area.appendChild(el);
+      area.appendChild(after);
+    }
+  }
+  function emptyPara() {
+    var p = document.createElement("p");
+    p.appendChild(document.createElement("br"));
+    return p;
   }
   function insertColumns(area) {
     var grid = document.createElement("div");
     grid.className = "sf-grid";
-    ["{% trans 'Spalte 1' %}", "{% trans 'Spalte 2' %}"].forEach(function (label) {
+    [T.col1, T.col2].forEach(function (label) {
       var col = document.createElement("div");
       col.className = "sf-col-8";
       var p = document.createElement("p");
@@ -115,21 +216,40 @@ contenteditable и синкает HTML обратно (на вводе и на s
       col.appendChild(p);
       grid.appendChild(col);
     });
-    var after = document.createElement("p");
-    after.appendChild(document.createElement("br"));
-    var top = blockOf(area);
-    while (top && top.parentNode !== area) top = top.parentNode;
-    if (top) {
-      top.parentNode.insertBefore(after, top.nextSibling);
-      top.parentNode.insertBefore(grid, after);
-    } else {
-      area.appendChild(grid);
-      area.appendChild(after);
-    }
+    insertBlockAfterCurrent(area, grid, emptyPara());
     // Курсор — в первую колонку, её подпись выделена: набор текста её заменит.
     var r = document.createRange();
     r.selectNodeContents(grid.querySelector("p"));
     restore(area, r);
+  }
+  function insertRule(area) {
+    var after = emptyPara();
+    insertBlockAfterCurrent(area, document.createElement("hr"), after);
+    var r = document.createRange();
+    r.selectNodeContents(after);
+    r.collapse(true);
+    restore(area, r);
+  }
+  // --- фото: фигура = неделимый виджет (contenteditable=false, tabindex) ----------------
+  function prepFigure(fig) {
+    fig.setAttribute("contenteditable", "false");
+    fig.setAttribute("tabindex", "0");
+    fig.setAttribute("role", "group");
+    var img = fig.querySelector("img");
+    var alt = img ? img.getAttribute("alt") || "" : "";
+    fig.setAttribute("aria-label", T.image + ": " + (alt || T.altMissing));
+    fig.classList.toggle("rte-noalt", !alt && !fig.hasAttribute("data-decorative"));
+  }
+  function wrapImage(img) {
+    if (img.parentNode && img.parentNode.tagName === "FIGURE") return img.parentNode;
+    var fig = document.createElement("figure");
+    fig.className = "sf-img-full";
+    img.parentNode.insertBefore(fig, img);
+    fig.appendChild(img);
+    return fig;
+  }
+  function prepAll(area) {
+    area.querySelectorAll("figure").forEach(function (f) { if (f.querySelector("img")) prepFigure(f); });
   }
   function pickAndUpload(ta, area, range, done) {
     var input = document.createElement("input");
@@ -143,30 +263,215 @@ contenteditable и синкает HTML обратно (на вводе и на s
       var body = new FormData();
       body.append("image", file);
       body.append("csrfmiddlewaretoken", csrf ? csrf.value : "");
-      var status = ta.parentNode.querySelector("[data-rte-status]");
-      if (status) status.textContent = "{% trans 'Bild wird hochgeladen …' %}";
+      status(area, T.upload);
       fetch(ta.dataset.rteUpload, { method: "POST", body: body, credentials: "same-origin" })
         .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
         .then(function (res) {
           if (!res.ok || !res.d.url) throw new Error(res.d.error || "");
           area.focus();
           restore(area, range);
-          // Картинка своей строкой: текст после неё начинается с новой строки (как на витрине).
+          // Фото — своей строкой, по ширине текста; размер/положение — в окне фото.
+          var fig = document.createElement("figure");
+          fig.className = "sf-img-full";
           var img = document.createElement("img");
-          img.src = res.d.url;
-          img.alt = "";
-          var holder = document.createElement("div");
-          holder.appendChild(img);
-          holder.appendChild(document.createElement("br"));
-          document.execCommand("insertHTML", false, holder.innerHTML);
-          if (status) status.textContent = "";
+          img.setAttribute("src", res.d.url);
+          img.setAttribute("alt", "");
+          fig.appendChild(img);
+          insertBlockAfterCurrent(area, fig, emptyPara());
+          prepFigure(fig);
           done();
+          status(area, T.inserted);
+          openImage(area, fig);
         })
-        .catch(function (e) {
-          if (status) status.textContent = e.message || "{% trans 'Das Bild konnte nicht hochgeladen werden.' %}";
-        });
+        .catch(function (e) { status(area, e.message || T.uploadFail); });
     });
     input.click();
+  }
+  // Окно фото: не модальное (role=dialog, aria-modal=false), Esc закрывает и
+  // возвращает фокус на фигуру; изменения применяются сразу (+ статус).
+  var pop = null;
+  function closeImage(focusBack) {
+    if (!pop) return;
+    var fig = pop.__fig, area = pop.__area;
+    pop.remove();
+    pop = null;
+    if (fig) fig.classList.remove("rte-sel");
+    if (focusBack && fig && fig.isConnected) fig.focus();
+    else if (focusBack && area) area.focus();
+  }
+  function radioGroup(name, legend, options, current, onChange) {
+    var fs = document.createElement("fieldset");
+    var lg = document.createElement("legend");
+    lg.textContent = legend;
+    fs.appendChild(lg);
+    var box = document.createElement("div");
+    box.className = "rte-opts";
+    options.forEach(function (o) {
+      var lab = document.createElement("label");
+      var r = document.createElement("input");
+      r.type = "radio";
+      r.name = name;
+      r.value = o[0];
+      r.checked = o[0] === current;
+      r.addEventListener("change", function () { onChange(o[0], o[1]); });
+      lab.appendChild(r);
+      lab.appendChild(document.createTextNode(o[1]));
+      box.appendChild(lab);
+    });
+    fs.appendChild(box);
+    return fs;
+  }
+  function figSize(fig) {
+    var m = /\bsf-img-(sm|md|lg|full)\b/.exec(fig.className);
+    return m ? m[1] : "full";
+  }
+  function figPos(fig) {
+    if (fig.classList.contains("sf-float-left")) return "left";
+    if (fig.classList.contains("sf-float-right")) return "right";
+    return "center";
+  }
+  function textField(id, label, val, max) {
+    var lab = document.createElement("label");
+    lab.setAttribute("for", id);
+    lab.style.cssText = "display:block;font-weight:600;margin-top:.5rem";
+    lab.textContent = label;
+    var input = document.createElement("input");
+    input.type = "text";
+    input.id = id;
+    input.maxLength = max;
+    input.value = val;
+    return [lab, input];
+  }
+  function openImage(area, fig) {
+    closeImage(false);
+    var api = area.__rte;
+    var img = fig.querySelector("img");
+    if (!img) return;
+    fig.classList.add("rte-sel");
+    pop = document.createElement("div");
+    pop.className = "rte-pop";
+    pop.setAttribute("role", "dialog");
+    pop.setAttribute("aria-modal", "false");
+    pop.setAttribute("data-rte-pop", "");
+    var uid = "rte-pop-" + Math.random().toString(36).slice(2, 8);
+    pop.setAttribute("aria-labelledby", uid + "-h");
+    pop.__fig = fig;
+    pop.__area = area;
+    var head = document.createElement("div");
+    head.style.cssText = "display:flex;justify-content:space-between;align-items:center;gap:8px";
+    var h = document.createElement("h2");
+    h.id = uid + "-h";
+    h.style.cssText = "font-weight:700;font-size:1rem";
+    h.textContent = T.image;
+    var x = document.createElement("button");
+    x.type = "button";
+    x.textContent = "✕";
+    x.setAttribute("aria-label", T.close);
+    x.style.cssText = "min-width:32px;min-height:32px";
+    x.addEventListener("click", function () { closeImage(true); });
+    head.appendChild(h);
+    head.appendChild(x);
+    pop.appendChild(head);
+    function changed(msg) { api.sync(); prepFigure(fig); fig.classList.add("rte-sel"); api.snapshot(); if (msg) status(area, msg); }
+    pop.appendChild(radioGroup(uid + "-s", T.size, T.sizes, figSize(fig), function (v, label) {
+      fig.classList.remove("sf-img-sm", "sf-img-md", "sf-img-lg", "sf-img-full");
+      fig.classList.add("sf-img-" + v);
+      changed(T.size + ": " + label);
+    }));
+    pop.appendChild(radioGroup(uid + "-p", T.position, T.positions, figPos(fig), function (v, label) {
+      fig.classList.remove("sf-float-left", "sf-float-right", "sf-center");
+      fig.classList.add(v === "center" ? "sf-center" : "sf-float-" + v);
+      changed(T.position + ": " + label);
+    }));
+    var altPair = textField(uid + "-alt", T.alt, img.getAttribute("alt") || "", RULES.altMax);
+    var alt = altPair[1];
+    var help = document.createElement("p");
+    help.id = uid + "-help";
+    help.className = "rte-help";
+    alt.setAttribute("aria-describedby", help.id);
+    var deco = document.createElement("label");
+    deco.style.cssText = "display:flex;gap:6px;align-items:center;margin-top:.25rem";
+    var decoBox = document.createElement("input");
+    decoBox.type = "checkbox";
+    decoBox.checked = fig.hasAttribute("data-decorative");
+    deco.appendChild(decoBox);
+    deco.appendChild(document.createTextNode(T.decorative));
+    function altState() {
+      var missing = !alt.value.trim() && !decoBox.checked;
+      alt.setAttribute("aria-invalid", missing ? "true" : "false");
+      help.textContent = missing ? T.altMissing : T.altHelp;
+      help.style.color = missing ? "#b91c1c" : "#4b5563";
+      alt.disabled = decoBox.checked;
+    }
+    alt.addEventListener("input", function () {
+      img.setAttribute("alt", alt.value.slice(0, RULES.altMax));
+      altState();
+      changed("");
+    });
+    decoBox.addEventListener("change", function () {
+      if (decoBox.checked) { fig.setAttribute("data-decorative", ""); img.setAttribute("alt", ""); alt.value = ""; }
+      else fig.removeAttribute("data-decorative");
+      altState();
+      changed("");
+    });
+    pop.appendChild(altPair[0]);
+    pop.appendChild(alt);
+    pop.appendChild(help);
+    pop.appendChild(deco);
+    var fc = fig.querySelector("figcaption");
+    var capPair = textField(uid + "-cap", T.caption, fc ? fc.textContent : "", 300);
+    var cap = capPair[1];
+    cap.addEventListener("input", function () {
+      var c = fig.querySelector("figcaption");
+      if (!cap.value.trim()) { if (c) c.remove(); }
+      else {
+        if (!c) { c = document.createElement("figcaption"); fig.appendChild(c); }
+        c.textContent = cap.value;
+      }
+      changed("");
+    });
+    pop.appendChild(capPair[0]);
+    pop.appendChild(cap);
+    var row = document.createElement("div");
+    row.style.cssText = "display:flex;justify-content:space-between;gap:8px;margin-top:.75rem";
+    var rm = document.createElement("button");
+    rm.type = "button";
+    rm.className = "ui-btn ui-btn-sm ui-btn-danger";
+    rm.textContent = T.remove;
+    rm.addEventListener("click", function () {
+      var next = fig.nextSibling;
+      api.snapshot();
+      fig.remove();
+      pop.__fig = null;
+      closeImage(false);
+      area.focus();
+      if (next && area.contains(next)) {
+        var r = document.createRange();
+        r.setStartBefore(next);
+        r.collapse(true);
+        restore(area, r);
+      }
+      api.sync();
+      api.snapshot();
+      status(area, T.removed);
+    });
+    var ok = document.createElement("button");
+    ok.type = "button";
+    ok.className = "ui-btn ui-btn-sm ui-btn-primary";
+    ok.textContent = T.done;
+    ok.addEventListener("click", function () { closeImage(true); });
+    row.appendChild(rm);
+    row.appendChild(ok);
+    pop.appendChild(row);
+    pop.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") { e.preventDefault(); closeImage(true); }
+    });
+    altState();
+    document.body.appendChild(pop);
+    var rect = fig.getBoundingClientRect();
+    pop.style.top = (window.scrollY + rect.bottom + 8) + "px";
+    pop.style.left = Math.max(8, Math.min(window.scrollX + rect.left, window.scrollX + document.documentElement.clientWidth - pop.offsetWidth - 8)) + "px";
+    (decoBox.checked ? x : alt).focus();
   }
   function fill(area, v, page) {
     area.textContent = "";
@@ -180,88 +485,322 @@ contenteditable и синкает HTML обратно (на вводе и на s
     // DOMParser — инертный документ: скрипты и on*-обработчики там не исполняются.
     var doc = new DOMParser().parseFromString("<body>" + v + "</body>", "text/html");
     safeCopy(doc.body, page, area);
+    if (page) prepAll(area);
   }
+  // --- панель -------------------------------------------------------------------------
   function enhance(ta) {
     if (ta.dataset.rteDone) return;
     ta.dataset.rteDone = "1";
+    var page = ta.dataset.rte === "page";
     var wrap = document.createElement("div");
     var bar = document.createElement("div");
     bar.className = "rte-bar";
-    var CMDS = [
-      ["B", "bold", "{% trans 'Bold' %}"],
-      ["I", "italic", "{% trans 'Italic' %}"],
-      ["U", "underline", "{% trans 'Underline' %}"],
-      ["•", "insertUnorderedList", "{% trans 'List' %}"],
-      ["1.", "insertOrderedList", "{% trans 'Numbered list' %}"],
-      ["🔗", "createLink", "{% trans 'Link' %}"],
+    bar.setAttribute("role", "toolbar");
+    bar.setAttribute("aria-label", T.toolbar);
+    // [глиф, команда, подпись, переключатель?]
+    var GROUPS = [
+      ["{% trans 'Zeichen' as t %}{{ t|escapejs }}", [
+        ["B", "bold", "{% trans 'Fett (B)' as t %}{{ t|escapejs }}", 1],
+        ["I", "italic", "{% trans 'Kursiv (I)' as t %}{{ t|escapejs }}", 1],
+        ["U", "underline", "{% trans 'Unterstrichen (U)' as t %}{{ t|escapejs }}", 1],
+      ]],
+      ["{% trans 'Listen' as t %}{{ t|escapejs }}", [
+        ["•", "insertUnorderedList", "{% trans 'Liste' as t %}{{ t|escapejs }}", 1],
+        ["1.", "insertOrderedList", "{% trans 'Nummerierte Liste' as t %}{{ t|escapejs }}", 1],
+        ["🔗", "createLink", "{% trans 'Link' as t %}{{ t|escapejs }}"],
+      ]],
     ];
-    // M21.6: свои страницы сайта — ещё заголовки, обычный абзац и картинка.
-    if (ta.dataset.rte === "page") {
-      CMDS = [
-        ["H2", "h2", "{% trans 'Überschrift' %}"],
-        ["H3", "h3", "{% trans 'Zwischenüberschrift' %}"],
-        ["¶", "p", "{% trans 'Absatz' %}"],
-      ].concat(CMDS, [
-        ["↔", "center", "{% trans 'Zentriert' %}"],
-        ["▥", "columns", "{% trans 'Zwei Spalten' %}"],
-        ["🖼", "insertImage", "{% trans 'Bild' %}"],
+    // M21.6/M21.10: страницы сайта и правовые тексты — заголовки, выравнивание, вставки.
+    if (page) {
+      GROUPS = [
+        ["{% trans 'Absatz' as t %}{{ t|escapejs }}", [
+          ["H2", "h2", "{% trans 'Überschrift' as t %}{{ t|escapejs }}", 1],
+          ["H3", "h3", "{% trans 'Zwischenüberschrift' as t %}{{ t|escapejs }}", 1],
+          ["H4", "h4", "{% trans 'Kleine Überschrift' as t %}{{ t|escapejs }}", 1],
+          ["¶", "p", "{% trans 'Absatz' as t %}{{ t|escapejs }}"],
+          ["❝", "blockquote", "{% trans 'Zitat' as t %}{{ t|escapejs }}", 1],
+        ]],
+      ].concat(GROUPS, [
+        ["{% trans 'Ausrichtung' as t %}{{ t|escapejs }}", [
+          ["⇤", "sf-left", "{% trans 'Linksbündig' as t %}{{ t|escapejs }}", 1],
+          ["↔", "center", "{% trans 'Zentriert' as t %}{{ t|escapejs }}", 1],
+          ["⇥", "sf-right", "{% trans 'Rechtsbündig' as t %}{{ t|escapejs }}", 1],
+          ["☰", "sf-justify", "{% trans 'Blocksatz' as t %}{{ t|escapejs }}", 1],
+        ]],
+        ["{% trans 'Einfügen' as t %}{{ t|escapejs }}", [
+          ["🖼", "insertImage", "{% trans 'Bild einfügen' as t %}{{ t|escapejs }}"],
+          ["⚙", "imageSettings", "{% trans 'Bildeinstellungen (F2)' as t %}{{ t|escapejs }}"],
+          ["▥", "columns", "{% trans 'Zwei Spalten' as t %}{{ t|escapejs }}"],
+          ["―", "hr", "{% trans 'Trennlinie' as t %}{{ t|escapejs }}"],
+        ]],
       ]);
     }
+    GROUPS.push(["{% trans 'Verlauf' as t %}{{ t|escapejs }}", [
+      ["↶", "undo", "{% trans 'Rückgängig (Strg+Z)' as t %}{{ t|escapejs }}"],
+      ["↷", "redo", "{% trans 'Wiederholen (Strg+Y)' as t %}{{ t|escapejs }}"],
+    ]]);
     var area = document.createElement("div");
     area.className = "rte-area";
     area.contentEditable = "true";
     area.setAttribute("role", "textbox");
     area.setAttribute("aria-multiline", "true");
+    area.id = (ta.id || "rte" + Math.random().toString(36).slice(2, 8)) + "-area";
+    bar.setAttribute("aria-controls", area.id);
     if (ta.id) {
       var lab = document.querySelector('label[for="' + ta.id + '"]');
       if (lab) area.setAttribute("aria-label", lab.textContent.trim());
     }
-    if (ta.dataset.rte === "page") area.setAttribute("data-rte-page", "");
-    // M21.8 (security-review): значение textarea в innerHTML — только через белый
-    // список (как санитайзер сервера). Плоский текст — текстом, переносы → <br>.
-    fill(area, ta.value || "", ta.dataset.rte === "page");
-    CMDS.forEach(function (c) {
-      var b = document.createElement("button");
-      b.type = "button";
-      b.textContent = c[0];
-      b.title = c[2];
-      b.setAttribute("aria-label", c[2]);
-      if (c[0] === "B") b.style.fontWeight = "700";
-      if (c[0] === "I") b.style.fontStyle = "italic";
-      if (c[0] === "U") b.style.textDecoration = "underline";
-      // Выбор файла уводит фокус — место вставки запоминаем до клика (mousedown).
-      b.addEventListener("mousedown", function () { saved = currentRange(area); });
-      b.addEventListener("click", function () {
-        area.focus();
-        if (c[1] === "insertImage" && ta.dataset.rteUpload) {
-          pickAndUpload(ta, area, saved, sync);
-          return;
-        }
-        if (c[1] === "center") {
-          toggleCenter(area);
-        } else if (c[1] === "columns") {
-          insertColumns(area);
-        } else if (c[1] === "createLink") {
-          var url = window.prompt("URL (https://…)", "https://");
-          if (url) document.execCommand("createLink", false, url);
-        } else if (c[1] === "insertImage") {
-          var src = window.prompt("{% trans 'Bild-Adresse' %} (/media/…)", "/media/");
-          if (src) document.execCommand("insertImage", false, src);
-        } else if (c[1] === "h2" || c[1] === "h3" || c[1] === "p") {
-          document.execCommand("formatBlock", false, c[1]);
-        } else {
-          document.execCommand(c[1], false, null);
-        }
-        sync();
-      });
-      bar.appendChild(b);
-    });
+    if (page) area.setAttribute("data-rte-page", "");
+    var st = ta.parentNode.querySelector("[data-rte-status]");
+    if (st) area.__status = st;
+    // M21.8 (security-review): значение textarea в DOM — только через белый список.
+    fill(area, ta.value || "", page);
+    // --- история (своя: правки классов/фигур execCommand не видит) --------------------
+    var past = [], future = [];
+    var buttons = [];
+    var byCmd = {};
     function sync() { ta.value = value(area); }
-    area.addEventListener("input", sync);
+    function snapshot() {
+      var html = area.innerHTML;
+      if (past[past.length - 1] !== html) {
+        past.push(html);
+        future = [];
+      }
+      if (past.length > 60) past.shift();
+      refresh();
+    }
+    function restoreHtml(html) {
+      area.innerHTML = html;
+      area.querySelectorAll("figure.rte-sel").forEach(function (f) { f.classList.remove("rte-sel"); });
+      sync();
+    }
+    function undo() {
+      closeImage(false);
+      if (past.length < 2) return;
+      future.push(past.pop());
+      restoreHtml(past[past.length - 1]);
+      status(area, T.undone);
+      refresh();
+    }
+    function redo() {
+      closeImage(false);
+      if (!future.length) return;
+      var html = future.pop();
+      past.push(html);
+      restoreHtml(html);
+      status(area, T.redone);
+      refresh();
+    }
+    area.__rte = { snapshot: snapshot, sync: sync };
+    GROUPS.forEach(function (g) {
+      var grp = document.createElement("div");
+      grp.className = "rte-group";
+      grp.setAttribute("role", "group");
+      grp.setAttribute("aria-label", g[0]);
+      g[1].forEach(function (c) {
+        var b = document.createElement("button");
+        b.type = "button";
+        b.tabIndex = buttons.length ? -1 : 0;
+        b.setAttribute("data-rte-cmd", c[1]);
+        var glyph = document.createElement("span");
+        glyph.setAttribute("aria-hidden", "true");
+        glyph.textContent = c[0];
+        b.appendChild(glyph);
+        b.title = c[2];
+        b.setAttribute("aria-label", c[2]);
+        if (c[3]) b.setAttribute("aria-pressed", "false");
+        if (c[0] === "B") b.style.fontWeight = "700";
+        if (c[0] === "I") b.style.fontStyle = "italic";
+        if (c[0] === "U") b.style.textDecoration = "underline";
+        // Клик не уводит фокус и выделение из текста (иначе команда применится не туда).
+        b.addEventListener("mousedown", function (e) { saved = currentRange(area); e.preventDefault(); });
+        b.addEventListener("click", function () { run(c[1]); });
+        b.addEventListener("focus", function () {
+          buttons.forEach(function (x) { x.tabIndex = -1; });
+          b.tabIndex = 0;
+        });
+        buttons.push(b);
+        byCmd[c[1]] = b;
+        grp.appendChild(b);
+      });
+      bar.appendChild(grp);
+    });
+    function selectedFigure() {
+      var sel = area.querySelector("figure.rte-sel");
+      if (sel) return sel;
+      var active = document.activeElement;
+      if (active && active.tagName === "FIGURE" && area.contains(active)) return active;
+      var r = saved || currentRange(area);
+      var n = r ? r.startContainer : null;
+      while (n && n !== area) {
+        if (n.nodeType === 1 && n.tagName === "FIGURE") return n;
+        n = n.parentNode;
+      }
+      if (r && r.startContainer === area) {
+        var near = area.childNodes[r.startOffset] || area.childNodes[r.startOffset - 1];
+        if (near && near.tagName === "FIGURE") return near;
+      }
+      return null;
+    }
+    function run(cmd) {
+      if (cmd === "undo") { undo(); return; }
+      if (cmd === "redo") { redo(); return; }
+      if (cmd === "imageSettings") {
+        var fig = selectedFigure();
+        if (fig) openImage(area, fig);
+        return;
+      }
+      area.focus();
+      restore(area, saved || currentRange(area));
+      if (cmd === "insertImage" && ta.dataset.rteUpload) {
+        pickAndUpload(ta, area, saved, function () { sync(); snapshot(); });
+        return;
+      }
+      if (cmd === "center") {
+        setAlign(area, "sf-center");
+      } else if (cmd === "sf-left" || cmd === "sf-right" || cmd === "sf-justify") {
+        setAlign(area, cmd);
+      } else if (cmd === "columns") {
+        insertColumns(area);
+      } else if (cmd === "hr") {
+        insertRule(area);
+      } else if (cmd === "createLink") {
+        var url = window.prompt(T.linkUrl, "https://");
+        if (url && /^(https?:|mailto:|tel:)/i.test(url)) document.execCommand("createLink", false, url);
+      } else if (cmd === "insertImage") {
+        var src = window.prompt("{% trans 'Bild-Adresse' as t %}{{ t|escapejs }} (/media/…)", "/media/");
+        if (src) document.execCommand("insertImage", false, src);
+      } else if (/^(h2|h3|h4|p|blockquote)$/.test(cmd)) {
+        var cur = blockOf(area);
+        var same = cur && cur.tagName.toLowerCase() === cmd && cmd !== "p";
+        document.execCommand("formatBlock", false, same ? "p" : cmd);
+      } else {
+        document.execCommand(cmd, false, null);
+      }
+      sync();
+      snapshot();
+    }
+    // Состояние кнопок-переключателей (aria-pressed) — по текущему выделению.
+    function refresh() {
+      if (byCmd.undo) byCmd.undo.setAttribute("aria-disabled", past.length > 1 ? "false" : "true");
+      if (byCmd.redo) byCmd.redo.setAttribute("aria-disabled", future.length ? "false" : "true");
+      if (byCmd.imageSettings) byCmd.imageSettings.setAttribute("aria-disabled", selectedFigure() ? "false" : "true");
+      if (!currentRange(area)) return;
+      ["bold", "italic", "underline", "insertUnorderedList", "insertOrderedList"].forEach(function (c) {
+        if (!byCmd[c]) return;
+        var on = false;
+        try { on = document.queryCommandState(c); } catch (e) { on = false; }
+        byCmd[c].setAttribute("aria-pressed", on ? "true" : "false");
+      });
+      var b = blockOf(area);
+      ["h2", "h3", "h4", "blockquote"].forEach(function (t) {
+        if (byCmd[t]) byCmd[t].setAttribute("aria-pressed", b && b.tagName.toLowerCase() === t ? "true" : "false");
+      });
+      var map = { "sf-left": "sf-left", center: "sf-center", "sf-right": "sf-right", "sf-justify": "sf-justify" };
+      Object.keys(map).forEach(function (cmd) {
+        if (byCmd[cmd]) byCmd[cmd].setAttribute("aria-pressed", b && b.classList.contains(map[cmd]) ? "true" : "false");
+      });
+    }
+    document.addEventListener("selectionchange", function () {
+      if (document.activeElement === area || area.contains(document.activeElement)) refresh();
+    });
+    // Roving tabindex: ←/→ по кнопкам, Home/End, Esc — обратно в текст.
+    bar.addEventListener("keydown", function (e) {
+      var i = buttons.indexOf(document.activeElement);
+      if (i < 0) return;
+      var j = null;
+      if (e.key === "ArrowRight") j = (i + 1) % buttons.length;
+      else if (e.key === "ArrowLeft") j = (i - 1 + buttons.length) % buttons.length;
+      else if (e.key === "Home") j = 0;
+      else if (e.key === "End") j = buttons.length - 1;
+      else if (e.key === "Escape") { e.preventDefault(); area.focus(); restore(area, saved); return; }
+      if (j !== null) { e.preventDefault(); buttons[j].focus(); }
+    });
+    function removeFigure(fig) {
+      snapshot();
+      var nx = fig.nextSibling;
+      fig.remove();
+      area.focus();
+      if (nx) {
+        var rr = document.createRange();
+        rr.setStartBefore(nx);
+        rr.collapse(true);
+        restore(area, rr);
+      }
+      sync();
+      snapshot();
+      status(area, T.removed);
+    }
+    area.addEventListener("keydown", function (e) {
+      var mod = e.ctrlKey || e.metaKey;
+      var k = (e.key || "").toLowerCase();
+      if (mod && !e.shiftKey && k === "z") { e.preventDefault(); undo(); return; }
+      if (mod && (k === "y" || (e.shiftKey && k === "z"))) { e.preventDefault(); redo(); return; }
+      if (e.altKey && e.key === "F10") {
+        e.preventDefault();
+        saved = currentRange(area);
+        (bar.querySelector('button[tabindex="0"]') || buttons[0]).focus();
+        return;
+      }
+      var fig = e.target && e.target.tagName === "FIGURE" ? e.target : null;
+      if (fig) {
+        if (e.key === "Enter" || e.key === " " || e.key === "F2") { e.preventDefault(); openImage(area, fig); }
+        else if (e.key === "Delete" || e.key === "Backspace") { e.preventDefault(); removeFigure(fig); }
+        return;
+      }
+      if (e.key === "F2" && page) {
+        var f = selectedFigure();
+        if (f) { e.preventDefault(); openImage(area, f); }
+      }
+    });
+    area.addEventListener("click", function (e) {
+      if (!page) return;
+      var img = e.target.closest && e.target.closest("img");
+      if (!img || !area.contains(img)) return;
+      var fig = wrapImage(img);
+      prepFigure(fig);
+      sync();
+      snapshot();
+      openImage(area, fig);
+    });
+    // Вставка из буфера — через белый список (стили, скрипты, on* из Word/сайтов не попадут).
+    area.addEventListener("paste", function (e) {
+      var cd = e.clipboardData;
+      if (!cd) return;
+      e.preventDefault();
+      var html = cd.getData("text/html");
+      if (html) {
+        var doc = new DOMParser().parseFromString("<body>" + html + "</body>", "text/html");
+        var frag = document.createDocumentFragment();
+        safeCopy(doc.body, page, frag);
+        // Вставка узлами, а не insertHTML: Chrome добавил бы к ним инлайн-стили.
+        var r = currentRange(area);
+        if (r) {
+          r.deleteContents();
+          var last = frag.lastChild;
+          r.insertNode(frag);
+          if (last) { r.setStartAfter(last); r.collapse(true); restore(area, r); }
+        }
+        if (page) prepAll(area);
+      } else {
+        document.execCommand("insertText", false, cd.getData("text/plain"));
+      }
+      sync();
+      snapshot();
+    });
+    var typingTimer = null;
+    area.addEventListener("input", function () {
+      sync();
+      clearTimeout(typingTimer);
+      typingTimer = setTimeout(snapshot, 500);
+    });
+    // M21.10: внешнее «подставить текст» (автотекст правовой страницы) — через белый список.
+    ta.addEventListener("rte:set", function () { fill(area, ta.value || "", page); sync(); snapshot(); });
     ta.classList.add("hidden");
     ta.insertAdjacentElement("afterend", wrap);
     wrap.appendChild(bar);
     wrap.appendChild(area);
+    snapshot();
     var form = ta.closest("form");
     if (form && !form.dataset.rteSubmitBound) {
       form.dataset.rteSubmitBound = "1";
@@ -275,6 +814,9 @@ contenteditable и синкает HTML обратно (на вводе и на s
       });
     }
   }
+  document.addEventListener("click", function (e) {
+    if (pop && !pop.contains(e.target) && !(pop.__fig && pop.__fig.contains(e.target))) closeImage(false);
+  });
   function init() {
     document
       // M21.8: любое поле с data-rte (описания, правовые тексты, блог …) в любом кабинете.

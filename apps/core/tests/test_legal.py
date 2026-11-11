@@ -111,26 +111,20 @@ def _cab_req(method="get", data=None, tenant=None):
     return req
 
 
-def test_cabinet_renders_kinds_and_locales():
-    body = core_views.legal_docs_view(_cab_req()).content.decode()
-    for label in ("Impressum", "Datenschutz", "Widerruf", "AGB"):
-        assert label in body
-    assert 'name="doc_agb_de"' in body and 'name="doc_agb_en"' in body
-
-
-def test_cabinet_saves_and_deletes_rows():
+def test_recht_screen_links_texts_to_seiten_and_ignores_old_doc_fields():
+    """M21.10: тексты правятся в «Website › Seiten»; «Recht & Steuern» — реквизиты и
+    ссылки. Старый POST с doc_* (закешированная форма) ничего не пишет и не удаляет."""
     tenant = _tenant()
-    resp = core_views.legal_docs_view(
-        _cab_req("post", {"doc_agb_de": "Neue AGB", "doc_impressum_de": ""}, tenant)
-    )
-    assert resp.status_code == 302
-    assert LegalDoc.objects.get(kind="agb", locale="de").text == "Neue AGB"
-    # presence-guard: неприсланные поля не создаются
-    assert not LegalDoc.objects.filter(kind="datenschutz").exists()
-    # пустая textarea удаляет строку
+    body = core_views.legal_docs_view(_cab_req(tenant=tenant)).content.decode()
+    for kind in ("impressum", "datenschutz", "widerruf", "agb"):
+        assert f"/dashboard/site/seiten/recht/{kind}/" in body
+    assert 'name="doc_' not in body
     LegalDoc.objects.create(kind="widerruf", locale="de", text="Alt")
-    core_views.legal_docs_view(_cab_req("post", {"doc_widerruf_de": "  "}, tenant))
-    assert not LegalDoc.objects.filter(kind="widerruf").exists()
+    core_views.legal_docs_view(
+        _cab_req("post", {"doc_agb_de": "Neu", "doc_widerruf_de": ""}, tenant)
+    )
+    assert not LegalDoc.objects.filter(kind="agb").exists()
+    assert LegalDoc.objects.get(kind="widerruf").text == "Alt"
 
 
 # --- демо-засев -----------------------------------------------------------------
@@ -151,14 +145,9 @@ def test_seed_legal_docs_creates_honest_texts():
     assert "Bitte passen Sie diesen Text" not in ds  # без placeholder-хинта
 
 
-def test_sp4_legal_screen_in_tabs_all_fields_stay_in_dom():
-    """SP-4 (аудит пространства 2026-11-02): реквизиты и правовые тексты — вкладками
-    вместо стопки ~2300 px; все поля всех вкладок в DOM (Save отправляет всё, W0)."""
+def test_sp4_legal_screen_keeps_tax_fields_in_dom():
+    """SP-4/M21.10: реквизиты на «Recht & Steuern» — все поля в DOM (W0)."""
     body = core_views.legal_docs_view(_cab_req()).content.decode()
-    tabs = body.split("data-legal-tabs")[1].split("</div>")[0]
-    for key in ("steuer", "impressum", "datenschutz", "widerruf", "agb"):
-        assert f'data-pf-tab="{key}"' in tabs
-        assert f'data-pf-panel="{key}"' in body
-    assert 'name="vat_id"' in body and 'name="doc_widerruf_de"' in body
-    assert 'data-pf-panel="impressum"' in body.split('class="ui-card p-6 space-y-3 hidden"')[1][:80]
-    assert "max-w-5xl" in body and "max-w-3xl" not in body.split("data-legal-tabs")[0][-2000:]
+    for name in ("vat_id", "tax_number", "legal_form", "register_court", "legal_responsible"):
+        assert f'name="{name}"' in body
+    assert "max-w-5xl" in body

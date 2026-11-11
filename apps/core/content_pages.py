@@ -29,7 +29,14 @@ SYSTEM_LABELS = {
     "versand": _("Wird auf der Seite „Versand“ angezeigt"),
     "ueber-uns": _("Wird auf der Seite „Über uns“ angezeigt"),
 }
+#: M21.10: заголовок новой системной страницы по умолчанию.
+SYSTEM_TITLES = {
+    "ueber-uns": _("Über uns"),
+    "versand": _("Versand & Zahlung"),
+}
 SLUG_MAX = 80
+#: M21.10: потолок текста страницы (DoS через гигантский POST/nh3).
+BODY_MAX = 200_000
 _SLUG_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 
 
@@ -66,7 +73,13 @@ def save_page(
     title = (title or "").strip()[:200]
     if not title:
         raise PageError(_("Bitte einen Titel angeben."))
+    if len(body or "") > BODY_MAX:
+        raise PageError(_("Der Text ist zu lang."))
     old_slug = "" if page._state.adding else page.slug
+    # M21.10: адрес системной страницы закреплён — иначе текст «Versand» уехал бы
+    # на /seite/<…>/, а /versand/ остался бы без него.
+    if old_slug in SYSTEM_PAGES or (page._state.adding and page.slug in SYSTEM_PAGES):
+        slug = old_slug or page.slug
     new_slug = clean_slug(slug or old_slug or title, exclude_pk=page.pk)
     page.title = title
     page.slug = new_slug
@@ -220,3 +233,65 @@ def system_shows_shipping_methods(slug: str = "versand") -> bool:
     страницы — показываем всегда: это единственная информация о доставке)."""
     page = published(slug)
     return page.show_shipping_methods if page else True
+
+
+# --- M21.10: системные страницы в «Seiten» ---------------------------------------------
+
+
+def system_available(slug: str, tenant=None) -> bool:
+    """Показывать ли системную страницу в «Seiten» (у «Versand» — пока магазин
+    принимает заказы: без модуля /versand/ отдаёт 404)."""
+    if slug not in SYSTEM_PAGES:
+        return False
+    return slug == "ueber-uns" or system_url(slug, tenant) is not None
+
+
+def _about_html(tenant) -> str:
+    """Текст «Über uns» с главной (плоский) → абзацы страницы. Экранируем ДО разметки:
+    в плоском тексте «<b>» — это буквы, а не тег."""
+    from django.utils.html import escape
+
+    text = ((getattr(tenant, "site_config", None) or {}).get("about_text") or "").strip()
+    if not text:
+        return ""
+    paras = [p.strip() for p in text.replace("\r", "").split("\n\n") if p.strip()]
+    return "".join("<p>" + escape(p).replace("\n", "<br>") + "</p>" for p in paras)
+
+
+def initial_system_page(slug: str, tenant=None):
+    """Несохранённая системная страница для формы «Bearbeiten» (GET ничего не пишет:
+    запись — только «Speichern»). «Über uns» начинается с текста главной."""
+    from apps.core.models import ContentPage
+
+    body = _about_html(tenant) if slug == "ueber-uns" else ""
+    return ContentPage(
+        slug=slug, title=str(SYSTEM_TITLES.get(slug, slug)), body=body, is_published=True
+    )
+
+
+def system_rows(tenant=None) -> list:
+    """Строки «Systemseiten» хаба — только чтение. state: own | draft | auto."""
+    from types import SimpleNamespace
+
+    from apps.core.models import ContentPage
+
+    pages = {p.slug: p for p in ContentPage.objects.filter(slug__in=list(SYSTEM_PAGES))}
+    rows = []
+    for slug in SYSTEM_PAGES:
+        if not system_available(slug, tenant):
+            continue
+        page = pages.get(slug)
+        if page is None:
+            state = "auto"
+        else:
+            state = "own" if page.is_published else "draft"
+        rows.append(
+            SimpleNamespace(
+                slug=slug,
+                title=page.title if page else str(SYSTEM_TITLES[slug]),
+                url=system_url(slug, tenant) or "",
+                page=page,
+                state=state,
+            )
+        )
+    return rows

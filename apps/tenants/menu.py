@@ -38,6 +38,13 @@ _PAGE_URL_NAMES = {
     # Кит TOURS ссылался на страницу "contact" — цели с таким именем не было,
     # и пункт молча выпадал из меню (узел без ссылки отбрасывается).
     "contact": "storefront-message",  # /nachricht/ — форма связи
+    # M21.10: текстовые страницы — в меню/подвал можно поставить и «Versand», и
+    # правовые страницы (раньше их не было в селекте целей вовсе).
+    "shipping": "storefront-shipping",  # /versand/ — пока магазин принимает заказы
+    "impressum": "storefront-impressum",
+    "privacy": "storefront-privacy",
+    "withdrawal": "storefront-withdrawal",
+    "agb": "storefront-agb",  # /agb/ — только при тексте (иначе 404)
 }
 
 # Подписи целей для редактора меню в кабинете. Список страниц там был захардкожен
@@ -57,6 +64,11 @@ PAGE_TARGET_LABELS = {
     "wishlist": _("Merkzettel"),
     "account": _("Mein Konto"),
     "contact": _("Kontakt"),
+    "shipping": _("Versand"),
+    "impressum": _("Impressum"),
+    "privacy": _("Datenschutz"),
+    "withdrawal": _("Widerruf"),
+    "agb": _("AGB"),
 }
 
 
@@ -83,15 +95,24 @@ _PAGE_MODULE_GATES = {
     "wishlist": "orders",
     "account": "customer_account",
     "contact": "inbox",
+    "shipping": "orders",  # M21.10: /versand/ отдаёт 404 без модуля заказов
 }
 
 # ST-8: чем «наполнена» страница (ключ site_config или запрос) — гейт пункта меню.
-_PAGE_CONTENT_GATES = ("gallery", "team", "reviews", "combos")
+_PAGE_CONTENT_GATES = ("gallery", "team", "reviews", "combos", "agb")
 
 
 def _content_probe(tenant, target: str) -> bool:
     """Проверка наполненности. Запросы — fail-closed: сбой чтения прячет ПУНКТ
     МЕНЮ, но не роняет страницу (то же правило, что у `storefront_reviews`)."""
+    if target == "agb":
+        # M21.10: /agb/ без текста отдаёт 404 — пункт меню гаснет так же.
+        try:
+            from apps.core.legal import legal_text
+
+            return bool((legal_text(tenant, "agb") or "").strip())
+        except Exception:  # noqa: BLE001 — гейт пункта меню не роняет страницу
+            return False
     if target != "combos":
         cfg = siteconfig.normalize(tenant.site_config)
         if target == "gallery":

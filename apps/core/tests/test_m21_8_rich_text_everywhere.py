@@ -92,7 +92,7 @@ CABINET = [
     "events/blog_edit.html",
     "promotions/promotion_form.html",
     "catalog/combo_form.html",
-    "tenant/legal_docs.html",
+    "tenant/legal_page_form.html",
 ]
 
 
@@ -107,7 +107,7 @@ def test_forms_mark_long_text_widgets_for_the_editor():
     assert "data-rte" in EventForm.Meta.widgets["description"].attrs
     assert "data-rte" in TourForm.Meta.widgets["description"].attrs
     assert "data-rte" in TeacherForm.Meta.widgets["bio"].attrs
-    assert 'data-rte="page"' in (ROOT / "templates/tenant/legal_docs.html").read_text()
+    assert 'data-rte="page"' in (ROOT / "templates/tenant/legal_page_form.html").read_text()
 
 
 def test_overlay_translation_of_long_text_is_sanitized(settings):

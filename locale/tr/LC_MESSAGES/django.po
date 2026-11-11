@@ -36833,3 +36833,123 @@ msgstr "Liste „Ödeme ve teslimat“ bölümünden gelir. Yalnızca metniniz g
 
 msgid "Versandarten ändern"
 msgstr "Gönderim yöntemlerini değiştir"
+
+msgid "Alle Textseiten Ihrer Website an einem Ort: Über uns, Versand, Rechtstexte und eigene Seiten. In das Menü kommt eine Seite über „Website › Menü“."
+msgstr "Web sitenizin tüm metin sayfaları tek yerde: Hakkımızda, Kargo, yasal metinler ve kendi sayfalarınız. Bir sayfayı menüye “Web sitesi › Menü” üzerinden ekleyin."
+
+msgid "Ausrichtung"
+msgstr "Hizalama"
+
+msgid "Automatischen Text übernehmen"
+msgstr "Otomatik metni kullan"
+
+msgid "Beschreiben Sie, was zu sehen ist."
+msgstr "Görselde ne olduğunu açıklayın."
+
+msgid "Bild einfügen"
+msgstr "Görsel ekle"
+
+msgid "Bild eingefügt. Bitte eine Bildbeschreibung eingeben."
+msgstr "Görsel eklendi. Lütfen bir görsel açıklaması girin."
+
+msgid "Bild entfernen"
+msgstr "Görseli kaldır"
+
+msgid "Bild entfernt."
+msgstr "Görsel kaldırıldı."
+
+msgid "Bildbeschreibung (für Screenreader und Suchmaschinen)"
+msgstr "Görsel açıklaması (ekran okuyucular ve arama motorları için)"
+
+msgid "Bildbeschreibung fehlt"
+msgstr "Görsel açıklaması eksik"
+
+msgid "Bildeinstellungen (F2)"
+msgstr "Görsel ayarları (F2)"
+
+msgid "Bildunterschrift (sichtbar, optional)"
+msgstr "Görsel altyazısı (görünür, isteğe bağlı)"
+
+msgid "Bitte das Bild beschreiben oder als dekorativ markieren."
+msgstr "Lütfen görseli açıklayın veya dekoratif olarak işaretleyin."
+
+msgid "Blocksatz"
+msgstr "İki yana yasla"
+
+msgid "Dekoratives Bild (keine Beschreibung nötig)"
+msgstr "Dekoratif görsel (açıklama gerekmez)"
+
+msgid "Der Text ist zu lang."
+msgstr "Metin çok uzun."
+
+msgid "Eigenen Text löschen (Standard wiederherstellen)"
+msgstr "Kendi metnini sil (varsayılanı geri yükle)"
+
+msgid "Einfügen"
+msgstr "Ekle"
+
+msgid "Fett (B)"
+msgstr "Kalın (B)"
+
+msgid "Impressum, Datenschutz, Widerruf und AGB bearbeiten Sie wie alle Seiten Ihrer Website."
+msgstr "Künye, gizlilik, cayma hakkı ve genel şartları web sitenizin tüm sayfaları gibi düzenlersiniz."
+
+msgid "Kleine Überschrift"
+msgstr "Küçük başlık"
+
+msgid "Kursiv (I)"
+msgstr "İtalik (I)"
+
+msgid "Link-Adresse (https://…)"
+msgstr "Bağlantı adresi (https://…)"
+
+msgid "Links, Text daneben"
+msgstr "Solda, metin yanında"
+
+msgid "Listen"
+msgstr "Listeler"
+
+msgid "Mittig"
+msgstr "Ortada"
+
+msgid "Nummerierte Liste"
+msgstr "Numaralı liste"
+
+msgid "Nur Inhaber/in"
+msgstr "Yalnızca işletme sahibi"
+
+msgid "Nur Versandarten"
+msgstr "Yalnızca kargo yöntemleri"
+
+msgid "Rechts, Text daneben"
+msgstr "Sağda, metin yanında"
+
+msgid "Rechtsbündig"
+msgstr "Sağa yasla"
+
+msgid "Rückgängig (Strg+Z)"
+msgstr "Geri al (Ctrl+Z)"
+
+msgid "Seiten Ihrer Website"
+msgstr "Web sitenizin sayfaları"
+
+msgid "Text von der Startseite"
+msgstr "Ana sayfadaki metin"
+
+msgid "Textformatierung"
+msgstr "Metin biçimlendirme"
+
+msgid "Trennlinie"
+msgstr "Ayırıcı çizgi"
+
+msgid "Unterstrichen (U)"
+msgstr "Altı çizili (U)"
+
+msgid "Versand & Zahlung"
+msgstr "Kargo ve ödeme"
+
+msgid "Wiederholen (Strg+Y)"
+msgstr "Yinele (Ctrl+Y)"
+
+msgid "Zeichen"
+msgstr "Karakter"

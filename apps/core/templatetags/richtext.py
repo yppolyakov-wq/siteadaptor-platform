@@ -48,7 +48,7 @@ def rich_block(text, css="", edit_model="", edit_pk="", edit_field="", mode=""):
     if richtext.is_rich(text):
         return format_html(
             '<div class="{}">{}</div>',
-            f"{css} rich-text".strip(),
+            f"{css} rich-text{' sf-page-body' if mode == 'page' else ''}".strip(),
             mark_safe(  # noqa: S308 — санитайз здесь же
                 richtext.sanitize_page(text) if mode == "page" else richtext.sanitize(text)
             ),
@@ -66,3 +66,12 @@ def rich_block(text, css="", edit_model="", edit_pk="", edit_field="", mode=""):
     return format_html(
         '<div class="{}"{}>{}</div>', f"{css} whitespace-pre-line".strip(), edit, text
     )
+
+
+@register.simple_tag
+def rte_rules_json():
+    """M21.10: белый список редактора — из того же источника, что санитайзер
+    (``richtext.editor_rules``), чтобы JS и сервер не расходились."""
+    from django.utils.html import json_script
+
+    return json_script(richtext.editor_rules(), "rte-rules")

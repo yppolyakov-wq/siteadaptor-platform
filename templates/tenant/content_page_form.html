@@ -20,11 +20,20 @@
       <label class="block text-sm font-medium">{% trans "Titel" %}
         <input type="text" name="title" value="{{ page.title }}" required maxlength="200" class="ui-input mt-1 w-full">
       </label>
+      {% if is_system %}
+      {% comment %}M21.10: адрес системной страницы закреплён (/versand/, /ueber-uns/).{% endcomment %}
+      <div class="text-sm" data-system-slug>
+        <span class="block font-medium">{% trans "Adresse" %}</span>
+        <span class="mt-1 block text-gray-600">{{ system_label }}</span>
+        <input type="hidden" name="slug" value="{{ page.slug }}">
+      </div>
+      {% else %}
       <label class="block text-sm font-medium">{% trans "Adresse" %}
         <span class="mt-1 flex items-center gap-1"><span class="text-gray-500 text-sm" aria-hidden="true">/seite/</span>
           <input type="text" name="slug" value="{{ page.slug }}" maxlength="80" pattern="[a-z0-9\-]*" class="ui-input w-full" aria-describedby="slug-hint"></span>
         <span id="slug-hint" class="block text-xs text-gray-500 font-normal mt-1">{% trans "Leer lassen — die Adresse entsteht aus dem Titel." %}{% if system_label %} {{ system_label }}.{% endif %}</span>
       </label>
+      {% endif %}
     </div>
     <label class="block text-sm font-medium" for="page-body">{% trans "Text" %}</label>
     <textarea id="page-body" name="body" rows="16" data-rte="page" data-rte-upload="{% url 'content-page-image' %}" class="ui-input w-full">{{ page.body }}</textarea>
@@ -55,7 +64,11 @@
   {% if is_saved and 'content-page-new'|can_open:request %}
   <form method="post" action="{% url 'content-page-delete' page.pk %}" class="mt-4">
     {% csrf_token %}
+    {% if is_system %}
+    <button class="ui-btn ui-btn-danger" data-confirm-tap="{% trans 'Wirklich löschen?' %}">{% trans "Eigenen Text löschen (Standard wiederherstellen)" %}</button>
+    {% else %}
     <button class="ui-btn ui-btn-danger" data-confirm-tap="{% trans 'Wirklich löschen?' %}">{% trans "Seite löschen" %}</button>
+    {% endif %}
   </form>
   {% endif %}
 </div>

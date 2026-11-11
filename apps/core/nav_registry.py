@@ -1074,7 +1074,7 @@ ENTRIES: tuple[NavEntry, ...] = (
         "content-pages",
         None,
         True,
-        "eigene seiten textseiten versand zahlung inhalte cms",
+        "eigene seiten textseiten versand zahlung inhalte cms impressum datenschutz agb ueber uns",
     ),
     # M21.1: старые адреса после переезда с другой платформы (301/410).
     _e(
