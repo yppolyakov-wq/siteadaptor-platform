@@ -155,16 +155,23 @@ def discard(request, code: str) -> None:
 
 
 @transaction.atomic
-def commit(request, tenant, code: str, *, force: bool = False) -> None:
+def commit(request, tenant, code: str, *, force: bool = False) -> bool:
     """Записать черновик страницы на сайт. `DraftConflict`, если сохранённое успели
-    изменить в другом месте (и не задан `force`)."""
+    изменить в другом месте (и не задан `force`). False — черновика нет (двойная
+    отправка, сессия истекла): вызывающий не должен сообщать об успехе."""
     from apps.tenants import siteconfig
     from apps.tenants.models import Tenant
 
     draft = get(request, code)
     if not draft:
-        return
-    _pt, host, home = site_schema.resolve(tenant, code)
+        return False
+    try:
+        _pt, host, home = site_schema.resolve(tenant, code)
+    except site_schema.SchemaError:
+        # Страницы больше нет (модуль выключен, страница удалена): черновик некуда
+        # записать — убираем его, иначе он висел бы невидимым до конца сессии.
+        _put(request, code, None)
+        raise
     locked = Tenant.objects.select_for_update().get(pk=tenant.pk)
     config = siteconfig.normalize(locked.site_config)
     if not force and _fingerprint(_saved_state(config, home, host)) != draft.get("base"):
@@ -179,3 +186,12 @@ def commit(request, tenant, code: str, *, force: bool = False) -> None:
     locked.save(update_fields=["site_config", "updated_at"])
     tenant.site_config = locked.site_config
     _put(request, code, None)
+    return True
+
+
+def prune(request, known_codes) -> None:
+    """Убрать черновики страниц, которых на экране больше нет (тип выключен, страница
+    удалена) — открыть их нельзя, а место в сессии они занимали бы до её конца."""
+    known = set(known_codes)
+    for code in [c for c in _all(request) if c not in known]:
+        _put(request, code, None)

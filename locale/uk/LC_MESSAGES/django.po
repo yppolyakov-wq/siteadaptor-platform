@@ -37441,3 +37441,6 @@ msgstr[0] "%(n)s зміна ще не на сайті"
 msgstr[1] "%(n)s зміни ще не на сайті"
 msgstr[2] "%(n)s змін ще не на сайті"
 msgstr[3] "%(n)s зміни ще не на сайті"
+
+msgid "Es gibt keinen Entwurf mehr – bitte die Änderungen erneut vornehmen."
+msgstr "Чернетки більше немає — внесіть зміни знову."

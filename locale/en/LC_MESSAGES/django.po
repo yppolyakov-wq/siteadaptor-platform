@@ -37117,3 +37117,6 @@ msgid "%(n)s Änderung noch nicht auf der Website"
 msgid_plural "%(n)s Änderungen noch nicht auf der Website"
 msgstr[0] "%(n)s change not yet on the website"
 msgstr[1] "%(n)s changes not yet on the website"
+
+msgid "Es gibt keinen Entwurf mehr – bitte die Änderungen erneut vornehmen."
+msgstr "There is no draft any more – please make the changes again."

@@ -33,8 +33,14 @@ def site_schema_view(request):
         # FB-27 R2: правки копятся в черновике, на сайт попадают по «Speichern».
         try:
             if op == "save":
-                aufbau_draft.commit(request, tenant, code, force=request.POST.get("force") == "1")
-                messages.success(request, _("Gespeichert."))
+                force = request.POST.get("force") == "1"
+                if aufbau_draft.commit(request, tenant, code, force=force):
+                    messages.success(request, _("Gespeichert."))
+                else:
+                    messages.error(
+                        request,
+                        _("Es gibt keinen Entwurf mehr – bitte die Änderungen erneut vornehmen."),
+                    )
                 ref = ""
             elif op == "discard":
                 aufbau_draft.discard(request, code)
@@ -75,6 +81,7 @@ def site_schema_view(request):
         {"preview": "1", "aufbau": code} if draft else {"preview": "1", "stand": "saved"}
     )
     labels = {r.code: r.label for r in rows}
+    aufbau_draft.prune(request, labels)
     other_drafts = [
         {"code": c, "label": labels[c]}
         for c in aufbau_draft.dirty_codes(request)

@@ -195,3 +195,52 @@ def test_session_holds_a_bounded_number_of_drafts():
     for i in range(aufbau_draft.MAX_DRAFTS + 3):
         aufbau_draft._put(req, f"c{i}", {"items": [], "base": "x"})
     assert len(req.session[aufbau_draft.SESSION_KEY]) == aufbau_draft.MAX_DRAFTS
+
+
+def test_save_without_a_draft_does_not_claim_success():
+    """Двойная отправка или истёкшая сессия: записывать нечего — и «Gespeichert» нет."""
+    b = Browser(_tenant())
+    _resp, msgs = b.post(seite="text", op="save")
+    assert not any("Gespeichert" in m for m in msgs)
+    assert any("keinen Entwurf" in m for m in msgs)
+
+
+def test_draft_of_a_vanished_page_is_dropped():
+    from apps.core.models import ContentPage
+
+    b = Browser(_tenant())
+    page = ContentPage.objects.create(slug="weg", title="Weg", body="x", is_published=True)
+    b.post(seite="text@seite:weg", op="add", type="text")
+    assert "text@seite:weg" in b.session[aufbau_draft.SESSION_KEY]
+    page.delete()
+    b.get("?seite=home")
+    assert aufbau_draft.SESSION_KEY not in b.session
+
+
+def test_home_sections_go_through_the_draft_too():
+    b = Browser(_tenant())
+    cfg = siteconfig.normalize(b.tenant.site_config)
+    row = cfg["sections"][0]
+    b.post(seite="home", op="toggle", ref=row["key"])
+    stored = siteconfig.normalize(Tenant.objects.get(pk=b.tenant.pk).site_config)["sections"][0]
+    assert stored["enabled"] is row["enabled"]  # сайт не тронут
+    b.post(seite="home", op="save")
+    stored = siteconfig.normalize(Tenant.objects.get(pk=b.tenant.pk).site_config)
+    saved_row = next(s for s in stored["sections"] if s["key"] == row["key"])
+    assert saved_row["enabled"] is (not row["enabled"])
+
+
+def test_draft_survives_a_real_session_round_trip():
+    """Черновик лежит в сессии — он обязан сериализоваться её бэкендом."""
+    b = Browser(_tenant())
+    b.post(seite="text", op="add", type="banner")
+    b.post(
+        seite="home",
+        op="toggle",
+        ref=siteconfig.normalize(b.tenant.site_config)["sections"][0]["key"],
+    )
+    b.session.save()
+    from django.contrib.sessions.backends.cache import SessionStore
+
+    loaded = SessionStore(session_key=b.session.session_key)
+    assert set(loaded[aufbau_draft.SESSION_KEY]) == {"text", "home"}
