@@ -37190,3 +37190,51 @@ msgstr "Способи оплати"
 
 msgid "Öffnungszeiten & Anfahrt"
 msgstr "Години роботи та як дістатися"
+
+msgid "Als reiner Text eingefügt."
+msgstr "Вставлено як звичайний текст."
+
+msgid "Drei Spalten"
+msgstr "Три колонки"
+
+msgid "Durchgestrichen"
+msgstr "Закреслений"
+
+msgid "Einleitung (größer)"
+msgstr "Вступний абзац (більший)"
+
+msgid "Emoji einfügen"
+msgstr "Вставити емодзі"
+
+msgid "Entwurf wiederhergestellt – mit „Speichern“ übernehmen."
+msgstr "Чернетку відновлено – натисніть «Зберегти», щоб залишити її."
+
+msgid "Entwurf wiederherstellen"
+msgstr "Відновити чернетку"
+
+msgid "Es gibt einen nicht gespeicherten Entwurf in diesem Browser."
+msgstr "У цьому браузері є незбережена чернетка."
+
+msgid "Formatierung entfernen"
+msgstr "Прибрати форматування"
+
+msgid "Hinweis-Box"
+msgstr "Плашка «Важливо»"
+
+msgid "Hochgestellt"
+msgstr "Верхній індекс"
+
+msgid "Kleingedruckt"
+msgstr "Дрібний шрифт"
+
+msgid "Spalte 3"
+msgstr "Колонка 3"
+
+msgid "Tiefgestellt"
+msgstr "Нижній індекс"
+
+msgid "Vollbild"
+msgstr "На весь екран"
+
+msgid "Vollbild – Esc beendet."
+msgstr "На весь екран – Esc для виходу."

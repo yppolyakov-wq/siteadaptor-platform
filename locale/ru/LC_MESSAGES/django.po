@@ -37203,3 +37203,51 @@ msgstr "Способы оплаты"
 
 msgid "Öffnungszeiten & Anfahrt"
 msgstr "Часы работы и как добраться"
+
+msgid "Als reiner Text eingefügt."
+msgstr "Вставлено как обычный текст."
+
+msgid "Drei Spalten"
+msgstr "Три колонки"
+
+msgid "Durchgestrichen"
+msgstr "Зачёркнутый"
+
+msgid "Einleitung (größer)"
+msgstr "Вводный абзац (крупнее)"
+
+msgid "Emoji einfügen"
+msgstr "Вставить эмодзи"
+
+msgid "Entwurf wiederhergestellt – mit „Speichern“ übernehmen."
+msgstr "Черновик восстановлен – нажмите «Сохранить», чтобы оставить его."
+
+msgid "Entwurf wiederherstellen"
+msgstr "Восстановить черновик"
+
+msgid "Es gibt einen nicht gespeicherten Entwurf in diesem Browser."
+msgstr "В этом браузере есть несохранённый черновик."
+
+msgid "Formatierung entfernen"
+msgstr "Убрать форматирование"
+
+msgid "Hinweis-Box"
+msgstr "Плашка «Важно»"
+
+msgid "Hochgestellt"
+msgstr "Верхний индекс"
+
+msgid "Kleingedruckt"
+msgstr "Мелкий шрифт"
+
+msgid "Spalte 3"
+msgstr "Колонка 3"
+
+msgid "Tiefgestellt"
+msgstr "Нижний индекс"
+
+msgid "Vollbild"
+msgstr "Во весь экран"
+
+msgid "Vollbild – Esc beendet."
+msgstr "Во весь экран – Esc для выхода."

@@ -36955,3 +36955,51 @@ msgstr "Zahlungsarten"
 
 msgid "Öffnungszeiten & Anfahrt"
 msgstr "Öffnungszeiten & Anfahrt"
+
+msgid "Als reiner Text eingefügt."
+msgstr "Als reiner Text eingefügt."
+
+msgid "Drei Spalten"
+msgstr "Drei Spalten"
+
+msgid "Durchgestrichen"
+msgstr "Durchgestrichen"
+
+msgid "Einleitung (größer)"
+msgstr "Einleitung (größer)"
+
+msgid "Emoji einfügen"
+msgstr "Emoji einfügen"
+
+msgid "Entwurf wiederhergestellt – mit „Speichern“ übernehmen."
+msgstr "Entwurf wiederhergestellt – mit „Speichern“ übernehmen."
+
+msgid "Entwurf wiederherstellen"
+msgstr "Entwurf wiederherstellen"
+
+msgid "Es gibt einen nicht gespeicherten Entwurf in diesem Browser."
+msgstr "Es gibt einen nicht gespeicherten Entwurf in diesem Browser."
+
+msgid "Formatierung entfernen"
+msgstr "Formatierung entfernen"
+
+msgid "Hinweis-Box"
+msgstr "Hinweis-Box"
+
+msgid "Hochgestellt"
+msgstr "Hochgestellt"
+
+msgid "Kleingedruckt"
+msgstr "Kleingedruckt"
+
+msgid "Spalte 3"
+msgstr "Spalte 3"
+
+msgid "Tiefgestellt"
+msgstr "Tiefgestellt"
+
+msgid "Vollbild"
+msgstr "Vollbild"
+
+msgid "Vollbild – Esc beendet."
+msgstr "Vollbild – Esc beendet."

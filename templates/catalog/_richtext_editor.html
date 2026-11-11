@@ -51,6 +51,19 @@ Esc — обратно), выравнивание текста, H4, цитата
   .rte-area [class*="sf-col-"] { min-width: 0; border: 1px dashed #c7d2fe; border-radius: .5rem; padding: .5rem; }
   .rte-area .sf-col-4 { grid-column: span 4; } .rte-area .sf-col-6 { grid-column: span 6; }
   .rte-area .sf-col-8 { grid-column: span 8; } .rte-area .sf-col-12 { grid-column: span 12; }
+  /* M21.11 P5 */
+  .rte-area .sf-lead { font-size: 1.05rem; } .rte-area .sf-small { font-size: .8rem; color: #4b5563; }
+  .rte-area .sf-note { background: #f3f4f6; border-left: 4px solid #6366f1; border-radius: .5rem; padding: .5rem .75rem; }
+  .rte-area .sf-grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; margin: .5rem 0; }
+  .rte-area .sf-grid3 > div { min-width: 0; border: 1px dashed #c7d2fe; border-radius: .5rem; padding: .5rem; }
+  .rte-wrap { position: relative; }
+  .rte-wrap.rte-full { position: fixed; inset: 0; z-index: 70; background: #fff; padding: 1rem; overflow: auto; display: flex; flex-direction: column; }
+  .rte-wrap.rte-full .rte-area { flex: 1; max-width: 56rem; width: 100%; margin: 0 auto; }
+  .rte-wrap.rte-full .rte-bar { max-width: 56rem; width: 100%; margin: 0 auto; }
+  .rte-emoji { display: grid; grid-template-columns: repeat(8, 1fr); gap: 2px; }
+  .rte-emoji button { font-size: 1.25rem; min-height: 36px; border-radius: 6px; }
+  .rte-emoji button:hover { background: #eef2ff; }
+  .rte-draft { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; margin-bottom: .5rem; padding: .5rem .75rem; border: 1px solid #b45309; background: #fffbeb; color: #78350f; border-radius: .5rem; font-size: .875rem; }
   .rte-pop { position: absolute; z-index: 60; width: min(22rem, calc(100vw - 2rem)); background: #fff; color: #111827; border: 1px solid #6b7280; border-radius: .75rem; box-shadow: 0 10px 30px rgba(0,0,0,.15); padding: .75rem 1rem; font-size: .875rem; }
   .rte-pop fieldset { border: 0; padding: 0; margin: .5rem 0; }
   .rte-pop legend { font-weight: 600; margin-bottom: .25rem; }
@@ -79,6 +92,14 @@ Esc — обратно), выравнивание текста, H4, цитата
     redone: "{% trans 'Wiederholen' as t %}{{ t|escapejs }}",
     col1: "{% trans 'Spalte 1' as t %}{{ t|escapejs }}",
     col2: "{% trans 'Spalte 2' as t %}{{ t|escapejs }}",
+    col3: "{% trans 'Spalte 3' as t %}{{ t|escapejs }}",
+    emoji: "{% trans 'Emoji einfügen' as t %}{{ t|escapejs }}",
+    draftFound: "{% trans 'Es gibt einen nicht gespeicherten Entwurf in diesem Browser.' as t %}{{ t|escapejs }}",
+    draftRestore: "{% trans 'Entwurf wiederherstellen' as t %}{{ t|escapejs }}",
+    draftDrop: "{% trans 'Verwerfen' as t %}{{ t|escapejs }}",
+    draftRestored: "{% trans 'Entwurf wiederhergestellt – mit „Speichern“ übernehmen.' as t %}{{ t|escapejs }}",
+    pastedText: "{% trans 'Als reiner Text eingefügt.' as t %}{{ t|escapejs }}",
+    fullOn: "{% trans 'Vollbild – Esc beendet.' as t %}{{ t|escapejs }}",
     toolbar: "{% trans 'Textformatierung' as t %}{{ t|escapejs }}",
     linkUrl: "{% trans 'Link-Adresse (https://…)' as t %}{{ t|escapejs }}",
     image: "{% trans 'Bild' as t %}{{ t|escapejs }}",
@@ -174,7 +195,7 @@ Esc — обратно), выравнивание текста, H4, цитата
     var sel = window.getSelection();
     var n = sel && sel.rangeCount ? sel.getRangeAt(0).startContainer : null;
     while (n && n !== area) {
-      if (n.nodeType === 1 && BLOCKS.test(n.tagName) && !(n.classList.contains("sf-grid") || /\bsf-col-/.test(n.className))) return n;
+      if (n.nodeType === 1 && BLOCKS.test(n.tagName) && !(n.classList.contains("sf-grid") || /\bsf-col-/.test(n.className) || n.classList.contains("sf-grid3") || (n.parentNode && n.parentNode.classList && n.parentNode.classList.contains("sf-grid3")))) return n;
       n = n.parentNode;
     }
     return null;
@@ -191,6 +212,35 @@ Esc — обратно), выравнивание текста, H4, цитата
     ALIGN.forEach(function (c) { b.classList.remove(c); });
     if (!on) b.classList.add(cls);
     if (!b.getAttribute("class")) b.removeAttribute("class");
+  }
+  // M21.11 P5: стиль абзаца — группа взаимоисключающая (как на сервере).
+  var PSTYLE = ["sf-lead", "sf-small", "sf-note"];
+  function setParaStyle(area, cls) {
+    var b = blockOf(area);
+    if (!b) {
+      document.execCommand("formatBlock", false, "p");
+      b = blockOf(area);
+    }
+    if (!b) return;
+    var on = b.classList.contains(cls);
+    PSTYLE.forEach(function (c) { b.classList.remove(c); });
+    if (!on) b.classList.add(cls);
+    if (!b.getAttribute("class")) b.removeAttribute("class");
+  }
+  function insertColumns3(area) {
+    var grid = document.createElement("div");
+    grid.className = "sf-grid3";
+    [T.col1, T.col2, T.col3].forEach(function (label) {
+      var col = document.createElement("div");
+      var p = document.createElement("p");
+      p.textContent = label;
+      col.appendChild(p);
+      grid.appendChild(col);
+    });
+    insertBlockAfterCurrent(area, grid, emptyPara());
+    var r = document.createRange();
+    r.selectNodeContents(grid.querySelector("p"));
+    restore(area, r);
   }
   function insertBlockAfterCurrent(area, el, after) {
     var top = blockOf(area);
@@ -518,6 +568,7 @@ Esc — обратно), выравнивание текста, H4, цитата
     ta.dataset.rteDone = "1";
     var page = ta.dataset.rte === "page";
     var wrap = document.createElement("div");
+    wrap.className = "rte-wrap";
     var bar = document.createElement("div");
     bar.className = "rte-bar";
     bar.setAttribute("role", "toolbar");
@@ -545,8 +596,16 @@ Esc — обратно), выравнивание текста, H4, цитата
           ["H4", "h4", "{% trans 'Kleine Überschrift' as t %}{{ t|escapejs }}", 1],
           ["¶", "p", "{% trans 'Absatz' as t %}{{ t|escapejs }}"],
           ["❝", "blockquote", "{% trans 'Zitat' as t %}{{ t|escapejs }}", 1],
+          ["A⁺", "sf-lead", "{% trans 'Einleitung (größer)' as t %}{{ t|escapejs }}", 1],
+          ["a⁻", "sf-small", "{% trans 'Kleingedruckt' as t %}{{ t|escapejs }}", 1],
+          ["ℹ", "sf-note", "{% trans 'Hinweis-Box' as t %}{{ t|escapejs }}", 1],
         ]],
-      ].concat(GROUPS, [
+      ].concat([[GROUPS[0][0], GROUPS[0][1].concat([
+        ["S", "strikeThrough", "{% trans 'Durchgestrichen' as t %}{{ t|escapejs }}", 1],
+        ["x²", "superscript", "{% trans 'Hochgestellt' as t %}{{ t|escapejs }}", 1],
+        ["x₂", "subscript", "{% trans 'Tiefgestellt' as t %}{{ t|escapejs }}", 1],
+        ["⌫", "removeFormat", "{% trans 'Formatierung entfernen' as t %}{{ t|escapejs }}"],
+      ])]], GROUPS.slice(1), [
         ["{% trans 'Ausrichtung' as t %}{{ t|escapejs }}", [
           ["⇤", "sf-left", "{% trans 'Linksbündig' as t %}{{ t|escapejs }}", 1],
           ["↔", "center", "{% trans 'Zentriert' as t %}{{ t|escapejs }}", 1],
@@ -557,6 +616,8 @@ Esc — обратно), выравнивание текста, H4, цитата
           ["🖼", "insertImage", "{% trans 'Bild einfügen' as t %}{{ t|escapejs }}"],
           ["⚙", "imageSettings", "{% trans 'Bildeinstellungen (F2)' as t %}{{ t|escapejs }}"],
           ["▥", "columns", "{% trans 'Zwei Spalten' as t %}{{ t|escapejs }}"],
+          ["▦", "columns3", "{% trans 'Drei Spalten' as t %}{{ t|escapejs }}"],
+          ["☺", "emoji", "{% trans 'Emoji einfügen' as t %}{{ t|escapejs }}"],
           ["―", "hr", "{% trans 'Trennlinie' as t %}{{ t|escapejs }}"],
         ]],
       ]);
@@ -564,7 +625,7 @@ Esc — обратно), выравнивание текста, H4, цитата
     GROUPS.push(["{% trans 'Verlauf' as t %}{{ t|escapejs }}", [
       ["↶", "undo", "{% trans 'Rückgängig (Strg+Z)' as t %}{{ t|escapejs }}"],
       ["↷", "redo", "{% trans 'Wiederholen (Strg+Y)' as t %}{{ t|escapejs }}"],
-    ]]);
+    ].concat(page ? [["⛶", "fullscreen", "{% trans 'Vollbild' as t %}{{ t|escapejs }}", 1]] : [])]);
     var area = document.createElement("div");
     area.className = "rte-area";
     area.contentEditable = "true";
@@ -623,6 +684,61 @@ Esc — обратно), выравнивание текста, H4, цитата
       refresh();
     }
     area.__rte = { snapshot: snapshot, sync: sync };
+    var pasteAsText = false;
+    // --- M21.11 P5: полный экран ---------------------------------------------------------
+    function toggleFull() {
+      var on = !wrap.classList.contains("rte-full");
+      wrap.classList.toggle("rte-full", on);
+      document.documentElement.style.overflow = on ? "hidden" : "";
+      if (on) status(area, T.fullOn);
+      area.focus();
+      refresh();
+    }
+    // --- M21.11 P5: эмодзи (обычный текст — белый список их не трогает) --------------------
+    var EMOJI = "😊 😀 😍 👍 👋 🙏 🎉 ❤️ ⭐ ✅ ❗ ⚠️ ℹ️ 📞 ✉️ 📍 🕒 🚚 📦 🛒 💳 🎁 🌿 ☕ 🍰 🥐 🍕 🍷 ✂️ 🔧 🏠 🛏️".split(" ");
+    var emojiPop = null;
+    function closeEmoji(focus) {
+      if (!emojiPop) return;
+      emojiPop.remove();
+      emojiPop = null;
+      if (focus) { area.focus(); restore(area, saved); }
+    }
+    function openEmoji() {
+      if (emojiPop) { closeEmoji(true); return; }
+      emojiPop = document.createElement("div");
+      emojiPop.className = "rte-pop";
+      emojiPop.setAttribute("role", "dialog");
+      emojiPop.setAttribute("aria-label", T.emoji);
+      emojiPop.style.top = (bar.offsetHeight + 4) + "px";
+      emojiPop.style.left = "0";
+      var grid = document.createElement("div");
+      grid.className = "rte-emoji";
+      EMOJI.forEach(function (ch) {
+        var eb = document.createElement("button");
+        eb.type = "button";
+        eb.textContent = ch;
+        eb.setAttribute("aria-label", ch);
+        eb.addEventListener("click", function () {
+          var keep = saved;
+          closeEmoji(false);
+          area.focus();
+          restore(area, keep || currentRange(area));
+          document.execCommand("insertText", false, ch);
+          sync();
+          snapshot();
+        });
+        grid.appendChild(eb);
+      });
+      emojiPop.appendChild(grid);
+      emojiPop.addEventListener("keydown", function (e) {
+        if (e.key === "Escape") { e.preventDefault(); closeEmoji(true); }
+      });
+      wrap.appendChild(emojiPop);
+      grid.querySelector("button").focus();
+    }
+    document.addEventListener("click", function (e) {
+      if (emojiPop && !emojiPop.contains(e.target) && !(byCmd.emoji && byCmd.emoji.contains(e.target))) closeEmoji(false);
+    });
     GROUPS.forEach(function (g) {
       var grp = document.createElement("div");
       grp.className = "rte-group";
@@ -645,6 +761,7 @@ Esc — обратно), выравнивание текста, H4, цитата
         if (c[0] === "B") b.style.fontWeight = "700";
         if (c[0] === "I") b.style.fontStyle = "italic";
         if (c[0] === "U") b.style.textDecoration = "underline";
+        if (c[0] === "S") b.style.textDecoration = "line-through";
         // Клик не уводит фокус и выделение из текста (иначе команда применится не туда).
         b.addEventListener("mousedown", function (e) { saved = currentRange(area); e.preventDefault(); });
         b.addEventListener("click", function () { run(c[1]); });
@@ -676,6 +793,7 @@ Esc — обратно), выравнивание текста, H4, цитата
       return null;
     }
     function run(cmd) {
+      if (cmd === "fullscreen") { toggleFull(); return; }
       if (cmd === "undo") { undo(); return; }
       if (cmd === "redo") { redo(); return; }
       if (cmd === "imageSettings") {
@@ -695,6 +813,13 @@ Esc — обратно), выравнивание текста, H4, цитата
         setAlign(area, cmd);
       } else if (cmd === "columns") {
         insertColumns(area);
+      } else if (cmd === "columns3") {
+        insertColumns3(area);
+      } else if (cmd === "sf-lead" || cmd === "sf-small" || cmd === "sf-note") {
+        setParaStyle(area, cmd);
+      } else if (cmd === "emoji") {
+        openEmoji();
+        return;
       } else if (cmd === "hr") {
         insertRule(area);
       } else if (cmd === "createLink") {
@@ -724,7 +849,7 @@ Esc — обратно), выравнивание текста, H4, цитата
         byCmd.unlink.setAttribute("aria-disabled", inLink ? "false" : "true");
       }
       if (!currentRange(area)) return;
-      ["bold", "italic", "underline", "insertUnorderedList", "insertOrderedList"].forEach(function (c) {
+      ["bold", "italic", "underline", "strikeThrough", "superscript", "subscript", "insertUnorderedList", "insertOrderedList"].forEach(function (c) {
         if (!byCmd[c]) return;
         var on = false;
         try { on = document.queryCommandState(c); } catch (e) { on = false; }
@@ -734,6 +859,10 @@ Esc — обратно), выравнивание текста, H4, цитата
       ["h2", "h3", "h4", "blockquote"].forEach(function (t) {
         if (byCmd[t]) byCmd[t].setAttribute("aria-pressed", b && b.tagName.toLowerCase() === t ? "true" : "false");
       });
+      PSTYLE.forEach(function (c) {
+        if (byCmd[c]) byCmd[c].setAttribute("aria-pressed", b && b.classList.contains(c) ? "true" : "false");
+      });
+      if (byCmd.fullscreen) byCmd.fullscreen.setAttribute("aria-pressed", wrap.classList.contains("rte-full") ? "true" : "false");
       var map = { "sf-left": "sf-left", center: "sf-center", "sf-right": "sf-right", "sf-justify": "sf-justify" };
       Object.keys(map).forEach(function (cmd) {
         if (byCmd[cmd]) byCmd[cmd].setAttribute("aria-pressed", b && b.classList.contains(map[cmd]) ? "true" : "false");
@@ -780,6 +909,18 @@ Esc — обратно), выравнивание текста, H4, цитата
         (bar.querySelector('button[tabindex="0"]') || buttons[0]).focus();
         return;
       }
+      if (mod && e.shiftKey && k === "v") { pasteAsText = true; setTimeout(function () { pasteAsText = false; }, 400); }
+      if (e.key === "Escape" && wrap.classList.contains("rte-full")) { e.preventDefault(); toggleFull(); return; }
+      if (e.key === "Tab" && !mod && !e.altKey) {
+        var li = blockOf(area);
+        if (li && li.tagName === "LI") {
+          e.preventDefault();
+          document.execCommand(e.shiftKey ? "outdent" : "indent", false, null);
+          sync();
+          snapshot();
+          return;
+        }
+      }
       var fig = e.target && e.target.tagName === "FIGURE" ? e.target : null;
       if (fig) {
         if (e.key === "Enter" || e.key === " " || e.key === "F2") { e.preventDefault(); openImage(area, fig); }
@@ -806,7 +947,8 @@ Esc — обратно), выравнивание текста, H4, цитата
       var cd = e.clipboardData;
       if (!cd) return;
       e.preventDefault();
-      var html = cd.getData("text/html");
+      var html = pasteAsText ? "" : cd.getData("text/html");
+      if (pasteAsText) { pasteAsText = false; status(area, T.pastedText); }
       if (html) {
         var doc = new DOMParser().parseFromString("<body>" + html + "</body>", "text/html");
         var frag = document.createDocumentFragment();
@@ -855,6 +997,55 @@ Esc — обратно), выравнивание текста, H4, цитата
     wrap.appendChild(bar);
     wrap.appendChild(area);
     snapshot();
+    // --- M21.11 P5: автосохранение черновика в этом браузере (только страницы сайта) -----
+    var draftKey = page ? "rte-draft:" + location.pathname + ":" + (ta.name || ta.id) : "";
+    function store(get, val) {
+      try {
+        if (get) return window.localStorage.getItem(draftKey);
+        if (val === null) window.localStorage.removeItem(draftKey);
+        else window.localStorage.setItem(draftKey, val);
+      } catch (e) { return null; }
+      return null;
+    }
+    if (draftKey) {
+      var initial = ta.value || "";
+      var stored = store(true);
+      if (stored && stored !== initial && stored !== value(area)) {
+        var bn = document.createElement("div");
+        bn.className = "rte-draft";
+        bn.setAttribute("role", "status");
+        var msg = document.createElement("span");
+        msg.textContent = T.draftFound;
+        var yes = document.createElement("button");
+        yes.type = "button";
+        yes.className = "ui-btn ui-btn-sm";
+        yes.textContent = T.draftRestore;
+        var no = document.createElement("button");
+        no.type = "button";
+        no.className = "ui-btn ui-btn-sm";
+        no.textContent = T.draftDrop;
+        yes.addEventListener("click", function () {
+          fill(area, stored, page);
+          sync();
+          snapshot();
+          bn.remove();
+          status(area, T.draftRestored);
+          area.focus();
+        });
+        no.addEventListener("click", function () { store(false, null); bn.remove(); area.focus(); });
+        bn.appendChild(msg);
+        bn.appendChild(yes);
+        bn.appendChild(no);
+        wrap.insertBefore(bn, bar);
+      }
+      var draftTimer = null;
+      area.addEventListener("input", function () {
+        clearTimeout(draftTimer);
+        draftTimer = setTimeout(function () { store(false, value(area)); }, 800);
+      });
+      var dform = ta.closest("form");
+      if (dform) dform.addEventListener("submit", function () { clearTimeout(draftTimer); store(false, null); });
+    }
     var form = ta.closest("form");
     if (form && !form.dataset.rteSubmitBound) {
       form.dataset.rteSubmitBound = "1";

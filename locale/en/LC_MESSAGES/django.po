@@ -36868,3 +36868,51 @@ msgstr "Payment methods"
 
 msgid "Öffnungszeiten & Anfahrt"
 msgstr "Opening hours & directions"
+
+msgid "Als reiner Text eingefügt."
+msgstr "Pasted as plain text."
+
+msgid "Drei Spalten"
+msgstr "Three columns"
+
+msgid "Durchgestrichen"
+msgstr "Strikethrough"
+
+msgid "Einleitung (größer)"
+msgstr "Intro (larger)"
+
+msgid "Emoji einfügen"
+msgstr "Insert emoji"
+
+msgid "Entwurf wiederhergestellt – mit „Speichern“ übernehmen."
+msgstr "Draft restored – click “Save” to keep it."
+
+msgid "Entwurf wiederherstellen"
+msgstr "Restore draft"
+
+msgid "Es gibt einen nicht gespeicherten Entwurf in diesem Browser."
+msgstr "There is an unsaved draft in this browser."
+
+msgid "Formatierung entfernen"
+msgstr "Clear formatting"
+
+msgid "Hinweis-Box"
+msgstr "Note box"
+
+msgid "Hochgestellt"
+msgstr "Superscript"
+
+msgid "Kleingedruckt"
+msgstr "Small print"
+
+msgid "Spalte 3"
+msgstr "Column 3"
+
+msgid "Tiefgestellt"
+msgstr "Subscript"
+
+msgid "Vollbild"
+msgstr "Full screen"
+
+msgid "Vollbild – Esc beendet."
+msgstr "Full screen – press Esc to exit."

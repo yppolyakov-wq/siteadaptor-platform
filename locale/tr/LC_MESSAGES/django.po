@@ -37014,3 +37014,51 @@ msgstr "Ödeme yöntemleri"
 
 msgid "Öffnungszeiten & Anfahrt"
 msgstr "Çalışma saatleri ve ulaşım"
+
+msgid "Als reiner Text eingefügt."
+msgstr "Düz metin olarak yapıştırıldı."
+
+msgid "Drei Spalten"
+msgstr "Üç sütun"
+
+msgid "Durchgestrichen"
+msgstr "Üstü çizili"
+
+msgid "Einleitung (größer)"
+msgstr "Giriş (daha büyük)"
+
+msgid "Emoji einfügen"
+msgstr "Emoji ekle"
+
+msgid "Entwurf wiederhergestellt – mit „Speichern“ übernehmen."
+msgstr "Taslak geri yüklendi – korumak için “Kaydet”e tıklayın."
+
+msgid "Entwurf wiederherstellen"
+msgstr "Taslağı geri yükle"
+
+msgid "Es gibt einen nicht gespeicherten Entwurf in diesem Browser."
+msgstr "Bu tarayıcıda kaydedilmemiş bir taslak var."
+
+msgid "Formatierung entfernen"
+msgstr "Biçimlendirmeyi kaldır"
+
+msgid "Hinweis-Box"
+msgstr "Not kutusu"
+
+msgid "Hochgestellt"
+msgstr "Üst simge"
+
+msgid "Kleingedruckt"
+msgstr "Küçük yazı"
+
+msgid "Spalte 3"
+msgstr "Sütun 3"
+
+msgid "Tiefgestellt"
+msgstr "Alt simge"
+
+msgid "Vollbild"
+msgstr "Tam ekran"
+
+msgid "Vollbild – Esc beendet."
+msgstr "Tam ekran – çıkmak için Esc."

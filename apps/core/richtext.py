@@ -44,7 +44,8 @@ def sanitize(html: str) -> str:
 #: <figcaption> считался бы плоским и показывался бы буквами). Тот же источник уходит
 #: в JS редактора (``editor_rules``).
 RICH_TAG_SOURCE = (
-    r"</?(?:p|br|b|strong|i|em|u|ul|ol|li|a|h[234]|div|img|figure|figcaption|blockquote|hr)"
+    r"</?(?:p|br|b|strong|i|em|u|ul|ol|li|a|h[234]|div|img|figure|figcaption|blockquote|hr"
+    r"|s|strike|sup|sub)"
     r"(?=[\s/>])"
 )
 _RICH_TAG_RE = re.compile(RICH_TAG_SOURCE, re.I)
@@ -75,6 +76,11 @@ PAGE_ALLOWED_TAGS = ALLOWED_TAGS | {
     "blockquote",
     "div",
     "hr",
+    # M21.11 P5: зачёркнутый (Chrome пишет <strike>), верхний/нижний индекс.
+    "s",
+    "strike",
+    "sup",
+    "sub",
 }
 PAGE_ALLOWED_ATTRIBUTES = {
     "a": {"href", "target"},
@@ -93,7 +99,9 @@ PAGE_ALLOWED_ATTRIBUTES = {
 #: положение фото (носитель — ``figure``). ``style`` не проходит ни у одного тега.
 PAGE_CLASS_SOURCE = (
     r"sf-(?:grid|col-(?:[1-9]|1[0-6])|center|left|right|justify"
-    r"|img-(?:sm|md|lg|full)|float-(?:left|right))"
+    r"|img-(?:sm|md|lg|full)|float-(?:left|right)"
+    # M21.11 P5: стиль абзаца — вводный, мелкий, плашка «Hinweis»; три колонки.
+    r"|lead|small|note|grid3)"
 )
 _PAGE_CLASS_RE = re.compile(PAGE_CLASS_SOURCE)
 #: Взаимоисключающие группы: в атрибуте остаётся последний класс группы.
@@ -101,6 +109,7 @@ _CLASS_GROUPS = (
     re.compile(r"sf-(?:center|left|right|justify)"),
     re.compile(r"sf-img-(?:sm|md|lg|full)"),
     re.compile(r"sf-float-(?:left|right)"),
+    re.compile(r"sf-(?:lead|small|note)"),
 )
 ALT_MAX = 300
 _EMPTY_CAPTION_RE = re.compile(r"<figcaption>(?:\s|&nbsp;|<br\s*/?>)*</figcaption>")
