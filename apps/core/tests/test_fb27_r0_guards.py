@@ -115,3 +115,37 @@ def test_save_without_hash_field_keeps_working():
     req = _request("post", {}, tenant)
     assert views.home_builder_view(req).status_code == 302
     assert not any("Seitenaufbau" in str(m) for m in get_messages(req))
+
+
+def test_refusal_drops_stale_draft_and_keeps_other_keys():
+    """Отказ убирает черновик Студии (он собран от устаревшей структуры), но не трогает
+    остальное — в том числе ключи, которых `normalize` не знает."""
+    base = {**siteconfig.normalize({}), "notify": {"order": {"email": False}}}
+    tenant = TenantFactory(site_config=base)
+    stale = site_schema.structure_hash(tenant.site_config)
+    _toggle_first_section(tenant.pk)
+    row = Tenant.objects.get(pk=tenant.pk)
+    Tenant.objects.filter(pk=tenant.pk).update(
+        site_config={**row.site_config, "_draft": {"x": 1}, "_draft_ts": "t", "_draft_lang": "de"}
+    )
+    req = _request("post", {"struct_hash": stale}, tenant)
+    req.session["site_preview_draft"] = {"x": 1}
+    views.home_builder_view(req)
+    stored = Tenant.objects.get(pk=tenant.pk).site_config
+    assert not [k for k in stored if k.startswith("_draft")]
+    assert "site_preview_draft" not in req.session
+    assert stored["notify"] == {"order": {"email": False}}
+
+
+def test_hash_does_not_depend_on_draft_keys():
+    cfg = siteconfig.normalize({})
+    with_draft = {**cfg, "_draft": {"sections": []}, "_draft_ts": "t"}
+    assert site_schema.structure_hash(with_draft) == site_schema.structure_hash(cfg)
+
+
+def test_hash_sees_category_and_page_hosts():
+    cfg = siteconfig.normalize({})
+    h0 = site_schema.structure_hash(cfg)
+    for host in ("catalog", "info"):
+        blocks = {**cfg, "page_blocks": {host: [{"id": "pb-9", "key": "text", "enabled": True}]}}
+        assert site_schema.structure_hash(blocks) != h0, host

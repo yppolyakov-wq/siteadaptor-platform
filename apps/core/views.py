@@ -2157,6 +2157,35 @@ def _catalog_pages_live(tenant) -> bool:
     return type_active(tenant, "catalog")
 
 
+def _structure_is_stale(request, posted_hash):
+    """FB-27 R0: форма Студии открыта со структурой, которой в базе уже нет?
+
+    Сверка и уборка черновика — в одной транзакции под блокировкой строки (вызванная
+    внутри транзакции записи, блокировка держится до её конца): иначе сама ветка отказа перезаписала бы снимком то, что сохранили между чтением и записью.
+    При отказе черновик Студии (сессия + `_draft*`) сбрасывается — он собран от
+    устаревшей структуры и при следующем открытии вернул бы её в форму."""
+    from apps.tenants.models import Tenant
+
+    with transaction.atomic():
+        row = Tenant.objects.select_for_update().only("site_config").get(pk=request.tenant.pk)
+        fresh = row.site_config if isinstance(row.site_config, dict) else {}
+        if posted_hash == site_schema_hash(fresh):
+            return False
+        if any(k.startswith("_draft") for k in fresh):
+            cleaned = {k: v for k, v in fresh.items() if not k.startswith("_draft")}
+            Tenant.objects.filter(pk=row.pk).update(site_config=cleaned)
+    if hasattr(request, "session"):
+        request.session.pop("site_preview_draft", None)
+    messages.error(
+        request,
+        _(
+            "Der Seitenaufbau wurde inzwischen an anderer Stelle geändert. "
+            "Ihre Eingaben hier wurden nicht gespeichert – bitte erneut vornehmen."
+        ),
+    )
+    return True
+
+
 @login_required
 def home_builder_view(request):
     """Конструктор главной (S2b): порядок/видимость блоков главной + тизеры
@@ -2501,25 +2530,8 @@ def home_builder_view(request):
         # тем временем изменили в другом месте (вторая вкладка, «Seitenaufbau»), этот Save
         # откатил бы её — отказываем и ничего не пишем. Без поля (старые формы) — как прежде.
         posted_hash = (request.POST.get("struct_hash") or "").strip()
-        if posted_hash:
-            from apps.core import site_schema
-            from apps.tenants.models import Tenant
-
-            fresh = Tenant.objects.only("site_config").get(pk=request.tenant.pk).site_config
-            if posted_hash != site_schema.structure_hash(fresh):
-                published = fresh if isinstance(fresh, dict) else {}
-                stale = {k: v for k, v in published.items() if not k.startswith("_draft")}
-                Tenant.objects.filter(pk=request.tenant.pk).update(site_config=stale)
-                if hasattr(request, "session"):
-                    request.session.pop("site_preview_draft", None)
-                messages.error(
-                    request,
-                    _(
-                        "Der Seitenaufbau wurde inzwischen an anderer Stelle geändert. "
-                        "Ihre Eingaben hier wurden nicht gespeichert – bitte erneut vornehmen."
-                    ),
-                )
-                return _redirect_builder(request)
+        if posted_hash and _structure_is_stale(request, posted_hash):
+            return _redirect_builder(request)
 
         config = siteconfig.normalize(request.tenant.site_config)
         # LAY-6b: панель показывает тексты ВЫБРАННОЙ локали, поэтому Save приносит их
@@ -2968,7 +2980,12 @@ def home_builder_view(request):
 
         config = page_settings.protect_owned(request.tenant, config)
         request.tenant.site_config = siteconfig.normalize(config)
-        request.tenant.save(update_fields=update_fields)
+        # FB-27 R0: вторая сверка — под блокировкой строки, в одной транзакции с записью
+        # (между первой проверкой и этим местом схему могли сохранить в другом месте).
+        with transaction.atomic():
+            if posted_hash and _structure_is_stale(request, posted_hash):
+                return _redirect_builder(request)
+            request.tenant.save(update_fields=update_fields)
         messages.success(request, _("Gespeichert."))
         # UC6-7b: Save с канвы на подстранице возвращает канву на ТУ ЖЕ страницу
         # (page_path — скрытое поле формы, синкается JS при навигации кадра).
