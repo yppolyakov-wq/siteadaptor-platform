@@ -9,6 +9,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
@@ -50,6 +51,17 @@ def storefront_page(request, slug):
     if not page.is_published:
         response["Cache-Control"] = "private, no-store"  # черновик не кэшируется
     return response
+
+
+def storefront_page_legacy(request, slug):
+    """M21.11: старый адрес /seite/<slug>/ — 301 на короткий /<slug>/ (ссылки из писем,
+    поисковиков и меню не ломаются). Короткий занят системной страницей — отдаём
+    страницу здесь же."""
+    if content_pages.short_url_free(slug) and ContentPage.objects.filter(slug=slug).exists():
+        target = reverse("storefront-content-page", args=[slug])
+        query = request.META.get("QUERY_STRING", "")
+        return redirect(f"{target}?{query}" if query else target, permanent=True)
+    return storefront_page(request, slug)
 
 
 # --- кабинет ------------------------------------------------------------------------

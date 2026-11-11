@@ -1,6 +1,6 @@
 """M21.6: свои страницы сайта (`core.ContentPage`) — единственное место правил.
 
-- адрес страницы — ``/seite/<slug>/``;
+- адрес страницы — ``/<slug>/`` (M21.11; старый ``/seite/<slug>/`` — 301);
 - slug из ``SYSTEM_PAGES`` — текст СИСТЕМНОЙ страницы (``versand`` → ``/versand/``,
   ``ueber-uns`` → ``/ueber-uns/``): одна страница — один адрес, второй адрес даёт 301;
 - неопубликованная страница видна только члену команды (предпросмотр).
@@ -68,6 +68,14 @@ def clean_slug(value: str, *, exclude_pk=None) -> str:
     return slug
 
 
+def check_short_slug(slug: str, old_slug: str = "") -> None:
+    """M21.11: новый адрес не может совпасть с адресом страницы витрины (/sortiment/,
+    /aktionen/, /impressum/ …) — иначе своя страница по короткому адресу не открылась бы.
+    Прежний адрес страницы не проверяем: он работал и до коротких адресов."""
+    if slug != old_slug and slug not in SYSTEM_PAGES and not short_url_free(slug):
+        raise PageError(_("Diese Adresse ist für eine Seite Ihrer Website reserviert."))
+
+
 def save_page(
     page, *, title: str, slug: str, body: str, is_published: bool, show_shipping_methods=None
 ):
@@ -86,6 +94,7 @@ def save_page(
         # Новая своя страница не занимает адрес системной (её правят в «Seiten Ihrer Website»).
         raise PageError(_("Diese Adresse ist für eine Seite Ihrer Website reserviert."))
     new_slug = clean_slug(slug or old_slug or title, exclude_pk=page.pk)
+    check_short_slug(new_slug, old_slug)
     page.title = title
     page.slug = new_slug
     page.body = sanitize_page(body or "")
@@ -181,8 +190,25 @@ def system_url(slug: str, tenant=None) -> str | None:
         return None
 
 
+def short_url_free(slug: str) -> bool:
+    """M21.11: открывается ли /<slug>/ своей страницей (а не системным маршрутом)."""
+    from django.urls import Resolver404, resolve
+
+    try:
+        return resolve(f"/{slug}/").url_name == "storefront-content-page"
+    except Resolver404:
+        return False
+
+
+def content_url(slug: str) -> str:
+    """Адрес своей страницы: короткий /<slug>/, если он не занят маршрутом витрины."""
+    if short_url_free(slug):
+        return reverse("storefront-content-page", args=[slug])
+    return reverse("storefront-content-page-legacy", args=[slug])
+
+
 def page_url(page, tenant=None) -> str:
-    return system_url(page.slug, tenant) or reverse("storefront-content-page", args=[page.slug])
+    return system_url(page.slug, tenant) or content_url(page.slug)
 
 
 def published(slug: str):
@@ -215,7 +241,7 @@ def published_urls(tenant=None) -> dict:
     out = {}
     for slug in slugs:
         try:
-            out[slug] = system_url(slug, tenant) or reverse("storefront-content-page", args=[slug])
+            out[slug] = system_url(slug, tenant) or content_url(slug)
         except NoReverseMatch:
             continue
     return out

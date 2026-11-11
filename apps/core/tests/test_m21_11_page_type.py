@@ -15,7 +15,7 @@ TEMPLATES = Path(settings.BASE_DIR) / "templates" / "storefront"
 
 
 def test_all_text_pages_share_one_type():
-    for path in ("/ueber-uns/", "/seite/meine-seite/", "/versand/"):
+    for path in ("/ueber-uns/", "/meine-seite/", "/seite/meine-seite/", "/versand/"):
         assert sp.resolve_page(path).code == "text", path
     assert sp.page_type("text").block_host == "info"
 

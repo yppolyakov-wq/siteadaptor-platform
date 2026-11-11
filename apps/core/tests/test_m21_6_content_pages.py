@@ -210,7 +210,7 @@ def test_menu_cpage_node_links_only_published_page():
 
     ContentPage.objects.create(slug="zahlung", title="Zahlungsarten")
     node = {"label": "Zahlung", "type": "cpage", "target": "zahlung", "children": []}
-    assert menu._node_url(fresh(), node) == "/seite/zahlung/"
+    assert menu._node_url(fresh(), node) == "/zahlung/"
     ContentPage.objects.filter(slug="zahlung").update(is_published=False)
     assert menu._node_url(fresh(), node) is None
     assert menu._node_url(fresh(), {**node, "target": "nope"}) is None
@@ -262,7 +262,7 @@ def test_menu_resolves_all_cpage_links_with_one_query(django_assert_max_num_quer
     tenant = TenantFactory.build(schema_name="public")
     with django_assert_max_num_queries(3):  # savepoint + select, не по пункту
         urls = [menu._node_url(tenant, {"type": "cpage", "target": s}) for s in "abcx"]
-    assert urls == ["/seite/a/", "/seite/b/", "/seite/c/", None]
+    assert urls == ["/a/", "/b/", "/c/", None]
 
 
 def test_legal_pages_listed_with_state_and_link_to_legal_tab():

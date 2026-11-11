@@ -869,7 +869,7 @@ def test_apply_pages_creates_own_pages_with_rehosted_images_and_moves_old_blocks
     from apps.core.models import LegacyRedirect
 
     rule = LegacyRedirect.objects.get(source_path="/versand-de")
-    assert rule.target == "/seite/zahlung/"
+    assert rule.target == "/zahlung/"
 
     # повтор не перезаписывает правку владельца
     ContentPage.objects.filter(slug="zahlung").update(body="<p>Eigene Zahlung</p>")

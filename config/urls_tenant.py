@@ -639,7 +639,14 @@ urlpatterns = [
     path("aktionen/", public_views.promotion_list, name="storefront-aktionen"),
     path("treue/", public_views.loyalty_page, name="storefront-loyalty"),
     path("ueber-uns/", public_views.about_page, name="storefront-about"),
-    path("seite/<slug:slug>/", content_page_views.storefront_page, name="storefront-content-page"),
+    # M21.11 (решение владельца): короткий адрес своей страницы — /zahlung/ (маршрут
+    # «storefront-content-page» стоит ПОСЛЕДНИМ в списке). Старый /seite/<slug>/ →
+    # 301 на короткий; если короткий занят системной страницей — отдаёт саму страницу.
+    path(
+        "seite/<slug:slug>/",
+        content_page_views.storefront_page_legacy,
+        name="storefront-content-page-legacy",
+    ),
     # ST-8: отдельные страницы (запрос владельца «не разделы на главной»).
     # Гейт — наличие контента: пусто → 404, пункт меню гаснет сам.
     path("galerie/", public_views.gallery_page, name="storefront-gallery"),
@@ -1005,6 +1012,9 @@ urlpatterns = [
     path("dashboard/telegram/connect/", telegram_views.connect, name="telegram-connect"),
     path("dashboard/telegram/disconnect/", telegram_views.disconnect, name="telegram-disconnect"),
     path("tg/<str:secret>/", telegram_public.webhook, name="telegram-webhook"),
+    # M21.11: своя страница по короткому адресу — ВСЕГДА последней: любой другой
+    # маршрут из одного сегмента важнее. Нет страницы → 404 (дальше LegacyRedirect).
+    path("<slug:slug>/", content_page_views.storefront_page, name="storefront-content-page"),
 ]
 
 # Раздача загруженных медиа Django, когда нет S3 (single-сервер).

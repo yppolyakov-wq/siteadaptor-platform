@@ -600,7 +600,12 @@ PAGE_TYPES: tuple[PageType, ...] = (
     PageType(
         "text",
         _("Seite"),
-        ("storefront-about", "storefront-content-page", "storefront-shipping"),
+        (
+            "storefront-about",
+            "storefront-content-page",
+            "storefront-content-page-legacy",
+            "storefront-shipping",
+        ),
         ("text_width",),
         block_host="info",
     ),

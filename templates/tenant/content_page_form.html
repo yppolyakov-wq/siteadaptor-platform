@@ -29,7 +29,7 @@
       </div>
       {% else %}
       <label class="block text-sm font-medium">{% trans "Adresse" %}
-        <span class="mt-1 flex items-center gap-1"><span class="text-gray-500 text-sm" aria-hidden="true">/seite/</span>
+        <span class="mt-1 flex items-center gap-1"><span class="text-gray-500 text-sm" aria-hidden="true">/</span>
           <input type="text" name="slug" value="{{ page.slug }}" maxlength="80" pattern="[a-z0-9\-]*" class="ui-input w-full" aria-describedby="slug-hint"></span>
         <span id="slug-hint" class="block text-xs text-gray-500 font-normal mt-1">{% trans "Leer lassen — die Adresse entsteht aus dem Titel." %}{% if system_label %} {{ system_label }}.{% endif %}</span>
       </label>
