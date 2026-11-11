@@ -74,7 +74,7 @@
   {% if current.preview_url %}
   <section class="ui-card p-2" aria-label="{% trans 'Vorschau' %}">
     <div class="relative w-full overflow-hidden rounded-lg bg-gray-100" style="height: 70vh" data-schema-frame-box>
-      <iframe src="{{ current.preview_url }}?preview=1" title="{% trans 'Vorschau' %}: {{ current.label }}" loading="lazy"
+      <iframe src="{{ current.preview_url }}?preview=1&amp;stand=saved" title="{% trans 'Vorschau' %}: {{ current.label }}" loading="lazy"
               class="absolute top-0 left-0 border-0 origin-top-left" style="width: 1280px; height: 2000px" data-schema-frame></iframe>
     </div>
   </section>

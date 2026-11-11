@@ -314,14 +314,14 @@ def page_blocks(context, page_key, part="after"):
     tenant = getattr(request, "tenant", None)
     if request is None or tenant is None:
         return ""
-    raw = tenant.site_config
+    # M21.11: один читатель «что показывать» с остальной витриной (черновик Студии,
+    # превью шаблона кабинета, превью сохранённого `stand=saved`).
+    from apps.core import page_settings
+
     try:
-        if request.GET.get("preview") == "1":
-            draft = request.session.get("site_preview_draft")
-            if isinstance(draft, dict):
-                raw = draft
+        raw = page_settings.raw_config(request)
     except Exception:  # noqa: BLE001 — превью не должно ронять витрину
-        pass
+        raw = tenant.site_config
     # Аудит переводов 2026-08-13: блоки берём из ЛОКАЛИЗОВАННОГО конфига — раньше
     # тег читал их из голого normalize, и текст C-блоков страниц («Über uns»,
     # корзина) оставался немецким на любой локали даже при готовом оверлее.

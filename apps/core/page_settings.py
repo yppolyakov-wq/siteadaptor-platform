@@ -693,6 +693,11 @@ def preview_raw(request) -> tuple[dict, bool]:
     saved = tenant.site_config if isinstance(tenant.site_config, dict) else {}
     if request.GET.get("preview") != "1":
         return saved, False
+    # M21.11 (фидбэк владельца): `?preview=1&stand=saved` — превью СОХРАНЁННОГО
+    # состояния (экран «Seitenaufbau»). Черновик Студии из сессии сюда не попадает:
+    # иначе выключенный в структуре блок продолжал бы показываться в превью.
+    if request.GET.get("stand") == "saved":
+        return saved, False
     tpl = request.GET.get("tpl") or ""
     if tpl and _may_preview(request):
         # memoised: the context processor and the view ask for the same thing

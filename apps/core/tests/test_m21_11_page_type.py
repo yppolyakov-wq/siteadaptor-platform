@@ -41,3 +41,25 @@ def test_normalize_drops_legacy_legal_blocks():
         {"page_blocks": {"legal": [{"key": "text", "id": "x1", "data": {"title": "T"}}]}}
     )
     assert "legal" not in (cfg.get("page_blocks") or {})
+
+
+def test_schema_preview_shows_saved_state_not_studio_draft():
+    """Фидбэк владельца: блок выключен в «Seitenaufbau», а превью его показывает —
+    iframe читал черновик Студии из сессии. `stand=saved` = сохранённое."""
+    from types import SimpleNamespace
+
+    from django.test import RequestFactory
+
+    from apps.core import page_settings
+
+    saved = {"page_blocks": {"info": [{"key": "text", "id": "a1", "enabled": False}]}}
+    draft = {"page_blocks": {"info": [{"key": "text", "id": "a1", "enabled": True}]}}
+    req = RequestFactory().get("/ueber-uns/", {"preview": "1", "stand": "saved"})
+    req.tenant = SimpleNamespace(site_config=saved)
+    req.session = {"site_preview_draft": draft}
+    assert page_settings.raw_config(req) is saved
+    req2 = RequestFactory().get("/ueber-uns/", {"preview": "1"})
+    req2.tenant, req2.session = req.tenant, req.session
+    assert page_settings.raw_config(req2) is draft  # Студия по-прежнему видит черновик
+    tpl = (TEMPLATES.parent / "tenant" / "site_schema.html").read_text()
+    assert "stand=saved" in tpl
