@@ -22712,3 +22712,26 @@ Impressum/Datenschutz/AGB — в «Seiten», редактор во всех те
   лежат на уровень глубже `.sf-grid`); загруженная картинка — своей строкой (`<img><br>`).
 - Картинка «Abholung» на старом сайте — SVG (импорт не переносит); отдана владельцу PNG,
   отрисованный из того же SVG, — вставляется кнопкой 🖼. Стенд 6/6.
+
+## 2026-11-11 — M21.10: «Seiten» = центр всех текстовых страниц + полный редактор (без миграций)
+План `docs/m21-10-text-pages-hub-plan-2026-11-11.md` (planner → ревью плана security-reviewer + a11y-architect → код → django/security/a11y-ревью кода → стенд).
+- Хаб «Website › Seiten»: «Seiten Ihrer Website» (Über uns, Versand — пока работают заказы) ·
+  «Rechtliche Seiten» (Impressum/Datenschutz/Widerruf/AGB правятся ТАМ ЖЕ, `legal-page-edit`,
+  только владелец: `_r(FLOOR)` + `perm_required`) · «Eigene Seiten». Единственный писатель
+  правовых текстов `legal.save_legal_doc` (whitelist kind/locale, пустой HTML = автотекст,
+  >200 КБ — ошибка, а не обрезка). «Recht & Steuern» — только реквизиты + ссылки на тексты;
+  старые `doc_*` игнорируются.
+- Системные страницы: GET формы ничего не пишет (несохранённая заготовка, «Über uns» — из
+  текста главной, экранирован), создание по «Speichern»; адрес закреплён; новая своя страница
+  не может занять адрес системной.
+- Меню: цели Versand (гейт orders) / Impressum / Datenschutz / Widerruf / AGB (гейт по тексту, мемо).
+- Редактор: панель role=toolbar (roving tabindex, Alt+F10/Esc, aria-pressed, aria-keyshortcuts),
+  H2–H4, цитата, выравнивание (sf-left/center/right/justify), разделитель, колонки, Unlink,
+  своя история отмены, фото-виджет (figure) с окном: размер 25/50/75/100 %, положение
+  слева/по центру/справа с обтеканием (на телефоне снято), обязательное описание или
+  «декоративное», подпись; вставка/drop через белый список. Белый список — один источник
+  (`richtext.editor_rules` → `{% rte_rules_json %}`); CSS классов страниц в app.css под
+  `.sf-page-body/.rich-text`, без position/vw.
+- Замки: test_m21_10_text_pages_hub (40), test_m21_10_menu_targets (6); стенд
+  `scripts/text_pages_stand.py` 38/38. Грабля: обходчик test_staff_walk подставлял только
+  `<uuid:pk>` — научен `<slug:kind>`.
