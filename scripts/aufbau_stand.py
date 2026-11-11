@@ -109,7 +109,45 @@ with sync_playwright() as p:
         else:
             boxes = [x.bounding_box() for x in pair.locator("[data-schema-block]").all()]
             check(boxes[1]["y"] > boxes[0]["y"] + 20, "на телефоне — друг под другом")
+        # R3b: текст блока правится в панели и доезжает до витрины после «Speichern»
+        pair.locator("[data-schema-block]").first.click()
+        pg.wait_for_load_state()
+        pg.fill("[data-schema-fields] input[name=f_title]", "Stand R3b Titel")
+        pg.click("[data-schema-fields] button[value=update]")
+        pg.wait_for_load_state()
+        shown = pg.locator("[data-schema-fields] input[name=f_title]").input_value()
+        check(shown == "Stand R3b Titel", "текст из панели остался в черновике")
         pg.screenshot(path=f"{OUT}/r3_{w}.png", full_page=True)
+        pg.click("[data-schema-draft] button[value=save]")
+        pg.wait_for_load_state()
+        site = ctx.new_page()
+        site.goto(U + "/ueber-uns/")
+        check("Stand R3b Titel" in site.content(), "после «Speichern» текст на витрине")
+        two = site.evaluate(
+            """() => { const r = [...document.querySelectorAll('main [data-sf-section], [data-sf-section]:not([data-sf-section=header]):not([data-sf-section=footer])')].slice(-2).map(e => e.getBoundingClientRect()); return r.length === 2 ? [r[0].top, r[1].top, r[0].left, r[1].left] : null; }"""
+        )
+        if w >= 1024:
+            check(
+                two and abs(two[0] - two[1]) < 4 and two[3] > two[2], "на витрине блоки стоят рядом"
+            )
+        else:
+            check(two and two[1] > two[0] + 20, "на витрине (телефон) — друг под другом")
+        site.close()
+        # убрать за собой: удалить оба блока
+        for _i in range(2):
+            pg.goto(U + "/dashboard/site/aufbau/?seite=text")
+            pg.locator("[data-schema-row] [data-schema-block]").last.click()
+            pg.wait_for_load_state()
+            pg.click("[data-schema-panel] a:has-text('Entfernen')")
+            pg.wait_for_load_state()
+            pg.click("button[value=delete]")
+            pg.wait_for_load_state()
+        pg.click("[data-schema-draft] button[value=save]")
+        pg.wait_for_load_state()
+        pg.goto(U + "/dashboard/site/aufbau/?seite=text")
+        pg.select_option("select[name=type]", "text")
+        pg.click("button:has-text('Hinzufügen')")
+        pg.wait_for_load_state()
         pg.click("[data-schema-draft] button[value=discard]")
         pg.wait_for_load_state()
         check(not errs, "без JS-ошибок: " + "; ".join(errs[:2]))

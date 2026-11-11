@@ -37483,3 +37483,9 @@ msgstr "одна п'ята"
 
 msgid "ein Sechstel"
 msgstr "одна шоста"
+
+msgid "Beschriftung"
+msgstr "Напис"
+
+msgid "Bildunterschrift"
+msgstr "Підпис до фото"

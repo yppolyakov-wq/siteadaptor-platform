@@ -37159,3 +37159,9 @@ msgstr "one fifth"
 
 msgid "ein Sechstel"
 msgstr "one sixth"
+
+msgid "Beschriftung"
+msgstr "Label"
+
+msgid "Bildunterschrift"
+msgstr "Caption"

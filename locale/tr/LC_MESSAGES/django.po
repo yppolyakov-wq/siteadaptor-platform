@@ -37305,3 +37305,9 @@ msgstr "beşte bir"
 
 msgid "ein Sechstel"
 msgstr "altıda bir"
+
+msgid "Beschriftung"
+msgstr "Etiket"
+
+msgid "Bildunterschrift"
+msgstr "Resim yazısı"

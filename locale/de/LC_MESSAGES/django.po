@@ -37246,3 +37246,9 @@ msgstr "ein Fünftel"
 
 msgid "ein Sechstel"
 msgstr "ein Sechstel"
+
+msgid "Beschriftung"
+msgstr "Beschriftung"
+
+msgid "Bildunterschrift"
+msgstr "Bildunterschrift"

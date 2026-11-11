@@ -254,6 +254,7 @@ def blocks_for(config: dict, code: str, host: str | None = None) -> list[dict]:
                 if cblock
                 else [],
                 "width_value": item.get("width") or "contained",
+                "fields": panel_fields(item) if cblock else [],
                 "narrow": cblock and item.get("width") in siteconfig.NARROW_WIDTHS,
             }
         )
@@ -264,6 +265,7 @@ def blocks_for(config: dict, code: str, host: str | None = None) -> list[dict]:
         b.setdefault("flex", 12)
         b.setdefault("widths", [])
         b.setdefault("width_value", "contained")
+        b.setdefault("fields", [])
         b.setdefault("narrow", False)
     # FB-27 R1: «выше/ниже» двигает блок среди ВИДИМЫХ — скрытый сосед не «съедает»
     # нажатие (раньше порядок на странице не менялся, а кнопка была активна).
@@ -303,6 +305,39 @@ _CONTENT_GROUP = gettext_lazy("Inhalte")
 _NARROW_OK_BLOCKS = frozenset({"text", "image", "button", "spacer"})
 _WIDTH_ORDER = ("contained", "w23", "w12", "w13", "w14", "w15", "w16")
 _WIDE_WIDTHS = ("contained", "w23", "w12")
+
+
+#: FB-27 R3b: поля содержимого, которые правятся в панели «Seitenaufbau»
+#: (тип блока → [(поле данных, подпись, вид)]). Остальное — стиль, фото, оформление —
+#: по-прежнему на странице («Auf der Seite bearbeiten»).
+PANEL_FIELDS = {
+    "text": (
+        ("title", gettext_lazy("Überschrift"), "line"),
+        ("body", gettext_lazy("Text"), "area"),
+    ),
+    "image_text": (
+        ("title", gettext_lazy("Überschrift"), "line"),
+        ("body", gettext_lazy("Text"), "area"),
+    ),
+    "button": (
+        ("label", gettext_lazy("Beschriftung"), "line"),
+        ("url", gettext_lazy("Link"), "line"),
+    ),
+    "image": (("caption", gettext_lazy("Bildunterschrift"), "line"),),
+}
+PANEL_FIELD_MAX = 4000
+
+
+def panel_fields(item: dict) -> list[dict]:
+    """Поля панели блока с текущими значениями: [{name, label, kind, value}]."""
+    from apps.tenants import siteconfig
+
+    key = siteconfig.cblock_type(item.get("key")) or item.get("key") or ""
+    data = item.get("data") or {}
+    return [
+        {"name": name, "label": str(label), "kind": kind, "value": data.get(name, "")}
+        for name, label, kind in PANEL_FIELDS.get(key, ())
+    ]
 
 
 def width_choices(item: dict) -> list[tuple[str, str]]:
@@ -462,7 +497,13 @@ def load_items(config: dict, home: bool, host: str) -> list[dict]:
 
 
 def mutate(
-    items: list[dict], code: str, op: str, ref: str = "", block_type: str = "", value: str = ""
+    items: list[dict],
+    code: str,
+    op: str,
+    ref: str = "",
+    block_type: str = "",
+    value: str = "",
+    fields: dict | None = None,
 ) -> str:
     """Одна правка списка блоков НА МЕСТЕ (без записи): общая для немедленной правки
     и черновика. Возвращает ref блока (у `add` — id нового)."""
@@ -513,6 +554,18 @@ def mutate(
         if value not in siteconfig.NARROW_WIDTHS:
             item.pop("newline", None)
             item.pop("pos", None)
+    elif op == "update":
+        # FB-27 R3b: короткое содержимое простого блока — прямо в панели. ПАТЧ: меняются
+        # только присланные поля, остальное (стиль, фото, оформление) остаётся (W0).
+        key = siteconfig.cblock_type(item.get("key")) or item.get("key") or ""
+        allowed = [name for name, _label, _kind in PANEL_FIELDS.get(key, ())]
+        if main or not item.get("id") or not allowed:
+            raise SchemaError("fields")
+        data = dict(item.get("data") or {})
+        for name in allowed:
+            if fields is not None and name in fields:
+                data[name] = str(fields[name])[:PANEL_FIELD_MAX]
+        item["data"] = siteconfig._clean_cblock_data(key, data)
     elif op == "newline":
         if main or not item.get("id") or item.get("width") not in siteconfig.NARROW_WIDTHS:
             raise SchemaError("width")
@@ -542,7 +595,15 @@ def store_items(config: dict, home: bool, host: str, items: list[dict]) -> None:
 
 
 @transaction.atomic
-def apply(tenant, code: str, op: str, ref: str = "", block_type: str = "", value: str = "") -> str:
+def apply(
+    tenant,
+    code: str,
+    op: str,
+    ref: str = "",
+    block_type: str = "",
+    value: str = "",
+    fields: dict | None = None,
+) -> str:
     """Одна правка схемы страницы `code` СРАЗУ в базу. Бросает SchemaError на
     недопустимом. Возвращает ref блока, с которым работали (у `add` — id нового).
     Экран «Seitenaufbau» правит через черновик (`aufbau_draft`), это — для прочих."""
@@ -561,7 +622,7 @@ def apply(tenant, code: str, op: str, ref: str = "", block_type: str = "", value
             config["about_contact"] = False
     else:
         items = load_items(config, home, host)
-        ref = mutate(items, code, op, ref, block_type, value)
+        ref = mutate(items, code, op, ref, block_type, value, fields)
         store_items(config, home, host, items)
     locked.site_config = siteconfig.normalize(config)
     locked.save(update_fields=["site_config", "updated_at"])

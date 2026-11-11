@@ -20,6 +20,12 @@ def _url(code: str, block: str = "") -> str:
     return f"{reverse('site-schema')}?{urlencode(query)}" + ("#schema-panel" if block else "")
 
 
+def _panel_fields(post) -> dict | None:
+    if post.get("panel_present") != "1":
+        return None
+    return {k[2:]: v for k, v in post.items() if k.startswith("f_")}
+
+
 @login_required
 def site_schema_view(request):
     from apps.core import aufbau_draft
@@ -55,6 +61,9 @@ def site_schema_view(request):
                     ref=ref,
                     block_type=request.POST.get("type", ""),
                     value=request.POST.get("value", ""),
+                    # Сентинел панели: без него поля не читаются (кнопки «выше/ниже»
+                    # той же страницы не должны стирать текст блока).
+                    fields=_panel_fields(request.POST),
                 )
         except site_schema.SchemaError:
             messages.error(request, _("Diese Änderung ist hier nicht möglich."))

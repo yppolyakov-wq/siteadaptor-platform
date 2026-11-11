@@ -146,3 +146,90 @@ def test_widths_are_named_in_words_for_screen_readers():
     ref = site_schema.apply(b.tenant, "text", "add", block_type="text")
     html = b.get(f"?seite=text&block={ref}")
     assert 'aria-label="ein Sechstel"' in html and 'aria-label="die Hälfte"' in html
+
+
+# --- R3b: короткое содержимое простого блока в панели -------------------------
+
+
+def test_text_is_edited_in_the_panel_through_the_draft():
+    b = Browser(_tenant())
+    ref = site_schema.apply(b.tenant, "text", "add", block_type="text")
+    html = b.get(f"?seite=text&block={ref}")
+    assert "data-schema-fields" in html and 'name="f_title"' in html and 'name="f_body"' in html
+    b.post(seite="text", op="update", ref=ref, panel_present="1", f_title="Neu", f_body="Hallo")
+    assert _blocks(b.tenant)[0]["data"]["title"] != "Neu"  # пока только черновик
+    assert 'value="Neu"' in b.get(f"?seite=text&block={ref}")
+    b.post(seite="text", op="save")
+    data = _blocks(b.tenant)[0]["data"]
+    assert data["title"] == "Neu" and data["body"] == "Hallo"
+
+
+def test_panel_update_is_a_patch_not_a_rebuild():
+    """Панель показывает часть полей — остальные (стиль, фото, оформление) не стираются."""
+    tenant = _tenant()
+    cfg = siteconfig.normalize(
+        {
+            "page_blocks": {
+                "info": [
+                    {
+                        "id": "a1",
+                        "key": "image_text",
+                        "enabled": True,
+                        "width": "w23",
+                        "pos": "right",
+                        "visual": {"radius": 12, "shadow": True, "background": "", "padding": 0},
+                        "data": {
+                            "url": "/media/x.jpg",
+                            "title": "Alt",
+                            "body": "Text",
+                            "side": "right",
+                            "align": "center",
+                            "rounded": "3xl",
+                        },
+                    }
+                ]
+            }
+        }
+    )
+    Tenant.objects.filter(pk=tenant.pk).update(site_config=cfg)
+    before = _blocks(tenant)[0]
+    b = Browser(tenant)
+    b.post(seite="text", op="update", ref="a1", panel_present="1", f_title="Neu")
+    b.post(seite="text", op="save")
+    after = _blocks(tenant)[0]
+    assert after["data"]["title"] == "Neu"
+    expected = {**before, "data": {**before["data"], "title": "Neu"}}
+    assert after == expected
+
+
+def test_fields_are_ignored_without_the_panel_sentinel():
+    """«Выше/ниже» с той же страницы не должны стирать текст блока."""
+    b = Browser(_tenant())
+    ref = site_schema.apply(b.tenant, "text", "add", block_type="text")
+    title = _blocks(b.tenant)[0]["data"]["title"]
+    b.post(seite="text", op="update", ref=ref, f_title="")
+    b.post(seite="text", op="save")
+    assert _blocks(b.tenant)[0]["data"]["title"] == title
+
+
+def test_unknown_fields_and_blocks_without_panel_fields_are_refused():
+    tenant = _tenant()
+    text = site_schema.apply(tenant, "text", "add", block_type="text")
+    banner = site_schema.apply(tenant, "text", "add", block_type="banner")
+    site_schema.apply(tenant, "text", "update", ref=text, fields={"evil": "x", "align": "right"})
+    data = next(x for x in _blocks(tenant) if x["id"] == text)["data"]
+    assert "evil" not in data and data.get("align") != "right"  # чужое поле не прошло
+    with pytest.raises(site_schema.SchemaError):
+        site_schema.apply(tenant, "text", "update", ref=banner, fields={"title": "x"})
+    with pytest.raises(site_schema.SchemaError):
+        site_schema.apply(tenant, "home", "update", ref="hero", fields={"title": "x"})
+
+
+def test_content_change_counts_and_reverts():
+    b = Browser(_tenant())
+    ref = site_schema.apply(b.tenant, "text", "add", block_type="button")
+    label = _blocks(b.tenant)[0]["data"]["label"]
+    b.post(seite="text", op="update", ref=ref, panel_present="1", f_label="Jetzt")
+    assert "data-schema-draft" in b.get("?seite=text")
+    b.post(seite="text", op="update", ref=ref, panel_present="1", f_label=label)
+    assert "data-schema-draft" not in b.get("?seite=text")

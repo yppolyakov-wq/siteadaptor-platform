@@ -115,6 +115,8 @@ def changes(saved: dict, draft: dict) -> int:
         if (old[k].get("width") or "contained", bool(old[k].get("newline")))
         != (new[k].get("width") or "contained", bool(new[k].get("newline")))
     )
+    # FB-27 R3b: содержимое блока (текст, подпись, ссылка) — одно изменение на блок.
+    count += sum(1 for k in common if (old[k].get("data") or {}) != (new[k].get("data") or {}))
     if [k for k in old if k in new] != common:
         count += 1
     if "contact" in draft and bool(draft["contact"]) != bool(saved.get("contact", True)):
@@ -142,6 +144,7 @@ def op(
     ref: str = "",
     block_type: str = "",
     value: str = "",
+    fields: dict | None = None,
 ) -> str:
     """Одна правка схемы — в черновик (база не меняется). SchemaError на недопустимом."""
     from apps.tenants import siteconfig
@@ -157,7 +160,7 @@ def op(
             raise site_schema.SchemaError("fixed")
         draft["contact"] = not draft.get("contact", True)
     else:
-        ref = site_schema.mutate(draft["items"], code, op_name, ref, block_type, value)
+        ref = site_schema.mutate(draft["items"], code, op_name, ref, block_type, value, fields)
     current = {k: draft[k] for k in saved}
     # Вернулись к сохранённому (скрыл и снова показал) — черновика нет.
     clean = _fingerprint(current) == _fingerprint(saved) == draft.get("base")

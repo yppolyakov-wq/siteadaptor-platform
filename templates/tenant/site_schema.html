@@ -141,6 +141,27 @@
       <button name="op" value="toggle" class="ui-btn ui-btn-secondary col-span-2">{% if selected.enabled %}{% trans "Ausblenden" %}{% else %}{% trans "Einblenden" %}{% endif %}</button>
       {% endif %}
     </form>
+    {% if selected.fields %}
+    {% comment %}FB-27 R3b: короткое содержимое простого блока — прямо здесь; стиль и
+    фото — на странице. Поля идут в черновик, как и остальные правки.{% endcomment %}
+    <form method="post" class="mt-4 space-y-3" data-schema-fields>
+      {% csrf_token %}
+      <input type="hidden" name="seite" value="{{ code }}">
+      <input type="hidden" name="ref" value="{{ selected.ref }}">
+      <input type="hidden" name="panel_present" value="1">
+      {% for f in selected.fields %}
+      <div>
+        <label for="schema-f-{{ f.name }}" class="block text-sm font-semibold text-gray-700 mb-1">{{ f.label }}</label>
+        {% if f.kind == "area" %}
+        <textarea id="schema-f-{{ f.name }}" name="f_{{ f.name }}" rows="5" class="ui-input w-full">{{ f.value }}</textarea>
+        {% else %}
+        <input id="schema-f-{{ f.name }}" name="f_{{ f.name }}" value="{{ f.value }}" class="ui-input w-full">
+        {% endif %}
+      </div>
+      {% endfor %}
+      <button name="op" value="update" class="ui-btn ui-btn-primary w-full">{% trans "Übernehmen" %}</button>
+    </form>
+    {% endif %}
     {% if selected.widths %}
     {% comment %}FB-27 R3: ширина блока — узкие соседи встают в один ряд (на телефоне
     всегда друг под другом).{% endcomment %}
