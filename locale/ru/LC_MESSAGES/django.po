@@ -37142,3 +37142,15 @@ msgstr "Повторить (Ctrl+Y)"
 
 msgid "Zeichen"
 msgstr "Символы"
+
+msgid "Bilder aus der Zwischenablage wurden nicht übernommen – bitte über 🖼 hochladen."
+msgstr "Фото из буфера обмена не вставлены — загрузите их кнопкой 🖼."
+
+msgid "Link entfernen"
+msgstr "Убрать ссылку"
+
+msgid "Text übernommen – Strg+Z macht es rückgängig."
+msgstr "Текст вставлен — Ctrl+Z отменит."
+
+msgid "Diese Adresse ist für eine Seite Ihrer Website reserviert."
+msgstr "Этот адрес занят страницей вашего сайта."

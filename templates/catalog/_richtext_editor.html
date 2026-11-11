@@ -33,7 +33,7 @@ Esc — обратно), выравнивание текста, H4, цитата
   .rte-area figure img { max-width: 100%; width: 100%; display: block; }
   .rte-area figure:focus { outline: 2px solid #4f46e5; outline-offset: 2px; }
   .rte-area figure.rte-sel { outline: 3px solid #4f46e5; outline-offset: 2px; }
-  .rte-area figure.rte-noalt::after { content: "⚠ {% trans 'Bildbeschreibung fehlt' as t %}{{ t|escapejs }}"; position: absolute; left: 4px; top: 4px; background: #fffbeb; color: #92400e; border: 1px solid #b45309; border-radius: 6px; font-size: 12px; padding: 1px 6px; }
+  .rte-area figure.rte-noalt::after { content: "⚠ " attr(data-rte-warn); position: absolute; left: 4px; top: 4px; background: #fffbeb; color: #92400e; border: 1px solid #b45309; border-radius: 6px; font-size: 12px; padding: 1px 6px; }
   .rte-area figcaption { font-size: .8rem; color: #4b5563; margin-top: .25rem; }
   .rte-area .sf-img-sm { width: 25%; min-width: 120px; } .rte-area .sf-img-md { width: 50%; }
   .rte-area .sf-img-lg { width: 75%; } .rte-area .sf-img-full { width: 100%; }
@@ -87,6 +87,9 @@ Esc — обратно), выравнивание текста, H4, цитата
     alt: "{% trans 'Bildbeschreibung (für Screenreader und Suchmaschinen)' as t %}{{ t|escapejs }}",
     altHelp: "{% trans 'Beschreiben Sie, was zu sehen ist.' as t %}{{ t|escapejs }}",
     altMissing: "{% trans 'Bitte das Bild beschreiben oder als dekorativ markieren.' as t %}{{ t|escapejs }}",
+    altShort: "{% trans 'Bildbeschreibung fehlt' as t %}{{ t|escapejs }}",
+    taken: "{% trans 'Text übernommen – Strg+Z macht es rückgängig.' as t %}{{ t|escapejs }}",
+    droppedImg: "{% trans 'Bilder aus der Zwischenablage wurden nicht übernommen – bitte über 🖼 hochladen.' as t %}{{ t|escapejs }}",
     decorative: "{% trans 'Dekoratives Bild (keine Beschreibung nötig)' as t %}{{ t|escapejs }}",
     caption: "{% trans 'Bildunterschrift (sichtbar, optional)' as t %}{{ t|escapejs }}",
     remove: "{% trans 'Bild entfernen' as t %}{{ t|escapejs }}",
@@ -128,7 +131,7 @@ Esc — обратно), выравнивание текста, H4, цитата
     });
   }
   // Служебные атрибуты редактора (фокус фигуры, пометки) в сохранённый HTML не идут.
-  var EDITOR_ATTRS = ["contenteditable", "tabindex", "data-decorative", "aria-label", "role"];
+  var EDITOR_ATTRS = ["contenteditable", "tabindex", "data-decorative", "data-new", "data-rte-warn", "aria-label", "role"];
   function cleanClone(area) {
     var c = area.cloneNode(true);
     c.querySelectorAll("figure").forEach(function (el) {
@@ -237,8 +240,12 @@ Esc — обратно), выравнивание текста, H4, цитата
     fig.setAttribute("role", "group");
     var img = fig.querySelector("img");
     var alt = img ? img.getAttribute("alt") || "" : "";
-    fig.setAttribute("aria-label", T.image + ": " + (alt || T.altMissing));
-    fig.classList.toggle("rte-noalt", !alt && !fig.hasAttribute("data-decorative"));
+    // Предупреждение — только у фото, вставленных сейчас: сохранённое с alt="" владелец
+    // уже отметил декоративным (иначе плашка возвращалась бы после каждой загрузки).
+    var missing = !alt && fig.hasAttribute("data-new") && !fig.hasAttribute("data-decorative");
+    fig.setAttribute("aria-label", T.image + ": " + (alt || (missing ? T.altShort : T.decorative)));
+    fig.setAttribute("data-rte-warn", T.altShort);
+    fig.classList.toggle("rte-noalt", missing);
   }
   function wrapImage(img) {
     if (img.parentNode && img.parentNode.tagName === "FIGURE") return img.parentNode;
@@ -273,6 +280,7 @@ Esc — обратно), выравнивание текста, H4, цитата
           // Фото — своей строкой, по ширине текста; размер/положение — в окне фото.
           var fig = document.createElement("figure");
           fig.className = "sf-img-full";
+          fig.setAttribute("data-new", "");
           var img = document.createElement("img");
           img.setAttribute("src", res.d.url);
           img.setAttribute("alt", "");
@@ -293,6 +301,7 @@ Esc — обратно), выравнивание текста, H4, цитата
   function closeImage(focusBack) {
     if (!pop) return;
     var fig = pop.__fig, area = pop.__area;
+    if (pop.__flush) pop.__flush();  // отложенный снимок истории — до закрытия
     pop.remove();
     pop = null;
     if (fig) fig.classList.remove("rte-sel");
@@ -357,6 +366,9 @@ Esc — обратно), выравнивание текста, H4, цитата
     pop.setAttribute("aria-labelledby", uid + "-h");
     pop.__fig = fig;
     pop.__area = area;
+    pop.__flush = function () {
+      if (typing) { clearTimeout(typing); typing = null; api.snapshot(); }
+    };
     var head = document.createElement("div");
     head.style.cssText = "display:flex;justify-content:space-between;align-items:center;gap:8px";
     var h = document.createElement("h2");
@@ -372,7 +384,20 @@ Esc — обратно), выравнивание текста, H4, цитата
     head.appendChild(h);
     head.appendChild(x);
     pop.appendChild(head);
-    function changed(msg) { api.sync(); prepFigure(fig); fig.classList.add("rte-sel"); api.snapshot(); if (msg) status(area, msg); }
+    var typing = null;
+    function changed(msg, debounce) {
+      api.sync();
+      prepFigure(fig);
+      fig.classList.add("rte-sel");
+      clearTimeout(typing);
+      if (debounce) {
+        typing = setTimeout(function () { typing = null; api.snapshot(); }, 500);
+      } else {
+        typing = null;
+        api.snapshot();
+      }
+      if (msg) status(area, msg);
+    }
     pop.appendChild(radioGroup(uid + "-s", T.size, T.sizes, figSize(fig), function (v, label) {
       fig.classList.remove("sf-img-sm", "sf-img-md", "sf-img-lg", "sf-img-full");
       fig.classList.add("sf-img-" + v);
@@ -393,7 +418,7 @@ Esc — обратно), выравнивание текста, H4, цитата
     deco.style.cssText = "display:flex;gap:6px;align-items:center;margin-top:.25rem";
     var decoBox = document.createElement("input");
     decoBox.type = "checkbox";
-    decoBox.checked = fig.hasAttribute("data-decorative");
+    decoBox.checked = fig.hasAttribute("data-decorative") || (!img.getAttribute("alt") && !fig.hasAttribute("data-new"));
     deco.appendChild(decoBox);
     deco.appendChild(document.createTextNode(T.decorative));
     function altState() {
@@ -406,7 +431,7 @@ Esc — обратно), выравнивание текста, H4, цитата
     alt.addEventListener("input", function () {
       img.setAttribute("alt", alt.value.slice(0, RULES.altMax));
       altState();
-      changed("");
+      changed("", true);
     });
     decoBox.addEventListener("change", function () {
       if (decoBox.checked) { fig.setAttribute("data-decorative", ""); img.setAttribute("alt", ""); alt.value = ""; }
@@ -428,7 +453,7 @@ Esc — обратно), выравнивание текста, H4, цитата
         if (!c) { c = document.createElement("figcaption"); fig.appendChild(c); }
         c.textContent = cap.value;
       }
-      changed("");
+      changed("", true);
     });
     pop.appendChild(capPair[0]);
     pop.appendChild(cap);
@@ -508,6 +533,7 @@ Esc — обратно), выравнивание текста, H4, цитата
         ["•", "insertUnorderedList", "{% trans 'Liste' as t %}{{ t|escapejs }}", 1],
         ["1.", "insertOrderedList", "{% trans 'Nummerierte Liste' as t %}{{ t|escapejs }}", 1],
         ["🔗", "createLink", "{% trans 'Link' as t %}{{ t|escapejs }}"],
+        ["⛓", "unlink", "{% trans 'Link entfernen' as t %}{{ t|escapejs }}"],
       ]],
     ];
     // M21.6/M21.10: страницы сайта и правовые тексты — заголовки, выравнивание, вставки.
@@ -551,6 +577,11 @@ Esc — обратно), выравнивание текста, H4, цитата
       if (lab) area.setAttribute("aria-label", lab.textContent.trim());
     }
     if (page) area.setAttribute("data-rte-page", "");
+    if (ta.lang) area.lang = ta.lang;  // текст на своём языке — и голос скринридера тоже
+    if (ta.id) {
+      var forLab = document.querySelector('label[for="' + ta.id + '"]');
+      if (forLab) forLab.addEventListener("click", function (e) { e.preventDefault(); area.focus(); });
+    }
     var st = ta.parentNode.querySelector("[data-rte-status]");
     if (st) area.__status = st;
     // M21.8 (security-review): значение textarea в DOM — только через белый список.
@@ -609,6 +640,8 @@ Esc — обратно), выравнивание текста, H4, цитата
         b.title = c[2];
         b.setAttribute("aria-label", c[2]);
         if (c[3]) b.setAttribute("aria-pressed", "false");
+        var keys = { undo: "Control+Z", redo: "Control+Y", imageSettings: "F2", bold: "Control+B", italic: "Control+I", underline: "Control+U" };
+        if (keys[c[1]]) b.setAttribute("aria-keyshortcuts", keys[c[1]]);
         if (c[0] === "B") b.style.fontWeight = "700";
         if (c[0] === "I") b.style.fontStyle = "italic";
         if (c[0] === "U") b.style.textDecoration = "underline";
@@ -669,7 +702,7 @@ Esc — обратно), выравнивание текста, H4, цитата
         if (url && /^(https?:|mailto:|tel:)/i.test(url)) document.execCommand("createLink", false, url);
       } else if (cmd === "insertImage") {
         var src = window.prompt("{% trans 'Bild-Adresse' as t %}{{ t|escapejs }} (/media/…)", "/media/");
-        if (src) document.execCommand("insertImage", false, src);
+        if (src && /^\/media\//.test(src) && !/\.\.|\\|%2f|%5c/i.test(src)) document.execCommand("insertImage", false, src);
       } else if (/^(h2|h3|h4|p|blockquote)$/.test(cmd)) {
         var cur = blockOf(area);
         var same = cur && cur.tagName.toLowerCase() === cmd && cmd !== "p";
@@ -685,6 +718,11 @@ Esc — обратно), выравнивание текста, H4, цитата
       if (byCmd.undo) byCmd.undo.setAttribute("aria-disabled", past.length > 1 ? "false" : "true");
       if (byCmd.redo) byCmd.redo.setAttribute("aria-disabled", future.length ? "false" : "true");
       if (byCmd.imageSettings) byCmd.imageSettings.setAttribute("aria-disabled", selectedFigure() ? "false" : "true");
+      if (byCmd.unlink) {
+        var r0 = currentRange(area), n0 = r0 ? r0.startContainer : null, inLink = false;
+        while (n0 && n0 !== area) { if (n0.nodeType === 1 && n0.tagName === "A") { inLink = true; break; } n0 = n0.parentNode; }
+        byCmd.unlink.setAttribute("aria-disabled", inLink ? "false" : "true");
+      }
       if (!currentRange(area)) return;
       ["bold", "italic", "underline", "insertUnorderedList", "insertOrderedList"].forEach(function (c) {
         if (!byCmd[c]) return;
@@ -772,7 +810,11 @@ Esc — обратно), выравнивание текста, H4, цитата
       if (html) {
         var doc = new DOMParser().parseFromString("<body>" + html + "</body>", "text/html");
         var frag = document.createDocumentFragment();
+        var imgsIn = doc.body.querySelectorAll("img").length;
         safeCopy(doc.body, page, frag);
+        var holder = document.createElement("div");
+        holder.appendChild(frag.cloneNode(true));
+        if (imgsIn > holder.querySelectorAll("img").length) status(area, T.droppedImg);
         // Вставка узлами, а не insertHTML: Chrome добавил бы к ним инлайн-стили.
         var r = currentRange(area);
         if (r) {
@@ -788,6 +830,18 @@ Esc — обратно), выравнивание текста, H4, цитата
       sync();
       snapshot();
     });
+    // Перетаскивание чужого HTML — только текстом (мимо белого списка ничего не попадёт).
+    area.addEventListener("drop", function (e) {
+      var dt = e.dataTransfer;
+      if (!dt || (dt.files && dt.files.length) || !dt.types || dt.types.indexOf("text/html") < 0) {
+        if (dt && dt.files && dt.files.length) e.preventDefault();
+        return;
+      }
+      e.preventDefault();
+      document.execCommand("insertText", false, dt.getData("text/plain"));
+      sync();
+      snapshot();
+    });
     var typingTimer = null;
     area.addEventListener("input", function () {
       sync();
@@ -795,7 +849,7 @@ Esc — обратно), выравнивание текста, H4, цитата
       typingTimer = setTimeout(snapshot, 500);
     });
     // M21.10: внешнее «подставить текст» (автотекст правовой страницы) — через белый список.
-    ta.addEventListener("rte:set", function () { fill(area, ta.value || "", page); sync(); snapshot(); });
+    ta.addEventListener("rte:set", function () { fill(area, ta.value || "", page); sync(); snapshot(); status(area, T.taken); });
     ta.classList.add("hidden");
     ta.insertAdjacentElement("afterend", wrap);
     wrap.appendChild(bar);

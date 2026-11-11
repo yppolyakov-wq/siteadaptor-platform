@@ -15,6 +15,7 @@ from django.views.decorators.http import require_POST
 from apps.core import content_pages
 from apps.core.models import ContentPage
 from apps.core.richtext import sanitize_page
+from apps.core.view_perms import FLOOR, perm_required
 
 
 def _can_preview(request) -> bool:
@@ -104,7 +105,8 @@ def _legal_pages(request) -> list:
     labels = dict(LegalDoc.KIND_CHOICES)
     rows = []
     for kind, url_name in _LEGAL_PAGES:
-        if locale in langs.get(kind, ()):
+        # Свой текст хотя бы на одном языке (AGB только на en тоже видна en-посетителю).
+        if locale in langs.get(kind, ()) or (kind == "agb" and langs.get(kind)):
             state = "own"
         elif kind == "agb":
             state = "off"  # без текста страницы /agb/ нет
@@ -143,7 +145,8 @@ def _form(request, page, *, created: bool):
             messages.error(request, str(exc))
             # Ввод не теряем: форма показывает то, что набрал владелец.
             page.title = request.POST.get("title", "")[:200]
-            page.slug = request.POST.get("slug", "")[: content_pages.SLUG_MAX]
+            if page.slug not in content_pages.SYSTEM_PAGES:  # адрес системной закреплён
+                page.slug = request.POST.get("slug", "")[: content_pages.SLUG_MAX]
             page.body = sanitize_page(request.POST.get("body", ""))
         else:
             messages.success(request, _("Seite angelegt.") if created else _("Seite gespeichert."))
@@ -252,6 +255,7 @@ def page_image_upload(request):
 
 
 @login_required
+@perm_required(FLOOR)
 def legal_page_edit(request, kind):
     """Правовой текст (Impressum/Datenschutz/Widerruf/AGB) по языкам — тот же редактор,
     что у страниц. Хранилище — ``LegalDoc``, писатель — ``legal.save_legal_doc``.
@@ -265,16 +269,23 @@ def legal_page_edit(request, kind):
     if kind not in labels:
         raise Http404
     tenant = request.tenant
-    locales = list(tenant.active_locales)
+    locales = list(tenant.active_locales) or [settings.LANGUAGE_CODE]
+    posted = {}
     if request.method == "POST":
-        for loc in locales:
-            value = request.POST.get(f"doc_{loc}")
-            if value is None:  # presence-guard: чужие языки не трогаем
-                continue
-            legal.save_legal_doc(kind, loc, value)
-        messages.success(request, _("Gespeichert."))
-        return redirect("legal-page-edit", kind=kind)
+        posted = {
+            loc: request.POST.get(f"doc_{loc}")
+            for loc in locales
+            if request.POST.get(f"doc_{loc}") is not None  # presence-guard
+        }
+        if any(len(v) > legal.LEGAL_TEXT_MAX for v in posted.values()):
+            messages.error(request, _("Der Text ist zu lang."))  # ничего не пишем, ввод цел
+        else:
+            for loc, value in posted.items():
+                legal.save_legal_doc(kind, loc, value)
+            messages.success(request, _("Gespeichert."))
+            return redirect("legal-page-edit", kind=kind)
     docs = dict(LegalDoc.objects.filter(kind=kind).values_list("locale", "text"))
+    docs.update({loc: sanitize_page(v) for loc, v in posted.items()})
     names = dict(settings.LANGUAGES)
     shown = settings.LANGUAGE_CODE if settings.LANGUAGE_CODE in locales else locales[0]
     cells = [

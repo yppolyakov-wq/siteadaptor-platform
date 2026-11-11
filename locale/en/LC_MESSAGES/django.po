@@ -36807,3 +36807,15 @@ msgstr "Redo (Ctrl+Y)"
 
 msgid "Zeichen"
 msgstr "Characters"
+
+msgid "Bilder aus der Zwischenablage wurden nicht übernommen – bitte über 🖼 hochladen."
+msgstr "Images from the clipboard were not taken over – please upload them with 🖼."
+
+msgid "Link entfernen"
+msgstr "Remove link"
+
+msgid "Text übernommen – Strg+Z macht es rückgängig."
+msgstr "Text inserted – Ctrl+Z undoes it."
+
+msgid "Diese Adresse ist für eine Seite Ihrer Website reserviert."
+msgstr "This address is reserved for one of your website pages."

@@ -6,13 +6,15 @@
 {% comment %}M21.10: правовой текст в «Seiten» — тот же редактор, что у страниц; по языкам
 (одна выпадашка E9.10, все поля в DOM — W0). Пусто = автотекст из данных бизнеса.{% endcomment %}
 <div class="max-w-6xl">
-  <a href="{% url 'content-pages' %}" class="text-sm text-indigo-600 hover:underline">← {% trans "Alle Seiten" %}</a>
+  {% comment %}Лёгкий пакет: «Seiten» и загрузка фото ему закрыты — ссылки только туда, куда можно.{% endcomment %}
+  {% if 'content-pages'|lite_allowed:request %}<a href="{% url 'content-pages' %}" class="text-sm text-indigo-600 hover:underline">← {% trans "Alle Seiten" %}</a>
+  {% elif 'legal-docs'|lite_allowed:request %}<a href="{% url 'legal-docs' %}" class="text-sm text-indigo-600 hover:underline">← {% trans "Recht & Steuern" %}</a>{% endif %}
   <div class="flex flex-wrap items-center justify-between gap-3 mt-2 mb-1">
     <div class="flex items-center gap-3 flex-wrap">
       <h1 class="ui-h1">{{ label }}</h1>
       {% lang_switch %}
     </div>
-    <a href="{{ page_url }}" target="_blank" rel="noopener" class="ui-btn">{% trans "Auf der Website ansehen" %} ↗</a>
+    <a href="{{ page_url }}" target="_blank" rel="noopener" class="ui-btn">{% trans "Auf der Website ansehen" %} <span aria-hidden="true">↗</span></a>
   </div>
   <p class="text-gray-500 mb-4 text-sm">
     {% if kind == "agb" %}{% trans "Optional. The AGB page and its footer link appear only when a text is set." %}{% else %}{% trans "Empty = automatic text generated from your business data (shown below)." %}{% endif %}
@@ -27,7 +29,7 @@
     <div data-i18n-loc="{{ cell.locale }}"{% if cell.locale != legal_shown_locale %} class="hidden"{% endif %}>
       <label class="block text-sm font-medium mb-1" for="doc_{{ cell.locale }}">{% trans "Text" %} <span class="text-gray-500 uppercase text-xs">{{ cell.locale }}</span></label>
       <textarea id="doc_{{ cell.locale }}" name="doc_{{ cell.locale }}" lang="{{ cell.locale }}" rows="16"
-                class="ui-input w-full" data-rte="page" data-rte-upload="{% url 'content-page-image' %}">{{ cell.text }}</textarea>
+                class="ui-input w-full" data-rte="page"{% if 'content-page-image'|lite_allowed:request %} data-rte-upload="{% url 'content-page-image' %}"{% endif %}>{{ cell.text }}</textarea>
       <p class="text-sm text-gray-600 min-h-[1.25rem]" role="status" aria-live="polite" data-rte-status></p>
       {% if cell.fallback %}
       <details class="mt-1 text-xs text-gray-500" data-legal-fallback>

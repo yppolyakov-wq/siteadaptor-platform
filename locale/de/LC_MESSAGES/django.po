@@ -36894,3 +36894,15 @@ msgstr "Wiederholen (Strg+Y)"
 
 msgid "Zeichen"
 msgstr "Zeichen"
+
+msgid "Bilder aus der Zwischenablage wurden nicht übernommen – bitte über 🖼 hochladen."
+msgstr "Bilder aus der Zwischenablage wurden nicht übernommen – bitte über 🖼 hochladen."
+
+msgid "Link entfernen"
+msgstr "Link entfernen"
+
+msgid "Text übernommen – Strg+Z macht es rückgängig."
+msgstr "Text übernommen – Strg+Z macht es rückgängig."
+
+msgid "Diese Adresse ist für eine Seite Ihrer Website reserviert."
+msgstr "Diese Adresse ist für eine Seite Ihrer Website reserviert."

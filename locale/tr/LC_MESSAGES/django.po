@@ -36953,3 +36953,15 @@ msgstr "Yinele (Ctrl+Y)"
 
 msgid "Zeichen"
 msgstr "Karakter"
+
+msgid "Bilder aus der Zwischenablage wurden nicht übernommen – bitte über 🖼 hochladen."
+msgstr "Panodaki görseller alınmadı – lütfen 🖼 ile yükleyin."
+
+msgid "Link entfernen"
+msgstr "Bağlantıyı kaldır"
+
+msgid "Text übernommen – Strg+Z macht es rückgängig."
+msgstr "Metin eklendi – Ctrl+Z ile geri alabilirsiniz."
+
+msgid "Diese Adresse ist für eine Seite Ihrer Website reserviert."
+msgstr "Bu adres web sitenizin bir sayfası için ayrılmıştır."

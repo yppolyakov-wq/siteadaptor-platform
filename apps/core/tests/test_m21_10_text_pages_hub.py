@@ -273,3 +273,56 @@ def test_page_css_is_scoped_and_safe():
     for line in block.splitlines():
         if "{" in line and not line.strip().startswith(("@media", "/*")):
             assert ".sf-page-body" in line or ".rich-text" in line, line
+
+
+# --- по ревью ----------------------------------------------------------------------
+
+
+def test_legal_text_too_long_is_refused_not_truncated():
+    LegalDoc.objects.create(kind="impressum", locale="de", text="Alt")
+    body = "<p>" + "x" * legal.LEGAL_TEXT_MAX + "</p>"
+    resp = views.legal_page_edit(_req(method="post", data={"doc_de": body}), "impressum")
+    assert resp.status_code == 200  # форма с ошибкой, без редиректа
+    assert LegalDoc.objects.get(kind="impressum").text == "Alt"
+    with pytest.raises(legal.LegalTextTooLong):
+        legal.save_legal_doc("impressum", "de", body)
+
+
+@pytest.mark.parametrize("empty", ["<p></p>", "<p><br></p>", "<div> </div>", "  "])
+def test_empty_html_deletes_so_auto_text_returns(empty):
+    LegalDoc.objects.create(kind="impressum", locale="de", text="Alt")
+    assert legal.save_legal_doc("impressum", "de", empty) == "deleted"
+    assert not LegalDoc.objects.exists()
+
+
+def test_legal_page_edit_has_view_level_floor_guard():
+    assert getattr(views.legal_page_edit, "_required_perm", None) == view_perms.FLOOR
+
+
+def test_agb_text_only_in_second_language_counts_as_own():
+    LegalDoc.objects.create(kind="agb", locale="en", text="Terms")
+    rows = {r.kind: r for r in views._legal_pages(_req())}
+    assert rows["agb"].state == "own" and rows["agb"].langs == ["en"]
+
+
+def test_new_own_page_cannot_take_a_system_address():
+    page = ContentPage(is_published=True)
+    with pytest.raises(content_pages.PageError):
+        content_pages.save_page(page, title="Versand", slug="", body="", is_published=True)
+    assert not ContentPage.objects.exists()
+
+
+def test_system_page_error_keeps_fixed_slug(orders_on):
+    resp = views.page_system(
+        _req(method="post", data={"title": "", "slug": "boese", "body": "x"}), "versand"
+    )
+    html = resp.content.decode()
+    assert "data-system-slug" in html and 'value="versand"' in html
+
+
+def test_editor_has_drop_guard_and_media_only_prompt():
+    from pathlib import Path
+
+    js = Path("templates/catalog/_richtext_editor.html").read_text()
+    assert 'addEventListener("drop"' in js and 'addEventListener("paste"' in js
+    assert "attr(data-rte-warn)" in js and "area.lang = ta.lang" in js

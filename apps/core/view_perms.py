@@ -389,11 +389,11 @@ RULES: dict[str, Rule] = {
     "content-page-new": _r(W, WE),
     "content-page-edit": _r(W, WE),
     "content-page-delete": _r(W, WE),
+    # M21.8 B4: загрузка картинки в редакторе страницы
     "content-page-image": _r(WE, WE),
-    "content-page-system": _r(W, WE),  # M21.10: системная страница (Über uns, Versand)
-    "legal-page-edit": _r(
-        FLOOR
-    ),  # M21.10: правовой текст — только владелец (§ 5 DDG)  # M21.8 B4: загрузка картинки в редакторе страницы
+    # M21.10: системная страница (Über uns, Versand); правовой текст — только владелец
+    "content-page-system": _r(W, WE),
+    "legal-page-edit": _r(FLOOR),
     "site-redirects": _r(W, WE),
     "site-redirects-import": _r(W, WE),
     "site-redirects-export": _r(W, WE),

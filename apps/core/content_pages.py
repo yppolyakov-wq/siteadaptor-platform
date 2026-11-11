@@ -80,6 +80,9 @@ def save_page(
     # на /seite/<…>/, а /versand/ остался бы без него.
     if old_slug in SYSTEM_PAGES or (page._state.adding and page.slug in SYSTEM_PAGES):
         slug = old_slug or page.slug
+    elif page._state.adding and make_slug(slug or title) in SYSTEM_PAGES:
+        # Новая своя страница не занимает адрес системной (её правят в «Seiten Ihrer Website»).
+        raise PageError(_("Diese Adresse ist für eine Seite Ihrer Website reserviert."))
     new_slug = clean_slug(slug or old_slug or title, exclude_pk=page.pk)
     page.title = title
     page.slug = new_slug

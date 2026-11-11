@@ -48,6 +48,10 @@ def legal_text(tenant, kind: str, locale: str | None = None) -> str:
 LEGAL_TEXT_MAX = 200_000
 
 
+class LegalTextTooLong(ValueError):
+    """Текст длиннее LEGAL_TEXT_MAX — ничего не сохраняем."""
+
+
 def legal_kinds() -> tuple:
     from apps.core.models import LegalDoc
 
@@ -63,15 +67,21 @@ def save_legal_doc(kind: str, locale: str, text: str) -> str:
     from django.conf import settings
 
     from apps.core.models import LegalDoc
-    from apps.core.richtext import clean_page_input
+    from apps.core.richtext import clean_page_input, is_rich, to_plain
 
     if kind not in legal_kinds() or locale not in dict(settings.LANGUAGES):
         raise ValueError("unknown legal kind/locale")
-    value = (text or "")[:LEGAL_TEXT_MAX]
-    if not value.strip():
+    if len(text or "") > LEGAL_TEXT_MAX:
+        # Правовой текст не обрезаем молча (хвост Impressum — реквизиты § 5 DDG).
+        raise LegalTextTooLong
+    value = clean_page_input(text or "")
+    # «<p><br></p>» — тоже пусто: иначе автотекст Impressum перестал бы работать, а у
+    # AGB появилась бы пустая страница.
+    empty = not to_plain(value).strip() and not (
+        is_rich(value) and ("<img" in value or "<hr" in value)
+    )
+    if empty:
         LegalDoc.objects.filter(kind=kind, locale=locale).delete()
         return "deleted"
-    LegalDoc.objects.update_or_create(
-        kind=kind, locale=locale, defaults={"text": clean_page_input(value)}
-    )
+    LegalDoc.objects.update_or_create(kind=kind, locale=locale, defaults={"text": value})
     return "saved"

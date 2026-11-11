@@ -66,7 +66,7 @@
           <td class="break-all"><a href="{{ p.url }}" target="_blank" rel="noopener" class="text-gray-600 hover:underline">{{ p.url }}</a></td>
           <td>{% if p.is_published %}<span class="ui-badge ui-tone-ok">{% trans "Veröffentlicht" %}</span>{% else %}<span class="ui-badge ui-tone-off">{% trans "Entwurf" %}</span>{% endif %}</td>
           <td class="text-right whitespace-nowrap">
-            <a href="{% url 'content-page-edit' p.pk %}" class="ui-btn ui-btn-sm">{% trans "Bearbeiten" %}</a>
+            <a href="{% url 'content-page-edit' p.pk %}" class="ui-btn ui-btn-sm" aria-label="{% blocktrans with t=p.title %}{{ t }} bearbeiten{% endblocktrans %}">{% trans "Bearbeiten" %}</a>
             {% if 'content-page-new'|can_open:request %}
             <form method="post" action="{% url 'content-page-delete' p.pk %}" class="inline">
               {% csrf_token %}
@@ -106,7 +106,7 @@
           <td class="break-all">{% if p.state != "off" %}<a href="{{ p.url }}" target="_blank" rel="noopener" class="text-gray-600 hover:underline">{{ p.url }}</a>{% else %}<span class="ui-muted">{{ p.url }}</span>{% endif %}</td>
           <td>{% if p.state == "own" %}<span class="ui-badge ui-tone-ok">{% trans "Eigener Text" %}</span>{% if p.langs|length > 1 %} <span class="text-xs text-gray-500 uppercase">{{ p.langs|join:" · " }}</span>{% endif %}{% elif p.state == "auto" %}<span class="ui-badge ui-tone-new">{% trans "Automatisch erstellt" %}</span>{% else %}<span class="ui-badge ui-tone-off">{% trans "Kein Text – Seite ausgeblendet" %}</span>{% endif %}</td>
           <td class="text-right whitespace-nowrap">
-            {% if 'legal-page-edit'|can_open:request %}<a href="{% url 'legal-page-edit' p.kind %}" class="ui-btn ui-btn-sm" aria-label="{% blocktrans with t=p.title %}{{ t }} bearbeiten{% endblocktrans %}">{% trans "Bearbeiten" %}</a>{% else %}<span class="text-xs text-gray-500" data-legal-locked>🔒 {% trans "Nur Inhaber/in" %}</span>{% endif %}
+            {% if 'legal-page-edit'|can_open:request %}<a href="{% url 'legal-page-edit' p.kind %}" class="ui-btn ui-btn-sm" aria-label="{% blocktrans with t=p.title %}{{ t }} bearbeiten{% endblocktrans %}">{% trans "Bearbeiten" %}</a>{% else %}<span class="text-xs text-gray-500" data-legal-locked><span aria-hidden="true">🔒</span> {% trans "Nur Inhaber/in" %}</span>{% endif %}
           </td>
         </tr>
         {% endfor %}
