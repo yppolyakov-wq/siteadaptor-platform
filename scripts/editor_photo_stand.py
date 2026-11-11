@@ -74,6 +74,7 @@ def main():  # noqa: PLR0915 — один линейный сценарий ст
         page.keyboard.press("Escape")
 
         print("Ecke ziehen")
+        popup_before = page.locator(".rte-pop").count()
         fig = area.locator("figure").first
         fig.click()
         page.keyboard.press("Escape")
@@ -94,6 +95,11 @@ def main():  # noqa: PLR0915 — один линейный сценарий ст
         )
         check(bool(badge) and "%" in badge, f"значок ширины во время ({badge})")
         check(fig.get_attribute("data-rte-w") is None, "значок убран после")
+        page.wait_for_timeout(100)
+        check(
+            page.locator(".rte-pop").count() == popup_before,
+            "перетаскивание не открывает окно фото",
+        )
 
         print("Zuschneiden")
         fig.click()
@@ -106,6 +112,11 @@ def main():  # noqa: PLR0915 — один линейный сценарий ст
         box = dlg.locator(".rte-crop-box")
         bb = box.bounding_box()
         check(abs(bb["width"] - bb["height"]) < 4, "1:1 даёт квадрат")
+        x0 = box.bounding_box()["x"]
+        dlg.locator("button[aria-label='Nach rechts']").click()
+        check(box.bounding_box()["x"] > x0, "кнопка «→» сдвигает рамку (без перетаскивания)")
+        page.wait_for_timeout(400)
+        check("Prozent" in dlg.locator("[role=status]").inner_text(), "положение объявлено")
         box.focus()
         page.keyboard.press("ArrowRight")
         dlg.locator("button.ui-btn-primary").click()

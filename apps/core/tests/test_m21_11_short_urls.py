@@ -66,3 +66,16 @@ def test_unknown_short_path_is_404():
 
     with pytest.raises(Http404):
         views.storefront_page(_req("/gibt-es-nicht/"), "gibt-es-nicht")
+
+
+def test_legacy_address_does_not_reveal_drafts():
+    """Ревью безопасности: 301 только у опубликованной — черновик анониму = 404."""
+    from django.http import Http404
+
+    ContentPage.objects.create(slug="geheim", title="Geheim", is_published=False)
+    from django.contrib.auth.models import AnonymousUser
+
+    req = _req("/seite/geheim/")
+    req.user = AnonymousUser()
+    with pytest.raises(Http404):
+        views.storefront_page_legacy(req, "geheim")

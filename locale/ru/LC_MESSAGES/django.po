@@ -37362,3 +37362,24 @@ msgstr "Соотношение сторон"
 
 msgid "Ungültiger Bildausschnitt."
 msgstr "Неверная область кадра."
+
+msgid "10–100, in Schritten von 5. Mit Maus oder Finger auch an der Ecke des Bildes ziehen."
+msgstr "10–100, шаг 5. Мышью или пальцем можно также тянуть за угол фото."
+
+msgid "Ausschnitt in Prozent: Breite [w], Höhe [h], links [x], oben [y]"
+msgstr "Область в процентах: ширина [w], высота [h], слева [x], сверху [y]"
+
+msgid "Ausschnitt verschieben"
+msgstr "Сдвинуть область"
+
+msgid "Größer"
+msgstr "Больше"
+
+msgid "Kleiner"
+msgstr "Меньше"
+
+msgid "Nach links"
+msgstr "Влево"
+
+msgid "Nach rechts"
+msgstr "Вправо"

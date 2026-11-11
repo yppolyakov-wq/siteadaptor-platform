@@ -29,6 +29,7 @@ def test_each_text_page_has_its_own_host():
 
 
 def test_block_added_on_one_page_does_not_appear_on_another():
+    ContentPage.objects.create(slug="zahlung", title="Zahlung", is_published=True)
     t = _tenant()
     site_schema.apply(t, "text@seite:zahlung", "add", block_type="text")
     cfg = siteconfig.normalize(t.site_config)
@@ -63,3 +64,29 @@ def test_about_page_hides_contact_card_when_switched_off():
 
     tpl = (Path(settings.BASE_DIR) / "templates/storefront/about.html").read_text()
     assert "site.about_contact is not False" in tpl
+
+
+def test_host_of_missing_page_is_rejected():
+    """Ревью безопасности: хосты-призраки не создаются (общий потолок хостов)."""
+    t = _tenant()
+    with pytest.raises(site_schema.SchemaError):
+        site_schema.apply(t, "text@seite:gibt-es-nicht", "add", block_type="text")
+
+
+def test_blocks_follow_slug_change_and_vanish_with_page():
+    from django.db import connection
+
+    from apps.core import content_pages
+
+    t = _tenant()
+    page = ContentPage.objects.create(slug="alt", title="Alt", is_published=True)
+    site_schema.apply(t, "text@seite:alt", "add", block_type="text")
+    connection.tenant = t
+    content_pages.save_page(page, title="Neu", slug="neu", body="", is_published=True)
+    t.refresh_from_db()
+    pb = t.site_config.get("page_blocks") or {}
+    assert "seite:alt" not in pb and len(pb.get("seite:neu", [])) == 1
+    connection.tenant = t  # тест: фабрика тенанта сбрасывает подключение (в запросе оно стабильно)
+    assert content_pages.move_page_blocks("neu", None)
+    t.refresh_from_db()
+    assert "seite:neu" not in (t.site_config.get("page_blocks") or {})

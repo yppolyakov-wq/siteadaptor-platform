@@ -37027,3 +37027,24 @@ msgstr "Aspect ratio"
 
 msgid "Ungültiger Bildausschnitt."
 msgstr "Invalid image section."
+
+msgid "10–100, in Schritten von 5. Mit Maus oder Finger auch an der Ecke des Bildes ziehen."
+msgstr "10–100, in steps of 5. With a mouse or finger you can also drag the corner of the image."
+
+msgid "Ausschnitt in Prozent: Breite [w], Höhe [h], links [x], oben [y]"
+msgstr "Section in percent: width [w], height [h], left [x], top [y]"
+
+msgid "Ausschnitt verschieben"
+msgstr "Move section"
+
+msgid "Größer"
+msgstr "Larger"
+
+msgid "Kleiner"
+msgstr "Smaller"
+
+msgid "Nach links"
+msgstr "To the left"
+
+msgid "Nach rechts"
+msgstr "To the right"

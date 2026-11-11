@@ -58,7 +58,10 @@ def storefront_page_legacy(request, slug):
     """M21.11: старый адрес /seite/<slug>/ — 301 на короткий /<slug>/ (ссылки из писем,
     поисковиков и меню не ломаются). Короткий занят системной страницей — отдаём
     страницу здесь же."""
-    if content_pages.short_url_free(slug) and ContentPage.objects.filter(slug=slug).exists():
+    # Ревью безопасности: редирект только у опубликованной — иначе 301/404 выдавал бы,
+    # какие черновики существуют. Черновик команде показывает storefront_page ниже.
+    published = ContentPage.objects.filter(slug=slug, is_published=True).exists()
+    if content_pages.short_url_free(slug) and published:
         target = reverse("storefront-content-page", args=[slug])
         query = request.META.get("QUERY_STRING", "")
         return redirect(f"{target}?{query}" if query else target, permanent=True)
@@ -172,7 +175,9 @@ def page_delete(request, pk):
     page = ContentPage.objects.filter(pk=pk).first()
     if page is not None:
         refs = content_pages.menu_references(page.slug, getattr(request, "tenant", None))
+        slug = page.slug
         page.delete()
+        content_pages.move_page_blocks(slug, None)
         messages.success(request, _("Seite gelöscht."))
         if refs:
             messages.warning(

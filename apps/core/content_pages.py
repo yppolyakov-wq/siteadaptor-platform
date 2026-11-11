@@ -108,6 +108,7 @@ def save_page(
         raise PageError(_("Diese Adresse ist schon vergeben.")) from exc
     if old_slug and old_slug != new_slug:
         retarget_menus(old_slug, new_slug)
+        move_page_blocks(old_slug, new_slug)
     return page
 
 
@@ -164,6 +165,40 @@ def retarget_menus(old: str, new: str) -> int:
             fresh.save(update_fields=["site_config"])
             tenant.site_config = config
     return hits
+
+
+def move_page_blocks(old: str, new: str | None) -> bool:
+    """M21.11: блоки своей страницы живут в ``page_blocks["seite:<slug>"]``. Смена адреса
+    переносит их, удаление страницы — убирает (иначе хост-призрак занимал бы место в
+    общем потолке хостов). Переводы блоков переезжают вместе с хостом."""
+    from apps.tenants.models import Tenant
+
+    tenant = getattr(connection, "tenant", None)
+    if tenant is None or not getattr(tenant, "pk", None) or not old:
+        return False
+    src, dst = f"seite:{old}", f"seite:{new}" if new else None
+    with transaction.atomic():
+        fresh = Tenant.objects.select_for_update().filter(pk=tenant.pk).first()
+        if fresh is None:
+            return False
+        config = copy.deepcopy(fresh.site_config or {})
+        blocks = config.get("page_blocks") or {}
+        if src not in blocks:
+            return False
+        moved = blocks.pop(src)
+        if dst:
+            blocks[dst] = moved
+        config["page_blocks"] = blocks
+        for loc_cfg in (config.get("i18n") or {}).values():
+            pb = loc_cfg.get("page_blocks") if isinstance(loc_cfg, dict) else None
+            if isinstance(pb, dict) and src in pb:
+                over = pb.pop(src)
+                if dst:
+                    pb[dst] = over
+        fresh.site_config = config
+        fresh.save(update_fields=["site_config"])
+        tenant.site_config = config
+    return True
 
 
 def system_url(slug: str, tenant=None) -> str | None:

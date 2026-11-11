@@ -17,6 +17,8 @@ from django.utils.translation import gettext as _
 
 #: Минимальная доля стороны рамки (2 %) — иначе вышла бы картинка в пару пикселей.
 MIN_SIDE = 0.02
+#: Потолок пикселей для обрезки (память воркера): фото с телефона — до ~50 Мпикс.
+MAX_CROP_PIXELS = 40_000_000
 
 
 class CropError(ValueError):
@@ -36,7 +38,14 @@ def _media_path(src: str) -> str:
         or src.endswith("/..")
     ):
         raise CropError(_("Dieses Bild kann nicht zugeschnitten werden."))
-    return src[len(media) :]
+    path = src[len(media) :]
+    # Ревью безопасности: медиа общее для всех бизнесов — обрезаем только из публичных
+    # папок (те же, что раздаёт витрина), а не из закрытых (документы, импорт).
+    from apps.core.media_views import PUBLIC_PREFIXES
+
+    if path.startswith("/") or path.split("/", 1)[0] not in PUBLIC_PREFIXES or "/" not in path:
+        raise CropError(_("Dieses Bild kann nicht zugeschnitten werden."))
+    return path
 
 
 def _box(values) -> tuple[float, float, float, float]:
@@ -57,12 +66,12 @@ def crop_page_image(src: str, values) -> str:
 
     path = _media_path(src)
     x, y, w, h = _box(values)
-    if not default_storage.exists(path):
-        raise CropError(_("Dieses Bild kann nicht zugeschnitten werden."))
     try:
+        if not default_storage.exists(path):
+            raise CropError(_("Dieses Bild kann nicht zugeschnitten werden."))
         with default_storage.open(path, "rb") as fh, Image.open(fh, formats=list(_MIME)) as img:
             fmt = img.format
-            if img.size[0] * img.size[1] > MAX_STRIP_PIXELS:
+            if img.size[0] * img.size[1] > min(MAX_STRIP_PIXELS, MAX_CROP_PIXELS):
                 raise CropError(_("Das Bild ist zu groß zum Zuschneiden."))
             img = ImageOps.exif_transpose(img)
             width, height = img.size

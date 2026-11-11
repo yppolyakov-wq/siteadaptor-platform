@@ -56,6 +56,12 @@ Esc — обратно), выравнивание текста, H4, цитата
   /* M21.11: ширина фото (шаг 5 %) + ручка на углу + окно кадрирования */
   .rte-area .sf-w-10 { width: 10%; } .rte-area .sf-w-15 { width: 15%; } .rte-area .sf-w-20 { width: 20%; } .rte-area .sf-w-25 { width: 25%; } .rte-area .sf-w-30 { width: 30%; } .rte-area .sf-w-35 { width: 35%; } .rte-area .sf-w-40 { width: 40%; } .rte-area .sf-w-45 { width: 45%; } .rte-area .sf-w-50 { width: 50%; } .rte-area .sf-w-55 { width: 55%; } .rte-area .sf-w-60 { width: 60%; } .rte-area .sf-w-65 { width: 65%; } .rte-area .sf-w-70 { width: 70%; } .rte-area .sf-w-75 { width: 75%; } .rte-area .sf-w-80 { width: 80%; } .rte-area .sf-w-85 { width: 85%; } .rte-area .sf-w-90 { width: 90%; } .rte-area .sf-w-95 { width: 95%; } .rte-area .sf-w-100 { width: 100%; }
   .rte-area figure .rte-resize { position: absolute; right: -6px; bottom: -6px; width: 16px; height: 16px; border-radius: 4px; background: #4f46e5; border: 2px solid #fff; box-shadow: 0 0 0 1px #4f46e5; cursor: nwse-resize; touch-action: none; display: none; }
+  .rte-area figure .rte-resize::after { content: ""; position: absolute; inset: -8px; }
+  .rte-crop-box i::after { content: ""; position: absolute; inset: -10px; }
+  @media (pointer: coarse) { .rte-area figure .rte-resize { width: 24px; height: 24px; } .rte-crop-box i { width: 22px; height: 22px; } }
+  .rte-pop input[type=number] { width: 6rem; border: 1px solid #6b7280; border-radius: 8px; padding: 4px 8px; }
+  .rte-crop-nudge { display: flex; flex-wrap: wrap; gap: 4px; margin-top: .5rem; }
+  .rte-crop-nudge button { min-width: 44px; min-height: 44px; }
   .rte-area figure.rte-sel .rte-resize, .rte-area figure:hover .rte-resize, .rte-area figure:focus .rte-resize { display: block; }
   .rte-area figure.sf-float-right .rte-resize { right: auto; left: -6px; cursor: nesw-resize; }
   .rte-area figure[data-rte-w]::before { content: attr(data-rte-w); position: absolute; right: 4px; top: 4px; z-index: 1; background: #111827; color: #fff; font-size: 12px; padding: 1px 6px; border-radius: 6px; }
@@ -168,7 +174,7 @@ Esc — обратно), выравнивание текста, H4, цитата
     close: "{% trans 'Schließen' as t %}{{ t|escapejs }}",
     sizes: [["sm", "S · 25 %"], ["md", "M · 50 %"], ["lg", "L · 75 %"], ["full", "{% trans 'Volle Breite' as t %}{{ t|escapejs }}"]],
     width: "{% trans 'Breite in Prozent' as t %}{{ t|escapejs }}",
-    widthHelp: "{% trans 'Oder an der Ecke des Bildes ziehen.' as t %}{{ t|escapejs }}",
+    widthHelp: "{% trans '10–100, in Schritten von 5. Mit Maus oder Finger auch an der Ecke des Bildes ziehen.' as t %}{{ t|escapejs }}",
     crop: "{% trans 'Zuschneiden' as t %}{{ t|escapejs }}",
     cropTitle: "{% trans 'Bild zuschneiden' as t %}{{ t|escapejs }}",
     cropHelp: "{% trans 'Rahmen ziehen oder an den Ecken größer/kleiner machen. Pfeiltasten verschieben, mit Umschalt ändern sie die Größe.' as t %}{{ t|escapejs }}",
@@ -177,6 +183,14 @@ Esc — обратно), выравнивание текста, H4, цитата
     cancel: "{% trans 'Abbrechen' as t %}{{ t|escapejs }}",
     ratio: "{% trans 'Seitenverhältnis' as t %}{{ t|escapejs }}",
     free: "{% trans 'Frei' as t %}{{ t|escapejs }}",
+    nudge: "{% trans 'Ausschnitt verschieben' as t %}{{ t|escapejs }}",
+    left: "{% trans 'Nach links' as t %}{{ t|escapejs }}",
+    right: "{% trans 'Nach rechts' as t %}{{ t|escapejs }}",
+    up: "{% trans 'Nach oben' as t %}{{ t|escapejs }}",
+    down: "{% trans 'Nach unten' as t %}{{ t|escapejs }}",
+    bigger: "{% trans 'Größer' as t %}{{ t|escapejs }}",
+    smaller: "{% trans 'Kleiner' as t %}{{ t|escapejs }}",
+    cropState: "{% trans 'Ausschnitt in Prozent: Breite [w], Höhe [h], links [x], oben [y]' as t %}{{ t|escapejs }}",
     positions: [
       ["left", "{% trans 'Links, Text daneben' as t %}{{ t|escapejs }}"],
       ["center", "{% trans 'Mittig' as t %}{{ t|escapejs }}"],
@@ -581,7 +595,7 @@ Esc — обратно), выравнивание текста, H4, цитата
         rRow.querySelectorAll("button").forEach(function (x) { x.setAttribute("aria-pressed", "false"); });
         b.setAttribute("aria-pressed", "true");
         applyRatio();
-        box.focus();
+        msg.textContent = T.ratio + " " + rt[0];
       });
       rRow.appendChild(b);
     });
@@ -627,15 +641,53 @@ Esc — обратно), выравнивание текста, H4, цитата
       draw();
     });
     stage.addEventListener("pointerup", function () { drag = null; });
-    box.addEventListener("keydown", function (e) {
-      var step = 0.02, d = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[e.key];
-      if (!d) return;
-      e.preventDefault();
-      if (e.shiftKey) { r.w += d[0] * step; r.h += d[1] * step; if (ratio && pic.naturalWidth) r.h = r.w / (ratio * pic.naturalHeight / pic.naturalWidth); }
-      else { r.x += d[0] * step; r.y += d[1] * step; }
+    var sayTimer = null;
+    function say() {
+      clearTimeout(sayTimer);
+      sayTimer = setTimeout(function () {
+        msg.textContent = T.cropState.replace("[w]", Math.round(r.w * 100)).replace("[h]", Math.round(r.h * 100))
+          .replace("[x]", Math.round(r.x * 100)).replace("[y]", Math.round(r.y * 100));
+      }, 300);
+    }
+    function nudge(dx, dy, resize) {
+      var step = 0.02;
+      if (resize) {
+        r.w += dx * step;
+        r.h += dy * step;
+        if (ratio && pic.naturalWidth) r.h = r.w / (ratio * pic.naturalHeight / pic.naturalWidth);
+      } else {
+        r.x += dx * step;
+        r.y += dy * step;
+      }
       clamp();
       draw();
+      say();
+    }
+    box.addEventListener("keydown", function (e) {
+      var d = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[e.key];
+      if (!d) return;
+      e.preventDefault();
+      nudge(d[0], d[1], e.shiftKey);
     });
+    // a11y-ревью (2.5.7): тот же сдвиг кнопками — без перетаскивания.
+    var nRow = document.createElement("div");
+    nRow.className = "rte-crop-nudge";
+    nRow.setAttribute("role", "group");
+    nRow.setAttribute("aria-label", T.nudge);
+    [["←", T.left, -1, 0, false], ["→", T.right, 1, 0, false], ["↑", T.up, 0, -1, false], ["↓", T.down, 0, 1, false],
+     ["＋", T.bigger, 1, 1, true], ["－", T.smaller, -1, -1, true]].forEach(function (n) {
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "ui-btn ui-btn-sm";
+      b.setAttribute("aria-label", n[1]);
+      var g = document.createElement("span");
+      g.setAttribute("aria-hidden", "true");
+      g.textContent = n[0];
+      b.appendChild(g);
+      b.addEventListener("click", function () { nudge(n[2], n[3], n[4]); });
+      nRow.appendChild(b);
+    });
+    stage.insertAdjacentElement("afterend", nRow);
     function close() {
       dlg.close();
       dlg.remove();
@@ -650,7 +702,8 @@ Esc — обратно), выравнивание текста, H4, цитата
       body.append("src", img.getAttribute("src"));
       ["x", "y", "w", "h"].forEach(function (k) { body.append(k, r[k].toFixed(4)); });
       body.append("csrfmiddlewaretoken", csrf ? csrf.value : "");
-      ok.disabled = true;
+      if (ok.getAttribute("aria-disabled") === "true") return;
+      ok.setAttribute("aria-disabled", "true");
       msg.textContent = T.upload;
       fetch(ta.dataset.rteCrop, { method: "POST", body: body, credentials: "same-origin" })
         .then(function (res) { return res.json().then(function (d) { return { ok: res.ok, d: d }; }); })
@@ -661,7 +714,7 @@ Esc — обратно), выравнивание текста, H4, цитата
           if (area.__rte) { area.__rte.sync(); area.__rte.snapshot(); }
           status(area, T.cropDone);
         })
-        .catch(function (e) { ok.disabled = false; msg.textContent = e.message || T.uploadFail; });
+        .catch(function (e) { ok.removeAttribute("aria-disabled"); msg.textContent = e.message || T.uploadFail; ok.focus(); });
     });
     (area.closest(".rte-wrap") || document.body).appendChild(dlg);
     draw();
@@ -744,6 +797,8 @@ Esc — обратно), выравнивание текста, H4, цитата
     });
     var wRow = document.createElement("div");
     wRow.className = "rte-opts";
+    wRow.setAttribute("role", "group");
+    wRow.setAttribute("aria-label", T.width);
     [25, 50, 75, 100].forEach(function (v) {
       var qb = document.createElement("button");
       qb.type = "button";
@@ -1082,6 +1137,7 @@ Esc — обратно), выравнивание текста, H4, цитата
     function toggleFull() { setFull(!wrap.classList.contains("rte-full")); }
     wrap.addEventListener("keydown", function (e) {
       if (e.key !== "Escape" || !wrap.classList.contains("rte-full") || pop || emojiPop) return;
+      if (e.target.closest && e.target.closest("dialog.rte-crop")) return;  // Esc закрывает окно обрезки
       e.preventDefault();
       e.stopPropagation();
       setFull(false);
@@ -1588,6 +1644,7 @@ Esc — обратно), выравнивание текста, H4, цитата
     });
     area.addEventListener("click", function (e) {
       if (!page) return;
+      if (justResized || (e.target.closest && e.target.closest(".rte-resize"))) return;
       // Клик по вопросу — правка текста, а не сворачивание раскрывашки.
       if (e.target.closest && e.target.closest("summary") && area.contains(e.target)) e.preventDefault();
       // Клик по плашке «Bildbeschreibung fehlt» (::after фигуры) — тоже окно фото.
@@ -1621,10 +1678,15 @@ Esc — обратно), выравнивание текста, H4, цитата
       rs.fig.setAttribute("data-rte-w", pct + " %");
       rs.pct = pct;
     });
+    var justResized = false;
     function endResize() {
       if (!rs) return;
       var done = rs;
       rs = null;
+      if (done.pct) {
+        justResized = true;  // a11y-ревью: клик после перетаскивания не открывает окно фото
+        setTimeout(function () { justResized = false; }, 0);
+      }
       done.fig.removeAttribute("data-rte-w");
       if (pop && pop.__fig === done.fig && pop.__setWidth) pop.__setWidth(figWidth(done.fig));
       sync();

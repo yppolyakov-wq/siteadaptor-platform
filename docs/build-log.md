@@ -22749,3 +22749,10 @@ Impressum/Datenschutz/AGB — в «Seiten», редактор во всех те
   пунктом (`<ul><li/><ul>…</ul></ul>`) — проверка «можно выдвинуть» смотрит на UL/OL/LI предка.
 - Замки: test_m21_11_page_type (5), test_m21_11_starters (6), test_m21_11_editor_p5 (9);
   переписаны осознанно: test_m21_8 (право загрузки фото), test_page_templates, test_studio_pages.
+
+## 2026-11-11 — M21.11 фидбэк: превью «Seitenaufbau» без черновика, блоки у каждой страницы, короткие адреса /<slug>/, фото за угол + кадрирование (без миграций)
+- См. план `m21-11-pages-flat-plan-2026-11-11.md` §10. Новые замки: test_m21_11_short_urls,
+  test_m21_11_schema_pages, test_m21_11_photo; стенд `scripts/editor_photo_stand.py`.
+- Грабли: (1) превью кабинета с `?preview=1` читало черновик Студии — для экранов «как сохранено»
+  нужен `stand=saved`; (2) `{% trans '… %' %}` превращает `%` в `%%` в msgid — писать «Prozent»;
+  (3) `var` в JS: элемент, вставленный ДО своего создания, = undefined (порядок кода окна).

@@ -150,8 +150,15 @@ def host_for(code: str) -> str:
     if pt.code != TEXT:
         return ""
     host = code.split("@", 1)[1]
-    if host == "versand" or (host.startswith("seite:") and siteconfig.is_page_block_host(host)):
+    if host == "versand":
         return host
+    if host.startswith("seite:") and siteconfig.is_page_block_host(host):
+        # Ревью безопасности: только существующая страница — иначе POST плодил бы
+        # хосты-призраки и вытеснял настоящие (у page_blocks общий потолок хостов).
+        from apps.core.models import ContentPage
+
+        if ContentPage.objects.filter(slug=host.split(":", 1)[1]).exists():
+            return host
     return ""
 
 

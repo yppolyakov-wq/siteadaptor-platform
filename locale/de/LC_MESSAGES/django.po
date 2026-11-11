@@ -37114,3 +37114,24 @@ msgstr "Seitenverhältnis"
 
 msgid "Ungültiger Bildausschnitt."
 msgstr "Ungültiger Bildausschnitt."
+
+msgid "10–100, in Schritten von 5. Mit Maus oder Finger auch an der Ecke des Bildes ziehen."
+msgstr "10–100, in Schritten von 5. Mit Maus oder Finger auch an der Ecke des Bildes ziehen."
+
+msgid "Ausschnitt in Prozent: Breite [w], Höhe [h], links [x], oben [y]"
+msgstr "Ausschnitt in Prozent: Breite [w], Höhe [h], links [x], oben [y]"
+
+msgid "Ausschnitt verschieben"
+msgstr "Ausschnitt verschieben"
+
+msgid "Größer"
+msgstr "Größer"
+
+msgid "Kleiner"
+msgstr "Kleiner"
+
+msgid "Nach links"
+msgstr "Nach links"
+
+msgid "Nach rechts"
+msgstr "Nach rechts"
