@@ -37168,3 +37168,25 @@ msgstr "Caption"
 
 msgid "Hier steht der Text der Hauptsprache. Übersetzungen ändern Sie direkt auf der Seite."
 msgstr "This is the text in the main language. You change translations directly on the page."
+
+#, python-format
+msgid "Leer = %(n)s"
+msgstr "Empty = %(n)s"
+
+msgid "Was zeigen"
+msgstr "What to show"
+
+msgid "Welche"
+msgstr "Which ones"
+
+msgid "Wie"
+msgstr "How"
+
+msgid "Zu dieser Auswahl gibt es derzeit nichts – der Block erscheint nicht auf der Website."
+msgstr "There is currently nothing matching this selection – the block does not appear on the website."
+
+#, python-format
+msgid "Zeigt derzeit %(n)s Eintrag (von %(total)s)."
+msgid_plural "Zeigt derzeit %(n)s Einträge (von %(total)s)."
+msgstr[0] "Currently shows %(n)s entry (of %(total)s)."
+msgstr[1] "Currently shows %(n)s entries (of %(total)s)."

@@ -37255,3 +37255,25 @@ msgstr "Bildunterschrift"
 
 msgid "Hier steht der Text der Hauptsprache. Übersetzungen ändern Sie direkt auf der Seite."
 msgstr "Hier steht der Text der Hauptsprache. Übersetzungen ändern Sie direkt auf der Seite."
+
+#, python-format
+msgid "Leer = %(n)s"
+msgstr "Leer = %(n)s"
+
+msgid "Was zeigen"
+msgstr "Was zeigen"
+
+msgid "Welche"
+msgstr "Welche"
+
+msgid "Wie"
+msgstr "Wie"
+
+msgid "Zu dieser Auswahl gibt es derzeit nichts – der Block erscheint nicht auf der Website."
+msgstr "Zu dieser Auswahl gibt es derzeit nichts – der Block erscheint nicht auf der Website."
+
+#, python-format
+msgid "Zeigt derzeit %(n)s Eintrag (von %(total)s)."
+msgid_plural "Zeigt derzeit %(n)s Einträge (von %(total)s)."
+msgstr[0] "Zeigt derzeit %(n)s Eintrag (von %(total)s)."
+msgstr[1] "Zeigt derzeit %(n)s Einträge (von %(total)s)."

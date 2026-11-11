@@ -255,6 +255,10 @@ def blocks_for(config: dict, code: str, host: str | None = None) -> list[dict]:
                 else [],
                 "width_value": item.get("width") or "contained",
                 "fields": panel_fields(item) if cblock else [],
+                # FB-27 R3b-2: данные блока «Liste» — вид строит панель (`list_panel`)
+                "list_data": dict(data)
+                if cblock and (siteconfig.cblock_type(key) or key) == "list"
+                else None,
                 "narrow": cblock and item.get("width") in siteconfig.NARROW_WIDTHS,
             }
         )
@@ -266,6 +270,7 @@ def blocks_for(config: dict, code: str, host: str | None = None) -> list[dict]:
         b.setdefault("widths", [])
         b.setdefault("width_value", "contained")
         b.setdefault("fields", [])
+        b.setdefault("list_data", None)
         b.setdefault("narrow", False)
     # FB-27 R1: «выше/ниже» двигает блок среди ВИДИМЫХ — скрытый сосед не «съедает»
     # нажатие (раньше порядок на странице не менялся, а кнопка была активна).
@@ -557,24 +562,34 @@ def mutate(
         # FB-27 R3b: короткое содержимое простого блока — прямо в панели. ПАТЧ: меняются
         # только присланные поля, остальное (стиль, фото, оформление) остаётся (W0).
         key = siteconfig.cblock_type(item.get("key")) or item.get("key") or ""
-        allowed = [name for name, _label, _kind in PANEL_FIELDS.get(key, ())]
+        if key == "list":
+            from apps.core import list_panel
+
+            allowed = list(list_panel.NAMES)
+        else:
+            allowed = [name for name, _label, _kind in PANEL_FIELDS.get(key, ())]
         if main or not item.get("id") or not allowed:
             raise SchemaError("fields")
         sent = {n: str(fields[n]) for n in allowed if fields is not None and n in fields}
         data = dict(item.get("data") or {})
-        # Ничего не прислано или не изменилось — блок не трогаем вовсе (иначе канонизация
-        # данных создала бы «правку», которой владелец не делал).
-        if all(data.get(n, "") == v for n, v in sent.items()):
-            return ref
-        if key == "button" and sent.get("url"):
+        if key == "button" and sent.get("url") and sent["url"] != data.get("url"):
             # Небезопасная схема (javascript:, data:, //host) отбрасывается уже при записи;
             # витрина дополнительно фильтрует на выводе (`safe_href`).
             from apps.tenants.templatetags.siteui import safe_href
 
             if safe_href(sent["url"]) == "#" and sent["url"].strip() != "#":
                 raise SchemaError("url")
-        data.update(sent)
-        item["data"] = siteconfig._clean_cblock_data(key, data)
+        patched = {**data, **sent}
+        if key == "list" and "endet" in sent:
+            # «Zeitraum» — один селект на срок и «Demnächst» (хранится ключом `phase`):
+            # без сброса старая фаза пережила бы выбор «Alle».
+            patched.pop("phase", None)
+        cleaned = siteconfig._clean_cblock_data(key, patched)
+        # Ничего не прислано или не изменилось — блок не трогаем вовсе (иначе канонизация
+        # данных создала бы «правку», которой владелец не делал).
+        if cleaned == siteconfig._clean_cblock_data(key, data):
+            return ref
+        item["data"] = cleaned
     elif op == "newline":
         if main or not item.get("id") or item.get("width") not in siteconfig.NARROW_WIDTHS:
             raise SchemaError("width")

@@ -37505,3 +37505,27 @@ msgstr "Подпись к фото"
 
 msgid "Hier steht der Text der Hauptsprache. Übersetzungen ändern Sie direkt auf der Seite."
 msgstr "Здесь текст на основном языке. Переводы меняются прямо на странице."
+
+#, python-format
+msgid "Leer = %(n)s"
+msgstr "Пусто = %(n)s"
+
+msgid "Was zeigen"
+msgstr "Что показать"
+
+msgid "Welche"
+msgstr "Какие именно"
+
+msgid "Wie"
+msgstr "Как"
+
+msgid "Zu dieser Auswahl gibt es derzeit nichts – der Block erscheint nicht auf der Website."
+msgstr "По этому выбору сейчас ничего нет — блок на сайте не показывается."
+
+#, python-format
+msgid "Zeigt derzeit %(n)s Eintrag (von %(total)s)."
+msgid_plural "Zeigt derzeit %(n)s Einträge (von %(total)s)."
+msgstr[0] "Сейчас показывает %(n)s запись (из %(total)s)."
+msgstr[1] "Сейчас показывает %(n)s записи (из %(total)s)."
+msgstr[2] "Сейчас показывает %(n)s записей (из %(total)s)."
+msgstr[3] "Сейчас показывает %(n)s записи (из %(total)s)."

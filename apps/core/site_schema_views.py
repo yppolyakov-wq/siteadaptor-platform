@@ -94,6 +94,11 @@ def site_schema_view(request):
     draft_info = aufbau_draft.info(request, saved, code)
     blocks = site_schema.blocks_for(config, code, host=current.host if current else None)
     selected = next((b for b in blocks if b["ref"] == request.GET.get("block")), None)
+    if selected and selected.get("list_data") is not None:
+        from apps.core import list_panel
+
+        selected["groups"] = list_panel.groups(request, config, selected["list_data"])
+        selected["result"] = list_panel.result(request, config, selected["list_data"])
     preview_url = current.preview_url if current else ""
     studio = reverse("site-home")
     if preview_url:

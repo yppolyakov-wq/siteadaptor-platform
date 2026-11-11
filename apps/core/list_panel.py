@@ -1,0 +1,300 @@
+"""FB-27 R3b-2: настройки блока «Liste» в панели «Seitenaufbau» —
+«Was zeigen · Welche · Wie».
+
+Решение владельца (2026-11-11): у блока выбирают, ЧТО показать (товары, акции,
+услуги…), КАКИЕ именно (правило: категория, подборка, «только со скидкой», порядок,
+сколько) и КАК (сетка или лента, колонки, форма карточки).
+
+Поля — те же, что у строки блока в Студии (`_LIST_BLOCK_FIELDS`), и проверяет их тот же
+`siteconfig._clean_list_block`; здесь только состав панели. Отличие от Студии: панель
+рисует сервер и показывает поля ТОЛЬКО выбранного источника — без JS-переключения.
+Источник сменили → после «Übernehmen» панель перерисована под него.
+"""
+
+from __future__ import annotations
+
+from django.utils.translation import gettext as _
+
+#: Поля, которые панель вправе менять у блока «Liste» (остальное — `speed`, охват
+#: вида — остаётся как было: запись — патч).
+NAMES = (
+    "source",
+    "title",
+    "intro",
+    "type",
+    "ziel",
+    "endet",
+    "rabatt",
+    "category",
+    "collection",
+    "event_category",
+    "country",
+    "entity",
+    "stars",
+    "only",
+    "sort",
+    "limit",
+    "style",
+    "out",
+    "cols",
+    "rows",
+    "card",
+)
+
+
+def _select(name, label, value, options, hint="") -> dict:
+    """Селект панели. Значение блока, которого нет среди пунктов (категорию удалили,
+    модуль выключили), остаётся отдельным выбранным пунктом — иначе браузер прислал бы
+    первый пункт, и «Übernehmen» молча сменило бы выбор (W0)."""
+    value = "" if value is None else str(value)
+    options = [(str(v), str(lab)) for v, lab in options]
+    if value and value not in {v for v, _lab in options}:
+        gone = _("nicht verfügbar")
+        options.append((value, f"{value} ({gone})"))
+    return {
+        "name": name,
+        "label": str(label),
+        "kind": "select",
+        "value": value,
+        "options": options,
+        "hint": str(hint),
+    }
+
+
+def _line(name, label, value, kind="line") -> dict:
+    return {
+        "name": name,
+        "label": str(label),
+        "kind": kind,
+        "value": "" if value is None else str(value),
+        "options": [],
+        "hint": "",
+    }
+
+
+def _only_options(source: str) -> list[tuple[str, str]]:
+    labels = {
+        "featured": _("Nur Empfehlungen"),
+        "sale": _("Nur reduzierte"),
+        "available": _("Nur verfügbare"),
+        "video": _("Nur Video-Beratung"),
+        "soon": _("In den nächsten 14 Tagen"),
+        "text": _("Nur mit Text"),
+    }
+    from apps.tenants import siteconfig
+
+    return [("", _("Alle"))] + [(k, labels.get(k, k)) for k in siteconfig.LIST_ONLY.get(source, ())]
+
+
+def _which_fields(source: str, data: dict, lists: dict) -> list[dict]:
+    """Фильтры «Welche» — только те, что есть у источника (реестр `LIST_SOURCES`)."""
+    from apps.tenants import siteconfig
+
+    filters = siteconfig.LIST_SOURCES[source]["filters"]
+    out = []
+    if "type" in filters:
+        out.append(
+            _select(
+                "type",
+                _("Aktionstyp"),
+                data.get("type"),
+                [("", _("Alle Aktionen")), *lists["promo_types_for_blocks"]],
+            )
+        )
+    if "ziel" in filters and lists["promo_targets_for_blocks"]:
+        out.append(
+            _select(
+                "ziel",
+                _("Gilt für"),
+                data.get("ziel"),
+                [("", _("Alle")), *lists["promo_targets_for_blocks"]],
+            )
+        )
+    if "endet" in filters:
+        # «Demnächst» хранится ключом `phase`, но выбирается тем же селектом, что срок.
+        out.append(
+            _select(
+                "endet",
+                _("Zeitraum"),
+                data.get("phase") or data.get("endet"),
+                [
+                    ("", _("Alle")),
+                    ("heute", _("Endet heute")),
+                    ("woche", _("Endet diese Woche")),
+                    ("upcoming", _("Demnächst")),
+                ],
+            )
+        )
+    if "rabatt" in filters:
+        from apps.promotions.facets import DISCOUNT_PRESETS
+
+        out.append(
+            _select(
+                "rabatt",
+                _("Mindestrabatt"),
+                data.get("rabatt"),
+                [("", _("beliebig")), *[(n, f"−{n} %") for n in DISCOUNT_PRESETS]],
+            )
+        )
+    if "category" in filters:
+        first = _("Hauptkategorien") if source == "categories" else _("Alle Kategorien")
+        out.append(
+            _select(
+                "category",
+                _("Kategorie"),
+                data.get("category"),
+                [("", first), *lists["list_categories_for_blocks"]],
+            )
+        )
+    if "collection" in filters:
+        mine = [
+            (slug, label)
+            for slug, label, srcs in lists["list_collections_for_blocks"]
+            if source in srcs.split()
+        ]
+        if mine or data.get("collection"):
+            out.append(
+                _select(
+                    "collection",
+                    _("Sammlung"),
+                    data.get("collection"),
+                    [("", _("All collections")), *mine],
+                )
+            )
+    if "event_category" in filters:
+        out.append(
+            _select(
+                "event_category",
+                _("Thema"),
+                data.get("event_category"),
+                [("", _("Alle Themen")), *lists["event_categories_for_blocks"]],
+            )
+        )
+    if "country" in filters:
+        out.append(
+            _select(
+                "country",
+                _("Land"),
+                data.get("country"),
+                [("", _("Alle Länder")), *lists["tour_countries_for_blocks"]],
+            )
+        )
+    if "entity" in filters:
+        out.append(
+            _select(
+                "entity",
+                _("Bewertungen zu"),
+                data.get("entity"),
+                [("", _("Alles")), *lists["review_kinds_for_blocks"]],
+            )
+        )
+    if "stars" in filters:
+        out.append(
+            _select(
+                "stars",
+                _("Mindestbewertung"),
+                data.get("stars"),
+                [("", _("beliebig")), *[(n, f"{n} ★") for n in siteconfig.LIST_REVIEW_STARS]],
+            )
+        )
+    if siteconfig.LIST_ONLY.get(source):
+        out.append(_select("only", _("Auswahl"), data.get("only"), _only_options(source)))
+    return out
+
+
+def groups(request, cfg: dict, data: dict) -> list[dict]:
+    """Три группы полей панели для блока «Liste»: [{key, title, fields}]."""
+    from apps.core import list_blocks
+    from apps.core.views import _cblock_row_lists
+    from apps.tenants import siteconfig
+
+    data = data if isinstance(data, dict) else {}
+    source = data.get("source")
+    if source not in siteconfig.LIST_SOURCES:
+        source = siteconfig.LIST_SOURCE_DEFAULT
+    lists = _cblock_row_lists(request)
+    hint = list_blocks.view_hint(cfg, {**data, "source": source})
+    sources = list(lists["list_sources_for_blocks"])
+    if source not in {k for k, _lab in sources}:
+        # Модуль источника выключили: пункт остаётся, чтобы выбор не сменился молча.
+        off = _("derzeit aus")
+        sources.append((source, f"{siteconfig.LIST_SOURCES[source]['label']} ({off})"))
+
+    what = [
+        _select("source", _("Was wird gezeigt"), source, sources),
+        _line("title", _("Überschrift"), data.get("title")),
+        _line("intro", _("Einleitung"), data.get("intro")),
+    ]
+
+    which = _which_fields(source, data, lists)
+    sorts = [(k, lab) for k, lab, srcs in hint["sorts"] if source in srcs.split()]
+    if siteconfig.list_sort_keys(source) and sorts:
+        which.append(_select("sort", _("Sortierung"), data.get("sort"), sorts))
+    limit = _line("limit", _("Höchstens"), data.get("limit"), kind="number")
+    limit["hint"] = _("Leer = %(n)s") % {"n": hint["limit"]}
+    which.append(limit)
+
+    how = []
+    styles = [(k, lab) for k, lab, src in hint["styles"] if src == source]
+    if styles:
+        how.append(
+            _select(
+                "style",
+                _("Display style"),
+                data.get("style"),
+                [("", _("Standard (grid)")), *styles],
+            )
+        )
+    inherit = f"{hint['layout_from']}: "
+    how.append(
+        _select(
+            "out",
+            _("Ausgabe"),
+            data.get("out"),
+            [("", inherit + hint["mode"]), ("grid", _("Raster")), ("slider", _("Slider"))],
+        )
+    )
+    how.append(
+        _select(
+            "cols",
+            _("Spalten"),
+            data.get("cols"),
+            [("", f"{inherit}{hint['cols']}"), *[(n, n) for n in range(1, 7)]],
+        )
+    )
+    how.append(
+        _select(
+            "rows",
+            _("Reihen"),
+            data.get("rows"),
+            [("", _("automatisch")), *[(n, n) for n in range(1, 7)]],
+        )
+    )
+    cards = [(k, lab) for k, lab, srcs in hint["cards"] if source in srcs.split()]
+    if siteconfig.LIST_SOURCES[source]["card"] and cards:
+        how.append(
+            _select(
+                "card",
+                _("Kartenform"),
+                data.get("card"),
+                [("", f"{hint['card_from']}: {hint['card']}"), *cards],
+            )
+        )
+    return [
+        {"key": "was", "title": _("Was zeigen"), "fields": what},
+        {"key": "welche", "title": _("Welche"), "fields": which},
+        {"key": "wie", "title": _("Wie"), "fields": how},
+    ]
+
+
+def result(request, cfg: dict, data: dict) -> dict | None:
+    """Что блок покажет СЕЙЧАС: {"shown", "total"}. Пустой блок на сайте не выводится
+    вовсе — без этой строки владелец сохранил бы его и не нашёл на странице.
+    Fail-safe: ошибка выборки = «не знаем» (None), строка в панели не рисуется."""
+    from apps.core import list_blocks
+
+    try:
+        res = list_blocks.resolve_for(request, cfg, data if isinstance(data, dict) else {})
+        return {"shown": len(res["items"]), "total": int(res["total"])}
+    except Exception:  # noqa: BLE001
+        return None

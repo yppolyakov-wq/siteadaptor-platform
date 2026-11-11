@@ -37314,3 +37314,25 @@ msgstr "Resim yazısı"
 
 msgid "Hier steht der Text der Hauptsprache. Übersetzungen ändern Sie direkt auf der Seite."
 msgstr "Burada ana dildeki metin yer alır. Çevirileri doğrudan sayfada değiştirirsiniz."
+
+#, python-format
+msgid "Leer = %(n)s"
+msgstr "Boş = %(n)s"
+
+msgid "Was zeigen"
+msgstr "Ne gösterilsin"
+
+msgid "Welche"
+msgstr "Hangileri"
+
+msgid "Wie"
+msgstr "Nasıl"
+
+msgid "Zu dieser Auswahl gibt es derzeit nichts – der Block erscheint nicht auf der Website."
+msgstr "Bu seçime uyan bir şey şu anda yok – blok web sitesinde görünmez."
+
+#, python-format
+msgid "Zeigt derzeit %(n)s Eintrag (von %(total)s)."
+msgid_plural "Zeigt derzeit %(n)s Einträge (von %(total)s)."
+msgstr[0] "Şu anda %(n)s kayıt gösteriyor (%(total)s içinden)."
+msgstr[1] "Şu anda %(n)s kayıt gösteriyor (%(total)s içinden)."

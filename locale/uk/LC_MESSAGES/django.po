@@ -37492,3 +37492,27 @@ msgstr "Підпис до фото"
 
 msgid "Hier steht der Text der Hauptsprache. Übersetzungen ändern Sie direkt auf der Seite."
 msgstr "Тут текст основною мовою. Переклади змінюються просто на сторінці."
+
+#, python-format
+msgid "Leer = %(n)s"
+msgstr "Порожньо = %(n)s"
+
+msgid "Was zeigen"
+msgstr "Що показати"
+
+msgid "Welche"
+msgstr "Які саме"
+
+msgid "Wie"
+msgstr "Як"
+
+msgid "Zu dieser Auswahl gibt es derzeit nichts – der Block erscheint nicht auf der Website."
+msgstr "За цим вибором зараз нічого немає — блок на сайті не показується."
+
+#, python-format
+msgid "Zeigt derzeit %(n)s Eintrag (von %(total)s)."
+msgid_plural "Zeigt derzeit %(n)s Einträge (von %(total)s)."
+msgstr[0] "Зараз показує %(n)s запис (із %(total)s)."
+msgstr[1] "Зараз показує %(n)s записи (із %(total)s)."
+msgstr[2] "Зараз показує %(n)s записів (із %(total)s)."
+msgstr[3] "Зараз показує %(n)s запису (із %(total)s)."
