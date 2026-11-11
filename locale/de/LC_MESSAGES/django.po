@@ -37138,3 +37138,42 @@ msgstr "Nach rechts"
 
 msgid "Der Seitenaufbau wurde inzwischen an anderer Stelle geändert. Ihre Eingaben hier wurden nicht gespeichert – bitte erneut vornehmen."
 msgstr "Der Seitenaufbau wurde inzwischen an anderer Stelle geändert. Ihre Eingaben hier wurden nicht gespeichert – bitte erneut vornehmen."
+
+msgid "Auf der Seite bearbeiten"
+msgstr "Auf der Seite bearbeiten"
+
+msgid "Ausgeblendet"
+msgstr "Ausgeblendet"
+
+msgid "Block wählen"
+msgstr "Block wählen"
+
+msgid "Der Block und seine Einstellungen werden gelöscht. Das lässt sich nicht rückgängig machen."
+msgstr "Der Block und seine Einstellungen werden gelöscht. Das lässt sich nicht rückgängig machen."
+
+msgid "Endgültig entfernen"
+msgstr "Endgültig entfernen"
+
+msgid "Entfernen …"
+msgstr "Entfernen …"
+
+msgid "Hauptliste der Seite"
+msgstr "Hauptliste der Seite"
+
+msgid "Inhalte"
+msgstr "Inhalte"
+
+msgid "Menü bearbeiten"
+msgstr "Menü bearbeiten"
+
+msgid "Texte, Fotos und Aussehen des Blocks ändern Sie direkt auf der Seite."
+msgstr "Texte, Fotos und Aussehen des Blocks ändern Sie direkt auf der Seite."
+
+msgid "Tippen Sie links auf einen Block, um ihn zu verschieben, auszublenden oder zu entfernen."
+msgstr "Tippen Sie links auf einen Block, um ihn zu verschieben, auszublenden oder zu entfernen."
+
+msgid "Welche Blöcke auf der Seite stehen und in welcher Reihenfolge. Schmale Blöcke stehen nebeneinander."
+msgstr "Welche Blöcke auf der Seite stehen und in welcher Reihenfolge. Schmale Blöcke stehen nebeneinander."
+
+msgid "öffnet in neuem Tab"
+msgstr "öffnet in neuem Tab"

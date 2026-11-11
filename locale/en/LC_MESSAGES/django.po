@@ -37051,3 +37051,42 @@ msgstr "To the right"
 
 msgid "Der Seitenaufbau wurde inzwischen an anderer Stelle geändert. Ihre Eingaben hier wurden nicht gespeichert – bitte erneut vornehmen."
 msgstr "The page structure has been changed elsewhere in the meantime. Your entries here were not saved – please make them again."
+
+msgid "Auf der Seite bearbeiten"
+msgstr "Edit on the page"
+
+msgid "Ausgeblendet"
+msgstr "Hidden"
+
+msgid "Block wählen"
+msgstr "Choose a block"
+
+msgid "Der Block und seine Einstellungen werden gelöscht. Das lässt sich nicht rückgängig machen."
+msgstr "The block and its settings will be deleted. This cannot be undone."
+
+msgid "Endgültig entfernen"
+msgstr "Remove permanently"
+
+msgid "Entfernen …"
+msgstr "Remove …"
+
+msgid "Hauptliste der Seite"
+msgstr "Main list of the page"
+
+msgid "Inhalte"
+msgstr "Content"
+
+msgid "Menü bearbeiten"
+msgstr "Edit menu"
+
+msgid "Texte, Fotos und Aussehen des Blocks ändern Sie direkt auf der Seite."
+msgstr "You change the block's texts, photos and look directly on the page."
+
+msgid "Tippen Sie links auf einen Block, um ihn zu verschieben, auszublenden oder zu entfernen."
+msgstr "Tap a block on the left to move, hide or remove it."
+
+msgid "Welche Blöcke auf der Seite stehen und in welcher Reihenfolge. Schmale Blöcke stehen nebeneinander."
+msgstr "Which blocks are on the page and in what order. Narrow blocks stand side by side."
+
+msgid "öffnet in neuem Tab"
+msgstr "opens in a new tab"

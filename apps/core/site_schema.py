@@ -18,6 +18,7 @@ from dataclasses import dataclass
 from django.db import transaction
 from django.urls import NoReverseMatch, reverse
 from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy
 
 from apps.core import studio_pages
 
@@ -237,13 +238,118 @@ def blocks_for(config: dict, code: str) -> list[dict]:
                 "cblock": cblock,
                 "summary": str(data.get("title") or data.get("label") or "")[:60],
                 "fixed": False,
+                "width": item.get("width") or "",
+                "newline": bool(item.get("newline")),
+                "width_label": WIDTH_LABELS.get(item.get("width") or "", ""),
+                "flex": WIDTH_FLEX.get(item.get("width") or "", 12),
             }
         )
+    for b in out:
+        b.setdefault("width", "")
+        b.setdefault("newline", False)
+        b.setdefault("width_label", "")
+        b.setdefault("flex", 12)
     movable = [b for b in out if not b["fixed"]]
     for i, b in enumerate(movable):
         b["can_up"] = i > 0
         b["can_down"] = i < len(movable) - 1
     return out
+
+
+#: FB-27 R1: подписи и доли ширины блока в схеме (ширины — `siteconfig.CBLOCK_WIDTHS`).
+WIDTH_LABELS = {"w23": "⅔", "w12": "½", "w13": "⅓", "w14": "¼", "w15": "⅕", "w16": "⅙"}
+WIDTH_FLEX = {"w23": 8, "w12": 6, "w13": 4, "w14": 3, "w15": 2.4, "w16": 2}
+
+#: Группы select «Seitentyp»: (код группы, подпись, модуль-владелец | None, типы).
+_TYPE_GROUPS = (
+    (
+        "shop",
+        gettext_lazy("Sortiment"),
+        "catalog",
+        ("catalog", "category", "product", "cart", "wishlist", "combos", "lookbook", "finder"),
+    ),
+    ("termine", gettext_lazy("Termine"), "booking", ("services", "service")),
+    ("unterkunft", gettext_lazy("Unterkunft"), "stays", ("stays", "stay")),
+    ("events", gettext_lazy("Veranstaltungen"), "events", ("events", "event", "tours")),
+    ("anfragen", gettext_lazy("Anfragen"), "jobs", ("anfrage",)),
+)
+_CONTENT_GROUP = gettext_lazy("Inhalte")
+
+
+def structure_types(tenant) -> list:
+    """Типы страниц, у которых есть блоки И которые есть у этого бизнеса.
+
+    Модуль выключен → типа нет (раньше магазин видел «Zimmer» и «Termine»). Один пункт
+    на хост блоков: «Katalog» и «Kategorie» делят хост и правили одно и то же."""
+    from apps.core import page_settings
+
+    out, hosts = [], set()
+    for pt in studio_pages.PAGE_TYPES:
+        if pt.code != "home":
+            if not pt.block_host or pt.block_host in hosts:
+                continue
+            if not page_settings.type_active(tenant, pt.code):
+                continue
+            hosts.add(pt.block_host)
+        out.append(pt)
+    return out
+
+
+def _row(config: dict, pt, code: str | None = None, label: str = "", preview: str = "") -> PageRow:
+    code = code or pt.code
+    blocks = blocks_for(config, code)
+    return PageRow(
+        code=code,
+        label=label or str(pt.label),
+        host=host_for(code),
+        count=sum(1 for b in blocks if b["enabled"] and not b["main"] and not b["fixed"]),
+        preview_url=preview or _preview_url(pt),
+    )
+
+
+def type_groups(tenant, config: dict) -> list[tuple[str, list[PageRow]]]:
+    """Опции select «Seitentyp» группами: главная, затем группа главного направления
+    бизнеса, остальные направления, в конце «Inhalte» (вкл. каждую текстовую страницу)."""
+    from apps.core import archetypes
+
+    types = {pt.code: pt for pt in structure_types(tenant)}
+    primary = archetypes.primary_module(tenant) or ""
+    ordered = sorted(_TYPE_GROUPS, key=lambda g: g[2] != primary)  # стабильно: главное первым
+    groups: list[tuple[str, list[PageRow]]] = []
+    if "home" in types:
+        groups.append((str(types["home"].label), [_row(config, types["home"])]))
+    used = {"home"}
+    for _key, label, _module, codes in ordered:
+        rows = [_row(config, types[c]) for c in codes if c in types]
+        used.update(codes)
+        if rows:
+            groups.append((str(label), rows))
+    content = []
+    for code, pt in types.items():
+        if code in used:
+            continue
+        if code == TEXT:
+            content.extend(
+                _row(config, pt, code=p.code, label=p.label, preview=p.preview_url)
+                for p in text_pages()
+            )
+        else:
+            content.append(_row(config, pt))
+    if content:
+        groups.append((str(_CONTENT_GROUP), content))
+    return groups
+
+
+def schema_layout(blocks: list[dict]) -> dict:
+    """Схема страницы: ряды видимых блоков (узкие соседи — в одном ряду, как на витрине)
+    и отдельный список скрытых. Чистая функция."""
+    from apps.tenants import siteconfig
+
+    visible = [b for b in blocks if b["enabled"]]
+    rows = []
+    for g in siteconfig.group_block_rows(visible):
+        rows.append(g["row"] if g.get("key") == "_row" else [g])
+    return {"rows": rows, "hidden": [b for b in blocks if not b["enabled"]]}
 
 
 def add_options(code: str) -> list[tuple[str, str]]:

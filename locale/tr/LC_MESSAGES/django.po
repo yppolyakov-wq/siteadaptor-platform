@@ -37197,3 +37197,42 @@ msgstr "Sağa"
 
 msgid "Der Seitenaufbau wurde inzwischen an anderer Stelle geändert. Ihre Eingaben hier wurden nicht gespeichert – bitte erneut vornehmen."
 msgstr "Sayfa yapısı bu arada başka bir yerde değiştirildi. Buradaki girişleriniz kaydedilmedi – lütfen yeniden yapın."
+
+msgid "Auf der Seite bearbeiten"
+msgstr "Sayfada düzenle"
+
+msgid "Ausgeblendet"
+msgstr "Gizli"
+
+msgid "Block wählen"
+msgstr "Blok seçin"
+
+msgid "Der Block und seine Einstellungen werden gelöscht. Das lässt sich nicht rückgängig machen."
+msgstr "Blok ve ayarları silinir. Bu işlem geri alınamaz."
+
+msgid "Endgültig entfernen"
+msgstr "Kalıcı olarak kaldır"
+
+msgid "Entfernen …"
+msgstr "Kaldır …"
+
+msgid "Hauptliste der Seite"
+msgstr "Sayfanın ana listesi"
+
+msgid "Inhalte"
+msgstr "İçerikler"
+
+msgid "Menü bearbeiten"
+msgstr "Menüyü düzenle"
+
+msgid "Texte, Fotos und Aussehen des Blocks ändern Sie direkt auf der Seite."
+msgstr "Bloğun metinlerini, fotoğraflarını ve görünümünü doğrudan sayfada değiştirirsiniz."
+
+msgid "Tippen Sie links auf einen Block, um ihn zu verschieben, auszublenden oder zu entfernen."
+msgstr "Taşımak, gizlemek veya kaldırmak için soldaki bir bloğa dokunun."
+
+msgid "Welche Blöcke auf der Seite stehen und in welcher Reihenfolge. Schmale Blöcke stehen nebeneinander."
+msgstr "Sayfada hangi blokların hangi sırayla durduğu. Dar bloklar yan yana durur."
+
+msgid "öffnet in neuem Tab"
+msgstr "yeni sekmede açılır"

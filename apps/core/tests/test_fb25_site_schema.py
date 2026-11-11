@@ -94,28 +94,32 @@ def test_translations_of_other_pages_survive_a_move():
     assert titles[-2:] == ["Б", "А"], "перевод едет за своим блоком"
 
 
-def test_screen_renders_pages_and_preview():
-    t = _tenant()
-    req = RequestFactory().get("/dashboard/site/aufbau/", {"seite": "catalog"})
+def _get(t, seite):
+    req = RequestFactory().get("/dashboard/site/aufbau/", {"seite": seite})
     SessionMiddleware(lambda r: None).process_request(req)
     MessageMiddleware(lambda r: None).process_request(req)
     req.user = SimpleNamespace(is_authenticated=True)
     req.tenant = t
-    body = site_schema_view(req).content.decode()
-    assert "data-schema-blocks" in body and "data-schema-frame" in body
-    assert "/sortiment/?preview=1" in body
-    assert 'aria-current="page"' in body
+    return site_schema_view(req).content.decode()
 
 
-def test_page_types_are_a_row_on_top_not_a_left_column():
-    """2026-11-09 (фидбэк владельца): типы страниц — строкой сверху, схеме и превью вся ширина."""
+def test_screen_renders_schema_and_preview_link():
+    """FB-27 R1: уменьшенной страницы на экране нет — превью открывается ссылкой, и
+    показывает СОХРАНЁННОЕ (не черновик Студии)."""
+    body = _get(_tenant(), "catalog")
+    assert "data-schema-blocks" in body and "<iframe" not in body
+    assert "/sortiment/?preview=1&amp;stand=saved" in body
+    assert 'option value="catalog" selected' in body
+
+
+def test_page_type_is_a_select_above_the_schema():
+    """FB-27 R1 (решение владельца): тип страницы — выбор сверху, не строка пилюль
+    (на телефоне пилюли занимали весь первый экран) и не колонка слева."""
     from pathlib import Path
 
     src = (Path(__file__).resolve().parents[3] / "templates/tenant/site_schema.html").read_text()
-    pages = src.index("data-schema-pages")
-    assert pages < src.index("data-site-schema")  # над сеткой, а не в ней
-    grid = src[src.index('<div class="grid', pages) :].split(">", 1)[0]
-    assert "14rem" not in grid
+    assert src.index('name="seite"') < src.index("data-site-schema")
+    assert "data-schema-pages" not in src and "data-schema-subpages" not in src
 
 
 def test_text_type_offers_each_page_with_its_own_preview():
@@ -123,13 +127,6 @@ def test_text_type_offers_each_page_with_its_own_preview():
     from apps.core.models import ContentPage
 
     ContentPage.objects.create(slug="zahlung", title="Zahlung", is_published=True)
-    t = _tenant()
-    req = RequestFactory().get("/dashboard/site/aufbau/", {"seite": "text@seite:zahlung"})
-    SessionMiddleware(lambda r: None).process_request(req)
-    MessageMiddleware(lambda r: None).process_request(req)
-    req.user = SimpleNamespace(is_authenticated=True)
-    req.tenant = t
-    body = site_schema_view(req).content.decode()
-    assert "data-schema-subpages" in body
+    body = _get(_tenant(), "text@seite:zahlung")
     assert "/zahlung/?preview=1&amp;stand=saved" in body
-    assert 'value="text@seite:zahlung"' in body
+    assert 'option value="text@seite:zahlung" selected' in body

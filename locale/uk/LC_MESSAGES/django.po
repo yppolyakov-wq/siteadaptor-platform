@@ -37373,3 +37373,42 @@ msgstr "Праворуч"
 
 msgid "Der Seitenaufbau wurde inzwischen an anderer Stelle geändert. Ihre Eingaben hier wurden nicht gespeichert – bitte erneut vornehmen."
 msgstr "Структуру сторінки тим часом було змінено в іншому місці. Ваші правки тут не збережено — внесіть їх знову."
+
+msgid "Auf der Seite bearbeiten"
+msgstr "Редагувати на сторінці"
+
+msgid "Ausgeblendet"
+msgstr "Приховані"
+
+msgid "Block wählen"
+msgstr "Виберіть блок"
+
+msgid "Der Block und seine Einstellungen werden gelöscht. Das lässt sich nicht rückgängig machen."
+msgstr "Блок і його налаштування буде видалено. Скасувати це неможливо."
+
+msgid "Endgültig entfernen"
+msgstr "Видалити остаточно"
+
+msgid "Entfernen …"
+msgstr "Видалити …"
+
+msgid "Hauptliste der Seite"
+msgstr "Основний список сторінки"
+
+msgid "Inhalte"
+msgstr "Вміст"
+
+msgid "Menü bearbeiten"
+msgstr "Змінити меню"
+
+msgid "Texte, Fotos und Aussehen des Blocks ändern Sie direkt auf der Seite."
+msgstr "Тексти, фото та вигляд блока змінюються просто на сторінці."
+
+msgid "Tippen Sie links auf einen Block, um ihn zu verschieben, auszublenden oder zu entfernen."
+msgstr "Натисніть на блок ліворуч, щоб перемістити, приховати або видалити його."
+
+msgid "Welche Blöcke auf der Seite stehen und in welcher Reihenfolge. Schmale Blöcke stehen nebeneinander."
+msgstr "Які блоки стоять на сторінці та в якому порядку. Вузькі блоки стоять поруч."
+
+msgid "öffnet in neuem Tab"
+msgstr "відкриється в новій вкладці"

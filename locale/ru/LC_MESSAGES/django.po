@@ -37386,3 +37386,42 @@ msgstr "Вправо"
 
 msgid "Der Seitenaufbau wurde inzwischen an anderer Stelle geändert. Ihre Eingaben hier wurden nicht gespeichert – bitte erneut vornehmen."
 msgstr "Структура страницы тем временем была изменена в другом месте. Ваши правки здесь не сохранены — внесите их заново."
+
+msgid "Auf der Seite bearbeiten"
+msgstr "Править на странице"
+
+msgid "Ausgeblendet"
+msgstr "Скрытые"
+
+msgid "Block wählen"
+msgstr "Выберите блок"
+
+msgid "Der Block und seine Einstellungen werden gelöscht. Das lässt sich nicht rückgängig machen."
+msgstr "Блок и его настройки будут удалены. Отменить это нельзя."
+
+msgid "Endgültig entfernen"
+msgstr "Удалить окончательно"
+
+msgid "Entfernen …"
+msgstr "Удалить …"
+
+msgid "Hauptliste der Seite"
+msgstr "Основной список страницы"
+
+msgid "Inhalte"
+msgstr "Содержимое"
+
+msgid "Menü bearbeiten"
+msgstr "Изменить меню"
+
+msgid "Texte, Fotos und Aussehen des Blocks ändern Sie direkt auf der Seite."
+msgstr "Тексты, фото и внешний вид блока меняются прямо на странице."
+
+msgid "Tippen Sie links auf einen Block, um ihn zu verschieben, auszublenden oder zu entfernen."
+msgstr "Нажмите на блок слева, чтобы переместить, скрыть или удалить его."
+
+msgid "Welche Blöcke auf der Seite stehen und in welcher Reihenfolge. Schmale Blöcke stehen nebeneinander."
+msgstr "Какие блоки стоят на странице и в каком порядке. Узкие блоки стоят рядом."
+
+msgid "öffnet in neuem Tab"
+msgstr "откроется в новой вкладке"

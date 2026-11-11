@@ -1,19 +1,29 @@
 {% extends "tenant/_base_dashboard.html" %}
-{% load i18n cabinet %}
+{% load i18n cabinet static %}
 {% block dash_title %}{% trans "Seitenaufbau" %}{% endblock %}
 
 {% block dash_content %}
-{% comment %}FB-25 (решения владельца 2026-11-07: отдельный экран, правка блоков нужна).
-Сверху — типы страниц, слева — схема блоков выбранной страницы с правкой (видимость,
-порядок, удаление, «＋ Block»), справа — уменьшенная живая страница. Тонкие настройки блока
-— в Студии.{% endcomment %}
-<div class="flex flex-wrap items-center justify-between gap-3 mb-4">
-  <div>
-    <h1 class="ui-h1">🧩 {% nav_title _("Seitenaufbau") %}</h1>
-    <p class="ui-muted text-sm mt-1">{% trans "Welche Blöcke auf welcher Seite stehen — und in welcher Reihenfolge." %}</p>
-  </div>
-  <a href="{{ studio_url }}" class="ui-btn ui-btn-secondary">{% trans "In Studio bearbeiten" %} →</a>
+{% comment %}FB-27 R1 (решения владельца 2026-11-11): схема страницы рядами вместо списка и
+уменьшенной страницы; тип страницы — выбор сверху (только типы этого бизнеса); справа
+панель выбранного блока; «Ausblenden» и «Entfernen» — разные действия.{% endcomment %}
+<div class="flex flex-wrap items-center gap-3 mb-4">
+  <h1 class="ui-h1">{% nav_title _("Seitenaufbau") %}</h1>
+  <form method="get" class="flex items-center gap-2" data-schema-type>
+    <label for="schema-seite" class="sr-only">{% trans "Seitentyp" %}</label>
+    <select name="seite" id="schema-seite" class="ui-input font-semibold" data-autosubmit>
+      {% for label, items in groups %}
+      <optgroup label="{{ label }}">
+        {% for r in items %}<option value="{{ r.code }}"{% if r.code == code %} selected{% endif %}>{{ r.label }}{% if r.count %} · {{ r.count }}{% endif %}</option>{% endfor %}
+      </optgroup>
+      {% endfor %}
+    </select>
+    <button class="ui-btn ui-btn-secondary" data-autosubmit-hide>{% trans "Öffnen" %}</button>
+  </form>
+  <span class="flex-1"></span>
+  <a href="{{ studio_url }}" class="ui-btn ui-btn-secondary">{% trans "Auf der Seite bearbeiten" %}</a>
+  {% if preview_url %}<a href="{{ preview_url }}?preview=1&amp;stand=saved" target="_blank" rel="noopener" class="ui-btn ui-btn-secondary">{% trans "Vorschau" %}<span class="sr-only"> ({% trans "öffnet in neuem Tab" %})</span></a>{% endif %}
 </div>
+<p class="ui-muted text-sm mb-4">{% trans "Welche Blöcke auf der Seite stehen und in welcher Reihenfolge. Schmale Blöcke stehen nebeneinander." %}</p>
 
 {% if messages %}
   {% for m in messages %}
@@ -21,99 +31,102 @@
   {% endfor %}
 {% endif %}
 
-{% comment %}2026-11-09 (фидбэк владельца): типы страниц — строкой пилюль СВЕРХУ, а не колонкой
-слева: схеме блоков и превью достаётся вся ширина.{% endcomment %}
-<nav aria-label="{% trans 'Seiten' %}" class="ui-card p-2 mb-4" data-schema-pages>
-  <ul class="flex flex-wrap gap-1.5">
-    {% for r in rows %}
-    <li><a href="?seite={{ r.code }}" class="inline-flex items-center gap-1.5 shrink-0 rounded-full border px-3 py-1.5 text-sm {% if current and r.code == current.code %}border-indigo-200 bg-indigo-50 text-indigo-800 font-medium{% else %}border-gray-200 bg-white hover:bg-gray-50{% endif %}"{% if current and r.code == current.code %} aria-current="page"{% endif %}>
-        <span class="whitespace-nowrap">{{ r.label }}</span><span class="ui-badge" title="{% trans 'Sichtbare Blöcke' %}"><span class="sr-only">{% trans "Sichtbare Blöcke" %}: </span>{{ r.count }}</span>
-      </a></li>
-    {% endfor %}
-  </ul>
-</nav>
-
-{% if sub_pages %}
-{% comment %}M21.11: тип «Seite» — у каждой страницы свой набор блоков.{% endcomment %}
-<nav aria-label="{% trans 'Welche Seite?' %}" class="ui-card p-2 mb-4" data-schema-subpages>
-  <ul class="flex flex-wrap gap-1.5">
-    {% for p in sub_pages %}
-    <li><a href="?seite={{ p.code|urlencode }}" class="inline-flex items-center rounded-full border px-3 py-1.5 text-sm {% if p.code == code %}border-indigo-200 bg-indigo-50 text-indigo-800 font-medium{% else %}border-gray-200 bg-white hover:bg-gray-50{% endif %}"{% if p.code == code %} aria-current="page"{% endif %}>{{ p.label }}</a></li>
-    {% endfor %}
-  </ul>
-</nav>
-{% endif %}
-
-<div class="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] gap-4 items-start" data-site-schema>
+<div class="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_20rem] gap-4 items-start" data-site-schema>
   <section class="ui-card p-4" aria-labelledby="schema-title">
-    <h2 id="schema-title" class="font-semibold mb-3">{% if sub %}{{ current.label }} · {{ sub.label }}{% else %}{{ current.label }}{% endif %}</h2>
-    <ol class="space-y-2" data-schema-blocks>
-      <li class="rounded-lg border border-dashed border-gray-200 px-3 py-2 text-xs ui-muted">{% trans "Kopfzeile & Menü" %}</li>
-      {% for b in blocks %}
-      <li class="flex flex-wrap items-center gap-2 rounded-lg border {% if b.main %}border-indigo-200 bg-indigo-50{% elif b.enabled %}border-gray-200{% else %}border-gray-200 bg-gray-50 opacity-60{% endif %} px-3 py-2 text-sm" data-schema-block="{{ b.ref }}">
-        <button type="button" class="flex-1 min-w-0 text-left" data-schema-show="{{ b.ref }}" title="{% trans 'In der Vorschau zeigen' %}">
-          <span class="font-medium">{{ b.label }}</span>{% if b.summary %} <span class="ui-muted">· {{ b.summary }}</span>{% endif %}
-          {% if not b.enabled %}<span class="ui-badge ml-1">{% trans "ausgeblendet" %}</span>{% endif %}
-        </button>
-        <form method="post" class="flex items-center gap-1">
-          {% csrf_token %}
-          <input type="hidden" name="seite" value="{{ code }}">
-          <input type="hidden" name="ref" value="{{ b.ref }}">
-          {% if b.can_up %}<button name="op" value="up" class="tap44 rounded px-2 hover:bg-gray-100" aria-label="{% trans 'Nach oben' %}: {{ b.label }}">↑</button>{% endif %}
-          {% if b.can_down %}<button name="op" value="down" class="tap44 rounded px-2 hover:bg-gray-100" aria-label="{% trans 'Nach unten' %}: {{ b.label }}">↓</button>{% endif %}
-          {% if not b.main %}<button name="op" value="toggle" class="tap44 rounded px-2 hover:bg-gray-100" aria-label="{% if b.enabled %}{% trans 'Ausblenden' %}{% else %}{% trans 'Einblenden' %}{% endif %}: {{ b.label }}">{% if b.enabled %}👁{% else %}◌{% endif %}</button>{% endif %}
-          {% if b.cblock %}<button name="op" value="delete" data-confirm-tap="{% trans 'Wirklich löschen?' %}" class="tap44 rounded px-2 text-red-600 hover:bg-red-50" aria-label="{% trans 'Löschen' %}: {{ b.label }}">✕</button>{% endif %}
-        </form>
-      </li>
+    <h2 id="schema-title" class="font-semibold mb-3">{{ current.label }}</h2>
+    <div class="space-y-2" data-schema-blocks>
+      <div class="flex items-center justify-between gap-2 rounded-xl border border-dashed border-gray-300 bg-gray-50 px-3 py-2.5 text-sm text-gray-600">
+        <span>{% trans "Kopfzeile & Menü" %}</span>
+        {% if 'site-menu'|can_open:request %}<a href="{% url 'site-menu' %}" class="inline-flex items-center min-h-[24px] text-indigo-700 hover:underline">{% trans "Menü bearbeiten" %}</a>{% endif %}
+      </div>
+      {% for row in layout.rows %}
+      <div class="flex flex-col md:flex-row gap-2" data-schema-row>
+        {% for b in row %}
+        <a href="?seite={{ code|urlencode }}&amp;block={{ b.ref|urlencode }}#schema-panel"
+           class="block min-w-0 rounded-xl border px-3 py-2.5 text-sm min-h-[44px] {% if selected and selected.ref == b.ref %}border-indigo-500 ring-2 ring-indigo-200 bg-white{% elif b.main %}border-indigo-200 bg-indigo-50{% else %}border-gray-300 bg-white hover:bg-gray-50{% endif %}"
+           style="flex: {{ b.flex|stringformat:'g' }} 1 0%"
+           data-schema-block="{{ b.ref }}"{% if selected and selected.ref == b.ref %} aria-current="true"{% endif %}>
+          {% if b.width_label %}<span class="ui-badge mr-1">{{ b.width_label }}</span>{% endif %}
+          <span class="font-medium">{{ b.label }}</span>
+          {% if b.summary %}<span class="block text-xs text-gray-600 truncate">{{ b.summary }}</span>{% endif %}
+        </a>
+        {% endfor %}
+      </div>
       {% empty %}
-      <li class="text-sm ui-muted">{% trans "Noch keine eigenen Blöcke auf dieser Seite." %}</li>
+      <p class="text-sm ui-muted">{% trans "Noch keine eigenen Blöcke auf dieser Seite." %}</p>
       {% endfor %}
-      <li class="rounded-lg border border-dashed border-gray-200 px-3 py-2 text-xs ui-muted">{% trans "Fußzeile" %}</li>
-    </ol>
-    <form method="post" class="mt-4 flex flex-wrap items-end gap-2">
+      <form method="post" class="flex flex-wrap items-end gap-2 rounded-xl border border-dashed border-gray-300 px-3 py-2.5">
+        {% csrf_token %}
+        <input type="hidden" name="seite" value="{{ code }}">
+        <input type="hidden" name="op" value="add">
+        <label class="text-sm flex-1 min-w-[10rem]"><span class="block text-xs text-gray-600 mb-1">{% trans "Block hinzufügen" %}</span>
+          <select name="type" class="ui-input w-full">
+            {% for key, label in add_options %}<option value="{{ key }}">{{ label }}</option>{% endfor %}
+          </select></label>
+        <button class="ui-btn ui-btn-primary">{% trans "Hinzufügen" %}</button>
+      </form>
+      <div class="rounded-xl border border-dashed border-gray-300 bg-gray-50 px-3 py-2.5 text-sm text-gray-600">{% trans "Fußzeile" %}</div>
+    </div>
+    {% if layout.hidden %}
+    <details class="mt-4 border-t border-gray-200 pt-3" data-schema-hidden{% if selected and not selected.enabled %} open{% endif %}>
+      <summary class="text-sm font-semibold text-gray-700 cursor-pointer min-h-[24px]">{% trans "Ausgeblendet" %} ({{ layout.hidden|length }})</summary>
+      <ul class="mt-2 space-y-2">
+        {% for b in layout.hidden %}
+        <li><a href="?seite={{ code|urlencode }}&amp;block={{ b.ref|urlencode }}#schema-panel"
+               class="flex items-center justify-between gap-2 rounded-xl border px-3 py-2.5 text-sm min-h-[44px] {% if selected and selected.ref == b.ref %}border-indigo-500 ring-2 ring-indigo-200{% else %}border-gray-300 hover:bg-gray-50{% endif %} bg-white text-gray-700"
+               data-schema-block="{{ b.ref }}"{% if selected and selected.ref == b.ref %} aria-current="true"{% endif %}>
+            <span><span class="font-medium">{{ b.label }}</span>{% if b.summary %} · {{ b.summary }}{% endif %}</span>
+            <span class="ui-badge">{% trans "ausgeblendet" %}</span>
+          </a></li>
+        {% endfor %}
+      </ul>
+    </details>
+    {% endif %}
+  </section>
+
+  <aside class="ui-card p-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300" id="schema-panel" tabindex="-1" aria-labelledby="schema-panel-title" data-schema-panel>
+    {% if selected %}
+    <h2 id="schema-panel-title" class="font-semibold text-lg">{{ selected.label }}</h2>
+    <dl class="mt-2 text-sm space-y-1 text-gray-700">
+      {% if selected.summary %}<div><dt class="sr-only">{% trans "Inhalt" %}</dt><dd>{{ selected.summary }}</dd></div>{% endif %}
+      <div class="flex gap-2"><dt class="text-gray-600">{% trans "Status" %}:</dt><dd>{% if selected.main %}{% trans "Hauptliste der Seite" %}{% elif selected.enabled %}{% trans "sichtbar" %}{% else %}{% trans "ausgeblendet" %}{% endif %}</dd></div>
+      {% if selected.width_label %}<div class="flex gap-2"><dt class="text-gray-600">{% trans "Breite" %}:</dt><dd>{{ selected.width_label }}</dd></div>{% endif %}
+    </dl>
+    {% if confirm_remove and selected.cblock %}
+    <form method="post" class="mt-4 rounded-xl bg-red-50 p-3 space-y-3" data-schema-confirm>
       {% csrf_token %}
       <input type="hidden" name="seite" value="{{ code }}">
-      <input type="hidden" name="op" value="add">
-      <label class="text-sm flex-1 min-w-[10rem]"><span class="block text-xs ui-muted mb-1">{% trans "Block hinzufügen" %}</span>
-        <select name="type" class="ui-input w-full">
-          {% for key, label in add_options %}<option value="{{ key }}">{{ label }}</option>{% endfor %}
-        </select></label>
-      <button class="ui-btn ui-btn-primary">＋ {% trans "Block" %}</button>
+      <input type="hidden" name="ref" value="{{ selected.ref }}">
+      <p class="text-sm text-red-800">{% trans "Der Block und seine Einstellungen werden gelöscht. Das lässt sich nicht rückgängig machen." %}</p>
+      <div class="flex flex-wrap gap-2">
+        <button name="op" value="delete" class="ui-btn ui-btn-danger">{% trans "Endgültig entfernen" %}</button>
+        <a href="?seite={{ code|urlencode }}&amp;block={{ selected.ref|urlencode }}#schema-panel" class="ui-btn ui-btn-secondary">{% trans "Abbrechen" %}</a>
+      </div>
     </form>
-  </section>
-
-  {% if preview_url %}
-  <section class="ui-card p-2" aria-label="{% trans 'Vorschau' %}">
-    <div class="relative w-full overflow-hidden rounded-lg bg-gray-100" style="height: 70vh" data-schema-frame-box>
-      <iframe src="{{ preview_url }}?preview=1&amp;stand=saved" title="{% trans 'Vorschau' %}: {{ current.label }}" loading="lazy"
-              class="absolute top-0 left-0 border-0 origin-top-left" style="width: 1280px; height: 2000px" data-schema-frame></iframe>
-    </div>
-  </section>
-  {% endif %}
+    {% else %}
+    <form method="post" class="mt-4 grid grid-cols-2 gap-2">
+      {% csrf_token %}
+      <input type="hidden" name="seite" value="{{ code }}">
+      <input type="hidden" name="ref" value="{{ selected.ref }}">
+      {% if not selected.fixed and selected.enabled %}
+      <button name="op" value="up" class="ui-btn ui-btn-secondary"{% if not selected.can_up %} disabled{% endif %}>{% trans "Nach oben" %}</button>
+      <button name="op" value="down" class="ui-btn ui-btn-secondary"{% if not selected.can_down %} disabled{% endif %}>{% trans "Nach unten" %}</button>
+      {% endif %}
+      {% if not selected.main %}
+      <button name="op" value="toggle" class="ui-btn ui-btn-secondary col-span-2">{% if selected.enabled %}{% trans "Ausblenden" %}{% else %}{% trans "Einblenden" %}{% endif %}</button>
+      {% endif %}
+    </form>
+    {% if selected.cblock %}
+    <a href="?seite={{ code|urlencode }}&amp;block={{ selected.ref|urlencode }}&amp;entfernen=1#schema-panel" class="mt-2 inline-flex items-center min-h-[44px] text-sm text-red-700 hover:underline">{% trans "Entfernen …" %}</a>
+    {% endif %}
+    {% endif %}
+    <p class="mt-4 border-t border-gray-200 pt-3 text-sm text-gray-600">{% trans "Texte, Fotos und Aussehen des Blocks ändern Sie direkt auf der Seite." %}
+      <a href="{{ studio_url }}" class="inline-flex items-center min-h-[24px] text-indigo-700 hover:underline">{% trans "Auf der Seite bearbeiten" %}</a></p>
+    {% else %}
+    <h2 id="schema-panel-title" class="font-semibold">{% trans "Block wählen" %}</h2>
+    <p class="mt-2 text-sm text-gray-600">{% trans "Tippen Sie links auf einen Block, um ihn zu verschieben, auszublenden oder zu entfernen." %}</p>
+    {% endif %}
+  </aside>
 </div>
-<script>
-(function () {
-  "use strict";
-  var box = document.querySelector("[data-schema-frame-box]");
-  var frame = document.querySelector("[data-schema-frame]");
-  function fit() {
-    if (!box || !frame) return;
-    var scale = box.clientWidth / 1280;
-    frame.style.transform = "scale(" + scale + ")";
-    frame.style.height = Math.round(box.clientHeight / scale) + "px";
-  }
-  window.addEventListener("resize", fit);
-  fit();
-  // Клик по блоку схемы — прокрутить уменьшенную страницу к этому блоку (тот же домен).
-  document.addEventListener("click", function (e) {
-    var b = e.target.closest && e.target.closest("[data-schema-show]");
-    if (!b || !frame) return;
-    try {
-      var doc = frame.contentDocument;
-      var el = doc && doc.querySelector('[data-sf-section="' + b.getAttribute("data-schema-show") + '"]');
-      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-    } catch (err) { /* превью недоступно — ничего не делаем */ }
-  });
-})();
-</script>
+<script src="{% static 'js/aufbau.js' %}" defer></script>
 {% endblock %}
