@@ -110,10 +110,15 @@ def test_width_counts_as_a_change():
 
 
 def test_panel_offers_width_only_for_own_blocks():
+    """FB-29.5 (осознанная переписка): ширина — и у встроенных секций главной; её нет
+    только у основного списка страницы."""
+    from apps.tenants import siteconfig
+
     b = Browser(_tenant())
     ref = site_schema.apply(b.tenant, "text", "add", block_type="text")
     assert "data-schema-width" in b.get(f"?seite=text&block={ref}")
-    assert "data-schema-width" not in b.get("?seite=home&block=hero")
+    assert "data-schema-width" in b.get("?seite=home&block=hero")
+    assert "data-schema-width" not in b.get(f"?seite=catalog&block={siteconfig.MAIN_LIST_KEY}")
 
 
 @pytest.mark.parametrize(

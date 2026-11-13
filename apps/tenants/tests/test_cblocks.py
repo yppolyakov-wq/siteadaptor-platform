@@ -157,8 +157,12 @@ def test_cblock_width_w23_w12_and_pos():
 
 
 def test_section_width_not_extended_to_w23():
-    """Секции остаются на contained/full — w23 только у C-блоков."""
+    """FB-29.5 (осознанная переписка, решение владельца 2026-11-13): встроенные секции
+    получают доли ⅔, ½, ⅓ — но не уже (¼…⅙ остаются только у простых C-блоков)."""
     cfg = siteconfig.normalize({"sections": [{"key": "products", "enabled": True, "width": "w23"}]})
+    sec = next(s for s in cfg["sections"] if s["key"] == "products")
+    assert sec["width"] == "w23"
+    cfg = siteconfig.normalize({"sections": [{"key": "products", "enabled": True, "width": "w16"}]})
     sec = next(s for s in cfg["sections"] if s["key"] == "products")
     assert sec["width"] == "contained"
 
