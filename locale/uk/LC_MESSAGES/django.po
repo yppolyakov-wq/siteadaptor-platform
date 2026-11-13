@@ -37762,3 +37762,18 @@ msgstr "Пошуковики"
 
 msgid "Titel in der Suche"
 msgstr "Заголовок у пошуку"
+
+msgid "Alle aufklappen"
+msgstr "Розгорнути всі"
+
+msgid "Alle einklappen"
+msgstr "Згорнути всі"
+
+msgid "Unterpunkte"
+msgstr "підпунктів"
+
+msgid "Unterpunkte aufklappen"
+msgstr "Розгорнути підпункти"
+
+msgid "Unterpunkte einklappen"
+msgstr "Згорнути підпункти"

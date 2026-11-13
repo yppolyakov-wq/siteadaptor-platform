@@ -37582,3 +37582,18 @@ msgstr "Arama motorları"
 
 msgid "Titel in der Suche"
 msgstr "Aramadaki başlık"
+
+msgid "Alle aufklappen"
+msgstr "Tümünü aç"
+
+msgid "Alle einklappen"
+msgstr "Tümünü kapat"
+
+msgid "Unterpunkte"
+msgstr "alt öğe"
+
+msgid "Unterpunkte aufklappen"
+msgstr "Alt öğeleri aç"
+
+msgid "Unterpunkte einklappen"
+msgstr "Alt öğeleri kapat"

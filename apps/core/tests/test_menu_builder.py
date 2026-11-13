@@ -252,3 +252,20 @@ def test_fb23c_invalid_payload_keeps_the_menu_and_says_so():
     req = _request("post", "/dashboard/site/menu/", {"menus_json": "[]"}, tenant)
     views.menu_builder_view(req)
     assert any("nicht gespeichert" in str(m) for m in req._messages)
+
+
+# ───────────── FB-28: сворачивание пунктов в редакторе меню ─────────────
+
+
+def test_menu_editor_can_fold_items_and_never_saves_the_folded_state():
+    """Свёрнутость — вид редактора: кнопка у пункта с подпунктами, «Alle ein-/aufklappen»,
+    состояние живёт вне сохраняемого меню (WeakSet + память браузера)."""
+    import pathlib
+
+    tpl = pathlib.Path("templates/tenant/site_menu.html").read_text()
+    for hook in ('"data-menu-fold"', '"aria-expanded"', 'id="fold-all"', 'id="unfold-all"'):
+        assert hook in tpl, hook
+    assert "new WeakSet()" in tpl and "restoreFolded();" in tpl
+    # в меню, которое уходит на сервер, свёрнутость не пишется
+    assert "node.folded" not in tpl and ".collapsed =" not in tpl
+    assert "JSON.stringify({ top: M.top, bottom: M.bottom, footer: M.footer })" in tpl

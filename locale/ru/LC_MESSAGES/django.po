@@ -37775,3 +37775,18 @@ msgstr "Поисковики"
 
 msgid "Titel in der Suche"
 msgstr "Заголовок в поиске"
+
+msgid "Alle aufklappen"
+msgstr "Развернуть все"
+
+msgid "Alle einklappen"
+msgstr "Свернуть все"
+
+msgid "Unterpunkte"
+msgstr "подпунктов"
+
+msgid "Unterpunkte aufklappen"
+msgstr "Развернуть подпункты"
+
+msgid "Unterpunkte einklappen"
+msgstr "Свернуть подпункты"

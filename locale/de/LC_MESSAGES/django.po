@@ -37523,3 +37523,18 @@ msgstr "Suchmaschinen"
 
 msgid "Titel in der Suche"
 msgstr "Titel in der Suche"
+
+msgid "Alle aufklappen"
+msgstr "Alle aufklappen"
+
+msgid "Alle einklappen"
+msgstr "Alle einklappen"
+
+msgid "Unterpunkte"
+msgstr "Unterpunkte"
+
+msgid "Unterpunkte aufklappen"
+msgstr "Unterpunkte aufklappen"
+
+msgid "Unterpunkte einklappen"
+msgstr "Unterpunkte einklappen"

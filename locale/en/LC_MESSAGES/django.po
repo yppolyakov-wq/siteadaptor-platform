@@ -37436,3 +37436,18 @@ msgstr "Search engines"
 
 msgid "Titel in der Suche"
 msgstr "Title in search results"
+
+msgid "Alle aufklappen"
+msgstr "Expand all"
+
+msgid "Alle einklappen"
+msgstr "Collapse all"
+
+msgid "Unterpunkte"
+msgstr "sub-items"
+
+msgid "Unterpunkte aufklappen"
+msgstr "Expand sub-items"
+
+msgid "Unterpunkte einklappen"
+msgstr "Collapse sub-items"

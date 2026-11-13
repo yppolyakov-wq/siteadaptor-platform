@@ -48,6 +48,12 @@
             </label>
             <label class="flex items-center gap-2"><input type="checkbox" id="top-sticky"> {% trans "Kopfzeile bleibt oben" %}</label>
           </div>
+          {% comment %}FB-28: длинное меню обозримо — пункты с подпунктами сворачиваются (только вид
+          редактора: в сохраняемое меню состояние не попадает, помнится в этом браузере).{% endcomment %}
+          <div class="mb-2 flex flex-wrap gap-2" data-fold-tools hidden>
+            <button type="button" class="ui-btn ui-btn-secondary ui-btn-sm" id="fold-all">{% trans "Alle einklappen" %}</button>
+            <button type="button" class="ui-btn ui-btn-secondary ui-btn-sm" id="unfold-all">{% trans "Alle aufklappen" %}</button>
+          </div>
           <ul id="tree-top" class="space-y-1.5" data-tree="top"></ul>
           <div class="mt-3 flex flex-wrap gap-2">
             <button type="button" class="ui-btn ui-btn-secondary ui-btn-sm" data-add="top">＋ {% trans "Punkt" %}</button>
@@ -102,7 +108,9 @@
     imageUrl: "{% trans "Bild-Adresse" %}", desc: "{% trans "Kurzer Text" %}", layout: "{% trans "Ansicht des Untermenüs" %}",
     noImage: "{% trans "Kein Bild" %}", colTitle: "{% trans "Spaltentitel" %}", addLink: "{% trans "Link" %}",
     delCol: "{% trans "Spalte löschen" %}", needTarget: "{% trans "Bitte ein Ziel wählen — sonst erscheint der Punkt nicht." %}",
-    leave: "{% trans "Ungespeicherte Änderungen gehen verloren." %}"
+    leave: "{% trans "Ungespeicherte Änderungen gehen verloren." %}",
+    fold: "{% trans "Unterpunkte einklappen" %}", unfold: "{% trans "Unterpunkte aufklappen" %}",
+    subCount: "{% trans "Unterpunkte" %}"
   };
   var KINDS = [
     { k: "page", label: "{% trans "Seite" %}", list: "pages" },
@@ -141,6 +149,43 @@
     return e;
   }
   function markDirty() { dirty = true; document.getElementById("dirty-note").hidden = false; }
+
+  // FB-28: свёрнутые пункты. Состояние — только вид редактора: живёт в WeakSet (в JSON
+  // меню не сериализуется) и запоминается в этом браузере по пути из названий.
+  var folded = new WeakSet(), focusFold = null;
+  var FOLD_KEY = "sa-menu-folded";
+  function walkNodes(list, prefix, fn) {
+    (list || []).forEach(function (n) {
+      var key = prefix + "/" + (n.label || "");
+      fn(n, key);
+      walkNodes(n.children, key, fn);
+    });
+  }
+  function eachTree(fn) { walkNodes(M.top.items, "top", fn); walkNodes(M.bottom.items, "bottom", fn); }
+  function saveFolded() {
+    var keys = [];
+    eachTree(function (n, key) { if (folded.has(n) && (n.children || []).length) keys.push(key); });
+    try { localStorage.setItem(FOLD_KEY, JSON.stringify(keys)); } catch (e) {}
+  }
+  function restoreFolded() {
+    var keys = [];
+    try { keys = JSON.parse(localStorage.getItem(FOLD_KEY) || "[]"); } catch (e) {}
+    if (!Array.isArray(keys) || !keys.length) return;
+    eachTree(function (n, key) { if (keys.indexOf(key) !== -1) folded.add(n); });
+  }
+  function setAllFolded(on) {
+    eachTree(function (n) { if ((n.children || []).length && on) folded.add(n); else folded.delete(n); });
+    if (on) sel = null;  // выбранный подпункт оказался бы свёрнут, а панель правила бы невидимое
+    saveFolded(); render();
+  }
+  // Выбранный (или только что добавленный, перенесённый) пункт всегда виден: его предки раскрыты.
+  function revealNode(list, node) {
+    return (list || []).some(function (n) {
+      if (n === node) return true;
+      if (revealNode(n.children, node)) { folded.delete(n); return true; }
+      return false;
+    });
+  }
   function blank(label) { return { label: label || T.newItem, type: "page", target: "", enabled: true, icon: "", children: [] }; }
   function listFor(side) { return side === "top" ? M.top.items : M.bottom.items; }
   function kind(k) { return KINDS.filter(function (x) { return x.k === k; })[0] || KINDS[0]; }
@@ -167,7 +212,7 @@
     var from = locate(listFor(side), node, null, 1);
     from.list.splice(from.index, 1);
     tpos = locate(listFor(side), target, null, 1);
-    if (where === "inside") { target.children = target.children || []; target.children.push(node); }
+    if (where === "inside") { target.children = target.children || []; target.children.push(node); folded.delete(target); }
     else tpos.list.splice(tpos.index + (where === "after" ? 1 : 0), 0, node);
     return true;
   }
@@ -208,10 +253,30 @@
         draggable: "true", "data-menu-row": ""
       });
       row.appendChild(el("span", { class: "cursor-grab select-none text-gray-400 px-1", "aria-hidden": "true" }, "⠿"));
+      var kids = (node.children || []).length;
+      var isFolded = kids > 0 && folded.has(node);
+      if (kids) {
+        var tgl = el("button", {
+          type: "button", class: "w-8 h-8 shrink-0 rounded-lg text-gray-600 hover:bg-gray-100",
+          "data-menu-fold": "", "aria-expanded": isFolded ? "false" : "true",
+          "aria-label": (isFolded ? T.unfold : T.fold) + ": " + (node.label || T.noName),
+          title: isFolded ? T.unfold : T.fold
+        }, isFolded ? "▸" : "▾");
+        tgl.addEventListener("click", function (e) {
+          e.stopPropagation();
+          if (folded.has(node)) folded.delete(node); else folded.add(node);
+          if (folded.has(node) && sel && sel.node !== node && contains(node, sel.node)) sel = null;
+          focusFold = node;  // после перерисовки фокус остаётся на этой кнопке
+          saveFolded(); render();
+        });
+        row.appendChild(tgl);
+        if (focusFold === node) { focusFold = null; setTimeout(function () { tgl.focus(); }, 0); }
+      }
       var pick = el("button", { type: "button", class: "min-w-0 flex-1 flex items-center gap-2 text-left py-1" });
       if (node.icon) pick.appendChild(el("span", { "aria-hidden": "true" }, node.icon));
       pick.appendChild(el("span", { class: "truncate font-medium text-sm" }, node.label || T.noName));
       pick.appendChild(el("span", { class: "text-xs ui-muted shrink-0" }, kind(node.type).label + (node.auto || node.type === "categories" ? " · " + T.auto : "")));
+      if (isFolded) pick.appendChild(el("span", { class: "text-xs ui-muted shrink-0", "data-menu-fold-count": "" }, "· " + kids + " " + T.subCount));
       if (node.enabled === false) pick.appendChild(el("span", { class: "text-xs ui-muted" }, "· " + T.hidden));
       if (needsTarget(node)) { row.classList.add("border-amber-400"); pick.title = T.needTarget; }
       pick.addEventListener("click", function () { sel = { side: side, node: node }; render(); });
@@ -234,7 +299,7 @@
         render();
       });
       li.appendChild(row);
-      if ((node.children || []).length) {
+      if ((node.children || []).length && !isFolded) {
         var sub = el("ul", { class: "mt-1.5 ml-6 space-y-1.5 border-l border-gray-100 pl-2" });
         renderList(side, sub, node.children, node, depth + 1);
         li.appendChild(sub);
@@ -427,6 +492,9 @@
   }
 
   function renderTrees() {
+    if (sel) { revealNode(M.top.items, sel.node); revealNode(M.bottom.items, sel.node); }
+    var tools = document.querySelector("[data-fold-tools]");
+    if (tools) tools.hidden = !M.top.items.some(function (n) { return (n.children || []).length; });
     renderList("top", document.getElementById("tree-top"), M.top.items, null, 1);
     renderList("bottom", document.getElementById("tree-bottom"), M.bottom.items, null, 1);
     renderFooter();
@@ -470,11 +538,15 @@
   stickyCb.addEventListener("change", function () { M.top.sticky = stickyCb.checked; markDirty(); });
   bottomCb.addEventListener("change", function () { M.bottom.enabled = bottomCb.checked; markDirty(); });
 
+  document.getElementById("fold-all").addEventListener("click", function () { setAllFolded(true); });
+  document.getElementById("unfold-all").addEventListener("click", function () { setAllFolded(false); });
   document.getElementById("menu-form").addEventListener("submit", function () {
     dirty = false;
+    saveFolded();  // названия могли измениться — запоминаем по новым
     document.getElementById("menus_json").value = JSON.stringify({ top: M.top, bottom: M.bottom, footer: M.footer });
   });
   window.addEventListener("beforeunload", function (e) { if (dirty) { e.preventDefault(); e.returnValue = T.leave; } });
+  restoreFolded();
   render();
 })();
 </script>
