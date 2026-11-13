@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Seitenaufbau – Breite und Vorschau</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:Inter,system-ui,sans-serif;color:#16181d}
+a{color:#3730a3}a:hover{color:#1e1b4b}
+</style>
+</helmet>
+<div style="width: 1440px; height: 980px; box-sizing: border-box; background: #f3f4f6; padding: 28px 32px; display: flex; flex-direction: column; gap: 18px">
+  <div style="display: flex; align-items: center; gap: 14px">
+    <h1 style="margin: 0; font-size: 24px; font-weight: 700">Seitenaufbau</h1>
+    <div style="border: 1px solid #6b7280; border-radius: 10px; padding: 10px 14px; font-weight: 600; background: #fff; font-size: 15px">Startseite ▾</div>
+    <div style="display: flex; border: 1px solid #d1d5db; border-radius: 999px; padding: 2px; background: #fff; font-size: 14px; font-weight: 600">
+      <span style="background: #4338ca; color: #fff; border-radius: 999px; padding: 10px 14px">Computer</span>
+      <span style="padding: 10px 14px; color: #374151">Telefon</span>
+    </div>
+    <div style="flex-grow: 1"></div>
+    <span style="font-size: 14px; color: #78350f"><strong>Entwurf</strong> · Änderungen: 2</span>
+    <a href="#a" style="font-size: 14px; font-weight: 600">Vorschau</a>
+    <button style="border: 1px solid #6b7280; background: #fff; border-radius: 10px; padding: 11px 16px; font-weight: 600; font-size: 14px">Verwerfen</button>
+    <button style="border: 0; background: #4338ca; color: #fff; border-radius: 10px; padding: 12px 18px; font-weight: 600; font-size: 14px">Speichern</button>
+  </div>
+
+  <div style="display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 20px; flex-grow: 1">
+    <div style="background: #fff; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 10px">
+      <div style="font-weight: 600; font-size: 16px">Startseite</div>
+      <div style="border: 1px dashed #d1d5db; border-radius: 12px; padding: 12px 14px; color: #4b5563; font-size: 14px; background: #f9fafb">Kopfzeile &amp; Menü</div>
+
+      <div style="display: flex; gap: 10px; align-items: stretch">
+        <div style="width: 28px; display: flex; align-items: center; justify-content: center; color: #6b7280; border: 1px solid #d1d5db; border-radius: 8px; background: #f9fafb; font-size: 16px; letter-spacing: -2px" aria-hidden="true">⋮⋮</div>
+        <div style="flex-grow: 1; border: 1px solid #6b7280; border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px">
+          <div style="display: flex; justify-content: space-between; font-size: 14px"><strong>Banner</strong><span style="color: #4b5563">3 Banner · Slider · Ganz</span></div>
+          <div style="height: 34px; border-radius: 8px; background: #c7d2fe"></div>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 10px; align-items: stretch">
+        <div style="width: 28px; display: flex; align-items: center; justify-content: center; color: #6b7280; border: 1px solid #d1d5db; border-radius: 8px; background: #f9fafb; font-size: 16px; letter-spacing: -2px" aria-hidden="true">⋮⋮</div>
+        <div style="flex-grow: 1; border: 2px solid #4338ca; border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; background: #eef2ff">
+          <div style="display: flex; justify-content: space-between; font-size: 14px"><strong>Produkte</strong><span style="color: #4b5563">höchstens 8 · 4 Spalten · 2 Reihen · Raster</span></div>
+          <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px">
+            <div style="height: 18px; border-radius: 5px; background: #a5b4fc"></div><div style="height: 18px; border-radius: 5px; background: #a5b4fc"></div><div style="height: 18px; border-radius: 5px; background: #a5b4fc"></div><div style="height: 18px; border-radius: 5px; background: #a5b4fc"></div>
+            <div style="height: 18px; border-radius: 5px; background: #a5b4fc"></div><div style="height: 18px; border-radius: 5px; background: #a5b4fc"></div><div style="height: 18px; border-radius: 5px; background: #a5b4fc"></div><div style="height: 18px; border-radius: 5px; background: #a5b4fc"></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 10px; align-items: stretch">
+        <div style="width: 28px; display: flex; align-items: center; justify-content: center; color: #6b7280; border: 1px solid #d1d5db; border-radius: 8px; background: #f9fafb; font-size: 16px; letter-spacing: -2px" aria-hidden="true">⋮⋮</div>
+        <div style="flex-grow: 1; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; border: 1px dashed #818cf8; border-radius: 14px; padding: 8px; background: #fafaff">
+          <div style="border: 1px solid #6b7280; border-radius: 10px; padding: 10px 12px; background: #fff; display: flex; flex-direction: column; gap: 6px">
+            <div style="display: flex; justify-content: space-between; font-size: 13px"><strong>Über uns</strong><span style="background: #e0e7ff; color: #312e81; border-radius: 6px; padding: 1px 6px; font-weight: 600">⅓</span></div>
+            <div style="height: 6px; border-radius: 3px; background: #d1d5db"></div><div style="height: 6px; border-radius: 3px; background: #d1d5db; width: 70%"></div>
+          </div>
+          <div style="border: 1px solid #6b7280; border-radius: 10px; padding: 10px 12px; background: #fff; display: flex; flex-direction: column; gap: 6px">
+            <div style="display: flex; justify-content: space-between; font-size: 13px"><strong>Bild</strong><span style="background: #e0e7ff; color: #312e81; border-radius: 6px; padding: 1px 6px; font-weight: 600">⅓</span></div>
+            <div style="height: 20px; border-radius: 5px; background: #d1d5db"></div>
+          </div>
+          <div style="border: 1px solid #6b7280; border-radius: 10px; padding: 10px 12px; background: #fff; display: flex; flex-direction: column; gap: 6px">
+            <div style="display: flex; justify-content: space-between; font-size: 13px"><strong>Kontakt</strong><span style="background: #e0e7ff; color: #312e81; border-radius: 6px; padding: 1px 6px; font-weight: 600">⅓</span></div>
+            <div style="height: 6px; border-radius: 3px; background: #d1d5db"></div><div style="height: 6px; border-radius: 3px; background: #d1d5db; width: 55%"></div>
+          </div>
+        </div>
+      </div>
+      <div style="font-size: 12px; color: #4b5563; padding-left: 38px">Drei schmale Blöcke stehen in einer Reihe. Auf dem Telefon immer untereinander.</div>
+
+      <div style="display: flex; gap: 10px; align-items: stretch">
+        <div style="width: 28px; display: flex; align-items: center; justify-content: center; color: #6b7280; border: 1px solid #d1d5db; border-radius: 8px; background: #f9fafb; font-size: 16px; letter-spacing: -2px" aria-hidden="true">⋮⋮</div>
+        <div style="flex-grow: 1; border: 1px solid #6b7280; border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px">
+          <div style="display: flex; justify-content: space-between; font-size: 14px"><strong>Kategorien</strong><span style="color: #4b5563">höchstens 6 · Slider · Ganz</span></div>
+          <div style="display: flex; gap: 6px"><div style="height: 18px; width: 22%; border-radius: 5px; background: #d1d5db"></div><div style="height: 18px; width: 22%; border-radius: 5px; background: #d1d5db"></div><div style="height: 18px; width: 22%; border-radius: 5px; background: #d1d5db"></div><div style="height: 18px; width: 22%; border-radius: 5px; background: #d1d5db"></div><div style="height: 18px; width: 6%; border-radius: 5px; background: #e5e7eb"></div></div>
+        </div>
+      </div>
+
+      <div style="border: 1px dashed #6b7280; border-radius: 12px; padding: 14px; text-align: center; font-weight: 600; font-size: 14px">+ Block hinzufügen</div>
+      <div style="border: 1px dashed #d1d5db; border-radius: 12px; padding: 12px 14px; color: #4b5563; font-size: 14px; background: #f9fafb">Fußzeile</div>
+    </div>
+
+    <div style="background: #fff; border-radius: 16px; padding: 20px; border: 2px solid #4338ca; display: flex; flex-direction: column; gap: 14px">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start">
+        <div><div style="font-weight: 600; font-size: 18px">Produkte</div><div style="font-size: 12px; color: #4b5563">höchstens 8 · 4 Spalten · 2 Reihen · Raster</div></div>
+        <button aria-label="Mehr" style="width: 44px; height: 44px; border: 1px solid #6b7280; border-radius: 10px; background: #fff; font-size: 18px">⋯</button>
+      </div>
+
+      <div style="border: 1px solid #c7d2fe; border-radius: 12px; padding: 10px; background: #f5f7ff; display: flex; flex-direction: column; gap: 6px">
+        <div style="font-size: 12px; font-weight: 600; color: #312e81">So sieht der Block aus</div>
+        <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px">
+          <div style="border-radius: 6px; background: #fff; border: 1px solid #c7d2fe; padding: 4px; display: flex; flex-direction: column; gap: 3px"><div style="height: 26px; border-radius: 4px; background: #a5b4fc"></div><div style="height: 4px; border-radius: 2px; background: #c7d2fe"></div></div>
+          <div style="border-radius: 6px; background: #fff; border: 1px solid #c7d2fe; padding: 4px; display: flex; flex-direction: column; gap: 3px"><div style="height: 26px; border-radius: 4px; background: #a5b4fc"></div><div style="height: 4px; border-radius: 2px; background: #c7d2fe"></div></div>
+          <div style="border-radius: 6px; background: #fff; border: 1px solid #c7d2fe; padding: 4px; display: flex; flex-direction: column; gap: 3px"><div style="height: 26px; border-radius: 4px; background: #a5b4fc"></div><div style="height: 4px; border-radius: 2px; background: #c7d2fe"></div></div>
+          <div style="border-radius: 6px; background: #fff; border: 1px solid #c7d2fe; padding: 4px; display: flex; flex-direction: column; gap: 3px"><div style="height: 26px; border-radius: 4px; background: #a5b4fc"></div><div style="height: 4px; border-radius: 2px; background: #c7d2fe"></div></div>
+          <div style="border-radius: 6px; background: #fff; border: 1px solid #c7d2fe; padding: 4px; display: flex; flex-direction: column; gap: 3px"><div style="height: 26px; border-radius: 4px; background: #a5b4fc"></div><div style="height: 4px; border-radius: 2px; background: #c7d2fe"></div></div>
+          <div style="border-radius: 6px; background: #fff; border: 1px solid #c7d2fe; padding: 4px; display: flex; flex-direction: column; gap: 3px"><div style="height: 26px; border-radius: 4px; background: #a5b4fc"></div><div style="height: 4px; border-radius: 2px; background: #c7d2fe"></div></div>
+          <div style="border-radius: 6px; background: #fff; border: 1px solid #c7d2fe; padding: 4px; display: flex; flex-direction: column; gap: 3px"><div style="height: 26px; border-radius: 4px; background: #a5b4fc"></div><div style="height: 4px; border-radius: 2px; background: #c7d2fe"></div></div>
+          <div style="border-radius: 6px; background: #fff; border: 1px solid #c7d2fe; padding: 4px; display: flex; flex-direction: column; gap: 3px"><div style="height: 26px; border-radius: 4px; background: #a5b4fc"></div><div style="height: 4px; border-radius: 2px; background: #c7d2fe"></div></div>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <div style="font-weight: 700; font-size: 14px">Wie</div>
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px">
+          <button style="min-height: 44px; border: 2px solid #4338ca; background: #eef2ff; color: #312e81; border-radius: 10px; font-weight: 600; font-size: 14px">Raster</button>
+          <button style="min-height: 44px; border: 1px solid #6b7280; background: #fff; border-radius: 10px; font-weight: 600; font-size: 14px">Slider</button>
+        </div>
+        <div style="font-size: 13px; font-weight: 600; color: #374151">Spalten</div>
+        <div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 4px">
+          <button style="min-height: 44px; border: 1px solid #6b7280; background: #fff; border-radius: 8px; font-weight: 600">1</button>
+          <button style="min-height: 44px; border: 1px solid #6b7280; background: #fff; border-radius: 8px; font-weight: 600">2</button>
+          <button style="min-height: 44px; border: 1px solid #6b7280; background: #fff; border-radius: 8px; font-weight: 600">3</button>
+          <button style="min-height: 44px; border: 2px solid #4338ca; background: #eef2ff; color: #312e81; border-radius: 8px; font-weight: 700">4</button>
+          <button style="min-height: 44px; border: 1px solid #6b7280; background: #fff; border-radius: 8px; font-weight: 600">5</button>
+          <button style="min-height: 44px; border: 1px solid #6b7280; background: #fff; border-radius: 8px; font-weight: 600">6</button>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <div style="font-weight: 700; font-size: 14px">Breite</div>
+        <div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px">
+          <button style="min-height: 52px; border: 2px solid #4338ca; background: #eef2ff; border-radius: 8px; display: flex; flex-direction: column; gap: 4px; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; color: #312e81"><span style="display: block; width: 36px; height: 8px; border-radius: 3px; background: #4338ca"></span>Ganz</button>
+          <button style="min-height: 52px; border: 1px solid #6b7280; background: #fff; border-radius: 8px; display: flex; flex-direction: column; gap: 4px; align-items: center; justify-content: center; font-size: 12px; font-weight: 600"><span style="display: block; width: 36px; height: 8px; border-radius: 3px; background: #e5e7eb"><span style="display: block; width: 24px; height: 8px; border-radius: 3px; background: #6b7280"></span></span>⅔</button>
+          <button style="min-height: 52px; border: 1px solid #6b7280; background: #fff; border-radius: 8px; display: flex; flex-direction: column; gap: 4px; align-items: center; justify-content: center; font-size: 12px; font-weight: 600"><span style="display: block; width: 36px; height: 8px; border-radius: 3px; background: #e5e7eb"><span style="display: block; width: 18px; height: 8px; border-radius: 3px; background: #6b7280"></span></span>½</button>
+          <button style="min-height: 52px; border: 1px solid #6b7280; background: #fff; border-radius: 8px; display: flex; flex-direction: column; gap: 4px; align-items: center; justify-content: center; font-size: 12px; font-weight: 600"><span style="display: block; width: 36px; height: 8px; border-radius: 3px; background: #e5e7eb"><span style="display: block; width: 12px; height: 8px; border-radius: 3px; background: #6b7280"></span></span>⅓</button>
+          <button style="min-height: 52px; border: 1px solid #6b7280; background: #fff; border-radius: 8px; display: flex; flex-direction: column; gap: 4px; align-items: center; justify-content: center; font-size: 12px; font-weight: 600"><span style="display: block; width: 36px; height: 8px; border-radius: 3px; background: #e5e7eb"><span style="display: block; width: 9px; height: 8px; border-radius: 3px; background: #6b7280"></span></span>¼</button>
+        </div>
+        <div style="font-size: 12px; color: #4b5563">Schmaler als «Ganz»: der Block steht neben dem nächsten schmalen Block. Jetzt: allein in der Reihe.</div>
+      </div>
+
+      <div style="margin-top: auto; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+        <button style="min-height: 44px; border: 1px solid #6b7280; background: #fff; border-radius: 10px; font-weight: 600; font-size: 14px">Nach oben</button>
+        <button style="min-height: 44px; border: 1px solid #6b7280; background: #fff; border-radius: 10px; font-weight: 600; font-size: 14px">Nach unten</button>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":980}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>
