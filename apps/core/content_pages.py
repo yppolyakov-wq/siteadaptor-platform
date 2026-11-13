@@ -167,6 +167,62 @@ def retarget_menus(old: str, new: str) -> int:
     return hits
 
 
+def _move_seo(config: dict, src: str, dst: str | None) -> bool:
+    """FB-27 «Seiten»: запись SEO страницы едет за её адресом (и уходит с удалением)."""
+    seo = config.get("seo")
+    pages = seo.get("pages") if isinstance(seo, dict) else None
+    if not isinstance(pages, dict) or src not in pages:
+        return False
+    entry = pages.pop(src)
+    if dst:
+        pages[dst] = entry
+    return True
+
+
+def page_seo(tenant, host: str) -> dict:
+    """Свои заголовок/описание/noindex страницы (`{}` — не заданы)."""
+    from apps.tenants import siteconfig
+
+    seo = (getattr(tenant, "site_config", None) or {}).get("seo")
+    pages = seo.get("pages") if isinstance(seo, dict) else None
+    entry = (
+        pages.get(host) if isinstance(pages, dict) and siteconfig.is_seo_page_host(host) else None
+    )
+    return siteconfig.clean_seo_page(entry)
+
+
+def save_page_seo(tenant, host: str, values: dict) -> dict:
+    """Точечная запись SEO одной страницы под блокировкой строки: остальной `site_config`
+    не трогается (экран открыт долго — целиком конфиг писать нельзя)."""
+    from apps.tenants import siteconfig
+    from apps.tenants.models import Tenant
+
+    if not siteconfig.is_seo_page_host(host):
+        raise PageError(_("Diese Seite hat keine eigenen Angaben für Suchmaschinen."))
+    entry = siteconfig.clean_seo_page(values)
+    with transaction.atomic():
+        fresh = Tenant.objects.select_for_update().get(pk=tenant.pk)
+        config = copy.deepcopy(fresh.site_config or {})
+        seo = dict(config.get("seo") or {}) if isinstance(config.get("seo"), dict) else {}
+        pages = dict(seo.get("pages") or {}) if isinstance(seo.get("pages"), dict) else {}
+        if entry:
+            pages[host] = entry
+        else:
+            pages.pop(host, None)
+        if pages:
+            seo["pages"] = pages
+        else:
+            seo.pop("pages", None)
+        if seo:
+            config["seo"] = seo
+        else:
+            config.pop("seo", None)
+        fresh.site_config = config
+        fresh.save(update_fields=["site_config"])
+        tenant.site_config = config
+    return entry
+
+
 def move_page_blocks(old: str, new: str | None, prefix: str = "seite:") -> bool:
     """M21.11: блоки своей страницы живут в ``page_blocks["seite:<slug>"]``. Смена адреса
     переносит их, удаление страницы — убирает (иначе хост-призрак занимал бы место в
@@ -185,8 +241,13 @@ def move_page_blocks(old: str, new: str | None, prefix: str = "seite:") -> bool:
             return False
         config = copy.deepcopy(fresh.site_config or {})
         blocks = config.get("page_blocks") or {}
+        seo_moved = _move_seo(config, src, dst)  # и у страницы без блоков
         if src not in blocks:
-            return False
+            if seo_moved:
+                fresh.site_config = config
+                fresh.save(update_fields=["site_config"])
+                tenant.site_config = config
+            return seo_moved
         moved = blocks.pop(src)
         if dst:
             blocks[dst] = moved

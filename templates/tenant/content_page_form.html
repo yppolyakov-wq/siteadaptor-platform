@@ -15,7 +15,7 @@
   {% include "tenant/_settings_messages.html" %}
   {% if has_tabs %}{% include "tenant/_page_tabs.html" %}{% endif %}
 
-  {% if tab == "bloecke" %}{% include "tenant/_page_blocks_tab.html" %}{% else %}
+  {% if tab == "bloecke" %}{% include "tenant/_page_blocks_tab.html" %}{% elif tab == "suche" %}{% include "tenant/_page_seo_tab.html" %}{% else %}
   {% if confirm_delete and 'content-page-new'|can_open:request %}
   {% comment %}FB-27 «Seiten»: удаление — отдельный шаг с вопросом; работает и без скриптов.{% endcomment %}
   <section id="seite-loeschen" class="ui-card p-4 mb-4 border border-red-300" role="region" aria-labelledby="seite-loeschen-title" data-page-delete-confirm>

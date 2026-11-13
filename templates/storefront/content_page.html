@@ -1,7 +1,8 @@
 {% extends "storefront/_base.html" %}
 {% load i18n siteui %}
-{% block title %}{{ page_title }} — {{ request.tenant.name|default:"Shop" }}{% endblock %}
-{% block meta_description %}{{ page_body|striptags|truncatechars:155 }}{% endblock %}
+{% block title %}{% page_seo pb_host as pseo %}{% if pseo.title %}{{ pseo.title }}{% else %}{{ page_title }} — {{ request.tenant.name|default:"Shop" }}{% endif %}{% endblock %}
+{% block meta_description %}{% page_seo pb_host as pseo %}{% if pseo.description %}{{ pseo.description }}{% else %}{{ page_body|striptags|truncatechars:155 }}{% endif %}{% endblock %}
+{% block robots %}{% page_seo pb_host as pseo %}{% if pseo.noindex and not request.tenant.is_demo %}<meta name="robots" content="noindex,follow">{% endif %}{% endblock %}
 
 {% block content %}
 {% comment %}M21.6: своя страница сайта. Ширина — настройка «Textbreite» (text_width).{% endcomment %}

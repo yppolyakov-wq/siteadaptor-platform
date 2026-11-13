@@ -1,7 +1,8 @@
 {% extends "storefront/_base.html" %}
 {% load i18n siteui %}
-{% block title %}{% trans "Versand & Lieferung" %} — {{ request.tenant.name|default:"Shop" }}{% endblock %}
-{% block meta_description %}{% blocktrans with name=request.tenant.name|default:"Shop" %}Versandkosten, Lieferzeiten und Abholung bei {{ name }}.{% endblocktrans %}{% endblock %}
+{% block title %}{% page_seo "versand" as pseo %}{% if pseo.title %}{{ pseo.title }}{% else %}{% trans "Versand & Lieferung" %} — {{ request.tenant.name|default:"Shop" }}{% endif %}{% endblock %}
+{% block robots %}{% page_seo "versand" as pseo %}{% if pseo.noindex and not request.tenant.is_demo %}<meta name="robots" content="noindex,follow">{% endif %}{% endblock %}
+{% block meta_description %}{% page_seo "versand" as pseo %}{% if pseo.description %}{{ pseo.description }}{% else %}{% blocktrans with name=request.tenant.name|default:"Shop" %}Versandkosten, Lieferzeiten und Abholung bei {{ name }}.{% endblocktrans %}{% endif %}{% endblock %}
 
 {% block content %}
 {% comment %}SHP-5: страница стоимости доставки — куда ведёт приписка «zzgl. Versandkosten»

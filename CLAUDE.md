@@ -70,8 +70,9 @@ django-storages (S3/Hetzner), Caddy 2 (on-demand TLS). Python 3.12, менедж
   страницу, ширина блоков, блок «Liste» с ручным составом, настройки типа страницы в панели,
   блоки «Textseite» и «Kontakt», готовые строки, своя схема категории; Студия пишет только
   содержимое, пункта «Studio» в меню нет; «Seitenvorlagen» снесены — адреса 302 в
-  «Seitenaufbau»; обход владельца R9 — 5 типов бизнеса, 1440/390, de/ru, без JS), дальше
-  экраны «Seiten» и «Design» (сначала варианты дизайна на утверждение); M21.11 P6/P7
+  «Seitenaufbau»; обход владельца R9 — 5 типов бизнеса, 1440/390, de/ru, без JS), экран
+  «Seiten» по макетам S1–S3 — список карточками, меню «⋯», вкладки Text · Blöcke ·
+  Suchmaschinen), дальше экран «Design» (макеты D1–D2 приняты); M21.11 P6/P7
   (редактор страниц); прогон переезда haanerteeladen на сервере — за владельцем.
 - **Открытое, ops и решения владельца** — `docs/project-memory.md` §1, §2, §5.
 - **Миграции к деплою (гипотеза до сверки; истина — `python manage.py migration_state`,
@@ -231,7 +232,7 @@ django-storages (S3/Hetzner), Caddy 2 (on-demand TLS). Python 3.12, менедж
 
 ## 7. Дальше
 Очередь — `docs/task-catalog.md`; открытое и чьё решение нужно — `docs/project-memory.md` §1.
-- В работе: FB-27 — экраны «Seiten», затем «Design» (план `docs/fb27-website-pages-ia-plan-2026-11-11.md`); M21.11 P6 → P7.
+- В работе: FB-27 — экран «Design» (план `docs/fb27-website-pages-ia-plan-2026-11-11.md`); M21.11 P6 → P7.
 - За владельцем: решения (Pro-тариф и пакеты, включение ИИ-поиска, оценка пилота MCP),
   юрист/Steuerberater (Anzahlungsrechnung, Widerruf, Datenschutz-абзацы), ops (§2 памяти).
 - **Stage 0 — блокер боевого запуска (владелец):** Stripe live (`billing-stripe-setup.md`),

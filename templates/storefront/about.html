@@ -1,5 +1,9 @@
 {% extends "storefront/_base.html" %}
 {% load i18n siteui %}
+{% comment %}FB-27 «Seiten»: свои заголовок, описание и noindex страницы — вкладка «Suchmaschinen».{% endcomment %}
+{% block title %}{% page_seo "info" as pseo %}{% if pseo.title %}{{ pseo.title }}{% else %}{{ block.super }}{% endif %}{% endblock %}
+{% block meta_description %}{% page_seo "info" as pseo %}{% if pseo.description %}{{ pseo.description }}{% else %}{{ block.super }}{% endif %}{% endblock %}
+{% block robots %}{% page_seo "info" as pseo %}{% if pseo.noindex and not request.tenant.is_demo %}<meta name="robots" content="noindex,follow">{% endif %}{% endblock %}
 {% block content %}
 {% comment %}STU-11 (ревью): ширина обязана держать ВСЮ страницу. Раньше класс висел
    только на вводном блоке, а контакты и блоки страницы (пресеты «Über uns», AB6.10 —

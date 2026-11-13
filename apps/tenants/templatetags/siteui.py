@@ -409,6 +409,15 @@ def category_blocks(context, category_host="", part="after"):
     return page_blocks(context, host, part)
 
 
+@register.simple_tag(takes_context=True)
+def page_seo(context, host):
+    """FB-27 «Seiten»: свои заголовок, описание и noindex текстовой страницы (`{}` — нет)."""
+    from apps.core import content_pages
+
+    request = context.get("request")
+    return content_pages.page_seo(getattr(request, "tenant", None), host or "")
+
+
 @register.filter
 def has_page_block(site, spec) -> bool:
     """FB-27 R6: стоит ли на странице включённый блок типа (`"хост:тип"`). «Über uns» не

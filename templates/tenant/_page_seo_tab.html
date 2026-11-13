@@ -1,0 +1,26 @@
+{% load i18n cabinet %}{% comment %}FB-27 «Seiten»: вкладка «Suchmaschinen» — свой заголовок и описание страницы для
+поисковиков и запрет индексации. Пустое поле = автоматический текст (показан ниже).{% endcomment %}
+<form method="post" action="?tab=suche" class="ui-card p-6 space-y-4 max-w-3xl" data-page-seo-form>
+  {% csrf_token %}
+  <input type="hidden" name="seo_present" value="1">
+  <div>
+    <label for="seo-title" class="block text-sm font-medium">{% trans "Titel in der Suche" %}</label>
+    <input type="text" id="seo-title" name="seo_title" value="{{ seo.title }}" maxlength="{{ seo_title_max }}" class="ui-input mt-1 w-full" aria-describedby="seo-title-hint">
+    <p id="seo-title-hint" class="mt-1 text-xs text-gray-600">{% blocktrans with n=seo_title_max %}Höchstens {{ n }} Zeichen. Leer = automatisch:{% endblocktrans %} <span class="font-medium">{{ seo_auto_title }}</span></p>
+  </div>
+  <div>
+    <label for="seo-description" class="block text-sm font-medium">{% trans "Beschreibung in der Suche" %}</label>
+    <textarea id="seo-description" name="seo_description" rows="3" maxlength="{{ seo_description_max }}" class="ui-input mt-1 w-full" aria-describedby="seo-description-hint">{{ seo.description }}</textarea>
+    <p id="seo-description-hint" class="mt-1 text-xs text-gray-600">{% blocktrans with n=seo_description_max %}Höchstens {{ n }} Zeichen. Leer = Anfang des Seitentextes:{% endblocktrans %} <span class="font-medium">{{ seo_auto_description|default:"–" }}</span></p>
+  </div>
+  <div>
+    <label class="flex items-start gap-2 text-sm min-h-[44px]">
+      <input type="checkbox" name="seo_noindex" value="1" class="mt-1 rounded border-gray-300"{% if seo.noindex %} checked{% endif %} aria-describedby="seo-noindex-hint">
+      <span class="font-medium">{% trans "Nicht in Suchmaschinen anzeigen" %}</span>
+    </label>
+    <p id="seo-noindex-hint" class="text-xs text-gray-600">{% trans "Die Seite bleibt für Besucher erreichbar; Suchmaschinen werden gebeten, sie nicht aufzunehmen." %}</p>
+  </div>
+  {% if 'content-page-new'|can_open:request %}
+  <button class="ui-btn ui-btn-primary">{% trans "Speichern" %}</button>
+  {% endif %}
+</form>

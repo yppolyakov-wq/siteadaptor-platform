@@ -87,7 +87,7 @@ def pages_list(request):
 
 
 #: FB-27 «Seiten»: вкладки страницы (`?tab=`); «text» — по умолчанию.
-PAGE_TABS = ("bloecke",)
+PAGE_TABS = ("bloecke", "suche")
 
 
 def _blocks_tab(request, slug: str) -> dict:
@@ -117,7 +117,8 @@ def _form(request, page, *, created: bool):
     """Форма страницы. Системная (Über uns/Versand) — с закреплённым адресом."""
     # UUID-pk есть и у несохранённой страницы — признак записи в БД только _state.
     saved_slug = "" if page._state.adding else page.slug
-    if request.method == "POST":
+    # Форма вкладки «Suchmaschinen» шлёт только свои поля — текст страницы она не трогает.
+    if request.method == "POST" and request.POST.get("seo_present") != "1":
         try:
             content_pages.save_page(
                 page,
@@ -146,6 +147,32 @@ def _form(request, page, *, created: bool):
     tab = request.GET.get("tab", "")
     tab = tab if schema_slug and tab in PAGE_TABS else "text"
     extra = _blocks_tab(request, schema_slug) if tab == "bloecke" else {}
+    if tab == "suche":
+        host = content_pages.schema_ref(schema_slug)[0]
+        tenant = getattr(request, "tenant", None)
+        if request.method == "POST" and request.POST.get("seo_present") == "1":
+            content_pages.save_page_seo(
+                tenant,
+                host,
+                {
+                    "title": request.POST.get("seo_title", ""),
+                    "description": request.POST.get("seo_description", ""),
+                    "noindex": request.POST.get("seo_noindex") == "1",
+                },
+            )
+            messages.success(request, _("Gespeichert."))
+            return redirect(f"{request.path}?tab=suche")
+        from apps.core.richtext import to_plain
+        from apps.tenants import siteconfig
+
+        extra = {
+            "seo": content_pages.page_seo(tenant, host),
+            "seo_title_max": siteconfig.SEO_PAGE_TITLE_MAX,
+            "seo_description_max": siteconfig.SEO_PAGE_DESCRIPTION_MAX,
+            # что поисковик покажет, пока свои поля пусты
+            "seo_auto_title": f"{page.title} — {getattr(tenant, 'name', '') or 'Shop'}",
+            "seo_auto_description": " ".join(to_plain(page.body or "").split())[:155],
+        }
     return render(
         request,
         "tenant/content_page_form.html",

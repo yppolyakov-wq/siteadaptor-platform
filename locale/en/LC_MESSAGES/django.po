@@ -37410,3 +37410,29 @@ msgstr "Move “%(t)s” up"
 #, python-format
 msgid "„%(t)s“ nach unten"
 msgstr "Move “%(t)s” down"
+
+msgid "Beschreibung in der Suche"
+msgstr "Description in search results"
+
+msgid "Die Seite bleibt für Besucher erreichbar; Suchmaschinen werden gebeten, sie nicht aufzunehmen."
+msgstr "The page stays reachable for visitors; search engines are asked not to include it."
+
+msgid "Diese Seite hat keine eigenen Angaben für Suchmaschinen."
+msgstr "This page has no own details for search engines."
+
+#, python-format
+msgid "Höchstens %(n)s Zeichen. Leer = Anfang des Seitentextes:"
+msgstr "At most %(n)s characters. Empty = beginning of the page text:"
+
+#, python-format
+msgid "Höchstens %(n)s Zeichen. Leer = automatisch:"
+msgstr "At most %(n)s characters. Empty = automatic:"
+
+msgid "Nicht in Suchmaschinen anzeigen"
+msgstr "Do not show in search engines"
+
+msgid "Suchmaschinen"
+msgstr "Search engines"
+
+msgid "Titel in der Suche"
+msgstr "Title in search results"

@@ -37749,3 +37749,29 @@ msgstr "«%(t)s» выше"
 #, python-format
 msgid "„%(t)s“ nach unten"
 msgstr "«%(t)s» ниже"
+
+msgid "Beschreibung in der Suche"
+msgstr "Описание в поиске"
+
+msgid "Die Seite bleibt für Besucher erreichbar; Suchmaschinen werden gebeten, sie nicht aufzunehmen."
+msgstr "Страница остаётся доступной посетителям; поисковики просят её не включать."
+
+msgid "Diese Seite hat keine eigenen Angaben für Suchmaschinen."
+msgstr "У этой страницы нет своих данных для поисковиков."
+
+#, python-format
+msgid "Höchstens %(n)s Zeichen. Leer = Anfang des Seitentextes:"
+msgstr "Не больше %(n)s знаков. Пусто = начало текста страницы:"
+
+#, python-format
+msgid "Höchstens %(n)s Zeichen. Leer = automatisch:"
+msgstr "Не больше %(n)s знаков. Пусто = автоматически:"
+
+msgid "Nicht in Suchmaschinen anzeigen"
+msgstr "Не показывать в поисковиках"
+
+msgid "Suchmaschinen"
+msgstr "Поисковики"
+
+msgid "Titel in der Suche"
+msgstr "Заголовок в поиске"

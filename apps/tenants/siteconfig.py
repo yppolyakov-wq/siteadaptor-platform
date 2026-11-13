@@ -4596,7 +4596,50 @@ def normalize_seo(raw) -> dict:
         result["templates"] = templates
     if raw.get("allow_ai") is False:  # дефолт True → ключ не материализуем
         result["allow_ai"] = False
+    pages = normalize_seo_pages(raw.get("pages"))
+    if pages:
+        result["pages"] = pages
     return result
+
+
+#: FB-27 «Seiten»: свои заголовок, описание и запрет индексации текстовой страницы —
+#: по хосту её блоков (`info`, `versand`, `seite:<slug>`), как и сами блоки.
+SEO_PAGE_HOSTS = ("info", "versand")
+SEO_PAGE_TITLE_MAX = 70
+SEO_PAGE_DESCRIPTION_MAX = 200
+_MAX_SEO_PAGES = 60
+
+
+def is_seo_page_host(host) -> bool:
+    return isinstance(host, str) and (
+        host in SEO_PAGE_HOSTS or bool(_CONTENT_PAGE_HOST_RE.match(host))
+    )
+
+
+def clean_seo_page(raw) -> dict:
+    """Одна запись SEO страницы: только заданное (presence-minimal), строки обрезаны."""
+    raw = raw if isinstance(raw, dict) else {}
+    out = {}
+    title = " ".join(_s(raw.get("title")).split())[:SEO_PAGE_TITLE_MAX]
+    description = " ".join(_s(raw.get("description")).split())[:SEO_PAGE_DESCRIPTION_MAX]
+    if title:
+        out["title"] = title
+    if description:
+        out["description"] = description
+    if raw.get("noindex") is True:
+        out["noindex"] = True
+    return out
+
+
+def normalize_seo_pages(raw) -> dict:
+    if not isinstance(raw, dict):
+        return {}
+    out = {}
+    for host in sorted(k for k in raw if is_seo_page_host(k))[:_MAX_SEO_PAGES]:
+        entry = clean_seo_page(raw[host])
+        if entry:
+            out[host] = entry
+    return out
 
 
 PICKUP_SLOT_STEPS = (15, 30, 60)
