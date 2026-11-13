@@ -138,6 +138,15 @@ collect()/save работают без переименований. data-cb-id 
       </select>
     {% endif %}
   {% endif %}
+  {% if b.type == "textpage" %}
+    {% comment %}FB-27 R6: страницу и режим выбирают в «Seitenaufbau»; здесь поля скрыты,
+    чтобы «Speichern» Студии их не стёрло.{% endcomment %}
+    <input type="hidden" name="cb_{{ b.id }}_page" value="{{ b.data.page }}">
+    <input type="hidden" name="cb_{{ b.id }}_mode" value="{{ b.data.mode }}">
+  {% endif %}
+  {% if b.type == "contact_card" %}
+    <input type="hidden" name="cb_{{ b.id }}_style" value="{{ b.data.style }}">
+  {% endif %}
   {% if b.type == "list" %}
     {% comment %}LB-1 (план docs/lb-list-blocks-plan-2026-10-02.md §9.4): ЧТО выводим
     (источник, фильтр, сортировка, «Höchstens») и КАК (сетка/лента, колонки, ряды,

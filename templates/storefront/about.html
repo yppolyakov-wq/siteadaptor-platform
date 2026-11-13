@@ -15,7 +15,7 @@
     {% endif %}
   </section>
   {% comment %}M21.11: карточку контактов можно выключить в «Seitenaufbau».{% endcomment %}
-  {% if site.about_contact is not False %}{% include "storefront/sections/_contact.html" %}{% endif %}
+  {% if site.about_contact is not False and not site|has_page_block:"info:contact_card" %}{% include "storefront/sections/_contact.html" %}{% endif %}
   {% page_blocks "info" %}
 </div>
 {% endblock %}

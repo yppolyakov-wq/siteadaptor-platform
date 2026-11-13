@@ -37312,3 +37312,78 @@ msgstr "Eintrag suchen"
 
 msgid "Zur Regel zurück"
 msgstr "Zur Regel zurück"
+
+msgid "Adresse und Öffnungszeiten ändern"
+msgstr "Adresse und Öffnungszeiten ändern"
+
+msgid "Anfang mit „Weiterlesen“"
+msgstr "Anfang mit „Weiterlesen“"
+
+msgid "Bitte wählen"
+msgstr "Bitte wählen"
+
+msgid "Darstellung"
+msgstr "Darstellung"
+
+msgid "Drei Karten"
+msgstr "Drei Karten"
+
+msgid "Eine Zeile, ohne Karte"
+msgstr "Eine Zeile, ohne Karte"
+
+msgid "Fertige Zeile hinzufügen"
+msgstr "Fertige Zeile hinzufügen"
+
+msgid "Formulare"
+msgstr "Formulare"
+
+msgid "Foto + Text"
+msgstr "Foto + Text"
+
+msgid "Ganzer Text"
+msgstr "Ganzer Text"
+
+msgid "Karte mit Lageplan daneben"
+msgstr "Karte mit Lageplan daneben"
+
+msgid "Lageplan oben"
+msgstr "Lageplan oben"
+
+msgid "Listen & Aktionen"
+msgstr "Listen & Aktionen"
+
+msgid "Seite nicht mehr vorhanden"
+msgstr "Seite nicht mehr vorhanden"
+
+msgid "Text + Foto"
+msgstr "Text + Foto"
+
+msgid "Text + Kontakt"
+msgstr "Text + Kontakt"
+
+msgid "Texte der Seiten ändern"
+msgstr "Texte der Seiten ändern"
+
+msgid "Textseite — in „Seitenaufbau“ auswählen"
+msgstr "Textseite — in „Seitenaufbau“ auswählen"
+
+msgid "Von anderen Stellen"
+msgstr "Von anderen Stellen"
+
+msgid "Weiterlesen"
+msgstr "Weiterlesen"
+
+msgid "Welche Seite"
+msgstr "Welche Seite"
+
+msgid "Wie viel Text"
+msgstr "Wie viel Text"
+
+msgid "Zeile hinzufügen"
+msgstr "Zeile hinzufügen"
+
+msgid "Auf dieser Seite ist kein Platz für weitere Blöcke."
+msgstr "Auf dieser Seite ist kein Platz für weitere Blöcke."
+
+msgid "Kontakt — Adresse und Öffnungszeiten in den Einstellungen eintragen"
+msgstr "Kontakt — Adresse und Öffnungszeiten in den Einstellungen eintragen"

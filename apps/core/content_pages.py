@@ -495,3 +495,70 @@ def all_rows(tenant=None) -> list:
         )
     rows.sort(key=lambda r: (not r.places, r.title.lower()))
     return rows
+
+
+# --- FB-27 R6: блок «Textseite einbinden» -------------------------------------------------
+
+#: Сколько знаков текста показывает блок в режиме «Anfang + Weiterlesen».
+TEASER_CHARS = 300
+#: Хост блоков системной страницы → slug страницы, чей текст на ней выводится.
+_SYSTEM_HOSTS = {"info": "ueber-uns", "versand": "versand"}
+
+
+def embeds_itself(slug: str, host: str) -> bool:
+    """Стоит ли блок с этой страницей на ней же самой (`host` — хост блоков страницы)."""
+    if not slug or not host:
+        return False
+    return host == f"seite:{slug}" or _SYSTEM_HOSTS.get(host) == slug
+
+
+def embed_choices(host: str = "") -> list[tuple[str, str]]:
+    """Страницы, которые блок может показать: [(uuid, название)] — без той, на которой
+    он стоит. Неопубликованные видны с пометкой: блок появится на сайте вместе с ними."""
+    from apps.core.models import ContentPage
+
+    draft = _("Entwurf")
+    out = []
+    for page in ContentPage.objects.order_by("sort_order", "title")[:200]:
+        if embeds_itself(page.slug, host):
+            continue
+        out.append((str(page.pk), page.title if page.is_published else f"{page.title} ({draft})"))
+    return out
+
+
+def embedded(data, host: str = "", tenant=None) -> dict | None:
+    """Что блок «Textseite» выводит на сайте: {title, body | teaser, url} либо None
+    (страницы нет, она не опубликована или блок стоит на ней самой). Ошибки БД не
+    роняют страницу, на которой стоит блок."""
+    from django.core.exceptions import ValidationError
+    from django.db import DatabaseError
+
+    from apps.core.models import ContentPage
+    from apps.core.richtext import to_plain
+
+    pk = (data or {}).get("page") if isinstance(data, dict) else None
+    if not pk:
+        return None
+    try:
+        with transaction.atomic():
+            page = ContentPage.objects.filter(pk=pk, is_published=True).first()
+    except (DatabaseError, ValidationError, ValueError):
+        return None
+    if page is None or embeds_itself(page.slug, host):
+        return None
+    out = {"title": page.title_localized(), "url": page_url(page, tenant)}
+    out["is_teaser"] = data.get("mode") == "teaser"
+    if out["is_teaser"]:
+        # Начало — обычным текстом (шаблон его экранирует): чистить разметку 200 КБ ради
+        # трёхсот знаков незачем.
+        plain = " ".join(to_plain(page.body_localized()).split())
+        cut = plain[:TEASER_CHARS].rsplit(" ", 1)[0] if len(plain) > TEASER_CHARS else plain
+        out["teaser"] = cut + ("…" if len(plain) > len(cut) else "")
+    else:
+        # Заголовок блока — h2, поэтому заголовки самого текста уходят на уровень ниже:
+        # иначе разделы страницы читались бы соседями её названия.
+        body = sanitize_page(page.body_localized())
+        for src, dst in (("h3", "h4"), ("h2", "h3")):
+            body = re.sub(rf"<(/?){src}(?=[\s>])", rf"<\1{dst}", body)
+        out["body"] = body
+    return out

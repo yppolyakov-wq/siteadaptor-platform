@@ -833,6 +833,11 @@ def _read_cblock_data(post, bid: str, btype: str) -> dict:
         # GK-4: textarea «wert | label» построчно — канонизацию в rows-список
         # делает строковая ветка _clean_cblock_data (normalize).
         return {"rows": post.get(f"cb_{bid}_rows", "")}
+    if btype == "textpage":
+        # FB-27 R6: скрытые поля строки — Save Студии не стирает выбранную страницу.
+        return {"page": f("page"), "mode": f("mode")}
+    if btype == "contact_card":
+        return {"style": f("style")}
     if btype == "list":
         # LB-1 (вырос из PT-6, где ветки не было и первый Save стирал выбранный тип —
         # замок класса test_cblock_field_roundtrip).

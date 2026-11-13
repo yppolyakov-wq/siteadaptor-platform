@@ -37225,3 +37225,78 @@ msgstr "Search entry"
 
 msgid "Zur Regel zurück"
 msgstr "Back to the rule"
+
+msgid "Adresse und Öffnungszeiten ändern"
+msgstr "Change address and opening hours"
+
+msgid "Anfang mit „Weiterlesen“"
+msgstr "Beginning with “Read more”"
+
+msgid "Bitte wählen"
+msgstr "Please choose"
+
+msgid "Darstellung"
+msgstr "Appearance"
+
+msgid "Drei Karten"
+msgstr "Three cards"
+
+msgid "Eine Zeile, ohne Karte"
+msgstr "One line, no map"
+
+msgid "Fertige Zeile hinzufügen"
+msgstr "Add a ready-made row"
+
+msgid "Formulare"
+msgstr "Forms"
+
+msgid "Foto + Text"
+msgstr "Photo + text"
+
+msgid "Ganzer Text"
+msgstr "Full text"
+
+msgid "Karte mit Lageplan daneben"
+msgstr "Card with map beside it"
+
+msgid "Lageplan oben"
+msgstr "Map on top"
+
+msgid "Listen & Aktionen"
+msgstr "Lists & promotions"
+
+msgid "Seite nicht mehr vorhanden"
+msgstr "Page no longer exists"
+
+msgid "Text + Foto"
+msgstr "Text + photo"
+
+msgid "Text + Kontakt"
+msgstr "Text + contact"
+
+msgid "Texte der Seiten ändern"
+msgstr "Edit page texts"
+
+msgid "Textseite — in „Seitenaufbau“ auswählen"
+msgstr "Text page — choose it in “Page layout”"
+
+msgid "Von anderen Stellen"
+msgstr "From elsewhere"
+
+msgid "Weiterlesen"
+msgstr "Read more"
+
+msgid "Welche Seite"
+msgstr "Which page"
+
+msgid "Wie viel Text"
+msgstr "How much text"
+
+msgid "Zeile hinzufügen"
+msgstr "Add row"
+
+msgid "Auf dieser Seite ist kein Platz für weitere Blöcke."
+msgstr "There is no room for more blocks on this page."
+
+msgid "Kontakt — Adresse und Öffnungszeiten in den Einstellungen eintragen"
+msgstr "Contact — enter address and opening hours in the settings"

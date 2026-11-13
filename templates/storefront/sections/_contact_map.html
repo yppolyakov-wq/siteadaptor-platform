@@ -1,4 +1,4 @@
 {% comment %}T1: встроенная карта с маркером на адресе бизнеса. ST-2: позиция/размер
 зависят от варианта секции (map_class от вызывающего include); рендерится максимум раз
 на страницу. В3: сама карта — общий партиал точки (векторная подложка, лениво).{% endcomment %}
-{% include "storefront/_point_map.html" with map_id="sf-contact-map" lat=request.tenant.latitude lng=request.tenant.longitude %}
+{% include "storefront/_point_map.html" with map_id=contact_map_id|default:"sf-contact-map" lat=request.tenant.latitude lng=request.tenant.longitude %}

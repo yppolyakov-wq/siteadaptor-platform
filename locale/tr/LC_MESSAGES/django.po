@@ -37371,3 +37371,78 @@ msgstr "Kayıt ara"
 
 msgid "Zur Regel zurück"
 msgstr "Kurala dön"
+
+msgid "Adresse und Öffnungszeiten ändern"
+msgstr "Adresi ve çalışma saatlerini değiştir"
+
+msgid "Anfang mit „Weiterlesen“"
+msgstr "Başlangıç ve “Devamını oku”"
+
+msgid "Bitte wählen"
+msgstr "Lütfen seçin"
+
+msgid "Darstellung"
+msgstr "Görünüm"
+
+msgid "Drei Karten"
+msgstr "Üç kart"
+
+msgid "Eine Zeile, ohne Karte"
+msgstr "Tek satır, haritasız"
+
+msgid "Fertige Zeile hinzufügen"
+msgstr "Hazır satır ekle"
+
+msgid "Formulare"
+msgstr "Formlar"
+
+msgid "Foto + Text"
+msgstr "Fotoğraf + metin"
+
+msgid "Ganzer Text"
+msgstr "Tam metin"
+
+msgid "Karte mit Lageplan daneben"
+msgstr "Yanında harita olan kart"
+
+msgid "Lageplan oben"
+msgstr "Harita üstte"
+
+msgid "Listen & Aktionen"
+msgstr "Listeler ve kampanyalar"
+
+msgid "Seite nicht mehr vorhanden"
+msgstr "Sayfa artık yok"
+
+msgid "Text + Foto"
+msgstr "Metin + fotoğraf"
+
+msgid "Text + Kontakt"
+msgstr "Metin + iletişim"
+
+msgid "Texte der Seiten ändern"
+msgstr "Sayfa metinlerini düzenle"
+
+msgid "Textseite — in „Seitenaufbau“ auswählen"
+msgstr "Metin sayfası — “Sayfa düzeni”nde seçin"
+
+msgid "Von anderen Stellen"
+msgstr "Başka yerlerden"
+
+msgid "Weiterlesen"
+msgstr "Devamını oku"
+
+msgid "Welche Seite"
+msgstr "Hangi sayfa"
+
+msgid "Wie viel Text"
+msgstr "Ne kadar metin"
+
+msgid "Zeile hinzufügen"
+msgstr "Satır ekle"
+
+msgid "Auf dieser Seite ist kein Platz für weitere Blöcke."
+msgstr "Bu sayfada daha fazla blok için yer yok."
+
+msgid "Kontakt — Adresse und Öffnungszeiten in den Einstellungen eintragen"
+msgstr "İletişim — adresi ve çalışma saatlerini ayarlarda girin"

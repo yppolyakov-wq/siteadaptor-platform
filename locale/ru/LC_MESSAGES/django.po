@@ -37564,3 +37564,78 @@ msgstr "Найти запись"
 
 msgid "Zur Regel zurück"
 msgstr "Вернуться к правилу"
+
+msgid "Adresse und Öffnungszeiten ändern"
+msgstr "Изменить адрес и часы работы"
+
+msgid "Anfang mit „Weiterlesen“"
+msgstr "Начало и «Читать дальше»"
+
+msgid "Bitte wählen"
+msgstr "Выберите"
+
+msgid "Darstellung"
+msgstr "Вид"
+
+msgid "Drei Karten"
+msgstr "Три карточки"
+
+msgid "Eine Zeile, ohne Karte"
+msgstr "Одна строка, без карты"
+
+msgid "Fertige Zeile hinzufügen"
+msgstr "Добавить готовую строку"
+
+msgid "Formulare"
+msgstr "Формы"
+
+msgid "Foto + Text"
+msgstr "Фото + текст"
+
+msgid "Ganzer Text"
+msgstr "Весь текст"
+
+msgid "Karte mit Lageplan daneben"
+msgstr "Карточка с картой рядом"
+
+msgid "Lageplan oben"
+msgstr "Карта сверху"
+
+msgid "Listen & Aktionen"
+msgstr "Списки и акции"
+
+msgid "Seite nicht mehr vorhanden"
+msgstr "Страницы больше нет"
+
+msgid "Text + Foto"
+msgstr "Текст + фото"
+
+msgid "Text + Kontakt"
+msgstr "Текст + контакты"
+
+msgid "Texte der Seiten ändern"
+msgstr "Изменить тексты страниц"
+
+msgid "Textseite — in „Seitenaufbau“ auswählen"
+msgstr "Текстовая страница — выберите в «Структуре страниц»"
+
+msgid "Von anderen Stellen"
+msgstr "Из других мест"
+
+msgid "Weiterlesen"
+msgstr "Читать дальше"
+
+msgid "Welche Seite"
+msgstr "Какая страница"
+
+msgid "Wie viel Text"
+msgstr "Сколько текста"
+
+msgid "Zeile hinzufügen"
+msgstr "Добавить строку"
+
+msgid "Auf dieser Seite ist kein Platz für weitere Blöcke."
+msgstr "На этой странице больше нет места для блоков."
+
+msgid "Kontakt — Adresse und Öffnungszeiten in den Einstellungen eintragen"
+msgstr "Контакты — укажите адрес и часы работы в настройках"

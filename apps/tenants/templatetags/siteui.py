@@ -78,6 +78,8 @@ CBLOCK_TEMPLATES = {
     "stats": "storefront/sections/_block_stats.html",
     "banner": "storefront/sections/_block_banner.html",  # FB-22b  # GK-4: полоса цифр
     "newsletter": "storefront/sections/_block_newsletter.html",  # GK-8: подписка (DOI)
+    "textpage": "storefront/sections/_block_textpage.html",  # FB-27 R6
+    "contact_card": "storefront/sections/_block_contact.html",  # FB-27 R6
 }
 
 
@@ -387,6 +389,41 @@ def finder_home(context):
         return {"enabled": False}
     tree = finder_mod.tree_for(tenant)
     return {"enabled": True, "question": tree[0] if tree else None}
+
+
+@register.filter
+def has_page_block(site, spec) -> bool:
+    """FB-27 R6: стоит ли на странице включённый блок типа (`"хост:тип"`). «Über uns» не
+    рисует свою фикс-карточку контактов, если владелец поставил блок «Kontakt» сам."""
+    host, _sep, key = str(spec).partition(":")
+    blocks = (site.get("page_blocks") or {}).get(host, []) if isinstance(site, dict) else []
+    return any(
+        isinstance(b, dict) and b.get("key") == key and b.get("enabled", True) for b in blocks
+    )
+
+
+@register.simple_tag(takes_context=True)
+def embedded_page(context, data):
+    """FB-27 R6: текст своей страницы для блока «Textseite» ({title, body|teaser, url})
+    либо None. Хост берём из контекста страницы — блок не выводит страницу на ней самой."""
+    from apps.core import content_pages
+
+    request = context.get("request")
+    host = context.get("pb_host") or ""
+    if not host:
+        name = getattr(getattr(request, "resolver_match", None), "url_name", "") or ""
+        host = {"storefront-about": "info", "storefront-shipping": "versand"}.get(name, "")
+    # Одна и та же страница в нескольких блоках — одна выборка и одна чистка на запрос.
+    data = data if isinstance(data, dict) else {}
+    memo = getattr(request, "_embedded_pages", None)
+    if memo is None:
+        memo = {}
+        if request is not None:
+            request._embedded_pages = memo
+    key = (data.get("page"), data.get("mode"), host)
+    if key not in memo:
+        memo[key] = content_pages.embedded(data, host, getattr(request, "tenant", None))
+    return memo[key]
 
 
 @register.simple_tag(takes_context=True)

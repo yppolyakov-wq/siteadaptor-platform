@@ -208,6 +208,36 @@ def host_for(code: str, known_slugs: set[str] | None = None) -> str:
     return ""
 
 
+def _textpage_summaries(rows: list[dict], items: list[dict]) -> None:
+    """FB-27 R6: в строке блока «Textseite» — название выбранной страницы. Один запрос
+    на все такие блоки страницы; без них — ни одного."""
+    wanted = {
+        it["id"]: (it.get("data") or {}).get("page")
+        for it in items
+        if it.get("id") and it.get("key") == "textpage" and (it.get("data") or {}).get("page")
+    }
+    if not wanted:
+        return
+    from django.core.exceptions import ValidationError
+    from django.db import DatabaseError
+
+    from apps.core.models import ContentPage
+
+    try:
+        titles = {
+            str(pk): title
+            for pk, title in ContentPage.objects.filter(pk__in=set(wanted.values())).values_list(
+                "pk", "title"
+            )
+        }
+    except (DatabaseError, ValidationError, ValueError):
+        return
+    gone = _("Seite nicht mehr vorhanden")
+    for row in rows:
+        if row["ref"] in wanted:
+            row["summary"] = str(titles.get(wanted[row["ref"]], gone))[:60]
+
+
 def blocks_for(config: dict, code: str, host: str | None = None) -> list[dict]:
     """Строки схемы: {ref, key, label, enabled, main, cblock, summary} по порядку страницы."""
     from apps.tenants import siteconfig
@@ -272,6 +302,7 @@ def blocks_for(config: dict, code: str, host: str | None = None) -> list[dict]:
                 "narrow": cblock and item.get("width") in siteconfig.NARROW_WIDTHS,
             }
         )
+    _textpage_summaries(out, items)
     for b in out:
         b.setdefault("width", "")
         b.setdefault("newline", False)
@@ -339,6 +370,13 @@ PANEL_FIELDS = {
         ("url", gettext_lazy("Link"), "line"),
     ),
     "image": (("caption", gettext_lazy("Bildunterschrift"), "line"),),
+    # FB-27 R6: у блоков-ссылок в панели только выбор — что показать и как; пункты
+    # селектов дополняет `fill_options` (нужен запрос — только для открытого блока).
+    "textpage": (
+        ("page", gettext_lazy("Welche Seite"), "select"),
+        ("mode", gettext_lazy("Wie viel Text"), "select"),
+    ),
+    "contact_card": (("style", gettext_lazy("Darstellung"), "select"),),
 }
 
 
@@ -352,6 +390,40 @@ def panel_fields(item: dict) -> list[dict]:
         {"name": name, "label": str(label), "kind": kind, "value": data.get(name, "")}
         for name, label, kind in PANEL_FIELDS.get(key, ())
     ]
+
+
+def fill_options(block: dict, host: str) -> None:
+    """FB-27 R6: пункты селектов панели открытого блока (на месте). Сохранённое значение,
+    которого среди пунктов нет (страницу удалили), остаётся выбранным пунктом (W0)."""
+    from apps.core import content_pages
+    from apps.core.list_panel import _select
+
+    key = block.get("key")
+    options = {}
+    if key == "textpage":
+        options = {
+            "page": [("", _("Bitte wählen")), *content_pages.embed_choices(host)],
+            "mode": [("", _("Ganzer Text")), ("teaser", _("Anfang mit „Weiterlesen“"))],
+        }
+    elif key == "contact_card":
+        options = {
+            "style": [
+                ("", _("Karte")),
+                ("split", _("Karte mit Lageplan daneben")),
+                ("map_first", _("Lageplan oben")),
+                ("compact", _("Eine Zeile, ohne Karte")),
+            ]
+        }
+    for f in block.get("fields") or []:
+        if f["name"] in options:
+            f["options"] = _select(f["name"], f["label"], f["value"], options[f["name"]])["options"]
+            f["value"] = str(f["value"] or "")
+    if key == "contact_card":
+        block["source_url"] = reverse("settings")
+        block["source_label"] = _("Adresse und Öffnungszeiten ändern")
+    elif key == "textpage":
+        block["source_url"] = reverse("content-pages")
+        block["source_label"] = _("Texte der Seiten ändern")
 
 
 def width_choices(item: dict) -> list[tuple[str, str]]:
@@ -477,6 +549,75 @@ def add_options(code: str) -> list[tuple[str, str]]:
     return [(k, str(siteconfig.CBLOCK_LABELS.get(k, k))) for k in keys]
 
 
+#: FB-27 R6: меню «+ Block» — три группы (решение владельца). Тип вне списков попадает
+#: в первую группу: новый блок не должен пропасть из меню молча.
+_ADD_GROUPS = (
+    ("inhalt", gettext_lazy("Inhalt"), ()),
+    ("listen", gettext_lazy("Listen & Aktionen"), ("list", "promo", "newsletter")),
+    (
+        "quellen",
+        gettext_lazy("Von anderen Stellen"),
+        ("textpage", "contact_card", *("faq_ref", "team_ref", "gallery_ref", "testimonials_ref")),
+    ),
+    ("formulare", gettext_lazy("Formulare"), ("anfrage_ref", "message_ref")),
+)
+
+
+def add_groups(code: str) -> list[dict]:
+    """Пункты «+ Block» группами: [{key, title, options: [(тип, подпись)]}]."""
+    options = add_options(code)
+    placed = {k for _key, _title, keys in _ADD_GROUPS for k in keys}
+    out = []
+    for key, title, keys in _ADD_GROUPS:
+        mine = [(k, lab) for k, lab in options if (k in keys if keys else k not in placed)]
+        if mine:
+            out.append({"key": key, "title": str(title), "options": mine})
+    return out
+
+
+#: FB-27 R6: «Fertige Zeilen» — несколько блоков одним действием, уже в один ряд.
+#: Пресет → (подпись, [(тип, ширина, данные | None = демо типа)]).
+_CARD = {"title": "Überschrift", "body": "Kurzer Text zu diesem Punkt."}
+ROW_PRESETS = {
+    "text_image": (gettext_lazy("Text + Foto"), (("text", "w12", None), ("image", "w12", None))),
+    "image_text": (gettext_lazy("Foto + Text"), (("image", "w12", None), ("text", "w12", None))),
+    "three_cards": (
+        gettext_lazy("Drei Karten"),
+        (("text", "w13", _CARD), ("text", "w13", _CARD), ("text", "w13", _CARD)),
+    ),
+    "text_contact": (
+        gettext_lazy("Text + Kontakt"),
+        (("text", "w12", None), ("contact_card", "w12", None)),
+    ),
+}
+
+
+def row_options() -> list[tuple[str, str]]:
+    return [(key, str(label)) for key, (label, _blocks) in ROW_PRESETS.items()]
+
+
+def preset_blocks(preset: str) -> list[dict]:
+    """Блоки готовой строки (новые id); первый начинает новый ряд."""
+    from apps.tenants import siteconfig
+
+    if preset not in ROW_PRESETS:
+        raise SchemaError("row")
+    out = []
+    for i, (key, width, data) in enumerate(ROW_PRESETS[preset][1]):
+        demo = siteconfig.CBLOCK_DEMO_DATA.get(key, {}) if data is None else data
+        block = {
+            "key": key,
+            "id": uuid.uuid4().hex[:12],
+            "enabled": True,
+            "data": siteconfig._clean_cblock_data(key, copy.deepcopy(demo)),
+            "width": width,
+        }
+        if i == 0:
+            block["newline"] = True
+        out.append(block)
+    return out
+
+
 class SchemaError(ValueError):
     """Недопустимая операция схемы (неизвестный тип/блок/операция)."""
 
@@ -527,6 +668,9 @@ def mutate(
     if op == "add":
         if block_type not in dict(add_options(code)):
             raise SchemaError("type")
+        if sum(1 for it in items if it.get("id")) >= siteconfig._MAX_CBLOCKS:
+            # normalize молча отбросил бы лишний блок при сохранении
+            raise SchemaError("full")
         new = {
             "key": block_type,
             "id": uuid.uuid4().hex[:12],
@@ -535,6 +679,14 @@ def mutate(
         }
         items.append(new)
         return new["id"]
+    if op == "add_row":
+        # FB-27 R6: готовая строка — все блоки разом либо ни одного (потолок блоков).
+        new_blocks = preset_blocks(value)
+        own = sum(1 for it in items if it.get("id"))
+        if own + len(new_blocks) > siteconfig._MAX_CBLOCKS:
+            raise SchemaError("full")
+        items.extend(new_blocks)
+        return new_blocks[0]["id"]
     if idx is None:
         raise SchemaError("block")
     item = items[idx]
@@ -589,6 +741,19 @@ def mutate(
 
             if safe_href(sent["url"]) == "#" and sent["url"].strip() != "#":
                 raise SchemaError("url")
+        if key == "textpage" and sent.get("page") and sent["page"] != data.get("page"):
+            # FB-27 R6: только существующая страница и не та, на которой стоит блок.
+            from apps.core import content_pages
+            from apps.core.models import ContentPage
+
+            page_pk = (siteconfig.clean_pick([sent["page"]]) or [""])[0]
+            slug = (
+                ContentPage.objects.filter(pk=page_pk).values_list("slug", flat=True).first()
+                if page_pk
+                else None
+            )
+            if slug is None or content_pages.embeds_itself(slug, host_for(code)):
+                raise SchemaError("page")
         patched = {**data, **sent}
         if key == "list" and "source" in sent and sent["source"] != (data.get("source") or ""):
             # FB-27 R5: ключи записей одного источника в другом ничего не значат

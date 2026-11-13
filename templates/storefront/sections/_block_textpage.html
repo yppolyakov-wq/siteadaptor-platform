@@ -1,0 +1,16 @@
+{% load i18n siteui %}{% comment %}FB-27 R6: блок «Textseite einbinden» — текст своей страницы
+целиком или началом со ссылкой. Страницы нет или она не опубликована → ничего.{% endcomment %}
+{% embedded_page block as tp %}
+{% if tp %}
+<section class="my-8" data-block-textpage>
+  <div class="cb-box max-w-3xl mx-auto px-4">
+    {% if tp.title %}<h2 class="text-xl md:text-2xl font-bold mb-3">{{ tp.title }}</h2>{% endif %}
+    {% if tp.is_teaser %}
+      {% if tp.teaser %}<p class="text-gray-700 leading-relaxed">{{ tp.teaser }}</p>{% endif %}
+      <p class="mt-3"><a href="{{ tp.url }}" class="inline-flex items-center min-h-[44px] font-semibold underline" style="color:var(--accent);">{% trans "Weiterlesen" %}<span class="sr-only">: {{ tp.title }}</span> <span aria-hidden="true">→</span></a></p>
+    {% else %}
+      {% include "storefront/_page_body.html" with body=tp.body %}
+    {% endif %}
+  </div>
+</section>
+{% elif is_preview %}{% include "storefront/sections/_block_placeholder.html" with label=_("Textseite — in „Seitenaufbau“ auswählen") %}{% endif %}

@@ -1,0 +1,4 @@
+{% load i18n %}{% comment %}FB-27 R6: блок «Kontakt & Öffnungszeiten» — та же карточка, что секция главной;
+вариант вида — из данных блока. Свой id карты: блоков на странице может быть несколько.{% endcomment %}
+{% with contact_map_id="sf-contact-map-"|add:block_id %}{% include "storefront/sections/_contact.html" with section_row=block %}{% endwith %}
+{% if is_preview and not request.tenant.address and not request.tenant.opening_hours and not request.tenant.public_phone and not request.tenant.public_email %}{% include "storefront/sections/_block_placeholder.html" with label=_("Kontakt — Adresse und Öffnungszeiten in den Einstellungen eintragen") %}{% endif %}

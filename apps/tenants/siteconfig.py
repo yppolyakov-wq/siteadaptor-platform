@@ -173,7 +173,15 @@ REPEATABLE_BLOCKS = (
     # FB-22b: баннер на ЛЮБОЙ странице — свои фото/текст/ссылка/оформление/даты
     # (поля слайда главной; рендер — заголовок h2, не h1 страницы).
     "banner",
+    # FB-27 R6: «Textseite einbinden» — текст своей страницы (`core.ContentPage`) на
+    # другой странице, целиком или началом; «Kontakt & Öffnungszeiten» — карточка
+    # контактов из настроек бизнеса там, где её поставил владелец (ключ не `contact`:
+    # так называется фикс-секция главной).
+    "textpage",
+    "contact_card",
 )
+#: FB-27 R6: варианты карточки контактов (пусто — карточка в две колонки).
+CONTACT_STYLES = ("split", "map_first", "compact")
 # LB-1: легаси-ключи C-блоков → канонический тип. Псевдоним принимается на ВСЕХ
 # входах конфига (главная, страницы, сохранённые шаблоны блоков) и приёмниками
 # Save/вставки — вкладка Студии, открытая до деплоя, не уронит блок; в
@@ -571,6 +579,16 @@ def _clean_cblock_data(key: str, raw) -> dict:
         }
     if key == "list":
         return _clean_list_block(d)
+    if key == "textpage":
+        # FB-27 R6: страница — по UUID (смена адреса блок не ломает), без запроса в БД:
+        # удалённая или снятая с публикации страница на сайте просто не выводится.
+        page = clean_pick([d.get("page")])
+        return {
+            **({"page": page[0]} if page else {}),
+            **({"mode": "teaser"} if d.get("mode") == "teaser" else {}),
+        }
+    if key == "contact_card":
+        return {"style": d["style"]} if d.get("style") in CONTACT_STYLES else {}
     if key == "spacer":
         # ST-7a: высота отступа — только НЕ-дефолтные валидные значения
         # ("" = py-6 как раньше → ключа нет, старые конфиги байт-в-байт).
@@ -1188,6 +1206,8 @@ CBLOCK_LABELS = {
     "stats": _("Numbers"),
     "newsletter": _("Newsletter"),
     "banner": _("Banner"),
+    "textpage": _("Textseite"),
+    "contact_card": _("Kontakt & Öffnungszeiten"),
     "faq_ref": _("FAQ anzeigen"),
     "team_ref": _("Team anzeigen"),
     "gallery_ref": _("Galerie anzeigen"),
@@ -3463,6 +3483,9 @@ NON_TRANSLATABLE_FIELDS = frozenset(
         # LB-3d-3: вид отзываемой сущности и порог звёзд — коды выборки
         "entity",
         "stars",
+        # FB-27 R6: ключ страницы и режим блока «Textseite» — коды, не текст
+        "page",
+        "mode",
     }
 )
 

@@ -123,8 +123,11 @@ def site_schema_view(request):
                 )
             else:
                 messages.error(request, _("Diese Änderung ist hier nicht möglich."))
-        except site_schema.SchemaError:
-            messages.error(request, _("Diese Änderung ist hier nicht möglich."))
+        except site_schema.SchemaError as exc:
+            if exc.args and exc.args[0] == "full" and op in ("add", "add_row"):
+                messages.error(request, _("Auf dieser Seite ist kein Platz für weitere Blöcke."))
+            else:
+                messages.error(request, _("Diese Änderung ist hier nicht möglich."))
         except aufbau_draft.DraftConflict:
             messages.error(
                 request,
@@ -158,6 +161,8 @@ def site_schema_view(request):
         selected["groups"] = list_panel.groups(request, config, selected["list_data"])
         selected["result"] = list_panel.result(request, config, selected["list_data"])
         selected["pick"] = list_panel.pick_state(request, selected["list_data"])
+    if selected and selected.get("fields"):
+        site_schema.fill_options(selected, current.host if current else "")
     # FB-27 R4: настройки типа страницы — в панели «★ Hauptliste», а у страниц без
     # основного списка — на строке «Einstellungen der Seite».
     page_row, settings = None, []
@@ -202,7 +207,8 @@ def site_schema_view(request):
             "layout": site_schema.schema_layout(blocks),
             "selected": selected,
             "confirm_remove": bool(selected) and request.GET.get("entfernen") == "1",
-            "add_options": site_schema.add_options(code),
+            "add_groups": site_schema.add_groups(code),
+            "row_options": site_schema.row_options(),
             "studio_url": studio,
             "draft": draft_info if draft else None,
             "other_drafts": other_drafts,
