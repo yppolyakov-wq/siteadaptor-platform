@@ -841,6 +841,9 @@ def pick_offers(source: str, query: str = "", exclude=()) -> list[dict]:
     артикул); у остальных — по названию среди первых `_PICK_SCAN` записей."""
     query = (query or "").strip()[:80]
     items = live_queryset(source).exclude(pk__in=siteconfig.clean_pick(list(exclude)))
+    if not items.ordered:
+        # срез без порядка недетерминирован: поиск по названию пропускал бы записи
+        items = items.order_by("pk")
     if source == "products":
         from apps.catalog.facets import CatalogFacets
 
@@ -886,7 +889,8 @@ def resolve(cfg: dict, data: dict, tenant=None) -> dict:
         _attach_review_entities(items, tenant)
     # LB-3: «Demnächst» — карточки-превью («ab <дата>», без счётчика и покупки) и без
     # «Alle N →»: страницы будущих акций нет.
-    preview = source == "promotions" and data.get("phase") == "upcoming"
+    # (при ручном составе правило не действует — и «Demnächst» тоже: выбраны идущие акции)
+    preview = source == "promotions" and data.get("phase") == "upcoming" and not pick
     url = _all_url(data)
     aspect = ""
     if source == "categories":

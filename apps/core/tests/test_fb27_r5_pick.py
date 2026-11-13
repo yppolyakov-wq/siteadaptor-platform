@@ -220,3 +220,37 @@ def test_studio_save_keeps_the_manual_pick():
     cfg = _post_builder(tenant, post)
     block = next(s for s in cfg["sections"] if s.get("id") == "lb1")
     assert block["data"]["pick"] == [b, a]
+
+
+# ───────────── по ревью ─────────────
+
+
+def test_unknown_pick_action_is_refused():
+    tenant = _tenant()
+    (a,) = _products(1)
+    ref = _block(tenant)
+    browser = Browser(tenant)
+    for action in ("save", "discard", "delete", "x"):
+        _resp, msgs = browser.post(seite="text", ref=ref, pick_op=f"{action}:{a.pk}")
+        assert msgs and "nicht möglich" in msgs[0], action
+    assert "pick" not in _data(tenant) and _data(tenant)["source"] == "products"
+
+
+def test_picked_promotions_are_not_drawn_as_upcoming_previews():
+    """Правило «Demnächst» остаётся в данных, но при ручном составе не действует."""
+    from apps.promotions.tests.factories import PromotionFactory
+
+    promo = PromotionFactory(status="active")
+    data = {"source": "promotions", "phase": "upcoming", "pick": [str(promo.pk)]}
+    res = list_blocks.resolve({}, data)
+    assert [p.pk for p in res["items"]] == [promo.pk] and res["preview"] is False
+
+
+def test_offers_are_stable_for_sources_without_a_default_order():
+    from apps.booking.models import Service
+
+    for i in range(3):
+        Service.objects.create(name=f"Leistung {i}", duration_minutes=30)
+    first = list_blocks.pick_offers("services")
+    assert first == list_blocks.pick_offers("services") and len(first) == 3
+    assert [o["label"] for o in list_blocks.pick_offers("services", "leistung 1")] == ["Leistung 1"]
