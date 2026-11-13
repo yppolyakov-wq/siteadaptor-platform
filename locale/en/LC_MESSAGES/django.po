@@ -37486,3 +37486,9 @@ msgstr "As long as entries are chosen under “Individually”, the block shows 
 
 msgid "Texte und Fotos auf der Seite bearbeiten"
 msgstr "Edit texts and photos on the page"
+
+msgid "Einzelner Block"
+msgstr "Single block"
+
+msgid "Fertige Zeile"
+msgstr "Ready-made row"

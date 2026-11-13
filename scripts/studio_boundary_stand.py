@@ -52,6 +52,7 @@ with sync_playwright() as p:
         print(f"--- {w}px")
         # в «Seitenaufbau» добавляем свой блок на главную — Студия должна его показать
         pg.goto(U + "/dashboard/site/aufbau/?seite=home")
+        pg.click("[data-schema-add] summary")
         pg.select_option("select[name=type]", "text")
         pg.click("form:has(select[name=type]) button")
         pg.wait_for_load_state()

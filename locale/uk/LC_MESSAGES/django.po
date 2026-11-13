@@ -37812,3 +37812,9 @@ msgstr "Поки під «Поодинці» вибрано записи, бло
 
 msgid "Texte und Fotos auf der Seite bearbeiten"
 msgstr "Редагувати тексти й фото на сторінці"
+
+msgid "Einzelner Block"
+msgstr "Окремий блок"
+
+msgid "Fertige Zeile"
+msgstr "Готовий рядок"

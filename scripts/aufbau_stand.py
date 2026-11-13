@@ -54,6 +54,7 @@ with sync_playwright() as p:
         pg.wait_for_url(lambda u: "seite=text" in u, timeout=5000)
         check("seite=text" in pg.url, "смена страницы по выбору в списке")
         # добавить два блока и проверить панель
+        pg.click("[data-schema-add] summary")
         pg.select_option("select[name=type]", "text")
         pg.click("form:has(select[name=type]) button")
         pg.wait_for_load_state()
@@ -99,6 +100,7 @@ with sync_playwright() as p:
         check(pg.locator("[data-schema-draft]").count() == 0, "удаление сохранено")
         # R3: два блока по ½ встают в один ряд
         for kind in ("text", "image"):
+            pg.click("[data-schema-add] summary")
             pg.select_option("select[name=type]", kind)
             pg.click("form:has(select[name=type]) button")
             pg.wait_for_load_state()
@@ -150,12 +152,14 @@ with sync_playwright() as p:
         pg.click("[data-schema-draft] button[value=save]")
         pg.wait_for_load_state()
         pg.goto(U + "/dashboard/site/aufbau/?seite=text")
+        pg.click("[data-schema-add] summary")
         pg.select_option("select[name=type]", "text")
         pg.click("form:has(select[name=type]) button")
         pg.wait_for_load_state()
         pg.click("[data-schema-draft] button[value=discard]")
         pg.wait_for_load_state()
         # R3b-2: блок «Liste» — что показать, какие и как; после «Speichern» на витрине
+        pg.click("[data-schema-add] summary")
         pg.select_option("select[name=type]", "list")
         pg.click("form:has(select[name=type]) button")
         pg.wait_for_load_state()
@@ -272,12 +276,14 @@ with sync_playwright() as p:
         pg.goto(U + "/dashboard/site/aufbau/?seite=text")
         check(pg.locator("select[name=type] optgroup").count() >= 3, "меню «+ Block» группами")
         before = pg.locator("[data-schema-row] [data-schema-block]").count()
+        pg.click("[data-schema-add] summary")
         pg.select_option("[data-schema-add-row] select", "text_contact")
         pg.click("[data-schema-add-row] button")
         pg.wait_for_load_state()
         rows = pg.locator("[data-schema-row]")
         last_row = rows.nth(rows.count() - 1).locator("[data-schema-block]").count()
         check(last_row == 2, f"готовая строка — два блока в одном ряду ({last_row})")
+        pg.click("[data-schema-add] summary")
         pg.select_option("select[name=type]", "textpage")
         pg.click("form:has(select[name=type]) button")
         pg.wait_for_load_state()
@@ -326,6 +332,7 @@ with sync_playwright() as p:
             code = cats[0]
             slug = code.split(":", 1)[1]
             pg.goto(U + "/dashboard/site/aufbau/?seite=catalog")
+            pg.click("[data-schema-add] summary")
             pg.select_option("select[name=type]", "text")
             pg.click("form:has(select[name=type]) button")
             pg.wait_for_load_state()
@@ -344,6 +351,7 @@ with sync_playwright() as p:
                 pg.locator("[data-schema-category=catalog]").count() == 1,
                 "строка категории: «zeigt die Blöcke des Katalogs»",
             )
+            pg.click("[data-schema-add] summary")
             pg.select_option("select[name=type]", "text")
             pg.click("form:has(select[name=type]) button")
             pg.wait_for_load_state()

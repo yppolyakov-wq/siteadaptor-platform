@@ -37825,3 +37825,9 @@ msgstr "Пока под «По одному» выбраны записи, бл�
 
 msgid "Texte und Fotos auf der Seite bearbeiten"
 msgstr "Править тексты и фото на странице"
+
+msgid "Einzelner Block"
+msgstr "Отдельный блок"
+
+msgid "Fertige Zeile"
+msgstr "Готовая строка"

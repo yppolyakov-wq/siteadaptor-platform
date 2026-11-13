@@ -272,3 +272,13 @@ def test_v1_head_holds_the_draft_buttons_and_the_page_choice_has_no_counter():
     assert tpl.count("data-schema-draft>") == 1  # одна форма черновика — в шапке
     assert "r.count" not in tpl  # счётчика блоков в выборе страницы нет (макет)
     assert "data-schema-open" in head  # без скриптов страница открывается кнопкой
+
+
+def test_v3_one_add_button_holds_blocks_ready_rows_and_templates():
+    """Макет Main: одна кнопка «+ Block hinzufügen»; выбор блока и готовой строки — внутри."""
+    import pathlib
+
+    tpl = pathlib.Path("templates/tenant/site_schema.html").read_text()
+    assert tpl.count("data-schema-add>") == 1
+    box = tpl[tpl.index("data-schema-add>") : tpl.index("</details></li>")]
+    assert 'name="type"' in box and "data-schema-add-row" in box and "<summary" in box

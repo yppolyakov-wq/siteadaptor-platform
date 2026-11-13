@@ -37573,3 +37573,9 @@ msgstr "Solange unter „Einzeln“ Einträge gewählt sind, zeigt der Block gen
 
 msgid "Texte und Fotos auf der Seite bearbeiten"
 msgstr "Texte und Fotos auf der Seite bearbeiten"
+
+msgid "Einzelner Block"
+msgstr "Einzelner Block"
+
+msgid "Fertige Zeile"
+msgstr "Fertige Zeile"

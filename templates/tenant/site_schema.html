@@ -127,28 +127,35 @@
       {% empty %}
       <li class="text-sm ui-muted">{% trans "Noch keine eigenen Blöcke auf dieser Seite." %}</li>
       {% endfor %}
-      <li><form method="post" class="flex flex-wrap items-end gap-2 rounded-xl border border-dashed border-gray-300 px-3 py-2.5">
+      {% comment %}FB-27 V3 (макет Main): одна кнопка «+ Block hinzufügen»; выбор блока, готовой строки и
+      своего шаблона — внутри. `<details>` работает без скриптов.{% endcomment %}
+      <li><details class="rounded-xl border border-dashed border-gray-400" data-schema-add>
+      <summary class="flex items-center justify-center min-h-[44px] cursor-pointer list-none rounded-xl text-sm font-semibold text-gray-800 hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600 [&::-webkit-details-marker]:hidden"><span aria-hidden="true">＋&nbsp;</span>{% trans "Block hinzufügen" %}</summary>
+      <div class="space-y-3 border-t border-dashed border-gray-300 px-3 py-3">
+      <form method="post" class="flex flex-wrap items-end gap-2">
         {% csrf_token %}
         <input type="hidden" name="seite" value="{{ code }}">
         <input type="hidden" name="op" value="add">
-        <label class="text-sm flex-1 min-w-[10rem]"><span class="block text-xs text-gray-600 mb-1">{% trans "Block hinzufügen" %}</span>
+        <label class="text-sm flex-1 min-w-[10rem]"><span class="block text-xs text-gray-600 mb-1">{% trans "Einzelner Block" %}</span>
           <select name="type" class="ui-input w-full">
             {% for g in add_groups %}<optgroup label="{{ g.title }}">
             {% for key, label in g.options %}<option value="{{ key }}">{{ label }}</option>{% endfor %}
             </optgroup>{% endfor %}
           </select></label>
-        <button class="ui-btn ui-btn-primary">{% trans "Block hinzufügen" %}</button>
-      </form></li>
-      <li><form method="post" class="flex flex-wrap items-end gap-2 rounded-xl border border-dashed border-gray-300 px-3 py-2.5" data-schema-add-row>
+        <button class="ui-btn ui-btn-primary">{% trans "Hinzufügen" %}</button>
+      </form>
+      <form method="post" class="flex flex-wrap items-end gap-2" data-schema-add-row>
         {% csrf_token %}
         <input type="hidden" name="seite" value="{{ code }}">
         <input type="hidden" name="op" value="add_row">
-        <label class="text-sm flex-1 min-w-[10rem]"><span class="block text-xs text-gray-600 mb-1">{% trans "Fertige Zeile hinzufügen" %}</span>
+        <label class="text-sm flex-1 min-w-[10rem]"><span class="block text-xs text-gray-600 mb-1">{% trans "Fertige Zeile" %}</span>
           <select name="value" class="ui-input w-full">
             {% for key, label in row_options %}<option value="{{ key }}">{{ label }}</option>{% endfor %}
           </select></label>
         <button class="ui-btn ui-btn-secondary">{% trans "Zeile hinzufügen" %}</button>
-      </form></li>
+      </form>
+      </div>
+      </details></li>
       <li class="rounded-xl border border-dashed border-gray-300 bg-gray-50 px-3 py-2.5 text-sm text-gray-600">{% trans "Fußzeile" %}</li>
     </ul>
     {% if layout.hidden %}

@@ -124,6 +124,7 @@ def main():  # noqa: PLR0915 — один линейный сценарий ст
                     if lang == "de":
                         # сценарий владельца без скриптов: блок → сохранить → сайт → убрать
                         pg.goto(url + "/dashboard/site/aufbau/?seite=text")
+                        pg.click("[data-schema-add] summary")
                         pg.select_option("select[name=type]", "text")
                         pg.click("form:has(select[name=type]) button")
                         pg.wait_for_load_state()

@@ -37632,3 +37632,9 @@ msgstr "“Tek tek” altında kayıt seçili olduğu sürece blok tam olarak bu
 
 msgid "Texte und Fotos auf der Seite bearbeiten"
 msgstr "Metinleri ve fotoğrafları sayfada düzenle"
+
+msgid "Einzelner Block"
+msgstr "Tek blok"
+
+msgid "Fertige Zeile"
+msgstr "Hazır satır"
