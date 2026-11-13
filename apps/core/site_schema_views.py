@@ -174,7 +174,9 @@ def site_schema_view(request):
     if selected and selected.get("list_data") is not None:
         from apps.core import list_panel
 
-        selected["groups"] = list_panel.groups(request, config, selected["list_data"])
+        selected["groups"] = list_panel.groups(
+            request, config, selected["list_data"], request.GET.get("welche", "")
+        )
         selected["result"] = list_panel.result(request, config, selected["list_data"])
         selected["pick"] = list_panel.pick_state(request, selected["list_data"])
     if selected and selected.get("fields"):

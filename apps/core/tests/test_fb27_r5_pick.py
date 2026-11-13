@@ -187,9 +187,14 @@ def test_panel_without_pick_offers_to_choose_by_hand():
     tenant = _tenant()
     _products(1)
     ref = _block(tenant)
-    html = Browser(tenant).get(f"?seite=text&block={ref}")
-    assert "data-schema-pick" in html and "data-schema-pick-item" not in html
-    assert 'name="f_sort"' in html
+    # FB-27 V2 (макет, осознанная переписка): ручной выбор — под кнопкой «Einzeln»
+    browser = Browser(tenant)
+    html = browser.get(f"?seite=text&block={ref}")
+    assert 'data-schema-which-mode="einzeln"' in html and 'name="f_sort"' in html
+    assert "data-schema-pick-offers" not in html
+    html = browser.get(f"?seite=text&block={ref}&welche=einzeln")
+    assert "data-schema-pick-offers" in html and "data-schema-pick-item" not in html
+    assert 'name="f_sort"' not in html
 
 
 # ───────────── граница со Студией ─────────────
@@ -254,3 +259,26 @@ def test_offers_are_stable_for_sources_without_a_default_order():
     first = list_blocks.pick_offers("services")
     assert first == list_blocks.pick_offers("services") and len(first) == 3
     assert [o["label"] for o in list_blocks.pick_offers("services", "leistung 1")] == ["Leistung 1"]
+
+
+def test_v2_mode_buttons_follow_the_data_and_keep_the_other_modes_fields():
+    """Способ по умолчанию — по данным блока; поля других способов не шлются и остаются."""
+    from apps.core import list_panel
+
+    assert list_panel.which_mode("products", {})[0] == "regel"
+    assert list_panel.which_mode("products", {"category": "tee"})[0] == "kategorie"
+    assert list_panel.which_mode("products", {"category": "tee", "pick": ["x"]})[0] == "einzeln"
+    assert list_panel.which_mode("products", {"pick": ["x"]}, "regel")[0] == "regel"
+    assert list_panel.which_mode("products", {}, "<script>")[0] == "regel"
+    # у отзывов нет ни категории, ни ручного выбора — одной кнопки не рисуем
+    assert [m["key"] for m in list_panel.which_mode("reviews", {})[1]] == ["regel"]
+
+    tenant = _tenant()
+    ref = _block(tenant, category="tee", only="sale")
+    browser = Browser(tenant)
+    browser.post(
+        seite="text", op="update", ref=ref, panel_present="1", f_only="", f_sort="", f_limit=""
+    )
+    browser.post(seite="text", op="save")
+    data = _data(tenant)
+    assert data.get("category") == "tee" and "only" not in data  # категория цела

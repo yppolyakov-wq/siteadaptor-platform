@@ -202,8 +202,38 @@ def _which_fields(source: str, data: dict, lists: dict) -> list[dict]:
     return out
 
 
-def groups(request, cfg: dict, data: dict) -> list[dict]:
-    """Три группы полей панели для блока «Liste»: [{key, title, fields}]."""
+#: FB-27 V2 (макет Main): способ «Welche» — три кнопки. Поля способа «Kategorie».
+CATEGORY_FIELDS = frozenset({"category", "collection", "event_category", "country"})
+WHICH_MODES = ("regel", "kategorie", "einzeln")
+
+
+def which_mode(source: str, data: dict, wanted: str = "") -> tuple[str, list[dict]]:
+    """Какой способ «Welche» открыт и какие способы есть у источника:
+    (ключ, [{key, label, active}]). Без выбора в адресе: «Einzeln» — пока есть ручной
+    состав, «Kategorie» — пока задана категория/подборка, иначе «Regel»."""
+    from apps.tenants import siteconfig
+
+    filters = set(siteconfig.LIST_SOURCES[source]["filters"])
+    modes = [("regel", _("Regel"))]
+    if filters & CATEGORY_FIELDS:
+        modes.append(("kategorie", _("Kategorie")))
+    if source in siteconfig.LIST_PICK_SOURCES:
+        modes.append(("einzeln", _("Einzeln")))
+    keys = [k for k, _lab in modes]
+    if wanted in keys:
+        mode = wanted
+    elif data.get("pick") and "einzeln" in keys:
+        mode = "einzeln"
+    elif "kategorie" in keys and any(data.get(f) for f in CATEGORY_FIELDS):
+        mode = "kategorie"
+    else:
+        mode = "regel"
+    return mode, [{"key": k, "label": str(lab), "active": k == mode} for k, lab in modes]
+
+
+def groups(request, cfg: dict, data: dict, mode: str = "") -> list[dict]:
+    """Три группы полей панели для блока «Liste»: [{key, title, fields}]. У группы
+    «Welche» — ещё `mode` и `modes` (способ отбора; показываются поля только его)."""
     from apps.core import list_blocks
     from apps.core.views import _cblock_row_lists
     from apps.tenants import siteconfig
@@ -237,11 +267,17 @@ def groups(request, cfg: dict, data: dict) -> list[dict]:
     ]
 
     manual = bool(data.get("pick")) and source in siteconfig.LIST_PICK_SOURCES
-    # FB-27 R5: при ручном составе правило не действует — его поля не показываем (и не
-    # шлём: запись — патч, поэтому правило остаётся в данных и вернётся с «Zur Regel»).
-    which = [] if manual else _which_fields(source, data, lists)
+    mode, modes = which_mode(source, data, mode)
+    # FB-27 V2: показываются поля только открытого способа. Запись — патч: поля других
+    # способов не шлются и остаются в данных (W0). В «Einzeln» полей правила нет вовсе.
+    hide_rule = mode == "einzeln"
+    which = [
+        f
+        for f in ([] if hide_rule else _which_fields(source, data, lists))
+        if (f["name"] in CATEGORY_FIELDS) == (mode == "kategorie")
+    ]
     sorts = [(k, lab) for k, lab, srcs in hint["sorts"] if source in srcs.split()]
-    if not manual and siteconfig.list_sort_keys(source) and sorts:
+    if not hide_rule and siteconfig.list_sort_keys(source) and sorts:
         stored = data.get("sort") or ""
         if stored and stored not in {k for k, _lab in sorts}:
             # Явно записанный ключ сортировки по умолчанию («newest» у товаров) — тот же
@@ -258,7 +294,7 @@ def groups(request, cfg: dict, data: dict) -> list[dict]:
         "n": hint["limit"],
         "max": siteconfig.LIST_LIMIT_MAX,
     }
-    if not manual:
+    if not hide_rule:
         which.append(limit)
 
     how = []
@@ -309,7 +345,15 @@ def groups(request, cfg: dict, data: dict) -> list[dict]:
         )
     return [
         {"key": "was", "title": _("Was zeigen"), "fields": what},
-        {"key": "welche", "title": _("Welche"), "fields": which},
+        {
+            "key": "welche",
+            "title": _("Welche"),
+            "fields": which,
+            "mode": mode,
+            "modes": modes,
+            # ручной состав выбран, а открыт другой способ — его поля пока не действуют
+            "overridden": manual and mode != "einzeln",
+        },
         {"key": "wie", "title": _("Wie"), "fields": how},
     ]
 

@@ -37561,3 +37561,15 @@ msgstr "Änderungen: %(n)s"
 
 msgid "noch nicht auf der Website"
 msgstr "noch nicht auf der Website"
+
+msgid "Einzeln"
+msgstr "Einzeln"
+
+msgid "Regel"
+msgstr "Regel"
+
+msgid "Solange unter „Einzeln“ Einträge gewählt sind, zeigt der Block genau diese."
+msgstr "Solange unter „Einzeln“ Einträge gewählt sind, zeigt der Block genau diese."
+
+msgid "Texte und Fotos auf der Seite bearbeiten"
+msgstr "Texte und Fotos auf der Seite bearbeiten"

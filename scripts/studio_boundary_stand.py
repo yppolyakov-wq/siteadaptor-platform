@@ -101,6 +101,7 @@ with sync_playwright() as p:
         pg.goto(U + "/dashboard/site/aufbau/?seite=home")
         pg.locator("[data-schema-block]").filter(has_text="Stand Grenze").first.click()
         pg.wait_for_load_state()
+        pg.click("[data-schema-more] summary")
         pg.click("[data-schema-panel] a:has-text('Entfernen')")
         pg.wait_for_load_state()
         pg.click("button[value=delete]")

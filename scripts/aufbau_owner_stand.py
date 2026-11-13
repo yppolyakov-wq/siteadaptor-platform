@@ -144,6 +144,7 @@ def main():  # noqa: PLR0915 — один линейный сценарий ст
                         pg.goto(url + "/dashboard/site/aufbau/?seite=text")
                         pg.locator("[data-schema-block]").filter(has_text=title).first.click()
                         pg.wait_for_load_state()
+                        pg.click("[data-schema-more] summary")
                         pg.click("[data-schema-panel] a:has-text('Entfernen')")
                         pg.wait_for_load_state()
                         pg.click("button[value=delete]")

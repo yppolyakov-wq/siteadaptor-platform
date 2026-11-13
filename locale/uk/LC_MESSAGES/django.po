@@ -37800,3 +37800,15 @@ msgstr "Змін: %(n)s"
 
 msgid "noch nicht auf der Website"
 msgstr "ще не на сайті"
+
+msgid "Einzeln"
+msgstr "Поодинці"
+
+msgid "Regel"
+msgstr "За правилом"
+
+msgid "Solange unter „Einzeln“ Einträge gewählt sind, zeigt der Block genau diese."
+msgstr "Поки під «Поодинці» вибрано записи, блок показує саме їх."
+
+msgid "Texte und Fotos auf der Seite bearbeiten"
+msgstr "Редагувати тексти й фото на сторінці"

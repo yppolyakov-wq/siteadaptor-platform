@@ -37474,3 +37474,15 @@ msgstr "Changes: %(n)s"
 
 msgid "noch nicht auf der Website"
 msgstr "not yet on the website"
+
+msgid "Einzeln"
+msgstr "Individually"
+
+msgid "Regel"
+msgstr "Rule"
+
+msgid "Solange unter „Einzeln“ Einträge gewählt sind, zeigt der Block genau diese."
+msgstr "As long as entries are chosen under “Individually”, the block shows exactly those."
+
+msgid "Texte und Fotos auf der Seite bearbeiten"
+msgstr "Edit texts and photos on the page"

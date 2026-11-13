@@ -37620,3 +37620,15 @@ msgstr "Değişiklik: %(n)s"
 
 msgid "noch nicht auf der Website"
 msgstr "henüz sitede değil"
+
+msgid "Einzeln"
+msgstr "Tek tek"
+
+msgid "Regel"
+msgstr "Kural"
+
+msgid "Solange unter „Einzeln“ Einträge gewählt sind, zeigt der Block genau diese."
+msgstr "“Tek tek” altında kayıt seçili olduğu sürece blok tam olarak bunları gösterir."
+
+msgid "Texte und Fotos auf der Seite bearbeiten"
+msgstr "Metinleri ve fotoğrafları sayfada düzenle"

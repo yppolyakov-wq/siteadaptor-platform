@@ -46,8 +46,13 @@ def test_only_filters_of_the_chosen_source_are_shown():
     b = Browser(_tenant())
     ref = _list(b)
     b.post(seite="text", op="update", ref=ref, panel_present="1", f_source="products")
+    # FB-27 V2 (макет, осознанная переписка): способ «Welche» — три кнопки; поля
+    # категории стоят под «Kategorie», остальные фильтры — под «Regel».
     html = b.get(f"?seite=text&block={ref}")
-    assert 'name="f_category"' in html and 'name="f_only"' in html
+    assert 'name="f_only"' in html and 'name="f_category"' not in html
+    assert 'data-schema-which-mode="kategorie"' in html
+    html = b.get(f"?seite=text&block={ref}&welche=kategorie")
+    assert 'name="f_category"' in html and 'name="f_only"' not in html
     assert 'name="f_type"' not in html and 'name="f_rabatt"' not in html
     b.post(seite="text", op="update", ref=ref, panel_present="1", f_source="promotions")
     html = b.get(f"?seite=text&block={ref}")
@@ -179,7 +184,7 @@ def _panel_values(html):
         out[name] = unescape((picked or first).group(1))
     for tag in re.findall(r"<input[^>]*>", form):
         name = re.search(r'name="(f_\w+)"', tag)
-        if name:
+        if name and ('type="radio"' not in tag or " checked" in tag):
             out[name.group(1)] = unescape(re.search(r'value="([^"]*)"', tag).group(1))
     for name, body in re.findall(r'<textarea[^>]*name="(f_\w+)"[^>]*>(.*?)</textarea>', form, re.S):
         out[name] = unescape(body)

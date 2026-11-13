@@ -37813,3 +37813,15 @@ msgstr "Изменений: %(n)s"
 
 msgid "noch nicht auf der Website"
 msgstr "ещё не на сайте"
+
+msgid "Einzeln"
+msgstr "По одному"
+
+msgid "Regel"
+msgstr "По правилу"
+
+msgid "Solange unter „Einzeln“ Einträge gewählt sind, zeigt der Block genau diese."
+msgstr "Пока под «По одному» выбраны записи, блок показывает именно их."
+
+msgid "Texte und Fotos auf der Seite bearbeiten"
+msgstr "Править тексты и фото на странице"

@@ -83,9 +83,11 @@ with sync_playwright() as p:
         over = pg.evaluate("document.documentElement.scrollWidth - innerWidth")
         check(over <= 0, f"нет горизонтального вылета ({over})")
         pg.screenshot(path=f"{OUT}/r1_{w}.png", full_page=True)
+        pg.click("[data-schema-more] summary")
         pg.click("[data-schema-panel] button[value=toggle]")
         pg.wait_for_load_state()
         check(pg.locator("[data-schema-hidden]").count() == 1, "скрытый блок — в «Ausgeblendet»")
+        pg.click("[data-schema-more] summary")
         pg.click("[data-schema-panel] a:has-text('Entfernen')")
         pg.wait_for_load_state()
         check(pg.locator("[data-schema-confirm]").count() == 1, "удаление — отдельным шагом")
@@ -140,6 +142,7 @@ with sync_playwright() as p:
             pg.goto(U + "/dashboard/site/aufbau/?seite=text")
             pg.locator("[data-schema-row] [data-schema-block]").last.click()
             pg.wait_for_load_state()
+            pg.click("[data-schema-more] summary")
             pg.click("[data-schema-panel] a:has-text('Entfernen')")
             pg.wait_for_load_state()
             pg.click("button[value=delete]")
@@ -161,7 +164,8 @@ with sync_playwright() as p:
         pg.click("[data-schema-list] button[value=update]")
         pg.wait_for_load_state()
         check(
-            pg.locator("[data-schema-list] select[name=f_category]").count() == 1
+            pg.locator("[data-schema-which-mode=kategorie]").count() == 1
+            and pg.locator("[data-schema-list] select[name=f_only]").count() == 1
             and pg.locator("[data-schema-list] select[name=f_type]").count() == 0,
             "после смены источника — поля товаров, без полей акций",
         )
@@ -176,7 +180,13 @@ with sync_playwright() as p:
         over = pg.evaluate("document.documentElement.scrollWidth - window.innerWidth")
         check(over <= 0, f"панель списка без горизонтального вылета ({over})")
         pg.screenshot(path=f"{OUT}/r3list_{w}.png", full_page=True)
-        # R5: ручной состав — две позиции, вторая поднята наверх
+        # R5: ручной состав — две позиции, вторая поднята наверх (V2: способ «Einzeln»)
+        check(
+            pg.locator("[data-schema-which-mode]").count() >= 2,
+            "способ «Welche» — кнопки Regel · Kategorie · Einzeln",
+        )
+        pg.click("[data-schema-which-mode=einzeln]")
+        pg.wait_for_load_state()
         offers = pg.locator("[data-schema-pick-offers] button")
         check(
             offers.count() >= 2, f"панель предлагает позиции для ручного выбора ({offers.count()})"
@@ -222,6 +232,7 @@ with sync_playwright() as p:
         pg.goto(U + "/dashboard/site/aufbau/?seite=text")
         pg.locator("[data-schema-row] [data-schema-block]").last.click()
         pg.wait_for_load_state()
+        pg.click("[data-schema-more] summary")
         pg.click("[data-schema-panel] a:has-text('Entfernen')")
         pg.wait_for_load_state()
         pg.click("button[value=delete]")
@@ -297,6 +308,7 @@ with sync_playwright() as p:
             pg.goto(U + "/dashboard/site/aufbau/?seite=text")
             pg.locator("[data-schema-row] [data-schema-block]").last.click()
             pg.wait_for_load_state()
+            pg.click("[data-schema-more] summary")
             pg.click("[data-schema-panel] a:has-text('Entfernen')")
             pg.wait_for_load_state()
             pg.click("button[value=delete]")
@@ -369,6 +381,7 @@ with sync_playwright() as p:
             pg.goto(U + "/dashboard/site/aufbau/?seite=catalog")
             pg.locator("[data-schema-row] [data-schema-block]").last.click()
             pg.wait_for_load_state()
+            pg.click("[data-schema-more] summary")
             pg.click("[data-schema-panel] a:has-text('Entfernen')")
             pg.wait_for_load_state()
             pg.click("button[value=delete]")
