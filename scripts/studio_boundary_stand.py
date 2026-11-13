@@ -66,7 +66,9 @@ with sync_playwright() as p:
         pg.click("form:has(select[name=type]) button")
         pg.wait_for_load_state()
         pg.fill("[data-schema-fields] input[name=f_title]", "Stand Grenze")
-        pg.click("[data-schema-fields] button[value=update]")
+        # правка в панели уходит в черновик сама (без «Übernehmen») — ждём, пока доедет
+        pg.evaluate("document.activeElement && document.activeElement.blur()")
+        pg.wait_for_function("!+document.documentElement.getAttribute('data-schema-busy')")
         pg.wait_for_load_state()
         close_sheet(pg)
         pg.click("[data-schema-draft] button[value=save]")
