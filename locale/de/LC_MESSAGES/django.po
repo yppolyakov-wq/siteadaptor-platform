@@ -37700,3 +37700,24 @@ msgstr "Weniger Designs anzeigen"
 
 msgid "Unterkategorien von"
 msgstr "Unterkategorien von"
+
+msgid "Jetzt neben:"
+msgstr "Jetzt neben:"
+
+msgid "Jetzt allein in der Reihe – der Nachbar ist nicht schmal."
+msgstr "Jetzt allein in der Reihe – der Nachbar ist nicht schmal."
+
+msgid "So sieht der Block aus"
+msgstr "So sieht der Block aus"
+
+msgid "Füllt den Rahmen ganz aus. Ränder des Fotos können fehlen."
+msgstr "Füllt den Rahmen ganz aus. Ränder des Fotos können fehlen."
+
+msgid "Ganz zeigen"
+msgstr "Ganz zeigen"
+
+msgid "Nichts wird abgeschnitten. Es bleiben Ränder im Rahmen."
+msgstr "Nichts wird abgeschnitten. Es bleiben Ränder im Rahmen."
+
+msgid "ganz zeigen"
+msgstr "ganz zeigen"

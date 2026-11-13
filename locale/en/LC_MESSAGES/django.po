@@ -37613,3 +37613,24 @@ msgstr "Show fewer designs"
 
 msgid "Unterkategorien von"
 msgstr "Subcategories of"
+
+msgid "Jetzt neben:"
+msgstr "Now next to:"
+
+msgid "Jetzt allein in der Reihe – der Nachbar ist nicht schmal."
+msgstr "Alone in its row for now – the neighbour is not narrow."
+
+msgid "So sieht der Block aus"
+msgstr "This is how the block looks"
+
+msgid "Füllt den Rahmen ganz aus. Ränder des Fotos können fehlen."
+msgstr "Fills the frame completely. Edges of the photo may be cut off."
+
+msgid "Ganz zeigen"
+msgstr "Show whole photo"
+
+msgid "Nichts wird abgeschnitten. Es bleiben Ränder im Rahmen."
+msgstr "Nothing is cut off. Margins remain inside the frame."
+
+msgid "ganz zeigen"
+msgstr "whole photo"

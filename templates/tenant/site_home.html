@@ -442,7 +442,7 @@
                 <div class="w-full mt-2 pt-2 border-t border-gray-100 flex items-center gap-3 flex-wrap">
                   {% comment %}SE-3e: ширина контейнера секции (по контейнеру / во всю ширину).
                      Basic — простая, частая настройка; общий размер контейнера задан в шаблоне.{% endcomment %}
-                  <label class="flex items-center gap-1.5 text-xs text-gray-600" title="{% trans 'Section width on the page' %}">
+                  <label class="stu-struct flex items-center gap-1.5 text-xs text-gray-600" title="{% trans 'Section width on the page' %}">
                     {% trans "Width" %}
                     <select name="width_{{ s.key }}" class="rounded border-gray-300 px-1.5 py-1 text-xs text-gray-600 sf-width-select" data-key="{{ s.key }}">
                       <option value="contained" {% if s.width != 'full' %}selected{% endif %}>{% trans "Contained" %}</option>

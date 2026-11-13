@@ -308,6 +308,8 @@ def builtin_groups(request, cfg: dict, key: str, data: dict, mode: str = "") -> 
             for f in fields:
                 if f["name"] in ("out", "cols"):  # у секции свой вид — «как у страницы» нет
                     f["options"] = [(v, lab) for v, lab in f["options"] if v != ""]
+                if f["name"] == "cols":
+                    f["buttons"] = True  # 1–6 — кнопками (макет A)
         g["fields"] = fields
         out.append(g)
     return out

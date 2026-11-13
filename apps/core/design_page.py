@@ -384,6 +384,7 @@ def design_view(request):
             "variant_style_options": VARIANT_STYLES,
             "media_place_rows": media_places.rows(sd.get("media_places")),
             "media_ratio_options": media_places.RATIO_LABELS.items(),
+            "media_ratio_tiles": media_places.ratio_tiles(),
             "media_fit_options": media_places.FITS.items(),
             "site_templates": sitetemplates.template_cards(tenant.business_type),
             "has_demo": demo.has_demo(tenant),

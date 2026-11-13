@@ -37759,3 +37759,24 @@ msgstr "Daha az tasarım göster"
 
 msgid "Unterkategorien von"
 msgstr "Şunun alt kategorileri"
+
+msgid "Jetzt neben:"
+msgstr "Şu an yanında:"
+
+msgid "Jetzt allein in der Reihe – der Nachbar ist nicht schmal."
+msgstr "Şimdilik satırda tek – komşu blok dar değil."
+
+msgid "So sieht der Block aus"
+msgstr "Blok böyle görünür"
+
+msgid "Füllt den Rahmen ganz aus. Ränder des Fotos können fehlen."
+msgstr "Çerçeveyi tamamen doldurur. Fotoğrafın kenarları kesilebilir."
+
+msgid "Ganz zeigen"
+msgstr "Tamamını göster"
+
+msgid "Nichts wird abgeschnitten. Es bleiben Ränder im Rahmen."
+msgstr "Hiçbir şey kesilmez. Çerçevede boşluk kalır."
+
+msgid "ganz zeigen"
+msgstr "tamamı"

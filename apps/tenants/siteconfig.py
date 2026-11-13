@@ -1483,6 +1483,8 @@ PAGE_EXTRA_PRESETS = {
     ),
 }
 _LAYOUT_WIDTHS = ("contained", "full")
+#: Ширины встроенной секции главной: вид контейнера + доли (FB-29.5).
+SECTION_WIDTHS = (*_LAYOUT_WIDTHS, "w23", "w12", "w13")
 _LAYOUT_GAPS = ("sm", "md", "lg")
 
 # SE-3a: микрошаблоны «Quick styles» — готовые облики секции-сетки (комбинация
@@ -4004,8 +4006,12 @@ def _section_entry(key, enabled, raw_item):
     # SE-3e: ширина контейнера секции — "contained" (в общем макс-контейнере) или
     # "full" (во всю ширину экрана, full-bleed). Действует на ЛЮБУЮ секцию (не только
     # сетки); общий размер контейнера задан в шаблоне (_base.html max-w-7xl).
+    # FB-29.5: + доли контейнера (⅔, ½, ⅓) — узкие соседние секции встают в один ряд,
+    # как свои блоки (`group_block_rows`); `newline` начинает новый ряд.
     w = raw_item.get("width")
-    entry["width"] = w if w in _LAYOUT_WIDTHS else "contained"
+    entry["width"] = w if w in SECTION_WIDTHS else "contained"
+    if raw_item.get("newline") and entry["width"] in NARROW_WIDTHS:
+        entry["newline"] = True
     # H1.5: пер-секционный шрифт (пара body/head из FONTS) — оверрайд глобального для
     # текстов этой секции. "" = наследовать глобальный (без регрессии).
     f = raw_item.get("font")

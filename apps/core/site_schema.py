@@ -182,9 +182,9 @@ def merge_structure(
                     merged[field] = old[field]
                 else:
                     merged.pop(field, None)
-        # У встроенной секции главной ширину (Ganz/Randlos) в «Seitenaufbau» менять
-        # негде — она остаётся виду Студии; её структура — только видимость.
-        for field in _OWNED_FIELDS if old.get("id") else ("enabled",):
+        # FB-29.5: ширина и «новая строка» — структура у ВСЕХ блоков, включая
+        # встроенные секции главной (их задаёт «Seitenaufbau»).
+        for field in _OWNED_FIELDS:
             if field in old:
                 merged[field] = old[field]
             else:
@@ -203,12 +203,12 @@ def _structure_signature(items: list, only: set | None = None) -> list:
         ref = item.get("id") or item.get("key")
         if only is not None and ref not in only:
             continue
-        row = [ref, bool(item.get("enabled", True))]
-        if item.get("id"):
-            row += [
-                item.get("width") or "contained",
-                bool(item.get("newline")),
-            ]
+        row = [
+            ref,
+            bool(item.get("enabled", True)),
+            item.get("width") or "contained",
+            bool(item.get("newline")),
+        ]
         out.append(row)
     return out
 
@@ -459,6 +459,35 @@ def _row_thumb(key: str) -> str:
     return "lines" if kind in _THUMB_LINES else ""
 
 
+def _thumb_shape(config: dict, item: dict) -> dict:
+    """FB-29.3: форма миниатюры списка — {cols, cells, out}: столько колонок и рядов,
+    сколько задано блоку (у своего блока «Liste» без своих осей — вид, который он
+    наследует). Без запросов в БД."""
+    from apps.core import list_blocks
+    from apps.tenants import siteconfig
+
+    key = item.get("key") or ""
+    kind = siteconfig.cblock_type(key) or key
+    data = item.get("data") if isinstance(item.get("data"), dict) else {}
+    cols, rows, slider = 4, 1, False
+    try:
+        if kind == "list" and item.get("id"):
+            layout = list_blocks.base_view(config, data)["layout"]
+            cols = int(data.get("cols") or layout.get("cols") or 4)
+            rows = int(data.get("rows") or 1)
+            slider = (data.get("out") or siteconfig.output_mode(layout)) == "slider"
+        elif kind in siteconfig.BUILTIN_LIST_SOURCES and not item.get("id"):
+            layout = item.get("layout") if isinstance(item.get("layout"), dict) else {}
+            cols = int(layout.get("cols") or 4)
+            rows = int(layout.get("rows") or 1)
+            slider = bool(layout.get("scroll"))
+    except (TypeError, ValueError):
+        pass
+    cols = max(1, min(6, cols))
+    rows = 1 if slider else max(1, min(3, rows))
+    return {"cols": cols, "cells": range(cols * rows), "out": "slider" if slider else "grid"}
+
+
 def _row_summary(config: dict, item: dict) -> str:
     """FB-27 V1: строка-сводка блока в схеме — что он показывает, без запросов в БД
     («3 Folien · Slider», «Produkte · höchstens 8 · Slider», «„Tee aus kleinen Gärten …“»)."""
@@ -677,13 +706,17 @@ def blocks_for(
                 "cblock": cblock,
                 "summary": "" if main else _row_summary(config, item),
                 "thumb": "cards" if main else _row_thumb(key),
+                "shape": _thumb_shape(config, item),
                 "fixed": False,
                 "width": item.get("width") or "",
                 "newline": bool(item.get("newline")),
                 "width_label": WIDTH_LABELS.get(item.get("width") or "", ""),
                 "flex": WIDTH_FLEX.get(item.get("width") or "", 12),
-                "widths": [(v, lab, names.get(v, lab)) for v, lab in width_choices(item)]
-                if cblock
+                "widths": [
+                    (v, lab, names.get(v, lab), WIDTH_PERCENT.get(v, 100))
+                    for v, lab in width_choices(item)
+                ]
+                if cblock or home_section(item)
                 else [],
                 "width_value": item.get("width") or "contained",
                 "fields": panel_fields(item) if cblock else [],
@@ -691,7 +724,7 @@ def blocks_for(
                 "list_data": dict(data)
                 if cblock and (siteconfig.cblock_type(key) or key) == "list"
                 else None,
-                "narrow": cblock and item.get("width") in siteconfig.NARROW_WIDTHS,
+                "narrow": not main and item.get("width") in siteconfig.NARROW_WIDTHS,
                 # встроенный список главной открывает ту же панель «Welche · Wie»
                 "builtin_data": builtin_panel_data(item)
                 if not item.get("id") and not main and key in siteconfig.BUILTIN_LIST_SOURCES
@@ -724,6 +757,8 @@ def blocks_for(
 
 #: FB-27 R1: подписи и доли ширины блока в схеме (ширины — `siteconfig.CBLOCK_WIDTHS`).
 WIDTH_LABELS = {"w23": "⅔", "w12": "½", "w13": "⅓", "w14": "¼", "w15": "⅕", "w16": "⅙"}
+#: Доля контейнера в процентах — полоска-образец на кнопке ширины (FB-29.5).
+WIDTH_PERCENT = {"w23": 66, "w12": 50, "w13": 33, "w14": 25, "w15": 20, "w16": 16}
 WIDTH_FLEX = {"w23": 8, "w12": 6, "w13": 4, "w14": 3, "w15": 2.4, "w16": 2}
 
 #: Группы select «Seitentyp»: (код группы, подпись, модуль-владелец | None, типы).
@@ -833,13 +868,34 @@ def fill_options(block: dict, host: str) -> None:
         block["source_label"] = _("Texte der Seiten ändern")
 
 
+#: Встроенные секции, которые сами рисуются во всю ширину экрана: доли ширины им не даём.
+_FULL_BLEED_SECTIONS = frozenset({"hero"})
+
+
+def home_section(item: dict) -> bool:
+    """Встроенная секция главной (не свой блок и не маркер основного списка)."""
+    from apps.tenants import siteconfig
+
+    return (
+        not item.get("id")
+        and not siteconfig.is_main_marker(item)
+        and item.get("key") in {k for k, _label, _default in siteconfig.SECTIONS}
+    )
+
+
 def width_choices(item: dict) -> list[tuple[str, str]]:
     """Ширины, которые можно выбрать этому блоку: [(значение, подпись)]. Уже
     выбранная ширина остаётся в списке, даже если новой её не выбрать (W0)."""
     from apps.tenants import siteconfig
 
     key = siteconfig.cblock_type(item.get("key")) or item.get("key") or ""
-    allowed = list(_WIDTH_ORDER if key in _NARROW_OK_BLOCKS else _WIDE_WIDTHS)
+    if not item.get("id"):
+        # FB-29.5: встроенная секция главной — «Ganz», «Randlos» и доли до трети
+        # Баннер рисуется во всю ширину экрана (`w-screen`) — узким он ломал бы вёрстку.
+        narrow = () if key in _FULL_BLEED_SECTIONS else ("w23", "w12", "w13")
+        allowed = ["contained", "full", *narrow]
+    else:
+        allowed = list(_WIDTH_ORDER if key in _NARROW_OK_BLOCKS else _WIDE_WIDTHS)
     current = item.get("width") or "contained"
     if current not in allowed and current in siteconfig.CBLOCK_WIDTHS:
         allowed.append(current)
@@ -1147,13 +1203,26 @@ def mutate(
                 j += step
         if 0 <= j < len(items):
             items.insert(j, items.pop(idx))
+    elif op == "move":
+        # FB-29.5b: перетаскивание — блок встаёт перед другим или после него. Та же
+        # перестановка, что кнопками; мусор и «на себя» ничего не меняют.
+        where, _sep, target = value.partition(":")
+        at = next(
+            (i for i, it in enumerate(items) if (it.get("id") or it.get("key")) == target), None
+        )
+        if where not in ("before", "after") or at is None or at == idx:
+            raise SchemaError("op")
+        moved = items.pop(idx)
+        at = next(i for i, it in enumerate(items) if (it.get("id") or it.get("key")) == target)
+        items.insert(at + (where == "after"), moved)
     elif op == "delete":
         if main or not item.get("id"):
             raise SchemaError("fixed")  # фикс-секции и основной список не удаляются
         items.pop(idx)
     elif op == "width":
-        # FB-27 R3: ширина — только у своих блоков; узкие соседи встают в один ряд.
-        if main or not item.get("id"):
+        # FB-27 R3 / FB-29.5: ширина — у своих блоков и у встроенных секций главной;
+        # узкие соседи встают в один ряд. У основного списка страницы ширины нет.
+        if main or not (item.get("id") or home_section(item)):
             raise SchemaError("fixed")
         if value not in {v for v, _label in width_choices(item)}:
             raise SchemaError("width")
@@ -1258,7 +1327,11 @@ def mutate(
             data.pop("pick", None)
         item["data"] = siteconfig._clean_cblock_data(key, {**data, "source": source})
     elif op == "newline":
-        if main or not item.get("id") or item.get("width") not in siteconfig.NARROW_WIDTHS:
+        if (
+            main
+            or not (item.get("id") or home_section(item))
+            or item.get("width") not in siteconfig.NARROW_WIDTHS
+        ):
             raise SchemaError("width")
         if item.get("newline"):
             item.pop("newline", None)

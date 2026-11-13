@@ -97,24 +97,28 @@ def test_home_builder_saves_limit():
 
 
 def test_home_builder_saves_section_width():
-    """SE-3e: ширина контейнера секции (full/contained) сохраняется на уровне секции
-    (для любой секции, не только сетки)."""
+    """SE-3e → FB-29.5 (осознанная переписка): ширина секции — структура, её задаёт
+    «Seitenaufbau» («Ganz», «Randlos», доли). Форма Студии ширину больше не меняет."""
+    from apps.core import site_schema
+
     tenant = TenantFactory(schema_name="public", slug="hbw", name="HBW")
+    site_schema.apply(tenant, "home", "width", ref="products", value="full")
     data = {
         "order_products": "1",
         "enabled_products": "on",
-        "width_products": "full",
+        "width_products": "contained",  # устаревшее поле формы — не действует
         "order_hero": "2",
         "enabled_hero": "on",
-        "width_hero": "bogus",  # мусор → contained
+        "width_hero": "bogus",
     }
     resp = views.home_builder_view(_request("post", "/dashboard/site/home/", data, tenant))
     assert resp.status_code == 302
+    tenant.refresh_from_db()
     cfg = siteconfig.normalize(tenant.site_config)
     products = next(s for s in cfg["sections"] if s["key"] == "products")
     hero = next(s for s in cfg["sections"] if s["key"] == "hero")
     assert products["width"] == "full"
-    assert hero["width"] == "contained"  # невалидное значение откатилось к дефолту
+    assert hero["width"] == "contained"
 
 
 def test_home_builder_get_renders_width_control():

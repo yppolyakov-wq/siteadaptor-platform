@@ -179,3 +179,98 @@
 
   hideApply();
 })();
+
+/* FB-29.5b (макет A): строку схемы можно перетащить мышью — она встаёт перед строкой, на
+   которую её бросили, или после неё. Поверх кнопок «Nach oben / Nach unten»: с клавиатуры,
+   на телефоне и без скриптов перестановка — ими. */
+(function () {
+  "use strict";
+  if (!window.fetch || !window.DOMParser || !window.FormData) return;
+  var dragged = null;
+
+  function item(target) {
+    return target && target.closest ? target.closest("[data-schema-drag]") : null;
+  }
+
+  function arm() {
+    document.querySelectorAll("[data-schema-drag]").forEach(function (li) {
+      li.setAttribute("draggable", "true");
+      li.style.cursor = "grab";
+      var grip = li.querySelector(".schema-grip");
+      if (grip) grip.classList.remove("hidden");
+    });
+  }
+
+  function clear() {
+    document.querySelectorAll("[data-schema-drop]").forEach(function (li) {
+      li.removeAttribute("data-schema-drop");
+      li.style.boxShadow = "";
+    });
+  }
+
+  function side(li, e) {
+    var box = li.getBoundingClientRect();
+    // ряд бывает и вертикальным (вид «Telefon», узкий экран) — смотрим на действующую ось
+    var inRow = li.parentElement && li.parentElement.children.length > 1 &&
+      getComputedStyle(li.parentElement).flexDirection.indexOf("row") === 0;
+    var after = inRow ? e.clientX > box.left + box.width / 2 : e.clientY > box.top + box.height / 2;
+    return { after: after, inRow: inRow };
+  }
+
+  document.addEventListener("dragstart", function (e) {
+    var li = item(e.target);
+    if (!li) return;
+    dragged = li.getAttribute("data-schema-drag");
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/plain", dragged);
+  });
+  document.addEventListener("dragover", function (e) {
+    var li = item(e.target);
+    if (!dragged || !li || li.getAttribute("data-schema-drag") === dragged) return;
+    e.preventDefault();
+    clear();
+    var s = side(li, e);
+    li.setAttribute("data-schema-drop", s.after ? "after" : "before");
+    var edge = s.inRow ? (s.after ? "3px 0 0 #4338ca" : "-3px 0 0 #4338ca") : (s.after ? "0 3px 0 #4338ca" : "0 -3px 0 #4338ca");
+    li.style.boxShadow = edge;
+  });
+  document.addEventListener("dragend", function () { dragged = null; clear(); });
+  document.addEventListener("drop", function (e) {
+    var li = item(e.target);
+    var ref = dragged;
+    dragged = null;
+    // пока прошлая правка в пути (перетаскивание или поле панели) — новый бросок не шлём
+    var busy = +document.documentElement.getAttribute("data-schema-busy") > 0;
+    if (!ref || !li || busy || li.getAttribute("data-schema-drag") === ref) { clear(); return; }
+    document.documentElement.setAttribute("data-schema-busy", "1");
+    e.preventDefault();
+    var where = side(li, e).after ? "after" : "before";
+    clear();
+    var keep = document.querySelector("[data-schema-draft] input[name=csrfmiddlewaretoken], form input[name=csrfmiddlewaretoken]");
+    var data = new FormData();
+    data.set("csrfmiddlewaretoken", keep ? keep.value : "");
+    data.set("seite", new URLSearchParams(location.search).get("seite") || "home");
+    data.set("op", "move");
+    data.set("ref", ref);
+    data.set("value", where + ":" + li.getAttribute("data-schema-drag"));
+    if (new URLSearchParams(location.search).get("ansicht") === "telefon") data.set("ansicht", "telefon");
+    fetch(location.pathname, { method: "POST", body: data, credentials: "same-origin" })
+      .then(function (resp) { if (!resp.ok) throw new Error("status"); return resp.text(); })
+      .then(function (html) {
+        var doc = new DOMParser().parseFromString(html, "text/html");
+        ["[data-schema-status]", "[data-schema-messages]", "[data-schema-map]", "[data-schema-panel]"].forEach(function (sel) {
+          var now = document.querySelector(sel), next = doc.querySelector(sel);
+          if (now && next) now.replaceWith(document.importNode(next, true));
+        });
+        document.querySelectorAll('[data-schema-fields] button[value="update"],[data-schema-list] button[value="update"]').forEach(function (b) { b.style.display = "none"; });
+        arm();
+        var live = document.querySelector("[data-schema-live]");
+        if (live) { live.textContent = ""; setTimeout(function () { live.textContent = live.getAttribute("data-done") || ""; }, 100); }
+      })
+      .catch(function () { location.reload(); })
+      .then(function () { document.documentElement.setAttribute("data-schema-busy", "0"); });
+  });
+  // после правки из панели схема перерисовывается — перевооружаем строки
+  new MutationObserver(arm).observe(document.body, { childList: true, subtree: true });
+  arm();
+})();

@@ -144,19 +144,46 @@ Look'и; применение POST'ом — сохраняется сразу. �
     <fieldset class="pt-2 border-t border-gray-100" data-media-places>
       <legend class="font-medium text-sm">{% trans "Fotoformat je Bereich" %}</legend>
       <p class="ui-muted text-xs mb-2">{% trans "Leer = wie bei „Fotoform“. „Ganz zeigen“ schneidet nichts ab, sondern lässt Rand." %}</p>
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-x-6 gap-y-2">
+      {% comment %}FB-29.7 (макет B): раздел → пропорция плитками с рамкой нужной формы → «zuschneiden / ganz zeigen» двумя образцами. Имена полей прежние (`mp_<место>_ratio`, `mp_<место>_fit`); `<details>` работает без скриптов.{% endcomment %}
+      <div class="space-y-2">
         {% for r in media_place_rows %}
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 items-center text-sm">
-          <span class="font-medium">{{ r.label }}</span>
-          <select name="mp_{{ r.code }}_ratio" class="ui-input" aria-label="{{ r.label }}: {% trans "Format" %}">
-            <option value="" {% if not r.ratio %}selected{% endif %}>{% trans "Standard" %}</option>
-            {% for key, label in media_ratio_options %}<option value="{{ key }}" {% if r.ratio == key %}selected{% endif %}>{{ label }}</option>{% endfor %}
-          </select>
-          <select name="mp_{{ r.code }}_fit" class="ui-input" aria-label="{{ r.label }}: {% trans "Anpassen" %}">
-            <option value="" {% if not r.fit %}selected{% endif %}>{% trans "Zuschneiden" %}</option>
-            {% for key, label in media_fit_options %}<option value="{{ key }}" {% if r.fit == key %}selected{% endif %}>{{ label }}</option>{% endfor %}
-          </select>
-        </div>
+        <details class="rounded-xl border border-gray-500" data-photo-place="{{ r.code }}"{% if forloop.first %} open{% endif %}>
+          <summary class="flex items-center justify-between gap-2 px-3 min-h-[44px] cursor-pointer text-sm">
+            <span class="font-semibold">{{ r.label }}</span>
+            <span class="text-gray-700">{{ r.ratio_short }}{% if r.fit %} · {% trans "ganz zeigen" %}{% endif %}</span>
+          </summary>
+          <div class="border-t border-gray-200 p-3 space-y-3">
+            <div role="radiogroup" aria-label="{{ r.label }}: {% trans 'Format' %}" class="grid grid-cols-4 sm:grid-cols-7 gap-2">
+              {% for t in media_ratio_tiles %}
+              <label class="relative">
+                <input type="radio" name="mp_{{ r.code }}_ratio" value="{{ t.key }}" class="peer sr-only"{% if r.ratio == t.key %} checked{% endif %}>
+                <span class="flex flex-col items-center justify-end gap-1.5 min-h-[88px] rounded-xl border border-gray-500 px-1 py-2 text-xs font-semibold text-gray-800 peer-checked:border-2 peer-checked:border-indigo-700 peer-checked:bg-indigo-50 peer-checked:text-indigo-900 peer-focus-visible:ring-2 peer-focus-visible:ring-indigo-600" title="{{ t.label }}">
+                  <span class="block {% if t.key %}bg-gray-400{% else %}border-2 border-dashed border-gray-500{% endif %} {% if t.round %}rounded-full{% else %}rounded{% endif %}" style="width: {{ t.w }}px; height: {{ t.h }}px" aria-hidden="true" data-photo-shape></span>
+                  <span>{{ t.short }}</span>
+                </span>
+              </label>
+              {% endfor %}
+            </div>
+            <div role="radiogroup" aria-label="{{ r.label }}: {% trans 'Anpassen' %}" class="grid grid-cols-1 sm:grid-cols-2 gap-2" data-photo-fit>
+              <label class="relative">
+                <input type="radio" name="mp_{{ r.code }}_fit" value="" class="peer sr-only"{% if not r.fit %} checked{% endif %}>
+                <span class="flex items-center gap-3 min-h-[72px] rounded-xl border border-gray-500 p-2.5 text-sm peer-checked:border-2 peer-checked:border-indigo-700 peer-checked:bg-indigo-50 peer-focus-visible:ring-2 peer-focus-visible:ring-indigo-600">
+                  <span class="relative block h-12 w-12 shrink-0 overflow-hidden rounded bg-amber-200" aria-hidden="true"><span class="absolute -left-4 top-3.5 block h-5 w-20 rounded-sm bg-amber-700"></span></span>
+                  <span><span class="block font-semibold">{% trans "Zuschneiden" %}</span><span class="block text-xs text-gray-600">{% trans "Füllt den Rahmen ganz aus. Ränder des Fotos können fehlen." %}</span></span>
+                </span>
+              </label>
+              {% for key, label in media_fit_options %}
+              <label class="relative">
+                <input type="radio" name="mp_{{ r.code }}_fit" value="{{ key }}" class="peer sr-only"{% if r.fit == key %} checked{% endif %}>
+                <span class="flex items-center gap-3 min-h-[72px] rounded-xl border border-gray-500 p-2.5 text-sm peer-checked:border-2 peer-checked:border-indigo-700 peer-checked:bg-indigo-50 peer-focus-visible:ring-2 peer-focus-visible:ring-indigo-600">
+                  <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded bg-amber-100" aria-hidden="true"><span class="block h-3 w-11 rounded-sm bg-amber-700"></span></span>
+                  <span><span class="block font-semibold">{% trans "Ganz zeigen" %}</span><span class="block text-xs text-gray-600">{% trans "Nichts wird abgeschnitten. Es bleiben Ränder im Rahmen." %}</span></span>
+                </span>
+              </label>
+              {% endfor %}
+            </div>
+          </div>
+        </details>
         {% endfor %}
       </div>
     </fieldset>

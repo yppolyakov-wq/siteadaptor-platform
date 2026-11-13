@@ -184,3 +184,34 @@ def test_way_back_to_the_studio_survives_tabs_and_saving():
         )
     )
     assert "evil" not in resp["Location"]
+
+
+def test_photo_format_is_chosen_with_tiles_not_selects():
+    """FB-29.7 (макет B, утверждён 2026-11-13): формат фото по разделам — плитки с рамкой
+    нужной пропорции и образцом «zuschneiden / ganz zeigen»; имена полей прежние."""
+    from apps.core import media_places
+
+    tenant = TenantFactory(business_type="online_shop")
+    body = _html(tenant, "?tab=karten")
+    assert body.count("data-photo-place=") == len(media_places.PLACES)
+    for code in media_places.PLACES:
+        assert f'type="radio" name="mp_{code}_ratio"' in body, code
+        assert f'type="radio" name="mp_{code}_fit"' in body, code
+        assert f'<select name="mp_{code}_ratio"' not in body
+    assert "data-photo-shape" in body and "data-photo-fit" in body
+
+
+def test_photo_format_tiles_save_like_the_selects_did():
+    tenant = TenantFactory(business_type="online_shop")
+    design_page.design_view(
+        _req(
+            "post",
+            tenant,
+            {"action": "design_settings", "tab": "karten", "sd_cards_present": "1",
+             "mp_product_ratio": "1-1", "mp_product_fit": "contain"},
+        )
+    )  # fmt: skip
+    cfg = siteconfig.normalize(Tenant.objects.get(pk=tenant.pk).site_config)
+    assert cfg["site_defaults"]["media_places"]["product"] == {"ratio": "1-1", "fit": "contain"}
+    body = _html(Tenant.objects.get(pk=tenant.pk), "?tab=karten")
+    assert "1:1" in body[body.index('data-photo-place="product"') :][:600]

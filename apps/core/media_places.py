@@ -49,6 +49,36 @@ RATIO_LABELS = {
     "16-9": _("Breit 16:9"),
     "round": _("Rund"),
 }
+#: FB-29.7: рамка-образец на плитке выбора — (ширина, высота) в px; "" — «Standard».
+TILE_SHAPES = {
+    "": (48, 36),
+    "1-1": (42, 42),
+    "4-3": (52, 39),
+    "3-2": (54, 36),
+    "3-4": (33, 44),
+    "16-9": (60, 34),
+    "round": (42, 42),
+}
+SHORT_LABELS = {"1-1": "1:1", "4-3": "4:3", "3-2": "3:2", "3-4": "3:4", "16-9": "16:9"}
+
+
+def ratio_tiles() -> list[dict]:
+    """Плитки выбора пропорции: {key, label, short, w, h, round}; первая — «Standard»."""
+    out = [{"key": "", "label": _("Standard"), "short": _("Standard"), "round": False}]
+    for key, label in RATIO_LABELS.items():
+        out.append(
+            {
+                "key": key,
+                "label": label,
+                "short": SHORT_LABELS.get(key, label),
+                "round": key == "round",
+            }
+        )
+    for tile in out:
+        tile["w"], tile["h"] = TILE_SHAPES[tile["key"]]
+    return out
+
+
 #: «cover» (по умолчанию) — обрезать до формата; «contain» — вписать целиком с полями.
 FITS = {"contain": _("Ganz zeigen (mit Rand)")}
 
@@ -122,6 +152,11 @@ def rows(places) -> list[dict]:
             "label": label,
             "ratio": current.get(code, {}).get("ratio", ""),
             "fit": current.get(code, {}).get("fit", ""),
+            # подпись свёрнутой строки: «1:1, ganz» / «Standard»
+            "ratio_short": SHORT_LABELS.get(
+                current.get(code, {}).get("ratio", ""),
+                RATIO_LABELS.get(current.get(code, {}).get("ratio", ""), _("Standard")),
+            ),
         }
         for code, label in PLACES.items()
     ]

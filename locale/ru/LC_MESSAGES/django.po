@@ -37952,3 +37952,24 @@ msgstr "Показать меньше дизайнов"
 
 msgid "Unterkategorien von"
 msgstr "Подкатегории категории"
+
+msgid "Jetzt neben:"
+msgstr "Сейчас рядом с:"
+
+msgid "Jetzt allein in der Reihe – der Nachbar ist nicht schmal."
+msgstr "Пока один в ряду — соседний блок не узкий."
+
+msgid "So sieht der Block aus"
+msgstr "Так выглядит блок"
+
+msgid "Füllt den Rahmen ganz aus. Ränder des Fotos können fehlen."
+msgstr "Заполняет рамку целиком. Края фото могут обрезаться."
+
+msgid "Ganz zeigen"
+msgstr "Показать целиком"
+
+msgid "Nichts wird abgeschnitten. Es bleiben Ränder im Rahmen."
+msgstr "Ничего не обрезается. В рамке остаются поля."
+
+msgid "ganz zeigen"
+msgstr "целиком"

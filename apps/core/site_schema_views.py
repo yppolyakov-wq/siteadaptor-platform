@@ -240,6 +240,12 @@ def site_schema_view(request):
             carrier["carrier"] = True
         if (selected and selected.get("carrier")) or (page_row and page_row["active"]):
             settings = site_schema.settings_groups(tenant, code, config)
+    # FB-29.5: с кем выбранный блок стоит в одном ряду (подсказка под кнопками ширины)
+    width_mates = []
+    if selected and selected.get("enabled"):
+        for row in site_schema.schema_layout(blocks)["rows"]:
+            if any(b["ref"] == selected["ref"] for b in row):
+                width_mates = [b["label"] for b in row if b["ref"] != selected["ref"]]
     preview_url = current.preview_url if current else ""
     studio = reverse("site-home")
     if preview_url:
@@ -288,6 +294,7 @@ def site_schema_view(request):
             "settings_single": sum(len(g["settings"]) for g in settings) == 1,
             # FB-27 V4: вид схемы «как на телефоне» — блоки друг под другом
             "phone_view": request.GET.get("ansicht") == "telefon",
+            "width_mates": width_mates,
             "which": (selected or {}).get("which", ""),
             # Вид «Telefon» — во всех ссылках экрана (способ «Welche» — только в формах)
             "keep_q": "&ansicht=telefon" if request.GET.get("ansicht") == "telefon" else "",
