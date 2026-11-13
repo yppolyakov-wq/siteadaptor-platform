@@ -37687,3 +37687,6 @@ msgstr "Ändert Farben, Schrift und Kartenform. Ihre Texte und Blöcke bleiben."
 
 msgid "Banner, Rahmen und Schatten der Karten, Überschriften: wie im Design"
 msgstr "Banner, Rahmen und Schatten der Karten, Überschriften: wie im Design"
+
+msgid "wird zu"
+msgstr "wird zu"

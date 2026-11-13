@@ -37926,3 +37926,6 @@ msgstr "Змінює кольори, шрифт і форму карток. Ва
 
 msgid "Banner, Rahmen und Schatten der Karten, Überschriften: wie im Design"
 msgstr "Банер, рамки й тіні карток, заголовки — як у дизайні"
+
+msgid "wird zu"
+msgstr "стане"

@@ -37600,3 +37600,6 @@ msgstr "Changes colours, font and card shape. Your texts and blocks stay."
 
 msgid "Banner, Rahmen und Schatten der Karten, Überschriften: wie im Design"
 msgstr "Banner, card borders and shadows, headings: as in the design"
+
+msgid "wird zu"
+msgstr "becomes"

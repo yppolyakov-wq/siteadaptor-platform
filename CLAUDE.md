@@ -74,7 +74,9 @@ django-storages (S3/Hetzner), Caddy 2 (on-demand TLS). Python 3.12, менедж
   доведён до макета V1–V4, правка в панели без «Übernehmen»), FB-28 (пункты редактора меню
   сворачиваются), экран
   «Seiten» по макетам S1–S3 — список карточками, меню «⋯», вкладки Text · Blöcke ·
-  Suchmaschinen), дальше экран «Design» (макеты D1–D2 приняты); M21.11 P6/P7
+  Suchmaschinen), экран «Design» по макетам D1–D2 (вкладки, готовые дизайны с панелью
+  подтверждения, главная перестраивается только по галочке); встроенные списки главной
+  правятся в панели «Seitenaufbau»; M21.11 P6/P7
   (редактор страниц); прогон переезда haanerteeladen на сервере — за владельцем.
 - **Открытое, ops и решения владельца** — `docs/project-memory.md` §1, §2, §5.
 - **Миграции к деплою (гипотеза до сверки; истина — `python manage.py migration_state`,
@@ -234,7 +236,8 @@ django-storages (S3/Hetzner), Caddy 2 (on-demand TLS). Python 3.12, менедж
 
 ## 7. Дальше
 Очередь — `docs/task-catalog.md`; открытое и чьё решение нужно — `docs/project-memory.md` §1.
-- В работе: FB-27 — экран «Design» (план `docs/fb27-design-plan-2026-11-13.md`); M21.11 P6 → P7.
+- В работе: M21.11 P6 → P7. FB-27 закрыт, остаток — `docs/roadmap-next-sprints.md`
+  (вывод «Liste», число карточек «Empfohlen», наборы блоков страницы акций в Студии).
 - За владельцем: решения (Pro-тариф и пакеты, включение ИИ-поиска, оценка пилота MCP),
   юрист/Steuerberater (Anzahlungsrechnung, Widerruf, Datenschutz-абзацы), ops (§2 памяти).
 - **Stage 0 — блокер боевого запуска (владелец):** Stripe live (`billing-stripe-setup.md`),

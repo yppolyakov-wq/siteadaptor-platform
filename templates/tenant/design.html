@@ -33,7 +33,7 @@ Look'и; применение POST'ом — сохраняется сразу. �
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       <label class="block text-sm">
         <span class="block font-medium mb-1">{% trans "Accent colour" %}</span>
-        <input type="color" name="accent" value="{{ accent }}" class="h-9 w-16 rounded border border-gray-300 p-0.5">
+        <input type="color" name="accent" value="{{ accent }}" class="h-11 w-16 rounded border border-gray-300 p-0.5">
       </label>
       <label class="block text-sm">
         <span class="block font-medium mb-1">{% trans "Font" %}</span>
@@ -55,8 +55,8 @@ Look'и; применение POST'ом — сохраняется сразу. �
       </label>
     </div>
     <input type="hidden" name="theme_present" value="1">
-    <label class="flex items-center gap-2 text-sm">
-      <input type="checkbox" name="theme" value="dark" {% if theme == "dark" %}checked{% endif %} class="rounded border-gray-300">
+    <label class="flex items-center gap-2 text-sm min-h-[44px]">
+      <input type="checkbox" name="theme" value="dark" {% if theme == "dark" %}checked{% endif %} class="rounded border-gray-500">
       {% trans "Dark theme" %}
     </label>
     <button type="submit" class="ui-btn ui-btn-primary min-h-[44px]">{% trans "Speichern" %}</button>
@@ -72,14 +72,14 @@ Look'и; применение POST'ом — сохраняется сразу. �
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       <label class="block text-sm">
         <span class="block font-medium mb-1">{% trans "Round corners" %}</span>
-        <input type="range" name="sd_card_radius" min="0" max="24" step="2" value="{{ sd.card_radius|default:0 }}" class="w-full">
+        <input type="range" name="sd_card_radius" min="0" max="24" step="2" value="{{ sd.card_radius|default:0 }}" class="w-full h-11">
       </label>
       <label class="block text-sm">
         <span class="block font-medium mb-1">{% trans "Padding" %}</span>
-        <input type="range" name="sd_card_padding" min="0" max="32" step="2" value="{{ sd.card_padding|default:0 }}" class="w-full">
+        <input type="range" name="sd_card_padding" min="0" max="32" step="2" value="{{ sd.card_padding|default:0 }}" class="w-full h-11">
       </label>
       <label class="flex items-center gap-2 text-sm mt-6">
-        <input type="checkbox" name="sd_card_shadow" {% if sd.card_shadow %}checked{% endif %} class="rounded border-gray-300">
+        <input type="checkbox" name="sd_card_shadow" {% if sd.card_shadow %}checked{% endif %} class="rounded border-gray-500">
         {% trans "Shadow" %}
       </label>
       <label class="block text-sm">
@@ -106,10 +106,10 @@ Look'и; применение POST'ом — сохраняется сразу. �
           {% for key, label, hint in variant_style_options %}{% if key %}<option value="{{ key }}" {% if sd.variant_style == key %}selected{% endif %}>{{ label }}</option>{% endif %}{% endfor %}
         </select>
       </label>
-      <label class="flex items-center gap-2 text-sm">
-        <input type="checkbox" name="sd_card_bg_on" {% if sd.card_bg %}checked{% endif %} class="rounded border-gray-300">
+      <label class="flex items-center gap-2 text-sm min-h-[44px]">
+        <input type="checkbox" name="sd_card_bg_on" {% if sd.card_bg %}checked{% endif %} class="rounded border-gray-500">
         {% trans "Card background" %}
-        <input type="color" name="sd_card_bg" value="{{ sd.card_bg|default:'#ffffff' }}" class="h-7 w-10 rounded border border-gray-300 p-0.5">
+        <input type="color" name="sd_card_bg" value="{{ sd.card_bg|default:'#ffffff' }}" class="h-11 w-11 rounded border border-gray-300 p-0.5">
       </label>
       <label class="block text-sm">
         <input type="hidden" name="sd_page_width_present" value="1">
@@ -129,14 +129,14 @@ Look'и; применение POST'ом — сохраняется сразу. �
           <option value="xl" {% if sd.logo_size == "xl" %}selected{% endif %}>{% trans "Sehr groß" %}</option>
         </select>
       </label>
-      <label class="flex items-center gap-2 text-sm">
+      <label class="flex items-center gap-2 text-sm min-h-[44px]">
         <input type="hidden" name="sd_page_bg_present" value="1">
-        <input type="checkbox" name="sd_page_bg_on" {% if sd.page_bg %}checked{% endif %} class="rounded border-gray-300">
+        <input type="checkbox" name="sd_page_bg_on" {% if sd.page_bg %}checked{% endif %} class="rounded border-gray-500">
         {% trans "Page background" %}
-        <input type="color" name="sd_page_bg" value="{{ sd.page_bg|default:'#ffffff' }}" class="h-7 w-10 rounded border border-gray-300 p-0.5">
+        <input type="color" name="sd_page_bg" value="{{ sd.page_bg|default:'#ffffff' }}" class="h-11 w-11 rounded border border-gray-300 p-0.5">
       </label>
-      <label class="flex items-center gap-2 text-sm">
-        <input type="checkbox" name="sd_card_slider" {% if sd.card_slider %}checked{% endif %} class="rounded border-gray-300">
+      <label class="flex items-center gap-2 text-sm min-h-[44px]">
+        <input type="checkbox" name="sd_card_slider" {% if sd.card_slider %}checked{% endif %} class="rounded border-gray-500">
         {% trans "Fotos auf der Karte durchblättern" %}
       </label>
     </div>
@@ -146,7 +146,7 @@ Look'и; применение POST'ом — сохраняется сразу. �
       <p class="ui-muted text-xs mb-2">{% trans "Leer = wie bei „Fotoform“. „Ganz zeigen“ schneidet nichts ab, sondern lässt Rand." %}</p>
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-x-6 gap-y-2">
         {% for r in media_place_rows %}
-        <div class="grid grid-cols-3 gap-2 items-center text-sm">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 items-center text-sm">
           <span class="font-medium">{{ r.label }}</span>
           <select name="mp_{{ r.code }}_ratio" class="ui-input" aria-label="{{ r.label }}: {% trans "Format" %}">
             <option value="" {% if not r.ratio %}selected{% endif %}>{% trans "Standard" %}</option>
@@ -161,14 +161,14 @@ Look'и; применение POST'ом — сохраняется сразу. �
       </div>
     </fieldset>
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-gray-100">
-      <label class="flex items-center gap-2 text-sm">
+      <label class="flex items-center gap-2 text-sm min-h-[44px]">
         <input type="hidden" name="quick_add_present" value="1">
-        <input type="checkbox" name="quick_add" {% if quick_add %}checked{% endif %} class="rounded border-gray-300">
+        <input type="checkbox" name="quick_add" {% if quick_add %}checked{% endif %} class="rounded border-gray-500">
         {% trans "Quick order from cards (＋ button / configurator)" %}
       </label>
-      <label class="flex items-center gap-2 text-sm">
+      <label class="flex items-center gap-2 text-sm min-h-[44px]">
         <input type="hidden" name="wishlist_present" value="1">
-        <input type="checkbox" name="wishlist" {% if wishlist %}checked{% endif %} class="rounded border-gray-300">
+        <input type="checkbox" name="wishlist" {% if wishlist %}checked{% endif %} class="rounded border-gray-500">
         {% trans "Merkzettel (♡ auf Karten)" %}
       </label>
     </div>
@@ -178,7 +178,7 @@ Look'и; применение POST'ом — сохраняется сразу. �
   {% comment %}FB-27 D-b (макет D1/D2): готовые дизайны. «Übernehmen» — ссылка на панель
   «что изменится / что останется» (без скриптов); главная перестраивается только по галочке.{% endcomment %}
   {% if confirm %}
-  <section class="ui-card p-5 mb-6 border-2 border-indigo-700 scroll-mt-20" id="design-confirm" tabindex="-1" aria-labelledby="design-confirm-title" data-design-confirm>
+  <section class="ui-card p-5 mb-6 border-2 border-indigo-700 scroll-mt-20 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600" id="design-confirm" tabindex="-1" role="region" aria-labelledby="design-confirm-title" data-design-confirm>
     <h2 id="design-confirm-title" class="ui-h2 mb-3">{% blocktrans with name=confirm.label %}„{{ name }}“ übernehmen?{% endblocktrans %}</h2>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
       <div>
@@ -186,7 +186,7 @@ Look'и; применение POST'ом — сохраняется сразу. �
         {% if confirm.changes %}
         <ul class="space-y-1 text-gray-800">
           {% for c in confirm.changes %}
-          {% if c.note %}<li>{{ c.label }}</li>{% else %}<li>{{ c.label }}: {% if c.swatch and c.old %}<span class="inline-block w-3 h-3 rounded-full align-middle border border-gray-400" style="background: {{ c.old }};" aria-hidden="true"></span> {% endif %}{{ c.old|default:"–" }} → {% if c.swatch and c.new %}<span class="inline-block w-3 h-3 rounded-full align-middle border border-gray-400" style="background: {{ c.new }};" aria-hidden="true"></span> {% endif %}<strong>{{ c.new|default:"–" }}</strong></li>{% endif %}
+          {% if c.note %}<li>{{ c.label }}</li>{% else %}<li>{{ c.label }}: {% if c.swatch and c.old %}<span class="inline-block w-3 h-3 rounded-full align-middle border border-gray-400" style="background: {{ c.old }};" aria-hidden="true"></span> {% endif %}{{ c.old|default:"–" }} <span aria-hidden="true">→</span><span class="sr-only"> {% trans "wird zu" %} </span>{% if c.swatch and c.new %}<span class="inline-block w-3 h-3 rounded-full align-middle border border-gray-400" style="background: {{ c.new }};" aria-hidden="true"></span> {% endif %}<strong>{{ c.new|default:"–" }}</strong></li>{% endif %}
           {% endfor %}
         </ul>
         {% else %}
@@ -220,18 +220,18 @@ Look'и; применение POST'ом — сохраняется сразу. �
   <p class="text-sm text-gray-600 mb-3">{% trans "Ändert Farben, Schrift und Kartenform. Ihre Texte und Blöcke bleiben." %}</p>
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6" id="design-bundles">
     {% for b in bundles %}
-      <div class="border {% if b.key == current_bundle %}border-2 border-indigo-700{% else %}border-gray-300{% endif %} rounded-xl bg-white p-3 flex flex-col" data-design-card="{{ b.key }}">
+      <div class="border {% if b.key == current_bundle %}border-2 border-indigo-700{% else %}border-gray-500{% endif %} rounded-xl bg-white p-3 flex flex-col" data-design-card="{{ b.key }}">
         <span class="flex items-center gap-2 mb-1">
-          <span class="font-semibold text-sm">{{ b.label }}</span>
+          <h3 class="font-semibold text-sm">{{ b.label }}</h3>
           {% if b.key == current_bundle %}<span class="ml-auto text-xs bg-indigo-700 text-white rounded-full px-2 py-0.5">{% trans "Aktiv" %}</span>{% endif %}
         </span>
         <span class="block text-sm text-gray-600 mb-2">{{ b.description_de }}</span>
-        <span class="block rounded-lg border border-gray-200 overflow-hidden bg-gray-50 mb-3" style="height:150px" aria-hidden="true">
+        <span class="block rounded-lg border border-gray-200 overflow-hidden bg-gray-50 mb-3" style="height:150px" aria-hidden="true" inert>
           <iframe data-src="/?preview=1&look={{ b.look }}&bundle={{ b.key }}" title="{{ b.label }}" tabindex="-1" loading="lazy"
                   style="width:400%;height:600px;transform:scale(.25);transform-origin:0 0;pointer-events:none;border:0"></iframe>
         </span>
         <div class="mt-auto flex items-center gap-2">
-          <a href="?tab=fertig&amp;confirm={{ b.key }}{{ next_q }}#design-confirm" class="flex-1 inline-flex items-center justify-center min-h-[44px] text-sm font-semibold border border-indigo-700 text-indigo-800 rounded-lg px-3 hover:bg-indigo-50" aria-label="{{ b.label }}: {% trans 'Übernehmen' %}">{% trans "Übernehmen" %}</a>
+          <a href="?tab=fertig&amp;confirm={{ b.key }}{{ next_q }}#design-confirm" class="flex-1 inline-flex items-center justify-center min-h-[44px] text-sm font-semibold border border-indigo-700 text-indigo-800 rounded-lg px-3 hover:bg-indigo-50" aria-label="{% trans 'Übernehmen' %}: {{ b.label }}">{% trans "Übernehmen" %}</a>
           <a href="/?preview=1&look={{ b.look }}&bundle={{ b.key }}" target="_blank" rel="noopener" class="shrink-0 inline-flex items-center min-h-[44px] text-sm border border-gray-500 text-gray-800 rounded-lg px-3 hover:bg-gray-50" aria-label="{% trans 'Vorschau' %}: {{ b.label }} ({% trans 'öffnet in neuem Tab' %})">{% trans "Vorschau" %}</a>
         </div>
       </div>
@@ -245,13 +245,13 @@ Look'и; применение POST'ом — сохраняется сразу. �
     {% for lk in looks %}
       <div class="border {% if lk.key == current_look %}border-indigo-500 ring-1 ring-indigo-300{% else %}border-gray-200{% endif %} rounded-xl bg-white p-3 flex flex-col">
         <span class="flex items-center gap-2 mb-1">
-          <span class="inline-block w-3 h-3 rounded-full shrink-0" style="background: {{ lk.accent }};"></span>
-          <span class="font-medium text-sm">{{ lk.label }}</span>
+          <span class="inline-block w-3 h-3 rounded-full shrink-0" style="background: {{ lk.accent }};" aria-hidden="true"></span>
+          <h3 class="font-medium text-sm">{{ lk.label }}</h3>
           {% if lk.theme == 'dark' %}<span class="text-xs bg-gray-800 text-gray-100 rounded-full px-2 py-0.5">{% trans "Dunkel" %}</span>{% endif %}
           {% if lk.key == current_look %}<span class="ml-auto text-xs bg-indigo-600 text-white rounded-full px-2 py-0.5">✓ {% trans "Aktiv" %}</span>{% endif %}
         </span>
         <span class="block text-sm text-gray-600 mb-2">{{ lk.description }}</span>
-        <span class="block rounded-lg border border-gray-100 overflow-hidden bg-gray-50 mb-3" style="height:120px" aria-hidden="true">
+        <span class="block rounded-lg border border-gray-100 overflow-hidden bg-gray-50 mb-3" style="height:120px" aria-hidden="true" inert>
           <iframe data-src="/?preview=1&look={{ lk.key }}" title="{{ lk.label }}" tabindex="-1" loading="lazy"
                   style="width:400%;height:480px;transform:scale(.25);transform-origin:0 0;pointer-events:none;border:0"></iframe>
         </span>
@@ -259,7 +259,7 @@ Look'и; применение POST'ом — сохраняется сразу. �
           <form method="post" class="flex-1">
             {% csrf_token %}
             <input type="hidden" name="look" value="{{ lk.key }}">
-            <button class="w-full min-h-[44px] text-sm font-semibold border border-gray-500 text-gray-800 rounded-lg px-3 hover:bg-gray-50" aria-label="{{ lk.label }}: {% trans 'Übernehmen' %}">{% trans "Übernehmen" %}</button>
+            <button class="w-full min-h-[44px] text-sm font-semibold border border-gray-500 text-gray-800 rounded-lg px-3 hover:bg-gray-50" aria-label="{% trans 'Übernehmen' %}: {{ lk.label }}">{% trans "Übernehmen" %}</button>
           </form>
           <a href="/?preview=1&look={{ lk.key }}" target="_blank" rel="noopener" class="shrink-0 inline-flex items-center min-h-[44px] text-sm border border-gray-500 text-gray-800 rounded-lg px-3 hover:bg-gray-50" aria-label="{% trans 'Vorschau' %}: {{ lk.label }} ({% trans 'öffnet in neuem Tab' %})">{% trans "Vorschau" %}</a>
         </div>
@@ -283,6 +283,10 @@ Look'и; применение POST'ом — сохраняется сразу. �
   {% endif %}
 </div>
 <script>
+  (function () {
+    var panel = document.getElementById("design-confirm");
+    if (panel) panel.focus();
+  })();
   (function () {
     var frames = document.querySelectorAll("#design-bundles iframe[data-src], #design-looks iframe[data-src]");
     if (!("IntersectionObserver" in window)) {

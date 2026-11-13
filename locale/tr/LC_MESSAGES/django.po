@@ -37746,3 +37746,6 @@ msgstr "Renkleri, yazı tipini ve kart biçimini değiştirir. Metinleriniz ve b
 
 msgid "Banner, Rahmen und Schatten der Karten, Überschriften: wie im Design"
 msgstr "Banner, kart çerçeveleri ve gölgeleri, başlıklar: tasarımdaki gibi"
+
+msgid "wird zu"
+msgstr "şuna dönüşür:"
