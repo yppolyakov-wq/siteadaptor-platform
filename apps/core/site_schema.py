@@ -1155,6 +1155,15 @@ def mutate(
 SETTINGS_FOLLOWERS = {"catalog": ("category",), "promos": ("promo_group", "promo")}
 
 
+#: FB-27 V3: строка-носитель настроек типа страницы там, где основного списка нет
+#: (код страницы → ref строки). Главная: вид баннера — в строке «Banner» (макет Main).
+SETTINGS_CARRIERS = {"home": "hero"}
+
+
+def settings_carrier(code: str) -> str:
+    return SETTINGS_CARRIERS.get(str(code).split("@", 1)[0], "")
+
+
 def settings_url(type_code: str, setting: str = "") -> str:
     """Адрес строки «Seitenaufbau», где правятся настройки типа `type_code` (замена
     экрана «Seitenvorlagen»). Тип без своей строки ведёт на строку-хозяина; неизвестный
@@ -1169,7 +1178,11 @@ def settings_url(type_code: str, setting: str = "") -> str:
     url = reverse("site-schema")
     if pt is None:
         return url
-    block = siteconfig.MAIN_LIST_KEY if _host(pt) in siteconfig.MAIN_LIST_HOSTS else PAGE_REF
+    block = (
+        siteconfig.MAIN_LIST_KEY
+        if _host(pt) in siteconfig.MAIN_LIST_HOSTS
+        else settings_carrier(pt.code) or PAGE_REF
+    )
     query = {"seite": pt.code, "block": block}
     if setting:
         query["offen"] = setting

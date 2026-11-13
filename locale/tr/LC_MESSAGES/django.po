@@ -37638,3 +37638,6 @@ msgstr "Tek blok"
 
 msgid "Fertige Zeile"
 msgstr "Hazır satır"
+
+msgid "Computer"
+msgstr "Bilgisayar"

@@ -23,6 +23,14 @@ def check(c, label):
         fail.append(label)
 
 
+def close_sheet(pg):
+    """На телефоне панель блока — лист снизу; до кнопок шапки и схемы — «Fertig»."""
+    done = pg.locator("[data-schema-done]")
+    if done.count() and done.first.is_visible():
+        done.first.click()
+        pg.wait_for_load_state()
+
+
 U = "http://ptx.siteadaptor.de:8000"
 STRUCT = (
     "[name^='order_'], [name^='enabled_'], [name^='delete_cb_'], [name^='width_cb_'], "
@@ -52,6 +60,7 @@ with sync_playwright() as p:
         print(f"--- {w}px")
         # в «Seitenaufbau» добавляем свой блок на главную — Студия должна его показать
         pg.goto(U + "/dashboard/site/aufbau/?seite=home")
+        close_sheet(pg)
         pg.click("[data-schema-add] summary")
         pg.select_option("select[name=type]", "text")
         pg.click("form:has(select[name=type]) button")
@@ -59,6 +68,7 @@ with sync_playwright() as p:
         pg.fill("[data-schema-fields] input[name=f_title]", "Stand Grenze")
         pg.click("[data-schema-fields] button[value=update]")
         pg.wait_for_load_state()
+        close_sheet(pg)
         pg.click("[data-schema-draft] button[value=save]")
         pg.wait_for_load_state()
         pg.goto(U + "/dashboard/site/home/")
@@ -100,6 +110,7 @@ with sync_playwright() as p:
         check(before == after, f"«Speichern» Студии не изменил состав главной ({before} → {after})")
         # уборка: убрать блок стенда в «Seitenaufbau»
         pg.goto(U + "/dashboard/site/aufbau/?seite=home")
+        close_sheet(pg)
         pg.locator("[data-schema-block]").filter(has_text="Stand Grenze").first.click()
         pg.wait_for_load_state()
         pg.click("[data-schema-more] summary")
@@ -107,6 +118,7 @@ with sync_playwright() as p:
         pg.wait_for_load_state()
         pg.click("button[value=delete]")
         pg.wait_for_load_state()
+        close_sheet(pg)
         pg.click("[data-schema-draft] button[value=save]")
         pg.wait_for_load_state()
         check(not errs, "без JS-ошибок: " + "; ".join(errs[:2]))

@@ -24,6 +24,14 @@ def check(c, label):
         fail.append(label)
 
 
+def close_sheet(pg):
+    """На телефоне панель блока — лист снизу; до кнопок шапки и схемы — «Fertig»."""
+    done = pg.locator("[data-schema-done]")
+    if done.count() and done.first.is_visible():
+        done.first.click()
+        pg.wait_for_load_state()
+
+
 U = "http://ptx.siteadaptor.de:8000"
 with sync_playwright() as p:
     b = p.chromium.launch(
@@ -54,6 +62,7 @@ with sync_playwright() as p:
         pg.wait_for_url(lambda u: "seite=text" in u, timeout=5000)
         check("seite=text" in pg.url, "смена страницы по выбору в списке")
         # добавить два блока и проверить панель
+        close_sheet(pg)
         pg.click("[data-schema-add] summary")
         pg.select_option("select[name=type]", "text")
         pg.click("form:has(select[name=type]) button")
@@ -61,6 +70,7 @@ with sync_playwright() as p:
         focused = pg.evaluate("document.activeElement && document.activeElement.id")
         check(focused == "schema-panel", "после добавления фокус в панели нового блока")
         check(pg.locator("[data-schema-draft]").count() == 1, "после правки — полоса черновика")
+        close_sheet(pg)
         with pg.context.expect_page() as pop:
             pg.click("a:has-text('Vorschau')")
         pv = pop.value
@@ -68,9 +78,11 @@ with sync_playwright() as p:
         shown = "aufbau=text" in pv.url and pv.locator("[data-sf-section]").count() >= 1
         check(shown, "превью показывает черновик")
         pv.close()
+        close_sheet(pg)
         pg.click("[data-schema-draft] button[value=save]")
         pg.wait_for_load_state()
         check(pg.locator("[data-schema-draft]").count() == 0, "«Speichern» — черновика нет")
+        close_sheet(pg)
         pg.locator("[data-schema-row] [data-schema-block]").last.click()
         pg.wait_for_load_state()
         check(
@@ -95,11 +107,13 @@ with sync_playwright() as p:
         pg.click("button[value=delete]")
         pg.wait_for_load_state()
         check(pg.locator("[data-schema-hidden]").count() == 0, "блок удалён")
+        close_sheet(pg)
         pg.click("[data-schema-draft] button[value=save]")
         pg.wait_for_load_state()
         check(pg.locator("[data-schema-draft]").count() == 0, "удаление сохранено")
         # R3: два блока по ½ встают в один ряд
         for kind in ("text", "image"):
+            close_sheet(pg)
             pg.click("[data-schema-add] summary")
             pg.select_option("select[name=type]", kind)
             pg.click("form:has(select[name=type]) button")
@@ -116,6 +130,7 @@ with sync_playwright() as p:
             boxes = [x.bounding_box() for x in pair.locator("[data-schema-block]").all()]
             check(boxes[1]["y"] > boxes[0]["y"] + 20, "на телефоне — друг под другом")
         # R3b: текст блока правится в панели и доезжает до витрины после «Speichern»
+        close_sheet(pg)
         pair.locator("[data-schema-block]").first.click()
         pg.wait_for_load_state()
         pg.fill("[data-schema-fields] input[name=f_title]", "Stand R3b Titel")
@@ -124,6 +139,7 @@ with sync_playwright() as p:
         shown = pg.locator("[data-schema-fields] input[name=f_title]").input_value()
         check(shown == "Stand R3b Titel", "текст из панели остался в черновике")
         pg.screenshot(path=f"{OUT}/r3_{w}.png", full_page=True)
+        close_sheet(pg)
         pg.click("[data-schema-draft] button[value=save]")
         pg.wait_for_load_state()
         site = ctx.new_page()
@@ -142,6 +158,7 @@ with sync_playwright() as p:
         # убрать за собой: удалить оба блока
         for _i in range(2):
             pg.goto(U + "/dashboard/site/aufbau/?seite=text")
+            close_sheet(pg)
             pg.locator("[data-schema-row] [data-schema-block]").last.click()
             pg.wait_for_load_state()
             pg.click("[data-schema-more] summary")
@@ -149,16 +166,20 @@ with sync_playwright() as p:
             pg.wait_for_load_state()
             pg.click("button[value=delete]")
             pg.wait_for_load_state()
+        close_sheet(pg)
         pg.click("[data-schema-draft] button[value=save]")
         pg.wait_for_load_state()
         pg.goto(U + "/dashboard/site/aufbau/?seite=text")
+        close_sheet(pg)
         pg.click("[data-schema-add] summary")
         pg.select_option("select[name=type]", "text")
         pg.click("form:has(select[name=type]) button")
         pg.wait_for_load_state()
+        close_sheet(pg)
         pg.click("[data-schema-draft] button[value=discard]")
         pg.wait_for_load_state()
         # R3b-2: блок «Liste» — что показать, какие и как; после «Speichern» на витрине
+        close_sheet(pg)
         pg.click("[data-schema-add] summary")
         pg.select_option("select[name=type]", "list")
         pg.click("form:has(select[name=type]) button")
@@ -217,6 +238,7 @@ with sync_playwright() as p:
         check(small == 0, f"кнопки ручного выбора не меньше 24 px ({small})")
         pg.screenshot(path=f"{OUT}/r5_{w}.png", full_page=True)
         pick_order = got
+        close_sheet(pg)
         pg.click("[data-schema-draft] button[value=save]")
         pg.wait_for_load_state()
         site = ctx.new_page()
@@ -234,6 +256,7 @@ with sync_playwright() as p:
         site.screenshot(path=f"{OUT}/r3list_site_{w}.png", full_page=True)
         site.close()
         pg.goto(U + "/dashboard/site/aufbau/?seite=text")
+        close_sheet(pg)
         pg.locator("[data-schema-row] [data-schema-block]").last.click()
         pg.wait_for_load_state()
         pg.click("[data-schema-more] summary")
@@ -241,10 +264,12 @@ with sync_playwright() as p:
         pg.wait_for_load_state()
         pg.click("button[value=delete]")
         pg.wait_for_load_state()
+        close_sheet(pg)
         pg.click("[data-schema-draft] button[value=save]")
         pg.wait_for_load_state()
         # R4: настройки типа страницы — в панели «★ Hauptliste» и на строке настроек
         pg.goto(U + "/dashboard/site/aufbau/?seite=catalog")
+        close_sheet(pg)
         pg.locator("[data-schema-block]").filter(has_text="Hauptliste").first.click()
         pg.wait_for_load_state()
         n = pg.locator("[data-schema-setting]").count()
@@ -263,9 +288,11 @@ with sync_playwright() as p:
             "изменённая настройка осталась раскрытой",
         )
         pg.screenshot(path=f"{OUT}/r4_{w}.png", full_page=True)
+        close_sheet(pg)
         pg.click("[data-schema-draft] button[value=discard]")
         pg.wait_for_load_state()
         pg.goto(U + "/dashboard/site/aufbau/?seite=text")
+        close_sheet(pg)
         pg.click("[data-schema-block=__page]")
         pg.wait_for_load_state()
         check(
@@ -276,6 +303,7 @@ with sync_playwright() as p:
         pg.goto(U + "/dashboard/site/aufbau/?seite=text")
         check(pg.locator("select[name=type] optgroup").count() >= 3, "меню «+ Block» группами")
         before = pg.locator("[data-schema-row] [data-schema-block]").count()
+        close_sheet(pg)
         pg.click("[data-schema-add] summary")
         pg.select_option("[data-schema-add-row] select", "text_contact")
         pg.click("[data-schema-add-row] button")
@@ -283,6 +311,7 @@ with sync_playwright() as p:
         rows = pg.locator("[data-schema-row]")
         last_row = rows.nth(rows.count() - 1).locator("[data-schema-block]").count()
         check(last_row == 2, f"готовая строка — два блока в одном ряду ({last_row})")
+        close_sheet(pg)
         pg.click("[data-schema-add] summary")
         pg.select_option("select[name=type]", "textpage")
         pg.click("form:has(select[name=type]) button")
@@ -297,6 +326,7 @@ with sync_playwright() as p:
         over = pg.evaluate("document.documentElement.scrollWidth - window.innerWidth")
         check(over <= 0, f"R6: без горизонтального вылета ({over})")
         pg.screenshot(path=f"{OUT}/r6_{w}.png", full_page=True)
+        close_sheet(pg)
         pg.click("[data-schema-draft] button[value=save]")
         pg.wait_for_load_state()
         site = ctx.new_page()
@@ -312,6 +342,7 @@ with sync_playwright() as p:
         site.close()
         for _i in range(pg.locator("[data-schema-row] [data-schema-block]").count() - before):
             pg.goto(U + "/dashboard/site/aufbau/?seite=text")
+            close_sheet(pg)
             pg.locator("[data-schema-row] [data-schema-block]").last.click()
             pg.wait_for_load_state()
             pg.click("[data-schema-more] summary")
@@ -319,6 +350,7 @@ with sync_playwright() as p:
             pg.wait_for_load_state()
             pg.click("button[value=delete]")
             pg.wait_for_load_state()
+        close_sheet(pg)
         pg.click("[data-schema-draft] button[value=save]")
         pg.wait_for_load_state()
         # R7: своя схема категории заменяет блоки каталога на её странице
@@ -332,6 +364,7 @@ with sync_playwright() as p:
             code = cats[0]
             slug = code.split(":", 1)[1]
             pg.goto(U + "/dashboard/site/aufbau/?seite=catalog")
+            close_sheet(pg)
             pg.click("[data-schema-add] summary")
             pg.select_option("select[name=type]", "text")
             pg.click("form:has(select[name=type]) button")
@@ -339,6 +372,7 @@ with sync_playwright() as p:
             pg.fill("[data-schema-fields] input[name=f_title]", "Stand Katalogblock")
             pg.click("[data-schema-fields] button[value=update]")
             pg.wait_for_load_state()
+            close_sheet(pg)
             pg.click("[data-schema-draft] button[value=save]")
             pg.wait_for_load_state()
             site = ctx.new_page()
@@ -351,6 +385,7 @@ with sync_playwright() as p:
                 pg.locator("[data-schema-category=catalog]").count() == 1,
                 "строка категории: «zeigt die Blöcke des Katalogs»",
             )
+            close_sheet(pg)
             pg.click("[data-schema-add] summary")
             pg.select_option("select[name=type]", "text")
             pg.click("form:has(select[name=type]) button")
@@ -365,6 +400,7 @@ with sync_playwright() as p:
             over = pg.evaluate("document.documentElement.scrollWidth - window.innerWidth")
             check(over <= 0, f"R7: без горизонтального вылета ({over})")
             pg.screenshot(path=f"{OUT}/r7_{w}.png", full_page=True)
+            close_sheet(pg)
             pg.click("[data-schema-draft] button[value=save]")
             pg.wait_for_load_state()
             site.goto(U + f"/sortiment/{slug}/")
@@ -380,6 +416,7 @@ with sync_playwright() as p:
             pg.click("[data-schema-category] summary")
             pg.click("[data-schema-category] button[value=reset]")
             pg.wait_for_load_state()
+            close_sheet(pg)
             pg.click("[data-schema-draft] button[value=save]")
             pg.wait_for_load_state()
             check(
@@ -387,6 +424,7 @@ with sync_playwright() as p:
                 "«Eigene Blöcke entfernen» вернул блоки каталога",
             )
             pg.goto(U + "/dashboard/site/aufbau/?seite=catalog")
+            close_sheet(pg)
             pg.locator("[data-schema-row] [data-schema-block]").last.click()
             pg.wait_for_load_state()
             pg.click("[data-schema-more] summary")
@@ -394,6 +432,7 @@ with sync_playwright() as p:
             pg.wait_for_load_state()
             pg.click("button[value=delete]")
             pg.wait_for_load_state()
+            close_sheet(pg)
             pg.click("[data-schema-draft] button[value=save]")
             pg.wait_for_load_state()
         check(not errs, "без JS-ошибок: " + "; ".join(errs[:2]))

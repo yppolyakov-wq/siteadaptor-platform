@@ -48,6 +48,14 @@ for slug, btype in {TENANTS!r}.items():
 """
 
 
+def close_sheet(pg):
+    """На телефоне панель блока — лист снизу; до кнопок шапки и схемы — «Fertig»."""
+    done = pg.locator("[data-schema-done]")
+    if done.count() and done.first.is_visible():
+        done.first.click()
+        pg.wait_for_load_state()
+
+
 def main():  # noqa: PLR0915 — один линейный сценарий стенда
     if "--setup" in sys.argv:
         out = subprocess.run(
@@ -124,6 +132,7 @@ def main():  # noqa: PLR0915 — один линейный сценарий ст
                     if lang == "de":
                         # сценарий владельца без скриптов: блок → сохранить → сайт → убрать
                         pg.goto(url + "/dashboard/site/aufbau/?seite=text")
+                        close_sheet(pg)
                         pg.click("[data-schema-add] summary")
                         pg.select_option("select[name=type]", "text")
                         pg.click("form:has(select[name=type]) button")
@@ -132,6 +141,7 @@ def main():  # noqa: PLR0915 — один линейный сценарий ст
                         pg.fill("[data-schema-fields] input[name=f_title]", title)
                         pg.click("[data-schema-fields] button[value=update]")
                         pg.wait_for_load_state()
+                        close_sheet(pg)
                         pg.click("[data-schema-draft] button[value=save]")
                         pg.wait_for_load_state()
                         site = ctx.new_page()
@@ -143,6 +153,7 @@ def main():  # noqa: PLR0915 — один линейный сценарий ст
                         check(over <= 0, f"{tag}: витрина без вылета ({over})")
                         site.close()
                         pg.goto(url + "/dashboard/site/aufbau/?seite=text")
+                        close_sheet(pg)
                         pg.locator("[data-schema-block]").filter(has_text=title).first.click()
                         pg.wait_for_load_state()
                         pg.click("[data-schema-more] summary")
@@ -150,6 +161,7 @@ def main():  # noqa: PLR0915 — один линейный сценарий ст
                         pg.wait_for_load_state()
                         pg.click("button[value=delete]")
                         pg.wait_for_load_state()
+                        close_sheet(pg)
                         pg.click("[data-schema-draft] button[value=save]")
                         pg.wait_for_load_state()
                         check(

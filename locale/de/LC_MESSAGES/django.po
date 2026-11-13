@@ -37579,3 +37579,6 @@ msgstr "Einzelner Block"
 
 msgid "Fertige Zeile"
 msgstr "Fertige Zeile"
+
+msgid "Computer"
+msgstr "Computer"

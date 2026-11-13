@@ -37492,3 +37492,6 @@ msgstr "Single block"
 
 msgid "Fertige Zeile"
 msgstr "Ready-made row"
+
+msgid "Computer"
+msgstr "Computer"

@@ -277,3 +277,31 @@ def test_apply_all_reaches_only_lists_of_active_modules(_urlconf):
         if page_settings.type_active(b.tenant, page_settings.APPLY_ALL_TYPES[code])
     }
     assert set(pending) <= active
+
+
+# ───────────── FB-27 V3/V4: носитель настроек, телефон ─────────────
+
+
+def test_home_banner_settings_live_in_the_banner_row_not_in_a_page_row():
+    """Макет Main: строки «Einstellungen der Seite» на главной нет — вид баннера в строке
+    «Banner». У страниц без носителя (текстовые) строка остаётся."""
+    from apps.core import site_schema
+
+    assert site_schema.settings_carrier("home") == "hero"
+    assert site_schema.settings_url("home", "home_hero").count("block=hero") == 1
+    assert "block=__page" in site_schema.settings_url("product")
+    b = Browser(_tenant())
+    home = b.get("?seite=home")
+    assert 'data-schema-block="__page"' not in home
+    assert "data-schema-setting" in b.get("?seite=home&block=hero")
+    assert 'data-schema-block="__page"' in b.get("?seite=text")
+
+
+def test_phone_gets_a_bottom_sheet_with_done_and_a_view_switch():
+    import pathlib
+
+    tpl = pathlib.Path("templates/tenant/site_schema.html").read_text()
+    assert "max-md:fixed" in tpl and "data-schema-done" in tpl and "data-schema-view" in tpl
+    b = Browser(_tenant())
+    assert "md:flex-row" in b.get("?seite=home")
+    assert "md:flex-row" not in b.get("?seite=home&ansicht=telefon")

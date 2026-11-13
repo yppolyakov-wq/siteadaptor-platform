@@ -37818,3 +37818,6 @@ msgstr "Окремий блок"
 
 msgid "Fertige Zeile"
 msgstr "Готовий рядок"
+
+msgid "Computer"
+msgstr "Комп'ютер"

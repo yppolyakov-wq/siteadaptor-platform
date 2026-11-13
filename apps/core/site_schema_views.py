@@ -189,13 +189,20 @@ def site_schema_view(request):
     except site_schema.SchemaError:
         has_settings = False
     if has_settings:
-        main = next((b for b in blocks if b["main"]), None)
-        if main is None:
+        # FB-27 V3 (макет Main): настройки живут в строке блока-носителя — основной список
+        # либо, на главной, строка «Banner». Отдельная строка «Einstellungen der Seite» —
+        # только у страниц, где носителя нет (детали, корзина, текстовые).
+        carrier = next((b for b in blocks if b["main"]), None) or next(
+            (b for b in blocks if b["ref"] == site_schema.settings_carrier(code)), None
+        )
+        if carrier is None:
             page_row = {
                 "ref": site_schema.PAGE_REF,
                 "active": request.GET.get("block") == site_schema.PAGE_REF,
             }
-        if (selected and selected["main"]) or (page_row and page_row["active"]):
+        else:
+            carrier["carrier"] = True
+        if (selected and selected.get("carrier")) or (page_row and page_row["active"]):
             settings = site_schema.settings_groups(tenant, code, config)
     preview_url = current.preview_url if current else ""
     studio = reverse("site-home")
@@ -241,6 +248,8 @@ def site_schema_view(request):
             "settings_ref": selected["ref"] if selected else site_schema.PAGE_REF,
             "shared_settings": site_schema.SHARED_SETTINGS,
             "open_setting": request.GET.get("offen", ""),
+            # FB-27 V4: вид схемы «как на телефоне» — блоки друг под другом
+            "phone_view": request.GET.get("ansicht") == "telefon",
             # Панель правит текст ОСНОВНОГО языка; при нескольких языках — подсказка.
             "multi_lang": len(tenant.active_locales) > 1,
         },
