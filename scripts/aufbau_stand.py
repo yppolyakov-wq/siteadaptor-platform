@@ -44,13 +44,15 @@ with sync_playwright() as p:
         pg.wait_for_load_state()
         print(f"--- {w}px")
         check(pg.locator("select#schema-seite").count() == 1, "select типа страницы")
-        check(pg.locator("[data-schema-type] button").is_visible(), "кнопка «Öffnen» видна")
+        check(
+            not pg.locator("[data-schema-type] button").is_visible(),
+            "со скриптами страница открывается по выбору — кнопки «Öffnen» нет",
+        )
         opts = pg.locator("select#schema-seite option").all_inner_texts()
         print("    типы:", " | ".join(o.strip() for o in opts))
         pg.select_option("select#schema-seite", "text")
-        pg.click("[data-schema-type] button")
         pg.wait_for_url(lambda u: "seite=text" in u, timeout=5000)
-        check("seite=text" in pg.url, "смена типа кнопкой «Öffnen»")
+        check("seite=text" in pg.url, "смена страницы по выбору в списке")
         # добавить два блока и проверить панель
         pg.select_option("select[name=type]", "text")
         pg.click("form:has(select[name=type]) button")

@@ -426,6 +426,66 @@ def host_for(code: str, known_slugs: set[str] | None = None) -> str:
     return ""
 
 
+#: FB-27 V1 (макет Main): схематичная миниатюра строки — «bar» (баннер, фото), «cards»
+#: (список карточек), «lines» (текст); прочие блоки — без миниатюры.
+_THUMB_BAR = frozenset({"hero", "banner", "image", "image_text", "gallery", "gallery_ref"})
+_THUMB_LINES = frozenset({"text", "about", "textpage", "faq", "faq_ref", "usp_bar"})
+
+
+def _row_thumb(key: str) -> str:
+    from apps.tenants import siteconfig
+
+    kind = siteconfig.cblock_type(key) or key
+    if kind == "list" or kind in siteconfig.BUILTIN_LIST_SOURCES:
+        return "cards"
+    if kind in _THUMB_BAR:
+        return "bar"
+    return "lines" if kind in _THUMB_LINES else ""
+
+
+def _row_summary(config: dict, item: dict) -> str:
+    """FB-27 V1: строка-сводка блока в схеме — что он показывает, без запросов в БД
+    («3 Folien · Slider», «Produkte · höchstens 8 · Slider», «„Tee aus kleinen Gärten …“»)."""
+    from apps.tenants import siteconfig
+
+    key = item.get("key") or ""
+    kind = siteconfig.cblock_type(key) or key
+    data = item.get("data") if isinstance(item.get("data"), dict) else {}
+    parts: list[str] = []
+    if kind == "hero" and not item.get("id"):
+        slides = len(config.get("heroes") or [])
+        if slides > 1:
+            parts += [_("%(n)s Folien") % {"n": slides}, str(_("Slider"))]
+    elif kind == "list" or (kind in siteconfig.BUILTIN_LIST_SOURCES and not item.get("id")):
+        if kind == "list":
+            source = data.get("source") or siteconfig.LIST_SOURCE_DEFAULT
+            if data.get("title"):
+                parts.append(str(data["title"]))
+            elif source in siteconfig.LIST_SOURCES:
+                parts.append(str(siteconfig.LIST_SOURCES[source]["label"]))
+            if data.get("pick"):
+                parts.append(_("%(n)s ausgewählt") % {"n": len(data["pick"])})
+            elif data.get("limit"):
+                parts.append(_("höchstens %(n)s") % {"n": data["limit"]})
+            slider = data.get("out") == "slider"
+        else:
+            layout = item.get("layout") if isinstance(item.get("layout"), dict) else {}
+            limit = item.get("limit")
+            if limit:
+                parts.append(_("höchstens %(n)s") % {"n": limit})
+            slider = bool(layout.get("scroll"))
+            cols = layout.get("cols")
+            if cols and not slider and str(cols) not in ("", "1"):
+                parts.append(_("%(n)s Spalten") % {"n": cols})
+        parts.append(str(_("Slider") if slider else _("Raster")))
+    else:
+        text = data.get("title") or data.get("label") or data.get("caption") or data.get("body")
+        if text:
+            text = " ".join(str(text).split())
+            parts.append("«" + (text[:48] + "…" if len(text) > 48 else text) + "»")
+    return " · ".join(parts)[:80]
+
+
 def _textpage_summaries(rows: list[dict], items: list[dict]) -> None:
     """FB-27 R6: в строке блока «Textseite» — название выбранной страницы. Один запрос
     на все такие блоки страницы; без них — ни одного."""
@@ -504,7 +564,8 @@ def blocks_for(
                 "enabled": True if main else bool(item.get("enabled", True)),
                 "main": main,
                 "cblock": cblock,
-                "summary": str(data.get("title") or data.get("label") or "")[:60],
+                "summary": "" if main else _row_summary(config, item),
+                "thumb": "cards" if main else _row_thumb(key),
                 "fixed": False,
                 "width": item.get("width") or "",
                 "newline": bool(item.get("newline")),
@@ -526,6 +587,7 @@ def blocks_for(
         _textpage_summaries(out, items)
     for b in out:
         b.setdefault("width", "")
+        b.setdefault("thumb", "")
         b.setdefault("newline", False)
         b.setdefault("width_label", "")
         b.setdefault("flex", 12)

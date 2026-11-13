@@ -37597,3 +37597,26 @@ msgstr "Alt öğeleri aç"
 
 msgid "Unterpunkte einklappen"
 msgstr "Alt öğeleri kapat"
+
+#, python-format
+msgid "%(n)s Folien"
+msgstr "%(n)s slayt"
+
+#, python-format
+msgid "%(n)s Spalten"
+msgstr "%(n)s sütun"
+
+#, python-format
+msgid "%(n)s ausgewählt"
+msgstr "%(n)s seçildi"
+
+#, python-format
+msgid "höchstens %(n)s"
+msgstr "en fazla %(n)s"
+
+#, python-format
+msgid "Änderungen: %(n)s"
+msgstr "Değişiklik: %(n)s"
+
+msgid "noch nicht auf der Website"
+msgstr "henüz sitede değil"

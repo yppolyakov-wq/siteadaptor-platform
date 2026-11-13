@@ -37538,3 +37538,26 @@ msgstr "Unterpunkte aufklappen"
 
 msgid "Unterpunkte einklappen"
 msgstr "Unterpunkte einklappen"
+
+#, python-format
+msgid "%(n)s Folien"
+msgstr "%(n)s Folien"
+
+#, python-format
+msgid "%(n)s Spalten"
+msgstr "%(n)s Spalten"
+
+#, python-format
+msgid "%(n)s ausgewählt"
+msgstr "%(n)s ausgewählt"
+
+#, python-format
+msgid "höchstens %(n)s"
+msgstr "höchstens %(n)s"
+
+#, python-format
+msgid "Änderungen: %(n)s"
+msgstr "Änderungen: %(n)s"
+
+msgid "noch nicht auf der Website"
+msgstr "noch nicht auf der Website"

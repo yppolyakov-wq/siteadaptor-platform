@@ -233,3 +233,42 @@ def test_page_type_changes_by_button_not_on_change():
     assert "submit()" not in (root / "static/js/aufbau.js").read_text()
     html = site_schema_view(_request("get", _biz("online_shop"))).content.decode()
     assert "Öffnen" in html
+
+
+# ───────────── FB-27 V1: вид по согласованному макету (шапка и строки) ─────────────
+
+
+def test_v1_rows_carry_summary_and_thumbnail_like_the_mockup():
+    from apps.core import site_schema
+    from apps.tenants import siteconfig
+
+    cfg = siteconfig.normalize(
+        {
+            "heroes": [{"title": "A"}, {"title": "B"}, {"title": "C"}],
+            "sections": [
+                {"key": "text", "id": "t", "enabled": True, "data": {"title": "Tee aus Gärten"}},
+                {
+                    "key": "list",
+                    "id": "l",
+                    "enabled": True,
+                    "data": {"source": "products", "limit": 8, "out": "slider"},
+                },
+            ],
+        }
+    )
+    rows = {b["ref"]: b for b in site_schema.blocks_for(cfg, "home")}
+    assert rows["t"]["summary"] == "«Tee aus Gärten»" and rows["t"]["thumb"] == "lines"
+    assert "8" in rows["l"]["summary"] and "Slider" in rows["l"]["summary"]
+    assert rows["l"]["thumb"] == "cards" and rows["products"]["thumb"] == "cards"
+    assert rows["hero"]["thumb"] == "bar" and "3" in rows["hero"]["summary"]
+
+
+def test_v1_head_holds_the_draft_buttons_and_the_page_choice_has_no_counter():
+    import pathlib
+
+    tpl = pathlib.Path("templates/tenant/site_schema.html").read_text()
+    head = tpl[tpl.index("data-schema-head") : tpl.index("{% if messages %}")]
+    assert "data-schema-draft" in head and 'value="save"' in head and 'value="discard"' in head
+    assert tpl.count("data-schema-draft>") == 1  # одна форма черновика — в шапке
+    assert "r.count" not in tpl  # счётчика блоков в выборе страницы нет (макет)
+    assert "data-schema-open" in head  # без скриптов страница открывается кнопкой

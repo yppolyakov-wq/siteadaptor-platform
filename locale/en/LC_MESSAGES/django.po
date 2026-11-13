@@ -37451,3 +37451,26 @@ msgstr "Expand sub-items"
 
 msgid "Unterpunkte einklappen"
 msgstr "Collapse sub-items"
+
+#, python-format
+msgid "%(n)s Folien"
+msgstr "%(n)s slides"
+
+#, python-format
+msgid "%(n)s Spalten"
+msgstr "%(n)s columns"
+
+#, python-format
+msgid "%(n)s ausgewählt"
+msgstr "%(n)s selected"
+
+#, python-format
+msgid "höchstens %(n)s"
+msgstr "at most %(n)s"
+
+#, python-format
+msgid "Änderungen: %(n)s"
+msgstr "Changes: %(n)s"
+
+msgid "noch nicht auf der Website"
+msgstr "not yet on the website"

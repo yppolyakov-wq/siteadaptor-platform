@@ -37790,3 +37790,26 @@ msgstr "Развернуть подпункты"
 
 msgid "Unterpunkte einklappen"
 msgstr "Свернуть подпункты"
+
+#, python-format
+msgid "%(n)s Folien"
+msgstr "слайдов: %(n)s"
+
+#, python-format
+msgid "%(n)s Spalten"
+msgstr "колонок: %(n)s"
+
+#, python-format
+msgid "%(n)s ausgewählt"
+msgstr "выбрано: %(n)s"
+
+#, python-format
+msgid "höchstens %(n)s"
+msgstr "не больше %(n)s"
+
+#, python-format
+msgid "Änderungen: %(n)s"
+msgstr "Изменений: %(n)s"
+
+msgid "noch nicht auf der Website"
+msgstr "ещё не на сайте"
