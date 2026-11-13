@@ -107,6 +107,61 @@ def structure_hash(config) -> str:
     return hashlib.sha1(raw, usedforsecurity=False).hexdigest()[:16]
 
 
+#: FB-27 R8: что из строки блока принадлежит «Seitenaufbau», а не Студии (те же поля,
+#: что видит отпечаток структуры, кроме состава и порядка — их задаёт сам список).
+_OWNED_FIELDS = ("enabled", "width", "pos", "newline")
+
+
+def merge_structure(saved: list, posted: list, fixed: bool = False) -> list:
+    """FB-27 R8: блоки страницы после «Speichern» Студии. Порядок, состав, видимость и
+    ширина — как СОХРАНЕНО (структуру правит «Seitenaufbau»); из формы Студии берётся
+    только содержимое и вид блока, найденного по `id` (свой блок) или `key` (секция).
+
+    Блок формы, которого в сохранённом нет (удалён тем временем), отбрасывается; блок,
+    которого нет в форме (устаревшая вкладка, свёрнутая страница), остаётся как был.
+    `fixed` — главная: встроенные секции, которых в сохранённом ещё нет, дописываются."""
+    from apps.tenants import siteconfig
+
+    def ident(item):
+        return item.get("id") or item.get("key")
+
+    by = {}
+    for item in posted or []:
+        if isinstance(item, dict) and not siteconfig.is_main_marker(item):
+            by.setdefault(ident(item), item)
+    out = []
+    for old in saved or []:
+        if not isinstance(old, dict):
+            continue
+        new = None if siteconfig.is_main_marker(old) else by.pop(ident(old), None)
+        if new is None or new.get("key") != old.get("key"):
+            out.append(old)
+            continue
+        merged = dict(new)
+        # У встроенной секции главной ширину (Ganz/Randlos) в «Seitenaufbau» менять
+        # негде — она остаётся виду Студии; её структура — только видимость.
+        for field in _OWNED_FIELDS if old.get("id") else ("enabled",):
+            if field in old:
+                merged[field] = old[field]
+            else:
+                merged.pop(field, None)
+        out.append(merged)
+    if fixed:
+        out += [item for item in by.values() if not item.get("id")]
+    return out
+
+
+def merge_pages(saved: dict, posted: dict) -> dict:
+    """FB-27 R8: `page_blocks` после «Speichern» Студии — хосты и их состав как
+    сохранено; страница, которой нет в форме, остаётся как была."""
+    saved = saved if isinstance(saved, dict) else {}
+    posted = posted if isinstance(posted, dict) else {}
+    return {
+        host: merge_structure(blocks, posted[host]) if host in posted else list(blocks)
+        for host, blocks in saved.items()
+    }
+
+
 def page_rows(config: dict) -> list[PageRow]:
     """Типы страниц со своими блоками (главная первой) + число видимых блоков."""
     rows = []

@@ -200,18 +200,20 @@ def _save(tenant, post):
     return siteconfig.normalize(tenant.site_config).get("page_blocks", {})
 
 
-def test_builder_save_keeps_the_marker_where_the_owner_put_it():
-    t = _tenant(page_blocks={"promos": [_text("a", "a1"), _text("b", "b1")]})
+def test_builder_save_keeps_the_marker_where_it_is_stored():
+    """FB-27 R8 (осознанная переписка): место основного списка — структура; форма Студии,
+    приславшая его в другом месте, сохранённое положение не меняет."""
+    t = _tenant(page_blocks={"promos": [_text("a", "a1"), MAIN, _text("b", "b1")]})
     saved = _save(
-        t, _pb_post("promos", [("a1", "text", 1), ("main-promos", "main", 2), ("b1", "text", 3)])
+        t, _pb_post("promos", [("main-promos", "main", 1), ("a1", "text", 2), ("b1", "text", 3)])
     )
     assert [b.get("id", b["key"]) for b in saved["promos"]] == ["a1", "main", "b1"]
 
 
-def test_builder_save_with_the_marker_first_stores_no_marker():
-    t = _tenant(page_blocks={"promos": [_text("a", "a1"), MAIN, _text("b", "b1")]})
+def test_builder_save_does_not_invent_a_marker():
+    t = _tenant(page_blocks={"promos": [_text("a", "a1"), _text("b", "b1")]})
     saved = _save(
-        t, _pb_post("promos", [("main-promos", "main", 1), ("a1", "text", 2), ("b1", "text", 3)])
+        t, _pb_post("promos", [("a1", "text", 1), ("main-promos", "main", 2), ("b1", "text", 3)])
     )
     assert [b["key"] for b in saved["promos"]] == ["text", "text"]
 
@@ -222,7 +224,10 @@ def test_builder_save_ignores_a_marker_on_a_page_without_a_main_list():
     assert [b["key"] for b in saved["info"]] == ["text"]
 
 
-def test_live_draft_moves_a_block_above_the_list():
+def test_live_draft_cannot_move_blocks_or_add_new_ones():
+    """FB-27 R8 (осознанная переписка): превью = результат Save. Черновик Студии несёт
+    содержимое; место блока относительно основного списка и состав страницы — как
+    сохранено в «Seitenaufbau»."""
     from apps.core import views
 
     t = _tenant(page_blocks={"promos": [_text(BELOW, "b1")]})
@@ -249,7 +254,8 @@ def test_live_draft_moves_a_block_above_the_list():
         title={"de": "Angebot"}, status="active", promo_type="discount", discount_percent=10
     )
     body = public_views.promotion_list(preview).content.decode()
-    assert body.index(ABOVE) < body.index("data-pb-main") < body.index(BELOW)
+    assert ABOVE not in body  # блока a1 в сохранённой схеме нет
+    assert body.index("data-pb-main") < body.index(BELOW)
 
 
 def _builder(tenant):

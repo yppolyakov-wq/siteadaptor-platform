@@ -45,8 +45,12 @@ def test_draft_endpoint_merges_into_session():
     resp = views.site_preview_draft(req)
     assert resp.status_code == 204
     draft = req.session["site_preview_draft"]
-    en = {s["key"] for s in draft["sections"] if s["enabled"]}
-    assert "hero" in en and "products" not in en
+    # FB-27 R8 (осознанная переписка): видимость секций — структура, черновик Студии её
+    # не меняет (превью = результат Save).
+    saved = siteconfig.normalize(tenant.site_config)["sections"]
+    assert {s["key"]: s["enabled"] for s in draft["sections"]} == {
+        s["key"]: s["enabled"] for s in saved
+    }
     assert draft["hero_title"] == "Saved"  # прочий конфиг не затёрт
     assert draft["archetypes"]["catalog"]["hidden"] is True
     assert draft["archetypes"]["catalog"]["label"] == "X"
@@ -612,7 +616,16 @@ def test_draft_endpoint_includes_cblocks():
     """D.2b: C-блок из collect() (key=тип, id, data) попадает в черновик. Раньше
     site_preview_draft фильтровал только ФИКС-секции → cblocks выпадали и добавленный
     блок «не появлялся» в live-preview (корень бага «Templates: кнопки неактивны»)."""
-    tenant = TenantFactory(schema_name="public", slug="dcb", name="DCB")
+    # FB-27 R8: блок уже есть в сохранённой схеме (его добавляют в «Seitenaufbau») —
+    # черновик несёт его содержимое.
+    tenant = TenantFactory(
+        schema_name="public",
+        slug="dcb",
+        name="DCB",
+        site_config={
+            "sections": [{"key": "text", "id": "abc123def456", "enabled": True, "data": {}}]
+        },
+    )
     body = json.dumps(
         {
             "sections": [
@@ -642,7 +655,17 @@ def test_draft_endpoint_includes_cblocks():
 
 def test_draft_endpoint_keeps_multiple_cblocks_of_same_type():
     """C-блоки одного ТИПА различаются по id (не дедупятся по ключу, как фикс-секции)."""
-    tenant = TenantFactory(schema_name="public", slug="dcb2", name="DCB2")
+    tenant = TenantFactory(
+        schema_name="public",
+        slug="dcb2",
+        name="DCB2",
+        site_config={
+            "sections": [
+                {"key": "text", "id": "id1aaaaaaaaa", "enabled": True, "data": {"body": "1"}},
+                {"key": "text", "id": "id2bbbbbbbbb", "enabled": True, "data": {"body": "2"}},
+            ]
+        },
+    )
     body = json.dumps(
         {
             "sections": [
@@ -695,8 +718,9 @@ def test_empty_image_block_placeholder_in_preview():
 
 
 def test_draft_endpoint_accepts_page_blocks():
-    """UC6-7b: page_blocks в черновике — passthrough + чистка normalize (whitelist
-    хостов, _clean_cblock); опустевший хост исчезает (удаление видно в превью)."""
+    """UC6-7b: page_blocks в черновике — чистка normalize (whitelist хостов,
+    _clean_cblock). FB-27 R8 (осознанная переписка): черновик несёт содержимое блоков;
+    новый блок и новый хост из черновика в превью не попадают — состав за «Seitenaufbau»."""
     tenant = TenantFactory(
         schema_name="public",
         slug="dpb",
@@ -731,7 +755,7 @@ def test_draft_endpoint_accepts_page_blocks():
     assert views.site_preview_draft(req).status_code == 204
     pb = req.session["site_preview_draft"]["page_blocks"]
     assert set(pb) == {"services"}
-    assert [b["data"].get("title", b["data"].get("label")) for b in pb["services"]] == ["Neu", "M"]
+    assert [b["data"].get("title", b["data"].get("label")) for b in pb["services"]] == ["Neu"]
 
 
 def test_draft_endpoint_includes_hero_image_and_quick_add():

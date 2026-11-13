@@ -49,18 +49,19 @@ def test_home_builder_saves_blocks_and_preserves_design():
         "enabled_hero": "on",
         "order_archetypes": "2",
         "enabled_archetypes": "on",
-        "order_products": "3",  # без enabled_ → выключается
+        "order_products": "3",  # без enabled_ — FB-27 R8: видимость Студия не меняет
         "arch_visible_catalog": "on",
         "arch_label_catalog": "Speisekarte",
         "arch_blurb_catalog": "Frisch & vegan",
     }
+    before = {s["key"]: s["enabled"] for s in siteconfig.normalize(tenant.site_config)["sections"]}
     resp = views.home_builder_view(_request("post", "/dashboard/site/home/", data, tenant))
     assert resp.status_code == 302
 
     cfg = siteconfig.normalize(tenant.site_config)
-    enabled = {s["key"] for s in cfg["sections"] if s["enabled"]}
-    assert "hero" in enabled and "archetypes" in enabled
-    assert "products" not in enabled  # снят
+    # FB-27 R8 (осознанная переписка): видимость и порядок секций — структура, её правит
+    # «Seitenaufbau»; «Speichern» Студии оставляет их как были.
+    assert {s["key"]: s["enabled"] for s in cfg["sections"]} == before
     # Композиция не затёрла остальной дизайн.
     assert cfg["hero_title"] == "Hallo"
     assert cfg["nav"]["style"] == "centered" and cfg["nav"]["sticky"] is False
@@ -1341,8 +1342,9 @@ def test_home_builder_save_page_template_snapshots_layout():
         "page_tpl_label": "Mein Layout",
         "order_hero": "1",
         "enabled_hero": "on",
-        "order_products": "2",  # без enabled_ → выключена в снимке
+        "order_products": "2",  # без enabled_ — FB-27 R8: в снимке как сохранено
     }
+    saved = {s["key"]: s["enabled"] for s in siteconfig.normalize(tenant.site_config)["sections"]}
     resp = views.home_builder_view(_request("post", "/dashboard/site/home/", data, tenant))
     assert resp.status_code == 302
     pts = siteconfig.normalize(tenant.site_config)["page_templates"]
@@ -1350,8 +1352,8 @@ def test_home_builder_save_page_template_snapshots_layout():
     pt = next(iter(pts.values()))
     assert pt["label"] == "Mein Layout"
     by_key = {s["key"]: s for s in pt["sections"]}
-    assert by_key["hero"]["enabled"] is True
-    assert by_key["products"]["enabled"] is False
+    # FB-27 R8 (осознанная переписка): снимок — сохранённая компоновка, а не галочки формы
+    assert {k: v["enabled"] for k, v in by_key.items()} == saved
 
 
 def test_home_builder_use_page_template_replaces_sections():

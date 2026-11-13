@@ -196,10 +196,14 @@ def test_template_and_demo_actions_left_the_studio():
     for action in ("apply_template", "load_demo", "clear_demo"):
         assert f'value="{action}"' not in body, action
     tenant = TenantFactory(slug="stth7", name="StTh7", site_config=_designed())
+    before = {
+        s["key"] for s in siteconfig.normalize(tenant.site_config)["sections"] if s.get("enabled")
+    }
     # ветка удалена → POST проваливается в обычное сохранение и НЕ раскладывает шаблон
     cfg = _save(
         tenant,
         {"action": "apply_template", "template": "gastro", "order_faq": "1", "enabled_faq": "on"},
     )
     on = {s["key"] for s in cfg["sections"] if s.get("enabled")}
-    assert on == {"faq"}, f"шаблон gastro не должен раскладываться из Студии: {on}"
+    # FB-27 R8: обычное сохранение Студии видимость секций не меняет вовсе
+    assert on == before, f"шаблон gastro не должен раскладываться из Студии: {on}"

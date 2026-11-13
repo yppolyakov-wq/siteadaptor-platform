@@ -122,7 +122,9 @@ def test_save_persists_cblock_edits_and_keeps_fixed_sections():
     assert any(s["key"] == "contact" and s["enabled"] for s in cfg["sections"])
 
 
-def test_delete_checkbox_removes_cblock():
+def test_delete_checkbox_no_longer_removes_cblock():
+    """FB-27 R8 (осознанная переписка): блок убирают в «Seitenaufbau»; галочка удаления
+    из формы Студии состав страницы не меняет."""
     tenant = TenantFactory(slug="cb3", name="X")
     core_views.home_builder_view(_req({"action": "add_block", "block_type": "button"}, tenant))
     tenant.refresh_from_db()
@@ -135,7 +137,7 @@ def test_delete_checkbox_removes_cblock():
     }
     core_views.home_builder_view(_req(data, tenant))
     tenant.refresh_from_db()
-    assert _cblocks(tenant) == []
+    assert [b["id"] for b in _cblocks(tenant)] == [bid]
 
 
 def test_save_persists_text_style_fields():
@@ -161,8 +163,9 @@ def test_save_persists_text_style_fields():
     assert block["data"]["color"] == "muted"
 
 
-def test_save_persists_cblock_width_and_pos():
-    """UC6-3: ширина/положение C-блока переживают Save (раньше width терялся)."""
+def test_save_does_not_write_cblock_width_and_pos():
+    """FB-27 R8 (осознанная переписка): ширину и положение блока задаёт «Seitenaufbau»;
+    «Speichern» Студии их не трогает."""
     tenant = TenantFactory(slug="cb7", name="X")
     core_views.home_builder_view(_req({"action": "add_block", "block_type": "text"}, tenant))
     tenant.refresh_from_db()
@@ -178,8 +181,8 @@ def test_save_persists_cblock_width_and_pos():
     core_views.home_builder_view(_req(data, tenant))
     tenant.refresh_from_db()
     block = _cblocks(tenant)[0]
-    assert block["width"] == "w23"
-    assert block["pos"] == "right"
+    assert block.get("width", "contained") == "contained" and not block.get("pos")
+    assert block["data"]["title"] == "T"  # содержимое записано
 
 
 def test_add_block_prefills_demo_data():
@@ -203,8 +206,9 @@ def test_cblock_demo_data_survives_normalize_unchanged():
         assert siteconfig._clean_cblock_data(btype, demo) == demo, btype
 
 
-def test_save_persists_newline_flag():
-    """UC6-3a: чекбокс «с новой строки» доезжает до site_config."""
+def test_save_does_not_write_newline_flag():
+    """FB-27 R8 (осознанная переписка): «с новой строки» — структура, её правит
+    «Seitenaufbau»."""
     tenant = TenantFactory(slug="cb9", name="X")
     core_views.home_builder_view(_req({"action": "add_block", "block_type": "text"}, tenant))
     tenant.refresh_from_db()
@@ -220,7 +224,7 @@ def test_save_persists_newline_flag():
     core_views.home_builder_view(_req(data, tenant))
     tenant.refresh_from_db()
     block = _cblocks(tenant)[0]
-    assert block["width"] == "w13" and block["newline"] is True
+    assert block.get("width", "contained") == "contained" and not block.get("newline")
 
 
 def test_save_persists_cblock_visual():
@@ -357,9 +361,10 @@ def test_use_block_template_with_page_key_goes_to_page_blocks():
     assert _cblocks(tenant) == []
 
 
-def test_save_rebuilds_page_blocks_from_pb_rows():
-    """UC6-7b: Save пересобирает page_blocks из pb_id-строк (данные/порядок/удаление),
-    хост вне whitelist отбрасывается."""
+def test_save_patches_page_blocks_from_pb_rows():
+    """FB-27 R8 (осознанная переписка UC6-7b): Save берёт из pb_id-строк только данные
+    блоков; порядок, удаление и состав страниц — за «Seitenaufbau». Хост вне whitelist
+    отбрасывается."""
     tenant = TenantFactory(
         slug="pb5",
         name="X",
@@ -402,9 +407,9 @@ def test_save_rebuilds_page_blocks_from_pb_rows():
     tenant.refresh_from_db()
     pb = siteconfig.normalize(tenant.site_config).get("page_blocks", {})
     svc = pb.get("services", [])
-    assert [b["id"] for b in svc] == ["bbb", "aaa"]  # пересортировано по order
-    assert svc[1]["data"]["title"] == "Neu"
-    assert "cart" not in pb  # последний блок хоста удалён → хост исчез
+    assert [b["id"] for b in svc] == ["aaa", "bbb"]  # порядок как сохранён
+    assert svc[0]["data"]["title"] == "Neu" and svc[1]["data"]["label"] == "Mehr"
+    assert [b["id"] for b in pb["cart"]] == ["ccc"]  # галочка удаления не действует
     assert "nirgendwo" not in pb
 
 

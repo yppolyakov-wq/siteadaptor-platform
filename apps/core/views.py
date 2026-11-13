@@ -24,6 +24,7 @@ from apps.core import (
     list_blocks,
     permissions,
     presence,
+    site_schema,
     studio_pages,
     view_perms,
 )
@@ -2683,7 +2684,11 @@ def home_builder_view(request):
                 order = 999
             items.append((order, _cblock_entry_from_post(request.POST, bid, btype)))
         items.sort(key=lambda row: row[0])
-        new_sections = [entry for _o, entry in items]
+        # FB-27 R8: структура главной (порядок, состав, видимость, ширина) — как
+        # сохранено; из формы — содержимое и вид. Правит структуру «Seitenaufbau».
+        new_sections = site_schema.merge_structure(
+            config["sections"], [entry for _o, entry in items], fixed=True
+        )
         # LB-2 §11.7: переводы C-блоков едут за своим блоком — оверлей мёржится по
         # позиции, и перестановка/удаление сдвигали бы их на чужие блоки. В языке
         # перевода свою локаль выравнивает `split_translation` (ниже), остальные — здесь.
@@ -2727,10 +2732,14 @@ def home_builder_view(request):
                 pb_items.setdefault(host, []).append(
                     (order, _cblock_entry_from_post(request.POST, bid, btype))
                 )
-            new_pages = {
-                host: [entry for _o, entry in sorted(rows, key=lambda r: r[0])]
-                for host, rows in pb_items.items()
-            }
+            # FB-27 R8: хосты, состав и порядок блоков страниц — как сохранено.
+            new_pages = site_schema.merge_pages(
+                config.get("page_blocks") or {},
+                {
+                    host: [entry for _o, entry in sorted(rows, key=lambda r: r[0])]
+                    for host, rows in pb_items.items()
+                },
+            )
             siteconfig.realign_block_overlays(
                 config, new_page_blocks=new_pages, skip_locale=save_loc if translating else None
             )
@@ -3928,6 +3937,9 @@ def site_preview_draft(request):
                     rows.append(cb)
                     seen.add(cbid)
         if rows:
+            # FB-27 R8: превью = результат Save — порядок, состав, видимость и ширина
+            # блоков как сохранено; черновик несёт только содержимое и вид.
+            rows = site_schema.merge_structure(cfg["sections"], rows, fixed=True)
             # LB-2 §11.7: превью = результат Save — переводы за своими блоками.
             siteconfig.realign_block_overlays(cfg, new_sections=rows)
             cfg["sections"] = rows
@@ -3955,8 +3967,13 @@ def site_preview_draft(request):
     # формы, включая опустевшие после удаления); normalize_page_blocks чистит
     # (whitelist хостов, _clean_cblock, кап) на normalize ниже.
     if isinstance(data.get("page_blocks"), dict):
-        siteconfig.realign_block_overlays(cfg, new_page_blocks=data["page_blocks"])
-        cfg["page_blocks"] = data["page_blocks"]
+        # FB-27 R8: хосты и состав страниц — как сохранено (см. Save).
+        pages = site_schema.merge_pages(
+            cfg.get("page_blocks") or {},
+            {h: b for h, b in data["page_blocks"].items() if isinstance(b, list)},
+        )
+        siteconfig.realign_block_overlays(cfg, new_page_blocks=pages)
+        cfg["page_blocks"] = pages
     # SE-2d: глобальный стиль карточек («весь сайт») — в превью (normalize_site_defaults
     # клампит). Применяется через context-процессор на любой странице под ?preview=1.
     if isinstance(data.get("site_defaults"), dict):

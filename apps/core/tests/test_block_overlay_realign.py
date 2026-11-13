@@ -62,6 +62,14 @@ def _save(tenant, post):
     tenant.refresh_from_db()
 
 
+def _schema(tenant, code, op, ref):
+    """Правка структуры так, как её делает «Seitenaufbau»."""
+    from apps.core import site_schema
+
+    site_schema.apply(tenant, code, op, ref=ref)
+    tenant.refresh_from_db()
+
+
 def _pb_post(host, rows, **extra):
     """POST билдера со строками блоков страницы: rows = [(id, заголовок, позиция)]."""
     post = {"pb_present": "1", "pb_id": [bid for bid, _t, _o in rows], **extra}
@@ -87,7 +95,8 @@ def test_reordering_page_blocks_keeps_each_translation_on_its_block():
         page_blocks={"info": [_text("Alpha", "a1"), _text("Beta", "b1")]},
         i18n={"ru": {"page_blocks": {"info": [_tr("Альфа"), _tr("Бета")]}}},
     )
-    _save(t, _pb_post("info", [("b1", "Beta", 1), ("a1", "Alpha", 2)]))
+    # FB-27 R8 (осознанная переписка): порядок меняет «Seitenaufbau», не форма Студии
+    _schema(t, "text", "down", "a1")
     assert _shown(t, "ru", "info") == [("b1", "Бета"), ("a1", "Альфа")]
 
 
@@ -96,7 +105,7 @@ def test_deleting_a_page_block_takes_its_translation_away():
         page_blocks={"info": [_text("Alpha", "a1"), _text("Beta", "b1")]},
         i18n={"ru": {"page_blocks": {"info": [_tr("Альфа"), _tr("Бета")]}}},
     )
-    _save(t, _pb_post("info", [("a1", "Alpha", 1), ("b1", "Beta", 2)], delete_cb_a1="on"))
+    _schema(t, "text", "delete", "a1")
     assert _shown(t, "ru", "info") == [("b1", "Бета")]
 
 
@@ -105,18 +114,7 @@ def test_reordering_home_blocks_keeps_each_translation_on_its_block():
         sections=[_text("Eins", "c1"), _text("Zwei", "c2")],
         i18n={"ru": {"sections": [_tr("Один"), _tr("Два")]}},
     )
-    post = {
-        "cb_id": ["c1", "c2"],
-        "cb_type_c1": "text",
-        "cb_type_c2": "text",
-        "enabled_cb_c1": "on",
-        "enabled_cb_c2": "on",
-        "order_cb_c1": "2",
-        "order_cb_c2": "1",
-        "cb_c1_title": "Eins",
-        "cb_c2_title": "Zwei",
-    }
-    _save(t, post)
+    _schema(t, "home", "down", "c1")
     assert _shown(t, "ru")[:2] == [("c2", "Два"), ("c1", "Один")]
 
 
@@ -140,7 +138,10 @@ def test_inserting_a_block_in_the_middle_keeps_translations_in_place():
 
 
 def test_saving_in_a_translation_realigns_the_other_locales_too():
-    """Save на ru выравнивает ru сам (`split_translation`), но и en не должен съехать."""
+    """Save на ru выравнивает ru сам (`split_translation`), но и en не должен съехать.
+
+    FB-27 R8 (осознанная переписка): форма шлёт блоки в обратном порядке — порядок
+    остаётся сохранённым, и переводы всех локалей стоят на своих блоках."""
     t = _tenant(
         locales=("de", "ru", "en"),
         page_blocks={"info": [_text("Alpha", "a1"), _text("Beta", "b1")]},
@@ -150,6 +151,6 @@ def test_saving_in_a_translation_realigns_the_other_locales_too():
         },
     )
     _save(t, _pb_post("info", [("b1", "Бета", 1), ("a1", "Альфа", 2)], content_lang="ru"))
-    assert _shown(t, "en", "info") == [("b1", "Beta EN"), ("a1", "Alpha EN")]
-    assert _shown(t, "ru", "info") == [("b1", "Бета"), ("a1", "Альфа")]
-    assert _shown(t, "de", "info") == [("b1", "Beta"), ("a1", "Alpha")]
+    assert _shown(t, "en", "info") == [("a1", "Alpha EN"), ("b1", "Beta EN")]
+    assert _shown(t, "ru", "info") == [("a1", "Альфа"), ("b1", "Бета")]
+    assert _shown(t, "de", "info") == [("a1", "Alpha"), ("b1", "Beta")]
