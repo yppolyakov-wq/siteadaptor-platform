@@ -2690,7 +2690,12 @@ def home_builder_view(request):
         new_sections = site_schema.merge_structure(config["sections"], posted_sections, fixed=True)
         # Форма пыталась изменить структуру (или прислала галочку удаления) — скажем об
         # этом после записи: молчаливое «Gespeichert» было бы неправдой.
-        structure_ignored = site_schema.structure_attempted(posted_sections, new_sections) or any(
+        # Секция, строки которой в форме нет (частичная или старая форма), попыткой не
+        # считается — иначе сообщение появлялось бы без повода.
+        sent_rows = [
+            e for e in posted_sections if e.get("id") or f"order_{e.get('key')}" in request.POST
+        ]
+        structure_ignored = site_schema.structure_attempted(sent_rows, new_sections) or any(
             k.startswith("delete_cb_") for k in request.POST
         )
         # LB-2 §11.7: переводы C-блоков едут за своим блоком — оверлей мёржится по
