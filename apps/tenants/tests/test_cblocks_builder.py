@@ -163,9 +163,9 @@ def test_save_persists_text_style_fields():
     assert block["data"]["color"] == "muted"
 
 
-def test_save_does_not_write_cblock_width_and_pos():
-    """FB-27 R8 (осознанная переписка): ширину и положение блока задаёт «Seitenaufbau»;
-    «Speichern» Студии их не трогает."""
+def test_save_writes_cblock_pos_but_not_width():
+    """FB-27 R8 (осознанная переписка): ширину блока задаёт «Seitenaufbau», «Speichern»
+    Студии её не трогает; положение узкого блока (слева/справа) остаётся виду Студии."""
     tenant = TenantFactory(slug="cb7", name="X")
     core_views.home_builder_view(_req({"action": "add_block", "block_type": "text"}, tenant))
     tenant.refresh_from_db()
@@ -181,7 +181,7 @@ def test_save_does_not_write_cblock_width_and_pos():
     core_views.home_builder_view(_req(data, tenant))
     tenant.refresh_from_db()
     block = _cblocks(tenant)[0]
-    assert block.get("width", "contained") == "contained" and not block.get("pos")
+    assert block.get("width", "contained") == "contained"
     assert block["data"]["title"] == "T"  # содержимое записано
 
 

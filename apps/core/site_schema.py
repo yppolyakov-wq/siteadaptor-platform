@@ -109,7 +109,9 @@ def structure_hash(config) -> str:
 
 #: FB-27 R8: что из строки блока принадлежит «Seitenaufbau», а не Студии (те же поля,
 #: что видит отпечаток структуры, кроме состава и порядка — их задаёт сам список).
-_OWNED_FIELDS = ("enabled", "width", "pos", "newline")
+#: Положение узкого блока (`pos`: слева/по центру/справа) остаётся виду Студии: в
+#: «Seitenaufbau» для него контрола нет.
+_OWNED_FIELDS = ("enabled", "width", "newline")
 
 
 def merge_structure(saved: list, posted: list, fixed: bool = False) -> list:
@@ -169,7 +171,6 @@ def _structure_signature(items: list, only: set | None = None) -> list:
         if item.get("id"):
             row += [
                 item.get("width") or "contained",
-                item.get("pos") or "",
                 bool(item.get("newline")),
             ]
         out.append(row)

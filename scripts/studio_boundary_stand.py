@@ -26,7 +26,7 @@ def check(c, label):
 U = "http://ptx.siteadaptor.de:8000"
 STRUCT = (
     "[name^='order_'], [name^='enabled_'], [name^='delete_cb_'], [name^='width_cb_'], "
-    "[name^='pos_cb_'], [name^='newline_cb_'], .blk-up, .blk-down, "
+    "[name^='newline_cb_'], .blk-up, .blk-down, "
     "#bld-action-bar [data-ab=up], #bld-action-bar [data-ab=down], "
     "#bld-action-bar [data-ab=vis], #bld-action-bar [data-ab=del]"
 )

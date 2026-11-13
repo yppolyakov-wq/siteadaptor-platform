@@ -57,6 +57,26 @@ def test_merge_keeps_saved_order_and_takes_posted_content():
     assert out[0]["width"] == "w12" and "width" not in out[2] and out[2]["enabled"] is True
 
 
+def test_position_of_a_narrow_block_stays_with_the_studio():
+    saved = [_text("a", "A", width="w12", pos="left")]
+    out = site_schema.merge_structure(saved, [_text("a", "A", width="w13", pos="right")])
+    assert out[0]["width"] == "w12" and out[0]["pos"] == "right"
+
+
+def test_explicit_studio_actions_stay_visible_until_they_move():
+    """Вставка шаблона блока/страницы и наборы блоков страницы акций — явные действия без
+    замены в «Seitenaufbau»: скрыть их значило бы убрать возможность вовсе."""
+    import pathlib
+
+    lines = pathlib.Path("templates/tenant/site_home.html").read_text().splitlines()
+    for action in ("use_page_preset:", "use_block_template:", "use_page_template:"):
+        i = next(n for n, ln in enumerate(lines) if f'value="{action}' in ln)
+        assert "stu-struct" not in " ".join(lines[i : i + 3]), action
+    row = pathlib.Path("templates/tenant/_cb_row.html").read_text()
+    pos = next(ln for ln in row.splitlines() if 'name="pos_cb_' in ln)
+    assert "stu-struct" not in pos
+
+
 def test_merge_drops_unknown_blocks_and_keeps_missing_ones():
     saved = [_text("a", "A"), _text("b", "B")]
     out = site_schema.merge_structure(saved, [_text("zzz", "fremd"), _text("b", "B neu")])
