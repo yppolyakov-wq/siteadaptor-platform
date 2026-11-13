@@ -23,6 +23,15 @@ def _urlconf(settings):
     settings.ROOT_URLCONF = "config.urls_tenant"
 
 
+@pytest.fixture(autouse=True)
+def _restore_connection_tenant():
+    """`_tenant()` ставит арендатора в соединение (перенос блоков читает его оттуда) —
+    после теста возвращаем прежнего, иначе следующие тесты окажутся в чужой схеме."""
+    before = getattr(connection, "tenant", None)
+    yield
+    connection.tenant = before
+
+
 def _text(i, title):
     return {"key": "text", "id": f"b{i}", "enabled": True, "data": {"title": title}}
 
