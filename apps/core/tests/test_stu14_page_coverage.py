@@ -27,6 +27,10 @@ def _rendered_hosts() -> set[str]:
     for tpl in TPL_DIR.rglob("*.html"):
         for m in re.finditer(r'page_blocks\s+"([a-z_]+)"', tpl.read_text()):
             hosts.add(m.group(1))
+        # FB-27 R7: каталог выводит блоки тегом `category_blocks` (блоки каталога или
+        # своя схема категории) — хост тот же, «catalog».
+        if re.search(r"\{%\s*category_blocks\s", tpl.read_text()):
+            hosts.add("catalog")
     return hosts
 
 
