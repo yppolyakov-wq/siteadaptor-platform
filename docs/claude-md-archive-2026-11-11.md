@@ -1,0 +1,4313 @@
+# Архив CLAUDE.md — §3 «Сделано — статус» и §7 «Дальше» (срез 2026-11-11)
+
+Дословная копия разделов, вынесенных из `CLAUDE.md` при сокращении 2026-11-11 (файл грузится
+в каждую сессию и вырос до 618 КБ). Текст не редактировался. Хронология с деталями —
+`docs/build-log.md`; грабли — `docs/pitfalls.md`; очередь — `docs/task-catalog.md`.
+
+## 3. Сделано — статус
+Полная хронология завершённых задач — **`docs/build-log.md`** (извлечена из этого
+файла 2026-06-22). Срез/оценка — **`docs/audit-2026-06-22.md`**. Здесь — только
+верхнеуровневый статус:
+
+- **Stage 1 (архетипы A1–A9 → ~100% «из коробки»)** — завершён: каталог/Click&Collect/
+  доставка, бронь по времени и датам (Übernachtung), события/билеты, сметы Handwerker,
+  Werkstatt, финансы (счета/DATEV/GoBD), агрегатор+порталы, отзывы+гео.
+- **Stage 2 (Phase 2)** — частично: порталы, поиск/фильтры, отзывы, гео, органик-постинг
+  (GBP/FB/IG/Telegram/Pinterest), in-app OAuth, Telegram-боты/Mini App. Осталось:
+  PWA/push/Wallet (P2.8), импорт Shopify/Woo (M21), платная реклама (M23c).
+- **Stage 3 («лёгкий ERP»)** — только архитектурные швы (`core.Membership`/роли,
+  `Order.parent_order`/`supplier_tenant_schema`). Не начато: склад-леджер (M10),
+  маркетплейс-корзина (M14), закупки (M12), dropshipping (M15), AI (M18),
+  workflow-билдер (M19), drag-drop конструктор (M20).
+- **Последнее:** **архетип A5 «Отель» — H1–H9 + бэклог роста G1–G11**. Помимо H-ядра
+  (тарифы/питание, поиск, богатая карточка, промокоды/самоотмена, дети, Kurtaxe, SEO
+  `Hotel`+Hausordnung, агрегатор отелей): **G1** Geschenkgutscheine, **G2** pre/post-stay,
+  **G3** рассылки гостям (Double-Opt-In, UWG §7), **G4** многоступенчатые авто-скидки
+  (LOS/Frühbucher/Last-Minute, неск. правил на тип), **G5** мультикомнатная бронь,
+  **G6** Online-Checkin + цифровой Meldeschein (BMG, retention 1 год), **G7** гибкая
+  предоплата по тарифу (0/частично/100 %), **G8** фид цен/наличия для метапоиска
+  (Google Free Booking Links), **G9** отчёты Belegung/ADR/RevPAR, **G10** iframe-виджет,
+  **G11a/b** фундамент Channel Manager (модель `Channel` + идемпотентный импорт броней
+  из OTA; реальные API Booking/Expedia/Airbnb — партнёрство, отложено G11c–e). UX витрины
+  номера: 2 колонки (галерея/бронь), лайтбокс, карточки номеров на главной, полное меню.
+  Демо — **по нескольку примеров на фичу**: `seed_demo_tenants --kit hotel --recreate`
+  (+ `hotels.<base>`). Доки: `docs/hotel-demo.md`, планы `hotel-archetype-plan.md` /
+  `hotel-growth-plan.md` / `hotel-channel-manager-plan.md`.
+- **Самое свежее (2026-06-26): этап «витрина/UX + анти-Битрикс» — Спринт E закрыт + кусок F.**
+  E.1–E.4 on-canvas редактор (Undo/Redo, click-to-edit→попап, инсертер «+», drag-on-canvas).
+  F: A7 Handwerker-кит · RV3 грид событий+countdown · RV2 agenda-timeline · A5 PAngV+рейтинг+
+  **визуальный календарь наличия номера C1–C4** · A4 аллергены+Kombo-тизер · A9/A7 Festpreis ·
+  A8 сортировка выдачи. Всё в `main` (`90107c6`), **без миграций**. Точка входа след. сессии —
+  `docs/next-session-brief.md` (обновлён 2026-06-26); статусы — `archetype-ux-execution-plan.md`.
+- **Самое свежее (2026-07-01): старт РЕАЛИЗАЦИИ «единого слоя продаваемой сущности» + мультиязычности.**
+  Планы этапа интегрированы (merge ветки `nifty-einstein`: market-gap A1–A9, `unified-sellable-entity`
+  master-track/U-A…U-E/decisions/priority-review, **план Волны L**) + код UA1-1 (деталь услуги). Начата
+  **Волна L (мультиязычность, N локалей)**: **L1 ✅** — рантайм-биндинг локалей
+  (`Tenant.active_locales`-резолвер, `set_language` валидирует по включённым локалям, оверлей витрины
+  генерик по `settings.LANGUAGES`, переключатель шапки — N кнопок). **L2 ✅** — кабинет «Sprachen»
+  (`/dashboard/settings/languages/`: чекбоксы языков реестра + дефолт → `enabled_locales`/`default_locale`).
+  Обе без миграции. **L3-модель ✅** — i18n на `Service`/`StayUnit` (`name_i18n`/`description_i18n`,
+  overlay-семантика: база в плоском поле, переводы в оверлее; `I18nMixin.get_overlay`/`i18n_full`;
+  миграции `booking/0011`+`stays/0020`, чистый AddField) — фундамент адаптера U-A. Решения владельца
+  S-1(a)/S-2(b LegalDoc)/S-3(реестр DE+EN). SOURCE OF TRUTH этапа —
+  `docs/unified-sellable-entity-master-track-2026-06-30.md §4` (очередь волн) + `docs/multilanguage-wave-L-plan-2026-07-01.md`.
+  Волна U-A: **UA1-1** (деталь услуги), **UA2-1** (контракт `sellable` в контексте деталей),
+  **UA3-1** (override primary-CTA услуги), **UA4-3** (богатая карточка услуги: attributes+FAQ+primary_action),
+  **L3c-рендер** (`*_localized` на витрине Service/StayUnit), **UA4-4a** ✅ — generic-модель отзыва
+  `reviews.Review` (`entity_kind`+`entity_id`) + data-migration из `catalog.ProductReview` + product
+  переключён на generic (список/деталь/submit/демо); per-kind верификатор fail-closed. **UA4-4b** ✅ —
+  верифиц. отзывы на Service/Stay/Event через generic (per-kind `has_booked`/`has_stayed`/`has_ticket`
+  fail-closed, единый `reviews.submit`, партиал `_entity_reviews.html`) + **per-entity JSON-LD** из
+  контракта `SellableEntity` (`core.seo.entity_ld`+`entity_jsonld` в `detail.html`: @type
+  Product/Service/Event/LodgingBusiness + AggregateRating на всех детальных). **UA4-1** ✅ — единый
+  реестр секций детали `apps/core/detail_sections.py` (Slice A: реестр+LABELS; Slice B: обобщённый
+  нормализатор `siteconfig`, паритет event/product; Slice C: билдер-инспектор + **рабочее скрытие
+  секций** детали услуги/номера end-to-end). **Демо-отзывы** ✅ — `_seed_entity_reviews` (friseur/hotel/
+  retreat: услуги/номера/события по 3 отзыва → секция видна в демо). **UA4-2** ✅ — data-driven цикл
+  рендера секций детали: `service`/`stay` тела → `{% for s in body_sections %}` + партиалы
+  `sections/detail/_*`; `event` уже был loop-based; `product` остаётся per-block (секции в aside/body/wide,
+  управляются `product_detail_hidden`). Замки — паритет-тесты порядка секций; каждая миграция под
+  адверсариальным ревью. **Волна U-A: UA1/UA2/UA4 закрыты; из UA3 — только override primary-CTA**
+  (аудит 2026-07-01, `…-ua-plan §7`; остаток — см. запись 2026-07-02 ниже).
+- **Самое свежее (2026-07-02): Волна U-B (единый листинг/категории/фасеты) — ЗАКРЫТА ЦЕЛИКОМ.**
+  **UB1-1 ✅** каркас `templates/storefront/listing.html` (блоки header/facets/toolbar/grid/
+  pagination/empty/after + `listing_width`) + `/termin/` на нём + `service_index_layout` (ключ НЕ
+  материализуется normalize'ом: отсутствие = легаси-грид; канва: page-block «Services», опция
+  «Standard» удаляет ключ). **UB1-2 ✅** единая карточка `_sellable_card.html` + тег `sellable_card`
+  из контракта `SellableEntity` (опции вызовом, контракт не раздут) — услуги+номера, листинги+
+  home-секции (home стали локализуемыми; `sf-card` теперь и на листингах — стиль SE-2d действует там).
+  **UB1-3 ✅** свод products/event_index/stay_index на каркас; характеризационные замки написаны ДО
+  свода (`events/tests/test_index_parity.py`, `catalog/tests/test_listing_parity.py`); cursor-пагинация
+  и date-search сохранены. **UB2-1 ✅** протокол `apps/core/facets.py::FacetProvider`
+  (selected/apply/present/search/sort) + ленивый `provider_for(kind)`, провайдеры-делегаты
+  booking/catalog/events/stays — вьюхи зовут провайдер, не хардкод. **UB2-2 ✅** поиск `?q=`
+  (icontains v1; i18n по всем локалям: плоские поля + `*_i18n` через JSON-KeyTransform) +
+  user-facing сорт на всех 4 листингах; единый тулбар `listing_toolbar`; keyset-safe (q в carry).
+  **UB2-3 ✅** фасеты цена/наличие (перенос из вьюхи) / Herkunft (`Product.origin`) / рейтинг
+  (bulk_summary generic-отзывов, `pk__in`, без N+1) в `CatalogFacets`. **UB3-1 ✅** (подкатегории-
+  первыми — в каркасе с UB1-3, замок в test_listing_parity). **UB3-2 ✅** — M2M-подборки: TENANT-апп
+  `apps.collections` (модель `Collection`, плоская, i18n-оверлей, slug=параметр фасета) + M2M
+  `Service.collections`/`StayUnit.collections`; фасет-чипы `?kollektion=` на /termin/ и /unterkunft/;
+  кабинет `/dashboard/collections/` (CRUD+состав чекбоксами, presence-guard); демо friseur/hotel.
+  Разведка-согласование — `docs/ub3-2-collection-recon-2026-07-02.md`. Всё FF-мержено в `main`
+  по зелёным CI (ветка `claude/wave-ub-unified-listing-kmcg33`). **Миграции волны:**
+  `collections/0001_initial` + `booking/0013` + `stays/0021` — ⚠️ ТРЕБУЮТ ДЕПЛОЯ владельцем
+  (`./scripts/deploy.sh single`; опц. `seed_demo_tenants --kit friseur|hotel --recreate` для
+  демо-чипов). Дальше: **U-C** (универсальный редактор) — либо L4 (i18n-хром) / E-2 (правовой
+  пакет) по выбору владельца. Заметка: «SEO-модуль v2» (прогрессивные мета-заготовки + AI-SEO,
+  идея владельца) — в roadmap §Отложено, кандидат после U-B.
+- **Самое свежее (2026-07-02, после U-B): остаток Волны U-A (по `…-ua-plan §7`) — 3 из 5 пунктов.**
+  **Демо-A9 ✅** — rich-карточка «Inspektion» werkstatt (attributes/FAQ/`primary_action='request'`)
+  + 3 service-отзыва; тест рендерит витринную деталь (секции видны). **Combo i18n ✅** —
+  `catalog.Combo` += `I18nMixin`+`name_i18n`/`description_i18n` (overlay как у Service/StayUnit,
+  миграция `catalog/0012`), адаптер `_combo` локализован → i18n 5/5 kind. **Reviews-email wiring ✅**
+  — post-event → `/veranstaltung/<pk>/bewerten/`, post-stay → `/unterkunft/<pk>/bewerten/` (вместо
+  портала), booking post-visit НОВОЕ письмо → `/leistung/<pk>/bewerten/` (beat, `post_visit_sent_at`,
+  миграция `booking/0014`); ссылки абсолютные, без домена — без ссылки/падения. **UA3-1 слайс 2 ✅**
+  — единый `templates/storefront/_buybox.html`: диспатч `cart`/`reserve`/`request`/`booking` по
+  `purchase_mode` контракта (или явный `buybox_mode`); паритет-замки ДО свода
+  (`test_buybox_parity` catalog/promotions + точные href CTA услуги), разметка 1:1, вьюхи/формы
+  не тронуты; план — `docs/ua3-1-buybox-plan-2026-07-02.md`. **UA3-2 ✅ (вариант A+ владельца)**
+  — контракт `select_url`/`submit_url`/`buybox_ready`; ветка booking|request `_buybox` —
+  двухшаговый гейт (POST-форма ТОЛЬКО при готовом выборе, фолбэк-причина иначе); stay —
+  селектор дат+календарь и форма партиалами за одним include (`_buybox_stay_*`), service_slots —
+  форма/хинт партиалами (`_buybox_service_*`, селектор = страница); POST-приёмники и
+  `book_stay`/`booking.services.book` не тронуты; паритет-замки stays/booking ДО правок; план —
+  `docs/ua3-2-two-step-buybox-plan-2026-07-02.md`. **ВОЛНА U-A ЗАКРЫТА ЦЕЛИКОМ (5/5 остатка).**
+- **Самое свежее (2026-07-02, после закрытия U-A): E-7 платёжный микс DACH — внутренняя часть
+  E7-1..3 ✅** (план `docs/e7-payments-plan-2026-07-02.md`; приоритет №1 вне волн, 6 архетипов).
+  `Order.payment_method` (on_site/stripe/vorkasse; миграция `orders/0012`) + `Tenant`
+  vorkasse/банк-реквизиты/`stripe_payment_methods` (SHARED `tenants/0020`); пикер способа на
+  checkout (только при >1; паритет-замок «один способ = форма прежняя»), Vorkasse-флоу
+  (реквизиты+Verwendungszweck в письме/подтверждении, guard IBAN); шов `payment_method_types`
+  в `connect.checkout_session` из настроек тенанта (пусто = дефолт Stripe Dashboard) — прокинут
+  во все 7 продажных вызовов (orders/stays/gift/booking/passes/events/jobs; installment без —
+  мандат off_session), кабинет «Zahlarten» на billing/payments. Vorkasse вне orders — E7-4
+  (roadmap §Отложено). Нативные PayPal/Klarna/SEPA — external-integrations-backlog (владелец).
+- **Самое свежее (2026-07-02, автономная фаза): ВОЛНА U-C идёт + U-E-пакеты закрыты + E-2 начат.**
+  **UC1 ✅ целиком** (UC1-1 golden-замки normalize + фасад page_types/keys/labels; UC1-2 listing/
+  info/legal; UC1-3 SECTION_ICONS в реестр + generic `page_inspector`). **UC2-1 ✅ (A+B)** —
+  план-док `docs/uc2-1-page-draft-plan-2026-07-02.md`, решение «виртуальный фасад» (хранение
+  ПЛОСКОЕ): `PAGE_CONFIG_KEYS` + `apply_page_payload` (семантика 1:1) + `page_config`; шесть
+  per-page блоков `site_preview_draft` → один вызов; save-блоки НЕ сводим (form-driven +
+  presence-guards → место UC2-4). **Пакет U-E2 «Стили скидки» ✅ целиком:** UE2-1 единый
+  `_discount_display.html` (замки parity ДО свода), UE2-2 `Promotion.discount_style` (7 стилей,
+  default ""=легаси; миграция `promotions/0019`), UE2-3 mystery hidden-until-reveal (blur+кнопка,
+  AlterField-миграция `promotions/0020` без изменения БД). **Пакет U-E3 «Промо на канве» ✅
+  целиком:** UE3-1 инлайн discount_percent/compare_at_price/ends_at (+generic `data-dt-edit`
+  datetime-попап; поля движка закрыты гейтом), UE3-2 `promotion-photo-edit` + 📷/🗑 на канве
+  (реюз apply_gallery_op). **E-2 слайсы 1-2 ✅:** §312j-кнопка «Zahlungspflichtig bestellen»,
+  UWG «★ Anzeige», бизнес-страница/отзывы на главном `/entdecken` (портал-опциональная
+  `business_page`, тот же url-name). **Продолжение той же фазы:** **UC2-2 ✅** (слайсы 1+2:
+  клик→инспектор на всех 4 деталях + drag тематических секций события через `data-ed-section`/
+  `moveEdSection`; слайс 3 «C-блоки вне home» ЗАБЛОКИРОВАН архитектурой sections=home-only —
+  решение владельца; план `docs/uc2-2-oncanvas-plan-2026-07-02.md`), **UC4-2-доводка ✅**
+  (контракт += `price_value`/`price_currency`/`ld_extra`; Offer + BreadcrumbList вторым скриптом
+  + Event startDate/location), **UC4-3 ✅** (галерея услуги: шим `Service.images` dict→[dict] БЕЗ
+  миграции, `service_photo_edit` → replace/add/remove, `_media_gallery` на 5/5 kind),
+  **UC5-1 ✅** (пометка `BUYBOX_CONFIGURABLE="form"` + замок границы). **UC3-1 ✅** (каскад
+  темы: sf-card на пропущенных карточках — листинг событий, похожие номера; механизм
+  `--sf-*` глобален). **Остаток U-C: UC2-4** (единый инлайн-диспетчер + свод save-блоков —
+  чистый рефактор, свежей сессией) и **пакет за ОДНИМ решением владельца** (per-page
+  хранение секций / C-блоки вне home): UC2-3(b)+UC3-2+слайс 3 UC2-2 — вопрос
+  сформулирован в `docs/uc2-3-page-scope-plan-2026-07-02.md §3`.**
+  Локальная грабля: `rl:*`/`resv_token:*` в Redis переживают
+  прогоны (cache-префикс — чистить `scan_iter('*rl:*')`).
+- **Самое свежее (2026-07-03): UE1+UE4-1 ✅ (промо-блок канвы, D2=LIVE fail-safe; U-E закрыта
+  в объёме главной; быстрые победы B3/A3/C2 ✅) + ПРАВОВОЙ-ЯЗЫКОВОЙ ПАКЕТ L4+L5+E-2 ✅ целиком**
+  (порядок владельца; план `docs/legal-lang-package-plan-2026-07-03.md`): PAngV-ноты
+  деталь/корзина («inkl. MwSt.»/«zzgl. Versand», немецкие msgid) · Zusatzstoffe
+  (`Product.additives` + реестр ADDITIVES 13 классов LMZDV, миграция catalog/0013) ·
+  **LegalDoc** per-locale (kind×locale, core/0005) + резолвер `apps/core/legal.py`
+  (LegalDoc[локаль]→[дефолт]→плоское поле→генерённый фолбэк) + `/agb/` (404 без текста) +
+  AGB-ссылка в футере (`agb_present`) + кабинет `/dashboard/recht/` + честное право в
+  демо-китах (AGB-заготовка по модулям) · **L4-письма**: `_render(locale)` +
+  translation.override (дефолт-локаль тенанта, fail-safe de), клиентские шаблоны 5 флоу
+  (reservation+HTML+waitlist/booking/stays/tickets/orders) DE=msgid байт-в-байт,
+  `locale/en/.../django.po` ТОЛЬКО письма (109, все переведены), .mo не в git — msgfmt-шаг
+  в CI, compilemessages в deploy.sh, gettext в Dockerfile. **Массовый de.po хрома —
+  отдельный трек за решением владельца (план §2: сотни англ. тест-ассертов в DE-рендере).**
+  Остаток DE-only: owner-письма + gift_voucher/inbox/installment/job_*.
+- **Самое свежее (2026-07-03, продолжение): «средние» одобренного стека ЗАКРЫТЫ ВСЕ —
+  B1 ✅ (Geschenkgutscheine 1.1–1.7: модуль gift, voucher_code в booking/jobs, un-redeem в 5 FSM,
+  balance-сертификаты, кап промокодов tenants/0022) · CM-8 ✅ (карточка 360°) · CM-6 ✅ (Bewertungen
+  + ответы + post-purchase) · B2 ✅ (напоминания о неоплате orders/booking/stays/tickets + pay-again
+  /bezahlen/) · B4/CM-9 ✅ (купон-кампании по сегментам: `CouponCampaign` promotions/0021 +
+  `Voucher.campaign` loyalty/0004 + `segment_customers` поверх UWG-гейта + /promotions/kampagnen/
+  + NavItem «Campaigns» (crm) + вход из CRM + beat авто-win-back БЕЗ Tenant-миграции).
+  Дальше в очереди: платформа D1–D3 (D1 ждёт прайсинг владельца); блокированы U-D/CM-5/T-1.**
+- **Самое свежее (2026-07-03, поздний вечер): идея D3 (партнёрка) ✅ v1 D3.1–D3.4** — решения
+  владельца: «делаем», деньги «несколько вариантов» (per-partner: скидка клиенту Stripe-купоном /
+  ревшара вручную; wholesale ⏸), v1 read-only, **этап 2 — вход в кабинеты клиентов (D3.5)**.
+  SHARED-апп `apps.partners` (Partner + reward-конфиг), `Tenant.partner`, атрибуция `?ref=`,
+  кабинет `/partner/` на public, шов `discounts` в подписочный Checkout, unfold-админка.
+  D1 Pro-тариф — 🧊 долгий ящик (владелец). Инвентаризация ВСЕХ остатков ТЗ — сводка в чате
+  2026-07-03 (≈59 пунктов: 30 готовы к работе / 10 за решением владельца / 10 external-gated /
+  5 крупных стадий / 4 Stage-0).
+- **Самое свежее (2026-07-03, вечер): идея D2 (self-serve featured) ✅ D2.1–D2.4** — ядро было
+  готово (P2.4b): доделаны «★ Anzeige» на карте (UWG на всех поверхностях), вход «★ Feature» из
+  списка акций, owner-аналитика показов/кликов (`aggregator/0014`: F-инкременты в split_featured +
+  редирект-счётчик `/entdecken/klick/<pk>/`, роут и в urls_portal), generic featured-checkout для
+  stays/events (`billing` по `(listing_kind, source_ref)`, `apps/aggregator/featuring.py`,
+  `tenant/listing_feature.html`, вьюхи stays/events + входы). D2.5 (цены планов в кабинете) — ⏸
+  env-оверрайда достаточно; полный E-11 (claim-your-business) — позже.**
+- **Самое свежее (2026-07-06): инциденты прода + ВОЛНА UC6 «Editor UX v2» ЦЕЛИКОМ.**
+  **T-5** hotfix verify_domain (боты выжигали LE-квоту → строгий allowlist по Domain;
+  опс: рестарт caddy). **T-6/T-6.1** «Edit design» убивал канву (XFO DENY в iframe;
+  Chrome цитирует ORIGIN — голый `/`): FAB `target="_top"`+скрыт в канве, deep-link
+  `?page=` (канва стартует со страницы клика), «Promotion page» в превью; замок
+  `test_frame_escape_links`. **UC6 (план `editor-ux-v2-plan-2026-07-06.md`, решения
+  владельца §5): 1** одна кнопка «✏️ Edit» (вкл. по умолчанию) + «⚙️ Template», канва-
+  first (рейл/панель скрыты); **2** текст C-блока: align/size/color (ТОЛЬКО палитра
+  темы); **3/3a/3b** ширины full/2-3/1-2/1-3..1-6 + положение + авто-РЯДЫ узких блоков
+  (`group_block_rows`→md:flex, `_section_block.html`) + «Start new row»; **1b** селектор
+  страниц убран — авто-скоуп по пути кадра (PAGE_GROUPS JSON, не escapejs — тот кодирует
+  дефисы); **4** фото C-блока: 📷 на канве (`site-cblock-photo-edit`, синк формы по {url})
+  + скругление; **5** библиотека блоков: иконки/подсказки + ДЕМО-данные при вставке
+  (`CBLOCK_DEMO_DATA`); **6a** ЛЕНТА настроек над канвой (Word-style; попап остаётся В
+  ФОРМЕ — панель прячется visibility+transform:none классом `bld-ribbon-open`; мобайл —
+  bottom-sheet; свёртка ▾); **6b** visual C-блоков (тень/радиус/отступ/фон → `.cb-box`
+  через `--sf-*`); **6c** пресеты при вставке (`CBLOCK_VARIANTS`, двухшаговый инсертер
+  «+», адверсариальный замок «каждый пресет проходит normalize»); **6d** FAQ 5 видов
+  (реестр `SECTION_STYLES` + `section_row` в рендер). Всё БЕЗ миграций, всё в main.
+  Остаток фидбэка владельца: «10 типов на блок» — наполнять по мере (реестры готовы).
+- **Самое свежее (2026-07-06, вечер): UC6-7 «весь функционал канвы НА ВСЕХ страницах» —
+  7a+7b+7c ЦЕЛИКОМ в main (отмашка владельца «редактирование блоков должно быть на всех»).**
+  План `docs/uc6-7-page-blocks-plan-2026-07-06.md`. **7a** новый ключ `page_blocks`
+  {host:[cblock]} (sections остаётся home-only, golden-паритет), `normalize_page_blocks`
+  (whitelist `PAGE_BLOCK_HOSTS` — 11 страниц, legal исключён), тег `{% page_blocks "<host>" %}`
+  (siteui; sess-черновик при ?preview=1; пустой хост в превью → пунктирный якорь). **7b**
+  редактор: общий партиал `tenant/_cb_row.html` (pb_page-переключатель pb_id vs cb_id),
+  `page_cblocks` в наборе «Landing pages», `_cblock_entry_from_post` (общий save главная+
+  страницы, presence-guard `pb_present`), draft passthrough + инсертер «+» на страницах
+  (`add_block`/`use_block_template` с page_key+page_path, `_redirect_builder` → `?page=`).
+  **7c** drag-перестановка на страницах (`movePageBlock`, отдельное order-пространство хоста)
+  + вставка БЕЗ перезагрузки билдера (fetch `_add_block_fetch_response` → row_html → schedule
+  перерисует только канву; главная/первый блок пустого хоста — форм-POST). Settings-live на
+  страницах уже работало (делегированные form-листенеры). **Два адверсариальных ревью-воркфлоу
+  (по 5 измерений) нашли 5 реальных дефектов — все исправлены и проверены на стенде:** 7b —
+  скоуп панели вне PAGE_GROUPS (`isHome && !curPbHost`) + `data-scope="home"` на «Content
+  blocks»; 7c — drag-порядок при вставке (renumber по значению order_cb), идемпотентный
+  фолбэк `.catch`→reloadBuilderPage (сервер коммитит до ответа → без дубля), скоуп drag/«+»
+  до `[data-pb-host]` (не фикс-секции витрины). Замки: `test_cblocks_builder` (+8),
+  `test_live_preview`, `test_home_content_blocks_details_is_home_scoped`; стенд verify_7b/
+  verify_scope/verify_7c1/verify_7c_fixes/verify_scope3. **Всё БЕЗ миграций, всё в main
+  (9900b09).** Остаток UC6-7: **7d** (настройки меню + библиотека примеров в ленту).
+- **Самое свежее (2026-07-07): UC6-7d/8/9/10 + Sprint G (AB1+AB3) — всё в main, без миграций.**
+  **UC6-7d** ✅ (☰ Menu / 🧱 Blocks шорткаты в тулбар). **UC6-8** ✅ — 10 видов отображения
+  на КАЖДЫЙ тип C-блока (`CBLOCK_VARIANTS`) + 5 видов у фикс-секций со стилями
+  (`SECTION_STYLES`, +team «duo», +trust «cards»). **UC6-9** ✅ — оптимизация пространства
+  ленты: Undo/Redo/статус в верхнюю строку (полоса над канвой убрана), настройки-«поля»
+  (мелкий заголовок сверху, контрол снизу; чекбоксы — чипы). **UC6-10** ✅ — компактный
+  тулбар: имя блока + Простой/Эксперт + ▾/✕ переехали из шапки ленты в верхний тулбар
+  (`.bld-ctx`, виден по `#bld-root.bld-has-block`); при выбранном блоке подсказка/статус
+  прячутся; дублирующая подпись в ленте скрыта, голова блока в одну строку с настройками →
+  **для простого блока весь редактор = 2 узкие строки** (проверено на стенде Playwright).
+  **Sprint G «анти-Битрикс»** — аудит (4 Explore-агента): ~85% уже было в коде (AB2/AB4/AB5 ✅),
+  дозакрыты **AB1** (язык задач в меню кабинета: `NAV_TASK_LABELS`/`nav_task_label` +
+  тег `cabinet.nav_task_label`) и **AB3** (демо-дефолты в мастере: шаг 1 «🎁 Mit Beispielen
+  starten» → `apply_business_type`+`load_demo`+шаг дальше). План — `docs/anti-bitrix-admin-plan.md`
+  (трек ЗАКРЫТ). Остаток фидбэка UC6: «10 типов на блок» — наполнять по мере (реестры готовы).
+  **Затем UC6-10b** (2026-07-07, «ещё компактнее»): высота хрома простого блока 119px→~81px
+  (−32%; тулбар/лента/поля тоньше, зазор под тулбаром убран), стиль полей UC6-9 сохранён;
+  main `a0e221b`, без миграций.
+- **Самое свежее (2026-07-07): ВОЛНА U-D ЗАКРЫТА ЦЕЛИКОМ (UD1..UD3) — единый заказ + Kanban-доска
+  + склад-леджер.** По ТЗ `docs/ud-wave-tz-2026-07-07.md` за одну сессию (ветка
+  `claude/unified-order-kanban-stock-af3pl7`, 4 коммита). **UD1:** `apps/core/transactions.py`
+  (`transaction_for(kind, obj)` над 6 FSM-транзакциями, ленивый резолвер модели/FSM, читает статус
+  не пишет) + `apps/core/pipeline.py` (статус→стадия intake/in_progress/done/terminal per-kind);
+  ЛК 6 билдеров на `transaction_for` (+побочно исправлен латентный баг: `_reservations` падал на
+  `get_status_display()` — Reservation без choices → раздел скрывался); `manage_sections_for`.
+  **UD2:** `_status_actions.html`+тег (замена хардкода в stays/booking-календарях), доска
+  `/dashboard/board/` (вкладки/колонки/**drag-drop** нативный HTML5, snap-back на 409), generic
+  `kanban_action` (`SM().apply` — тот же путь, что per-app; KDS не тронут, D2), модуль `board` (core).
+  **UD3:** новый TENANT-апп `apps/inventory` — `StockMovement` (append-only, идемпотентность,
+  миграция `inventory/0001`), леджер РЯДОМ со счётчиком (D1); врезка `record_movement` только в
+  orders(sale/restore)+jobs(commit) в той же atomic; кабинет `/dashboard/stock/` (приёмки/корректировки/
+  инвентаризация/Meldebestand + реконсиляция «Startbestand buchen»). `app.css` пересобран. **⚠️ Миграция
+  `inventory/0001` ТРЕБУЕТ ДЕПЛОЯ.** Детали — build-log 2026-07-07.
+- **Самое свежее (2026-07-07, продолжение): UD4-2 (каналы уведомлений email ∥ Telegram) — ЦЕЛИКОМ**
+  (решение владельца «все три»). `apps/notifications/prefs.py` — реестр событий + `channel_enabled`
+  (хранение `site_config["notify"]`, БЕЗ миграции, дефолт = всё вкл). Гейтинг customer email+telegram
+  во всех 6 доменных `enqueue_*` + закрыты пробелы (Telegram для job «Auftrag fertig» и reservation).
+  Telegram ВЛАДЕЛЬЦУ: deep-link `start=owner-<token>`, `owner_chat_id` в site_config, `send_to_owner`
+  + пуш в owner-ветках. Кабинет `/dashboard/settings/notifications/` (матрица клиента + owner-каналы +
+  «Telegram verbinden»), nav «Benachrichtigungen». SMS остаётся отложен (D3 external). Без миграций.
+- **Самое свежее (2026-07-08, вечер): редактор-доводка + старт SEO-модуля v2.** Порядок владельца
+  «редактор → SEO v2 → DE(T-1) → Склад-2». **UC2-4** закрыт: инлайн-диспетчер (`apps/core/inline_edit.py`)
+  оказался уже готов (верифицирован); «свод save-блоков» — **WONT-FIX** (вьюха уже чистая, рефактор =
+  риск без пользы; план `docs/uc2-4b-save-blocks-plan-2026-07-08.md`). **UC6-6h** — визуальные пресеты
+  шапки (Classic/Centered/Minimal) в области «Menu» канвы. **SEO-1 ✅** — движок мета-заготовок
+  (`apps/core/seo_meta.py`: плейсхолдеры+резолвер+клампы; `context_processors.seo`; провод `_base.html`
+  title/description; проверено на сиде — home «… · Hilden»). **SEO-2 ✅** — кабинет
+  `/dashboard/site/seo/` (per-тип редактор + плейсхолдер-чипы + **live Google-сниппет**) +
+  `siteconfig.normalize_seo` (SEO-шаблоны переживают normalize, иначе сохранение билдера их бы стёрло);
+  проверено на сиде (кабинет → `<title>` «Hofladen Sonnenfeld — Ihre Bäckerei in Hilden»). **SEO-3 ✅**
+  — AI-SEO/GEO: **FAQPage JSON-LD** (тег у видимого FAQ), **контроль AI-краулеров** (`AI_CRAWLERS` в
+  robots.txt по `seo.allow_ai`, тумблер в кабинете, `normalize_seo` materializ. только при False),
+  **`llms.txt`** (описание бизнеса + разделы для AI-ассистентов). Проверено на сиде (robots блокирует
+  GPTBot/ClaudeBot, llms.txt «# Hofladen Sonnenfeld», home = FAQPage JSON-LD). **Волна SEO v2
+  (SEO-1..3) ЗАКРЫТА.** Всё БЕЗ миграций. Остаток идеи (миграция листингов/деталей на движок мета) —
+  по спросу. Очередь владельца дальше: **T-1 (массовый de.po)** → **Склад-2** (Chargen/MHD·мультисклад·M12).
+  План/очередь — `docs/seo-module-v2-plan-2026-07-08.md`, `docs/task-catalog.md`.
+- **Самое свежее (2026-07-08): «склад-леджер до продакшн-качества» (T1–T5) — ЦЕЛИКОМ.** Владелец
+  выбрал полную глубину (T1+T2+T3 + retail-дозапись = все срезы). План T5 —
+  `docs/ud-stock-t5-plan-2026-07-08.md`. **T1** честная реконсиляция: правки остатка в форме
+  товара/варианта пишут леджер (`log_catalog_change`, source="catalog") → счётчик↔леджер сходятся
+  (+ починен давний баг: демо `shop`/`retail` падал `UnboundLocalError` в `_seed_kit_records`). **T2**
+  учёт по вариантам (сущность = товар-без-вариантов|вариант; `select_for_update` на варианте, пикер
+  `v/p<pk>`). **T3** ретейл: причины корректировки (Schwund/Bruch/…), поиск SKU/EAN (scan-to-count),
+  Inventur-Zählliste. **T4** ERP-lite: drill-down истории (`?history=`), CSV-экспорт, архив-тумблер
+  доски. **T5 (миграция `catalog/0014`, аддитив):** `cost_price`/`reorder_point`/`reorder_target` на
+  Product+Variant → `stock_value`/`margin_pct`/`cost_value`-фолбэк/`effective_reorder_point`; сервис
+  `inventory_value()` (Warenwert) + `reorder_suggestions()` (Bestellvorschlag = Soll−Bestand, Ausverkauft
+  первыми); кабинет: Warenwert-плашка + колонки Wert/Marge + секция Bestellvorschläge; форма товара/варианта
+  +3 поля; демо EK≈55% VK. Проверено на сиде shop (Warenwert 514.31 €, Vorschlag +18, Marge 45%). T1–T4
+  без миграций; **⚠️ `catalog/0014` ТРЕБУЕТ ДЕПЛОЯ** (вместе с `inventory/0001`). Дальше по каталогу —
+  платформа D1 (Pro-тариф, ждёт прайсинг) / другие треки за решением владельца.
+- **Самое свежее (2026-07-08, вечер): программа УПРОЩЕНИЯ КАБИНЕТА «анти-Битрикс v2» — S1–S4
+  ЗАКРЫТЫ (в `main`, БЕЗ миграций).** Задача владельца: «максимально упростить, скрыть ненужное
+  по архетипам, визуал очень простой». Механика хабов (переиспользуемая): `HUB_TABS` в
+  `cabinet.py` (5-кортеж url/label/nav_key/module_key/advanced) + тег `{% hub_tabs %}` +
+  партиал `_hub_tabs.html` (tab-bar + ящик «Erweitert»); свод = `nav_items=()` у модуля,
+  url_prefixes цел (гейт), под-страницы получают тег. **Сайдбар ~25 пунктов → ~8:** S1
+  **Sortiment** (каталог 5→1, `a10da9c`), S2 **Verkäufe** (доска+продажи 6→1, вкладки гейтятся
+  по архетипу, `cfef40e`+`a68c5bd`), S3 **Einstellungen** (настройки 10→2 + Erweitert, `a8cee5b`+
+  `1d2c43d`), S4a **Marketing** (акции/отзывы/лояльность/публикация+Kampagnen, `c181f58`), S4b
+  **Kunden** (контакты/сообщения/Telegram + перенос бейджа непрочитанного, `050c1ee`). **Дальше:
+  S5** (режим Простой/Эксперт, дефолт expert, тумблер на «Funktionen») → **S6** (реальные
+  архетипы friseur/handwerker/werkstatt/events + текущие — ⚠️ МИГРАЦИЯ Tenant.choices, деплой).
+  Решения владельца: S6 «набор ок + текущие». **ПОЛНОЕ ТЗ/HANDOFF для новой сессии —
+  `docs/admin-simplification-handoff-2026-07-08.md`** (+ exec-plan/analysis тех же дат).
+  Уроки: правка формы HUB_TABS → grep импортёров + полный прогон; `msgfmt` локально нет →
+  email_i18n падает локально/зелён на CI; `normalize` дропает неизв. ключи (ui_mode сохранять).
+- **Самое свежее (2026-07-09): упрощение кабинета — S5 влит в main + S6a реальные архетипы.**
+  **S5** (режим Простой/Эксперт) был готов на прежней ветке `unified-order-kanban-stock-af3pl7`
+  (`0c45f44`), но НЕ влит; верифицирован (CI зелёный, 7 тестов) и FF-влит в `main` (`db412ed`,
+  без миграции): `ui_mode()`/`is_simple()`, `SIMPLE_HIDDEN_MODULES={finance,analytics}`,
+  тумблер на «Funktionen», `normalize` сохраняет `ui_mode`. **S6a** (⚠️ миграция `tenants/0024`):
+  `Tenant.BUSINESS_TYPES += friseur/handwerker/werkstatt/events` (к 10, не заменяя) + пресеты
+  модулей на архетип (`recommended_for`/`suited_for`) + маппинг демо-китов (FRISEUR/WERKSTATT/
+  HANDWERKER/RETREAT) + карточки мастера (`BUSINESS_TYPE_META`) + тесты (`test_archetypes_s6`,
+  +4 параметра `test_default_disabled_for_vertical`). **S6b** (без миграции): `ARCHETYPE_SIMPLE_HIDDEN`
+  + `simple_hidden_modules()` — в Простом прячет хаб «Sortiment» (catalog) у friseur/handwerker/
+  events/hotel (товары не primary; werkstatt держит — Teile). **Программа упрощения (S1–S6)
+  закрыта.** Планы — `docs/admin-simplification-s6-plan-2026-07-09.md`, handoff §4. Ветка
+  `claude/admin-simplification-handoff-dfawis`.
+- **Самое свежее (2026-07-09, продолжение): глобальный АУДИТ кабинета + волны W0–W2 + языки — всё в
+  main `6b3bd79`.** Аудит `docs/admin-global-audit-2026-07-09.md` (6 разведок + стенд; волны W0–W6 §9).
+  **W0** критический баг: форма настроек стирала 6 полей на Save (в т.ч. `small_business`/НДС) —
+  не выводились в шаблоне; фикс+замки. **W1** редактор: левая панель→лист из верхнего тулбара
+  (`.bld-collapsed`=display:none, нет «прыжка»; рейл→вкладки `#bld-area-tabs`); адверсариальное
+  ревью-workflow поймало HIGH-регрессию (display:none убивал ленту настроек блока) → фикс
+  `.bld-ribbon-open{display:block!important}`; headless-верификация. **W2** форма товара: order_fields
+  (название первым), секции+аккордеоны, Простой/Эксперт, чипы, help_text, гейт пищевой маркировки;
+  замок «все поля в DOM, скрытие только CSS» (урок W0). **Языки**: `LANGUAGES` += 9 (tr/ru/uk/pl/fr/
+  it/es/nl/pt), таб «Sprachen» прямой; регресс-фиксы (form_locales/locale-замки/format), broad 1964
+  passed. **Перевод хрома (.po) — ОТЛОЖЕН в конец бэклога** (решение владельца). Дальше по аудиту:
+  **W3** онбординг/демо новых архетипов → W4 настройки → W5 настройки Kanban-доски → W6 единый источник темы.
+- **Самое свежее (2026-07-09, W3 — наполнение S6-архетипов): ЗАКРЫТ ЦЕЛИКОМ** (ветка
+  `claude/admin-simplification-handoff-dfawis`, всё БЕЗ миграций; детали — build-log). **W3-1** демо
+  friseur/werkstatt/events (услуги/билеты). **W3-2** CTA шага 6 мастера по архетипу (`offer_cta`).
+  **W3-3** jobs — primary-архетип: `_PRIORITY` += jobs (между booking и catalog) → Handwerker (jobs on,
+  booking off) ведёт на /anfrage/, а не в пустой каталог; werkstatt=booking (Termin); `primary_item`
+  section через `.get` (jobs без секции-грида); offer_cta jobs → безопасный catalog-фолбэк (не Http404).
+  golden normalize НЕ затронут. **W3-4** пресеты акций 4 архетипам (discount). **W3-5** шаблоны витрины
+  termine/handwerk/veranstaltung — каждый ВКЛЮЧАЕТ primary-секцию (generic-шаблоны её прятали).
+  **W3-6** регистрация: business_type карточками (иконка+язык задач) вместо `<select>`. Локальный
+  broad-гейт 198 passed. **W3 влит в main + задеплоен владельцем (2026-07-09, `tenants/0024` = [X]).**
+- **Самое свежее (2026-07-09, W4 — упрощение настроек): ЗАКРЫТ ЦЕЛИКОМ** (ветка
+  `claude/admin-simplification-handoff-dfawis`, БЕЗ миграций; планы `w4-settings-simplification-plan`
+  + `w4-3-payment-shipping-merge-plan`). **W4-1** `/dashboard/settings/`: аккордеоны (базовые всегда +
+  Recht/Betrieb в `<details>`, Простой/Эксперт скрывает продвинутое), свод двух блоков «часы» в один.
+  **W4-2** гейт полей по модулю (loyalty→voucher/auto_redeem; jobs/orders→service_area); инвариант W0
+  (скрытие только CSS, все поля в DOM — замки). **W4-fix видимости (по фидбэку владельца):** тумблер
+  Einfach/Experte + «🌐 Sprachen» вынесены в ШАПКУ кабинета (`set-ui-mode`, `ui_simple` в
+  context-processor) — были не найдены (режим в «Erweitert», языки в табах). **W4-3 физический свод
+  (решение владельца):** единый экран `payment_settings` «Zahlung & Versand» (`/dashboard/settings/
+  payments/`) — свод оплаты/доставки с 3 экранов; save-хелперы извлечены (orders/billing делегируют,
+  поведение байт-в-байт); одна форма/Save, **guard потери по сентинелам `sec_*`**; старые экраны
+  слим-нуты до ссылки.
+- **Самое свежее (2026-07-09, W5 — настройки Kanban-доски): ЗАКРЫТ** (ветка
+  `claude/admin-simplification-handoff-dfawis`, БЕЗ миграций). Панель «⚙️ Spalten anpassen» на
+  `/dashboard/board/` (владелец не находил, где настроить колонки): пер-тенантно `site_config['board']`
+  — переименование (`labels`)/порядок (`order`)/скрытие (`hidden`) колонок; `pipeline.resolve_columns`
+  поверх `pipeline_for`; **правила переходов карт (FSM/V4) НЕ трогаются**. `normalize_board` +
+  golden-паритет (ключ только при непустом); `board_settings` targeted-write.
+- **Самое свежее (2026-07-09, W6 — единый источник темы + ФИКС потери данных): ВОЛНА W (W0–W6)
+  ЗАКРЫТА ЦЕЛИКОМ** (ветка `claude/admin-simplification-handoff-dfawis`, БЕЗ миграций). Найден+исправлен
+  латентный баг: **`site_view` пересобирал config из ПОДМНОЖЕСТВА ключей** → сохранение «Your site»
+  роняло `ui_mode`/`board`(W5!)/`seo`/типографику/стиль карточек. Фикс: `config = dict(current)` (как
+  home_builder_view) + presence-safe TEXT_FIELDS. **W6:** цвет/шрифт/стиль баннера — единый источник в
+  конструкторе главной (Theme); из `site.html` убраны (ссылка туда), `site_view` тему не пишет. Тесты
+  preserve-keys/no-wipe/no-dup. Диагностика CI: billing webhook-тесты по ~60с (пред-существующая
+  медлительность, не регресс), core+orders 677 зелёные. **Дальше:** T-1 (массовый de.po — в конце
+  бэклога) / другие треки за решением владельца.
+- **Самое свежее (2026-07-09, вечер): Ф1–Ф3 «per-language ввод + переводимые витринные метки
+  товара» — ЦЕЛИКОМ** (ветка `claude/admin-simplification-handoff-dfawis`, план
+  `docs/product-i18n-entry-plan-2026-07-09.md`; детали — build-log). Запрос владельца: язык
+  переключается, поля разных языков НЕ видны одновременно; «портянка/нет табов»; ВСЕ витринные
+  параметры переводимы. **Ф1** переключатель языка (пилюли `active_locales`) + партиалы
+  `tenant/_i18n_switch.html`/`_i18n_group.html` + `core/i18n_input.py::i18n_form_groups`; форма
+  товара→ТАБЫ (вместо `<details>`-портянки), поля неосновных локалей в DOM но `hidden` (инвариант W0);
+  та же механика на форме акции. **Ф1-ext** свитчер на категориях; переводы услуг/номеров свёрнуты
+  в `<details>🌐`. **Ф2** (⚠️ миграция `catalog/0015`, аддитив overlay) `origin_i18n`/`ingredients_i18n`
+  на Product → `*_localized` на витрине, вписаны в свитчер. **Ф3** (БЕЗ миграции) метки-справочники
+  витрины переводимы — аллергены/диеты/Zusatzstoffe в `food.py` → gettext_lazy, бейджи → `BADGE_LABELS`
+  (lazy; `BADGE_CHOICES` модели остаётся DE, миграции целы); база=немецкий msgid, EN=37 переводов в
+  `locale/en/.po` (.mo компилируется в CI как L4); проверено end-to-end (EN product_detail). UNIT_CHOICES
+  не трогаем (только форма кабинета). Остаток: variant/modifier labels (per-товар free-text, за решением);
+  полный chrome-перевод — T-1 (конец бэклога).
+- **Самое свежее (2026-07-10): фидбэк-батч после Ф1–Ф3 — 5 пунктов, всё БЕЗ миграций**
+  (ветка `claude/admin-simplification-handoff-dfawis`; детали — build-log). **#1** кнопки
+  переключателя языка/табов не работали (регресс Ф1: скрипт партиала выполнялся раньше табов
+  → пустой NodeList) → делегирование клика на `document`, проверено в Chromium. **#2**
+  Varianten/Modifiers — отдельная вкладка «Variants & extras» + кнопка «Erweiterte Preise»
+  под ценой (`data-pf-goto`). **#4** ясность Einfach/Experte — `simple_hidden_labels` +
+  список скрываемого/бейдж режима на «Funktionen» и в тултипе тумблера. **#3/#5** кнопки
+  «Demo ansehen» на карточках типов бизнеса (регистрация + мастер) → живая демо-витрина
+  архетипа (`DEMO_KIT_HOST`, `demo_url` из `TENANT_DOMAIN_BASE`, гейт по засеянным `Domain`).
+  ⚠️ ops: чтобы демо-кнопки появились — прогнать `seed_demo_tenants` на сервере. Остаток
+  фидбэка: демо-сайты пока делят один kit на несколько типов (dedicated kits — по спросу);
+  variant/modifier labels перевод — отдельным решением.
+- **Самое свежее (2026-07-10): фидбэк-батч (кнопки/вкладки/демо-кнопки) + демо-трек «сайт
+  под каждый тип» волна 1 + тип Online-Shop + фото-пайплайн — всё в main `e2aa49f`.**
+  Утро: #1 фикс кнопок языка/табов (делегирование на document — партиал парсился раньше табов),
+  #2 вкладка «Variants & extras»+«Erweiterte Preise», #4 ясность Einfach/Experte, #3/#5 кнопки
+  «View demo site» на регистрации/мастере (гейт по засеянным Domain). Затем по запросу владельца
+  («демо для всех видов, Metzgerei отдельно, нет онлайн-магазина, анализ рынка»): план
+  `docs/demo-kits-per-type-plan-2026-07-10.md`; **волна 1** — dedicated-киты BAKERY «Backhaus
+  Krume» (`baeckerei`) и BUTCHER «Metzgerei Bergmann» (`metzgerei`, Partyservice через jobs);
+  **тип `online_shop`** (⚠️ миграция `tenants/0024`→`0025`, choices-only) с карточкой/пресетами/
+  JSON-LD OnlineStore; **фото-пайплайн** `static/demo/photos/` (CC0/AI, резолвер с SVG-фолбэком,
+  команда `demo_photo_report`, 298 ключей). **Волны 2+3 ЗАКРЫТЫ тем же днём (merge `448fcde`,
+  без миграций): CAFE «Café Morgenrot» (`cafe`), CLOTHING «Studio Nordwind» (`mode`,
+  per-size остаток → Warteliste), TOURS «Stadtgold Touren» (`touren`, тиры/депозит/QR,
+  гиды-Teacher). Демо-трек закрыт: 13/14 типов со своим демо** (other — намеренно;
+  dedicated online_shop-кит — по спросу). Фото-сессия — сеть открыта владельцем, промпт
+  передан. ⚠️ ops после деплоя: `seed_demo_tenants` (baeckerei/metzgerei/cafe/mode/touren;
+  handwerker на сервере не досеян — `--kit handwerker --recreate`).
+- **Самое свежее (2026-07-10): демо-фото — реальный CC0-набор.** 146 webp в
+  `static/demo/photos/` (Openverse `license=cc0,pdm` + Wikimedia Commons, лицензии проверены
+  по метаданным API; каждое фото визуально верифицировано агентами, 4 reject-раунда);
+  на момент набора — покрытие 167/248 позиций (67 %), после волн 2–3 ключей 298 (часть
+  закрывается токен-фолбэком; актуально — `demo_photo_report`). Остальное — SVG-фолбэк.
+  Провенанс — `static/demo/photos/SOURCES.md`. Портреты команды не брали (реальные лица).
+  Набор сделан сессией `claude/youthful-lovelace-suk4wc`, интегрирован черри-пиком в
+  основную ветку. **Дополнено (2026-07-10): AI-набор FLUX.1-schnell (Replicate) — 120 ключей →
+  покрытие `demo_photo_report` 298/298 (100 %)** (нативный webp <150 KB, пропорции по типу,
+  22 вымышленных портрета; провенанс в SOURCES.md; ветка `claude/demo-photos-replicate-rtcs78`,
+  черри-пик). ⚠️ ops: фото попадут в демо после `seed_demo_tenants --recreate`.
+- **Самое свежее (2026-07-10, вечер): ТЗ по фидбэку кабинета + старт трека перевода кабинета
+  (T1/FB-12).** ТЗ `docs/cabinet-feedback-tz-2026-07-10.md` (14 пунктов FB-1..14: находимость
+  food-labeling/customize-columns; пробелы — правила переходов/статусы заказа/единый «отдел
+  продажных сущностей»; фото-«+»/фото категорий; гостиница; фикс иконки; перевод кабинета).
+  **T1-a/a.2/c ✅** (merge `a69e0cb`, без миграций, план `docs/t1-cabinet-i18n-plan-2026-07-10.md`):
+  T1-a — язык кабинета отделён от витрины (`CABINET_LANGUAGES`, `i18n_cabinet.py`,
+  `CabinetLocaleMiddleware`, `<select>` в шапке, пилот); T1-a.2 — обёртка Python flash-messages
+  (шаблоны уже были в `{% trans %}`); T1-c — django-rosetta `/rosetta/` (public, superuser-only;
+  прод-цикл: править→коммитить .po→деплой). **Дальше: T1-b** (DeepL перевод .po — параллельной
+  сессией; интеграция её ветки как фото). ⚠️ deploy: образ соберётся с django-rosetta. Разведены понятия: язык витрины (`/settings/languages/`) ≠ переводы контента
+  (свитчер Ф1 в формах) ≠ язык кабинета (T1). ⚠️ Прод-багфикс сидинга демо-фото (`535664f`,
+  плоский static-URL вместо манифеста) — в main; после деплоя нужен `seed_demo_tenants --recreate`.
+- **Самое свежее (2026-07-11): T1-b — хром кабинета/витрины переведён на en/tr/ru/uk (DeepL)
+  + фикс компиляции локалей** (ветка `claude/cabinet-de-en-deepl-zw5152`, готова к FF-мержу).
+  `en.po` 2447 записей (383 DE→EN + 2042 identity + 22 plural; adversarial-QA коротких строк —
+  DeepL коверкал ≤4-символьные: `AGB→"All-American Boy"`), tr/ru/uk по ~2499 (ru/uk — ручные
+  4-форменные плюралы: DeepL давал «5 ночи»). `forms.py`: 4 хелп-текста с литеральным `%`
+  переформулированы («% or» парсился как %-спека → были непереводимы). **ci.yml+deploy.sh
+  теперь компилируют ВСЕ `locale/*/django.po`** (было `-l en` → новые локали молча не работали
+  бы в тестах и ПРОДЕ — поймано CI #1396/#1397). **de.po ОТКАЧЕН** (решение владельца
+  2026-07-11): активация вскрыла 54 англ-ассерта в DE-рендере + golden-normalize зависит от
+  локали — ровно предсказание `legal-lang-package-plan §2`; коммиты `93e19cf`/`1c8be62` в
+  истории ветки для cherry-pick при возобновлении T-1. Правка переводов без кода — rosetta
+  (T1-c). Уроки/детали — build-log. **Hotfix (той же датой, ветка
+  `i18n-prod-mo-cabinet-langs`):** .mo теперь компилируются В ОБРАЗ (Dockerfile msgfmt) —
+  `compose run --rm compilemessages` в deploy.sh писал их в эфемерный контейнер, В ПРОДЕ
+  локали (вкл. EN-письма L4) молча не работали; + `CABINET_LANGUAGES` += tr/ru/uk (селектор
+  🗣 = 5 языков). **T1-b.2 (следом):** NAV_GROUPS/NAV_TASK_LABELS (сайдбар AB1) были голыми
+  немецкими строками (обход «пока без de.po») → обёрнуты в lazy, 12 msgid добавлены в 4 .po
+  вручную + фикс DeepL-коротышей (`Neu`→«или» в 3 языках, `Board`→«правление» и др.).
+- **Самое свежее (2026-07-11): T1-b влит (en/tr/ru/uk хром кабинета, DeepL-сессия) + фикс
+  «.mo в образ» + FB-батч 5/6/7/2 — main `217f8df`.** T1-b: перевод хрома DeepL'ом (de-тест-
+  эксперимент откачен), `CABINET_LANGUAGES=["de","en","tr","ru","uk"]`; критичный фикс: .mo
+  компилируются ПРИ СБОРКЕ ОБРАЗА (Dockerfile msgfmt; раньше compilemessages в `run --rm` →
+  прод молча без переводов; шаг из deploy.sh убран). FB-батч: «＋ Foto»-плитка на формах
+  товара/акции/категории (FB-5), фото категорий/подкатегорий + плитки витрины (FB-6,
+  ⚠️ миграция `catalog/0016`), жирные даты календаря номера (FB-7), видимая кнопка
+  «⚙️ Spalten» на доске (FB-2). FB-13 (иконка при hover) не воспроизводится в изоляции —
+  ждём контекст владельца. Остаток T1: полный de-хром НЕ трогаем (msgid=de), rosetta-цикл
+  прод: править в dev → коммит .po → деплой.
+- **Самое свежее (2026-07-12): M-пачка FB-11/FB-10/FB-4a — в `main`, БЕЗ миграций.**
+  **FB-11** карточка брони в кабинете `/dashboard/stays/buchung/<pk>/` (гость/даты/суммы/
+  Meldeschein/кнопки статуса тем же FSM-путём; `_manage_url` доски→booking-detail;
+  reference_code календаря — ссылка). **FB-10** суммы в письмах брони (гостю+владельцу) +
+  owner-email в `notifications.html` (+предупреждение если пуст). **FB-4a** свои имена
+  статусов заказа (кабинет-отображение): `normalize_status_labels`+тег `{% status_label %}`+
+  панель «⚙️ Status-Namen anpassen» в списке заказов+сброс (golden-паритет цел, НЕ движок
+  переходов). Детали — build-log. **Дальше по TZ (`cabinet-feedback-tz-2026-07-10`):**
+  крупные FB-8 (единое управление продаваемыми сущностями в кабинете) и FB-3+FB-4b (движок
+  статусов заказа/услуги/брони с правилами переходов) — план-доком до кода; отложенные
+  FB-1/FB-9/FB-13/FB-14 — ждут контекста владельца.
+- **Самое свежее (2026-07-12, вечер): FB-3 Вариант B (полноценные кастом-статусы) — ЗАВЕРШЁН
+  ЦЕЛИКОМ, 8 инкрементов, БЕЗ миграций.** Владелец создаёт СВОЙ статус (роль+переходы), он
+  достижим через `apply()`, держит ёмкость (anti-oversell), двигает деньги/склад по роли,
+  корректно отображается + редактор `/dashboard/status-manager/<kind>/`. Приём: снять завязку
+  на литеральные коды → роль+флаги (реестр `apps/core/status_registry.py`; эффекты
+  `apps/core/status_effects.py`; хранение `site_config['status_defs']`/`['status_edges']`).
+  Встроенное поведение байт-в-байт (golden-замки). **Phase 0-4+6 в `main` (авто-мерж по правилу
+  сессии); Phase 5 на ветке `claude/admin-simplification-handoff-dfawis`, вливается по зелёному
+  CI.** Правило сессии (владелец): после зелёного CI сразу мержить в main. Ограничение:
+  кастом-статусы scoped на order/booking/stay. План — `docs/fb3-variant-b-full-plan-2026-07-12.md`.
+  **Дальше по TZ:** отложенные FB-9/FB-13/FB-14 (ждут контекста); прочее — за решением владельца.
+- **Самое свежее (2026-07-12, продолжение): FB-1 + FB-4b + FB-3 — в `main`, БЕЗ миграций.**
+  **FB-1** пищевая маркировка только для гастро (вкладка «Kennzeichnung» скрыта у не-гастро,
+  поля в DOM). **FB-4b** свои имена статусов услуг/броней (generic `core/status_labels.py`,
+  endpoint `status-labels-save/<kind>/`, панели на booking/stays, тег на календарях/
+  booking_detail; на доске кабинета — но НЕ в клиентском аккаунте). **FB-3** конфигуратор
+  правил переходов (Вариант A: FSM жёсткий пол, владелец лишь СКРЫВАЕТ не-danger переходы;
+  danger/отмена всегда; `core/transition_rules.py` + `siteconfig.normalize_transitions` +
+  панель `_transition_rules_panel.html` + endpoint `transitions-save/<kind>/`). Планы —
+  `docs/fb3-status-engine-plan-2026-07-12.md`, `docs/fb8-unified-sellable-cabinet-plan-2026-07-12.md`.
+  Свои НОВЫЕ статусы (FB-3 Вариант B) — отдельная волна за решением владельца.
+- **Самое свежее (2026-07-12, продолжение): FB-8 (Angebote) — на ветке, БЕЗ миграций.**
+  Единый экран `/dashboard/angebote/` со всеми продаваемыми сущностями (товар/услуга/
+  номер/событие/комбо): обзор + тумблер видимости + переход к родной форме (единый CRUD
+  НЕ делаем — Вариант A). `apps/core/sellable_manage.py` + пункт «📦 Angebote» в сайдбаре
+  (виден при любом активном sellable-модуле, в т.ч. отелю в Простом). jobs — не sellable.
+  **Дальше по TZ (`cabinet-feedback-tz-2026-07-10`):** отложенные FB-9/FB-14 (ждут
+  контекста владельца). Крупные TZ-эпики закрыты (FB-1/FB-3/FB-4/FB-8/FB-10/FB-11).
+- **Самое свежее (2026-07-12, поздний вечер): редактор — живые изменения блоков + канва БЕЗ
+  видимой перезагрузки (двойная буферизация) + FB-13/тёмная тема/frame-escape кнопки.** Мелкие
+  фиксы (main `965ddce`): курсор-«рука» на 📷/🗑 (`.sf-photo-edit`), тёмная тема — читаемые
+  поля/плейсхолдеры нативных инпутов (`color-scheme:dark` + цвета), C-блок «Button» с внешним
+  URL — `target="_top"` (не ловит XFO DENY в канве редактора). Редактор (этап 1 main `1f20ab8`
+  + этап 2): `push()` не навигирует видимый кадр — `swapPreview()` грузит черновик в скрытый
+  iframe-буфер (обычная навигация → window-гарды витрины живы; document.write отвергнут) и
+  атомарно подменяет с переносом прокрутки; оптимистичные мутации drop/видимости — мгновенно;
+  фолбэк `hardReloadPreview` (сеть/таймаут/не-http). `instrumentFrame` (гейт about:blank —
+  травил previewPath; guard по body). Стенд Playwright 13/13 (вкл. живой календарь наличия
+  после свопа); план `docs/editor-live-inplace-plan-2026-07-12.md`. БЕЗ миграций. Грабля:
+  Django 5.1 кэширует шаблоны и в DEBUG — после правки шаблона рестартовать runserver.
+- **Самое свежее (2026-07-13): i18n-фиксы кабинета + регистрация 5 языков + Branchen-страницы.**
+  (1) Статусы брони/вкладки доски/панели статусов переводятся во всех 5 языках
+  (gettext_lazy на choices StayBooking/ServiceBooking + KIND_LABEL; en-fuzzy починены;
+  БЕЗ миграций — choices-метки схему не меняют). (2) Регистрация бизнеса: полноэкранный
+  сплит-редизайн + переключатель DE/EN/RU/TR/UK (public-роут `/sprache/`,
+  `set_public_language` по CABINET_LANGUAGES); базовый msgid — НЕМЕЦКИЙ (de.po нет —
+  откачен владельцем ранее), переводы в 4 .po. (3) **Branchen-Landingpages**:
+  `/branchen/` + `/branchen/<slug>/` (14 архетипов) — hero + проверенные хайлайты
+  (workflow research+adversarial verify против кода) + сетка модулей из REGISTRY +
+  CTA `?type=` предвыбор в регистрации; всё немецкими msgid, i18n-ready
+  (`apps/tenants/archetype_pages.py`, `tenants/industry.html`). Редактор: **правый
+  инспектор (A+мелочи из B) СДЕЛАН** — настройки (Template-области и лента блока) в
+  панели 380px справа во всю высоту, канва сжимается (right+ResizeObserver→applyDevice),
+  вертикаль экрана свободна; легаси syncRibbonPad (paddingTop=высота попапа) убит —
+  схлопывал канву; стенд 11/11 (план `docs/editor-right-inspector-plan-2026-07-13.md`); + свёртка
+  (шеврон, bld-panel-min) и ресайз ширины (280–640, --bld-panel-w, localStorage,
+  Pointer Capture) — стенд 7/7. **Главная платформы = /branchen/** (корень; регистрация
+  → /registrieren/, ?ref ловится на корне), общий хром `_public_header/_footer`,
+  страницы /ueber-uns/ + правовые ПЛАТФОРМЫ /impressum/ /datenschutz/ /agb/
+  (заготовки, реквизиты-[ПЛЕЙСХОЛДЕРЫ] на владельце), sitemap += 16 URL.
+- **Самое свежее (2026-07-13): AB6.1 ✅ — движок шагов мастера (state v2 + рельса ✓/⏭ + ?step=).**
+  Отмашка владельца «приступай». `apps/tenants/onboarding.py`: state v2 (слаги) в opaque
+  `onboarding` + консервативный легаси-маппинг int→slug (completed не понижается), реестр
+  `SETUP_STEPS`, `goto`/`steps_with_status`; НОВЫЙ `apps/core/setup_steps.py` (реестр HANDLERS:
+  post/context/preview/live per-слайд; сюда переехали `apply_business_type`+`save_hero`);
+  `setup_view` — тонкий диспетчер (глобальные action'ы + `?step=`); AB5-редирект на v2;
+  `setup.html` → каркас с рельсой (✓/⏭, клик = дозаполнить) + партиалы `setup/_step_*.html`
+  (вёрстка 1:1); app.css пересобран. Без миграций.
+- **Самое свежее (2026-07-16): ВОЛНА СКЛАД-2 (U-D2W) ЗАКРЫТА ЦЕЛИКОМ в объёме v1 — E1+E3+E2,
+  main `4564e0c`, ⚠️ миграции `inventory/0002..0004` ждут деплоя.** Решения владельца: «все 3
+  эпика», порядок E1→E3→E2, сразу полный FEFO; архитектура Вариант A (счётчик = ИТОГО-истина,
+  партии/локации = разбивка поверх, реконсиляция) — движки заказов НЕ переписаны. **E1 Chargen/
+  MHD:** модель `Lot` + FEFO-сервис (consume/restore/writeoff) + врезки в атомики (orders
+  `_reserve_stock`/`_restore_stock`, jobs `_commit_stock`; паритет байт-в-байт без партий,
+  185 order/job-тестов зелёные) + кабинет (тумблер `lots_enabled`, приёмка Charge+MHD, MHD-обзор
+  с бейджами, Verderb-списание) + демо-партии bakery/butcher (`DemoKit.enable_lots`). **E3
+  Закупки/M12 v1:** `Lieferant`/`Bestellung`(BE-код)/`BestellPosition` (EK-снимок из T5
+  cost_price) + `purchasing.py` (create/add_line/set_status/receive_po_line — приёмка через
+  единственный складской путь, source="purchase", частичные приёмки, авто-received) + кабинет
+  `/dashboard/purchasing/` «Einkauf» (вкладка хаба Sortiment/Erweitert; «Aus Bestellvorschlägen»;
+  чекбокс «EK übernehmen») + демо. **E2 Мультисклад v1:** `StockLocation` + `StockMovement.
+  location` (NULL = основной → история валидна без бэкфилла) + `locations.py` (баланс: дефолт =
+  счётчик − Σ недефолтных → Σ==счётчик по построению; `transfer` = пара движений Σ=0) + кабинет
+  (Standorte, Umlagerung, селектор локации на приёмках stock+purchasing, разбивка в drill-down);
+  ленивая активация UI при локациях > 1. Продажа-с-локации/Lot.location/демо-E2 — v2 по спросу.
+  `apps/inventory` 84 зелёных. Планы: `sklad-2-plan` + `sklad-2-e3-purchasing-plan` +
+  `sklad-2-e2-multilocation-plan` (все 2026-07-16).
+- **Самое свежее (2026-07-14): AB6.2 (все 9 слайдов наполнены) + AB7 (блочная главная) — в
+  `main`, БЕЗ миграций.** **AB6.2** — новая карта слайдов + наполнение: business (escape-hatch,
+  gate) · start (rich-demo) · company (название/город/логотип) · stil (галерея шаблонов) · menu
+  (виды шапки) · **offer** (мини-форма первой сущности по архетипу товар/услуга/номер/событие +
+  список «✏️» + пресеты акций) · **category** (раскладка каталога мокапами → catalog_layout) ·
+  home (hero) · **payment** (форма W4-3 через партиалы `_payment_fields`/`_payment_connect` +
+  извлечённые `save_payment_settings`/`payment_settings_context` — паритет-замки целы) · texts.
+  **AB7** — блочная главная `/dashboard/`: **B1** тело канбан-доски вынесено в `core/_board_body.html`
+  (рендер 1:1, `board.html` = обёртка); **B2** `apps/core/dashboard.py::dashboard_tiles` (плитки
+  задач на язык задач + бейдж «Not set up»→`?step=` из реестра шагов, гейты по модулям/
+  simple_hidden) + встроенный канбан на главной (`manage_sections_for` limit=20) + «Full view».
+  Ветка `claude/server-review-setup-wizard-sw6ems`, FF-мержи в main по зелёному CI. Дальше по
+  плану `master-slides-v3` — доводка `_step_done`/динамические слайды меню (v2) либо иной трек.
+- **Предыстория трека (2026-07-11): старт AB6/AB7 «анти-Битрикс v3» — план-док.**
+  Запрос владельца: мастер-СЛАЙДЫ наполнения сайта (компания+лого → вид меню → вид страницы
+  товара + первый товар/номер/услуга мини-формой → главная → оплата/доставка → тексты; ✓/⏭-рельса,
+  дозаполнение пропущенного `?step=`) + блочная главная кабинета (плитки задач + канбан внизу);
+  Эксперт остаётся. Решения владельца: мини-форма в слайде · деталь v1 = стиль карточек+секции ·
+  демо обогащаем (фото+баннер+меню/тексты). **AB6.0 (обсуждение слайдов) ЗАВЕРШЁН** — 4 развилки
+  решены (план §0b): название/город первыми полями слайда 2 · налог/право-реквизиты в слайде 7 ·
+  меню v1 = чипы+общие слайды (динамические per-страница — v2) · демо-позиции списком в слайде 4
+  с «✏️»-мини-формой. **Код ⏸ до отмашки владельца** («продолжаем AB6» → старт AB6.1 движок шагов).
+  Ядро: единый реестр `SETUP_STEPS` (питает рельсу мастера, чек-лист AB4-фасадом и бейджи плиток
+  AB7), state v2 в opaque-ключе `onboarding` — БЕЗ миграций и БЕЗ правок golden. SOURCE OF TRUTH —
+  `docs/master-slides-v3-plan-2026-07-11.md` (карта слайдов §3, решения §0b, инкременты §5).
+- **Самое свежее (2026-07-18): AB5.1 регистрация с ПОДТВЕРЖДЕНИЕМ ПОЧТЫ + AB6.10 мастер по
+  порядку владельца + шаблоны страниц товара/«О компании».** (ветка
+  `claude/registration-email-confirmation-698nwb`; план `docs/signup-confirm-wizard-plan-2026-07-17.md`).
+  **AB5.1 (⚠️ миграция `tenants/0026`):** POST /registrieren/ → `SignupRequest` (пароль хэшем,
+  тенант НЕ создаётся) → письмо → `/registrieren/bestaetigen/<token>/` → прежний фоновый
+  провижининг; идемпотентно, slug-гонка → страница ошибки; honeypot + rate-limit (боты без
+  почты не плодят Tenant/Domain — класс T-5); env-флаг `SIGNUP_EMAIL_CONFIRMATION` (default on),
+  console-бэкенд показывает ссылку на странице (⚠️ для реальных писем нужен RESEND_API_KEY —
+  Stage 0). allauth EmailAddress НЕ используется (SHARED vs TENANT-User). **AB6.10 (без
+  миграций):** порядок слайдов = запрос владельца (Sprachen ПЕРЕД Firma; Zahlung — в конец);
+  НОВЫЕ слайды `detail` «Produktseite» (3 пресета стиля карточек site_defaults + чекбоксы
+  секций detail_sections → `<module>_detail.hidden`; превью = деталь первой сущности, гейт по
+  primary-модулю) и `about` «Über uns» (тексты + 4 шаблона страницы = пресеты C-блоков
+  `page_blocks["info"]`, id `pb-about-*` — идемпотентная замена, чужие блоки целы; превью
+  /ueber-uns/); texts слим-нут до правового. setup.html: слайд задаёт `preview_url`.
+  i18n: 29 новых msgid переведены в en/tr/ru/uk .po. Тесты: 9 signup + 72 wizard зелёные.
+- **Самое свежее (2026-07-18, вечер): КОНЦЕПТЫ «Studio» + «Живая продажа/Finder» приняты
+  владельцем + FD-1 (движок Finder) реализован.** Решения («действуй автономно»): очередь —
+  **FD → LS-3 (Sofort-Angebot) → LS-1/2 (видео = WhatsApp, без записи §201) → ST-1 (3 Look'а
+  × 14 архетипов) → ST-4 (админ-хоум 5 хабов) → ST-3 (Studio-оболочка)**; Finder — ОПЦИЯ;
+  SVG-иконсет; имя «Studio». Доки: `studio-concept-2026-07-18.md`,
+  `live-selling-finder-concept-2026-07-18.md` (+LS-5 Care-цикл, LS-6 «Прямая линия»),
+  `fd1-finder-plan-2026-07-18.md`; мокапы — артефакт «SiteAdaptor Studio — концепт».
+  **FD-1 ✅ (без миграций):** `normalize_finder` (ключ presence-minimal), движок
+  `apps/core/finder.py` (пресеты деревьев по архетипам + скоринг words/slug/price по
+  display_fields, топ-3, лучший в середине), витрина `/finder/` (серверные шаги без JS,
+  404 пока не включён), `enable_finder` в демо-китах baeckerei/friseur, 9 тестов.
+  **FD-3-lite ✅** кабинет `/dashboard/finder/` (тумблер опции + превью дерева; вкладка
+  Marketing/Erweitert; targeted-write — кастом-вопросы целы). **FD-2 ✅** секция-CTA
+  «finder» на главной (реестр SECTIONS, ВЫКЛ по умолчанию; чипы первого вопроса → шаг 2;
+  ⚠️ ОСОЗНАННАЯ голден-регенерация 4 эталонов — normalize дописывает известные секции).
+  **Страховка редизайна ✅** (запрос владельца): тумблер «Klassische Ansicht»
+  (`site_config["classic_ui"]`, карточка на «Funktionen», контекст в processor);
+  первый потребитель — главная кабинета без плиток/канбана AB7; ЖЕЛЕЗНОЕ ПРАВИЛО трека
+  ST — каждый редизайн уважает флаг (`studio-concept §8b`). **ПОЛНОЕ ТЗ треков
+  FD/LS/ST — `docs/next-gen-master-tz-2026-07-19.md` (SOURCE OF TRUTH очереди:
+  этапы A LS-3→LS-1/2 · B ST-1→ST-4→ST-3→ST-2 · C LS-6→LS-4→LS-5 · D своды;
+  правила исполнения §4, ops §5).** Дальше: LS-3 (план-док обязателен).
+- **Самое свежее (2026-07-19): LS-3 «Sofort-Angebot» ✅ ЦЕЛИКОМ (этап A1 ТЗ; ⚠️ миграция
+  `orders/0015`).** План `docs/ls3-sofort-angebot-plan-2026-07-19.md`; развилка решена:
+  НЕ обобщаем jobs.Job — новая лёгкая модель `orders.Offer`+`OfferLine` (jobs не тронут ни
+  файлом). Флоу: тред inbox → «💶 Angebot senden» → композер (пикер FB-8 `sellable_manage`
+  с редактируемой ценой + `price_value` в `ManagedSellable`; свободные строки; срок/заметка)
+  → карточка в обоих тредах + письмо клиенту с прямой ссылкой → публичная `/o/<token>/`
+  (принятие без логина; пикер оплаты при >1; БЕЗ гейта модуля orders — страница сама служит
+  подтверждением: Vorkasse-реквизиты, Stripe success/cancel, «Jetzt bezahlen») → обычный
+  `Order` через `create_order(custom_lines=...)` (цены заморожены; product-строки — сток/
+  леджер по обычным правилам) → канбан + `Conversation.ref` на заказ. `OfferSM` open→
+  accepted/declined/cancelled; всё идемпотентно. 25 новых тестов; 40 msgid в en/tr/ru/uk.
+  Урок: ручной скрипт-пробник на keepdb-тест-БД наследил (стрей-строки уронили чужой тест)
+  → после пробников прогонять `--create-db`. Дальше по ТЗ: **A2 · LS-1 Video-Beratung**.
+- **Самое свежее (2026-07-19, продолжение): LS-1 «Video-Beratung» v1=WhatsApp ✅ ЦЕЛИКОМ
+  (этап A2 ТЗ; ⚠️ миграции `booking/0017`+`tenants/0027`).** План
+  `docs/ls1-video-beratung-plan-2026-07-19.md`; решения: `Service.is_video` МИГРАЦИЕЙ (свободного
+  dict-JSON нет, site_config дороже), номер — `Tenant.whatsapp_number` (не site_config — normalize).
+  Хелпер `apps/core/whatsapp.py::wa_link`. Кабинет: WhatsApp-Nummer в настройках (W0-инвариант),
+  чекбокс видео в форме услуги (presence-сентинел). Витрина: скрываемая секция `video` детали
+  («Per Video zeigen lassen», гейт is_video+номер) + авто-чип/фасет `?video=1` на /termin/.
+  Письма confirmed/reminder: wa.me с датой (fail-safe без номера). §201 — записи нет. 10 тестов;
+  8 msgid в 4 .po. Дальше по ТЗ: **A3 · LS-2 «Jetzt erreichbar»**.
+- **Самое свежее (2026-07-19, продолжение): LS-2 «Jetzt erreichbar» ✅ — ЭТАП A ТЗ ЗАКРЫТ ЦЕЛИКОМ
+  (БЕЗ миграций).** План `docs/ls2-jetzt-erreichbar-plan-2026-07-19.md`. `site_config["presence"]`
+  presence-minimal (`normalize_presence`; auto=дефолт без ключа — golden цел), резолвер
+  `apps/core/presence.py` (off/on/auto→`openinghours.open_status`), витрина: тег `presence_fab`
+  в `_base.html` — зелёная пилюля «Jetzt erreichbar — Video-Anruf» → wa.me (гейт
+  `whatsapp_number`; недоступен → фолбэк = чат-FAB/бронь), кабинет: карточка Auto/An/Aus на
+  главной + endpoint `set-presence` (targeted-write). 5 тестов; 8 msgid в 4 .po. CI-фикс LS-1:
+  замок hidden-секций билдера дополнен video (как B3 upsell). Дальше по ТЗ: **Этап B · ST-1
+  «Каталог Look'ов»** (3 Look'а × 14 архетипов; classic_ui-страховка обязательна).
+- **Самое свежее (2026-07-19, продолжение): ST-1a + ST-1b/1 (движок и галерея Look'ов) —
+  в `main` `fe00e5f` (БЕЗ миграций).** План `docs/st1-looks-plan-2026-07-19.md`. **ST-1a:**
+  `LOOK_FAMILIES` (Klar/Warm/Nacht-тёмный) × `ARCHETYPE_LOOK_ACCENTS` (14 палитр) = 42 Look'а;
+  `apply_look`/`looks_for` в sitetemplates; ключ `theme`="dark" presence-minimal + тёмный
+  дефолт витрины (посетительский localStorage-тумблер сильнее). **Попутно исправлен латентный
+  баг класса W6:** apply_template строил конфиг с нуля → стирал ui_mode/board/seo/page_blocks;
+  теперь общая `_apply`-база = полная копия. Адверсариальный замок: 42 Look'а apply→normalize
+  идемпотентно, golden целы (test_looks, 22). **ST-1b/1:** stateless-превью
+  `?preview=1&look=<family>` (оверлей пачки ключей в context.py, read-only — N iframe не делят
+  session-слот) + 3 Look-карточки с ленивыми scaled-iframe на слайде мастера `stil` (classic_ui
+  → только легаси-галерея; POST look приоритетнее template). **ST-1b/2 (той же датой, main
+  `ccf5a28`) — ВОЛНА ST-1 ЗАКРЫТА ЦЕЛИКОМ:** фieldset «✨ Look» в области «Тема» билдера
+  (гейт classic_ui) — клик выставляет все контролы дизайна + hidden `theme` и шлёт change →
+  живой draft-канал перекрашивает канву БЕЗ перезагрузки (паттерн UC6-6h), Undo/Save штатные;
+  билдер-Look = только визуал (секции курируют канвой; полный Look — слайд мастера); theme
+  по всему циклу (round-trip W0, save presence-guard W6, draft-канал, payload; DE-грабля
+  чисел учтена — stringformat:"g" + численный матчинг опций). Замки: 24 test_looks + 194
+  смежных. Детали — build-log. Затем ST-4 (админ-хоум 5 хабов, ТЗ §3 B2, план-доком).
+- **Самое свежее (2026-07-19, продолжение): ST-4a «Админ-хоум» ✅ — в `main` `9038d9b`
+  (БЕЗ миграций).** План `docs/st4-admin-home-plan-2026-07-19.md`. Хоум отвечает на «что
+  сегодня»: **виджеты** `home_widgets` (digest-паттерн: гейты модулей+simple_hidden+_safe) —
+  Umsatz heute + 7-дневный SVG-спарклайн (первый чарт кабинета), Abholbereit (orders ready),
+  Marketing-Puls v1 (views акций+погашения кампаний; featured отложен — кросс-схема),
+  Bewertungen (owner_overview). **5 хаб-плиток + Website** `hub_tiles` (SVG-спрайт
+  `tenant/_icons.html` + тег `{% icon %}` — старт Р5): Bestellungen/Angebot/Marketing/
+  **Integrationen (НОВЫЙ лендинг `/dashboard/integrationen/`** — карточки-входы по модулям)/
+  Einstellungen/Website. Task-плитки AB7 заменены (замки обновлены осознанно;
+  `dashboard_tiles` остаётся). classic_ui — прежний вид (Р7, замок). **ST-4b (сайдбар
+  5+Website, Sortiment/Kunden → Erweitert) — ЖДЁТ ЧЕКПОИНТА ВЛАДЕЛЬЦА** (план §2).
+  Параллельно допустимо: план-док ST-3 (Studio-оболочка).
+- **Самое свежее (2026-07-19, продолжение): ST-3 «Studio-оболочка» ✅ ЦЕЛИКОМ — в `main`
+  `adce86d` (БЕЗ миграций) + план-док LS-6 готов.** План `docs/st3-studio-shell-plan-2026-07-19.md`;
+  вывод разведки: полноэкранный хром УЖЕ был (SE-6 оверлей, правый инспектор, тулбар UC6-10,
+  двойная буферизация, Look ST-1b) → ST-3 = переупаковка: **ST-3a** рейка уровней `#st-rail`
+  (Look/Seiten/Blöcke/Medien — обёртки над showArea/инсертером/медиа; SVG +ic-pages/ic-media;
+  брендинг «Studio» в топ-баре) · **ST-3b** page-лента `#st-pages` снизу (чипы preview_pages,
+  актив по `#bld-page-path`, клик = `?page=`) · **ST-3c** кросс-фейд свопа канвы (opacity
+  180мс поверх двойной буферизации, hardReload-страховка цела). Всё под classic_ui-гейтом
+  (Р7, замок); существующие id целы (104 замка home_builder). Desktop-first (мобайл — прежние
+  кнопки тулбара, ограничение v1). Урок: context-processor modules_nav → {} при
+  schema_name="public" — тесты кабинетного хрома создают тенанта с обычной схемой.
+  **План LS-6 «Прямая линия» — `docs/ls6-direct-line-plan-2026-07-19.md`** (следующий
+  незаблокированный пункт очереди). ST-4b (сайдбар) — ждёт владельца; далее B4 ST-2.
+- **Самое свежее (2026-07-19, поздний вечер): ЭТАП C ТЗ ЗАКРЫТ — LS-6 + LS-4 v1 + LS-5 v1
+  в `main` (БЕЗ миграций).** **LS-6 «Прямая линия»** (план `ls6-direct-line-plan`):
+  «⚠️ Etwas stimmt nicht?» на 6 поверхностях сделок + 4 confirmed-письмах → ДОВЕРЕННЫЙ
+  problem-гейт contact (high только с ref; сырой priority игнорируется) → high-тред +
+  Telegram-пуш владельцу (dedupe на тред) · полоса «Problem — Kunde wartet» на канбане
+  (`Transaction.has_problem`, ОДИН batch-запрос на секцию — N+1-замок) · SLA v1 без миграции
+  (⚡ реакция треда + ⌀ Reaktionszeit 30 дней в списке) · recovery «Alles wieder gut?» при
+  resolve high-треда (дедуп + UWG-гейты). **LS-4 «Слой доверия» v1:** имя сотрудника над
+  staff-пузырём публичного треда + живая подпись в письме-ответе; публичный бейдж
+  «Antwortet in ~N Min» на контакт-странице ТОЛЬКО при ⌀ ≤ 2 ч (честность важнее украшения);
+  фото сотрудника — v2. **LS-5 «Care-цикл» v1:** развилка настроения в 4 «Wie war's?»-письмах
+  (👍 отзыв / 👎 → прямая линия LS-6 — перехват ДО публичного отзыва) + вкладка «Care-Zyklus»
+  в Marketing-хабе → матрица UD4-2; ДР — v2. Уроки: rl:*-Redis — публичные POST-тесты с
+  уникальным IP; автоэскейп & в plain-text письмах → `|safe` для URL с параметрами.
+  **Открытые решения владельца: (1) ST-4b сайдбар 5 хабов, (2) счётчики «продано N» (LS-4).**
+  Остаток очереди ТЗ без владельца: B4 · ST-2 «Шаблоны всех страниц» → этап D.
+- **Самое свежее (2026-07-19, ночь): ST-2 «Шаблоны всех страниц» ✅ ЦЕЛИКОМ (этап B4 ТЗ;
+  БЕЗ миграций).** План `docs/st2-page-templates-plan-2026-07-19.md`. Разведка: листинги
+  услуг/номеров/событий уже на LAYOUT_PRESETS, меню — 3 пресета UC6-6h, детали — AB6.10;
+  реально без пресетов были «О нас» (вне мастера), корзина, контакт. Сделано: НОВЫЙ
+  `apps/core/page_presets.py` — реестр `PAGE_PRESETS` {host: prefix+пресеты} (обобщение
+  _ABOUT_PRESETS: C-блоки page_blocks[host] + плоские ключи; идемпотентный
+  `apply_page_preset` — блоки владельца целы; `presets_for` recommended_for-первыми),
+  about-слайд мастера делегирует реестру байт-в-байт; билдер: action
+  `use_page_preset:<host>:<id>` + карточки пресетов в scoped-строках панели (info/cart;
+  работает и в classic_ui, Studio достигает через page-ленту); корзина 3 пресета;
+  контакт — SECTION_STYLES += contact (split/map_first/compact, карта в
+  `_contact_map.html`); мастер: чекбокс «Auch für andere Listen übernehmen» (слайд
+  category → листинги активных модулей). Новых normalize-ключей НЕТ, golden целы.
+  Тесты: test_page_presets (9) + contact-стили + apply-all; 1 msgid → 4 .po.
+  **Очередь ТЗ дальше: этап D** (ST-5/6/7, FD-3 полный, FD-4) — первым план-док
+  следующего незаблокированного пункта; ST-4b и «продано N» — ждут владельца.
+- **Самое свежее (2026-07-19, ночь, продолжение): ST-5 «Списки → визуал» ✅ ЦЕЛИКОМ
+  (этап D1 ТЗ; БЕЗ миграций).** План `docs/st5-lists-visual-plan-2026-07-19.md`.
+  **ST-5a** Angebote карточным гридом (aspect-video фото из `ManagedSellable.image_url`,
+  фолбэк; тумблер/Bearbeiten как у строки; classic_ui → divide-y список, гейт во
+  вьюхе). **ST-5b** НОВЫЙ `apps/core/orders_view.py` — Канбан⇄Календарь⇄Лента:
+  архетип-дефолт (booking|stays→Kalender, catalog→Liste, прочее→Board; недостижимое→
+  kanban), ключ `orders_view` presence-minimal в normalize, сеттер `set-orders-view`
+  (targeted-write), тег `orders_view_switch` — сегмент-контрол на board/списке
+  заказов/календарях booking+stays (classic → пусто), хаб-плитка «Bestellungen»
+  уважает выбор; v1 — навигационный (без встраивания движков). **ST-5c** CRM-карточки
+  (аватар-инициал, теги, LTV «Σ € · N×» — ОДИН annotate-запрос RevenueEntry на
+  страницу 25); ?q/Show more целы. Тесты: +2 sellable, test_orders_view (6), +2 crm,
+  смежные 354 зелёные; 2 msgid → 4 .po. Урок CI #1551: новые шаблоны гонять через
+  замок template_comments (многострочный `{# #}` запрещён). Дальше по этапу D:
+  **D2 · ST-6 Marketing-центр** (план-доком) → D3 ST-7 → D4 FD-3 → D5 FD-4.
+- **Самое свежее (2026-07-19, ночь, продолжение 2): ST-6 «Marketing-центр» ✅ ЦЕЛИКОМ
+  (этап D2 ТЗ; БЕЗ миграций).** План `docs/st6-marketing-center-plan-2026-07-19.md`.
+  **ST-6a** НОВЫЙ `apps/core/marketing_home.py` + лендинг `/dashboard/marketing/`
+  (паттерн integrations_home): карточки ROI-порядка (гейт по модулям) + read-only
+  обзор авто-касаний (reminder-события матрицы UD4-2 + строка B4 win-back) + панель
+  результатов (views активных акций / ★-показы·клики Sum по
+  AggregatorListing.tenant_schema / кампании issued·redeemed / отзывы ⌀·N; все
+  блоки _safe, только чтение); хаб-плитка «Marketing» → центр; HUB_TABS не тронут.
+  **ST-6b** `publishing.services.republish_promotion` (идемпотентная обёртка веера
+  активации) + экран `/promotions/<pk>/teilen/` (статусы Publication по каналам +
+  POST «Jetzt überall veröffentlichen», гейт active+publishing + входы
+  email-кампании (только переход, UWG §7) и ★ Feature) + «📣 Teilen» в списке акций.
+  Тесты 5+4, смежные зелёные; 28 msgid → 4 .po. Остаток этапа D: **D3 · ST-7**
+  (10 видов блоков — наполнение реестров) → D4 FD-3 → D5 FD-4; ST-4b и
+  «продано N» — ждут владельца.
+- **Самое свежее (2026-07-19, ночь, продолжение 3): ST-7 — 7a+7b+7c-фундамент ✅
+  (этап D3 ТЗ; БЕЗ миграций).** План `docs/st7-block-variants-plan-2026-07-19.md`.
+  Разведка: «10 видов на блок» УЖЕ закрыт UC6-8 (5 типов ≥10). Дозакрыто: **7a**
+  spacer 4 высоты (data.height presence-minimal, "" = py-6; миниатюра в
+  variantThumb) · **7b** SECTION_STYLES += cta/about/usp_bar/reviews по 4 вида
+  (лейблы реюзятся, 0 msgid; "" = байт-в-байт прежний вид) · **7c-фундамент**
+  `site_defaults.card_style` (overlay|compact, presence-minimal; golden+looks
+  целы). **ОСТАТОК 7c:** ветки `_product_card`/`_sellable_card` + селект билдера
+  + draft-канал — отдельным инкрементом С характеризационными замками ДО правок
+  (шаблоны переплетены с inline-edit/quick-add). Урок-повтор: template_comments
+  снова словил многострочный `{# #}` — гейт в каждом шаблонном батче.
+  Дальше этапа D: **D4 · FD-3 полный редактор Finder** → D5 FD-4; ST-4b и
+  «продано N» — ждут владельца.
+- **Самое свежее (2026-07-19, ночь, финал): решения владельца + ST-7c-рендер ✅
+  (ST-7 ЦЕЛИКОМ) + ДЕМО «по новой идеологии» + тест-гид.** Решения: ST-4b ДА
+  (план `st4b-sidebar-plan-2026-07-19.md`) · «продано N» ДА (честный порог) ·
+  ST-7c ДА · UC2-3 per-page секции ДА (пакет разблокирован) · Pro/de.po/FB-мелочь
+  отложены · **деплой очереди миграций сделан владельцем**. **ST-7c-рендер:**
+  card_style ЦЕЛИКОМ — ветки overlay/compact в `_product_card`/`_sellable_card`
+  (характеризационные замки ДО правок, "" байт-в-байт; sellable_card →
+  takes_context), processor `storefront_card_style`, селект «Kartenform» в
+  билдере (draft-канал). **Демо-волна (план `demo-new-ideology-plan`):** поля
+  DemoKit look/card_style/whatsapp+presence/orders_view/section_styles/
+  page_presets/spacers/seed_inbox/winback; носители: friseur (warm+видео+
+  presence+инбокс-демо: тред с Sofort-Angebot + high-«Problem») · mode
+  (nacht+overlay) · cafe (compact+стили+win-back) · restaurant (стили секций) ·
+  retreat (spacer) · shop/bakery (пресеты страниц) · werkstatt (orders_view) ·
+  aktionsmarkt (4 discount_style). **Тест-гид** `docs/demo-test-guide-2026-07-19.md`.
+  ⚠️ ops: `seed_demo_tenants --recreate` после мержа. Очередь: ST-4b →
+  «продано N» → UC2-3(b) → FD-3 → FD-4.
+- **Самое свежее (2026-07-20): ST-4b сайдбар ✅ + «Verkauft N diese Woche» ✅ —
+  оба «делаем» владельца закрыты; ЭТАП B ТЗ ЗАКРЫТ ЦЕЛИКОМ (в main).**
+  **ST-4b:** `modules.sidebar_nav` — компактный плоский сайдбар (Übersicht ·
+  Verkäufe · Angebote · Marketing→marketing-home · Integrationen · Website ·
+  Einstellungen; catalog=core → Angebote всегда); classic_ui → прежние группы
+  AB1 (легаси-ветка шаблона цела, замок); бейдж inbox на якоре Marketing;
+  мобильный таб-бар = первая четвёрка; НОВЫЙ хаб `sellables` (Angebote +
+  Erweitert: Produkte/Kategorien/Lager/Einkauf/Kombi/Import — дубль-вход) +
+  Marketing-хаб += Erweitert Kontakte/Nachrichten/Telegram; integrations_home —
+  свой nav-ключ. Осознанно обновлён замок AB1-групп (test_cabinet_nav).
+  **«Продано N» (LS-4 v2):** `apps/core/social_proof.py` — sold_last_week
+  (committed-статусы 4 kind, окно 7 дней, ЧЕСТНЫЙ порог ≥5 → иначе None),
+  тег `sold_badge` на 4 детальных ВНЕ _buybox (паритет-замки целы); 3 msgid →
+  4 .po. Урок-повтор CI-1116: `ruff format --check .` ЦЕЛИКОМ перед пушем.
+  Дальше очереди: **пакет UC2-3(b) per-page секций (владелец дал ДА)** → FD-3
+  → FD-4.
+- **Самое свежее (2026-07-20, продолжение): UC2-3(b) + FD-3 + FD-4 ✅ — ОЧЕРЕДЬ ТЗ
+  `next-gen-master-tz-2026-07-19.md` (этапы A–D) ИСЧЕРПАНА ЦЕЛИКОМ (всё БЕЗ миграций).**
+  **UC2-3(b) вариант A** (план `uc23b-page-sections-plan-2026-07-20.md`): ссылочные
+  типы блоков `PAGE_REF_BLOCKS` (faq_ref/team_ref/gallery_ref/testimonials_ref)
+  ТОЛЬКО для `page_blocks` (в home-sections отбрасываются → golden целы) — секция
+  на любой странице = рендер готового партиала с ГЛОБАЛЬНЫМИ данными site.<key>;
+  вариант B (per-page ДАННЫЕ) — отдельное решение владельца. **FD-3 полный**
+  (план `fd3-finder-editor-plan-2026-07-20.md`): редактор «Eigene Fragen» в
+  `/dashboard/finder/` — слоты вопросов + чипы с маппингами Wörter/slug-СЕЛЕКТ из
+  живых Category|Collection (dead-slug prevention; events без slug)/€ min-max,
+  сохранение через normalize_finder (капы/валидация бесплатно), «Branchen-Vorlage
+  laden», слоты дорастают после Save (без JS). **FD-4** (план
+  `fd4-aggregator-finder-plan-2026-07-20.md`): платформенный Finder
+  `/entdecken/finder/` (движок `apps/aggregator/finder.py`: вертикаль → город →
+  3 листинга; честный фолбэк; роут выше city catch-all; кэш только шага 1);
+  **UWG §5a** — органический порядок (featured НЕ поднимается) + «★ Anzeige» из
+  общего `_cards`, замками. CTA-вход на /entdecken/. **Попутно закрыт i18n-долг
+  Finder-трека:** 32 msgid (FD-1/2/3/4) добавлены в en/tr/ru/uk .po (все
+  инкременты шли без .po; немецкий фолбэк маскировал). **Остаток бэклога — только
+  owner-gated (Pro D1, T-1 de.po, variant B, FB-мелочь) и external-gated (LLM-
+  Finder, WhatsApp Business API, OTA-API и пр.); см. ТЗ §3-финал + task-catalog.**
+- **Самое свежее (2026-07-27/28): PMS-этап по спекам TravelLine — G12 + фидбэк-фиксы +
+  волна PMS-R + PMS-B1/B2 + CP-1 (всё в main, автономные FF-мержи по зелёному CI).**
+  Gap-анализ 5 разведчиков — `docs/pms-gap-analysis-2026-07-27.md` (очередь волн §5);
+  решения владельца: физические номера ДА · корпоративный контур ДА · цены конкурентов ДА.
+  Сделано: **G12 Verkaufsregeln** (сезонный min/max-stay, CTA/CTD по дням недели, окно
+  бронирования; гейт ТОЛЬКО витрина; ⚠️ `stays/0024`) · багфиксы календарей (drop по всей
+  строке Belegungsplan + grab-offset; кросс-месячный выбор дат витрины) · ресторан/запись
+  без перезагрузок (`?box=1`-фрагменты селектора слотов) · «Verkäufe» отеля = Belegungsplan
+  (entry ST-5b) · фиксы формулы G9 (rooms/блокировки/кастом-статусы →
+  `counted_statuses_for`) + Online-Checkin-ссылка в письмах · **фидбэк владельца**: форма
+  «Buchung bearbeiten» (даты/гости/номер/заметка, action=update) + карточка брони ПОД
+  календарём (`?buchung=<pk>&box=1`) · **волна PMS-R ЦЕЛИКОМ** (план `pms-rooms-plan`):
+  R1 `stays.Room` + синк ёмкости (⚠️ `stays/0025`) · R2 назначение номера (`free_rooms_for`/
+  `assign_room`, «Ohne Zimmer»; ⚠️ `stays/0026`; попутно фикс: reprice-ветка move_stay не
+  сохраняла смену юнита) · R3 шахматка построчно по комнатам + drop-назначение
+  (`room_lane_rows`) · R4 хаускипинг-lite (выезд→dirty→«Sauber»; ⚠️ `stays/0027`; демо-отель
+  с комнатами 101–104) · **PMS-B1** чекбокс согласия UWG в 3 формах брони → Double-Opt-In
+  (+фикс `marketing_opt_in_at` в ЛК/CRM) · **PMS-B2** авто-fulfilled beat (LTV/win-back
+  отеля живы) · **CP-1 Marktposition** (позиция цены среди отелей города из агрегатора,
+  без рекомендаций) · багфиксы CRM-аудита (win-back TypeError, DSGVO-purge stays-гостей).
+  Планы дальше: `pms-corporate-competitor-plans-2026-07-28.md` (CO-1/CO-2 корпоративный
+  контур — следующие). ⚠️ ops: после деплоя `seed_demo_tenants --kit hotel --recreate`.
+- **Самое свежее (2026-07-29/30): фидбэк-батч «акции явными» (aktionsmarkt) — 3 инкремента,
+  всё в main, БЕЗ миграций.** (1) Типы акций явными: чипы механики на карточках/детали
+  (`part="flags"`/`part="savings"` в `_discount_display.html`: 🆕/📦 reservieren/🔁 повтор/
+  📅 срок + «Sie sparen X €»), секции групп на /aktionen/ (безгрупповые в конце), демо-кит
+  += Mystery-Deal + галереи Kaffee/Bio-Kiste (`spec["images"]` списком). (2) Деталь акции:
+  форма брони в ПОПАПЕ за CTA (тот же `_buybox` в DOM — паритет-замки целы; авто-открытие
+  при ошибках POST), галерея миниатюр под главным фото (`Promotion.gallery_images`, свап
+  кликом). (3) Блок цены по референсу владельца: крупная итоговая → зачёркнутая старая +
+  пилюля `data-price-badge` → «Sie sparen» → строка наличия → промо-баннер группы с
+  СЕГМЕНТНЫМ отсчётом Tage|Std|Min|Sek (`data-cd`, page-тикер; карточки листинга держат
+  прежний `data-countdown`); стили UE2-2 уважены; регресс-фикс: процент-акция без цен —
+  крупный «−N %» вместо цены. 3 замка обновлены осознанно. ⚠️ ops: после деплоя
+  `seed_demo_tenants --kit aktionsmarkt --recreate` (галерея демо).
+- **Самое свежее (2026-07-30, ночь): фидбэк отеля/услуг + первый экран ВСЕХ архетипов +
+  M4-B Lookbook + старт i18n-волны.** (1) **Отель ×4:** мультисезонный расчёт ПРОВЕРЕН
+  (`quote_total_cents` идёт по ночам — дефекта не было) + прозрачность `price_breakdown`
+  («Preis pro Nacht anzeigen» на карточке брони) + **Lücken-Deal per-Zimmer**
+  (⚠️ `stays/0030`). (2) **Страница услуги** `booking:service-edit` (зеркало
+  `stays:unit-edit`) — «Bearbeiten» больше не высаживает в общий список. (3) **Навигация
+  к «календарю цен»** (разведка дала карту 12 пробелов): вход `?tab=einstellungen&sec=preise`
+  с Belegungsplan/отчёта/страницы номера, «🕒 Öffnungszeiten & Ressourcen» + плашка
+  «Noch keine Öffnungszeiten hinterlegt» на страницах услуг (причина витринного «keine
+  freien Termine» раньше не называлась); убран мёртвый `hub_tabs "stays"`. (4) **Первый
+  экран для всех архетипов** — НОВЫЙ реестр `apps/core/hero_tiles.py` (7 архетипов ×
+  плитки, гейты модуля/акции, fail-safe на мёртвом url) + тег `{% hero_tiles %}`,
+  подключён `{% else %}`-веткой `_hero_widget.html` (кастомные ветки целы); слайдеры
+  `heroes` у 10 китов; whitelist → `siteconfig.HERO_WIDGETS`. (5) **M4-B Lookbook**
+  (⚠️ `catalog/0020` + `collections/0002`): `Product.collections` + `Collection.images`,
+  `/lookbook/<slug>/`, фасет `?kollektion=` в каталоге, кабинет подборок открыт каталогу,
+  демо CLOTHING. (6) **i18n**: 3 разведки → план `docs/i18n-full-coverage-plan-2026-07-30.md`;
+  `.po` формально полны и **de.po существует**, но **~1100 строк не доезжают до `.po`**;
+  **I18N-1 ✅** — 216 меток `choices` в 22 файлах обёрнуты в lazy (+107 msgid × 5 .po),
+  миграции не нужны; исправлен `%%` в msgstr (рендерился бы буквально), de.po досинхронизирован.
+  Дальше по плану: I18N-2 (конструктор сайта) → I18N-3 (шаблоны кабинета) → I18N-4..8.
+- **Самое свежее (2026-07-31): волна i18n ЗАКРЫТА (кроме owner-gated PDF) + волна M4
+  бутика ЗАКРЫТА ЦЕЛИКОМ.** **I18N-2..8 ✅** — конструктор сайта (76 меток реестров в lazy;
+  грабля: lazy в JSON → `DjangoJSONEncoder` в `core/seo._dumps`, иначе «+»-инсертер падал),
+  шаблоны кабинета, формы/мастер, `messages`/вьюхи, Finder (`localize_tree` только для
+  пресетов — кастом владельца остаётся его текстом), качество переводов (14 смысловых
+  правок), дымовой замок `test_smoke_i18n`. **I18N-7a ✅** — 41 письмо (owner/job/offer/
+  inbox/installment/gift/waitlist), +116 msgid × 5 .po; дайджест владельца получил
+  НАСТОЯЩИЕ плюралы (у ru/uk 4 формы). Урок: msgid из шаблонов тянуть через
+  `translation.template.templatize` (то же, что makemessages), свой regex врёт.
+  **⏸ I18N-7b (PDF/счета/постеры) — за решением владельца** (DATEV-заголовки переводить
+  нельзя; рекомендация — гибрид). **M4-C ✅** Merkzettel (сессия, 0 миграций, DSGVO-чисто).
+  **M4-A ✅** (⚠️ `catalog/0021`) — `size`/`color`/`images` на ProductVariant РЯДОМ с label
+  (label держат склад/заказы/PDF/фид/импорт), единый резолвер фасета
+  `size_axis = Coalesce(NullIf(size,""), label)` (смешанный каталог не теряет товары),
+  оси data-атрибутами поверх ЕДИНСТВЕННОГО `select name="variant"` + подмена фото,
+  CSV-импорт по `(product, size, color)` с фолбэком на label, демо CLOTHING 3×2 и 4×2.
+  ⚠️ ops: после деплоя `seed_demo_tenants --kit clothing --recreate`.
+- **Самое свежее (2026-07-31, продолжение): I18N-9 — «обёрнуто» ≠ «переведено».**
+  Стенд кабинета демо на ru показал немецкие «Sichtbar»/«Bearbeiten». Причина
+  системная: **`makemessages` падал** (конфликт msgid: одна строка как singular и
+  как plural) → `.po` велись руками → сотни `{% trans %}` без записей молча шли
+  по-немецки. Снят конфликт (`_buybox` → count-форма; попутно строка не
+  переводилась даже на de), сверка кода с `.po`: из 3891 msgid отсутствовал
+  **401**, из них **177 UI переведены на 5 локалей**; 224 — маркетинговая копия
+  Branchen-лендингов (SEO под DACH) → **осознанно в allowlist**, перевод за
+  решением владельца (рекомендация — начать с en; план §3). Регресс ловит
+  `scripts/i18n_gap.py` + шаг CI «i18n coverage». **Демо-витрины:** словари
+  `demo_i18n_<loc>.json` не знали китов, добавленных после DL-волны → первый
+  экран/доверие (81 строка) переведены на en/ru/uk/tr; не переводим названия
+  заведений, имена, ключи фото и тексты отзывов. Остаток (~478 строк — описания
+  отдельных позиций) — по спросу. Также снят дрейф состояния миграций после
+  I18N-1 (`aggregator/0015`, choices-only, DDL не порождает).
+- **Самое свежее (2026-07-31, вечер): I18N-7b «документы» ЦЕЛИКОМ (решение владельца
+  «полный»).** Пять генераторов (Rechnung/Angebot/Lieferschein/Teilnehmer-Infoblatt/
+  QR-Poster) переведены полностью; общий слой `apps/core/documents.py` — язык
+  документа (`?lang=` → язык поверхности → LANGUAGE_CODE, валидация по локалям
+  тенанта), регистрация TTF, локале-зависимые деньги/кол-во/даты. **Шрифт:**
+  встроенный Helvetica = WinAnsi, кириллицы нет вовсе, турецкие ı/ş рвут слово
+  («Açıklama» → «A ç n klama») → в образ добавлен `fonts-dejavu-core`, а без шрифта
+  язык честно понижается до английского. Кабинет: пилюли языков рядом с кнопкой
+  скачивания (`{% doc_langs %}`); памятка гостя — на языке витрины. **НЕ переводим:**
+  DATEV-экспорт (машинный формат) и `USt-IdNr.`/`Steuernummer`/§ 19 UStG.
+  **Стенд нашёл 3 дефекта, невидимых тестам:** (1) `gettext` внутри f-строки
+  xgettext НЕ извлекает — строка молча не переводилась И не попадала в гейт I18N-9
+  (правило: `title = _("…")`, потом f-строка); (2) омонимы DeepL в счёте — «Net» →
+  «Nicht»/«Değil»/«Нет»/«Ні» (отрицание!), «Quote» → «Zitat»/«Цитата», «Ticket» →
+  «Fahrkarte», «Draft» → «Проект»; (3) жёсткое «Entwurf» в `number_display`.
+  19 msgid × 5 локалей, 8 замков. ⚠️ ops: пересобрать образ (новый пакет шрифтов).
+- **Самое свежее (2026-07-31, ночь): ВОЛНА HF (фидбэк отеля, 14 пунктов) ЗАКРЫТА ЦЕЛИКОМ —
+  HF-0…HF-6 + попап формы + демо.** БЕЗ миграций, всё в `main` (`0cd2b2e5`).
+  **HF-6c мультивыбор времён услуги:** времена-переключатели, состояние в URL
+  (`?slot=A&slot=B`, без JS, живёт в iframe и переживает fetch-своп); бронь через
+  `services.book_many` (N `Booking` + общий `group_code`, всё-или-ничего). Стенд вскрыл
+  три дыры сверх плана: выбор терялся при переходе на соседний день (форма исчезала,
+  в POST шёл только текущий день) → `buybox_ready` по ЛЮБОМУ отмеченному времени и
+  hidden-поля несут весь набор; сетка предлагала неисполнимый выбор, когда услуга ДЛИННЕЕ
+  шага расписания (демо-прокат 480 мин при шаге 30) → пересекающиеся старты
+  `data-slot="blocked"`; мусор/протухшие `?slot=` роняли весь заказ. **HF-6d:**
+  подтверждение, письма (гостю+владельцу) и календарь кабинета показывают всю группу.
+  **Попап формы контактов** (номер+услуга, флаг `buybox_in_modal`; форма остаётся в DOM →
+  паритет-замки целы; правая колонка номера 899→286 px). Две грабли: скрипт внутри
+  свапаемой зоны умирал после первого fetch (`innerHTML` не исполняет `<script>`) → вынесен
+  наружу; диалог заперт в stacking-контексте `lg:sticky` → шапка рисовалась ПОВЕРХ
+  затемнения → портируется в `<body>`. **«Описание съехало»:** `mx-auto` центрировал тело
+  детали внутри `max-w-5xl` → описание на 128 px правее фото; левые края выровнены.
+  **Демо:** `translate_tenant_content` НЕ обходил акции (39 переводов лежали и не
+  применялись) → добавлен проход + 8 записей ×4 словаря; фото трём акциям отеля; полные
+  описания+attributes/FAQ четырём услугам. ⚠️ ops: `seed_demo_tenants --kit hotel --recreate`.
+  Ограничение «`Service.attributes`/`faq` и `Promotion.group` без overlay» — **закрыто
+  2026-08-01** (см. запись ниже).
+- **Самое свежее (2026-08-01): витринный батч по фидбэку + находимость демо + i18n свободного
+  текста владельца.** (1) **Переключатель «список ↔ плитка» на ВСЕХ сетках** (`_grid_view.html`
+  + один делегированный обработчик; ключ сетки в localStorage → «список» на акциях не
+  переключает каталог; режим списка = CSS-класс поверх любых `grid-cols-*` layout-движка) +
+  **кнопка «Фильтры»** на каталоге (на телефоне панель фасетов занимала весь первый экран;
+  применённый фильтр не прячем, счётчик активных — на кнопке) + фикс наплывания на
+  overlay-карточке (quick-add лежал поверх названия/цены, сердечко — поверх бейджа).
+  (2) **Блок «Примеры по функциям» на `/branchen/`** — владелец не нашёл демо с акциями, хотя
+  `aktionsmarkt` есть: демо подписаны видами бизнеса, не возможностями. Реестр
+  `apps/tenants/feature_demos.py` (8 записей «функция → конкретная страница живого демо»,
+  гейт по засеянным хостам → мёртвых ссылок нет). (3) **i18n свободного текста** (план
+  `docs/i18n-owner-content-plan-2026-08-01.md`): `apps/core/i18n_seq.py` (поэлементный оверлей
+  списков; база задаёт длину, пустое = фолбэк) → `Service.attributes_i18n`/`faq_i18n`
+  (⚠️ `booking/0020`) и `Promotion.group_i18n` (⚠️ `promotions/0024`; ключ фасета `?gruppe=`
+  остаётся плоским, переводится только метка) + per-locale ввод метки группы в форме акции +
+  засев демо (66 строк × 4 словаря). Остаток класса — метки вариантов/опций/Extra (за
+  решением владельца). Форма attributes/faq — ЗАКРЫТА тем же днём (см. ниже).
+- **Самое свежее (2026-08-01, продолжение): богатая карточка услуги заполняется владельцем +
+  O-волна «виды отображения опций» + матрица склада «размер × цвет» — всё в main, одна
+  миграция.** (1) **Ввод attributes/FAQ услуги** (план `service-rich-card-editing-plan`):
+  Details — textarea «пункт на строку», FAQ — пары полей (слоты дорастают после Save, как в
+  FD-3); сентинелы `*_present` (компактная строка списка не стирает наполнение, W0); переводы
+  выравниваются по ВЫЖИВШИМ пунктам (`apply_seq_overlay`; замок). Грабля: хелперы, вставленные
+  между `@login_required` и вьюхой, съели декоратор — вьюха осталась без авторизации; поймано
+  своим тестом, правило в build-log. (2) **O-волна** (план `option-display-styles-plan`, ответ
+  на вопрос владельца про учёт опций): реестр `catalog/option_styles.py` — варианты списком/
+  кнопками/цветными кружками/фото-плитками/строками/двумя осями (цвет+размер); модификаторы
+  плитками с фото/строкой/пилюлями; `Product.variant_style` + `ModifierGroup.display_style` +
+  `ModifierOption.image` (⚠️ `catalog/0022`) + дефолт `site_defaults.variant_style`; фото
+  варианта/опции грузится из кабинета (починена мёртвая функция M4-A). Свотчи не шлют полей
+  (паритет-замок формы корзины) — управляют скрытым селектом; цвет кружка ТОЛЬКО по словарю.
+  (3) **Матрица склада** (`inventory/matrix.py`, без миграций): «размер × цвет» с итогами по
+  обеим осям («сколько всего синего / размера M»), фильтры Größe/Farbe плоской таблицы,
+  колонки осей в CSV; пустая ячейка ≠ ноль, stock=None ≠ ноль (замки); Zählliste следует
+  фильтру с предупреждением, матрица — нет (она обзор). ⚠️ ops: `seed_demo_tenants --recreate`
+  для демо-стилей (mode=axes, cafe=buttons, гастро=chips/list).
+- **Самое свежее (2026-08-01, вечер): аудиты месяца/июня + M22b оживлён — БЕЗ миграций.**
+  Аудит выявил, что очередь миграций в этом файле устарела на ~3 недели (сверено с прод-
+  `showmigrations`, см. ниже) и что за июнь потеряна ровно ОДНА работа: два коммита от 25.06
+  на `claude/m20-retreat-pages` не долетели до main. **M22b оживлён** (план
+  `docs/m22b-revive-plan-2026-08-01.md`, решение владельца «отдельным инкрементом»): плашка
+  «бизнес на связи» по часам работы в треде клиента (серверный рендер; часы не заданы → плашки
+  нет) + индикатор «печатает» на кэш-флаге (TTL 6 с, троттлинг пинга 3 с, ключ по UUID треда —
+  БЕЗ модели: состояние обязано теряться) — едет в СУЩЕСТВУЮЩЕМ поллинге, новых запросов на
+  чтение нет. Не cherry-pick (~7 конфликтов, inbox с тех пор +868 строк), а ручной перенос ~60
+  строк в текущий код. 42 замка в `apps/inbox` + стенд обеих сторон. Грабля: кабинетные
+  эндпоинты дают 403 не только без CSRF, но и без `Membership` (`has_cabinet_access`
+  fail-closed — `@login_required` его не заменяет). SSE остаётся отложенным (roadmap §Отложено).
+  **Доводка 2026-08-03 (ревью+браузерный стенд):** пинг «печатает» из НАСТОЯЩЕГО браузера не
+  отправлялся вовсе — скрипт выше формы, прямой `querySelector` по textarea = null (curl-стенд
+  сервера этого не видит; правило: JS-фичи гейтить Playwright'ом) → делегирование на `document`
+  (как Ф1) + регресс-замки на оба шаблона; попутно закрыты ПРЕД-существующие дыры: кабинетные
+  `thread_poll` (тела сообщений, запись unread) и `unread_count` были без `@login_required` —
+  аноним получал 200 (Membership-middleware анонима не трогает); оба `thread_typing` — POST-only.
+  **T-7 `migration_state` ✅** (следом, без миграций): команда сверки миграций ПО ВСЕМ СХЕМАМ
+  (public + все тенанты), вывод сгруппирован по миграции, схема-строка-без-Postgres — отдельный
+  диагноз «СХЕМЫ ОТСУТСТВУЮТ» (не «не применено»: иначе владельца отправило бы чинить не то);
+  шаг добавлен в `deploy.sh` этап 8 → каждый деплой сам печатает вердикт, очередь ниже больше
+  не может тихо устареть. Проверка одной командой: `python manage.py migration_state`.
+- **Самое свежее (2026-08-03): ВОЛНА VERKÄUFE V1–V4 ЦЕЛИКОМ — единая страница продаж**
+  (план `docs/unified-sales-page-plan-2026-08-03.md`, решения владельца §4; БЕЗ миграций).
+  `/dashboard/verkaeufe/`: вкладки по kind (primary всегда — у отеля Belegungsplan; прочие
+  с первой продажей, `kinds_with_sales` exists-гейт; reservation — в Marketing), в каждой
+  вкладке Kalender/Board/Liste с persist'ом (`sales_views` presence-minimal). Календари
+  встроены партиализацией 1:1 (`stays/_belegungsplan_body` + context-фны; booking-Tagesplan;
+  рендер байт-в-байт). Generic-Liste закрыла «списка нет» у stay/booking/job/ticket.
+  **V3 Auftragsbuch**: календарь заказов по дням выдачи (`Order.pickup_slot`, 14 дней,
+  «Ohne Termin»-блок). **V4**: вход «Verkäufe» (сайдбар/плитка/хоум) → новая страница
+  (classic_ui — прежний вход, замки), «Alte Ansicht · Alles auf einer Seite» на 5 старых
+  страницах, ЧЕСТНЫЕ счётчики колонок доски (агрегат по БД + resolve кастом-статусов —
+  раньше врали при >50). Замки ST-5b/ST-4b обновлены осознанно (легаси-маппинг под classic).
+  **Решения владельца на след. волну:** акции — ВСЕ сразу на рельсы «ценовой слой над
+  базовой сущностью» (зависимость от реального наличия товара/номера/услуги-слота-мастера,
+  закрытие стандартным Order/Booking/Stay, клиент в CRM); наборы — расширяем Combo.
+  План-доком следующей сессией (`unified-sales-page-plan §6`, task #75).
+- **Самое свежее (2026-08-03/04): ВОЛНА PL «Акция = ценовой слой над базовой сущностью»
+  ЗАКРЫТА ЦЕЛИКОМ (P1–P7)** — решения владельца «переводи все сразу»; план
+  `docs/promo-price-layer-plan-2026-08-03.md`. **Модель (⚠️ миграции `promotions/0025` +
+  `booking/0021` + `stays/0031`, аддитивные):** FK-цели `service`/`stay_unit`/`combo` +
+  `target_rules` (weekdays/hour_from-to/resource_id | stay_from/stay_to, fail-closed
+  матчер) + `Booking.promotion`/`StayBooking.promotion`. **Два счётчика с разными
+  ролями:** `available_quantity` = лимит кампании (conditional UPDATE как был),
+  физическое наличие — ШТАТНЫЕ движки целей; двойное списание в одной atomic,
+  OutOfStock/SlotTaken откатывают оба, возврат лимита при отмене ровно один раз
+  (FSM-хуки + зеркало status_effects; no_show НЕ возвращает). **Чекауты:**
+  товар/combo/свободная → `services.purchase` = `create_order(custom_lines)` (6-й
+  элемент — modifiers-маркер {"promo": id}; склад/леджер штатно); услуга —
+  промо-цена применяется АВТОМАТИЧЕСКИ в `service_book` (одиночная бронь, лучшая
+  цена, правила «счастливых часов»); номер — кандидат `pricing.auto_discount(extra=)`
+  в `book_stay` (max, не суммируем — как G4/Lücken). **Витрина акций (P5):**
+  /p/<uuid>/ диспатч по цели, эндпоинт `/p/<uuid>/kaufen/` → штатное подтверждение
+  заказа; kind reservation НЕ порождается (легаси доживает, /r/<code>/ цел).
+  **Витрина целей (P6):** деталь/карточка товара — rose-баннер/бейдж со ссылкой на
+  акцию; сетка слотов услуги — подсветка действующих времён + промо-цена в форме;
+  номер — quote/тарифы/«ab …» считают акцию тем же кандидатом, что чекаут (ФИКС
+  расхождения «показали дороже, списали дешевле») + бейдж до дат. **Демо:** спека
+  китов += service/stay_unit/rules/limit (второй проход после сидинга модулей);
+  friseur Happy Hours (Mo–Mi 10–14) + hotel Frühbucher → Doppelzimmer Seeblick
+  (демо-брони сами списывают лимит — инвариант в ките-тесте). **Аналитика (P7):**
+  `deal_counts` (заказы по маркеру + брони по FK, отменённые не в счёт) → плитка/
+  колонка «Verkäufe», конверсия по (сделки+резервы)/просмотры. Проверено Playwright
+  на стенде. ⚠️ ops: `seed_demo_tenants --kit friseur|hotel --recreate` после деплоя.
+- **Самое свежее (2026-08-04, фидбэк владельца): месячный календарь кабинета Termine +
+  «артикулы везде» + Zusammenführen.** (1) Сетка месяца над Tagesplan (`booking/_month_grid.html`,
+  счётчик броней/день одним запросом, история доступна, клик по дате = прежний день-список;
+  работает и во вкладке Kalender Verkäufe). (2) Артикулы: SKU варианта редактируется из
+  кабинета; `ModifierOption.sku` (⚠️ `catalog/0023`); снимок `OrderItem.sku`
+  (⚠️ `orders/0017`) → Art.-Nr. в подтверждении/кабинете/письмах/PDF; витрина-деталь
+  показывает Art.-Nr. и меняет с выбором варианта; фид mpn per-variant. (3) «Als Varianten
+  zusammenführen»: чекбоксы списка товаров → выбор главного → прочие становятся вариантами
+  (`apps/catalog/merge.py`; артикул/EAN/цена/остаток/EK/фото переезжают, леджер сходится
+  с обеих сторон, старые гаснут с историей). Урок: инвариант-ассерты на демо-сидере считать
+  по АКТИВНЫМ сделкам (отменённой FSM возвращает лимит, FK остаётся) — флак CI #1836.
+- **Самое свежее (2026-08-05): W-v3 — полный АУДИТ КАБИНЕТА (воркфлоу 14 агентов, все
+  находки адверсариально верифицированы) + план унификации W7–W12.** Запрос владельца
+  «опять каша; базовые настройки отдельно, дополнительные по типам в табы; изучить
+  TravelLine/Битрикс/CS-Cart». Диагноз (7 системных причин): 4 несинхронизированных
+  реестра навигации; 3 поколения поверхности продаж; Простой режим НЕ работает в новом
+  UI (sidebar_nav без simple_hidden_modules — требование st4b-плана потеряно);
+  classic_ui = вторая IA; подсветка 7 из 44 nav-значений + сломан поиск меню;
+  опасные save-пути (normalize теряет `notify`/`low_stock_threshold`/`lots_enabled`;
+  голый tenant.save() в settings_view; notifications затирает выключенные модули);
+  сироты billing (подписка!)/Blog/Newsletter/Finanzen/Auswertungen(404). Поведенческое:
+  «Versendet» с доски без трек-номера; «Abgeholt» доставочному; резерв с доски без
+  таймстемпов; акцию на услугу/номер нельзя создать из UI. Доки:
+  **`docs/cabinet-audit-2026-08-05.md`** (+папка отчётов) + план
+  **`docs/cabinet-unification-plan-2026-08-05.md`** (W7 предохранители → W8 единый
+  реестр NavEntry → W9 Settings-хаб «базовые+по типам в табах» → W10 Verkäufe
+  единственной поверхностью → W11 Marketing+Kunden → W12 честные режимы; всё БЕЗ
+  миграций). **Решения Р-1..Р-8 ✅ (2026-08-05): classic_ui УДАЛИТЬ (волна W-CL до W8) ·
+  Marketing+Kunden слить · Integrationen → вкладка Einstellungen · Reservierungen в
+  Verkäufe · Newsletter вкладкой · Ctrl+K в W8 · Team в W9 · порядок W7→W-CL→W8→…**
+  **W7 ✅ ЦЕЛИКОМ (той же датой): a** save-пути (normalize-passthrough notify/склада +
+  замки; merge матрицы уведомлений; settings_view update_fields; мёртвые POST-ветки
+  order-settings/billing-payments-methods; presence-guard мастера) · **b** навигация
+  (починен поиск меню; входы-сироты Finanzen/Auswertungen/Abrechnung/Blog/Newsletter/
+  Kollektionen; возврат «Angebote»; мёртвый nav_key care; гейты hub_tiles; 404
+  Marketing-Puls; offer_cta jobs; CTA «Belegungsplan» только отелю) · **c** продажи
+  (is_delivery-фильтр доски; shipped_at/таймстемпы резервов в FSM; next=-провод —
+  действия из встроенных календарей не выбрасывают на легаси; гейт primary-kind;
+  Liste по дате события). 30+ замков; детали — build-log 2026-08-05. **W-CL ✅ (той же датой): classic_ui
+  СНЕСЁН ЦЕЛИКОМ** (план `wcl-classic-ui-removal-plan-2026-08-05.md`): тумблер/endpoint/
+  классик-сайдбар (группы AB1)/classic-ветки вьюх и шаблонов/NAV_GROUPS/
+  grouped_active_modules/nav_task_label; entry «Verkäufe» = всегда единая страница;
+  board-хаб урезан до Tickets/Aufträge; normalize ДРОПАЕТ ключ; правило §8b
+  studio-concept отменено. **Перенос:** simple-скрытие меню переехало из классик-
+  сайдбара в hub_tabs (module_key ∈ simple_hidden_modules; каталожным табам
+  module_key="catalog") — Простой режим впервые работает в новом UI. Classic-замки
+  сняты осознанно (карта — build-log). **W8 ✅ (той же датой): единый реестр навигации**
+  (`apps/core/nav_registry.py`: ANCHORS+ENTRIES; HUB_TABS/sidebar_nav — производные,
+  прежняя форма целa) + **подсветка «где я» на всех экранах** (фильтр `nav|nav_anchor`,
+  карта nav→якорь) + **инвариант-замки** («каждый nav-литерал имеет якорь» — скан
+  исходников; «каждая запись reverse'ится») + **палитра Ctrl+K** (🔍 в шапке, индекс из
+  реестра, гейты модулей/Простого). hub_tiles в реестр не сведены (осознанно, W9/W11).
+  W7+W-CL смержены в main (`ce69b78`, БЕЗ миграций). Дальше: **W9 (Settings-хаб
+  «базовые + по типам в табах» + Team)** → W10 → W11 → W12. Ветка
+  `claude/cabinet-audit-optimization-vkcxs4`.
+- **Самое свежее (2026-08-05, продолжение): ВОЛНА W9 (Settings-хаб) ЗАКРЫТА ЦЕЛИКОМ
+  W9-1..W9-11, всё БЕЗ миграций** (план `w9-settings-hub-plan-2026-08-05.md §4`).
+  Табы Einstellungen «базовые + по типам»: Mein Geschäft · Sprachen · Recht & Steuern
+  (W9-5: налоговые реквизиты переехали из формы бизнеса, единственный писатель) ·
+  Zahlung & Lieferung · Benachrichtigungen & Kanäle (W9-7: пресеты «Alle Kanäle»/«Nur
+  E-Mail» + read-only статус бизнес-бота) · **Abläufe (W9-8: НОВЫЙ экран
+  `/dashboard/ablaeufe/` — имена статусов/переходы/колонки доски в одном месте;
+  копия формы в order_list и ветка orders:order-settings удалены, мёртвый stays-
+  контекст снят)** · Website & Domains (W9-4) · **Integrationen (W9-9, Р-3: якорь
+  ушёл из сайдбара 7→6, карточки со статусами Stripe/бот/домен/каналы fail-safe)** ·
+  Finanzen · Auswertungen · Abo & Rechnung · **Team & Zugriff (W9-10, Р-7: инвайт
+  Redis-токеном одноразовым TTL 7 дней, принятие `/team/beitreten/<token>/`,
+  guard'ы последнего owner; РОЛЕВОЙ ГЕЙТ ВПЕРВЫЕ РАБОТАЕТ — owner-only префиксы
+  billing/recht/team в CabinetOwnerAccessMiddleware)** + Erweitert (Zusatzleistungen/
+  Medien/Funktionen/Finder/Hilfe). Предохранители W9-3: SEO/Finder — targeted-write.
+  Дальше по плану унификации: **W10** (Verkäufe единственной поверхностью) → W11
+  (Marketing+Kunden, Р-2) → W12 (честные режимы).
+- **Самое свежее (2026-08-05, вечер): ВОЛНА W10 (Verkäufe единственной поверхностью)
+  ЗАКРЫТА ЦЕЛИКОМ W10-1..W10-6, всё БЕЗ миграций** (план `w10-verkaeufe-plan-2026-08-05.md`).
+  **W10-1** одна модель переключения видов (persist `sales_views`; сегмент ST-5b удалён,
+  переключение вида сохраняет GET через next=). **W10-2** (Р-4) Reservierungen — вкладка
+  по общему правилу «с первой продажей». **W10-3** паритет order-Liste (фильтр статуса +
+  поиск + KDS/QR) + «＋» из любого вида + смерть hub_tabs["board"]-огрызка (реестр жив —
+  палитра/подсветка) + входы ticket/job в полные экраны. **W10-4** kind-агностичный вид
+  «📆 Heute» (`?view=heute`: Anreisen/Abreisen/Im Haus/Termine/Abholbereit/Lieferungen;
+  виджеты главной deep-link'аются сюда). **W10-5** единый `transactions.apply_action`
+  (спец-поля в extra: tracking_code при shipped пишется ДО apply — письмо с Sendungsnummer;
+  поле трек-номера на канбан-карточке заказа-доставки). **W10-6** легаси-редиректы с
+  GET-carry (`sales_page.legacy_redirect`): order-list/booking-calendar/stays-calendar/
+  stays-today → 302 на вкладки Verkäufe; ДО схлопывания закрыт паритет («Im Haus» в Heute);
+  events:list/jobs:list/board/stay_new НЕ редиректятся; 4 шаблона-обёртки удалены,
+  ~30 тестовых колл-сайтов переписаны. Дальше: **W11** (Marketing+Kunden, Р-2) → W12.
+- **Самое свежее (2026-08-05, ночь): ВОЛНА W11 (Marketing+Kunden) ЗАКРЫТА в объёме
+  W11-1..W11-4, всё БЕЗ миграций** (план `w11-marketing-plan-2026-08-05.md`). **W11-1**
+  (Р-2) хаб «Kunden» удалён — Kontakte/Nachrichten прямыми табами Marketing, Telegram в
+  Erweitert; crm/inbox/telegram рендерят единый хаб. **W11-2** marketing_home слим —
+  только состояние (авто-касания + результаты) + кросс-вход Care-Zyklus. **W11-3**
+  вкладка «Über den Betrieb» на Bewertungen — портальные BusinessReview видны владельцу
+  (v1 read-only; ОТВЕТ требует миграции SHARED-поля — решение владельца). **W11-4**
+  акция на услугу/номер/комбо из UI: PromotionForm += FK-цели PL (гейт по модулям),
+  GET-префилл, «% Aktion» на карточках Angebote. **W11-5 (Website-свод в Studio) —
+  разведка сделана, код отложен свежей сессией с план-доком** (site.html функционален:
+  quick-start/галерея/тексты; слив = правка site_home 3400 строк + стенд). Остаток
+  программы аудита: **W12** (честные режимы, план унификации §2.7).
+- **Самое свежее (2026-08-05, ночь, финал): ВОЛНА W12 «честные режимы» ЗАКРЫТА
+  (W12-1..3, БЕЗ миграций) — ПРОГРАММА АУДИТА КАБИНЕТА W7..W12 ИСПОЛНЕНА ЦЕЛИКОМ**
+  (план `w12-modes-plan-2026-08-05.md`). **W12-1** экран «Ansicht»
+  (`/dashboard/ansicht/`): Einfach/Experte + честный список «что скрыто у вас»
+  (карточка на Funktionen — слим). **W12-2** Простой прячет из ящика «Erweitert»
+  продвинутые инструменты (module None); функции активных модулей остаются
+  (замок S6b: werkstatt держит Produkte/Lager). **W12-3** константы
+  SIMPLE_HIDDEN_MODULES/ARCHETYPE_SIMPLE_HIDDEN удалены — ось живёт в ModuleSpec
+  (simple_hidden/simple_hidden_for), паритет 1:1 замком по всем 15 типам; честно:
+  автоматика из recommended_for невозможна без нового сигнала у core-модулей.
+  **Итог программы W-v3 (один день, всё БЕЗ миграций):** W7 предохранители →
+  W-CL classic снесён → W8 единый реестр навигации+Ctrl+K → W9 Settings-хаб
+  (11 табов, Abläufe, Team+ролевой гейт) → W10 Verkäufe единственной поверхностью
+  (Heute, apply_action, легаси-редиректы) → W11 Marketing+Kunden (один хаб,
+  Über den Betrieb, акция из UI) → W12 честные режимы. **Хвосты за решением
+  владельца:** ответ на BusinessReview (миграция SHARED-поля) · де-факто новые
+  экраны — прогнать глазами на стенде.
+- **Самое свежее (2026-08-06): решения владельца 1а/3/4а/5а по хвостам аудита — в main
+  `5e9a38f`.** **1а** ответ владельца на портальные BusinessReview: reply_text/replied_at
+  (**⚠️ миграция `aggregator/0016`, SHARED, аддитивная — деплой `./scripts/deploy.sh
+  single`**), форма на вкладке «Über den Betrieb» + показ на портале; анти-кросс-тенант
+  (чужой pk = 404, замок). **4а** Reservierungen без дубля в Marketing — одна поверхность
+  (вкладка Verkäufe с первого резерва, W10-2). **5а** CI ставит зависимости строго из
+  `uv.lock` (`uv sync --locked --extra dev`; pytest-django пин `<4.13` — релиз 4.13.0
+  уронил CI); грабля: uv.lock был в .gitignore → первый прогон не нашёл лок, лок теперь
+  ЖИВЁТ В РЕПО, обновление зависимостей = осознанный `uv lock` в коммите. **3** роли
+  admin/staff пока идентичны (решение «оставить как есть»). **2а** W11-5 Website-свод — исполнен
+  (запись ниже).
+- **Самое свежее (2026-08-06): W11-5 «Website-свод в Studio» ✅ ЦЕЛИКОМ — ВОЛНА W11
+  ЗАКРЫТА (БЕЗ миграций).** Решение владельца 2а (полный свод). План
+  `docs/w11-5-website-studio-plan-2026-08-06.md`. Страница `/dashboard/site/`
+  умерла → 302 на Studio с переносом GET (прецедент W10-6), `site.html` удалён,
+  все входы «Website» (карандаш шапки · Anchor реестра W8 · чек-лист онбординга ·
+  NavItem спеки) ведут в билдер. Перенесено: **область «⚡ Start»** рейки
+  (шаблоны витрины + демо-контент; ветки early-return ДО main-save — иначе
+  fall-through пересобрал бы `sections`), **hero_image** (Banner) и **quick_add**
+  (Theme) в `#home-form` с presence-guard/сентинелом + live-черновик,
+  **gallery_video** — форма области «Медиа» (targeted-write). Дубли НЕ плодили:
+  галерея фото/hero-тексты/контент-секции в Studio были и раньше, about_* правится
+  на канве. Сироты-экраны (SEO/обложки/раскладки/превью) получили входы из области
+  «Шаблоны». **Playwright-стенд 28/28 нашёл дефект, невидимый серверным тестам:**
+  quick_add попал в `data-expert` блок → в Простом режиме был недоступен (на «Site»
+  доступен всегда) → вынесен + замок. Замки умершей ветки переписаны осознанно
+  (карта — build-log); уточнён инвариант W6: «не ронять» относится к ЧУЖИМ ключам
+  (ui_mode/board/seo/page_blocks), а typography/site_defaults/font билдер ВЛАДЕЕТ.
+  Грабли стенда: Django кэширует шаблоны и в DEBUG (рестарт runserver); панель
+  инспектора после входа схлопнута (канва-first W1).
+- **Самое свежее (2026-08-06, вечер): АУДИТ ПЕРЕВОДОВ + волна I18N-10 «параметры товара»
+  (⚠️ миграция `catalog/0024`).** Запрос владельца «проверь переводы демо-сайтов, админки,
+  характеристик и параметров»; решение — «делаем всё, включая миграции». **Аудит:** хром
+  закрыт (4014 msgid × 5 локалей; пустые msgstr только identity — показов чужого языка ноль;
+  гейт I18N-9 держит регресс), демо-сущности переводятся с DL-волны; **дыры — ровно в
+  параметрах**: метки вариантов (`label/size/color`) и модификаторов (`ModifierGroup.name`,
+  `ModifierOption.label`) без оверлеев вообще; `material/care/origin/ingredients_i18n`
+  существовали, но демо-обход их не заполнял; `Category.size_table` без i18n. Как с акциями
+  в HF-волне, часть переводов уже лежала в словарях мёртвым грузом. **Сделано (P1–P4):**
+  оверлеи + `*_localized`; витрина (пикер всех видов, корзина, Anprobe/Warteliste,
+  модификаторы, Größentabelle); ввод переводов из кабинета (тег `overlay_i18n_inputs`,
+  свитчер Ф1, presence-guard); демо-обход + 37 строк в 4 словаря. **ИНВАРИАНТ волны:
+  переводится ТОЛЬКО показ** — снимок заказа (`OrderItem.variant_label`/`modifiers`) и
+  ключи учёта (склад, CSV-импорт, оси фасета `data-color`) остаются на базовом языке
+  (замки). **Стенд Playwright 12/12 (демо mode/cafe) нашёл два дефекта:** составная метка
+  «S · Blau» своего перевода не имеет → `label_localized` собирается из переведённых осей;
+  подпись свотча бралась из ключа → разделены `name` (ключ) и `label` (подпись). Замок
+  проекта «без identity-записей в демо-словарях» поймал 13 записей вида S→S — убраны.
+  **Грабля среды:** локально нет `gettext`, поэтому ~9 тестов падали на немецких ассертах;
+  `.mo` собраны через `polib` — после этого локальный прогон совпал с CI.
+- **Самое свежее (2026-08-06/07): АУДИТ ДЕМО-КОНТЕНТА → ST-8 (страницы витрины) + акции
+  во всех китах + починка меню — БЕЗ миграций.** Запрос владельца: «у каждого демо должны
+  быть основные модули, меню — выходы в них, страницы галереи/отзывов/мастеров ОТДЕЛЬНЫМИ
+  страницами, а не разделами главной»; отдельно — «не везде есть акции, засеять все типы
+  акций во всех китах». **ST-8** (план `docs/st8-storefront-pages-plan-2026-08-06.md`):
+  страницы `/galerie/`, `/team/`, `/bewertungen/` (гейт по НАЛИЧИЮ контента: пусто → 404 и
+  пункт меню гаснет, архетип-whitelist не заводим — он врал бы при пустом разделе); отзывы
+  собирают ДВА источника (портальные `BusinessReview` + кураторские `testimonials`); секции
+  главной остались тизерами со ссылкой «Все …». **Акции:** 14 наборов `promotions_spec` —
+  теперь у каждого кита 4–17 акций, вместе покрывающих все 9 стилей (percent/strikethrough/
+  festpreis/ab/badge/countdown/mystery/surprise/легаси), оба типа (discount+reservation) и
+  все виды целей PL (товар/услуга/номер/свободная); `promotions` дополнительно включён у
+  werkstatt/handwerker/tours. **Меню (аудит как данные — 6 классов дефектов):** у ресторана
+  СВОЕГО меню не было вовсе (шапка выводилась из легаси-`nav`) → `RESTAURANT_MENUS`;
+  у ретрита из шапки нельзя было попасть в размещение и заявки (модули активны, узлов нет);
+  у отеля «Buchen» вёл на `/#buchen`, которого на его главной НЕТ (`hero_widget="stays"`
+  гасит секцию поиска); у туров/Handwerker «Kontakt» ссылался на страницу `contact`, которой
+  не было в `_PAGE_URL_NAMES` (узел молча выпадал); якоря «Aktionen»/«Sale» → страница
+  `/aktionen/` (работает с любой страницы, а не только с главной); 6 китов имели акции без
+  пути к ним; страница `/lookbook/<slug>/` не имела НИ ОДНОЙ ссылки с витрины → ссылка у
+  выбранной подборки с фото. **Замки:** новый `apps/tenants/tests/test_demo_menus.py` (84) —
+  меню кита проверяется КАК ДАННЫЕ: каждая цель резолвима, каждый архетип активен у типа
+  бизнеса, каждый якорь существует на главной ЭТОГО кита, наполненный модуль выведен в меню.
+  Именно этот инвариант ловит весь класс «узел молча выпал». **Тот же класс на ПЕРВОМ ЭКРАНЕ:**
+  сплошная сверка `HERO_TILE_SETS` с гейтами вьюх нашла три плитки, ведущие в 404 —
+  «Geschenkgutschein» (страница требует ещё и настроенной оплаты, `gift_purchase_active`),
+  «Rückruf» (вьюха требует модуль jobs, гейта не было), «Aktuelle Deals» + все `gate="deal"`
+  (`/aktionen/` требует модуль promotions, а живая акция в БД этого НЕ гарантирует); замок
+  теперь проверяет реестр целиком — его первая версия молча пропускала `/aktionen/`.
+  **Побочно:** контент-гейт ST-8 стоил запроса в БД на КАЖДЫЙ рендер меню (`resolve_menu`
+  зовётся из шапки, нижнего меню и контекст-процессора кабинета) — поймал чужой замок
+  `test_nav_hides_disabled_modules` (зелёный на main, красный на ветке); мемоизация на
+  объекте тенанта + `.exists()`, пробники fail-closed. **Проверено вживую** (14 демо после
+  пересева): мёртвых ссылок в меню нет, страницы ST-8 отдают 200 где есть контент и 404 где
+  нет, акции видны у всех, подписи меню и заголовки переводятся на 5 языках; платформенный
+  `/branchen/` — 14 отраслей из 14 (кроме намеренного `other`) + 8 живых демо-примеров.
+  ⚠️ ops: `seed_demo_tenants --recreate` после деплоя. **Попутно исправлено в CLAUDE.md:** §7 помечен архивом (порядок
+  работ от 01.07 разобран), снята закрытая долговая запись про XSS в карте агрегатора
+  (`_map.html` строит попап через DOM с проверкой схемы), статус языкового модуля от 30.06
+  свёрнут в историю (противоречил коду).
+- **Самое свежее (2026-08-07): фидбэк витрины (5 пунктов) + Branchen-модули — всё в main,
+  БЕЗ миграций** (план `docs/storefront-feedback-2026-08-07.md`; build-log-запись дописана
+  2026-08-10). Дропдауны шапки: «Mehr» и группы меню открываются ТАПОМ (hover/focus-within
+  не работали на таче) + клик вне возвращает `hidden`. /aktionen/: секцию получает группа
+  от 2 акций (`MIN_GROUP_SECTION`), одиночные — блоком «Weitere Angebote» (пустые ⅔ строки
+  ушли). Диета — селект в панели фильтров (+`diet_chips` в гейте показа панели). Каталог:
+  комбо-тизер под сетку, категории — фото-плитки общим `_category_tile.html` (без фото —
+  чипы), размер плитки из Studio через `SECTION_STYLES["categories"]` (square/tall/wide,
+  без нового ключа) + демо-фото категорий. Меню демо: «о нас»-разделы свёрнуты в подменю
+  «Über uns» по ШИРИНЕ строки (`_menu_row_width` ≤ 788px, производное при сидинге) +
+  редактор меню кабинета знает ВСЕ страницы (`PAGE_TARGET_LABELS`; был захардкожен
+  {home,about} — чужая цель после Save вела на главную). Branchen: 4 отраслево-нейтральных
+  модуля (Auswertung/Kanäle/Finanzen/Telegram) — среди прочих карточек в порядке реестра
+  (решение владельца: НЕ отдельным блоком «есть у всех»).
+- **Самое свежее (2026-08-10): волна SM «один функционал для всех + Verkäufe по модулям» —
+  в main, БЕЗ миграций** (план `docs/sm-single-mode-plan-2026-08-10.md`). **SM-1: режим
+  Простой/Эксперт снесён ЦЕЛИКОМ** (прецедент W-CL/classic_ui): ui_mode/is_simple/
+  simple_hidden_* + поля ModuleSpec, экран Ansicht, тумблер шапки, гейты плиток/табов/
+  палитры/формы товара; normalize ДРОПАЕТ `ui_mode`; замки W6-класса переведены на
+  probe-ключ `notify`; новый замок `test_simple_expert_mode_is_gone`. Einfach/Experte
+  РЕДАКТОРА (UC6-10, свёртка настроек блока на канве) ОСТАВЛЕН — решение владельца.
+  **SM-2a: Verkäufe** — вкладка на КАЖДЫЙ активный модуль сразу (решение владельца;
+  замки W10-2/Р-4 переписаны осознанно), виды (Kalender/Board/Liste) + ＋/«⚙️ Abläufe»
+  ВНУТРИ вкладки (фидбэк «кнопки как будто над верхним уровнем»), сводка «📆 Heute»
+  переехала на главную кабинета (Übersicht; `?view=heute` жив для deep-links).
+  **SM-2b: паритет настроек статусов всем 6 kind** — `_STATUS_LABEL_KINDS` и
+  `_status_kinds_for` += job/ticket/reservation (имена статусов + правила переходов;
+  доска/списки были generic изначально); замок паритета с `status_registry.BUILTIN`.
+- **Самое свежее (2026-08-10, продолжение): SM-3 — кастом-статусы (FB-3 B) на ВСЕХ шести
+  направлениях ✅ ЦЕЛИКОМ, БЕЗ миграций** (решение владельца «делаем»; план
+  `docs/sm3-custom-status-all-kinds-plan-2026-08-10.md`; разведка — воркфлоу 10 агентов).
+  Находка: SM-2b уже открыл трубопровод (normalize/редактор/FSM гейтятся одним
+  `_STATUS_LABEL_KINDS`) — инкремент закрыл КОРРЕКТНОСТЬ: anti-oversell билетов через
+  `active_statuses_for("ticket")` (4 литерала — была двойная продажа мест) · правило
+  «рёбер ИЗ cancelled-роли не бывает» (терминальный терминален; закрывает двойной возврат
+  склада/лимита, вкл. двухшаговый un-cancel-обход, найденный адверсариальной сверкой;
+  слой чтения + эффекты + редактор sources/targets) · зеркала эффектов (job done →
+  `commit_stock` идемпотентно; ticket cancel → стоп рассрочки R10e) · `def_from_role`
+  kind-aware (done-роль билета держит место — паритет attended) · кламп кода до 20
+  (varchar(20) у всех шести — DataError-дыра всех kind) · re-save редактора хранит
+  продвинутые флаги · правила Варианта A управляют только builtin-целями (кастом-цели
+  всегда видимы; normalize_transitions больше не прячет кастом-кнопки — класс W7a) ·
+  purge/max_per_customer/дайджест/Heute/верификация отзывов (`cancelled_statuses_for`)
+  через реестр · читаемые подписи Reservation (`builtin_status_labels`) + `status_label`
+  на per-app экранах. Замки ДО фиксов (18 красных на дырах); стенд Playwright 13/13
+  (touren, полный цикл создать→рёбра→доска→перевод); broad 2903 passed. Квирки — план §2.
+- **Самое свежее (2026-08-11): gap-анализ goodkarma-catering.de + ВОЛНА AF (AF-1+AF-2) ✅.**
+  Анализ `docs/goodkarma-catering-gap-analysis-2026-08-11.md` (14 агентов, 24 пробела
+  адверсариально верифицированы): сайт-референс собирается уже сегодня; реальные гэпы —
+  Tier 1 C-1..C-4. По отмашке владельца («C-2+C-3, свободно в другие архетипы,
+  индивидуально наполнять») закрыта **волна AF** (план `af-inquiry-wave-plan-2026-08-11.md`,
+  ветка `claude/goodkarma-catering-analysis-fea071`): **AF-1** (⚠️ миграция `jobs/0013`,
+  аддитивная) — `Job` += event_date/guest_count/event_type; `normalize_anfrage`
+  (`site_config["anfrage"]` presence-minimal: fields ⊆ date|guests|event_type +
+  event_types ≤12); форма /anfrage/ — fieldset за гейтом (fail-soft дата/гости,
+  тип fail-closed из списка владельца); панель «⚙️ Anfrage-Formular» на списке Aufträge
+  (targeted-write) — любой архетип включает и наполняет сам; префилл `?betreff=` из
+  buybox-CTA; пресеты китов restaurant/pranasy/bakery/butcher; карточка/список/письмо
+  владельцу; 9 msgid × 5 .po. **AF-2** (без миграций) — общие партиалы
+  `_anfrage_form`/`_message_form` (характеризационные замки ДО извлечения; `action=` →
+  форма постит в штатный приёмник с любой страницы; попутно закрыта дыра «вьюха
+  принимала phone, инпута не было») + ref-блоки `anfrage_ref`/`message_ref` в
+  PAGE_REF_BLOCKS (гейты jobs/inbox, base «message» — НЕ «contact», коллизия с
+  home-секцией) + 2 записи библиотеки блоков билдера. Замки: `test_anfrage_config`,
+  `test_form_ref_blocks`, +6 витринных, panel probe-notify, dead-config китов.
+  Остальные гэпы анализа (C-1 архетип Catering · C-4 полоса цифр · Tier 2 usp-pillars/
+  testimonials-фото/inline-newsletter/соцссылки) — за решением владельца.
+- **Самое свежее (2026-08-11, продолжение): GK-1 «архетип Catering» + GK-4 «полоса цифр» ✅**
+  (отмашка «делаем C-1 и далее»; план `gk1-catering-archetype-plan-2026-08-11.md`, та же ветка).
+  **GK-1** (⚠️ миграция `tenants/0028`, choices-only): BUSINESS_TYPES += catering; пресеты
+  модулей (jobs primary + promotions/crm + универсальные; orders/booking выкл — Speisekarte
+  browse-only); FOOD_BUSINESS_TYPES += catering; JSON-LD FoodEstablishment; Look-акценты +
+  шаблон витрины + hero-плитки + карточка мастера; /branchen/catering (6 реальных фич) +
+  feature_demos; демо-кит «Grüne Tafel Catering» (jobs-primary, anfrage_form AF-1, Speisekarte
+  с диетами, 4 акции, 2 сметы, 27 переводов × 4 словаря); счётчики-замки обновлены осознанно
+  (SLUGS 15, Looks 45, sitemap 22). **GK-4** (без миграций): C-блок `stats` — 2–4 пары
+  «число+подпись» (ключ данных `rows`, НЕ items — метод dict; санитайзер ест и textarea
+  «wert | label» — этим живёт live-draft, collect() += rows), рендер/редактор/демо/варианты/
+  variantThumb; 15 msgid × 5 .po суммарно. Уроки среды: два pytest параллельно на одной
+  reuse-db → ложные падения (гонять серийно); фоновые прогоны НЕ обрезать `| tail`.
+  **Дальше: GK-5..9 Tier 2** (usp-pillars · testimonials фото/рейтинг · founder-пресет ·
+  inline-newsletter · соцссылки).
+- **Самое свежее (2026-08-11): SM-4 — раскрывающиеся ПОДПУНКТЫ разделов в сайдбаре
+  («выпадающий список слайдером слева в меню», решения владельца по 4 развилкам) — БЕЗ
+  миграций.** Принцип: подпункты якоря = advanced-состав его хабов из `nav_registry`
+  (единый реестр W8 — гейты/палитра/подсветка даром); `sidebar_children` +
+  `children` в `sidebar_nav` + шеврон-слайдер в `_base_dashboard.html` (активный
+  раздел раскрыт с сервера; поиск меню раскрывает блоки с совпавшими подпунктами).
+  Переезды: **Auswertungen+Finanzen из Настроек под «Verkäufe»** (+ Berichte
+  `stays:reports` — бывший сирота, + Abläufe дубль-записью); **новый site-хаб**:
+  SEO (nav "site"→"seo") · Website & Domains (из main-табов настроек) · Medien (из
+  advanced) — подпункты «Website»; настройки слимятся 12→9 табов; каталожные страницы
+  — компакт-бар как у Angebote (Lager/Kombi/Import → advanced); «⚙️ Abläufe» убрана
+  из тулбара Verkäufe; с 5 переехавших страниц снят settings-таб-бар (site_seo рисовал
+  чужой без активного таба с W9). Замки: test_sidebar_st4b +3, test_hub_tabs +2,
+  осознанные переписки W9/W7b/SM-2-замков. Стенд Playwright 25/25 (hotel;
+  finance/analytics у ВСЕХ демо выключены — для стенда включались временно). Грабля:
+  двухстрочный `{# #}` утёк текстом на страницу (пойман скриншотом стенда; гнать
+  template_comments в каждом шаблонном батче). +msgid «Berichte» ×5 .po; app.css
+  пересобран. План `docs/sm4-sidebar-children-plan-2026-08-11.md`.
+- **Самое свежее (2026-08-11, поздний вечер): GK-5..9 «Tier 2 витринная косметика» ✅ —
+  ВСЕ гэпы goodkarma-анализа закрыты** (план `gk59-tier2-plan-2026-08-11.md`; детали —
+  build-log). **GK-9** (⚠️ миграция `tenants/0029`, аддитивная): Tenant += 5 соцпрофилей
+  («handle или URL», прецедент whatsapp_number) + `social_links()` → иконки-ряд в футере
+  (`_social_icons.html`, инлайн mono-SVG) + `sameAs` в JSON-LD. **GK-8**: C-блок
+  `newsletter` (форма всегда, данные — presence-minimal оверрайды; POST → штатный DOI
+  /newsletter/; v1 уводит на /newsletter/ — PRG/next нет). **GK-7**: пресет
+  «Gründer-Zitat» image_text (11-й вариант, без новых data-ключей). **GK-5**: usp_bar +=
+  optional `text` + стиль `pillars` (3-part textarea «icon | label | text»; кит catering
+  — «3 столпа философии»). **GK-6**: `clean_testimonials` (stars 1..5 + photo
+  presence-minimal; общий _clean_pairs НЕ тронут — faq/process), 4-part textarea, фильтр
+  `stars`, звёзды+аватары в 5 стилях, trust — аватар-ряд «Zufriedene Kunden»
+  (фото/инициалы). app.css пересобран (-space-x-2). Голдены целы во всех пяти.
+- **Самое свежее (2026-08-11, ночь): GK-11 «Google-рейтинг» + GK-13 «PDF-Speisekarte» ✅ —
+  goodkarma-трек ИСЧЕРПАН ЦЕЛИКОМ (AF + GK-1..13).** **GK-11** (⚠️ миграция `tenants/0030`,
+  аддитивная; план `gk11-google-rating-plan-2026-08-11.md`): Tenant += `google_place_id` +
+  кэш rating/count/updated_at (ToS ≤30 дней → beat `refresh_google_ratings`, stale-фильтр
+  7 дней, per-tenant try/except); сервис `apps/tenants/google_places.py` (Places API New,
+  FieldMask 2 поля = Basic-SKU; ПЛАТФОРМЕННЫЙ ключ через secrets-стор/env); кабинет —
+  карточка ⭐ в Integrationen + `/dashboard/settings/google-bewertungen/` («Jetzt
+  aktualisieren»); витрина — честная строка «★ X,X · N Google-Bewertungen» в trust РЯДОМ
+  с внутренним рейтингом; **в JSON-LD Google-рейтинг НЕ кладём** (политика Google).
+  **⚠️ EXTERNAL-блокер: без `GOOGLE_PLACES_API_KEY` (Places API + billing) фича молчит.**
+  **GK-13** (без миграций): `apps/catalog/pdf.py::build_menu_pdf` поверх documents-слоя
+  (язык/деньги по локали, аллергены буквенными сносками + LMIV-легенда, диеты, ≤2 строки
+  описания, многостраничность) + публичный `/speisekarte.pdf` (гейт FOOD-тип+активные
+  товары, `?lang=`) + кнопка «📄 Speisekarte als PDF» на каталоге. Живые данные — ноль
+  ручной работы владельца. 22 теста суммарно; детали — build-log.
+- **Самое свежее (2026-08-12): ВОЛНА DS «дизайн-шаблоны» — DS-1..DS-4 ЦЕЛИКОМ (без миграций).**
+  **DS-1/2:** первые self-hosted шрифты (Playfair 600/Nunito 800, OFL, latin+ext+cyrillic,
+  лениво) + `site_defaults.page_bg` (фон страницы, html:not(.dark)) + семейства **Fein**
+  (Playfair на креме) и **Natur** (Nunito на песке) — 5 семейств × 15 типов = 75 Look'ов
+  (акцент-кортежи 15×5, замок «ровно 5»); пилоты catering=fein → pranasy=natur.
+  **Решения владельца:** «Look = кожа · ВИД ВЫВОДА per-модуль · в мастере готовые СБОРКИ»;
+  концепт-артефакт «Look Fokus» одобрен. **DS-3a:** вид «Preisliste» — товары строками
+  (секция главной `SECTION_STYLES["products"]` + страничный пресет `catalog_layout`
+  через НОВЫЙ `PAGE_EXTRA_PRESETS`/`normalize_layout(extra_presets)` — только каталог,
+  LAYOUT_PRESETS не раздут; фасеты/поиск UB целы). **DS-3b:** `HERO_STYLES += "split"`
+  (текст слева + фото справа + строка доверия ★ Google/Seit; слайдер при split не
+  крутится v1) · `nav.cta` presence-minimal (CTA шапки из primary_item; мобильно —
+  акцент пункта таб-бара, НЕ вторая липкая кнопка) · секция **anfrage** в SECTIONS
+  (выкл дефолт, jobs-гейт, ⚠️ осознанная golden-регенерация +строка) · trust +=
+  "compact" (рейтинг+2 цитаты+marks одной полосой). **DS-3c:** `BUNDLES`/`apply_bundle`
+  (сборка «Fokus» для сервисных типов; идемпотентность — адверсариальный замок 15×) +
+  карточки Startpaket в мастере «Stil» и области «✨ Look» билдера (action `use_bundle:`).
+  **DS-4:** кит catering → Fokus-пилот (kit-generic `enable_anfrage_section`/`config_patch`;
+  hero-плитки убраны — их работу несут CTA шапки + форма на главной); «Fein» остаётся в
+  галерее. Проверено стендом (скриншоты = одобренный макет). Уроки: hero в SECTIONS
+  выключен по умолчанию (тесты главной включают явно); новые arbitrary Tailwind-классы
+  ТРЕБУЮТ пересборки app.css (невидимое hero-фото). Планы: `ds1-design-templates-plan`
+  + `ds3-fokus-output-views-plan` (2026-08-12). Дальше по треку — виды вывода услуг/
+  номеров/событий (прайс-с-длительностью · пакеты-колонки · полоса-разворот · афиша) —
+  за отмашкой владельца; ops: `seed_demo_tenants --kit catering|pranasy --recreate`.
+- **Самое свежее (2026-08-13): I18N-11 — АУДИТ ПЕРЕВОДОВ ДЕМО-ВИТРИН + доперевод (БЕЗ
+  миграций; ветка `claude/demo-sites-localization-analysis-jstvo7`, отребейзена на main
+  поверх MEN-волны).** Запрос владельца: «процент перевода демо на основные языки, потом
+  выполнить перевод; параллельно идёт разработка — не помешать». Инструмент замера —
+  **`scripts/demo_i18n_gap.py`** (раскладывает строки 15 китов на ROUTED / GAP «пути
+  перевода нет» / «перевод не требуется»; иначе процент врёт в обе стороны).
+  **Было** en 78 / ru 81 / uk 81 / tr 80 % (+319 строк без пути) → **стало en 96.2 /
+  ru 99.9 / uk 99.8 / tr 98.1 %** (остаток — Espresso/Tiramisu/S-M-L/названия заведений:
+  identity-записи запрещены замком, поэтому в словарь не пишутся). Ключевой вывод: дефект
+  НЕ один, а три класса — **A** нет записи в словаре (~330 строк → ~1150 записей в 4
+  словаря); **B** обход не берёт ключ (anfrage/before_after · C-блоки главной `sections`
+  и страниц `page_blocks` · `Category.description` лендингов DS-7a · `siteui.page_blocks`
+  читал ГОЛЫЙ normalize) — закрыто; **C** перевод есть, а шаблон печатает базовое поле
+  (Combo, buy-box услуги, «похожие номера», подтверждения броней/билетов/абонементов) —
+  переведены на `*_localized`. C-блоки: точечный обход `_tr_cblock_data` (только текстовые
+  поля данных) + **индексы из НОРМАЛИЗОВАННОГО списка** (оверлей мерджится позиционно, а
+  `normalize_sections` дописывает фикс-секции в конец — иначе перевод сядет на чужой блок).
+  Виды мероприятия: тег `anfrage_event_choices` — value `<option>` остаётся немецким (ключ
+  записи `Job.event_type`), переводится показ. Замки — `test_demo_i18n_pipeline.py` (6);
+  стенд catering/ru: кириллица 74–85 %. **Остаток ⏸ за решением владельца — ~287 строк у
+  моделей БЕЗ `*_i18n` (Event.details ретрит-лендинга, отзывы демо, Job/сметы, блог,
+  лояльность, Extras/ваучеры/ComboGroup, opening_hours_text/service_area_note, Teacher/
+  Resource): нужны МИГРАЦИИ, намеренно не делал — параллельная ветка.** Попутно найдено
+  вне демо: **de.po** 137 английских msgid без немецкого перевода (~36 прозы UI, 32 из них
+  переведены в ru/tr/uk → на немецкой витрине местами английский) и **SEO-мета**
+  (`core/seo_meta.py` DEFAULTS) без gettext. Уроки: валидатор чисел должен сверять ДЕНЬГИ И
+  ПРОЦЕНТЫ, а не все числа (en законно даёт «ab 17 Uhr» → «from 5 pm», tr пишет «%25»);
+  локально нет gettext → до `polib`-компиляции `.mo` стенд показывает немецкий ХРОМ (ложная
+  тревога). Доки: `docs/demo-i18n-audit-2026-08-13.md`. ⚠️ ops: миграций нет, но **после
+  деплоя нужен `seed_demo_tenants --recreate`** — перевод накладывается при сидинге.
+- **Самое свежее (2026-08-13, продолжение): I18N-12 — остаток аудита ЗАКРЫТ по решению
+  владельца «делай всё» (⚠️ ДЕВЯТЬ аддитивных миграций).** `events/0023` · `booking/0022` ·
+  `core/0007` · `loyalty/0005` · `catalog/0026` · `reviews/0004` · `aggregator/0018` (SHARED) ·
+  `jobs/0014` · `tenants/0031` (SHARED) — только новые JSONField-оверлеи. Переводимы стали:
+  ретрит-лендинг `Event.details` (+program/questions), Teacher, BlogPost, Resource (мастер/стол/
+  зал), PassPlan, Extra, LoyaltyProgram, Voucher, ComboGroup, отзывы, Job/JobLine, часы работы
+  и зона выезда тенанта. Для вложенного JSON появился ТРЕТИЙ слой семейства —
+  `apps/core/i18n_json.py` (скаляры = `I18nMixin.get_overlay`, плоские списки = `i18n_seq`,
+  вложенный JSON = `overlay_json`): база задаёт форму, переводятся только листья-строки,
+  фото/ссылки — базовые, списки мерджатся ПОЗИЦИОННО → оверлей строится по нормализованной
+  форме (`Event.landing`). **Инвариант волны: переводится ПОКАЗ, а не запись** — оверлей
+  отзывов/заявок заполняет ТОЛЬКО демо-сидер (у живого тенанта пусто → подлинный текст гостя),
+  ключ ответа анкеты остаётся базовым немецким вопросом. Перевод: 241 строка × 4 локали.
+  **Итог: строк «без пути перевода» — 0** (было 319); en 96.6 / ru 99.7 / uk 99.7 / tr 98.2 %,
+  остаток — Espresso/Tiramisu/S-M-L/названия заведений. Попутно закрыты обе находки вне демо:
+  **de.po** — 20 английских msgid получили немецкий (на НЕМЕЦКОЙ витрине был английский:
+  «Blocked», «All collections», «Check-in is not possible…»; правка точечная, 3 теста с
+  английским ассертом в DE-рендере переведены), **SEO-мета** — `core/seo_meta.py` DEFAULTS
+  обёрнуты в lazy (+4 msgid × 5 каталогов, плейсхолдеры сохранены), теперь `<title>`/
+  `description` идут на локали посетителя. ⚠️ ops: деплой миграций + `seed_demo_tenants
+  --recreate`. Доки: `docs/demo-i18n-audit-2026-08-13.md §6`.
+- **Самое свежее (2026-08-13/14): ВОЛНА MT «мото/квадро-туры» ЗАКРЫТА ЦЕЛИКОМ (MT-1..MT-6).**
+  План `docs/moto-tours-archetype-plan-2026-08-04.md` (решения владельца §0b; автономная разработка).
+  **MT-1** `events.Tour` + `Event.tour` — закрыт давний гэп **T6** «продукт → много дат»: контент/
+  галерея/лендинг-блоки/маршрут/гиды живут на туре, даты и деньги остаются на заезде (движок
+  билетов не тронут). **Маршрут = IP гида:** видимость на КАЖДОЙ остановке (private|participants|
+  public, дефолт private), фильтрует `itinerary.visible` НА СЕРВЕРЕ (закрытая точка не доходит до
+  шаблона), незнакомая аудитория = посторонний; времена остановок = хронометраж. Витрина `/touren/`
+  + `/tour/<slug>/` (Leaflet-карта с линией, таймлайн, заезды), кабинет + редактор маршрута строками
+  (сентинел `it_present`, W0). Редактор богатых блоков вынесен в `apps/events/landing.py` (реюз
+  событием и туром). Демо-кит **`moto`** «Himalaya Riders». **MT-2** новый апп `apps/documents`:
+  файлы шифруются Fernet ПЕРЕД записью в storage, прямого URL нет — только proxy-вьюха (чужому 404,
+  не 403), тип по СИГНАТУРЕ, 50 МБ, retention 90 дней после заезда (beat удаляет и blob). Побочно
+  закрыта дыра «любой файл платформы публичен по URL» и `GuestRegistration.doc_number` (§30 BMG)
+  переведён на `EncryptedTextField`. Ретеншн `TicketWaiver` НЕ добавляли — там это осознанное
+  решение (срок исковой давности). **MT-3** новый апп `apps/community`: пространство ЗАЕЗДА
+  (лента+чат одной моделью), доступ = гид | участник по билету (через реестр статусов) | приглашённый
+  по ссылке; чат на поллинге по образцу inbox (хвост + дедуп по id на клиенте); модерация;
+  **двусторонний TG-мост** (`/link <код>` в группе; эхо гасится `source`, повтор — `external_ref`;
+  добавлены `getFile` и групповая ветка webhook). ⚠️ ops: у бота выключить privacy mode в @BotFather.
+  **MT-4** `SupplierBooking` — закупка отелей/транспорта/пермитов по точкам; **закупочные цены
+  наружу не отдаются никогда** (`participant_view`). **MT-5** `finance.ExpenseEntry` — журнал вёл
+  только доходы; теперь есть расходы и маржа заезда (оплаченное и плановое раздельно) — кусок M13
+  ВСЕМ архетипам. **MT-6** `TourTask` — чек-лист подготовки (не kind доски). Тесты: 37+19+24+15.
+  ⚠️ **Миграции волны:** `events/0024,0025,0026` · `documents/0001` · `community/0001` ·
+  `stays/0032` · `finance/0007`. ops после деплоя: `seed_demo_tenants --kit moto --recreate`.
+- **Самое свежее (2026-08-14): волна MT-D «информативное демо мото-архетипа + переводы»
+  (⚠️ миграция `events/0027`).** Фидбэк владельца: больше туров и фотографий, разбить по
+  странам, «немного про гида», запрос на ПЕРСОНАЛЬНОЕ проведение тура + «проверь переводы
+  на все языки». План `docs/moto-demo-enrichment-plan-2026-08-14.md`. **D1** `Tour.country`
+  (явный ключ группировки; парсить `region` — гадание по свободному тексту) + оверлеи
+  `region/country/details/itinerary`; порядок в `route()`: нормализация → перевод → фильтр
+  видимости (оверлей мерджит списки позиционно, иначе тексты сядут на чужие остановки);
+  `visibility`/время/координаты — в `SKIP_KEYS` (перевод `public` сломал бы фильтр).
+  **D2** `/touren/` секциями по странам + якорь-чипы (группа по БАЗОВОМУ значению, показ
+  локализованного; одна страна → плоский список), карточка → партиал `_tour_card.html`.
+  **D3** приватный выезд: модуль `jobs` + `anfrage`-форма (дата/участники/тип) у кита,
+  CTA на списке и на туре (`?betreff=`) — структурированная заявка → доска → Sofort-Angebot,
+  а не свободное письмо. **D4** 8 туров (4 Индия / 4 Непал, вкл. квадро-сафари), 9 заездов,
+  3 гида с био (страница гида показывает его поездки), галерея, `seed_records` (билеты +
+  2 заявки на приватный выезд). **D5** 29 фото CC0/PDM (Openverse; лицензия по метаданным,
+  каждый кадр просмотрен — отбракованы водяные знаки/узнаваемые лица/чужая география),
+  ключи кита 31/31, ≤150 КБ, провенанс в `SOURCES.md`; попутно починен `demo_photo_report`
+  (падал `IndexError` на фото-плитке категории DS-2 — отчёт не работал вовсе; теперь
+  считает и туры, видно 6 незакрытых ключей у других китов). **D6** обход демо переводит
+  тур целиком, `scripts/demo_i18n_gap.py` видит контент туров и умеет `--kit`; кит `moto`
+  **3 % → en 95 / ru 100 / uk 100 / tr 97 %** (~1180 записей в 4 словаря; топонимы — в
+  `demo_i18n.PROPER_NAMES`, их «перевод» на en/tr был бы identity, а это запрещено замком).
+  ops после деплоя: `seed_demo_tenants --kit moto --recreate`.
+- **Самое свежее (2026-08-14, вечер): MT-F «главная тур-оператора в формате Fokus + вход в
+  ленту поездки» (БЕЗ миграций).** Фидбэк: «на главной пусто, нет туров, сделай в формате
+  фокус специально под туры; где посмотреть ленту чат, сделай демоданные». Разбор: секции
+  `tours` в реестре НЕ БЫЛО (MT-1 отдал туру только страницу `/touren/`), секция `events`
+  у демо-китов не перечислена в `_kit_sections`, сборки Fokus для `tour_operator` не
+  существовало. **F1** секция `tours` (реестр+партиал+сборка в home-вьюхе, гейт «модуль
+  events И есть опубликованные туры», якорь `#reisen`; ⚠️ ОСОЗНАННАЯ регенерация 4 golden —
+  прецедент FD-2/DS-3b, диффы только выключенная секция). **F2/F3** сборка `fokus_touren`
+  (сплит-баннер, CTA шапки, компакт-доверие, поездки + заявка на приватный выезд; секцию
+  заездов НЕ включаем — даты уже в карточке поездки) + кит `moto` на ней, свои заголовки
+  секций (`DemoKit.section_intros`). **F4** входы в ленту: карточка «Reisegruppe» на странице
+  билета участника (право читать — тот же fail-closed `access.role_of`; без входа в ЛК —
+  «Im Konto anmelden», а не ссылка в 404) + вход с экрана логистики заезда. **F5** демо-чат
+  (5 реплик + 3 комментария; авторы — имена, текст немецкий: у `FeedPost` нет i18n-оверлея).
+  Стенд нашёл три дефекта: CTA первого экрана/шапки вёл на «Termine» → `primary_item`
+  тур-оператора теперь ведёт на `/touren/` (по данным + мемоизация); кнопка «Menu» открывала
+  ПУСТОЙ каталог у любого не-каталожного архетипа → гейт по наличию товаров; секция заявки
+  была «Request a quote» → заголовок/подпись `anfrage` настраиваемые.
+- **Самое свежее (2026-08-16/17): ВОЛНА MEN «меню-наборы кейтеринга» ЦЕЛИКОМ (MEN-1..23) —
+  серия фидбэков владельца, всё в main по зелёным CI.** Хронология — build-log 2026-08-16/17.
+  Ядро: конфигуратор набора (radio per-группа, живой итог, browse-only собирает состав в
+  `?betreff=` попапа заявки), «свободная сборка» пулом категории по Gang'ам с гармошкой
+  (MEN-19), попап блюда (MEN-3/17), прайс-виды услуг + Pages-блок услуг (MEN-18), меню
+  кейтеринга одним пунктом с расширенным подменю (MEN-20, панель 560px, описания, пункт
+  без фото — акцент-строкой). **MEN-21 (2026-08-17):** карточка `/kombi/<pk>/` — отзывы
+  (generic kind **"combo"**, ⚠️ миграция `reviews/0005` choices-only; верификатор
+  `has_bought_combo` по FK `OrderItem.combo`, free_pool-покупатель fail-closed),
+  «Beispiele unserer Arbeit» из галереи сайта, CTA-полоса «Sie planen eine Veranstaltung?»
+  (попап заявки, гейт jobs), слайдер наборов той же категории; демо catering — 9 отзывов
+  (`DemoKit.combo_reviews`+`refs["combos"]`). **MEN-22:** посетительский переключатель
+  прайс-листа (список/с фото/2 колонки; class-swap `data-cls-*` purge-safe, фото всегда в
+  DOM, localStorage per-ключ products≠catalog; kompakt/karte/buch — авторские, без
+  переключателя); демо-главная кейтеринга → `preisliste_foto_2sp`. **MEN-23:** галерея
+  «сетка ↔ крупно 3:2» (дефолт-вид секции + `/galerie/`; авторские стили не переключаем).
+  Стенд 22/22 (catering); грабля-класс: негативные замки на голые маркеры ловят строки
+  селекторов нового JS — замки переведены на маркап-форму (`data-price-list
+  data-pl-style` и т.п.); `ml-auto` партиала внутри `justify-between`-шапки секции
+  клеил ссылку к заголовку → правая группа (паттерн `_gallery`). **MEN-24
+  (2026-08-18, фидбэк):** **a** маркировка диет/аллергенов в прайс-строках
+  (эмодзи + буквы схемы PDF, ключ `menu_labels`+чекбокс Pages, легенда;
+  fail-closed тег — на /sortiment/ `site` в контексте нет) · **b** 4-й вид
+  «Kacheln» (сетка 2-4, CSS-каскад `[data-plv="grid"]`) · **c** кап строк
+  секции (`rows` presence-minimal → билдер/live-draft; «Mehr anzeigen» вместо
+  «Ganze Speisekarte» при срезе; демо catering=3) · **d** каталог: серверный
+  `?ansicht=` рядом с сортировкой (normalize_layout-whitelist, carry в фасеты/
+  чипы/плитки; работает и на karte/buch) + прайс на всю ширину (`pl_page`).
+  **Стенд нашёл довоенный LMIV-баг .po:** Eier→«Eigentümer», Soja→«Soldat»,
+  Halal→«Wahl», Bio→«Biografie» (de/tr/ru/uk, со времён DL-волны; светилось в
+  попапе блюда/PDF) — исправлено + identity-замок de-рендера реестров food.
+  Грабля: локальная переменная в цикле `_kit_sections` затенила список секций —
+  демо всех китов падало TypeError; правило — пересев демо после правок сидера.
+  ⚠️ ops: `seed_demo_tenants --kit catering --recreate` (+ `--kit restaurant`).
+- **Самое свежее (2026-08-18): ВОЛНА KAT батч 1 (KAT-1+2+6) — категория = страница
+  `/sortiment/<slug>/`** (решения владельца: категория=лендинг слиты · комбо=часть
+  товара · SEO-слаги (батч 2) · шаблоны страницы категории опцией админа · «301 не
+  нужен — не в проде»; план `docs/kat-catalog-structure-plan-2026-08-18.md`).
+  `/bereich/` умер целиком (вьюха/роут/шаблон/тумблер `category_landings` — normalize
+  ДРОПАЕТ ключ, прецедент classic_ui); `product_list(slug=None)` обслуживает страницу
+  категории (unknown path-slug → 404; легаси `?kategorie=` работает; carry чистится в
+  path-режиме); выдача категории ОСОЗНАННО включает товары прямых детей. Шаблоны:
+  `Category.page_style` (⚠️ миграция `catalog/0027`) + реестр `category_styles.py` —
+  Standard ""=байт-в-байт / kopfbild (hero-шапка `_category_header.html` + подкатегории
+  плитками) / sets (полоса комбо-карточек НАД сеткой) / preisliste (per-page дефолт ДО
+  `?ansicht=` — carry чистый, посетитель сильнее). KAT-2: единая `_combo_card.html`
+  (/kombi/ + полоса категории лимит 6 с гейтом «первая страница без фасетов» + тизер),
+  `/kombi/?kategorie=`. KAT-6: демо-слаги БЕЗ `demo-` (`slugs.unique_slug` util,
+  RESERVED={"p"}; карта `refs["category_slugs"]`; починены битые hero torten/grill).
+  9 msgid × 5 .po. **Батч 2 KAT-3 (той же датой): SEO-слаги товаров** — `Product.slug`
+  (⚠️ миграция `catalog/0028`: AddField+бэкфилл+partial-constraint; автогенерация в
+  save() при пустом, гейт по update_fields; bulk_create → пустой слаг → uuid-роут);
+  роуты `/sortiment/p/<slug>/` + `/sortiment/<cat>/<slug>/` ПОСЛЕ uuid-подпутей,
+  резолв строгий (чужая категория → 404), POST-подпути на uuid; `get_absolute_url()` —
+  единая точка: карточки/прайс-строки/sellable(detail_url+JSON-LD)/sitemap(канонический,
+  uuid ушёл)/фид/письма waitlist+post-purchase/10 POST-редиректов; select_related
+  ("category") против N+1. Замки: test_product_slugs (7) + осознанные переписки
+  sitemap/sellable/finder. **Батч 3 KAT-4+5 (той же датой, БЕЗ миграций) — ВОЛНА KAT
+  ЗАКРЫТА ЦЕЛИКОМ:** KAT-4 контрол плотности «− N +» посетителю (2..6, десктоп,
+  localStorage; режим plv → data-plv-cols Kacheln-прайса, режим grid → data-density
+  сетки каталога с CSS-оверрайдами, равенство дефолту владельца снимает атрибут);
+  KAT-5 смена вида каталога без перезагрузки (fetch полной страницы → своп
+  `[data-listing-root]` + pushState, фолбэк обычная навигация, назад → reload;
+  автосабмит сорта делегирован — инлайн-биндинг в swap-зоне умирал, урок HF).
+  Замки test_density_view (4) + стенд Playwright 20/20; 3 msgid × 5 .po.
+  **Фидбэк-батч моб-витрины (той же датой, скриншоты владельца, БЕЗ миграций):**
+  клиентский «список/плитка» убран с каталога (дублировал ?ansicht= на мобильном) ·
+  «2 колонки» скрыта на мобильном в обоих переключателях (md:columns-2 там ничего
+  не меняла) · кнопки в границах экрана (flex-wrap шапки секции + лого шапки САЙТА
+  сжимается truncate — длинное имя выталкивало иконки) · внутри категории НЕ
+  повторяется верхний список категорий (остаются «← Alle» + подкатегории).
+  Стенд 390px 14/14. Грабля контейнера: старый снапшот = протухшие .mo (LMIV-замок
+  красный при верном .po — перекомпилировать polib) + отставшая дев-БД + пустой hosts.
+- **Самое свежее (2026-08-19): ПРОГРАММА «КАБИНЕТ-X» — генеральная уборка ЛК (X0–X8),
+  сделаны X0+X7 · X1 · X2a/X2b · X3 · X4 · X5, всё БЕЗ миграций, всё в `main`.**
+  Запрос владельца: «навести порядок, сделать ЛК функциональным, понятным, логичным,
+  последовательным» + анализ рынка. Исследование `docs/cabinet-ux-research-2026-08-18.md`
+  (6 слоёв «каши» + рынок), программа `docs/cabinet-cleanup-plan-2026-08-19.md`
+  (решения владельца по 7 развилкам). **X0** хотфиксы (owner-only табы прячутся у
+  сотрудников, «Full view» → Verkäufe, бейдж непрочитанных, гейт якоря Marketing) +
+  ЗАКРЫТА ДЫРА: `integrations_home` рендерился без `@login_required` (декоратор «съел»
+  вставленный хелпер) — аноним видел статусы подключений. **X7** предохранители:
+  мораторий на состав якорей сайдбара (замок) + инвариант «каждый беспараметрный экран
+  кабинета имеет вход из навигации, либо осознанно внесён в EXPECTED_UNLISTED» +
+  чек-лист `docs/cabinet-screen-dod.md`. **X1** язык: стенд «языкового салата» оказался
+  ложной тревогой среды (не скомпилированные `.mo`), реальный дефект — омонимы DeepL и
+  битые плейсхолдеры в de.po (Jobs→«Stellenangebote», «Stay created.»→«Bleib kreativ.»,
+  «Liefer%(f)s€»), которые `msgfmt --check-format` не ловит. **X2a** снесены мёртвые
+  дубли главной (хаб-плитки = сайдбар 1:1, два конкурирующих механизма прогресса
+  сведены в один чек-лист из реестра шагов мастера), **X2b** легаси-доска
+  `/dashboard/board/` → 302 на Verkäufe (перед сносом закрыты 5 серверных reverse,
+  один — с главной: снос «в лоб» дал бы 500 архетипам events/jobs). **X3** главная =
+  РАБОЧАЯ ПЕТЛЯ архетипа (вариант B): тем же телом, что страница Verkäufe
+  (`core/_sales_body.html` + `sales_page.body_context`) — отель видит Belegungsplan,
+  салон Tagesplan, магазин заказы; полоса дня с «▲ vs. Vorwoche» и честной карточкой
+  «Finanzen aktivieren» (модуль выключен у всех 15 типов по умолчанию). **X4**
+  подпункты сайдбара по смыслу (Sortiment = сущности архетипа, склад — в ящик
+  таб-бара), 19 сирот разобраны поимённо, гастро-гейт KDS/Tisch-QR, глоссарий
+  `docs/cabinet-glossary.md` («Angebote» → «Sortiment»). **X5** настройки: два
+  подписанных ряда вкладок вместо горизонтального скролла, «Abläufe» без телепорта
+  (`?from=board`), «Mein Geschäft» по секциям со sticky-Save. **X6** конвенция «＋» (ведёт в форму создания), поиск на «Sortiment» по всем
+  kind и в списке продаж по коду/клиенту, ловушка черновика акции (человеческие
+  статусы + первичная «Jetzt aktivieren» + бейдж «nicht sichtbar»), единый порядок
+  видов, цена на вкладке «Preis & Lager». **X2c** (был отложен владельцем, исполнен
+  после X3/X4 в РЕВИЗИИ: события — сущность раздела Sortiment по глоссарию X4, их
+  экран НЕ схлопываем; схлопнут только легаси-список заявок `jobs:list` → 302 на
+  вкладку продаж, ПОСЛЕ паритета: общий фильтр статуса в списке, экран `jobs:new`,
+  панель «Anfrage-Formular» на «Abläufe»). **X8** — Ctrl+K ищет по ДАННЫМ
+  (сделки по коду/клиенту, контакты, предложения; тонкий слой поверх поисков X6-2,
+  `@login_required`, лимиты, debounce+AbortController, fail-safe на прежний
+  навигационный поиск). **ПРОГРАММА «КАБИНЕТ-X» ИСПОЛНЕНА ЦЕЛИКОМ (X0–X8).**
+  Итог: один источник навигации, одна поверхность продаж, главная = работа дня,
+  подпункты по смыслу, настройки без скролла и телепортов, консистентные механики,
+  глоссарий `docs/cabinet-glossary.md` и два инварианта-предохранителя (мораторий
+  на якоря + «новый экран обязан иметь вход»).
+  Уроки: `scripts/i18n_quickcheck.py` — локальная замена CI-гейта i18n (в дев-
+  контейнере нет gettext; дважды ронял CI), CI разбит на 3 группы (17 → 9 мин).
+  **Сверка на ВСЕХ архетипах (той же датой):** серверный обход кабинета
+  (`TenantClient`, ссылки из DOM) — 14 архетипов из 14 с демо-китом, 979 экранов,
+  0 проблем; найдены и закрыты два дефекта (палитра вела в `@require_POST` → 405;
+  ссылка на карточку клиента при выключенном CRM → 404) + замок достижимости
+  `test_nav_reachability`. **Решение владельца:** демо-киты ПРОПУСКАЮТ мастер —
+  `apply_kit` зовёт `onboarding.mark_complete` (демо-тенант открывается кабинетом,
+  а не мастером); попутно киту `moto` добавлены часы работы (единственный без них
+  → чек-лист готовности демо не закрывался). ⚠️ ops: пометка приезжает в уже
+  засеянные демо только с `seed_demo_tenants --kit <кит> --recreate`.
+- **Самое свежее (2026-08-19, вечер): починка по АДВЕРСАРИАЛЬНОМУ РЕВЬЮ программы
+  «Кабинет-X» (55 агентов: 4 измерения → каждая находка проверена 3 скептиками;
+  14 подтверждено, 3 отклонено) — ⚠️ миграция `promotions/0026` (choices-only, DDL нет).**
+  Перед починкой каждый факт перепроверен разведкой (6 агентов, доказательства файл:строка),
+  замки написаны ДО правок. **HIGH:** X6-6 перенёс обязательное `base_price` в СКРЫТУЮ
+  вкладку — Chrome валит валидацию на нефокусируемом контроле и молча отменяет сохранение
+  товара (проверено браузером до/после: «An invalid form control … is not focusable» →
+  панель открывается, товар сохраняется). Правка в ОБЩЕМ партиале `_i18n_switch.html`:
+  `invalid` в фазе capture раскрывает вкладку И языковую группу поля, то же при серверной
+  ошибке (`data-field-error`); инвариант W0 цел. **Корректность:** главная отдаёт
+  fetch-фрагмент `?box=1` (был целый кабинет в панели брони) · фильтр в адресе обязан быть
+  ИСПОЛНЕН — `sales_page.view_for_filters` открывает «Liste», когда board/kalender молча
+  игнорировали `?status=`/`?q=` (легаси-редирект заявок, виджет «Abholbereit»); то, что вид
+  умеет сам (поиск Belegungsplan), не перебивается · снят мёртвый `heute_columns` на главной
+  (5-6 запросов на заход) · чипы «Abläufe» несут `?from=board`, панель Anfrage возвращает по
+  `next` · хвостовой ряд `hub_tabs` забирает вкладки с неизвестной группой (опечатка роняла
+  вкладку молча). **Ctrl+K:** «Nothing found.» считалось только по меню (висело поверх
+  найденного заказа), Enter игнорировал данные (было `/dashboard/`, стало
+  `/dashboard/orders/<uuid>/`). **i18n-класс:** псевдонимы `gettext as _t`/`gettext_lazy as
+  _l|_lazy` НЕ извлекаются makemessages → 23 строки жили без перевода, и гейт их не видел ПО
+  ПОСТРОЕНИЮ; сведены к каноническим именам, msgid добавлены в 5 каталогов, класс держит
+  скан-замок. **Статусы акций** — источник подписей перенесён в модель (choices), аналитика
+  печатала сырой код; скан-замок запрещает сырые коды. **Из отклонённых** взята одна правка:
+  скептики нашли достижимый вариант слабого гейта `next=` (у `status_manager_save` значение
+  приходит из GET) → 4 места отбивают `//host`. Замки: `test_cabinet_review_fixes.py` (20) +
+  стенд Playwright 10/10.
+- **Самое свежее (2026-08-20): VK-волна — фидбэк владельца по разделу «Verkäufe»
+  (10 пунктов), БЕЗ миграций.** План `docs/verkaeufe-feedback-plan-2026-08-20.md`.
+  **п.1** колонки канбана тянутся по ширине (`sm:flex-1`; было фикс. `sm:w-64` —
+  три колонки на треть экрана), хром страницы 4 ряда → 2. **п.2** «⚙️ Einstellungen»
+  вернулась в тулбар вкладки (несёт активный kind + `from=board`; замок SM-4
+  переписан осознанно). **пп.3/4/5** страница «Abläufe» перестроена: **карта
+  процесса** «So läuft ein Verkauf» (колонки доски × статусы, встроенные ∪ свои, с
+  учётом FB-4a-имён и W5-настроек колонок), разделы-карточки с объяснениями,
+  редактор СВОИХ статусов вынесен партиалом `tenant/_status_manager_panel.html` и
+  живёт секцией на странице (был ссылкой внутри свёрнутого `<details>`); пустая
+  панель переходов у `reservation` больше не исчезает молча; подпункт сайдбара —
+  «Abläufe & Status». **п.6** колонки «как в Trello» (drag ⠿ + инлайн-имя + 👁;
+  порядок в hidden-поле, без JS живут переименование/скрытие). **п.7** триал-плашка
+  — тост ОДИН раз за сессию + постоянно только на «Abo & Rechnung» (гейты: fetch/POST
+  не сжигают показ; аноним не получает записи в сессию — иначе кука каждому
+  посетителю витрины). **п.9** смета: `input[type=number]` с немецким «2,50» —
+  браузер показывал поле ПУСТЫМ (`floatformat:"-2u"`), плюс строка с ценой без
+  описания молча отбрасывалась → сообщение с номером строки. **п.10** колонка
+  «Summe» в строке сметы + живой «Zwischensumme», живой итог в композере Angebot.
+  **п.8** вопрос владельца «разве заказ по акции не должен быть обычным заказом?»
+  — по коду УЖЕ так (волна PL: кнопка акции → `purchase` → обычный Order; форма
+  резерва снята со всех витринных поверхностей, `Reservation` = легаси). Поэтому:
+  вкладка `reservation` — единственное исключение из SM-2a, видна только при
+  наличии таких записей; подпись «Aktions-Reservierungen (alt)»; продажа по акции
+  помечена бейджем «🏷 Aktion» в списке заказов и на карточке доски
+  (`source_channel="promo"`). Замки: 13 новых,
+  2 переписаны осознанно; 17 msgid × 5 каталогов.
+- **Самое свежее (2026-08-20, вечер): VS-2 «главная рабочая страница продаж» — в main,
+  БЕЗ миграций** (план `docs/verkaeufe-v2-plan-2026-08-20.md`, решения владельца §2).
+  **VS-2a** одно направление (13 из 16 типов) → ряда вкладок нет, заголовок = имя
+  направления; два+ → вкладки со счётчиком активных сделок. **VS-2b** КОЛОНКА =
+  СТАТУС, стадии стали группами колонок (полоса над ними; ширина группы = flex-grow
+  по числу колонок): у кейтеринга «Angebot gesendet» и «Beauftragt» больше не в
+  одной колонке; drag стал однозначным (`data-drop-status` вместо стадии);
+  `normalize_board`/golden не тронуты — настройки W5 управляют ГРУППАМИ, имена
+  колонок = «Status-Namen» FB-4a. **VS-2c** карточка: дата события + гости (поля
+  AF-1 наконец на доске), срок сметы бейджем (просрочка считается на сервере —
+  `kanban_action` перерисовывает карточку своим контекстом), сортировка доски по
+  дате события (nulls_last), сумма в шапке колонки ТОЛЬКО где поле БД = точный итог
+  (order/job/stay; у booking/ticket итог считается в Python — агрегат врал бы).
+  Замок поймал реальный баг: `values().annotate()` поверх queryset'а с `order_by`
+  тащит сортировку в GROUP BY → сумма показывала последний заказ. Стенд Playwright
+  13/13 на демо кейтеринга. **Дальше: VS-3** (якорь + прикреплённые услуги —
+  решение владельца «сначала кабинет»; нужна аддитивная миграция, план-доком).
+- **Самое свежее (2026-08-20, ночь): VS-3 «якорь + прикреплённые сделки» —
+  ⚠️ миграция `core/0008` (аддитивная).** Спецификация — `docs/vs3-deal-links-plan-2026-08-20.md`
+  (решение владельца: «делаем», привязку создаёт владелец В КАБИНЕТЕ; витрина —
+  следующим шагом). Было: Extras — JSON-снимок внутри брони (ни статуса, ни
+  колонки), единственная настоящая связь — `Job.booking`. Стало: `core.DealLink`
+  (generic-ссылка kind+id, `unique` на спутника = один якорь) + сервис
+  `apps/core/deal_links.py` (attach идемпотентен, отбивает self-link/цикл/второй
+  уровень; `for_cards` — батч). На доске: у якоря «🔗 N Zusatzleistungen», у
+  спутника «🔗 gehört zu …»; на 4 деталях — блок «Verknüpfte Leistungen» со
+  справочным итогом (деньги НЕ сливаются) и экран привязки с двумя ролями.
+  Контракт += `amount_value`. **Побочно — реальный пробел, найденный стендом:**
+  поиск сделок умел только код и клиента, а владелец ищет «Fahrrad» → добавлены
+  поля заголовка per-kind (выигрывают палитра Ctrl+K, список продаж и пикер).
+  Демо hotel: к брони номера привязан велопрокат 24 €. Замки: 24 + стенд 9/9.
+  Границы v1: без витрины, каскадов статусов, слияния денег и миграции Extras.
+- **Самое свежее (2026-08-20, поздний вечер): ВОЛНА SH «заказ, клиент, деньги» — 18 пунктов
+  фидбэка ЗАКРЫТЫ ЦЕЛИКОМ (⚠️ 3 аддитивные миграции).** План — `docs/sh-order-wave-plan-2026-08-20.md`
+  (решения владельца §6). **Группа A (без миграций):** вид «Kalender» у заказов только там, где
+  реально ставятся слоты выдачи (гейт по ДАННЫМ) · строка списка = № + покупатель + меню смены
+  статуса (общий `board-action`, FSM — жёсткий пол; та же механика у stay/booking/job/ticket) ·
+  мельче шрифт канбана (13/11px) · кнопки статуса в шапке карточки заказа · вход «Zahlung &
+  Lieferung» с «Abläufe» · **свёрнутый сайдбар = полоса иконок** (было `display:none`; скрытие
+  только CSS — инвариант W0) · убраны псевдо-крошки из тел календарей (замки отличили дубли от
+  ЕДИНСТВЕННЫХ входов «Heute»/«Preise & Saison» — они остались). **Группы B/C/D:**
+  `apps/orders/editing.py` — правка состава/количества/скидки/доставки/клиента, склад и леджер
+  двигаются ТЕМ ЖЕ движком, что создание/отмена, в одной atomic (закрытый заказ не правится —
+  его остаток уже вернул FSM; движения правки без `source_ref`, иначе дедуп съел бы законный
+  повтор) · `Product.vat_rate` (выбор 19/7/0) + снимок `OrderItem.vat_rate` + `apps/orders/totals.py`
+  (цены БРУТТО → НДС выделяется; скидка режет базу пропорционально, доставка по макс. ставке,
+  §19 обнуляет) · `Order.external_code` (внешний номер, ищется поиском сделок) + карточка
+  «Zahlung» (плательщик/адрес счёта) + «Rechnung aus Auftrag erstellen» → черновик
+  `finance.services.invoice_from_order` (нумерация по-прежнему при выставлении, GoBD цела) ·
+  **вкладка «Kunden» в продажах у ВСЕХ архетипов** (решение «вкладка всем», НЕ «включить CRM
+  всем»): тот же партиал/контекст, что экран CRM; без модуля список читается, ссылок в `/crm/`
+  нет · **«Lieferungen»** = фильтр списка `?versand=1` (в `_VIEW_FILTERS` → адрес исполняется),
+  оба входа — подпункты сайдбара «Verkäufe» (дедуп по паре url_name+query). Правка КЛИЕНТА
+  сделана kind-агностичной (`deal-customer-edit`) и подключена к брони номера и записи.
+  Пикер позиций вынесен в `apps/catalog/picker.py` (общий со сметой). Демо: ключ `vat` у позиции,
+  кит cafe = смешанный чек 7/19 %. Замки: test_order_editing (23) + test_sh_orders (14);
+  осознанно переписаны 3. Уроки: два pytest на одной `--reuse-db` роняют друг друга; новое
+  ОБЯЗАТЕЛЬНОЕ поле формы товара ломает чужие POST-ы (сделано необязательным с фолбэком).
+  ⚠️ Миграции: `catalog/0029`, `orders/0018`, `orders/0019`. ops: `seed_demo_tenants --kit cafe --recreate`.
+- **Самое свежее (2026-08-21): ПРОГРАММА MX «якоря + опции-трекеры + ERP» — стратегия согласована,
+  MX-0..MX-3 в main (`785794e`).** Пять док-итераций с владельцем (`mx-*-2026-08-2[01].md`):
+  4 ЯКОРЯ по оси ёмкости (Вещь/Работа/Проживание/Впечатление), способ продажи — свойство
+  КАРТОЧКИ (прецедент `Service.primary_action`), **опция = цена + ТРЕКЕР** (надбавка/свой пул/
+  фонд-движок/склад/закупка — решение владельца §5b), классификация всех 16 архетипов проверена
+  владельцем (тиры moto → переквалифицированы). Сделано: **MX-0** id опции в снимках (extras/
+  модификаторы/комбо) + 3 денежных фикса `move_stay` (недосчёт per-night допов 45 € доказан
+  тестом; потеря скидки акции; предоплата за итогом) + единый узел освобождения койки (отмена
+  билета С ДОСКИ больше не оставляет койку занятой — латентный oversell ретрита) ·
+  **MX-1** (⚠️ `finance/0008`) расходы-ERP: `ExpenseEntry.ref_kind/ref_id`, приёмка закупки
+  пишет расход (SOURCE_PURCHASE ожил), экраны `/finance/ausgaben/` + `/finance/ergebnis/`,
+  вкладки Finanzen · **MX-2** (⚠️ `core/0009`) адресные опции с трекерами: `Extra` +=
+  entity_kind/entity_id/tracker/pool_size/supplier/vat_rate, витрина+снимки фильтруют по
+  сущности (подмена формы отбита), экран **«Zusatzverkäufe»** (все проданные опции по дню
+  исполнения; вход из тулбара Verkäufe), демо moto: тир=участие + опция «Enfield mieten»
+  (пул 6, поставщик) · **MX-3 v1** правка допов из карточек stays/booking (W0-сентинел,
+  чужая адресная опция не проходит, дельта оплаченного warning'ом; правку ЗАКАЗА закрыла
+  параллельная волна SH — учтено union-мержем). ⚠️ ops: `seed_demo_tenants --kit moto
+  --recreate`. **MX-4 ✅ v1** (⚠️ `events/0028`): SupplierBooking вне туров (event nullable + ref_kind/ref_id),
+  закупка из сводки Zusatzverkäufe (qty=продано, дедуп), секция Beschaffung, «Bezahlt» пишет
+  расход с generic-ссылкой. **MX-5 ✅ v1** (⚠️ `booking/0023`+`catalog/0030`): Product.primary_action («торт на заказ» — CTA
+  заявки вместо корзины у карточки) + Service.pricing_mode per_person (цена × человек, party_size).
+  **MX-6 ✅ v1** (series_id ожил — «Weitere Termine» на детали; свои категории событий) ·
+  **MX-7 ✅ v1** (⚠️ `finance/0009` choices-only): выручка gift/pass из вебхуков идемпотентно,
+  полка «Digitale Angebote» в Sortiment, Offer в Ctrl+K. **ПРОГРАММА MX v1 ЗАКРЫТА ЦЕЛИКОМ**;
+  follow-up'ы: пул-enforcement/рецепт (слайс 2e), ticket-допы (3b), серия в листинге/агрегаторе (6c). SOURCE OF TRUTH — `docs/mx-execution-plan-2026-08-21.md`;
+  уроки: CI-гейт `i18n_gap` строже quickcheck (сверять msgid шаблонов с .po напрямую);
+  снимок-замки сверять полями, не dict'ом.
+- **Самое свежее (2026-08-21, продолжение): FOLLOW-UPS программы MX ЗАКРЫТЫ ЦЕЛИКОМ
+  («Делай») — 2e+3b+6c+кит, всё БЕЗ миграций, всё в main.** План
+  `mx-followups-plan-2026-08-21.md`. **2e** enforcement трекеров опций
+  (`apps/core/option_trackers.py`): пул — PoolFull по окну исполнения (stay ночи /
+  ticket дни / booking день) под select_for_update Extra, общий на 3 kind, сделка
+  исключает себя (off-by-one ловился тестом); склад — OptionOutOfStock, движение
+  `source="option"` первым (md5-ref: 2 UUID не влезали в varchar(64)), счётчик только
+  при созданном движении; возвраты через SM-хуки трёх kind + зеркала кастом-статусов,
+  идемпотентны и только при sale-движении. Правки состава — `sync_options` (diff).
+  **3b** правка допов билета (`action=extras` в ticket_action + форма в списке).
+  **6c** серия/заезды тура ОДНОЙ карточкой: витрина сворачивает по tour|series с
+  бейджем «+N Termine» (свод после фасетов; паритет-замки целы), агрегатор — групповая
+  запись `tour:<id>|series:<id>` payload=ближайший будущий заезд, per-event строки
+  чистятся, beat `roll-event-group-listings` перекатывает протухшие. **Кит
+  «Kölner Spaziergänge»** (`stadtfuehrung`, tour_operator): Трипстер-гид — 3 экскурсии-
+  Tour + 4 заезда за-человека + anfrage приватной группы + пул-опция Audio-Headset
+  (живой 2e). Замки: test_option_trackers (7) + test_event_group_listing (6) +
+  test_kit_stadtfuehrung; tenants 933. ⚠️ ops: `seed_demo_tenants --kit stadtfuehrung`.
+  **v2-опции ✅ (та же дата, ⚠️ миграция `core/0010`):** `Extra.consume_qty`-рецепт (списание = consume_qty × ночи per_night-stay — как деньги снимка), точный возврат по |delta| sale-движения (переживает смену конфига после продажи), FEFO-партии гасятся/доливаются при включённых партиях (зеркало orders); закрыта дыра кабинета — форма опций не писала `product`, stock-трекер был незаводим из UI (селект Lagerartikel + Verbrauch je Verkauf). Программа MX исчерпана целиком.
+- **Самое свежее (2026-08-21, продолжение): ВОЛНА ERP-1..4 ✅ ЦЕЛИКОМ** (отмашка «Делай» на
+  гэп-анализ `docs/erp-gap-analysis-2026-08-21.md`; план `docs/erp-wave-plan-2026-08-21.md`;
+  ⚠️ миграции `orders/0020` + `finance/0010` + `finance/0011` + `documents/0002`, аддитивные).
+  **ERP-1 COGS:** снимок `OrderItem.cost_price` (EK на момент продажи: вариант→товар, 3 точки —
+  create_order/editing.add_item/promo purchase) → Ergebnis показывает Wareneinsatz/Rohertrag
+  по снимку, а не текущему EK. **ERP-2 Offene Posten + банк:** `finance/bank.py` — импорт CSV
+  немецких банков (авто-детект колонок Sparkasse/DKB/ING, `;`/`,`, суммы «1.234,56», cp1252/
+  utf-8-sig, дедуп повтора по md5 дата|сумма|назначение; кривой файл → BankImportError, не тихий
+  ноль); открытые позиции = сделки, ждущие денег (`_OPEN_PAYMENT_STATES` per-kind: order unpaid,
+  booking/stay pending, ticket pending+deposit; none у броней = оплата на месте, НЕ долг) +
+  issued-счета; сопоставление: код сделки в Verwendungszweck (сильное) / равная сумма (слабое);
+  подтверждение ставит оплату ШТАТНО (payment_state / InvoiceSM.paid) + привязка BankTransaction.
+  Экраны `/finance/offene/` + `/finance/bank/`. **ERP-3 Eingangsrechnung + Mahnwesen:**
+  ExpenseEntry += supplier(FK Lieferant)/due_date/paid_at/document(FK SecureDocument) — входящие
+  счета со сроком и Beleg-файлом (шифрованный, `documents.owner` стал nullable: Beleg принадлежит
+  бизнесу, ретеншн не съедает — GoBD; KIND_RECEIPT); секция «Offene Eingangsrechnungen» вне
+  фильтра периода + mark_paid; Mahnung по своим счетам: письмо на локали тенанта, эскалация
+  level 1→3, дедуп `notify(dedupe_key=schema:invoice-mahn:pk:level:date)`. **ERP-4 UStVA-срез +
+  DATEV расходов:** Ergebnis += USt/Vorsteuer/Zahllast (из брутто: amount×rate/(100+rate), ставки
+  снимков) и `/finance/ausgaben/datev.csv` (SKR03: AUFWAND_BY_CATEGORY 3400/4660/4530/4380/4190/
+  4900 an 1000 — зеркало datev_csv продаж). Замки: test_erp1_cogs (3) + test_erp2_bank (5) +
+  test_erp34_bills (4); finance+orders+documents 263 зелёных. **Три CI-грабли цикла:** (1) новые
+  finance-шаблоны → замок свежести app.css (пересобрать `npm run build:css` — урок повторился);
+  (2) msgfmt duplicate definition — msgid, добавленный прежней волной МНОГОСТРОЧНОЙ формой,
+  повторно добавлен одной строкой (msgfmt склеивает формы; перед пушем .po-батча — дуп-чек polib
+  по всем 5 каталогам, grep одной строки дубль не находит); (3) новые записи Ctrl+K-палитры =
+  текст в ХРОМЕ каждой страницы кабинета — негативные тест-ассерты на голые слова ловят хром
+  (inbox-тест с пробной темой «Offen» упал на «Offene Posten»; класс MEN — пробные строки
+  уникальными), а беспараметрные CSV-выгрузки — в EXPECTED_UNLISTED замка X7 (прецедент
+  export-datev). ERP-5..7 — закрыты той же датой (запись ниже).
+- **Самое свежее (2026-08-21, финал): ERP-5..7 ✅ ЦЕЛИКОМ** (отмашка «Делай»; план
+  `docs/erp57-plan-2026-08-21.md`, разведка 3 агентами; ⚠️ миграции `inventory/0005` +
+  `jobs/0015`, аддитивные). **ERP-5 Rücksendung:** `BestellPosition.qty_returned` + kind'ы
+  `return_supplier`/`production` (одна choices-миграция); `return_po_line` — зеркало приёмки:
+  `apply_manual_movement(−N)` (кламп в 0 → честно меньше), FEFO в той же atomic, деньги —
+  сторно-`ExpenseEntry` с отрицательной суммой, идемпотентно по `<строка>:ret:<накопл. qty>`;
+  кабинет «↩ Rücksendung» на принятых строках PO. **ERP-6 маржа Работы:** `JobLine.cost_rate`
+  (работа = ставка €/Std., Teile = авто-снимок EK детали — философия снимков ERP-1); блок
+  «Kalkulation (intern)» Plan-Kosten/Plan-Marge (+%) на карточке Job; ГЛАВНЫЙ замок —
+  cost_rate НЕ течёт в публичную смету/PDF; Ergebnis не тронут (выручку Job журнал не пишет —
+  invoice-флоу, отдельное решение). **ERP-7 Produktion buchen** (без новой модели):
+  `services.produce()` — сырьё −/готовое + одной atomic, нехватка любой строки →
+  ProductionError и откат ВСЕГО акта; документ = PR-код в note (паттерн BE); расход НЕ
+  пишется (сырьё оплачено закупкой); EK готового = Σ(qty×EK)/qty (иначе Warenwert терял бы
+  готовое); партии: FEFO у сырья + Charge/MHD у готового (`receive_lot` получил
+  обратно-совместимый kind-параметр); секция «🏭» на /dashboard/stock/. v2 по спросу:
+  сохранённые рецепты, локации, средневзвешенный EK. 17 замков; 18 msgid × 5. **Гэп-анализ
+  ERP исчерпан целиком (ERP-1..7).**
+- **Самое свежее (2026-08-24): РЕДИЗАЙН КАБИНЕТА — стиль B «Karten & Luft», волны R1–R3 в main
+  (БЕЗ миграций).** Запрос владельца (скриншот): «настройки попрятаны, нужен новый чистый
+  адаптивный дизайн, мобильная в приоритете, все дизайны через утверждение». Дизайн-канвас
+  (skill design, 11 артбордов; исходники `docs/design/kabinett-redesign-2026-08-24/`) утверждён:
+  структура ок · стиль B · «ок» по экранам. План волн —
+  `docs/redesign-b-implementation-plan-2026-08-24.md` (инварианты: ТОЛЬКО рендер — FSM/вьюхи/URL/
+  nav_registry целы; W0; CSS-пересборка в том же коммите). **R1** каркас: холст #F2F4F7,
+  сайдбар-карточка md+, активный якорь — залитая индиго-пилюля, мобильный таб-бар — плавающая
+  пилюля с SVG (спрайт += ic-nav-*), main pb-24. **R2** навигация без дублей: ящик «Erweitert»
+  снят со страниц ЦЕЛИКОМ (hub_tabs скипает advanced) — состав живёт подпунктами сайдбара SM-4 +
+  палитрой; складская группа возвращена подпунктами «Sortiment»; 8 замков переписаны осознанно.
+  Урок CI #2152: замок свежести app.css ловит и УДАЛЕНИЕ шаблонных классов. **R3** Verkäufe:
+  вкладки-пилюли со счётчиком, контролы/фильтры карточками без рамок, строки списков — карточки
+  radius 16 (состав SH-11/12/16 цел), мобильный FAB «＋» над таб-баром (create_target; на sm+ —
+  кнопка тулбара); Board/Kalender целы; стенд Playwright 10/10 (hotel+catering, 390+1440).
+  Диагноз скриншота владельца: «Воспоминания»/«Выкупать» — авто-перевод Chrome, ru.po корректен
+  (реальные правки: Erweitert→«Дополнительно», Care-Zyklus→«Цикл заботы»). **R4** главная:
+  имя бизнеса+дата, карта Umsatz со спарклайном и hint-пилюлей, виджеты — строки-карточки.
+  **R5a/b** карточка заказа + формы товара/акции (пилюльные табы .pf-tab в _i18n_switch).
+  **ВОЛНА R7 (фидбэк владельца по скриншотам, та же дата): R7-1 «одно меню»** — таб-бары
+  хабов на страницах СНЕСЕНЫ целиком (тег hub_tabs + партиал, 39 шаблонов, прецедент W-CL);
+  раздел сайдбара = тумблер, подменю несёт ВЕСЬ состав хабов + обзор первым подпунктом;
+  мобильный таб-бар открывает лист с раскрытым разделом; owner-гейт переехал в
+  sidebar_nav(tenant, user) (замок нашёл дыру: сотрудник увидел бы Team/Abo/Recht).
+  13 замков переписаны осознанно (test_hub_tabs — целиком на подменю). **R7-2** вкладки
+  формы товара — НАД карточкой, фото — внутрь «Grundlagen» (мини-формы ★/✕ вне главной
+  формы, кнопки через form=). **R7-3** «Lieferungen» (/dashboard/orders/lieferungen/:
+  адрес/трек/Lieferschein-PDF, статусы тем же board-action) и «Zahlungen»
+  (/dashboard/zahlungen/, слой чтения apps/core/payments_page.py, ERP-2-правило
+  «none = оплата на месте», итоги по контракту Transaction) — отдельные страницы,
+  подпункты «Verkäufe»; nav_key «zahlungen» (коллизию с «payments» поймал стенд).
+  **Дальше по плану:** R5c (обзор Einstellungen — план-док
+  `r5c-einstellungen-overview-plan-2026-08-24.md` готов, разведка воркфлоу сделана) →
+  R6 (desktop master-detail).
+- **Самое свежее (2026-08-24): ВОЛНА SR «Sortiment Redesign» (SR-1..5) + VF-фидбэк — целиком в
+  ветке, БЕЗ миграций (нов. зависимость nh3 в uv.lock).** По утверждённому канвасу: **SR-1**
+  `/dashboard/angebote/` — единственная страница ассортимента (Kacheln↔Liste, ключ
+  `sortiment_view` presence-minimal; Liste несёт инструменты умершей `/catalog/products/` —
+  та 302 с carry; фото/имя кликабельны, «Bearbeiten» удалён; цена+Bestand — главная информация;
+  записи «Produkte» сняты из реестра, Delete в форме товара). **SR-2** форма товара на всю
+  ширину: «Preis & Bestand» постоянной правой колонкой (таб preis умер), 🌐-свитчер
+  пиктограммой (общий партиал), new_category создаёт категорию при Save. **SR-3** rich-text
+  описания: `apps/core/richtext.py` (nh3, узкий allowlist) + `rich_text`/`is_rich`
+  (санитайз на рендере; плоский текст — прежняя ветка), contenteditable-редактор без
+  библиотек (textarea в DOM — W0), витрина рендерит разметку, тизеры/JSON-LD — striptags.
+  **SR-4** категории фото-плитками (фото+имя кликабельны, подкатегории чипами). **SR-5**
+  R5c «оба»: `settings_hints` (живые подписи, 1 запрос) → подменю (А) + обзор
+  `/dashboard/einstellungen/` (Б; якорь settings→einstellungen-home, прецедент W11-5).
+  **VF**: наезд карточек доски = регрессия VS-2b (`sm:min-w-0` группы) → `sm:min-w-min`
+  (скролл вместо наложения); позиция заказа одной строкой (№·название·кол-во·×цена/шт·сумма);
+  карточка «Zahlung» += «📄 Rechnung als PDF» (draft переиспользуется, GoBD цел) и
+  «🔗 Zahlungslink senden» (письмо с /bezahlen/, dedupe-суффикс времени) + копи-поле ссылки.
+  **Сверка (запрос владельца): 16 архетипов × все экраны подменю (841 URL) — 0 ошибок**;
+  стенды Playwright hotel/catering/доска-1152. План — `sr-sortiment-redesign-plan-2026-08-24.md`.
+  Батч влит в main (`48aeeb9`).
+- **Самое свежее (2026-08-24, продолжение): ВТОРОЙ БАТЧ SR/VF (фидбэк-поток) — SR-2b/2c/2d +
+  VF-4..9, БЕЗ миграций.** **SR-2b** форма категории = раскладка товара (main + рейл 340px
+  «Struktur»). **SR-2c** «пустота» таба Varianten: грид наружу формы, панель вариантов сразу
+  под формой, 15 полей рейла через form="product-form". **SR-2d** «правая колонка только на
+  главной; у каждой вкладки своя раскладка»: рейл `data-pf-rail="grund"` — на чужих табах
+  скрыт, грид схлопывается (`pf-rail-off`), карточка формы гаснет на Varianten; invalid по
+  полю рейла открывает его таб (класс «Save молча не работает»); всё CSS-скрытием (W0).
+  **VF-4** табы Finanzen на /finance/rechnungen/. **VF-5** KDS — только cafe/catering/
+  restaurant (KITCHEN_TYPES), Tisch-QR — cafe/restaurant. **VF-6** crm рекомендован ВСЕМ 16
+  типам (пустой recommended_for выключил бы модуль всем — грабля default_disabled_for).
+  **VF-7a** подсветка подпунктов сайдбара ПО URL (nav_key-фолбэк только при уникальности) —
+  двойная подсветка (booking-ресурсы, Marketing+Aktionen) ушла. **VF-8** пустая доска пишет
+  «Noch keine Einträge.» (msgid реюзится из Liste; с первой сделкой исчезает). **VF-9**
+  карточка заявки = раскладка заказа/товара (смета широко + рейл 340: клиент/⚡Status/связи;
+  перенос marker-скриптом, смета и её JS не тронуты); «Detail (Katalog) пусто» = демо-дефект:
+  строки демо-сметы сеялись Freitext → line-спека китов умеет `product_name` (fail-soft по
+  name__de), catering привязан к 4 позициям каталога. Стенды: батч 20/20 + заявка 8/8 на
+  пересеянном catering. ⚠️ ops: `seed_demo_tenants --kit catering --recreate` (привязка сметы).
+  **VF-9b (той же датой, фидбэк «зачем селект в каждой строке; закупка — раздел ERP»):**
+  смета = модель заказа: строчный селект каталога убран (привязку держит hidden line_part —
+  W0; связанные строки — «📦 Aus dem Sortiment»), выбор из ассортимента — ОДИН селект у
+  «＋ Position» (пикер += комбо `k:<pk>` за `include_combos`, `_combo_snapshot` имя/цена без
+  FK), видимое поле EK снято (hidden держит ставки; снимок EK из каталога — сервер, ERP-1/6),
+  НОВАЯ «✕»-очистка строки (привязанную было не удалить — сервер восстанавливал текст).
+  Замки jobs 110; стенд 14/14. msgid «Position leeren» ×5.
+  **VF-10 (2026-08-25, «Заявки не нажимается»):** пункт «Aufträge» вёл через 302 на ту же
+  страницу, что «Verkäufe» (у catering одно направление) без перемены подсветки — клик
+  выглядел мёртвым. Прямая ссылка `verkaeufe?tab=job` в реестре + специфичность подсветки
+  (query бьёт голый путь) + палитра с query-адресами (дедуп по (url_name, query), «Aufträge»/
+  «Kunden» — свои карточки); jobs:list остался легаси-302 (EXPECTED_UNLISTED). Стенд 5/5.
+  **VF-11 (той же датой, «внутри одно и то же; проверь остальные архетипы»):** у
+  одно-направленных типов вкладка-направление = дубль обзора → подпункт «Aufträge»
+  прячется при `visible_kinds ≤ 1` (memo на тенанте, fail-open); свод по 16 типам —
+  дублей целей в подменю «Verkäufe» нет ни у одного, вкладка живёт только у werkstatt
+  (2 направления); замок `test_verkaeufe_children_no_duplicate_targets` ×16. Стенд 3/3.
+- **Самое свежее (2026-08-25, батч VF-12..22 — фидбэк 11 пунктов, БЕЗ миграций):**
+  VF-12 высота «Anzahl» сметы = цена · VF-14 Abläufe в 2 колонки без max-w (мобайл ок;
+  карта остальных узких страниц — в build-log, волна по решению владельца) · VF-15
+  карточка «💳 Zahlung» в рейле заявки + ручное «Als bezahlt markieren» (была дыра:
+  payment_state писал только Stripe-вебхук) + Angebot-ссылка · VF-16 «Open customer card»
+  на заявке · VF-18a кликабельные брони/номера/билеты в customer360 · VF-19 формы
+  акции/комбо — рейл-раскладка товара, Kampagnen 2 колонки · VF-21 имя акции в списке —
+  ссылка · VF-22 блог: «Ansehen auf der Website» + «＋ Neuer Beitrag» + «📣 Teilen» на
+  строках. Стенд 18/18 (метки «FAIL» = данные/локаль).
+- **Самое свежее (2026-08-25, продолжение): VF-13 + коммуникации C1/C2/C3 + VF-20b +
+  VF-24 — решения владельца «делай по рекомендации» и «Кампании рядом, но не
+  объединять»; всё БЕЗ миграций.** **VF-13** (план `vf13-quote-stock-reserve-plan`):
+  резерв склада из сметы при Beauftragt = `commit_stock` на входе в `accepted`
+  (кламп, не блокировка — детали докупаются; `done` идемпотентен), НОВОЕ
+  `release_stock` возвращает при Storno/Abgelehnt **по ЛЕДЖЕРУ** (строки
+  пересоздаются каждым Save — PK нестабильны; return-движение первым, дедуп
+  `ret:<mv.pk>`, conditional UPDATE, FEFO; возвращается ровно списанное, вкл.
+  клампы), `_resync_reserved_stock` в `set_lines` (release+re-commit в одной
+  atomic; после done склад не трогается), зеркала кастом-статусов (роль active
+  c blocks_capacity резервирует, cancelled возвращает — «паритет: не делаем»
+  снят). **C1/C2/C3** (план `deal-comms-plan-2026-08-25 §5`): канон
+  `ref_id = reference_code` (offers.py писал UUID → тред не находили ни
+  problem-полоса, ни поиск; фолбэк на легаси в `find_thread`) · C1 партиал
+  «✉️ Nachricht an den Kunden» на 4 карточках + вьюха `inbox:deal-thread` под
+  inbox-префиксом (гейт модуля бесплатно) · C2 `adopt_open_thread` из
+  order/booking/stay/job — «спросил → купил» одной беседой (fail-soft, только при
+  однозначности) + подпись строки CRM = сделка · C3 чекбокс «Auch per Telegram
+  senden» (только при живой привязке) и wa.me на номер КЛИЕНТА; e-mail дефолт.
+  **VF-20b** Kampagnen сразу за Aktionen в реестре + перекрёстные входы (экран
+  кампаний был тупиком); данные и экраны раздельные. **VF-24** восемь узких
+  страниц в 2 колонки (Domains/Extras/Team/Newsletter/Module/Finder/Kanäle/Firma);
+  мобильный — одна колонка. Замки: +10 (VF-13), +13 (C-волна); стенд 17/18.
+  Грабля-повтор: новый arbitrary-класс `xl:grid-cols-2` требует пересборки app.css.
+- **Самое свежее (2026-08-25, вечер): ВОЛНА DC «единая карточка сделки» — DC-1 · DC-2 ·
+  DC-4 · DC-5 (⚠️ 3 аддитивные миграции).** ТЗ владельца по макетам
+  `docs/design/deal-card-2026-08-25/` (артефакт утверждён) + правки того же дня: статус во
+  вторую колонку · номер одной строкой · скидка МЕЖДУ позициями и суммой и обязательно в
+  итоге · «Menge» после «Einzel», на её месте порядковый номер · «блоки должны иметь общие
+  настройки: меняется один — меняются все» · «если есть календарь — открывается сразу ниже
+  сетки» · «все поля и подписи переведены». **DC-1:** ОДИН шаблон `core/deal_card_base.html`,
+  от которого наследуются карточки заказа/заявки/брони/записи; общие партиалы
+  `core/_deal_head|_deal_status_card|_deal_customer_card|_deal_discount.html` + единый контекст
+  `apps/core/deal_card.py` (контракт Transaction + гейты + календарь). Статус — в рейле, приёмник
+  generic `board-action` (кроме «invoiced» заявки: он ещё и выставляет счёт). **DC-2:** календарь
+  развёрнут ПОД сеткой тем же движком, что на странице продаж (Belegungsplan/Tagesplan/
+  Auftragsbuch), формы создания в нём скрыты (`deal_calendar_compact`); у заявок движка нет —
+  блока нет. **DC-4** (⚠️ `booking/0024`, `stays/0033`, `jobs/0016`): `external_code` у всех видов
+  + generic-приёмник `deal-external-edit` + поиск сделок. **DC-5** (без миграций): `deal_discount.py`
+  пересчитывает итог в каждом домене (у брони — хранимый `total_cents` формулой `reprice`),
+  приёмник `deal-discount-edit`, общий партиал. **Стенд Playwright нашёл 3 дефекта, невидимых
+  серверным тестам** (дубль дат + обрубок шаблона, дублирующаяся «Zahlung», формы создания
+  чужой сделки в календаре) — исправлены. Замки: `test_deal_card_shell` (10); осознанно
+  переписаны SH-10/VF-15/VF-2 и рейл-замки. 24 msgid × 5 каталогов. Уроки: гейт `i18n_gap`
+  строже quickcheck (уронил CI #2196/#2197); Django кэширует шаблоны и в DEBUG — стенд врёт
+  без рестарта runserver. Дальше по плану `deal-card-implementation-plan-2026-08-25.md`:
+  **DC-3 ✅** (статус выпадающим списком + вопрос «уведомить клиента/команду?»: разовое
+  подавление `notifications.prefs.muted()` — thread-local на время apply; снятый чекбокс в POST
+  не приходит → форма метит себя `notify_form=1`, прочие поверхности не меняются), **DC-6 ✅**
+  (⚠️ `booking/0025`: `invoice_from_stay`/`invoice_from_booking` + общий приёмник `deal-invoice`
+  с реюзом черновика; проживание одной строкой — иначе копейка расхождения), **DC-7 ✅**
+  (карточка билета `/dashboard/events/ticket/<pk>/` — экрана не было вовсе, доска вела на
+  страницу события). **ВОЛНА DC ИСПОЛНЕНА ЦЕЛИКОМ.** Плюс фидбэк того же дня: меню «поделиться
+  с выбором канала» у статей блога (`core/share_links.py` + `_share_menu.html`) и секция
+  «Persönliche Kanäle» на странице каналов (`core/personal_channels.py`: WhatsApp, Telegram-бот,
+  e-mail, чат сайта, соцпрофили со статусом и входом).
+- **Самое свежее (2026-08-25, вечер): Pranasy — кейтеринг-карта владельца (49 блюд из PDF),
+  БЕЗ миграций** (план `docs/pranasy-catering-menu-plan-2026-08-25.md`). PDF владельца
+  (название · «Описание» · «Состав», рус.) стал немецкой Speisekarte демо-кита: контейнер
+  `catering` (page_style «sets») + шесть подкатегорий-Gäng'ов (Suppen 8 · Beilagen 9 ·
+  Ragouts 8 · Saucen 7 · warme Vorspeisen 7 · Salate 10), у каждого блюда состав (LMIV),
+  диеты, аллергены, `course`, 7 % НДС; спека `_p` += `ingredients=`. **Раздел «как в
+  архетипе»:** 4 набора меню — те же три режима, что у кита `catering` (фикс ×2, «по
+  выбору» с надбавками, free_pool) + подменю шапки Catering (Speisekarte · Menüs & Pakete ·
+  Anfrage) + Anfrage-банда на главной + `menu_labels` + 4 отзыва на наборы. Категории
+  ДОПИСАНЫ В КОНЕЦ `categories` — индексы `promotions_spec` считают позицию в общем списке
+  товаров. **Правка движка:** `combos.pool_products` брал товары строго из категории набора
+  → у направления с подкатегориями «свободная сборка» открывалась ПУСТОЙ; теперь пул =
+  категория + ПРЯМЫЕ дети (семантика KAT-1), 2 замка. **Честная маркировка вместо слогана:**
+  24 из 49 блюд с сливками/паниром/гхи/йогуртом, а витрина заявляла «100 % pflanzlich, ohne
+  Ausnahme»; веганизировать рецепты нельзя (ru-локаль демо = ДОСЛОВНЫЙ текст PDF, локали
+  начали бы противоречить друг другу) → блюда помечены честно, смягчены ответ FAQ и знак
+  доверия («100 % Vegan» → «Vegan & vegetarisch»), hero/about не тронуты. **Адверсариальное
+  ревью карты (39 правок):** Pinienkerne — НЕ Schalenfrüchte по LMIV Anhang II (ложная буква
+  «h» отсекала бы аллергиков) · «selleriefreie Gemüsebrühe» · розничный Asafötida разбавлен
+  пшеничной мукой → «Asafötida (glutenfrei)» там, где стоит тег · Parmesan на телячьем
+  сычуге не вегетарианский → «Hartkäse (mikrobielles Lab)» · убрано регулируемое «reich an
+  Ballaststoffen» (EU-VO 1924/2006) и майонез из салата без майонеза. **Фото:** Openverse
+  CC0/PDM, каждый кадр просмотрен агентом, правило витрины — никакого мяса/рыбы в кадре
+  (у «caesar»/«bolognese» в стоках это норма); честный кадр нашёлся для 32 из 49, остальным
+  — тематический плейсхолдер. Грабля резолвера: ключи образуют плотные префикс-группы
+  (`ragout-`, `salad-`, `rice-`) и без своего файла блюдо молча получало фото СОСЕДА →
+  такие ключи переименованы под плейсхолдер, правило держит
+  `test_catering_dish_keys_never_borrow_another_dishs_photo`; двум старым ключам кита
+  catering проставлены `_PHOTO_ALIASES`; дубли пойманы хешем. **Переводы:** de база ·
+  **ru = дословный текст PDF** · en/uk/tr перевод (en 96 / ru 100 / uk 100 / tr 99 %,
+  строк без пути — 0). ⚠️ ops: `seed_demo_tenants --kit pranasy --recreate`.
+- **Самое свежее (2026-08-26): DC-8/DC-9 + DC-8b + волна DF (фидбэк по карточке сделки) —
+  всё в main.** **DC-8** честный НДС у брони/записи/билета (ставка на позиции: проживание 7 %,
+  допы 19 %, Kurtaxe вне налога; снимок на сделке) + **DC-9** область действия скидки
+  (сделка/позиция/доставка — меняет распределение базы НДС, не итог); ⚠️ миграции
+  `stays/0034`+`booking/0026`+`events/0029`+`orders/0021`. **DC-8b** ставка правится из
+  кабинета (общий партиал `core/_vat_select.html` + тег `vat_select`, три законные ставки
+  DACH, presence-guard/clean не сбрасывают). **Волна DF (план `df-deal-card-feedback-plan-2026-08-26.md`,
+  БЕЗ миграций):** голова = только «angelegt» (длинная подпись из состава убрана) · смена
+  статуса в верхней строке + уведомления в `<dialog>` ВНУТРИ формы (fail-safe без JS;
+  карточка статуса в рейле снята) · документы своей секцией в 1-й колонке после оплаты
+  (гейт по данным — иначе пустая рамка) · скидка внутри позиций до итога (у заявки — ЗА
+  формой сметы: вложенные `<form>` браузер разворачивает) · «Anfrage des Kunden» блоком в
+  теле + состав меню едет в описание, а не в тему · переписка НА карточке (тот же тред
+  inbox, `next`-возврат, поллинг M22b) + видимая метка непрочитанного в CRM · **сверка с
+  макетом**: у брони/записи/билета состав стал ТАБЛИЦЕЙ (`core/_deal_lines`) и суммы —
+  Zwischensumme → Rabatt → Netto → MwSt. → Gesamt (`core/_deal_totals`), рейл 380px.
+  Замки 24 → 38; стенд Playwright 14/14 нашёл 3 дефекта мимо серверных тестов.
+- **Самое свежее (2026-08-26): страница `/sortiment/catering/` как полноценная главная —
+  4 пункта фидбэка, БЕЗ миграций** (план `docs/pranasy-catering-page-plan-2026-08-26.md`).
+  (1) **Фото у подкатегорий**: они рисовались ТЕКСТОВЫМИ карточками при любом шаблоне, кроме
+  «kopfbild» → общий `_category_tile` при гейте `subcategories_have_images` (нет фото ни у
+  одной — прежняя сетка байт-в-байт); ключ фото «Beilagen» проставлен явно — раньше
+  префикс-группа молча отдавала ему фото БЛЮДА «Gemüsereis». (2) **Виды наборов меню**
+  Kacheln/Liste/Kompakt механикой MEN-22 (class-swap+localStorage, НЕ `?ansicht=`: полоса
+  живёт на странице каталога, где параметр занят блюдами, и не пагинируется); карточка
+  `_combo_card` одна на все виды (паритет цел), вёрстку даёт каскад `data-cv`, отступы
+  снимаются атрибутной специфичностью без `!important`; общий контейнер `_combo_grid.html`
+  (реюз: полоса категории, тизер, `/kombi/`), свой ключ localStorage → вид наборов не связан
+  с видом блюд. (3) **Недостающие фото**: генерации изображений в среде НЕТ (ключа модели не
+  существует); 4 раунда Openverse `cc0,pdm` на 15 блюд дали ДВА честных кадра (`rice-plain`,
+  `cucumber-raita`), остальное отбраковано (мясо/рыба, узнаваемые лица, реклама 1910–50-х,
+  чаще всего — ЧУЖОЕ блюдо) → доведён сам плейсхолдер: реестр эмодзи знал только английские
+  слова, немецкие ключи получали «тарелку» 🍽️/✨ → +темы (ragout/kohl/gurke/aubergine/bulgur/
+  raita/bratling/kitchari/minz/suppe/reis), ключи переименованы под читаемую подпись
+  («Gekochter»→«Reis», «Soy»→«Bolognese», «Mahabrinjal»→«Mahabridschal»); 2 замка (своя тема
+  у каждого блюда; подпись из слов его названия). (4) **Галерея/отзывы/команда на странице
+  кейтеринга**: `page_blocks` += хосты `catalog:<slug>` (продолжение KAT-1 «категория =
+  страница»; иначе блоки легли бы на весь каталог — 13 страниц), 4 гейта билдера сведены к
+  `siteconfig.is_page_block_host`, страницы категорий добавлены в `preview_pages` (иначе
+  Studio их не открывает и «+» шлёт блок не в тот хост); блоки ССЫЛОЧНЫЕ (UC2-3b) — контент
+  общий с главной, второго набора текстов нет; `DemoKit.page_blocks` у pranasy = галерея ·
+  отзывы · команда · FAQ · заявка. **Попутно:** карточка свободной сборки печатала
+  «0,00 € / Person» (базовой цены у неё нет) — цену такого набора больше не показываем.
+  Стенд Playwright на живом сиде. ⚠️ ops: `seed_demo_tenants --kit pranasy --recreate`.
+- **Самое свежее (2026-08-26, вечер): ВОЛНА VAT «налог на позиции» + перестановки карточки —
+  всё в `main` (`cfe1351`), ⚠️ миграции `jobs/0017` + `catalog/0031`.** План
+  `docs/vat-per-line-plan-2026-08-26.md`; разведка 12 агентов. **VAT-1:** у сметы ставка была
+  ОДНА на документ (в строках печаталась она же — выглядело как per-позиция); `JobLine.vat_rate`
+  nullable (NULL = ставка документа → существующие сметы байт-в-байт, бэкфилла нет), новый
+  `apps/jobs/totals.py::quote_totals` — одна точка истины на карточку/PDF/публичную страницу/счёт,
+  округление ПО ГРУППЕ ставки; PDF и публичная смета печатают строку на каждую ставку (§ 14 Abs. 4
+  Nr. 8 UStG); ставка подтягивается из карточки товара и услуги (снимки пикера расширены ставкой),
+  явный выбор владельца сильнее каталога. **VAT-2/3:** `Combo.vat_rate` (ставки у набора НЕ БЫЛО —
+  меню-сет гастро уезжал по 19 % вместо 7 %), `Extra.vat_rate` наконец выведен в форму (поле было с
+  DC-8, но ни в одной форме → у 100 % допов пусто, завтрак/парковка отеля облагались 7 % вместо 19 %,
+  Aufteilungsgebot; пункт «wie die Buchung» = прежняя семантика), свободные строки несут ставку
+  7-м элементом `custom_lines` (свободная сборка блюд, услуга из пикера), `parse_rate_optional`
+  отличает «не задано» от 19 %. **VAT-4 — ДЕЙСТВУЮЩИЙ дефект прода:** `invoice_from_order` считал
+  весь счёт по преобладающей ставке (11,90 € @19 % + 10,70 € @7 % → счёт 23,80 € вместо 22,60 €;
+  ломало сверку ERP-2 и Mahnung); `compute_totals` получила построчную форму (старые вызовы
+  байт-в-байт), строки счёта несут ставку в JSON-снимке, PDF печатает разбивку, легаси-счета — по
+  снимку `invoice.vat_rate`; у счёта из брони Kurtaxe облагался ставкой проживания → счёт был БОЛЬШЕ
+  брони. **CARD-1/2:** «Gültig bis» + «Angebot senden» → блок «Dokumente» (своя форма + presence-guard
+  в приёмнике сметы, иначе Save состава стирал дату — класс W0); «Nachrichten» → рейл под карточку
+  клиента (общий скелет → все виды сделок, якорь прежний, скролл DF-6 цел). **Стенд вскрыл
+  пред-существующий баг:** в немецкой локали селект шлёт «19,00», приёмник сравнивал с «19.00» →
+  выбор ставки документа сбрасывался в 19 % ВСЕГДА (кейтеринг не мог провести смету по 7 %) →
+  `vat.parse_rate`. Уроки: снимок-замки сверять полями, а не dict'ом (повтор MX); значения, идущие
+  через локаль, гейтить браузером. Отложено: дробление `RevenueEntry` по ставкам (нужен гард от
+  двойного учёта — смена `source_ref` обошла бы unique-constraint).
+- **Дизайн (2026-08-26): канвас карточки сделки += страница «Сегодня и после»** — те же карточки
+  ЦЕЛИКОМ в двух состояниях (кабинет сегодня ↔ утверждённый макет) вместо набора фрагментов;
+  генератор научился рисовать состояние «heute» (`Card.variant`). Вывод сверки: НОВЫЙ дизайн не
+  нужен ни по одному из девяти расхождений — всё уже стоит в макете от 25.08, отставала реализация.
+  Артефакт «Verkaufskarte» обновлён.
+- **Самое свежее (2026-08-27): фидбэк-батч — карточка клиента, мобильная вёрстка, витрина
+  кейтеринга (БЕЗ миграций).** (1) Кнопка «написать клиенту» в заказе убрана (дублировала
+  открытый блок переписки), «Kundendaten bearbeiten» → карандаш у имени + `<dialog>`; состав
+  заказа на телефоне раскладывается переносом (`dl-*`-классы; грабля: `.dl-row{display:flex}`
+  перебивал `.dl-head{display:none}` при равной специфичности); селектор языка кабинета виден
+  на узком экране. (2) Витрина кейтеринга: «Menüs & Pakete» убран — наборы плитками с фото в
+  подменю, нижнее меню ведёт на страницу кейтеринга, наборы 4 в ряд без переключателя вида,
+  блюда внутри набора компактнее, попап блюда на телефоне во весь экран; грабли — `normalize`
+  выбрасывал новый ключ меню `with_combos`, а подпись плитки набора приходила пустой
+  (`Combo.name` — плоское поле с оверлеем, не JSON). (3) Колонки страницы кейтеринга: секция
+  наборов в шапке листинга, заголовок «Einzelne Gerichte» — в тулбаре (строка инструментов
+  стоит вплотную над сеткой блюд, которой и управляет); плитки категорий подчинились настройке
+  владельца — верхний список звал `{% grid_classes site 'categories' %}`, но `site` вьюха в
+  контекст НЕ кладёт (тег молча брал дефолт), сетка подкатегорий была захардкожена; кит получил
+  ось `section_layouts`, pranasy = категории `cols3` + каталог `cols6`. **Попутно:** safelist
+  Tailwind отставал от таблиц движка — `sm:grid-cols-4`/`lg:grid-cols-6` в CSS не попадали, то
+  есть выбор «6 в ряд» молча падал в одну колонку у ЛЮБОГО тенанта. ⚠️ ops: `seed_demo_tenants
+  --kit pranasy|catering --recreate`.
+- **Самое свежее (2026-08-27, вечер): I18N-13 — гейт «новых непереведённых параметров» +
+  56 машинных подписей форм (БЕЗ миграций).** Запрос владельца «проверить, все ли поля
+  админки и параметры есть в файле перевода, и сразу ловить новые». Проверка: формальный
+  гейт `i18n_gap` зелёный (4838 msgid, пять каталогов по 4795, наборы 1:1, в tr/ru/uk
+  пустых нет), но у него слепая зона ПО ПОСТРОЕНИЮ — он сверяет только ИЗВЛЕЧЁННОЕ, а
+  необёрнутая подпись и `gettext` внутри f-строки в экстракцию не попадают (проверено на
+  xgettext). **Главная находка — в формах:** прогон всех форм под ru (после компиляции .mo —
+  локально их не было вовсе, без них измерение врёт) дал **56 подписей из 198 = машинные
+  имена полей Django** («Base price», «Is featured», «Starts at»); они не переводились НИ на
+  один язык, включая немецкий, и msgid для них не существовало. Исправлено `Meta.labels` в
+  9 формах (переиспользованы существующие msgid, новых 34×5). Плюс: реестр анкеты участника
+  `events/registration.py` (виден и НА ВИТРИНЕ при покупке билета; переведены только `label`,
+  ключи/`options` остаются базовыми — «переводится показ, а не запись»), ошибки импорта,
+  `kind_label` счёта в «Offene Posten», немецкая проза в placeholder'ах, английский msgid
+  `You enter data per language` без немецкого. **Дефект per-locale подписей:**
+  `core/i18n_input.py` собирал «Name (EN)» f-строкой → перевод, лежавший в каталогах, не
+  применялся; теперь `format_lazy`. **Предохранители:** сканер
+  `scripts/i18n_untranslated.py` (не обёрнута И нет в de.po; + правило f-строк; базовая
+  линия `locale/i18n-untranslated-baseline.json` — падает только на НОВОМ) на трёх уровнях:
+  PostToolUse-хук `.claude/hooks/i18n-watch.sh` → `.githooks/pre-commit`
+  (`scripts/install-git-hooks.sh`) → шаг CI; сводный отчёт — `scripts/i18n_status.py`.
+  Замки `test_i18n_guard.py` (5), в т.ч. «каждая подпись поля формы переводится на ru».
+  **Волна долга (та же дата, после мержа в main):** воркфлоу-аудит доведён до конца
+  (resume; 46 находок подтверждено, 26 отклонено), переведён ВЕСЬ хром — карточки
+  шаблонов/Look'ов, пресеты акций и страниц, библиотека блоков билдера, карточки
+  мастера, стили скидки, ошибки доменов/SSRF, сообщения вьюх, экраны счетов,
+  плейсхолдеры канвы, JS редактора меню (+228 msgid × 5 локалей); строк «без пути
+  перевода» **342 → 120**, остаток — контент тенанта, правовое платформы, admin,
+  имена в коде, машинные форматы (разбор в плане §4). Побочно найден дефект:
+  письма, собираемые в Python, шли в языке КАБИНЕТА владельца → общий
+  `notifications.services.email_locale()` + `translation.override` в шести письмах.
+  План — `docs/i18n-guard-plan-2026-08-27.md`.
+- **Самое свежее (2026-08-31): Sparfuchs-ТЗ (внешний UX-аудит aktionsmarkt) — сверка +
+  волны SF-1..SF-4a ЦЕЛИКОМ, всё БЕЗ миграций** (план `sparfuchs-ux-tz-plan-2026-08-31.md`,
+  семейство SF в каталоге; отмашка владельца «все последовательно»). Сверка воркфлоу
+  (12 разведчиков + ручная перепроверка): бо́льшая часть P0 ТЗ уже была платформенной или
+  данными кита. Сделано: **SF-1** кит `city="Köln"` (Hilden-баг сида) · Korb-омонимы
+  (en «Box») · dark-пары чипов скидок · mystery-утечки (savings/PAngV/og:image/JSON-LD/
+  миниатюры) + reveal-персист sessionStorage · telegram-web-app.js defer+DOMContentLoaded ·
+  openinghours через gettext (+WEEKDAYS_ABBR) · **StorefrontLocaleClampMiddleware**
+  (Accept-Language клампится к локалям тенанта — конец msgid-салата и «встречает
+  английским»). **SF-2** `/aktionen/` на рельсы U-B: `PromoFacets` (Endet heute/Woche ·
+  −20/30/50 %+ по вычисляемому проценту (in-memory) · Reservierbar · ?q= · сорт
+  Neueste/Endet bald/Rabatt/Preis), каркас listing.html с СОХРАНЕНИЕМ секций-групп
+  (характеризационные замки ДО свода), полоса «⏳ Endet bald», счётчик, честные
+  empty-states. **SF-3** страница закончившейся акции вместо голого 404 (410 Gone;
+  QR с флаера больше не в никуда) · первые кастомные 404/500 платформы · sticky-buybar
+  на детали акции · §11 PAngV на карточках (`lowest_price_30d_bulk`, без N+1).
+  **SF-4a** Merkzettel знает АКЦИИ (generic-сессия, сердечко на промо-карточке/детали,
+  «Beendet»-плитки вместо молчаливого выпадения, тумблер «Merkzettel ♡» в билдере —
+  опция впервые включаема любому архетипу, меню-гейт дополнен, кит aktionsmarkt: опция+
+  пункт «Merkliste ❤️»). **SF-4b ✅ Вариант A владельца
+  (2026-08-31): корзина/quick-add продают по промо-цене** — единый
+  `promo_line_price` на карточке/детали/quick-add/корзине/чекауте/create_order
+  («показано = списано»), лимит кампании клеймится атомарно на чекауте (гонка →
+  «Aktionslimit erreicht»), маркер {"promo": id} питает возврат/deal_counts как
+  прежде; правка qty промо-строки в кабинете двигает лимит зеркально складу
+  (дыры SH-волны закрыты). Границы v1 — план §SF-4b. СЕМЕЙСТВО SF ЗАКРЫТО. Грабли-повторы пойманы:
+  декоратор-«съеден-хелпером», app.css-свежесть, MEN-уникальные тест-строки, ST-3
+  public-схема. ⚠️ ops: `seed_demo_tenants --kit aktionsmarkt --recreate`.
+- **Самое свежее (2026-09-01): ВОЛНА DL «5 дил-шаблонов + переключатель» ЗАКРЫТА ЦЕЛИКОМ
+  (DL-1..6, БЕЗ миграций, в main).** По утверждённому канвасу «Sparfuchs Aktionsmarkt
+  Redesign» (5 вариантов × 3 страницы × 2 вьюпорта): **DL-1** self-hosted шрифты ×4
+  (Barlow Condensed/Bricolage/Space Grotesk/Schibsted, OFL; `FONTS` += 4; починена дыра —
+  `font_options` не знал editorial/organic → пересохранение сбрасывало DS-Look'и).
+  **DL-2** `LOOK_FAMILIES` += prospekt/frisch/neon(dark)/blatt/smart (акценты 15×10, замок)
+  + новая ось `site_defaults.card_chrome` hard|hairline|line (body `data-sf-chrome`, .dark-пары);
+  Save билдера — presence-preserve site_defaults (класс W0/W6). **DL-3** `BUNDLES` +=
+  5 УНИВЕРСАЛЬНЫХ дил-сборок (recommended_for=() — видны всем 15 типам) + ось `page_presets`
+  + `SECTION_STYLES["promotions"]` spotlight/rows ("" байт-в-байт, замки) + переключатель:
+  stateless-превью `?preview=1&bundle=<key>` + ленивые iframe-карточки сборок в мастере «Stil»
+  (билдер получил карточки даром — реестр). **DL-4** aktionsmarkt: плитки hero пережили
+  сборку (латентный баг сидинга — config_patch после _FOKUS_BASE), главная = spotlight.
+  **DL-6** шаблоны действуют на ВСЕХ страницах: тёмная карта += border-300/ring/divide/
+  indigo/amber/sky-пары + bg-gray-900-чипы; QR — класс `sf-qr` (тихое поле остаётся белым);
+  `--sf-primary` наконец эмиттится (кнопки вида/свотчи были вечно-индиго); indigo→акцент
+  (чат-FAB/Newsletter/право/404); sf-card на карточках права/корзины/подтверждений;
+  section_row на /galerie/ /team/ /ueber-uns/. **DL-5 стенд** нашёл дефект: композиция
+  сборки не доезжала до тела главной в превью (кожа — context-processor, секции — вьюха)
+  → общий `apply_preview_bundle`. Грабля стендов: dev-settings дают djdt-500 на витрине —
+  гонять `config.settings.stand`; data-reveal прячет секции на fullPage-скриншотах.
+  План — `docs/deal-looks-wave-plan-2026-09-01.md`. ⚠️ ops: `seed_demo_tenants --kit
+  aktionsmarkt --recreate`.
+- **Самое свежее (2026-09-01, продолжение): DL-7 + DL-8 — фидбэк-батчи по шаблонам (в main,
+  БЕЗ миграций).** **DL-7**: посторонние Layout-Vorlagen чужих отраслей скрыты из Studio/мастера
+  (`templates_for` = рекомендованные + универсальные); НОВЫЙ экран `/dashboard/design/`
+  (подпункт Website, nav_registry) — все сборки+Look'и с живыми iframe-превью, применение
+  POST'ом сохраняется сразу; spotlight-грид выровнен; стиль promotions «banner». **DL-8**
+  (сверка с артбордами канваса, отрендерены в PNG): ключ `design` {look,bundle} в normalize
+  (presence-minimal; пишут apply_look/apply_bundle) → бейдж «✓ Aktiv»+«Vorschau» на странице
+  Design и body `data-sf-look`; CSS-слой фирменных бейджей/цен per-Look (prospekt жёлтый
+  наклонный стикер+чёрная Endet-полоса+заголовки-плашки · frisch пастель+цены акцентом ·
+  neon лайм · blatt бокс-рамка · smart бокс); spotlight v2 — featured-дил ГОРИЗОНТАЛЬНОЙ
+  картой (партиал `_promo_featured.html`) + 2 компакт-плитки сбоку (фидбэк «занимает весь
+  экран»); deal_prospekt hero → accent-плита; **демо-переключатель «🎨 Design testen» на
+  витрине БЕЗ входа** (`apps/core/demo_switch.py`: сессия посетителя + роут `/design-testen/`,
+  read-only оверлей тем же механизмом превью, гейт по слагам демо-китов). Замки:
+  test_demo_switch/test_design_page/test_looks/spotlight-переписка.
+  **DL-9** (фидбэк «выглядят одинаково, только цвет»): ось `sections_order` + своя
+  ДНК `_deal()` — пять РАЗНЫХ композиций (плакат · сторителлинг · «акции сразу» ·
+  газета с прайс-листом · маркетплейс без баннера); замок «у каждой пары разный
+  набор блоков и/или порядок». Демо-фото: bread/dish-soap заменены на CC0,
+  закрыт food-box, «Cola» → «Limonade» под фактический кадр. **DL-10** (фидбэк
+  «фото круглыми и отдельно горизонтальными»): ось `site_defaults.media_shape`
+  (round | wide, presence-minimal) → body `data-sf-media` + CSS по помеченным
+  `data-sf-media-box` (overlay-карточки исключены); селект «Fotoform» в билдере,
+  ось сборки — Frischmarkt круглые, Markthalle широкие.
+- **Самое свежее (2026-09-02): DL-11 «Volle Reihen» — ряды плиток полные на всех шаблонах и
+  ширинах (БЕЗ миграций).** Фидбэк владельца «5 плиток в 4 колонках — ужасно; 4 или 8, но
+  проверяй по типу вывода; все шаблоны и с зумом». Три слоя (план `dl11-fill-rows-plan-2026-09-02.md`):
+  движок — ключ раскладки `tail` (""=обрезать · show · fill, presence-minimal) + `grid_cols_triplet`
+  (единственный источник чисел колонок) + тег `{% grid_attrs %}` → `data-sf-cols="m/s/l"`;
+  CSS quantity-queries (генератор `scripts/gen_fill_rows_css.py`, замок свежести) по ТРЁМ окнам
+  ширины — trim прячет неполный последний ряд на главной, `.sf-filler`-плитка-подсказка
+  (`apps/core/grid_filler.py`, CTA по гейтам модулей) добивает ряд на листингах без скрытия
+  контента; Studio «Reihen: voll/alles zeigen». Попутно: стиль categories compact игнорировал
+  колонки Studio (`layout_is_default`), usp pillars при 4 столпах — сирота. Демо: аудит
+  `scripts/demo_rows_audit.py` + замок «17 китов без остатка на десктопе» (aktionsmarkt 6
+  категорий/20 товаров/15 акций, ось сборки `section_layouts`, галереи 6=2×3 и т.д.). Стенд:
+  19 неполных рядов → 0. ⚠️ ops: `seed_demo_tenants --recreate`.
+- **Самое свежее (2026-09-02, продолжение): DL-12 анализ композиций ✅ + DL-13 «шесть дизайнов
+  V6–V11 в РАЗНЫХ композициях» ✅ ЦЕЛИКОМ (БЕЗ миграций).** DL-12 (`dl12-content-layout-analysis`):
+  7 семейств композиций главной (Fokus · Prospekt · Sortiment-first · Magazin · Vollbild · Bento ·
+  Action-first), привязка дизайнов, решения владельца (лимит акций 9, Grundpreis на акции).
+  DL-13 (план `dl13-six-designs-plan-2026-09-02.md`): **13.1** шрифты ×6 self-hosted +
+  `LOOK_FAMILIES` 16 + акценты 15×16 + фирменный CSS (ч/б monochrom, штамп retro, золото nobel,
+  стекло foto, круг-бейдж bauhaus); **13.2** примитивы — `HERO_STYLES` += fullscreen/bento (теги
+  `hero_deal_card`/`hero_bento`), селект «Banner» в билдере (закрыт W0-баг: Save затирал `split`),
+  `/aktionen/` «по времени» (`promo_grouping` presence-minimal + панель в кабинете + ось сборки),
+  лимит акций главной 9 + «Alle Aktionen» (⚠️ осознанная golden-регенерация 4 эталонов),
+  `Promotion.grundpreis` (PAngV), слайдер без автопрокрутки на телефоне; **13.3** сборки
+  deal_monochrom/pastell/retro/nobel/foto/bauhaus (каждая в своей композиции, `COMPOSITIONS` +
+  подпись на странице Design; замок «попарно разные» — 11 дил-сборок); **13.4** стенд 6×8×3
+  = 0 проблем, 4 дефекта найдены и закрыты (Bento 3×2, ось в превью, круг-бейдж, плитка DL-11
+  под Look'ом), indigo→акцент под `[data-sf-look]` на 20 шаблонах. ⚠️ ops: `seed_demo_tenants
+  --kit aktionsmarkt --recreate`. Хвосты v1 — build-log 2026-09-02.
+- **Самое свежее (2026-09-02, продолжение 2): DL-14 «Verteilen + авто-колонки + Alle anzeigen»
+  ✅ (БЕЗ миграций).** Фидбэк владельца по скриншотам («4 товара при сетке на 5 — сетку на 4
+  или растянуть; так же последний ряд»; «при скрытии карточек на главной — кнопка «показать
+  все» в каталог»); решение «Verteilen + авто-колонки». Хвост `tail="spread"` (flex-wrap +
+  space-evenly, ширина плитки через `--sf-n`/`--sf-gap` по окну) — дефолт ВСЕХ листингов
+  (плитка-подсказка DL-11 остаётся режимом `fill`); авто-колонки без ключа — колонки окна
+  клампятся к числу элементов с полом планшет 2/десктоп 3 (`auto_cols_triplet`,
+  `data-sf-auto` → CSS); кнопка «Alle anzeigen →» (`_grid_more.html`, последний ребёнок
+  сетки, видна ТОЛЬКО когда trim спрятал карточки — правило `~ .sf-more`) на 8 секциях
+  главной → роут листинга. Замки `test_dl14_spread` (10), стенд Playwright 0 проблем.
+  План `docs/dl14-spread-autocols-plan-2026-09-02.md`.
+- **Самое свежее (2026-09-02, продолжение 3): DL-15 «по центру + широкая одиночная карточка»
+  ✅ (БЕЗ миграций).** Решение владельца по 5 показанным вариантам: B + D, плитка E остаётся
+  режимом `fill`. `spread` центрирует остаток ряда с обычным зазором; ровно одна карточка в
+  последнем ряду (планшет/десктоп) — на всю ширину горизонтальной формой (CSS
+  `:nth-child(Nn+1):last-child`, guard `a:has(> [data-sf-media-box] + div)`, `@supports`);
+  «Endet bald» на /aktionen/ — 2 колонки таких же широких карточек (`.sf-wide`); бейдж скидки
+  на карточках крупнее (`text-sm px-3`); демо aktionsmarkt +3 акции (группы кратны 3).
+  План `docs/dl15-center-wide-plan-2026-09-02.md`. ⚠️ ops: `seed_demo_tenants --kit
+  aktionsmarkt --recreate`.
+- **Самое свежее (2026-09-02, вечер): DL-16 — АНАЛИЗ форм вывода информации на согласование
+  (кода нет).** Запрос владельца «категория, акции, карточка товара/акции, слайды и другие виды».
+  4 разведки → `docs/dl16-display-variants-analysis-2026-09-02.md` (варианты K категория · A акции ·
+  P карточка товара · D деталь товара · AK карточка акции · AD деталь акции · S слайдер-примитив и
+  другие виды; пакет v1 §3; 5 вопросов §5) + канвас «Anzeigeformen» (15 артбордов, исходники
+  `docs/design/anzeige-formen-2026-09-02/`). Находки: у акции не показаны gültig ab/happy-hour/
+  max pro Kunde/срок резерва/цель акции; поиск на /aktionen/ без UI; категория без крошек;
+  ленты без стрелок; archetype-cover крутится на телефоне. **Дальше — по решениям владельца.**
+- **Самое свежее (2026-09-02, ночь): DL-16 пакет v1 «Anzeigeformen» ✅ ЦЕЛИКОМ (16.1–16.6, БЕЗ
+  миграций; решения владельца «пакет v1 целиком · стрелки при наведении · Preis-zuerst дефолтом»;
+  план `dl16-implementation-plan-2026-09-02.md`).** **16.1** слайдер-примитив `_slider_script.html`
+  для ЛЮБОЙ ленты `[data-sf-slider]` (стрелки только при hover-устройстве, точки ≤12, клавиатура,
+  без автопрокрутки; scroll-раскладка движка → слайдер; галерея/наборы/Kopfbild). **16.2**
+  /aktionen/: группы-ленты (`promo_layout=slider`), вид «Liste» (`?ansicht=liste`, таблица),
+  поиск в UI, чип группы и «Sie sparen» на карточке. **16.3** деталь акции: карточка цели
+  «Gilt für», «Bedingungen» (`rules_text` — дни/часы/лимит/срок резерва), «Weitere Aktionen».
+  **16.4** карточки: `site_defaults.promo_card=preis` (цена сверху; дефолт дил-сборок), стиль
+  `etikett`, листание фото на карточке (`card_slider`, `data-card-imgs`). **16.5** категория:
+  крошки + BreadcrumbList, Kopfbild-слайдер, `page_style` regale/tabs. **16.6** деталь товара:
+  мобильная лента галереи + миниатюры столбиком, полоса доверия, лента похожих (> ряда),
+  «Zuletzt angesehen» (localStorage + фрагмент `/sortiment/zuletzt/`, не сессия — Redis на
+  каждого бота), раскладка `product_detail.layout=tabs` (аккордеон/табы). Замки ~40 новых;
+  стенды Playwright на каждом инкременте. Отложено: A1 «Vorschau» (превью акции в попапе),
+  «tabs»-категория без демо-потребителя. ⚠️ ops: `seed_demo_tenants --kit aktionsmarkt|mode|pranasy
+  --recreate`.
+- **Самое свежее (2026-09-02, ночь, продолжение): DL-17 (доделка DL-16 по фидбэку) + DL-18
+  (демо и макеты) — БЕЗ миграций.** План `dl17-feedback-plan-2026-09-02.md`. **17.1** «цена съехала»:
+  в форме «Preis zuerst» ширину левого блока задавала строка «Sie sparen», и бейдж отъезжал от цены
+  (на узкой карточке — переносился под неё) → плашка собрана по макету AK1 (новые части
+  `price_line`/`grundpreis`, паритет цел), ленты групп расширены до 288 px. **17.2** «карусели нет
+  в демо»: у кита не были включены ни листание фото на карточке (`card_slider`), ни ленты групп
+  (`promo_layout`) — включены, товарам добавлены 2–3 кадра. **17.3** полнота Studio: добавлены
+  контролы `promo_layout`, `promo_grouping`, `card_chrome`, `page_bg`, `tail=fill`; живое превью
+  дотянуто до `promo_card`/`card_slider`/`variant_style`/`product_detail.layout`/`tail`, страница
+  акций научилась читать черновик билдера, а сам черновик перестал ронять ключи `site_defaults`
+  без контрола (hero_widget пропадал в превью). **17.4** A1 «Vorschau»: будущие акции
+  (`status="scheduled"`) выводятся лентой бакетами по началу, карточка помечена «ab Mo 07.09.» и без
+  счётчика, деталь отдаёт 200 без покупки (был голый 404); демо-ключ `starts_in_days`. **17.5+18.2**
+  продуктовое демо пересобрано деревом полок (regale + tabs — вид K3 получил демо-потребителя +
+  kopfbild), попутно исправлен платформенный дефект: `/sortiment/` показывал листья вместо
+  направлений. **18.3** демо одежды: Sale-витрина (6 действующих акций + предпросмотр), починены
+  битые фото (ключей scarf/coat/blazer нет вовсе, `boots,autumn` доставал фото причёски,
+  `linen-shirt.webp` — выпечка у льняной рубашки) и индексы отзывов. **18.1** канвас «Kartenformen»
+  — три новые формы карточки на согласование (N1 «Regal» ценник-полка · N2 «Lookbook» кадр 3:4 ·
+  N3 «Deal-Kachel» горизонтальная плитка). ⚠️ ops: `seed_demo_tenants --kit aktionsmarkt|clothing
+  --recreate`.
+- **Самое свежее (2026-09-03): DL-19 «формы карточки» ЦЕЛИКОМ (19.1–19.6, ⚠️ миграции
+  `catalog/0032` + `promotions/0027`, аддитивные).** Решение владельца: «делаем все 3 плюс
+  запасные + настройка вида карточки с выбором из вариантов и предпросмотром; можно выбрать
+  для одного товара/акции или задать всем; выбор в карточке ПРИОРИТЕТНЕЕ; применяем с учётом
+  стиля сайта». План `docs/dl19-card-forms-plan-2026-09-03.md`. **19.1** реестр
+  `apps/core/card_forms.py` (10 форм × вид сущности) — единственный источник допустимых
+  значений (был хардкод в 4 местах) + поля `Product.card_style`/`Promotion.card_style`
+  (choices в форме — реестр растёт без миграций) + тег `{% card_form %}`, ЗАТЕНЯЮЩИЙ
+  одноимённую контекстную переменную (ветвление и паритет-замки разметки прежние);
+  мусор в любом слое → прежняя форма, не 500. **19.2** формы товара: `regal` (цена на плашке
+  ведёт, фото — опознавательный квадрат) · `lookbook` (кадр 3:4 без хрома) · `deal`
+  (горизонтальная строка со всем на виду); ветки — ВЫШЕ `compact` (замок `test_grid_view`
+  режет overlay по `rindex("{% else %}")`). **19.3** формы акции: те же три + `coupon`
+  (пунктирный вырез) и `ring` (остаток времени conic-gradient'ом, свойство
+  `Promotion.time_left_pct`); цена/условия — те же парты `_discount_display`, поэтому mystery
+  не течёт. **19.4** Studio: плитки с мини-макетом вместо селектов, hidden-инпут прежнего
+  имени (save/live-draft/Look-клик не тронуты). **19.5** выбор в формах товара («Marketing»)
+  и акции («Anzeige»). **19.6** демо: aktionsmarkt = Regal + ДВЕ акции с per-объект формой
+  поверх сайтовой (купон и кольцо — приоритет виден на витрине), clothing = Lookbook
+  (замок overlay переписан осознанно). 19 msgid × 5 каталогов. ⚠️ ops: после деплоя
+  `seed_demo_tenants --kit aktionsmarkt|clothing --recreate`.
+- **Самое свежее (2026-09-03, продолжение): DL-20 «шаблоны страницы категории товаров и
+  страницы группы акций» ЦЕЛИКОМ (20.0–20.6, БЕЗ миграций).** Запрос владельца «макеты 5 шт
+  на категории товара и категории акций + та же механика выбора и наследования». Канвас
+  «Kategorie-Vorlagen» (11 артбордов) + план `dl20-category-templates-plan-2026-09-03.md`.
+  Разведка: у категории реестр шаблонов был (6), но не было ОБЩЕГО ДЕФОЛТА; у группы акций не
+  было даже СТРАНИЦЫ (`?gruppe=` — плоская сетка без имени группы). Механика = DL-19: реестр,
+  два слоя, своё бьёт общее. Товар: `category_styles` += schaufenster/navigator/magazin/mosaik/
+  kompakt, `page_style(category, site_default)`, `site_defaults.category_page_style`.
+  Акции: НОВЫЙ `promotions/group_styles.py` (schaufenster/prospekt/magazin/countdown/vergleich),
+  `site_defaults.promo_group_style` + per-группа `site_config["promo_groups"]` (модели группы
+  нет; ключ = ключ фасета; presence-minimal, golden целы) + заголовок группы ВСЕГДА. Плитки
+  выбора: Studio (2 дефолта, live-draft), карточка категории, панель «Vorlagen der
+  Gruppenseiten» в списке акций (строки — по живым акциям). Navigator: панель фасетов
+  вынесена в партиал байт-в-байт и рендерится в колонке; две колонки — CSS grid из корня
+  листинга, до lg `display:contents`. Демо: aktionsmarkt (группы Prospekt + Räumung→Countdown,
+  Anti-Food-Waste→Schaufenster; Überraschungstüten→Schaufenster) и clothing (Navigator +
+  Herren→Magazin, Accessoires→Mosaik). Урок: `i18n_gap` (CI) видит `_()` в аргументах
+  `{% include with %}`, quickcheck — нет. ⚠️ ops: `seed_demo_tenants --kit aktionsmarkt
+  --recreate` и отдельно `--kit clothing --recreate`.
+- **Самое свежее (2026-09-03, продолжение 2): DL-21 «шаблоны корневой /sortiment/ и обзорной
+  /aktionen/» ЦЕЛИКОМ + разбор Too Good To Go (БЕЗ миграций).** Запрос владельца «6 стилей
+  категории — к акциям; главную sortiment с макетами; посмотри togotogo». План
+  `dl21-root-and-overview-templates-plan-2026-09-03.md`. **21.1** корень каталога — свой ключ
+  `catalog_page_style` (одна страница, НЕ наследует дефолт категорий — Р-2; реестр корня = 11
+  минус preisliste — ось `catalog_preset`; под-сущности = корневые направления: полки/табы со
+  счётчиками/колонка/указатель; плитки в строке «Katalog» набора «Landing pages» Studio — попап по клику на каталог на канве). **21.2** обзор
+  акций — реестр `PROMO_PAGE_STYLES` (9; без sets/mosaik), ключ `promo_page_style`, группы играют
+  роль подкатегорий (Preisliste как вид владельца с возвратом `?ansicht=karten`, Regale без
+  порога, Tabs → страница группы, Schaufenster/Navigator/Magazin/Kompakt), Kopfbild v1 без своих
+  текстов (Р-8); панель в списке акций + плитка Studio. **21.3** TGTG — предложение владельцу
+  (план §4: окно выдачи ⚠️ модель → отмена до N ч → «снова есть» → post-pickup оценка → Impact).
+  Стенд 44/44 нашёл дефект: плитка Studio в expert-блоке (класс W11-5) → вынесена, замок DL-19
+  на все 4 плитки страниц. Уроки: quickcheck не видит untracked-файлы (`git add` до гейта);
+  `chinos.webp` в демо одежды — паста (фото-батч). ⚠️ ops: `seed_demo_tenants --kit
+  aktionsmarkt --recreate` + `--kit clothing --recreate`.
+- **Самое свежее (2026-09-03, продолжение 3): фидбэк-волна по заказу — DL-22/23 + SH-19/20/21
+  (⚠️ миграции `orders/0022` + `jobs/0018`, аддитивные).** План `docs/order-feedback-plan-2026-09-03.md`
+  (8 пунктов владельца + решения Р-1..Р-8 §9). **DL-22** бейдж скидки на фото был у двух стилей из
+  девяти — один гейт глушил штамп там, где «Sie sparen …» уже печаталось; теперь бейдж по СМЫСЛУ
+  стиля («−N %» либо «−X €», mystery молчит), разметка байт-в-байт. **DL-23** три бакета «Vorschau»
+  по одной карточке давали три пустых ряда → при ≥2 бакетах и ≤2 карточках в каждом они встают
+  колонками рядом (`upcoming_columns`), иначе прежние ленты. **SH-19** артикул: демо-SKU у товаров
+  кита (его не было вовсе), поле `sku`/`gtin` в первом ряду формы, `Art.-Nr.` в корзине. **SH-20**
+  снимок артикула был только у `OrderItem` — предложение и смета его теряли, и он не доезжал в счёт
+  и PDF; добавлены `OfferLine.sku`/`JobLine.sku` (доктрина снимков ERP-1) + вывод в счёте/PDF/списке
+  продаж/KDS/письмах/публичных страницах/пикере. **SH-21** главное фото позиции между № и названием
+  во ВСЕХ карточках сделок (общий `core/_deal_lines` + `.dl-photo`, мобильная раскладка учтена;
+  источник `OrderItem.image_url`/`JobLine.image_url`), выбор позиции — список с миниатюрами и
+  фильтром (`core/_part_picker.html`) вместо `<select>`. Замки 18; стенд Playwright 11/11
+  (aktionsmarkt+catering). Грабли: `ruff format` сменил формат вывода — локальный grep-гейт
+  пропустил файл; `radio.check()` в стенде ждёт `checked=true`, а пикер по замыслу сбрасывается
+  сразу после выбора. **Дальше по плану: SH-22** (скидка акции отдельной строкой) → **SH-24**
+  (Abholung/Lieferung) → **SH-23** (способ оплаты + Privat/Firma, решения Р-1..Р-5).
+- **Самое свежее (2026-09-03, продолжение 4): волна OF закрыта ЦЕЛИКОМ — SH-24 + SH-23 a–d
+  (⚠️ миграции `jobs/0019` · `orders/0024` · `tenants/0032` SHARED · `finance/0012` · `booking/0027` ·
+  `stays/0035` · `events/0030` · `jobs/0020`, все аддитивные).** **SH-24:** выбор «Abholung |
+  Lieferung» жил только в корзине — покупка по акции и принятие предложения молча создавали заказ
+  на самовывоз, а кейтеринг (продаёт через заявку) вопроса не задавал вовсе; общий разбор
+  `orders/delivery_choice.py` + общий партиал на три поверхности, `Job.fulfillment`, настройки
+  доставки больше не гейтятся модулем orders. **SH-23:** способ оплаты знал ТОЛЬКО заказ, счёта
+  юрлицу не было; новый реестр `apps/core/payment_methods.py` (on_site|stripe|vorkasse|invoice +
+  тип покупателя) держит правила одним местом, поля-снимки появились у всех шести видов сделок,
+  пикер оплаты и блок «Wer kauft?» — в общем хвосте buy-box. Счёт юрлицу выпускается
+  автоматически на чекауте с письмом и PDF (письма научились нести вложения), срок оплаты
+  фиксируется снимком при выпуске и печатается в PDF, «Offene Posten» сортируются по нему.
+  Удержание: beat `expire_payment_holds` снимает неоплаченные брони по прошедшему сроку штатным
+  путём FSM (иначе счёт на 14 дней держал бы место две недели). Решения владельца Р-1..Р-8 —
+  `docs/order-feedback-plan-2026-09-03.md §9`. Замки: 31 новый + 2493 смежных зелёных.
+  **Дальше (запрос владельца 2026-09-03):** переработка Студии (двухуровневая структура «общий
+  дизайн сайта» + «макет каждого типа страниц», выбор «применить всем / только этой странице») —
+  сначала варианты дизайна на утверждение; плюс два пункта витрины: кнопка «Alle anzeigen» только
+  когда карточки реально скрыты, и перекос карточек на ru (проверить все локали).
+- **Самое свежее (2026-09-10): волна LAY продолжена — LAY-6a/6b (язык редактора) + LAY-3a-2
+  (ось вывода там, где сетка была зашита в шаблоне), всё БЕЗ миграций.** **LAY-6a/6b:**
+  редактор работает в ОДНОМ языке контента — панель читает в языке канвы и Save пишет в
+  него же (та же семантика, что у инлайн-правки LAY-6c; форма не удваивается, как было бы
+  с суффиксами `__ru`). Источник языка один — кука витрины (язык кабинета живёт отдельно в
+  сессии), переключатель «🌐» в верхней строке шлёт `?clang=`. **База = `settings.LANGUAGE_CODE`,
+  а не `default_locale`**: у тенанта с русским дефолтом оверлей `ru` существует (демо-киты его
+  сеют) и замещает базу — правка, ушедшая в базу, была бы не видна вовсе; семантика 6c
+  приведена к тому же правилу. `siteconfig.split_translation` разводит текст и структуру:
+  порядок/видимость/раскладки/стили и адреса/фото — общие для всех языков (чёрный список
+  `NON_TRANSLATABLE_FIELDS`), списки сопоставляются по личности элемента (id/key, иначе главное
+  текстовое поле в языке перевода), новый элемент получает базовый текст. Реестр переводимых
+  ключей стал общим с обходом демо-переводов (`TRANSLATABLE_KEYS`, правило LAY-2). Черновик
+  помечается языком (`_draft_lang`) — русский черновик больше не подставляется в немецкую форму,
+  иначе следующий Save записал бы русский в базу. **LAY-3a-2:** реестр `OPTIONAL_PAGE_LAYOUTS`
+  (7 presence-minimal ключей) закрыл 12 грид-контейнеров на восьми страницах (`/aktionen/`,
+  `/kombi/`, `/touren/`, лукбук, `/bewertungen/`, `/merkzettel/`, `/blog/`): нет ключа → прежние
+  классы байт-в-байт, есть → движок раскладок с рядами/хвостом/слайдером; контролы — в панели
+  своего типа страницы. Замки: 16 + 16; 8 msgid × 5 каталогов. Грабля-повтор: хелпер, вставленный
+  между `@login_required` и вьюхой, съел декоратор — поймано замком `test_orphan_decorators`.
+  **ВОЛНА LAY ЗАКРЫТА ЦЕЛИКОМ (LAY-1…LAY-6):** три ортогональные оси вывода — композиция ·
+  сетка · форма карточки — заведены на всех поверхностях, шаблон страницы больше не переписывает
+  сетку владельца молча (LAY-5), редактор работает в одном языке контента. Итоговая таблица
+  инкрементов и замков — `docs/lay-unified-output-plan-2026-09-09.md §10.5`. **LAY-7 (той же
+  датой, находка стенда):** ось не действовала на странице ГРУППЫ акций — пять композиций
+  `promo_group/_grid.html` были единственными в проекте, кто звал `sf_grid_attrs` без раскладки,
+  а лента групп не читала «Reihen»/«Tempo»; попутно вскрыт дефект шире — литеральный триплет
+  `cols="2/2/3"` побеждал раскладку владельца на 13 колл-сайтах (класс шёл от владельца,
+  `data-sf-cols` — от литерала, и CSS «полных рядов» считал ряды не для той сетки); правило
+  положено в тег `sf_grid_attrs`, а не в общий `grid_attr_string` — у секций главной семантика
+  литерала ОБРАТНАЯ (метит стиль с жёсткой сеткой), общий фикс сделал бы его там мёртвым. **LAY-7c (решение
+  владельца «убрать Darstellung der Gruppen»):** контрол снят из панели/реестра/черновика,
+  «сетка или лента» = одна ось вывода; легаси-ключ `promo_layout` читается дальше (живые
+  конфиги, 3 демо-кита, композиция «Regale») и включает тот же `scroll` ОБЩИМ резолвером —
+  он же питает панель, иначе селект писал бы «Raster» над лентой; своя вёрстка ленты из
+  шаблона удалена (контейнер один на оба режима, классы даёт движок).
+- **Самое свежее (2026-09-10, ночь): STU-17 — полнота осей вывода в панели Студии
+  (БЕЗ миграций).** Третья часть того же фидбэка («структура. Проведи полный анализ и
+  соответствие плану структуры вывода»); план `docs/stu17-axis-coverage-plan-2026-09-10.md`.
+  Ответ замером: по каждому из 30 типов страниц реестра посчитано, какая ось ДЕЙСТВУЕТ
+  (её читает разметка) и какая ПРЕДЛОЖЕНА в панели — разошлись восемь. Класс дефекта
+  **зеркальный** к «обещанию без исполнения» (STU-9): *исполнение без обещания* — владелец
+  меняет форму карточки на товарах, она молча меняется и в Finder, корзине-upsell,
+  «Merkzettel», наборах и турах, но со страницы, где он на неё смотрит, настройки нет.
+  Закрыто шесть (новых ключей хранения НЕТ — читают существующие `site_defaults.card_style`
+  и `promo_index_layout`): `promo_group` += `promo_index_layout`;
+  `tours`/`combos`/`wishlist`/`finder`/`cart` += `product_card_form` (у combos ограничение
+  STU-9 снято по факту — LAY-4 научил `_combo_card` читать ту же ось). `team`/`gallery` —
+  осознанное исключение §3.2: их сетку задаёт раскладка ОДНОИМЁННОЙ секции главной, второй
+  ключ был бы дублем волны LAY, поэтому честная подсказка со ссылкой; ссылка помечена
+  классом `st-page-btn`, а его обработчик висел на самом меню «Seite ▾» — снаружи он бы не
+  сработал, и вышла бы мёртвая кнопка (тот же класс дефектов) → делегирование перенесено на
+  `document` (грабля Ф1). **Два замка, а не один:** заменить ручную карту LAY-4 деривацией
+  НЕЛЬЗЯ — она не проходит через динамический `{% include s.template %}` (реестр
+  `detail_sections`) и на `service` карточку не видит, то есть является НИЖНЕЙ оценкой;
+  поэтому `test_axis_coverage` (исполнение ⇒ обещание, карта выводится) работает встречно с
+  fail-closed `test_lay4_card_forms` (обещание ⇒ исполнение), который и потребовал доказать
+  карточку на каждом из пяти новых типов. Побочно у деривации убрана слепота: листинги
+  рендерятся обёрткой `_render_embed`, а шаблон искал ровно `render(request, …)`. Плюс долг
+  STU-16c — CI #2490 нашёл четыре замка, переживших снос режима Простой/Эксперт (код верен,
+  отставали замки); переписаны осознанно. Урок: ассерт «слова нет в теле» ловит собственный
+  пояснительный комментарий — сверять надо СЕЛЕКТОР.
+- **Самое свежее (2026-09-10, вечер): STU-16 — фидбэк владельца по Студии (5 пунктов,
+  БЕЗ миграций).** План `docs/stu16-panel-feedback-plan-2026-09-10.md`. Прод-разметка снята
+  curl-сессией демо-аккаунта (Playwright к проду не проходит — прокси рвёт туннель) и
+  совпала со стендом, поэтому замеры делались локально; две мои гипотезы по ходу («панель
+  не переведена», «селектора языка нет») НЕ подтвердились и сняты вслух. **16a** «каша»:
+  `_output_axis.html` внутри `flex items-center` ужимался до 49 px при панели 299 — партиал
+  занял всю строку (`basis-full`), 10 родительских строк получили `flex-wrap` (стенд: 146 px).
+  **16b** дубль «Header style» (радио) ↔ «Examples» (плитки) на одном `nav_style` — радио
+  сняты, значение несёт hidden того же имени (W0), подписи словами вместо кодов. **16c**
+  тумблер `Einfach|Experte` панели блока снесён целиком (прецедент W-CL/SM-1). **16d** «добавил
+  категорию в меню — ничего не произошло»: серверная «＋ Kategorie» РАБОТАЕТ (пробник), а
+  виновата «＋ Punkt hinzufügen» — она создавала узел `{type:"url", target:""}`, который витрина
+  отбрасывает по построению (`_node_url` → None). Строка меню Студии получила СЕЛЕКТ ЦЕЛИ:
+  реестр вынесен в `menu.target_sets()` (один источник с «Menü-Generator»), плоский
+  `target_options()` метит недостижимые сейчас цели (пустая галерея — гейт ST-8) как
+  «noch leer» и не даёт их выбрать; строка без цели подсвечена. Адверсариальный замок
+  «пометка обязана совпадать с `_resolve`» сразу нашёл живой `page:gallery`. **16e** язык
+  кабинета по умолчанию — из `Accept-Language` (свой разбор с q-весами + кламп к
+  `CABINET_LANGUAGES`; `get_language_from_request` отвергнута — она читает куку ВИТРИНЫ и
+  вернула бы смешение, разведённое в T1-a), ответ кабинета несёт `Vary: Accept-Language`;
+  оба селектора топбара подписаны и различаются значком 🌐/🗣. Замки: `test_stu16_panel.py`
+  (10, писались ДО правок) + стенд Playwright 16/16 со сквозным сценарием владельца.
+  **Уроки:** стенд дважды врал НЕ про код (`innerText` не видит пункт в свёрнутом «Mehr»,
+  curl на витрину получал 302 и грепал тело редиректа); панель Студии после входа схлопнута
+  (W1), а строки скоупятся по типу открытой страницы (STU-8) — мерить ширины можно только
+  открыв панель И поставив канву на нужный тип (`?page=/aktionen/`).
+- **Самое свежее (2026-09-03, после волны OF): SF-5 + SF-6 — два пункта фидбэка витрины
+  (БЕЗ миграций).** **SF-5** «зачем кнопка показать все, если их всего 3 или 4»: ссылка в
+  шапке рисовалась безусловно — теперь гейт читает данные (полка каталога режется на 8 →
+  `more`; секция группы акций показана целиком → ссылка гаснет, вход остаётся чипом группы
+  и системным чипом «Endet heute»; лента «Weitere Aktionen» → `related_more`). Хвостовая
+  кнопка DL-14 не тронута — её показывает CSS ровно при обрезке. **SF-6** «на русском
+  положение картинки меняется, хотя на немецком нет»: стенд Playwright (5 локалей × 3
+  страницы, замер верха фото) показал, что дефект ШИРЕ локали — в форме «Preis zuerst»
+  плашка цены стоит НАД фото и её высота скачет (69 px против 91 px при переносе строки
+  «цена · statt · бейдж», 43 px у mystery), поэтому ряд «зубчатый» и на немецком, а ru/uk
+  просто меняли картину. Фикс: резерв высоты обеих строк плашки + широкая карточка DL-15
+  прижимает фото к ВЕРХУ (при центрировании его высота зависела от длины текста рядом).
+  После правки все 5 локалей идентичны, рваных рядов 0 у четырёх демо. Замки: 4 + 3
+  (красные без правки), осознанно переписаны 4 замка прежнего поведения. **Дальше —
+  переработка Студии** (двухуровневая структура «общий дизайн сайта» + «макет типа
+  страницы», «применить всем / только этой странице»): владелец просил СНАЧАЛА варианты
+  дизайна на утверждение.
+- **Самое свежее (2026-09-03, вечер): ВОЛНА STU «переработка Студии» ИСПОЛНЕНА ЦЕЛИКОМ
+  (STU-1..6, БЕЗ миграций).** Запрос владельца: «два уровня — общий дизайн сайта и макет
+  каждого типа страниц; применить для всех или изменить только для этого товара/категории;
+  при клике в области так же на остальных типах; старые настройки мешают». Дизайн
+  утверждён канвасом (**вариант A** — охват у КАЖДОЙ настройки); план
+  `docs/stu-studio-rework-plan-2026-09-03.md`. **STU-1** реестр
+  `apps/core/studio_pages.py` (22 настройки × 18 типов; тип канвы — ШТАТНЫМ резолвером по
+  `config.urls_tenant`: по пути он не читается — `/sortiment/<uuid>/` товар,
+  `/sortiment/<slug>/` категория, `/sortiment/<cslug>/<pslug>/` снова товар).
+  **STU-2** рейка = УРОВНИ (Design · тип открытой страницы · Blöcke · Medien) + новая
+  область «эта страница»: шаблон категории, шаблон группы и вид страницы акций переехали
+  из «Темы» (были видны на любой странице, кроме своей), «Landingpages» — из секций
+  главной; тип витрина сообщает сама (`data-stu-page` на body по уже разобранному
+  `resolver_match` — второго разбора на рендер нет). **STU-3** пилюля охвата
+  «Für alle / Nur hier» + `apps/core/studio_scope.py` с двумя точечными видами (мимо
+  большой формы: та пересобирает site_config целиком); стенд заставил переделать первую
+  версию — в режиме «только здесь» пикер обязан показывать значение ОБЪЕКТА, а `""` в
+  хранении значит «наследовать», поэтому пустой перенос честно просит выбрать шаблон.
+  **STU-4** клик по содержимому открывает настройки этой страницы на ВСЕХ типах (якоря —
+  каркас листингов KAT-5 + один маркер на корне детали; ссылки/поля витрины не
+  перехватываются). **STU-5** снос дублей ПО ФАКТАМ: экран `/dashboard/site/pages/`
+  снесён (сначала перенос трёх его настроек — цены/маркировка меню, «Passt dazu», —
+  затем 302), вкладка «Подвал» свёрнута в «Дизайн», мёртвый JS `#home-prev-page` удалён;
+  **оставлены осознанно** `/dashboard/design/` (создан DL-7b как ответ на ту же жалобу,
+  сохраняет сразу без Save канвы), quickstart, `nav_style` (дубля в коде НЕТ),
+  `toggleRail` (ставит aria-pressed) и `hero_accent` (покрытая замками обратная
+  совместимость). **STU-6** замок «каждый тип узнаётся по адресу, собранному РЕВЕРСОМ из
+  его url_name» (проверен адверсариально) + сводный стенд 28/28 по двум демо; гарантии
+  умершего экрана перенесены на форму Studio, а не выброшены. **Попутно закрыты два
+  ДЕЙСТВУЮЩИХ дефекта класса W6:** Save билдера стирал обложку/интро/кнопку/галерею
+  раздела (пересобирал запись архетипа из 3 полей вместо 8 — «загрузил обложку, нажал
+  Save, обложка исчезла»); панель показывала блоки ГЛАВНОЙ на `/galerie/` и `/kombi/`
+  (эвристика «нет группы и нет хоста → главная» заменена на тип страницы).
+  **STU-7 ✅ (2026-09-04):** записанное «ограничение v1» оказалось ДЕФЕКТОМ шире — query
+  срезался в трёх местах (`_safe_preview_page` `split("?")[0]` · `location.pathname` в
+  `instrumentFrame` · `#bld-page-path`), поэтому на странице группы акций **любая смена
+  настройки уводила канву на общий обзор** (владелец не видел результата настройки,
+  которую только что выбрал), Save возвращал туда же, а deep-link `?page=` не адресовал
+  группу вовсе. Реестр `studio_pages.PAGE_QUERY_KEYS` — единственный источник списка
+  «параметры, ЗАДАЮЩИЕ страницу» (сегодня `gruppe`); санитайзер переписан на `urlsplit`
+  и сохраняет их, по-прежнему рубя абсолютные URL/схемы/`//`/бэкслэш/DENY-зону и всё
+  остальное из query (фильтры посетителя страницу не адресуют, а `look`/`bundle`
+  подменили бы вид канвы — stateless-превью ST-1b); клиент получает тот же список из
+  реестра. Замки 4+2, главный адверсариальный: «каждый ключ whitelist'а обязан РЕАЛЬНО
+  менять тип страницы» (краснеет на безобидном `ansicht`) — иначе список выродится в
+  сквозной проброс query. **Побочно закрыт обход killswitch'а T-6:** проверка шла по
+  СЫРОЙ строке, а браузер (WHATWG) вырезает из URL таб/CR/LF — `/<TAB>dashboard/site/home/`
+  не совпадал с DENY-префиксом и грузился в кадр как страница кабинета (XFO DENY, мёртвая
+  канва); `urlsplit` режет их ДО проверки, замок на 4 пробы. **Второе ограничение v1 тоже
+  закрыто:** на 404 панель показывала блоки ГЛАВНОЙ (фолбэк `!group` считал главной любую
+  страницу без группы — класс `/galerie/`); замер вместо догадки — 258 страниц из 258
+  (обход двух уровней по четырём демо) тип сообщают, исключение только кастомный 404 (standalone НАМЕРЕННО, SF-3) → пустой тип =
+  «неизвестная страница», главная опознаётся явным сигналом. Стенд: 0+6 строк → 0+0.
+  **Ревью ветки нашло два своих дефекта:** `urlsplit` БРОСАЕТ `ValueError` на `//[`
+  (незакрытая IPv6-скобка) — без перехвата `?page=//[` давал бы 500 на билдере и на
+  редиректе после уже сохранённой вставки блока; и чипы ленты страниц перестали
+  подсвечиваться на странице с параметром (сравнение по пути). Оба закрыты замками и
+  проверены в браузере. Оговорка: из шести линз ревью доиграла одна — прочие упёрлись
+  в лимит агентов. **Второй прогон (все шесть линз) дал ещё три, все закрыты:**
+  DENY-зона обходилась нормализацией URL (`%`-кодирование, dot-сегменты — дыра
+  пред-существующая, но killswitch я заявил закрытым, поэтому `_hits_deny_zone`
+  сверяет все формы свёртки адреса) · кнопка витрины «Edit design» слала голый
+  `request.path`, так что producer сводил на нет принятый санитайзером параметр ·
+  **табы категорий и групп ходят через KAT-5 pushState — кадр не перезагружается**,
+  и редактор считал открытой прежнюю страницу (шире групп акций: у категорий тоже
+  есть объектный уровень); починка двусторонняя — витрина переносит подсказки через
+  своп и шлёт `sf:navigated`, редактор пересобирает состояние.
+  **STU-8 ✅ (2026-09-04) — «не вижу изменений в студии».** Все 13 коммитов волны были
+  в main и на проде, но центральное обещание — «панель показывает настройки ТОГО типа,
+  на котором стоит канва» — выполнялось на 6 строках из 23. Часть 1: уровень «Эта
+  страница» открывал область `page`, где лежат строки ЧУЖИХ типов, а собственные
+  настройки главной живут в области `sections` — на главной владелец видел чужое и ни
+  одного своего (правило «если главная — показать ВСЕ строки» довершало картину);
+  уровень стал выбирать область по типу. Часть 2: КАЖДАЯ настройка получила свою строку
+  с `data-stu-setting`+`data-stu-page` (типы из реестра); реестр дополнен до полноты
+  (`catalog_menu_prices`/`catalog_menu_labels`/`product_related`); «Вид баннера» и формы
+  карточки товара/акции переехали из «Дизайна сайта» в панель страницы (артборды
+  PHome/A1/PCat/PPromo; имена полей прежние → save/live-draft/Look целы); новая
+  `site_defaults.text_width` (артборд PText, presence-minimal, golden целы); у
+  типизированных строк ЕДИНСТВЕННЫЙ владелец класса hidden — `applyStuPageScope`.
+  Замок `test_registry_and_panel_agree` сверяет реестр и разметку в обе стороны и сразу
+  нашёл действующий дефект: на странице группы акций панель предлагала «шаблон обзора»
+  и «раскладку групп», которые там не действуют (`has_filters` → `grouped=[]`,
+  `page_style` пуст при `?gruppe=`). Грабля стенда: локальный dev-сервер не успевает в
+  12-секундный watchdog двойной буферизации → фикс-ожидание Playwright врёт («ничего не
+  скрыто»); стенд ждёт фактической инструментации кадра. БЕЗ миграций.
+  **STU-9 ✅ (2026-09-05) — ревью волны STU: 11 дефектов найдено и починено.** Отмашка
+  владельца «Запускай»; объём переопределён по факту (ветка влита — `main..ветка` пуст):
+  обе части STU-8 + три недоигравшие линзы. Из 45 агентов 30 упали на лимите сессии,
+  ключевое перепроверено вручную. Три дефекта класса «обещание без исполнения»:
+  **форма карточки** (`site_defaults.card_style` рисует и карточки услуг/номеров) была
+  объявлена только у category/product → у отеля и салона НЕДОСТИЖИМА вообще, продолжая
+  менять их витрину; **переклейка уровня** оказалась мёртвым кодом (завязка на
+  `aria-pressed`, которого не ставит никто → уходя с главной на категорию, панель
+  оставалась на настройках главной); **пилюля «только здесь»** протекала в общий Save —
+  контрол держит значение объекта, а его name = поле сайта, и следующий Save делал выбор
+  одной категории дефолтом всего сайта (класс W6). Плюс: снят ИЗВЕСТНЫЙ xfail — `apply_look`
+  больше не стирает настройки владельца (ключ, которого нет ни в одном семействе, Look не
+  описывает; у сборки семантика обратная — она задаёт композицию целиком); «Textbreite»
+  применена на остальных страницах своих типов с НЕЙТРАЛЬНЫМ дефолтом и получила живое
+  превью; `catalog_sort` добавлена категории; `/touren/` получила свой тип (там не
+  действовали ни раскладка, ни блоки). Три замка были ложно-зелёными: пилюльный искал
+  подстроку СВОЕГО ЖЕ маркера, «контрол не потерян» не покрывал переносимый `hero_style`,
+  подсказка панели считала чужие строки. Проверено в браузере: навигация канвы без
+  касания рейки переключает область сама. БЕЗ миграций.
+- **Самое свежее (2026-09-03, после SF-5/SF-6): волна AMP «фото демо продуктового
+  магазина» — БЕЗ миграций.** Запрос владельца: «переделай фотографии в акциях под
+  продуктовый магазин, сгенерируй все изображения товаров заново, чтоб был хороший
+  продаваемый сайт». Диагноз (резолвер, 69 ключей → 41 файл): кит собирался из ОБЩЕЙ
+  библиотеки, и у дискаунтера половина кадров чужая — средство для посуды показывало
+  пульверизатор, минеральная вода стакан, Gouda ресторанную тарелку **с бокалами вина**,
+  молотый кофе латте-арт, hero американский рынок с ценниками в долларах. Перезаписать
+  нельзя: 27 из 41 файла общие с bakery/cafe/shop/catering/restaurant → своё пространство
+  ключей `markt-*` (32 файла) + 9 библиотечных ключей там, где кадр и так верный.
+  **Два фидбэка владельца по ходу волны закрыты:** (1) «убери туалетную бумагу и бытовую
+  химию» — полка Haushalt заменена на `Vorratskammer` (Nudeln/Reis/Öl) ПОЗИЦИЯ В ПОЗИЦИЮ,
+  поэтому индексы `promotions_spec.product` целы (голден-таблица «акция → товар» замком),
+  направление → «Getränke & Vorrat», пять акций переписаны, носитель Mystery-Deal →
+  Bergkäse (цена сходится); (2) «на сгенерированном много пальцев и неестественно» —
+  **AI-генерация отменена целиком, на витрине только реальные CC0/PDM** (то же показала и
+  приёмка: судья+скептик отбраковали почти все AI-кадры). Новый
+  `scripts/fetch_cc0_photos.py` (Openverse, жёсткий `license=cc0,pdm`, провенанс);
+  грабля API — поиск по И, работают КОРОТКИЕ запросы (1–2 слова), 3+ слов дают 0.
+  Установка: cover-кроп 4:3/16:9, webp ≤150 KB, **дедуп по md5** (поймал реальный дубль
+  Brötchen↔Backwaren). `scripts/gen_demo_photos.py` (AI-канал) оставлен с замерами
+  (лимит 1 запрос на IP в очереди; псевдотекст на любой этикетке). Замки —
+  `test_aktionsmarkt_photos.py` (4): свой файл у каждого слота (ловит префиксный фолбэк,
+  который отдаёт кадр соседа и в `demo_photo_report` выглядит «закрыто») · нет непищевого
+  ассортимента · голден акций · `markt-*` не утекли в чужие киты. Детали — build-log,
+  план `docs/amp-grocery-photos-plan-2026-09-03.md`. ⚠️ ops: после деплоя
+  `seed_demo_tenants --kit aktionsmarkt --recreate`.
+
+- **Самое свежее (2026-09-03/04): ВОЛНА OS — dedicated-демо «Weitwerk» для типа
+  online_shop + магазинные фасеты (БЕЗ миграций; влито в `main` `e3df50b` FF по
+  зелёному CI после мержа 23 коммитов параллельных волн — пересечений по фото не
+  было, AMP работал в своём пространстве ключей `markt-*`).** Запрос владельца:
+  «перепроверь фотографии online shop, найди под все категории; 10 категорий по 20 товаров; фильтры цвет/размер/комплекты; полноценный
+  магазин; современный дизайн на все страницы; пройди по каждому пункту — юзабилити,
+  фильтры, удобство; оцени рынок». План — `docs/online-shop-demo-plan-2026-09-03.md`.
+  **Диагноз:** тип делил витрину с фермерским магазином (`DEMO_KIT_HOST["online_shop"]
+  = "shop"`) — 11 товаров, ни одного варианта (⇒ фасет размера скрыт по построению),
+  ни комплектов; плюс 4 неверных кадра у самого `shop` и 8 бракованных файлов фонда.
+  **OS-1 фасеты:** `?farbe=` со свотчами (COLOR_HEX += 22 оттенка), мультивыбор
+  размера и цвета (обе оси сходятся в ОДНОМ варианте), `?sale=1` тем же резолвером
+  `price_layer`, что рисует бейдж, счётчики значений, число найденного, пилюли
+  активных фильтров с ✕, carry подборки («Anwenden» её терял), скоуп диет-чипов,
+  `_p(origin=)` — фильтр «Herkunft» существовал с UB2-3, но задать его из кита было
+  нечем. **OS-2 фото:** генерации в среде нет → Openverse `cc0,pdm`; в репозиторий
+  добавлены `scripts/demo_photo_sheet.py` (контактный лист кандидатов; поиск сначала
+  по фото-стокам rawpixel/stocksnap + чёрный список музейных собраний + объединение
+  формулировок) и `scripts/demo_photo_fetch.py`; 94 кадра просмотрены и приняты,
+  провенанс в `SOURCES.md`, брак фонда помечен. Плейсхолдер получил ~140 магазинных
+  тем (было «✨» на всём непищевом). **OS-3 кит:** 10 направлений × 4 подкатегории ×
+  ~20 позиций = 201 товар (оси размер×цвет, Grundpreis PAngV, material/care, SKU/EAN,
+  6 распроданных), 6 наборов, 4 подборки (2 лукбуком), 15 акций всех стилей, отзывы,
+  блог, Finder, Merkzettel, PLZ-зоны; **первый кит со способами оплаты** (поле
+  `DemoKit.payments`) — пикер оплаты не показывался НИ В ОДНОМ демо. **OS-4 дизайн:**
+  Look «Atelier» (17-е семейство, Manrope на тёплом off-white) + сборка «Boutique»
+  (композиция «Kategorien → Neuheiten → Sale»); подпись полосы комбо стала архетипной
+  («Menü-Pakete» — только гастро). **OS-5 обход:** 31 страница витрины ×1440/×390 и на
+  ru — 200 везде, ноль JS-ошибок и переполнений; фасеты проверены на живых данных
+  (201 → Mode 20 → M 16 → Sand 5 → M+Sand 4). ⚠️ ops после мержа:
+  `seed_demo_tenants --kit online_shop --recreate` (+ `--kit shop --recreate` — там
+  заменены 4 кадра).
+- **Самое свежее (2026-09-04): ВОЛНА MODE «демо-магазин одежды» — каталог 80 позиций,
+  свой генератор товарных фото, современный дизайн бутика (БЕЗ миграций).** Запрос
+  владельца: «перепроверь фото mode, найди/сгенерируй под все категории; мужское/
+  женское/детское/аксессуары; нормальные акции; ≥20 товаров в категории; фильтры цвет/
+  размер/комплекты; модный дизайн на все страницы; пройди по каждому пункту сайта».
+  План `docs/mode-shop-wave-2026-09-04.md`. **Фото:** визуальный аудит показал, что 6 из
+  22 кадров кита показывали не то (chinos = тарелка пасты, summer-dress = пустая стена,
+  linen-blouse = сумочка, accessories = ягоды, linen-shirt = выпечка); прогон Openverse
+  (`cc0,pdm`, 68 запросов, 217 кандидатов) дал винтажные плакаты, музейные экспонаты и
+  лица — товарной съёмки одежды в CC0 НЕТ, ключа генеративной модели в окружении тоже
+  нет → **`scripts/gen_demo_garments.py`**: детерминированные иллюстрации «студийного
+  flat-lay» (38 безье-силуэтов, фактуры трикотаж/твил/вельвет/лён/кожа, складки, тени,
+  зерно), **цвет картинки = цвет варианта** (общий `option_styles.COLOR_HEX` — свотч
+  реально меняет фото), 188 файлов ≈ 1,2 МБ, перерисовка `--only <префикс>`. **Каталог:**
+  Damen/Herren/Kinder/Accessoires по 20 позиций в подкатегориях, варианты «размер ×
+  цвет» с per-size остатком (распроданные → Warteliste), состав ткани (EU 1007/2011),
+  уход, артикулы, 13 размерных таблиц; 14 акций в 4 группах-лентах (все механики, две
+  «Vorschau»); 5 комплектов-образов + 5 лукбуков; отзывы. **Дефекты платформы (не
+  демо):** `_sellable_card` не имел ветки товара и печатал пустую длительность «min»
+  вместо цены (лукбук, Finder) · счётчик фильтров считал пункт «Alle» радио-группы
+  (кнопка «Filter» показывала «1» без фильтров) · гастро-заголовок «Menü-Pakete» над
+  образами бутика на `/kombi/` → архетипный `combos_title` · главная кнопка покупки
+  была захардкожена `bg-indigo-600` и спорила с акцентом Look'а → `var(--accent)`.
+  **Дизайн:** Look «Fein» (Playfair на креме), корень и три направления — «Regale»,
+  Accessoires наследует «Navigator» (инвариант DL-20 виден в демо), карточки —
+  «Lookbook». **Переводы:** 273–277 записей × 4 словаря, покрытие кита 24 % → en 98 /
+  ru 100 / uk 100 / tr 99 %, строк без пути — 0. **Пересечение с параллельной сессией:**
+  `claude/online-shop-content-analysis-r1k5jo` в тот же день влила в main СВОИ фасет
+  цвета (мультивыбор), фильтр «Nur reduzierte» и реестр подписей наборов — при своде
+  веток мой дубль снят целиком, оставлена реализация main. ⚠️ ops: после деплоя
+  `seed_demo_tenants --kit clothing --recreate`.
+- **Самое свежее (2026-09-04): ВОЛНА O «Аутлет» — демо `online_shop` + восемь дефектов
+  витрины (⚠️ миграция `catalog/0033`, аддитивная).** Запрос владельца: магазин распродаж,
+  10 направлений по 20 позиций, фильтры цвет/размер/наборы, современный дизайн, «пройди по
+  каждому пункту сайта, юзабилити, фильтрам». **O-1/O-2** `Product` += `list_price` (UVP) /
+  `condition` (7 состояний B-Ware) / `condition_note` / `brand` + фасеты цвет/состояние/марка/
+  «только со скидкой». **O-3** кит «Zweitgut Outlet»: 10 направлений × 39 полок × 200 позиций,
+  у каждой — состояние с КОНКРЕТНЫМ примечанием (§ 476 Abs. 2 BGB), UVP выше цены, марка,
+  мелкий остаток, SKU; оси размер×цвет; 21 акция всех девяти стилей в пяти группах; наборы,
+  подборки, Look «Lager» и дил-сборка. **O-4** 171 кадр CC0/PDM в своём пространстве ключей
+  `ol-*`. **O-5/O-8** перевод демо на en/ru/uk/tr (97–98 %). **O-6** `online_shop` был
+  последним из 16 типов без своего демо. ⚠️ **Параллельная сессия закрыла тот же пробел
+  своим китом** — бутик «Weitwerk» (волна OS). При мерже пересечения сведены по существу
+  (детали — в коммите мержа): карту `DEMO_KIT_HOST` держит бутик, аутлет доступен своим
+  поддоменом и через `feature_demos`; фасеты сведены на мультивыбор main + мои оси
+  состояния/марки; Look-семейств стало 18 (`atelier` + `lager`); поле оплаты кита —
+  общее `payments`. **O-7/O-9 — обход витрины
+  (97 страниц + стенд 1440/390 + сквозная покупка) нашёл восемь дефектов, семь из них
+  ПЛАТФОРМЕННЫЕ:** страница-«полки» молча игнорировала фасет · фильтр «Größe» показывал ЦВЕТА
+  (легаси-фолбэк M4-A не различал вариант без осей и вариант только по цвету) · чип «Endet
+  heute» вёл на пустую страницу · все 10 направлений, 39 полок и страницы групп акций звались
+  одинаково («Unsere Produkte»/«Aktionen») · ссылка «наверх» вела на главную, а звалась
+  «Angebote» · у заказа с ДОСТАВКОЙ не было способа оплаты (единственный был «на месте», пикер
+  E7 показывается от двух) → кит получил поле `payment`, аутлету включена Vorkasse · рваный ряд
+  в полосе «Endet bald» (DL-15 её не покрывал) · две плитки направлений в плейсхолдере.
+  **Грабли цикла:** локальный `--reuse-db` дал 7 ложных падений из 8 (параллельные прогоны +
+  остаточные `rl:*` в Redis) — арбитром был CI на свежей БД; правило CSS внутри генерируемого
+  блока роняет три замка свежести; `{% block %}` внутри `{% if %}` Django собирает ВСЁ РАВНО
+  (обзор акций остался с пустым заголовком). ⚠️ ops: после деплоя `seed_demo_tenants --kit
+  outlet --recreate`.
+- **Самое свежее (2026-09-04, вечер): I18N-14 — демо-киты `online_shop` и `stadtfuehrung`
+  переведены на en/ru/uk/tr (БЕЗ миграций).** Запрос владельца «переведи» после отчёта, что
+  кит `online_shop` (влит параллельной сессией) переведён на 2 %. Объём: 903 строки
+  «Weitwerk» (402 товарных — 201 название + 201 описание, 232 характеристики, 70 вариантов,
+  47 категорий, 32 акции, 22 отзыва, наборы, FAQ, блог, размерные таблицы) + 43 строки кита
+  `stadtfuehrung` (был 4 % — оставлять вторую витрину на 4 % после этой работы бессмысленно).
+  **Правила:** придуманное имя в кавычках НЕ переводится, переводится родовое слово («Ablage
+  „Stapel“ Eiche» → «Полка «Stapel», дуб»), кавычки по норме языка; в размерных таблицах —
+  только заголовки колонок и подписи возраста, числа остаются числами; размеры и объёмы
+  вариантов собираются механическим правилом (кириллица меняет единицу см/л/кг/г, en —
+  запятую на точку); identity-записи не пишутся, слияние отбрасывает их само (замок
+  `test_demo_i18n_maps_have_no_identity_entries`). **Итог:** `online_shop` 2 % → en 94 /
+  ru 99 / uk 99 / tr 95 %, `stadtfuehrung` → 100 % ×4; по всем 19 китам (со сведённым
+  китом `outlet` волны O) en 96.6 / ru 99.3 / uk 99.3 / tr 97.5 %, строк без пути 0. Остаток — ровно то, что переводу не подлежит: размеры («140 × 200 cm»)
+  и коды (A4, S/M, W30–W36) у en/tr, названия цветов (Camel, Cognac, Sand), «Japan»,
+  «60 °C.» — перевод был бы identity, поэтому en/tr честно показывают не 100 %.
+  ⚠️ ops: перевод накладывается при сидинге — после деплоя `seed_demo_tenants --kit
+  online_shop --recreate` + `--kit stadtfuehrung --recreate`.
+- **Самое свежее (2026-09-08/09): ВОЛНА STU-12 «Студия без рейки» — ТЗ утверждено, разработка идёт.**
+  Два раунда решений владельца на канвасе «Studio heute» (страницы «Entscheidungen» → «Panels» → «Final»,
+  исходники `docs/design/studio-2026-09-07/_generate.py`): 1B глобальный дизайн → экран кабинета «Design des
+  Shops» · 3A «Seite ▾» в верхней строке · 4A «Start» → Vorlagen в кабинете · **левая рейка убрана целиком**
+  (всё — клик по канве, «+», «Seite ▾») · колонка одна, справа, без вкладок · F5A быстрые поповеры из плашки
+  действий у блока · F6A пункты меню в колонке при клике по шапке · F7A телефон с bottom-sheet · F8A панель
+  блока Inhalt · Darstellung · Erweitert · **F9 да** (`Category.card_style`, ⚠️ миграция). Инвентаризация из
+  кода (7 отчётов) + 12 правил рынка (14 редакторов). **SOURCE OF TRUTH — `docs/stu12-studio-simplification-plan-2026-09-09.md`**
+  (инкременты 12a–12j, замки до кода, §6 «как возобновить»). Урок среды: воркфлоу/параллельные агенты трижды
+  упёрлись в лимит сессии — синтез сделан ведущим по инвентаризации; один дизайнер-скептик нашёл неточность
+  макета (Kartenform «nur hier» на категории невозможна без поля) → стало F9.
+  **Сделано (2026-09-09): 12a** (верхняя строка «Seite ▾» + «Design des Shops →», снос рейки/
+  ленты страниц/вкладок, колонка открыта по умолчанию) · **12b** (блок правится В ТОЙ ЖЕ колонке:
+  крошка + Einfach|Experte + ⋯ + ✕; fixed-лента и `.bld-ctx` сняты; `CBLOCK_LABELS`) · **12c**
+  (шапка/подвал кликабельны → колонка «Kopf- & Fußzeile»: CTA, Logo, Menüpunkte, Fußzeile; шапка
+  витрины стала draft-aware) · **12d** (плашка действий у выбранного блока + поповеры Stil/Raster/
+  Breite, переносящие РЕАЛЬНЫЙ контрол; попутно закрыт пред-существующий провал двойной
+  буферизации — `about:blank` буфера считался ошибкой рендера, канва после первой живой правки
+  теряла всю оснастку редактора) · **12e** (настройки строки тремя группами Inhalt · Darstellung ·
+  Erweitert; тексты контент-секций, поля баннера и карточки архетипов переехали В СТРОКУ СВОЕЙ
+  СЕКЦИИ — те же `name=`, внутри `#home-form`, W0; общий ящик снесён, Save гейтится сентинелом
+  `content_sections_present`; высота отступа стала контролом — её теряли ВСЕ Save) · **12f**
+  (четыре набора медиа-форм собраны в ОДНУ колонку аккордеоном; вход = клик по самому медиа на
+  канве — витрина метит слоты `data-sf-media-slot`; каждая форма несёт `page_path`, поэтому
+  аплоад с подстраницы больше не выкидывает на главную; «＋ Kategorie» на плашке своей секции) ·
+  **12g ЦЕЛИКОМ, три среза** (1B/4A: глобальный дизайн и «Start» — на экране кабинета «Design des
+  Shops»): срез 1 — `apply_look` только кожа (клик по «настроению» пересобирал секции главной);
+  срез 2 — экран Design несёт цвет/шрифт/типографику/тему/«Карточки и фото» + шаблоны витрины +
+  демо-контент, запись targeted-write (W9-3), `sd_card_style` ОСТАЁТСЯ настройкой страницы;
+  срез 3 — Студия эти ключи не шлёт и не пишет, области «Тема»/«Schnellstart» снесены,
+  `storefront_root` в панели главной. **Найдены и закрыты три латентных дефекта класса W6:**
+  тёмную тему было НЕ ВЫКЛЮЧИТЬ с нового экрана (снятый чекбокс браузер не шлёт → сентинел
+  `theme_present`); `typography` и `site_defaults` писались БЕЗУСЛОВНО, а `storefront_root` — без
+  presence-guard, то есть первый же Save канвы обнулил бы выбор владельца. 27 замков прежнего
+  поведения переписаны осознанно (карта — build-log). · **12h** (телефон: колонка настроек и
+  быстрый поповер — bottom-sheet на узком экране через `matchMedia`, плашка действий у блока
+  видна на touch-устройствах без hover, точка «есть несохранённое» у Save) · **12i** (сводный
+  серверный обход ВСЕХ 19 типов страниц реестра: у каждого типа Студия открывается, панель
+  показывает его строки и ни одной чужой; адреса собраны реверсом из `url_name`, наборы
+  аргументов взяты из `test_studio_pages`) · **12j / F9** (⚠️ миграция `catalog/0034`,
+  аддитивная): `Category.card_style` — форма карточки для ОДНОЙ полки; резолвер `card_form`
+  получил СЛОЙ КАТЕГОРИИ между товаром и сайтом (своё у товара → категория → дефолт сайта →
+  прежняя форма; мусор в любом слое проваливается ниже, а не роняет страницу), пилюля охвата
+  «Für alle / Nur hier» на странице категории пишет её поле, плитки формы — в форме категории.
+  **ВОЛНА STU-12 ИСПОЛНЕНА ЦЕЛИКОМ (12a–12j).** Остаток — демо-носитель: категория со своей
+  формой карточки в ките одежды (стиль категории хранится в кортеже кита позиционно).
+- **Самое свежее (2026-09-09, вечер): STU-13 «Студия по макету» + STU-14 «редактируемость всех
+  типов страниц» — фидбэк владельца по скриншоту, обе в main, БЕЗ миграций.** **STU-13**
+  (план `stu13-canvas-parity-plan-2026-09-09.md`, эталон — артборды P3/P4/F1/F2 канваса
+  `studio-2026-09-07`): волна STU-12 дала ПОВЕДЕНИЕ, вид оставался черновым → тёмная плашка
+  блока С ИМЕНЕМ и центрированием по якорю (липла к левому краю → уезжала в угол экрана),
+  выделение выбранного блока (`markSelected`/`clearSelected`, класс + кольцо), группы панели
+  КАРТОЧКАМИ со сводкой значений, подписи 9px-капс → 11px обычным регистром, голова строки
+  блока в панели скрыта (дублировала плашку) → подсказка внизу, поповер 320→380px с шапкой
+  «настройка · блок · ✕» и ПЛИТКАМИ в три колонки (строятся из опций select, сам select
+  остаётся в поповере — W0), топбар иконками (статус перестал обрезаться до буквы).
+  **Диагноз «панель не переведена» — не в `.po`:** язык КАБИНЕТА отдельный от языка витрины
+  (T1-a), а переключателя в полноэкранной Студии не было → селектор языка кабинета добавлен
+  в её топбар. Стенд 18/18 нашёл 4 дефекта мимо серверных замков (рекурсия `clearSelected` —
+  в файле УЖЕ была функция с этим именем; NaN-позиция поповера из-за прямоугольника без
+  `right`; многострочный `{# #}`, утёкший ТЕКСТОМ в топбар; англ. подсказка).
+  **STU-14** (план `stu14-page-coverage-plan-2026-09-09.md`): класс «обещание без исполнения» —
+  «Kasse» в «Seite ▾» вела в 405 (`storefront-checkout` = POST-приёмник корзины, СТРАНИЦЫ НЕТ
+  → тип и пункт сняты, 2 замка переписаны осознанно); четыре текстовые страницы делили хост
+  `info`, а выводился он только в `about.html` (блок на /team/ и /galerie/ не появлялся нигде);
+  лендинги архетипа и /merkzettel//kombi//finder//lookbook/ были вне реестра → пустая панель.
+  `PAGE_BLOCK_HOSTS` += 15 (каждый ВЫВОДИТСЯ шаблоном — главный замок волны), `PAGE_TYPES` += 12.
+  Стенд: 6 новых типов узнаются и показывают свои строки; 14 страниц четырёх демо отдают 200.
+  **Остаток закрыт волной STU-15 (запись ниже).**
+- **Самое свежее (2026-09-09, ночь): STU-15 «шаблон страницы у деталей + дефолт сортировки
+  листингов» — ЦЕЛИКОМ, ⚠️ одна аддитивная миграция `promotions/0028`.** Отмашка владельца
+  «Делай» на остаток проверки STU-14; план `docs/stu15-detail-templates-plan-2026-09-09.md`.
+  Разведка уточнила объём в меньшую сторону: фасеты и сортировка листингов услуг/номеров/
+  событий уже работали (провайдеры UB2-1), не хватало ДЕФОЛТА владельца; раскладка детали
+  переносилась без миграции. **15a** реестр `PROMOTION_DETAIL_STYLES` (Standard · Plakat ·
+  Angebotszettel · Kompakt · Magazin) + `Promotion.page_style` + `site_defaults.promo_detail_style`
+  + резолвер «своё у акции → дефолт сайта → прежний вид»; разметка детали ОДНА на все шаблоны,
+  различие несёт `data-promo-detail` + каскад app.css (паттерн `data-cat-layout`), поэтому
+  паритет-замки целы; выбор и в Studio (плитки + пилюля охвата), и в форме акции. **15b**
+  раскладка (`layout`) переехала из `normalize_product_detail` в generic
+  `normalize_detail_sections` — одна ось на 4 вида, резолвер `siteconfig.detail_layout(cfg, kind)`,
+  значения `"" | tabs | breit`; «Tabs» реализованы обобщённо (скрипт табов вынесен в
+  `_detail_tabs_script.html`, секции тела заворачиваются в `<details>` с подписью ИЗ РЕЕСТРА;
+  у номера деление «под галереей / в теле» в табах снимается), «breit» — атрибут каркаса
+  `detail.html` + каскад. **15c** ключи `services_sort`/`stays_sort`/`events_sort`
+  presence-minimal; допустимые значения берутся У ПРОВАЙДЕРА фасетов (`listing_sort_keys`) —
+  кабинет не предлагает «Neueste» там, где листинг её не умеет (правило STU-9); `?sort=`
+  посетителя сильнее дефолта владельца. **Попутная находка:** валидатор охвата Studio выбирал
+  словарь допустимых значений по ВИДУ ОБЪЕКТА — со второй настройкой на акции законное
+  значение отвергалось бы как мусор; диспетчер переведён на код настройки + замок полноты
+  карты. Замки: 16 + 5 + 10 (красные до правок), 2 замка `test_page_registry` переписаны
+  осознанно; 9 msgid × 5 локалей. Стенд friseur: панель даёт «Vorlage der Seite» на детали
+  акции, «Aufbau» на детали услуги, «Sortierung» на `/termin/`.
+- **Самое свежее (2026-09-09, вечер): LAY-0 «разбор каши видов вывода» + LAY-1 «четыре
+  дефекта панели Студии» (БЕЗ миграций).** Фидбэк владельца по четырём скриншотам.
+  **LAY-0 — только разбор, кода нет** (`docs/lay-unified-output-plan-2026-09-09.md`):
+  инвентаризация дала **девять независимых осей** «как выводится контент» и 13
+  пересечений — прайс-лист достижим ТРЕМЯ ключами (стиль секции главной ·
+  `catalog_layout.preset` · `category_page_style`), `schaufenster` в трёх реестрах,
+  `magazin` в четырёх, `regale`=`slider`=`scroll` — три пути к одной ленте, шаблон
+  страницы МОЛЧА переписывает сетку, Studio обещает 7 форм карточки там, где
+  `_sellable_card` понимает две, `tail`/авто-колонки мертвы на `/termin/`,
+  `/unterkunft/`, `/veranstaltung/`. **Вердикт: предложение владельца («единый набор
+  видов вывода, доступный где угодно») архитектурно верно** — это ошибка моделирования,
+  а не богатство вариантов; честная поправка — «один реестр + ГЕЙТ доступности» (полки/
+  вкладки бессмысленны без под-сущностей), три ортогональные оси: композиция · сетка ·
+  форма карточки. Миграций не потребуется, старые ключи читаются резолвером. ⏳ ждёт
+  решения владельца по Р-1…Р-5 и §7 (язык редактора: панель показывает БАЗУ, канва —
+  перевод; правка на канве уезжает в немецкое базовое поле). **LAY-1 сделано (11
+  замков):** «Содержание» больше не пусто (поля `about_title`/`about_text` в панели с
+  presence-guard; у контактов — карточка «данные из настроек бизнеса», их в site_config
+  нет вовсе; `hideEmptyGroups` считает факт, а не второй список ключей) · FAQ парами
+  `faq_q_<i>`/`faq_a_<i>` + «＋» + `data-edit="faq.<i>.q|a"` на канве (сентинел
+  `faq_present`, back-compat `faq_text` жив; клик в `<summary>` не схлопывает аккордеон) ·
+  **откат выбора формы карточки** — `site-scope-state` отвечает из СОХРАНЁННОГО конфига и
+  через секунду возвращал контрол; введён `scopeDirty`, режим пересчитывается только при
+  смене объекта, программный `change` не метит контрол грязным · «Применить макет ко всем»
+  лишилась собственного селектора (была вторым писателем тех же ключей и сбрасывала
+  прайс-вид). Стенд aktionsmarkt подтвердил FAQ/about/contact; проверку отката в браузере
+  доиграть. 5 msgid × 5 локалей.
+- **Самое свежее (2026-09-09, вечер): ВОЛНА LAY — полная унификация видов вывода,
+  инкременты 2–4 (БЕЗ миграций).** Решение владельца: «делаем полную унификацию»
+  (Р-1…Р-5) + уточнение «тип слайдер (сколько карточек, скорость, сколько строк) или
+  тип сетка: сколько колонок; сколько элементов показывать; не задано — все; пагинация».
+  **LAY-2:** НОВЫЙ `apps/core/compositions.py` — ЧЕТЫРЕ реестра шаблонов страницы стали
+  одним источником; прежние списки (категория, корень каталога, обзор акций, группа,
+  деталь акции) — производные представления, форма и порядок 1:1 (прецедент HUB_TABS←
+  nav_registry). Слияние вскрыло две ловушки, ушедшие в реестр явно: порядок плиток у
+  поверхностей РАЗНЫЙ (`orders`) и подписи разные («Standard (Raster)» vs «Standard
+  (grid)» vs «Standard (2 Spalten)» → `labels`/`hints` по поверхности). **LAY-3a:** ось
+  вывода наконец ДЕЙСТВУЕТ на `/termin/`, `/unterkunft/`, `/veranstaltung/` и в секции
+  `archetypes` — там были контролы «Verteilen / Volle Reihen» без единого `data-sf-*`
+  (класс «обещание без исполнения»). **LAY-3b:** `rows`/`page_size`/`speed`
+  presence-minimal + `output_mode` (производное от `scroll`, новых ключей хранения нет) +
+  `effective_limit` = явное число → `cols × rows` → все. **Ряды, а не абсолютный лимит:**
+  «10 = 2 ряда по 5» остаётся ровным при смене колонок, абсолютное число — нет (та самая
+  рваная картина DL-11/14/15). Слайдер получил `data-sf-rows`/`data-sf-speed`,
+  многострочную ленту и автопрокрутку — **выключенную по умолчанию** (доступность,
+  решение DL-16.1), с паузой при наведении/фокусе/скрытой вкладке и уважением
+  prefers-reduced-motion. **LAY-4:** форма карточки действует ВЕЗДЕ — `sellable_ui`
+  резолвит через общий `card_forms.card_form` (объект→категория→сайт; раньше брал только
+  сайтовый дефолт, и пилюля охвата на этих страницах обманывала), `_sellable_card` знает
+  4 недостающие формы, `_combo_card`/`_tour_card` знают ось (было ноль форм), «похожие
+  номера» и листинг событий переведены на общую карточку, у детали события обещание
+  формы СНЯТО (карточек там нет). Главный замок волны — «тип объявляет `*_card_form` ⇒
+  его разметка рисует карточку». Побочно починен вечерний флак
+  `test_system_chip_is_not_offered_when_it_leads_to_an_empty_page`. **Остаток волны:**
+  контролы Studio для rows/page_size/speed, применение лимита и пагинации во вьюхах,
+  LAY-3a-2 (ключи там, где сетка захардкожена: `/aktionen/`, `/kombi/`, `/touren/`,
+  лукбук, `/bewertungen/`, `/merkzettel/`, `/blog/`), LAY-5 (шаблон перестаёт молча
+  переписывать сетку + снятие дублей кодов), LAY-6 (язык редактора).
+- **Самое свежее (2026-09-09/10): P0 БЕЗОПАСНОСТИ (5 пунктов) + ЧЕТЫРЕ РАУНДА
+  адверсариального ревью — в `main`, БЕЗ миграций.** Отмашка «P0 безопасности делай»
+  по плану `docs/p0-security-plan-2026-09-07.md` (пункты из аудита наследования стилей
+  `style-inheritance-audit-2026-09-03 §9.3`). **P0-1** кэш публичных страниц отдавал всем
+  анонимам CSRF-токен ПЕРВОГО посетителя без куки (любой POST → 403): персональное
+  (токен/`Set-Cookie`/сессия/flash) в общий кэш больше не кладётся, ключ несёт
+  нормализованный домен. **P0-2** голый `static.serve` в трёх urlconf отдавал загрузки
+  мастера импорта (под ИСХОДНЫМ именем клиента, не удалялись) и шифротексты документов с
+  любого хоста → единый гейт `apps/core/media_views.py` (`safe_join`→`relpath`→первый
+  сегмент), uuid-имена, удаление после импорта, команда `cleanup_import_files`.
+  **P0-3** ключ шифрования выводился из `SECRET_KEY`, а `check --deploy` стоял под
+  `|| true` → MultiFernet + `rotate_secrets` + префлайт ДО миграций + смена ключа через
+  `SECRETS_ENCRYPTION_KEY_PREVIOUS`. **P0-4** лимит ваучера читался из `public` вместо
+  текущей схемы. **P0-5** админка прячет tenant-only по правилу `TENANT_ONLY_APPS`.
+  **Каждый из четырёх раундов ревью находил HIGH в коде предыдущего** (потеря
+  шифротекста при ротации → смена ключа, уничтожающая секреты → минт ключей кэша через
+  порт в Host и отказ рабочих ключей `openssl rand -base64 32` → схема-призрак, делавшая
+  ops-шаг невыполнимым, и два холостых ассерта `or True`). Вердикт финального прохода —
+  сходимость достигнута. **⚠️ OPS ВЛАДЕЛЬЦУ (handoff §11):** задать
+  `SECRETS_ENCRYPTION_KEY` в `.env.prod` (без него или с негодным значением деплой
+  ОСТАНАВЛИВАЕТСЯ на префлайте — это цель) → деплой → `manage.py rotate_secrets`
+  (dry-run → `--apply`) → `manage.py cleanup_import_files` (dry-run → `--apply`).
+  Детали и уроки — build-log 2026-09-09/10, handoff §§11–13.
+- **Самое свежее (2026-09-10/11): ВОЛНА STU-18 «панель Студии» — STU-18a…h, всё БЕЗ
+  миграций.** Разведка+дизайн (`docs/stu18-panel-ia-plan-2026-09-10.md`): реестр
+  композиций `apps/core/compositions.py` стал ЕДИНЫМ источником шаблонов страницы —
+  `SURFACES`/`LISTING_SURFACES` + гейты `requires`/`requires_extra` (`NEEDS_CHILDREN`/
+  `NEEDS_COMBOS`/`NEEDS_PHOTO`), поэтому панель не предлагает «Полки» там, где нет
+  под-сущностей (правило STU-9), а `EXCLUDED_REASONS` объясняет почему. **18a–e**
+  композиция доведена до ДЕВЯТИ листингов (`page_styles` + каркас `listing.html` у
+  оставшихся пяти — `combos`/`tours`/`wishlist`/`lookbook`/`reviews`; инвариант-замок
+  «поверхность в реестре ⇒ её шаблон наследует каркас», `PENDING_SURFACES` — осознанный
+  список исключений). **18f** пагинация — по решению владельца ТОЛЬКО каталог и
+  `/aktionen/`: новый `pagination.paginate_list` (offset, `?seite=N`), ключ `page_size`
+  presence-minimal, счётчики показывают ВЕСЬ результат, а не страницу (замер в браузере
+  поймал мою же регрессию), группы/секции не пагинируются. **18g — фидбэк владельца
+  «шаблон акций применяется только после Save»:** причина найдена замером, а не на глаз —
+  генерик-наложение черновика (UC2-1) знало РОВНО ОДИН ключ (`_PAGE_STYLE_KEYS =
+  ("catalog_page_style",)`), поэтому выбор для акций сервер молча выбрасывал; ключ стал
+  РЕЕСТРОМ «ключ → нормализатор», словарь `page_styles` девяти листингов клиент теперь
+  тоже шлёт. **Класс закрыт замком:** обещание выводится ИЗ САМОЙ ПАНЕЛИ (каждая плитка
+  выбора шаблона) и черновик обязан его принять — новая поверхность, забытая в приёмнике,
+  краснит CI сразу. **18h** демо: акции уже были полны (24 шт., у каждой фото, 4 группы),
+  тонким был каталог — два направления из четырёх без подразделов, поэтому «Полки»/
+  «Вкладки»/«Указатель»/«Навигатор» там нечего было рисовать; теперь у каждого по два
+  подраздела (+3 позиции на РЕАЛЬНЫХ кадрах фонда, инвариант AMP). Попутно цель акции
+  можно задавать ИМЕНЕМ товара, а не позицией в списке — вставка категории больше не
+  переставляет акции на чужие позиции (23 ссылки кита переписаны, голден-замок усилен).
+  ⚠️ ops: после деплоя `seed_demo_tenants --kit aktionsmarkt --recreate`.
+- **Самое свежее (2026-10-01): ВОЛНА PT «тип акции = ось вывода» ЗАКРЫТА ЦЕЛИКОМ
+  (PT-1..PT-8, БЕЗ миграций).** Запрос владельца: «разделить типы акций, выводить только
+  определённый тип, выбирать для него шаблон, раскладку, сетку или слайдер и управлять
+  ими» + «в любом месте можно выводить этот блок с акциями и выбранным типом». Решения
+  Р-1..Р-3 — план `docs/pt-promo-types-plan-2026-09-11.md §5`. Разведка (3 агента):
+  «типов» было ЧЕТЫРЕ независимых оси (`promo_type` бронь · `discount_style` 9 стилей
+  ПОКАЗА · цель PL · `group` свободная рубрика), и ни одна не была типом в полном
+  смысле; ось рубрикации уже работала (страница `?gruppe=`, шаблон DL-20, пункт меню,
+  секции), не хватало статуса объекта, СВОИХ осей вывода (сетка была ОДНА на обзор и
+  на все страницы типов → «своя раскладка у типа» невозможна по построению) и второй
+  поверхности. **PT-1** реестр `apps/promotions/promo_types.py`: свои рубрики + 5
+  встроенных механик (`sys:mystery/surprise/reservation/countdown/dauer`) из полей
+  акции; **ОДИН параметр витрины** — встроенные ведутся тем же `?gruppe=` с префиксом
+  (второй параметр = два контрола на один смысл, прецедент LAY-7c; страница типа, меню,
+  чип и хранение достаются даром → PT-4 растворился здесь); гейт «только живые типы»
+  (STU-9); чип «Reservierbar» стал ТИПОМ (`?reservierbar=1` жив). **PT-2/3** значение
+  `promo_groups[<тип>]` расширено до `{style,layout,card}`, при одном шаблоне остаётся
+  СТРОКОЙ (конфиги живых сайтов и golden целы). **PT-5** экран «Aktionstypen»
+  (`/promotions/typen/`): свои+встроенные в одном списке, счётчики, 4 оси, targeted-write;
+  ящик «Vorlagen der Gruppenseiten» → ссылка (одно место на настройку). **PT-6** C-блок
+  `promo_list` ПОВТОРЯЕМЫЙ (фикс-секция `promotions` одна по построению) → несколько
+  секций по типам, и как следствие — доступен на ЛЮБОЙ странице `PAGE_BLOCK_HOSTS`
+  (замок по всем хостам). **PT-7** починка двух реальных дефектов своего же хранения:
+  пилюля охвата Студии читала запись целиком и её запись стирала остальные оси типа
+  (класс W6 внутри записи) + `object_by_type` формы карточки (на странице типа правит
+  ТИП, не акцию). **PT-8** демо `aktionsmarkt`: Räumung countdown+кольцо+4 колонки ·
+  Anti-Food-Waste лента купонов · Wochenangebote полки · `sys:mystery` карточки deal;
+  форма акции += `<datalist>` живых типов. **Грабля:** `{{ block.super }}` гасит
+  `VariableDoesNotExist` родительского блока в ПУСТУЮ строку — ссылка на переменную
+  context-processor'а внутри фильтра стирала ВЕСЬ контент страницы (200 с пустым
+  `<main>`); такие значения резолвим во вьюхе. 21 замок + осознанная переписка
+  демо-замка DL-20. ⚠️ ops: `seed_demo_tenants --kit aktionsmarkt --recreate`.
+- **Самое свежее (2026-10-02): DL-24 «Ценник» × форма фото + PT-6 фикс сохранения блока +
+  разбор LB «блок-список» (БЕЗ миграций).** Фидбэк «ретро дизайн поплыл и markthalle»: стенд
+  (7+7 форм карточки × 3 формы фото × 1440/390) показал ровно одну сломанную пару — форма
+  «Ценник» (DL-19 regal) × фото «wide» (DL-10, сборки Retro/Markthalle): `aspect-ratio`
+  переносил min-height 96 px боковой полосы в ширину 171 px, и фото закрывало цену; «round»
+  давал «пилюлю». Фикс: боковое фото — `data-sf-media-box="side"` со своими правилами
+  (миниатюра 16:9 / круг по ширине колонки, колонка `flex-col justify-center min-h-[6rem]`);
+  сценарий владельца (кит × 27 сборок × 4 страницы × de/ru) → 0 наложений; попутно шапка
+  секции акций на ru сдвигала страницу на 4 px. **PT-6 фикс:** первый Save Студии стирал
+  тип/заголовок/лимит блока «Aktionen eines Typs» (`_read_cblock_data` не знал `promo_list`,
+  черновик не слал `type`/`limit`) → замок КЛАССА `test_cblock_field_roundtrip` (каждое поле
+  строки редактора любого C-блока переживает Save и черновик). **LB (только разбор):**
+  `docs/lb-list-blocks-plan-2026-10-02.md` — страница = упорядоченный список блоков, блок
+  «Liste» = источник × фильтр × сортировка × лимит × вид (три оси LAY), основной список —
+  блок «Hauptliste», шаблон страницы → тема + вид основного списка + одноразовый пресет;
+  решения владельца — Р-1…Р-4 и навигация N-1…N-4 по рекомендации (§8).
+- **Самое свежее (2026-10-02, вечер): LB-1a — блок «Liste» для акций и товаров (БЕЗ
+  миграций).** Повторяемый C-блок `list`: ЧТО (источник акции|товары × фильтр — тип/«endet»/
+  мин. скидка | категория/featured/sale/available × сортировка ключами ПРОВАЙДЕРА фасетов
+  × «Höchstens») и КАК (сетка/лента, колонки, ряды, темп, форма карточки) с наследованием
+  «блок → тип → вид страницы источника → дефолт»; своя форма объекта сильнее блока.
+  «Alle N →» только при обрезке и туда, где весь список с тем же фильтром (N-4). Логика —
+  `apps/core/list_blocks.py`. Легаси `promo_list` (PT-6) читается как `list` на ВСЕХ входах
+  (`siteconfig.cblock_type`); пустой тип = все акции (осознанно). §11 PAngV на карточках
+  блока (у PT-6 не было). Строка редактора группами, подписи «откуда наследуется»; селекторы
+  — одним хелпером для формы и вставки. Демо aktionsmarkt: +«Neu im Sortiment» лентой.
+  Найдено: N+1 `Product.has_variants` на карточках всех поверхностей — в roadmap §Отложено.
+- **Самое свежее (2026-10-02, ночь): LB-1b — пилюля охвата блока «Liste» (БЕЗ миграций).**
+  «Ansicht gilt für: Nur diesen Block · Den ganzen Typ» у блока акций с типом: во втором
+  режиме те же контролы пишут `promo_groups[тип].layout/card` (хранение экрана «Aktionstypen»
+  и страницы типа) — меняются все блоки типа и его страница сразу. Одна функция
+  `list_blocks.apply_type_scope` для Save и черновика; `scope` в конфиге не живёт; раскладка
+  типа строится от раскладки СТРАНИЦЫ (слой типа «всё или ничего» — иначе пустые колонки
+  дали бы дефолт, а «Raster» поверх ленты страницы был бы невыразим). Попутно два W0-фикса:
+  селектор типа из живых типов молча сбрасывал блок в «все акции», когда у типа нет активных
+  акций (то же у категории), — значение блока теперь всегда в списке; экран «Aktionstypen»
+  больше не стирает темп ленты. Стенд Playwright 20/20.
+- **Самое свежее (2026-10-02, ночь): LB-2 «Hauptliste» — блоки над и под основным списком
+  (БЕЗ миграций).** Маркер `{"key": "main"}` в `page_blocks[<хост>]` (11 листингов + страницы
+  категорий; первым = как раньше, не хранится → golden/демо целы), слот `listing_before`
+  каркаса `listing.html` (после шапки, до фильтров), строка «★ Hauptliste» в панели Студии,
+  перетаскивание блока на основной список и «＋» над ним. **Попутно два действующих
+  дефекта:** (1) переводы C-блоков ехали за ПОЗИЦИЕЙ — перестановка/удаление/вставка в
+  середину сдвигали их на чужие блоки → `siteconfig.realign_block_overlays` по id блока в
+  Save/вставках/черновике; (2) **Save Студии молча не отправлялся** на демо aktionsmarkt —
+  поле позиции фикс-секции `max="20"` при 25 секциях реестра (Chrome отменял форму из-за
+  скрытого недопустимого поля) → `max` снят, класс-замок `test_studio_form_validity`.
+  Стенд Playwright на живом сервере 13/13. Дальше: **LB-3** (обзор `/aktionen/` блоками:
+  Sprungleiste, остаток, результаты).
+- **Самое свежее (2026-10-03): LB-3 — страница акций обзором из блоков (БЕЗ миграций).**
+  Режим блоков включает включённый блок «Liste» с акциями на `/aktionen/`; встроенное гасит
+  только РАВНОЗНАЧНЫЙ блок (рубрика ↔ «тип X» без сужения; «Ending soon» ↔ «Endet …», если
+  ему есть что показать; «Vorschau» ↔ новый фильтр «Demnächst» `phase=upcoming` без типа),
+  основной список = остаток (N-3); на странице типа и в результатах блоков «Liste» с
+  акциями нет. **Sprungleiste** — липкие чипы разделов в порядке страницы + панель «Suchen &
+  filtern» (типы/фильтры/поиск переехали туда); выборка блока одна на запрос
+  (`list_blocks.resolve_for`). **Студия:** пресеты страницы акций «Standard-Übersicht» /
+  «Prospekt (Blöcke)» (по блоку на рубрику над списком) + подсказка «＋ тип». Попутно: блок
+  «Liste» на страницах — во всю ширину колонки (сужался контейнером главной), полоса выше
+  значков карточек; пресет страницы больше не сдвигает переводы блоков. Демо aktionsmarkt
+  собрано пресетом. Замки 42, стенды 25/25 + 15/15. ⚠️ ops: `seed_demo_tenants --kit
+  aktionsmarkt --recreate`. **Ревью** (4 дефекта: «Endet · ab −N %» ≠ «Ending soon»,
+  дубли при группировке по сроку, дубль/кап пресета, пустая таблица) — закрыто, в `main`.
+  **LB-3c** (стенд): сорт в режиме блоков — чипами в панели «Suchen & filtern», строка
+  вида только над остатком; подсветка полосы у дна страницы (клик по последнему чипу
+  подсвечивал предыдущий). **LB-3d-1** (остаток LB-3, план §13): реестр источников блока
+  «Liste» вместо веток `if source == …` + услуги/номера/события (выборки провайдеров
+  листингов, «Alle N →» на листинг, пустая сортировка = порядок страницы, селект источника
+  по включённым модулям, поля фильтра по смыслу); у общей карточки появилась ветка события
+  (была « min» без даты в Finder/полках/форме карточки), места событий одним запросом.
+  Попутно 2 хотфикса: `/kombi/` в «Regale» → 500, хвостовая кнопка секции блога.
+  **LB-3d-2:** туры (фильтр «Land», предзагрузка заездов), наборы (заголовок по типу
+  бизнеса, без «0,00 €» у свободной сборки), категории (направления с товарами или
+  подкатегории; плитка не редакторская); строки «Sortierung»/«Kartenform» скрываются по
+  реестру. Демо moto («Nepal») + online_shop (подкатегории, наборы). **LB-3d-3:** отзывы
+  (проверенные отзывы о сущностях, фильтры вид/ab N ★/с текстом, сорт новые/лучшие, без
+  «Alle →») и блог (общая карточка `_blog_card` — ею же `/blog/` и секция главной; попутно
+  закрыт класс C I18N-11: переводы статей не показывались). Демо bakery (отзывы) +
+  friseur (блог на «Über uns»). **Остаток LB-3 (Р-3 (а)) закрыт целиком: блок «Liste»
+  знает все 10 источников.** Дальше: LB-4 — только решением владельца (Р-6).
+- **Самое свежее (2026-10-04/09): LB-4 «списки главной = блоки «Liste»» — 4a ✅ + 4b ✅ + 4c ✅ + 4d-1/2 ✅
+  (БЕЗ миграций).** Отмашка владельца «делаем LB-4 и адаптацию под все архетипы» (Р-6 → (б)); план
+  `docs/lb4-home-lists-archetypes-plan-2026-10-04.md`. Восемь списочных секций главной (акции,
+  товары, категории, услуги, номера, события, туры, блог) — блок «Liste» с ЗАКРЕПЛЁННЫМ источником,
+  ключ секции остаётся идентичностью (golden/киты/сборки/якоря/переводы целы). **4a:** выборку
+  делают фетчеры блока (`list_blocks.resolve_section`), оси «ЧТО» в `row["data"]` (presence-
+  minimal), «View all» и прайс-лист с фильтром строки, форма карточки строки (тег `row_card`);
+  сознательные отличия = листинги (серия событий одной карточкой, пустые направления скрыты,
+  блог без даты в конце, порядок листинга у услуг/номеров). **4b:** поля «ЧТО» в строке Студии
+  (`_builtin_list_fields.html`, `sl_<ключ>_*`, сентинел, у товаров «Which items» → «Auswahl/
+  Sortierung», легаси `source` сохраняется где выразим), черновик, «Als eigenen Block kopieren».
+  Стенд нашёл: эндпоинт черновика ронял `data` фикс-секций (фильтр не действовал до Save) —
+  исправлено + замок. Грабля: переменная контекст-процессора в АРГУМЕНТЕ фильтра (`|default:x`)
+  бросает VariableDoesNotExist. **4c ✅ «одни виды везде»:** реестр `siteconfig.LIST_STYLES`
+  (виды блока = `SECTION_STYLES` секции источника), композиции вынесены в партиалы
+  `storefront/lists/` (прайс-лист, spotlight/banner/rows, строки категорий) под 21 эталоном
+  разметки секций, снятым ДО выноса (байт-в-байт); блок «Liste» рисует прайс-лист со своим
+  фильтром, spotlight акций, плитки категорий; селект «Display style» в Студии — только виды
+  источника. **4d-1 ✅ библиотека «＋» под архетип:** пресет блока «Liste» на каждый источник,
+  инсертер предлагает только пресеты включённых модулей с наполненной выборкой
+  (`list_blocks.library_presets`; главный товар архетипа — первым и даже пустым); фильтр
+  «Gilt für» (`ziel`, цель акции PL) — одна точка истины `PromoFacets` для блока, секции,
+  «Ending soon» и `/aktionen/?ziel=` (чип цели — только активный: стенд показал дубль с
+  рубрикой владельца). **4d-2 ✅ пресеты листингов по архетипу:** у `/sortiment/`, `/termin/`,
+  `/unterkunft/`, `/veranstaltung/`, `/touren/` — «Standard» + блочный пресет (блоки над и
+  ПОД основным списком — новая механика `below`; блок выключенного модуля не кладётся).
+  **4d-3 ✅ демо-киты:** замок `test_demo_lists` (19 китов засеваются, каждый список
+  главной и блок «Liste» обязан что-то показать) нашёл 4 дыры демо — «Endet heute» без акций
+  дня (ключ спеки `ends_today`), Stadtgold без товара на главной (сборка гасила события →
+  ось кита `section_swap`), пустое окно «14 дней» у мото-туров (пресет `/touren/` =
+  «Nächste Termine» без окна), нет отзывов о заездах; пресеты листингов в 9 китах; ось
+  `section_data` («Neu im Sortiment» = новинки, а не избранное). **ВОЛНА LB-4 ЗАКРЫТА.**
+  ⚠️ ops: `seed_demo_tenants --recreate` (hotel friseur retreat moto stadtfuehrung shop
+  clothing online_shop outlet aktionsmarkt tours).
+- **Самое свежее (2026-10-09): T-8 «Aktion-Start» — АНАЛИЗ лёгкой версии на решение владельца
+  (кода нет).** Вход: PDF-концепция «От локальной акции к цифровому бизнесу» + 3 разведки по коду.
+  Факты: путь «ноль → своя акция» = 8–9 экранов, ~25–30 действий + письмо + минута ожидания +
+  повторный вход; свободная акция без товара УЖЕ возможна; «Reserve now» создаёт обычный заказ без
+  срока удержания/QR/лимита (старый Reservation-движок жив, но осиротел); купона «получить» нет;
+  каталог — core, выключить нельзя; агрегатор: автопубликация/автоснятие есть, но нет согласия,
+  жалоб, подписок жителя, атрибуции `?ch=portal`; наружу JSON-LD «имя+ссылка». Предложение: не
+  второй кабинет, а мобильный ассистент 3 экрана + пресет витрины «Nur Aktionen» + отклики
+  Zurücklegen/Coupon/Anfragen; очередь T-8.1…T-8.10, вопросы Р-1…Р-7 —
+  `docs/t8-aktion-start-lite-analysis-2026-10-09.md`.
+  **ИИ-слой (той же датой) — `docs/t8-ai-layer-2026-10-09.md`:** тезис «слой локальных предложений
+  для людей И агентов» (данные · действия без оплаты · доверие); ИИ = ускоритель входа и переводчик
+  выхода, результаты только из БД, всё работает без ИИ. T-8.10a акция из фото · b из сообщения в
+  Telegram · c «что запустить сегодня» из своих данных (MHD/пустые слоты/Lücken) · d поиск фразой →
+  фильтры + подписка на запрос · e проверка публикаций · f MCP-приложение каталога · g черновики
+  ответов; вопросы A-1…A-4.
+  **Решения владельца (той же датой):** Р-1 «отложить» = старый Reservation · Р-2 купон да ·
+  Р-3 поддомен сразу, каталог после почты · Р-4 пресет витрины + мобильный поток в том же кабинете ·
+  Р-5 бесплатно до 5 активных акций (дальше «свяжитесь с нами») · Р-6 весь Solingen · Р-7 старт с
+  демо T-8.1 · A-1 владельцу сильнейшая модель, поиск — после замеров · A-2 Telegram НЕ главный вход,
+  а вариант наравне с веб-потоком · A-3 ИИ бесплатно в пилоте с мягким лимитом · A-4 MCP-пилот после
+  «отложить»+купона. **Остальной функционал = ступени роста той же платформы** (0 Aktion · 1 Sichtbar
+  · 2 Website · 3 Verkaufen · 4 Betrieb) через существующий набор модулей тенанта; переход —
+  подсказка «следующий шаг» из данных; новые крупные модули на время пилота не начинаем (§9).
+  **Каталог города = все предложения + операторы порталов (той же датой) —
+  `docs/t8-city-offers-portal-2026-10-09.md`:** в общий пул сегодня идут только акции/номера/события/
+  наборы, ТОВАРОВ нет → T-8.11 (вид «товар», наличие из склада, «Neu», «auf Bestellung», выбор
+  владельца «в каталог города», полнотекстовый поиск, «где в Золингене есть X» по GTIN). Урок рынка:
+  городские маркетплейсы (Atalanda/Online City Wuppertal) не взлетели — мерило = визиты и выдачи, а не
+  онлайн-оборот. T-8.12 операторы: модель B «оператор-партнёр» (доля, договор/биллинг/пул/ИИ-канал у
+  нас), после пилота; вопросы О-1…О-4.
+  **T-8.1 ✅ (той же датой, БЕЗ миграций; план `t8-1-aktion-demos-plan-2026-10-09.md`):** профиль
+  витрины «Nur Aktionen» (`site_config["profile"]="aktionen"`, `apps/core/storefront_profile.py`:
+  каталог/корзина/наборы → 302 на главную, меню/нижний бар/поиск/hero-плитки/секции без входов в
+  каталог; главная = визитка) + карточка «So finden Sie uns» на странице акции у ВСЕХ тенантов
+  (`core/business_card.py`: часы, «Route planen», «Anrufen», WhatsApp) + 5 лёгких демо Solingen
+  (`klingenbrot`/`ohligser-eck`/`walder-faden`/`wupperhof`/`brueckenblick`, поля кита
+  profile/phone/lat/lng, рубрики «Neu bei uns»/«Auf Bestellung», переводы ×4). **Найден дефект
+  для T-8.2:** кнопка акции создаёт заказ без проверки модуля orders → у cafe/restaurant/friseur/
+  events/catering/other клиент получает 404 на подтверждении, владелец заказа не видит.
+  ⚠️ ops: `seed_demo_tenants --kit klingenbrot` (+ ohligser_eck walder_faden wupperhof brueckenblick).
+  **Решения О-1…О-4 + концепция (той же датой):** О-1 да, но с ЕДИНОЙ системой категорий
+  платформы (сегодня её нет: в город уходит только business_type, категории товаров и рубрики
+  акций не доходят) → T-8.13a (справочник 2 уровня + признаки vegan/bio/regional/yoga…,
+  категория акции — при создании рядом с типом) и T-8.13b (сопоставление своих категорий);
+  О-2 модель B; О-3 пилот сами; О-4 «срочное первым» — сделано в демо (ключ спеки `no_end`,
+  главная `sort=endet`, `/aktionen/` по сроку). T-8.14 тематические платформы (ЗОЖ/питание/
+  йога) = отбор общего пула по признакам. Документ для показа —
+  `docs/t8-concept-local-offers-platforms-2026-10-09.md` (идея, 8 ошибок городских
+  маркетплейсов, наши решения, отличия, темы).
+- **Самое свежее (2026-10-09): ERP-8 «Mängelanzeige» ✅ ЦЕЛИКОМ (⚠️ миграция `inventory/0006`).**
+  Рекламация поставщику по § 377 HGB (бумажный бланк владельца): рекламация на поставку
+  (`MA-…`) со строками-дефектами (5 видов), решение по строке ровно один раз — скидка
+  (сторно-расход) · возврат (ERP-5) · замена (возврат + строка снова ждёт приёмки,
+  `qty_replacement`; деньги = одна оплата); PDF-бланк поверх `core/documents.py` (de/ru
+  проверены глазами), письмо поставщику с PDF, бейдж открытых в списке заказов; демо-
+  закупки с рекламацией — у ВСЕХ товарных китов (фидбэк владельца), не только у еды. Стенд нашёл омоним «offen» → ru «не оплачено» (контекст `complaint`).
+  План `docs/erp8-maengelanzeige-plan-2026-10-09.md`. ⚠️ ops: деплой + `seed_demo_tenants
+  --recreate` (shop clothing online_shop outlet aktionsmarkt bakery butcher).
+- **Самое свежее (2026-10-09, вечер): T-8.15…T-8.18 — районы Золингена, Gräfrath, портал
+  города на нашем субдомене (⚠️ миграции `tenants/0033` + `aggregator/0019`, SHARED, с data-шагом).**
+  План `docs/t8-15-districts-portal-plan-2026-10-09.md`. Демо больше не попадают в настоящие
+  порталы (`Tenant.is_demo` ← `apply_kit`, `AggregatorPortal.show_demo` default False, бейдж
+  «Demo», полоса «Vorschau»); шестое лёгкое демо `graefrather_markt` (Gräfrath — пятый
+  Stadtbezirk был пропущен); районы — реестр `apps/core/districts.py` (slug, алиасы, только
+  уверенные PLZ), select «Stadtteil» в настройках бизнеса + перенос города/района в листинги
+  при Save, чипы и страницы `/stadtteil/<slug>/` на портале; сидер создаёт `solingen.<base>`
+  (show_demo=True до запуска). ⚠️ ops: деплой → `seed_demo_tenants --kit graefrather_markt`
+  + `--recreate` пяти лёгких китов. Дальше: T-8.2 (Zurücklegen/Anfragen + фикс 404 orders).
+- **Самое свежее (2026-10-10): общий план T-8 (`docs/t8-roadmap-2026-10-10.md`, этапы 1–4) +
+  T-8.2 «Zurücklegen» ✅ (БЕЗ миграций).** Отклик акции — одна точка истины
+  `apps/promotions/response.py` (booking/buy/reserve/inquire/show; явный выбор владельца в
+  `Promotion.metadata["response"]`, поле «Reaktion der Kundschaft»; нет тенанта → buy —
+  прежние замки целы). «Zurücklegen» = старый движок резерва (e-mail или телефон, поиск
+  клиента по телефону, срок ≤ конца акции, «bis …» клиенту, скан pending сначала
+  подтверждает). Фикс 404: `/kaufen/` без онлайн-продаж заказ не создаёт. Вкладка продаж
+  «Reservierungen» (без «(alt)»). Лёгкие демо без модуля заказов (булочная/мода/лавка
+  откладывают, кафе показывает и откладывает, салон/пансион — заявки). План
+  `t8-2-zuruecklegen-plan-2026-10-10.md`. ⚠️ ops: `seed_demo_tenants --recreate` шести
+  лёгких китов. Дальше по плану: T-8.4 мобильный ассистент акции + лимит 5 активных.
+- **Самое свежее (2026-10-10): T-8.4 «Schnell-Aktion» ✅ (БЕЗ миграций).** Ассистент акции с
+  телефона `/promotions/schnell/` (`promotions/quick.py`): фото с камеры + заголовок → цена/срок
+  чипами (Heute bis Ladenschluss по часам работы · Wochenende · 7 Tage · Datum) → отклик (только
+  выполнимые) → экран «Fertig» (ссылка, QR, WhatsApp/Telegram/E-Mail); «＋ Neue Aktion» + мобильная
+  плавающая «＋» в списке, «↻ Wiederholen» у прошлых акций (фото — копией файла), счётчики
+  просмотры · отложено · выдано. **Лимит Р-5** — `promotions/limits.py`: 5 активных только на
+  бесплатной лёгкой ступени («Nur Aktionen», без подписки, не демо), проверка на кнопке, в
+  ассистенте и в beat (запланированная ждёт места). Env `LITE_FREE_ACTIVE_PROMOS`,
+  `PLATFORM_CONTACT_EMAIL`. План `t8-4-assistant-plan-2026-10-10.md`.
+- **Самое свежее (2026-10-10): T-8.9 «Aushang» ✅ (БЕЗ миграций).** Флаер на одну акцию
+  (`promotions/flyer.py`): A4 · A6 · 4×A6 на A4 с линиями реза; фото, цена (mystery не
+  печатается), срок, QR `?ch=flyer`, призыв по отклику T-8.2, адрес; язык `?lang=`.
+  Вьюха `/promotions/<pk>/aushang.pdf` (только active/scheduled), входы — «Fertig» и страница
+  акции. План `t8-9-flyer-plan-2026-10-10.md`.
+- **Самое свежее (2026-10-10): T-8.3 «Coupon holen» ✅ (⚠️ миграция `loyalty/0006`) — ЭТАП 1
+  ПЛАНА T-8 ЗАКРЫТ.** Купон `C-…` = Voucher с FK на акцию (`max_uses=1`, срок = конец акции,
+  лимит штук тем же anti-oversell UPDATE; «1 на человека» — подписанная кука `sa_coupons` или
+  тот же e-mail/телефон → тот же купон); кнопка на детали акции → `/coupon/<code>/` (код, QR,
+  состояние); погашение сканером «Einlösen»; онлайн-чекаут купон НЕ принимает (`spend_voucher`).
+  Отклик в форме/ассистенте/флаере, счётчики «Coupons N · eingelöst M»; демо — кафе и мода.
+  План `t8-3-coupon-plan-2026-10-10.md`.
+- **Самое свежее (2026-10-10): T-8.5 «Aktion in 3 Klicks» ✅ (⚠️ миграция `tenants/0034`).**
+  Запрос владельца: страница, где зарегистрироваться и опубликовать в 3 клика —
+  `/aktion-starten/` (публичный хост): «Weiter» (фото/цена/срок/отклик) → «Veröffentlichen»
+  (название, тип карточкой, Stadtteil Solingen, e-mail; БЕЗ пароля и поддомена — slug из
+  названия с транслитерацией умлаутов) → «Teilen» на экране «Fertig» поддомена. Celery
+  `provision_quick` строит схему, владельца без пароля, акцию той же формой ассистента T-8.4,
+  мастер помечен пройденным; одноразовый токен (Redis, знает только браузер регистрации)
+  логинит на поддомене (`/start/<token>/`: GET не расходует, POST — да). Вход ссылкой
+  `/anmelden/link/` — для всех владельцев. Р-3: `Tenant.email_pending` держит все листинги
+  вне агрегатора до клика в письме. Бесплатная ступень без `trial_ends_at` (не истекает).
+  Защита: honeypot + метка времени + rate-limit. Стенд Playwright 390 px прошёл весь путь
+  и нашёл дефект: ссылки на поддомен из Celery строились публичным urlconf → явный
+  tenant-urlconf. План `t8-5-quick-start-plan-2026-10-10.md`. **T-8.5b** (тем же днём, без миграций):
+  до 6 фото (камера добавляет, галерея пачкой), свой адрес с живой проверкой (занят = тенант/схема/
+  Domain портала), на «Fertig» — «✏️ Bearbeiten» и «🌐 übersetzen» (`?sprache=` открывает форму на языке).
+
+- **Самое свежее (2026-10-10): T-8.6 «Чистый каталог города» ✅ (⚠️ миграции `tenants/0035`,
+  `aggregator/0020`, `promotions/0029`, `loyalty/0007`).** Одна точка истины
+  `apps/aggregator/visibility.py` (listable: включён, не suspended, почта подтверждена, согласие)
+  + `AggregatorListing.objects.public()` на ВСЕХ чтениях портала — статус бизнеса действует сразу
+  (раньше приостановленный бизнес висел на портале). Согласие `Tenant.in_city_catalog`
+  (переключатель в «Mein Geschäft» + галочка на `/aktion-starten/`); «Melden» на карточке →
+  `ListingReport`, три разных голоса скрывают (`hidden_at`), очередь в админке; `?ch=portal` на
+  ссылках портала; воронка по каналам на странице акции (`PromotionChannelView`,
+  `Voucher.source_channel`). Исправлен дефект T-8.5: подтверждение почты выкладывало только
+  акции. План `t8-6-catalog-hygiene-plan-2026-10-10.md`. **T-8.5c** (тем же днём): на
+  `/aktion-starten/` сначала «Stadt», потом район ЭТОГО города (сервер сверяет). Дальше: T-8.13a.
+- **Самое свежее (2026-10-10): T-8.13a/b «Единые категории каталога города» ✅ — ЭТАП 2 ПЛАНА T-8
+  ЗАКРЫТ (⚠️ миграции `promotions/0030`, `aggregator/0021`, `catalog/0035`).** Справочник
+  `apps/core/city_categories.py` — **15 разделов по ТЗ «Siteadaptor 2.0» §4** (пришло от владельца в
+  ходе работы) + признаки (vegan/bio/regional/yoga…) отдельной осью. Категория и признаки — у акции
+  (все три формы, общий `promotions/city_fields.py`; «Wiederholen» переносит) и у листинга (синк
+  всех видов: акция = своё → категория товара → тип бизнеса). Портал и `/entdecken/`: `?kat=`
+  (раздел или категория) + `?merkmal=`, чипы только непустого (`aggregator/category_facets.py`).
+  **T-8.13b:** `Category.city_category` + резолвер `catalog/city.py` (своё → родители → подсказка
+  по названию), селект в форме категории и блок «Zuordnung zum Stadtkatalog» на «Kategorien».
+  Планы `t8-13a-…`/`t8-13b-…-2026-10-10.md`. **Дальше: обсуждение ТЗ «Siteadaptor 2.0»** (PDF
+  владельца, Phase 0 — аудит EXISTS/PARTIAL/MISSING), затем этап 3 (T-8.7, T-8.11, T-8.8).
+- **Самое свежее (2026-10-10): ТЗ «Siteadaptor 2.0» — Phase 0 + T-8.19a ✅ (без миграций).**
+  Отчёт `docs/tz-siteadaptor-2-0-phase0-2026-10-10.md` (решения В1/В2/В4/В5 приняты, В3 —
+  предложение «все годные к показу товары с исключением»); ТЗ вложено в этап 3
+  `t8-roadmap-2026-10-10.md`: T-8.19a → **T-8.11** (товары/услуги/предприятия в городе) →
+  T-8.22 (демо под 15 разделов) → T-8.19 (главная «Entdecke Solingen») → T-8.20/21 (единый
+  поиск + журнал) → T-8.7 → T-8.8. T-8.19a: истёкшее не видно сразу (`objects.public()`),
+  лимит поиска `/entdecken/`, переключатель языка на портале и `/entdecken/`.
+- **Самое свежее (2026-10-10): T-8.11 «Товары, услуги и предприятия в каталоге города» ✅
+  (⚠️ миграции `aggregator/0022`, `catalog/0036`, `booking/0028`).** Виды листинга
+  `product`/`service`/`business`; товар — если годится к показу (фото, цена, не скрыт сам или
+  веткой категории), категория — сопоставление T-8.13b; «Neu»/«Auf Bestellung»/«Ausverkauft»;
+  хуки сохранения + реконсиляция; `hide_in_city` у товара/услуги/категории. Портал: лента по
+  умолчанию — предложения, чипы видов `?kind=`. План `t8-11-city-products-plan-2026-10-10.md`.
+  Дальше: T-8.22 (демо под 15 разделов) → T-8.19 (главная «Entdecke Solingen»).
+- **Самое свежее (2026-10-10): T-8.22 «Демо под все 15 разделов Золингена» ✅ (⚠️ миграция
+  `tenants/0036`).** 11 новых демо-бизнесов Золингена с каталогами/услугами (Klingenwerk,
+  Handy-Doktor, Spielkiste, Pfotenglück, Rad & Tat, Wohnwerk, Feinkost am Markt, Schuhhaus,
+  Bergisch Fit, Lichtblick, Elektro Schmitz) — все 15 разделов справочника на живых примерах;
+  `Tenant.city_category` (основная категория бизнеса, «Hauptkategorie im Stadtkatalog»);
+  переводы 100 % ×4. Дальше: T-8.19 (главная «Entdecke Solingen»).
+- **Самое свежее (2026-10-15): T-8.19 «Entdecke Solingen» ✅ (БЕЗ миграций).** Главная городского
+  портала: поиск, вкладки по наличию, плитки разделов, полоса «Anzeigen» (UWG §5a), 6 блоков, у
+  каждого «Alle anzeigen» на ту же область (`aggregator/portal_home_blocks.py`, замок «блок ⊆
+  ленты»). План — агент planner (`t8-19-portal-home-plan-2026-10-15.md`); перед мержем —
+  django-reviewer + security-reviewer, 6 находок исправлены (лимит на бизнес в SQL, лимит частоты
+  на некэшируемые рендеры, показы featured только на чистом корне). Дальше: T-8.20 (единый поиск).
+- **Самое свежее (2026-10-15): T-8.20 «Единый поиск» ✅ (⚠️ миграции `aggregator/0023`+`0024`).**
+  Портал и `/entdecken/` на одном движке `aggregator/search.py`: полнотекст Postgres с весами и
+  стеммингом по языку, синонимы словарём, части составных слов, опечатки через pg_trgm, фильтры
+  раздел/признак/район/цена/дата/наличие/«открыто сейчас». План — агент planner
+  (`t8-20-unified-search-plan-2026-10-15.md`); ревью django-reviewer + security-reviewer —
+  исправлены стоп-слова, составные слова, 500 на мусорных цене/курсоре, seq scan опечаток.
+  ⚠️ ops: деплой (миграции создают расширение pg_trgm и индексы). Дальше: T-8.21 (журнал).
+- **Самое свежее (2026-10-15): T-8.21 «Журнал поиска» ✅ (⚠️ миграция `aggregator/0025`).**
+  Агрегат «день × запрос × город × область» без персональных данных (e-mail/телефон/IBAN
+  маскируются, город только из реестра, одиночные запросы чистятся через 30 дней), запись
+  fail-safe из `search.record`, админка только суперпользователю + CSV. План — planner;
+  три ревью (django/security/database) — 10 находок исправлены. Этап 3 плана T-8: дальше
+  T-8.7 → T-8.8. ⚠️ Владельцу: строка про статистику поиска в Datenschutzerklärung платформы.
+- **Самое свежее (2026-10-15): T-8.8 «Машиночитаемость каталога города» ✅ (БЕЗ миграций).**
+  JSON-LD страницы предложения по виду (Product/Service/Event/HotelRoom/LocalBusiness, seller из
+  публичных полей — `core.seo.localbusiness_data`), sitemap портала += страницы бизнесов с lastmod
+  (предложения не входят — Р-1 A), robots Disallow технических путей, **открытый фид** JSON Feed
+  1.1 + Atom (`/feed.json|xml` портала, `/entdecken/feed.json|xml?city=`; фильтры, курсор,
+  `sponsored`, `?ch=feed`, лицензия владельца, ETag/304 снаружи кэша, scope `open-feed`), llms.txt
+  портала/платформы, Impressum/Datenschutz в подвале портала. Попутно закрыта утечка mystery-цены
+  в каталог (снимок листинга). Два ревью → 10 находок закрыты (мусорный курсор → 500 в общем
+  `paginate`; `static_resource` против cache-bust sitemap/robots/llms). ⚠️ ops: `python manage.py
+  sync_aggregator` после деплоя. Открыто владельцу: `old_price` в фиде (L2) — к юристу вместе с
+  лицензией. Дальше по этапу 3: **T-8.7 «Folgen»** (вопросы: частота дайджеста, цели подписки,
+  аккаунт vs e-mail, радиус).
+- **Самое свежее (2026-10-15): T-8.7 «Folgen + сводка + сортировки» ✅ ЦЕЛИКОМ — ЭТАП 3 ПЛАНА T-8
+  ЗАКРЫТ (⚠️ миграция `aggregator/0026`, SHARED, аддитивная).** План `docs/t8-7-folgen-plan-2026-10-15.md`
+  (решения владельца Р-1…Р-8 «по рекомендации»). Житель подписывается на бизнес / раздел /
+  район: Double-Opt-In БЕЗ pending-строк (состояние в подписанном токене 7 дней; GET по ссылке
+  без побочных эффектов, POST подтверждает), `FollowSubscription` + `FollowDigest` +
+  `PortalUser.locale/follow_token`; сводка daily («час + гейт 08:00», beat) / weekly /
+  instant (15 мин, тихие часы 21–07), пустых писем нет, выборка только через `listings_for`
+  (демо/скрытое никогда), «Alle anzeigen» ⊇ письма, RFC 8058 one-click; кнопка «Folgen» —
+  ссылка (кэш P0-1 цел); сортировки Neu/Endet bald/Jetzt geöffnet/Nähe + радиус `?umkreis=`
+  (lat/lng вне журнала поиска). Попутно починен `/entdecken/unternehmen/<slug>/` под catch-all.
+  Три ревью (25 находок) закрыты. **Параллельно принят план волны DCC**
+  (`docs/demo-city-coverage-plan-2026-10-15.md`, 79 демо-бизнесов × 15 разделов) — следующая
+  работа; таймер-продолжение заведён. Владельцу: строка о подписках в Datenschutzerklärung;
+  письма жителям — только с `RESEND_API_KEY`.
+- **Самое свежее (2026-10-15/16): ВОЛНА DCC «демо-покрытие каталога Золингена» ✅ ЦЕЛИКОМ (БЕЗ миграций).**
+  Запрос владельца «по 5–10 бизнесов в каждом направлении, тщательно, автономно». План
+  `docs/demo-city-coverage-plan-2026-10-15.md`. Новый пакет `apps/tenants/demo_city/`: компактная
+  СПЕКА (`Biz/Shelf/Item/Svc/Offer/Ev/Room`) → генератор `build_kit` → обычный `DemoKit`; валидатор
+  (UWG/PAngV/LMIV/районы/вымышленные улицы и телефоны) + предсказатель категорий города (зеркало
+  `_city_fields`, честность держит образцовый сидинг). **79 бизнесов × 15 разделов** (с китами T-8.22:
+  ≥ 6 на раздел, все 76 категорий достижимы, районы 18–24 %); фото — только свободные CC0-кадры фонда
+  или тематические плейсхолдеры `sg-*` (+~90 эмодзи-тем); переводы ≥ 95 % ×4 локали (≈5 400 записей);
+  Р-3: категория номера из раздела «Reisen & Übernachten» (Ferienwohnungen). Замки `test_city_specs`/
+  `test_city_sample_seed`/`test_city_coverage`; билдер подбирает колонки секций под число элементов
+  (замок DL-11 поймал 5-в-3). ⚠️ ops: `seed_demo_tenants --group solingen-dcc --jobs 3` (новый `--jobs`;
+  ≈80 мин последовательно) — демо видны на `solingen.<base>` (show_demo). Хвосты (фото-добор, стенд
+  портала, `--refresh-events`, цена деплоя) — roadmap §Отложено.
+- **Самое свежее (2026-10-16): T-8.26 — исправления по внешнему аудиту портала Solingen, 4 из 5
+  пунктов в `main` (отчёт соседней сессии `docs/audits/siteadaptor-solingen-audit.md` влит;
+  очередь — `docs/t8-26-audit-fixes-plan-2026-10-16.md`). Правило сессии (владелец): каждый пункт —
+  план через `planner` → замки ДО кода → `django-reviewer` + `security-reviewer` (+ `database-reviewer`
+  на миграции/тяжёлые запросы) → зелёный CI → FF в `main`; хотфиксы прямо в `main` — больше нет
+  (урок #2683/#2684). **S1+S2** гейт страницы бизнеса через `visibility.listable` + область портала,
+  `Category.is_active` в каталоге города + троттлинг реконсиляции (окно 30 с ПРИ КОММИТЕ). **п.2**
+  (⚠️ `tenants/0037`): превью-портал целиком noindex (`<meta>` + `X-Robots-Tag` из middleware снаружи
+  кэша), фид/llms без демо всегда, плашка «Vorschau…» на `/entdecken/`, `Tenant.is_internal` (только
+  админка; «rest» пометить после деплоя). **п.3** (без миграций): хук `post_save StockMovement` →
+  снимок после массовых `.update()`, «Ausverkauft» у акций/событий/групп, ночная сверка с гардом
+  «без изменений — не писать» (`_upsert_listing`) и разбросом. **п.4** (без миграций): фолбэк опечаток
+  по значимым словам без топонимов (`districts.toponym_tokens`, только реестровые города), мягкий точный
+  шаг, порог на слово + `statement_timeout`; пометка «ähnliche» на `/entdecken/`; вкладки несут `?kat=`,
+  вход в раздел без вида = все виды (= число плитки). Попутно: флак `test_feed_rate_limit_own_scope`
+  закрыт фикстурой `isolated_ratelimit` (xdist делит один Redis); сидер `--jobs` печатает старт кита;
+  `product_unit` конвертирует «100g/100ml» спеки DCC (два кита падали на varchar(4)). **п.5 ✅ ЦЕЛИКОМ
+  (5a+5b без миграций, 5c ⚠️ `aggregator/0027`; план `t8-26-5-query-intent-plan-2026-10-16.md`):** 5a парсер
+  намерения `aggregator/query_intent.py` (цена/время/«geöffnet»/размер/район → фильтры с пилюлями ✕, явный GET
+  сильнее, журнал — сырой q + `auto`) · 5b закрытый словарь голов/модификаторов `split_compound` + синонимы ·
+  5c `AggregatorListing.variant_terms` (размеры UPPER + цвета активных вариантов ≤40; FTS simple/C +
+  `search_text`), `?groesse=` (whitelist ASCII, `@>` + только товары), «Größe M» в тексте = настоящий фильтр.
+  Ревью нашло HIGH: `groesse` не попал в копию `FEED_PARAMS` → корень с `?groesse=` рисовал главную и терял
+  фильтр → `FEED_PARAMS` = список ∪ `search.FILTER_PARAMS` (замок класса). Флак `test_uncached_renders_are_
+  rate_limited` (#2714, общий Redis xdist) — `isolated_ratelimit` + замок «каждый ручной `ratelimit.hit` берёт
+  приватный кэш». **T-8.26 ИСПОЛНЕН ЦЕЛИКОМ (S1+S2, п.2–5).** ⚠️ ops после деплоя: `sync_aggregator` →
+  `rebuild_search_index`; `tenants/0037`: пометить «rest» как intern; `show_demo` снять на запуске. Уроки: окно дедупа считать при
+  коммите, а не при правке; `update_or_create` на неизменённых строках сдвигает `updated_at` и ломает
+  lastmod/фид; robots `Disallow` прячет от робота сам `noindex`.
+- **Самое свежее (2026-10-16, вечер): SF-8 + T-8.26-А — в `main`.** **SF-8** (⚠️ миграция
+  `aggregator/0028`): в каталоге города цена сравнения подписана — «UVP» у товара или строка
+  «Niedrigster Preis der letzten 30 Tage» у акции (`AggregatorListing.price_reference`, фид
+  тоже); исключение § 11 Abs. 4 — флаг владельца «скоропортящееся» (только товар/набор)
+  снимает 30-дневный кап, деталь акции пишет «Reduziert wegen kurzer Haltbarkeit»; откат —
+  env `PANGV_PERISHABLE_EXEMPTION=False`. **T-8.26-А** (без миграций, план
+  `backlog-portal-direction-2026-10-16.md`): «Geöffnet bis …» вместо «Öffnen», «Neu im
+  Sortiment», «Корзина»; чипы района/отрасли несут поиск; `/fuer-unternehmen/`; профиль
+  компании `/unternehmen/<slug>/` (старый адрес → 301 с `?ch=`); карта с запасной надписью;
+  событие без конца с прошедшим стартом скрыто в `public()`; демо-акции продлеваются beat'ом.
+  **T-8.26-Б ✅** (без миграций): «N Treffer» + свёрнутое «Eingrenzen», Liste/Map с ленивым
+  Leaflet, «Ähnliche Angebote»/«in der Nähe», язык до продавца `?hl=`, группа «Von <Firma>»,
+  вес имени бизнеса B→D (⚠️ ops: `rebuild_search_index`). **Решения владельца** (план §9):
+  В1 вариант 1 (демо: плашка, без оплаты и писем) · В2+В4 да (одна миграция) · В3 бесплатные
+  тайлы (OpenFreeMap) · В5 агрегаты · В6 да · Р-A визитка · Р-B лимит · Р-C все источники ·
+  Р-E Claude (Bedrock EU) + ChatGPT (Azure EU) + Mistral — `docs/ai-providers-setup-2026-10-16.md`.
+  **В6 ✅** (галочка «скоропортящееся» только у еды) · **В1 ✅** — по решению владельца
+  только плашка «Demo-Geschäft» на витрине демо (оплату/письма не трогаем). **В2-0 ✅** (без миграций)
+  — условие цены акции («2. Stück −50 %»): цена штуки обычная, корзина не дешевеет, онлайн-покупки
+  нет, бейдж с условием (`core/price_conditions.py`). **В2/В4-1 ✅** (⚠️ `aggregator/0029`):
+  условие цены и состояние товара (B-Ware/Retoure) в каталоге города — снимок всех построителей,
+  карточка/страница предложения, JSON-LD `itemCondition`, фид, сводка, поиск; **В2/В4-3 ✅**
+  условия в демо (пицца/кабели/очки/ножи/свечи) + замок «текст „zweite/2 für 1“ без условия —
+  красный». **В5 🚧** (план `v5-portal-analytics-plan-2026-10-17.md`): **V5-1 ✅** + **V5-2 ✅** (без миграций: просмотры снаружи кэша, переход `/weiter/<pk>/` с `cl=`) + **V5-3 ✅** (без миграций: экран владельца `/dashboard/stadtportal/` + метрика в Marketing, только владельцу) + **V5-4 ✅** (без миграций: показы карточек JS-маячком) + **V5-5a ✅** (без миграций: обращения/сделки из каталога города — атрибуция скрытыми полями и сессией корзины, посадка с `?ch=` больше не создаёт сессию, зарезервированные каналы снаружи не принимаются) + **V5-5b ✅** (брони услуг/номеров, канал через выбор слота/дат, экран считает все 5 действий) — **В5 ЗАКРЫТА ЦЕЛИКОМ** · **В3 ✅** (без миграций: карты на OpenFreeMap через MapLibre поверх Leaflet, ленивый загрузчик `{% sf_map_loader %}` с SRI и фолбэком, провайдер — env `MAP_STYLE_URL`)
+  (⚠️ `aggregator/0030`) агрегат учёта `PortalStat` без персональных данных + дедуп суточной
+  солью + админка; дальше V5-2 (просмотр/переход на портале) → V5-3 экран «Stadtportal» →
+  V5-4 показы → V5-5 обращения/сделки. Затем В3 → AI-0 → импорт.
+- **Самое свежее (2026-10-17): AI-0 «общий ИИ-слой» ✅ (⚠️ миграция `ai/0001`).** План
+  `docs/ai0-layer-plan-2026-10-17.md`. `apps/ai/` (SHARED): `generate()` + реестр задач, маршруты
+  с резервом, **`AI_REQUIRE_EU` fail-closed** (прод — только Bedrock/Azure Data Zone EU/Mistral;
+  прямые Anthropic/OpenAI — для dev с демо-данными), адаптеры без новых SDK, учёт `AIUsage` без
+  текста, мягкие дневные лимиты, `ai_smoke`. ИИ выключен по умолчанию (`AI_ENABLED`). Потребители
+  (T-8.10a, Г1) — следующими; контракт недоверенных данных — план §10. Дальше: импорт Г1.
+- **Самое свежее (2026-10-17): T-8.27 Г1 «Импорт с сайта клиента» ✅ (⚠️ миграции `imports/0002`,
+  `catalog/0037`, `booking/0029`).** План `docs/t8-27-site-import-plan-2026-10-17.md`. Кабинет
+  `/imports/website/` (только владельцу): обход ≤20 страниц через `core.ssrf.safe_fetch` (каждый хоп
+  и адрес сокета проверяются) → JSON-LD/OG → ИИ для страниц без разметки → черновик «Prüfen &
+  veröffentlichen» → каталог; повторный импорт с дифом; лимит 50 бесплатных; визитка «Nur Eintrag»
+  (каталог города ведёт на сайт владельца). **Ревью закрыло главное:** без подтверждения владения
+  можно было импортировать чужой сайт и увести листинги города на чужой домен → токен (мета-тег или
+  `/.well-known/siteadaptor-verify.txt`) в `SiteImportRun.verified_at`; плюс UUID-категория,
+  зависший прогон, защита правок владельца при повторном импорте. Владельцу: строки в Datenschutz.
+- **Самое свежее (2026-10-17): Г3 «срок свежести» + Г4 «цифры акций в дайджесте» ✅ (⚠️ миграции
+  `promotions/0031`, `catalog/0038`, `booking/0030`).** План `docs/g3-g4-freshness-digest-plan-2026-10-17.md`.
+  Г3: `confirmed_at` у товаров/услуг ставят только явные действия владельца (не продажи/склад/фото);
+  60 дней без подтверждения → уходит из каталога города (сайт не трогает), плашка + «Alles noch
+  aktuell» + письмо за 7 дней, «Neu» гаснет через 30. Г4: дневные просмотры акций + по понедельникам
+  блок «Ihre Aktionen letzte Woche» в дайджесте (только агрегаты), дайджест на языке бизнеса.
+- **Самое свежее (2026-10-17): Г5 «живой» район портала ✅ (без миграций).** План
+  `docs/g5-district-threshold-plan-2026-10-17.md`. Район с < N=10 разных бизнесов
+  (`PORTAL_DISTRICT_MIN_BUSINESSES`) показывает свою выдачу как прежде, а под ней — подписанные
+  группы «Auch in der Nähe: <Сосед>» по реестру `districts.NEIGHBORS` со ссылкой на соседа той же
+  области; featured не поднимается; фид/подписка/JSON-LD/журнал — без соседей
+  (`aggregator/district_liveness.py`, общая цепочка `_district_pool`).
+- **Самое свежее (2026-10-17): Д1 ✅ — «✨ Vorschlag aus dem Foto» + «Was heute starten?» (без миграций).**
+  План `docs/d1-ai-photo-promo-today-plan-2026-10-17.md`. В ассистенте акции ИИ по фото заполняет
+  только пустые описательные поля (цены/скидки/сроки — никогда; фото без EXIF, ЕС-маршруты, Celery +
+  опрос; `promotions/ai_draft.py`). Карточка «Was heute starten?» (`promotions/today.py`) — правила из
+  своих данных (MHD, слоты завтра, дыры номеров, повтор акции, места события) → тап открывает
+  заполненный ассистент; работает и без ИИ.
+- **Самое свежее (2026-10-17): Д2 «Text-Check» (T-8.10e) — D2a-1 ✅ движок правил (без миграций).**
+  План `docs/d2-ai-text-check-plan-2026-10-17.md` (решения В-1…В-6 по рекомендации: сначала владелец,
+  потом каталог; автоскрытия нет; машинная пометка — не голос). `apps/core/text_check.py` — 18
+  подсказок к тексту акции без ИИ (UWG/PAngV/LMIV: statt без цены сравнения, gratis при цене,
+  «nur heute» против срока, здоровье, bio, диета против аллергенов, Grundpreis и т.д.); ничего не
+  блокирует; регулярки Д1 переехали сюда. **D2a-2 ✅** блок «Vor dem Veröffentlichen prüfen» в
+  ассистенте, полной форме и на «Fertig» (`POST /promotions/pruefen/`, только советы). **D2a-3 ✅** «✨ Text prüfen lassen» — ИИ поверх
+  правил (дословная цитата, предложение лишь убирает/смягчает слова). **D2b-1 ✅** карточки акций
+  каталога города — правила + дубли → машинная пометка в очереди «Melden» (не скрывает, не голос). **D2b-2 ✅**
+  ИИ-модерация каталога поверх правил (выключена до ключей ЕС, потолок 300/день + 20/бизнес; ИИ только
+  добавляет коды в ту же пометку). **Д2 ЗАКРЫТ.** **Д3 GBP-синк** (план `docs/d3-gbp-sync-plan-2026-10-18.md`):
+  **D3-1 ✅** (без миграций) клиент Google + выбор локации + экран `/dashboard/channels/google/`;
+  каналы только владельцу; все писатели конфига канала — через блокирующий `Channel.update_config`.
+  **D3-2 ✅** часы работы ↔ Google вручную с диффом (стирание дней — только с галочкой).
+  Импорт постов из Google (D3-3/D3-4a) снят владельцем: данные идут только от нас в Google.
+  **Д3 закрыт на D3-1 + D3-2.**
+  **M23b 🚧** фид товаров для Google Merchant Center (план `docs/m23b-merchant-feed-plan-2026-10-18.md`):
+  **M23b.1 ✅** (⚠️ `catalog/0039`) — отбор `catalog/google.py`, адрес `/feed/merchant/<token>/products.xml`,
+  флажок «Nicht an Google senden»; **M23b.2 ✅** (без миграций) экран `/dashboard/channels/google/merchant/`
+  (тумблер, адрес + «Kopieren», новый адрес, исключённые по причинам; токен шифротекстом в SECRET_KEYS);
+  **M23b.3 ✅** (без миграций) фид наличия в магазине `/feed/merchant/<token>/local.xml` (код магазина
+  вручную или из профиля Google; id позиций ≤ 50 знаков, один источник для обоих фидов); **M23b.4 ✅**
+  (без миграций) цена акции в фиде тем же расчётом, что корзина; mystery/исчерпанный лимит — товар вне фида. **M23b закрыт.**
+  **SF-9 + SF-10 ✅** (без миграций, решение владельца «закрыть / снимать»): mystery-акция больше не
+  трогает цену товара (тизер без цены на детали); исчерпанная по лимиту акция уходит с витрины и из
+  слоя цены (`Promotion.on_sale_q()`), её страница `/p/<uuid>/` остаётся; гонка корзины — `promo_seen`.
+  **T-8.10f 🚧 MCP-сервер каталога города** (план `docs/t8-10-rest-plan-2026-10-19.md`): F-1 каркас
+  `POST /mcp/` (свой слой без SDK, выключатель `MCP_ENABLED`) · F-2 пять инструментов чтения тем же
+  движком, что портал (⚠️ `aggregator/0031` choices-only) · F-3 `next_step` + атрибуция `ch=mcp` +
+  машинный учёт отдельной строкой · F-5 `mcp_smoke` + гайд `docs/mcp-connect-guide-2026-10-19.md`.
+  **F-4 ✅** (без миграций, план `docs/t8-10f-f4-plan-2026-10-19.md`): «отложить»/«купон» из
+  ассистента — инструмент только шлёт человеку письмо со ссылкой (ожидающее действие в кэше:
+  sha256 токена, адрес зашифрован, ≤ суток), резерв/купон создаются кликом на странице
+  `/p/<uuid>/ki-bestaetigen/<token>/` поддомена теми же сервисами (канал `mcp`); лимиты
+  атомарно до отправки, отказ по адресу — тем же ответом (нет «оракула»), письмо задачей
+  Celery, «Das war ich nicht» глушит ящик 30 дней; владельцу демо письма нет. Видно
+  ассистенту только при `MCP_ACTIONS_ENABLED=1` и настоящей почте (Resend или SMTP).
+  **F-4e:** демо-засев пишет адреса только в `example.com` (замок). Два раунда ревью
+  django+security. ⚠️ ops: `seed_demo_tenants --recreate` (новые адреса демо).
+  **T-8.10g ✅** (без миграций, план `docs/t8-10g-reply-draft-plan-2026-10-19.md`): «✨ Antwort
+  vorschlagen» в «Nachrichten» и на карточке сделки — черновик из фактов базы, постпроверка
+  отбрасывает любые новые числа/цены/ссылки/контакты/скидки/утверждения/аллергены, отправляет
+  человек; абзац про ИИ в генерируемой Datenschutzerklärung. Дальше — F-6, T-8.10d/b.
+- **Самое свежее (2026-10-19): T-8.10d D-0…D-1 — подписка на набор фильтров поиска (⚠️ миграции
+  `aggregator/0032`+`0033`).** План `docs/t8-10d-search-subscriptions-plan-2026-10-19.md`. Отчёт
+  `search_log_report` (данные для решения о D-2); марка товара в каталоге города + `?marke=`,
+  `?unternehmen=`; цель подписки «query» (обобщение Folgen): набор фильтров канонизирован белым
+  списком, без даты/«geöffnet»/координат, DOI, лимит 20/10, сводка тем же путём, что «Alle
+  anzeigen», дедуп внутри письма; кнопка «Benachrichtigen, wenn es so etwas gibt» под выдачей
+  портала и `/entdecken/`, сужение подписки на компанию. ⚠️ ops: `sync_aggregator` →
+  `rebuild_search_index`. Дальше — D-2 по данным D-0, T-8.10b, F-6.
+- **Самое свежее (2026-10-19): T-8.10d D-2 ✅ + T-8.10b B-1 ✅ (БЕЗ миграций).** **D-2** — ИИ
+  «фраза → фильтры» на портале и `/entdecken/` (`aggregator/ai_search.py`): асинхронная подсказка
+  под малой выдачей, только закрытый словарь + белый список фильтров, применяет житель кликом;
+  **выключено** (`AI_SEARCH_ENABLED=False`) до `d2_recommended` в `search_log_report` и абзаца в
+  Datenschutz. **B-1** — акция из сообщения владельца в Telegram: разбор правилами
+  (`promotions/message_parse.py`), превью ✅/✏️/❌, ✅ в Celery той же формой, что веб-ассистент
+  (`quick.publish_built`), ✏️ → веб-форма `?entwurf=`; общий claim. ⚠️ ops: после деплоя
+  `telegram_resync_webhooks` → `--apply`. **B-2 ✅** (ИИ по фото — только пустые описательные
+  поля, числа только из текста) + **B-3 ✅** (`/wiederholen`) — **T-8.10b ЗАКРЫТ**. Дальше: F-6
+  (оценка пилота MCP — после 4 недель данных) и включение D-2 по решению владельца.
+- **Самое свежее (2026-10-20): T-8.10h «общий Telegram-бот платформы» ЗАКРЫТ ЦЕЛИКОМ (H-1…H-6;
+  ⚠️ миграция `platform_bot/0001`, SHARED).** План `docs/t8-10h-platform-bot-plan-2026-10-19.md`.
+  Один бот на всю платформу для владельцев без своего бота: **H-3** подключение из кабинета одной
+  кнопкой (одноразовая ссылка-токен) + `/geschaeft` + уведомления владельцу через общий бот;
+  экран «Telegram platform bot» в админке платформы (токен/вкл/«Webhook setzen», только
+  суперпользователю; ключи — зашифрованный `PlatformSecret`, `.env` — запасной). **H-4** акции
+  через общий бот (кнопки `pb:`, строка «🏪 Für: <бизнес>»). **H-5** регистрация нового бизнеса в
+  чате той же формой и тем же провижинингом, что `/aktion-starten/`. **H-5b** (решение владельца
+  «нужна проверка почты»): до 5 бизнесов на чат, чат становится владельцем ТОЛЬКО после
+  подтверждения почты (двухшаговая страница: GET показывает, POST подтверждает). **H-6** DSGVO:
+  `/datenschutz`, `/daten_loeschen` (связи + следы в зеркалах бизнесов через единственного
+  писателя `links.py` + кэш), сроки 30/180 дней beat'ом, команды бота на 5 языках, раздел 8
+  Datenschutzerklärung бизнеса, замок «каждая строка бота переведена». ⚠️ ops: деплой → админка
+  «Telegram platform bot»: токен + включить + «Webhook setzen» (ставит и команды) → в @BotFather
+  privacy mode ВКЛ → `RESEND_API_KEY` (письма подтверждения) → юр. вычитка раздела 8.
+- **Самое свежее (2026-10-20, вечер): T-8.14 «Тематический портал» + T-8.28 «Бот портала v2» ✅
+  (⚠️ миграции `aggregator/0034` + `0035`, SHARED, аддитивные).** План
+  `docs/t8-14-28-themed-portal-bot-plan-2026-10-20.md`. **T-8.14:** охват портала — ОДНА точка
+  `apps/aggregator/portal_scope.py` (город · тип · демо · тема = признаки «любой из» И разделы
+  «любой из»; карточка компании — по её предложениям); все пути чтения портала переведены,
+  AST-замок запрещает ручной охват в `listings_for`; попутно закрыта дыра «сводка вертикального
+  портала без типа бизнеса»; поддомены «<город>»/«gesund-<город>» зарезервированы в регистрации;
+  демо `gesund-solingen.<base>`. **T-8.28:** бот портала — поиск в чате тем же движком и пулом
+  (тема действует), разделы/районы кнопками, «Folgen» с подтверждением кнопкой (UWG §7),
+  `/folgen`, сводка новых предложений СООБЩЕНИЕМ вместо письма (403 → чат помечен), DSGVO-команды,
+  сроки хранения beat'ом, команды на 5 языках; `PortalChat`, `PortalUser.email` nullable, вебхук —
+  отказ до БД + Celery с дедупом. ⚠️ ops: деплой → `seed_demo_tenants --kit <любой кит Solingen>`
+  (создаст `gesund-solingen`) → админка «Portal bots»: токен + «Connect» (ставит вебхук и команды)
+  → privacy mode в @BotFather оставить ВКЛ → абзац о Telegram-подписках в Datenschutzerklärung
+  портала (юр. вычитка).
+- **Самое свежее (2026-10-20, ночь): T-8.10h H-7 «бот владельцев по фидбэку + права DSGVO» ✅
+  ЦЕЛИКОМ (⚠️ `platform_bot/0002` + `aggregator/0036`).** План
+  `docs/t8-10h-h7-owner-bot-ux-plan-2026-10-20.md` (рекомендации приняты владельцем). Фото к
+  черновику после превью (альбом — после «📷 Foto hinzufügen»), `/hilfe` и меню, `/kabinett`
+  (вход письмом сразу на нужный экран), «Wo ist meine Aktion?» (`promotions/where.py`),
+  `/aktionen` с ⏸/▶/⏹ через FSM (`promotions/telegram_actions.py`), `/profil` (телефон,
+  WhatsApp, каталог города), `/eigener_bot` (только инструкция), права Art. 15/16/18/20/21 в
+  обоих ботах (`platform_bot/rights.py` + `OwnerBotPrefs`; бот портала — `/pausieren`,
+  выбранный язык, отказ от Telegram-подписок). Ограничение Art. 18 проверяется в точке
+  отправки. Ревью закрыли 9 дефектов (главный — альбом с поздней подписью уходил в чужой
+  черновик). ⚠️ Владельцу: юр-вычитка §8/§8a Datenschutz; после деплоя — «Connect» бота
+  платформы и ботов портала заново (обновит список команд).
+- **Самое свежее (2026-10-20, ночь): T-10 «Быстрый деплой» ✅ (без миграций).** План
+  `docs/deploy-speed-plan-2026-10-20.md`. Часы уходили на пересев демо (каждая схема — ~350
+  миграций). D-0/D-3/D-4/D-5: тайминги шагов, зависимости по `uv.lock` отдельным слоем, один
+  образ, миграции схем пропускаются при чистом `migration_state --check` (иначе параллельно).
+  **D-1:** схема бизнеса копией шаблона `_template` (`apps/tenants/schema_template.py`, ~2,5 с
+  вместо ~100 с; встроенный `TENANT_BASE_SCHEMA` отвергнут — он делает `--fake`): только свежий
+  и чистый шаблон, сверка структуры копии в той же транзакции, расхождение = откат на миграции;
+  шаг деплоя 6a `ensure_template_schema`. Замок нашёл дефект функции копирования (имена UNIQUE
+  `…_uniq` → `…_key`) — имена восстанавливаются. **D-2:** `seed_demo_tenants --changed`
+  пересевает только киты с изменённым отпечатком (`site_config["demo_kit"]`), `--stamp` — разовая
+  пометка. ⚠️ ops: деплой → `seed_demo_tenants --group all --stamp` один раз → дальше
+  `--group all --changed --jobs 3`. Правило: правка кода сидера (не спеки) — поднять
+  `SEEDER_VERSION`.
+- **Самое свежее (2026-10-20): T-8.29 «Verbindungen sichtbar» ✅ (без миграций) + план T-8.31.**
+  Владелец не видел настроек своего бота и интеграций: лёгкий кабинет не имел входа, модуль
+  `telegram` выключен по умолчанию (экран = 404), кнопка общего бота вела в этот 404. Теперь
+  «🔌 Verbindungen» в лёгком меню, карточка «Eigener Telegram-Bot» с включением модуля
+  владельцем (с подтверждением), подключение своего бота не рвёт связь с общим ботом (Р-1).
+  Ревью: удалённый владелец сохранял бы доступ через общий бот — исправлено замком.
+  Решения владельца по Mini App: Р-1…Р-5 «по рекомендации»; порядок T-8.29 → **T-8.31**
+  (лёгкий кабинет по макету, план `docs/t8-31-mein-laden-plan-2026-10-20.md`) → T-8.30
+  (Mini App, план `docs/t8-29-30-integrations-miniapp-plan-2026-10-20.md §2`).
+- **Самое свежее (2026-10-20): T-8.31 «Mein Laden» ✅ (без миграций).** Лёгкий кабинет по
+  утверждённому макету: «Start» (акции, ассортимент, где видно, следующий шаг), страница акции
+  «So sehen Kunden die Aktion» (витрина и каталог города из настоящих партиалов, один
+  построитель листинга для синка и превью), «Sichtbarkeit & Verbindungen» (токен своего бота —
+  на странице). Меню Start · Aktionen · Angebot · Sichtbar. Ревью закрыло дыру: подключать/
+  отключать своего бота теперь может только владелец. Дальше — **T-8.30 Mini App**.
+- **Самое свежее (2026-10-20): T-8.30 Mini App «Mein Laden» ✅ (без миграций).** Кнопка меню
+  общего бота открывает лёгкий кабинет без пароля: подписанный `initData` → одноразовая ссылка
+  на поддомен → сессия 12 ч ТОЛЬКО в лёгкие экраны (белый список `tg_login.TG_LITE_VIEWS`, отзыв
+  связи/Art. 18/роли на каждый запрос; прочий кабинет — «nur per E-Mail»). Р-5: полный кабинет
+  в Telegram тоже лёгкий. Стенд 24/24, ревью закрыли 6 находок. ⚠️ ops: «Webhook setzen» в
+  админке «Telegram platform bot» (ставит кнопку меню) + фраза о Mini App в Datenschutz.
+  Дальше — T-8.30e (экраны кассы в Mini App).
+- **Самое свежее (2026-10-21): T-8.30e «Касса в Mini App» ✅ (без миграций).** В Telegram открыты
+  отложенное (`?status=offen` = счётчик «N offen»), выдача в одно нажатие, погашение кода и
+  ваучеров; сканер — нативное окно Telegram через мост без SDK, ручной ввод всегда. Закрыт
+  открытый переход сканеров по QR; в Telegram автопогашение только по POST сканера. Стенд 20/20.
+- **Самое свежее (2026-10-21): T-8.30f «Хвосты Mini App» ✅ (⚠️ `platform_bot/0003`+`0004`).**
+  P0: `still_owner` читал Membership в public (ошибка в `/profil` и кнопке «🔑» бота) — теперь
+  в схеме бизнеса. Повторное открытие Mini App той же initData (до 3 входов, тот же IP, прежние
+  токен и сессия гаснут). Владелец закреплён в самой связи `OwnerTelegramLink.user_pk`.
+- **Самое свежее (2026-10-21): T-8.30g + T-8.30h ✅ (без миграций).** Погашение у прилавка только по
+  POST (GET страниц кода/ваучера ничего не гасит; «Sofort einlösen» = встроенный сканер гасит сам;
+  двойной тап защищён). Первый запуск Mini App без бизнеса — кнопки «Neues Geschäft anlegen» /
+  «Ich habe schon ein Geschäft» / «Im Browser registrieren» вместо тупика; бот понимает `/start neu|mail`.
+- **Самое свежее (2026-10-21): CO-2 v2 «Счёт фирме из брони» ✅ (⚠️ `stays/0036`+`booking/0031`).**
+  Счёт фирме теперь на фирму с USt-IdNr и адресом (раньше — на имя гостя), блок
+  «Rechnungsempfänger» на карточке сделки, привязка к справочнику компаний, «Kauf auf Rechnung»
+  у брони номера/записи — счёт сам при подтверждении. План `docs/co2-v2-company-billing-plan-2026-10-21.md`.
+- **Самое свежее (2026-10-21): T-8.30i «Регистрация внутри Mini App» ✅ (без миграций).**
+  «Neues Geschäft anlegen» больше не закрывает окно: одноразовая ссылка на быструю
+  регистрацию в том же окне, Telegram передаётся в провижининг, кабинет — после почты.
+- **Самое свежее (2026-10-21): T-8.30k «Veröffentlichen» без ложного «Zu viele Versuche» ✅ (без
+  миграций).** Повторный тап идемпотентен (ключ — хэш метки формы), лимиты считают регистрации
+  (`ratelimit.refund` при отказе без побочного эффекта), у каждого лимита свой текст, кнопка с ходом.
+- **Самое свежее (2026-10-21): T-8.30l сканер + вход через Telegram ✅ (без миграций).** Сканер
+  погашения на странице и в Telegram (jsQR там, где нет BarcodeDetector); клиент входит в
+  «Konto» в Mini App кнопкой «Mit Telegram anmelden» (подпись только бота магазина).
+- **Самое свежее (2026-10-22/23): концепция пакетов T-8.32/33 + программа аудита кабинета KA +
+  хотфиксы KA-H1/H2 (БЕЗ миграций, в main).** Решения владельца: «Paket × Richtung»
+  (Aktionen / Eintrag / Website-витрина / Laden), жёсткий гейт готовности, бесплатно только на
+  тест (5 акций/50 товаров/немного ИИ), затем 19 или 29 € с пакетом ИИ, склад/финансы —
+  Profi-модули, **тарифы скрыты** до объявления; AGB — внешний генератор
+  (`docs/t8-32-tiers-data-ai-setup-concept-2026-10-22.md`). Программа KA-0…KA-11
+  (`docs/ka-cabinet-audit-program-2026-10-22.md`): **сначала анализ, переработка после сводки
+  KA-11; деньги/данные/закон — сразу хотфиксом.** KA-0 ✅ (`ka-0-inventory`). KA-H1: сохранение
+  своих статусов было без входа + замок «каждая вьюха кабинета требует входа»; KA-H2: IBAN
+  Vorkasse — только владелец, mod-97, письмо при смене. Дальше: KA-0 скриншоты → KA-1/KA-2.
+- **Самое свежее (2026-10-23): программа KA — KA-3 (пакеты, решения В-1…В-6), KA-4 (целевая карта
+  кабинета, решения по рекомендации), KA-5a Waren, KA-5b Gastro + хотфиксы KA-H4 (возврат оплаты при
+  отмене с ЛЮБОЙ поверхности — одна точка `apps/core/refunds.py`, в main) и KA-H5 (счёт из сметы со
+  скидкой и без 404, гости в ручной брони, Zusatzstoffe в PDF-меню; ⚠️ `jobs/0021`).** Доки —
+  `docs/ka-3-packages…`, `ka-4-structure…`, `ka-5a-waren…`, `ka-5b-gastro…` (2026-10-23). Дальше:
+  KA-5c (Termine: friseur, werkstatt).
+- **Самое свежее (2026-10-23): пилот-батчи A+B ✅ в main + T-8.32a + T-8.34.** Батч A: каталог
+  города всегда (тумблер убран, снять — только оператор), финансовые выгрузки — роли admin,
+  витрина до подтверждения почты = «bald online». Батч B (⚠️ `finance/0014`): выручка заявок в
+  журнал при счёте, отмена брони отеля спрашивает «erstatten / nicht», онлайн-оплата держит
+  место 24 ч. **T-8.32a** (план `t8-32ab-package-gate-plan-2026-10-23.md`): потолок модулей
+  лёгкого пакета в `is_module_active` — с лёгкой витрины ушли блог/ЛК/дубль «Angebote»;
+  `package_report` до деплоя. **T-8.34**: «Pizza morgen» на портале находит пиццу у тех, кто
+  открыт (дата сужает товары часами работы). Дальше: T-8.32b (кабинет по адресам → 403
+  «nicht enthalten»), затем батчи D/E/C/F пилота.
+- **Самое свежее (2026-10-23, вечер): T-8.32b + батч D + T-8.34b + AI-CFG — в ветке/main.**
+  **T-8.32b** кабинет лёгкого пакета по белому списку адресов (`PackageScopeMiddleware`, 403
+  «nicht im Paket»). **Батч D (KA-P4)** списки кабинета страницами по 50 «1–50 von N» + поиск
+  клиента в счёте. **T-8.34b** слова даты/«открыто» на 5 языках («пиццу завтра» находит пиццу).
+  **Mini App** «Anrufen»/почта — номер с «Kopieren». **AI-CFG (⚠️ `ai/0002`, SHARED):** настройки
+  ИИ в админке платформы «KI-Einstellungen» (`apps/ai/config.py`: админка → `.env`; значения из
+  БД строго по типу реестра; «Nur EU» из `.env` — пол и в проверке формы; проверка формы против
+  состояния ПОСЛЕ сохранения; строка блокируется, аудит в той же транзакции); `ai.W004` глушится
+  `SILENCED_SYSTEM_CHECKS` из `.env`. Попутно «сладости»: кириллический порог похожести 0.5 и
+  подсказка ИИ на одно слово без точных совпадений. Корневой `conftest.py` сбрасывает кэш
+  настроек ИИ перед каждым тестом. План `ai-cfg-admin-settings-plan-2026-10-23.md`.
+- **Самое свежее (2026-10-23, ночь): KA-6 батч E «кабинет с телефона» ✅ (без миграций).**
+  Цены принимают «12,50» на любом языке (`core/money.py` + `MoneyField`, текст вместо
+  `type=number`), поля 16 px (iOS не зумит), «Speichern» над таб-баром, видимость товара с
+  явным состоянием и «Rückgängig», ✕ фото отдельно от ★ со вторым касанием, общий сканер
+  ваучера с jsQR (iOS/Telegram). **Батч C ✅ (без миграций):** время самовывоза в корзине —
+  окна из часов работы, ёмкость под advisory-блокировкой в `create_order`, показ в
+  подтверждении/письмах/карточке (`apps/orders/pickup_slots.py`). **T-8.34c/d ✅:** поиск
+  портала понимает ru/uk/en/tr — словарь основ (`search_synonyms.CROSS_LANG`) + ИИ-подстраховка
+  для незнакомых слов (`aggregator/ai_expand.py`, асинхронно, карточки из базы; вкл. =
+  `AI_SEARCH_ENABLED` + задача `search_query_expand`). Дальше: батч F.
+- **Самое свежее (2026-10-23, ночь): пилот-батч F — KA-MC денежный контракт + KA-GP золотые
+  пути ✅ (без миграций); фикс шапки лёгкой витрины.** `apps/core/money_contract.py` — одно чтение
+  денег сделки (итог/оплачено/возвращено/ждём/проведено) + единые карты состояний оплаты +
+  `settle_payment` (кнопка «bezahlt», банк, оплата счёта — один путь). Сквозной инвариант
+  `test_money_invariant` (6 видов × 32 пути) закрыл X1 (на месте = оплачено при исполнении,
+  решение владельца), X3 (одна строка на сделку в Offene Posten), X4, X5 (счёт 24,99 € вместо
+  25,00 €), X6 (удержанное при неявке — выручка) и невидимые Vorkasse-брони. Выручка — при
+  исполнении (решение MC-D1). Известные пробелы: MC-E8/H6/Z9/J1/T1. `scripts/golden_paths.py` —
+  Playwright-стенд «Zurücklegen» + Click & Collect. Шапка лёгкой витрины: меню, сохранённое
+  мастером/дизайном, больше не считается «собранным владельцем» (сравнение структуры с автоменю).
+- **Самое свежее (2026-10-23): T-8.30m «Nachrichten» с историей (без миграций).** Иконка чата в
+  таб-баре Mini App (была пустым кругом), подписи «кто/когда» в беседах, превью последнего
+  сообщения, прежние беседы клиента; витрина помнит беседы и контакт ЭТОГО браузера (кука
+  `sa_threads`, 30 дней) — почту не спрашивает снова. Ревью: контакт только свой, не по чужой почте.
+- **Самое свежее (2026-10-23): KA-12 — полный план доработок (`docs/ka-12-master-plan-2026-10-23.md`,
+  элементы E0–E11, волны 0–5; порядок согласован владельцем) + Волна 0 + Волна 1.1 + Волна 1.2.**
+  Волна 0: htmx/карты со своего сервера (DSGVO), плитка ваучеров, KDS по типу, автовыезд после 14:00.
+  W1.1 (⚠️ `tenants/0038`): правовые данные Impressum в лёгком «Geschäft», «Anfragen», Mini App без
+  тупиков, Drama Numbers. W1.2 (⚠️ `finance/0015`): Stornorechnung своим номером, PDF по ставкам с
+  переносом страниц, адрес частного получателя > 250 €. W1.3 (⚠️ `catalog/0040`): выдача онлайн-заказа
+  только после оплаты, счётчики прилавка, время самовывоза у акции/предложения, 7 % у еды,
+  «Heute ausverkauft», окно времени у товарной акции.
+  **E6.1** (без миграций): «🛡 Datenschutz-Anfrage» в карточке клиента — выгрузка ZIP и удаление
+  по политике на каждую модель (`apps/crm/dsgvo.py`, общая с ЛК и CLI), суммы/счета — по закону.
+  **E6.6** (без миграций): лимит 5 акций под блокировкой на всех путях, один купон/резерв на
+  человека без гонки, неподтверждённый резерв держит товар 4 ч, потолки на контакт/IP, «купон только письмом».
+  **E11.2/E11.5** (без миграций): обход всех экранов сотрудником и админом (единый источник ролей
+  `roles.OWNER_ONLY_PREFIXES`) + команда `pilot_report` и памятка пилота Solingen.
+  **Волна 2 «структура кабинета»** (без миграций, план `ka-12-w2-structure-plan-2026-10-23.md`):
+  батч 1 — замки и единый гейт `nav_registry.entry_visible`; батч 2 — учёт товаров (Kategorien/
+  Lager/Einkauf/Import) только у направления «Waren» (тип, заказы, товар или категория), снят
+  дубль-хаб catalog, часы/ресурсы/блокировки и Channel Manager → Einstellungen, «Kunden» и
+  «Abläufe» убраны из подменю продаж, блог выключен по умолчанию, events у туроператора,
+  booking не у отеля (киты с постами/услугами включают сами; `SEEDER_VERSION=2`); батч 3 —
+  раздел «Finanzen» (7-й якорь, только при модуле finance/analytics; иначе его экраны — группой
+  в Einstellungen), «Marketing & Kunden» (группы Kunden · Aktionen · Reichweite, раздел ведёт на
+  первый доступный экран), подменю Einstellungen группами с подзаголовками, лендинги
+  marketing-home/integrations-home → 302, карточки подключений — секция «Verbindungen» на
+  «Kanäle & Benachrichtigungen», Telegram-бот — в Einstellungen.
+  Батч 4 — подпись меню = заголовок страницы (тег `nav_title`, замок DE+RU по всем экранам) и
+  мобильный таб-бар Übersicht · Verkäufe · ＋ · Nachrichten · Mehr. **Волна 2 закрыта.**
+- **Самое свежее (2026-10-24): T-11 хотфикс деплоя + KA-12 Волна 3 батч 1 «деньги без миграций».**
+  T-11: прод `web` не стартовал — `collectstatic` падал на `sourceMappingURL` вендорных
+  leaflet/maplibre без `.map` (пустые валидные карты + замок класса). Батч 1 (план
+  `ka-12-w3-money-plan-2026-10-24.md`): свой статус отмены «ohne Erstattung» (только владелец,
+  выручка не сторнируется), рассрочка возвращает каждую оплаченную долю, подсказка владельцу об
+  остатке наличными, выручка неоплаченного билета — при «attended», депозит заявки не правится
+  после оплаты, принятие сметы без двойного списания сертификата, сертификат в счёте — оплата, а
+  не Rabatt (скидку такой сделки не правим до точного поля). Дальше: батч 2 с миграциями
+  (фолио платежей, онлайн-остаток, частичный возврат, MC-J1) — `ka-12-w3-batch2-plan-2026-10-24.md`.
+- **Самое свежее (2026-10-24): KA-12 W3 батч 2 — B2-1/B2-2/B2-3/B2-5 ✅ (⚠️ миграции `stays/0038`,
+  `booking/0033`, `orders/0025`, `events/0031`, `core/0011`).** Точная сумма сертификата на сделке;
+  принятая заявка с неоплаченным депозитом — в Offene Posten; фолио платежей `core.DealPayment`
+  (`apps/core/folio.py`, деньги контракта читаются из книги); остаток после Anzahlung — онлайн
+  (`apps/core/balance_pay.py`, вебхук `deal_balance`, «Zahlungslink senden» на карточке). Дальше:
+  B2-6 напоминание об остатке билета → B2-4 частичный возврат → B2-7 Rechnungskorrektur → B2-8
+  (после T-1/T-3). Задеплоено владельцем. **Затем B2-6 ✅** (остаток билета в напоминании перед
+  событием) **+ B2-4a ✅** (возврат переплаты владельцем — карта/наличные, без миграций) **+ B2-4b ✅**
+  (Minderung: цена ниже + сторно выручки по ставкам) **+ B2-7a ✅** (сертификату — ровно списанное)
+  **+ B2-7b ✅** (⚠️ `finance/0016`: Rechnungskorrektur — корректура выставленного счёта своим
+  номером; Minderung при счёте выпускает её) **+ B2-7c ✅** (ручная «Gutschrift erstellen» на
+  странице счёта) **+ B2-8a ✅** (⚠️ `tenants/0039` + `core/0012`: режим Soll/Ist/§ 19 в «Recht &
+  Steuern» и лёгком «Geschäft»; срез UStVA по режиму `apps/finance/ustva.py` — Mindest-Ist для
+  предоплат, Ist по датам денег и возвратов) **+ B2-8b ✅** (⚠️ `finance/0017`: Anzahlungsrechnung —
+  счёт на предоплату по ставкам сделки, не выручка и не счёт сделки, оплата синхронизирована с
+  депозитом; за флагом `ADVANCE_INVOICES_ENABLED`) **+ B2-8c ✅** (без миграций: вычет оплаченной
+  предоплаты в итоговом счёте по ставкам, автосторно неоплаченной при итоговом счёте и отмене сделки;
+  флаг включать после подтверждения формулировок PDF Steuerberater'ом) **+ B2-8d ✅** (без миграций:
+  даты денег заявки → Mindest-Ist/Ist, авто-Anzahlungsrechnung фирме с письмом, письмо о сторно).
+- **Самое свежее (2026-10-24, вечер): KA-12 W3 «ресурс-календарь» — E4.8 · E4.7a/b · E4.1a · О-3/О-8
+  (без миграций).** Отчёт Belegung считает внешние iCal/OTA-блоки проданными ночами (ADR/RevPAR — только
+  свои); правка брони без «Neu berechnen» держит цену за ночь и идёт одной транзакцией; мультикомнатная
+  бронь — N полос на шахматке; **Betriebsferien** (`apps/core/closures.py`, экран
+  `/dashboard/settings/betriebsferien/`, и в лёгком пакете/Mini App): баннер витрины, «открыто сейчас»,
+  слоты самовывоза, в каникулы закрыты заказ без времени и «Kaufen»/«Zurücklegen» (купон и запрос
+  работают). Ревью нашло CRITICAL — `@transaction.atomic` съехал с `move_stay` на вставленный хелпер →
+  возвращён + замок. **E4.1b** запись без своих правил — в часы работы бизнеса; **E4.3** перенос/ручная
+  запись проверяют каникулы и часы («Trotzdem eintragen»), клиент получает «Termin verschoben» и новое
+  напоминание. **E4.1c** (⚠️ `tenants/0040`): снимок каникул на Tenant — портал, поиск «offen» и MCP
+  показывают «Betriebsferien bis …»; закрыть весь бизнес может только владелец.
+- **Самое свежее (2026-10-24, вечер): KA-12 W3 «Сделка» — E2.1/E2.2/E2.3/E2.4/E2.8/E2.9 (без миграций).**
+  Сортировка `?sort=` списков продаж белым списком; счета — чипы статуса/«Überfällig»/вид/поиск/период
+  (поиск по получателю — только владельцу и бухгалтеру); peek у заказов и доски; нижний лист статуса на
+  телефоне + `<dialog>`-подтверждение опасных шагов на всех формах статуса; массовая смена статуса
+  (≤50, отмена ≤10, сервер пересчитывает пересечение, частичный успех с причинами) + Lieferscheine
+  пачкой; CSV продаж только владельцу. План `docs/ka-12-w3-deal-plan-2026-10-24.md`; входящие в две
+  панели — E2.9b (отложено). **Решение владельца:** возврат денег отменой — только владелец или
+  бухгалтер (проверка в `transactions.apply_action`, отказ на всех поверхностях).
+- **Самое свежее (2026-10-24, ночь): KA-12 E4.10a — блок дат на конкретную комнату (⚠️ `stays/0039`).**
+  План волны «правила ресурсов» B1–B6 — `docs/ka-12-w3-resources-plan-2026-10-24.md` (E4.10a/b, E4.2a/b,
+  E4.4a/b); дальше B2 (N комнат мультиномерной брони, `stays/0040`).
+- **Самое свежее (2026-10-24, ночь): KA-12 E4.4a (⚠️ `booking/0035`+`0036`) — буфер после визита,
+  минимальный срок и горизонт записи услуги; ревью Django/база/безопасность закрыты; в `main`.**
+- **Самое свежее (2026-10-24, ночь): KA-12 E4.10b + E4.2a (⚠️ `stays/0040`, `booking/0034`).** Бронь на
+  N номеров хранит все назначенные номера (`extra_rooms`; шахматка, выезд, форма «Zimmer 2…N»); навыки
+  мастеров — услуга бронируется только у своих мастеров, все выключены → закрыта (fail-closed).
+- **Самое свежее (2026-10-24, ночь): KA-12 E4.4b варианты услуги + E4.2b Tagesplan «мастер × время» +
+  B6 правила отмены/самоперенос (⚠️ `booking/0037`+`0038`+`0039`).** Варианты (Langhaar/Mittellang) со своей
+  ценой и длиной, «ab»-цена в листинге; сетка дня по мастерам с перетаскиванием (время и мастер,
+  проверки по целевому ресурсу); окно бесплатной отмены + «Anzahlung einbehalten/immer erstatten»
+  снимком на записи, гостевая ссылка «Termin verwalten» (отмена и до 2 переносов), ЛК подчиняется тем
+  же правилам, визит Mehrfachkarte возвращается только в окне. Планы `ka-12-w3-b4b-/b5-/b6-…`.
+- **Самое свежее (2026-10-25): Волна 3 KA-12 ЗАКРЫТА (B4b/B5/B6 в main) + Волна 4 · Termine:
+  E11.1 золотой путь + E6.4a неявки + E6.4b история процедур (⚠️ `crm/0003`).**
+  **E6.4d** (без миграций): заметки мастера удаляются beat'ом через 3 года после последнего визита
+  (текст Datenschutz назвал срок). **E6.4c** (без миграций): после ≥2 неявок по e-mail онлайн-запись только
+  с депозитом, без Stripe — просьба позвонить без брони (правило владельца на странице услуг). Дальше:
+  направление «Zimmer» (`ka-12-w4-zimmer-plan-2026-10-25.md`): **Z-0 ✅** золотой путь (GP-4 + двойник,
+  стенд 52/52) · **Z-1 ✅** (⚠️ `stays/0041`) снимок цен ночей брони, скидка владельца из снимка сделки,
+  «Rechnung» из списка броней — общий счёт сделки · **Z-2 ✅** (⚠️ `stays/0042`) NightRate — цена и
+  ограничения ночи во всех расчётах, витрина/фид/портал/подсказка учитывают стоп-продажу · **Z-3 ✅** (без
+  миграций) экран «Preise & Verfügbarkeit» (`/dashboard/stays/preise/`): сетка категория×день, массовая правка
+  с Vorschau и отпечатком против двойного клика, диалог дня; единственный писатель NightRate
+  `stays/night_rates.py`, правят owner/admin · **Z-4 ✅** (⚠️ `stays/0043`) тарифы по категориям: явный флаг
+  `RatePlan.applies_to_all` + `units` (удаление категории не расширяет тариф), один хелпер `stays/rate_plans.py`,
+  чужой/выключенный/мусорный тариф — честный отказ (витрина, стойка, `book_stay` под локом с перечитанным
+  тарифом), «— ohne Tarif —» на стойке, сезоны без пересечений (`add_season_rate`), цены и ценообразующие
+  правила — только owner/admin. Затем **E6.7 права сотрудников** (решения «по рекомендации»): **E6.7a ✅** реестр `core/permissions.py` + все ролевые проверки экранов на `has_perm` (паритет, без миграции); **E6.7b ✅** право у каждого из 298 экранов кабинета (`core/view_perms.py`, проверка в middleware); **E6.7c ✅** (⚠️ `core/0013`) хранение прав дельтой к пресету, единственный писатель `core/perm_grants.py`, инвайт v2 с перепроверкой, ролевые префиксы/декораторы сняты (только `view_perms` + пол владельца); **E6.7d ✅** (без миграций) экран выдачи прав на «Team & Zugriff»: чекбоксы по группам с причиной недоступности, 🔒 у чувствительных, «запертое» право держит свои requires (`needed`), инвайт с правами выбранной роли, подписи 55 ключей ×5 локалей (`core/perm_ui.py`); **E6.7e ✅** (без миграций) навигация по правам: один источник `view_perms` → `nav_registry.hidden_for` (флаг owner_only снят), раздел без разрешённых экранов скрыт, «＋»/зашитые ссылки (`can_open`) по праву, главная — петля продаж и виджеты по праву раздела, вкладка «Kunden» продаж по `kunden.view` (была дыра); не-член команды — меню как прежде (кабинет его не пускает); **E6.7f ✅** (без миграций) шаблоны ролей (Leitung/Buchhaltung · Mitarbeiter/Aushilfe · отель Rezeption/Housekeeping · гастро Küche) одной кнопкой на форме прав, подпись «Vorlage · angepasst»; у сотрудника по умолчанию нет Finanzen, «Abläufe ändern», Domains, Funktionen (В-2/В-3 — у существующих staff пропадут, владелец вернёт точечно); **Z-5 ✅** (⚠️ `stays/0044`) стойка: комната/оплата/тумблер авто-скидок/блок через сервис/предупреждение о правилах продаж; Check-in/out — отметки, выезд = штатный `fulfilled` (право «Rezeption»), неявка заселённого — отказ; «Heute» и виджет — одна точка `front_desk.today_lists`; часы заезда/выезда владельца; ёмкость не ниже проданного (`stays/capacity.py`); **Z-6 ✅** (⚠️ `stays/0045`) Kurtaxe детей, отчёт Kurtaxe для общины (CSV/PDF из снимков, без имён), Meldescheine за месяц (CSV без номера документа, право выгрузки), Meldeschein со стойки и на печать; закрыт дефект «сохранение Hausordnung обнуляло Kurtaxe»; **Z-7 ✅** демо отеля: заезд/выезд сегодня с отметками (`SEEDER_VERSION` 8). **Направление «Zimmer» Волны 4 закрыто.** **E6.7g ✅** (без миграций) право «Kontaktdaten sehen» (`kunden.kontakte`) у всей команды по умолчанию (решение владельца), снимается точечно: без него e-mail/телефон маскируются в CRM, карточках сделок/гостя, кухне, переписке, резервах; поиск по контактам и запись контактов формами (`contact_access.kept`) — только с правом. **Tickets/Touren** (план `ka-12-w4-tickets-plan-2026-10-25.md`): T-0 ✅ золотой путь GP-5 · T-1 ✅ (деньги билета уже закрыты) · T-2 ✅ логистика/лист ожидания/roster · T-3 ✅ ранняя цена + минимум участников (⚠️ `events/0032`) · T-4a ✅ шкала Stornogebühr: самоотмена удерживает процент, остаток картой по нескольким платежам, повтор/гонка не возвращают удержанное (⚠️ `events/0033`). T-4b ✅ перенос билета на другую дату серии/тура (без миграций) · T-5 ✅ данные каждого участника групповой брони: ссылка гостю, правка в кабинете (= смена имени), check-in/roster, DSGVO (⚠️ `events/0034`). T-6a ✅ счёт по билету через общий «Rechnung erstellen» (места × тир, допы своей ставкой, размещение, скидка; сертификат — оплата; «уже получено» по денежному контракту, вкл. рассрочку). § 25 UStG/Sicherungsschein (T-6b) — за Steuerberater'ом, в roadmap. **Направление Tickets Волны 4 закрыто (кроме T-6b).** **Anfragen/Handwerk** (план `ka-12-w4-anfragen-plan-2026-10-25.md`, A-0…A-7): A-0 ✅ золотой путь GP-6 + двойник · A-1 ✅ ссылка на Datenschutz на всех 18 формах витрины с личными данными (замок) · A-2 ✅ ручная заявка = публичная (PLZ/фото/событие/авто/источник) + правка в карточке. A-3 ✅ кейтеринг стартует с формой «дата · гости · повод» (пресет по типу, не перетирает настройку) + «Branchen-Vorlage laden»; наборы/услуги «pro Person» в смете считаются по числу гостей. A-4 ✅ «📅 Termin anlegen» прямо из заявки — общим ядром ручной записи `booking.services.create_manual`, на клиента заявки, со связью. A-5 ✅ (⚠️ `jobs/0022`) фото мастера по видам (до/после/приёмка/сдача, свой лимит) + Abnahmeprotokoll: пункты с отметкой «Mangel», PDF, онлайн-подтверждение клиента на `/auftrag/<token>/` один раз без смены статуса; DSGVO — фото клиента удаляются, акты остаются без имён и заметок (основание § 634a BGB — на вычитку юриста). A-6a ✅ (⚠️ `jobs/0023` схема + `jobs/0024` перенос данных) машина клиента как сущность: карточка «Fahrzeug» в заявке (FIN/Erstzulassung/HU/пробег/история), пробег приёмки не убывает, поиск по Kennzeichen/FIN, раздел «Fahrzeuge» в CRM, DSGVO — машина удаляется, заявка остаётся. A-6b ✅ (без миграций) HU-напоминание по машине, кнопка «Werkstatt-Vorlage» статусов (In Arbeit/Teile bestellt/Abholbereit), письмо «abholbereit», PDF «Fahrzeugannahme». A-7 ✅ (⚠️ `jobs/0025`, за флагом `QUOTE_WITHDRAWAL_ENABLED`, ⚖️ тексты к юристу) Widerrufsbelehrung + снимок при принятии + письмо-договор с PDF + кнопка «Vertrag widerrufen» на странице сметы. **Направление Anfragen Волны 4 закрыто (кроме A-3b).** Дальше — **Gastro** (план `ka-12-w4-gastro-plan-2026-10-26.md`; **GA-0 ✅** золотой путь GP-7 + двойник; **GA-1 ✅** (⚠️ `booking/0040`) «sofort / Gruppenanfrage / bitte anrufen» для столов; **GA-2 ✅** «Gäste heute» + бейдж Gruppenanfrage; **GA-8 ✅** Mittagstisch Mo–Fr (окно в форме акции, повтор пропускает дни, наследник сохраняет цели); **GA-3 ✅** (⚠️ `booking/0041`) места стола: ручная запись больше мест — отказ с «Trotzdem eintragen», онлайн — отказ, перенос — предупреждение, правка вместимости/мест/зоны без 500 (фикс G9); **GA-4 ✅** (без миграций) «Tisch reservieren» на витрине: гость выбирает время и число гостей, стол подбирается сам (наименьший подходящий; занятый между показом и POST уступает следующему), «nur vor Ort»-столы онлайн не бронируются; **GA-5 ✅** (⚠️ `booking/0042`) комбинации столов «Tisch 3+4»: занятая комбинация держит свои столы и наоборот — одна точка `booking/occupancy.py` (область + блокировка всей области в порядке pk) во всех путях брони, переноса, слотов и закрытых дней; **GA-6 ✅** (без миграций) экран «Tischplan»: столы по зонам на момент времени (frei bis / reserviert ab / belegt über Kombination / пул по местам), walk-in и «Tisch zuweisen» штатными путями с возвратом на экран; **GA-7 ✅** демо ресторана: 8 столов в двух зонах + «Tisch 3+4», правило столов, брони по столам (`SEEDER_VERSION` 9); **GA-9 ✅** (⚠️ `catalog/0041`) Tageskarte: дни недели у блюда, отказ чекаута по дню выдачи (предзаказ на нужный день возможен), бейдж «Nur Fr», фасет «Heute auf der Karte», PDF/локальный фид; демо `SEEDER_VERSION` 10. **Gastro Волны 4 закрыто.** Затем **Waren-рост** (план `ka-12-w4-waren-plan-2026-10-26.md`): **WR-1…WR-4 ✅** (фид Google size/color/фото/refurbished, Zusatzstoffe на витрине, шум формы, Grundpreis m/m²/m³ `catalog/0042`); разбор конструктора акций CS-Cart (`cs-cart-promotions-analysis-2026-10-26.md`) → пакет PR-1…PR-5 вместо WR-9; **PR-3 ✅** (поднят владельцем) количественные акции реально считаются в корзине и заказе. GA-0…GA-9: группы/«Sofort bestätigen», «Gäste heute», столы с местами, автоподбор и объединение столов, Tischplan, Mittagstisch Mo–Fr, Tageskarte; решения Р-1…Р-5 по рекомендации). GP-3 Termine в
+  `scripts/golden_paths.py` и серверный двойник; путь нашёл дефект счёта «НДС от нетто» (45,00 € → 45,01 €)
+  — **исправлен** (Bruttomethode, `finance/0018`: счета из сделок считают НДС из брутто, старые — net). Неявки считаются из статусов
+  (`booking/no_shows.py`), заметки мастера — `CustomerNote(kind="service")`. Ждут владельца: E6.4c
+  (депозит после N неявок), поле аллергий/шифрование/срок хранения заметок. План
+  `ka-12-w4-termine-e64-plan-2026-10-24.md`.
+- **Самое свежее (2026-10-26): Waren-рост WR-5…WR-8 — генератор вариантов, массовые цены/
+  видимость + CSV-выгрузка, Produktionsliste дня, поштучный возврат заказа (⚠️ `orders/0026`).**
+  Возврат: товар на склад по выбору (повреждённое — нет), деньги путём Minderung со скидкой
+  заказа пропорционально и без доставки. Ревью безопасности/Django закрыли DoS генератора,
+  кап суммы, формулы в CSV, диапазон дня (индекс).
+- **Самое свежее (2026-10-26): акции по рецептам CS-Cart — PR-1 (категория/весь магазин через
+  виртуальную копию акции в едином резолвере), PR-2 («−X € pro Stück»), PR-5 (Neukunden/einmal
+  pro Kunde с блокировкой и нейтральным отказом), PR-4 (Gratis-Artikel ab Bestellwert);
+  ⚠️ `promotions/0032`+`0033`.** Разбор CS-Cart исполнен целиком.
+- **Самое свежее (2026-10-26): KA-12 Волна 4 закрыта целиком (Waren WR-1…8 + PR-1…5) · старт Волны 5:
+  E10 батч 1 «скорость» (без миграций).** Замер вместо оценки аудита: тяжёлой была ВИТРИНА —
+  карточки товаров (предзагрузка `catalog/prefetch.py` из `attach_promos`: каталог 250 → 51
+  запросов, главная 95 → 27) и сайдбар кабинета для анонимов; «Sortiment» 124 → 18, членство раз
+  за запрос. План `ka-12-w5-e10-speed-plan-2026-10-26.md`. **Батч 2:** списки кабинета без молчаливых
+  обрезок (Meldescheine, акции, входящие счета, банк, «Ohne Termin», CSV склада). Индексы E10.4 — по замеру.
+- **Самое свежее (2026-10-30): E9 — макет «Kabinett-Bausteine» утверждён + E9.1 библиотека деталей
+  (без миграций).** Решения владельца: набор деталей да · тон статуса по роли да · SVG в меню да ·
+  тёмная тема кабинета позже. В `app.css` — токены `--ui-*` и детали `ui-*` (кнопки/карточки/бейджи/
+  вкладки/поля/пустое/заголовки) в `@layer components`, safelist `/^ui-/`; префикс обязателен — файл
+  общий с витриной, порталом и Mini App. Теги `{% status_tone kind status %}` / `{% status_badge obj
+  kind %}` (тон = роль из `status_registry`). План `ka-12-w5-e9-1-ui-library-plan-2026-10-30.md`.
+  E9.4a ✅ хром (skip link, мобильное меню-диалог, палитра Ctrl+K) · E9.4b ✅ flash role/имена кнопок-
+  иконок/scope таблиц во ВСЕХ шаблонах (замки на весь каталог) · E9.3 ✅ SVG в сайдбаре · E9.2 ✅
+  пустые состояния/заголовки/`.ui-muted` · вкладки ✅ единый `ui-tab` (ссылки — `<nav>`+`aria-current`,
+  доска — `role=tab`; `--ui-focus` #4f46e5). Дальше: JS-пилюли (`stays/units`, `pf-tab`) на `ui-seg` →
+  E9.6 таблицы → перевод прочих экранов → E9.7 замок CI. **Сделано 2026-10-31:** вкладки/формы-табы ✅,
+  E9.6 таблицы ✅, E10.6 cabinet.js ✅, E9.4c/d ошибки и имена полей ✅, E9.5b клавиатуры ✅, **E9.8 экраны на
+  `ui-input`/`ui-btn`/`ui-card` ✅** (463 замены, замок `test_ui_migration`). **E9.9** одна плитка «＋ Foto» везде. **E9.10** один переключатель языка ввода — выпадашка с кодом (de/en/ru) у заголовка на всех 13 экранах с переводами (было три механики); переводы стало можно вводить у событий/туров/ведущих/блога/подборок (раньше — только демо-сидером); замок `test_lang_switch`. **E9.10b** то же для материала/ухода/состояния товара, размерной таблицы, доп. услуг, мастеров/столов, тарифов карт, лояльности, групп наборов и Hausordnung (ваучеры — нет: это пачки кодов).
+- **Самое свежее (2026-11-01): STU-19 «шаблоны страниц в кабинете + ИИ-помощник» — план и макет
+  утверждены владельцем; 19a+19b ✅ (без миграций).** План `docs/stu19-page-templates-cabinet-ai-plan-2026-11-01.md`:
+  Студия = порядок/имена/тексты/«＋»/вид блока; шаблон, сетка, карточка, вывод страницы — вкладка
+  «Seitenvorlage» в разделе типа (первый — «Sortiment»: `/dashboard/seitenvorlagen/sortiment/`) с живым
+  превью `?preview=1&tpl=` (только вошедшему с правом сайта). Один сервис `apps/core/page_settings.py`
+  (schema/validate/write одного ключа под блокировкой, `protect_owned` пуст до 19e). Дальше 19c ✅
+  ИИ-помощник `setup_plan` (правила + ИИ с пост-проверкой, план только для чтения) → 19d ✅ шаблоны всех
+  30 типов страниц (Sortiment · Aktionen · Website → Seitenvorlagen; превью на всех витринных вьюхах через
+  `page_settings.raw_config`) → 19e-1 ✅ шаблоны листингов и вид деталей правятся только в кабинете
+  (Студия — сводка + ссылка, `CABINET_OWNED`) → 19e-2 ✅ шаблоны каталога/категорий/акций (пилюли
+  «Nur hier» сняты: объект — в своей форме, тип акций — «Aktionstypen») → 19e-3 ✅ стиль баннера главной (Studio Save/черновик его
+  не меняют, в Студии — сводка) → 19f-1 ✅ кабинет пишет сетку целиком (Raster/Slider, ряды, «Pro Seite»,
+  последняя строка, темп — один разбор с Студией) → 19f-2 ✅ 12 сеток страниц только в кабинете (Студия — сводка,
+  «на все списки» — галочкой у сетки в кабинете) → 19f-3 ✅ форма карточки (пилюля «Nur hier» снесена — уровень
+  объекта в его форме) → 19f-3b ✅ снос `studio_scope` → 19f-4 ✅ содержимое (сортировки, фильтры, группировка, кросс-селл,
+  ширина текста). **Итог: кабинет владеет всеми настройками страниц, Студия — порядком/видимостью
+  блоков, текстами и «＋».** 19g ✅ помощник создаёт ещё услуги/номера/события/акции (префилл форм), вход из Ctrl+K «✨ Anlegen». 19h ✅ стенд: сценарий владельца 8/8, обход экранов «Seitenvorlage» × 5 языков × 2 ширины — 1120/0, найден и исправлен двойной URL-энкодинг в Ctrl+K. **ПРОГРАММА STU-19 ЗАКРЫТА.** 19i ✅ помощник на `/dashboard/anlegen/` (Mini App + лёгкий пакет). **E10.4 ✅** индексы (7 миграций, обычный CREATE INDEX — CONCURRENTLY ломал регистрацию; замок). **Аудит шаблонов ✅:** сплошной замок 9×27×19 × 15 отраслей; сборки предлагаются только если главная не пустая; «Handwerk» += заявка; мастер пройден в браузере.
+
+- **Самое свежее (2026-10-31): M21.1/M21.2 — переезд магазина с CS-Cart (haanerteeladen.de).**
+  Таблица переадресаций `core.LegacyRedirect` (⚠️ `core/0014`) + `LegacyRedirectMiddleware` (только
+  на 404 витрины: 301 на локальный путь или 410) + экран «Weiterleitungen» (Website) с CSV;
+  команда `import_cscart --schema … --url … [--apply]` переносит категории, товары с фасовками
+  (фото фасовок, Grundpreis, НДС 7 %) и сама заполняет переадресации. Прогон на живом сайте:
+  33 категории, 144 товара, 13 трав «цена по запросу» скрываются до цены. **M21.3**: главная как
+  на старом сайте (слайдер с вырезом полосы без нарисованного текста, плитки направлений, меню,
+  логотип и цвет из логотипа, контакты/часы, Versand/Zahlung на «Über uns»). Runbook — §7 плана
+  `docs/m21-cscart-migration-plan-2026-10-31.md`.
+- **Самое свежее (2026-11-01): SEC — аудит безопасности ВСЕГО сервиса, батч 1 ✅ (БЕЗ миграций).**
+  Запрос владельца «полная проверка безопасности Telegram-приложения, авторизации и обработки
+  данных» → «весь сервис». План `docs/security-audit-plan-2026-11-01.md` (7 блоков A–G), отчёт
+  **`docs/security-audit-report-2026-11-01.md`** (исправлено / отклонено / отложено / ops);
+  13 агентов ECC, замки ДО фиксов. **Главное закрыто:** Stripe-вебхук сверяет `event.account`
+  для connect-событий и отвечает 503 без `STRIPE_WEBHOOK_SECRET` (deploy-check `billing.E001`
+  — ⚠️ владельцу задать `whsec_…` в `.env.prod`); токен бота больше не течёт в логи/Sentry/
+  `last_error` (`TelegramAPIError` без URL, скраббер Sentry, скан-замок); deep link
+  Telegram-привязки клиента — только ЛК-сессии владельца карточки; owner-ссылка своего бота —
+  `kanaele.edit` + TTL + `still_owner` на всех путях; Mini App replay с чужого IP; атомарные
+  одноразовые токены; `safe_next` везде; лимиты на перебор кодов; ретеншн документов без поездки;
+  `idempotent_task` освобождает ключ при сбое. **Открыто за решениями владельца (§4 отчёта):**
+  Django 5.1 EOL/Pillow 13, SEPA `payment_status`, FSM-блокировки self-cancel, нумерация счетов
+  под гонкой, quick-start Domain до почты, CSRF wildcard, kill-switch, admin 2FA, шифрование
+  health-данных/токенов портала.
+- **Самое свежее (2026-11-02): SEC волны 1–4 по решениям владельца («делай по рекомендации»)
+  ✅ (⚠️ миграции `events/0036` + `aggregator/0037` + `webhooks/0002`).** Сводка — отчёт
+  аудита §6, планы `docs/sec-wave{1..4}-*-2026-11-02.md`. **Деньги:** `StateMachine.apply`
+  блокирует строку и считает переход от статуса в БД; задачи из `on_transition` — только
+  `on_commit`; номер счёта без пропусков; удержание онлайн-оплаты ставится один раз; SEPA —
+  оплата после зачисления. **Доступы:** лимиты регистрации по сети /64, подтверждение
+  регистрации паролем по POST, лимит входа в `/admin/`, производный секрет заголовка
+  Telegram-вебхука, повтор упавших уведомлений. **Данные:** `EncryptedJSONField` для ответов
+  анкеты (Art. 9) + ретеншн 30 дней, шифрование токенов, EXIF, iCal без кодов, «проверенный
+  отзыв» — по ссылке из письма. **Инфра:** `__Host-csrftoken` без wildcard, витрина
+  приостановленного — 410, CSP report-only, отписка/DOI кнопкой, `scripts/backup.sh`.
+  Ops — отчёт §6 (Stripe async-события, `telegram_resync_webhooks --apply`, cron бэкапа).
+- **Самое свежее (2026-11-02/03): серия SP «пространство витрины и кабинета» (SP-1…SP-14) +
+  MA-L (нижние слои Mini App) + SEC-A4b (один Telegram-бот — один хозяин) — всё БЕЗ миграций.**
+  Фидбэк владельца по ресторану (меню узкой колонкой, календарь брони над временами) → аудит ECC
+  (2 агента-аудитора на стенде 1440/390, a11y-architect, code/django-reviewer) → правки:
+  карта/книга меню на всю ширину; бронь столика — календарь слева; ресурсы бронирования —
+  свёрнутые карточки со сводкой часов (~5800 → 1252 px); «Recht & Steuern» — вкладки;
+  форма акции — пары полей; уведомления/«Zahlung & Lieferung»/«Funktionen» — 2 колонки;
+  «Aktionstypen» свёрнуты (~5666 → 918 px); `/aktionen/` фильтры в строку; `/anfrage/` и
+  `/nachricht/` — форма + колонка «So finden Sie uns»; Tagesplan — месяц и форма рядом;
+  лёгкий «Geschäft» — 2 колонки на lg; флажки общего партиала — флажками/чипами; Text-Check
+  без повторов; контраст/вкладки/aria по a11y-ревью. Попутно: `fieldset.ui-card > legend`
+  внутри карточки; msgctxt «business» для «Standort» (ru «Местоположение», склад — «Склад»),
+  гейт `i18n_gap` различает msgctxt. План/ECC-прогоны — `docs/sp-space-audit-2026-11-02.md`.
+  **SP-15/16/17 (2026-11-03, «делай 1–6, по 7–10 по рекомендации»):** «Endet bald» ровным
+  рядом из трёх, без повтора в «Weitere Angebote»; демо-заглушка не считается фото категории
+  (каталог — чипы, главная — компактная текстовая плитка);
+  нижние слои в потоке на низком экране; Text-Check доступен (live-region, имена, фокус,
+  32 px); текст на акценте тенанта — чернила по контрасту WCAG (`--accent-ink`; у средних
+  тонов подписи стали тёмными). Контакты с картой и наборы
+  без фото — осознанно не меняем.
+- **Самое свежее (2026-11-03): UX-D «кабинет без Битрикса» — решения владельца Р-1…Р-5, макеты
+  утверждены; D1.1+D1.2 ✅ (без миграций).** Одна шторка `<dialog>` на весь кабинет (контракт —
+  `docs/references/patterns/drawer.md`: фрагменты существующих страниц, формы fetch'ем,
+  `drawer_aware` → JSON, перерисовка областей `[data-drawer-refresh][id]`, `?drawer=` в адресе,
+  без JS — прежнее поведение); бронь на Belegungsplan открывается шторкой, панель под шахматкой
+  снята; закрыты 3 скрытых дефекта (оплата с карточки → 404 и др.). **D1.3 ✅** «Neue Buchung»
+  шторкой: свободная клетка/«＋» открывают форму с датами, ошибка — у поля с сохранением ввода,
+  создание сразу открывает бронь. **D1.4 ✅** главная отеля = сводка дня (цифры, «Heute» с
+  кнопками стойки, «Braucht Aufmerksamkeit», загрузка 7 дней; «Nicht bezahlt» = строки Offene
+  Posten через `finance.bank.deal_open_items`). **D1.5 ✅** шахматка без уборки/Lücken (уборка —
+  колонкой «Zimmer reinigen» в «Heute»). **D1.6 ✅** демо отеля с примером на каждый блок главной
+  (`SEEDER_VERSION` 13). ECC — все находки закрыты. **ВОЛНА D1 ЗАКРЫТА.** ⚠️ ops: после деплоя
+  `seed_demo_tenants --group all --changed`.
+- **Самое свежее (2026-11-03): UX-D волна D2 «услуги» — D2.1…D2.4 ✅ (без миграций)**, план
+  `docs/ux-d2-services-plan-2026-11-03.md`; решения владельца: общей «стандартной» отмены нет,
+  предоплату правит только `preise.edit`. **D2.1** экран «Buchungsregeln» в Einstellungen (правило
+  неявок + сроки отмены по услугам) · **D2.2** «＋ Leistung» шторкой (ошибка у поля, `?neu=1` → 302)
+  · **D2.3** список услуг строками (без редактируемых полей, «ab» общей функцией витрины) ·
+  **D2.4** страница услуги со вкладками Grundlagen · Preise & Varianten · Buchungsregeln ·
+  Beschreibung & FAQ: три вкладки — ОДНА форма (W0), `?tab=`/POST возвращают на вкладку,
+  предоплата на «Buchungsregeln»; замок round-trip поймал пустое поле предоплаты (стёрло бы её).
+  **D2.5** стенд friseur/hotel/restaurant × 1600/390: в списке 0 полей (было ≥ 33 на услугу),
+  шторка — 6, вкладки — 5…12; «Neue Leistung» по глоссарию. **ВОЛНА D2 ЗАКРЫТА.**
+  Дальше: D4 → D3 → D5 → D6 → D7.
+- **Самое свежее (2026-11-03): UX-D D4 «Zimmer & Preise» — D4.0 + D4.1 ✅ (без миграций)**, план
+  `docs/ux-d4-rooms-prices-plan-2026-11-03.md`. **D4.0** 15 настроечных действий номеров —
+  модуль `apps/stays/settings_actions.py` (паритет 1:1, два ревью). **D4.1** «Tarife» — свой
+  экран: список, «＋ Neuer Tarif» шторкой, ПРАВКА тарифа (раньше нельзя); ревью нашло дефект —
+  пересчёт брони брал живой тариф (правка меняла цену старой брони) → снимок первым.
+  **D4.2** «Preise & Regeln» (Einstellungen › Zimmer, права цен): скидки, динамика,
+  Lücken-Deal, правила продаж — вкладками-ссылками; старые входы переведены туда.
+  **D4.3** «Unterkunft» (Kurtaxe+Hausordnung одной формой, часы, удобства на карточке;
+  попутно — `can_open` с перепутанными аргументами всегда давал «можно»).
+  **D4.4** виджет бронирования и фид метапоиска — на «Kanal-Manager» (копирование кнопкой).
+  **D4.5** список номеров — строки без форм, «＋ Neues Zimmer» шторкой, старые адреса → новые экраны.
+  **D4.6** страница номера — свой шаблон, вкладки рисует сервер (`?tab=`), мини-формы
+  возвращают на свою вкладку, удаления — только записей своего номера (ECC-ревью). **D4.7**
+  стенд hotel+retreat × 1600/390 — **ВОЛНА D4 ЗАКРЫТА.** Попутно: подсказки НДС печатали «7 %%»
+  на всех языках (`_("…%…")` в аргументе тега) → `{% trans … as %}`.
+- **Самое свежее (2026-11-03): UX-D волна D3 «Öffnungszeiten & Ressourcen» ✅ ЦЕЛИКОМ (без миграций)**,
+  план `docs/ux-d3-resources-plan-2026-11-03.md`. Страница ресурса `booking:resource-edit` (вкладки
+  от сервера, одна форма — W0, проверка до записи), список строками + «＋ Neue Ressource» шторкой,
+  правило онлайн-брони столов и виджет → «Buchungsregeln», панели статусов → «Abläufe», закрытые
+  дни → «Tage blockieren». **Денежный хотфикс:** предоплата ресурса округлялась до евро при любом
+  сохранении (5,50 € → 6,00 €).
+- **Самое свежее (2026-11-03): UX-D волна D5 «Tagesplan» ✅ ЦЕЛИКОМ (без миграций)**, план
+  `docs/ux-d5-tagesplan-plan-2026-11-03.md`. «＋ Neuer Termin» шторкой (`booking:booking-new`, строгий
+  разбор, «Trotzdem eintragen» второй кнопкой по коду отказа ядра), постоянная форма под днём снята,
+  клик по свободному времени сетки → шторка с ресурсом и временем, запись открывается шторкой.
+  Старый `booking-create` (Tischplan, без JS) не тронут. Дальше: D6 → D7.
+- **Самое свежее (2026-11-03): UX-D волна D6 «Остальные списки» ✅ ЦЕЛИКОМ (без миграций)**, план
+  `docs/ux-d6-lists-plan-2026-11-03.md`. **D6.0** хотфиксы денег/данных (строгий `core.money.parse_amount`
+  в допах и финансах, мусорная дата — ошибка, состав подборок без потерь, склад под блокировкой, ваучер
+  «Deaktivieren»; отключённый код больше не обещает скидку в корзине). **D6.1** допы: строки, «＋» шторкой,
+  страница допа с правкой; возврат складской опции — по sale-движению. **D6.2** склад: «Buchen» шторкой,
+  настройки → Einstellungen › «Lager». **D6.3** подборки: строки с количествами, страница с вкладками.
+  **D6.4** ваучеры шторкой (суммы в €), страница программы лояльности. **D6.5** финансы: «＋ Buchung»/
+  «＋ Ausgabe» шторками, «＋ Neue Rechnung» страницей (ввод не теряется); ставка НДС в de больше не
+  отклоняется (грабля в `docs/pitfalls.md`). **D6.6** Team: страница участника, роль кнопками, приглашение
+  страницей; каналы — «Trennen». **D6.8** право «Hausordnung bearbeiten» отдельно от Kurtaxe
+  (по умолчанию owner+admin, сотруднику — чекбоксом в «Team»). **Волна D7 «узкие страницы» ✅**
+  (план `docs/ux-d7-wide-pages-plan-2026-11-04.md`): замер пустоты справа на стенде → секции и
+  отчёты в две колонки на xl, превью «So sehen Kunden es» у услуги/номера, блог — страница
+  «Neuer Beitrag». **Программа UX-D исполнена целиком (D1–D7).** D6.0b ✅ (один разбор сумм во всех формах кабинета). **D8 ✅** (паритет архетипов, план `docs/ux-d8-archetype-parity-plan-2026-11-04.md`): главная = сводка дня у заказов/записей/заявок/билетов (`apps/core/day_home.py`), Kampagnen — «＋» шторкой и «Automatische Mailings» в Einstellungen, Stadtkatalog-сопоставление — свой экран, ответ на отзыв по «Antworten». **D9 ✅** «Zahlung & Lieferung» вкладками (Zahlung · Lieferung & Abholung; Save каждой вкладки не трогает другую, кнопка «Speichern» и без модуля заказов); мобильная сводка дня проверена на 5 демо.
+- **Самое свежее (2026-11-04): ВОЛНА FLT «фильтры портала» — FLT-1a…1e в `main` (БЕЗ миграций).**
+  План `docs/flt-portal-filters-plan-2026-11-04.md` (+§12 SEO, §13 архитектор). Портал шире (1536,
+  4 колонки), несколько районов (`SearchFilters.districts`, путь ∪ параметр, noindex/canonical
+  query-вариаций), счётчики опций одним агрегатом (`portal_facets.py`), строка пилюль + шторка
+  по макету (`portal_filter_ui.py`, `_portal_filter_bar.html`, `static/js/portal.js`); прежние
+  слои выдачи сняты. Ревью Django ×2 + a11y закрыты, стенд Playwright 30/30. Попутно SF-11b
+  («Speisekarte» только у кухни). **FLT-3a/3b ✅ витрина (без миграций):** ширина витрины
+  `site_defaults.page_width` (по умолчанию 1536 · «Normal» 1280 · «Volle Breite»; «Design des Shops»,
+  свой сентинел), быстрые фильтры каталога в строке рядом с «Filter» (Preis/Größe/Farbe/Marke-поповеры
+  + «Nur reduziert», только sm+; каждый — GET-форма своего фасета со всем остальным состоянием);
+  `portal.js` общий и переживает fetch-своп; фикс формы сортировки с мультивыбором. Ревью Django +
+  a11y закрыты, стенд 12/12. План `flt3-storefront-filters-plan-2026-11-04.md`. **FLT-4 ✅ кабинет
+  (без миграций):** общая строка фильтров `apps/core/list_filters.py` + `core/_list_filter_bar.html`
+  (поиск · «Filter · N» со шторкой-GET-формой · сортировка с «OK» · «N Treffer» · пилюли ✕) на
+  «Rechnungen», Verkäufe › Liste (все виды), Sortiment, Reservierungen; без автоотправки; 4 дефекта
+  переноса состояния закрыты. План `flt4-cabinet-filters-plan-2026-11-04.md`. **Волна FLT закрыта.**
+- **Самое свежее (2026-11-05): программа AIS «упрощение создания сайта + ИИ» — анализ, планы,
+  AIS-0 в main, M-0 на ветке `claude/ais-ai-setup-analysis` (без миграций).** Анализ рынка/пути
+  (`ais-ai-setup-simplification-analysis-2026-11-05.md`), мастер v4 «3 шага + Verkauf öffnen +
+  карточки», дизайн — когда есть данные (`ais-wizard-v4-structure-2026-11-05.md`), модули →
+  направления + ИИ-помощник «правила-основа, Claude для вопросов» (`ais-modules-directions-
+  assistant-plan-2026-11-05.md`, ревью ECC §5, решения §5.7: Claude в проде — AWS Bedrock EU).
+  **AIS-0** — метки мастера + `onboarding_report` (замер ≥ 2 недели после деплоя — базовая
+  линия). **M-0** — `apps/core/directions.py` единственный источник «как продаёт бизнес».
+  Дальше: W4-0 единый реестр готовности (`ais-w4-0-readiness-plan-2026-11-05.md`; открыт вопрос
+  владельцу про оплату при доставке) → W4-1 → W4-2 → A-0 → M-1.
+- **Самое свежее (2026-11-05): AIS W4-0 (реестр готовности) + W4-1 «Rechtliches & Veröffentlichen»
+  (⚠️ миграция `tenants/0041`).** `apps/core/readiness.py` — единый реестр «готово к продаже» (гейт за
+  `READINESS_SELL_GATE`, выкл); `Tenant.published_at` — сайт v4 скрыт от гостей и каталога до кнопки
+  «Website veröffentlichen» (публикация fail-closed по контакту/Impressum/почте); мастер v4 =
+  Firma (часы сеткой) → Angebot → Recht → Fertig за флагом `SETUP_WIZARD_V4` (выкл до W4-6);
+  уведомление «ИИ работает в США» у всех ИИ-кнопок (`{% ai_notice %}`). Стенд
+  `scripts/wizard_v4_stand.py` 28/28. **W4-2 «Angebot prüfen» ✅** (без миграций): строки «Name —
+  Preis» → таблица проверки (в базе ничего) → пачка одной транзакцией с идемпотентностью; образцы
+  по типу, мастер на имя владельца, фото номера в шаге, «Wie verkaufen Sie?»; Anfragen — в W4-5.
+  Стенд `scripts/wizard_v4_pruefen_stand.py` 35/35. **A-0 «✨ Assistent» ✅** (без миграций, план
+  `ais-a0-assistant-plan-2026-11-05.md`): шторка без ИИ — «чего не хватает на экране», «сейчас
+  важно», 8 диагнозов «почему не работает», которые ЗОВУТ настоящие гейты (вынесены в
+  `aggregator.visibility.withheld_reasons`, `core/storefront_state.py`, `modules.inactive_reason`),
+  поиск настройки; ссылки через права/пакет/Mini App; «не знаю ≠ готово». Дальше: M-1 / A-1.
+- **Самое свежее (2026-11-05/06): AIS-M M-1a…c (экран «Richtungen & Funktionen», без миграций) +
+  ПОРТАЛ PH-0…PH-9 — главная «Heute in <город>» + бренд «<Город>Markt» (⚠️ `aggregator/0038`).**
+  M-1: слои модулей, единственные писатели `modules.set_modules`/`directions.set_state`, экран
+  направлениями (большой Save снят); M-1d пресеты по направлениям (акции у отеля/туров/ремесла —
+  пункт меню с первой акции) + M-1e `modules_report` (⚠️ ops: отчёт → владельцу → `--apply`). Портал (план
+  `portal-home-a-plan-2026-11-05.md`): общий `open_snapshot`, вордмарк SolingenMarkt (под будущий
+  домен), мега-меню «Kategorien», карточка 4:3 с действием, первый экран + «Deal des Tages»
+  (органический), быстрые фильтры ссылками, блоки «Endet bald»/«Jetzt geöffnet»/Stadtteile/«Neu in»,
+  лимит блока 4 (8 только если набралось 8), свайп-ленты и нижнее меню на телефоне, снимок отклика и
+  остатка акции в листинге (PH-9). ⚠️ ops: `sync_aggregator` → `seed_demo_tenants --group all --changed`.
+- **Самое свежее (2026-11-06): AIS W4-4 «фото меню/прайса → позиции» + A-1 «статьи справки» — БЕЗ
+  миграций.** **W4-4** (план `ais-w4-4-photo-lines-plan-2026-11-06.md`): в шаге «Angebot prüfen» 1–3
+  фото → задача ИИ `offer_photo_lines` (фото без EXIF, Celery + опрос) → пост-проверка
+  (`apps/core/offer_photo.py`: цена только одной правдоподобной суммой дословно, иначе «Preis fehlt»)
+  → ТЕКСТ строк → та же таблица W4-2; в базу ничего до «Übernehmen»; перенос результата POST'ом, опрос
+  только читает; без ИИ блока нет. Ревью: лимит до декодирования с `refund`, замок одного чтения,
+  ключ-захват результата. **A-1** (план `ais-a1-help-articles-plan-2026-11-06.md`): 24 статьи реестром
+  `apps/core/help_articles.py` (немецкий исходник, переводы в 5 `.po`, синонимы по языкам), поиск без
+  ИИ, «Hilfe zu dieser Seite», `?artikel=` по белому списку, шов `for_prompt` для A-2; попутно
+  `summary` шторки снова в Tab-порядке (дефект A-0). ⚠️ ops: включить `offer_photo_lines` в
+  «KI-Einstellungen». **A-2 ✅** (план `ais-a2-assistant-ai-answer-plan-2026-11-06.md`): «✨ KI fragen»
+  в шторке — задача `assistant_answer` (fast), налоги/право/болтовня отсекаются правилами до модели, в
+  промпт статьи A-1 + снимок кодами, ответ по закрытой схеме (ссылки — идентификаторы, URL строит
+  сервер), пост-проверка → статьи вместо ответа, Celery + опрос, кэш, лимиты с refund; общий
+  `apps/ai/guard.py` вынесен из inbox. ⚠️ ops: включить `assistant_answer`. Дальше по §5.5: **W4-5**
+  «Verkauf öffnen» + карточки → W4-3 Google → W4-6 стенд → A-3 эскалация + журнал.
+- **Самое свежее (2026-11-06, вечер): AIS A-3 «плавающая панель помощника» + стратегия ИИ —
+  ⚠️ миграция `core/0015`.** Стратегия — `docs/ai-strategy-2026-11-06.md` (решения В-1…В-5:
+  один вход, объект × действие, ИИ понимает формулировку по примерам, сервер проверяет факты,
+  запретный список, массовые ≤ 50, названия магазина в промпт можно, клиенты — никогда). План —
+  `ais-a3-assistant-panel-plan-2026-11-06.md`. **A-3a** «создай/добавь …» в шторке → план с
+  предзаполненной формой (и без ИИ), правила понимают «евро», «как услугу», часы, хвост после
+  запятых; цена ИИ проверяется по факту, а не по списку слов. **A-3b** ответ поддержки из
+  админки наконец доходит до владельца (письмо + бейдж), новое обращение → письмо платформе.
+  **A-3c** плавающая кнопка ✨ (единственный вход) + вкладки KI · Support · Kunden в шторке.
+  **A-3d** история переписки `AssistantTurn` (90 дней, ≤ 200, «Verlauf löschen»). Дальше —
+  **A-4** «объект × действие» (пакет изменений с предпросмотром, «Alles übernehmen»,
+  «Rückgängig» 10 мин) → A-5 один «мозг» → A-6 качество; W4-5 — после A-4.
+- **Самое свежее (2026-11-06, ночь): AIS A-4a «KI-Aktionen: пакет „создать“» ✅ (⚠️ миграция
+  `core/0016`).** Фраза «создай …» → пакет пунктов (категория/товар/услуга) с предпросмотром и
+  правкой значений → «Alles übernehmen» теми же писателями, что экраны (`catalog/booking.writers`,
+  мастер «Prüfen» на них же) → «Rückgängig» 10 минут по снимку полей. Закрытый реестр
+  `apps/core/assistant_actions.py`, журнал `core.AssistantChange` (уникальный job = идемпотентность),
+  пакет только из кэша задачи (не из POST/истории), права и гейты экранов (вкл. Mini App) до
+  транзакции, Tenant `NO KEY UPDATE` + `lock_timeout`, аудит строго в транзакции. Ревью django/
+  security/database/a11y закрыты, 28 замков, стенд 13/13. **A-4b ✅** (той же ночью): «измени цену / скрой / перенеси» существующего —
+  детектор без ИИ на 5 языках, цена правом `preise.edit`, предупреждение § 11 PAngV, откат по
+  значению (`core/0017` choices-only). **A-4c ✅** «покажи товары списком / 4 в ряд / как купон» —
+  настройка страницы через `page_settings` (тот же список вариантов и писатель, что «Seitenvorlage»,
+  откат убирает ключ, если его не было). **A-4d ✅** «alle Kuchen 10 % teurer / скрой все товары
+  категории Торты» — сервер разворачивает категорию (+ прямые подкатегории) в обычные пункты цены/
+  видимости ≤ 50 (тот же apply/undo), одна формула цены с экраном «Sortiment» (`catalog/bulk_price.py`),
+  предпросмотр таблицей, без миграций. **A-4e-2 ✅** ИИ-задача `assistant_actions`: фраза мимо правил →
+  Claude выбирает действие и объект номером из списка названий (без цен/клиентов), факты проверяет
+  сервер, пакет — тот же, что у правил; тумблер выкл., плашка о США. **A-4e-3 ✅** создание и
+  смешанные пакеты («anlegen … und … ausblenden»). **A-5a ✅** роутер помощника, **A-5b ✅** уточняющие вопросы
+  кнопками («Welchen Eintrag?», «Teurer oder günstiger?»), **A-5d ✅** «mit einem Menschen sprechen» → Support.
+  **A-5c ✅** «und den Käsekuchen auch». **A-5 закрыт.** **A-6a ✅** эталонные фразы × 5 языков + `assistant_eval`; **A-6b ✅** журнал маршрута, счётчики исходов (только коды) и `assistant_report`. **ИИ-помощник A-0…A-6 закрыт.** **AS-1 ✅** шторка по фидбэку «каша»: одно поле наверху, «где настроить» в ответе, состояние магазина свёрнутой карточкой, честные цвета. **W4-5a ✅** «Verkauf öffnen» (доставка/Vorkasse узкими писателями) + **W4-5c ✅** карточки «Nächster Schritt» вместо чек-листа на главной v4. **W4-5b ✅** подтверждения для остальных направлений; **W4-3 ✅** «Bei Google suchen» (⚠️ ops: `GOOGLE_PLACES_API_KEY` + квота). **W4-6 ✅** сквозной стенд мастера v4 (регистрация → письмо → схема → Firma → Angebot → Recht → публикация → карточки; 5 типов × 390 + 2 × 1440, всё зелёное); **`SETUP_WIZARD_V4` включён по умолчанию** (решение владельца; откат — `False` в `.env.prod`). **W4-6b ✅** «Preis auf Anfrage» (без миграций): `Product.price_on_request` (request без цены) → подпись вместо «0,00 €» во всех формах карточки/прайс-листе/детали, JSON-LD без Offer, фиды исключают; товар «nur auf Anfrage» не продаётся ни корзиной, ни быстрым «+», ни через страницу акции (дыра MX-5 + живой дефект импорта с сайта); мастер даёт Handwerker «Leistungen auf Anfrage». **W4-5d 🚧** гейт готовности в кассах (`readiness.require_sell`, `channel="storefront"` в сервисах продаж) — план `ais-w4-5d-sell-gate-plan-2026-11-06.md`; флаг `READINESS_SELL_GATE` остаётся выключенным до `readiness_report --stamp-exempt --apply` и решения O-1 (Zurücklegen/купон/Anprobe); при закрытом гейте фраза видна ВМЕСТО формы ещё до отправки. **AIS-3 ✅** (без миграций, макет утверждён) — первый шаг мастера v4 «Was haben Sie schon?»: Website · Google-Profil · Foto · Nichts davon (карточек без ключа нет); шаг пишет только выбор (`onboarding["had"]`, единственный писатель `set_had`), «Nichts» → образцы в «Angebot», Google/фото → подсказки, Website → тот же импорт Г1 из мастера (согласие как в кабинете, только владельцу, карточка статуса на «Angebot», возврат по безопасному `next`). Стенд W4-6: 261/261. **AIS-2 ✅** (без миграций) — необязательная фраза «Beschreiben Sie Ihr Geschäft in einem Satz» в шаге quelle → строки «Angebot prüfen» через `setup_plan` (в базу ничего, `apps/core/offer_sentence.py`). **AIS-5 ✅** (без миграций) — «🌐 Übersetzen» в переключателе языка ввода заполняет пустые переводы из базы с пост-проверкой (⚠️ ops: включить `i18n_translate`). **AIS-7 ✅** (без миграций) — «✨ Text vorschlagen»: описание товара/услуги, «Über uns» и баннер из сохранённых фактов со строгой проверкой (⚠️ ops: включить `text_from_facts`). **AIS-4 ✅** (без миграций) — PDF меню/прайса в «Angebot prüfen»: текстовый слой pypdf в Celery, правила без ИИ, `offer_pdf_lines` поверх с дословной проверкой (⚠️ ops: включить `offer_pdf_lines`); O-1 решён — Zurücklegen/купон не гейтятся.
+- **Самое свежее (2026-11-07): фидбэк-батч FB-15…FB-26 — разбор + блок А + FB-20 + FB-23 в `main`.**
+  Разбор 13 пунктов — `docs/fb-feedback-batch-2026-11-07.md`. **Блок А** (без миграций): одна пометка
+  ИИ на шаг мастера · шаблоны страниц только в «Website › Seitenvorlagen» (Sortiment/Aktionen → 302) ·
+  статистика акции своей вкладкой · фото из Telegram при ✏️ → Save больше не теряется молча ·
+  поле «Stadt» подсказывает ВСЕ 10 443 муниципалитета Германии (Destatis, официальное написание).
+  **FB-20** метки «Neu/Beliebt/…» у акций/услуг/событий/номеров (общий реестр `core/labels.py`).
+  **FB-23** меню сайта (решения владельца: виды A/B/C/D/G, подвал да, 3 уровня): модель (цели на
+  конкретные записи, авто-подкатегории, фото/текст/переводы, безопасные ссылки), виды панели Liste ·
+  Kacheln · Mega · Spalten+баннер · Symbolleiste, мобильный аккордеон, один экран «Website › Menü»
+  (дерево с перетаскиванием внутрь, вкладки шапка/нижняя панель/подвал), колонки подвала, демо
+  cafe/outlet/online_shop. **FB-22 v1** слайды баннера (ссылка из целей меню, оформление, даты) и **FB-21** формат фото по местам (`site_defaults.media_places`, «Design des Shops») — тоже в `main`. **FB-22b** блок «Banner» для любой страницы — тоже. **FB-24a–c** типы опций магазина (⚠️ `catalog/0043`): экран «Optionen», оси товара, генератор по N осям. **FB-24d/e** витрина (выбор по N осям, фильтр `?opt_<код>=`), поиск города и фид Google (`g:material`), демо Wohnwerk — **FB-24 закрыт**. **FB-25** экран «Website › Seitenaufbau» (схема блоков всех страниц + правка + уменьшенная живая страница). **FB-26a ✅** (2026-11-08, ⚠️ `tenants/0042`): регистрация спрашивает «Was verkaufen Sie?» (обязательно), ниша — по желанию с «Demo ansehen», модули по направлениям. **2026-11-08:** FB-24f переводы значений опций · FB-26b поиск ниши · FB-26c воронка регистрации (`onboarding_report --compare <дата>`) · демо формы карточки у полки (clothing «Taschen»).
+  ⚠️ ops: `seed_demo_tenants --kit cafe|outlet|online_shop --recreate` после деплоя.
+- **Самое свежее (2026-11-08): PH-11 «редизайн городского портала по макетам K1/P1/P2» ЗАКРЫТ
+  ЦЕЛИКОМ (11a–11e, без миграций; план `docs/ph11-portal-redesign-plan-2026-11-08.md`, макеты
+  `docs/design/portal-home-2026-11-07/`, ECC-скиллы и ревьюеры на каждом инкременте).** Шапка в
+  одну строку с поиском «Was/Wo/Wann» и языком выпадающим списком; выдача и раздел — левая колонка
+  фильтров (сворачивается кнопкой, 4 → 5 колонок), дерево категорий и плитки подкатегорий,
+  «Später geöffnet», «Wie wir sortieren»; главная — баннер-слайдер (бизнес-CTA на фото
+  Müngstener Brücke CC BY-SA, Deal, Wochenende, Neu, Region), quad-карточки, «Anzeigen»,
+  «Das Beste aus jedem Bereich», «Geschäfte», «Top-Aktionen» (платное и показанное не
+  повторяются, честные пороги); тёмный подвал в пять колонок (районы и отрасли — там); весь
+  портал на всю ширину (фидбэк владельца). Уроки — `docs/pitfalls.md` (локальный ruff ≠ uv.lock,
+  `sr-only` в ленте растягивает страницу). Хвосты: «EUR» вместо «€» на карточках (прод-разбор
+  PH-10), контраст фирменного цвета портала.
+- **Самое свежее (2026-11-08, вечер): PH-12 «доводка портала после редизайна» ЗАКРЫТ (12a–12f,
+  без миграций; план `docs/ph12-portal-polish-plan-2026-11-08.md`).** Флаки xdist сняты (своя база
+  Redis на воркер), читаемые чернила на любом цвете портала (`apps/core/colors.py`, общий слой с
+  витриной) + закрыт выход из `<style>` через цвет из админки, h1 первым, честный первый экран
+  («Neu» с фото и предложением, «Endet heute» у открытых, «Melden» со страниц, не с карточек),
+  время событий демо 10:00 местного. 12e («Das Beste» без N параметров) — осознанно не делаем
+  (database-reviewer). ⚠️ ops: `seed_demo_tenants --group all --changed`.
+- **Самое свежее (2026-11-08, ночь): Wegweiser `/sortiment/` + PH-13 мобильная версия портала
+  (13a–13g) — без миграций.** Корень каталога по макету S1: направления плитками с числами первыми,
+  «Schnell finden», «Im Fokus» (Neu · Reduziert · Beliebt) вместо двух каруселей, сетка без повторов
+  (`apps/catalog/wegweiser.py`, композиция только для корня); попутно O-7-дыра «Nur reduzierte» у
+  полок, эмодзи заглушек, «Design testen» в полосе демо. Мобильные макеты M5–M8 на канвасе
+  (артефакт «SolingenMarkt Startseite — Varianten») и реализация: шапка-пилюля, h1+чипы над
+  слайдером (первая карточка 599 px вместо 905), «Das Beste» тремя разделами, ленты, подвал
+  аккордеоном, выдача строками + нижняя шторка, страница предложения с фактами, «So finden Sie
+  uns» и закреплённой панелью покупки. «Karte»/«Entdecken» разведены контекстом. Планы
+  `sortiment-wegweiser-plan-2026-11-08.md`, `ph13-portal-mobile-plan-2026-11-08.md`.
+  ⚠️ ops: `seed_demo_tenants --group all --changed` (online_shop на Wegweiser).
+- **Самое свежее (2026-11-09): PH-13 ЗАКРЫТ — остаток мобильной версии портала + сводный стенд (без
+  миграций).** Закреплённая панель фильтров в выдаче на телефоне (sticky на обёртке, scroll-padding
+  под неё и нижнее меню, не закрепляется на низких экранах), компактная шапка поиска «←», подсказка
+  «In <раздел> suchen» только когда раздел едет в форме (`header_scoped`), «Teilen» на странице
+  предложения (navigator.share); стенд 4 страницы × 390/1440 × de/ru + без JS — чисто. Попутно:
+  омонимы «OK»→«Хорошо» и «Vor Ort»→«Лично» (msgctxt payment), понедельничный тест `usable_before`,
+  quickcheck теперь понимает `pgettext`. Грабли — `docs/pitfalls.md` §4/§5.
+- **Самое свежее (2026-11-09): волна SHP «способы доставки» ЗАКРЫТА ЦЕЛИКОМ (SHP-0…SHP-7; ⚠️ миграции
+  `orders/0028`, `catalog/0044`, `orders/0029`, `aggregator/0039`).** План
+  `docs/ful-fulfilment-modes-plan-2026-11-09.md` (решения: только Германия в v1; один самовывоз со
+  списком адресов; Widerruf click&collect — юристу за флагом; Paketdienst существующим — только после
+  подтверждения владельцем по `shipping_report`). Регистрация больше не спрашивает о доставке (чип
+  «Online-Shop» слит с «Waren verkaufen»). `orders.ShippingMethod` (самовывоз · курьер по зонам PLZ ·
+  Paketdienst до двери или в пункт выдачи, pauschal/по весу, пределы, Sperrgut), пока строк нет —
+  прежние поля бизнеса читаются как способы в памяти; единственный писатель `shipping_admin.py` под
+  advisory-блокировкой; вес/габариты у товара и варианта; снимок способа в заказе + ссылка отслеживания;
+  экран «Lieferung & Abholung» и три вопроса мастера; `/versand/` + «zzgl. Versandkosten» (PAngV);
+  `g:shipping`/`g:shipping_weight`; «Erhältlich per» в каталоге города; демо clothing/outlet/online_shop.
+  ⚠️ ops: деплой → `sync_aggregator` → `seed_demo_tenants --group all --changed` → `shipping_report`.
+- **Самое свежее (2026-11-10): волна NT «Benachrichtigungen nach Wahl» ЗАКРЫТА ЦЕЛИКОМ (A1–A4 портал +
+  B1–B5 магазин; ⚠️ миграции `aggregator/0040`+`0041`, `promotions/0036`).** План
+  `docs/nt-notification-preferences-plan-2026-11-10.md`. Портал: подписка на категорию, признак
+  (vegan/halal…) и марку как отдельные виды; центр `folgen/auswahl/` (дерево разделов, районы,
+  признаки, марки; аноним — одно DOI-письмо), частичная и полная отписка, бот — категории
+  переключателями и «Alle beenden». Магазин: темы рассылки (без выбора = все), выбор при подписке,
+  страница настроек только сужает, тема у кампаний, экран тем в Newsletter, ЛК, CRM, демо кафе.
+  ⚠️ ops: деплой → `seed_demo_tenants --kit cafe --recreate`; абзацы Datenschutz — на юр. вычитку.
+- **Самое свежее (2026-11-10): M21.4 — сверка переноса haanerteeladen с оригиналом (без миграций).**
+  Страница категории показывает товары ВСЕХ уровней вложенности (`catalog.facets.branch_ids`;
+  «Schwarzertee» было 20 из 48). Импорт берёт меню CS-Cart деревом в 3 уровня (на движке FB-23a),
+  ссылки — через таблицу переадресаций, порядок разделов = порядок меню, Newest/Bestsellers/Sales →
+  Neuheiten/Bestseller/Angebote; флаги `import_cscart --replace-menu` и `--locales de`.
+- **Самое свежее (2026-11-10): M21.5 — фидбэк после переезда (без миграций).** `import_cscart
+  --cleanup` (демо-контент + дубли «Website importieren») и `--codes <выгрузка>`; фото товара целиком
+  (место «Detailseiten»), размер логотипа, подвал с колонкой «Kontakt», витрины и `/entdecken/` на всю
+  ширину по умолчанию; «Sortiment»: массовое удаление, выбрать все показанные, 20/50/100, пейджер сверху.
+- **Самое свежее (2026-11-10): M21.6 — Impressum по закону + свои страницы сайта (⚠️ `core/0018`).**
+  `fix_impressum` (ODR убрана, «Inhaber», Öko-Kontrollstelle, § 5 DDG); `core.ContentPage` —
+  «Website › Seiten» (создать/изменить/удалить), `/seite/<slug>/`, `versand`/`ueber-uns` на
+  системных страницах, пункт меню «Eigene Seite», импорт CS-Cart переносит Versand/Zahlung/Über uns
+  с картинками; текст во всю ширину. План `m21-6-content-pages-plan-2026-11-10.md`.
+- **Самое свежее (2026-11-10): M21.8 — визуальный редактор во всех длинных текстах витрины (без
+  миграций).** Тег `{% rich_block %}` на 14 витринных местах, редактор в 13 формах кабинета
+  (категории, услуги, номера, Hausordnung, события, туры, блог, акции, наборы, Impressum/
+  Datenschutz/Widerruf/AGB — с заголовками), `richtext.to_plain` для фида/PDF/JSON-LD/публикаций;
+  правовые страницы — строками в «Website › Seiten». Закрыт HIGH security-review: редактор клал
+  сохранённое значение в `innerHTML` без очистки. План `m21-8-rich-text-everywhere-plan-2026-11-10.md`.
+- **Самое свежее (2026-11-11): M21.8 B4 + M21.9 (⚠️ `core/0019`).** Редактор страниц: картинка с
+  компьютера (без EXIF), «по центру», «две колонки»; медиатека не удаляет картинки внутри страниц;
+  у «Versand» галочка «Versandarten unter dem Text» + ссылка на «Lieferung & Abholung».
+- **Самое свежее (2026-11-11): M21.10 — «Website › Seiten» = центр ВСЕХ текстовых страниц
+  (без миграций).** Системные (Über uns, Versand), правовые (Impressum/Datenschutz/Widerruf/AGB —
+  правка там же, только владелец, писатель `legal.save_legal_doc`) и свои; «Recht & Steuern» —
+  реквизиты + ссылки. Меню: цели Versand/Impressum/Datenschutz/Widerruf/AGB. Редактор: панель
+  role=toolbar, H2–H4, цитата, выравнивание, разделитель, отмена, фото-виджет (размер,
+  положение с обтеканием, описание, подпись), безопасная вставка; белый список — один источник
+  `richtext.editor_rules`. План `docs/m21-10-text-pages-hub-plan-2026-11-11.md`, стенд 38/38.
+- **Самое свежее (2026-11-11): M21.11 P1–P5 — «Seiten» одним списком, правит владелец, один тип
+  «Seite», заготовки, пакет 🟢 редактора (без миграций).** План `docs/m21-11-pages-flat-plan-2026-11-11.md`
+  (§0 решения, §9 исполнение). Все текстовые страницы — одной таблицей (метка «Art», статус, «Sichtbar»;
+  правовые без удаления); право `seiten.edit` (по умолчанию только владелец, выдаётся в Team) на все
+  экраны правки, включая Impressum/Datenschutz/Widerruf/AGB. Studio/Seitenaufbau: один тип «Seite»
+  (Über uns + свои страницы + Versand, общий набор блоков `info`), под правовыми блоков нет. «＋ Neue
+  Seite» — заготовки FAQ/Anfahrt/Zahlungsarten из данных бизнеса. Редактор: зачёркнутый, индексы,
+  «убрать форматирование», Einleitung/Kleingedruckt/Hinweis, вложенные списки, три колонки, эмодзи,
+  вставка как текст, полный экран, черновик в браузере, ссылка на свою страницу, кнопка-призыв,
+  «Frage/Antwort», галерея, медиатека, фото-ссылка и замена. ECC security+a11y закрыты, стенды
+  31/31 и 20/20. Дальше: P6 (таблица, видео/карта с согласием, PDF, оглавление, цвет из палитры,
+  чеклист, счётчик, поиск/замена, Markdown, ИИ, оформление фото) → P7 история версий (⚠ миграция).
+- Миграции: **⏳ К ДЕПЛОЮ: `core/0019` (ContentPage.show_shipping_methods, M21.9, аддитивная) + `core/0018` (ContentPage, M21.6, новая таблица).** **⏳ К ДЕПЛОЮ: `aggregator/0040` + `aggregator/0041` + `promotions/0036` (NT: виды подписок + перенос + темы рассылки).** **⏳ К ДЕПЛОЮ: `orders/0028` + `catalog/0044` + `orders/0029` + `aggregator/0039` (способы доставки SHP, аддитивные; после деплоя `sync_aggregator`).** **⏳ К ДЕПЛОЮ: `tenants/0042` (SignupRequest.directions, FB-26a, аддитивная).** **⏳ К ДЕПЛОЮ: `catalog/0043` (типы опций FB-24, новые таблицы + Product.option_axes, аддитивная).** **⏳ К ДЕПЛОЮ: `promotions/0035` + `booking/0044` + `events/0037` + `stays/0047` (поле badge, FB-20, аддитивные).** **⏳ К ДЕПЛОЮ: `core/0017` (AssistantTurn.kind += actions, choices-only, AIS A-4b) + `core/0016` (AssistantChange, новая таблица, AIS A-4a).** **⏳ К ДЕПЛОЮ: `core/0015` (AssistantTurn, новая таблица, AIS A-3d).** **⏳ К ДЕПЛОЮ: `aggregator/0038` (action/remaining в листинге, SHARED, аддитивная, портал PH-9; после деплоя `sync_aggregator`).** **⏳ К ДЕПЛОЮ: `tenants/0041` (Tenant.published_at, SHARED, аддитивная + бэкфилл, AIS W4-1).** **⏳ К ДЕПЛОЮ: `events/0036` (ответы анкеты → шифротекст, обратимая, переписывает таблицу билетов каждой схемы) + `aggregator/0037` + `webhooks/0002` (шифрование токена бота портала и секрета вебхука, SHARED) — SEC волна 3.** **⏳ К ДЕПЛОЮ: `booking/0043` + `events/0035` + `inbox/0002` + `jobs/0026` + `orders/0027` + `promotions/0034` + `stays/0046` (индексы E10.4, обычный CREATE INDEX) + `core/0014` (LegacyRedirect, M21.1, новая таблица) + `loyalty/0008` (Voucher.combinable, аддитивная, default False) + `loyalty/0009` (data: существующие коды → combinable, решение владельца) + `promotions/0032` (Promotion.category + whole_shop, PR-1, аддитивная) + `promotions/0033` (Promotion.discount_off, PR-2, аддитивная) + `orders/0026` (OrderItem.returned_qty/restocked_qty + индекс Order(pickup_slot, status), WR-8/WR-7, аддитивная) + `catalog/0042` (единицы m/m²/m³, choices-only, WR-4) + `catalog/0041` (Product.available_weekdays, GA-9, аддитивная) + `booking/0042` (Resource.parts — комбинации столов, GA-5, новая M2M-таблица) + `booking/0041` (Resource.seats/min_seats/zone/sort_order/bookable_online, GA-3, аддитивная) + `booking/0040` (Booking.is_large_party, GA-1, аддитивная) + `jobs/0025` (поля Widerruf на Job, A-7, аддитивная, nullable) + `jobs/0023` (Vehicle + Job.vehicle_ref/mileage_km, A-6a, аддитивная) + `jobs/0024` (перенос номеров в Vehicle, data, идемпотентная) + `jobs/0022` (JobPhoto.kind/uploaded_by + JobProtocol, Anfragen A-5, аддитивная) + `events/0034` (TicketParticipant, Tickets T-5, новая таблица) + `events/0033` (Event.cancel_fee_steps, Tickets T-4a, аддитивная) + `events/0032` (Event.min_participants/min_deadline_days, Tickets T-3, аддитивная) + `stays/0045` (StaySettings.kurtaxe_child_cents + GuestRegistration.entered_at_desk, Z-6, аддитивная) + `stays/0044` (отметки заезда/выезда + часы, Z-5, аддитивная) + `core/0013` (Membership.permissions, E6.7c, аддитивная, db_default) + `stays/0043` (RatePlan.applies_to_all + units M2M, Z-4, аддитивная) + `stays/0041` (StayBooking.night_prices, Z-1, аддитивная) + `stays/0042` (NightRate, Z-2, новая таблица) + `stays/0039` (UnitBlock.room) + `stays/0040` (StayBooking.extra_rooms) + `booking/0034` (Service.resources) + `booking/0035` (буфер/срок/горизонт, occupied_until) + `booking/0036` (индекс (resource, end) + CheckConstraint буфера ≤ 480) + `booking/0037` (ServiceVariant) + `booking/0038` (правила отмены + снимок на записи) + `booking/0039` (данные: старым услугам «Immer erstatten») + `crm/0003` (заметки к процедурам E6.4b) + `finance/0018` (Invoice.price_basis, Bruttomethode) — KA-12 E4.10a/b + E4.2a + E4.4a/b + B6, аддитивные; после деплоя `seed_demo_tenants --group all --changed`.** **⏳ К ДЕПЛОЮ: `tenants/0040` (Tenant.closure_ranges, SHARED, аддитивная) — KA-12 E4.1c.** **⏳ К ДЕПЛОЮ: `finance/0017` (KIND_ADVANCE + InvoiceDeduction) — KA-12 B2-8b, аддитивная.** **✅ ЗАДЕПЛОЕНО 2026-10-24: `tenants/0039` (Tenant.tax_regime, SHARED) + `core/0012` (DealPayment.refunded_at) — KA-12 B2-8a, аддитивные.** **✅ ЗАДЕПЛОЕНО 2026-10-24: `finance/0016` (Rechnungskorrektur) — KA-12 B2-7b.** **✅ ЗАДЕПЛОЕНО 2026-10-24 (вторым деплоем дня): `stays/0038` + `booking/0033` + `orders/0025` + `events/0031` (voucher_paid_cents) + `core/0011` (DealPayment) — KA-12 W3 батч 2, аддитивные.** **✅ ЗАДЕПЛОЕНО 2026-10-24 (`migration_state`: «Всё применено», 136 схем; после хотфикса T-11) — очередь ниже применена: `catalog/0040` (Product.sold_out_until, аддитивная, KA-12 W1.3) + `tenants/0038` (правовые поля Impressum, SHARED, аддитивная, KA-12 W1.1) + `finance/0015` (Stornorechnung, аддитивная, KA-12 W1.2) + `ai/0002` (AIConfig, SHARED, новая таблица, AI-CFG) + `finance/0014` (SOURCE_JOB, choices-only, пилот-батч B) + `jobs/0021` (Job.voucher_paid_cents, KA-H5, аддитивная) + `stays/0036` + `booking/0031` (billing_address, CO-2e, аддитивные) + `platform_bot/0003` (OwnerTelegramLink.user_pk) + `platform_bot/0004` (бэкфилл из зеркала) — T-8.30f, SHARED, аддитивная + data; `platform_bot/0002` (OwnerBotPrefs) + `aggregator/0036` (PortalChat.paused_at/locale_chosen_at) — T-8.10h H-7, SHARED, аддитивные + `aggregator/0034` (тема портала) + `aggregator/0035` (PortalChat, email nullable, choices) — T-8.14/T-8.28, SHARED, аддитивные + `platform_bot/0001` (T-8.10h, SHARED, новая таблица) + `aggregator/0031` (T-8.10f, choices-only, DDL нет) + `aggregator/0032` (марка в листинге) + `aggregator/0033` (подписка на поиск) — T-8.10d, SHARED, аддитивные; после деплоя `sync_aggregator` → `rebuild_search_index`.** **✅ ЗАДЕПЛОЕНО 2026-10-19 — вся очередь ниже применена (`migration_state`: «Всё применено», 130 схем; деплой после фикса T-9 «сборка без сборщика с Docker Hub»).** История очереди: **(M23b.1, 2026-10-18): `catalog/0039` (hide_in_google, аддитивная); (Г3+Г4, 2026-10-17): `promotions/0031` (PromotionDailyView, новая таблица) + `catalog/0038` + `booking/0030` (confirmed_at, metadata-only) — аддитивные; (T-8.27, 2026-10-17): `imports/0002` (SiteImportRun/Item) + `catalog/0037` (Product.external_url) + `booking/0029` (Service.external_url) — аддитивные; (AI-0, 2026-10-17): `ai/0001` (AIUsage, SHARED, новая таблица); (В5 V5-1, 2026-10-17): `aggregator/0030` (PortalStat, SHARED, новая таблица + fillfactor); (В2/В4-1, 2026-10-17): `aggregator/0029` (условие цены + состояние товара в листинге, SHARED, аддитивная; после деплоя `sync_aggregator` → `rebuild_search_index`); (SF-8, 2026-10-16): `aggregator/0028` (AggregatorListing.price_reference, SHARED, аддитивная; после деплоя `sync_aggregator`); (T-8.26 п.5c, 2026-10-16): `aggregator/0027` (AggregatorListing.variant_terms, SHARED, аддитивная; после деплоя `sync_aggregator` → `rebuild_search_index`); (T-8.26 п.2, 2026-10-16): `tenants/0037` (Tenant.is_internal, SHARED, аддитивная, fast-default); (T-8.7, 2026-10-15): `aggregator/0026` (FollowSubscription/FollowDigest/PortalUser.locale+follow_token, SHARED, аддитивная; beat подхватит 3 новые записи при рестарте);  (T-8.21, 2026-10-15): `aggregator/0025` (SearchQueryLog, SHARED);  (T-8.20, 2026-10-15): `aggregator/0023` (pg_trgm + поисковые поля/индексы) + `aggregator/0024` (заполнение индекса) — SHARED;  (T-8.22, 2026-10-10): `tenants/0036` (SHARED, аддитивная); (T-8.11, 2026-10-10): `aggregator/0022` (SHARED) + `catalog/0036` + `booking/0028` — аддитивные; (T-8.13a/b, 2026-10-10): `promotions/0030` + `aggregator/0021` (SHARED) + `catalog/0035` — аддитивные; (T-8.6, 2026-10-10): `tenants/0035` + `aggregator/0020` (SHARED) + `promotions/0029` + `loyalty/0007` — аддитивные; (T-8.5, 2026-10-10): `tenants/0034` (Tenant.email_pending, SHARED, аддитивная); (T-8.3, 2026-10-10): `loyalty/0006` (Voucher.promotion, аддитивная); (T-8.15/17, 2026-10-09): `tenants/0033` + `aggregator/0019` (SHARED, аддитивные + data); (ERP-8, 2026-10-09): `inventory/0006` (Mängelanzeige + qty_replacement, аддитивная); (волна VAT, 2026-08-26): `jobs/0017` (JobLine.vat_rate) + `catalog/0031` (Combo.vat_rate) — аддитивные; (волна DC, 2026-08-25): `booking/0024` + `stays/0033` + `jobs/0016` (внешний номер сделки) + `booking/0025` (связь записи со счётом) — аддитивные; (ревью «Кабинет-X», 2026-08-19): `promotions/0026` (choices-only, DDL не порождает); (волна MT, 2026-08-13/14): `events/0024` (Tour + Event.tour), `events/0025` (SupplierBooking), `events/0026` (TourTask), `documents/0001` (SecureDocument), `community/0001` (FeedSpace/FeedPost/FeedComment), `stays/0032` (шифрование doc_number Meldeschein), `finance/0007` (ExpenseEntry); волна MT-D (2026-08-14): `events/0027` (Tour.country + оверлеи region/country/details/itinerary); MEN-21 (2026-08-17): `reviews/0005` (choices-only, DDL нет); KAT батч 1 (2026-08-18): `catalog/0027` (Category.page_style, аддитивная); KAT батч 2 (2026-08-18): `catalog/0028` (Product.slug + бэкфилл + partial-constraint, аддитивная); VS-3 (2026-08-20): `core/0008` (DealLink); волна SH (2026-08-20): `catalog/0029` (Product.vat_rate), `orders/0018` (OrderItem.vat_rate), `orders/0019` (external_code + billing_*)** — все аддитивные. **Программа MX (2026-08-21): `core/0010` (Extra.consume_qty, v2-опции) + `finance/0008` (ExpenseEntry ref-поля) + `core/0009` (Extra: адресность/трекер/пул/поставщик/vat_rate) + `events/0028` (SupplierBooking вне туров) + `booking/0023` (Service.pricing_mode) + `catalog/0030` (Product.primary_action) + `finance/0009` (SOURCES gift/pass, choices-only)** — аддитивные; после деплоя `seed_demo_tenants --kit moto --recreate`. **Волна ERP (2026-08-21): `orders/0020` (OrderItem.cost_price) + `finance/0010` (BankTransaction) + `finance/0011` (Invoice.mahn_level/mahned_at + ExpenseEntry supplier/due_date/paid_at/document) + `documents/0002` (owner nullable + kind receipt) + `inventory/0005` (qty_returned + kind'ы return_supplier/production, ERP-5/7) + `jobs/0015` (JobLine.cost_rate, ERP-6)** — аддитивные. **DL-19 (2026-09-03): `catalog/0032` (Product.card_style) + `promotions/0027` (Promotion.card_style)** — аддитивные. **Волна O «Аутлет» (2026-09-04): `catalog/0033`** (UVP/состояние/примечание/марка) — аддитивная; после деплоя `seed_demo_tenants --kit outlet --recreate`. **STU-12j (2026-09-09): `catalog/0034`** (Category.card_style + дрейф снимка choices `Product.condition`) — аддитивная. **STU-15a (2026-09-09): `promotions/0028`** (Promotion.page_style — шаблон страницы акции) — аддитивная. Плюс прежняя очередь: `catalog/0024` (I18N-10), `jobs/0013` (AF-1), `tenants/0028` (GK-1), `tenants/0029` (GK-9), `tenants/0030` (GK-11). После деплоя: `./scripts/deploy.sh single`, затем `seed_demo_tenants --kit moto --recreate` (демо мото-туров) + `--kit catering --recreate` (наборы меню/отзывы) + `--kit pranasy --recreate` (кейтеринг-карта) + прежние киты по прошлым записям. **Правило (2026-08-01):** очередь здесь — гипотеза до сверки; проверка одной командой `python manage.py migration_state` (T-7 печатает вердикт по ВСЕМ схемам, шаг встроен в deploy.sh).
+**Конвенция памяти:** завершая инкремент — дописывать строку в `docs/build-log.md`,
+а ЗДЕСЬ обновлять только верхнеуровневый статус и раздел «Дальше».
+
+
+## 7. Дальше — ⚠️ РАЗДЕЛ-АРХИВ (порядок от 2026-07-01, разобран)
+
+> **Сверено 2026-08-06.** Волны, перечисленные ниже (L, U-A…U-E, E-7, M20, спринты A–G),
+> **закрыты** — статус см. §3, хронологию — `docs/build-log.md`. Раздел оставлен ради
+> ссылок на планы и рыночную аналитику; **как очередь работ он больше не действует**.
+> Актуальная очередь живёт в `docs/task-catalog.md` и в последних записях §3; открытый
+> бэклог — только owner-gated (Pro-тариф D1, per-page ДАННЫЕ секций —
+> вариант B UC2-3) и external-gated (Stripe live, OTA-API, Shopify/Woo, Ads, Push/Wallet —
+> `docs/external-integrations-backlog.md`).
+
+**🔍 АУДИТ 2026-07-01 (план↔факт + рынок A1–A9 + security) — `docs/audit-2026-07-01.md`.** Пробелы
+вплетены в ТЗ: **master-track §7** («что недостаёт» по очереди волн 0→4), `…-ua-plan §7` (остаток U-A:
+`_buybox`/UA3-2/AutoRepair/демо-A9/reviews-email не сделаны — «U-A закрыта» неточна), `…-L-plan §10`
+(остаток L3-ввод+демо/L4/L5), pointer'ы в ub/uc/ud-планах. Приоритет №1 после багфиксов — **E-7
+платёжный микс DACH** (6 архетипов, вне волн). ~~Security: 2× HIGH XSS в карте агрегатора~~ —
+**закрыто** (сверено 2026-08-06: `_map.html` строит попап через DOM с проверкой схемы href,
+данные идут через `json_script`; см. комментарий в шаблоне).
+
+**🧭 АКТУАЛЬНАЯ ОЧЕРЕДЬ (этап реализации «единого слоя»):**
+`docs/unified-sellable-entity-master-track-2026-06-30.md §4` — SOURCE OF TRUTH порядка волн.
+Порядок: **Волна L (мультиязычность)** → **U-A** (адаптер SellableEntity) → U-B → U-C → U-D → U-E.
+Решения владельца зафиксированы — `docs/unified-sellable-entity-decisions-2026-06-30.md` (A/B/C),
+приоритеты — `…-priority-review-2026-07-01.md` (P/PR), план L — `docs/multilanguage-wave-L-plan-2026-07-01.md`.
+**Статус Волны L:** L1 ✅ (рантайм-биндинг), L2 ✅ (кабинет «Sprachen»), **L3-модель ✅** (i18n
+`Service`/`StayUnit`, overlay + миграции). Дальше: **L3c** (per-locale инпут форм/редактора + засев
+демо + рендер витрины `*_localized` — идёт с UA1-3) → L4 (хром `.po/.mo`, вкл. кабинет — S-1a) → L5
+(правовое i18n+AGB через модель `LegalDoc` — S-2b). Решения S-1/S-2/S-3 зафиксированы (реестр DE+EN).
+**Статус U-A (2026-07-02): ЗАКРЫТА ЦЕЛИКОМ** — UA1/UA2/UA3/UA4 ✅ + весь остаток аудита 5/5
+(демо-A9, combo i18n, reviews-email wiring, единый `_buybox.html`, двухшаговый buy-box A+).
+**E-7 платёжный микс DACH (2026-07-02): внутренняя часть E7-1..3 ✅** (запущено по «делай e7»
+владельца; см. §3 и план `docs/e7-payments-plan-2026-07-02.md`; E7-4 Vorkasse-вне-orders —
+roadmap §Отложено; нативные провайдеры — external-integrations-backlog).
+**ВОЛНА U-C — В РАБОТЕ (старт 2026-07-02, одобрение владельца «начинай UC1-1»).** Source of
+truth — `uc-plan §11` (ревизия: часть волны закрыта U-A; втянуты U-E-пакеты UE2/UE3 —
+одобрено). **Одобренный стек ТЗ владельца (2026-07-02) — `roadmap-next-sprints.md
+§Одобренный стек ТЗ`**: U-C (+E-2, UE2, UE3) → Контент-хаб CM-1..5 → быстрые победы
+A3/A4/C1/C2/B3 → средние B1/CM-8/CM-6/B2/B4 → платформа D1/D2/D3; идеи —
+`feature-ideas-2026-07-02.md`, контент-анализ — `market-content-analysis-2026-07-02.md`.
+**Статус U-B (2026-07-02): ЗАКРЫТА ЦЕЛИКОМ** — UB1-1/1-2/1-3 ✅ (каркас listing.html + единая
+карточка + свод 4 листингов), UB2-1/2-2/2-3 ✅ (FacetProvider + поиск/сорт + фасеты цена/наличие/
+Herkunft/рейтинг), UB3-1 ✅, UB3-2 ✅ (M2M `Collection` + кабинет + демо; миграции
+`collections/0001`+`booking/0013`+`stays/0021` — ⚠️ деплой владельцем). Следующая волна очереди —
+**U-C** (универсальный редактор) — либо L4 / E-2 по выбору владельца.
+**Мерж-политика владельца (2026-07-01): FF-мерж в `main` после каждой фазы и на багфиксе** (main
+не защищён; после мержа с миграциями — деплой `./scripts/deploy.sh single`).
+
+**🔎 Аудит наполненности архетипов + план доработок (2026-06-30) —
+`docs/archetype-completeness-audit-2026-06-30.md`.** Проверены 9 китов (демо/функ-
+ционал), витрина (главная/категории/деталь товара+услуги/текст/право/ЛК), языковой
+модуль; все ключевые факты адверсариально верифицированы. **Главные дыры:** (1) нет
+ДЕТАЛЬНОЙ страницы услуги (A3, и через `booking.Service` — A7/A9); (2) AGB нет; (3)
+правовое не засеяно в демо (Datenschutz → placeholder); (4) «описание услуг как FAQ»
+не выделено. **Бэклог волны** — D1…D10 в §9 того дока (старт: D1 деталь услуги + D2 FAQ).
+
+**🔬 Детальная проверка архетипов «рынок ↔ функционал» (2026-06-30, серия завершена 8/8) —
+индекс `docs/market-gap-audit-2026-06-30-index.md`, капстоун `docs/market-gap-synthesis-2026-06-30.md`.**
+Пошаговые доки `docs/market-gap-<a1a2|a3|a4|a5|a6|a7|a8|a9>-2026-06-30.md` (каждый: структура
+сайта + матрица фич рынка DACH ↔ наш статус + приоритизир. гэпы, всё адверсариально
+верифицировано против кода). **Сквозные темы (≥3 архетипов):** деталь услуги (A3/A7/A9),
+платёжный микс DACH (PayPal/Klarna Kauf-auf-Rechnung/SEPA + `Order.payment_method`), верифиц.
+отзывы per-item, AGB+правовое+§312j+PAngV, языковой модуль, JSON-LD по архетипу, переиспользование
+движков между архетипами, SMS-канал. **Единый бэклог** — эпики E-1…E-15 в капстоуне (Tier 1 —
+сквозные дешёвые победы; старт волны 1: деталь услуги → правовой пакет → JSON-LD → отзывы → reuse).
+
+**🏗️ МАСТЕР-ТРЕК (решение владельца 2026-06-30, DRAFT на согласование) —
+`docs/unified-sellable-entity-master-track-2026-06-30.md`.** Единый слой представления
+продаваемой сущности (товар/услуга/номер/событие/заявка) для всех архетипов кроме
+агрегатора: протокол `SellableEntity` (адаптер, модели НЕ сливаем) + единая деталь/
+листинг/фасеты/категории; **отличается только buy-box по `purchase_mode`**. Поглощает
+E-1 (деталь услуги) + T3/T6 (отзывы/JSON-LD) + весь редактор. Фазы: U-A контракт+деталь,
+U-B листинг/фасеты, U-C **универсальный визуальный редактор на всех страницах/блоках**,
+U-D **унифицированный заказ + Kanban-доска + склад-леджер** (подъём отложенного Stage 3
+M10/M14), U-E **канва акций (Canva-like)** — двигать кнопки/шрифты/цвета, виды вывода
+скидок. Идём инкрементально за каркасом M20U; старт U1 = вписать `Service` в `detail.html`.
+
+**Языковой модуль — ⚠️ ЗАПИСЬ НИЖЕ УСТАРЕЛА (сверено с кодом 2026-08-06), оставлена
+как история.** Фактическое состояние: волна L закрыта (L1–L5), хром переведён на 5
+языков (`CABINET_LANGUAGES` de/en/tr/ru/uk, ~4080 msgid в каждом каталоге, .mo
+компилируются в образ), кабинет «Sprachen» есть, письма локализованы (L4), правовое —
+через `LegalDoc` (L5), демо переводятся словарями `demo_i18n_<loc>.json`, регресс ловит
+`scripts/i18n_gap.py` в CI. Из исходной записи верна только заметка про публичный домен.
+<details><summary>Историческая запись от 2026-06-30</summary>
+фундамент НА ВИТРИНЕ тенанта уже есть — переключатель DE/EN (`set_language`+
+`storefront-set-language`+`_base.html`), оверлей `siteconfig.localize`, модельная i18n
+`{de,en}`, поля `Tenant.default_locale/enabled_locales`. НЕ работает: `enabled_locales`/
+`default_locale` не читаются в рантайме; `.po/.mo` пусты; хром/письма/правовое — DE-only;
+EN-контент только у `pranasy`; нет кабинетного UI языков; на ПУБЛИЧНОМ домене
+переключателя нет. План достройки — L1…L6 (§6.4 дока).
+</details>
+
+Архетип A5 «Отель» закрыт: H1–H9 + бэклог роста G1–G10 + фундамент G11 (a/b).
+Демо наполнено по нескольку примеров на фичу, агрегатор согласован. История —
+build-log; планы — `hotel-growth-plan.md` / `hotel-channel-manager-plan.md`.
+Текущий порядок (выбор владельца, 2026-06-23: сначала G11, затем M20):
+
+1. **G11 (Channel Manager):** ✅ фундамент G11a/b (модель `Channel` + идемпотентный
+   импорт броней из OTA + кабинет). **Отложено G11c–e** — реальные API
+   Booking/Expedia/Airbnb (партнёрские аккаунты/сертификация — шаг владельца).
+2. **M20 — Site Builder.** Аудит ✅ (2026-06-23). Адаптивный билдер + нативный кабинет
+   (таб-бар `nav_primary`, поиск меню, липкая шапка). План — `docs/m20-site-builder-plan.md`.
+   **M20U «унификация страниц» 🚧 (2026-06-25, активный трек, план
+   `docs/m20-retreat-pages-plan.md`):** «архетип = главный товар + способ покупки»
+   поверх JSON, без новых моделей. ✅ единая главная (слайдер/категории/события +
+   реестры `archetypes.primary_item`/`purchase_mode`/`purchase_label`, hero-CTA, пилюли
+   действия, мобильный buybar), каталог (подкатегории-первыми, фильтры свёрнуты на
+   маленьком сайте), **единая детальная `storefront/detail.html`** (product/stay/event
+   сведены), билдер: пер-секционные контролы (раскладка/число/заголовок/источник/«View all»),
+   layout-движок на всех секциях-сетках, **per-page раскладки + вкладка «Pages»**
+   (каталог/номера/события/похожие), archetype-aware дефолт главной — всё с live-preview.
+   Осталось (опц.): per-page блок-редактор с панелью по клику, реестр секций детальной
+   (отложен), realtime-чат (отдельный трек), применение к pranasy. Хронология — build-log.
+3. **Наполнение архетипов — витрина/UX + «анти-Битрикс» 🚧 (активный трек, обновлён 2026-06-26).**
+   **Точка входа — `docs/next-session-brief.md` (обновлён 2026-06-26).** SOURCE OF TRUTH этапа —
+   `docs/archetype-ux-execution-plan.md` (Спринты A–F, статусы по инкрементам, идём строго по нему).
+   **Сделано:** Спринт A–D ✅, **Спринт E ✅ (on-canvas E.1–E.4)**, Спринт F частично (A7-кит, RV3,
+   RV2, A5 PAngV/рейтинг/**календарь наличия C1–C4**, A4 аллергены/Kombo, A9/A7 Festpreis, A8 sort).
+   **Дальше (остаток F):** A6 RV1/RT1/RT2(онлайн-события, нужна миграция Event)/RT3/RT4 · A4 диет-фильтр ·
+   A3 богатая карточка услуги (миграция Service)/мастера · A9 авто-данные · A7 before/after · A8 фасеты ·
+   A1/A2 отзывы о товаре. Рыночный анализ — `docs/archetype-market-analysis.md` (+ `market-analysis/*`);
+   карта потребностей — `micro-business-verticals.md`; крупные доработки — план-доком до кода.
+4. **Спринт G — «настоящий анти-Битрикс»: кабинет/админка + онбординг 🆕 (фидбэк владельца
+   2026-06-26).** План — `docs/anti-bitrix-admin-plan.md`: AB1 группировка меню кабинета по
+   задачам · AB2 страница «Module» (рекомендовано/прочее/премиум + «для каких архетипов») ·
+   AB3 мастер онбординга v2 (демо-дефолты + живое превью + язык задач) · AB4 чек-лист готовности
+   сайта на дашборде · AB5 регистрация→мастер (high-risk). Цель: «чтобы ребёнок собрал магазин».
+5. **Рефактор-гигиена (по желанию):** loyalty/vouchers уже вынесены в `apps.loyalty`.
+
+**Параллельно — Stage 0 (на владельце, блокер боевого запуска):** Stripe live
+(ключи/Price 39 €/Connect/webhook — `billing-stripe-setup.md`), инфра (отдельный
+Postgres, бэкапы, `SECRETS_ENCRYPTION_KEY`, SENTRY_DSN; RESEND_API_KEY — ✅ стоит), право DACH
+(AVV — `dsgvo-review.md`, прогон k6 — `scripts/load/README.md`).
+**⚠️ ВАЖНО (2026-10-15, T-8.20): при переезде на внешний/managed Postgres роль БД обязана
+иметь право `CREATE EXTENSION` (миграция `aggregator/0023` ставит `pg_trgm`; в проде сегодня
+это проходит только потому, что роль образа — суперпользователь). Без этого права
+`migrate` остановится на первой же миграции с расширением. У managed-провайдеров
+достаточно роли-владельца БД (`pg_trgm` — trusted с PG13); проверять ДО миграции:
+`SELECT * FROM pg_available_extensions WHERE name='pg_trgm'` + пробный
+`CREATE EXTENSION IF NOT EXISTS pg_trgm` на пустой копии.**
+
+**Stage 2/3 (после M20+архетипы):** P2.8 PWA/push/Wallet, M21 импорт Shopify/Woo,
+M23c платная реклама; затем Stage 3 (склад-леджер, маркетплейс-корзина, закупки,
+dropshipping, AI, workflow). Подробно — `master-plan.md` / audit §6.
+
+UX-принцип (владелец, 2026-06-09): для конечного потребителя — максимально
+просто, понятно и без навязчивости (бронь без аккаунта, one-click отписка,
+Double-Opt-In по UWG §7 до маркетинговых рассылок, без трекинг-куки на витрине).
+
