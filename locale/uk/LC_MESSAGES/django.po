@@ -37647,3 +37647,6 @@ msgstr "Повернутися до структури каталогу"
 
 msgid "So viele Kategorien mit eigenem Aufbau sind nicht möglich. Bitte zuerst bei einer anderen Kategorie die eigenen Blöcke entfernen."
 msgstr "Стільки категорій із власною структурою зробити не можна. Спочатку видаліть власні блоки в іншої категорії."
+
+msgid "Reihenfolge, Sichtbarkeit und Breite der Blöcke ändern Sie unter „Seitenaufbau“ – hier wurden nur die Inhalte gespeichert."
+msgstr "Порядок, видимість і ширину блоків змінюють у розділі «Структура сторінок» — тут збережено лише вміст."

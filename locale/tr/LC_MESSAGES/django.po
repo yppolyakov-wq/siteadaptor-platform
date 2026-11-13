@@ -37467,3 +37467,6 @@ msgstr "Katalog düzenine dön"
 
 msgid "So viele Kategorien mit eigenem Aufbau sind nicht möglich. Bitte zuerst bei einer anderen Kategorie die eigenen Blöcke entfernen."
 msgstr "Bu kadar çok kategorinin kendi düzeni olamaz. Lütfen önce başka bir kategorinin kendi bloklarını kaldırın."
+
+msgid "Reihenfolge, Sichtbarkeit und Breite der Blöcke ändern Sie unter „Seitenaufbau“ – hier wurden nur die Inhalte gespeichert."
+msgstr "Blokların sırasını, görünürlüğünü ve genişliğini “Sayfa düzeni” bölümünde değiştirirsiniz – burada yalnızca içerik kaydedildi."

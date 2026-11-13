@@ -37660,3 +37660,6 @@ msgstr "Вернуться к структуре каталога"
 
 msgid "So viele Kategorien mit eigenem Aufbau sind nicht möglich. Bitte zuerst bei einer anderen Kategorie die eigenen Blöcke entfernen."
 msgstr "Столько категорий со своей структурой сделать нельзя. Сначала удалите свои блоки у другой категории."
+
+msgid "Reihenfolge, Sichtbarkeit und Breite der Blöcke ändern Sie unter „Seitenaufbau“ – hier wurden nur die Inhalte gespeichert."
+msgstr "Порядок, видимость и ширину блоков меняют в разделе «Структура страниц» — здесь сохранено только содержимое."

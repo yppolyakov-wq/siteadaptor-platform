@@ -199,3 +199,52 @@ def test_live_draft_carries_text_but_cannot_reorder_hide_or_drop():
         ("p", "P"),
         ("q", "Q neu"),
     ]
+
+
+# ───────────── честный ответ и мусор на входе ─────────────
+
+
+def _save_messages(tenant, post):
+    from django.contrib.messages import get_messages
+
+    from apps.core import views
+    from apps.core.tests.test_stu12_groups import _req
+
+    req = _req("post", "/dashboard/site/home/", tenant, post)
+    assert views.home_builder_view(req).status_code == 302
+    return [str(m) for m in get_messages(req)]
+
+
+def test_save_says_when_the_form_tried_to_change_the_structure():
+    tenant = _tenant([_text("a", "A"), _text("b", "B")])
+    cfg = siteconfig.normalize(tenant.site_config)
+    fixed = {}
+    for i, sec in enumerate(cfg["sections"], start=1):
+        if sec.get("id"):
+            continue
+        fixed[f"order_{sec['key']}"] = str(i)
+        if sec["enabled"]:
+            fixed[f"enabled_{sec['key']}"] = "on"
+    same = {"cb_id": ["a", "b"], **fixed, **_row("a", "A neu", 1), **_row("b", "B", 2)}
+    assert not any("Seitenaufbau" in m for m in _save_messages(tenant, same))
+    tenant.refresh_from_db()
+    swapped = {"cb_id": ["a", "b"], **fixed, **_row("a", "A", 2), **_row("b", "B", 1)}
+    assert any("Seitenaufbau" in m for m in _save_messages(tenant, swapped))
+    tenant.refresh_from_db()
+    deleted = {**same, "delete_cb_a": "on"}
+    assert any("Seitenaufbau" in m for m in _save_messages(tenant, deleted))
+
+
+def test_merge_survives_rubbish_from_a_draft():
+    saved = [_text("a", "A"), {"key": "promo_list", "id": "l", "enabled": True, "data": {}}]
+    posted = [
+        {"key": "text", "id": ["x"], "data": {}},
+        {"key": {"a": 1}},
+        "nope",
+        None,
+        {"key": "list", "id": "l", "enabled": True, "data": {"title": "Neu"}},
+    ]
+    out = site_schema.merge_structure(saved, posted)
+    assert [b["id"] for b in out] == ["a", "l"]
+    # легаси-ключ и новый тип — один и тот же блок: правка не теряется
+    assert out[1]["data"]["title"] == "Neu" and out[1]["key"] == "promo_list"

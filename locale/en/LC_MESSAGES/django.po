@@ -37321,3 +37321,6 @@ msgstr "Back to the catalogue layout"
 
 msgid "So viele Kategorien mit eigenem Aufbau sind nicht möglich. Bitte zuerst bei einer anderen Kategorie die eigenen Blöcke entfernen."
 msgstr "That many categories with their own layout are not possible. Please remove the own blocks of another category first."
+
+msgid "Reihenfolge, Sichtbarkeit und Breite der Blöcke ändern Sie unter „Seitenaufbau“ – hier wurden nur die Inhalte gespeichert."
+msgstr "You change the order, visibility and width of blocks under “Page layout” – only the content was saved here."

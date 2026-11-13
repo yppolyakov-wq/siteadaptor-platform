@@ -123,21 +123,27 @@ def merge_structure(saved: list, posted: list, fixed: bool = False) -> list:
     from apps.tenants import siteconfig
 
     def ident(item):
-        return item.get("id") or item.get("key")
+        # не строка (мусор в черновике) — не ключ: по ней блок не найти
+        value = item.get("id") or item.get("key")
+        return value if isinstance(value, str) else None
+
+    def kind(item):
+        key = item.get("key")
+        return siteconfig.cblock_type(key) or key  # легаси-ключ блока = его новый тип
 
     by = {}
     for item in posted or []:
-        if isinstance(item, dict) and not siteconfig.is_main_marker(item):
+        if isinstance(item, dict) and not siteconfig.is_main_marker(item) and ident(item):
             by.setdefault(ident(item), item)
     out = []
     for old in saved or []:
         if not isinstance(old, dict):
             continue
         new = None if siteconfig.is_main_marker(old) else by.pop(ident(old), None)
-        if new is None or new.get("key") != old.get("key"):
+        if new is None or kind(new) != kind(old):
             out.append(old)
             continue
-        merged = dict(new)
+        merged = {**new, "key": old.get("key")}
         # У встроенной секции главной ширину (Ganz/Randlos) в «Seitenaufbau» менять
         # негде — она остаётся виду Студии; её структура — только видимость.
         for field in _OWNED_FIELDS if old.get("id") else ("enabled",):
@@ -149,6 +155,33 @@ def merge_structure(saved: list, posted: list, fixed: bool = False) -> list:
     if fixed:
         out += [item for item in by.values() if not item.get("id")]
     return out
+
+
+def _structure_signature(items: list, only: set | None = None) -> list:
+    out = []
+    for item in items or []:
+        if not isinstance(item, dict) or item.get("key") == "main":
+            continue
+        ref = item.get("id") or item.get("key")
+        if only is not None and ref not in only:
+            continue
+        row = [ref, bool(item.get("enabled", True))]
+        if item.get("id"):
+            row += [
+                item.get("width") or "contained",
+                item.get("pos") or "",
+                bool(item.get("newline")),
+            ]
+        out.append(row)
+    return out
+
+
+def structure_attempted(posted: list, merged: list) -> bool:
+    """FB-27 R8: пыталась ли форма Студии изменить структуру (порядок, видимость,
+    удаление, ширину своего блока) — тогда «Gespeichert» без пояснения было бы неправдой."""
+    sent = _structure_signature(posted)
+    refs = {row[0] for row in sent if isinstance(row[0], str)}
+    return sent != _structure_signature(merged, only=refs)
 
 
 def merge_pages(saved: dict, posted: dict) -> dict:

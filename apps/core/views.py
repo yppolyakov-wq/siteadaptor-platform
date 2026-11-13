@@ -2686,8 +2686,12 @@ def home_builder_view(request):
         items.sort(key=lambda row: row[0])
         # FB-27 R8: структура главной (порядок, состав, видимость, ширина) — как
         # сохранено; из формы — содержимое и вид. Правит структуру «Seitenaufbau».
-        new_sections = site_schema.merge_structure(
-            config["sections"], [entry for _o, entry in items], fixed=True
+        posted_sections = [entry for _o, entry in items]
+        new_sections = site_schema.merge_structure(config["sections"], posted_sections, fixed=True)
+        # Форма пыталась изменить структуру (или прислала галочку удаления) — скажем об
+        # этом после записи: молчаливое «Gespeichert» было бы неправдой.
+        structure_ignored = site_schema.structure_attempted(posted_sections, new_sections) or any(
+            k.startswith("delete_cb_") for k in request.POST
         )
         # LB-2 §11.7: переводы C-блоков едут за своим блоком — оверлей мёржится по
         # позиции, и перестановка/удаление сдвигали бы их на чужие блоки. В языке
@@ -2733,12 +2737,14 @@ def home_builder_view(request):
                     (order, _cblock_entry_from_post(request.POST, bid, btype))
                 )
             # FB-27 R8: хосты, состав и порядок блоков страниц — как сохранено.
-            new_pages = site_schema.merge_pages(
-                config.get("page_blocks") or {},
-                {
-                    host: [entry for _o, entry in sorted(rows, key=lambda r: r[0])]
-                    for host, rows in pb_items.items()
-                },
+            posted_pages = {
+                host: [entry for _o, entry in sorted(rows, key=lambda r: r[0])]
+                for host, rows in pb_items.items()
+            }
+            new_pages = site_schema.merge_pages(config.get("page_blocks") or {}, posted_pages)
+            structure_ignored = structure_ignored or any(
+                site_schema.structure_attempted(rows, new_pages.get(host, []))
+                for host, rows in posted_pages.items()
             )
             siteconfig.realign_block_overlays(
                 config, new_page_blocks=new_pages, skip_locale=save_loc if translating else None
@@ -3004,6 +3010,14 @@ def home_builder_view(request):
                 return _redirect_builder(request)
             request.tenant.save(update_fields=update_fields)
         messages.success(request, _("Gespeichert."))
+        if structure_ignored:
+            messages.info(
+                request,
+                _(
+                    "Reihenfolge, Sichtbarkeit und Breite der Blöcke ändern Sie unter "
+                    "„Seitenaufbau“ – hier wurden nur die Inhalte gespeichert."
+                ),
+            )
         # UC6-7b: Save с канвы на подстранице возвращает канву на ТУ ЖЕ страницу
         # (page_path — скрытое поле формы, синкается JS при навигации кадра).
         return _redirect_builder(request)
