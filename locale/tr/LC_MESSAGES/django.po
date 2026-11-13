@@ -37641,3 +37641,6 @@ msgstr "Hazır satır"
 
 msgid "Computer"
 msgstr "Bilgisayar"
+
+msgid "Einstellungen des Blocks schließen"
+msgstr "blok ayarlarını kapat"

@@ -37582,3 +37582,6 @@ msgstr "Fertige Zeile"
 
 msgid "Computer"
 msgstr "Computer"
+
+msgid "Einstellungen des Blocks schließen"
+msgstr "Einstellungen des Blocks schließen"

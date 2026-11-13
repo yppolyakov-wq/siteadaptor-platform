@@ -37495,3 +37495,6 @@ msgstr "Ready-made row"
 
 msgid "Computer"
 msgstr "Computer"
+
+msgid "Einstellungen des Blocks schließen"
+msgstr "close the block settings"

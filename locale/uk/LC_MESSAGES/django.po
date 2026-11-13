@@ -37821,3 +37821,6 @@ msgstr "Готовий рядок"
 
 msgid "Computer"
 msgstr "Комп'ютер"
+
+msgid "Einstellungen des Blocks schließen"
+msgstr "закрити налаштування блоку"

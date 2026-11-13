@@ -37834,3 +37834,6 @@ msgstr "Готовая строка"
 
 msgid "Computer"
 msgstr "Компьютер"
+
+msgid "Einstellungen des Blocks schließen"
+msgstr "закрыть настройки блока"
