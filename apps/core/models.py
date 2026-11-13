@@ -494,7 +494,6 @@ class Banner(I18nMixin, TimestampedModel):
                 name="banner_legacy_key_uniq",
             )
         ]
-        indexes = [models.Index(fields=["is_active", "starts", "ends"], name="banner_active_idx")]
 
     def __str__(self):
         return self.title or str(self.pk)

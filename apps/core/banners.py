@@ -23,13 +23,21 @@ _I18N_FIELDS = (
 )
 
 
+#: Сколько баннеров показывает одно место (слайдер); лишнее в выборе отбрасывается.
+MAX_SLIDES = 10
+
+
 def _day(value):
+    """Дата срока. Пусто — None; мусор — ValueError (молча превратить битую дату в
+    «показывать всегда» нельзя: баннер вне срока вышел бы на сайт)."""
+    if value in (None, ""):
+        return None
     if isinstance(value, datetime.date):
         return value
     try:
-        return datetime.date.fromisoformat(str(value or ""))
-    except ValueError:
-        return None
+        return datetime.date.fromisoformat(str(value))
+    except ValueError as exc:
+        raise ValueError("date") from exc
 
 
 def clean_fields(raw: dict) -> dict:
@@ -56,28 +64,36 @@ def clean_fields(raw: dict) -> dict:
     if ref and image.get("alt"):
         ref["alt"] = str(image["alt"])[:300]
     out = {k: slide.get(k, "") for k in (*_TEXT_FIELDS, *_STYLE_FIELDS)}
-    out.update(
-        image=ref,
-        click_all=bool(slide.get("click_all")),
-        starts=starts,
-        ends=ends,
-        is_active=raw.get("is_active") is not False,
-    )
-    if "sort_order" in raw:
-        out["sort_order"] = max(0, int(raw.get("sort_order") or 0))
-    if raw.get("legacy_key"):
-        out["legacy_key"] = str(raw["legacy_key"])[:80]
+    out.update(image=ref, click_all=bool(slide.get("click_all")), starts=starts, ends=ends)
+    # «включён» меняется, только когда поле прислано: частичная правка не включает
+    # выключенный баннер обратно
+    if "is_active" in raw:
+        out["is_active"] = bool(raw["is_active"])
     return out
 
 
-def create(raw: dict):
+def create(raw: dict, *, sort_order: int | None = None, legacy_key: str = ""):
+    """Новый баннер. Порядок и ключ переноса задаёт только код (не форма владельца)."""
     from apps.core.models import Banner
 
-    return Banner.objects.create(**clean_fields(raw))
+    fields = clean_fields(raw)
+    if sort_order is not None:
+        fields["sort_order"] = max(0, int(sort_order))
+    if legacy_key:
+        if len(legacy_key) > 80:
+            raise ValueError("legacy_key")  # обрезка склеила бы два разных слайда
+        fields["legacy_key"] = legacy_key
+    return Banner.objects.create(**fields)
 
 
 def update(banner, raw: dict):
-    for field, value in clean_fields(raw).items():
+    """Правка баннера. Сменился текст основного языка — его переводы снимаются: иначе
+    сайт на других языках показывал бы прежний текст."""
+    fields = clean_fields(raw)
+    for base, overlay in _I18N_FIELDS:
+        if fields.get(base, "") != getattr(banner, base):
+            setattr(banner, overlay, {})
+    for field, value in fields.items():
         setattr(banner, field, value)
     banner.save()
     return banner
@@ -118,6 +134,8 @@ def clean_pick(pick) -> list[str]:
             continue
         if key not in out:
             out.append(key)
+        if len(out) >= MAX_SLIDES:
+            break
     return out
 
 
