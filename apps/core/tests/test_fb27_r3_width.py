@@ -150,7 +150,9 @@ def test_widths_are_named_in_words_for_screen_readers():
     b = Browser(_tenant())
     ref = site_schema.apply(b.tenant, "text", "add", block_type="text")
     html = b.get(f"?seite=text&block={ref}")
-    assert 'aria-label="ein Sechstel"' in html and 'aria-label="die Hälfte"' in html
+    # FB-29.5 (ревью доступности): имя начинается с видимого знака — «½ – die Hälfte»
+    # (WCAG 2.5.3: голосовое управление находит кнопку по тому, что написано на ней)
+    assert 'aria-label="⅙ – ein Sechstel"' in html and 'aria-label="½ – die Hälfte"' in html
 
 
 # --- R3b: короткое содержимое простого блока в панели -------------------------

@@ -264,6 +264,11 @@
         });
         document.querySelectorAll('[data-schema-fields] button[value="update"],[data-schema-list] button[value="update"]').forEach(function (b) { b.style.display = "none"; });
         arm();
+        // фокус — на перенесённую строку (после замены схемы он иначе уходил в начало страницы)
+        var moved = document.querySelector("[data-schema-drag]")
+          ? Array.prototype.find.call(document.querySelectorAll("[data-schema-block]"), function (a) { return a.getAttribute("data-schema-block") === ref; })
+          : null;
+        if (moved) moved.focus({ preventScroll: true });
         var live = document.querySelector("[data-schema-live]");
         if (live) { live.textContent = ""; setTimeout(function () { live.textContent = live.getAttribute("data-done") || ""; }, 100); }
       })

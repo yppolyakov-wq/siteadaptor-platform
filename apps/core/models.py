@@ -458,6 +458,48 @@ class LegacyRedirect(TimestampedModel):
         return f"{self.source_path}{q} → {self.target or self.status}"
 
 
+class Banner(I18nMixin, TimestampedModel):
+    """FB-29.2: баннер из библиотеки («Website → Banner»). Место показа (баннер главной,
+    блок «Banner») ВЫБИРАЕТ записи; несколько — слайдер. Поля и их чистка — те же, что у
+    прежних слайдов `site_config["heroes"]` (`apps/core/banners.py`)."""
+
+    title = models.CharField(max_length=200, blank=True, default="")
+    title_i18n = models.JSONField(default=dict, blank=True)
+    text = models.CharField(max_length=400, blank=True, default="")
+    text_i18n = models.JSONField(default=dict, blank=True)
+    button_label = models.CharField(max_length=60, blank=True, default="")
+    button_label_i18n = models.JSONField(default=dict, blank=True)
+    # FileRef {url, path, alt}: по `path` медиатека видит, что фото занято
+    image = models.JSONField(default=dict, blank=True)
+    # «тип:цель» из целей меню (товар, услуга, категория, акция, страница …)
+    link = models.CharField(max_length=200, blank=True, default="")
+    button_url = models.CharField(max_length=300, blank=True, default="")
+    align = models.CharField(max_length=10, blank=True, default="")
+    overlay = models.CharField(max_length=10, blank=True, default="")
+    tone = models.CharField(max_length=10, blank=True, default="")
+    click_all = models.BooleanField(default=False)
+    starts = models.DateField(null=True, blank=True)
+    ends = models.DateField(null=True, blank=True)
+    is_active = models.BooleanField(default=True)
+    sort_order = models.PositiveIntegerField(default=0)
+    # перенос прежних слайдов: `heroes:<i>` / `block:<id>` — повторный перенос без дублей
+    legacy_key = models.CharField(max_length=80, blank=True, default="")
+
+    class Meta:
+        ordering = ["sort_order", "-created_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["legacy_key"],
+                condition=~models.Q(legacy_key=""),
+                name="banner_legacy_key_uniq",
+            )
+        ]
+        indexes = [models.Index(fields=["is_active", "starts", "ends"], name="banner_active_idx")]
+
+    def __str__(self):
+        return self.title or str(self.pk)
+
+
 class ContentPage(I18nMixin, TimestampedModel):
     """M21.6: своя страница сайта владельца (Versand, Zahlungsarten, Über uns, …).
 

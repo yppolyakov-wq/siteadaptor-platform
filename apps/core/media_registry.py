@@ -31,13 +31,14 @@ def _iter_gallery_fields():
 def _iter_single_fields():
     """(queryset, поле-ОДИНОЧНЫЙ FileRef-dict)."""
     from apps.booking.models import Resource
-    from apps.core.models import Extra
+    from apps.core.models import Banner, Extra
     from apps.events.models import BlogPost
     from apps.publishing.models import SocialPost
 
     yield BlogPost.objects.all(), "cover"
     yield SocialPost.objects.all(), "image"
     yield Extra.objects.all(), "image"
+    yield Banner.objects.all(), "image"  # FB-29.2: фото баннеров из библиотеки
     yield Resource.objects.all(), "photo"
 
 
