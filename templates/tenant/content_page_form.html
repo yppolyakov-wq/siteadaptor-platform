@@ -16,8 +16,8 @@
 
   {% if confirm_delete and 'content-page-new'|can_open:request %}
   {% comment %}FB-27 «Seiten»: удаление — отдельный шаг с вопросом; работает и без скриптов.{% endcomment %}
-  <section id="seite-loeschen" class="ui-card p-4 mb-4 border border-red-300" role="alert" aria-labelledby="seite-loeschen-title" data-page-delete-confirm>
-    <h2 id="seite-loeschen-title" class="font-semibold mb-1">{% if is_system %}{% blocktrans with t=page.title %}Eigenen Text von „{{ t }}“ entfernen?{% endblocktrans %}{% else %}{% blocktrans with t=page.title %}Seite „{{ t }}“ löschen?{% endblocktrans %}{% endif %}</h2>
+  <section id="seite-loeschen" class="ui-card p-4 mb-4 border border-red-300" role="region" aria-labelledby="seite-loeschen-title" data-page-delete-confirm>
+    <h2 id="seite-loeschen-title" class="font-semibold mb-1" tabindex="-1" autofocus>{% if is_system %}{% blocktrans with t=page.title %}Eigenen Text von „{{ t }}“ entfernen?{% endblocktrans %}{% else %}{% blocktrans with t=page.title %}Seite „{{ t }}“ löschen?{% endblocktrans %}{% endif %}</h2>
     <p class="text-sm text-gray-700 mb-3">{% if is_system %}{% trans "Die Seite zeigt danach wieder den Standardinhalt. Ihre Blöcke bleiben." %}{% else %}{% trans "Text und Blöcke dieser Seite werden entfernt. Das lässt sich nicht rückgängig machen." %}{% endif %}</p>
     <form method="post" action="{% url 'content-page-delete' page.pk %}" class="flex flex-wrap gap-2">
       {% csrf_token %}

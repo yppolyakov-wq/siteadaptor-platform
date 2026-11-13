@@ -504,12 +504,16 @@ def _attach_blocks(rows: list, tenant) -> None:
     """FB-27 «Seiten»: колонка «Blöcke» — что стоит на странице кроме её текста, и адрес
     её схемы в «Seitenaufbau». Один normalize на весь список, без запросов на строку; у
     правовых текстов блоков нет."""
+    import logging
+
     from apps.core import site_schema
     from apps.tenants import siteconfig
 
+    log = logging.getLogger(__name__)
     try:
         config = siteconfig.normalize(getattr(tenant, "site_config", None) or {})
     except Exception:  # noqa: BLE001 — колонка не роняет список страниц
+        log.warning("pages list: blocks column, normalize failed", exc_info=True)
         config = {}
     for row in rows:
         row.blocks, row.schema_url, row.host = "", "", ""
@@ -523,7 +527,8 @@ def _attach_blocks(rows: list, tenant) -> None:
         row.schema_url = f"{reverse('site-schema')}?seite={code}"
         try:
             blocks = site_schema.blocks_for(config, code, host=host, summaries=False)
-        except Exception:  # noqa: BLE001
+        except Exception:  # noqa: BLE001 — колонка пуста, но ошибку видно в журнале
+            log.warning("pages list: blocks column failed for %s", code, exc_info=True)
             continue
         labels = [str(b["label"]) for b in blocks if b["enabled"] and not b["main"]]
         if labels:

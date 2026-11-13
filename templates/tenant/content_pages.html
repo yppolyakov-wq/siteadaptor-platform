@@ -13,7 +13,7 @@ Impressum и Datenschutz удалить нельзя (§ 5 DDG): у правов
     <h1 class="ui-h1">{% nav_title _("Seiten") %}</h1>
     {% if 'content-page-new'|can_open:request %}
     {% comment %}M21.11 P4: новая страница — пустая или заготовка из данных бизнеса.{% endcomment %}
-    <details class="relative" data-page-new>
+    <details class="relative" data-page-new data-pages-pop>
       <summary class="ui-btn ui-btn-primary cursor-pointer list-none [&::-webkit-details-marker]:hidden">＋ {% trans "Neue Seite" %} <span aria-hidden="true">▾</span></summary>
       <ul class="absolute right-0 z-20 mt-1 w-64 ui-card p-1 shadow-lg">
         {% for key, label in starters %}
@@ -29,26 +29,25 @@ Impressum и Datenschutz удалить нельзя (§ 5 DDG): у правов
   {% endif %}
 
   {% include "tenant/_settings_messages.html" %}
-  {% if 'content-page-new'|can_open:request %}
   <script>
   (function () {
     "use strict";
-    // M21.11 P4 (a11y-ревью): меню заготовок закрывается Esc, кликом мимо и уходом фокуса.
-    var d = document.querySelector("details[data-page-new]");
-    if (!d) return;
-    d.addEventListener("keydown", function (e) {
-      if (e.key === "Escape" && d.open) { e.preventDefault(); d.open = false; d.querySelector("summary").focus(); }
+    // M21.11 P4 (a11y-ревью) + FB-27 «Seiten»: меню заготовок и меню «⋯» строк закрываются
+    // Esc, кликом мимо и уходом фокуса. Без скриптов меню открывается и закрывается кнопкой.
+    document.querySelectorAll("details[data-pages-pop]").forEach(function (d) {
+      d.addEventListener("keydown", function (e) {
+        if (e.key === "Escape" && d.open) { e.preventDefault(); d.open = false; d.querySelector("summary").focus(); }
+      });
+      d.addEventListener("focusout", function (e) { if (e.relatedTarget && !d.contains(e.relatedTarget)) d.open = false; });
+      document.addEventListener("click", function (e) { if (d.open && !d.contains(e.target)) d.open = false; });
     });
-    d.addEventListener("focusout", function (e) { if (e.relatedTarget && !d.contains(e.relatedTarget)) d.open = false; });
-    document.addEventListener("click", function (e) { if (d.open && !d.contains(e.target)) d.open = false; });
   })();
   </script>
-  {% endif %}
 
   {% comment %}FB-27 «Seiten» (макеты S1–S3, решение владельца 2026-11-11): на телефоне — карточки,
   от планшета — таблица; строки и меню «⋯» одни и те же. Красных кнопок в списке нет.{% endcomment %}
   <div data-pages-list>
-    <ul class="md:hidden space-y-2" data-pages-cards>
+    <ul class="md:hidden space-y-2" data-pages-cards aria-label="{% trans 'Seiten' %}">
       {% for r in rows %}
       <li class="ui-card p-3 flex items-start gap-2" data-page-row="{{ r.key }}">
         <div class="min-w-0 flex-1">
@@ -85,7 +84,7 @@ Impressum и Datenschutz удалить нельзя (§ 5 DDG): у правов
               {% if "menu" in r.places %}{% trans "im Menü" %}{% if "footer" in r.places %} · {% endif %}{% endif %}{% if "footer" in r.places %}{% trans "im Footer" %}{% endif %}
               {% if not r.places %}<span class="text-gray-600">{% trans "nicht verlinkt" %}</span>{% endif %}
             </td>
-            <td class="text-sm text-gray-600" data-page-blocks>{{ r.blocks|default:"–" }}</td>
+            <td class="text-sm text-gray-600" data-page-blocks>{% if r.blocks %}{{ r.blocks }}{% else %}<span aria-hidden="true">–</span>{% endif %}</td>
             <td class="text-right whitespace-nowrap">{% include "tenant/_page_row_menu.html" %}</td>
           </tr>
           {% endfor %}
