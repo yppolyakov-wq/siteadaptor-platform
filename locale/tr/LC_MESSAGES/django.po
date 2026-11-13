@@ -37743,3 +37743,6 @@ msgstr "“%(name)s” uygulansın mı?"
 
 msgid "Ändert Farben, Schrift und Kartenform. Ihre Texte und Blöcke bleiben."
 msgstr "Renkleri, yazı tipini ve kart biçimini değiştirir. Metinleriniz ve bloklarınız kalır."
+
+msgid "Banner, Rahmen und Schatten der Karten, Überschriften: wie im Design"
+msgstr "Banner, kart çerçeveleri ve gölgeleri, başlıklar: tasarımdaki gibi"

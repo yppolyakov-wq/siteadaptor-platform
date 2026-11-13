@@ -37597,3 +37597,6 @@ msgstr "Apply “%(name)s”?"
 
 msgid "Ändert Farben, Schrift und Kartenform. Ihre Texte und Blöcke bleiben."
 msgstr "Changes colours, font and card shape. Your texts and blocks stay."
+
+msgid "Banner, Rahmen und Schatten der Karten, Überschriften: wie im Design"
+msgstr "Banner, card borders and shadows, headings: as in the design"

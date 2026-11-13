@@ -2057,9 +2057,10 @@ def apply_bundle(tenant, key, *, rebuild_home: bool = True) -> bool:
         return False
     # Сборка = композиция целиком: оси, которых она не объявляет, обязаны
     # сброситься к семейству (иначе переключение сборок «накапливало» бы прежние).
-    kept_widget = (siteconfig.normalize(tenant.site_config).get("site_defaults") or {}).get(
-        "hero_widget"
-    )
+    was = siteconfig.normalize(tenant.site_config)
+    kept_widget = (was.get("site_defaults") or {}).get("hero_widget")
+    kept_nav = (was.get("nav") or {}).get("style")
+    kept_top = ((was.get("menus") or {}).get("top") or {}).get("style")
     apply_look(tenant, bundle["look"], keep_owner_sd=False)
     config = siteconfig.normalize(tenant.site_config)
     over = bundle["config"]
@@ -2072,6 +2073,21 @@ def apply_bundle(tenant, key, *, rebuild_home: bool = True) -> bool:
         else:
             sd.pop("hero_widget", None)
         config["site_defaults"] = sd
+        # шапка — тоже раскладка («Menü und Fußzeile bleiben»): кожа её не переставляет
+        nav = dict(config.get("nav") or {})
+        if kept_nav:
+            nav["style"] = kept_nav
+        else:
+            nav.pop("style", None)
+        config["nav"] = nav
+        menus = config.get("menus")
+        if isinstance(menus, dict) and isinstance(menus.get("top"), dict):
+            top = dict(menus["top"])
+            if kept_top:
+                top["style"] = kept_top
+            else:
+                top.pop("style", None)
+            config["menus"] = {**menus, "top": top}
     _apply_bundle_axes(config, over)
     # DL-8a: запомнить выбранную сборку (бейдж «Aktiv» страницы Design).
     config["design"] = {"look": bundle["look"], "bundle": key}

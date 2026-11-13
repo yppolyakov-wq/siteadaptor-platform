@@ -37936,3 +37936,6 @@ msgstr "Применить «%(name)s»?"
 
 msgid "Ändert Farben, Schrift und Kartenform. Ihre Texte und Blöcke bleiben."
 msgstr "Меняет цвета, шрифт и форму карточек. Ваши тексты и блоки остаются."
+
+msgid "Banner, Rahmen und Schatten der Karten, Überschriften: wie im Design"
+msgstr "Баннер, рамки и тени карточек, заголовки — как в дизайне"

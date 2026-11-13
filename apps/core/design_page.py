@@ -229,6 +229,25 @@ def design_changes(tenant, key: str) -> list[dict] | None:
     old_cols, new_cols = _products_cols(before), _products_cols(after)
     if old_cols and new_cols:
         add(_("Produkte je Reihe auf der Startseite"), str(old_cols), str(new_cols))
+    # Прочее оформление, которое дизайн задаёт заново (ревью: панель обязана назвать всё,
+    # что меняется): баннер, рамки и тени карточек, жирность и высота строк, вид блоков.
+    fine = ("card_radius", "card_shadow", "card_padding", "card_bg", "card_chrome", "promo_card")
+    styles_old = [(s.get("key"), s.get("style")) for s in before.get("sections") or []]
+    styles_new = [(s.get("key"), s.get("style")) for s in after.get("sections") or []]
+    if (
+        any(sd_old.get(k) != sd_new.get(k) for k in fine)
+        or before.get("typography") != after.get("typography")
+        or before.get("hero_style") != after.get("hero_style")
+        or sorted(styles_old, key=str) != sorted(styles_new, key=str)
+    ):
+        rows.append(
+            {
+                "label": str(
+                    _("Banner, Rahmen und Schatten der Karten, Überschriften: wie im Design")
+                ),
+                "note": True,
+            }
+        )
     return rows
 
 
@@ -282,6 +301,10 @@ def design_view(request):
         look = request.POST.get("look", "")
         # FB-27 D-b: главная перестраивается только по галочке (по умолчанию снята)
         rebuild = request.POST.get("rebuild_home") == "on"
+        # только дизайны, предложенные этому бизнесу (как и панель подтверждения)
+        offered = {b["key"] for b in sitetemplates.bundles_for(tenant.business_type, tenant)}
+        if bundle and bundle not in offered:
+            bundle = look = ""
         if bundle and sitetemplates.apply_bundle(tenant, bundle, rebuild_home=rebuild):
             messages.success(request, _("Design übernommen."))
         elif look and sitetemplates.apply_look(tenant, look):

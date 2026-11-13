@@ -186,7 +186,7 @@ Look'и; применение POST'ом — сохраняется сразу. �
         {% if confirm.changes %}
         <ul class="space-y-1 text-gray-800">
           {% for c in confirm.changes %}
-          <li>{{ c.label }}: {% if c.swatch and c.old %}<span class="inline-block w-3 h-3 rounded-full align-middle border border-gray-400" style="background: {{ c.old }};" aria-hidden="true"></span> {% endif %}{{ c.old|default:"–" }} → {% if c.swatch and c.new %}<span class="inline-block w-3 h-3 rounded-full align-middle border border-gray-400" style="background: {{ c.new }};" aria-hidden="true"></span> {% endif %}<strong>{{ c.new|default:"–" }}</strong></li>
+          {% if c.note %}<li>{{ c.label }}</li>{% else %}<li>{{ c.label }}: {% if c.swatch and c.old %}<span class="inline-block w-3 h-3 rounded-full align-middle border border-gray-400" style="background: {{ c.old }};" aria-hidden="true"></span> {% endif %}{{ c.old|default:"–" }} → {% if c.swatch and c.new %}<span class="inline-block w-3 h-3 rounded-full align-middle border border-gray-400" style="background: {{ c.new }};" aria-hidden="true"></span> {% endif %}<strong>{{ c.new|default:"–" }}</strong></li>{% endif %}
           {% endfor %}
         </ul>
         {% else %}

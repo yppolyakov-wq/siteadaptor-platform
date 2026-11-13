@@ -123,3 +123,31 @@ def test_all_designs_are_a_second_level_and_demo_is_one_row():
     assert 'id="design-looks"' not in body and "alle=1" in body
     assert 'id="design-looks"' in _html(tenant, "?alle=1")
     assert 'value="load_demo"' in body or 'value="clear_demo"' in body
+
+
+def test_header_style_stays_without_the_checkbox():
+    """Ревью: кожа Look несёт свой вид шапки — без перестройки главной он остаётся прежним."""
+    tenant = _shop()
+    before = _cfg(tenant)
+    for bundle in sitetemplates.bundles_for(tenant.business_type, tenant):
+        fresh = Tenant.objects.get(pk=tenant.pk)
+        fresh.site_config = before
+        fresh.save(update_fields=["site_config"])
+        sitetemplates.apply_bundle(fresh, bundle["key"], rebuild_home=False)
+        after = _cfg(tenant)
+        assert (after.get("nav") or {}).get("style") == (before.get("nav") or {}).get("style")
+        assert ((after.get("menus") or {}).get("top") or {}).get("style") == (
+            (before.get("menus") or {}).get("top") or {}
+        ).get("style"), bundle["key"]
+        assert _home(after) == _home(before), bundle["key"]
+
+
+def test_design_not_offered_to_this_business_is_refused():
+    tenant = _shop()
+    offered = {b["key"] for b in sitetemplates.bundles_for(tenant.business_type, tenant)}
+    foreign = next((b["key"] for b in sitetemplates.BUNDLES if b["key"] not in offered), None)
+    if foreign is None:
+        pytest.skip("этому типу бизнеса предложены все дизайны")
+    before = Tenant.objects.get(pk=tenant.pk).site_config
+    design_page.design_view(_req("post", tenant, {"bundle": foreign}))
+    assert Tenant.objects.get(pk=tenant.pk).site_config == before
