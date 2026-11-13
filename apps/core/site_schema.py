@@ -81,6 +81,11 @@ def _host(pt) -> str:
 _STRUCT_FIELDS = ("key", "id", "enabled", "width", "pos", "newline")
 
 
+#: FB-27 R8d: блоки, чьи данные — выбор, а не текст (источник и фильтры «Liste», ручной
+#: состав, встроенная страница, вид карточки контактов). Их задаёт «Seitenaufbau».
+OWNED_DATA_KINDS = ("list", "textpage", "contact_card")
+
+
 def structure_hash(config) -> str:
     """FB-27 R0: отпечаток СТРУКТУРЫ сайта — порядок, состав, видимость и ширина блоков
     главной и всех страниц. Тексты, фото и стили в него не входят.
@@ -96,7 +101,15 @@ def structure_hash(config) -> str:
     cfg = siteconfig.normalize(config if isinstance(config, dict) else {})
 
     def rows(items):
-        return [[s.get(f) for f in _STRUCT_FIELDS] for s in (items or []) if isinstance(s, dict)]
+        # FB-27 R8d: выбор блоков-«указателей» (что показать, какие, ручной состав,
+        # страница) задаёт «Seitenaufbau» — он тоже входит в отпечаток, иначе вкладка
+        # Студии, открытая до такой правки, молча вернула бы прежний выбор.
+        return [
+            [s.get(f) for f in _STRUCT_FIELDS]
+            + ([s.get("data")] if s.get("key") in OWNED_DATA_KINDS else [])
+            for s in (items or [])
+            if isinstance(s, dict)
+        ]
 
     blocks = cfg.get("page_blocks") if isinstance(cfg.get("page_blocks"), dict) else {}
     payload = {
@@ -114,14 +127,19 @@ def structure_hash(config) -> str:
 _OWNED_FIELDS = ("enabled", "width", "newline")
 
 
-def merge_structure(saved: list, posted: list, fixed: bool = False) -> list:
+def merge_structure(
+    saved: list, posted: list, fixed: bool = False, keep_data: bool = False
+) -> list:
     """FB-27 R8: блоки страницы после «Speichern» Студии. Порядок, состав, видимость и
     ширина — как СОХРАНЕНО (структуру правит «Seitenaufbau»); из формы Студии берётся
     только содержимое и вид блока, найденного по `id` (свой блок) или `key` (секция).
 
     Блок формы, которого в сохранённом нет (удалён тем временем), отбрасывается; блок,
     которого нет в форме (устаревшая вкладка, свёрнутая страница), остаётся как был.
-    `fixed` — главная: встроенные секции, которых в сохранённом ещё нет, дописываются."""
+    `fixed` — главная: встроенные секции, которых в сохранённом ещё нет, дописываются.
+    `keep_data` — форма открыта до правки в «Seitenaufbau» (устаревшая вкладка): данные
+    блоков-«указателей» (`OWNED_DATA_KINDS`) остаются сохранёнными — форма несёт их
+    прежний выбор и откатила бы источник, фильтры и ручной состав."""
     from apps.tenants import siteconfig
 
     def ident(item):
@@ -146,6 +164,8 @@ def merge_structure(saved: list, posted: list, fixed: bool = False) -> list:
             out.append(old)
             continue
         merged = {**new, "key": old.get("key")}
+        if keep_data and kind(old) in OWNED_DATA_KINDS:
+            merged["data"] = old.get("data") or {}
         # У встроенной секции главной ширину (Ganz/Randlos) в «Seitenaufbau» менять
         # негде — она остаётся виду Студии; её структура — только видимость.
         for field in _OWNED_FIELDS if old.get("id") else ("enabled",):
@@ -185,13 +205,15 @@ def structure_attempted(posted: list, merged: list) -> bool:
     return sent != _structure_signature(merged, only=refs)
 
 
-def merge_pages(saved: dict, posted: dict) -> dict:
+def merge_pages(saved: dict, posted: dict, keep_data: bool = False) -> dict:
     """FB-27 R8: `page_blocks` после «Speichern» Студии — хосты и их состав как
     сохранено; страница, которой нет в форме, остаётся как была."""
     saved = saved if isinstance(saved, dict) else {}
     posted = posted if isinstance(posted, dict) else {}
     return {
-        host: merge_structure(blocks, posted[host]) if host in posted else list(blocks)
+        host: merge_structure(blocks, posted[host], keep_data=keep_data)
+        if host in posted
+        else list(blocks)
         for host, blocks in saved.items()
     }
 

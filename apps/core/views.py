@@ -2689,7 +2689,9 @@ def home_builder_view(request):
         # FB-27 R8: структура главной (порядок, состав, видимость, ширина) — как
         # сохранено; из формы — содержимое и вид. Правит структуру «Seitenaufbau».
         posted_sections = [entry for _o, entry in items]
-        new_sections = site_schema.merge_structure(config["sections"], posted_sections, fixed=True)
+        new_sections = site_schema.merge_structure(
+            config["sections"], posted_sections, fixed=True, keep_data=stale_tab
+        )
         # Форма пыталась изменить структуру (или прислала галочку удаления) — скажем об
         # этом после записи: молчаливое «Gespeichert» было бы неправдой.
         # Секция, строки которой в форме нет (частичная или старая форма), попыткой не
@@ -2748,7 +2750,9 @@ def home_builder_view(request):
                 host: [entry for _o, entry in sorted(rows, key=lambda r: r[0])]
                 for host, rows in pb_items.items()
             }
-            new_pages = site_schema.merge_pages(config.get("page_blocks") or {}, posted_pages)
+            new_pages = site_schema.merge_pages(
+                config.get("page_blocks") or {}, posted_pages, keep_data=stale_tab
+            )
             structure_ignored = structure_ignored or any(
                 site_schema.structure_attempted(rows, new_pages.get(host, []))
                 for host, rows in posted_pages.items()

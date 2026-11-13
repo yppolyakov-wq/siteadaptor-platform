@@ -355,3 +355,62 @@ def test_studio_no_longer_offers_to_insert_a_block_template():
     lines = pathlib.Path("templates/tenant/site_home.html").read_text().splitlines()
     line = next(ln for ln in lines if 'value="use_block_template:' in ln)
     assert "stu-struct" in line
+
+
+# ───────────── R8d: устаревшая вкладка не откатывает выбор блока «Liste» ─────────────
+
+
+def test_stale_tab_cannot_roll_back_the_choice_of_a_list_block():
+    """Вкладка Студии открыта, затем в «Seitenaufbau» блоку «Liste» сменили источник.
+    «Speichern» из той вкладки несёт прежний источник — он не должен вернуться; текст
+    обычного блока из той же формы при этом сохраняется."""
+    from apps.core import views
+    from apps.core.tests.test_stu12_groups import _req
+
+    tenant = _tenant(
+        [
+            {"key": "list", "id": "l", "enabled": True, "data": {"source": "promotions"}},
+            _text("a", "A"),
+        ]
+    )
+    opened = site_schema.structure_hash(tenant.site_config)
+    cfg = siteconfig.normalize(tenant.site_config)
+    for block in cfg["sections"]:
+        if block.get("id") == "l":
+            block["data"] = {"source": "products", "limit": 4}
+    Tenant.objects.filter(pk=tenant.pk).update(site_config=cfg)
+    tenant.refresh_from_db()
+    assert site_schema.structure_hash(tenant.site_config) != opened  # правку видно
+    post = {
+        "struct_hash": opened,
+        "cb_id": ["l", "a"],
+        "cb_type_l": "list",
+        "enabled_cb_l": "on",
+        "order_cb_l": "1",
+        "cb_l_source": "promotions",
+        **_row("a", "A neu", 2),
+    }
+    req = _req("post", "/dashboard/site/home/", tenant, post)
+    assert views.home_builder_view(req).status_code == 302
+    own = {
+        b["id"]: b for b in _own(siteconfig.normalize(Tenant.objects.get(pk=tenant.pk).site_config))
+    }
+    assert own["l"]["data"] == {"source": "products", "limit": 4}
+    assert own["a"]["data"]["title"] == "A neu"
+
+
+def test_fresh_tab_still_edits_a_list_block_in_the_studio():
+    tenant = _tenant(
+        [{"key": "list", "id": "l", "enabled": True, "data": {"source": "promotions"}}]
+    )
+    post = {
+        "struct_hash": site_schema.structure_hash(tenant.site_config),
+        "cb_id": ["l"],
+        "cb_type_l": "list",
+        "enabled_cb_l": "on",
+        "order_cb_l": "1",
+        "cb_l_source": "promotions",
+        "cb_l_title": "Neu hier",
+    }
+    cfg = _post_builder(tenant, post)
+    assert _own(cfg)[0]["data"]["title"] == "Neu hier"
