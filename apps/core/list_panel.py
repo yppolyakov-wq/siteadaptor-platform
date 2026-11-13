@@ -206,6 +206,41 @@ def _which_fields(source: str, data: dict, lists: dict) -> list[dict]:
 CATEGORY_FIELDS = frozenset({"category", "collection", "event_category", "country"})
 WHICH_MODES = ("regel", "kategorie", "einzeln")
 
+# FB-27 (макет Main): «Produkte bearbeiten → Sortiment» — экран кабинета, где правятся
+# записи источника. Маршрут, которого у бизнеса нет, ссылки не даёт.
+SOURCE_SCREENS = {
+    "products": "catalog:product-list",
+    "categories": "catalog:category-list",
+    "combos": "catalog:combo-list",
+    "services": "booking:services",
+    "stays": "stays:units",
+    "events": "events:list",
+    "tours": "events:tour-list",
+    "reviews": "reviews:list",
+    "blog": "blog-list",
+    "promotions": "promotions:promotion-list",
+}
+
+
+def source_link(data: dict) -> dict:
+    """{source_url, source_label} для блока «Liste» либо пусто."""
+    from django.urls import NoReverseMatch, reverse
+
+    from apps.tenants import siteconfig
+
+    source = (data or {}).get("source")
+    if source not in siteconfig.LIST_SOURCES:
+        source = siteconfig.LIST_SOURCE_DEFAULT
+    name = SOURCE_SCREENS.get(source)
+    if not name:
+        return {}
+    try:
+        url = reverse(name)
+    except NoReverseMatch:
+        return {}
+    label = _("%(what)s bearbeiten") % {"what": siteconfig.LIST_SOURCES[source]["label"]}
+    return {"source_url": url, "source_label": label}
+
 
 def which_mode(source: str, data: dict, wanted: str = "") -> tuple[str, list[dict]]:
     """Какой способ «Welche» открыт и какие способы есть у источника:

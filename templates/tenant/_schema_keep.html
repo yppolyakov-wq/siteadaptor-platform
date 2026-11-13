@@ -1,0 +1,1 @@
+{% comment %}FB-27: скрытые поля каждой формы «Seitenaufbau» — страница, вид «Telefon» и открытый способ «Welche» (переживают действие).{% endcomment %}<input type="hidden" name="seite" value="{{ code }}">{% if phone_view %}<input type="hidden" name="ansicht" value="telefon">{% endif %}{% if which %}<input type="hidden" name="welche" value="{{ which }}">{% endif %}

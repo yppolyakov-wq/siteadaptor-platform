@@ -37644,3 +37644,7 @@ msgstr "Bilgisayar"
 
 msgid "Einstellungen des Blocks schließen"
 msgstr "blok ayarlarını kapat"
+
+#, python-format
+msgid "%(what)s bearbeiten"
+msgstr "%(what)s düzenle"

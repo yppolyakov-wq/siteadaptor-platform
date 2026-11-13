@@ -12,10 +12,26 @@ from django.utils.translation import gettext as _
 from apps.core import page_settings, site_schema
 
 
-def _url(code: str, block: str = "") -> str:
+def _keep(source) -> dict:
+    """Вид схемы («Telefon») и открытый способ «Welche» — переживают действие с блоком.
+    Только значения из белого списка: в адрес возврата не попадает ничего из запроса."""
+    from apps.core import list_panel
+
+    keep = {}
+    if source.get("welche") in list_panel.WHICH_MODES:
+        keep["welche"] = source.get("welche")
+    if source.get("ansicht") == "telefon":
+        keep["ansicht"] = "telefon"
+    return keep
+
+
+def _url(code: str, block: str = "", keep: dict | None = None) -> str:
     query = {"seite": code}
     if block:
         query["block"] = block
+    for key, value in (keep or {}).items():
+        if key != "welche" or block:
+            query[key] = value
     # Якорь панели: после действия фокус возвращается к блоку, а не в начало страницы.
     return f"{reverse('site-schema')}?{urlencode(query)}" + ("#schema-panel" if block else "")
 
@@ -145,7 +161,7 @@ def site_schema_view(request):
                 ),
             )
         # Блок остаётся выбранным (новый — тоже), удалённый — нет.
-        target = _url(code, "" if op == "delete" else ref)
+        target = _url(code, "" if op == "delete" else ref, _keep(request.POST))
         if op == "setting" and "#" in target:
             # Настройка, которую только что меняли, остаётся раскрытой.
             base, anchor = target.split("#", 1)
@@ -179,6 +195,10 @@ def site_schema_view(request):
         )
         selected["result"] = list_panel.result(request, config, selected["list_data"])
         selected["pick"] = list_panel.pick_state(request, selected["list_data"])
+        selected["which"] = next(
+            (g.get("mode", "") for g in selected["groups"] if g["key"] == "welche"), ""
+        )
+        selected.update(list_panel.source_link(selected["list_data"]))
     if selected and selected.get("fields"):
         site_schema.fill_options(selected, current.host if current else "")
     # FB-27 R4: настройки типа страницы — в панели «★ Hauptliste», а у страниц без
@@ -250,6 +270,9 @@ def site_schema_view(request):
             "open_setting": request.GET.get("offen", ""),
             # FB-27 V4: вид схемы «как на телефоне» — блоки друг под другом
             "phone_view": request.GET.get("ansicht") == "telefon",
+            "which": (selected or {}).get("which", ""),
+            # Вид «Telefon» — во всех ссылках экрана (способ «Welche» — только в формах)
+            "keep_q": "&ansicht=telefon" if request.GET.get("ansicht") == "telefon" else "",
             # Панель правит текст ОСНОВНОГО языка; при нескольких языках — подсказка.
             "multi_lang": len(tenant.active_locales) > 1,
         },

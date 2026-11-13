@@ -37824,3 +37824,7 @@ msgstr "Комп'ютер"
 
 msgid "Einstellungen des Blocks schließen"
 msgstr "закрити налаштування блоку"
+
+#, python-format
+msgid "%(what)s bearbeiten"
+msgstr "%(what)s — змінити"

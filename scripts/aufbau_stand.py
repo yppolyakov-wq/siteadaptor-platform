@@ -24,6 +24,15 @@ def check(c, label):
         fail.append(label)
 
 
+def settle(pg):
+    """Правка в панели уходит в черновик сама (без «Übernehmen»): ждём, пока доедет."""
+    pg.evaluate("document.activeElement && document.activeElement.blur()")
+    pg.wait_for_function(
+        "!+document.documentElement.getAttribute('data-schema-busy')", timeout=10000
+    )
+    assert not pg.locator("[data-schema-panel] button[value=update]:visible").count()
+
+
 def close_sheet(pg):
     """На телефоне панель блока — лист снизу; до кнопок шапки и схемы — «Fertig»."""
     done = pg.locator("[data-schema-done]")
@@ -134,7 +143,7 @@ with sync_playwright() as p:
         pair.locator("[data-schema-block]").first.click()
         pg.wait_for_load_state()
         pg.fill("[data-schema-fields] input[name=f_title]", "Stand R3b Titel")
-        pg.click("[data-schema-fields] button[value=update]")
+        settle(pg)
         pg.wait_for_load_state()
         shown = pg.locator("[data-schema-fields] input[name=f_title]").input_value()
         check(shown == "Stand R3b Titel", "текст из панели остался в черновике")
@@ -186,7 +195,7 @@ with sync_playwright() as p:
         pg.wait_for_load_state()
         check(pg.locator("[data-schema-list] fieldset").count() == 3, "у списка три группы полей")
         pg.select_option("[data-schema-list] select[name=f_source]", "products")
-        pg.click("[data-schema-list] button[value=update]")
+        settle(pg)
         pg.wait_for_load_state()
         check(
             pg.locator("[data-schema-which-mode=kategorie]").count() == 1
@@ -197,7 +206,7 @@ with sync_playwright() as p:
         pg.fill("[data-schema-list] input[name=f_title]", "Stand Liste")
         pg.fill("[data-schema-list] input[name=f_limit]", "3")
         pg.select_option("[data-schema-list] select[name=f_cols]", "3")
-        pg.click("[data-schema-list] button[value=update]")
+        settle(pg)
         pg.wait_for_load_state()
         note = pg.locator("[data-schema-result]").inner_text()
         empty = "erscheint nicht" in note
@@ -321,7 +330,7 @@ with sync_playwright() as p:
         check(pg.locator("[data-schema-source]").count() == 1, "ссылка на источник текста")
         pg.select_option("select[name=f_page]", index=1)
         pg.select_option("select[name=f_mode]", "teaser")
-        pg.click("[data-schema-fields] button[value=update]")
+        settle(pg)
         pg.wait_for_load_state()
         over = pg.evaluate("document.documentElement.scrollWidth - window.innerWidth")
         check(over <= 0, f"R6: без горизонтального вылета ({over})")
@@ -370,7 +379,7 @@ with sync_playwright() as p:
             pg.click("form:has(select[name=type]) button")
             pg.wait_for_load_state()
             pg.fill("[data-schema-fields] input[name=f_title]", "Stand Katalogblock")
-            pg.click("[data-schema-fields] button[value=update]")
+            settle(pg)
             pg.wait_for_load_state()
             close_sheet(pg)
             pg.click("[data-schema-draft] button[value=save]")
@@ -391,7 +400,7 @@ with sync_playwright() as p:
             pg.click("form:has(select[name=type]) button")
             pg.wait_for_load_state()
             pg.fill("[data-schema-fields] input[name=f_title]", "Stand Kategorieblock")
-            pg.click("[data-schema-fields] button[value=update]")
+            settle(pg)
             pg.wait_for_load_state()
             check(
                 pg.locator("[data-schema-category=own]").count() == 1,
@@ -399,6 +408,7 @@ with sync_playwright() as p:
             )
             over = pg.evaluate("document.documentElement.scrollWidth - window.innerWidth")
             check(over <= 0, f"R7: без горизонтального вылета ({over})")
+            pg.bring_to_front()  # вкладка витрины открыта поверх — снимок фоновой завис бы
             pg.screenshot(path=f"{OUT}/r7_{w}.png", full_page=True)
             close_sheet(pg)
             pg.click("[data-schema-draft] button[value=save]")

@@ -37585,3 +37585,7 @@ msgstr "Computer"
 
 msgid "Einstellungen des Blocks schließen"
 msgstr "Einstellungen des Blocks schließen"
+
+#, python-format
+msgid "%(what)s bearbeiten"
+msgstr "%(what)s bearbeiten"
