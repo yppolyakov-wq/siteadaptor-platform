@@ -76,7 +76,7 @@ def test_design_page_shows_and_saves_places():
     from apps.tenants.tests.factories import TenantFactory
 
     tenant = TenantFactory(slug="fb21", name="Fb21")
-    body = _html(tenant)
+    body = _html(tenant, ("karten",))  # FB-27 D-a: вкладка «Karten & Fotos»
     for code in media_places.PLACES:
         assert f'name="mp_{code}_ratio"' in body and f'name="mp_{code}_fit"' in body
     cfg = _post(

@@ -516,6 +516,101 @@ def _textpage_summaries(rows: list[dict], items: list[dict]) -> None:
             row["summary"] = str(titles.get(wanted[row["ref"]], gone))[:60]
 
 
+# FB-27 (макет Main): встроенный список главной («Kategorien», «Produkte» …) правится в
+# панели так же, как блок «Liste». Источник закреплён ключом секции; оси хранятся там же,
+# где их читает витрина: «что» — `data` строки (+ легаси `source` товаров), лимит — `limit`,
+# вид — `layout` (cols/rows/scroll). Второго хранилища нет.
+BUILTIN_VIEW_FIELDS = ("limit", "out", "cols", "rows")
+
+
+def builtin_panel_data(item: dict) -> dict:
+    """Данные встроенной строки в форме блока «Liste» — для панели и сводки."""
+    from apps.core import list_blocks
+
+    data = dict(list_blocks.section_data(item))
+    layout = item.get("layout") if isinstance(item.get("layout"), dict) else {}
+    data["out"] = "slider" if layout.get("scroll") else "grid"
+    if layout.get("cols"):
+        data["cols"] = layout["cols"]
+    if layout.get("rows"):
+        data["rows"] = layout["rows"]
+    if item.get("limit"):
+        data["limit"] = item["limit"]
+    return data
+
+
+def _builtin_state(item: dict) -> tuple:
+    from apps.core import list_blocks
+    from apps.tenants import siteconfig
+
+    layout = item.get("layout") if isinstance(item.get("layout"), dict) else {}
+    what = siteconfig.clean_builtin_list_data(item.get("key"), list_blocks.section_data(item))
+    return (
+        what,
+        item.get("limit"),
+        layout.get("cols"),
+        layout.get("rows") or 0,
+        bool(layout.get("scroll")),
+    )
+
+
+def _digit(value: str, low: int, high: int):
+    value = (value or "").strip()
+    if not value.isdigit():
+        return None
+    return max(low, min(high, int(value)))
+
+
+def _update_builtin(item: dict, fields: dict | None) -> bool:
+    """Патч встроенной строки из панели; True — строка изменилась. Мусор не пишется,
+    неприсланное остаётся как было (W0)."""
+    from apps.core import list_blocks
+    from apps.tenants import siteconfig
+
+    key = item.get("key")
+    names = (*list_blocks.BUILTIN_WHAT_FIELDS, *BUILTIN_VIEW_FIELDS)
+    sent = {n: str(fields[n]) for n in names if fields is not None and n in fields}
+    if not sent:
+        return False
+    before = _builtin_state(item)
+    new = copy.deepcopy(item)
+    what = dict(list_blocks.section_data(item))
+    for name in list_blocks.BUILTIN_WHAT_FIELDS:
+        if name in sent:
+            what[name] = sent[name]
+    if "endet" in sent:
+        what.pop("phase", None)  # «Zeitraum» — один селект на срок и «Demnächst»
+    new["data"] = siteconfig.clean_builtin_list_data(key, what)
+    if key == "products":
+        list_blocks.fold_product_source(new)
+    if not new["data"]:
+        new.pop("data")
+    layout = dict(new.get("layout") or {})
+    if sent.get("out") == "slider":
+        layout["scroll"] = True
+    elif sent.get("out") == "grid":
+        layout.pop("scroll", None)
+    cols = _digit(sent.get("cols", ""), 1, 6)
+    if cols:
+        layout["cols"] = cols
+    if "rows" in sent:
+        rows = _digit(sent["rows"], 1, 6)
+        if rows:
+            layout["rows"] = rows
+        elif sent["rows"].strip() == "":
+            layout.pop("rows", None)
+    new["layout"] = layout
+    if key in siteconfig.GRID_SECTION_LIMITS:
+        limit = _digit(sent.get("limit", ""), 1, siteconfig._SECTION_LIMIT_MAX)
+        if limit:
+            new["limit"] = limit
+    if _builtin_state(new) == before:
+        return False
+    item.clear()
+    item.update(new)
+    return True
+
+
 def blocks_for(
     config: dict, code: str, host: str | None = None, summaries: bool = True
 ) -> list[dict]:
@@ -581,6 +676,10 @@ def blocks_for(
                 if cblock and (siteconfig.cblock_type(key) or key) == "list"
                 else None,
                 "narrow": cblock and item.get("width") in siteconfig.NARROW_WIDTHS,
+                # встроенный список главной открывает ту же панель «Welche · Wie»
+                "builtin_data": builtin_panel_data(item)
+                if not item.get("id") and not main and key in siteconfig.BUILTIN_LIST_SOURCES
+                else None,
             }
         )
     if summaries:  # строке списка страниц нужен только счёт блоков — без запроса
@@ -1049,6 +1148,10 @@ def mutate(
     elif op == "update":
         # FB-27 R3b: короткое содержимое простого блока — прямо в панели. ПАТЧ: меняются
         # только присланные поля, остальное (стиль, фото, оформление) остаётся (W0).
+        if not main and not item.get("id") and item.get("key") in siteconfig.BUILTIN_LIST_SOURCES:
+            # встроенный список главной: патч строки секции; без правок — ничего
+            _update_builtin(item, fields)
+            return ref
         key = siteconfig.cblock_type(item.get("key")) or item.get("key") or ""
         if key == "list":
             from apps.core import list_panel

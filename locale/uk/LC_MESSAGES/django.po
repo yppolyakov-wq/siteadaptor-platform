@@ -37846,3 +37846,7 @@ msgstr "Лише вигляд (кольори, шрифт, картки) — с�
 
 msgid "So sieht Ihre ganze Website aus: Farben, Schrift, Karten und Fotos."
 msgstr "Так виглядає весь ваш сайт: кольори, шрифт, картки та фото."
+
+#, python-format
+msgid "Höchstens %(max)s."
+msgstr "Не більше %(max)s."

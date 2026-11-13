@@ -37520,3 +37520,7 @@ msgstr "Appearance only (colours, font, cards) – your page structure stays as 
 
 msgid "So sieht Ihre ganze Website aus: Farben, Schrift, Karten und Fotos."
 msgstr "This is how your whole website looks: colours, font, cards and photos."
+
+#, python-format
+msgid "Höchstens %(max)s."
+msgstr "At most %(max)s."

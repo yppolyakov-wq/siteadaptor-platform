@@ -266,6 +266,36 @@ def which_mode(source: str, data: dict, wanted: str = "") -> tuple[str, list[dic
     return mode, [{"key": k, "label": str(lab), "active": k == mode} for k, lab in modes]
 
 
+def builtin_groups(request, cfg: dict, key: str, data: dict, mode: str = "") -> list[dict]:
+    """Панель встроенного списка главной: те же «Welche · Wie», что у блока «Liste», без
+    того, чего у секции нет — источник закреплён ключом, заголовок правится на странице,
+    ручного состава и наследования вида нет (вид секции — её собственный)."""
+    from apps.tenants import siteconfig
+
+    data = {k: v for k, v in (data or {}).items() if k != "pick"}
+    out = []
+    for g in groups(request, cfg, data, "" if mode == "einzeln" else mode):
+        if g["key"] == "was":
+            continue
+        g = dict(g)
+        fields = [f for f in g["fields"] if f["name"] != "style"]
+        if g["key"] == "welche":
+            g["modes"] = [m for m in g["modes"] if m["key"] != "einzeln"]
+            g["overridden"] = False
+            if key not in siteconfig.GRID_SECTION_LIMITS:
+                fields = [f for f in fields if f["name"] != "limit"]
+            for f in fields:
+                if f["name"] == "limit":
+                    f["hint"] = _("Höchstens %(max)s.") % {"max": siteconfig._SECTION_LIMIT_MAX}
+        else:
+            for f in fields:
+                if f["name"] in ("out", "cols"):  # у секции свой вид — «как у страницы» нет
+                    f["options"] = [(v, lab) for v, lab in f["options"] if v != ""]
+        g["fields"] = fields
+        out.append(g)
+    return out
+
+
 def groups(request, cfg: dict, data: dict, mode: str = "") -> list[dict]:
     """Три группы полей панели для блока «Liste»: [{key, title, fields}]. У группы
     «Welche» — ещё `mode` и `modes` (способ отбора; показываются поля только его)."""

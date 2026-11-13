@@ -5,7 +5,7 @@
 {% for g in settings %}
   {% if g.label %}<h3 class="text-sm font-bold text-gray-900 border-t border-gray-200 pt-3">{{ g.label }}</h3>{% endif %}
   {% for row in g.settings %}{% with s=row.s %}
-  <details class="rounded-xl border border-gray-300" data-schema-setting-box="{{ s.code }}"{% if open_setting == s.code %} open{% endif %}>
+  <details class="rounded-xl border border-gray-300" data-schema-setting-box="{{ s.code }}"{% if open_setting == s.code or settings_single %} open{% endif %}>
   <summary class="flex items-center justify-between gap-2 px-3 min-h-[44px] cursor-pointer text-sm">
     <span class="font-semibold">{{ s.label }}</span>
     <span class="text-gray-700 text-right">{{ row.current }}</span>

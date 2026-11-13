@@ -37666,3 +37666,7 @@ msgstr "Yalnızca görünüm (renkler, yazı tipi, kartlar) – sayfa yapınız 
 
 msgid "So sieht Ihre ganze Website aus: Farben, Schrift, Karten und Fotos."
 msgstr "Tüm web siteniz böyle görünür: renkler, yazı tipi, kartlar ve fotoğraflar."
+
+#, python-format
+msgid "Höchstens %(max)s."
+msgstr "En fazla %(max)s."

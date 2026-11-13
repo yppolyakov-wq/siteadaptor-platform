@@ -199,6 +199,22 @@ def site_schema_view(request):
             (g.get("mode", "") for g in selected["groups"] if g["key"] == "welche"), ""
         )
         selected.update(list_panel.source_link(selected["list_data"]))
+    if selected and selected.get("builtin_data") is not None:
+        # FB-27 (макет Main): встроенный список главной — та же панель «Welche · Wie»
+        from apps.core import list_panel
+
+        selected["groups"] = list_panel.builtin_groups(
+            request,
+            config,
+            selected["key"],
+            selected["builtin_data"],
+            request.GET.get("welche", ""),
+        )
+        selected["result"] = list_panel.result(request, config, selected["builtin_data"])
+        selected["which"] = next(
+            (g.get("mode", "") for g in selected["groups"] if g["key"] == "welche"), ""
+        )
+        selected.update(list_panel.source_link(selected["builtin_data"]))
     if selected and selected.get("fields"):
         site_schema.fill_options(selected, current.host if current else "")
     # FB-27 R4: настройки типа страницы — в панели «★ Hauptliste», а у страниц без
@@ -268,6 +284,8 @@ def site_schema_view(request):
             "settings_ref": selected["ref"] if selected else site_schema.PAGE_REF,
             "shared_settings": site_schema.SHARED_SETTINGS,
             "open_setting": request.GET.get("offen", ""),
+            # единственная настройка раскрыта сразу — иначе панель выглядит пустой
+            "settings_single": sum(len(g["settings"]) for g in settings) == 1,
             # FB-27 V4: вид схемы «как на телефоне» — блоки друг под другом
             "phone_view": request.GET.get("ansicht") == "telefon",
             "which": (selected or {}).get("which", ""),

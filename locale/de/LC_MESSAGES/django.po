@@ -37607,3 +37607,7 @@ msgstr "Nur die Optik (Farben, Schrift, Karten) – Ihre Seitenstruktur bleibt u
 
 msgid "So sieht Ihre ganze Website aus: Farben, Schrift, Karten und Fotos."
 msgstr "So sieht Ihre ganze Website aus: Farben, Schrift, Karten und Fotos."
+
+#, python-format
+msgid "Höchstens %(max)s."
+msgstr "Höchstens %(max)s."
