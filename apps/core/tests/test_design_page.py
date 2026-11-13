@@ -18,8 +18,8 @@ from apps.tenants.tests.factories import TenantFactory
 pytestmark = pytest.mark.django_db
 
 
-def _req(tenant, method="get", data=None):
-    request = getattr(RequestFactory(), method)("/dashboard/design/", data or {})
+def _req(tenant, method="get", data=None, query=""):
+    request = getattr(RequestFactory(), method)("/dashboard/design/" + query, data or {})
     SessionMiddleware(lambda r: None).process_request(request)
     MessageMiddleware(lambda r: None).process_request(request)
     o = uuid.uuid4().hex[:8]
@@ -105,10 +105,10 @@ def test_wishlist_checkbox_shows_archetype_default():
     import re
 
     shop = TenantFactory(business_type="online_shop")
-    html = design_view(_req(shop)).content.decode()
+    html = design_view(_req(shop, query="?tab=karten")).content.decode()
     box = re.search(r'<input[^>]*name="wishlist"[^>]*>', html).group(0)
     assert "checked" in box
     cafe = TenantFactory(business_type="cafe")
-    html = design_view(_req(cafe)).content.decode()
+    html = design_view(_req(cafe, query="?tab=karten")).content.decode()
     box = re.search(r'<input[^>]*name="wishlist"[^>]*>', html).group(0)
     assert "checked" not in box

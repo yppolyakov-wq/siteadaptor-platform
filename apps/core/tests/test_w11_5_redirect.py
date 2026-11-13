@@ -95,7 +95,10 @@ def test_studio_carries_all_site_page_functions():
     design = design_page.design_view(dreq).content.decode()
     assert 'value="apply_template"' in design  # шаблоны витрины
     assert 'value="load_demo"' in design or 'value="clear_demo"' in design  # демо-контент
-    assert 'name="quick_add"' in design  # быстрый заказ на карточках
+    # FB-27 D-a: быстрый заказ на карточках — на вкладке «Karten & Fotos»
+    kreq = _req("get", "/dashboard/design/?tab=karten", tenant=tenant)
+    kreq.user = SimpleNamespace(is_authenticated=True)
+    assert 'name="quick_add"' in design_page.design_view(kreq).content.decode()
 
 
 def test_website_anchor_points_at_studio():

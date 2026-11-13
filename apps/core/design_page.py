@@ -11,6 +11,7 @@ Save канвы (класс «кликнул Look, ушёл — тема не п
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
+from django.urls import reverse
 from django.utils.translation import gettext as _
 
 from apps.catalog.option_styles import VARIANT_STYLES
@@ -105,7 +106,11 @@ def _save_design_settings(request) -> None:
     if post.get("quick_add_present") == "1":
         cfg["quick_add"] = post.get("quick_add") == "on"
     if post.get("wishlist_present") == "1":
-        cfg["wishlist"] = post.get("wishlist") == "on"
+        # Галочка показывает действующее состояние (умолчание зависит от типа бизнеса).
+        # Пишем, только когда оно меняется: нетронутая форма не закрепляет умолчание (W0).
+        wanted = post.get("wishlist") == "on"
+        if wanted != wishlist_enabled(tenant):
+            cfg["wishlist"] = wanted
 
     accent = (post.get("accent") or "").strip()
     if re.fullmatch(r"#[0-9a-fA-F]{6}", accent) and accent != tenant.primary_color:
@@ -114,6 +119,40 @@ def _save_design_settings(request) -> None:
 
     tenant.site_config = siteconfig.normalize(cfg)
     tenant.save(update_fields=update_fields)
+
+
+def _choices(current, options, default_label=None) -> list[tuple[str, str, bool]]:
+    """Пункты списка (значение, подпись, выбран). Значение пишется без локали («1.6», не
+    «1,6»), а сохранённое значение, которого нет среди пунктов (шрифт или жирность из
+    готового дизайна), остаётся отдельным выбранным пунктом — иначе «Speichern» без правок
+    молча сменило бы его (W0)."""
+    current = "" if current in (None, "", 0, 0.0) else str(current)
+    out = [("0", str(default_label), not current)] if default_label is not None else []
+    seen = False
+    for value, label in options:
+        value = str(value)
+        picked = bool(current) and (value == current or _same_number(value, current))
+        seen = seen or picked
+        out.append((value, str(label), picked))
+    if current and not seen:
+        out.append((current, current, True))
+    return out
+
+
+def _same_number(a: str, b: str) -> bool:
+    try:
+        return float(a) == float(b)
+    except ValueError:
+        return False
+
+
+# FB-27 D-a (макет D1): вкладки экрана; первая открыта по умолчанию.
+DESIGN_TABS = ("fertig", "farben", "karten")
+
+
+def _tabs() -> list[dict]:
+    labels = (_("Fertige Designs"), _("Farben & Schrift"), _("Karten & Fotos"))
+    return [{"key": k, "label": lab} for k, lab in zip(DESIGN_TABS, labels, strict=True)]
 
 
 @login_required
@@ -145,6 +184,10 @@ def design_view(request):
         if action == "design_settings":
             _save_design_settings(request)
             messages.success(request, _("Gespeichert."))
+            # Возврат на вкладку формы — только из своего списка, не из запроса.
+            tab = request.POST.get("tab", "")
+            if tab in DESIGN_TABS:
+                return redirect(f"{reverse('design')}?tab={tab}")
             return redirect("design")
         bundle = request.POST.get("bundle", "")
         look = request.POST.get("look", "")
@@ -158,6 +201,9 @@ def design_view(request):
     from apps.tenants import demo, siteconfig
 
     cfg = siteconfig.normalize(tenant.site_config)
+    tab = request.GET.get("tab", "")
+    if tab not in DESIGN_TABS:
+        tab = DESIGN_TABS[0]
     # DL-8a: активный выбор (ключ design пишут apply_bundle/apply_look).
     current = cfg.get("design") or {}
     sd = cfg.get("site_defaults") or {}
@@ -168,11 +214,19 @@ def design_view(request):
             # STU-12g: глобальный дизайн сайта — цвет/шрифт/типографика/тема/карточки.
             "accent": tenant.primary_color or "#4f46e5",
             "font": cfg.get("font", ""),
-            "font_options": FONT_OPTIONS,
+            "font_options": _choices(cfg.get("font", "") or "system", FONT_OPTIONS),
             "typo_weight_head": (cfg.get("typography") or {}).get("weight_head", ""),
             "typo_line_height": (cfg.get("typography") or {}).get("line_height", ""),
-            "typo_weight_options": [600, 700, 800],
-            "typo_line_height_options": [1.4, 1.5, 1.6, 1.8, 2.0],
+            "typo_weight_options": _choices(
+                (cfg.get("typography") or {}).get("weight_head"),
+                [(w, w) for w in (600, 700, 800)],
+                _("Default"),
+            ),
+            "typo_line_height_options": _choices(
+                (cfg.get("typography") or {}).get("line_height"),
+                [(v, v) for v in ("1.4", "1.5", "1.6", "1.8", "2.0")],
+                _("Default"),
+            ),
             "theme": cfg.get("theme", ""),
             "sd": sd,
             "quick_add": cfg.get("quick_add", False),
@@ -195,5 +249,7 @@ def design_view(request):
             "current_bundle": current.get("bundle", ""),
             "current_look": current.get("look", ""),
             "back_url": _studio_back_url(request),
+            "tab": tab,
+            "tabs": _tabs(),
         },
     )

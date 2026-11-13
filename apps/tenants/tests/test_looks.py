@@ -279,9 +279,15 @@ def test_builder_theme_roundtrip_and_look_cards():
         request.path = "/dashboard/design/"
         return request
 
-    design = design_page.design_view(_dreq()).content.decode()
+    # FB-27 D-a: тёмная тема — на вкладке «Farben & Schrift»
+    from django.http import QueryDict
+
+    dreq = _dreq()
+    dreq.GET = QueryDict("tab=farben")
+    design = design_page.design_view(dreq).content.decode()
     assert 'name="theme"' in design and "checked" in design  # round-trip префилл
-    assert 'id="design-looks"' in design and 'name="look"' in design  # карточки Look'ов
+    gallery = design_page.design_view(_dreq()).content.decode()
+    assert 'id="design-looks"' in gallery and 'name="look"' in gallery  # карточки Look'ов
 
     # Save с сентинелом и без чекбокса (светлый) → ключ снят; с "dark" → сохранён.
     resp = design_page.design_view(

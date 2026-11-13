@@ -28,8 +28,8 @@ from apps.tenants.tests.factories import TenantFactory
 pytestmark = pytest.mark.django_db
 
 
-def _req(method, data=None, tenant=None):
-    req = getattr(RequestFactory(), method)("/dashboard/design/", data or {})
+def _req(method, data=None, tenant=None, query=""):
+    req = getattr(RequestFactory(), method)("/dashboard/design/" + query, data or {})
     SessionMiddleware(lambda r: None).process_request(req)
     MessageMiddleware(lambda r: None).process_request(req)
     req.user = SimpleNamespace(is_authenticated=True)
@@ -37,8 +37,12 @@ def _req(method, data=None, tenant=None):
     return req
 
 
-def _html(tenant):
-    return design_page.design_view(_req("get", tenant=tenant)).content.decode()
+def _html(tenant, tabs=("fertig",)):
+    """FB-27 D-a: экран разбит на вкладки — тело собирается из названных."""
+    return "".join(
+        design_page.design_view(_req("get", tenant=tenant, query=f"?tab={t}")).content.decode()
+        for t in tabs
+    )
 
 
 def _post(tenant, data):
@@ -49,7 +53,8 @@ def _post(tenant, data):
 
 
 def test_screen_shows_colour_font_and_card_controls():
-    body = _html(TenantFactory(slug="dsg1", name="Dsg1"))
+    # FB-27 D-a (осознанная переписка): настройки — на вкладках «Farben» и «Karten»
+    body = _html(TenantFactory(slug="dsg1", name="Dsg1"), ("farben", "karten"))
     for name in (
         "accent",
         "font",
@@ -120,7 +125,9 @@ def test_saving_writes_the_design_keys():
     assert sd["media_shape"] == "round"
     assert sd["variant_style"] == "buttons"
     assert cfg["quick_add"] is True
-    assert cfg["wishlist"] is False, "сентинел прислан, чекбокс снят → выключено"
+    # FB-27 D-a: умолчание не закрепляется записью — ключ появляется, только когда
+    # галочка меняет действующее состояние
+    assert not cfg.get("wishlist"), "сентинел прислан, чекбокс снят → выключено"
 
 
 def test_saving_keeps_foreign_config_keys():
@@ -190,7 +197,7 @@ def test_dark_theme_can_be_switched_off_from_this_screen():
     # чекбокс снят: в POST есть только сентинел
     cfg = _post(tenant, {"action": "design_settings", "theme_present": "1"})
     assert "theme" not in cfg, "тёмная тема обязана выключаться с этого экрана"
-    body = _html(tenant)
+    body = _html(tenant, ("farben",))
     assert 'name="theme_present"' in body
 
 

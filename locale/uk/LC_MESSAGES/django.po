@@ -37828,3 +37828,21 @@ msgstr "закрити налаштування блоку"
 #, python-format
 msgid "%(what)s bearbeiten"
 msgstr "%(what)s — змінити"
+
+msgid "Bereiche des Designs"
+msgstr "Розділи дизайну"
+
+msgid "Einzelne Seiten anders gestalten:"
+msgstr "Оформити окремі сторінки інакше:"
+
+msgid "Farben & Schrift"
+msgstr "Кольори та шрифт"
+
+msgid "Fertige Designs"
+msgstr "Готові дизайни"
+
+msgid "Nur die Optik (Farben, Schrift, Karten) – Ihre Seitenstruktur bleibt unverändert."
+msgstr "Лише вигляд (кольори, шрифт, картки) — структура сторінок не змінюється."
+
+msgid "So sieht Ihre ganze Website aus: Farben, Schrift, Karten und Fotos."
+msgstr "Так виглядає весь ваш сайт: кольори, шрифт, картки та фото."

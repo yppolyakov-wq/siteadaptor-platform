@@ -37841,3 +37841,21 @@ msgstr "закрыть настройки блока"
 #, python-format
 msgid "%(what)s bearbeiten"
 msgstr "%(what)s — изменить"
+
+msgid "Bereiche des Designs"
+msgstr "Разделы дизайна"
+
+msgid "Einzelne Seiten anders gestalten:"
+msgstr "Оформить отдельные страницы иначе:"
+
+msgid "Farben & Schrift"
+msgstr "Цвета и шрифт"
+
+msgid "Fertige Designs"
+msgstr "Готовые дизайны"
+
+msgid "Nur die Optik (Farben, Schrift, Karten) – Ihre Seitenstruktur bleibt unverändert."
+msgstr "Только внешний вид (цвета, шрифт, карточки) — структура страниц не меняется."
+
+msgid "So sieht Ihre ganze Website aus: Farben, Schrift, Karten und Fotos."
+msgstr "Так выглядит весь ваш сайт: цвета, шрифт, карточки и фото."

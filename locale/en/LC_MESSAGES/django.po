@@ -37502,3 +37502,21 @@ msgstr "close the block settings"
 #, python-format
 msgid "%(what)s bearbeiten"
 msgstr "Edit %(what)s"
+
+msgid "Bereiche des Designs"
+msgstr "Design sections"
+
+msgid "Einzelne Seiten anders gestalten:"
+msgstr "Style individual pages differently:"
+
+msgid "Farben & Schrift"
+msgstr "Colours & font"
+
+msgid "Fertige Designs"
+msgstr "Ready-made designs"
+
+msgid "Nur die Optik (Farben, Schrift, Karten) – Ihre Seitenstruktur bleibt unverändert."
+msgstr "Appearance only (colours, font, cards) – your page structure stays as it is."
+
+msgid "So sieht Ihre ganze Website aus: Farben, Schrift, Karten und Fotos."
+msgstr "This is how your whole website looks: colours, font, cards and photos."

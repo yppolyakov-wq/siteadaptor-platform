@@ -37648,3 +37648,21 @@ msgstr "blok ayarlarını kapat"
 #, python-format
 msgid "%(what)s bearbeiten"
 msgstr "%(what)s düzenle"
+
+msgid "Bereiche des Designs"
+msgstr "Tasarım bölümleri"
+
+msgid "Einzelne Seiten anders gestalten:"
+msgstr "Tek tek sayfaları farklı düzenleyin:"
+
+msgid "Farben & Schrift"
+msgstr "Renkler ve yazı tipi"
+
+msgid "Fertige Designs"
+msgstr "Hazır tasarımlar"
+
+msgid "Nur die Optik (Farben, Schrift, Karten) – Ihre Seitenstruktur bleibt unverändert."
+msgstr "Yalnızca görünüm (renkler, yazı tipi, kartlar) – sayfa yapınız değişmez."
+
+msgid "So sieht Ihre ganze Website aus: Farben, Schrift, Karten und Fotos."
+msgstr "Tüm web siteniz böyle görünür: renkler, yazı tipi, kartlar ve fotoğraflar."
