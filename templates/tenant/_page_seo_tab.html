@@ -20,7 +20,7 @@
     </label>
     <p id="seo-noindex-hint" class="text-xs text-gray-600">{% trans "Die Seite bleibt für Besucher erreichbar; Suchmaschinen werden gebeten, sie nicht aufzunehmen." %}</p>
   </div>
-  {% if 'content-page-new'|can_open:request %}
+  {% if 'content-page-edit'|can_open:request %}
   <button class="ui-btn ui-btn-primary">{% trans "Speichern" %}</button>
   {% endif %}
 </form>

@@ -1,7 +1,7 @@
 {% load i18n cabinet %}{% comment %}FB-27 «Seiten» (макет S2): вкладка «Blöcke» — что стоит на странице кроме
 её текста. Строки и черновик — из «Seitenaufbau»; кнопки шлют те же операции на тот же
 экран и возвращаются сюда (`zurueck=seiten`). Без права на «Seitenaufbau» — только чтение.{% endcomment %}
-{% with can_edit='site-schema'|can_open:request %}
+{% with can_edit=schema_can_edit %}
 {% if schema_draft and can_edit %}
 <form method="post" action="{% url 'site-schema' %}" class="ui-card p-3 mb-4 flex flex-wrap items-center gap-3 border border-amber-300" data-page-blocks-draft>
   {% csrf_token %}

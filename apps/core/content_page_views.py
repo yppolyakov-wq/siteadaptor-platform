@@ -104,7 +104,12 @@ def _blocks_tab(request, slug: str) -> dict:
     draft = aufbau_draft.get(request, code)
     config = aufbau_draft.overlay(saved, draft) if draft else saved
     query = {"preview": "1", "aufbau": code} if draft else {"preview": "1", "stand": "saved"}
+    from apps.core import view_perms
+
     return {
+        # Кнопки — только тому, кто вправе МЕНЯТЬ структуру (право просмотра «Seitenaufbau»
+        # кнопок не даёт: нажатие получило бы отказ).
+        "schema_can_edit": view_perms.allowed(request.user, "site-schema", "POST"),
         "schema_code": code,
         "schema_blocks": site_schema.blocks_for(config, code, host=host),
         "schema_draft": aufbau_draft.info(request, saved, code) if draft else None,
@@ -151,16 +156,20 @@ def _form(request, page, *, created: bool):
         host = content_pages.schema_ref(schema_slug)[0]
         tenant = getattr(request, "tenant", None)
         if request.method == "POST" and request.POST.get("seo_present") == "1":
-            content_pages.save_page_seo(
-                tenant,
-                host,
-                {
-                    "title": request.POST.get("seo_title", ""),
-                    "description": request.POST.get("seo_description", ""),
-                    "noindex": request.POST.get("seo_noindex") == "1",
-                },
-            )
-            messages.success(request, _("Gespeichert."))
+            try:
+                content_pages.save_page_seo(
+                    tenant,
+                    host,
+                    {
+                        "title": request.POST.get("seo_title", ""),
+                        "description": request.POST.get("seo_description", ""),
+                        "noindex": request.POST.get("seo_noindex") == "1",
+                    },
+                )
+            except content_pages.PageError as exc:
+                messages.error(request, str(exc))
+            else:
+                messages.success(request, _("Gespeichert."))
             return redirect(f"{request.path}?tab=suche")
         from apps.core.richtext import to_plain
         from apps.tenants import siteconfig

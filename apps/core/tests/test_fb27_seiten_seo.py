@@ -133,3 +133,10 @@ def test_new_page_has_no_search_tab_and_unsaved_system_page_has_one(tenant):
     ).content.decode()
     assert "data-page-seo-form" in html
     assert not ContentPage.objects.filter(slug="ueber-uns").exists()
+
+
+def test_removing_the_own_text_of_a_system_page_keeps_its_search_entry(tenant):
+    """«Über uns» остаётся страницей и без своего текста — её запись не уходит."""
+    content_pages.save_page_seo(tenant, "info", {"title": "Über den Teeladen"})
+    assert content_pages.move_page_blocks("ueber-uns", None) is False
+    assert _seo(tenant) == {"info": {"title": "Über den Teeladen"}}

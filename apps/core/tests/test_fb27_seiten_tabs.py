@@ -109,3 +109,21 @@ def test_system_page_without_a_stored_page_has_a_blocks_tab_too():
     assert "data-page-blocks-tab" in html and "seite=text" in html
     assert content_pages.schema_ref("ueber-uns") == ("info", site_schema.TEXT)
     assert not ContentPage.objects.filter(slug="ueber-uns").exists()  # GET ничего не создал
+
+
+def test_blocks_tab_is_read_only_for_someone_who_may_not_change_the_layout(monkeypatch):
+    """Право просмотра «Seitenaufbau» кнопок не даёт: нажатие получило бы отказ."""
+    from apps.core import view_perms
+
+    tenant, page, user = _setup([_text("a", "Erster")])
+    real = view_perms.allowed
+    monkeypatch.setattr(
+        view_perms,
+        "allowed",
+        lambda u, name, method="GET": (
+            False if (name, method) == ("site-schema", "POST") else real(u, name, method)
+        ),
+    )
+    html = _edit(tenant, page, user, "?tab=bloecke")
+    assert 'data-page-block="a"' in html and "data-page-blocks-readonly" in html
+    assert 'name="zurueck"' not in html and "data-page-blocks-add" not in html
