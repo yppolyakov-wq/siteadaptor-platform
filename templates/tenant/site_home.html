@@ -250,7 +250,7 @@
         </div>
         {% comment %}FB-27 R8: порядок, видимость и состав блоков правит «Seitenaufbau»; здесь —
            тексты, фото и вид. Контролы структуры скрыты (класс stu-struct), сервер их не читает.{% endcomment %}
-        <p class="text-xs ui-muted mb-4" data-stu-struct-hint>{% trans "Hier ändern Sie Texte, Fotos und das Aussehen der Blöcke. Reihenfolge, Sichtbarkeit und neue Blöcke:" %} <a href="{% url 'site-schema' %}" class="inline-flex items-center min-h-[24px] font-semibold text-indigo-700 underline">{% trans "Aufbau ändern" %}</a></p>
+        <p class="text-xs ui-muted mb-4" data-stu-struct-hint>{% trans "Hier ändern Sie Texte, Fotos und das Aussehen der Blöcke. Reihenfolge, Sichtbarkeit und neue Blöcke:" %} <a href="{{ aufbau_url|default:'/dashboard/site/aufbau/' }}" class="inline-flex items-center min-h-[24px] font-semibold text-indigo-700 underline">{% trans "Aufbau ändern" %}</a></p>
         {% comment %}SE-9g: в Простом режиме при выбранной версии 📱/▭ показываем настройки этой версии
            (колонки на устройстве, скрыть на устройстве) — крутить мобильную версию без Эксперта.{% endcomment %}
         <p class="bld-device-hint hidden text-xs text-indigo-700 bg-indigo-50 border border-indigo-100 rounded-lg px-3 py-2 mb-4">
@@ -1554,6 +1554,8 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
   /* FB-27 R8: контролы структуры (порядок, видимость, удаление, ширина своего блока) —
      структуру правит «Seitenaufbau». В разметке остаются: на них опирается JS панели. */
   .stu-struct { display: none !important; }
+  /* после скрытых кнопок плашки не остаётся двух разделителей подряд */
+  #bld-action-bar .stu-struct + .bld-ab-sep { display: none; }
 /* STU-16c: правило-пряталка Простого режима (`[data-mode=basic] [data-expert]`)
    удалено вместе с самим режимом — прятать больше нечем и незачем. Маркеры
    [data-expert] в разметке оставлены: они помечают технические контролы и ничего

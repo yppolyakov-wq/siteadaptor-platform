@@ -272,6 +272,43 @@ def category_pages(config: dict) -> list[SubPage]:
     return sorted(own, key=key) + sorted(rest, key=key)
 
 
+def url_for_path(tenant, path: str) -> str:
+    """FB-27 R8c: адрес «Seitenaufbau» для страницы витрины `path` — ссылка «Aufbau ändern»
+    из Студии открывает схему той страницы, что на холсте. Страница без своей схемы или
+    незнакомый путь — экран без выбора (главная)."""
+    from urllib.parse import urlencode
+
+    base = reverse("site-schema")
+    if not isinstance(path, str) or not path.startswith("/") or path.startswith("//"):
+        return base
+    try:
+        ctx = studio_pages.resolve_page(path)
+        host = getattr(ctx, "block_host", "") or ""
+        pt_code = ctx.code
+    except Exception:  # noqa: BLE001 — ссылка не должна ронять Студию
+        return base
+    from apps.tenants import siteconfig
+
+    if host.startswith(siteconfig.CATEGORY_HOST_PREFIX):
+        code = f"{CATEGORY}@{host}"
+    elif host.startswith("seite:") or host == "versand":
+        code = f"{TEXT}@{host}"
+    elif host == "info":
+        code = TEXT
+    else:
+        code = next(
+            (pt.code for pt in studio_pages.PAGE_TYPES if host and _host(pt) == host),
+            "home" if pt_code == "home" else "",
+        )
+    if not code:
+        return base
+    try:
+        resolve(tenant, code)
+    except SchemaError:
+        return base
+    return f"{base}?{urlencode({'seite': code})}"
+
+
 def category_items(config: dict, host: str, items: list[dict], op: str) -> list[dict]:
     """Новый состав схемы категории: `adopt` — копия блоков каталога (новые id, маркер
     основного списка на том же месте) и ниже свои блоки категории; `reset` — пусто

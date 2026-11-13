@@ -3569,6 +3569,10 @@ def home_builder_view(request):
             ),
             # T-6.1: deep-link — канва стартует со страницы, где нажали «Edit design».
             "preview_start_path": _safe_preview_page(request.GET.get("page")),
+            # FB-27 R8c: «Aufbau ändern» открывает схему страницы, которая на холсте
+            "aufbau_url": site_schema.url_for_path(
+                request.tenant, _safe_preview_page(request.GET.get("page"))
+            ),
             # STU-12e: `?block=<id|key>` — открыть настройки этого блока сразу (вставка).
             "open_block": re.sub(r"[^A-Za-z0-9_:-]", "", request.GET.get("block", ""))[:40],
             # STU-12a (1B): «Design des Shops →» уводит в кабинет и обязан вернуть на

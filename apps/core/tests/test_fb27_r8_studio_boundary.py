@@ -268,3 +268,35 @@ def test_merge_survives_rubbish_from_a_draft():
     assert [b["id"] for b in out] == ["a", "l"]
     # легаси-ключ и новый тип — один и тот же блок: правка не теряется
     assert out[1]["data"]["title"] == "Neu" and out[1]["key"] == "promo_list"
+
+
+# ───────────── R8c: меню и ссылки ─────────────
+
+
+def test_website_section_opens_design_and_lists_no_studio_item():
+    from apps.core import nav_registry
+
+    anchor = next(a for a in nav_registry.ANCHORS if a.nav_key == "site")
+    assert anchor.targets == ("design",)
+    tenant = _tenant()
+    assert nav_registry.anchor_target(anchor, tenant) == "design"
+
+
+def test_studio_stays_reachable_by_its_address_and_from_seitenaufbau():
+    from django.urls import reverse
+
+    from apps.core.tests.test_fb27_r2_draft import Browser
+    from apps.core.tests.test_stu12_groups import _builder
+
+    tenant = _tenant()
+    assert "data-stu-struct-hint" in _builder(tenant)
+    assert reverse("site-home") in Browser(tenant).get("?seite=home")
+
+
+def test_aufbau_link_opens_the_schema_of_the_page_on_the_canvas():
+    tenant = _tenant()
+    assert site_schema.url_for_path(tenant, "/").endswith("?seite=home")
+    assert site_schema.url_for_path(tenant, "/ueber-uns/").endswith("?seite=text")
+    # мусор вместо пути — экран без выбора, без ошибки
+    for path in ("", "//evil.example/", "kein-pfad", None):
+        assert site_schema.url_for_path(tenant, path) == "/dashboard/site/aufbau/"

@@ -136,6 +136,10 @@ ANCHORS: tuple[Anchor, ...] = (
         "✏️",
         "website gestalten studio design",
         hubs=("site",),
+        # FB-27 R8c (решение владельца 2026-11-11): пункта «Studio» в меню нет — раздел
+        # открывает «Design»; Студия открывается кнопкой «Auf der Seite bearbeiten» из
+        # «Seitenaufbau» и с витрины. Адрес `site-home` жив (осознанно вне меню).
+        targets=("design",),
     ),
     # KA-12 E8.3 (решение владельца KA-4 В-1…В-6): седьмой якорь «Finanzen» — только при
     # модуле finance или analytics; мораторий X7 снят ровно для него. Без них его

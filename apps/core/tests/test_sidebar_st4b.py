@@ -214,8 +214,10 @@ def test_sidebar_children_composition():
     # DL-7b (осознанное дополнение): «Design» — переключатель шаблонов вне Studio.
     # M21.1: «Weiterleitungen» — подпункт Website сразу после SEO.
     # STU-19d (осознанно): «Seitenvorlagen» — шаблоны всех страниц, рядом с «Design».
+    # FB-27 R8c (решение владельца 2026-11-11, осознанная переписка): пункта «Studio» в
+    # меню нет — раздел открывает «Design», Студия открывается кнопкой «Auf der Seite
+    # bearbeiten» из «Seitenaufbau» и с витрины.
     assert site == [
-        "site-home",
         "design",
         # FB-23c (осознанное дополнение): меню сайта — вход из сайдбара, не только из Studio
         "site-menu",
