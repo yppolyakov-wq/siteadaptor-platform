@@ -1,0 +1,26 @@
+{% load i18n cabinet %}{% comment %}FB-27 «Seiten» (макеты S1/S3): действия строки — меню «⋯»,
+без красных кнопок в списке. `<details>` работает без скриптов; удаление — отдельным шагом с
+вопросом в редакторе страницы. Параметры: r (строка), side (left|right — куда раскрыть).{% endcomment %}
+<details class="relative inline-block text-left" data-page-menu="{{ r.key }}">
+  <summary class="inline-flex items-center justify-center min-w-[44px] min-h-[44px] rounded-lg cursor-pointer list-none text-gray-600 hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600 [&::-webkit-details-marker]:hidden" aria-label="{% blocktrans with t=r.title %}Mehr zu „{{ t }}“{% endblocktrans %}"><span aria-hidden="true">⋯</span></summary>
+  <ul class="absolute right-0 z-20 mt-1 w-56 ui-card p-1 shadow-lg text-sm">
+    {% if r.url and r.state != "off" %}
+    <li><a href="{{ r.url }}" target="_blank" rel="noopener" class="flex items-center min-h-[44px] rounded-md px-3 hover:bg-gray-50">{% trans "Ansehen" %}<span class="sr-only"> ({% trans "neuer Tab" %})</span></a></li>
+    {% endif %}
+    {% if 'content-page-edit'|can_open:request %}
+    <li><a href="{% url r.edit_name r.edit_arg %}" class="flex items-center min-h-[44px] rounded-md px-3 hover:bg-gray-50">{% trans "Text bearbeiten" %}</a></li>
+    {% endif %}
+    {% if r.schema_url and 'site-schema'|can_open:request %}
+    <li><a href="{{ r.schema_url }}" class="flex items-center min-h-[44px] rounded-md px-3 hover:bg-gray-50">{% trans "Blöcke" %}</a></li>
+    {% endif %}
+    {% if not r.places and r.state != "off" and r.state != "draft" and 'site-menu'|can_open:request %}
+    <li><a href="{% url 'site-menu' %}" class="flex items-center min-h-[44px] rounded-md px-3 hover:bg-gray-50">{% trans "Im Menü verlinken" %}</a></li>
+    {% endif %}
+    {% if r.deletable and 'content-page-edit'|can_open:request %}
+    <li><a href="{% url 'content-page-edit' r.page.pk %}?loeschen=1#seite-loeschen" class="flex items-center min-h-[44px] rounded-md px-3 hover:bg-gray-50">{% if r.kind == "system" %}{% trans "Eigenen Text entfernen …" %}{% else %}{% trans "Seite löschen …" %}{% endif %}</a></li>
+    {% endif %}
+    {% if r.kind == "legal" %}
+    <li class="px-3 py-2 text-xs text-gray-600">{% trans "Rechtstexte können nicht gelöscht werden." %}</li>
+    {% endif %}
+  </ul>
+</details>

@@ -37675,3 +37675,48 @@ msgstr "Свои шаблоны"
 
 msgid "Der Seitenaufbau wurde inzwischen an anderer Stelle geändert. Ihre Inhalte wurden gespeichert, der Aufbau bleibt wie dort festgelegt."
 msgstr "Структуру страницы тем временем изменили в другом месте. Ваше содержимое сохранено, структура остаётся такой, как задана там."
+
+msgid "Ausgeblendet – Text fehlt"
+msgstr "Скрыта — нет текста"
+
+msgid "Die Seite zeigt danach wieder den Standardinhalt. Ihre Blöcke bleiben."
+msgstr "После этого страница снова покажет стандартное содержимое. Ваши блоки останутся."
+
+msgid "Eigenen Text entfernen"
+msgstr "Убрать свой текст"
+
+msgid "Eigenen Text entfernen …"
+msgstr "Убрать свой текст …"
+
+#, python-format
+msgid "Eigenen Text von „%(t)s“ entfernen?"
+msgstr "Убрать свой текст страницы «%(t)s»?"
+
+msgid "Im Menü verlinken"
+msgstr "Добавить в меню"
+
+#, python-format
+msgid "Mehr zu „%(t)s“"
+msgstr "Ещё: «%(t)s»"
+
+msgid "Rechtstext"
+msgstr "Правовой текст"
+
+msgid "Rechtstexte können nicht gelöscht werden."
+msgstr "Правовые тексты удалить нельзя."
+
+msgid "Seite löschen …"
+msgstr "Удалить страницу …"
+
+#, python-format
+msgid "Seite „%(t)s“ löschen?"
+msgstr "Удалить страницу «%(t)s»?"
+
+msgid "Text bearbeiten"
+msgstr "Править текст"
+
+msgid "Text und Blöcke dieser Seite werden entfernt. Das lässt sich nicht rückgängig machen."
+msgstr "Текст и блоки этой страницы будут удалены. Отменить это нельзя."
+
+msgid "Verlinkt in"
+msgstr "Где есть ссылка"

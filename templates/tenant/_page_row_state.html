@@ -1,0 +1,8 @@
+{% load i18n %}{% comment %}FB-27 «Seiten»: бейдж состояния страницы — один на таблицу и карточки.{% endcomment %}
+{% if r.kind == "own" and r.state == "own" %}<span class="ui-badge ui-tone-ok">{% trans "Veröffentlicht" %}</span>
+{% elif r.state == "own" %}<span class="ui-badge ui-tone-ok">{% trans "Eigener Text" %}</span>{% if r.langs|length > 1 %} <span class="text-xs text-gray-600 uppercase">{{ r.langs|join:" · " }}</span>{% endif %}
+{% elif r.state == "draft" %}<span class="ui-badge ui-tone-off">{% trans "Entwurf" %}</span>
+{% elif r.state == "off" %}<span class="ui-badge ui-tone-off">{% trans "Ausgeblendet – Text fehlt" %}</span>
+{% elif r.key == "system:versand" %}<span class="ui-badge ui-tone-new">{% trans "Nur Versandarten" %}</span>
+{% elif r.key == "system:ueber-uns" %}<span class="ui-badge ui-tone-new">{% trans "Text von der Startseite" %}</span>
+{% else %}<span class="ui-badge ui-tone-new">{% trans "Automatisch erstellt" %}</span>{% endif %}

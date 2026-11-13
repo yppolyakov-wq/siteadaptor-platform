@@ -37336,3 +37336,48 @@ msgstr "Your templates"
 
 msgid "Der Seitenaufbau wurde inzwischen an anderer Stelle geändert. Ihre Inhalte wurden gespeichert, der Aufbau bleibt wie dort festgelegt."
 msgstr "The page layout was changed elsewhere in the meantime. Your content was saved; the layout stays as set there."
+
+msgid "Ausgeblendet – Text fehlt"
+msgstr "Hidden – text missing"
+
+msgid "Die Seite zeigt danach wieder den Standardinhalt. Ihre Blöcke bleiben."
+msgstr "The page will show the standard content again. Your blocks stay."
+
+msgid "Eigenen Text entfernen"
+msgstr "Remove own text"
+
+msgid "Eigenen Text entfernen …"
+msgstr "Remove own text …"
+
+#, python-format
+msgid "Eigenen Text von „%(t)s“ entfernen?"
+msgstr "Remove the own text of “%(t)s”?"
+
+msgid "Im Menü verlinken"
+msgstr "Link in the menu"
+
+#, python-format
+msgid "Mehr zu „%(t)s“"
+msgstr "More about “%(t)s”"
+
+msgid "Rechtstext"
+msgstr "Legal text"
+
+msgid "Rechtstexte können nicht gelöscht werden."
+msgstr "Legal texts cannot be deleted."
+
+msgid "Seite löschen …"
+msgstr "Delete page …"
+
+#, python-format
+msgid "Seite „%(t)s“ löschen?"
+msgstr "Delete the page “%(t)s”?"
+
+msgid "Text bearbeiten"
+msgstr "Edit text"
+
+msgid "Text und Blöcke dieser Seite werden entfernt. Das lässt sich nicht rückgängig machen."
+msgstr "The text and blocks of this page will be removed. This cannot be undone."
+
+msgid "Verlinkt in"
+msgstr "Linked in"

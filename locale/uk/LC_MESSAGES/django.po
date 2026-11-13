@@ -37662,3 +37662,48 @@ msgstr "Власні шаблони"
 
 msgid "Der Seitenaufbau wurde inzwischen an anderer Stelle geändert. Ihre Inhalte wurden gespeichert, der Aufbau bleibt wie dort festgelegt."
 msgstr "Структуру сторінки тим часом змінили в іншому місці. Ваш вміст збережено, структура лишається такою, як задано там."
+
+msgid "Ausgeblendet – Text fehlt"
+msgstr "Прихована — немає тексту"
+
+msgid "Die Seite zeigt danach wieder den Standardinhalt. Ihre Blöcke bleiben."
+msgstr "Після цього сторінка знову покаже стандартний вміст. Ваші блоки залишаться."
+
+msgid "Eigenen Text entfernen"
+msgstr "Прибрати власний текст"
+
+msgid "Eigenen Text entfernen …"
+msgstr "Прибрати власний текст …"
+
+#, python-format
+msgid "Eigenen Text von „%(t)s“ entfernen?"
+msgstr "Прибрати власний текст сторінки «%(t)s»?"
+
+msgid "Im Menü verlinken"
+msgstr "Додати до меню"
+
+#, python-format
+msgid "Mehr zu „%(t)s“"
+msgstr "Ще: «%(t)s»"
+
+msgid "Rechtstext"
+msgstr "Правовий текст"
+
+msgid "Rechtstexte können nicht gelöscht werden."
+msgstr "Правові тексти видалити не можна."
+
+msgid "Seite löschen …"
+msgstr "Видалити сторінку …"
+
+#, python-format
+msgid "Seite „%(t)s“ löschen?"
+msgstr "Видалити сторінку «%(t)s»?"
+
+msgid "Text bearbeiten"
+msgstr "Редагувати текст"
+
+msgid "Text und Blöcke dieser Seite werden entfernt. Das lässt sich nicht rückgängig machen."
+msgstr "Текст і блоки цієї сторінки буде видалено. Скасувати це не можна."
+
+msgid "Verlinkt in"
+msgstr "Де є посилання"

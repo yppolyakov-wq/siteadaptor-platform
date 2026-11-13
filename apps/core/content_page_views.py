@@ -128,6 +128,9 @@ def _form(request, page, *, created: bool):
             "saved_slug": saved_slug,
             "system_label": content_pages.SYSTEM_LABELS.get(saved_slug or page.slug, ""),
             "is_system": (saved_slug or page.slug) in content_pages.SYSTEM_PAGES,
+            # FB-27 «Seiten»: удаление — отдельным шагом с вопросом (решение владельца:
+            # «Entfernen — с подтверждением»); GET ничего не пишет.
+            "confirm_delete": bool(saved_slug) and request.GET.get("loeschen") == "1",
             "nav": "content-pages",
         },
     )

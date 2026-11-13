@@ -496,7 +496,38 @@ def all_rows(tenant=None) -> list:
             )
         )
     rows.sort(key=lambda r: (not r.places, r.title.lower()))
+    _attach_blocks(rows, tenant)
     return rows
+
+
+def _attach_blocks(rows: list, tenant) -> None:
+    """FB-27 «Seiten»: колонка «Blöcke» — что стоит на странице кроме её текста, и адрес
+    её схемы в «Seitenaufbau». Один normalize на весь список, без запросов на строку; у
+    правовых текстов блоков нет."""
+    from apps.core import site_schema
+    from apps.tenants import siteconfig
+
+    try:
+        config = siteconfig.normalize(getattr(tenant, "site_config", None) or {})
+    except Exception:  # noqa: BLE001 — колонка не роняет список страниц
+        config = {}
+    for row in rows:
+        row.blocks, row.schema_url, row.host = "", "", ""
+        if row.kind == "legal":
+            continue
+        slug = row.key.split(":", 1)[1]
+        host = {"ueber-uns": "info", "versand": "versand"}.get(slug) if row.kind == "system" else ""
+        host = host or f"seite:{slug}"
+        code = site_schema.TEXT if host == "info" else f"{site_schema.TEXT}@{host}"
+        row.host = host
+        row.schema_url = f"{reverse('site-schema')}?seite={code}"
+        try:
+            blocks = site_schema.blocks_for(config, code, host=host, summaries=False)
+        except Exception:  # noqa: BLE001
+            continue
+        labels = [str(b["label"]) for b in blocks if b["enabled"] and not b["main"]]
+        if labels:
+            row.blocks = labels[0] + (f" + {len(labels) - 1}" if len(labels) > 1 else "")
 
 
 # --- FB-27 R6: блок «Textseite einbinden» -------------------------------------------------

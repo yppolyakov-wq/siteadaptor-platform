@@ -14,6 +14,19 @@
 
   {% include "tenant/_settings_messages.html" %}
 
+  {% if confirm_delete and 'content-page-new'|can_open:request %}
+  {% comment %}FB-27 «Seiten»: удаление — отдельный шаг с вопросом; работает и без скриптов.{% endcomment %}
+  <section id="seite-loeschen" class="ui-card p-4 mb-4 border border-red-300" role="alert" aria-labelledby="seite-loeschen-title" data-page-delete-confirm>
+    <h2 id="seite-loeschen-title" class="font-semibold mb-1">{% if is_system %}{% blocktrans with t=page.title %}Eigenen Text von „{{ t }}“ entfernen?{% endblocktrans %}{% else %}{% blocktrans with t=page.title %}Seite „{{ t }}“ löschen?{% endblocktrans %}{% endif %}</h2>
+    <p class="text-sm text-gray-700 mb-3">{% if is_system %}{% trans "Die Seite zeigt danach wieder den Standardinhalt. Ihre Blöcke bleiben." %}{% else %}{% trans "Text und Blöcke dieser Seite werden entfernt. Das lässt sich nicht rückgängig machen." %}{% endif %}</p>
+    <form method="post" action="{% url 'content-page-delete' page.pk %}" class="flex flex-wrap gap-2">
+      {% csrf_token %}
+      <button class="ui-btn ui-btn-danger">{% if is_system %}{% trans "Eigenen Text entfernen" %}{% else %}{% trans "Seite löschen" %}{% endif %}</button>
+      <a href="{% url 'content-page-edit' page.pk %}" class="ui-btn">{% trans "Abbrechen" %}</a>
+    </form>
+  </section>
+  {% endif %}
+
   <form method="post" class="ui-card p-6 space-y-4" data-richtext-scope data-page-form>
     {% csrf_token %}
     <div class="grid gap-4 md:grid-cols-2">
@@ -61,15 +74,8 @@
     {% endif %}
   </form>
 
-  {% if is_saved and 'content-page-new'|can_open:request %}
-  <form method="post" action="{% url 'content-page-delete' page.pk %}" class="mt-4">
-    {% csrf_token %}
-    {% if is_system %}
-    <button class="ui-btn ui-btn-danger" data-confirm-tap="{% trans 'Wirklich löschen?' %}">{% trans "Eigenen Text löschen (Standard wiederherstellen)" %}</button>
-    {% else %}
-    <button class="ui-btn ui-btn-danger" data-confirm-tap="{% trans 'Wirklich löschen?' %}">{% trans "Seite löschen" %}</button>
-    {% endif %}
-  </form>
+  {% if is_saved and 'content-page-new'|can_open:request and not confirm_delete %}
+  <p class="mt-4 text-sm"><a href="?loeschen=1#seite-loeschen" class="inline-flex items-center min-h-[44px] text-gray-600 underline hover:text-gray-900" data-page-delete-link>{% if is_system %}{% trans "Eigenen Text entfernen …" %}{% else %}{% trans "Seite löschen …" %}{% endif %}</a></p>
   {% endif %}
 </div>
 {% rte_link_targets %}

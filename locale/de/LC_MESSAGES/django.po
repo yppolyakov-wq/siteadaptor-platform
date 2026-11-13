@@ -37423,3 +37423,48 @@ msgstr "Eigene Vorlagen"
 
 msgid "Der Seitenaufbau wurde inzwischen an anderer Stelle geändert. Ihre Inhalte wurden gespeichert, der Aufbau bleibt wie dort festgelegt."
 msgstr "Der Seitenaufbau wurde inzwischen an anderer Stelle geändert. Ihre Inhalte wurden gespeichert, der Aufbau bleibt wie dort festgelegt."
+
+msgid "Ausgeblendet – Text fehlt"
+msgstr "Ausgeblendet – Text fehlt"
+
+msgid "Die Seite zeigt danach wieder den Standardinhalt. Ihre Blöcke bleiben."
+msgstr "Die Seite zeigt danach wieder den Standardinhalt. Ihre Blöcke bleiben."
+
+msgid "Eigenen Text entfernen"
+msgstr "Eigenen Text entfernen"
+
+msgid "Eigenen Text entfernen …"
+msgstr "Eigenen Text entfernen …"
+
+#, python-format
+msgid "Eigenen Text von „%(t)s“ entfernen?"
+msgstr "Eigenen Text von „%(t)s“ entfernen?"
+
+msgid "Im Menü verlinken"
+msgstr "Im Menü verlinken"
+
+#, python-format
+msgid "Mehr zu „%(t)s“"
+msgstr "Mehr zu „%(t)s“"
+
+msgid "Rechtstext"
+msgstr "Rechtstext"
+
+msgid "Rechtstexte können nicht gelöscht werden."
+msgstr "Rechtstexte können nicht gelöscht werden."
+
+msgid "Seite löschen …"
+msgstr "Seite löschen …"
+
+#, python-format
+msgid "Seite „%(t)s“ löschen?"
+msgstr "Seite „%(t)s“ löschen?"
+
+msgid "Text bearbeiten"
+msgstr "Text bearbeiten"
+
+msgid "Text und Blöcke dieser Seite werden entfernt. Das lässt sich nicht rückgängig machen."
+msgstr "Text und Blöcke dieser Seite werden entfernt. Das lässt sich nicht rückgängig machen."
+
+msgid "Verlinkt in"
+msgstr "Verlinkt in"

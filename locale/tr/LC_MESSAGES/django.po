@@ -37482,3 +37482,48 @@ msgstr "Kendi şablonlarınız"
 
 msgid "Der Seitenaufbau wurde inzwischen an anderer Stelle geändert. Ihre Inhalte wurden gespeichert, der Aufbau bleibt wie dort festgelegt."
 msgstr "Sayfa düzeni bu arada başka bir yerde değiştirildi. İçerikleriniz kaydedildi, düzen orada belirlendiği gibi kalır."
+
+msgid "Ausgeblendet – Text fehlt"
+msgstr "Gizli – metin eksik"
+
+msgid "Die Seite zeigt danach wieder den Standardinhalt. Ihre Blöcke bleiben."
+msgstr "Sayfa yeniden standart içeriği gösterir. Bloklarınız kalır."
+
+msgid "Eigenen Text entfernen"
+msgstr "Kendi metni kaldır"
+
+msgid "Eigenen Text entfernen …"
+msgstr "Kendi metni kaldır …"
+
+#, python-format
+msgid "Eigenen Text von „%(t)s“ entfernen?"
+msgstr "“%(t)s” sayfasının kendi metni kaldırılsın mı?"
+
+msgid "Im Menü verlinken"
+msgstr "Menüye bağla"
+
+#, python-format
+msgid "Mehr zu „%(t)s“"
+msgstr "“%(t)s” için diğer işlemler"
+
+msgid "Rechtstext"
+msgstr "Yasal metin"
+
+msgid "Rechtstexte können nicht gelöscht werden."
+msgstr "Yasal metinler silinemez."
+
+msgid "Seite löschen …"
+msgstr "Sayfayı sil …"
+
+#, python-format
+msgid "Seite „%(t)s“ löschen?"
+msgstr "“%(t)s” sayfası silinsin mi?"
+
+msgid "Text bearbeiten"
+msgstr "Metni düzenle"
+
+msgid "Text und Blöcke dieser Seite werden entfernt. Das lässt sich nicht rückgängig machen."
+msgstr "Bu sayfanın metni ve blokları kaldırılır. Bu işlem geri alınamaz."
+
+msgid "Verlinkt in"
+msgstr "Bağlantı yeri"
