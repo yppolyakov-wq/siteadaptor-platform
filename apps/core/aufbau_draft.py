@@ -208,7 +208,16 @@ def op(
         draft["items"] = site_schema.category_items(config, host, draft["items"], op_name)
         ref = ""
     else:
-        ref = site_schema.mutate(draft["items"], code, op_name, ref, block_type, value, fields)
+        ref = site_schema.mutate(
+            draft["items"],
+            code,
+            op_name,
+            ref,
+            block_type,
+            value,
+            fields,
+            config.get("block_templates"),
+        )
     return _settle(request, code, draft, saved, ref)
 
 

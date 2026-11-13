@@ -37669,3 +37669,9 @@ msgstr "Здесь меняют тексты, фото и вид блоков. �
 
 msgid "Aufbau ändern"
 msgstr "Изменить структуру"
+
+msgid "Eigene Vorlagen"
+msgstr "Свои шаблоны"
+
+msgid "Der Seitenaufbau wurde inzwischen an anderer Stelle geändert. Ihre Inhalte wurden gespeichert, der Aufbau bleibt wie dort festgelegt."
+msgstr "Структуру страницы тем временем изменили в другом месте. Ваше содержимое сохранено, структура остаётся такой, как задана там."

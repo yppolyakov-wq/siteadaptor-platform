@@ -101,6 +101,39 @@ def test_save_with_stale_structure_is_refused():
     assert any("Seitenaufbau" in str(m) for m in get_messages(req))
 
 
+def test_stale_tab_keeps_its_text_and_the_other_writers_structure():
+    """FB-27 R8d: вкладка Студии открыта до того, как схему изменили в «Seitenaufbau».
+    Раньше её «Speichern» получал отказ и текст терялся; теперь текст записан, схема —
+    как сохранена, владелец видит пояснение."""
+    tenant = TenantFactory(site_config=siteconfig.normalize({}))
+    stale = site_schema.structure_hash(tenant.site_config)
+    key, enabled = _toggle_first_section(tenant.pk)
+    tenant.refresh_from_db()  # запрос пришёл уже после чужой правки
+    req = _request(
+        "post",
+        {"struct_hash": stale, "content_sections_present": "1", "hero_title": "Neuer Titel"},
+        tenant,
+    )
+    assert views.home_builder_view(req).status_code == 302
+    stored = siteconfig.normalize(Tenant.objects.get(pk=tenant.pk).site_config)
+    row = next(s for s in stored["sections"] if s["key"] == key)
+    assert row["enabled"] is enabled  # чужая правка цела
+    assert stored.get("hero_title") == "Neuer Titel"  # текст не потерян
+    assert any("Inhalte wurden gespeichert" in str(m) for m in get_messages(req))
+
+
+def test_race_without_hash_field_is_refused_too():
+    """Схему сохранили, пока шёл запрос формы БЕЗ отпечатка (старая вкладка): раньше
+    сверка пропускалась и запись целого конфига откатывала чужую правку."""
+    tenant = TenantFactory(site_config=siteconfig.normalize({}))
+    key, enabled = _toggle_first_section(tenant.pk)  # после «загрузки» тенанта запросом
+    req = _request("post", {"hero_title": "Zu spät"}, tenant)
+    assert views.home_builder_view(req).status_code == 302
+    stored = siteconfig.normalize(Tenant.objects.get(pk=tenant.pk).site_config)
+    row = next(s for s in stored["sections"] if s["key"] == key)
+    assert row["enabled"] is enabled and stored.get("hero_title") != "Zu spät"
+
+
 def test_save_with_current_structure_passes():
     tenant = TenantFactory(site_config=siteconfig.normalize({}))
     h = site_schema.structure_hash(tenant.site_config)

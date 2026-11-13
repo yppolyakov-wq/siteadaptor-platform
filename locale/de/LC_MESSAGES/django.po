@@ -37417,3 +37417,9 @@ msgstr "Hier ändern Sie Texte, Fotos und das Aussehen der Blöcke. Reihenfolge,
 
 msgid "Aufbau ändern"
 msgstr "Aufbau ändern"
+
+msgid "Eigene Vorlagen"
+msgstr "Eigene Vorlagen"
+
+msgid "Der Seitenaufbau wurde inzwischen an anderer Stelle geändert. Ihre Inhalte wurden gespeichert, der Aufbau bleibt wie dort festgelegt."
+msgstr "Der Seitenaufbau wurde inzwischen an anderer Stelle geändert. Ihre Inhalte wurden gespeichert, der Aufbau bleibt wie dort festgelegt."

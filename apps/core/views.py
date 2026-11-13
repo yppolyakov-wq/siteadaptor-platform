@@ -2535,12 +2535,14 @@ def home_builder_view(request):
             return _redirect_builder(request)
         from apps.core import archetypes
 
-        # FB-27 R0: форма несёт отпечаток структуры, с которой была открыта. Если схему
-        # тем временем изменили в другом месте (вторая вкладка, «Seitenaufbau»), этот Save
-        # откатил бы её — отказываем и ничего не пишем. Без поля (старые формы) — как прежде.
+        # FB-27 R0 → R8d: форма несёт отпечаток структуры, с которой была открыта. Раньше
+        # устаревшая вкладка получала отказ и теряла набранный текст; с R8a структуру этот
+        # Save не пишет вовсе (берёт сохранённую), поэтому текст сохраняется, а владелец
+        # получает пояснение. Гонку «схему сохранили, пока шёл этот запрос» по-прежнему
+        # ловит сверка под блокировкой строки перед записью — с отпечатком начала запроса.
         posted_hash = (request.POST.get("struct_hash") or "").strip()
-        if posted_hash and _structure_is_stale(request, posted_hash):
-            return _redirect_builder(request)
+        start_hash = site_schema_hash(request.tenant.site_config)
+        stale_tab = bool(posted_hash) and posted_hash != start_hash
 
         config = siteconfig.normalize(request.tenant.site_config)
         # LAY-6b: панель показывает тексты ВЫБРАННОЙ локали, поэтому Save приносит их
@@ -3008,14 +3010,23 @@ def home_builder_view(request):
 
         config = page_settings.protect_owned(request.tenant, config)
         request.tenant.site_config = siteconfig.normalize(config)
-        # FB-27 R0: вторая сверка — под блокировкой строки, в одной транзакции с записью
-        # (между первой проверкой и этим местом схему могли сохранить в другом месте).
+        # FB-27 R0: сверка под блокировкой строки, в одной транзакции с записью — схему
+        # могли сохранить в другом месте, пока шёл этот запрос (запись целого конфига
+        # откатила бы её). Сверяем с отпечатком начала запроса — и для форм без поля.
         with transaction.atomic():
-            if posted_hash and _structure_is_stale(request, posted_hash):
+            if _structure_is_stale(request, start_hash):
                 return _redirect_builder(request)
             request.tenant.save(update_fields=update_fields)
         messages.success(request, _("Gespeichert."))
-        if structure_ignored:
+        if stale_tab:
+            messages.info(
+                request,
+                _(
+                    "Der Seitenaufbau wurde inzwischen an anderer Stelle geändert. Ihre Inhalte "
+                    "wurden gespeichert, der Aufbau bleibt wie dort festgelegt."
+                ),
+            )
+        elif structure_ignored:
             messages.info(
                 request,
                 _(

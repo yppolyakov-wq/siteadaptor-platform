@@ -221,7 +221,7 @@ def site_schema_view(request):
                 if code.startswith(f"{site_schema.CATEGORY}@")
                 else None
             ),
-            "add_groups": site_schema.add_groups(code),
+            "add_groups": site_schema.add_groups(code, saved),
             "row_options": site_schema.row_options(),
             "studio_url": studio,
             "draft": draft_info if draft else None,

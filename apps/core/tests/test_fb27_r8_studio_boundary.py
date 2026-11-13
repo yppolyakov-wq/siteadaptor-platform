@@ -69,7 +69,7 @@ def test_explicit_studio_actions_stay_visible_until_they_move():
     import pathlib
 
     lines = pathlib.Path("templates/tenant/site_home.html").read_text().splitlines()
-    for action in ("use_page_preset:", "use_block_template:", "use_page_template:"):
+    for action in ("use_page_preset:", "use_page_template:"):
         i = next(n for n, ln in enumerate(lines) if f'value="{action}' in ln)
         assert "stu-struct" not in " ".join(lines[i : i + 3]), action
     row = pathlib.Path("templates/tenant/_cb_row.html").read_text()
@@ -300,3 +300,58 @@ def test_aufbau_link_opens_the_schema_of_the_page_on_the_canvas():
     # мусор вместо пути — экран без выбора, без ошибки
     for path in ("", "//evil.example/", "kein-pfad", None):
         assert site_schema.url_for_path(tenant, path) == "/dashboard/site/aufbau/"
+
+
+# ───────────── R8d: сохранённые шаблоны блоков — в «+ Block» ─────────────
+
+
+def _with_templates():
+    from apps.core.modules import default_disabled_for
+
+    return TenantFactory(
+        business_type="online_shop",
+        disabled_modules=list(default_disabled_for("online_shop")),
+        site_config={
+            "block_templates": {
+                "t1": {"key": "text", "label": "Mein Absatz", "data": {"title": "Aus Vorlage"}},
+                "t2": {"key": "faq_ref", "label": "Kein Blocktyp", "data": {}},
+            }
+        },
+    )
+
+
+def test_saved_block_templates_are_offered_in_the_add_menu():
+    from apps.core.tests.test_fb27_r2_draft import Browser
+
+    tenant = _with_templates()
+    html = Browser(tenant).get("?seite=text")
+    assert "Eigene Vorlagen" in html and 'value="tpl:t1"' in html and "Mein Absatz" in html
+
+
+def test_template_is_inserted_with_its_content_through_the_draft():
+    from apps.core.tests.test_fb27_r2_draft import Browser
+
+    tenant = _with_templates()
+    browser = Browser(tenant)
+    resp, msgs = browser.post(seite="text", op="add", type="tpl:t1")
+    assert resp.status_code == 302 and not msgs
+    browser.post(seite="text", op="save")
+    cfg = siteconfig.normalize(Tenant.objects.get(pk=tenant.pk).site_config)
+    block = next(b for b in cfg["page_blocks"]["info"] if b.get("id"))
+    assert block["key"] == "text" and block["data"]["title"] == "Aus Vorlage"
+    assert "t1" in cfg["block_templates"]  # сам шаблон остаётся
+
+
+def test_unknown_template_is_refused():
+    tenant = _with_templates()
+    for bad in ("tpl:nope", "tpl:", "tpl:<x>"):
+        with pytest.raises(site_schema.SchemaError):
+            site_schema.apply(tenant, "text", "add", block_type=bad)
+
+
+def test_studio_no_longer_offers_to_insert_a_block_template():
+    import pathlib
+
+    lines = pathlib.Path("templates/tenant/site_home.html").read_text().splitlines()
+    line = next(ln for ln in lines if 'value="use_block_template:' in ln)
+    assert "stu-struct" in line

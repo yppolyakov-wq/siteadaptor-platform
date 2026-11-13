@@ -780,8 +780,13 @@ _ADD_GROUPS = (
 )
 
 
-def add_groups(code: str) -> list[dict]:
-    """Пункты «+ Block» группами: [{key, title, options: [(тип, подпись)]}]."""
+#: FB-27 R8d: пункт «+ Block» для сохранённого шаблона блока — `tpl:<id шаблона>`.
+TEMPLATE_PREFIX = "tpl:"
+
+
+def add_groups(code: str, config: dict | None = None) -> list[dict]:
+    """Пункты «+ Block» группами: [{key, title, options: [(тип, подпись)]}]. С `config` —
+    ещё группа сохранённых шаблонов блоков (только типов, которые можно ставить сюда)."""
     options = add_options(code)
     placed = {k for _key, _title, keys in _ADD_GROUPS for k in keys}
     out = []
@@ -789,6 +794,14 @@ def add_groups(code: str) -> list[dict]:
         mine = [(k, lab) for k, lab in options if (k in keys if keys else k not in placed)]
         if mine:
             out.append({"key": key, "title": str(title), "options": mine})
+    allowed = dict(options)
+    saved = [
+        (f"{TEMPLATE_PREFIX}{tid}", str(tpl.get("label") or allowed[tpl["key"]]))
+        for tid, tpl in ((config or {}).get("block_templates") or {}).items()
+        if isinstance(tpl, dict) and tpl.get("key") in allowed
+    ]
+    if saved:
+        out.append({"key": "vorlagen", "title": str(_("Eigene Vorlagen")), "options": saved})
     return out
 
 
@@ -876,13 +889,23 @@ def mutate(
     block_type: str = "",
     value: str = "",
     fields: dict | None = None,
+    templates: dict | None = None,
 ) -> str:
     """Одна правка списка блоков НА МЕСТЕ (без записи): общая для немедленной правки
-    и черновика. Возвращает ref блока (у `add` — id нового)."""
+    и черновика. Возвращает ref блока (у `add` — id нового).
+
+    `templates` — сохранённые шаблоны блоков (`config["block_templates"]`): тип
+    `tpl:<id>` вставляет блок шаблона с его данными (FB-27 R8d)."""
     from apps.tenants import siteconfig
 
     idx = next((i for i, it in enumerate(items) if (it.get("id") or it.get("key")) == ref), None)
     if op == "add":
+        template = None
+        if block_type.startswith(TEMPLATE_PREFIX):
+            template = (templates or {}).get(block_type[len(TEMPLATE_PREFIX) :])
+            if not isinstance(template, dict):
+                raise SchemaError("type")
+            block_type = siteconfig.cblock_type(template.get("key")) or ""
         if block_type not in dict(add_options(code)):
             raise SchemaError("type")
         if sum(1 for it in items if it.get("id")) >= siteconfig._MAX_CBLOCKS:
@@ -892,7 +915,9 @@ def mutate(
             "key": block_type,
             "id": uuid.uuid4().hex[:12],
             "enabled": True,
-            "data": copy.deepcopy(siteconfig.CBLOCK_DEMO_DATA.get(block_type, {})),
+            "data": siteconfig._clean_cblock_data(block_type, copy.deepcopy(template.get("data")))
+            if template is not None
+            else copy.deepcopy(siteconfig.CBLOCK_DEMO_DATA.get(block_type, {})),
         }
         items.append(new)
         return new["id"]
@@ -1174,7 +1199,7 @@ def apply(
             config["about_contact"] = False
     else:
         items = load_items(config, home, host)
-        ref = mutate(items, code, op, ref, block_type, value, fields)
+        ref = mutate(items, code, op, ref, block_type, value, fields, config.get("block_templates"))
         store_items(config, home, host, items)
     locked.site_config = siteconfig.normalize(config)
     locked.save(update_fields=["site_config", "updated_at"])

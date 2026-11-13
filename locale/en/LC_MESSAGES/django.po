@@ -37330,3 +37330,9 @@ msgstr "Here you change texts, photos and the look of the blocks. Order, visibil
 
 msgid "Aufbau ändern"
 msgstr "Change layout"
+
+msgid "Eigene Vorlagen"
+msgstr "Your templates"
+
+msgid "Der Seitenaufbau wurde inzwischen an anderer Stelle geändert. Ihre Inhalte wurden gespeichert, der Aufbau bleibt wie dort festgelegt."
+msgstr "The page layout was changed elsewhere in the meantime. Your content was saved; the layout stays as set there."
