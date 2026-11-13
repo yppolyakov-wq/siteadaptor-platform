@@ -248,7 +248,9 @@
         <div class="stu-page-row mb-4" data-stu-setting="home_hero" data-stu-axis="composition" data-stu-page="home">
           {% include "tenant/_stu19_summary.html" with s=stu19.home_hero %}
         </div>
-        <p class="text-xs ui-muted mb-4">{% trans "Drag ⠿ to reorder, or type a number. Untick to hide a block." %}</p>
+        {% comment %}FB-27 R8: порядок, видимость и состав блоков правит «Seitenaufbau»; здесь —
+           тексты, фото и вид. Контролы структуры скрыты (класс stu-struct), сервер их не читает.{% endcomment %}
+        <p class="text-xs ui-muted mb-4" data-stu-struct-hint>{% trans "Hier ändern Sie Texte, Fotos und das Aussehen der Blöcke. Reihenfolge, Sichtbarkeit und neue Blöcke:" %} <a href="{% url 'site-schema' %}" class="inline-flex items-center min-h-[24px] font-semibold text-indigo-700 underline">{% trans "Aufbau ändern" %}</a></p>
         {% comment %}SE-9g: в Простом режиме при выбранной версии 📱/▭ показываем настройки этой версии
            (колонки на устройстве, скрыть на устройстве) — крутить мобильную версию без Эксперта.{% endcomment %}
         <p class="bld-device-hint hidden text-xs text-indigo-700 bg-indigo-50 border border-indigo-100 rounded-lg px-3 py-2 mb-4">
@@ -259,21 +261,21 @@
         <input type="hidden" name="content_sections_present" value="1">
         <div id="home-blocks" class="space-y-3">
           {% for s in sections %}
-            <div class="home-block border border-gray-100 rounded-xl px-3 py-3 bg-white" draggable="true">
+            <div class="home-block border border-gray-100 rounded-xl px-3 py-3 bg-white">
               {% comment %}H1.3: «шапка-идентичность» — всегда в списке секций (перечень + чекбокс +
                  перемещение). Имя/⚙ открывают настройки блока в фокус-панели (#bld-block-popup);
                  сами настройки — в `.home-block-settings` ниже (CSS прячет их в списке).{% endcomment %}
               <div class="home-block-head flex items-center gap-2">
-                <span class="drag-handle cursor-grab select-none text-gray-400 px-1" aria-hidden="true" data-expert="1" title="{% trans 'Drag to reorder' %}">⠿</span>
+                <span class="drag-handle stu-struct cursor-grab select-none text-gray-400 px-1" aria-hidden="true" data-expert="1" title="{% trans 'Drag to reorder' %}">⠿</span>
                 <input type="number" name="order_{{ s.key }}" value="{{ s.order }}" min="1"
-                       class="order-input w-14 rounded-lg border border-gray-300 px-2 py-1.5 text-sm" aria-label="{% trans 'Order' %}" data-expert="1">
+                       class="order-input stu-struct w-14 rounded-lg border border-gray-300 px-2 py-1.5 text-sm" aria-label="{% trans 'Order' %}" data-expert="1">
                 {# SE-1c: дружелюбное перемещение ↑▼ (работает и в обычном режиме, value-based) #}
-                <span class="blk-move flex flex-col leading-none -my-1">
+                <span class="blk-move stu-struct flex flex-col leading-none -my-1">
                   <button type="button" class="blk-up px-1 text-gray-400 hover:text-indigo-600" data-key="{{ s.key }}" title="{% trans 'Move up' %}" aria-label="{% trans 'Move up' %}">▲</button>
                   <button type="button" class="blk-down px-1 text-gray-400 hover:text-indigo-600" data-key="{{ s.key }}" title="{% trans 'Move down' %}" aria-label="{% trans 'Move down' %}">▼</button>
                 </span>
                 <input type="checkbox" name="enabled_{{ s.key }}" {% if s.enabled %}checked{% endif %}
-                       class="rounded border-gray-300" aria-label="{{ s.label }}">
+                       class="stu-struct rounded border-gray-300" aria-label="{{ s.label }}">
                 <button type="button" class="blk-edit flex-1 text-left text-sm font-medium text-gray-800 hover:text-indigo-700" data-key="{{ s.key }}">{{ s.label }}</button>
                 <button type="button" class="blk-edit shrink-0 text-gray-400 hover:text-indigo-700 px-1" data-key="{{ s.key }}" title="{% trans 'Settings' %}" aria-label="{% trans 'Settings' %}">⚙</button>
               </div>
@@ -903,7 +905,7 @@
             <div class="flex flex-wrap gap-2">
               {% for p in pp.presets %}
               <button type="submit" name="action" value="use_page_preset:{{ pp.host }}:{{ p.key }}"
-                      class="text-left border rounded-xl px-3 py-2 text-xs {% if p.key == pp.current %}border-indigo-500 ring-1 ring-indigo-200 text-indigo-700{% else %}border-gray-300 text-gray-600 hover:border-indigo-400{% endif %}">
+                      class="stu-struct text-left border rounded-xl px-3 py-2 text-xs {% if p.key == pp.current %}border-indigo-500 ring-1 ring-indigo-200 text-indigo-700{% else %}border-gray-300 text-gray-600 hover:border-indigo-400{% endif %}">
                 <span class="block text-base" aria-hidden="true">{{ p.icon }}</span>
                 <span class="font-medium">{{ p.label }}</span>
                 {% if p.recommended %}<span class="block text-[10px] text-emerald-600 mt-0.5">★ {% trans "Recommended" %}</span>{% endif %}
@@ -915,7 +917,7 @@
                «＋» кладёт блок «Liste» этого типа над основным списком — секция рубрики
                уходит из остатка (N-3), а вид блок наследует у типа.{% endcomment %}
             {% if pp.type_hints %}
-            <div class="mt-3" data-promo-type-hints>
+            <div class="mt-3 stu-struct" data-promo-type-hints>
               <span class="block text-xs text-gray-500 mb-1">{% trans "Aktionstypen ohne eigenen Block:" %}</span>
               <div class="flex flex-wrap gap-1.5">
                 {% for key in pp.type_hints %}
@@ -1191,9 +1193,9 @@
         {# STU-13 (макет P3): слева ИМЯ выбранного блока — плашка должна сама говорить, чем правит. #}
         <span data-ab="name"></span>
         <span class="bld-ab-sep"></span>
-        <button type="button" data-ab="up" title="{% trans 'Move up' %}" aria-label="{% trans 'Move up' %}">▲</button>
-        <button type="button" data-ab="down" title="{% trans 'Move down' %}" aria-label="{% trans 'Move down' %}">▼</button>
-        <button type="button" data-ab="vis" title="{% trans 'Visible' %}" aria-label="{% trans 'Visible' %}">👁</button>
+        <button type="button" data-ab="up" class="stu-struct" title="{% trans 'Move up' %}" aria-label="{% trans 'Move up' %}">▲</button>
+        <button type="button" data-ab="down" class="stu-struct" title="{% trans 'Move down' %}" aria-label="{% trans 'Move down' %}">▼</button>
+        <button type="button" data-ab="vis" class="stu-struct" title="{% trans 'Visible' %}" aria-label="{% trans 'Visible' %}">👁</button>
         <span class="bld-ab-sep"></span>
         <button type="button" data-ab="quick" data-quick="layout" title="{% trans 'Layout' %}">{% trans "Raster" %} ▾</button>
         <button type="button" data-ab="quick" data-quick="style" title="{% trans 'Display style' %}">{% trans "Stil" %} ▾</button>
@@ -1203,7 +1205,7 @@
         <button type="button" data-ab="addcat" title="{% trans 'Add category' %}">＋ {% trans "Kategorie" %}</button>
         <span class="bld-ab-sep"></span>
         <button type="button" data-ab="settings" title="{% trans 'Settings' %}" aria-label="{% trans 'Settings' %}">⚙</button>
-        <button type="button" data-ab="del" title="{% trans 'Remove' %}" aria-label="{% trans 'Remove' %}">🗑</button>
+        <button type="button" data-ab="del" class="stu-struct" title="{% trans 'Remove' %}" aria-label="{% trans 'Remove' %}">🗑</button>
       </div>
       <div id="bld-quick-pop">
         {# STU-13 (макет P4): шапка поповера — что настраиваем, у какого блока и ✕. #}
@@ -1233,7 +1235,7 @@
         {% for t in block_templates %}
           <div class="flex items-center gap-2 text-sm border border-gray-100 rounded-lg px-3 py-2">
             <span class="flex-1"><span class="text-gray-400 text-xs mr-1">{{ t.key }}</span>{{ t.label }}</span>
-            <button type="submit" name="action" value="use_block_template:{{ t.id }}" class="text-xs border border-gray-300 rounded px-2 py-1 hover:border-indigo-400 hover:text-indigo-700">+ {% trans "Insert" %}</button>
+            <button type="submit" name="action" value="use_block_template:{{ t.id }}" class="stu-struct text-xs border border-gray-300 rounded px-2 py-1 hover:border-indigo-400 hover:text-indigo-700">+ {% trans "Insert" %}</button>
             <button type="submit" name="action" value="delete_block_template:{{ t.id }}" class="text-xs text-red-600 hover:underline">{% trans "Delete" %}</button>
           </div>
         {% endfor %}
@@ -1253,7 +1255,7 @@
             <span class="flex-1">{{ t.label }}<span class="text-gray-400 text-xs ml-1">({{ t.count }} {% trans "sections" %})</span></span>
             <button type="submit" name="action" value="use_page_template:{{ t.id }}"
                     onclick="return confirm('{% trans "Replace the whole homepage layout with this template?" %}')"
-                    class="text-xs border border-gray-300 rounded px-2 py-1 hover:border-indigo-400 hover:text-indigo-700">{% trans "Apply" %}</button>
+                    class="stu-struct text-xs border border-gray-300 rounded px-2 py-1 hover:border-indigo-400 hover:text-indigo-700">{% trans "Apply" %}</button>
             <button type="submit" name="action" value="delete_page_template:{{ t.id }}" class="text-xs text-red-600 hover:underline">{% trans "Delete" %}</button>
           </div>
         {% endfor %}
@@ -1549,6 +1551,9 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
 </div>
 
 <style>
+  /* FB-27 R8: контролы структуры (порядок, видимость, удаление, ширина своего блока) —
+     структуру правит «Seitenaufbau». В разметке остаются: на них опирается JS панели. */
+  .stu-struct { display: none !important; }
 /* STU-16c: правило-пряталка Простого режима (`[data-mode=basic] [data-expert]`)
    удалено вместе с самим режимом — прятать больше нечем и незачем. Маркеры
    [data-expert] в разметке оставлены: они помечают технические контролы и ничего
@@ -4243,6 +4248,14 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
     // было нельзя до перезагрузки канвы. Пересчитываем цели и довешиваем недостающее;
     // повторный вызов идемпотентен (sfOnce на узел — иначе «+» вставился бы дважды).
     function bindCanvasBlocks() {
+      // FB-27 R8: «+» вставки и ручки перетаскивания на холсте не показываем — состав и
+      // порядок блоков правит «Seitenaufbau». Правило в документе кадра сильнее inline-стиля.
+      if (!doc.getElementById("sf-struct-lock")) {
+        var lockCss = doc.createElement("style");
+        lockCss.id = "sf-struct-lock";
+        lockCss.textContent = "[data-sf-ins],[data-sf-drag]{display:none !important}";
+        (doc.head || doc.documentElement).appendChild(lockCss);
+      }
       var sfEditTargets = (previewPath === "/"
         ? Array.prototype.slice.call(doc.querySelectorAll("[data-sf-section]"))
         : (curPbHost ? Array.prototype.slice.call(doc.querySelectorAll('[data-pb-host] [data-sf-section]')) : [])
@@ -4705,6 +4718,9 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
     actionBar.querySelectorAll("[data-quick]").forEach(function (b) {
       b.hidden = !quickCtl(b.getAttribute("data-quick"), abKey);
     });
+    // FB-27 R8: ширина СВОЕГО блока — структура («Seitenaufbau»); у встроенной секции остаётся.
+    var wq = actionBar.querySelector('[data-quick="width"]');
+    if (wq && form.querySelector('[name="width_cb_' + abKey + '"]')) wq.hidden = true;
   }
   function ensureFrameHooks() {
     // Кадр подменяется (двойная буферизация) — слушатели вешаем на ТЕКУЩЕЕ окно,

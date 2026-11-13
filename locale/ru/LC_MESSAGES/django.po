@@ -37663,3 +37663,9 @@ msgstr "Столько категорий со своей структурой �
 
 msgid "Reihenfolge, Sichtbarkeit und Breite der Blöcke ändern Sie unter „Seitenaufbau“ – hier wurden nur die Inhalte gespeichert."
 msgstr "Порядок, видимость и ширину блоков меняют в разделе «Структура страниц» — здесь сохранено только содержимое."
+
+msgid "Hier ändern Sie Texte, Fotos und das Aussehen der Blöcke. Reihenfolge, Sichtbarkeit und neue Blöcke:"
+msgstr "Здесь меняют тексты, фото и вид блоков. Порядок, видимость и новые блоки:"
+
+msgid "Aufbau ändern"
+msgstr "Изменить структуру"

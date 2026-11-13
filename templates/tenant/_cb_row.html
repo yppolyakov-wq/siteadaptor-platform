@@ -15,7 +15,7 @@ collect()/save работают без переименований. data-cb-id 
   <input type="hidden" name="cb_type_{{ b.id }}" value="main">
   <div class="flex items-center justify-between gap-3 text-sm">
     <span class="font-medium">★ {% trans "Hauptliste" %}</span>
-    <label class="flex items-center gap-1">{% trans "Position" %}
+    <label class="stu-struct flex items-center gap-1">{% trans "Position" %}
       <input type="number" name="order_cb_{{ b.id }}" value="{{ b.order }}" min="1" class="w-16 rounded border border-gray-300 px-2 py-1"></label>
   </div>
   <p class="text-[11px] text-gray-500">{% trans "Blöcke davor stehen über der Liste, danach unter ihr. Wie die Liste aussieht, stellen Sie oben bei dieser Seite ein." %}</p>
@@ -31,7 +31,7 @@ collect()/save работают без переименований. data-cb-id 
   <input type="hidden" name="cb_type_{{ b.id }}" value="{{ b.type }}">
   <div class="flex items-center justify-between gap-3 text-sm">
     <span class="font-medium">{{ b.type|cblock_label }}</span>
-    <span class="flex items-center gap-3">
+    <span class="stu-struct flex items-center gap-3">
       <label class="flex items-center gap-1">{% trans "Position" %}
         <input type="number" name="order_cb_{{ b.id }}" value="{{ b.order }}" min="1" class="w-16 rounded border border-gray-300 px-2 py-1"></label>
       <label class="flex items-center gap-1"><input type="checkbox" name="enabled_cb_{{ b.id }}" {% if b.enabled %}checked{% endif %} class="rounded border-gray-300">{% trans "Visible" %}</label>
@@ -462,7 +462,7 @@ collect()/save работают без переименований. data-cb-id 
   {% comment %}UC6-3/3a/3b: ширина блока (доли контейнера до 1/6) + положение.
      Узкие блоки подряд автоматически встают В РЯД; чекбокс «с новой
      строки» разрывает ряд. pos влияет только на узкие (дефолт — центр).{% endcomment %}
-  <div class="flex flex-wrap items-center gap-2 text-sm">
+  <div class="stu-struct flex flex-wrap items-center gap-2 text-sm">
     <label class="flex items-center gap-1.5 text-xs text-gray-600">{% trans "Width" %}
       <select name="width_cb_{{ b.id }}" class="rounded border border-gray-300 px-2 py-1 text-sm">
         <option value="contained">{% trans "Contained" %}</option>

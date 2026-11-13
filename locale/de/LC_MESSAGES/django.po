@@ -37411,3 +37411,9 @@ msgstr "So viele Kategorien mit eigenem Aufbau sind nicht möglich. Bitte zuerst
 
 msgid "Reihenfolge, Sichtbarkeit und Breite der Blöcke ändern Sie unter „Seitenaufbau“ – hier wurden nur die Inhalte gespeichert."
 msgstr "Reihenfolge, Sichtbarkeit und Breite der Blöcke ändern Sie unter „Seitenaufbau“ – hier wurden nur die Inhalte gespeichert."
+
+msgid "Hier ändern Sie Texte, Fotos und das Aussehen der Blöcke. Reihenfolge, Sichtbarkeit und neue Blöcke:"
+msgstr "Hier ändern Sie Texte, Fotos und das Aussehen der Blöcke. Reihenfolge, Sichtbarkeit und neue Blöcke:"
+
+msgid "Aufbau ändern"
+msgstr "Aufbau ändern"
