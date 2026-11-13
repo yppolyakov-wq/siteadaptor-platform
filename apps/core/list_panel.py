@@ -86,6 +86,20 @@ def _only_options(source: str) -> list[tuple[str, str]]:
     return [("", _("Alle"))] + [(k, labels.get(k, k)) for k in siteconfig.LIST_ONLY.get(source, ())]
 
 
+def _parent_category_slugs() -> set:
+    """Слаги категорий, у которых есть активные подкатегории (один запрос; fail-safe)."""
+    try:
+        from apps.catalog.models import Category
+
+        return set(
+            Category.objects.filter(is_active=True, parent__isnull=False)
+            .values_list("parent__slug", flat=True)
+            .distinct()
+        )
+    except Exception:  # noqa: BLE001 — без каталога фильтр просто пуст
+        return set()
+
+
 def _which_fields(source: str, data: dict, lists: dict) -> list[dict]:
     """Фильтры «Welche» — только те, что есть у источника (реестр `LIST_SOURCES`)."""
     from apps.tenants import siteconfig
@@ -138,14 +152,15 @@ def _which_fields(source: str, data: dict, lists: dict) -> list[dict]:
         )
     if "category" in filters:
         first = _("Hauptkategorien") if source == "categories" else _("Alle Kategorien")
-        out.append(
-            _select(
-                "category",
-                _("Kategorie"),
-                data.get("category"),
-                [("", first), *lists["list_categories_for_blocks"]],
-            )
-        )
+        options = lists["list_categories_for_blocks"]
+        label = _("Kategorie")
+        if source == "categories":
+            # Плитки категорий показывают ПОДКАТЕГОРИИ выбранной: категория без детей дала бы
+            # пустой блок («nichts – der Block erscheint nicht»), поэтому её не предлагаем.
+            parents = _parent_category_slugs()
+            options = [(slug, lab) for slug, lab in options if slug in parents]
+            label = _("Unterkategorien von")
+        out.append(_select("category", label, data.get("category"), [("", first), *options]))
     if "collection" in filters:
         mine = [
             (slug, label)

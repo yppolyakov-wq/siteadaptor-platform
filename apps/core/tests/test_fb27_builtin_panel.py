@@ -144,3 +144,34 @@ def test_stale_studio_tab_cannot_roll_the_panel_edit_back():
     saved = next(s for s in new_cfg["sections"] if s.get("key") == "products" and not s.get("id"))
     for field in site_schema.BUILTIN_OWNED_FIELDS:
         assert row.get(field) == saved.get(field), field
+
+
+def test_categories_block_offers_only_categories_that_have_children():
+    """Владелец (2026-11-13): «Kategorien» с выбранной категорией без подкатегорий
+    показывал «nichts». В выборе — только категории, у которых подкатегории есть."""
+    from apps.catalog.tests.factories import CategoryFactory
+
+    parent = CategoryFactory(name="Tee", slug="tee", is_active=True)
+    CategoryFactory(name="China", slug="china", parent=parent, is_active=True)
+    CategoryFactory(name="Zubehoer", slug="zubehoer", is_active=True)
+    b = Browser(_tenant())
+    html = b.get("?seite=home&block=categories&welche=kategorie")
+    box = html[html.index('name="f_category"') :]
+    box = box[: box.index("</select>")]
+    assert 'value="tee"' in box
+    assert 'value="china"' not in box and 'value="zubehoer"' not in box
+    assert "Unterkategorien von" in html
+
+
+def test_page_template_and_card_form_tiles_are_shown_at_once():
+    """Владелец (2026-11-13, FB-29.4a): «Seitenvorlage» и «Kartenform» — часть структуры
+    страницы, их плитки должны быть видны сразу, а не спрятаны в свёрнутой строке."""
+    import re
+
+    b = Browser(_tenant())
+    html = b.get(f"?seite=catalog&block={siteconfig.MAIN_LIST_KEY}")
+    boxes = re.findall(r"<details[^>]*data-schema-setting-box=\"([^\"]+)\"([^>]*)>", html)
+    assert boxes, "у основного списка каталога есть настройки"
+    tiles = [code for code, rest in boxes if " open" in rest]
+    assert tiles, "настройки с плитками раскрыты"
+    assert "data-cardform-thumb" in html or "cf-thumb" in html or "<svg" in html

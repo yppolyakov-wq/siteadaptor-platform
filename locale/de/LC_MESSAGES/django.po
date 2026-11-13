@@ -37697,3 +37697,6 @@ msgstr "Mehr Designs anzeigen (%(n)s)"
 
 msgid "Weniger Designs anzeigen"
 msgstr "Weniger Designs anzeigen"
+
+msgid "Unterkategorien von"
+msgstr "Unterkategorien von"

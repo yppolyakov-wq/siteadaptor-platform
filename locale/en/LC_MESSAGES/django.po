@@ -37610,3 +37610,6 @@ msgstr "Show more designs (%(n)s)"
 
 msgid "Weniger Designs anzeigen"
 msgstr "Show fewer designs"
+
+msgid "Unterkategorien von"
+msgstr "Subcategories of"

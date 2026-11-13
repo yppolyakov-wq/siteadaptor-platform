@@ -37949,3 +37949,6 @@ msgstr "Показать больше дизайнов (%(n)s)"
 
 msgid "Weniger Designs anzeigen"
 msgstr "Показать меньше дизайнов"
+
+msgid "Unterkategorien von"
+msgstr "Подкатегории категории"

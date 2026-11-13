@@ -37756,3 +37756,6 @@ msgstr "Daha fazla tasarım göster (%(n)s)"
 
 msgid "Weniger Designs anzeigen"
 msgstr "Daha az tasarım göster"
+
+msgid "Unterkategorien von"
+msgstr "Şunun alt kategorileri"
