@@ -236,9 +236,12 @@ def groups(request, cfg: dict, data: dict) -> list[dict]:
         _line("intro", _("Einleitung"), data.get("intro"), kind="area"),
     ]
 
-    which = _which_fields(source, data, lists)
+    manual = bool(data.get("pick")) and source in siteconfig.LIST_PICK_SOURCES
+    # FB-27 R5: при ручном составе правило не действует — его поля не показываем (и не
+    # шлём: запись — патч, поэтому правило остаётся в данных и вернётся с «Zur Regel»).
+    which = [] if manual else _which_fields(source, data, lists)
     sorts = [(k, lab) for k, lab, srcs in hint["sorts"] if source in srcs.split()]
-    if siteconfig.list_sort_keys(source) and sorts:
+    if not manual and siteconfig.list_sort_keys(source) and sorts:
         stored = data.get("sort") or ""
         if stored and stored not in {k for k, _lab in sorts}:
             # Явно записанный ключ сортировки по умолчанию («newest» у товаров) — тот же
@@ -255,7 +258,8 @@ def groups(request, cfg: dict, data: dict) -> list[dict]:
         "n": hint["limit"],
         "max": siteconfig.LIST_LIMIT_MAX,
     }
-    which.append(limit)
+    if not manual:
+        which.append(limit)
 
     how = []
     styles = [(k, lab) for k, lab, src in hint["styles"] if src == source]
@@ -321,3 +325,26 @@ def result(request, cfg: dict, data: dict) -> dict | None:
         return {"shown": len(res["items"]), "total": int(res["total"])}
     except Exception:  # noqa: BLE001
         return None
+
+
+def pick_state(request, data: dict) -> dict | None:
+    """FB-27 R5: ручной состав блока для панели — выбранное, предложения, строка поиска.
+    None — у источника ручного выбора нет (отзывы, блог, наборы)."""
+    from apps.core import list_blocks
+    from apps.tenants import siteconfig
+
+    data = data if isinstance(data, dict) else {}
+    source = data.get("source")
+    if source not in siteconfig.LIST_SOURCES:
+        source = siteconfig.LIST_SOURCE_DEFAULT
+    if source not in siteconfig.LIST_PICK_SOURCES:
+        return None
+    pick = siteconfig.clean_pick(data.get("pick"))
+    lookup = (request.GET.get("lookup") or "").strip()[:80]
+    full = len(pick) >= siteconfig.LIST_LIMIT_MAX
+    try:
+        entries = list_blocks.pick_entries(source, pick)
+        offers = [] if full else list_blocks.pick_offers(source, lookup, exclude=pick)
+    except Exception:  # noqa: BLE001 — панель не должна падать из-за выборки
+        return None
+    return {"entries": entries, "offers": offers, "lookup": lookup, "full": full}

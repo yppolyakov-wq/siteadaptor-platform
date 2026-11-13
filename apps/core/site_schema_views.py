@@ -42,6 +42,11 @@ def site_schema_view(request):
     if request.method == "POST":
         op = request.POST.get("op", "")
         ref = request.POST.get("ref", "")
+        pick_value = ""
+        if not op and ":" in request.POST.get("pick_op", ""):
+            # FB-27 R5: кнопка ручного состава несёт действие и запись одним значением
+            action, pick_value = request.POST["pick_op"].split(":", 1)
+            op = f"pick_{action}"
         # FB-27 R2: правки копятся в черновике, на сайт попадают по «Speichern».
         try:
             if op == "save":
@@ -100,7 +105,7 @@ def site_schema_view(request):
                     op,
                     ref=ref,
                     block_type=request.POST.get("type", ""),
-                    value=request.POST.get("value", ""),
+                    value=pick_value or request.POST.get("value", ""),
                     # Сентинел панели: без него поля не читаются (кнопки «выше/ниже»
                     # той же страницы не должны стирать текст блока).
                     fields=_panel_fields(request.POST),
@@ -152,6 +157,7 @@ def site_schema_view(request):
 
         selected["groups"] = list_panel.groups(request, config, selected["list_data"])
         selected["result"] = list_panel.result(request, config, selected["list_data"])
+        selected["pick"] = list_panel.pick_state(request, selected["list_data"])
     # FB-27 R4: настройки типа страницы — в панели «★ Hauptliste», а у страниц без
     # основного списка — на строке «Einstellungen der Seite».
     page_row, settings = None, []

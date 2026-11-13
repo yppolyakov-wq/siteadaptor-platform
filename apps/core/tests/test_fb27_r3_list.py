@@ -201,6 +201,9 @@ def _panel_values(html):
         {"source": "categories", "category": "weg", "style": "tall"},
         {"source": "reviews", "entity": "event", "stars": 4, "only": "text", "sort": "best"},
         {"source": "stays"},
+        # FB-27 R5: ручной состав — правило не показано, но обязано уцелеть
+        {"source": "products", "pick": ["11111111-1111-4111-8111-111111111111"],
+         "only": "sale", "sort": "price_asc", "limit": 5, "category": "weg"},
         {"source": "combos"},
         {"source": "blog"},
     ],

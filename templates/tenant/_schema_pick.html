@@ -1,0 +1,43 @@
+{% load i18n %}{% comment %}FB-27 R5: ручной состав блока «Liste» («Einzeln»). Кнопки и поле поиска стоят
+внутри формы блока, но отправляют СВОИ формы (атрибут `form`): вложенных форм в HTML нет.
+Операции идут в черновик страницы, как остальные правки.{% endcomment %}
+<div class="rounded-xl border border-gray-300 p-3 space-y-3" data-schema-pick>
+  <h4 class="text-sm font-semibold">{% trans "Einzeln auswählen" %}</h4>
+  {% if pick.entries %}
+  <p class="text-xs text-gray-600">{% trans "Der Block zeigt genau diese Einträge in dieser Reihenfolge." %}</p>
+  <ol class="space-y-1.5">
+    {% for e in pick.entries %}
+    <li class="flex items-center gap-1 rounded-lg border px-2 py-1 {% if e.live %}border-gray-300{% else %}border-amber-400 bg-amber-50{% endif %}" data-schema-pick-item="{{ e.pk }}">
+      <span class="flex-1 min-w-0 text-sm break-words">{{ forloop.counter }}. {{ e.label|default:"—" }}{% if not e.live %} <span class="block text-xs text-amber-900">{% trans "nicht mehr verfügbar – erscheint nicht auf der Website" %}</span>{% endif %}</span>
+      {% if not forloop.first %}<button type="submit" form="schema-pick-form" name="pick_op" value="up:{{ e.pk }}" class="min-h-[32px] min-w-[32px] rounded border border-gray-400 text-sm" aria-label="{% trans 'Nach oben' %}: {{ e.label }}">↑</button>{% endif %}
+      {% if not forloop.last %}<button type="submit" form="schema-pick-form" name="pick_op" value="down:{{ e.pk }}" class="min-h-[32px] min-w-[32px] rounded border border-gray-400 text-sm" aria-label="{% trans 'Nach unten' %}: {{ e.label }}">↓</button>{% endif %}
+      <button type="submit" form="schema-pick-form" name="pick_op" value="remove:{{ e.pk }}" class="min-h-[32px] min-w-[32px] rounded border border-gray-400 text-sm text-red-700" aria-label="{% trans 'Entfernen' %}: {{ e.label }}">✕</button>
+    </li>
+    {% endfor %}
+  </ol>
+  {% else %}
+  <p class="text-xs text-gray-600">{% trans "Statt einer Regel können Sie die Einträge selbst wählen und ordnen." %}</p>
+  {% endif %}
+  {% if pick.full %}
+  <p class="text-xs text-gray-600">{% trans "Mehr Einträge passen nicht in einen Block." %}</p>
+  {% else %}
+  <div class="flex gap-2">
+    <label class="flex-1 min-w-0"><span class="sr-only">{% trans "Eintrag suchen" %}</span>
+      <input type="search" form="schema-lookup-form" name="lookup" value="{{ pick.lookup }}" placeholder="{% trans 'Eintrag suchen' %}" class="ui-input w-full scroll-mb-28"></label>
+    <button type="submit" form="schema-lookup-form" class="ui-btn ui-btn-secondary">{% trans "Suchen" %}</button>
+  </div>
+  <ul class="space-y-1.5" data-schema-pick-offers>
+    {% for o in pick.offers %}
+    <li class="flex items-center gap-2 rounded-lg border border-gray-200 px-2 py-1">
+      <span class="flex-1 min-w-0 text-sm break-words">{{ o.label }}</span>
+      <button type="submit" form="schema-pick-form" name="pick_op" value="add:{{ o.pk }}" class="min-h-[32px] rounded border border-gray-400 px-2 text-sm" aria-label="{% trans 'Hinzufügen' %}: {{ o.label }}">＋</button>
+    </li>
+    {% empty %}
+    <li class="text-xs text-gray-600">{% trans "Nichts gefunden." %}</li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+  {% if pick.entries %}
+  <button type="submit" form="schema-pick-form" name="pick_op" value="clear:" class="text-sm text-indigo-700 underline min-h-[32px]">{% trans "Zur Regel zurück" %}</button>
+  {% endif %}
+</div>

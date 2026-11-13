@@ -307,6 +307,39 @@ LIST_EXTRA_SORTS = {"products": ("featured",), "reviews": ("best",)}
 LIST_OUTPUTS = ("grid", "slider")
 LIST_LIMIT_DEFAULT = 12  # как у блока PT-6
 LIST_LIMIT_MAX = 24
+#: FB-27 R5: источники, у которых состав блока можно набрать вручную («Einzeln»).
+LIST_PICK_SOURCES = (
+    "promotions",
+    "products",
+    "services",
+    "stays",
+    "events",
+    "tours",
+    "categories",
+)
+
+
+def clean_pick(raw) -> list[str]:
+    """Ручной состав блока «Liste»: ключи записей в порядке владельца — только формат
+    UUID, без дублей, не больше `LIST_LIMIT_MAX`. В БД не ходит (purge-safe): запись,
+    которой больше нет, на сайте просто не показывается."""
+    import uuid
+
+    out: list[str] = []
+    if not isinstance(raw, (list, tuple)):
+        return out
+    for value in raw:
+        try:
+            key = str(uuid.UUID(str(value)))
+        except (ValueError, AttributeError, TypeError):
+            continue
+        if key not in out:
+            out.append(key)
+        if len(out) >= LIST_LIMIT_MAX:
+            break
+    return out
+
+
 _LIST_SLUG_RE = re.compile(r"^[-\w]{1,80}$")
 
 
@@ -391,6 +424,10 @@ def _clean_list_block(d: dict) -> dict:
             out["stars"] = stars
         if d.get("only") in LIST_ONLY.get(source, ()):
             out["only"] = d["only"]
+    if source in LIST_PICK_SOURCES:
+        pick = clean_pick(d.get("pick"))
+        if pick:
+            out["pick"] = pick
     sort = d.get("sort")
     # у «Demnächst» порядок один — по старту (сортировки провайдера про скидку и срок)
     if isinstance(sort, str) and sort in list_sort_keys(source) and "phase" not in out:

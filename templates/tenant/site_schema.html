@@ -205,10 +205,21 @@
           {% if f.hint %}<p id="schema-l-{{ f.name }}-hint" class="text-xs text-gray-600 mt-1">{{ f.hint }}</p>{% endif %}
         </div>
         {% endfor %}
+        {% if g.key == "welche" and selected.pick %}{% include "tenant/_schema_pick.html" with pick=selected.pick %}{% endif %}
       </fieldset>
       {% endfor %}
       <button name="op" value="update" class="ui-btn ui-btn-primary w-full scroll-mb-28">{% trans "Übernehmen" %}</button>
     </form>
+    {% if selected.pick %}
+    <form method="post" id="schema-pick-form">{% csrf_token %}
+      <input type="hidden" name="seite" value="{{ code }}">
+      <input type="hidden" name="ref" value="{{ selected.ref }}">
+    </form>
+    <form method="get" id="schema-lookup-form" action="#schema-panel">
+      <input type="hidden" name="seite" value="{{ code }}">
+      <input type="hidden" name="block" value="{{ selected.ref }}">
+    </form>
+    {% endif %}
     {% endif %}
     {% if selected.widths %}
     {% comment %}FB-27 R3: ширина блока — узкие соседи встают в один ряд (на телефоне

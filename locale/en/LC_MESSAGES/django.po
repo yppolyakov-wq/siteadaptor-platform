@@ -37204,3 +37204,24 @@ msgid "gilt für alle Seiten"
 msgstr "applies to all pages"
 msgid "Nicht gespeichert: Eine Einstellung im Entwurf ist nicht mehr möglich. Bitte die Einstellungen prüfen oder den Entwurf verwerfen."
 msgstr "Not saved: a setting in the draft is no longer possible. Please check the settings or discard the draft."
+
+msgid "Einzeln auswählen"
+msgstr "Choose individually"
+
+msgid "Der Block zeigt genau diese Einträge in dieser Reihenfolge."
+msgstr "The block shows exactly these entries in this order."
+
+msgid "nicht mehr verfügbar – erscheint nicht auf der Website"
+msgstr "no longer available – does not appear on the website"
+
+msgid "Statt einer Regel können Sie die Einträge selbst wählen und ordnen."
+msgstr "Instead of a rule you can choose and order the entries yourself."
+
+msgid "Mehr Einträge passen nicht in einen Block."
+msgstr "No more entries fit into one block."
+
+msgid "Eintrag suchen"
+msgstr "Search entry"
+
+msgid "Zur Regel zurück"
+msgstr "Back to the rule"

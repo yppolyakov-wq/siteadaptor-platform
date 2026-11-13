@@ -731,6 +731,129 @@ _FETCHERS = {
 }
 
 
+# ─────────────────── FB-27 R5: ручной состав «Einzeln» ───────────────────
+# План docs/fb27-r5-einzeln-plan-2026-11-13.md. Выбранное берётся из той же «живой»
+# выборки, что у правила: скрытая или удалённая запись на сайте не показывается.
+
+
+def _pick_model(source: str):
+    if source == "promotions":
+        from apps.promotions.models import Promotion as model
+    elif source == "products":
+        from apps.catalog.models import Product as model
+    elif source == "categories":
+        from apps.catalog.models import Category as model
+    elif source == "services":
+        from apps.booking.models import Service as model
+    elif source == "stays":
+        from apps.stays.models import StayUnit as model
+    elif source == "events":
+        from apps.events.models import Event as model
+    elif source == "tours":
+        from apps.events.models import Tour as model
+    else:
+        raise KeyError(source)
+    return model
+
+
+def live_queryset(source: str):
+    """Записи источника, которые сайт сейчас показывает (база ручного выбора и поиска)."""
+    from django.utils import timezone
+
+    model = _pick_model(source)
+    if source == "promotions":
+        return model.objects.filter(model.on_sale_q()).select_related("product")
+    if source == "products":
+        return model.objects.filter(is_active=True).select_related("category")
+    if source == "categories":
+        return model.objects.filter(is_active=True).select_related("parent")
+    if source == "events":
+        return model.objects.filter(
+            status=model.STATUS_PUBLISHED, starts_at__gte=timezone.now()
+        ).prefetch_related("teachers")
+    if source == "tours":
+        return model.objects.filter(is_published=True).prefetch_related(model.upcoming_prefetch())
+    return model.objects.filter(is_active=True)  # services, stays
+
+
+def _decorate(source: str, shown: list) -> list:
+    """То же, что фетчер правила делает с показанным: рейтинг, промо-цена, §11 PAngV,
+    счётчик и места событий — пакетно, без запроса на карточку."""
+    if not shown:
+        return shown
+    if source == "products":
+        from apps.promotions.price_layer import attach_promos
+        from apps.reviews import services as review_services
+
+        rating = review_services.bulk_summary("product", [p.pk for p in shown])
+        for p in shown:
+            row = rating.get(p.pk)
+            p.review_avg = row["avg"] if row else None
+            p.review_count = row["count"] if row else 0
+        attach_promos(shown)
+    elif source == "promotions":
+        from apps.promotions.public_views import _attach_lowest_30d
+
+        return _attach_lowest_30d(shown)
+    elif source == "events":
+        from apps.events import listing
+
+        listing.annotate_countdown(shown)
+        listing.attach_seat_counts(shown)
+    return shown
+
+
+def picked(source: str, pick) -> list:
+    """Выбранные вручную записи в порядке владельца — одна выборка на блок."""
+    keys = siteconfig.clean_pick(pick)
+    if not keys:
+        return []
+    by_pk = {str(o.pk): o for o in live_queryset(source).filter(pk__in=keys)}
+    return _decorate(source, [by_pk[k] for k in keys if k in by_pk])
+
+
+def is_live(source: str, key: str) -> bool:
+    keys = siteconfig.clean_pick([key])
+    return bool(keys) and live_queryset(source).filter(pk=keys[0]).exists()
+
+
+def pick_entries(source: str, pick) -> list[dict]:
+    """Строки выбранного для панели: [{pk, label, live}] в порядке владельца. Запись,
+    которую сайт не показывает (скрыта, удалена, истекла), помечена — не выброшена:
+    владелец мог скрыть товар на время."""
+    keys = siteconfig.clean_pick(pick)
+    if not keys:
+        return []
+    live = set(
+        str(pk) for pk in live_queryset(source).filter(pk__in=keys).values_list("pk", flat=True)
+    )
+    names = {str(o.pk): str(o) for o in _pick_model(source).objects.filter(pk__in=keys)}
+    return [{"pk": k, "label": names.get(k, ""), "live": k in live} for k in keys]
+
+
+PICK_OFFERS = 8  # сколько предложений показывает панель за раз
+_PICK_SCAN = 300  # сколько записей просматривает поиск по названию
+
+
+def pick_offers(source: str, query: str = "", exclude=()) -> list[dict]:
+    """Что можно добавить: живые записи, которых ещё нет в составе. Без запроса —
+    первые по порядку источника. У товаров ищет провайдер каталога (название, марка,
+    артикул); у остальных — по названию среди первых `_PICK_SCAN` записей."""
+    query = (query or "").strip()[:80]
+    items = live_queryset(source).exclude(pk__in=siteconfig.clean_pick(list(exclude)))
+    if source == "products":
+        from apps.catalog.facets import CatalogFacets
+
+        items = CatalogFacets().search(items, query).order_by("-created_at")
+        found = list(items[:PICK_OFFERS])
+    elif query:
+        needle = query.casefold()
+        found = [o for o in items[:_PICK_SCAN] if needle in str(o).casefold()][:PICK_OFFERS]
+    else:
+        found = list(items[:PICK_OFFERS])
+    return [{"pk": str(o.pk), "label": str(o)} for o in found]
+
+
 def _tile_aspect(cfg: dict) -> str:
     """LB-3d-2: форма плитки категории — как у секции «Kategorien» главной."""
     return siteconfig.CATEGORY_TILE_ASPECTS.get(
@@ -752,7 +875,13 @@ def resolve(cfg: dict, data: dict, tenant=None) -> dict:
     limit = view["limit"]
     if price_list and not data.get("limit"):
         limit = _PRICE_LIST_LIMIT  # прайс сканируют, а не листают — как у секции главной
-    items, total = _FETCHERS[source](data, limit, cfg)
+    pick = data.get("pick") if source in siteconfig.LIST_PICK_SOURCES else None
+    if pick:
+        # FB-27 R5: ручной состав — ровно выбранное, в порядке владельца
+        items = picked(source, pick)
+        total = len(items)
+    else:
+        items, total = _FETCHERS[source](data, limit, cfg)
     if source == "reviews":
         _attach_review_entities(items, tenant)
     # LB-3: «Demnächst» — карточки-превью («ab <дата>», без счётчика и покупки) и без

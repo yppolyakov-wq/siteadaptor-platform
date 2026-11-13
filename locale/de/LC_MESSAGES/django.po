@@ -37291,3 +37291,24 @@ msgid "gilt für alle Seiten"
 msgstr "gilt für alle Seiten"
 msgid "Nicht gespeichert: Eine Einstellung im Entwurf ist nicht mehr möglich. Bitte die Einstellungen prüfen oder den Entwurf verwerfen."
 msgstr "Nicht gespeichert: Eine Einstellung im Entwurf ist nicht mehr möglich. Bitte die Einstellungen prüfen oder den Entwurf verwerfen."
+
+msgid "Einzeln auswählen"
+msgstr "Einzeln auswählen"
+
+msgid "Der Block zeigt genau diese Einträge in dieser Reihenfolge."
+msgstr "Der Block zeigt genau diese Einträge in dieser Reihenfolge."
+
+msgid "nicht mehr verfügbar – erscheint nicht auf der Website"
+msgstr "nicht mehr verfügbar – erscheint nicht auf der Website"
+
+msgid "Statt einer Regel können Sie die Einträge selbst wählen und ordnen."
+msgstr "Statt einer Regel können Sie die Einträge selbst wählen und ordnen."
+
+msgid "Mehr Einträge passen nicht in einen Block."
+msgstr "Mehr Einträge passen nicht in einen Block."
+
+msgid "Eintrag suchen"
+msgstr "Eintrag suchen"
+
+msgid "Zur Regel zurück"
+msgstr "Zur Regel zurück"

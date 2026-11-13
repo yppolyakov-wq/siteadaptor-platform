@@ -174,6 +174,33 @@ with sync_playwright() as p:
         over = pg.evaluate("document.documentElement.scrollWidth - window.innerWidth")
         check(over <= 0, f"панель списка без горизонтального вылета ({over})")
         pg.screenshot(path=f"{OUT}/r3list_{w}.png", full_page=True)
+        # R5: ручной состав — две позиции, вторая поднята наверх
+        offers = pg.locator("[data-schema-pick-offers] button")
+        check(
+            offers.count() >= 2, f"панель предлагает позиции для ручного выбора ({offers.count()})"
+        )
+        for _i in range(2):
+            pg.locator("[data-schema-pick-offers] button").first.click()
+            pg.wait_for_load_state()
+        names = pg.locator("[data-schema-pick-item] span.flex-1").all_inner_texts()
+        check(len(names) == 2, f"выбрано две позиции ({len(names)})")
+        pg.locator("[data-schema-pick-item]").nth(1).locator("button[value^='up:']").click()
+        pg.wait_for_load_state()
+        after = pg.locator("[data-schema-pick-item] span.flex-1").all_inner_texts()
+        want = [n.split(". ", 1)[1].strip() for n in reversed(names)]
+        got = [n.split(". ", 1)[1].strip() for n in after]
+        check(got == want, f"порядок поменялся: {got}")
+        check(
+            pg.locator("[data-schema-list] select[name=f_sort]").count() == 0,
+            "при ручном составе поля правила скрыты",
+        )
+        small = pg.eval_on_selector_all(
+            "[data-schema-pick] button",
+            "els => els.filter(e => { const r = e.getBoundingClientRect(); return r.width < 24 || r.height < 24; }).length",
+        )
+        check(small == 0, f"кнопки ручного выбора не меньше 24 px ({small})")
+        pg.screenshot(path=f"{OUT}/r5_{w}.png", full_page=True)
+        pick_order = got
         pg.click("[data-schema-draft] button[value=save]")
         pg.wait_for_load_state()
         site = ctx.new_page()
@@ -182,6 +209,12 @@ with sync_playwright() as p:
             check("Stand Liste" not in site.content(), "пустой список на витрине не выводится")
         else:
             check("Stand Liste" in site.content(), "список с заголовком — на витрине")
+            html = site.content()
+            pos = [html.find(n) for n in pick_order]
+            check(
+                all(p > 0 for p in pos) and pos == sorted(pos),
+                f"на витрине выбранные позиции в порядке владельца ({pos})",
+            )
         site.screenshot(path=f"{OUT}/r3list_site_{w}.png", full_page=True)
         site.close()
         pg.goto(U + "/dashboard/site/aufbau/?seite=text")

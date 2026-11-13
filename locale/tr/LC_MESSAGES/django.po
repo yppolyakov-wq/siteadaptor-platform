@@ -37350,3 +37350,24 @@ msgid "gilt für alle Seiten"
 msgstr "tüm sayfalar için geçerlidir"
 msgid "Nicht gespeichert: Eine Einstellung im Entwurf ist nicht mehr möglich. Bitte die Einstellungen prüfen oder den Entwurf verwerfen."
 msgstr "Kaydedilmedi: taslaktaki bir ayar artık mümkün değil. Lütfen ayarları kontrol edin veya taslağı atın."
+
+msgid "Einzeln auswählen"
+msgstr "Tek tek seç"
+
+msgid "Der Block zeigt genau diese Einträge in dieser Reihenfolge."
+msgstr "Blok tam olarak bu kayıtları bu sırayla gösterir."
+
+msgid "nicht mehr verfügbar – erscheint nicht auf der Website"
+msgstr "artık mevcut değil – web sitesinde görünmez"
+
+msgid "Statt einer Regel können Sie die Einträge selbst wählen und ordnen."
+msgstr "Kural yerine kayıtları kendiniz seçip sıralayabilirsiniz."
+
+msgid "Mehr Einträge passen nicht in einen Block."
+msgstr "Bir bloğa daha fazla kayıt sığmaz."
+
+msgid "Eintrag suchen"
+msgstr "Kayıt ara"
+
+msgid "Zur Regel zurück"
+msgstr "Kurala dön"

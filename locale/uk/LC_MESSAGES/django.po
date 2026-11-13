@@ -37530,3 +37530,24 @@ msgid "gilt für alle Seiten"
 msgstr "діє на всіх сторінках"
 msgid "Nicht gespeichert: Eine Einstellung im Entwurf ist nicht mehr möglich. Bitte die Einstellungen prüfen oder den Entwurf verwerfen."
 msgstr "Не збережено: одне з налаштувань чернетки більше недоступне. Перевірте налаштування або відкиньте чернетку."
+
+msgid "Einzeln auswählen"
+msgstr "Вибрати по одному"
+
+msgid "Der Block zeigt genau diese Einträge in dieser Reihenfolge."
+msgstr "Блок показує саме ці записи в цьому порядку."
+
+msgid "nicht mehr verfügbar – erscheint nicht auf der Website"
+msgstr "більше недоступно — на сайті не показується"
+
+msgid "Statt einer Regel können Sie die Einträge selbst wählen und ordnen."
+msgstr "Замість правила можна вибрати й розставити записи самостійно."
+
+msgid "Mehr Einträge passen nicht in einen Block."
+msgstr "Більше записів в один блок не вміщується."
+
+msgid "Eintrag suchen"
+msgstr "Знайти запис"
+
+msgid "Zur Regel zurück"
+msgstr "Повернутися до правила"

@@ -590,6 +590,9 @@ def mutate(
             if safe_href(sent["url"]) == "#" and sent["url"].strip() != "#":
                 raise SchemaError("url")
         patched = {**data, **sent}
+        if key == "list" and "source" in sent and sent["source"] != (data.get("source") or ""):
+            # FB-27 R5: ключи записей одного источника в другом ничего не значат
+            patched.pop("pick", None)
         if key == "list" and "endet" in sent:
             # «Zeitraum» — один селект на срок и «Demnächst» (хранится ключом `phase`):
             # без сброса старая фаза пережила бы выбор «Alle».
@@ -600,6 +603,50 @@ def mutate(
         if cleaned == siteconfig._clean_cblock_data(key, data):
             return ref
         item["data"] = cleaned
+    elif op in _PICK_OPS:
+        # FB-27 R5: ручной состав блока «Liste» («Einzeln»).
+        from apps.core import list_blocks
+
+        key = siteconfig.cblock_type(item.get("key")) or item.get("key") or ""
+        data = dict(item.get("data") or {})
+        source = data.get("source")
+        if source not in siteconfig.LIST_SOURCES:
+            source = siteconfig.LIST_SOURCE_DEFAULT
+        if (
+            main
+            or not item.get("id")
+            or key != "list"
+            or source not in siteconfig.LIST_PICK_SOURCES
+        ):
+            raise SchemaError("pick")
+        pick = siteconfig.clean_pick(data.get("pick"))
+        target = (siteconfig.clean_pick([value]) or [""])[0]
+        if op == "pick_clear":
+            pick = []
+        elif not target:
+            raise SchemaError("pick")
+        elif op == "pick_add":
+            if target not in pick:
+                if len(pick) >= siteconfig.LIST_LIMIT_MAX:
+                    raise SchemaError("full")
+                # только существующая запись своего источника, которую сайт показывает
+                if not list_blocks.is_live(source, target):
+                    raise SchemaError("pick")
+                pick.append(target)
+        elif target not in pick:
+            raise SchemaError("pick")
+        elif op == "pick_remove":
+            pick.remove(target)
+        else:
+            i = pick.index(target)
+            j = i - 1 if op == "pick_up" else i + 1
+            if 0 <= j < len(pick):
+                pick[i], pick[j] = pick[j], pick[i]
+        if pick:
+            data["pick"] = pick
+        else:
+            data.pop("pick", None)
+        item["data"] = siteconfig._clean_cblock_data(key, {**data, "source": source})
     elif op == "newline":
         if main or not item.get("id") or item.get("width") not in siteconfig.NARROW_WIDTHS:
             raise SchemaError("width")
@@ -696,6 +743,9 @@ def _current_label(state) -> str:
         want = "1" if state.value else "0"
         return next((str(c.label) for c in state.choices if c.value == want), "")
     return next((str(c.label) for c in state.choices if c.value == state.value), str(state.value))
+
+
+_PICK_OPS = frozenset({"pick_add", "pick_remove", "pick_up", "pick_down", "pick_clear"})
 
 
 def store_items(config: dict, home: bool, host: str, items: list[dict]) -> None:
