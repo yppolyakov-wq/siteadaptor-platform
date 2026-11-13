@@ -164,3 +164,23 @@ def test_screen_speaks_formally_and_names_the_subject():
     body = _html(tenant)
     assert "So sieht Ihre ganze Website aus" in body
     assert "deine Branche" not in body
+
+
+def test_way_back_to_the_studio_survives_tabs_and_saving():
+    from urllib.parse import parse_qs, urlparse
+
+    tenant = TenantFactory(business_type="online_shop")
+    back = design_page.STUDIO_PREFIX
+    body = _html(tenant, f"?tab=farben&next={back}")
+    assert "Zurück ins Studio" in body and 'name="next"' in body
+    assert body.count("&amp;next=") >= 3  # каждая вкладка несёт путь возврата
+    resp = design_page.design_view(
+        _req("post", tenant, {"action": "design_settings", "tab": "farben", "next": back})
+    )
+    assert parse_qs(urlparse(resp["Location"]).query) == {"tab": ["farben"], "next": [back]}
+    resp = design_page.design_view(
+        _req(
+            "post", tenant, {"action": "design_settings", "tab": "farben", "next": "//evil.example"}
+        )
+    )
+    assert "evil" not in resp["Location"]

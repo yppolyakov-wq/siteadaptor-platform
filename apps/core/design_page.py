@@ -12,6 +12,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from django.urls import reverse
+from django.utils.http import urlencode
 from django.utils.translation import gettext as _
 
 from apps.catalog.option_styles import VARIANT_STYLES
@@ -36,7 +37,7 @@ FONT_OPTIONS = [
 ]
 
 
-def _studio_back_url(request) -> str:
+def _studio_back_url(request, source=None) -> str:
     """STU-12a (1B): возврат из «Design des Shops» — ТОЛЬКО в Студию.
 
     Чужой путь кабинета, схема, `//host` или бэкслэш (WHATWG нормализует его в
@@ -44,7 +45,7 @@ def _studio_back_url(request) -> str:
     """
     from django.utils.http import url_has_allowed_host_and_scheme
 
-    nxt = request.GET.get("next", "") or ""
+    nxt = (request.GET if source is None else source).get("next", "") or ""
     if not nxt.startswith(STUDIO_PREFIX) or "\\" in nxt or nxt.startswith("//"):
         return ""
     if not url_has_allowed_host_and_scheme(
@@ -186,9 +187,12 @@ def design_view(request):
             messages.success(request, _("Gespeichert."))
             # Возврат на вкладку формы — только из своего списка, не из запроса.
             tab = request.POST.get("tab", "")
-            if tab in DESIGN_TABS:
-                return redirect(f"{reverse('design')}?tab={tab}")
-            return redirect("design")
+            query = {"tab": tab} if tab in DESIGN_TABS else {}
+            # Путь возврата в Студию переживает сохранение (проверенный, не из запроса как есть).
+            back = _studio_back_url(request, request.POST)
+            if back:
+                query["next"] = back
+            return redirect(f"{reverse('design')}?{urlencode(query)}" if query else "design")
         bundle = request.POST.get("bundle", "")
         look = request.POST.get("look", "")
         if bundle and sitetemplates.apply_bundle(tenant, bundle):
@@ -201,6 +205,7 @@ def design_view(request):
     from apps.tenants import demo, siteconfig
 
     cfg = siteconfig.normalize(tenant.site_config)
+    back_url = _studio_back_url(request)
     tab = request.GET.get("tab", "")
     if tab not in DESIGN_TABS:
         tab = DESIGN_TABS[0]
@@ -248,7 +253,8 @@ def design_view(request):
             "looks": sitetemplates.looks_for(tenant.business_type),
             "current_bundle": current.get("bundle", ""),
             "current_look": current.get("look", ""),
-            "back_url": _studio_back_url(request),
+            "back_url": back_url,
+            "next_q": f"&{urlencode({'next': back_url})}" if back_url else "",
             "tab": tab,
             "tabs": _tabs(),
         },
