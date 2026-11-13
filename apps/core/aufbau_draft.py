@@ -197,6 +197,16 @@ def op(
         if op_name != "toggle":
             raise site_schema.SchemaError("fixed")
         draft["contact"] = not draft.get("contact", True)
+    elif (
+        op_name in ("add", "add_row", "adopt")
+        and host.startswith(siteconfig.CATEGORY_HOST_PREFIX)
+        and siteconfig.category_hosts_full(config, host)
+    ):
+        raise site_schema.SchemaError("hosts")
+    elif op_name in ("adopt", "reset"):
+        # FB-27 R7: своя схема категории — взять блоки каталога или вернуться к ним.
+        draft["items"] = site_schema.category_items(config, host, draft["items"], op_name)
+        ref = ""
     else:
         ref = site_schema.mutate(draft["items"], code, op_name, ref, block_type, value, fields)
     return _settle(request, code, draft, saved, ref)

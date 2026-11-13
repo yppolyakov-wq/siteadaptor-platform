@@ -128,7 +128,8 @@ def page_rows(config: dict) -> list[PageRow]:
 
 def _page_type(code: str):
     base = code.split("@", 1)[0]
-    if "@" in code and base != "text":  # подстраницы есть только у типа «Seite»
+    # подстраницы есть у типа «Seite» и у категорий (FB-27 R7: своя схема категории)
+    if "@" in code and base not in (TEXT, CATEGORY):
         return None
     for pt in studio_pages.PAGE_TYPES:
         if pt.code == base and (pt.code == "home" or _host(pt)):
@@ -149,6 +150,63 @@ class SubPage:
     label: str
     host: str
     preview_url: str
+
+
+#: FB-27 R7: своя схема категории — строка «category@catalog:<slug>».
+CATEGORY = "category"
+CATEGORY_ROWS_MAX = 200
+
+
+def category_code(slug: str) -> str:
+    from apps.tenants import siteconfig
+
+    host = siteconfig.category_host(slug)
+    return f"{CATEGORY}@{host}" if host else ""
+
+
+def category_pages(config: dict) -> list[SubPage]:
+    """Категории, у которых может быть своя схема: сначала те, у кого она уже есть, затем
+    остальные по названию. Один запрос; адрес длиннее хоста — без строки."""
+    from apps.catalog.models import Category
+    from apps.tenants import siteconfig
+
+    own, rest = [], []
+    for cat in Category.objects.filter(is_active=True).order_by("slug")[:CATEGORY_ROWS_MAX]:
+        host = siteconfig.category_host(cat.slug)
+        if not host:
+            continue
+        page = SubPage(
+            f"{CATEGORY}@{host}", str(cat), host, reverse("storefront-category", args=[cat.slug])
+        )
+        (own if siteconfig.has_own_schema(config, host) else rest).append(page)
+    key = lambda p: p.label.lower()  # noqa: E731
+    return sorted(own, key=key) + sorted(rest, key=key)
+
+
+def category_items(config: dict, host: str, items: list[dict], op: str) -> list[dict]:
+    """Новый состав схемы категории: `adopt` — копия блоков каталога (новые id, маркер
+    основного списка на том же месте) и ниже свои блоки категории; `reset` — пусто
+    (страница снова показывает блоки каталога). Только для хоста категории."""
+    from apps.tenants import siteconfig
+
+    if not host.startswith(siteconfig.CATEGORY_HOST_PREFIX):
+        raise SchemaError("category")
+    marker = {"key": siteconfig.MAIN_LIST_KEY}
+    if op == "reset":
+        return [marker]
+    source = siteconfig.main_list_sequence(
+        "catalog", (config.get("page_blocks") or {}).get("catalog", [])
+    )
+    own = [it for it in items if not siteconfig.is_main_marker(it)]
+    copied = []
+    for block in source:
+        if siteconfig.is_main_marker(block):
+            copied.append(dict(marker))
+        elif block.get("id"):
+            copied.append({**copy.deepcopy(block), "id": uuid.uuid4().hex[:12]})
+    if sum(1 for b in copied if b.get("id")) + len(own) > siteconfig._MAX_CBLOCKS:
+        raise SchemaError("full")
+    return copied + own
 
 
 def text_pages() -> list[SubPage]:
@@ -190,9 +248,21 @@ def host_for(code: str, known_slugs: set[str] | None = None) -> str:
         return ""
     if "@" not in code:
         return _host(pt)
+    host = code.split("@", 1)[1]
+    if pt.code == CATEGORY:
+        # FB-27 R7: только существующая категория — иначе POST плодил бы хосты-призраки.
+        slug = host[len(siteconfig.CATEGORY_HOST_PREFIX) :]
+        if not host.startswith(siteconfig.CATEGORY_HOST_PREFIX) or (
+            siteconfig.category_host(slug) != host
+        ):
+            return ""
+        if known_slugs is not None:
+            return host if slug in known_slugs else ""
+        from apps.catalog.models import Category
+
+        return host if Category.objects.filter(slug=slug).exists() else ""
     if pt.code != TEXT:
         return ""
-    host = code.split("@", 1)[1]
     if host == "versand":
         return host
     if host.startswith("seite:") and siteconfig.is_page_block_host(host):
@@ -238,7 +308,9 @@ def _textpage_summaries(rows: list[dict], items: list[dict]) -> None:
             row["summary"] = str(titles.get(wanted[row["ref"]], gone))[:60]
 
 
-def blocks_for(config: dict, code: str, host: str | None = None) -> list[dict]:
+def blocks_for(
+    config: dict, code: str, host: str | None = None, summaries: bool = True
+) -> list[dict]:
     """Строки схемы: {ref, key, label, enabled, main, cblock, summary} по порядку страницы."""
     from apps.tenants import siteconfig
 
@@ -302,7 +374,8 @@ def blocks_for(config: dict, code: str, host: str | None = None) -> list[dict]:
                 "narrow": cblock and item.get("width") in siteconfig.NARROW_WIDTHS,
             }
         )
-    _textpage_summaries(out, items)
+    if summaries:  # строке списка страниц нужен только счёт блоков — без запроса
+        _textpage_summaries(out, items)
     for b in out:
         b.setdefault("width", "")
         b.setdefault("newline", False)
@@ -342,6 +415,15 @@ _TYPE_GROUPS = (
     ("anfragen", gettext_lazy("Anfragen"), "jobs", ("anfrage",)),
 )
 _CONTENT_GROUP = gettext_lazy("Inhalte")
+_CATEGORY_GROUP = gettext_lazy("Kategorien")
+
+
+def _category_type(tenant):
+    """Тип «Kategorie», если он есть у бизнеса (иначе None)."""
+    from apps.core import page_settings
+
+    pt = _page_type(CATEGORY)
+    return pt if pt is not None and page_settings.type_active(tenant, CATEGORY) else None
 
 
 #: FB-27 R3 (решение владельца Q1): до ⅙ сужаются только ПРОСТЫЕ блоки. Всё остальное —
@@ -484,7 +566,7 @@ def _row(
     code = code or pt.code
     if host is None:
         host = host_for(code)
-    blocks = blocks_for(config, code, host=host)
+    blocks = blocks_for(config, code, host=host, summaries=False)
     return PageRow(
         code=code,
         label=label or str(pt.label),
@@ -511,6 +593,15 @@ def type_groups(tenant, config: dict) -> list[tuple[str, list[PageRow]]]:
         used.update(codes)
         if rows:
             groups.append((str(label), rows))
+        pt = _category_type(tenant) if "catalog" in codes and "catalog" in types else None
+        if pt is not None:
+            # FB-27 R7: каждая категория — своя строка (своя схема заменяет блоки каталога)
+            cats = [
+                _row(config, pt, code=p.code, label=p.label, preview=p.preview_url, host=p.host)
+                for p in category_pages(config)
+            ]
+            if cats:
+                groups.append((str(_CATEGORY_GROUP), cats))
     content = []
     for code, pt in types.items():
         if code in used:

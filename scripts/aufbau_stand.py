@@ -301,6 +301,78 @@ with sync_playwright() as p:
             pg.wait_for_load_state()
         pg.click("[data-schema-draft] button[value=save]")
         pg.wait_for_load_state()
+        # R7: своя схема категории заменяет блоки каталога на её странице
+        pg.goto(U + "/dashboard/site/aufbau/")
+        cats = pg.eval_on_selector_all(
+            "select#schema-seite option",
+            "els => els.map(e => e.value).filter(v => v.startsWith('category@'))",
+        )
+        check(len(cats) >= 1, f"категории — отдельными строками в выборе страницы ({len(cats)})")
+        if cats:
+            code = cats[0]
+            slug = code.split(":", 1)[1]
+            pg.goto(U + "/dashboard/site/aufbau/?seite=catalog")
+            pg.select_option("select[name=type]", "text")
+            pg.click("form:has(select[name=type]) button")
+            pg.wait_for_load_state()
+            pg.fill("[data-schema-fields] input[name=f_title]", "Stand Katalogblock")
+            pg.click("[data-schema-fields] button[value=update]")
+            pg.wait_for_load_state()
+            pg.click("[data-schema-draft] button[value=save]")
+            pg.wait_for_load_state()
+            site = ctx.new_page()
+            site.goto(U + f"/sortiment/{slug}/")
+            check(
+                "Stand Katalogblock" in site.content(), "категория без своей схемы — блок каталога"
+            )
+            pg.goto(U + f"/dashboard/site/aufbau/?seite={code}")
+            check(
+                pg.locator("[data-schema-category=catalog]").count() == 1,
+                "строка категории: «zeigt die Blöcke des Katalogs»",
+            )
+            pg.select_option("select[name=type]", "text")
+            pg.click("form:has(select[name=type]) button")
+            pg.wait_for_load_state()
+            pg.fill("[data-schema-fields] input[name=f_title]", "Stand Kategorieblock")
+            pg.click("[data-schema-fields] button[value=update]")
+            pg.wait_for_load_state()
+            check(
+                pg.locator("[data-schema-category=own]").count() == 1,
+                "после своего блока — «eigener Aufbau»",
+            )
+            over = pg.evaluate("document.documentElement.scrollWidth - window.innerWidth")
+            check(over <= 0, f"R7: без горизонтального вылета ({over})")
+            pg.screenshot(path=f"{OUT}/r7_{w}.png", full_page=True)
+            pg.click("[data-schema-draft] button[value=save]")
+            pg.wait_for_load_state()
+            site.goto(U + f"/sortiment/{slug}/")
+            html = site.content()
+            check(
+                "Stand Kategorieblock" in html and "Stand Katalogblock" not in html,
+                "своя схема категории заменила блок каталога",
+            )
+            site.goto(U + "/sortiment/")
+            check("Stand Katalogblock" in site.content(), "в каталоге блок каталога остался")
+            site.close()
+            pg.goto(U + f"/dashboard/site/aufbau/?seite={code}")
+            pg.click("[data-schema-category] summary")
+            pg.click("[data-schema-category] button[value=reset]")
+            pg.wait_for_load_state()
+            pg.click("[data-schema-draft] button[value=save]")
+            pg.wait_for_load_state()
+            check(
+                pg.locator("[data-schema-category=catalog]").count() == 1,
+                "«Eigene Blöcke entfernen» вернул блоки каталога",
+            )
+            pg.goto(U + "/dashboard/site/aufbau/?seite=catalog")
+            pg.locator("[data-schema-row] [data-schema-block]").last.click()
+            pg.wait_for_load_state()
+            pg.click("[data-schema-panel] a:has-text('Entfernen')")
+            pg.wait_for_load_state()
+            pg.click("button[value=delete]")
+            pg.wait_for_load_state()
+            pg.click("[data-schema-draft] button[value=save]")
+            pg.wait_for_load_state()
         check(not errs, "без JS-ошибок: " + "; ".join(errs[:2]))
         ctx.close()
 print(f"\n{ok}/{ok + len(fail)}")

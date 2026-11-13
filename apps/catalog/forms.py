@@ -176,9 +176,28 @@ class CategoryForm(OverlayI18nFormMixin, DynamicI18nFormMixin, forms.ModelForm):
         category.name = self.collect_i18n("name")
         category.description = self.collect_i18n("description")
         category.slug = self.cleaned_data["slug"]
+        old_slug = (
+            Category.objects.filter(pk=category.pk).values_list("slug", flat=True).first()
+            if category.pk
+            else None
+        )
         if commit:
             category.save()
+            if old_slug and old_slug != category.slug:
+                move_category_blocks(old_slug, category.slug)
         return category
+
+
+def move_category_blocks(old_slug: str, new_slug: str | None) -> bool:
+    """FB-27 R7: своя схема категории (блоки хоста ``catalog:<slug>``) переезжает вместе
+    с адресом; удалённая категория хост освобождает. Адрес, который хостом быть не может
+    (длиннее 60 знаков), схему не уносит — она убирается."""
+    from apps.core import content_pages
+    from apps.tenants import siteconfig
+
+    if new_slug and not siteconfig.category_host(new_slug):
+        new_slug = None
+    return content_pages.move_page_blocks(old_slug, new_slug, prefix="catalog:")
 
 
 class ProductForm(OverlayI18nFormMixin, DynamicI18nFormMixin, forms.ModelForm):

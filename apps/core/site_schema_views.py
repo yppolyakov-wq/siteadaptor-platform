@@ -124,8 +124,16 @@ def site_schema_view(request):
             else:
                 messages.error(request, _("Diese Änderung ist hier nicht möglich."))
         except site_schema.SchemaError as exc:
-            if exc.args and exc.args[0] == "full" and op in ("add", "add_row"):
+            if exc.args and exc.args[0] == "full" and op in ("add", "add_row", "adopt"):
                 messages.error(request, _("Auf dieser Seite ist kein Platz für weitere Blöcke."))
+            elif exc.args and exc.args[0] == "hosts":
+                messages.error(
+                    request,
+                    _(
+                        "So viele Kategorien mit eigenem Aufbau sind nicht möglich. "
+                        "Bitte zuerst bei einer anderen Kategorie die eigenen Blöcke entfernen."
+                    ),
+                )
             else:
                 messages.error(request, _("Diese Änderung ist hier nicht möglich."))
         except aufbau_draft.DraftConflict:
@@ -207,6 +215,12 @@ def site_schema_view(request):
             "layout": site_schema.schema_layout(blocks),
             "selected": selected,
             "confirm_remove": bool(selected) and request.GET.get("entfernen") == "1",
+            # FB-27 R7: строка категории — своя схема или блоки каталога
+            "category_row": (
+                {"own": any(not b["main"] and not b["fixed"] for b in blocks)}
+                if code.startswith(f"{site_schema.CATEGORY}@")
+                else None
+            ),
             "add_groups": site_schema.add_groups(code),
             "row_options": site_schema.row_options(),
             "studio_url": studio,

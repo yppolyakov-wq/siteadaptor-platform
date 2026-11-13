@@ -37639,3 +37639,24 @@ msgstr "На этой странице больше нет места для б�
 
 msgid "Kontakt — Adresse und Öffnungszeiten in den Einstellungen eintragen"
 msgstr "Контакты — укажите адрес и часы работы в настройках"
+
+msgid "Alle eigenen Blöcke dieser Kategorie werden entfernt."
+msgstr "Все собственные блоки этой категории будут удалены."
+
+msgid "Aufbau vom Katalog übernehmen"
+msgstr "Взять структуру из каталога"
+
+msgid "Diese Kategorie hat einen eigenen Aufbau. Die Blöcke des Katalogs erscheinen hier nicht."
+msgstr "У этой категории своя структура. Блоки каталога здесь не показываются."
+
+msgid "Diese Kategorie zeigt die Blöcke des Katalogs. Sobald Sie hier einen Block hinzufügen, gilt für sie ein eigener Aufbau."
+msgstr "Эта категория показывает блоки каталога. Как только вы добавите сюда блок, у неё будет своя структура."
+
+msgid "Eigene Blöcke entfernen"
+msgstr "Удалить свои блоки"
+
+msgid "Zurück zum Aufbau des Katalogs"
+msgstr "Вернуться к структуре каталога"
+
+msgid "So viele Kategorien mit eigenem Aufbau sind nicht möglich. Bitte zuerst bei einer anderen Kategorie die eigenen Blöcke entfernen."
+msgstr "Столько категорий со своей структурой сделать нельзя. Сначала удалите свои блоки у другой категории."

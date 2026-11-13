@@ -22,7 +22,7 @@ from apps.core.richtext import clean_input
 from apps.inventory.services import log_catalog_change
 
 from . import category_styles, writers
-from .forms import CategoryForm, ProductForm
+from .forms import CategoryForm, ProductForm, move_category_blocks
 from .images import delete_stored_image, save_product_image
 from .models import (
     Category,
@@ -1091,6 +1091,7 @@ def category_delete(request, pk):
 
         if not has_dependencies:
             category.delete()
+            move_category_blocks(category.slug, None)  # FB-27 R7
             messages.success(request, _("Category deleted."))
             return redirect("catalog:category-list")
 
@@ -1098,6 +1099,7 @@ def category_delete(request, pk):
             Category.objects.filter(parent=category).update(parent=category.parent)
             Product.objects.filter(category=category).update(category=None)
             category.delete()
+            move_category_blocks(category.slug, None)  # FB-27 R7
             messages.success(
                 request, _("Category deleted; subcategories moved up and products detached.")
             )

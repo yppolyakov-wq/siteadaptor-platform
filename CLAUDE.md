@@ -66,10 +66,10 @@ django-storages (S3/Hetzner), Caddy 2 (on-demand TLS). Python 3.12, менедж
   i18n на 5 языков (de/en/tr/ru/uk); городской портал T-8 (поиск, подписки, фид, MCP,
   тематические порталы, 79 демо-бизнесов Solingen); Telegram (общий бот, Mini App, бот
   портала); ИИ-слой и помощник A-0…A-6; мастер v4; аудит безопасности SEC (волны 1–4).
-- **Сейчас** (2026-11-13): FB-27 «Website: Seitenaufbau» — R0…R6 сделаны (черновик на
+- **Сейчас** (2026-11-13): FB-27 «Website: Seitenaufbau» — R0…R7 сделаны (черновик на
   страницу, ширина блоков, блок «Liste» с ручным составом, настройки типа страницы в панели,
-  блоки «Textseite» и «Kontakt», готовые строки; «Seitenvorlagen» снесены — адреса 302 в
-  «Seitenaufbau»), дальше R7 (схема категории) → R8 → R9; M21.11 P6/P7
+  блоки «Textseite» и «Kontakt», готовые строки, своя схема категории; «Seitenvorlagen»
+  снесены — адреса 302 в «Seitenaufbau»), дальше R8 (граница со Студией) → R9; M21.11 P6/P7
   (редактор страниц); прогон переезда haanerteeladen на сервере — за владельцем.
 - **Открытое, ops и решения владельца** — `docs/project-memory.md` §1, §2, §5.
 - **Миграции к деплою (гипотеза до сверки; истина — `python manage.py migration_state`,
@@ -229,7 +229,7 @@ django-storages (S3/Hetzner), Caddy 2 (on-demand TLS). Python 3.12, менедж
 
 ## 7. Дальше
 Очередь — `docs/task-catalog.md`; открытое и чьё решение нужно — `docs/project-memory.md` §1.
-- В работе: FB-27 R7 → R9 (план `docs/fb27-seitenaufbau-impl-plan-2026-11-11.md`); M21.11 P6 → P7.
+- В работе: FB-27 R8 → R9 (план `docs/fb27-seitenaufbau-impl-plan-2026-11-11.md`); M21.11 P6 → P7.
 - За владельцем: решения (Pro-тариф и пакеты, включение ИИ-поиска, оценка пилота MCP),
   юрист/Steuerberater (Anzahlungsrechnung, Widerruf, Datenschutz-абзацы), ops (§2 памяти).
 - **Stage 0 — блокер боевого запуска (владелец):** Stripe live (`billing-stripe-setup.md`),

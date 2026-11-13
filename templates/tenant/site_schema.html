@@ -61,6 +61,28 @@
 <div class="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_20rem] gap-4 items-start" data-site-schema>
   <section class="ui-card p-4" aria-labelledby="schema-title">
     <h2 id="schema-title" class="font-semibold mb-3"><span class="sr-only">{% trans "Aufbau" %}: </span>{{ current.label }}</h2>
+    {% if category_row %}
+    {% comment %}FB-27 R7: у категории либо свой набор блоков, либо блоки каталога.{% endcomment %}
+    <div class="mb-3 rounded-xl border border-gray-300 bg-gray-50 px-3 py-2.5 text-sm text-gray-800" data-schema-category="{% if category_row.own %}own{% else %}catalog{% endif %}">
+      {% if category_row.own %}
+      <p>{% trans "Diese Kategorie hat einen eigenen Aufbau. Die Blöcke des Katalogs erscheinen hier nicht." %}</p>
+      <details class="mt-1">
+        <summary class="inline-flex items-center min-h-[44px] cursor-pointer font-semibold text-indigo-700">{% trans "Zurück zum Aufbau des Katalogs" %}</summary>
+        <form method="post" class="mt-1">{% csrf_token %}
+          <input type="hidden" name="seite" value="{{ code }}">
+          <p class="mb-2 text-gray-700">{% trans "Alle eigenen Blöcke dieser Kategorie werden entfernt." %}</p>
+          <button name="op" value="reset" class="ui-btn ui-btn-secondary">{% trans "Eigene Blöcke entfernen" %}</button>
+        </form>
+      </details>
+      {% else %}
+      <p>{% trans "Diese Kategorie zeigt die Blöcke des Katalogs. Sobald Sie hier einen Block hinzufügen, gilt für sie ein eigener Aufbau." %}</p>
+      <form method="post" class="mt-2">{% csrf_token %}
+        <input type="hidden" name="seite" value="{{ code }}">
+        <button name="op" value="adopt" class="ui-btn ui-btn-secondary">{% trans "Aufbau vom Katalog übernehmen" %}</button>
+      </form>
+      {% endif %}
+    </div>
+    {% endif %}
     <ul class="space-y-2" data-schema-blocks>
       <li class="flex items-center justify-between gap-2 rounded-xl border border-dashed border-gray-300 bg-gray-50 px-3 py-2.5 text-sm text-gray-600">
         <span>{% trans "Kopfzeile & Menü" %}</span>

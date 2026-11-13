@@ -37626,3 +37626,24 @@ msgstr "На цій сторінці більше немає місця для �
 
 msgid "Kontakt — Adresse und Öffnungszeiten in den Einstellungen eintragen"
 msgstr "Контакти — вкажіть адресу та години роботи в налаштуваннях"
+
+msgid "Alle eigenen Blöcke dieser Kategorie werden entfernt."
+msgstr "Усі власні блоки цієї категорії буде видалено."
+
+msgid "Aufbau vom Katalog übernehmen"
+msgstr "Узяти структуру з каталогу"
+
+msgid "Diese Kategorie hat einen eigenen Aufbau. Die Blöcke des Katalogs erscheinen hier nicht."
+msgstr "У цієї категорії власна структура. Блоки каталогу тут не показуються."
+
+msgid "Diese Kategorie zeigt die Blöcke des Katalogs. Sobald Sie hier einen Block hinzufügen, gilt für sie ein eigener Aufbau."
+msgstr "Ця категорія показує блоки каталогу. Щойно ви додасте сюди блок, у неї буде власна структура."
+
+msgid "Eigene Blöcke entfernen"
+msgstr "Видалити власні блоки"
+
+msgid "Zurück zum Aufbau des Katalogs"
+msgstr "Повернутися до структури каталогу"
+
+msgid "So viele Kategorien mit eigenem Aufbau sind nicht möglich. Bitte zuerst bei einer anderen Kategorie die eigenen Blöcke entfernen."
+msgstr "Стільки категорій із власною структурою зробити не можна. Спочатку видаліть власні блоки в іншої категорії."

@@ -37387,3 +37387,24 @@ msgstr "Auf dieser Seite ist kein Platz für weitere Blöcke."
 
 msgid "Kontakt — Adresse und Öffnungszeiten in den Einstellungen eintragen"
 msgstr "Kontakt — Adresse und Öffnungszeiten in den Einstellungen eintragen"
+
+msgid "Alle eigenen Blöcke dieser Kategorie werden entfernt."
+msgstr "Alle eigenen Blöcke dieser Kategorie werden entfernt."
+
+msgid "Aufbau vom Katalog übernehmen"
+msgstr "Aufbau vom Katalog übernehmen"
+
+msgid "Diese Kategorie hat einen eigenen Aufbau. Die Blöcke des Katalogs erscheinen hier nicht."
+msgstr "Diese Kategorie hat einen eigenen Aufbau. Die Blöcke des Katalogs erscheinen hier nicht."
+
+msgid "Diese Kategorie zeigt die Blöcke des Katalogs. Sobald Sie hier einen Block hinzufügen, gilt für sie ein eigener Aufbau."
+msgstr "Diese Kategorie zeigt die Blöcke des Katalogs. Sobald Sie hier einen Block hinzufügen, gilt für sie ein eigener Aufbau."
+
+msgid "Eigene Blöcke entfernen"
+msgstr "Eigene Blöcke entfernen"
+
+msgid "Zurück zum Aufbau des Katalogs"
+msgstr "Zurück zum Aufbau des Katalogs"
+
+msgid "So viele Kategorien mit eigenem Aufbau sind nicht möglich. Bitte zuerst bei einer anderen Kategorie die eigenen Blöcke entfernen."
+msgstr "So viele Kategorien mit eigenem Aufbau sind nicht möglich. Bitte zuerst bei einer anderen Kategorie die eigenen Blöcke entfernen."

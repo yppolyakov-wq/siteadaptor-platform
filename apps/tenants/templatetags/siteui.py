@@ -391,6 +391,24 @@ def finder_home(context):
     return {"enabled": True, "question": tree[0] if tree else None}
 
 
+@register.simple_tag(takes_context=True)
+def category_blocks(context, category_host="", part="after"):
+    """FB-27 R7 (решение владельца Q2): своя схема категории ЗАМЕНЯЕТ блоки каталога на
+    её странице. Своей схемы нет (хост пуст) — страница показывает блоки каталога."""
+    host = "catalog"
+    request = context.get("request")
+    if category_host and request is not None:
+        from apps.core import page_settings
+
+        try:
+            raw = page_settings.raw_config(request)
+        except Exception:  # noqa: BLE001 — превью не должно ронять витрину
+            raw = getattr(getattr(request, "tenant", None), "site_config", None)
+        if siteconfig.has_own_schema(siteconfig.normalize(raw), category_host):
+            host = category_host
+    return page_blocks(context, host, part)
+
+
 @register.filter
 def has_page_block(site, spec) -> bool:
     """FB-27 R6: стоит ли на странице включённый блок типа (`"хост:тип"`). «Über uns» не

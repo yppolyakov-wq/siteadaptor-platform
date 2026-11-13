@@ -145,6 +145,12 @@ def _templates_with(pattern):
     for tpl in pathlib.Path("templates/storefront").rglob("*.html"):
         for m in re.finditer(pattern, tpl.read_text()):
             found.setdefault(m.group(1), set()).add(tpl.name)
+        # FB-27 R7: каталог выводит блоки тегом `category_blocks` (своя схема категории
+        # заменяет блоки каталога) — для замка это тот же хост «catalog».
+        if 'part="before"' in pattern and re.search(
+            r'category_blocks\s+category_block_host\s+part="before"', tpl.read_text()
+        ):
+            found.setdefault("catalog", set()).add(tpl.name)
     return found
 
 

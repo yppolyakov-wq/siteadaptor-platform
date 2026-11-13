@@ -167,16 +167,18 @@ def retarget_menus(old: str, new: str) -> int:
     return hits
 
 
-def move_page_blocks(old: str, new: str | None) -> bool:
+def move_page_blocks(old: str, new: str | None, prefix: str = "seite:") -> bool:
     """M21.11: блоки своей страницы живут в ``page_blocks["seite:<slug>"]``. Смена адреса
     переносит их, удаление страницы — убирает (иначе хост-призрак занимал бы место в
-    общем потолке хостов). Переводы блоков переезжают вместе с хостом."""
+    потолке хостов). Переводы блоков переезжают вместе с хостом.
+
+    FB-27 R7: то же для своей схемы категории — ``prefix="catalog:"``."""
     from apps.tenants.models import Tenant
 
     tenant = getattr(connection, "tenant", None)
     if tenant is None or not getattr(tenant, "pk", None) or not old:
         return False
-    src, dst = f"seite:{old}", f"seite:{new}" if new else None
+    src, dst = f"{prefix}{old}", f"{prefix}{new}" if new else None
     with transaction.atomic():
         fresh = Tenant.objects.select_for_update().filter(pk=tenant.pk).first()
         if fresh is None:

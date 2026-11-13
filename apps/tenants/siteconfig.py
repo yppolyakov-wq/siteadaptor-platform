@@ -1225,6 +1225,7 @@ CBLOCK_LABELS = {
 # хостов ограничено, чтобы конфиг не рос без предела.
 CATEGORY_HOST_PREFIX = "catalog:"
 _MAX_CATEGORY_HOSTS = 40
+_MAX_CONTENT_PAGE_HOSTS = 40
 # Слаг — по семантике SlugField Django (буквы/цифры/дефис/подчёркивание,
 # регистр значим): у живого тенанта категория вполне может называться
 # «Sommer_2026», и узкий шаблон молча выбросил бы её блоки.
@@ -1306,11 +1307,37 @@ def category_host(slug) -> str:
     return host if _CATEGORY_HOST_RE.match(host) else ""
 
 
+def has_own_schema(config, host) -> bool:
+    """FB-27 R7: есть ли у страницы категории СВОЯ схема — хотя бы один свой блок
+    (включая скрытые) в её хосте. `config` — НОРМАЛИЗОВАННЫЙ: по сырому ответ расходился
+    бы с тем, что рисует витрина (маркер основного списка, неизвестные типы, хост сверх
+    потолка), и страница осталась бы вовсе без блоков."""
+    if not isinstance(config, dict) or not isinstance(host, str):
+        return False
+    if not _CATEGORY_HOST_RE.match(host):
+        return False
+    blocks = (config.get("page_blocks") or {}).get(host)
+    return isinstance(blocks, list) and any(isinstance(b, dict) and b.get("id") for b in blocks)
+
+
+def category_hosts_full(config, host) -> bool:
+    """FB-27 R7: своих схем категорий уже столько, сколько хранит normalize, и у этой
+    категории её ещё нет — новая схема молча пропала бы при сохранении."""
+    blocks = (config.get("page_blocks") or {}) if isinstance(config, dict) else {}
+    if host in blocks:
+        return False
+    return sum(1 for k in blocks if _CATEGORY_HOST_RE.match(str(k))) >= _MAX_CATEGORY_HOSTS
+
+
 def _page_block_hosts(raw: dict) -> list:
     """Хосты для нормализации: фикс-whitelist + категорийные из самого конфига
     (детерминированный порядок — фикс-хосты, затем категории по алфавиту)."""
-    cats = sorted(k for k in raw if is_page_block_host(k) and k not in PAGE_BLOCK_HOSTS)
-    return list(PAGE_BLOCK_HOSTS) + cats[:_MAX_CATEGORY_HOSTS]
+    extra = sorted(k for k in raw if is_page_block_host(k) and k not in PAGE_BLOCK_HOSTS)
+    # FB-27 R7: у категорий и своих страниц потолки РАЗДЕЛЬНЫЕ — раньше общий срез по
+    # алфавиту первым выбрасывал блоки текстовых страниц («catalog:» раньше «seite:»).
+    cats = [k for k in extra if k.startswith(CATEGORY_HOST_PREFIX)]
+    pages = [k for k in extra if not k.startswith(CATEGORY_HOST_PREFIX)]
+    return list(PAGE_BLOCK_HOSTS) + cats[:_MAX_CATEGORY_HOSTS] + pages[:_MAX_CONTENT_PAGE_HOSTS]
 
 
 def normalize_page_blocks(raw) -> dict:
