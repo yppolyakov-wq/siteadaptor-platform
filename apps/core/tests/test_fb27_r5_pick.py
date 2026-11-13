@@ -190,3 +190,33 @@ def test_panel_without_pick_offers_to_choose_by_hand():
     html = Browser(tenant).get(f"?seite=text&block={ref}")
     assert "data-schema-pick" in html and "data-schema-pick-item" not in html
     assert 'name="f_sort"' in html
+
+
+# ───────────── граница со Студией ─────────────
+
+
+def test_studio_save_keeps_the_manual_pick():
+    """«Speichern» в Студии пересобирает данные блока из формы — ручной состав, набранный
+    в «Seitenaufbau», обязан уцелеть (класс W0)."""
+    from apps.core.tests.test_stu12_groups import _builder, _post_builder
+
+    a, b = (str(uuid.uuid4()), str(uuid.uuid4()))
+    tenant = TenantFactory(
+        slug="r5studio",
+        name="R5 Studio",
+        site_config={
+            "sections": [
+                {"key": "list", "id": "lb1", "enabled": True, "order": 1,
+                 "data": {"source": "products", "pick": [b, a]}}
+            ]
+        },
+    )  # fmt: skip
+    body = _builder(tenant)
+    assert f'name="cb_lb1_pick" value="{b},{a}"' in body  # строка несёт состав
+    post = {
+        "cb_id": "lb1", "cb_type_lb1": "list", "enabled_cb_lb1": "on", "order_cb_lb1": "1",
+        "cb_lb1_source": "products", "cb_lb1_pick": f"{b},{a}",
+    }  # fmt: skip
+    cfg = _post_builder(tenant, post)
+    block = next(s for s in cfg["sections"] if s.get("id") == "lb1")
+    assert block["data"]["pick"] == [b, a]

@@ -148,6 +148,7 @@ collect()/save работают без переименований. data-cb-id 
     {% list_block_hint b.data as lh %}
     {% with src=b.data.source|default:"promotions" %}
     <div data-lb-row>
+    <input type="hidden" name="cb_{{ b.id }}_pick" value="{{ b.data.pick|join:',' }}">
       <details class="bld-grp w-full" data-grp="inhalt" open>
         <summary class="bld-grp-sum">{% trans "Content" %}</summary>
         <div class="bld-grp-body">

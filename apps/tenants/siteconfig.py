@@ -326,11 +326,14 @@ def clean_pick(raw) -> list[str]:
     import uuid
 
     out: list[str] = []
+    if isinstance(raw, str):
+        # строка формы Студии переносит состав одним скрытым полем «a,b,c»
+        raw = [part for part in raw.split(",") if part.strip()]
     if not isinstance(raw, (list, tuple)):
         return out
     for value in raw:
         try:
-            key = str(uuid.UUID(str(value)))
+            key = str(uuid.UUID(str(value).strip()))
         except (ValueError, AttributeError, TypeError):
             continue
         if key not in out:
