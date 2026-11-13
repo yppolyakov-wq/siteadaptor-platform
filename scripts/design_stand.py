@@ -82,7 +82,7 @@ def main():  # noqa: PLR0915 — один линейный сценарий ст
                                 f"{tag}: «{tab}» подтверждает сохранение",
                             )
                     # готовые дизайны: панель подтверждения и отмена
-                    pg.goto(url + "/dashboard/design/")
+                    pg.goto(url + "/dashboard/design/?mehr=1")
                     cards = pg.locator("[data-design-card]")
                     check(cards.count() >= 1, f"{tag}: есть готовые дизайны ({cards.count()})")
                     check(
@@ -114,7 +114,7 @@ def main():  # noqa: PLR0915 — один линейный сценарий ст
                     if width == 1440 and lang == "de":
                         # применение без галочки: блоки главной остаются на местах
                         before = home_rows(pg, url)
-                        pg.goto(url + "/dashboard/design/")
+                        pg.goto(url + "/dashboard/design/?mehr=1")
                         pg.locator("[data-design-card]").last.locator("a").first.click()
                         pg.wait_for_load_state()
                         pg.click("[data-design-confirm] form button")

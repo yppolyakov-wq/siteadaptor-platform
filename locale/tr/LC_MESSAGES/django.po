@@ -37749,3 +37749,10 @@ msgstr "Banner, kart çerçeveleri ve gölgeleri, başlıklar: tasarımdaki gibi
 
 msgid "wird zu"
 msgstr "şuna dönüşür:"
+
+#, python-format
+msgid "Mehr Designs anzeigen (%(n)s)"
+msgstr "Daha fazla tasarım göster (%(n)s)"
+
+msgid "Weniger Designs anzeigen"
+msgstr "Daha az tasarım göster"

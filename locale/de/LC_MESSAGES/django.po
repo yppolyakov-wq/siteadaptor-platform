@@ -37690,3 +37690,10 @@ msgstr "Banner, Rahmen und Schatten der Karten, Überschriften: wie im Design"
 
 msgid "wird zu"
 msgstr "wird zu"
+
+#, python-format
+msgid "Mehr Designs anzeigen (%(n)s)"
+msgstr "Mehr Designs anzeigen (%(n)s)"
+
+msgid "Weniger Designs anzeigen"
+msgstr "Weniger Designs anzeigen"

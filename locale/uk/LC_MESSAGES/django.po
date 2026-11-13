@@ -37929,3 +37929,10 @@ msgstr "Банер, рамки й тіні карток, заголовки — 
 
 msgid "wird zu"
 msgstr "стане"
+
+#, python-format
+msgid "Mehr Designs anzeigen (%(n)s)"
+msgstr "Показати більше дизайнів (%(n)s)"
+
+msgid "Weniger Designs anzeigen"
+msgstr "Показати менше дизайнів"

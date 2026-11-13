@@ -716,5 +716,24 @@
   {% include "storefront/_option_picker_script.html" %}
   {# DL-16.1: слайдер-примитив для лент [data-sf-slider] (стрелки при наведении, точки, клавиатура). #}
   {% include "storefront/_slider_script.html" %}
+{% if request.GET.preview == '1' %}{% if request.GET.look or request.GET.bundle %}
+{% comment %}Предпросмотр готового дизайна (экран «Design»): ссылки внутри сайта несут выбранный дизайн дальше — иначе на второй странице он пропадал. Значения берутся из адреса в браузере, сервер их не печатает.{% endcomment %}
+<script data-design-preview-keep>
+(function () {
+  var here = new URLSearchParams(location.search);
+  var keep = { preview: "1" };
+  ["look", "bundle"].forEach(function (k) { if (here.get(k)) keep[k] = here.get(k); });
+  document.addEventListener("click", function (e) {
+    var a = e.target.closest ? e.target.closest("a[href]") : null;
+    if (!a || a.target === "_blank") return;
+    var url;
+    try { url = new URL(a.href, location.href); } catch (err) { return; }
+    if (url.origin !== location.origin || url.pathname.indexOf("/dashboard") === 0) return;
+    Object.keys(keep).forEach(function (k) { url.searchParams.set(k, keep[k]); });
+    a.href = url.toString();
+  }, true);
+})();
+</script>
+{% endif %}{% endif %}
 </body>
 </html>

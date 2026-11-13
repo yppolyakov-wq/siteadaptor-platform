@@ -37603,3 +37603,10 @@ msgstr "Banner, card borders and shadows, headings: as in the design"
 
 msgid "wird zu"
 msgstr "becomes"
+
+#, python-format
+msgid "Mehr Designs anzeigen (%(n)s)"
+msgstr "Show more designs (%(n)s)"
+
+msgid "Weniger Designs anzeigen"
+msgstr "Show fewer designs"

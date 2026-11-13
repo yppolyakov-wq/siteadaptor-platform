@@ -47,7 +47,7 @@ def _key(tenant):
 
 def test_cards_link_to_a_confirmation_and_need_no_script():
     tenant = _shop()
-    body = _html(tenant)
+    body = _html(tenant, "?mehr=1")
     key = _key(tenant)
     assert f"confirm={key}" in body
     assert "onsubmit=" not in body and "confirm(" not in body
@@ -151,3 +151,34 @@ def test_design_not_offered_to_this_business_is_refused():
     before = Tenant.objects.get(pk=tenant.pk).site_config
     design_page.design_view(_req("post", tenant, {"bundle": foreign}))
     assert Tenant.objects.get(pk=tenant.pk).site_config == before
+
+
+def test_owner_chooses_how_many_designs_to_see():
+    """Владелец (2026-11-13): сколько карточек видеть — решает он сам. Сразу четыре и
+    действующий дизайн, остальные по ссылке; обратно — «Weniger»."""
+    tenant = _shop()
+    total = len(sitetemplates.bundles_for(tenant.business_type, tenant))
+    assert total > design_page.DESIGNS_SHOWN
+    body = _html(tenant)
+    assert body.count("data-design-card=") == design_page.DESIGNS_SHOWN
+    assert "mehr=1" in body
+    assert _html(tenant, "?mehr=1").count("data-design-card=") == total
+    # действующий дизайн виден всегда, даже если он не в первой четвёрке
+    last = _key(tenant)
+    sitetemplates.apply_bundle(Tenant.objects.get(pk=tenant.pk), last, rebuild_home=False)
+    body = _html(Tenant.objects.get(pk=tenant.pk))
+    assert f'data-design-card="{last}"' in body
+    assert body.count("data-design-card=") == design_page.DESIGNS_SHOWN + 1
+
+
+def test_design_preview_carries_the_design_to_other_pages():
+    """Владелец (2026-11-13): в предпросмотре дизайн терялся при переходе на другую
+    страницу — ссылки витрины обязаны нести выбранный дизайн дальше."""
+    import pathlib
+
+    base = pathlib.Path("templates/storefront/_base.html").read_text()
+    assert "data-design-preview-keep" in base
+    block = base[base.index("data-design-preview-keep") :][:900]
+    assert '"look", "bundle"' in block and "searchParams.set" in block
+    # значения дизайна сервер в скрипт не печатает
+    assert "{{ request.GET.look" not in base and "{{ request.GET.bundle" not in base

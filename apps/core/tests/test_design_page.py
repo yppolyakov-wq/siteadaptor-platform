@@ -34,7 +34,7 @@ def test_gallery_lists_bundles_and_looks():
     tenant = TenantFactory(business_type="grocery")
     # FB-27 D-b (осознанная переписка): карточка ведёт на панель подтверждения, все
     # Looks — вторым уровнем («Alle Designs anzeigen»).
-    html = design_view(_req(tenant, query="?alle=1")).content.decode()
+    html = design_view(_req(tenant, query="?alle=1&mehr=1")).content.decode()
     # Сборки типа: рекомендованная Fokus-вариация + 5 универсальных дил-шаблонов.
     for key in ("fokus_angebote", "deal_prospekt", "deal_smart"):
         assert f'data-design-card="{key}"' in html and f"confirm={key}" in html, key

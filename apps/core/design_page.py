@@ -253,6 +253,7 @@ def design_changes(tenant, key: str) -> list[dict] | None:
 
 # FB-27 D-a (макет D1): вкладки экрана; первая открыта по умолчанию.
 DESIGN_TABS = ("fertig", "farben", "karten")
+DESIGNS_SHOWN = 4  # столько готовых дизайнов видно сразу (макет D1)
 
 
 def _tabs() -> list[dict]:
@@ -315,6 +316,8 @@ def design_view(request):
     from apps.tenants import demo, siteconfig
 
     cfg = siteconfig.normalize(tenant.site_config)
+    # DL-8a: активный выбор (ключ design пишут apply_bundle/apply_look).
+    current = cfg.get("design") or {}
     back_url = _studio_back_url(request)
     # FB-27 D-b: «Übernehmen» открывает панель «что изменится» — выбранный дизайн только
     # из предложенных этому бизнесу; мусор панели не даёт.
@@ -332,11 +335,22 @@ def design_view(request):
         changes = design_changes(tenant, wanted) if chosen else None
         if changes is not None:
             confirm = {"key": wanted, "label": chosen["label"], "changes": changes}
+    # Владелец сам решает, сколько готовых дизайнов видеть: сначала первые четыре (как на
+    # макете) и действующий, остальные — по ссылке «Mehr Designs anzeigen».
+    all_bundles = [
+        {**b, "composition_label": sitetemplates.composition_label(b)}
+        for b in sitetemplates.bundles_for(tenant.business_type, tenant)
+    ]
+    more_bundles = request.GET.get("mehr") == "1"
+    shown_bundles = all_bundles
+    if not more_bundles and len(all_bundles) > DESIGNS_SHOWN:
+        keep = {current.get("bundle", ""), (confirm or {}).get("key", "")}
+        shown_bundles = all_bundles[:DESIGNS_SHOWN] + [
+            b for b in all_bundles[DESIGNS_SHOWN:] if b["key"] in keep
+        ]
     tab = request.GET.get("tab", "")
     if tab not in DESIGN_TABS:
         tab = DESIGN_TABS[0]
-    # DL-8a: активный выбор (ключ design пишут apply_bundle/apply_look).
-    current = cfg.get("design") or {}
     sd = cfg.get("site_defaults") or {}
     return render(
         request,
@@ -375,10 +389,9 @@ def design_view(request):
             "has_demo": demo.has_demo(tenant),
             # DL-13: подпись композиции на карточке (чем шаблон отличается по
             # структуре страницы — анализ DL-12, фидбэк «опять всё Fokus»).
-            "bundles": [
-                {**b, "composition_label": sitetemplates.composition_label(b)}
-                for b in sitetemplates.bundles_for(tenant.business_type, tenant)
-            ],
+            "bundles": shown_bundles,
+            "bundles_total": len(all_bundles),
+            "bundles_more": more_bundles,
             "looks": sitetemplates.looks_for(tenant.business_type),
             "current_bundle": current.get("bundle", ""),
             "current_look": current.get("look", ""),
