@@ -120,3 +120,27 @@ def test_banner_setting_is_open_when_it_is_the_only_one():
     if html.count("data-schema-setting-box=") == 1:
         box = html[html.index("data-schema-setting-box=") :][:200]
         assert " open" in box.split(">")[0]
+
+
+def test_stale_studio_tab_cannot_roll_the_panel_edit_back():
+    """Ревью: вкладка Студии, открытая до правки, несёт прежние лимит, вид и фильтр
+    встроенного списка — отпечаток обязан измениться, а слияние — оставить сохранённое."""
+    from apps.core import site_schema
+
+    b = Browser(_tenant())
+    old_cfg = siteconfig.normalize(Tenant.objects.get(pk=b.tenant.pk).site_config)
+    old_hash = site_schema.structure_hash(old_cfg)
+    b.post(
+        seite="home", op="update", ref="products", panel_present="1",
+        f_only="sale", f_limit="4", f_out="slider",
+    )  # fmt: skip
+    b.post(seite="home", op="save")
+    new_cfg = siteconfig.normalize(Tenant.objects.get(pk=b.tenant.pk).site_config)
+    assert site_schema.structure_hash(new_cfg) != old_hash
+    merged = site_schema.merge_structure(
+        new_cfg["sections"], old_cfg["sections"], fixed=True, keep_data=True
+    )
+    row = next(s for s in merged if s.get("key") == "products" and not s.get("id"))
+    saved = next(s for s in new_cfg["sections"] if s.get("key") == "products" and not s.get("id"))
+    for field in site_schema.BUILTIN_OWNED_FIELDS:
+        assert row.get(field) == saved.get(field), field

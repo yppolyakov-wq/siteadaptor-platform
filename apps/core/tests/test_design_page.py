@@ -32,10 +32,12 @@ def _req(tenant, method="get", data=None, query=""):
 
 def test_gallery_lists_bundles_and_looks():
     tenant = TenantFactory(business_type="grocery")
-    html = design_view(_req(tenant)).content.decode()
+    # FB-27 D-b (осознанная переписка): карточка ведёт на панель подтверждения, все
+    # Looks — вторым уровнем («Alle Designs anzeigen»).
+    html = design_view(_req(tenant, query="?alle=1")).content.decode()
     # Сборки типа: рекомендованная Fokus-вариация + 5 универсальных дил-шаблонов.
     for key in ("fokus_angebote", "deal_prospekt", "deal_smart"):
-        assert f'name="bundle" value="{key}"' in html, key
+        assert f'data-design-card="{key}"' in html and f"confirm={key}" in html, key
     assert 'data-src="/?preview=1&look=prospekt&bundle=deal_prospekt"' in html
     # Look'и — все 10 семейств с превью.
     assert 'name="look" value="neon"' in html
@@ -44,7 +46,8 @@ def test_gallery_lists_bundles_and_looks():
 
 def test_post_bundle_applies_and_persists():
     tenant = TenantFactory(business_type="grocery")
-    resp = design_view(_req(tenant, "post", {"bundle": "deal_neon"}))
+    # FB-27 D-b: состав главной меняется только с галочкой «Startseite neu aufbauen»
+    resp = design_view(_req(tenant, "post", {"bundle": "deal_neon", "rebuild_home": "on"}))
     assert resp.status_code == 302
     tenant.refresh_from_db()
     assert tenant.site_config["theme"] == "dark"  # кожа neon
@@ -62,8 +65,8 @@ def test_active_badge_and_preview_links():
     html = design_view(_req(tenant)).content.decode()
     assert "Aktiv" in html
     # Бейдж стоит на карточке активной сборки (рамка-подсветка + ✓).
-    idx = html.find('value="deal_blatt"')
-    assert idx > -1 and "Aktiv" in html[idx - 2500 : idx]
+    idx = html.find('data-design-card="deal_blatt"')
+    assert idx > -1 and "Aktiv" in html[idx : idx + 600]
     assert 'href="/?preview=1&look=blatt&bundle=deal_blatt" target="_blank"' in html
 
 

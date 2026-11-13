@@ -37524,3 +37524,76 @@ msgstr "This is how your whole website looks: colours, font, cards and photos."
 #, python-format
 msgid "Höchstens %(max)s."
 msgstr "At most %(max)s."
+
+#, python-format
+msgid "Höchstens %(max)s. Sind Reihen gewählt, zählt Spalten × Reihen."
+msgstr "At most %(max)s. If rows are chosen, columns × rows applies."
+
+msgid "Akzentfarbe"
+msgstr "Accent colour"
+
+#, python-format
+msgid "Alle %(n)s Designs anzeigen"
+msgstr "Show all %(n)s designs"
+
+msgid "Alle Designs"
+msgstr "All designs"
+
+msgid "Alle Texte, Fotos und Seiten"
+msgstr "All texts, photos and pages"
+
+msgid "Auch die Startseite neu aufbauen (ersetzt die Blöcke der Startseite)"
+msgstr "Also rebuild the home page (replaces the blocks of the home page)"
+
+msgid "Beispielinhalte zum Ausprobieren:"
+msgstr "Sample content to try things out:"
+
+msgid "Das bleibt"
+msgstr "What stays"
+
+msgid "Das ändert sich"
+msgstr "What changes"
+
+msgid "Design übernommen."
+msgstr "Design applied."
+
+msgid "Dieses Design gibt es nicht."
+msgstr "This design does not exist."
+
+#, python-format
+msgid "Empfohlen für: %(kind)s"
+msgstr "Recommended for: %(kind)s"
+
+msgid "Farben, Schrift und Karten sehen bereits so aus."
+msgstr "Colours, font and cards already look like this."
+
+msgid "Hintergrund"
+msgstr "Background"
+
+msgid "Jetzt übernehmen"
+msgstr "Apply now"
+
+msgid "Menü und Fußzeile"
+msgstr "Menu and footer"
+
+msgid "Produkte je Reihe auf der Startseite"
+msgstr "Products per row on the home page"
+
+msgid "Produktkarte"
+msgstr "Product card"
+
+msgid "Reihenfolge Ihrer Blöcke"
+msgstr "The order of your blocks"
+
+msgid "dunkel"
+msgstr "dark"
+
+msgid "hell"
+msgstr "light"
+
+#, python-format
+msgid "„%(name)s“ übernehmen?"
+msgstr "Apply “%(name)s”?"
+
+msgid "Ändert Farben, Schrift und Kartenform. Ihre Texte und Blöcke bleiben."
+msgstr "Changes colours, font and card shape. Your texts and blocks stay."

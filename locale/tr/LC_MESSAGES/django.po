@@ -37670,3 +37670,76 @@ msgstr "Tüm web siteniz böyle görünür: renkler, yazı tipi, kartlar ve foto
 #, python-format
 msgid "Höchstens %(max)s."
 msgstr "En fazla %(max)s."
+
+#, python-format
+msgid "Höchstens %(max)s. Sind Reihen gewählt, zählt Spalten × Reihen."
+msgstr "En fazla %(max)s. Satır seçildiyse sütun × satır geçerlidir."
+
+msgid "Akzentfarbe"
+msgstr "Vurgu rengi"
+
+#, python-format
+msgid "Alle %(n)s Designs anzeigen"
+msgstr "%(n)s tasarımın tümünü göster"
+
+msgid "Alle Designs"
+msgstr "Tüm tasarımlar"
+
+msgid "Alle Texte, Fotos und Seiten"
+msgstr "Tüm metinler, fotoğraflar ve sayfalar"
+
+msgid "Auch die Startseite neu aufbauen (ersetzt die Blöcke der Startseite)"
+msgstr "Ana sayfayı da yeniden kur (ana sayfanın bloklarını değiştirir)"
+
+msgid "Beispielinhalte zum Ausprobieren:"
+msgstr "Denemek için örnek içerik:"
+
+msgid "Das bleibt"
+msgstr "Aynı kalanlar"
+
+msgid "Das ändert sich"
+msgstr "Değişenler"
+
+msgid "Design übernommen."
+msgstr "Tasarım uygulandı."
+
+msgid "Dieses Design gibt es nicht."
+msgstr "Böyle bir tasarım yok."
+
+#, python-format
+msgid "Empfohlen für: %(kind)s"
+msgstr "Şunun için önerilir: %(kind)s"
+
+msgid "Farben, Schrift und Karten sehen bereits so aus."
+msgstr "Renkler, yazı tipi ve kartlar zaten böyle görünüyor."
+
+msgid "Hintergrund"
+msgstr "Arka plan"
+
+msgid "Jetzt übernehmen"
+msgstr "Şimdi uygula"
+
+msgid "Menü und Fußzeile"
+msgstr "Menü ve alt bilgi"
+
+msgid "Produkte je Reihe auf der Startseite"
+msgstr "Ana sayfada satır başına ürün"
+
+msgid "Produktkarte"
+msgstr "Ürün kartı"
+
+msgid "Reihenfolge Ihrer Blöcke"
+msgstr "Bloklarınızın sırası"
+
+msgid "dunkel"
+msgstr "koyu"
+
+msgid "hell"
+msgstr "açık"
+
+#, python-format
+msgid "„%(name)s“ übernehmen?"
+msgstr "“%(name)s” uygulansın mı?"
+
+msgid "Ändert Farben, Schrift und Kartenform. Ihre Texte und Blöcke bleiben."
+msgstr "Renkleri, yazı tipini ve kart biçimini değiştirir. Metinleriniz ve bloklarınız kalır."

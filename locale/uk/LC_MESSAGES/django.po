@@ -37850,3 +37850,76 @@ msgstr "Так виглядає весь ваш сайт: кольори, шри
 #, python-format
 msgid "Höchstens %(max)s."
 msgstr "Не більше %(max)s."
+
+#, python-format
+msgid "Höchstens %(max)s. Sind Reihen gewählt, zählt Spalten × Reihen."
+msgstr "Не більше %(max)s. Якщо вибрано ряди, рахується «колонки × ряди»."
+
+msgid "Akzentfarbe"
+msgstr "Акцентний колір"
+
+#, python-format
+msgid "Alle %(n)s Designs anzeigen"
+msgstr "Показати всі дизайни: %(n)s"
+
+msgid "Alle Designs"
+msgstr "Усі дизайни"
+
+msgid "Alle Texte, Fotos und Seiten"
+msgstr "Усі тексти, фото та сторінки"
+
+msgid "Auch die Startseite neu aufbauen (ersetzt die Blöcke der Startseite)"
+msgstr "Також перебудувати головну (замінює блоки головної сторінки)"
+
+msgid "Beispielinhalte zum Ausprobieren:"
+msgstr "Приклади вмісту, щоб спробувати:"
+
+msgid "Das bleibt"
+msgstr "Що залишиться"
+
+msgid "Das ändert sich"
+msgstr "Що зміниться"
+
+msgid "Design übernommen."
+msgstr "Дизайн застосовано."
+
+msgid "Dieses Design gibt es nicht."
+msgstr "Такого дизайну немає."
+
+#, python-format
+msgid "Empfohlen für: %(kind)s"
+msgstr "Рекомендуємо для: %(kind)s"
+
+msgid "Farben, Schrift und Karten sehen bereits so aus."
+msgstr "Кольори, шрифт і картки вже виглядають так."
+
+msgid "Hintergrund"
+msgstr "Фон"
+
+msgid "Jetzt übernehmen"
+msgstr "Застосувати"
+
+msgid "Menü und Fußzeile"
+msgstr "Меню та підвал"
+
+msgid "Produkte je Reihe auf der Startseite"
+msgstr "Товарів у ряду на головній"
+
+msgid "Produktkarte"
+msgstr "Картка товару"
+
+msgid "Reihenfolge Ihrer Blöcke"
+msgstr "Порядок ваших блоків"
+
+msgid "dunkel"
+msgstr "темний"
+
+msgid "hell"
+msgstr "світлий"
+
+#, python-format
+msgid "„%(name)s“ übernehmen?"
+msgstr "Застосувати «%(name)s»?"
+
+msgid "Ändert Farben, Schrift und Kartenform. Ihre Texte und Blöcke bleiben."
+msgstr "Змінює кольори, шрифт і форму карток. Ваші тексти та блоки залишаються."

@@ -88,7 +88,7 @@ def test_three_tabs_and_the_first_is_ready_designs():
     assert body.count("data-design-tab=") == 3
     assert body.count('aria-current="page"') >= 1
     assert 'data-design-tab="fertig" aria-current="page"' in body
-    assert 'name="bundle"' in body and 'name="accent"' not in body
+    assert "data-design-card=" in body and 'name="accent"' not in body
 
 
 def test_each_tab_shows_only_its_own_form():

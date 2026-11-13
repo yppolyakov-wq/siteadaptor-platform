@@ -80,8 +80,10 @@ def test_screen_shows_colour_font_and_card_controls():
 
 
 def test_screen_carries_templates_and_demo_content():
+    # FB-27 D-b (осознанная переписка): шаблоны витрины слиты с готовыми дизайнами
+    # (галочка «Startseite neu aufbauen»); демо-содержимое осталось строкой.
     body = _html(TenantFactory(slug="dsg2", name="Dsg2"))
-    assert 'value="apply_template"' in body
+    assert 'value="apply_template"' not in body and "data-design-card=" in body
     assert 'value="load_demo"' in body or 'value="clear_demo"' in body
 
 
@@ -180,7 +182,7 @@ def test_template_cards_render_section_labels_not_raw_dicts():
     """Стенд поймал сырое `{'key': 'hero', ...}` на карточке: `sections` — список словарей."""
     body = _html(TenantFactory(slug="dsg7", name="Dsg7"))
     assert "{'key':" not in body and "&#x27;key&#x27;:" not in body
-    assert "Begrüßungsbanner" in body, "мини-мокап печатает МЕТКИ секций шаблона"
+    # FB-27 D-b: мини-мокапа шаблона на экране больше нет — карточки с живым превью
 
 
 def test_dark_theme_can_be_switched_off_from_this_screen():

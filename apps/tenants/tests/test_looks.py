@@ -286,7 +286,9 @@ def test_builder_theme_roundtrip_and_look_cards():
     dreq.GET = QueryDict("tab=farben")
     design = design_page.design_view(dreq).content.decode()
     assert 'name="theme"' in design and "checked" in design  # round-trip префилл
-    gallery = design_page.design_view(_dreq()).content.decode()
+    greq = _dreq()
+    greq.GET = QueryDict("alle=1")  # FB-27 D-b: все Looks — вторым уровнем
+    gallery = design_page.design_view(greq).content.decode()
     assert 'id="design-looks"' in gallery and 'name="look"' in gallery  # карточки Look'ов
 
     # Save с сентинелом и без чекбокса (светлый) → ключ снят; с "dark" → сохранён.

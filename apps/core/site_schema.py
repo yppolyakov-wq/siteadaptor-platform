@@ -84,6 +84,15 @@ _STRUCT_FIELDS = ("key", "id", "enabled", "width", "pos", "newline")
 #: FB-27 R8d: блоки, чьи данные — выбор, а не текст (источник и фильтры «Liste», ручной
 #: состав, встроенная страница, вид карточки контактов). Их задаёт «Seitenaufbau».
 OWNED_DATA_KINDS = ("list", "textpage", "contact_card")
+#: То же у встроенного списка главной: что, сколько и как он показывает, правит панель
+#: «Seitenaufbau» — эти поля строки входят в отпечаток и переживают устаревшую вкладку.
+BUILTIN_OWNED_FIELDS = ("data", "limit", "layout", "source")
+
+
+def _is_builtin_list(item: dict) -> bool:
+    from apps.tenants import siteconfig
+
+    return not item.get("id") and item.get("key") in siteconfig.BUILTIN_LIST_SOURCES
 
 
 def structure_hash(config) -> str:
@@ -107,6 +116,7 @@ def structure_hash(config) -> str:
         return [
             [s.get(f) for f in _STRUCT_FIELDS]
             + ([s.get("data")] if s.get("key") in OWNED_DATA_KINDS else [])
+            + ([s.get(f) for f in BUILTIN_OWNED_FIELDS] if _is_builtin_list(s) else [])
             for s in (items or [])
             if isinstance(s, dict)
         ]
@@ -166,6 +176,12 @@ def merge_structure(
         merged = {**new, "key": old.get("key")}
         if keep_data and kind(old) in OWNED_DATA_KINDS:
             merged["data"] = old.get("data") or {}
+        if keep_data and _is_builtin_list(old):
+            for field in BUILTIN_OWNED_FIELDS:
+                if field in old:
+                    merged[field] = old[field]
+                else:
+                    merged.pop(field, None)
         # У встроенной секции главной ширину (Ganz/Randlos) в «Seitenaufbau» менять
         # негде — она остаётся виду Студии; её структура — только видимость.
         for field in _OWNED_FIELDS if old.get("id") else ("enabled",):

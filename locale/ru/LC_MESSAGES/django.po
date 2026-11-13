@@ -37863,3 +37863,76 @@ msgstr "Так выглядит весь ваш сайт: цвета, шрифт
 #, python-format
 msgid "Höchstens %(max)s."
 msgstr "Не больше %(max)s."
+
+#, python-format
+msgid "Höchstens %(max)s. Sind Reihen gewählt, zählt Spalten × Reihen."
+msgstr "Не больше %(max)s. Если выбраны ряды, считается «колонки × ряды»."
+
+msgid "Akzentfarbe"
+msgstr "Акцентный цвет"
+
+#, python-format
+msgid "Alle %(n)s Designs anzeigen"
+msgstr "Показать все дизайны: %(n)s"
+
+msgid "Alle Designs"
+msgstr "Все дизайны"
+
+msgid "Alle Texte, Fotos und Seiten"
+msgstr "Все тексты, фото и страницы"
+
+msgid "Auch die Startseite neu aufbauen (ersetzt die Blöcke der Startseite)"
+msgstr "Заодно пересобрать главную (заменяет блоки главной страницы)"
+
+msgid "Beispielinhalte zum Ausprobieren:"
+msgstr "Примеры содержимого, чтобы попробовать:"
+
+msgid "Das bleibt"
+msgstr "Что останется"
+
+msgid "Das ändert sich"
+msgstr "Что изменится"
+
+msgid "Design übernommen."
+msgstr "Дизайн применён."
+
+msgid "Dieses Design gibt es nicht."
+msgstr "Такого дизайна нет."
+
+#, python-format
+msgid "Empfohlen für: %(kind)s"
+msgstr "Рекомендуем для: %(kind)s"
+
+msgid "Farben, Schrift und Karten sehen bereits so aus."
+msgstr "Цвета, шрифт и карточки уже выглядят так."
+
+msgid "Hintergrund"
+msgstr "Фон"
+
+msgid "Jetzt übernehmen"
+msgstr "Применить"
+
+msgid "Menü und Fußzeile"
+msgstr "Меню и подвал"
+
+msgid "Produkte je Reihe auf der Startseite"
+msgstr "Товаров в ряду на главной"
+
+msgid "Produktkarte"
+msgstr "Карточка товара"
+
+msgid "Reihenfolge Ihrer Blöcke"
+msgstr "Порядок ваших блоков"
+
+msgid "dunkel"
+msgstr "тёмный"
+
+msgid "hell"
+msgstr "светлый"
+
+#, python-format
+msgid "„%(name)s“ übernehmen?"
+msgstr "Применить «%(name)s»?"
+
+msgid "Ändert Farben, Schrift und Kartenform. Ihre Texte und Blöcke bleiben."
+msgstr "Меняет цвета, шрифт и форму карточек. Ваши тексты и блоки остаются."

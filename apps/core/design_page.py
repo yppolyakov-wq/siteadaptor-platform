@@ -122,6 +122,21 @@ def _save_design_settings(request) -> None:
     tenant.save(update_fields=update_fields)
 
 
+def font_label(key: str) -> str:
+    """Имя шрифта для владельца: подпись из списка экрана, иначе первое семейство из
+    реестра шрифтов (шрифты готовых дизайнов в список экрана не входят)."""
+    from apps.tenants import siteconfig
+
+    key = key or "system"
+    known = {k: str(lab) for k, lab in FONT_OPTIONS}
+    if key in known:
+        return known[key]
+    spec = siteconfig.FONTS.get(key)
+    if spec:
+        return spec[1].split(",")[0].strip().strip('"')
+    return key
+
+
 def _choices(current, options, default_label=None) -> list[tuple[str, str, bool]]:
     """Пункты списка (значение, подпись, выбран). Значение пишется без локали («1.6», не
     «1,6»), а сохранённое значение, которого нет среди пунктов (шрифт или жирность из
@@ -145,6 +160,76 @@ def _same_number(a: str, b: str) -> bool:
         return float(a) == float(b)
     except ValueError:
         return False
+
+
+def design_result(tenant, key: str, rebuild_home: bool):
+    """Что даст готовый дизайн `key`: (нормализованный конфиг, цвет акцента) — без записи.
+    Считает тот же код, что применяет (`sitetemplates.apply_bundle`), на копии: объявленное
+    в панели подтверждения не может разойтись с результатом."""
+    import copy
+    from types import SimpleNamespace
+
+    from apps.tenants import siteconfig
+
+    stand_in = SimpleNamespace(
+        site_config=copy.deepcopy(tenant.site_config),
+        primary_color=tenant.primary_color,
+        business_type=tenant.business_type,
+        is_module_active=tenant.is_module_active,
+        save=lambda **_kwargs: None,
+    )
+    if not sitetemplates.apply_bundle(stand_in, key, rebuild_home=rebuild_home):
+        return None
+    return siteconfig.normalize(stand_in.site_config), stand_in.primary_color
+
+
+def _products_cols(cfg: dict):
+    row = next((s for s in cfg.get("sections") or [] if s.get("key") == "products"), None)
+    return ((row or {}).get("layout") or {}).get("cols") if row and row.get("enabled") else None
+
+
+def design_changes(tenant, key: str) -> list[dict] | None:
+    """Строки «Das ändert sich» для дизайна `key` (без перестройки главной): [{label,
+    old, new, swatch}]. None — дизайна нет."""
+    from apps.core import card_forms
+    from apps.tenants import siteconfig
+
+    result = design_result(tenant, key, False)
+    if result is None:
+        return None
+    after, colour = result
+    before = siteconfig.normalize(tenant.site_config)
+    rows = []
+
+    def add(label, old, new, swatch=False):
+        if old != new:
+            rows.append({"label": str(label), "old": old, "new": new, "swatch": swatch})
+
+    add(_("Akzentfarbe"), tenant.primary_color or "", colour or "", swatch=True)
+    add(
+        _("Schrift"),
+        font_label(before.get("font")),
+        font_label(after.get("font")),
+    )
+    dark = {True: str(_("dunkel")), False: str(_("hell"))}
+    add(_("Hintergrund"), dark[before.get("theme") == "dark"], dark[after.get("theme") == "dark"])
+    sd_old, sd_new = before.get("site_defaults") or {}, after.get("site_defaults") or {}
+    standard = str(_("Standard"))
+    add(
+        _("Produktkarte"),
+        str(card_forms.label_for(sd_old.get("card_style", "")) or standard),
+        str(card_forms.label_for(sd_new.get("card_style", "")) or standard),
+    )
+    shapes = {"": standard, "round": str(_("Rund")), "wide": str(_("Breit"))}
+    add(
+        _("Fotos"),
+        shapes.get(sd_old.get("media_shape", ""), standard),
+        shapes.get(sd_new.get("media_shape", ""), standard),
+    )
+    old_cols, new_cols = _products_cols(before), _products_cols(after)
+    if old_cols and new_cols:
+        add(_("Produkte je Reihe auf der Startseite"), str(old_cols), str(new_cols))
+    return rows
 
 
 # FB-27 D-a (макет D1): вкладки экрана; первая открыта по умолчанию.
@@ -195,17 +280,35 @@ def design_view(request):
             return redirect(f"{reverse('design')}?{urlencode(query)}" if query else "design")
         bundle = request.POST.get("bundle", "")
         look = request.POST.get("look", "")
-        if bundle and sitetemplates.apply_bundle(tenant, bundle):
-            messages.success(request, _("Vorlage übernommen."))
+        # FB-27 D-b: главная перестраивается только по галочке (по умолчанию снята)
+        rebuild = request.POST.get("rebuild_home") == "on"
+        if bundle and sitetemplates.apply_bundle(tenant, bundle, rebuild_home=rebuild):
+            messages.success(request, _("Design übernommen."))
         elif look and sitetemplates.apply_look(tenant, look):
-            messages.success(request, _("Vorlage übernommen."))
+            messages.success(request, _("Design übernommen."))
         else:
-            messages.error(request, _("Unbekannte Vorlage."))
+            messages.error(request, _("Dieses Design gibt es nicht."))
         return redirect("design")
     from apps.tenants import demo, siteconfig
 
     cfg = siteconfig.normalize(tenant.site_config)
     back_url = _studio_back_url(request)
+    # FB-27 D-b: «Übernehmen» открывает панель «что изменится» — выбранный дизайн только
+    # из предложенных этому бизнесу; мусор панели не даёт.
+    confirm = None
+    wanted = request.GET.get("confirm", "")
+    if wanted:
+        chosen = next(
+            (
+                b
+                for b in sitetemplates.bundles_for(tenant.business_type, tenant)
+                if b["key"] == wanted
+            ),
+            None,
+        )
+        changes = design_changes(tenant, wanted) if chosen else None
+        if changes is not None:
+            confirm = {"key": wanted, "label": chosen["label"], "changes": changes}
     tab = request.GET.get("tab", "")
     if tab not in DESIGN_TABS:
         tab = DESIGN_TABS[0]
@@ -219,7 +322,10 @@ def design_view(request):
             # STU-12g: глобальный дизайн сайта — цвет/шрифт/типографика/тема/карточки.
             "accent": tenant.primary_color or "#4f46e5",
             "font": cfg.get("font", ""),
-            "font_options": _choices(cfg.get("font", "") or "system", FONT_OPTIONS),
+            "font_options": [
+                (value, font_label(value) if value == label else label, picked)
+                for value, label, picked in _choices(cfg.get("font", "") or "system", FONT_OPTIONS)
+            ],
             "typo_weight_head": (cfg.get("typography") or {}).get("weight_head", ""),
             "typo_line_height": (cfg.get("typography") or {}).get("line_height", ""),
             "typo_weight_options": _choices(
@@ -257,5 +363,8 @@ def design_view(request):
             "next_q": f"&{urlencode({'next': back_url})}" if back_url else "",
             "tab": tab,
             "tabs": _tabs(),
+            "confirm": confirm,
+            "show_all": request.GET.get("alle") == "1",
+            "business_label": tenant.get_business_type_display(),
         },
     )

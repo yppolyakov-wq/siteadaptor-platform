@@ -2030,7 +2030,24 @@ def apply_bundle_config(config: dict, key: str) -> bool:
     return True
 
 
-def apply_bundle(tenant, key) -> bool:
+# FB-27 «Design» (решение владельца 2026-11-13): без «Startseite neu aufbauen» готовый
+# дизайн меняет только ВИД. Это оси сборки, которые красят, но не переставляют: состав,
+# порядок и включённость секций, наборы блоков страниц, виджет первого экрана, шапка и
+# группировка страницы акций остаются владельцу.
+_BUNDLE_SKIN_AXES = frozenset(
+    {
+        "hero_style",
+        "catalog_layout",
+        "media_shape",
+        "card_style",
+        "promo_card",
+        "section_styles",
+        "section_layouts",
+    }
+)
+
+
+def apply_bundle(tenant, key, *, rebuild_home: bool = True) -> bool:
     """DS-3c: применить сборку — apply_look (полная копия конфига, W6-инвариант)
     + таргетные оси поверх. Идемпотентно (двойной normalize); False — неизвестный
     ключ. Секция anfrage включается, но её рендер остаётся за гейтом модуля jobs
@@ -2040,9 +2057,22 @@ def apply_bundle(tenant, key) -> bool:
         return False
     # Сборка = композиция целиком: оси, которых она не объявляет, обязаны
     # сброситься к семейству (иначе переключение сборок «накапливало» бы прежние).
+    kept_widget = (siteconfig.normalize(tenant.site_config).get("site_defaults") or {}).get(
+        "hero_widget"
+    )
     apply_look(tenant, bundle["look"], keep_owner_sd=False)
     config = siteconfig.normalize(tenant.site_config)
-    _apply_bundle_axes(config, bundle["config"])
+    over = bundle["config"]
+    if not rebuild_home:
+        over = {k: v for k, v in over.items() if k in _BUNDLE_SKIN_AXES}
+        # виджет первого экрана — раскладка, а не вид: остаётся как был
+        sd = dict(config.get("site_defaults") or {})
+        if kept_widget:
+            sd["hero_widget"] = kept_widget
+        else:
+            sd.pop("hero_widget", None)
+        config["site_defaults"] = sd
+    _apply_bundle_axes(config, over)
     # DL-8a: запомнить выбранную сборку (бейдж «Aktiv» страницы Design).
     config["design"] = {"look": bundle["look"], "bundle": key}
     tenant.site_config = siteconfig.normalize(config)

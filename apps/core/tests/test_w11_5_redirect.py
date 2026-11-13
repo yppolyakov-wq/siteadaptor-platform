@@ -93,7 +93,7 @@ def test_studio_carries_all_site_page_functions():
     dreq = _req("get", "/dashboard/design/", tenant=tenant)
     dreq.user = SimpleNamespace(is_authenticated=True)
     design = design_page.design_view(dreq).content.decode()
-    assert 'value="apply_template"' in design  # шаблоны витрины
+    assert "data-design-card=" in design  # готовые дизайны (FB-27 D-b: вместо шаблонов)
     assert 'value="load_demo"' in design or 'value="clear_demo"' in design  # демо-контент
     # FB-27 D-a: быстрый заказ на карточках — на вкладке «Karten & Fotos»
     kreq = _req("get", "/dashboard/design/?tab=karten", tenant=tenant)

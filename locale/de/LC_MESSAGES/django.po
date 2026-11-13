@@ -37611,3 +37611,76 @@ msgstr "So sieht Ihre ganze Website aus: Farben, Schrift, Karten und Fotos."
 #, python-format
 msgid "Höchstens %(max)s."
 msgstr "Höchstens %(max)s."
+
+#, python-format
+msgid "Höchstens %(max)s. Sind Reihen gewählt, zählt Spalten × Reihen."
+msgstr "Höchstens %(max)s. Sind Reihen gewählt, zählt Spalten × Reihen."
+
+msgid "Akzentfarbe"
+msgstr "Akzentfarbe"
+
+#, python-format
+msgid "Alle %(n)s Designs anzeigen"
+msgstr "Alle %(n)s Designs anzeigen"
+
+msgid "Alle Designs"
+msgstr "Alle Designs"
+
+msgid "Alle Texte, Fotos und Seiten"
+msgstr "Alle Texte, Fotos und Seiten"
+
+msgid "Auch die Startseite neu aufbauen (ersetzt die Blöcke der Startseite)"
+msgstr "Auch die Startseite neu aufbauen (ersetzt die Blöcke der Startseite)"
+
+msgid "Beispielinhalte zum Ausprobieren:"
+msgstr "Beispielinhalte zum Ausprobieren:"
+
+msgid "Das bleibt"
+msgstr "Das bleibt"
+
+msgid "Das ändert sich"
+msgstr "Das ändert sich"
+
+msgid "Design übernommen."
+msgstr "Design übernommen."
+
+msgid "Dieses Design gibt es nicht."
+msgstr "Dieses Design gibt es nicht."
+
+#, python-format
+msgid "Empfohlen für: %(kind)s"
+msgstr "Empfohlen für: %(kind)s"
+
+msgid "Farben, Schrift und Karten sehen bereits so aus."
+msgstr "Farben, Schrift und Karten sehen bereits so aus."
+
+msgid "Hintergrund"
+msgstr "Hintergrund"
+
+msgid "Jetzt übernehmen"
+msgstr "Jetzt übernehmen"
+
+msgid "Menü und Fußzeile"
+msgstr "Menü und Fußzeile"
+
+msgid "Produkte je Reihe auf der Startseite"
+msgstr "Produkte je Reihe auf der Startseite"
+
+msgid "Produktkarte"
+msgstr "Produktkarte"
+
+msgid "Reihenfolge Ihrer Blöcke"
+msgstr "Reihenfolge Ihrer Blöcke"
+
+msgid "dunkel"
+msgstr "dunkel"
+
+msgid "hell"
+msgstr "hell"
+
+#, python-format
+msgid "„%(name)s“ übernehmen?"
+msgstr "„%(name)s“ übernehmen?"
+
+msgid "Ändert Farben, Schrift und Kartenform. Ihre Texte und Blöcke bleiben."
+msgstr "Ändert Farben, Schrift und Kartenform. Ihre Texte und Blöcke bleiben."

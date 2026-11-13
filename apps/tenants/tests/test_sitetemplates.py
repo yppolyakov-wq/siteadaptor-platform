@@ -266,8 +266,10 @@ def test_builder_template_gallery_renders(rf, settings):
     tenant = TenantFactory(schema_name="t_view2", business_type="bakery", disabled_modules=[])
     user = get_user_model().objects.create_user("u2", "u2@test.de", "pw12345678")
 
+    # FB-27 D-b (осознанная переписка): карточек шаблонов на экране нет — их место
+    # заняли готовые дизайны этого типа бизнеса.
     html = design_view(_request(rf, "get", user, tenant)).content.decode()
-    assert "Klassischer Laden" in html  # карточка шаблона в галерее (bakery)
+    assert "data-design-card=" in html and "Klassischer Laden" not in html
     # DL-7a: чужой отраслевой пресет в галерее больше не показывается.
     assert "Café &amp; Restaurant" not in html
 

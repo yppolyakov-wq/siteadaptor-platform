@@ -286,7 +286,9 @@ def builtin_groups(request, cfg: dict, key: str, data: dict, mode: str = "") -> 
                 fields = [f for f in fields if f["name"] != "limit"]
             for f in fields:
                 if f["name"] == "limit":
-                    f["hint"] = _("Höchstens %(max)s.") % {"max": siteconfig._SECTION_LIMIT_MAX}
+                    f["hint"] = _(
+                        "Höchstens %(max)s. Sind Reihen gewählt, zählt Spalten × Reihen."
+                    ) % {"max": siteconfig._SECTION_LIMIT_MAX}
         else:
             for f in fields:
                 if f["name"] in ("out", "cols"):  # у секции свой вид — «как у страницы» нет
