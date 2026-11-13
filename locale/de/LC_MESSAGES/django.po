@@ -37468,3 +37468,32 @@ msgstr "Text und Blöcke dieser Seite werden entfernt. Das lässt sich nicht rü
 
 msgid "Verlinkt in"
 msgstr "Verlinkt in"
+
+msgid "Bereiche der Seite"
+msgstr "Bereiche der Seite"
+
+msgid "Blöcke dieser Seite"
+msgstr "Blöcke dieser Seite"
+
+msgid "Die Blöcke ändert, wer das Recht für den Seitenaufbau hat."
+msgstr "Die Blöcke ändert, wer das Recht für den Seitenaufbau hat."
+
+msgid "Ihr Text"
+msgstr "Ihr Text"
+
+msgid "Neue Blöcke, Breite und Inhalt der Blöcke stellen Sie im Seitenaufbau ein."
+msgstr "Neue Blöcke, Breite und Inhalt der Blöcke stellen Sie im Seitenaufbau ein."
+
+msgid "Vorschau der Seite"
+msgstr "Vorschau der Seite"
+
+msgid "gespeicherter Stand"
+msgstr "gespeicherter Stand"
+
+#, python-format
+msgid "„%(t)s“ nach oben"
+msgstr "„%(t)s“ nach oben"
+
+#, python-format
+msgid "„%(t)s“ nach unten"
+msgstr "„%(t)s“ nach unten"

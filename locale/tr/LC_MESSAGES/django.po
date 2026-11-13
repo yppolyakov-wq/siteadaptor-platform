@@ -37527,3 +37527,32 @@ msgstr "Bu sayfanın metni ve blokları kaldırılır. Bu işlem geri alınamaz.
 
 msgid "Verlinkt in"
 msgstr "Bağlantı yeri"
+
+msgid "Bereiche der Seite"
+msgstr "Sayfanın bölümleri"
+
+msgid "Blöcke dieser Seite"
+msgstr "Bu sayfanın blokları"
+
+msgid "Die Blöcke ändert, wer das Recht für den Seitenaufbau hat."
+msgstr "Blokları, sayfa düzeni yetkisi olan kişi değiştirir."
+
+msgid "Ihr Text"
+msgstr "Metniniz"
+
+msgid "Neue Blöcke, Breite und Inhalt der Blöcke stellen Sie im Seitenaufbau ein."
+msgstr "Yeni bloklar, genişlikleri ve içerikleri sayfa düzeninde ayarlanır."
+
+msgid "Vorschau der Seite"
+msgstr "Sayfa önizlemesi"
+
+msgid "gespeicherter Stand"
+msgstr "kaydedilmiş hali"
+
+#, python-format
+msgid "„%(t)s“ nach oben"
+msgstr "“%(t)s” yukarı"
+
+#, python-format
+msgid "„%(t)s“ nach unten"
+msgstr "“%(t)s” aşağı"

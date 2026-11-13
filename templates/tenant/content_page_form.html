@@ -13,7 +13,9 @@
   </div>
 
   {% include "tenant/_settings_messages.html" %}
+  {% if has_tabs %}{% include "tenant/_page_tabs.html" %}{% endif %}
 
+  {% if tab == "bloecke" %}{% include "tenant/_page_blocks_tab.html" %}{% else %}
   {% if confirm_delete and 'content-page-new'|can_open:request %}
   {% comment %}FB-27 «Seiten»: удаление — отдельный шаг с вопросом; работает и без скриптов.{% endcomment %}
   <section id="seite-loeschen" class="ui-card p-4 mb-4 border border-red-300" role="region" aria-labelledby="seite-loeschen-title" data-page-delete-confirm>
@@ -76,6 +78,7 @@
 
   {% if is_saved and 'content-page-new'|can_open:request and not confirm_delete %}
   <p class="mt-4 text-sm"><a href="?loeschen=1#seite-loeschen" class="inline-flex items-center min-h-[44px] text-gray-600 underline hover:text-gray-900" data-page-delete-link>{% if is_system %}{% trans "Eigenen Text entfernen …" %}{% else %}{% trans "Seite löschen …" %}{% endif %}</a></p>
+  {% endif %}
   {% endif %}
 </div>
 {% rte_link_targets %}

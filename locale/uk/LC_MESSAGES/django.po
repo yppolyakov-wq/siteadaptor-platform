@@ -37707,3 +37707,32 @@ msgstr "Текст і блоки цієї сторінки буде видале
 
 msgid "Verlinkt in"
 msgstr "Де є посилання"
+
+msgid "Bereiche der Seite"
+msgstr "Розділи сторінки"
+
+msgid "Blöcke dieser Seite"
+msgstr "Блоки цієї сторінки"
+
+msgid "Die Blöcke ändert, wer das Recht für den Seitenaufbau hat."
+msgstr "Блоки змінює той, хто має право на структуру сторінок."
+
+msgid "Ihr Text"
+msgstr "Ваш текст"
+
+msgid "Neue Blöcke, Breite und Inhalt der Blöcke stellen Sie im Seitenaufbau ein."
+msgstr "Нові блоки, їхню ширину та вміст задають у структурі сторінок."
+
+msgid "Vorschau der Seite"
+msgstr "Попередній перегляд сторінки"
+
+msgid "gespeicherter Stand"
+msgstr "збережений стан"
+
+#, python-format
+msgid "„%(t)s“ nach oben"
+msgstr "«%(t)s» вище"
+
+#, python-format
+msgid "„%(t)s“ nach unten"
+msgstr "«%(t)s» нижче"

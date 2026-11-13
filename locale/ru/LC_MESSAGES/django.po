@@ -37720,3 +37720,32 @@ msgstr "Текст и блоки этой страницы будут удале
 
 msgid "Verlinkt in"
 msgstr "Где есть ссылка"
+
+msgid "Bereiche der Seite"
+msgstr "Разделы страницы"
+
+msgid "Blöcke dieser Seite"
+msgstr "Блоки этой страницы"
+
+msgid "Die Blöcke ändert, wer das Recht für den Seitenaufbau hat."
+msgstr "Блоки меняет тот, у кого есть право на структуру страниц."
+
+msgid "Ihr Text"
+msgstr "Ваш текст"
+
+msgid "Neue Blöcke, Breite und Inhalt der Blöcke stellen Sie im Seitenaufbau ein."
+msgstr "Новые блоки, их ширину и содержимое задают в структуре страниц."
+
+msgid "Vorschau der Seite"
+msgstr "Предпросмотр страницы"
+
+msgid "gespeicherter Stand"
+msgstr "сохранённое состояние"
+
+#, python-format
+msgid "„%(t)s“ nach oben"
+msgstr "«%(t)s» выше"
+
+#, python-format
+msgid "„%(t)s“ nach unten"
+msgstr "«%(t)s» ниже"

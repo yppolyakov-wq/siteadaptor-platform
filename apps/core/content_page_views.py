@@ -86,6 +86,33 @@ def pages_list(request):
     )
 
 
+#: FB-27 «Seiten»: вкладки страницы (`?tab=`); «text» — по умолчанию.
+PAGE_TABS = ("bloecke",)
+
+
+def _blocks_tab(request, slug: str) -> dict:
+    """Вкладка «Blöcke»: блоки страницы из «Seitenaufbau» (с его черновиком). Правки идут
+    теми же операциями на тот же экран — второго писателя нет."""
+    from urllib.parse import urlencode
+
+    from apps.core import aufbau_draft, site_schema
+    from apps.tenants import siteconfig
+
+    tenant = getattr(request, "tenant", None)
+    host, code = content_pages.schema_ref(slug)
+    saved = siteconfig.normalize(getattr(tenant, "site_config", None) or {})
+    draft = aufbau_draft.get(request, code)
+    config = aufbau_draft.overlay(saved, draft) if draft else saved
+    query = {"preview": "1", "aufbau": code} if draft else {"preview": "1", "stand": "saved"}
+    return {
+        "schema_code": code,
+        "schema_blocks": site_schema.blocks_for(config, code, host=host),
+        "schema_draft": aufbau_draft.info(request, saved, code) if draft else None,
+        "schema_url": f"{reverse('site-schema')}?{urlencode({'seite': code})}",
+        "schema_preview_query": urlencode(query),
+    }
+
+
 def _form(request, page, *, created: bool):
     """Форма страницы. Системная (Über uns/Versand) — с закреплённым адресом."""
     # UUID-pk есть и у несохранённой страницы — признак записи в БД только _state.
@@ -113,10 +140,19 @@ def _form(request, page, *, created: bool):
         else:
             messages.success(request, _("Seite angelegt.") if created else _("Seite gespeichert."))
             return redirect("content-page-edit", pk=page.pk)
+    # FB-27 «Seiten»: вкладки страницы — Text · Blöcke · Suchmaschinen. У новой своей
+    # страницы адреса ещё нет — только Text; неизвестная вкладка — тоже Text.
+    schema_slug = saved_slug or (page.slug if page.slug in content_pages.SYSTEM_PAGES else "")
+    tab = request.GET.get("tab", "")
+    tab = tab if schema_slug and tab in PAGE_TABS else "text"
+    extra = _blocks_tab(request, schema_slug) if tab == "bloecke" else {}
     return render(
         request,
         "tenant/content_page_form.html",
         {
+            **extra,
+            "tab": tab,
+            "has_tabs": bool(schema_slug),
             "page": page,
             "created": created,
             "page_url": content_pages.page_url(

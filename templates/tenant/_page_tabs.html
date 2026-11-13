@@ -1,0 +1,6 @@
+{% load i18n %}{% comment %}FB-27 «Seiten» (макет S2): вкладки страницы. Обычные ссылки `?tab=` —
+работают без скриптов; текущая отмечена `aria-current`.{% endcomment %}
+<nav class="mb-4 flex gap-1 border-b border-gray-200 overflow-x-auto" aria-label="{% trans 'Bereiche der Seite' %}" data-page-tabs>
+  <a href="?" class="inline-flex items-center min-h-[44px] px-4 text-sm font-semibold border-b-2 -mb-px whitespace-nowrap {% if tab == 'text' %}border-indigo-700 text-indigo-700{% else %}border-transparent text-gray-600 hover:text-gray-900{% endif %}"{% if tab == 'text' %} aria-current="page"{% endif %} data-page-tab="text">{% trans "Text" %}</a>
+  <a href="?tab=bloecke" class="inline-flex items-center min-h-[44px] px-4 text-sm font-semibold border-b-2 -mb-px whitespace-nowrap {% if tab == 'bloecke' %}border-indigo-700 text-indigo-700{% else %}border-transparent text-gray-600 hover:text-gray-900{% endif %}"{% if tab == 'bloecke' %} aria-current="page"{% endif %} data-page-tab="bloecke">{% trans "Blöcke" %}</a>
+</nav>

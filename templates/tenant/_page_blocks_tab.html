@@ -1,0 +1,63 @@
+{% load i18n cabinet %}{% comment %}FB-27 «Seiten» (макет S2): вкладка «Blöcke» — что стоит на странице кроме
+её текста. Строки и черновик — из «Seitenaufbau»; кнопки шлют те же операции на тот же
+экран и возвращаются сюда (`zurueck=seiten`). Без права на «Seitenaufbau» — только чтение.{% endcomment %}
+{% with can_edit='site-schema'|can_open:request %}
+{% if schema_draft and can_edit %}
+<form method="post" action="{% url 'site-schema' %}" class="ui-card p-3 mb-4 flex flex-wrap items-center gap-3 border border-amber-300" data-page-blocks-draft>
+  {% csrf_token %}
+  <input type="hidden" name="seite" value="{{ schema_code }}">
+  <input type="hidden" name="zurueck" value="seiten">
+  <p role="status" class="flex-1 min-w-[12rem] text-sm text-amber-900">
+    <strong>{% trans "Entwurf" %}</strong> ·
+    {% blocktrans count n=schema_draft.count %}{{ n }} Änderung noch nicht auf der Website{% plural %}{{ n }} Änderungen noch nicht auf der Website{% endblocktrans %}
+  </p>
+  <button name="op" value="discard" class="ui-btn ui-btn-secondary">{% trans "Verwerfen" %}</button>
+  {% if not schema_draft.conflict %}<button name="op" value="save" class="ui-btn ui-btn-primary">{% trans "Speichern" %}</button>{% endif %}
+</form>
+{% endif %}
+<div class="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-4 items-start" data-page-blocks-tab>
+  <section class="ui-card p-4" aria-labelledby="page-blocks-title">
+    <h2 id="page-blocks-title" class="font-semibold mb-3">{% trans "Blöcke dieser Seite" %}</h2>
+    <ul class="space-y-2">
+      <li class="flex items-center justify-between gap-2 rounded-xl border border-dashed border-gray-300 bg-gray-50 px-3 py-2 text-sm">
+        <span class="font-medium">{% trans "Ihr Text" %}</span>
+        <a href="?" class="inline-flex items-center min-h-[44px] font-semibold text-indigo-700 hover:underline">{% trans "Text bearbeiten" %}</a>
+      </li>
+      {% for b in schema_blocks %}{% if not b.main %}
+      <li class="flex items-center gap-2 rounded-xl border px-3 py-2 text-sm {% if b.enabled %}border-gray-300 bg-white{% else %}border-gray-200 bg-gray-50 text-gray-600{% endif %}" data-page-block="{{ b.ref }}">
+        <span class="min-w-0 flex-1">
+          <span class="font-medium break-words">{{ b.label }}</span>
+          {% if b.summary %}<span class="block text-xs text-gray-600 break-words">{{ b.summary }}</span>{% endif %}
+          {% if not b.enabled %}<span class="block text-xs text-gray-600">{% trans "Ausgeblendet" %}</span>{% endif %}
+        </span>
+        {% if can_edit %}
+        <form method="post" action="{% url 'site-schema' %}" class="flex items-center gap-1 shrink-0">
+          {% csrf_token %}
+          <input type="hidden" name="seite" value="{{ schema_code }}">
+          <input type="hidden" name="ref" value="{{ b.ref }}">
+          <input type="hidden" name="zurueck" value="seiten">
+          {% if not b.fixed %}
+          <button name="op" value="up" class="ui-btn ui-btn-secondary min-w-[44px] min-h-[44px] px-0 justify-center"{% if not b.can_up %} disabled{% endif %} aria-label="{% blocktrans with t=b.label %}„{{ t }}“ nach oben{% endblocktrans %}"><span aria-hidden="true">↑</span></button>
+          <button name="op" value="down" class="ui-btn ui-btn-secondary min-w-[44px] min-h-[44px] px-0 justify-center"{% if not b.can_down %} disabled{% endif %} aria-label="{% blocktrans with t=b.label %}„{{ t }}“ nach unten{% endblocktrans %}"><span aria-hidden="true">↓</span></button>
+          {% endif %}
+          <button name="op" value="toggle" class="ui-btn ui-btn-secondary min-h-[44px]">{% if b.enabled %}{% trans "Ausblenden" %}{% else %}{% trans "Einblenden" %}{% endif %}<span class="sr-only">: {{ b.label }}</span></button>
+        </form>
+        {% endif %}
+      </li>
+      {% endif %}{% endfor %}
+    </ul>
+    {% if can_edit %}
+    <p class="mt-3 text-sm"><a href="{{ schema_url }}" class="inline-flex items-center min-h-[44px] font-semibold text-indigo-700 hover:underline" data-page-blocks-add>＋ {% trans "Block hinzufügen" %}</a></p>
+    <p class="text-xs text-gray-600">{% trans "Neue Blöcke, Breite und Inhalt der Blöcke stellen Sie im Seitenaufbau ein." %}</p>
+    {% else %}
+    <p class="mt-3 text-xs text-gray-600" data-page-blocks-readonly><span aria-hidden="true">🔒</span> {% trans "Die Blöcke ändert, wer das Recht für den Seitenaufbau hat." %}</p>
+    {% endif %}
+  </section>
+  {% if page_url %}
+  <details class="ui-card p-4" data-page-blocks-preview open>
+    <summary class="font-semibold cursor-pointer min-h-[44px] flex items-center">{% trans "Vorschau" %} · {% if schema_draft %}{% trans "Entwurf" %}{% else %}{% trans "gespeicherter Stand" %}{% endif %}</summary>
+    <iframe src="{{ page_url }}?{{ schema_preview_query }}" title="{% trans 'Vorschau der Seite' %}" loading="lazy" class="mt-2 w-full h-[70vh] rounded-lg border border-gray-200 bg-white"></iframe>
+  </details>
+  {% endif %}
+</div>
+{% endwith %}

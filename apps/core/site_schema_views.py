@@ -151,6 +151,14 @@ def site_schema_view(request):
             base, anchor = target.split("#", 1)
             opened = urlencode({"offen": request.POST.get("setting", "")})
             target = f"{base}&{opened}#{anchor}"
+        if request.POST.get("zurueck") == "seiten":
+            # FB-27 «Seiten»: действие пришло со вкладки «Blöcke» страницы — возвращаемся
+            # туда. Адрес — по имени маршрута из кода страницы, не из запроса.
+            from apps.core import content_pages
+
+            back = content_pages.edit_url_for_code(code)
+            if back:
+                return redirect(f"{back}?tab=bloecke")
         return redirect(target)
     saved = siteconfig.normalize(tenant.site_config)
     groups = site_schema.type_groups(tenant, saved)

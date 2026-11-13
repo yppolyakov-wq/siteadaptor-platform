@@ -37381,3 +37381,32 @@ msgstr "The text and blocks of this page will be removed. This cannot be undone.
 
 msgid "Verlinkt in"
 msgstr "Linked in"
+
+msgid "Bereiche der Seite"
+msgstr "Sections of the page"
+
+msgid "Blöcke dieser Seite"
+msgstr "Blocks of this page"
+
+msgid "Die Blöcke ändert, wer das Recht für den Seitenaufbau hat."
+msgstr "Blocks can be changed by whoever has the right for the page layout."
+
+msgid "Ihr Text"
+msgstr "Your text"
+
+msgid "Neue Blöcke, Breite und Inhalt der Blöcke stellen Sie im Seitenaufbau ein."
+msgstr "New blocks, their width and content are set in the page layout."
+
+msgid "Vorschau der Seite"
+msgstr "Preview of the page"
+
+msgid "gespeicherter Stand"
+msgstr "saved version"
+
+#, python-format
+msgid "„%(t)s“ nach oben"
+msgstr "Move “%(t)s” up"
+
+#, python-format
+msgid "„%(t)s“ nach unten"
+msgstr "Move “%(t)s” down"

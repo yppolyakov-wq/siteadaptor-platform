@@ -500,6 +500,40 @@ def all_rows(tenant=None) -> list:
     return rows
 
 
+def schema_ref(slug: str) -> tuple[str, str]:
+    """FB-27 «Seiten»: (хост блоков, код строки «Seitenaufbau») страницы с адресом `slug`."""
+    from apps.core import site_schema
+
+    host = {"ueber-uns": "info", "versand": "versand"}.get(slug) or f"seite:{slug}"
+    return host, (site_schema.TEXT if host == "info" else f"{site_schema.TEXT}@{host}")
+
+
+def edit_url_for_code(code: str) -> str:
+    """Адрес редактора страницы, чью схему открывает код «Seitenaufbau» (`text`,
+    `text@versand`, `text@seite:<slug>`); «» — такой страницы нет. Адрес собирается по
+    имени маршрута — возврат из «Seitenaufbau» не принимает адрес из запроса."""
+    from apps.core import site_schema
+    from apps.core.models import ContentPage
+
+    base, _sep, host = str(code or "").partition("@")
+    if base != site_schema.TEXT:
+        return ""
+    if not host:
+        slug = "ueber-uns"
+    elif host == "versand":
+        slug = host
+    elif host.startswith("seite:"):
+        slug = host[len("seite:") :]
+    else:
+        return ""
+    pk = ContentPage.objects.filter(slug=slug).values_list("pk", flat=True).first()
+    if pk is not None:
+        return reverse("content-page-edit", args=[pk])
+    if slug in SYSTEM_PAGES:
+        return reverse("content-page-system", args=[slug])
+    return ""
+
+
 def _attach_blocks(rows: list, tenant) -> None:
     """FB-27 «Seiten»: колонка «Blöcke» — что стоит на странице кроме её текста, и адрес
     её схемы в «Seitenaufbau». Один normalize на весь список, без запросов на строку; у
@@ -520,9 +554,14 @@ def _attach_blocks(rows: list, tenant) -> None:
         if row.kind == "legal":
             continue
         slug = row.key.split(":", 1)[1]
-        host = {"ueber-uns": "info", "versand": "versand"}.get(slug) if row.kind == "system" else ""
-        host = host or f"seite:{slug}"
-        code = site_schema.TEXT if host == "info" else f"{site_schema.TEXT}@{host}"
+        host, code = (
+            schema_ref(slug)
+            if row.kind == "system"
+            else (
+                f"seite:{slug}",
+                f"{site_schema.TEXT}@seite:{slug}",
+            )
+        )
         row.host = host
         row.schema_url = f"{reverse('site-schema')}?seite={code}"
         try:
