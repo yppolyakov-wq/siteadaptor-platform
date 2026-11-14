@@ -132,3 +132,53 @@ def test_studio_points_to_the_library_for_banner_blocks():
 
 def test_deploy_runs_the_move():
     assert "import_banners" in pathlib.Path("scripts/deploy.sh").read_text()
+
+
+# --- ревью S7 (silent-failure-hunter) и остатки S8 ---
+
+
+def test_same_block_id_on_two_pages_ends_up_in_the_library_once():
+    tenant = _tenant(
+        page_blocks={
+            "info": [_block("dup", title="Kopie")],
+            "versand": [_block("dup", title="Kopie")],
+        }
+    )
+    report = banners.import_legacy(tenant)
+    assert report == {"created": 1, "skipped": 0}
+    cfg = _fresh(tenant)
+    picks = [cfg["page_blocks"][h][0]["data"]["pick"] for h in ("info", "versand")]
+    assert picks[0] == picks[1] and len(picks[0]) == 1
+
+
+def test_library_banner_in_a_block_has_no_photo_edit_marker():
+    b = banners.create({"title": "Aus der Bibliothek", "image": {"url": "/media/hero/a.jpg"}})
+    html = _html(TenantFactory.build(), {"pick": [str(b.pk)]})
+    assert "Aus der Bibliothek" in html and "data-sf-media-slot" not in html
+
+
+def test_deleted_banners_do_not_fill_the_place():
+    import uuid
+
+    from apps.core.modules import default_disabled_for
+
+    tenant = TenantFactory(
+        business_type="online_shop", disabled_modules=list(default_disabled_for("online_shop"))
+    )
+    ghosts = [str(uuid.uuid4()) for _ in range(siteconfig.BANNER_PICK_MAX)]
+    tenant.site_config = {"hero_banners": {"pick": ghosts}}
+    tenant.save(update_fields=["site_config"])
+    alive = banners.create({"title": "Neu", "image": {"url": "/media/hero/a.jpg"}})
+    site_schema.apply(tenant, "home", "pick_add", ref="hero", value=str(alive.pk))
+    assert _fresh(tenant)["hero_banners"]["pick"] == [str(alive.pk)]
+
+
+def test_picker_survives_a_missing_table(monkeypatch):
+    from django.db import DatabaseError
+
+    def boom(*_a, **_k):
+        raise DatabaseError("no table")
+
+    monkeypatch.setattr(banners, "_pick_state", boom)
+    state = banners.pick_state(RequestFactory().get("/"), {"pick": ["x"]})
+    assert state["unavailable"] is True and state["entries"] == []

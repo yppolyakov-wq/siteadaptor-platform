@@ -38046,3 +38046,19 @@ msgstr "Sayfa düzenini aç"
 
 msgid "Banner kommen aus der Bibliothek. Welche hier laufen, wählen Sie im Seitenaufbau an diesem Block."
 msgstr "Bannerlar kitaplıktan gelir. Burada hangilerinin döneceğini sayfa düzeninde bu blokta seçersiniz."
+
+msgid "Hinzugefügt."
+msgstr "Eklendi."
+
+msgid "Nach oben verschoben."
+msgstr "Yukarı taşındı."
+
+msgid "Nach unten verschoben."
+msgstr "Aşağı taşındı."
+
+#, python-format
+msgid "Zurück zu «%(name)s»"
+msgstr "«%(name)s» sayfasına dön"
+
+msgid "Diese Blöcke erscheinen nur auf dieser einen Seite."
+msgstr "Bu bloklar yalnızca bu sayfada görünür."

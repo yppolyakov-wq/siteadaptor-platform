@@ -48,6 +48,14 @@ def _panel_fields(post) -> dict | None:
     }
 
 
+_PICK_SAID = {
+    "pick_add": _("Hinzugefügt."),
+    "pick_remove": _("Entfernt."),
+    "pick_up": _("Nach oben verschoben."),
+    "pick_down": _("Nach unten verschoben."),
+}
+
+
 @login_required
 def site_schema_view(request):
     from apps.core import aufbau_draft
@@ -126,6 +134,11 @@ def site_schema_view(request):
                     # той же страницы не должны стирать текст блока).
                     fields=_panel_fields(request.POST),
                 )
+                # S8: у действий выбора баннера — сообщение (после «убрать» кнопка, на
+                # которой стоял фокус, исчезает; читатель экрана слышит, что произошло).
+                said = _PICK_SAID.get(op)
+                if said and request.POST.get("pick_op"):
+                    messages.success(request, said)
         except page_settings.PageSettingError:
             if op == "save":
                 # Черновик остаётся: владелец видит, что именно не записалось, и может
@@ -310,6 +323,8 @@ def site_schema_view(request):
                 if code.startswith(f"{site_schema.CATEGORY}@")
                 else None
             ),
+            # FB-29.4b S8: со строки своих блоков объекта — ссылка назад к нему
+            "object_back": site_schema.object_back(code),
             "add_groups": site_schema.add_groups(code, saved),
             "row_options": site_schema.row_options(),
             "studio_url": studio,

@@ -37900,3 +37900,19 @@ msgstr "Open page layout"
 
 msgid "Banner kommen aus der Bibliothek. Welche hier laufen, wählen Sie im Seitenaufbau an diesem Block."
 msgstr "Banners come from the library. Which ones run here is chosen at this block in the page layout."
+
+msgid "Hinzugefügt."
+msgstr "Added."
+
+msgid "Nach oben verschoben."
+msgstr "Moved up."
+
+msgid "Nach unten verschoben."
+msgstr "Moved down."
+
+#, python-format
+msgid "Zurück zu «%(name)s»"
+msgstr "Back to “%(name)s”"
+
+msgid "Diese Blöcke erscheinen nur auf dieser einen Seite."
+msgstr "These blocks appear only on this one page."

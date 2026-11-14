@@ -38226,3 +38226,19 @@ msgstr "Відкрити структуру сторінок"
 
 msgid "Banner kommen aus der Bibliothek. Welche hier laufen, wählen Sie im Seitenaufbau an diesem Block."
 msgstr "Банери беруться з бібліотеки. Які йдуть тут — вибирається біля цього блоку в структурі сторінки."
+
+msgid "Hinzugefügt."
+msgstr "Додано."
+
+msgid "Nach oben verschoben."
+msgstr "Переміщено вище."
+
+msgid "Nach unten verschoben."
+msgstr "Переміщено нижче."
+
+#, python-format
+msgid "Zurück zu «%(name)s»"
+msgstr "Назад до «%(name)s»"
+
+msgid "Diese Blöcke erscheinen nur auf dieser einen Seite."
+msgstr "Ці блоки показуються лише на цій сторінці."

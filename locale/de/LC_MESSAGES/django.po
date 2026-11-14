@@ -37987,3 +37987,19 @@ msgstr "Seitenaufbau öffnen"
 
 msgid "Banner kommen aus der Bibliothek. Welche hier laufen, wählen Sie im Seitenaufbau an diesem Block."
 msgstr "Banner kommen aus der Bibliothek. Welche hier laufen, wählen Sie im Seitenaufbau an diesem Block."
+
+msgid "Hinzugefügt."
+msgstr "Hinzugefügt."
+
+msgid "Nach oben verschoben."
+msgstr "Nach oben verschoben."
+
+msgid "Nach unten verschoben."
+msgstr "Nach unten verschoben."
+
+#, python-format
+msgid "Zurück zu «%(name)s»"
+msgstr "Zurück zu «%(name)s»"
+
+msgid "Diese Blöcke erscheinen nur auf dieser einen Seite."
+msgstr "Diese Blöcke erscheinen nur auf dieser einen Seite."

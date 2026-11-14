@@ -420,27 +420,28 @@ def place_banners(context, kind, obj):
     key = banners.place_key(kind, obj) if request else ""
     if not key:
         return ""
-    # S6: место баннеров задаёт структура — блок «Banner» с источником «баннеры этой
-    # страницы». Стоит такой блок — это место по умолчанию молчит.
-    hexed = getattr(getattr(obj, "pk", None), "hex", "")
-    try:
-        from apps.core import page_settings
-
-        config = siteconfig.normalize(page_settings.raw_config(request))
-    except Exception:  # noqa: BLE001 — превью не должно ронять витрину
-        config = siteconfig.normalize(getattr(request.tenant, "site_config", None))
-    if kind == "category":
-        own = siteconfig.category_host(getattr(obj, "slug", ""))
-        hosts = [own if siteconfig.has_own_schema(config, own) else "catalog"]
-    elif kind in ("product", "service"):
-        hosts = [f"{kind}_detail", f"{kind}:{hexed}"]
-    else:
-        hosts = []
-    if banners.place_block_present(config, hosts):
-        return ""
     picks = banners.picks_for_place(key)
     if not picks:
         return ""
+    # S6: место баннеров задаёт структура — блок «Banner» с источником «баннеры этой
+    # страницы». Стоит такой блок — это место по умолчанию молчит. Структуру читаем,
+    # только когда баннеры для страницы есть (обычная страница — один запрос, без разбора).
+    if kind in ("product", "service", "category"):
+        tenant = getattr(request, "tenant", None)
+        try:
+            from apps.core import page_settings
+
+            config = siteconfig.normalize(page_settings.raw_config(request))
+        except Exception:  # noqa: BLE001 — превью не должно ронять витрину
+            config = siteconfig.normalize(getattr(tenant, "site_config", None))
+        if kind == "category":
+            own = siteconfig.category_host(getattr(obj, "slug", ""))
+            hosts = [own if siteconfig.has_own_schema(config, own) else "catalog"]
+        else:
+            hexed = getattr(getattr(obj, "pk", None), "hex", "")
+            hosts = [f"{kind}_detail", f"{kind}:{hexed}"]
+        if banners.place_block_present(config, hosts):
+            return ""
     # `auto_place`: баннер стоит здесь сам, блока в схеме нет — без меток правки Студии
     block = {"pick": picks, "height": "sm", "arrows": len(picks) > 1, "auto_place": True}
     ctx = {**context.flatten(), "block": block, "is_preview": False}

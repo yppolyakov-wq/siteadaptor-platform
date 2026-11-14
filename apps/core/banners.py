@@ -351,20 +351,25 @@ def _banner_blocks(config: dict):
                 yield host, item
 
 
-def _block_translations(raw: dict, host: str, block_id: str, base: dict) -> dict:
-    """Переводы своего слайда блока — из того же локализованного конфига, что рисует сайт."""
+def _localized_configs(raw: dict) -> dict:
+    """Локализованный конфиг на каждую локаль с переводами — один раз на перенос."""
     import logging
 
     from apps.tenants import siteconfig
 
-    out: dict = {overlay: {} for _base, overlay in _I18N_FIELDS}
-    locales = [loc for loc in (raw.get("i18n") or {}) if isinstance(loc, str)]
-    for locale in locales:
+    out = {}
+    for locale in [loc for loc in (raw.get("i18n") or {}) if isinstance(loc, str)]:
         try:
-            shown = siteconfig.localize(siteconfig.normalize(raw), locale)
+            out[locale] = siteconfig.localize(siteconfig.normalize(raw), locale)
         except Exception:  # noqa: BLE001 — перенос важнее перевода одной локали
             logging.getLogger(__name__).exception("banner import: locale %s unreadable", locale)
-            continue
+    return out
+
+
+def _block_translations(shown_by_locale: dict, host: str, block_id: str, base: dict) -> dict:
+    """Переводы своего слайда блока — из того же локализованного конфига, что рисует сайт."""
+    out: dict = {overlay: {} for _base, overlay in _I18N_FIELDS}
+    for locale, shown in shown_by_locale.items():
         items = (
             shown.get("sections") or []
             if not host
@@ -397,10 +402,18 @@ def _import_blocks(raw: dict, schema_name: str, report: dict) -> bool:
         )
     )
     changed = False
+    shown_by_locale = _localized_configs(raw)  # до правок: переводы своих слайдов
+    made: dict = {}  # ключ → запись этого прогона: один id блока на двух страницах
     for host, block in _banner_blocks(raw):
         data = block.get("data") if isinstance(block.get("data"), dict) else {}
         key = f"{_BLOCK_PREFIX}{block['id']}"
-        if data.get("pick") or data.get("from_page") or key in done or len(key) > 80:
+        if data.get("pick") or data.get("from_page") or len(key) > 80:
+            continue
+        if key in made and any(str(data.get(f) or "").strip() for f in _OWN_SLIDE):
+            block["data"] = {**data, "pick": [made[key]]}  # тот же блок-копия — та же запись
+            changed = True
+            continue
+        if key in done:
             continue
         if not any(str(data.get(f) or "").strip() for f in _OWN_SLIDE):
             continue
@@ -417,10 +430,12 @@ def _import_blocks(raw: dict, schema_name: str, report: dict) -> bool:
             report["skipped"] += 1
             continue
         base = {field: getattr(banner, field) for field, _overlay in _I18N_FIELDS}
-        for overlay, value in _block_translations(raw, host, block["id"], base).items():
+        translations = _block_translations(shown_by_locale, host, block["id"], base)
+        for overlay, value in translations.items():
             setattr(banner, overlay, value)
         banner.save()
         block["data"] = {**data, "pick": [str(banner.pk)]}
+        made[key] = str(banner.pk)
         report["created"] += 1
         changed = True
     return changed
@@ -474,13 +489,31 @@ def pick_state(request, choice: dict, place_capable: bool = False) -> dict:
     """Панель «Seitenaufbau»: выбранные баннеры (в порядке владельца), предложения из
     библиотеки (с поиском), настройки слайдера. Удалённая запись в выборе не показывается;
     выключенная или вне срока — помечается: на сайте её сейчас нет."""
+    import logging
+
+    from django.db import DatabaseError
+
+    choice = choice if isinstance(choice, dict) else {}
+    try:
+        return _pick_state(request, choice, place_capable)
+    except DatabaseError:
+        # S8: схема без таблицы баннеров (миграция ещё не дошла) — панель без выбора,
+        # а не ошибка 500 на всём экране «Seitenaufbau».
+        logging.getLogger(__name__).exception("banner picker: library unavailable")
+        return {
+            "entries": [], "offers": [], "lookup": "", "full": False, "total": 0,
+            "auto": True, "interval": "6", "intervals": [str(n) for n in range(4, 13)],
+            "arrows": False, "place_capable": False, "from_page": False, "unavailable": True,
+        }  # fmt: skip
+
+
+def _pick_state(request, choice: dict, place_capable: bool) -> dict:
     from django.db.models import Q
     from django.utils import timezone
 
     from apps.core.models import Banner
     from apps.tenants import siteconfig
 
-    choice = choice if isinstance(choice, dict) else {}
     pick = clean_pick(choice.get("pick"))
     lookup = (request.GET.get("lookup") or "").strip()[:80]
     today = timezone.localdate()

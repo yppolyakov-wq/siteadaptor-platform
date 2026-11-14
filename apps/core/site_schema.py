@@ -325,6 +325,28 @@ def _object_for(code: str):
         return None
 
 
+def object_back(code: str) -> dict | None:
+    """S8: ссылка «назад к объекту» со строки его своих блоков: {url, label} либо None."""
+    if not is_object_code(code):
+        return None
+    obj = _object_for(code)
+    if obj is None:
+        return None
+    kind = code.split("@", 1)[0]
+    try:
+        url = (
+            reverse("catalog:product-edit", args=[obj.pk])
+            if kind == "product"
+            else reverse("booking:service-edit", args=[obj.pk])
+        )
+    except NoReverseMatch:
+        return None
+    label = getattr(obj, "name", "")
+    if isinstance(label, dict):
+        label = label.get("de") or next(iter(label.values()), "")
+    return {"url": url, "label": str(label)}
+
+
 def object_row(config: dict, code: str):
     """Строка экрана для своих блоков объекта (подпись — его название) либо None."""
     if not is_object_code(code):
@@ -1463,6 +1485,14 @@ def mutate(
             raise SchemaError("pick")
         elif op == "pick_add":
             if target not in pick:
+                if len(pick) >= siteconfig.BANNER_PICK_MAX:
+                    # S8: удалённые из библиотеки записи места не занимают — их в выборе
+                    # не видно, а «полно» при пяти видимых баннерах было бы необъяснимо.
+                    alive = {
+                        str(pk)
+                        for pk in Banner.objects.filter(pk__in=pick).values_list("pk", flat=True)
+                    }
+                    pick[:] = [p for p in pick if p in alive]
                 if len(pick) >= siteconfig.BANNER_PICK_MAX:
                     raise SchemaError("full")
                 if not Banner.objects.filter(pk=target).exists():

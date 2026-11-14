@@ -218,3 +218,12 @@ def test_enter_in_the_form_does_not_press_reset():
 
 def test_host_pattern_rejects_a_trailing_newline():
     assert not siteconfig.is_object_host("product:" + "a" * 32 + "\n")
+
+
+def test_object_screen_links_back_to_the_object():
+    """S8: со строки своих блоков — путь назад к карточке товара."""
+    tenant = _tenant()
+    p = _product()
+    html = Browser(tenant).get(f"?seite={ost.schema_code('product', p)}")
+    assert "data-schema-object-back" in html and f"/products/{p.pk}/edit/" in html
+    assert "data-schema-object-back" not in Browser(tenant).get("?seite=home")

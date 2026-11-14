@@ -140,7 +140,10 @@ $COMPOSE exec -T web python manage.py migration_state || true
 # FB-29.2 S7: все баннеры — в библиотеке «Website › Banner». Прежние слайды главной и
 # собственные слайды блоков переносятся один раз (повтор ничего не создаёт); сбой
 # переноса деплой не останавливает — сайт показывает прежние слайды.
-$COMPOSE exec -T web python manage.py import_banners || echo "WARN: import_banners failed — run it manually"
+if ! $COMPOSE exec -T web python manage.py import_banners; then
+	echo "!!! WARN: import_banners FAILED for some schemas (see lines above)."
+	echo "!!! The site keeps the old slides there. Re-run: python manage.py import_banners"
+fi
 sleep 5
 if curl -fsS "$HEALTH_URL" >/dev/null; then
 	echo "OK: readiness passed"

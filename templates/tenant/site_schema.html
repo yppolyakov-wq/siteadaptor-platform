@@ -96,6 +96,10 @@
 <div class="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_20rem] gap-4 items-start" data-site-schema>
   <section class="ui-card p-4" aria-labelledby="schema-title" data-schema-map>
     <h2 id="schema-title" class="font-semibold mb-3"><span class="sr-only">{% trans "Aufbau" %}: </span>{{ current.label }}</h2>
+    {% if object_back %}
+    {% comment %}FB-29.4b S8: свои блоки объекта — путь назад к его карточке.{% endcomment %}
+    <p class="mb-3 text-sm" data-schema-object-back><a href="{{ object_back.url }}" class="inline-flex min-h-[44px] items-center font-semibold text-indigo-700 hover:underline">← {% blocktrans with name=object_back.label %}Zurück zu «{{ name }}»{% endblocktrans %}</a> <span class="text-gray-700">· {% trans "Diese Blöcke erscheinen nur auf dieser einen Seite." %}</span></p>
+    {% endif %}
     {% if category_row %}
     {% comment %}FB-27 R7: у категории либо свой набор блоков, либо блоки каталога.{% endcomment %}
     <div class="mb-3 rounded-xl border border-gray-300 bg-gray-50 px-3 py-2.5 text-sm text-gray-800" data-schema-category="{% if category_row.own %}own{% else %}catalog{% endif %}">
