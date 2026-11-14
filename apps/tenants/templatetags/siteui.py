@@ -426,7 +426,7 @@ def place_banners(context, kind, obj):
     # S6: место баннеров задаёт структура — блок «Banner» с источником «баннеры этой
     # страницы». Стоит такой блок — это место по умолчанию молчит. Структуру читаем,
     # только когда баннеры для страницы есть (обычная страница — один запрос, без разбора).
-    if kind in ("product", "service", "category"):
+    if kind in banners.SHOW_ON_TYPES:
         tenant = getattr(request, "tenant", None)
         try:
             from apps.core import page_settings
@@ -437,9 +437,11 @@ def place_banners(context, kind, obj):
         if kind == "category":
             own = siteconfig.category_host(getattr(obj, "slug", ""))
             hosts = [own if siteconfig.has_own_schema(config, own) else "catalog"]
-        else:
+        elif kind in ("product", "service"):
             hexed = getattr(getattr(obj, "pk", None), "hex", "")
             hosts = [f"{kind}_detail", f"{kind}:{hexed}"]
+        else:  # R2: номер, событие, акция — блок-место в блоках типа страницы
+            hosts = ["promo_detail" if kind == "promotion" else f"{kind}_detail"]
         if banners.place_block_present(config, hosts):
             return ""
     # `auto_place`: баннер стоит здесь сам, блока в схеме нет — без меток правки Студии

@@ -1170,6 +1170,7 @@ PAGE_BLOCK_HOSTS = (
     "combos",  # /kombi/
     "finder",  # /finder/
     "lookbook",  # /lookbook/<slug>/
+    "promo_detail",  # FB-29 R2: страница акции — свои блоки (и место для баннеров)
 )
 
 # UC2-3(b) («да» владельца 2026-07-19): ссылочные секции-справочники — типы

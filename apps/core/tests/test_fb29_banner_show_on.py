@@ -49,7 +49,7 @@ def test_place_key_per_kind():
     cat = Category.objects.create(slug="tee", name={"de": "Tee"})
     assert banners.place_key("product", p) == f"product:{p.pk}"
     assert banners.place_key("category", cat) == "category:tee"
-    assert banners.place_key("stay", p) == "" and banners.place_key("product", None) == ""
+    assert banners.place_key("blog", p) == "" and banners.place_key("product", None) == ""
 
 
 def test_only_offered_places_are_stored_and_kept_ones_survive():

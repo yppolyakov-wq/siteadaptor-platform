@@ -989,7 +989,14 @@ def place_capable(host: str) -> bool:
     (страница товара, услуги, каталог и категории, свои блоки объекта)."""
     from apps.tenants import siteconfig
 
-    return host in ("product_detail", "service_detail", "catalog") or (
+    return host in (
+        "product_detail",
+        "service_detail",
+        "stay_detail",
+        "event_detail",
+        "promo_detail",
+        "catalog",
+    ) or (
         isinstance(host, str)
         and (host.startswith(siteconfig.CATEGORY_HOST_PREFIX) or siteconfig.is_object_host(host))
     )

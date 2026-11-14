@@ -521,6 +521,7 @@ PAGE_TYPES: tuple[PageType, ...] = (
         ("promo_detail_style", "promo_card_form"),
         object_kind=OBJECT_PROMOTION,
         object_args=("pk",),
+        block_host="promo_detail",  # FB-29 R2: у страницы акции свои блоки
     ),
     PageType(
         "services",

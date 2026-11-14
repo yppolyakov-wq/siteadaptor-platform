@@ -86,5 +86,7 @@
 {# M20U-4: мобильная липкая панель брони (десктоп — sticky-карточка справа) #}
 {% blocktrans asvar buyprice with p=unit.price_eur|floatformat:2 %}from {{ p }} €{% endblocktrans %}
 {% include "storefront/_detail_buybar.html" with price=buyprice anchor="#buchen" module="stays" sold_out=False %}
+{% comment %}FB-29 R2: баннеры, которым эта страница задана в «Wo zeigen».{% endcomment %}
+{% place_banners "stay" unit %}
 {% page_blocks "stay_detail" %}
 {% endblock %}

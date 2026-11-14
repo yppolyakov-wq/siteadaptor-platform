@@ -557,7 +557,7 @@ def _pick_state(request, choice: dict, place_capable: bool) -> dict:
 
 # ───────── FB-29.2c: «Wo zeigen» — баннер сам показывается на выбранных страницах ─────────
 
-SHOW_ON_TYPES = ("category", "product", "service", "promotion")
+SHOW_ON_TYPES = ("category", "product", "service", "promotion", "stay", "event")
 SHOW_ON_MAX = 50
 
 
@@ -584,6 +584,7 @@ def set_show_on(banner, *, keep, add, allowed=None) -> list[str]:
     kept = set(keep or [])
     out = [v for v in current if v in kept]
     wanted = [v for v in (add or []) if _place_ok(v) and v not in out]
+    wanted = wanted[: max(0, SHOW_ON_MAX - len(out))]  # ревью R1: предел — до запроса
     if allowed is None:
         allowed = set(place_labels(wanted))  # R1: допустимо то, что есть на сайте
     for value in wanted:
@@ -601,26 +602,38 @@ PLACE_SEARCH_LIMIT = 30
 
 
 def _place_sources() -> dict:
-    """Вид места → (модель, фильтр «сайт показывает», поле цели, подпись группы)."""
+    """Вид места → (записи, которые сайт показывает, поле цели, подпись группы)."""
     from django.utils.translation import gettext_lazy as _
 
     from apps.booking.models import Service
     from apps.catalog.models import Category, Product
+    from apps.events.models import Event
     from apps.promotions.models import Promotion
+    from apps.stays.models import StayUnit
 
     return {
-        "category": (Category, {"is_active": True}, "slug", _("Kategorien")),
-        "product": (Product, {"is_active": True}, "pk", _("Produkte")),
-        "service": (Service, {"is_active": True}, "pk", _("Leistungen")),
-        "promotion": (Promotion, {}, "pk", _("Aktionen")),
+        "category": (Category.objects.filter(is_active=True), "slug", _("Kategorien")),
+        "product": (Product.objects.filter(is_active=True), "pk", _("Produkte")),
+        "service": (Service.objects.filter(is_active=True), "pk", _("Leistungen")),
+        # ревью R1: черновики и завершённые акции не предлагаются
+        "promotion": (Promotion.objects.filter(status="active"), "pk", _("Aktionen")),
+        "stay": (StayUnit.objects.filter(is_active=True), "pk", _("Zimmer")),
+        "event": (
+            Event.objects.filter(status=Event.STATUS_PUBLISHED),
+            "pk",
+            _("Veranstaltungen"),
+        ),
     }
 
 
 def _place_label(obj) -> str:
-    for attr in ("name_localized", "title_text", "name"):
+    for attr in ("name_localized", "title_text", "title_localized", "name", "title"):
         value = getattr(obj, attr, None)
         if callable(value):
-            value = value()
+            try:
+                value = value()
+            except TypeError:  # метод с обязательным аргументом — берём следующее поле
+                continue
         if isinstance(value, dict):
             value = value.get("de") or next(iter(value.values()), "")
         if value:
@@ -653,9 +666,9 @@ def place_labels(values) -> dict:
     out: dict = {}
     sources = _place_sources()
     for kind, targets in by_kind.items():
-        model, flt, field, group = sources[kind]
+        base, field, group = sources[kind]
         try:
-            rows = model.objects.filter(**flt, **{f"{field}__in": _targets(kind, targets)})
+            rows = base.filter(**{f"{field}__in": _targets(kind, targets)})
             for obj in rows:
                 out[f"{kind}:{getattr(obj, field)}"] = f"{group}: {_place_label(obj)}"
         except DatabaseError:
@@ -677,13 +690,13 @@ def place_search(query: str = "", exclude=()) -> list[dict]:
     query = (query or "").strip()[:80].lower()
     skip = set(exclude or ())
     groups = []
-    for kind, (model, flt, field, group) in _place_sources().items():
+    for kind, (base, field, group) in _place_sources().items():
         items = []
         try:
-            rows = model.objects.filter(**flt).order_by("pk")
+            rows = base.order_by("pk")
             # Названия — JSON по языкам (или обычная строка): ищем по подписи в Python,
             # ограничив выборку, — у малого бизнеса записей сотни, не миллионы.
-            for obj in rows[:5000] if query else rows[: PLACE_SEARCH_LIMIT * 2]:
+            for obj in rows[:2000] if query else rows[: PLACE_SEARCH_LIMIT * 2]:
                 value = f"{kind}:{getattr(obj, field)}"
                 label = _place_label(obj)
                 if value in skip or (query and query not in label.lower()):
@@ -749,6 +762,8 @@ def page_place_key(context) -> str:
         ("product", "product"),
         ("service", "service"),
         ("promotion", "promotion"),
+        ("stay", "unit"),
+        ("event", "event"),
         ("category", "current_category"),
     ):
         obj = context.get(name)

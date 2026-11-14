@@ -34,7 +34,7 @@ def test_place_exists_checks_the_database_not_the_menu_list():
     assert banners.place_exists(f"product:{off.pk}") is False
     assert banners.place_exists("product:not-a-uuid") is False
     assert banners.place_exists("category:nope") is False
-    assert banners.place_exists("stay:1") is False
+    assert banners.place_exists("blog:1") is False
 
 
 def test_search_finds_pages_beyond_the_menu_limit():
