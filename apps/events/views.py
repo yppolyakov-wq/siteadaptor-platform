@@ -4,6 +4,7 @@ import csv
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.db import transaction
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -532,8 +533,9 @@ def tour_edit(request, pk):
     if request.method == "POST" and request.POST.get("action") == "delete":
         # T1: тур удаляется насовсем (корзины нет) — свои блоки уходят вместе с ним,
         # иначе их хост занимал бы место в общем потолке до следующей уборки.
-        object_structure.drop_blocks("tour", tour)
-        tour.delete()
+        with transaction.atomic():  # блоки и тур уходят вместе либо остаются вместе
+            object_structure.drop_blocks("tour", tour)
+            tour.delete()
         messages.success(request, _("Tour deleted."))
         return redirect("events:tour-list")
     form = TourForm(request.POST or None, instance=tour)

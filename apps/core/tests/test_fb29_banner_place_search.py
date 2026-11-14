@@ -111,3 +111,39 @@ def test_radio_groups_in_the_panel_send_one_request():
 
     js = pathlib.Path("static/js/aufbau.js").read_text()
     assert "radioTimer" in js
+
+
+# ───────── T3: поиск фильтрует в базе, а не читает вид целиком ─────────
+
+
+def test_search_filters_in_the_database(monkeypatch):
+    from django.db import connection
+    from django.test.utils import CaptureQueriesContext
+
+    from apps.events.models import Tour
+
+    for i in range(12):
+        _product(f"Tee {i:02d}")
+    _product("Grüner Sencha")
+    Tour.objects.create(title="Sencha-Reise", slug="sencha-reise", is_published=True)
+    # потолок чтения мал: без фильтра в базе «Sencha» (последняя запись) не нашёлся бы
+    monkeypatch.setattr(banners, "PLACE_SEARCH_READ", 5)
+    with CaptureQueriesContext(connection) as ctx:
+        groups = banners.place_search("sencha")
+    labels = [o["label"] for g in groups for o in g["items"]]
+    assert labels == ["Grüner Sencha", "Sencha-Reise"]
+    selects = [q["sql"] for q in ctx.captured_queries if q["sql"].startswith("SELECT")]
+    assert selects and all("LIKE" in sql.upper() for sql in selects)
+    assert len(selects) == len(banners._place_sources()), "по запросу на вид"
+
+
+def test_search_with_json_special_characters_still_finds_the_page():
+    """Кавычка в названии экранирована в JSON — такой запрос ищется прежним способом."""
+    _product('Tee "Gold"')
+    labels = [o["label"] for g in banners.place_search('"gold"') for o in g["items"]]
+    assert labels == ['Tee "Gold"']
+
+
+def test_search_matches_umlauts_case_insensitively():
+    _product("Grüner Tee")
+    assert [o["label"] for g in banners.place_search("GRÜN") for o in g["items"]] == ["Grüner Tee"]

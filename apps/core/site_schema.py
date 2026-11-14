@@ -522,6 +522,8 @@ def _own_code(tenant, type_code: str, ref: str) -> str:
     if not ref:
         return ""
     blocks = (getattr(tenant, "site_config", None) or {}).get("page_blocks") or {}
+    if not blocks:
+        return ""  # своих блоков нет ни у кого — без запроса к базе
     kinds = [type_code, *(k for k, shared in OBJECT_PAGE_TYPES.items() if shared == type_code)]
     for kind in kinds:
         if kind not in OBJECT_KINDS:

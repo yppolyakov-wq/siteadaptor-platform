@@ -625,6 +625,30 @@ def set_show_on(banner, *, keep, add, allowed=None) -> list[str]:
 
 #: FB-29 R1: сколько страниц одного вида предлагает поиск «Wo zeigen».
 PLACE_SEARCH_LIMIT = 30
+#: T3: сколько записей вида читает поиск ПОСЛЕ фильтра в базе (фильтр шире подписи:
+#: совпадение в другом языке названия отсеивается уже в Python).
+PLACE_SEARCH_READ = 200
+#: Поля названия у видов мест (строка либо JSON по языкам).
+_PLACE_NAME_FIELDS = ("name", "title", "name_i18n", "title_i18n")
+#: Символы, которые JSON хранит экранированными (сравнение текста JSON их не найдёт).
+_JSON_ESCAPED = re.compile(r'["\\]|[^\x20-\x7e\u00a0-\uffff]')
+
+
+def _name_filter(base, query: str):
+    """Записи, в названии которых (на любом языке) есть `query` — фильтр в базе."""
+    from django.db.models import Q, TextField
+    from django.db.models.functions import Cast
+
+    cond, extra = Q(), {}
+    for field in base.model._meta.get_fields():
+        if field.name not in _PLACE_NAME_FIELDS or not getattr(field, "concrete", False):
+            continue
+        if field.get_internal_type() == "JSONField":
+            extra[f"_{field.name}_text"] = Cast(field.name, TextField())
+            cond |= Q(**{f"_{field.name}_text__icontains": query})
+        else:
+            cond |= Q(**{f"{field.name}__icontains": query})
+    return base.annotate(**extra).filter(cond) if cond else base
 
 
 def _place_sources() -> dict:
@@ -721,9 +745,16 @@ def place_search(query: str = "", exclude=()) -> list[dict]:
         items = []
         try:
             rows = base.order_by("pk")
-            # Названия — JSON по языкам (или обычная строка): ищем по подписи в Python,
-            # ограничив выборку, — у малого бизнеса записей сотни, не миллионы.
-            for obj in rows[:2000] if query else rows[: PLACE_SEARCH_LIMIT * 2]:
+            # T3: фильтр по названию — в базе; точная сверка подписи (язык кабинета) —
+            # ниже в Python. Кавычка и обратная черта в JSON экранированы: такой запрос
+            # в базе не сравнить — читаем вид с потолком, как раньше.
+            if query and not _JSON_ESCAPED.search(query):
+                rows = _name_filter(rows, query)[:PLACE_SEARCH_READ]
+            elif query:
+                rows = rows[:2000]
+            else:
+                rows = rows[: PLACE_SEARCH_LIMIT * 2]
+            for obj in rows:
                 value = f"{kind}:{getattr(obj, field)}"
                 label = _place_label(obj)
                 if value in skip or (query and query not in label.lower()):
