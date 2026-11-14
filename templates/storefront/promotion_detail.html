@@ -310,5 +310,8 @@
 </script>
 {% include "storefront/_countdown_script.html" %}
 {% comment %}FB-29 R2: свои блоки страницы акции (в том числе место для баннеров).{% endcomment %}
+{% comment %}FB-29 R5: свои блоки этого объекта — над общими или под ними.{% endcomment %}
+{% object_blocks "promo" promotion "before" %}
 {% page_blocks "promo_detail" %}
+{% object_blocks "promo" promotion %}
 {% endblock %}

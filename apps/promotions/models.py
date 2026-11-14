@@ -257,6 +257,10 @@ class Promotion(SoftDeleteMixin, I18nMixin):
 
         return label_for(self.badge)
 
+    # FB-29 R5: своя структура страницы поверх общей — {hidden, shown, layout, blocks_first}
+    # (`apps.core.object_structure`). `db_default`: во время деплоя старые контейнеры ещё
+    # пишут строки без этого поля.
+    page_override = models.JSONField(default=dict, db_default={}, blank=True)
     title = models.JSONField(default=dict)  # {"de": "...", "en": "..."}
     description = models.JSONField(default=dict)
 

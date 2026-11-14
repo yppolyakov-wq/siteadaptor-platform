@@ -18,7 +18,14 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 
 from apps.billing import connect
-from apps.core import listing_composition, option_trackers, page_settings, ratelimit, readiness
+from apps.core import (
+    listing_composition,
+    object_structure,
+    option_trackers,
+    page_settings,
+    ratelimit,
+    readiness,
+)
 from apps.stays.services import StayUnavailable
 
 from . import installments, payments, services
@@ -332,7 +339,6 @@ def veranstaltung_detail(request, pk):
     lat = event.latitude if event.latitude is not None else getattr(tenant, "latitude", None)
     lng = event.longitude if event.longitude is not None else getattr(tenant, "longitude", None)
     jobs_active = bool(tenant and tenant.is_module_active("jobs"))
-    from apps.tenants import siteconfig
 
     # SE-2b-2: при ?preview=1 берём черновик из сессии (on-canvas правка порядка/
     # видимости тематических секций детальной), иначе — сохранённый site_config.
@@ -376,15 +382,16 @@ def veranstaltung_detail(request, pk):
         "map_link": "",
         "installment_offer": _installment_offer(event),  # R10 предпросмотр рассрочки
         # M20U-4: порядок/видимость тематических секций детальной.
-        "event_detail_order": siteconfig.event_detail_order(_raw),
+        # FB-29 R5: порядок общий, видимость — общая с отличиями этого события.
+        "event_detail_order": object_structure.effective_order(_raw, "events", event),
         # STU-15b: раскладка страницы события ("" | tabs | breit).
-        "detail_layout": siteconfig.detail_layout(_raw, "event"),
+        "detail_layout": object_structure.effective_layout(_raw, "event", event),
         # STU-15b: пары «ключ + подпись» для раскладки «Tabs» (порядок тот же, что у
         # `event_detail_order` — вкладки не имеют права разойтись с обычным телом).
         # Фильтра-словаря в проекте нет, поэтому подписи приезжают готовым списком.
         "event_detail_tabs": [
             {"key": k, "label": detail_sections.section_labels("events").get(k, k)}
-            for k in siteconfig.event_detail_order(_raw)
+            for k in object_structure.effective_order(_raw, "events", event)
         ],
     }
     if lat is not None and lng is not None and not event.is_online:  # R6 карта (RT2: не для онлайн)

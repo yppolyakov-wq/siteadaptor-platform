@@ -71,7 +71,7 @@ def test_object_host_is_built_from_the_primary_key_only():
     p = _product()
     host = ost.object_host("product", p)
     assert host == f"product:{p.pk.hex}" and siteconfig.is_page_block_host(host)
-    assert ost.object_host("product", None) == "" and ost.object_host("stay", p) == ""
+    assert ost.object_host("product", None) == "" and ost.object_host("blog", p) == ""
     assert not siteconfig.is_page_block_host("product:../../etc")
     assert not siteconfig.is_page_block_host("product:" + "g" * 32)
 
@@ -94,7 +94,7 @@ def test_unknown_object_is_refused():
     _resp, msgs = Browser(tenant).post(seite=ghost, op="add", type="text")
     assert msgs and _hosts(tenant) == {}
     assert site_schema.host_for("product@catalog:tee") == ""
-    assert site_schema.host_for("stay@product:" + "a" * 32) == ""
+    assert site_schema.host_for("blog@product:" + "a" * 32) == ""
 
 
 def test_own_block_is_added_through_the_draft_and_saved_to_the_object_host():

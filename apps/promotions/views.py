@@ -1123,6 +1123,14 @@ def promotion_quick_done(request, pk):
     )
 
 
+def _promo_structure(request, promo) -> dict:
+    """FB-29 R5: данные секции «Seitenaufbau» формы акции."""
+    from apps.core import object_structure
+
+    config = getattr(getattr(request, "tenant", None), "site_config", None) or {}
+    return object_structure.panel(config, "promo", promo)
+
+
 @login_required
 def promotion_edit(request, pk):
     promo = get_object_or_404(Promotion, pk=pk)
@@ -1136,6 +1144,12 @@ def promotion_edit(request, pk):
         if form.is_valid():
             promo = form.save()
             _handle_promo_uploads(request, promo)
+            # FB-29 R5: своя структура страницы акции — по сентинелу (W0)
+            from apps.core import object_structure
+
+            changed = object_structure.apply_post(promo, "promo", request.POST)
+            if changed:
+                promo.save(update_fields=[*changed, "updated_at"])
             return redirect("promotions:promotion-edit", pk=promo.pk)
         # FB-18b: акция уже есть — выбранные фото сохраняем и при ошибке в полях. Браузер
         # не может вернуть файл в форму, и раньше фото молча пропадало вместе с ошибкой.
@@ -1159,6 +1173,9 @@ def promotion_edit(request, pk):
         request,
         "promotions/promotion_form.html",
         {
+            # FB-29 R5: секция «Seitenaufbau» — своя структура страницы акции
+            "page_structure": _promo_structure(request, promo),
+            "page_structure_url": reverse("site-schema") + "?seite=promo",
             "text_check_base": dj_settings.LANGUAGE_CODE,  # D2a-2: базовая локаль полей
             "text_check_ai": _ai_text_check_enabled(),  # D2a-3: кнопка «Text prüfen lassen»
             "form": form,

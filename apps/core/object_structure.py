@@ -18,7 +18,16 @@ from apps.core import detail_sections
 LAYOUT_STANDARD = "standard"
 
 #: Вид сущности → модуль реестра разделов (`detail_sections`).
-MODULES = {"product": "catalog", "service": "booking"}
+#: R5: номер и событие — свои реестры разделов; у акции разделов нет (только свои блоки).
+MODULES = {
+    "product": "catalog",
+    "service": "booking",
+    "stay": "stays",
+    "event": "events",
+    "promo": "",
+}
+#: Виды, у которых есть ось «шаблон страницы» (`siteconfig.detail_layout`).
+LAYOUT_KINDS = ("product", "service", "stay", "event")
 
 
 def _raw(obj) -> dict:
@@ -80,6 +89,19 @@ def effective_layout(config, kind: str, obj) -> str:
     if own == LAYOUT_STANDARD:
         return ""
     return own or siteconfig.detail_layout(config, kind)
+
+
+def effective_order(config, module: str, obj) -> list[str]:
+    """R5 (событие): порядок ВИДИМЫХ разделов страницы объекта — порядок общий
+    (сохранённый + остальные по реестру), видимость — общая с отличиями объекта."""
+    from apps.tenants import siteconfig
+
+    keys = detail_sections.section_keys(module)
+    raw = (config or {}).get(siteconfig.detail_section_config_key(module))
+    saved = siteconfig.normalize_detail_sections(raw, module).get("order", [])
+    order = saved + [k for k in keys if k not in saved]
+    hidden = effective_hidden(config, module, obj)
+    return [k for k in order if k not in hidden]
 
 
 def deviations(obj, module: str) -> int:
@@ -163,9 +185,11 @@ def panel(config, kind: str, obj) -> dict:
     shared_layout = siteconfig.detail_layout(config, kind)
     labels = dict(page_settings.DETAIL_LAYOUT_OPTIONS)
     current = own.get("layout", "")
-    layouts = [{"value": "", "label": _("Wie alle"), "hint": labels.get(shared_layout, "")}]
-    for value, label in page_settings.DETAIL_LAYOUT_OPTIONS:
-        layouts.append({"value": value or LAYOUT_STANDARD, "label": label, "hint": ""})
+    layouts = []
+    if kind in LAYOUT_KINDS:
+        layouts = [{"value": "", "label": _("Wie alle"), "hint": labels.get(shared_layout, "")}]
+        for value, label in page_settings.DETAIL_LAYOUT_OPTIONS:
+            layouts.append({"value": value or LAYOUT_STANDARD, "label": label, "hint": ""})
     for option in layouts:
         option["checked"] = option["value"] == current
     from django.urls import reverse
@@ -222,18 +246,15 @@ def purge_ghost_hosts(tenant) -> int:
     удалённого в корзину товара целы и возвращаются вместе с ним. Один проход, одна
     запись настроек (с переводами блоков)."""
     import copy
-    import importlib
     import uuid
 
     from django.db import transaction
 
+    from apps.core import site_schema
     from apps.tenants import siteconfig
     from apps.tenants.models import Tenant
 
-    models = {
-        "product": ("apps.catalog.models", "Product"),
-        "service": ("apps.booking.models", "Service"),
-    }
+    models = site_schema._OBJECT_MODELS
     with transaction.atomic():
         fresh = Tenant.objects.select_for_update().filter(pk=getattr(tenant, "pk", None)).first()
         if fresh is None:
@@ -241,7 +262,7 @@ def purge_ghost_hosts(tenant) -> int:
         config = copy.deepcopy(fresh.site_config or {})
         blocks = config.get("page_blocks") if isinstance(config.get("page_blocks"), dict) else {}
         ghosts = []
-        for kind, (module, name) in models.items():
+        for kind in models:
             mine = {
                 h.split(":", 1)[1]: h
                 for h in blocks
@@ -249,7 +270,7 @@ def purge_ghost_hosts(tenant) -> int:
             }
             if not mine:
                 continue
-            model = getattr(importlib.import_module(module), name)
+            model = site_schema.object_model(kind)
             alive = {
                 pk.hex
                 for pk in model.objects.filter(pk__in=[uuid.UUID(x) for x in mine]).values_list(

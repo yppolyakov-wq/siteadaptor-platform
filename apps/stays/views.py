@@ -1157,6 +1157,17 @@ def _room_page_url(pk, tab: str | None) -> str:
     return url
 
 
+def _structure_ctx(request, kind, obj) -> dict:
+    """FB-29 R5: данные секции «Seitenaufbau» объекта в его форме."""
+    from apps.core import object_structure
+
+    config = getattr(getattr(request, "tenant", None), "site_config", None) or {}
+    return {
+        "page_structure": object_structure.panel(config, kind, obj),
+        "page_structure_url": reverse("site-schema") + f"?seite={kind}",
+    }
+
+
 @login_required
 def units(request, pk=None):
     """Юниты + блокировки дат — POST-формы. Фидбэк 2026-07-28: с pk —
@@ -1262,6 +1273,12 @@ def units(request, pk=None):
                 unit.badge = clean_label(request.POST.get("badge"))
                 _uf.append("badge")
             _uf += apply_i18n_overlay(unit, request.POST, getattr(request, "tenant", None))  # L3d
+            # FB-29 R5: своя структура страницы номера — по сентинелу (W0)
+            from apps.core import object_structure
+
+            _uf += [
+                f for f in object_structure.apply_post(unit, "stay", request.POST) if f not in _uf
+            ]
             unit.save(update_fields=_uf)
             _add_unit_photos(unit, request.FILES.getlist("photos"), request)
             capacity_error = None
@@ -1488,6 +1505,7 @@ def _render_room_page(request, unit):
         {
             "nav": "units",  # X4: номер — сущность раздела «Sortiment»
             "u": unit,
+            **_structure_ctx(request, "stay", unit),
             "active_tab": tab if tab in ROOM_TABS else ROOM_TABS[0],
             "rooms_n": len(unit.rooms.all()),
             "season_n": len(unit.season_rates.all()),

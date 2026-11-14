@@ -6,6 +6,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.formats import date_format
 from django.utils.translation import gettext as _
@@ -111,6 +112,12 @@ def event_edit(request, pk):
     form = EventForm(request.POST or None, instance=event)
     if request.method == "POST" and form.is_valid():
         form.save()
+        # FB-29 R5: своя структура страницы события — по сентинелу (W0)
+        from apps.core import object_structure
+
+        changed = object_structure.apply_post(event, "event", request.POST)
+        if changed:
+            event.save(update_fields=[*changed, "updated_at"])
         _add_event_photos(event, request.FILES.getlist("photos"))
         if event.status == Event.STATUS_PUBLISHED and not was_published:
             # CM-3: первая публикация → авто-черновик поста в каналы.
@@ -126,8 +133,23 @@ def event_edit(request, pk):
     return render(
         request,
         "events/event_form.html",
-        {"form": form, "event": event, "nav": "events", "category_presets": taxonomy.CATEGORIES},
+        {
+            "form": form,
+            "event": event,
+            "nav": "events",
+            "category_presets": taxonomy.CATEGORIES,
+            "page_structure": object_structure_panel(request, event),
+            "page_structure_url": reverse("site-schema") + "?seite=event",
+        },
     )
+
+
+def object_structure_panel(request, event):
+    """FB-29 R5: данные секции «Seitenaufbau» формы события."""
+    from apps.core import object_structure
+
+    config = getattr(getattr(request, "tenant", None), "site_config", None) or {}
+    return object_structure.panel(config, "event", event)
 
 
 @login_required

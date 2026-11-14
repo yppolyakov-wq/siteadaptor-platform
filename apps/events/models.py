@@ -283,6 +283,10 @@ class Event(I18nMixin, TimestampedModel):
     # A6: программа ретрита/мероприятия — список строк-пунктов (агенда). Показ
     # на странице события; пусто = блок скрыт.
     program = models.JSONField(default=list, blank=True)
+    # FB-29 R5: своя структура страницы поверх общей — {hidden, shown, layout, blocks_first}
+    # (`apps.core.object_structure`). `db_default`: во время деплоя старые контейнеры ещё
+    # пишут строки без этого поля.
+    page_override = models.JSONField(default=dict, db_default={}, blank=True)
     status = models.CharField(max_length=20, choices=STATUSES, default=STATUS_DRAFT)
     # Даже после оплаты держать билет pending до ручного подтверждения.
     require_manual_confirm = models.BooleanField(default=False)

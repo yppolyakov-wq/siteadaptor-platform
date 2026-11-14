@@ -22,6 +22,7 @@
     </div>
     {% endfor %}
   </div>
+  {% if ps.layouts %}
   <fieldset>
     <legend class="text-sm font-semibold text-gray-900">{% trans "Seitenvorlage dieser Seite" %}</legend>
     <div class="mt-2 flex flex-wrap gap-2 text-sm font-semibold">
@@ -30,6 +31,7 @@
       {% endfor %}
     </div>
   </fieldset>
+  {% endif %}
   {% if ps.blocks_url %}
   <div class="rounded-xl border border-gray-500 px-4 py-3" data-ps-own-blocks>
     <div class="flex flex-wrap items-center justify-between gap-3">

@@ -101,6 +101,10 @@ class StayUnit(I18nMixin, TimestampedModel):
     gap_discount_percent = models.PositiveSmallIntegerField(default=0)
     min_nights = models.PositiveSmallIntegerField(default=1)
     max_guests = models.PositiveSmallIntegerField(default=2)
+    # FB-29 R5: своя структура страницы поверх общей — {hidden, shown, layout, blocks_first}
+    # (`apps.core.object_structure`). `db_default`: во время деплоя старые контейнеры ещё
+    # пишут строки без этого поля.
+    page_override = models.JSONField(default=dict, db_default={}, blank=True)
     is_active = models.BooleanField(default=True)
     # P2.5b-аналог: депозит за бронь (центы; 0 = без депозита). Анти-no-show.
     deposit_cents = models.PositiveIntegerField(default=0)

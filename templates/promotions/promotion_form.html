@@ -137,6 +137,13 @@
       {% for field in form %}{% if field.name == 'strikethrough_old_price' or field.name == 'show_countdown' or field.name == 'card_style' or field.name == 'page_style' or field.name == 'badge' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}
     </div>
 
+  {% if page_structure %}
+  {% comment %}FB-29 R5: своя структура страницы — отличия от общего вида и свои блоки.{% endcomment %}
+  <details class=" rounded-xl border border-gray-300 p-4" data-object-structure-section{% if page_structure.deviations or page_structure.own_blocks %} open{% endif %}>
+    <summary class="cursor-pointer text-sm font-semibold min-h-[44px] flex items-center gap-2">{% trans "Seitenaufbau" %}{% if page_structure.deviations %} <span class="rounded-full bg-amber-100 px-2 text-xs font-bold text-amber-900"><span class="sr-only">{% trans "Abweichungen" %}: </span>{{ page_structure.deviations }}</span>{% endif %}</summary>
+    <div class="mt-3">{% include "tenant/_object_structure.html" with ps=page_structure shared_url=page_structure_url %}</div>
+  </details>
+  {% endif %}
     {% for err in form.non_field_errors %}<p class="text-sm text-red-600">{{ err }}</p>{% endfor %}
 
     {% include "promotions/_text_check.html" %}

@@ -409,11 +409,13 @@ def unterkunft_unit(request, pk):
     from apps.core import detail_sections
     from apps.core.sellable import sellable_for
     from apps.reviews import services as review_services
-    from apps.tenants import siteconfig
 
     # UA4-1 slice C: скрытые секции детали номера (билдер) — под ?preview=1 из черновика.
     _raw = page_settings.raw_config(request)
-    _hidden = siteconfig.detail_section_hidden(_raw, "stays")
+    from apps.core import object_structure
+
+    # FB-29 R5: общие настройки + отличия этого номера
+    _hidden = object_structure.effective_hidden(_raw, "stays", unit)
     # UA4-2: data-driven секции ТЕЛА детали (description/amenities/reviews) — цикл в шаблоне
     # по реестру (stays), видимость = (контент присутствует) И (не скрыта в билдере).
     # H1.2: описание рендерим всегда (инлайн-правка); `similar` — в detail_wide (отдельно).
@@ -457,7 +459,7 @@ def unterkunft_unit(request, pk):
         # UA4-2: упорядоченные секции тела (data-driven) + флаг блока «похожие» (detail_wide).
         "body_sections": body_sections,
         # STU-15b: раскладка страницы номера ("" | tabs | breit).
-        "detail_layout": siteconfig.detail_layout(_raw, "stay"),
+        "detail_layout": object_structure.effective_layout(_raw, "stay", unit),
         # HF-3: какие секции рендерить ПОД галереей (левая колонка), а не в теле —
         # рассказ о номере читается рядом с фото, под ним не остаётся пустоты.
         "under_gallery_keys": ("description", "amenities"),

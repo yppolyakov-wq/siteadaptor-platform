@@ -88,5 +88,8 @@
 {% include "storefront/_detail_buybar.html" with price=buyprice anchor="#buchen" module="stays" sold_out=False %}
 {% comment %}FB-29 R2: баннеры, которым эта страница задана в «Wo zeigen».{% endcomment %}
 {% place_banners "stay" unit %}
+{% comment %}FB-29 R5: свои блоки этого объекта — над общими или под ними.{% endcomment %}
+{% object_blocks "stay" unit "before" %}
 {% page_blocks "stay_detail" %}
+{% object_blocks "stay" unit %}
 {% endblock %}

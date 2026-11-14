@@ -306,10 +306,32 @@ class SubPage:
 #: FB-27 R7: своя схема категории — строка «category@catalog:<slug>».
 CATEGORY = "category"
 #: FB-29.4b: свои блоки объекта — строка «product@product:<hex>» / «service@service:<hex>».
-OBJECT_KINDS = ("product", "service")
+OBJECT_KINDS = ("product", "service", "stay", "event", "promo")
 _OBJECT_MODELS = {
-    "product": ("apps.catalog.models", "Product"),
-    "service": ("apps.booking.models", "Service"),
+    # путь одной строкой: пара («модуль», «Имя») читается проверкой переводов как подпись
+    "product": "apps.catalog.models.Product",
+    "service": "apps.booking.models.Service",
+    "stay": "apps.stays.models.StayUnit",  # R5
+    "event": "apps.events.models.Event",
+    "promo": "apps.promotions.models.Promotion",
+}
+
+
+def object_model(kind: str):
+    """Модель вида объекта со своими блоками."""
+    import importlib
+
+    module, _dot, name = _OBJECT_MODELS[kind].rpartition(".")
+    return getattr(importlib.import_module(module), name)
+
+
+#: Карточка объекта в кабинете (ссылка «назад» со строки его своих блоков).
+_OBJECT_EDIT_URLS = {
+    "product": "catalog:product-edit",
+    "service": "booking:service-edit",
+    "stay": "stays:unit-edit",
+    "event": "events:edit",
+    "promo": "promotions:promotion-edit",
 }
 
 
@@ -319,7 +341,6 @@ def is_object_code(code: str) -> bool:
 
 def _object_for(code: str):
     """Объект строки «<kind>@<kind>:<hex>» либо None (чужой вид, мусор, нет такого)."""
-    import importlib
 
     from apps.tenants import siteconfig
 
@@ -328,8 +349,7 @@ def _object_for(code: str):
         return None
     if host.split(":", 1)[0] != kind:
         return None
-    module, name = _OBJECT_MODELS[kind]
-    model = getattr(importlib.import_module(module), name)
+    model = object_model(kind)
     try:
         return model.objects.filter(pk=uuid.UUID(host.split(":", 1)[1])).first()
     except (ValueError, TypeError):
@@ -345,17 +365,20 @@ def object_back(code: str) -> dict | None:
         return None
     kind = code.split("@", 1)[0]
     try:
-        url = (
-            reverse("catalog:product-edit", args=[obj.pk])
-            if kind == "product"
-            else reverse("booking:service-edit", args=[obj.pk])
-        )
+        url = reverse(_OBJECT_EDIT_URLS[kind], args=[obj.pk])
     except NoReverseMatch:
         return None
-    label = getattr(obj, "name", "")
-    if isinstance(label, dict):
-        label = label.get("de") or next(iter(label.values()), "")
-    return {"url": url, "label": str(label)}
+    return {"url": url, "label": _object_label(obj)}
+
+
+def _object_label(obj) -> str:
+    for attr in ("name", "title"):
+        label = getattr(obj, attr, "")
+        if isinstance(label, dict):
+            label = label.get("de") or next(iter(label.values()), "")
+        if label:
+            return str(label)
+    return str(obj)
 
 
 def object_row(config: dict, code: str):
@@ -370,15 +393,22 @@ def object_row(config: dict, code: str):
     try:
         if hasattr(obj, "get_absolute_url"):
             preview = obj.get_absolute_url()
-        else:
-            preview = reverse("storefront-service-detail", args=[obj.pk])
     except Exception:  # noqa: BLE001 — превью необязательно
         preview = ""
-    label = getattr(obj, "name_localized", None) or getattr(obj, "name", "")
-    if isinstance(label, dict):
-        label = label.get("de") or next(iter(label.values()), "")
+    if not preview:
+        for name in pt.url_names:  # запись без своего адреса — маршрут типа по pk
+            try:
+                preview = reverse(name, args=[obj.pk])
+                break
+            except NoReverseMatch:
+                continue
     return _row(
-        config, pt, code=code, label=str(label), preview=preview, host=code.split("@", 1)[1]
+        config,
+        pt,
+        code=code,
+        label=_object_label(obj),
+        preview=preview,
+        host=code.split("@", 1)[1],
     )
 
 

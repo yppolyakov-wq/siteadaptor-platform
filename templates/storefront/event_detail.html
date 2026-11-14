@@ -304,5 +304,8 @@
   {% include "storefront/_detail_buybar.html" with price=buyprice anchor="#buchen" module="events" sold_out=event.is_sold_out %}
 {% comment %}FB-29 R2: баннеры, которым эта страница задана в «Wo zeigen».{% endcomment %}
 {% place_banners "event" event %}
+{% comment %}FB-29 R5: свои блоки этого объекта — над общими или под ними.{% endcomment %}
+{% object_blocks "event" event "before" %}
 {% page_blocks "event_detail" %}
+{% object_blocks "event" event %}
 {% endblock %}
