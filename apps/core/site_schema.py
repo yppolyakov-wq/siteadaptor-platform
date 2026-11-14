@@ -282,6 +282,8 @@ def _page_type(code: str):
     # подстраницы есть у типа «Seite» и у категорий (FB-27 R7: своя схема категории)
     if "@" in code and base not in (TEXT, CATEGORY, *OBJECT_KINDS):
         return None
+    if "@" in code:
+        base = OBJECT_PAGE_TYPES.get(base, base)  # тур — строка типа «Veranstaltungsseite»
     for pt in studio_pages.PAGE_TYPES:
         if pt.code == base and (pt.code == "home" or _host(pt)):
             return pt
@@ -306,7 +308,11 @@ class SubPage:
 #: FB-27 R7: своя схема категории — строка «category@catalog:<slug>».
 CATEGORY = "category"
 #: FB-29.4b: свои блоки объекта — строка «product@product:<hex>» / «service@service:<hex>».
-OBJECT_KINDS = ("product", "service", "stay", "event", "promo")
+OBJECT_KINDS = ("product", "service", "stay", "event", "promo", "tour")
+#: T1: вид объекта без своего типа страницы → тип, чьи блоки и настройки он делит.
+OBJECT_PAGE_TYPES = {"tour": "event"}
+#: Адрес витрины объекта, у которого он не строится по pk маршрутом типа: (маршрут, поле).
+_OBJECT_PREVIEW_ROUTES = {"tour": ("storefront-tour", "slug")}
 _OBJECT_MODELS = {
     # путь одной строкой: пара («модуль», «Имя») читается проверкой переводов как подпись
     "product": "apps.catalog.models.Product",
@@ -314,6 +320,7 @@ _OBJECT_MODELS = {
     "stay": "apps.stays.models.StayUnit",  # R5
     "event": "apps.events.models.Event",
     "promo": "apps.promotions.models.Promotion",
+    "tour": "apps.events.models.Tour",
 }
 
 
@@ -332,6 +339,7 @@ _OBJECT_EDIT_URLS = {
     "stay": "stays:unit-edit",
     "event": "events:edit",
     "promo": "promotions:promotion-edit",
+    "tour": "events:tour-edit",
 }
 
 
@@ -400,7 +408,13 @@ def object_row(config: dict, code: str):
             preview = obj.get_absolute_url()
     except Exception:  # noqa: BLE001 — превью необязательно
         preview = ""
-    if not preview:
+    route = _OBJECT_PREVIEW_ROUTES.get(code.split("@", 1)[0])
+    if route and not preview:
+        try:
+            preview = reverse(route[0], args=[getattr(obj, route[1])])
+        except NoReverseMatch:
+            preview = ""
+    elif not preview:
         for name in pt.url_names:  # запись без своего адреса — маршрут типа по pk
             try:
                 preview = reverse(name, args=[obj.pk])
@@ -549,7 +563,7 @@ def host_for(code: str, known_slugs: set[str] | None = None) -> str:
     if "@" not in code:
         return _host(pt)
     host = code.split("@", 1)[1]
-    if pt.code in OBJECT_KINDS:
+    if is_object_code(code):
         # FB-29.4b: только существующий объект своего вида — иначе хосты-призраки.
         return host if _object_for(code) is not None else ""
     if pt.code == CATEGORY:

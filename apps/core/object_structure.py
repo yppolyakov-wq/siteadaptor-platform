@@ -25,6 +25,8 @@ MODULES = {
     "stay": "stays",
     "event": "events",
     "promo": "",
+    # T1: тур делит реестр разделов и тип страницы с событием; шаблона страницы у него нет
+    "tour": "events",
 }
 #: Виды, у которых есть ось «шаблон страницы» (`siteconfig.detail_layout`).
 LAYOUT_KINDS = ("product", "service", "stay", "event")

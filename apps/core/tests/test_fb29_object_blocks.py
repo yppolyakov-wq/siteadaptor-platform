@@ -116,6 +116,25 @@ def test_own_block_is_added_through_the_draft_and_saved_to_the_object_host():
     assert "product_detail" not in hosts, "общие блоки страницы товара не тронуты"
 
 
+def test_tour_gets_its_own_blocks_through_the_same_screen():
+    """T1: тур делит тип страницы с событием, но строка и хост — свои."""
+    from apps.events.models import Tour
+
+    tenant = _tenant()
+    tenant.disabled_modules = [m for m in tenant.disabled_modules if m != "events"]
+    tenant.save(update_fields=["disabled_modules"])
+    tour = Tour.objects.create(title="Rheinsteig", slug="rheinsteig-ob", is_published=True)
+    code = ost.schema_code("tour", tour)
+    b = Browser(tenant)
+    assert "Rheinsteig" in b.get(f"?seite={code}")
+    resp, msgs = b.post(seite=code, op="add", type="text")
+    assert resp.status_code == 302 and not msgs
+    b.post(seite=code, op="save")
+    hosts = _hosts(tenant)
+    assert list(hosts) == [f"tour:{tour.pk.hex}"]
+    assert site_schema.setting_codes(tenant, code) == []
+
+
 def test_object_page_has_no_type_settings():
     tenant = _tenant()
     p = _product()

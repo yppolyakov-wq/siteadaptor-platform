@@ -844,7 +844,6 @@ def tour_detail(request, slug):
     tour = get_object_or_404(
         Tour.objects.prefetch_related("teachers"), slug=slug, is_published=True
     )
-    from apps.tenants import siteconfig
 
     from . import itinerary as itinerary_mod
     from .access import route_audience
@@ -866,7 +865,10 @@ def tour_detail(request, slug):
             # темой этого тура (форма jobs); без модуля jobs ссылки нет.
             "private_tour_url": _private_tour_url(request, tour.title_text),
             # Порядок/скрытие тематических блоков — общий с событиями (M20U-4).
-            "event_detail_order": siteconfig.event_detail_order(page_settings.raw_config(request)),
+            # T1: видимость — с отличиями самого тура (`object_structure`).
+            "event_detail_order": object_structure.effective_order(
+                page_settings.raw_config(request), "events", tour
+            ),
         },
     )
 

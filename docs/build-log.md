@@ -23631,3 +23631,14 @@ FB-29 R5/R6, ревью `a11y-architect` (без блокеров): у акци�
 `monkeypatch.setattr(connection, …)` удалял `schema_name`/`tenant` у настоящего соединения.
 Хук ставит по `uv.lock` (`uv sync --frozen`), пять правок в четырёх тестах идут через
 `connections["default"]`, замок `test_connection_patch_guard.py`, грабля — `pitfalls.md` §6.
+
+**FB-29 T1 (2026-11-14): своя структура страницы и свои блоки у тура.** План —
+`docs/fb29-leftovers-plan-2026-11-14.md`. `Tour.page_override` (миграция `events/0039`,
+аддитивная, `db_default`); тур — шестой вид в `object_structure.MODULES`,
+`site_schema.OBJECT_KINDS` и `siteconfig.OBJECT_HOST_KINDS` (шаблон хоста строится из списка
+видов). Тип страницы тур делит с событием (`OBJECT_PAGE_TYPES`), строка экрана и хост — свои
+(`tour@tour:<hex>`), превью ведёт на `/tour/<slug>/`. Витрина: видимость разделов с отличиями
+тура, свои блоки над или под общими. Форма тура: секция «Seitenaufbau» (общий частичный, без
+шаблона страницы). Исправлено: блок-место баннеров в своих блоках тура не находился
+(`place_banners` искал хост `event:<pk тура>`). Замки: `test_fb29_tour_blocks.py` (15) +1.
+Стенд: форма, экран, витрина — 1440/390, de/ru, без JS.

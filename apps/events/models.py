@@ -92,6 +92,8 @@ class Tour(I18nMixin, TimestampedModel):
     duration_days = models.PositiveSmallIntegerField(default=0, blank=True)
     is_published = models.BooleanField(default=False)
     sort_order = models.IntegerField(default=0, blank=True)
+    #: FB-29 T1: отличия страницы тура от общего вида (читает `core.object_structure`).
+    page_override = models.JSONField(default=dict, db_default={}, blank=True)
 
     class Meta:
         ordering = ["sort_order", "title"]

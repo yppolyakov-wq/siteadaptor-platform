@@ -454,9 +454,12 @@ def place_banners(context, kind, obj):
             hosts = [own if siteconfig.has_own_schema(config, own) else "catalog"]
         else:  # блок-место — в блоках типа страницы либо в своих блоках объекта (R5)
             hexed = getattr(getattr(obj, "pk", None), "hex", "")
-            # акция — тип «promo»; тур делит тип страницы с событием
-            code = {"promotion": "promo", "tour": "event"}.get(kind, kind)
-            hosts = [f"{code}_detail", f"{code}:{hexed}"]
+            # вид объекта: акция — «promo»; тип страницы: тур делит его с событием
+            from apps.core import site_schema
+
+            own = {"promotion": "promo"}.get(kind, kind)
+            shared = site_schema.OBJECT_PAGE_TYPES.get(own, own)
+            hosts = [f"{shared}_detail", f"{own}:{hexed}"]
         if banners.place_block_present(config, hosts):
             return ""
     # `auto_place`: баннер стоит здесь сам, блока в схеме нет — без меток правки Студии

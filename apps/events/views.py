@@ -144,12 +144,12 @@ def event_edit(request, pk):
     )
 
 
-def object_structure_panel(request, event):
-    """FB-29 R5: данные секции «Seitenaufbau» формы события."""
+def object_structure_panel(request, obj, kind="event"):
+    """FB-29 R5/T1: данные секции «Seitenaufbau» формы события или тура."""
     from apps.core import object_structure
 
     config = getattr(getattr(request, "tenant", None), "site_config", None) or {}
-    return object_structure.panel(config, "event", event)
+    return object_structure.panel(config, kind, obj)
 
 
 @login_required
@@ -537,6 +537,12 @@ def tour_edit(request, pk):
         if request.POST.get("it_present"):
             tour.itinerary = itinerary.from_post(request.POST)
             tour.save(update_fields=["itinerary"])
+        # FB-29 T1: своя структура страницы тура — по сентинелу (W0)
+        from apps.core import object_structure
+
+        changed = object_structure.apply_post(tour, "tour", request.POST)
+        if changed:
+            tour.save(update_fields=[*changed, "updated_at"])
         _add_tour_photos(tour, request.FILES.getlist("photos"))
         if request.POST.get("delete_image"):
             _delete_tour_photo(tour, request.POST["delete_image"])
@@ -554,6 +560,8 @@ def tour_edit(request, pk):
             "stops": stops + [{}] * 3,
             "visibility_choices": itinerary.visibility_choices(),
             "departures": tour.departures.order_by("starts_at"),
+            "page_structure": object_structure_panel(request, tour, "tour"),
+            "page_structure_url": reverse("site-schema") + "?seite=event",
         },
     )
 
