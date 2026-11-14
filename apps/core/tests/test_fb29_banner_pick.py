@@ -124,7 +124,9 @@ def test_row_summary_counts_picked_banners():
 
 def test_storefront_slider_reads_the_settings():
     tpl = pathlib.Path("templates/storefront/sections/_hero_slider.html").read_text()
-    assert "data-hero-interval" in tpl and "data-hero-auto" in tpl and "data-hero-prev" in tpl
+    assert "data-hero-interval" in tpl and "data-hero-auto" in tpl
+    controls = pathlib.Path("templates/storefront/sections/_banner_slider_controls.html")
+    assert "_banner_slider_controls.html" in tpl and "data-hero-prev" in controls.read_text()
     js = pathlib.Path("templates/storefront/sections/_banner_slider_script.html").read_text()
     assert "dataset.heroInterval" in js and "6000" not in js.replace("|| 6", "")
 
@@ -180,3 +182,80 @@ def test_picked_banners_show_as_a_slider_with_any_hero_style(style):
     request.tenant = tenant
     html = render_to_string("storefront/sections/_hero.html", {"site": cfg, "request": request})
     assert html.count("data-hero-slide") >= 2 and "Herbst" in html and "Winter" in html
+
+
+# --- ревью S4 (django-reviewer, security-reviewer, a11y-architect) ---
+
+
+def test_studio_save_keeps_the_picked_banners_of_a_block():
+    """Форма Студии не знает о выборе: её «Speichern» не должен стирать баннеры блока."""
+    saved = [
+        {"key": "banner", "id": "b1", "enabled": True,
+         "data": {"title": "Alt", "pick": ["p1", "p2"], "interval": 8, "arrows": True}},
+    ]  # fmt: skip
+    posted = [{"key": "banner", "id": "b1", "enabled": True, "data": {"title": "Neu"}}]
+    out = site_schema.merge_structure(saved, posted)
+    assert out[0]["data"] == {"title": "Neu", "pick": ["p1", "p2"], "interval": 8, "arrows": True}
+    # выбора не было — форма ничего не добавляет
+    plain = site_schema.merge_structure(
+        [{"key": "banner", "id": "b1", "enabled": True, "data": {"title": "Alt"}}], posted
+    )
+    assert plain[0]["data"] == {"title": "Neu"}
+
+
+def test_a_draft_without_the_choice_marker_does_not_erase_the_stored_choice():
+    """Черновик, открытый до появления выбора (строка без `data`), его не стирает."""
+    config = {"hero_banners": {"pick": ["p1"]}}
+    site_schema.lift_hero_choice(config, [{"key": "hero", "enabled": True}])
+    assert config["hero_banners"] == {"pick": ["p1"]}
+    site_schema.lift_hero_choice(config, [{"key": "hero", "enabled": True, "data": {}}])
+    assert "hero_banners" not in config, "пустой выбор в строке — владелец убрал баннеры"
+
+
+@pytest.mark.parametrize(
+    "url", ["x');background:url('//evil.test/a", "javascript:alert(1)", "/media/a b.jpg", "//evil.test/a.jpg"]
+)  # fmt: skip
+def test_banner_image_url_cannot_break_out_of_the_style_attribute(url):
+    fields = banners.clean_fields({"title": "Herbst", "image": {"url": url}})
+    assert (fields["image"] or {}).get("url", "") == ""
+
+
+def test_banner_image_url_keeps_ordinary_addresses():
+    for url in ("/media/hero/a.jpg", "https://cdn.example.com/a%20b.jpg?v=1"):
+        assert banners.clean_fields({"title": "H", "image": {"url": url}})["image"]["url"] == url
+
+
+def _hero_html(n=2):
+    from django.template.loader import render_to_string
+    from django.test import RequestFactory
+
+    picks = [str(_banner(f"B{i}").pk) for i in range(n)]
+    tenant = _tenant()
+    cfg = siteconfig.normalize(
+        {**(tenant.site_config or {}), "hero_banners": {"pick": picks, "arrows": True}}
+    )
+    request = RequestFactory().get("/")
+    request.tenant = tenant
+    return render_to_string("storefront/sections/_hero.html", {"site": cfg, "request": request})
+
+
+def test_slider_can_be_paused_and_is_described_for_screen_readers():
+    html = _hero_html(3)
+    assert "data-hero-toggle" in html, "WCAG 2.2.2: у автопрокрутки есть кнопка паузы"
+    assert 'aria-roledescription="' in html
+    assert 'aria-label="Banner 2 von 3"' in html
+    assert html.count("<h1") == 1, "заголовок первого уровня — один на странице"
+    script = pathlib.Path("templates/storefront/sections/_banner_slider_script.html").read_text()
+    assert "inert" in script, "скрытые слайды вне порядка табуляции"
+    assert "aria-current" in script
+    assert "focusout" not in script, "уход фокуса не запускает прокрутку заново"
+
+
+def test_slider_controls_are_hidden_until_the_script_runs():
+    """Без скриптов точки и стрелки ничего не делают — их не видно."""
+    import re
+
+    html = _hero_html(2)
+    for marker in ("data-hero-prev", "data-hero-next", "data-hero-dots", "data-hero-toggle"):
+        tag = re.search(rf"<[^>]*{marker}[^>]*>", html)
+        assert tag and re.search(r'class="[^"]*\bhidden\b', tag.group(0)), marker

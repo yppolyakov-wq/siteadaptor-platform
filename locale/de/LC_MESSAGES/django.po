@@ -37833,3 +37833,16 @@ msgstr "ausgeschaltet oder außerhalb des Zeitraums – erscheint derzeit nicht"
 
 msgid "nur von Hand"
 msgstr "nur von Hand"
+
+msgid "Bannerwechsel anhalten"
+msgstr "Bannerwechsel anhalten"
+
+msgid "Bannerwechsel fortsetzen"
+msgstr "Bannerwechsel fortsetzen"
+
+msgid "Banner wählen"
+msgstr "Banner wählen"
+
+#, python-format
+msgid "Banner %(n)s von %(total)s"
+msgstr "Banner %(n)s von %(total)s"

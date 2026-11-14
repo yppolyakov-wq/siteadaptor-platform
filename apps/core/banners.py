@@ -9,6 +9,7 @@
 from __future__ import annotations
 
 import datetime
+import re
 import uuid
 
 from django.utils import timezone
@@ -40,6 +41,10 @@ def _day(value):
         raise ValueError("date") from exc
 
 
+#: Адрес фото баннера: свой путь или http(s), без пробелов, кавычек, скобок и «\\».
+_SAFE_IMAGE_URL = re.compile(r"^(?:https?://|/(?!/))[^\s'\"()\\<>]*$")
+
+
 def clean_fields(raw: dict) -> dict:
     """Сырые поля формы/переноса → значения модели. Та же санитизация, что у слайда
     баннера главной; пустой баннер (ни фото, ни заголовка, ни текста) — ValueError."""
@@ -48,6 +53,8 @@ def clean_fields(raw: dict) -> dict:
     raw = raw if isinstance(raw, dict) else {}
     image = raw.get("image") if isinstance(raw.get("image"), dict) else {}
     url = str(image.get("url") or "") if image else str(raw.get("image") or "")
+    if not _SAFE_IMAGE_URL.match(url):
+        url = ""  # адрес попадает в `style="background-image:url('…')"` — без кавычек и скобок
     starts, ends = _day(raw.get("starts")), _day(raw.get("ends"))
     slide = {
         **{k: raw.get(k) for k in (*_TEXT_FIELDS, *_STYLE_FIELDS)},

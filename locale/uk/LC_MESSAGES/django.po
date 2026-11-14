@@ -38072,3 +38072,16 @@ msgstr "вимкнено або поза терміном — зараз не п
 
 msgid "nur von Hand"
 msgstr "лише вручну"
+
+msgid "Bannerwechsel anhalten"
+msgstr "Зупинити зміну банерів"
+
+msgid "Bannerwechsel fortsetzen"
+msgstr "Продовжити зміну банерів"
+
+msgid "Banner wählen"
+msgstr "Вибрати банер"
+
+#, python-format
+msgid "Banner %(n)s von %(total)s"
+msgstr "Банер %(n)s із %(total)s"

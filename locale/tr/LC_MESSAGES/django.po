@@ -37892,3 +37892,16 @@ msgstr "kapalı veya süresinin dışında – şu an görünmüyor"
 
 msgid "nur von Hand"
 msgstr "yalnızca elle"
+
+msgid "Bannerwechsel anhalten"
+msgstr "Banner geçişini durdur"
+
+msgid "Bannerwechsel fortsetzen"
+msgstr "Banner geçişini sürdür"
+
+msgid "Banner wählen"
+msgstr "Banner seç"
+
+#, python-format
+msgid "Banner %(n)s von %(total)s"
+msgstr "Banner %(n)s / %(total)s"

@@ -3,15 +3,16 @@
 {% comment %}FB-22: слайды — только активные сегодня (даты «с/по»), ссылка из списка целей
 или своя (тег hero_slides), оформление слайда: положение текста, вуаль, цвет текста;
 «весь слайд — ссылка» = растянутая ссылка поверх (кнопка остаётся видимой).{% endcomment %}
-<section class="relative left-1/2 -translate-x-1/2 w-screen -mt-6 md:-mt-10 mb-10" data-hero-slider data-hero-auto="{% if site.hero_banners.auto == False %}0{% else %}1{% endif %}" data-hero-interval="{{ site.hero_banners.interval|default:6 }}" data-sf-media-slot="hero">
+<section class="relative left-1/2 -translate-x-1/2 w-screen -mt-6 md:-mt-10 mb-10" data-hero-slider data-hero-auto="{% if site.hero_banners.auto == False %}0{% else %}1{% endif %}" data-hero-interval="{{ site.hero_banners.interval|default:6 }}" data-sf-media-slot="hero" aria-roledescription="{% trans 'Karussell' %}" aria-label="{% trans 'Banner' %}">
+  {% if slides|length > 1 %}{% include "storefront/sections/_banner_slider_controls.html" with arrows=site.hero_banners.arrows %}{% endif %}
   <div class="relative min-h-[38vh] md:min-h-[46vh] bg-gray-800 overflow-hidden">
     {% for h in slides %}
     <div class="absolute inset-0 flex items-center {% if h.align == 'left' %}justify-start text-left{% elif h.align == 'right' %}justify-end text-right{% else %}justify-center text-center{% endif %} {% if h.tone == 'dark' %}text-gray-900{% else %}text-white{% endif %} bg-cover bg-center transition-opacity duration-700 {% if not forloop.first %}opacity-0 pointer-events-none{% endif %}"
-         {% if h.image %}style="background-image:url('{{ h.image }}');"{% endif %} data-hero-slide>
+         {% if h.image %}style="background-image:url('{{ h.image }}');"{% endif %} data-hero-slide{% if slides|length > 1 %} role="group" aria-label="{% blocktrans with n=forloop.counter total=slides|length %}Banner {{ n }} von {{ total }}{% endblocktrans %}"{% endif %}>
       {% if h.overlay == 'light' %}<div class="absolute inset-0 bg-white/50"></div>{% elif h.overlay != 'none' %}<div class="absolute inset-0 bg-black/45"></div>{% endif %}
       {% if h.click_all and h.href %}<a href="{{ h.href }}" class="absolute inset-0 z-[1]" aria-label="{{ h.title|default:request.tenant.name }}"></a>{% endif %}
       <div class="relative z-[2] px-4 md:px-12 py-12 max-w-4xl">
-        <h1 class="text-4xl md:text-6xl font-bold {% if h.tone != 'dark' %}drop-shadow-lg{% endif %}">{{ h.title|default:request.tenant.name }}</h1>
+        <{% if forloop.first %}h1{% else %}h2{% endif %} class="text-4xl md:text-6xl font-bold {% if h.tone != 'dark' %}drop-shadow-lg{% endif %}">{{ h.title|default:request.tenant.name }}</{% if forloop.first %}h1{% else %}h2{% endif %}>
         {% if h.text %}<p class="mt-4 text-lg md:text-xl {% if h.tone == 'dark' %}text-gray-700{% else %}text-white/90 drop-shadow{% endif %} max-w-2xl {% if h.align == 'right' %}ml-auto{% elif h.align != 'left' %}mx-auto{% endif %}">{{ h.text }}</p>{% endif %}
         {% if h.button_label and h.href %}<a href="{{ h.href }}" class="inline-block mt-5 {% if h.tone == 'dark' %}bg-gray-900 text-white hover:bg-gray-800{% else %}bg-white text-gray-900 hover:bg-gray-100{% endif %} rounded-lg px-6 py-2.5 font-medium">{{ h.button_label }}</a>
         {% else %}{% include "storefront/sections/_hero_cta.html" with style="light" %}{% endif %}
@@ -19,16 +20,6 @@
     </div>
     {% endfor %}
   </div>
-  {% if slides|length > 1 and site.hero_banners.arrows %}
-  {% comment %}FB-29.2: стрелки листания — по настройке слайдера; кнопки с подписью.{% endcomment %}
-  <button type="button" class="absolute left-3 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/85 text-xl text-gray-900 hover:bg-white" data-hero-prev aria-label="{% trans 'Vorheriger Banner' %}">‹</button>
-  <button type="button" class="absolute right-3 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/85 text-xl text-gray-900 hover:bg-white" data-hero-next aria-label="{% trans 'Nächster Banner' %}">›</button>
-  {% endif %}
-  {% if slides|length > 1 %}
-  <div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
-    {% for h in slides %}<button type="button" class="w-2.5 h-2.5 rounded-full {% if forloop.first %}bg-white{% else %}bg-white/50{% endif %}" data-hero-dot aria-label="{% trans 'Slide' %} {{ forloop.counter }}"></button>{% endfor %}
-  </div>
-  {% endif %}
 </section>
 {% if site.site_defaults.hero_widget %}
 {% comment %}Фидбэк 2026-07-30: primary-виджет (плитки направлений/поиск) раньше

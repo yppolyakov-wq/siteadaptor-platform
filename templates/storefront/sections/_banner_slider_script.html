@@ -1,4 +1,4 @@
-{% comment %}Слайдер баннеров (главная и блок «Banner»): автопрокрутка, точки, стрелки. Настройки — в data-атрибутах секции (`data-hero-auto`, `data-hero-interval` в секундах). Без скриптов виден первый слайд. Гвард: партиал может включаться несколько раз.{% endcomment %}<script>
+{% comment %}Слайдер баннеров (главная и блок «Banner»): автопрокрутка с кнопкой паузы, точки, стрелки; скрытые слайды — inert. Настройки — в data-атрибутах секции (`data-hero-auto`, `data-hero-interval` в секундах). Без скриптов виден первый слайд. Гвард: партиал может включаться несколько раз.{% endcomment %}<script>
 (function () {
   document.querySelectorAll('[data-hero-slider]').forEach(function (s) {
     if (s.dataset.init) return;
@@ -6,37 +6,58 @@
     var slides = [].slice.call(s.querySelectorAll('[data-hero-slide]'));
     var dots = [].slice.call(s.querySelectorAll('[data-hero-dot]'));
     if (slides.length < 2) return;
-    var i = 0, timer = null;
+    var i = 0, timer = null, paused = false;
     var seconds = Math.min(12, Math.max(4, parseInt(s.dataset.heroInterval, 10) || 6));
     // DL-13 C6 (NN/g, Baymard: авто-карусель без паузы и на телефоне — потери
     // кликов): без автопрокрутки на узком экране и при prefers-reduced-motion;
-    // пауза при наведении/фокусе; клик по точке или стрелке останавливает ротацию совсем.
+    // пауза при наведении и фокусе, кнопка паузы (WCAG 2.2.2); точка или стрелка
+    // останавливает ротацию совсем.
     var auto = s.dataset.heroAuto !== '0' && !(window.matchMedia && (window.matchMedia('(max-width: 767px)').matches ||
                  window.matchMedia('(prefers-reduced-motion: reduce)').matches));
+    var toggle = s.querySelector('[data-hero-toggle]');
+    var icon = s.querySelector('[data-hero-toggle-icon]');
     function show(n) {
       slides.forEach(function (sl, k) {
         sl.classList.toggle('opacity-0', k !== n);
         sl.classList.toggle('pointer-events-none', k !== n);
+        sl.toggleAttribute('inert', k !== n);
       });
       dots.forEach(function (d, k) {
-        d.classList.toggle('bg-white', k === n);
-        d.classList.toggle('bg-white/50', k !== n);
+        var mark = d.querySelector('[data-hero-dot-mark]') || d;
+        mark.classList.toggle('bg-white', k === n);
+        mark.classList.toggle('bg-white/50', k !== n);
+        if (k === n) d.setAttribute('aria-current', 'true'); else d.removeAttribute('aria-current');
       });
       i = n;
     }
+    function reveal(el) { if (el) { el.classList.remove('hidden'); el.classList.add('flex'); } }
     function stop() { if (timer) { clearInterval(timer); timer = null; } }
-    function start() { if (auto && !timer) timer = setInterval(function () { show((i + 1) % slides.length); }, seconds * 1000); }
-    function manual(n) { stop(); auto = false; show((n + slides.length) % slides.length); }
+    function start() { if (auto && !paused && !timer) timer = setInterval(function () { show((i + 1) % slides.length); }, seconds * 1000); }
+    function label() {
+      if (!toggle) return;
+      toggle.setAttribute('aria-label', paused ? toggle.dataset.labelPlay : toggle.dataset.labelPause);
+      if (icon) icon.textContent = paused ? '\u25B6' : '\u275A\u275A';
+    }
+    function manual(n) {
+      stop(); auto = false; show((n + slides.length) % slides.length);
+      if (toggle) toggle.classList.add('hidden');
+    }
     dots.forEach(function (d, k) {
       d.addEventListener('click', function () { manual(k); });
     });
     var prev = s.querySelector('[data-hero-prev]'), next = s.querySelector('[data-hero-next]');
     if (prev) prev.addEventListener('click', function () { manual(i - 1); });
     if (next) next.addEventListener('click', function () { manual(i + 1); });
+    if (toggle) toggle.addEventListener('click', function () {
+      paused = !paused; label();
+      if (paused) stop(); else start();
+    });
     s.addEventListener('mouseenter', stop);
     s.addEventListener('mouseleave', start);
     s.addEventListener('focusin', stop);
-    s.addEventListener('focusout', start);
+    reveal(prev); reveal(next); reveal(s.querySelector('[data-hero-dots]'));
+    if (auto) reveal(toggle);
+    show(0);
     start();
   });
 })();

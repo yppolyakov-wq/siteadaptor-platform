@@ -4,11 +4,12 @@
 {% banner_block_slides block as many %}
 {% if many %}
 {% comment %}FB-29.2 S4: из библиотеки выбрано несколько баннеров — слайдер (тот же скрипт, что у главной). Без скриптов виден первый.{% endcomment %}
-<section class="my-8 relative" data-hero-slider data-hero-auto="{% if block.auto == False %}0{% else %}1{% endif %}" data-hero-interval="{{ block.interval|default:6 }}" data-banner-block>
+<section class="my-8 relative" data-hero-slider data-hero-auto="{% if block.auto == False %}0{% else %}1{% endif %}" data-hero-interval="{{ block.interval|default:6 }}" data-banner-block aria-roledescription="{% trans 'Karussell' %}" aria-label="{% trans 'Banner' %}">
   <div class="cb-box relative overflow-hidden rounded-2xl bg-gray-800 {% if block.height == 'sm' %}min-h-[24vh]{% elif block.height == 'lg' %}min-h-[46vh]{% else %}min-h-[34vh]{% endif %}">
+    {% include "storefront/sections/_banner_slider_controls.html" with slides=many arrows=block.arrows %}
     {% for h in many %}
     <div class="absolute inset-0 flex items-center bg-cover bg-center transition-opacity duration-700 {% if h.align == 'left' %}justify-start text-left{% elif h.align == 'right' %}justify-end text-right{% else %}justify-center text-center{% endif %} {% if h.tone == 'dark' %}text-gray-900{% else %}text-white{% endif %} {% if not forloop.first %}opacity-0 pointer-events-none{% endif %}"
-         {% if h.image %}style="background-image:url('{{ h.image }}');"{% endif %} data-hero-slide>
+         {% if h.image %}style="background-image:url('{{ h.image }}');"{% endif %} data-hero-slide role="group" aria-label="{% blocktrans with n=forloop.counter total=many|length %}Banner {{ n }} von {{ total }}{% endblocktrans %}">
       {% if h.overlay == 'light' %}<div class="absolute inset-0 bg-white/50"></div>{% elif h.overlay != 'none' and h.image %}<div class="absolute inset-0 bg-black/45"></div>{% endif %}
       {% if h.click_all and h.href %}<a href="{{ h.href }}" class="absolute inset-0 z-[1]" aria-label="{{ h.title|default:request.tenant.name }}"></a>{% endif %}
       <div class="relative z-[2] px-6 md:px-12 py-10 max-w-3xl">
@@ -18,13 +19,6 @@
       </div>
     </div>
     {% endfor %}
-    {% if block.arrows %}
-    <button type="button" class="absolute left-3 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/85 text-xl text-gray-900 hover:bg-white" data-hero-prev aria-label="{% trans 'Vorheriger Banner' %}">‹</button>
-    <button type="button" class="absolute right-3 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/85 text-xl text-gray-900 hover:bg-white" data-hero-next aria-label="{% trans 'Nächster Banner' %}">›</button>
-    {% endif %}
-    <div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
-      {% for h in many %}<button type="button" class="w-2.5 h-2.5 rounded-full {% if forloop.first %}bg-white{% else %}bg-white/50{% endif %}" data-hero-dot aria-label="{% trans 'Slide' %} {{ forloop.counter }}"></button>{% endfor %}
-    </div>
   </div>
 </section>
 {% include "storefront/sections/_banner_slider_script.html" %}

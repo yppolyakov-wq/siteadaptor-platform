@@ -37746,3 +37746,16 @@ msgstr "switched off or outside its period – not shown right now"
 
 msgid "nur von Hand"
 msgstr "by hand only"
+
+msgid "Bannerwechsel anhalten"
+msgstr "Pause banner rotation"
+
+msgid "Bannerwechsel fortsetzen"
+msgstr "Resume banner rotation"
+
+msgid "Banner wählen"
+msgstr "Choose banner"
+
+#, python-format
+msgid "Banner %(n)s von %(total)s"
+msgstr "Banner %(n)s of %(total)s"

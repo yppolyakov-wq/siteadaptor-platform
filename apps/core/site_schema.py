@@ -87,6 +87,8 @@ OWNED_DATA_KINDS = ("list", "textpage", "contact_card")
 #: То же у встроенного списка главной: что, сколько и как он показывает, правит панель
 #: «Seitenaufbau» — эти поля строки входят в отпечаток и переживают устаревшую вкладку.
 BUILTIN_OWNED_FIELDS = ("data", "limit", "layout", "source")
+#: FB-29.2: выбор места показа у блока «Banner» (баннеры и настройки слайдера).
+_BANNER_CHOICE_FIELDS = ("pick", "auto", "interval", "arrows")
 
 
 def _is_builtin_list(item: dict) -> bool:
@@ -176,6 +178,17 @@ def merge_structure(
         merged = {**new, "key": old.get("key")}
         if keep_data and kind(old) in OWNED_DATA_KINDS:
             merged["data"] = old.get("data") or {}
+        if kind(old) == "banner":
+            # FB-29.2: выбор баннеров и настройки слайдера задаёт «Seitenaufbau»; форма
+            # Студии их не несёт вовсе — её «Speichern» выбор не трогает.
+            was = old.get("data") if isinstance(old.get("data"), dict) else {}
+            data = dict(merged.get("data") or {}) if isinstance(merged.get("data"), dict) else {}
+            for field in _BANNER_CHOICE_FIELDS:
+                if field in was:
+                    data[field] = was[field]
+                else:
+                    data.pop(field, None)
+            merged["data"] = data
         if keep_data and _is_builtin_list(old):
             for field in BUILTIN_OWNED_FIELDS:
                 if field in old:
@@ -909,11 +922,7 @@ def _store_banner_data(item: dict, data: dict) -> None:
     from apps.tenants import siteconfig
 
     if _is_hero_row(item):
-        choice = siteconfig.clean_banner_choice(data)
-        if choice:
-            item["data"] = choice
-        else:
-            item.pop("data", None)
+        item["data"] = siteconfig.clean_banner_choice(data) or {}
         return
     item["data"] = siteconfig._clean_cblock_data("banner", data)
 
@@ -1179,6 +1188,8 @@ def lift_hero_choice(config: dict, items: list[dict]) -> None:
 
     for item in items:
         if _is_hero_row(item):
+            if "data" not in item:
+                continue  # строка без метки выбора (старый черновик) — сохранённое не трогаем
             choice = siteconfig.clean_banner_choice(item.pop("data", None))
             if choice:
                 config["hero_banners"] = choice
@@ -1197,9 +1208,7 @@ def load_items(config: dict, home: bool, host: str) -> list[dict]:
         choice = siteconfig.clean_banner_choice(config.get("hero_banners"))
         for item in items:
             if _is_hero_row(item):
-                item.pop("data", None)
-                if choice:
-                    item["data"] = choice
+                item["data"] = choice or {}  # ключ есть всегда: «выбор прочитан»
         return items
     return copy.deepcopy(
         siteconfig.main_list_sequence(host, (config.get("page_blocks") or {}).get(host, []))
