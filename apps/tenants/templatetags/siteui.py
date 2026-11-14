@@ -1082,7 +1082,7 @@ def sell_closed(context, kind):
 
 
 @register.simple_tag(takes_context=True)
-def hero_slides(context, heroes):
+def hero_slides(context, heroes, choice=None):
     """FB-22: слайды баннера, активные СЕГОДНЯ (`starts`/`ends`), со ссылкой `href`.
 
     Ссылка: выбранная из списка целей (`link` = «type:target» — тот же резолвер, что
@@ -1096,6 +1096,22 @@ def hero_slides(context, heroes):
     request = context.get("request")
     tenant = getattr(request, "tenant", None)
     today = timezone.localdate().isoformat()
+    # FB-29.2: баннеры выбраны из библиотеки — показываем их (в порядке владельца,
+    # активные сегодня); выбора нет — прежние слайды настроек.
+    if isinstance(choice, dict) and choice.get("pick"):
+        import logging
+
+        from django.db import DatabaseError, transaction
+
+        from apps.core import banners
+
+        try:
+            with transaction.atomic():
+                heroes = banners.resolve(choice["pick"])
+        except DatabaseError:
+            # библиотека недоступна (например, миграция в этой схеме ещё не применена) —
+            # главная показывает прежние слайды, а не ошибку
+            logging.getLogger(__name__).exception("banners: library lookup failed")
     out = []
     for h in heroes or []:
         if h.get("starts") and h["starts"] > today:
@@ -1121,5 +1137,13 @@ def banner_slide(context, block):
     """FB-22b: C-блок «Banner» → слайд (как у главной) или None вне дат показа."""
     if not isinstance(block, dict):
         return None
+    if block.get("pick"):
+        # FB-29.2: баннер выбран из библиотеки — он вместо своего слайда блока (вне срока
+        # блок пуст; свой слайд его не подменяет: владелец выбрал именно этот баннер)
+        slides = hero_slides(context, [], {"pick": block["pick"]})
+        if not slides:
+            return None
+        first = slides[0]
+        return {**first, "url": first.get("image", ""), "height": block.get("height", "")}
     slides = hero_slides(context, [{**block, "image": block.get("url", "")}])
     return slides[0] if slides else None

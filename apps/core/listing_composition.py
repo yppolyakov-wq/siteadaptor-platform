@@ -95,10 +95,9 @@ def hero_from_tenant(tenant, config: dict | None) -> dict:
     Нет фото — композиция не применяется вовсе (гейт `NEEDS_PHOTO`).
     """
     cfg = config or {}
-    heroes = cfg.get("heroes") or []
-    photo = cfg.get("hero_image") or (
-        (heroes[0] or {}).get("image", "") if heroes and isinstance(heroes[0], dict) else ""
-    )
+    from apps.core import banners
+
+    photo = cfg.get("hero_image") or banners.first_image(cfg)
     eyebrow = ""
     if tenant is not None:
         try:

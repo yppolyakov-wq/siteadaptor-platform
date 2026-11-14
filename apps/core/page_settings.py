@@ -401,11 +401,9 @@ def composition_gate(config: dict | None = None) -> dict[str, set[str]]:
         "reviews": False,
     }
     cfg = config or {}
-    heroes = cfg.get("heroes") or []
-    has_photo = bool(
-        cfg.get("hero_image")
-        or (isinstance(heroes, list) and heroes and (heroes[0] or {}).get("image"))
-    )
+    from apps.core import banners
+
+    has_photo = bool(cfg.get("hero_image") or banners.first_image(cfg))
 
     out: dict[str, set[str]] = {}
     for surface, has_children in (

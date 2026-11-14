@@ -214,3 +214,143 @@ def delete(tenant, banner) -> None:
                 fresh.save(update_fields=["site_config", "updated_at"])
                 tenant.site_config = config
         banner.delete()
+
+
+def first_image(config: dict) -> str:
+    """Фото первого баннера главной — запасное фото шапок страниц и композиций. Выбраны
+    баннеры из библиотеки — первый показываемый сегодня; иначе первый прежний слайд.
+    Ошибка базы не роняет страницу: фото просто нет."""
+    import logging
+
+    from django.db import DatabaseError, transaction
+
+    config = config or {}
+    pick = (config.get("hero_banners") or {}).get("pick")
+    if pick:
+        try:
+            with transaction.atomic():
+                slides = resolve(pick)
+        except DatabaseError:
+            logging.getLogger(__name__).exception("banners: first image lookup failed")
+            slides = []
+        return slides[0]["image"] if slides else ""
+    heroes = config.get("heroes") or []
+    first = heroes[0] if heroes and isinstance(heroes[0], dict) else {}
+    return first.get("image", "") or ""
+
+
+# ───────── перенос прежних слайдов (`site_config["heroes"]`) в библиотеку ─────────
+
+_LEGACY_PREFIX = "heroes:"
+
+
+def _hero_translations(config: dict, index: int) -> dict:
+    """Переводы слайда №index из позиционного оверлея `i18n[<язык>]["heroes"]`."""
+    out: dict = {overlay: {} for _base, overlay in _I18N_FIELDS}
+    for locale, layer in (config.get("i18n") or {}).items():
+        slides = layer.get("heroes") if isinstance(layer, dict) else None
+        slide = slides[index] if isinstance(slides, list) and index < len(slides) else None
+        if not isinstance(slide, dict):
+            continue
+        for base, overlay in _I18N_FIELDS:
+            if isinstance(slide.get(base), str) and slide[base].strip():
+                out[overlay][locale] = slide[base].strip()
+    return out
+
+
+def import_legacy(tenant) -> dict:
+    """Слайды баннера главной → записи библиотеки; главная начинает показывать их по
+    выбору. Повторяемо (ключ `heroes:<i>`), прежние слайды в настройках остаются — для
+    отката. Выбор, который владелец уже сделал сам, не трогается. Слайд, который не
+    проходит чистку, пропускается и считается. Блоки «Banner» не переносятся: у блока
+    остаётся свой слайд, пока владелец не выберет баннер из библиотеки."""
+    import copy
+    import logging
+
+    from django.db import IntegrityError, transaction
+
+    from apps.core.models import Banner
+    from apps.tenants import siteconfig
+    from apps.tenants.models import Tenant
+
+    report = {"created": 0, "skipped": 0}
+    with transaction.atomic():
+        fresh = Tenant.objects.select_for_update().filter(pk=tenant.pk).first()
+        if fresh is None:
+            return report
+        raw = copy.deepcopy(fresh.site_config or {})
+        current = raw.get("hero_banners") if isinstance(raw.get("hero_banners"), dict) else {}
+        # Перенос — один раз: выбор уже есть (владельца или прошлого переноса) либо записи
+        # переноса уже лежат в библиотеке — ничего не создаём. Иначе повтор вернул бы
+        # баннеры, которые владелец удалил, и подменил бы правленые записи прежними.
+        if current.get("pick") or Banner.objects.filter(legacy_key__startswith=_LEGACY_PREFIX):
+            return report
+        items = raw.get("heroes") if isinstance(raw.get("heroes"), list) else []
+        pick = []
+        # индекс — по СЫРОМУ списку: по нему же лежат переводы (`i18n[...]["heroes"][i]`);
+        # слайд, который чистка отбрасывает, переносу не мешает
+        for index, item in enumerate(items):
+            cleaned = siteconfig.normalize_heroes([item])
+            if not cleaned or len(pick) >= siteconfig._MAX_HEROES:
+                continue
+            try:
+                with transaction.atomic():
+                    banner = create(
+                        cleaned[0], sort_order=index, legacy_key=f"{_LEGACY_PREFIX}{index}"
+                    )
+            except (ValueError, IntegrityError):
+                logging.getLogger(__name__).warning(
+                    "banner import: slide %s of %s skipped (does not pass cleaning)",
+                    index,
+                    fresh.schema_name,
+                )
+                report["skipped"] += 1
+                continue
+            for overlay, value in _hero_translations(raw, index).items():
+                setattr(banner, overlay, value)
+            banner.save()
+            report["created"] += 1
+            pick.append(str(banner.pk))
+        if pick:
+            raw["hero_banners"] = {**current, "pick": pick}
+            fresh.site_config = raw
+            fresh.save(update_fields=["site_config", "updated_at"])
+            tenant.site_config = raw
+    return report
+
+
+def undo_legacy(tenant) -> int:
+    """Обратный ход переноса: перенесённые записи удаляются и уходят из выбора главной;
+    баннеры, созданные владельцем, и его собственный выбор остаются. Возвращает число
+    удалённых записей."""
+    import copy
+
+    from django.db import transaction
+
+    from apps.core.models import Banner
+    from apps.tenants.models import Tenant
+
+    with transaction.atomic():
+        imported = list(Banner.objects.filter(legacy_key__startswith=_LEGACY_PREFIX))
+        keys = {str(b.pk) for b in imported}
+        fresh = Tenant.objects.select_for_update().filter(pk=tenant.pk).first()
+        if fresh is not None and keys:
+            raw = copy.deepcopy(fresh.site_config or {})
+            changed = False
+            for _place, holder in _picks(raw):
+                pick = holder.get("pick")
+                if isinstance(pick, list) and keys & set(pick):
+                    holder["pick"] = [p for p in pick if p not in keys]
+                    changed = True
+            if isinstance(raw.get("hero_banners"), dict) and not raw["hero_banners"].get("pick"):
+                raw["hero_banners"].pop("pick", None)
+                if not raw["hero_banners"]:
+                    raw.pop("hero_banners")
+                changed = True
+            if changed:
+                fresh.site_config = raw
+                fresh.save(update_fields=["site_config", "updated_at"])
+                tenant.site_config = raw
+        for banner in imported:
+            banner.delete()
+    return len(imported)

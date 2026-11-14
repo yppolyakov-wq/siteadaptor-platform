@@ -819,10 +819,9 @@ def promotion_list(request):
     if page_style == "magazin":
         for promo in promotions:
             promo.conditions = rules_text.conditions_for(promo)
-    _heroes = cfg.get("heroes") or []
-    promo_head_photo = cfg.get("hero_image") or (
-        (_heroes[0] or {}).get("image", "") if _heroes and isinstance(_heroes[0], dict) else ""
-    )
+    from apps.core import banners as _banners
+
+    promo_head_photo = cfg.get("hero_image") or _banners.first_image(cfg)
 
     # SF-2: компактная полоса «⏳ Endet bald» над секциями — только на чистом
     # виде и только если есть чем наполнить (пустые секции не показываем).
@@ -2025,10 +2024,9 @@ def product_list(request, slug=None):
         )
         if v
     ]
-    _heroes = cfg.get("heroes") or []
-    _root_header_photo = cfg.get("hero_image") or (
-        (_heroes[0] or {}).get("image", "") if _heroes and isinstance(_heroes[0], dict) else ""
-    )
+    from apps.core import banners as _banners
+
+    _root_header_photo = cfg.get("hero_image") or _banners.first_image(cfg)
     return render(
         request,
         "storefront/products.html",

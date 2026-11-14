@@ -498,7 +498,9 @@ def _row_summary(config: dict, item: dict) -> str:
     data = item.get("data") if isinstance(item.get("data"), dict) else {}
     parts: list[str] = []
     if kind == "hero" and not item.get("id"):
-        slides = len(config.get("heroes") or [])
+        # FB-29.2: баннеры выбраны из библиотеки — считаем их, иначе прежние слайды
+        picked = (config.get("hero_banners") or {}).get("pick") or []
+        slides = len(picked) or len(config.get("heroes") or [])
         if slides > 1:
             parts += [_("%(n)s Folien") % {"n": slides}, str(_("Slider"))]
     elif kind == "list" or (kind in siteconfig.BUILTIN_LIST_SOURCES and not item.get("id")):

@@ -71,5 +71,7 @@ def test_only_active_slides_and_link_resolves_like_the_menu():
 
 def test_slider_markup_uses_style_and_whole_image_link():
     tpl = open("templates/storefront/sections/_hero.html", encoding="utf-8").read()
-    assert "{% hero_slides site.heroes as slides %}" in tpl and "{% elif slides %}" in tpl
+    # FB-29.2 (осознанная переписка): тег получает и выбор баннеров из библиотеки
+    assert "{% hero_slides site.heroes site.hero_banners as slides %}" in tpl
+    assert "{% elif slides %}" in tpl
     assert "h.click_all and h.href" in tpl and "h.overlay == 'light'" in tpl

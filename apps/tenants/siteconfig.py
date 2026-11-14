@@ -625,6 +625,8 @@ def _clean_cblock_data(key: str, raw) -> dict:
                 out[k] = h[k]
         if d.get("height") in ("sm", "lg"):
             out["height"] = d["height"]
+        # FB-29.2: баннеры из библиотеки вместо своего слайда блока
+        out.update(clean_banner_choice(d))
         return out
     if key == "stats":
         # GK-4: полоса цифр — rows = [{value, label}] (НЕ "items": у dict в Django-
@@ -3038,6 +3040,41 @@ HERO_SLIDE_STYLE = {
 _ISO_DAY = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 
 
+#: FB-29.2: сколько баннеров из библиотеки показывает одно место (слайдер).
+BANNER_PICK_MAX = 10
+
+
+def clean_banner_choice(raw) -> dict:
+    """FB-29.2: выбор места показа баннеров — {pick, auto, interval, arrows},
+    presence-minimal: `pick` — UUID из библиотеки в порядке владельца; автопрокрутка
+    включена, пока явно не выключена; интервал 4–12 с (6 — умолчание, не хранится);
+    стрелки — только когда включены. Пусто — ключа нет вовсе."""
+    if not isinstance(raw, dict):
+        return {}
+    out: dict = {}
+    pick = clean_pick(raw.get("pick"))[:BANNER_PICK_MAX]
+    if pick:
+        out["pick"] = pick
+    if _is_off(raw.get("auto")):
+        out["auto"] = False
+    try:
+        interval = int(raw.get("interval") or 0)
+    except (TypeError, ValueError):
+        interval = 0
+    if 4 <= interval <= 12 and interval != 6:
+        out["interval"] = interval
+    if raw.get("arrows") and not _is_off(raw.get("arrows")):
+        out["arrows"] = True
+    return out
+
+
+def _is_off(value) -> bool:
+    """«Выключено» из формы или JSON: False, 0, "0", "false", "off", "no"."""
+    if isinstance(value, str):
+        return value.strip().lower() in ("0", "false", "off", "no")
+    return value is False or value == 0 and value is not None and not isinstance(value, bool)
+
+
 def normalize_heroes(raw) -> list[dict]:
     """M20U-2: слайды баннера → [{image, title, text, button_label, button_url}].
 
@@ -4821,6 +4858,10 @@ def _normalize_impl(config) -> dict:
     normalized["hero_image"] = _s(config.get("hero_image"))
     # M20U-2: слайдер главных баннеров (heroes[]); пусто → одиночный hero выше (back-compat).
     normalized["heroes"] = normalize_heroes(config.get("heroes"))
+    # FB-29.2: баннеры главной, ВЫБРАННЫЕ из библиотеки; есть выбор — он вместо `heroes`.
+    hero_banners = clean_banner_choice(config.get("hero_banners"))
+    if hero_banners:
+        normalized["hero_banners"] = hero_banners
     # Шрифт витрины (P2a): системный стек по ключу; неизвестный → system.
     font = config.get("font")
     normalized["font"] = font if font in FONTS else "system"

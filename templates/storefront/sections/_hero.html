@@ -1,12 +1,12 @@
 {% load i18n siteui %}{# Секция hero (Track C2 / M20U-2): баннер или слайдер баннеров из site_config. #}
-{% hero_slides site.heroes as slides %}
-{% firstof site.hero_image site.heroes.0.image as hero_photo %}
+{% hero_slides site.heroes site.hero_banners as slides %}
+{% firstof site.hero_image slides.0.image site.heroes.0.image as hero_photo %}
 {% if site.hero_style == "split" %}
 {% comment %}DS-3b (Fokus): сплит-композиция — текст слева на чистом поле (читается
 без тёмной вуали), фото справа как есть. Фото: hero_image или первый слайд heroes
 (слайдер при split не крутится — ограничение v1, см. план DS-3). Приоритет ветки
 выше слайдера ОСОЗНАННО: split выбирают явно (hero_style), plain/accent — как были.{% endcomment %}
-{% firstof site.hero_image site.heroes.0.image as split_photo %}
+{% firstof site.hero_image slides.0.image site.heroes.0.image as split_photo %}
 <section class="mb-10 grid md:grid-cols-2 gap-6 md:gap-10 items-center" data-hero-split>
   <div class="py-4 md:py-10">
     {% comment %}DS-4b: eyebrow «тип · город» (генерик, без нового ключа) — как в
