@@ -64,3 +64,11 @@ def test_catalog_page_shows_samples_instead_of_the_empty_text():
     assert "data-sample-products" in html
     plain = public_views.product_list(_req("/sortiment/")).content.decode()
     assert "data-sample-products" not in plain
+
+
+def test_every_sample_has_a_real_photo():
+    """R4: у примера без фото карточка выглядела пустой."""
+    from apps.tenants.demo_images import photo_static_name
+
+    for i, (_name, _price, keyword) in enumerate(design_samples._SAMPLES):
+        assert photo_static_name(keyword, lock=700 + i), keyword

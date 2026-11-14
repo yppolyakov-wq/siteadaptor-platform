@@ -38263,3 +38263,6 @@ msgstr "Показувати власні блоки над блоками дл�
 
 msgid "Text, Banner oder Liste – nur auf dieser Seite sichtbar."
 msgstr "Текст, банер або список — видно лише на цій сторінці."
+
+msgid "Pixel übernehmen die jetzige Breite auf diesem kleinen Bildschirm. Am Computer wirkt das Bild dann klein – dort die Breite prüfen."
+msgstr "Пікселі беруть теперішню ширину на цьому малому екрані. На комп’ютері фото буде дрібним — перевірте ширину там."

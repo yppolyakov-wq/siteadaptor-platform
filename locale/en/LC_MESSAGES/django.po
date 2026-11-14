@@ -37937,3 +37937,6 @@ msgstr "Show own blocks above the blocks for all"
 
 msgid "Text, Banner oder Liste – nur auf dieser Seite sichtbar."
 msgstr "Text, banner or list – visible only on this page."
+
+msgid "Pixel übernehmen die jetzige Breite auf diesem kleinen Bildschirm. Am Computer wirkt das Bild dann klein – dort die Breite prüfen."
+msgstr "Pixels take the current width on this small screen. On a computer the image will then look small – check the width there."

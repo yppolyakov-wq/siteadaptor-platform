@@ -93,3 +93,21 @@ def test_form_has_a_search_that_does_not_submit_the_banner_form():
     assert '<form id="b-show-search" method="get"' in html
     assert f'value="product:{p.pk}"' in html and 'type="checkbox" name="b_show_add"' in html
     assert 'value="oolong"' in html
+
+
+def test_ticked_pages_stay_ticked_after_a_form_error():
+    p = _product("Darjeeling")
+    b = _banner()
+    data = {"b_present": "1", "b_title": "Herbsttee", "b_starts": "kein-datum", "b_show_present": "1",
+            "b_show_add": [f"product:{p.pk}"]}  # fmt: skip
+    resp = views.banner_edit(_req(method="post", data=data, user=_user()), pk=b.pk)
+    html = resp.content.decode()
+    assert resp.status_code == 200 and 'id="b-error"' in html
+    assert f'value="product:{p.pk}" checked' in html
+
+
+def test_radio_groups_in_the_panel_send_one_request():
+    import pathlib
+
+    js = pathlib.Path("static/js/aufbau.js").read_text()
+    assert "radioTimer" in js

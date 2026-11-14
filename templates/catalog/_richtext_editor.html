@@ -196,6 +196,7 @@ Esc — обратно), выравнивание текста, H4, цитата
     sizeH: "{% trans 'Höhe in Pixel' as t %}{{ t|escapejs }}",
     sizeHelp: "{% trans 'Schloss zu: Die Höhe folgt der Breite. Schloss offen: Das Bild wird auf Breite × Höhe zugeschnitten. Auf dem Telefon ist es nie breiter als der Bildschirm.' as t %}{{ t|escapejs }}",
     lock: "{% trans 'Seitenverhältnis halten' as t %}{{ t|escapejs }}",
+    pxPhone: "{% trans 'Pixel übernehmen die jetzige Breite auf diesem kleinen Bildschirm. Am Computer wirkt das Bild dann klein – dort die Breite prüfen.' as t %}{{ t|escapejs }}",
     heightLocked: "{% trans 'Die Höhe folgt der Breite. Schloss öffnen, um das Bild auf eine Höhe zuzuschneiden.' as t %}{{ t|escapejs }}",
     heightOpen: "{% trans 'Höhe eintragen und zuschneiden: Es entsteht ein neues, zugeschnittenes Bild.' as t %}{{ t|escapejs }}",
     cropSize: "{% trans 'Auf Größe zuschneiden' as t %}{{ t|escapejs }}",
@@ -873,8 +874,11 @@ Esc — обратно), выравнивание текста, H4, цитата
     var bar = document.createElement("span");
     bar.className = "rte-figbar";
     bar.setAttribute("contenteditable", "false");
-    if (canCrop) bar.appendChild(actionBtn(T.crop, doCrop, "data-rte-figcrop"));
-    if (canUpload) bar.appendChild(actionBtn(T.replaceShort, doReplace, "data-rte-figreplace"));
+    // FB-29 R4: на узком фото кнопки закрыли бы его целиком — там только значок размера
+    // (те же действия — вверху окна).
+    var roomy = fig.getBoundingClientRect().width >= 220;
+    if (roomy && canCrop) bar.appendChild(actionBtn(T.crop, doCrop, "data-rte-figcrop"));
+    if (roomy && canUpload) bar.appendChild(actionBtn(T.replaceShort, doReplace, "data-rte-figreplace"));
     var badge = document.createElement("span");
     badge.setAttribute("data-rte-size", "");
     badge.setAttribute("aria-hidden", "true");
@@ -892,6 +896,8 @@ Esc — обратно), выравнивание текста, H4, цитата
       if (v === "px") setFigPx(fig, w);
       else setFigWidth(fig, w / areaInner(area) * 100);
       changed(T.size + ": " + (v === "px" ? T.unitPx : T.unitPct));
+      // FB-29 R4: на узком экране пиксели фиксируют малую ширину — говорим об этом
+      if (v === "px" && window.innerWidth < 640) status(area, T.pxPhone);
       refresh();
     });
     sizeFs.setAttribute("data-rte-unit", "");

@@ -154,11 +154,19 @@
   });
   document.addEventListener("focusout", function (e) { if (e.target) flush(e.target); });
 
+  var radioTimer = null;
   document.addEventListener("change", function (e) {
     var target = e.target;
     var form = panelForm(target);
     if (!form) return;
     if (target.tagName === "SELECT" && byKeys.has(target)) { waiting.add(target); return; }
+    if (target.type === "radio") {
+      // FB-29 R4: стрелки в группе переключателей шлют change на каждый шаг — отправляем
+      // один раз, когда выбор остановился.
+      clearTimeout(radioTimer);
+      radioTimer = setTimeout(function () { apply(form, target); }, 350);
+      return;
+    }
     apply(form, target);
   });
 

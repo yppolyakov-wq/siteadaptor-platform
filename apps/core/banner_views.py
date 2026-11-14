@@ -68,6 +68,8 @@ def _form(request, banner, values, error=""):
             # FB-29.2c: «Wo zeigen» — страницы, где баннер показывается сам
             "show_on": banners.show_on_rows(request.tenant, banner) if banner else [],
             # R1: поиск страниц (GET `wo`) — по всем записям, выбранные не предлагаются
+            # R4: после ошибки отмеченные страницы остаются отмеченными
+            "show_checked": request.POST.getlist("b_show_add") if request.method == "POST" else [],
             "show_query": (request.GET.get("wo") or "").strip()[:80],
             "show_groups": banners.place_search(
                 request.GET.get("wo") or "", exclude=banner.show_on if banner else ()

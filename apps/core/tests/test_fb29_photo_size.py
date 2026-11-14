@@ -72,3 +72,9 @@ def test_height_crop_needs_an_explicit_button():
 def test_width_attribute_takes_ascii_digits_only():
     out = richtext.sanitize_page(_fig("sf-w-px", ' width="٣٤٠"'))
     assert "width=" not in out
+
+
+def test_narrow_photo_keeps_only_the_size_badge_and_phone_gets_a_hint():
+    """R4: кнопки не закрывают узкое фото; пиксели на телефоне — с подсказкой."""
+    src = EDITOR.read_text()
+    assert "roomy" in src and "T.pxPhone" in src

@@ -72,3 +72,14 @@ def test_label_never_breaks_on_odd_objects():
         name = {"de": "Ding"}
 
     assert banners._place_label(Odd()) == "Ding"
+
+
+def test_promotion_row_has_a_preview_of_a_real_promotion(settings):
+    """Ревью R2: без образца владелец не видел бы блоки страницы акции в превью."""
+    from apps.core import studio_pages
+    from apps.promotions.tests.factories import PromotionFactory
+
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    promo = PromotionFactory(status="active")
+    pt = next(p for p in studio_pages.PAGE_TYPES if p.code == "promo")
+    assert str(promo.pk) in site_schema._preview_url(pt)

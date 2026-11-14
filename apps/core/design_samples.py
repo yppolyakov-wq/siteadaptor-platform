@@ -15,7 +15,7 @@ from decimal import Decimal
 _SAMPLES = (
     ("Beispielprodukt 1", "9.90", "tea"),
     ("Beispielprodukt 2", "14.50", "coffee"),
-    ("Beispielprodukt 3", "24.00", "gift"),
+    ("Beispielprodukt 3", "24.00", "chocolate"),
     ("Beispielprodukt 4", "6.80", "bakery"),
 )
 

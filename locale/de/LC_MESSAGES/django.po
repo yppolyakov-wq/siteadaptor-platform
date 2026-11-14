@@ -38024,3 +38024,6 @@ msgstr "Eigene Blöcke über den Blöcken für alle zeigen"
 
 msgid "Text, Banner oder Liste – nur auf dieser Seite sichtbar."
 msgstr "Text, Banner oder Liste – nur auf dieser Seite sichtbar."
+
+msgid "Pixel übernehmen die jetzige Breite auf diesem kleinen Bildschirm. Am Computer wirkt das Bild dann klein – dort die Breite prüfen."
+msgstr "Pixel übernehmen die jetzige Breite auf diesem kleinen Bildschirm. Am Computer wirkt das Bild dann klein – dort die Breite prüfen."

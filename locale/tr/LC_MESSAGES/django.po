@@ -38083,3 +38083,6 @@ msgstr "Kendi blokları herkes için olan blokların üstünde göster"
 
 msgid "Text, Banner oder Liste – nur auf dieser Seite sichtbar."
 msgstr "Metin, banner veya liste – yalnızca bu sayfada görünür."
+
+msgid "Pixel übernehmen die jetzige Breite auf diesem kleinen Bildschirm. Am Computer wirkt das Bild dann klein – dort die Breite prüfen."
+msgstr "Pikseller bu küçük ekrandaki mevcut genişliği alır. Bilgisayarda görsel küçük görünür – genişliği orada kontrol edin."

@@ -26,6 +26,11 @@ from apps.core import studio_pages
 _SAMPLES = {
     "product": ("apps.catalog.models", "Product", {"is_active": True}),
     "category": ("apps.catalog.models", "Category", {"is_active": True}),
+    # FB-29 R2 (ревью): у этих типов страница открывается только по записи — без образца
+    # владелец не видел бы свои блоки в превью.
+    "promo": ("apps.promotions.models", "Promotion", {"status": "active"}),
+    "service": ("apps.booking.models", "Service", {"is_active": True}),
+    "stay": ("apps.stays.models", "StayUnit", {"is_active": True}),
 }
 
 
@@ -65,6 +70,12 @@ def _preview_url(pt) -> str:
                 return obj.get_absolute_url()
             except Exception:  # noqa: BLE001 — превью необязательно
                 return ""
+        if obj is not None:
+            for name in pt.url_names:  # запись без своего адреса — маршрут типа по pk
+                try:
+                    return reverse(name, args=[obj.pk])
+                except NoReverseMatch:
+                    continue
     return ""
 
 

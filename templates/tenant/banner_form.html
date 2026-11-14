@@ -7,9 +7,9 @@
 <div class="max-w-3xl">
   <p class="mb-2"><a href="{% url 'site-banners' %}" class="inline-flex items-center min-h-[44px] text-sm font-semibold text-indigo-700 hover:underline">← {% trans "Alle Banner" %}</a></p>
   <h1 class="ui-h1 mb-4">{% if banner %}{{ banner.title|default:_("Banner") }}{% else %}{% trans "Neuer Banner" %}{% endif %}</h1>
-  {% if error %}<div role="alert" class="mb-3 rounded-lg bg-red-50 px-4 py-2 text-sm text-red-700">{{ error }}</div>{% endif %}
+  {% if error %}<div role="alert" id="b-error" class="mb-3 rounded-lg bg-red-50 px-4 py-2 text-sm text-red-700">{{ error }}</div>{% endif %}
   {% if places %}<p class="mb-3 text-sm text-gray-700" data-banner-places>{% trans "Dieser Banner ist im Seitenaufbau ausgewählt." %}</p>{% endif %}
-  <form method="post" enctype="multipart/form-data" class="ui-card p-5 space-y-4" data-banner-form>
+  <form method="post" enctype="multipart/form-data" class="ui-card p-5 space-y-4" data-banner-form{% if error %} aria-describedby="b-error"{% endif %}>
     {% csrf_token %}
     <input type="hidden" name="b_present" value="1">
     <div>
@@ -64,7 +64,7 @@
         {% for g in show_groups %}
         <fieldset class="rounded-lg border border-gray-300 px-3 py-2">
           <legend class="px-1 text-xs font-semibold text-gray-700">{{ g.label }}</legend>
-          {% for o in g.items %}<label class="flex min-h-[44px] items-center gap-2 text-sm"><input type="checkbox" name="b_show_add" value="{{ o.value }}" class="rounded border-gray-500"> {{ o.label }}</label>{% endfor %}
+          {% for o in g.items %}<label class="flex min-h-[44px] items-center gap-2 text-sm"><input type="checkbox" name="b_show_add" value="{{ o.value }}"{% if o.value in show_checked %} checked{% endif %} class="rounded border-gray-500"> {{ o.label }}</label>{% endfor %}
         </fieldset>
         {% empty %}
         <p class="text-sm text-gray-700">{% if show_query %}{% trans "Nichts gefunden." %}{% else %}{% trans "Noch keine Seiten zum Auswählen." %}{% endif %}</p>
