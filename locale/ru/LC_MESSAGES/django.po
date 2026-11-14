@@ -38279,3 +38279,6 @@ msgstr "Текст, баннер или список — видны только
 
 msgid "Pixel übernehmen die jetzige Breite auf diesem kleinen Bildschirm. Am Computer wirkt das Bild dann klein – dort die Breite prüfen."
 msgstr "Пиксели берут нынешнюю ширину на этом маленьком экране. На компьютере фото будет мелким — проверьте ширину там."
+
+msgid "Beispiele – nur in dieser Vorschau. Auf Ihrer Website erscheinen sie nicht."
+msgstr "Примеры — только в этом предпросмотре. На вашем сайте их нет."

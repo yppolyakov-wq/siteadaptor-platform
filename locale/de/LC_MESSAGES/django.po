@@ -38027,3 +38027,6 @@ msgstr "Text, Banner oder Liste – nur auf dieser Seite sichtbar."
 
 msgid "Pixel übernehmen die jetzige Breite auf diesem kleinen Bildschirm. Am Computer wirkt das Bild dann klein – dort die Breite prüfen."
 msgstr "Pixel übernehmen die jetzige Breite auf diesem kleinen Bildschirm. Am Computer wirkt das Bild dann klein – dort die Breite prüfen."
+
+msgid "Beispiele – nur in dieser Vorschau. Auf Ihrer Website erscheinen sie nicht."
+msgstr "Beispiele – nur in dieser Vorschau. Auf Ihrer Website erscheinen sie nicht."

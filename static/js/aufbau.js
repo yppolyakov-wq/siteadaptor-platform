@@ -205,7 +205,7 @@
       li.setAttribute("draggable", "true");
       li.style.cursor = "grab";
       var grip = li.querySelector(".schema-grip");
-      if (grip) grip.classList.remove("hidden");
+      if (grip) { grip.classList.remove("hidden"); grip.style.touchAction = "none"; }
     });
   }
 
@@ -243,15 +243,56 @@
     li.style.boxShadow = edge;
   });
   document.addEventListener("dragend", function () { dragged = null; clear(); });
+  function mark(li, point) {
+    clear();
+    var s = side(li, point);
+    li.setAttribute("data-schema-drop", s.after ? "after" : "before");
+    li.style.boxShadow = s.inRow ? (s.after ? "3px 0 0 #4338ca" : "-3px 0 0 #4338ca") : (s.after ? "0 3px 0 #4338ca" : "0 -3px 0 #4338ca");
+  }
+  // FB-29: перетаскивание пальцем (и пером) — за ручку строки. У сенсорных экранов нет
+  // событий drag/drop, поэтому строку ведём по pointer-событиям; бросок шлёт то же
+  // действие `move`, что мышь. Кнопки «nach oben / nach unten» остаются.
+  var touch = null;
+  document.addEventListener("pointerdown", function (e) {
+    if (e.pointerType === "mouse" || !e.target.closest) return;
+    var grip = e.target.closest(".schema-grip");
+    var li = grip ? item(grip) : null;
+    if (!li) return;
+    e.preventDefault();
+    touch = { ref: li.getAttribute("data-schema-drag"), id: e.pointerId, over: null };
+    li.style.opacity = "0.6";
+  });
+  document.addEventListener("pointermove", function (e) {
+    if (!touch || e.pointerId !== touch.id) return;
+    e.preventDefault();
+    var li = item(document.elementFromPoint(e.clientX, e.clientY));
+    if (!li || li.getAttribute("data-schema-drag") === touch.ref) { touch.over = null; clear(); return; }
+    touch.over = li;
+    mark(li, e);
+  }, { passive: false });
+  function endTouch(e, cancelled) {
+    if (!touch || e.pointerId !== touch.id) return;
+    var t = touch;
+    touch = null;
+    document.querySelectorAll("[data-schema-drag]").forEach(function (li) { li.style.opacity = ""; });
+    if (cancelled || !t.over) { clear(); return; }
+    dragged = t.ref;
+    dropOn(t.over, e);
+  }
+  document.addEventListener("pointerup", function (e) { endTouch(e, false); });
+  document.addEventListener("pointercancel", function (e) { endTouch(e, true); });
+
   document.addEventListener("drop", function (e) {
-    var li = item(e.target);
+    dropOn(item(e.target), e);
+  });
+  function dropOn(li, e) {
     var ref = dragged;
     dragged = null;
     // пока прошлая правка в пути (перетаскивание или поле панели) — новый бросок не шлём
     var busy = +document.documentElement.getAttribute("data-schema-busy") > 0;
     if (!ref || !li || busy || li.getAttribute("data-schema-drag") === ref) { clear(); return; }
     document.documentElement.setAttribute("data-schema-busy", "1");
-    e.preventDefault();
+    if (e.preventDefault) e.preventDefault();
     var where = side(li, e).after ? "after" : "before";
     clear();
     var keep = document.querySelector("[data-schema-draft] input[name=csrfmiddlewaretoken], form input[name=csrfmiddlewaretoken]");
@@ -282,7 +323,7 @@
       })
       .catch(function () { location.reload(); })
       .then(function () { document.documentElement.setAttribute("data-schema-busy", "0"); });
-  });
+  }
   // после правки из панели схема перерисовывается — перевооружаем строки
   new MutationObserver(arm).observe(document.body, { childList: true, subtree: true });
   arm();

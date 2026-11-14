@@ -1858,13 +1858,27 @@ def section_layout(config, key) -> dict:
     """Layout секции `key` из нормализованного config (или дефолт секции)."""
     default = GRID_SECTION_DEFAULTS.get(key)
     for item in (config or {}).get("sections", []):
-        if (
-            isinstance(item, dict)
-            and item.get("key") == key
-            and isinstance(item.get("layout"), dict)
-        ):
-            return item["layout"]
+        if isinstance(item, dict) and item.get("key") == key:
+            layout = (
+                item["layout"]
+                if isinstance(item.get("layout"), dict)
+                else normalize_layout(None, default)
+            )
+            return _narrow_layout(layout, item.get("width"))
     return normalize_layout(None, default)
+
+
+#: FB-29: секция в узкой ширине (⅔, ½, ⅓) — столько колонок, сколько в неё помещается;
+#: иначе четыре колонки считались бы по ширине окна, и карточки выходили крошечными.
+_NARROW_COLS = {"w23": 3, "w12": 2, "w13": 1}
+
+
+def _narrow_layout(layout: dict, width) -> dict:
+    cap = _NARROW_COLS.get(width)
+    cols = layout.get("cols")
+    if not cap or not isinstance(cols, int) or cols <= cap:
+        return layout
+    return {**layout, "cols": cap}
 
 
 def section_rows(config, key="products") -> int:

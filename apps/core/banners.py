@@ -221,7 +221,29 @@ def delete(tenant, banner) -> None:
                 fresh.site_config = config
                 fresh.save(update_fields=["site_config", "updated_at"])
                 tenant.site_config = config
+        path = (banner.image or {}).get("path") or ""
         banner.delete()
+        if path:
+            # файл баннера уходит вместе с ним — после записи в базе, не раньше
+            transaction.on_commit(lambda: _drop_file(path))
+
+
+def _drop_file(path: str) -> None:
+    """Удалить файл фото удалённого баннера, если им не пользуется другой баннер. Только
+    свои загрузки (папка `hero/`); ошибка хранилища удалению баннера не мешает."""
+    from django.core.files.storage import default_storage
+    from django.db import DatabaseError
+
+    from apps.core.models import Banner
+
+    if not path.startswith("hero/") or ".." in path:
+        return
+    try:
+        if Banner.objects.filter(image__path=path).exists():
+            return
+        default_storage.delete(path)
+    except (OSError, DatabaseError):
+        logging.getLogger(__name__).exception("banner delete: file %s not removed", path)
 
 
 def first_image(config: dict) -> str:
@@ -557,7 +579,7 @@ def _pick_state(request, choice: dict, place_capable: bool) -> dict:
 
 # ───────── FB-29.2c: «Wo zeigen» — баннер сам показывается на выбранных страницах ─────────
 
-SHOW_ON_TYPES = ("category", "product", "service", "promotion", "stay", "event")
+SHOW_ON_TYPES = ("category", "product", "service", "promotion", "stay", "event", "tour")
 SHOW_ON_MAX = 50
 
 
@@ -607,7 +629,7 @@ def _place_sources() -> dict:
 
     from apps.booking.models import Service
     from apps.catalog.models import Category, Product
-    from apps.events.models import Event
+    from apps.events.models import Event, Tour
     from apps.promotions.models import Promotion
     from apps.stays.models import StayUnit
 
@@ -623,6 +645,7 @@ def _place_sources() -> dict:
             "pk",
             _("Veranstaltungen"),
         ),
+        "tour": (Tour.objects.filter(is_published=True), "pk", _("Reisen")),
     }
 
 
@@ -764,6 +787,7 @@ def page_place_key(context) -> str:
         ("promotion", "promotion"),
         ("stay", "unit"),
         ("event", "event"),
+        ("tour", "tour"),
         ("category", "current_category"),
     ):
         obj = context.get(name)

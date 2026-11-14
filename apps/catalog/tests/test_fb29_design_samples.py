@@ -72,3 +72,22 @@ def test_every_sample_has_a_real_photo():
 
     for i, (_name, _price, keyword) in enumerate(design_samples._SAMPLES):
         assert photo_static_name(keyword, lock=700 + i), keyword
+
+
+@pytest.mark.parametrize(
+    "key,marker",
+    [("services", "Beispielleistung 1"), ("stay_rooms", "Beispielzimmer 1"), ("events", "Beispielveranstaltung 1")],
+)  # fmt: skip
+def test_empty_service_room_and_event_sections_show_samples(key, marker):
+    """FB-29: примеры — у всех видов, не только у товаров; в базу ничего не пишется."""
+    from apps.tenants.tests.factories import TenantFactory
+
+    req = _req("/?preview=1&look=klar")
+    req.tenant = TenantFactory.build(disabled_modules=[])
+    req.tenant.site_config = {"sections": [{"key": key, "enabled": True}]}
+    html = public_views.storefront_home(req).content.decode()
+    assert f'data-sample-section="{key}"' in html and marker in html
+    live = _req("/")
+    live.tenant = TenantFactory.build(disabled_modules=[])
+    live.tenant.site_config = {"sections": [{"key": key, "enabled": True}]}
+    assert "data-sample-section" not in public_views.storefront_home(live).content.decode()

@@ -38086,3 +38086,6 @@ msgstr "Metin, banner veya liste – yalnızca bu sayfada görünür."
 
 msgid "Pixel übernehmen die jetzige Breite auf diesem kleinen Bildschirm. Am Computer wirkt das Bild dann klein – dort die Breite prüfen."
 msgstr "Pikseller bu küçük ekrandaki mevcut genişliği alır. Bilgisayarda görsel küçük görünür – genişliği orada kontrol edin."
+
+msgid "Beispiele – nur in dieser Vorschau. Auf Ihrer Website erscheinen sie nicht."
+msgstr "Örnekler – yalnızca bu önizlemede. Web sitenizde görünmezler."

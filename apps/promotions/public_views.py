@@ -346,8 +346,6 @@ def storefront_home(request):
     # FB-29.8b: пустой магазин в предпросмотре дизайна — товары-примеры (в памяти).
     products_are_samples = False
     if "products" in lists and not products_preview:
-        from apps.core import design_samples
-
         products_preview = design_samples.for_empty_shop(request)
         products_are_samples = bool(products_preview)
     categories = _items("categories")
@@ -359,9 +357,21 @@ def storefront_home(request):
         archetype_teasers = storefront.archetype_teasers(request.tenant)
     stay_rooms = _items("stay_rooms")
     events_preview = _items("events")
+    # FB-29: пустые секции услуг, номеров и событий в предпросмотре дизайна — примеры
+    sample_sections = set()
+
+    def _or_samples(key, items):
+        if key in lists and not items:
+            items = design_samples.for_empty_section(request, key)
+            if items:
+                sample_sections.add(key)
+        return items
+
+    stay_rooms = _or_samples("stay_rooms", stay_rooms)
+    events_preview = _or_samples("events", events_preview)
     tours_preview = _items("tours")
     blog_preview = _items("blog")
-    services_preview = _items("services")
+    services_preview = _or_samples("services", _items("services"))
     # A9/A7: у ремесла/автосервиса (активен модуль jobs — Angebot/Kostenvoranschlag)
     # услуги с ценой подаём как Festpreis — сигнал доверия (прозрачные фикс-цены).
     services_festpreis = modules.is_module_active(request.tenant, "jobs")
@@ -381,6 +391,7 @@ def storefront_home(request):
         "storefront/home.html",
         {
             "products_are_samples": products_are_samples,
+            "sample_sections": sample_sections,
             "sections": sections,
             "section_blocks": section_blocks,
             "site": site,
