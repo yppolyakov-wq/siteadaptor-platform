@@ -98,7 +98,7 @@
     <h2 id="schema-title" class="font-semibold mb-3"><span class="sr-only">{% trans "Aufbau" %}: </span>{{ current.label }}</h2>
     {% if object_back %}
     {% comment %}FB-29.4b S8: свои блоки объекта — путь назад к его карточке.{% endcomment %}
-    <p class="mb-3 text-sm" data-schema-object-back><a href="{{ object_back.url }}" class="inline-flex min-h-[44px] items-center font-semibold text-indigo-700 hover:underline">← {% blocktrans with name=object_back.label %}Zurück zu «{{ name }}»{% endblocktrans %}</a> <span class="text-gray-700">· {% trans "Diese Blöcke erscheinen nur auf dieser einen Seite." %}</span></p>
+    <p class="mb-3 text-sm" data-schema-object-back><a href="{{ object_back.url }}" class="inline-flex min-h-[44px] items-center font-semibold text-indigo-700 underline hover:no-underline"><span aria-hidden="true">←&nbsp;</span>{% blocktrans with name=object_back.label %}Zurück zu «{{ name }}»{% endblocktrans %}</a> <span class="text-gray-700">· {% trans "Diese Blöcke erscheinen nur auf dieser einen Seite." %}</span></p>
     {% endif %}
     {% if category_row %}
     {% comment %}FB-27 R7: у категории либо свой набор блоков, либо блоки каталога.{% endcomment %}

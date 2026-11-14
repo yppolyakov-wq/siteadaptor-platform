@@ -429,7 +429,7 @@ collect()/save работают без переименований. data-cb-id 
     {% if b.data.pick or b.data.from_page or not b.data.url and not b.data.title and not b.data.text %}
     <div class="rounded-lg bg-indigo-50 px-3 py-2 text-sm text-gray-900" data-cb-banner-library>
       <p>{% trans "Banner kommen aus der Bibliothek. Welche hier laufen, wählen Sie im Seitenaufbau an diesem Block." %}</p>
-      <p class="mt-1 flex flex-wrap gap-x-4"><a href="{% url 'site-banners' %}" class="inline-flex min-h-[44px] items-center font-semibold text-indigo-700 hover:underline">{% trans "Banner verwalten" %} →</a><a href="{% url 'site-schema' %}" class="inline-flex min-h-[44px] items-center font-semibold text-indigo-700 hover:underline">{% trans "Seitenaufbau öffnen" %} →</a></p>
+      <p class="mt-1 flex flex-wrap gap-x-4"><a href="{% url 'site-banners' %}" class="inline-flex min-h-[44px] items-center font-semibold text-indigo-700 hover:underline">{% trans "Banner verwalten" %} <span aria-hidden="true">→</span></a><a href="{% url 'site-schema' %}" class="inline-flex min-h-[44px] items-center font-semibold text-indigo-700 hover:underline">{% trans "Seitenaufbau öffnen" %} <span aria-hidden="true">→</span></a></p>
     </div>
     <div hidden data-cb-banner-own>
     {% endif %}
