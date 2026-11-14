@@ -215,10 +215,12 @@ def test_grid_blocks_in_a_narrow_width_stack_their_columns():
     assert "sm:grid-cols-4" in wide and "md:grid-cols-2" in wide
     third = render("w13")
     assert "Über uns T5" in third
-    assert "grid-cols-1" in third and "sm:grid-cols-4" not in third
-    assert "md:grid-cols-2" not in third
+    # на телефоне блок во всю ширину — прежние колонки; узкая колонка — с планшета
+    assert "sm:grid-cols-4 md:grid-cols-1" in third
+    assert third.count("md:grid-cols-2") == 0
     half = render("w12")
-    assert "sm:grid-cols-4" not in half and "md:grid-cols-2" not in half
+    assert "sm:grid-cols-4 md:grid-cols-2" in half and half.count("md:grid-cols-2") == 1
+    assert "md:grid-cols-1" not in wide and wide.count("md:grid-cols-2") == 1
 
 
 def test_reset_hint_mentions_the_position_of_own_blocks():

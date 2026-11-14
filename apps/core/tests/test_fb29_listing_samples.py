@@ -79,3 +79,11 @@ def test_listing_context_is_empty_without_samples():
     request = RequestFactory().get("/veranstaltung/")
     assert design_samples.listing_context(request, "events") == {}
     assert design_samples.listing_context(request, "nope") == {}
+
+
+def test_real_resources_never_get_service_samples_beside_them():
+    from apps.booking.models import Resource
+
+    Resource.objects.create(name="Stuhl 1")
+    Resource.objects.create(name="Stuhl 2")
+    assert "data-sample-section" not in _services(DESIGN)

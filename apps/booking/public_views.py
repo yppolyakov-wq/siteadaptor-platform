@@ -511,8 +511,8 @@ def termin_index(request):
             "resources": resources,
             "has_pass_plans": has_pass_plans,
             "table_booking": has_tables,
-            # T4: услуг ещё нет — в предпросмотре дизайна показываем примеры
-            **design_samples.listing_context(request, "services"),
+            # T4: ни услуг, ни ресурсов — в предпросмотре дизайна показываем примеры
+            **({} if resources.exists() else design_samples.listing_context(request, "services")),
         },
         embed,
     )

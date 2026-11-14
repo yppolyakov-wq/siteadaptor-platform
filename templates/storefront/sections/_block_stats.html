@@ -2,7 +2,7 @@
 {% if block.rows %}
 <section class="my-8">
   <div class="cb-box max-w-4xl mx-auto px-4">
-    <div class="grid gap-6 text-center {% if b.width == 'w13' %}grid-cols-1{% elif block.rows|length == 2 or b.width == 'w12' %}grid-cols-2{% elif block.rows|length == 4 %}grid-cols-2 sm:grid-cols-4{% else %}grid-cols-3{% endif %}">
+    <div class="grid gap-6 text-center {% if block.rows|length == 2 %}grid-cols-2{% elif block.rows|length == 4 %}grid-cols-2 sm:grid-cols-4{% else %}grid-cols-3{% endif %}{% if b.width == 'w13' %} md:grid-cols-1{% elif b.width == 'w12' %} md:grid-cols-2{% endif %}">
       {% for r in block.rows %}
       <div>
         <p class="text-3xl md:text-4xl font-bold" style="color: var(--accent, #4f46e5);">{{ r.value }}</p>
