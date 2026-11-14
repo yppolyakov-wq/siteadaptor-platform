@@ -204,6 +204,12 @@ def op(
         and siteconfig.category_hosts_full(config, host)
     ):
         raise site_schema.SchemaError("hosts")
+    elif (
+        op_name in ("add", "add_row")
+        and siteconfig.is_object_host(host)
+        and siteconfig.object_hosts_full(config, host)
+    ):
+        raise site_schema.SchemaError("objects")
     elif op_name in ("adopt", "reset"):
         # FB-27 R7: своя схема категории — взять блоки каталога или вернуться к ним.
         draft["items"] = site_schema.category_items(config, host, draft["items"], op_name)

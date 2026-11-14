@@ -410,6 +410,25 @@ def category_blocks(context, category_host="", part="after"):
 
 
 @register.simple_tag(takes_context=True)
+def object_blocks(context, kind, obj):
+    """FB-29.4b: СВОИ блоки объекта (товар, услуга) — только на его странице, под
+    общими блоками страницы. Блоков нет — пусто (и в превью: якорь «＋» общий)."""
+    from apps.core import object_structure, page_settings
+
+    request = context.get("request")
+    host = object_structure.object_host(kind, obj)
+    if not host or request is None:
+        return ""
+    try:
+        raw = page_settings.raw_config(request)
+    except Exception:  # noqa: BLE001 — превью не должно ронять витрину
+        raw = getattr(getattr(request, "tenant", None), "site_config", None)
+    if not ((raw or {}).get("page_blocks") or {}).get(host):
+        return ""
+    return page_blocks(context, host)
+
+
+@register.simple_tag(takes_context=True)
 def page_seo(context, host):
     """FB-27 «Seiten»: свои заголовок, описание и noindex текстовой страницы (`{}` — нет)."""
     from apps.core import content_pages

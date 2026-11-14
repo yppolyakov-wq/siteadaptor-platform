@@ -150,6 +150,15 @@ def site_schema_view(request):
                         "Bitte zuerst bei einer anderen Kategorie die eigenen Blöcke entfernen."
                     ),
                 )
+            elif exc.args and exc.args[0] == "objects":
+                messages.error(
+                    request,
+                    _(
+                        "So viele Seiten mit eigenen Blöcken sind nicht möglich. Bitte zuerst "
+                        "bei einem anderen Produkt oder einer Leistung die eigenen Blöcke "
+                        "entfernen."
+                    ),
+                )
             else:
                 messages.error(request, _("Diese Änderung ist hier nicht möglich."))
         except aufbau_draft.DraftConflict:
@@ -178,6 +187,10 @@ def site_schema_view(request):
         return redirect(target)
     saved = siteconfig.normalize(tenant.site_config)
     groups = site_schema.type_groups(tenant, saved)
+    # FB-29.4b: свои блоки объекта — строки нет в списке типов, добавляем её одну.
+    own_row = site_schema.object_row(saved, code)
+    if own_row is not None:
+        groups = [*groups, (str(_("Nur diese Seite")), [own_row])]
     rows = [r for _label, items in groups for r in items]
     # Тип, которого у бизнеса нет (или мусор в адресе), не открывается — главная.
     current = next((r for r in rows if r.code == code), rows[0] if rows else None)

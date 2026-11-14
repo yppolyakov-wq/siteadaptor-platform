@@ -38157,3 +38157,21 @@ msgstr "Скидає розділи, шаблон і форму картки ц�
 
 msgid "Wie alle"
 msgstr "Як у всіх"
+
+msgid "So viele Seiten mit eigenen Blöcken sind nicht möglich. Bitte zuerst bei einem anderen Produkt oder einer Leistung die eigenen Blöcke entfernen."
+msgstr "Стільки сторінок зі своїми блоками не поміститься. Спершу приберіть свої блоки в іншого товару чи послуги."
+
+msgid "Nur diese Seite"
+msgstr "Лише ця сторінка"
+
+msgid "Eigene Blöcke dieser Seite"
+msgstr "Власні блоки цієї сторінки"
+
+msgid "Text, Banner oder Liste – nur auf dieser Seite sichtbar, unter den Blöcken für alle."
+msgstr "Текст, банер або список — видно лише на цій сторінці, під блоками для всіх."
+
+msgid "Blöcke bearbeiten"
+msgstr "Редагувати блоки"
+
+msgid "Setzt Abschnitte, Seitenvorlage, Kartenform und eigene Blöcke dieser Seite zurück."
+msgstr "Скидає розділи, шаблон, форму картки та власні блоки цієї сторінки."

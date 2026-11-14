@@ -269,7 +269,7 @@ def page_rows(config: dict) -> list[PageRow]:
 def _page_type(code: str):
     base = code.split("@", 1)[0]
     # подстраницы есть у типа «Seite» и у категорий (FB-27 R7: своя схема категории)
-    if "@" in code and base not in (TEXT, CATEGORY):
+    if "@" in code and base not in (TEXT, CATEGORY, *OBJECT_KINDS):
         return None
     for pt in studio_pages.PAGE_TYPES:
         if pt.code == base and (pt.code == "home" or _host(pt)):
@@ -294,6 +294,61 @@ class SubPage:
 
 #: FB-27 R7: своя схема категории — строка «category@catalog:<slug>».
 CATEGORY = "category"
+#: FB-29.4b: свои блоки объекта — строка «product@product:<hex>» / «service@service:<hex>».
+OBJECT_KINDS = ("product", "service")
+_OBJECT_MODELS = {
+    "product": ("apps.catalog.models", "Product"),
+    "service": ("apps.booking.models", "Service"),
+}
+
+
+def is_object_code(code: str) -> bool:
+    return isinstance(code, str) and "@" in code and code.split("@", 1)[0] in OBJECT_KINDS
+
+
+def _object_for(code: str):
+    """Объект строки «<kind>@<kind>:<hex>» либо None (чужой вид, мусор, нет такого)."""
+    import importlib
+
+    from apps.tenants import siteconfig
+
+    kind, host = code.split("@", 1)
+    if kind not in OBJECT_KINDS or not siteconfig.is_object_host(host):
+        return None
+    if host.split(":", 1)[0] != kind:
+        return None
+    module, name = _OBJECT_MODELS[kind]
+    model = getattr(importlib.import_module(module), name)
+    try:
+        return model.objects.filter(pk=uuid.UUID(host.split(":", 1)[1])).first()
+    except (ValueError, TypeError):
+        return None
+
+
+def object_row(config: dict, code: str):
+    """Строка экрана для своих блоков объекта (подпись — его название) либо None."""
+    if not is_object_code(code):
+        return None
+    obj = _object_for(code)
+    pt = _page_type(code)
+    if obj is None or pt is None:
+        return None
+    preview = ""
+    try:
+        if hasattr(obj, "get_absolute_url"):
+            preview = obj.get_absolute_url()
+        else:
+            preview = reverse("storefront-service-detail", args=[obj.pk])
+    except Exception:  # noqa: BLE001 — превью необязательно
+        preview = ""
+    label = getattr(obj, "name_localized", None) or getattr(obj, "name", "")
+    if isinstance(label, dict):
+        label = label.get("de") or next(iter(label.values()), "")
+    return _row(
+        config, pt, code=code, label=str(label), preview=preview, host=code.split("@", 1)[1]
+    )
+
+
 CATEGORY_ROWS_MAX = 200
 
 
@@ -426,6 +481,9 @@ def host_for(code: str, known_slugs: set[str] | None = None) -> str:
     if "@" not in code:
         return _host(pt)
     host = code.split("@", 1)[1]
+    if pt.code in OBJECT_KINDS:
+        # FB-29.4b: только существующий объект своего вида — иначе хосты-призраки.
+        return host if _object_for(code) is not None else ""
     if pt.code == CATEGORY:
         # FB-27 R7: только существующая категория — иначе POST плодил бы хосты-призраки.
         slug = host[len(siteconfig.CATEGORY_HOST_PREFIX) :]
@@ -1522,6 +1580,8 @@ def setting_codes(tenant, code: str) -> list[str]:
     from apps.core import page_settings
 
     out: list[str] = []
+    if is_object_code(code):
+        return out  # настройки типа страницы — у общей строки, не у объекта
     for type_code in setting_types(tenant, code):
         for s in page_settings.cabinet_settings(type_code):
             if s.code not in out and page_settings.applies(tenant, s):

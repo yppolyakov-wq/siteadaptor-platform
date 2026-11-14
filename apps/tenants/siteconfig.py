@@ -1235,6 +1235,25 @@ _CATEGORY_HOST_RE = re.compile(r"^catalog:[-\w]{1,60}$")
 #: M21.11 (решение владельца): у КАЖДОЙ своей страницы свой набор блоков — хост
 #: «seite:<slug>» (slug — тот же алфавит, что адрес страницы).
 _CONTENT_PAGE_HOST_RE = re.compile(r"^seite:[a-z0-9]+(?:-[a-z0-9]+)*$")
+#: FB-29.4b: СВОИ блоки объекта (товар, услуга), видимые только на его странице — хост
+#: «product:<uuid hex>» / «service:<uuid hex>». Свой потолок: объектов тысячи, а конфиг
+#: читается на каждом запросе.
+OBJECT_HOST_KINDS = ("product", "service")
+_MAX_OBJECT_HOSTS = 60
+_OBJECT_HOST_RE = re.compile(r"^(?:product|service):[0-9a-f]{32}$")
+
+
+def is_object_host(host) -> bool:
+    return isinstance(host, str) and bool(_OBJECT_HOST_RE.match(host))
+
+
+def object_hosts_full(config, host) -> bool:
+    """Своих блоков у объектов уже столько, сколько хранит normalize, и у этого объекта
+    их ещё нет — новый хост молча пропал бы при сохранении."""
+    blocks = (config.get("page_blocks") or {}) if isinstance(config, dict) else {}
+    if host in blocks:
+        return False
+    return sum(1 for k in blocks if is_object_host(k)) >= _MAX_OBJECT_HOSTS
 
 
 def is_page_block_host(host) -> bool:
@@ -1247,6 +1266,7 @@ def is_page_block_host(host) -> bool:
         host in PAGE_BLOCK_HOSTS
         or bool(_CATEGORY_HOST_RE.match(host))
         or bool(_CONTENT_PAGE_HOST_RE.match(host))
+        or bool(_OBJECT_HOST_RE.match(host))
     )
 
 
@@ -1338,8 +1358,14 @@ def _page_block_hosts(raw: dict) -> list:
     # FB-27 R7: у категорий и своих страниц потолки РАЗДЕЛЬНЫЕ — раньше общий срез по
     # алфавиту первым выбрасывал блоки текстовых страниц («catalog:» раньше «seite:»).
     cats = [k for k in extra if k.startswith(CATEGORY_HOST_PREFIX)]
-    pages = [k for k in extra if not k.startswith(CATEGORY_HOST_PREFIX)]
-    return list(PAGE_BLOCK_HOSTS) + cats[:_MAX_CATEGORY_HOSTS] + pages[:_MAX_CONTENT_PAGE_HOSTS]
+    objects = [k for k in extra if is_object_host(k)]
+    pages = [k for k in extra if not k.startswith(CATEGORY_HOST_PREFIX) and not is_object_host(k)]
+    return (
+        list(PAGE_BLOCK_HOSTS)
+        + cats[:_MAX_CATEGORY_HOSTS]
+        + pages[:_MAX_CONTENT_PAGE_HOSTS]
+        + objects[:_MAX_OBJECT_HOSTS]
+    )
 
 
 def normalize_page_blocks(raw) -> dict:

@@ -66,4 +66,6 @@ UA1-1 (E-1): страница-деталь услуги на едином кар
   {% include "storefront/_detail_buybar.html" with price=buyprice anchor="#buchen" module="booking" sold_out=False %}
 {% endif %}
 {% page_blocks "service_detail" %}
+{% comment %}FB-29.4b: свои блоки этого объекта — только на его странице.{% endcomment %}
+{% object_blocks "service" service %}
 {% endblock %}

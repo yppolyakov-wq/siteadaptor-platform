@@ -127,6 +127,7 @@ LLM-режим Finder, SSE для чата.
 
 ### apps/core
 
+- `apps/core/object_structure.py` — своя структура страницы объекта (товар, услуга): отличия показа разделов и шаблона (`page_override`), вкладка «Seitenaufbau» объекта, свои блоки (`product:<hex>` в `page_blocks`), сброс и уборка (FB-29.4b, 2026-11-14).
 - `legacy_role_gates.py` — (нет по пути `apps/core/`; pitfalls называет его замороженным эталоном — расположение не проверял).
 - `apps/core/archetypes.py` — `primary_item`/`purchase_mode`/`purchase_label` архетипа.
 - apps/core/assistant_actions.py — закрытый реестр действий ИИ-помощника «объект × действие» (A-4).

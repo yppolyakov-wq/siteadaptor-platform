@@ -37831,3 +37831,21 @@ msgstr "Resets sections, page template and card form of this page."
 
 msgid "Wie alle"
 msgstr "Like all"
+
+msgid "So viele Seiten mit eigenen Blöcken sind nicht möglich. Bitte zuerst bei einem anderen Produkt oder einer Leistung die eigenen Blöcke entfernen."
+msgstr "That many pages with their own blocks are not possible. Please first remove the own blocks from another product or service."
+
+msgid "Nur diese Seite"
+msgstr "Only this page"
+
+msgid "Eigene Blöcke dieser Seite"
+msgstr "Own blocks of this page"
+
+msgid "Text, Banner oder Liste – nur auf dieser Seite sichtbar, unter den Blöcken für alle."
+msgstr "Text, banner or list – visible only on this page, below the blocks for all."
+
+msgid "Blöcke bearbeiten"
+msgstr "Edit blocks"
+
+msgid "Setzt Abschnitte, Seitenvorlage, Kartenform und eigene Blöcke dieser Seite zurück."
+msgstr "Resets sections, page template, card form and own blocks of this page."

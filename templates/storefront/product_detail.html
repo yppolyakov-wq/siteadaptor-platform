@@ -263,4 +263,6 @@
   {% include "storefront/_detail_buybar.html" with price=buyprice anchor="#kaufen" module="catalog" sold_out=False %}
 {% endif %}
 {% page_blocks "product_detail" %}
+{% comment %}FB-29.4b: свои блоки этого объекта — только на его странице.{% endcomment %}
+{% object_blocks "product" product %}
 {% endblock %}

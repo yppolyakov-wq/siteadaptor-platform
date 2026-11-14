@@ -29,10 +29,21 @@
       {% endfor %}
     </div>
   </fieldset>
-  {% if ps.deviations or card_style_set %}
+  {% if ps.blocks_url %}
+  <div class="rounded-xl border border-gray-500 px-4 py-3" data-ps-own-blocks>
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <div>
+        <div class="text-sm font-semibold text-gray-900">{% trans "Eigene Blöcke dieser Seite" %}</div>
+        <div class="text-xs text-gray-700">{% if ps.own_blocks %}{% trans "Blöcke" %}: {{ ps.own_blocks }} · {% endif %}{% trans "Text, Banner oder Liste – nur auf dieser Seite sichtbar, unter den Blöcken für alle." %}</div>
+      </div>
+      <a href="{{ ps.blocks_url }}" class="ui-btn ui-btn-secondary min-h-[44px]">{% if ps.own_blocks %}{% trans "Blöcke bearbeiten" %}{% else %}{% trans "Block hinzufügen" %}{% endif %}</a>
+    </div>
+  </div>
+  {% endif %}
+  {% if ps.deviations or card_style_set or ps.own_blocks %}
   <div class="flex flex-wrap items-center gap-3 border-t border-gray-200 pt-3">
     <button type="submit" name="ps_reset" value="1" class="ui-btn ui-btn-secondary min-h-[44px]">{% trans "Zurück zum Standard" %}</button>
-    <span class="text-xs text-gray-700">{% trans "Setzt Abschnitte, Seitenvorlage und Kartenform dieser Seite zurück." %}</span>
+    <span class="text-xs text-gray-700">{% trans "Setzt Abschnitte, Seitenvorlage, Kartenform und eigene Blöcke dieser Seite zurück." %}</span>
   </div>
   {% endif %}
 </div>

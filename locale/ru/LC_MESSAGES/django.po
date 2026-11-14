@@ -38170,3 +38170,21 @@ msgstr "Сбрасывает разделы, шаблон и форму карт
 
 msgid "Wie alle"
 msgstr "Как у всех"
+
+msgid "So viele Seiten mit eigenen Blöcken sind nicht möglich. Bitte zuerst bei einem anderen Produkt oder einer Leistung die eigenen Blöcke entfernen."
+msgstr "Столько страниц со своими блоками не поместится. Сначала уберите свои блоки у другого товара или услуги."
+
+msgid "Nur diese Seite"
+msgstr "Только эта страница"
+
+msgid "Eigene Blöcke dieser Seite"
+msgstr "Свои блоки этой страницы"
+
+msgid "Text, Banner oder Liste – nur auf dieser Seite sichtbar, unter den Blöcken für alle."
+msgstr "Текст, баннер или список — видны только на этой странице, под блоками для всех."
+
+msgid "Blöcke bearbeiten"
+msgstr "Править блоки"
+
+msgid "Setzt Abschnitte, Seitenvorlage, Kartenform und eigene Blöcke dieser Seite zurück."
+msgstr "Сбрасывает разделы, шаблон, форму карточки и свои блоки этой страницы."

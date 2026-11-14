@@ -37977,3 +37977,21 @@ msgstr "Bu sayfanın bölümlerini, şablonunu ve kart biçimini sıfırlar."
 
 msgid "Wie alle"
 msgstr "Diğerleri gibi"
+
+msgid "So viele Seiten mit eigenen Blöcken sind nicht möglich. Bitte zuerst bei einem anderen Produkt oder einer Leistung die eigenen Blöcke entfernen."
+msgstr "Kendi blokları olan bu kadar sayfa mümkün değil. Lütfen önce başka bir üründe veya hizmette kendi bloklarını kaldırın."
+
+msgid "Nur diese Seite"
+msgstr "Yalnızca bu sayfa"
+
+msgid "Eigene Blöcke dieser Seite"
+msgstr "Bu sayfanın kendi blokları"
+
+msgid "Text, Banner oder Liste – nur auf dieser Seite sichtbar, unter den Blöcken für alle."
+msgstr "Metin, banner veya liste – yalnızca bu sayfada, herkes için olan blokların altında görünür."
+
+msgid "Blöcke bearbeiten"
+msgstr "Blokları düzenle"
+
+msgid "Setzt Abschnitte, Seitenvorlage, Kartenform und eigene Blöcke dieser Seite zurück."
+msgstr "Bu sayfanın bölümlerini, şablonunu, kart biçimini ve kendi bloklarını sıfırlar."

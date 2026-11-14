@@ -609,6 +609,15 @@ class Product(SoftDeleteMixin, I18nMixin):
 
         return additive_number_str(self.additives)
 
+    def delete(self, using=None, keep_parents=False):
+        """FB-29.4b: вместе с товаром уходят его свои блоки страницы (хост
+        `product:<hex>` в настройках сайта) — иначе они занимали бы место в потолке."""
+        result = super().delete(using=using, keep_parents=keep_parents)
+        from apps.core import object_structure
+
+        object_structure.drop_blocks("product", self)
+        return result
+
 
 class ProductVariant(TimestampedModel):
     """Вариант товара (R1): чай 100/250 г, размер одежды, фасовка.

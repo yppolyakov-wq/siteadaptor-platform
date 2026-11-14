@@ -37918,3 +37918,21 @@ msgstr "Setzt Abschnitte, Seitenvorlage und Kartenform dieser Seite zurück."
 
 msgid "Wie alle"
 msgstr "Wie alle"
+
+msgid "So viele Seiten mit eigenen Blöcken sind nicht möglich. Bitte zuerst bei einem anderen Produkt oder einer Leistung die eigenen Blöcke entfernen."
+msgstr "So viele Seiten mit eigenen Blöcken sind nicht möglich. Bitte zuerst bei einem anderen Produkt oder einer Leistung die eigenen Blöcke entfernen."
+
+msgid "Nur diese Seite"
+msgstr "Nur diese Seite"
+
+msgid "Eigene Blöcke dieser Seite"
+msgstr "Eigene Blöcke dieser Seite"
+
+msgid "Text, Banner oder Liste – nur auf dieser Seite sichtbar, unter den Blöcken für alle."
+msgstr "Text, Banner oder Liste – nur auf dieser Seite sichtbar, unter den Blöcken für alle."
+
+msgid "Blöcke bearbeiten"
+msgstr "Blöcke bearbeiten"
+
+msgid "Setzt Abschnitte, Seitenvorlage, Kartenform und eigene Blöcke dieser Seite zurück."
+msgstr "Setzt Abschnitte, Seitenvorlage, Kartenform und eigene Blöcke dieser Seite zurück."

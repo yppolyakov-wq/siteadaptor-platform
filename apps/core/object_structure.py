@@ -113,9 +113,11 @@ def apply_post(obj, kind: str, post) -> list[str]:
     if value != _raw(obj):
         obj.page_override = value
         changed.append("page_override")
-    if post.get("ps_reset") and getattr(obj, "card_style", ""):
-        obj.card_style = ""
-        changed.append("card_style")
+    if post.get("ps_reset"):
+        if getattr(obj, "card_style", ""):
+            obj.card_style = ""
+            changed.append("card_style")
+        drop_blocks(kind, obj)  # и свои блоки объекта
     return changed
 
 
@@ -154,4 +156,62 @@ def panel(config, kind: str, obj) -> dict:
         layouts.append({"value": value or LAYOUT_STANDARD, "label": label, "hint": ""})
     for option in layouts:
         option["checked"] = option["value"] == current
-    return {"rows": rows, "layouts": layouts, "deviations": deviations(obj, module), "kind": kind}
+    from django.urls import reverse
+
+    code = schema_code(kind, obj)
+    return {
+        "rows": rows,
+        "layouts": layouts,
+        "deviations": deviations(obj, module),
+        "kind": kind,
+        # свои блоки объекта: сколько их и где править (экран «Seitenaufbau»)
+        "own_blocks": len(own_blocks(config, kind, obj)),
+        "blocks_url": f"{reverse('site-schema')}?seite={code}" if code else "",
+    }
+
+
+# ───────── свои блоки объекта (только на его странице) ─────────
+
+
+def object_host(kind: str, obj) -> str:
+    """Хост своих блоков объекта в `site_config["page_blocks"]` ("" — нет такого)."""
+    pk = getattr(obj, "pk", None)
+    hexed = getattr(pk, "hex", "")
+    return f"{kind}:{hexed}" if kind in MODULES and hexed else ""
+
+
+def schema_code(kind: str, obj) -> str:
+    """Код строки экрана «Seitenaufbau» для своих блоков объекта."""
+    host = object_host(kind, obj)
+    return f"{kind}@{host}" if host else ""
+
+
+def own_blocks(config, kind: str, obj) -> list:
+    host = object_host(kind, obj)
+    blocks = ((config or {}).get("page_blocks") or {}).get(host) if host else None
+    return [b for b in blocks or [] if isinstance(b, dict) and b.get("id")]
+
+
+def drop_blocks(kind: str, obj) -> bool:
+    """Убрать свои блоки объекта вместе с переводами (удаление объекта, сброс)."""
+    from apps.core import content_pages
+
+    pk = getattr(obj, "pk", None)
+    hexed = getattr(pk, "hex", "")
+    if kind not in MODULES or not hexed:
+        return False
+    return content_pages.move_page_blocks(hexed, None, prefix=f"{kind}:")
+
+
+def reset(obj, kind: str) -> list[str]:
+    """«Zurück zum Standard» целиком: отличия, форма карточки и свои блоки. Возвращает
+    изменённые поля объекта (сохраняет вызывающий)."""
+    changed = []
+    if _raw(obj):
+        obj.page_override = {}
+        changed.append("page_override")
+    if getattr(obj, "card_style", ""):
+        obj.card_style = ""
+        changed.append("card_style")
+    drop_blocks(kind, obj)
+    return changed
