@@ -44,6 +44,25 @@
     <div class="space-y-3 border-t border-gray-200 pt-4">
       {% include "tenant/_hero_slide_fields.html" with fp="b_" %}
     </div>
+    {% comment %}FB-29.2c: «Wo zeigen» — баннер сам показывается на выбранных страницах, без блока на каждой. Сентинел `b_show_present` (W0).{% endcomment %}
+    <fieldset class="space-y-2 border-t border-gray-200 pt-4" data-banner-show-on>
+      <legend class="text-sm font-semibold text-gray-900">{% trans "Wo zeigen" %}</legend>
+      <input type="hidden" name="b_show_present" value="1">
+      <p class="text-xs text-gray-700">{% trans "Der Banner erscheint oben auf diesen Seiten – zusätzlich zu den Stellen im Seitenaufbau. Mehrere Banner auf einer Seite laufen als Slider." %}</p>
+      {% for row in show_on %}
+      <label class="flex min-h-[44px] items-center gap-2 text-sm"><input type="checkbox" name="b_show_keep" value="{{ row.value }}" checked class="rounded border-gray-500"> {% if row.label %}{{ row.label }}{% else %}{{ row.value }}{% endif %}{% if row.missing %} <span class="text-xs text-amber-900">({% trans "zurzeit nicht auf der Website" %})</span>{% endif %}</label>
+      {% endfor %}
+      {% if show_on %}<p class="text-xs text-gray-700">{% trans "Haken entfernen und speichern – die Seite zeigt den Banner nicht mehr." %}</p>{% endif %}
+      <div>
+        <label for="b-show-add" class="block text-sm font-medium mb-1">{% trans "Seite hinzufügen" %}</label>
+        <select id="b-show-add" name="b_show_add" class="ui-input w-full">
+          <option value="">{% trans "– keine –" %}</option>
+          {% regroup show_options by group as show_groups %}
+          {% for g in show_groups %}<optgroup label="{{ g.grouper }}">{% for o in g.list %}<option value="{{ o.value }}">{{ o.label }}</option>{% endfor %}</optgroup>{% endfor %}
+        </select>
+        <p class="mt-1 text-xs text-gray-700">{% trans "Kategorie, Produkt, Leistung oder Aktion wählen und speichern. Weitere Seiten fügen Sie danach genauso hinzu." %}</p>
+      </div>
+    </fieldset>
     <label class="flex items-center gap-2 text-sm min-h-[44px] border-t border-gray-200 pt-3">
       <input type="checkbox" name="b_is_active" {% if h.is_active %}checked{% endif %} class="rounded border-gray-500">
       {% trans "Banner ist eingeschaltet" %}

@@ -262,6 +262,8 @@
   {% if product.has_variants %}{% blocktrans asvar buyprice with p=product.price_from c=product.currency|cursym %}from {{ p }} {{ c }}{% endblocktrans %}{% elif target_promo and target_promo.new_price is not None %}{% blocktrans asvar buyprice with p=target_promo.new_price c=product.currency|cursym %}{{ p }} {{ c }}{% endblocktrans %}{% else %}{% blocktrans asvar buyprice with p=product.base_price c=product.currency|cursym %}{{ p }} {{ c }}{% endblocktrans %}{% endif %}
   {% include "storefront/_detail_buybar.html" with price=buyprice anchor="#kaufen" module="catalog" sold_out=False %}
 {% endif %}
+{% comment %}FB-29.2c: баннеры, которым эта страница задана в «Wo zeigen».{% endcomment %}
+{% place_banners "product" product %}
 {% page_blocks "product_detail" %}
 {% comment %}FB-29.4b: свои блоки этого объекта — только на его странице.{% endcomment %}
 {% object_blocks "product" product %}

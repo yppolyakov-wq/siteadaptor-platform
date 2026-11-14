@@ -484,6 +484,10 @@ class Banner(I18nMixin, TimestampedModel):
     sort_order = models.PositiveIntegerField(default=0)
     # перенос прежних слайдов: `heroes:<i>` / `block:<id>` — повторный перенос без дублей
     legacy_key = models.CharField(max_length=80, blank=True, default="")
+    # FB-29.2c: «Wo zeigen» — страницы, где баннер показывается сам, без блока на каждой:
+    # строки «<вид>:<цель>» (category:<slug>, product:<pk>, service:<pk>, promotion:<pk>).
+    # Единственный писатель — `apps.core.banners.set_show_on`.
+    show_on = models.JSONField(default=list, db_default=[], blank=True)
 
     class Meta:
         ordering = ["sort_order", "-created_at"]

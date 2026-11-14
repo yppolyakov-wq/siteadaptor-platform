@@ -409,3 +409,100 @@ def pick_state(request, choice: dict) -> dict:
         "intervals": [str(n) for n in range(4, 13)],
         "arrows": bool(choice.get("arrows")),
     }
+
+
+# ───────── FB-29.2c: «Wo zeigen» — баннер сам показывается на выбранных страницах ─────────
+
+SHOW_ON_TYPES = ("category", "product", "service", "promotion")
+SHOW_ON_MAX = 50
+
+
+def place_key(kind: str, obj) -> str:
+    """Ключ места показа страницы объекта — то же значение, что у цели ссылки меню."""
+    if kind not in SHOW_ON_TYPES or obj is None:
+        return ""
+    target = getattr(obj, "slug", "") if kind == "category" else getattr(obj, "pk", "")
+    return f"{kind}:{target}" if target else ""
+
+
+def _place_ok(value) -> bool:
+    if not isinstance(value, str) or len(value) > 120 or ":" not in value:
+        return False
+    kind, target = value.split(":", 1)
+    return kind in SHOW_ON_TYPES and bool(target.strip())
+
+
+def set_show_on(banner, *, keep, add, allowed) -> list[str]:
+    """Записать места показа баннера. `keep` — отмеченные в форме из уже сохранённых
+    (оставить можно только то, что было); `add` — новые, только из `allowed` (цели,
+    которые сайт сейчас открывает). Порядок — как добавляли, без повторов, с потолком."""
+    current = [v for v in (banner.show_on or []) if _place_ok(v)]
+    kept = set(keep or [])
+    out = [v for v in current if v in kept]
+    for value in add or []:
+        if _place_ok(value) and value in allowed and value not in out:
+            out.append(value)
+    out = out[:SHOW_ON_MAX]
+    if out != (banner.show_on or []):
+        banner.show_on = out
+        banner.save(update_fields=["show_on", "updated_at"])
+    return out
+
+
+def place_options(tenant) -> list[dict]:
+    """Места для выбора «Ort hinzufügen»: цели меню нужных видов, которые сайт открывает."""
+    from apps.tenants import menu
+
+    return [
+        {"group": o["group"], "value": o["value"], "label": o["label"]}
+        for o in menu.target_options(tenant)
+        if o["available"] and o["value"].split(":", 1)[0] in SHOW_ON_TYPES and _place_ok(o["value"])
+    ]
+
+
+def show_on_rows(tenant, banner) -> list[dict]:
+    """Сохранённые места с названиями (место, которого сайт сейчас не открывает, —
+    с пометкой: запись выключена или удалена)."""
+    labels = {o["value"]: f"{o['group']}: {o['label']}" for o in place_options(tenant)}
+    return [
+        {"value": v, "label": labels.get(v, ""), "missing": v not in labels}
+        for v in (banner.show_on or [])
+        if _place_ok(v)
+    ]
+
+
+def rename_place(old: str, new: str) -> int:
+    """Адрес страницы сменился (категория) — место переезжает; пустой `new` — убрать."""
+    from apps.core.models import Banner
+
+    changed = 0
+    for banner in Banner.objects.filter(show_on__contains=[old]):
+        places = [new if v == old else v for v in banner.show_on]
+        banner.show_on = [v for i, v in enumerate(places) if v and v not in places[:i]]
+        banner.save(update_fields=["show_on", "updated_at"])
+        changed += 1
+    return changed
+
+
+def picks_for_place(key: str) -> list[str]:
+    """Баннеры места показа по порядку библиотеки (отбор по сроку и «включён» делает
+    `resolve`). Ошибка базы (нет таблицы до миграции) — пусто: страница важнее баннера."""
+    import logging
+
+    from django.db import DatabaseError
+
+    from apps.core.models import Banner
+
+    if not key:
+        return []
+    try:
+        rows = Banner.objects.filter(show_on__contains=[key], is_active=True)
+        return [
+            str(pk)
+            for pk in rows.order_by("sort_order", "created_at").values_list("pk", flat=True)[
+                :MAX_SLIDES
+            ]
+        ]
+    except DatabaseError:
+        logging.getLogger(__name__).exception("banner places: lookup failed for %s", key)
+        return []

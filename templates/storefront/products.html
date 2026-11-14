@@ -313,7 +313,7 @@ MEN-22 остаётся механикой главной. Мобильный «
 {% endif %}
 {% endblock %}
 
-{% block listing_before %}{% category_blocks category_block_host part="before" %}{% endblock %}
+{% block listing_before %}{% comment %}FB-29.2c: баннеры, которым эта категория задана в «Wo zeigen».{% endcomment %}{% place_banners "category" current_category %}{% category_blocks category_block_host part="before" %}{% endblock %}
 {% block listing_after %}
 {% comment %}A4: тизер комбо/меню-сетов ПОД сеткой товаров (карточками, не только ссылкой) —
 Kombo/Tagesgericht на виду. Только на 1-й странице без выбранной категории.{% endcomment %}

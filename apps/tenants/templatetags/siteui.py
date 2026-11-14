@@ -410,6 +410,23 @@ def category_blocks(context, category_host="", part="after"):
 
 
 @register.simple_tag(takes_context=True)
+def place_banners(context, kind, obj):
+    """FB-29.2c: баннеры, которым эта страница задана в «Wo zeigen» (категория, товар,
+    услуга, акция). Рисует тот же блок, что «Banner» в схеме: один баннер — баннер,
+    несколько — слайдер. Баннеров нет — пусто."""
+    from apps.core import banners
+
+    request = context.get("request")
+    picks = banners.picks_for_place(banners.place_key(kind, obj)) if request else []
+    if not picks:
+        return ""
+    block = {"pick": picks, "height": "sm", "arrows": len(picks) > 1}
+    ctx = {**context.flatten(), "block": block, "is_preview": False}
+    html = render_to_string("storefront/sections/_block_banner.html", ctx, request=request)
+    return mark_safe(html)
+
+
+@register.simple_tag(takes_context=True)
 def object_blocks(context, kind, obj):
     """FB-29.4b: СВОИ блоки объекта (товар, услуга) — только на его странице, под
     общими блоками страницы. Блоков нет — пусто (и в превью: якорь «＋» общий)."""

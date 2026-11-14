@@ -37942,3 +37942,24 @@ msgstr "Eigene Blöcke bleiben – sie entfernen Sie unter «Blöcke bearbeiten�
 
 msgid "Beispielprodukte – nur in dieser Vorschau. Auf Ihrer Website erscheinen sie nicht."
 msgstr "Beispielprodukte – nur in dieser Vorschau. Auf Ihrer Website erscheinen sie nicht."
+
+msgid "Wo zeigen"
+msgstr "Wo zeigen"
+
+msgid "Der Banner erscheint oben auf diesen Seiten – zusätzlich zu den Stellen im Seitenaufbau. Mehrere Banner auf einer Seite laufen als Slider."
+msgstr "Der Banner erscheint oben auf diesen Seiten – zusätzlich zu den Stellen im Seitenaufbau. Mehrere Banner auf einer Seite laufen als Slider."
+
+msgid "zurzeit nicht auf der Website"
+msgstr "zurzeit nicht auf der Website"
+
+msgid "Haken entfernen und speichern – die Seite zeigt den Banner nicht mehr."
+msgstr "Haken entfernen und speichern – die Seite zeigt den Banner nicht mehr."
+
+msgid "Seite hinzufügen"
+msgstr "Seite hinzufügen"
+
+msgid "– keine –"
+msgstr "– keine –"
+
+msgid "Kategorie, Produkt, Leistung oder Aktion wählen und speichern. Weitere Seiten fügen Sie danach genauso hinzu."
+msgstr "Kategorie, Produkt, Leistung oder Aktion wählen und speichern. Weitere Seiten fügen Sie danach genauso hinzu."

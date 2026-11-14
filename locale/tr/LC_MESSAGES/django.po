@@ -38001,3 +38001,24 @@ msgstr "Kendi bloklar kalır – onları «Blokları düzenle» altında kaldır
 
 msgid "Beispielprodukte – nur in dieser Vorschau. Auf Ihrer Website erscheinen sie nicht."
 msgstr "Örnek ürünler – yalnızca bu önizlemede. Web sitenizde görünmezler."
+
+msgid "Wo zeigen"
+msgstr "Nerede gösterilsin"
+
+msgid "Der Banner erscheint oben auf diesen Seiten – zusätzlich zu den Stellen im Seitenaufbau. Mehrere Banner auf einer Seite laufen als Slider."
+msgstr "Banner bu sayfaların üstünde görünür – sayfa düzenindeki yerlere ek olarak. Bir sayfadaki birden çok banner kaydırıcı olarak döner."
+
+msgid "zurzeit nicht auf der Website"
+msgstr "şu anda web sitesinde değil"
+
+msgid "Haken entfernen und speichern – die Seite zeigt den Banner nicht mehr."
+msgstr "İşareti kaldırıp kaydedin – sayfa banner'ı artık göstermez."
+
+msgid "Seite hinzufügen"
+msgstr "Sayfa ekle"
+
+msgid "– keine –"
+msgstr "– yok –"
+
+msgid "Kategorie, Produkt, Leistung oder Aktion wählen und speichern. Weitere Seiten fügen Sie danach genauso hinzu."
+msgstr "Bir kategori, ürün, hizmet veya kampanya seçip kaydedin. Diğer sayfaları sonra aynı şekilde ekleyin."

@@ -192,9 +192,11 @@ def move_category_blocks(old_slug: str, new_slug: str | None) -> bool:
     """FB-27 R7: своя схема категории (блоки хоста ``catalog:<slug>``) переезжает вместе
     с адресом; удалённая категория хост освобождает. Адрес, который хостом быть не может
     (длиннее 60 знаков), схему не уносит — она убирается."""
-    from apps.core import content_pages
+    # FB-29.2c: места показа баннеров («Wo zeigen») переезжают вместе с адресом.
+    from apps.core import banners, content_pages
     from apps.tenants import siteconfig
 
+    banners.rename_place(f"category:{old_slug}", f"category:{new_slug}" if new_slug else "")
     if new_slug and not siteconfig.category_host(new_slug):
         new_slug = None
     return content_pages.move_page_blocks(old_slug, new_slug, prefix="catalog:")

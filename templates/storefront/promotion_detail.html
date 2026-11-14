@@ -15,6 +15,8 @@
 {% block structured_data %}{% if ld_offer %}<script type="application/ld+json">{{ ld_offer|safe }}</script>{% endif %}{% endblock %}
 
 {% block content %}
+{% comment %}FB-29.2c: баннеры, которым эта акция задана в «Wo zeigen».{% endcomment %}
+{% place_banners "promotion" promotion %}
 <a href="{% url 'storefront-home' %}" class="inline-flex items-center gap-1 text-sm text-indigo-600 hover:underline mb-4">← {% trans "Back" %}</a>
 
 {% comment %}STU-15a: ШАБЛОН СТРАНИЦЫ акции — свой у акции, иначе дефолт сайта.

@@ -38181,3 +38181,24 @@ msgstr "Власні блоки залишаються — їх прибираю
 
 msgid "Beispielprodukte – nur in dieser Vorschau. Auf Ihrer Website erscheinen sie nicht."
 msgstr "Товари-приклади — лише в цьому попередньому перегляді. На вашому сайті їх немає."
+
+msgid "Wo zeigen"
+msgstr "Де показувати"
+
+msgid "Der Banner erscheint oben auf diesen Seiten – zusätzlich zu den Stellen im Seitenaufbau. Mehrere Banner auf einer Seite laufen als Slider."
+msgstr "Банер з’являється вгорі цих сторінок — на додачу до місць у структурі сторінок. Кілька банерів на одній сторінці йдуть слайдером."
+
+msgid "zurzeit nicht auf der Website"
+msgstr "зараз немає на сайті"
+
+msgid "Haken entfernen und speichern – die Seite zeigt den Banner nicht mehr."
+msgstr "Зніміть позначку й збережіть — сторінка більше не показуватиме банер."
+
+msgid "Seite hinzufügen"
+msgstr "Додати сторінку"
+
+msgid "– keine –"
+msgstr "– немає –"
+
+msgid "Kategorie, Produkt, Leistung oder Aktion wählen und speichern. Weitere Seiten fügen Sie danach genauso hinzu."
+msgstr "Виберіть категорію, товар, послугу чи акцію та збережіть. Наступні сторінки додаються так само."
