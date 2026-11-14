@@ -120,6 +120,8 @@
 {% endblock %}
 
 {% block listing_empty %}
+{% comment %}FB-29 T4: примеры в предпросмотре дизайна, пока своих записей нет.{% endcomment %}
+{% if sample_sections %}{% include "storefront/sections/_stay_rooms.html" %}{% endif %}
 {% if q and not units %}
   <p class="text-gray-400">{% trans "Nothing found. Try a different search." %}</p>
 {% elif not units %}

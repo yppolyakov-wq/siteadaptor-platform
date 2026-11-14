@@ -19,6 +19,7 @@ from django.utils.translation import gettext as _
 
 from apps.billing import connect
 from apps.core import (
+    design_samples,
     listing_composition,
     object_structure,
     option_trackers,
@@ -134,6 +135,7 @@ def veranstaltung_index(request):
         request,
         "storefront/event_index.html",
         {
+            **design_samples.listing_context(request, "events"),  # T4
             "events": events,
             "facets": facets,
             "f": selected,

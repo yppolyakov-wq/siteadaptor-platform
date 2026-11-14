@@ -23,6 +23,7 @@ from django.utils.translation import gettext_lazy
 from apps.billing import connect
 from apps.core import (
     attribution,
+    design_samples,
     listing_composition,
     option_trackers,
     page_settings,
@@ -506,7 +507,13 @@ def termin_index(request):
     return _render_embed(
         request,
         "storefront/booking_index.html",
-        {"resources": resources, "has_pass_plans": has_pass_plans, "table_booking": has_tables},
+        {
+            "resources": resources,
+            "has_pass_plans": has_pass_plans,
+            "table_booking": has_tables,
+            # T4: услуг ещё нет — в предпросмотре дизайна показываем примеры
+            **design_samples.listing_context(request, "services"),
+        },
         embed,
     )
 

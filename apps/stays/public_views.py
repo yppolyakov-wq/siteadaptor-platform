@@ -22,6 +22,7 @@ from django.utils.translation import gettext_lazy
 from apps.billing import connect
 from apps.core import (
     attribution,
+    design_samples,
     listing_composition,
     option_trackers,
     page_settings,
@@ -278,6 +279,7 @@ def unterkunft_index(request):
         request,
         "storefront/stay_index.html",
         {
+            **design_samples.listing_context(request, "stay_rooms"),  # T4
             "units": units,
             "today": today,
             "max_date": today + timedelta(days=_horizon_days()),  # G12: окно бронирования

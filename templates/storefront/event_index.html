@@ -131,6 +131,8 @@
 {% endblock %}
 
 {% block listing_empty %}
+{% comment %}FB-29 T4: примеры в предпросмотре дизайна, пока своих записей нет.{% endcomment %}
+{% if sample_sections %}{% include "storefront/sections/_events.html" %}{% endif %}
   {% if not events %}
     <p class="text-gray-400">{% if active_filters %}{% trans "No events match your filters." %}{% else %}{% trans "No upcoming events." %}{% endif %}</p>
   {% endif %}

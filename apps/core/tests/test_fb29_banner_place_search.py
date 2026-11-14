@@ -147,3 +147,22 @@ def test_search_with_json_special_characters_still_finds_the_page():
 def test_search_matches_umlauts_case_insensitively():
     _product("Grüner Tee")
     assert [o["label"] for g in banners.place_search("GRÜN") for o in g["items"]] == ["Grüner Tee"]
+
+
+def test_short_query_is_not_matched_against_the_language_keys(monkeypatch):
+    """«en» есть в ключах JSON у каждой записи — короткий запрос ищется по подписи."""
+    for i in range(8):
+        _product(f"Tee {i}")
+    _product("Menü")
+    monkeypatch.setattr(banners, "PLACE_SEARCH_READ", 3)
+    assert [o["label"] for g in banners.place_search("en") for o in g["items"]] == ["Menü"]
+
+
+def test_search_finds_cyrillic_names_and_treats_wildcards_literally():
+    _product("Зелёный чай")
+    _product("100% Assam")
+    assert [o["label"] for g in banners.place_search("зелён") for o in g["items"]] == [
+        "Зелёный чай"
+    ]
+    assert [o["label"] for g in banners.place_search("0% a") for o in g["items"]] == ["100% Assam"]
+    assert banners.place_search("1_0") == []

@@ -748,7 +748,8 @@ def place_search(query: str = "", exclude=()) -> list[dict]:
             # T3: фильтр по названию — в базе; точная сверка подписи (язык кабинета) —
             # ниже в Python. Кавычка и обратная черта в JSON экранированы: такой запрос
             # в базе не сравнить — читаем вид с потолком, как раньше.
-            if query and not _JSON_ESCAPED.search(query):
+            # Короткий запрос («de», «en») совпал бы с ключами языков у каждой записи.
+            if len(query) >= 3 and not _JSON_ESCAPED.search(query):
                 rows = _name_filter(rows, query)[:PLACE_SEARCH_READ]
             elif query:
                 rows = rows[:2000]

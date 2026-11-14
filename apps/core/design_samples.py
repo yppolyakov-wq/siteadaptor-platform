@@ -168,3 +168,20 @@ def for_empty_section(request, key: str) -> list:
     except Exception:  # noqa: BLE001 — предпросмотр важнее примеров
         logging.getLogger(__name__).exception("design samples: %s failed", key)
         return []
+
+
+#: T4: страница-список → (ключ примеров, имя переменной, которую ждёт частичный секции).
+_LISTINGS = {
+    "services": "services_preview",
+    "stay_rooms": "stay_rooms",
+    "events": "events_preview",
+}
+
+
+def listing_context(request, key: str) -> dict:
+    """Контекст примеров для пустой страницы-списка (`{}` — примеров нет): тот же
+    частичный секции главной рисует их с пометкой и без ссылок."""
+    items = for_empty_section(request, key)
+    if not items:
+        return {}
+    return {_LISTINGS[key]: items, "sample_sections": {key}}
