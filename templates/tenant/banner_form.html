@@ -1,0 +1,54 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n cabinet %}
+{% block dash_title %}{% trans "Banner" %}{% endblock %}
+
+{% block dash_content %}
+{% comment %}FB-29.2 S2: форма баннера. Поля оформления и ссылки — тот же партиал, что у слайда главной (`_hero_slide_fields.html`, префикс `b_`).{% endcomment %}
+<div class="max-w-3xl">
+  <p class="mb-2"><a href="{% url 'site-banners' %}" class="inline-flex items-center min-h-[44px] text-sm font-semibold text-indigo-700 hover:underline">← {% trans "Alle Banner" %}</a></p>
+  <h1 class="ui-h1 mb-4">{% if banner %}{{ banner.title|default:_("Banner") }}{% else %}{% trans "Neuer Banner" %}{% endif %}</h1>
+  {% if error %}<div role="alert" class="mb-3 rounded-lg bg-red-50 px-4 py-2 text-sm text-red-700">{{ error }}</div>{% endif %}
+  {% if places %}<p class="mb-3 text-sm text-gray-700" data-banner-places>{% trans "Dieser Banner ist im Seitenaufbau ausgewählt." %}</p>{% endif %}
+  <form method="post" enctype="multipart/form-data" class="ui-card p-5 space-y-4" data-banner-form>
+    {% csrf_token %}
+    <input type="hidden" name="b_present" value="1">
+    <div>
+      <label for="b-image" class="block text-sm font-semibold text-gray-700 mb-1">{% trans "Foto" %}</label>
+      {% if h.image %}<img src="{{ h.image }}" alt="" class="mb-2 max-h-40 rounded-lg border border-gray-300">{% endif %}
+      <input type="file" id="b-image" name="b_image" accept="image/*" class="block w-full text-sm min-h-[44px]">
+      <label for="b-image-url" class="block text-xs text-gray-600 mt-2 mb-1">{% trans "oder Adresse eines Bildes" %}</label>
+      <input type="text" id="b-image-url" name="b_image_url" value="{{ h.image }}" class="ui-input w-full">
+    </div>
+    <div>
+      <label for="b-title" class="block text-sm font-semibold text-gray-700 mb-1">{% trans "Überschrift" %}</label>
+      <input type="text" id="b-title" name="b_title" value="{{ h.title }}" maxlength="200" class="ui-input w-full">
+    </div>
+    <div>
+      <label for="b-text" class="block text-sm font-semibold text-gray-700 mb-1">{% trans "Text" %}</label>
+      <textarea id="b-text" name="b_text" rows="3" maxlength="400" class="ui-input w-full">{{ h.text }}</textarea>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div>
+        <label for="b-btn-label" class="block text-sm font-semibold text-gray-700 mb-1">{% trans "Beschriftung der Schaltfläche" %}</label>
+        <input type="text" id="b-btn-label" name="b_btn_label" value="{{ h.button_label }}" maxlength="60" class="ui-input w-full">
+      </div>
+      <div>
+        <label for="b-btn-url" class="block text-sm font-semibold text-gray-700 mb-1">{% trans "Eigene Adresse (optional)" %}</label>
+        <input type="text" id="b-btn-url" name="b_btn_url" value="{{ h.button_url }}" maxlength="300" class="ui-input w-full">
+      </div>
+    </div>
+    <div class="space-y-3 border-t border-gray-200 pt-4">
+      {% include "tenant/_hero_slide_fields.html" with fp="b_" %}
+    </div>
+    <label class="flex items-center gap-2 text-sm min-h-[44px] border-t border-gray-200 pt-3">
+      <input type="checkbox" name="b_is_active" {% if h.is_active %}checked{% endif %} class="rounded border-gray-500">
+      {% trans "Banner ist eingeschaltet" %}
+    </label>
+    <div class="flex flex-wrap gap-2">
+      {% if 'site-banner-new'|can_open:request %}<button class="ui-btn ui-btn-primary min-h-[44px]">{% trans "Speichern" %}</button>{% endif %}
+      <a href="{% url 'site-banners' %}" class="ui-btn ui-btn-secondary min-h-[44px] inline-flex items-center">{% trans "Abbrechen" %}</a>
+      {% if banner and 'site-banner-delete'|can_open:request %}<a href="{% url 'site-banner-delete' banner.pk %}" class="ml-auto inline-flex items-center min-h-[44px] text-sm text-gray-800 underline">{% trans "Löschen…" %}</a>{% endif %}
+    </div>
+  </form>
+</div>
+{% endblock %}

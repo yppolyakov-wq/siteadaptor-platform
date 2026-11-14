@@ -37973,3 +37973,67 @@ msgstr "Ничего не обрезается. В рамке остаются �
 
 msgid "ganz zeigen"
 msgstr "целиком"
+
+msgid "Alle Banner"
+msgstr "Все баннеры"
+
+msgid "Banner gelöscht."
+msgstr "Баннер удалён."
+
+msgid "Banner gespeichert."
+msgstr "Баннер сохранён."
+
+msgid "Banner ist eingeschaltet"
+msgstr "Баннер включён"
+
+msgid "Banner suchen"
+msgstr "Найти баннер"
+
+msgid "Beschriftung der Schaltfläche"
+msgstr "Надпись на кнопке"
+
+msgid "Bitte ein gültiges Datum eingeben."
+msgstr "Введите правильную дату."
+
+msgid "Der Banner wird endgültig gelöscht. Das Foto bleibt in der Medienbibliothek."
+msgstr "Баннер удаляется навсегда. Фото остаётся в медиатеке."
+
+msgid "Dieser Banner ist im Seitenaufbau ausgewählt."
+msgstr "Этот баннер выбран в структуре страниц."
+
+msgid "Dieser Banner ist im Seitenaufbau ausgewählt. Nach dem Löschen erscheint er dort nicht mehr."
+msgstr "Этот баннер выбран в структуре страниц. После удаления он там больше не появится."
+
+msgid "Eigene Adresse (optional)"
+msgstr "Свой адрес (необязательно)"
+
+msgid "Ein Banner braucht ein Foto, eine Überschrift oder einen Text."
+msgstr "Баннеру нужно фото, заголовок или текст."
+
+msgid "Endgültig löschen"
+msgstr "Удалить навсегда"
+
+msgid "Hier liegen alle Banner. Wo ein Banner erscheint, wählen Sie im Seitenaufbau – ein Banner oder mehrere als Slider."
+msgstr "Здесь лежат все баннеры. Где баннер показывается, выбирается в структуре страниц — один баннер или несколько слайдером."
+
+msgid "Löschen…"
+msgstr "Удалить…"
+
+msgid "Neuer Banner"
+msgstr "Новый баннер"
+
+msgid "Noch kein Banner. Legen Sie den ersten an – ein Foto mit Überschrift, das auf ein Produkt, eine Kategorie oder eine Aktion führt."
+msgstr "Баннеров пока нет. Создайте первый — фото с заголовком, которое ведёт на товар, категорию или акцию."
+
+msgid "Ohne Überschrift"
+msgstr "Без заголовка"
+
+msgid "oder Adresse eines Bildes"
+msgstr "или адрес картинки"
+
+msgid "ohne Zeitraum"
+msgstr "без срока"
+
+#, python-format
+msgid "„%(name)s“ löschen?"
+msgstr "Удалить «%(name)s»?"

@@ -95,6 +95,7 @@ EXPECTED_UNLISTED = frozenset(
         "finance:invoice-new",  # UX-D D6.5: «＋ Neue Rechnung» (кнопка списка счетов)
         "collections:new",  # UX-D D6.3: «＋ Kollektion» (кнопка списка, шторка)
         "content-page-new",  # M21.6: «＋ Neue Seite» — кнопка списка «Seiten»
+        "site-banner-new",  # FB-29.2: «＋ Neuer Banner» — кнопка списка «Banner»
         "content-page-image",  # [POST] M21.8 B4: «🖼 Bild» редактора страницы
         "content-page-media",  # [JSON] M21.11 P5: «🗂 Aus der Mediathek» редактора страницы
         "content-page-image-crop",  # [POST] M21.11: «✂ Zuschneiden» в окне фото

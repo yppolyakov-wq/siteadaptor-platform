@@ -62,7 +62,8 @@ def clean_fields(raw: dict) -> dict:
     if ref and image.get("path"):
         ref["path"] = str(image["path"])
     if ref and image.get("alt"):
-        ref["alt"] = str(image["alt"])[:300]
+        alt = image["alt"]  # FileRef хранит alt словарём по языкам; у ручного ввода — строка
+        ref["alt"] = alt if isinstance(alt, dict) else str(alt)[:300]
     out = {k: slide.get(k, "") for k in (*_TEXT_FIELDS, *_STYLE_FIELDS)}
     out.update(image=ref, click_all=bool(slide.get("click_all")), starts=starts, ends=ends)
     # «включён» меняется, только когда поле прислано: частичная правка не включает
@@ -161,3 +162,55 @@ def resolve(pick, legacy=None, locale: str | None = None) -> list[dict]:
             continue
         out.append(to_slide(banner, locale))
     return out
+
+
+def _picks(config: dict):
+    """Все места, где хранится выбор баннеров: (подпись места, словарь с ключом `pick`)."""
+    hero = config.get("hero_banners")
+    if isinstance(hero, dict):
+        yield "home", hero
+    for item in config.get("sections") or []:
+        if isinstance(item, dict) and isinstance(item.get("data"), dict) and item.get("id"):
+            yield "home", item["data"]
+    blocks = config.get("page_blocks") if isinstance(config.get("page_blocks"), dict) else {}
+    for host, items in blocks.items():
+        for item in items or []:
+            if isinstance(item, dict) and isinstance(item.get("data"), dict):
+                yield host, item["data"]
+
+
+def places(tenant, banner) -> list[str]:
+    """Где баннер выбран: коды мест («home», хост страницы) без повторов."""
+    key = str(banner.pk)
+    out: list[str] = []
+    for place, holder in _picks(tenant.site_config or {}):
+        if key in (holder.get("pick") or []) and place not in out:
+            out.append(place)
+    return out
+
+
+def delete(tenant, banner) -> None:
+    """Удалить баннер и убрать его из выбора всех мест показа — иначе в настройках сайта
+    копились бы ссылки на несуществующую запись. Точечная запись под блокировкой строки."""
+    import copy
+
+    from django.db import transaction
+
+    from apps.tenants.models import Tenant
+
+    key = str(banner.pk)
+    with transaction.atomic():
+        fresh = Tenant.objects.select_for_update().filter(pk=tenant.pk).first()
+        if fresh is not None:
+            config = copy.deepcopy(fresh.site_config or {})
+            changed = False
+            for _place, holder in _picks(config):
+                pick = holder.get("pick")
+                if isinstance(pick, list) and key in pick:
+                    holder["pick"] = [p for p in pick if p != key]
+                    changed = True
+            if changed:
+                fresh.site_config = config
+                fresh.save(update_fields=["site_config", "updated_at"])
+                tenant.site_config = config
+        banner.delete()

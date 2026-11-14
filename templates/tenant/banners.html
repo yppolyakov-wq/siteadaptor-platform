@@ -1,0 +1,55 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n cabinet %}
+{% block dash_title %}{% trans "Banner" %}{% endblock %}
+
+{% block dash_content %}
+{% comment %}FB-29.2 S2 (решение владельца 2026-11-13): библиотека баннеров — список плитками. Где баннер показывается, выбирают в «Seitenaufbau» (как категорию); несколько баннеров — слайдер.{% endcomment %}
+<div class="max-w-6xl">
+  <div class="flex flex-wrap items-end justify-between gap-3 mb-1">
+    <h1 class="ui-h1">{% nav_title _("Banner") %}</h1>
+    {% if 'site-banner-new'|can_open:request %}<a href="{% url 'site-banner-new' %}" class="ui-btn ui-btn-primary min-h-[44px] inline-flex items-center">＋ {% trans "Neuer Banner" %}</a>{% endif %}
+  </div>
+  <p class="text-sm text-gray-600 mb-4">{% trans "Hier liegen alle Banner. Wo ein Banner erscheint, wählen Sie im Seitenaufbau – ein Banner oder mehrere als Slider." %} <a href="{% url 'site-schema' %}" class="font-semibold text-indigo-700 hover:underline">{% trans "Seitenaufbau" %}</a></p>
+
+  {% if messages %}{% for m in messages %}
+  <div role="{% if m.tags == 'error' %}alert{% else %}status{% endif %}" class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+  {% endfor %}{% endif %}
+
+  {% if banners or q %}
+  <form method="get" class="mb-4 flex gap-2" role="search">
+    <label class="flex-1 min-w-0"><span class="sr-only">{% trans "Banner suchen" %}</span>
+      <input type="search" name="q" value="{{ q }}" placeholder="{% trans 'Banner suchen' %}" class="ui-input w-full"></label>
+    <button class="ui-btn ui-btn-secondary min-h-[44px]">{% trans "Suchen" %}</button>
+  </form>
+  {% endif %}
+
+  {% if banners %}
+  <ul class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" data-banner-tiles>
+    {% for b in banners %}
+    <li class="rounded-xl border border-gray-500 bg-white flex flex-col overflow-hidden" data-banner-tile="{{ b.pk }}">
+      <span class="block aspect-[16/7] bg-gray-100" aria-hidden="true">{% if b.image.url %}<img src="{{ b.image.url }}" alt="" class="h-full w-full object-cover" loading="lazy">{% endif %}</span>
+      <div class="p-3 flex flex-col gap-1 flex-1">
+        <h2 class="font-semibold text-sm break-words">{{ b.title|default:_("Ohne Überschrift") }}</h2>
+        {% if b.text %}<p class="text-sm text-gray-600 break-words">{{ b.text|truncatechars:90 }}</p>{% endif %}
+        <p class="text-xs text-gray-700">
+          {% if not b.is_active %}<span class="ui-badge">{% trans "ausgeschaltet" %}</span>{% endif %}
+          {% if b.starts or b.ends %}{% if b.starts %}{% trans "ab" %} {{ b.starts|date:"d.m.Y" }}{% endif %}{% if b.ends %} {% trans "bis" %} {{ b.ends|date:"d.m.Y" }}{% endif %}{% else %}{% trans "ohne Zeitraum" %}{% endif %}
+        </p>
+        <div class="mt-auto pt-2 flex gap-2">
+          <a href="{% url 'site-banner-edit' b.pk %}" class="flex-1 inline-flex items-center justify-center min-h-[44px] rounded-lg border border-indigo-700 px-3 text-sm font-semibold text-indigo-800 hover:bg-indigo-50" aria-label="{% trans 'Bearbeiten' %}: {{ b.title|default:_('Ohne Überschrift') }}">{% trans "Bearbeiten" %}</a>
+          {% if 'site-banner-delete'|can_open:request %}<a href="{% url 'site-banner-delete' b.pk %}" class="inline-flex items-center min-h-[44px] rounded-lg border border-gray-500 px-3 text-sm text-gray-800 hover:bg-gray-50" aria-label="{% trans 'Löschen…' %}: {{ b.title|default:_('Ohne Überschrift') }}">{% trans "Löschen…" %}</a>{% endif %}
+        </div>
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+  {% elif q %}
+  <p class="text-sm text-gray-700">{% trans "Nichts gefunden." %}</p>
+  {% else %}
+  <div class="ui-card p-6 text-sm text-gray-700" data-banner-empty>
+    <p class="mb-3">{% trans "Noch kein Banner. Legen Sie den ersten an – ein Foto mit Überschrift, das auf ein Produkt, eine Kategorie oder eine Aktion führt." %}</p>
+    {% if 'site-banner-new'|can_open:request %}<a href="{% url 'site-banner-new' %}" class="ui-btn ui-btn-primary min-h-[44px] inline-flex items-center">＋ {% trans "Neuer Banner" %}</a>{% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

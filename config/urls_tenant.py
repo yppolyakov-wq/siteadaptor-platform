@@ -16,6 +16,7 @@ from apps.collections import public_views as collections_public
 from apps.community import views as community_views
 from apps.core import (
     assistant_views,
+    banner_views,
     content_page_views,
     extras_pages,
     health,
@@ -326,6 +327,15 @@ urlpatterns = [
     path("dashboard/site/seo/", seo_settings_view, name="site-seo"),
     # M21.1: старые адреса после переезда (301/410 на 404 витрины).
     # M21.6: свои страницы сайта (создать · изменить · удалить).
+    # FB-29.2: библиотека баннеров (список · новый · изменить · удалить с вопросом).
+    path("dashboard/site/banner/", banner_views.banner_list, name="site-banners"),
+    path("dashboard/site/banner/neu/", banner_views.banner_new, name="site-banner-new"),
+    path("dashboard/site/banner/<uuid:pk>/", banner_views.banner_edit, name="site-banner-edit"),
+    path(
+        "dashboard/site/banner/<uuid:pk>/loeschen/",
+        banner_views.banner_delete,
+        name="site-banner-delete",
+    ),
     path("dashboard/site/seiten/", content_page_views.pages_list, name="content-pages"),
     path("dashboard/site/seiten/neu/", content_page_views.page_new, name="content-page-new"),
     path(

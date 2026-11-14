@@ -37634,3 +37634,67 @@ msgstr "Nothing is cut off. Margins remain inside the frame."
 
 msgid "ganz zeigen"
 msgstr "whole photo"
+
+msgid "Alle Banner"
+msgstr "All banners"
+
+msgid "Banner gelöscht."
+msgstr "Banner deleted."
+
+msgid "Banner gespeichert."
+msgstr "Banner saved."
+
+msgid "Banner ist eingeschaltet"
+msgstr "Banner is switched on"
+
+msgid "Banner suchen"
+msgstr "Search banners"
+
+msgid "Beschriftung der Schaltfläche"
+msgstr "Button label"
+
+msgid "Bitte ein gültiges Datum eingeben."
+msgstr "Please enter a valid date."
+
+msgid "Der Banner wird endgültig gelöscht. Das Foto bleibt in der Medienbibliothek."
+msgstr "The banner is deleted for good. The photo stays in the media library."
+
+msgid "Dieser Banner ist im Seitenaufbau ausgewählt."
+msgstr "This banner is selected in the page structure."
+
+msgid "Dieser Banner ist im Seitenaufbau ausgewählt. Nach dem Löschen erscheint er dort nicht mehr."
+msgstr "This banner is selected in the page structure. After deleting it will no longer appear there."
+
+msgid "Eigene Adresse (optional)"
+msgstr "Custom address (optional)"
+
+msgid "Ein Banner braucht ein Foto, eine Überschrift oder einen Text."
+msgstr "A banner needs a photo, a heading or a text."
+
+msgid "Endgültig löschen"
+msgstr "Delete for good"
+
+msgid "Hier liegen alle Banner. Wo ein Banner erscheint, wählen Sie im Seitenaufbau – ein Banner oder mehrere als Slider."
+msgstr "All banners live here. Where a banner appears is chosen in the page structure – one banner or several as a slider."
+
+msgid "Löschen…"
+msgstr "Delete…"
+
+msgid "Neuer Banner"
+msgstr "New banner"
+
+msgid "Noch kein Banner. Legen Sie den ersten an – ein Foto mit Überschrift, das auf ein Produkt, eine Kategorie oder eine Aktion führt."
+msgstr "No banner yet. Create the first one – a photo with a heading that leads to a product, a category or a promotion."
+
+msgid "Ohne Überschrift"
+msgstr "No heading"
+
+msgid "oder Adresse eines Bildes"
+msgstr "or the address of an image"
+
+msgid "ohne Zeitraum"
+msgstr "no time limit"
+
+#, python-format
+msgid "„%(name)s“ löschen?"
+msgstr "Delete “%(name)s”?"

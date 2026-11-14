@@ -40,6 +40,12 @@ class _Form(HTMLParser):
         self._select = None
         self._picked = None
         self._first = None
+        self._area = None
+        self._text = ""
+
+    def handle_data(self, data):
+        if self._area is not None:
+            self._text += data
 
     def handle_starttag(self, tag, attrs):
         a = dict(attrs)
@@ -54,6 +60,8 @@ class _Form(HTMLParser):
                     self.fields.append((a["name"], a.get("value", "on")))
             elif kind != "submit":
                 self.fields.append((a["name"], a.get("value", "")))
+        elif tag == "textarea" and a.get("name"):
+            self._area, self._text = a["name"], ""
         elif tag == "select":
             self._select, self._picked, self._first = a.get("name"), None, None
         elif tag == "option" and self._select:
@@ -64,6 +72,11 @@ class _Form(HTMLParser):
                 self._picked = value
 
     def handle_endtag(self, tag):
+        if tag == "textarea" and self._area is not None:
+            # браузер отбрасывает первый перевод строки сразу после <textarea>
+            text = self._text[1:] if self._text.startswith("\n") else self._text
+            self.fields.append((self._area, text))
+            self._area = None
         if tag == "select" and self._select:
             picked = self._picked if self._picked is not None else self._first
             self.fields.append((self._select, picked or ""))

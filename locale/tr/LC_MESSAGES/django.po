@@ -37780,3 +37780,67 @@ msgstr "Hiçbir şey kesilmez. Çerçevede boşluk kalır."
 
 msgid "ganz zeigen"
 msgstr "tamamı"
+
+msgid "Alle Banner"
+msgstr "Tüm bannerlar"
+
+msgid "Banner gelöscht."
+msgstr "Banner silindi."
+
+msgid "Banner gespeichert."
+msgstr "Banner kaydedildi."
+
+msgid "Banner ist eingeschaltet"
+msgstr "Banner açık"
+
+msgid "Banner suchen"
+msgstr "Banner ara"
+
+msgid "Beschriftung der Schaltfläche"
+msgstr "Düğme metni"
+
+msgid "Bitte ein gültiges Datum eingeben."
+msgstr "Lütfen geçerli bir tarih girin."
+
+msgid "Der Banner wird endgültig gelöscht. Das Foto bleibt in der Medienbibliothek."
+msgstr "Banner kalıcı olarak silinir. Fotoğraf medya kitaplığında kalır."
+
+msgid "Dieser Banner ist im Seitenaufbau ausgewählt."
+msgstr "Bu banner sayfa yapısında seçili."
+
+msgid "Dieser Banner ist im Seitenaufbau ausgewählt. Nach dem Löschen erscheint er dort nicht mehr."
+msgstr "Bu banner sayfa yapısında seçili. Silindikten sonra orada görünmez."
+
+msgid "Eigene Adresse (optional)"
+msgstr "Özel adres (isteğe bağlı)"
+
+msgid "Ein Banner braucht ein Foto, eine Überschrift oder einen Text."
+msgstr "Bir banner için fotoğraf, başlık veya metin gerekir."
+
+msgid "Endgültig löschen"
+msgstr "Kalıcı olarak sil"
+
+msgid "Hier liegen alle Banner. Wo ein Banner erscheint, wählen Sie im Seitenaufbau – ein Banner oder mehrere als Slider."
+msgstr "Tüm bannerlar burada. Bir bannerın nerede görüneceğini sayfa yapısında seçersiniz – tek banner veya slider olarak birkaç tane."
+
+msgid "Löschen…"
+msgstr "Sil…"
+
+msgid "Neuer Banner"
+msgstr "Yeni banner"
+
+msgid "Noch kein Banner. Legen Sie den ersten an – ein Foto mit Überschrift, das auf ein Produkt, eine Kategorie oder eine Aktion führt."
+msgstr "Henüz banner yok. İlkini oluşturun – bir ürüne, kategoriye veya kampanyaya götüren başlıklı bir fotoğraf."
+
+msgid "Ohne Überschrift"
+msgstr "Başlıksız"
+
+msgid "oder Adresse eines Bildes"
+msgstr "veya bir görselin adresi"
+
+msgid "ohne Zeitraum"
+msgstr "süresiz"
+
+#, python-format
+msgid "„%(name)s“ löschen?"
+msgstr "“%(name)s” silinsin mi?"

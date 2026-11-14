@@ -388,6 +388,11 @@ RULES: dict[str, Rule] = {
     "site-sections": _r(W, WE),
     "site-seo": _r(W, WE),
     "content-pages": _r(W, WE),
+    # FB-29.2: библиотека баннеров
+    "site-banners": _r(W, WE),
+    "site-banner-new": _r(WE, WE),
+    "site-banner-edit": _r(W, WE),
+    "site-banner-delete": _r(WE, WE),
     "content-page-new": _r(PG, PG),
     "content-page-edit": _r(PG, PG),
     "content-page-delete": _r(PG, PG),

@@ -37721,3 +37721,67 @@ msgstr "Nichts wird abgeschnitten. Es bleiben Ränder im Rahmen."
 
 msgid "ganz zeigen"
 msgstr "ganz zeigen"
+
+msgid "Alle Banner"
+msgstr "Alle Banner"
+
+msgid "Banner gelöscht."
+msgstr "Banner gelöscht."
+
+msgid "Banner gespeichert."
+msgstr "Banner gespeichert."
+
+msgid "Banner ist eingeschaltet"
+msgstr "Banner ist eingeschaltet"
+
+msgid "Banner suchen"
+msgstr "Banner suchen"
+
+msgid "Beschriftung der Schaltfläche"
+msgstr "Beschriftung der Schaltfläche"
+
+msgid "Bitte ein gültiges Datum eingeben."
+msgstr "Bitte ein gültiges Datum eingeben."
+
+msgid "Der Banner wird endgültig gelöscht. Das Foto bleibt in der Medienbibliothek."
+msgstr "Der Banner wird endgültig gelöscht. Das Foto bleibt in der Medienbibliothek."
+
+msgid "Dieser Banner ist im Seitenaufbau ausgewählt."
+msgstr "Dieser Banner ist im Seitenaufbau ausgewählt."
+
+msgid "Dieser Banner ist im Seitenaufbau ausgewählt. Nach dem Löschen erscheint er dort nicht mehr."
+msgstr "Dieser Banner ist im Seitenaufbau ausgewählt. Nach dem Löschen erscheint er dort nicht mehr."
+
+msgid "Eigene Adresse (optional)"
+msgstr "Eigene Adresse (optional)"
+
+msgid "Ein Banner braucht ein Foto, eine Überschrift oder einen Text."
+msgstr "Ein Banner braucht ein Foto, eine Überschrift oder einen Text."
+
+msgid "Endgültig löschen"
+msgstr "Endgültig löschen"
+
+msgid "Hier liegen alle Banner. Wo ein Banner erscheint, wählen Sie im Seitenaufbau – ein Banner oder mehrere als Slider."
+msgstr "Hier liegen alle Banner. Wo ein Banner erscheint, wählen Sie im Seitenaufbau – ein Banner oder mehrere als Slider."
+
+msgid "Löschen…"
+msgstr "Löschen…"
+
+msgid "Neuer Banner"
+msgstr "Neuer Banner"
+
+msgid "Noch kein Banner. Legen Sie den ersten an – ein Foto mit Überschrift, das auf ein Produkt, eine Kategorie oder eine Aktion führt."
+msgstr "Noch kein Banner. Legen Sie den ersten an – ein Foto mit Überschrift, das auf ein Produkt, eine Kategorie oder eine Aktion führt."
+
+msgid "Ohne Überschrift"
+msgstr "Ohne Überschrift"
+
+msgid "oder Adresse eines Bildes"
+msgstr "oder Adresse eines Bildes"
+
+msgid "ohne Zeitraum"
+msgstr "ohne Zeitraum"
+
+#, python-format
+msgid "„%(name)s“ löschen?"
+msgstr "„%(name)s“ löschen?"

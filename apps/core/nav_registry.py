@@ -1060,6 +1060,16 @@ ENTRIES: tuple[NavEntry, ...] = (
         "aufbau schema bloecke struktur layout seiten",
     ),
     _e("site", "site-seo", _("SEO"), "seo", None, True, "meta titel beschreibung robots"),
+    # FB-29.2 (решение владельца 2026-11-13): библиотека баннеров — отдельный подпункт.
+    _e(
+        "site",
+        "site-banners",
+        _("Banner"),
+        "site-banners",
+        None,
+        True,
+        "banner slider hero bild startseite werbung aktion",
+    ),
     # M21.6: свои страницы сайта (Versand, Zahlungsarten, …): создать · изменить · удалить.
     _e(
         "site",
@@ -1211,6 +1221,7 @@ UNIVERSAL: dict[str, str] = {
     "site-schema": "схема блоков страниц — у каждого",
     "site-redirects": "переадресации старых адресов — у каждого",
     "content-pages": "свои страницы сайта — у каждого",
+    "site-banners": "библиотека баннеров — у каждого",
     "domains": "домены — у каждого",
     "media-library": "медиатека — у каждого",
     "sellable-manage": "обзор ассортимента — у каждого",

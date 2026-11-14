@@ -37960,3 +37960,67 @@ msgstr "Нічого не обрізається. У рамці залишают
 
 msgid "ganz zeigen"
 msgstr "повністю"
+
+msgid "Alle Banner"
+msgstr "Усі банери"
+
+msgid "Banner gelöscht."
+msgstr "Банер видалено."
+
+msgid "Banner gespeichert."
+msgstr "Банер збережено."
+
+msgid "Banner ist eingeschaltet"
+msgstr "Банер увімкнено"
+
+msgid "Banner suchen"
+msgstr "Знайти банер"
+
+msgid "Beschriftung der Schaltfläche"
+msgstr "Напис на кнопці"
+
+msgid "Bitte ein gültiges Datum eingeben."
+msgstr "Введіть правильну дату."
+
+msgid "Der Banner wird endgültig gelöscht. Das Foto bleibt in der Medienbibliothek."
+msgstr "Банер видаляється назавжди. Фото залишається в медіатеці."
+
+msgid "Dieser Banner ist im Seitenaufbau ausgewählt."
+msgstr "Цей банер вибрано у структурі сторінок."
+
+msgid "Dieser Banner ist im Seitenaufbau ausgewählt. Nach dem Löschen erscheint er dort nicht mehr."
+msgstr "Цей банер вибрано у структурі сторінок. Після видалення він там більше не з’явиться."
+
+msgid "Eigene Adresse (optional)"
+msgstr "Своя адреса (необов’язково)"
+
+msgid "Ein Banner braucht ein Foto, eine Überschrift oder einen Text."
+msgstr "Банеру потрібне фото, заголовок або текст."
+
+msgid "Endgültig löschen"
+msgstr "Видалити назавжди"
+
+msgid "Hier liegen alle Banner. Wo ein Banner erscheint, wählen Sie im Seitenaufbau – ein Banner oder mehrere als Slider."
+msgstr "Тут лежать усі банери. Де банер показується, вибирається у структурі сторінок — один банер або кілька слайдером."
+
+msgid "Löschen…"
+msgstr "Видалити…"
+
+msgid "Neuer Banner"
+msgstr "Новий банер"
+
+msgid "Noch kein Banner. Legen Sie den ersten an – ein Foto mit Überschrift, das auf ein Produkt, eine Kategorie oder eine Aktion führt."
+msgstr "Банерів поки немає. Створіть перший — фото із заголовком, що веде на товар, категорію або акцію."
+
+msgid "Ohne Überschrift"
+msgstr "Без заголовка"
+
+msgid "oder Adresse eines Bildes"
+msgstr "або адреса картинки"
+
+msgid "ohne Zeitraum"
+msgstr "без терміну"
+
+#, python-format
+msgid "„%(name)s“ löschen?"
+msgstr "Видалити «%(name)s»?"

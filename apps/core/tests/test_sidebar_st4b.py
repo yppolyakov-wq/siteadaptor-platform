@@ -225,6 +225,8 @@ def test_sidebar_children_composition():
         # страницы живут в «Seitenaufbau»
         "site-schema",
         "site-seo",
+        # FB-29.2 (решение владельца 2026-11-13, осознанное дополнение): библиотека баннеров
+        "site-banners",
         # M21.6 (осознанное дополнение): свои страницы сайта — перед переадресациями
         "content-pages",
         "site-redirects",

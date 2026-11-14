@@ -1,0 +1,20 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n cabinet %}
+{% block dash_title %}{% trans "Banner" %}{% endblock %}
+
+{% block dash_content %}
+{% comment %}FB-29.2 S2: удаление баннера — отдельный шаг с вопросом; GET ничего не удаляет.{% endcomment %}
+<div class="max-w-xl">
+  <h1 class="ui-h1 mb-3">{% blocktrans with name=banner.title|default:_("Banner") %}„{{ name }}“ löschen?{% endblocktrans %}</h1>
+  <form method="post" class="ui-card p-5 space-y-4 border border-red-300" data-banner-confirm>
+    {% csrf_token %}
+    {% if banner.image.url %}<img src="{{ banner.image.url }}" alt="" class="max-h-32 rounded-lg border border-gray-300">{% endif %}
+    {% if places %}<p class="text-sm text-amber-900 bg-amber-50 rounded-lg px-3 py-2">{% trans "Dieser Banner ist im Seitenaufbau ausgewählt. Nach dem Löschen erscheint er dort nicht mehr." %}</p>{% endif %}
+    <p class="text-sm text-gray-700">{% trans "Der Banner wird endgültig gelöscht. Das Foto bleibt in der Medienbibliothek." %}</p>
+    <div class="flex flex-wrap gap-2">
+      <button class="ui-btn ui-btn-danger-outline min-h-[44px]">{% trans "Endgültig löschen" %}</button>
+      <a href="{% url 'site-banners' %}" class="ui-btn ui-btn-secondary min-h-[44px] inline-flex items-center">{% trans "Abbrechen" %}</a>
+    </div>
+  </form>
+</div>
+{% endblock %}
