@@ -35,10 +35,12 @@
     <div class="flex flex-wrap items-center justify-between gap-3">
       <div>
         <div class="text-sm font-semibold text-gray-900">{% trans "Eigene Blöcke dieser Seite" %}</div>
-        <div class="text-xs text-gray-700">{% if ps.own_blocks %}{% trans "Blöcke" %}: {{ ps.own_blocks }} · {% endif %}{% trans "Text, Banner oder Liste – nur auf dieser Seite sichtbar, unter den Blöcken für alle." %}</div>
+        <div class="text-xs text-gray-700">{% if ps.own_blocks %}{% trans "Blöcke" %}: {{ ps.own_blocks }} · {% endif %}{% trans "Text, Banner oder Liste – nur auf dieser Seite sichtbar." %}</div>
       </div>
       <a href="{{ ps.blocks_url }}" class="ui-btn ui-btn-secondary min-h-[44px]">{% if ps.own_blocks %}{% trans "Blöcke bearbeiten" %}{% else %}{% trans "Block hinzufügen" %}{% endif %}</a>
     </div>
+    {% comment %}R3: положение своих блоков относительно блоков для всех.{% endcomment %}
+    <label class="mt-2 flex min-h-[44px] items-center gap-2 text-sm"><input type="checkbox" name="ps_blocks_first" value="1"{% if ps.blocks_first %} checked{% endif %} class="rounded border-gray-500"> {% trans "Eigene Blöcke über den Blöcken für alle zeigen" %}</label>
   </div>
   {% endif %}
   {% if ps.deviations or card_style_set %}

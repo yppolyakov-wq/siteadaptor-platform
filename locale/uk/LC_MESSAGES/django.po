@@ -38257,3 +38257,9 @@ msgstr "Поки немає сторінок для вибору."
 
 msgid "Seiten ankreuzen und speichern. Nicht dabei? Mit der Suche finden Sie jede Seite."
 msgstr "Позначте сторінки й збережіть. Немає в списку? Пошук знаходить будь-яку сторінку."
+
+msgid "Eigene Blöcke über den Blöcken für alle zeigen"
+msgstr "Показувати власні блоки над блоками для всіх"
+
+msgid "Text, Banner oder Liste – nur auf dieser Seite sichtbar."
+msgstr "Текст, банер або список — видно лише на цій сторінці."

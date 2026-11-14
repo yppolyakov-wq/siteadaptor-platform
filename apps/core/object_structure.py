@@ -53,6 +53,13 @@ def clean(raw, module: str) -> dict:
     layout = raw.get("layout")
     if layout == LAYOUT_STANDARD or layout in siteconfig.DETAIL_LAYOUTS:
         out["layout"] = layout
+    # R3: свои блоки объекта — над общими блоками страницы (по умолчанию под ними)
+    if raw.get("blocks_first") and str(raw.get("blocks_first")).strip().lower() not in (
+        "0",
+        "false",
+        "off",
+    ):
+        out["blocks_first"] = True
     return out
 
 
@@ -94,7 +101,12 @@ def from_post(post, module: str) -> dict | None:
         return None
     if post.get("ps_reset"):
         return {}
-    raw: dict = {"hidden": [], "shown": [], "layout": post.get("ps_layout") or ""}
+    raw: dict = {
+        "hidden": [],
+        "shown": [],
+        "layout": post.get("ps_layout") or "",
+        "blocks_first": post.get("ps_blocks_first") or "",
+    }
     for key in detail_sections.section_keys(module):
         target = _STATES.get(post.get(f"ps_{key}") or "")
         if target:
@@ -166,6 +178,7 @@ def panel(config, kind: str, obj) -> dict:
         "kind": kind,
         # свои блоки объекта: сколько их и где править (экран «Seitenaufbau»)
         "own_blocks": len(own_blocks(config, kind, obj)),
+        "blocks_first": bool(own.get("blocks_first")),
         "blocks_url": f"{reverse('site-schema')}?seite={code}" if code else "",
     }
 
@@ -256,3 +269,8 @@ def purge_ghost_hosts(tenant) -> int:
         fresh.save(update_fields=["site_config"])
         tenant.site_config = config
     return len(ghosts)
+
+
+def blocks_first(obj, kind: str) -> bool:
+    """R3: стоят ли свои блоки объекта над общими блоками страницы."""
+    return bool(clean(_raw(obj), MODULES.get(kind, "")).get("blocks_first"))

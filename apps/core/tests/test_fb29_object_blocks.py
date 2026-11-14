@@ -2,6 +2,7 @@
 Хост `product:<hex>` / `service:<hex>` в `page_blocks`, правка — на экране «Seitenaufbau»."""
 
 import uuid
+from types import SimpleNamespace
 
 import pytest
 from django.db import connection
@@ -227,3 +228,41 @@ def test_object_screen_links_back_to_the_object():
     html = Browser(tenant).get(f"?seite={ost.schema_code('product', p)}")
     assert "data-schema-object-back" in html and f"/products/{p.pk}/edit/" in html
     assert "data-schema-object-back" not in Browser(tenant).get("?seite=home")
+
+
+# --- R3: свои блоки объекта над общими блоками страницы ---
+
+
+def test_own_blocks_can_stand_above_the_shared_ones():
+    p = _product()
+    tenant = _tenant({f"product:{p.pk.hex}": [_text(1, "Nur hier")]})
+    request = RequestFactory().get("/")
+    request.tenant = Tenant.objects.get(pk=tenant.pk)
+
+    def render(part):
+        tpl = Template("{% load siteui %}{% object_blocks 'product' obj '" + part + "' %}")
+        return tpl.render(Context({"request": request, "obj": p}))
+
+    assert "Nur hier" in render("after") and render("before").strip() == ""
+    p.page_override = {"blocks_first": True}
+    assert "Nur hier" in render("before") and render("after").strip() == ""
+
+
+def test_position_is_saved_from_the_tab_and_is_presence_minimal():
+    assert ost.clean({"blocks_first": "1"}, "catalog") == {"blocks_first": True}
+    assert ost.clean({"blocks_first": ""}, "catalog") == {}
+    post = {"page_override_present": "1", "ps_blocks_first": "1"}
+    assert ost.from_post(post, "catalog") == {"blocks_first": True}
+    assert ost.from_post({"page_override_present": "1"}, "catalog") == {}
+    assert ost.deviations(SimpleNamespace(page_override={"blocks_first": True}), "catalog") == 0
+
+
+def test_detail_templates_render_own_blocks_on_both_sides():
+    import pathlib
+
+    for name, kind in (("product_detail.html", "product"), ("service_detail.html", "service")):
+        src = pathlib.Path("templates/storefront", name).read_text()
+        before = src.index(f'{{% object_blocks "{kind}" {kind} "before" %}}')
+        shared = src.index(f'{{% page_blocks "{kind}_detail" %}}')
+        after = src.index(f'{{% object_blocks "{kind}" {kind} %}}')
+        assert before < shared < after, name

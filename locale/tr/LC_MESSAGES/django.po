@@ -38077,3 +38077,9 @@ msgstr "Henüz seçilecek sayfa yok."
 
 msgid "Seiten ankreuzen und speichern. Nicht dabei? Mit der Suche finden Sie jede Seite."
 msgstr "Sayfaları işaretleyip kaydedin. Listede yok mu? Arama her sayfayı bulur."
+
+msgid "Eigene Blöcke über den Blöcken für alle zeigen"
+msgstr "Kendi blokları herkes için olan blokların üstünde göster"
+
+msgid "Text, Banner oder Liste – nur auf dieser Seite sichtbar."
+msgstr "Metin, banner veya liste – yalnızca bu sayfada görünür."

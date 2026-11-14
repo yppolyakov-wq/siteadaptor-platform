@@ -264,6 +264,8 @@
 {% endif %}
 {% comment %}FB-29.2c: баннеры, которым эта страница задана в «Wo zeigen».{% endcomment %}
 {% place_banners "product" product %}
+{% comment %}R3: свои блоки объекта над общими — если так выбрано на его вкладке.{% endcomment %}
+{% object_blocks "product" product "before" %}
 {% page_blocks "product_detail" %}
 {% comment %}FB-29.4b: свои блоки этого объекта — только на его странице.{% endcomment %}
 {% object_blocks "product" product %}

@@ -38018,3 +38018,9 @@ msgstr "Noch keine Seiten zum Auswählen."
 
 msgid "Seiten ankreuzen und speichern. Nicht dabei? Mit der Suche finden Sie jede Seite."
 msgstr "Seiten ankreuzen und speichern. Nicht dabei? Mit der Suche finden Sie jede Seite."
+
+msgid "Eigene Blöcke über den Blöcken für alle zeigen"
+msgstr "Eigene Blöcke über den Blöcken für alle zeigen"
+
+msgid "Text, Banner oder Liste – nur auf dieser Seite sichtbar."
+msgstr "Text, Banner oder Liste – nur auf dieser Seite sichtbar."

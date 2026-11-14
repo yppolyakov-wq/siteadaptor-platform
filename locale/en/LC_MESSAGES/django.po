@@ -37931,3 +37931,9 @@ msgstr "No pages to choose from yet."
 
 msgid "Seiten ankreuzen und speichern. Nicht dabei? Mit der Suche finden Sie jede Seite."
 msgstr "Tick pages and save. Not listed? The search finds every page."
+
+msgid "Eigene Blöcke über den Blöcken für alle zeigen"
+msgstr "Show own blocks above the blocks for all"
+
+msgid "Text, Banner oder Liste – nur auf dieser Seite sichtbar."
+msgstr "Text, banner or list – visible only on this page."

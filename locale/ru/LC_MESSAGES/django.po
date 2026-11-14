@@ -38270,3 +38270,9 @@ msgstr "Пока нет страниц для выбора."
 
 msgid "Seiten ankreuzen und speichern. Nicht dabei? Mit der Suche finden Sie jede Seite."
 msgstr "Отметьте страницы и сохраните. Нет в списке? Поиск находит любую страницу."
+
+msgid "Eigene Blöcke über den Blöcken für alle zeigen"
+msgstr "Показывать свои блоки над блоками для всех"
+
+msgid "Text, Banner oder Liste – nur auf dieser Seite sichtbar."
+msgstr "Текст, баннер или список — видны только на этой странице."

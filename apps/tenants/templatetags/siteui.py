@@ -452,11 +452,14 @@ def place_banners(context, kind, obj):
 
 
 @register.simple_tag(takes_context=True)
-def object_blocks(context, kind, obj):
-    """FB-29.4b: СВОИ блоки объекта (товар, услуга) — только на его странице, под
-    общими блоками страницы. Блоков нет — пусто (и в превью: якорь «＋» общий)."""
+def object_blocks(context, kind, obj, part="after"):
+    """FB-29.4b: СВОИ блоки объекта (товар, услуга) — только на его странице. Стоят под
+    общими блоками страницы либо (R3, выбор на вкладке объекта) над ними: шаблон зовёт
+    тег с обеих сторон, рисует та, что выбрана. Блоков нет — пусто."""
     from apps.core import object_structure, page_settings
 
+    if (part == "before") != object_structure.blocks_first(obj, kind):
+        return ""
     request = context.get("request")
     host = object_structure.object_host(kind, obj)
     if not host or request is None:
