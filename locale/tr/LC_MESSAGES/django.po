@@ -38043,3 +38043,6 @@ msgstr "Banner bu sayfalarda görünür. Sayfadaki yerini, sayfa düzenindeki «
 
 msgid "Seitenaufbau öffnen"
 msgstr "Sayfa düzenini aç"
+
+msgid "Banner kommen aus der Bibliothek. Welche hier laufen, wählen Sie im Seitenaufbau an diesem Block."
+msgstr "Bannerlar kitaplıktan gelir. Burada hangilerinin döneceğini sayfa düzeninde bu blokta seçersiniz."

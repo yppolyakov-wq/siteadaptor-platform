@@ -269,8 +269,8 @@ def import_legacy(tenant) -> dict:
     """Слайды баннера главной → записи библиотеки; главная начинает показывать их по
     выбору. Повторяемо (ключ `heroes:<i>`), прежние слайды в настройках остаются — для
     отката. Выбор, который владелец уже сделал сам, не трогается. Слайд, который не
-    проходит чистку, пропускается и считается. Блоки «Banner» не переносятся: у блока
-    остаётся свой слайд, пока владелец не выберет баннер из библиотеки."""
+    проходит чистку, пропускается и считается. S7: собственные слайды блоков «Banner»
+    переносятся тоже (`_import_blocks`) — все баннеры живут в библиотеке."""
     import copy
     import logging
 
@@ -281,22 +281,25 @@ def import_legacy(tenant) -> dict:
     from apps.tenants.models import Tenant
 
     report = {"created": 0, "skipped": 0}
+    log = logging.getLogger(__name__)
     with transaction.atomic():
         fresh = Tenant.objects.select_for_update().filter(pk=tenant.pk).first()
         if fresh is None:
             return report
         raw = copy.deepcopy(fresh.site_config or {})
+        changed = False
         current = raw.get("hero_banners") if isinstance(raw.get("hero_banners"), dict) else {}
-        # Перенос — один раз: выбор уже есть (владельца или прошлого переноса) либо записи
-        # переноса уже лежат в библиотеке — ничего не создаём. Иначе повтор вернул бы
-        # баннеры, которые владелец удалил, и подменил бы правленые записи прежними.
-        if current.get("pick") or Banner.objects.filter(legacy_key__startswith=_LEGACY_PREFIX):
-            return report
+        # Перенос слайдов главной — один раз: выбор уже есть (владельца или прошлого
+        # переноса) либо записи переноса уже лежат в библиотеке — ничего не создаём. Иначе
+        # повтор вернул бы баннеры, которые владелец удалил, и подменил бы правленые.
+        heroes_done = bool(current.get("pick")) or bool(
+            Banner.objects.filter(legacy_key__startswith=_LEGACY_PREFIX)
+        )
         items = raw.get("heroes") if isinstance(raw.get("heroes"), list) else []
         pick = []
         # индекс — по СЫРОМУ списку: по нему же лежат переводы (`i18n[...]["heroes"][i]`);
         # слайд, который чистка отбрасывает, переносу не мешает
-        for index, item in enumerate(items):
+        for index, item in enumerate([] if heroes_done else items):
             cleaned = siteconfig.normalize_heroes([item])
             if not cleaned or len(pick) >= siteconfig._MAX_HEROES:
                 continue
@@ -306,7 +309,7 @@ def import_legacy(tenant) -> dict:
                         cleaned[0], sort_order=index, legacy_key=f"{_LEGACY_PREFIX}{index}"
                     )
             except (ValueError, IntegrityError):
-                logging.getLogger(__name__).warning(
+                log.warning(
                     "banner import: slide %s of %s skipped (does not pass cleaning)",
                     index,
                     fresh.schema_name,
@@ -320,10 +323,107 @@ def import_legacy(tenant) -> dict:
             pick.append(str(banner.pk))
         if pick:
             raw["hero_banners"] = {**current, "pick": pick}
+            changed = True
+        # S7: собственные слайды блоков «Banner» (главная и все страницы) — тоже записи
+        # библиотеки; блок выбирает свою запись. Свои поля слайда в блоке остаются (откат).
+        if _import_blocks(raw, fresh.schema_name, report):
+            changed = True
+        if changed:
             fresh.site_config = raw
             fresh.save(update_fields=["site_config", "updated_at"])
             tenant.site_config = raw
     return report
+
+
+_BLOCK_PREFIX = "block:"
+_OWN_SLIDE = ("url", "title", "text")
+
+
+def _banner_blocks(config: dict):
+    """Блоки «Banner» главной и всех страниц: (хост | "" у главной, блок)."""
+    for item in config.get("sections") or []:
+        if isinstance(item, dict) and item.get("id") and item.get("key") == "banner":
+            yield "", item
+    blocks = config.get("page_blocks") if isinstance(config.get("page_blocks"), dict) else {}
+    for host, items in blocks.items():
+        for item in items or []:
+            if isinstance(item, dict) and item.get("id") and item.get("key") == "banner":
+                yield host, item
+
+
+def _block_translations(raw: dict, host: str, block_id: str, base: dict) -> dict:
+    """Переводы своего слайда блока — из того же локализованного конфига, что рисует сайт."""
+    import logging
+
+    from apps.tenants import siteconfig
+
+    out: dict = {overlay: {} for _base, overlay in _I18N_FIELDS}
+    locales = [loc for loc in (raw.get("i18n") or {}) if isinstance(loc, str)]
+    for locale in locales:
+        try:
+            shown = siteconfig.localize(siteconfig.normalize(raw), locale)
+        except Exception:  # noqa: BLE001 — перенос важнее перевода одной локали
+            logging.getLogger(__name__).exception("banner import: locale %s unreadable", locale)
+            continue
+        items = (
+            shown.get("sections") or []
+            if not host
+            else (shown.get("page_blocks") or {}).get(host) or []
+        )
+        data = next(
+            (b.get("data") or {} for b in items if isinstance(b, dict) and b.get("id") == block_id),
+            {},
+        )
+        for field, overlay in _I18N_FIELDS:
+            value = data.get(field)
+            if isinstance(value, str) and value.strip() and value.strip() != base.get(field, ""):
+                out[overlay][locale] = value.strip()
+    return out
+
+
+def _import_blocks(raw: dict, schema_name: str, report: dict) -> bool:
+    """Свой слайд блока «Banner» → запись библиотеки с ключом `block:<id>`; блок получает
+    выбор. Один раз на блок (ключ уникален); блок с выбором владельца, блок-место и
+    пустой блок не трогаются. Возвращает, менялся ли конфиг."""
+    import logging
+
+    from django.db import IntegrityError, transaction
+
+    from apps.core.models import Banner
+
+    done = set(
+        Banner.objects.filter(legacy_key__startswith=_BLOCK_PREFIX).values_list(
+            "legacy_key", flat=True
+        )
+    )
+    changed = False
+    for host, block in _banner_blocks(raw):
+        data = block.get("data") if isinstance(block.get("data"), dict) else {}
+        key = f"{_BLOCK_PREFIX}{block['id']}"
+        if data.get("pick") or data.get("from_page") or key in done or len(key) > 80:
+            continue
+        if not any(str(data.get(f) or "").strip() for f in _OWN_SLIDE):
+            continue
+        slide = {**data, "image": data.get("url") or ""}
+        try:
+            with transaction.atomic():
+                banner = create(slide, legacy_key=key)
+        except (ValueError, IntegrityError):
+            logging.getLogger(__name__).warning(
+                "banner import: block %s of %s skipped (does not pass cleaning)",
+                block["id"],
+                schema_name,
+            )
+            report["skipped"] += 1
+            continue
+        base = {field: getattr(banner, field) for field, _overlay in _I18N_FIELDS}
+        for overlay, value in _block_translations(raw, host, block["id"], base).items():
+            setattr(banner, overlay, value)
+        banner.save()
+        block["data"] = {**data, "pick": [str(banner.pk)]}
+        report["created"] += 1
+        changed = True
+    return changed
 
 
 def undo_legacy(tenant) -> int:
@@ -333,12 +433,17 @@ def undo_legacy(tenant) -> int:
     import copy
 
     from django.db import transaction
+    from django.db.models import Q
 
     from apps.core.models import Banner
     from apps.tenants.models import Tenant
 
     with transaction.atomic():
-        imported = list(Banner.objects.filter(legacy_key__startswith=_LEGACY_PREFIX))
+        imported = list(
+            Banner.objects.filter(
+                Q(legacy_key__startswith=_LEGACY_PREFIX) | Q(legacy_key__startswith=_BLOCK_PREFIX)
+            )
+        )
         keys = {str(b.pk) for b in imported}
         fresh = Tenant.objects.select_for_update().filter(pk=tenant.pk).first()
         if fresh is not None and keys:
@@ -349,6 +454,8 @@ def undo_legacy(tenant) -> int:
                 if isinstance(pick, list) and keys & set(pick):
                     holder["pick"] = [p for p in pick if p not in keys]
                     changed = True
+                    if not holder["pick"] and holder is not raw.get("hero_banners"):
+                        holder.pop("pick")  # блок снова показывает свой слайд
             if isinstance(raw.get("hero_banners"), dict) and not raw["hero_banners"].get("pick"):
                 raw["hero_banners"].pop("pick", None)
                 if not raw["hero_banners"]:

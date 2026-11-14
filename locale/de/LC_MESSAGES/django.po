@@ -37984,3 +37984,6 @@ msgstr "Der Banner erscheint auf diesen Seiten. Die Stelle auf der Seite bestimm
 
 msgid "Seitenaufbau öffnen"
 msgstr "Seitenaufbau öffnen"
+
+msgid "Banner kommen aus der Bibliothek. Welche hier laufen, wählen Sie im Seitenaufbau an diesem Block."
+msgstr "Banner kommen aus der Bibliothek. Welche hier laufen, wählen Sie im Seitenaufbau an diesem Block."

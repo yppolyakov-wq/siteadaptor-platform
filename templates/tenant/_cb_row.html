@@ -425,6 +425,14 @@ collect()/save работают без переименований. data-cb-id 
     <input type="text" name="cb_{{ b.id }}_button_label" value="{{ b.data.button_label }}" maxlength="40" aria-label="{% trans 'Button label (optional)' %}" placeholder="{% trans 'Button label (optional)' %}" class="w-full rounded border border-gray-300 px-3 py-2 text-sm">
   {% endif %}
   {% if b.type == "banner" %}
+    {% comment %}FB-29.2 S7: баннеры живут в библиотеке «Website › Banner» — блок их только показывает. Свои поля слайда остаются скрытыми значениями (откат переноса и W0: сохранение Студии их не стирает); видны они лишь у блока, чей слайд ещё не перенесён.{% endcomment %}
+    {% if b.data.pick or b.data.from_page or not b.data.url and not b.data.title and not b.data.text %}
+    <div class="rounded-lg bg-indigo-50 px-3 py-2 text-sm text-gray-900" data-cb-banner-library>
+      <p>{% trans "Banner kommen aus der Bibliothek. Welche hier laufen, wählen Sie im Seitenaufbau an diesem Block." %}</p>
+      <p class="mt-1 flex flex-wrap gap-x-4"><a href="{% url 'site-banners' %}" class="inline-flex min-h-[44px] items-center font-semibold text-indigo-700 hover:underline">{% trans "Banner verwalten" %} →</a><a href="{% url 'site-schema' %}" class="inline-flex min-h-[44px] items-center font-semibold text-indigo-700 hover:underline">{% trans "Seitenaufbau öffnen" %} →</a></p>
+    </div>
+    <div hidden data-cb-banner-own>
+    {% endif %}
     {% comment %}FB-22b: баннер страницы — поля слайда главной (общий партиал с префиксом).{% endcomment %}
     <input type="text" name="cb_{{ b.id }}_url" value="{{ b.data.url }}" aria-label="{% trans 'Image URL' %}" placeholder="{% trans 'Image URL' %}" class="w-full rounded border border-gray-300 px-3 py-2 text-sm">
     <input type="text" name="cb_{{ b.id }}_title" value="{{ b.data.title }}" maxlength="200" aria-label="{% trans 'Title' %}" placeholder="{% trans 'Title' %}" class="w-full rounded border border-gray-300 px-3 py-2 text-sm">
@@ -434,6 +442,7 @@ collect()/save работают без переименований. data-cb-id 
       <input type="text" name="cb_{{ b.id }}_button_url" value="{{ b.data.button_url }}" aria-label="{% trans 'Button link' %}" placeholder="/termin/ {% trans 'or' %} https://…" class="min-w-0 rounded border border-gray-300 px-3 py-2 text-sm">
     </div>
     {% with fp="cb_"|add:b.id|add:"_" %}{% include "tenant/_hero_slide_fields.html" with h=b.data %}{% endwith %}
+    {% if b.data.pick or b.data.from_page or not b.data.url and not b.data.title and not b.data.text %}</div>{% endif %}
     <label class="flex items-center gap-1.5 text-xs text-gray-600">{% trans "Height" %}
       <select name="cb_{{ b.id }}_height" class="rounded border border-gray-300 px-2 py-1 text-sm">
         <option value="sm" {% if b.data.height == 'sm' %}selected{% endif %}>{% trans "Schmal" %}</option>

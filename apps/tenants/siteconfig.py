@@ -721,13 +721,8 @@ CBLOCK_DEMO_DATA = {
         "body": "Neuigkeiten und Angebote — kein Spam, jederzeit abbestellbar.",
     },
     # FB-22b: демо баннера (round-trip через _clean_cblock_data — замок).
-    "banner": {
-        "url": "",
-        "title": "Neu bei uns",
-        "text": "Schauen Sie vorbei — wir freuen uns auf Sie.",
-        "button_label": "Mehr erfahren",
-        "button_url": "",
-    },
+    # FB-29.2 S7: у нового блока своего слайда нет — баннеры выбираются из библиотеки.
+    "banner": {"url": "", "title": "", "text": "", "button_label": "", "button_url": ""},
     # GK-4: демо ОБЯЗАНО быть байт-в-байт равно _clean_cblock_data("stats", demo)
     # (замок test_cblocks_builder: round-trip demo-данных).
     "stats": {

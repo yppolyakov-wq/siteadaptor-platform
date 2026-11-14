@@ -38236,3 +38236,6 @@ msgstr "Баннер появляется на этих страницах. Ме
 
 msgid "Seitenaufbau öffnen"
 msgstr "Открыть структуру страниц"
+
+msgid "Banner kommen aus der Bibliothek. Welche hier laufen, wählen Sie im Seitenaufbau an diesem Block."
+msgstr "Баннеры берутся из библиотеки. Какие идут здесь — выбирается у этого блока в структуре страницы."

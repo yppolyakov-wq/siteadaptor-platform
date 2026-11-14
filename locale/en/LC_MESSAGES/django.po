@@ -37897,3 +37897,6 @@ msgstr "The banner appears on these pages. Its position on the page is set by th
 
 msgid "Seitenaufbau öffnen"
 msgstr "Open page layout"
+
+msgid "Banner kommen aus der Bibliothek. Welche hier laufen, wählen Sie im Seitenaufbau an diesem Block."
+msgstr "Banners come from the library. Which ones run here is chosen at this block in the page layout."
