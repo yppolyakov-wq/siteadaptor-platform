@@ -28,6 +28,7 @@ from apps.catalog.combos import combo_labels
 from apps.catalog.views import FOOD_BUSINESS_TYPES as _FOOD_TYPES
 from apps.core import (
     closures,
+    design_samples,
     grid_filler,
     object_structure,
     page_settings,
@@ -342,6 +343,13 @@ def storefront_home(request):
         promo_ending_soon = list_blocks.promotions_ending_soon(lists["promotions"]["data"])
     # SF-4b: промо-цены на карточках — внутри фетчера (как в каталоге и корзине).
     products_preview = _items("products")
+    # FB-29.8b: пустой магазин в предпросмотре дизайна — товары-примеры (в памяти).
+    products_are_samples = False
+    if "products" in lists and not products_preview:
+        from apps.core import design_samples
+
+        products_preview = design_samples.for_empty_shop(request)
+        products_are_samples = bool(products_preview)
     categories = _items("categories")
     # S2: сетка тизеров активных архетипов («Наши разделы»).
     archetype_teasers = []
@@ -372,6 +380,7 @@ def storefront_home(request):
         request,
         "storefront/home.html",
         {
+            "products_are_samples": products_are_samples,
             "sections": sections,
             "section_blocks": section_blocks,
             "site": site,
@@ -2039,6 +2048,10 @@ def product_list(request, slug=None):
         "storefront/products.html",
         {
             "page": page,
+            # FB-29.8b: пустой каталог в предпросмотре дизайна — товары-примеры.
+            "sample_products": (
+                design_samples.for_empty_shop(request) if not page.items and not q else []
+            ),
             "categories": categories,
             "categories_have_images": categories_have_images,
             "categories_grid": categories_grid,

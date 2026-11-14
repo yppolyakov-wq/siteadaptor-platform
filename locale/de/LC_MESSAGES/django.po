@@ -37939,3 +37939,6 @@ msgstr "Setzt Abschnitte, Seitenvorlage, Kartenform und eigene Blöcke dieser Se
 
 msgid "Eigene Blöcke bleiben – sie entfernen Sie unter «Blöcke bearbeiten»."
 msgstr "Eigene Blöcke bleiben – sie entfernen Sie unter «Blöcke bearbeiten»."
+
+msgid "Beispielprodukte – nur in dieser Vorschau. Auf Ihrer Website erscheinen sie nicht."
+msgstr "Beispielprodukte – nur in dieser Vorschau. Auf Ihrer Website erscheinen sie nicht."

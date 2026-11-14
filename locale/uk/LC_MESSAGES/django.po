@@ -38178,3 +38178,6 @@ msgstr "Скидає розділи, шаблон, форму картки та 
 
 msgid "Eigene Blöcke bleiben – sie entfernen Sie unter «Blöcke bearbeiten»."
 msgstr "Власні блоки залишаються — їх прибирають у «Редагувати блоки»."
+
+msgid "Beispielprodukte – nur in dieser Vorschau. Auf Ihrer Website erscheinen sie nicht."
+msgstr "Товари-приклади — лише в цьому попередньому перегляді. На вашому сайті їх немає."

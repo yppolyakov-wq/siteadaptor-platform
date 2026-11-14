@@ -296,7 +296,13 @@ MEN-22 остаётся механикой главной. Мобильный «
 
 {% block listing_empty %}
 {% if not page.items and not shelves_only %}
-  {% if q %}
+  {% if sample_products %}
+    {% comment %}FB-29.8b: пустой каталог в предпросмотре дизайна — товары-примеры (не кликаются).{% endcomment %}
+    <p class="mb-2 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900" data-sample-note>{% trans "Beispielprodukte – nur in dieser Vorschau. Auf Ihrer Website erscheinen sie nicht." %}</p>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4" inert data-sample-products>
+      {% for p in sample_products %}{% include "storefront/_product_card.html" %}{% endfor %}
+    </div>
+  {% elif q %}
     <p class="text-gray-400">{% trans "Nothing found. Try a different search." %}</p>
   {% elif shelves or category_tabs %}
   {% elif subcategories and catalog_subcats_first %}

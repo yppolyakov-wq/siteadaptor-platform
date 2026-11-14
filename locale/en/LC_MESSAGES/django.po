@@ -37852,3 +37852,6 @@ msgstr "Resets sections, page template, card form and own blocks of this page."
 
 msgid "Eigene Blöcke bleiben – sie entfernen Sie unter «Blöcke bearbeiten»."
 msgstr "Own blocks stay – remove them under “Edit blocks”."
+
+msgid "Beispielprodukte – nur in dieser Vorschau. Auf Ihrer Website erscheinen sie nicht."
+msgstr "Sample products – only in this preview. They do not appear on your website."
