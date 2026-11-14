@@ -25699,6 +25699,11 @@ def apply_kit(tenant, key: str) -> bool:
         from . import demo_i18n
 
         demo_i18n.translate_tenant_content(tenant, _demo_locales)
+    # FB-29.2 S5: слайды кита — записи библиотеки «Banner» (с переводами), главная
+    # показывает их по выбору; тот же путь, что у переноса `import_banners`.
+    from apps.core import banners
+
+    banners.import_legacy(tenant)
     # Решение владельца 2026-08-19: демо-кит пропускает мастер. Без этого свежий
     # демо-тенант открывался не кабинетом, а мастером настройки (AB5-редирект на
     # «нетронутом» состоянии) — вскрыто серверным обходом кабинета.

@@ -238,6 +238,7 @@ django-storages (S3/Hetzner), Caddy 2 (on-demand TLS). Python 3.12, менедж
 Очередь — `docs/task-catalog.md`; открытое и чьё решение нужно — `docs/project-memory.md` §1.
 - В работе: FB-29 (план `docs/fb29-content-structure-plan-2026-11-13.md` — баннеры, своя
   структура объекта, наглядные настройки; ждёт макетов и решений владельца); M21.11 P6 → P7.
+  FB-29.2 (баннеры S1–S5) сделан; ops — `import_banners` после деплоя.
   FB-27 закрыт, остаток — `docs/roadmap-next-sprints.md`
   (вывод «Liste», число карточек «Empfohlen», наборы блоков страницы акций в Студии).
 - За владельцем: решения (Pro-тариф и пакеты, включение ИИ-поиска, оценка пилота MCP),

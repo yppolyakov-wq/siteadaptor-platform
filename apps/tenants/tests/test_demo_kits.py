@@ -378,6 +378,14 @@ def test_apply_pranasy_kit_uses_constructor_features():
     assert len(cfg["heroes"]) == 3
     assert all(h["image"] and h["title"] and h["button_url"] for h in cfg["heroes"])
     assert cfg["heroes"][0]["button_url"] == "/sortiment/restaurant/"
+    # FB-29.2 S5: слайды кита сразу лежат в библиотеке «Banner», главная показывает их
+    # по выбору (тот же порядок); прежний список остаётся для отката.
+    from apps.core.models import Banner
+
+    picked = tenant.site_config["hero_banners"]["pick"]
+    assert len(picked) == 3 and Banner.objects.count() == 3
+    first = Banner.objects.get(pk=picked[0])
+    assert first.button_url == "/sortiment/restaurant/" and first.title == cfg["heroes"][0]["title"]
     # M20U-7: кастомные заголовки секций
     assert cfg["section_titles"]["products"] == "Speisekarte & Shop"
     assert cfg["section_titles"]["events"] == "Retreats bei Pranasy"
@@ -1710,3 +1718,14 @@ def test_retreat_kit_front_desk_seeds_without_max_guests(caplog):
         assert demo_kits.apply_kit(tenant, "retreat") is True
     assert "front desk seed failed" not in caplog.text
     assert StayBooking.objects.filter(customer__name="Familie Sommer").exists()
+
+
+def test_every_kit_slide_photo_is_accepted_by_the_banner_library():
+    """FB-29.2 S5: адрес демо-фото проходит проверку адреса фото баннера — иначе слайд
+    кита попал бы в библиотеку без фото."""
+    from apps.core.banners import _SAFE_IMAGE_URL
+
+    for key, kit in demo_kits.KITS.items():
+        for i, hero in enumerate(kit.heroes or []):
+            url = demo_kits.demo_image(hero.get("image_kw", ""), w=1600, h=600, lock=980 + i)
+            assert _SAFE_IMAGE_URL.match(url), (key, url)

@@ -423,6 +423,11 @@ def test_apply_design_like_old_site_and_keeps_owner_edits_on_rerun():
     heroes = cfg["heroes"]
     assert len(heroes) == 2 and heroes[0]["title"] == "Die wunderbare Welt des Tees"
     assert heroes[0]["button_url"] == "/sortiment/"
+    # FB-29.2 S5: слайды переезда — записи библиотеки «Banner», главная их выбирает
+    from apps.core.models import Banner
+
+    assert [b.title for b in Banner.objects.order_by("sort_order")] == [h["title"] for h in heroes]
+    assert len(cfg["hero_banners"]["pick"]) == 2
     order = [s["key"] for s in cfg["sections"] if s.get("enabled")][:4]
     assert order == ["hero", "categories", "products", "about"]
     assert Category.objects.get(slug="schwarzertee").images
@@ -480,6 +485,7 @@ def test_apply_design_like_old_site_and_keeps_owner_edits_on_rerun():
     tenant.refresh_from_db()
     cfg = siteconfig.normalize(tenant.site_config)
     assert cfg["heroes"][0]["title"] == "Eigener" and tenant.primary_color == "#123456"
+    assert Banner.objects.count() == 2, "повторный прогон баннеры не плодит"
     cfg_raw = dict(tenant.site_config)
     cfg_raw["menus"] = {
         "top": {"items": [{"label": "Eigenes", "type": "url", "target": "/x/"}], "sticky": False},

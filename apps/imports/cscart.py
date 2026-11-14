@@ -1545,6 +1545,14 @@ def apply_design(
     tenant.site_config = config
     fields.add("site_config")
     tenant.save(update_fields=sorted(fields))
+    if fresh and config.get("heroes"):
+        # FB-29.2 S5: слайды переезда — записи библиотеки «Banner» (один раз; повторный
+        # прогон и правки владельца не трогает — см. `banners.import_legacy`).
+        from apps.core import banners
+
+        report = banners.import_legacy(tenant)
+        if report["created"]:
+            notes.append(f"banners in library: {report['created']}")
     return notes
 
 
