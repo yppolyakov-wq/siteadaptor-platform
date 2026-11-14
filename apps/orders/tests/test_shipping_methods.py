@@ -79,11 +79,11 @@ def test_stored_rows_replace_legacy_settings():
 def test_other_schema_reads_legacy_not_foreign_rows(django_assert_num_queries):
     from unittest import mock
 
-    from django.db import connection
+    from django.db import connections
 
     ShippingMethod.objects.create(kind="carrier", carrier="dhl", fee_cents=499)
     foreign = _tenant(schema_name="t_somebody_else", delivery_enabled=False)
-    with mock.patch.object(connection, "schema_name", "t_this_shop"):
+    with mock.patch.object(connections["default"], "schema_name", "t_this_shop"):
         with django_assert_num_queries(0):
             assert [m.kind for m in shipping.methods(foreign)] == ["pickup"]
 

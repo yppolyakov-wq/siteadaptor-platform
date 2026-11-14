@@ -134,6 +134,16 @@ class TestStorefrontVisibility:
         assert "34.1" not in body
         assert "32.2" in body
 
+    def test_tour_page_renders_blocks_of_the_event_page_type_once(self):
+        """FB-29 R7: тип «Veranstaltungsseite» объявляет и маршрут тура — блок виден и там."""
+        block = {"key": "text", "id": "b1", "enabled": True, "data": {"title": "Gut zu wissen R7"}}
+        tenant = _tenant(site_config={"page_blocks": {"event_detail": [block]}})
+        tour = _tour()
+        body = public_views.tour_detail(
+            _pub(f"/tour/{tour.slug}/", tenant=tenant), slug=tour.slug
+        ).content.decode()
+        assert body.count("Gut zu wissen R7") == 1
+
     def test_unpublished_tour_is_404(self):
         tour = _tour(is_published=False)
         with pytest.raises(Http404):

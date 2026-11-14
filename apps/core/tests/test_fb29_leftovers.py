@@ -6,6 +6,7 @@ import pathlib
 import pytest
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
+from django.test import RequestFactory
 
 from apps.core import banners
 from apps.tenants.tests.factories import TenantFactory
@@ -124,12 +125,6 @@ def test_storage_failure_does_not_break_the_delete(monkeypatch):
 # --- R7 ---
 
 
-def test_tour_page_renders_the_blocks_of_its_page_type():
-    """Тип «Veranstaltungsseite» объявляет и маршрут тура — блок должен быть виден и там."""
-    src = pathlib.Path("templates/storefront/tour_detail.html").read_text()
-    assert '{% page_blocks "event_detail" %}' in src
-
-
 def test_place_block_on_the_tour_page_silences_the_default_place():
     from django.template import Context, Template
     from django.test import RequestFactory
@@ -159,3 +154,33 @@ def test_own_list_block_in_a_narrow_width_gets_the_columns_that_fit():
     assert siteui._narrow_list_data({"cols": 2}, "w12", 2) == {"cols": 2}, "помещается — не трогаем"
     assert siteui._narrow_list_data({"cols": 4}, "full", 4) == {"cols": 4}
     assert siteui._narrow_list_data({"cols": 4}, "", 4) == {"cols": 4}
+
+
+def test_narrow_width_reaches_the_list_block_through_the_row(monkeypatch):
+    """Проводка: ширина берётся из строки блока `b` в контексте, лента не трогается."""
+    from apps.core import list_blocks
+    from apps.tenants.templatetags import siteui
+
+    seen = {}
+    monkeypatch.setattr(list_blocks, "source_active", lambda tenant, data: True)
+    monkeypatch.setattr(
+        list_blocks, "resolve_for", lambda request, cfg, data: seen.setdefault("data", data)
+    )
+
+    def cols(width, scroll=False):
+        seen.clear()
+        monkeypatch.setattr(
+            list_blocks,
+            "effective_view",
+            lambda cfg, data: {"layout": {"cols": 4, "scroll": scroll}},
+        )
+        request = RequestFactory().get("/")
+        request.tenant = TenantFactory.build()
+        ctx = {"request": request, "site": {"sections": []}, "b": {"width": width}}
+        siteui.list_block(ctx, {"cols": 4})
+        return seen["data"]["cols"]
+
+    assert cols("w12") == 2
+    assert cols("w13") == 1
+    assert cols("full") == 4
+    assert cols("w12", scroll=True) == 4, "лента листается — колонки не режем"

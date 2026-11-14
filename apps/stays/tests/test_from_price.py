@@ -102,10 +102,10 @@ def test_settings_memo_does_not_leak_outside_the_calculation():
 def test_season_or_booking_change_schedules_one_reprice(django_capture_on_commit_callbacks):
     from unittest import mock
 
-    from django.db import connection
+    from django.db import connections
 
     unit = _unit()
-    with mock.patch.object(connection, "schema_name", f"t_{uuid.uuid4().hex[:8]}"):
+    with mock.patch.object(connections["default"], "schema_name", f"t_{uuid.uuid4().hex[:8]}"):
         with mock.patch.object(tasks.sync_aggregator_stay, "apply_async") as send:
             with django_capture_on_commit_callbacks(execute=True):
                 SeasonRate.objects.create(
@@ -135,11 +135,11 @@ def test_booking_save_without_date_or_status_change_does_not_reprice():
 def test_hotel_settings_change_reprices_all_rooms(django_capture_on_commit_callbacks):
     from unittest import mock
 
-    from django.db import connection
+    from django.db import connections
 
     from apps.stays.models import StaySettings
 
-    with mock.patch.object(connection, "schema_name", f"t_{uuid.uuid4().hex[:8]}"):
+    with mock.patch.object(connections["default"], "schema_name", f"t_{uuid.uuid4().hex[:8]}"):
         with mock.patch.object(tasks.reprice_stay_listings, "apply_async") as send:
             with django_capture_on_commit_callbacks(execute=True):
                 obj = StaySettings.load()

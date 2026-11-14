@@ -272,13 +272,16 @@ def test_zero_percent_rate_is_kept():
 
 def test_small_business_resolved_from_schema_in_background(monkeypatch):
     """В фоновой задаче у соединения FakeTenant — § 19 дочитывается по схеме."""
-    from django.db import connection
+    from django.db import connections
 
     from apps.booking import revenue
     from apps.tenants.tests.factories import TenantFactory
 
     tenant = TenantFactory(small_business=True, auto_create_schema=False)
     monkeypatch.setattr(
-        connection, "tenant", SimpleNamespace(schema_name=tenant.schema_name), raising=False
+        connections["default"],
+        "tenant",
+        SimpleNamespace(schema_name=tenant.schema_name),
+        raising=False,
     )
     assert revenue._tenant(None).pk == tenant.pk
