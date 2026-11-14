@@ -9,7 +9,7 @@
   <h1 class="ui-h1 mb-4">{% if banner %}{{ banner.title|default:_("Banner") }}{% else %}{% trans "Neuer Banner" %}{% endif %}</h1>
   {% if error %}<div role="alert" id="b-error" class="mb-3 rounded-lg bg-red-50 px-4 py-2 text-sm text-red-700">{{ error }}</div>{% endif %}
   {% if places %}<p class="mb-3 text-sm text-gray-700" data-banner-places>{% trans "Dieser Banner ist im Seitenaufbau ausgewählt." %}</p>{% endif %}
-  <form method="post" enctype="multipart/form-data" class="ui-card p-5 space-y-4" data-banner-form{% if error %} aria-describedby="b-error"{% endif %}>
+  <form method="post" enctype="multipart/form-data" class="ui-card p-5 space-y-4" data-banner-form>
     {% csrf_token %}
     <input type="hidden" name="b_present" value="1">
     <div>
@@ -53,11 +53,11 @@
       <label class="flex min-h-[44px] items-center gap-2 text-sm"><input type="checkbox" name="b_show_keep" value="{{ row.value }}" checked class="rounded border-gray-500"> {% if row.label %}{{ row.label }}{% else %}{{ row.value }}{% endif %}{% if row.missing %} <span class="text-xs text-amber-900">({% trans "zurzeit nicht auf der Website" %})</span>{% endif %}</label>
       {% endfor %}
       {% if show_on %}<p class="text-xs text-gray-700">{% trans "Haken entfernen und speichern – die Seite zeigt den Banner nicht mehr." %}</p>{% endif %}
-      <div class="space-y-2" data-banner-show-add>
+      <div class="space-y-2" id="b-show-add" data-banner-show-add>
         {% comment %}R1: поиск — отдельная GET-форма (атрибут form), сохранение баннера она не запускает. Результаты — флажками: за одно сохранение добавляется сколько угодно страниц.{% endcomment %}
         <label for="b-show-q" class="block text-sm font-medium">{% trans "Seiten hinzufügen" %}</label>
         <div class="flex gap-2">
-          <input type="search" id="b-show-q" name="wo" form="b-show-search" value="{{ show_query }}" placeholder="{% trans 'Name der Kategorie, des Produkts, der Leistung oder Aktion' %}" aria-describedby="b-show-hint" class="ui-input w-full">
+          <input type="search" id="b-show-q" name="wo" form="b-show-search" value="{{ show_query }}" placeholder="{% trans 'Name der Kategorie, des Produkts, der Leistung oder Aktion' %}" aria-describedby="b-show-hint"{% if show_query %} autofocus{% endif %} class="ui-input w-full">
           <button type="submit" form="b-show-search" class="ui-btn ui-btn-secondary min-h-[44px]">{% trans "Suchen" %}</button>
         </div>
         <p id="b-show-hint" class="text-xs text-gray-700">{% trans "Suche lädt die Seite neu – ungespeicherte Änderungen am Banner vorher speichern." %}</p>
@@ -67,7 +67,7 @@
           {% for o in g.items %}<label class="flex min-h-[44px] items-center gap-2 text-sm"><input type="checkbox" name="b_show_add" value="{{ o.value }}"{% if o.value in show_checked %} checked{% endif %} class="rounded border-gray-500"> {{ o.label }}</label>{% endfor %}
         </fieldset>
         {% empty %}
-        <p class="text-sm text-gray-700">{% if show_query %}{% trans "Nichts gefunden." %}{% else %}{% trans "Noch keine Seiten zum Auswählen." %}{% endif %}</p>
+        <p class="text-sm text-gray-700" role="status">{% if show_query %}{% trans "Nichts gefunden." %}{% else %}{% trans "Noch keine Seiten zum Auswählen." %}{% endif %}</p>
         {% endfor %}
         {% if show_groups %}<p class="text-xs text-gray-700">{% trans "Seiten ankreuzen und speichern. Nicht dabei? Mit der Suche finden Sie jede Seite." %}</p>{% endif %}
       </div>
@@ -83,6 +83,6 @@
     </div>
   </form>
   {% comment %}R1: пустая GET-форма поиска страниц «Wo zeigen» — поле и кнопка привязаны к ней атрибутом form.{% endcomment %}
-  <form id="b-show-search" method="get" action="" hidden></form>
+  <form id="b-show-search" method="get" action="#b-show-add" hidden></form>
 </div>
 {% endblock %}
