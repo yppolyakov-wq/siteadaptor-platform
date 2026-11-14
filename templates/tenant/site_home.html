@@ -1391,6 +1391,8 @@
       <div class="px-1 pb-1 space-y-6">
     <div class="ui-card p-6">
       <h3 class="font-semibold mb-1">{% trans "Banner slides" %}</h3>
+      {% comment %}FB-29.2: баннеры живут в библиотеке; здесь — прежние слайды, пока в «Seitenaufbau» ничего не выбрано.{% endcomment %}
+      <p class="text-sm mb-3 rounded-lg px-3 py-2 {% if config.hero_banners.pick %}bg-amber-50 text-amber-900{% else %}bg-gray-100 text-gray-800{% endif %}" data-stu-banner-note>{% if config.hero_banners.pick %}{% trans "Der Banner der Startseite kommt aus der Banner-Bibliothek. Die Folien unten werden nicht gezeigt." %}{% else %}{% trans "Neu: Banner liegen in der Bibliothek und werden im Seitenaufbau ausgewählt." %}{% endif %} <a href="{% url 'site-banners' %}" class="font-semibold underline">{% trans "Banner verwalten" %}</a></p>
       <p class="text-xs ui-muted mb-4">{% trans "Up to 6 slides — photo, heading, text and a button. Two or more slides rotate automatically. JPEG/PNG/WEBP, max 5 MB." %}</p>
       {% for h in config.heroes %}
         {# FIX: фото+контролы сверху, форма во всю ширину панели — без бокового скролла (узкая панель). #}

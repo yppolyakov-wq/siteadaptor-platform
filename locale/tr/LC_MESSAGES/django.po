@@ -37844,3 +37844,51 @@ msgstr "süresiz"
 #, python-format
 msgid "„%(name)s“ löschen?"
 msgstr "“%(name)s” silinsin mi?"
+
+msgid "Alle Banner der Bibliothek sind schon gewählt."
+msgstr "Kitaplıktaki tüm bannerlar zaten seçili."
+
+msgid "Banner aus der Bibliothek"
+msgstr "Kitaplıktan bannerlar"
+
+msgid "Banner verwalten"
+msgstr "Bannerları yönet"
+
+msgid "Der Banner der Startseite kommt aus der Banner-Bibliothek. Die Folien unten werden nicht gezeigt."
+msgstr "Ana sayfa bannerı banner kitaplığından gelir. Aşağıdaki slaytlar gösterilmez."
+
+msgid "Dieser Banner wird gezeigt. Wählen Sie weitere dazu – dann entsteht ein Slider."
+msgstr "Bu banner gösterilir. Daha fazlasını ekleyin – slider olur."
+
+msgid "In der Bibliothek ist noch kein Banner."
+msgstr "Kitaplıkta henüz banner yok."
+
+msgid "Mehr Banner passen nicht in einen Slider."
+msgstr "Bir slider daha fazla banner almaz."
+
+msgid "Mehrere Banner laufen als Slider – in dieser Reihenfolge."
+msgstr "Birden çok banner slider olarak döner – bu sırayla."
+
+msgid "Neu: Banner liegen in der Bibliothek und werden im Seitenaufbau ausgewählt."
+msgstr "Yeni: bannerlar kitaplıkta durur ve sayfa yapısında seçilir."
+
+msgid "Nächster Banner"
+msgstr "Sonraki banner"
+
+msgid "Pfeile zum Blättern zeigen"
+msgstr "Gezinme oklarını göster"
+
+msgid "Sekunden je Banner"
+msgstr "Banner başına saniye"
+
+msgid "Vorheriger Banner"
+msgstr "Önceki banner"
+
+msgid "Wechsel"
+msgstr "Geçiş"
+
+msgid "ausgeschaltet oder außerhalb des Zeitraums – erscheint derzeit nicht"
+msgstr "kapalı veya süresinin dışında – şu an görünmüyor"
+
+msgid "nur von Hand"
+msgstr "yalnızca elle"

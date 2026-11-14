@@ -37785,3 +37785,51 @@ msgstr "ohne Zeitraum"
 #, python-format
 msgid "„%(name)s“ löschen?"
 msgstr "„%(name)s“ löschen?"
+
+msgid "Alle Banner der Bibliothek sind schon gewählt."
+msgstr "Alle Banner der Bibliothek sind schon gewählt."
+
+msgid "Banner aus der Bibliothek"
+msgstr "Banner aus der Bibliothek"
+
+msgid "Banner verwalten"
+msgstr "Banner verwalten"
+
+msgid "Der Banner der Startseite kommt aus der Banner-Bibliothek. Die Folien unten werden nicht gezeigt."
+msgstr "Der Banner der Startseite kommt aus der Banner-Bibliothek. Die Folien unten werden nicht gezeigt."
+
+msgid "Dieser Banner wird gezeigt. Wählen Sie weitere dazu – dann entsteht ein Slider."
+msgstr "Dieser Banner wird gezeigt. Wählen Sie weitere dazu – dann entsteht ein Slider."
+
+msgid "In der Bibliothek ist noch kein Banner."
+msgstr "In der Bibliothek ist noch kein Banner."
+
+msgid "Mehr Banner passen nicht in einen Slider."
+msgstr "Mehr Banner passen nicht in einen Slider."
+
+msgid "Mehrere Banner laufen als Slider – in dieser Reihenfolge."
+msgstr "Mehrere Banner laufen als Slider – in dieser Reihenfolge."
+
+msgid "Neu: Banner liegen in der Bibliothek und werden im Seitenaufbau ausgewählt."
+msgstr "Neu: Banner liegen in der Bibliothek und werden im Seitenaufbau ausgewählt."
+
+msgid "Nächster Banner"
+msgstr "Nächster Banner"
+
+msgid "Pfeile zum Blättern zeigen"
+msgstr "Pfeile zum Blättern zeigen"
+
+msgid "Sekunden je Banner"
+msgstr "Sekunden je Banner"
+
+msgid "Vorheriger Banner"
+msgstr "Vorheriger Banner"
+
+msgid "Wechsel"
+msgstr "Wechsel"
+
+msgid "ausgeschaltet oder außerhalb des Zeitraums – erscheint derzeit nicht"
+msgstr "ausgeschaltet oder außerhalb des Zeitraums – erscheint derzeit nicht"
+
+msgid "nur von Hand"
+msgstr "nur von Hand"

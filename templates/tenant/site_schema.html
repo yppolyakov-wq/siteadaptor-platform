@@ -344,6 +344,17 @@
     </form>
     {% endif %}
     {% endif %}
+    {% if selected.banner_pick %}
+    {% include "tenant/_schema_banner_pick.html" with pick=selected.banner_pick ref=selected.ref %}
+    <form method="post" id="schema-pick-form">{% csrf_token %}
+      {% include "tenant/_schema_keep.html" %}
+      <input type="hidden" name="ref" value="{{ selected.ref }}">
+    </form>
+    <form method="get" id="schema-lookup-form" action="#schema-panel">
+      {% include "tenant/_schema_keep.html" %}
+      <input type="hidden" name="block" value="{{ selected.ref }}">
+    </form>
+    {% endif %}
     {% if selected.widths %}
     {% comment %}FB-27 R3: ширина блока — узкие соседи встают в один ряд (на телефоне
     всегда друг под другом).{% endcomment %}

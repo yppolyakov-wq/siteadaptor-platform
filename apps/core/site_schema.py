@@ -658,6 +658,13 @@ def _update_builtin(item: dict, fields: dict | None) -> bool:
     return True
 
 
+def _banner_choice(config: dict, item: dict) -> dict:
+    from apps.tenants import siteconfig
+
+    raw = config.get("hero_banners") if _is_hero_row(item) else item.get("data")
+    return siteconfig.clean_banner_choice(raw)
+
+
 def blocks_for(
     config: dict, code: str, host: str | None = None, summaries: bool = True
 ) -> list[dict]:
@@ -728,6 +735,8 @@ def blocks_for(
                 else None,
                 "narrow": not main and item.get("width") in siteconfig.NARROW_WIDTHS,
                 # встроенный список главной открывает ту же панель «Welche · Wie»
+                # FB-29.2: место показа баннеров — выбор из библиотеки и настройки слайдера
+                "banner_choice": _banner_choice(config, item) if banner_place(item) else None,
                 "builtin_data": builtin_panel_data(item)
                 if not item.get("id") and not main and key in siteconfig.BUILTIN_LIST_SOURCES
                 else None,
@@ -872,6 +881,41 @@ def fill_options(block: dict, host: str) -> None:
 
 #: Встроенные секции, которые сами рисуются во всю ширину экрана: доли ширины им не даём.
 _FULL_BLEED_SECTIONS = frozenset({"hero"})
+
+
+#: FB-29.2: настройки слайдера в панели (имена полей формы без префикса `f_`).
+SLIDER_FIELDS = ("auto", "interval", "arrows")
+
+
+def _is_hero_row(item: dict) -> bool:
+    return isinstance(item, dict) and item.get("key") == "hero" and not item.get("id")
+
+
+def banner_place(item: dict) -> bool:
+    """Место, где показываются баннеры из библиотеки: баннер главной или блок «Banner»."""
+    from apps.tenants import siteconfig
+
+    if _is_hero_row(item):
+        return True
+    return (
+        bool(item.get("id"))
+        and (siteconfig.cblock_type(item.get("key")) or item.get("key")) == "banner"
+    )
+
+
+def _store_banner_data(item: dict, data: dict) -> None:
+    """Данные места показа после правки выбора: у баннера главной — только выбор и
+    настройки слайдера; у блока — его данные с тем же нормализатором."""
+    from apps.tenants import siteconfig
+
+    if _is_hero_row(item):
+        choice = siteconfig.clean_banner_choice(data)
+        if choice:
+            item["data"] = choice
+        else:
+            item.pop("data", None)
+        return
+    item["data"] = siteconfig._clean_cblock_data("banner", data)
 
 
 def home_section(item: dict) -> bool:
@@ -1127,12 +1171,36 @@ def resolve(tenant, code: str):
     return pt, host, home
 
 
+def lift_hero_choice(config: dict, items: list[dict]) -> None:
+    """FB-29.2: выбор баннеров главной из строки «Banner» — обратно в `hero_banners`
+    (одно место хранения). Зовут запись (`store_items`) и показ черновика
+    (`aufbau_draft.overlay`): панель и превью видят выбор ещё до «Speichern»."""
+    from apps.tenants import siteconfig
+
+    for item in items:
+        if _is_hero_row(item):
+            choice = siteconfig.clean_banner_choice(item.pop("data", None))
+            if choice:
+                config["hero_banners"] = choice
+            else:
+                config.pop("hero_banners", None)
+
+
 def load_items(config: dict, home: bool, host: str) -> list[dict]:
     """Копия блоков страницы в том виде, в котором их правит схема."""
     from apps.tenants import siteconfig
 
     if home:
-        return copy.deepcopy(config.get("sections") or [])
+        items = copy.deepcopy(config.get("sections") or [])
+        # FB-29.2: выбор баннеров главной хранится в `hero_banners`; на время правки он
+        # едет в строке «Banner» — так его несёт черновик, как и остальные правки схемы
+        choice = siteconfig.clean_banner_choice(config.get("hero_banners"))
+        for item in items:
+            if _is_hero_row(item):
+                item.pop("data", None)
+                if choice:
+                    item["data"] = choice
+        return items
     return copy.deepcopy(
         siteconfig.main_list_sequence(host, (config.get("page_blocks") or {}).get(host, []))
     )
@@ -1235,6 +1303,20 @@ def mutate(
     elif op == "update":
         # FB-27 R3b: короткое содержимое простого блока — прямо в панели. ПАТЧ: меняются
         # только присланные поля, остальное (стиль, фото, оформление) остаётся (W0).
+        if not main and banner_place(item) and fields and set(fields) & set(SLIDER_FIELDS):
+            # FB-29.2: настройки слайдера места показа — патч; без правок ничего
+            data = dict(item.get("data") or {})
+            before = siteconfig.clean_banner_choice(data)
+            patched = {**data, **{k: str(fields[k]) for k in SLIDER_FIELDS if k in fields}}
+            if "arrows" not in fields:
+                patched.pop("arrows", None)  # снятая галочка не приходит вовсе
+            after = siteconfig.clean_banner_choice(patched)
+            if after == before:
+                return ref
+            for key in ("auto", "interval", "arrows"):
+                data.pop(key, None)
+            _store_banner_data(item, {**data, **{k: after[k] for k in after if k != "pick"}})
+            return ref
         if not main and not item.get("id") and item.get("key") in siteconfig.BUILTIN_LIST_SOURCES:
             # встроенный список главной: патч строки секции; без правок — ничего
             _update_builtin(item, fields)
@@ -1284,6 +1366,39 @@ def mutate(
         if cleaned == siteconfig._clean_cblock_data(key, data):
             return ref
         item["data"] = cleaned
+    elif op in _PICK_OPS and not main and banner_place(item):
+        # FB-29.2: баннеры места показа выбираются из библиотеки (один или несколько)
+        from apps.core import banners
+        from apps.core.models import Banner
+
+        data = dict(item.get("data") or {})
+        pick = banners.clean_pick(data.get("pick"))
+        target = (banners.clean_pick([value]) or [""])[0]
+        if op == "pick_clear":
+            pick = []
+        elif not target:
+            raise SchemaError("pick")
+        elif op == "pick_add":
+            if target not in pick:
+                if len(pick) >= siteconfig.BANNER_PICK_MAX:
+                    raise SchemaError("full")
+                if not Banner.objects.filter(pk=target).exists():
+                    raise SchemaError("pick")
+                pick.append(target)
+        elif target not in pick:
+            raise SchemaError("pick")
+        elif op == "pick_remove":
+            pick.remove(target)
+        else:
+            i = pick.index(target)
+            j = i - 1 if op == "pick_up" else i + 1
+            if 0 <= j < len(pick):
+                pick[i], pick[j] = pick[j], pick[i]
+        if pick:
+            data["pick"] = pick
+        else:
+            data.pop("pick", None)
+        _store_banner_data(item, data)
     elif op in _PICK_OPS:
         # FB-27 R5: ручной состав блока «Liste» («Einzeln»).
         from apps.core import list_blocks
@@ -1451,6 +1566,7 @@ def store_items(config: dict, home: bool, host: str, items: list[dict]) -> None:
     from apps.tenants import siteconfig
 
     if home:
+        lift_hero_choice(config, items)
         siteconfig.realign_block_overlays(config, new_sections=items)
         config["sections"] = items
         return

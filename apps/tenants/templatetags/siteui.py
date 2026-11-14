@@ -1133,6 +1133,16 @@ def hero_slides(context, heroes, choice=None):
 
 
 @register.simple_tag(takes_context=True)
+def banner_block_slides(context, block):
+    """FB-29.2 S4: слайды блока «Banner», когда из библиотеки выбрано НЕСКОЛЬКО баннеров
+    (слайдер). Один баннер или свой слайд блока рисует прежняя ветка (`banner_slide`)."""
+    if not isinstance(block, dict) or len(block.get("pick") or []) < 2:
+        return []
+    slides = hero_slides(context, [], {"pick": block["pick"]})
+    return slides if len(slides) > 1 else []
+
+
+@register.simple_tag(takes_context=True)
 def banner_slide(context, block):
     """FB-22b: C-блок «Banner» → слайд (как у главной) или None вне дат показа."""
     if not isinstance(block, dict):

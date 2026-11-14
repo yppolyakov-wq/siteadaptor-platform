@@ -38024,3 +38024,51 @@ msgstr "без терміну"
 #, python-format
 msgid "„%(name)s“ löschen?"
 msgstr "Видалити «%(name)s»?"
+
+msgid "Alle Banner der Bibliothek sind schon gewählt."
+msgstr "Усі банери бібліотеки вже вибрано."
+
+msgid "Banner aus der Bibliothek"
+msgstr "Банери з бібліотеки"
+
+msgid "Banner verwalten"
+msgstr "Керувати банерами"
+
+msgid "Der Banner der Startseite kommt aus der Banner-Bibliothek. Die Folien unten werden nicht gezeigt."
+msgstr "Банер головної береться з бібліотеки банерів. Слайди нижче не показуються."
+
+msgid "Dieser Banner wird gezeigt. Wählen Sie weitere dazu – dann entsteht ein Slider."
+msgstr "Показується цей банер. Додайте ще — вийде слайдер."
+
+msgid "In der Bibliothek ist noch kein Banner."
+msgstr "У бібліотеці поки немає банерів."
+
+msgid "Mehr Banner passen nicht in einen Slider."
+msgstr "Більше банерів в один слайдер не вміщується."
+
+msgid "Mehrere Banner laufen als Slider – in dieser Reihenfolge."
+msgstr "Кілька банерів ідуть слайдером — у цьому порядку."
+
+msgid "Neu: Banner liegen in der Bibliothek und werden im Seitenaufbau ausgewählt."
+msgstr "Нове: банери лежать у бібліотеці й вибираються у структурі сторінок."
+
+msgid "Nächster Banner"
+msgstr "Наступний банер"
+
+msgid "Pfeile zum Blättern zeigen"
+msgstr "Показувати стрілки для гортання"
+
+msgid "Sekunden je Banner"
+msgstr "Секунд на банер"
+
+msgid "Vorheriger Banner"
+msgstr "Попередній банер"
+
+msgid "Wechsel"
+msgstr "Зміна"
+
+msgid "ausgeschaltet oder außerhalb des Zeitraums – erscheint derzeit nicht"
+msgstr "вимкнено або поза терміном — зараз не показується"
+
+msgid "nur von Hand"
+msgstr "лише вручну"

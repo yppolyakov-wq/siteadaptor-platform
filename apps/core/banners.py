@@ -354,3 +354,51 @@ def undo_legacy(tenant) -> int:
         for banner in imported:
             banner.delete()
     return len(imported)
+
+
+def pick_state(request, choice: dict) -> dict:
+    """Панель «Seitenaufbau»: выбранные баннеры (в порядке владельца), предложения из
+    библиотеки (с поиском), настройки слайдера. Удалённая запись в выборе не показывается;
+    выключенная или вне срока — помечается: на сайте её сейчас нет."""
+    from django.db.models import Q
+    from django.utils import timezone
+
+    from apps.core.models import Banner
+    from apps.tenants import siteconfig
+
+    choice = choice if isinstance(choice, dict) else {}
+    pick = clean_pick(choice.get("pick"))
+    lookup = (request.GET.get("lookup") or "").strip()[:80]
+    today = timezone.localdate()
+    found = {str(b.pk): b for b in Banner.objects.filter(pk__in=pick)}
+
+    def row(banner):
+        live = banner.is_active and not (
+            (banner.starts and banner.starts > today) or (banner.ends and banner.ends < today)
+        )
+        return {
+            "pk": str(banner.pk),
+            "label": banner.title or banner.text[:60],
+            "image": (banner.image or {}).get("url", ""),
+            "live": live,
+        }
+
+    entries = [row(found[key]) for key in pick if key in found]
+    full = len(entries) >= siteconfig.BANNER_PICK_MAX
+    offers = []
+    if not full:
+        rows = Banner.objects.exclude(pk__in=pick)
+        if lookup:
+            rows = rows.filter(Q(title__icontains=lookup) | Q(text__icontains=lookup))
+        offers = [row(b) for b in rows[:24]]
+    return {
+        "entries": entries,
+        "offers": offers,
+        "lookup": lookup,
+        "full": full,
+        "total": Banner.objects.count(),
+        "auto": choice.get("auto") is not False,
+        "interval": str(choice.get("interval") or 6),
+        "intervals": [str(n) for n in range(4, 13)],
+        "arrows": bool(choice.get("arrows")),
+    }

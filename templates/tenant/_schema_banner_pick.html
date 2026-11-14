@@ -1,0 +1,70 @@
+{% load i18n %}{% comment %}FB-29.2 S4: баннеры места показа — выбор из библиотеки плитками (один или несколько; несколько — слайдер) и настройки слайдера. Кнопки отправляют общую форму выбора (`schema-pick-form`), поиск — `schema-lookup-form`; всё идёт в черновик страницы.{% endcomment %}
+<div class="mt-4 space-y-3" data-schema-banner-pick>
+  <div class="flex items-center justify-between gap-2">
+    <h3 class="text-sm font-bold text-gray-900">{% trans "Banner aus der Bibliothek" %}</h3>
+    <a href="{% url 'site-banners' %}" class="inline-flex items-center min-h-[44px] text-sm font-semibold text-indigo-700 hover:underline">{% trans "Banner verwalten" %} →</a>
+  </div>
+  {% if pick.entries %}
+  <p class="text-xs text-gray-600">{% if pick.entries|length > 1 %}{% trans "Mehrere Banner laufen als Slider – in dieser Reihenfolge." %}{% else %}{% trans "Dieser Banner wird gezeigt. Wählen Sie weitere dazu – dann entsteht ein Slider." %}{% endif %}</p>
+  <ol class="space-y-1.5">
+    {% for e in pick.entries %}
+    <li class="flex items-center gap-2 rounded-lg border px-2 py-1.5 {% if e.live %}border-gray-500{% else %}border-amber-500 bg-amber-50{% endif %}" data-schema-banner-item="{{ e.pk }}">
+      <span class="block h-10 w-16 shrink-0 overflow-hidden rounded bg-gray-100" aria-hidden="true">{% if e.image %}<img src="{{ e.image }}" alt="" class="h-full w-full object-cover" loading="lazy">{% endif %}</span>
+      <span class="flex-1 min-w-0 text-sm break-words">{{ forloop.counter }}. {{ e.label|default:"—" }}{% if not e.live %}<span class="block text-xs text-amber-900">{% trans "ausgeschaltet oder außerhalb des Zeitraums – erscheint derzeit nicht" %}</span>{% endif %}</span>
+      {% if not forloop.first %}<button type="submit" form="schema-pick-form" name="pick_op" value="up:{{ e.pk }}" class="min-h-[44px] min-w-[44px] rounded border border-gray-500 text-sm" aria-label="{% trans 'Nach oben' %}: {{ e.label }}">↑</button>{% endif %}
+      {% if not forloop.last %}<button type="submit" form="schema-pick-form" name="pick_op" value="down:{{ e.pk }}" class="min-h-[44px] min-w-[44px] rounded border border-gray-500 text-sm" aria-label="{% trans 'Nach unten' %}: {{ e.label }}">↓</button>{% endif %}
+      <button type="submit" form="schema-pick-form" name="pick_op" value="remove:{{ e.pk }}" class="min-h-[44px] min-w-[44px] rounded border border-gray-500 text-sm" aria-label="{% trans 'Entfernen' %}: {{ e.label }}">✕</button>
+    </li>
+    {% endfor %}
+  </ol>
+  {% elif legacy_note %}
+  <p class="text-xs text-gray-600">{{ legacy_note }}</p>
+  {% endif %}
+  {% if pick.full %}
+  <p class="text-xs text-gray-600">{% trans "Mehr Banner passen nicht in einen Slider." %}</p>
+  {% elif pick.total %}
+  {% if pick.total > 6 or pick.lookup %}
+  <div class="flex gap-2">
+    <label class="flex-1 min-w-0"><span class="sr-only">{% trans "Banner suchen" %}</span>
+      <input type="search" form="schema-lookup-form" name="lookup" value="{{ pick.lookup }}" placeholder="{% trans 'Banner suchen' %}" class="ui-input w-full"></label>
+    <button type="submit" form="schema-lookup-form" class="ui-btn ui-btn-secondary min-h-[44px]">{% trans "Suchen" %}</button>
+  </div>
+  {% endif %}
+  <ul class="grid grid-cols-2 gap-2" data-schema-banner-offers>
+    {% for o in pick.offers %}
+    <li><button type="submit" form="schema-pick-form" name="pick_op" value="add:{{ o.pk }}" class="flex w-full flex-col overflow-hidden rounded-lg border border-gray-500 text-left hover:border-indigo-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600" aria-label="{% trans 'Hinzufügen' %}: {{ o.label }}">
+      <span class="block aspect-[16/7] w-full bg-gray-100" aria-hidden="true">{% if o.image %}<img src="{{ o.image }}" alt="" class="h-full w-full object-cover" loading="lazy">{% endif %}</span>
+      <span class="flex items-center gap-1 px-2 py-1.5 text-xs font-semibold"><span aria-hidden="true">＋</span><span class="break-words">{{ o.label|default:"—" }}</span></span>
+    </button></li>
+    {% empty %}
+    <li class="col-span-2 text-xs text-gray-600">{% if pick.lookup %}{% trans "Nichts gefunden." %}{% else %}{% trans "Alle Banner der Bibliothek sind schon gewählt." %}{% endif %}</li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="text-sm text-gray-700">{% trans "In der Bibliothek ist noch kein Banner." %} <a href="{% url 'site-banner-new' %}" class="font-semibold text-indigo-700 hover:underline">{% trans "Neuer Banner" %}</a></p>
+  {% endif %}
+</div>
+{% if pick.entries|length > 1 %}
+<form method="post" class="mt-4 space-y-3" data-schema-fields data-schema-slider>
+  {% csrf_token %}
+  {% include "tenant/_schema_keep.html" %}
+  <input type="hidden" name="ref" value="{{ ref }}">
+  <input type="hidden" name="panel_present" value="1">
+  <h3 class="text-sm font-bold text-gray-900">{% trans "Slider" %}</h3>
+  <div>
+    <label for="schema-s-auto" class="block text-sm font-semibold text-gray-700 mb-1">{% trans "Wechsel" %}</label>
+    <select id="schema-s-auto" name="f_auto" class="ui-input w-full">
+      <option value="1"{% if pick.auto %} selected{% endif %}>{% trans "automatisch" %}</option>
+      <option value="0"{% if not pick.auto %} selected{% endif %}>{% trans "nur von Hand" %}</option>
+    </select>
+  </div>
+  <div>
+    <label for="schema-s-interval" class="block text-sm font-semibold text-gray-700 mb-1">{% trans "Sekunden je Banner" %}</label>
+    <select id="schema-s-interval" name="f_interval" class="ui-input w-full">
+      {% for n in pick.intervals %}<option value="{{ n }}"{% if n == pick.interval %} selected{% endif %}>{{ n }}</option>{% endfor %}
+    </select>
+  </div>
+  <label class="flex items-center gap-2 text-sm min-h-[44px]"><input type="checkbox" name="f_arrows" value="1"{% if pick.arrows %} checked{% endif %} class="rounded border-gray-500"> {% trans "Pfeile zum Blättern zeigen" %}</label>
+  <button name="op" value="update" class="ui-btn ui-btn-primary w-full">{% trans "Übernehmen" %}</button>
+</form>
+{% endif %}

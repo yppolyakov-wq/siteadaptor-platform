@@ -107,6 +107,8 @@ LLM-режим Finder, SSE для чата.
 `rebuild_search_index` → `seed_demo_tenants --group all --changed --jobs 3` (один раз до этого
 `--group all --stamp`). Отчёты с решением: `modules_report` → `--apply`, `shipping_report`,
 `onboarding_report --compare <дата>`, `package_report`, `pilot_report`, `search_log_report`.
+Один раз после деплоя с `core/0020` (FB-29.2, 2026-11-14): `import_banners` — прежние слайды
+главной переносятся в библиотеку «Banner» (повтор безопасен, `--undo` откатывает).
 
 Разовое: cron бэкапа из шапки `scripts/backup.sh` + проверить восстановление;
 `scripts/install-git-hooks.sh` на рабочей копии; при переезде Postgres — роль с правом

@@ -1,7 +1,10 @@
 {% load i18n siteui %}{# Секция hero (Track C2 / M20U-2): баннер или слайдер баннеров из site_config. #}
 {% hero_slides site.heroes site.hero_banners as slides %}
 {% firstof site.hero_image slides.0.image site.heroes.0.image as hero_photo %}
-{% if site.hero_style == "split" %}
+{% if site.hero_banners.pick and slides %}
+{% comment %}FB-29.2 S4: баннеры выбраны из библиотеки — показываем их слайдером при любом виде баннера (раньше «Split», «Vollbild» и «Bento» слайды не показывали вовсе).{% endcomment %}
+{% include "storefront/sections/_hero_slider.html" %}
+{% elif site.hero_style == "split" %}
 {% comment %}DS-3b (Fokus): сплит-композиция — текст слева на чистом поле (читается
 без тёмной вуали), фото справа как есть. Фото: hero_image или первый слайд heroes
 (слайдер при split не крутится — ограничение v1, см. план DS-3). Приоритет ветки
@@ -62,77 +65,7 @@
 рейтинг. Плитки без данных выпадают, сетка уплотняется (тег hero_bento).{% endcomment %}
 {% hero_bento %}
 {% elif slides %}
-{# M20U-2: слайдер главных баннеров (full-bleed). Один слайд — без автопрокрутки. #}
-{# STU-12f: слот медиа баннера — клик в Студии открывает менеджер слайдов. #}
-{% comment %}FB-22: слайды — только активные сегодня (даты «с/по»), ссылка из списка целей
-или своя (тег hero_slides), оформление слайда: положение текста, вуаль, цвет текста;
-«весь слайд — ссылка» = растянутая ссылка поверх (кнопка остаётся видимой).{% endcomment %}
-<section class="relative left-1/2 -translate-x-1/2 w-screen -mt-6 md:-mt-10 mb-10" data-hero-slider data-sf-media-slot="hero">
-  <div class="relative min-h-[38vh] md:min-h-[46vh] bg-gray-800 overflow-hidden">
-    {% for h in slides %}
-    <div class="absolute inset-0 flex items-center {% if h.align == 'left' %}justify-start text-left{% elif h.align == 'right' %}justify-end text-right{% else %}justify-center text-center{% endif %} {% if h.tone == 'dark' %}text-gray-900{% else %}text-white{% endif %} bg-cover bg-center transition-opacity duration-700 {% if not forloop.first %}opacity-0 pointer-events-none{% endif %}"
-         {% if h.image %}style="background-image:url('{{ h.image }}');"{% endif %} data-hero-slide>
-      {% if h.overlay == 'light' %}<div class="absolute inset-0 bg-white/50"></div>{% elif h.overlay != 'none' %}<div class="absolute inset-0 bg-black/45"></div>{% endif %}
-      {% if h.click_all and h.href %}<a href="{{ h.href }}" class="absolute inset-0 z-[1]" aria-label="{{ h.title|default:request.tenant.name }}"></a>{% endif %}
-      <div class="relative z-[2] px-4 md:px-12 py-12 max-w-4xl">
-        <h1 class="text-4xl md:text-6xl font-bold {% if h.tone != 'dark' %}drop-shadow-lg{% endif %}">{{ h.title|default:request.tenant.name }}</h1>
-        {% if h.text %}<p class="mt-4 text-lg md:text-xl {% if h.tone == 'dark' %}text-gray-700{% else %}text-white/90 drop-shadow{% endif %} max-w-2xl {% if h.align == 'right' %}ml-auto{% elif h.align != 'left' %}mx-auto{% endif %}">{{ h.text }}</p>{% endif %}
-        {% if h.button_label and h.href %}<a href="{{ h.href }}" class="inline-block mt-5 {% if h.tone == 'dark' %}bg-gray-900 text-white hover:bg-gray-800{% else %}bg-white text-gray-900 hover:bg-gray-100{% endif %} rounded-lg px-6 py-2.5 font-medium">{{ h.button_label }}</a>
-        {% else %}{% include "storefront/sections/_hero_cta.html" with style="light" %}{% endif %}
-      </div>
-    </div>
-    {% endfor %}
-  </div>
-  {% if slides|length > 1 %}
-  <div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
-    {% for h in slides %}<button type="button" class="w-2.5 h-2.5 rounded-full {% if forloop.first %}bg-white{% else %}bg-white/50{% endif %}" data-hero-dot aria-label="{% trans 'Slide' %} {{ forloop.counter }}"></button>{% endfor %}
-  </div>
-  {% endif %}
-</section>
-{% if site.site_defaults.hero_widget %}
-{% comment %}Фидбэк 2026-07-30: primary-виджет (плитки направлений/поиск) раньше
-ТЕРЯЛСЯ при слайдере (включался только в single-hero ветках) — теперь рендерится
-сразу под слайдером. Гейт: ключ hero_widget задан (presence-minimal).{% endcomment %}
-<div class="-mt-6 mb-10">{% include "storefront/sections/_hero_widget.html" with hero_widget=site.site_defaults.hero_widget %}</div>
-{% endif %}
-<script>
-(function () {
-  document.querySelectorAll('[data-hero-slider]').forEach(function (s) {
-    if (s.dataset.init) return;
-    s.dataset.init = '1';
-    var slides = [].slice.call(s.querySelectorAll('[data-hero-slide]'));
-    var dots = [].slice.call(s.querySelectorAll('[data-hero-dot]'));
-    if (slides.length < 2) return;
-    var i = 0, timer = null;
-    // DL-13 C6 (NN/g, Baymard: авто-карусель без паузы и на телефоне — потери
-    // кликов): без автопрокрутки на узком экране и при prefers-reduced-motion;
-    // пауза при наведении/фокусе; клик по точке останавливает ротацию совсем.
-    var auto = !(window.matchMedia && (window.matchMedia('(max-width: 767px)').matches ||
-                 window.matchMedia('(prefers-reduced-motion: reduce)').matches));
-    function show(n) {
-      slides.forEach(function (sl, k) {
-        sl.classList.toggle('opacity-0', k !== n);
-        sl.classList.toggle('pointer-events-none', k !== n);
-      });
-      dots.forEach(function (d, k) {
-        d.classList.toggle('bg-white', k === n);
-        d.classList.toggle('bg-white/50', k !== n);
-      });
-      i = n;
-    }
-    function stop() { if (timer) { clearInterval(timer); timer = null; } }
-    function start() { if (auto && !timer) timer = setInterval(function () { show((i + 1) % slides.length); }, 6000); }
-    dots.forEach(function (d, k) {
-      d.addEventListener('click', function () { stop(); auto = false; show(k); });
-    });
-    s.addEventListener('mouseenter', stop);
-    s.addEventListener('mouseleave', start);
-    s.addEventListener('focusin', stop);
-    s.addEventListener('focusout', start);
-    start();
-  });
-})();
-</script>
+{% include "storefront/sections/_hero_slider.html" %}
 {% elif site.hero_image %}
 {# Фото-баннер: на всю ширину экрана (full-bleed), высотой ~1/3 экрана. #}
 <section class="relative left-1/2 -translate-x-1/2 w-screen -mt-6 md:-mt-10 mb-10 min-h-[38vh] md:min-h-[42vh]

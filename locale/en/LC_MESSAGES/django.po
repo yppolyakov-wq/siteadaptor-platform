@@ -37698,3 +37698,51 @@ msgstr "no time limit"
 #, python-format
 msgid "„%(name)s“ löschen?"
 msgstr "Delete “%(name)s”?"
+
+msgid "Alle Banner der Bibliothek sind schon gewählt."
+msgstr "All banners in the library are already selected."
+
+msgid "Banner aus der Bibliothek"
+msgstr "Banners from the library"
+
+msgid "Banner verwalten"
+msgstr "Manage banners"
+
+msgid "Der Banner der Startseite kommt aus der Banner-Bibliothek. Die Folien unten werden nicht gezeigt."
+msgstr "The home page banner comes from the banner library. The slides below are not shown."
+
+msgid "Dieser Banner wird gezeigt. Wählen Sie weitere dazu – dann entsteht ein Slider."
+msgstr "This banner is shown. Add more to turn it into a slider."
+
+msgid "In der Bibliothek ist noch kein Banner."
+msgstr "There is no banner in the library yet."
+
+msgid "Mehr Banner passen nicht in einen Slider."
+msgstr "A slider cannot hold more banners."
+
+msgid "Mehrere Banner laufen als Slider – in dieser Reihenfolge."
+msgstr "Several banners run as a slider – in this order."
+
+msgid "Neu: Banner liegen in der Bibliothek und werden im Seitenaufbau ausgewählt."
+msgstr "New: banners live in the library and are selected in the page structure."
+
+msgid "Nächster Banner"
+msgstr "Next banner"
+
+msgid "Pfeile zum Blättern zeigen"
+msgstr "Show arrows for browsing"
+
+msgid "Sekunden je Banner"
+msgstr "Seconds per banner"
+
+msgid "Vorheriger Banner"
+msgstr "Previous banner"
+
+msgid "Wechsel"
+msgstr "Change"
+
+msgid "ausgeschaltet oder außerhalb des Zeitraums – erscheint derzeit nicht"
+msgstr "switched off or outside its period – not shown right now"
+
+msgid "nur von Hand"
+msgstr "by hand only"

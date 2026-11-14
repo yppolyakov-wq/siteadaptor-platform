@@ -110,6 +110,7 @@ def overlay(config: dict, draft: dict) -> dict:
     home, host = bool(draft.get("home")), str(draft.get("host") or "")
     items = copy.deepcopy(draft.get("items") or [])
     if home:
+        site_schema.lift_hero_choice(out, items)  # FB-29.2: выбор баннеров главной
         out["sections"] = items
     elif host:
         page_blocks = dict(out.get("page_blocks") or {})

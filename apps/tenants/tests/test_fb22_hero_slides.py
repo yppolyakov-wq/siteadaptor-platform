@@ -70,7 +70,9 @@ def test_only_active_slides_and_link_resolves_like_the_menu():
 
 
 def test_slider_markup_uses_style_and_whole_image_link():
+    # FB-29.2 S4: разметка слайдера вынесена в `_hero_slider.html` (её включают две ветки)
     tpl = open("templates/storefront/sections/_hero.html", encoding="utf-8").read()
+    tpl += open("templates/storefront/sections/_hero_slider.html", encoding="utf-8").read()
     # FB-29.2 (осознанная переписка): тег получает и выбор баннеров из библиотеки
     assert "{% hero_slides site.heroes site.hero_banners as slides %}" in tpl
     assert "{% elif slides %}" in tpl

@@ -215,6 +215,11 @@ def site_schema_view(request):
             (g.get("mode", "") for g in selected["groups"] if g["key"] == "welche"), ""
         )
         selected.update(list_panel.source_link(selected["builtin_data"]))
+    if selected and selected.get("banner_choice") is not None:
+        # FB-29.2: баннеры места показа — выбор из библиотеки и настройки слайдера
+        from apps.core import banners
+
+        selected["banner_pick"] = banners.pick_state(request, selected["banner_choice"])
     if selected and selected.get("fields"):
         site_schema.fill_options(selected, current.host if current else "")
     # FB-27 R4: настройки типа страницы — в панели «★ Hauptliste», а у страниц без
