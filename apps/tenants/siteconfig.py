@@ -1904,7 +1904,8 @@ def section_limit(config, key) -> int:
     default = GRID_SECTION_LIMITS.get(key, 8)
     for item in (config or {}).get("sections", []):
         if isinstance(item, dict) and item.get("key") == key:
-            by_rows = effective_limit(item.get("layout"))
+            # FB-29: в узкой секции колонок меньше — «колонки × ряды» считаем по ним же
+            by_rows = effective_limit(_narrow_layout(item.get("layout") or {}, item.get("width")))
             if by_rows:
                 return _clamp(by_rows, 1, _SECTION_LIMIT_MAX, default)
             return _clamp(item.get("limit"), 1, _SECTION_LIMIT_MAX, default)

@@ -9,6 +9,7 @@
 from __future__ import annotations
 
 import datetime
+import json
 import logging
 import re
 import uuid
@@ -225,24 +226,27 @@ def delete(tenant, banner) -> None:
         banner.delete()
         if path:
             # файл баннера уходит вместе с ним — после записи в базе, не раньше
-            transaction.on_commit(lambda: _drop_file(path))
+            still = json.dumps(getattr(tenant, "site_config", None) or {}, default=str)
+            if path not in still:  # прежняя копия слайда (откат) ещё показывает этот файл
+                transaction.on_commit(lambda: _drop_file(path, tenant))
 
 
-def _drop_file(path: str) -> None:
-    """Удалить файл фото удалённого баннера, если им не пользуется другой баннер. Только
-    свои загрузки (папка `hero/`); ошибка хранилища удалению баннера не мешает."""
+def _drop_file(path: str, tenant=None) -> None:
+    """Удалить файл фото удалённого баннера, если им больше ничто не пользуется — по общему
+    реестру медиа (`media_registry.used_paths`: другие баннеры, страницы, товары, галерея).
+    Только свои загрузки (папка `hero/`). Удаление — попытка после фиксации записи: любая
+    ошибка хранилища или базы пишется в лог и удалению баннера не мешает."""
     from django.core.files.storage import default_storage
-    from django.db import DatabaseError
 
-    from apps.core.models import Banner
+    from apps.core import media_registry
 
     if not path.startswith("hero/") or ".." in path:
         return
     try:
-        if Banner.objects.filter(image__path=path).exists():
+        if path in media_registry.used_paths(tenant):
             return
         default_storage.delete(path)
-    except (OSError, DatabaseError):
+    except Exception:  # noqa: BLE001 — S3/сеть/база: файл останется, баннер уже удалён
         logging.getLogger(__name__).exception("banner delete: file %s not removed", path)
 
 

@@ -986,7 +986,9 @@ def section_limit(cfg: dict, row: dict):
     key = row["key"]
     if key in siteconfig.GRID_SECTION_LIMITS:
         return siteconfig.section_limit(cfg, key)
-    return siteconfig.effective_limit(row.get("layout")) or None
+    # FB-29: в узкой секции колонок меньше — «колонки × ряды» считаем по ним же
+    layout = siteconfig._narrow_layout(row.get("layout") or {}, row.get("width"))
+    return siteconfig.effective_limit(layout) or None
 
 
 def resolve_section(cfg: dict, row: dict) -> dict:

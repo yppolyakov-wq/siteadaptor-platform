@@ -260,6 +260,8 @@
     if (!li) return;
     e.preventDefault();
     touch = { ref: li.getAttribute("data-schema-drag"), id: e.pointerId, over: null };
+    // события жеста идут к ручке, даже когда палец/перо ушли с неё
+    try { grip.setPointerCapture(e.pointerId); } catch (err) { /* нет поддержки — не страшно */ }
     li.style.opacity = "0.6";
   });
   document.addEventListener("pointermove", function (e) {

@@ -75,3 +75,47 @@ def test_list_in_a_narrow_section_gets_only_the_columns_that_fit():
         }
     )
     assert siteconfig.section_layout(two, "products")["cols"] == 2
+
+
+def test_file_still_used_by_the_site_settings_stays(django_capture_on_commit_callbacks):
+    """Перенесённый баннер делит файл с прежней копией слайда (она оставлена для отката)."""
+    name = default_storage.save("hero/fb29-legacy.jpg", ContentFile(b"x"))
+    tenant = TenantFactory(site_config={"heroes": [{"image": f"/media/{name}", "title": "Alt"}]})
+    b = banners.create({"title": "Alt", "image": {"url": f"/media/{name}", "path": name}})
+    with django_capture_on_commit_callbacks(execute=True):
+        banners.delete(tenant, b)
+    assert default_storage.exists(name)
+    default_storage.delete(name)
+
+
+def test_narrow_section_fetches_full_rows_of_the_capped_columns():
+    from apps.tenants import siteconfig
+
+    row = {
+        "key": "products",
+        "enabled": True,
+        "width": "w12",
+        "layout": {"preset": "cols4", "rows": 2},
+    }
+    cfg = siteconfig.normalize({"sections": [row]})
+    assert siteconfig.section_limit(cfg, "products") == 4, "2 колонки × 2 ряда, а не 4 × 2"
+
+
+def test_file_used_by_a_text_page_stays(django_capture_on_commit_callbacks, monkeypatch):
+    from apps.core import media_registry
+
+    name = default_storage.save("hero/fb29-page.jpg", ContentFile(b"x"))
+    monkeypatch.setattr(media_registry, "used_paths", lambda tenant=None: {name})
+    banners._drop_file(name, TenantFactory.build())
+    assert default_storage.exists(name)
+    default_storage.delete(name)
+
+
+def test_storage_failure_does_not_break_the_delete(monkeypatch):
+    from apps.core import media_registry
+
+    def boom(tenant=None):
+        raise RuntimeError("s3 down")
+
+    monkeypatch.setattr(media_registry, "used_paths", boom)
+    banners._drop_file("hero/x.jpg", None)  # не бросает
