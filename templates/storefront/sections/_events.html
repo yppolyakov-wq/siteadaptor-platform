@@ -3,7 +3,7 @@
 {% if events_preview %}
 {% if 'events' in sample_sections %}{% comment %}FB-29: примеры в предпросмотре дизайна — не кликаются, на сайте их нет.{% endcomment %}
 <p class="mb-2 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900" role="note" data-sample-note>{% trans "Beispiele – nur in dieser Vorschau. Auf Ihrer Website erscheinen sie nicht." %}</p>{% endif %}
-<section data-reveal class="mb-10{% if 'events' in sample_sections %} opacity-80 select-none{% endif %}"{% if 'events' in sample_sections %} inert data-sample-section="events"{% endif %}>
+<section data-reveal class="mb-10{% if 'events' in sample_sections %} rounded-xl border border-dashed border-gray-400 p-2 select-none{% endif %}"{% if 'events' in sample_sections %} inert data-sample-section="events"{% endif %}>
   <div class="flex items-center justify-between mb-4">
     {% section_title site 'events' as st %}
     <h2 class="text-xl md:text-2xl font-bold" data-edit="section_titles.events">{% if st %}{{ st }}{% else %}{% trans "Upcoming events" %}{% endif %}</h2>

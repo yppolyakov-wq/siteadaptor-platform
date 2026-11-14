@@ -38269,3 +38269,6 @@ msgstr "Пікселі беруть теперішню ширину на цьо�
 
 msgid "Beispiele – nur in dieser Vorschau. Auf Ihrer Website erscheinen sie nicht."
 msgstr "Приклади — лише в цьому попередньому перегляді. На вашому сайті їх немає."
+
+msgid "Hier fügen Sie Blöcke nur für diese eine Seite hinzu."
+msgstr "Тут додаються блоки лише для цієї сторінки."

@@ -38089,3 +38089,6 @@ msgstr "Pikseller bu küçük ekrandaki mevcut genişliği alır. Bilgisayarda g
 
 msgid "Beispiele – nur in dieser Vorschau. Auf Ihrer Website erscheinen sie nicht."
 msgstr "Örnekler – yalnızca bu önizlemede. Web sitenizde görünmezler."
+
+msgid "Hier fügen Sie Blöcke nur für diese eine Seite hinzu."
+msgstr "Burada yalnızca bu sayfa için blok eklersiniz."

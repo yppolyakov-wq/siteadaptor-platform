@@ -8,7 +8,7 @@ A3: блок «Leistungen & Preise» — услуги (Service) с ценой/д
 {% if services_preview %}
 {% if 'services' in sample_sections %}{% comment %}FB-29: примеры в предпросмотре дизайна — не кликаются, на сайте их нет.{% endcomment %}
 <p class="mb-2 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900" role="note" data-sample-note>{% trans "Beispiele – nur in dieser Vorschau. Auf Ihrer Website erscheinen sie nicht." %}</p>{% endif %}
-<section data-reveal class="mb-10{% if 'services' in sample_sections %} opacity-80 select-none{% endif %}"{% if 'services' in sample_sections %} inert data-sample-section="services"{% endif %}>
+<section data-reveal class="mb-10{% if 'services' in sample_sections %} rounded-xl border border-dashed border-gray-400 p-2 select-none{% endif %}"{% if 'services' in sample_sections %} inert data-sample-section="services"{% endif %}>
   <div class="flex items-end justify-between mb-4">
     {% section_title site 'services' as st %}
     <h2 class="text-xl md:text-2xl font-bold" data-edit="section_titles.services">{% if st %}{{ st }}{% else %}{% trans "Services & prices" %}{% endif %}</h2>

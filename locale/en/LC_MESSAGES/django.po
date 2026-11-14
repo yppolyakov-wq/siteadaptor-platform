@@ -37943,3 +37943,6 @@ msgstr "Pixels take the current width on this small screen. On a computer the im
 
 msgid "Beispiele – nur in dieser Vorschau. Auf Ihrer Website erscheinen sie nicht."
 msgstr "Samples – only in this preview. They do not appear on your website."
+
+msgid "Hier fügen Sie Blöcke nur für diese eine Seite hinzu."
+msgstr "Here you add blocks for this one page only."

@@ -4,7 +4,7 @@
   {% comment %}Ревью: первая кнопка отправки формы — обычное сохранение. Без неё Enter в любом поле формы нажимал бы «Zurück zum Standard» (она стоит раньше «Speichern»).{% endcomment %}
   <button type="submit" class="hidden" tabindex="-1" data-ps-default-submit>{% trans "Save" %}</button>
   <div class="flex flex-wrap items-start justify-between gap-3">
-    <p class="text-sm text-gray-700 max-w-xl">{% trans "Der Standard kommt aus dem Seitenaufbau der Website. Hier ändern Sie nur diese eine Seite." %}{% if shared_url %} <a href="{{ shared_url }}" class="font-semibold text-indigo-700 hover:underline">{% trans "Seitenaufbau für alle öffnen" %}</a>{% endif %}</p>
+    <p class="text-sm text-gray-700 max-w-xl">{% if ps.rows %}{% trans "Der Standard kommt aus dem Seitenaufbau der Website. Hier ändern Sie nur diese eine Seite." %}{% else %}{% trans "Hier fügen Sie Blöcke nur für diese eine Seite hinzu." %}{% endif %}{% if shared_url %} <a href="{{ shared_url }}" class="font-semibold text-indigo-700 hover:underline">{% trans "Seitenaufbau für alle öffnen" %}</a>{% endif %}</p>
     {% if ps.deviations %}<span class="rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-900" data-ps-deviations>{% trans "Abweichungen" %}: {{ ps.deviations }}</span>{% endif %}
   </div>
   <div class="space-y-2">

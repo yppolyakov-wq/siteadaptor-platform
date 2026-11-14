@@ -38282,3 +38282,6 @@ msgstr "Пиксели берут нынешнюю ширину на этом м
 
 msgid "Beispiele – nur in dieser Vorschau. Auf Ihrer Website erscheinen sie nicht."
 msgstr "Примеры — только в этом предпросмотре. На вашем сайте их нет."
+
+msgid "Hier fügen Sie Blöcke nur für diese eine Seite hinzu."
+msgstr "Здесь добавляются блоки только для этой страницы."
