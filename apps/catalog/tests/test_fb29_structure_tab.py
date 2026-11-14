@@ -83,7 +83,8 @@ def test_panel_describes_every_section_for_the_tab():
 def test_templates_carry_the_tab_and_the_sentinel():
     part = pathlib.Path("templates/tenant/_object_structure.html").read_text()
     assert 'name="page_override_present"' in part and 'name="ps_reset"' in part
-    assert 'type="radio"' in part and "<fieldset" in part and "<legend" in part
+    assert 'type="radio"' in part and 'role="radiogroup"' in part and "aria-labelledby" in part
+    assert 'aria-describedby="ps-reset-help"' in part
     form = pathlib.Path("templates/catalog/product_form.html").read_text()
     assert 'data-pf-tab="aufbau"' in form and 'data-pf-panel="aufbau"' in form
     assert "tenant/_object_structure.html" in form

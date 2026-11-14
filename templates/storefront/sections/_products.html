@@ -1,8 +1,8 @@
 {% load i18n siteui %}{# Секция каталога (Track C1/C2): превью товаров. #}
 {% if products_preview %}
 {% if products_are_samples %}{% comment %}FB-29.8b: товары-примеры в предпросмотре дизайна — не кликаются, на сайте их нет.{% endcomment %}
-<p class="mb-2 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900" data-sample-note>{% trans "Beispielprodukte – nur in dieser Vorschau. Auf Ihrer Website erscheinen sie nicht." %}</p>{% endif %}
-<section data-reveal class="mb-10"{% if products_are_samples %} inert data-sample-products{% endif %}>
+<p class="mb-2 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900" role="note" data-sample-note>{% trans "Beispielprodukte – nur in dieser Vorschau. Auf Ihrer Website erscheinen sie nicht." %}</p>{% endif %}
+<section data-reveal class="mb-10{% if products_are_samples %} opacity-80 select-none{% endif %}"{% if products_are_samples %} inert data-sample-products{% endif %}>
   {% comment %}Фидбэк 2026-08-18 (моб.): flex-wrap — правая группа (ссылка+
   переключатель) переносится под заголовок, а не выходит за экран.{% endcomment %}
   <div class="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 mb-4">

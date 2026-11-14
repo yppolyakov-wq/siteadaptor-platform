@@ -9,18 +9,17 @@
   </div>
   <div class="space-y-2">
     {% for row in ps.rows %}
-    <fieldset class="flex flex-wrap items-center justify-between gap-3 rounded-xl border px-4 py-2 {% if row.state != 'standard' %}border-2 border-amber-600 bg-amber-50{% else %}border-gray-500{% endif %}" data-ps-row="{{ row.key }}">
-      <legend class="sr-only">{{ row.label }}</legend>
+    <div role="radiogroup" aria-labelledby="ps-l-{{ row.key }}" aria-describedby="ps-s-{{ row.key }}" class="flex flex-wrap items-center justify-between gap-3 rounded-xl border px-4 py-2 {% if row.state != 'standard' %}border-2 border-amber-600 bg-amber-50{% else %}border-gray-500{% endif %}" data-ps-row="{{ row.key }}">
       <div>
-        <div class="text-sm font-semibold text-gray-900" aria-hidden="true">{{ row.label }}</div>
-        <div class="text-xs text-gray-700">{% if row.shared_visible %}{% trans "Standard: sichtbar" %}{% else %}{% trans "Standard: ausgeblendet" %}{% endif %}{% if row.state == 'hide' %} · {% trans "nur hier ausgeblendet" %}{% elif row.state == 'show' %} · {% trans "hier immer sichtbar" %}{% endif %}</div>
+        <div class="text-sm font-semibold text-gray-900" id="ps-l-{{ row.key }}">{{ row.label }}</div>
+        <div class="text-xs text-gray-700" id="ps-s-{{ row.key }}">{% if row.shared_visible %}{% trans "Standard: sichtbar" %}{% else %}{% trans "Standard: ausgeblendet" %}{% endif %}{% if row.state == 'hide' %} · {% trans "nur hier ausgeblendet" %}{% elif row.state == 'show' %} · {% trans "hier immer sichtbar" %}{% endif %}</div>
       </div>
       <div class="flex overflow-hidden rounded-lg border border-gray-500 bg-white text-sm font-semibold">
-        <label class="flex min-h-[44px] cursor-pointer items-center px-3 has-[:checked]:bg-indigo-700 has-[:checked]:text-white has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-[-2px] has-[:focus-visible]:outline-indigo-900"><input type="radio" class="sr-only" name="ps_{{ row.key }}" value="standard"{% if row.state == 'standard' %} checked{% endif %}>{% trans "Standard" %}</label>
-        <label class="flex min-h-[44px] cursor-pointer items-center border-l border-gray-500 px-3 has-[:checked]:bg-indigo-700 has-[:checked]:text-white has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-[-2px] has-[:focus-visible]:outline-indigo-900"><input type="radio" class="sr-only" name="ps_{{ row.key }}" value="show"{% if row.state == 'show' %} checked{% endif %}>{% trans "Zeigen" %}</label>
-        <label class="flex min-h-[44px] cursor-pointer items-center border-l border-gray-500 px-3 has-[:checked]:bg-indigo-700 has-[:checked]:text-white has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-[-2px] has-[:focus-visible]:outline-indigo-900"><input type="radio" class="sr-only" name="ps_{{ row.key }}" value="hide"{% if row.state == 'hide' %} checked{% endif %}>{% trans "Ausblenden" %}</label>
+        <label class="flex min-h-[44px] cursor-pointer items-center px-3 has-[:checked]:bg-indigo-700 has-[:checked]:text-white focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-900"><input type="radio" class="sr-only" name="ps_{{ row.key }}" value="standard"{% if row.state == 'standard' %} checked{% endif %}>{% trans "Standard" %}</label>
+        <label class="flex min-h-[44px] cursor-pointer items-center border-l border-gray-500 px-3 has-[:checked]:bg-indigo-700 has-[:checked]:text-white focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-900"><input type="radio" class="sr-only" name="ps_{{ row.key }}" value="show"{% if row.state == 'show' %} checked{% endif %}>{% trans "Zeigen" %}</label>
+        <label class="flex min-h-[44px] cursor-pointer items-center border-l border-gray-500 px-3 has-[:checked]:bg-indigo-700 has-[:checked]:text-white focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-900"><input type="radio" class="sr-only" name="ps_{{ row.key }}" value="hide"{% if row.state == 'hide' %} checked{% endif %}>{% trans "Ausblenden" %}</label>
       </div>
-    </fieldset>
+    </div>
     {% endfor %}
   </div>
   <fieldset>
@@ -44,8 +43,8 @@
   {% endif %}
   {% if ps.deviations or card_style_set %}
   <div class="flex flex-wrap items-center gap-3 border-t border-gray-200 pt-3">
-    <button type="submit" name="ps_reset" value="1" class="ui-btn ui-btn-secondary min-h-[44px]">{% trans "Zurück zum Standard" %}</button>
-    <span class="text-xs text-gray-700">{% trans "Setzt Abschnitte, Seitenvorlage und Kartenform dieser Seite zurück." %}{% if ps.own_blocks %} {% trans "Eigene Blöcke bleiben – sie entfernen Sie unter «Blöcke bearbeiten»." %}{% endif %}</span>
+    <button type="submit" name="ps_reset" value="1" aria-describedby="ps-reset-help" class="ui-btn ui-btn-secondary min-h-[44px]">{% trans "Zurück zum Standard" %}</button>
+    <span class="text-xs text-gray-700" id="ps-reset-help">{% trans "Setzt Abschnitte, Seitenvorlage und Kartenform dieser Seite zurück." %}{% if ps.own_blocks %} {% trans "Eigene Blöcke bleiben – sie entfernen Sie unter «Blöcke bearbeiten»." %}{% endif %}</span>
   </div>
   {% endif %}
 </div>
