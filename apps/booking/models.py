@@ -191,8 +191,9 @@ class Service(I18nMixin, TimestampedModel):
     # FB-29.4b: своя структура страницы услуги поверх общей — {hidden, shown, layout}
     # (`apps.core.object_structure`) и своя форма карточки (реестр `core.card_forms`).
     # Пусто = как у всех услуг.
-    page_override = models.JSONField(default=dict, blank=True)
-    card_style = models.CharField(max_length=16, blank=True, default="")
+    # `db_default`: во время деплоя старые контейнеры ещё пишут строки без этих полей.
+    page_override = models.JSONField(default=dict, db_default={}, blank=True)
+    card_style = models.CharField(max_length=16, blank=True, default="", db_default="")
     # UA4-3: богатая карточка услуги (A3/A7/A9). attributes — свободные строки
     # (спецификации/фичи, list[str]); faq — вопросы-ответы (list[{q,a}]); оба
     # нормализуются на чтении (garbage-safe, см. *_list). primary_action — per-service

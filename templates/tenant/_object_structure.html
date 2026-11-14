@@ -1,0 +1,38 @@
+{% load i18n %}{% comment %}FB-29.4b: вкладка «Seitenaufbau» объекта (товар, услуга) — отличия его страницы от общего вида. Живёт ВНУТРИ формы объекта; сентинел `page_override_present` (W0: без него сохранение из другого места поле не трогает). Параметры: ps (object_structure.panel), shared_url — «Website › Seitenaufbau» этого типа страниц.{% endcomment %}
+<div class="space-y-4" data-object-structure>
+  <input type="hidden" name="page_override_present" value="1">
+  <div class="flex flex-wrap items-start justify-between gap-3">
+    <p class="text-sm text-gray-700 max-w-xl">{% trans "Der Standard kommt aus dem Seitenaufbau der Website. Hier ändern Sie nur diese eine Seite." %}{% if shared_url %} <a href="{{ shared_url }}" class="font-semibold text-indigo-700 hover:underline">{% trans "Seitenaufbau für alle öffnen" %}</a>{% endif %}</p>
+    {% if ps.deviations %}<span class="rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-900" data-ps-deviations>{% trans "Abweichungen" %}: {{ ps.deviations }}</span>{% endif %}
+  </div>
+  <div class="space-y-2">
+    {% for row in ps.rows %}
+    <fieldset class="flex flex-wrap items-center justify-between gap-3 rounded-xl border px-4 py-2 {% if row.state != 'standard' %}border-2 border-amber-600 bg-amber-50{% else %}border-gray-500{% endif %}" data-ps-row="{{ row.key }}">
+      <legend class="sr-only">{{ row.label }}</legend>
+      <div>
+        <div class="text-sm font-semibold text-gray-900" aria-hidden="true">{{ row.label }}</div>
+        <div class="text-xs text-gray-700">{% if row.shared_visible %}{% trans "Standard: sichtbar" %}{% else %}{% trans "Standard: ausgeblendet" %}{% endif %}{% if row.state == 'hide' %} · {% trans "nur hier ausgeblendet" %}{% elif row.state == 'show' %} · {% trans "hier immer sichtbar" %}{% endif %}</div>
+      </div>
+      <div class="flex overflow-hidden rounded-lg border border-gray-500 bg-white text-sm font-semibold">
+        <label class="flex min-h-[44px] cursor-pointer items-center px-3 has-[:checked]:bg-indigo-700 has-[:checked]:text-white has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-[-2px] has-[:focus-visible]:outline-indigo-900"><input type="radio" class="sr-only" name="ps_{{ row.key }}" value="standard"{% if row.state == 'standard' %} checked{% endif %}>{% trans "Standard" %}</label>
+        <label class="flex min-h-[44px] cursor-pointer items-center border-l border-gray-500 px-3 has-[:checked]:bg-indigo-700 has-[:checked]:text-white has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-[-2px] has-[:focus-visible]:outline-indigo-900"><input type="radio" class="sr-only" name="ps_{{ row.key }}" value="show"{% if row.state == 'show' %} checked{% endif %}>{% trans "Zeigen" %}</label>
+        <label class="flex min-h-[44px] cursor-pointer items-center border-l border-gray-500 px-3 has-[:checked]:bg-indigo-700 has-[:checked]:text-white has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-[-2px] has-[:focus-visible]:outline-indigo-900"><input type="radio" class="sr-only" name="ps_{{ row.key }}" value="hide"{% if row.state == 'hide' %} checked{% endif %}>{% trans "Ausblenden" %}</label>
+      </div>
+    </fieldset>
+    {% endfor %}
+  </div>
+  <fieldset>
+    <legend class="text-sm font-semibold text-gray-900">{% trans "Seitenvorlage dieser Seite" %}</legend>
+    <div class="mt-2 flex flex-wrap gap-2 text-sm font-semibold">
+      {% for o in ps.layouts %}
+      <label class="flex min-h-[44px] cursor-pointer items-center gap-2 rounded-lg border border-gray-500 px-3 has-[:checked]:border-2 has-[:checked]:border-indigo-700 has-[:checked]:bg-indigo-50 has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-indigo-900"><input type="radio" name="ps_layout" value="{{ o.value }}"{% if o.checked %} checked{% endif %}> {{ o.label }}{% if o.hint %} <span class="font-normal text-gray-700">({{ o.hint }})</span>{% endif %}</label>
+      {% endfor %}
+    </div>
+  </fieldset>
+  {% if ps.deviations or card_style_set %}
+  <div class="flex flex-wrap items-center gap-3 border-t border-gray-200 pt-3">
+    <button type="submit" name="ps_reset" value="1" class="ui-btn ui-btn-secondary min-h-[44px]">{% trans "Zurück zum Standard" %}</button>
+    <span class="text-xs text-gray-700">{% trans "Setzt Abschnitte, Seitenvorlage und Kartenform dieser Seite zurück." %}</span>
+  </div>
+  {% endif %}
+</div>

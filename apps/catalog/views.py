@@ -227,6 +227,19 @@ def product_create(request):
     )
 
 
+def _page_structure_ctx(request, product) -> dict:
+    """FB-29.4b: данные вкладки «Seitenaufbau» формы товара."""
+    from django.urls import reverse
+
+    from apps.core import object_structure
+
+    config = getattr(getattr(request, "tenant", None), "site_config", None) or {}
+    return {
+        "page_structure": object_structure.panel(config, "product", product),
+        "page_structure_url": reverse("site-schema") + "?seite=product",
+    }
+
+
 @login_required
 def product_edit(request, pk):
     product = get_object_or_404(Product, pk=pk)
@@ -247,6 +260,12 @@ def product_edit(request, pk):
             actor=getattr(request.user, "username", ""),
         )
         _handle_uploads(request, product)
+        # FB-29.4b: вкладка «Seitenaufbau» — отличия страницы этого товара (сентинел W0).
+        from apps.core import object_structure
+
+        changed = object_structure.apply_post(product, "product", request.POST)
+        if changed:
+            product.save(update_fields=[*changed, "updated_at"])
         return redirect("catalog:product-edit", pk=product.pk)
     return render(
         request,
@@ -255,6 +274,7 @@ def product_edit(request, pk):
             "form": form,
             "is_create": False,
             "product": product,
+            **_page_structure_ctx(request, product),
             "variants": product.variants.all(),
             # KA-12 WR-5: цвета вариантов — для «Foto für eine Farbe» (без дублей).
             "variant_colors": sorted(

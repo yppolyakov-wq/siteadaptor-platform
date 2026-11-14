@@ -38134,3 +38134,39 @@ msgstr "Обрезать до размера"
 
 msgid "Das Bild hat diese Größe schon."
 msgstr "Фото уже такого размера."
+
+msgid "Der Standard kommt aus dem Seitenaufbau der Website. Hier ändern Sie nur diese eine Seite."
+msgstr "Обычный вид задаётся в структуре страниц сайта. Здесь меняется только эта страница."
+
+msgid "Seitenaufbau für alle öffnen"
+msgstr "Открыть структуру для всех"
+
+msgid "Abweichungen"
+msgstr "Отличия"
+
+msgid "Standard: sichtbar"
+msgstr "Обычно: показан"
+
+msgid "Standard: ausgeblendet"
+msgstr "Обычно: скрыт"
+
+msgid "nur hier ausgeblendet"
+msgstr "скрыт только здесь"
+
+msgid "hier immer sichtbar"
+msgstr "здесь показан всегда"
+
+msgid "Zeigen"
+msgstr "Показать"
+
+msgid "Seitenvorlage dieser Seite"
+msgstr "Шаблон этой страницы"
+
+msgid "Zurück zum Standard"
+msgstr "Вернуть обычный вид"
+
+msgid "Setzt Abschnitte, Seitenvorlage und Kartenform dieser Seite zurück."
+msgstr "Сбрасывает разделы, шаблон и форму карточки этой страницы."
+
+msgid "Wie alle"
+msgstr "Как у всех"

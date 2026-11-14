@@ -34,6 +34,8 @@ main-колонка + правая колонка «Preis & Bestand»/«Kategori
     пищевая, показываем только гастро-архетипам. Панель остаётся в DOM (W0) → Save не стирает.{% endcomment %}
     <button type="button" data-pf-tab="kennz" class="ui-tab{% if not show_labeling_tab %} hidden{% endif %}" role="tab" aria-selected="false" tabindex="-1">{% trans "Labeling" %}</button>
     <button type="button" data-pf-tab="markt" class="ui-tab" role="tab" aria-selected="false" tabindex="-1">{% trans "Marketing" %}</button>
+    {% comment %}FB-29.4b: своя структура страницы этого товара (только у сохранённого).{% endcomment %}
+    {% if product and page_structure %}<button type="button" data-pf-tab="aufbau" class="ui-tab" role="tab" aria-selected="false" tabindex="-1">{% trans "Seitenaufbau" %}{% if page_structure.deviations %} <span class="ml-1 rounded-full bg-amber-100 px-1.5 text-xs font-bold text-amber-900">{{ page_structure.deviations }}</span>{% endif %}</button>{% endif %}
     {# Варианты/Extras — своя вкладка (только в режиме редактирования: нужен сохранённый товар) #}
     {% if product %}<button type="button" data-pf-tab="varianten" class="ui-tab" role="tab" aria-selected="false" tabindex="-1">{% trans "Variants & extras" %}</button>{% endif %}
   </div>
@@ -154,8 +156,17 @@ main-колонка + правая колонка «Preis & Bestand»/«Kategori
       {% for field in form %}{% if field.name == 'is_featured' or field.name == 'hide_in_city' or field.name == 'hide_in_google' %}
         <label class="flex items-center gap-2 text-sm font-medium">{% render_field field %} {{ field.label }}</label>
       {% endif %}{% endfor %}
-      {% for field in form %}{% if field.name == 'badge' or field.name == 'variant_style' or field.name == 'card_style' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}
+      {% for field in form %}{% if field.name == 'badge' or field.name == 'variant_style' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}
+      {% if not product or not page_structure %}{% for field in form %}{% if field.name == 'card_style' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}{% endif %}
     </div>
+
+    {% if product and page_structure %}
+    {% comment %}FB-29.4b: вкладка «Seitenaufbau» — отличия страницы этого товара; форма карточки переехала сюда из «Marketing».{% endcomment %}
+    <div data-pf-panel="aufbau" class="space-y-4 pt-2 hidden">
+      {% include "tenant/_object_structure.html" with ps=page_structure shared_url=page_structure_url card_style_set=product.card_style %}
+      {% for field in form %}{% if field.name == 'card_style' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}
+    </div>
+    {% endif %}
 
     {% for err in form.non_field_errors %}<p class="text-sm text-red-600">{{ err }}</p>{% endfor %}
 

@@ -37941,3 +37941,39 @@ msgstr "Boyuta kırp"
 
 msgid "Das Bild hat diese Größe schon."
 msgstr "Görsel zaten bu boyutta."
+
+msgid "Der Standard kommt aus dem Seitenaufbau der Website. Hier ändern Sie nur diese eine Seite."
+msgstr "Varsayılan, web sitesinin sayfa düzeninden gelir. Burada yalnızca bu sayfayı değiştirirsiniz."
+
+msgid "Seitenaufbau für alle öffnen"
+msgstr "Tümü için sayfa düzenini aç"
+
+msgid "Abweichungen"
+msgstr "Farklar"
+
+msgid "Standard: sichtbar"
+msgstr "Varsayılan: görünür"
+
+msgid "Standard: ausgeblendet"
+msgstr "Varsayılan: gizli"
+
+msgid "nur hier ausgeblendet"
+msgstr "yalnızca burada gizli"
+
+msgid "hier immer sichtbar"
+msgstr "burada her zaman görünür"
+
+msgid "Zeigen"
+msgstr "Göster"
+
+msgid "Seitenvorlage dieser Seite"
+msgstr "Bu sayfanın şablonu"
+
+msgid "Zurück zum Standard"
+msgstr "Varsayılana dön"
+
+msgid "Setzt Abschnitte, Seitenvorlage und Kartenform dieser Seite zurück."
+msgstr "Bu sayfanın bölümlerini, şablonunu ve kart biçimini sıfırlar."
+
+msgid "Wie alle"
+msgstr "Diğerleri gibi"

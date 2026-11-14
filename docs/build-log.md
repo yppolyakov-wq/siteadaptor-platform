@@ -23448,3 +23448,14 @@ FB-29.6, ревью `a11y-architect` (1 HIGH, 6 MEDIUM): обрезка до «�
 товара и услуги читают через него; объект без правок выглядит как раньше. Замки:
 `test_fb29_object_structure.py` (7). ⚠ Локально `apps/booking` даёт плавающие падения
 «DatabaseWrapper has no attribute schema_name» и на коде, прошедшем CI, — окружение.
+FB-29.4b S1, ревью `database-reviewer` (MEDIUM): новым полям добавлен `db_default` — во время
+деплоя старые контейнеры ещё пишут строки без них (миграции пересозданы до попадания в `main`).
+**FB-29.4b S2 — вкладка «Seitenaufbau» у товара и услуги (2026-11-14).** Общий частичный
+`tenant/_object_structure.html` (макет D): на раздел — «Standard / Zeigen / Ausblenden» с
+подписью общего состояния, счётчик «Abweichungen», шаблон страницы («Wie alle» + три вида),
+«Zurück zum Standard» (сбрасывает и форму карточки). Товар — вкладка формы (форма карточки
+переехала сюда из «Marketing»), услуга — раскрывающаяся секция формы услуги с выбором формы
+карточки (`Service.card_style`, реестр `card_forms`). Запись — `object_structure.apply_post`
+по сентинелу `page_override_present` (W0: сохранение из другого места поле не трогает).
+Замки: `catalog/tests/test_fb29_structure_tab.py` (6), `booking/tests/…` (3). Браузер
+(`r9shop`): сохранение, счётчик, сброс, 390 px без горизонтальной прокрутки.

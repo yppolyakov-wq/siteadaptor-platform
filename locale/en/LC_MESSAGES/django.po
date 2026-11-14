@@ -37795,3 +37795,39 @@ msgstr "Crop to size"
 
 msgid "Das Bild hat diese Größe schon."
 msgstr "The image already has this size."
+
+msgid "Der Standard kommt aus dem Seitenaufbau der Website. Hier ändern Sie nur diese eine Seite."
+msgstr "The default comes from the website's page layout. Here you change only this one page."
+
+msgid "Seitenaufbau für alle öffnen"
+msgstr "Open page layout for all"
+
+msgid "Abweichungen"
+msgstr "Deviations"
+
+msgid "Standard: sichtbar"
+msgstr "Default: visible"
+
+msgid "Standard: ausgeblendet"
+msgstr "Default: hidden"
+
+msgid "nur hier ausgeblendet"
+msgstr "hidden only here"
+
+msgid "hier immer sichtbar"
+msgstr "always visible here"
+
+msgid "Zeigen"
+msgstr "Show"
+
+msgid "Seitenvorlage dieser Seite"
+msgstr "Page template of this page"
+
+msgid "Zurück zum Standard"
+msgstr "Back to default"
+
+msgid "Setzt Abschnitte, Seitenvorlage und Kartenform dieser Seite zurück."
+msgstr "Resets sections, page template and card form of this page."
+
+msgid "Wie alle"
+msgstr "Like all"

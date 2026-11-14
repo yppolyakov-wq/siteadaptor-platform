@@ -37882,3 +37882,39 @@ msgstr "Auf Größe zuschneiden"
 
 msgid "Das Bild hat diese Größe schon."
 msgstr "Das Bild hat diese Größe schon."
+
+msgid "Der Standard kommt aus dem Seitenaufbau der Website. Hier ändern Sie nur diese eine Seite."
+msgstr "Der Standard kommt aus dem Seitenaufbau der Website. Hier ändern Sie nur diese eine Seite."
+
+msgid "Seitenaufbau für alle öffnen"
+msgstr "Seitenaufbau für alle öffnen"
+
+msgid "Abweichungen"
+msgstr "Abweichungen"
+
+msgid "Standard: sichtbar"
+msgstr "Standard: sichtbar"
+
+msgid "Standard: ausgeblendet"
+msgstr "Standard: ausgeblendet"
+
+msgid "nur hier ausgeblendet"
+msgstr "nur hier ausgeblendet"
+
+msgid "hier immer sichtbar"
+msgstr "hier immer sichtbar"
+
+msgid "Zeigen"
+msgstr "Zeigen"
+
+msgid "Seitenvorlage dieser Seite"
+msgstr "Seitenvorlage dieser Seite"
+
+msgid "Zurück zum Standard"
+msgstr "Zurück zum Standard"
+
+msgid "Setzt Abschnitte, Seitenvorlage und Kartenform dieser Seite zurück."
+msgstr "Setzt Abschnitte, Seitenvorlage und Kartenform dieser Seite zurück."
+
+msgid "Wie alle"
+msgstr "Wie alle"

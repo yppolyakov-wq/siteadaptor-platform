@@ -190,6 +190,18 @@ Varianten» — свои мини-формы, вне #svc-form. Скрытое `
     </fieldset>
   </div>
 
+  {% if page_structure %}
+  {% comment %}FB-29.4b: своя структура страницы этой услуги — отличия от общего вида и форма карточки.{% endcomment %}
+  <details class="mt-5 rounded-xl border border-gray-300 p-4" data-svc-structure{% if page_structure.deviations or s.card_style %} open{% endif %}>
+    <summary class="cursor-pointer text-sm font-semibold min-h-[44px] flex items-center gap-2">{% trans "Seitenaufbau" %}{% if page_structure.deviations %} <span class="rounded-full bg-amber-100 px-2 text-xs font-bold text-amber-900">{{ page_structure.deviations }}</span>{% endif %}</summary>
+    <div class="mt-3 space-y-4">
+      {% include "tenant/_object_structure.html" with ps=page_structure shared_url=page_structure_url card_style_set=s.card_style %}
+      <label class="block"><span class="block text-sm font-medium mb-1">{% trans "Kartenform" %}</span>
+        <select name="card_style" class="ui-input">{% for value, label in card_form_choices %}<option value="{{ value }}"{% if value == s.card_style %} selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
+    </div>
+  </details>
+  {% endif %}
+
   <div class="sticky bottom-20 md:bottom-4 mt-5 flex items-center gap-3 flex-wrap bg-white py-2">
     <button type="submit" class="ui-btn ui-btn-primary">{% trans "Save" %}</button>
     <button type="submit" form="svc-toggle" class="ui-btn ui-btn-secondary">{% if s.is_active %}{% trans "Deaktivieren" %}{% else %}{% trans "Aktivieren" %}{% endif %}</button>

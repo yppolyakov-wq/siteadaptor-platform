@@ -1335,6 +1335,19 @@ def _service_values(data) -> dict:
     }
 
 
+def _service_structure_ctx(request, service) -> dict:
+    """FB-29.4b: данные секции «Seitenaufbau» на странице услуги."""
+    from apps.core import card_forms, object_structure
+
+    config = getattr(getattr(request, "tenant", None), "site_config", None) or {}
+    return {
+        "page_structure": object_structure.panel(config, "service", service),
+        "page_structure_url": reverse("site-schema") + "?seite=service",
+        "card_form_choices": [("", _("Wie alle"))]
+        + [(key, label) for key, label, _hint in card_forms.forms_for("product") if key],
+    }
+
+
 @login_required
 def services_view(request, pk=None):
     """Услуги с ценой+длительностью (G10): CRUD простыми POST-формами.
@@ -1502,6 +1515,16 @@ def services_view(request, pk=None):
             if new_image or request.POST.get("remove_image"):
                 service.image = new_image or {}
                 fields.append("image")
+            # FB-29.4b: своя структура страницы услуги и форма карточки — по сентинелу (W0).
+            if request.POST.get("page_override_present"):
+                from apps.core import card_forms, object_structure
+
+                style = (request.POST.get("card_style") or "").strip()
+                service.card_style = style if style in card_forms.keys_for("product") else ""
+                fields.append("card_style")
+                for name in object_structure.apply_post(service, "service", request.POST):
+                    if name not in fields:
+                        fields.append(name)
             with transaction.atomic():
                 service.save(update_fields=fields)
                 if picked_resources is not None:  # M2M — после save, в одной транзакции
@@ -1618,6 +1641,7 @@ def services_view(request, pk=None):
         "booking/service_page.html",
         {
             "s": service_page,
+            **_service_structure_ctx(request, service_page),
             "active_tab": tab if tab in SERVICE_TABS else SERVICE_TABS[0],
             "price_rows_n": len(service_page.seasons) + len(service_page.variant_rows),
             # значение поля предоплаты: формат цены ("12.50"), пусто = без предоплаты

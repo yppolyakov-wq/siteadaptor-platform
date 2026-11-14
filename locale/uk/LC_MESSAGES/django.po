@@ -38121,3 +38121,39 @@ msgstr "Обрізати до розміру"
 
 msgid "Das Bild hat diese Größe schon."
 msgstr "Фото вже такого розміру."
+
+msgid "Der Standard kommt aus dem Seitenaufbau der Website. Hier ändern Sie nur diese eine Seite."
+msgstr "Звичайний вигляд задається у структурі сторінок сайту. Тут змінюється лише ця сторінка."
+
+msgid "Seitenaufbau für alle öffnen"
+msgstr "Відкрити структуру для всіх"
+
+msgid "Abweichungen"
+msgstr "Відмінності"
+
+msgid "Standard: sichtbar"
+msgstr "Зазвичай: показано"
+
+msgid "Standard: ausgeblendet"
+msgstr "Зазвичай: приховано"
+
+msgid "nur hier ausgeblendet"
+msgstr "приховано лише тут"
+
+msgid "hier immer sichtbar"
+msgstr "тут показано завжди"
+
+msgid "Zeigen"
+msgstr "Показати"
+
+msgid "Seitenvorlage dieser Seite"
+msgstr "Шаблон цієї сторінки"
+
+msgid "Zurück zum Standard"
+msgstr "Повернути звичайний вигляд"
+
+msgid "Setzt Abschnitte, Seitenvorlage und Kartenform dieser Seite zurück."
+msgstr "Скидає розділи, шаблон і форму картки цієї сторінки."
+
+msgid "Wie alle"
+msgstr "Як у всіх"

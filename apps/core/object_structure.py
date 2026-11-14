@@ -79,3 +79,79 @@ def deviations(obj, module: str) -> int:
     """Сколько отличий от общего вида у объекта (плашка «N Abweichungen»)."""
     own = clean(_raw(obj), module)
     return len(own.get("hidden", [])) + len(own.get("shown", [])) + (1 if "layout" in own else 0)
+
+
+# ───────── кабинет: вкладка «Seitenaufbau» объекта ─────────
+
+_STATES = {"hide": "hidden", "show": "shown"}
+
+
+def from_post(post, module: str) -> dict | None:
+    """Значение поля из формы вкладки. Нет сентинела `page_override_present` — None:
+    форму прислало другое место кабинета, поле не трогаем (W0). Кнопка «Zurück zum
+    Standard» (`ps_reset`) — пустое значение."""
+    if not post.get("page_override_present"):
+        return None
+    if post.get("ps_reset"):
+        return {}
+    raw: dict = {"hidden": [], "shown": [], "layout": post.get("ps_layout") or ""}
+    for key in detail_sections.section_keys(module):
+        target = _STATES.get(post.get(f"ps_{key}") or "")
+        if target:
+            raw[target].append(key)
+    return clean(raw, module)
+
+
+def apply_post(obj, kind: str, post) -> list[str]:
+    """Записать вкладку в объект (без сохранения); вернуть изменённые поля. Сброс
+    возвращает и форму карточки к общей."""
+    module = MODULES[kind]
+    value = from_post(post, module)
+    if value is None:
+        return []
+    changed = []
+    if value != _raw(obj):
+        obj.page_override = value
+        changed.append("page_override")
+    if post.get("ps_reset") and getattr(obj, "card_style", ""):
+        obj.card_style = ""
+        changed.append("card_style")
+    return changed
+
+
+def panel(config, kind: str, obj) -> dict:
+    """Данные вкладки: разделы с общим состоянием и выбором объекта, шаблоны страницы."""
+    from django.utils.translation import gettext_lazy as _
+
+    from apps.core import page_settings
+    from apps.tenants import siteconfig
+
+    module = MODULES[kind]
+    own = clean(_raw(obj), module)
+    shared_hidden = siteconfig.detail_section_hidden(config, module)
+    rows = []
+    for section in detail_sections.sections_for(module):
+        state = (
+            "hide"
+            if section.key in own.get("hidden", [])
+            else "show"
+            if section.key in own.get("shown", [])
+            else "standard"
+        )
+        rows.append(
+            {
+                "key": section.key,
+                "label": section.label,
+                "shared_visible": section.key not in shared_hidden,
+                "state": state,
+            }
+        )
+    shared_layout = siteconfig.detail_layout(config, kind)
+    labels = dict(page_settings.DETAIL_LAYOUT_OPTIONS)
+    current = own.get("layout", "")
+    layouts = [{"value": "", "label": _("Wie alle"), "hint": labels.get(shared_layout, "")}]
+    for value, label in page_settings.DETAIL_LAYOUT_OPTIONS:
+        layouts.append({"value": value or LAYOUT_STANDARD, "label": label, "hint": ""})
+    for option in layouts:
+        option["checked"] = option["value"] == current
+    return {"rows": rows, "layouts": layouts, "deviations": deviations(obj, module), "kind": kind}

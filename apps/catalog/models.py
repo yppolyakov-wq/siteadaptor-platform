@@ -278,7 +278,8 @@ class Product(SoftDeleteMixin, I18nMixin):
     card_style = models.CharField(max_length=16, blank=True, default="")
     # FB-29.4b: своя структура страницы товара поверх общей — {hidden, shown, layout}
     # (чистит и читает `apps.core.object_structure`). Пусто = как у всех товаров.
-    page_override = models.JSONField(default=dict, blank=True)
+    # `db_default`: во время деплоя старые контейнеры ещё пишут строки без этого поля.
+    page_override = models.JSONField(default=dict, db_default={}, blank=True)
     # T-8.11: владелец не хочет этот товар в каталоге города (сайт — как прежде).
     hide_in_city = models.BooleanField(default=False)
     # M23b.1: товар не уходит в фид Google Merchant Center.
