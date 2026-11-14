@@ -170,3 +170,18 @@ def test_form_shows_the_places_with_their_names():
     assert 'name="b_show_present"' in html and 'name="b_show_add"' in html
     assert 'name="b_show_keep"' in html and "Darjeeling" in html
     assert reverse("site-banners") in html
+
+
+def test_auto_placed_banner_has_no_studio_edit_marker():
+    p = _product()
+    key = f"product:{p.pk}"
+    b = _banner("Allein")
+    banners.set_show_on(b, keep=[], add=[key], allowed={key})
+    html = _site("product", p)
+    assert "Allein" in html and "data-sf-media-slot" not in html
+
+
+def test_cascade_delete_of_categories_frees_their_places():
+    src = pathlib.Path("apps/catalog/views.py").read_text()
+    cascade = src[src.index("# bulk soft-delete") :][:600]
+    assert "move_category_blocks(gone.slug, None)" in cascade

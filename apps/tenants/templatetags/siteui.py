@@ -420,7 +420,8 @@ def place_banners(context, kind, obj):
     picks = banners.picks_for_place(banners.place_key(kind, obj)) if request else []
     if not picks:
         return ""
-    block = {"pick": picks, "height": "sm", "arrows": len(picks) > 1}
+    # `auto_place`: баннер стоит здесь сам, блока в схеме нет — без меток правки Студии
+    block = {"pick": picks, "height": "sm", "arrows": len(picks) > 1, "auto_place": True}
     ctx = {**context.flatten(), "block": block, "is_preview": False}
     html = render_to_string("storefront/sections/_block_banner.html", ctx, request=request)
     return mark_safe(html)

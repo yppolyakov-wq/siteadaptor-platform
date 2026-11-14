@@ -1128,6 +1128,10 @@ def category_delete(request, pk):
         if strategy == "cascade":
             Product.objects.filter(category__in=branch).update(category=None)
             Category.objects.filter(pk__in=[c.pk for c in branch]).delete()  # bulk soft-delete
+            # Ревью FB-29.2c: своя схема и места показа баннеров уходят и у каждой
+            # категории ветки — иначе новая категория с тем же адресом получила бы их.
+            for gone in branch:
+                move_category_blocks(gone.slug, None)
             messages.success(request, _("Category and its subcategories deleted."))
             return redirect("catalog:category-list")
 
