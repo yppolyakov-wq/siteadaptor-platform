@@ -293,3 +293,25 @@ def test_detail_templates_render_own_blocks_on_both_sides():
         shared = src.index(f'{{% page_blocks "{kind}_detail" %}}')
         after = src.index(f'{{% object_blocks "{kind}" {kind} %}}')
         assert before < shared < after, name
+
+
+def test_deleting_a_tour_in_the_cabinet_takes_its_blocks_along():
+    """T1: тур удаляется насовсем — хост его блоков не остаётся призраком."""
+    from types import SimpleNamespace
+
+    from django.contrib.messages.storage.fallback import FallbackStorage
+
+    from apps.events import views as events_views
+    from apps.events.models import Tour
+
+    tour = Tour.objects.create(title="Rheinsteig", slug="rheinsteig-del", is_published=True)
+    host = f"tour:{tour.pk.hex}"
+    tenant = _tenant({host: [_text(1, "Nur hier")]})
+    request = RequestFactory().post("/", {"action": "delete"})
+    request.tenant = tenant
+    request.user = SimpleNamespace(is_authenticated=True)
+    request.session = {}
+    request._messages = FallbackStorage(request)
+    resp = events_views.tour_edit.__wrapped__(request, pk=tour.pk)
+    assert resp.status_code == 302 and not Tour.objects.filter(pk=tour.pk).exists()
+    assert host not in (Tenant.objects.get(pk=tenant.pk).site_config.get("page_blocks") or {})

@@ -490,11 +490,55 @@ def url_for_path(tenant, path: str) -> str:
         )
     if not code:
         return base
+    # T2: у объекта со своими блоками открываем ЕГО строку — «Nur diese Seite»
+    for candidate in (_own_code(tenant, code, _path_ref(path)), code):
+        if not candidate:
+            continue
+        try:
+            resolve(tenant, candidate)
+        except SchemaError:
+            continue  # объекта уже нет — общая строка типа
+        return f"{base}?{urlencode({'seite': candidate})}"
+    return base
+
+
+def _path_ref(path: str) -> str:
+    """pk или адрес объекта из пути витрины ("" — путь без объекта)."""
+    from urllib.parse import urlsplit
+
+    from django.urls import Resolver404
+    from django.urls import resolve as resolve_url
+
     try:
-        resolve(tenant, code)
-    except SchemaError:
-        return base
-    return f"{base}?{urlencode({'seite': code})}"
+        kwargs = resolve_url(urlsplit(path).path or "/", urlconf="config.urls_tenant").kwargs
+    except (Resolver404, ValueError):
+        return ""
+    return str(kwargs.get("pk") or kwargs.get("slug") or "")
+
+
+def _own_code(tenant, type_code: str, ref: str) -> str:
+    """Код строки своих блоков объекта страницы (`ref` — pk или адрес из пути) либо "":
+    вид без своих блоков, объекта нет, своих блоков у него нет."""
+    if not ref:
+        return ""
+    blocks = (getattr(tenant, "site_config", None) or {}).get("page_blocks") or {}
+    kinds = [type_code, *(k for k, shared in OBJECT_PAGE_TYPES.items() if shared == type_code)]
+    for kind in kinds:
+        if kind not in OBJECT_KINDS:
+            continue
+        route = _OBJECT_PREVIEW_ROUTES.get(kind)
+        try:
+            if route:  # адрес по своему полю (тур — slug)
+                obj = object_model(kind).objects.filter(**{route[1]: ref}).only("pk").first()
+                hexed = obj.pk.hex if obj else ""
+            else:
+                hexed = uuid.UUID(str(ref)).hex
+        except (ValueError, TypeError):
+            continue
+        host = f"{kind}:{hexed}"
+        if hexed and blocks.get(host):
+            return f"{kind}@{host}"
+    return ""
 
 
 def category_items(config: dict, host: str, items: list[dict], op: str) -> list[dict]:

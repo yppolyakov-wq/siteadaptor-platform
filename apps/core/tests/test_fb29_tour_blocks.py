@@ -194,3 +194,85 @@ def test_templates_and_views_are_wired():
     assert form.index("_object_structure.html") < form.index('value="delete"')
     views = pathlib.Path("apps/events/views.py").read_text()
     assert 'object_structure.apply_post(tour, "tour"' in views
+
+
+def _cabinet_post(tour, data):
+    from types import SimpleNamespace
+
+    from django.contrib.messages.storage.fallback import FallbackStorage
+
+    from apps.events import views
+
+    request = RequestFactory().post("/", data)
+    request.tenant = TenantFactory.build(enabled_modules=["events"])
+    request.user = SimpleNamespace(is_authenticated=True)
+    request.session = {}
+    request._messages = FallbackStorage(request)
+    return views.tour_edit.__wrapped__(request, pk=tour.pk)
+
+
+def test_tour_form_saves_the_structure_with_the_other_fields():
+    tour = _tour(page_override={"hidden": ["venue"]})
+    base = {"title": "Rheinsteig neu", "slug": tour.slug}
+    assert _cabinet_post(tour, base).status_code == 302
+    tour.refresh_from_db()
+    assert tour.title == "Rheinsteig neu" and tour.page_override == {"hidden": ["venue"]}, "W0"
+    post = {**base, "page_override_present": "1", "ps_faq": "hide", "ps_blocks_first": "1"}
+    assert _cabinet_post(tour, post).status_code == 302
+    tour.refresh_from_db()
+    assert tour.page_override == {"hidden": ["faq"], "blocks_first": True}
+    assert tour.title == "Rheinsteig neu"
+
+
+def test_crafted_codes_reach_no_host():
+    from django.utils import timezone
+
+    event = Event.objects.create(title="Abend", starts_at=timezone.now())
+    assert site_schema.host_for(f"tour@tour:{event.pk.hex}") == "", "pk события — не тур"
+    assert not siteconfig.is_object_host("tour:" + "a" * 32 + "\n")
+    assert site_schema._page_type("tour") is None, "без объекта строки «tour» нет"
+
+
+def test_tour_row_needs_the_events_module():
+    tour = _tour()
+    code = ost.schema_code("tour", tour)
+    off = TenantFactory.build(disabled_modules=["events"])
+    with pytest.raises(site_schema.SchemaError):
+        site_schema.resolve(off, code)
+
+
+# ───────── T2: Студия «Aufbau ändern» ведёт на строку объекта ─────────
+
+
+def test_studio_link_opens_the_objects_own_row_when_it_has_blocks():
+    tour = _tour(slug="rheinsteig-t2")
+    host = f"tour:{tour.pk.hex}"
+    plain = TenantFactory.build(enabled_modules=["events"], site_config={})
+    assert site_schema.url_for_path(plain, "/tour/rheinsteig-t2/").endswith("?seite=event")
+    own = TenantFactory.build(
+        enabled_modules=["events"], site_config={"page_blocks": {host: [_text("b1", "Eigen")]}}
+    )
+    url = site_schema.url_for_path(own, "/tour/rheinsteig-t2/")
+    assert url.endswith(f"seite=tour%40tour%3A{tour.pk.hex}")
+    assert site_schema.url_for_path(own, "/tour/gibt-es-nicht/").endswith("?seite=event")
+
+
+def test_studio_link_for_an_event_with_own_blocks():
+    from django.utils import timezone
+
+    event = Event.objects.create(title="Abend", starts_at=timezone.now())
+    host = f"event:{event.pk.hex}"
+    own = TenantFactory.build(
+        enabled_modules=["events"], site_config={"page_blocks": {host: [_text("b1", "Eigen")]}}
+    )
+    assert site_schema.url_for_path(own, f"/veranstaltung/{event.pk}/").endswith(
+        f"seite=event%40event%3A{event.pk.hex}"
+    )
+    ghost = uuid.uuid4()
+    stale = TenantFactory.build(
+        enabled_modules=["events"],
+        site_config={"page_blocks": {f"event:{ghost.hex}": [_text("b1", "Alt")]}},
+    )
+    assert site_schema.url_for_path(stale, f"/veranstaltung/{ghost}/").endswith("?seite=event"), (
+        "объекта нет — общая строка"
+    )

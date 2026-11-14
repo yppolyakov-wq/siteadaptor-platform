@@ -526,8 +526,13 @@ def tour_edit(request, pk):
     только когда редактор реально был на странице: сентинел `it_present`
     защищает наполнение от затирания частичной формой (инвариант W0).
     """
+    from apps.core import object_structure
+
     tour = get_object_or_404(Tour, pk=pk)
     if request.method == "POST" and request.POST.get("action") == "delete":
+        # T1: тур удаляется насовсем (корзины нет) — свои блоки уходят вместе с ним,
+        # иначе их хост занимал бы место в общем потолке до следующей уборки.
+        object_structure.drop_blocks("tour", tour)
         tour.delete()
         messages.success(request, _("Tour deleted."))
         return redirect("events:tour-list")
@@ -538,8 +543,6 @@ def tour_edit(request, pk):
             tour.itinerary = itinerary.from_post(request.POST)
             tour.save(update_fields=["itinerary"])
         # FB-29 T1: своя структура страницы тура — по сентинелу (W0)
-        from apps.core import object_structure
-
         changed = object_structure.apply_post(tour, "tour", request.POST)
         if changed:
             tour.save(update_fields=[*changed, "updated_at"])

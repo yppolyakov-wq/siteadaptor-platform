@@ -237,6 +237,9 @@ def test_event_block_queries_do_not_grow_with_cards():
         assert body.count('href="/veranstaltung/') >= n
         return len(ctx.captured_queries)
 
+    # Первый рендер платит разовые запросы соединения (search_path) — их в сравнение
+    # не берём, иначе результат зависит от того, что шло в процессе раньше.
+    count_for(1)
     assert count_for(6) == count_for(2)
 
 
