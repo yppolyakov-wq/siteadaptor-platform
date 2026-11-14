@@ -3091,6 +3091,10 @@ def clean_banner_choice(raw) -> dict:
         out["interval"] = interval
     if raw.get("arrows") and not _is_off(raw.get("arrows")):
         out["arrows"] = True
+    # FB-29.2 S6: блок-место — показывает баннеры, которым ТЕКУЩАЯ страница задана в
+    # «Wo zeigen» (место на странице задаёт структура, список страниц — сам баннер).
+    if raw.get("from_page") and not _is_off(raw.get("from_page")):
+        out["from_page"] = True
     return out
 
 

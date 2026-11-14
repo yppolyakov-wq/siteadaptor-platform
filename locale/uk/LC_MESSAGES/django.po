@@ -38202,3 +38202,24 @@ msgstr "– немає –"
 
 msgid "Kategorie, Produkt, Leistung oder Aktion wählen und speichern. Weitere Seiten fügen Sie danach genauso hinzu."
 msgstr "Виберіть категорію, товар, послугу чи акцію та збережіть. Наступні сторінки додаються так само."
+
+msgid "Welche Banner"
+msgstr "Які банери"
+
+msgid "Hier ausgewählte Banner"
+msgstr "Банери, вибрані тут"
+
+msgid "Banner dieser Seite (aus «Wo zeigen»)"
+msgstr "Банери цієї сторінки (з «Де показувати»)"
+
+msgid "Dieser Block ist der Platz für Banner der Seite: Hier erscheinen die Banner, bei denen die jeweilige Seite unter «Wo zeigen» gewählt ist. Ohne solche Banner bleibt der Platz leer."
+msgstr "Цей блок — місце для банерів сторінки: тут з’являються банери, в яких цю сторінку вибрано в «Де показувати». Без таких банерів місце лишається порожнім."
+
+msgid "Banner dieser Seite"
+msgstr "Банери цієї сторінки"
+
+msgid "Der Banner erscheint auf diesen Seiten. Die Stelle auf der Seite bestimmt der Block «Banner» mit «Banner dieser Seite» im Seitenaufbau; ohne diesen Block steht der Banner an der üblichen Stelle. Mehrere Banner laufen als Slider."
+msgstr "Банер з’являється на цих сторінках. Місце на сторінці задає блок «Banner» із джерелом «Банери цієї сторінки» у структурі сторінки; без такого блоку банер стоїть на звичному місці. Кілька банерів ідуть слайдером."
+
+msgid "Seitenaufbau öffnen"
+msgstr "Відкрити структуру сторінок"

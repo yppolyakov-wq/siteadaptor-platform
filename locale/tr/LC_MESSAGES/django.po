@@ -38022,3 +38022,24 @@ msgstr "– yok –"
 
 msgid "Kategorie, Produkt, Leistung oder Aktion wählen und speichern. Weitere Seiten fügen Sie danach genauso hinzu."
 msgstr "Bir kategori, ürün, hizmet veya kampanya seçip kaydedin. Diğer sayfaları sonra aynı şekilde ekleyin."
+
+msgid "Welche Banner"
+msgstr "Hangi bannerlar"
+
+msgid "Hier ausgewählte Banner"
+msgstr "Burada seçilen bannerlar"
+
+msgid "Banner dieser Seite (aus «Wo zeigen»)"
+msgstr "Bu sayfanın bannerları («Nerede gösterilsin»den)"
+
+msgid "Dieser Block ist der Platz für Banner der Seite: Hier erscheinen die Banner, bei denen die jeweilige Seite unter «Wo zeigen» gewählt ist. Ohne solche Banner bleibt der Platz leer."
+msgstr "Bu blok, sayfanın bannerlarının yeridir: ilgili sayfanın «Nerede gösterilsin» altında seçildiği bannerlar burada görünür. Böyle banner yoksa yer boş kalır."
+
+msgid "Banner dieser Seite"
+msgstr "Bu sayfanın bannerları"
+
+msgid "Der Banner erscheint auf diesen Seiten. Die Stelle auf der Seite bestimmt der Block «Banner» mit «Banner dieser Seite» im Seitenaufbau; ohne diesen Block steht der Banner an der üblichen Stelle. Mehrere Banner laufen als Slider."
+msgstr "Banner bu sayfalarda görünür. Sayfadaki yerini, sayfa düzenindeki «Bu sayfanın bannerları» ayarlı «Banner» bloğu belirler; bu blok yoksa banner alışılmış yerde durur. Birden çok banner kaydırıcı olarak döner."
+
+msgid "Seitenaufbau öffnen"
+msgstr "Sayfa düzenini aç"

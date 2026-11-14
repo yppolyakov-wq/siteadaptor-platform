@@ -363,7 +363,7 @@ def undo_legacy(tenant) -> int:
     return len(imported)
 
 
-def pick_state(request, choice: dict) -> dict:
+def pick_state(request, choice: dict, place_capable: bool = False) -> dict:
     """Панель «Seitenaufbau»: выбранные баннеры (в порядке владельца), предложения из
     библиотеки (с поиском), настройки слайдера. Удалённая запись в выборе не показывается;
     выключенная или вне срока — помечается: на сайте её сейчас нет."""
@@ -408,6 +408,9 @@ def pick_state(request, choice: dict) -> dict:
         "interval": str(choice.get("interval") or 6),
         "intervals": [str(n) for n in range(4, 13)],
         "arrows": bool(choice.get("arrows")),
+        # S6: блок-место — «баннеры этой страницы» (только там, где у страницы есть объект)
+        "place_capable": place_capable,
+        "from_page": place_capable and bool(choice.get("from_page")),
     }
 
 
@@ -506,3 +509,34 @@ def picks_for_place(key: str) -> list[str]:
     except DatabaseError:
         logging.getLogger(__name__).exception("banner places: lookup failed for %s", key)
         return []
+
+
+def page_place_key(context) -> str:
+    """Ключ места показа текущей страницы витрины — по объекту в контексте шаблона."""
+    for kind, name in (
+        ("product", "product"),
+        ("service", "service"),
+        ("promotion", "promotion"),
+        ("category", "current_category"),
+    ):
+        obj = context.get(name)
+        if obj is not None and getattr(obj, "pk", None):
+            return place_key(kind, obj)
+    return ""
+
+
+def place_block_present(config, hosts) -> bool:
+    """Стоит ли в структуре этих хостов включённый блок «Banner» с источником «баннеры
+    этой страницы» — тогда место баннеров задаёт он, а место по умолчанию молчит."""
+    blocks = (config or {}).get("page_blocks") or {}
+    for host in hosts:
+        for block in blocks.get(host) or []:
+            if (
+                isinstance(block, dict)
+                and block.get("key") == "banner"
+                and block.get("enabled", True)
+                and isinstance(block.get("data"), dict)
+                and block["data"].get("from_page")
+            ):
+                return True
+    return False

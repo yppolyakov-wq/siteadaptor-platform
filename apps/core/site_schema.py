@@ -88,7 +88,7 @@ OWNED_DATA_KINDS = ("list", "textpage", "contact_card")
 #: «Seitenaufbau» — эти поля строки входят в отпечаток и переживают устаревшую вкладку.
 BUILTIN_OWNED_FIELDS = ("data", "limit", "layout", "source")
 #: FB-29.2: выбор места показа у блока «Banner» (баннеры и настройки слайдера).
-_BANNER_CHOICE_FIELDS = ("pick", "auto", "interval", "arrows")
+_BANNER_CHOICE_FIELDS = ("pick", "auto", "interval", "arrows", "from_page")
 
 
 def _is_builtin_list(item: dict) -> bool:
@@ -581,7 +581,9 @@ def _row_summary(config: dict, item: dict) -> str:
                 parts.append(str(data["title"]))
             elif source in siteconfig.LIST_SOURCES:
                 parts.append(str(siteconfig.LIST_SOURCES[source]["label"]))
-            if data.get("pick"):
+            if data.get("from_page"):
+                parts.append(_("Banner dieser Seite"))  # S6: блок-место
+            elif data.get("pick"):
                 parts.append(_("%(n)s ausgewählt") % {"n": len(data["pick"])})
             elif data.get("limit"):
                 parts.append(_("höchstens %(n)s") % {"n": data["limit"]})
@@ -956,6 +958,19 @@ _FULL_BLEED_SECTIONS = frozenset({"hero"})
 
 #: FB-29.2: настройки слайдера в панели (имена полей формы без префикса `f_`).
 SLIDER_FIELDS = ("auto", "interval", "arrows")
+#: FB-29.2 S6: источник блока «Banner» — выбранные баннеры или «баннеры этой страницы».
+PLACE_FIELDS = (*SLIDER_FIELDS, "from_page")
+
+
+def place_capable(host: str) -> bool:
+    """Есть ли у страниц этого хоста объект, которому баннер задают в «Wo zeigen»
+    (страница товара, услуги, каталог и категории, свои блоки объекта)."""
+    from apps.tenants import siteconfig
+
+    return host in ("product_detail", "service_detail", "catalog") or (
+        isinstance(host, str)
+        and (host.startswith(siteconfig.CATEGORY_HOST_PREFIX) or siteconfig.is_object_host(host))
+    )
 
 
 def _is_hero_row(item: dict) -> bool:
@@ -1370,17 +1385,18 @@ def mutate(
     elif op == "update":
         # FB-27 R3b: короткое содержимое простого блока — прямо в панели. ПАТЧ: меняются
         # только присланные поля, остальное (стиль, фото, оформление) остаётся (W0).
-        if not main and banner_place(item) and fields and set(fields) & set(SLIDER_FIELDS):
+        if not main and banner_place(item) and fields and set(fields) & set(PLACE_FIELDS):
             # FB-29.2: настройки слайдера места показа — патч; без правок ничего
             data = dict(item.get("data") or {})
             before = siteconfig.clean_banner_choice(data)
-            patched = {**data, **{k: str(fields[k]) for k in SLIDER_FIELDS if k in fields}}
-            if "arrows" not in fields:
+            names = SLIDER_FIELDS if _is_hero_row(item) else PLACE_FIELDS
+            patched = {**data, **{k: str(fields[k]) for k in names if k in fields}}
+            if "arrows" not in fields and set(fields) & set(SLIDER_FIELDS):
                 patched.pop("arrows", None)  # снятая галочка не приходит вовсе
             after = siteconfig.clean_banner_choice(patched)
             if after == before:
                 return ref
-            for key in ("auto", "interval", "arrows"):
+            for key in PLACE_FIELDS:
                 data.pop(key, None)
             _store_banner_data(item, {**data, **{k: after[k] for k in after if k != "pick"}})
             return ref

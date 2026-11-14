@@ -37876,3 +37876,24 @@ msgstr "– none –"
 
 msgid "Kategorie, Produkt, Leistung oder Aktion wählen und speichern. Weitere Seiten fügen Sie danach genauso hinzu."
 msgstr "Choose a category, product, service or promotion and save. Add further pages the same way afterwards."
+
+msgid "Welche Banner"
+msgstr "Which banners"
+
+msgid "Hier ausgewählte Banner"
+msgstr "Banners selected here"
+
+msgid "Banner dieser Seite (aus «Wo zeigen»)"
+msgstr "Banners of this page (from “Where to show”)"
+
+msgid "Dieser Block ist der Platz für Banner der Seite: Hier erscheinen die Banner, bei denen die jeweilige Seite unter «Wo zeigen» gewählt ist. Ohne solche Banner bleibt der Platz leer."
+msgstr "This block is the place for the page's banners: banners that have the respective page selected under “Where to show” appear here. Without such banners the place stays empty."
+
+msgid "Banner dieser Seite"
+msgstr "Banners of this page"
+
+msgid "Der Banner erscheint auf diesen Seiten. Die Stelle auf der Seite bestimmt der Block «Banner» mit «Banner dieser Seite» im Seitenaufbau; ohne diesen Block steht der Banner an der üblichen Stelle. Mehrere Banner laufen als Slider."
+msgstr "The banner appears on these pages. Its position on the page is set by the “Banner” block with “Banners of this page” in the page layout; without that block the banner stands at the usual position. Several banners run as a slider."
+
+msgid "Seitenaufbau öffnen"
+msgstr "Open page layout"

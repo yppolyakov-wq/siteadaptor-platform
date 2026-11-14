@@ -37963,3 +37963,24 @@ msgstr "– keine –"
 
 msgid "Kategorie, Produkt, Leistung oder Aktion wählen und speichern. Weitere Seiten fügen Sie danach genauso hinzu."
 msgstr "Kategorie, Produkt, Leistung oder Aktion wählen und speichern. Weitere Seiten fügen Sie danach genauso hinzu."
+
+msgid "Welche Banner"
+msgstr "Welche Banner"
+
+msgid "Hier ausgewählte Banner"
+msgstr "Hier ausgewählte Banner"
+
+msgid "Banner dieser Seite (aus «Wo zeigen»)"
+msgstr "Banner dieser Seite (aus «Wo zeigen»)"
+
+msgid "Dieser Block ist der Platz für Banner der Seite: Hier erscheinen die Banner, bei denen die jeweilige Seite unter «Wo zeigen» gewählt ist. Ohne solche Banner bleibt der Platz leer."
+msgstr "Dieser Block ist der Platz für Banner der Seite: Hier erscheinen die Banner, bei denen die jeweilige Seite unter «Wo zeigen» gewählt ist. Ohne solche Banner bleibt der Platz leer."
+
+msgid "Banner dieser Seite"
+msgstr "Banner dieser Seite"
+
+msgid "Der Banner erscheint auf diesen Seiten. Die Stelle auf der Seite bestimmt der Block «Banner» mit «Banner dieser Seite» im Seitenaufbau; ohne diesen Block steht der Banner an der üblichen Stelle. Mehrere Banner laufen als Slider."
+msgstr "Der Banner erscheint auf diesen Seiten. Die Stelle auf der Seite bestimmt der Block «Banner» mit «Banner dieser Seite» im Seitenaufbau; ohne diesen Block steht der Banner an der üblichen Stelle. Mehrere Banner laufen als Slider."
+
+msgid "Seitenaufbau öffnen"
+msgstr "Seitenaufbau öffnen"

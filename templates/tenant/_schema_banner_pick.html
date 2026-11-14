@@ -1,4 +1,25 @@
 {% load i18n %}{% comment %}FB-29.2 S4: баннеры места показа — выбор из библиотеки плитками (один или несколько; несколько — слайдер) и настройки слайдера. Кнопки отправляют общую форму выбора (`schema-pick-form`), поиск — `schema-lookup-form`; всё идёт в черновик страницы.{% endcomment %}
+{% if pick.place_capable %}
+{% comment %}S6: источник блока — выбранные баннеры или баннеры, которым текущая страница задана в «Wo zeigen» (место на странице задаёт этот блок).{% endcomment %}
+<form method="post" class="mt-4 space-y-2" data-schema-fields data-schema-banner-source>
+  {% csrf_token %}
+  {% include "tenant/_schema_keep.html" %}
+  <input type="hidden" name="ref" value="{{ ref }}">
+  <input type="hidden" name="panel_present" value="1">
+  <label for="schema-b-source" class="block text-sm font-bold text-gray-900">{% trans "Welche Banner" %}</label>
+  <select id="schema-b-source" name="f_from_page" class="ui-input w-full">
+    <option value="0"{% if not pick.from_page %} selected{% endif %}>{% trans "Hier ausgewählte Banner" %}</option>
+    <option value="1"{% if pick.from_page %} selected{% endif %}>{% trans "Banner dieser Seite (aus «Wo zeigen»)" %}</option>
+  </select>
+  <button name="op" value="update" class="ui-btn ui-btn-secondary w-full">{% trans "Übernehmen" %}</button>
+</form>
+{% endif %}
+{% if pick.from_page %}
+<div class="mt-3 rounded-lg bg-indigo-50 px-3 py-2 text-sm text-gray-900" data-schema-banner-from-page>
+  <p>{% trans "Dieser Block ist der Platz für Banner der Seite: Hier erscheinen die Banner, bei denen die jeweilige Seite unter «Wo zeigen» gewählt ist. Ohne solche Banner bleibt der Platz leer." %}</p>
+  <a href="{% url 'site-banners' %}" class="mt-1 inline-flex min-h-[44px] items-center font-semibold text-indigo-700 hover:underline">{% trans "Banner verwalten" %} →</a>
+</div>
+{% else %}
 <div class="mt-4 space-y-3" data-schema-banner-pick>
   <div class="flex items-center justify-between gap-2">
     <h3 class="text-sm font-bold text-gray-900">{% trans "Banner aus der Bibliothek" %}</h3>
@@ -44,7 +65,8 @@
   <p class="text-sm text-gray-700">{% trans "In der Bibliothek ist noch kein Banner." %} <a href="{% url 'site-banner-new' %}" class="font-semibold text-indigo-700 hover:underline">{% trans "Neuer Banner" %}</a></p>
   {% endif %}
 </div>
-{% if pick.entries|length > 1 %}
+{% endif %}
+{% if pick.entries|length > 1 or pick.from_page %}
 <form method="post" class="mt-4 space-y-3" data-schema-fields data-schema-slider>
   {% csrf_token %}
   {% include "tenant/_schema_keep.html" %}

@@ -417,7 +417,28 @@ def place_banners(context, kind, obj):
     from apps.core import banners
 
     request = context.get("request")
-    picks = banners.picks_for_place(banners.place_key(kind, obj)) if request else []
+    key = banners.place_key(kind, obj) if request else ""
+    if not key:
+        return ""
+    # S6: место баннеров задаёт структура — блок «Banner» с источником «баннеры этой
+    # страницы». Стоит такой блок — это место по умолчанию молчит.
+    hexed = getattr(getattr(obj, "pk", None), "hex", "")
+    try:
+        from apps.core import page_settings
+
+        config = siteconfig.normalize(page_settings.raw_config(request))
+    except Exception:  # noqa: BLE001 — превью не должно ронять витрину
+        config = siteconfig.normalize(getattr(request.tenant, "site_config", None))
+    if kind == "category":
+        own = siteconfig.category_host(getattr(obj, "slug", ""))
+        hosts = [own if siteconfig.has_own_schema(config, own) else "catalog"]
+    elif kind in ("product", "service"):
+        hosts = [f"{kind}_detail", f"{kind}:{hexed}"]
+    else:
+        hosts = []
+    if banners.place_block_present(config, hosts):
+        return ""
+    picks = banners.picks_for_place(key)
     if not picks:
         return ""
     # `auto_place`: баннер стоит здесь сам, блока в схеме нет — без меток правки Студии
@@ -1173,10 +1194,23 @@ def hero_slides(context, heroes, choice=None):
 def banner_block_slides(context, block):
     """FB-29.2 S4: слайды блока «Banner», когда из библиотеки выбрано НЕСКОЛЬКО баннеров
     (слайдер). Один баннер или свой слайд блока рисует прежняя ветка (`banner_slide`)."""
-    if not isinstance(block, dict) or len(block.get("pick") or []) < 2:
+    pick = _block_picks(context, block)
+    if len(pick) < 2:
         return []
-    slides = hero_slides(context, [], {"pick": block["pick"]})
+    slides = hero_slides(context, [], {"pick": pick})
     return slides if len(slides) > 1 else []
+
+
+def _block_picks(context, block) -> list:
+    """Баннеры блока «Banner»: выбранные в нём либо (S6, источник «баннеры этой страницы»)
+    те, которым текущая страница задана в «Wo zeigen»."""
+    if not isinstance(block, dict):
+        return []
+    if block.get("from_page"):
+        from apps.core import banners
+
+        return banners.picks_for_place(banners.page_place_key(context))
+    return list(block.get("pick") or [])
 
 
 @register.simple_tag(takes_context=True)
@@ -1184,10 +1218,11 @@ def banner_slide(context, block):
     """FB-22b: C-блок «Banner» → слайд (как у главной) или None вне дат показа."""
     if not isinstance(block, dict):
         return None
-    if block.get("pick"):
+    if block.get("pick") or block.get("from_page"):
         # FB-29.2: баннер выбран из библиотеки — он вместо своего слайда блока (вне срока
         # блок пуст; свой слайд его не подменяет: владелец выбрал именно этот баннер)
-        slides = hero_slides(context, [], {"pick": block["pick"]})
+        pick = _block_picks(context, block)
+        slides = hero_slides(context, [], {"pick": pick}) if pick else []
         if not slides:
             return None
         first = slides[0]

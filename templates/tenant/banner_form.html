@@ -48,7 +48,7 @@
     <fieldset class="space-y-2 border-t border-gray-200 pt-4" data-banner-show-on>
       <legend class="text-sm font-semibold text-gray-900">{% trans "Wo zeigen" %}</legend>
       <input type="hidden" name="b_show_present" value="1">
-      <p class="text-xs text-gray-700">{% trans "Der Banner erscheint oben auf diesen Seiten – zusätzlich zu den Stellen im Seitenaufbau. Mehrere Banner auf einer Seite laufen als Slider." %}</p>
+      <p class="text-xs text-gray-700">{% trans "Der Banner erscheint auf diesen Seiten. Die Stelle auf der Seite bestimmt der Block «Banner» mit «Banner dieser Seite» im Seitenaufbau; ohne diesen Block steht der Banner an der üblichen Stelle. Mehrere Banner laufen als Slider." %} <a href="{% url 'site-schema' %}" class="font-semibold text-indigo-700 hover:underline">{% trans "Seitenaufbau öffnen" %}</a></p>
       {% for row in show_on %}
       <label class="flex min-h-[44px] items-center gap-2 text-sm"><input type="checkbox" name="b_show_keep" value="{{ row.value }}" checked class="rounded border-gray-500"> {% if row.label %}{{ row.label }}{% else %}{{ row.value }}{% endif %}{% if row.missing %} <span class="text-xs text-amber-900">({% trans "zurzeit nicht auf der Website" %})</span>{% endif %}</label>
       {% endfor %}
