@@ -116,3 +116,10 @@ def test_views_read_the_object_override():
                       (pathlib.Path("apps/events/views.py").read_text(), '"event"'),
                       (pathlib.Path("apps/promotions/views.py").read_text(), '"promo"')):  # fmt: skip
         assert "object_structure.apply_post(" in src and kind in src
+
+
+def test_promotion_never_stores_a_layout():
+    promo = SimpleNamespace(page_override={})
+    post = {"page_override_present": "1", "ps_layout": "tabs", "ps_blocks_first": "1"}
+    assert ost.apply_post(promo, "promo", post) == ["page_override"]
+    assert promo.page_override == {"blocks_first": True}

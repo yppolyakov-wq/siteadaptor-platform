@@ -143,6 +143,8 @@ def apply_post(obj, kind: str, post) -> list[str]:
     value = from_post(post, module)
     if value is None:
         return []
+    if kind not in LAYOUT_KINDS:
+        value.pop("layout", None)  # у акции шаблона страницы нет — присланное не храним
     changed = []
     if value != _raw(obj):
         obj.page_override = value

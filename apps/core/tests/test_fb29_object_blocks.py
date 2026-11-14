@@ -77,7 +77,10 @@ def test_object_host_is_built_from_the_primary_key_only():
 
 
 def test_object_hosts_have_their_own_cap():
-    blocks = {f"product:{uuid.uuid4().hex}": [_text(i, "x")] for i in range(70)}
+    blocks = {
+        f"product:{uuid.uuid4().hex}": [_text(i, "x")]
+        for i in range(siteconfig._MAX_OBJECT_HOSTS + 10)
+    }
     blocks["catalog:tee"] = [_text(99, "Tee")]
     out = siteconfig.normalize_page_blocks(blocks)
     assert sum(1 for k in out if k.startswith("product:")) == siteconfig._MAX_OBJECT_HOSTS
@@ -119,8 +122,11 @@ def test_object_page_has_no_type_settings():
     assert site_schema.setting_codes(tenant, ost.schema_code("product", p)) == []
 
 
-def test_the_sixty_first_object_is_refused_instead_of_vanishing():
-    blocks = {f"product:{_product(str(i)).pk.hex}": [_text(i, "x")] for i in range(60)}
+def test_object_over_the_cap_is_refused_instead_of_vanishing():
+    blocks = {
+        f"product:{_product(str(i)).pk.hex}": [_text(i, "x")]
+        for i in range(siteconfig._MAX_OBJECT_HOSTS)
+    }
     tenant = _tenant(blocks)
     p = _product()
     _resp, msgs = Browser(tenant).post(seite=ost.schema_code("product", p), op="add", type="text")
@@ -181,7 +187,9 @@ def test_reset_on_the_tab_keeps_the_own_blocks():
 
 def test_ghost_hosts_are_purged_when_room_is_needed():
     """Ревью: блоки удалённых объектов освобождают место — без хука на каждое удаление."""
-    blocks = {f"product:{uuid.uuid4().hex}": [_text(i, "x")] for i in range(60)}
+    blocks = {
+        f"product:{uuid.uuid4().hex}": [_text(i, "x")] for i in range(siteconfig._MAX_OBJECT_HOSTS)
+    }
     tenant = _tenant(blocks)
     p = _product()
     b = Browser(tenant)

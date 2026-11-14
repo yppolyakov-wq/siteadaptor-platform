@@ -1235,7 +1235,7 @@ _CONTENT_PAGE_HOST_RE = re.compile(r"^seite:[a-z0-9]+(?:-[a-z0-9]+)*$")
 #: «product:<uuid hex>» / «service:<uuid hex>». Свой потолок: объектов тысячи, а конфиг
 #: читается на каждом запросе.
 OBJECT_HOST_KINDS = ("product", "service", "stay", "event", "promo")
-_MAX_OBJECT_HOSTS = 60
+_MAX_OBJECT_HOSTS = 120  # R5: видов объектов пять (товар, услуга, номер, событие, акция)
 _OBJECT_HOST_RE = re.compile(r"^(?:product|service|stay|event|promo):[0-9a-f]{32}\Z")
 
 

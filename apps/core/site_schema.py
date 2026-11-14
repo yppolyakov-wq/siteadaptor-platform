@@ -372,8 +372,13 @@ def object_back(code: str) -> dict | None:
 
 
 def _object_label(obj) -> str:
-    for attr in ("name", "title"):
+    for attr in ("name_localized", "title_localized", "name", "title"):
         label = getattr(obj, attr, "")
+        if callable(label):
+            try:
+                label = label()  # на языке кабинета
+            except TypeError:
+                continue
         if isinstance(label, dict):
             label = label.get("de") or next(iter(label.values()), "")
         if label:
