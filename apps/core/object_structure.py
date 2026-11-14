@@ -113,11 +113,11 @@ def apply_post(obj, kind: str, post) -> list[str]:
     if value != _raw(obj):
         obj.page_override = value
         changed.append("page_override")
-    if post.get("ps_reset"):
-        if getattr(obj, "card_style", ""):
-            obj.card_style = ""
-            changed.append("card_style")
-        drop_blocks(kind, obj)  # и свои блоки объекта
+    # Свои блоки объекта сброс НЕ трогает: это содержимое сайта (право `website.edit`),
+    # их убирают на экране «Seitenaufbau».
+    if post.get("ps_reset") and getattr(obj, "card_style", ""):
+        obj.card_style = ""
+        changed.append("card_style")
     return changed
 
 
@@ -203,15 +203,56 @@ def drop_blocks(kind: str, obj) -> bool:
     return content_pages.move_page_blocks(hexed, None, prefix=f"{kind}:")
 
 
-def reset(obj, kind: str) -> list[str]:
-    """«Zurück zum Standard» целиком: отличия, форма карточки и свои блоки. Возвращает
-    изменённые поля объекта (сохраняет вызывающий)."""
-    changed = []
-    if _raw(obj):
-        obj.page_override = {}
-        changed.append("page_override")
-    if getattr(obj, "card_style", ""):
-        obj.card_style = ""
-        changed.append("card_style")
-    drop_blocks(kind, obj)
-    return changed
+def purge_ghost_hosts(tenant) -> int:
+    """Убрать свои блоки объектов, которых больше нет (удалены, в том числе в корзину) —
+    их хосты занимали бы место в потолке. Зовётся, когда места не хватает: до этого блоки
+    удалённого в корзину товара целы и возвращаются вместе с ним. Один проход, одна
+    запись настроек (с переводами блоков)."""
+    import copy
+    import importlib
+    import uuid
+
+    from django.db import transaction
+
+    from apps.tenants import siteconfig
+    from apps.tenants.models import Tenant
+
+    models = {
+        "product": ("apps.catalog.models", "Product"),
+        "service": ("apps.booking.models", "Service"),
+    }
+    with transaction.atomic():
+        fresh = Tenant.objects.select_for_update().filter(pk=getattr(tenant, "pk", None)).first()
+        if fresh is None:
+            return 0
+        config = copy.deepcopy(fresh.site_config or {})
+        blocks = config.get("page_blocks") if isinstance(config.get("page_blocks"), dict) else {}
+        ghosts = []
+        for kind, (module, name) in models.items():
+            mine = {
+                h.split(":", 1)[1]: h
+                for h in blocks
+                if siteconfig.is_object_host(h) and h.startswith(f"{kind}:")
+            }
+            if not mine:
+                continue
+            model = getattr(importlib.import_module(module), name)
+            alive = {
+                pk.hex
+                for pk in model.objects.filter(pk__in=[uuid.UUID(x) for x in mine]).values_list(
+                    "pk", flat=True
+                )
+            }
+            ghosts += [host for hexed, host in mine.items() if hexed not in alive]
+        if not ghosts:
+            return 0
+        for host in ghosts:
+            blocks.pop(host, None)
+            for layer in (config.get("i18n") or {}).values():
+                over = layer.get("page_blocks") if isinstance(layer, dict) else None
+                if isinstance(over, dict):
+                    over.pop(host, None)
+        fresh.site_config = config
+        fresh.save(update_fields=["site_config"])
+        tenant.site_config = config
+    return len(ghosts)

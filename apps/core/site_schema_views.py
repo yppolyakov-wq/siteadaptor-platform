@@ -272,6 +272,13 @@ def site_schema_view(request):
         {"preview": "1", "aufbau": code} if draft else {"preview": "1", "stand": "saved"}
     )
     labels = {r.code: r.label for r in rows}
+    # FB-29.4b (ревью): черновики своих блоков других объектов остаются и видны в списке
+    # «weitere Entwürfe» — строки объектов в общий выбор не входят.
+    for other in aufbau_draft.dirty_codes(request):
+        if other not in labels and site_schema.is_object_code(other):
+            row = site_schema.object_row(saved, other)
+            if row is not None:
+                labels[other] = row.label
     aufbau_draft.prune(request, labels)
     other_drafts = [
         {"code": c, "label": labels[c]}

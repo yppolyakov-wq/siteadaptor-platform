@@ -119,7 +119,7 @@ def test_object_page_has_no_type_settings():
 
 
 def test_the_sixty_first_object_is_refused_instead_of_vanishing():
-    blocks = {f"product:{uuid.uuid4().hex}": [_text(i, "x")] for i in range(60)}
+    blocks = {f"product:{_product(str(i)).pk.hex}": [_text(i, "x")] for i in range(60)}
     tenant = _tenant(blocks)
     p = _product()
     _resp, msgs = Browser(tenant).post(seite=ost.schema_code("product", p), op="add", type="text")
@@ -168,9 +168,53 @@ def test_deleting_the_object_frees_its_host_with_translations():
     assert host not in fresh["i18n"]["en"]["page_blocks"]
 
 
-def test_reset_on_the_tab_removes_the_own_blocks():
+def test_reset_on_the_tab_keeps_the_own_blocks():
+    """Ревью: сброс вкладки — право каталога; блоки сайта он не трогает."""
     p = _product()
     host = f"product:{p.pk.hex}"
     tenant = _tenant({host: [_text(1, "Nur hier")]})
-    assert ost.reset(p, "product") is not None
-    assert host not in _hosts(tenant)
+    p.page_override = {"hidden": ["reviews"]}
+    changed = ost.apply_post(p, "product", {"page_override_present": "1", "ps_reset": "1"})
+    assert changed == ["page_override"] and host in _hosts(tenant)
+
+
+def test_ghost_hosts_are_purged_when_room_is_needed():
+    """Ревью: блоки удалённых объектов освобождают место — без хука на каждое удаление."""
+    blocks = {f"product:{uuid.uuid4().hex}": [_text(i, "x")] for i in range(60)}
+    tenant = _tenant(blocks)
+    p = _product()
+    b = Browser(tenant)
+    resp, msgs = b.post(seite=ost.schema_code("product", p), op="add", type="text")
+    assert not msgs, "призраки убраны, место нашлось"
+    assert not any(k.startswith("product:") for k in _hosts(tenant))
+
+
+def test_deleted_to_trash_product_keeps_its_blocks_until_room_is_needed():
+    p = _product()
+    host = f"product:{p.pk.hex}"
+    tenant = _tenant({host: [_text(1, "Nur hier")]})
+    p.delete()  # корзина: товар можно вернуть — блоки целы
+    assert host in _hosts(tenant)
+
+
+def test_object_draft_survives_opening_another_page():
+    tenant = _tenant()
+    p = _product()
+    code = ost.schema_code("product", p)
+    b = Browser(tenant)
+    b.post(seite=code, op="add", type="text")
+    html = b.get("?seite=home")
+    assert "Darjeeling" in html, "черновик объекта виден среди прочих черновиков"
+    b.post(seite=code, op="save")
+    assert list(_hosts(tenant)) == [f"product:{p.pk.hex}"]
+
+
+def test_enter_in_the_form_does_not_press_reset():
+    import pathlib
+
+    part = pathlib.Path("templates/tenant/_object_structure.html").read_text()
+    assert part.index("data-ps-default-submit") < part.index('name="ps_reset"')
+
+
+def test_host_pattern_rejects_a_trailing_newline():
+    assert not siteconfig.is_object_host("product:" + "a" * 32 + "\n")

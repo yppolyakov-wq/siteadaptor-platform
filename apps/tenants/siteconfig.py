@@ -1240,7 +1240,7 @@ _CONTENT_PAGE_HOST_RE = re.compile(r"^seite:[a-z0-9]+(?:-[a-z0-9]+)*$")
 #: читается на каждом запросе.
 OBJECT_HOST_KINDS = ("product", "service")
 _MAX_OBJECT_HOSTS = 60
-_OBJECT_HOST_RE = re.compile(r"^(?:product|service):[0-9a-f]{32}$")
+_OBJECT_HOST_RE = re.compile(r"^(?:product|service):[0-9a-f]{32}\Z")
 
 
 def is_object_host(host) -> bool:

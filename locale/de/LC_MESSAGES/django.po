@@ -37936,3 +37936,6 @@ msgstr "Blöcke bearbeiten"
 
 msgid "Setzt Abschnitte, Seitenvorlage, Kartenform und eigene Blöcke dieser Seite zurück."
 msgstr "Setzt Abschnitte, Seitenvorlage, Kartenform und eigene Blöcke dieser Seite zurück."
+
+msgid "Eigene Blöcke bleiben – sie entfernen Sie unter «Blöcke bearbeiten»."
+msgstr "Eigene Blöcke bleiben – sie entfernen Sie unter «Blöcke bearbeiten»."

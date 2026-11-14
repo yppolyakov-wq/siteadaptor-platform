@@ -37849,3 +37849,6 @@ msgstr "Edit blocks"
 
 msgid "Setzt Abschnitte, Seitenvorlage, Kartenform und eigene Blöcke dieser Seite zurück."
 msgstr "Resets sections, page template, card form and own blocks of this page."
+
+msgid "Eigene Blöcke bleiben – sie entfernen Sie unter «Blöcke bearbeiten»."
+msgstr "Own blocks stay – remove them under “Edit blocks”."

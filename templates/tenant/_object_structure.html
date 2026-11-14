@@ -1,6 +1,8 @@
 {% load i18n %}{% comment %}FB-29.4b: вкладка «Seitenaufbau» объекта (товар, услуга) — отличия его страницы от общего вида. Живёт ВНУТРИ формы объекта; сентинел `page_override_present` (W0: без него сохранение из другого места поле не трогает). Параметры: ps (object_structure.panel), shared_url — «Website › Seitenaufbau» этого типа страниц.{% endcomment %}
 <div class="space-y-4" data-object-structure>
   <input type="hidden" name="page_override_present" value="1">
+  {% comment %}Ревью: первая кнопка отправки формы — обычное сохранение. Без неё Enter в любом поле формы нажимал бы «Zurück zum Standard» (она стоит раньше «Speichern»).{% endcomment %}
+  <button type="submit" class="hidden" tabindex="-1" data-ps-default-submit>{% trans "Save" %}</button>
   <div class="flex flex-wrap items-start justify-between gap-3">
     <p class="text-sm text-gray-700 max-w-xl">{% trans "Der Standard kommt aus dem Seitenaufbau der Website. Hier ändern Sie nur diese eine Seite." %}{% if shared_url %} <a href="{{ shared_url }}" class="font-semibold text-indigo-700 hover:underline">{% trans "Seitenaufbau für alle öffnen" %}</a>{% endif %}</p>
     {% if ps.deviations %}<span class="rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-900" data-ps-deviations>{% trans "Abweichungen" %}: {{ ps.deviations }}</span>{% endif %}
@@ -40,10 +42,10 @@
     </div>
   </div>
   {% endif %}
-  {% if ps.deviations or card_style_set or ps.own_blocks %}
+  {% if ps.deviations or card_style_set %}
   <div class="flex flex-wrap items-center gap-3 border-t border-gray-200 pt-3">
     <button type="submit" name="ps_reset" value="1" class="ui-btn ui-btn-secondary min-h-[44px]">{% trans "Zurück zum Standard" %}</button>
-    <span class="text-xs text-gray-700">{% trans "Setzt Abschnitte, Seitenvorlage, Kartenform und eigene Blöcke dieser Seite zurück." %}</span>
+    <span class="text-xs text-gray-700">{% trans "Setzt Abschnitte, Seitenvorlage und Kartenform dieser Seite zurück." %}{% if ps.own_blocks %} {% trans "Eigene Blöcke bleiben – sie entfernen Sie unter «Blöcke bearbeiten»." %}{% endif %}</span>
   </div>
   {% endif %}
 </div>

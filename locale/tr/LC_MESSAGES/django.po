@@ -37995,3 +37995,6 @@ msgstr "Blokları düzenle"
 
 msgid "Setzt Abschnitte, Seitenvorlage, Kartenform und eigene Blöcke dieser Seite zurück."
 msgstr "Bu sayfanın bölümlerini, şablonunu, kart biçimini ve kendi bloklarını sıfırlar."
+
+msgid "Eigene Blöcke bleiben – sie entfernen Sie unter «Blöcke bearbeiten»."
+msgstr "Kendi bloklar kalır – onları «Blokları düzenle» altında kaldırırsınız."

@@ -208,6 +208,7 @@ def op(
         op_name in ("add", "add_row")
         and siteconfig.is_object_host(host)
         and siteconfig.object_hosts_full(config, host)
+        and not _room_after_purge(tenant, host)
     ):
         raise site_schema.SchemaError("objects")
     elif op_name in ("adopt", "reset"):
@@ -353,6 +354,18 @@ def commit(request, tenant, code: str, *, force: bool = False) -> bool:
     tenant.site_config = locked.site_config
     _put(request, code, None)
     return True
+
+
+def _room_after_purge(tenant, host) -> bool:
+    """FB-29.4b: места для своих блоков объекта нет — сначала убрать блоки удалённых
+    объектов (хосты-призраки), затем проверить ещё раз."""
+    from apps.core import object_structure
+    from apps.tenants import siteconfig
+
+    if not object_structure.purge_ghost_hosts(tenant):
+        return False
+    tenant.refresh_from_db(fields=["site_config"])
+    return not siteconfig.object_hosts_full(siteconfig.normalize(tenant.site_config), host)
 
 
 def prune(request, known_codes) -> None:
