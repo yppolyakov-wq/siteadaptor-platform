@@ -67,7 +67,11 @@ def _form(request, banner, values, error=""):
             "places": banners.places(request.tenant, banner) if banner else [],
             # FB-29.2c: «Wo zeigen» — страницы, где баннер показывается сам
             "show_on": banners.show_on_rows(request.tenant, banner) if banner else [],
-            "show_options": banners.place_options(request.tenant),
+            # R1: поиск страниц (GET `wo`) — по всем записям, выбранные не предлагаются
+            "show_query": (request.GET.get("wo") or "").strip()[:80],
+            "show_groups": banners.place_search(
+                request.GET.get("wo") or "", exclude=banner.show_on if banner else ()
+            ),
         },
     )
 
@@ -112,8 +116,7 @@ def _save(request, banner):
             banners.set_show_on(
                 banner,
                 keep=request.POST.getlist("b_show_keep"),
-                add=[request.POST.get("b_show_add", "")],
-                allowed={o["value"] for o in banners.place_options(request.tenant)},
+                add=request.POST.getlist("b_show_add"),
             )
     except ValueError as exc:
         error = (

@@ -37916,3 +37916,18 @@ msgstr "Back to “%(name)s”"
 
 msgid "Diese Blöcke erscheinen nur auf dieser einen Seite."
 msgstr "These blocks appear only on this one page."
+
+msgid "Seiten hinzufügen"
+msgstr "Add pages"
+
+msgid "Name der Kategorie, des Produkts, der Leistung oder Aktion"
+msgstr "Name of the category, product, service or promotion"
+
+msgid "Suche lädt die Seite neu – ungespeicherte Änderungen am Banner vorher speichern."
+msgstr "Searching reloads the page – save unsaved changes to the banner first."
+
+msgid "Noch keine Seiten zum Auswählen."
+msgstr "No pages to choose from yet."
+
+msgid "Seiten ankreuzen und speichern. Nicht dabei? Mit der Suche finden Sie jede Seite."
+msgstr "Tick pages and save. Not listed? The search finds every page."

@@ -38255,3 +38255,18 @@ msgstr "Назад к «%(name)s»"
 
 msgid "Diese Blöcke erscheinen nur auf dieser einen Seite."
 msgstr "Эти блоки показываются только на этой странице."
+
+msgid "Seiten hinzufügen"
+msgstr "Добавить страницы"
+
+msgid "Name der Kategorie, des Produkts, der Leistung oder Aktion"
+msgstr "Название категории, товара, услуги или акции"
+
+msgid "Suche lädt die Seite neu – ungespeicherte Änderungen am Banner vorher speichern."
+msgstr "Поиск перезагружает страницу — сначала сохраните несохранённые правки баннера."
+
+msgid "Noch keine Seiten zum Auswählen."
+msgstr "Пока нет страниц для выбора."
+
+msgid "Seiten ankreuzen und speichern. Nicht dabei? Mit der Suche finden Sie jede Seite."
+msgstr "Отметьте страницы и сохраните. Нет в списке? Поиск находит любую страницу."

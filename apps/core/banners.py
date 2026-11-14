@@ -9,6 +9,7 @@
 from __future__ import annotations
 
 import datetime
+import logging
 import re
 import uuid
 
@@ -575,15 +576,18 @@ def _place_ok(value) -> bool:
     return kind in SHOW_ON_TYPES and bool(target.strip())
 
 
-def set_show_on(banner, *, keep, add, allowed) -> list[str]:
+def set_show_on(banner, *, keep, add, allowed=None) -> list[str]:
     """Записать места показа баннера. `keep` — отмеченные в форме из уже сохранённых
     (оставить можно только то, что было); `add` — новые, только из `allowed` (цели,
     которые сайт сейчас открывает). Порядок — как добавляли, без повторов, с потолком."""
     current = [v for v in (banner.show_on or []) if _place_ok(v)]
     kept = set(keep or [])
     out = [v for v in current if v in kept]
-    for value in add or []:
-        if _place_ok(value) and value in allowed and value not in out:
+    wanted = [v for v in (add or []) if _place_ok(v) and v not in out]
+    if allowed is None:
+        allowed = set(place_labels(wanted))  # R1: допустимо то, что есть на сайте
+    for value in wanted:
+        if value in allowed and value not in out:
             out.append(value)
     out = out[:SHOW_ON_MAX]
     if out != (banner.show_on or []):
@@ -592,26 +596,114 @@ def set_show_on(banner, *, keep, add, allowed) -> list[str]:
     return out
 
 
-def place_options(tenant) -> list[dict]:
-    """Места для выбора «Ort hinzufügen»: цели меню нужных видов, которые сайт открывает."""
-    from apps.tenants import menu
+#: FB-29 R1: сколько страниц одного вида предлагает поиск «Wo zeigen».
+PLACE_SEARCH_LIMIT = 30
 
-    return [
-        {"group": o["group"], "value": o["value"], "label": o["label"]}
-        for o in menu.target_options(tenant)
-        if o["available"] and o["value"].split(":", 1)[0] in SHOW_ON_TYPES and _place_ok(o["value"])
-    ]
+
+def _place_sources() -> dict:
+    """Вид места → (модель, фильтр «сайт показывает», поле цели, подпись группы)."""
+    from django.utils.translation import gettext_lazy as _
+
+    from apps.booking.models import Service
+    from apps.catalog.models import Category, Product
+    from apps.promotions.models import Promotion
+
+    return {
+        "category": (Category, {"is_active": True}, "slug", _("Kategorien")),
+        "product": (Product, {"is_active": True}, "pk", _("Produkte")),
+        "service": (Service, {"is_active": True}, "pk", _("Leistungen")),
+        "promotion": (Promotion, {}, "pk", _("Aktionen")),
+    }
+
+
+def _place_label(obj) -> str:
+    for attr in ("name_localized", "title_text", "name"):
+        value = getattr(obj, attr, None)
+        if callable(value):
+            value = value()
+        if isinstance(value, dict):
+            value = value.get("de") or next(iter(value.values()), "")
+        if value:
+            return str(value)
+    return str(obj)
+
+
+def _targets(kind: str, values) -> list:
+    """Цели вида в форме, пригодной для запроса (UUID либо слаг); мусор отбрасывается."""
+    if kind == "category":
+        return [v for v in values if v]
+    out = []
+    for value in values:
+        try:
+            out.append(uuid.UUID(str(value)))
+        except (ValueError, TypeError):
+            continue
+    return out
+
+
+def place_labels(values) -> dict:
+    """Ключ места → «Группа: название» для существующих страниц (по запросу на вид)."""
+    from django.db import DatabaseError
+
+    by_kind: dict = {}
+    for value in values or []:
+        if _place_ok(value):
+            kind, target = value.split(":", 1)
+            by_kind.setdefault(kind, []).append(target)
+    out: dict = {}
+    sources = _place_sources()
+    for kind, targets in by_kind.items():
+        model, flt, field, group = sources[kind]
+        try:
+            rows = model.objects.filter(**flt, **{f"{field}__in": _targets(kind, targets)})
+            for obj in rows:
+                out[f"{kind}:{getattr(obj, field)}"] = f"{group}: {_place_label(obj)}"
+        except DatabaseError:
+            logging.getLogger(__name__).exception("banner places: labels failed for %s", kind)
+    return out
+
+
+def place_exists(value) -> bool:
+    """Есть ли такая страница на сайте — проверка нового места по базе (а не по списку
+    целей меню с его потолком)."""
+    return _place_ok(value) and value in place_labels([value])
+
+
+def place_search(query: str = "", exclude=()) -> list[dict]:
+    """Страницы для «Seite hinzufügen»: [{label, items: [{value, label}]}]. С запросом —
+    поиск по названию во всех записях вида; без запроса — начало списка."""
+    from django.db import DatabaseError
+
+    query = (query or "").strip()[:80].lower()
+    skip = set(exclude or ())
+    groups = []
+    for kind, (model, flt, field, group) in _place_sources().items():
+        items = []
+        try:
+            rows = model.objects.filter(**flt).order_by("pk")
+            # Названия — JSON по языкам (или обычная строка): ищем по подписи в Python,
+            # ограничив выборку, — у малого бизнеса записей сотни, не миллионы.
+            for obj in rows[:5000] if query else rows[: PLACE_SEARCH_LIMIT * 2]:
+                value = f"{kind}:{getattr(obj, field)}"
+                label = _place_label(obj)
+                if value in skip or (query and query not in label.lower()):
+                    continue
+                items.append({"value": value, "label": label})
+                if len(items) >= PLACE_SEARCH_LIMIT:
+                    break
+        except DatabaseError:
+            logging.getLogger(__name__).exception("banner places: search failed for %s", kind)
+        if items:
+            groups.append({"label": str(group), "items": items})
+    return groups
 
 
 def show_on_rows(tenant, banner) -> list[dict]:
     """Сохранённые места с названиями (место, которого сайт сейчас не открывает, —
     с пометкой: запись выключена или удалена)."""
-    labels = {o["value"]: f"{o['group']}: {o['label']}" for o in place_options(tenant)}
-    return [
-        {"value": v, "label": labels.get(v, ""), "missing": v not in labels}
-        for v in (banner.show_on or [])
-        if _place_ok(v)
-    ]
+    values = [v for v in (banner.show_on or []) if _place_ok(v)]
+    labels = place_labels(values)
+    return [{"value": v, "label": labels.get(v, ""), "missing": v not in labels} for v in values]
 
 
 def rename_place(old: str, new: str) -> int:

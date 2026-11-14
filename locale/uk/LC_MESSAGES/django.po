@@ -38242,3 +38242,18 @@ msgstr "Назад до «%(name)s»"
 
 msgid "Diese Blöcke erscheinen nur auf dieser einen Seite."
 msgstr "Ці блоки показуються лише на цій сторінці."
+
+msgid "Seiten hinzufügen"
+msgstr "Додати сторінки"
+
+msgid "Name der Kategorie, des Produkts, der Leistung oder Aktion"
+msgstr "Назва категорії, товару, послуги чи акції"
+
+msgid "Suche lädt die Seite neu – ungespeicherte Änderungen am Banner vorher speichern."
+msgstr "Пошук перезавантажує сторінку — спершу збережіть незбережені зміни банера."
+
+msgid "Noch keine Seiten zum Auswählen."
+msgstr "Поки немає сторінок для вибору."
+
+msgid "Seiten ankreuzen und speichern. Nicht dabei? Mit der Suche finden Sie jede Seite."
+msgstr "Позначте сторінки й збережіть. Немає в списку? Пошук знаходить будь-яку сторінку."

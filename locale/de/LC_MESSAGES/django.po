@@ -38003,3 +38003,18 @@ msgstr "Zurück zu «%(name)s»"
 
 msgid "Diese Blöcke erscheinen nur auf dieser einen Seite."
 msgstr "Diese Blöcke erscheinen nur auf dieser einen Seite."
+
+msgid "Seiten hinzufügen"
+msgstr "Seiten hinzufügen"
+
+msgid "Name der Kategorie, des Produkts, der Leistung oder Aktion"
+msgstr "Name der Kategorie, des Produkts, der Leistung oder Aktion"
+
+msgid "Suche lädt die Seite neu – ungespeicherte Änderungen am Banner vorher speichern."
+msgstr "Suche lädt die Seite neu – ungespeicherte Änderungen am Banner vorher speichern."
+
+msgid "Noch keine Seiten zum Auswählen."
+msgstr "Noch keine Seiten zum Auswählen."
+
+msgid "Seiten ankreuzen und speichern. Nicht dabei? Mit der Suche finden Sie jede Seite."
+msgstr "Seiten ankreuzen und speichern. Nicht dabei? Mit der Suche finden Sie jede Seite."

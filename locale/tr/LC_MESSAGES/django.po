@@ -38062,3 +38062,18 @@ msgstr "«%(name)s» sayfasına dön"
 
 msgid "Diese Blöcke erscheinen nur auf dieser einen Seite."
 msgstr "Bu bloklar yalnızca bu sayfada görünür."
+
+msgid "Seiten hinzufügen"
+msgstr "Sayfa ekle"
+
+msgid "Name der Kategorie, des Produkts, der Leistung oder Aktion"
+msgstr "Kategori, ürün, hizmet veya kampanya adı"
+
+msgid "Suche lädt die Seite neu – ungespeicherte Änderungen am Banner vorher speichern."
+msgstr "Arama sayfayı yeniden yükler – banner'daki kaydedilmemiş değişiklikleri önce kaydedin."
+
+msgid "Noch keine Seiten zum Auswählen."
+msgstr "Henüz seçilecek sayfa yok."
+
+msgid "Seiten ankreuzen und speichern. Nicht dabei? Mit der Suche finden Sie jede Seite."
+msgstr "Sayfaları işaretleyip kaydedin. Listede yok mu? Arama her sayfayı bulur."

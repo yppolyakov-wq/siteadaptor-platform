@@ -167,7 +167,7 @@ def test_form_shows_the_places_with_their_names():
     b = _banner()
     Banner.objects.filter(pk=b.pk).update(show_on=[f"product:{p.pk}"])
     html = views.banner_edit(_req(user=_user()), pk=b.pk).content.decode()
-    assert 'name="b_show_present"' in html and 'name="b_show_add"' in html
+    assert 'name="b_show_present"' in html and 'name="wo"' in html  # R1: поиск страниц
     assert 'name="b_show_keep"' in html and "Darjeeling" in html
     assert reverse("site-banners") in html
 
