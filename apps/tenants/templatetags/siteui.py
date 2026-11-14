@@ -290,9 +290,24 @@ def list_block(context, block):
     cfg = site if isinstance(site, dict) and "sections" in site else None
     if cfg is None:
         cfg = siteconfig.normalize(tenant.site_config)
+    # FB-29 R7: блок в узкой ширине (⅔, ½, ⅓) — столько колонок, сколько помещается
+    row = context.get("b")
+    width = row.get("width") if isinstance(row, dict) else ""
+    if width in siteconfig._NARROW_COLS:
+        layout = list_blocks.effective_view(cfg, data)["layout"]
+        if not layout.get("scroll"):
+            data = _narrow_list_data(data, width, int(layout.get("cols") or 0))
     # LB-3: та же выборка, что уже посчитала вьюха страницы акций (чипы Sprungleiste),
     # — из кэша запроса, а не вторым набором запросов.
     return list_blocks.resolve_for(request, cfg, data)
+
+
+def _narrow_list_data(data: dict, width: str, cols: int) -> dict:
+    """Данные блока «Liste» с числом колонок, которое помещается в его ширину."""
+    cap = siteconfig._NARROW_COLS.get(width)
+    if not cap or cols <= cap:
+        return data
+    return {**data, "cols": cap}
 
 
 def _is_promo_list(block) -> bool:
@@ -439,7 +454,8 @@ def place_banners(context, kind, obj):
             hosts = [own if siteconfig.has_own_schema(config, own) else "catalog"]
         else:  # блок-место — в блоках типа страницы либо в своих блоках объекта (R5)
             hexed = getattr(getattr(obj, "pk", None), "hex", "")
-            code = "promo" if kind == "promotion" else kind
+            # акция — тип «promo»; тур делит тип страницы с событием
+            code = {"promotion": "promo", "tour": "event"}.get(kind, kind)
             hosts = [f"{code}_detail", f"{code}:{hexed}"]
         if banners.place_block_present(config, hosts):
             return ""

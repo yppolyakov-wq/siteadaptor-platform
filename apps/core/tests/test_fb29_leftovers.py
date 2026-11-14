@@ -119,3 +119,43 @@ def test_storage_failure_does_not_break_the_delete(monkeypatch):
 
     monkeypatch.setattr(media_registry, "used_paths", boom)
     banners._drop_file("hero/x.jpg", None)  # не бросает
+
+
+# --- R7 ---
+
+
+def test_tour_page_renders_the_blocks_of_its_page_type():
+    """Тип «Veranstaltungsseite» объявляет и маршрут тура — блок должен быть виден и там."""
+    src = pathlib.Path("templates/storefront/tour_detail.html").read_text()
+    assert '{% page_blocks "event_detail" %}' in src
+
+
+def test_place_block_on_the_tour_page_silences_the_default_place():
+    from django.template import Context, Template
+    from django.test import RequestFactory
+
+    from apps.events.models import Tour
+
+    tour = Tour.objects.create(title="Rheinsteig", slug="rheinsteig-r7", is_published=True)
+    b = banners.create({"title": "Tourbanner", "image": {"url": "/media/hero/a.jpg"}})
+    banners.set_show_on(b, keep=[], add=[f"tour:{tour.pk}"])
+    place = {"key": "banner", "id": "b1", "enabled": True, "data": {"from_page": True}}
+    tpl = Template('{% load siteui %}{% place_banners "tour" tour %}')
+
+    def render(blocks):
+        request = RequestFactory().get("/")
+        request.tenant = TenantFactory.build(site_config={"page_blocks": {"event_detail": blocks}})
+        return tpl.render(Context({"request": request, "tour": tour}))
+
+    assert "Tourbanner" in render([])
+    assert render([place]).strip() == ""
+
+
+def test_own_list_block_in_a_narrow_width_gets_the_columns_that_fit():
+    from apps.tenants.templatetags import siteui
+
+    assert siteui._narrow_list_data({"cols": 4}, "w12", 4) == {"cols": 2}
+    assert siteui._narrow_list_data({}, "w13", 4) == {"cols": 1}
+    assert siteui._narrow_list_data({"cols": 2}, "w12", 2) == {"cols": 2}, "помещается — не трогаем"
+    assert siteui._narrow_list_data({"cols": 4}, "full", 4) == {"cols": 4}
+    assert siteui._narrow_list_data({"cols": 4}, "", 4) == {"cols": 4}

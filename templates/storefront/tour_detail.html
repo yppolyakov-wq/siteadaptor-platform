@@ -107,4 +107,6 @@ MT-1: страница тур-продукта. Контент живёт зде
       </div>
     {% endif %}
   </section>
-{% endwith %}{% endblock %}
+{% endwith %}
+{% comment %}FB-29 R7: блоки типа страницы «Veranstaltungsseite» — он объявляет и маршрут тура.{% endcomment %}
+{% page_blocks "event_detail" %}{% endblock %}
