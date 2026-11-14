@@ -37946,3 +37946,6 @@ msgstr "Samples – only in this preview. They do not appear on your website."
 
 msgid "Hier fügen Sie Blöcke nur für diese eine Seite hinzu."
 msgstr "Here you add blocks for this one page only."
+
+msgid "Sie stehen danach wieder unter den Blöcken der Seite."
+msgstr "Afterwards they are placed below the page's blocks again."

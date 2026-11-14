@@ -38092,3 +38092,6 @@ msgstr "Örnekler – yalnızca bu önizlemede. Web sitenizde görünmezler."
 
 msgid "Hier fügen Sie Blöcke nur für diese eine Seite hinzu."
 msgstr "Burada yalnızca bu sayfa için blok eklersiniz."
+
+msgid "Sie stehen danach wieder unter den Blöcken der Seite."
+msgstr "Ardından yeniden sayfanın bloklarının altında yer alırlar."

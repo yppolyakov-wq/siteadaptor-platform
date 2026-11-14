@@ -38272,3 +38272,6 @@ msgstr "Приклади — лише в цьому попередньому п�
 
 msgid "Hier fügen Sie Blöcke nur für diese eine Seite hinzu."
 msgstr "Тут додаються блоки лише для цієї сторінки."
+
+msgid "Sie stehen danach wieder unter den Blöcken der Seite."
+msgstr "Після цього вони знову стоять під блоками сторінки."

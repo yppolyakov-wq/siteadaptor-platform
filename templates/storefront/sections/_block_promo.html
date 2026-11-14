@@ -11,7 +11,7 @@
     своего data-mystery-root (reveal фолбэком раскрывал ВСЕ mystery-цены страницы).
     Эффективный стиль = style_hint блока или стиль акции — как в _discount_display.{% endcomment %}
     {% with eff_mystery=block.style_hint|default:promo.discount_style %}
-    <div class="sf-card relative overflow-hidden bg-white rounded-2xl shadow-sm md:grid md:grid-cols-2"{% if eff_mystery == 'mystery' %} data-mystery-root="{{ promo.pk }}"{% endif %}>
+    <div class="sf-card relative overflow-hidden bg-white rounded-2xl shadow-sm md:grid {% if b.width != 'w13' and b.width != 'w12' %}md:grid-cols-2{% endif %}"{% if eff_mystery == 'mystery' %} data-mystery-root="{{ promo.pk }}"{% endif %}>
       <div class="relative aspect-[4/3] md:aspect-auto bg-gray-100">
         {% with img=promo.primary_image %}
           {% if img %}<img src="{{ img.url }}" alt="{{ promo.title_text }}" loading="lazy" decoding="async"{% if eff_mystery == 'mystery' %} data-mystery-blur{% endif %} class="w-full h-full object-cover{% if eff_mystery == 'mystery' %} blur-lg{% endif %}">{% endif %}

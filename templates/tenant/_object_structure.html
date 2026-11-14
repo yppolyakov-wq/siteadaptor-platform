@@ -48,7 +48,7 @@
   {% if ps.deviations or card_style_set %}
   <div class="flex flex-wrap items-center gap-3 border-t border-gray-200 pt-3">
     <button type="submit" name="ps_reset" value="1" aria-describedby="ps-reset-help" class="ui-btn ui-btn-secondary min-h-[44px]">{% trans "Zurück zum Standard" %}</button>
-    <span class="text-xs text-gray-700" id="ps-reset-help">{% trans "Setzt Abschnitte, Seitenvorlage und Kartenform dieser Seite zurück." %}{% if ps.own_blocks %} {% trans "Eigene Blöcke bleiben – sie entfernen Sie unter «Blöcke bearbeiten»." %}{% endif %}</span>
+    <span class="text-xs text-gray-700" id="ps-reset-help">{% trans "Setzt Abschnitte, Seitenvorlage und Kartenform dieser Seite zurück." %}{% if ps.own_blocks %} {% trans "Eigene Blöcke bleiben – sie entfernen Sie unter «Blöcke bearbeiten»." %}{% endif %}{% if ps.blocks_first %} {% trans "Sie stehen danach wieder unter den Blöcken der Seite." %}{% endif %}</span>
   </div>
   {% endif %}
 </div>

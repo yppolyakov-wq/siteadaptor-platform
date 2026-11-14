@@ -184,3 +184,43 @@ def test_narrow_width_reaches_the_list_block_through_the_row(monkeypatch):
     assert cols("w13") == 1
     assert cols("full") == 4
     assert cols("w12", scroll=True) == 4, "лента листается — колонки не режем"
+
+
+# --- T5 ---
+
+
+def test_grid_blocks_in_a_narrow_width_stack_their_columns():
+    """Блоки-сетки (цифры, фото+текст) в узкой ширине не делят её ещё раз на колонки."""
+    from django.template import Context, Template
+
+    stats = {"rows": [{"value": "7", "label": "Jahre"}, {"value": "3", "label": "Läden"}] * 2}
+    tpl = Template('{% load siteui %}{% page_blocks "info" %}')
+
+    def render(width):
+        blocks = [
+            {"key": "stats", "id": "s1", "enabled": True, "width": width, "data": stats},
+            {
+                "key": "image_text",
+                "id": "i1",
+                "enabled": True,
+                "width": width,
+                "data": {"title": "Über uns T5", "text": "Text"},
+            },
+        ]
+        request = RequestFactory().get("/")
+        request.tenant = TenantFactory.build(site_config={"page_blocks": {"info": blocks}})
+        return tpl.render(Context({"request": request}))
+
+    wide = render("contained")
+    assert "sm:grid-cols-4" in wide and "md:grid-cols-2" in wide
+    third = render("w13")
+    assert "Über uns T5" in third
+    assert "grid-cols-1" in third and "sm:grid-cols-4" not in third
+    assert "md:grid-cols-2" not in third
+    half = render("w12")
+    assert "sm:grid-cols-4" not in half and "md:grid-cols-2" not in half
+
+
+def test_reset_hint_mentions_the_position_of_own_blocks():
+    src = pathlib.Path("templates/tenant/_object_structure.html").read_text()
+    assert "ps.blocks_first" in src.split('id="ps-reset-help"', 1)[1].split("</span>", 1)[0]

@@ -38033,3 +38033,6 @@ msgstr "Beispiele – nur in dieser Vorschau. Auf Ihrer Website erscheinen sie n
 
 msgid "Hier fügen Sie Blöcke nur für diese eine Seite hinzu."
 msgstr "Hier fügen Sie Blöcke nur für diese eine Seite hinzu."
+
+msgid "Sie stehen danach wieder unter den Blöcken der Seite."
+msgstr "Sie stehen danach wieder unter den Blöcken der Seite."

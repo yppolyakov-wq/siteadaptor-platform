@@ -38285,3 +38285,6 @@ msgstr "Примеры — только в этом предпросмотре. 
 
 msgid "Hier fügen Sie Blöcke nur für diese eine Seite hinzu."
 msgstr "Здесь добавляются блоки только для этой страницы."
+
+msgid "Sie stehen danach wieder unter den Blöcken der Seite."
+msgstr "После этого они снова стоят под блоками страницы."
