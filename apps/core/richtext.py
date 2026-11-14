@@ -107,13 +107,14 @@ PAGE_CLASS_SOURCE = (
     # M21.11 P5: стиль абзаца — вводный, мелкий, плашка «Hinweis»; три колонки.
     r"|lead|small|note|grid3|btn|gallery"
     # M21.11: ширина фото перетаскиванием — шаг 5 % (10 … 100).
-    r"|w-(?:[1-9][05]|100))"
+    # FB-29.6: `sf-w-px` — ширина в пикселях (число — в `width` у `img`).
+    r"|w-(?:[1-9][05]|100|px))"
 )
 _PAGE_CLASS_RE = re.compile(PAGE_CLASS_SOURCE)
 #: Взаимоисключающие группы: в атрибуте остаётся последний класс группы.
 _CLASS_GROUPS = (
     re.compile(r"sf-(?:center|left|right|justify)"),
-    re.compile(r"sf-(?:img-(?:sm|md|lg|full)|w-(?:[1-9][05]|100))"),
+    re.compile(r"sf-(?:img-(?:sm|md|lg|full)|w-(?:[1-9][05]|100|px))"),
     re.compile(r"sf-float-(?:left|right)"),
     re.compile(r"sf-(?:lead|small|note)"),
 )

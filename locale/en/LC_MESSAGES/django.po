@@ -37759,3 +37759,24 @@ msgstr "Choose banner"
 #, python-format
 msgid "Banner %(n)s von %(total)s"
 msgstr "Banner %(n)s of %(total)s"
+
+msgid "Prozent"
+msgstr "Percent"
+
+msgid "Pixel"
+msgstr "Pixels"
+
+msgid "Höhe in Pixel"
+msgstr "Height in pixels"
+
+msgid "Schloss zu: Die Höhe folgt der Breite. Schloss offen: Das Bild wird auf Breite × Höhe zugeschnitten. Auf dem Telefon ist es nie breiter als der Bildschirm."
+msgstr "Lock closed: the height follows the width. Lock open: the image is cropped to width × height. On a phone it is never wider than the screen."
+
+msgid "Seitenverhältnis halten: an"
+msgstr "Keep aspect ratio: on"
+
+msgid "Seitenverhältnis halten: aus"
+msgstr "Keep aspect ratio: off"
+
+msgid "Ersetzen"
+msgstr "Replace"

@@ -32,7 +32,22 @@ Esc — обратно), выравнивание текста, H4, цитата
   .rte-area hr { border: 0; border-top: 1px solid #9ca3af; margin: 1rem 0; clear: both; }
   .rte-area img { max-width: 240px; height: auto; display: inline-block; border-radius: .5rem; }
   .rte-area figure { margin: .5rem 0; max-width: 100%; cursor: pointer; position: relative; }
-  .rte-area figure img { max-width: 100%; width: 100%; display: block; }
+  .rte-area figure:not(.sf-w-px) img { max-width: 100%; width: 100%; display: block; }
+  .rte-area figure.sf-w-px { width: fit-content; }
+  .rte-area figure.sf-w-px img { max-width: 100%; display: block; }
+  .rte-figbar { position: absolute; left: 8px; top: 8px; right: 8px; display: flex; flex-wrap: wrap; gap: 6px; align-items: flex-start; z-index: 2; }
+  .rte-figbar button { min-height: 44px; padding: 0 12px; border-radius: 10px; font-weight: 600; font-size: 14px; border: 1px solid #6b7280; background: #fff; color: #111827; }
+  .rte-figbar button[data-rte-figcrop] { background: #111827; color: #fff; border-color: #111827; }
+  .rte-figbar button:focus-visible { outline: 3px solid #4f46e5; outline-offset: 2px; }
+  .rte-figbar [data-rte-size] { margin-left: auto; background: #111827; color: #fff; font-size: 12px; font-weight: 600; border-radius: 6px; padding: 3px 8px; }
+  .rte-pop .rte-top { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: .5rem; }
+  .rte-pop .rte-top button { min-height: 44px; }
+  .rte-pop .rte-size { display: grid; grid-template-columns: minmax(0, 1fr) 44px minmax(0, 1fr); gap: 8px; align-items: end; }
+  .rte-pop .rte-size input { width: 100%; min-height: 44px; }
+  .rte-pop .rte-size label { margin-top: 0 !important; font-weight: 400 !important; font-size: .8rem; }
+  .rte-pop [data-rte-lock] { width: 44px; height: 44px; border: 1px solid #6b7280; border-radius: 10px; background: #fff; display: flex; align-items: center; justify-content: center; }
+  .rte-pop [data-rte-lock][aria-pressed="true"] { border: 2px solid #4338ca; background: #eef2ff; color: #312e81; }
+  .rte-pop [data-rte-lock][disabled] { opacity: .5; }
   .rte-area figure:focus { outline: 2px solid #4f46e5; outline-offset: 2px; }
   .rte-area figure.rte-sel { outline: 3px solid #4f46e5; outline-offset: 2px; }
   .rte-area figure.rte-noalt::after { content: "⚠ " attr(data-rte-warn); position: absolute; left: 4px; top: 4px; background: #fffbeb; color: #92400e; border: 1px solid #b45309; border-radius: 6px; font-size: 12px; padding: 1px 6px; }
@@ -174,6 +189,15 @@ Esc — обратно), выравнивание текста, H4, цитата
     close: "{% trans 'Schließen' as t %}{{ t|escapejs }}",
     sizes: [["sm", "S · 25 %"], ["md", "M · 50 %"], ["lg", "L · 75 %"], ["full", "{% trans 'Volle Breite' as t %}{{ t|escapejs }}"]],
     width: "{% trans 'Breite in Prozent' as t %}{{ t|escapejs }}",
+    size: "{% trans 'Größe' as t %}{{ t|escapejs }}",
+    unitPct: "{% trans 'Prozent' as t %}{{ t|escapejs }}",
+    unitPx: "{% trans 'Pixel' as t %}{{ t|escapejs }}",
+    sizeW: "{% trans 'Breite' as t %}{{ t|escapejs }}",
+    sizeH: "{% trans 'Höhe in Pixel' as t %}{{ t|escapejs }}",
+    sizeHelp: "{% trans 'Schloss zu: Die Höhe folgt der Breite. Schloss offen: Das Bild wird auf Breite × Höhe zugeschnitten. Auf dem Telefon ist es nie breiter als der Bildschirm.' as t %}{{ t|escapejs }}",
+    lockOn: "{% trans 'Seitenverhältnis halten: an' as t %}{{ t|escapejs }}",
+    lockOff: "{% trans 'Seitenverhältnis halten: aus' as t %}{{ t|escapejs }}",
+    replaceShort: "{% trans 'Ersetzen' as t %}{{ t|escapejs }}",
     widthHelp: "{% trans '10–100, in Schritten von 5. Mit Maus oder Finger auch an der Ecke des Bildes ziehen.' as t %}{{ t|escapejs }}",
     crop: "{% trans 'Zuschneiden' as t %}{{ t|escapejs }}",
     cropTitle: "{% trans 'Bild zuschneiden' as t %}{{ t|escapejs }}",
@@ -235,7 +259,7 @@ Esc — обратно), выравнивание текста, H4, цитата
       if (!el.getAttribute("class")) el.removeAttribute("class");
     });
     c.querySelectorAll("details").forEach(function (d) { d.removeAttribute("open"); });
-    c.querySelectorAll(".rte-resize").forEach(function (h) { h.remove(); });
+    c.querySelectorAll(".rte-resize, .rte-figbar").forEach(function (h) { h.remove(); });
     return c;
   }
   // Без разметки — обычный текст (иначе «Tom & Jerry» ушло бы как «&amp;»); пустой
@@ -392,10 +416,43 @@ Esc — обратно), выравнивание текста, H4, цитата
   function setFigWidth(fig, pct) {
     pct = Math.max(10, Math.min(100, Math.round(pct / 5) * 5));
     Array.prototype.slice.call(fig.classList).forEach(function (c) {
-      if (/^sf-(?:w-\d+|img-(?:sm|md|lg|full))$/.test(c)) fig.classList.remove(c);
+      if (/^sf-(?:w-(?:\d+|px)|img-(?:sm|md|lg|full))$/.test(c)) fig.classList.remove(c);
     });
+    var im = fig.querySelector("img");
+    if (im) im.removeAttribute("width");
     fig.classList.add("sf-w-" + pct);
     return pct;
+  }
+  // FB-29.6: ширина в пикселях — класс `sf-w-px` у фигуры и число в `width` картинки.
+  function figUnit(fig) { return fig.classList.contains("sf-w-px") ? "px" : "pct"; }
+  function setFigPx(fig, px) {
+    px = Math.max(40, Math.min(2000, Math.round(px)));
+    Array.prototype.slice.call(fig.classList).forEach(function (c) {
+      if (/^sf-(?:w-(?:\d+|px)|img-(?:sm|md|lg|full))$/.test(c)) fig.classList.remove(c);
+    });
+    fig.classList.add("sf-w-px");
+    var im = fig.querySelector("img");
+    if (im) im.setAttribute("width", px);
+    return px;
+  }
+  function areaInner(area) {
+    var cs = getComputedStyle(area);
+    return area.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+  }
+  // Обрезку делает сервер (новый файл); r — рамка в долях сторон.
+  function cropRequest(ta, src, r) {
+    var form = ta.closest("form");
+    var csrf = form && form.querySelector('[name="csrfmiddlewaretoken"]');
+    var body = new FormData();
+    body.append("src", src);
+    ["x", "y", "w", "h"].forEach(function (k) { body.append(k, r[k].toFixed(4)); });
+    body.append("csrfmiddlewaretoken", csrf ? csrf.value : "");
+    return fetch(ta.dataset.rteCrop, { method: "POST", body: body, credentials: "same-origin" })
+      .then(function (res) { return res.json().then(function (d) { return { ok: res.ok, d: d }; }); })
+      .then(function (res) {
+        if (!res.ok || !res.d.url) throw new Error(res.d.error || "");
+        return res.d.url;
+      });
   }
   function wrapImage(img) {
     if (img.parentNode && img.parentNode.tagName === "FIGURE") return img.parentNode;
@@ -489,7 +546,10 @@ Esc — обратно), выравнивание текста, H4, цитата
     if (pop.__flush) pop.__flush();  // отложенный снимок истории — до закрытия
     pop.remove();
     pop = null;
-    if (fig) fig.classList.remove("rte-sel");
+    if (fig) {
+      fig.classList.remove("rte-sel");
+      fig.querySelectorAll(".rte-figbar").forEach(function (b) { b.remove(); });
+    }
     if (focusBack && fig && fig.isConnected) fig.focus();
     else if (focusBack && area) area.focus();
   }
@@ -696,20 +756,12 @@ Esc — обратно), выравнивание текста, H4, цитата
     no.addEventListener("click", close);
     dlg.addEventListener("cancel", function (e) { e.preventDefault(); close(); });
     ok.addEventListener("click", function () {
-      var form = ta.closest("form");
-      var csrf = form && form.querySelector('[name="csrfmiddlewaretoken"]');
-      var body = new FormData();
-      body.append("src", img.getAttribute("src"));
-      ["x", "y", "w", "h"].forEach(function (k) { body.append(k, r[k].toFixed(4)); });
-      body.append("csrfmiddlewaretoken", csrf ? csrf.value : "");
       if (ok.getAttribute("aria-disabled") === "true") return;
       ok.setAttribute("aria-disabled", "true");
       msg.textContent = T.upload;
-      fetch(ta.dataset.rteCrop, { method: "POST", body: body, credentials: "same-origin" })
-        .then(function (res) { return res.json().then(function (d) { return { ok: res.ok, d: d }; }); })
-        .then(function (res) {
-          if (!res.ok || !res.d.url) throw new Error(res.d.error || "");
-          img.setAttribute("src", res.d.url);
+      cropRequest(ta, img.getAttribute("src"), r)
+        .then(function (url) {
+          img.setAttribute("src", url);
           close();
           if (area.__rte) { area.__rte.sync(); area.__rte.snapshot(); }
           status(area, T.cropDone);
@@ -782,40 +834,152 @@ Esc — обратно), выравнивание текста, H4, цитата
       }
       if (msg) status(area, msg);
     }
-    var wPair = textField(uid + "-w", T.width, String(figWidth(fig)), 3);
+    // FB-29.6 (макет C): «Zuschneiden» и «Ersetzen» — вверху окна и прямо на фото.
+    var ta0 = area.__ta;
+    var canCrop = !!(ta0 && ta0.dataset.rteCrop), canUpload = !!(ta0 && ta0.dataset.rteUpload);
+    function doCrop() { openCrop(ta0, area, fig, img); }
+    function doReplace() {
+      pickFiles(false, function (files) {
+        uploadOne(ta0, area, files[0]).then(function (url) {
+          img.setAttribute("src", url);
+          changed(T.replaced);
+          whenLoaded(refresh);
+        }).catch(function (e) { status(area, e.message || T.uploadFail); });
+      });
+    }
+    function actionBtn(label, fn, mark, primary) {
+      var b = document.createElement("button");
+      b.type = "button";
+      b.textContent = label;
+      b.setAttribute(mark, "");
+      if (primary !== undefined) b.className = "ui-btn ui-btn-sm" + (primary ? " ui-btn-primary" : "");
+      b.addEventListener("click", function (e) { e.preventDefault(); e.stopPropagation(); fn(); });
+      return b;
+    }
+    if (canCrop || canUpload) {
+      var top = document.createElement("div");
+      top.className = "rte-top";
+      if (canCrop) top.appendChild(actionBtn("✂ " + T.crop, doCrop, "data-rte-crop", true));
+      if (canUpload) top.appendChild(actionBtn(T.replace, doReplace, "data-rte-replace", false));
+      pop.appendChild(top);
+    }
+    var bar = document.createElement("span");
+    bar.className = "rte-figbar";
+    bar.setAttribute("contenteditable", "false");
+    if (canCrop) bar.appendChild(actionBtn(T.crop, doCrop, "data-rte-figcrop"));
+    if (canUpload) bar.appendChild(actionBtn(T.replaceShort, doReplace, "data-rte-figreplace"));
+    var badge = document.createElement("span");
+    badge.setAttribute("data-rte-size", "");
+    badge.setAttribute("aria-hidden", "true");
+    bar.appendChild(badge);
+    fig.appendChild(bar);
+    // Размер: ширина в процентах или пикселях; высота — с замком пропорций. Замок
+    // открыт → фото обрезается по центру до «ширина × высота» (новый файл на сервере).
+    var locked = true;
+    function whenLoaded(fn) {
+      if (img.complete) requestAnimationFrame(fn);
+      else img.addEventListener("load", function () { requestAnimationFrame(fn); }, { once: true });
+    }
+    var sizeFs = radioGroup(uid + "-u", T.size, [["pct", T.unitPct], ["px", T.unitPx]], figUnit(fig), function (v) {
+      var w = img.getBoundingClientRect().width;
+      if (v === "px") setFigPx(fig, w);
+      else setFigWidth(fig, w / areaInner(area) * 100);
+      changed(T.size + ": " + (v === "px" ? T.unitPx : T.unitPct));
+      refresh();
+    });
+    sizeFs.setAttribute("data-rte-unit", "");
+    var grid = document.createElement("div");
+    grid.className = "rte-size";
+    var wPair = textField(uid + "-w", T.sizeW, "", 4);
     var wIn = wPair[1];
     wIn.type = "number";
-    wIn.min = "10";
-    wIn.max = "100";
-    wIn.step = "5";
     wIn.setAttribute("aria-describedby", uid + "-wh");
-    wIn.addEventListener("change", function () {
+    var hPair = textField(uid + "-hh", T.sizeH, "", 4);
+    var hIn = hPair[1];
+    hIn.type = "number";
+    hIn.min = "20";
+    hIn.max = "4000";
+    hIn.setAttribute("data-rte-height", "");
+    hIn.setAttribute("aria-describedby", uid + "-wh");
+    var lockBtn = document.createElement("button");
+    lockBtn.type = "button";
+    lockBtn.setAttribute("data-rte-lock", "");
+    lockBtn.disabled = !canCrop;
+    function cell(pair) { var d = document.createElement("div"); d.appendChild(pair[0]); d.appendChild(pair[1]); return d; }
+    grid.appendChild(cell(wPair));
+    grid.appendChild(lockBtn);
+    grid.appendChild(cell(hPair));
+    sizeFs.appendChild(grid);
+    function refresh() {
+      var px = figUnit(fig) === "px";
+      var box = img.getBoundingClientRect();
+      wIn.min = px ? "40" : "10";
+      wIn.max = px ? "2000" : "100";
+      wIn.step = px ? "1" : "5";
+      wIn.value = px ? (img.getAttribute("width") || Math.round(box.width)) : figWidth(fig);
+      hIn.value = Math.round(box.height) || "";
+      hIn.readOnly = locked;
+      lockBtn.setAttribute("aria-pressed", locked ? "true" : "false");
+      lockBtn.setAttribute("aria-label", locked ? T.lockOn : T.lockOff);
+      lockBtn.textContent = locked ? "🔒" : "🔓";
+      badge.textContent = Math.round(box.width) + " × " + Math.round(box.height) + " px";
+      wRow.hidden = px;
+    }
+    function applyWidth() {
       var v = parseInt(wIn.value, 10);
       if (isNaN(v)) return;
-      wIn.value = setFigWidth(fig, v);
-      changed(T.width + ": " + wIn.value + " %");
+      var px = figUnit(fig) === "px";
+      v = px ? setFigPx(fig, v) : setFigWidth(fig, v);
+      changed(T.sizeW + ": " + v + (px ? " px" : " %"));
+      requestAnimationFrame(refresh);
+    }
+    function cropToSize() {
+      var h = parseInt(hIn.value, 10), w = img.getBoundingClientRect().width;
+      if (isNaN(h) || !w || !img.naturalWidth) return;
+      h = Math.max(20, Math.min(4000, h));
+      var want = w / h, have = img.naturalWidth / img.naturalHeight;
+      var r = want > have ? { x: 0, w: 1, h: have / want } : { y: 0, h: 1, w: want / have };
+      if (r.x === undefined) r.x = (1 - r.w) / 2;
+      if (r.y === undefined) r.y = (1 - r.h) / 2;
+      if (Math.abs(want - have) / have < 0.01) return;
+      hIn.disabled = true;
+      status(area, T.upload);
+      cropRequest(ta0, img.getAttribute("src"), r).then(function (url) {
+        img.setAttribute("src", url);
+        changed(T.cropDone);
+        whenLoaded(refresh);
+      }).catch(function (e) { status(area, e.message || T.uploadFail); })
+        .then(function () { hIn.disabled = false; });
+    }
+    wIn.addEventListener("change", applyWidth);
+    hIn.addEventListener("change", function () { if (!locked) cropToSize(); });
+    lockBtn.addEventListener("click", function () {
+      locked = !locked;
+      refresh();
+      status(area, locked ? T.lockOn : T.lockOff);
     });
     var wRow = document.createElement("div");
     wRow.className = "rte-opts";
+    wRow.style.marginTop = "6px";
     wRow.setAttribute("role", "group");
-    wRow.setAttribute("aria-label", T.width);
+    wRow.setAttribute("aria-label", T.sizeW);
     [25, 50, 75, 100].forEach(function (v) {
       var qb = document.createElement("button");
       qb.type = "button";
       qb.className = "ui-btn ui-btn-sm";
       qb.textContent = v + " %";
-      qb.addEventListener("click", function () { wIn.value = setFigWidth(fig, v); changed(T.width + ": " + v + " %"); });
+      qb.addEventListener("click", function () { setFigWidth(fig, v); changed(T.sizeW + ": " + v + " %"); requestAnimationFrame(refresh); });
       wRow.appendChild(qb);
     });
     var wHelp = document.createElement("p");
     wHelp.className = "rte-help";
     wHelp.id = uid + "-wh";
-    wHelp.textContent = T.widthHelp;
-    pop.appendChild(wPair[0]);
-    pop.appendChild(wIn);
-    pop.appendChild(wRow);
-    pop.appendChild(wHelp);
-    pop.__setWidth = function (v) { wIn.value = v; };
+    wHelp.textContent = T.sizeHelp;
+    sizeFs.appendChild(wRow);
+    sizeFs.appendChild(wHelp);
+    pop.appendChild(sizeFs);
+    whenLoaded(refresh);
+    pop.__setWidth = function () { refresh(); };
     pop.appendChild(radioGroup(uid + "-p", T.position, T.positions, figPos(fig), function (v, label) {
       fig.classList.remove("sf-float-left", "sf-float-right", "sf-center");
       fig.classList.add(v === "center" ? "sf-center" : "sf-float-" + v);
@@ -888,30 +1052,6 @@ Esc — обратно), выравнивание текста, H4, цитата
     });
     pop.appendChild(lnPair[0]);
     pop.appendChild(ln);
-    var ta0 = area.__ta;
-    if (ta0 && ta0.dataset.rteUpload) {
-      var rep = document.createElement("button");
-      rep.type = "button";
-      rep.className = "ui-btn ui-btn-sm mt-2";
-      rep.textContent = T.replace;
-      rep.addEventListener("click", function () {
-        pickFiles(false, function (files) {
-          uploadOne(ta0, area, files[0]).then(function (url) {
-            img.setAttribute("src", url);
-            changed(T.replaced);
-          }).catch(function (e) { status(area, e.message || T.uploadFail); });
-        });
-      });
-      pop.appendChild(rep);
-    }
-    if (ta0 && ta0.dataset.rteCrop) {
-      var cropBtn = document.createElement("button");
-      cropBtn.type = "button";
-      cropBtn.className = "ui-btn ui-btn-sm mt-2 ml-1";
-      cropBtn.textContent = "✂ " + T.crop;
-      cropBtn.addEventListener("click", function () { openCrop(ta0, area, fig, img); });
-      pop.appendChild(cropBtn);
-    }
     var row = document.createElement("div");
     row.style.cssText = "display:flex;justify-content:space-between;gap:8px;margin-top:.75rem";
     var rm = document.createElement("button");
@@ -1083,6 +1223,7 @@ Esc — обратно), выравнивание текста, H4, цитата
     }
     function restoreHtml(html) {
       area.innerHTML = html;
+      area.querySelectorAll(".rte-figbar").forEach(function (b) { b.remove(); });
       area.querySelectorAll("figure.rte-sel").forEach(function (f) { f.classList.remove("rte-sel"); });
       sync();
     }
@@ -1644,7 +1785,7 @@ Esc — обратно), выравнивание текста, H4, цитата
     });
     area.addEventListener("click", function (e) {
       if (!page) return;
-      if (justResized || (e.target.closest && e.target.closest(".rte-resize"))) return;
+      if (justResized || (e.target.closest && e.target.closest(".rte-resize, .rte-figbar"))) return;
       // Клик по вопросу — правка текста, а не сворачивание раскрывашки.
       if (e.target.closest && e.target.closest("summary") && area.contains(e.target)) e.preventDefault();
       // Клик по плашке «Bildbeschreibung fehlt» (::after фигуры) — тоже окно фото.
@@ -1665,8 +1806,7 @@ Esc — обратно), выравнивание текста, H4, цитата
       e.preventDefault();
       e.stopPropagation();
       var fig = hnd.parentNode;
-      var cs = getComputedStyle(area);
-      var inner = area.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+      var inner = areaInner(area);
       var fr = fig.getBoundingClientRect();
       rs = { fig: fig, inner: inner, left: fr.left, right: fr.right, rtl: fig.classList.contains("sf-float-right") };
       hnd.setPointerCapture(e.pointerId);
@@ -1674,8 +1814,11 @@ Esc — обратно), выравнивание текста, H4, цитата
     area.addEventListener("pointermove", function (e) {
       if (!rs) return;
       var px = rs.rtl ? rs.right - e.clientX : e.clientX - rs.left;
-      var pct = setFigWidth(rs.fig, px / rs.inner * 100);
-      rs.fig.setAttribute("data-rte-w", pct + " %");
+      // FB-29.6: фото с шириной в пикселях тянется в пикселях, остальные — шагом 5 %.
+      var isPx = figUnit(rs.fig) === "px";
+      var pct = isPx ? setFigPx(rs.fig, Math.min(px, rs.inner)) : setFigWidth(rs.fig, px / rs.inner * 100);
+      rs.unit = isPx ? " px" : " %";
+      rs.fig.setAttribute("data-rte-w", pct + rs.unit);
       rs.pct = pct;
     });
     var justResized = false;
@@ -1691,7 +1834,7 @@ Esc — обратно), выравнивание текста, H4, цитата
       if (pop && pop.__fig === done.fig && pop.__setWidth) pop.__setWidth(figWidth(done.fig));
       sync();
       snapshot();
-      if (done.pct) status(area, T.width + ": " + done.pct + " %");
+      if (done.pct) status(area, T.sizeW + ": " + done.pct + done.unit);
     }
     area.addEventListener("pointerup", endResize);
     area.addEventListener("pointercancel", endResize);

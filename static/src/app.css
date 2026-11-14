@@ -1893,7 +1893,11 @@ html:has(dialog.ui-drawer[open]) { overflow: hidden; }
 .sf-page-body hr, .rich-text hr { border: 0; border-top: 1px solid #e5e7eb; margin: 1.5rem 0; clear: both; }
 .sf-page-body h2, .sf-page-body h3, .rich-text h2, .rich-text h3 { clear: both; }
 .sf-page-body figure, .rich-text figure { margin: 1rem 0; max-width: 100%; }
-.sf-page-body figure img, .rich-text figure img { display: block; width: 100%; height: auto; border-radius: .5rem; }
+/* FB-29.6: у фото с шириной в пикселях (`sf-w-px`) ширину задаёт атрибут `width` картинки;
+   на узком экране оно не шире страницы. */
+.sf-page-body figure:not(.sf-w-px) img, .rich-text figure:not(.sf-w-px) img { display: block; width: 100%; height: auto; border-radius: .5rem; }
+.sf-page-body figure.sf-w-px, .rich-text figure.sf-w-px { width: fit-content; max-width: 100%; }
+.sf-page-body figure.sf-w-px img, .rich-text figure.sf-w-px img { display: block; max-width: 100%; height: auto; border-radius: .5rem; }
 .sf-page-body figcaption, .rich-text figcaption { margin-top: .4rem; font-size: .875rem; color: #4b5563; }
 .sf-page-body figure.sf-center, .rich-text figure.sf-center { margin-left: auto; margin-right: auto; }
 .sf-page-body .sf-img-sm, .rich-text .sf-img-sm { width: 25%; min-width: 120px; }
