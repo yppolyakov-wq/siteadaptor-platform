@@ -125,11 +125,11 @@ def test_one_query_per_request_for_banner_open_status_and_presence(
     """Ревью: баннер, «открыто сейчас» и присутствие делили бы три запроса — окно одно."""
     from types import SimpleNamespace
 
-    from django.db import connection
+    from django.db import connection, connections
     from django.utils import timezone
 
     holder = SimpleNamespace(schema_name=connection.schema_name)
-    monkeypatch.setattr(connection, "tenant", holder, raising=False)  # объект запроса
+    monkeypatch.setattr(connections["default"], "tenant", holder, raising=False)  # объект запроса
     today = timezone.localdate()
     closures.set_range(today, today, reason="Urlaub")
     with django_assert_num_queries(1):

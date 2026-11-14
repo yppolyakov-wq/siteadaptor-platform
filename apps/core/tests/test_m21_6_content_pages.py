@@ -220,7 +220,7 @@ def test_menu_cpage_node_links_only_published_page():
 
 
 def test_rename_keeps_menu_links_and_typed_input_survives_errors(monkeypatch):
-    from django.db import connection
+    from django.db import connections
 
     tenant = TenantFactory(
         schema_name="public",
@@ -233,7 +233,7 @@ def test_rename_keeps_menu_links_and_typed_input_survives_errors(monkeypatch):
             }
         },
     )
-    monkeypatch.setattr(connection, "tenant", tenant, raising=False)
+    monkeypatch.setattr(connections["default"], "tenant", tenant, raising=False)
     page = ContentPage.objects.create(slug="zahlung", title="Zahlung")
     content_pages.save_page(page, title="Zahlung", slug="bezahlen", body="", is_published=True)
     tenant.refresh_from_db()

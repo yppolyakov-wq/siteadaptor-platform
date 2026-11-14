@@ -234,11 +234,12 @@ def test_far_day_param_does_not_crash():
 
 
 def test_token_bound_to_tenant_schema(monkeypatch):
-    from django.db import connection
+    from django.db import connections
 
     _, b = _booking()
     token = cancel_policy.manage_token(b)
-    monkeypatch.setattr(connection, "schema_name", "other_tenant")
+    # Сам объект соединения, не прокси: иначе откат правки зависит от версии pytest.
+    monkeypatch.setattr(connections["default"], "schema_name", "other_tenant")
     assert cancel_policy.booking_from_token(token) is None
 
 

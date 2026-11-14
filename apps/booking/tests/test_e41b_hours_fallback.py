@@ -5,7 +5,7 @@ from datetime import datetime, time, timedelta
 from types import SimpleNamespace
 
 import pytest
-from django.db import connection
+from django.db import connection, connections
 from django.utils import timezone
 
 from apps.booking import availability, views
@@ -20,7 +20,7 @@ HOURS = {str(d): ["09:00", "12:00"] for d in range(7)}
 @pytest.fixture
 def hours(monkeypatch):
     shop = SimpleNamespace(schema_name=connection.schema_name, opening_hours_structured=HOURS)
-    monkeypatch.setattr(connection, "tenant", shop, raising=False)
+    monkeypatch.setattr(connections["default"], "tenant", shop, raising=False)
     return shop
 
 
@@ -47,7 +47,7 @@ def test_resource_rules_win_over_business_hours(hours):
 
 
 def test_no_rules_no_hours_no_slots(monkeypatch):
-    monkeypatch.setattr(connection, "tenant", SimpleNamespace(), raising=False)
+    monkeypatch.setattr(connections["default"], "tenant", SimpleNamespace(), raising=False)
     assert availability.free_slots(_resource(), _day()) == []
 
 
@@ -59,7 +59,7 @@ def test_within_hours(hours):
 
 
 def test_within_hours_unknown_does_not_block(monkeypatch):
-    monkeypatch.setattr(connection, "tenant", SimpleNamespace(), raising=False)
+    monkeypatch.setattr(connections["default"], "tenant", SimpleNamespace(), raising=False)
     d = _day()
     assert availability.within_hours(_resource(), _at(d, 3), _at(d, 4))
 

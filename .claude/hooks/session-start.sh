@@ -18,7 +18,9 @@ bash scripts/dev-services.sh || echo "warn: dev-services failed"
 if [ ! -d .venv ]; then
   uv venv --python 3.12 || echo "warn: uv venv failed"
 fi
-uv pip install -e ".[dev]" >/dev/null 2>&1 || echo "warn: dep install failed"
+#    Ставим ПО uv.lock, как CI: `uv pip install` брал свежие версии, и местный pytest
+#    расходился с CI (2026-11-14: pytest 9.2 против 9.1.1 — ложные падения `booking`).
+uv sync --frozen --extra dev --inexact >/dev/null 2>&1 || echo "warn: dep install failed"
 
 # 3) i18n-гейт на коммитах (I18N-13): pre-commit ловит строку интерфейса без
 #    пути перевода ДО пуша. Настройка живёт в .git/config, а контейнер сессии
