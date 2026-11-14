@@ -26,7 +26,7 @@
   {% if banners %}
   <ul class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" data-banner-tiles>
     {% for b in banners %}
-    <li class="rounded-xl border border-gray-500 bg-white flex flex-col overflow-hidden" data-banner-tile="{{ b.pk }}">
+    <li class="ui-card flex flex-col overflow-hidden" data-banner-tile="{{ b.pk }}">
       <span class="block aspect-[16/7] bg-gray-100" aria-hidden="true">{% if b.image.url %}<img src="{{ b.image.url }}" alt="" class="h-full w-full object-cover" loading="lazy">{% endif %}</span>
       <div class="p-3 flex flex-col gap-1 flex-1">
         <h2 class="font-semibold text-sm break-words">{{ b.title|default:_("Ohne Überschrift") }}</h2>

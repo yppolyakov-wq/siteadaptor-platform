@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Produkt – Reiter Seitenaufbau</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:Inter,system-ui,sans-serif;color:#16181d}
+a{color:#3730a3}a:hover{color:#1e1b4b}
+</style>
+</helmet>
+<div style="width: 1440px; height: 900px; box-sizing: border-box; background: #f3f4f6; padding: 28px 32px; display: flex; flex-direction: column; gap: 16px">
+  <div style="display: flex; align-items: center; gap: 12px">
+    <a href="#a" style="font-size: 14px; font-weight: 600">← Sortiment</a>
+    <h1 style="margin: 0; font-size: 24px; font-weight: 700">Darjeeling First Flush</h1>
+    <div style="flex-grow: 1"></div>
+    <a href="#a" style="font-size: 14px; font-weight: 600">Seite ansehen</a>
+    <button style="border: 0; background: #4338ca; color: #fff; border-radius: 10px; padding: 12px 18px; font-weight: 600; font-size: 14px">Speichern</button>
+  </div>
+  <div style="display: flex; gap: 4px; border-bottom: 1px solid #d1d5db; font-size: 14px; font-weight: 600">
+    <span style="padding: 12px 16px; color: #374151">Allgemein</span>
+    <span style="padding: 12px 16px; color: #374151">Preise &amp; Varianten</span>
+    <span style="padding: 12px 16px; color: #374151">Fotos</span>
+    <span style="padding: 12px 16px; color: #3730a3; border-bottom: 2px solid #4338ca">Seitenaufbau</span>
+    <span style="padding: 12px 16px; color: #374151">Suchmaschinen</span>
+  </div>
+
+  <div style="display: grid; grid-template-columns: minmax(0, 1fr) 420px; gap: 20px; flex-grow: 1">
+    <div style="background: #fff; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 10px">
+      <div style="display: flex; justify-content: space-between; align-items: center">
+        <div>
+          <div style="font-weight: 700; font-size: 16px">Abschnitte dieser Produktseite</div>
+          <div style="font-size: 13px; color: #4b5563">Standard kommt aus <a href="#a">Website › Seitenaufbau › Produktseite</a>. Hier ändern Sie nur dieses Produkt.</div>
+        </div>
+        <span style="background: #fef3c7; color: #78350f; font-size: 12px; font-weight: 700; border-radius: 999px; padding: 4px 10px">2 Abweichungen</span>
+      </div>
+
+      <div style="border: 1px solid #6b7280; border-radius: 12px; padding: 10px 14px; display: flex; align-items: center; gap: 12px; min-height: 48px">
+        <div style="flex-grow: 1"><div style="font-weight: 600; font-size: 14px">Fotos &amp; Kaufbereich</div><div style="font-size: 12px; color: #4b5563">immer sichtbar</div></div>
+        <span style="font-size: 12px; color: #4b5563">wie Standard</span>
+      </div>
+      <div style="border: 1px solid #6b7280; border-radius: 12px; padding: 10px 14px; display: flex; align-items: center; gap: 12px; min-height: 48px">
+        <div style="flex-grow: 1"><div style="font-weight: 600; font-size: 14px">Beschreibung</div></div>
+        <span style="font-size: 12px; color: #4b5563">wie Standard · sichtbar</span>
+        <div style="display: flex; border: 1px solid #6b7280; border-radius: 8px; overflow: hidden; font-size: 13px; font-weight: 600"><span style="padding: 9px 12px; background: #4338ca; color: #fff">Standard</span><span style="padding: 9px 12px">Zeigen</span><span style="padding: 9px 12px">Ausblenden</span></div>
+      </div>
+      <div style="border: 2px solid #b45309; border-radius: 12px; padding: 10px 14px; display: flex; align-items: center; gap: 12px; min-height: 48px; background: #fffbeb">
+        <div style="flex-grow: 1"><div style="font-weight: 600; font-size: 14px">Zubereitung &amp; Eigenschaften</div><div style="font-size: 12px; color: #78350f">nur bei diesem Produkt ausgeblendet</div></div>
+        <div style="display: flex; border: 1px solid #6b7280; border-radius: 8px; overflow: hidden; font-size: 13px; font-weight: 600; background: #fff"><span style="padding: 9px 12px">Standard</span><span style="padding: 9px 12px">Zeigen</span><span style="padding: 9px 12px; background: #4338ca; color: #fff">Ausblenden</span></div>
+      </div>
+      <div style="border: 1px solid #6b7280; border-radius: 12px; padding: 10px 14px; display: flex; align-items: center; gap: 12px; min-height: 48px">
+        <div style="flex-grow: 1"><div style="font-weight: 600; font-size: 14px">Bewertungen</div></div>
+        <span style="font-size: 12px; color: #4b5563">wie Standard · sichtbar</span>
+        <div style="display: flex; border: 1px solid #6b7280; border-radius: 8px; overflow: hidden; font-size: 13px; font-weight: 600"><span style="padding: 9px 12px; background: #4338ca; color: #fff">Standard</span><span style="padding: 9px 12px">Zeigen</span><span style="padding: 9px 12px">Ausblenden</span></div>
+      </div>
+      <div style="border: 2px solid #b45309; border-radius: 12px; padding: 10px 14px; display: flex; align-items: center; gap: 12px; min-height: 48px; background: #fffbeb">
+        <div style="flex-grow: 1"><div style="font-weight: 600; font-size: 14px">Passt dazu</div><div style="font-size: 12px; color: #78350f">nur bei diesem Produkt sichtbar (Standard: ausgeblendet)</div></div>
+        <div style="display: flex; border: 1px solid #6b7280; border-radius: 8px; overflow: hidden; font-size: 13px; font-weight: 600; background: #fff"><span style="padding: 9px 12px">Standard</span><span style="padding: 9px 12px; background: #4338ca; color: #fff">Zeigen</span><span style="padding: 9px 12px">Ausblenden</span></div>
+      </div>
+      <div style="border: 1px solid #6b7280; border-radius: 12px; padding: 10px 14px; display: flex; align-items: center; gap: 12px; min-height: 48px">
+        <div style="flex-grow: 1"><div style="font-weight: 600; font-size: 14px">Zuletzt angesehen</div></div>
+        <span style="font-size: 12px; color: #4b5563">wie Standard · ausgeblendet</span>
+        <div style="display: flex; border: 1px solid #6b7280; border-radius: 8px; overflow: hidden; font-size: 13px; font-weight: 600"><span style="padding: 9px 12px; background: #4338ca; color: #fff">Standard</span><span style="padding: 9px 12px">Zeigen</span><span style="padding: 9px 12px">Ausblenden</span></div>
+      </div>
+
+      <div style="margin-top: auto; display: flex; gap: 10px; align-items: center">
+        <button style="min-height: 44px; padding: 0 16px; border: 1px solid #6b7280; background: #fff; border-radius: 10px; font-weight: 600; font-size: 14px">Zurück zum Standard</button>
+        <span style="font-size: 13px; color: #4b5563">Eigene Blöcke (Text, Banner, Liste) fügen Sie im Seitenaufbau der Produktseite hinzu – sie gelten für alle Produkte.</span>
+      </div>
+    </div>
+
+    <div style="background: #fff; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 14px">
+      <div>
+        <div style="font-weight: 700; font-size: 15px">Karte in Listen</div>
+        <div style="font-size: 13px; color: #4b5563">Standard: wie die Kategorie «Schwarztee»</div>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; font-size: 12px; font-weight: 600">
+        <div style="border: 2px solid #4338ca; background: #eef2ff; border-radius: 10px; padding: 8px; display: flex; flex-direction: column; gap: 6px; color: #312e81"><div style="height: 34px; border: 2px dashed #818cf8; border-radius: 5px"></div>Standard</div>
+        <div style="border: 1px solid #6b7280; border-radius: 10px; padding: 8px; display: flex; flex-direction: column; gap: 6px"><div style="height: 34px; background: #d1d5db; border-radius: 5px"></div>Klassisch</div>
+        <div style="border: 1px solid #6b7280; border-radius: 10px; padding: 8px; display: flex; flex-direction: column; gap: 6px"><div style="height: 34px; background: #9ca3af; border-radius: 5px"></div>Text auf Foto</div>
+        <div style="border: 1px solid #6b7280; border-radius: 10px; padding: 8px; display: flex; flex-direction: column; gap: 6px"><div style="height: 34px; display: flex; gap: 4px"><div style="width: 40%; background: #d1d5db; border-radius: 5px"></div><div style="flex-grow: 1; background: #e5e7eb; border-radius: 5px"></div></div>Kompakte Zeile</div>
+        <div style="border: 1px solid #6b7280; border-radius: 10px; padding: 8px; display: flex; flex-direction: column; gap: 6px"><div style="height: 34px; background: #d1d5db; border-radius: 5px"></div>Preisschild</div>
+        <div style="border: 1px solid #6b7280; border-radius: 10px; padding: 8px; display: flex; flex-direction: column; gap: 6px"><div style="height: 34px; background: #d1d5db; border-radius: 5px"></div>Lookbook</div>
+      </div>
+
+      <div style="border-top: 1px solid #e5e7eb; padding-top: 14px">
+        <div style="font-weight: 700; font-size: 15px">Vorschau der Seite</div>
+        <div style="font-size: 13px; color: #4b5563">so, wie sie mit diesen Abweichungen aussieht</div>
+      </div>
+      <div style="border: 1px solid #c7d2fe; background: #f5f7ff; border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 8px; flex-grow: 1">
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px"><div style="height: 90px; background: #a5b4fc; border-radius: 8px"></div><div style="display: flex; flex-direction: column; gap: 6px"><div style="height: 10px; background: #c7d2fe; border-radius: 4px"></div><div style="height: 10px; width: 60%; background: #c7d2fe; border-radius: 4px"></div><div style="height: 26px; width: 70%; background: #4338ca; border-radius: 6px; margin-top: auto"></div></div></div>
+        <div style="height: 8px; background: #c7d2fe; border-radius: 4px"></div><div style="height: 8px; width: 85%; background: #c7d2fe; border-radius: 4px"></div>
+        <div style="font-size: 11px; color: #4b5563; border: 1px dashed #9ca3af; border-radius: 6px; padding: 6px; text-align: center">Zubereitung &amp; Eigenschaften – hier ausgeblendet</div>
+        <div style="height: 8px; width: 40%; background: #c7d2fe; border-radius: 4px"></div>
+        <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px"><div style="height: 30px; background: #a5b4fc; border-radius: 6px"></div><div style="height: 30px; background: #a5b4fc; border-radius: 6px"></div><div style="height: 30px; background: #a5b4fc; border-radius: 6px"></div><div style="height: 30px; background: #a5b4fc; border-radius: 6px"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

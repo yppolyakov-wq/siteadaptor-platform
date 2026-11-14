@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Seiten-Editor – Foto bearbeiten</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:Inter,system-ui,sans-serif;color:#16181d}
+a{color:#3730a3}a:hover{color:#1e1b4b}
+</style>
+</helmet>
+<div style="width: 1040px; height: 900px; box-sizing: border-box; background: #f3f4f6; padding: 28px 32px; display: grid; grid-template-columns: minmax(0, 1fr) 400px; gap: 24px">
+  <div style="background: #fff; border-radius: 16px; padding: 24px; display: flex; flex-direction: column; gap: 14px">
+    <div style="font-size: 13px; color: #4b5563">Seite «Versand» · Text</div>
+    <div style="position: relative; border: 3px solid #4338ca; border-radius: 10px; padding: 0; width: 82%">
+      <div style="height: 210px; border-radius: 6px; background: #fcd34d; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 44px; color: #b91c1c; letter-spacing: 2px">DHL</div>
+      <div style="position: absolute; top: 10px; left: 10px; display: flex; gap: 6px">
+        <button style="min-height: 44px; padding: 0 14px; border: 0; border-radius: 10px; background: #16181d; color: #fff; font-weight: 600; font-size: 14px">Zuschneiden</button>
+        <button style="min-height: 44px; padding: 0 14px; border: 1px solid #6b7280; border-radius: 10px; background: #fff; font-weight: 600; font-size: 14px">Ersetzen</button>
+      </div>
+      <div style="position: absolute; right: -9px; bottom: -9px; width: 18px; height: 18px; border-radius: 5px; background: #4338ca; border: 2px solid #fff" aria-hidden="true"></div>
+      <div style="position: absolute; right: 12px; bottom: 10px; background: #16181d; color: #fff; font-size: 12px; font-weight: 600; border-radius: 6px; padding: 3px 8px">640 × 210 px</div>
+    </div>
+    <div style="font-size: 14px; color: #374151; line-height: 1.55">Wir versenden mit DHL. Die Lieferzeit beträgt in der Regel zwei bis drei Werktage. Ab 49 € ist der Versand kostenlos.</div>
+    <div style="font-size: 12px; color: #4b5563">Auf dem Foto: «Zuschneiden» und «Ersetzen». Ecke unten rechts ziehen – Größe ändern.</div>
+  </div>
+
+  <div style="background: #fff; border-radius: 16px; padding: 20px; border: 1px solid #6b7280; display: flex; flex-direction: column; gap: 14px">
+    <div style="display: flex; justify-content: space-between; align-items: center">
+      <div style="font-weight: 700; font-size: 18px">Foto</div>
+      <button aria-label="Schließen" style="width: 44px; height: 44px; border: 1px solid #6b7280; border-radius: 10px; background: #fff; font-size: 18px">×</button>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+      <button style="min-height: 48px; border: 2px solid #4338ca; background: #eef2ff; color: #312e81; border-radius: 10px; font-weight: 700; font-size: 14px">Zuschneiden</button>
+      <button style="min-height: 48px; border: 1px solid #6b7280; background: #fff; border-radius: 10px; font-weight: 600; font-size: 14px">Foto ersetzen</button>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <div style="font-weight: 600; font-size: 14px">Größe</div>
+      <div style="display: flex; border: 1px solid #6b7280; border-radius: 10px; overflow: hidden; width: 170px; font-size: 14px; font-weight: 600">
+        <span style="flex-grow: 1; text-align: center; padding: 11px 0; color: #374151">Prozent</span>
+        <span style="flex-grow: 1; text-align: center; padding: 11px 0; background: #4338ca; color: #fff">Pixel</span>
+      </div>
+      <div style="display: grid; grid-template-columns: minmax(0, 1fr) 44px minmax(0, 1fr); gap: 8px; align-items: end">
+        <label style="display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: #374151">Breite
+          <input value="640" style="min-height: 44px; border: 1px solid #6b7280; border-radius: 10px; padding: 0 12px; font-size: 15px; width: 100%; box-sizing: border-box"></label>
+        <button aria-label="Seitenverhältnis halten: an" style="width: 44px; height: 44px; border: 2px solid #4338ca; background: #eef2ff; border-radius: 10px; display: flex; align-items: center; justify-content: center">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#312e81" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg>
+        </button>
+        <label style="display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: #374151">Höhe
+          <input value="210" style="min-height: 44px; border: 1px solid #6b7280; border-radius: 10px; padding: 0 12px; font-size: 15px; width: 100%; box-sizing: border-box"></label>
+      </div>
+      <div style="font-size: 12px; color: #4b5563">Schloss an: Höhe folgt der Breite. Schloss aus: Foto wird auf Breite × Höhe zugeschnitten. Auf dem Telefon nie breiter als der Bildschirm.</div>
+      <div style="display: flex; gap: 6px; font-size: 13px; font-weight: 600">
+        <button style="min-height: 44px; padding: 0 12px; border: 1px solid #6b7280; background: #fff; border-radius: 8px">25 %</button>
+        <button style="min-height: 44px; padding: 0 12px; border: 1px solid #6b7280; background: #fff; border-radius: 8px">50 %</button>
+        <button style="min-height: 44px; padding: 0 12px; border: 1px solid #6b7280; background: #fff; border-radius: 8px">75 %</button>
+        <button style="min-height: 44px; padding: 0 12px; border: 1px solid #6b7280; background: #fff; border-radius: 8px">100 %</button>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <div style="font-weight: 600; font-size: 14px">Position</div>
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; font-size: 13px; font-weight: 600">
+        <button style="min-height: 60px; border: 1px solid #6b7280; background: #fff; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px"><span style="display: flex; gap: 3px; align-items: center"><span style="display: block; width: 14px; height: 12px; background: #6b7280; border-radius: 2px"></span><span style="display: block; width: 18px; height: 3px; background: #d1d5db; border-radius: 2px"></span></span>Links</button>
+        <button style="min-height: 60px; border: 2px solid #4338ca; background: #eef2ff; color: #312e81; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px"><span style="display: block; width: 22px; height: 12px; background: #4338ca; border-radius: 2px"></span>Mitte</button>
+        <button style="min-height: 60px; border: 1px solid #6b7280; background: #fff; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px"><span style="display: flex; gap: 3px; align-items: center"><span style="display: block; width: 18px; height: 3px; background: #d1d5db; border-radius: 2px"></span><span style="display: block; width: 14px; height: 12px; background: #6b7280; border-radius: 2px"></span></span>Rechts</button>
+      </div>
+    </div>
+
+    <label style="display: flex; flex-direction: column; gap: 4px; font-size: 14px; font-weight: 600">Beschreibung des Fotos
+      <input placeholder="Was ist zu sehen?" style="min-height: 44px; border: 1px solid #6b7280; border-radius: 10px; padding: 0 12px; font-size: 15px; font-weight: 400"></label>
+    <label style="display: flex; gap: 8px; align-items: center; font-size: 14px; min-height: 44px"><input type="checkbox" checked style="width: 18px; height: 18px"> Nur Schmuck (keine Beschreibung nötig)</label>
+    <label style="display: flex; flex-direction: column; gap: 4px; font-size: 14px; font-weight: 600">Bildunterschrift (sichtbar, optional)
+      <input style="min-height: 44px; border: 1px solid #6b7280; border-radius: 10px; padding: 0 12px; font-size: 15px"></label>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1040,"height":900}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

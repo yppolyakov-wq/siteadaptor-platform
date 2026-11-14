@@ -763,4 +763,9 @@
   ширину встроенным секциям — упали замки в `apps/tenants/tests/test_cblocks.py` и
   `apps/core/tests/test_fb27_r3_width.py`, которых не было в локальном наборе. Перед пушем:
   `grep -rn "<ключ правила>" apps/*/tests` и прогон найденных файлов.
+- **Новый экран кабинета — прогнать ВЕСЬ `apps/core` в четыре потока (FB-29.2 S2, CI 4036).**
+  `uv run pytest apps/core -q -n 4 --reuse-db -p no:cacheprovider` — ~3 минуты, 5200 тестов.
+  Замки конвенций (`test_ui_migration`: карточка = `ui-card`; `test_photo_tile`: фото только
+  через плитку `catalog/_photo_add_tile.html` + скрытый input) по ключевым словам своего
+  экрана не находятся — только полным прогоном.
 

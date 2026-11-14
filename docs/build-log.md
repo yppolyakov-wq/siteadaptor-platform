@@ -23354,4 +23354,9 @@ S1, ревью `database-reviewer` (критичного нет): индекс `
 в «Seitenaufbau» в S3/S4. Замки: `test_fb29_banner_screen.py` (12); осознанно дополнены
 `test_sidebar_st4b`, `test_ka_w2_nav_locks`, `test_x0_x7_locks` (EXPECTED_UNLISTED:
 `site-banner-new`). В браузере без скриптов, 1440/390: создать → список → правка → удалить.
+S2, CI 4036 красный: экран нарушил два правила кабинета — карточка не из `ui-card`
+(`test_ui_migration`), поле загрузки фото не через общую плитку «＋ Foto»
+(`test_photo_tile`). Исправлено; ревью `security-reviewer` — замечаний CRITICAL/HIGH/MEDIUM
+нет. Макеты на утверждение: C «Foto bearbeiten» (FB-29.6), D «Reiter Seitenaufbau» у товара
+и услуги (FB-29.4b) — `docs/design/fb29-2026-11-13/`.
 
