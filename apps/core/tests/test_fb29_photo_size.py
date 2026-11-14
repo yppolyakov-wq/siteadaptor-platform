@@ -60,3 +60,15 @@ def test_editor_rules_know_the_pixel_class():
     import re
 
     assert re.fullmatch(richtext.editor_rules()["cls"], "sf-w-px")
+
+
+def test_height_crop_needs_an_explicit_button():
+    """Ревью: стрелки в поле высоты не должны слать запрос обрезки на каждый шаг."""
+    src = EDITOR.read_text()
+    assert "data-rte-cropsize" in src
+    assert 'hIn.addEventListener("change"' not in src
+
+
+def test_width_attribute_takes_ascii_digits_only():
+    out = richtext.sanitize_page(_fig("sf-w-px", ' width="٣٤٠"'))
+    assert "width=" not in out

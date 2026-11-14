@@ -37780,3 +37780,18 @@ msgstr "Keep aspect ratio: off"
 
 msgid "Ersetzen"
 msgstr "Replace"
+
+msgid "Seitenverhältnis halten"
+msgstr "Keep aspect ratio"
+
+msgid "Die Höhe folgt der Breite. Schloss öffnen, um das Bild auf eine Höhe zuzuschneiden."
+msgstr "The height follows the width. Open the lock to crop the image to a height."
+
+msgid "Höhe eintragen und zuschneiden: Es entsteht ein neues, zugeschnittenes Bild."
+msgstr "Enter a height and crop: a new, cropped image is created."
+
+msgid "Auf Größe zuschneiden"
+msgstr "Crop to size"
+
+msgid "Das Bild hat diese Größe schon."
+msgstr "The image already has this size."

@@ -195,6 +195,11 @@ Esc — обратно), выравнивание текста, H4, цитата
     sizeW: "{% trans 'Breite' as t %}{{ t|escapejs }}",
     sizeH: "{% trans 'Höhe in Pixel' as t %}{{ t|escapejs }}",
     sizeHelp: "{% trans 'Schloss zu: Die Höhe folgt der Breite. Schloss offen: Das Bild wird auf Breite × Höhe zugeschnitten. Auf dem Telefon ist es nie breiter als der Bildschirm.' as t %}{{ t|escapejs }}",
+    lock: "{% trans 'Seitenverhältnis halten' as t %}{{ t|escapejs }}",
+    heightLocked: "{% trans 'Die Höhe folgt der Breite. Schloss öffnen, um das Bild auf eine Höhe zuzuschneiden.' as t %}{{ t|escapejs }}",
+    heightOpen: "{% trans 'Höhe eintragen und zuschneiden: Es entsteht ein neues, zugeschnittenes Bild.' as t %}{{ t|escapejs }}",
+    cropSize: "{% trans 'Auf Größe zuschneiden' as t %}{{ t|escapejs }}",
+    cropSame: "{% trans 'Das Bild hat diese Größe schon.' as t %}{{ t|escapejs }}",
     lockOn: "{% trans 'Seitenverhältnis halten: an' as t %}{{ t|escapejs }}",
     lockOff: "{% trans 'Seitenverhältnis halten: aus' as t %}{{ t|escapejs }}",
     replaceShort: "{% trans 'Ersetzen' as t %}{{ t|escapejs }}",
@@ -842,6 +847,7 @@ Esc — обратно), выравнивание текста, H4, цитата
       pickFiles(false, function (files) {
         uploadOne(ta0, area, files[0]).then(function (url) {
           img.setAttribute("src", url);
+          if (pop !== self) { if (area.__rte) { area.__rte.sync(); area.__rte.snapshot(); } return; }
           changed(T.replaced);
           whenLoaded(refresh);
         }).catch(function (e) { status(area, e.message || T.uploadFail); });
@@ -853,6 +859,7 @@ Esc — обратно), выравнивание текста, H4, цитата
       b.textContent = label;
       b.setAttribute(mark, "");
       if (primary !== undefined) b.className = "ui-btn ui-btn-sm" + (primary ? " ui-btn-primary" : "");
+      else b.setAttribute("tabindex", "-1");  // с клавиатуры — те же кнопки вверху окна
       b.addEventListener("click", function (e) { e.preventDefault(); e.stopPropagation(); fn(); });
       return b;
     }
@@ -900,16 +907,32 @@ Esc — обратно), выравнивание текста, H4, цитата
     hIn.min = "20";
     hIn.max = "4000";
     hIn.setAttribute("data-rte-height", "");
-    hIn.setAttribute("aria-describedby", uid + "-wh");
+    hIn.setAttribute("aria-describedby", uid + "-hx");
     var lockBtn = document.createElement("button");
     lockBtn.type = "button";
     lockBtn.setAttribute("data-rte-lock", "");
     lockBtn.disabled = !canCrop;
+    lockBtn.setAttribute("aria-label", T.lock);
+    var lockIcon = document.createElement("span");
+    lockIcon.setAttribute("aria-hidden", "true");
+    lockBtn.appendChild(lockIcon);
+    var hHelp = document.createElement("p");
+    hHelp.className = "rte-help";
+    hHelp.id = uid + "-hx";
+    var cropSize = document.createElement("button");
+    cropSize.type = "button";
+    cropSize.className = "ui-btn ui-btn-sm";
+    cropSize.style.marginTop = "6px";
+    cropSize.setAttribute("data-rte-cropsize", "");
+    cropSize.textContent = "✂ " + T.cropSize;
+    var busy = false, self = pop;
     function cell(pair) { var d = document.createElement("div"); d.appendChild(pair[0]); d.appendChild(pair[1]); return d; }
     grid.appendChild(cell(wPair));
     grid.appendChild(lockBtn);
     grid.appendChild(cell(hPair));
     sizeFs.appendChild(grid);
+    sizeFs.appendChild(hHelp);
+    sizeFs.appendChild(cropSize);
     function refresh() {
       var px = figUnit(fig) === "px";
       var box = img.getBoundingClientRect();
@@ -920,8 +943,9 @@ Esc — обратно), выравнивание текста, H4, цитата
       hIn.value = Math.round(box.height) || "";
       hIn.readOnly = locked;
       lockBtn.setAttribute("aria-pressed", locked ? "true" : "false");
-      lockBtn.setAttribute("aria-label", locked ? T.lockOn : T.lockOff);
-      lockBtn.textContent = locked ? "🔒" : "🔓";
+      lockIcon.textContent = locked ? "🔒" : "🔓";
+      hHelp.textContent = locked ? T.heightLocked : T.heightOpen;
+      cropSize.hidden = locked;
       badge.textContent = Math.round(box.width) + " × " + Math.round(box.height) + " px";
       wRow.hidden = px;
     }
@@ -935,24 +959,29 @@ Esc — обратно), выравнивание текста, H4, цитата
     }
     function cropToSize() {
       var h = parseInt(hIn.value, 10), w = img.getBoundingClientRect().width;
-      if (isNaN(h) || !w || !img.naturalWidth) return;
+      if (busy || isNaN(h) || !w || !img.naturalWidth || !img.naturalHeight) return;
       h = Math.max(20, Math.min(4000, h));
+      hIn.value = h;
       var want = w / h, have = img.naturalWidth / img.naturalHeight;
       var r = want > have ? { x: 0, w: 1, h: have / want } : { y: 0, h: 1, w: want / have };
       if (r.x === undefined) r.x = (1 - r.w) / 2;
       if (r.y === undefined) r.y = (1 - r.h) / 2;
-      if (Math.abs(want - have) / have < 0.01) return;
-      hIn.disabled = true;
+      if (Math.abs(want - have) / have < 0.01) { status(area, T.cropSame); return; }
+      busy = true;
+      cropSize.setAttribute("aria-busy", "true");
       status(area, T.upload);
       cropRequest(ta0, img.getAttribute("src"), r).then(function (url) {
         img.setAttribute("src", url);
+        if (pop !== self) { if (area.__rte) { area.__rte.sync(); area.__rte.snapshot(); } return; }
         changed(T.cropDone);
         whenLoaded(refresh);
       }).catch(function (e) { status(area, e.message || T.uploadFail); })
-        .then(function () { hIn.disabled = false; });
+        .then(function () { busy = false; cropSize.removeAttribute("aria-busy"); });
     }
     wIn.addEventListener("change", applyWidth);
-    hIn.addEventListener("change", function () { if (!locked) cropToSize(); });
+    // Обрезка — только по кнопке (стрелки в поле высоты не шлют запрос на каждый шаг).
+    cropSize.addEventListener("click", cropToSize);
+    hIn.addEventListener("keydown", function (e) { if (e.key === "Enter" && !locked) { e.preventDefault(); cropToSize(); } });
     lockBtn.addEventListener("click", function () {
       locked = !locked;
       refresh();
@@ -1214,6 +1243,11 @@ Esc — обратно), выравнивание текста, H4, цитата
     function sync() { ta.value = value(area); }
     function snapshot() {
       var html = area.innerHTML;
+      if (html.indexOf("rte-figbar") >= 0) {  // кнопки на фото — не шаг истории
+        var tmp = area.cloneNode(true);
+        tmp.querySelectorAll(".rte-figbar").forEach(function (b) { b.remove(); });
+        html = tmp.innerHTML;
+      }
       if (past[past.length - 1] !== html) {
         past.push(html);
         future = [];

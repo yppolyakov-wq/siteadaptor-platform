@@ -37867,3 +37867,18 @@ msgstr "Seitenverhältnis halten: aus"
 
 msgid "Ersetzen"
 msgstr "Ersetzen"
+
+msgid "Seitenverhältnis halten"
+msgstr "Seitenverhältnis halten"
+
+msgid "Die Höhe folgt der Breite. Schloss öffnen, um das Bild auf eine Höhe zuzuschneiden."
+msgstr "Die Höhe folgt der Breite. Schloss öffnen, um das Bild auf eine Höhe zuzuschneiden."
+
+msgid "Höhe eintragen und zuschneiden: Es entsteht ein neues, zugeschnittenes Bild."
+msgstr "Höhe eintragen und zuschneiden: Es entsteht ein neues, zugeschnittenes Bild."
+
+msgid "Auf Größe zuschneiden"
+msgstr "Auf Größe zuschneiden"
+
+msgid "Das Bild hat diese Größe schon."
+msgstr "Das Bild hat diese Größe schon."

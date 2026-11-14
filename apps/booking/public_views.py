@@ -871,11 +871,13 @@ def _service_rich_context(request, service, tenant) -> dict:
     from apps.core import archetypes, detail_sections
     from apps.core.sellable import sellable_for
     from apps.reviews import services as review_services
-    from apps.tenants import siteconfig
 
     # UA4-1 slice C: скрытые секции детали услуги (билдер) — под ?preview=1 из черновика.
     _raw = page_settings.raw_config(request)
-    _hidden = siteconfig.detail_section_hidden(_raw, "booking")
+    from apps.core import object_structure
+
+    # FB-29.4b: общие настройки + отличия этой услуги (свои показ/скрытие, шаблон).
+    _hidden = object_structure.effective_hidden(_raw, "booking", service)
     # Фидбэк 2026-08-04: пикер «выбор специалиста» и секция «Team» — только когда
     # ресурсы — ЛЮДИ с профилем (фото/должность/био, A3). Технические ресурсы
     # отеля/мастерской (Wellnessbereich, Rezeption, Bühne) гость не выбирает —
@@ -967,7 +969,7 @@ def _service_rich_context(request, service, tenant) -> dict:
         # UA4-2: упорядоченные секции тела детали (data-driven рендер).
         "body_sections": body_sections,
         # STU-15b: раскладка страницы детали услуги ("" | tabs | breit).
-        "detail_layout": siteconfig.detail_layout(_raw, "service"),
+        "detail_layout": object_structure.effective_layout(_raw, "service", service),
     }
 
 

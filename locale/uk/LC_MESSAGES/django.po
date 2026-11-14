@@ -38106,3 +38106,18 @@ msgstr "Зберігати пропорції: вимкнено"
 
 msgid "Ersetzen"
 msgstr "Замінити"
+
+msgid "Seitenverhältnis halten"
+msgstr "Зберігати пропорції"
+
+msgid "Die Höhe folgt der Breite. Schloss öffnen, um das Bild auf eine Höhe zuzuschneiden."
+msgstr "Висота йде за шириною. Відкрийте замок, щоб обрізати фото до потрібної висоти."
+
+msgid "Höhe eintragen und zuschneiden: Es entsteht ein neues, zugeschnittenes Bild."
+msgstr "Введіть висоту та обріжте: з’явиться нове, обрізане фото."
+
+msgid "Auf Größe zuschneiden"
+msgstr "Обрізати до розміру"
+
+msgid "Das Bild hat diese Größe schon."
+msgstr "Фото вже такого розміру."

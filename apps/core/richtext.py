@@ -174,7 +174,7 @@ def _local_image_only(tag: str, attribute: str, value: str):
             return None
         return value
     if tag == "img" and attribute in ("width", "height"):
-        return value if value.isdigit() and len(value) <= 4 else None
+        return value if value.isascii() and value.isdigit() and len(value) <= 4 else None
     if tag == "img" and attribute == "alt":
         return value[:ALT_MAX]
     if attribute == "class":

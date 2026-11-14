@@ -276,6 +276,9 @@ class Product(SoftDeleteMixin, I18nMixin):
     # ПОБЕЖДАЕТ общее (решение владельца 2026-09-03); choices — в форме кабинета,
     # чтобы реестр рос без миграций (прецедент variant_style / Category.page_style).
     card_style = models.CharField(max_length=16, blank=True, default="")
+    # FB-29.4b: своя структура страницы товара поверх общей — {hidden, shown, layout}
+    # (чистит и читает `apps.core.object_structure`). Пусто = как у всех товаров.
+    page_override = models.JSONField(default=dict, blank=True)
     # T-8.11: владелец не хочет этот товар в каталоге города (сайт — как прежде).
     hide_in_city = models.BooleanField(default=False)
     # M23b.1: товар не уходит в фид Google Merchant Center.

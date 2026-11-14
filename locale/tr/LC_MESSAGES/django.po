@@ -37926,3 +37926,18 @@ msgstr "En-boy oranını koru: kapalı"
 
 msgid "Ersetzen"
 msgstr "Değiştir"
+
+msgid "Seitenverhältnis halten"
+msgstr "En-boy oranını koru"
+
+msgid "Die Höhe folgt der Breite. Schloss öffnen, um das Bild auf eine Höhe zuzuschneiden."
+msgstr "Yükseklik genişliği izler. Görseli bir yüksekliğe kırpmak için kilidi açın."
+
+msgid "Höhe eintragen und zuschneiden: Es entsteht ein neues, zugeschnittenes Bild."
+msgstr "Yüksekliği girip kırpın: yeni, kırpılmış bir görsel oluşur."
+
+msgid "Auf Größe zuschneiden"
+msgstr "Boyuta kırp"
+
+msgid "Das Bild hat diese Größe schon."
+msgstr "Görsel zaten bu boyutta."

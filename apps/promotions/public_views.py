@@ -26,7 +26,14 @@ from django.views.decorators.csrf import csrf_exempt
 
 from apps.catalog.combos import combo_labels
 from apps.catalog.views import FOOD_BUSINESS_TYPES as _FOOD_TYPES
-from apps.core import closures, grid_filler, page_settings, ratelimit, readiness
+from apps.core import (
+    closures,
+    grid_filler,
+    object_structure,
+    page_settings,
+    ratelimit,
+    readiness,
+)
 from apps.core.models import resolve_overlay
 from apps.core.pagecache import cache_storefront_page
 from apps.core.pagination import paginate
@@ -2326,13 +2333,13 @@ def product_detail(request, pk=None, pslug=None, cslug=None):
             "review_summary": product_reviews.summary(product),
             "review_form_token": uuid.uuid4().hex,
             # Скрытые опц. секции детальной товара (билдер: group=catalog_detail).
-            "product_detail_hidden": siteconfig.product_detail_hidden(_cfg),
+            "product_detail_hidden": object_structure.effective_hidden(_cfg, "catalog", product),
             # DL-16.6 (D2): "" — описание/Kennzeichnung в правой колонке, отзывы телом;
             # "tabs" — все три панелями тела (аккордеон <md, табы md+).
-            "product_detail_layout": siteconfig.product_detail_layout(_cfg),
+            "product_detail_layout": object_structure.effective_layout(_cfg, "product", product),
             # STU-15b: та же ось, что у услуги/номера/события — каркас детали читает её
             # для раскладки «breit» (кадр во всю ширину). "tabs" у товара своя разметка.
-            "detail_layout": siteconfig.detail_layout(_cfg, "product"),
+            "detail_layout": object_structure.effective_layout(_cfg, "product", product),
             # Гейт панели/блока Kennzeichnung — есть хоть одно поле (LMIV/Textil).
             "product_has_info": bool(
                 product.origin

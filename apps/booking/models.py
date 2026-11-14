@@ -188,6 +188,11 @@ class Service(I18nMixin, TimestampedModel):
     # LS-1: видео-консультация (v1 = WhatsApp-видео, wa.me-линк в письмах и на
     # детали; НИКАКОЙ записи разговоров — §201 StGB). Бронь — обычным движком.
     is_video = models.BooleanField(default=False)
+    # FB-29.4b: своя структура страницы услуги поверх общей — {hidden, shown, layout}
+    # (`apps.core.object_structure`) и своя форма карточки (реестр `core.card_forms`).
+    # Пусто = как у всех услуг.
+    page_override = models.JSONField(default=dict, blank=True)
+    card_style = models.CharField(max_length=16, blank=True, default="")
     # UA4-3: богатая карточка услуги (A3/A7/A9). attributes — свободные строки
     # (спецификации/фичи, list[str]); faq — вопросы-ответы (list[{q,a}]); оба
     # нормализуются на чтении (garbage-safe, см. *_list). primary_action — per-service
