@@ -1251,14 +1251,14 @@ try { (function () {
 try { (function () {
   // Без скриптов видны все запасные строки. Со скриптами — одна пустая и кнопка «ещё»;
   // у ступеней веса начало диапазона («ab 3 kg») следует за пределом предыдущей строки.
-  var MAX = 23;
+  var MAX = 20;  // как MAX_ROWS сервера: больше строк форма не предлагает
   function froms(box) {
     var tpl = box.getAttribute("data-ship-from-tpl");
     if (!tpl) return;
     var start = "0";
     box.querySelectorAll("[data-ship-row]").forEach(function (row) {
       var label = row.querySelector("[data-ship-from]");
-      if (label) label.textContent = tpl.replace("%s", start);
+      if (label) label.textContent = tpl.split("%s").join(start);
       var kg = row.querySelector("[data-ship-kg]");
       if (kg && kg.value.trim()) start = kg.value.trim();
     });
@@ -1277,9 +1277,16 @@ try { (function () {
   }
   scan(document);
   if (window.MutationObserver) {
-    // форма приходит и шторкой — после загрузки страницы
-    new MutationObserver(function () { scan(document); })
-      .observe(document.documentElement, { childList: true, subtree: true });
+    // форма приходит и шторкой — смотрим только добавленные узлы, не весь документ
+    new MutationObserver(function (list) {
+      list.forEach(function (m) {
+        m.addedNodes.forEach(function (node) {
+          if (node.nodeType !== 1) return;
+          if (node.matches("[data-ship-rows]")) init(node);
+          scan(node);
+        });
+      });
+    }).observe(document.documentElement, { childList: true, subtree: true });
   }
   document.addEventListener("click", function (e) {
     var more = e.target.closest && e.target.closest("[data-ship-more]");
@@ -1288,7 +1295,7 @@ try { (function () {
     var rows = box.querySelectorAll("[data-ship-row]");
     var next = null;
     rows.forEach(function (row) { if (!next && row.classList.contains("hidden")) next = row; });
-    if (!next && rows.length <= MAX) {
+    if (!next && rows.length < MAX) {
       // запасные кончились — ещё строка со следующим номером полей
       next = rows[rows.length - 1].cloneNode(true);
       next.querySelectorAll("input").forEach(function (input) {

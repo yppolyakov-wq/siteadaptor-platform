@@ -38096,3 +38096,9 @@ msgstr "Weiterer Abholort"
 
 msgid "Liefergebiet ohne Postleitzahl."
 msgstr "Liefergebiet ohne Postleitzahl."
+
+msgid "Abholort ohne Namen."
+msgstr "Abholort ohne Namen."
+
+msgid "Zwei Gewichtsstufen mit derselben Grenze."
+msgstr "Zwei Gewichtsstufen mit derselben Grenze."

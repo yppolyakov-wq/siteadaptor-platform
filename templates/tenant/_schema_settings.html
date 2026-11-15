@@ -5,10 +5,11 @@
 {% for g in settings %}
   {% if g.label %}<h3 class="text-sm font-bold text-gray-900 border-t border-gray-200 pt-3">{{ g.label }}</h3>{% endif %}
   {% for row in g.settings %}{% with s=row.s %}
-  <details class="rounded-xl border border-gray-300" data-schema-setting-box="{{ s.code }}"{% if open_setting == s.code or settings_single or s.thumb %} open{% endif %}>
+  <details class="rounded-xl border border-gray-300" data-schema-setting-box="{{ s.code }}"{% if s.thumb == "hero" %}{% if open_setting == s.code %} open{% endif %}{% elif open_setting == s.code or settings_single or s.thumb %} open{% endif %}>
   <summary class="flex items-center justify-between gap-2 px-3 min-h-[44px] cursor-pointer text-sm">
     <span class="font-semibold">{{ s.label }}</span>
-    <span class="text-gray-700 text-right">{{ row.current }}</span>
+    {% comment %}FB-30.6: вид баннера — выпадающий список: закрыт — выбранный вид со схемой, открыт — все со схемами.{% endcomment %}
+    <span class="flex items-center gap-2 text-gray-700 text-right">{% if s.thumb == "hero" %}{% include "tenant/_herostyle_thumb.html" with key=s.value %}{% endif %}<span>{{ row.current }}</span>{% if s.thumb == "hero" %}<span aria-hidden="true">▾</span>{% endif %}</span>
   </summary>
   <form method="post" class="border-t border-gray-200 p-3" data-schema-setting="{{ s.code }}" data-pt-setting="{{ s.code }}"{% if s.kind == "layout" %} data-schema-manual{% endif %}>
     {% csrf_token %}
@@ -29,11 +30,11 @@
               {% endfor %}
             </div>
           {% else %}
-            <div class="grid grid-cols-2 gap-2">
+            <div class="grid {% if s.thumb == "hero" %}grid-cols-1 gap-1.5{% else %}grid-cols-2 gap-2{% endif %}">
               {% for c in s.choices %}
-                <label class="flex flex-col gap-1 rounded-xl border p-2 text-xs min-h-[44px] group {% if c.available %}cursor-pointer border-gray-200 has-[:checked]:border-2 has-[:checked]:border-indigo-700 has-[:checked]:bg-indigo-50 has-[:focus-visible]:outline has-[:focus-visible]:outline-[3px] has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-indigo-600{% else %}border-dashed border-gray-300 bg-gray-50 text-gray-600{% endif %}">
+                <label class="flex {% if s.thumb == "hero" %}flex-row items-center gap-3 text-sm{% else %}flex-col gap-1 text-xs{% endif %} rounded-xl border p-2 min-h-[44px] group {% if c.available %}cursor-pointer border-gray-200 has-[:checked]:border-2 has-[:checked]:border-indigo-700 has-[:checked]:bg-indigo-50 has-[:focus-visible]:outline has-[:focus-visible]:outline-[3px] has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-indigo-600{% else %}border-dashed border-gray-300 bg-gray-50 text-gray-600{% endif %}">
                   <input type="radio" id="st-{{ s.code }}-{{ forloop.counter }}" name="value" value="{{ c.value }}" class="sr-only" {% if c.value == s.value %}checked{% endif %}{% if not c.available %} disabled aria-describedby="r-{{ s.code }}-{{ forloop.counter }}"{% endif %}>
-                  {% if s.thumb == "card" %}{% include "tenant/_cardform_thumb.html" with key=c.value %}{% elif s.thumb == "page" %}{% include "tenant/_pagelayout_thumb.html" with key=c.value %}{% endif %}
+                  {% if s.thumb == "card" %}{% include "tenant/_cardform_thumb.html" with key=c.value %}{% elif s.thumb == "page" %}{% include "tenant/_pagelayout_thumb.html" with key=c.value %}{% elif s.thumb == "hero" %}{% include "tenant/_herostyle_thumb.html" with key=c.value %}{% endif %}
                   <span>{{ c.label }}<span class="hidden group-has-[:checked]:inline font-semibold text-indigo-700"> ✓</span></span>
                   {% if c.hint %}<span class="sr-only">{{ c.hint }}</span>{% endif %}
                   {% if not c.available %}<span id="r-{{ s.code }}-{{ forloop.counter }}" class="text-[11px]">{{ c.reason }}</span>{% endif %}

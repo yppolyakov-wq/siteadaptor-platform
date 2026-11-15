@@ -38155,3 +38155,9 @@ msgstr "Başka teslim noktası"
 
 msgid "Liefergebiet ohne Postleitzahl."
 msgstr "Posta kodu olmayan teslimat bölgesi."
+
+msgid "Abholort ohne Namen."
+msgstr "Adı olmayan teslim noktası."
+
+msgid "Zwei Gewichtsstufen mit derselben Grenze."
+msgstr "Aynı sınırda iki ağırlık aralığı."

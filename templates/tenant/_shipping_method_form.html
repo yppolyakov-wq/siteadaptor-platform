@@ -97,7 +97,7 @@ Paketdienst — компания, до двери/пункт выдачи, це�
         {% for r in zone_rows %}
         <div class="grid grid-cols-2 sm:grid-cols-[2fr_1fr_1fr_1fr] items-end gap-2" data-ship-row{% if not r.plz and not r.fee and not r.free and not r.min and not forloop.first %} data-ship-spare{% endif %}>
           <label class="block col-span-2 sm:col-span-1"><span class="block text-xs ui-muted mb-1">{% trans "PLZ (mehrere mit Komma)" %}</span>
-            <input name="zone_plz_{{ r.i }}" type="text" value="{{ r.plz }}" class="ui-input" placeholder="42651, 42653"></label>
+            <input name="zone_plz_{{ r.i }}" type="text" maxlength="200" value="{{ r.plz }}" class="ui-input" placeholder="42651, 42653"></label>
           <label class="block"><span class="block text-xs ui-muted mb-1">{% trans "Preis €" %}</span>
             <input name="zone_fee_{{ r.i }}" type="text" inputmode="decimal" value="{{ r.fee }}" class="ui-input tabular-nums"></label>
           <label class="block"><span class="block text-xs ui-muted mb-1">{% trans "Kostenlos ab (€)" %}</span>

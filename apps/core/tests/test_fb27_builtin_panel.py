@@ -113,13 +113,15 @@ def test_untouched_panel_never_changes_the_section(kind, key):
     assert siteconfig.normalize(Tenant.objects.get(pk=tenant.pk).site_config) == before
 
 
-def test_banner_setting_is_open_when_it_is_the_only_one():
+def test_banner_setting_is_a_closed_dropdown_showing_the_chosen_style():
+    """FB-30.6 (решение владельца 2026-11-15, осознанная переписка): вид баннера —
+    выпадающий список: закрыт, в заголовке — выбранный вид со схемой."""
     b = Browser(_tenant())
     html = b.get("?seite=home&block=hero")
     assert html.count("data-schema-setting-box=") >= 1
-    if html.count("data-schema-setting-box=") == 1:
-        box = html[html.index("data-schema-setting-box=") :][:200]
-        assert " open" in box.split(">")[0]
+    box = html[html.index('data-schema-setting-box="home_hero"') :]
+    assert " open" not in box.split(">")[0]
+    assert "data-hero-thumb=" in box[: box.index("</summary>")]
 
 
 def test_stale_studio_tab_cannot_roll_the_panel_edit_back():

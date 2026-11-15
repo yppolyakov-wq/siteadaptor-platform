@@ -435,6 +435,8 @@ def _thumb(setting: studio_pages.Setting) -> str:
         return "card"
     if setting.code in _COMPOSITION_SURFACE:
         return "page"
+    if setting.code == "home_hero":
+        return "hero"  # FB-30.6: схема вида баннера
     return ""
 
 

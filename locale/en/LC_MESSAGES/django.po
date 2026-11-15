@@ -38009,3 +38009,9 @@ msgstr "Another pickup point"
 
 msgid "Liefergebiet ohne Postleitzahl."
 msgstr "Delivery area without a postcode."
+
+msgid "Abholort ohne Namen."
+msgstr "Pickup point without a name."
+
+msgid "Zwei Gewichtsstufen mit derselben Grenze."
+msgstr "Two weight ranges with the same limit."

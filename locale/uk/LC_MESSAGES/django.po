@@ -38335,3 +38335,9 @@ msgstr "Ще пункт самовивозу"
 
 msgid "Liefergebiet ohne Postleitzahl."
 msgstr "Зона доставки без поштового індексу."
+
+msgid "Abholort ohne Namen."
+msgstr "Пункт самовивозу без назви."
+
+msgid "Zwei Gewichtsstufen mit derselben Grenze."
+msgstr "Два діапазони ваги з однаковою межею."

@@ -69,7 +69,7 @@ def _kg_to_g(raw):
         return None
     try:
         grams = round(float(text) * 1000)
-    except ValueError:
+    except (ValueError, OverflowError):  # «inf», «1e400» — мусор, а не ошибка 500
         return None
     return grams if 0 < grams <= MAX_WEIGHT_G else None
 
@@ -95,16 +95,25 @@ ROW_FIELDS = {
 }
 #: Пустые строки в конце формы: без скриптов ряд добавляется сохранением.
 SPARE_ROWS = 3
+#: Сколько номеров полей читает сервер: заполненная строка за пределом `MAX_ROWS` даёт
+#: ошибку «höchstens N», а не пропадает молча (ревью FB-30.11).
+_SCAN_ROWS = 64
 
 
 def _field_rows(post, name: str) -> list[list[str]]:
     prefix, cols = ROW_FIELDS[name]
     rows = []
-    for i in range(MAX_ROWS + SPARE_ROWS):
+    for i in range(_SCAN_ROWS):
         row = [str(post.get(f"{prefix}_{col}_{i}") or "").strip() for col in cols]
         if any(row):
             rows.append(row)
     return rows
+
+
+def has_rows(post, name: str) -> bool:
+    """Прислала ли форма строки `name` (полями либо прежним текстом). Нет — поле не
+    трогаем (W0): форма из другого места не стирает сохранённые строки."""
+    return bool(post.get(f"{name}_present")) or name in post
 
 
 def _rows(post, name: str, parsed=None) -> list[list[str]]:
@@ -145,13 +154,18 @@ def parse(post, kind: str) -> Parsed:
     v["fee_cents"] = _money(post, "fee", _("Preis"), parsed)
     v["free_from_cents"] = _money(post, "free_from", _("Kostenlos ab"), parsed)
     v["area_text"] = (post.get("area_text") or "").strip()[:2000]
-    if kind == ShippingMethod.KIND_PICKUP:
-        v["locations"] = [
-            {"name": row[0][:120], "address": (row[1] if len(row) > 1 else "")[:200]}
-            for row in _rows(post, "locations", parsed)
-            if row[0]
-        ]
-    if kind == ShippingMethod.KIND_COURIER:
+    if kind == ShippingMethod.KIND_PICKUP and has_rows(post, "locations"):
+        locations = []
+        for row in _rows(post, "locations", parsed):
+            if not row[0]:
+                if len(row) > 1 and row[1]:  # адрес без названия — не пропускаем молча
+                    parsed.errors.append(_("Abholort ohne Namen."))
+                continue
+            locations.append(
+                {"name": row[0][:120], "address": (row[1] if len(row) > 1 else "")[:200]}
+            )
+        v["locations"] = locations
+    if kind == ShippingMethod.KIND_COURIER and has_rows(post, "zones"):
         zones = []
         for row in _rows(post, "zones", parsed):
             plz = row[0][:200]
@@ -216,8 +230,13 @@ def parse(post, kind: str) -> Parsed:
                 continue
             tiers.append({"max_g": grams, "fee_cents": to_cents(amount)})
         tiers.sort(key=lambda t: t["max_g"])
-        v["weight_tiers"] = tiers
-        if v["pricing"] == ShippingMethod.PRICING_WEIGHT and not tiers:
+        if len({t["max_g"] for t in tiers}) < len(tiers):
+            parsed.errors.append(_("Zwei Gewichtsstufen mit derselben Grenze."))
+        if has_rows(post, "weight_tiers"):  # W0: без строк в форме — прежние ступени целы
+            v["weight_tiers"] = tiers
+        elif v["pricing"] == ShippingMethod.PRICING_WEIGHT:
+            tiers = None  # проверку «хоть одна ступень» делает вызывающий по сохранённым
+        if v["pricing"] == ShippingMethod.PRICING_WEIGHT and tiers == []:
             parsed.errors.append(_("Für den Preis nach Gewicht mindestens eine Stufe angeben."))
         # необязательные числа: пусто = «нет», опечатка = ошибка (а не тихое «без предела»)
         for name, key, conv in (

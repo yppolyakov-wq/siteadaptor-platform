@@ -71,3 +71,23 @@ def test_group_headings_name_the_source():
     assert ">Welche<" not in html and ">Wie<" not in html
     assert html.count('data-schema-group="wie"') == 1
     assert "nach „Übernehmen“" not in html
+
+
+# --- 30.6 ---
+
+
+def test_banner_style_is_a_dropdown_with_a_sketch_per_style():
+    b = Browser(_tenant())
+    html = b.get("?seite=home&block=hero")
+    box = html[html.index('data-schema-setting-box="home_hero"') :]
+    box = box[: box.index("</details>")]
+    head = box[: box.index("</summary>")]
+    assert " open" not in box[: box.index(">")], "закрыт: виден выбранный вид со схемой"
+    assert head.count("data-hero-thumb=") == 1
+    for style in siteconfig.HERO_STYLES:
+        assert box.count(f'data-hero-thumb="{style}"') >= 1, style
+    assert box.count("data-hero-thumb=") == len(siteconfig.HERO_STYLES) + 1
+    # после выбора список остаётся раскрытым — владелец видит, что выбрано
+    opened = b.get("?seite=home&block=hero&offen=home_hero")
+    opened = opened[opened.index('data-schema-setting-box="home_hero"') :]
+    assert " open" in opened[: opened.index(">")]

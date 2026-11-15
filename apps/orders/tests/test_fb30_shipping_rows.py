@@ -83,3 +83,55 @@ def test_form_template_uses_rows_and_the_sentinels():
         assert f'name="{name}"' in src
     assert "tier_kg_{{ r.i }}" in src and "tier_fee_{{ r.i }}" in src
     assert shipping_views.form_values  # читатель значений формы на месте
+
+
+# --- ревью (security-reviewer) ---
+
+
+def test_rows_beyond_the_limit_are_an_error_not_silently_dropped():
+    fields = {}
+    for i in range(21):
+        fields[f"tier_kg_{i}"] = str(i + 1)
+        fields[f"tier_fee_{i}"] = "1"
+    fields["tier_kg_40"], fields["tier_fee_40"] = "99", "9"
+    p = _tiers(**fields)
+    assert any("20" in str(e) for e in p.errors)
+
+
+def test_free_tier_is_legitimate_and_duplicates_are_an_error():
+    p = _tiers(tier_kg_0="2", tier_fee_0="0", tier_kg_1="5", tier_fee_1="4")
+    assert not p.errors and p.values["weight_tiers"][0]["fee_cents"] == 0
+    p = _tiers(tier_kg_0="2", tier_fee_0="3", tier_kg_1="2", tier_fee_1="1")
+    assert p.errors
+
+
+def test_unsorted_rows_are_stored_sorted_and_odd_numbers_are_errors():
+    p = _tiers(tier_kg_0="10", tier_fee_0="9", tier_kg_1="2", tier_fee_1="4")
+    assert [t["max_g"] for t in p.values["weight_tiers"]] == [2000, 10000]
+    for bad in ("inf", "1e400", "-1", "0"):
+        assert _tiers(tier_kg_0=bad, tier_fee_0="1").errors, bad
+    for bad in ("-1", "5000", "abc"):
+        assert _tiers(tier_kg_0="2", tier_fee_0=bad).errors, bad
+
+
+def test_form_without_any_rows_keeps_stored_rows():
+    """W0: форма без строк (ни полей, ни текста) не стирает сохранённые ступени, зоны, пункты."""
+    assert "weight_tiers" not in shipping_admin.parse(CARRIER, "carrier").values
+    assert "zones" not in shipping_admin.parse({}, "courier").values
+    assert "locations" not in shipping_admin.parse({}, "pickup").values
+    empty = shipping_admin.parse({**CARRIER, "pricing": "flat", "weight_tiers_present": "1"},
+                                 "carrier")  # fmt: skip
+    assert empty.values["weight_tiers"] == [], "сентинел без строк — список очищен"
+
+
+def test_pickup_point_with_an_address_but_no_name_is_an_error():
+    p = shipping_admin.parse({"locations_present": "1", "loc_address_0": "Markt 1"}, "pickup")
+    assert p.errors
+
+
+def test_form_rows_from_a_real_querydict():
+    from django.http import QueryDict
+
+    post = QueryDict("weight_tiers_present=1&tier_kg_0=3&tier_fee_0=5,90&tier_kg_5=7")
+    rows = shipping_admin.form_rows(post, "weight_tiers")
+    assert [(r["kg"], r["fee"]) for r in rows[:2]] == [("3", "5,90"), ("7", "")]
