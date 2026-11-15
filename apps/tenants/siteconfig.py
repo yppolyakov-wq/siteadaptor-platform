@@ -1348,6 +1348,14 @@ def clean_main_marker(item) -> dict:
 CATALOG_CATEGORY_VIEWS = ("regale", "tabs", "index", "side", "wegweiser")
 #: «Automatisch» — владелец явно выбрал обычный вид (плитки/чипы) поверх кода шаблона.
 CATALOG_CATEGORY_AUTO = "auto"
+#: FB-30.16 R5b: строки шапки и сетов страницы каталога/категорий (вид — в `style`)
+CATALOG_HEAD_KEY = "page_head"
+CATALOG_SETS_KEY = "combos"
+CATALOG_PART_STYLES = {
+    "categories": (*CATALOG_CATEGORY_VIEWS, CATALOG_CATEGORY_AUTO),
+    CATALOG_HEAD_KEY: ("aus", "titelbild"),
+    CATALOG_SETS_KEY: ("below", "above"),
+}
 
 
 def drop_catalog_views(cfg: dict, host: str = "catalog") -> dict:
@@ -1375,7 +1383,7 @@ def page_builtin_keys(host) -> frozenset:
     """FB-31 P0: какие встроенные строки-списки (как на главной) может хранить страница.
     Пилот — каталог и его категории: блок «Kategorien»."""
     if isinstance(host, str) and (host in ("catalog", "category") or _CATEGORY_HOST_RE.match(host)):
-        return frozenset({"categories"})
+        return frozenset({"categories", CATALOG_HEAD_KEY, CATALOG_SETS_KEY})
     return frozenset()
 
 
@@ -1400,10 +1408,25 @@ def main_list_sequence(host, blocks) -> list:
     # FB-30.16 R4: на странице каталога блок «Kategorien» стоит всегда и прямо над ★ — так
     # он и рисуется на витрине (навигация категорий прикреплена к списку товаров).
     if host in ("catalog", "category"):  # своя схема одной категории — позже
-        row = next((b for b in blocks if b.get("key") == "categories" and not b.get("id")), None)
-        blocks = [b for b in blocks if b is not row]
+
+        def _take(key):
+            row = next((b for b in blocks if b.get("key") == key and not b.get("id")), None)
+            return row, [b for b in blocks if b is not row]
+
+        cat, blocks = _take("categories")
+        head, blocks = _take(CATALOG_HEAD_KEY)
+        sets, blocks = _take(CATALOG_SETS_KEY)
         at = next(i for i, b in enumerate(blocks) if is_main_marker(b))
-        blocks.insert(at, row or {"key": "categories", "enabled": True})
+        blocks.insert(at, cat or {"key": "categories", "enabled": True})
+        # шапка — первой строкой (на витрине она над всем); сеты — над категориями
+        # или сразу под ★, как их рисует страница
+        blocks.insert(0, head or {"key": CATALOG_HEAD_KEY, "enabled": True})
+        sets = sets or {"key": CATALOG_SETS_KEY, "enabled": True}
+        at = next(i for i, b in enumerate(blocks) if is_main_marker(b))
+        if sets.get("style") == "above":
+            blocks.insert(at - 1, sets)
+        else:
+            blocks.insert(at + 1, sets)
     return blocks
 
 
@@ -1499,12 +1522,14 @@ def normalize_page_blocks(raw) -> dict:
             if bkey in builtin_ok:
                 if bkey not in builtin_seen:
                     builtin_seen.add(bkey)
-                    entry = _section_entry(bkey, bool(item.get("enabled", True)), item)
-                    if bkey == "categories" and item.get("style") in (
-                        *CATALOG_CATEGORY_VIEWS,
-                        CATALOG_CATEGORY_AUTO,
-                    ):
+                    if bkey == "categories":
+                        entry = _section_entry(bkey, bool(item.get("enabled", True)), item)
+                    else:  # шапка и сеты — только вид, без полей секции главной
+                        entry = {"key": bkey, "enabled": True}
+                    if item.get("style") in CATALOG_PART_STYLES[bkey]:
                         entry["style"] = item["style"]
+                    elif bkey != "categories":
+                        entry.pop("style", None)
                     # FB-30.16 R4: строка без выбранного вида ничего не хранит (её
                     # всегда показывает схема) — не пишем, конфиги не разрастаются
                     if entry.get("style"):

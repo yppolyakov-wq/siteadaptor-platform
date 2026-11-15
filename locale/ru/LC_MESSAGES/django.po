@@ -38659,3 +38659,36 @@ msgstr "Как показывать товары"
 
 msgid "Wählen Sie später in der Studio eine Seitenvorlage, gilt wieder die Vorlage."
 msgstr "Если позже выбрать шаблон страницы в Студии, снова будет действовать шаблон."
+
+msgid "Banner · Fotos der Seite"
+msgstr "Баннер · фото страницы"
+
+msgid "Ohne Kopfbereich"
+msgstr "Без шапки"
+
+msgid "Die Seite beginnt direkt mit dem Inhalt."
+msgstr "Страница начинается сразу с содержимого."
+
+msgid "Titelbild"
+msgstr "Титульное фото"
+
+msgid "Foto und Beschreibung der Seite oben."
+msgstr "Фото и описание страницы вверху."
+
+msgid "Sets & Menüs"
+msgstr "Сеты и меню"
+
+msgid "Unter den Produkten"
+msgstr "Под товарами"
+
+msgid "Erst die Produkte, dann die Sets."
+msgstr "Сначала товары, потом сеты."
+
+msgid "Über den Produkten"
+msgstr "Над товарами"
+
+msgid "Sets zuerst, dann einzelne Produkte."
+msgstr "Сначала сеты, потом отдельные товары."
+
+msgid "Dieser Block hat einen festen Platz auf der Seite."
+msgstr "У этого блока постоянное место на странице."

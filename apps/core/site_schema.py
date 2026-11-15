@@ -967,8 +967,11 @@ def blocks_for(
             }
         )
         # FB-30.16 R4: блоки каталога — вид категорий и вид товаров ★ (стратегия FB-31)
-        if host in ("catalog", "category") and (main or key == "categories"):
+        if host in ("catalog", "category") and (main or key in siteconfig.CATALOG_PART_STYLES):
             out[-1].update(_catalog_view_panel(config, host, item, main))
+    if host in ("catalog", "category") and not _has_combos():
+        # «Sets & Menüs» — только если наборы есть (иначе строке нечего показывать)
+        out = [b for b in out if b["key"] != siteconfig.CATALOG_SETS_KEY]
     if summaries:  # строке списка страниц нужен только счёт блоков — без запроса
         _textpage_summaries(out, items)
     for b in out:
@@ -1526,6 +1529,34 @@ MAIN_VIEW_LABELS = (
 )
 
 
+#: FB-30.16 R5b: шапка и сеты страницы каталога/категорий — свои строки с видом.
+PART_VIEW_CHOICES = {
+    "page_head": (
+        _("Banner · Fotos der Seite"),
+        (
+            ("aus", _("Ohne Kopfbereich"), _("Die Seite beginnt direkt mit dem Inhalt."), ""),
+            ("titelbild", _("Titelbild"), _("Foto und Beschreibung der Seite oben."), "kopfbild"),
+        ),
+    ),
+    "combos": (
+        _("Sets & Menüs"),
+        (
+            ("below", _("Unter den Produkten"), _("Erst die Produkte, dann die Sets."), ""),
+            ("above", _("Über den Produkten"), _("Sets zuerst, dann einzelne Produkte."), "sets"),
+        ),
+    ),
+}
+
+
+def _has_combos() -> bool:
+    try:
+        from apps.catalog.models import Combo
+
+        return Combo.objects.exists()
+    except Exception:  # noqa: BLE001 — без схемы бизнеса строку просто не показываем
+        return False
+
+
 def _catalog_view_panel(config: dict, host: str, item: dict, main: bool) -> dict:
     """Панель вида блока каталога: текущий вид (сохранённый либо из прежнего шаблона)."""
     from apps.catalog import catalog_parts
@@ -1540,6 +1571,18 @@ def _catalog_view_panel(config: dict, host: str, item: dict, main: bool) -> dict
         return {
             "label": f"★ {_('Produkte')}",
             "mainview": {"value": value, "choices": MAIN_VIEW_LABELS},
+        }
+    key = item.get("key")
+    if key in PART_VIEW_CHOICES:
+        label, choices = PART_VIEW_CHOICES[key]
+        value = (parts.head or "aus") if key == "page_head" else parts.sets
+        current = next((lab for v, lab, _h, _t in choices if v == value), "")
+        return {
+            "label": str(label),
+            "pinned": True,
+            "widths": [],
+            "summary": str(current),
+            "catview": {"value": value, "choices": choices, "title": str(label)},
         }
     value = parts.categories or "auto"
     current = next((lab for v, lab, _h, _t in CATEGORY_VIEW_CHOICES if v == value), "")
@@ -1641,8 +1684,9 @@ def mutate(
     ):
         raise SchemaError("fixed")
     if op == "catview":
-        allowed = (*siteconfig.CATALOG_CATEGORY_VIEWS, siteconfig.CATALOG_CATEGORY_AUTO)
-        if not pinned or item.get("key") != "categories" or value not in allowed:
+        # вид прикреплённой строки каталога: «Kategorien», шапка или сеты (R5b)
+        allowed = siteconfig.CATALOG_PART_STYLES.get(item.get("key"), ())
+        if not pinned or value not in allowed:
             raise SchemaError("op")
         item["style"] = value
         item["enabled"] = True  # ревью R4: старая скрытая строка снова действует

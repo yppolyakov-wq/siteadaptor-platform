@@ -13,13 +13,28 @@ def _items():
 
 
 def test_catalog_shows_a_categories_row_right_above_the_list():
+    """R4/R5b (осознанно расширен): шапка первой, «Kategorien» прямо над ★, сеты под ★."""
     rows = _items()
-    assert [r["key"] for r in rows] == ["categories", "main"]
+    assert [r["key"] for r in rows] == ["page_head", "categories", "main", "combos"]
     own = {"key": "text", "id": "t1"}
     rows = siteconfig.main_list_sequence("catalog", [{"key": "main"}, own])
-    assert [r.get("id") or r["key"] for r in rows] == ["categories", "main", "t1"]
+    assert [r.get("id") or r["key"] for r in rows] == [
+        "page_head",
+        "categories",
+        "main",
+        "combos",
+        "t1",
+    ]
     rows = siteconfig.main_list_sequence("catalog", [own, {"key": "categories"}, {"key": "main"}])
-    assert [r.get("id") or r["key"] for r in rows] == ["t1", "categories", "main"]
+    assert [r.get("id") or r["key"] for r in rows] == [
+        "page_head",
+        "t1",
+        "categories",
+        "main",
+        "combos",
+    ]
+    rows = siteconfig.main_list_sequence("catalog", [{"key": "combos", "style": "above"}])
+    assert [r["key"] for r in rows] == ["page_head", "combos", "categories", "main"]
     assert [r["key"] for r in siteconfig.main_list_sequence("services", [])] == ["main"]
 
 
@@ -123,3 +138,21 @@ def test_review_draft_counts_a_view_change(settings):
     b.post(seite="catalog", op="catview", ref="categories", value="regale")
     html = b.get("?seite=catalog")
     assert "Änderungen: 1" in html or "Änderung: 1" in html or "1 Änderung" in html
+
+
+def test_r5b_head_and_sets_rows_change_their_axis_only():
+    items = _items()
+    site_schema.mutate(items, "catalog", "catview", "page_head", value="titelbild")
+    site_schema.mutate(items, "catalog", "catview", "combos", value="above")
+    cfg = {"page_blocks": siteconfig.normalize_page_blocks({"catalog": items})}
+    parts = cp.effective(cfg, "catalog", code="regale")
+    assert parts.head == "titelbild" and parts.sets == "above" and parts.categories == "regale"
+    with pytest.raises(site_schema.SchemaError):
+        site_schema.mutate(_items(), "catalog", "catview", "page_head", value="above")
+
+
+@pytest.mark.django_db
+def test_r5b_sets_row_only_when_sets_exist():
+    cfg = siteconfig.normalize({})
+    keys = [b["key"] for b in site_schema.blocks_for(cfg, "catalog")]
+    assert "page_head" in keys and "combos" not in keys

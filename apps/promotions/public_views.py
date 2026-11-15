@@ -1555,10 +1555,12 @@ def product_list(request, slug=None):
         _parts_host = _own if _catalog_parts.has_parts(_own_rows) else "category"
     else:
         _parts_host = "" if path_mode else "catalog"
-    if _parts_host:
-        cat_style = _catalog_parts.legacy_code(
-            _catalog_parts.effective(cfg, _parts_host, code=cat_style)
-        )
+    _cat_parts = (
+        _catalog_parts.effective(cfg, _parts_host, code=cat_style)
+        if _parts_host
+        else _catalog_parts.from_code(cat_style)
+    )
+    cat_style = _catalog_parts.legacy_code(_cat_parts)
     # Снимок набора в рамках выбранной категории ДО фасет-фильтров — из него считаем
     # доступные значения фасетов (границы цены / присутствующие бейджи / есть ли
     # распроданное), чтобы показывать только релевантные фильтры и реальные диапазоны.
@@ -2117,8 +2119,12 @@ def product_list(request, slug=None):
                 and category.landing_ready
                 # DL-20: «Magazin» и «Schaufenster» тоже открываются шапкой — она у них
                 # часть композиции (обложка / представление направления).
-                and cat_style in ("kopfbild", "sets", "magazin", "schaufenster")
+                # FB-30.16 R5b: шапка — свой блок («Banner · Fotos der Seite»); у прежних
+                # кодов kopfbild/sets/magazin/schaufenster она включена (`catalog_parts`)
+                and _cat_parts.head == "titelbild"
             ),
+            # FB-30.16 R5b: сеты — свой блок («Sets & Menüs»): над товарами или под ними
+            "sets_above": _cat_parts.sets == "above",
             "category_photos": cat_photos[:6],
             "category_photo": (cat_photos[:1] or [""])[0],
             "category_combos": category_combos,
@@ -2164,7 +2170,9 @@ def product_list(request, slug=None):
             "comp_carry": f"?ansicht={ansicht}" if ansicht else "",
             "show_root_header": bool(
                 not path_mode
-                and cat_style in ("kopfbild", "magazin", "schaufenster")
+                # у корня «Sets» шапки не было (сетов на корне нет) — так и осталось
+                and _cat_parts.head == "titelbild"
+                and cat_style != "sets"
                 and (cfg.get("catalog_intro") or _root_header_photo)
             ),
             "root_header_photo": _root_header_photo,

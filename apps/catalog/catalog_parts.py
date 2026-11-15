@@ -25,7 +25,11 @@ from apps.tenants.siteconfig import CATALOG_CATEGORY_VIEWS as CATEGORY_VIEWS
 #: «Darstellung» блока товаров (★), которую раньше задавал шаблон.
 PRODUCT_VIEWS = ("schaufenster", "magazin", "mosaik", "preisliste")
 HEAD_VIEWS = ("titelbild",)
+HEAD_OFF = "aus"
 SETS_PLACES = ("below", "above")
+#: R5b: строки шапки и сетов (как «Kategorien» — без id, с видом в `style`)
+HEAD_KEY = "page_head"
+SETS_KEY = "combos"
 
 
 @dataclass(frozen=True)
@@ -86,13 +90,11 @@ def _code_of_category(view: str) -> str:
 
 def rows_for(parts: Parts) -> list[dict]:
     """Части строками схемы страницы в порядке витрины: шапка → категории → (сеты над) →
-    ★ товары → (сеты под). Шапка — блок «Banner» с источником «фото страницы»."""
-    rows: list[dict] = []
-    if parts.head:
-        rows.append({"key": "banner", "id": "catalog-head", "data": {"source": "page"}})
+    ★ товары → (сеты под). Шапка — строка «Banner · Fotos der Seite» (`page_head`)."""
+    rows: list[dict] = [{"key": HEAD_KEY, "style": parts.head or HEAD_OFF}]
     rows.append({"key": "categories", **({"style": parts.categories} if parts.categories else {})})
     if parts.sets == "above":
-        rows.append({"key": "combos"})
+        rows.append({"key": SETS_KEY, "style": "above"})
     marker = {"key": "main"}
     if parts.products:
         marker["style"] = parts.products
@@ -102,7 +104,7 @@ def rows_for(parts: Parts) -> list[dict]:
         marker["grid"] = parts.grid
     rows.append(marker)
     if parts.sets == "below":
-        rows.append({"key": "combos"})
+        rows.append({"key": SETS_KEY, "style": "below"})
     return rows
 
 
@@ -112,22 +114,19 @@ def from_rows(rows) -> Parts:
 
     rows = [r for r in (rows if isinstance(rows, list) else []) if isinstance(r, dict)]
     parts = STANDARD
-    # маркер ★ не хранится, когда он первым, — тогда всё стоит под списком
-    seen_main = not any(r.get("key") == "main" for r in rows)
     for row in rows:
         if row.get("enabled") is False and row.get("key") != "main":
             continue  # скрытая строка вида не задаёт
         key = row.get("key")
-        if key == "banner" and row.get("id") == "catalog-head":
-            parts = replace(parts, head="titelbild")
+        if key == HEAD_KEY and row.get("style") in (*HEAD_VIEWS, HEAD_OFF):
+            parts = replace(parts, head="" if row["style"] == HEAD_OFF else row["style"])
         elif key == "categories" and row.get("style") in CATEGORY_VIEWS:
             parts = replace(parts, categories=row["style"])
         elif key == "categories" and row.get("style") == CATEGORY_AUTO:
             parts = replace(parts, categories="")
-        elif key == "combos":
-            parts = replace(parts, sets="below" if seen_main else "above")
+        elif key == SETS_KEY and row.get("style") in SETS_PLACES:
+            parts = replace(parts, sets=row["style"])
         elif key == "main":
-            seen_main = True
             parts = replace(
                 parts,
                 products=row.get("style") if row.get("style") in PRODUCT_VIEWS else "",
@@ -147,6 +146,11 @@ def has_parts(rows) -> bool:
             if row.get("style") in (*CATEGORY_VIEWS, CATEGORY_AUTO):
                 return True
         if row.get("key") == "main" and len(row) > 1:
+            return True
+        if row.get("enabled") is not False and (
+            (row.get("key") == HEAD_KEY and row.get("style") in (*HEAD_VIEWS, HEAD_OFF))
+            or (row.get("key") == SETS_KEY and row.get("style") in SETS_PLACES)
+        ):
             return True
     return False
 
@@ -168,6 +172,10 @@ def effective(cfg, host: str, *, code: str = "") -> Parts:
     if cat_row and cat_row.get("enabled") is not False:
         if cat_row.get("style") in (*CATEGORY_VIEWS, CATEGORY_AUTO):
             parts = replace(parts, categories=stored.categories)
+    for key, axis in ((HEAD_KEY, "head"), (SETS_KEY, "sets")):
+        row = next((r for r in rows if isinstance(r, dict) and r.get("key") == key), None)
+        if row and row.get("enabled") is not False and row.get("style"):
+            parts = replace(parts, **{axis: getattr(stored, axis)})
     if marker is not None:
         if "style" in marker or "grid" in marker:
             parts = replace(parts, products=stored.products, grid=stored.grid)

@@ -38320,3 +38320,36 @@ msgstr "How products are shown"
 
 msgid "Wählen Sie später in der Studio eine Seitenvorlage, gilt wieder die Vorlage."
 msgstr "If you later choose a page template in the Studio, the template applies again."
+
+msgid "Banner · Fotos der Seite"
+msgstr "Banner · photos of the page"
+
+msgid "Ohne Kopfbereich"
+msgstr "No header"
+
+msgid "Die Seite beginnt direkt mit dem Inhalt."
+msgstr "The page starts directly with the content."
+
+msgid "Titelbild"
+msgstr "Cover image"
+
+msgid "Foto und Beschreibung der Seite oben."
+msgstr "Photo and description of the page at the top."
+
+msgid "Sets & Menüs"
+msgstr "Sets & menus"
+
+msgid "Unter den Produkten"
+msgstr "Below the products"
+
+msgid "Erst die Produkte, dann die Sets."
+msgstr "First the products, then the sets."
+
+msgid "Über den Produkten"
+msgstr "Above the products"
+
+msgid "Sets zuerst, dann einzelne Produkte."
+msgstr "Sets first, then individual products."
+
+msgid "Dieser Block hat einen festen Platz auf der Seite."
+msgstr "This block has a fixed place on the page."

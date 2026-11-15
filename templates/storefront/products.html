@@ -49,7 +49,7 @@
 блока сетки в ШАПКУ листинга: тулбар каркаса (фильтры · сортировка · вид ·
 плотность) управляет именно блюдами и теперь стоит прямо над ними, а не над
 наборами.{% endcomment %}
-{% if category_combos and category_page_style == "sets" %}
+{% if category_combos and sets_above %}
 {% comment %}KAT-2: шаблон «Sets & Menüs zuerst» — наборы категории НАД сеткой
 (вне keyset-пагинации: гейт «первая страница без фасетов» стоит во вьюхе).{% endcomment %}
 {% comment %}Фидбэк владельца 2026-08-26 (вечер): «наборы и просто блюда
@@ -215,7 +215,7 @@
 {% comment %}Wegweiser W-2: над сеткой, из которой убраны товары «Im Fokus», — честный
 заголовок «Weitere Artikel» (при фильтре Fokus нет, сетка = вся выдача).{% endcomment %}
 {% if wegweiser_rest %}<h2 class="text-lg md:text-xl font-bold mb-3" data-wegweiser-rest>{% trans "Weitere Artikel" %}</h2>{% endif %}
-{% if category_combos and category_page_style == "sets" %}
+{% if category_combos and sets_above %}
   <h2 class="text-lg md:text-xl font-bold mb-3" data-category-dishes>{% trans "Einzelne Gerichte" %}</h2>
 {% endif %}
 {{ block.super }}
@@ -326,7 +326,7 @@ Kombo/Tagesgericht на виду. Только на 1-й странице без
   {% include "storefront/_combo_grid.html" with combos=combos_teaser %}
 </section>
 {% endif %}
-{% if category_combos and category_page_style != "sets" %}
+{% if category_combos and not sets_above %}
 {% comment %}KAT-2: наборы категории у остальных шаблонов — полосой ПОД сеткой
 (та же карточка; при style=sets полоса уже стояла над сеткой).{% endcomment %}
 <section data-reveal class="mb-8" data-category-sets>

@@ -38466,3 +38466,36 @@ msgstr "Ürünler nasıl gösterilir"
 
 msgid "Wählen Sie später in der Studio eine Seitenvorlage, gilt wieder die Vorlage."
 msgstr "Daha sonra Stüdyo'da bir sayfa şablonu seçerseniz, şablon yeniden geçerli olur."
+
+msgid "Banner · Fotos der Seite"
+msgstr "Banner · sayfanın fotoğrafları"
+
+msgid "Ohne Kopfbereich"
+msgstr "Başlık alanı yok"
+
+msgid "Die Seite beginnt direkt mit dem Inhalt."
+msgstr "Sayfa doğrudan içerikle başlar."
+
+msgid "Titelbild"
+msgstr "Kapak görseli"
+
+msgid "Foto und Beschreibung der Seite oben."
+msgstr "Sayfanın fotoğrafı ve açıklaması üstte."
+
+msgid "Sets & Menüs"
+msgstr "Setler ve menüler"
+
+msgid "Unter den Produkten"
+msgstr "Ürünlerin altında"
+
+msgid "Erst die Produkte, dann die Sets."
+msgstr "Önce ürünler, sonra setler."
+
+msgid "Über den Produkten"
+msgstr "Ürünlerin üstünde"
+
+msgid "Sets zuerst, dann einzelne Produkte."
+msgstr "Önce setler, sonra tek ürünler."
+
+msgid "Dieser Block hat einen festen Platz auf der Seite."
+msgstr "Bu bloğun sayfada sabit bir yeri var."

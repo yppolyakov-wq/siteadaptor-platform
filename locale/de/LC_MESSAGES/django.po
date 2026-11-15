@@ -38407,3 +38407,36 @@ msgstr "Wie Produkte gezeigt werden"
 
 msgid "Wählen Sie später in der Studio eine Seitenvorlage, gilt wieder die Vorlage."
 msgstr "Wählen Sie später in der Studio eine Seitenvorlage, gilt wieder die Vorlage."
+
+msgid "Banner · Fotos der Seite"
+msgstr "Banner · Fotos der Seite"
+
+msgid "Ohne Kopfbereich"
+msgstr "Ohne Kopfbereich"
+
+msgid "Die Seite beginnt direkt mit dem Inhalt."
+msgstr "Die Seite beginnt direkt mit dem Inhalt."
+
+msgid "Titelbild"
+msgstr "Titelbild"
+
+msgid "Foto und Beschreibung der Seite oben."
+msgstr "Foto und Beschreibung der Seite oben."
+
+msgid "Sets & Menüs"
+msgstr "Sets & Menüs"
+
+msgid "Unter den Produkten"
+msgstr "Unter den Produkten"
+
+msgid "Erst die Produkte, dann die Sets."
+msgstr "Erst die Produkte, dann die Sets."
+
+msgid "Über den Produkten"
+msgstr "Über den Produkten"
+
+msgid "Sets zuerst, dann einzelne Produkte."
+msgstr "Sets zuerst, dann einzelne Produkte."
+
+msgid "Dieser Block hat einen festen Platz auf der Seite."
+msgstr "Dieser Block hat einen festen Platz auf der Seite."

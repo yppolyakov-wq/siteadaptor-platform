@@ -38646,3 +38646,36 @@ msgstr "Як показувати товари"
 
 msgid "Wählen Sie später in der Studio eine Seitenvorlage, gilt wieder die Vorlage."
 msgstr "Якщо пізніше обрати шаблон сторінки в Студії, знову діятиме шаблон."
+
+msgid "Banner · Fotos der Seite"
+msgstr "Банер · фото сторінки"
+
+msgid "Ohne Kopfbereich"
+msgstr "Без шапки"
+
+msgid "Die Seite beginnt direkt mit dem Inhalt."
+msgstr "Сторінка починається одразу з вмісту."
+
+msgid "Titelbild"
+msgstr "Титульне фото"
+
+msgid "Foto und Beschreibung der Seite oben."
+msgstr "Фото та опис сторінки вгорі."
+
+msgid "Sets & Menüs"
+msgstr "Сети та меню"
+
+msgid "Unter den Produkten"
+msgstr "Під товарами"
+
+msgid "Erst die Produkte, dann die Sets."
+msgstr "Спочатку товари, потім сети."
+
+msgid "Über den Produkten"
+msgstr "Над товарами"
+
+msgid "Sets zuerst, dann einzelne Produkte."
+msgstr "Спочатку сети, потім окремі товари."
+
+msgid "Dieser Block hat einen festen Platz auf der Seite."
+msgstr "Цей блок має постійне місце на сторінці."

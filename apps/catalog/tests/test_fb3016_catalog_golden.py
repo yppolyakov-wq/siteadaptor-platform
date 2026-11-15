@@ -218,3 +218,19 @@ def test_root_blocks_do_not_leak_into_category_pages():
     tenant = TenantFactory.build(name="Bäckerei X", site_config={"page_blocks": {"catalog": rows}})
     html = public_views.product_list(_request("/sortiment/brot/", tenant), slug="brot")
     _check("cat-standard-sub-photo", html.content.decode())
+
+
+def test_r5b_head_and_shelves_together_on_a_category():
+    """Сочетание, которого шаблоны не давали: шапка + полки (блоки независимы)."""
+    brot = _data(subcats=True, photos=True)
+    type(brot).objects.filter(pk=brot.pk).update(description={"de": "Unser Brot"})
+    rows = [
+        {"key": "page_head", "style": "titelbild"},
+        {"key": "categories", "style": "regale"},
+        {"key": "main"},
+    ]
+    tenant = TenantFactory.build(name="Bäckerei X", site_config={"page_blocks": {"category": rows}})
+    html = public_views.product_list(
+        _request("/sortiment/brot/", tenant), slug="brot"
+    ).content.decode()
+    _check("cat-head-plus-regale", html)
