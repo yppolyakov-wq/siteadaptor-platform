@@ -202,3 +202,17 @@ def test_quote_cart_still_takes_delivery_requests(_urlconf):
     tenant = _shop(site_config={"quote_cart": True, "payment_on_site": {"delivery": False}})
     _checkout(tenant, "", "delivery")
     assert Order.objects.get().payment_method == Order.METHOD_ON_SITE
+
+
+def test_picker_marks_on_site_to_hide_for_delivery_only_when_switched_off():
+    vk = {"vorkasse_enabled": True, "bank_iban": "DE89"}
+    off = _tenant(on_site={"delivery": False}, **vk)
+    rows = {r["code"]: r["no_delivery"] for r in pm.picker_rows(off, pm.available(off))}
+    assert rows == {pm.VORKASSE: False, pm.ON_SITE: True}
+    on = _tenant(**vk)
+    assert not any(r["no_delivery"] for r in pm.picker_rows(on, pm.available(on)))
+    alone = _tenant(on_site={"delivery": False})
+    assert not any(r["no_delivery"] for r in pm.picker_rows(alone, pm.available(alone)))
+    assert not any(
+        r["no_delivery"] for r in pm.picker_rows(off, pm.available(off, "booking"), "booking")
+    )

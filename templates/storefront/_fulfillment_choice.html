@@ -106,6 +106,16 @@ Sperrgut) — честный текст, а не обещание самовыв
           var el = document.getElementById(id);
           if (el) el.classList.toggle("hidden", !pickup);
         });
+        // FB-30.12b: «vor Ort» при доставке бизнес выключил — строку прячем, выбор
+        // переносим на первую видимую (сервер всё равно отказывает сам).
+        document.querySelectorAll('[data-pay-onsite-nodelivery]').forEach(function (row) {
+          row.classList.toggle("hidden", !pickup);
+          var radio = row.querySelector('input[name=payment]');
+          if (!pickup && radio && radio.checked) {
+            var next = document.querySelector('label:not(.hidden) > input[name=payment]');
+            if (next) next.checked = true;
+          }
+        });
       }
       if (!window.__shipChoiceBound) {
         window.__shipChoiceBound = true;

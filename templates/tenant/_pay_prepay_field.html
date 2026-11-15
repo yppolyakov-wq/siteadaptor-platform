@@ -1,0 +1,6 @@
+{% load i18n %}
+{% comment %}FB-30.12b: поля общие для мастера (`_payment_fields.html`) и карточек экрана (`_payment_cards.html`); сентинел секции ставит вызывающий.{% endcomment %}
+<label class="flex items-center gap-2 text-sm">
+  <input type="checkbox" name="orders_prepay" {% if orders_prepay %}checked{% endif %}>
+  {% trans "Online prepayment — customers pay when ordering (Click & Collect)" %}
+</label>

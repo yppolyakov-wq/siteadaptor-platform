@@ -23,11 +23,11 @@ def available_methods(tenant, *, customer_type=None, fulfillment: str = "") -> l
     )
 
 
-def method_label(code: str, tenant):
-    """FB-30.12: подпись способа на витрине заказа («Zahlung bei Abholung/Lieferung»)."""
+def picker_rows(methods: list[str], tenant) -> list[dict]:
+    """FB-30.12: строки пикера оплаты заказа (подпись «Zahlung bei Abholung/Lieferung»)."""
     from apps.core import payment_methods as pm
 
-    return pm.label(code, "order", tenant=tenant)
+    return pm.picker_rows(tenant, methods)
 
 
 def order_checkout_url(order, tenant, *, success_url: str, cancel_url: str) -> str:

@@ -38258,3 +38258,52 @@ msgstr "bar oder Karte"
 
 msgid "Bei Lieferung ist Zahlung vor Ort nicht möglich. Bitte wählen Sie eine andere Zahlungsart."
 msgstr "Bei Lieferung ist Zahlung vor Ort nicht möglich. Bitte wählen Sie eine andere Zahlungsart."
+
+msgid "bar oder Karte – nach Ihrer Kasse"
+msgstr "bar oder Karte – nach Ihrer Kasse"
+
+msgid "nur bar"
+msgstr "nur bar"
+
+msgid "nur Karte am Terminal"
+msgstr "nur Karte am Terminal"
+
+msgid "nicht bei Lieferung"
+msgstr "nicht bei Lieferung"
+
+msgid "nicht verbunden"
+msgstr "nicht verbunden"
+
+msgid "IBAN fehlt – wird nicht angeboten"
+msgstr "IBAN fehlt – wird nicht angeboten"
+
+msgid "Kunde überweist vorab auf Ihr Konto"
+msgstr "Kunde überweist vorab auf Ihr Konto"
+
+#, python-format
+msgid "nur für Firmen · Zahlungsziel %(days)s Tage"
+msgstr "nur für Firmen · Zahlungsziel %(days)s Tage"
+
+msgid "Nicht angeben"
+msgstr "Nicht angeben"
+
+msgid "Nur bar"
+msgstr "Nur bar"
+
+msgid "Nur Karte am Terminal"
+msgstr "Nur Karte am Terminal"
+
+msgid "Bar oder Karte"
+msgstr "Bar oder Karte"
+
+msgid "Wie zahlen Kunden vor Ort?"
+msgstr "Wie zahlen Kunden vor Ort?"
+
+msgid "Auch bei Lieferung anbieten (Zahlung an der Haustür)"
+msgstr "Auch bei Lieferung anbieten (Zahlung an der Haustür)"
+
+msgid "Wirkt erst, wenn Online-Zahlung oder Vorkasse aktiv ist – Kunden brauchen immer eine Zahlungsart."
+msgstr "Wirkt erst, wenn Online-Zahlung oder Vorkasse aktiv ist – Kunden brauchen immer eine Zahlungsart."
+
+msgid "Ohne Haken wählen Kunden bei Lieferung online oder per Vorkasse."
+msgstr "Ohne Haken wählen Kunden bei Lieferung online oder per Vorkasse."

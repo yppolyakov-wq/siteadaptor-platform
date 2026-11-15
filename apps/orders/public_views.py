@@ -958,11 +958,7 @@ def cart_view(request):
     ctx["payment_methods"] = (
         []
         if ctx["quote_cart"]
-        else (
-            [{"code": m, "label": _pm.label(m, "order", tenant=tenant)} for m in _methods]
-            if len(_methods) > 1
-            else []
-        )
+        else (_pm.picker_rows(tenant, _methods) if len(_methods) > 1 else [])
     )
     from apps.core import attribution
 
@@ -1479,9 +1475,7 @@ def offer_page(request, token):
             "just_paid": request.GET.get("paid") == "1",
             "order_link": offer.order is not None and orders_on,
             # Пикер способа — только при >1 (паритет-семантика E7-2 checkout).
-            "payment_methods": [
-                {"code": m, "label": order_payments.method_label(m, tenant)} for m in methods
-            ]
+            "payment_methods": order_payments.picker_rows(methods, tenant)
             if len(methods) > 1
             else [],
             # SH-24: данные выбора «Abholung | Lieferung» для общего партиала.

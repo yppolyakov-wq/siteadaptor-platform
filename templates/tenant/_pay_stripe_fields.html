@@ -1,0 +1,10 @@
+{% load i18n %}
+{% comment %}FB-30.12b: поля общие для мастера (`_payment_fields.html`) и карточек экрана (`_payment_cards.html`); сентинел секции ставит вызывающий.{% endcomment %}
+<div class="grid sm:grid-cols-2 gap-2">
+  {% for code, label in method_choices %}
+    <label class="flex items-center gap-2 text-sm rounded-lg border border-gray-200 px-3 py-2">
+      <input type="checkbox" name="methods" value="{{ code }}" {% if code in selected_methods %}checked{% endif %}>
+      {{ label }}
+    </label>
+  {% endfor %}
+</div>

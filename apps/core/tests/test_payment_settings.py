@@ -35,8 +35,13 @@ def _user(n):
     return user
 
 
-def test_renders_orders_sections(settings):
+def test_renders_orders_sections(settings, monkeypatch):
     settings.ROOT_URLCONF = "config.urls_tenant"
+    from apps.billing import connect
+
+    # FB-30.12b: предоплата заказов живёт в карточке «Online-Zahlung», а та видна, только
+    # когда платформа подключила Stripe Connect (без него предоплате нечем платить).
+    monkeypatch.setattr(connect, "is_connect_configured", lambda: True)
     tenant = TenantFactory(disabled_modules=[])  # orders активен
     html = core_views.payment_settings(_req("get", _user("ps1"), tenant)).content.decode()
     for name in ("vorkasse_enabled", "bank_iban", "orders_prepay"):

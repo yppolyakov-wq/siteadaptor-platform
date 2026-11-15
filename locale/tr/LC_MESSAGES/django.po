@@ -38317,3 +38317,52 @@ msgstr "nakit veya kart"
 
 msgid "Bei Lieferung ist Zahlung vor Ort nicht möglich. Bitte wählen Sie eine andere Zahlungsart."
 msgstr "Teslimatta yerinde ödeme mümkün değildir. Lütfen başka bir ödeme yöntemi seçin."
+
+msgid "bar oder Karte – nach Ihrer Kasse"
+msgstr "nakit veya kart – kasanıza göre"
+
+msgid "nur bar"
+msgstr "yalnızca nakit"
+
+msgid "nur Karte am Terminal"
+msgstr "yalnızca terminalde kart"
+
+msgid "nicht bei Lieferung"
+msgstr "teslimatta değil"
+
+msgid "nicht verbunden"
+msgstr "bağlı değil"
+
+msgid "IBAN fehlt – wird nicht angeboten"
+msgstr "IBAN eksik – sunulmuyor"
+
+msgid "Kunde überweist vorab auf Ihr Konto"
+msgstr "Müşteri önceden hesabınıza havale eder"
+
+#, python-format
+msgid "nur für Firmen · Zahlungsziel %(days)s Tage"
+msgstr "yalnızca firmalar · ödeme vadesi %(days)s gün"
+
+msgid "Nicht angeben"
+msgstr "Belirtme"
+
+msgid "Nur bar"
+msgstr "Yalnızca nakit"
+
+msgid "Nur Karte am Terminal"
+msgstr "Yalnızca terminalde kart"
+
+msgid "Bar oder Karte"
+msgstr "Nakit veya kart"
+
+msgid "Wie zahlen Kunden vor Ort?"
+msgstr "Müşteriler yerinde nasıl öder?"
+
+msgid "Auch bei Lieferung anbieten (Zahlung an der Haustür)"
+msgstr "Teslimatta da sun (kapıda ödeme)"
+
+msgid "Wirkt erst, wenn Online-Zahlung oder Vorkasse aktiv ist – Kunden brauchen immer eine Zahlungsart."
+msgstr "Yalnızca çevrimiçi ödeme veya ön ödeme etkinse geçerlidir – müşterilerin her zaman bir ödeme yöntemine ihtiyacı vardır."
+
+msgid "Ohne Haken wählen Kunden bei Lieferung online oder per Vorkasse."
+msgstr "İşaretsiz olduğunda müşteriler teslimatta çevrimiçi veya ön ödemeyi seçer."

@@ -30,6 +30,7 @@
   <form method="post" class="space-y-4 xl:space-y-0 xl:grid xl:grid-cols-2 xl:gap-4 xl:items-start [&>fieldset]:min-w-0" data-payment-grid>
     {% csrf_token %}
     <input type="hidden" name="tab" value="{{ pay_tab }}">
+    {% if pay_tab == "zahlung" %}{% include "tenant/_payment_cards.html" %}{% endif %}
     {% include "tenant/_payment_fields.html" %}
 
     {% if pay_tab == "zahlung" and not connect_configured and not orders_active %}

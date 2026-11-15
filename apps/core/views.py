@@ -1392,7 +1392,28 @@ def save_payment_settings(request) -> list[str]:
     # KA-W1: время самовывоза — свой сентинел (секция доставки не затирает его).
     if request.POST.get("sec_pickup_slots"):
         save_pickup_slots(tenant, request)
+    # FB-30.12b: подвид «оплаты на месте» и «auch bei Lieferung».
+    if request.POST.get("sec_on_site"):
+        save_on_site(tenant, request)
     return errors
+
+
+def save_on_site(tenant, request) -> None:
+    """FB-30.12b: точечная запись `site_config["payment_on_site"]` (остальные ключи
+    конфига не трогаем). Флажок «bei Lieferung» читается, только если был в форме
+    (`on_site_delivery_shown`) — у бизнеса без заказов прежнее значение остаётся."""
+    from apps.core import payment_methods as pm
+    from apps.tenants import siteconfig
+
+    current = pm.on_site_settings(tenant)
+    delivery = current["delivery"]
+    if request.POST.get("on_site_delivery_shown"):
+        delivery = bool(request.POST.get("on_site_delivery"))
+    raw = {"kind": request.POST.get("on_site_kind", ""), "delivery": delivery}
+    config = dict(tenant.site_config or {})
+    config["payment_on_site"] = siteconfig.normalize_payment_on_site(raw)
+    tenant.site_config = config
+    tenant.save(update_fields=["site_config", "updated_at"])
 
 
 def _pickup_slots_ctx(tenant) -> dict:
@@ -1495,6 +1516,15 @@ def payment_settings(request):
             messages.success(request, _("Gespeichert."))
         url = reverse("payment-settings")
         return redirect(f"{url}?tab=lieferung" if tab == "lieferung" else url)
+    if tab == "zahlung":
+        # FB-30.12b: вкладка «Zahlung» — карточками (макет 7); мастер — прежними секциями.
+        from apps.core import payment_cards
+
+        ctx.update(
+            payment_cards.cards_context(
+                request.tenant, ctx, payment_cards.art_from(request.GET.get("art"))
+            )
+        )
     return render(
         request,
         "tenant/payment_settings.html",

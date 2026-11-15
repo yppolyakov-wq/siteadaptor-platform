@@ -38497,3 +38497,52 @@ msgstr "готівкою або карткою"
 
 msgid "Bei Lieferung ist Zahlung vor Ort nicht möglich. Bitte wählen Sie eine andere Zahlungsart."
 msgstr "При доставці оплата на місці неможлива. Оберіть інший спосіб оплати."
+
+msgid "bar oder Karte – nach Ihrer Kasse"
+msgstr "готівка або картка — як у вашій касі"
+
+msgid "nur bar"
+msgstr "лише готівка"
+
+msgid "nur Karte am Terminal"
+msgstr "лише картка через термінал"
+
+msgid "nicht bei Lieferung"
+msgstr "не при доставці"
+
+msgid "nicht verbunden"
+msgstr "не підключено"
+
+msgid "IBAN fehlt – wird nicht angeboten"
+msgstr "Немає IBAN — не пропонується"
+
+msgid "Kunde überweist vorab auf Ihr Konto"
+msgstr "Покупець заздалегідь переказує на ваш рахунок"
+
+#, python-format
+msgid "nur für Firmen · Zahlungsziel %(days)s Tage"
+msgstr "лише для фірм · строк оплати %(days)s дн."
+
+msgid "Nicht angeben"
+msgstr "Не вказувати"
+
+msgid "Nur bar"
+msgstr "Лише готівка"
+
+msgid "Nur Karte am Terminal"
+msgstr "Лише картка через термінал"
+
+msgid "Bar oder Karte"
+msgstr "Готівка або картка"
+
+msgid "Wie zahlen Kunden vor Ort?"
+msgstr "Як покупці платять на місці?"
+
+msgid "Auch bei Lieferung anbieten (Zahlung an der Haustür)"
+msgstr "Пропонувати й при доставці (оплата біля дверей)"
+
+msgid "Wirkt erst, wenn Online-Zahlung oder Vorkasse aktiv ist – Kunden brauchen immer eine Zahlungsart."
+msgstr "Спрацює, лише коли ввімкнено онлайн-оплату або передоплату — у покупця завжди має бути спосіб оплати."
+
+msgid "Ohne Haken wählen Kunden bei Lieferung online oder per Vorkasse."
+msgstr "Без позначки при доставці покупець платить онлайн або передоплатою."

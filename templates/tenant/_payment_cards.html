@@ -1,0 +1,53 @@
+{% load i18n %}
+{% comment %}FB-30.12b (макет 7): вкладка «Zahlung» экрана — список видов оплаты карточками. Настройки карточки в details (без JS); сентинелы sec_* те же, что у мастера. Должен лежать внутри form.{% endcomment %}
+<div class="xl:col-span-2 space-y-3" data-pay-cards>
+  <div class="flex flex-wrap items-center justify-between gap-2">
+    <h2 class="ui-h2">{% trans "Zahlungsarten" %}</h2>
+    {% if pay_addable %}
+    <details class="relative" data-pay-add>
+      <summary class="ui-btn ui-btn-secondary cursor-pointer list-none">＋ {% trans "Zahlungsart" %}</summary>
+      <ul class="absolute right-0 z-10 mt-1 w-64 ui-card p-1 text-sm" role="list">
+        {% for c in pay_addable %}
+          <li><a class="block rounded px-3 py-2 hover:bg-gray-50" href="?art={{ c.code }}#pay-{{ c.code }}">{{ c.title }}</a></li>
+        {% endfor %}
+      </ul>
+    </details>
+    {% endif %}
+  </div>
+  <ul class="space-y-2" role="list">
+    {% for c in pay_cards %}
+    <li id="pay-{{ c.code }}" class="ui-card" data-pay-card="{{ c.code }}">
+      <details{% if c.open %} open{% endif %}>
+        <summary class="flex cursor-pointer list-none items-center gap-3 p-4">
+          <span class="min-w-0 flex-1">
+            <span class="block font-semibold">{{ c.title }}</span>
+            <span class="block text-xs text-gray-500">{{ c.summary }}</span>
+          </span>
+          <span class="ui-badge {% if c.on %}ui-tone-ok{% else %}bg-gray-100 text-gray-600{% endif %}" data-pay-state>{% if c.on %}{% trans "aktiv" %}{% else %}{% trans "aus" %}{% endif %}</span>
+          <span class="text-sm text-gray-500" aria-hidden="true">▾</span>
+          <span class="sr-only">{% trans "Einstellungen" %}</span>
+        </summary>
+        <div class="space-y-4 border-t border-gray-100 p-4">
+          {% if c.code == "on_site" %}
+            {% include "tenant/_pay_on_site_fields.html" %}
+          {% elif c.code == "stripe" %}
+            <input type="hidden" name="sec_stripe" value="1">
+            <p class="text-xs text-gray-500">{% trans "Which methods to offer at online checkout. Empty = Stripe Dashboard default." %}</p>
+            {% include "tenant/_pay_stripe_fields.html" %}
+            {% if orders_active %}
+              <input type="hidden" name="sec_prepay" value="1">
+              {% include "tenant/_pay_prepay_field.html" %}
+            {% endif %}
+          {% elif c.code == "vorkasse" %}
+            <input type="hidden" name="sec_vorkasse" value="1">
+            {% include "tenant/_pay_vorkasse_fields.html" %}
+          {% elif c.code == "invoice" %}
+            <input type="hidden" name="sec_invoice" value="1">
+            {% include "tenant/_pay_invoice_fields.html" %}
+          {% endif %}
+        </div>
+      </details>
+    </li>
+    {% endfor %}
+  </ul>
+</div>

@@ -38171,3 +38171,52 @@ msgstr "cash or card"
 
 msgid "Bei Lieferung ist Zahlung vor Ort nicht möglich. Bitte wählen Sie eine andere Zahlungsart."
 msgstr "Payment on site is not possible for delivery. Please choose another payment method."
+
+msgid "bar oder Karte – nach Ihrer Kasse"
+msgstr "cash or card – depending on your till"
+
+msgid "nur bar"
+msgstr "cash only"
+
+msgid "nur Karte am Terminal"
+msgstr "card at the terminal only"
+
+msgid "nicht bei Lieferung"
+msgstr "not for delivery"
+
+msgid "nicht verbunden"
+msgstr "not connected"
+
+msgid "IBAN fehlt – wird nicht angeboten"
+msgstr "IBAN missing – not offered"
+
+msgid "Kunde überweist vorab auf Ihr Konto"
+msgstr "Customer transfers to your account in advance"
+
+#, python-format
+msgid "nur für Firmen · Zahlungsziel %(days)s Tage"
+msgstr "companies only · payment term %(days)s days"
+
+msgid "Nicht angeben"
+msgstr "Don't specify"
+
+msgid "Nur bar"
+msgstr "Cash only"
+
+msgid "Nur Karte am Terminal"
+msgstr "Card at the terminal only"
+
+msgid "Bar oder Karte"
+msgstr "Cash or card"
+
+msgid "Wie zahlen Kunden vor Ort?"
+msgstr "How do customers pay on site?"
+
+msgid "Auch bei Lieferung anbieten (Zahlung an der Haustür)"
+msgstr "Also offer for delivery (payment at the door)"
+
+msgid "Wirkt erst, wenn Online-Zahlung oder Vorkasse aktiv ist – Kunden brauchen immer eine Zahlungsart."
+msgstr "Only takes effect once online payment or prepayment is active – customers always need a payment method."
+
+msgid "Ohne Haken wählen Kunden bei Lieferung online oder per Vorkasse."
+msgstr "Without the tick, customers choose online payment or prepayment for delivery."

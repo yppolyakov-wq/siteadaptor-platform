@@ -166,6 +166,25 @@ def on_site_refused(tenant, code: str, kind: str = "order", *, fulfillment: str 
     return str(ON_SITE_REFUSED)
 
 
+def hidden_for_delivery(tenant, kind: str = "order") -> bool:
+    """Пикер витрины прячет «vor Ort», когда покупатель выбрал доставку (FB-30.12b);
+    сервер всё равно отказывает сам (`on_site_refused`)."""
+    return not on_site_allowed(tenant, kind, fulfillment="delivery", others=_others(tenant, kind))
+
+
+def picker_rows(tenant, methods: list[str], kind: str = "order") -> list[dict]:
+    """Строки пикера оплаты: код, подпись по виду сделки, «скрыть при доставке»."""
+    hide = ON_SITE in methods and hidden_for_delivery(tenant, kind)
+    return [
+        {
+            "code": m,
+            "label": label(m, kind, tenant=tenant),
+            "no_delivery": hide and m == ON_SITE,
+        }
+        for m in methods
+    ]
+
+
 def _others(tenant, kind: str) -> list[str]:
     return [m for m in available(tenant, kind) if m != ON_SITE]
 
@@ -232,10 +251,6 @@ def picker_context(tenant, kind="order", *, customer_type=PRIVATE) -> dict:
         tenant, kind, customer_type=COMPANY if invoice_enabled(tenant) else customer_type
     )
     return {
-        "payment_methods": (
-            [{"code": m, "label": label(m, kind, tenant=tenant)} for m in methods]
-            if len(methods) > 1
-            else []
-        ),
+        "payment_methods": (picker_rows(tenant, methods, kind) if len(methods) > 1 else []),
         "billing_party_enabled": invoice_enabled(tenant),
     }

@@ -38510,3 +38510,52 @@ msgstr "наличными или картой"
 
 msgid "Bei Lieferung ist Zahlung vor Ort nicht möglich. Bitte wählen Sie eine andere Zahlungsart."
 msgstr "При доставке оплата на месте невозможна. Выберите другой способ оплаты."
+
+msgid "bar oder Karte – nach Ihrer Kasse"
+msgstr "наличные или карта — как у вашей кассы"
+
+msgid "nur bar"
+msgstr "только наличные"
+
+msgid "nur Karte am Terminal"
+msgstr "только карта через терминал"
+
+msgid "nicht bei Lieferung"
+msgstr "не при доставке"
+
+msgid "nicht verbunden"
+msgstr "не подключён"
+
+msgid "IBAN fehlt – wird nicht angeboten"
+msgstr "Нет IBAN — не предлагается"
+
+msgid "Kunde überweist vorab auf Ihr Konto"
+msgstr "Покупатель заранее переводит на ваш счёт"
+
+#, python-format
+msgid "nur für Firmen · Zahlungsziel %(days)s Tage"
+msgstr "только для фирм · срок оплаты %(days)s дн."
+
+msgid "Nicht angeben"
+msgstr "Не указывать"
+
+msgid "Nur bar"
+msgstr "Только наличные"
+
+msgid "Nur Karte am Terminal"
+msgstr "Только карта через терминал"
+
+msgid "Bar oder Karte"
+msgstr "Наличные или карта"
+
+msgid "Wie zahlen Kunden vor Ort?"
+msgstr "Как покупатели платят на месте?"
+
+msgid "Auch bei Lieferung anbieten (Zahlung an der Haustür)"
+msgstr "Предлагать и при доставке (оплата у двери)"
+
+msgid "Wirkt erst, wenn Online-Zahlung oder Vorkasse aktiv ist – Kunden brauchen immer eine Zahlungsart."
+msgstr "Сработает, только когда включена онлайн-оплата или предоплата — у покупателя всегда должен быть способ оплаты."
+
+msgid "Ohne Haken wählen Kunden bei Lieferung online oder per Vorkasse."
+msgstr "Без галочки при доставке покупатель платит онлайн или предоплатой."
