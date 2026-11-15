@@ -3032,6 +3032,20 @@ def promotion_purchase(request, pk):
             cache.delete(token_key)
         messages.error(request, slot_error)
         return render(request, "storefront/promotion_detail.html", ctx)
+    # FB-30.12: «vor Ort» при доставке выключена бизнесом — ошибка, заказ не создаётся.
+    from apps.core import payment_methods as _pm
+
+    refused = _pm.on_site_refused(
+        tenant,
+        request.POST.get("payment", ""),
+        "order",
+        fulfillment="delivery" if choice.delivery else "pickup",
+    )
+    if refused:
+        if token_key:
+            cache.delete(token_key)
+        messages.error(request, refused)
+        return render(request, "storefront/promotion_detail.html", ctx)
 
     try:
         order = promo_services.purchase(

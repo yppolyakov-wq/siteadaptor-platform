@@ -38231,3 +38231,30 @@ msgstr "In die Reihe darüber (bis %(w)s)"
 
 msgid "Eigene Reihe"
 msgstr "Eigene Reihe"
+
+msgid "Zahlung bei Abholung/Lieferung"
+msgstr "Zahlung bei Abholung/Lieferung"
+
+msgid "Zahlung bei Anreise"
+msgstr "Zahlung bei Anreise"
+
+msgid "Zahlung an der Abendkasse"
+msgstr "Zahlung an der Abendkasse"
+
+msgid "Zahlung nach Auftrag"
+msgstr "Zahlung nach Auftrag"
+
+msgid "Zahlung bei Abholung"
+msgstr "Zahlung bei Abholung"
+
+msgid "Zahlung bei Lieferung"
+msgstr "Zahlung bei Lieferung"
+
+msgid "bar"
+msgstr "bar"
+
+msgid "bar oder Karte"
+msgstr "bar oder Karte"
+
+msgid "Bei Lieferung ist Zahlung vor Ort nicht möglich. Bitte wählen Sie eine andere Zahlungsart."
+msgstr "Bei Lieferung ist Zahlung vor Ort nicht möglich. Bitte wählen Sie eine andere Zahlungsart."

@@ -950,7 +950,6 @@ def cart_view(request):
     from apps.core import payment_methods as _pm
 
     _methods = order_payments.available_methods(tenant, customer_type=_pm.COMPANY)
-    _labels = dict(Order.PAYMENT_METHODS)
     # Блок «кто покупает» имеет смысл только когда бизнес предлагает счёт фирмам.
     ctx["billing_party_enabled"] = _pm.invoice_enabled(tenant)
     # MEN-9: в режиме «корзина = запрос на просчёт» оплаты нет вовсе — пикер
@@ -959,7 +958,11 @@ def cart_view(request):
     ctx["payment_methods"] = (
         []
         if ctx["quote_cart"]
-        else ([{"code": m, "label": _labels[m]} for m in _methods] if len(_methods) > 1 else [])
+        else (
+            [{"code": m, "label": _pm.label(m, "order", tenant=tenant)} for m in _methods]
+            if len(_methods) > 1
+            else []
+        )
     )
     from apps.core import attribution
 
@@ -1121,8 +1124,16 @@ def checkout(request):
     from apps.core import payment_methods as _pm
 
     customer_type = _pm.customer_type_of(request.POST.get("customer_type"))
-    methods = order_payments.available_methods(tenant, customer_type=customer_type)
+    fulfillment = "delivery" if delivery else "pickup"
+    methods = order_payments.available_methods(
+        tenant, customer_type=customer_type, fulfillment=fulfillment
+    )
     chosen_method = request.POST.get("payment") or methods[0]
+    # FB-30.12: «vor Ort» при доставке выключена — ошибка, а не тихая подмена способа.
+    refused = _pm.on_site_refused(tenant, chosen_method, "order", fulfillment=fulfillment)
+    if refused and not (tenant.site_config or {}).get("quote_cart"):
+        messages.error(request, refused)
+        return redirect("storefront-cart")
     if chosen_method not in methods:
         chosen_method = methods[0]
     # MEN-9: режим просчёта — платить нечего и нечем (пикера нет); фиксируем
@@ -1449,7 +1460,6 @@ def offer_page(request, token):
                 return _offer_stripe_redirect(request, offer, order, tenant)
         return redirect("storefront-offer", token=token)
 
-    labels = dict(Order.PAYMENT_METHODS)
     orders_on = orders_active(tenant)
     return render(
         request,
@@ -1460,7 +1470,9 @@ def offer_page(request, token):
             "just_paid": request.GET.get("paid") == "1",
             "order_link": offer.order is not None and orders_on,
             # Пикер способа — только при >1 (паритет-семантика E7-2 checkout).
-            "payment_methods": [{"code": m, "label": labels[m]} for m in methods]
+            "payment_methods": [
+                {"code": m, "label": order_payments.method_label(m, tenant)} for m in methods
+            ]
             if len(methods) > 1
             else [],
             # SH-24: данные выбора «Abholung | Lieferung» для общего партиала.

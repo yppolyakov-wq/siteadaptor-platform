@@ -4794,6 +4794,22 @@ def normalize_pickup_slots(raw) -> dict | None:
     }
 
 
+PAYMENT_ON_SITE_KINDS = ("", "cash", "card", "both")
+
+
+def normalize_payment_on_site(raw) -> dict | None:
+    """FB-30.12: подвид «оплаты на месте» и можно ли платить на месте при доставке.
+
+    {"kind": ""|"cash"|"card"|"both", "delivery": bool}; неизвестный подвид → "" (без
+    уточнения в подписи), не словарь → None (ключ не пишется, действует прежнее поведение)."""
+    if not isinstance(raw, dict):
+        return None
+    kind = raw.get("kind", "")
+    if kind not in PAYMENT_ON_SITE_KINDS:
+        kind = ""
+    return {"kind": kind, "delivery": raw.get("delivery", True) is not False}
+
+
 def normalize(config) -> dict:
     """Привести произвольный site_config к валидной схеме.
 
@@ -5104,6 +5120,9 @@ def _normalize_impl(config) -> dict:
     _slots = normalize_pickup_slots(config.get("pickup_slots"))
     if _slots:
         normalized["pickup_slots"] = _slots
+    _on_site = normalize_payment_on_site(config.get("payment_on_site"))
+    if _on_site is not None:
+        normalized["payment_on_site"] = _on_site
     # T-8.1: профиль витрины «Nur Aktionen» — визитка + акции, каталог и корзина не
     # видны ниоткуда (apps/core/storefront_profile.py). Presence-minimal: ключ только
     # при известном значении — golden целы, мусор дропается.

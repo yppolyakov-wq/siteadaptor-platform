@@ -19,6 +19,7 @@
 
 from __future__ import annotations
 
+from django.utils.text import format_lazy
 from django.utils.translation import gettext_lazy as _
 
 # Коды способов. Совпадают с `Order.PAYMENT_METHODS` (легаси-значения целы) плюс
@@ -50,9 +51,50 @@ CUSTOMER_TYPES = [
 KINDS = ("order", "booking", "stay", "ticket", "job")
 
 
-def label(code: str):
-    """Человеческая подпись способа (неизвестный код → сам код)."""
-    return METHOD_LABELS.get(code, code)
+# FB-30.12: подпись «оплаты на месте» по виду сделки. Текст `METHOD_LABELS` записан в
+# `choices` миграций пяти приложений — его не трогаем, меняется только эта подпись.
+_ON_SITE_BY_KIND = {
+    "order": _("Zahlung bei Abholung/Lieferung"),
+    "booking": _("Zahlung vor Ort"),
+    "stay": _("Zahlung bei Anreise"),
+    "ticket": _("Zahlung an der Abendkasse"),
+    "job": _("Zahlung nach Auftrag"),
+}
+_ON_SITE_BY_FULFILLMENT = {
+    "pickup": _("Zahlung bei Abholung"),
+    "delivery": _("Zahlung bei Lieferung"),
+}
+_ON_SITE_SUFFIX = {
+    "cash": _("bar"),
+    "card": _("Karte"),
+    "both": _("bar oder Karte"),
+}
+
+
+def on_site_settings(tenant) -> dict:
+    """`site_config["payment_on_site"]` с дефолтами (нет ключа → прежнее поведение)."""
+    from apps.tenants.siteconfig import normalize_payment_on_site
+
+    raw = (getattr(tenant, "site_config", None) or {}).get("payment_on_site")
+    return normalize_payment_on_site(raw) or {"kind": "", "delivery": True}
+
+
+def label(code: str, kind: str = "", *, fulfillment: str = "", tenant=None):
+    """Человеческая подпись способа (неизвестный код → сам код).
+
+    Без вида сделки — прежний текст реестра (старые вызовы не меняются). С видом —
+    «оплата на месте» называется по сделке (запись — «vor Ort», номер — «bei Anreise»)
+    и, если бизнес указал подвид, с уточнением «(bar)/(Karte)/(bar oder Karte)».
+    """
+    if code != ON_SITE or kind not in _ON_SITE_BY_KIND:
+        return METHOD_LABELS.get(code, code)
+    base = _ON_SITE_BY_KIND[kind]
+    if kind == "order" and fulfillment in _ON_SITE_BY_FULFILLMENT:
+        base = _ON_SITE_BY_FULFILLMENT[fulfillment]
+    suffix = _ON_SITE_SUFFIX.get(on_site_settings(tenant)["kind"]) if tenant else None
+    if not suffix:
+        return base
+    return format_lazy("{} ({})", base, suffix)
 
 
 def _stripe_ready(tenant) -> bool:
@@ -68,7 +110,9 @@ def invoice_enabled(tenant) -> bool:
     return bool(getattr(tenant, "invoice_b2b_enabled", False))
 
 
-def available(tenant, kind: str = "order", *, customer_type: str = PRIVATE) -> list[str]:
+def available(
+    tenant, kind: str = "order", *, customer_type: str = PRIVATE, fulfillment: str = ""
+) -> list[str]:
     """Способы оплаты для вида сделки и типа покупателя.
 
     Порядок = порядок пикера, первый — дефолт. Правила:
@@ -76,7 +120,9 @@ def available(tenant, kind: str = "order", *, customer_type: str = PRIVATE) -> l
       предоплаты, как в E7-2 — прежнее поведение чекаута корзины);
     * Vorkasse — при тумблере и заполненном IBAN;
     * счёт — только фирме и только при `invoice_b2b_enabled` (Р-3);
-    * оплата на месте — всегда (последний, как раньше).
+    * оплата на месте — всегда (последний, как раньше); FB-30.12: у заказа с
+      доставкой бизнес может её выключить, но только если остаётся онлайн или
+      Vorkasse — ноль способов на чекауте не бывает (счёт частному лицу не положен).
     """
     methods: list[str] = []
     if kind == "order":
@@ -89,8 +135,39 @@ def available(tenant, kind: str = "order", *, customer_type: str = PRIVATE) -> l
         methods.append(VORKASSE)
     if customer_type == COMPANY and invoice_enabled(tenant):
         methods.append(INVOICE)
-    methods.append(ON_SITE)
+    if on_site_allowed(tenant, kind, fulfillment=fulfillment, others=methods):
+        methods.append(ON_SITE)
     return methods
+
+
+def on_site_allowed(tenant, kind: str, *, fulfillment: str, others: list[str]) -> bool:
+    """Предлагать ли «оплату на месте» (FB-30.12). Выключается только у заказа с
+    доставкой при снятом флажке и при наличии способа для частного лица."""
+    if kind != "order" or fulfillment != "delivery":
+        return True
+    if on_site_settings(tenant)["delivery"]:
+        return True
+    return not any(m in (STRIPE, VORKASSE) for m in others)
+
+
+ON_SITE_REFUSED = _(
+    "Bei Lieferung ist Zahlung vor Ort nicht möglich. Bitte wählen Sie eine andere Zahlungsart."
+)
+
+
+def on_site_refused(tenant, code: str, kind: str = "order", *, fulfillment: str = "") -> str:
+    """FB-30.12: покупатель выбрал «на месте», а при доставке бизнес её выключил →
+    текст ошибки (заказ не создаётся; молча подменять способ оплаты нельзя — это
+    деньги). Иначе пустая строка."""
+    if (code or "").strip() != ON_SITE:
+        return ""
+    if on_site_allowed(tenant, kind, fulfillment=fulfillment, others=_others(tenant, kind)):
+        return ""
+    return str(ON_SITE_REFUSED)
+
+
+def _others(tenant, kind: str) -> list[str]:
+    return [m for m in available(tenant, kind) if m != ON_SITE]
 
 
 def normalize(code: str, tenant, kind: str = "order", *, customer_type: str = PRIVATE) -> str:
@@ -149,7 +226,9 @@ def picker_context(tenant, kind="order", *, customer_type=PRIVATE) -> dict:
     )
     return {
         "payment_methods": (
-            [{"code": m, "label": label(m)} for m in methods] if len(methods) > 1 else []
+            [{"code": m, "label": label(m, kind, tenant=tenant)} for m in methods]
+            if len(methods) > 1
+            else []
         ),
         "billing_party_enabled": invoice_enabled(tenant),
     }

@@ -38290,3 +38290,30 @@ msgstr "Üstteki sıraya (en fazla %(w)s)"
 
 msgid "Eigene Reihe"
 msgstr "Ayrı sıra"
+
+msgid "Zahlung bei Abholung/Lieferung"
+msgstr "Teslim alırken/teslimatta ödeme"
+
+msgid "Zahlung bei Anreise"
+msgstr "Varışta ödeme"
+
+msgid "Zahlung an der Abendkasse"
+msgstr "Gişede ödeme"
+
+msgid "Zahlung nach Auftrag"
+msgstr "İş sonrası ödeme"
+
+msgid "Zahlung bei Abholung"
+msgstr "Teslim alırken ödeme"
+
+msgid "Zahlung bei Lieferung"
+msgstr "Teslimatta ödeme"
+
+msgid "bar"
+msgstr "nakit"
+
+msgid "bar oder Karte"
+msgstr "nakit veya kart"
+
+msgid "Bei Lieferung ist Zahlung vor Ort nicht möglich. Bitte wählen Sie eine andere Zahlungsart."
+msgstr "Teslimatta yerinde ödeme mümkün değildir. Lütfen başka bir ödeme yöntemi seçin."

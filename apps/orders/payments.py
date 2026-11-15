@@ -8,7 +8,7 @@ application_fee=0). Подтверждение оплаты ставит веб�
 from apps.billing import connect
 
 
-def available_methods(tenant, *, customer_type=None) -> list[str]:
+def available_methods(tenant, *, customer_type=None, fulfillment: str = "") -> list[str]:
     """E7-2: способы оплаты, доступные на checkout этого бизнеса.
 
     SH-23: правила переехали в ОБЩИЙ реестр `apps.core.payment_methods` (тот же
@@ -18,7 +18,16 @@ def available_methods(tenant, *, customer_type=None) -> list[str]:
     бизнес включил `invoice_b2b_enabled`."""
     from apps.core import payment_methods as pm
 
-    return pm.available(tenant, "order", customer_type=customer_type or pm.PRIVATE)
+    return pm.available(
+        tenant, "order", customer_type=customer_type or pm.PRIVATE, fulfillment=fulfillment
+    )
+
+
+def method_label(code: str, tenant):
+    """FB-30.12: подпись способа на витрине заказа («Zahlung bei Abholung/Lieferung»)."""
+    from apps.core import payment_methods as pm
+
+    return pm.label(code, "order", tenant=tenant)
 
 
 def order_checkout_url(order, tenant, *, success_url: str, cancel_url: str) -> str:

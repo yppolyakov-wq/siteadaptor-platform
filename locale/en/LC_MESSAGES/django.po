@@ -38144,3 +38144,30 @@ msgstr "Into the row above (up to %(w)s)"
 
 msgid "Eigene Reihe"
 msgstr "Own row"
+
+msgid "Zahlung bei Abholung/Lieferung"
+msgstr "Payment on pickup/delivery"
+
+msgid "Zahlung bei Anreise"
+msgstr "Payment on arrival"
+
+msgid "Zahlung an der Abendkasse"
+msgstr "Payment at the box office"
+
+msgid "Zahlung nach Auftrag"
+msgstr "Payment after the job"
+
+msgid "Zahlung bei Abholung"
+msgstr "Payment on pickup"
+
+msgid "Zahlung bei Lieferung"
+msgstr "Payment on delivery"
+
+msgid "bar"
+msgstr "cash"
+
+msgid "bar oder Karte"
+msgstr "cash or card"
+
+msgid "Bei Lieferung ist Zahlung vor Ort nicht möglich. Bitte wählen Sie eine andere Zahlungsart."
+msgstr "Payment on site is not possible for delivery. Please choose another payment method."

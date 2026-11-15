@@ -38470,3 +38470,30 @@ msgstr "У ряд вище (до %(w)s)"
 
 msgid "Eigene Reihe"
 msgstr "Окремий ряд"
+
+msgid "Zahlung bei Abholung/Lieferung"
+msgstr "Оплата при отриманні/доставці"
+
+msgid "Zahlung bei Anreise"
+msgstr "Оплата під час заїзду"
+
+msgid "Zahlung an der Abendkasse"
+msgstr "Оплата в касі на місці"
+
+msgid "Zahlung nach Auftrag"
+msgstr "Оплата після виконання"
+
+msgid "Zahlung bei Abholung"
+msgstr "Оплата при отриманні"
+
+msgid "Zahlung bei Lieferung"
+msgstr "Оплата при доставці"
+
+msgid "bar"
+msgstr "готівкою"
+
+msgid "bar oder Karte"
+msgstr "готівкою або карткою"
+
+msgid "Bei Lieferung ist Zahlung vor Ort nicht möglich. Bitte wählen Sie eine andere Zahlungsart."
+msgstr "При доставці оплата на місці неможлива. Оберіть інший спосіб оплати."
