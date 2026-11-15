@@ -141,6 +141,20 @@ def site_schema_view(request):
                         % {"lists": ", ".join(names)},
                     )
             else:
+                if op in ("catview", "mainview"):
+                    # ревью R5b: недоступный вид (нет подкатегорий/наборов) не берём и в
+                    # обход плиток — только тот, что можно выбрать на экране
+                    site_schema.check_view_available(
+                        aufbau_draft.overlay(
+                            siteconfig.normalize(tenant.site_config),
+                            aufbau_draft.get(request, code),
+                        )
+                        if aufbau_draft.get(request, code)
+                        else siteconfig.normalize(tenant.site_config),
+                        site_schema.host_for(code),
+                        ref,
+                        request.POST.get("value", ""),
+                    )
                 ref = aufbau_draft.op(
                     request,
                     tenant,

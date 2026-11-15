@@ -136,3 +136,19 @@ Banner «фото страницы»; навигационные виды при
 7. «+ Block › Vorlage anwenden» с предупреждением.
 8. Корзина «Passt dazu»; Finder ★ Ergebnis.
 9. Телефон (390) для 1–3.
+
+## 9. P2 «Design» — разведка (2026-11-15)
+- Экран: `apps/core/design_page.py:265` `design_view`, вкладки `DESIGN_TABS` (:255, «fertig», «farben»,
+  «karten»), POST `action=design_settings` → `_save_design_settings` (:62, сентинелы частей);
+  шаблон `templates/tenant/design.html` (вкладки :14-15, «karten» :64+).
+- Пять общих настроек: `product_card_form` (`site_defaults.card_style`), `promo_card_form`
+  (`site_defaults.promo_card`), `text_width` (`site_defaults.text_width`), `catalog_menu_prices`
+  (верхний `menu_show_prices`), `catalog_menu_labels` (верхний `menu_labels`); перечислены в ~25
+  типах страниц (`studio_pages.py`).
+- План: `site_schema.MOVED_TO_DESIGN` (фильтр в `setting_codes`/`settings_groups`, как
+  `REPLACED_BY_BLOCKS`) + строка «wie Design: X · ändern →» в панели; вкладка «Karten & Text» на
+  «Design» из `page_settings.schema/applies/write` (POST `design_defaults`, `write_many`);
+  ссылки `page_settings.summaries` и `page_templates.cabinet_url` для этих кодов → «Design»;
+  поблочные поправки (`card` блока «Liste», `card_style` объекта) остаются.
+- Замки к переписке: `test_fb27_r4_settings.py` :139/:170/:192/:202, `test_dl19_studio.py` :73/:78;
+  новые — вкладка сохраняет, `applies` прячет цены меню при модуле заказов.

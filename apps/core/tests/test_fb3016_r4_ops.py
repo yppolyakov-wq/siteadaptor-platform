@@ -8,6 +8,13 @@ from apps.core import site_schema
 from apps.tenants import siteconfig
 
 
+def _with_subcategories():
+    from apps.catalog.tests.factories import CategoryFactory
+
+    parent = CategoryFactory(slug="r4-brot", name={"de": "Brot"})
+    CategoryFactory(slug="r4-weizen", name={"de": "Weizen"}, parent=parent)
+
+
 def _items():
     return siteconfig.main_list_sequence("catalog", [])
 
@@ -89,6 +96,7 @@ def test_screen_panels_change_the_shop(settings):
     tenant = TenantFactory(
         business_type="online_shop", disabled_modules=list(default_disabled_for("online_shop"))
     )
+    _with_subcategories()
     b = Browser(tenant)
     html = b.get("?seite=catalog")
     assert "block=categories" in html and "Kategorien" in html
@@ -134,6 +142,7 @@ def test_review_draft_counts_a_view_change(settings):
     tenant = TenantFactory(
         business_type="online_shop", disabled_modules=list(default_disabled_for("online_shop"))
     )
+    _with_subcategories()
     b = Browser(tenant)
     b.post(seite="catalog", op="catview", ref="categories", value="regale")
     html = b.get("?seite=catalog")
@@ -156,3 +165,22 @@ def test_r5b_sets_row_only_when_sets_exist():
     cfg = siteconfig.normalize({})
     keys = [b["key"] for b in site_schema.blocks_for(cfg, "catalog")]
     assert "page_head" in keys and "combos" not in keys
+
+
+@pytest.mark.django_db
+def test_review_r5b_unavailable_view_is_refused_server_side(settings):
+    """Без подкатегорий «Regale» недоступен — и в обход плиток POST'ом тоже."""
+    from apps.core.modules import default_disabled_for
+    from apps.core.tests.test_fb27_r2_draft import Browser
+    from apps.tenants.tests.factories import TenantFactory
+
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    tenant = TenantFactory(
+        business_type="online_shop", disabled_modules=list(default_disabled_for("online_shop"))
+    )
+    b = Browser(tenant)
+    _resp, msgs = b.post(seite="catalog", op="catview", ref="categories", value="regale")
+    b.post(seite="catalog", op="save")
+    tenant.refresh_from_db()
+    parts = cp.effective(siteconfig.normalize(tenant.site_config), "catalog")
+    assert parts.categories == "", msgs

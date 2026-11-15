@@ -38,6 +38,9 @@ def test_selector_offers_all_categories_and_catalog_no_longer_carries_category_s
 
 
 def test_unsaved_page_shows_the_catalog_blocks_and_first_save_copies_them():
+    from apps.core.tests.test_fb3016_r4_ops import _with_subcategories
+
+    _with_subcategories()  # «Regale» доступен только с подкатегориями
     tenant = _shop(page_blocks={"catalog": [TEXT, {"key": "main"}]})
     b = Browser(tenant)
     html = b.get("?seite=category")

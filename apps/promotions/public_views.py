@@ -1561,6 +1561,10 @@ def product_list(request, slug=None):
         else _catalog_parts.from_code(cat_style)
     )
     cat_style = _catalog_parts.legacy_code(_cat_parts)
+    _head_explicit = any(
+        isinstance(r, dict) and r.get("key") == "page_head" and r.get("style")
+        for r in ((cfg.get("page_blocks") or {}).get(_parts_host) or [] if _parts_host else [])
+    )
     # Снимок набора в рамках выбранной категории ДО фасет-фильтров — из него считаем
     # доступные значения фасетов (границы цены / присутствующие бейджи / есть ли
     # распроданное), чтобы показывать только релевантные фильтры и реальные диапазоны.
@@ -2170,9 +2174,10 @@ def product_list(request, slug=None):
             "comp_carry": f"?ansicht={ansicht}" if ansicht else "",
             "show_root_header": bool(
                 not path_mode
-                # у корня «Sets» шапки не было (сетов на корне нет) — так и осталось
+                # у корня «Sets» шапки не было (сетов на корне нет) — так и осталось; но
+                # шапку, явно включённую блоком, показываем (ревью R5b)
                 and _cat_parts.head == "titelbild"
-                and cat_style != "sets"
+                and (cat_style != "sets" or _head_explicit)
                 and (cfg.get("catalog_intro") or _root_header_photo)
             ),
             "root_header_photo": _root_header_photo,

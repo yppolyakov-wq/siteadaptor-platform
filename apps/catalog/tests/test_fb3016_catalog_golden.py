@@ -234,3 +234,16 @@ def test_r5b_head_and_shelves_together_on_a_category():
         _request("/sortiment/brot/", tenant), slug="brot"
     ).content.decode()
     _check("cat-head-plus-regale", html)
+
+
+def test_review_r5b_explicit_head_shows_on_the_root_even_with_sets_above():
+    _data(subcats=True, photos=True)
+    rows = [
+        {"key": "page_head", "style": "titelbild"},
+        {"key": "combos", "style": "above"},
+        {"key": "main"},
+    ]
+    cfg = {"page_blocks": {"catalog": rows}, "catalog_intro": "Willkommen"}
+    tenant = TenantFactory.build(name="Bäckerei X", site_config=cfg)
+    html = public_views.product_list(_request("/sortiment/", tenant)).content.decode()
+    assert "Willkommen" in html

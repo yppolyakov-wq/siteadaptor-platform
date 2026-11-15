@@ -12,16 +12,19 @@
 from __future__ import annotations
 
 import copy
+import logging
 import uuid
 from dataclasses import dataclass
 from fractions import Fraction
 
-from django.db import transaction
+from django.db import DatabaseError, transaction
 from django.urls import NoReverseMatch, reverse
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy
 
 from apps.core import studio_pages
+
+logger = logging.getLogger(__name__)
 
 #: Типы, у которых нет своей страницы без параметра — превью строим по первой записи.
 _SAMPLES = {
@@ -969,7 +972,7 @@ def blocks_for(
         # FB-30.16 R4: блоки каталога — вид категорий и вид товаров ★ (стратегия FB-31)
         if host in ("catalog", "category") and (main or key in siteconfig.CATALOG_PART_STYLES):
             out[-1].update(_catalog_view_panel(config, host, item, main))
-    if host in ("catalog", "category") and not _has_combos():
+    if summaries and host in ("catalog", "category") and not _has_combos():
         # «Sets & Menüs» — только если наборы есть (иначе строке нечего показывать)
         out = [b for b in out if b["key"] != siteconfig.CATALOG_SETS_KEY]
     if summaries:  # строке списка страниц нужен только счёт блоков — без запроса
@@ -1569,12 +1572,29 @@ def mark_view_availability(config: dict, host: str, view: dict) -> None:
     ]
 
 
+def check_view_available(config: dict, host: str, ref: str, value: str) -> None:
+    """SchemaError, если вид блока каталога сейчас недоступен (нет подкатегорий/наборов)."""
+    row = next((b for b in blocks_for(config, _code_of_host(host), host) if b["ref"] == ref), None)
+    view = (row or {}).get("catview") or (row or {}).get("mainview")
+    if not view:
+        return  # не прикреплённая строка — решит mutate
+    mark_view_availability(config, host, view)
+    tile = next((t for t in view["tiles"] if t["value"] == value), None)
+    if tile is not None and not tile["available"]:
+        raise SchemaError("value")
+
+
+def _code_of_host(host: str) -> str:
+    return "category" if host == "category" else "catalog"
+
+
 def _has_combos() -> bool:
     try:
         from apps.catalog.models import Combo
 
         return Combo.objects.exists()
-    except Exception:  # noqa: BLE001 — без схемы бизнеса строку просто не показываем
+    except DatabaseError:  # ревью R5b: только ошибка БД, и не молча
+        logger.warning("site_schema: Combo check failed", exc_info=True)
         return False
 
 
