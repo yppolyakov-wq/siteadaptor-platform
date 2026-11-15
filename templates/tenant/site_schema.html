@@ -278,13 +278,7 @@
       {% if selected.source_url %}<p class="text-sm"><a href="{{ selected.source_url }}" class="inline-flex items-center min-h-[44px] font-semibold text-indigo-700 hover:underline" data-schema-source>{{ selected.source_label }} →</a></p>{% endif %}
     </form>
     {% endif %}
-    {% if selected.shape and selected.thumb == "cards" %}
-    {% comment %}FB-29.3 (макет A): маленькое превью блока — меняется вместе с колонками, рядами и выводом.{% endcomment %}
-    <div class="mt-4 rounded-xl border border-indigo-200 bg-indigo-50/50 p-2.5" data-schema-preview>
-      <p class="text-xs font-semibold text-indigo-900">{% trans "So sieht der Block aus" %}</p>
-      {% include "tenant/_schema_thumb.html" with shape=selected.shape big=1 %}
-    </div>
-    {% endif %}
+    {% comment %}FB-30 (владелец 2026-11-15): превью «So sieht der Block aus» в панели снято — вид блока виден в списке слева, колонки правятся ниже в «Wie … aussehen».{% endcomment %}
     {% if selected.groups %}
     {% comment %}FB-27 R3b-2: блок «Liste» — что показать, какие именно и как. Поля только
     выбранного источника; сменили источник — после «Übernehmen» панель под него.{% endcomment %}

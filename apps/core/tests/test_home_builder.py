@@ -1834,3 +1834,28 @@ def test_home_builder_links_to_sibling_site_screens():
     ):
         assert path in html, path
     assert "/dashboard/site/pages/" not in html, "мёртвый экран не должен иметь входов"
+
+
+def test_studio_view_and_columns_stay_one_value():
+    """FB-30 (фидбэк владельца): вид «N в строке» и число колонок — одно значение. Сменили вид
+    — колонки идут за ним; сменили колонки — вид подстраивается."""
+    tenant = TenantFactory(
+        schema_name="public", slug="hbone", name="HBONE",
+        site_config={"sections": [{"key": "products", "enabled": True,
+                                   "layout": {"preset": "cols4", "cols": 6}}]},
+    )  # fmt: skip
+    base = {"order_products": "1", "enabled_products": "on"}
+    views.home_builder_view(
+        _request(
+            "post", "/x/", {**base, "layout_preset_products": "cols3", "cols_products": "6"}, tenant
+        )
+    )
+    lay = siteconfig.section_layout(siteconfig.normalize(tenant.site_config), "products")
+    assert lay["cols"] == 3 and lay["preset"] == "cols3", "вид сменили — колонки за ним"
+    views.home_builder_view(
+        _request(
+            "post", "/x/", {**base, "layout_preset_products": "cols3", "cols_products": "5"}, tenant
+        )
+    )
+    lay = siteconfig.section_layout(siteconfig.normalize(tenant.site_config), "products")
+    assert lay["cols"] == 5 and lay["preset"] == "cols5", "колонки сменили — вид за ними"

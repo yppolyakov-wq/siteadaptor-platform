@@ -1652,6 +1652,23 @@ def _clamp(value, lo, hi, default):
         return default
 
 
+#: FB-30 (фидбэк владельца): число колонок и «вид» сетки — одно значение. Вид «N в строке»
+#: (`colsN`/`list`) и поле колонок не должны расходиться между Студией и «Seitenaufbau».
+_COLS_PRESETS = {1: "list", 2: "cols2", 3: "cols3", 4: "cols4", 5: "cols5", 6: "cols6"}
+
+
+def preset_for_cols(preset, cols):
+    """Вид сетки, совпадающий с числом колонок: «N в строке» → тот, где N = `cols`.
+    Особые виды (галерея, прайс-лист) не трогаются."""
+    try:
+        n = int(cols)
+    except (TypeError, ValueError):
+        return preset
+    if (preset or "cols3") in _COLS_PRESETS.values() and n in _COLS_PRESETS:
+        return _COLS_PRESETS[n]
+    return preset
+
+
 def normalize_layout(raw, default=None, extra_presets=()) -> dict:
     """Привести layout секции к канону {preset, width, cols, mobile, gap}.
 

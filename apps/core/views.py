@@ -2607,6 +2607,17 @@ def home_builder_view(request):
                     v = request.POST.get(f"{fld}_{key}", "")
                     if v != "":
                         lay[fld] = v
+                # FB-30: вид «N в строке» и число колонок — одно значение. Сменили вид —
+                # он задаёт колонки; сменили число колонок — вид подстраивается под него.
+                if "cols" in lay and preset in siteconfig.LAYOUT_PRESETS:
+                    stored = (existing_fixed.get(key) or (None, {}))[1].get("layout") or {}
+                    stored_view = siteconfig.preset_for_cols(
+                        stored.get("preset"), stored.get("cols")
+                    )
+                    if preset != stored_view:
+                        lay.pop("cols", None)
+                    else:
+                        lay["preset"] = siteconfig.preset_for_cols(preset, lay["cols"]) or preset
                 # DS-5: симметрия/лента (чекбокс не прислан = выкл — presence).
                 if request.POST.get(f"balance_{key}") == "on":
                     lay["balance"] = True
@@ -3246,7 +3257,11 @@ def home_builder_view(request):
                 "order": index,
                 "icon": siteconfig.SECTION_ICONS.get(s["key"], "🧩"),  # SE-9c: иконка рейла
                 "is_grid": s["key"] in siteconfig.GRID_SECTION_DEFAULTS,
-                "layout_preset": (s.get("layout") or {}).get("preset", ""),
+                # FB-30: вид «N в строке» показывается по действующему числу колонок
+                "layout_preset": siteconfig.preset_for_cols(
+                    (s.get("layout") or {}).get("preset", ""), (s.get("layout") or {}).get("cols")
+                )
+                or "",
                 # SE-3c: пер-девайс число колонок (0 для tablet = «авто»).
                 "layout_cols": (s.get("layout") or {}).get("cols", ""),
                 "layout_mobile": (s.get("layout") or {}).get("mobile", ""),

@@ -842,6 +842,10 @@ def _update_builtin(item: dict, fields: dict | None) -> bool:
     cols = _digit(sent.get("cols", ""), 1, 6)
     if cols:
         layout["cols"] = cols
+        # вид «N в строке» в Студии — тот же, что число колонок здесь (одно значение)
+        preset = siteconfig.preset_for_cols(layout.get("preset"), cols)
+        if preset:
+            layout["preset"] = preset
     if "rows" in sent:
         rows = _digit(sent["rows"], 1, 6)
         if rows:

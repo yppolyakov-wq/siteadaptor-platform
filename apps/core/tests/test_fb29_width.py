@@ -117,12 +117,13 @@ def test_row_thumbnail_follows_columns_and_output():
     assert 'data-thumb-out="slider"' in row[: row.index("</a>")]
 
 
-def test_panel_shows_a_preview_of_the_block():
+def test_panel_has_no_separate_preview_of_the_block():
+    """FB-30 (владелец 2026-11-15, осознанная переписка): превью в панели снято — вид блока
+    виден в списке слева, колонки правятся в группе «как выглядят»."""
     b = Browser(_tenant())
     html = b.get("?seite=home&block=products")
     panel = html[html.index("data-schema-panel") :]
-    assert "data-schema-preview" in panel
-    assert "So sieht der Block aus" in panel
+    assert "data-schema-preview" not in panel
 
 
 def test_columns_are_buttons_when_there_is_nothing_to_inherit():
