@@ -31,6 +31,7 @@ def _rendered_hosts() -> set[str]:
         # своя схема категории) — хост тот же, «catalog».
         if re.search(r"\{%\s*category_blocks\s", tpl.read_text()):
             hosts.add("catalog")
+            hosts.add("category")
     return hosts
 
 

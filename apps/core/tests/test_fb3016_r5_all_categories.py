@@ -57,3 +57,30 @@ def test_category_pages_use_the_shared_blocks_until_they_have_their_own():
     }
     assert siteconfig.shared_category_host(siteconfig.normalize(cfg)) == "category"
     assert siteconfig.shared_category_host({}) == "catalog"
+
+
+def test_review_empty_all_categories_stays_saved_and_adopt_copies_the_shared_blocks():
+    cfg = siteconfig.normalize({"page_blocks": {"catalog": [TEXT], "category": []}})
+    assert cfg["page_blocks"]["category"] == []
+    assert siteconfig.shared_category_host(cfg) == "category"
+    cfg = siteconfig.normalize(
+        {
+            "page_blocks": {
+                "catalog": [TEXT],
+                "category": [{**TEXT, "id": "t-all", "data": {"title": "Alle", "body": "x"}}],
+            }
+        }
+    )
+    items = site_schema.category_items(cfg, "catalog:brot", [], "adopt")
+    # копия получает новые id; источник — «Alle Kategorien», не каталог
+    assert [i["data"]["title"] for i in items if i.get("id")] == ["Alle"]
+
+
+def test_review_panel_before_first_save_shows_the_template_view():
+    tenant = _shop(
+        site_defaults={"category_page_style": "regale"},
+        page_blocks={"catalog": [{"key": "categories", "style": "tabs"}, {"key": "main"}]},
+    )
+    cfg = siteconfig.normalize(tenant.site_config)
+    row = next(b for b in site_schema.blocks_for(cfg, "category") if b["key"] == "categories")
+    assert row["catview"]["value"] == "regale"

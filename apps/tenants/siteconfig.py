@@ -1522,7 +1522,9 @@ def normalize_page_blocks(raw) -> dict:
         # маркер первым без полей = «все блоки под списком» = вид, как раньше: не храним
         if main_at is not None and (main_at or len(marker) > 1):
             blocks.insert(main_at, marker)
-        if blocks:
+        # FB-30.16 R5 (ревью): «Alle Kategorien» хранится и пустой — сам ключ значит
+        # «сохранена», иначе «удалил все блоки» молча вернуло бы блоки каталога
+        if blocks or key == "category":
             out[key] = blocks
     return out
 

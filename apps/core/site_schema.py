@@ -559,9 +559,14 @@ def category_items(config: dict, host: str, items: list[dict], op: str) -> list[
     marker = {"key": siteconfig.MAIN_LIST_KEY}
     if op == "reset":
         return [marker]
-    source = siteconfig.main_list_sequence(
-        "catalog", (config.get("page_blocks") or {}).get("catalog", [])
-    )
+    # FB-30.16 R5 (ревью): «принять блоки» — из того, что категория показывает сейчас:
+    # «Alle Kategorien», если сохранена, иначе каталог
+    shared = siteconfig.shared_category_host(config)
+    source = [
+        b
+        for b in siteconfig.main_list_sequence(shared, siteconfig.page_rows(config, shared))
+        if b.get("id") or siteconfig.is_main_marker(b)
+    ]
     own = [it for it in items if not siteconfig.is_main_marker(it)]
     copied = []
     for block in source:
@@ -1525,7 +1530,11 @@ def _catalog_view_panel(config: dict, host: str, item: dict, main: bool) -> dict
     """Панель вида блока каталога: текущий вид (сохранённый либо из прежнего шаблона)."""
     from apps.catalog import catalog_parts
 
-    parts = catalog_parts.effective(config, host, code=_catalog_code(config, host))
+    rows_cfg = config
+    if host == "category" and "category" not in (config.get("page_blocks") or {}):
+        # до первого сохранения витрина категорий берёт вид из шаблона — панель тоже
+        rows_cfg = {}
+    parts = catalog_parts.effective(rows_cfg, host, code=_catalog_code(config, host))
     if main:
         value = parts.products if parts.products in MAIN_VIEW_CHOICES else "raster"
         return {
