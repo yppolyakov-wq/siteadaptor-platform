@@ -629,18 +629,25 @@ def _action_url(tenant, target: str) -> str | None:
     if target == "search":
         from apps.core.context import _SEARCH_ROUTES, _primary_search_module
 
-        route = _SEARCH_ROUTES.get(_primary_search_module(tenant) or "catalog")
-        return _reverse(route) if route else None
+        module = _primary_search_module(tenant) or "catalog"
+        route = _SEARCH_ROUTES.get(module)
+        if not route or not modules.is_module_active(tenant, module):
+            return None
+        return _reverse(route)
     if target == "cart":
         return _reverse("storefront-cart") if modules.is_module_active(tenant, "orders") else None
     if target == "deals":
-        return "/#aktionen" if modules.is_module_active(tenant, "promotions") else None
+        if not modules.is_module_active(tenant, "promotions"):
+            return None
+        return _reverse("storefront-aktionen") or "/#aktionen"
     if target == "account":
         if not modules.is_module_active(tenant, "customer_account"):
             return None
         return _reverse("account-home")
     if target == "call":
-        phone = (getattr(tenant, "public_phone", "") or "").strip()
+        import re
+
+        phone = re.sub(r"[^\d+]", "", getattr(tenant, "public_phone", "") or "")
         return f"tel:{phone}" if phone else None
     return None
 
@@ -657,8 +664,12 @@ def _node_label(node: dict) -> str:
     return explicit or gettext(node["label"])
 
 
-def _resolve(tenant, node: dict, depth: int = 1):
+def _resolve(tenant, node: dict, depth: int = 1, *, actions: bool = False):
     if not node.get("enabled", True):
+        return None
+    # FB-30.14 (ревью): пункт-функция живёт только в нижней панели — в шапке и подвале
+    # «открыть меню» вело бы в само меню; узел из импорта/правки конфига там пропускаем.
+    if node.get("type") == "action" and not actions:
         return None
     children = [c for c in (_resolve(tenant, k, depth + 1) for k in node.get("children", [])) if c]
     # FB-23a: авто-подкатегории — у узла «Kategorien» всегда, у пункта-категории по
@@ -716,7 +727,7 @@ def resolve_menu(tenant, side: str, cfg=None) -> list[dict]:
     items = side_cfg.get("items", [])
     if side == "top" and _derived_home_is_duplicate(tenant, cfg):
         items = [n for n in items if (n.get("type"), n.get("target")) not in LITE_DERIVED_SKIP]
-    return [r for r in (_resolve(tenant, n) for n in items) if r]
+    return [r for r in (_resolve(tenant, n, actions=side == "bottom") for n in items) if r]
 
 
 #: Пункты автоменю, которых нет в шапке лёгкой витрины (своё меню владелец не собирал):

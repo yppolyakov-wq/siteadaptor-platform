@@ -36,19 +36,33 @@ iOS Safari «подпрыгивание» fixed-бара при инерцион
   {% endfor %}
 </nav>
 <script>
-  // FB-30.14: кнопка «Menü» нижней панели открывает мобильное меню шапки и показывает его.
+  // FB-30.14: кнопка «Menü» нижней панели открывает/закрывает мобильное меню шапки. Нет меню
+  // или бургера — кнопку прячем (не оставляем живую кнопку, которая ничего не делает).
   (function () {
-    document.querySelectorAll("[data-open-site-menu]").forEach(function (btn) {
+    var toggle = document.getElementById("sf-nav-toggle");
+    var menu = document.getElementById("sf-nav-mobile");
+    var btns = document.querySelectorAll("[data-open-site-menu]");
+    if (!toggle || !menu) { btns.forEach(function (b) { b.hidden = true; }); return; }
+    var calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    function sync() {
+      var open = !menu.classList.contains("hidden");
+      btns.forEach(function (b) { b.setAttribute("aria-expanded", open ? "true" : "false"); });
+    }
+    new MutationObserver(sync).observe(menu, { attributes: true, attributeFilter: ["class"] });
+    btns.forEach(function (btn) {
       btn.addEventListener("click", function () {
-        var toggle = document.getElementById("sf-nav-toggle");
-        var menu = document.getElementById("sf-nav-mobile");
-        if (!toggle || !menu) return;
-        if (menu.classList.contains("hidden")) toggle.click();
-        btn.setAttribute("aria-expanded", menu.classList.contains("hidden") ? "false" : "true");
-        menu.scrollIntoView({ behavior: "smooth", block: "start" });
+        toggle.click();
+        if (menu.classList.contains("hidden")) { btn.focus(); return; }
+        var r = menu.getBoundingClientRect();
+        if (r.top < 0 || r.bottom > window.innerHeight) menu.scrollIntoView({ behavior: calm ? "auto" : "smooth", block: "start" });
         var first = menu.querySelector("a, button");
         if (first) first.focus({ preventScroll: true });
       });
+    });
+    document.addEventListener("keydown", function (e) {
+      if (e.key !== "Escape" || menu.classList.contains("hidden")) return;
+      toggle.click();
+      if (btns[0] && menu.contains(document.activeElement)) btns[0].focus();
     });
   })();
 </script>

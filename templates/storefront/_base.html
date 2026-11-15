@@ -350,7 +350,7 @@
         только на узком экране, без JS всё раскрыто). На ≥sm — обычные колонки.{% endcomment %}
         {% for col in storefront_footer_menu %}
         <details class="min-w-0 col-span-2 sm:col-span-1 border-b border-gray-100 sm:border-0 group" data-footer-acc open>
-          <summary class="flex items-center justify-between gap-2 cursor-pointer list-none py-2 sm:py-0 sm:mb-2 sm:cursor-default text-base font-semibold text-gray-800 [&::-webkit-details-marker]:hidden">{{ col.label|default:"…" }}<span class="sm:hidden text-gray-400 transition-transform group-open:rotate-180" aria-hidden="true">▾</span></summary>
+          <summary class="flex items-center justify-between gap-2 cursor-pointer list-none py-2 sm:py-0 sm:mb-2 sm:cursor-default text-base font-semibold text-gray-800 [&::-webkit-details-marker]:hidden">{% if col.label %}{{ col.label }}{% else %}{% trans "Links" %}{% endif %}<span class="sm:hidden text-gray-400 transition-transform group-open:rotate-180" aria-hidden="true">▾</span></summary>
           <ul class="space-y-1.5 pb-3 sm:pb-0">
             {% for link in col.items %}<li><a href="{{ link.url }}" class="text-gray-600 hover:text-gray-900 hover:underline inline-flex items-center gap-1.5">{% include "storefront/menu/_icon.html" with node=link %}{{ link.label }}</a></li>{% endfor %}
           </ul>

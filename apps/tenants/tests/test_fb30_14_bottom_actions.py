@@ -77,3 +77,28 @@ def test_footer_columns_are_an_accordion():
     src = open("templates/storefront/_base.html").read()
     block = src.split("data-footer-columns", 1)[1].split("</nav>", 1)[0]
     assert block.count("<details") == 2 and "data-footer-acc" in block
+
+
+def test_action_nodes_never_render_in_the_top_menu_or_footer():
+    tenant = TenantFactory.build(disabled_modules=[])
+    node = {"label": "Menü", "type": "action", "target": "menu"}
+    tenant.site_config = {
+        "menus": {
+            "top": {"items": [node, {"label": "Über", "type": "page", "target": "about"}]},
+            "bottom": {"enabled": True, "items": [node]},
+            "footer": {"columns": [{"label": "A", "items": [node]}]},
+        }
+    }
+    assert all(i.get("action") is None for i in menu_mod.resolve_menu(tenant, "top"))
+    assert menu_mod.resolve_footer(tenant) == []
+    assert menu_mod.resolve_menu(tenant, "bottom")[0]["action"] == "menu"
+
+
+def test_deals_follow_the_module_and_link_the_deals_page():
+    node = [{"label": "A", "type": "action", "target": "deals"}]
+    off = TenantFactory.build(disabled_modules=["promotions"])
+    off.site_config = _bottom(node)
+    assert menu_mod.resolve_menu(off, "bottom") == []
+    on = TenantFactory.build(disabled_modules=[])
+    on.site_config = _bottom(node)
+    assert menu_mod.resolve_menu(on, "bottom")[0]["url"] == "/aktionen/"
