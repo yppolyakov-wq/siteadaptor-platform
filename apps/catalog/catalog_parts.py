@@ -148,6 +148,23 @@ def has_parts(rows) -> bool:
 
 
 def effective(cfg, host: str, *, code: str = "") -> Parts:
-    """Части страницы: сохранённые строки хоста, иначе вывод из прежнего кода."""
+    """Части страницы: прежний код, поверх — оси, заданные сохранёнными строками хоста
+    (вид «Kategorien» — строкой, вид товаров/сетка/«Im Fokus» — полями ★). Остальные оси
+    (шапка, сеты) остаются из кода — его по-прежнему пишут Студия и готовые дизайны."""
+    base = from_code(code)
     rows = ((cfg or {}).get("page_blocks") or {}).get(host) or []
-    return from_rows(rows) if has_parts(rows) else from_code(code)
+    if not has_parts(rows):
+        return base
+    stored = from_rows(rows)
+    marker = next(
+        (r for r in rows if isinstance(r, dict) and r.get("key") == "main" and len(r) > 1), None
+    )
+    parts = base
+    if stored.categories:
+        parts = replace(parts, categories=stored.categories)
+    if marker is not None:
+        if "style" in marker or "grid" in marker:
+            parts = replace(parts, products=stored.products, grid=stored.grid)
+        if "focus" in marker:
+            parts = replace(parts, focus=stored.focus)
+    return parts

@@ -88,3 +88,14 @@ def test_combinations_that_never_existed_pick_the_main_axis():
     assert cp.legacy_code(cp.Parts(products="mosaik", categories="tabs")) == "mosaik"
     assert cp.legacy_code(cp.Parts(head="titelbild", categories="regale")) == "regale"
     assert cp.legacy_code(cp.Parts(grid="cols4")) == ""
+
+
+def test_stored_axes_override_only_themselves():
+    """R3: строка задаёт только свою ось; прочее — из прежнего кода (его пишут Студия и
+    готовые дизайны)."""
+    cfg = {"page_blocks": {"catalog": [{"key": "main", "style": "mosaik", "grid": "cols4"}]}}
+    parts = cp.effective(cfg, "catalog", code="sets")
+    assert parts.products == "mosaik" and parts.sets == "above" and parts.head == "titelbild"
+    cfg = {"page_blocks": {"catalog": [{"key": "categories", "style": "tabs"}, {"key": "main"}]}}
+    parts = cp.effective(cfg, "catalog", code="mosaik")
+    assert parts.categories == "tabs" and parts.products == "mosaik"
