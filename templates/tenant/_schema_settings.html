@@ -23,7 +23,7 @@
             <div class="flex gap-2">
               {% for c in s.choices %}
                 <label class="inline-flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 min-h-[44px] cursor-pointer has-[:checked]:border-indigo-700 has-[:focus-visible]:outline has-[:focus-visible]:outline-[3px] has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-indigo-600">
-                  <input type="radio" name="value" value="{{ c.value }}" {% if c.value == "1" and s.value %}checked{% elif c.value == "0" and not s.value %}checked{% endif %}>
+                  <input type="radio" id="st-{{ s.code }}-{{ forloop.counter }}" name="value" value="{{ c.value }}" {% if c.value == "1" and s.value %}checked{% elif c.value == "0" and not s.value %}checked{% endif %}>
                   <span>{{ c.label }}</span>
                 </label>
               {% endfor %}
@@ -32,7 +32,7 @@
             <div class="grid grid-cols-2 gap-2">
               {% for c in s.choices %}
                 <label class="flex flex-col gap-1 rounded-xl border p-2 text-xs min-h-[44px] group {% if c.available %}cursor-pointer border-gray-200 has-[:checked]:border-2 has-[:checked]:border-indigo-700 has-[:checked]:bg-indigo-50 has-[:focus-visible]:outline has-[:focus-visible]:outline-[3px] has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-indigo-600{% else %}border-dashed border-gray-300 bg-gray-50 text-gray-600{% endif %}">
-                  <input type="radio" name="value" value="{{ c.value }}" class="sr-only" {% if c.value == s.value %}checked{% endif %}{% if not c.available %} disabled aria-describedby="r-{{ s.code }}-{{ forloop.counter }}"{% endif %}>
+                  <input type="radio" id="st-{{ s.code }}-{{ forloop.counter }}" name="value" value="{{ c.value }}" class="sr-only" {% if c.value == s.value %}checked{% endif %}{% if not c.available %} disabled aria-describedby="r-{{ s.code }}-{{ forloop.counter }}"{% endif %}>
                   {% if s.thumb == "card" %}{% include "tenant/_cardform_thumb.html" with key=c.value %}{% elif s.thumb == "page" %}{% include "tenant/_pagelayout_thumb.html" with key=c.value %}{% endif %}
                   <span>{{ c.label }}<span class="hidden group-has-[:checked]:inline font-semibold text-indigo-700"> ✓</span></span>
                   {% if c.hint %}<span class="sr-only">{{ c.hint }}</span>{% endif %}
@@ -43,7 +43,7 @@
           {% endif %}
     </fieldset>
     {% if s.kind == "layout" %}{% include "tenant/_pt_output.html" with layout=s.layout paginates=s.paginates code=s.code apply_all=s.apply_all standard=s.value|yesno:",1" %}{% endif %}
-    <button type="submit" class="ui-btn ui-btn-secondary w-full mt-3">{% trans "Übernehmen" %}<span class="sr-only">: {{ s.label }}</span></button>
+    <button type="submit" data-schema-apply class="ui-btn ui-btn-secondary w-full mt-3">{% trans "Übernehmen" %}<span class="sr-only">: {{ s.label }}</span></button>
   </form>
   </details>
   {% endwith %}{% endfor %}

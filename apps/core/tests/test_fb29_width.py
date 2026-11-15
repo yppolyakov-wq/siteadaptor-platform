@@ -182,15 +182,14 @@ def test_rows_are_draggable_only_with_scripts_and_buttons_stay():
     assert "dragstart" in js and '"move"' in js
 
 
-def test_banner_cannot_be_narrow():
-    """Ревью: баннер рисуется во всю ширину экрана — доли ширины ломали бы вёрстку."""
+def test_banner_has_no_width_at_all():
+    """Ревью: баннер рисуется во всю ширину экрана — доли ширины ломали бы вёрстку.
+    FB-30.3: и «Ganz / Randlos» ничего не меняли — выбора ширины у баннера нет."""
     b = Browser(_tenant())
-    html = b.get("?seite=home&block=hero")
-    box = html[html.index("data-schema-width") :]
-    box = box[: box.index("</form>")]
-    assert 'value="contained"' in box and 'value="w12"' not in box
-    _resp, msgs = b.post(seite="home", op="width", ref="hero", value="w12")
-    assert msgs
+    assert "data-schema-width" not in b.get("?seite=home&block=hero")
+    for value in ("w12", "full", "contained"):
+        _resp, msgs = b.post(seite="home", op="width", ref="hero", value=value)
+        assert msgs, value
 
 
 def test_empty_narrow_section_leaves_no_hole():

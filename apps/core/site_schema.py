@@ -922,6 +922,9 @@ def blocks_for(
                 "newline": bool(item.get("newline")),
                 "width_label": WIDTH_LABELS.get(item.get("width") or "", ""),
                 "flex": WIDTH_FLEX.get(item.get("width") or "", 12),
+                # FB-30.3: узкий блок занимает в списке СВОЮ долю и один в ряду (раньше он
+                # растягивался на весь ряд — половина была видна только значком «½»)
+                "basis": WIDTH_PERCENT.get(item.get("width") or "", 0),
                 "widths": [
                     (v, lab, names.get(v, lab), WIDTH_PERCENT.get(v, 100))
                     for v, lab in width_choices(item)
@@ -1152,6 +1155,10 @@ def width_choices(item: dict) -> list[tuple[str, str]]:
     from apps.tenants import siteconfig
 
     key = siteconfig.cblock_type(item.get("key")) or item.get("key") or ""
+    if not item.get("id") and key in _FULL_BLEED_SECTIONS:
+        # FB-30.3: баннер главной всегда во всю ширину экрана — переключатель «Ganz /
+        # Randlos» ничего не менял, поэтому ширины у него нет.
+        return []
     if not item.get("id"):
         # FB-29.5: встроенная секция главной — «Ganz», «Randlos» и доли до трети
         # Баннер рисуется во всю ширину экрана (`w-screen`) — узким он ломал бы вёрстку.

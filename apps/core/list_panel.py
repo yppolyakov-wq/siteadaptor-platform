@@ -264,11 +264,18 @@ def which_mode(source: str, data: dict, wanted: str = "") -> tuple[str, list[dic
     from apps.tenants import siteconfig
 
     filters = set(siteconfig.LIST_SOURCES[source]["filters"])
-    modes = [("regel", _("Regel"))]
-    if filters & CATEGORY_FIELDS:
-        modes.append(("kategorie", _("Kategorie")))
+    # FB-30.5: способы названы по тому, что владелец получит. У списка категорий
+    # «по правилу» значит «все», а «категория» — «подкатегории одной».
+    if source == "categories":
+        modes = [("regel", _("Alle"))]
+        if filters & CATEGORY_FIELDS:
+            modes.append(("kategorie", _("Unterkategorien")))
+    else:
+        modes = [("regel", _("Automatisch"))]
+        if filters & CATEGORY_FIELDS:
+            modes.append(("kategorie", _("Aus einer Kategorie")))
     if source in siteconfig.LIST_PICK_SOURCES:
-        modes.append(("einzeln", _("Einzeln")))
+        modes.append(("einzeln", _("Von Hand")))
     keys = [k for k, _lab in modes]
     if wanted in keys:
         mode = wanted
@@ -342,7 +349,7 @@ def groups(request, cfg: dict, data: dict, mode: str = "") -> list[dict]:
             sources,
             # Поля ниже рисует сервер: без подсказки смена источника выглядела бы
             # сломанной — ничего не меняется до «Übernehmen».
-            hint=_("Die weiteren Felder passen sich nach „Übernehmen“ an."),
+            hint=_("Die weiteren Felder passen sich der Auswahl an."),
         ),
         _line("title", _("Überschrift"), data.get("title")),
         # многострочное: в однострочном поле браузер склеил бы переводы строк, и
@@ -427,18 +434,25 @@ def groups(request, cfg: dict, data: dict, mode: str = "") -> list[dict]:
                 [("", f"{hint['card_from']}: {hint['card']}"), *cards],
             )
         )
+    # FB-30.5: заголовки групп говорят, о чём выбор («Welche Kategorien gezeigt werden»),
+    # а не голое «Welche» / «Wie».
+    what_label = siteconfig.LIST_SOURCES[source]["label"]
     return [
         {"key": "was", "title": _("Was zeigen"), "fields": what},
         {
             "key": "welche",
-            "title": _("Welche"),
+            "title": _("Welche %(what)s gezeigt werden") % {"what": what_label},
             "fields": which,
             "mode": mode,
             "modes": modes,
             # ручной состав выбран, а открыт другой способ — его поля пока не действуют
             "overridden": manual and mode != "einzeln",
+            # FB-30.4: у способа нет настроек — говорим, что он делает, а не молчим
+            "mode_hint": _("Zeigt alle der Reihe nach – hier ist nichts einzustellen.")
+            if mode == "regel"
+            else "",
         },
-        {"key": "wie", "title": _("Wie"), "fields": how},
+        {"key": "wie", "title": _("Wie %(what)s aussehen") % {"what": what_label}, "fields": how},
     ]
 
 

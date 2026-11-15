@@ -188,6 +188,7 @@ def hero_bento(context):
         "request": request,  # inclusion_tag рендерит СВОЙ контекст — request не наследуется
         "site": context.get("site") or {},
         "primary_item": context.get("primary_item"),
+        "lead": context.get("lead") or {},
         "deal": None,
         "category": None,
         "hours": None,
@@ -1161,6 +1162,43 @@ def sell_closed(context, kind):
         else _SELL_KIND_DIRECTION.get(kind, kind)
     )
     return not readiness.sell_allowed(tenant, direction)
+
+
+@register.simple_tag
+def hero_lead(site, slides):
+    """FB-30.1: чем наполнен приветственный баннер — один источник для всех его видов.
+
+    Баннеры выбраны из библиотеки (`hero_banners.pick`) → заголовок, текст, кнопка, ссылка
+    и фото первого показываемого сегодня; старые поля главной в этом случае не подмешиваются
+    (иначе на сайте фото одного баннера и текст другого). Выбранные не показываются
+    (выключены, вне срока) → старые поля главной БЕЗ фото прежних слайдов. Выбора нет —
+    как раньше: старые поля, фото — своё либо первого прежнего слайда."""
+    site = site if isinstance(site, dict) else {}
+    slides = list(slides or [])
+    old = {
+        "title": site.get("hero_title") or "",
+        "text": site.get("hero_text") or "",
+        "image": site.get("hero_image") or "",
+        "button_label": "",
+        "href": "",
+        "from_banner": False,
+    }
+    picked = bool((site.get("hero_banners") or {}).get("pick"))
+    if picked and slides:
+        first = slides[0]
+        return {
+            "title": first.get("title") or "",
+            "text": first.get("text") or "",
+            "image": first.get("image") or "",
+            "button_label": first.get("button_label") or "",
+            "href": first.get("href") or "",
+            "from_banner": True,
+        }
+    if not picked and not old["image"]:
+        heroes = site.get("heroes") or []
+        first = slides[0] if slides else (heroes[0] if heroes else {})
+        old["image"] = (first.get("image") if isinstance(first, dict) else "") or ""
+    return old
 
 
 @register.simple_tag(takes_context=True)

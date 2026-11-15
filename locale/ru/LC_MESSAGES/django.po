@@ -38288,3 +38288,32 @@ msgstr "Здесь добавляются блоки только для это�
 
 msgid "Sie stehen danach wieder unter den Blöcken der Seite."
 msgstr "После этого они снова стоят под блоками страницы."
+
+msgid "Auf der Website sichtbar nach «Speichern»."
+msgstr "На сайте видно после «Сохранить»."
+
+msgid "Unterkategorien"
+msgstr "Подкатегории"
+
+msgid "Aus einer Kategorie"
+msgstr "Из категории"
+
+msgid "Von Hand"
+msgstr "Вручную"
+
+#, python-format
+msgid "Welche %(what)s gezeigt werden"
+msgstr "%(what)s: какие показывать"
+
+#, python-format
+msgid "Wie %(what)s aussehen"
+msgstr "%(what)s: как выглядят"
+
+msgid "Zeigt alle der Reihe nach – hier ist nichts einzustellen."
+msgstr "Показывает все по порядку — здесь настраивать нечего."
+
+msgid "Die weiteren Felder passen sich der Auswahl an."
+msgstr "Остальные поля подстраиваются под выбор."
+
+msgid "Solange unter „Von Hand“ Einträge gewählt sind, zeigt der Block genau diese."
+msgstr "Пока в «Вручную» выбраны записи, блок показывает именно их."

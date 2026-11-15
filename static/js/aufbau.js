@@ -17,7 +17,9 @@
   "use strict";
   if (!window.fetch || !window.DOMParser || !window.FormData) return;
   if (!HTMLFormElement.prototype.requestSubmit) return;
-  var FORMS = "[data-schema-fields],[data-schema-list]";
+  // FB-30.2: настройки типа страницы (вид баннера, шаблон, карточка) — тоже без «Übernehmen».
+  var FORMS = "[data-schema-fields],[data-schema-list],[data-schema-setting]";
+  var APPLY = 'button[value="update"],button[data-schema-apply]';
   var chain = Promise.resolve();
   var pending = 0;
 
@@ -26,7 +28,7 @@
 
   function hideApply() {
     document.querySelectorAll(FORMS).forEach(function (form) {
-      var btn = form.querySelector('button[value="update"]');
+      var btn = form.querySelector(APPLY);
       if (btn) btn.style.display = "none";
     });
   }
@@ -52,7 +54,7 @@
   }
 
   function fallback(form) {
-    var btn = form.isConnected && form.querySelector('button[value="update"]');
+    var btn = form.isConnected && form.querySelector(APPLY);
     if (!btn) { location.reload(); return; }
     btn.style.display = "";
     form.requestSubmit(btn);
@@ -60,7 +62,8 @@
 
   function apply(form, target) {
     var data = new FormData(form);
-    data.set("op", "update");
+    // у настройки типа страницы своя операция (`op=setting` в скрытом поле формы)
+    if (!form.matches("[data-schema-setting]")) data.set("op", "update");
     // Список и переключатель меняют состав полей панели — её перерисовываем целиком;
     // при правке текста панель не трогаем: владелец может уже печатать в соседнем поле.
     var whole = target.tagName === "SELECT" || target.type === "radio";

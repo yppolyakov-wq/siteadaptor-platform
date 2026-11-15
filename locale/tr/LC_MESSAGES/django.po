@@ -38095,3 +38095,32 @@ msgstr "Burada yalnızca bu sayfa için blok eklersiniz."
 
 msgid "Sie stehen danach wieder unter den Blöcken der Seite."
 msgstr "Ardından yeniden sayfanın bloklarının altında yer alırlar."
+
+msgid "Auf der Website sichtbar nach «Speichern»."
+msgstr "Web sitesinde «Kaydet»ten sonra görünür."
+
+msgid "Unterkategorien"
+msgstr "Alt kategoriler"
+
+msgid "Aus einer Kategorie"
+msgstr "Bir kategoriden"
+
+msgid "Von Hand"
+msgstr "Elle"
+
+#, python-format
+msgid "Welche %(what)s gezeigt werden"
+msgstr "%(what)s: hangileri gösterilsin"
+
+#, python-format
+msgid "Wie %(what)s aussehen"
+msgstr "%(what)s: nasıl görünsün"
+
+msgid "Zeigt alle der Reihe nach – hier ist nichts einzustellen."
+msgstr "Hepsini sırayla gösterir – burada ayarlanacak bir şey yok."
+
+msgid "Die weiteren Felder passen sich der Auswahl an."
+msgstr "Diğer alanlar bu seçime göre değişir."
+
+msgid "Solange unter „Von Hand“ Einträge gewählt sind, zeigt der Block genau diese."
+msgstr "«Elle» altında kayıt seçili olduğu sürece blok tam olarak onları gösterir."

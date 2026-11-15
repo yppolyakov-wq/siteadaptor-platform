@@ -38036,3 +38036,32 @@ msgstr "Hier fügen Sie Blöcke nur für diese eine Seite hinzu."
 
 msgid "Sie stehen danach wieder unter den Blöcken der Seite."
 msgstr "Sie stehen danach wieder unter den Blöcken der Seite."
+
+msgid "Auf der Website sichtbar nach «Speichern»."
+msgstr "Auf der Website sichtbar nach «Speichern»."
+
+msgid "Unterkategorien"
+msgstr "Unterkategorien"
+
+msgid "Aus einer Kategorie"
+msgstr "Aus einer Kategorie"
+
+msgid "Von Hand"
+msgstr "Von Hand"
+
+#, python-format
+msgid "Welche %(what)s gezeigt werden"
+msgstr "Welche %(what)s gezeigt werden"
+
+#, python-format
+msgid "Wie %(what)s aussehen"
+msgstr "Wie %(what)s aussehen"
+
+msgid "Zeigt alle der Reihe nach – hier ist nichts einzustellen."
+msgstr "Zeigt alle der Reihe nach – hier ist nichts einzustellen."
+
+msgid "Die weiteren Felder passen sich der Auswahl an."
+msgstr "Die weiteren Felder passen sich der Auswahl an."
+
+msgid "Solange unter „Von Hand“ Einträge gewählt sind, zeigt der Block genau diese."
+msgstr "Solange unter „Von Hand“ Einträge gewählt sind, zeigt der Block genau diese."

@@ -37949,3 +37949,32 @@ msgstr "Here you add blocks for this one page only."
 
 msgid "Sie stehen danach wieder unter den Blöcken der Seite."
 msgstr "Afterwards they are placed below the page's blocks again."
+
+msgid "Auf der Website sichtbar nach «Speichern»."
+msgstr "Visible on the website after “Save”."
+
+msgid "Unterkategorien"
+msgstr "Subcategories"
+
+msgid "Aus einer Kategorie"
+msgstr "From one category"
+
+msgid "Von Hand"
+msgstr "By hand"
+
+#, python-format
+msgid "Welche %(what)s gezeigt werden"
+msgstr "%(what)s: which ones to show"
+
+#, python-format
+msgid "Wie %(what)s aussehen"
+msgstr "%(what)s: how they look"
+
+msgid "Zeigt alle der Reihe nach – hier ist nichts einzustellen."
+msgstr "Shows all of them in order – nothing to set here."
+
+msgid "Die weiteren Felder passen sich der Auswahl an."
+msgstr "The other fields follow this choice."
+
+msgid "Solange unter „Von Hand“ Einträge gewählt sind, zeigt der Block genau diese."
+msgstr "As long as entries are chosen under “By hand”, the block shows exactly those."
