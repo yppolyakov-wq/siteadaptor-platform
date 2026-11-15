@@ -55,6 +55,26 @@ def _raw(request, banner=None) -> dict:
 def _form(request, banner, values, error=""):
     from apps.tenants import menu
 
+    place_kinds = banners.place_kinds()
+    kind = request.GET.get("art") or ""
+    if kind not in {k["key"] for k in place_kinds}:
+        kind = ""
+    checked = request.POST.getlist("b_show_add") if request.method == "POST" else []
+    query = request.GET.get("wo") or ""
+    if kind or query:
+        groups = banners.place_search(query, exclude=banner.show_on if banner else (), kind=kind)
+    elif checked:
+        # после ошибки отмеченные страницы остаются в форме отмеченными (R4)
+        labels = banners.place_labels(checked)
+        groups = [
+            {
+                "label": _("Ausgewählt"),
+                "items": [{"value": v, "label": labels[v]} for v in checked if v in labels],
+            }
+        ]
+    else:
+        groups = []
+
     return render(
         request,
         "tenant/banner_form.html",
@@ -69,11 +89,15 @@ def _form(request, banner, values, error=""):
             "show_on": banners.show_on_rows(request.tenant, banner) if banner else [],
             # R1: поиск страниц (GET `wo`) — по всем записям, выбранные не предлагаются
             # R4: после ошибки отмеченные страницы остаются отмеченными
-            "show_checked": request.POST.getlist("b_show_add") if request.method == "POST" else [],
+            "show_checked": checked,
             "show_query": (request.GET.get("wo") or "").strip()[:80],
-            "show_groups": banners.place_search(
-                request.GET.get("wo") or "", exclude=banner.show_on if banner else ()
-            ),
+            # FB-30.7: «＋ Ort hinzufügen» — сначала вид страницы (`art`), потом список
+            # этого вида; поиск без вида ищет по всем
+            "place_kinds": place_kinds,
+            "place_kind": kind,
+            "show_groups": groups,
+            "home_on": banners.on_home(request.tenant, banner) if banner else False,
+            "status": banners.status(request.tenant, banner) if banner else [],
         },
     )
 
@@ -120,10 +144,16 @@ def _save(request, banner):
                 keep=request.POST.getlist("b_show_keep"),
                 add=request.POST.getlist("b_show_add"),
             )
+        if request.POST.get("b_home_present"):
+            # FB-30.7: «Startseite» — выбор главной пишется сразу (решение владельца)
+            banners.set_home(request.tenant, banner, bool(request.POST.get("b_home")))
     except ValueError as exc:
         error = (
             _("Bitte ein gültiges Datum eingeben.")
             if str(exc) == "date"
+            else _("Auf der Startseite sind schon %(n)s Banner – erst einen dort abwählen.")
+            % {"n": banners.MAX_SLIDES}
+            if str(exc) == "full"
             else _("Ein Banner braucht ein Foto, eine Überschrift oder einen Text.")
         )
         return _form(request, banner, _typed(raw), error)

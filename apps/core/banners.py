@@ -188,6 +188,62 @@ def _picks(config: dict):
                 yield host, item["data"]
 
 
+def set_home(tenant, banner, on: bool) -> bool:
+    """FB-30.7: показывать ли баннер в приветственном баннере главной — единственный
+    писатель выбора главной ВНЕ экрана «Seitenaufbau». Под блокировкой строки бизнеса;
+    другие выбранные баннеры, их порядок и настройки слайдера не трогаются. Открытый
+    черновик главной увидит изменение как конфликт при «Speichern» (не перезапишет молча).
+    Вернуть: изменилось ли."""
+    from django.db import transaction
+
+    from apps.tenants.models import Tenant
+
+    key = str(banner.pk)
+    with transaction.atomic():
+        fresh = Tenant.objects.select_for_update().filter(pk=getattr(tenant, "pk", None)).first()
+        if fresh is None:
+            return False
+        config = dict(fresh.site_config or {})
+        hero = dict(config.get("hero_banners") or {})
+        pick = clean_pick(hero.get("pick"))
+        if on and key not in pick:
+            if len(pick) >= MAX_SLIDES:
+                raise ValueError("full")
+            pick.append(key)
+        elif not on and key in pick:
+            pick.remove(key)
+        else:
+            return False
+        hero["pick"] = pick
+        config["hero_banners"] = hero
+        fresh.site_config = config
+        fresh.save(update_fields=["site_config"])
+        tenant.site_config = config
+    return True
+
+
+def on_home(tenant, banner) -> bool:
+    hero = (getattr(tenant, "site_config", None) or {}).get("hero_banners") or {}
+    return str(banner.pk) in clean_pick(hero.get("pick"))
+
+
+def status(tenant, banner) -> list[str]:
+    """FB-30.7: строка состояния формы — где баннер стоит и показывается ли сегодня."""
+    from django.utils.translation import gettext as _
+
+    out = []
+    if on_home(tenant, banner):
+        out.append(_("auf der Startseite"))
+    if banner.show_on:
+        out.append(_("auf %(n)s Seiten") % {"n": len(banner.show_on)})
+    today = timezone.localdate()
+    if not banner.is_active:
+        out.append(_("ausgeschaltet"))
+    elif (banner.starts and banner.starts > today) or (banner.ends and banner.ends < today):
+        out.append(_("außerhalb des Zeitraums"))
+    return out
+
+
 def places(tenant, banner) -> list[str]:
     """Где баннер выбран: коды мест («home», хост страницы) без повторов."""
     key = str(banner.pk)
@@ -733,15 +789,34 @@ def place_exists(value) -> bool:
     return _place_ok(value) and value in place_labels([value])
 
 
-def place_search(query: str = "", exclude=()) -> list[dict]:
+def place_kinds() -> list[dict]:
+    """FB-30.7: шаг 1 «＋ Ort hinzufügen» — виды страниц, у которых есть что выбрать."""
+    from django.db import DatabaseError
+
+    out = []
+    for kind, (base, _field, group) in _place_sources().items():
+        try:
+            if not base.exists():
+                continue
+        except DatabaseError:  # модуль без таблиц в этой схеме — вида нет
+            logging.getLogger(__name__).exception("banner places: kind %s failed", kind)
+            continue
+        out.append({"key": kind, "label": str(group)})
+    return out
+
+
+def place_search(query: str = "", exclude=(), kind: str = "") -> list[dict]:
     """Страницы для «Seite hinzufügen»: [{label, items: [{value, label}]}]. С запросом —
-    поиск по названию во всех записях вида; без запроса — начало списка."""
+    поиск по названию во всех записях вида; без запроса — начало списка. `kind` —
+    только этот вид (FB-30.7: сначала выбирают вид страницы)."""
     from django.db import DatabaseError
 
     query = (query or "").strip()[:80].lower()
     skip = set(exclude or ())
     groups = []
-    for kind, (base, field, group) in _place_sources().items():
+    for name, (base, field, group) in _place_sources().items():
+        if kind and name != kind:
+            continue
         items = []
         try:
             rows = base.order_by("pk")
@@ -756,7 +831,7 @@ def place_search(query: str = "", exclude=()) -> list[dict]:
             else:
                 rows = rows[: PLACE_SEARCH_LIMIT * 2]
             for obj in rows:
-                value = f"{kind}:{getattr(obj, field)}"
+                value = f"{name}:{getattr(obj, field)}"
                 label = _place_label(obj)
                 if value in skip or (query and query not in label.lower()):
                     continue
@@ -764,7 +839,7 @@ def place_search(query: str = "", exclude=()) -> list[dict]:
                 if len(items) >= PLACE_SEARCH_LIMIT:
                     break
         except DatabaseError:
-            logging.getLogger(__name__).exception("banner places: search failed for %s", kind)
+            logging.getLogger(__name__).exception("banner places: search failed for %s", name)
         if items:
             groups.append({"label": str(group), "items": items})
     return groups

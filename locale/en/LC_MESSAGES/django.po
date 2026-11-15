@@ -38015,3 +38015,50 @@ msgstr "Pickup point without a name."
 
 msgid "Zwei Gewichtsstufen mit derselben Grenze."
 msgstr "Two weight ranges with the same limit."
+
+msgid "1. Welche Art von Seite"
+msgstr "1. What kind of page"
+
+msgid "2. Welche genau"
+msgstr "2. Which one exactly"
+
+msgid "Ankreuzen und speichern."
+msgstr "Tick and save."
+
+#, python-format
+msgid "Auf der Startseite sind schon %(n)s Banner – erst einen dort abwählen."
+msgstr "The home page already has %(n)s banners – remove one there first."
+
+msgid "Ausgewählt"
+msgstr "Selected"
+
+msgid "Name suchen"
+msgstr "Search by name"
+
+msgid "Ort hinzufügen"
+msgstr "Add place"
+
+msgid "So sieht er aus"
+msgstr "This is how it looks"
+
+msgid "Startseite (Willkommensbanner)"
+msgstr "Home page (welcome banner)"
+
+msgid "Vorschau des gespeicherten Banners."
+msgstr "Preview of the saved banner."
+
+msgid "Welche Art von Seite"
+msgstr "What kind of page"
+
+#, python-format
+msgid "auf %(n)s Seiten"
+msgstr "on %(n)s pages"
+
+msgid "auf der Startseite"
+msgstr "on the home page"
+
+msgid "außerhalb des Zeitraums"
+msgstr "outside its date range"
+
+msgid "oder nach Namen suchen"
+msgstr "or search by name"

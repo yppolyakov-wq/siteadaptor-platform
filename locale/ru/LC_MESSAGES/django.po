@@ -38354,3 +38354,50 @@ msgstr "Пункт самовывоза без названия."
 
 msgid "Zwei Gewichtsstufen mit derselben Grenze."
 msgstr "Два диапазона веса с одной и той же границей."
+
+msgid "1. Welche Art von Seite"
+msgstr "1. Какая страница"
+
+msgid "2. Welche genau"
+msgstr "2. Какая именно"
+
+msgid "Ankreuzen und speichern."
+msgstr "Отметьте и сохраните."
+
+#, python-format
+msgid "Auf der Startseite sind schon %(n)s Banner – erst einen dort abwählen."
+msgstr "На главной уже %(n)s баннеров — сначала уберите там один."
+
+msgid "Ausgewählt"
+msgstr "Выбрано"
+
+msgid "Name suchen"
+msgstr "Поиск по названию"
+
+msgid "Ort hinzufügen"
+msgstr "Добавить место"
+
+msgid "So sieht er aus"
+msgstr "Так выглядит"
+
+msgid "Startseite (Willkommensbanner)"
+msgstr "Главная (приветственный баннер)"
+
+msgid "Vorschau des gespeicherten Banners."
+msgstr "Предпросмотр сохранённого баннера."
+
+msgid "Welche Art von Seite"
+msgstr "Какая страница"
+
+#, python-format
+msgid "auf %(n)s Seiten"
+msgstr "на страницах: %(n)s"
+
+msgid "auf der Startseite"
+msgstr "на главной"
+
+msgid "außerhalb des Zeitraums"
+msgstr "вне срока показа"
+
+msgid "oder nach Namen suchen"
+msgstr "или найдите по названию"

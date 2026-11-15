@@ -38102,3 +38102,50 @@ msgstr "Abholort ohne Namen."
 
 msgid "Zwei Gewichtsstufen mit derselben Grenze."
 msgstr "Zwei Gewichtsstufen mit derselben Grenze."
+
+msgid "1. Welche Art von Seite"
+msgstr "1. Welche Art von Seite"
+
+msgid "2. Welche genau"
+msgstr "2. Welche genau"
+
+msgid "Ankreuzen und speichern."
+msgstr "Ankreuzen und speichern."
+
+#, python-format
+msgid "Auf der Startseite sind schon %(n)s Banner – erst einen dort abwählen."
+msgstr "Auf der Startseite sind schon %(n)s Banner – erst einen dort abwählen."
+
+msgid "Ausgewählt"
+msgstr "Ausgewählt"
+
+msgid "Name suchen"
+msgstr "Name suchen"
+
+msgid "Ort hinzufügen"
+msgstr "Ort hinzufügen"
+
+msgid "So sieht er aus"
+msgstr "So sieht er aus"
+
+msgid "Startseite (Willkommensbanner)"
+msgstr "Startseite (Willkommensbanner)"
+
+msgid "Vorschau des gespeicherten Banners."
+msgstr "Vorschau des gespeicherten Banners."
+
+msgid "Welche Art von Seite"
+msgstr "Welche Art von Seite"
+
+#, python-format
+msgid "auf %(n)s Seiten"
+msgstr "auf %(n)s Seiten"
+
+msgid "auf der Startseite"
+msgstr "auf der Startseite"
+
+msgid "außerhalb des Zeitraums"
+msgstr "außerhalb des Zeitraums"
+
+msgid "oder nach Namen suchen"
+msgstr "oder nach Namen suchen"

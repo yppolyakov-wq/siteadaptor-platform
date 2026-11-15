@@ -4,14 +4,17 @@
 
 {% block dash_content %}
 {% comment %}FB-29.2 S2: форма баннера. Поля оформления и ссылки — тот же партиал, что у слайда главной (`_hero_slide_fields.html`, префикс `b_`).{% endcomment %}
-<div class="max-w-3xl">
+<div class="max-w-6xl">
   <p class="mb-2"><a href="{% url 'site-banners' %}" class="inline-flex items-center min-h-[44px] text-sm font-semibold text-indigo-700 hover:underline">← {% trans "Alle Banner" %}</a></p>
   <h1 class="ui-h1 mb-4">{% if banner %}{{ banner.title|default:_("Banner") }}{% else %}{% trans "Neuer Banner" %}{% endif %}</h1>
   {% if error %}<div role="alert" id="b-error" class="mb-3 rounded-lg bg-red-50 px-4 py-2 text-sm text-red-700">{{ error }}</div>{% endif %}
   {% if places %}<p class="mb-3 text-sm text-gray-700" data-banner-places>{% trans "Dieser Banner ist im Seitenaufbau ausgewählt." %}</p>{% endif %}
-  <form method="post" enctype="multipart/form-data" class="ui-card p-5 space-y-4" data-banner-form>
+  {% if status %}<p class="mb-3 text-sm text-gray-800" role="status" data-banner-status>{{ status|join:" · " }}</p>{% endif %}
+  {% comment %}FB-30.7 (макет 1): две колонки — слева содержимое баннера, справа как он выглядит, где показывается и когда.{% endcomment %}
+  <form method="post" enctype="multipart/form-data" class="ui-card p-5 grid gap-6 lg:grid-cols-2" data-banner-form>
     {% csrf_token %}
     <input type="hidden" name="b_present" value="1">
+    <div class="space-y-4 min-w-0" data-banner-content>
     <div>
       <span class="block text-sm font-semibold text-gray-700 mb-1">{% trans "Foto" %}</span>
       {% comment %}Общая плитка «＋ Foto» кабинета (замок test_photo_tile): выбранный файл уходит при «Speichern».{% endcomment %}
@@ -44,45 +47,70 @@
     <div class="space-y-3 border-t border-gray-200 pt-4">
       {% include "tenant/_hero_slide_fields.html" with fp="b_" %}
     </div>
+    </div>
+    <div class="space-y-4 min-w-0" data-banner-side>
+    {% if h.image or h.title %}
+    <div>
+      <span class="block text-sm font-semibold text-gray-700 mb-1">{% trans "So sieht er aus" %}</span>
+      <div class="relative flex min-h-[9rem] items-end overflow-hidden rounded-xl bg-gray-700 bg-cover bg-center p-4 text-white"{% if h.image %} style="background-image:url('{{ h.image }}')"{% endif %} data-banner-preview>
+        <div class="absolute inset-0 bg-black/40" aria-hidden="true"></div>
+        <div class="relative">
+          {% if h.title %}<p class="text-lg font-bold">{{ h.title }}</p>{% endif %}
+          {% if h.button_label %}<span class="mt-2 inline-block rounded-lg bg-white px-3 py-1 text-sm font-medium text-gray-900">{{ h.button_label }}</span>{% endif %}
+        </div>
+      </div>
+      <p class="mt-1 text-xs text-gray-700">{% trans "Vorschau des gespeicherten Banners." %}</p>
+    </div>
+    {% endif %}
     {% comment %}FB-29.2c: «Wo zeigen» — баннер сам показывается на выбранных страницах, без блока на каждой. Сентинел `b_show_present` (W0).{% endcomment %}
-    <fieldset class="space-y-2 border-t border-gray-200 pt-4" data-banner-show-on>
+    <fieldset class="space-y-2" data-banner-show-on>
       <legend class="text-sm font-semibold text-gray-900">{% trans "Wo zeigen" %}</legend>
       <input type="hidden" name="b_show_present" value="1">
+      <input type="hidden" name="b_home_present" value="1">
+      <label class="flex min-h-[44px] items-center gap-2 text-sm font-medium"><input type="checkbox" name="b_home" value="1"{% if home_on %} checked{% endif %} class="rounded border-gray-500"> {% trans "Startseite (Willkommensbanner)" %}</label>
       <p class="text-xs text-gray-700">{% trans "Der Banner erscheint auf diesen Seiten. Die Stelle auf der Seite bestimmt der Block «Banner» mit «Banner dieser Seite» im Seitenaufbau; ohne diesen Block steht der Banner an der üblichen Stelle. Mehrere Banner laufen als Slider." %} <a href="{% url 'site-schema' %}" class="font-semibold text-indigo-700 underline hover:no-underline">{% trans "Seitenaufbau öffnen" %}</a></p>
       {% for row in show_on %}
       <label class="flex min-h-[44px] items-center gap-2 text-sm"><input type="checkbox" name="b_show_keep" value="{{ row.value }}" checked class="rounded border-gray-500"> {% if row.label %}{{ row.label }}{% else %}{{ row.value }}{% endif %}{% if row.missing %} <span class="text-xs text-amber-900">({% trans "zurzeit nicht auf der Website" %})</span>{% endif %}</label>
       {% endfor %}
       {% if show_on %}<p class="text-xs text-gray-700">{% trans "Haken entfernen und speichern – die Seite zeigt den Banner nicht mehr." %}</p>{% endif %}
-      <div class="space-y-2" id="b-show-add" data-banner-show-add>
-        {% comment %}R1: поиск — отдельная GET-форма (атрибут form), сохранение баннера она не запускает. Результаты — флажками: за одно сохранение добавляется сколько угодно страниц.{% endcomment %}
-        <label for="b-show-q" class="block text-sm font-medium">{% trans "Seiten hinzufügen" %}</label>
+      <div class="space-y-2 rounded-xl border border-dashed border-indigo-400 p-3" id="b-show-add" data-banner-show-add>
+        <p class="text-sm font-semibold text-indigo-800">＋ {% trans "Ort hinzufügen" %}</p>
+        {% comment %}FB-30.7: шаг 1 — какая страница (обычные ссылки, без скриптов), шаг 2 — какая именно.{% endcomment %}
+        <p class="text-xs text-gray-700">{% trans "1. Welche Art von Seite" %}</p>
+        <div class="flex flex-wrap gap-1.5" role="group" aria-label="{% trans 'Welche Art von Seite' %}">
+          {% for k in place_kinds %}<a href="?art={{ k.key }}#b-show-add" data-banner-kind="{{ k.key }}" class="inline-flex min-h-[44px] items-center rounded-lg border px-3 text-sm font-semibold {% if k.key == place_kind %}border-2 border-indigo-700 bg-indigo-50 text-indigo-900{% else %}border-gray-400 text-gray-800 hover:bg-gray-50{% endif %}"{% if k.key == place_kind %} aria-current="true"{% endif %}>{{ k.label }}</a>{% empty %}<span class="text-sm text-gray-700">{% trans "Noch keine Seiten zum Auswählen." %}</span>{% endfor %}
+        </div>
+        <p class="text-xs text-gray-700">{% if place_kind %}{% trans "2. Welche genau" %}{% else %}{% trans "oder nach Namen suchen" %}{% endif %}</p>
         <div class="flex gap-2">
-          <input type="search" id="b-show-q" name="wo" form="b-show-search" value="{{ show_query }}" placeholder="{% trans 'Name der Kategorie, des Produkts, der Leistung oder Aktion' %}" aria-describedby="b-show-hint"{% if show_query %} autofocus{% endif %} class="ui-input w-full">
+          <input type="search" id="b-show-q" name="wo" form="b-show-search" value="{{ show_query }}" placeholder="{% trans 'Name suchen' %}" aria-label="{% trans 'Name suchen' %}" aria-describedby="b-show-hint"{% if show_query %} autofocus{% endif %} class="ui-input min-w-0 flex-1">
           <button type="submit" form="b-show-search" class="ui-btn ui-btn-secondary min-h-[44px]">{% trans "Suchen" %}</button>
         </div>
         <p id="b-show-hint" class="text-xs text-gray-700">{% trans "Suche lädt die Seite neu – ungespeicherte Änderungen am Banner vorher speichern." %}</p>
+        {% if place_kind or show_query or show_checked %}
         {% for g in show_groups %}
         <fieldset class="rounded-lg border border-gray-300 px-3 py-2">
           <legend class="px-1 text-xs font-semibold text-gray-700">{{ g.label }}</legend>
           {% for o in g.items %}<label class="flex min-h-[44px] items-center gap-2 text-sm"><input type="checkbox" name="b_show_add" value="{{ o.value }}"{% if o.value in show_checked %} checked{% endif %} class="rounded border-gray-500"> {{ o.label }}</label>{% endfor %}
         </fieldset>
         {% empty %}
-        <p class="text-sm text-gray-700" role="status">{% if show_query %}{% trans "Nichts gefunden." %}{% else %}{% trans "Noch keine Seiten zum Auswählen." %}{% endif %}</p>
+        <p class="text-sm text-gray-700" role="status">{% trans "Nichts gefunden." %}</p>
         {% endfor %}
-        {% if show_groups %}<p class="text-xs text-gray-700">{% trans "Seiten ankreuzen und speichern. Nicht dabei? Mit der Suche finden Sie jede Seite." %}</p>{% endif %}
+        {% if show_groups %}<p class="text-xs text-gray-700">{% trans "Ankreuzen und speichern." %}</p>{% endif %}
+        {% endif %}
       </div>
     </fieldset>
     <label class="flex items-center gap-2 text-sm min-h-[44px] border-t border-gray-200 pt-3">
       <input type="checkbox" name="b_is_active" {% if h.is_active %}checked{% endif %} class="rounded border-gray-500">
       {% trans "Banner ist eingeschaltet" %}
     </label>
-    <div class="flex flex-wrap gap-2">
+    </div>
+    <div class="flex flex-wrap gap-2 lg:col-span-2">
       {% if 'site-banner-new'|can_open:request %}<button class="ui-btn ui-btn-primary min-h-[44px]">{% trans "Speichern" %}</button>{% endif %}
       <a href="{% url 'site-banners' %}" class="ui-btn ui-btn-secondary min-h-[44px] inline-flex items-center">{% trans "Abbrechen" %}</a>
       {% if banner and 'site-banner-delete'|can_open:request %}<a href="{% url 'site-banner-delete' banner.pk %}" class="ml-auto inline-flex items-center min-h-[44px] text-sm text-gray-800 underline">{% trans "Löschen…" %}</a>{% endif %}
     </div>
   </form>
   {% comment %}R1: пустая GET-форма поиска страниц «Wo zeigen» — поле и кнопка привязаны к ней атрибутом form.{% endcomment %}
-  <form id="b-show-search" method="get" action="#b-show-add" hidden></form>
+  <form id="b-show-search" method="get" action="#b-show-add" hidden>{% if place_kind %}<input type="hidden" name="art" value="{{ place_kind }}">{% endif %}</form>
 </div>
 {% endblock %}

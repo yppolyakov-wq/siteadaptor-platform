@@ -38161,3 +38161,50 @@ msgstr "Adı olmayan teslim noktası."
 
 msgid "Zwei Gewichtsstufen mit derselben Grenze."
 msgstr "Aynı sınırda iki ağırlık aralığı."
+
+msgid "1. Welche Art von Seite"
+msgstr "1. Ne tür sayfa"
+
+msgid "2. Welche genau"
+msgstr "2. Tam olarak hangisi"
+
+msgid "Ankreuzen und speichern."
+msgstr "İşaretleyin ve kaydedin."
+
+#, python-format
+msgid "Auf der Startseite sind schon %(n)s Banner – erst einen dort abwählen."
+msgstr "Ana sayfada zaten %(n)s banner var – önce birini oradan kaldırın."
+
+msgid "Ausgewählt"
+msgstr "Seçili"
+
+msgid "Name suchen"
+msgstr "Ada göre ara"
+
+msgid "Ort hinzufügen"
+msgstr "Yer ekle"
+
+msgid "So sieht er aus"
+msgstr "Böyle görünür"
+
+msgid "Startseite (Willkommensbanner)"
+msgstr "Ana sayfa (karşılama bannerı)"
+
+msgid "Vorschau des gespeicherten Banners."
+msgstr "Kaydedilmiş bannerın önizlemesi."
+
+msgid "Welche Art von Seite"
+msgstr "Ne tür sayfa"
+
+#, python-format
+msgid "auf %(n)s Seiten"
+msgstr "%(n)s sayfada"
+
+msgid "auf der Startseite"
+msgstr "ana sayfada"
+
+msgid "außerhalb des Zeitraums"
+msgstr "tarih aralığı dışında"
+
+msgid "oder nach Namen suchen"
+msgstr "veya ada göre arayın"
