@@ -169,17 +169,17 @@ section{display:flex;flex-direction:column;gap:14px}
 
   <section id="m3">
     <h2>3 · Панель списка (категории, товары)</h2>
-    <p class="now">Сейчас: «Какие именно» с кнопками «По правилу / Категория», «Как» встречается дважды, «По правилу» ничего видимого не меняет.</p>
+    <p class="now">Сейчас: «Какие именно» с кнопками «По правилу / Категория». У категорий «По правилу» ничего не меняет: настроек у него нет. «Категория» на деле значит «подкатегории выбранной категории».</p>
     <div class="variants">
       <div class="variant">
         <p><span class="tag">Предлагаю.</span> Два понятных раздела и один выбор вида. Лишнее для данного списка не показывается.</p>
         <div class="screen">
           <div><b>Категории</b><div class="hint">Сейчас показывает 6 записей из 6</div></div>
-          <div class="field"><h3>Что показывать</h3>
-            <div class="seg"><span class="on">Все подряд</span><span>Только выбранные</span></div>
-            <span class="hint">«Все подряд» — все активные категории по порядку каталога. «Только выбранные» — отметьте нужные галочками.</span></div>
+          <div class="field"><h3>Какие категории показывать</h3>
+            <div class="seg"><span class="on">Все категории</span><span>Подкатегории одной</span></div>
+            <span class="hint">«Все категории» — верхний уровень каталога по порядку. «Подкатегории одной» — выберите категорию, блок покажет её подкатегории.</span></div>
           <div class="field"><span class="label">Не больше</span><div class="input num">30</div></div>
-          <div class="field"><h3>Как выглядит</h3>
+          <div class="field"><h3>Как выглядят категории</h3>
             <span class="label">Расположение</span><div class="seg"><span class="on">Сетка</span><span>Лента (листается)</span></div>
             <span class="label">Колонок</span><div class="seg num"><span>1</span><span>2</span><span class="on">3</span><span>4</span><span>5</span><span>6</span></div>
             <span class="label">Рядов</span><div class="input sel">автоматически</div></div>
@@ -189,11 +189,11 @@ section{display:flex;flex-direction:column;gap:14px}
       <div class="variant">
         <p><span class="tag">Для товаров</span> те же разделы, но «Что показывать» шире.</p>
         <div class="screen">
-          <div class="field"><h3>Что показывать</h3>
-            <div class="seg"><span class="on">По условию</span><span>Из категории</span><span>Только выбранные</span></div>
+          <div class="field"><h3>Какие товары показывать</h3>
+            <div class="seg"><span class="on">Автоматически</span><span>Из категории</span><span>Вручную</span></div>
             <div class="input sel">Новинки</div>
-            <span class="hint">По условию: новинки, со скидкой, популярные.</span></div>
-          <div class="field"><h3>Как выглядит</h3><span class="label">Расположение</span><div class="seg"><span class="on">Сетка</span><span>Лента</span></div>
+            <span class="hint">Автоматически: новинки, со скидкой, популярные. Вручную: отмечаете товары сами.</span></div>
+          <div class="field"><h3>Как выглядят товары</h3><span class="label">Расположение</span><div class="seg"><span class="on">Сетка</span><span>Лента</span></div>
             <span class="label">Вид карточки</span><div class="input sel">Как на сайте</div></div>
         </div>
       </div>
@@ -221,7 +221,7 @@ section{display:flex;flex-direction:column;gap:14px}
 
   <section id="m5">
     <h2>5 · Меню: подвал и нижняя панель</h2>
-    <p class="now">Сейчас: конструктор с перетаскиванием и вложенностью есть только у шапки.</p>
+    <p class="now">Сейчас: у шапки и нижней панели — список с перетаскиванием. У подвала — карточки колонок, где ссылку можно только выбрать или удалить: порядок не поменять, в другую колонку не перенести, не скрыть.</p>
     <div class="variants">
       <div class="variant">
         <p><span class="tag">Подвал.</span> Тот же конструктор; колонки подвала — дорожки, пункт перетаскивается между ними. Название колонки правится на месте.</p>
@@ -236,7 +236,7 @@ section{display:flex;flex-direction:column;gap:14px}
         </div>
       </div>
       <div class="variant">
-        <p><span class="tag">Нижняя панель (телефон).</span> Тот же список, без вложенности, до пяти пунктов, у каждого значок.</p>
+        <p><span class="tag">Нижняя панель (телефон).</span> Список остаётся как сейчас; добавляется вид панели на телефоне под ним.</p>
         <div class="screen">
           <div class="tabs"><span>Шапка</span><span>Подвал</span><span class="on">Нижняя панель</span></div>
           <div class="item"><span class="grip">⠿</span><span>🏠</span><span class="grow">Start</span><span>⋯</span></div>
@@ -270,7 +270,7 @@ section{display:flex;flex-direction:column;gap:14px}
 
   <section id="m7">
     <h2>7 · Способы оплаты</h2>
-    <p class="now">Сейчас: фиксированный набор переключателей.</p>
+    <p class="now">Сейчас: отдельные разделы с галочками для каждого способа; «оплата на месте» есть всегда и подписана как «наличными при самовывозе» — в том числе у записи и номеров.</p>
     <div class="variants">
       <div class="variant">
         <p><span class="tag">Предлагаю.</span> Список способов, как у доставки: добавить, назвать, включить, поменять порядок.</p>
