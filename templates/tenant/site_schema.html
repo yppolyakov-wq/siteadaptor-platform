@@ -221,17 +221,23 @@
     <div class="flex items-start justify-between gap-2">
       <div class="min-w-0">
         <h2 id="schema-panel-title" class="font-semibold text-lg break-words">{{ selected.label }}</h2>
-        {% if selected.summary %}<p class="text-xs text-gray-600 break-words">{{ selected.summary }}</p>{% endif %}
         {% if not selected.enabled and not selected.main %}<p class="text-xs text-amber-900">{% trans "Ausgeblendet" %}</p>{% endif %}
       </div>
-      {% if not selected.main and not confirm_remove %}
+      {% if not confirm_remove and not selected.main or not confirm_remove and selected.can_up or not confirm_remove and selected.can_down %}
       <details class="relative shrink-0" data-schema-more>
         <summary class="inline-flex items-center justify-center min-w-[44px] min-h-[44px] rounded-lg border border-gray-500 cursor-pointer list-none text-gray-700 hover:bg-gray-50 [&::-webkit-details-marker]:hidden" aria-label="{% blocktrans with t=selected.label %}Mehr zu „{{ t }}“{% endblocktrans %}"><span aria-hidden="true">⋯</span></summary>
         <div class="absolute right-0 z-20 mt-1 w-56 ui-card p-1 shadow-lg text-sm">
-          <form method="post">{% csrf_token %}
+          {% if not selected.main %}<form method="post">{% csrf_token %}
             {% include "tenant/_schema_keep.html" %}
             <input type="hidden" name="ref" value="{{ selected.ref }}">
             <button name="op" value="toggle" class="flex w-full items-center min-h-[44px] rounded-md px-3 text-left hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600">{% if selected.enabled %}{% trans "Ausblenden" %}{% else %}{% trans "Einblenden" %}{% endif %}</button>
+          </form>{% endif %}
+          {% comment %}FB-30.15: порядок — в меню «⋯» (в панели кнопки сняты по просьбе владельца; перетаскивание — в списке слева).{% endcomment %}
+          <form method="post">{% csrf_token %}
+            {% include "tenant/_schema_keep.html" %}
+            <input type="hidden" name="ref" value="{{ selected.ref }}">
+            {% if selected.can_up %}<button name="op" value="up" class="flex w-full items-center min-h-[44px] rounded-md px-3 text-left hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600">{% trans "Nach oben" %}</button>{% endif %}
+            {% if selected.can_down %}<button name="op" value="down" class="flex w-full items-center min-h-[44px] rounded-md px-3 text-left hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600">{% trans "Nach unten" %}</button>{% endif %}
           </form>
           {% if selected.cblock %}<a href="?seite={{ code|urlencode }}&amp;block={{ selected.ref|urlencode }}&amp;entfernen=1{{ keep_q }}#schema-panel" class="flex items-center min-h-[44px] rounded-md px-3 hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600" data-schema-remove>{% trans "Entfernen …" %}</a>{% endif %}
         </div>
@@ -282,12 +288,11 @@
     {% if selected.groups %}
     {% comment %}FB-27 R3b-2: блок «Liste» — что показать, какие именно и как. Поля только
     выбранного источника; сменили источник — после «Übernehmen» панель под него.{% endcomment %}
-    {% if selected.result %}
-    <p class="mt-4 rounded-lg px-3 py-2 text-sm {% if selected.result.shown %}bg-gray-100 text-gray-800{% else %}bg-amber-50 text-amber-900{% endif %}" id="schema-result" data-schema-result>
-      {% if selected.result.shown %}{% blocktrans count n=selected.result.shown with total=selected.result.total %}Zeigt derzeit {{ n }} Eintrag (von {{ total }}).{% plural %}Zeigt derzeit {{ n }} Einträge (von {{ total }}).{% endblocktrans %}{% else %}{% trans "Zu dieser Auswahl gibt es derzeit nichts – der Block erscheint nicht auf der Website." %}{% endif %}
-    </p>
+    {% comment %}FB-30.15: счётчик «показывает N из M» снят (владелец); остаётся только предупреждение о пустом выборе.{% endcomment %}
+    {% if selected.result and not selected.result.shown %}
+    <p class="mt-4 rounded-lg px-3 py-2 text-sm bg-amber-50 text-amber-900" id="schema-result" data-schema-result>{% trans "Zu dieser Auswahl gibt es derzeit nichts – der Block erscheint nicht auf der Website." %}</p>
     {% endif %}
-    <form method="post" class="mt-4 space-y-4 pb-24 lg:pb-0" data-schema-list{% if selected.result %} aria-describedby="schema-result"{% endif %}>
+    <form method="post" class="mt-4 space-y-4 pb-24 lg:pb-0" data-schema-list{% if selected.result and not selected.result.shown %} aria-describedby="schema-result"{% endif %}>
       {% csrf_token %}
       {% include "tenant/_schema_keep.html" %}
       <input type="hidden" name="ref" value="{{ selected.ref }}">
@@ -305,7 +310,7 @@
         {% if g.mode_hint and not g.fields %}<p class="text-xs text-gray-600" data-schema-mode-hint>{{ g.mode_hint }}</p>{% endif %}
         {% for f in g.fields %}
         <div>
-          <label {% if f.name == "out" %}id="schema-l-out-label"{% elif f.buttons %}id="schema-l-{{ f.name }}-label"{% else %}for="schema-l-{{ f.name }}"{% endif %} class="block text-sm font-semibold text-gray-700 mb-1">{{ f.label }}</label>
+          <label {% if f.name == "out" %}id="schema-l-out-label"{% elif f.name == "card" %}id="schema-l-card-label"{% elif f.buttons %}id="schema-l-{{ f.name }}-label"{% else %}for="schema-l-{{ f.name }}"{% endif %} class="block text-sm font-semibold text-gray-700 mb-1">{{ f.label }}</label>
           {% if f.buttons and f.name != "out" %}
           {% comment %}FB-29.3 (макет A): короткий выбор — кнопками (радиогруппа, работает без скриптов).{% endcomment %}
           <div class="grid grid-flow-col auto-cols-fr gap-1" role="radiogroup" aria-labelledby="schema-l-{{ f.name }}-label" data-schema-buttons="{{ f.name }}">
@@ -315,6 +320,11 @@
           {% comment %}FB-27 V2 (макет Main): вывод — кнопками; это радиогруппа, работает без скриптов.{% endcomment %}
           <div class="grid grid-flow-col auto-cols-fr gap-1" role="radiogroup" aria-labelledby="schema-l-out-label" data-schema-out>
             {% for value, label in f.options %}<label class="relative"><input type="radio" name="f_out" value="{{ value }}" class="peer sr-only"{% if value == f.value %} checked{% endif %}><span class="flex items-center justify-center min-h-[44px] rounded-lg border border-gray-500 px-1 text-center text-sm font-semibold text-gray-800 peer-checked:border-2 peer-checked:border-indigo-700 peer-checked:bg-indigo-50 peer-checked:text-indigo-900 peer-focus-visible:ring-2 peer-focus-visible:ring-indigo-600">{{ label }}</span></label>{% endfor %}
+          </div>
+          {% elif f.name == "card" %}
+          {% comment %}FB-30.15: форма карточки — плитками с мини-макетом (радиогруппа, без скриптов).{% endcomment %}
+          <div class="grid grid-cols-2 gap-1.5" role="radiogroup" aria-labelledby="schema-l-card-label" data-schema-cards>
+            {% for value, label in f.options %}<label class="relative"><input type="radio" name="f_card" value="{{ value }}" class="peer sr-only"{% if value == f.value %} checked{% endif %}><span class="flex flex-col items-start gap-1 min-h-[44px] rounded-lg border border-gray-300 p-2 text-xs text-gray-800 cursor-pointer peer-checked:border-2 peer-checked:border-indigo-700 peer-checked:bg-indigo-50 peer-checked:text-indigo-900 peer-focus-visible:ring-2 peer-focus-visible:ring-indigo-600">{% include "tenant/_cardform_thumb.html" with key=value %}<span>{{ label }}</span></span></label>{% endfor %}
           </div>
           {% elif f.kind == "select" %}
           <select id="schema-l-{{ f.name }}" name="f_{{ f.name }}" class="ui-input w-full scroll-mb-28"{% if f.hint %} aria-describedby="schema-l-{{ f.name }}-hint"{% endif %}>
@@ -334,7 +344,6 @@
       </fieldset>
       {% endfor %}
       <button name="op" value="update" class="ui-btn ui-btn-primary w-full scroll-mb-28">{% trans "Übernehmen" %}</button>
-      {% if selected.source_url %}<p class="text-sm"><a href="{{ selected.source_url }}" class="inline-flex items-center min-h-[44px] font-semibold text-indigo-700 hover:underline" data-schema-source>{{ selected.source_label }} →</a></p>{% endif %}
     </form>
     {% if selected.pick %}
     <form method="post" id="schema-pick-form">{% csrf_token %}
@@ -399,18 +408,6 @@
     {% if selected.cblock %}
     {% endif %}
     {% endif %}
-    <div class="mt-4 border-t border-gray-200 pt-3" data-schema-foot>
-      <p class="text-sm"><a href="{{ studio_url }}" class="inline-flex items-center min-h-[44px] font-semibold text-indigo-700 hover:underline">{% trans "Texte und Fotos auf der Seite bearbeiten" %} →</a></p>
-      {% if not confirm_remove %}
-      <form method="post" class="grid grid-cols-2 gap-2">
-        {% csrf_token %}
-        {% include "tenant/_schema_keep.html" %}
-        <input type="hidden" name="ref" value="{{ selected.ref }}">
-        <button name="op" value="up" class="ui-btn ui-btn-secondary justify-center"{% if not selected.can_up %} disabled{% endif %}>{% trans "Nach oben" %}</button>
-        <button name="op" value="down" class="ui-btn ui-btn-secondary justify-center"{% if not selected.can_down %} disabled{% endif %}>{% trans "Nach unten" %}</button>
-      </form>
-      {% endif %}
-    </div>
     {% elif page_row.active %}
     <h2 id="schema-panel-title" class="font-semibold text-lg">{% trans "Einstellungen der Seite" %}</h2>
     {% include "tenant/_schema_settings.html" %}

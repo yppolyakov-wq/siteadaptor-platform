@@ -167,7 +167,8 @@ def test_panel_says_how_many_entries_the_block_shows():
     ref = _list(b)
     site_schema.apply(b.tenant, "text", "update", ref=ref, fields={"source": "products"})
     html = b.get(f"?seite=text&block={ref}")
-    assert "Zeigt derzeit 2 Einträge (von 2)." in html
+    # FB-30.15 (владелец, осознанно): счётчик «zeigt N von M» в панели снят
+    assert "Zeigt derzeit" not in html
 
 
 def _panel_values(html):
@@ -229,3 +230,21 @@ def test_untouched_panel_never_changes_the_block(data):
     b.post(seite="text", op="update", ref="a1", panel_present="1", **values)
     assert "data-schema-draft" not in b.get("?seite=text"), values
     assert _data(tenant) == before
+
+
+def test_card_form_is_chosen_by_tiles_with_a_preview():
+    """FB-30.15: «Kartenform» — плитки с мини-макетом вместо выпадающего списка."""
+    b = Browser(_tenant())
+    ref = _list(b)
+    site_schema.apply(b.tenant, "text", "update", ref=ref, fields={"source": "products"})
+    html = b.get(f"?seite=text&block={ref}")
+    tiles = html.split("data-schema-cards", 1)[1].split("</div>", 1)[0]
+    assert 'name="f_card"' in tiles and 'aria-hidden="true"' in tiles
+    assert '<select id="schema-l-card"' not in html
+
+
+def test_order_moves_into_the_more_menu():
+    src = open("templates/tenant/site_schema.html").read()
+    more = src.split("data-schema-more>", 1)[1].split("</details>", 1)[0]
+    assert 'value="up"' in more and 'value="down"' in more
+    assert "data-schema-foot" not in src

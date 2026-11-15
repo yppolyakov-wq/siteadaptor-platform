@@ -36,7 +36,7 @@ def test_builtin_list_opens_the_which_and_how_panel():
     # источник закреплён ключом секции, ручного состава у встроенной строки нет
     assert 'name="f_source"' not in html and 'data-schema-which-mode="einzeln"' not in html
     assert 'name="f_limit"' in html and 'name="f_cols"' in html and 'name="f_out"' in html
-    assert "data-schema-source" in html
+    assert "data-schema-source" not in html  # FB-30.15: ссылка на источник снята (владелец)
 
 
 def test_change_goes_through_the_draft_and_reaches_the_site():

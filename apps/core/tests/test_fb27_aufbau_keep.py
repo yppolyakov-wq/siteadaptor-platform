@@ -74,7 +74,8 @@ def test_list_panel_links_to_the_source_screen():
     ref = _list(b)
     b.post(seite="text", op="update", ref=ref, panel_present="1", f_source="products")
     html = b.get(f"?seite=text&block={ref}")
-    assert "data-schema-source" in html and "/products/" in html
+    # FB-30.15 (владелец, осознанно): ссылка «… — ändern» в панели списка снята
+    assert "data-schema-source" not in html
 
 
 def test_apply_button_stays_for_no_script_and_script_only_enhances():
