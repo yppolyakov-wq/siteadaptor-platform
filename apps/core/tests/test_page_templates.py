@@ -79,13 +79,11 @@ def test_post_writes_through_the_service_and_keeps_other_keys(tenant):
     tenant.site_config = original
     tenant.save(update_fields=["site_config"])
     resp = settings_screen(
-        _req(
-            tenant, "post", {"setting": "catalog_page_style", "value": "magazin", "typ": "catalog"}
-        )
+        _req(tenant, "post", {"setting": "catalog_sort", "value": "price_asc", "typ": "catalog"})
     )
     assert resp.status_code == 302 and "seite=catalog" in resp["Location"]
     tenant.refresh_from_db()
-    assert tenant.site_config["catalog_page_style"] == "magazin"
+    assert tenant.site_config["catalog_sort"] == "price_asc"
     assert tenant.site_config["seo"] == before["seo"]
     assert tenant.site_config["board"] == before["board"]
 

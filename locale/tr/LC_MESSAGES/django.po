@@ -38406,3 +38406,60 @@ msgstr "Site menüsünü aç"
 
 msgid "Funktion"
 msgstr "İşlev"
+
+msgid "Fotokacheln oder Chips – wie bisher."
+msgstr "Fotoğraf kutucukları veya etiketler – önceki gibi."
+
+msgid "Regale"
+msgstr "Raflar"
+
+msgid "Jede Unterkategorie als Reihe mit Pfeilen."
+msgstr "Her alt kategori oklarla bir sıra olarak."
+
+msgid "Reiter"
+msgstr "Sekmeler"
+
+msgid "Unterkategorien als Reiter über den Produkten."
+msgstr "Ürünlerin üstünde sekmeler olarak alt kategoriler."
+
+msgid "Index"
+msgstr "Dizin"
+
+msgid "Verzeichnis in Spalten – für große Sortimente."
+msgstr "Sütunlarda dizin – büyük ürün yelpazeleri için."
+
+msgid "Seitenspalte"
+msgstr "Yan sütun"
+
+msgid "Kategorien und Filter links, Produkte rechts."
+msgstr "Kategoriler ve filtreler solda, ürünler sağda."
+
+msgid "Abteilungen als Kacheln, dann «Im Fokus»."
+msgstr "Bölümler kutucuk olarak, ardından «Odakta»."
+
+msgid "Foto, Name, Preis – die übliche Ansicht."
+msgstr "Fotoğraf, ad, fiyat – olağan görünüm."
+
+msgid "Schaufenster"
+msgstr "Vitrin"
+
+msgid "Erstes Produkt groß, der Rest im Raster."
+msgstr "İlk ürün büyük, kalanı ızgarada."
+
+msgid "Zwei große Karten pro Reihe mit Beschreibung."
+msgstr "Satır başına açıklamalı iki büyük kart."
+
+msgid "Mosaik"
+msgstr "Mozaik"
+
+msgid "Kacheln verschiedener Größe – für starke Fotos."
+msgstr "Farklı boyutlarda kutucuklar – güçlü fotoğraflar için."
+
+msgid "Wie Kategorien gezeigt werden"
+msgstr "Kategoriler nasıl gösterilir"
+
+msgid "Dieser Block steht immer direkt über den Produkten."
+msgstr "Bu blok her zaman doğrudan ürünlerin üstündedir."
+
+msgid "Wie Produkte gezeigt werden"
+msgstr "Ürünler nasıl gösterilir"

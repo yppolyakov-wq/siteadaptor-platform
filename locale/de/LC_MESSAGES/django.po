@@ -38347,3 +38347,60 @@ msgstr "Menü der Website öffnen"
 
 msgid "Funktion"
 msgstr "Funktion"
+
+msgid "Fotokacheln oder Chips – wie bisher."
+msgstr "Fotokacheln oder Chips – wie bisher."
+
+msgid "Regale"
+msgstr "Regale"
+
+msgid "Jede Unterkategorie als Reihe mit Pfeilen."
+msgstr "Jede Unterkategorie als Reihe mit Pfeilen."
+
+msgid "Reiter"
+msgstr "Reiter"
+
+msgid "Unterkategorien als Reiter über den Produkten."
+msgstr "Unterkategorien als Reiter über den Produkten."
+
+msgid "Index"
+msgstr "Index"
+
+msgid "Verzeichnis in Spalten – für große Sortimente."
+msgstr "Verzeichnis in Spalten – für große Sortimente."
+
+msgid "Seitenspalte"
+msgstr "Seitenspalte"
+
+msgid "Kategorien und Filter links, Produkte rechts."
+msgstr "Kategorien und Filter links, Produkte rechts."
+
+msgid "Abteilungen als Kacheln, dann «Im Fokus»."
+msgstr "Abteilungen als Kacheln, dann «Im Fokus»."
+
+msgid "Foto, Name, Preis – die übliche Ansicht."
+msgstr "Foto, Name, Preis – die übliche Ansicht."
+
+msgid "Schaufenster"
+msgstr "Schaufenster"
+
+msgid "Erstes Produkt groß, der Rest im Raster."
+msgstr "Erstes Produkt groß, der Rest im Raster."
+
+msgid "Zwei große Karten pro Reihe mit Beschreibung."
+msgstr "Zwei große Karten pro Reihe mit Beschreibung."
+
+msgid "Mosaik"
+msgstr "Mosaik"
+
+msgid "Kacheln verschiedener Größe – für starke Fotos."
+msgstr "Kacheln verschiedener Größe – für starke Fotos."
+
+msgid "Wie Kategorien gezeigt werden"
+msgstr "Wie Kategorien gezeigt werden"
+
+msgid "Dieser Block steht immer direkt über den Produkten."
+msgstr "Dieser Block steht immer direkt über den Produkten."
+
+msgid "Wie Produkte gezeigt werden"
+msgstr "Wie Produkte gezeigt werden"

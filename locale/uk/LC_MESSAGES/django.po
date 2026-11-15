@@ -38586,3 +38586,60 @@ msgstr "Відкрити меню сайту"
 
 msgid "Funktion"
 msgstr "Функція"
+
+msgid "Fotokacheln oder Chips – wie bisher."
+msgstr "Плитки з фото або мітки — як раніше."
+
+msgid "Regale"
+msgstr "Полиці"
+
+msgid "Jede Unterkategorie als Reihe mit Pfeilen."
+msgstr "Кожна підкатегорія — ряд зі стрілками."
+
+msgid "Reiter"
+msgstr "Вкладки"
+
+msgid "Unterkategorien als Reiter über den Produkten."
+msgstr "Підкатегорії вкладками над товарами."
+
+msgid "Index"
+msgstr "Покажчик"
+
+msgid "Verzeichnis in Spalten – für große Sortimente."
+msgstr "Покажчик колонками — для великого асортименту."
+
+msgid "Seitenspalte"
+msgstr "Бічна колонка"
+
+msgid "Kategorien und Filter links, Produkte rechts."
+msgstr "Категорії та фільтри ліворуч, товари праворуч."
+
+msgid "Abteilungen als Kacheln, dann «Im Fokus»."
+msgstr "Відділи плитками, потім «У фокусі»."
+
+msgid "Foto, Name, Preis – die übliche Ansicht."
+msgstr "Фото, назва, ціна — звичайний вигляд."
+
+msgid "Schaufenster"
+msgstr "Вітрина"
+
+msgid "Erstes Produkt groß, der Rest im Raster."
+msgstr "Перший товар великим, решта сіткою."
+
+msgid "Zwei große Karten pro Reihe mit Beschreibung."
+msgstr "Дві великі картки в ряд з описом."
+
+msgid "Mosaik"
+msgstr "Мозаїка"
+
+msgid "Kacheln verschiedener Größe – für starke Fotos."
+msgstr "Плитки різного розміру — для сильних фото."
+
+msgid "Wie Kategorien gezeigt werden"
+msgstr "Як показувати категорії"
+
+msgid "Dieser Block steht immer direkt über den Produkten."
+msgstr "Цей блок завжди стоїть просто над товарами."
+
+msgid "Wie Produkte gezeigt werden"
+msgstr "Як показувати товари"

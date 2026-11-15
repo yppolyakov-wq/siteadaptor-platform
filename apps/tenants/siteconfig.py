@@ -1321,7 +1321,7 @@ def is_main_marker(item) -> bool:
 
 # FB-31 P0: поля маркера ★ — вид основного списка, который раньше задавал шаблон страницы
 # (`catalog_page_style`): «Darstellung» элементов, полка «Im Fokus» и подсказка сетки LAY-5.
-MAIN_MARKER_STYLES = ("schaufenster", "magazin", "mosaik", "preisliste")
+MAIN_MARKER_STYLES = ("raster", "schaufenster", "magazin", "mosaik", "preisliste")
 MAIN_MARKER_GRIDS = ("cols2", "cols4", "cols5", "cols6", "preisliste")
 
 
@@ -1342,6 +1342,8 @@ def clean_main_marker(item) -> dict:
 #: FB-30.16: навигационные виды блока «Kategorien» на странице каталога (у списка категорий
 #: главной их нет); единый реестр — его читает и `apps/catalog/catalog_parts`.
 CATALOG_CATEGORY_VIEWS = ("regale", "tabs", "index", "side", "wegweiser")
+#: «Automatisch» — владелец явно выбрал обычный вид (плитки/чипы) поверх кода шаблона.
+CATALOG_CATEGORY_AUTO = "auto"
 
 
 def page_builtin_keys(host) -> frozenset:
@@ -1368,9 +1370,16 @@ def main_list_sequence(host, blocks) -> list:
     «Position» основного списка всегда видна владельцу, даже пока маркер не хранится.
     """
     blocks = list(blocks or [])
-    if not has_main_list(host) or any(is_main_marker(b) for b in blocks):
-        return blocks
-    return [{"key": MAIN_LIST_KEY}, *blocks]
+    if has_main_list(host) and not any(is_main_marker(b) for b in blocks):
+        blocks = [{"key": MAIN_LIST_KEY}, *blocks]
+    # FB-30.16 R4: на странице каталога блок «Kategorien» стоит всегда и прямо над ★ — так
+    # он и рисуется на витрине (навигация категорий прикреплена к списку товаров).
+    if host == "catalog":  # страницы категорий — шаг R5
+        row = next((b for b in blocks if b.get("key") == "categories" and not b.get("id")), None)
+        blocks = [b for b in blocks if b is not row]
+        at = next(i for i, b in enumerate(blocks) if is_main_marker(b))
+        blocks.insert(at, row or {"key": "categories", "enabled": True})
+    return blocks
 
 
 def category_host(slug) -> str:
@@ -1451,9 +1460,15 @@ def normalize_page_blocks(raw) -> dict:
                 if bkey not in builtin_seen:
                     builtin_seen.add(bkey)
                     entry = _section_entry(bkey, bool(item.get("enabled", True)), item)
-                    if bkey == "categories" and item.get("style") in CATALOG_CATEGORY_VIEWS:
+                    if bkey == "categories" and item.get("style") in (
+                        *CATALOG_CATEGORY_VIEWS,
+                        CATALOG_CATEGORY_AUTO,
+                    ):
                         entry["style"] = item["style"]
-                    blocks.append(entry)
+                    # FB-30.16 R4: строка без выбранного вида ничего не хранит (её
+                    # всегда показывает схема) — не пишем, конфиги не разрастаются
+                    if entry.get("style"):
+                        blocks.append(entry)
                 continue
             if sum(1 for b in blocks if b.get("id")) >= _MAX_CBLOCKS:
                 continue  # кап, но маркер дальше по списку ещё ищем

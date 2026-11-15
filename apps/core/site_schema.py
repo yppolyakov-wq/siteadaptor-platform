@@ -950,10 +950,16 @@ def blocks_for(
                 # FB-29.2: место показа баннеров — выбор из библиотеки и настройки слайдера
                 "banner_choice": _banner_choice(config, item) if banner_place(item) else None,
                 "builtin_data": builtin_panel_data(item)
-                if not item.get("id") and not main and key in siteconfig.BUILTIN_LIST_SOURCES
+                if not item.get("id")
+                and not main
+                and key in siteconfig.BUILTIN_LIST_SOURCES
+                and key not in siteconfig.page_builtin_keys(host)
                 else None,
             }
         )
+        # FB-30.16 R4: блоки каталога — вид категорий и вид товаров ★ (стратегия FB-31)
+        if host == "catalog" and (main or key == "categories"):
+            out[-1].update(_catalog_view_panel(config, host, item, main))
     if summaries:  # строке списка страниц нужен только счёт блоков — без запроса
         _textpage_summaries(out, items)
     for b in out:
@@ -1459,6 +1465,67 @@ def lift_hero_choice(config: dict, items: list[dict]) -> None:
                 config.pop("hero_banners", None)
 
 
+def _catalog_code(config: dict, host: str) -> str:
+    """Прежний код шаблона страницы каталога/категории (то, что вид блоков перекрывает)."""
+    from apps.catalog import category_styles
+    from apps.tenants import siteconfig
+
+    if host == "catalog":
+        return category_styles.root_page_style(config.get("catalog_page_style", ""))
+    slug = host.removeprefix(siteconfig.CATEGORY_HOST_PREFIX)
+    default = (config.get("site_defaults") or {}).get("category_page_style", "")
+    try:
+        from apps.catalog.models import Category
+
+        category = Category.objects.filter(slug=slug).first()
+    except Exception:  # noqa: BLE001 — экран не должен падать без схемы бизнеса
+        category = None
+    return category_styles.page_style(category, default) if category else ""
+
+
+#: FB-30.16 R4: подписи видов блоков каталога (плитки панели; миниатюра — по коду шаблона).
+CATEGORY_VIEW_CHOICES = (
+    ("auto", _("Automatisch"), _("Fotokacheln oder Chips – wie bisher."), ""),
+    ("regale", _("Regale"), _("Jede Unterkategorie als Reihe mit Pfeilen."), "regale"),
+    ("tabs", _("Reiter"), _("Unterkategorien als Reiter über den Produkten."), "tabs"),
+    ("index", _("Index"), _("Verzeichnis in Spalten – für große Sortimente."), "kompakt"),
+    ("side", _("Seitenspalte"), _("Kategorien und Filter links, Produkte rechts."), "navigator"),
+    ("wegweiser", _("Wegweiser"), _("Abteilungen als Kacheln, dann «Im Fokus»."), "wegweiser"),
+)
+MAIN_VIEW_LABELS = (
+    ("raster", _("Raster"), _("Foto, Name, Preis – die übliche Ansicht."), ""),
+    (
+        "schaufenster",
+        _("Schaufenster"),
+        _("Erstes Produkt groß, der Rest im Raster."),
+        "schaufenster",
+    ),
+    ("magazin", _("Magazin"), _("Zwei große Karten pro Reihe mit Beschreibung."), "magazin"),
+    ("mosaik", _("Mosaik"), _("Kacheln verschiedener Größe – für starke Fotos."), "mosaik"),
+)
+
+
+def _catalog_view_panel(config: dict, host: str, item: dict, main: bool) -> dict:
+    """Панель вида блока каталога: текущий вид (сохранённый либо из прежнего шаблона)."""
+    from apps.catalog import catalog_parts
+
+    parts = catalog_parts.effective(config, host, code=_catalog_code(config, host))
+    if main:
+        value = parts.products if parts.products in MAIN_VIEW_CHOICES else "raster"
+        return {
+            "label": f"★ {_('Produkte')}",
+            "mainview": {"value": value, "choices": MAIN_VIEW_LABELS},
+        }
+    value = parts.categories or "auto"
+    current = next((lab for v, lab, _h, _t in CATEGORY_VIEW_CHOICES if v == value), "")
+    return {
+        "pinned": True,
+        "widths": [],  # прикреплён к ★ — ширины и ряда нет
+        "summary": str(current),
+        "catview": {"value": value, "choices": CATEGORY_VIEW_CHOICES},
+    }
+
+
 def load_items(config: dict, home: bool, host: str) -> list[dict]:
     """Копия блоков страницы в том виде, в котором их правит схема."""
     from apps.tenants import siteconfig
@@ -1531,13 +1598,48 @@ def mutate(
     main = siteconfig.is_main_marker(item)
     # FB-31 P0 (ревью): встроенная строка-список вне главной («Kategorien» каталога) пока
     # только двигается и скрывается — ширину/ряд/поля витрина ей ещё не рисует (R4).
-    if (
+    pinned = (
         not item.get("id")
         and not main
         and item.get("key") in siteconfig.page_builtin_keys(code.split("@")[-1])
-        and op in ("width", "beside", "own_row", "newline", "update")
+    )
+    # FB-30.16 R4: блок «Kategorien» каталога прикреплён к ★ (стоит прямо над ним, как на
+    # витрине) — его нельзя двигать, скрывать, менять ширину; меняется только вид.
+    if pinned and op in (
+        "width",
+        "beside",
+        "own_row",
+        "newline",
+        "update",
+        "toggle",
+        "up",
+        "down",
+        "move",
     ):
         raise SchemaError("fixed")
+    if op == "catview":
+        allowed = (*siteconfig.CATALOG_CATEGORY_VIEWS, siteconfig.CATALOG_CATEGORY_AUTO)
+        if not pinned or item.get("key") != "categories" or value not in allowed:
+            raise SchemaError("op")
+        item["style"] = value
+        return ref
+    if op == "mainview":
+        from apps.catalog import catalog_parts
+
+        if not main or not siteconfig.page_builtin_keys(code.split("@")[-1]):
+            raise SchemaError("op")
+        if value not in ("raster", *MAIN_VIEW_CHOICES):
+            raise SchemaError("op")
+        for k in ("style", "grid"):
+            item.pop(k, None)
+        if value != "raster":
+            item["style"] = value
+            grid = catalog_parts.from_code(value).grid
+            if grid:
+                item["grid"] = grid
+        else:
+            item["style"] = "raster"  # явная сетка — поверх кода шаблона
+        return ref
     if op == "toggle":
         if main:
             raise SchemaError("main")
@@ -1899,11 +2001,17 @@ def setting_codes(tenant, code: str) -> list[str]:
     out: list[str] = []
     if is_object_code(code):
         return out  # настройки типа страницы — у общей строки, не у объекта
+    replaced = REPLACED_BY_BLOCKS.get(code, frozenset())
     for type_code in setting_types(tenant, code):
         for s in page_settings.cabinet_settings(type_code):
-            if s.code not in out and page_settings.applies(tenant, s):
+            if s.code not in out and s.code not in replaced and page_settings.applies(tenant, s):
                 out.append(s.code)
     return out
+
+
+#: FB-30.16 R4 (стратегия FB-31): настройки, которые на строке страницы заменили блоки —
+#: шаблон страницы каталога разложен на вид «Kategorien» и вид ★ «Produkte».
+REPLACED_BY_BLOCKS = {"catalog": frozenset({"catalog_page_style"})}
 
 
 #: Строка «Einstellungen der Seite» — у страниц без основного списка (главная, детали,
@@ -1924,7 +2032,8 @@ def settings_groups(tenant, code: str, config: dict) -> list[dict]:
         found = page_settings.schema(tenant, (type_code,), config=config)
         if not found:
             continue
-        rows = [s for s in found[0].settings if s.code not in seen]
+        replaced = REPLACED_BY_BLOCKS.get(code, frozenset())
+        rows = [s for s in found[0].settings if s.code not in seen and s.code not in replaced]
         seen.update(s.code for s in rows)
         if rows:
             out.append(
@@ -1943,6 +2052,9 @@ def _current_label(state) -> str:
         return next((str(c.label) for c in state.choices if c.value == want), "")
     return next((str(c.label) for c in state.choices if c.value == state.value), str(state.value))
 
+
+#: FB-30.16 R4: «Darstellung» блока товаров ★ каталога (кроме сетки «Raster»).
+MAIN_VIEW_CHOICES = ("schaufenster", "magazin", "mosaik")
 
 _PICK_OPS = frozenset({"pick_add", "pick_remove", "pick_up", "pick_down", "pick_clear"})
 

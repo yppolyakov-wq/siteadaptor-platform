@@ -27,8 +27,10 @@ def test_other_hosts_still_drop_it_and_duplicates_collapse():
 
 
 def test_junk_in_the_row_is_cleaned_like_on_the_home_page():
-    rows = _norm("catalog", [{**CAT, "style": "<script>", "bogus": 1}, {"key": "main"}])
-    assert "style" not in rows[0] and "bogus" not in rows[0]
+    rows = _norm("catalog", [{**CAT, "bogus": 1}, {"key": "main"}])
+    assert "bogus" not in rows[0]
+    # R4: строка без вида ничего не хранит — не пишется
+    assert _norm("catalog", [{**CAT, "style": "<script>"}, {"key": "x"}]) == []
 
 
 def test_main_marker_keeps_its_view_fields_even_in_first_place():
@@ -67,8 +69,7 @@ def test_structure_screen_and_studio_keep_the_rows(settings):
 def test_catalog_category_views_survive_normalize_only_on_catalog_hosts():
     rows = _norm("catalog", [{"key": "categories", "style": "regale"}, {"key": "main"}])
     assert rows[0]["style"] == "regale"
-    rows = _norm("catalog", [{"key": "categories", "style": "nonsense"}, {"key": "main"}])
-    assert "style" not in rows[0]
+    assert _norm("catalog", [{"key": "categories", "style": "nonsense"}, {"key": "main"}]) == []
 
 
 def test_builtin_row_on_the_catalog_refuses_ops_the_shop_does_not_draw_yet():

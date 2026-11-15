@@ -178,6 +178,8 @@ def test_every_page_setting_is_reachable_from_seitenaufbau(business_type):
     reachable = set()
     for row in rows:
         reachable.update(site_schema.setting_codes(tenant, row.code))
+    # FB-30.16 R4 (осознанно): шаблон каталога правится блоками «Kategorien» и ★ «Produkte»
+    reachable.update(*site_schema.REPLACED_BY_BLOCKS.values())
     assert wanted and wanted <= reachable, sorted(wanted - reachable)
 
 

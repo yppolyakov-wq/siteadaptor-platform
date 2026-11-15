@@ -38260,3 +38260,60 @@ msgstr "Open the site menu"
 
 msgid "Funktion"
 msgstr "Function"
+
+msgid "Fotokacheln oder Chips – wie bisher."
+msgstr "Photo tiles or chips – as before."
+
+msgid "Regale"
+msgstr "Shelves"
+
+msgid "Jede Unterkategorie als Reihe mit Pfeilen."
+msgstr "Each subcategory as a row with arrows."
+
+msgid "Reiter"
+msgstr "Tabs"
+
+msgid "Unterkategorien als Reiter über den Produkten."
+msgstr "Subcategories as tabs above the products."
+
+msgid "Index"
+msgstr "Index"
+
+msgid "Verzeichnis in Spalten – für große Sortimente."
+msgstr "Directory in columns – for large ranges."
+
+msgid "Seitenspalte"
+msgstr "Side column"
+
+msgid "Kategorien und Filter links, Produkte rechts."
+msgstr "Categories and filters on the left, products on the right."
+
+msgid "Abteilungen als Kacheln, dann «Im Fokus»."
+msgstr "Departments as tiles, then «In focus»."
+
+msgid "Foto, Name, Preis – die übliche Ansicht."
+msgstr "Photo, name, price – the usual view."
+
+msgid "Schaufenster"
+msgstr "Showcase"
+
+msgid "Erstes Produkt groß, der Rest im Raster."
+msgstr "First product large, the rest in the grid."
+
+msgid "Zwei große Karten pro Reihe mit Beschreibung."
+msgstr "Two large cards per row with description."
+
+msgid "Mosaik"
+msgstr "Mosaic"
+
+msgid "Kacheln verschiedener Größe – für starke Fotos."
+msgstr "Tiles of different sizes – for strong photos."
+
+msgid "Wie Kategorien gezeigt werden"
+msgstr "How categories are shown"
+
+msgid "Dieser Block steht immer direkt über den Produkten."
+msgstr "This block always sits directly above the products."
+
+msgid "Wie Produkte gezeigt werden"
+msgstr "How products are shown"

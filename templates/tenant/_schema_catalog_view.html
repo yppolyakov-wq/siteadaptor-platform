@@ -1,0 +1,22 @@
+{% load i18n %}
+{% comment %}FB-30.16 R4 (стратегия FB-31): вид блока каталога — плитками с миниатюрой; правка идёт в черновик, как остальные (без JS — кнопка «Übernehmen»). Вход: view ({value, choices}), op, ref, title.{% endcomment %}
+<form method="post" class="mt-4 space-y-2" data-schema-setting="{{ op }}">
+  {% csrf_token %}
+  {% include "tenant/_schema_keep.html" %}
+  <input type="hidden" name="ref" value="{{ ref }}">
+  <input type="hidden" name="op" value="{{ op }}">
+  <fieldset>
+    <legend class="text-sm font-bold text-gray-900 mb-2">{{ title }}</legend>
+    <div class="grid grid-cols-2 gap-2" data-schema-view-tiles="{{ op }}">
+      {% for value, label, hint, thumb in view.choices %}
+        <label class="flex flex-col gap-1 rounded-xl border p-2 min-h-[44px] text-xs cursor-pointer border-gray-200 has-[:checked]:border-2 has-[:checked]:border-indigo-700 has-[:checked]:bg-indigo-50 has-[:focus-visible]:outline has-[:focus-visible]:outline-[3px] has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-indigo-600">
+          <input type="radio" name="value" value="{{ value }}" class="sr-only" aria-describedby="vh-{{ op }}-{{ forloop.counter }}"{% if value == view.value %} checked{% endif %}>
+          {% include "tenant/_pagelayout_thumb.html" with key=thumb %}
+          <span class="font-semibold text-gray-900">{{ label }}</span>
+          <span id="vh-{{ op }}-{{ forloop.counter }}" class="text-gray-600">{{ hint }}</span>
+        </label>
+      {% endfor %}
+    </div>
+  </fieldset>
+  <button type="submit" data-schema-apply class="ui-btn ui-btn-secondary w-full">{% trans "Übernehmen" %}<span class="sr-only">: {{ title }}</span></button>
+</form>

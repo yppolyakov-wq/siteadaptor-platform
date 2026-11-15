@@ -19,6 +19,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, replace
 
+from apps.tenants.siteconfig import CATALOG_CATEGORY_AUTO as CATEGORY_AUTO
 from apps.tenants.siteconfig import CATALOG_CATEGORY_VIEWS as CATEGORY_VIEWS
 
 #: «Darstellung» блока товаров (★), которую раньше задавал шаблон.
@@ -121,6 +122,8 @@ def from_rows(rows) -> Parts:
             parts = replace(parts, head="titelbild")
         elif key == "categories" and row.get("style") in CATEGORY_VIEWS:
             parts = replace(parts, categories=row["style"])
+        elif key == "categories" and row.get("style") == CATEGORY_AUTO:
+            parts = replace(parts, categories="")
         elif key == "combos":
             parts = replace(parts, sets="below" if seen_main else "above")
         elif key == "main":
@@ -140,8 +143,9 @@ def has_parts(rows) -> bool:
     for row in rows if isinstance(rows, list) else []:
         if not isinstance(row, dict):
             continue
-        if row.get("key") == "categories" and row.get("style") in CATEGORY_VIEWS:
-            return True
+        if row.get("key") == "categories" and row.get("enabled") is not False:
+            if row.get("style") in (*CATEGORY_VIEWS, CATEGORY_AUTO):
+                return True
         if row.get("key") == "main" and len(row) > 1:
             return True
     return False
@@ -160,8 +164,10 @@ def effective(cfg, host: str, *, code: str = "") -> Parts:
         (r for r in rows if isinstance(r, dict) and r.get("key") == "main" and len(r) > 1), None
     )
     parts = base
-    if stored.categories:
-        parts = replace(parts, categories=stored.categories)
+    cat_row = next((r for r in rows if isinstance(r, dict) and r.get("key") == "categories"), None)
+    if cat_row and cat_row.get("enabled") is not False:
+        if cat_row.get("style") in (*CATEGORY_VIEWS, CATEGORY_AUTO):
+            parts = replace(parts, categories=stored.categories)
     if marker is not None:
         if "style" in marker or "grid" in marker:
             parts = replace(parts, products=stored.products, grid=stored.grid)

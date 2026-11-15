@@ -59,11 +59,14 @@ def _cabinet_form(tenant, view, typ, code):
 
 
 def test_cabinet_has_the_root_template_tiles_without_preisliste():
+    """FB-30.16 R4 (осознанно): плиток шаблона корня в кабинете больше нет — его заменили
+    блоки «Kategorien» и ★ «Produkte» в «Seitenaufbau»; запись ключа остаётся (Студия,
+    готовые дизайны)."""
+    from apps.core import site_schema
+
     tenant = TenantFactory(schema_name="public", slug="dl21s", name="DL21S")
-    form = _cabinet_form(tenant, "page_templates_website", "catalog", "catalog_page_style")
-    for code, _l, _h in category_styles.root_styles():
-        assert f'name="value" value="{code}"' in form, code
-    assert 'value="preisliste"' not in form  # прайс-вид — ось сетки, не шаблон
+    assert "catalog_page_style" not in site_schema.setting_codes(tenant, "catalog")
+    assert category_styles.root_styles()  # реестр кодов цел
 
 
 def test_root_template_saves_and_unsets():
