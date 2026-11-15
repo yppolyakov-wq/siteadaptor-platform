@@ -1164,6 +1164,9 @@ def _clean_cblock(item: dict) -> dict:
 # DACH-риск, решение uc2-3-плана).
 PAGE_BLOCK_HOSTS = (
     "catalog",
+    # FB-30.16 R5 (стратегия FB-31): «Alle Kategorien» — общие блоки страниц категорий без
+    # своей схемы; пока не сохранены, действуют блоки каталога (копия при первом сохранении)
+    "category",
     "events",
     "stay_rooms",
     "services",
@@ -1294,6 +1297,7 @@ def is_page_block_host(host) -> bool:
 # раньше (все блоки под списком), поэтому в этом положении он не хранится.
 MAIN_LIST_HOSTS = (
     "catalog",
+    "category",
     "promos",
     "services",
     "stay_rooms",
@@ -1346,13 +1350,13 @@ CATALOG_CATEGORY_VIEWS = ("regale", "tabs", "index", "side", "wegweiser")
 CATALOG_CATEGORY_AUTO = "auto"
 
 
-def drop_catalog_views(cfg: dict) -> dict:
+def drop_catalog_views(cfg: dict, host: str = "catalog") -> dict:
     """FB-30.16 (ревью R4): владелец выбрал шаблон каталога в Студии/«Seitenvorlage» — это
     его последнее решение: виды блоков каталога, выбранные раньше в «Seitenaufbau»
     (вид «Kategorien», вид/сетка ★), снимаются, чтобы шаблон снова действовал. Копия."""
     cfg = dict(cfg or {})
     blocks = dict(cfg.get("page_blocks") or {})
-    rows = blocks.get("catalog")
+    rows = blocks.get(host)
     if not isinstance(rows, list):
         return cfg
     kept = []
@@ -1362,7 +1366,7 @@ def drop_catalog_views(cfg: dict) -> dict:
         if is_main_marker(row):
             row = {k: v for k, v in row.items() if k not in ("style", "grid", "focus")}
         kept.append(row)
-    blocks["catalog"] = kept
+    blocks[host] = kept
     cfg["page_blocks"] = blocks
     return cfg
 
@@ -1370,7 +1374,7 @@ def drop_catalog_views(cfg: dict) -> dict:
 def page_builtin_keys(host) -> frozenset:
     """FB-31 P0: какие встроенные строки-списки (как на главной) может хранить страница.
     Пилот — каталог и его категории: блок «Kategorien»."""
-    if isinstance(host, str) and (host == "catalog" or _CATEGORY_HOST_RE.match(host)):
+    if isinstance(host, str) and (host in ("catalog", "category") or _CATEGORY_HOST_RE.match(host)):
         return frozenset({"categories"})
     return frozenset()
 
@@ -1395,12 +1399,27 @@ def main_list_sequence(host, blocks) -> list:
         blocks = [{"key": MAIN_LIST_KEY}, *blocks]
     # FB-30.16 R4: на странице каталога блок «Kategorien» стоит всегда и прямо над ★ — так
     # он и рисуется на витрине (навигация категорий прикреплена к списку товаров).
-    if host == "catalog":  # страницы категорий — шаг R5
+    if host in ("catalog", "category"):  # своя схема одной категории — позже
         row = next((b for b in blocks if b.get("key") == "categories" and not b.get("id")), None)
         blocks = [b for b in blocks if b is not row]
         at = next(i for i, b in enumerate(blocks) if is_main_marker(b))
         blocks.insert(at, row or {"key": "categories", "enabled": True})
     return blocks
+
+
+def page_rows(config: dict, host: str) -> list:
+    """Сохранённые блоки хоста; у «Alle Kategorien» (`category`), пока она не сохранена, —
+    блоки каталога (так их и показывает витрина категорий)."""
+    blocks = (config or {}).get("page_blocks") or {}
+    if host == "category" and "category" not in blocks:
+        return list(blocks.get("catalog") or [])
+    return list(blocks.get(host) or [])
+
+
+def shared_category_host(config: dict) -> str:
+    """Хост блоков страниц категорий без своей схемы: «Alle Kategorien», если сохранена,
+    иначе каталог."""
+    return "category" if "category" in ((config or {}).get("page_blocks") or {}) else "catalog"
 
 
 def category_host(slug) -> str:

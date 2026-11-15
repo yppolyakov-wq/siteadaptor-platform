@@ -1548,9 +1548,13 @@ def product_list(request, slug=None):
     # схема (`catalog:<slug>`), иначе прежний вывод из кода (до R5).
     from apps.catalog import catalog_parts as _catalog_parts
 
-    _parts_host = f"catalog:{slug}" if category is not None and path_mode else "catalog"
-    if _parts_host == "catalog" and path_mode:
-        _parts_host = ""
+    if category is not None and path_mode:
+        # своя схема категории сильнее «Alle Kategorien» (R5)
+        _own = siteconfig.category_host(category.slug)
+        _own_rows = (cfg.get("page_blocks") or {}).get(_own) or []
+        _parts_host = _own if _catalog_parts.has_parts(_own_rows) else "category"
+    else:
+        _parts_host = "" if path_mode else "catalog"
     if _parts_host:
         cat_style = _catalog_parts.legacy_code(
             _catalog_parts.effective(cfg, _parts_host, code=cat_style)

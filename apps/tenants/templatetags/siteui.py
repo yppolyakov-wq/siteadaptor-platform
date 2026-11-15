@@ -420,15 +420,19 @@ def category_blocks(context, category_host="", part="after"):
     её странице. Своей схемы нет (хост пуст) — страница показывает блоки каталога."""
     host = "catalog"
     request = context.get("request")
-    if category_host and request is not None:
+    if request is not None:
         from apps.core import page_settings
 
         try:
             raw = page_settings.raw_config(request)
         except Exception:  # noqa: BLE001 — превью не должно ронять витрину
             raw = getattr(getattr(request, "tenant", None), "site_config", None)
-        if siteconfig.has_own_schema(siteconfig.normalize(raw), category_host):
+        cfg = siteconfig.normalize(raw)
+        if category_host and siteconfig.has_own_schema(cfg, category_host):
             host = category_host
+        elif category_host:
+            # FB-30.16 R5: общие блоки «Alle Kategorien», пока сохранены; иначе каталог
+            host = siteconfig.shared_category_host(cfg)
     return page_blocks(context, host, part)
 
 

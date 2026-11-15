@@ -87,6 +87,10 @@ EXTRA_HOSTS = {"promos": "promos"}
 
 
 def _host(pt) -> str:
+    # FB-30.16 R5: «Alle Kategorien» — свой хост общих блоков страниц категорий (витрина
+    # берёт его у категорий без своей схемы; пока не сохранён — блоки каталога)
+    if pt.code == CATEGORY:
+        return "category"
     return pt.block_host or EXTRA_HOSTS.get(pt.code, "")
 
 
@@ -887,7 +891,7 @@ def blocks_for(
     elif not host:
         return []
     else:
-        items = siteconfig.main_list_sequence(host, (config.get("page_blocks") or {}).get(host, []))
+        items = siteconfig.main_list_sequence(host, siteconfig.page_rows(config, host))
     out = []
     if host == "info":
         # M21.11: карточка «Kontakt & Öffnungszeiten» стоит на «Über uns» над блоками —
@@ -958,7 +962,7 @@ def blocks_for(
             }
         )
         # FB-30.16 R4: блоки каталога — вид категорий и вид товаров ★ (стратегия FB-31)
-        if host == "catalog" and (main or key == "categories"):
+        if host in ("catalog", "category") and (main or key == "categories"):
             out[-1].update(_catalog_view_panel(config, host, item, main))
     if summaries:  # строке списка страниц нужен только счёт блоков — без запроса
         _textpage_summaries(out, items)
@@ -1036,6 +1040,8 @@ _TYPE_GROUPS = (
     ("anfragen", gettext_lazy("Anfragen"), "jobs", ("anfrage",)),
 )
 _CONTENT_GROUP = gettext_lazy("Inhalte")
+#: FB-30.16 R5: общая страница категорий в выборе страниц
+_ALL_CATEGORIES = gettext_lazy("Alle Kategorien")
 _CATEGORY_GROUP = gettext_lazy("Kategorien")
 
 
@@ -1286,7 +1292,13 @@ def type_groups(tenant, config: dict) -> list[tuple[str, list[PageRow]]]:
         groups.append((str(types["home"].label), [_row(config, types["home"])]))
     used = {"home"}
     for _key, label, _module, codes in ordered:
-        rows = [_row(config, types[c]) for c in codes if c in types]
+        rows = [
+            _row(config, types[c], label=str(_ALL_CATEGORIES))
+            if c == CATEGORY
+            else _row(config, types[c])
+            for c in codes
+            if c in types
+        ]
         used.update(codes)
         if rows:
             groups.append((str(label), rows))
@@ -1472,6 +1484,10 @@ def _catalog_code(config: dict, host: str) -> str:
 
     if host == "catalog":
         return category_styles.root_page_style(config.get("catalog_page_style", ""))
+    if host == "category":  # «Alle Kategorien»: общий шаблон категорий сайта
+        return category_styles.page_style(
+            None, (config.get("site_defaults") or {}).get("category_page_style", "")
+        )
     slug = host.removeprefix(siteconfig.CATEGORY_HOST_PREFIX)
     default = (config.get("site_defaults") or {}).get("category_page_style", "")
     try:
@@ -1539,9 +1555,7 @@ def load_items(config: dict, home: bool, host: str) -> list[dict]:
             if _is_hero_row(item):
                 item["data"] = choice or {}  # ключ есть всегда: «выбор прочитан»
         return items
-    return copy.deepcopy(
-        siteconfig.main_list_sequence(host, (config.get("page_blocks") or {}).get(host, []))
-    )
+    return copy.deepcopy(siteconfig.main_list_sequence(host, siteconfig.page_rows(config, host)))
 
 
 def mutate(
@@ -1948,7 +1962,7 @@ def _own_row(items: list[dict], idx: int) -> None:
 
 #: FB-27 R4: чьи ещё настройки правятся на строке типа — у этих типов своей строки в
 #: «Seitenaufbau» нет (категория делит блоки с каталогом, страницы акций — с обзором).
-SETTINGS_FOLLOWERS = {"catalog": ("category",), "promos": ("promo_group", "promo")}
+SETTINGS_FOLLOWERS = {"promos": ("promo_group", "promo")}  # FB-30.16 R5: категория — своя строка
 
 
 #: FB-27 V3: строка-носитель настроек типа страницы там, где основного списка нет
@@ -2012,7 +2026,10 @@ def setting_codes(tenant, code: str) -> list[str]:
 
 #: FB-30.16 R4 (стратегия FB-31): настройки, которые на строке страницы заменили блоки —
 #: шаблон страницы каталога разложен на вид «Kategorien» и вид ★ «Produkte».
-REPLACED_BY_BLOCKS = {"catalog": frozenset({"catalog_page_style"})}
+REPLACED_BY_BLOCKS = {
+    "catalog": frozenset({"catalog_page_style"}),
+    "category": frozenset({"category_page_style"}),
+}
 
 
 #: Строка «Einstellungen der Seite» — у страниц без основного списка (главная, детали,
