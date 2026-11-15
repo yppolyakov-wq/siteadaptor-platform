@@ -270,6 +270,9 @@ def site_schema_view(request):
             place_capable=bool(selected.get("cblock"))
             and site_schema.place_capable(current.host if current else ""),
         )
+    for view_key in ("catview", "mainview"):
+        if selected and selected.get(view_key):
+            site_schema.mark_view_availability(config, current.host, selected[view_key])
     if selected and selected.get("fields"):
         site_schema.fill_options(selected, current.host if current else "")
     # FB-27 R4: настройки типа страницы — в панели «★ Hauptliste», а у страниц без

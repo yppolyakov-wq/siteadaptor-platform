@@ -1548,6 +1548,27 @@ PART_VIEW_CHOICES = {
 }
 
 
+def mark_view_availability(config: dict, host: str, view: dict) -> None:
+    """Плитки вида выбранного блока: вид без подкатегорий или наборов виден, но недоступен
+    с причиной (то же правило, что было у плиток шаблона; гейт — `composition_gate`)."""
+    from apps.core import page_settings
+
+    surface = "category" if host == "category" or host.startswith("catalog:") else "catalog"
+    off = page_settings.composition_gate(config).get(surface, set())
+    reason = str(page_settings.UNAVAILABLE_REASON)
+    view["tiles"] = [
+        {
+            "value": value,
+            "label": label,
+            "hint": hint,
+            "thumb": thumb,
+            "available": not thumb or thumb not in off or value == view.get("value"),
+            "reason": reason if thumb and thumb in off else "",
+        }
+        for value, label, hint, thumb in view["choices"]
+    ]
+
+
 def _has_combos() -> bool:
     try:
         from apps.catalog.models import Combo

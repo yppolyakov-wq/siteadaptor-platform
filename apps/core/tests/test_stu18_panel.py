@@ -162,15 +162,17 @@ def test_shelves_are_not_offered_without_sub_entities(settings):
     значило бы оставить владельца гадать, почему выбор исчез.
     """
     # STU-19e-2: the catalog template tiles moved to the cabinet tab — same rule there.
-    from apps.core.tests.schema_settings import settings_screen
-    from apps.core.tests.test_page_templates import _req
+    # FB-30.16 R4/R5 (осознанно): плитки — в блоке «Kategorien» «Seitenaufbau»; строки
+    # «Sets & Menüs» без наборов нет вовсе
+    from apps.core.tests.test_fb27_r2_draft import Browser
     from apps.tenants.tests.factories import TenantFactory
 
     settings.ROOT_URLCONF = "config.urls_tenant"
-    tenant = TenantFactory(business_type="restaurant")
-    markup = settings_screen(_req(tenant, data={"typ": "catalog"})).content.decode()
+    tenant = TenantFactory(business_type="restaurant", disabled_modules=[])
+    markup = Browser(tenant).get("?seite=catalog&block=categories")
+    assert "block=combos" not in Browser(tenant).get("?seite=catalog")
 
-    for key in ("regale", "tabs", "sets"):
+    for key in ("regale", "tabs"):
         tiles = re.findall(r'<input[^>]*name="value" value="' + key + r'"[^>]*>', markup)
         assert tiles, f"плитка {key} вообще не отрендерена"
         assert all("disabled" in t for t in tiles), (

@@ -151,6 +151,7 @@ def _templates_with(pattern):
             r'category_blocks\s+category_block_host\s+part="before"', tpl.read_text()
         ):
             found.setdefault("catalog", set()).add(tpl.name)
+            found.setdefault("category", set()).add(tpl.name)  # FB-30.16 R5: «Alle Kategorien»
     return found
 
 

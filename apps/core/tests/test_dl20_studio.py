@@ -71,10 +71,13 @@ def _tiles(body, code):
 
 
 def test_cabinet_shows_a_tile_for_every_category_template():
+    """FB-30.16 R5 (осознанно): шаблон страниц категорий заменили блоки «Alle Kategorien»
+    — плиток шаблона нет; реестр кодов цел (его читают витрина и вывод блоков)."""
+    from apps.core import site_schema
+
     tenant = TenantFactory(schema_name="public", slug="dl20s", name="DL20S")
-    form = _tiles(_cabinet(tenant, "page_templates_website", "category"), "category_page_style")
-    for code, _label, _hint in category_styles.CATEGORY_PAGE_STYLES:
-        assert f'name="value" value="{code}"' in form, code
+    assert "category_page_style" not in site_schema.setting_codes(tenant, "category")
+    assert category_styles.CATEGORY_PAGE_STYLES
 
 
 def test_studio_row_is_a_summary_not_a_picker():
@@ -83,7 +86,7 @@ def test_studio_row_is_a_summary_not_a_picker():
     assert 'name="sd_category_page_style"' not in body
     assert 'name="sd_promo_group_style"' not in body
     # FB-27 R4: настройки категории правятся на строке каталога в «Seitenaufbau»
-    assert "/dashboard/site/aufbau/?seite=catalog" in body
+    assert "/dashboard/site/aufbau/?seite=" in body  # FB-30.16 R5: строка «Alle Kategorien»
 
 
 def test_cabinet_saves_the_site_wide_page_template():

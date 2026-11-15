@@ -62,7 +62,8 @@ def test_tab_shows_exactly_the_schema(tenant):
             part.split('"')[0] for part in body.split('data-pt-setting="')[1:] if part.split('"')[0]
         }
         assert shown == set(site_schema.setting_codes(tenant, typ)), typ
-    assert "category_page_style" in site_schema.setting_codes(tenant, "catalog")
+    # FB-30.16 R5 (осознанно): шаблон категорий заменили блоки «Alle Kategorien»
+    assert "category_page_style" not in site_schema.setting_codes(tenant, "catalog")
 
 
 def test_post_writes_through_the_service_and_keeps_other_keys(tenant):
@@ -97,7 +98,10 @@ def test_garbage_post_changes_nothing(tenant):
 
 
 def test_unavailable_tile_is_disabled_with_reason(tenant):
-    body = settings_screen(_req(tenant, data={"typ": "category"})).content.decode()
+    """FB-30.16 R5 (осознанно): плитки вида — в блоке «Kategorien» строки «Alle Kategorien»."""
+    from apps.core.tests.test_fb27_r2_draft import Browser
+
+    body = Browser(tenant).get("?seite=category&block=categories")
     i = body.index('name="value" value="regale"')
     tile = body[i : i + 300]
     assert "disabled" in tile and "aria-describedby" in tile
@@ -129,7 +133,7 @@ def test_old_addresses_redirect_to_the_row_that_owns_the_type(tenant):
     base = "/dashboard/site/aufbau/?seite="
     resp = page_templates.page_templates_sortiment(_req(tenant, data={"typ": "category"}))
     assert resp.status_code == 302
-    assert resp["Location"] == base + "catalog&block=main#schema-panel"  # категория — у каталога
+    assert resp["Location"] == base + "category&block=main#schema-panel"  # своя строка (R5)
     resp = page_templates.page_templates_sortiment(_req(tenant))
     assert resp["Location"] == base + "catalog&block=main#schema-panel"
     resp = page_templates.page_templates_aktionen(_req(tenant))
@@ -187,7 +191,7 @@ def test_studio_links_to_the_tab():
     # STU-19e: the moved settings are summaries — their links come from cabinet_url
     for code in ("catalog_page_style", "category_page_style", "product_detail_layout"):
         assert f"stu19.{code}" in html
-    for typ, row in (("catalog", "catalog"), ("category", "catalog"), ("product", "product")):
+    for typ, row in (("catalog", "catalog"), ("category", "category"), ("product", "product")):
         assert f"?seite={row}&" in page_templates.cabinet_url(typ)
 
 

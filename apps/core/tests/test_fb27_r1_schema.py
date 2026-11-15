@@ -64,10 +64,12 @@ def test_only_page_types_of_this_business_are_offered(business_type):
 
 
 def test_one_option_per_block_host():
-    """«Katalog» и «Kategorie» правили одни и те же блоки двумя пунктами."""
+    """FB-30.16 R5 (осознанно): у «Alle Kategorien» теперь свой хост блоков — это отдельный
+    пункт, а не второй пункт тех же блоков каталога."""
     tenant = _biz("online_shop")
     codes = _codes(tenant)
-    assert "catalog" in codes and "category" not in codes
+    assert "catalog" in codes and "category" in codes
+    assert site_schema.host_for("category") == "category" != site_schema.host_for("catalog")
 
 
 def test_main_group_of_the_business_comes_first():

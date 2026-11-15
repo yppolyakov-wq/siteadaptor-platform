@@ -203,8 +203,10 @@ def test_page_without_a_main_list_gets_a_settings_row(_urlconf):
 
 
 def test_category_settings_live_on_the_catalog_row(_urlconf):
+    """FB-30.16 R5 (осознанно): настройки категорий — на строке «Alle Kategorien»."""
     b = Browser(_tenant())
-    assert "category_page_style" in site_schema.setting_codes(b.tenant, "catalog")
+    assert "catalog_subcats" in site_schema.setting_codes(b.tenant, "category")
+    assert "catalog_subcats" not in site_schema.setting_codes(b.tenant, "catalog")
 
 
 def test_panel_shows_the_draft_value_not_the_saved_one(_urlconf):
