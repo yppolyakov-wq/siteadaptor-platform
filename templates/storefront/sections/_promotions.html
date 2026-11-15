@@ -35,7 +35,8 @@
 {% endwith %}
 {% elif sample_promotions %}
 {% comment %}FB-30.10: акции-примеры — свой простой вид без ценового слоя.{% endcomment %}
-<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" data-sample-promotions>
+<p class="mb-2 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900" role="note" data-sample-note>{% trans "Beispiele – nur in dieser Vorschau. Auf Ihrer Website erscheinen sie nicht." %}</p>
+<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 select-none" inert data-sample-promotions>
   {% for p in sample_promotions %}
   <div class="sf-card overflow-hidden rounded-2xl bg-white shadow-sm">
     <img src="{{ p.image }}" alt="" loading="lazy" class="h-40 w-full object-cover">

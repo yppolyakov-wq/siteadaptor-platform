@@ -371,7 +371,7 @@ def storefront_home(request):
     site, sample_content = design_samples.site_with_samples(site, request)
     sample_sections |= sample_content
     sample_promotions = []
-    if "promotions" in lists and not promos and design_samples.wanted(request):
+    if "promotions" in lists and not promos and design_samples.wanted_owner(request):
         sample_promotions = design_samples.promotions()
         sample_sections.add("promotions")
     stay_rooms = _or_samples("stay_rooms", stay_rooms)
@@ -393,7 +393,7 @@ def storefront_home(request):
     from apps.catalog.models import Product as _Product
 
     has_products = bool(products_preview) or _Product.objects.filter(is_active=True).exists()
-    return render(
+    response = render(
         request,
         "storefront/home.html",
         {
@@ -423,6 +423,11 @@ def storefront_home(request):
             "primary_item": primary_item,
         },
     )
+    if design_samples.wanted(request):
+        # FB-30.10 (ревью): предпросмотр дизайна не индексируется и не кэшируется
+        response["X-Robots-Tag"] = "noindex, nofollow"
+        response["Cache-Control"] = "private, no-store"
+    return response
 
 
 #: Сколько акций должно быть в группе, чтобы она получила СВОЮ секцию с

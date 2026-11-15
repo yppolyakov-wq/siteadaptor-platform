@@ -17,7 +17,7 @@
     концепт-макете; пустой город → только тип.{% endcomment %}
     <p class="text-[11px] font-bold tracking-[0.13em] uppercase mb-2" style="color: var(--accent, #4f46e5);">{{ request.tenant.get_business_type_display }}{% if request.tenant.city %} · {{ request.tenant.city }}{% endif %}</p>
     <h1 class="text-3xl md:text-5xl font-bold leading-tight"{% if not lead.from_banner %} data-edit="hero_title"{% endif %}>{{ lead.title|default:request.tenant.name }}</h1>
-    {% if lead.text %}<p class="mt-4 text-gray-600 max-w-md whitespace-pre-line"{% if not lead.from_banner %} data-edit="hero_text"{% endif %}>{{ lead.text }}</p>{% endif %}
+    {% if lead.text %}<p class="mt-4 text-gray-600 max-w-md whitespace-pre-line"{% if not lead.from_banner and "hero" not in sample_wrapped %} data-edit="hero_text"{% endif %}>{{ lead.text }}</p>{% endif %}
     <span class="flex flex-wrap items-center gap-2">
     {% include "storefront/sections/_hero_cta.html" with cta_label=lead.button_label cta_href=lead.href %}
     {% comment %}DS-4b: ghost-кнопка «Speisekarte/Menu» — вторая дорога первого
@@ -52,7 +52,7 @@
     <div class="md:col-span-2">
       <p class="text-[11px] font-bold tracking-[0.13em] uppercase mb-2 text-white/80">{{ request.tenant.get_business_type_display }}{% if request.tenant.city %} · {{ request.tenant.city }}{% endif %}</p>
       <h1 class="text-4xl md:text-6xl font-bold leading-tight drop-shadow-lg"{% if not lead.from_banner %} data-edit="hero_title"{% endif %}>{{ lead.title|default:request.tenant.name }}</h1>
-      {% if lead.text %}<p class="mt-4 text-lg md:text-xl text-white/90 max-w-2xl drop-shadow whitespace-pre-line"{% if not lead.from_banner %} data-edit="hero_text"{% endif %}>{{ lead.text }}</p>{% endif %}
+      {% if lead.text %}<p class="mt-4 text-lg md:text-xl text-white/90 max-w-2xl drop-shadow whitespace-pre-line"{% if not lead.from_banner and "hero" not in sample_wrapped %} data-edit="hero_text"{% endif %}>{{ lead.text }}</p>{% endif %}
       {% include "storefront/sections/_hero_cta.html" with style="light" cta_label=lead.button_label cta_href=lead.href %}
     </div>
     {% hero_deal_card %}
@@ -77,7 +77,7 @@
   <div class="absolute inset-0 bg-black/45"></div>
   <div class="relative px-4 py-12 max-w-4xl">
     <h1 class="text-4xl md:text-6xl font-bold drop-shadow-lg"{% if not lead.from_banner %} data-edit="hero_title"{% endif %}>{{ lead.title|default:request.tenant.name }}</h1>
-    {% if lead.text %}<p class="mt-4 text-lg md:text-xl text-white/90 max-w-2xl mx-auto drop-shadow"{% if not lead.from_banner %} data-edit="hero_text"{% endif %}>{{ lead.text }}</p>{% endif %}
+    {% if lead.text %}<p class="mt-4 text-lg md:text-xl text-white/90 max-w-2xl mx-auto drop-shadow"{% if not lead.from_banner and "hero" not in sample_wrapped %} data-edit="hero_text"{% endif %}>{{ lead.text }}</p>{% endif %}
     {% if site.site_defaults.hero_widget %}{% include "storefront/sections/_hero_widget.html" with hero_widget=site.site_defaults.hero_widget %}{% else %}{% include "storefront/sections/_hero_cta.html" with style="light" cta_label=lead.button_label cta_href=lead.href %}{% endif %}
   </div>
 </section>
@@ -85,13 +85,13 @@
 {# DL-13: fullscreen без фото честно падает сюда (не пустой первый экран). #}
 <section class="mb-10 rounded-2xl shadow-sm p-8 md:p-12 text-center text-white" style="background: var(--accent, #4f46e5);">
   <h1 class="text-3xl md:text-4xl font-bold"{% if not lead.from_banner %} data-edit="hero_title"{% endif %}>{{ lead.title|default:request.tenant.name }}</h1>
-  {% if lead.text %}<p class="mt-3 text-white/90 max-w-2xl mx-auto whitespace-pre-line"{% if not lead.from_banner %} data-edit="hero_text"{% endif %}>{{ lead.text }}</p>{% endif %}
+  {% if lead.text %}<p class="mt-3 text-white/90 max-w-2xl mx-auto whitespace-pre-line"{% if not lead.from_banner and "hero" not in sample_wrapped %} data-edit="hero_text"{% endif %}>{{ lead.text }}</p>{% endif %}
   {% if site.site_defaults.hero_widget %}{% include "storefront/sections/_hero_widget.html" with hero_widget=site.site_defaults.hero_widget %}{% else %}{% include "storefront/sections/_hero_cta.html" with style="light" cta_label=lead.button_label cta_href=lead.href %}{% endif %}
 </section>
 {% else %}
 <section class="mb-10 bg-white rounded-2xl shadow-sm p-8 md:p-12 text-center">
   <h1 class="text-3xl md:text-4xl font-bold"{% if not lead.from_banner %} data-edit="hero_title"{% endif %}>{{ lead.title|default:request.tenant.name }}</h1>
-  {% if lead.text %}<p class="mt-3 text-gray-600 max-w-2xl mx-auto whitespace-pre-line"{% if not lead.from_banner %} data-edit="hero_text"{% endif %}>{{ lead.text }}</p>{% endif %}
+  {% if lead.text %}<p class="mt-3 text-gray-600 max-w-2xl mx-auto whitespace-pre-line"{% if not lead.from_banner and "hero" not in sample_wrapped %} data-edit="hero_text"{% endif %}>{{ lead.text }}</p>{% endif %}
   {% if site.site_defaults.hero_widget %}{% include "storefront/sections/_hero_widget.html" with hero_widget=site.site_defaults.hero_widget %}{% endif %}
 </section>
 {% endif %}

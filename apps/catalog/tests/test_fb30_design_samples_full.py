@@ -34,22 +34,59 @@ def _home(query="", owner=False, **site):
 
 
 def test_empty_site_in_the_design_preview_gets_samples_everywhere():
-    html = _home(DESIGN)
+    html = _home(DESIGN, owner=True)
     for key in ("faq", "gallery", "team", "promotions"):
         assert f'data-sample-section="{key}"' in html, key
     assert "data-sample-hero" in html, "баннер с фото-примером"
 
 
 def test_samples_are_marked_inert_and_carry_no_structured_data():
-    html = _home(DESIGN)
+    html = _home(DESIGN, owner=True)
     assert html.count("data-sample-note") >= 4
-    faq = html[html.index('data-sample-section="faq"') - 400 :]
-    assert "FAQPage" not in faq[:3000], "вопросы-примеры не уходят в поисковики"
+    assert "FAQPage" not in html, "вопросы-примеры не уходят в поисковики"
+    hero = html[html.index("data-sample-hero") :][:3000]
+    assert 'data-edit="hero_text"' not in hero, "текст-пример не правится как настоящий"
 
 
-def test_fake_reviews_only_for_the_owner():
-    assert 'data-sample-section="testimonials"' not in _home(DESIGN)
-    assert 'data-sample-section="testimonials"' in _home(DESIGN, owner=True)
+def test_invented_content_only_for_the_owner():
+    """Ревью: `?preview=1&look=` открыт любому посетителю — выдуманные отзывы, вопросы,
+    команда, текст баннера и акции с ценой «statt» видит только владелец."""
+    public = _home(DESIGN)
+    for key in ("testimonials", "faq", "team", "gallery", "promotions"):
+        assert f'data-sample-section="{key}"' not in public, key
+    assert "data-sample-hero" not in public and "data-sample-promotions" not in public
+    owner = _home(DESIGN, owner=True)
+    assert 'data-sample-section="testimonials"' in owner
+
+
+def test_design_preview_is_not_indexed_or_cached():
+    from django.contrib.auth.models import AnonymousUser as Anon
+
+    req = _req("/" + DESIGN)
+    req.user = Anon()
+    req.tenant.site_config = {"sections": SECTIONS}
+    resp = public_views.storefront_home(req)
+    assert resp["X-Robots-Tag"].startswith("noindex")
+    assert "no-store" in resp["Cache-Control"]
+    plain = _req("/")
+    plain.user = Anon()
+    plain.tenant.site_config = {"sections": SECTIONS}
+    assert "X-Robots-Tag" not in public_views.storefront_home(plain)
+
+
+def test_member_of_another_business_is_not_the_owner():
+    from django.contrib.auth import get_user_model
+
+    stranger = get_user_model().objects.create_user(username="fremd-fb30", password="pw1234567")
+    assert 'data-sample-section="testimonials"' not in _home(DESIGN, owner=stranger)
+
+
+def test_picked_banner_gets_no_hero_sample():
+    from apps.core import banners
+
+    b = banners.create({"title": "Echt", "image": {"url": "/media/hero/a.jpg"}})
+    html = _home(DESIGN, owner=True, hero_banners={"pick": [str(b.pk)]})
+    assert "data-sample-hero" not in html
 
 
 def test_live_site_and_plain_preview_show_no_samples():
@@ -59,7 +96,7 @@ def test_live_site_and_plain_preview_show_no_samples():
 
 
 def test_own_content_is_never_replaced():
-    html = _home(DESIGN, faq=[{"q": "Echte Frage?", "a": "Echte Antwort."}])
+    html = _home(DESIGN, owner=True, faq=[{"q": "Echte Frage?", "a": "Echte Antwort."}])
     assert "Echte Frage?" in html and 'data-sample-section="faq"' not in html
 
 
@@ -75,7 +112,7 @@ def test_samples_write_nothing():
 def test_site_with_samples_keeps_the_original_untouched():
     site = {"faq": [], "gallery": [], "sections": SECTIONS}
     req = _req("/" + DESIGN)
-    req.user = AnonymousUser()
+    req.user = _owner()
     out, keys = design_samples.site_with_samples(site, req)
     assert site["faq"] == [] and out["faq"] and "faq" in keys
 

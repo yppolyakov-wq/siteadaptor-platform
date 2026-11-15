@@ -201,6 +201,9 @@ def wanted_owner(request) -> bool:
     try:
         return bool(roles.has_cabinet_access(getattr(request, "user", None)))
     except Exception:  # noqa: BLE001 — сомнение = не владелец
+        import logging
+
+        logging.getLogger(__name__).warning("design samples: owner check failed", exc_info=True)
         return False
 
 
@@ -270,14 +273,15 @@ def site_with_samples(site: dict, request) -> tuple[dict, set]:
     ключи заполненных. Только в предпросмотре дизайна; своё содержимое не заменяется;
     исходный словарь не меняется. Баннер: фото и текст-пример, если у главной нет ни фото,
     ни выбранных баннеров (иначе «Vollbild» и фото-виды падали в «Akzent»)."""
-    if not wanted(request) or not isinstance(site, dict):
+    # Ревью FB-30.10: `?preview=1&look=` открыт любому посетителю — содержимое-примеры
+    # (вопросы, команда, текст баннера, отзывы, акции с ценой «statt») показываем только
+    # владельцу, иначе посторонний видел бы на витрине выдуманные сведения о бизнесе.
+    if not wanted_owner(request) or not isinstance(site, dict):
         return site, set()
     from django.utils.translation import gettext as _
 
     out, keys = dict(site), set()
-    fillers = {"faq": _faq, "gallery": _gallery, "team": _team}
-    if wanted_owner(request):
-        fillers["testimonials"] = _testimonials
+    fillers = {"faq": _faq, "gallery": _gallery, "team": _team, "testimonials": _testimonials}
     for key, make in fillers.items():
         if key == "gallery" and out.get("gallery_video"):
             continue
