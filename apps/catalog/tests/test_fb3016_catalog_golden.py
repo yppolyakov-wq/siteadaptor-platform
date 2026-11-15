@@ -136,3 +136,54 @@ def test_stored_part_rows_do_not_change_the_page_yet():
     tenant = TenantFactory.build(name="Bäckerei X", site_config={"page_blocks": {"catalog": rows}})
     html = public_views.product_list(_request("/sortiment/", tenant)).content.decode()
     _check("root-standard-sub-photo", html)
+
+
+# ── R1: случаи, которых не было в R0 (план §7) ──
+
+_TEXT_ABOVE = {"key": "text", "id": "t-above", "data": {"title": "Über der Liste", "body": "Oben"}}
+_TEXT_BELOW = {
+    "key": "text",
+    "id": "t-below",
+    "data": {"title": "Unter der Liste", "body": "Unten"},
+}
+
+
+@pytest.mark.parametrize("code", ["", "regale", "sets", "wegweiser", "navigator", "kopfbild"])
+def test_own_blocks_above_and_below_the_list_look_as_before(code):
+    _data(subcats=True, photos=True)
+    cfg = {"page_blocks": {"catalog": [_TEXT_ABOVE, {"key": "main"}, _TEXT_BELOW]}}
+    if code:
+        cfg["catalog_page_style"] = code
+    tenant = TenantFactory.build(name="Bäckerei X", site_config=cfg)
+    html = public_views.product_list(_request("/sortiment/", tenant)).content.decode()
+    _check(f"root-{code or 'standard'}-blocks", html)
+
+
+def test_child_of_a_tabs_parent_looks_as_before():
+    brot = _data(subcats=True, photos=False)
+    type(brot).objects.filter(pk=brot.pk).update(page_style="tabs")
+    tenant = TenantFactory.build(name="Bäckerei X")
+    html = public_views.product_list(
+        _request("/sortiment/brot-weizen/", tenant), slug="brot-weizen"
+    )
+    _check("cat-tabs-child", html.content.decode())
+
+
+@pytest.mark.parametrize("code", ["mosaik", "magazin", "kompakt"])
+def test_owner_grid_beats_the_template_hint_as_before(code):
+    _data(subcats=True, photos=True)
+    cfg = {"catalog_page_style": code, "catalog_layout": {"preset": "cols5"}}
+    tenant = TenantFactory.build(name="Bäckerei X", site_config=cfg)
+    html = public_views.product_list(_request("/sortiment/", tenant)).content.decode()
+    _check(f"root-{code}-owner-grid", html)
+
+
+def test_category_style_over_the_site_default_looks_as_before():
+    brot = _data(subcats=True, photos=True)
+    type(brot).objects.filter(pk=brot.pk).update(page_style="regale")
+    cfg = {"site_defaults": {"category_page_style": "mosaik"}}
+    tenant = TenantFactory.build(name="Bäckerei X", site_config=cfg)
+    html = public_views.product_list(_request("/sortiment/brot/", tenant), slug="brot")
+    _check("cat-own-over-site", html.content.decode())
+    kuchen = public_views.product_list(_request("/sortiment/kuchen/", tenant), slug="kuchen")
+    _check("cat-site-default", kuchen.content.decode())

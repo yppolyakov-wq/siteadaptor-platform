@@ -1339,6 +1339,11 @@ def clean_main_marker(item) -> dict:
     return out
 
 
+#: FB-30.16: навигационные виды блока «Kategorien» на странице каталога (у списка категорий
+#: главной их нет); единый реестр — его читает и `apps/catalog/catalog_parts`.
+CATALOG_CATEGORY_VIEWS = ("regale", "tabs", "index", "side", "wegweiser")
+
+
 def page_builtin_keys(host) -> frozenset:
     """FB-31 P0: какие встроенные строки-списки (как на главной) может хранить страница.
     Пилот — каталог и его категории: блок «Kategorien»."""
@@ -1445,7 +1450,10 @@ def normalize_page_blocks(raw) -> dict:
             if bkey in builtin_ok:
                 if bkey not in builtin_seen:
                     builtin_seen.add(bkey)
-                    blocks.append(_section_entry(bkey, bool(item.get("enabled", True)), item))
+                    entry = _section_entry(bkey, bool(item.get("enabled", True)), item)
+                    if bkey == "categories" and item.get("style") in CATALOG_CATEGORY_VIEWS:
+                        entry["style"] = item["style"]
+                    blocks.append(entry)
                 continue
             if len(blocks) >= _MAX_CBLOCKS:
                 continue  # кап, но маркер дальше по списку ещё ищем

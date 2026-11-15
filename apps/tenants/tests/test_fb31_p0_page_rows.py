@@ -62,3 +62,10 @@ def test_structure_screen_and_studio_keep_the_rows(settings):
     merged = site_schema.merge_structure(saved, [])
     assert [r["key"] for r in merged] == ["categories", "main"]
     assert merged[1].get("style") == "mosaik"
+
+
+def test_catalog_category_views_survive_normalize_only_on_catalog_hosts():
+    rows = _norm("catalog", [{"key": "categories", "style": "regale"}, {"key": "main"}])
+    assert rows[0]["style"] == "regale"
+    rows = _norm("catalog", [{"key": "categories", "style": "nonsense"}, {"key": "main"}])
+    assert "style" not in rows[0]
