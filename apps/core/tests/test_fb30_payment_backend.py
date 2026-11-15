@@ -37,22 +37,43 @@ def test_without_new_arguments_nothing_changes():
                 assert methods[-1] == pm.ON_SITE, (kind, ct)
 
 
-def test_on_site_off_for_delivery_only_when_another_method_remains():
-    off = {"delivery": False}
-    alone = _tenant(on_site=off)
-    assert pm.available(alone, "order", fulfillment="delivery") == [pm.ON_SITE], "ноль — никогда"
-    vk = _tenant(on_site=off, vorkasse_enabled=True, bank_iban="DE89")
-    assert pm.available(vk, "order", fulfillment="delivery") == [pm.VORKASSE]
-    assert pm.ON_SITE in pm.available(vk, "order", fulfillment="pickup")
-    assert pm.ON_SITE in pm.available(vk, "booking", fulfillment="delivery")
-    # счёт частному лицу не положен — он не спасает от нуля способов
-    inv = _tenant(on_site=off, invoice_b2b_enabled=True)
-    assert pm.available(inv, "order", fulfillment="delivery") == [pm.ON_SITE]
+def _ship(kind="courier", pays=()):
+    return SimpleNamespace(kind=kind, payment_methods=list(pays))
 
 
-def test_on_site_stays_for_delivery_by_default():
+def test_shipping_rule_narrows_the_methods():
+    """FB-30.13: правило — в способе доставки; пусто — все."""
     vk = _tenant(vorkasse_enabled=True, bank_iban="DE89")
-    assert pm.ON_SITE in pm.available(vk, "order", fulfillment="delivery")
+    assert pm.allowed_with(_ship(), vk) is None
+    assert pm.available(vk, "order", shipping=_ship()) == [pm.VORKASSE, pm.ON_SITE]
+    only = _ship(pays=[pm.VORKASSE, "bitcoin"])
+    assert pm.allowed_with(only, vk) == {pm.VORKASSE}, "мусорные коды отброшены"
+    assert pm.available(vk, "order", shipping=only) == [pm.VORKASSE]
+    # способ доставки без доступной оплаты → пусто (витрина его не предлагает)
+    assert pm.available(_tenant(), "order", shipping=only) == []
+    # без способа доставки — прежний список, никогда не пустой
+    assert pm.available(_tenant(), "order") == [pm.ON_SITE]
+
+
+def test_legacy_on_site_switch_keeps_working_until_moved():
+    """Наследство FB-30.12: галочка «bei Lieferung» снята — курьер/посылка без своего
+    списка без «Vor Ort», но только если есть Online/Vorkasse; самовывоз — все."""
+    off = {"delivery": False}
+    vk = _tenant(on_site=off, vorkasse_enabled=True, bank_iban="DE89")
+    assert pm.available(vk, "order", shipping=_ship()) == [pm.VORKASSE]
+    assert pm.ON_SITE in pm.available(vk, "order", shipping=_ship("pickup"))
+    alone = _tenant(on_site=off)
+    assert pm.available(alone, "order", shipping=_ship()) == [pm.ON_SITE], "ноль — никогда"
+    assert pm.ON_SITE in pm.available(vk, "order", shipping=_ship(pays=[pm.ON_SITE]))
+
+
+def test_pair_refused_only_for_known_codes_outside_the_rule():
+    vk = _tenant(vorkasse_enabled=True, bank_iban="DE89")
+    only = _ship(pays=[pm.VORKASSE])
+    assert pm.pair_refused(vk, pm.ON_SITE, shipping=only) == str(pm.PAIR_REFUSED)
+    assert pm.pair_refused(vk, pm.VORKASSE, shipping=only) == ""
+    assert pm.pair_refused(vk, "", shipping=only) == ""
+    assert pm.pair_refused(vk, pm.ON_SITE, shipping=None) == ""
 
 
 def test_labels_follow_the_deal_kind_and_the_sub_kind():
@@ -137,7 +158,7 @@ def test_checkout_refuses_on_site_for_delivery_when_switched_off(_urlconf):
     resp, request = _checkout(tenant, "on_site", "delivery")
     assert resp.status_code == 302 and resp.url.endswith("/warenkorb/")
     assert not Order.objects.exists(), "заказ не создаётся, способ молча не подменяется"
-    assert [str(m) for m in get_messages(request)] == [str(pm.ON_SITE_REFUSED)]
+    assert [str(m) for m in get_messages(request)] == [str(pm.PAIR_REFUSED)]
 
 
 @pytest.mark.django_db
@@ -191,7 +212,7 @@ def test_offer_acceptance_refuses_on_site_for_delivery(_urlconf):
     resp = public_views.offer_page(request, token=offer.token)
     assert resp.status_code == 302
     assert not Order.objects.exists()
-    assert [str(m) for m in get_messages(request)] == [str(pm.ON_SITE_REFUSED)]
+    assert [str(m) for m in get_messages(request)] == [str(pm.PAIR_REFUSED)]
 
 
 @pytest.mark.django_db
@@ -204,15 +225,10 @@ def test_quote_cart_still_takes_delivery_requests(_urlconf):
     assert Order.objects.get().payment_method == Order.METHOD_ON_SITE
 
 
-def test_picker_marks_on_site_to_hide_for_delivery_only_when_switched_off():
-    vk = {"vorkasse_enabled": True, "bank_iban": "DE89"}
-    off = _tenant(on_site={"delivery": False}, **vk)
-    rows = {r["code"]: r["no_delivery"] for r in pm.picker_rows(off, pm.available(off))}
-    assert rows == {pm.VORKASSE: False, pm.ON_SITE: True}
-    on = _tenant(**vk)
-    assert not any(r["no_delivery"] for r in pm.picker_rows(on, pm.available(on)))
-    alone = _tenant(on_site={"delivery": False})
-    assert not any(r["no_delivery"] for r in pm.picker_rows(alone, pm.available(alone)))
-    assert not any(
-        r["no_delivery"] for r in pm.picker_rows(off, pm.available(off, "booking"), "booking")
-    )
+def test_single_method_is_shown_as_a_line():
+    """FB-30.13: один способ оплаты — строкой, а не пусто."""
+    ctx = pm.picker_context(_tenant(), "order")
+    assert ctx["payment_methods"] == []
+    assert ctx["payment_single"]["code"] == pm.ON_SITE
+    many = pm.picker_context(_tenant(vorkasse_enabled=True, bank_iban="DE89"), "order")
+    assert many["payment_single"] is None and len(many["payment_methods"]) == 2

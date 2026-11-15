@@ -1,5 +1,5 @@
 {% load i18n %}
-{% comment %}FB-30.12b: подвид «оплаты на месте» и «auch bei Lieferung» — сентинел sec_on_site (точечная запись site_config["payment_on_site"]).{% endcomment %}
+{% comment %}FB-30.12b: подвид «оплаты на месте» — сентинел sec_on_site (точечная запись site_config["payment_on_site"]).{% endcomment %}
 <input type="hidden" name="sec_on_site" value="1">
 <fieldset>
   <legend class="text-sm font-medium mb-2">{% trans "Wie zahlen Kunden vor Ort?" %}</legend>
@@ -13,12 +13,6 @@
   </div>
 </fieldset>
 {% if orders_active %}
-  <input type="hidden" name="on_site_delivery_shown" value="1">
-  <label class="flex items-start gap-2 py-1 text-sm">
-    <input type="checkbox" name="on_site_delivery" class="mt-0.5" {% if on_site_cfg.delivery %}checked{% endif %} aria-describedby="on-site-delivery-hint">
-    <span>{% trans "Auch bei Lieferung anbieten (Zahlung an der Haustür)" %}</span>
-  </label>
-  <p id="on-site-delivery-hint" class="text-xs text-gray-500">
-    {% if on_site_switch_idle %}{% trans "Wirkt erst, wenn Online-Zahlung oder Vorkasse aktiv ist – Kunden brauchen immer eine Zahlungsart." %}{% else %}{% trans "Ohne Haken wählen Kunden bei Lieferung online oder per Vorkasse." %}{% endif %}
-  </p>
+  {% comment %}FB-30.13: какая оплата при какой доставке — в способах доставки (одно место правила).{% endcomment %}
+  <p class="text-xs text-gray-500">{% trans "Welche Zahlungsart bei welcher Versandart möglich ist, stellen Sie in den Versandarten ein." %} <a class="underline" href="{% url 'payment-settings' %}?tab=lieferung">{% trans "Versandarten" %} →</a></p>
 {% endif %}

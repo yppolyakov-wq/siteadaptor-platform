@@ -38313,3 +38313,31 @@ msgstr "Wird mit «Speichern» eingeschaltet – vorher den Haken prüfen."
 
 msgid "Zahlung vor Ort gibt es bei Lieferung nicht. Gewählt:"
 msgstr "Zahlung vor Ort gibt es bei Lieferung nicht. Gewählt:"
+
+msgid "Diese Zahlungsart ist mit der gewählten Versandart nicht möglich. Bitte wählen Sie eine andere Zahlungsart oder Versandart."
+msgstr "Diese Zahlungsart ist mit der gewählten Versandart nicht möglich. Bitte wählen Sie eine andere Zahlungsart oder Versandart."
+
+msgid "Diese Zahlungsart passt nicht zur gewählten Versandart. Gewählt:"
+msgstr "Diese Zahlungsart passt nicht zur gewählten Versandart. Gewählt:"
+
+msgid "Diese Versandart passt nicht zur gewählten Zahlungsart. Gewählt:"
+msgstr "Diese Versandart passt nicht zur gewählten Zahlungsart. Gewählt:"
+
+msgid "Bitte mindestens eine Zahlungsart wählen."
+msgstr "Bitte mindestens eine Zahlungsart wählen."
+
+#, python-format
+msgid "Zahlung: %(names)s"
+msgstr "Zahlung: %(names)s"
+
+msgid "Zahlungsarten bei dieser Versandart"
+msgstr "Zahlungsarten bei dieser Versandart"
+
+msgid "derzeit nicht eingerichtet"
+msgstr "derzeit nicht eingerichtet"
+
+msgid "Im Warenkorb sehen Kunden zu dieser Versandart nur diese Zahlungsarten – und umgekehrt."
+msgstr "Im Warenkorb sehen Kunden zu dieser Versandart nur diese Zahlungsarten – und umgekehrt."
+
+msgid "Welche Zahlungsart bei welcher Versandart möglich ist, stellen Sie in den Versandarten ein."
+msgstr "Welche Zahlungsart bei welcher Versandart möglich ist, stellen Sie in den Versandarten ein."

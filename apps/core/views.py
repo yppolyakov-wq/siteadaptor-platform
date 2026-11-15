@@ -1399,16 +1399,13 @@ def save_payment_settings(request) -> list[str]:
 
 
 def save_on_site(tenant, request) -> None:
-    """FB-30.12b: точечная запись `site_config["payment_on_site"]` (остальные ключи
-    конфига не трогаем). Флажок «bei Lieferung» читается, только если был в форме
-    (`on_site_delivery_shown`) — у бизнеса без заказов прежнее значение остаётся."""
+    """FB-30.12b: точечная запись подвида `site_config["payment_on_site"]` (остальные
+    ключи конфига не трогаем; `delivery` — наследство 30.12, остаётся как было)."""
     from apps.core import payment_methods as pm
     from apps.tenants import siteconfig
 
-    current = pm.on_site_settings(tenant)
-    delivery = current["delivery"]
-    if request.POST.get("on_site_delivery_shown"):
-        delivery = bool(request.POST.get("on_site_delivery"))
+    # FB-30.13: «bei Lieferung» задаётся в способах доставки — прежнее значение не трогаем
+    delivery = pm.on_site_settings(tenant)["delivery"]
     raw = {"kind": request.POST.get("on_site_kind", ""), "delivery": delivery}
     value = siteconfig.normalize_payment_on_site(raw)
     from django.db import transaction

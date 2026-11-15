@@ -530,6 +530,9 @@ class ShippingMethod(I18nMixin, TimestampedModel):
     area_text = models.TextField(blank=True, default="")  # зона/условия — текст покупателю
     # самовывоз: [{"name","address"}]; пусто — адрес бизнеса
     locations = models.JSONField(default=list, blank=True)
+    # FB-30.13: какие способы оплаты допустимы с этим способом (коды `payment_methods`);
+    # пусто — все. Правило «оплата ↔ доставка» живёт только здесь.
+    payment_methods = models.JSONField(default=list, blank=True, db_default=[])
     active = models.BooleanField(default=True)
     sort_order = models.PositiveSmallIntegerField(default=0)
 

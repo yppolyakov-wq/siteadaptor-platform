@@ -3032,15 +3032,17 @@ def promotion_purchase(request, pk):
             cache.delete(token_key)
         messages.error(request, slot_error)
         return render(request, "storefront/promotion_detail.html", ctx)
-    # FB-30.12: «vor Ort» при доставке выключена бизнесом — ошибка, заказ не создаётся.
+    # FB-30.13: пара «оплата × доставка» несовместима — ошибка, заказ не создаётся.
     from apps.core import payment_methods as _pm
 
-    refused = _pm.on_site_refused(
-        tenant,
-        request.POST.get("payment", ""),
-        "order",
-        fulfillment="delivery" if choice.delivery else "pickup",
+    refused = _pm.pair_refused(
+        tenant, request.POST.get("payment", ""), "order", shipping=choice.method
     )
+    # ревью: способ доставки, с которым нечем заплатить (скрыт витриной, но ключ можно
+    # подставить), — тоже отказ, а не тихий откат к способу без правила
+    ctype = _pm.customer_type_of(request.POST.get("customer_type"))
+    if not _pm.available(tenant, "order", customer_type=ctype, shipping=choice.method):
+        refused = str(_pm.PAIR_REFUSED)
     if refused:
         if token_key:
             cache.delete(token_key)
@@ -3064,9 +3066,7 @@ def promotion_purchase(request, pk):
             # SH-23d: покупка по акции получила способ оплаты и тип покупателя —
             # раньше заказ по акции всегда шёл «payment_method=пусто» и ни Stripe,
             # ни Vorkasse, ни счёт юрлицу к ней не применялись.
-            **_promo_payment_kwargs(
-                request, fulfillment="delivery" if choice.delivery else "pickup"
-            ),
+            **_promo_payment_kwargs(request, shipping=choice.method),
             pickup_slot=slot,
             pickup_capacity=slot_capacity,
             channel="storefront",  # AIS W4-5d: гейт готовности кассы
@@ -3799,7 +3799,7 @@ def merchant_local_xml(request, token):
     return _merchant_feed_response(request, xml)
 
 
-def _promo_payment_kwargs(request, fulfillment: str = ""):
+def _promo_payment_kwargs(request, shipping=None):
     """SH-23d: платёжные поля покупки по акции из POST (общий реестр + Р-2/Р-4)."""
     from datetime import timedelta
 
@@ -3810,7 +3810,7 @@ def _promo_payment_kwargs(request, fulfillment: str = ""):
     tenant = getattr(request, "tenant", None)
     ctype = _pm.customer_type_of(request.POST.get("customer_type"))
     method = _pm.normalize(
-        request.POST.get("payment"), tenant, "order", customer_type=ctype, fulfillment=fulfillment
+        request.POST.get("payment"), tenant, "order", customer_type=ctype, shipping=shipping
     )
     days = _pm.hold_days(tenant, method)
     return {

@@ -144,6 +144,30 @@ def form_rows(values, name: str) -> list[dict]:
     return out
 
 
+def _payment_methods(post, parsed: Parsed) -> list[str]:
+    """FB-30.13: «Welche Zahlungsarten bei dieser Versandart». Все отмечены → [] (без
+    ограничений, новые способы оплаты тоже подходят); ни одного — ошибка, а не «все»."""
+    from apps.core import payment_methods as pm
+
+    picked = [c for c in pm.METHODS if c in post.getlist("payment_methods")]
+    if not picked:
+        parsed.errors.append(_("Bitte mindestens eine Zahlungsart wählen."))
+        return []
+    return [] if len(picked) == len(pm.METHODS) else picked
+
+
+def keep_legacy_rule(tenant, kind: str, values: dict) -> None:
+    """Ревью FB-30.13: при снятой в 30.12 галочке «Vor Ort bei Lieferung» «все отмечены»
+    ([]) у курьера/посылки снова попадало под старый флаг — владелец видел все галочки, а
+    «Vor Ort» не предлагалась. Сохраняем тогда явный полный список: способ сам решает."""
+    from apps.core import payment_methods as pm
+
+    if values.get("payment_methods") != [] or kind == ShippingMethod.KIND_PICKUP:
+        return
+    if not pm.on_site_settings(tenant)["delivery"]:
+        values["payment_methods"] = list(pm.METHODS)
+
+
 def parse(post, kind: str) -> Parsed:
     """Поля способа из POST формы (без записи). Нерелевантные типу поля игнорируются."""
     parsed = Parsed()
@@ -154,6 +178,8 @@ def parse(post, kind: str) -> Parsed:
     v["fee_cents"] = _money(post, "fee", _("Preis"), parsed)
     v["free_from_cents"] = _money(post, "free_from", _("Kostenlos ab"), parsed)
     v["area_text"] = (post.get("area_text") or "").strip()[:2000]
+    if post.get("sec_payments"):
+        v["payment_methods"] = _payment_methods(post, parsed)
     if kind == ShippingMethod.KIND_PICKUP and has_rows(post, "locations"):
         locations = []
         for row in _rows(post, "locations", parsed):

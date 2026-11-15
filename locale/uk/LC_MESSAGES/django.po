@@ -38552,3 +38552,31 @@ msgstr "Увімкнеться після «Зберегти» — спершу 
 
 msgid "Zahlung vor Ort gibt es bei Lieferung nicht. Gewählt:"
 msgstr "При доставці оплати на місці немає. Обрано:"
+
+msgid "Diese Zahlungsart ist mit der gewählten Versandart nicht möglich. Bitte wählen Sie eine andere Zahlungsart oder Versandart."
+msgstr "Цей спосіб оплати недоступний з обраним способом доставки. Оберіть інший спосіб оплати або доставки."
+
+msgid "Diese Zahlungsart passt nicht zur gewählten Versandart. Gewählt:"
+msgstr "Цей спосіб оплати не підходить до обраної доставки. Обрано:"
+
+msgid "Diese Versandart passt nicht zur gewählten Zahlungsart. Gewählt:"
+msgstr "Цей спосіб доставки не підходить до обраної оплати. Обрано:"
+
+msgid "Bitte mindestens eine Zahlungsart wählen."
+msgstr "Оберіть хоча б один спосіб оплати."
+
+#, python-format
+msgid "Zahlung: %(names)s"
+msgstr "Оплата: %(names)s"
+
+msgid "Zahlungsarten bei dieser Versandart"
+msgstr "Способи оплати при цій доставці"
+
+msgid "derzeit nicht eingerichtet"
+msgstr "поки не налаштовано"
+
+msgid "Im Warenkorb sehen Kunden zu dieser Versandart nur diese Zahlungsarten – und umgekehrt."
+msgstr "У кошику при цій доставці покупець бачить лише ці способи оплати — і навпаки."
+
+msgid "Welche Zahlungsart bei welcher Versandart möglich ist, stellen Sie in den Versandarten ein."
+msgstr "Яка оплата можлива за якої доставки — налаштовується у способах доставки."

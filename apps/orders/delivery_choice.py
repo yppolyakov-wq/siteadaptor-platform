@@ -231,6 +231,26 @@ def _option(method, subtotal_cents: int, parcel) -> dict | None:
     }
 
 
+def _with_payments(method, tenant, subtotal_cents: int, parcel) -> dict | None:
+    """FB-30.13: опция способа + его правило оплаты (`pays` — коды через пробел, пусто —
+    все). Способ, с которым нечем заплатить, не предлагается: ноль способов оплаты на
+    чекауте не бывает (сервер отказывает и сам)."""
+    from apps.core import payment_methods as pm
+
+    option = _option(method, subtotal_cents, parcel)
+    if not option:
+        return None
+    allowed = pm.allowed_with(method, tenant)
+    # фирма со счётом — тоже покупатель: способ «nur auf Rechnung» не прячем от всех
+    buyer = pm.COMPANY if pm.invoice_enabled(tenant) else pm.PRIVATE
+    if allowed is not None and not allowed & set(
+        pm.available(tenant, "order", customer_type=buyer)
+    ):
+        return None
+    option["pays"] = " ".join(sorted(allowed)) if allowed is not None else ""
+    return option
+
+
 def context(tenant, subtotal_cents: int = 0, parcel=None) -> dict:
     """Данные для партиала `storefront/_fulfillment_choice.html`.
 
@@ -241,7 +261,11 @@ def context(tenant, subtotal_cents: int = 0, parcel=None) -> dict:
     if tenant is None:
         return {"delivery_enabled": False, "shipping_options": []}
     options = [
-        o for o in (_option(m, subtotal_cents, parcel) for m in shipping.methods(tenant)) if o
+        o
+        for o in (
+            _with_payments(m, tenant, subtotal_cents, parcel) for m in shipping.methods(tenant)
+        )
+        if o
     ]
     deliveries = [o for o in options if o["kind"] != ShippingMethod.KIND_PICKUP]
     ctx = {

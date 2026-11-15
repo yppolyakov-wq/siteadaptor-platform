@@ -60,16 +60,18 @@ def _post(tenant, data):
     )
 
 
-def test_on_site_kind_and_delivery_are_saved_and_garbage_is_dropped():
-    tenant = TenantFactory(disabled_modules=[], site_config={"keep": 1})
+def test_on_site_kind_is_saved_and_garbage_is_dropped():
+    tenant = TenantFactory(
+        disabled_modules=[], site_config={"keep": 1, "payment_on_site": {"delivery": False}}
+    )
     _post(tenant, {"tab": "zahlung", "sec_on_site": "1", "on_site_kind": "card",
                    "on_site_delivery_shown": "1"})  # fmt: skip
     tenant.refresh_from_db()
+    # FB-30.13: «bei Lieferung» на экране больше нет — прежнее значение не трогается
     assert tenant.site_config["payment_on_site"] == {"kind": "card", "delivery": False}
     assert tenant.site_config["keep"] == 1, "точечная запись — чужие ключи целы"
     _post(tenant, {"tab": "zahlung", "sec_on_site": "1", "on_site_kind": "gold"})
     tenant.refresh_from_db()
-    # мусорный подвид → без уточнения; флажка в форме не было → прежнее значение
     assert tenant.site_config["payment_on_site"] == {"kind": "", "delivery": False}
 
 
@@ -81,12 +83,11 @@ def test_without_sentinel_on_site_is_untouched():
     assert tenant.site_config["payment_on_site"] == cfg["payment_on_site"]
 
 
-def test_switch_hint_says_it_waits_for_another_method():
-    tenant = TenantFactory(disabled_modules=[])
-    assert "Wirkt erst, wenn" in _html(tenant)
-    tenant.vorkasse_enabled, tenant.bank_iban = True, "DE89370400440532013000"
-    tenant.save()
-    assert "Wirkt erst, wenn" not in _html(tenant, user="pc3")
+def test_on_site_card_points_to_the_shipping_methods():
+    """FB-30.13: правило «оплата ↔ доставка» — в способах доставки, здесь только ссылка."""
+    html = _html(TenantFactory(disabled_modules=[]))
+    card = html.split('data-pay-card="on_site"', 1)[1].split("</li>", 1)[0]
+    assert 'name="on_site_delivery"' not in card and "?tab=lieferung" in card
 
 
 def test_wizard_keeps_the_old_sections():

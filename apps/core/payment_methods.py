@@ -111,7 +111,7 @@ def invoice_enabled(tenant) -> bool:
 
 
 def available(
-    tenant, kind: str = "order", *, customer_type: str = PRIVATE, fulfillment: str = ""
+    tenant, kind: str = "order", *, customer_type: str = PRIVATE, shipping=None
 ) -> list[str]:
     """Способы оплаты для вида сделки и типа покупателя.
 
@@ -120,9 +120,12 @@ def available(
       предоплаты, как в E7-2 — прежнее поведение чекаута корзины);
     * Vorkasse — при тумблере и заполненном IBAN;
     * счёт — только фирме и только при `invoice_b2b_enabled` (Р-3);
-    * оплата на месте — всегда (последний, как раньше); FB-30.12: у заказа с
-      доставкой бизнес может её выключить, но только если остаётся онлайн или
-      Vorkasse — ноль способов на чекауте не бывает (счёт частному лицу не положен).
+    * оплата на месте — всегда (последний, как раньше).
+
+    FB-30.13: с ``shipping`` (выбранный способ доставки) список сужается правилом этого
+    способа (`allowed_with`) и МОЖЕТ стать пустым — такой способ доставки витрина не
+    предлагает, а чекаут отвечает ошибкой (см. `pair_refused`). Без ``shipping`` — прежний
+    список, никогда не пустой.
     """
     methods: list[str] = []
     if kind == "order":
@@ -135,58 +138,59 @@ def available(
         methods.append(VORKASSE)
     if customer_type == COMPANY and invoice_enabled(tenant):
         methods.append(INVOICE)
-    if on_site_allowed(tenant, kind, fulfillment=fulfillment, others=methods):
-        methods.append(ON_SITE)
+    methods.append(ON_SITE)
+    if shipping is not None:
+        allowed = allowed_with(shipping, tenant, kind)
+        if allowed is not None:
+            methods = [m for m in methods if m in allowed]
     return methods
 
 
-def on_site_allowed(tenant, kind: str, *, fulfillment: str, others: list[str]) -> bool:
-    """Предлагать ли «оплату на месте» (FB-30.12). Выключается только у заказа с
-    доставкой при снятом флажке и при наличии способа для частного лица."""
-    if kind != "order" or fulfillment != "delivery":
-        return True
+def allowed_with(shipping, tenant, kind: str = "order") -> set[str] | None:
+    """FB-30.13: какие способы оплаты допускает способ доставки; None — без ограничений.
+
+    Правило задаётся в способе доставки (`ShippingMethod.payment_methods`, пусто — все).
+    Наследство FB-30.12: снятая в карточке «Vor Ort» галочка «bei Lieferung»
+    (`site_config["payment_on_site"]["delivery"] is False`) у курьера и посылки без своего
+    списка убирает «на месте» — только если остаётся онлайн или Vorkasse (как было).
+    """
+    codes = {c for c in (getattr(shipping, "payment_methods", None) or []) if c in METHODS}
+    if codes:
+        return codes
+    if getattr(shipping, "kind", "pickup") == "pickup" or kind != "order":
+        return None
     if on_site_settings(tenant)["delivery"]:
-        return True
-    return not any(m in (STRIPE, VORKASSE) for m in others)
+        return None
+    others = [m for m in available(tenant, kind) if m in (STRIPE, VORKASSE)]
+    return set(METHODS) - {ON_SITE} if others else None
 
 
-ON_SITE_REFUSED = _(
-    "Bei Lieferung ist Zahlung vor Ort nicht möglich. Bitte wählen Sie eine andere Zahlungsart."
+PAIR_REFUSED = _(
+    "Diese Zahlungsart ist mit der gewählten Versandart nicht möglich. "
+    "Bitte wählen Sie eine andere Zahlungsart oder Versandart."
 )
 
 
-def on_site_refused(tenant, code: str, kind: str = "order", *, fulfillment: str = "") -> str:
-    """FB-30.12: покупатель выбрал «на месте», а при доставке бизнес её выключил →
-    текст ошибки (заказ не создаётся; молча подменять способ оплаты нельзя — это
-    деньги). Иначе пустая строка."""
-    if (code or "").strip() != ON_SITE:
-        return ""
-    if on_site_allowed(tenant, kind, fulfillment=fulfillment, others=_others(tenant, kind)):
-        return ""
-    return str(ON_SITE_REFUSED)
+def pair_refused(tenant, code: str, kind: str = "order", *, shipping=None) -> str:
+    """FB-30.13: пара «оплата × доставка» несовместима → текст ошибки (заказ не создаётся;
+    молча подменять способ оплаты нельзя — это деньги). Иначе пустая строка.
 
-
-def hidden_for_delivery(tenant, kind: str = "order") -> bool:
-    """Пикер витрины прячет «vor Ort», когда покупатель выбрал доставку (FB-30.12b);
-    сервер всё равно отказывает сам (`on_site_refused`)."""
-    return not on_site_allowed(tenant, kind, fulfillment="delivery", others=_others(tenant, kind))
+    Пустой/неизвестный код здесь не судится — его по-прежнему решает `normalize`
+    (первый доступный), но уже в пределах способа доставки."""
+    if shipping is None:
+        return ""
+    code = (code or "").strip()
+    if code not in METHODS:
+        return ""
+    allowed = allowed_with(shipping, tenant, kind)
+    if allowed is None or code in allowed:
+        return ""
+    return str(PAIR_REFUSED)
 
 
 def picker_rows(tenant, methods: list[str], kind: str = "order") -> list[dict]:
-    """Строки пикера оплаты: код, подпись по виду сделки, «скрыть при доставке»."""
-    hide = ON_SITE in methods and hidden_for_delivery(tenant, kind)
-    return [
-        {
-            "code": m,
-            "label": label(m, kind, tenant=tenant),
-            "no_delivery": hide and m == ON_SITE,
-        }
-        for m in methods
-    ]
-
-
-def _others(tenant, kind: str) -> list[str]:
-    return [m for m in available(tenant, kind) if m != ON_SITE]
+    """Строки пикера оплаты: код и подпись по виду сделки."""
+    return [{"code": m, "label": label(m, kind, tenant=tenant)} for m in methods]
 
 
 def normalize(
@@ -195,14 +199,18 @@ def normalize(
     kind: str = "order",
     *,
     customer_type: str = PRIVATE,
-    fulfillment: str = "",
+    shipping=None,
 ) -> str:
     """Выбранный способ или первый доступный (мусор/недоступное → дефолт).
 
     Тот же fail-safe, что был у чекаута корзины: подмена поля не даёт способа,
-    которого бизнес не предлагает.
+    которого бизнес не предлагает. FB-30.13: в пределах способа доставки; если он не
+    допускает ни одного доступного способа — первый доступный без него (такую пару
+    раньше отсекает `pair_refused`/витрина, сюда она не доходит).
     """
-    allowed = available(tenant, kind, customer_type=customer_type, fulfillment=fulfillment)
+    allowed = available(tenant, kind, customer_type=customer_type, shipping=shipping) or (
+        available(tenant, kind, customer_type=customer_type)
+    )
     code = (code or "").strip()
     return code if code in allowed else allowed[0]
 
@@ -252,5 +260,7 @@ def picker_context(tenant, kind="order", *, customer_type=PRIVATE) -> dict:
     )
     return {
         "payment_methods": (picker_rows(tenant, methods, kind) if len(methods) > 1 else []),
+        # FB-30.13: единственный способ виден строкой (раньше блока не было вовсе)
+        "payment_single": picker_rows(tenant, methods, kind)[0] if len(methods) == 1 else None,
         "billing_party_enabled": invoice_enabled(tenant),
     }

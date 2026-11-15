@@ -134,6 +134,21 @@ Paketdienst — компания, до двери/пункт выдачи, це�
   <label class="block"><span class="block text-xs ui-muted mb-1">{% trans "Hinweis für Kunden (optional)" %}</span>
     <input name="area_text" type="text" maxlength="2000" value="{{ sv.area_text|default:'' }}" class="ui-input"></label>
 
+  {% comment %}FB-30.13: какие способы оплаты допустимы с этим способом доставки (сентинел sec_payments; все отмечены — без ограничения).{% endcomment %}
+  <fieldset data-ship-payments aria-describedby="ship-pay-note">
+    <input type="hidden" name="sec_payments" value="1">
+    <legend class="block text-xs ui-muted mb-1">{% trans "Zahlungsarten bei dieser Versandart" %}</legend>
+    <div class="grid sm:grid-cols-2 gap-2">
+      {% for r in pay_rows %}
+        <label class="flex items-center gap-2 text-sm rounded-lg border border-gray-200 px-3 py-2">
+          <input type="checkbox" name="payment_methods" value="{{ r.code }}" {% if r.checked %}checked{% endif %}>
+          <span>{{ r.label }}{% if not r.live %} <span class="text-xs ui-muted">({% trans "derzeit nicht eingerichtet" %})</span>{% endif %}</span>
+        </label>
+      {% endfor %}
+    </div>
+    <p id="ship-pay-note" class="text-xs ui-muted mt-1">{% trans "Im Warenkorb sehen Kunden zu dieser Versandart nur diese Zahlungsarten – und umgekehrt." %}</p>
+  </fieldset>
+
   <div class="flex justify-end gap-2 pt-2">
     <a href="{{ next_url }}" class="ui-btn ui-btn-secondary" data-drawer-close>{% trans "Abbrechen" %}</a>
     <button class="ui-btn ui-btn-primary">{% trans "Speichern" %}</button>

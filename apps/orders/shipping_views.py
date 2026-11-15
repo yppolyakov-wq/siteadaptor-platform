@@ -96,6 +96,11 @@ def summary(method: ShippingMethod) -> str:
         parts.append(_("%(n)s Liefergebiete") % {"n": len(method.zones)})
     if method.delivery_time:
         parts.append(method.delivery_time)
+    if getattr(method, "payment_methods", None):
+        from apps.core import payment_methods as pm
+
+        names = ", ".join(str(pm.label(c, "order")) for c in method.payment_methods)
+        parts.append(_("Zahlung: %(names)s") % {"names": names})
     return " · ".join(str(p) for p in parts)
 
 
@@ -124,6 +129,28 @@ def _render_form(request, ctx):
     return render(request, "tenant/shipping_method.html", ctx)
 
 
+def _pay_rows(tenant, method, kind, values) -> list[dict]:
+    """FB-30.13: галочки «Zahlungsarten bei dieser Versandart». Без ограничения отмечены
+    все; наследство FB-30.12 («Vor Ort» не при доставке) показывается как есть."""
+    from apps.core import payment_methods as pm
+
+    if hasattr(values, "getlist") and values.get("sec_payments"):
+        picked = set(values.getlist("payment_methods"))  # повторный показ с ошибкой
+    else:
+        probe = method or ShippingMethod(kind=kind)
+        picked = pm.allowed_with(probe, tenant) or set(pm.METHODS)
+    live = set(pm.available(tenant, "order", customer_type=pm.COMPANY))
+    return [
+        {
+            "code": code,
+            "label": pm.label(code, "order", tenant=tenant),
+            "checked": code in picked,
+            "live": code in live,
+        }
+        for code in pm.METHODS
+    ]
+
+
 def _ctx(request, method, values, kind, errors=()):
     carrier_rows = [
         {"code": c.code, "name": c.name, "points": bool(c.pickup_point)} for c in carriers.REGISTRY
@@ -140,6 +167,7 @@ def _ctx(request, method, values, kind, errors=()):
         "loc_rows": shipping_admin.form_rows(values, "locations"),
         "errors": list(errors),
         "carrier_rows": carrier_rows,
+        "pay_rows": _pay_rows(request.tenant, method, kind, values),
         "next_url": drawer_mod.drawer_next(request, list_url()),
     }
 
@@ -159,6 +187,7 @@ def shipping_method_new(request):
                 for error in parsed.errors:
                     messages.error(request, error)
             return _render_form(request, _ctx(request, None, request.POST, kind, parsed.errors))
+        shipping_admin.keep_legacy_rule(request.tenant, kind, parsed.values)
         shipping_admin.create(request.tenant, kind, parsed.values)
         messages.success(request, _("Versandart gespeichert."))
         return redirect(list_url())
@@ -181,6 +210,7 @@ def shipping_method_edit(request, pk):
             return _render_form(
                 request, _ctx(request, method, request.POST, method.kind, parsed.errors)
             )
+        shipping_admin.keep_legacy_rule(request.tenant, method.kind, parsed.values)
         shipping_admin.update(request.tenant, method, parsed.values)
         messages.success(request, _("Versandart gespeichert."))
         return redirect(list_url())

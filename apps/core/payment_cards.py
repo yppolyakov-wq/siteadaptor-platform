@@ -34,10 +34,7 @@ def art_from(raw) -> str:
 def _summary(tenant, code: str, ctx: dict) -> str:
     if code == pm.ON_SITE:
         cfg = pm.on_site_settings(tenant)
-        text = str(_KIND_TEXT[cfg["kind"]])
-        if ctx.get("orders_active") and not cfg["delivery"]:
-            text = f"{text} · {_('nicht bei Lieferung')}"
-        return text
+        return str(_KIND_TEXT[cfg["kind"]])
     if code == pm.STRIPE:
         state = _("verbunden") if ctx.get("connected") else _("nicht verbunden")
         return f"{_('Anbieter')}: Stripe · {state}"
@@ -80,7 +77,6 @@ def cards_context(tenant, ctx: dict, art: str = "") -> dict:
         for code in codes
     ]
     cards.sort(key=lambda c: not c["on"])
-    others = [c for c in cards if c["on"] and c["code"] != pm.ON_SITE]
     return {
         "pay_cards": cards,
         "pay_addable": [c for c in cards if not c["on"]],
@@ -92,6 +88,4 @@ def cards_context(tenant, ctx: dict, art: str = "") -> dict:
             ("card", _("Nur Karte am Terminal")),
             ("both", _("Bar oder Karte")),
         ],
-        # Выключение «vor Ort» при доставке работает, только если есть чем платить ещё.
-        "on_site_switch_idle": not any(c["code"] in (pm.STRIPE, pm.VORKASSE) for c in others),
     }

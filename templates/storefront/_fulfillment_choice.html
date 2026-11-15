@@ -16,7 +16,7 @@ Sperrgut) — честный текст, а не обещание самовыв
   </p>
 {% elif shipping_options|length == 1 %}
   {% with o=shipping_options.0 %}
-    <input type="hidden" name="fulfillment" value="{{ o.key }}" data-ship-option data-kind="{{ o.kind }}" data-fee-cents="{{ o.fee_cents }}" data-free-cents="{{ o.free_cents }}" data-address="{% if o.needs_address %}1{% endif %}" data-point="{% if o.point %}1{% endif %}">
+    <input type="hidden" name="fulfillment" value="{{ o.key }}" data-ship-option data-kind="{{ o.kind }}" data-fee-cents="{{ o.fee_cents }}" data-free-cents="{{ o.free_cents }}" data-address="{% if o.needs_address %}1{% endif %}" data-point="{% if o.point %}1{% endif %}" data-pays="{{ o.pays }}">
     <p class="flex flex-wrap items-center gap-x-2 text-sm font-medium text-gray-700 rounded-lg bg-gray-50 border border-gray-200 px-3 py-2">
       {% if o.kind == "pickup" %}<span aria-hidden="true">🛍</span> {% trans "Pickup in store" %}{% if request.tenant.address %} <span class="font-normal text-gray-500">· {{ request.tenant.address }}</span>{% endif %}{% else %}<span aria-hidden="true">{% if o.kind == "courier" %}🚚{% else %}📦{% endif %}</span> {{ o.label }}{% if o.time %} <span class="font-normal text-gray-500">· {{ o.time }}</span>{% endif %} <span class="font-normal text-gray-500">· {% if o.fee_cents %}{{ o.fee_text }} €{% else %}{% trans "free" %}{% endif %}{% if o.free_cents %} · {% blocktrans with f=o.free_text %}free from {{ f }} €{% endblocktrans %}{% endif %}</span>{% endif %}
     </p>
@@ -24,10 +24,11 @@ Sperrgut) — честный текст, а не обещание самовыв
 {% else %}
   <fieldset>
     <legend class="font-semibold mb-2">{% trans "How would you like to get it?" %}</legend>
+    <p class="sr-only" role="status" aria-live="polite" data-ship-live data-msg="{% trans "Diese Versandart passt nicht zur gewählten Zahlungsart. Gewählt:" %}"></p>
     <div class="grid {% if shipping_options|length == 2 %}grid-cols-2{% else %}grid-cols-1{% endif %} gap-2" data-fulfillment-switch>
       {% for o in shipping_options %}
         <label class="sf-seg flex items-center {% if shipping_options|length == 2 %}justify-center text-center{% endif %} gap-2 text-sm font-medium rounded-lg border border-gray-200 px-3 py-2.5 cursor-pointer">
-          <input type="radio" name="fulfillment" value="{{ o.key }}" class="sr-only" {% if forloop.first %}checked{% endif %}{% if shipping_options|length == 2 and o.kind != "pickup" %} aria-describedby="ship-fee-note"{% endif %} data-ship-option data-kind="{{ o.kind }}" data-fee-cents="{{ o.fee_cents }}" data-free-cents="{{ o.free_cents }}" data-address="{% if o.needs_address %}1{% endif %}" data-point="{% if o.point %}1{% endif %}">
+          <input type="radio" name="fulfillment" value="{{ o.key }}" class="sr-only" {% if forloop.first %}checked{% endif %}{% if shipping_options|length == 2 and o.kind != "pickup" %} aria-describedby="ship-fee-note"{% endif %} data-ship-option data-kind="{{ o.kind }}" data-fee-cents="{{ o.fee_cents }}" data-free-cents="{{ o.free_cents }}" data-address="{% if o.needs_address %}1{% endif %}" data-point="{% if o.point %}1{% endif %}" data-pays="{{ o.pays }}">
           <span><span aria-hidden="true">{% if o.kind == "pickup" %}🛍{% elif o.kind == "courier" %}🚚{% else %}📦{% endif %}</span> {{ o.label }}{% if shipping_options|length > 2 %}<span class="block text-xs font-normal text-gray-500">{% if o.time %}{{ o.time }} · {% endif %}{% if o.kind == "pickup" %}{% trans "free" %}{% elif o.fee_cents %}{{ o.fee_text }} €{% else %}{% trans "free" %}{% endif %}{% if o.free_cents and o.kind != "pickup" %} · {% blocktrans with f=o.free_text %}free from {{ f }} €{% endblocktrans %}{% endif %}</span>{% endif %}</span>
         </label>
       {% endfor %}
@@ -106,25 +107,51 @@ Sperrgut) — честный текст, а не обещание самовыв
           var el = document.getElementById(id);
           if (el) el.classList.toggle("hidden", !pickup);
         });
-        // FB-30.12b: «vor Ort» при доставке бизнес выключил — строку прячем, выбор
-        // переносим на первую видимую (сервер всё равно отказывает сам).
-        document.querySelectorAll('[data-pay-onsite-nodelivery]').forEach(function (row) {
-          row.classList.toggle("hidden", !pickup);
-          var radio = row.querySelector('input[name=payment]');
-          if (pickup || !radio || !radio.checked) return;
-          var scope = row.closest("form") || document;
-          var next = scope.querySelector('label:not(.hidden) > input[name=payment]');
-          if (!next) return;
+        syncPays(o);
+      }
+      // FB-30.13: «оплата ↔ доставка» в обе стороны. У способа доставки — data-pays (коды
+      // через пробел, пусто — все), у строки оплаты — data-pay. Доставка прячет неподходящую
+      // оплату; оплата переключает доставку на подходящую. Смена объявляется (live region).
+      function allows(opt, code) {
+        var pays = (opt.dataset.pays || "").trim();
+        return !pays || pays.split(" ").indexOf(code) !== -1;
+      }
+      function announce(scope, input) {
+        var live = scope.querySelector("[data-pay-live]");
+        if (live && input) live.textContent = live.dataset.msg + " " + input.parentNode.textContent.trim();
+      }
+      function syncPays(o) {
+        var rows = Array.prototype.slice.call(document.querySelectorAll("[data-pay]"));
+        if (!rows.length) return;
+        var ok = rows.filter(function (row) { return allows(o, row.dataset.pay); });
+        if (!ok.length) return;
+        rows.forEach(function (row) { row.classList.toggle("hidden", ok.indexOf(row) === -1); });
+        var checked = document.querySelector("[data-pay] > input[name=payment]:checked");
+        if (checked && ok.indexOf(checked.parentNode) === -1) {
+          var next = ok[0].querySelector("input[name=payment]");
           next.checked = true;
-          next.dispatchEvent(new Event("change", { bubbles: true }));
-          var live = scope.querySelector("[data-pay-live]");
-          if (live) live.textContent = live.dataset.msg + " " + next.parentNode.textContent.trim();
-        });
+          announce(next.closest("form") || document, next);
+        }
+      }
+      // Выбор оплаты способы доставки НЕ прячет (ревью: два направления пряток давали тупик) —
+      // только переключает на первый подходящий, если текущий её не допускает.
+      function syncShips(code) {
+        var cur = document.querySelector('input[type=radio][data-ship-option]:checked');
+        if (!cur || allows(cur, code)) return;
+        var opts = Array.prototype.slice.call(document.querySelectorAll('input[type=radio][data-ship-option]'));
+        var next = opts.filter(function (opt) { return allows(opt, code); })[0];
+        if (!next) return;
+        next.checked = true;
+        var live = document.querySelector("[data-ship-live]");
+        if (live) live.textContent = live.dataset.msg + " " + next.closest("label").textContent.trim();
+        sync();
       }
       if (!window.__shipChoiceBound) {
         window.__shipChoiceBound = true;
         document.addEventListener("change", function (e) {
-          if (e.target && e.target.name === "fulfillment") sync();
+          if (!e.target) return;
+          if (e.target.name === "fulfillment") sync();
+          if (e.target.name === "payment") syncShips(e.target.value);
         });
       }
       sync();

@@ -58,12 +58,18 @@
         {% if payment_methods %}
           <div>
             <p class="text-sm font-medium mb-1">{% trans "Wie möchten Sie bezahlen?" %}</p>
-            <p class="sr-only" role="status" aria-live="polite" data-pay-live data-msg="{% trans "Zahlung vor Ort gibt es bei Lieferung nicht. Gewählt:" %}"></p>
-<div class="grid gap-2">
+            <p class="sr-only" role="status" aria-live="polite" data-pay-live data-msg="{% trans "Diese Zahlungsart passt nicht zur gewählten Versandart. Gewählt:" %}"></p>
+            <div class="grid gap-2">
               {% for m in payment_methods %}
-                <label class="flex items-center gap-2 text-sm rounded-lg border border-gray-200 px-3 py-2 cursor-pointer"{% if m.no_delivery %} data-pay-onsite-nodelivery{% endif %}><input type="radio" name="payment" value="{{ m.code }}" {% if forloop.first %}checked{% endif %}> {{ m.label }}</label>
+                <label class="flex items-center gap-2 text-sm rounded-lg border border-gray-200 px-3 py-2 cursor-pointer" data-pay="{{ m.code }}"><input type="radio" name="payment" value="{{ m.code }}" {% if forloop.first %}checked{% endif %}> {{ m.label }}</label>
               {% endfor %}
             </div>
+          </div>
+        {% elif payment_single %}
+          {% comment %}FB-30.13: один способ — строкой, без выбора (поле не нужно: сервер берёт единственный).{% endcomment %}
+          <div data-pay-single>
+            <p class="text-sm font-medium mb-1">{% trans "Wie möchten Sie bezahlen?" %}</p>
+            <p class="text-sm text-gray-700 rounded-lg bg-gray-50 border border-gray-200 px-3 py-2">{{ payment_single.label }}</p>
           </div>
         {% endif %}
         <button class="w-full bg-green-600 text-white rounded-lg px-4 py-3 font-medium hover:bg-green-700">{% trans "Annehmen & bezahlen" %}</button>

@@ -38226,3 +38226,31 @@ msgstr "Will be switched on with «Save» – check the tick first."
 
 msgid "Zahlung vor Ort gibt es bei Lieferung nicht. Gewählt:"
 msgstr "Payment on site is not available for delivery. Selected:"
+
+msgid "Diese Zahlungsart ist mit der gewählten Versandart nicht möglich. Bitte wählen Sie eine andere Zahlungsart oder Versandart."
+msgstr "This payment method is not available with the chosen shipping method. Please choose another payment or shipping method."
+
+msgid "Diese Zahlungsart passt nicht zur gewählten Versandart. Gewählt:"
+msgstr "This payment method does not fit the chosen shipping method. Selected:"
+
+msgid "Diese Versandart passt nicht zur gewählten Zahlungsart. Gewählt:"
+msgstr "This shipping method does not fit the chosen payment method. Selected:"
+
+msgid "Bitte mindestens eine Zahlungsart wählen."
+msgstr "Please choose at least one payment method."
+
+#, python-format
+msgid "Zahlung: %(names)s"
+msgstr "Payment: %(names)s"
+
+msgid "Zahlungsarten bei dieser Versandart"
+msgstr "Payment methods for this shipping method"
+
+msgid "derzeit nicht eingerichtet"
+msgstr "not set up yet"
+
+msgid "Im Warenkorb sehen Kunden zu dieser Versandart nur diese Zahlungsarten – und umgekehrt."
+msgstr "In the cart, customers see only these payment methods for this shipping method – and vice versa."
+
+msgid "Welche Zahlungsart bei welcher Versandart möglich ist, stellen Sie in den Versandarten ein."
+msgstr "Which payment method is possible with which shipping method is set in the shipping methods."

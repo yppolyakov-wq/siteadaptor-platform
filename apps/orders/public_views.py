@@ -960,6 +960,12 @@ def cart_view(request):
         if ctx["quote_cart"]
         else (_pm.picker_rows(tenant, _methods) if len(_methods) > 1 else [])
     )
+    # FB-30.13: один способ — строкой (корзина-запрос MEN-9 оплаты не показывает вовсе)
+    ctx["payment_single"] = (
+        _pm.picker_rows(tenant, _methods)[0]
+        if len(_methods) == 1 and not ctx["quote_cart"]
+        else None
+    )
     from apps.core import attribution
 
     ctx["attr"] = attribution.context(request)  # В5 V5-5: канал корзины → поля чекаута
@@ -1120,11 +1126,11 @@ def checkout(request):
     from apps.core import payment_methods as _pm
 
     customer_type = _pm.customer_type_of(request.POST.get("customer_type"))
-    fulfillment = "delivery" if delivery else "pickup"
+    # FB-30.13: способы оплаты — в пределах выбранного способа доставки (его правило).
+    ship_method = choice.method
     methods = order_payments.available_methods(
-        tenant, customer_type=customer_type, fulfillment=fulfillment
+        tenant, customer_type=customer_type, shipping=ship_method
     )
-    chosen_method = request.POST.get("payment") or methods[0]
     # MEN-9: режим просчёта — платить нечего и нечем (пикера нет); фиксируем
     # on_site и метим заказ каналом «quote» (по прецеденту anprobe: тот же
     # Order, но другие тексты/письма и никакой платёжной обязанности).
@@ -1133,13 +1139,18 @@ def checkout(request):
     quote_mode = bool(
         _siteconfig.normalize(getattr(tenant, "site_config", None) or {}).get("quote_cart")
     )
-    # FB-30.12: «vor Ort» при доставке выключена — ошибка, а не тихая подмена способа.
-    refused = _pm.on_site_refused(tenant, chosen_method, "order", fulfillment=fulfillment)
+    chosen_method = request.POST.get("payment") or (methods[0] if methods else "")
+    # FB-30.13: несовместимая пара «оплата × доставка» (или способ доставки без доступной
+    # оплаты) — ошибка, а не тихая подмена способа.
+    refused = _pm.pair_refused(tenant, chosen_method, "order", shipping=ship_method)
+    if not methods:
+        refused = str(_pm.PAIR_REFUSED)
+    # Корзина-запрос (MEN-9) ничего не оплачивает — правило пары к ней не относится.
     if refused and not quote_mode:
         messages.error(request, refused)
         return redirect("storefront-cart")
     if chosen_method not in methods:
-        chosen_method = methods[0]
+        chosen_method = methods[0] if methods else Order.METHOD_ON_SITE
     if quote_mode:
         chosen_method = Order.METHOD_ON_SITE
 
@@ -1386,9 +1397,6 @@ def offer_page(request, token):
             offer_service.decline_offer(offer)
             return redirect("storefront-offer", token=token)
         if action == "accept" and offer.is_open:
-            chosen = request.POST.get("payment") or methods[0]
-            if chosen not in methods:
-                chosen = methods[0]
             # SH-24: способ получения — тот же разбор, что на чекауте корзины
             # (раньше принятие предложения всегда создавало заказ на самовывоз).
             choice = delivery_choice.resolve(
@@ -1407,15 +1415,21 @@ def offer_page(request, token):
             if slot_error:
                 messages.error(request, slot_error)
                 return redirect("storefront-offer", token=token)
-            # FB-30.12: «vor Ort» при доставке выключена — ошибка, заказ не создаётся.
+            # FB-30.13: пара «оплата × доставка» несовместима — ошибка, заказ не создаётся.
             from apps.core import payment_methods as _pm
 
-            refused = _pm.on_site_refused(
-                tenant, chosen, "order", fulfillment="delivery" if choice.delivery else "pickup"
-            )
+            # FB-30.13: способ оплаты — в пределах выбранного способа доставки (ревью: раньше
+            # дефолт брался без него, и покупатель получал отказ за чужой выбор).
+            ship_methods = order_payments.available_methods(tenant, shipping=choice.method)
+            chosen = request.POST.get("payment") or (ship_methods[0] if ship_methods else "")
+            refused = _pm.pair_refused(tenant, chosen, "order", shipping=choice.method)
+            if not ship_methods:
+                refused = str(_pm.PAIR_REFUSED)
             if refused:
                 messages.error(request, refused)
                 return redirect("storefront-offer", token=token)
+            if chosen not in ship_methods:
+                chosen = ship_methods[0]
             try:
                 order = offer_service.accept_offer(
                     offer,
@@ -1478,6 +1492,9 @@ def offer_page(request, token):
             "payment_methods": order_payments.picker_rows(methods, tenant)
             if len(methods) > 1
             else [],
+            "payment_single": (
+                order_payments.picker_rows(methods, tenant)[0] if len(methods) == 1 else None
+            ),
             # SH-24: данные выбора «Abholung | Lieferung» для общего партиала.
             **delivery_choice.context(
                 tenant, int(offer.total * 100), parcel=offer_service.parcel_for_offer(offer)
