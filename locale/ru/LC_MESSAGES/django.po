@@ -38692,3 +38692,28 @@ msgstr "Сначала сеты, потом отдельные товары."
 
 msgid "Dieser Block hat einen festen Platz auf der Seite."
 msgstr "У этого блока постоянное место на странице."
+
+msgid "Dieser Wert ist hier nicht möglich."
+msgstr "Это значение здесь недоступно."
+
+msgid "Für alle Seiten — im Design festgelegt"
+msgstr "Для всех страниц — задано в «Дизайне»"
+
+msgid "Kartenform der Angebote"
+msgstr "Форма карточек акций"
+
+msgid "Kartenform der Produkte und Leistungen"
+msgstr "Форма карточек товаров и услуг"
+
+#, python-format
+msgid "wie Design: %(value)s"
+msgstr "как в «Дизайне»: %(value)s"
+
+msgid "ändern →"
+msgstr "изменить →"
+
+msgid "Für alle Seiten"
+msgstr "Для всех страниц"
+
+msgid "Gilt auf jeder Seite. Eine Liste oder ein einzelnes Produkt kann eine eigene Kartenform haben."
+msgstr "Действует на каждой странице. У списка или отдельного товара может быть своя форма карточки."

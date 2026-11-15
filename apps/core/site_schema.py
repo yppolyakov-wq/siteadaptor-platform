@@ -2110,12 +2110,43 @@ def setting_codes(tenant, code: str) -> list[str]:
     out: list[str] = []
     if is_object_code(code):
         return out  # настройки типа страницы — у общей строки, не у объекта
-    replaced = REPLACED_BY_BLOCKS.get(code, frozenset())
+    hidden = _not_on_page(code)
     for type_code in setting_types(tenant, code):
         for s in page_settings.cabinet_settings(type_code):
-            if s.code not in out and s.code not in replaced and page_settings.applies(tenant, s):
+            if s.code not in out and s.code not in hidden and page_settings.applies(tenant, s):
                 out.append(s.code)
     return out
+
+
+def _not_on_page(code: str) -> frozenset[str]:
+    """Настройки типа, которых нет в панели строки `code`: их заменили блоки страницы
+    либо они общие для сайта и правятся на экране «Design» (FB-31 P2)."""
+    from apps.core import page_settings
+
+    return REPLACED_BY_BLOCKS.get(code, frozenset()) | frozenset(page_settings.DESIGN_SETTINGS)
+
+
+def design_rows(tenant, code: str) -> list[dict]:
+    """FB-31 P2: общие настройки «Design», действующие на странице `code`, — строками
+    «wie Design: X · ändern →» в панели (только показ, правятся на «Design»)."""
+    from apps.core import page_settings
+
+    if is_object_code(code):
+        return []
+    wanted: list[str] = []
+    for type_code in setting_types(tenant, code):
+        for s in page_settings.cabinet_settings(type_code):
+            if s.code in page_settings.DESIGN_SETTINGS and s.code not in wanted:
+                if page_settings.applies(tenant, s):
+                    wanted.append(s.code)
+    if not wanted:
+        return []
+    found = page_settings.summaries(tenant, wanted)
+    return [
+        {**found[c], "code": c, "label": page_settings.DESIGN_LABELS.get(c, found[c]["label"])}
+        for c in wanted
+        if c in found
+    ]
 
 
 #: FB-30.16 R4 (стратегия FB-31): настройки, которые на строке страницы заменили блоки —
@@ -2129,8 +2160,6 @@ REPLACED_BY_BLOCKS = {
 #: Строка «Einstellungen der Seite» — у страниц без основного списка (главная, детали,
 #: корзина, текстовые): настройки типа некуда больше положить.
 PAGE_REF = "__page"
-#: Ключи сайта, общие для многих страниц — панель подписывает их «gilt für alle Seiten».
-SHARED_SETTINGS = frozenset({"product_card_form", "promo_card_form", "text_width"})
 
 
 def settings_groups(tenant, code: str, config: dict) -> list[dict]:
@@ -2144,8 +2173,8 @@ def settings_groups(tenant, code: str, config: dict) -> list[dict]:
         found = page_settings.schema(tenant, (type_code,), config=config)
         if not found:
             continue
-        replaced = REPLACED_BY_BLOCKS.get(code, frozenset())
-        rows = [s for s in found[0].settings if s.code not in seen and s.code not in replaced]
+        hidden = _not_on_page(code)
+        rows = [s for s in found[0].settings if s.code not in seen and s.code not in hidden]
         seen.update(s.code for s in rows)
         if rows:
             out.append(

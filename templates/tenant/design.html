@@ -201,6 +201,7 @@ Look'и; применение POST'ом — сохраняется сразу. �
     </div>
     <button type="submit" class="ui-btn ui-btn-primary min-h-[44px]">{% trans "Speichern" %}</button>
   </form>
+  {% if design_defaults %}{% include "tenant/_design_defaults.html" %}{% endif %}
   {% else %}
   {% comment %}FB-27 D-b (макет D1/D2): готовые дизайны. «Übernehmen» — ссылка на панель
   «что изменится / что останется» (без скриптов); главная перестраивается только по галочке.{% endcomment %}

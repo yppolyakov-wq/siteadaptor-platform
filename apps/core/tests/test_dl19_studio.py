@@ -49,33 +49,27 @@ def _save(tenant, data):
     return siteconfig.normalize(tenant.site_config)
 
 
-# --- кабинет (STU-19f-3, осознанно переписано: выбор ушёл из Студии) ------------
-def _cabinet(tenant, typ, method="get", data=None):
-    import uuid
+# --- кабинет (FB-31 P2: выбор формы — на «Design») ------------
+def _design(tenant):
+    from apps.core.design_page import design_view
 
-    from django.contrib.auth import get_user_model
-
-    from apps.core.tests.schema_settings import settings_screen
-
-    path = "/dashboard/seitenvorlagen/"
-    view = settings_screen  # FB-27 R4: настройки типа — в «Seitenaufbau»
-    req = _request(method, path, data if data is not None else {"typ": typ}, tenant)
-    o = uuid.uuid4().hex[:8]
-    req.user = get_user_model().objects.create_user(f"cf-{o}", f"cf-{o}@t.de", "pw12345678")
-    return view(req)
+    req = _request("get", "/dashboard/design/", {"tab": "karten"}, tenant)
+    resp = design_view(req)
+    assert resp.status_code == 200
+    return resp.content.decode()
 
 
 def test_cabinet_shows_a_tile_with_a_preview_for_every_form():
+    """FB-31 P2 (осознанно): плитки форм карточек — на экране «Design», «Für alle Seiten»."""
     tenant = TenantFactory(
         schema_name="public", slug="dl19s", name="DL19S", enabled_modules=["catalog", "promotions"]
     )
-    body = _cabinet(tenant, "catalog").content.decode()
-    form = body.split('data-pt-setting="product_card_form"', 1)[1].split("</form>", 1)[0]
+    body = _design(tenant)
+    form = body.split('data-design-default="product_card_form"', 1)[1].split("</fieldset>", 1)[0]
     for key, _label, _hint in card_forms.forms_for("product"):
         assert f'value="{key}"' in form, key
     assert 'aria-hidden="true"' in form  # мини-макет у плитки, а не только подпись
-    promos = _cabinet(tenant, "promos").content.decode()
-    pform = promos.split('data-pt-setting="promo_card_form"', 1)[1].split("</form>", 1)[0]
+    pform = body.split('data-design-default="promo_card_form"', 1)[1].split("</fieldset>", 1)[0]
     for key, _label, _hint in card_forms.forms_for("promo"):
         assert f'value="{key}"' in pform, key
 

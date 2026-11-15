@@ -136,11 +136,12 @@ def test_draft_setting_is_visible_in_the_overlay_preview(_urlconf):
 
 def test_shared_key_changed_elsewhere_is_a_conflict(_urlconf):
     b = Browser(_tenant())
-    b.post(seite="catalog", op="setting", setting="product_card_form", value="deal")
-    page_settings.write(b.tenant, "product_card_form", "regal")  # другая страница/вкладка
+    # FB-31 P2 (осознанно): форма карточки ушла на «Design» — конфликт ловим на сортировке
+    b.post(seite="catalog", op="setting", setting="catalog_sort", value="price_asc")
+    page_settings.write(b.tenant, "catalog_sort", "price_desc")  # другая вкладка
     _resp, msgs = b.post(seite="catalog", op="save")
     assert any("inzwischen" in m for m in msgs)
-    assert _saved(b.tenant)["site_defaults"]["card_style"] == "regal"
+    assert _saved(b.tenant)["catalog_sort"] == "price_desc"
 
 
 def test_old_draft_without_settings_still_works(_urlconf):
@@ -180,6 +181,8 @@ def test_every_page_setting_is_reachable_from_seitenaufbau(business_type):
         reachable.update(site_schema.setting_codes(tenant, row.code))
     # FB-30.16 R4 (осознанно): шаблон каталога правится блоками «Kategorien» и ★ «Produkte»
     reachable.update(*site_schema.REPLACED_BY_BLOCKS.values())
+    # FB-31 P2 (осознанно): общие настройки сайта правятся на экране «Design»
+    reachable.update(s.code for s in page_settings.design_schema(tenant))
     assert wanted and wanted <= reachable, sorted(wanted - reachable)
 
 
@@ -189,8 +192,11 @@ def test_main_list_panel_carries_the_page_settings(_urlconf):
     main = next(x for x in site_schema.blocks_for(cfg, "catalog") if x["main"])
     html = b.get(f"?seite=catalog&block={main['ref']}")
     assert "data-schema-settings" in html
-    for code in ("catalog_sort", "catalog_layout", "product_card_form"):
+    for code in ("catalog_sort", "catalog_layout"):
         assert f'data-schema-setting="{code}"' in html
+    # FB-31 P2: форма карточки — строкой «wie Design», без своей формы в панели
+    assert 'data-schema-design-row="product_card_form"' in html
+    assert 'data-schema-setting="product_card_form"' not in html
     assert 'name="out_mode"' in html  # ось вывода сетки — в той же форме
 
 
@@ -199,7 +205,8 @@ def test_page_without_a_main_list_gets_a_settings_row(_urlconf):
     html = b.get("?seite=text")
     assert 'data-schema-block="__page"' in html and "data-schema-settings" not in html
     html = b.get("?seite=text&block=__page")
-    assert 'data-schema-setting="text_width"' in html and "gilt für alle Seiten" in html
+    assert 'data-schema-design-row="text_width"' in html
+    assert 'data-schema-setting="text_width"' not in html
 
 
 def test_category_settings_live_on_the_catalog_row(_urlconf):

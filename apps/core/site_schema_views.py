@@ -291,11 +291,14 @@ def site_schema_view(request):
         site_schema.fill_options(selected, current.host if current else "")
     # FB-27 R4: настройки типа страницы — в панели «★ Hauptliste», а у страниц без
     # основного списка — на строке «Einstellungen der Seite».
-    page_row, settings = None, []
+    page_row, settings, design_rows = None, [], []
     try:
         has_settings = bool(site_schema.setting_codes(tenant, code))
+        # FB-31 P2: общие настройки «Design» видны строкой и там, где своих настроек нет
+        has_design = bool(site_schema.design_rows(tenant, code)) if not has_settings else True
     except site_schema.SchemaError:
-        has_settings = False
+        has_settings = has_design = False
+    has_settings = has_settings or has_design
     if has_settings:
         # FB-27 V3 (макет Main): настройки живут в строке блока-носителя — основной список
         # либо, на главной, строка «Banner». Отдельная строка «Einstellungen der Seite» —
@@ -312,6 +315,7 @@ def site_schema_view(request):
             carrier["carrier"] = True
         if (selected and selected.get("carrier")) or (page_row and page_row["active"]):
             settings = site_schema.settings_groups(tenant, code, config)
+            design_rows = site_schema.design_rows(tenant, code)
     # FB-29.5: с кем выбранный блок стоит в одном ряду (подсказка под кнопками ширины)
     width_mates = []
     if selected and selected.get("enabled"):
@@ -371,7 +375,7 @@ def site_schema_view(request):
             "page_row": page_row,
             "settings": settings,
             "settings_ref": selected["ref"] if selected else site_schema.PAGE_REF,
-            "shared_settings": site_schema.SHARED_SETTINGS,
+            "design_rows": design_rows,
             "open_setting": request.GET.get("offen", ""),
             # единственная настройка раскрыта сразу — иначе панель выглядит пустой
             "settings_single": sum(len(g["settings"]) for g in settings) == 1,

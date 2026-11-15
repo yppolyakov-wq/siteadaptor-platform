@@ -19,7 +19,6 @@
     <input type="hidden" name="setting" value="{{ s.code }}">
     <fieldset>
       <legend class="sr-only">{{ s.label }}</legend>
-      {% if s.code in shared_settings %}<p class="text-xs text-gray-600 mb-2">{% trans "gilt für alle Seiten" %}</p>{% endif %}
           {% if s.kind == "bool" %}
             <div class="flex gap-2">
               {% for c in s.choices %}
@@ -49,4 +48,16 @@
   </details>
   {% endwith %}{% endfor %}
 {% endfor %}
+{% if design_rows %}
+  {% comment %}FB-31 P2: общие для сайта настройки — только показ; правятся на экране «Design».{% endcomment %}
+  <div class="rounded-xl border border-dashed border-gray-300 p-3 space-y-1" data-schema-design>
+    <p class="text-xs text-gray-600">{% trans "Für alle Seiten — im Design festgelegt" %}</p>
+    {% for d in design_rows %}
+    <p class="flex flex-wrap items-center justify-between gap-x-2 text-sm min-h-[44px]" data-schema-design-row="{{ d.code }}">
+      <span>{{ d.label }}: <span class="text-gray-700">{% blocktrans with value=d.value %}wie Design: {{ value }}{% endblocktrans %}</span></span>
+      <a href="{{ d.url }}" class="font-semibold text-indigo-700 underline inline-flex items-center min-h-[44px]">{% trans "ändern →" %}<span class="sr-only">: {{ d.label }}</span></a>
+    </p>
+    {% endfor %}
+  </div>
+{% endif %}
 </div>

@@ -122,6 +122,27 @@ def _save_design_settings(request) -> None:
     tenant.save(update_fields=update_fields)
 
 
+def _save_design_defaults(request) -> None:
+    """FB-31 P2: общие настройки сайта (форма карточек, ширина текста, меню) — одной
+    записью через единый писатель настроек; поле, которого нет в форме, не трогаем."""
+    from apps.core import page_settings
+
+    tenant = request.tenant
+    pending = {}
+    for st in page_settings.design_schema(tenant):
+        field = f"dd_{st.code}"
+        if field in request.POST:
+            pending[st.code] = {"v": request.POST.get(field, ""), "o": None}
+    if not pending:
+        return
+    try:
+        page_settings.write_many(tenant, pending)
+    except page_settings.PageSettingError:
+        messages.error(request, _("Dieser Wert ist hier nicht möglich."))
+        return
+    messages.success(request, _("Gespeichert."))
+
+
 def font_label(key: str) -> str:
     """Имя шрифта для владельца: подпись из списка экрана, иначе первое семейство из
     реестра шрифтов (шрифты готовых дизайнов в список экрана не входят)."""
@@ -251,6 +272,12 @@ def design_changes(tenant, key: str) -> list[dict] | None:
     return rows
 
 
+def _design_defaults(tenant) -> list:
+    from apps.core import page_settings
+
+    return page_settings.design_schema(tenant)
+
+
 # FB-27 D-a (макет D1): вкладки экрана; первая открыта по умолчанию.
 DESIGN_TABS = ("fertig", "farben", "karten")
 DESIGNS_SHOWN = 4  # столько готовых дизайнов видно сразу (макет D1)
@@ -287,6 +314,13 @@ def design_view(request):
             else:
                 messages.info(request, _("Keine Demo-Inhalte vorhanden."))
             return redirect("design")
+        if action == "design_defaults":
+            _save_design_defaults(request)
+            query = {"tab": "karten"}
+            back = _studio_back_url(request, request.POST)
+            if back:
+                query["next"] = back
+            return redirect(f"{reverse('design')}?{urlencode(query)}#design-defaults")
         if action == "design_settings":
             _save_design_settings(request)
             messages.success(request, _("Gespeichert."))
@@ -411,6 +445,8 @@ def design_view(request):
             "next_q": f"&{urlencode({'next': back_url})}" if back_url else "",
             "tab": tab,
             "tabs": _tabs(),
+            # FB-31 P2: общие для всех страниц настройки (раньше — в каждой панели страницы)
+            "design_defaults": _design_defaults(tenant) if tab == "karten" else [],
             "confirm": confirm,
             "show_all": request.GET.get("alle") == "1",
             "business_label": tenant.get_business_type_display(),

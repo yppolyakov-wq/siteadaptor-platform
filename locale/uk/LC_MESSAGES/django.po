@@ -38679,3 +38679,28 @@ msgstr "Спочатку сети, потім окремі товари."
 
 msgid "Dieser Block hat einen festen Platz auf der Seite."
 msgstr "Цей блок має постійне місце на сторінці."
+
+msgid "Dieser Wert ist hier nicht möglich."
+msgstr "Це значення тут недоступне."
+
+msgid "Für alle Seiten — im Design festgelegt"
+msgstr "Для всіх сторінок — задано в «Дизайні»"
+
+msgid "Kartenform der Angebote"
+msgstr "Форма карток акцій"
+
+msgid "Kartenform der Produkte und Leistungen"
+msgstr "Форма карток товарів і послуг"
+
+#, python-format
+msgid "wie Design: %(value)s"
+msgstr "як у «Дизайні»: %(value)s"
+
+msgid "ändern →"
+msgstr "змінити →"
+
+msgid "Für alle Seiten"
+msgstr "Для всіх сторінок"
+
+msgid "Gilt auf jeder Seite. Eine Liste oder ein einzelnes Produkt kann eine eigene Kartenform haben."
+msgstr "Діє на кожній сторінці. Список або окремий товар може мати власну форму картки."

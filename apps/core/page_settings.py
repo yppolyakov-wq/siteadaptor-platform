@@ -27,7 +27,7 @@ are not offered here (plan §2.1).
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 
 from django.db import transaction
 from django.utils.text import format_lazy
@@ -827,6 +827,49 @@ CABINET_OWNED: frozenset[str] = frozenset(
 )
 
 
+#: FB-31 P2 (стратегия блоков, решение владельца): общие для всего сайта настройки живут
+#: на экране «Design» → «Karten & Fotos»; панель «Seitenaufbau» их только показывает
+#: строкой «wie Design: X · ändern →». Поправки «только здесь» (карточка блока «Liste»,
+#: форма у товара/категории/акции) остаются у своих объектов.
+DESIGN_SETTINGS = (
+    "product_card_form",
+    "promo_card_form",
+    "text_width",
+    "catalog_menu_prices",
+    "catalog_menu_labels",
+)
+
+
+#: Подписи на «Design»: там обе формы карточек стоят рядом, «Kartenform» дважды не различить.
+DESIGN_LABELS = {
+    "product_card_form": _("Kartenform der Produkte und Leistungen"),
+    "promo_card_form": _("Kartenform der Angebote"),
+}
+
+
+def design_url(code: str = "") -> str:
+    """Адрес раздела «Für alle Seiten» на экране «Design» (`code` — якорь настройки)."""
+    from django.urls import reverse
+
+    anchor = f"#dd-{code}" if code in DESIGN_SETTINGS else "#design-defaults"
+    return f"{reverse('design')}?tab=karten{anchor}"
+
+
+def design_schema(tenant) -> list[SettingState]:
+    """Состояния общих настроек «Design» (каждая один раз, по порядку `DESIGN_SETTINGS`);
+    настройки, которые этому бизнесу не подходят или чьи страницы выключены, — нет."""
+    found: dict[str, SettingState] = {}
+    for ts in schema(tenant):
+        for st in ts.settings:
+            if st.code in DESIGN_SETTINGS:
+                found.setdefault(st.code, st)
+    return [
+        replace(found[c], label=DESIGN_LABELS.get(c, found[c].label))
+        for c in DESIGN_SETTINGS
+        if c in found
+    ]
+
+
 def summaries(tenant, codes=None) -> dict[str, dict]:
     """What the Studio shows instead of a cabinet-owned control: the setting's
     current value in words and the cabinet screen that changes it."""
@@ -845,7 +888,9 @@ def summaries(tenant, codes=None) -> dict[str, dict]:
             out[st.code] = {
                 "label": st.label,
                 "value": value,
-                "url": page_templates.cabinet_url(ts.code),
+                "url": design_url(st.code)
+                if st.code in DESIGN_SETTINGS
+                else page_templates.cabinet_url(ts.code),
             }
     return out
 

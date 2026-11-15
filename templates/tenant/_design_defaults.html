@@ -1,0 +1,40 @@
+{% load i18n %}{% comment %}FB-31 P2: общие для всех страниц настройки — форма карточек, ширина текста,
+меню. Раньше стояли в панели каждой страницы «Seitenaufbau»; там теперь строка «wie Design».
+Значения пишет единый писатель настроек (page_settings.write_many), сразу на сайт.{% endcomment %}
+<form method="post" id="design-defaults" class="ui-card p-5 mb-8 space-y-5" data-design-form="defaults">
+  {% csrf_token %}
+  <input type="hidden" name="action" value="design_defaults">
+  {% if back_url %}<input type="hidden" name="next" value="{{ back_url }}">{% endif %}
+  <div>
+    <h2 class="ui-h2">{% trans "Für alle Seiten" %}</h2>
+    <p class="text-sm text-gray-600">{% trans "Gilt auf jeder Seite. Eine Liste oder ein einzelnes Produkt kann eine eigene Kartenform haben." %}</p>
+  </div>
+  {% for s in design_defaults %}
+  <fieldset id="dd-{{ s.code }}" data-design-default="{{ s.code }}">
+    <legend class="block text-sm font-medium mb-2">{{ s.label }}</legend>
+    {% if s.kind == "bool" %}
+      <div class="flex flex-wrap gap-2">
+        {% for c in s.choices %}
+        <label class="inline-flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 min-h-[44px] cursor-pointer has-[:checked]:border-indigo-700 has-[:focus-visible]:outline has-[:focus-visible]:outline-[3px] has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-indigo-600">
+          <input type="radio" name="dd_{{ s.code }}" value="{{ c.value }}" {% if c.value == "1" and s.value %}checked{% elif c.value == "0" and not s.value %}checked{% endif %}>
+          <span>{{ c.label }}</span>
+        </label>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        {% for c in s.choices %}
+        <label class="flex flex-col gap-1 text-xs rounded-xl border p-2 min-h-[44px] group {% if c.available %}cursor-pointer border-gray-200 has-[:checked]:border-2 has-[:checked]:border-indigo-700 has-[:checked]:bg-indigo-50 has-[:focus-visible]:outline has-[:focus-visible]:outline-[3px] has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-indigo-600{% else %}border-dashed border-gray-300 bg-gray-50 text-gray-600{% endif %}">
+          <input type="radio" name="dd_{{ s.code }}" value="{{ c.value }}" class="sr-only" {% if c.value == s.value %}checked{% endif %}{% if not c.available %} disabled aria-describedby="dd-r-{{ s.code }}-{{ forloop.counter }}"{% endif %}>
+          {% if s.thumb == "card" %}{% include "tenant/_cardform_thumb.html" with key=c.value %}{% endif %}
+          <span>{{ c.label }}<span class="hidden group-has-[:checked]:inline font-semibold text-indigo-700"> ✓</span></span>
+          {% if c.hint %}<span class="sr-only">{{ c.hint }}</span>{% endif %}
+          {% if not c.available %}<span id="dd-r-{{ s.code }}-{{ forloop.counter }}" class="text-[11px]">{{ c.reason }}</span>{% endif %}
+        </label>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </fieldset>
+  {% endfor %}
+  <button type="submit" class="ui-btn ui-btn-primary min-h-[44px]">{% trans "Speichern" %}</button>
+</form>

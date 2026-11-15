@@ -38499,3 +38499,28 @@ msgstr "Önce setler, sonra tek ürünler."
 
 msgid "Dieser Block hat einen festen Platz auf der Seite."
 msgstr "Bu bloğun sayfada sabit bir yeri var."
+
+msgid "Dieser Wert ist hier nicht möglich."
+msgstr "Bu değer burada mümkün değil."
+
+msgid "Für alle Seiten — im Design festgelegt"
+msgstr "Tüm sayfalar için — Tasarım'da belirlendi"
+
+msgid "Kartenform der Angebote"
+msgstr "Teklif kartı biçimi"
+
+msgid "Kartenform der Produkte und Leistungen"
+msgstr "Ürün ve hizmet kartı biçimi"
+
+#, python-format
+msgid "wie Design: %(value)s"
+msgstr "Tasarım'daki gibi: %(value)s"
+
+msgid "ändern →"
+msgstr "değiştir →"
+
+msgid "Für alle Seiten"
+msgstr "Tüm sayfalar için"
+
+msgid "Gilt auf jeder Seite. Eine Liste oder ein einzelnes Produkt kann eine eigene Kartenform haben."
+msgstr "Her sayfada geçerlidir. Bir liste veya tek bir ürün kendi kart biçimine sahip olabilir."

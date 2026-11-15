@@ -38353,3 +38353,28 @@ msgstr "Sets first, then individual products."
 
 msgid "Dieser Block hat einen festen Platz auf der Seite."
 msgstr "This block has a fixed place on the page."
+
+msgid "Dieser Wert ist hier nicht möglich."
+msgstr "This value is not possible here."
+
+msgid "Für alle Seiten — im Design festgelegt"
+msgstr "For all pages — set in Design"
+
+msgid "Kartenform der Angebote"
+msgstr "Card shape of offers"
+
+msgid "Kartenform der Produkte und Leistungen"
+msgstr "Card shape of products and services"
+
+#, python-format
+msgid "wie Design: %(value)s"
+msgstr "as in Design: %(value)s"
+
+msgid "ändern →"
+msgstr "change →"
+
+msgid "Für alle Seiten"
+msgstr "For all pages"
+
+msgid "Gilt auf jeder Seite. Eine Liste oder ein einzelnes Produkt kann eine eigene Kartenform haben."
+msgstr "Applies on every page. A list or a single product can have its own card shape."
