@@ -1,0 +1,300 @@
+<title>FB-30 Макеты кабинета</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<style>
+/* Макеты экранов кабинета: слева пояснение, справа экран в рамке; варианты A/B рядом. */
+:root{
+  --bg:#f3f4f8; --surface:#ffffff; --ink:#16181d; --muted:#5b6170; --line:#d5d8e0;
+  --accent:#4338ca; --accent-soft:#eef0ff; --ok:#0f766e; --warn-bg:#fff5db; --warn-ink:#7a4b00;
+  --sketch:#c7cdfb; --sketch-2:#e4e7ee; --photo:#8fb39a;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#14161c; --surface:#1e212a; --ink:#eceef4; --muted:#a3a9b8; --line:#3a3f4d;
+  --accent:#a5b0ff; --accent-soft:#2a2f4a; --ok:#5eead4; --warn-bg:#3b3013; --warn-ink:#ffd98a;
+  --sketch:#4c549c; --sketch-2:#343946; --photo:#4f7460; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#14161c; --surface:#1e212a; --ink:#eceef4; --muted:#a3a9b8; --line:#3a3f4d;
+  --accent:#a5b0ff; --accent-soft:#2a2f4a; --ok:#5eead4; --warn-bg:#3b3013; --warn-ink:#ffd98a;
+  --sketch:#4c549c; --sketch-2:#343946; --photo:#4f7460; color-scheme:dark}
+body{background:var(--bg);color:var(--ink);font-family:Inter,system-ui,sans-serif;font-size:14px;line-height:1.45;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:24px}
+.wrap{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:36px}
+h1{font-size:26px;margin:0;text-wrap:balance}
+h2{font-size:19px;margin:0 0 4px;text-wrap:balance}
+h3{font-size:13px;margin:0;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+p{margin:0}
+.lead{color:var(--muted);max-width:70ch}
+.toc{display:flex;flex-wrap:wrap;gap:8px}
+.toc a{color:var(--accent);text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:6px 12px;background:var(--surface);font-weight:600}
+.toc a:focus-visible,.btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+section{display:flex;flex-direction:column;gap:14px}
+.now{background:var(--warn-bg);color:var(--warn-ink);border-radius:10px;padding:10px 14px;max-width:80ch}
+.variants{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:18px}
+.variant{display:flex;flex-direction:column;gap:8px;min-width:0}
+.tag{font-weight:700;color:var(--accent)}
+.screen{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.row{display:flex;gap:12px;flex-wrap:wrap}
+.col{display:flex;flex-direction:column;gap:10px;flex:1 1 220px;min-width:0}
+.field{display:flex;flex-direction:column;gap:4px}
+.label{font-weight:600;font-size:13px}
+.hint{font-size:12px;color:var(--muted)}
+.input{border:1px solid var(--line);border-radius:10px;padding:9px 12px;background:var(--surface);min-height:20px}
+.input.sel::after{content:"▾";float:right;color:var(--muted)}
+.btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:10px;padding:9px 14px;font-weight:600;background:var(--surface);color:var(--ink)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.btn.dashed{border-style:dashed;color:var(--accent)}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:5px 10px;font-size:13px}
+.chip b{color:var(--muted);font-weight:500}
+.seg{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.seg span{flex:1;text-align:center;padding:8px 6px;font-weight:600;font-size:13px}
+.seg .on{background:var(--accent-soft);color:var(--accent);box-shadow:inset 0 0 0 2px var(--accent)}
+.box{border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px}
+.box.on{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent);background:var(--accent-soft)}
+.photo{background:var(--photo);border-radius:8px}
+.sk{background:var(--sketch);border-radius:5px}
+.sk2{background:var(--sketch-2);border-radius:5px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.thumb{height:64px;border-radius:8px;border:1px solid var(--line);padding:6px;display:flex;gap:5px;background:var(--surface)}
+.thumb .t{display:flex;flex-direction:column;gap:4px;justify-content:center;flex:1}
+.thumb .t i{display:block;height:6px;border-radius:3px;background:var(--sketch)}
+.thumb .t i:nth-child(2){width:60%;background:var(--sketch-2)}
+.thumb .t i:nth-child(3){width:34%;height:9px;background:var(--accent)}
+.canvas{display:flex;flex-direction:column;gap:8px}
+.lane{display:flex;gap:8px}
+.blk{border:1px solid var(--line);border-radius:10px;padding:10px;background:var(--surface);display:flex;flex-direction:column;gap:4px;min-width:0}
+.blk small{color:var(--muted)}
+.slot{border:1.5px dashed var(--accent);border-radius:10px;padding:10px;color:var(--accent);display:flex;align-items:center;justify-content:center;text-align:center;font-weight:600;font-size:13px}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line)}
+.tabs span{padding:9px 12px;font-weight:600;color:var(--muted)}
+.tabs .on{color:var(--accent);border-bottom:2px solid var(--accent)}
+.item{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+.item .grip{color:var(--muted)}
+.item .grow{flex:1;min-width:0}
+.num{font-variant-numeric:tabular-nums}
+.note{font-size:13px;color:var(--muted);max-width:80ch}
+.q{border-left:3px solid var(--accent);padding:6px 12px;background:var(--surface);border-radius:0 8px 8px 0;max-width:80ch}
+</style>
+
+<div class="wrap">
+  <header style="display:flex;flex-direction:column;gap:10px">
+    <h1>FB-30: макеты экранов кабинета</h1>
+    <p class="lead">Наброски к вашему фидбэку от 15.11. Это схемы расположения и подписей, а не готовый вид: цвета и шрифты останутся как в кабинете. По каждому экрану выберите вариант или напишите, что поменять. Кода по этим экранам нет, пока вы не утвердите.</p>
+    <nav class="toc" aria-label="Экраны">
+      <a href="#m1">1 · Форма баннера</a><a href="#m2">2 · Вид баннера</a><a href="#m3">3 · Панель списка</a>
+      <a href="#m4">4 · Блоки в ряд</a><a href="#m5">5 · Меню</a><a href="#m6">6 · Доставка</a><a href="#m7">7 · Оплата</a>
+    </nav>
+  </header>
+
+  <section id="m1">
+    <h2>1 · Форма баннера</h2>
+    <p class="now">Сейчас: одна узкая колонка, справа пусто. «Где показывать» — галочки и отдельный поиск. Главной в списке мест нет.</p>
+    <div class="variants">
+      <div class="variant">
+        <p><span class="tag">Вариант A.</span> Слева содержимое, справа — как баннер выглядит и где он показывается.</p>
+        <div class="screen">
+          <div class="row">
+            <div class="col">
+              <div class="field"><span class="label">Фото</span><div class="row"><div class="slot" style="width:72px;height:56px">+</div><div class="photo" style="width:96px;height:56px"></div></div></div>
+              <div class="field"><span class="label">Заголовок</span><div class="input">Die wunderbare Welt des Tees</div></div>
+              <div class="field"><span class="label">Текст</span><div class="input" style="min-height:44px">Über 200 Sorten …</div></div>
+              <div class="row"><div class="field" style="flex:1"><span class="label">Надпись на кнопке</span><div class="input">Lass mich verzaubern</div></div>
+              <div class="field" style="flex:1"><span class="label">Куда ведёт</span><div class="input sel">Каталог</div></div></div>
+            </div>
+            <div class="col">
+              <div class="field"><span class="label">Так выглядит</span>
+                <div class="photo" style="height:92px;padding:10px;display:flex;flex-direction:column;justify-content:flex-end;gap:4px">
+                  <b style="color:#fff">Die wunderbare Welt des Tees</b><span class="btn primary" style="align-self:flex-start;padding:4px 8px;font-size:12px">Lass mich verzaubern</span></div></div>
+              <div class="field"><span class="label">Где показывать</span>
+                <div class="row" style="gap:6px"><span class="chip"><b>Главная</b> ✕</span><span class="chip"><b>Категория:</b> Grüner Tee ✕</span><span class="chip"><b>Товар:</b> Sencha ✕</span></div>
+                <span class="btn dashed" style="align-self:flex-start">+ Добавить место</span></div>
+              <div class="field"><span class="label">Показывать с / по</span><div class="row"><div class="input" style="flex:1">сегодня</div><div class="input" style="flex:1">без срока</div></div></div>
+            </div>
+          </div>
+          <div class="row"><span class="btn primary">Сохранить</span></div>
+        </div>
+      </div>
+      <div class="variant">
+        <p><span class="tag">«+ Добавить место»</span> раскрывается на месте, в два шага: что за страница, потом какая именно.</p>
+        <div class="screen">
+          <span class="label">Где показывать</span>
+          <div class="row" style="gap:6px"><span class="chip"><b>Главная</b> ✕</span></div>
+          <div class="box on">
+            <div class="field"><span class="label">1. Какая страница</span>
+              <div class="seg"><span>Главная</span><span class="on">Категория</span><span>Товар</span><span>Услуга</span><span>Акция</span><span>Ещё ▾</span></div></div>
+            <div class="field"><span class="label">2. Выберите категорию</span><div class="input">Поиск по названию…</div>
+              <div class="item"><span>☐</span><span class="grow">Schwarzer Tee</span></div>
+              <div class="item"><span>☑</span><span class="grow">Grüner Tee</span></div>
+              <div class="item"><span>☑</span><span class="grow">Kräutertee</span></div></div>
+            <div class="row"><span class="btn primary">Добавить выбранные (2)</span><span class="btn">Отмена</span></div>
+          </div>
+          <p class="hint">Без скриптов то же самое работает обычными шагами формы.</p>
+        </div>
+      </div>
+    </div>
+    <p class="q"><b>Вопрос.</b> «Главная» как место показа: баннер из библиотеки, отмеченный для главной, становится приветственным баннером (его заголовок, текст и кнопка заменяют старые поля главной). Так?</p>
+  </section>
+
+  <section id="m2">
+    <h2>2 · Приветственный баннер: вид</h2>
+    <p class="now">Сейчас: пять кнопок с названиями без картинок, затем «Применить», затем «Сохранить» страницы.</p>
+    <div class="variants">
+      <div class="variant">
+        <p><span class="tag">Вариант A.</span> Плитки со схемой вида. Нажали — применилось сразу, кнопки «Применить» нет; остаётся одно «Сохранить» у страницы.</p>
+        <div class="screen">
+          <span class="label">Вид баннера</span>
+          <div class="tiles">
+            <div class="box"><div class="thumb"><div class="t" style="align-items:center"><i style="width:70%"></i><i></i><i></i></div></div><span>Стандартный</span></div>
+            <div class="box"><div class="thumb" style="background:var(--accent-soft)"><div class="t"><i style="width:70%"></i><i></i><i></i></div></div><span>Акцентная плашка</span></div>
+            <div class="box on"><div class="thumb"><div class="t"><i></i><i></i><i></i></div><div class="photo" style="flex:1"></div></div><span>Текст + фото ✓</span></div>
+            <div class="box"><div class="thumb photo" style="border:0"><div class="t"><i style="background:#fff"></i><i style="background:#ffffffaa"></i><i></i></div></div><span>Фото на весь экран</span></div>
+            <div class="box"><div class="thumb"><div class="t" style="flex:1.2"><i></i><i></i><i></i></div><div style="flex:1;display:grid;grid-template-columns:1fr 1fr;gap:4px"><div class="photo"></div><div class="sk"></div><div class="sk2"></div><div class="photo"></div></div></div><span>Плитки Bento</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="variant">
+        <p><span class="tag">Вариант B.</span> Выпадающий список: в закрытом виде — выбранный вид со схемой, в открытом — все пять со схемами. Занимает меньше места в панели.</p>
+        <div class="screen">
+          <span class="label">Вид баннера</span>
+          <div class="box on" style="flex-direction:row;align-items:center"><div class="thumb" style="width:96px;height:48px"><div class="t"><i></i><i></i><i></i></div><div class="photo" style="flex:1"></div></div><span style="flex:1"><b>Текст + фото</b></span><span>▾</span></div>
+          <div class="box" style="gap:6px">
+            <div class="item"><div class="thumb" style="width:72px;height:36px"><div class="t" style="align-items:center"><i style="width:70%"></i><i></i></div></div><span class="grow">Стандартный</span></div>
+            <div class="item"><div class="thumb" style="width:72px;height:36px;background:var(--accent-soft)"><div class="t"><i></i><i></i></div></div><span class="grow">Акцентная плашка</span></div>
+            <div class="item"><div class="thumb photo" style="width:72px;height:36px;border:0"></div><span class="grow">Фото на весь экран</span></div>
+            <div class="item"><div class="thumb" style="width:72px;height:36px"><div class="t"><i></i><i></i></div><div class="photo" style="flex:1"></div></div><span class="grow">Плитки Bento</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="m3">
+    <h2>3 · Панель списка (категории, товары)</h2>
+    <p class="now">Сейчас: «Какие именно» с кнопками «По правилу / Категория», «Как» встречается дважды, «По правилу» ничего видимого не меняет.</p>
+    <div class="variants">
+      <div class="variant">
+        <p><span class="tag">Предлагаю.</span> Два понятных раздела и один выбор вида. Лишнее для данного списка не показывается.</p>
+        <div class="screen">
+          <div><b>Категории</b><div class="hint">Сейчас показывает 6 записей из 6</div></div>
+          <div class="field"><h3>Что показывать</h3>
+            <div class="seg"><span class="on">Все подряд</span><span>Только выбранные</span></div>
+            <span class="hint">«Все подряд» — все активные категории по порядку каталога. «Только выбранные» — отметьте нужные галочками.</span></div>
+          <div class="field"><span class="label">Не больше</span><div class="input num">30</div></div>
+          <div class="field"><h3>Как выглядит</h3>
+            <span class="label">Расположение</span><div class="seg"><span class="on">Сетка</span><span>Лента (листается)</span></div>
+            <span class="label">Колонок</span><div class="seg num"><span>1</span><span>2</span><span class="on">3</span><span>4</span><span>5</span><span>6</span></div>
+            <span class="label">Рядов</span><div class="input sel">автоматически</div></div>
+          <div class="field"><h3>Ширина блока на странице</h3><div class="seg"><span class="on">Вся</span><span>⅔</span><span>½</span><span>⅓</span></div></div>
+        </div>
+      </div>
+      <div class="variant">
+        <p><span class="tag">Для товаров</span> те же разделы, но «Что показывать» шире.</p>
+        <div class="screen">
+          <div class="field"><h3>Что показывать</h3>
+            <div class="seg"><span class="on">По условию</span><span>Из категории</span><span>Только выбранные</span></div>
+            <div class="input sel">Новинки</div>
+            <span class="hint">По условию: новинки, со скидкой, популярные.</span></div>
+          <div class="field"><h3>Как выглядит</h3><span class="label">Расположение</span><div class="seg"><span class="on">Сетка</span><span>Лента</span></div>
+            <span class="label">Вид карточки</span><div class="input sel">Как на сайте</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="m4">
+    <h2>4 · Блоки в ряд по ширине</h2>
+    <p class="now">Сейчас: в структуре страницы блоки идут столбиком один под другим, какая бы ширина у них ни стояла.</p>
+    <div class="variants">
+      <div class="variant">
+        <p><span class="tag">Предлагаю.</span> Структура показывает ряды так, как они встанут на сайте. Блок ½ занимает половину ряда, рядом — место для второго.</p>
+        <div class="screen canvas">
+          <div class="blk"><b>Приветственный баннер</b><small>вся ширина</small></div>
+          <div class="lane"><div class="blk" style="flex:1"><b>⠿ Категории</b><small>½ · сетка, 3 колонки</small></div><div class="slot" style="flex:1">Перетащите сюда блок до ½</div></div>
+          <div class="lane"><div class="blk" style="flex:2"><b>⠿ Новинки</b><small>⅔</small></div><div class="blk" style="flex:1"><b>⠿ Текст</b><small>⅓</small></div></div>
+          <div class="blk"><b>⠿ Отзывы</b><small>вся ширина</small></div>
+          <span class="btn dashed" style="align-self:flex-start">+ Блок</span>
+        </div>
+        <p class="note">Перетащили блок в ряд, где не хватает места, — он встаёт следующим рядом. На телефоне ряды складываются в столбик, как и на сайте. Без мыши: кнопки «в ряд выше / ниже», «левее / правее».</p>
+      </div>
+    </div>
+    <p class="q"><b>Вопрос.</b> У приветственного баннера ширину убрать совсем (он всегда во всю ширину) или сделать, чтобы переключатель действительно работал?</p>
+  </section>
+
+  <section id="m5">
+    <h2>5 · Меню: подвал и нижняя панель</h2>
+    <p class="now">Сейчас: конструктор с перетаскиванием и вложенностью есть только у шапки.</p>
+    <div class="variants">
+      <div class="variant">
+        <p><span class="tag">Подвал.</span> Тот же конструктор; колонки подвала — дорожки, пункт перетаскивается между ними. Название колонки правится на месте.</p>
+        <div class="screen">
+          <div class="tabs"><span>Шапка</span><span class="on">Подвал</span><span>Нижняя панель</span></div>
+          <div class="row">
+            <div class="col box"><b>Колонка 1 · «Shop»</b><div class="item"><span class="grip">⠿</span><span class="grow">Sortiment</span></div><div class="item"><span class="grip">⠿</span><span class="grow">Angebote</span></div><span class="btn dashed">+ Пункт</span></div>
+            <div class="col box"><b>Колонка 2 · «Service»</b><div class="item"><span class="grip">⠿</span><span class="grow">Versand</span></div><div class="item"><span class="grip">⠿</span><span class="grow">Kontakt</span></div><span class="btn dashed">+ Пункт</span></div>
+            <div class="col box"><b>Колонка 3 · «Rechtliches»</b><div class="item"><span class="grip">⠿</span><span class="grow">Impressum</span></div><div class="item"><span class="grip">⠿</span><span class="grow">Datenschutz</span></div><span class="btn dashed">+ Пункт</span></div>
+          </div>
+          <span class="btn dashed" style="align-self:flex-start">+ Колонка</span>
+        </div>
+      </div>
+      <div class="variant">
+        <p><span class="tag">Нижняя панель (телефон).</span> Тот же список, без вложенности, до пяти пунктов, у каждого значок.</p>
+        <div class="screen">
+          <div class="tabs"><span>Шапка</span><span>Подвал</span><span class="on">Нижняя панель</span></div>
+          <div class="item"><span class="grip">⠿</span><span>🏠</span><span class="grow">Start</span><span>⋯</span></div>
+          <div class="item"><span class="grip">⠿</span><span>🛍</span><span class="grow">Sortiment</span><span>⋯</span></div>
+          <div class="item"><span class="grip">⠿</span><span>🛒</span><span class="grow">Warenkorb</span><span>⋯</span></div>
+          <span class="btn dashed" style="align-self:flex-start">+ Пункт (ещё 2)</span>
+          <div class="box" style="flex-direction:row;justify-content:space-around"><span>🏠<br><small>Start</small></span><span>🛍<br><small>Sortiment</small></span><span>🛒<br><small>Warenkorb</small></span></div>
+          <span class="hint">Внизу — как панель выглядит на телефоне.</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="m6">
+    <h2>6 · Доставка: ступени по весу</h2>
+    <p class="now">Сейчас: текстовое поле «Одна ступень в строке: до кг | цена €».</p>
+    <div class="variants">
+      <div class="variant">
+        <p><span class="tag">Предлагаю.</span> Строка на диапазон: «от» подставляется сам из предыдущей строки, вы вводите «до» и цену.</p>
+        <div class="screen">
+          <b>DHL Paket</b>
+          <div class="row" style="align-items:center"><span style="width:92px" class="num">от 0 кг</span><div class="field" style="flex:1"><span class="label">до, кг</span><div class="input num">3</div></div><div class="field" style="flex:1"><span class="label">цена, €</span><div class="input num">5,90</div></div><span>✕</span></div>
+          <div class="row" style="align-items:center"><span style="width:92px" class="num">от 3 кг</span><div class="field" style="flex:1"><span class="label">до, кг</span><div class="input num">5</div></div><div class="field" style="flex:1"><span class="label">цена, €</span><div class="input num">10,00</div></div><span>✕</span></div>
+          <div class="row" style="align-items:center"><span style="width:92px" class="num">от 5 кг</span><div class="field" style="flex:1"><span class="label">до, кг</span><div class="input num">31,5</div></div><div class="field" style="flex:1"><span class="label">цена, €</span><div class="input num">16,90</div></div><span>✕</span></div>
+          <span class="btn dashed" style="align-self:flex-start">+ Ещё диапазон</span>
+          <span class="hint">Тяжелее последнего диапазона — этот способ доставки покупателю не предлагается.</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="m7">
+    <h2>7 · Способы оплаты</h2>
+    <p class="now">Сейчас: фиксированный набор переключателей.</p>
+    <div class="variants">
+      <div class="variant">
+        <p><span class="tag">Предлагаю.</span> Список способов, как у доставки: добавить, назвать, включить, поменять порядок.</p>
+        <div class="screen">
+          <div class="item"><span class="grip">⠿</span><span class="grow"><b>Оплата на месте</b><br><small class="hint">наличными или картой при получении</small></span><span class="chip">включён</span><span>⋯</span></div>
+          <div class="item"><span class="grip">⠿</span><span class="grow"><b>Картой онлайн</b><br><small class="hint">оператор: Stripe · подключён</small></span><span class="chip">включён</span><span>⋯</span></div>
+          <div class="item"><span class="grip">⠿</span><span class="grow"><b>По счёту (для фирм)</b><br><small class="hint">срок оплаты 14 дней · только с указанной фирмой</small></span><span class="chip">выключен</span><span>⋯</span></div>
+          <span class="btn dashed" style="align-self:flex-start">+ Способ оплаты</span>
+        </div>
+      </div>
+      <div class="variant">
+        <p><span class="tag">«+ Способ оплаты»</span> — сначала тип, потом его настройки.</p>
+        <div class="screen">
+          <div class="field"><span class="label">Тип</span>
+            <div class="item"><span>◉</span><span class="grow">На месте (наличные, карта в магазине)</span></div>
+            <div class="item"><span>○</span><span class="grow">Картой онлайн — через оператора</span></div>
+            <div class="item"><span>○</span><span class="grow">Банковский перевод (Vorkasse)</span></div>
+            <div class="item"><span>○</span><span class="grow">По счёту</span></div></div>
+          <div class="field"><span class="label">Название для покупателя</span><div class="input">Zahlung bei Abholung</div></div>
+          <div class="field"><span class="label">Для каких заказов</span><div class="seg"><span class="on">Все</span><span>Самовывоз</span><span>Доставка</span></div></div>
+          <div class="row"><span class="btn primary">Добавить</span></div>
+        </div>
+      </div>
+    </div>
+    <p class="q"><b>Вопрос.</b> Оператор онлайн-оплаты сейчас один — Stripe. Выбор оператора в макете показываю как строку «оператор: Stripe»; список из нескольких операторов появится, когда подключим второго. Согласны?</p>
+  </section>
+</div>
