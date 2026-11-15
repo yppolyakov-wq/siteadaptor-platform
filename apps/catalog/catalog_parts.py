@@ -107,11 +107,15 @@ def rows_for(parts: Parts) -> list[dict]:
 
 def from_rows(rows) -> Parts:
     """Части из строк схемы страницы (мусор отбрасывается)."""
+    from apps.tenants.siteconfig import MAIN_MARKER_GRIDS
+
+    rows = [r for r in (rows if isinstance(rows, list) else []) if isinstance(r, dict)]
     parts = STANDARD
-    seen_main = False
-    for row in rows if isinstance(rows, list) else []:
-        if not isinstance(row, dict):
-            continue
+    # маркер ★ не хранится, когда он первым, — тогда всё стоит под списком
+    seen_main = not any(r.get("key") == "main" for r in rows)
+    for row in rows:
+        if row.get("enabled") is False and row.get("key") != "main":
+            continue  # скрытая строка вида не задаёт
         key = row.get("key")
         if key == "banner" and row.get("id") == "catalog-head":
             parts = replace(parts, head="titelbild")
@@ -124,18 +128,21 @@ def from_rows(rows) -> Parts:
             parts = replace(
                 parts,
                 products=row.get("style") if row.get("style") in PRODUCT_VIEWS else "",
-                grid=row.get("grid") if isinstance(row.get("grid"), str) else "",
+                grid=row.get("grid") if row.get("grid") in MAIN_MARKER_GRIDS else "",
                 focus=row.get("focus") is True,
             )
     return parts
 
 
 def has_parts(rows) -> bool:
-    """Записаны ли части явно (строка «Kategorien» или поля вида у ★)."""
+    """Записаны ли части явно: вид «Kategorien» или поля вида у ★. Голая строка «Kategorien»
+    вида не задаёт — тогда действует прежний код (ревью P0/R1)."""
     for row in rows if isinstance(rows, list) else []:
-        if isinstance(row, dict) and (
-            row.get("key") == "categories" or (row.get("key") == "main" and len(row) > 1)
-        ):
+        if not isinstance(row, dict):
+            continue
+        if row.get("key") == "categories" and row.get("style") in CATEGORY_VIEWS:
+            return True
+        if row.get("key") == "main" and len(row) > 1:
             return True
     return False
 

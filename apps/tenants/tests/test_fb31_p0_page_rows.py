@@ -69,3 +69,23 @@ def test_catalog_category_views_survive_normalize_only_on_catalog_hosts():
     assert rows[0]["style"] == "regale"
     rows = _norm("catalog", [{"key": "categories", "style": "nonsense"}, {"key": "main"}])
     assert "style" not in rows[0]
+
+
+def test_builtin_row_on_the_catalog_refuses_ops_the_shop_does_not_draw_yet():
+    from apps.core import site_schema
+
+    items = [dict(CAT), {"key": "main"}]
+    for op, value in (("width", "half"), ("update", None), ("newline", None)):
+        with pytest.raises(site_schema.SchemaError):
+            site_schema.mutate(
+                [dict(i) for i in items], "catalog", op, "categories", None, value, {}, {}
+            )
+
+
+def test_builtin_rows_do_not_eat_the_block_cap():
+    own = [
+        {"key": "text", "id": f"t{i}", "data": {"title": "x"}}
+        for i in range(siteconfig._MAX_CBLOCKS)
+    ]
+    rows = _norm("catalog", [CAT, *own, {"key": "main"}])
+    assert sum(1 for r in rows if r.get("id")) == siteconfig._MAX_CBLOCKS

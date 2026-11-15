@@ -1455,7 +1455,7 @@ def normalize_page_blocks(raw) -> dict:
                         entry["style"] = item["style"]
                     blocks.append(entry)
                 continue
-            if len(blocks) >= _MAX_CBLOCKS:
+            if sum(1 for b in blocks if b.get("id")) >= _MAX_CBLOCKS:
                 continue  # кап, но маркер дальше по списку ещё ищем
             # UC2-3(b): на страницах, кроме обычных C-блоков, допускаются
             # ссылочные секции-справочники (PAGE_REF_BLOCKS); в home-sections

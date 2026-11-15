@@ -1542,6 +1542,19 @@ def product_list(request, slug=None):
     # сюда не наследуется (Р-2 плана); роль подкатегорий играют корневые направления.
     if not path_mode:
         cat_style = _root_page_style(cfg.get("catalog_page_style", ""))
+    # FB-30.16 R2: блоки страницы (стратегия FB-31) — сохранённые строки «Kategorien» и вид ★
+    # сильнее кода шаблона; рисуем тем же кодом (`legacy_code`), поэтому без строк витрина
+    # байт-в-байт прежняя. Строки хоста `catalog` — у корня; у категории — только её своя
+    # схема (`catalog:<slug>`), иначе прежний вывод из кода (до R5).
+    from apps.catalog import catalog_parts as _catalog_parts
+
+    _parts_host = f"catalog:{slug}" if category is not None and path_mode else "catalog"
+    if _parts_host == "catalog" and path_mode:
+        _parts_host = ""
+    if _parts_host:
+        cat_style = _catalog_parts.legacy_code(
+            _catalog_parts.effective(cfg, _parts_host, code=cat_style)
+        )
     # Снимок набора в рамках выбранной категории ДО фасет-фильтров — из него считаем
     # доступные значения фасетов (границы цены / присутствующие бейджи / есть ли
     # распроданное), чтобы показывать только релевантные фильтры и реальные диапазоны.

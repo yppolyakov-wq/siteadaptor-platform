@@ -3260,6 +3260,9 @@ def home_builder_view(request):
                 "visual": s.get("visual") or {},
             }
             for index, s in enumerate(siteconfig.main_list_sequence(host, stored), start=1)
+            # FB-31 P0 (ревью): встроенные строки без id (блок «Kategorien» каталога) —
+            # не свои блоки; у Студии для них полей нет
+            if siteconfig.is_main_marker(s) or s.get("id")
         ]
         page_cblocks.append({"page_key": host, "blocks": host_rows})
     for index, s in enumerate(config["sections"], start=1):

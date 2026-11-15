@@ -1529,6 +1529,15 @@ def mutate(
         raise SchemaError("block")
     item = items[idx]
     main = siteconfig.is_main_marker(item)
+    # FB-31 P0 (ревью): встроенная строка-список вне главной («Kategorien» каталога) пока
+    # только двигается и скрывается — ширину/ряд/поля витрина ей ещё не рисует (R4).
+    if (
+        not item.get("id")
+        and not main
+        and item.get("key") in siteconfig.page_builtin_keys(code.split("@")[-1])
+        and op in ("width", "beside", "own_row", "newline", "update")
+    ):
+        raise SchemaError("fixed")
     if op == "toggle":
         if main:
             raise SchemaError("main")

@@ -128,14 +128,14 @@ def test_filtered_catalog_looks_as_before(code):
     _check(f"root-{code or 'standard'}-search", html)
 
 
-def test_stored_part_rows_do_not_change_the_page_yet():
-    """FB-31 P0: строка «Kategorien» и поля ★ уже хранятся, но витрина рисует как раньше
-    (рендер по блокам — шаг R2)."""
+def test_stored_part_rows_draw_through_the_template_code():
+    """FB-31 P0 → R2 (осознанно переписан): поля ★ теперь действуют — «Mosaik» у ★ рисует
+    ту же страницу, что шаблон «Mosaik»; строка «Kategorien» сама по себе вид не меняет."""
     _data(subcats=True, photos=True)
     rows = [{"key": "categories", "enabled": True}, {"key": "main", "style": "mosaik"}]
     tenant = TenantFactory.build(name="Bäckerei X", site_config={"page_blocks": {"catalog": rows}})
     html = public_views.product_list(_request("/sortiment/", tenant)).content.decode()
-    _check("root-standard-sub-photo", html)
+    _check("root-mosaik-sub-photo", html)
 
 
 # ── R1: случаи, которых не было в R0 (план §7) ──
@@ -187,3 +187,34 @@ def test_category_style_over_the_site_default_looks_as_before():
     _check("cat-own-over-site", html.content.decode())
     kuchen = public_views.product_list(_request("/sortiment/kuchen/", tenant), slug="kuchen")
     _check("cat-site-default", kuchen.content.decode())
+
+
+# ── R2: витрина читает блоки страницы ──
+
+
+@pytest.mark.parametrize(
+    "rows,golden",
+    [
+        ([{"key": "categories", "style": "regale"}, {"key": "main"}], "root-regale-sub-photo"),
+        (
+            [{"key": "categories"}, {"key": "main", "style": "mosaik", "grid": "cols4"}],
+            "root-mosaik-sub-photo",
+        ),
+        ([{"key": "categories", "style": "side"}, {"key": "main"}], "root-navigator-sub-photo"),
+    ],
+)
+def test_stored_blocks_draw_the_same_page_as_the_template(rows, golden):
+    _data(subcats=True, photos=True)
+    cfg = {"page_blocks": {"catalog": rows}, "catalog_page_style": "tabs"}
+    tenant = TenantFactory.build(name="Bäckerei X", site_config=cfg)
+    html = public_views.product_list(_request("/sortiment/", tenant)).content.decode()
+    _check(golden, html)
+
+
+def test_root_blocks_do_not_leak_into_category_pages():
+    """Строки хоста `catalog` — для корня; категории до R5 выводятся из своего кода."""
+    _data(subcats=True, photos=True)
+    rows = [{"key": "categories", "style": "regale"}, {"key": "main"}]
+    tenant = TenantFactory.build(name="Bäckerei X", site_config={"page_blocks": {"catalog": rows}})
+    html = public_views.product_list(_request("/sortiment/brot/", tenant), slug="brot")
+    _check("cat-standard-sub-photo", html.content.decode())

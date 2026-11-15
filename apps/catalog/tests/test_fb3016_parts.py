@@ -65,3 +65,26 @@ def test_rows_order_matches_the_page():
     rows = cp.rows_for(cp.from_code(""))
     keys = [r["key"] for r in rows]
     assert keys.index("categories") < keys.index("main") < keys.index("combos")
+
+
+def test_review_fixes_order_hidden_rows_and_plain_rows():
+    # маркер первым не хранится → сеты без маркера стоят под списком
+    assert cp.from_rows([{"key": "categories"}, {"key": "combos"}]).sets == "below"
+    # скрытая строка вида не задаёт
+    assert (
+        cp.from_rows([{"key": "categories", "style": "regale", "enabled": False}]).categories == ""
+    )
+    # голая строка «Kategorien» не отменяет прежний код
+    assert cp.effective(
+        {"page_blocks": {"catalog": [{"key": "categories"}]}}, "catalog", code="regale"
+    ) == cp.from_code("regale")
+    # мусорная сетка отбрасывается
+    assert cp.from_rows([{"key": "main", "grid": "cols99"}]).grid == ""
+
+
+def test_combinations_that_never_existed_pick_the_main_axis():
+    """Сочетаний, которых не было, UI пока не даёт (R4); витрина выбирает главную ось:
+    товары → категории → шапка/сеты."""
+    assert cp.legacy_code(cp.Parts(products="mosaik", categories="tabs")) == "mosaik"
+    assert cp.legacy_code(cp.Parts(head="titelbild", categories="regale")) == "regale"
+    assert cp.legacy_code(cp.Parts(grid="cols4")) == ""
