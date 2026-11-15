@@ -38366,3 +38366,9 @@ msgstr "Yalnızca çevrimiçi ödeme veya ön ödeme etkinse geçerlidir – mü
 
 msgid "Ohne Haken wählen Kunden bei Lieferung online oder per Vorkasse."
 msgstr "İşaretsiz olduğunda müşteriler teslimatta çevrimiçi veya ön ödemeyi seçer."
+
+msgid "Wird mit «Speichern» eingeschaltet – vorher den Haken prüfen."
+msgstr "«Kaydet» ile açılır – önce işareti kontrol edin."
+
+msgid "Zahlung vor Ort gibt es bei Lieferung nicht. Gewählt:"
+msgstr "Teslimatta yerinde ödeme yok. Seçilen:"

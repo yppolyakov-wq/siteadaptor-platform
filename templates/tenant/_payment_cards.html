@@ -5,7 +5,7 @@
     <h2 class="ui-h2">{% trans "Zahlungsarten" %}</h2>
     {% if pay_addable %}
     <details class="relative" data-pay-add>
-      <summary class="ui-btn ui-btn-secondary cursor-pointer list-none">＋ {% trans "Zahlungsart" %}</summary>
+      <summary class="ui-btn ui-btn-secondary cursor-pointer list-none"><span aria-hidden="true">＋</span> {% trans "Zahlungsart" %}</summary>
       <ul class="absolute right-0 z-10 mt-1 w-64 ui-card p-1 text-sm" role="list">
         {% for c in pay_addable %}
           <li><a class="block rounded px-3 py-2 hover:bg-gray-50" href="?art={{ c.code }}#pay-{{ c.code }}">{{ c.title }}</a></li>
@@ -16,18 +16,18 @@
   </div>
   <ul class="space-y-2" role="list">
     {% for c in pay_cards %}
-    <li id="pay-{{ c.code }}" class="ui-card" data-pay-card="{{ c.code }}">
+    <li id="pay-{{ c.code }}" class="ui-card scroll-mt-24 p-0" data-pay-card="{{ c.code }}">
       <details{% if c.open %} open{% endif %}>
-        <summary class="flex cursor-pointer list-none items-center gap-3 p-4">
+        <summary class="flex cursor-pointer list-none items-center gap-3 rounded-lg p-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2">
           <span class="min-w-0 flex-1">
             <span class="block font-semibold">{{ c.title }}</span>
             <span class="block text-xs text-gray-500">{{ c.summary }}</span>
           </span>
           <span class="ui-badge {% if c.on %}ui-tone-ok{% else %}bg-gray-100 text-gray-600{% endif %}" data-pay-state>{% if c.on %}{% trans "aktiv" %}{% else %}{% trans "aus" %}{% endif %}</span>
           <span class="text-sm text-gray-500" aria-hidden="true">▾</span>
-          <span class="sr-only">{% trans "Einstellungen" %}</span>
         </summary>
         <div class="space-y-4 border-t border-gray-100 p-4">
+          {% if c.open and not c.on and c.code != "stripe" %}<p class="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-900" data-pay-pending>{% trans "Wird mit «Speichern» eingeschaltet – vorher den Haken prüfen." %}</p>{% endif %}
           {% if c.code == "on_site" %}
             {% include "tenant/_pay_on_site_fields.html" %}
           {% elif c.code == "stripe" %}

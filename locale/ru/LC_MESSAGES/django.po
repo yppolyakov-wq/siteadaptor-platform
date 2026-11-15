@@ -38559,3 +38559,9 @@ msgstr "Сработает, только когда включена онлай�
 
 msgid "Ohne Haken wählen Kunden bei Lieferung online oder per Vorkasse."
 msgstr "Без галочки при доставке покупатель платит онлайн или предоплатой."
+
+msgid "Wird mit «Speichern» eingeschaltet – vorher den Haken prüfen."
+msgstr "Включится по «Сохранить» — сначала проверьте галочку."
+
+msgid "Zahlung vor Ort gibt es bei Lieferung nicht. Gewählt:"
+msgstr "При доставке оплаты на месте нет. Выбрано:"

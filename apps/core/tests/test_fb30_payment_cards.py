@@ -97,3 +97,21 @@ def test_wizard_keeps_the_old_sections():
         {"orders_active": True, "connect_configured": True, "can_edit_bank": True},
     )
     assert "data-pay-card" not in html and 'name="sec_vorkasse"' in html
+
+
+def test_opened_card_says_it_switches_on_with_save():
+    tenant = TenantFactory(disabled_modules=[])
+    card = _html(tenant, user="pc4", art="invoice").split('data-pay-card="invoice"', 1)[1]
+    assert "data-pay-pending" in card.split("</li>", 1)[0]
+    assert "data-pay-pending" not in _html(tenant, user="pc5")
+
+
+def test_save_on_site_rereads_the_config_under_lock():
+    tenant = TenantFactory(disabled_modules=[], site_config={})
+    from apps.tenants.models import Tenant
+
+    Tenant.objects.filter(pk=tenant.pk).update(site_config={"other_writer": True})
+    _post(tenant, {"tab": "zahlung", "sec_on_site": "1", "on_site_kind": "cash"})
+    tenant.refresh_from_db()
+    assert tenant.site_config["other_writer"] is True
+    assert tenant.site_config["payment_on_site"]["kind"] == "cash"

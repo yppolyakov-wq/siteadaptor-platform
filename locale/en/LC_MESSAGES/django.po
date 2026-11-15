@@ -38220,3 +38220,9 @@ msgstr "Only takes effect once online payment or prepayment is active – custom
 
 msgid "Ohne Haken wählen Kunden bei Lieferung online oder per Vorkasse."
 msgstr "Without the tick, customers choose online payment or prepayment for delivery."
+
+msgid "Wird mit «Speichern» eingeschaltet – vorher den Haken prüfen."
+msgstr "Will be switched on with «Save» – check the tick first."
+
+msgid "Zahlung vor Ort gibt es bei Lieferung nicht. Gewählt:"
+msgstr "Payment on site is not available for delivery. Selected:"

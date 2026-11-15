@@ -111,10 +111,14 @@ Sperrgut) — честный текст, а не обещание самовыв
         document.querySelectorAll('[data-pay-onsite-nodelivery]').forEach(function (row) {
           row.classList.toggle("hidden", !pickup);
           var radio = row.querySelector('input[name=payment]');
-          if (!pickup && radio && radio.checked) {
-            var next = document.querySelector('label:not(.hidden) > input[name=payment]');
-            if (next) next.checked = true;
-          }
+          if (pickup || !radio || !radio.checked) return;
+          var scope = row.closest("form") || document;
+          var next = scope.querySelector('label:not(.hidden) > input[name=payment]');
+          if (!next) return;
+          next.checked = true;
+          next.dispatchEvent(new Event("change", { bubbles: true }));
+          var live = scope.querySelector("[data-pay-live]");
+          if (live) live.textContent = live.dataset.msg + " " + next.parentNode.textContent.trim();
         });
       }
       if (!window.__shipChoiceBound) {

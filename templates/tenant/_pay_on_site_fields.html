@@ -14,7 +14,7 @@
 </fieldset>
 {% if orders_active %}
   <input type="hidden" name="on_site_delivery_shown" value="1">
-  <label class="flex items-start gap-2 text-sm">
+  <label class="flex items-start gap-2 py-1 text-sm">
     <input type="checkbox" name="on_site_delivery" class="mt-0.5" {% if on_site_cfg.delivery %}checked{% endif %} aria-describedby="on-site-delivery-hint">
     <span>{% trans "Auch bei Lieferung anbieten (Zahlung an der Haustür)" %}</span>
   </label>

@@ -38546,3 +38546,9 @@ msgstr "Спрацює, лише коли ввімкнено онлайн-опл
 
 msgid "Ohne Haken wählen Kunden bei Lieferung online oder per Vorkasse."
 msgstr "Без позначки при доставці покупець платить онлайн або передоплатою."
+
+msgid "Wird mit «Speichern» eingeschaltet – vorher den Haken prüfen."
+msgstr "Увімкнеться після «Зберегти» — спершу перевірте позначку."
+
+msgid "Zahlung vor Ort gibt es bei Lieferung nicht. Gewählt:"
+msgstr "При доставці оплати на місці немає. Обрано:"

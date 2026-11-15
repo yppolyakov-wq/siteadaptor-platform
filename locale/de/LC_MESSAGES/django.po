@@ -38307,3 +38307,9 @@ msgstr "Wirkt erst, wenn Online-Zahlung oder Vorkasse aktiv ist – Kunden brauc
 
 msgid "Ohne Haken wählen Kunden bei Lieferung online oder per Vorkasse."
 msgstr "Ohne Haken wählen Kunden bei Lieferung online oder per Vorkasse."
+
+msgid "Wird mit «Speichern» eingeschaltet – vorher den Haken prüfen."
+msgstr "Wird mit «Speichern» eingeschaltet – vorher den Haken prüfen."
+
+msgid "Zahlung vor Ort gibt es bei Lieferung nicht. Gewählt:"
+msgstr "Zahlung vor Ort gibt es bei Lieferung nicht. Gewählt:"
