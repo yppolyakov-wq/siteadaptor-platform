@@ -102,3 +102,17 @@ def test_deals_follow_the_module_and_link_the_deals_page():
     on = TenantFactory.build(disabled_modules=[])
     on.site_config = _bottom(node)
     assert menu_mod.resolve_menu(on, "bottom")[0]["url"] == "/aktionen/"
+
+
+def test_buy_bar_sits_above_the_bottom_bar():
+    """Фидбэк владельца: строка «In den Warenkorb» пряталась наполовину под нижней панелью."""
+    with_nav = render_to_string(
+        "storefront/_detail_buybar.html",
+        {"price": "7,20 €", "anchor": "#kaufen", "label": "Kaufen",
+         "storefront_bottom_nav": [{"url": "/", "label": "x", "icon": "x"}]},
+    )  # fmt: skip
+    assert "bottom-[calc(46px+env(safe-area-inset-bottom))] sm:bottom-0" in with_nav
+    plain = render_to_string(
+        "storefront/_detail_buybar.html", {"price": "1 €", "anchor": "#k", "label": "K"}
+    )
+    assert "fixed bottom-0" in plain
