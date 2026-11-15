@@ -38095,3 +38095,38 @@ msgstr "Area %(n)s"
 #, python-format
 msgid "Abholort %(n)s"
 msgstr "Pickup point %(n)s"
+
+msgid "Beispiel für eine Kundenstimme."
+msgstr "Example of a customer review."
+
+#, python-format
+msgid "Beispielaktion %(n)s"
+msgstr "Example offer %(n)s"
+
+msgid "Beispielantwort."
+msgstr "Example answer."
+
+msgid "Beispielfrage: Kann ich vor Ort abholen?"
+msgstr "Example question: Can I pick up in person?"
+
+msgid "Beispielfrage: Welche Zahlungsarten gibt es?"
+msgstr "Example question: Which payment methods are there?"
+
+msgid "Beispielfrage: Wie lange dauert die Lieferung?"
+msgstr "Example question: How long does delivery take?"
+
+msgid "Beispielkunde"
+msgstr "Example customer"
+
+msgid "Beispielkundin"
+msgstr "Example customer"
+
+#, python-format
+msgid "Beispielname %(n)s"
+msgstr "Example name %(n)s"
+
+msgid "Beispielrolle"
+msgstr "Example role"
+
+msgid "Beispieltext: ein Satz über Ihr Geschäft."
+msgstr "Example text: one sentence about your business."

@@ -38241,3 +38241,38 @@ msgstr "Bölge %(n)s"
 #, python-format
 msgid "Abholort %(n)s"
 msgstr "Teslim noktası %(n)s"
+
+msgid "Beispiel für eine Kundenstimme."
+msgstr "Müşteri yorumu örneği."
+
+#, python-format
+msgid "Beispielaktion %(n)s"
+msgstr "Örnek kampanya %(n)s"
+
+msgid "Beispielantwort."
+msgstr "Örnek cevap."
+
+msgid "Beispielfrage: Kann ich vor Ort abholen?"
+msgstr "Örnek soru: Yerinde teslim alabilir miyim?"
+
+msgid "Beispielfrage: Welche Zahlungsarten gibt es?"
+msgstr "Örnek soru: Hangi ödeme yöntemleri var?"
+
+msgid "Beispielfrage: Wie lange dauert die Lieferung?"
+msgstr "Örnek soru: Teslimat ne kadar sürer?"
+
+msgid "Beispielkunde"
+msgstr "Örnek müşteri"
+
+msgid "Beispielkundin"
+msgstr "Örnek müşteri"
+
+#, python-format
+msgid "Beispielname %(n)s"
+msgstr "Örnek isim %(n)s"
+
+msgid "Beispielrolle"
+msgstr "Örnek görev"
+
+msgid "Beispieltext: ein Satz über Ihr Geschäft."
+msgstr "Örnek metin: işletmeniz hakkında bir cümle."

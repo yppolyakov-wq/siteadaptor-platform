@@ -38182,3 +38182,38 @@ msgstr "Gebiet %(n)s"
 #, python-format
 msgid "Abholort %(n)s"
 msgstr "Abholort %(n)s"
+
+msgid "Beispiel für eine Kundenstimme."
+msgstr "Beispiel für eine Kundenstimme."
+
+#, python-format
+msgid "Beispielaktion %(n)s"
+msgstr "Beispielaktion %(n)s"
+
+msgid "Beispielantwort."
+msgstr "Beispielantwort."
+
+msgid "Beispielfrage: Kann ich vor Ort abholen?"
+msgstr "Beispielfrage: Kann ich vor Ort abholen?"
+
+msgid "Beispielfrage: Welche Zahlungsarten gibt es?"
+msgstr "Beispielfrage: Welche Zahlungsarten gibt es?"
+
+msgid "Beispielfrage: Wie lange dauert die Lieferung?"
+msgstr "Beispielfrage: Wie lange dauert die Lieferung?"
+
+msgid "Beispielkunde"
+msgstr "Beispielkunde"
+
+msgid "Beispielkundin"
+msgstr "Beispielkundin"
+
+#, python-format
+msgid "Beispielname %(n)s"
+msgstr "Beispielname %(n)s"
+
+msgid "Beispielrolle"
+msgstr "Beispielrolle"
+
+msgid "Beispieltext: ein Satz über Ihr Geschäft."
+msgstr "Beispieltext: ein Satz über Ihr Geschäft."

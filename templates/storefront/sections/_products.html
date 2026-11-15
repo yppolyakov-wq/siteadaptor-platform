@@ -27,7 +27,8 @@
     свой запрос шире карточного лимита (прайс сканируется, а не листается).
     MEN-24c: rows секции (кап строк на группу) режется в теге; при срезе кнопка
     ниже меняет подпись на «Mehr anzeigen» — тот же URL полного меню.{% endcomment %}
-    {% price_list_groups rows=section_row.rows|default:0 row=section_row as price_groups %}
+    {% comment %}FB-30.10: в предпросмотре дизайна прайс-лист пустого магазина — из товаров-примеров (раньше секция была пустой).{% endcomment %}
+    {% if products_are_samples %}{% sample_price_groups products_preview as price_groups %}{% else %}{% price_list_groups rows=section_row.rows|default:0 row=section_row as price_groups %}{% endif %}
     {% include "storefront/lists/_price_list_box.html" with pl_style=section_row.style plv_key="products" plv_cols=section_row.layout.cols plv_mobile=section_row.layout.mobile %}
   {% else %}
   {% builtin_all_url section_row products_url as more_url %}{% row_card section_row as row_card_style %}

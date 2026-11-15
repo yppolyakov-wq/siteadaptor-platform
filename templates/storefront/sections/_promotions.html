@@ -33,6 +33,17 @@
 </div>
 {% endif %}
 {% endwith %}
+{% elif sample_promotions %}
+{% comment %}FB-30.10: акции-примеры — свой простой вид без ценового слоя.{% endcomment %}
+<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" data-sample-promotions>
+  {% for p in sample_promotions %}
+  <div class="sf-card overflow-hidden rounded-2xl bg-white shadow-sm">
+    <img src="{{ p.image }}" alt="" loading="lazy" class="h-40 w-full object-cover">
+    <div class="p-4"><p class="font-semibold">{{ p.title }}</p>
+      <p class="mt-1 text-sm"><span class="text-gray-500 line-through">{{ p.old }} €</span> <span class="font-bold">{{ p.new }} €</span></p></div>
+  </div>
+  {% endfor %}
+</div>
 {% else %}
   <p class="text-gray-400">{% trans "No current offers." %}</p>
 {% endif %}

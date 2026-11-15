@@ -957,6 +957,12 @@ def _price_group_rows(products):
 
 
 @register.simple_tag
+def sample_price_groups(products):
+    """FB-30.10: прайс-лист из товаров-примеров предпросмотра (без запросов к базе)."""
+    return _price_group_rows(products or [])
+
+
+@register.simple_tag
 def price_list_groups(limit=40, rows=0, row=None):
     """Секция главной в стиле «preisliste»: активные товары группами по
     категориям (собственный запрос — выполняется ТОЛЬКО при выбранном стиле;

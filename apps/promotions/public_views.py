@@ -367,6 +367,13 @@ def storefront_home(request):
                 sample_sections.add(key)
         return items
 
+    # FB-30.10: содержательные секции, баннер и акции — тоже примерами (только пустые)
+    site, sample_content = design_samples.site_with_samples(site, request)
+    sample_sections |= sample_content
+    sample_promotions = []
+    if "promotions" in lists and not promos and design_samples.wanted(request):
+        sample_promotions = design_samples.promotions()
+        sample_sections.add("promotions")
     stay_rooms = _or_samples("stay_rooms", stay_rooms)
     events_preview = _or_samples("events", events_preview)
     tours_preview = _items("tours")
@@ -392,6 +399,9 @@ def storefront_home(request):
         {
             "products_are_samples": products_are_samples,
             "sample_sections": sample_sections,
+            "sample_promotions": sample_promotions,
+            # секции, которые обёртка помечает примером (свои пометки у услуг и т. п.)
+            "sample_wrapped": sample_content | ({"promotions"} if sample_promotions else set()),
             "sections": sections,
             "section_blocks": section_blocks,
             "site": site,

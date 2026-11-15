@@ -38434,3 +38434,38 @@ msgstr "Зона %(n)s"
 #, python-format
 msgid "Abholort %(n)s"
 msgstr "Пункт самовывоза %(n)s"
+
+msgid "Beispiel für eine Kundenstimme."
+msgstr "Пример отзыва клиента."
+
+#, python-format
+msgid "Beispielaktion %(n)s"
+msgstr "Пример акции %(n)s"
+
+msgid "Beispielantwort."
+msgstr "Пример ответа."
+
+msgid "Beispielfrage: Kann ich vor Ort abholen?"
+msgstr "Пример вопроса: можно ли забрать на месте?"
+
+msgid "Beispielfrage: Welche Zahlungsarten gibt es?"
+msgstr "Пример вопроса: какие есть способы оплаты?"
+
+msgid "Beispielfrage: Wie lange dauert die Lieferung?"
+msgstr "Пример вопроса: сколько идёт доставка?"
+
+msgid "Beispielkunde"
+msgstr "Пример клиента"
+
+msgid "Beispielkundin"
+msgstr "Пример клиентки"
+
+#, python-format
+msgid "Beispielname %(n)s"
+msgstr "Пример имени %(n)s"
+
+msgid "Beispielrolle"
+msgstr "Пример должности"
+
+msgid "Beispieltext: ein Satz über Ihr Geschäft."
+msgstr "Пример текста: одно предложение о вашем деле."

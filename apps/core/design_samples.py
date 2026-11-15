@@ -185,3 +185,109 @@ def listing_context(request, key: str) -> dict:
     if not items:
         return {}
     return {_LISTINGS[key]: items, "sample_sections": {key}}
+
+
+# ───────── FB-30.10: полный набор примеров для главной ─────────
+
+
+def wanted_owner(request) -> bool:
+    """Предпросмотр дизайна И вход в кабинет этого бизнеса. `?preview=1&look=` открыт
+    любому посетителю опубликованного сайта — отзывы-примеры (выдуманные оценки) показываем
+    только владельцу, иначе на витрине стояли бы ненастоящие отзывы (UWG)."""
+    if not wanted(request):
+        return False
+    from apps.core import roles
+
+    try:
+        return bool(roles.has_cabinet_access(getattr(request, "user", None)))
+    except Exception:  # noqa: BLE001 — сомнение = не владелец
+        return False
+
+
+def _wide_photo(keyword: str, lock: int) -> str:
+    from apps.tenants.demo_images import demo_image_url
+
+    return demo_image_url(keyword, w=1200, h=800, lock=lock)
+
+
+def _faq() -> list[dict]:
+    from django.utils.translation import gettext as _
+
+    return [
+        {"q": _("Beispielfrage: Wie lange dauert die Lieferung?"), "a": _("Beispielantwort.")},
+        {"q": _("Beispielfrage: Kann ich vor Ort abholen?"), "a": _("Beispielantwort.")},
+        {"q": _("Beispielfrage: Welche Zahlungsarten gibt es?"), "a": _("Beispielantwort.")},
+    ]
+
+
+def _team() -> list[dict]:
+    from django.utils.translation import gettext as _
+
+    return [
+        {
+            "name": _("Beispielname %(n)s") % {"n": i + 1},
+            "role": _("Beispielrolle"),
+            "photo": _wide_photo(key, 720 + i),
+        }  # fmt: skip
+        for i, key in enumerate(("barista-woman", "baker-man", "shop-assistant"))
+    ]
+
+
+def _gallery() -> list[dict]:
+    keys = ("cafe-interior", "tea", "coffee", "market-stall", "bakery", "chocolate")
+    return [{"url": _wide_photo(key, 740 + i), "alt": {}} for i, key in enumerate(keys)]
+
+
+def _testimonials() -> list[dict]:
+    from django.utils.translation import gettext as _
+
+    return [
+        {"name": _("Beispielkundin"), "text": _("Beispiel für eine Kundenstimme."), "stars": 5},
+        {"name": _("Beispielkunde"), "text": _("Beispiel für eine Kundenstimme."), "stars": 5},
+    ]
+
+
+def promotions() -> list[dict]:
+    """Акции-примеры — простые словари для своего партиала (карточка настоящей акции
+    тянет ценовой слой и связи; пример — только вид)."""
+    from django.utils.translation import gettext as _
+
+    return [
+        {
+            "title": _("Beispielaktion %(n)s") % {"n": i + 1},
+            "old": old,
+            "new": new,
+            "image": _wide_photo(key, 760 + i),
+        }  # fmt: skip
+        for i, (key, old, new) in enumerate(
+            (("tea", "12,90", "9,90"), ("coffee", "8,50", "6,50"), ("chocolate", "4,20", "2,90"))
+        )
+    ]
+
+
+def site_with_samples(site: dict, request) -> tuple[dict, set]:
+    """Копия `site`, где ПУСТЫЕ содержательные секции главной заполнены примерами, и
+    ключи заполненных. Только в предпросмотре дизайна; своё содержимое не заменяется;
+    исходный словарь не меняется. Баннер: фото и текст-пример, если у главной нет ни фото,
+    ни выбранных баннеров (иначе «Vollbild» и фото-виды падали в «Akzent»)."""
+    if not wanted(request) or not isinstance(site, dict):
+        return site, set()
+    from django.utils.translation import gettext as _
+
+    out, keys = dict(site), set()
+    fillers = {"faq": _faq, "gallery": _gallery, "team": _team}
+    if wanted_owner(request):
+        fillers["testimonials"] = _testimonials
+    for key, make in fillers.items():
+        if key == "gallery" and out.get("gallery_video"):
+            continue
+        if not out.get(key):
+            out[key] = make()
+            keys.add(key)
+    hero = out.get("hero_banners") if isinstance(out.get("hero_banners"), dict) else {}
+    if not hero.get("pick") and not out.get("hero_image") and not out.get("heroes"):
+        out["hero_image"] = _wide_photo("cafe-interior", 790)
+        if not out.get("hero_text"):
+            out["hero_text"] = _("Beispieltext: ein Satz über Ihr Geschäft.")
+        keys.add("hero")
+    return out, keys
