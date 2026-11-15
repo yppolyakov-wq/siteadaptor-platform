@@ -335,6 +335,17 @@ def design_view(request):
         changes = design_changes(tenant, wanted) if chosen else None
         if changes is not None:
             confirm = {"key": wanted, "label": chosen["label"], "changes": changes}
+            # FB-30.10 (решение владельца): предпросмотр не только главной — список и
+            # страница товара; одна рамка, выбор страницы — обычными ссылками
+            from apps.core import design_samples
+
+            query = f"?preview=1&look={chosen.get('look', '')}&bundle={wanted}"
+            pages = design_samples.preview_pages(request, query)
+            page_key = request.GET.get("vorschau") or "home"
+            if page_key not in {p["key"] for p in pages}:
+                page_key = "home"
+            confirm["pages"] = pages
+            confirm["page"] = next(p for p in pages if p["key"] == page_key)
     # Владелец сам решает, сколько готовых дизайнов видеть: сначала первые четыре (как на
     # макете) и действующий, остальные — по ссылке «Mehr Designs anzeigen».
     all_bundles = [

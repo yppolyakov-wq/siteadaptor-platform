@@ -38217,3 +38217,6 @@ msgstr "Beispielrolle"
 
 msgid "Beispieltext: ein Satz über Ihr Geschäft."
 msgstr "Beispieltext: ein Satz über Ihr Geschäft."
+
+msgid "In neuem Tab öffnen"
+msgstr "In neuem Tab öffnen"

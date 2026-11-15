@@ -126,3 +126,68 @@ def test_price_list_style_shows_the_sample_products_too():
     html = public_views.storefront_home(req).content.decode()
     assert "data-sample-products" in html
     assert design_samples.products()[0].name["de"] in html
+
+
+# --- часть 2: страница товара-примера и переключатель страниц предпросмотра ---
+
+
+def _detail(pk, query=""):
+    req = _req(f"/sortiment/{pk}/{query}")
+    req.user = AnonymousUser()
+    return public_views.product_detail(req, pk=pk)
+
+
+def test_sample_product_page_opens_only_in_the_design_preview_of_an_empty_shop():
+    import uuid
+
+    from django.http import Http404
+
+    from apps.catalog.tests.factories import ProductFactory
+
+    sample = design_samples.products()[0]
+    resp = _detail(sample.pk, DESIGN)
+    html = resp.content.decode()
+    assert resp.status_code == 200 and sample.name["de"] in html
+    assert "data-sample-product" in html and " inert" in html, "покупка неактивна"
+    assert resp["X-Robots-Tag"].startswith("noindex")
+    with pytest.raises(Http404):
+        _detail(sample.pk)  # без предпросмотра — нет
+    with pytest.raises(Http404):
+        _detail(uuid.UUID(int=99), DESIGN)  # не пример
+    ProductFactory(name={"de": "Echter Tee", "en": ""}, base_price="3.00")
+    with pytest.raises(Http404):
+        _detail(sample.pk, DESIGN)  # свои товары есть — примеров нет
+
+
+def test_sample_product_page_writes_nothing():
+    sample = design_samples.products()[0]
+    with CaptureQueriesContext(connection) as ctx:
+        _detail(sample.pk, DESIGN)
+    writes = [q["sql"] for q in ctx.captured_queries
+              if q["sql"].split(" ", 1)[0].upper() in ("INSERT", "UPDATE", "DELETE")]  # fmt: skip
+    assert writes == []
+
+
+def test_preview_pages_offer_home_listing_and_product():
+    from apps.core.modules import default_disabled_for
+
+    req = _req("/")
+    req.tenant.business_type = "online_shop"
+    req.tenant.disabled_modules = list(default_disabled_for("online_shop"))
+    pages = design_samples.preview_pages(req, "?preview=1&look=klar&bundle=fokus")
+    assert [p["key"] for p in pages] == ["home", "liste", "produkt"]
+    assert pages[0]["url"].startswith("/?preview=1")
+    assert pages[1]["url"].startswith("/sortiment/?preview=1")
+    sample = design_samples.products()[0]
+    assert pages[2]["url"].startswith(f"/sortiment/{sample.pk}/?preview=1")
+
+
+def test_preview_pages_of_a_salon_show_its_booking_list_and_no_product_page():
+    from apps.core.modules import default_disabled_for
+
+    req = _req("/")
+    req.tenant.business_type = "friseur"
+    req.tenant.disabled_modules = list(default_disabled_for("friseur"))
+    pages = design_samples.preview_pages(req, "?preview=1")
+    assert [p["key"] for p in pages] == ["home", "liste"]
+    assert pages[1]["url"].startswith("/termin/")

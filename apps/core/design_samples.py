@@ -295,3 +295,76 @@ def site_with_samples(site: dict, request) -> tuple[dict, set]:
             out["hero_text"] = _("Beispieltext: ein Satz über Ihr Geschäft.")
         keys.add("hero")
     return out, keys
+
+
+# ───────── FB-30.10, часть 2: страница товара-примера и страницы предпросмотра ─────────
+
+
+def sample_product(request, pk):
+    """Товар-пример с этим pk — только в предпросмотре дизайна и пока своих товаров нет
+    (иначе None: адрес примера на живом сайте — 404)."""
+    if not wanted(request):
+        return None
+    found = next((p for p in products() if p.pk == pk), None)
+    if found is None:
+        return None
+    from apps.catalog.models import Product
+
+    try:
+        if Product.objects.filter(is_active=True).exists():
+            return None
+    except Exception:  # noqa: BLE001 — сомнение = без примера
+        import logging
+
+        logging.getLogger(__name__).warning("design samples: catalog check failed", exc_info=True)
+        return None
+    return found
+
+
+def preview_pages(request, query: str) -> list[dict]:
+    """Страницы, которые показывает предпросмотр дизайна: главная, основной список бизнеса
+    (у магазина — каталог, у салона — запись, у отеля — номера) и страница товара, если
+    бизнес продаёт товары (настоящего, если он есть, иначе примера). `query` —
+    `?preview=1&look=…`."""
+    from django.urls import NoReverseMatch, reverse
+    from django.utils.translation import gettext as _
+
+    from apps.core import archetypes
+
+    tenant = getattr(request, "tenant", None)
+    pages = [{"key": "home", "label": _("Startseite"), "url": "/" + query}]
+    primary = (archetypes.primary_item(tenant) or {}) if tenant is not None else {}
+    try:
+        catalog = bool(tenant is None or tenant.is_module_active("catalog"))
+    except Exception:  # noqa: BLE001
+        catalog = True
+    real = None
+    if catalog:
+        from apps.catalog.models import Product
+
+        real = (
+            Product.objects.filter(is_active=True).order_by("-is_featured", "-created_at").first()
+        )
+    # магазин: главный раздел — каталог, либо товары уже есть, либо главный раздел не задан
+    shop = catalog and (
+        primary.get("module") == "catalog" or real is not None or not primary.get("landing")
+    )
+    landing = "storefront-products" if shop else primary.get("landing") or ""
+    try:
+        pages.append({"key": "liste", "label": _("Liste"), "url": reverse(landing) + query})
+    except NoReverseMatch:
+        pass
+    if not shop:
+        return pages  # бизнес без товаров и не магазин — страницы товара не показываем
+    pk = real.pk if real is not None else products()[0].pk
+    try:
+        pages.append(
+            {
+                "key": "produkt",
+                "label": _("Produkt"),
+                "url": reverse("storefront-product", args=[pk]) + query,
+            }
+        )
+    except NoReverseMatch:
+        pass
+    return pages

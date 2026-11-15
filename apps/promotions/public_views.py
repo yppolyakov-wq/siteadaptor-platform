@@ -2280,6 +2280,22 @@ def product_list(request, slug=None):
 def product_detail(request, pk=None, pslug=None, cslug=None):
     from apps.catalog.models import Product
 
+    # FB-30.10: товар-пример предпросмотра дизайна пустого магазина — без запросов по нему
+    if pk is not None:
+        sample = design_samples.sample_product(request, pk)
+        if sample is not None:
+            response = render(
+                request,
+                "storefront/product_detail_sample.html",
+                {
+                    "product": sample,
+                    "sample_photo": (sample.images or [{}])[0].get("url", ""),
+                    "related": [p for p in design_samples.products() if p.pk != sample.pk],
+                },
+            )
+            response["X-Robots-Tag"] = "noindex, nofollow"
+            response["Cache-Control"] = "private, no-store"
+            return response
     # KAT-3: три адреса одной детали — uuid (легаси/письма/QR), /sortiment/p/<slug>/
     # (без категории) и /sortiment/<категория>/<slug>/. Слаговый резолв СТРОГИЙ:
     # чужая категория в пути → 404 (не дублируем контент по любым путям).

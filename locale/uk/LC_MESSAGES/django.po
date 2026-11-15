@@ -38456,3 +38456,6 @@ msgstr "Приклад посади"
 
 msgid "Beispieltext: ein Satz über Ihr Geschäft."
 msgstr "Приклад тексту: одне речення про вашу справу."
+
+msgid "In neuem Tab öffnen"
+msgstr "Відкрити в новій вкладці"

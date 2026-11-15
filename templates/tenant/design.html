@@ -229,6 +229,18 @@ Look'и; применение POST'ом — сохраняется сразу. �
         </ul>
       </div>
     </div>
+    {% if confirm.pages %}
+    {% comment %}FB-30.10: предпросмотр выбранного дизайна — главная, список, страница товара (ссылки, без скриптов).{% endcomment %}
+    <div class="mt-4" data-design-pages>
+      <div class="flex flex-wrap gap-1.5 mb-2" role="group" aria-label="{% trans 'Vorschau' %}">
+        {% for p in confirm.pages %}<a href="?tab=fertig&amp;confirm={{ confirm.key }}&amp;vorschau={{ p.key }}{% if bundles_more %}&amp;mehr=1{% endif %}{{ next_q }}#design-confirm" class="inline-flex min-h-[44px] items-center rounded-lg border px-3 text-sm font-semibold {% if p.key == confirm.page.key %}border-2 border-indigo-700 bg-indigo-50 text-indigo-900{% else %}border-gray-400 text-gray-800 hover:bg-gray-50{% endif %}"{% if p.key == confirm.page.key %} aria-current="true"{% endif %} data-design-page="{{ p.key }}">{{ p.label }}</a>{% endfor %}
+        <a href="{{ confirm.page.url }}" target="_blank" rel="noopener" class="ml-auto inline-flex min-h-[44px] items-center text-sm font-semibold text-indigo-700 hover:underline">{% trans "In neuem Tab öffnen" %} ↗</a>
+      </div>
+      <div class="rounded-lg border border-gray-300 overflow-hidden bg-gray-50" style="height:360px">
+        <iframe src="{{ confirm.page.url }}" title="{% trans 'Vorschau' %}: {{ confirm.page.label }}" loading="lazy" style="width:200%;height:720px;transform:scale(.5);transform-origin:0 0;border:0" data-design-frame></iframe>
+      </div>
+    </div>
+    {% endif %}
     <form method="post" class="mt-4 space-y-3">
       {% csrf_token %}
       <input type="hidden" name="bundle" value="{{ confirm.key }}">

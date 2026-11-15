@@ -38276,3 +38276,6 @@ msgstr "Örnek görev"
 
 msgid "Beispieltext: ein Satz über Ihr Geschäft."
 msgstr "Örnek metin: işletmeniz hakkında bir cümle."
+
+msgid "In neuem Tab öffnen"
+msgstr "Yeni sekmede aç"

@@ -182,3 +182,22 @@ def test_design_preview_carries_the_design_to_other_pages():
     assert '"look", "bundle"' in block and "searchParams.set" in block
     # значения дизайна сервер в скрипт не печатает
     assert "{{ request.GET.look" not in base and "{{ request.GET.bundle" not in base
+
+
+def test_confirmation_previews_home_listing_and_product_without_script():
+    """FB-30.10 (решение владельца): предпросмотр дизайна — не только главная."""
+    from apps.core.modules import default_disabled_for
+
+    tenant = TenantFactory(
+        business_type="online_shop", disabled_modules=list(default_disabled_for("online_shop"))
+    )
+    key = _key(tenant)
+    body = _html(tenant, f"?confirm={key}")
+    assert body.count("data-design-page=") == 3
+    assert "data-design-frame" in body and 'src="/?preview=1' in body
+    body = _html(tenant, f"?confirm={key}&vorschau=produkt")
+    frame = body[body.index("data-design-frame") - 400 :]
+    assert 'src="/sortiment/' in frame and "preview=1" in frame
+    assert 'aria-current="true" data-design-page="produkt"' in body
+    body = _html(tenant, f"?confirm={key}&vorschau=quatsch")
+    assert 'aria-current="true" data-design-page="home"' in body

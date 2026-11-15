@@ -38130,3 +38130,6 @@ msgstr "Example role"
 
 msgid "Beispieltext: ein Satz über Ihr Geschäft."
 msgstr "Example text: one sentence about your business."
+
+msgid "In neuem Tab öffnen"
+msgstr "Open in a new tab"
