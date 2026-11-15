@@ -87,3 +87,43 @@ filters)`, `LEGACY_MAP[(surface, code)]`, `derive(cfg, surface, category, gates)
 ## 6. ECC-прогоны
 Скиллы: django-patterns, django-tdd, accessibility. `django-reviewer` — каждый срез;
 `silent-failure-hunter` — R2–R3; `a11y-architect` + стенд Playwright — R4; `security-reviewer` — R3.
+
+## 7. Уточнение R1–R3 (разведка `planner`, 2026-11-15, вечер)
+
+**Находка:** встроенная строка «categories» на странице каталога сегодня невозможна —
+`siteconfig.normalize_page_blocks` (siteconfig.py:1389–1423) оставляет только C-блоки,
+`PAGE_REF_BLOCKS` и маркер `main`; прочие строки молча выпадают при сохранении.
+
+**Порядок рендера** (`listing.html:42–103`): шапка/сеты сверху/Wegweiser → свои блоки над ★ и
+`place_banners` → фасеты (Seitenspalte, Index, плитки категорий, фильтры, Reiter, Regale) → сетка
+→ после (сеты снизу, свои блоки под ★).
+
+**Целевая модель без новых ключей верхнего уровня** (хосты `catalog`, `catalog:<slug>`, позже
+`category`): шапка — C-блок `banner` с id `catalog-head` и `data.source="page"`; «Kategorien» —
+безымянная строка `{"key":"categories", data, layout, style}` (на каталоге стили
+`regale|tabs|index|side|wegweiser` + стили главной); «Sets» — `{"key":"combos"}` (добавить в
+`BUILTIN_LIST_SOURCES`, проверить белый список главной); ★ — маркер с `style`
+(`schaufenster|magazin|mosaik`), `focus`, `grid` (подсказка LAY-5 на хосте, а не в общем
+`catalog_layout`).
+
+**Вывод на лету:** `apps/catalog/catalog_parts.py` — `effective_rows(cfg, host, surface, category,
+site_default)`, `parts(rows)`, `legacy_code(parts)` (для `data-cat-layout`); запись —
+`materialize(...)` только при первой правке хоста из `site_schema.apply`.
+
+**Шаги:** R1 — вывод без изменения рендера (+ дополнить R0: свои блоки над/под ★ на каждом коде,
+сеты с наборами, ребёнок родителя-«Reiter», `Category.page_style` поверх сайта, своя схема
+категории, `?ansicht=`, ручной `catalog_layout`); R2 — вьюха и шаблон на `Parts`, снимки байт-в-байт;
+R3 — хранение и писатель (`normalize_page_blocks`, `_clean_cblock_data("banner")`,
+`has_own_schema`, `merge_structure`, `structure_hash`, Studio POST `catalog_page_style`).
+
+**Риски:** Студия пишет `catalog_page_style` (views.py:2860), при строках — тихо без эффекта;
+`sitetemplates` пишут `catalog_layout.preset`; демо-киты (regale, navigator, wegweiser+cols5) на
+выводе; заголовки секций (`section_titles["categories"]` главной не должен подтянуться);
+наследование «Reiter» от родителя; `shelves_only` у «Regale» прячет сетку ★; Seitenspalte — первый
+ребёнок листинга и уносит фильтры.
+
+**Вопросы владельцу:** 1) страница «Alle Kategorien» — копия блоков каталога при первом сохранении
+[да, копия]; 2) шапка категории из её фото — блок «Banner» с источником «Fotos der Seite» [да];
+3) Seitenspalte/Regale/Reiter/Index прикреплены к ★, прочие блоки двигаются [да]; 4)
+`Category.page_style` — остаётся поправкой, пока категорию не правят в «Seitenaufbau» [да]; 5)
+подсказка 6 колонок у «Index» уходит на ★ [да].
