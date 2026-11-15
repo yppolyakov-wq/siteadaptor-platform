@@ -75,7 +75,8 @@
         </div>
       </section>
 
-      <aside class="ui-card p-5 lg:sticky lg:top-4" id="item-panel" aria-live="polite">
+      <aside class="ui-card p-5 lg:sticky lg:top-4" id="item-panel">
+        <p class="sr-only" role="status" id="menu-live" data-menu-live></p>
         <p class="text-sm ui-muted" id="panel-empty">{% trans "Wählen Sie links einen Punkt, um ihn zu bearbeiten." %}</p>
         <div id="panel-body" class="space-y-4" hidden></div>
       </aside>
@@ -334,6 +335,31 @@
     return true;
   }
   var footDrag = null;
+  // a11y-ревью FB-30.9: после перерисовки фокус возвращается на ту же кнопку той же ссылки
+  // (или на саму ссылку, если кнопка теперь недоступна); перенос объявляется кратко.
+  var footFocus = null;
+  function announce(text) {
+    var live = document.getElementById("menu-live");
+    if (!live) return;
+    live.textContent = "";
+    setTimeout(function () { live.textContent = text; }, 50);
+  }
+  function announceMove(link) {
+    var at = footerPos(link);
+    if (!at) return;
+    announce((link.label || T.noName) + ": " + T.column + " " + (at.ci + 1) + ", " + (at.li + 1) + "/" + M.footer.columns[at.ci].items.length);
+  }
+  function restoreFootFocus() {
+    if (!footFocus) return;
+    var want = footFocus; footFocus = null;
+    var rows = document.querySelectorAll("[data-footer-link]");
+    for (var i = 0; i < rows.length; i++) {
+      if (rows[i].__link !== want.link) continue;
+      var btn = want.label ? rows[i].querySelector('button[data-act="' + want.label + '"]') : null;
+      (btn && !btn.disabled ? btn : rows[i].querySelector("[data-footer-pick]")).focus();
+      return;
+    }
+  }
   function renderFooter() {
     var box = document.getElementById("footer-cols");
     box.innerHTML = "";
@@ -351,8 +377,8 @@
         x.addEventListener("click", function () { fn(); markDirty(); render(); });
         return x;
       }
-      head.appendChild(hb("←", T.colLeft, function () { cols.splice(ci - 1, 0, cols.splice(ci, 1)[0]); }, ci === 0));
-      head.appendChild(hb("→", T.colRight, function () { cols.splice(ci + 1, 0, cols.splice(ci, 1)[0]); }, ci === cols.length - 1));
+      head.appendChild(hb("←", T.colLeft + " " + (ci + 1), function () { cols.splice(ci - 1, 0, cols.splice(ci, 1)[0]); }, ci === 0));
+      head.appendChild(hb("→", T.colRight + " " + (ci + 1), function () { cols.splice(ci + 1, 0, cols.splice(ci, 1)[0]); }, ci === cols.length - 1));
       head.appendChild(hb("✕", T.delCol, function () { cols.splice(ci, 1); sel = null; }));
       card.appendChild(head);
       var ul = el("ul", { class: "space-y-1 min-h-[2.5rem]" });
@@ -362,21 +388,27 @@
           class: "flex flex-wrap items-center gap-0.5 rounded-lg border px-1 py-0.5 bg-white " + (sel && sel.node === link ? "border-indigo-500" : "border-gray-200") + (needsTarget(link) ? " border-amber-400" : "") + (link.enabled === false ? " opacity-60" : ""),
           draggable: "true", "data-footer-link": ""
         });
+        r.__link = link;
         r.appendChild(el("span", { class: "cursor-grab select-none text-gray-400 px-1", "aria-hidden": "true" }, "⠿"));
-        var pick = el("button", { type: "button", class: "min-w-[7rem] flex-1 text-left text-sm truncate py-1" }, (link.label || T.noName) + (link.enabled === false ? " · " + T.hidden : ""));
+        var pick = el("button", { type: "button", class: "min-w-[7rem] flex-1 text-left text-sm truncate py-1", "data-footer-pick": "" }, (link.label || T.noName) + (link.enabled === false ? " · " + T.hidden : ""));
         pick.addEventListener("click", function () { sel = { side: "footer", node: link }; render(); });
         r.appendChild(pick);
-        function lb(txt, label, fn, disabled) {
-          var x = el("button", { type: "button", class: "w-6 h-8 shrink-0 rounded text-gray-500 hover:bg-gray-100 disabled:opacity-30", title: label, "aria-label": label + ": " + (link.label || T.noName) }, txt);
+        function lb(txt, label, fn, disabled, moves) {
+          var x = el("button", { type: "button", class: "w-8 sm:w-6 h-8 shrink-0 rounded text-gray-500 hover:bg-gray-100 disabled:opacity-30", title: label, "aria-label": label + ": " + (link.label || T.noName), "data-act": label }, txt);
           x.disabled = !!disabled;
-          x.addEventListener("click", function () { fn(); markDirty(); render(); });
+          x.addEventListener("click", function () {
+            fn(); markDirty(); footFocus = { link: link, label: label }; render();
+            if (moves) announceMove(link);
+          });
           return x;
         }
-        r.appendChild(lb("↑", T.up, function () { col.items.splice(li - 1, 0, col.items.splice(li, 1)[0]); }, li === 0));
-        r.appendChild(lb("↓", T.down, function () { col.items.splice(li + 1, 0, col.items.splice(li, 1)[0]); }, li === col.items.length - 1));
-        r.appendChild(lb("←", T.toLeft, function () { moveToColumn(link, ci - 1); }, ci === 0 || cols[ci - 1].items.length >= D.footer_max_links));
-        r.appendChild(lb("→", T.toRight, function () { moveToColumn(link, ci + 1); }, ci === cols.length - 1 || cols[ci + 1].items.length >= D.footer_max_links));
-        r.appendChild(lb(link.enabled === false ? "◌" : "👁", T.hide, function () { link.enabled = link.enabled === false; }));
+        r.appendChild(lb("↑", T.up, function () { col.items.splice(li - 1, 0, col.items.splice(li, 1)[0]); }, li === 0, true));
+        r.appendChild(lb("↓", T.down, function () { col.items.splice(li + 1, 0, col.items.splice(li, 1)[0]); }, li === col.items.length - 1, true));
+        r.appendChild(lb("←", T.toLeft, function () { moveToColumn(link, ci - 1); }, ci === 0 || cols[ci - 1].items.length >= D.footer_max_links, true));
+        r.appendChild(lb("→", T.toRight, function () { moveToColumn(link, ci + 1); }, ci === cols.length - 1 || cols[ci + 1].items.length >= D.footer_max_links, true));
+        var hideBtn = lb(link.enabled === false ? "◌" : "👁", T.hide, function () { link.enabled = link.enabled === false; });
+        hideBtn.setAttribute("aria-pressed", link.enabled === false ? "true" : "false");
+        r.appendChild(hideBtn);
         r.appendChild(lb("✕", T.del, function () { col.items.splice(li, 1); if (sel && sel.node === link) sel = null; }));
         r.addEventListener("dragstart", function (e) { e.dataTransfer.effectAllowed = "move"; footDrag = link; r.classList.add("opacity-40"); });
         r.addEventListener("dragend", function () { footDrag = null; render(); });
@@ -415,6 +447,7 @@
       box.appendChild(card);
     });
     document.getElementById("add-column").disabled = cols.length >= D.footer_max_columns;
+    restoreFootFocus();
   }
 
   // FB-30.9: нижняя панель — под списком её вид на телефоне (первые пять пунктов).
@@ -463,7 +496,11 @@
         o.disabled = !!fp && fp.ci !== ci && c.items.length >= D.footer_max_links;
         colSel.appendChild(o);
       });
-      colSel.addEventListener("change", function () { if (moveToColumn(n, Number(colSel.value))) markDirty(); render(); });
+      colSel.addEventListener("change", function () {
+        if (moveToColumn(n, Number(colSel.value))) { markDirty(); render(); announceMove(n); } else { render(); }
+        var again = document.querySelector("[data-footer-column]");
+        if (again) again.focus();
+      });
       body.appendChild(field(T.inColumn, colSel));
     }
     if (D.locales.length) {

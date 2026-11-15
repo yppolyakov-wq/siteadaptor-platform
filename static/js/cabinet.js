@@ -1298,13 +1298,23 @@ try { (function () {
     if (!next && rows.length < MAX) {
       // запасные кончились — ещё строка со следующим номером полей
       next = rows[rows.length - 1].cloneNode(true);
+      var n = rows.length;
       next.querySelectorAll("input").forEach(function (input) {
-        input.name = input.name.replace(/_\d+$/, "_" + rows.length);
+        input.name = input.name.replace(/_\d+$/, "_" + n);
         input.value = "";
+        if (input.hasAttribute("aria-describedby")) input.setAttribute("aria-describedby", "tier-from-" + n);
       });
+      var from = next.querySelector("[data-ship-from]");
+      if (from) from.id = "tier-from-" + n;
+      var name = next.getAttribute("aria-label");
+      if (name) next.setAttribute("aria-label", name.replace(/\d+$/, String(n + 1)));
       rows[rows.length - 1].parentNode.appendChild(next);
     }
-    if (!next) { more.disabled = true; return; }
+    if (!next) {
+      // потолок: кнопка остаётся в фокусе, но говорит, что больше нельзя
+      more.setAttribute("aria-disabled", "true");
+      return;
+    }
     next.classList.remove("hidden");
     froms(box);
     var first = next.querySelector("input");

@@ -38083,3 +38083,15 @@ msgstr "This is how the bar looks on a phone:"
 
 msgid "Banner gespeichert, aber die Startseite ist voll – erst einen dort abwählen."
 msgstr "Banner saved, but the home page is full – remove one there first."
+
+#, python-format
+msgid "Bereich %(n)s"
+msgstr "Range %(n)s"
+
+#, python-format
+msgid "Gebiet %(n)s"
+msgstr "Area %(n)s"
+
+#, python-format
+msgid "Abholort %(n)s"
+msgstr "Pickup point %(n)s"

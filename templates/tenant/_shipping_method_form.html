@@ -64,10 +64,10 @@ Paketdienst — компания, до двери/пункт выдачи, це�
       <input type="hidden" name="weight_tiers_present" value="1">
       <div class="space-y-2">
         {% for r in tier_rows %}
-        <div class="grid grid-cols-[5.5rem_1fr_1fr] items-end gap-2" data-ship-row{% if not r.kg and not r.fee and not forloop.first %} data-ship-spare{% endif %}>
-          <span class="pb-2.5 text-sm ui-muted tabular-nums" data-ship-from>{% blocktrans with kg=r.from %}ab {{ kg }} kg{% endblocktrans %}</span>
+        <div class="grid grid-cols-[5.5rem_1fr_1fr] items-end gap-2" role="group" aria-label="{% blocktrans with n=forloop.counter %}Bereich {{ n }}{% endblocktrans %}" data-ship-row{% if not r.kg and not r.fee and not forloop.first %} data-ship-spare{% endif %}>
+          <span id="tier-from-{{ r.i }}" class="pb-2.5 text-sm ui-muted tabular-nums" data-ship-from>{% blocktrans with kg=r.from %}ab {{ kg }} kg{% endblocktrans %}</span>
           <label class="block"><span class="block text-xs ui-muted mb-1">{% trans "bis kg" %}</span>
-            <input name="tier_kg_{{ r.i }}" type="text" inputmode="decimal" value="{{ r.kg }}" class="ui-input tabular-nums" data-ship-kg></label>
+            <input name="tier_kg_{{ r.i }}" type="text" inputmode="decimal" value="{{ r.kg }}" class="ui-input tabular-nums" data-ship-kg aria-describedby="tier-from-{{ r.i }}"></label>
           <label class="block"><span class="block text-xs ui-muted mb-1">{% trans "Preis €" %}</span>
             <input name="tier_fee_{{ r.i }}" type="text" inputmode="decimal" value="{{ r.fee }}" class="ui-input tabular-nums"></label>
         </div>
@@ -95,7 +95,7 @@ Paketdienst — компания, до двери/пункт выдачи, це�
       <input type="hidden" name="zones_present" value="1">
       <div class="space-y-2">
         {% for r in zone_rows %}
-        <div class="grid grid-cols-2 sm:grid-cols-[2fr_1fr_1fr_1fr] items-end gap-2" data-ship-row{% if not r.plz and not r.fee and not r.free and not r.min and not forloop.first %} data-ship-spare{% endif %}>
+        <div class="grid grid-cols-2 sm:grid-cols-[2fr_1fr_1fr_1fr] items-end gap-2" role="group" aria-label="{% blocktrans with n=forloop.counter %}Gebiet {{ n }}{% endblocktrans %}" data-ship-row{% if not r.plz and not r.fee and not r.free and not r.min and not forloop.first %} data-ship-spare{% endif %}>
           <label class="block col-span-2 sm:col-span-1"><span class="block text-xs ui-muted mb-1">{% trans "PLZ (mehrere mit Komma)" %}</span>
             <input name="zone_plz_{{ r.i }}" type="text" maxlength="200" value="{{ r.plz }}" class="ui-input" placeholder="42651, 42653"></label>
           <label class="block"><span class="block text-xs ui-muted mb-1">{% trans "Preis €" %}</span>
@@ -119,7 +119,7 @@ Paketdienst — компания, до двери/пункт выдачи, це�
       <input type="hidden" name="locations_present" value="1">
       <div class="space-y-2">
         {% for r in loc_rows %}
-        <div class="grid sm:grid-cols-2 items-end gap-2" data-ship-row{% if not r.name and not r.address and not forloop.first %} data-ship-spare{% endif %}>
+        <div class="grid sm:grid-cols-2 items-end gap-2" role="group" aria-label="{% blocktrans with n=forloop.counter %}Abholort {{ n }}{% endblocktrans %}" data-ship-row{% if not r.name and not r.address and not forloop.first %} data-ship-spare{% endif %}>
           <label class="block"><span class="block text-xs ui-muted mb-1">{% trans "Name" %}</span>
             <input name="loc_name_{{ r.i }}" type="text" maxlength="120" value="{{ r.name }}" class="ui-input"></label>
           <label class="block"><span class="block text-xs ui-muted mb-1">{% trans "Adresse (leer = Ihre Adresse)" %}</span>

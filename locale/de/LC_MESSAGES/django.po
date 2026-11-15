@@ -38170,3 +38170,15 @@ msgstr "So sieht die Leiste auf dem Handy aus:"
 
 msgid "Banner gespeichert, aber die Startseite ist voll – erst einen dort abwählen."
 msgstr "Banner gespeichert, aber die Startseite ist voll – erst einen dort abwählen."
+
+#, python-format
+msgid "Bereich %(n)s"
+msgstr "Bereich %(n)s"
+
+#, python-format
+msgid "Gebiet %(n)s"
+msgstr "Gebiet %(n)s"
+
+#, python-format
+msgid "Abholort %(n)s"
+msgstr "Abholort %(n)s"

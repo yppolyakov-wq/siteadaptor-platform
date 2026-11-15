@@ -38422,3 +38422,15 @@ msgstr "Так панель выглядит на телефоне:"
 
 msgid "Banner gespeichert, aber die Startseite ist voll – erst einen dort abwählen."
 msgstr "Баннер сохранён, но на главной уже нет места — сначала уберите там один."
+
+#, python-format
+msgid "Bereich %(n)s"
+msgstr "Диапазон %(n)s"
+
+#, python-format
+msgid "Gebiet %(n)s"
+msgstr "Зона %(n)s"
+
+#, python-format
+msgid "Abholort %(n)s"
+msgstr "Пункт самовывоза %(n)s"
