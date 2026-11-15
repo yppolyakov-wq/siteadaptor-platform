@@ -346,7 +346,14 @@ def page_blocks(context, page_key, part="after"):
     site = siteconfig.localize(siteconfig.normalize(raw), get_language())
     above, below = siteconfig.split_at_main((site.get("page_blocks") or {}).get(page_key, []))
     before = part == "before"
-    blocks = [b for b in (above if before else below) if b.get("enabled", True)]
+    # FB-31 P0: встроенные строки-списки (блок «Kategorien» каталога) рисует сама страница
+    # листинга в своих местах (шаг R2), не общий цикл блоков — иначе вид сайта сдвинулся бы.
+    builtin = siteconfig.page_builtin_keys(page_key)
+    blocks = [
+        b
+        for b in (above if before else below)
+        if b.get("enabled", True) and b.get("key") not in builtin
+    ]
     if context.get("pb_hide_promo_lists"):
         # LB-3 (план §12.4): на странице типа и в результатах поиска/фильтра блоки
         # «Liste» с акциями — композиция ОБЗОРА: там они дублировали бы выдачу.

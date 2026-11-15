@@ -126,3 +126,13 @@ def test_filtered_catalog_looks_as_before(code):
     )
     html = public_views.product_list(_request("/sortiment/?q=brot", tenant)).content.decode()
     _check(f"root-{code or 'standard'}-search", html)
+
+
+def test_stored_part_rows_do_not_change_the_page_yet():
+    """FB-31 P0: строка «Kategorien» и поля ★ уже хранятся, но витрина рисует как раньше
+    (рендер по блокам — шаг R2)."""
+    _data(subcats=True, photos=True)
+    rows = [{"key": "categories", "enabled": True}, {"key": "main", "style": "mosaik"}]
+    tenant = TenantFactory.build(name="Bäckerei X", site_config={"page_blocks": {"catalog": rows}})
+    html = public_views.product_list(_request("/sortiment/", tenant)).content.decode()
+    _check("root-standard-sub-photo", html)

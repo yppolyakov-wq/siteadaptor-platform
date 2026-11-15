@@ -1319,6 +1319,34 @@ def is_main_marker(item) -> bool:
     return isinstance(item, dict) and item.get("key") == MAIN_LIST_KEY
 
 
+# FB-31 P0: поля маркера ★ — вид основного списка, который раньше задавал шаблон страницы
+# (`catalog_page_style`): «Darstellung» элементов, полка «Im Fokus» и подсказка сетки LAY-5.
+MAIN_MARKER_STYLES = ("schaufenster", "magazin", "mosaik", "preisliste")
+MAIN_MARKER_GRIDS = ("cols2", "cols4", "cols5", "cols6", "preisliste")
+
+
+def clean_main_marker(item) -> dict:
+    """Маркер ★ с известными полями вида; мусор отбрасывается (presence-minimal)."""
+    out = {"key": MAIN_LIST_KEY}
+    if not isinstance(item, dict):
+        return out
+    if item.get("style") in MAIN_MARKER_STYLES:
+        out["style"] = item["style"]
+    if item.get("focus") is True:
+        out["focus"] = True
+    if item.get("grid") in MAIN_MARKER_GRIDS:
+        out["grid"] = item["grid"]
+    return out
+
+
+def page_builtin_keys(host) -> frozenset:
+    """FB-31 P0: какие встроенные строки-списки (как на главной) может хранить страница.
+    Пилот — каталог и его категории: блок «Kategorien»."""
+    if isinstance(host, str) and (host == "catalog" or _CATEGORY_HOST_RE.match(host)):
+        return frozenset({"categories"})
+    return frozenset()
+
+
 def split_at_main(blocks) -> tuple[list, list]:
     """(над основным списком, под ним). Без маркера — всё под списком, как раньше."""
     blocks = list(blocks or [])
@@ -1398,13 +1426,26 @@ def normalize_page_blocks(raw) -> dict:
             continue
         blocks = []
         # LB-2: маркер основного списка — только на страницах с таким списком, один,
-        # без данных и вне капа блоков. Позиция = сколько блоков стоит над списком.
+        # вне капа блоков. Позиция = сколько блоков стоит над списком. FB-31 P0: маркер
+        # несёт поля вида (`clean_main_marker`).
         main_at = None
+        marker = {"key": MAIN_LIST_KEY}
         can_main = has_main_list(key)
+        builtin_ok = page_builtin_keys(key)
+        builtin_seen = set()
         for item in items:
             if is_main_marker(item):
                 if can_main and main_at is None:
                     main_at = len(blocks)
+                    marker = clean_main_marker(item)
+                continue
+            # FB-31 P0: встроенная строка-список (как на главной) — одна на ключ, чистится
+            # тем же `_section_entry`, что секции главной.
+            bkey = item.get("key") if isinstance(item, dict) else None
+            if bkey in builtin_ok:
+                if bkey not in builtin_seen:
+                    builtin_seen.add(bkey)
+                    blocks.append(_section_entry(bkey, bool(item.get("enabled", True)), item))
                 continue
             if len(blocks) >= _MAX_CBLOCKS:
                 continue  # кап, но маркер дальше по списку ещё ищем
@@ -1415,10 +1456,10 @@ def normalize_page_blocks(raw) -> dict:
                 cblock_type(item.get("key")) or item.get("key") in PAGE_REF_BLOCKS
             ):
                 blocks.append(_clean_cblock(item))
+        # маркер первым без полей = «все блоки под списком» = вид, как раньше: не храним
+        if main_at is not None and (main_at or len(marker) > 1):
+            blocks.insert(main_at, marker)
         if blocks:
-            # маркер первым = «все блоки под списком» = вид, как раньше: не храним
-            if main_at:
-                blocks.insert(main_at, {"key": MAIN_LIST_KEY})
             out[key] = blocks
     return out
 
