@@ -38643,3 +38643,6 @@ msgstr "Цей блок завжди стоїть просто над товар
 
 msgid "Wie Produkte gezeigt werden"
 msgstr "Як показувати товари"
+
+msgid "Wählen Sie später in der Studio eine Seitenvorlage, gilt wieder die Vorlage."
+msgstr "Якщо пізніше обрати шаблон сторінки в Студії, знову діятиме шаблон."

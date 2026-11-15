@@ -38317,3 +38317,6 @@ msgstr "This block always sits directly above the products."
 
 msgid "Wie Produkte gezeigt werden"
 msgstr "How products are shown"
+
+msgid "Wählen Sie später in der Studio eine Seitenvorlage, gilt wieder die Vorlage."
+msgstr "If you later choose a page template in the Studio, the template applies again."

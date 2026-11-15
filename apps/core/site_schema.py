@@ -1622,6 +1622,7 @@ def mutate(
         if not pinned or item.get("key") != "categories" or value not in allowed:
             raise SchemaError("op")
         item["style"] = value
+        item["enabled"] = True  # ревью R4: старая скрытая строка снова действует
         return ref
     if op == "mainview":
         from apps.catalog import catalog_parts

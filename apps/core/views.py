@@ -2859,6 +2859,9 @@ def home_builder_view(request):
         # (плитки шлют hidden всегда); "" = снять ключ (Standard).
         if "catalog_page_style" in request.POST:
             _cps = siteconfig.normalize_catalog_page_style(request.POST.get("catalog_page_style"))
+            if _cps != (config.get("catalog_page_style") or ""):
+                # FB-30.16 (ревью R4): смена шаблона в Студии снимает виды блоков каталога
+                config.update(siteconfig.drop_catalog_views(config))
             if _cps:
                 config["catalog_page_style"] = _cps
             else:

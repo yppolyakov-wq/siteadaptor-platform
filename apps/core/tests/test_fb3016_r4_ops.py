@@ -89,3 +89,37 @@ def test_screen_panels_change_the_shop(settings):
     cfg = siteconfig.normalize(tenant.site_config)
     parts = cp.effective(cfg, "catalog")
     assert parts.categories == "tabs" and parts.products == "mosaik", msgs
+
+
+def test_review_hidden_row_comes_back_and_template_choice_drops_views():
+    items = [{"key": "categories", "style": "regale", "enabled": False}, {"key": "main"}]
+    site_schema.mutate(items, "catalog", "catview", "categories", value="tabs")
+    assert items[0]["enabled"] is True
+    cfg = {
+        "catalog_page_style": "mosaik",
+        "page_blocks": {
+            "catalog": [{"key": "categories", "style": "tabs"}, {"key": "main", "style": "raster"}]
+        },
+    }
+    from apps.core import page_settings
+
+    out = page_settings.apply_override(cfg, "catalog_page_style", "regale")
+    assert cp.effective(siteconfig.normalize(out), "catalog", code="regale") == cp.from_code(
+        "regale"
+    )
+
+
+@pytest.mark.django_db
+def test_review_draft_counts_a_view_change(settings):
+    from apps.core.modules import default_disabled_for
+    from apps.core.tests.test_fb27_r2_draft import Browser
+    from apps.tenants.tests.factories import TenantFactory
+
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    tenant = TenantFactory(
+        business_type="online_shop", disabled_modules=list(default_disabled_for("online_shop"))
+    )
+    b = Browser(tenant)
+    b.post(seite="catalog", op="catview", ref="categories", value="regale")
+    html = b.get("?seite=catalog")
+    assert "Änderungen: 1" in html or "Änderung: 1" in html or "1 Änderung" in html

@@ -38463,3 +38463,6 @@ msgstr "Bu blok her zaman doğrudan ürünlerin üstündedir."
 
 msgid "Wie Produkte gezeigt werden"
 msgstr "Ürünler nasıl gösterilir"
+
+msgid "Wählen Sie später in der Studio eine Seitenvorlage, gilt wieder die Vorlage."
+msgstr "Daha sonra Stüdyo'da bir sayfa şablonu seçerseniz, şablon yeniden geçerli olur."

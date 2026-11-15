@@ -575,6 +575,8 @@ def apply_override(cfg: dict, code: str, value, output: dict | None = None) -> d
     if setting is None or is_studio_only(setting):
         raise PageSettingError(f"unknown page setting {code!r}")
     out = dict(cfg or {})
+    if code == "catalog_page_style":
+        out = siteconfig.drop_catalog_views(out)  # шаблон — последнее решение владельца
     kind = kind_of(setting)
     if kind == KIND_LAYOUT:
         key = _LAYOUT_KEYS[code]

@@ -147,6 +147,12 @@ def changes(saved: dict, draft: dict) -> int:
     )
     # FB-27 R3b: содержимое блока (текст, подпись, ссылка) — одно изменение на блок.
     count += sum(1 for k in common if (old[k].get("data") or {}) != (new[k].get("data") or {}))
+    # FB-30.16 (ревью R4): вид блоков каталога (вид «Kategorien», вид/сетка ★)
+    count += sum(
+        1
+        for k in common
+        if (old[k].get("style"), old[k].get("grid")) != (new[k].get("style"), new[k].get("grid"))
+    )
     if [k for k in old if k in new] != common:
         count += 1
     if "contact" in draft and bool(draft["contact"]) != bool(saved.get("contact", True)):

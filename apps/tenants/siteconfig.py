@@ -1346,6 +1346,27 @@ CATALOG_CATEGORY_VIEWS = ("regale", "tabs", "index", "side", "wegweiser")
 CATALOG_CATEGORY_AUTO = "auto"
 
 
+def drop_catalog_views(cfg: dict) -> dict:
+    """FB-30.16 (ревью R4): владелец выбрал шаблон каталога в Студии/«Seitenvorlage» — это
+    его последнее решение: виды блоков каталога, выбранные раньше в «Seitenaufbau»
+    (вид «Kategorien», вид/сетка ★), снимаются, чтобы шаблон снова действовал. Копия."""
+    cfg = dict(cfg or {})
+    blocks = dict(cfg.get("page_blocks") or {})
+    rows = blocks.get("catalog")
+    if not isinstance(rows, list):
+        return cfg
+    kept = []
+    for row in rows:
+        if isinstance(row, dict) and row.get("key") == "categories" and not row.get("id"):
+            continue
+        if is_main_marker(row):
+            row = {k: v for k, v in row.items() if k not in ("style", "grid", "focus")}
+        kept.append(row)
+    blocks["catalog"] = kept
+    cfg["page_blocks"] = blocks
+    return cfg
+
+
 def page_builtin_keys(host) -> frozenset:
     """FB-31 P0: какие встроенные строки-списки (как на главной) может хранить страница.
     Пилот — каталог и его категории: блок «Kategorien»."""
