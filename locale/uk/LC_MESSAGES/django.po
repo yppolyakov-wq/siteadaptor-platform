@@ -38304,3 +38304,34 @@ msgstr "Інші поля підлаштовуються під вибір."
 
 msgid "Solange unter „Von Hand“ Einträge gewählt sind, zeigt der Block genau diese."
 msgstr "Поки у «Вручну» вибрано записи, блок показує саме їх."
+
+#, python-format
+msgid "ab %(kg)s kg"
+msgstr "від %(kg)s кг"
+
+msgid "bis kg"
+msgstr "до, кг"
+
+msgid "Preis €"
+msgstr "Ціна, €"
+
+msgid "Weiterer Bereich"
+msgstr "Ще діапазон"
+
+msgid "Leere Zeilen werden ignoriert. Schwerer als der letzte Bereich: Diese Versandart wird nicht angeboten."
+msgstr "Порожні рядки не враховуються. Важче за останній діапазон — цей спосіб доставки не пропонується."
+
+msgid "PLZ (mehrere mit Komma)"
+msgstr "Індекси (кілька через кому)"
+
+msgid "Weiteres Gebiet"
+msgstr "Ще зона"
+
+msgid "Adresse (leer = Ihre Adresse)"
+msgstr "Адреса (порожньо — ваша адреса)"
+
+msgid "Weiterer Abholort"
+msgstr "Ще пункт самовивозу"
+
+msgid "Liefergebiet ohne Postleitzahl."
+msgstr "Зона доставки без поштового індексу."

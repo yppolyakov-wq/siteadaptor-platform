@@ -95,3 +95,50 @@ def test_without_a_pick_nothing_changes():
     html = _hero("split", [], hero_title="Mein Laden", hero_text="Wie immer")
     assert "Mein Laden" in html and "Wie immer" in html and ">Sortiment<" in html
     assert 'data-edit="hero_title"' in html
+
+
+# --- ревью (django-reviewer) ---
+
+
+@pytest.mark.parametrize("style", ["plain", "accent"])
+def test_expired_old_slides_do_not_turn_the_plain_hero_into_a_photo_banner(style):
+    """Без выбора всё как раньше: фото прежнего слайда вне срока не делает из простого
+    баннера фото-баннер (его берут только «текст + фото» и «во весь экран»)."""
+    old = [{"title": "Alt", "image": "/media/hero/alt.jpg", "ends": "2020-01-01"}]
+    html = _hero(style, [], hero_title="Mein Laden", heroes=old)
+    assert "/media/hero/alt.jpg" not in html and "Mein Laden" in html
+    assert "/media/hero/alt.jpg" in _hero("split", [], hero_title="Mein Laden", heroes=old)
+
+
+def test_banner_photo_is_not_offered_as_the_old_studio_media_slot():
+    html = _hero("split", [_banner().pk])
+    assert 'data-sf-media-slot="hero"' not in html
+    assert 'data-sf-media-slot="hero"' in _hero("split", [], hero_image="/media/hero/x.jpg")
+
+
+def test_bento_with_a_bare_banner_does_not_borrow_the_old_text():
+    b = _banner(title="", text="")
+    html = _hero("bento", [b.pk], hero_title="Alter Titel", hero_text="Alter Text")
+    assert "Alter Titel" not in html and "Alter Text" not in html
+
+
+def test_banner_link_without_a_label_does_not_relabel_the_main_button():
+    """У баннера ссылка без подписи: кнопка главного раздела ведёт в главный раздел."""
+    b = _banner(button_label="", button_url="/ueber-uns/")
+    html = _hero("split", [b.pk])
+    cta = html[html.index("data-hero-cta") - 400 : html.index("data-hero-cta")]
+    assert 'href="/sortiment/"' in cta and "/ueber-uns/" not in cta
+
+
+def test_hero_lead_states():
+    from apps.tenants.templatetags.siteui import hero_lead
+
+    slide = {"title": "T", "text": "X", "image": "/a.jpg", "button_label": "B", "href": "/z/"}
+    picked = {"hero_banners": {"pick": ["1"]}, "hero_title": "Alt", "heroes": [{"image": "/o.jpg"}]}
+    lead = hero_lead(picked, [slide])
+    assert lead["from_banner"] and lead["title"] == "T" and lead["own_image"] == "/a.jpg"
+    lead = hero_lead(picked, [])
+    assert not lead["from_banner"] and lead["title"] == "Alt" and lead["image"] == ""
+    lead = hero_lead({"heroes": [{"image": "/o.jpg"}]}, [])
+    assert lead["image"] == "/o.jpg" and lead["own_image"] == ""
+    assert hero_lead(None, None)["title"] == ""

@@ -37978,3 +37978,34 @@ msgstr "The other fields follow this choice."
 
 msgid "Solange unter „Von Hand“ Einträge gewählt sind, zeigt der Block genau diese."
 msgstr "As long as entries are chosen under “By hand”, the block shows exactly those."
+
+#, python-format
+msgid "ab %(kg)s kg"
+msgstr "from %(kg)s kg"
+
+msgid "bis kg"
+msgstr "up to kg"
+
+msgid "Preis €"
+msgstr "Price €"
+
+msgid "Weiterer Bereich"
+msgstr "Another range"
+
+msgid "Leere Zeilen werden ignoriert. Schwerer als der letzte Bereich: Diese Versandart wird nicht angeboten."
+msgstr "Empty rows are ignored. Heavier than the last range: this shipping method is not offered."
+
+msgid "PLZ (mehrere mit Komma)"
+msgstr "Postcodes (several with commas)"
+
+msgid "Weiteres Gebiet"
+msgstr "Another area"
+
+msgid "Adresse (leer = Ihre Adresse)"
+msgstr "Address (empty = your address)"
+
+msgid "Weiterer Abholort"
+msgstr "Another pickup point"
+
+msgid "Liefergebiet ohne Postleitzahl."
+msgstr "Delivery area without a postcode."

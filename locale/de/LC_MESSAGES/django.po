@@ -38065,3 +38065,34 @@ msgstr "Die weiteren Felder passen sich der Auswahl an."
 
 msgid "Solange unter „Von Hand“ Einträge gewählt sind, zeigt der Block genau diese."
 msgstr "Solange unter „Von Hand“ Einträge gewählt sind, zeigt der Block genau diese."
+
+#, python-format
+msgid "ab %(kg)s kg"
+msgstr "ab %(kg)s kg"
+
+msgid "bis kg"
+msgstr "bis kg"
+
+msgid "Preis €"
+msgstr "Preis €"
+
+msgid "Weiterer Bereich"
+msgstr "Weiterer Bereich"
+
+msgid "Leere Zeilen werden ignoriert. Schwerer als der letzte Bereich: Diese Versandart wird nicht angeboten."
+msgstr "Leere Zeilen werden ignoriert. Schwerer als der letzte Bereich: Diese Versandart wird nicht angeboten."
+
+msgid "PLZ (mehrere mit Komma)"
+msgstr "PLZ (mehrere mit Komma)"
+
+msgid "Weiteres Gebiet"
+msgstr "Weiteres Gebiet"
+
+msgid "Adresse (leer = Ihre Adresse)"
+msgstr "Adresse (leer = Ihre Adresse)"
+
+msgid "Weiterer Abholort"
+msgstr "Weiterer Abholort"
+
+msgid "Liefergebiet ohne Postleitzahl."
+msgstr "Liefergebiet ohne Postleitzahl."

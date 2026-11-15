@@ -1247,3 +1247,64 @@ try { (function () {
     head.indeterminate = on > 0 && on < rows.length;
   });
 })(); } catch (e) { console.error(e); }
+// ---- tenant/_shipping_method_form.html (FB-30.11: строки диапазонов отдельными полями) ----
+try { (function () {
+  // Без скриптов видны все запасные строки. Со скриптами — одна пустая и кнопка «ещё»;
+  // у ступеней веса начало диапазона («ab 3 kg») следует за пределом предыдущей строки.
+  var MAX = 23;
+  function froms(box) {
+    var tpl = box.getAttribute("data-ship-from-tpl");
+    if (!tpl) return;
+    var start = "0";
+    box.querySelectorAll("[data-ship-row]").forEach(function (row) {
+      var label = row.querySelector("[data-ship-from]");
+      if (label) label.textContent = tpl.replace("%s", start);
+      var kg = row.querySelector("[data-ship-kg]");
+      if (kg && kg.value.trim()) start = kg.value.trim();
+    });
+  }
+  function init(box) {
+    if (box.hasAttribute("data-ship-ready")) return;
+    box.setAttribute("data-ship-ready", "1");
+    var spare = box.querySelectorAll("[data-ship-spare]");
+    // класс, а не атрибут: `hidden` проигрывает классу сетки строки
+    for (var i = 1; i < spare.length; i += 1) spare[i].classList.add("hidden");
+    var more = box.querySelector("[data-ship-more]");
+    if (more) more.classList.remove("hidden");
+  }
+  function scan(root) {
+    if (root.querySelectorAll) root.querySelectorAll("[data-ship-rows]").forEach(init);
+  }
+  scan(document);
+  if (window.MutationObserver) {
+    // форма приходит и шторкой — после загрузки страницы
+    new MutationObserver(function () { scan(document); })
+      .observe(document.documentElement, { childList: true, subtree: true });
+  }
+  document.addEventListener("click", function (e) {
+    var more = e.target.closest && e.target.closest("[data-ship-more]");
+    if (!more) return;
+    var box = more.closest("[data-ship-rows]");
+    var rows = box.querySelectorAll("[data-ship-row]");
+    var next = null;
+    rows.forEach(function (row) { if (!next && row.classList.contains("hidden")) next = row; });
+    if (!next && rows.length <= MAX) {
+      // запасные кончились — ещё строка со следующим номером полей
+      next = rows[rows.length - 1].cloneNode(true);
+      next.querySelectorAll("input").forEach(function (input) {
+        input.name = input.name.replace(/_\d+$/, "_" + rows.length);
+        input.value = "";
+      });
+      rows[rows.length - 1].parentNode.appendChild(next);
+    }
+    if (!next) { more.disabled = true; return; }
+    next.classList.remove("hidden");
+    froms(box);
+    var first = next.querySelector("input");
+    if (first) first.focus();
+  });
+  document.addEventListener("input", function (e) {
+    var box = e.target.closest && e.target.closest("[data-ship-rows]");
+    if (box && e.target.hasAttribute("data-ship-kg")) froms(box);
+  });
+})(); } catch (e) { console.error(e); }

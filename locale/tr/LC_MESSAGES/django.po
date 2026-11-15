@@ -38124,3 +38124,34 @@ msgstr "Diğer alanlar bu seçime göre değişir."
 
 msgid "Solange unter „Von Hand“ Einträge gewählt sind, zeigt der Block genau diese."
 msgstr "«Elle» altında kayıt seçili olduğu sürece blok tam olarak onları gösterir."
+
+#, python-format
+msgid "ab %(kg)s kg"
+msgstr "%(kg)s kg'dan"
+
+msgid "bis kg"
+msgstr "en fazla kg"
+
+msgid "Preis €"
+msgstr "Fiyat €"
+
+msgid "Weiterer Bereich"
+msgstr "Başka aralık"
+
+msgid "Leere Zeilen werden ignoriert. Schwerer als der letzte Bereich: Diese Versandart wird nicht angeboten."
+msgstr "Boş satırlar yok sayılır. Son aralıktan ağırsa bu gönderim yöntemi sunulmaz."
+
+msgid "PLZ (mehrere mit Komma)"
+msgstr "Posta kodları (virgülle)"
+
+msgid "Weiteres Gebiet"
+msgstr "Başka bölge"
+
+msgid "Adresse (leer = Ihre Adresse)"
+msgstr "Adres (boş = sizin adresiniz)"
+
+msgid "Weiterer Abholort"
+msgstr "Başka teslim noktası"
+
+msgid "Liefergebiet ohne Postleitzahl."
+msgstr "Posta kodu olmayan teslimat bölgesi."

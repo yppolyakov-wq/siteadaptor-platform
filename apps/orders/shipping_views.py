@@ -134,6 +134,10 @@ def _ctx(request, method, values, kind, errors=()):
         "kind": kind,
         "kind_label": dict(ShippingMethod.KINDS).get(kind, ""),
         "sv": values,
+        # FB-30.11: строки отдельными полями (заполненные + запасные пустые)
+        "tier_rows": shipping_admin.form_rows(values, "weight_tiers"),
+        "zone_rows": shipping_admin.form_rows(values, "zones"),
+        "loc_rows": shipping_admin.form_rows(values, "locations"),
         "errors": list(errors),
         "carrier_rows": carrier_rows,
         "next_url": drawer_mod.drawer_next(request, list_url()),

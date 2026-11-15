@@ -1179,6 +1179,8 @@ def hero_lead(site, slides):
         "title": site.get("hero_title") or "",
         "text": site.get("hero_text") or "",
         "image": site.get("hero_image") or "",
+        # своё фото главной (без фото прежних слайдов): вид «фото-баннер» берёт только его
+        "own_image": site.get("hero_image") or "",
         "button_label": "",
         "href": "",
         "from_banner": False,
@@ -1190,6 +1192,7 @@ def hero_lead(site, slides):
             "title": first.get("title") or "",
             "text": first.get("text") or "",
             "image": first.get("image") or "",
+            "own_image": first.get("image") or "",
             "button_label": first.get("button_label") or "",
             "href": first.get("href") or "",
             "from_banner": True,

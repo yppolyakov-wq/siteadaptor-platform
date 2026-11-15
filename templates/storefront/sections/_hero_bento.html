@@ -4,8 +4,8 @@
 <section class="mb-10 grid gap-3 md:gap-4 md:grid-cols-3 md:auto-rows-[minmax(150px,auto)] grid-flow-dense" data-hero-bento>
   <div class="{% if brand_rows == 2 %}md:row-span-2 {% endif %}{% if brand_cols == 3 %}md:col-span-3 {% elif brand_cols == 2 %}md:col-span-2 {% endif %}rounded-2xl p-6 md:p-8 text-white flex flex-col justify-end min-h-[220px]" style="background: var(--accent, #4f46e5);" data-bento="brand">
     <p class="text-[11px] font-bold tracking-[0.13em] uppercase mb-2 text-white/80">{{ request.tenant.get_business_type_display }}{% if request.tenant.city %} · {{ request.tenant.city }}{% endif %}</p>
-    <h1 class="text-3xl md:text-4xl font-bold leading-tight"{% if not lead.from_banner %} data-edit="hero_title"{% endif %}>{{ lead.title|default:site.hero_title|default:request.tenant.name }}</h1>
-    {% firstof lead.text site.hero_text as bento_text %}{% if bento_text %}<p class="mt-3 text-white/90 max-w-md whitespace-pre-line"{% if not lead.from_banner %} data-edit="hero_text"{% endif %}>{{ bento_text }}</p>{% endif %}
+    <h1 class="text-3xl md:text-4xl font-bold leading-tight"{% if not lead.from_banner %} data-edit="hero_title"{% endif %}>{{ lead.title|default:request.tenant.name }}</h1>
+    {% if lead.text %}<p class="mt-3 text-white/90 max-w-md whitespace-pre-line"{% if not lead.from_banner %} data-edit="hero_text"{% endif %}>{{ lead.text }}</p>{% endif %}
     {% include "storefront/sections/_hero_cta.html" with style="light" cta_label=lead.button_label cta_href=lead.href %}
     {% comment %}Рейтинг — подписью бренд-плитки (шестая плитка ломала сетку 3×2).{% endcomment %}
     {% if rating %}<p class="mt-4 text-sm text-white/85" data-bento-rating>★ {{ rating.0 }} · {% blocktrans count n=rating.1 %}{{ n }} review{% plural %}{{ n }} reviews{% endblocktrans %}</p>

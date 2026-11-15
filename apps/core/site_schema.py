@@ -924,7 +924,10 @@ def blocks_for(
                 "flex": WIDTH_FLEX.get(item.get("width") or "", 12),
                 # FB-30.3: узкий блок занимает в списке СВОЮ долю и один в ряду (раньше он
                 # растягивался на весь ряд — половина была видна только значком «½»)
-                "basis": WIDTH_PERCENT.get(item.get("width") or "", 0),
+                # у баннера главной ширины нет — прежнее сохранённое значение не действует
+                "basis": 0
+                if key in _FULL_BLEED_SECTIONS and not item.get("id")
+                else WIDTH_PERCENT.get(item.get("width") or "", 0),
                 "widths": [
                     (v, lab, names.get(v, lab), WIDTH_PERCENT.get(v, 100))
                     for v, lab in width_choices(item)

@@ -85,6 +85,56 @@ def _lines(raw, parsed=None) -> list[list[str]]:
     return rows[:MAX_ROWS]
 
 
+#: FB-30.11: строки формы — отдельными полями. Имя прежнего текстового поля →
+#: (префикс полей, колонки). Сентинел `<имя>_present` — «строки пришли полями» (W0:
+#: без него читается прежнее текстовое поле — мастер, стенды, старые вкладки).
+ROW_FIELDS = {
+    "weight_tiers": ("tier", ("kg", "fee")),
+    "zones": ("zone", ("plz", "fee", "free", "min")),
+    "locations": ("loc", ("name", "address")),
+}
+#: Пустые строки в конце формы: без скриптов ряд добавляется сохранением.
+SPARE_ROWS = 3
+
+
+def _field_rows(post, name: str) -> list[list[str]]:
+    prefix, cols = ROW_FIELDS[name]
+    rows = []
+    for i in range(MAX_ROWS + SPARE_ROWS):
+        row = [str(post.get(f"{prefix}_{col}_{i}") or "").strip() for col in cols]
+        if any(row):
+            rows.append(row)
+    return rows
+
+
+def _rows(post, name: str, parsed=None) -> list[list[str]]:
+    """Строки `name`: из отдельных полей (есть сентинел) либо из текста «a | b»."""
+    if not post.get(f"{name}_present"):
+        return _lines(post.get(name), parsed)
+    rows = _field_rows(post, name)
+    if len(rows) > MAX_ROWS and parsed is not None:
+        parsed.errors.append(_("Höchstens %(n)s Zeilen.") % {"n": MAX_ROWS})
+    return rows[:MAX_ROWS]
+
+
+def form_rows(values, name: str) -> list[dict]:
+    """Строки для формы: заполненные и `SPARE_ROWS` пустых. `values` — значения способа
+    (текст «a | b») либо присланная форма (после ошибки — ровно то, что набрано). У
+    ступеней веса `from` — начало диапазона (предел предыдущей строки)."""
+    prefix, cols = ROW_FIELDS[name]
+    if values.get(f"{name}_present"):
+        raw = _field_rows(values, name)
+    else:
+        raw = _lines(values.get(name))
+    out, start = [], "0"
+    for row in [*raw, *([[]] * SPARE_ROWS)][: MAX_ROWS + SPARE_ROWS]:
+        cells = {col: (row[n] if n < len(row) else "") for n, col in enumerate(cols)}
+        out.append({"i": len(out), "from": start, **cells})
+        if name == "weight_tiers" and cells["kg"]:
+            start = cells["kg"]
+    return out
+
+
 def parse(post, kind: str) -> Parsed:
     """Поля способа из POST формы (без записи). Нерелевантные типу поля игнорируются."""
     parsed = Parsed()
@@ -98,14 +148,16 @@ def parse(post, kind: str) -> Parsed:
     if kind == ShippingMethod.KIND_PICKUP:
         v["locations"] = [
             {"name": row[0][:120], "address": (row[1] if len(row) > 1 else "")[:200]}
-            for row in _lines(post.get("locations"), parsed)
+            for row in _rows(post, "locations", parsed)
             if row[0]
         ]
     if kind == ShippingMethod.KIND_COURIER:
         zones = []
-        for row in _lines(post.get("zones"), parsed):
+        for row in _rows(post, "zones", parsed):
             plz = row[0][:200]
             if not plz:
+                if any(row[1:]):  # суммы без индекса — не пропускаем молча
+                    parsed.errors.append(_("Liefergebiet ohne Postleitzahl."))
                 continue
             zone = {"plz": plz}
             for idx, key in ((1, "fee_cents"), (2, "free_cents"), (3, "min_cents")):
@@ -146,9 +198,9 @@ def parse(post, kind: str) -> Parsed:
             else "flat"
         )
         tiers = []
-        for row in _lines(post.get("weight_tiers"), parsed):
+        for row in _rows(post, "weight_tiers", parsed):
             grams = _kg_to_g(row[0])
-            if grams is None or len(row) < 2:
+            if grams is None or len(row) < 2 or not row[1]:
                 parsed.errors.append(
                     _("Gewichtsstufe „%(row)s“ nicht erkannt.") % {"row": " | ".join(row)}
                 )

@@ -5,6 +5,6 @@ M20U-5: CTA hero-баннера к «главному товару» архет�
 style: "light" — белая кнопка на тёмном/акцентном фоне.
 FB-30.1: `cta_label`/`cta_href` — кнопка выбранного баннера; без своей ссылки она
 ведёт в главный раздел, но подпись остаётся баннера.
-{% endcomment %}{% if primary_item and primary_item.landing %}{% url primary_item.landing as cta_url %}{% endif %}{% firstof cta_href cta_url as cta_final %}{% if cta_final and cta_label or cta_url %}
+{% endcomment %}{% if primary_item and primary_item.landing %}{% url primary_item.landing as cta_url %}{% endif %}{% if cta_label %}{% firstof cta_href cta_url as cta_final %}{% else %}{% firstof cta_url as cta_final %}{% endif %}{% if cta_final %}
 <a href="{{ cta_final }}" class="inline-block mt-5 rounded-lg px-6 py-2.5 font-medium {% if style == 'light' %}bg-white text-gray-900 hover:bg-gray-100{% else %}text-white hover:opacity-90{% endif %}"{% if style != 'light' %} style="background: var(--accent, #4f46e5);"{% endif %} data-hero-cta>{% if cta_label %}{{ cta_label }}{% else %}{{ primary_item.label }}{% endif %}</a>
 {% endif %}

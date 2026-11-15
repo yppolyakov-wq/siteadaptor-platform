@@ -58,9 +58,24 @@ Paketdienst — компания, до двери/пункт выдачи, це�
   </div>
 
   {% if kind == "carrier" %}
-    <label class="block"><span class="block text-xs ui-muted mb-1">{% trans "Preis nach Gewicht" %}</span>
-      <span id="ship-tiers-hint" class="block text-xs ui-muted mb-1">{% trans "Eine Stufe pro Zeile: bis kg | Preis €" %}</span>
-      <textarea name="weight_tiers" rows="4" aria-describedby="ship-tiers-hint" class="ui-input font-mono text-sm" placeholder="2 | 4,99&#10;5 | 6,99&#10;10 | 9,99&#10;31,5 | 16,99">{{ sv.weight_tiers|default:'' }}</textarea></label>
+    {% comment %}FB-30.11: ступени веса — строка на диапазон; начало диапазона подставляется из предыдущей строки.{% endcomment %}
+    <fieldset data-ship-rows="tier" data-ship-from-tpl="{% blocktrans with kg='%s' %}ab {{ kg }} kg{% endblocktrans %}">
+      <legend class="block text-xs ui-muted mb-1">{% trans "Preis nach Gewicht" %}</legend>
+      <input type="hidden" name="weight_tiers_present" value="1">
+      <div class="space-y-2">
+        {% for r in tier_rows %}
+        <div class="grid grid-cols-[5.5rem_1fr_1fr] items-end gap-2" data-ship-row{% if not r.kg and not r.fee and not forloop.first %} data-ship-spare{% endif %}>
+          <span class="pb-2.5 text-sm ui-muted tabular-nums" data-ship-from>{% blocktrans with kg=r.from %}ab {{ kg }} kg{% endblocktrans %}</span>
+          <label class="block"><span class="block text-xs ui-muted mb-1">{% trans "bis kg" %}</span>
+            <input name="tier_kg_{{ r.i }}" type="text" inputmode="decimal" value="{{ r.kg }}" class="ui-input tabular-nums" data-ship-kg></label>
+          <label class="block"><span class="block text-xs ui-muted mb-1">{% trans "Preis €" %}</span>
+            <input name="tier_fee_{{ r.i }}" type="text" inputmode="decimal" value="{{ r.fee }}" class="ui-input tabular-nums"></label>
+        </div>
+        {% endfor %}
+      </div>
+      <button type="button" class="ui-btn ui-btn-secondary mt-2 hidden" data-ship-more>＋ {% trans "Weiterer Bereich" %}</button>
+      <p class="text-xs ui-muted mt-1">{% trans "Leere Zeilen werden ignoriert. Schwerer als der letzte Bereich: Diese Versandart wird nicht angeboten." %}</p>
+    </fieldset>
     <div class="grid sm:grid-cols-2 gap-3">
       <label class="block"><span class="block text-xs ui-muted mb-1">{% trans "Verpackung (g, wird addiert)" %}</span>
         <input name="packaging_g" type="text" inputmode="numeric" value="{{ sv.packaging_g|default:'' }}" class="ui-input"></label>
@@ -75,17 +90,45 @@ Paketdienst — компания, до двери/пункт выдачи, це�
   {% endif %}
 
   {% if kind == "courier" %}
-    <label class="block"><span class="block text-xs ui-muted mb-1">{% trans "Liefergebiete" %}</span>
-      <span id="ship-zones-hint" class="block text-xs ui-muted mb-1">{% trans "Eine pro Zeile: PLZ | Preis € | kostenlos ab € | Mindestwert €" %}</span>
-      <textarea name="zones" rows="4" aria-describedby="ship-zones-hint ship-zones-note" class="ui-input font-mono text-sm" placeholder="42651, 42653 | 2,50 | 30 |&#10;40 | 4,90">{{ sv.zones|default:'' }}</textarea></label>
-    <p id="ship-zones-note" class="text-xs ui-muted -mt-2">{% trans "Optional. Eine passende Postleitzahl ersetzt Preis, „kostenlos ab“ und Mindestwert oben." %}</p>
+    <fieldset data-ship-rows="zone" aria-describedby="ship-zones-note">
+      <legend class="block text-xs ui-muted mb-1">{% trans "Liefergebiete" %}</legend>
+      <input type="hidden" name="zones_present" value="1">
+      <div class="space-y-2">
+        {% for r in zone_rows %}
+        <div class="grid grid-cols-2 sm:grid-cols-[2fr_1fr_1fr_1fr] items-end gap-2" data-ship-row{% if not r.plz and not r.fee and not r.free and not r.min and not forloop.first %} data-ship-spare{% endif %}>
+          <label class="block col-span-2 sm:col-span-1"><span class="block text-xs ui-muted mb-1">{% trans "PLZ (mehrere mit Komma)" %}</span>
+            <input name="zone_plz_{{ r.i }}" type="text" value="{{ r.plz }}" class="ui-input" placeholder="42651, 42653"></label>
+          <label class="block"><span class="block text-xs ui-muted mb-1">{% trans "Preis €" %}</span>
+            <input name="zone_fee_{{ r.i }}" type="text" inputmode="decimal" value="{{ r.fee }}" class="ui-input tabular-nums"></label>
+          <label class="block"><span class="block text-xs ui-muted mb-1">{% trans "Kostenlos ab (€)" %}</span>
+            <input name="zone_free_{{ r.i }}" type="text" inputmode="decimal" value="{{ r.free }}" class="ui-input tabular-nums"></label>
+          <label class="block"><span class="block text-xs ui-muted mb-1">{% trans "Mindestbestellwert (€)" %}</span>
+            <input name="zone_min_{{ r.i }}" type="text" inputmode="decimal" value="{{ r.min }}" class="ui-input tabular-nums"></label>
+        </div>
+        {% endfor %}
+      </div>
+      <button type="button" class="ui-btn ui-btn-secondary mt-2 hidden" data-ship-more>＋ {% trans "Weiteres Gebiet" %}</button>
+    </fieldset>
+    <p id="ship-zones-note" class="text-xs ui-muted">{% trans "Optional. Eine passende Postleitzahl ersetzt Preis, „kostenlos ab“ und Mindestwert oben." %}</p>
     <label class="flex items-center gap-2 text-sm"><input type="checkbox" name="restrict_to_zones" {% if sv.restrict_to_zones %}checked{% endif %}> {% trans "Nur in diese Gebiete liefern" %}</label>
   {% endif %}
 
   {% if kind == "pickup" %}
-    <label class="block"><span class="block text-xs ui-muted mb-1">{% trans "Abholorte" %}</span>
-      <span id="ship-loc-hint" class="block text-xs ui-muted mb-1">{% trans "Einer pro Zeile: Name | Adresse (leer = Ihre Adresse)" %}</span>
-      <textarea name="locations" rows="3" aria-describedby="ship-loc-hint" class="ui-input">{{ sv.locations|default:'' }}</textarea></label>
+    <fieldset data-ship-rows="loc">
+      <legend class="block text-xs ui-muted mb-1">{% trans "Abholorte" %}</legend>
+      <input type="hidden" name="locations_present" value="1">
+      <div class="space-y-2">
+        {% for r in loc_rows %}
+        <div class="grid sm:grid-cols-2 items-end gap-2" data-ship-row{% if not r.name and not r.address and not forloop.first %} data-ship-spare{% endif %}>
+          <label class="block"><span class="block text-xs ui-muted mb-1">{% trans "Name" %}</span>
+            <input name="loc_name_{{ r.i }}" type="text" maxlength="120" value="{{ r.name }}" class="ui-input"></label>
+          <label class="block"><span class="block text-xs ui-muted mb-1">{% trans "Adresse (leer = Ihre Adresse)" %}</span>
+            <input name="loc_address_{{ r.i }}" type="text" maxlength="200" value="{{ r.address }}" class="ui-input"></label>
+        </div>
+        {% endfor %}
+      </div>
+      <button type="button" class="ui-btn ui-btn-secondary mt-2 hidden" data-ship-more>＋ {% trans "Weiterer Abholort" %}</button>
+    </fieldset>
   {% endif %}
 
   <label class="block"><span class="block text-xs ui-muted mb-1">{% trans "Hinweis für Kunden (optional)" %}</span>

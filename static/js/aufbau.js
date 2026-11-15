@@ -18,7 +18,9 @@
   if (!window.fetch || !window.DOMParser || !window.FormData) return;
   if (!HTMLFormElement.prototype.requestSubmit) return;
   // FB-30.2: настройки типа страницы (вид баннера, шаблон, карточка) — тоже без «Übernehmen».
-  var FORMS = "[data-schema-fields],[data-schema-list],[data-schema-setting]";
+  // Настройка вывода списка (галочка «и для других списков») остаётся с кнопкой: галочка
+  // переписала бы другие страницы раньше, чем владелец выбрал вид.
+  var FORMS = "[data-schema-fields],[data-schema-list],[data-schema-setting]:not([data-schema-manual])";
   var APPLY = 'button[value="update"],button[data-schema-apply]';
   var chain = Promise.resolve();
   var pending = 0;

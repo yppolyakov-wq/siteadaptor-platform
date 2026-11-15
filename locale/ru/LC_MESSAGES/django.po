@@ -38317,3 +38317,34 @@ msgstr "Остальные поля подстраиваются под выбо
 
 msgid "Solange unter „Von Hand“ Einträge gewählt sind, zeigt der Block genau diese."
 msgstr "Пока в «Вручную» выбраны записи, блок показывает именно их."
+
+#, python-format
+msgid "ab %(kg)s kg"
+msgstr "от %(kg)s кг"
+
+msgid "bis kg"
+msgstr "до, кг"
+
+msgid "Preis €"
+msgstr "Цена, €"
+
+msgid "Weiterer Bereich"
+msgstr "Ещё диапазон"
+
+msgid "Leere Zeilen werden ignoriert. Schwerer als der letzte Bereich: Diese Versandart wird nicht angeboten."
+msgstr "Пустые строки не учитываются. Тяжелее последнего диапазона — этот способ доставки не предлагается."
+
+msgid "PLZ (mehrere mit Komma)"
+msgstr "Индексы (несколько через запятую)"
+
+msgid "Weiteres Gebiet"
+msgstr "Ещё зона"
+
+msgid "Adresse (leer = Ihre Adresse)"
+msgstr "Адрес (пусто — ваш адрес)"
+
+msgid "Weiterer Abholort"
+msgstr "Ещё пункт самовывоза"
+
+msgid "Liefergebiet ohne Postleitzahl."
+msgstr "Зона доставки без почтового индекса."

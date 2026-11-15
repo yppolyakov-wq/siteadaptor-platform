@@ -24,6 +24,9 @@ def _urlconf(settings):
 def test_page_type_settings_apply_without_the_extra_button():
     js = pathlib.Path("static/js/aufbau.js").read_text()
     assert "[data-schema-setting]" in js.split("var FORMS =", 1)[1].split(";", 1)[0]
+    assert "[data-schema-setting]:not([data-schema-manual])" in js, "вывод списка — с кнопкой"
+    settings = pathlib.Path("templates/tenant/_schema_settings.html").read_text()
+    assert '{% if s.kind == "layout" %} data-schema-manual{% endif %}' in settings
     assert 'if (!form.matches("[data-schema-setting]")) data.set("op", "update")' in js
     html = Browser(_tenant()).get("?seite=home&block=hero")
     form = html[html.index('data-schema-setting="') :]
