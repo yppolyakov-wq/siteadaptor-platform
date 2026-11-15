@@ -38388,3 +38388,24 @@ msgstr "поза терміном показу"
 
 msgid "oder nach Namen suchen"
 msgstr "або знайдіть за назвою"
+
+msgid "Spalte nach links"
+msgstr "Колонку лівіше"
+
+msgid "Spalte nach rechts"
+msgstr "Колонку правіше"
+
+msgid "In die Spalte links"
+msgstr "У колонку ліворуч"
+
+msgid "In die Spalte rechts"
+msgstr "У колонку праворуч"
+
+msgid "In Spalte"
+msgstr "У колонці"
+
+msgid "So sieht die Leiste auf dem Handy aus:"
+msgstr "Так панель виглядає на телефоні:"
+
+msgid "Banner gespeichert, aber die Startseite ist voll – erst einen dort abwählen."
+msgstr "Банер збережено, але на головній уже немає місця — спершу приберіть там один."

@@ -38401,3 +38401,24 @@ msgstr "вне срока показа"
 
 msgid "oder nach Namen suchen"
 msgstr "или найдите по названию"
+
+msgid "Spalte nach links"
+msgstr "Колонку левее"
+
+msgid "Spalte nach rechts"
+msgstr "Колонку правее"
+
+msgid "In die Spalte links"
+msgstr "В колонку слева"
+
+msgid "In die Spalte rechts"
+msgstr "В колонку справа"
+
+msgid "In Spalte"
+msgstr "В колонке"
+
+msgid "So sieht die Leiste auf dem Handy aus:"
+msgstr "Так панель выглядит на телефоне:"
+
+msgid "Banner gespeichert, aber die Startseite ist voll – erst einen dort abwählen."
+msgstr "Баннер сохранён, но на главной уже нет места — сначала уберите там один."

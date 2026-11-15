@@ -38062,3 +38062,24 @@ msgstr "outside its date range"
 
 msgid "oder nach Namen suchen"
 msgstr "or search by name"
+
+msgid "Spalte nach links"
+msgstr "Move column left"
+
+msgid "Spalte nach rechts"
+msgstr "Move column right"
+
+msgid "In die Spalte links"
+msgstr "Into the column on the left"
+
+msgid "In die Spalte rechts"
+msgstr "Into the column on the right"
+
+msgid "In Spalte"
+msgstr "In column"
+
+msgid "So sieht die Leiste auf dem Handy aus:"
+msgstr "This is how the bar looks on a phone:"
+
+msgid "Banner gespeichert, aber die Startseite ist voll – erst einen dort abwählen."
+msgstr "Banner saved, but the home page is full – remove one there first."

@@ -52,7 +52,7 @@
     {% if h.image or h.title %}
     <div>
       <span class="block text-sm font-semibold text-gray-700 mb-1">{% trans "So sieht er aus" %}</span>
-      <div class="relative flex min-h-[9rem] items-end overflow-hidden rounded-xl bg-gray-700 bg-cover bg-center p-4 text-white"{% if h.image %} style="background-image:url('{{ h.image }}')"{% endif %} data-banner-preview>
+      <div class="relative flex min-h-[9rem] items-end overflow-hidden rounded-xl bg-gray-700 bg-cover bg-center p-4 text-white"{% if preview_image %} style="background-image:url('{{ preview_image }}')"{% endif %} data-banner-preview>
         <div class="absolute inset-0 bg-black/40" aria-hidden="true"></div>
         <div class="relative">
           {% if h.title %}<p class="text-lg font-bold">{{ h.title }}</p>{% endif %}

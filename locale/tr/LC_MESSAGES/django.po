@@ -38208,3 +38208,24 @@ msgstr "tarih aralığı dışında"
 
 msgid "oder nach Namen suchen"
 msgstr "veya ada göre arayın"
+
+msgid "Spalte nach links"
+msgstr "Sütunu sola taşı"
+
+msgid "Spalte nach rechts"
+msgstr "Sütunu sağa taşı"
+
+msgid "In die Spalte links"
+msgstr "Soldaki sütuna"
+
+msgid "In die Spalte rechts"
+msgstr "Sağdaki sütuna"
+
+msgid "In Spalte"
+msgstr "Sütunda"
+
+msgid "So sieht die Leiste auf dem Handy aus:"
+msgstr "Çubuk telefonda böyle görünür:"
+
+msgid "Banner gespeichert, aber die Startseite ist voll – erst einen dort abwählen."
+msgstr "Banner kaydedildi, ancak ana sayfa dolu – önce oradan birini kaldırın."

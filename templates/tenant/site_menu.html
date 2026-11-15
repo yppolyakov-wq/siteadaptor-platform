@@ -65,10 +65,12 @@
           <ul id="tree-bottom" class="space-y-1.5" data-tree="bottom"></ul>
           <button type="button" class="mt-3 ui-btn ui-btn-secondary ui-btn-sm" data-add="bottom">＋ {% trans "Punkt" %}</button>
           <p class="text-xs ui-muted mt-3">{% trans "Only the first 5 items are shown on mobile. A cart item automatically gets the accent colour and the item-count badge." %}</p>
+          <p class="text-xs ui-muted mt-3 mb-1">{% trans "So sieht die Leiste auf dem Handy aus:" %}</p>
+          <div id="bottom-preview" class="flex max-w-sm gap-1 rounded-xl border border-gray-300 bg-white px-2 py-2" data-bottom-preview hidden></div>
         </div>
         <div data-pane="footer" hidden>
           <p class="text-sm ui-muted mb-3">{% trans "Spalten mit Links unter der Website. Ohne Spalten bleibt die Fußzeile wie bisher (Adresse, Öffnungszeiten, Rechtliches)." %}</p>
-          <div id="footer-cols" class="grid sm:grid-cols-2 gap-3"></div>
+          <div id="footer-cols" class="grid sm:grid-cols-2 gap-3" data-footer-builder></div>
           <button type="button" class="mt-3 ui-btn ui-btn-secondary ui-btn-sm" id="add-column">＋ {% trans "Spalte" %}</button>
         </div>
       </section>
@@ -110,7 +112,9 @@
     delCol: "{% trans "Spalte löschen" %}", needTarget: "{% trans "Bitte ein Ziel wählen — sonst erscheint der Punkt nicht." %}",
     leave: "{% trans "Ungespeicherte Änderungen gehen verloren." %}",
     fold: "{% trans "Unterpunkte einklappen" %}", unfold: "{% trans "Unterpunkte aufklappen" %}",
-    subCount: "{% trans "Unterpunkte" %}"
+    subCount: "{% trans "Unterpunkte" %}",
+    column: "{% trans "Spalte" %}", colLeft: "{% trans "Spalte nach links" %}", colRight: "{% trans "Spalte nach rechts" %}",
+    toLeft: "{% trans "In die Spalte links" %}", toRight: "{% trans "In die Spalte rechts" %}", inColumn: "{% trans "In Spalte" %}"
   };
   var KINDS = [
     { k: "page", label: "{% trans "Seite" %}", list: "pages" },
@@ -309,39 +313,123 @@
   }
   var dragState = null;
 
+  // FB-30.9 (макет 5): подвал — тот же конструктор, что шапка: колонки — дорожки, ссылку
+  // перетаскивают между колонками, у ссылки ↑↓, «в колонку левее/правее», скрыть, удалить;
+  // у колонки — порядок. Выбор колонки — и в панели пункта («In Spalte»).
+  function footerPos(link) {
+    var cols = M.footer.columns;
+    for (var ci = 0; ci < cols.length; ci++) {
+      var at = (cols[ci].items || []).indexOf(link);
+      if (at >= 0) return { ci: ci, li: at };
+    }
+    return null;
+  }
+  function moveToColumn(link, ci, index) {
+    var from = footerPos(link), cols = M.footer.columns;
+    if (!from || !cols[ci]) return false;
+    if (from.ci !== ci && cols[ci].items.length >= D.footer_max_links) return false;
+    cols[from.ci].items.splice(from.li, 1);
+    var list = cols[ci].items;
+    list.splice(index === undefined || index > list.length ? list.length : index, 0, link);
+    return true;
+  }
+  var footDrag = null;
   function renderFooter() {
     var box = document.getElementById("footer-cols");
     box.innerHTML = "";
-    M.footer.columns.forEach(function (col, ci) {
-      var card = el("div", { class: "rounded-xl border border-gray-200 p-3 space-y-2" });
-      var head = el("div", { class: "flex items-center gap-2" });
-      var title = el("input", { type: "text", class: "ui-input", value: col.label || "", placeholder: T.colTitle, "aria-label": T.colTitle, maxLength: 60 });
+    var cols = M.footer.columns;
+    cols.forEach(function (col, ci) {
+      var card = el("div", { class: "rounded-xl border border-gray-200 p-3 space-y-2", "data-footer-col": String(ci) });
+      var head = el("div", { class: "flex items-center gap-1" });
+      head.appendChild(el("span", { class: "text-xs ui-muted shrink-0" }, T.column + " " + (ci + 1)));
+      var title = el("input", { type: "text", class: "ui-input min-w-0", value: col.label || "", placeholder: T.colTitle, "aria-label": T.colTitle + " " + (ci + 1), maxLength: 60 });
       title.addEventListener("input", function () { col.label = title.value; markDirty(); });
       head.appendChild(title);
-      var del = el("button", { type: "button", class: "w-8 h-8 rounded-lg text-gray-500 hover:bg-gray-100", title: T.delCol, "aria-label": T.delCol }, "✕");
-      del.addEventListener("click", function () { M.footer.columns.splice(ci, 1); sel = null; markDirty(); render(); });
-      head.appendChild(del);
+      function hb(txt, label, fn, disabled) {
+        var x = el("button", { type: "button", class: "w-8 h-8 shrink-0 rounded-lg text-gray-500 hover:bg-gray-100 disabled:opacity-30", title: label, "aria-label": label }, txt);
+        x.disabled = !!disabled;
+        x.addEventListener("click", function () { fn(); markDirty(); render(); });
+        return x;
+      }
+      head.appendChild(hb("←", T.colLeft, function () { cols.splice(ci - 1, 0, cols.splice(ci, 1)[0]); }, ci === 0));
+      head.appendChild(hb("→", T.colRight, function () { cols.splice(ci + 1, 0, cols.splice(ci, 1)[0]); }, ci === cols.length - 1));
+      head.appendChild(hb("✕", T.delCol, function () { cols.splice(ci, 1); sel = null; }));
       card.appendChild(head);
-      var ul = el("ul", { class: "space-y-1" });
+      var ul = el("ul", { class: "space-y-1 min-h-[2.5rem]" });
       col.items = col.items || [];
       col.items.forEach(function (link, li) {
-        var r = el("li", { class: "flex items-center gap-1 rounded-lg border px-2 py-1 " + (sel && sel.node === link ? "border-indigo-500" : "border-gray-100") + (needsTarget(link) ? " border-amber-400" : "") });
-        var pick = el("button", { type: "button", class: "flex-1 text-left text-sm truncate py-1" }, link.label || T.noName);
+        var r = el("li", {
+          class: "flex flex-wrap items-center gap-0.5 rounded-lg border px-1 py-0.5 bg-white " + (sel && sel.node === link ? "border-indigo-500" : "border-gray-200") + (needsTarget(link) ? " border-amber-400" : "") + (link.enabled === false ? " opacity-60" : ""),
+          draggable: "true", "data-footer-link": ""
+        });
+        r.appendChild(el("span", { class: "cursor-grab select-none text-gray-400 px-1", "aria-hidden": "true" }, "⠿"));
+        var pick = el("button", { type: "button", class: "min-w-[7rem] flex-1 text-left text-sm truncate py-1" }, (link.label || T.noName) + (link.enabled === false ? " · " + T.hidden : ""));
         pick.addEventListener("click", function () { sel = { side: "footer", node: link }; render(); });
         r.appendChild(pick);
-        var x = el("button", { type: "button", class: "w-7 h-7 rounded text-gray-500 hover:bg-gray-100", title: T.del, "aria-label": T.del }, "✕");
-        x.addEventListener("click", function () { col.items.splice(li, 1); sel = null; markDirty(); render(); });
-        r.appendChild(x);
+        function lb(txt, label, fn, disabled) {
+          var x = el("button", { type: "button", class: "w-6 h-8 shrink-0 rounded text-gray-500 hover:bg-gray-100 disabled:opacity-30", title: label, "aria-label": label + ": " + (link.label || T.noName) }, txt);
+          x.disabled = !!disabled;
+          x.addEventListener("click", function () { fn(); markDirty(); render(); });
+          return x;
+        }
+        r.appendChild(lb("↑", T.up, function () { col.items.splice(li - 1, 0, col.items.splice(li, 1)[0]); }, li === 0));
+        r.appendChild(lb("↓", T.down, function () { col.items.splice(li + 1, 0, col.items.splice(li, 1)[0]); }, li === col.items.length - 1));
+        r.appendChild(lb("←", T.toLeft, function () { moveToColumn(link, ci - 1); }, ci === 0 || cols[ci - 1].items.length >= D.footer_max_links));
+        r.appendChild(lb("→", T.toRight, function () { moveToColumn(link, ci + 1); }, ci === cols.length - 1 || cols[ci + 1].items.length >= D.footer_max_links));
+        r.appendChild(lb(link.enabled === false ? "◌" : "👁", T.hide, function () { link.enabled = link.enabled === false; }));
+        r.appendChild(lb("✕", T.del, function () { col.items.splice(li, 1); if (sel && sel.node === link) sel = null; }));
+        r.addEventListener("dragstart", function (e) { e.dataTransfer.effectAllowed = "move"; footDrag = link; r.classList.add("opacity-40"); });
+        r.addEventListener("dragend", function () { footDrag = null; render(); });
+        r.addEventListener("dragover", function (e) {
+          if (!footDrag || footDrag === link) return;
+          e.preventDefault(); e.stopPropagation();
+          var b = r.getBoundingClientRect();
+          r.dataset.zone = (e.clientY - b.top) / b.height < 0.5 ? "before" : "after";
+          r.style.boxShadow = r.dataset.zone === "before" ? "inset 0 3px 0 #6366f1" : "inset 0 -3px 0 #6366f1";
+        });
+        r.addEventListener("dragleave", function () { r.style.boxShadow = ""; });
+        r.addEventListener("drop", function (e) {
+          e.preventDefault(); e.stopPropagation(); r.style.boxShadow = "";
+          if (!footDrag) return;
+          var dragged = footDrag, from = footerPos(dragged);
+          var at = col.items.indexOf(link) + (r.dataset.zone === "after" ? 1 : 0);
+          if (from && from.ci === ci && from.li < at) at -= 1;
+          if (moveToColumn(dragged, ci, at)) markDirty();
+          render();
+        });
         ul.appendChild(r);
       });
+      // бросок на свободное место колонки — в её конец
+      card.addEventListener("dragover", function (e) { if (footDrag) { e.preventDefault(); card.classList.add("ring-2", "ring-indigo-200"); } });
+      card.addEventListener("dragleave", function () { card.classList.remove("ring-2", "ring-indigo-200"); });
+      card.addEventListener("drop", function (e) {
+        e.preventDefault(); card.classList.remove("ring-2", "ring-indigo-200");
+        if (footDrag && moveToColumn(footDrag, ci)) markDirty();
+        render();
+      });
       card.appendChild(ul);
-      var add = el("button", { type: "button", class: "text-sm text-indigo-600 hover:underline" }, "＋ " + T.addLink);
+      var add = el("button", { type: "button", class: "text-sm text-indigo-600 hover:underline disabled:opacity-40" }, "＋ " + T.addLink);
       add.disabled = col.items.length >= D.footer_max_links;
       add.addEventListener("click", function () { var n = blank(); col.items.push(n); sel = { side: "footer", node: n }; markDirty(); render(); });
       card.appendChild(add);
       box.appendChild(card);
     });
-    document.getElementById("add-column").disabled = M.footer.columns.length >= D.footer_max_columns;
+    document.getElementById("add-column").disabled = cols.length >= D.footer_max_columns;
+  }
+
+  // FB-30.9: нижняя панель — под списком её вид на телефоне (первые пять пунктов).
+  function renderBottomPreview() {
+    var box = document.getElementById("bottom-preview");
+    if (!box) return;
+    box.innerHTML = "";
+    var shown = M.bottom.items.filter(function (n) { return n.enabled !== false; }).slice(0, 5);
+    box.hidden = !shown.length;
+    shown.forEach(function (n) {
+      var cell = el("span", { class: "flex min-w-0 flex-1 flex-col items-center gap-0.5 text-[11px] text-gray-700" });
+      cell.appendChild(el("span", { class: "text-base", "aria-hidden": "true" }, n.icon || "•"));
+      cell.appendChild(el("span", { class: "max-w-full truncate" }, n.label || T.noName));
+      box.appendChild(cell);
+    });
   }
 
   function field(label, control) {
@@ -366,6 +454,18 @@
     var label = el("input", { type: "text", class: "ui-input", value: n.label, maxLength: 60 });
     label.addEventListener("input", function () { n.label = label.value; markDirty(); renderTrees(); });
     body.appendChild(field(T.label, label));
+    if (side === "footer" && M.footer.columns.length > 1) {
+      var fp = footerPos(n);
+      var colSel = el("select", { class: "ui-input", "data-footer-column": "" });
+      M.footer.columns.forEach(function (c, ci) {
+        var o = el("option", { value: String(ci) }, T.column + " " + (ci + 1) + (c.label ? " · " + c.label : ""));
+        if (fp && fp.ci === ci) o.selected = true;
+        o.disabled = !!fp && fp.ci !== ci && c.items.length >= D.footer_max_links;
+        colSel.appendChild(o);
+      });
+      colSel.addEventListener("change", function () { if (moveToColumn(n, Number(colSel.value))) markDirty(); render(); });
+      body.appendChild(field(T.inColumn, colSel));
+    }
     if (D.locales.length) {
       var det = el("details", { class: "text-sm" });
       det.appendChild(el("summary", { class: "cursor-pointer ui-muted" }, "🌐 " + T.translations));
@@ -498,6 +598,7 @@
     renderList("top", document.getElementById("tree-top"), M.top.items, null, 1);
     renderList("bottom", document.getElementById("tree-bottom"), M.bottom.items, null, 1);
     renderFooter();
+    renderBottomPreview();
     var need = document.getElementById("mp-need");
     if (need && sel) need.hidden = !needsTarget(sel.node);  // предупреждение гаснет при вводе цели
   }

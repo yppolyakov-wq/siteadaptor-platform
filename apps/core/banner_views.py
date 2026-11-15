@@ -82,6 +82,7 @@ def _form(request, banner, values, error=""):
             "nav": "site-banners",
             "banner": banner,
             "h": values,
+            "preview_image": _preview_image(values),
             "error": error,
             "menu_target_options": menu.target_options(request.tenant),
             "places": banners.places(request.tenant, banner) if banner else [],
@@ -126,12 +127,24 @@ def _typed(raw: dict) -> dict:
     return {**raw, "image": (raw.get("image") or {}).get("url", "")}
 
 
+def _preview_image(values: dict) -> str:
+    return banners.safe_image_url(values.get("image"))
+
+
 def _save(request, banner):
     try:
         raw = _raw(request, banner)
     except ValidationError as exc:
         values = _typed({**{f: request.POST.get(n, "") for n, f in _FORM_FIELDS.items()}})
         return _form(request, banner, values, "; ".join(exc.messages))
+    want_home = bool(request.POST.get("b_home_present") and request.POST.get("b_home"))
+    if want_home and banners.home_full(request.tenant, banner):
+        # проверка ДО записи: иначе баннер сохранился бы, а форма показала бы ошибку, и
+        # повторная отправка новой формы завела бы второй такой же баннер (ревью FB-30.7)
+        error = _("Auf der Startseite sind schon %(n)s Banner – erst einen dort abwählen.") % {
+            "n": banners.MAX_SLIDES
+        }
+        return _form(request, banner, _typed(raw), error)
     try:
         if banner is None:
             banner = banners.create(raw)
@@ -148,12 +161,16 @@ def _save(request, banner):
             # FB-30.7: «Startseite» — выбор главной пишется сразу (решение владельца)
             banners.set_home(request.tenant, banner, bool(request.POST.get("b_home")))
     except ValueError as exc:
+        if str(exc) == "full" and banner is not None and banner.pk:
+            # гонка: главную заполнили между проверкой и записью — баннер уже сохранён
+            messages.warning(
+                request,
+                _("Banner gespeichert, aber die Startseite ist voll – erst einen dort abwählen."),
+            )
+            return redirect("site-banner-edit", pk=banner.pk)
         error = (
             _("Bitte ein gültiges Datum eingeben.")
             if str(exc) == "date"
-            else _("Auf der Startseite sind schon %(n)s Banner – erst einen dort abwählen.")
-            % {"n": banners.MAX_SLIDES}
-            if str(exc) == "full"
             else _("Ein Banner braucht ein Foto, eine Überschrift oder einen Text.")
         )
         return _form(request, banner, _typed(raw), error)

@@ -38149,3 +38149,24 @@ msgstr "außerhalb des Zeitraums"
 
 msgid "oder nach Namen suchen"
 msgstr "oder nach Namen suchen"
+
+msgid "Spalte nach links"
+msgstr "Spalte nach links"
+
+msgid "Spalte nach rechts"
+msgstr "Spalte nach rechts"
+
+msgid "In die Spalte links"
+msgstr "In die Spalte links"
+
+msgid "In die Spalte rechts"
+msgstr "In die Spalte rechts"
+
+msgid "In Spalte"
+msgstr "In Spalte"
+
+msgid "So sieht die Leiste auf dem Handy aus:"
+msgstr "So sieht die Leiste auf dem Handy aus:"
+
+msgid "Banner gespeichert, aber die Startseite ist voll – erst einen dort abwählen."
+msgstr "Banner gespeichert, aber die Startseite ist voll – erst einen dort abwählen."

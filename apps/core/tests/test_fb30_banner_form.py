@@ -110,3 +110,43 @@ def test_status_line_says_where_and_whether_the_banner_shows():
     b.save(update_fields=["is_active"])
     html = _edit(b, tenant).content.decode()
     assert "ausgeschaltet" in html.split("data-banner-status", 1)[1][:400]
+
+
+# --- ревью (security-reviewer) ---
+
+
+def test_full_home_refuses_before_writing_so_no_duplicate_banner():
+    from apps.core.models import Banner
+
+    full = [str(_banner(f"B{i}").pk) for i in range(banners.MAX_SLIDES)]
+    tenant = _tenant(hero_banners={"pick": full})
+    before = Banner.objects.count()
+    data = {"b_present": "1", "b_title": "Neu", "b_is_active": "on", "b_home_present": "1",
+            "b_home": "1"}  # fmt: skip
+    for _attempt in range(2):
+        req = _req("/x/", method="post", data=data, user=_owner(), tenant=tenant)
+        resp = views.banner_new(req)
+        assert resp.status_code == 200 and "Startseite" in resp.content.decode()
+    assert Banner.objects.count() == before
+
+
+def test_open_home_draft_sees_the_home_choice_as_a_conflict():
+    """Ревью: второй писатель выбора главной — открытый черновик главной не перезаписывает
+    его молча, а сообщает о конфликте."""
+    from apps.core.tests.test_fb27_r2_draft import Browser
+    from apps.core.tests.test_fb29_banner_pick import _tenant as shop
+
+    b = _banner()
+    browser = Browser(shop())
+    browser.post(seite="home", op="add", type="text")  # черновик главной открыт
+    banners.set_home(Tenant.objects.get(pk=browser.tenant.pk), b, True)
+    _resp, msgs = browser.post(seite="home", op="save")
+    assert any("inzwischen" in m for m in msgs)
+    assert _pick(browser.tenant) == [str(b.pk)], "выбор с формы баннера цел"
+
+
+def test_preview_never_renders_an_unsafe_image_address():
+    b = _banner()
+    data = {"b_present": "1", "b_title": "", "b_text": "", "b_image_url": "x');}body{color:red"}
+    html = _edit(b, _tenant(), data=data).content.decode()
+    assert "color:red" not in html.split("data-banner-preview", 1)[0][-300:]

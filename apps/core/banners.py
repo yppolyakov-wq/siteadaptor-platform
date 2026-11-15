@@ -217,9 +217,22 @@ def set_home(tenant, banner, on: bool) -> bool:
         hero["pick"] = pick
         config["hero_banners"] = hero
         fresh.site_config = config
-        fresh.save(update_fields=["site_config"])
+        fresh.save(update_fields=["site_config", "updated_at"])
         tenant.site_config = config
     return True
+
+
+def home_full(tenant, banner=None) -> bool:
+    """На главной уже столько баннеров, сколько показывает слайдер (этот не среди них)."""
+    hero = (getattr(tenant, "site_config", None) or {}).get("hero_banners") or {}
+    pick = clean_pick(hero.get("pick"))
+    return len(pick) >= MAX_SLIDES and (banner is None or str(banner.pk) not in pick)
+
+
+def safe_image_url(url) -> str:
+    """Адрес фото для показа в кабинете: только то, что прошло бы `clean_fields`."""
+    url = str(url or "")
+    return url if _SAFE_IMAGE_URL.match(url) else ""
 
 
 def on_home(tenant, banner) -> bool:
