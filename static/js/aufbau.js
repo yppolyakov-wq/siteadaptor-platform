@@ -202,7 +202,8 @@
   var dragged = null;
 
   function item(target) {
-    return target && target.closest ? target.closest("[data-schema-drag]") : null;
+    // FB-30.8: свободное место ряда — тоже цель броска
+    return target && target.closest ? target.closest("[data-schema-drag],[data-schema-slot]") : null;
   }
 
   function arm() {
@@ -300,15 +301,16 @@
     if (!ref || !li || busy || li.getAttribute("data-schema-drag") === ref) { clear(); return; }
     document.documentElement.setAttribute("data-schema-busy", "1");
     if (e.preventDefault) e.preventDefault();
-    var where = side(li, e).after ? "after" : "before";
+    var slot = li.getAttribute("data-schema-slot");
+    var where = slot ? "" : (side(li, e).after ? "after" : "before");
     clear();
     var keep = document.querySelector("[data-schema-draft] input[name=csrfmiddlewaretoken], form input[name=csrfmiddlewaretoken]");
     var data = new FormData();
     data.set("csrfmiddlewaretoken", keep ? keep.value : "");
     data.set("seite", new URLSearchParams(location.search).get("seite") || "home");
-    data.set("op", "move");
+    data.set("op", slot ? "beside" : "move");
     data.set("ref", ref);
-    data.set("value", where + ":" + li.getAttribute("data-schema-drag"));
+    data.set("value", slot ? slot : where + ":" + li.getAttribute("data-schema-drag"));
     if (new URLSearchParams(location.search).get("ansicht") === "telefon") data.set("ansicht", "telefon");
     fetch(location.pathname, { method: "POST", body: data, credentials: "same-origin" })
       .then(function (resp) { if (!resp.ok) throw new Error("status"); return resp.text(); })

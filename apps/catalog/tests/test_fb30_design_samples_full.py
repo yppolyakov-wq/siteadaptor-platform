@@ -131,9 +131,9 @@ def test_price_list_style_shows_the_sample_products_too():
 # --- часть 2: страница товара-примера и переключатель страниц предпросмотра ---
 
 
-def _detail(pk, query=""):
+def _detail(pk, query="", user=True):
     req = _req(f"/sortiment/{pk}/{query}")
-    req.user = AnonymousUser()
+    req.user = (_owner() if user is True else user) if user else AnonymousUser()
     return public_views.product_detail(req, pk=pk)
 
 
@@ -151,18 +151,21 @@ def test_sample_product_page_opens_only_in_the_design_preview_of_an_empty_shop()
     assert "data-sample-product" in html and " inert" in html, "покупка неактивна"
     assert resp["X-Robots-Tag"].startswith("noindex")
     with pytest.raises(Http404):
-        _detail(sample.pk)  # без предпросмотра — нет
+        _detail(sample.pk, user=None)  # без предпросмотра — нет
     with pytest.raises(Http404):
-        _detail(uuid.UUID(int=99), DESIGN)  # не пример
+        _detail(sample.pk, DESIGN, user=None)  # посторонний — нет (выдуманная цена)
+    with pytest.raises(Http404):
+        _detail(uuid.UUID(int=99), DESIGN, user=None)  # не пример
     ProductFactory(name={"de": "Echter Tee", "en": ""}, base_price="3.00")
     with pytest.raises(Http404):
-        _detail(sample.pk, DESIGN)  # свои товары есть — примеров нет
+        _detail(sample.pk, DESIGN, user=None)  # свои товары есть — примеров нет
 
 
 def test_sample_product_page_writes_nothing():
     sample = design_samples.products()[0]
+    owner = _owner()
     with CaptureQueriesContext(connection) as ctx:
-        _detail(sample.pk, DESIGN)
+        _detail(sample.pk, DESIGN, user=owner)
     writes = [q["sql"] for q in ctx.captured_queries
               if q["sql"].split(" ", 1)[0].upper() in ("INSERT", "UPDATE", "DELETE")]  # fmt: skip
     assert writes == []

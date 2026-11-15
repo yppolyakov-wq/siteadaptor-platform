@@ -38220,3 +38220,14 @@ msgstr "Beispieltext: ein Satz über Ihr Geschäft."
 
 msgid "In neuem Tab öffnen"
 msgstr "In neuem Tab öffnen"
+
+#, python-format
+msgid "Hierher ziehen – bis %(w)s"
+msgstr "Hierher ziehen – bis %(w)s"
+
+#, python-format
+msgid "In die Reihe darüber (bis %(w)s)"
+msgstr "In die Reihe darüber (bis %(w)s)"
+
+msgid "Eigene Reihe"
+msgstr "Eigene Reihe"

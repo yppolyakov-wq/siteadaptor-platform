@@ -38459,3 +38459,14 @@ msgstr "Приклад тексту: одне речення про вашу с�
 
 msgid "In neuem Tab öffnen"
 msgstr "Відкрити в новій вкладці"
+
+#, python-format
+msgid "Hierher ziehen – bis %(w)s"
+msgstr "Перетягніть сюди — до %(w)s"
+
+#, python-format
+msgid "In die Reihe darüber (bis %(w)s)"
+msgstr "У ряд вище (до %(w)s)"
+
+msgid "Eigene Reihe"
+msgstr "Окремий ряд"

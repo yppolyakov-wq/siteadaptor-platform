@@ -56,6 +56,25 @@ _PICK_SAID = {
 }
 
 
+def _row_ops(layout: dict, selected) -> dict:
+    """FB-30.8: кнопки без мыши у выбранного блока — «в ряд выше» (если там есть место и
+    блок не из этого ряда) и «свой ряд» (если блок стоит в ряду с соседями)."""
+    if not selected or not selected.get("enabled", True):
+        return {"beside_target": None, "selected_in_row": False}
+    lines = layout.get("lines") or []
+    at = next(
+        (i for i, li in enumerate(lines) if any(b["ref"] == selected["ref"] for b in li["blocks"])),
+        None,
+    )
+    if at is None:
+        return {"beside_target": None, "selected_in_row": False}
+    above = lines[at - 1]["slot"] if at > 0 else None
+    allowed = {v for v, *_rest in selected.get("widths") or []}
+    if above and not (allowed & set(site_schema.ROW_SHARE)):
+        above = None  # блоку нельзя быть узким — в ряд он не встанет
+    return {"beside_target": above, "selected_in_row": len(lines[at]["blocks"]) > 1}
+
+
 @login_required
 def site_schema_view(request):
     from apps.core import aufbau_draft
@@ -303,6 +322,7 @@ def site_schema_view(request):
         for c in aufbau_draft.dirty_codes(request)
         if c != code and c in labels
     ]
+    layout = site_schema.schema_layout(blocks)
     return render(
         request,
         "tenant/site_schema.html",
@@ -314,7 +334,8 @@ def site_schema_view(request):
             "preview_url": preview_url,
             "preview_query": urlencode(preview_query),
             "blocks": blocks,
-            "layout": site_schema.schema_layout(blocks),
+            "layout": layout,
+            **_row_ops(layout, selected),
             "selected": selected,
             "confirm_remove": bool(selected) and request.GET.get("entfernen") == "1",
             # FB-27 R7: строка категории — своя схема или блоки каталога

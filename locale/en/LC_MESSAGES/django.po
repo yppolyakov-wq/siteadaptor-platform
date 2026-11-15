@@ -38133,3 +38133,14 @@ msgstr "Example text: one sentence about your business."
 
 msgid "In neuem Tab öffnen"
 msgstr "Open in a new tab"
+
+#, python-format
+msgid "Hierher ziehen – bis %(w)s"
+msgstr "Drag here – up to %(w)s"
+
+#, python-format
+msgid "In die Reihe darüber (bis %(w)s)"
+msgstr "Into the row above (up to %(w)s)"
+
+msgid "Eigene Reihe"
+msgstr "Own row"

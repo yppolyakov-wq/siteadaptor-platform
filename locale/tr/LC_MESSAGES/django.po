@@ -38279,3 +38279,14 @@ msgstr "Örnek metin: işletmeniz hakkında bir cümle."
 
 msgid "In neuem Tab öffnen"
 msgstr "Yeni sekmede aç"
+
+#, python-format
+msgid "Hierher ziehen – bis %(w)s"
+msgstr "Buraya sürükleyin – en fazla %(w)s"
+
+#, python-format
+msgid "In die Reihe darüber (bis %(w)s)"
+msgstr "Üstteki sıraya (en fazla %(w)s)"
+
+msgid "Eigene Reihe"
+msgstr "Ayrı sıra"

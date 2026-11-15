@@ -671,19 +671,41 @@ def group_block_rows(blocks: list) -> list:
     (`{"key": "_row", "row": [...]}` → home.html рендерит md:flex).
     Блок с `newline=True` принудительно начинает новый ряд; широкие блоки
     и фикс-секции ряд разрывают. Чистая функция — только для рендера."""
-    out, row = [], None
+    from fractions import Fraction
+
+    out, row, used = [], None, Fraction(0)
     for b in blocks:
         narrow = isinstance(b, dict) and b.get("width") in NARROW_WIDTHS
         if not narrow:
             row = None
             out.append(b)
             continue
-        if row is None or b.get("newline"):
+        share = _ROW_SHARE[b["width"]]
+        # FB-30.8: ряд не шире страницы — блок, который не помещается, начинает новый ряд
+        if row is None or b.get("newline") or used + share > 1:
             row = {"key": "_row", "row": [b]}
+            used = Fraction(0)
             out.append(row)
         else:
             row["row"].append(b)
+        used += share
     return out
+
+
+def _share(a: int, b: int):
+    from fractions import Fraction
+
+    return Fraction(a, b)
+
+
+_ROW_SHARE = {
+    "w23": _share(2, 3),
+    "w12": _share(1, 2),
+    "w13": _share(1, 3),
+    "w14": _share(1, 4),
+    "w15": _share(1, 5),
+    "w16": _share(1, 6),
+}
 
 
 # UC6-5: демо-данные нового C-блока — вставка сразу даёт живой пример (DE-рыба,

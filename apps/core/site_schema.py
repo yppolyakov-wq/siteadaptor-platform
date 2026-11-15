@@ -14,6 +14,7 @@ from __future__ import annotations
 import copy
 import uuid
 from dataclasses import dataclass
+from fractions import Fraction
 
 from django.db import transaction
 from django.urls import NoReverseMatch, reverse
@@ -979,6 +980,38 @@ WIDTH_LABELS = {"w23": "⅔", "w12": "½", "w13": "⅓", "w14": "¼", "w15": "�
 WIDTH_PERCENT = {"w23": 66, "w12": 50, "w13": 33, "w14": 25, "w15": 20, "w16": 16}
 WIDTH_FLEX = {"w23": 8, "w12": 6, "w13": 4, "w14": 3, "w15": 2.4, "w16": 2}
 
+
+#: FB-30.8: точные доли узких ширин — сумма ряда считается без округления (33 % + 66 %).
+def _row_share():
+    from apps.tenants import siteconfig
+
+    return siteconfig._ROW_SHARE
+
+
+#: FB-30.8: точные доли узких ширин — сумма ряда считается без округления (33 % + 66 %).
+#: Один источник с группировкой рядов (`siteconfig.group_block_rows`).
+ROW_SHARE = _row_share()
+
+
+def row_free(row) -> Fraction:
+    """Свободная доля ряда узких блоков (0 — ряд полон или в нём широкий блок)."""
+    total = Fraction(0)
+    for b in row:
+        share = ROW_SHARE.get((b.get("width") or "") if isinstance(b, dict) else "")
+        if share is None:
+            return Fraction(0)
+        total += share
+    return max(Fraction(0), 1 - total)
+
+
+def _slot_label(free: Fraction) -> str:
+    """Подпись свободного места ряда: наибольшая доля, что в нём помещается."""
+    for width in ("w23", "w12", "w13", "w14", "w15", "w16"):
+        if ROW_SHARE[width] <= free:
+            return WIDTH_LABELS[width]
+    return ""
+
+
 #: Группы select «Seitentyp»: (код группы, подпись, модуль-владелец | None, типы).
 _TYPE_GROUPS = (
     (
@@ -1281,7 +1314,14 @@ def schema_layout(blocks: list[dict]) -> dict:
     rows = []
     for g in siteconfig.group_block_rows(visible):
         rows.append(g["row"] if g.get("key") == "_row" else [g])
-    return {"rows": rows, "hidden": [b for b in blocks if not b["enabled"]]}
+    # FB-30.8: у ряда узких блоков со свободным местом — место «перетащите сюда»
+    lines = []
+    for row in rows:
+        label = _slot_label(row_free(row))
+        lines.append(
+            {"blocks": row, "slot": {"ref": row[-1]["ref"], "label": label} if label else None}
+        )
+    return {"rows": rows, "lines": lines, "hidden": [b for b in blocks if not b["enabled"]]}
 
 
 def add_options(code: str) -> list[tuple[str, str]]:
@@ -1679,6 +1719,10 @@ def mutate(
         else:
             data.pop("pick", None)
         item["data"] = siteconfig._clean_cblock_data(key, {**data, "source": source})
+    elif op == "beside":
+        _beside(items, idx, value)
+    elif op == "own_row":
+        _own_row(items, idx)
     elif op == "newline":
         if (
             main
@@ -1693,6 +1737,88 @@ def mutate(
     else:
         raise SchemaError("op")
     return ref
+
+
+def _visible_rows(items: list[dict]) -> list[list[dict]]:
+    """Ряды видимых элементов списка блоков — те же, что рисуют витрина и схема."""
+    from apps.tenants import siteconfig
+
+    visible = [it for it in items if it.get("enabled", True)]
+    return [
+        g["row"] if g.get("key") == "_row" else [g] for g in siteconfig.group_block_rows(visible)
+    ]
+
+
+def _ref(it: dict) -> str:
+    return it.get("id") or it.get("key") or ""
+
+
+def _keep_neighbours_apart(items: list[dict], idx: int) -> None:
+    """Блок `idx` уходит из ряда: если он начинал ряд, следующий узкий сосед этого ряда
+    начинает его сам — иначе ряд прилип бы к предыдущему (FB-30.8)."""
+    from apps.tenants import siteconfig
+
+    item = items[idx]
+    for row in _visible_rows(items):
+        if item in row and row[0] is item and len(row) > 1:
+            nxt = row[1]
+            if nxt.get("width") in siteconfig.NARROW_WIDTHS:
+                nxt["newline"] = True
+            return
+
+
+def _beside(items: list[dict], idx: int, target_ref: str) -> None:
+    """FB-30.8: поставить блок в ряд к узкому блоку `target_ref`. Ширина — своя узкая, если
+    влезает, иначе наибольшая допустимая, что помещается; не помещается ни одна — блок
+    встаёт своим рядом сразу после (макет 4). Сумма долей ряда не превышает единицы."""
+    from apps.tenants import siteconfig
+
+    item = items[idx]
+    if siteconfig.is_main_marker(item) or not (item.get("id") or home_section(item)):
+        raise SchemaError("fixed")
+    target = next((it for it in items if _ref(it) == target_ref), None)
+    if target is None or target is item or target.get("width") not in siteconfig.NARROW_WIDTHS:
+        raise SchemaError("op")
+    if not target.get("enabled", True):
+        raise SchemaError("op")
+    allowed = [v for v, _label in width_choices(item) if v in ROW_SHARE]
+    _keep_neighbours_apart(items, idx)
+    items.pop(idx)
+    row = next(r for r in _visible_rows(items) if target in r)
+    free = row_free(row)
+    width = item.get("width") or ""
+    if not (width in ROW_SHARE and ROW_SHARE[width] <= free):
+        fits = [v for v in allowed if ROW_SHARE[v] <= free]
+        width = max(fits, key=lambda v: ROW_SHARE[v]) if fits else ""
+    last = items.index(row[-1])
+    if width:
+        item["width"] = width
+        item.pop("newline", None)
+    else:
+        # места нет — свой ряд сразу после этого (ширина прежняя)
+        if item.get("width") in siteconfig.NARROW_WIDTHS:
+            item["newline"] = True
+    items.insert(last + 1, item)
+    # следующий за рядом узкий блок не должен прилипнуть к вставленному
+    after = next((it for it in items[last + 2 :] if it.get("enabled", True)), None)
+    if after is not None and after.get("width") in siteconfig.NARROW_WIDTHS:
+        after["newline"] = True
+
+
+def _own_row(items: list[dict], idx: int) -> None:
+    """FB-30.8: блок — своим рядом (и следующий сосед того же ряда начинает свой)."""
+    from apps.tenants import siteconfig
+
+    item = items[idx]
+    if item.get("width") not in siteconfig.NARROW_WIDTHS or not (
+        item.get("id") or home_section(item)
+    ):
+        raise SchemaError("width")
+    row = next((r for r in _visible_rows(items) if item in r), [item])
+    at = row.index(item)
+    if at + 1 < len(row):
+        row[at + 1]["newline"] = True
+    item["newline"] = True
 
 
 #: FB-27 R4: чьи ещё настройки правятся на строке типа — у этих типов своей строки в

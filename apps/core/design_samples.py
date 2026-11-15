@@ -303,7 +303,8 @@ def site_with_samples(site: dict, request) -> tuple[dict, set]:
 def sample_product(request, pk):
     """Товар-пример с этим pk — только в предпросмотре дизайна и пока своих товаров нет
     (иначе None: адрес примера на живом сайте — 404)."""
-    if not wanted(request):
+    # ревью: выдуманная цена несуществующего товара — только владельцу (как прочие примеры)
+    if not wanted_owner(request):
         return None
     found = next((p for p in products() if p.pk == pk), None)
     if found is None:
@@ -336,7 +337,10 @@ def preview_pages(request, query: str) -> list[dict]:
     primary = (archetypes.primary_item(tenant) or {}) if tenant is not None else {}
     try:
         catalog = bool(tenant is None or tenant.is_module_active("catalog"))
-    except Exception:  # noqa: BLE001
+    except Exception:  # noqa: BLE001 — сомнение = каталог есть (лишняя ссылка безвредна)
+        import logging
+
+        logging.getLogger(__name__).warning("design samples: module check failed", exc_info=True)
         catalog = True
     real = None
     if catalog:
