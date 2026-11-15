@@ -155,7 +155,7 @@
         {% endfor %}
         {% if line.slot and not phone_view %}
         {% comment %}FB-30.8 (макет 4): в ряду есть место — сюда можно перетащить блок; он займёт столько, сколько помещается.{% endcomment %}
-        <li class="hidden md:flex min-w-[6rem] flex-1 items-center justify-center rounded-xl border-2 border-dashed border-indigo-400 px-2 text-center text-xs font-semibold text-indigo-800" data-schema-slot="{{ line.slot.ref }}">{% blocktrans with w=line.slot.label %}Hierher ziehen – bis {{ w }}{% endblocktrans %}</li>
+        <li class="hidden md:flex min-w-[6rem] flex-1 items-center justify-center rounded-xl border-2 border-dashed border-indigo-400 px-2 text-center text-xs font-semibold text-indigo-800" aria-hidden="true" data-schema-slot="{{ line.slot.ref }}">{% blocktrans with w=line.slot.label %}Hierher ziehen – bis {{ w }}{% endblocktrans %}</li>
         {% endif %}
       </ul></li>{% endwith %}
       {% empty %}

@@ -182,3 +182,47 @@ def test_rows_wrap_when_they_would_be_wider_than_the_page():
         [{"width": "w23"}, {"width": "w12"}, {"width": "w13"}, {"width": "w12"}]
     )
     assert [[b["width"] for b in r["row"]] for r in rows] == [["w23"], ["w12", "w13"], ["w12"]]
+
+
+# --- ревью (django-reviewer) ---
+
+
+def test_moving_from_the_end_of_a_row_does_not_pull_up_the_next_row():
+    t = _tenant()
+    a = _add(t, width="w12")
+    b = _add(t, width="w12")
+    c = _add(t, width="w12")  # ряды: [a b] [c]
+    target = _add(t, width="w13")
+    site_schema.apply(t, "text", "own_row", ref=target)
+    site_schema.apply(t, "text", "beside", ref=b, value=target)
+    rows = _rows(t)
+    assert _row_of(rows, a) == [(a, "w12")], "c не стянулся к a"
+    assert _row_of(rows, c)[0] == (c, "w12")
+
+
+def test_joining_a_row_leaves_no_stray_new_row_flags():
+    t = _tenant()
+    a = _add(t, width="w12")
+    x = _add(t)
+    d = _add(t, width="w13")
+    site_schema.apply(t, "text", "beside", ref=x, value=a)
+    cfg = siteconfig.normalize(Tenant.objects.get(pk=t.pk).site_config)
+    flags = {b["id"]: bool(b.get("newline")) for b in cfg["page_blocks"]["info"] if b.get("id")}
+    assert flags[x] is False, "вставленный в ряд блок не начинает ряд"
+    assert _row_of(_rows(t), d) == [(d, "w13")], "следующий ряд остался своим"
+
+
+def test_the_home_banner_never_joins_a_row():
+    t = _tenant()
+    a = site_schema.apply(t, "home", "add", block_type="text")
+    site_schema.apply(t, "home", "width", ref=a, value="w12")
+    with pytest.raises(site_schema.SchemaError):
+        site_schema.apply(t, "home", "beside", ref="hero", value=a)
+
+
+def test_slot_is_hidden_from_screen_readers():
+    import pathlib
+
+    src = pathlib.Path("templates/tenant/site_schema.html").read_text()
+    slot = src[src.index("data-schema-slot=") - 300 : src.index("data-schema-slot=")]
+    assert 'aria-hidden="true"' in slot

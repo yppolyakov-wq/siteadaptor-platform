@@ -1754,17 +1754,23 @@ def _ref(it: dict) -> str:
 
 
 def _keep_neighbours_apart(items: list[dict], idx: int) -> None:
-    """Блок `idx` уходит из ряда: если он начинал ряд, следующий узкий сосед этого ряда
-    начинает его сам — иначе ряд прилип бы к предыдущему (FB-30.8)."""
+    """Блок `idx` уходит со своего места: ряды вокруг остаются как были — второй блок его
+    ряда (если блок начинал ряд) и первый блок следующего ряда начинают свои ряды сами,
+    иначе освободившееся место стянуло бы их в соседний ряд (FB-30.8, ревью)."""
     from apps.tenants import siteconfig
 
     item = items[idx]
-    for row in _visible_rows(items):
-        if item in row and row[0] is item and len(row) > 1:
-            nxt = row[1]
-            if nxt.get("width") in siteconfig.NARROW_WIDTHS:
-                nxt["newline"] = True
-            return
+    rows = _visible_rows(items)
+    at = next((n for n, row in enumerate(rows) if any(b is item for b in row)), None)
+    if at is None:
+        return
+    row = rows[at]
+    if row[0] is item and len(row) > 1 and row[1].get("width") in siteconfig.NARROW_WIDTHS:
+        row[1]["newline"] = True
+    if at + 1 < len(rows):
+        nxt = rows[at + 1][0]
+        if nxt.get("width") in siteconfig.NARROW_WIDTHS:
+            nxt["newline"] = True
 
 
 def _beside(items: list[dict], idx: int, target_ref: str) -> None:
@@ -1782,24 +1788,27 @@ def _beside(items: list[dict], idx: int, target_ref: str) -> None:
     if not target.get("enabled", True):
         raise SchemaError("op")
     allowed = [v for v, _label in width_choices(item) if v in ROW_SHARE]
+    if not allowed and item.get("width") not in ROW_SHARE:
+        raise SchemaError("width")  # блоку нельзя быть узким (баннер главной и т. п.)
     _keep_neighbours_apart(items, idx)
     items.pop(idx)
-    row = next(r for r in _visible_rows(items) if target in r)
+    row = next(r for r in _visible_rows(items) if any(b is target for b in r))
     free = row_free(row)
     width = item.get("width") or ""
     if not (width in ROW_SHARE and ROW_SHARE[width] <= free):
         fits = [v for v in allowed if ROW_SHARE[v] <= free]
         width = max(fits, key=lambda v: ROW_SHARE[v]) if fits else ""
-    last = items.index(row[-1])
+    last = next(n for n, it in enumerate(items) if it is row[-1])
     if width:
         item["width"] = width
         item.pop("newline", None)
-    else:
-        # места нет — свой ряд сразу после этого (ширина прежняя)
-        if item.get("width") in siteconfig.NARROW_WIDTHS:
-            item["newline"] = True
+        items.insert(last + 1, item)
+        return
+    # места нет — свой ряд сразу после этого (ширина прежняя); следующий за ним узкий
+    # блок не прилипает к нему
+    if item.get("width") in siteconfig.NARROW_WIDTHS:
+        item["newline"] = True
     items.insert(last + 1, item)
-    # следующий за рядом узкий блок не должен прилипнуть к вставленному
     after = next((it for it in items[last + 2 :] if it.get("enabled", True)), None)
     if after is not None and after.get("width") in siteconfig.NARROW_WIDTHS:
         after["newline"] = True

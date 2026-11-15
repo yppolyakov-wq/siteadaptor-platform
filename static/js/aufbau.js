@@ -233,7 +233,7 @@
 
   document.addEventListener("dragstart", function (e) {
     var li = item(e.target);
-    if (!li) return;
+    if (!li || !li.hasAttribute("data-schema-drag")) return;  // место в ряду не перетаскивают
     dragged = li.getAttribute("data-schema-drag");
     e.dataTransfer.effectAllowed = "move";
     e.dataTransfer.setData("text/plain", dragged);
