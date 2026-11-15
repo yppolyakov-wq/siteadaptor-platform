@@ -53,8 +53,14 @@ def _keys_fingerprint(config: dict, codes) -> str:
 
 
 def _settings(draft: dict) -> dict:
+    from apps.core import page_settings
+
     pending = draft.get("settings")
-    return pending if isinstance(pending, dict) else {}
+    if not isinstance(pending, dict):
+        return {}
+    # FB-31 P2 (ревью): общие настройки правятся на «Design» — черновик, начатый до
+    # переноса, их не пишет и не показывает (в панели их больше не отменить)
+    return {k: v for k, v in pending.items() if k not in page_settings.DESIGN_SETTINGS}
 
 
 def _apply_settings(config: dict, draft: dict) -> dict:

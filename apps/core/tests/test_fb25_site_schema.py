@@ -34,9 +34,11 @@ def test_add_move_toggle_delete_on_a_page():
     site_schema.apply(t, "catalog", "add", block_type="text")
     site_schema.apply(t, "catalog", "add", block_type="banner")
     blocks = site_schema.blocks_for(siteconfig.normalize(t.site_config), "catalog")
-    # FB-30.16 R4 (осознанно): над ★ каталога всегда стоит блок «Kategorien»
-    assert blocks[0]["key"] == "categories" and blocks[1]["main"]
-    text_ref, banner_ref = blocks[2]["ref"], blocks[3]["ref"]
+    # FB-30.16 R4/R5b (осознанно): строки каталога закреплены — шапка первой,
+    # «Kategorien» прямо над ★; свои блоки — дальше (сеты — только когда наборы есть)
+    assert [b["key"] for b in blocks[:2]] == ["page_head", "categories"] and blocks[2]["main"]
+    own = [b for b in blocks[3:] if b["key"] != "combos"]
+    text_ref, banner_ref = own[0]["ref"], own[1]["ref"]
     site_schema.apply(t, "catalog", "up", ref=banner_ref)
     assert _ids(t, "catalog")[-2:] == [banner_ref, text_ref]
     site_schema.apply(t, "catalog", "toggle", ref=text_ref)

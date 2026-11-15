@@ -870,18 +870,20 @@ def design_schema(tenant) -> list[SettingState]:
     ]
 
 
-def summaries(tenant, codes=None) -> dict[str, dict]:
+def summaries(tenant, codes=None, types: tuple[str, ...] | None = None) -> dict[str, dict]:
     """What the Studio shows instead of a cabinet-owned control: the setting's
     current value in words and the cabinet screen that changes it."""
     from apps.core import page_templates
 
     codes = set(CABINET_OWNED if codes is None else codes)
     out: dict[str, dict] = {}
-    for ts in schema(tenant):
+    for ts in schema(tenant, types):
         for st in ts.settings:
             if st.code not in codes or st.code in out:
                 continue
-            label = next((c.label for c in st.choices if c.value == st.value), st.value)
+            # FB-31 P2 (ревью): у вкл/выкл значение — bool, а плитки — "1"/"0"
+            want = ("1" if st.value else "0") if st.kind == KIND_BOOL else st.value
+            label = next((c.label for c in st.choices if c.value == want), st.value)
             value = label or _("Standard")
             if st.layout and st.layout.get("scroll"):
                 value = format_lazy("{} · {}", value, _("Slider"))

@@ -105,3 +105,17 @@ def test_both_card_forms_have_distinct_labels_on_design():
     tenant = _tenant(enabled_modules=["catalog", "promotions"])
     labels = [str(s.label) for s in design_page._design_defaults(tenant)]
     assert len(labels) == len(set(labels))
+
+
+def test_review_bool_setting_shows_its_value_not_true():
+    cafe = _tenant("cafe", enabled_modules=["catalog"])
+    page_settings.write(cafe, "catalog_menu_labels", "1")
+    found = page_settings.summaries(cafe, ["catalog_menu_labels"])
+    assert str(found["catalog_menu_labels"]["value"]) not in {"True", "False", "Standard"}
+
+
+def test_review_old_draft_does_not_write_a_design_setting():
+    from apps.core import aufbau_draft
+
+    draft = {"settings": {"product_card_form": {"v": "deal"}, "catalog_sort": {"v": "newest"}}}
+    assert set(aufbau_draft._settings(draft)) == {"catalog_sort"}

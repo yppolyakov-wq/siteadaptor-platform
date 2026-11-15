@@ -2126,9 +2126,8 @@ def _not_on_page(code: str) -> frozenset[str]:
     return REPLACED_BY_BLOCKS.get(code, frozenset()) | frozenset(page_settings.DESIGN_SETTINGS)
 
 
-def design_rows(tenant, code: str) -> list[dict]:
-    """FB-31 P2: общие настройки «Design», действующие на странице `code`, — строками
-    «wie Design: X · ändern →» в панели (только показ, правятся на «Design»)."""
+def design_codes(tenant, code: str) -> list[str]:
+    """FB-31 P2: общие настройки «Design», действующие на странице `code` (без запросов)."""
     from apps.core import page_settings
 
     if is_object_code(code):
@@ -2139,9 +2138,18 @@ def design_rows(tenant, code: str) -> list[dict]:
             if s.code in page_settings.DESIGN_SETTINGS and s.code not in wanted:
                 if page_settings.applies(tenant, s):
                     wanted.append(s.code)
+    return wanted
+
+
+def design_rows(tenant, code: str) -> list[dict]:
+    """FB-31 P2: общие настройки «Design» страницы `code` — строками «wie Design: X ·
+    ändern →» в панели (только показ, правятся на «Design»)."""
+    from apps.core import page_settings
+
+    wanted = design_codes(tenant, code)
     if not wanted:
         return []
-    found = page_settings.summaries(tenant, wanted)
+    found = page_settings.summaries(tenant, wanted, tuple(setting_types(tenant, code)))
     return [
         {**found[c], "code": c, "label": page_settings.DESIGN_LABELS.get(c, found[c]["label"])}
         for c in wanted

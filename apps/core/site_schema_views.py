@@ -295,7 +295,7 @@ def site_schema_view(request):
     try:
         has_settings = bool(site_schema.setting_codes(tenant, code))
         # FB-31 P2: общие настройки «Design» видны строкой и там, где своих настроек нет
-        has_design = bool(site_schema.design_rows(tenant, code)) if not has_settings else True
+        has_design = bool(site_schema.design_codes(tenant, code))
     except site_schema.SchemaError:
         has_settings = has_design = False
     has_settings = has_settings or has_design

@@ -172,8 +172,8 @@ def test_page_template_and_card_form_tiles_are_shown_at_once():
 
     b = Browser(_tenant())
     html = b.get(f"?seite=catalog&block={siteconfig.MAIN_LIST_KEY}")
-    boxes = re.findall(r"<details[^>]*data-schema-setting-box=\"([^\"]+)\"([^>]*)>", html)
-    assert boxes, "у основного списка каталога есть настройки"
-    tiles = [code for code, rest in boxes if " open" in rest]
-    assert tiles, "настройки с плитками раскрыты"
-    assert "data-cardform-thumb" in html or "cf-thumb" in html or "<svg" in html
+    # FB-30.16 R4 + FB-31 P2 (осознанно): шаблон каталога стал видом ★ — плитки формой без
+    # свёртки; форма карточки общая для сайта — строкой «wie Design» со ссылкой
+    assert 'data-schema-view-tiles="mainview"' in html
+    assert not re.search(r"<details[^>]*data-schema-setting-box=\"mainview\"", html)
+    assert 'data-schema-design-row="product_card_form"' in html
