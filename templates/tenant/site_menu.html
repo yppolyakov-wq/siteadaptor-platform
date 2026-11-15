@@ -132,7 +132,8 @@
     { k: "promo_group", label: "{% trans "Aktionsgruppe" %}", list: "promo_groups" },
     { k: "url", label: "{% trans "Link (URL)" %}", input: "https://… / /pfad/" },
     { k: "anchor", label: "{% trans "Sprungmarke" %}", input: "#aktionen" },
-    { k: "group", label: "{% trans "Nur Untermenü" %}" }
+    { k: "group", label: "{% trans "Nur Untermenü" %}" },
+    { k: "action", label: "{% trans "Funktion" %}", list: "actions" }
   ];
   var LAYOUTS = [
     { k: "", label: "{% trans "Automatisch" %}", hint: "{% trans "Kacheln, wenn Unterpunkte Bilder haben, sonst Liste" %}" },
@@ -518,6 +519,7 @@
     var kindSel = el("select", { class: "ui-input" });
     KINDS.forEach(function (kd) {
       if (side !== "top" && kd.k === "group") return;
+      if (side !== "bottom" && kd.k === "action") return;  // FB-30.14: функции — только нижняя панель
       var opts = kd.list ? (D[kd.list] || []) : null;
       if (opts && !opts.length && kd.k !== n.type) return;
       var o = el("option", { value: kd.k }, kd.label);

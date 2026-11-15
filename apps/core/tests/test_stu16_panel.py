@@ -185,6 +185,8 @@ def test_menu_builder_and_studio_share_one_target_source():
         "promotions",
         # M21.6 (осознанно): свои страницы сайта
         "content_pages",
+        # FB-30.14 (осознанно): функции нижней панели
+        "actions",
     }
     from apps.core import views as core_views
 

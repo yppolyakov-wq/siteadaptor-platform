@@ -345,26 +345,43 @@
       {% if storefront_footer_menu %}
       {% comment %}M21.5: при колонках ссылок контакты бизнеса — своей колонкой «Kontakt» в
       том же ряду (как подвал магазина до переезда), а не строками под ним.{% endcomment %}
-      <nav aria-label="{% trans "Fußzeile" %}" class="grid grid-cols-2 sm:grid-cols-3 {% if storefront_footer_menu|length < 4 %}lg:grid-cols-4{% else %}lg:grid-cols-6{% endif %} gap-x-6 gap-y-6 pb-4 text-sm" data-footer-columns>
+      <nav aria-label="{% trans "Fußzeile" %}" class="grid grid-cols-2 sm:grid-cols-3 {% if storefront_footer_menu|length < 4 %}lg:grid-cols-4{% else %}lg:grid-cols-6{% endif %} gap-x-6 gap-y-0 sm:gap-y-6 pb-4 text-sm" data-footer-columns>
+        {% comment %}FB-30.14: на телефоне колонки — аккордеон (details; скрипт ниже сворачивает их
+        только на узком экране, без JS всё раскрыто). На ≥sm — обычные колонки.{% endcomment %}
         {% for col in storefront_footer_menu %}
-        <div class="min-w-0">
-          {% if col.label %}<p class="text-base font-semibold text-gray-800 mb-2">{{ col.label }}</p>{% endif %}
-          <ul class="space-y-1.5">
+        <details class="min-w-0 col-span-2 sm:col-span-1 border-b border-gray-100 sm:border-0 group" data-footer-acc open>
+          <summary class="flex items-center justify-between gap-2 cursor-pointer list-none py-2 sm:py-0 sm:mb-2 sm:cursor-default text-base font-semibold text-gray-800 [&::-webkit-details-marker]:hidden">{{ col.label|default:"…" }}<span class="sm:hidden text-gray-400 transition-transform group-open:rotate-180" aria-hidden="true">▾</span></summary>
+          <ul class="space-y-1.5 pb-3 sm:pb-0">
             {% for link in col.items %}<li><a href="{{ link.url }}" class="text-gray-600 hover:text-gray-900 hover:underline inline-flex items-center gap-1.5">{% include "storefront/menu/_icon.html" with node=link %}{{ link.label }}</a></li>{% endfor %}
           </ul>
-        </div>
+        </details>
         {% endfor %}
         {% if request.tenant.address or request.tenant.public_phone or request.tenant.public_email or request.tenant.opening_hours or request.tenant.opening_hours_structured %}
-        <div class="min-w-0 col-span-2 sm:col-span-1 text-gray-600 space-y-1.5" data-footer-contact>
-          <p class="text-base font-semibold text-gray-800 mb-2">{% trans "Kontakt" %}</p>
+        <details class="min-w-0 col-span-2 sm:col-span-1 text-gray-600 border-b border-gray-100 sm:border-0 group" data-footer-contact data-footer-acc open>
+          <summary class="flex items-center justify-between gap-2 cursor-pointer list-none py-2 sm:py-0 sm:mb-2 sm:cursor-default text-base font-semibold text-gray-800 [&::-webkit-details-marker]:hidden">{% trans "Kontakt" %}<span class="sm:hidden text-gray-400 transition-transform group-open:rotate-180" aria-hidden="true">▾</span></summary>
+          <div class="space-y-1.5 pb-3 sm:pb-0">
           {% if request.tenant.address %}<p>{{ request.tenant.address }}</p>{% endif %}
           {% if request.tenant.public_phone %}<p><a href="tel:{{ request.tenant.public_phone }}" class="hover:underline">{{ request.tenant.public_phone }}</a></p>{% endif %}
           {% if request.tenant.public_email %}<p><a href="mailto:{{ request.tenant.public_email }}" class="hover:underline break-all">{{ request.tenant.public_email }}</a></p>{% endif %}
           {% if request.tenant.opening_hours %}<p class="whitespace-pre-line">{{ request.tenant.opening_hours_localized }}</p>{% else %}{% for line in request.tenant.opening_hours_week %}<p>{{ line }}</p>{% endfor %}{% endif %}
           {% if request.tenant.map_url %}<p><a href="{{ request.tenant.map_url }}" target="_blank" rel="noopener" class="hover:underline">🗺 {% trans "Map" %}</a></p>{% endif %}
-        </div>
+          </div>
+        </details>
         {% endif %}
       </nav>
+      <script>
+        // FB-30.14: подвал-аккордеон только на телефоне; на ≥sm колонки всегда раскрыты.
+        (function () {
+          var narrow = window.matchMedia("(max-width: 639px)");
+          var boxes = document.querySelectorAll("[data-footer-acc]");
+          function apply() { boxes.forEach(function (d) { d.open = !narrow.matches; }); }
+          apply();
+          if (narrow.addEventListener) narrow.addEventListener("change", apply);
+          boxes.forEach(function (d) {
+            d.querySelector("summary").addEventListener("click", function (e) { if (!narrow.matches) e.preventDefault(); });
+          });
+        })();
+      </script>
       {% endif %}
       {# H1.2: тэглайн подвала — правится инлайн на канве; пустой скрыт на публичной, виден/правится под ?preview=1. #}
       {% if storefront_footer_text or request.GET.preview == '1' %}<p class="text-sm text-gray-600 whitespace-pre-line max-w-2xl" data-edit="footer_text">{{ storefront_footer_text }}</p>{% endif %}

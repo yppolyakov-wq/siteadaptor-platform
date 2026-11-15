@@ -11,6 +11,16 @@ iOS Safari «подпрыгивание» fixed-бара при инерцион
      class="sm:hidden fixed bottom-0 inset-x-0 z-40 bg-white border-t border-gray-200 flex shadow-[0_-1px_8px_rgba(0,0,0,0.06)]"
      style="padding-bottom: max(2px, env(safe-area-inset-bottom)); transform: translateZ(0); -webkit-transform: translateZ(0); will-change: transform;">
   {% for a in storefront_bottom_nav %}
+    {% if a.action == "menu" %}
+    {% comment %}FB-30.14: «Menü» открывает меню сайта (то же, что ☰ в шапке), а не страницу.{% endcomment %}
+    <button type="button" data-open-site-menu aria-controls="sf-nav-mobile" aria-expanded="false"
+       class="relative flex-1 flex flex-col items-center justify-center gap-0.5 pt-1.5 pb-1 min-h-[46px] text-[11px] font-medium
+              focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px]
+              text-gray-600 active:bg-gray-100">
+      <span class="text-[19px] leading-none" aria-hidden="true">{{ a.icon }}</span>
+      <span class="leading-tight">{{ a.label }}</span>
+    </button>
+    {% else %}
     <a href="{{ a.url }}"
        class="relative flex-1 flex flex-col items-center justify-center gap-0.5 pt-1.5 pb-1 min-h-[46px] text-[11px] font-medium
               focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px]
@@ -22,8 +32,26 @@ iOS Safari «подпрыгивание» fixed-бара при инерцион
         <span data-cart-badge class="absolute top-0.5 right-[20%] min-w-[17px] h-[17px] px-1 rounded-full text-white text-[10px] font-bold leading-[17px] text-center shadow {% if not a.badge %}hidden{% endif %}" style="background: var(--accent);">{{ a.badge }}</span>
       {% endif %}
     </a>
+    {% endif %}
   {% endfor %}
 </nav>
+<script>
+  // FB-30.14: кнопка «Menü» нижней панели открывает мобильное меню шапки и показывает его.
+  (function () {
+    document.querySelectorAll("[data-open-site-menu]").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var toggle = document.getElementById("sf-nav-toggle");
+        var menu = document.getElementById("sf-nav-mobile");
+        if (!toggle || !menu) return;
+        if (menu.classList.contains("hidden")) toggle.click();
+        btn.setAttribute("aria-expanded", menu.classList.contains("hidden") ? "false" : "true");
+        menu.scrollIntoView({ behavior: "smooth", block: "start" });
+        var first = menu.querySelector("a, button");
+        if (first) first.focus({ preventScroll: true });
+      });
+    });
+  })();
+</script>
 {# Спейсер: высота бара + безопасная зона, чтобы контент не прятался под панелью. #}
 <div class="sm:hidden" aria-hidden="true" style="height: calc(46px + env(safe-area-inset-bottom));"></div>
 {% endif %}

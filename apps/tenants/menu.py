@@ -501,6 +501,8 @@ def _node_url(tenant, node: dict):
         return _category_url(tenant, target) or _reverse("storefront-products")
     if ntype == "promo_group":
         return _promo_group_url(tenant, target)
+    if ntype == "action":
+        return _action_url(tenant, target)
     if ntype == "page":
         name = _PAGE_URL_NAMES.get(target)
         if not name or not _page_has_content(tenant, target):
@@ -607,6 +609,42 @@ _MENU_LABEL_ANCHORS = (
 )
 
 
+#: FB-30.14: подписи функций для редактора меню (реестр целей — siteconfig.MENU_ACTIONS).
+ACTION_LABELS = {
+    "menu": _("Menü der Website öffnen"),
+    "search": _("Suche"),
+    "cart": _("Warenkorb"),
+    "deals": _("Angebote"),
+    "call": _("Anrufen"),
+    "account": _("Kundenkonto"),
+}
+
+
+def _action_url(tenant, target: str) -> str | None:
+    """FB-30.14: адрес пункта-функции. «menu» — якорь мобильного меню шапки (кнопка на
+    витрине его открывает); остальные — существующие страницы с гейтами модулей; функция,
+    которой у бизнеса нет (нет корзины, телефона, акций), — пункт не показывается."""
+    if target == "menu":
+        return "#sf-nav-mobile"
+    if target == "search":
+        from apps.core.context import _SEARCH_ROUTES, _primary_search_module
+
+        route = _SEARCH_ROUTES.get(_primary_search_module(tenant) or "catalog")
+        return _reverse(route) if route else None
+    if target == "cart":
+        return _reverse("storefront-cart") if modules.is_module_active(tenant, "orders") else None
+    if target == "deals":
+        return "/#aktionen" if modules.is_module_active(tenant, "promotions") else None
+    if target == "account":
+        if not modules.is_module_active(tenant, "customer_account"):
+            return None
+        return _reverse("account-home")
+    if target == "call":
+        phone = (getattr(tenant, "public_phone", "") or "").strip()
+        return f"tel:{phone}" if phone else None
+    return None
+
+
 def _node_label(node: dict) -> str:
     """Подпись узла на текущей локали (i18n): явный `label_i18n[locale]` →
     иначе gettext базовой подписи. Стандартные пункты («Kontakt», «Galerie»,
@@ -656,6 +694,8 @@ def _resolve(tenant, node: dict, depth: int = 1):
         out["image"] = node["image"]
     if node.get("desc"):
         out["desc"] = node["desc"]
+    if node["type"] == "action":
+        out["action"] = node["target"]
     if depth == 1:
         out["layout"] = node.get("layout") or ("tiles" if out["has_images"] else "list")
     return out
@@ -826,6 +866,8 @@ def target_sets(tenant) -> dict:
         )
         promo_group_targets = [{"value": g, "label": g} for g in sorted(set(groups))]
     return {
+        # FB-30.14: функции нижней панели (вид пункта «Funktion»)
+        "actions": [{"value": k, "label": str(v)} for k, v in ACTION_LABELS.items()],
         "archetypes": archetype_targets,
         "categories": category_targets,
         "category_parents": parent_targets,

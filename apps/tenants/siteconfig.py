@@ -2797,7 +2797,12 @@ NAV_STYLES = ("classic", "centered", "minimal")
 #   categories → MEN-15: авто-подменю категорий каталога с картинками. target
 #                пуст = корневые категории, иначе slug родителя (его подкатегории).
 #                Список НЕ ведётся руками: добавил категорию — она в меню.
+# FB-30.14: пункт-функция нижней панели (не ссылка на страницу): открыть меню сайта,
+# поиск, корзина, акции, звонок, кабинет клиента. Реестр целей — здесь, рендер — menu.py.
+MENU_ACTIONS = ("menu", "search", "cart", "deals", "call", "account")
+
 MENU_NODE_TYPES = (
+    "action",
     "archetype",
     "category",
     "categories",
@@ -2884,6 +2889,8 @@ def _clean_menu_node(raw, depth: int):
     target = _s(raw.get("target"))
     if ntype == "url":
         target = _menu_href(target)  # FB-23a: javascript:/data: в шапку не пускаем
+    if ntype == "action" and target not in MENU_ACTIONS:
+        return None  # FB-30.14: неизвестная функция — пункт выпадает, а не ведёт в никуда
     node = {
         "label": label,
         "type": ntype,

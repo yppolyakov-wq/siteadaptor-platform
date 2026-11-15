@@ -38400,3 +38400,9 @@ msgstr "Sepette müşteriler bu gönderim yöntemi için yalnızca bu ödeme yö
 
 msgid "Welche Zahlungsart bei welcher Versandart möglich ist, stellen Sie in den Versandarten ein."
 msgstr "Hangi ödeme yönteminin hangi gönderim yöntemiyle mümkün olduğunu gönderim yöntemlerinde ayarlarsınız."
+
+msgid "Menü der Website öffnen"
+msgstr "Site menüsünü aç"
+
+msgid "Funktion"
+msgstr "İşlev"

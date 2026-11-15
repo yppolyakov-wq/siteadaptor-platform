@@ -38254,3 +38254,9 @@ msgstr "In the cart, customers see only these payment methods for this shipping 
 
 msgid "Welche Zahlungsart bei welcher Versandart möglich ist, stellen Sie in den Versandarten ein."
 msgstr "Which payment method is possible with which shipping method is set in the shipping methods."
+
+msgid "Menü der Website öffnen"
+msgstr "Open the site menu"
+
+msgid "Funktion"
+msgstr "Function"

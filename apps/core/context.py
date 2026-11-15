@@ -181,8 +181,18 @@ def _storefront_bottom_nav(request, tenant):
     # T-8.1: «Nur Aktionen» — ни меню каталога, ни корзины; акции ведут на /aktionen/
     # (якорь главной у визитки тоже есть, но страница акций — полный список).
     aktionen = storefront_profile.is_aktionen(tenant)
-    if not aktionen:
-        add("storefront-products", _("Menu"), "🍽")
+    # FB-30.14 (фидбэк владельца): первый пункт — меню сайта, как ☰ в шапке. Раньше здесь
+    # была ссылка «Menü 🍽» на ассортимент — у магазина она читалась как меню ресторана.
+    items.append(
+        {
+            "url": "#sf-nav-mobile",
+            "label": _("Menu"),
+            "icon": "☰",
+            "kind": "default",
+            "badge": 0,
+            "action": "menu",
+        }  # fmt: skip
+    )
     from apps.core.business_card import external_site
 
     if external_site(tenant):  # T-8.27d: визитка — сортимент живёт на сайте владельца
@@ -432,6 +442,7 @@ def modules_nav(request):
                 "icon": i["icon"] or "•",
                 "kind": "primary" if _cart_url and i["url"] == _cart_url else "default",
                 "badge": _n_cart if _cart_url and i["url"] == _cart_url else 0,
+                "action": i.get("action", ""),
             }
             for i in menu_mod.resolve_menu(tenant, "bottom", cfg)
             if i["url"]

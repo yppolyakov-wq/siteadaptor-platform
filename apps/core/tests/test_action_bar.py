@@ -23,9 +23,11 @@ def _req(cart=None):
 
 
 def test_menu_item_always_present():
+    """FB-30.14 (осознанно переписан): «Menü» открывает меню сайта (как ☰ в шапке), а не
+    ведёт на ассортимент — у магазина ссылка читалась как меню ресторана."""
     t = TenantFactory.build(business_type="other", disabled_modules=ALL_OPTIONAL_OFF)
     nav = _storefront_bottom_nav(_req(), t)
-    assert any(i["url"].endswith("/sortiment/") for i in nav)
+    assert nav[0]["action"] == "menu" and nav[0]["url"] == "#sf-nav-mobile"
 
 
 def test_cart_is_primary_with_badge_when_orders_active():

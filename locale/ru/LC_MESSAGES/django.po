@@ -38593,3 +38593,9 @@ msgstr "В корзине при этой доставке покупатель 
 
 msgid "Welche Zahlungsart bei welcher Versandart möglich ist, stellen Sie in den Versandarten ein."
 msgstr "Какая оплата возможна при какой доставке — настраивается в способах доставки."
+
+msgid "Menü der Website öffnen"
+msgstr "Открыть меню сайта"
+
+msgid "Funktion"
+msgstr "Функция"

@@ -38580,3 +38580,9 @@ msgstr "У кошику при цій доставці покупець бачи
 
 msgid "Welche Zahlungsart bei welcher Versandart möglich ist, stellen Sie in den Versandarten ein."
 msgstr "Яка оплата можлива за якої доставки — налаштовується у способах доставки."
+
+msgid "Menü der Website öffnen"
+msgstr "Відкрити меню сайту"
+
+msgid "Funktion"
+msgstr "Функція"

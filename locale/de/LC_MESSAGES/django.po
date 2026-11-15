@@ -38341,3 +38341,9 @@ msgstr "Im Warenkorb sehen Kunden zu dieser Versandart nur diese Zahlungsarten �
 
 msgid "Welche Zahlungsart bei welcher Versandart möglich ist, stellen Sie in den Versandarten ein."
 msgstr "Welche Zahlungsart bei welcher Versandart möglich ist, stellen Sie in den Versandarten ein."
+
+msgid "Menü der Website öffnen"
+msgstr "Menü der Website öffnen"
+
+msgid "Funktion"
+msgstr "Funktion"
