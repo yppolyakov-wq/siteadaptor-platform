@@ -1129,13 +1129,6 @@ def checkout(request):
         tenant, customer_type=customer_type, fulfillment=fulfillment
     )
     chosen_method = request.POST.get("payment") or methods[0]
-    # FB-30.12: «vor Ort» при доставке выключена — ошибка, а не тихая подмена способа.
-    refused = _pm.on_site_refused(tenant, chosen_method, "order", fulfillment=fulfillment)
-    if refused and not (tenant.site_config or {}).get("quote_cart"):
-        messages.error(request, refused)
-        return redirect("storefront-cart")
-    if chosen_method not in methods:
-        chosen_method = methods[0]
     # MEN-9: режим просчёта — платить нечего и нечем (пикера нет); фиксируем
     # on_site и метим заказ каналом «quote» (по прецеденту anprobe: тот же
     # Order, но другие тексты/письма и никакой платёжной обязанности).
@@ -1144,6 +1137,13 @@ def checkout(request):
     quote_mode = bool(
         _siteconfig.normalize(getattr(tenant, "site_config", None) or {}).get("quote_cart")
     )
+    # FB-30.12: «vor Ort» при доставке выключена — ошибка, а не тихая подмена способа.
+    refused = _pm.on_site_refused(tenant, chosen_method, "order", fulfillment=fulfillment)
+    if refused and not quote_mode:
+        messages.error(request, refused)
+        return redirect("storefront-cart")
+    if chosen_method not in methods:
+        chosen_method = methods[0]
     if quote_mode:
         chosen_method = Order.METHOD_ON_SITE
 
@@ -1410,6 +1410,15 @@ def offer_page(request, token):
             )
             if slot_error:
                 messages.error(request, slot_error)
+                return redirect("storefront-offer", token=token)
+            # FB-30.12: «vor Ort» при доставке выключена — ошибка, заказ не создаётся.
+            from apps.core import payment_methods as _pm
+
+            refused = _pm.on_site_refused(
+                tenant, chosen, "order", fulfillment="delivery" if choice.delivery else "pickup"
+            )
+            if refused:
+                messages.error(request, refused)
                 return redirect("storefront-offer", token=token)
             try:
                 order = offer_service.accept_offer(

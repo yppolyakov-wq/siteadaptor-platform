@@ -161,3 +161,44 @@ def test_picker_shows_the_label_for_the_deal_kind():
     )
     labels = {m["code"]: str(m["label"]) for m in pm.picker_context(t, "stay")["payment_methods"]}
     assert labels[pm.ON_SITE] == "Zahlung bei Anreise (bar oder Karte)"
+
+
+@pytest.mark.django_db
+def test_offer_acceptance_refuses_on_site_for_delivery(_urlconf):
+    from importlib import import_module
+
+    from django.conf import settings as dj_settings
+    from django.contrib.messages.middleware import MessageMiddleware
+    from django.test import RequestFactory
+
+    from apps.inbox.services import start_conversation
+    from apps.orders import offers, public_views
+    from apps.orders.models import Order
+
+    conv = start_conversation(subject="Frage", body="Hi", email="kunde@test.de", name="Kim")
+    offer = offers.send_offer(
+        conv, lines=[{"title": "Sonderanfertigung", "unit_price": "45.00", "qty": 1}]
+    )
+    tenant = _shop(site_config={"payment_on_site": {"delivery": False}})
+    data = {"action": "accept", "name": "K", "email": "k@t.de", "payment": "on_site"}
+    data.update(fulfillment="delivery", street="Hauptstr. 1", plz="50667", city="Köln")
+    request = RequestFactory().post("/o/x/", data)
+    request.session = import_module(dj_settings.SESSION_ENGINE).SessionStore()
+    MessageMiddleware(lambda r: None).process_request(request)
+    request.tenant = tenant
+    from django.contrib.messages import get_messages
+
+    resp = public_views.offer_page(request, token=offer.token)
+    assert resp.status_code == 302
+    assert not Order.objects.exists()
+    assert [str(m) for m in get_messages(request)] == [str(pm.ON_SITE_REFUSED)]
+
+
+@pytest.mark.django_db
+def test_quote_cart_still_takes_delivery_requests(_urlconf):
+    """Корзина-запрос (MEN-9) не платит вовсе — отказ «vor Ort» к ней не относится."""
+    from apps.orders.models import Order
+
+    tenant = _shop(site_config={"quote_cart": True, "payment_on_site": {"delivery": False}})
+    _checkout(tenant, "", "delivery")
+    assert Order.objects.get().payment_method == Order.METHOD_ON_SITE

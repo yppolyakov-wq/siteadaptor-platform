@@ -3064,7 +3064,9 @@ def promotion_purchase(request, pk):
             # SH-23d: покупка по акции получила способ оплаты и тип покупателя —
             # раньше заказ по акции всегда шёл «payment_method=пусто» и ни Stripe,
             # ни Vorkasse, ни счёт юрлицу к ней не применялись.
-            **_promo_payment_kwargs(request),
+            **_promo_payment_kwargs(
+                request, fulfillment="delivery" if choice.delivery else "pickup"
+            ),
             pickup_slot=slot,
             pickup_capacity=slot_capacity,
             channel="storefront",  # AIS W4-5d: гейт готовности кассы
@@ -3797,7 +3799,7 @@ def merchant_local_xml(request, token):
     return _merchant_feed_response(request, xml)
 
 
-def _promo_payment_kwargs(request):
+def _promo_payment_kwargs(request, fulfillment: str = ""):
     """SH-23d: платёжные поля покупки по акции из POST (общий реестр + Р-2/Р-4)."""
     from datetime import timedelta
 
@@ -3807,7 +3809,9 @@ def _promo_payment_kwargs(request):
 
     tenant = getattr(request, "tenant", None)
     ctype = _pm.customer_type_of(request.POST.get("customer_type"))
-    method = _pm.normalize(request.POST.get("payment"), tenant, "order", customer_type=ctype)
+    method = _pm.normalize(
+        request.POST.get("payment"), tenant, "order", customer_type=ctype, fulfillment=fulfillment
+    )
     days = _pm.hold_days(tenant, method)
     return {
         "payment_method": method,

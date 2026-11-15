@@ -170,13 +170,20 @@ def _others(tenant, kind: str) -> list[str]:
     return [m for m in available(tenant, kind) if m != ON_SITE]
 
 
-def normalize(code: str, tenant, kind: str = "order", *, customer_type: str = PRIVATE) -> str:
+def normalize(
+    code: str,
+    tenant,
+    kind: str = "order",
+    *,
+    customer_type: str = PRIVATE,
+    fulfillment: str = "",
+) -> str:
     """Выбранный способ или первый доступный (мусор/недоступное → дефолт).
 
     Тот же fail-safe, что был у чекаута корзины: подмена поля не даёт способа,
     которого бизнес не предлагает.
     """
-    allowed = available(tenant, kind, customer_type=customer_type)
+    allowed = available(tenant, kind, customer_type=customer_type, fulfillment=fulfillment)
     code = (code or "").strip()
     return code if code in allowed else allowed[0]
 
