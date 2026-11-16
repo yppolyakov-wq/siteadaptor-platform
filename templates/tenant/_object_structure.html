@@ -9,10 +9,10 @@
   </div>
   {% comment %}FB-31 P5 R8 (решение владельца): разделы, свой порядок и место своих блоков правятся в схеме «Seitenaufbau» этой страницы — здесь только сводка.{% endcomment %}
   {% if ps.rows %}
-  <div class="rounded-xl border border-gray-500 px-4 py-3" data-ps-summary>
+  <div class="rounded-xl border border-gray-500 px-4 py-3" role="group" aria-labelledby="ps-summary-title" data-ps-summary>
     <div class="flex flex-wrap items-center justify-between gap-3">
       <div class="min-w-0">
-        <div class="text-sm font-semibold text-gray-900">{% trans "Abschnitte und Blöcke dieser Seite" %}</div>
+        <h3 class="text-sm font-semibold text-gray-900" id="ps-summary-title">{% trans "Abschnitte und Blöcke dieser Seite" %}</h3>
         <ul class="text-xs text-gray-700">
           {% for row in ps.rows %}{% if row.state != 'standard' %}<li data-ps-row="{{ row.key }}">{{ row.label }}: {% if row.state == 'hide' %}{% trans "nur hier ausgeblendet" %}{% else %}{% trans "hier immer sichtbar" %}{% endif %}</li>{% endif %}{% endfor %}
           {% if ps.own_order %}<li data-ps-own-order>{% trans "Eigene Reihenfolge der Abschnitte" %}</li>{% endif %}
