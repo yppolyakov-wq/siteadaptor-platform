@@ -51,7 +51,7 @@ def _detail_label(host: str, item: dict) -> str:
     """FB-31 P5: подпись строки раздела детали — из реестра разделов."""
     from apps.core import detail_parts, detail_sections
 
-    module = detail_parts.module_of(host or "")
+    module = detail_parts.module_of(detail_parts.shared_host(host or ""))  # R8: и объект
     if not module or item.get("id"):
         return ""
     return str(detail_sections.section_labels(module).get(item.get("key"), ""))
@@ -381,6 +381,14 @@ def _object_for(code: str):
         return model.objects.filter(pk=uuid.UUID(host.split(":", 1)[1])).first()
     except (ValueError, TypeError):
         return None
+
+
+def shared_schema_url(code: str) -> str:
+    """R8: адрес общей схемы типа страницы для строки одного объекта ("" — не объект)."""
+    if not is_object_code(code):
+        return ""
+    kind = code.split("@", 1)[0]
+    return f"{reverse('site-schema')}?seite={OBJECT_PAGE_TYPES.get(kind, kind)}"
 
 
 def object_back(code: str) -> dict | None:
@@ -969,6 +977,8 @@ def blocks_for(
 
         if detail_parts.module_of(host):  # FB-31 P5: разделы детали среди блоков
             items = detail_parts.edit_rows(config, host, siteconfig.page_rows(config, host))
+        elif detail_parts.object_kind(host):  # R8: своя схема одного объекта
+            items = detail_parts.object_edit_rows(config, host, siteconfig.page_rows(config, host))
         else:
             items = siteconfig.main_list_sequence(host, siteconfig.page_rows(config, host))
     out = []
@@ -1072,6 +1082,8 @@ def blocks_for(
                 "summary": "",
             },
         )
+    if _dp.object_kind(host or ""):
+        out = _with_shared_rows(config, host, out)
     if summaries and host in ("catalog", "category") and not _has_combos():
         # «Sets & Menüs» — только если наборы есть (иначе строке нечего показывать)
         out = [b for b in out if b["key"] != siteconfig.CATALOG_SETS_KEY]
@@ -2232,7 +2244,64 @@ def load_items(config: dict, home: bool, host: str) -> list[dict]:
         return copy.deepcopy(
             detail_parts.edit_rows(config, host, siteconfig.page_rows(config, host))
         )
+    if detail_parts.object_kind(host):  # R8: своя схема одного объекта
+        return copy.deepcopy(
+            detail_parts.object_edit_rows(config, host, siteconfig.page_rows(config, host))
+        )
     return copy.deepcopy(siteconfig.main_list_sequence(host, siteconfig.page_rows(config, host)))
+
+
+def _with_shared_rows(config: dict, host: str, out: list[dict]) -> list[dict]:
+    """R8 (решение владельца): в схеме одного объекта общие блоки страницы видны пунктиром
+    на своих местах (у раздела — перед своими), правятся на общей схеме."""
+    from apps.core import detail_parts
+    from apps.tenants import siteconfig
+
+    obj = detail_parts.object_for_host(host)
+    if obj is None:
+        return out
+    kind = detail_parts.object_kind(host)
+    shared = detail_parts.shared_host(host)
+    rows = siteconfig.page_rows(config, shared)
+    a = detail_parts.anchors(rows, shared, detail_parts.object_order(config, kind, obj))
+    by_id = {r["id"]: r for r in rows if isinstance(r, dict) and r.get("id")}
+    if not by_id:
+        return out
+    if not a["placed"]:
+        a = {"lead": [], "after": {}, "tail": list(by_id)}
+    note = _("Auf allen Seiten dieser Art · dort bearbeiten")
+
+    def rows_for(ids):
+        return [
+            {
+                "ref": f"shared:{i}",
+                "key": by_id[i].get("key", ""),
+                "label": _sections_label(by_id[i].get("key", "")),
+                "summary": f"{_row_summary(config, by_id[i])} · {note}".strip(" ·"),
+                "enabled": by_id[i].get("enabled", True) is not False,
+                "main": False,
+                "cblock": False,
+                "fixed": True,
+                "pinned": True,
+                "shared": True,
+            }
+            for i in ids
+            if i in by_id
+        ]
+
+    keys = set(detail_parts.section_keys(host))
+    sections = [i for i, b in enumerate(out) if b["key"] in keys and not b["cblock"]]
+    if not sections:
+        return out
+    merged = list(out[: sections[0]]) + rows_for(a["lead"])
+    for n, i in enumerate(sections):
+        end = sections[n + 1] if n + 1 < len(sections) else len(out)
+        merged.append(out[i])
+        merged += rows_for(a["after"].get(out[i]["key"], []))
+        if n + 1 == len(sections):
+            merged += rows_for(a["tail"])
+        merged += out[i + 1 : end]
+    return merged
 
 
 def mutate(
@@ -2296,7 +2365,11 @@ def mutate(
     anchor = not item.get("id") and item.get("key") in detail_parts.section_keys(rows_host)
     if anchor and op not in ("up", "down", "move", "toggle"):
         raise SchemaError("fixed")
-    if anchor and rows_host in detail_parts.FIXED_ORDER and op != "toggle":
+    if (
+        anchor
+        and detail_parts.shared_host(rows_host) in detail_parts.FIXED_ORDER
+        and op != "toggle"
+    ):
         raise SchemaError("fixed")  # товар/номер: порядок разделов постоянный — только скрыть
     pinned = (
         not item.get("id")
@@ -2915,6 +2988,10 @@ def store_items(config: dict, home: bool, host: str, items: list[dict]) -> None:
 
     if detail_parts.module_of(host):  # FB-31 P5: порядок/видимость разделов — на место
         items = detail_parts.lift(config, host, items)
+    elif detail_parts.object_kind(host):
+        # R8: разделы объекта — в его `page_override` (пишет `aufbau_draft.commit`), здесь —
+        # только якоря и свои блоки
+        items, _state = detail_parts.object_lift(config, host, items)
     page_blocks = dict(config.get("page_blocks") or {})
     page_blocks[host] = items
     siteconfig.realign_block_overlays(config, new_page_blocks=page_blocks)

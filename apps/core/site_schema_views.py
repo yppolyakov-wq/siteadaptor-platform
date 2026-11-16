@@ -382,6 +382,8 @@ def site_schema_view(request):
             ),
             # FB-29.4b S8: со строки своих блоков объекта — ссылка назад к нему
             "object_back": site_schema.object_back(code),
+            # R8: общие блоки в схеме объекта — правятся на общей схеме его типа страницы
+            "shared_url": site_schema.shared_schema_url(code),
             "add_groups": site_schema.add_groups(code, saved),
             "row_options": site_schema.row_options(),
             "studio_url": studio,

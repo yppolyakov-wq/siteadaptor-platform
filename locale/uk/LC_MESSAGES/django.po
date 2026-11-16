@@ -38846,3 +38846,23 @@ msgstr "Як на головній"
 #: templates/tenant/_schema_related_view.html
 msgid "Slider, wenn mehr als eine Reihe"
 msgstr "Стрічка, якщо більше одного ряду"
+
+#: apps/core/site_schema.py
+msgid "Auf allen Seiten dieser Art · dort bearbeiten"
+msgstr "На всіх сторінках цього виду · редагується там"
+
+#: templates/tenant/_object_structure.html
+msgid "Abschnitte und Blöcke dieser Seite"
+msgstr "Розділи та блоки цієї сторінки"
+
+#: templates/tenant/_object_structure.html
+msgid "Eigene Reihenfolge der Abschnitte"
+msgstr "Власний порядок розділів"
+
+#: templates/tenant/_object_structure.html
+msgid "Wie alle Seiten dieser Art."
+msgstr "Як усі сторінки цього виду."
+
+#: templates/tenant/_object_structure.html
+msgid "Im Seitenaufbau bearbeiten"
+msgstr "Змінити в «Seitenaufbau»"

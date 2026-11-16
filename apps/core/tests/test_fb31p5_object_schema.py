@@ -193,3 +193,135 @@ def test_review_tab_keeps_the_stored_order_untrimmed():
     ev.page_override = {"order": ["faq", "gone_section", "idea"]}
     object_structure.apply_post(ev, "event", {"page_override_present": "1", "ps_layout": ""})
     assert ev.page_override["order"] == ["faq", "gone_section", "idea"]
+
+
+# ── R8e: схема объекта в «Seitenaufbau» ──
+
+
+def _tenant(bt, **cfg):
+    from apps.core.modules import default_disabled_for
+    from apps.tenants.tests.factories import TenantFactory
+
+    return TenantFactory(
+        business_type=bt, disabled_modules=list(default_disabled_for(bt)), site_config=cfg
+    )
+
+
+def _code(kind, obj):
+    return f"{kind}@{kind}:{obj.pk.hex}"
+
+
+def test_object_schema_shows_sections_and_saves_hidden_only_here():
+    from apps.core.tests.test_fb27_r2_draft import Browser
+
+    p = og._product()
+    b = Browser(_tenant("online_shop"))
+    html = b.get(f"?seite={_code('product', p)}")
+    assert 'data-schema-block="description"' in html and 'data-schema-block="reviews"' in html
+    b.post(seite=_code("product", p), op="toggle", ref="info")
+    b.post(seite=_code("product", p), op="save")
+    p.refresh_from_db()
+    assert p.page_override == {"hidden": ["info"]}
+    b.tenant.refresh_from_db()
+    host = f"product:{p.pk.hex}"
+    assert host not in (siteconfig.normalize(b.tenant.site_config).get("page_blocks") or {}), (
+        "без своих блоков хост не пишется (лимит своих страниц не тратится)"
+    )
+
+
+def test_fixed_object_sections_do_not_move():
+    from apps.core.tests.test_fb27_r2_draft import Browser
+
+    p = og._product()
+    b = Browser(_tenant("online_shop"))
+    _resp, msgs = b.post(seite=_code("product", p), op="down", ref="description")
+    b.post(seite=_code("product", p), op="save")
+    p.refresh_from_db()
+    assert not p.page_override.get("order")
+
+
+def test_event_object_order_is_saved_only_here():
+    from apps.core.tests.test_fb27_r2_draft import Browser
+
+    ev = og._event()
+    b = Browser(_tenant("events"))
+    b.post(seite=_code("event", ev), op="up", ref="faq")
+    b.post(seite=_code("event", ev), op="save")
+    ev.refresh_from_db()
+    full = detail_parts.full_order({}, "events")
+    want = list(full)
+    i = want.index("faq")
+    want[i - 1], want[i] = want[i], want[i - 1]
+    assert ev.page_override.get("order") == want
+    b.tenant.refresh_from_db()
+    saved = siteconfig.normalize(b.tenant.site_config)["event_detail"]
+    assert saved == siteconfig.normalize({})["event_detail"], "общий порядок не тронут"
+
+
+def test_shared_blocks_are_read_only_rows_in_the_object_schema():
+    from apps.core import site_schema
+    from apps.core.tests.test_fb27_r2_draft import Browser
+
+    ev = og._event()
+    tenant = _tenant(
+        "events", page_blocks={"event_detail": [{"key": "idea"}, SHARED, {"key": "faq"}]}
+    )
+    html = Browser(tenant).get(f"?seite={_code('event', ev)}")
+    assert 'data-schema-shared="shared:t-sh"' in html
+    rows = site_schema.blocks_for(siteconfig.normalize(tenant.site_config), _code("event", ev))
+    refs = [r["ref"] for r in rows]
+    assert refs.index("idea") + 1 == refs.index("shared:t-sh")
+    with pytest.raises(site_schema.SchemaError):
+        items = site_schema.load_items(
+            siteconfig.normalize(tenant.site_config), False, f"event:{ev.pk.hex}"
+        )
+        site_schema.mutate(items, _code("event", ev), "toggle", "shared:t-sh")
+
+
+def test_own_block_between_sections_from_the_schema():
+    from apps.core.tests.test_fb27_r2_draft import Browser
+
+    ev = og._event()
+    b = Browser(_tenant("events"))
+    code = _code("event", ev)
+    b.post(seite=code, op="add", type="text")
+    b.tenant.refresh_from_db()
+    from apps.core import aufbau_draft  # noqa: F401  — черновик в сессии браузера
+
+    html = b.get(f"?seite={code}")
+    assert "data-schema-draft" in html
+    b.post(seite=code, op="save")
+    b.tenant.refresh_from_db()
+    rows = (siteconfig.normalize(b.tenant.site_config).get("page_blocks") or {})[
+        f"event:{ev.pk.hex}"
+    ]
+    assert any(r.get("id") for r in rows), "свой блок сохранён (в хвосте — якоря не нужны)"
+
+
+def test_object_edited_elsewhere_is_a_draft_conflict():
+    from apps.core.tests.test_fb27_r2_draft import Browser
+
+    ev = og._event()
+    b = Browser(_tenant("events"))
+    code = _code("event", ev)
+    b.post(seite=code, op="toggle", ref="faq")
+    ev.page_override = {"layout": "tabs"}  # вкладка карточки, другая вкладка браузера
+    ev.save(update_fields=["page_override"])
+    b.post(seite=code, op="save")
+    ev.refresh_from_db()
+    assert ev.page_override == {"layout": "tabs"}, "чужая правка не перезаписана молча"
+
+
+def test_preview_of_the_object_draft_hides_the_section():
+    from apps.core import aufbau_draft
+
+    ev = og._event()
+    host = f"event:{ev.pk.hex}"
+    items = detail_parts.object_edit_rows({}, host, [])
+    for it in items:
+        if it.get("key") == "faq":
+            it["enabled"] = False
+    cfg = aufbau_draft.overlay({}, {"host": host, "items": items})
+    assert "faq" in object_structure.effective_hidden(cfg, "events", ev)
+    ev.refresh_from_db()
+    assert not ev.page_override, "превью не пишет в объект"

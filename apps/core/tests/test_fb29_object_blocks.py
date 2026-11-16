@@ -279,7 +279,10 @@ def test_position_is_saved_from_the_tab_and_is_presence_minimal():
     assert ost.clean({"blocks_first": "1"}, "catalog") == {"blocks_first": True}
     assert ost.clean({"blocks_first": ""}, "catalog") == {}
     post = {"page_override_present": "1", "ps_blocks_first": "1"}
-    assert ost.from_post(post, "catalog") == {"blocks_first": True}
+    # FB-31 P5 R8 (осознанно): у страниц с разделами место своих блоков задаёт схема;
+    # галочка вкладки осталась только у акции (разделов нет)
+    assert ost.from_post(post, "catalog") == {}
+    assert ost.from_post(post, "") == {"blocks_first": True}
     assert ost.from_post({"page_override_present": "1"}, "catalog") == {}
     assert ost.deviations(SimpleNamespace(page_override={"blocks_first": True}), "catalog") == 0
 

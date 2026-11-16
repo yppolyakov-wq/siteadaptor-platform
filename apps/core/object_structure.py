@@ -42,6 +42,28 @@ def _raw(obj) -> dict:
     return value if isinstance(value, dict) else {}
 
 
+#: R8: черновик схемы объекта в превью — состояние разделов поверх сохранённого (только в
+#: конфиге превью: `normalize` ключ не хранит, на сайт он не попадает)
+DRAFT_KEY = "_object_override"
+
+
+def _state(config, obj) -> dict:
+    """Отличия объекта: черновик «Seitenaufbau» (превью) либо сохранённые."""
+    drafts = (config or {}).get(DRAFT_KEY) if isinstance(config, dict) else None
+    hexed = getattr(getattr(obj, "pk", None), "hex", "")
+    if isinstance(drafts, dict) and isinstance(drafts.get(hexed), dict):
+        return drafts[hexed]
+    return _raw(obj)
+
+
+def schema_value(obj, module: str, state: dict) -> dict:
+    """R8: отличия объекта после правки схемы — разделы (hidden/shown/order) из схемы,
+    остальное (шаблон страницы, прежняя галочка) — как было. Единственный писатель —
+    `clean`."""
+    base = {k: v for k, v in _raw(obj).items() if k not in ("hidden", "shown", "order")}
+    return clean({**base, **(state or {})}, module)
+
+
 def _keys(value, known) -> list[str]:
     if not isinstance(value, (list, tuple)):
         return []
@@ -87,7 +109,7 @@ def effective_hidden(config, module: str, obj) -> set:
     """Скрытые разделы страницы объекта: общие, минус показанные у него, плюс его скрытые."""
     from apps.tenants import siteconfig
 
-    own = clean(_raw(obj), module)
+    own = clean(_state(config, obj), module)
     shared = siteconfig.detail_section_hidden(config, module)
     return (shared - set(own.get("shown", []))) | set(own.get("hidden", []))
 
@@ -96,7 +118,7 @@ def effective_layout(config, kind: str, obj) -> str:
     """Шаблон страницы объекта: свой, иначе общий ("" | "tabs" | "breit")."""
     from apps.tenants import siteconfig
 
-    own = clean(_raw(obj), MODULES.get(kind, "")).get("layout")
+    own = clean(_state(config, obj), MODULES.get(kind, "")).get("layout")
     if own == LAYOUT_STANDARD:
         return ""
     return own or siteconfig.detail_layout(config, kind)
@@ -108,7 +130,7 @@ def effective_full_order(config, module: str, obj) -> list[str]:
     from apps.core import detail_parts
 
     shared = detail_parts.full_order(config, module)
-    own = clean(_raw(obj), module).get("order", [])
+    own = clean(_state(config, obj), module).get("order", [])
     return own + [k for k in shared if k not in own]
 
 
@@ -136,41 +158,39 @@ _STATES = {"hide": "hidden", "show": "shown"}
 
 
 def from_post(post, module: str) -> dict | None:
-    """Значение поля из формы вкладки. Нет сентинела `page_override_present` — None:
-    форму прислало другое место кабинета, поле не трогаем (W0). Кнопка «Zurück zum
-    Standard» (`ps_reset`) — пустое значение."""
+    """Значение вкладки из формы. Нет сентинела `page_override_present` — None: форму
+    прислало другое место кабинета, поле не трогаем (W0). Кнопка «Zurück zum Standard»
+    (`ps_reset`) — пустое значение. R8 (решение владельца): разделы и место своих блоков
+    правятся в схеме «Seitenaufbau» — вкладка присылает только шаблон страницы (поля
+    разделов устаревшей формы не читаются)."""
     if not post.get("page_override_present"):
         return None
     if post.get("ps_reset"):
         return {}
-    raw: dict = {
-        "hidden": [],
-        "shown": [],
-        "layout": post.get("ps_layout") or "",
-        "blocks_first": post.get("ps_blocks_first") or "",
-    }
-    for key in detail_sections.section_keys(module):
-        target = _STATES.get(post.get(f"ps_{key}") or "")
-        if target:
-            raw[target].append(key)
+    raw = {"layout": post.get("ps_layout") or ""}
+    if not module:  # акция: разделов нет — место своих блоков остаётся галочкой вкладки
+        raw["blocks_first"] = post.get("ps_blocks_first") or ""
     return clean(raw, module)
 
 
 def apply_post(obj, kind: str, post) -> list[str]:
     """Записать вкладку в объект (без сохранения); вернуть изменённые поля. Сброс
-    возвращает и форму карточки к общей."""
+    возвращает и форму карточки к общей. R8: разделы, свой порядок и прежняя галочка
+    «свои блоки впереди» — как были (их пишет схема «Seitenaufbau»), меняется шаблон."""
     module = MODULES[kind]
     value = from_post(post, module)
     if value is None:
         return []
-    if kind not in LAYOUT_KINDS:
-        value.pop("layout", None)  # у акции шаблона страницы нет — присланное не храним
-    # R8: свой порядок разделов правится в схеме «Seitenaufbau» — вкладка его не стирает
-    # (сброс «Zurück zum Standard» — стирает всё)
-    # (ревью R8: как хранится — без усечения: раздел, на время пропавший из реестра, не теряется)
-    keep = _raw(obj).get("order")
-    if module in ORDERABLE_MODULES and isinstance(keep, list) and keep and not post.get("ps_reset"):
-        value["order"] = keep
+    if value or not post.get("ps_reset"):
+        own_keys = ("layout", "blocks_first") if not module else ("layout",)
+        keep = {k: v for k, v in _raw(obj).items() if k not in own_keys}
+        if kind not in LAYOUT_KINDS:
+            value.pop("layout", None)  # у акции шаблона страницы нет — присланное не храним
+        value = clean({**keep, **value}, module)
+        # (ревью R8: свой порядок — как хранится, без усечения)
+        raw_order = _raw(obj).get("order")
+        if module in ORDERABLE_MODULES and isinstance(raw_order, list) and raw_order:
+            value["order"] = raw_order
     changed = []
     if value != _raw(obj):
         obj.page_override = value
@@ -231,6 +251,7 @@ def panel(config, kind: str, obj) -> dict:
         # свои блоки объекта: сколько их и где править (экран «Seitenaufbau»)
         "own_blocks": len(own_blocks(config, kind, obj)),
         "blocks_first": bool(own.get("blocks_first")),
+        "own_order": bool(own.get("order")),  # R8: свой порядок разделов (схема)
         "blocks_url": f"{reverse('site-schema')}?seite={code}" if code else "",
     }
 

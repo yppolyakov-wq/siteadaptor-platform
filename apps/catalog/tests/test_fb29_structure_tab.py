@@ -35,13 +35,16 @@ def _edit(product, user, extra):
 
 
 @pytest.mark.django_db
-def test_tab_saves_shown_hidden_and_layout(user):
+def test_tab_saves_the_layout_and_keeps_sections_from_the_schema(user):
+    # FB-31 P5 R8 (осознанно): видимость разделов «nur hier» правится в схеме объекта
     p = ProductFactory(name={"de": "Tee", "en": ""}, base_price="2.00")
+    p.page_override = {"hidden": ["info"]}
+    p.save(update_fields=["page_override"])
     _edit(p, user, {
         "page_override_present": "1", "ps_reviews": "hide", "ps_related": "show",
         "ps_description": "standard", "ps_layout": "breit",
     })  # fmt: skip
-    assert p.page_override == {"hidden": ["reviews"], "shown": ["related"], "layout": "breit"}
+    assert p.page_override == {"hidden": ["info"], "layout": "breit"}
 
 
 @pytest.mark.django_db
@@ -83,7 +86,8 @@ def test_panel_describes_every_section_for_the_tab():
 def test_templates_carry_the_tab_and_the_sentinel():
     part = pathlib.Path("templates/tenant/_object_structure.html").read_text()
     assert 'name="page_override_present"' in part and 'name="ps_reset"' in part
-    assert 'type="radio"' in part and 'role="radiogroup"' in part and "aria-labelledby" in part
+    # FB-31 P5 R8 (осознанно): разделы — сводкой со ссылкой в схему, выбор шаблона — радио
+    assert 'name="ps_layout"' in part and "data-ps-summary" in part and "ps.blocks_url" in part
     assert 'aria-describedby="ps-reset-help"' in part
     form = pathlib.Path("templates/catalog/product_form.html").read_text()
     assert 'data-pf-tab="aufbau"' in form and 'data-pf-panel="aufbau"' in form

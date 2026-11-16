@@ -178,30 +178,105 @@ def full_order(config, module: str) -> list[str]:
 # ───────── «Seitenaufbau»: строки разделов вперемешку со своими блоками ─────────
 
 
-def edit_rows(config, host: str, rows) -> list[dict]:
+def edit_rows(config, host: str, rows, order=None, hidden=None) -> list[dict]:
     """Строки схемы детали для правки: свои блоки до разделов, каждый раздел (полный порядок,
     `enabled` — из скрытых) со своими блоками после него, хвост. Порядок разделов — из
-    `<module>_detail.order`, видимость — из `hidden`: строки лишь показывают их на время правки."""
+    `<module>_detail.order`, видимость — из `hidden`: строки лишь показывают их на время правки.
+    R8: `order`/`hidden` — порядок и скрытые одного объекта (`object_edit_rows`)."""
     from apps.tenants import siteconfig
 
-    module = module_of(host)
+    base = shared_host(host)
+    module = module_of(base)
+    full = order if order is not None else full_order(config, module)
+    if hidden is None:
+        hidden = siteconfig.detail_section_hidden(config, module)
     rows = [r for r in (rows if isinstance(rows, list) else []) if isinstance(r, dict)]
-    a = anchors(rows, host, full_order(config, module))
+    a = anchors(rows, host, full)
     by_id = {r["id"]: r for r in rows if r.get("id")}
-    hidden = siteconfig.detail_section_hidden(config, module)
-    first = FIRST_SCREEN.get(host, ())
+    first = FIRST_SCREEN.get(base, ())
     # блоки до первого раздела — первыми (так их рисует и страница: `fixed_parts`, ревью P5)
     seq = [by_id[i] for i in a["lead"] if i in by_id]
     for key in first:  # первый экран — над блоками «до отзывов» (так рисует страница)
         seq.append({"key": key, "enabled": key not in hidden})
         seq += [by_id[i] for i in a["after"].get(key, []) if i in by_id]
-    for key in full_order(config, module):
+    for key in full:
         if key in first:
             continue
         seq.append({"key": key, "enabled": key not in hidden})
         seq += [by_id[i] for i in a["after"].get(key, []) if i in by_id]
     seq += [by_id[i] for i in a["tail"] if i in by_id]
     return seq
+
+
+# ───────── R8: своя схема одного объекта ─────────
+
+
+def object_for_host(host: str):
+    """Объект хоста своих блоков (`<kind>:<hex>`) либо None (нет такого, чужой вид)."""
+    kind = object_kind(host)
+    if not kind:
+        return None
+    from apps.core import site_schema
+
+    return site_schema._object_for(f"{kind}@{host}")
+
+
+def object_edit_rows(config, host: str, rows) -> list[dict]:
+    """Строки схемы ОДНОГО объекта: его разделы (свой порядок и видимость «nur hier») и
+    свои блоки между ними. Объекта нет — прежний плоский список своих блоков."""
+    from apps.core import object_structure
+
+    obj = object_for_host(host)
+    if obj is None:
+        return [r for r in (rows if isinstance(rows, list) else []) if isinstance(r, dict)]
+    kind = object_kind(host)
+    module = module_of(OBJECT_SHARED[kind])
+    order = object_order(config, kind, obj)
+    hidden = object_structure.effective_hidden(config, module, obj)
+    return edit_rows(config, host, rows, order, hidden)
+
+
+def object_lift(config: dict, host: str, items: list[dict]) -> tuple[list[dict], dict | None]:
+    """Обратно из строк схемы объекта: (строки для `page_blocks[host]` — якоря и свои блоки,
+    пусто, если своих блоков нет; состояние разделов {hidden, shown, order} для
+    `page_override` объекта либо None — строк разделов нет, ничего не менять)."""
+    from apps.core import object_structure
+    from apps.tenants import siteconfig
+
+    obj = object_for_host(host)
+    keys = set(section_keys(host))
+    order = [r["key"] for r in items if r.get("key") in keys and not r.get("id")]
+    if obj is None or not order:
+        return items, None  # старый черновик (до R8) — разделы объекта не трогаем
+    module = module_of(OBJECT_SHARED[object_kind(host)])
+    enabled = {
+        r["key"]: r.get("enabled", True) is not False
+        for r in items
+        if r.get("key") in keys and not r.get("id")
+    }
+    prev = object_structure.clean(object_structure._raw(obj), module)
+    shared_hidden = siteconfig.detail_section_hidden(config, module)
+    was_hidden = (shared_hidden - set(prev.get("shown", []))) | set(prev.get("hidden", []))
+    hidden, shown = [], []
+    for key in order:
+        visible = enabled[key]
+        if visible == (key not in was_hidden):
+            # не трогали — прежний выбор объекта как был (явное «показать» не теряется)
+            if key in prev.get("hidden", []):
+                hidden.append(key)
+            elif key in prev.get("shown", []):
+                shown.append(key)
+        elif visible and key in shared_hidden:
+            shown.append(key)
+        elif not visible and key not in shared_hidden:
+            hidden.append(key)
+    state: dict = {"hidden": hidden, "shown": shown}
+    if module in object_structure.ORDERABLE_MODULES and order != full_order(config, module):
+        state["order"] = order
+    rows = [{"key": r["key"]} if r.get("key") in keys and not r.get("id") else r for r in items]
+    if not any(r.get("id") for r in rows):
+        rows = []  # своих блоков нет — хост не пишется (лимит своих страниц не тратится)
+    return rows, state
 
 
 def lift(config: dict, host: str, items: list[dict]) -> list[dict]:

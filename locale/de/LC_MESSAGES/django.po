@@ -38607,3 +38607,23 @@ msgstr "Wie auf der Startseite"
 #: templates/tenant/_schema_related_view.html
 msgid "Slider, wenn mehr als eine Reihe"
 msgstr "Slider, wenn mehr als eine Reihe"
+
+#: apps/core/site_schema.py
+msgid "Auf allen Seiten dieser Art · dort bearbeiten"
+msgstr "Auf allen Seiten dieser Art · dort bearbeiten"
+
+#: templates/tenant/_object_structure.html
+msgid "Abschnitte und Blöcke dieser Seite"
+msgstr "Abschnitte und Blöcke dieser Seite"
+
+#: templates/tenant/_object_structure.html
+msgid "Eigene Reihenfolge der Abschnitte"
+msgstr "Eigene Reihenfolge der Abschnitte"
+
+#: templates/tenant/_object_structure.html
+msgid "Wie alle Seiten dieser Art."
+msgstr "Wie alle Seiten dieser Art."
+
+#: templates/tenant/_object_structure.html
+msgid "Im Seitenaufbau bearbeiten"
+msgstr "Im Seitenaufbau bearbeiten"

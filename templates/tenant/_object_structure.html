@@ -7,21 +7,23 @@
     <p class="text-sm text-gray-700 max-w-xl">{% if ps.rows %}{% trans "Der Standard kommt aus dem Seitenaufbau der Website. Hier ändern Sie nur diese eine Seite." %}{% else %}{% trans "Hier fügen Sie Blöcke nur für diese eine Seite hinzu." %}{% endif %}{% if shared_url %} <a href="{{ shared_url }}" class="font-semibold text-indigo-700 hover:underline">{% trans "Seitenaufbau für alle öffnen" %}</a>{% endif %}</p>
     {% if ps.deviations %}<span class="rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-900" data-ps-deviations>{% trans "Abweichungen" %}: {{ ps.deviations }}</span>{% endif %}
   </div>
-  <div class="space-y-2">
-    {% for row in ps.rows %}
-    <div role="radiogroup" aria-labelledby="ps-l-{{ row.key }}" aria-describedby="ps-s-{{ row.key }}" class="flex flex-wrap items-center justify-between gap-3 rounded-xl border px-4 py-2 {% if row.state != 'standard' %}border-2 border-amber-600 bg-amber-50{% else %}border-gray-500{% endif %}" data-ps-row="{{ row.key }}">
-      <div>
-        <div class="text-sm font-semibold text-gray-900" id="ps-l-{{ row.key }}">{{ row.label }}</div>
-        <div class="text-xs text-gray-700" id="ps-s-{{ row.key }}">{% if row.shared_visible %}{% trans "Standard: sichtbar" %}{% else %}{% trans "Standard: ausgeblendet" %}{% endif %}{% if row.state == 'hide' %} · {% trans "nur hier ausgeblendet" %}{% elif row.state == 'show' %} · {% trans "hier immer sichtbar" %}{% endif %}</div>
+  {% comment %}FB-31 P5 R8 (решение владельца): разделы, свой порядок и место своих блоков правятся в схеме «Seitenaufbau» этой страницы — здесь только сводка.{% endcomment %}
+  {% if ps.rows %}
+  <div class="rounded-xl border border-gray-500 px-4 py-3" data-ps-summary>
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <div class="min-w-0">
+        <div class="text-sm font-semibold text-gray-900">{% trans "Abschnitte und Blöcke dieser Seite" %}</div>
+        <ul class="text-xs text-gray-700">
+          {% for row in ps.rows %}{% if row.state != 'standard' %}<li data-ps-row="{{ row.key }}">{{ row.label }}: {% if row.state == 'hide' %}{% trans "nur hier ausgeblendet" %}{% else %}{% trans "hier immer sichtbar" %}{% endif %}</li>{% endif %}{% endfor %}
+          {% if ps.own_order %}<li data-ps-own-order>{% trans "Eigene Reihenfolge der Abschnitte" %}</li>{% endif %}
+          {% if ps.own_blocks %}<li>{% trans "Blöcke" %}: {{ ps.own_blocks }}</li>{% endif %}
+          {% if not ps.deviations and not ps.own_blocks %}<li>{% trans "Wie alle Seiten dieser Art." %}</li>{% endif %}
+        </ul>
       </div>
-      <div class="flex overflow-hidden rounded-lg border border-gray-500 bg-white text-sm font-semibold">
-        <label class="flex min-h-[44px] cursor-pointer items-center px-3 has-[:checked]:bg-indigo-700 has-[:checked]:text-white focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-900"><input type="radio" class="sr-only" name="ps_{{ row.key }}" value="standard"{% if row.state == 'standard' %} checked{% endif %}>{% trans "Standard" %}</label>
-        <label class="flex min-h-[44px] cursor-pointer items-center border-l border-gray-500 px-3 has-[:checked]:bg-indigo-700 has-[:checked]:text-white focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-900"><input type="radio" class="sr-only" name="ps_{{ row.key }}" value="show"{% if row.state == 'show' %} checked{% endif %}>{% trans "Zeigen" %}</label>
-        <label class="flex min-h-[44px] cursor-pointer items-center border-l border-gray-500 px-3 has-[:checked]:bg-indigo-700 has-[:checked]:text-white focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-900"><input type="radio" class="sr-only" name="ps_{{ row.key }}" value="hide"{% if row.state == 'hide' %} checked{% endif %}>{% trans "Ausblenden" %}</label>
-      </div>
+      {% if ps.blocks_url %}<a href="{{ ps.blocks_url }}" class="ui-btn ui-btn-secondary min-h-[44px]">{% trans "Im Seitenaufbau bearbeiten" %}</a>{% endif %}
     </div>
-    {% endfor %}
   </div>
+  {% endif %}
   {% if ps.layouts %}
   <fieldset>
     <legend class="text-sm font-semibold text-gray-900">{% trans "Seitenvorlage dieser Seite" %}</legend>
@@ -32,7 +34,7 @@
     </div>
   </fieldset>
   {% endif %}
-  {% if ps.blocks_url %}
+  {% if ps.blocks_url and not ps.rows %}
   <div class="rounded-xl border border-gray-500 px-4 py-3" data-ps-own-blocks>
     <div class="flex flex-wrap items-center justify-between gap-3">
       <div>

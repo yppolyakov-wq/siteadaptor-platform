@@ -35,6 +35,13 @@ def _saved_state(config: dict, home: bool, host: str) -> dict:
     state = {"items": site_schema.load_items(config, home, host)}
     if host == "info":
         state["contact"] = config.get("about_contact") is not False
+    from apps.core import detail_parts
+
+    if detail_parts.object_kind(host):
+        # R8: разделы объекта живут в нём самом — их правка в другом месте (вкладка
+        # карточки, другая вкладка браузера) тоже конфликт черновика
+        obj = detail_parts.object_for_host(host)
+        state["override"] = getattr(obj, "page_override", None) or {}
     return state
 
 
@@ -123,6 +130,17 @@ def overlay(config: dict, draft: dict) -> dict:
 
         if detail_parts.module_of(host):  # FB-31 P5: порядок/видимость разделов — на место
             items = detail_parts.lift(out, host, items)
+        elif detail_parts.object_kind(host):
+            # R8: разделы объекта — в служебный ключ превью (на сайт он не попадает)
+            items, state = detail_parts.object_lift(out, host, items)
+            if state is not None:
+                from apps.core import object_structure
+
+                obj = detail_parts.object_for_host(host)
+                module = detail_parts.module_of(detail_parts.shared_host(host))
+                drafts = dict(out.get(object_structure.DRAFT_KEY) or {})
+                drafts[obj.pk.hex] = object_structure.schema_value(obj, module, state)
+                out[object_structure.DRAFT_KEY] = drafts
         page_blocks = dict(out.get("page_blocks") or {})
         page_blocks[host] = items
         out["page_blocks"] = page_blocks
@@ -360,6 +378,7 @@ def commit(request, tenant, code: str, *, force: bool = False) -> bool:
     ):
         raise DraftConflict(code)
     site_schema.store_items(config, home, host, copy.deepcopy(draft["items"]))
+    _commit_object(config, host, draft["items"])
     if host == "info" and "contact" in draft:
         if draft["contact"]:
             config.pop("about_contact", None)
@@ -375,6 +394,29 @@ def commit(request, tenant, code: str, *, force: bool = False) -> bool:
     tenant.site_config = locked.site_config
     _put(request, code, None)
     return True
+
+
+def _commit_object(config: dict, host: str, items: list[dict]) -> None:
+    """R8: разделы схемы объекта — в его `page_override` (в транзакции `commit`, после
+    блокировки строки бизнеса — тот же порядок блокировок везде)."""
+    from apps.core import detail_parts, object_structure
+
+    if not detail_parts.object_kind(host):
+        return
+    _rows, state = detail_parts.object_lift(config, host, copy.deepcopy(items))
+    if state is None:
+        return
+    obj = detail_parts.object_for_host(host)
+    if obj is None:
+        return  # объект удалили, пока шла правка — блоки сохранены, разделов больше нет
+    locked = type(obj).objects.select_for_update().filter(pk=obj.pk).first()
+    if locked is None:
+        return
+    module = detail_parts.module_of(detail_parts.shared_host(host))
+    value = object_structure.schema_value(locked, module, state)
+    if value != object_structure._raw(locked):
+        locked.page_override = value
+        locked.save(update_fields=["page_override"])
 
 
 def _room_after_purge(tenant, host) -> bool:

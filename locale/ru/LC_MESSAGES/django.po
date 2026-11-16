@@ -38859,3 +38859,23 @@ msgstr "Как на главной"
 #: templates/tenant/_schema_related_view.html
 msgid "Slider, wenn mehr als eine Reihe"
 msgstr "Лента, если больше одного ряда"
+
+#: apps/core/site_schema.py
+msgid "Auf allen Seiten dieser Art · dort bearbeiten"
+msgstr "На всех страницах этого вида · правится там"
+
+#: templates/tenant/_object_structure.html
+msgid "Abschnitte und Blöcke dieser Seite"
+msgstr "Разделы и блоки этой страницы"
+
+#: templates/tenant/_object_structure.html
+msgid "Eigene Reihenfolge der Abschnitte"
+msgstr "Свой порядок разделов"
+
+#: templates/tenant/_object_structure.html
+msgid "Wie alle Seiten dieser Art."
+msgstr "Как у всех страниц этого вида."
+
+#: templates/tenant/_object_structure.html
+msgid "Im Seitenaufbau bearbeiten"
+msgstr "Изменить в «Seitenaufbau»"

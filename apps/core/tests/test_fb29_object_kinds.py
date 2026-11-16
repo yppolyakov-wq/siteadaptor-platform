@@ -105,8 +105,10 @@ def test_event_form_saves_only_with_the_sentinel(settings):
     settings.ROOT_URLCONF = "config.urls_tenant"
     event = Event.objects.create(title="Yoga", starts_at=timezone.now())
     assert ost.apply_post(event, "event", {"ps_faq": "hide"}) == []
-    changed = ost.apply_post(event, "event", {"page_override_present": "1", "ps_faq": "hide"})
-    assert changed == ["page_override"] and event.page_override == {"hidden": ["faq"]}
+    # FB-31 P5 R8 (осознанно): разделы правятся в схеме «Seitenaufbau», вкладка — шаблон
+    post = {"page_override_present": "1", "ps_faq": "hide", "ps_layout": "tabs"}
+    changed = ost.apply_post(event, "event", post)
+    assert changed == ["page_override"] and event.page_override == {"layout": "tabs"}
 
 
 def test_views_read_the_object_override():

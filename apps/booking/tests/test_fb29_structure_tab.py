@@ -22,7 +22,7 @@ def test_service_form_saves_the_override_only_with_the_sentinel():
         "card_style": "overlay",
     }))  # fmt: skip
     s.refresh_from_db()
-    assert s.page_override == {"hidden": ["team"], "layout": "tabs"}
+    assert s.page_override == {"layout": "tabs"}  # R8: разделы — в схеме «Seitenaufbau»
     assert s.card_style == "overlay"
 
 

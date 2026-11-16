@@ -38666,3 +38666,23 @@ msgstr "Ana sayfadaki gibi"
 #: templates/tenant/_schema_related_view.html
 msgid "Slider, wenn mehr als eine Reihe"
 msgstr "Birden fazla sıra varsa kaydırıcı"
+
+#: apps/core/site_schema.py
+msgid "Auf allen Seiten dieser Art · dort bearbeiten"
+msgstr "Bu türdeki tüm sayfalarda · orada düzenlenir"
+
+#: templates/tenant/_object_structure.html
+msgid "Abschnitte und Blöcke dieser Seite"
+msgstr "Bu sayfanın bölümleri ve blokları"
+
+#: templates/tenant/_object_structure.html
+msgid "Eigene Reihenfolge der Abschnitte"
+msgstr "Bölümlerin kendi sırası"
+
+#: templates/tenant/_object_structure.html
+msgid "Wie alle Seiten dieser Art."
+msgstr "Bu türdeki tüm sayfalar gibi."
+
+#: templates/tenant/_object_structure.html
+msgid "Im Seitenaufbau bearbeiten"
+msgstr "Sayfa yapısında düzenle"

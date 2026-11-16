@@ -87,7 +87,7 @@ def test_tour_has_sections_and_the_event_page_layout():
     assert str(panel["layouts"][0]["hint"]) == "Volle Breite", "«wie alle» — раскладка событий"
     post = {"page_override_present": "1", "ps_layout": "tabs", "ps_faq": "hide"}
     assert ost.apply_post(tour, "tour", post) == ["page_override"]
-    assert tour.page_override == {"hidden": ["faq"], "layout": "tabs"}
+    assert tour.page_override == {"layout": "tabs"}, "R8: разделы — в схеме, не во вкладке"
 
 
 def test_form_without_the_sentinel_leaves_the_field_alone():
@@ -220,10 +220,11 @@ def test_tour_form_saves_the_structure_with_the_other_fields():
     assert _cabinet_post(tour, base).status_code == 302
     tour.refresh_from_db()
     assert tour.title == "Rheinsteig neu" and tour.page_override == {"hidden": ["venue"]}, "W0"
-    post = {**base, "page_override_present": "1", "ps_faq": "hide", "ps_blocks_first": "1"}
+    # FB-31 P5 R8 (осознанно): разделы и место своих блоков — в схеме; вкладка их не трогает
+    post = {**base, "page_override_present": "1", "ps_faq": "hide", "ps_layout": "tabs"}
     assert _cabinet_post(tour, post).status_code == 302
     tour.refresh_from_db()
-    assert tour.page_override == {"hidden": ["faq"], "blocks_first": True}
+    assert tour.page_override == {"hidden": ["venue"], "layout": "tabs"}
     assert tour.title == "Rheinsteig neu"
 
 
