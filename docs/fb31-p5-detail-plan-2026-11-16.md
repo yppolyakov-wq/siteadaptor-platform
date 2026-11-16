@@ -133,3 +133,33 @@ R7, R8; `doc-updater` — R10.
   правятся на общей схеме), потом свои; галочка «Eigene Blöcke vor den gemeinsamen» уходит
   (включённая → свои блоки перед первым разделом); лимит 120 своих страниц остаётся, считается
   только страница со своим блоком или своим порядком.
+
+## 12. План R8 «своя схема объекта» (`planner`, 2026-11-16)
+Хранение: `obj.page_override = {hidden, shown, layout, order}` — один писатель
+`object_structure.clean`; `order` только у `ORDERABLE_KINDS = (event, tour, service)` и только
+если отличается от общего; новые разделы реестра — в конец. `blocks_first` больше не пишется,
+читается для смысла (включён и якорей нет → свои блоки перед первым разделом). Якоря объекта —
+в `page_blocks["<kind>:<hex>"]`, только при своём блоке (хост без блоков не пишется → лимит 120
+тратит только страница со своими блоками).
+- R8a эталоны до кода: страница объекта (товар, услуга, номер, событие, тур × Standard/Tabs/
+  Breit) без своих блоков, со своими блоками, с `blocks_first`, с hidden/shown — байт-в-байт,
+  кроме `blocks_first` (осознанно, отдельным коммитом). Замки: правка пунктирной строки и
+  подделанный hex отвергаются, разделы товара/номера не двигаются, старый черновик не раскрывает.
+- R8b `object_structure`: `clean` с `order`, `effective_full_order`, `schema_state(...)` —
+  флаг строки → hidden/shown/standard (неизменённое состояние сохраняется), `legacy_lead`.
+- R8c одна функция слияния `detail_parts.object_page(cfg, kind, obj, order, full)`: после
+  раздела — сначала куски общего хоста, потом своего; lead и хвост в том же порядке; товар/
+  номер — `lead`/`mid` списками пар (обобщение `fixed_parts`).
+- R8d витрина: вьюхи деталей и шаблоны — `{% page_blocks it.host part=it.part %}`, тройка
+  `object_blocks before` / хвост / `object_blocks` → цикл по `detail_tail`. Акция — как была.
+- R8e схема объекта: `edit_rows` по видимости/порядку объекта, общие блоки — строки
+  `shared:<id>` только для чтения (`mutate` → `SchemaError("fixed")`); товар/номер — только
+  toggle; черновик: отпечаток включает `override`, превью — через transient-ключ; commit —
+  одна транзакция, `select_for_update` Tenant → объект, `update_fields=["page_override"]`.
+- R8f вкладка карточки — сводка (отличия, свои блоки, ссылка, «Seitenvorlage»); `from_post`
+  больше не трогает hidden/shown/order (сливает поверх сохранённого), `ps_reset` — как был.
+- R8g документы.
+ECC: скиллы django-patterns, django-tdd, python-testing, database-migrations (смысл JSON),
+django-security, accessibility (R8f); `django-reviewer` — каждый срез; `database-reviewer` —
+R8b/R8e (блокировки); `security-reviewer` — R8e; `silent-failure-hunter` — R8b/c/e;
+`a11y-architect` + Playwright 1440/390 de/ru — после R8d и R8e/f; `doc-updater` — R8g.
