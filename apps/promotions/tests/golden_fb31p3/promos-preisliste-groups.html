@@ -1,0 +1,210 @@
+<main class="flex-1 w-full max-w-none mx-auto px-4 py-6 md:py-10">
+<div class="" data-listing-root data-promo-page="preisliste">
+  <h1 class="text-2xl md:text-3xl font-bold mb-4">Aktuelle Angebote</h1>
+<div role="navigation" aria-label="Aktionstypen" class="flex gap-2 mb-3 overflow-x-auto sm:flex-wrap sm:overflow-visible" data-promo-type-chips>
+      <a href="/aktionen/"
+         class="shrink-0 whitespace-nowrap px-3 py-1.5 rounded-full text-sm border bg-gray-900 text-white border-gray-900" aria-current="page">Alle</a>
+        <a href="/aktionen/?gruppe=R%C3%A4umung"
+           class="shrink-0 whitespace-nowrap px-3 py-1.5 rounded-full text-sm border border-gray-300 text-gray-600 hover:bg-gray-100">Räumung</a>
+        <a href="/aktionen/?gruppe=Wochenangebote"
+           class="shrink-0 whitespace-nowrap px-3 py-1.5 rounded-full text-sm border border-gray-300 text-gray-600 hover:bg-gray-100">Wochenangebote</a>
+    </div>
+<script>
+(function () {
+  if (window.__sfTypeChipsBound) return;
+  window.__sfTypeChipsBound = true;
+  var SEL = "[data-" + "promo-type-chips]";
+  function center() {
+    document.querySelectorAll(SEL).forEach(function (row) {
+      var cur = row.querySelector('[aria-current="page"]');
+      if (!cur || row.scrollWidth <= row.clientWidth) return;
+      var r = row.getBoundingClientRect(), c = cur.getBoundingClientRect();
+      row.scrollLeft += (c.left - r.left) - (row.clientWidth - c.width) / 2;
+    });
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", center);
+  else center();
+  // ряд в свёрнутой панели «Suchen & filtern» не имеет ширины до открытия
+  document.addEventListener("toggle", function (e) {
+    if (e.target.open && e.target.querySelector && e.target.querySelector(SEL)) center();
+  }, true);
+})();
+</script>
+  <div class="sm:flex sm:items-center sm:gap-x-3 mb-4 [&>*]:mb-2 sm:[&>*]:mb-0" data-promo-controls>
+    <div class="min-w-0 sm:flex-1">
+<div class="flex gap-2 mb-4 overflow-x-auto" data-promo-filters>
+      <a href="/aktionen/?endet=woche"
+         class="shrink-0 whitespace-nowrap px-3 py-1.5 rounded-full text-sm border border-gray-300 text-gray-600 hover:bg-gray-100">Diese Woche</a>
+      <a href="/aktionen/?rabatt=20"
+         class="shrink-0 whitespace-nowrap px-3 py-1.5 rounded-full text-sm border border-gray-300 text-gray-600 hover:bg-gray-100">−20 %+</a>
+  </div>
+</div>
+    <div class="sm:shrink-0">
+<form method="get" class="mb-4 flex items-center gap-2" data-promo-search>
+    <input type="hidden" name="ansicht" value="liste">
+    <input type="search" name="q" value="" placeholder="Aktionen durchsuchen …" aria-label="Suchen" class="h-9 w-full max-w-xs rounded-lg border border-gray-300 px-3 text-sm">
+    <button type="submit" class="h-9 rounded-lg border border-gray-300 px-3 text-sm font-medium">Suchen</button>
+  </form>
+</div>
+  </div>
+<div class="mb-4 flex flex-wrap items-center gap-2 text-sm" data-listing-bar>
+  <span class="ml-auto flex flex-wrap items-center gap-2">
+  <form method="get" class="flex items-center gap-2 text-sm" data-listing-toolbar>
+    <label class="flex items-center gap-2 text-gray-500" for="id_listing_sort"><span class="hidden sm:inline">Sortieren</span>
+      <select id="id_listing_sort" name="sort" class="js-sort-select h-9 max-w-[9.5rem] sm:max-w-none rounded-lg border border-gray-300 px-2 text-gray-600">
+        <option value="" selected>Neueste</option><option value="endet" >Endet bald</option><option value="rabatt" >Rabatt</option><option value="preis" >Preis: von niedrig nach hoch</option>
+      </select>
+    </label>
+    <noscript><button type="submit" class="h-9 rounded-lg border border-gray-300 px-3 font-medium">Anwenden</button></noscript>
+  </form>
+  <div class="flex items-center gap-1 shrink-0" role="group" aria-label="Ansicht" data-promo-ansicht>
+    <a href="?ansicht=karten" data-ansicht="karten"  title="Karten"
+       class="h-9 rounded-lg border border-gray-300 px-3 flex items-center text-sm text-gray-600">Karten</a>
+    <a href="?ansicht=liste" data-ansicht="liste" aria-current="page" title="Liste"
+       class="h-9 rounded-lg border border-gray-300 px-3 flex items-center text-sm bg-gray-900 text-white">Liste</a>
+  </div>
+  </span>
+</div><!--/listing-bar-->
+<div data-pb-main>
+<div class="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0" data-promo-table>
+<table class="w-full text-sm">
+  <thead class="text-left text-xs text-gray-500">
+    <tr class="border-b border-gray-200">
+      <th scope="col" class="py-2 pr-2 w-14"></th>
+      <th scope="col" class="py-2 pr-3">Angebot</th>
+      <th scope="col" class="py-2 pr-3 hidden md:table-cell">Gruppe</th>
+      <th scope="col" class="py-2 pr-3">Preis</th>
+      <th scope="col" class="py-2 pr-3 hidden md:table-cell">Sie sparen</th>
+      <th scope="col" class="py-2 pr-3 whitespace-nowrap">Endet</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr class="border-b border-gray-100 align-top" data-promo-row>
+      <td class="py-2 pr-2"><a href="/p/UUID/" class="block w-12 h-12 rounded-lg overflow-hidden bg-gray-100"></a></td>
+      <td class="py-2 pr-3"><a href="/p/UUID/" class="font-medium hover:underline">Räumung 2</a>
+  <div class="mt-1.5 flex flex-wrap gap-1">
+      <span class="inline-flex items-center gap-1 bg-emerald-100 text-emerald-700 text-[11px] font-semibold px-2 py-0.5 rounded-full">🆕 Neu</span>
+      <span class="inline-flex items-center gap-1 bg-gray-100 text-gray-600 text-[11px] font-medium px-2 py-0.5 rounded-full">📅 bis DATE</span>
+  </div>
+</td>
+      <td class="py-2 pr-3 hidden md:table-cell text-gray-500">Räumung</td>
+      <td class="py-2 pr-3 whitespace-nowrap">
+<div class="flex items-baseline gap-2"><span class="text-gray-400 line-through text-sm" data-price-edit data-edit-model="promotion" data-price-field="compare_at_price" data-edit-pk="UUID" data-price="3,49">3,49 €</span><span class="text-xl font-extrabold text-red-600" data-price-edit data-edit-model="promotion" data-price-field="price_override" data-edit-pk="UUID" data-price="2,49">2,49 €</span></div>
+</td>
+      <td class="py-2 pr-3 hidden md:table-cell">
+    <p class="mt-0.5 text-[11px] font-medium text-emerald-700" data-savings>Sie sparen 1,00 €</p>
+</td>
+      <td class="py-2 pr-3 whitespace-nowrap text-gray-600">DATE</td>
+    </tr>
+    <tr class="border-b border-gray-100 align-top" data-promo-row>
+      <td class="py-2 pr-2"><a href="/p/UUID/" class="block w-12 h-12 rounded-lg overflow-hidden bg-gray-100"></a></td>
+      <td class="py-2 pr-3"><a href="/p/UUID/" class="font-medium hover:underline">Räumung 1</a>
+  <div class="mt-1.5 flex flex-wrap gap-1">
+      <span class="inline-flex items-center gap-1 bg-emerald-100 text-emerald-700 text-[11px] font-semibold px-2 py-0.5 rounded-full">🆕 Neu</span>
+      <span class="inline-flex items-center gap-1 bg-gray-100 text-gray-600 text-[11px] font-medium px-2 py-0.5 rounded-full">📅 bis DATE</span>
+  </div>
+</td>
+      <td class="py-2 pr-3 hidden md:table-cell text-gray-500">Räumung</td>
+      <td class="py-2 pr-3 whitespace-nowrap">
+<div class="flex items-baseline gap-2"><span class="text-gray-400 line-through text-sm" data-price-edit data-edit-model="promotion" data-price-field="compare_at_price" data-edit-pk="UUID" data-price="3,49">3,49 €</span><span class="text-xl font-extrabold text-red-600" data-price-edit data-edit-model="promotion" data-price-field="price_override" data-edit-pk="UUID" data-price="2,49">2,49 €</span></div>
+</td>
+      <td class="py-2 pr-3 hidden md:table-cell">
+    <p class="mt-0.5 text-[11px] font-medium text-emerald-700" data-savings>Sie sparen 1,00 €</p>
+</td>
+      <td class="py-2 pr-3 whitespace-nowrap text-gray-600">DATE</td>
+    </tr>
+    <tr class="border-b border-gray-100 align-top" data-promo-row>
+      <td class="py-2 pr-2"><a href="/p/UUID/" class="block w-12 h-12 rounded-lg overflow-hidden bg-gray-100"></a></td>
+      <td class="py-2 pr-3"><a href="/p/UUID/" class="font-medium hover:underline">Räumung 0</a>
+  <div class="mt-1.5 flex flex-wrap gap-1">
+      <span class="inline-flex items-center gap-1 bg-emerald-100 text-emerald-700 text-[11px] font-semibold px-2 py-0.5 rounded-full">🆕 Neu</span>
+      <span class="inline-flex items-center gap-1 bg-gray-100 text-gray-600 text-[11px] font-medium px-2 py-0.5 rounded-full">📅 bis DATE</span>
+  </div>
+</td>
+      <td class="py-2 pr-3 hidden md:table-cell text-gray-500">Räumung</td>
+      <td class="py-2 pr-3 whitespace-nowrap">
+<div class="flex items-baseline gap-2"><span class="text-gray-400 line-through text-sm" data-price-edit data-edit-model="promotion" data-price-field="compare_at_price" data-edit-pk="UUID" data-price="3,49">3,49 €</span><span class="text-xl font-extrabold text-red-600" data-price-edit data-edit-model="promotion" data-price-field="price_override" data-edit-pk="UUID" data-price="2,49">2,49 €</span></div>
+</td>
+      <td class="py-2 pr-3 hidden md:table-cell">
+    <p class="mt-0.5 text-[11px] font-medium text-emerald-700" data-savings>Sie sparen 1,00 €</p>
+</td>
+      <td class="py-2 pr-3 whitespace-nowrap text-gray-600">DATE</td>
+    </tr>
+    <tr class="border-b border-gray-100 align-top" data-promo-row>
+      <td class="py-2 pr-2"><a href="/p/UUID/" class="block w-12 h-12 rounded-lg overflow-hidden bg-gray-100"></a></td>
+      <td class="py-2 pr-3"><a href="/p/UUID/" class="font-medium hover:underline">Wochenangebote 2</a>
+  <div class="mt-1.5 flex flex-wrap gap-1">
+      <span class="inline-flex items-center gap-1 bg-emerald-100 text-emerald-700 text-[11px] font-semibold px-2 py-0.5 rounded-full">🆕 Neu</span>
+      <span class="inline-flex items-center gap-1 bg-gray-100 text-gray-600 text-[11px] font-medium px-2 py-0.5 rounded-full">📅 bis DATE</span>
+  </div>
+</td>
+      <td class="py-2 pr-3 hidden md:table-cell text-gray-500">Wochenangebote</td>
+      <td class="py-2 pr-3 whitespace-nowrap">
+<div class="flex items-baseline gap-2"><span class="text-gray-400 line-through text-sm" data-price-edit data-edit-model="promotion" data-price-field="compare_at_price" data-edit-pk="UUID" data-price="3,49">3,49 €</span><span class="text-xl font-extrabold text-red-600" data-price-edit data-edit-model="promotion" data-price-field="price_override" data-edit-pk="UUID" data-price="2,49">2,49 €</span></div>
+</td>
+      <td class="py-2 pr-3 hidden md:table-cell">
+    <p class="mt-0.5 text-[11px] font-medium text-emerald-700" data-savings>Sie sparen 1,00 €</p>
+</td>
+      <td class="py-2 pr-3 whitespace-nowrap text-gray-600">DATE</td>
+    </tr>
+    <tr class="border-b border-gray-100 align-top" data-promo-row>
+      <td class="py-2 pr-2"><a href="/p/UUID/" class="block w-12 h-12 rounded-lg overflow-hidden bg-gray-100"></a></td>
+      <td class="py-2 pr-3"><a href="/p/UUID/" class="font-medium hover:underline">Wochenangebote 1</a>
+  <div class="mt-1.5 flex flex-wrap gap-1">
+      <span class="inline-flex items-center gap-1 bg-emerald-100 text-emerald-700 text-[11px] font-semibold px-2 py-0.5 rounded-full">🆕 Neu</span>
+      <span class="inline-flex items-center gap-1 bg-gray-100 text-gray-600 text-[11px] font-medium px-2 py-0.5 rounded-full">📅 bis DATE</span>
+  </div>
+</td>
+      <td class="py-2 pr-3 hidden md:table-cell text-gray-500">Wochenangebote</td>
+      <td class="py-2 pr-3 whitespace-nowrap">
+<div class="flex items-baseline gap-2"><span class="text-gray-400 line-through text-sm" data-price-edit data-edit-model="promotion" data-price-field="compare_at_price" data-edit-pk="UUID" data-price="3,49">3,49 €</span><span class="text-xl font-extrabold text-red-600" data-price-edit data-edit-model="promotion" data-price-field="price_override" data-edit-pk="UUID" data-price="2,49">2,49 €</span></div>
+</td>
+      <td class="py-2 pr-3 hidden md:table-cell">
+    <p class="mt-0.5 text-[11px] font-medium text-emerald-700" data-savings>Sie sparen 1,00 €</p>
+</td>
+      <td class="py-2 pr-3 whitespace-nowrap text-gray-600">DATE</td>
+    </tr>
+    <tr class="border-b border-gray-100 align-top" data-promo-row>
+      <td class="py-2 pr-2"><a href="/p/UUID/" class="block w-12 h-12 rounded-lg overflow-hidden bg-gray-100"></a></td>
+      <td class="py-2 pr-3"><a href="/p/UUID/" class="font-medium hover:underline">Wochenangebote 0</a>
+  <div class="mt-1.5 flex flex-wrap gap-1">
+      <span class="inline-flex items-center gap-1 bg-emerald-100 text-emerald-700 text-[11px] font-semibold px-2 py-0.5 rounded-full">🆕 Neu</span>
+      <span class="inline-flex items-center gap-1 bg-gray-100 text-gray-600 text-[11px] font-medium px-2 py-0.5 rounded-full">📅 bis DATE</span>
+  </div>
+</td>
+      <td class="py-2 pr-3 hidden md:table-cell text-gray-500">Wochenangebote</td>
+      <td class="py-2 pr-3 whitespace-nowrap">
+<div class="flex items-baseline gap-2"><span class="text-gray-400 line-through text-sm" data-price-edit data-edit-model="promotion" data-price-field="compare_at_price" data-edit-pk="UUID" data-price="3,49">3,49 €</span><span class="text-xl font-extrabold text-red-600" data-price-edit data-edit-model="promotion" data-price-field="price_override" data-edit-pk="UUID" data-price="2,49">2,49 €</span></div>
+</td>
+      <td class="py-2 pr-3 hidden md:table-cell">
+    <p class="mt-0.5 text-[11px] font-medium text-emerald-700" data-savings>Sie sparen 1,00 €</p>
+</td>
+      <td class="py-2 pr-3 whitespace-nowrap text-gray-600">DATE</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+</div>
+</div><!--/listing-root-->
+<script>
+(function () {
+  if (window.__sfCountdownInit) return;
+  window.__sfCountdownInit = true;
+  function pad(n) { return String(n).padStart(2, "0"); }
+  function tick() {
+    document.querySelectorAll("[data-cd]").forEach(function (box) {
+      var end = new Date(box.getAttribute("data-cd")).getTime();
+      if (isNaN(end)) return;
+      var diff = Math.max(0, Math.floor((end - Date.now()) / 1000));
+      var d = box.querySelector("[data-cd-d]"), h = box.querySelector("[data-cd-h]"),
+          m = box.querySelector("[data-cd-m]"), s = box.querySelector("[data-cd-s]");
+      if (d) d.textContent = Math.floor(diff / 86400);
+      if (h) h.textContent = pad(Math.floor((diff % 86400) / 3600));
+      if (m) m.textContent = pad(Math.floor((diff % 3600) / 60));
+      if (s) s.textContent = pad(diff % 60);
+    });
+  }
+  tick(); setInterval(tick, 1000);
+})();
+</script>
+  </main>
