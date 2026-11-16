@@ -9,4 +9,4 @@
       </div>{% endfor %}
     </div>
     {% include "storefront/_detail_tabs_script.html" %}
-    {% if detail_flow %}{% for it in detail_flow %}{% if it.part %}{% page_blocks "event_detail" part=it.part %}{% endif %}{% endfor %}{% endif %}
+    {% if detail_flow %}{% for it in detail_flow %}{% if it.part %}{% page_blocks it.host|default:"event_detail" part=it.part %}{% endif %}{% endfor %}{% endif %}

@@ -71,7 +71,7 @@ MT-1: страница тур-продукта. Контент живёт зде
   {% comment %}FB-31 P5: свои блоки между разделами (якоря в «Seitenaufbau»).{% endcomment %}
   {% for it in detail_flow %}{% if it.section %}
     <div data-ed-section="{{ it.section }}">{% include "storefront/_event_thematic.html" with k=it.section event=tour %}</div>
-  {% else %}{% page_blocks "event_detail" part=it.part %}{% endif %}{% endfor %}
+  {% else %}{% page_blocks it.host|default:"event_detail" part=it.part %}{% endif %}{% endfor %}
   {% else %}
   {% for k in event_detail_order %}
     <div data-ed-section="{{ k }}">{% include "storefront/_event_thematic.html" with k=k event=tour %}</div>

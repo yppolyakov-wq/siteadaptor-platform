@@ -945,11 +945,13 @@ def _service_rich_context(request, service, tenant) -> dict:
             "visible": _present.get(k, False) and k not in _hidden,
         }
         # FB-31 P5: порядок — из «Seitenaufbau» (`service_detail.order`, без ключа — реестр)
-        for k in detail_parts.full_order(_raw, "booking")
+        # R8: у услуги может быть свой порядок «nur hier»
+        for k in object_structure.effective_full_order(_raw, "booking", service)
         if k in _section_template
     ]
     _rows = (siteconfig.normalize(_raw).get("page_blocks") or {}).get("service_detail") or []
-    _full = detail_parts.full_order(_raw, "booking")
+    _full = object_structure.effective_full_order(_raw, "booking", service)
+    _own = detail_parts.own_anchors(_raw, "service", service, _full)  # R8: свои блоки
 
     return {
         "service": service,
@@ -981,7 +983,11 @@ def _service_rich_context(request, service, tenant) -> dict:
         "body_sections": body_sections,
         # FB-31 P5: свои блоки между разделами (пусто — прежняя разметка)
         "detail_flow": detail_parts.flow(
-            _rows, "service_detail", [x["key"] for x in body_sections if x["visible"]], _full
+            _rows,
+            "service_detail",
+            [x["key"] for x in body_sections if x["visible"]],
+            _full,
+            own=_own,
         ),
         "detail_tail_part": detail_parts.tail_part(_rows, "service_detail", _full),
         # STU-15b: раскладка страницы детали услуги ("" | tabs | breit).

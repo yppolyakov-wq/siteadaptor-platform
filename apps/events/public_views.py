@@ -387,7 +387,9 @@ def veranstaltung_detail(request, pk):
         # FB-29 R5: порядок общий, видимость — общая с отличиями этого события.
         "event_detail_order": object_structure.effective_order(_raw, "events", event),
         # FB-31 P5: свои блоки между разделами (пусто — прежняя разметка)
-        **_detail_flow(_raw, object_structure.effective_order(_raw, "events", event)),
+        **_detail_flow(
+            _raw, object_structure.effective_order(_raw, "events", event), "event", event
+        ),
         # STU-15b: раскладка страницы события ("" | tabs | breit).
         "detail_layout": object_structure.effective_layout(_raw, "event", event),
         # STU-15b: пары «ключ + подпись» для раскладки «Tabs» (порядок тот же, что у
@@ -836,15 +838,21 @@ def _tours_flat(request) -> bool:
     return parts.grouping == listing_parts.FLAT
 
 
-def _detail_flow(raw, order) -> dict:
-    """FB-31 P5: поток тела детали события/тура и `part` хвоста блоков."""
+def _detail_flow(raw, order, kind="", obj=None) -> dict:
+    """FB-31 P5: поток тела детали события/тура и `part` хвоста блоков (R8: со своими
+    блоками объекта между разделами)."""
     from apps.core import detail_parts
     from apps.tenants import siteconfig
 
     rows = (siteconfig.normalize(raw).get("page_blocks") or {}).get("event_detail") or []
-    full = detail_parts.full_order(raw, "events")
+    full = (
+        object_structure.effective_full_order(raw, "events", obj)
+        if obj is not None
+        else detail_parts.full_order(raw, "events")
+    )
+    own = detail_parts.own_anchors(raw, kind, obj, full) if obj is not None else None
     return {
-        "detail_flow": detail_parts.flow(rows, "event_detail", order, full),
+        "detail_flow": detail_parts.flow(rows, "event_detail", order, full, own=own),
         "detail_tail_part": detail_parts.tail_part(rows, "event_detail", full),
     }
 
@@ -925,7 +933,7 @@ def tour_detail(request, slug):
             # Порядок/скрытие тематических блоков — общий с событиями (M20U-4).
             # T1: видимость — с отличиями самого тура (`object_structure`).
             "event_detail_order": order,
-            **_detail_flow(raw, order),
+            **_detail_flow(raw, order, "tour", tour),
             # FB-31 P5 R9: раскладка общая с событиями («Tabs» · «Volle Breite»), у тура — своя
             "detail_layout": object_structure.effective_layout(raw, "tour", tour),
             "event_detail_tabs": [{"key": k, "label": labels.get(k, k)} for k in order],

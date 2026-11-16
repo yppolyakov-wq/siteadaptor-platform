@@ -39,12 +39,38 @@ KAUF_REF = "__kauf"  # строка схемы «Buchung» (не хранитс�
 KAUF_FIRST = frozenset({"service_detail", "product_detail", "stay_detail"})
 
 
+#: FB-31 P5 R8: вид объекта → общий хост его детали (у тура — страница событий)
+OBJECT_SHARED = {
+    "product": "product_detail",
+    "service": "service_detail",
+    "stay": "stay_detail",
+    "event": "event_detail",
+    "tour": "event_detail",
+}
+
+
 def module_of(host: str) -> str:
+    """Модуль разделов ОБЩЕГО хоста детали (писатель порядка/видимости — только у него)."""
     return SECTION_HOSTS.get(host, "")
 
 
+def object_kind(host) -> str:
+    """R8: вид объекта по хосту его своих блоков (`<kind>:<hex>`), иначе ""."""
+    if not isinstance(host, str) or ":" not in host:
+        return ""
+    kind = host.split(":", 1)[0]
+    return kind if kind in OBJECT_SHARED else ""
+
+
+def shared_host(host: str) -> str:
+    """Общий хост детали для хоста объекта (сам хост — если он общий)."""
+    return OBJECT_SHARED.get(object_kind(host), host)
+
+
 def section_keys(host: str) -> tuple[str, ...]:
-    return detail_sections.section_keys(module_of(host)) if module_of(host) else ()
+    """Разделы страницы: общего хоста детали и (R8) хоста одного объекта."""
+    module = module_of(shared_host(host))
+    return detail_sections.section_keys(module) if module else ()
 
 
 def anchors(rows, host: str, order: list[str] | None = None) -> dict:
@@ -72,23 +98,58 @@ def anchors(rows, host: str, order: list[str] | None = None) -> dict:
     return out
 
 
-def flow(rows, host: str, order: list[str], all_order: list[str] | None = None) -> list[dict]:
-    """Поток тела: [{"section": k} | {"part": "ids:…"}] — видимые разделы в `order`, свои блоки
-    между ними. `all_order` — полный порядок (со скрытыми): блоки скрытого раздела остаются
-    на его месте. Пустой список — рисовать прежней разметкой."""
-    a = anchors(rows, host, all_order or order)
-    if not a["placed"]:
+def flow(
+    rows, host: str, order: list[str], all_order: list[str] | None = None, own: dict | None = None
+) -> list[dict]:
+    """Поток тела: [{"section": k} | {"part": "ids:…", "host"?: хост}] — видимые разделы в
+    `order`, свои блоки между ними. `all_order` — полный порядок (со скрытыми): блоки скрытого
+    раздела остаются на его месте. `own` (R8) — якоря своих блоков объекта (`own_anchors`):
+    у раздела сначала общие блоки, потом свои. Пустой список — рисовать прежней разметкой."""
+    seq = all_order or order
+    a = anchors(rows, host, seq)
+    if not a["placed"] and not own:
         return []
+    shared = a if a["placed"] else {"lead": [], "after": {}}
     visible = set(order)
     items: list[dict] = []
-    if a["lead"]:
-        items.append({"part": ids_part(a["lead"])})
-    for key in all_order or order:
+
+    def put(ids, target=None):
+        if ids:
+            items.append({"part": ids_part(ids), **({"host": target} if target else {})})
+
+    put(shared["lead"])
+    put((own or {}).get("lead"), (own or {}).get("host"))
+    for key in seq:
         if key in visible:
             items.append({"section": key})
-        if a["after"].get(key):
-            items.append({"part": ids_part(a["after"][key])})
+        put(shared["after"].get(key))
+        put(((own or {}).get("after") or {}).get(key), (own or {}).get("host"))
     return items
+
+
+def own_anchors(config, kind: str, obj, order: list[str]) -> dict | None:
+    """R8: якоря своих блоков объекта ({"host", "lead", "after", "tail"}) — None, если строк
+    разделов у объекта нет (свои блоки одним куском, как раньше: `object_blocks`)."""
+    from apps.core import object_structure
+
+    host = object_structure.object_host(kind, obj)
+    if not host or kind not in OBJECT_SHARED:
+        return None
+    raw = ((config or {}).get("page_blocks") or {}).get(host)
+    rows = [r for r in (raw if isinstance(raw, list) else []) if isinstance(r, dict)]
+    a = anchors(rows, host, order)
+    return {"host": host, **a} if a["placed"] else None
+
+
+def object_order(config, kind: str, obj) -> list[str]:
+    """R8: полный порядок разделов страницы объекта (со скрытыми) — у товара и номера
+    постоянный, у прочих — свой порядок объекта поверх общего."""
+    from apps.core import object_structure
+
+    host = OBJECT_SHARED.get(kind, "")
+    if host in FIXED_ORDER:
+        return list(section_keys(host))
+    return object_structure.effective_full_order(config, module_of(host), obj)
 
 
 def tail_part(rows, host: str, order: list[str] | None = None) -> str:
@@ -166,25 +227,49 @@ def lift(config: dict, host: str, items: list[dict]) -> list[dict]:
     return [{"key": r["key"]} if r.get("key") in keys and not r.get("id") else r for r in items]
 
 
-def fixed_parts(rows, host: str) -> dict:
-    """FB-31 P5: свои блоки товара/номера по местам постоянной страницы — {"lead": part перед
-    телом (до отзывов), "mid": part после отзывов (до «Ähnliche»)}; пусто — прежняя разметка."""
-    a = anchors(rows, host, list(section_keys(host)))
-    if not a["placed"]:
-        return {"lead": "", "mid": ""}
+def _fixed(a: dict, host: str) -> tuple[list, list]:
     lead = list(a["lead"])
     for key in FIRST_SCREEN.get(host, ()):
         lead += a["after"].get(key, [])
-    mid = a["after"].get(BODY_LAST.get(host, ""), [])
-    return {"lead": ids_part(lead) if lead else "", "mid": ids_part(mid) if mid else ""}
+    return lead, list(a["after"].get(BODY_LAST.get(host, ""), []))
 
 
-def page_ctx(cfg, host: str) -> dict:
-    """Контекст витрины постоянной детали (товар, номер): места своих блоков и `part` хвоста."""
+def fixed_parts(rows, host: str, own: dict | None = None) -> dict:
+    """FB-31 P5: свои блоки товара/номера по местам постоянной страницы — {"lead": part перед
+    телом (до отзывов), "mid": part после отзывов (до «Ähnliche»)}; пусто — прежняя разметка.
+    R8: `own` — якоря своих блоков объекта → "lead_own"/"mid_own" (после общих)."""
+    a = anchors(rows, host, list(section_keys(host)))
+    out = {"lead": "", "mid": ""}
+    if a["placed"]:
+        lead, mid = _fixed(a, host)
+        out = {"lead": ids_part(lead) if lead else "", "mid": ids_part(mid) if mid else ""}
+    if own:
+        lead, mid = _fixed(own, host)
+        out["lead_own"] = ids_part(lead) if lead else ""
+        out["mid_own"] = ids_part(mid) if mid else ""
+        out["own_host"] = own["host"]
+    return out
+
+
+def page_ctx(cfg, host: str, kind: str = "", obj=None) -> dict:
+    """Контекст витрины постоянной детали (товар, номер): места своих блоков и `part` хвоста;
+    R8 — и своих блоков объекта `obj`, если они стоят между разделами."""
     from apps.tenants import siteconfig
 
-    rows = (siteconfig.normalize(cfg).get("page_blocks") or {}).get(host) or []
+    norm = siteconfig.normalize(cfg)
+    rows = (norm.get("page_blocks") or {}).get(host) or []
+    order = list(section_keys(host))
+    own = own_anchors(norm, kind, obj, order) if obj is not None else None
     return {
-        "detail_block_parts": fixed_parts(rows, host),
-        "detail_tail_part": tail_part(rows, host, list(section_keys(host))),
+        "detail_block_parts": fixed_parts(rows, host, own),
+        "detail_tail_part": tail_part(rows, host, order),
     }
+
+
+def own_tail(config, kind: str, obj) -> str | None:
+    """R8: `part` своих блоков объекта для хвоста страницы; None — якорей нет (рисовать
+    одним куском, как раньше)."""
+    own = own_anchors(config, kind, obj, object_order(config, kind, obj))
+    if own is None:
+        return None
+    return ids_part(own["tail"]) if own["tail"] else ""

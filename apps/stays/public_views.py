@@ -467,7 +467,7 @@ def unterkunft_unit(request, pk):
         # рассказ о номере читается рядом с фото, под ним не остаётся пустоты.
         "under_gallery_keys": ("description", "amenities"),
         # FB-31 P5: свои блоки по местам страницы номера (пусто — прежняя разметка)
-        **detail_parts.page_ctx(_raw, "stay_detail"),
+        **detail_parts.page_ctx(_raw, "stay_detail", "stay", unit),
         "show_similar": show_similar,
         "today": today,
         "max_date": today + timedelta(days=_horizon_days()),  # G12: окно бронирования

@@ -194,11 +194,11 @@
   {% endif %}
 </div>
 {% include "storefront/_detail_tabs_script.html" %}
-{% if detail_block_parts.lead %}{% page_blocks "product_detail" part=detail_block_parts.lead %}{% endif %}{% if detail_block_parts.mid %}{% page_blocks "product_detail" part=detail_block_parts.mid %}{% endif %}
+{% if detail_block_parts.lead %}{% page_blocks "product_detail" part=detail_block_parts.lead %}{% endif %}{% if detail_block_parts.lead_own %}{% page_blocks detail_block_parts.own_host part=detail_block_parts.lead_own %}{% endif %}{% if detail_block_parts.mid %}{% page_blocks "product_detail" part=detail_block_parts.mid %}{% endif %}{% if detail_block_parts.mid_own %}{% page_blocks detail_block_parts.own_host part=detail_block_parts.mid_own %}{% endif %}
 {% else %}
-{% if detail_block_parts.lead %}{% page_blocks "product_detail" part=detail_block_parts.lead %}{% endif %}
+{% if detail_block_parts.lead %}{% page_blocks "product_detail" part=detail_block_parts.lead %}{% endif %}{% if detail_block_parts.lead_own %}{% page_blocks detail_block_parts.own_host part=detail_block_parts.lead_own %}{% endif %}
 {% if 'reviews' not in product_detail_hidden %}{% include "storefront/_product_reviews.html" %}{% endif %}
-{% if detail_block_parts.mid %}{% page_blocks "product_detail" part=detail_block_parts.mid %}{% endif %}
+{% if detail_block_parts.mid %}{% page_blocks "product_detail" part=detail_block_parts.mid %}{% endif %}{% if detail_block_parts.mid_own %}{% page_blocks detail_block_parts.own_host part=detail_block_parts.mid_own %}{% endif %}
 {% endif %}
 {% endblock %}
 

@@ -2486,7 +2486,7 @@ def product_detail(request, pk=None, pslug=None, cslug=None):
             # "tabs" — все три панелями тела (аккордеон <md, табы md+).
             "product_detail_layout": object_structure.effective_layout(_cfg, "product", product),
             # FB-31 P5: свои блоки по местам страницы товара (пусто — прежняя разметка)
-            **detail_parts.page_ctx(_cfg, "product_detail"),
+            **detail_parts.page_ctx(_cfg, "product_detail", "product", product),
             # STU-15b: та же ось, что у услуги/номера/события — каркас детали читает её
             # для раскладки «breit» (кадр во всю ширину). "tabs" у товара своя разметка.
             "detail_layout": object_structure.effective_layout(_cfg, "product", product),

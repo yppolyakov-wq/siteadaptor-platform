@@ -28,6 +28,10 @@ MODULES = {
     # T1: тур делит реестр разделов и тип страницы с событием (R9 — и шаблон страницы)
     "tour": "events",
 }
+#: FB-31 P5 R8: модули, у которых объект может хранить свой порядок разделов (решение
+#: владельца — событие, тур, услуга; у товара и номера порядок постоянный)
+ORDERABLE_MODULES = frozenset({"events", "booking"})
+
 #: Виды, у которых есть ось «шаблон страницы» (`siteconfig.detail_layout`).
 #: FB-31 P5 R9: тур — с общей раскладкой «Veranstaltungsseite».
 LAYOUT_KINDS = ("product", "service", "stay", "event", "tour")
@@ -65,6 +69,10 @@ def clean(raw, module: str) -> dict:
     layout = raw.get("layout")
     if layout == LAYOUT_STANDARD or layout in siteconfig.DETAIL_LAYOUTS:
         out["layout"] = layout
+    # R8: свой порядок разделов «nur hier» (только где порядок двигается)
+    order = _keys(raw.get("order"), known) if module in ORDERABLE_MODULES else []
+    if order:
+        out["order"] = order
     # R3: свои блоки объекта — над общими блоками страницы (по умолчанию под ними)
     if raw.get("blocks_first") and str(raw.get("blocks_first")).strip().lower() not in (
         "0",
@@ -94,23 +102,32 @@ def effective_layout(config, kind: str, obj) -> str:
     return own or siteconfig.detail_layout(config, kind)
 
 
-def effective_order(config, module: str, obj) -> list[str]:
-    """R5 (событие): порядок ВИДИМЫХ разделов страницы объекта — порядок общий
-    (сохранённый + остальные по реестру), видимость — общая с отличиями объекта."""
-    from apps.tenants import siteconfig
+def effective_full_order(config, module: str, obj) -> list[str]:
+    """R8: полный порядок разделов страницы объекта (со скрытыми): свой «nur hier», затем
+    остальные разделы в общем порядке (новые разделы реестра — в конец)."""
+    from apps.core import detail_parts
 
-    keys = detail_sections.section_keys(module)
-    raw = (config or {}).get(siteconfig.detail_section_config_key(module))
-    saved = siteconfig.normalize_detail_sections(raw, module).get("order", [])
-    order = saved + [k for k in keys if k not in saved]
+    shared = detail_parts.full_order(config, module)
+    own = clean(_raw(obj), module).get("order", [])
+    return own + [k for k in shared if k not in own]
+
+
+def effective_order(config, module: str, obj) -> list[str]:
+    """R5 (событие): порядок ВИДИМЫХ разделов страницы объекта — общий (R8: или свой),
+    видимость — общая с отличиями объекта."""
     hidden = effective_hidden(config, module, obj)
-    return [k for k in order if k not in hidden]
+    return [k for k in effective_full_order(config, module, obj) if k not in hidden]
 
 
 def deviations(obj, module: str) -> int:
     """Сколько отличий от общего вида у объекта (плашка «N Abweichungen»)."""
     own = clean(_raw(obj), module)
-    return len(own.get("hidden", [])) + len(own.get("shown", [])) + (1 if "layout" in own else 0)
+    return (
+        len(own.get("hidden", []))
+        + len(own.get("shown", []))
+        + (1 if "layout" in own else 0)
+        + (1 if own.get("order") else 0)  # R8: свой порядок разделов
+    )
 
 
 # ───────── кабинет: вкладка «Seitenaufbau» объекта ─────────
@@ -148,6 +165,11 @@ def apply_post(obj, kind: str, post) -> list[str]:
         return []
     if kind not in LAYOUT_KINDS:
         value.pop("layout", None)  # у акции шаблона страницы нет — присланное не храним
+    # R8: свой порядок разделов правится в схеме «Seitenaufbau» — вкладка его не стирает
+    # (сброс «Zurück zum Standard» — стирает всё)
+    keep = clean(_raw(obj), module).get("order")
+    if keep and not post.get("ps_reset"):
+        value["order"] = keep
     changed = []
     if value != _raw(obj):
         obj.page_override = value

@@ -54,7 +54,7 @@
     {% include "storefront/_event_tabs.html" with ev=event %}
     {% elif detail_flow %}
     {% comment %}FB-31 P5: свои блоки между разделами — шириной текста (решение владельца).{% endcomment %}
-    {% for it in detail_flow %}{% if it.section %}<div data-ed-section="{{ it.section }}">{% include "storefront/_event_thematic.html" with k=it.section %}</div>{% else %}{% page_blocks "event_detail" part=it.part %}{% endif %}{% endfor %}
+    {% for it in detail_flow %}{% if it.section %}<div data-ed-section="{{ it.section }}">{% include "storefront/_event_thematic.html" with k=it.section %}</div>{% else %}{% page_blocks it.host|default:"event_detail" part=it.part %}{% endif %}{% endfor %}
     {% else %}
     {% for k in event_detail_order %}<div data-ed-section="{{ k }}">{% include "storefront/_event_thematic.html" with k=k %}</div>{% endfor %}
     {% endif %}

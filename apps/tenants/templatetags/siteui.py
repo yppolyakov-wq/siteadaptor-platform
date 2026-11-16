@@ -527,10 +527,8 @@ def object_blocks(context, kind, obj, part="after"):
     """FB-29.4b: СВОИ блоки объекта (товар, услуга) — только на его странице. Стоят под
     общими блоками страницы либо (R3, выбор на вкладке объекта) над ними: шаблон зовёт
     тег с обеих сторон, рисует та, что выбрана. Блоков нет — пусто."""
-    from apps.core import object_structure, page_settings
+    from apps.core import detail_parts, object_structure, page_settings
 
-    if (part == "before") != object_structure.blocks_first(obj, kind):
-        return ""
     request = context.get("request")
     host = object_structure.object_host(kind, obj)
     if not host or request is None:
@@ -540,6 +538,13 @@ def object_blocks(context, kind, obj, part="after"):
     except Exception:  # noqa: BLE001 — превью не должно ронять витрину
         raw = getattr(getattr(request, "tenant", None), "site_config", None)
     if not ((raw or {}).get("page_blocks") or {}).get(host):
+        return ""
+    # FB-31 P5 R8: свои блоки стоят между разделами (строки разделов в схеме объекта) —
+    # здесь только хвост после последнего раздела; остальное рисует поток тела
+    tail = detail_parts.own_tail(raw, kind, obj)
+    if tail is not None:
+        return page_blocks(context, host, tail) if tail and part != "before" else ""
+    if (part == "before") != object_structure.blocks_first(obj, kind):
         return ""
     return page_blocks(context, host)
 
