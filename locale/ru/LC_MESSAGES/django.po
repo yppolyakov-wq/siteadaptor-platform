@@ -38717,3 +38717,60 @@ msgstr "Для всех страниц"
 
 msgid "Gilt auf jeder Seite. Eine Liste oder ein einzelnes Produkt kann eine eigene Kartenform haben."
 msgstr "Действует на каждой странице. У списка или отдельного товара может быть своя форма карточки."
+
+msgid "Aktionen in Abschnitten je Gruppe."
+msgstr "Акции разделами по группам."
+
+msgid "Alle Aktionen in einer Liste."
+msgstr "Все акции одним списком."
+
+msgid "Alles auf einen Blick, wenig Platz."
+msgstr "Всё с одного взгляда, мало места."
+
+msgid "Angebotsgruppen"
+msgstr "Группы акций"
+
+msgid "Dichtes Raster wie im Handzettel."
+msgstr "Плотная сетка, как в листовке."
+
+msgid "Erste Aktion groß, der Rest im Raster."
+msgstr "Первая акция крупно, остальные сеткой."
+
+msgid "Foto, Preis und Bedingungen – wie bisher."
+msgstr "Фото, цена и условия — как раньше."
+
+msgid "Großer Preis über dem Foto."
+msgstr "Крупная цена поверх фото."
+
+msgid "Großes Foto, Text darunter."
+msgstr "Большое фото, текст под ним."
+
+msgid "Gruppen als Chips – wie bisher."
+msgstr "Группы чипами — как раньше."
+
+msgid "Gruppen als Reiter über den Aktionen."
+msgstr "Группы вкладками над акциями."
+
+msgid "Gruppen und Suche links, Aktionen rechts."
+msgstr "Группы и поиск слева, акции справа."
+
+msgid "Jede Gruppe als Reihe mit Pfeilen."
+msgstr "Каждая группа — рядом со стрелками."
+
+msgid "Ohne Abschnitte"
+msgstr "Без разделов"
+
+msgid "Tabelle mit Preisen – ohne Fotos."
+msgstr "Таблица с ценами — без фото."
+
+msgid "Verzeichnis der Gruppen in Spalten."
+msgstr "Указатель групп в колонках."
+
+msgid "Wie Aktionen gezeigt werden"
+msgstr "Как показывать акции"
+
+msgid "Wie ein Prospekt mit Farbband."
+msgstr "Как листовка с цветной лентой."
+
+msgid "Zwei große Karten mit Bedingungen."
+msgstr "Две крупные карточки с условиями."

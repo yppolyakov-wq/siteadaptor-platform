@@ -141,7 +141,7 @@ def site_schema_view(request):
                         % {"lists": ", ".join(names)},
                     )
             else:
-                if op in ("catview", "mainview"):
+                if op in ("catview", "mainview", "maingroup"):
                     # ревью R5b: недоступный вид (нет подкатегорий/наборов) не берём и в
                     # обход плиток — только тот, что можно выбрать на экране
                     site_schema.check_view_available(
@@ -154,6 +154,7 @@ def site_schema_view(request):
                         site_schema.host_for(code),
                         ref,
                         request.POST.get("value", ""),
+                        op,
                     )
                 ref = aufbau_draft.op(
                     request,
@@ -284,7 +285,7 @@ def site_schema_view(request):
             place_capable=bool(selected.get("cblock"))
             and site_schema.place_capable(current.host if current else ""),
         )
-    for view_key in ("catview", "mainview"):
+    for view_key in ("catview", "mainview", "groupview"):
         if selected and selected.get(view_key):
             site_schema.mark_view_availability(config, current.host, selected[view_key])
     if selected and selected.get("fields"):

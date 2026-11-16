@@ -38465,3 +38465,60 @@ msgstr "Für alle Seiten"
 
 msgid "Gilt auf jeder Seite. Eine Liste oder ein einzelnes Produkt kann eine eigene Kartenform haben."
 msgstr "Gilt auf jeder Seite. Eine Liste oder ein einzelnes Produkt kann eine eigene Kartenform haben."
+
+msgid "Aktionen in Abschnitten je Gruppe."
+msgstr "Aktionen in Abschnitten je Gruppe."
+
+msgid "Alle Aktionen in einer Liste."
+msgstr "Alle Aktionen in einer Liste."
+
+msgid "Alles auf einen Blick, wenig Platz."
+msgstr "Alles auf einen Blick, wenig Platz."
+
+msgid "Angebotsgruppen"
+msgstr "Angebotsgruppen"
+
+msgid "Dichtes Raster wie im Handzettel."
+msgstr "Dichtes Raster wie im Handzettel."
+
+msgid "Erste Aktion groß, der Rest im Raster."
+msgstr "Erste Aktion groß, der Rest im Raster."
+
+msgid "Foto, Preis und Bedingungen – wie bisher."
+msgstr "Foto, Preis und Bedingungen – wie bisher."
+
+msgid "Großer Preis über dem Foto."
+msgstr "Großer Preis über dem Foto."
+
+msgid "Großes Foto, Text darunter."
+msgstr "Großes Foto, Text darunter."
+
+msgid "Gruppen als Chips – wie bisher."
+msgstr "Gruppen als Chips – wie bisher."
+
+msgid "Gruppen als Reiter über den Aktionen."
+msgstr "Gruppen als Reiter über den Aktionen."
+
+msgid "Gruppen und Suche links, Aktionen rechts."
+msgstr "Gruppen und Suche links, Aktionen rechts."
+
+msgid "Jede Gruppe als Reihe mit Pfeilen."
+msgstr "Jede Gruppe als Reihe mit Pfeilen."
+
+msgid "Ohne Abschnitte"
+msgstr "Ohne Abschnitte"
+
+msgid "Tabelle mit Preisen – ohne Fotos."
+msgstr "Tabelle mit Preisen – ohne Fotos."
+
+msgid "Verzeichnis der Gruppen in Spalten."
+msgstr "Verzeichnis der Gruppen in Spalten."
+
+msgid "Wie Aktionen gezeigt werden"
+msgstr "Wie Aktionen gezeigt werden"
+
+msgid "Wie ein Prospekt mit Farbband."
+msgstr "Wie ein Prospekt mit Farbband."
+
+msgid "Zwei große Karten mit Bedingungen."
+msgstr "Zwei große Karten mit Bedingungen."

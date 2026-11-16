@@ -1134,9 +1134,35 @@ def _promo_structure(request, promo) -> dict:
     return object_structure.panel(config, "promo", promo)
 
 
+def _drop_own_offer_view(tenant, promo) -> None:
+    """FB-31 P3 (ревью): шаблон акции, выбранный в её форме, — последнее решение владельца:
+    вид строки «Angebot» из своих блоков акции («nur diese») снимается."""
+    from django.db import transaction
+
+    from apps.core import object_structure
+    from apps.core.pagecache import bump_storefront_cache
+    from apps.tenants import siteconfig
+    from apps.tenants.models import Tenant
+
+    host = object_structure.object_host("promo", promo)
+    if tenant is None or not host:
+        return
+    with transaction.atomic():
+        locked = Tenant.objects.select_for_update().get(pk=tenant.pk)
+        cfg = locked.site_config if isinstance(locked.site_config, dict) else {}
+        blocks = cfg.get("page_blocks")
+        if not isinstance(blocks, dict) or not blocks.get(host):
+            return
+        new_cfg = siteconfig.drop_page_views(cfg, host)
+        Tenant.objects.filter(pk=locked.pk).update(site_config=new_cfg)
+        transaction.on_commit(lambda: bump_storefront_cache(locked.schema_name))
+    tenant.site_config = new_cfg
+
+
 @login_required
 def promotion_edit(request, pk):
     promo = get_object_or_404(Promotion, pk=pk)
+    style_before = promo.page_style
     form = PromotionForm(
         request.POST or None,
         request.FILES or None,
@@ -1146,6 +1172,8 @@ def promotion_edit(request, pk):
     if request.method == "POST":
         if form.is_valid():
             promo = form.save()
+            if promo.page_style != style_before:
+                _drop_own_offer_view(getattr(request, "tenant", None), promo)
             _handle_promo_uploads(request, promo)
             # FB-29 R5: своя структура страницы акции — по сентинелу (W0)
             from apps.core import object_structure

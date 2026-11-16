@@ -102,9 +102,15 @@ def test_overview_template_tiles_save_in_the_cabinet():
     tenant = TenantFactory(
         schema_name="public", slug="dl21p", name="DL21P", enabled_modules=["catalog", "promotions"]
     )
-    form = _cabinet_form(tenant, "page_templates_website", "promos", "promo_page_style")
-    for code, _l, _h in group_styles.PROMO_PAGE_STYLES:
-        assert f'name="value" value="{code}"' in form, code
+    # FB-31 P3 (осознанно): шаблон обзора разложен на блоки — плиток шаблона в панели нет,
+    # каждый код по-прежнему записывается и читается витриной (`promo_parts`)
+    from apps.core import site_schema
+    from apps.promotions import promo_parts
+
+    assert "promo_page_style" not in site_schema.setting_codes(tenant, "promos")
+    assert sorted(promo_parts.PROMOS.codes) == sorted(
+        c for c, _l, _h in group_styles.PROMO_PAGE_STYLES
+    )
     page_settings.write(tenant, "promo_page_style", "magazin")
     assert siteconfig.normalize(tenant.site_config)["promo_page_style"] == "magazin"
     cfg = _save(tenant, {"home_form": "1", "promo_page_style": ""})

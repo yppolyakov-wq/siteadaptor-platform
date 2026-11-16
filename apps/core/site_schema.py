@@ -972,6 +972,11 @@ def blocks_for(
         # FB-30.16 R4: блоки каталога — вид категорий и вид товаров ★ (стратегия FB-31)
         if host in ("catalog", "category") and (main or key in siteconfig.CATALOG_PART_STYLES):
             out[-1].update(_catalog_view_panel(config, host, item, main))
+        elif siteconfig.part_surface(host) is not None and (
+            main or (key in siteconfig.page_builtin_keys(host) and not item.get("id"))
+        ):
+            # FB-31 P3: страницы акций — те же плитки вида у закреплённых строк и ★
+            out[-1].update(_part_view_panel(config, host, item, main))
     if summaries and host in ("catalog", "category") and not _has_combos():
         # «Sets & Menüs» — только если наборы есть (иначе строке нечего показывать)
         out = [b for b in out if b["key"] != siteconfig.CATALOG_SETS_KEY]
@@ -1557,6 +1562,8 @@ def mark_view_availability(config: dict, host: str, view: dict) -> None:
     from apps.core import page_settings
 
     surface = "category" if host == "category" or host.startswith("catalog:") else "catalog"
+    if host == "promos" or host == "promo_detail" or host.startswith("promo:"):
+        surface = "promos" if host == "promos" else "promo"  # FB-31 P3
     off = page_settings.composition_gate(config).get(surface, set())
     reason = str(page_settings.UNAVAILABLE_REASON)
     view["tiles"] = [
@@ -1572,10 +1579,13 @@ def mark_view_availability(config: dict, host: str, view: dict) -> None:
     ]
 
 
-def check_view_available(config: dict, host: str, ref: str, value: str) -> None:
+def check_view_available(config: dict, host: str, ref: str, value: str, op: str = "") -> None:
     """SchemaError, если вид блока каталога сейчас недоступен (нет подкатегорий/наборов)."""
     row = next((b for b in blocks_for(config, _code_of_host(host), host) if b["ref"] == ref), None)
-    view = (row or {}).get("catview") or (row or {}).get("mainview")
+    if op == "maingroup":
+        view = (row or {}).get("groupview")
+    else:
+        view = (row or {}).get("catview") or (row or {}).get("mainview")
     if not view:
         return  # не прикреплённая строка — решит mutate
     mark_view_availability(config, host, view)
@@ -1585,6 +1595,12 @@ def check_view_available(config: dict, host: str, ref: str, value: str) -> None:
 
 
 def _code_of_host(host: str) -> str:
+    if host == "promos":
+        return "promos"
+    if host == "promo_detail":
+        return "promo"
+    if host.startswith("promo:"):
+        return f"promo@{host}"
     return "category" if host == "category" else "catalog"
 
 
@@ -1633,6 +1649,117 @@ def _catalog_view_panel(config: dict, host: str, item: dict, main: bool) -> dict
         "summary": str(current),
         "catview": {"value": value, "choices": CATEGORY_VIEW_CHOICES},
     }
+
+
+#: FB-31 P3: плитки видов строк страниц акций (миниатюра — по коду шаблона).
+PROMO_PART_CHOICES = {
+    ("promos", "page_head"): (
+        _("Banner · Fotos der Seite"),
+        (
+            ("aus", _("Ohne Kopfbereich"), _("Die Seite beginnt direkt mit dem Inhalt."), ""),
+            ("titelbild", _("Titelbild"), _("Foto und Beschreibung der Seite oben."), "kopfbild"),
+        ),
+    ),
+    ("promos", "groups"): (
+        _("Angebotsgruppen"),
+        (
+            ("auto", _("Automatisch"), _("Gruppen als Chips – wie bisher."), ""),
+            ("regale", _("Regale"), _("Jede Gruppe als Reihe mit Pfeilen."), "regale"),
+            ("tabs", _("Reiter"), _("Gruppen als Reiter über den Aktionen."), "tabs"),
+            ("index", _("Index"), _("Verzeichnis der Gruppen in Spalten."), "kompakt"),
+            (
+                "side",
+                _("Seitenspalte"),
+                _("Gruppen und Suche links, Aktionen rechts."),
+                "navigator",
+            ),
+        ),
+    ),
+    ("promo", "offer"): (
+        _("Angebot"),
+        (
+            ("standard", _("Standard"), _("Foto, Preis und Bedingungen – wie bisher."), ""),
+            ("plakat", _("Plakat"), _("Großer Preis über dem Foto."), "plakat"),
+            ("prospekt", _("Angebotszettel"), _("Wie ein Prospekt mit Farbband."), "prospekt"),
+            ("kompakt", _("Kompakt"), _("Alles auf einen Blick, wenig Platz."), "kompakt"),
+            ("magazin", _("Magazin"), _("Großes Foto, Text darunter."), "magazin"),
+        ),
+    ),
+}
+PROMO_MAIN_CHOICES = (
+    ("raster", _("Raster"), _("Foto, Name, Preis – die übliche Ansicht."), ""),
+    ("preisliste", _("Preisliste"), _("Tabelle mit Preisen – ohne Fotos."), "preisliste"),
+    (
+        "schaufenster",
+        _("Schaufenster"),
+        _("Erste Aktion groß, der Rest im Raster."),
+        "schaufenster",
+    ),
+    ("magazin", _("Magazin"), _("Zwei große Karten mit Bedingungen."), "magazin"),
+    ("prospekt", _("Prospekt"), _("Dichtes Raster wie im Handzettel."), "kompakt"),
+)
+PROMO_GROUPING_CHOICES = (
+    ("auto", _("Nach Gruppen"), _("Aktionen in Abschnitten je Gruppe."), ""),
+    ("ohne", _("Ohne Abschnitte"), _("Alle Aktionen in einer Liste."), "magazin"),
+)
+
+
+def _part_view_panel(config: dict, host: str, item: dict, main: bool) -> dict:
+    """FB-31 P3: панель вида строки страницы акций — текущий вид (строки либо шаблон)."""
+    from apps.core import page_parts as pp
+    from apps.tenants import siteconfig
+
+    surface = siteconfig.part_surface(host)
+    code = _promo_code(config, host)
+    parts = pp.effective(surface, config, host, code=code)
+    if main:
+        if surface.name != "promos":
+            return {}
+        return {
+            "label": f"★ {_('Aktionen')}",
+            "mainview": {
+                "value": parts.view or "raster",
+                "choices": PROMO_MAIN_CHOICES,
+                "title": str(_("Wie Aktionen gezeigt werden")),
+            },
+            "groupview": {
+                "value": parts.grouping or "auto",
+                "choices": PROMO_GROUPING_CHOICES,
+                "title": str(_("Abschnitte")),
+            },
+        }
+    key = item.get("key")
+    label, choices = PROMO_PART_CHOICES[(surface.name, key)]
+    axis = next(a for a in surface.axes if a.key == key)
+    value = parts.get(axis.name) or axis.off
+    current = next((lab for v, lab, _h, _t in choices if v == value), "")
+    return {
+        "label": str(label),
+        "pinned": True,
+        "widths": [],
+        "summary": str(current),
+        "catview": {"value": value, "choices": choices, "title": str(label)},
+    }
+
+
+def _promo_code(config: dict, host: str) -> str:
+    """Прежний код шаблона страницы акций (то же, что берёт витрина)."""
+    from apps.promotions import group_styles
+
+    if host == "promos":
+        return group_styles.promo_page_style((config or {}).get("promo_page_style"))
+    sd = (config or {}).get("site_defaults") or {}
+    return group_styles.promotion_detail_style("", sd.get("promo_detail_style", ""))
+
+
+def _rows_host(code: str) -> str:
+    """Хост строк схемы по коду строки (`catalog`, `promo` → `promo_detail`,
+    `promo@promo:<hex>` → `promo:<hex>`) — без проверки объекта (её делает `host_for`)."""
+    last = str(code).split("@")[-1]
+    if ":" in last:
+        return last
+    pt = _page_type(last)
+    return _host(pt) if pt is not None else last
 
 
 def load_items(config: dict, home: bool, host: str) -> list[dict]:
@@ -1705,10 +1832,11 @@ def mutate(
     main = siteconfig.is_main_marker(item)
     # FB-31 P0 (ревью): встроенная строка-список вне главной («Kategorien» каталога) пока
     # только двигается и скрывается — ширину/ряд/поля витрина ей ещё не рисует (R4).
+    rows_host = _rows_host(code)
     pinned = (
         not item.get("id")
         and not main
-        and item.get("key") in siteconfig.page_builtin_keys(code.split("@")[-1])
+        and item.get("key") in siteconfig.page_builtin_keys(rows_host)
     )
     # FB-30.16 R4: блок «Kategorien» каталога прикреплён к ★ (стоит прямо над ним, как на
     # витрине) — его нельзя двигать, скрывать, менять ширину; меняется только вид.
@@ -1724,11 +1852,28 @@ def mutate(
         "move",
     ):
         raise SchemaError("fixed")
+    surface = siteconfig.part_surface(rows_host)
+    if surface is not None and op in ("catview", "mainview", "maingroup"):
+        # FB-31 P3: вид строки страницы акций / вид и абзацы ★ — значения своей поверхности
+        if op == "catview":
+            if not pinned or value not in siteconfig.part_styles(rows_host, item.get("key")):
+                raise SchemaError("op")
+            item["style"] = value
+            item["enabled"] = True
+            return ref
+        name = "view" if op == "mainview" else "grouping"
+        axis = next((a for a in surface.axes if a.key == "main" and a.name == name), None)
+        if not main or axis is None or not axis.accepts(value):
+            raise SchemaError("op")
+        item[axis.field] = value
+        return ref
+    if op == "maingroup":
+        raise SchemaError("op")
     if op == "catview":
         # вид прикреплённой строки каталога: «Kategorien», шапка или сеты (R5b)
         allowed = siteconfig.CATALOG_PART_STYLES.get(item.get("key"), ())
         # FB-31 P3: строки осей акций хранятся, панели у них — позже (R5)
-        catalog_page = "categories" in siteconfig.page_builtin_keys(code.split("@")[-1])
+        catalog_page = "categories" in siteconfig.page_builtin_keys(rows_host)
         if not pinned or not catalog_page or value not in allowed:
             raise SchemaError("op")
         item["style"] = value
@@ -1737,7 +1882,7 @@ def mutate(
     if op == "mainview":
         from apps.catalog import catalog_parts
 
-        if not main or "categories" not in siteconfig.page_builtin_keys(code.split("@")[-1]):
+        if not main or "categories" not in siteconfig.page_builtin_keys(rows_host):
             raise SchemaError("op")
         if value not in ("raster", *MAIN_VIEW_CHOICES):
             raise SchemaError("op")
@@ -2164,6 +2309,9 @@ def design_rows(tenant, code: str) -> list[dict]:
 REPLACED_BY_BLOCKS = {
     "catalog": frozenset({"catalog_page_style"}),
     "category": frozenset({"category_page_style"}),
+    # FB-31 P3: шаблон обзора — строки «Banner», «Angebotsgruppen» и вид ★; шаблон
+    # страницы акции — вид строки «Angebot» (у страницы акции своя строка в выборе)
+    "promos": frozenset({"promo_page_style", "promo_detail_style"}),
 }
 
 

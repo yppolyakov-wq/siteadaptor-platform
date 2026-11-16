@@ -1493,6 +1493,25 @@ def main_list_sequence(host, blocks) -> list:
             blocks.insert(at - 1, sets)
         else:
             blocks.insert(at + 1, sets)
+        return blocks
+    # FB-31 P3: строки осей страниц акций — шапка первой, навигация групп прямо над ★,
+    # «Angebot» детали — первой (на витрине предложение стоит над своими блоками)
+    surface = part_surface(host)
+    if surface is not None:
+        pinned = {}
+        for key in surface.keys():
+            row = next((b for b in blocks if b.get("key") == key and not b.get("id")), None)
+            blocks = [b for b in blocks if b is not row]
+            pinned[key] = row or {"key": key, "enabled": True}
+        if CATALOG_HEAD_KEY in pinned:
+            blocks.insert(0, pinned.pop(CATALOG_HEAD_KEY))
+        at = next((i for i, b in enumerate(blocks) if is_main_marker(b)), None)
+        for row in pinned.values():
+            if at is None:
+                blocks.insert(0, row)
+            else:
+                blocks.insert(at, row)
+                at += 1
     return blocks
 
 

@@ -444,13 +444,15 @@ def _detail_style(cfg, promo, site_default: str) -> str:
     from . import promo_parts
 
     surface = promo_parts.PROMO_DETAIL
-    blocks = ((cfg or {}).get("page_blocks") or {}) if isinstance(cfg, dict) else {}
+    blocks = (cfg.get("page_blocks") or {}) if isinstance(cfg, dict) else {}
+    if not isinstance(blocks, dict):  # ревью R1–R4: сырой конфиг черновика может быть битым
+        blocks = {}
     site_code = group_styles.promotion_detail_style("", site_default)
     own = group_styles.promotion_detail_style(promo.page_style, "")
     if own:
         parts = pp.from_code(surface, own)
     else:
-        parts = pp.effective_rows(surface, blocks.get("promo_detail") or [], code=site_code)
+        parts = pp.effective_rows(surface, blocks.get("promo_detail"), code=site_code)
     host = object_structure.object_host("promo", promo)
     if host and blocks.get(host):
         parts = pp.effective_rows(surface, blocks[host], code=pp.legacy_code(surface, parts))

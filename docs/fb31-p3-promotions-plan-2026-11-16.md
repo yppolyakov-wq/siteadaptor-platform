@@ -95,3 +95,16 @@ i18n (5 `.po`), Tailwind (`build:css`), однострочные `{# #}`.
 - `django-reviewer` — каждый срез; `silent-failure-hunter` — R2–R4; `security-reviewer` — R4, R6;
   `database-reviewer` — R6 (запрос групп); `a11y-architect` + Playwright 1440/390 — R5, R6;
   `doc-updater` — R7.
+
+## 6. Ход работ
+- R0–R4 сделаны (2026-11-16): снимки 49, ядро `page_parts` + `promo_parts`, хранение строк,
+  витрина читает оси (байт-в-байт), писатели снимают виды. У ★ явное «как обычно»: вид
+  `raster`, абзацы `auto` (сильнее кода шаблона, как «Raster» каталога).
+- Ревью `django-reviewer` R1–R4: сырые строки осей в схеме (закрывает R5); битый
+  `page_blocks` в сыром конфиге детали → защита; шаблон акции в её форме снимает вид строки
+  «Angebot» её своих блоков (последнее решение владельца); `apply_override` снимает виды только
+  при смене шаблона (повтор черновика/ассистент их не стирает).
+- R5: строки «Banner · Fotos der Seite», «Angebotsgruppen» (над ★) и «Angebot» (деталь, первой)
+  закреплены, панели с плитками и причиной недоступности (нет групп); ★ «Aktionen» — вид и
+  «Abschnitte» (по группам / без абзацев); `promo_page_style`/`promo_detail_style` убраны из
+  панели настроек (`REPLACED_BY_BLOCKS`).

@@ -173,7 +173,8 @@ def has_parts(s: Surface, rows) -> bool:
 
 def effective(s: Surface, cfg, host: str, *, code: str = "") -> Parts:
     """Оси страницы: прежний код, поверх — оси, заданные сохранёнными строками хоста."""
-    rows = ((cfg or {}).get("page_blocks") or {}).get(host) or []
+    blocks = (cfg.get("page_blocks") or {}) if isinstance(cfg, dict) else {}
+    rows = blocks.get(host) if isinstance(blocks, dict) else None
     return effective_rows(s, rows, code=code)
 
 

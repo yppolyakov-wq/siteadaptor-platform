@@ -38524,3 +38524,60 @@ msgstr "Tüm sayfalar için"
 
 msgid "Gilt auf jeder Seite. Eine Liste oder ein einzelnes Produkt kann eine eigene Kartenform haben."
 msgstr "Her sayfada geçerlidir. Bir liste veya tek bir ürün kendi kart biçimine sahip olabilir."
+
+msgid "Aktionen in Abschnitten je Gruppe."
+msgstr "Gruba göre bölümlerde kampanyalar."
+
+msgid "Alle Aktionen in einer Liste."
+msgstr "Tüm kampanyalar tek listede."
+
+msgid "Alles auf einen Blick, wenig Platz."
+msgstr "Her şey tek bakışta, az yer."
+
+msgid "Angebotsgruppen"
+msgstr "Kampanya grupları"
+
+msgid "Dichtes Raster wie im Handzettel."
+msgstr "Broşürdeki gibi sık ızgara."
+
+msgid "Erste Aktion groß, der Rest im Raster."
+msgstr "İlk kampanya büyük, kalanı ızgarada."
+
+msgid "Foto, Preis und Bedingungen – wie bisher."
+msgstr "Fotoğraf, fiyat ve koşullar – eskisi gibi."
+
+msgid "Großer Preis über dem Foto."
+msgstr "Fotoğrafın üzerinde büyük fiyat."
+
+msgid "Großes Foto, Text darunter."
+msgstr "Büyük fotoğraf, altında metin."
+
+msgid "Gruppen als Chips – wie bisher."
+msgstr "Gruplar çip olarak – eskisi gibi."
+
+msgid "Gruppen als Reiter über den Aktionen."
+msgstr "Gruplar kampanyaların üstünde sekme olarak."
+
+msgid "Gruppen und Suche links, Aktionen rechts."
+msgstr "Gruplar ve arama solda, kampanyalar sağda."
+
+msgid "Jede Gruppe als Reihe mit Pfeilen."
+msgstr "Her grup oklu bir satır olarak."
+
+msgid "Ohne Abschnitte"
+msgstr "Bölümsüz"
+
+msgid "Tabelle mit Preisen – ohne Fotos."
+msgstr "Fiyat tablosu – fotoğrafsız."
+
+msgid "Verzeichnis der Gruppen in Spalten."
+msgstr "Grupların sütunlarda dizini."
+
+msgid "Wie Aktionen gezeigt werden"
+msgstr "Kampanyalar nasıl gösterilir"
+
+msgid "Wie ein Prospekt mit Farbband."
+msgstr "Renk şeritli bir broşür gibi."
+
+msgid "Zwei große Karten mit Bedingungen."
+msgstr "Koşullu iki büyük kart."

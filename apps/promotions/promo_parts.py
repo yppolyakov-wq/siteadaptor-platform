@@ -20,14 +20,19 @@ HEAD_OFF = "aus"
 GROUPS_AUTO = "auto"
 STANDARD = "standard"
 FLAT = "ohne"
+#: явное «как обычно» у полей ★ — сильнее кода шаблона (как «Raster» у каталога)
+RASTER = "raster"
+GROUPED = "auto"
 
 PROMOS = pp.surface(
     "promos",
     axes=(
         pp.Axis("head", HEAD_KEY, ("titelbild",), off=HEAD_OFF),
         pp.Axis("groups", GROUPS_KEY, ("regale", "tabs", "index", "side"), off=GROUPS_AUTO),
-        pp.Axis("view", pp.MAIN_KEY, ("preisliste", "schaufenster", "magazin", "prospekt")),
-        pp.Axis("grouping", pp.MAIN_KEY, (FLAT,), field="grouping"),
+        pp.Axis(
+            "view", pp.MAIN_KEY, ("preisliste", "schaufenster", "magazin", "prospekt"), off=RASTER
+        ),
+        pp.Axis("grouping", pp.MAIN_KEY, (FLAT,), off=GROUPED, field="grouping"),
     ),
     codes={
         "": {},
@@ -49,7 +54,10 @@ PROMO_GROUP = pp.surface(
     axes=(
         pp.Axis("head", HEAD_KEY, ("prospekt", "countdown"), off=STANDARD),
         pp.Axis(
-            "view", pp.MAIN_KEY, ("schaufenster", "prospekt", "magazin", "vergleich", "countdown")
+            "view",
+            pp.MAIN_KEY,
+            ("schaufenster", "prospekt", "magazin", "vergleich", "countdown"),
+            off=RASTER,
         ),
     ),
     codes={

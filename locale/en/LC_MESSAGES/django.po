@@ -38378,3 +38378,60 @@ msgstr "For all pages"
 
 msgid "Gilt auf jeder Seite. Eine Liste oder ein einzelnes Produkt kann eine eigene Kartenform haben."
 msgstr "Applies on every page. A list or a single product can have its own card shape."
+
+msgid "Aktionen in Abschnitten je Gruppe."
+msgstr "Offers in sections per group."
+
+msgid "Alle Aktionen in einer Liste."
+msgstr "All offers in one list."
+
+msgid "Alles auf einen Blick, wenig Platz."
+msgstr "Everything at a glance, little space."
+
+msgid "Angebotsgruppen"
+msgstr "Offer groups"
+
+msgid "Dichtes Raster wie im Handzettel."
+msgstr "Dense grid like a flyer."
+
+msgid "Erste Aktion groß, der Rest im Raster."
+msgstr "First offer large, the rest in a grid."
+
+msgid "Foto, Preis und Bedingungen – wie bisher."
+msgstr "Photo, price and conditions – as before."
+
+msgid "Großer Preis über dem Foto."
+msgstr "Large price over the photo."
+
+msgid "Großes Foto, Text darunter."
+msgstr "Large photo, text below."
+
+msgid "Gruppen als Chips – wie bisher."
+msgstr "Groups as chips – as before."
+
+msgid "Gruppen als Reiter über den Aktionen."
+msgstr "Groups as tabs above the offers."
+
+msgid "Gruppen und Suche links, Aktionen rechts."
+msgstr "Groups and search on the left, offers on the right."
+
+msgid "Jede Gruppe als Reihe mit Pfeilen."
+msgstr "Each group as a row with arrows."
+
+msgid "Ohne Abschnitte"
+msgstr "Without sections"
+
+msgid "Tabelle mit Preisen – ohne Fotos."
+msgstr "Table with prices – no photos."
+
+msgid "Verzeichnis der Gruppen in Spalten."
+msgstr "Directory of groups in columns."
+
+msgid "Wie Aktionen gezeigt werden"
+msgstr "How offers are shown"
+
+msgid "Wie ein Prospekt mit Farbband."
+msgstr "Like a flyer with a colour band."
+
+msgid "Zwei große Karten mit Bedingungen."
+msgstr "Two large cards with conditions."

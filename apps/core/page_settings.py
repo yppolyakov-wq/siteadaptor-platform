@@ -563,6 +563,10 @@ def _clean(setting: studio_pages.Setting, value, gate: dict, current) -> object:
     return text
 
 
+#: FB-31 P3: шаблоны страниц акций и хосты, чьи виды блоков они снимают
+_PROMO_STYLE_HOSTS = {"promo_page_style": "promos", "promo_detail_style": "promo_detail"}
+
+
 def apply_override(cfg: dict, code: str, value, output: dict | None = None) -> dict:
     """Mutate a COPY of a raw config so that `code` has `value` (no validation of
     availability — callers validate). Writes one key; everything else is kept.
@@ -580,10 +584,9 @@ def apply_override(cfg: dict, code: str, value, output: dict | None = None) -> d
     if code == "category_page_style":
         out = siteconfig.drop_catalog_views(out, "category")
     # FB-31 P3: то же у страниц акций (строки группы — со своими хостами, R6)
-    if code == "promo_page_style":
-        out = siteconfig.drop_page_views(out, "promos")
-    if code == "promo_detail_style":
-        out = siteconfig.drop_page_views(out, "promo_detail")
+    # тот же шаблон ещё раз (повтор черновика, ассистент) виды не снимает (ревью R1–R4)
+    if code in _PROMO_STYLE_HOSTS and value != current_value(cfg or {}, setting)[0]:
+        out = siteconfig.drop_page_views(out, _PROMO_STYLE_HOSTS[code])
     kind = kind_of(setting)
     if kind == KIND_LAYOUT:
         key = _LAYOUT_KEYS[code]
