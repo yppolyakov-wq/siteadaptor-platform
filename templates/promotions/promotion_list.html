@@ -71,13 +71,12 @@
     {% comment %}LAY-7c: селект «Darstellung» (сетка/лента) убран — решение владельца
     2026-09-10 «оставить ОДИН контрол». «Сетка или лента» задаётся общей осью вывода
     в Студии; дубль здесь означал бы, что мы его просто перенесли.{% endcomment %}
-  {% comment %}DL-21.2: шаблон ОБЗОРНОЙ страницы /aktionen/ — плитки; сохраняются кнопкой
-  ниже (селекты выше отправляют форму сами и несут значение плитки с собой).{% endcomment %}
-  <div class="w-full mt-2">
-    {% include "tenant/_cardform_picker.html" with name="page_style" value=promo_page_style items=promo_page_styles thumb="tenant/_pagelayout_thumb.html" title=_("Aktionsseite: Vorlage") %}
-    <button type="submit" class="ui-btn ui-btn-primary mt-2">{% trans "Save" %}</button>
-  </div>
   </form>
+  {% comment %}FB-31 P3 R7: вид страницы акций (шапка, группы, вид списка) — блоки в «Seitenaufbau»;
+  второй копии плиток шаблона здесь нет (одно место на настройку, прецедент LAY-7c).{% endcomment %}
+  <p class="w-full mt-2 text-sm" data-promo-page-look>
+    <a href="{% url 'site-schema' %}?seite=promos" class="text-indigo-700 hover:underline">{% trans "Aussehen der Aktionsseite ändern" %} →</a>
+  </p>
   {% comment %}PT-5: ящик «Vorlagen der Gruppenseiten» заменён ссылкой на экран
   «Aktionstypen». Раньше у типа была ОДНА настройка (шаблон страницы), и она
   помещалась в `<details>`; теперь их четыре (шаблон · сетка/лента · колонки и

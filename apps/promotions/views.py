@@ -253,8 +253,6 @@ def promotion_list(request):
             "group_page_styles": group_styles.GROUP_PAGE_STYLES,
             "promo_group_rows": _promo_group_rows(request),
             # DL-21.2: шаблон обзорной страницы /aktionen/.
-            "promo_page_style": _promo_page_style(request),
-            "promo_page_styles": group_styles.PROMO_PAGE_STYLES,
             # T-8.23c: лёгкий кабинет — карточки вместо таблицы, без настроек витрины.
             "lite": _lite(request),
             # T-8.23c: открытые резервы — продавец видит их прямо на экране акций.
@@ -308,14 +306,6 @@ def _promo_group_rows(request):
         {g for g in Promotion.objects.exclude(group="").values_list("group", flat=True) if g}
     )
     return [{"name": g, "style": saved.get(g, "")} for g in names]
-
-
-def _promo_page_style(request) -> str:
-    from apps.tenants import siteconfig
-
-    raw = getattr(getattr(request, "tenant", None), "site_config", None)
-    raw = raw if isinstance(raw, dict) else {}
-    return siteconfig.normalize_promo_page_style(raw.get("promo_page_style"))
 
 
 def _promo_layout(request) -> str:

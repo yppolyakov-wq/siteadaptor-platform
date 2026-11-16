@@ -38788,3 +38788,6 @@ msgstr "Колонки поруч, «Популярне» позначено."
 
 msgid "Vergleich"
 msgstr "Порівняння"
+
+msgid "Aussehen der Aktionsseite ändern"
+msgstr "Змінити вигляд сторінки акцій"

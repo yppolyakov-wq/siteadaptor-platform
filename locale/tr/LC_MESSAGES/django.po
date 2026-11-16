@@ -38608,3 +38608,6 @@ msgstr "Yan yana sütunlar, «Popüler» işaretli."
 
 msgid "Vergleich"
 msgstr "Karşılaştırma"
+
+msgid "Aussehen der Aktionsseite ändern"
+msgstr "Kampanya sayfasının görünümünü değiştir"

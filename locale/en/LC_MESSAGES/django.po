@@ -38462,3 +38462,6 @@ msgstr "Columns side by side, «Popular» highlighted."
 
 msgid "Vergleich"
 msgstr "Comparison"
+
+msgid "Aussehen der Aktionsseite ändern"
+msgstr "Change the look of the offers page"

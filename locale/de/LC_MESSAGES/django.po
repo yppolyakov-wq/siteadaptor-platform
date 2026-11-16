@@ -38549,3 +38549,6 @@ msgstr "Spalten nebeneinander, «Beliebt» markiert."
 
 msgid "Vergleich"
 msgstr "Vergleich"
+
+msgid "Aussehen der Aktionsseite ändern"
+msgstr "Aussehen der Aktionsseite ändern"

@@ -23835,3 +23835,21 @@ security/silent-failure): тупик в двусторонних прятках,
   переноса, эти коды не пишут. Ревью `django-reviewer`: подпись вкл/выкл-настроек
   («True» → значение), лишние сборки схемы в панели, старые черновики — исправлены.
 
+### 2026-11-16 — FB-31 P3 «Aktionen»
+- Три страницы акций разложены на блоки, как каталог (`docs/fb31-p3-promotions-plan-2026-11-16.md`):
+  обзор `/aktionen/` — «Banner · Fotos der Seite», «Angebotsgruppen» (Automatisch · Regale ·
+  Reiter · Index · Seitenspalte), ★ «Aktionen» (Raster · Preisliste · Schaufenster · Magazin ·
+  Prospekt + «Abschnitte»); страница группы — шапка (Titel · Prospekt · Countdown) и ★ (… ·
+  Countdown · Vergleich); деталь акции — закреплённая строка «Angebot» (Standard · Plakat ·
+  Angebotszettel · Kompakt · Magazin).
+- Общее ядро `apps/core/page_parts.py` + `promo_parts`; витрина читает оси, старые шаблоны —
+  байт-в-байт (49 эталонов `golden_fb31p3/`). Смена шаблона (Studio, кабинет, форма акции,
+  тип акции) снимает выбранные виды — последнее решение владельца.
+- Выбор страниц: группа «Aktionen» (обзор, «Alle Angebotsgruppen», акция) и каждая группа
+  акций своей строкой (до 40; группа на паузе не теряет схему); ведомых строк нет.
+  «Alle Angebotsgruppen» до сохранения показывает блоки обзора, первое сохранение — копия.
+- Кабинет акций: плитки «Aktionsseite: Vorlage» заменены ссылкой в «Seitenaufbau».
+- Ревью `django-reviewer` ×3 (R1–R4, R5, R6): сырые строки в схеме, битый конфиг детали,
+  счётчик черновика, значение панели своей акции/группы, «Prospekt» без групп, нумерация
+  Студии, сезонные группы, лишние сканы — исправлены.
+
