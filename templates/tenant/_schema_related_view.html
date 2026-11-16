@@ -1,0 +1,39 @@
+{% load i18n %}{% comment %}FB-31 P5 R7: «Ähnliche Produkte › Wie» (макет владельца): вид, колонки, «Höchstens». Поля — прежней формы настройки (`value` = колонки, `out_mode`, `out_max`); прочие поля вывода сохраняются скрытыми.{% endcomment %}
+<div class="space-y-3" data-schema-related-view>
+  <fieldset>
+    <legend class="text-sm font-semibold mb-2">{% trans "Wie" %}</legend>
+    <div class="grid grid-cols-3 gap-2">
+      {% for mode, label in related_modes %}
+      <label class="group flex flex-col gap-1 rounded-xl border border-gray-200 p-2 min-h-[44px] text-xs cursor-pointer has-[:checked]:border-2 has-[:checked]:border-indigo-700 has-[:checked]:bg-indigo-50 has-[:focus-visible]:outline has-[:focus-visible]:outline-[3px] has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-indigo-600">
+        <input type="radio" id="rel-mode-{{ mode }}" name="out_mode" value="{{ mode }}" class="sr-only"{% if mode == related_mode %} checked{% endif %}>
+        <span class="flex gap-0.5" aria-hidden="true">{% for _ in "1234" %}<span class="h-3 flex-1 rounded-sm bg-gray-300{% if mode != "raster" and forloop.last %} opacity-40{% endif %}"></span>{% endfor %}</span>
+        <span>{{ label }}<span class="hidden group-has-[:checked]:inline"> ✓</span></span>
+        {% if mode == "auto" %}<span class="text-[11px] text-gray-600">{% trans "Slider, wenn mehr als eine Reihe" %}</span>{% endif %}
+      </label>
+      {% endfor %}
+    </div>
+  </fieldset>
+  <fieldset>
+    <legend class="text-sm font-semibold mb-2">{% trans "Spalten" %}</legend>
+    <div class="flex flex-wrap gap-2">
+      {% for n in "23456" %}
+      <label class="inline-flex items-center justify-center min-w-[44px] min-h-[44px] rounded-lg border border-gray-200 text-sm cursor-pointer has-[:checked]:border-2 has-[:checked]:border-indigo-700 has-[:checked]:bg-indigo-50 has-[:focus-visible]:outline has-[:focus-visible]:outline-[3px] has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-indigo-600">
+        <input type="radio" id="rel-cols-{{ n }}" name="value" value="cols{{ n }}" class="sr-only"{% if n == related_cols %} checked{% endif %}>
+        <span>{{ n }}</span>
+      </label>
+      {% endfor %}
+    </div>
+  </fieldset>
+  <fieldset>
+    <legend class="text-sm font-semibold mb-2">{% trans "Höchstens" %}</legend>
+    <div class="flex flex-wrap gap-2">
+      {% for n in related_max_choices %}
+      <label class="inline-flex items-center justify-center min-w-[44px] min-h-[44px] rounded-lg border border-gray-200 text-sm cursor-pointer has-[:checked]:border-2 has-[:checked]:border-indigo-700 has-[:checked]:bg-indigo-50 has-[:focus-visible]:outline has-[:focus-visible]:outline-[3px] has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-indigo-600">
+        <input type="radio" id="rel-max-{{ n }}" name="out_max" value="{{ n }}"{% if n == related_max %} checked{% endif %} class="sr-only">
+        <span>{{ n }}</span>
+      </label>
+      {% endfor %}
+    </div>
+  </fieldset>
+  {% if s.layout.tail %}<input type="hidden" name="out_tail" value="{{ s.layout.tail }}">{% endif %}{% if s.layout.rows %}<input type="hidden" name="out_rows" value="{{ s.layout.rows }}">{% endif %}{% if s.layout.speed %}<input type="hidden" name="out_speed" value="{{ s.layout.speed }}">{% endif %}
+</div>

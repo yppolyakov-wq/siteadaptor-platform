@@ -1984,6 +1984,36 @@ def preset_for_cols(preset, cols):
     return preset
 
 
+#: FB-31 P5 R7: «Höchstens» у «Ähnliche Produkte» (8 — как раньше, не хранится)
+RELATED_MAX = (4, 8, 12)
+RELATED_MAX_DEFAULT = 8
+
+
+def normalize_related_layout(raw) -> dict:
+    """Раскладка «Ähnliche Produkte»: общая сетка (`normalize_layout`, по умолчанию cols4)
+    и поля вида R7 — presence-minimal: `raster: True` (всегда сетка; при `scroll` —
+    Slider главнее) и `max` 4 | 12."""
+    out = normalize_layout(raw, {"preset": "cols4"})
+    raw = raw if isinstance(raw, dict) else {}
+    if raw.get("raster") and not out.get("scroll"):
+        out["raster"] = True
+    try:
+        limit = int(raw.get("max"))
+    except (TypeError, ValueError):
+        limit = RELATED_MAX_DEFAULT
+    if limit in RELATED_MAX and limit != RELATED_MAX_DEFAULT:
+        out["max"] = limit
+    return out
+
+
+def related_mode(layout) -> str:
+    """ "auto" (лента, если товаров больше ряда — как раньше) | "raster" | "slider"."""
+    layout = layout if isinstance(layout, dict) else {}
+    if layout.get("scroll"):
+        return "slider"
+    return "raster" if layout.get("raster") else "auto"
+
+
 def normalize_layout(raw, default=None, extra_presets=()) -> dict:
     """Привести layout секции к канону {preset, width, cols, mobile, gap}.
 
@@ -5554,8 +5584,8 @@ def _normalize_impl(config) -> dict:
     normalized["site_defaults"] = normalize_site_defaults(config.get("site_defaults"))
     # M20U-7 (per-page): раскладка блока «похожие товары» на детальной. Дефолт
     # cols4 воспроизводит прежнюю сетку (grid-cols-2 lg:grid-cols-4).
-    normalized["detail_related_layout"] = normalize_layout(
-        config.get("detail_related_layout"), {"preset": "cols4"}
+    normalized["detail_related_layout"] = normalize_related_layout(
+        config.get("detail_related_layout")
     )
     # M20U-7: кастомные заголовки секций главной (только известные ключи, обрезка).
     titles = config.get("section_titles")

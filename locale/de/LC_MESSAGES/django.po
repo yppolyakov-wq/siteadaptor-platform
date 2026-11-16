@@ -38603,3 +38603,7 @@ msgstr "Ansicht des Abschnitts der Startseite."
 
 msgid "Wie auf der Startseite"
 msgstr "Wie auf der Startseite"
+
+#: templates/tenant/_schema_related_view.html
+msgid "Slider, wenn mehr als eine Reihe"
+msgstr "Slider, wenn mehr als eine Reihe"

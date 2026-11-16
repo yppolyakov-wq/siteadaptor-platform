@@ -2400,31 +2400,34 @@ def product_detail(request, pk=None, pslug=None, cslug=None):
         )
     else:
         product = get_object_or_404(Product, slug=pslug, category__isnull=True, is_active=True)
-    from .price_layer import attach_promos
-
-    related = attach_promos(
-        Product.objects.filter(is_active=True, category=product.category)
-        .select_related("category")  # KAT-3: карточки → SEO-URL без N+1
-        .exclude(pk=product.pk)
-        .order_by("-is_featured", "-created_at")[:8]  # DL-16.6 (D4): до 8 — лента, если > ряда
-        if product.category_id
-        else []
-    )
     # При ?preview=1 — черновик из сессии (on-canvas правка видимости секций детальной).
     # STU-19b: draft or cabinet `?tpl=` override (see page_settings.preview_raw)
     from apps.tenants import siteconfig
 
+    from .price_layer import attach_promos
+
     _raw, _prev = page_settings.preview_raw(request)
     _cfg = siteconfig.normalize(_raw)
-    related_grid = siteconfig.grid_class_string(_cfg["detail_related_layout"])
     # DL-14: атрибуты «полных рядов» ставит шаблон (spread + авто-колонки по числу).
     related_layout = _cfg["detail_related_layout"]
-    # DL-16.6 (D4): похожих больше, чем колонок ряда → лента [data-sf-slider]; в пределах
-    # ряда — сетка (лента из 2 карточек на десктопе выглядела бы как обрубок). Явный
-    # scroll-режим Studio отдаёт ленту сам (движок раскладок, scroll → slider с DL-16.1).
-    related_strip = not related_layout.get("scroll") and len(related) > int(
-        related_layout.get("cols") or 4
+    related_mode = siteconfig.related_mode(related_layout)  # FB-31 P5 R7: вид «Wie»
+    limit = related_layout.get("max", siteconfig.RELATED_MAX_DEFAULT)
+    related = attach_promos(
+        Product.objects.filter(is_active=True, category=product.category)
+        .select_related("category")  # KAT-3: карточки → SEO-URL без N+1
+        .exclude(pk=product.pk)
+        .order_by("-is_featured", "-created_at")[:limit]  # DL-16.6: до 8 (R7: «Höchstens»)
+        if product.category_id
+        else []
     )
+    related_grid = siteconfig.grid_class_string(related_layout)
+    # DL-16.6 (D4): «Automatisch» — похожих больше, чем колонок ряда → лента
+    # [data-sf-slider]; в пределах ряда — сетка. «Slider» (scroll) отдаёт ленту движок
+    # раскладок сам (scroll → slider с DL-16.1); «Raster» — всегда сетка.
+    related_strip = related_mode == "auto" and len(related) > int(related_layout.get("cols") or 4)
+    if related_mode == "raster" and not related_layout.get("tail"):
+        # R7: «Höchstens N» в сетке — показать все N, неполный ряд не обрезать (DL-11)
+        related_layout = {**related_layout, "tail": "show"}
     from apps.catalog import reviews as product_reviews
     from apps.core.sellable import sellable_for
 

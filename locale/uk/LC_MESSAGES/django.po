@@ -38842,3 +38842,7 @@ msgstr "Вигляд розділу головної сторінки."
 
 msgid "Wie auf der Startseite"
 msgstr "Як на головній"
+
+#: templates/tenant/_schema_related_view.html
+msgid "Slider, wenn mehr als eine Reihe"
+msgstr "Стрічка, якщо більше одного ряду"

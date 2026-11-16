@@ -2697,6 +2697,40 @@ def _own_row(items: list[dict], idx: int) -> None:
 SETTINGS_FOLLOWERS: dict[str, tuple[str, ...]] = {}
 
 
+#: FB-31 P5 R7: настройки типа, которые правятся на строке своего раздела, а не на строке
+#: «Seite» (код страницы → {настройка: ref строки}); рядом — строки «Design» для этой строки.
+SETTING_ROWS = {"product": {"product_related": "related"}}
+SETTING_ROW_DESIGN = {"related": ("product_card_form",)}
+
+
+def row_settings(code: str, ref: str) -> tuple[str, ...]:
+    """Настройки, которые живут на строке `ref` страницы `code` (пусто — у строки их нет)."""
+    if is_object_code(code):
+        return ()
+    owned = SETTING_ROWS.get(str(code).split("@", 1)[0], {})
+    return tuple(c for c, row in owned.items() if row == ref)
+
+
+def related_view(config: dict) -> dict:
+    """FB-31 P5 R7: текущие «Wie» · «Spalten» · «Höchstens» строки «Ähnliche Produkte»."""
+    from django.utils.translation import gettext_lazy as _
+
+    from apps.tenants import siteconfig
+
+    lay = siteconfig.normalize_related_layout((config or {}).get("detail_related_layout"))
+    return {
+        "related_modes": (
+            ("auto", _("Automatisch")),
+            ("raster", _("Raster")),
+            ("slider", _("Slider")),
+        ),
+        "related_mode": siteconfig.related_mode(lay),
+        "related_cols": str(lay.get("cols") or 4),
+        "related_max": lay.get("max", siteconfig.RELATED_MAX_DEFAULT),
+        "related_max_choices": siteconfig.RELATED_MAX,
+    }
+
+
 #: FB-27 V3: строка-носитель настроек типа страницы там, где основного списка нет
 #: (код страницы → ref строки). Главная: вид баннера — в строке «Banner» (макет Main).
 SETTINGS_CARRIERS = {"home": "hero"}
@@ -2725,6 +2759,7 @@ def settings_url(type_code: str, setting: str = "") -> str:
         if _host(pt) in siteconfig.MAIN_LIST_HOSTS
         else settings_carrier(pt.code) or PAGE_REF
     )
+    block = SETTING_ROWS.get(pt.code, {}).get(setting) or block  # R7: строка раздела
     query = {"seite": pt.code, "block": block}
     if setting:
         query["offen"] = setting
@@ -2815,19 +2850,25 @@ REPLACED_BY_BLOCKS = {
 PAGE_REF = "__page"
 
 
-def settings_groups(tenant, code: str, config: dict) -> list[dict]:
+def settings_groups(tenant, code: str, config: dict, row: str = "") -> list[dict]:
     """Настройки строки `code` по значениям `config` (черновик): [{label, settings}].
-    Первая группа — сам тип (без заголовка), дальше типы без своей строки."""
+    Первая группа — сам тип (без заголовка), дальше типы без своей строки. `row` — строка
+    раздела со своими настройками (R7, `SETTING_ROWS`); без него — настройки строки «Seite»."""
     from apps.core import page_settings
 
-    seen: set[str] = set()
+    owned = SETTING_ROWS.get(str(code).split("@", 1)[0], {})
+    seen: set[str] = {c for c, r in owned.items() if r != row}
     out = []
     for i, type_code in enumerate(setting_types(tenant, code)):
         found = page_settings.schema(tenant, (type_code,), config=config)
         if not found:
             continue
         hidden = _not_on_page(code)
-        rows = [s for s in found[0].settings if s.code not in seen and s.code not in hidden]
+        rows = [
+            s
+            for s in found[0].settings
+            if s.code not in seen and s.code not in hidden and (not row or owned.get(s.code) == row)
+        ]
         seen.update(s.code for s in rows)
         if rows:
             out.append(

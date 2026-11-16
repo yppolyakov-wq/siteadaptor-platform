@@ -38662,3 +38662,7 @@ msgstr "Ana sayfa bölümünün görünümü."
 
 msgid "Wie auf der Startseite"
 msgstr "Ana sayfadaki gibi"
+
+#: templates/tenant/_schema_related_view.html
+msgid "Slider, wenn mehr als eine Reihe"
+msgstr "Birden fazla sıra varsa kaydırıcı"

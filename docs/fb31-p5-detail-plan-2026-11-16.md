@@ -163,3 +163,17 @@ ECC: скиллы django-patterns, django-tdd, python-testing, database-migratio
 django-security, accessibility (R8f); `django-reviewer` — каждый срез; `database-reviewer` —
 R8b/R8e (блокировки); `security-reviewer` — R8e; `silent-failure-hunter` — R8b/c/e;
 `a11y-architect` + Playwright 1440/390 de/ru — после R8d и R8e/f; `doc-updater` — R8g.
+
+## 13. План R7 «Ähnliche › Wie» (`planner`, 2026-11-16)
+Студия `detail_related_layout` не пишет (STU-19f-2) — писатель один, `page_settings.apply_override`
+(черновик, ассистент). Хранение: `detail_related_layout` + presence-minimal `raster: True`
+(Raster), `max: 4|12` (8 не хранится); Slider = прежний `scroll: True`, Automatisch — ни того,
+ни другого; колонки — пресеты `cols2…cols6`. Ловушка: общий `normalize_layout` отбрасывает
+незнакомые ключи → свой нормализатор `normalize_related_layout` (вызывают `normalize` и
+`apply_override`). Витрина: срез `[:max]`, лента в «Automatisch» — когда товаров больше
+колонок; в Raster неполный ряд не обрезается (`tail="show"`, если не задан — «Höchstens N»
+значит показать N). Панель: прежняя `op=setting setting=product_related` с `out_mode`/`out_max`,
+но на строке раздела `related` (из строки «Seite» уходит); «Ähnliche Zimmer», «Passt dazu»,
+`cart_upsell` — без кода, замками. ECC: django-reviewer (план и шаги 1–3), silent-failure-hunter
+(1–3), a11y-architect + Playwright 1440/390 (шаг 3), security-reviewer (POST → конфиг),
+doc-updater.

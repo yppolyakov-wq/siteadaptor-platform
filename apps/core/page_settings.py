@@ -192,7 +192,8 @@ APPLY_ALL_TYPES = {
 }
 
 #: Output-axis fields of a layout (LAY-3b) — the part of a grid besides the preset.
-OUTPUT_KEYS = ("scroll", "rows", "page_size", "speed", "tail")
+#: FB-31 P5 R7: `raster`/`max` — только у «Ähnliche Produkte» (прочие сетки их отбрасывают)
+OUTPUT_KEYS = ("scroll", "rows", "page_size", "speed", "tail", "raster", "max")
 
 
 def output_payload(post, field: str) -> dict:
@@ -204,9 +205,12 @@ def output_payload(post, field: str) -> dict:
     config. Empty fields are NOT written: for all of them "no key" means "as before".
     """
     payload: dict = {}
-    if post.get(f"{field}_mode") == "slider":
+    mode = post.get(f"{field}_mode")
+    if mode == "slider":
         payload["scroll"] = True
-    for suffix in ("rows", "page_size", "speed"):
+    elif mode == "raster":  # FB-31 P5 R7: «Ähnliche» — всегда сетка («grid» — прежнее «как есть»)
+        payload["raster"] = True
+    for suffix in ("rows", "page_size", "speed", "max"):
         raw = (post.get(f"{field}_{suffix}") or "").strip()
         if raw:
             payload[suffix] = raw
@@ -638,6 +642,9 @@ def apply_override(cfg: dict, code: str, value, output: dict | None = None) -> d
                 layout.pop(field_, None)
             layout.update({k: v for k, v in output.items() if k in OUTPUT_KEYS})
         extra = siteconfig.PAGE_EXTRA_PRESETS.get(key, ())
+        if key == "detail_related_layout":  # FB-31 P5 R7: свои поля вида (raster, max)
+            out[key] = siteconfig.normalize_related_layout(layout)
+            return out
         out[key] = siteconfig.normalize_layout(
             layout, siteconfig.PAGE_LAYOUT_DEFAULTS.get(key), extra_presets=extra
         )

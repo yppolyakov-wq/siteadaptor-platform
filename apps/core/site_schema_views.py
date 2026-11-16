@@ -317,6 +317,15 @@ def site_schema_view(request):
         if (selected and selected.get("carrier")) or (page_row and page_row["active"]):
             settings = site_schema.settings_groups(tenant, code, config)
             design_rows = site_schema.design_rows(tenant, code)
+    # FB-31 P5 R7: строка раздела со своими настройками («Ähnliche › Wie»)
+    if selected and site_schema.row_settings(code, selected["ref"]):
+        selected["setting_row"] = True
+        settings = site_schema.settings_groups(tenant, code, config, row=selected["ref"])
+        wanted = site_schema.SETTING_ROW_DESIGN.get(selected["ref"], ())
+        design_rows = [d for d in site_schema.design_rows(tenant, code) if d["code"] in wanted]
+        row_view = site_schema.related_view(config) if selected["ref"] == "related" else {}
+    else:
+        row_view = {}
     # FB-29.5: с кем выбранный блок стоит в одном ряду (подсказка под кнопками ширины)
     width_mates = []
     if selected and selected.get("enabled"):
@@ -376,6 +385,7 @@ def site_schema_view(request):
             "page_row": page_row,
             "settings": settings,
             "settings_ref": selected["ref"] if selected else site_schema.PAGE_REF,
+            **row_view,  # FB-31 P5 R7: «Ähnliche › Wie»
             "design_rows": design_rows,
             "open_setting": request.GET.get("offen", ""),
             # единственная настройка раскрыта сразу — иначе панель выглядит пустой

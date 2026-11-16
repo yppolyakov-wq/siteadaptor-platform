@@ -38855,3 +38855,7 @@ msgstr "Вид раздела главной страницы."
 
 msgid "Wie auf der Startseite"
 msgstr "Как на главной"
+
+#: templates/tenant/_schema_related_view.html
+msgid "Slider, wenn mehr als eine Reihe"
+msgstr "Лента, если больше одного ряда"

@@ -38516,3 +38516,7 @@ msgstr "The view of the home page section."
 
 msgid "Wie auf der Startseite"
 msgstr "As on the home page"
+
+#: templates/tenant/_schema_related_view.html
+msgid "Slider, wenn mehr als eine Reihe"
+msgstr "Slider when more than one row"
