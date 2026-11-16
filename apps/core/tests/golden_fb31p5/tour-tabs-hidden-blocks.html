@@ -1,6 +1,6 @@
 <main class="flex-1 w-full max-w-none mx-auto px-4 py-6 md:py-10">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"Product","name":"","url":"http://testserver/"}</script><script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Start","item":"http://testserver/"},{"@type":"ListItem","position":2,"name":""}]}</script>
-<div class="max-w-5xl mx-auto" data-stu-area="detail">
+<div class="max-w-5xl mx-auto" data-stu-area="detail" data-detail-layout="tabs">
   <a href="/touren/" class="text-sm text-gray-500 hover:underline">← Alle Reisen</a>
   <div class="grid lg:grid-cols-2 gap-6 lg:gap-8 items-start mt-3">
     <div class="lg:sticky lg:top-20">
@@ -14,21 +14,29 @@
 </div>
   </div>
   <div class="max-w-3xl">
-    <div data-ed-section="for_whom">
+    <div data-pd-tabs>
+      <div class="hidden gap-1 border-b border-gray-200 mb-4" data-pd-tablist role="tablist"></div>
+      <div data-ed-section="for_whom">
+        <details class="rounded-xl border border-gray-200 px-4 py-3 mb-2" data-pd-panel="for_whom" open>
+          <summary class="cursor-pointer font-semibold select-none">Für wen</summary>
   <section class="mt-8">
     <h2 class="text-xl font-bold mb-3">Ist dieses Retreat das Richtige für Sie?</h2>
     <ul class="space-y-2 text-gray-700">
       <li class="flex gap-2"><span class="text-indigo-600">✓</span><span>Familien</span></li><li class="flex gap-2"><span class="text-indigo-600">✓</span><span>Paare</span></li>
     </ul>
   </section>
-</div>
-    <div data-ed-section="idea">
+        </details>
+      </div><div data-ed-section="idea">
+        <details class="rounded-xl border border-gray-200 px-4 py-3 mb-2" data-pd-panel="idea">
+          <summary class="cursor-pointer font-semibold select-none">Die Idee</summary>
   <section class="mt-8 bg-indigo-50 rounded-2xl p-6">
     <h2 class="text-xl font-bold mb-2">Die Idee</h2>
     <p class="text-gray-700 whitespace-pre-line">Musik unter freiem Himmel.</p>
   </section>
-</div>
-    <div data-ed-section="includes">
+        </details>
+      </div><div data-ed-section="includes">
+        <details class="rounded-xl border border-gray-200 px-4 py-3 mb-2" data-pd-panel="includes">
+          <summary class="cursor-pointer font-semibold select-none">Was ist enthalten?</summary>
   <section class="mt-8">
     <h2 class="text-xl font-bold mb-3">Was ist enthalten?</h2>
     <div class="grid sm:grid-cols-2 gap-3">
@@ -38,20 +46,34 @@
         </div>
     </div>
   </section>
-</div>
-    <div data-ed-section="program">
-</div>
-    <div data-ed-section="venue">
-</div>
-    <div data-ed-section="accommodation">
-</div>
-    <div data-ed-section="food">
-</div>
-    <div data-ed-section="hosts">
-</div>
-    <div data-ed-section="price">
-</div>
-    <div data-ed-section="faq">
+        </details>
+      </div><div data-ed-section="program">
+        <details class="rounded-xl border border-gray-200 px-4 py-3 mb-2" data-pd-panel="program">
+          <summary class="cursor-pointer font-semibold select-none">Zeitplan</summary>
+        </details>
+      </div><div data-ed-section="venue">
+        <details class="rounded-xl border border-gray-200 px-4 py-3 mb-2" data-pd-panel="venue">
+          <summary class="cursor-pointer font-semibold select-none">Veranstaltungsort</summary>
+        </details>
+      </div><div data-ed-section="accommodation">
+        <details class="rounded-xl border border-gray-200 px-4 py-3 mb-2" data-pd-panel="accommodation">
+          <summary class="cursor-pointer font-semibold select-none">Unterkunft</summary>
+        </details>
+      </div><div data-ed-section="food">
+        <details class="rounded-xl border border-gray-200 px-4 py-3 mb-2" data-pd-panel="food">
+          <summary class="cursor-pointer font-semibold select-none">Essen</summary>
+        </details>
+      </div><div data-ed-section="hosts">
+        <details class="rounded-xl border border-gray-200 px-4 py-3 mb-2" data-pd-panel="hosts">
+          <summary class="cursor-pointer font-semibold select-none">Gastgeber</summary>
+        </details>
+      </div><div data-ed-section="price">
+        <details class="rounded-xl border border-gray-200 px-4 py-3 mb-2" data-pd-panel="price">
+          <summary class="cursor-pointer font-semibold select-none">Preis</summary>
+        </details>
+      </div><div data-ed-section="faq">
+        <details class="rounded-xl border border-gray-200 px-4 py-3 mb-2" data-pd-panel="faq">
+          <summary class="cursor-pointer font-semibold select-none">FAQ</summary>
   <section class="mt-8">
     <h2 class="text-xl font-bold mb-3">Häufig gestellte Fragen</h2>
     <div class="space-y-2">
@@ -61,13 +83,67 @@
         </details>
     </div>
   </section>
-</div>
-    <div data-ed-section="testimonials">
-</div>
-    <div data-ed-section="before_after">
-</div>
-    <div data-ed-section="certifications">
-</div>
+        </details>
+      </div><div data-ed-section="testimonials">
+        <details class="rounded-xl border border-gray-200 px-4 py-3 mb-2" data-pd-panel="testimonials">
+          <summary class="cursor-pointer font-semibold select-none">Kundenstimmen</summary>
+        </details>
+      </div><div data-ed-section="before_after">
+        <details class="rounded-xl border border-gray-200 px-4 py-3 mb-2" data-pd-panel="before_after">
+          <summary class="cursor-pointer font-semibold select-none">Vorher &amp; nachher</summary>
+        </details>
+      </div><div data-ed-section="certifications">
+        <details class="rounded-xl border border-gray-200 px-4 py-3 mb-2" data-pd-panel="certifications">
+          <summary class="cursor-pointer font-semibold select-none">Zertifizierungen</summary>
+        </details>
+      </div>
+    </div>
+<script>
+(function () {
+  var root = document.querySelector('[data-pd-tabs]');
+  if (!root) return;
+  var list = root.querySelector('[data-pd-tablist]');
+  var panels = Array.prototype.slice.call(root.querySelectorAll('[data-pd-panel]'));
+  if (!panels.length) return;
+  var mq = window.matchMedia('(min-width: 768px)');
+  var cur = 0;
+  panels.forEach(function (p, i) {
+    var b = document.createElement('button');
+    b.type = 'button'; b.className = 'pd-tab'; b.setAttribute('role', 'tab');
+    b.textContent = p.querySelector('summary').textContent.trim();
+    b.addEventListener('click', function () { select(i); });
+    list.appendChild(b);
+  });
+  function select(i) {
+    cur = i;
+    panels.forEach(function (p, k) { p.hidden = k !== i; if (k === i) p.open = true; });
+    Array.prototype.forEach.call(list.querySelectorAll('.pd-tab'), function (b, k) {
+      b.classList.toggle('is-on', k === i);
+      b.setAttribute('aria-selected', k === i ? 'true' : 'false');
+    });
+  }
+  function apply() {
+    if (mq.matches) {
+      root.classList.add('pd-tabs-on'); list.classList.remove('hidden'); list.classList.add('flex'); select(cur);
+    } else {
+      root.classList.remove('pd-tabs-on'); list.classList.add('hidden'); list.classList.remove('flex');
+      panels.forEach(function (p) { p.hidden = false; });
+    }
+  }
+  function byHash() {
+    if (location.hash !== '#bewertungen') return;
+    for (var i = 0; i < panels.length; i++) {
+      if (panels[i].dataset.pdPanel === 'reviews') {
+        cur = i;
+        if (mq.matches) select(i); else panels[i].open = true;
+      }
+    }
+  }
+  byHash(); apply();
+  if (mq.addEventListener) mq.addEventListener('change', apply); else mq.addListener(apply);
+  window.addEventListener('hashchange', byHash);
+})();
+</script>
   <section id="termine" class="mb-8">
     <h2 class="text-xl font-semibold mb-3">Termine & Preise</h2>
       <ul class="divide-y rounded-2xl border">

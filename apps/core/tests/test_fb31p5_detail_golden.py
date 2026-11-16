@@ -210,3 +210,26 @@ def test_cart_upsell_switch_looks_as_before():
         req = _req("/warenkorb/", {"cart_show_upsell": flag})
         html = public_views.cart_view(req).content.decode()
         _check(f"cart-upsell-{'on' if flag else 'off'}", html)
+
+
+# ── R9: тур — с раскладкой страницы событий ──
+
+
+def test_tour_follows_the_event_page_layout_and_its_own_choice_wins():
+    from apps.events.models import Tour
+
+    html = _html("tour", layout="tabs")
+    assert 'data-detail-layout="tabs"' in html and "data-pd-tabs" in html
+    tour = Tour.objects.get()
+    tour.page_override = {"layout": "standard"}
+    tour.save(update_fields=["page_override"])
+    from apps.events import public_views
+
+    cfg = _cfg("tour", layout="tabs")
+    html = public_views.tour_detail(_req("/touren/x/", cfg), slug=tour.slug).content.decode()
+    assert "data-detail-layout" not in html and "data-pd-tabs" not in html, "«nur hier» главнее"
+
+
+def test_tour_tabs_keep_own_blocks_under_the_tabs():
+    html = _html("tour", layout="tabs", blocks=True)
+    assert html.index("data-pd-tabs") < html.index("Gut zu wissen")

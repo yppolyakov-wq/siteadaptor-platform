@@ -64,7 +64,10 @@ MT-1: страница тур-продукта. Контент живёт зде
 
   {% comment %}Тематические блоки — общий партиал с событием: тур несёт те же
   images/teachers/landing, поэтому реестр секций и их порядок переиспользуются.{% endcomment %}
-  {% if detail_flow %}
+  {% if detail_layout == "tabs" %}
+  {% comment %}FB-31 P5 R9: тур берёт раскладку «Veranstaltungsseite» (решение владельца).{% endcomment %}
+  {% include "storefront/_event_tabs.html" with ev=tour %}
+  {% elif detail_flow %}
   {% comment %}FB-31 P5: свои блоки между разделами (якоря в «Seitenaufbau»).{% endcomment %}
   {% for it in detail_flow %}{% if it.section %}
     <div data-ed-section="{{ it.section }}">{% include "storefront/_event_thematic.html" with k=it.section event=tour %}</div>

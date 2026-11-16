@@ -898,11 +898,16 @@ def tour_detail(request, slug):
         Tour.objects.prefetch_related("teachers"), slug=slug, is_published=True
     )
 
+    from apps.core import detail_sections
+
     from . import itinerary as itinerary_mod
     from .access import route_audience
 
     audience = route_audience(request, tour)
     stops = tour.route(audience)
+    raw = page_settings.raw_config(request)
+    order = object_structure.effective_order(raw, "events", tour)
+    labels = detail_sections.section_labels("events")
     return render(
         request,
         "storefront/tour_detail.html",
@@ -919,13 +924,11 @@ def tour_detail(request, slug):
             "private_tour_url": _private_tour_url(request, tour.title_text),
             # Порядок/скрытие тематических блоков — общий с событиями (M20U-4).
             # T1: видимость — с отличиями самого тура (`object_structure`).
-            "event_detail_order": object_structure.effective_order(
-                page_settings.raw_config(request), "events", tour
-            ),
-            **_detail_flow(
-                page_settings.raw_config(request),
-                object_structure.effective_order(page_settings.raw_config(request), "events", tour),
-            ),
+            "event_detail_order": order,
+            **_detail_flow(raw, order),
+            # FB-31 P5 R9: раскладка общая с событиями («Tabs» · «Volle Breite»), у тура — своя
+            "detail_layout": object_structure.effective_layout(raw, "tour", tour),
+            "event_detail_tabs": [{"key": k, "label": labels.get(k, k)} for k in order],
         },
     )
 

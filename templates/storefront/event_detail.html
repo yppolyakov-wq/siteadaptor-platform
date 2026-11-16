@@ -51,17 +51,7 @@
     {% if detail_layout == "tabs" %}
     {% comment %}STU-15b: те же секции того же порядка, но панелями вкладок (на телефоне
     аккордеон). Обёртка data-ed-section сохранена — drag на канве продолжает работать.{% endcomment %}
-    <div data-pd-tabs>
-      <div class="hidden gap-1 border-b border-gray-200 mb-4" data-pd-tablist role="tablist"></div>
-      {% for t in event_detail_tabs %}<div data-ed-section="{{ t.key }}">
-        <details class="rounded-xl border border-gray-200 px-4 py-3 mb-2" data-pd-panel="{{ t.key }}"{% if forloop.first %} open{% endif %}>
-          <summary class="cursor-pointer font-semibold select-none">{{ t.label }}</summary>
-          {% include "storefront/_event_thematic.html" with k=t.key %}
-        </details>
-      </div>{% endfor %}
-    </div>
-    {% include "storefront/_detail_tabs_script.html" %}
-    {% if detail_flow %}{% for it in detail_flow %}{% if it.part %}{% page_blocks "event_detail" part=it.part %}{% endif %}{% endfor %}{% endif %}
+    {% include "storefront/_event_tabs.html" with ev=event %}
     {% elif detail_flow %}
     {% comment %}FB-31 P5: свои блоки между разделами — шириной текста (решение владельца).{% endcomment %}
     {% for it in detail_flow %}{% if it.section %}<div data-ed-section="{{ it.section }}">{% include "storefront/_event_thematic.html" with k=it.section %}</div>{% else %}{% page_blocks "event_detail" part=it.part %}{% endif %}{% endfor %}

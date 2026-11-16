@@ -79,13 +79,15 @@ def test_tour_screen_links_back_to_the_tour_form():
     assert back and str(tour.pk) in back["url"] and "tour" in back["url"]
 
 
-def test_tour_has_sections_but_no_page_layout():
+def test_tour_has_sections_and_the_event_page_layout():
+    # FB-31 P5 R9 (решение владельца): тур берёт раскладку «Veranstaltungsseite», своя — «nur hier»
     tour = _tour()
-    panel = ost.panel({}, "tour", tour)
-    assert panel["rows"] and panel["layouts"] == []
+    panel = ost.panel({"event_detail": {"layout": "breit"}}, "tour", tour)
+    assert panel["rows"] and panel["layouts"][0]["value"] == ""
+    assert str(panel["layouts"][0]["hint"]) == "Volle Breite", "«wie alle» — раскладка событий"
     post = {"page_override_present": "1", "ps_layout": "tabs", "ps_faq": "hide"}
     assert ost.apply_post(tour, "tour", post) == ["page_override"]
-    assert tour.page_override == {"hidden": ["faq"]}
+    assert tour.page_override == {"hidden": ["faq"], "layout": "tabs"}
 
 
 def test_form_without_the_sentinel_leaves_the_field_alone():

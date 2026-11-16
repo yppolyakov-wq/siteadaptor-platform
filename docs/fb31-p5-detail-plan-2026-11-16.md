@@ -90,8 +90,26 @@ R7, R8; `doc-updater` — R10.
   `page_ctx`); строка покупки первой («Kaufen» у товара, «Buchung» у номера). Ревью: редактор
   показывает блоки «до описания» первыми, вверх/вниз не перепрыгивают скрытые разделы, у номера
   в «Tabs» блоки под вкладками.
-- Дальше: макеты «Ähnliche» (сетка/лента) и своей схемы одного объекта (R8) на утверждение,
-  R9 раскладка туров, строка «Seite», R10 документация.
+- R9: тур берёт раскладку «Veranstaltungsseite» (Tabs · Volle Breite), своя раскладка тура —
+  «nur hier» (`page_override.layout`); вкладки — общий партиал `_event_tabs.html` (страница
+  события байт-в-байт). Изменится вид туров у бизнесов, у которых задана раскладка событий.
+  Подсчёт на сервере (только чтение):
+  ```
+  docker compose --env-file .env.prod -f docker-compose.prod.yml --profile single exec -T web python manage.py shell -c "
+  from django_tenants.utils import tenant_context
+  from apps.tenants.models import Tenant
+  from apps.events.models import Tour
+  for t in Tenant.objects.exclude(schema_name='public'):
+      lay = ((t.site_config or {}).get('event_detail') or {}).get('layout')
+      if lay:
+          with tenant_context(t):
+              n = Tour.objects.filter(is_published=True).count()
+          if n: print(t.schema_name, lay, n)
+  "
+  ```
+  В демо-китах раскладка событий не задана — демо-туры не меняются.
+- Дальше: макеты «Ähnliche» (сетка/лента, R7) и своей схемы одного объекта (R8) на
+  утверждение; строка «Seite» (R6), R10 документация.
 
 ## 10. Следующий срез — порядок разделов услуги (разведка 2026-11-16)
 Флаг `orderable` у разделов `booking` менять нельзя напрямую: (1) `normalize_detail_sections` начнёт

@@ -25,11 +25,12 @@ MODULES = {
     "stay": "stays",
     "event": "events",
     "promo": "",
-    # T1: тур делит реестр разделов и тип страницы с событием; шаблона страницы у него нет
+    # T1: тур делит реестр разделов и тип страницы с событием (R9 — и шаблон страницы)
     "tour": "events",
 }
 #: Виды, у которых есть ось «шаблон страницы» (`siteconfig.detail_layout`).
-LAYOUT_KINDS = ("product", "service", "stay", "event")
+#: FB-31 P5 R9: тур — с общей раскладкой «Veranstaltungsseite».
+LAYOUT_KINDS = ("product", "service", "stay", "event", "tour")
 
 
 def _raw(obj) -> dict:

@@ -2635,6 +2635,7 @@ _DETAIL_LAYOUT_KEYS = {
     "stays": "stay_detail",
     "event": "event_detail",
     "events": "event_detail",
+    "tour": "event_detail",  # FB-31 P5 R9: тур — раскладка страницы событий
 }
 
 

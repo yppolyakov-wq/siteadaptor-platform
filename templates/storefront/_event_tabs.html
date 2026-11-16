@@ -1,0 +1,12 @@
+{% load siteui %}{% comment %}FB-31 P5 R9: вкладки разделов события и тура (раскладка «Tabs»); `ev` — событие или тур.{% endcomment %}
+    <div data-pd-tabs>
+      <div class="hidden gap-1 border-b border-gray-200 mb-4" data-pd-tablist role="tablist"></div>
+      {% for t in event_detail_tabs %}<div data-ed-section="{{ t.key }}">
+        <details class="rounded-xl border border-gray-200 px-4 py-3 mb-2" data-pd-panel="{{ t.key }}"{% if forloop.first %} open{% endif %}>
+          <summary class="cursor-pointer font-semibold select-none">{{ t.label }}</summary>
+          {% include "storefront/_event_thematic.html" with k=t.key event=ev %}
+        </details>
+      </div>{% endfor %}
+    </div>
+    {% include "storefront/_detail_tabs_script.html" %}
+    {% if detail_flow %}{% for it in detail_flow %}{% if it.part %}{% page_blocks "event_detail" part=it.part %}{% endif %}{% endfor %}{% endif %}
