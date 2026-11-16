@@ -1031,13 +1031,10 @@ def promotion_list(request):
             "storefront_promo_card": _out["card"],
         }
         group_label = group_labels.get(selected, selected)
-        group_style = group_styles.group_style(
-            selected,
-            cfg.get("promo_groups"),
-            cfg["site_defaults"].get("promo_group_style", ""),
-        )
-        # FB-31 P3: шапка группы и вид её списка — отдельные оси (строки схемы — R6)
-        gparts = _pp.from_code(_promo_parts.PROMO_GROUP, group_style)
+        # FB-31 P3: шапка группы и вид её списка — отдельные оси; R6: строки «Alle
+        # Angebotsgruppen» и своя схема группы (правило — `promo_parts.group_parts`)
+        gparts = _promo_parts.group_parts(cfg, selected)
+        group_style = _pp.legacy_code(_promo_parts.PROMO_GROUP, gparts)
         group_head_style = gparts.head
         ends = [p.ends_at for p in promotions if p.ends_at]
         group_ends_at = min(ends) if ends else None
@@ -1130,6 +1127,7 @@ def promotion_list(request):
             "promo_groups_view": pparts.groups,
             "promo_view": pparts.view,
             "group_head_style": group_head_style,
+            "promo_group_key": selected or "",  # R6: чьи блоки показывает страница группы
             "promo_hero": promo_hero,
             "promo_tabs": promo_tabs,
             "promo_head_photo": promo_head_photo,

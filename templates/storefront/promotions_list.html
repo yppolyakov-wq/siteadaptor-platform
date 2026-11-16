@@ -223,5 +223,5 @@ show_listing_toolbar). Строка остаётся только над тем,
 {% endif %}
 {% endblock %}
 
-{% block listing_before %}{% page_blocks "promos" part="before" %}{% endblock %}
-{% block listing_after %}{% page_blocks "promos" %}{% endblock %}
+{% block listing_before %}{% promo_blocks promo_group_key part="before" %}{% endblock %}
+{% block listing_after %}{% promo_blocks promo_group_key %}{% endblock %}

@@ -32,6 +32,11 @@ def _rendered_hosts() -> set[str]:
         if re.search(r"\{%\s*category_blocks\s", tpl.read_text()):
             hosts.add("catalog")
             hosts.add("category")
+        # FB-31 P3 R6: страницы акций выводят блоки тегом `promo_blocks` (обзор, «Alle
+        # Angebotsgruppen» или своя схема группы)
+        if re.search(r"\{%\s*promo_blocks\s", tpl.read_text()):
+            hosts.add("promos")
+            hosts.add("promo_group")
     return hosts
 
 

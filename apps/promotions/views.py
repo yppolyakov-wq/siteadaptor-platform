@@ -515,6 +515,8 @@ def promotion_page_mode(request):
             cfg.pop("promo_page_style", None)
     # DL-20: шаблон страницы каждой группы. Поля приходят как `group_style:<имя>`;
     # пустое значение = «как на всём сайте» (записи в словаре нет → presence-minimal).
+    from . import promo_types
+
     groups = dict(siteconfig.normalize_promo_groups(cfg.get("promo_groups")))
     for key, value in request.POST.items():
         if not key.startswith("group_style:"):
@@ -522,10 +524,14 @@ def promotion_page_mode(request):
         name = key[len("group_style:") :].strip()
         if not name:
             continue
+        before = promo_types.settings_for(groups, name).get("style") or ""
         if (value or "").strip():
             groups[name] = value.strip()
         else:
             groups.pop(name, None)
+        if (value or "").strip() != before:
+            # FB-31 P3 R6: шаблон группы — последнее решение: виды её своих блоков снимаются
+            cfg = siteconfig.drop_page_views(cfg, siteconfig.promo_group_host(name))
     groups = siteconfig.normalize_promo_groups(groups)
     if groups:
         cfg["promo_groups"] = groups

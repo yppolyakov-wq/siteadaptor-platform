@@ -437,6 +437,28 @@ def category_blocks(context, category_host="", part="after"):
 
 
 @register.simple_tag(takes_context=True)
+def promo_blocks(context, group_key="", part="after"):
+    """FB-31 P3 R6: блоки страниц акций. Обзор — свои; страница группы — своя схема
+    группы, иначе «Alle Angebotsgruppen», иначе блоки обзора (как до R6)."""
+    host = "promos"
+    request = context.get("request")
+    if group_key and request is not None:
+        from apps.core import page_settings
+
+        try:
+            raw = page_settings.raw_config(request)
+        except Exception:  # noqa: BLE001 — превью не должно ронять витрину
+            raw = getattr(getattr(request, "tenant", None), "site_config", None)
+        cfg = siteconfig.normalize(raw)
+        own = siteconfig.promo_group_host(group_key)
+        if own and own in (cfg.get("page_blocks") or {}):
+            host = own
+        else:
+            host = siteconfig.shared_promo_group_host(cfg)
+    return page_blocks(context, host, part)
+
+
+@register.simple_tag(takes_context=True)
 def place_banners(context, kind, obj):
     """FB-29.2c: баннеры, которым эта страница задана в «Wo zeigen» (категория, товар,
     услуга, акция). Рисует тот же блок, что «Banner» в схеме: один баннер — баннер,

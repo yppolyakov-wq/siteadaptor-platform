@@ -1196,6 +1196,9 @@ PAGE_BLOCK_HOSTS = (
     "finder",  # /finder/
     "lookbook",  # /lookbook/<slug>/
     "promo_detail",  # FB-29 R2: страница акции — свои блоки (и место для баннеров)
+    # FB-31 P3 R6: «Alle Angebotsgruppen» — общие блоки страниц групп акций (пока не
+    # сохранены, группы показывают блоки обзора `/aktionen/`, как и раньше)
+    "promo_group",
 )
 
 # UC2-3(b) («да» владельца 2026-07-19): ссылочные секции-справочники — типы
@@ -1253,6 +1256,11 @@ _MAX_CONTENT_PAGE_HOSTS = 40
 # регистр значим): у живого тенанта категория вполне может называться
 # «Sommer_2026», и узкий шаблон молча выбросил бы её блоки.
 _CATEGORY_HOST_RE = re.compile(r"^catalog:[-\w]{1,60}$")
+#: FB-31 P3 R6: своя схема одной группы акций — «promo_group:<md5 ключа группы>» (ключ
+#: группы — свободный текст, в адрес хоста его не кладём)
+PROMO_GROUP_HOST_PREFIX = "promo_group:"
+_PROMO_GROUP_HOST_RE = re.compile(r"^promo_group:[0-9a-f]{32}\Z")
+_MAX_PROMO_GROUP_HOSTS = 40
 #: M21.11 (решение владельца): у КАЖДОЙ своей страницы свой набор блоков — хост
 #: «seite:<slug>» (slug — тот же алфавит, что адрес страницы).
 _CONTENT_PAGE_HOST_RE = re.compile(r"^seite:[a-z0-9]+(?:-[a-z0-9]+)*$")
@@ -1288,7 +1296,29 @@ def is_page_block_host(host) -> bool:
         or bool(_CATEGORY_HOST_RE.match(host))
         or bool(_CONTENT_PAGE_HOST_RE.match(host))
         or bool(_OBJECT_HOST_RE.match(host))
+        or bool(_PROMO_GROUP_HOST_RE.match(host))
     )
+
+
+def is_promo_group_host(host) -> bool:
+    return isinstance(host, str) and bool(_PROMO_GROUP_HOST_RE.match(host))
+
+
+def promo_group_host(key) -> str:
+    """Хост своих блоков группы акций по её ключу ("" — пустой ключ)."""
+    import hashlib
+
+    key = key.strip() if isinstance(key, str) else ""
+    if not key:
+        return ""
+    return PROMO_GROUP_HOST_PREFIX + hashlib.md5(key.encode(), usedforsecurity=False).hexdigest()
+
+
+def shared_promo_group_host(config: dict) -> str:
+    """FB-31 P3 R6: чьи блоки показывает группа без своей схемы — «Alle Angebotsgruppen»,
+    если сохранена, иначе обзор акций (как до R6)."""
+    blocks = (config or {}).get("page_blocks") or {}
+    return "promo_group" if isinstance(blocks, dict) and "promo_group" in blocks else "promos"
 
 
 # LB-2 (план lb-list-blocks §11, решение владельца Р-1а): страницы с ОСНОВНЫМ списком
@@ -1308,6 +1338,7 @@ MAIN_LIST_HOSTS = (
     "wishlist",
     "blog",
     "reviews",
+    "promo_group",  # FB-31 P3 R6: страница группы акций — тот же список акций
 )
 MAIN_LIST_KEY = "main"
 
@@ -1316,7 +1347,11 @@ def has_main_list(host) -> bool:
     """Есть ли у страницы хоста основной список (листинги + страницы категорий)."""
     if not isinstance(host, str):
         return False
-    return host in MAIN_LIST_HOSTS or bool(_CATEGORY_HOST_RE.match(host))
+    return (
+        host in MAIN_LIST_HOSTS
+        or bool(_CATEGORY_HOST_RE.match(host))
+        or bool(_PROMO_GROUP_HOST_RE.match(host))
+    )
 
 
 def is_main_marker(item) -> bool:
@@ -1396,7 +1431,7 @@ def page_builtin_keys(host) -> frozenset:
 
 
 #: FB-31 P3: хосты страниц акций → поверхность осей (`apps/promotions/promo_parts.py`)
-_PROMO_SURFACE_HOSTS = {"promos": "promos", "promo_detail": "promo"}
+_PROMO_SURFACE_HOSTS = {"promos": "promos", "promo_detail": "promo", "promo_group": "promo_group"}
 
 
 def part_surface(host):
@@ -1407,6 +1442,8 @@ def part_surface(host):
     name = _PROMO_SURFACE_HOSTS.get(host)
     if name is None and host.startswith("promo:") and is_object_host(host):
         name = "promo"
+    if name is None and is_promo_group_host(host):
+        name = "promo_group"
     if name is None:
         return None
     from apps.promotions import promo_parts
@@ -1521,6 +1558,16 @@ def page_rows(config: dict, host: str) -> list:
     blocks = (config or {}).get("page_blocks") or {}
     if host == "category" and "category" not in blocks:
         return list(blocks.get("catalog") or [])
+    # FB-31 P3 R6: группа акций без своих блоков — общие группы, затем обзор акций. От
+    # обзора берутся только свои блоки и место ★ (его строки осей группе чужие).
+    if is_promo_group_host(host) and host not in blocks:
+        return page_rows(config, "promo_group")
+    if host == "promo_group" and "promo_group" not in blocks:
+        return [
+            {"key": MAIN_LIST_KEY} if is_main_marker(b) else b
+            for b in blocks.get("promos") or []
+            if isinstance(b, dict) and (b.get("id") or is_main_marker(b))
+        ]
     return list(blocks.get(host) or [])
 
 
@@ -1567,12 +1614,20 @@ def _page_block_hosts(raw: dict) -> list:
     # алфавиту первым выбрасывал блоки текстовых страниц («catalog:» раньше «seite:»).
     cats = [k for k in extra if k.startswith(CATEGORY_HOST_PREFIX)]
     objects = [k for k in extra if is_object_host(k)]
-    pages = [k for k in extra if not k.startswith(CATEGORY_HOST_PREFIX) and not is_object_host(k)]
+    groups = [k for k in extra if is_promo_group_host(k)]
+    pages = [
+        k
+        for k in extra
+        if not k.startswith(CATEGORY_HOST_PREFIX)
+        and not is_object_host(k)
+        and not is_promo_group_host(k)
+    ]
     return (
         list(PAGE_BLOCK_HOSTS)
         + cats[:_MAX_CATEGORY_HOSTS]
         + pages[:_MAX_CONTENT_PAGE_HOSTS]
         + objects[:_MAX_OBJECT_HOSTS]
+        + groups[:_MAX_PROMO_GROUP_HOSTS]
     )
 
 
@@ -1634,7 +1689,8 @@ def normalize_page_blocks(raw) -> dict:
             blocks.insert(main_at, marker)
         # FB-30.16 R5 (ревью): «Alle Kategorien» хранится и пустой — сам ключ значит
         # «сохранена», иначе «удалил все блоки» молча вернуло бы блоки каталога
-        if blocks or key == "category":
+        # (R6: так же «Alle Angebotsgruppen»)
+        if blocks or key in ("category", "promo_group"):
             out[key] = blocks
     return out
 

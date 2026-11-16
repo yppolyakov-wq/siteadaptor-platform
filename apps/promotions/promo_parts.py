@@ -108,3 +108,30 @@ def detail_parts(cfg, own_style: str, site_default: str, host: str = "") -> pp.P
             PROMO_DETAIL, blocks[host], code=pp.legacy_code(PROMO_DETAIL, parts)
         )
     return parts
+
+
+def group_parts(cfg, key: str) -> pp.Parts:
+    """FB-31 P3 R6: вид страницы группы акций `key` — тем же правилом, что деталь акции:
+    свои блоки группы («nur diese») → свой шаблон группы (`promo_groups[key].style`) →
+    строки «Alle Angebotsgruppen» → дефолт сайта (`site_defaults.promo_group_style`)."""
+    from apps.tenants import siteconfig
+
+    from . import group_styles
+
+    cfg = cfg if isinstance(cfg, dict) else {}
+    blocks = cfg.get("page_blocks") or {}
+    if not isinstance(blocks, dict):
+        blocks = {}
+    sd = cfg.get("site_defaults") or {}
+    own = group_styles.group_style(key, cfg.get("promo_groups"), "")
+    if own:
+        parts = pp.from_code(PROMO_GROUP, own)
+    else:
+        site_code = group_styles.group_style("", None, sd.get("promo_group_style", ""))
+        parts = pp.effective_rows(PROMO_GROUP, blocks.get("promo_group"), code=site_code)
+    host = siteconfig.promo_group_host(key)
+    if host and blocks.get(host):
+        parts = pp.effective_rows(
+            PROMO_GROUP, blocks[host], code=pp.legacy_code(PROMO_GROUP, parts)
+        )
+    return parts

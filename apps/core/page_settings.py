@@ -564,7 +564,11 @@ def _clean(setting: studio_pages.Setting, value, gate: dict, current) -> object:
 
 
 #: FB-31 P3: шаблоны страниц акций и хосты, чьи виды блоков они снимают
-_PROMO_STYLE_HOSTS = {"promo_page_style": "promos", "promo_detail_style": "promo_detail"}
+_PROMO_STYLE_HOSTS = {
+    "promo_page_style": "promos",
+    "promo_detail_style": "promo_detail",
+    "promo_group_style": "promo_group",  # R6: «Alle Angebotsgruppen»
+}
 
 
 def apply_override(cfg: dict, code: str, value, output: dict | None = None) -> dict:
