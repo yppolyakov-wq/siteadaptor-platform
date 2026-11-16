@@ -847,6 +847,12 @@ CABINET_OWNED: frozenset[str] = frozenset(
         "promo_detail_style",
         # 19e-3: the home banner style (the Studio Save wrote it unconditionally)
         "home_hero",
+        # FB-31 P6 (решение владельца): разделы деталей правит только «Seitenaufbau»;
+        # в кабинетные настройки строки «Seite» они не попадают (`is_studio_only`)
+        "event_detail_sections",
+        "product_detail_sections",
+        "service_detail_sections",
+        "stay_detail_sections",
     }
     # 19f-2: page grids (preset + output axis) — the cabinet writes them whole (19f-1)
     | set(_LAYOUT_KEYS)

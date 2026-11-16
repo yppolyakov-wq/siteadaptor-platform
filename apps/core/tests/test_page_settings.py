@@ -229,7 +229,13 @@ def test_cabinet_owned_is_exactly_the_moved_axes():
     """19e-1 → 19f-4: the set grew axis by axis, always in the commit that removed the
     Studio control. Final state (plan §2.1): the cabinet owns EVERY page setting; the
     Studio keeps only the order/visibility of blocks (`*_sections`)."""
-    expected = frozenset(code for code in studio_pages.SETTINGS if not code.endswith("_sections"))
+    # FB-31 P6 (осознанно, решение владельца): разделы детальных страниц ушли из Студии
+    # в «Seitenaufbau»; в Студии — только порядок/видимость блоков главной
+    detail = {"event_detail_sections", "product_detail_sections"}
+    detail |= {"service_detail_sections", "stay_detail_sections"}
+    expected = frozenset(
+        code for code in studio_pages.SETTINGS if not code.endswith("_sections") or code in detail
+    )
     assert page_settings.CABINET_OWNED == expected
     assert {"home_sections", "product_detail_sections"} <= set(studio_pages.SETTINGS)
 
