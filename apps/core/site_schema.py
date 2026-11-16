@@ -2106,7 +2106,13 @@ def _section_view_panel(config: dict, host: str, main: bool) -> dict:
     label = _("Team") if host == "team" else _("Fotos")
     return {
         "label": f"★ {label}",
-        "mainview": {"value": value, "choices": choices, "title": str(_("Ansicht"))},
+        # шаблона Студии у этих страниц нет — подсказка про «Seitenvorlage» не нужна
+        "mainview": {
+            "value": value,
+            "choices": choices,
+            "title": str(_("Ansicht")),
+            "no_hint": True,
+        },
     }
 
 
