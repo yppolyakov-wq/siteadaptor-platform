@@ -45,7 +45,7 @@ def _groups():
 
 def _saved(tenant, host="promos"):
     tenant.refresh_from_db()
-    return siteconfig.normalize(tenant.site_config)["page_blocks"].get(host) or []
+    return (siteconfig.normalize(tenant.site_config).get("page_blocks") or {}).get(host) or []
 
 
 def test_overview_rows_are_pinned_in_storefront_order():
