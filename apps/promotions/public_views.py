@@ -1216,6 +1216,8 @@ def _page_section_row(site, key):
     if surface is None or not pp.has_parts(surface, rows):
         return row
     view = pp.from_rows(surface, rows).view
+    if not view:  # «Wie auf der Startseite» (`raster`) — вид секции главной (ревью R8)
+        return row
     return {**(row or {"key": key, "enabled": True}), "style": view}
 
 

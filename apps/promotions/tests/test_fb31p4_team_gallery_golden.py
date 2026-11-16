@@ -90,7 +90,8 @@ def test_explicit_like_home_keeps_the_home_view():
     cfg = _cfg("gallery", "strip", False)
     cfg["page_blocks"] = {"gallery": [{"key": "main", "style": "raster"}]}
     html = _render(public_views.gallery_page, cfg)
-    _check("gallery-standard-plain", html)  # «Wie auf der Startseite» явно = прежний вид ""
+    # ревью R8: «Wie auf der Startseite» явно = вид секции главной («strip»), не обычная сетка
+    _check("gallery-strip-plain", html)
 
 
 def test_panel_offers_the_section_views_and_saves_them():
