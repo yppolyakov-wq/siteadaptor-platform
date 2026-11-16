@@ -2711,6 +2711,9 @@ def row_settings(code: str, ref: str) -> tuple[str, ...]:
     return tuple(c for c, row in owned.items() if row == ref)
 
 
+_RELATED_COLS = frozenset(f"cols{n}" for n in range(2, 7))
+
+
 def related_view(config: dict) -> dict:
     """FB-31 P5 R7: текущие «Wie» · «Spalten» · «Höchstens» строки «Ähnliche Produkte»."""
     from django.utils.translation import gettext_lazy as _
@@ -2725,7 +2728,10 @@ def related_view(config: dict) -> dict:
             ("slider", _("Slider")),
         ),
         "related_mode": siteconfig.related_mode(lay),
-        "related_cols": str(lay.get("cols") or 4),
+        # колонки — по пресету «N в строке» (ревью R7): ручные cols и особые виды (Liste,
+        # Galerie) не подменяются, пока владелец сам не выберет число
+        "related_cols": lay["preset"][4:] if lay["preset"] in _RELATED_COLS else "",
+        "related_preset": lay["preset"],
         "related_max": lay.get("max", siteconfig.RELATED_MAX_DEFAULT),
         "related_max_choices": siteconfig.RELATED_MAX,
     }

@@ -177,3 +177,6 @@ R8b/R8e (блокировки); `security-reviewer` — R8e; `silent-failure-hun
 `cart_upsell` — без кода, замками. ECC: django-reviewer (план и шаги 1–3), silent-failure-hunter
 (1–3), a11y-architect + Playwright 1440/390 (шаг 3), security-reviewer (POST → конфиг),
 doc-updater.
+- Отложено после ревью R7 (`silent-failure-hunter`, LOW): мусор в `out_max`/`out_mode` из
+  ручного POST/ассистента молча даёт 8/«Automatisch» вместо ошибки; клиент без `out_max`
+  (старая форма `_pt_output`) сбрасывает «Höchstens» к 8. Из формы панели так не приходит.

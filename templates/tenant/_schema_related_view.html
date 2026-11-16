@@ -1,5 +1,6 @@
 {% load i18n %}{% comment %}FB-31 P5 R7: «Ähnliche Produkte › Wie» (макет владельца): вид, колонки, «Höchstens». Поля — прежней формы настройки (`value` = колонки, `out_mode`, `out_max`); прочие поля вывода сохраняются скрытыми.{% endcomment %}
 <div class="space-y-3" data-schema-related-view>
+  {% comment %}Текущий вид сетки — первым: выбранная «Spalten» (позже в форме) его заменяет, без выбора вид не меняется.{% endcomment %}<input type="hidden" name="value" value="{{ related_preset }}">
   <fieldset>
     <legend class="text-sm font-semibold mb-2">{% trans "Wie" %}</legend>
     <div class="grid grid-cols-3 gap-2">
@@ -35,5 +36,5 @@
       {% endfor %}
     </div>
   </fieldset>
-  {% if s.layout.tail %}<input type="hidden" name="out_tail" value="{{ s.layout.tail }}">{% endif %}{% if s.layout.rows %}<input type="hidden" name="out_rows" value="{{ s.layout.rows }}">{% endif %}{% if s.layout.speed %}<input type="hidden" name="out_speed" value="{{ s.layout.speed }}">{% endif %}
+  {% if s.layout.tail %}<input type="hidden" name="out_tail" value="{{ s.layout.tail }}">{% endif %}{% if s.layout.rows %}<input type="hidden" name="out_rows" value="{{ s.layout.rows }}">{% endif %}{% if s.layout.speed %}<input type="hidden" name="out_speed" value="{{ s.layout.speed }}">{% endif %}{% if s.layout.page_size %}<input type="hidden" name="out_page_size" value="{{ s.layout.page_size }}">{% endif %}
 </div>

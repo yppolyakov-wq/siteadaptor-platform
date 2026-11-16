@@ -179,3 +179,27 @@ def test_draft_with_only_the_mode_changed_is_a_change():
     b.post(seite="product", op="save")
     tenant.refresh_from_db()
     assert siteconfig.normalize(tenant.site_config)["detail_related_layout"].get("raster")
+
+
+def test_review_special_preset_survives_a_mode_only_change():
+    # ревью R7: вид «Liste» (колонок-кнопок нет) — смена одного «Wie» не роняет форму и
+    # не подменяет вид сетки; ручные колонки не подменяются пресетом
+    tenant = _shop(detail_related_layout={"preset": "list"})
+    html = Browser(tenant).get("?seite=product&block=related")
+    assert 'name="value" value="list"' in html
+    view = site_schema.related_view(siteconfig.normalize(tenant.site_config))
+    assert view["related_cols"] == "" and view["related_preset"] == "list"
+    b = Browser(tenant)
+    b.post(
+        seite="product",
+        ref="related",
+        op="setting",
+        setting="product_related",
+        value="list",
+        out_mode="raster",
+        out_max="4",
+    )
+    b.post(seite="product", op="save")
+    tenant.refresh_from_db()
+    lay = siteconfig.normalize(tenant.site_config)["detail_related_layout"]
+    assert lay["preset"] == "list" and lay["raster"] is True and lay["max"] == 4
