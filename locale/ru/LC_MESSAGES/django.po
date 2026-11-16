@@ -38849,3 +38849,9 @@ msgstr "Сначала ближайшая дата"
 
 msgid "Reisen in Abschnitten je Land."
 msgstr "Поездки разделами по странам."
+
+msgid "Ansicht des Abschnitts der Startseite."
+msgstr "Вид раздела главной страницы."
+
+msgid "Wie auf der Startseite"
+msgstr "Как на главной"

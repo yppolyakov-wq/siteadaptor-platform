@@ -2086,11 +2086,37 @@ def _listing_groups_choices(label) -> tuple:
     )
 
 
+def _section_view_panel(config: dict, host: str, main: bool) -> dict:
+    """FB-31 P4 R8: ★ «Team»/«Galerie» — вид списка на этой странице; «Wie auf der
+    Startseite» = вид секции главной (как раньше)."""
+    from apps.core import listing_parts
+    from apps.core import page_parts as pp
+    from apps.tenants import siteconfig
+
+    if not main:
+        return {}
+    surface = listing_parts.BY_HOST[host]
+    rows = ((config or {}).get("page_blocks") or {}).get(host) or []
+    value = pp.from_rows(surface, rows).view or listing_parts.RASTER
+    choices = (
+        ("raster", _("Wie auf der Startseite"), _("Ansicht des Abschnitts der Startseite."), ""),
+    ) + tuple(
+        (v, siteconfig.SECTION_STYLE_LABELS.get(v, v), "", "") for v in surface.axis("view").values
+    )
+    label = _("Team") if host == "team" else _("Fotos")
+    return {
+        "label": f"★ {label}",
+        "mainview": {"value": value, "choices": choices, "title": str(_("Ansicht"))},
+    }
+
+
 def _listing_view_panel(config: dict, host: str, item: dict, main: bool) -> dict:
     """FB-31 P4: панель строки листинга — шапка и навигация (вид из строк либо шаблона).
     У ★ листинга своих полей нет: его вид — сетка и форма карточки (настройки страницы)."""
     from apps.core import listing_parts
 
+    if host in ("team", "gallery"):
+        return _section_view_panel(config, host, main)
     surface = listing_parts.SURFACE_OF_HOST.get(host)
     if surface is None:
         return {}

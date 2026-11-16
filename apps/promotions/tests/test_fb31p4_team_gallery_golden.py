@@ -69,3 +69,48 @@ def test_team_page_looks_as_before(style, blocks):
 def test_gallery_page_looks_as_before(style, blocks):
     html = _render(public_views.gallery_page, _cfg("gallery", style, blocks))
     _check(f"gallery-{style or 'standard'}-{'blocks' if blocks else 'plain'}", html)
+
+
+# ── R8: ★ своей страницы ──
+
+
+def test_page_view_beats_the_home_section_view_and_home_is_untouched():
+    cfg = _cfg("team", "circles", False)
+    cfg["page_blocks"] = {"team": [{"key": "main", "style": "duo"}]}
+    html = _render(public_views.team_page, cfg)
+    want = _render(public_views.team_page, _cfg("team", "duo", False))
+    assert _normalize(html) == _normalize(want), "вид страницы = вид «duo»"
+    from apps.tenants import siteconfig
+
+    sections = siteconfig.normalize(cfg)["sections"]
+    assert next(s for s in sections if s["key"] == "team")["style"] == "circles"
+
+
+def test_explicit_like_home_keeps_the_home_view():
+    cfg = _cfg("gallery", "strip", False)
+    cfg["page_blocks"] = {"gallery": [{"key": "main", "style": "raster"}]}
+    html = _render(public_views.gallery_page, cfg)
+    _check("gallery-standard-plain", html)  # «Wie auf der Startseite» явно = прежний вид ""
+
+
+def test_panel_offers_the_section_views_and_saves_them():
+    from apps.core import site_schema
+    from apps.core.tests.test_fb27_r2_draft import Browser
+    from apps.tenants import siteconfig
+
+    tenant = TenantFactory(site_config={"team": TEAM})
+    rows = site_schema.blocks_for(siteconfig.normalize(tenant.site_config), "team")
+    main = next(r for r in rows if r["main"])
+    assert [c[0] for c in main["mainview"]["choices"]] == [
+        "raster",
+        "circles",
+        "list",
+        "compact",
+        "duo",
+    ]
+    b = Browser(tenant)
+    b.post(seite="team", op="mainview", ref="main", value="list")
+    b.post(seite="team", op="save")
+    tenant.refresh_from_db()
+    blocks = siteconfig.normalize(tenant.site_config)["page_blocks"]["team"]
+    assert {"key": "main", "style": "list"} in blocks

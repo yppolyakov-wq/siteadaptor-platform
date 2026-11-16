@@ -179,7 +179,12 @@ def test_every_listing_marks_its_main_list():
     for host, names in _templates_with(r'page_blocks\s+"([a-z_]+)"\s+part="before"').items():
         for name in names:
             text = (pathlib.Path("templates/storefront") / name).read_text()
-            assert 'extends "storefront/listing.html"' in text, (host, name)
+            # FB-31 P4 R8 (осознанно): «Team»/«Galerie» не на каркасе листинга — метку
+            # основного списка ставят сами
+            assert 'extends "storefront/listing.html"' in text or "data-pb-main" in text, (
+                host,
+                name,
+            )
 
 
 # ───────────────────────── Save, черновик, панель ─────────────────────────

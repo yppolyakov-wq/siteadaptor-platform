@@ -1203,6 +1203,22 @@ def _section_row(site, key):
     return next((s for s in site["sections"] if s["key"] == key), None)
 
 
+def _page_section_row(site, key):
+    """FB-31 P4 R8: ряд секции для СВОЕЙ страницы «Team»/«Galerie» — вид ★ этой страницы
+    («nur hier») сильнее вида секции главной; не задан — вид главной, как раньше. Копия:
+    `site["sections"]` не трогаем."""
+    from apps.core import listing_parts
+    from apps.core import page_parts as pp
+
+    row = _section_row(site, key)
+    surface = listing_parts.BY_HOST.get(key)
+    rows = ((site.get("page_blocks") or {}).get(key)) or []
+    if surface is None or not pp.has_parts(surface, rows):
+        return row
+    view = pp.from_rows(surface, rows).view
+    return {**(row or {"key": key, "enabled": True}), "style": view}
+
+
 def _pdf_course_groups(cat_title, products):
     """MEN-6: внутри категории — подгруппы по Gang'ам («Bäckerei · Vorspeise»).
 
@@ -1280,7 +1296,7 @@ def gallery_page(request):
             "site": site,
             "sections": [],
             "as_page": True,
-            "section_row": _section_row(site, "gallery"),
+            "section_row": _page_section_row(site, "gallery"),
         },
     )
 
@@ -1293,7 +1309,12 @@ def team_page(request):
     return render(
         request,
         "storefront/team.html",
-        {"site": site, "sections": [], "as_page": True, "section_row": _section_row(site, "team")},
+        {
+            "site": site,
+            "sections": [],
+            "as_page": True,
+            "section_row": _page_section_row(site, "team"),
+        },
     )
 
 

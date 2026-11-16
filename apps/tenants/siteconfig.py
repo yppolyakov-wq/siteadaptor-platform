@@ -1340,6 +1340,9 @@ MAIN_LIST_HOSTS = (
     "blog",
     "reviews",
     "promo_group",  # FB-31 P3 R6: страница группы акций — тот же список акций
+    # FB-31 P4 R8: «Team» и «Galerie» — ★ = список людей / фото (вид «nur hier»)
+    "team",
+    "gallery",
 )
 MAIN_LIST_KEY = "main"
 

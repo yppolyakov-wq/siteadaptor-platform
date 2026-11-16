@@ -38656,3 +38656,9 @@ msgstr "Önce en yakın tarih"
 
 msgid "Reisen in Abschnitten je Land."
 msgstr "Ülkeye göre bölümlerde geziler."
+
+msgid "Ansicht des Abschnitts der Startseite."
+msgstr "Ana sayfa bölümünün görünümü."
+
+msgid "Wie auf der Startseite"
+msgstr "Ana sayfadaki gibi"

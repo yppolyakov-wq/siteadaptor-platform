@@ -38597,3 +38597,9 @@ msgstr "Nächster Termin zuerst"
 
 msgid "Reisen in Abschnitten je Land."
 msgstr "Reisen in Abschnitten je Land."
+
+msgid "Ansicht des Abschnitts der Startseite."
+msgstr "Ansicht des Abschnitts der Startseite."
+
+msgid "Wie auf der Startseite"
+msgstr "Wie auf der Startseite"

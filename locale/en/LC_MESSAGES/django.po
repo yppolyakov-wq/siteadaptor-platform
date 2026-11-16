@@ -38510,3 +38510,9 @@ msgstr "Next date first"
 
 msgid "Reisen in Abschnitten je Land."
 msgstr "Trips in sections per country."
+
+msgid "Ansicht des Abschnitts der Startseite."
+msgstr "The view of the home page section."
+
+msgid "Wie auf der Startseite"
+msgstr "As on the home page"

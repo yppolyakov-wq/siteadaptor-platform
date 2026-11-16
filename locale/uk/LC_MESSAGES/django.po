@@ -38836,3 +38836,9 @@ msgstr "Спочатку найближча дата"
 
 msgid "Reisen in Abschnitten je Land."
 msgstr "Подорожі розділами за країнами."
+
+msgid "Ansicht des Abschnitts der Startseite."
+msgstr "Вигляд розділу головної сторінки."
+
+msgid "Wie auf der Startseite"
+msgstr "Як на головній"
