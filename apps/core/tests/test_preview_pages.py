@@ -200,9 +200,9 @@ def test_event_detail_sections_draggable_on_canvas():
     """UC2-2 слайс 2: пер-секционные обёртки data-ed-section в цикле детали
     события + drag-обработчик moveEdSection (мутирует ed_order_*) в билдере."""
     assert 'data-ed-section="{{ k }}"' in open("templates/storefront/event_detail.html").read()
+    # FB-31 P6 (осознанно): разделы на канве Студии не таскаются — их правит «Seitenaufbau»
     builder = open("templates/tenant/site_home.html").read()
-    assert "function moveEdSection" in builder
-    assert 'querySelectorAll("[data-ed-section]")' in builder
+    assert "function moveEdSection" not in builder
 
 
 def test_example_detail_pages_promotion():

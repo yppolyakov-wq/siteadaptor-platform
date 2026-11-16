@@ -2882,13 +2882,7 @@ def home_builder_view(request):
         # STU-19f-4: text width — cabinet only.
         config["site_defaults"] = sd
         # STU-19f-4: listing sorts and offer grouping — cabinet only.
-        # DL-21.2: шаблон обзорной страницы акций ("" = Standard → ключа нет).
-        if "promo_page_style" in request.POST:
-            _pps = siteconfig.normalize_promo_page_style(request.POST.get("promo_page_style"))
-            if _pps != (config.get("promo_page_style") or ""):
-                # FB-31 P3: смена шаблона снимает виды блоков `/aktionen/` (как у каталога)
-                config.update(siteconfig.drop_page_views(config, "promos"))
-            config["promo_page_style"] = _pps
+        # FB-31 P6: шаблон обзора акций пишет только «Seitenaufbau» (строки-оси).
         # S4: стартовая страница витрины (общая главная или один архетип).
         # STU-12g: presence-guard — поле живёт в панели главной, и POST со страницы
         # без него (панель другого типа) сбрасывал бы витрину на «home» молча.
@@ -3311,13 +3305,7 @@ def home_builder_view(request):
         ("featured_only", _("Featured only")),
     ]
     archetypes_enabled = any(s["key"] == "archetypes" and s["enabled"] for s in config["sections"])
-    # SE-2b-2 → UC1-3: секции детальных страниц для on-canvas инспектора — generic
-    # `siteconfig.page_inspector` из единого реестра (event — orderable с order;
-    # product/service/stay — hide-only), вместо четырёх ручных сборок.
-    event_sections = siteconfig.page_inspector(config, "event_detail")
-    product_sections = siteconfig.page_inspector(config, "product_detail")
-    service_sections = siteconfig.page_inspector(config, "service_detail")
-    stay_sections = siteconfig.page_inspector(config, "stay_detail")
+    # FB-31 P6: разделы детальных страниц правит «Seitenaufbau» — инспектора в Студии нет.
     # SE-2c-1: живые категории каталога — для parent-select мини-формы «+ Kategorie».
     catalog_categories = []
     if request.tenant.is_module_active("catalog"):
@@ -3353,8 +3341,6 @@ def home_builder_view(request):
                 if code in (getattr(request.tenant, "active_locales", None) or [])
             ],
             "sections": sections,
-            "event_sections": event_sections,
-            "product_sections": product_sections,
             "product_detail_layout": siteconfig.product_detail_layout(config),  # DL-16.6
             # STU-15c: дефолт сортировки листингов — префилл + варианты ИЗ провайдеров
             # (те же подписи, что видит посетитель в тулбаре листинга).
@@ -3368,8 +3354,6 @@ def home_builder_view(request):
             "service_detail_layout": siteconfig.detail_layout(config, "service"),
             "stay_detail_layout": siteconfig.detail_layout(config, "stay"),
             "event_detail_layout": siteconfig.detail_layout(config, "event"),
-            "service_sections": service_sections,
-            "stay_sections": stay_sections,
             "catalog_categories": catalog_categories,
             # SE-7c: область «Меню» — стиль шапки (classic/centered/minimal) + sticky
             # (пункты меню — в полном билдере /dashboard/site/menu/).

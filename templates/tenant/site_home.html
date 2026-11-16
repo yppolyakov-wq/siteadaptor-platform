@@ -2579,49 +2579,6 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
       });
       payload.page_blocks = pageBlocks;
     }
-    // SE-2b-2: порядок/видимость тематических секций детальной события → в черновик,
-    // чтобы превью события (?preview=1) показало их сразу.
-    var edInputsArr = Array.prototype.slice.call(form.querySelectorAll(".ed-order-input"));
-    if (edInputsArr.length) {
-      edInputsArr.sort(function (a, b) {
-        return (parseInt(a.value, 10) || 999) - (parseInt(b.value, 10) || 999);
-      });
-      var edOrder = [], edHidden = [];
-      edInputsArr.forEach(function (inp) {
-        var key = inp.name.slice(9);  // "ed_order_".length === 9
-        edOrder.push(key);
-        var vis = form.querySelector("input[name='ed_visible_" + key + "']");
-        if (!(vis && vis.checked)) edHidden.push(key);
-      });
-      // STU-19e-1: the page layout (`layout`) is set in the cabinet only.
-      payload.event_detail = { order: edOrder, hidden: edHidden };
-    }
-    // Видимость опц. секций детальной товара → в черновик (превью товара ?preview=1).
-    var pdInputs = Array.prototype.slice.call(form.querySelectorAll("input[name^='pd_visible_']"));
-    if (pdInputs.length) {
-      var pdHidden = [];
-      pdInputs.forEach(function (inp) {
-        if (!inp.checked) pdHidden.push(inp.name.slice(11));  // "pd_visible_".length === 11
-      });
-      payload.product_detail = { hidden: pdHidden };
-    }
-    // UA4-1 slice C: видимость секций детальной услуги/номера → в черновик (превью ?preview=1).
-    var sdInputs = Array.prototype.slice.call(form.querySelectorAll("input[name^='sd_visible_']"));
-    if (sdInputs.length) {
-      var sdHidden = [];
-      sdInputs.forEach(function (inp) {
-        if (!inp.checked) sdHidden.push(inp.name.slice(11));  // "sd_visible_".length === 11
-      });
-      payload.service_detail = { hidden: sdHidden };
-    }
-    var stdInputs = Array.prototype.slice.call(form.querySelectorAll("input[name^='std_visible_']"));
-    if (stdInputs.length) {
-      var stdHidden = [];
-      stdInputs.forEach(function (inp) {
-        if (!inp.checked) stdHidden.push(inp.name.slice(12));  // "std_visible_".length === 12
-      });
-      payload.stay_detail = { hidden: stdHidden };
-    }
     // M20d: контент-секции (CTA/FAQ/Testimonials/…) — отдаём как есть, сервер парсит.
     [
       "cta_title", "cta_text", "cta_button_label", "cta_button_url",
@@ -3336,25 +3293,6 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
   // E.4: drag-on-canvas — перетаскивание блока в превью переносит его control-row
   // в редакторе к целевой позиции и перенумеровывает (общий путь с превью/сабвитом).
   var draggedKey = null;
-  // UC2-2 слайс 2: перестановка тематической секции детали события — правит
-  // скрытые ed_order_* (per-page инспектор); публикация — обычный Save.
-  function moveEdSection(dKey, tKey, before) {
-    if (!dKey || dKey === tKey) return;
-    var inputs = Array.prototype.slice.call(form.querySelectorAll(".ed-order-input"));
-    if (!inputs.length) return;
-    inputs.sort(function (a, b) { return (parseInt(a.value, 10) || 999) - (parseInt(b.value, 10) || 999); });
-    var keys = inputs.map(function (i) { return i.name.replace("ed_order_", ""); });
-    var from = keys.indexOf(dKey);
-    if (from < 0 || keys.indexOf(tKey) < 0) return;
-    keys.splice(from, 1);
-    var to = keys.indexOf(tKey);
-    keys.splice(before ? to : to + 1, 0, dKey);
-    keys.forEach(function (k, i) {
-      var inp = form.querySelector('[name="ed_order_' + k + '"]');
-      if (inp) inp.value = i + 1;
-    });
-    schedule();
-  }
   function moveBlock(dKey, tKey, before) {
     var list = document.getElementById("home-blocks");
     if (!list || !dKey || dKey === tKey) return;
@@ -4375,35 +4313,7 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
           draggedKey = null;
         });
       }
-      // UC2-2 слайс 2: drag тематических секций ДЕТАЛИ СОБЫТИЯ — переставляет
-      // скрытые ed_order_* per-page инспектора (драфт публикует через Save;
-      // превью перерисовывается через schedule → payload.event_detail.order).
-      var draggedEd = null;
-      doc.querySelectorAll("[data-ed-section]").forEach(function (sec) {
-        if (!sec.firstElementChild) return;  // пустая секция (контента нет) — не таскаем
-        sec.setAttribute("draggable", "true");
-        if (editOn) sec.style.cursor = "grab";
-        sec.addEventListener("dragstart", function (e) {
-          if (!editOn) { e.preventDefault(); return; }
-          draggedEd = sec.getAttribute("data-ed-section");
-          if (e.dataTransfer) e.dataTransfer.effectAllowed = "move";
-        });
-        sec.addEventListener("dragend", function () { hideDropLine(); draggedEd = null; });
-        sec.addEventListener("dragover", function (e) {
-          if (!draggedEd) return;
-          e.preventDefault();
-          var b = sec.getBoundingClientRect();
-          showDropLine(b, e.clientY < b.top + b.height / 2);
-        });
-        sec.addEventListener("drop", function (e) {
-          if (!draggedEd) return;
-          e.preventDefault();
-          hideDropLine();
-          var b = sec.getBoundingClientRect();
-          moveEdSection(draggedEd, sec.getAttribute("data-ed-section"), e.clientY < b.top + b.height / 2);
-          draggedEd = null;
-        });
-      });
+      // FB-31 P6: разделы детали на канве не таскаются — их правит «Seitenaufbau».
     }
     bindCanvasBlocks();
     // STU-12d: живая правка перерисовывает канву двойной буферизацией — выбранный
@@ -4844,52 +4754,6 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
   });
   updateMoveButtons();
 
-  // SE-2b-2: перемещение тематических секций детальной события кнопками ↑▼ —
-  // value-based (правит ed_order_-инпуты → collect() пере-сериализует → превью).
-  var edList = document.getElementById("ed-sections");
-  function edInputs() {
-    var arr = Array.prototype.slice.call(form.querySelectorAll(".ed-order-input"));
-    arr.sort(function (a, b) { return (parseInt(a.value, 10) || 999) - (parseInt(b.value, 10) || 999); });
-    return arr;
-  }
-  function edSortList() {
-    if (!edList) return;
-    var rows = Array.prototype.slice.call(edList.querySelectorAll(".ed-row"));
-    rows.sort(function (a, b) {
-      var oa = a.querySelector(".ed-order-input"), ob = b.querySelector(".ed-order-input");
-      return (parseInt(oa && oa.value, 10) || 999) - (parseInt(ob && ob.value, 10) || 999);
-    });
-    rows.forEach(function (r) { edList.appendChild(r); });
-  }
-  function edUpdateButtons() {
-    var keys = edInputs().map(function (i) { return i.name.slice(9); });
-    document.querySelectorAll(".ed-up, .ed-down").forEach(function (btn) {
-      var key = btn.getAttribute("data-key");
-      var idx = keys.indexOf(key);
-      var atEdge = btn.classList.contains("ed-up") ? idx <= 0 : idx >= keys.length - 1;
-      btn.disabled = atEdge;
-      btn.classList.toggle("opacity-30", atEdge);
-      btn.classList.toggle("cursor-not-allowed", atEdge);
-    });
-  }
-  function edMove(key, dir) {
-    var arr = edInputs(), idx = -1;
-    for (var i = 0; i < arr.length; i++) { if (arr[i].name === "ed_order_" + key) { idx = i; break; } }
-    if (idx < 0) return;
-    var swap = dir < 0 ? idx - 1 : idx + 1;
-    if (swap < 0 || swap >= arr.length) return;
-    var tmp = arr[idx].value; arr[idx].value = arr[swap].value; arr[swap].value = tmp;
-    edSortList();
-    edUpdateButtons();
-    schedule();  // пере-сериализация черновика → live-preview
-  }
-  document.querySelectorAll(".ed-up").forEach(function (b) {
-    b.addEventListener("click", function (e) { e.stopPropagation(); edMove(b.getAttribute("data-key"), -1); });
-  });
-  document.querySelectorAll(".ed-down").forEach(function (b) {
-    b.addEventListener("click", function (e) { e.stopPropagation(); edMove(b.getAttribute("data-key"), 1); });
-  });
-  edUpdateButtons();
 
   push();  // первичный рендер черновика
 
