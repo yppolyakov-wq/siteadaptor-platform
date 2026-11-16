@@ -1425,13 +1425,39 @@ def drop_catalog_views(cfg: dict, host: str = "catalog") -> dict:
     return cfg
 
 
+def _detail_anchor_keys(host) -> frozenset:
+    from apps.core import detail_parts
+
+    return frozenset(detail_parts.section_keys(host)) if isinstance(host, str) else frozenset()
+
+
+def _compact_detail_anchors(blocks: list, anchor_keys) -> list:
+    """FB-31 P5: каноническая форма — якоря разделов не хранятся, если ни один свой блок не
+    стоит между разделами (все — после последнего якоря = прежний хвост страницы)."""
+    last = max(
+        (i for i, b in enumerate(blocks) if b.get("key") in anchor_keys and not b.get("id")),
+        default=-1,
+    )
+    if last < 0:
+        return blocks
+    before_last = [b for b in blocks[:last] if b.get("id")]
+    if before_last:
+        return blocks
+    return [b for b in blocks if b.get("id") or b.get("key") not in anchor_keys]
+
+
 def page_builtin_keys(host) -> frozenset:
     """FB-31 P0: какие встроенные строки-списки (как на главной) может хранить страница.
     Пилот — каталог и его категории: блок «Kategorien»; P3 — строки осей страниц акций."""
     if isinstance(host, str) and (host in ("catalog", "category") or _CATEGORY_HOST_RE.match(host)):
         return frozenset({"categories", CATALOG_HEAD_KEY, CATALOG_SETS_KEY})
     surface = part_surface(host)
-    return frozenset(surface.keys()) if surface is not None else frozenset()
+    if surface is not None:
+        return frozenset(surface.keys())
+    # FB-31 P5: строки-якоря разделов детали (порядок и видимость — в `<module>_detail`)
+    from apps.core import detail_parts
+
+    return frozenset(detail_parts.section_keys(host)) if isinstance(host, str) else frozenset()
 
 
 #: FB-31 P3: хосты страниц акций → поверхность осей (`apps/promotions/promo_parts.py`)
@@ -1657,7 +1683,15 @@ def normalize_page_blocks(raw) -> dict:
         can_main = has_main_list(key)
         builtin_ok = page_builtin_keys(key)
         builtin_seen = set()
+        anchor_keys = _detail_anchor_keys(key)
         for item in items:
+            # FB-31 P5: якорь раздела детали — только позиция (без полей), один на раздел
+            bkey = item.get("key") if isinstance(item, dict) else None
+            if bkey in anchor_keys and not item.get("id"):
+                if bkey not in builtin_seen:
+                    builtin_seen.add(bkey)
+                    blocks.append({"key": bkey})
+                continue
             if is_main_marker(item):
                 if can_main and main_at is None:
                     main_at = len(blocks)
@@ -1694,6 +1728,8 @@ def normalize_page_blocks(raw) -> dict:
         # маркер первым без полей = «все блоки под списком» = вид, как раньше: не храним
         if main_at is not None and (main_at or len(marker) > 1):
             blocks.insert(main_at, marker)
+        if anchor_keys:
+            blocks = _compact_detail_anchors(blocks, anchor_keys)
         # FB-30.16 R5 (ревью): «Alle Kategorien» хранится и пустой — сам ключ значит
         # «сохранена», иначе «удалил все блоки» молча вернуло бы блоки каталога
         # (R6: так же «Alle Angebotsgruppen»)

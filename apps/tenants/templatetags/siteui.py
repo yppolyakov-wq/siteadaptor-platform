@@ -344,7 +344,13 @@ def page_blocks(context, page_key, part="after"):
     # тег читал их из голого normalize, и текст C-блоков страниц («Über uns»,
     # корзина) оставался немецким на любой локали даже при готовом оверлее.
     site = siteconfig.localize(siteconfig.normalize(raw), get_language())
-    above, below = siteconfig.split_at_main((site.get("page_blocks") or {}).get(page_key, []))
+    stored = (site.get("page_blocks") or {}).get(page_key, [])
+    above, below = siteconfig.split_at_main(stored)
+    if isinstance(part, str) and part.startswith("ids:"):
+        # FB-31 P5: кусок блоков детали между разделами (по id, в порядке хранения)
+        wanted = set(part[4:].split(","))
+        above, below = [], [b for b in stored if b.get("id") in wanted]
+        part = "after"
     before = part == "before"
     # FB-31 P0: встроенные строки-списки (блок «Kategorien» каталога) рисует сама страница
     # листинга в своих местах (шаг R2), не общий цикл блоков — иначе вид сайта сдвинулся бы.

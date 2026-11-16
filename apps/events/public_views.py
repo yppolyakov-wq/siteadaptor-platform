@@ -386,6 +386,8 @@ def veranstaltung_detail(request, pk):
         # M20U-4: порядок/видимость тематических секций детальной.
         # FB-29 R5: порядок общий, видимость — общая с отличиями этого события.
         "event_detail_order": object_structure.effective_order(_raw, "events", event),
+        # FB-31 P5: свои блоки между разделами (пусто — прежняя разметка)
+        **_detail_flow(_raw, object_structure.effective_order(_raw, "events", event)),
         # STU-15b: раскладка страницы события ("" | tabs | breit).
         "detail_layout": object_structure.effective_layout(_raw, "event", event),
         # STU-15b: пары «ключ + подпись» для раскладки «Tabs» (порядок тот же, что у
@@ -834,6 +836,20 @@ def _tours_flat(request) -> bool:
     return parts.grouping == listing_parts.FLAT
 
 
+def _detail_flow(raw, order) -> dict:
+    """FB-31 P5: поток тела детали события/тура и `part` хвоста блоков."""
+    from apps.core import detail_parts
+    from apps.tenants import siteconfig
+
+    rows = (siteconfig.normalize(raw).get("page_blocks") or {}).get("event_detail") or []
+    return {
+        "detail_flow": detail_parts.flow(
+            rows, "event_detail", order, detail_parts.full_order(raw, "events")
+        ),
+        "detail_tail_part": detail_parts.tail_part(rows, "event_detail"),
+    }
+
+
 def touren_index(request):
     """MT-1: публичный список туров (тур = контент, заезды = даты продажи)."""
     _require_events_active(request)
@@ -906,6 +922,10 @@ def tour_detail(request, slug):
             # T1: видимость — с отличиями самого тура (`object_structure`).
             "event_detail_order": object_structure.effective_order(
                 page_settings.raw_config(request), "events", tour
+            ),
+            **_detail_flow(
+                page_settings.raw_config(request),
+                object_structure.effective_order(page_settings.raw_config(request), "events", tour),
             ),
         },
     )

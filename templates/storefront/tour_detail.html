@@ -64,9 +64,16 @@ MT-1: страница тур-продукта. Контент живёт зде
 
   {% comment %}Тематические блоки — общий партиал с событием: тур несёт те же
   images/teachers/landing, поэтому реестр секций и их порядок переиспользуются.{% endcomment %}
+  {% if detail_flow %}
+  {% comment %}FB-31 P5: свои блоки между разделами (якоря в «Seitenaufbau»).{% endcomment %}
+  {% for it in detail_flow %}{% if it.section %}
+    <div data-ed-section="{{ it.section }}">{% include "storefront/_event_thematic.html" with k=it.section event=tour %}</div>
+  {% else %}{% page_blocks "event_detail" part=it.part %}{% endif %}{% endfor %}
+  {% else %}
   {% for k in event_detail_order %}
     <div data-ed-section="{{ k }}">{% include "storefront/_event_thematic.html" with k=k event=tour %}</div>
   {% endfor %}
+  {% endif %}
 
   <section id="termine" class="mb-8">
     <h2 class="text-xl font-semibold mb-3">{% trans "Dates & prices" %}</h2>
@@ -109,4 +116,4 @@ MT-1: страница тур-продукта. Контент живёт зде
   </section>
 {% endwith %}
 {% comment %}FB-29 R7: блоки типа страницы «Veranstaltungsseite» — он объявляет и маршрут тура.{% endcomment %}
-{% object_blocks "tour" tour "before" %}{% page_blocks "event_detail" %}{% object_blocks "tour" tour %}{% endblock %}
+{% object_blocks "tour" tour "before" %}{% page_blocks "event_detail" part=detail_tail_part|default:"after" %}{% object_blocks "tour" tour %}{% endblock %}

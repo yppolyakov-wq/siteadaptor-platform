@@ -61,6 +61,10 @@
       </div>{% endfor %}
     </div>
     {% include "storefront/_detail_tabs_script.html" %}
+    {% if detail_flow %}{% for it in detail_flow %}{% if it.part %}{% page_blocks "event_detail" part=it.part %}{% endif %}{% endfor %}{% endif %}
+    {% elif detail_flow %}
+    {% comment %}FB-31 P5: свои блоки между разделами — шириной текста (решение владельца).{% endcomment %}
+    {% for it in detail_flow %}{% if it.section %}<div data-ed-section="{{ it.section }}">{% include "storefront/_event_thematic.html" with k=it.section %}</div>{% else %}{% page_blocks "event_detail" part=it.part %}{% endif %}{% endfor %}
     {% else %}
     {% for k in event_detail_order %}<div data-ed-section="{{ k }}">{% include "storefront/_event_thematic.html" with k=k %}</div>{% endfor %}
     {% endif %}
@@ -306,6 +310,6 @@
 {% place_banners "event" event %}
 {% comment %}FB-29 R5: свои блоки этого объекта — над общими или под ними.{% endcomment %}
 {% object_blocks "event" event "before" %}
-{% page_blocks "event_detail" %}
+{% page_blocks "event_detail" part=detail_tail_part|default:"after" %}
 {% object_blocks "event" event %}
 {% endblock %}
