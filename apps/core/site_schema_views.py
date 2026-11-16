@@ -242,6 +242,11 @@ def site_schema_view(request):
     # Тип, которого у бизнеса нет (или мусор в адресе), не открывается — главная.
     current = next((r for r in rows if r.code == code), rows[0] if rows else None)
     code = current.code if current else "home"
+    # FB-31 P5 R7 (ревью): старая ссылка на настройку со строки «Seite» (закладка, письмо)
+    # ведёт на строку раздела, где она теперь живёт
+    moved = site_schema.SETTING_ROWS.get(code, {}).get(request.GET.get("offen", ""))
+    if moved and request.GET.get("block") == site_schema.PAGE_REF:
+        return redirect(site_schema.settings_url(code, request.GET["offen"]))
     draft = aufbau_draft.get(request, code)
     config = aufbau_draft.overlay(saved, draft) if draft else saved
     draft_info = aufbau_draft.info(request, saved, code)

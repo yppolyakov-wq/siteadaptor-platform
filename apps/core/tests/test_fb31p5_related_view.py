@@ -203,3 +203,12 @@ def test_review_special_preset_survives_a_mode_only_change():
     tenant.refresh_from_db()
     lay = siteconfig.normalize(tenant.site_config)["detail_related_layout"]
     assert lay["preset"] == "list" and lay["raster"] is True and lay["max"] == 4
+
+
+def test_review_old_page_row_link_leads_to_the_related_row():
+    from apps.core.site_schema_views import site_schema_view
+
+    b = Browser(_shop())
+    req = b._request("get", query="?seite=product&block=__page&offen=product_related")
+    resp = site_schema_view(req)
+    assert resp.status_code == 302 and "block=related" in resp["Location"]
