@@ -1,0 +1,60 @@
+<main class="flex-1 w-full max-w-none mx-auto px-4 py-6 md:py-10">
+<div class="">
+<div class="mb-6">
+  <h1 class="text-2xl md:text-3xl font-bold">Galerie</h1>
+  <p class="text-gray-500 mt-1">Impressionen aus unserem Betrieb.</p>
+</div>
+<section data-reveal class="mb-10" data-sf-media-slot="gallery">
+  <div class="flex justify-end mb-4">
+<div class="flex items-center gap-1 shrink-0" role="group" aria-label="Ansicht">
+  <button type="button" data-galv-btn="raster" aria-pressed="false"
+          aria-label="Raster" title="Raster"
+          class="w-9 h-9 rounded-lg border border-gray-300 flex items-center justify-center text-gray-600">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="1"/><rect x="13" y="4" width="7" height="7" rx="1"/><rect x="4" y="13" width="7" height="7" rx="1"/><rect x="13" y="13" width="7" height="7" rx="1"/></svg>
+  </button>
+  <button type="button" data-galv-btn="gross" aria-pressed="false"
+          aria-label="Große Fotos" title="Große Fotos"
+          class="w-9 h-9 rounded-lg border border-gray-300 flex items-center justify-center text-gray-600">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="4" y="5" width="16" height="8" rx="1"/><rect x="4" y="16" width="16" height="3" rx="1"/></svg>
+  </button>
+</div>
+</div>
+  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3" data-sf-cols="2/3/3" data-sf-tail="trim" data-sf-auto="1" data-galv="raster"
+       data-cls-raster="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3" data-cls-gross="grid gap-4 sm:grid-cols-2">
+      <button type="button" data-lightbox="/media/g1.jpg"
+              class="aspect-square rounded-xl overflow-hidden bg-gray-100 block cursor-zoom-in group">
+        <img src="/media/g1.jpg" alt="" loading="lazy" decoding="async"
+             class="w-full h-full object-cover group-hover:scale-[1.03] transition">
+      </button>
+      <button type="button" data-lightbox="/media/g2.jpg"
+              class="aspect-square rounded-xl overflow-hidden bg-gray-100 block cursor-zoom-in group">
+        <img src="/media/g2.jpg" alt="" loading="lazy" decoding="async"
+             class="w-full h-full object-cover group-hover:scale-[1.03] transition">
+      </button>
+      <button type="button" data-lightbox="/media/g3.jpg"
+              class="aspect-square rounded-xl overflow-hidden bg-gray-100 block cursor-zoom-in group">
+        <img src="/media/g3.jpg" alt="" loading="lazy" decoding="async"
+             class="w-full h-full object-cover group-hover:scale-[1.03] transition">
+      </button>
+  </div>
+</section>
+<script>
+(function () {
+  document.querySelectorAll(".js-video-embed").forEach(function (el) {
+    function load() {
+      var f = document.createElement("iframe");
+      f.src = el.dataset.src + "?autoplay=1";
+      f.title = "Video";
+      f.allow = "autoplay; encrypted-media; fullscreen";
+      f.setAttribute("allowfullscreen", "");
+      f.className = "w-full h-full absolute inset-0 border-0";
+      el.innerHTML = "";
+      el.appendChild(f);
+    }
+    el.addEventListener("click", load);
+    el.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); load(); } });
+  });
+})();
+</script>
+</div>
+  </main>
