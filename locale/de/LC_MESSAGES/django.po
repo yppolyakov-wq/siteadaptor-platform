@@ -38631,3 +38631,7 @@ msgstr "Im Seitenaufbau bearbeiten"
 #: apps/core/site_schema_views.py
 msgid "Abschnitte dieser Seite darf nur ändern, wer auch das Angebot selbst bearbeiten darf."
 msgstr "Abschnitte dieser Seite darf nur ändern, wer auch das Angebot selbst bearbeiten darf."
+
+#: templates/tenant/site_home.html
+msgid "Abschnitte werden im Seitenaufbau bearbeitet."
+msgstr "Abschnitte werden im Seitenaufbau bearbeitet."

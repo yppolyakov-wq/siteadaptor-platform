@@ -20,7 +20,6 @@ from apps.catalog import category_styles
 from apps.catalog.option_styles import VARIANT_STYLES
 from apps.core import (
     compositions,
-    detail_sections,
     list_blocks,
     permissions,
     presence,
@@ -2859,103 +2858,13 @@ def home_builder_view(request):
         # cabinet («Seitenvorlage») only — the Studio Save does not touch them, nor the
         # legacy `promo_layout` ribbon key (the cabinet retires it, LAY-7c).
         # STU-19f-4: catalog sort/filters/subcategories — cabinet only.
-        # DL-21.1: шаблон корневой страницы каталога — presence по самому полю
-        # (плитки шлют hidden всегда); "" = снять ключ (Standard).
-        if "catalog_page_style" in request.POST:
-            _cps = siteconfig.normalize_catalog_page_style(request.POST.get("catalog_page_style"))
-            if _cps != (config.get("catalog_page_style") or ""):
-                # FB-30.16 (ревью R4): смена шаблона в Студии снимает виды блоков каталога
-                config.update(siteconfig.drop_catalog_views(config))
-            if _cps:
-                config["catalog_page_style"] = _cps
-            else:
-                config.pop("catalog_page_style", None)
-        # STU-18d: композиция ДЕВЯТИ листингов — один ключ `page_styles`. Presence по
-        # самому полю (плитки шлют hidden всегда), "" снимает запись поверхности.
-        # Пишем поповерхностно, а не словарём целиком: панель показывает строку
-        # только открытого типа страницы, и целиковая запись стёрла бы остальные
-        # восемь (класс W6 — «Save одной страницы роняет чужие ключи»).
-        _pstyles = dict(config.get("page_styles") or {})
-        _pstyles_touched = False
-        for _surface in sorted(compositions.LISTING_SURFACES):
-            _field = f"{_surface}_page_style"
-            if _field not in request.POST:
-                continue
-            _pstyles_touched = True
-            _code = (request.POST.get(_field) or "").strip()
-            if not (_code and _code in compositions.valid_for(_surface)):
-                _code = ""
-            if _code != (_pstyles.get(_surface) or ""):
-                # FB-31 P4: смена шаблона листинга снимает виды его блоков (как у каталога)
-                from apps.core import listing_parts
-
-                config.update(siteconfig.drop_page_views(config, listing_parts.HOST_OF[_surface]))
-            if _code:
-                _pstyles[_surface] = _code
-            else:
-                _pstyles.pop(_surface, None)
-        if _pstyles_touched:
-            if _pstyles:
-                config["page_styles"] = _pstyles
-            else:
-                config.pop("page_styles", None)
+        # FB-31 P6 (решение владельца): шаблоны страниц (каталог, девять листингов) пишет
+        # только «Seitenaufbau» (строки-оси) — Save Студии их не трогает (устаревшая форма
+        # с плитками «Vorlage» не откатывает правку схемы).
         # STU-19f-4: menu prices/labels and the cart cross-sell — cabinet only.
-        # SE-2b-2: порядок/видимость тематических секций детальной события правятся
-        # и на канве (on-canvas инспектор) — раньше только на вкладке «Pages».
-        # Presence-guard: пишем, только если инспектор реально прислан (есть ed_order_*),
-        # иначе частичный POST без полей не должен скрыть все секции.
-        if request.tenant.is_module_active("events") and any(
-            k.startswith("ed_order_") for k in request.POST
-        ):
-            ed_rows = []
-            for key in siteconfig.EVENT_DETAIL_SECTION_KEYS:
-                try:
-                    order = int(request.POST.get(f"ed_order_{key}", "999"))
-                except (TypeError, ValueError):
-                    order = 999
-                ed_rows.append((order, key, request.POST.get(f"ed_visible_{key}") == "on"))
-            ed_rows.sort(key=lambda r: r[0])
-            config["event_detail"] = {
-                "order": [k for _o, k, _v in ed_rows],
-                "hidden": [k for _o, k, v in ed_rows if not v],
-                # STU-15b: раскладка страницы ("" = как раньше; normalize клампит).
-                "layout": request.POST.get("ed_layout", ""),
-            }
-        # Видимость опц. секций детальной товара (group=catalog_detail). Presence-guard:
-        # пишем только если инспектор прислан (есть pd_present), иначе не трогаем.
-        if request.tenant.is_module_active("catalog") and request.POST.get("pd_present"):
-            config["product_detail"] = {
-                "hidden": [
-                    k
-                    for k in siteconfig.PRODUCT_DETAIL_SECTION_KEYS
-                    if request.POST.get(f"pd_visible_{k}") != "on"
-                ],
-                # DL-16.6 (D2) → STU-15b: раскладка страницы ("" = как раньше; клампит
-                # normalize по реестру DETAIL_LAYOUTS, поэтому «breit» доезжает тоже).
-                "layout": request.POST.get("pd_layout", ""),
-            }
-        # UA4-1 slice C: видимость секций детальной услуги/номера (hide-only, presence-guard).
-        if request.tenant.is_module_active("booking") and request.POST.get("sd_present"):
-            config["service_detail"] = {
-                # FB-31 P5 (ревью): порядок разделов задаёт «Seitenaufbau» — Студия его
-                # не правит и не стирает
-                **{k: v for k, v in (config.get("service_detail") or {}).items() if k == "order"},
-                "hidden": [
-                    k
-                    for k in detail_sections.section_keys("booking")
-                    if request.POST.get(f"sd_visible_{k}") != "on"
-                ],
-                "layout": request.POST.get("sd_layout", ""),  # STU-15b
-            }
-        if request.tenant.is_module_active("stays") and request.POST.get("std_present"):
-            config["stay_detail"] = {
-                "hidden": [
-                    k
-                    for k in detail_sections.section_keys("stays")
-                    if request.POST.get(f"std_visible_{k}") != "on"
-                ],
-                "layout": request.POST.get("std_layout", ""),  # STU-15b
-            }
+        # FB-31 P6 (решение владельца): разделы деталей (порядок, видимость, раскладка)
+        # правит только «Seitenaufbau» — Save Студии их не пишет (раньше инспектор
+        # перезаписывал `*_detail` целиком и откатывал правку схемы).
         # STU-12g: типографику пишет ТОЛЬКО экран «Design des Shops» (решение 1B).
         # Раньше эта ветка писала ключ БЕЗУСЛОВНО — после переезда полей первый же
         # Save Студии обнулил бы выбор владельца (класс W6).

@@ -38690,3 +38690,7 @@ msgstr "Sayfa yapısında düzenle"
 #: apps/core/site_schema_views.py
 msgid "Abschnitte dieser Seite darf nur ändern, wer auch das Angebot selbst bearbeiten darf."
 msgstr "Bu sayfanın bölümlerini yalnızca teklifin kendisini düzenleyebilenler değiştirebilir."
+
+#: templates/tenant/site_home.html
+msgid "Abschnitte werden im Seitenaufbau bearbeitet."
+msgstr "Bölümler sayfa yapısında düzenlenir."

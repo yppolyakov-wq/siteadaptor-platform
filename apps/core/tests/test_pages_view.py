@@ -77,16 +77,18 @@ def test_studio_saves_event_detail_order():
         },
         tenant,
     )
+    # FB-31 P6 (осознанно, решение владельца): разделы деталей — только «Seitenaufbau»
     cfg = siteconfig.normalize(tenant.site_config)
-    order = siteconfig.event_detail_order(cfg)
-    assert order[0] == "faq" and "for_whom" in order and "idea" not in order
-    assert order.index("faq") < order.index("for_whom")
+    assert siteconfig.event_detail_order(cfg) == siteconfig.event_detail_order(
+        siteconfig.normalize({})
+    )
 
 
 def test_studio_renders_event_sections_when_events_active():
     tenant = TenantFactory(schema_name="public", slug="ped2", name="PED2", disabled_modules=[])
     body = _builder("get", tenant=tenant).content.decode()
-    assert 'name="ed_order_faq"' in body and 'name="ed_visible_idea"' in body
+    # FB-31 P6 (осознанно): разделы — ссылкой в «Seitenaufbau»
+    assert "data-stu-sections-link" in body and 'name="ed_order_faq"' not in body
 
 
 def test_studio_saves_related_layout():

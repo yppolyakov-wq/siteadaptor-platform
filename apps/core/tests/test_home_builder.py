@@ -788,8 +788,8 @@ def test_home_builder_get_renders_event_detail_inspector():
     resp = views.home_builder_view(_request("get", "/dashboard/site/home/", tenant=tenant))
     body = resp.content.decode()
     assert 'data-page-key="event_detail"' in body  # клик-цель инспектора
-    assert 'name="ed_order_faq"' in body and 'name="ed_visible_idea"' in body  # реестр секций
-    assert 'class="ed-up' in body and "function edMove" in body  # ↑▼ value-based
+    # FB-31 P6 (осознанно): разделы — ссылкой в «Seitenaufbau», ручек в Студии нет
+    assert 'name="ed_order_faq"' not in body and "?seite=event" in body
 
 
 def test_home_builder_get_includes_event_detail_preview_page():
@@ -831,10 +831,11 @@ def test_home_builder_saves_event_detail_order():
     }
     resp = views.home_builder_view(_request("post", "/dashboard/site/home/", data, tenant))
     assert resp.status_code == 302
+    # FB-31 P6 (осознанно, решение владельца): разделы деталей правит только «Seitenaufbau»
     cfg = siteconfig.normalize(tenant.site_config)
-    order = siteconfig.event_detail_order(cfg)
-    assert order[0] == "faq" and "idea" not in order  # faq поднят, idea скрыта
-    assert order.index("faq") < order.index("for_whom")
+    assert siteconfig.event_detail_order(cfg) == siteconfig.event_detail_order(
+        siteconfig.normalize({})
+    )
 
 
 def test_home_builder_renders_product_detail_inspector():
@@ -846,8 +847,8 @@ def test_home_builder_renders_product_detail_inspector():
         _request("get", "/dashboard/site/home/", tenant=tenant)
     ).content.decode()
     assert 'data-page-key="product_detail"' in body  # клик-цель инспектора детальной товара
-    assert 'name="pd_visible_reviews"' in body and 'name="pd_visible_related"' in body
-    assert 'name="pd_present"' in body  # presence-guard
+    assert 'name="pd_visible_reviews"' not in body and 'name="pd_present"' not in body  # P6
+    assert "?seite=product" in body
 
 
 def test_home_builder_saves_product_detail_hidden():
@@ -865,8 +866,8 @@ def test_home_builder_saves_product_detail_hidden():
     }
     resp = views.home_builder_view(_request("post", "/dashboard/site/home/", data, tenant))
     assert resp.status_code == 302
-    hidden = siteconfig.product_detail_hidden(siteconfig.normalize(tenant.site_config))
-    assert hidden == {"reviews", "related"}
+    # FB-31 P6 (осознанно): Студия разделы товара больше не пишет
+    assert siteconfig.product_detail_hidden(siteconfig.normalize(tenant.site_config)) == set()
 
 
 def test_home_builder_renders_service_stay_inspector():
@@ -881,10 +882,10 @@ def test_home_builder_renders_service_stay_inspector():
     body = views.home_builder_view(
         _request("get", "/dashboard/site/home/", tenant=tenant)
     ).content.decode()
-    assert 'data-page-key="service_detail"' in body and 'name="sd_visible_reviews"' in body
-    assert 'name="sd_present"' in body
-    assert 'data-page-key="stay_detail"' in body and 'name="std_visible_similar"' in body
-    assert 'name="std_present"' in body
+    # FB-31 P6 (осознанно): разделы услуги/номера — ссылкой в «Seitenaufbau»
+    assert 'data-page-key="service_detail"' in body and "?seite=service" in body
+    assert 'data-page-key="stay_detail"' in body and "?seite=stay" in body
+    assert 'name="sd_present"' not in body and 'name="std_present"' not in body
 
 
 def test_home_builder_saves_service_stay_detail_hidden():
@@ -913,11 +914,10 @@ def test_home_builder_saves_service_stay_detail_hidden():
     }
     resp = views.home_builder_view(_request("post", "/dashboard/site/home/", data, tenant))
     assert resp.status_code == 302
+    # FB-31 P6 (осознанно): Студия разделы услуги/номера больше не пишет
     cfg = siteconfig.normalize(tenant.site_config)
-    # B3/LS-1: в реестре booking появились секции upsell и video — неприсланный
-    # чекбокс при sd_present честно скрывается presence-guard'ом, как любой другой.
-    assert siteconfig.detail_section_hidden(cfg, "booking") == {"reviews", "upsell", "video"}
-    assert siteconfig.detail_section_hidden(cfg, "stays") == {"similar"}
+    assert cfg["service_detail"] == siteconfig.normalize({})["service_detail"]
+    assert cfg["stay_detail"] == siteconfig.normalize({})["stay_detail"]
 
 
 def test_home_builder_save_without_service_inspector_keeps_service_detail():

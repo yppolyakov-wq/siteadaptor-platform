@@ -38870,3 +38870,7 @@ msgstr "Змінити в «Seitenaufbau»"
 #: apps/core/site_schema_views.py
 msgid "Abschnitte dieser Seite darf nur ändern, wer auch das Angebot selbst bearbeiten darf."
 msgstr "Розділи цієї сторінки може змінювати лише той, кому можна редагувати саму пропозицію."
+
+#: templates/tenant/site_home.html
+msgid "Abschnitte werden im Seitenaufbau bearbeitet."
+msgstr "Розділи редагуються в «Seitenaufbau»."

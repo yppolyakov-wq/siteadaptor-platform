@@ -804,21 +804,7 @@
           {% if has_events %}
           <div class="page-block" data-page-key="event_detail" data-stu-setting="event_detail_sections" data-stu-axis="content" data-stu-page="event">
             <span class="text-sm font-medium block mb-2">{% trans "Event page: sections" %}</span>
-            <ul id="ed-sections" class="space-y-1">
-              {% for s in event_sections %}
-              <li class="ed-row flex items-center gap-2 text-sm" data-key="{{ s.key }}">
-                <input type="hidden" name="ed_order_{{ s.key }}" value="{{ s.order }}" class="ed-order-input">
-                <span class="inline-flex rounded border border-gray-300 overflow-hidden shrink-0">
-                  <button type="button" class="ed-up px-1.5 py-0.5 text-gray-500 hover:bg-gray-100" data-key="{{ s.key }}" aria-label="{% trans 'Move up' %}">↑</button>
-                  <button type="button" class="ed-down px-1.5 py-0.5 text-gray-500 hover:bg-gray-100 border-l border-gray-300" data-key="{{ s.key }}" aria-label="{% trans 'Move down' %}">▼</button>
-                </span>
-                <span class="flex-1">{{ s.label }}</span>
-                <label class="flex items-center gap-1 text-xs text-gray-500 shrink-0">
-                  <input type="checkbox" name="ed_visible_{{ s.key }}" {% if s.visible %}checked{% endif %} class="rounded border-gray-300">{% trans "Show" %}
-                </label>
-              </li>
-              {% endfor %}
-            </ul>
+            {% comment %}FB-31 P6 (решение владельца): разделы — только в «Seitenaufbau».{% endcomment %}<p class="text-sm text-gray-700" data-stu-sections-link>{% trans "Abschnitte werden im Seitenaufbau bearbeitet." %} <a href="{% url 'site-schema' %}?seite=event" class="font-semibold text-indigo-700 hover:underline">{% trans "Im Seitenaufbau bearbeiten" %} →</a></p>
             {% comment %}STU-15b: раскладка страницы — у услуги/номера/события её не было
                вовсе, хотя тело у них устроено так же (data-driven цикл секций).{% endcomment %}
             <div class="stu-page-row" data-stu-setting="event_detail_layout" data-stu-axis="composition" data-stu-page="event">
@@ -831,17 +817,7 @@
           {% if has_catalog_pages %}
           <div class="page-block" data-page-key="product_detail" data-stu-setting="product_detail_sections" data-stu-axis="content" data-stu-page="product">
             <span class="text-sm font-medium block mb-2">{% trans "Product page: sections" %}</span>
-            <input type="hidden" name="pd_present" value="1">
-            <ul class="space-y-1">
-              {% for s in product_sections %}
-              <li class="flex items-center gap-2 text-sm">
-                <span class="flex-1">{{ s.label }}</span>
-                <label class="flex items-center gap-1 text-xs text-gray-500 shrink-0">
-                  <input type="checkbox" name="pd_visible_{{ s.key }}" {% if s.visible %}checked{% endif %} class="rounded border-gray-300">{% trans "Show" %}
-                </label>
-              </li>
-              {% endfor %}
-            </ul>
+            <p class="text-sm text-gray-700" data-stu-sections-link>{% trans "Abschnitte werden im Seitenaufbau bearbeitet." %} <a href="{% url 'site-schema' %}?seite=product" class="font-semibold text-indigo-700 hover:underline">{% trans "Im Seitenaufbau bearbeiten" %} →</a></p>
             {# DL-16.6 (D2): раскладка секций детали товара — друг под другом или табами #}
             <div class="stu-page-row" data-stu-setting="product_detail_layout" data-stu-axis="composition" data-stu-page="product">
               {% include "tenant/_stu19_summary.html" with s=stu19.product_detail_layout %}
@@ -853,17 +829,7 @@
           {% if has_booking %}
           <div class="page-block" data-page-key="service_detail" data-stu-setting="service_detail_sections" data-stu-axis="content" data-stu-page="service">
             <span class="text-sm font-medium block mb-2">{% trans "Service page: sections" %}</span>
-            <input type="hidden" name="sd_present" value="1">
-            <ul class="space-y-1">
-              {% for s in service_sections %}
-              <li class="flex items-center gap-2 text-sm">
-                <span class="flex-1">{{ s.label }}</span>
-                <label class="flex items-center gap-1 text-xs text-gray-500 shrink-0">
-                  <input type="checkbox" name="sd_visible_{{ s.key }}" {% if s.visible %}checked{% endif %} class="rounded border-gray-300">{% trans "Show" %}
-                </label>
-              </li>
-              {% endfor %}
-            </ul>
+            <p class="text-sm text-gray-700" data-stu-sections-link>{% trans "Abschnitte werden im Seitenaufbau bearbeitet." %} <a href="{% url 'site-schema' %}?seite=service" class="font-semibold text-indigo-700 hover:underline">{% trans "Im Seitenaufbau bearbeiten" %} →</a></p>
             {% comment %}STU-15b: раскладка страницы — у услуги/номера/события её не было
                вовсе, хотя тело у них устроено так же (data-driven цикл секций).{% endcomment %}
             <div class="stu-page-row" data-stu-setting="service_detail_layout" data-stu-axis="composition" data-stu-page="service">
@@ -875,17 +841,7 @@
           {% if has_stays %}
           <div class="page-block" data-page-key="stay_detail" data-stu-setting="stay_detail_sections" data-stu-axis="content" data-stu-page="stay">
             <span class="text-sm font-medium block mb-2">{% trans "Room page: sections" %}</span>
-            <input type="hidden" name="std_present" value="1">
-            <ul class="space-y-1">
-              {% for s in stay_sections %}
-              <li class="flex items-center gap-2 text-sm">
-                <span class="flex-1">{{ s.label }}</span>
-                <label class="flex items-center gap-1 text-xs text-gray-500 shrink-0">
-                  <input type="checkbox" name="std_visible_{{ s.key }}" {% if s.visible %}checked{% endif %} class="rounded border-gray-300">{% trans "Show" %}
-                </label>
-              </li>
-              {% endfor %}
-            </ul>
+            <p class="text-sm text-gray-700" data-stu-sections-link>{% trans "Abschnitte werden im Seitenaufbau bearbeitet." %} <a href="{% url 'site-schema' %}?seite=stay" class="font-semibold text-indigo-700 hover:underline">{% trans "Im Seitenaufbau bearbeiten" %} →</a></p>
             {% comment %}STU-15b: раскладка страницы — у услуги/номера/события её не было
                вовсе, хотя тело у них устроено так же (data-driven цикл секций).{% endcomment %}
             <div class="stu-page-row" data-stu-setting="stay_detail_layout" data-stu-axis="composition" data-stu-page="stay">

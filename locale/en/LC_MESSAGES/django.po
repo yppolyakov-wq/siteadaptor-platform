@@ -38544,3 +38544,7 @@ msgstr "Edit in page structure"
 #: apps/core/site_schema_views.py
 msgid "Abschnitte dieser Seite darf nur ändern, wer auch das Angebot selbst bearbeiten darf."
 msgstr "Only people who may edit the offer itself can change the sections of this page."
+
+#: templates/tenant/site_home.html
+msgid "Abschnitte werden im Seitenaufbau bearbeitet."
+msgstr "Sections are edited in the page structure."
