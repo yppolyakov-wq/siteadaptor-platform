@@ -2773,6 +2773,9 @@ def page_inspector(config, page_type: str) -> list[dict]:
     keys = detail_sections.section_keys(module)
     labels = detail_sections.section_labels(module)
     if not any(s.orderable for s in detail_sections.sections_for(module)):
+        # FB-31 P5 (ревью): порядок, заданный в «Seitenaufbau», — тот же, что на странице
+        saved = nd.get("order", [])
+        keys = saved + [k for k in keys if k not in saved]
         return [{"key": k, "label": labels.get(k, k), "visible": k not in hidden} for k in keys]
     seen = set(nd.get("order", []))
     full = nd.get("order", []) + [k for k in keys if k not in seen]
@@ -2980,7 +2983,16 @@ def apply_page_payload(cfg: dict, data: dict) -> None:
     молча игнорируется (драфт fail-safe, как раньше)."""
     for key in _PAGE_DETAIL_KEYS:
         if isinstance(data.get(key), dict):
-            cfg[key] = data[key]
+            # FB-31 P5 (ревью): порядок разделов услуги — из «Seitenaufbau», превью Студии
+            # его не теряет
+            kept = (
+                {"order": cfg[key]["order"]}
+                if isinstance(cfg.get(key), dict)
+                and "order" in cfg[key]
+                and "order" not in data[key]
+                else {}
+            )
+            cfg[key] = {**kept, **data[key]}
     for key in _PAGE_LAYOUT_KEYS:
         lay = data.get(key)
         # DS-5c (находка адверсариального ревью): страничные extra-пресеты

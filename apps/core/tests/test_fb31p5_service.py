@@ -45,3 +45,18 @@ def test_panel_moves_service_sections_and_saves_the_order():
     tenant.refresh_from_db()
     cfg = siteconfig.normalize(tenant.site_config)
     assert cfg["service_detail"]["order"][:2] == ["video", "description"]
+
+
+def test_review_studio_save_and_preview_keep_the_service_order():
+    from apps.core import detail_parts
+
+    cfg = {"service_detail": {"order": ["faq", "description"]}}
+    siteconfig.apply_page_payload(cfg, {"service_detail": {"hidden": ["video"]}})
+    assert cfg["service_detail"]["order"] == ["faq", "description"]
+    rows = siteconfig.page_inspector(cfg, "service_detail")
+    assert [r["key"] for r in rows][:2] == ["faq", "description"], "инспектор = страница"
+    fresh = {}
+    items = detail_parts.edit_rows(fresh, "service_detail", [])
+    items.insert(0, items.pop(1))  # video первым
+    detail_parts.lift(fresh, "service_detail", items)
+    assert fresh["service_detail"]["order"][0] == "video", "порядок записан и без скрытых"

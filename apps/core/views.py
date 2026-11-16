@@ -2937,6 +2937,9 @@ def home_builder_view(request):
         # UA4-1 slice C: видимость секций детальной услуги/номера (hide-only, presence-guard).
         if request.tenant.is_module_active("booking") and request.POST.get("sd_present"):
             config["service_detail"] = {
+                # FB-31 P5 (ревью): порядок разделов задаёт «Seitenaufbau» — Студия его
+                # не правит и не стирает
+                **{k: v for k, v in (config.get("service_detail") or {}).items() if k == "order"},
                 "hidden": [
                     k
                     for k in detail_sections.section_keys("booking")

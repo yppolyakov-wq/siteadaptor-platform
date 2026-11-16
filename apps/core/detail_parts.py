@@ -138,7 +138,7 @@ def lift(config: dict, host: str, items: list[dict]) -> list[dict]:
     detail = dict(config.get(cfg_key) or {}) if isinstance(config.get(cfg_key), dict) else {}
     if order and order != full_order(config, module):
         detail["order"] = order
-    if hidden or detail.get("hidden") or cfg_key in config:
+    if hidden or detail.get("hidden") or cfg_key in config or "order" in detail:
         detail["hidden"] = hidden
         config[cfg_key] = detail
     return [{"key": r["key"]} if r.get("key") in keys and not r.get("id") else r for r in items]
