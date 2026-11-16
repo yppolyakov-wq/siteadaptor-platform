@@ -1696,11 +1696,11 @@ PROMO_MAIN_CHOICES = (
         "schaufenster",
     ),
     ("magazin", _("Magazin"), _("Zwei große Karten mit Bedingungen."), "magazin"),
-    ("prospekt", _("Prospekt"), _("Dichtes Raster wie im Handzettel."), "kompakt"),
+    ("prospekt", _("Prospekt"), _("Dichtes Raster wie im Handzettel."), "prospekt"),
 )
 PROMO_GROUPING_CHOICES = (
     ("auto", _("Nach Gruppen"), _("Aktionen in Abschnitten je Gruppe."), ""),
-    ("ohne", _("Ohne Abschnitte"), _("Alle Aktionen in einer Liste."), "magazin"),
+    ("ohne", _("Ohne Abschnitte"), _("Alle Aktionen in einer Liste."), ""),
 )
 
 
@@ -1710,8 +1710,21 @@ def _part_view_panel(config: dict, host: str, item: dict, main: bool) -> dict:
     from apps.tenants import siteconfig
 
     surface = siteconfig.part_surface(host)
-    code = _promo_code(config, host)
-    parts = pp.effective(surface, config, host, code=code)
+    if host.startswith("promo:"):
+        # ревью R5: своя страница акции — то же правило, что у витрины (свой шаблон
+        # акции и общая строка «Angebot» под её своими блоками)
+        from apps.promotions import promo_parts
+
+        promo = _object_for(f"promo@{host}")
+        sd = (config or {}).get("site_defaults") or {}
+        parts = promo_parts.detail_parts(
+            config,
+            getattr(promo, "page_style", "") or "",
+            sd.get("promo_detail_style", ""),
+            host,
+        )
+    else:
+        parts = pp.effective(surface, config, host, code=_promo_code(config, host))
     if main:
         if surface.name != "promos":
             return {}
@@ -2312,6 +2325,7 @@ REPLACED_BY_BLOCKS = {
     # FB-31 P3: шаблон обзора — строки «Banner», «Angebotsgruppen» и вид ★; шаблон
     # страницы акции — вид строки «Angebot» (у страницы акции своя строка в выборе)
     "promos": frozenset({"promo_page_style", "promo_detail_style"}),
+    "promo": frozenset({"promo_detail_style"}),
 }
 
 

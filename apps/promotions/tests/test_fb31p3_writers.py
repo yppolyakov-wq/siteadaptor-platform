@@ -66,3 +66,20 @@ def test_cabinet_template_change_drops_the_views_but_same_template_keeps_them():
     assert any(r.get("key") == "groups" for r in _rows(tenant.site_config)), "тот же шаблон"
     _post({"page_style": "regale"})
     assert not any(r.get("key") == "groups" for r in _rows(tenant.site_config))
+
+
+def test_review_own_template_change_drops_the_promo_own_offer_view():
+    from apps.promotions.models import Promotion
+    from apps.promotions.views import _drop_own_offer_view
+
+    promo = Promotion.objects.create(title={"de": "Brot"}, status="active", promo_type="discount")
+    host = f"promo:{promo.pk.hex}"
+    tenant = TenantFactory(
+        schema_name="public",
+        slug="fb31p3o",
+        name="O",
+        site_config={"page_blocks": {host: [{"key": "offer", "style": "plakat"}]}},
+    )
+    _drop_own_offer_view(tenant, promo)
+    tenant.refresh_from_db()
+    assert host not in (siteconfig.normalize(tenant.site_config).get("page_blocks") or {})

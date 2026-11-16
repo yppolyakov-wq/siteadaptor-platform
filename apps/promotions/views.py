@@ -1153,10 +1153,17 @@ def _drop_own_offer_view(tenant, promo) -> None:
         blocks = cfg.get("page_blocks")
         if not isinstance(blocks, dict) or not blocks.get(host):
             return
-        new_cfg = siteconfig.drop_page_views(cfg, host)
-        Tenant.objects.filter(pk=locked.pk).update(site_config=new_cfg)
+        # ревью R5: нормализованно (пустой хост объекта не копится) и с updated_at, как
+        # прочие писатели конфига
+        from django.utils import timezone as _tz
+
+        locked.site_config = siteconfig.normalize(siteconfig.drop_page_views(cfg, host))
+        # запрос UPDATE, не save(): save() django-tenants пересоздаёт схему (как `write`)
+        Tenant.objects.filter(pk=locked.pk).update(
+            site_config=locked.site_config, updated_at=_tz.now()
+        )
         transaction.on_commit(lambda: bump_storefront_cache(locked.schema_name))
-    tenant.site_config = new_cfg
+    tenant.site_config = locked.site_config
 
 
 @login_required

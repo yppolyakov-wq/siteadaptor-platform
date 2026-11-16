@@ -110,3 +110,34 @@ def test_detail_has_the_pinned_offer_row_first():
 def test_template_settings_are_replaced_by_the_blocks():
     codes = site_schema.setting_codes(_shop(), "promos")
     assert "promo_page_style" not in codes and "promo_detail_style" not in codes
+
+
+def test_review_grouping_change_alone_counts_as_a_draft_change():
+    from apps.core import aufbau_draft
+
+    saved = {"items": [{"key": "main"}]}
+    draft = {"items": [{"key": "main", "grouping": "ohne"}]}
+    assert aufbau_draft.changes(saved, draft) == 1
+
+
+def test_review_object_panel_shows_what_the_storefront_draws():
+    promo = Promotion.objects.create(
+        title={"de": "Brot"}, status="active", promo_type="discount", page_style="plakat"
+    )
+    host = f"promo:{promo.pk.hex}"
+    cfg = siteconfig.normalize({"page_blocks": {host: [{"key": "text", "id": "t1", "data": {}}]}})
+    rows = site_schema.blocks_for(cfg, f"promo@{host}")
+    offer = next(r for r in rows if r["key"] == "offer")
+    assert offer["catview"]["value"] == "plakat", "свой шаблон акции, как на витрине"
+
+
+def test_review_detail_template_setting_is_replaced_on_its_own_row():
+    assert "promo_detail_style" not in site_schema.setting_codes(_shop(), "promo")
+
+
+def test_review_prospekt_view_does_not_need_groups():
+    tenant = _shop()  # без групп
+    b = Browser(tenant)
+    b.post(seite="promos", op="mainview", ref="main", value="prospekt")
+    b.post(seite="promos", op="save")
+    assert {"key": "main", "style": "prospekt"} in _saved(tenant)

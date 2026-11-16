@@ -15,6 +15,7 @@ from apps.core import page_parts as pp
 HEAD_KEY = "page_head"
 GROUPS_KEY = "groups"
 OFFER_KEY = "offer"
+OFFER_HOST = "promo_detail"  # общая схема страницы акции
 #: «как обычно» записано в строке явно (как «aus»/«auto» у каталога)
 HEAD_OFF = "aus"
 GROUPS_AUTO = "auto"
@@ -85,3 +86,25 @@ PROMO_DETAIL = pp.surface(
 )
 
 SURFACES = {s.name: s for s in (PROMOS, PROMO_GROUP, PROMO_DETAIL)}
+
+
+def detail_parts(cfg, own_style: str, site_default: str, host: str = "") -> pp.Parts:
+    """Вид строки «Angebot» детали акции (витрина и панель читают одно правило, план P3
+    §4.3): свои блоки акции `host` («nur diese») → свой шаблон акции → строка общей схемы
+    страницы акции → дефолт сайта. Без БД: объект передаёт свой `page_style`."""
+    from . import group_styles
+
+    blocks = (cfg.get("page_blocks") or {}) if isinstance(cfg, dict) else {}
+    if not isinstance(blocks, dict):  # сырой конфиг черновика может быть битым
+        blocks = {}
+    own = group_styles.promotion_detail_style(own_style, "")
+    if own:
+        parts = pp.from_code(PROMO_DETAIL, own)
+    else:
+        site_code = group_styles.promotion_detail_style("", site_default)
+        parts = pp.effective_rows(PROMO_DETAIL, blocks.get(OFFER_HOST), code=site_code)
+    if host and blocks.get(host):
+        parts = pp.effective_rows(
+            PROMO_DETAIL, blocks[host], code=pp.legacy_code(PROMO_DETAIL, parts)
+        )
+    return parts

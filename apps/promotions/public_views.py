@@ -436,27 +436,15 @@ def storefront_home(request):
 #: заголовком. Сетка страницы — 3 колонки, поэтому группа из одной карточки
 #: оставляет две трети строки пустыми (фидбэк владельца 2026-08-07).
 def _detail_style(cfg, promo, site_default: str) -> str:
-    """FB-31 P3: вид строки «Angebot» детали акции. Свои блоки акции («nur diese») →
-    свой шаблон акции → строка общей схемы страницы акции → дефолт сайта (план P3 §4.3)."""
+    """FB-31 P3: вид строки «Angebot» детали акции — правило `promo_parts.detail_parts`."""
     from apps.core import object_structure
     from apps.core import page_parts as pp
 
     from . import promo_parts
 
-    surface = promo_parts.PROMO_DETAIL
-    blocks = (cfg.get("page_blocks") or {}) if isinstance(cfg, dict) else {}
-    if not isinstance(blocks, dict):  # ревью R1–R4: сырой конфиг черновика может быть битым
-        blocks = {}
-    site_code = group_styles.promotion_detail_style("", site_default)
-    own = group_styles.promotion_detail_style(promo.page_style, "")
-    if own:
-        parts = pp.from_code(surface, own)
-    else:
-        parts = pp.effective_rows(surface, blocks.get("promo_detail"), code=site_code)
     host = object_structure.object_host("promo", promo)
-    if host and blocks.get(host):
-        parts = pp.effective_rows(surface, blocks[host], code=pp.legacy_code(surface, parts))
-    return pp.legacy_code(surface, parts)
+    parts = promo_parts.detail_parts(cfg, promo.page_style, site_default, host)
+    return pp.legacy_code(promo_parts.PROMO_DETAIL, parts)
 
 
 MIN_GROUP_SECTION = 2

@@ -130,6 +130,10 @@ def overlay(config: dict, draft: dict) -> dict:
     return _apply_settings(out, draft)
 
 
+#: поля вида строки/★, каждое изменение которых — правка черновика
+_VIEW_FIELDS = ("style", "grid", "grouping", "focus")
+
+
 def changes(saved: dict, draft: dict) -> int:
     """Число несохранённых изменений: добавлено + удалено + скрыто/показано +
     ширина + порядок (один раз) + карточка контактов."""
@@ -157,7 +161,8 @@ def changes(saved: dict, draft: dict) -> int:
     count += sum(
         1
         for k in common
-        if (old[k].get("style"), old[k].get("grid")) != (new[k].get("style"), new[k].get("grid"))
+        # FB-31 P3 (ревью R5): и абзацы ★ «Aktionen», и «Im Fokus»
+        if tuple(old[k].get(f) for f in _VIEW_FIELDS) != tuple(new[k].get(f) for f in _VIEW_FIELDS)
     )
     if [k for k in old if k in new] != common:
         count += 1
