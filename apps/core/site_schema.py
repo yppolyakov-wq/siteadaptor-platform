@@ -47,6 +47,16 @@ class PageRow:
     preview_url: str
 
 
+def _detail_label(host: str, item: dict) -> str:
+    """FB-31 P5: подпись строки раздела детали — из реестра разделов."""
+    from apps.core import detail_parts, detail_sections
+
+    module = detail_parts.module_of(host or "")
+    if not module or item.get("id"):
+        return ""
+    return str(detail_sections.section_labels(module).get(item.get("key"), ""))
+
+
 def _sections_label(key: str) -> str:
     from apps.tenants import siteconfig
 
@@ -954,7 +964,12 @@ def blocks_for(
     elif not host:
         return []
     else:
-        items = siteconfig.main_list_sequence(host, siteconfig.page_rows(config, host))
+        from apps.core import detail_parts
+
+        if detail_parts.module_of(host):  # FB-31 P5: разделы детали среди блоков
+            items = detail_parts.edit_rows(config, host, siteconfig.page_rows(config, host))
+        else:
+            items = siteconfig.main_list_sequence(host, siteconfig.page_rows(config, host))
     out = []
     if host == "info":
         # M21.11: карточка «Kontakt & Öffnungszeiten» стоит на «Über uns» над блоками —
@@ -982,7 +997,9 @@ def blocks_for(
             {
                 "ref": item.get("id") or key,
                 "key": key,
-                "label": f"★ {main_label}" if main else _sections_label(key),
+                "label": f"★ {main_label}"
+                if main
+                else _detail_label(host, item) or _sections_label(key),
                 "enabled": True if main else bool(item.get("enabled", True)),
                 "main": main,
                 "cblock": cblock,
@@ -1032,6 +1049,28 @@ def blocks_for(
         ):
             # FB-31 P3: страницы акций — те же плитки вида у закреплённых строк и ★
             out[-1].update(_part_view_panel(config, host, item, main))
+    from apps.core import detail_parts as _dp
+
+    if _dp.module_of(host or ""):
+        # FB-31 P5: «Buchung» закреплена после разделов (так её рисует страница); блоки
+        # после неё — хвост страницы, как раньше
+        keys = set(_dp.section_keys(host))
+        last = max(
+            (i for i, b in enumerate(out) if b["key"] in keys and not b["cblock"]), default=-1
+        )
+        out.insert(
+            last + 1,
+            {
+                "ref": _dp.KAUF_REF,
+                "key": _dp.KAUF_KEY,
+                "label": str(_("Buchung")),
+                "enabled": True,
+                "main": False,
+                "cblock": False,
+                "fixed": True,
+                "summary": "",
+            },
+        )
     if summaries and host in ("catalog", "category") and not _has_combos():
         # «Sets & Menüs» — только если наборы есть (иначе строке нечего показывать)
         out = [b for b in out if b["key"] != siteconfig.CATALOG_SETS_KEY]
@@ -2190,6 +2229,12 @@ def load_items(config: dict, home: bool, host: str) -> list[dict]:
             if _is_hero_row(item):
                 item["data"] = choice or {}  # ключ есть всегда: «выбор прочитан»
         return items
+    from apps.core import detail_parts
+
+    if detail_parts.module_of(host):  # FB-31 P5: разделы детали — строками среди блоков
+        return copy.deepcopy(
+            detail_parts.edit_rows(config, host, siteconfig.page_rows(config, host))
+        )
     return copy.deepcopy(siteconfig.main_list_sequence(host, siteconfig.page_rows(config, host)))
 
 
@@ -2248,9 +2293,16 @@ def mutate(
     # FB-31 P0 (ревью): встроенная строка-список вне главной («Kategorien» каталога) пока
     # только двигается и скрывается — ширину/ряд/поля витрина ей ещё не рисует (R4).
     rows_host = _rows_host(code)
+    from apps.core import detail_parts
+
+    # FB-31 P5: раздел детали — двигается и скрывается, остальное ему нельзя
+    anchor = not item.get("id") and item.get("key") in detail_parts.section_keys(rows_host)
+    if anchor and op not in ("up", "down", "move", "toggle"):
+        raise SchemaError("fixed")
     pinned = (
         not item.get("id")
         and not main
+        and not anchor
         and item.get("key") in siteconfig.page_builtin_keys(rows_host)
     )
     # FB-30.16 R4: блок «Kategorien» каталога прикреплён к ★ (стоит прямо над ним, как на
@@ -2789,6 +2841,10 @@ def store_items(config: dict, home: bool, host: str, items: list[dict]) -> None:
         return
     # ВСЕ хосты: выравнивание сверяет каждый хост оверлея с новым набором, и
     # переданный один хост стёр бы переводы блоков остальных страниц.
+    from apps.core import detail_parts
+
+    if detail_parts.module_of(host):  # FB-31 P5: порядок/видимость разделов — на место
+        items = detail_parts.lift(config, host, items)
     page_blocks = dict(config.get("page_blocks") or {})
     page_blocks[host] = items
     siteconfig.realign_block_overlays(config, new_page_blocks=page_blocks)

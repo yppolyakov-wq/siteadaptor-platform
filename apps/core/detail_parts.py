@@ -19,6 +19,7 @@ from apps.core import detail_sections
 #: услуга, товар, номер — следующими срезами)
 SECTION_HOSTS = {"event_detail": "events"}
 KAUF_KEY = "kauf"
+KAUF_REF = "__kauf"  # строка схемы «Buchung» (не хранится)
 
 
 def module_of(host: str) -> str:
@@ -90,3 +91,47 @@ def full_order(config, module: str) -> list[str]:
     raw = (config or {}).get(siteconfig.detail_section_config_key(module))
     saved = siteconfig.normalize_detail_sections(raw, module).get("order", [])
     return saved + [k for k in keys if k not in saved]
+
+
+# ───────── «Seitenaufbau»: строки разделов вперемешку со своими блоками ─────────
+
+
+def edit_rows(config, host: str, rows) -> list[dict]:
+    """Строки схемы детали для правки: свои блоки до разделов, каждый раздел (полный порядок,
+    `enabled` — из скрытых) со своими блоками после него, хвост. Порядок разделов — из
+    `<module>_detail.order`, видимость — из `hidden`: строки лишь показывают их на время правки."""
+    from apps.tenants import siteconfig
+
+    module = module_of(host)
+    rows = [r for r in (rows if isinstance(rows, list) else []) if isinstance(r, dict)]
+    a = anchors(rows, host)
+    by_id = {r["id"]: r for r in rows if r.get("id")}
+    hidden = siteconfig.detail_section_hidden(config, module)
+    seq = [by_id[i] for i in a["lead"] if i in by_id]
+    for key in full_order(config, module):
+        seq.append({"key": key, "enabled": key not in hidden})
+        seq += [by_id[i] for i in a["after"].get(key, []) if i in by_id]
+    seq += [by_id[i] for i in a["tail"] if i in by_id]
+    return seq
+
+
+def lift(config: dict, host: str, items: list[dict]) -> list[dict]:
+    """Обратно из строк правки: порядок и скрытые разделы — в `<module>_detail` (прежний
+    писатель-ключ), в `page_blocks` — только якоря (позиция) и свои блоки. На месте `config`."""
+    from apps.tenants import siteconfig
+
+    module = module_of(host)
+    keys = set(section_keys(host))
+    order = [r["key"] for r in items if r.get("key") in keys and not r.get("id")]
+    hidden = sorted(
+        r["key"]
+        for r in items
+        if r.get("key") in keys and not r.get("id") and r.get("enabled") is False
+    )
+    cfg_key = siteconfig.detail_section_config_key(module)
+    detail = dict(config.get(cfg_key) or {}) if isinstance(config.get(cfg_key), dict) else {}
+    if order and order != full_order(config, module):
+        detail["order"] = order
+    detail["hidden"] = hidden
+    config[cfg_key] = detail
+    return [{"key": r["key"]} if r.get("key") in keys and not r.get("id") else r for r in items]

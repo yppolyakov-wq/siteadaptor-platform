@@ -119,6 +119,10 @@ def overlay(config: dict, draft: dict) -> dict:
         site_schema.lift_hero_choice(out, items)  # FB-29.2: выбор баннеров главной
         out["sections"] = items
     elif host:
+        from apps.core import detail_parts
+
+        if detail_parts.module_of(host):  # FB-31 P5: порядок/видимость разделов — на место
+            items = detail_parts.lift(out, host, items)
         page_blocks = dict(out.get("page_blocks") or {})
         page_blocks[host] = items
         out["page_blocks"] = page_blocks

@@ -81,7 +81,9 @@ def test_detail_templates_render_own_blocks_on_both_sides():
     ):
         src = pathlib.Path("templates/storefront", name).read_text()
         before = src.index(f'{{% object_blocks "{kind}" {var} "before" %}}')
-        shared = src.index(f'{{% page_blocks "{host}" %}}')
+        # FB-31 P5 (осознанно): хвост блоков события — с `part` (блоки между разделами)
+        tail = f'{{% page_blocks "{host}" part=detail_tail_part|default:"after" %}}'
+        shared = src.index(tail) if tail in src else src.index(f'{{% page_blocks "{host}" %}}')
         after = src.index(f'{{% object_blocks "{kind}" {var} %}}')
         assert before < shared < after, name
 

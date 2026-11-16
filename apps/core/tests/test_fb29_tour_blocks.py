@@ -186,7 +186,8 @@ def test_ghost_host_of_a_deleted_tour_is_purged():
 def test_templates_and_views_are_wired():
     src = pathlib.Path("templates/storefront/tour_detail.html").read_text()
     before = src.index('{% object_blocks "tour" tour "before" %}')
-    shared = src.index('{% page_blocks "event_detail" %}')
+    # FB-31 P5 (осознанно): хвост блоков — с `part` (блоки между разделами)
+    shared = src.index('{% page_blocks "event_detail" part=detail_tail_part|default:"after" %}')
     after = src.index('{% object_blocks "tour" tour %}')
     assert before < shared < after
     form = pathlib.Path("templates/events/tour_form.html").read_text()
