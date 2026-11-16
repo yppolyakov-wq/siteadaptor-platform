@@ -21,7 +21,7 @@ test_promotions_parity; системные чипы/сорт/поиск — Prom
   {% comment %}DL-20: у выбранной группы — своя шапка с названием и числом акций;
   без группы — прежний заголовок страницы байт-в-байт.{% endcomment %}
   {% if group_label %}{% include "storefront/promo_group/_header.html" %}
-  {% elif promo_page_style == "kopfbild" %}{% include "storefront/promo_page/_head.html" %}
+  {% elif promo_head == "titelbild" %}{% include "storefront/promo_page/_head.html" %}
   {% else %}<h1 class="text-2xl md:text-3xl font-bold mb-4">{% trans "Current offers" %}</h1>{% endif %}
   {% comment %}LB-3: полоса прыжков — сразу под шапкой, ДО блоков над списком (слот
   listing_before каркаса): навигация по странице должна стоять первой.{% endcomment %}
@@ -35,15 +35,15 @@ test_promotions_parity; системные чипы/сорт/поиск — Prom
   LB-3: в режиме блоков (есть полоса прыжков) всё это живёт в её панели «Suchen &
   filtern» — над списком рядов нет. Типы, фильтры и поиск — общие партиалы.{% endcomment %}
   {% if not promo_jump %}
-  {% if promo_page_style == "navigator" %}<aside data-promo-side>{% endif %}
+  {% if promo_groups_view == "side" %}<aside data-promo-side>{% endif %}
   {% if promo_tabs %}
     {% include "storefront/promo_page/_tabs.html" %}
-  {% elif promo_page_style == "kompakt" %}
+  {% elif promo_groups_view == "index" %}
     {% include "storefront/promo_page/_index.html" %}
   {% elif groups %}
     {% include "storefront/promo_page/_type_chips.html" %}
   {% endif %}
-  {% if promo_page_style == "navigator" %}
+  {% if promo_groups_view == "side" %}
   {% include "storefront/promo_page/_system_chips.html" %}
   {% include "storefront/promo_page/_search.html" %}
   {% else %}
@@ -59,7 +59,7 @@ test_promotions_parity; системные чипы/сорт/поиск — Prom
   {% if result_count is not None and not group_label %}
     <p class="text-sm text-gray-500 mb-4" data-result-count>{% blocktrans count n=result_count %}{{ n }} offer{% plural %}{{ n }} offers{% endblocktrans %}</p>
   {% endif %}
-  {% if promo_page_style == "navigator" %}</aside>{% endif %}
+  {% if promo_groups_view == "side" %}</aside>{% endif %}
   {% endif %}
 {% endblock %}
 
@@ -75,7 +75,7 @@ show_listing_toolbar). Строка остаётся только над тем,
   {% comment %}DL-16.2 (A4): «Karten | Liste» — серверные ссылки ?ansicht= (KAT-5 меняет
   вид без перезагрузки); в режиме таблицы клиентский «список/плитка» не нужен.{% endcomment %}
   <div class="flex items-center gap-1 shrink-0" role="group" aria-label="{% trans 'Ansicht' %}" data-promo-ansicht>
-    <a href="?{{ ansicht_base_qs }}{% if promo_page_style == "preisliste" %}{% if ansicht_base_qs %}&amp;{% endif %}ansicht=karten{% endif %}" data-ansicht="karten" {% if not list_view %}aria-current="page"{% endif %} title="{% trans 'Karten' %}"
+    <a href="?{{ ansicht_base_qs }}{% if promo_view == "preisliste" %}{% if ansicht_base_qs %}&amp;{% endif %}ansicht=karten{% endif %}" data-ansicht="karten" {% if not list_view %}aria-current="page"{% endif %} title="{% trans 'Karten' %}"
        class="h-9 rounded-lg border border-gray-300 px-3 flex items-center text-sm {% if not list_view %}bg-gray-900 text-white{% else %}text-gray-600{% endif %}">{% trans "Karten" %}</a>
     <a href="?{{ ansicht_base_qs }}{% if ansicht_base_qs %}&amp;{% endif %}ansicht=liste" data-ansicht="liste" {% if list_view %}aria-current="page"{% endif %} title="{% trans 'Liste' %}"
        class="h-9 rounded-lg border border-gray-300 px-3 flex items-center text-sm {% if list_view %}bg-gray-900 text-white{% else %}text-gray-600{% endif %}">{% trans "Liste" %}</a>
@@ -175,9 +175,9 @@ show_listing_toolbar). Строка остаётся только над тем,
     {% if promo_jump %}{% include "storefront/promo_page/_rest_head.html" %}{% endif %}
     {% if group_page_style %}
     {% include "storefront/promo_group/_grid.html" %}
-    {% elif promo_page_style == "kompakt" %}
+    {% elif promo_view == "prospekt" %}
     {% include "storefront/promo_group/_grid.html" with group_page_style="prospekt" %}
-    {% elif promo_page_style == "magazin" %}
+    {% elif promo_view == "magazin" %}
     {% include "storefront/promo_group/_grid.html" with group_page_style="magazin" %}
     {% else %}
     <div data-grid="promo_list" class="{{ promo_index_grid|default:'grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6' }}" {% sf_grid_attrs promo_index_layout cols="2/2/3" count=promotions|length %}>

@@ -219,3 +219,51 @@ def test_detail_own_style_beats_the_site_default_as_before(code):
     promo = _promo("Brot der Woche", page_style=code)
     cfg = {"site_defaults": {"promo_detail_style": "magazin"}}
     _check(f"detail-own-{code}", _detail(promo, cfg))
+
+
+# ── R3: витрина читает оси блоков ──
+
+
+@pytest.mark.parametrize(
+    "rows,golden",
+    [
+        ([{"key": "groups", "style": "tabs"}, {"key": "main"}], "promos-tabs-groups"),
+        ([{"key": "main", "style": "magazin", "grouping": "ohne"}], "promos-magazin-groups"),
+        (
+            [
+                {"key": "groups", "style": "index"},
+                {"key": "main", "style": "prospekt", "grouping": "ohne"},
+            ],
+            "promos-kompakt-groups",
+        ),
+    ],
+)
+def test_stored_rows_draw_the_same_page_as_the_template(rows, golden):
+    _seed(True)
+    _check(golden, _overview({"page_blocks": {"promos": rows}}))
+
+
+def test_new_combination_draws_both_parts():
+    """Kopfbild + Reiter — сочетания, которого у шаблонов не было."""
+    _seed(True)
+    rows = [{"key": "page_head", "style": "titelbild"}, {"key": "groups", "style": "tabs"}]
+    html = _overview({"page_blocks": {"promos": [*rows, {"key": "main"}]}})
+    assert "data-promo-head" in html and "data-promo-tabs" in html
+    assert 'data-promo-page="tabs"' in html
+
+
+def test_explicit_standard_rows_beat_the_template():
+    _seed(True)
+    rows = [{"key": "groups", "style": "auto"}, {"key": "main"}]
+    cfg = {"promo_page_style": "regale", "page_blocks": {"promos": rows}}
+    _check("promos-standard-groups", _overview(cfg))
+
+
+def test_detail_precedence_object_rows_then_own_then_shared_rows():
+    promo = _promo("Brot der Woche", page_style="kompakt")
+    shared = {"page_blocks": {"promo_detail": [{"key": "offer", "style": "plakat"}]}}
+    assert 'data-promo-detail="kompakt"' in _detail(promo, shared), "своя акция сильнее общей"
+    plain = _promo("Kuchen")
+    assert 'data-promo-detail="plakat"' in _detail(plain, shared), "общая строка сильнее дефолта"
+    own_host = {"page_blocks": {f"promo:{promo.pk.hex}": [{"key": "offer", "style": "magazin"}]}}
+    assert 'data-promo-detail="magazin"' in _detail(promo, own_host), "«nur diese» сильнее всего"

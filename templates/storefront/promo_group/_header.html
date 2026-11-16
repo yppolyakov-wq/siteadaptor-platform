@@ -3,14 +3,14 @@
 названия того, что открыл (H1 оставался «Aktuelle Angebote»). Вид шапки зависит от
 шаблона: «Prospekt» — цветная плашка со сроком, «Countdown» — тёмная полоса с таймером,
 остальные — обычный заголовок.{% endcomment %}
-{% if group_page_style == "prospekt" %}
+{% if group_head_style == "prospekt" %}
 <div class="mb-5 rounded-2xl px-4 py-3 text-white" style="background: var(--accent, #dc2626);" data-group-head="prospekt">
   <h1 class="text-xl md:text-2xl font-extrabold leading-tight">{{ group_label }}</h1>
   <p class="text-sm opacity-90 mt-0.5">
     {% blocktrans count n=result_count %}{{ n }} offer{% plural %}{{ n }} offers{% endblocktrans %}{% if group_valid_until %} · {% blocktrans with d=group_valid_until|date:"d.m.Y" %}valid until {{ d }}{% endblocktrans %}{% endif %}
   </p>
 </div>
-{% elif group_page_style == "countdown" %}
+{% elif group_head_style == "countdown" %}
 <div class="mb-5 rounded-2xl bg-gray-900 text-white px-4 py-4 text-center" data-group-head="countdown">
   <p class="text-xs uppercase tracking-wide text-white/70">{{ group_label }}</p>
   {% if group_ends_at %}

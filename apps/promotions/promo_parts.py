@@ -40,7 +40,8 @@ PROMOS = pp.surface(
         "magazin": {"view": "magazin", "grouping": FLAT},
         "kompakt": {"groups": "index", "view": "prospekt", "grouping": FLAT},
     },
-    priority=("view", "groups", "head"),
+    # навигация первой: колонка «Navigator» держится на CSS по коду (`data-promo-page`)
+    priority=("groups", "view", "head"),
 )
 
 PROMO_GROUP = pp.surface(

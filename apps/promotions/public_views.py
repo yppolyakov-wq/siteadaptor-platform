@@ -158,8 +158,10 @@ def _detail_ctx(request, promo, form) -> dict:
     # собранные RequestFactory (замки), где тенанта на запросе нет.
     _cfg_raw = _promo_page_config(request) if getattr(request, "tenant", None) else {}
     _sd = (_cfg_raw or {}).get("site_defaults")
-    detail_style = group_styles.promotion_detail_style(
-        promo.page_style, (_sd or {}).get("promo_detail_style", "") if isinstance(_sd, dict) else ""
+    detail_style = _detail_style(
+        _cfg_raw,
+        promo,
+        (_sd or {}).get("promo_detail_style", "") if isinstance(_sd, dict) else "",
     )
 
     # T-8.2: что делает кнопка акции (заказ / отложить / заявка / только показать).
@@ -433,6 +435,28 @@ def storefront_home(request):
 #: Сколько акций должно быть в группе, чтобы она получила СВОЮ секцию с
 #: заголовком. Сетка страницы — 3 колонки, поэтому группа из одной карточки
 #: оставляет две трети строки пустыми (фидбэк владельца 2026-08-07).
+def _detail_style(cfg, promo, site_default: str) -> str:
+    """FB-31 P3: вид строки «Angebot» детали акции. Свои блоки акции («nur diese») →
+    свой шаблон акции → строка общей схемы страницы акции → дефолт сайта (план P3 §4.3)."""
+    from apps.core import object_structure
+    from apps.core import page_parts as pp
+
+    from . import promo_parts
+
+    surface = promo_parts.PROMO_DETAIL
+    blocks = ((cfg or {}).get("page_blocks") or {}) if isinstance(cfg, dict) else {}
+    site_code = group_styles.promotion_detail_style("", site_default)
+    own = group_styles.promotion_detail_style(promo.page_style, "")
+    if own:
+        parts = pp.from_code(surface, own)
+    else:
+        parts = pp.effective_rows(surface, blocks.get("promo_detail") or [], code=site_code)
+    host = object_structure.object_host("promo", promo)
+    if host and blocks.get(host):
+        parts = pp.effective_rows(surface, blocks[host], code=pp.legacy_code(surface, parts))
+    return pp.legacy_code(surface, parts)
+
+
 MIN_GROUP_SECTION = 2
 
 
@@ -706,10 +730,24 @@ def promotion_list(request):
     promo_layout = siteconfig.normalize_promo_layout(page_cfg.get("promo_layout"))
     # DL-21.2: шаблон ОБЗОРА (только без выбранной группы — у группы свой, DL-20).
     # «Preisliste» делает таблицу видом владельца; явный ?ansicht=karten сильнее.
-    page_style = (
-        group_styles.promo_page_style(cfg.get("promo_page_style")) if not sel["gruppe"] else ""
-    )
-    if page_style == "preisliste" and (request.GET.get("ansicht") or "") != "karten":
+    # FB-31 P3: шаблон — готовый набор осей блоков; строки схемы `/aktionen/` сильнее кода.
+    # Ветки ниже читают оси; код (`data-promo-page`, CSS «Navigator») — ближайший к ним.
+    from apps.core import page_parts as _pp
+
+    from . import promo_parts as _promo_parts
+
+    if sel["gruppe"]:
+        pparts = _promo_parts.PROMOS.standard
+    else:
+        pparts = _pp.effective(
+            _promo_parts.PROMOS,
+            cfg,
+            "promos",
+            code=group_styles.promo_page_style(cfg.get("promo_page_style")),
+        )
+    page_style = _pp.legacy_code(_promo_parts.PROMOS, pparts)
+    flat_overview = pparts.grouping == _promo_parts.FLAT
+    if pparts.view == "preisliste" and (request.GET.get("ansicht") or "") != "karten":
         list_view = True
     # поиск ДО apply: фильтр «−N %+» материализует список (см. PromoFacets)
     promotions = _attach_lowest_30d(
@@ -774,7 +812,7 @@ def promotion_list(request):
                 covered |= set(provider.apply(base, {"endet": ends}).values_list("pk", flat=True))
             promotions = [p for p in promotions if p.pk not in covered]
         grouped = _time_groups(promotions, timezone.localtime())
-    elif not has_filters and own_groups and page_style not in ("kompakt", "navigator", "magazin"):
+    elif not has_filters and own_groups and not flat_overview:
         by_group: dict[str, list] = {}
         order: list[str] = []
         for promo in promotions:
@@ -791,7 +829,7 @@ def promotion_list(request):
         for key in order:
             items = by_group[key]
             # DL-21.2 «Regale»: лента — у КАЖДОЙ группы, порог секции не действует
-            if key and len(items) >= (1 if page_style == "regale" else MIN_GROUP_SECTION):
+            if key and len(items) >= (1 if pparts.groups == "regale" else MIN_GROUP_SECTION):
                 sections.append((key, group_labels.get(key, key), items))
             else:
                 rest.extend(items)
@@ -823,7 +861,7 @@ def promotion_list(request):
     # сеткой» было невозможно: у секций не было своего источника раскладки.
     # DL-21.2 «Regale» = группы лентами; решается ДО осей вывода, иначе секции
     # получили бы режим «сетка», а страница — «лента» (два ответа на один вопрос).
-    if page_style == "regale":
+    if pparts.groups == "regale":
         promo_layout = "slider"
     _page_out = _promo_output_ctx(cfg, promo_layout)
     grouped = [
@@ -841,7 +879,7 @@ def promotion_list(request):
 
     # DL-21.2: композиции обзора поверх секций.
     promo_hero = None
-    if page_style == "schaufenster" and promotions and not has_filters and not list_view:
+    if pparts.view == "schaufenster" and promotions and not has_filters and not list_view:
         promo_hero = promotions[0]
         # герой не дублируется в секциях/сетке
         promotions = [p for p in promotions if p.pk != promo_hero.pk]
@@ -851,14 +889,14 @@ def promotion_list(request):
         ]
         grouped = [g for g in grouped if g[2]]
     promo_tabs = []
-    if page_style == "tabs" and groups:
+    if pparts.groups == "tabs" and groups:
         promo_tabs = [
             {"label": _("All"), "url": reverse("storefront-aktionen"), "active": True}
         ] + [
             {"label": group_labels[g], "url": _group_more_url(g, ""), "active": False}
             for g in groups
         ]
-    if page_style == "magazin":
+    if pparts.view == "magazin":
         for promo in promotions:
             promo.conditions = rules_text.conditions_for(promo)
     from apps.core import banners as _banners
@@ -990,6 +1028,7 @@ def promotion_list(request):
     # по ссылке из меню, не видел даже названия открытой группы. Теперь у группы есть
     # заголовок (всегда) и шаблон страницы: свой у группы → дефолт сайта → Standard.
     group_label, group_style, group_ends_at, group_valid_until = "", "", None, None
+    group_head_style = ""
     _selected_out: dict = {}
     if selected:
         _out = _type_output(cfg, selected, _page_out)
@@ -1007,16 +1046,19 @@ def promotion_list(request):
             cfg.get("promo_groups"),
             cfg["site_defaults"].get("promo_group_style", ""),
         )
+        # FB-31 P3: шапка группы и вид её списка — отдельные оси (строки схемы — R6)
+        gparts = _pp.from_code(_promo_parts.PROMO_GROUP, group_style)
+        group_head_style = gparts.head
         ends = [p.ends_at for p in promotions if p.ends_at]
         group_ends_at = min(ends) if ends else None
         group_valid_until = max(ends) if ends else None
-        if group_style == "countdown" and not sort:
+        if group_head_style == "countdown" and not sort:
             # «Countdown» — про срочность: первыми истекающие. Явный выбор сорта
             # посетителем сильнее (иначе его переключатель молча не работал бы).
             promotions = sorted(
                 promotions, key=lambda p: (p.ends_at is None, p.ends_at or timezone.now())
             )
-        if group_style == "magazin":
+        if gparts.view == "magazin":
             # DL-16.3: условия акции человеческим языком — на карточке, а не только
             # на детальной (для группы услуг «Mo–Mi до 14:00» важнее размера скидки).
             for promo in promotions:
@@ -1093,6 +1135,11 @@ def promotion_list(request):
             **_selected_out,
             # DL-21.2: обзорная страница — шаблон композиции + её данные.
             "promo_page_style": page_style,
+            # FB-31 P3: оси блоков обзора (шаблон их не путает: новое сочетание тоже рисуется)
+            "promo_head": pparts.head,
+            "promo_groups_view": pparts.groups,
+            "promo_view": pparts.view,
+            "group_head_style": group_head_style,
             "promo_hero": promo_hero,
             "promo_tabs": promo_tabs,
             "promo_head_photo": promo_head_photo,
