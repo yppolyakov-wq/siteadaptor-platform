@@ -318,10 +318,11 @@ def test_draft_endpoint_includes_event_detail():
     req.user = SimpleNamespace(is_authenticated=True)
     req.tenant = tenant
     assert views.site_preview_draft(req).status_code == 204
+    # FB-31 P6 (осознанно, решение владельца): разделы деталей — только «Seitenaufbau»;
+    # черновик Студии их не меняет (сохранённое значение защищено `protect_owned`)
     draft = req.session["site_preview_draft"]
     order = siteconfig.event_detail_order(draft)
-    assert order[0] == "faq" and "idea" not in order  # faq поднят, idea скрыта
-    assert "bogus" not in order  # неизвестный ключ отброшен normalize
+    assert order == siteconfig.event_detail_order(siteconfig.normalize({}))
 
 
 def test_draft_endpoint_includes_landing_layouts():

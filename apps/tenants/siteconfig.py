@@ -2966,15 +2966,6 @@ _PAGE_BOOL_KEYS = ("catalog_show_filters", "catalog_subcats_first", "cart_show_u
 _PAGE_STYLE_KEYS = ("catalog_page_style", "promo_page_style")
 
 
-def _page_style_normalizers() -> dict:
-    """Ключ → нормализатор. Функцией, а не константой: сами нормализаторы
-    объявлены ниже по файлу, а порядок определений менять ради реестра незачем."""
-    return {
-        "catalog_page_style": normalize_catalog_page_style,
-        "promo_page_style": normalize_promo_page_style,
-    }
-
-
 PAGE_CONFIG_KEYS = {
     "home": (),  # sections/section_titles/… — собственный generic-путь драфта
     "product_detail": ("product_detail",),
@@ -3012,18 +3003,9 @@ def apply_page_payload(cfg: dict, data: dict) -> None:
     normalize'ом — особенность сохранена: кладём только присланный валидный),
     флаги — строгий bool, сортировка — по CATALOG_SORT_KEYS. Невалидное
     молча игнорируется (драфт fail-safe, как раньше)."""
-    for key in _PAGE_DETAIL_KEYS:
-        if isinstance(data.get(key), dict):
-            # FB-31 P5 (ревью): порядок разделов услуги — из «Seitenaufbau», превью Студии
-            # его не теряет
-            kept = (
-                {"order": cfg[key]["order"]}
-                if isinstance(cfg.get(key), dict)
-                and "order" in cfg[key]
-                and "order" not in data[key]
-                else {}
-            )
-            cfg[key] = {**kept, **data[key]}
+    # FB-31 P6 (решение владельца): разделы деталей правит только «Seitenaufbau» —
+    # черновик Студии их не накладывает (`_PAGE_DETAIL_KEYS` остаются в реестре ключей
+    # страниц для среза конфига и превью).
     for key in _PAGE_LAYOUT_KEYS:
         lay = data.get(key)
         # DS-5c (находка адверсариального ревью): страничные extra-пресеты
@@ -3053,24 +3035,8 @@ def apply_page_payload(cfg: dict, data: dict) -> None:
             cfg[key] = data[key]
         else:
             cfg.pop(key, None)
-    # DL-21.1/STU-18g: шаблоны страниц (каталог, обзор акций) — "" законно (снимает).
-    for key, _norm in _page_style_normalizers().items():
-        if key not in data:
-            continue
-        val = _norm(data.get(key))
-        if val:
-            cfg[key] = val
-        else:
-            cfg.pop(key, None)
-    # STU-18g: композиция девяти листингов — ОДИН ключ-словарь; в черновике ведём
-    # себя как normalize (чужие коды и поверхности отбрасываются, пустой словарь
-    # снимает ключ), иначе выбор виден только после Save.
-    if "page_styles" in data:
-        styles = normalize_page_styles(data.get("page_styles"))
-        if styles:
-            cfg["page_styles"] = styles
-        else:
-            cfg.pop("page_styles", None)
+    # FB-31 P6: шаблоны страниц (каталог, обзор акций, девять листингов) — только
+    # «Seitenaufbau»; черновик Студии их не накладывает.
 
 
 def page_config(config, page_type: str) -> dict:

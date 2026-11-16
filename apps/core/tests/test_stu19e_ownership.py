@@ -59,7 +59,10 @@ def test_studio_shows_summaries_with_cabinet_links(tenant):
     body = views.home_builder_view(
         _request("get", "/dashboard/site/home/", tenant=tenant)
     ).content.decode()
-    assert body.count("data-stu19-summary") >= len(page_settings.CABINET_OWNED) - 6
+    # FB-31 P6 (осознанно): четыре набора разделов деталей — ссылкой в «Seitenaufbau»,
+    # не сводкой
+    assert body.count("data-stu19-summary") >= len(page_settings.CABINET_OWNED) - 10
+    assert body.count("data-stu-sections-link") == 4
     assert "/dashboard/site/aufbau/?seite=stays" in body  # FB-27 R4
     assert 'name="stays_page_style"' not in body and 'name="sd_layout"' not in body
 

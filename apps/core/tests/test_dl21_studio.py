@@ -86,12 +86,10 @@ def test_studio_no_longer_sends_the_root_template():
     tenant = TenantFactory(schema_name="public", slug="dl21d", name="DL21D")
     body = _body(tenant)
     assert "cpsInp" not in body and 'name="catalog_page_style"' not in body
-    # the per-page payload helper itself is unchanged (other callers)
-    cfg = {}
+    # FB-31 P6 (осознанно): черновик Студии шаблоны страниц не накладывает вовсе
+    cfg = {"catalog_page_style": "regale"}
     siteconfig.apply_page_payload(cfg, {"catalog_page_style": "tabs"})
-    assert cfg["catalog_page_style"] == "tabs"
-    siteconfig.apply_page_payload(cfg, {"catalog_page_style": ""})
-    assert "catalog_page_style" not in cfg
+    assert cfg["catalog_page_style"] == "regale"
 
 
 def test_overview_template_tiles_save_in_the_cabinet():

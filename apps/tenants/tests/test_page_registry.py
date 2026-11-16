@@ -157,7 +157,8 @@ def test_apply_page_payload_semantics_match_legacy_branches():
             "catalog_sort": "price_asc",
         },
     )
-    assert cfg["event_detail"] == {"order": ["faq"], "hidden": []}
+    # FB-31 P6 (осознанно): разделы деталей черновик Студии не накладывает
+    assert "event_detail" not in cfg
     assert "product_detail" not in cfg
     assert cfg["catalog_layout"] == {"preset": "cols3"}
     assert "stay_index_layout" not in cfg
