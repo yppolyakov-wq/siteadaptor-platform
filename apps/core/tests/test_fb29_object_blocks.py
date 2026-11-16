@@ -290,7 +290,11 @@ def test_detail_templates_render_own_blocks_on_both_sides():
     for name, kind in (("product_detail.html", "product"), ("service_detail.html", "service")):
         src = pathlib.Path("templates/storefront", name).read_text()
         before = src.index(f'{{% object_blocks "{kind}" {kind} "before" %}}')
-        shared = src.index(f'{{% page_blocks "{kind}_detail" %}}')
+        # FB-31 P5 (осознанно): хвост блоков услуги — с `part` (блоки между разделами)
+        tail = f'{{% page_blocks "{kind}_detail" part=detail_tail_part|default:"after" %}}'
+        shared = (
+            src.index(tail) if tail in src else src.index(f'{{% page_blocks "{kind}_detail" %}}')
+        )
         after = src.index(f'{{% object_blocks "{kind}" {kind} %}}')
         assert before < shared < after, name
 

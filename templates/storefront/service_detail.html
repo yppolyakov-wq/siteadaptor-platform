@@ -53,7 +53,7 @@ UA1-1 (E-1): страница-деталь услуги на едином кар
    Замок паритета — test_service_detail_section_order_parity.{% endcomment %}
 {# UC2-2: обёртка data-sf-section — клик на канве открывает инспектор секций страницы. #}
 <div data-sf-section="service_detail">
-{% include "storefront/_detail_sections.html" with sections=body_sections layout=detail_layout %}
+{% include "storefront/_detail_sections.html" with sections=body_sections layout=detail_layout flow=detail_flow flow_host="service_detail" %}
 </div>
 {% endblock %}
 
@@ -69,7 +69,7 @@ UA1-1 (E-1): страница-деталь услуги на едином кар
 {% place_banners "service" service %}
 {% comment %}R3: свои блоки объекта над общими — если так выбрано на его вкладке.{% endcomment %}
 {% object_blocks "service" service "before" %}
-{% page_blocks "service_detail" %}
+{% page_blocks "service_detail" part=detail_tail_part|default:"after" %}
 {% comment %}FB-29.4b: свои блоки этого объекта — только на его странице.{% endcomment %}
 {% object_blocks "service" service %}
 {% endblock %}

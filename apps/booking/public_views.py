@@ -875,9 +875,10 @@ def _service_rich_context(request, service, tenant) -> dict:
     """
     # KA-12 E4.2a: «Team» услуги — её мастера (навыки), иначе все.
     resources = availability.service_pool(service)
-    from apps.core import archetypes, detail_sections
+    from apps.core import archetypes, detail_parts, detail_sections
     from apps.core.sellable import sellable_for
     from apps.reviews import services as review_services
+    from apps.tenants import siteconfig
 
     # UA4-1 slice C: скрытые секции детали услуги (билдер) — под ?preview=1 из черновика.
     _raw = page_settings.raw_config(request)
@@ -943,9 +944,12 @@ def _service_rich_context(request, service, tenant) -> dict:
             "template": _section_template[k],
             "visible": _present.get(k, False) and k not in _hidden,
         }
-        for k in detail_sections.section_keys("booking")
+        # FB-31 P5: порядок — из «Seitenaufbau» (`service_detail.order`, без ключа — реестр)
+        for k in detail_parts.full_order(_raw, "booking")
         if k in _section_template
     ]
+    _rows = (siteconfig.normalize(_raw).get("page_blocks") or {}).get("service_detail") or []
+    _full = detail_parts.full_order(_raw, "booking")
 
     return {
         "service": service,
@@ -975,6 +979,11 @@ def _service_rich_context(request, service, tenant) -> dict:
         "detail_hidden": _hidden,
         # UA4-2: упорядоченные секции тела детали (data-driven рендер).
         "body_sections": body_sections,
+        # FB-31 P5: свои блоки между разделами (пусто — прежняя разметка)
+        "detail_flow": detail_parts.flow(
+            _rows, "service_detail", [x["key"] for x in body_sections if x["visible"]], _full
+        ),
+        "detail_tail_part": detail_parts.tail_part(_rows, "service_detail", _full),
         # STU-15b: раскладка страницы детали услуги ("" | tabs | breit).
         "detail_layout": object_structure.effective_layout(_raw, "service", service),
     }

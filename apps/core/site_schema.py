@@ -1060,7 +1060,7 @@ def blocks_for(
             (i for i, b in enumerate(out) if b["key"] in keys and not b["cblock"]), default=-1
         )
         out.insert(
-            last + 1,
+            0 if host in _dp.KAUF_FIRST else last + 1,
             {
                 "ref": _dp.KAUF_REF,
                 "key": _dp.KAUF_KEY,
@@ -2379,6 +2379,10 @@ def mutate(
         # FB-29.5b: перетаскивание — блок встаёт перед другим или после него. Та же
         # перестановка, что кнопками; мусор и «на себя» ничего не меняют.
         where, _sep, target = value.partition(":")
+        if target == detail_parts.KAUF_REF and rows_host in detail_parts.KAUF_FIRST:
+            # покупка в первом экране — блок встаёт в начало (над разделами)
+            items.insert(0, items.pop(idx))
+            return ref
         if target == detail_parts.KAUF_REF:
             # FB-31 P5 (ревью): «Buchung» стоит после последнего раздела — бросить на неё =
             # встать после последнего раздела (до неё) или в хвост (после неё)

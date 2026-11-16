@@ -17,9 +17,11 @@ from apps.core import detail_sections
 
 #: хост блоков детали → модуль реестра разделов (R3a: события и туры — цикл разделов;
 #: услуга, товар, номер — следующими срезами)
-SECTION_HOSTS = {"event_detail": "events"}
+SECTION_HOSTS = {"event_detail": "events", "service_detail": "booking"}
 KAUF_KEY = "kauf"
 KAUF_REF = "__kauf"  # строка схемы «Buchung» (не хранится)
+#: где страница рисует покупку: у услуги — в первом экране, над разделами; у события — после
+KAUF_FIRST = frozenset({"service_detail"})
 
 
 def module_of(host: str) -> str:

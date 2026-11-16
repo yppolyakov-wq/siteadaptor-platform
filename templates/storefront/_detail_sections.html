@@ -1,4 +1,4 @@
-{% load i18n %}{% comment %}STU-15b: тело детали услуги/номера — один рендер на две раскладки.
+{% load i18n siteui %}{% comment %}STU-15b: тело детали услуги/номера — один рендер на две раскладки.
 
 `sections` — те же `body_sections` (UA4-2: key/label/template/visible), поэтому порядок
 и состав секций не зависят от раскладки (паритет-замки целы). При «Tabs» каждая видимая
@@ -15,6 +15,10 @@
   {% endif %}{% endfor %}
 </div>
 {% include "storefront/_detail_tabs_script.html" %}
+{% if flow %}{% for it in flow %}{% if it.part %}{% page_blocks flow_host part=it.part %}{% endif %}{% endfor %}{% endif %}
+{% elif flow %}
+{% comment %}FB-31 P5: свои блоки между разделами — шириной текста.{% endcomment %}
+{% for it in flow %}{% if it.part %}{% page_blocks flow_host part=it.part %}{% else %}{% for s in sections %}{% if s.key == it.section and s.visible %}{% include s.template %}{% endif %}{% endfor %}{% endif %}{% endfor %}
 {% else %}
 {% for s in sections %}{% if s.visible %}{% include s.template %}{% endif %}{% endfor %}
 {% endif %}

@@ -65,7 +65,7 @@
 {% comment %}Секции услуги — тот же data-driven цикл, что на детали (описание/видео/
 характеристики/FAQ/команда/отзывы/кросс-селл); порядок и видимость из реестра.{% endcomment %}
 <div data-sf-section="service_detail">
-{% include "storefront/_detail_sections.html" with sections=body_sections layout=detail_layout %}
+{% include "storefront/_detail_sections.html" with sections=body_sections layout=detail_layout flow=detail_flow flow_host="service_detail" %}
 </div>
 {% endblock %}
 
@@ -77,6 +77,6 @@
 (раньше их рисовала только страница «сначала заявка»); баннеры «Wo zeigen» — там же.{% endcomment %}
 {% place_banners "service" service %}
 {% object_blocks "service" service "before" %}
-{% page_blocks "service_detail" %}
+{% page_blocks "service_detail" part=detail_tail_part|default:"after" %}
 {% object_blocks "service" service %}
 {% endblock %}

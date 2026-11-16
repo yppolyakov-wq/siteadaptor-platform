@@ -2541,6 +2541,10 @@ def detail_section_config_key(module: str) -> str:
 DETAIL_LAYOUTS = ("tabs", "breit")
 
 
+#: FB-31 P5: модули, у которых порядок разделов хранится, только если владелец его задал
+_PRESENCE_ORDER_MODULES = frozenset({"booking"})
+
+
 def normalize_detail_sections(raw, module: str) -> dict:
     """Привести `config['<module>_detail']` к нормальному виду по реестру:
     orderable-модуль (event) → {order:[known], hidden:[known]}; hide-only (product) →
@@ -2556,7 +2560,16 @@ def normalize_detail_sections(raw, module: str) -> dict:
     hidden = sorted({k for k in (d.get("hidden") or []) if k in keys})
     out = {"hidden": hidden}
     if not orderable:
-        pass
+        # FB-31 P5: порядок разделов услуги задаёт «Seitenaufbau» — ключ только если задан
+        # (presence-minimal: эталоны нормализации и Студия без ручек порядка не меняются)
+        if module in _PRESENCE_ORDER_MODULES:
+            order, seen = [], set()
+            for k in d.get("order") or []:
+                if k in keys and k not in seen:
+                    order.append(k)
+                    seen.add(k)
+            if order:
+                out["order"] = order
     else:
         order, seen = [], set()
         for k in d.get("order") or []:
