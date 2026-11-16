@@ -343,13 +343,26 @@ def page_blocks(context, page_key, part="after"):
     # Аудит переводов 2026-08-13: блоки берём из ЛОКАЛИЗОВАННОГО конфига — раньше
     # тег читал их из голого normalize, и текст C-блоков страниц («Über uns»,
     # корзина) оставался немецким на любой локали даже при готовом оверлее.
-    site = siteconfig.localize(siteconfig.normalize(raw), get_language())
+    # ревью P5: один разбор конфига на запрос (деталь зовёт тег на каждый кусок блоков)
+    cache_key = ("_pb_site", get_language())
+    cached = getattr(request, "_page_blocks_site", None)
+    if cached and cached[0] == cache_key and cached[1] is raw:
+        site = cached[2]
+    else:
+        site = siteconfig.localize(siteconfig.normalize(raw), get_language())
+        try:
+            request._page_blocks_site = (cache_key, raw, site)
+        except AttributeError:
+            pass
     stored = (site.get("page_blocks") or {}).get(page_key, [])
     above, below = siteconfig.split_at_main(stored)
     if isinstance(part, str) and part.startswith("ids:"):
         # FB-31 P5: кусок блоков детали между разделами (по id, в порядке хранения)
         wanted = set(part[4:].split(","))
-        above, below = [], [b for b in stored if b.get("id") in wanted]
+        chunk = [b for b in stored if b.get("id") in wanted and b.get("enabled", True)]
+        if not chunk and part != "ids:":
+            return ""  # ревью P5: без пустого «＋» посреди страницы в превью
+        above, below = [], chunk
         part = "after"
     before = part == "before"
     # FB-31 P0: встроенные строки-списки (блок «Kategorien» каталога) рисует сама страница

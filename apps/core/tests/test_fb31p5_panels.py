@@ -66,3 +66,39 @@ def test_section_rows_cannot_be_deleted_or_resized():
     cfg = _cfg(tenant)
     assert "idea" not in cfg["event_detail"].get("hidden", [])
     assert not (cfg.get("page_blocks") or {}).get("event_detail")
+
+
+def test_review_counts_widths_stale_drafts_and_booking_drop():
+    from apps.core import aufbau_draft, detail_parts
+
+    cfg = siteconfig.normalize({})
+    rows = site_schema.blocks_for(cfg, "event")
+    assert all(not r["widths"] for r in rows if r["key"] in ("faq", "testimonials")), (
+        "у раздела нет ширины"
+    )
+    tenant = _tenant()
+    groups = site_schema.type_groups(tenant, siteconfig.normalize(tenant.site_config))
+    event = next(r for _l, items in groups for r in items if r.code == "event")
+    assert event.count == 0, "разделы — не свои блоки"
+    # черновик без строк разделов (начат до P5) не раскрывает скрытые разделы
+    saved = {"event_detail": {"hidden": ["bring"]}}
+    out = aufbau_draft.overlay(saved, {"host": "event_detail", "items": [B1]})
+    assert out["event_detail"]["hidden"] == ["bring"]
+    # бросить блок на «Buchung»: «до» — после последнего раздела, «после» — хвост
+    items = detail_parts.edit_rows(cfg, "event_detail", [B1])
+    site_schema.mutate(items, "event", "up", "b1")  # блок поднят между разделами
+    site_schema.mutate(items, "event", "move", "b1", value=f"before:{detail_parts.KAUF_REF}")
+    keys = [i.get("id") or i["key"] for i in items]
+    assert keys[-2:] == ["certifications", "b1"], "до «Buchung» = после последнего раздела"
+    site_schema.mutate(items, "event", "up", "b1")
+    site_schema.mutate(items, "event", "move", "b1", value=f"after:{detail_parts.KAUF_REF}")
+    assert [i.get("id") or i["key"] for i in items][-1] == "b1"
+
+
+def test_review_tail_follows_the_current_last_section():
+    from apps.core import detail_parts
+
+    rows = [{"key": "idea"}, B1]  # «idea» был последним якорем при сохранении
+    assert detail_parts.anchors(rows, "event_detail", ["idea", "bring"])["after"] == {
+        "idea": ["b1"]
+    }

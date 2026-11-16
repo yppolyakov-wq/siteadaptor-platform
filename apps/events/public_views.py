@@ -842,11 +842,10 @@ def _detail_flow(raw, order) -> dict:
     from apps.tenants import siteconfig
 
     rows = (siteconfig.normalize(raw).get("page_blocks") or {}).get("event_detail") or []
+    full = detail_parts.full_order(raw, "events")
     return {
-        "detail_flow": detail_parts.flow(
-            rows, "event_detail", order, detail_parts.full_order(raw, "events")
-        ),
-        "detail_tail_part": detail_parts.tail_part(rows, "event_detail"),
+        "detail_flow": detail_parts.flow(rows, "event_detail", order, full),
+        "detail_tail_part": detail_parts.tail_part(rows, "event_detail", full),
     }
 
 

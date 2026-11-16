@@ -30,7 +30,7 @@ def section_keys(host: str) -> tuple[str, ...]:
     return detail_sections.section_keys(module_of(host)) if module_of(host) else ()
 
 
-def anchors(rows, host: str) -> dict:
+def anchors(rows, host: str, order: list[str] | None = None) -> dict:
     """{"placed": bool, "lead": [id], "after": {раздел: [id]}, "tail": [id]} — где стоят свои
     блоки относительно разделов. Скрытые/мусорные строки не мешают: якорь — порядок строк."""
     keys = set(section_keys(host))
@@ -49,8 +49,9 @@ def anchors(rows, host: str) -> dict:
                 out["lead"].append(r["id"])
             else:
                 out["after"].setdefault(current, []).append(r["id"])
-    # после последней строки раздела — прежнее место (хвост страницы)
-    out["tail"] = out["after"].pop(last, []) if last else []
+    # после последнего раздела (в ТЕКУЩЕМ порядке, ревью P5) — прежнее место, хвост страницы
+    tail_key = order[-1] if order else last
+    out["tail"] = out["after"].pop(tail_key, []) if tail_key else []
     return out
 
 
@@ -58,7 +59,7 @@ def flow(rows, host: str, order: list[str], all_order: list[str] | None = None) 
     """Поток тела: [{"section": k} | {"part": "ids:…"}] — видимые разделы в `order`, свои блоки
     между ними. `all_order` — полный порядок (со скрытыми): блоки скрытого раздела остаются
     на его месте. Пустой список — рисовать прежней разметкой."""
-    a = anchors(rows, host)
+    a = anchors(rows, host, all_order or order)
     if not a["placed"]:
         return []
     visible = set(order)
@@ -73,9 +74,9 @@ def flow(rows, host: str, order: list[str], all_order: list[str] | None = None) 
     return items
 
 
-def tail_part(rows, host: str) -> str:
+def tail_part(rows, host: str, order: list[str] | None = None) -> str:
     """`part` для тега блоков на прежнем месте хвоста ("after" — как раньше, все блоки)."""
-    a = anchors(rows, host)
+    a = anchors(rows, host, order)
     return ids_part(a["tail"]) if a["placed"] else "after"
 
 
@@ -104,7 +105,7 @@ def edit_rows(config, host: str, rows) -> list[dict]:
 
     module = module_of(host)
     rows = [r for r in (rows if isinstance(rows, list) else []) if isinstance(r, dict)]
-    a = anchors(rows, host)
+    a = anchors(rows, host, full_order(config, module))
     by_id = {r["id"]: r for r in rows if r.get("id")}
     hidden = siteconfig.detail_section_hidden(config, module)
     seq = [by_id[i] for i in a["lead"] if i in by_id]
@@ -123,6 +124,9 @@ def lift(config: dict, host: str, items: list[dict]) -> list[dict]:
     module = module_of(host)
     keys = set(section_keys(host))
     order = [r["key"] for r in items if r.get("key") in keys and not r.get("id")]
+    if not order:
+        # ревью P5: черновик без строк разделов (начат до P5) не трогает порядок и видимость
+        return items
     hidden = sorted(
         r["key"]
         for r in items
@@ -132,6 +136,7 @@ def lift(config: dict, host: str, items: list[dict]) -> list[dict]:
     detail = dict(config.get(cfg_key) or {}) if isinstance(config.get(cfg_key), dict) else {}
     if order and order != full_order(config, module):
         detail["order"] = order
-    detail["hidden"] = hidden
-    config[cfg_key] = detail
+    if hidden or detail.get("hidden") or cfg_key in config:
+        detail["hidden"] = hidden
+        config[cfg_key] = detail
     return [{"key": r["key"]} if r.get("key") in keys and not r.get("id") else r for r in items]

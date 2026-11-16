@@ -288,7 +288,8 @@ def page_rows(config: dict) -> list[PageRow]:
                 code=pt.code,
                 label=str(pt.label),
                 host=_host(pt) if pt.code != "home" else "",
-                count=sum(1 for b in blocks if b["enabled"] and not b["main"]),
+                # FB-31 (ревью P5): считаются только свои блоки (не разделы, не строки осей)
+                count=sum(1 for b in blocks if b["enabled"] and b["cblock"]),
                 preview_url=_preview_url(pt),
             )
         )
@@ -1021,7 +1022,7 @@ def blocks_for(
                     (v, lab, names.get(v, lab), WIDTH_PERCENT.get(v, 100))
                     for v, lab in width_choices(item)
                 ]
-                if cblock or home_section(item)
+                if cblock or (home_section(item) and not _detail_label(host, item))
                 else [],
                 "width_value": item.get("width") or "contained",
                 "fields": panel_fields(item) if cblock else [],
@@ -1389,11 +1390,7 @@ def _row(
         label=label or str(pt.label),
         host=host,
         # FB-31 (ревью P4): закреплённые строки осей (шапка, навигация) — не свои блоки
-        count=sum(
-            1
-            for b in blocks
-            if b["enabled"] and not b["main"] and not b["fixed"] and not b.get("pinned")
-        ),
+        count=sum(1 for b in blocks if b["enabled"] and b["cblock"]),
         preview_url=preview or _preview_url(pt),
     )
 
@@ -2382,6 +2379,22 @@ def mutate(
         # FB-29.5b: перетаскивание — блок встаёт перед другим или после него. Та же
         # перестановка, что кнопками; мусор и «на себя» ничего не меняют.
         where, _sep, target = value.partition(":")
+        if target == detail_parts.KAUF_REF:
+            # FB-31 P5 (ревью): «Buchung» стоит после последнего раздела — бросить на неё =
+            # встать после последнего раздела (до неё) или в хвост (после неё)
+            last = [
+                it.get("key")
+                for it in items
+                if it.get("key") in detail_parts.section_keys(rows_host) and not it.get("id")
+            ]
+            if not last:
+                raise SchemaError("op")
+            if where == "before":
+                where, target = "after", last[-1]
+            else:
+                moved = items.pop(idx)
+                items.append(moved)
+                return ref
         at = next(
             (i for i, it in enumerate(items) if (it.get("id") or it.get("key")) == target), None
         )
