@@ -462,6 +462,8 @@
     return full;
   });
   if (!panels.length) return;
+  // первая видимая открыта и в аккордеоне (атрибут open шаблон ставит первой по реестру)
+  panels.forEach(function (p, i) { p.open = i === 0; });
   var mq = window.matchMedia('(min-width: 768px)');
   var cur = 0;
   panels.forEach(function (p, i) {
