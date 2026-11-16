@@ -70,3 +70,30 @@ def test_studio_save_still_writes_its_own_content():
     _builder("post", {**STALE_POST, "hero_title": "Neu"}, tenant)
     tenant.refresh_from_db()
     assert (tenant.site_config or {}).get("hero_title") == "Neu"
+
+
+# ── A4: ассистент и разбор полей вывода ──
+
+
+def test_output_payload_refuses_junk_instead_of_silent_defaults():
+    from apps.core import page_settings
+
+    for bad in ({"out_mode": "x"}, {"out_max": "7"}, {"out_max": "abc"}):
+        with pytest.raises(page_settings.PageSettingError):
+            page_settings.output_payload(bad, "out")
+    assert page_settings.output_payload({"out_mode": "raster", "out_max": "12"}, "out") == {
+        "raster": True,
+        "max": "12",
+    }
+    assert page_settings.output_payload({"out_mode": "grid"}, "out") == {}
+
+
+def test_assistant_does_not_change_a_template_replaced_by_rows(monkeypatch):
+    from apps.core import assistant_pages, site_schema
+    from apps.core.tests.test_assistant_a2 import _user
+
+    tenant = TenantFactory(business_type="bakery")
+    # механизм на сетке каталога (у пустой пекарни шаблоны-композиции недоступны)
+    monkeypatch.setitem(site_schema.REPLACED_BY_BLOCKS, "catalog", frozenset({"catalog_layout"}))
+    items = assistant_pages.build(tenant, _user(), "Zeige die Produkte als Preisliste")
+    assert items and "Seitenaufbau" in str(items[0]["blocked"])

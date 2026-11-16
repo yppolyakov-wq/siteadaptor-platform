@@ -206,6 +206,12 @@ def output_payload(post, field: str) -> dict:
     """
     payload: dict = {}
     mode = post.get(f"{field}_mode")
+    # FB-31 P6 A4 (ревью R7): мусор — ошибка, а не молчаливое «как раньше»
+    if mode not in (None, "", "grid", "auto", "raster", "slider"):
+        raise PageSettingError(f"unknown output mode {mode!r}")
+    raw_max = (post.get(f"{field}_max") or "").strip()
+    if raw_max and raw_max not in ("4", "8", "12"):
+        raise PageSettingError(f"unknown max {raw_max!r}")
     if mode == "slider":
         payload["scroll"] = True
     elif mode == "raster":  # FB-31 P5 R7: «Ähnliche» — всегда сетка («grid» — прежнее «как есть»)

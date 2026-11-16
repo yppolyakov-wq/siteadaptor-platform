@@ -187,6 +187,14 @@ def value_label(tenant, code: str, value: str) -> str:
     return str(_("Standard")) if not value else value
 
 
+def _replaced(type_code: str) -> frozenset:
+    """FB-31 P6: настройки типа, которые заменили строки «Seitenaufbau» (ассистент их не
+    меняет — отвечает, где это теперь)."""
+    from apps.core import site_schema
+
+    return site_schema.REPLACED_BY_BLOCKS.get(type_code, frozenset())
+
+
 def build(tenant, user, text: str) -> list[dict]:
     """Один пункт пакета: настройка страницы → значение (или [] — не наше)."""
     got = _find(tenant, user, text)
@@ -196,6 +204,7 @@ def build(tenant, user, text: str) -> list[dict]:
     best = max(score for score, _st, _ch in found)
     top = {(st.code, ch.value): (st, ch) for score, st, ch in found if score == best}
     st, choice = next(iter(top.values()))
+    replaced = _replaced(ts.code)
     item = {
         "action": ACTION,
         "target": {"kind": "page", "pk": st.code},
@@ -212,7 +221,12 @@ def build(tenant, user, text: str) -> list[dict]:
     }
     # «als Liste, 4 pro Reihe» — и подпись, и «N pro Reihe»: не выбираем молча одно из двух
     both = best == PER_ROW_SCORE and any(score < PER_ROW_SCORE for score, _st, _ch in found)
-    if len(top) > 1 or both:
+    if st.code in replaced:
+        # FB-31 P6 (решение владельца): шаблон страницы теперь задают строки «Seitenaufbau»
+        item["blocked"] = _(
+            "Das stellen Sie jetzt unter «Website › Seitenaufbau» in der Zeile der Seite ein."
+        )
+    elif len(top) > 1 or both:
         item["blocked"] = _("Das passt zu mehreren Einstellungen — bitte genauer sagen.")
     elif choice.value == item["before"]:
         item["blocked"] = _("Ist schon so eingestellt.")

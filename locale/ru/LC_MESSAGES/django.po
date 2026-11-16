@@ -38887,3 +38887,7 @@ msgstr "Разделы этой страницы может менять тол�
 #: templates/tenant/site_home.html
 msgid "Abschnitte werden im Seitenaufbau bearbeitet."
 msgstr "Разделы правятся в «Seitenaufbau»."
+
+#: apps/core/assistant_pages.py
+msgid "Das stellen Sie jetzt unter «Website › Seitenaufbau» in der Zeile der Seite ein."
+msgstr "Теперь это настраивается в «Website › Seitenaufbau», в строке страницы."

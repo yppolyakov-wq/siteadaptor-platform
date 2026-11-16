@@ -38635,3 +38635,7 @@ msgstr "Abschnitte dieser Seite darf nur ändern, wer auch das Angebot selbst be
 #: templates/tenant/site_home.html
 msgid "Abschnitte werden im Seitenaufbau bearbeitet."
 msgstr "Abschnitte werden im Seitenaufbau bearbeitet."
+
+#: apps/core/assistant_pages.py
+msgid "Das stellen Sie jetzt unter «Website › Seitenaufbau» in der Zeile der Seite ein."
+msgstr "Das stellen Sie jetzt unter «Website › Seitenaufbau» in der Zeile der Seite ein."

@@ -38548,3 +38548,7 @@ msgstr "Only people who may edit the offer itself can change the sections of thi
 #: templates/tenant/site_home.html
 msgid "Abschnitte werden im Seitenaufbau bearbeitet."
 msgstr "Sections are edited in the page structure."
+
+#: apps/core/assistant_pages.py
+msgid "Das stellen Sie jetzt unter «Website › Seitenaufbau» in der Zeile der Seite ein."
+msgstr "This is now set under «Website › Page structure» in the row of the page."

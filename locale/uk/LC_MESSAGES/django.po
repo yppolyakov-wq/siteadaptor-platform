@@ -38874,3 +38874,7 @@ msgstr "Розділи цієї сторінки може змінювати л�
 #: templates/tenant/site_home.html
 msgid "Abschnitte werden im Seitenaufbau bearbeitet."
 msgstr "Розділи редагуються в «Seitenaufbau»."
+
+#: apps/core/assistant_pages.py
+msgid "Das stellen Sie jetzt unter «Website › Seitenaufbau» in der Zeile der Seite ein."
+msgstr "Тепер це налаштовується в «Website › Seitenaufbau», у рядку сторінки."

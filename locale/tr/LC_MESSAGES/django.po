@@ -38694,3 +38694,7 @@ msgstr "Bu sayfanın bölümlerini yalnızca teklifin kendisini düzenleyebilenl
 #: templates/tenant/site_home.html
 msgid "Abschnitte werden im Seitenaufbau bearbeitet."
 msgstr "Bölümler sayfa yapısında düzenlenir."
+
+#: apps/core/assistant_pages.py
+msgid "Das stellen Sie jetzt unter «Website › Seitenaufbau» in der Zeile der Seite ein."
+msgstr "Bu artık «Website › Sayfa yapısı» altında sayfanın satırında ayarlanır."
