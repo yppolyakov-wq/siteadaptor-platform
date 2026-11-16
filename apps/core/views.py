@@ -2102,7 +2102,11 @@ def _add_block_fetch_response(request, new_id, host):
         return JsonResponse({"ok": False})
     cfg = siteconfig.normalize(request.tenant.site_config)
     # LB-2: нумерация как у формы — с маркером основного списка (неявный — первым).
-    container = siteconfig.main_list_sequence(host, (cfg.get("page_blocks") or {}).get(host, []))
+    container = [
+        s
+        for s in siteconfig.main_list_sequence(host, (cfg.get("page_blocks") or {}).get(host, []))
+        if siteconfig.is_main_marker(s) or s.get("id")  # FB-31 P3: строки осей не считаем
+    ]
     row, order = None, 1
     for i, s in enumerate(container, start=1):
         if s.get("id") == new_id:
@@ -3264,10 +3268,17 @@ def home_builder_view(request):
                 "newline": bool(s.get("newline")),
                 "visual": s.get("visual") or {},
             }
-            for index, s in enumerate(siteconfig.main_list_sequence(host, stored), start=1)
-            # FB-31 P0 (ревью): встроенные строки без id (блок «Kategorien» каталога) —
-            # не свои блоки; у Студии для них полей нет
-            if siteconfig.is_main_marker(s) or s.get("id")
+            # FB-31 P0 (ревью): встроенные строки без id (блок «Kategorien» каталога,
+            # строки осей акций P3) — не свои блоки; у Студии для них полей нет, и номера
+            # строк Студии их не считают
+            for index, s in enumerate(
+                [
+                    s
+                    for s in siteconfig.main_list_sequence(host, stored)
+                    if siteconfig.is_main_marker(s) or s.get("id")
+                ],
+                start=1,
+            )
         ]
         page_cblocks.append({"page_key": host, "blocks": host_rows})
     for index, s in enumerate(config["sections"], start=1):

@@ -221,7 +221,10 @@ def test_promo_types_need_promotions(tenant, monkeypatch):
     assert "promos" not in codes
     _modules(monkeypatch, tenant, {"catalog", "promotions"})
     body = settings_screen(_req(tenant, data={"typ": "promos"})).content.decode()
-    assert 'data-pt-setting="promo_page_style"' in body
+    # FB-31 P3 (осознанно): шаблон обзора разложен на блоки — вместо плиток шаблона
+    # закреплённые строки «Banner» и «Angebotsgruppen» со своими видами
+    assert 'data-pt-setting="promo_page_style"' not in body
+    assert 'data-schema-block="groups"' in body
     assert 'name="frage"' not in body  # the setup helper has its own screen
 
 
