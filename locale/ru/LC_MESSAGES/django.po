@@ -38774,3 +38774,6 @@ msgstr "Как листовка с цветной лентой."
 
 msgid "Zwei große Karten mit Bedingungen."
 msgstr "Две крупные карточки с условиями."
+
+msgid "Nur mit Angebotsgruppen verfügbar."
+msgstr "Доступно только с группами акций."

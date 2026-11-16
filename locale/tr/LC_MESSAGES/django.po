@@ -38581,3 +38581,6 @@ msgstr "Renk şeritli bir broşür gibi."
 
 msgid "Zwei große Karten mit Bedingungen."
 msgstr "Koşullu iki büyük kart."
+
+msgid "Nur mit Angebotsgruppen verfügbar."
+msgstr "Yalnızca kampanya gruplarıyla kullanılabilir."

@@ -38435,3 +38435,6 @@ msgstr "Like a flyer with a colour band."
 
 msgid "Zwei große Karten mit Bedingungen."
 msgstr "Two large cards with conditions."
+
+msgid "Nur mit Angebotsgruppen verfügbar."
+msgstr "Only available with offer groups."

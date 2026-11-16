@@ -38522,3 +38522,6 @@ msgstr "Wie ein Prospekt mit Farbband."
 
 msgid "Zwei große Karten mit Bedingungen."
 msgstr "Zwei große Karten mit Bedingungen."
+
+msgid "Nur mit Angebotsgruppen verfügbar."
+msgstr "Nur mit Angebotsgruppen verfügbar."

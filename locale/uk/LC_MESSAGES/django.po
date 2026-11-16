@@ -38761,3 +38761,6 @@ msgstr "Як листівка з кольоровою стрічкою."
 
 msgid "Zwei große Karten mit Bedingungen."
 msgstr "Дві великі картки з умовами."
+
+msgid "Nur mit Angebotsgruppen verfügbar."
+msgstr "Доступно лише з групами акцій."

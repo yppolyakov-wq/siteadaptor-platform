@@ -1565,7 +1565,11 @@ def mark_view_availability(config: dict, host: str, view: dict) -> None:
     if host == "promos" or host == "promo_detail" or host.startswith("promo:"):
         surface = "promos" if host == "promos" else "promo"  # FB-31 P3
     off = page_settings.composition_gate(config).get(surface, set())
-    reason = str(page_settings.UNAVAILABLE_REASON)
+    reason = str(
+        _("Nur mit Angebotsgruppen verfügbar.")  # FB-31 P3: у акций нет подкатегорий
+        if surface == "promos"
+        else page_settings.UNAVAILABLE_REASON
+    )
     view["tiles"] = [
         {
             "value": value,
