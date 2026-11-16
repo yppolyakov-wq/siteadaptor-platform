@@ -1,0 +1,138 @@
+<main class="flex-1 w-full max-w-none mx-auto px-4 py-6 md:py-10">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Product","name":"Bauernbrot","url":"http://testserver/sortiment/p/bauernbrot/","description":"Sauerteig, 1 kg."}</script><script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Start","item":"http://testserver/"},{"@type":"ListItem","position":2,"name":"Sortiment","item":"http://testserver/sortiment/"},{"@type":"ListItem","position":3,"name":"Bauernbrot"}]}</script>
+<div class="max-w-5xl mx-auto" data-stu-area="detail">
+  <a href="/sortiment/" class="text-sm text-gray-500 hover:underline">← Unsere Produkte</a>
+  <div class="grid lg:grid-cols-2 gap-6 lg:gap-8 items-start mt-3">
+    <div class="lg:sticky lg:top-20">
+    <div class="aspect-square bg-gray-100 rounded-2xl flex items-center justify-center text-gray-300" aria-hidden="true">
+      <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>
+    </div>
+</div>
+    <div class="lg:sticky lg:top-20">
+<div id="kaufen" class="scroll-mt-24" data-sf-section="product_detail">
+  <h1 class="text-2xl md:text-3xl font-bold mt-1" data-edit-model="product" data-edit-pk="UUID" data-edit-field="name">Bauernbrot</h1>
+  <div class="mt-3 text-2xl font-bold">
+    <span data-price-edit data-edit-pk="UUID" data-price="9,90">9,90</span> €
+  </div>
+  <p class="mt-1 text-xs text-gray-500">inkl. MwSt.</p>
+<div class="mt-4 text-gray-600 whitespace-pre-line" data-edit-model="product" data-edit-pk="UUID" data-edit-field="description">Sauerteig, 1 kg.</div>
+<form method="post" action="/warenkorb/add/" class="js-add-form mt-4 flex flex-wrap items-center gap-3">
+  <input type="hidden" name="csrfmiddlewaretoken" value="X">
+  <input type="hidden" name="product" value="UUID">
+  <input type="number" name="qty" value="1" min="1" max="50" class="w-20 rounded-lg border border-gray-300 px-3 py-2.5" aria-label="Anzahl">
+  <button type="submit" class="flex-1 bg-indigo-600 text-white rounded-lg px-4 py-3 font-medium hover:bg-indigo-700">Bestellung zur Abholung</button>
+</form>
+<script>
+(function () {
+  document.querySelectorAll("[data-variant-select]").forEach(function (sel) {
+    if (sel.dataset.vinit) return;
+    sel.dataset.vinit = "1";
+    var img = document.querySelector(".js-media-main");  // главное фото галереи
+    var original = img ? img.getAttribute("src") : "";
+    sel.addEventListener("change", function () {
+      var opt = sel.options[sel.selectedIndex];
+      if (img) {
+        var url = opt && opt.dataset.image;
+        img.setAttribute("src", url || original);
+      }
+      // Фидбэк DAY: Art.-Nr. следует за выбранным вариантом (деталь).
+      var artEl = document.querySelector("[data-artno]");
+      if (artEl) {
+        var sku = (opt && opt.dataset.sku) || "";
+        artEl.hidden = !sku;
+        var val = artEl.querySelector("[data-artno-value]");
+        if (val) val.textContent = sku;
+      }
+    });
+  });
+})();
+</script>
+<ul class="mt-4 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500" data-trust-strip>
+  <li class="inline-flex items-center gap-1"><span aria-hidden="true">🏬</span>Abholung im Laden</li>
+</ul>
+  <p class="mt-6 text-sm text-gray-500">
+    Im Laden erhältlich.
+  </p>
+    <p class="mt-3"><a href="/nachricht/?kind=product&id=UUID&label=Bauernbrot" class="text-sm text-indigo-600 hover:underline">💬 Stellen Sie eine Frage zu diesem Produkt</a></p>
+</div>
+</div>
+  </div>
+  <div class="max-w-3xl">
+<section id="bewertungen" class="mt-12 scroll-mt-24" data-sf-section="product_detail">
+  <h2 class="text-xl font-bold mb-4">Kundenbewertungen</h2>
+    <p class="text-gray-400 text-sm mb-5">Noch keine Bewertungen – seien Sie der Erste, der dieses Produkt bewertet.</p>
+  <details class="mt-6 rounded-xl border border-gray-200 bg-gray-50 p-4">
+    <summary class="cursor-pointer font-medium text-gray-800">Eine Bewertung schreiben</summary>
+    <p class="text-xs text-gray-500 mt-2">Nur verifizierte Käufer können eine Bewertung abgeben. Verwenden Sie dazu die E-Mail-Adresse aus Ihrer Bestellung.</p>
+    <form method="post" action="/sortiment/UUID/bewerten/" class="mt-3 space-y-3">
+      <input type="hidden" name="csrfmiddlewaretoken" value="X">
+      <input type="hidden" name="form_token" value="HEX">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <input name="author_name" type="text" required maxlength="120" placeholder="Ihr Name" class="rounded-lg border border-gray-300 px-3 py-2">
+        <input autocomplete="email" name="email" type="email" required placeholder="E-Mail zu Ihrer Bestellung" class="rounded-lg border border-gray-300 px-3 py-2">
+      </div>
+      <div>
+        <label class="block text-sm mb-1" for="id_review_rating">Bewertung</label>
+        <select id="id_review_rating" name="rating" required class="rounded-lg border border-gray-300 px-3 py-2">
+          <option value="5">★★★★★ (5)</option>
+          <option value="4">★★★★ (4)</option>
+          <option value="3">★★★ (3)</option>
+          <option value="2">★★ (2)</option>
+          <option value="1">★ (1)</option>
+        </select>
+      </div>
+      <textarea name="comment" rows="3" placeholder="Ihre Bewertung (optional)" class="w-full rounded-lg border border-gray-300 px-3 py-2"></textarea>
+      <button type="submit" class="rounded-lg bg-gray-900 text-white px-4 py-2 text-sm font-medium hover:bg-gray-700">Bewertung abgeben</button>
+<p class="basis-full sm:col-span-full mt-2 text-xs text-gray-500" data-privacy-note>Wir verwenden Ihre Angaben nur, um Ihr Anliegen zu bearbeiten. <a href="/datenschutz/" class="underline" target="_top">Datenschutzerklärung</a></p>
+    </form>
+  </details>
+</section>
+</div>
+<div class="mt-12" data-recent-strip data-current="UUID" data-url="/sortiment/zuletzt/" hidden>
+  <h2 class="text-xl font-bold mb-4">Zuletzt angesehen</h2>
+  <div class="flex gap-4 overflow-x-auto pb-2" data-recent-items data-sf-slider></div>
+</div>
+<script>
+(function () {
+  var box = document.querySelector('[data-recent-strip]');
+  if (!box) return;
+  var KEY = 'sf_seen_products', cur = box.dataset.current, ids = [];
+  try { ids = JSON.parse(localStorage.getItem(KEY) || '[]'); } catch (e) { ids = []; }
+  if (!Array.isArray(ids)) ids = [];
+  var prev = ids.filter(function (x) { return typeof x === 'string' && x !== cur; }).slice(0, 8);
+  try { localStorage.setItem(KEY, JSON.stringify([cur].concat(prev).slice(0, 8))); } catch (e) {}
+  if (!prev.length) return;
+  fetch(box.dataset.url + '?ids=' + encodeURIComponent(prev.join(',')), { headers: { 'X-Requested-With': 'fetch' } })
+    .then(function (r) { return r.ok ? r.text() : ''; })
+    .then(function (html) {
+      if (!html.trim()) return;
+      box.querySelector('[data-recent-items]').innerHTML = html;
+      box.hidden = false;
+      if (window.__sfSliderInit) window.__sfSliderInit();
+      if (window.__sfCardImgsInit) window.__sfCardImgsInit();
+      // STU-11: в канве редактора эти карточки вставлены ПОСЛЕ инструментации кадра,
+      // поэтому оставались инертными (имя/цена не правятся, 📷 и «✎» скрыты). Тот же
+      // сигнал, что шлёт своп листинга, — редактор довешивает обработчики.
+      document.dispatchEvent(new Event('sf:navigated'));
+    }).catch(function () {});
+})();
+</script>
+</div>
+<div class="lg:hidden fixed bottom-[calc(46px+env(safe-area-inset-bottom))] sm:bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur border-t border-gray-200 px-4 py-3 flex items-center justify-between gap-3" data-buybar>
+  <span class="font-semibold whitespace-nowrap">9,90 €</span>
+    <a href="#kaufen" class="text-white rounded-lg px-5 py-2.5 font-medium" style="background: var(--accent, #4f46e5);">In den Warenkorb</a>
+</div>
+<div class="lg:hidden h-20" aria-hidden="true"></div>
+  <div class="mt-8" data-pb-host="product:HEX">
+<div data-sf-section="t-own"
+     class="contents"
+     style="">
+<section class="my-8">
+  <div class="cb-box max-w-3xl mx-auto px-4">
+    <h2 class="text-xl md:text-2xl font-bold mb-2">Nur hier</h2>
+    <p class="text-gray-700 leading-relaxed whitespace-pre-line">Eigener Block</p>
+  </div>
+</section>
+</div>
+  </div>
+  </main>
