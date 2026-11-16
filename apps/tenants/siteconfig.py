@@ -1329,10 +1329,17 @@ MAIN_MARKER_STYLES = ("raster", "schaufenster", "magazin", "mosaik", "preisliste
 MAIN_MARKER_GRIDS = ("cols2", "cols4", "cols5", "cols6", "preisliste")
 
 
-def clean_main_marker(item) -> dict:
-    """Маркер ★ с известными полями вида; мусор отбрасывается (presence-minimal)."""
+def clean_main_marker(item, host: str = "") -> dict:
+    """Маркер ★ с известными полями вида; мусор отбрасывается (presence-minimal). У страниц
+    с поверхностью осей (FB-31 P3: акции) поля ★ — оси этой поверхности."""
     out = {"key": MAIN_LIST_KEY}
     if not isinstance(item, dict):
+        return out
+    surface = part_surface(host)
+    if surface is not None:
+        for axis in surface.axes:
+            if axis.key == MAIN_LIST_KEY and axis.accepts(item.get(axis.field)):
+                out[axis.field] = item[axis.field]
         return out
     if item.get("style") in MAIN_MARKER_STYLES:
         out["style"] = item["style"]
@@ -1381,10 +1388,69 @@ def drop_catalog_views(cfg: dict, host: str = "catalog") -> dict:
 
 def page_builtin_keys(host) -> frozenset:
     """FB-31 P0: какие встроенные строки-списки (как на главной) может хранить страница.
-    Пилот — каталог и его категории: блок «Kategorien»."""
+    Пилот — каталог и его категории: блок «Kategorien»; P3 — строки осей страниц акций."""
     if isinstance(host, str) and (host in ("catalog", "category") or _CATEGORY_HOST_RE.match(host)):
         return frozenset({"categories", CATALOG_HEAD_KEY, CATALOG_SETS_KEY})
-    return frozenset()
+    surface = part_surface(host)
+    return frozenset(surface.keys()) if surface is not None else frozenset()
+
+
+#: FB-31 P3: хосты страниц акций → поверхность осей (`apps/promotions/promo_parts.py`)
+_PROMO_SURFACE_HOSTS = {"promos": "promos", "promo_detail": "promo"}
+
+
+def part_surface(host):
+    """Поверхность осей блоков страницы хоста (`apps/core/page_parts.Surface`) или None.
+    Каталог — свой модуль (`catalog_parts`) до уборки P6."""
+    if not isinstance(host, str):
+        return None
+    name = _PROMO_SURFACE_HOSTS.get(host)
+    if name is None and host.startswith("promo:") and is_object_host(host):
+        name = "promo"
+    if name is None:
+        return None
+    from apps.promotions import promo_parts
+
+    return promo_parts.SURFACES[name]
+
+
+def part_styles(host, key) -> tuple:
+    """Допустимые виды встроенной строки `key` на хосте (явное «как обычно» — тоже вид)."""
+    if host in ("catalog", "category") or (isinstance(host, str) and _CATEGORY_HOST_RE.match(host)):
+        return CATALOG_PART_STYLES.get(key, ())
+    surface = part_surface(host)
+    if surface is None:
+        return ()
+    out: list[str] = []
+    for axis in surface.axes:
+        if axis.key == key and axis.field == "style":
+            out += [v for v in (axis.off, *axis.values) if v]
+    return tuple(out)
+
+
+def drop_page_views(cfg: dict, host: str) -> dict:
+    """FB-31 P3: владелец выбрал шаблон страницы в Студии/кабинете — виды её блоков,
+    выбранные раньше в «Seitenaufbau», снимаются, чтобы шаблон снова действовал. Копия."""
+    surface = part_surface(host)
+    if surface is None:
+        return drop_catalog_views(cfg, host)
+    cfg = dict(cfg or {})
+    blocks = dict(cfg.get("page_blocks") or {})
+    rows = blocks.get(host)
+    if not isinstance(rows, list):
+        return cfg
+    keys = set(surface.keys())
+    fields = {a.field for a in surface.axes if a.key == MAIN_LIST_KEY}
+    kept = []
+    for row in rows:
+        if isinstance(row, dict) and row.get("key") in keys and not row.get("id"):
+            continue
+        if is_main_marker(row):
+            row = {k: v for k, v in row.items() if k not in fields}
+        kept.append(row)
+    blocks[host] = kept
+    cfg["page_blocks"] = blocks
+    return cfg
 
 
 def split_at_main(blocks) -> tuple[list, list]:
@@ -1514,7 +1580,7 @@ def normalize_page_blocks(raw) -> dict:
             if is_main_marker(item):
                 if can_main and main_at is None:
                     main_at = len(blocks)
-                    marker = clean_main_marker(item)
+                    marker = clean_main_marker(item, key)
                 continue
             # FB-31 P0: встроенная строка-список (как на главной) — одна на ключ, чистится
             # тем же `_section_entry`, что секции главной.
@@ -1526,7 +1592,7 @@ def normalize_page_blocks(raw) -> dict:
                         entry = _section_entry(bkey, bool(item.get("enabled", True)), item)
                     else:  # шапка и сеты — только вид, без полей секции главной
                         entry = {"key": bkey, "enabled": True}
-                    if item.get("style") in CATALOG_PART_STYLES[bkey]:
+                    if item.get("style") in part_styles(key, bkey):
                         entry["style"] = item["style"]
                     elif bkey != "categories":
                         entry.pop("style", None)

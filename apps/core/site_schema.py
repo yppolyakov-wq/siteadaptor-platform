@@ -1727,7 +1727,9 @@ def mutate(
     if op == "catview":
         # вид прикреплённой строки каталога: «Kategorien», шапка или сеты (R5b)
         allowed = siteconfig.CATALOG_PART_STYLES.get(item.get("key"), ())
-        if not pinned or value not in allowed:
+        # FB-31 P3: строки осей акций хранятся, панели у них — позже (R5)
+        catalog_page = "categories" in siteconfig.page_builtin_keys(code.split("@")[-1])
+        if not pinned or not catalog_page or value not in allowed:
             raise SchemaError("op")
         item["style"] = value
         item["enabled"] = True  # ревью R4: старая скрытая строка снова действует
@@ -1735,7 +1737,7 @@ def mutate(
     if op == "mainview":
         from apps.catalog import catalog_parts
 
-        if not main or not siteconfig.page_builtin_keys(code.split("@")[-1]):
+        if not main or "categories" not in siteconfig.page_builtin_keys(code.split("@")[-1]):
             raise SchemaError("op")
         if value not in ("raster", *MAIN_VIEW_CHOICES):
             raise SchemaError("op")
