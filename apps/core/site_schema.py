@@ -1064,7 +1064,7 @@ def blocks_for(
             {
                 "ref": _dp.KAUF_REF,
                 "key": _dp.KAUF_KEY,
-                "label": str(_("Buchung")),
+                "label": str(_("Kaufen") if host == "product_detail" else _("Buchung")),
                 "enabled": True,
                 "main": False,
                 "cblock": False,
