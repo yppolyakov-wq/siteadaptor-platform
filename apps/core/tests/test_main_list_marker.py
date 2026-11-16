@@ -152,6 +152,12 @@ def _templates_with(pattern):
         ):
             found.setdefault("catalog", set()).add(tpl.name)
             found.setdefault("category", set()).add(tpl.name)  # FB-30.16 R5: «Alle Kategorien»
+        # FB-31 P3 R6: страницы акций — тегом `promo_blocks` (обзор, группы)
+        if 'part="before"' in pattern and re.search(
+            r'promo_blocks\s+promo_group_key\s+part="before"', tpl.read_text()
+        ):
+            found.setdefault("promos", set()).add(tpl.name)
+            found.setdefault("promo_group", set()).add(tpl.name)
     return found
 
 

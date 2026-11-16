@@ -121,9 +121,15 @@ def test_cabinet_shows_and_saves_the_group_page_default():
         name="DL20G2",
         enabled_modules=["catalog", "promotions"],
     )
-    form = _tiles(_cabinet(tenant, "page_templates_website", "promo_group"), "promo_group_style")
-    for code, _label, _hint in group_styles.GROUP_PAGE_STYLES:
-        assert f'name="value" value="{code}"' in form, code
+    # FB-31 P3 R6 (осознанно): шаблон группы разложен на блоки (шапка, вид ★) — плиток
+    # шаблона в панели нет; код по-прежнему пишется и читается витриной (`group_parts`)
+    from apps.core import site_schema
+    from apps.promotions import promo_parts
+
+    assert "promo_group_style" not in site_schema.setting_codes(tenant, "promo_group")
+    assert sorted(promo_parts.PROMO_GROUP.codes) == sorted(
+        c for c, _l, _h in group_styles.GROUP_PAGE_STYLES
+    )
     page_settings.write(tenant, "promo_group_style", "prospekt")
     assert siteconfig.normalize(tenant.site_config)["site_defaults"]["promo_group_style"] == (
         "prospekt"
