@@ -1446,7 +1446,10 @@ def part_surface(host):
     if name is None and is_promo_group_host(host):
         name = "promo_group"
     if name is None:
-        return None
+        # FB-31 P4: девять листингов (хост номеров — `stay_rooms`), «Team», «Galerie»
+        from apps.core import listing_parts
+
+        return listing_parts.BY_HOST.get(host)
     from apps.promotions import promo_parts
 
     return promo_parts.SURFACES[name]

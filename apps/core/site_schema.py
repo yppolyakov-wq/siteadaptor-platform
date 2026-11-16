@@ -1621,6 +1621,12 @@ PART_VIEW_CHOICES = {
 }
 
 
+#: FB-31 P4: поверхности листингов в гейте `composition_gate`
+_LISTING_GATES = frozenset(
+    {"services", "stays", "events", "tours", "combos", "lookbook", "wishlist", "blog", "reviews"}
+)
+
+
 def mark_view_availability(config: dict, host: str, view: dict) -> None:
     """Плитки вида выбранного блока: вид без подкатегорий или наборов виден, но недоступен
     с причиной (то же правило, что было у плиток шаблона; гейт — `composition_gate`)."""
@@ -1635,8 +1641,11 @@ def mark_view_availability(config: dict, host: str, view: dict) -> None:
     reason = str(
         _("Nur mit Angebotsgruppen verfügbar.")  # FB-31 P3: у акций нет подкатегорий
         if surface == "promos"
+        else _("Nur mit Unterteilung der Liste verfügbar.")  # FB-31 P4: листинги
+        if surface in _LISTING_GATES
         else page_settings.UNAVAILABLE_REASON
     )
+    photo_reason = str(_("Nur mit Foto der Seite verfügbar."))
     view["tiles"] = [
         {
             "value": value,
@@ -1644,7 +1653,9 @@ def mark_view_availability(config: dict, host: str, view: dict) -> None:
             "hint": hint,
             "thumb": thumb,
             "available": not thumb or thumb not in off or value == view.get("value"),
-            "reason": reason if thumb and thumb in off else "",
+            "reason": (photo_reason if thumb == "kopfbild" else reason)
+            if thumb and thumb in off
+            else "",
         }
         for value, label, hint, thumb in view["choices"]
     ]
@@ -1674,6 +1685,10 @@ def _code_of_host(host: str) -> str:
         return f"promo@{host}"
     if host == "promo_group" or host.startswith("promo_group:"):
         return host if host == "promo_group" else f"promo_group@{host}"
+    from apps.core import listing_parts
+
+    if host in listing_parts.SURFACE_OF_HOST:  # FB-31 P4: листинги (номера — `stay_rooms`)
+        return listing_parts.SURFACE_OF_HOST[host]
     return "category" if host == "category" else "catalog"
 
 
@@ -1804,6 +1819,13 @@ def _part_view_panel(config: dict, host: str, item: dict, main: bool) -> dict:
     from apps.tenants import siteconfig
 
     surface = siteconfig.part_surface(host)
+    from apps.core import listing_parts
+
+    if surface.name in listing_parts.LISTINGS or surface in (
+        listing_parts.TEAM,
+        listing_parts.GALLERY,
+    ):
+        return _listing_view_panel(config, host, item, main)
     if host.startswith("promo:"):
         # ревью R5: своя страница акции — то же правило, что у витрины (свой шаблон
         # акции и общая строка «Angebot» под её своими блоками)
@@ -1856,6 +1878,52 @@ def _part_view_panel(config: dict, host: str, item: dict, main: bool) -> dict:
     label, choices = PROMO_PART_CHOICES[(surface.name, key)]
     axis = next(a for a in surface.axes if a.key == key)
     value = parts.get(axis.name) or axis.off
+    current = next((lab for v, lab, _h, _t in choices if v == value), "")
+    return {
+        "label": str(label),
+        "pinned": True,
+        "widths": [],
+        "summary": str(current),
+        "catview": {"value": value, "choices": choices, "title": str(label)},
+    }
+
+
+#: FB-31 P4: подпись строки навигации листинга (что в ней — подборки, темы, разделы)
+LISTING_GROUPS_LABEL = {
+    "services": _("Kollektionen"),
+    "stays": _("Kollektionen"),
+    "events": _("Themen"),
+    "combos": _("Bereiche"),
+}
+
+
+def _listing_groups_choices(label) -> tuple:
+    return (
+        ("auto", _("Automatisch"), _("Als Chips über der Liste – wie bisher."), ""),
+        ("regale", _("Regale"), _("Jede Gruppe als Reihe mit Pfeilen."), "regale"),
+        ("tabs", _("Reiter"), _("Als Reiter über der Liste."), "tabs"),
+        ("index", _("Index"), _("Verzeichnis in Spalten."), "kompakt"),
+        ("side", _("Seitenspalte"), _("Links die Gruppen, rechts die Liste."), "navigator"),
+    )
+
+
+def _listing_view_panel(config: dict, host: str, item: dict, main: bool) -> dict:
+    """FB-31 P4: панель строки листинга — шапка и навигация (вид из строк либо шаблона).
+    У ★ листинга своих полей нет: его вид — сетка и форма карточки (настройки страницы)."""
+    from apps.core import listing_parts
+
+    surface = listing_parts.SURFACE_OF_HOST.get(host)
+    if main or surface is None:
+        return {}
+    parts = listing_parts.effective(config, surface)
+    key = item.get("key")
+    if key == listing_parts.HEAD_KEY:
+        label, choices = PROMO_PART_CHOICES[("promos", "page_head")]
+        value = parts.head or listing_parts.HEAD_OFF
+    else:
+        label = LISTING_GROUPS_LABEL.get(surface, _("Gruppen"))
+        choices = _listing_groups_choices(label)
+        value = parts.groups or listing_parts.GROUPS_AUTO
     current = next((lab for v, lab, _h, _t in choices if v == value), "")
     return {
         "label": str(label),
@@ -2441,6 +2509,8 @@ REPLACED_BY_BLOCKS = {
     "promos": frozenset({"promo_page_style", "promo_detail_style"}),
     "promo": frozenset({"promo_detail_style"}),
     "promo_group": frozenset({"promo_group_style"}),  # R6: шапка и вид ★ группы
+    # FB-31 P4: шаблон листинга — строки «Banner · Fotos der Seite» и навигации
+    **{s: frozenset({f"{s}_page_style"}) for s in sorted(_LISTING_GATES)},
 }
 
 

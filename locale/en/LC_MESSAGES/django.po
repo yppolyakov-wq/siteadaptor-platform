@@ -38465,3 +38465,27 @@ msgstr "Comparison"
 
 msgid "Aussehen der Aktionsseite ändern"
 msgstr "Change the look of the offers page"
+
+msgid "Als Chips über der Liste – wie bisher."
+msgstr "As chips above the list – as before."
+
+msgid "Als Reiter über der Liste."
+msgstr "As tabs above the list."
+
+msgid "Gruppen"
+msgstr "Groups"
+
+msgid "Links die Gruppen, rechts die Liste."
+msgstr "Groups on the left, the list on the right."
+
+msgid "Nur mit Foto der Seite verfügbar."
+msgstr "Only available with a page photo."
+
+msgid "Nur mit Unterteilung der Liste verfügbar."
+msgstr "Only available when the list is divided into groups."
+
+msgid "Themen"
+msgstr "Topics"
+
+msgid "Verzeichnis in Spalten."
+msgstr "Directory in columns."

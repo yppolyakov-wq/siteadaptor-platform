@@ -38804,3 +38804,27 @@ msgstr "Сравнение"
 
 msgid "Aussehen der Aktionsseite ändern"
 msgstr "Изменить вид страницы акций"
+
+msgid "Als Chips über der Liste – wie bisher."
+msgstr "Чипами над списком — как раньше."
+
+msgid "Als Reiter über der Liste."
+msgstr "Вкладками над списком."
+
+msgid "Gruppen"
+msgstr "Группы"
+
+msgid "Links die Gruppen, rechts die Liste."
+msgstr "Слева группы, справа список."
+
+msgid "Nur mit Foto der Seite verfügbar."
+msgstr "Доступно только с фото страницы."
+
+msgid "Nur mit Unterteilung der Liste verfügbar."
+msgstr "Доступно, только когда список разделён на группы."
+
+msgid "Themen"
+msgstr "Темы"
+
+msgid "Verzeichnis in Spalten."
+msgstr "Указатель в колонках."

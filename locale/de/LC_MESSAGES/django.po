@@ -38552,3 +38552,27 @@ msgstr "Vergleich"
 
 msgid "Aussehen der Aktionsseite ändern"
 msgstr "Aussehen der Aktionsseite ändern"
+
+msgid "Als Chips über der Liste – wie bisher."
+msgstr "Als Chips über der Liste – wie bisher."
+
+msgid "Als Reiter über der Liste."
+msgstr "Als Reiter über der Liste."
+
+msgid "Gruppen"
+msgstr "Gruppen"
+
+msgid "Links die Gruppen, rechts die Liste."
+msgstr "Links die Gruppen, rechts die Liste."
+
+msgid "Nur mit Foto der Seite verfügbar."
+msgstr "Nur mit Foto der Seite verfügbar."
+
+msgid "Nur mit Unterteilung der Liste verfügbar."
+msgstr "Nur mit Unterteilung der Liste verfügbar."
+
+msgid "Themen"
+msgstr "Themen"
+
+msgid "Verzeichnis in Spalten."
+msgstr "Verzeichnis in Spalten."

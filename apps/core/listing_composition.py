@@ -60,29 +60,43 @@ def context(
     `entries` считаются всегда (по ним же гейтится доступность кода), `shelves` и
     `hero` — только когда выбрана их композиция.
     """
+    from apps.core import listing_parts
+    from apps.core import page_parts as pp
+
     rows = list(_call(entries) or [])
-    raw = selected_code(config, surface)
+    # FB-31 P4: шаблон — набор осей (шапка, навигация); строки схемы страницы сильнее кода.
+    # Гейты данных (`compositions.resolve`: нет подразделов / нет фото) — как раньше, по оси.
+    s = listing_parts.LISTINGS.get(surface)
+    if s is not None:
+        parts = listing_parts.effective(config, surface)
+        nav_raw = pp.legacy_code(s, s.parts(groups=parts.groups)) if parts.groups else ""
+        head_raw = "kopfbild" if parts.head == "titelbild" else ""
+    else:
+        raw = selected_code(config, surface)
+        nav_raw = "" if raw == "kopfbild" else raw
+        head_raw = "kopfbild" if raw == "kopfbild" else ""
     # обложку считаем ДО резолва: без фото «С обложкой» проваливается в сетку
-    hero_data = _call(hero) if raw == "kopfbild" else None
-    code = compositions.resolve(
-        surface,
-        raw,
-        has_children=bool(rows),
-        has_photo=bool((hero_data or {}).get("photo")),
+    hero_data = _call(hero) if head_raw else None
+    nav = compositions.resolve(surface, nav_raw, has_children=bool(rows)) if nav_raw else ""
+    head = (
+        compositions.resolve(surface, head_raw, has_photo=bool((hero_data or {}).get("photo")))
+        if head_raw
+        else ""
     )
+    code = nav or head
     ctx: dict = {"page_composition": code}
     # Композиция, которая САМА выводит под-сущности, забирает их себе: чипы того
     # же фасета на странице стали бы вторым списком тех же подборок. Стенд поймал
     # это сразу — над вкладками «Damen · Herren» висел точно такой же ряд чипов.
-    ctx["comp_owns_entries"] = code in _ENTRY_CODES
-    if code in _ENTRY_CODES:
+    ctx["comp_owns_entries"] = nav in _ENTRY_CODES
+    if nav in _ENTRY_CODES:
         ctx["comp_entries"] = rows
         ctx["comp_carry"] = carry
-    elif code == "regale":
+    elif nav == "regale":
         ctx["comp_shelves"] = list(_call(shelves) or [])
         ctx["comp_item_template"] = item_template
         ctx["comp_kind"] = kind
-    elif code == "kopfbild":
+    if head:  # обложка — своя ось: рисуется и вместе с навигацией (новое сочетание)
         ctx["comp_hero"] = hero_data
     return ctx
 

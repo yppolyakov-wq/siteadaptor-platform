@@ -2883,7 +2883,14 @@ def home_builder_view(request):
                 continue
             _pstyles_touched = True
             _code = (request.POST.get(_field) or "").strip()
-            if _code and _code in compositions.valid_for(_surface):
+            if not (_code and _code in compositions.valid_for(_surface)):
+                _code = ""
+            if _code != (_pstyles.get(_surface) or ""):
+                # FB-31 P4: смена шаблона листинга снимает виды его блоков (как у каталога)
+                from apps.core import listing_parts
+
+                config.update(siteconfig.drop_page_views(config, listing_parts.HOST_OF[_surface]))
+            if _code:
                 _pstyles[_surface] = _code
             else:
                 _pstyles.pop(_surface, None)

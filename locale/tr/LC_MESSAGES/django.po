@@ -38611,3 +38611,27 @@ msgstr "Karşılaştırma"
 
 msgid "Aussehen der Aktionsseite ändern"
 msgstr "Kampanya sayfasının görünümünü değiştir"
+
+msgid "Als Chips über der Liste – wie bisher."
+msgstr "Listenin üstünde çip olarak – eskisi gibi."
+
+msgid "Als Reiter über der Liste."
+msgstr "Listenin üstünde sekme olarak."
+
+msgid "Gruppen"
+msgstr "Gruplar"
+
+msgid "Links die Gruppen, rechts die Liste."
+msgstr "Gruplar solda, liste sağda."
+
+msgid "Nur mit Foto der Seite verfügbar."
+msgstr "Yalnızca sayfa fotoğrafıyla kullanılabilir."
+
+msgid "Nur mit Unterteilung der Liste verfügbar."
+msgstr "Yalnızca liste gruplara ayrıldığında kullanılabilir."
+
+msgid "Themen"
+msgstr "Konular"
+
+msgid "Verzeichnis in Spalten."
+msgstr "Sütunlarda dizin."

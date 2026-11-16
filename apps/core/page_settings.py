@@ -571,6 +571,14 @@ _PROMO_STYLE_HOSTS = {
 }
 
 
+def _listing_style_host(code: str) -> str:
+    from apps.core import listing_parts
+
+    if not code.endswith("_page_style"):
+        return ""
+    return listing_parts.HOST_OF.get(code[: -len("_page_style")], "")
+
+
 def apply_override(cfg: dict, code: str, value, output: dict | None = None) -> dict:
     """Mutate a COPY of a raw config so that `code` has `value` (no validation of
     availability — callers validate). Writes one key; everything else is kept.
@@ -591,6 +599,9 @@ def apply_override(cfg: dict, code: str, value, output: dict | None = None) -> d
     # тот же шаблон ещё раз (повтор черновика, ассистент) виды не снимает (ревью R1–R4)
     if code in _PROMO_STYLE_HOSTS and value != current_value(cfg or {}, setting)[0]:
         out = siteconfig.drop_page_views(out, _PROMO_STYLE_HOSTS[code])
+    host = _listing_style_host(code)  # FB-31 P4: шаблоны девяти листингов
+    if host and value != current_value(cfg or {}, setting)[0]:
+        out = siteconfig.drop_page_views(out, host)
     kind = kind_of(setting)
     if kind == KIND_LAYOUT:
         key = _LAYOUT_KEYS[code]
