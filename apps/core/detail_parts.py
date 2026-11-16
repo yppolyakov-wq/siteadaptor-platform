@@ -131,11 +131,14 @@ def own_anchors(config, kind: str, obj, order: list[str]) -> dict | None:
     """R8: якоря своих блоков объекта ({"host", "lead", "after", "tail"}) — None, если строк
     разделов у объекта нет (свои блоки одним куском, как раньше: `object_blocks`)."""
     from apps.core import object_structure
+    from apps.tenants import siteconfig
 
     host = object_structure.object_host(kind, obj)
     if not host or kind not in OBJECT_SHARED:
         return None
-    raw = ((config or {}).get("page_blocks") or {}).get(host)
+    # ревью R8: всегда по НОРМАЛИЗОВАННОМУ конфигу — вьюха и тег хвоста видят одни якоря
+    # (сырой черновик хранит якоря, которые нормализация уплотняет)
+    raw = (siteconfig.normalize(config).get("page_blocks") or {}).get(host)
     rows = [r for r in (raw if isinstance(raw, list) else []) if isinstance(r, dict)]
     a = anchors(rows, host, order)
     return {"host": host, **a} if a["placed"] else None
@@ -269,6 +272,8 @@ def page_ctx(cfg, host: str, kind: str = "", obj=None) -> dict:
 def own_tail(config, kind: str, obj) -> str | None:
     """R8: `part` своих блоков объекта для хвоста страницы; None — якорей нет (рисовать
     одним куском, как раньше)."""
+    if kind not in OBJECT_SHARED:  # акция и прочее — свои блоки одним куском, как раньше
+        return None
     own = own_anchors(config, kind, obj, object_order(config, kind, obj))
     if own is None:
         return None

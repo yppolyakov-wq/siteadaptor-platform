@@ -1,5 +1,7 @@
 """Шаблонные фильтры витрины (site_config UI)."""
 
+import logging
+
 from django import template
 from django.template.loader import render_to_string
 from django.utils.safestring import mark_safe
@@ -9,6 +11,7 @@ from django.utils.translation import gettext as _
 from apps.core import card_forms
 from apps.tenants import siteconfig, video
 
+logger = logging.getLogger(__name__)
 register = template.Library()
 
 # D.1 (анти-Битрикс Phase 2): реестр секций главной — key → партиал. Заменяет
@@ -536,6 +539,7 @@ def object_blocks(context, kind, obj, part="after"):
     try:
         raw = page_settings.raw_config(request)
     except Exception:  # noqa: BLE001 — превью не должно ронять витрину
+        logger.warning("object_blocks: raw_config failed, using saved config", exc_info=True)
         raw = getattr(getattr(request, "tenant", None), "site_config", None)
     if not ((raw or {}).get("page_blocks") or {}).get(host):
         return ""

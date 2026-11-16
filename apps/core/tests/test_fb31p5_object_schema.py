@@ -175,3 +175,21 @@ def test_without_anchors_pages_stay_as_before():
     html = _render("event", ev, {"page_blocks": {host: [og.OWN]}})
     assert html.count("Eigener Block") == 1
     assert g.TEXT["data"]["title"] not in html
+
+
+@pytest.mark.parametrize("kind", ["product", "event"])
+def test_review_raw_anchors_that_normalize_drops_still_show_the_block_once(kind):
+    # ревью R8: якоря без своих блоков между ними нормализация уплотняет — вьюха и тег
+    # хвоста обязаны видеть одно и то же (иначе блок пропадёт или задвоится)
+    obj = og.MAKE[kind]()
+    host = f"{kind}:{obj.pk.hex}"
+    keys = list(detail_parts.section_keys(og.SHARED_HOST[kind]))
+    html = _render(kind, obj, {"page_blocks": {host: [*[{"key": k} for k in keys], og.OWN]}})
+    assert html.count("Eigener Block") == 1
+
+
+def test_review_tab_keeps_the_stored_order_untrimmed():
+    ev = og._event()
+    ev.page_override = {"order": ["faq", "gone_section", "idea"]}
+    object_structure.apply_post(ev, "event", {"page_override_present": "1", "ps_layout": ""})
+    assert ev.page_override["order"] == ["faq", "gone_section", "idea"]

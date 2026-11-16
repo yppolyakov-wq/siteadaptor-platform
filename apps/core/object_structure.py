@@ -167,8 +167,9 @@ def apply_post(obj, kind: str, post) -> list[str]:
         value.pop("layout", None)  # у акции шаблона страницы нет — присланное не храним
     # R8: свой порядок разделов правится в схеме «Seitenaufbau» — вкладка его не стирает
     # (сброс «Zurück zum Standard» — стирает всё)
-    keep = clean(_raw(obj), module).get("order")
-    if keep and not post.get("ps_reset"):
+    # (ревью R8: как хранится — без усечения: раздел, на время пропавший из реестра, не теряется)
+    keep = _raw(obj).get("order")
+    if module in ORDERABLE_MODULES and isinstance(keep, list) and keep and not post.get("ps_reset"):
         value["order"] = keep
     changed = []
     if value != _raw(obj):
