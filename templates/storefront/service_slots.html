@@ -73,4 +73,10 @@
 {# HF-5: в липкой панели — та же цена дня, что в шапке и в счёте. #}
 {% if service.price_cents %}{% blocktrans asvar buyprice with p=day_price_eur|floatformat:2 %}{{ p }} €{% endblocktrans %}{% else %}{% trans "Book" as buyprice %}{% endif %}
 {% include "storefront/_detail_buybar.html" with price=buyprice anchor="#buchen" module="booking" sold_out=False %}
+{% comment %}FB-31 P5 (находка R0): свои блоки страницы услуги — и на странице с выбором времени
+(раньше их рисовала только страница «сначала заявка»); баннеры «Wo zeigen» — там же.{% endcomment %}
+{% place_banners "service" service %}
+{% object_blocks "service" service "before" %}
+{% page_blocks "service_detail" %}
+{% object_blocks "service" service %}
 {% endblock %}
