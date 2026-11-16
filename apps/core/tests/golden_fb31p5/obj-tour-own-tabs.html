@@ -113,7 +113,16 @@
   var root = document.querySelector('[data-pd-tabs]');
   if (!root) return;
   var list = root.querySelector('[data-pd-tablist]');
-  var panels = Array.prototype.slice.call(root.querySelectorAll('[data-pd-panel]'));
+  // FB-31 P6 (решение владельца): раздел без содержимого — без вкладки (у события и тура
+  // разделы рисуются по реестру, и пустой давал пустую вкладку)
+  var panels = Array.prototype.slice.call(root.querySelectorAll('[data-pd-panel]')).filter(function (p) {
+    var full = Array.prototype.some.call(p.children, function (c) {
+      var media = 'img,iframe,video,svg,canvas,form,input';
+      return c.tagName !== 'SUMMARY' && (c.textContent.trim() || c.matches(media) || c.querySelector(media));
+    });
+    if (!full) (p.closest('[data-ed-section]') || p).hidden = true;
+    return full;
+  });
   if (!panels.length) return;
   var mq = window.matchMedia('(min-width: 768px)');
   var cur = 0;
