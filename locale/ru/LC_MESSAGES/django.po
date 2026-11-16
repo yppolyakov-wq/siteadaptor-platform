@@ -38828,3 +38828,24 @@ msgstr "Темы"
 
 msgid "Verzeichnis in Spalten."
 msgstr "Указатель в колонках."
+
+msgid "Alle Reisen in einer Liste."
+msgstr "Все поездки одним списком."
+
+msgid "Beste Bewertung zuerst"
+msgstr "Сначала лучшая оценка"
+
+msgid "Eigene Reihenfolge"
+msgstr "Свой порядок"
+
+msgid "Nach Ländern"
+msgstr "По странам"
+
+msgid "Nach Name"
+msgstr "По названию"
+
+msgid "Nächster Termin zuerst"
+msgstr "Сначала ближайшая дата"
+
+msgid "Reisen in Abschnitten je Land."
+msgstr "Поездки разделами по странам."

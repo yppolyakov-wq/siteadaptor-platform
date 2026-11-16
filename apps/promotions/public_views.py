@@ -1329,6 +1329,8 @@ def reviews_page(request):
     # владельца из site_config (`testimonials` — секция главной). Страница
     # существует, если есть хоть что-то; иначе 404 (пустых страниц не плодим).
     reviews = storefront_reviews(50)
+    if site.get("reviews_sort") == "best":  # FB-31 P4 R6: порядок владельца
+        reviews = sorted(reviews, key=lambda r: -int(r.get("rating") or 0))
     testimonials = site.get("testimonials") or []
     if not reviews and not testimonials:
         raise Http404

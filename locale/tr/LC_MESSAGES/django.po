@@ -38635,3 +38635,24 @@ msgstr "Konular"
 
 msgid "Verzeichnis in Spalten."
 msgstr "Sütunlarda dizin."
+
+msgid "Alle Reisen in einer Liste."
+msgstr "Tüm geziler tek listede."
+
+msgid "Beste Bewertung zuerst"
+msgstr "Önce en iyi puan"
+
+msgid "Eigene Reihenfolge"
+msgstr "Kendi sıralama"
+
+msgid "Nach Ländern"
+msgstr "Ülkeye göre"
+
+msgid "Nach Name"
+msgstr "Ada göre"
+
+msgid "Nächster Termin zuerst"
+msgstr "Önce en yakın tarih"
+
+msgid "Reisen in Abschnitten je Land."
+msgstr "Ülkeye göre bölümlerde geziler."

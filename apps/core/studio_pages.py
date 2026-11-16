@@ -340,6 +340,10 @@ SETTINGS: dict[str, Setting] = {
         ),
         _s("events_layout", _("Raster"), "events_preset", ("events_index_layout",), axis=AXIS_GRID),
         _s("events_sort", _("Sortierung"), "events_sort", ("events_sort",), axis=AXIS_CONTENT),
+        # FB-31 P4 R6: порядок списков без фасетов — умолчание владельца
+        _s("tours_sort", _("Sortierung"), "tours_sort", ("tours_sort",), axis=AXIS_CONTENT),
+        _s("blog_sort", _("Sortierung"), "blog_sort", ("blog_sort",), axis=AXIS_CONTENT),
+        _s("reviews_sort", _("Sortierung"), "reviews_sort", ("reviews_sort",), axis=AXIS_CONTENT),
         _s(
             "event_detail_sections",
             _("Abschnitte"),
@@ -571,7 +575,7 @@ PAGE_TYPES: tuple[PageType, ...] = (
         ("storefront-tours",),
         # STU-17: `_tour_card` читает форму карточки (LAY-4) — значит она здесь
         # действует, и предложить её обязаны на этой же странице.
-        ("tours_page_style", "tours_layout", "product_card_form", "text_width"),
+        ("tours_page_style", "tours_layout", "tours_sort", "product_card_form", "text_width"),
         block_host="tours",
     ),
     PageType(
@@ -620,14 +624,14 @@ PAGE_TYPES: tuple[PageType, ...] = (
         "reviews",
         _("Bewertungen"),
         ("storefront-reviews",),
-        ("reviews_page_style", "reviews_page_layout", "text_width"),
+        ("reviews_page_style", "reviews_page_layout", "reviews_sort", "text_width"),
         block_host="reviews",
     ),
     PageType(
         "blog",
         _("Blog"),
         ("storefront-blog",),
-        ("blog_page_style", "blog_index_layout", "text_width"),
+        ("blog_page_style", "blog_index_layout", "blog_sort", "text_width"),
         block_host="blog",
     ),
     PageType(

@@ -178,6 +178,10 @@ def test_every_site_key_resolves_in_normalized_config():
         "services_sort": "price_asc",
         "stays_sort": "price_desc",
         "events_sort": "price_asc",
+        # FB-31 P4 R6: порядок туров, блога, отзывов — presence-minimal
+        "tours_sort": "name",
+        "blog_sort": "oldest",
+        "reviews_sort": "best",
         # LAY-3a-2: раскладки страниц с прежде захардкоженной сеткой — тоже
         # presence-minimal (нет ключа = прежняя вёрстка), поэтому со значением.
         "promo_index_layout": {"preset": "cols4"},

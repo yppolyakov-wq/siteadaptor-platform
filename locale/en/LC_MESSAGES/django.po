@@ -38489,3 +38489,24 @@ msgstr "Topics"
 
 msgid "Verzeichnis in Spalten."
 msgstr "Directory in columns."
+
+msgid "Alle Reisen in einer Liste."
+msgstr "All trips in one list."
+
+msgid "Beste Bewertung zuerst"
+msgstr "Best rating first"
+
+msgid "Eigene Reihenfolge"
+msgstr "Own order"
+
+msgid "Nach Ländern"
+msgstr "By country"
+
+msgid "Nach Name"
+msgstr "By name"
+
+msgid "Nächster Termin zuerst"
+msgstr "Next date first"
+
+msgid "Reisen in Abschnitten je Land."
+msgstr "Trips in sections per country."

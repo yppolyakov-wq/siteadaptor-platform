@@ -2767,6 +2767,13 @@ STOREFRONT_PROFILES = ("aktionen", "eintrag")
 # Допустимые значения берём У ПРОВАЙДЕРА (единый источник с витринным тулбаром),
 # лениво и с кэшем: siteconfig не должен тянуть доменные модули на загрузке.
 LISTING_SORT_KINDS = {"services_sort": "service", "stays_sort": "stay", "events_sort": "event"}
+#: FB-31 P4 R6: умолчание порядка списков без фасетного провайдера (выбор владельца, у
+#: посетителя переключателя нет). Нет ключа — порядок вьюхи, как раньше.
+PAGE_SORTS = {
+    "tours_sort": ("next", "name"),  # нет ключа = порядок владельца (sort_order, title)
+    "blog_sort": ("oldest",),  # нет ключа = новые сверху
+    "reviews_sort": ("best",),  # нет ключа = новые сверху
+}
 
 
 @cache
@@ -5430,6 +5437,9 @@ def _normalize_impl(config) -> dict:
         _lv = config.get(_lk)
         if _lv in listing_sort_keys(_lk):
             normalized[_lk] = _lv
+    for _pk, _allowed in PAGE_SORTS.items():  # FB-31 P4 R6, presence-minimal
+        if config.get(_pk) in _allowed:
+            normalized[_pk] = config[_pk]
     # Показывать ли подкатегории карточками первыми (при выбранной категории). Дефолт True.
     normalized["catalog_subcats_first"] = bool(config.get("catalog_subcats_first", True))
     # Показывать ли блок кросс-селла («Passt dazu») в корзине. Дефолт True (как было).

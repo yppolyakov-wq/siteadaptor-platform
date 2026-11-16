@@ -21,6 +21,9 @@ GROUPS_KEY = "groups"
 HEAD_OFF = "aus"
 GROUPS_AUTO = "auto"
 RASTER = "raster"
+#: ★ туров: «Nach Ländern» (как раньше) / «Ohne Abschnitte»
+FLAT = "ohne"
+GROUPED = "auto"
 
 #: листинги, у которых есть подразделы (подборки услуг и номеров, темы событий, разделы сетов)
 NAV_SURFACES = frozenset({"services", "stays", "events", "combos"})
@@ -48,6 +51,8 @@ def _listing(surface: str) -> pp.Surface:
     else:
         # без подразделов навигационные коды и сегодня рисуют обычную сетку
         codes = {c: v for c, v in _CODES.items() if "groups" not in v}
+    if surface == "tours":  # FB-31 P4 R6: туры делятся на страны сами — ★ «Abschnitte»
+        axes.append(pp.Axis("grouping", pp.MAIN_KEY, (FLAT,), off=GROUPED, field="grouping"))
     return pp.surface(surface, axes=axes, codes=codes, priority=("groups", "head"))
 
 

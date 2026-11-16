@@ -800,6 +800,40 @@ def _page_layout(request, key: str, name: str) -> dict:
     return siteconfig.page_layout_ctx(siteconfig.normalize(cfg), key, name)
 
 
+def _page_sort(request, key: str) -> str:
+    """FB-31 P4 R6: порядок списка, выбранный владельцем ("" — как раньше)."""
+    from apps.tenants import siteconfig
+
+    value = page_settings.raw_config(request).get(key)
+    return value if value in siteconfig.PAGE_SORTS.get(key, ()) else ""
+
+
+def _sort_tours(tours: list, order: str) -> list:
+    """Туры владельца по выбранному порядку — в Python по уже загруженным заездам (без
+    лишних запросов). Тур без ближайшего заезда — в конце."""
+    if order == "name":
+        return sorted(tours, key=lambda t: (t.title_text or "").lower())
+    if order == "next":
+        from datetime import timedelta
+
+        far = timezone.now() + timedelta(days=36500)
+
+        def _next(tour):
+            starts = [getattr(d, "starts_at", None) for d in tour.upcoming_departures()]
+            starts = [s for s in starts if s is not None]
+            return min(starts) if starts else far
+
+        return sorted(tours, key=_next)
+    return tours
+
+
+def _tours_flat(request) -> bool:
+    from apps.core import listing_parts
+
+    parts = listing_parts.effective(page_settings.raw_config(request), "tours")
+    return parts.grouping == listing_parts.FLAT
+
+
 def touren_index(request):
     """MT-1: публичный список туров (тур = контент, заезды = даты продажи)."""
     _require_events_active(request)
@@ -808,6 +842,7 @@ def touren_index(request):
             "teachers", Tour.upcoming_prefetch()
         )
     )
+    tours = _sort_tours(tours, _page_sort(request, "tours_sort"))
     groups = group_tours_by_country(tours)
     named = [g for g in groups if g["key"]]
     return render(
@@ -829,7 +864,8 @@ def touren_index(request):
             ),
             # Разбивка по странам имеет смысл только когда стран НЕСКОЛЬКО —
             # иначе это лишний заголовок над единственным списком.
-            "grouped": len(named) > 1,
+            # FB-31 P4 R6: ★ «Abschnitte» → «Ohne Abschnitte» — одним списком
+            "grouped": len(named) > 1 and not _tours_flat(request),
             "private_tour_url": _private_tour_url(request),
         },
     )
@@ -880,6 +916,8 @@ def blog_index(request):
     from .models import BlogPost
 
     posts = BlogPost.objects.filter(is_published=True)
+    if _page_sort(request, "blog_sort") == "oldest":  # FB-31 P4 R6
+        posts = posts.order_by("published_at")
     # STU-18d: под-сущностей (рубрик) у блога нет — из реестра доступна только
     # обложка; без фото сайта она проваливается в обычную сетку (NEEDS_PHOTO).
     _cfg = page_settings.raw_config(request)

@@ -647,17 +647,26 @@
           <div class="page-block mt-4" data-stu-setting="tours_layout" data-stu-axis="grid" data-stu-page="tours">
             {% include "tenant/_stu19_summary.html" with s=stu19.tours_layout %}
           </div>
+          <div class="stu-page-row w-full mt-2" data-stu-setting="tours_sort" data-stu-axis="content" data-stu-page="tours">
+            {% include "tenant/_stu19_summary.html" with s=stu19.tours_sort %}
+          </div>
           <div class="page-block mt-4" data-stu-setting="lookbook_layout" data-stu-axis="grid" data-stu-page="lookbook">
             {% include "tenant/_stu19_summary.html" with s=stu19.lookbook_layout %}
           </div>
           <div class="page-block mt-4" data-stu-setting="reviews_page_layout" data-stu-axis="grid" data-stu-page="reviews">
             {% include "tenant/_stu19_summary.html" with s=stu19.reviews_page_layout %}
           </div>
+          <div class="stu-page-row w-full mt-2" data-stu-setting="reviews_sort" data-stu-axis="content" data-stu-page="reviews">
+            {% include "tenant/_stu19_summary.html" with s=stu19.reviews_sort %}
+          </div>
           <div class="page-block mt-4" data-stu-setting="wishlist_layout" data-stu-axis="grid" data-stu-page="wishlist">
             {% include "tenant/_stu19_summary.html" with s=stu19.wishlist_layout %}
           </div>
           <div class="page-block mt-4" data-stu-setting="blog_index_layout" data-stu-axis="grid" data-stu-page="blog">
             {% include "tenant/_stu19_summary.html" with s=stu19.blog_index_layout %}
+          </div>
+          <div class="stu-page-row w-full mt-2" data-stu-setting="blog_sort" data-stu-axis="content" data-stu-page="blog">
+            {% include "tenant/_stu19_summary.html" with s=stu19.blog_sort %}
           </div>
           {% comment %}ST-7c/DL-19 → STU-8: ФОРМА карточки переехала сюда из уровня
              «Дизайн сайта». Артборды A1/PCat/PPromo ставят её в панель страницы: «Дизайн

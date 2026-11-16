@@ -38576,3 +38576,24 @@ msgstr "Themen"
 
 msgid "Verzeichnis in Spalten."
 msgstr "Verzeichnis in Spalten."
+
+msgid "Alle Reisen in einer Liste."
+msgstr "Alle Reisen in einer Liste."
+
+msgid "Beste Bewertung zuerst"
+msgstr "Beste Bewertung zuerst"
+
+msgid "Eigene Reihenfolge"
+msgstr "Eigene Reihenfolge"
+
+msgid "Nach Ländern"
+msgstr "Nach Ländern"
+
+msgid "Nach Name"
+msgstr "Nach Name"
+
+msgid "Nächster Termin zuerst"
+msgstr "Nächster Termin zuerst"
+
+msgid "Reisen in Abschnitten je Land."
+msgstr "Reisen in Abschnitten je Land."

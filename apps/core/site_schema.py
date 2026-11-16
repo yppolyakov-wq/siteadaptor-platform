@@ -1888,6 +1888,10 @@ def _part_view_panel(config: dict, host: str, item: dict, main: bool) -> dict:
     }
 
 
+TOURS_GROUPING_CHOICES = (
+    ("auto", _("Nach Ländern"), _("Reisen in Abschnitten je Land."), ""),
+    ("ohne", _("Ohne Abschnitte"), _("Alle Reisen in einer Liste."), ""),
+)
 #: FB-31 P4: подпись строки навигации листинга (что в ней — подборки, темы, разделы)
 LISTING_GROUPS_LABEL = {
     "services": _("Kollektionen"),
@@ -1913,9 +1917,19 @@ def _listing_view_panel(config: dict, host: str, item: dict, main: bool) -> dict
     from apps.core import listing_parts
 
     surface = listing_parts.SURFACE_OF_HOST.get(host)
-    if main or surface is None:
+    if surface is None:
         return {}
     parts = listing_parts.effective(config, surface)
+    if main:
+        if surface != "tours":
+            return {}
+        return {  # FB-31 P4 R6: туры — разбивка по странам
+            "groupview": {
+                "value": parts.grouping or listing_parts.GROUPED,
+                "choices": TOURS_GROUPING_CHOICES,
+                "title": str(_("Abschnitte")),
+            }
+        }
     key = item.get("key")
     if key == listing_parts.HEAD_KEY:
         label, choices = PROMO_PART_CHOICES[("promos", "page_head")]

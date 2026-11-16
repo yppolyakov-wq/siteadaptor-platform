@@ -223,6 +223,17 @@ _DETAIL_LAYOUTS = frozenset(
 
 #: Listing sorts whose values come from the listing's facet provider (STU-15c).
 _LISTING_SORTS = {"services_sort": "service", "stays_sort": "stay", "events_sort": "event"}
+#: FB-31 P4 R6: порядок туров, блога, отзывов ("" — как раньше; значения —
+#: `siteconfig.PAGE_SORTS`)
+PAGE_SORT_OPTIONS = {
+    "tours_sort": (
+        ("", _("Eigene Reihenfolge")),
+        ("next", _("Nächster Termin zuerst")),
+        ("name", _("Nach Name")),
+    ),
+    "blog_sort": (("", _("Neueste zuerst")), ("oldest", _("Älteste zuerst"))),
+    "reviews_sort": (("", _("Neueste zuerst")), ("best", _("Beste Bewertung zuerst"))),
+}
 
 PROMO_GROUPING_OPTIONS = (("", _("Nach Gruppen")), ("time", _("Nach Zeit")))
 
@@ -306,6 +317,8 @@ def choices(setting: studio_pages.Setting, gate: dict | None = None) -> tuple[Ch
         return tuple(Choice(k, label) for k, label in _layout_presets(code))
     if code == "catalog_sort":
         return tuple(Choice(k, label) for k, label in SORT_OPTIONS)
+    if code in PAGE_SORT_OPTIONS:
+        return tuple(Choice(k, label) for k, label in PAGE_SORT_OPTIONS[code])
     if code in _LISTING_SORTS:
         from apps.core.facets import provider_for
 
@@ -845,6 +858,9 @@ CABINET_OWNED: frozenset[str] = frozenset(
         "services_sort",
         "stays_sort",
         "events_sort",
+        "tours_sort",  # FB-31 P4 R6
+        "blog_sort",
+        "reviews_sort",
         "text_width",
     }
 )
