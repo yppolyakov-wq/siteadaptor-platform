@@ -17,11 +17,26 @@ from apps.core import detail_sections
 
 #: хост блоков детали → модуль реестра разделов (R3a: события и туры — цикл разделов;
 #: услуга, товар, номер — следующими срезами)
-SECTION_HOSTS = {"event_detail": "events", "service_detail": "booking"}
+SECTION_HOSTS = {
+    "event_detail": "events",
+    "service_detail": "booking",
+    # товар и номер: разделы в двух полосах страницы — порядок постоянный (решение владельца)
+    "product_detail": "catalog",
+    "stay_detail": "stays",
+}
+#: разделы первого экрана (рядом с покупкой): скрыть можно, блоки рядом с ними — перед телом
+FIRST_SCREEN = {
+    "product_detail": ("description", "info"),
+    "stay_detail": ("description", "amenities"),
+}
+#: хосты с постоянным порядком разделов: строки разделов только скрываются
+FIXED_ORDER = frozenset(FIRST_SCREEN)
+#: раздел тела, после которого стоят «средние» блоки (дальше — широкая полоса «Ähnliche»)
+BODY_LAST = {"product_detail": "reviews", "stay_detail": "reviews"}
 KAUF_KEY = "kauf"
 KAUF_REF = "__kauf"  # строка схемы «Buchung» (не хранится)
 #: где страница рисует покупку: у услуги — в первом экране, над разделами; у события — после
-KAUF_FIRST = frozenset({"service_detail"})
+KAUF_FIRST = frozenset({"service_detail", "product_detail", "stay_detail"})
 
 
 def module_of(host: str) -> str:
@@ -110,8 +125,15 @@ def edit_rows(config, host: str, rows) -> list[dict]:
     a = anchors(rows, host, full_order(config, module))
     by_id = {r["id"]: r for r in rows if r.get("id")}
     hidden = siteconfig.detail_section_hidden(config, module)
-    seq = [by_id[i] for i in a["lead"] if i in by_id]
+    seq = []
+    first = FIRST_SCREEN.get(host, ())
+    for key in first:  # первый экран — над блоками «до отзывов» (так рисует страница)
+        seq.append({"key": key, "enabled": key not in hidden})
+        seq += [by_id[i] for i in a["after"].get(key, []) if i in by_id]
+    seq += [by_id[i] for i in a["lead"] if i in by_id]
     for key in full_order(config, module):
+        if key in first:
+            continue
         seq.append({"key": key, "enabled": key not in hidden})
         seq += [by_id[i] for i in a["after"].get(key, []) if i in by_id]
     seq += [by_id[i] for i in a["tail"] if i in by_id]
@@ -142,3 +164,16 @@ def lift(config: dict, host: str, items: list[dict]) -> list[dict]:
         detail["hidden"] = hidden
         config[cfg_key] = detail
     return [{"key": r["key"]} if r.get("key") in keys and not r.get("id") else r for r in items]
+
+
+def fixed_parts(rows, host: str) -> dict:
+    """FB-31 P5: свои блоки товара/номера по местам постоянной страницы — {"lead": part перед
+    телом (до отзывов), "mid": part после отзывов (до «Ähnliche»)}; пусто — прежняя разметка."""
+    a = anchors(rows, host, list(section_keys(host)))
+    if not a["placed"]:
+        return {"lead": "", "mid": ""}
+    lead = list(a["lead"])
+    for key in FIRST_SCREEN.get(host, ()):
+        lead += a["after"].get(key, [])
+    mid = a["after"].get(BODY_LAST.get(host, ""), [])
+    return {"lead": ids_part(lead) if lead else "", "mid": ids_part(mid) if mid else ""}

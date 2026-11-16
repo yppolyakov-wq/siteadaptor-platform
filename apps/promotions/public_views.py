@@ -435,6 +435,20 @@ def storefront_home(request):
 #: Сколько акций должно быть в группе, чтобы она получила СВОЮ секцию с
 #: заголовком. Сетка страницы — 3 колонки, поэтому группа из одной карточки
 #: оставляет две трети строки пустыми (фидбэк владельца 2026-08-07).
+def _detail_parts_ctx(cfg, host: str) -> dict:
+    """FB-31 P5: места своих блоков постоянной детали (товар, номер) и `part` хвоста."""
+    from apps.core import detail_parts
+    from apps.tenants import siteconfig
+
+    rows = (siteconfig.normalize(cfg).get("page_blocks") or {}).get(host) or []
+    return {
+        "detail_block_parts": detail_parts.fixed_parts(rows, host),
+        "detail_tail_part": detail_parts.tail_part(
+            rows, host, list(detail_parts.section_keys(host))
+        ),
+    }
+
+
 def _detail_style(cfg, promo, site_default: str) -> str:
     """FB-31 P3: вид строки «Angebot» детали акции — правило `promo_parts.detail_parts`."""
     from apps.core import object_structure
@@ -2481,6 +2495,8 @@ def product_detail(request, pk=None, pslug=None, cslug=None):
             # DL-16.6 (D2): "" — описание/Kennzeichnung в правой колонке, отзывы телом;
             # "tabs" — все три панелями тела (аккордеон <md, табы md+).
             "product_detail_layout": object_structure.effective_layout(_cfg, "product", product),
+            # FB-31 P5: свои блоки по местам страницы товара (пусто — прежняя разметка)
+            **_detail_parts_ctx(_cfg, "product_detail"),
             # STU-15b: та же ось, что у услуги/номера/события — каркас детали читает её
             # для раскладки «breit» (кадр во всю ширину). "tabs" у товара своя разметка.
             "detail_layout": object_structure.effective_layout(_cfg, "product", product),

@@ -194,8 +194,11 @@
   {% endif %}
 </div>
 {% include "storefront/_detail_tabs_script.html" %}
+{% if detail_block_parts.lead %}{% page_blocks "product_detail" part=detail_block_parts.lead %}{% endif %}{% if detail_block_parts.mid %}{% page_blocks "product_detail" part=detail_block_parts.mid %}{% endif %}
 {% else %}
+{% if detail_block_parts.lead %}{% page_blocks "product_detail" part=detail_block_parts.lead %}{% endif %}
 {% if 'reviews' not in product_detail_hidden %}{% include "storefront/_product_reviews.html" %}{% endif %}
+{% if detail_block_parts.mid %}{% page_blocks "product_detail" part=detail_block_parts.mid %}{% endif %}
 {% endif %}
 {% endblock %}
 
@@ -266,7 +269,7 @@
 {% place_banners "product" product %}
 {% comment %}R3: свои блоки объекта над общими — если так выбрано на его вкладке.{% endcomment %}
 {% object_blocks "product" product "before" %}
-{% page_blocks "product_detail" %}
+{% page_blocks "product_detail" part=detail_tail_part|default:"after" %}
 {% comment %}FB-29.4b: свои блоки этого объекта — только на его странице.{% endcomment %}
 {% object_blocks "product" product %}
 {% endblock %}

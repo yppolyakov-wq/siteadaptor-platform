@@ -2296,6 +2296,8 @@ def mutate(
     anchor = not item.get("id") and item.get("key") in detail_parts.section_keys(rows_host)
     if anchor and op not in ("up", "down", "move", "toggle"):
         raise SchemaError("fixed")
+    if anchor and rows_host in detail_parts.FIXED_ORDER and op != "toggle":
+        raise SchemaError("fixed")  # товар/номер: порядок разделов постоянный — только скрыть
     pinned = (
         not item.get("id")
         and not main

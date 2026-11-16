@@ -73,7 +73,9 @@
    Замок паритета — test_stay_detail_section_order_parity.{% endcomment %}
 {# UC2-2: обёртка data-sf-section — клик на канве открывает инспектор секций страницы. #}
 <div data-sf-section="stay_detail">
+{% if detail_block_parts.lead %}{% page_blocks "stay_detail" part=detail_block_parts.lead %}{% endif %}
 {% if detail_layout == "tabs" %}{% include "storefront/_detail_sections.html" with sections=body_sections layout=detail_layout %}{% else %}{% for s in body_sections %}{% if s.visible and s.key not in under_gallery_keys %}{% include s.template %}{% endif %}{% endfor %}{% endif %}
+{% if detail_block_parts.mid %}{% page_blocks "stay_detail" part=detail_block_parts.mid %}{% endif %}
 </div>
 {% endblock %}
 
@@ -90,6 +92,6 @@
 {% place_banners "stay" unit %}
 {% comment %}FB-29 R5: свои блоки этого объекта — над общими или под ними.{% endcomment %}
 {% object_blocks "stay" unit "before" %}
-{% page_blocks "stay_detail" %}
+{% page_blocks "stay_detail" part=detail_tail_part|default:"after" %}
 {% object_blocks "stay" unit %}
 {% endblock %}
