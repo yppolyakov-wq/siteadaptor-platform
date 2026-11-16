@@ -378,7 +378,7 @@ def commit(request, tenant, code: str, *, force: bool = False) -> bool:
     ):
         raise DraftConflict(code)
     site_schema.store_items(config, home, host, copy.deepcopy(draft["items"]))
-    _commit_object(config, host, draft["items"])
+    _commit_object(config, host, draft["items"], getattr(request, "user", None))
     if host == "info" and "contact" in draft:
         if draft["contact"]:
             config.pop("about_contact", None)
@@ -396,15 +396,24 @@ def commit(request, tenant, code: str, *, force: bool = False) -> bool:
     return True
 
 
-def _commit_object(config: dict, host: str, items: list[dict]) -> None:
-    """R8: разделы схемы объекта — в его `page_override` (в транзакции `commit`, после
-    блокировки строки бизнеса — тот же порядок блокировок везде)."""
-    from apps.core import detail_parts, object_structure
+#: R8 (ревью безопасности): разделы страницы объекта — то же право, что у формы объекта
+OBJECT_EDIT_VIEWS = {
+    "product": "catalog:product-edit",
+    "service": "booking:service-edit",
+    "stay": "stays:unit-edit",
+    "event": "events:edit",
+    "tour": "events:tour-edit",
+}
 
-    if not detail_parts.object_kind(host):
-        return
-    _rows, state = detail_parts.object_lift(config, host, copy.deepcopy(items))
-    if state is None:
+
+def _commit_object(config: dict, host: str, items: list[dict], user=None) -> None:
+    """R8: разделы схемы объекта — в его `page_override` (в транзакции `commit`, после
+    блокировки строки бизнеса — тот же порядок блокировок везде). Состояние считается по
+    объекту, заблокированному здесь же (ревью: вкладка карточки могла успеть записать)."""
+    from apps.core import detail_parts, object_structure, view_perms
+
+    kind = detail_parts.object_kind(host)
+    if not kind:
         return
     obj = detail_parts.object_for_host(host)
     if obj is None:
@@ -412,11 +421,21 @@ def _commit_object(config: dict, host: str, items: list[dict]) -> None:
     locked = type(obj).objects.select_for_update().filter(pk=obj.pk).first()
     if locked is None:
         return
+    _rows, state = detail_parts.object_lift(config, host, copy.deepcopy(items), obj=locked)
+    if state is None:
+        return
     module = detail_parts.module_of(detail_parts.shared_host(host))
     value = object_structure.schema_value(locked, module, state)
-    if value != object_structure._raw(locked):
-        locked.page_override = value
-        locked.save(update_fields=["page_override"])
+    if value == object_structure._raw(locked):
+        return
+    if user is not None and not view_perms.allowed(user, OBJECT_EDIT_VIEWS[kind], "POST"):
+        # сотрудник с правом на сайт, но без права на этот объект: разделы не меняет
+        raise site_schema.SchemaError("rights")
+    locked.page_override = value
+    fields = ["page_override"]
+    if any(f.name == "updated_at" for f in locked._meta.concrete_fields):
+        fields.append("updated_at")  # как у формы объекта (sitemap, портал)
+    locked.save(update_fields=fields)
 
 
 def _room_after_purge(tenant, host) -> bool:

@@ -197,6 +197,14 @@ def site_schema_view(request):
                         "Bitte zuerst bei einer anderen Kategorie die eigenen Blöcke entfernen."
                     ),
                 )
+            elif exc.args and exc.args[0] == "rights":
+                messages.error(
+                    request,
+                    _(
+                        "Abschnitte dieser Seite darf nur ändern, wer auch das Angebot "
+                        "selbst bearbeiten darf."
+                    ),
+                )
             elif exc.args and exc.args[0] == "objects":
                 messages.error(
                     request,

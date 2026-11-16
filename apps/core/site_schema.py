@@ -2251,6 +2251,29 @@ def load_items(config: dict, home: bool, host: str) -> list[dict]:
     return copy.deepcopy(siteconfig.main_list_sequence(host, siteconfig.page_rows(config, host)))
 
 
+def _mark_sections(config: dict, kind: str, obj, out: list[dict], idx: list[int]) -> None:
+    """R8 (макет): у строк разделов схемы объекта — чем он отличается от всех страниц."""
+    from apps.core import detail_parts, object_structure
+    from apps.tenants import siteconfig
+
+    module = detail_parts.module_of(detail_parts.OBJECT_SHARED[kind])
+    own = object_structure.clean(object_structure._state(config, obj), module)
+    shared_hidden = siteconfig.detail_section_hidden(config, module)
+    for i in idx:
+        key = out[i]["key"]
+        if key in own.get("hidden", []):
+            out[i]["summary"] = str(_("nur hier ausgeblendet"))
+        elif key in own.get("shown", []):
+            out[i]["summary"] = str(_("hier immer sichtbar"))
+        else:
+            out[i]["summary"] = str(
+                _("Standard: ausgeblendet") if key in shared_hidden else _("Standard: sichtbar")
+            )
+    if own.get("order") and idx:
+        first = out[idx[0]]
+        first["summary"] = f"{first['summary']} · {_('Eigene Reihenfolge der Abschnitte')}"
+
+
 def _with_shared_rows(config: dict, host: str, out: list[dict]) -> list[dict]:
     """R8 (решение владельца): в схеме одного объекта общие блоки страницы видны пунктиром
     на своих местах (у раздела — перед своими), правятся на общей схеме."""
@@ -2266,6 +2289,9 @@ def _with_shared_rows(config: dict, host: str, out: list[dict]) -> list[dict]:
     a = detail_parts.anchors(rows, shared, detail_parts.object_order(config, kind, obj))
     by_id = {r["id"]: r for r in rows if isinstance(r, dict) and r.get("id")}
     if not by_id:
+        keys = set(detail_parts.section_keys(host))
+        idx = [i for i, b in enumerate(out) if b["key"] in keys and not b["cblock"]]
+        _mark_sections(config, kind, obj, out, idx)
         return out
     if not a["placed"]:
         a = {"lead": [], "after": {}, "tail": list(by_id)}
@@ -2284,15 +2310,23 @@ def _with_shared_rows(config: dict, host: str, out: list[dict]) -> list[dict]:
                 "fixed": True,
                 "pinned": True,
                 "shared": True,
+                # ширина — как на витрине (иначе ½-блок в схеме во всю ширину)
+                "width": by_id[i].get("width") or "",
+                "newline": bool(by_id[i].get("newline")),
+                "width_label": WIDTH_LABELS.get(by_id[i].get("width") or "", ""),
+                "flex": WIDTH_FLEX.get(by_id[i].get("width") or "", 12),
             }
             for i in ids
-            if i in by_id
+            # скрытый на общей схеме блок на витрине не виден — и здесь его нет (ревью:
+            # иначе он попадал в «Ausgeblendet» ссылкой на несуществующую строку)
+            if i in by_id and by_id[i].get("enabled", True) is not False
         ]
 
     keys = set(detail_parts.section_keys(host))
     sections = [i for i, b in enumerate(out) if b["key"] in keys and not b["cblock"]]
     if not sections:
         return out
+    _mark_sections(config, kind, obj, out, sections)
     merged = list(out[: sections[0]]) + rows_for(a["lead"])
     for n, i in enumerate(sections):
         end = sections[n + 1] if n + 1 < len(sections) else len(out)

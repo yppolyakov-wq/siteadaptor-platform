@@ -38627,3 +38627,7 @@ msgstr "Wie alle Seiten dieser Art."
 #: templates/tenant/_object_structure.html
 msgid "Im Seitenaufbau bearbeiten"
 msgstr "Im Seitenaufbau bearbeiten"
+
+#: apps/core/site_schema_views.py
+msgid "Abschnitte dieser Seite darf nur ändern, wer auch das Angebot selbst bearbeiten darf."
+msgstr "Abschnitte dieser Seite darf nur ändern, wer auch das Angebot selbst bearbeiten darf."

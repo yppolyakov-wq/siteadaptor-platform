@@ -38540,3 +38540,7 @@ msgstr "Like all pages of this kind."
 #: templates/tenant/_object_structure.html
 msgid "Im Seitenaufbau bearbeiten"
 msgstr "Edit in page structure"
+
+#: apps/core/site_schema_views.py
+msgid "Abschnitte dieser Seite darf nur ändern, wer auch das Angebot selbst bearbeiten darf."
+msgstr "Only people who may edit the offer itself can change the sections of this page."

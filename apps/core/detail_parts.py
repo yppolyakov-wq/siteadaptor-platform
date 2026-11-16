@@ -236,14 +236,17 @@ def object_edit_rows(config, host: str, rows) -> list[dict]:
     return edit_rows(config, host, rows, order, hidden)
 
 
-def object_lift(config: dict, host: str, items: list[dict]) -> tuple[list[dict], dict | None]:
+def object_lift(
+    config: dict, host: str, items: list[dict], obj=None
+) -> tuple[list[dict], dict | None]:
     """Обратно из строк схемы объекта: (строки для `page_blocks[host]` — якоря и свои блоки,
     пусто, если своих блоков нет; состояние разделов {hidden, shown, order} для
     `page_override` объекта либо None — строк разделов нет, ничего не менять)."""
     from apps.core import object_structure
     from apps.tenants import siteconfig
 
-    obj = object_for_host(host)
+    if obj is None:  # ревью R8: `commit` передаёт объект, заблокированный в транзакции
+        obj = object_for_host(host)
     keys = set(section_keys(host))
     order = [r["key"] for r in items if r.get("key") in keys and not r.get("id")]
     if obj is None or not order:

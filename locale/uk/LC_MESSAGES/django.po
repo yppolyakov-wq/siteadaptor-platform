@@ -38866,3 +38866,7 @@ msgstr "Як усі сторінки цього виду."
 #: templates/tenant/_object_structure.html
 msgid "Im Seitenaufbau bearbeiten"
 msgstr "Змінити в «Seitenaufbau»"
+
+#: apps/core/site_schema_views.py
+msgid "Abschnitte dieser Seite darf nur ändern, wer auch das Angebot selbst bearbeiten darf."
+msgstr "Розділи цієї сторінки може змінювати лише той, кому можна редагувати саму пропозицію."

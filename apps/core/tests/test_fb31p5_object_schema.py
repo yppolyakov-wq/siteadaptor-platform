@@ -198,6 +198,14 @@ def test_review_tab_keeps_the_stored_order_untrimmed():
 # ── R8e: схема объекта в «Seitenaufbau» ──
 
 
+@pytest.fixture
+def can_edit(monkeypatch):
+    """Сотрудник с правом правки объектов (форма объекта — то же право)."""
+    from apps.core import view_perms
+
+    monkeypatch.setattr(view_perms, "allowed", lambda user, name, method: True)
+
+
 def _tenant(bt, **cfg):
     from apps.core.modules import default_disabled_for
     from apps.tenants.tests.factories import TenantFactory
@@ -211,7 +219,7 @@ def _code(kind, obj):
     return f"{kind}@{kind}:{obj.pk.hex}"
 
 
-def test_object_schema_shows_sections_and_saves_hidden_only_here():
+def test_object_schema_shows_sections_and_saves_hidden_only_here(can_edit):
     from apps.core.tests.test_fb27_r2_draft import Browser
 
     p = og._product()
@@ -240,7 +248,7 @@ def test_fixed_object_sections_do_not_move():
     assert not p.page_override.get("order")
 
 
-def test_event_object_order_is_saved_only_here():
+def test_event_object_order_is_saved_only_here(can_edit):
     from apps.core.tests.test_fb27_r2_draft import Browser
 
     ev = og._event()
@@ -325,3 +333,36 @@ def test_preview_of_the_object_draft_hides_the_section():
     assert "faq" in object_structure.effective_hidden(cfg, "events", ev)
     ev.refresh_from_db()
     assert not ev.page_override, "превью не пишет в объект"
+
+
+def test_object_schema_marks_what_differs_from_all_pages():
+    from apps.core.tests.test_fb27_r2_draft import Browser
+
+    ev = og._event()
+    ev.page_override = {"hidden": ["faq"], "order": ["idea", "for_whom"]}
+    ev.save(update_fields=["page_override"])
+    html = Browser(_tenant("events")).get(f"?seite={_code('event', ev)}")
+    assert "nur hier ausgeblendet" in html and "Eigene Reihenfolge der Abschnitte" in html
+    assert "Standard: sichtbar" in html
+
+
+def test_review_website_editor_without_catalog_rights_cannot_change_object_sections(monkeypatch):
+    # ревью безопасности R8: раньше разделы объекта правились только в форме объекта
+    # (право «Sortiment bearbeiten») — схема сайта не обходит это право
+    from apps.core import view_perms
+    from apps.core.tests.test_fb27_r2_draft import Browser
+
+    seen = []
+
+    def allowed(user, name, method):
+        seen.append(name)
+        return False
+
+    monkeypatch.setattr(view_perms, "allowed", allowed)
+    p = og._product()
+    b = Browser(_tenant("online_shop"))
+    b.post(seite=_code("product", p), op="toggle", ref="info")
+    _resp, msgs = b.post(seite=_code("product", p), op="save")
+    p.refresh_from_db()
+    assert p.page_override == {} and seen == ["catalog:product-edit"]
+    assert any("bearbeiten darf" in m for m in msgs)

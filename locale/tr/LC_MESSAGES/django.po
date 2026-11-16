@@ -38686,3 +38686,7 @@ msgstr "Bu türdeki tüm sayfalar gibi."
 #: templates/tenant/_object_structure.html
 msgid "Im Seitenaufbau bearbeiten"
 msgstr "Sayfa yapısında düzenle"
+
+#: apps/core/site_schema_views.py
+msgid "Abschnitte dieser Seite darf nur ändern, wer auch das Angebot selbst bearbeiten darf."
+msgstr "Bu sayfanın bölümlerini yalnızca teklifin kendisini düzenleyebilenler değiştirebilir."
