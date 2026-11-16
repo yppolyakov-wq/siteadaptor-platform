@@ -20,7 +20,7 @@
           {% if not ps.deviations and not ps.own_blocks %}<li>{% trans "Wie alle Seiten dieser Art." %}</li>{% endif %}
         </ul>
       </div>
-      {% if ps.blocks_url %}<a href="{{ ps.blocks_url }}" class="ui-btn ui-btn-secondary min-h-[44px]">{% trans "Im Seitenaufbau bearbeiten" %}</a>{% endif %}
+      {% if ps.blocks_url %}<a href="{{ ps.blocks_url }}" class="ui-btn ui-btn-secondary min-h-[44px]" data-ps-leave="{% trans 'Ungespeicherte Änderungen gehen verloren.' %}">{% trans "Im Seitenaufbau bearbeiten" %}</a>{% endif %}
     </div>
   </div>
   {% endif %}
@@ -54,3 +54,18 @@
   </div>
   {% endif %}
 </div>
+{% comment %}FB-31 P6 A5: переход в «Seitenaufbau» из формы объекта — предупреждение, если в форме есть несохранённые правки (без JS — обычная ссылка).{% endcomment %}
+<script>
+(function () {
+  var link = document.currentScript && document.currentScript.previousElementSibling
+    ? document.currentScript.previousElementSibling.querySelector("[data-ps-leave]") : null;
+  var form = link && link.closest("form");
+  if (!form) return;
+  var dirty = false;
+  form.addEventListener("input", function () { dirty = true; });
+  form.addEventListener("change", function () { dirty = true; });
+  link.addEventListener("click", function (e) {
+    if (dirty && !window.confirm(link.getAttribute("data-ps-leave"))) e.preventDefault();
+  });
+})();
+</script>

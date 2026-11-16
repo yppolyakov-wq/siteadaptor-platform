@@ -56,6 +56,16 @@ def _state(config, obj) -> dict:
     return _raw(obj)
 
 
+def _fresh(obj) -> dict:
+    """Сохранённые отличия объекта прямо из базы (новый объект — как в памяти)."""
+    pk = getattr(obj, "pk", None)
+    model = type(obj)
+    if pk is None or not hasattr(model, "objects"):
+        return _raw(obj)
+    value = model.objects.filter(pk=pk).values_list("page_override", flat=True).first()
+    return value if isinstance(value, dict) else _raw(obj)
+
+
 def schema_value(obj, module: str, state: dict) -> dict:
     """R8: отличия объекта после правки схемы — разделы (hidden/shown/order) из схемы,
     остальное (шаблон страницы, прежняя галочка) — как было. Единственный писатель —
@@ -183,12 +193,15 @@ def apply_post(obj, kind: str, post) -> list[str]:
         return []
     if value or not post.get("ps_reset"):
         own_keys = ("layout", "blocks_first") if not module else ("layout",)
-        keep = {k: v for k, v in _raw(obj).items() if k not in own_keys}
+        # P6 A5 (ревью базы R8e): разделы и порядок — по свежему чтению, а не по объекту
+        # начала запроса: схема «Seitenaufbau» могла сохранить их, пока открыта форма
+        current = _fresh(obj)
+        keep = {k: v for k, v in current.items() if k not in own_keys}
         if kind not in LAYOUT_KINDS:
             value.pop("layout", None)  # у акции шаблона страницы нет — присланное не храним
         value = clean({**keep, **value}, module)
         # (ревью R8: свой порядок — как хранится, без усечения)
-        raw_order = _raw(obj).get("order")
+        raw_order = current.get("order")
         if module in ORDERABLE_MODULES and isinstance(raw_order, list) and raw_order:
             value["order"] = raw_order
     changed = []

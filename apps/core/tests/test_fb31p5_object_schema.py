@@ -87,6 +87,7 @@ def test_own_order_only_where_order_moves():
 def test_tab_save_keeps_own_order_and_reset_clears_it():
     ev = og._event()
     ev.page_override = {"order": ["faq", "idea"]}
+    ev.save(update_fields=["page_override"])  # P6 A5: вкладка читает сохранённое
     object_structure.apply_post(ev, "event", {"page_override_present": "1", "ps_layout": "tabs"})
     assert ev.page_override == {"layout": "tabs", "order": ["faq", "idea"]}
     object_structure.apply_post(ev, "event", {"page_override_present": "1", "ps_reset": "1"})
@@ -191,6 +192,7 @@ def test_review_raw_anchors_that_normalize_drops_still_show_the_block_once(kind)
 def test_review_tab_keeps_the_stored_order_untrimmed():
     ev = og._event()
     ev.page_override = {"order": ["faq", "gone_section", "idea"]}
+    ev.save(update_fields=["page_override"])
     object_structure.apply_post(ev, "event", {"page_override_present": "1", "ps_layout": ""})
     assert ev.page_override["order"] == ["faq", "gone_section", "idea"]
 

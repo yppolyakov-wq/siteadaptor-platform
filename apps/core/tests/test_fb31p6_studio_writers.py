@@ -106,3 +106,25 @@ def test_review_assistant_apply_refuses_a_replaced_setting_built_before_p6(monke
     row = {"spec": None, "item": {"target": {"pk": "catalog_layout"}}, "index": 0}
     with pytest.raises(assistant_actions.ApplyError):
         assistant_actions._change_page(row, TenantFactory.build())
+
+
+# ── A5: форма объекта и схема ──
+
+
+def test_tab_save_keeps_sections_saved_by_the_schema_meanwhile():
+    from apps.core import object_structure
+    from apps.core.tests import test_fb31p5_object_golden as og
+
+    ev = og._event()
+    stale = type(ev).objects.get(pk=ev.pk)  # форма открыта до правки схемы
+    ev.page_override = {"hidden": ["faq"], "order": ["faq", "idea"]}
+    ev.save(update_fields=["page_override"])  # «Speichern» в «Seitenaufbau»
+    object_structure.apply_post(stale, "event", {"page_override_present": "1", "ps_layout": "tabs"})
+    assert stale.page_override == {"hidden": ["faq"], "layout": "tabs", "order": ["faq", "idea"]}
+
+
+def test_leave_link_warns_about_unsaved_form_changes():
+    from pathlib import Path
+
+    src = Path("templates/tenant/_object_structure.html").read_text()
+    assert "data-ps-leave=" in src and "window.confirm" in src
