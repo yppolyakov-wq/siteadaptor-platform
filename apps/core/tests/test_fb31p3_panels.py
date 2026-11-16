@@ -141,3 +141,67 @@ def test_review_prospekt_view_does_not_need_groups():
     b.post(seite="promos", op="mainview", ref="main", value="prospekt")
     b.post(seite="promos", op="save")
     assert {"key": "main", "style": "prospekt"} in _saved(tenant)
+
+
+# ── R6b: выбор страниц групп акций ──
+
+
+def test_selector_has_all_groups_and_each_live_group():
+    _groups()
+    tenant = _shop()
+    cfg = siteconfig.normalize(tenant.site_config)
+    labels = {lab: [r.label for r in rows] for lab, rows in site_schema.type_groups(tenant, cfg)}
+    assert "Alle Angebotsgruppen" in labels["Aktionen"]
+    assert sorted(labels["Angebotsgruppen"]) == ["Räumung", "Wochenangebote"]
+
+
+def test_ghost_group_host_is_refused():
+    _groups()
+    real = siteconfig.promo_group_host("Wochenangebote")
+    assert site_schema.host_for(f"promo_group@{real}") == real
+    ghost = siteconfig.promo_group_host("Gibt es nicht")
+    assert site_schema.host_for(f"promo_group@{ghost}") == ""
+
+
+def test_all_groups_first_save_copies_the_overview_blocks_and_sets_views():
+    _groups()
+    text = {"key": "text", "id": "t-o", "data": {"title": "Aus Aktionen", "body": "x"}}
+    tenant = _shop(
+        page_blocks={"promos": [{"key": "groups", "style": "tabs"}, text, {"key": "main"}]}
+    )
+    b = Browser(tenant)
+    assert "t-o" in b.get("?seite=promo_group"), "до сохранения — блоки обзора"
+    b.post(seite="promo_group", op="catview", ref="page_head", value="countdown")
+    b.post(seite="promo_group", op="mainview", ref="main", value="vergleich")
+    b.post(seite="promo_group", op="save")
+    rows = _saved(tenant, "promo_group")
+    assert [r.get("id") for r in rows if r.get("id")] == ["t-o"], "копия своих блоков"
+    assert {"key": "page_head", "enabled": True, "style": "countdown"} in rows
+    assert {"key": "main", "style": "vergleich"} in rows
+    assert not any(r.get("key") == "groups" for r in rows), "строки обзора группе чужие"
+
+
+def test_own_group_row_reads_the_group_view():
+    _groups()
+    host = siteconfig.promo_group_host("Wochenangebote")
+    cfg = siteconfig.normalize({"promo_groups": {"Wochenangebote": {"style": "prospekt"}}})
+    rows = site_schema.blocks_for(cfg, f"promo_group@{host}", host=host)
+    head = next(r for r in rows if r["key"] == "page_head")
+    assert head["catview"]["value"] == "prospekt"
+
+
+def test_group_settings_live_on_their_own_rows():
+    tenant = _shop()
+    assert "promo_group_style" not in site_schema.setting_codes(tenant, "promo_group")
+    assert not site_schema.SETTINGS_FOLLOWERS
+
+
+def test_own_group_page_opens_and_saves_its_own_view():
+    _groups()
+    host = siteconfig.promo_group_host("Räumung")
+    tenant = _shop()
+    b = Browser(tenant)
+    assert 'data-schema-block="page_head"' in b.get(f"?seite=promo_group@{host}")
+    b.post(seite=f"promo_group@{host}", op="catview", ref="page_head", value="prospekt")
+    b.post(seite=f"promo_group@{host}", op="save")
+    assert {"key": "page_head", "enabled": True, "style": "prospekt"} in _saved(tenant, host)

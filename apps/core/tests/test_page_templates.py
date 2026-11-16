@@ -140,7 +140,8 @@ def test_old_addresses_redirect_to_the_row_that_owns_the_type(tenant):
     assert resp["Location"] == base + "promos&block=main#schema-panel"
     resp = page_templates.page_templates_sortiment(_req(tenant, data={"frage": "Brot 3 €"}))
     assert resp["Location"].startswith("/dashboard/anlegen/?frage=")
-    assert page_templates.cabinet_url("promo_group") == base + "promos&block=main#schema-panel"
+    # FB-31 P3 R6 (осознанно): у групп акций своя строка «Alle Angebotsgruppen»
+    assert page_templates.cabinet_url("promo_group") == base + "promo_group&block=main#schema-panel"
     assert page_templates.cabinet_url("product") == base + "product&block=__page#schema-panel"
     assert page_templates.cabinet_url("legal") == base + "text&block=__page#schema-panel"
     assert page_templates.cabinet_url("<x>") == "/dashboard/site/aufbau/"

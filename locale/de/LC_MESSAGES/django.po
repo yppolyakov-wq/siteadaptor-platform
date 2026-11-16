@@ -38525,3 +38525,27 @@ msgstr "Zwei große Karten mit Bedingungen."
 
 msgid "Nur mit Angebotsgruppen verfügbar."
 msgstr "Nur mit Angebotsgruppen verfügbar."
+
+msgid "Alle Angebotsgruppen"
+msgstr "Alle Angebotsgruppen"
+
+msgid "Banner · Kopf der Gruppe"
+msgstr "Banner · Kopf der Gruppe"
+
+msgid "Dunkles Band mit Zähler bis zum Ende."
+msgstr "Dunkles Band mit Zähler bis zum Ende."
+
+msgid "Farbiges Band mit Gültigkeit."
+msgstr "Farbiges Band mit Gültigkeit."
+
+msgid "Karten mit Restzeit."
+msgstr "Karten mit Restzeit."
+
+msgid "Name der Gruppe und Zahl der Aktionen."
+msgstr "Name der Gruppe und Zahl der Aktionen."
+
+msgid "Spalten nebeneinander, «Beliebt» markiert."
+msgstr "Spalten nebeneinander, «Beliebt» markiert."
+
+msgid "Vergleich"
+msgstr "Vergleich"

@@ -38777,3 +38777,27 @@ msgstr "Две крупные карточки с условиями."
 
 msgid "Nur mit Angebotsgruppen verfügbar."
 msgstr "Доступно только с группами акций."
+
+msgid "Alle Angebotsgruppen"
+msgstr "Все группы акций"
+
+msgid "Banner · Kopf der Gruppe"
+msgstr "Баннер · шапка группы"
+
+msgid "Dunkles Band mit Zähler bis zum Ende."
+msgstr "Тёмная лента с отсчётом до конца."
+
+msgid "Farbiges Band mit Gültigkeit."
+msgstr "Цветная лента со сроком действия."
+
+msgid "Karten mit Restzeit."
+msgstr "Карточки с оставшимся временем."
+
+msgid "Name der Gruppe und Zahl der Aktionen."
+msgstr "Название группы и число акций."
+
+msgid "Spalten nebeneinander, «Beliebt» markiert."
+msgstr "Колонки рядом, «Популярное» отмечено."
+
+msgid "Vergleich"
+msgstr "Сравнение"

@@ -38764,3 +38764,27 @@ msgstr "Дві великі картки з умовами."
 
 msgid "Nur mit Angebotsgruppen verfügbar."
 msgstr "Доступно лише з групами акцій."
+
+msgid "Alle Angebotsgruppen"
+msgstr "Усі групи акцій"
+
+msgid "Banner · Kopf der Gruppe"
+msgstr "Банер · шапка групи"
+
+msgid "Dunkles Band mit Zähler bis zum Ende."
+msgstr "Темна стрічка з відліком до кінця."
+
+msgid "Farbiges Band mit Gültigkeit."
+msgstr "Кольорова стрічка з терміном дії."
+
+msgid "Karten mit Restzeit."
+msgstr "Картки із залишком часу."
+
+msgid "Name der Gruppe und Zahl der Aktionen."
+msgstr "Назва групи й кількість акцій."
+
+msgid "Spalten nebeneinander, «Beliebt» markiert."
+msgstr "Колонки поруч, «Популярне» позначено."
+
+msgid "Vergleich"
+msgstr "Порівняння"

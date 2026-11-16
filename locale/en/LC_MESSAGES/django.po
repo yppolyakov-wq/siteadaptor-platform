@@ -38438,3 +38438,27 @@ msgstr "Two large cards with conditions."
 
 msgid "Nur mit Angebotsgruppen verfügbar."
 msgstr "Only available with offer groups."
+
+msgid "Alle Angebotsgruppen"
+msgstr "All offer groups"
+
+msgid "Banner · Kopf der Gruppe"
+msgstr "Banner · Group header"
+
+msgid "Dunkles Band mit Zähler bis zum Ende."
+msgstr "Dark band with a countdown to the end."
+
+msgid "Farbiges Band mit Gültigkeit."
+msgstr "Coloured band with validity."
+
+msgid "Karten mit Restzeit."
+msgstr "Cards with time remaining."
+
+msgid "Name der Gruppe und Zahl der Aktionen."
+msgstr "Group name and number of offers."
+
+msgid "Spalten nebeneinander, «Beliebt» markiert."
+msgstr "Columns side by side, «Popular» highlighted."
+
+msgid "Vergleich"
+msgstr "Comparison"

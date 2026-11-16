@@ -86,7 +86,7 @@ def _preview_url(pt) -> str:
 #: FB-27 R4: страницы, у которых блоки есть, а `block_host` в реестре типов не объявлен
 #: (обзор акций: хост «promos» выводится шаблоном и знает основной список). Здесь, а не
 #: в `studio_pages`: объявление там изменило бы и панель Студии.
-EXTRA_HOSTS = {"promos": "promos"}
+EXTRA_HOSTS = {"promos": "promos", "promo_group": "promo_group"}  # R6: «Alle Angebotsgruppen»
 
 
 def _host(pt) -> str:
@@ -287,8 +287,8 @@ def page_rows(config: dict) -> list[PageRow]:
 
 def _page_type(code: str):
     base = code.split("@", 1)[0]
-    # подстраницы есть у типа «Seite» и у категорий (FB-27 R7: своя схема категории)
-    if "@" in code and base not in (TEXT, CATEGORY, *OBJECT_KINDS):
+    # подстраницы есть у типа «Seite», у категорий (FB-27 R7) и у групп акций (FB-31 P3 R6)
+    if "@" in code and base not in (TEXT, CATEGORY, PROMO_GROUP, *OBJECT_KINDS):
         return None
     if "@" in code:
         base = OBJECT_PAGE_TYPES.get(base, base)  # тур — строка типа «Veranstaltungsseite»
@@ -468,6 +468,54 @@ def category_pages(config: dict) -> list[SubPage]:
     return sorted(own, key=key) + sorted(rest, key=key)
 
 
+#: FB-31 P3 R6: строки групп акций в выборе страниц (как категории)
+PROMO_GROUP = "promo_group"
+PROMO_GROUP_ROWS_MAX = 40
+
+
+def live_promo_groups() -> list[tuple[str, str]]:
+    """(ключ, подпись) групп, у которых есть действующие акции: свои рубрики и встроенные
+    типы (правило STU-9 — не обещать пустую страницу). Один-два запроса, до 40 строк."""
+    from apps.promotions import promo_types
+    from apps.promotions.models import Promotion
+
+    try:
+        base = Promotion.objects.filter(status="active")
+        own = sorted({g for g in base.values_list("group", flat=True) if g})
+        builtin = promo_types.live_builtin_keys(base)
+    except DatabaseError:
+        logger.warning("site_schema: promo groups lookup failed", exc_info=True)
+        return []
+    rows = [(g, g) for g in own] + [(k, str(promo_types.builtin_label(k))) for k in builtin]
+    return rows[:PROMO_GROUP_ROWS_MAX]
+
+
+def promo_group_pages(config: dict) -> list[SubPage]:
+    """Группы акций, у которых может быть своя схема (сначала с ней, затем по названию)."""
+    from urllib.parse import urlencode
+
+    from apps.tenants import siteconfig
+
+    blocks = (config or {}).get("page_blocks") or {}
+    own, rest = [], []
+    for key, label in live_promo_groups():
+        host = siteconfig.promo_group_host(key)
+        preview = f"{reverse('storefront-aktionen')}?{urlencode({'gruppe': key})}"
+        page = SubPage(f"{PROMO_GROUP}@{host}", label, host, preview)
+        (own if host in blocks else rest).append(page)
+    key = lambda p: p.label.lower()  # noqa: E731
+    return sorted(own, key=key) + sorted(rest, key=key)
+
+
+def promo_group_key(host: str) -> str:
+    """Ключ живой группы акций по её хосту ("" — такой группы нет)."""
+    from apps.tenants import siteconfig
+
+    if not siteconfig.is_promo_group_host(host):
+        return ""
+    return next((k for k, _l in live_promo_groups() if siteconfig.promo_group_host(k) == host), "")
+
+
 def url_for_path(tenant, path: str) -> str:
     """FB-27 R8c: адрес «Seitenaufbau» для страницы витрины `path` — ссылка «Aufbau ändern»
     из Студии открывает схему той страницы, что на холсте. Страница без своей схемы или
@@ -637,6 +685,9 @@ def host_for(code: str, known_slugs: set[str] | None = None) -> str:
         from apps.catalog.models import Category
 
         return host if Category.objects.filter(slug=slug).exists() else ""
+    if pt.code == PROMO_GROUP:
+        # FB-31 P3 R6: только живая группа акций — иначе POST плодил бы хосты-призраки
+        return host if promo_group_key(host) else ""
     if pt.code != TEXT:
         return ""
     if host == "versand":
@@ -1054,11 +1105,15 @@ _TYPE_GROUPS = (
     ("unterkunft", gettext_lazy("Unterkunft"), "stays", ("stays", "stay")),
     ("events", gettext_lazy("Veranstaltungen"), "events", ("events", "event", "tours")),
     ("anfragen", gettext_lazy("Anfragen"), "jobs", ("anfrage",)),
+    # FB-31 P3 R6: страницы акций своей группой — обзор, «Alle Angebotsgruppen», акция
+    ("aktionen", gettext_lazy("Aktionen"), "promotions", ("promos", PROMO_GROUP, "promo")),
 )
 _CONTENT_GROUP = gettext_lazy("Inhalte")
 #: FB-30.16 R5: общая страница категорий в выборе страниц
 _ALL_CATEGORIES = gettext_lazy("Alle Kategorien")
 _CATEGORY_GROUP = gettext_lazy("Kategorien")
+_ALL_PROMO_GROUPS = gettext_lazy("Alle Angebotsgruppen")
+_PROMO_GROUP_GROUP = gettext_lazy("Angebotsgruppen")
 
 
 def _category_type(tenant):
@@ -1308,13 +1363,8 @@ def type_groups(tenant, config: dict) -> list[tuple[str, list[PageRow]]]:
         groups.append((str(types["home"].label), [_row(config, types["home"])]))
     used = {"home"}
     for _key, label, _module, codes in ordered:
-        rows = [
-            _row(config, types[c], label=str(_ALL_CATEGORIES))
-            if c == CATEGORY
-            else _row(config, types[c])
-            for c in codes
-            if c in types
-        ]
+        labels = {CATEGORY: str(_ALL_CATEGORIES), PROMO_GROUP: str(_ALL_PROMO_GROUPS)}
+        rows = [_row(config, types[c], label=labels.get(c, "")) for c in codes if c in types]
         used.update(codes)
         if rows:
             groups.append((str(label), rows))
@@ -1327,6 +1377,17 @@ def type_groups(tenant, config: dict) -> list[tuple[str, list[PageRow]]]:
             ]
             if cats:
                 groups.append((str(_CATEGORY_GROUP), cats))
+        if PROMO_GROUP in codes and PROMO_GROUP in types:
+            # FB-31 P3 R6: каждая живая группа акций — своя строка (своя схема «nur diese»)
+            pt_group = types[PROMO_GROUP]
+            promo_rows = [
+                _row(
+                    config, pt_group, code=p.code, label=p.label, preview=p.preview_url, host=p.host
+                )
+                for p in promo_group_pages(config)
+            ]
+            if promo_rows:
+                groups.append((str(_PROMO_GROUP_GROUP), promo_rows))
     content = []
     for code, pt in types.items():
         if code in used:
@@ -1562,8 +1623,9 @@ def mark_view_availability(config: dict, host: str, view: dict) -> None:
     from apps.core import page_settings
 
     surface = "category" if host == "category" or host.startswith("catalog:") else "catalog"
-    if host == "promos" or host == "promo_detail" or host.startswith("promo:"):
-        surface = "promos" if host == "promos" else "promo"  # FB-31 P3
+    if host in ("promos", "promo_detail", "promo_group") or host.startswith("promo"):
+        surface = {"promos": "promos", "promo_detail": "promo"}.get(host, "")  # FB-31 P3
+        surface = surface or ("promo" if host.startswith("promo:") else "promo_group")
     off = page_settings.composition_gate(config).get(surface, set())
     reason = str(
         _("Nur mit Angebotsgruppen verfügbar.")  # FB-31 P3: у акций нет подкатегорий
@@ -1605,6 +1667,8 @@ def _code_of_host(host: str) -> str:
         return "promo"
     if host.startswith("promo:"):
         return f"promo@{host}"
+    if host == "promo_group" or host.startswith("promo_group:"):
+        return host if host == "promo_group" else f"promo_group@{host}"
     return "category" if host == "category" else "catalog"
 
 
@@ -1679,6 +1743,14 @@ PROMO_PART_CHOICES = {
             ),
         ),
     ),
+    ("promo_group", "page_head"): (
+        _("Banner · Kopf der Gruppe"),
+        (
+            ("standard", _("Titel"), _("Name der Gruppe und Zahl der Aktionen."), ""),
+            ("prospekt", _("Prospekt"), _("Farbiges Band mit Gültigkeit."), "prospekt"),
+            ("countdown", _("Countdown"), _("Dunkles Band mit Zähler bis zum Ende."), "countdown"),
+        ),
+    ),
     ("promo", "offer"): (
         _("Angebot"),
         (
@@ -1701,6 +1773,19 @@ PROMO_MAIN_CHOICES = (
     ),
     ("magazin", _("Magazin"), _("Zwei große Karten mit Bedingungen."), "magazin"),
     ("prospekt", _("Prospekt"), _("Dichtes Raster wie im Handzettel."), "prospekt"),
+)
+PROMO_GROUP_MAIN_CHOICES = (
+    ("raster", _("Raster"), _("Foto, Name, Preis – die übliche Ansicht."), ""),
+    (
+        "schaufenster",
+        _("Schaufenster"),
+        _("Erste Aktion groß, der Rest im Raster."),
+        "schaufenster",
+    ),
+    ("prospekt", _("Prospekt"), _("Dichtes Raster wie im Handzettel."), "prospekt"),
+    ("magazin", _("Magazin"), _("Zwei große Karten mit Bedingungen."), "magazin"),
+    ("countdown", _("Countdown"), _("Karten mit Restzeit."), "countdown"),
+    ("vergleich", _("Vergleich"), _("Spalten nebeneinander, «Beliebt» markiert."), "vergleich"),
 )
 PROMO_GROUPING_CHOICES = (
     ("auto", _("Nach Gruppen"), _("Aktionen in Abschnitten je Gruppe."), ""),
@@ -1727,8 +1812,25 @@ def _part_view_panel(config: dict, host: str, item: dict, main: bool) -> dict:
             sd.get("promo_detail_style", ""),
             host,
         )
+    elif surface.name == "promo_group":
+        from apps.promotions import promo_parts
+
+        if siteconfig.is_promo_group_host(host):
+            # своя группа — правило витрины (свой шаблон группы, общие строки под ней)
+            parts = promo_parts.group_parts(config, promo_group_key(host))
+        else:
+            parts = pp.effective(surface, config, host, code=_promo_code(config, host))
     else:
         parts = pp.effective(surface, config, host, code=_promo_code(config, host))
+    if main and surface.name == "promo_group":
+        return {
+            "label": f"★ {_('Aktionen')}",
+            "mainview": {
+                "value": parts.view or "raster",
+                "choices": PROMO_GROUP_MAIN_CHOICES,
+                "title": str(_("Wie Aktionen gezeigt werden")),
+            },
+        }
     if main:
         if surface.name != "promos":
             return {}
@@ -1766,6 +1868,8 @@ def _promo_code(config: dict, host: str) -> str:
     if host == "promos":
         return group_styles.promo_page_style((config or {}).get("promo_page_style"))
     sd = (config or {}).get("site_defaults") or {}
+    if host == "promo_group":
+        return group_styles.group_style("", None, sd.get("promo_group_style", ""))
     return group_styles.promotion_detail_style("", sd.get("promo_detail_style", ""))
 
 
@@ -2220,7 +2324,8 @@ def _own_row(items: list[dict], idx: int) -> None:
 
 #: FB-27 R4: чьи ещё настройки правятся на строке типа — у этих типов своей строки в
 #: «Seitenaufbau» нет (категория делит блоки с каталогом, страницы акций — с обзором).
-SETTINGS_FOLLOWERS = {"promos": ("promo_group", "promo")}  # FB-30.16 R5: категория — своя строка
+#: FB-31 P3 R6: у групп акций и страницы акции — свои строки в выборе (ведомых нет)
+SETTINGS_FOLLOWERS: dict[str, tuple[str, ...]] = {}
 
 
 #: FB-27 V3: строка-носитель настроек типа страницы там, где основного списка нет
@@ -2330,6 +2435,7 @@ REPLACED_BY_BLOCKS = {
     # страницы акции — вид строки «Angebot» (у страницы акции своя строка в выборе)
     "promos": frozenset({"promo_page_style", "promo_detail_style"}),
     "promo": frozenset({"promo_detail_style"}),
+    "promo_group": frozenset({"promo_group_style"}),  # R6: шапка и вид ★ группы
 }
 
 
