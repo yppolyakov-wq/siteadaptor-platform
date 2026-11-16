@@ -128,3 +128,16 @@ def test_leave_link_warns_about_unsaved_form_changes():
 
     src = Path("templates/tenant/_object_structure.html").read_text()
     assert "data-ps-leave=" in src and "window.confirm" in src
+
+
+# ── A6: сортировка туров по названию ──
+
+
+def test_tours_by_name_sort_umlauts_like_a_dictionary():
+    from types import SimpleNamespace
+
+    from apps.events.public_views import _sort_tours
+
+    tours = [SimpleNamespace(title_text=t) for t in ("Zugspitze", "Ötztal", "Ostsee", "Äolien")]
+    got = [t.title_text for t in _sort_tours(tours, "name")]
+    assert got == ["Äolien", "Ostsee", "Ötztal", "Zugspitze"]

@@ -469,6 +469,14 @@ c) история броней (email-связка с Customer) → d) наст�
    (Places API) · B5/E-8 SMS · LLM-ключ для CM-5/A2 · A5/C3/AB-план — уже в anti-bitrix-плане.
 
 ## Отложено / заметки на будущее
+- **FB-31.7 (решение владельца 2026-11-16):** перенос старых кодов шаблонов (`*_page_style`,
+  `page_styles`, `promo_*_style`, `Category/Promotion.page_style`) в строки-оси схемы —
+  команда `materialize_page_axes` (`--dry-run`, отчёт по схемам, шаг `deploy.sh`), прогон на
+  копии БД, затем снос чтения `legacy_code` и перевод демо-китов/`sitetemplates` на оси
+  (`docs/fb31-p6-cleanup-plan-2026-11-16.md`, срез B).
+- FB-31 P6 отложено (LOW): кэш объекта на запрос в схеме объекта (5–7 чтений одной строки на
+  показ); `apps/catalog/catalog_parts.py` → ядро `page_parts`; вкладка карточки объекта пишет
+  `page_override` без `select_for_update` (окно гонки — миллисекунды после свежего чтения).
 
 - **FB-29, остаток на 2026-11-14 (после R1–R4; сделанное — в `docs/build-log.md`).**
   *Ждёт владельца.* (1) Снять прежние копии слайдов (`site_config["heroes"]`, свои поля

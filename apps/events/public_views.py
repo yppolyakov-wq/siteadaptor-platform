@@ -812,11 +812,20 @@ def _page_sort(request, key: str) -> str:
     return value if value in siteconfig.PAGE_SORTS.get(key, ()) else ""
 
 
+def _name_key(text) -> str:
+    """FB-31 P6: «по названию» как в словаре — «Ötztal» рядом с «Ostsee», а не после «Z»
+    (умляут = базовая буква, ß = ss), без зависимости от локали сервера."""
+    import unicodedata
+
+    base = unicodedata.normalize("NFKD", (text or "").casefold().replace("ß", "ss"))
+    return "".join(c for c in base if not unicodedata.combining(c))
+
+
 def _sort_tours(tours: list, order: str) -> list:
     """Туры владельца по выбранному порядку — в Python по уже загруженным заездам (без
     лишних запросов). Тур без ближайшего заезда — в конце."""
     if order == "name":
-        return sorted(tours, key=lambda t: (t.title_text or "").lower())
+        return sorted(tours, key=lambda t: _name_key(t.title_text))
     if order == "next":
         from datetime import timedelta
 
