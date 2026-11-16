@@ -917,7 +917,7 @@ def blog_index(request):
 
     posts = BlogPost.objects.filter(is_published=True)
     if _page_sort(request, "blog_sort") == "oldest":  # FB-31 P4 R6
-        posts = posts.order_by("published_at")
+        posts = posts.order_by("published_at", "created_at")  # ревью: устойчиво
     # STU-18d: под-сущностей (рубрик) у блога нет — из реестра доступна только
     # обложка; без фото сайта она проваливается в обычную сетку (NEEDS_PHOTO).
     _cfg = page_settings.raw_config(request)

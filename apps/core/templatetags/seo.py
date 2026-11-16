@@ -106,7 +106,7 @@ def business_rating():
 
 
 @register.simple_tag
-def storefront_reviews(limit=6):
+def storefront_reviews(limit=6, order=""):
     """Опубликованные отзывы текущего тенанта (G8/#6) для блока на витрине.
 
     Читаем SHARED BusinessReview напрямую по connection.schema_name (public в
@@ -118,11 +118,12 @@ def storefront_reviews(limit=6):
 
         from apps.aggregator.models import BusinessReview
 
-        rows = list(
-            BusinessReview.objects.filter(
-                tenant_schema=connection.schema_name, status=BusinessReview.STATUS_PUBLISHED
-            ).select_related("author")[: max(1, min(int(limit), 24))]
-        )
+        qs = BusinessReview.objects.filter(
+            tenant_schema=connection.schema_name, status=BusinessReview.STATUS_PUBLISHED
+        ).select_related("author")
+        if order == "best":  # FB-31 P4 R6 (ревью): лучшие — в базе, ДО среза
+            qs = qs.order_by("-rating", "-created_at")
+        rows = list(qs[: max(1, min(int(limit), 24))])
     except Exception:  # noqa: BLE001 — блок отзывов не должен ломать витрину
         return []
     out = []
