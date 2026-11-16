@@ -80,7 +80,7 @@ ECC: обход всех 26 типов страниц (два `Explore`), раз
 | `home_sections` | строки схемы |
 | `*_page_style` (каталог, категория, 9 листингов, акции, группа, деталь акции) | набор блоков: kopfbild/prospekt/plakat → Banner; regale/tabs/navigator/kompakt/wegweiser → Kategorien; schaufenster/magazin/mosaik/preisliste/vergleich/countdown → ★ Darstellung; sets → позиция Sets |
 | `*_layout` листингов | ★ › Wie |
-| `tours_layout` | убрать (страница не читает) |
+| `tours_layout` | оставить: страница читает с LAY-3a-2 (сверено в P4, предпосылка была неверной) |
 | `*_sort` | ★ › Seite › сортировка (+ туры, блог, отзывы, акции) |
 | `catalog_filters` | ★ › Seite › фильтр |
 | `catalog_subcats` | Kategorien › Welche |

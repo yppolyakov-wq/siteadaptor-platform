@@ -79,3 +79,15 @@ def test_template_settings_are_replaced_and_writers_drop_views():
         {**cfg, "page_styles": {"stays": "regale"}}, "stays_page_style", "regale"
     )
     assert same["page_blocks"]["stay_rooms"], "тот же шаблон виды не снимает"
+
+
+def test_review_pinned_rows_do_not_count_as_blocks_and_labels_translate():
+    from django.utils import translation
+
+    tenant = _salon()
+    cfg = siteconfig.normalize(tenant.site_config)
+    rows = {r.code: r for _l, items in site_schema.type_groups(tenant, cfg) for r in items}
+    assert rows["services"].count == 0, "пустая страница — ноль своих блоков"
+    with translation.override("ru"):
+        got = site_schema.blocks_for(siteconfig.normalize({}), "services")
+        assert str(next(r for r in got if r["key"] == "groups")["label"]) != "Kollektionen"

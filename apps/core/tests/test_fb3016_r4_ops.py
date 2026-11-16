@@ -42,7 +42,13 @@ def test_catalog_shows_a_categories_row_right_above_the_list():
     ]
     rows = siteconfig.main_list_sequence("catalog", [{"key": "combos", "style": "above"}])
     assert [r["key"] for r in rows] == ["page_head", "combos", "categories", "main"]
-    assert [r["key"] for r in siteconfig.main_list_sequence("services", [])] == ["main"]
+    # FB-31 P4 (осознанно): у листингов свои закреплённые строки — шапка и навигация
+    assert [r["key"] for r in siteconfig.main_list_sequence("services", [])] == [
+        "page_head",
+        "groups",
+        "main",
+    ]
+    assert [r["key"] for r in siteconfig.main_list_sequence("finder", [])] == []
 
 
 def test_category_view_op_sets_the_view_and_pinned_row_does_not_move():

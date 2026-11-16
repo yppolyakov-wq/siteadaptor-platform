@@ -1349,7 +1349,12 @@ def _row(
         code=code,
         label=label or str(pt.label),
         host=host,
-        count=sum(1 for b in blocks if b["enabled"] and not b["main"] and not b["fixed"]),
+        # FB-31 (ревью P4): закреплённые строки осей (шапка, навигация) — не свои блоки
+        count=sum(
+            1
+            for b in blocks
+            if b["enabled"] and not b["main"] and not b["fixed"] and not b.get("pinned")
+        ),
         preview_url=preview or _preview_url(pt),
     )
 
@@ -1582,40 +1587,100 @@ def _catalog_code(config: dict, host: str) -> str:
 
 #: FB-30.16 R4: подписи видов блоков каталога (плитки панели; миниатюра — по коду шаблона).
 CATEGORY_VIEW_CHOICES = (
-    ("auto", _("Automatisch"), _("Fotokacheln oder Chips – wie bisher."), ""),
-    ("regale", _("Regale"), _("Jede Unterkategorie als Reihe mit Pfeilen."), "regale"),
-    ("tabs", _("Reiter"), _("Unterkategorien als Reiter über den Produkten."), "tabs"),
-    ("index", _("Index"), _("Verzeichnis in Spalten – für große Sortimente."), "kompakt"),
-    ("side", _("Seitenspalte"), _("Kategorien und Filter links, Produkte rechts."), "navigator"),
-    ("wegweiser", _("Wegweiser"), _("Abteilungen als Kacheln, dann «Im Fokus»."), "wegweiser"),
+    ("auto", gettext_lazy("Automatisch"), gettext_lazy("Fotokacheln oder Chips – wie bisher."), ""),
+    (
+        "regale",
+        gettext_lazy("Regale"),
+        gettext_lazy("Jede Unterkategorie als Reihe mit Pfeilen."),
+        "regale",
+    ),
+    (
+        "tabs",
+        gettext_lazy("Reiter"),
+        gettext_lazy("Unterkategorien als Reiter über den Produkten."),
+        "tabs",
+    ),
+    (
+        "index",
+        gettext_lazy("Index"),
+        gettext_lazy("Verzeichnis in Spalten – für große Sortimente."),
+        "kompakt",
+    ),
+    (
+        "side",
+        gettext_lazy("Seitenspalte"),
+        gettext_lazy("Kategorien und Filter links, Produkte rechts."),
+        "navigator",
+    ),
+    (
+        "wegweiser",
+        gettext_lazy("Wegweiser"),
+        gettext_lazy("Abteilungen als Kacheln, dann «Im Fokus»."),
+        "wegweiser",
+    ),
 )
 MAIN_VIEW_LABELS = (
-    ("raster", _("Raster"), _("Foto, Name, Preis – die übliche Ansicht."), ""),
+    (
+        "raster",
+        gettext_lazy("Raster"),
+        gettext_lazy("Foto, Name, Preis – die übliche Ansicht."),
+        "",
+    ),
     (
         "schaufenster",
-        _("Schaufenster"),
-        _("Erstes Produkt groß, der Rest im Raster."),
+        gettext_lazy("Schaufenster"),
+        gettext_lazy("Erstes Produkt groß, der Rest im Raster."),
         "schaufenster",
     ),
-    ("magazin", _("Magazin"), _("Zwei große Karten pro Reihe mit Beschreibung."), "magazin"),
-    ("mosaik", _("Mosaik"), _("Kacheln verschiedener Größe – für starke Fotos."), "mosaik"),
+    (
+        "magazin",
+        gettext_lazy("Magazin"),
+        gettext_lazy("Zwei große Karten pro Reihe mit Beschreibung."),
+        "magazin",
+    ),
+    (
+        "mosaik",
+        gettext_lazy("Mosaik"),
+        gettext_lazy("Kacheln verschiedener Größe – für starke Fotos."),
+        "mosaik",
+    ),
 )
 
 
 #: FB-30.16 R5b: шапка и сеты страницы каталога/категорий — свои строки с видом.
 PART_VIEW_CHOICES = {
     "page_head": (
-        _("Banner · Fotos der Seite"),
+        gettext_lazy("Banner · Fotos der Seite"),
         (
-            ("aus", _("Ohne Kopfbereich"), _("Die Seite beginnt direkt mit dem Inhalt."), ""),
-            ("titelbild", _("Titelbild"), _("Foto und Beschreibung der Seite oben."), "kopfbild"),
+            (
+                "aus",
+                gettext_lazy("Ohne Kopfbereich"),
+                gettext_lazy("Die Seite beginnt direkt mit dem Inhalt."),
+                "",
+            ),
+            (
+                "titelbild",
+                gettext_lazy("Titelbild"),
+                gettext_lazy("Foto und Beschreibung der Seite oben."),
+                "kopfbild",
+            ),
         ),
     ),
     "combos": (
-        _("Sets & Menüs"),
+        gettext_lazy("Sets & Menüs"),
         (
-            ("below", _("Unter den Produkten"), _("Erst die Produkte, dann die Sets."), ""),
-            ("above", _("Über den Produkten"), _("Sets zuerst, dann einzelne Produkte."), "sets"),
+            (
+                "below",
+                gettext_lazy("Unter den Produkten"),
+                gettext_lazy("Erst die Produkte, dann die Sets."),
+                "",
+            ),
+            (
+                "above",
+                gettext_lazy("Über den Produkten"),
+                gettext_lazy("Sets zuerst, dann einzelne Produkte."),
+                "sets",
+            ),
         ),
     ),
 }
@@ -1742,74 +1807,184 @@ def _catalog_view_panel(config: dict, host: str, item: dict, main: bool) -> dict
 #: FB-31 P3: плитки видов строк страниц акций (миниатюра — по коду шаблона).
 PROMO_PART_CHOICES = {
     ("promos", "page_head"): (
-        _("Banner · Fotos der Seite"),
+        gettext_lazy("Banner · Fotos der Seite"),
         (
-            ("aus", _("Ohne Kopfbereich"), _("Die Seite beginnt direkt mit dem Inhalt."), ""),
-            ("titelbild", _("Titelbild"), _("Foto und Beschreibung der Seite oben."), "kopfbild"),
+            (
+                "aus",
+                gettext_lazy("Ohne Kopfbereich"),
+                gettext_lazy("Die Seite beginnt direkt mit dem Inhalt."),
+                "",
+            ),
+            (
+                "titelbild",
+                gettext_lazy("Titelbild"),
+                gettext_lazy("Foto und Beschreibung der Seite oben."),
+                "kopfbild",
+            ),
         ),
     ),
     ("promos", "groups"): (
-        _("Angebotsgruppen"),
+        gettext_lazy("Angebotsgruppen"),
         (
-            ("auto", _("Automatisch"), _("Gruppen als Chips – wie bisher."), ""),
-            ("regale", _("Regale"), _("Jede Gruppe als Reihe mit Pfeilen."), "regale"),
-            ("tabs", _("Reiter"), _("Gruppen als Reiter über den Aktionen."), "tabs"),
-            ("index", _("Index"), _("Verzeichnis der Gruppen in Spalten."), "kompakt"),
+            (
+                "auto",
+                gettext_lazy("Automatisch"),
+                gettext_lazy("Gruppen als Chips – wie bisher."),
+                "",
+            ),
+            (
+                "regale",
+                gettext_lazy("Regale"),
+                gettext_lazy("Jede Gruppe als Reihe mit Pfeilen."),
+                "regale",
+            ),
+            (
+                "tabs",
+                gettext_lazy("Reiter"),
+                gettext_lazy("Gruppen als Reiter über den Aktionen."),
+                "tabs",
+            ),
+            (
+                "index",
+                gettext_lazy("Index"),
+                gettext_lazy("Verzeichnis der Gruppen in Spalten."),
+                "kompakt",
+            ),
             (
                 "side",
-                _("Seitenspalte"),
-                _("Gruppen und Suche links, Aktionen rechts."),
+                gettext_lazy("Seitenspalte"),
+                gettext_lazy("Gruppen und Suche links, Aktionen rechts."),
                 "navigator",
             ),
         ),
     ),
     ("promo_group", "page_head"): (
-        _("Banner · Kopf der Gruppe"),
+        gettext_lazy("Banner · Kopf der Gruppe"),
         (
-            ("standard", _("Titel"), _("Name der Gruppe und Zahl der Aktionen."), ""),
-            ("prospekt", _("Prospekt"), _("Farbiges Band mit Gültigkeit."), "prospekt"),
-            ("countdown", _("Countdown"), _("Dunkles Band mit Zähler bis zum Ende."), "countdown"),
+            (
+                "standard",
+                gettext_lazy("Titel"),
+                gettext_lazy("Name der Gruppe und Zahl der Aktionen."),
+                "",
+            ),
+            (
+                "prospekt",
+                gettext_lazy("Prospekt"),
+                gettext_lazy("Farbiges Band mit Gültigkeit."),
+                "prospekt",
+            ),
+            (
+                "countdown",
+                gettext_lazy("Countdown"),
+                gettext_lazy("Dunkles Band mit Zähler bis zum Ende."),
+                "countdown",
+            ),
         ),
     ),
     ("promo", "offer"): (
-        _("Angebot"),
+        gettext_lazy("Angebot"),
         (
-            ("standard", _("Standard"), _("Foto, Preis und Bedingungen – wie bisher."), ""),
-            ("plakat", _("Plakat"), _("Großer Preis über dem Foto."), "plakat"),
-            ("prospekt", _("Angebotszettel"), _("Wie ein Prospekt mit Farbband."), "prospekt"),
-            ("kompakt", _("Kompakt"), _("Alles auf einen Blick, wenig Platz."), "kompakt"),
-            ("magazin", _("Magazin"), _("Großes Foto, Text darunter."), "magazin"),
+            (
+                "standard",
+                gettext_lazy("Standard"),
+                gettext_lazy("Foto, Preis und Bedingungen – wie bisher."),
+                "",
+            ),
+            (
+                "plakat",
+                gettext_lazy("Plakat"),
+                gettext_lazy("Großer Preis über dem Foto."),
+                "plakat",
+            ),
+            (
+                "prospekt",
+                gettext_lazy("Angebotszettel"),
+                gettext_lazy("Wie ein Prospekt mit Farbband."),
+                "prospekt",
+            ),
+            (
+                "kompakt",
+                gettext_lazy("Kompakt"),
+                gettext_lazy("Alles auf einen Blick, wenig Platz."),
+                "kompakt",
+            ),
+            (
+                "magazin",
+                gettext_lazy("Magazin"),
+                gettext_lazy("Großes Foto, Text darunter."),
+                "magazin",
+            ),
         ),
     ),
 }
 PROMO_MAIN_CHOICES = (
-    ("raster", _("Raster"), _("Foto, Name, Preis – die übliche Ansicht."), ""),
-    ("preisliste", _("Preisliste"), _("Tabelle mit Preisen – ohne Fotos."), "preisliste"),
+    (
+        "raster",
+        gettext_lazy("Raster"),
+        gettext_lazy("Foto, Name, Preis – die übliche Ansicht."),
+        "",
+    ),
+    (
+        "preisliste",
+        gettext_lazy("Preisliste"),
+        gettext_lazy("Tabelle mit Preisen – ohne Fotos."),
+        "preisliste",
+    ),
     (
         "schaufenster",
-        _("Schaufenster"),
-        _("Erste Aktion groß, der Rest im Raster."),
+        gettext_lazy("Schaufenster"),
+        gettext_lazy("Erste Aktion groß, der Rest im Raster."),
         "schaufenster",
     ),
-    ("magazin", _("Magazin"), _("Zwei große Karten mit Bedingungen."), "magazin"),
-    ("prospekt", _("Prospekt"), _("Dichtes Raster wie im Handzettel."), "prospekt"),
+    (
+        "magazin",
+        gettext_lazy("Magazin"),
+        gettext_lazy("Zwei große Karten mit Bedingungen."),
+        "magazin",
+    ),
+    (
+        "prospekt",
+        gettext_lazy("Prospekt"),
+        gettext_lazy("Dichtes Raster wie im Handzettel."),
+        "prospekt",
+    ),
 )
 PROMO_GROUP_MAIN_CHOICES = (
-    ("raster", _("Raster"), _("Foto, Name, Preis – die übliche Ansicht."), ""),
+    (
+        "raster",
+        gettext_lazy("Raster"),
+        gettext_lazy("Foto, Name, Preis – die übliche Ansicht."),
+        "",
+    ),
     (
         "schaufenster",
-        _("Schaufenster"),
-        _("Erste Aktion groß, der Rest im Raster."),
+        gettext_lazy("Schaufenster"),
+        gettext_lazy("Erste Aktion groß, der Rest im Raster."),
         "schaufenster",
     ),
-    ("prospekt", _("Prospekt"), _("Dichtes Raster wie im Handzettel."), "prospekt"),
-    ("magazin", _("Magazin"), _("Zwei große Karten mit Bedingungen."), "magazin"),
-    ("countdown", _("Countdown"), _("Karten mit Restzeit."), "countdown"),
-    ("vergleich", _("Vergleich"), _("Spalten nebeneinander, «Beliebt» markiert."), "vergleich"),
+    (
+        "prospekt",
+        gettext_lazy("Prospekt"),
+        gettext_lazy("Dichtes Raster wie im Handzettel."),
+        "prospekt",
+    ),
+    (
+        "magazin",
+        gettext_lazy("Magazin"),
+        gettext_lazy("Zwei große Karten mit Bedingungen."),
+        "magazin",
+    ),
+    ("countdown", gettext_lazy("Countdown"), gettext_lazy("Karten mit Restzeit."), "countdown"),
+    (
+        "vergleich",
+        gettext_lazy("Vergleich"),
+        gettext_lazy("Spalten nebeneinander, «Beliebt» markiert."),
+        "vergleich",
+    ),
 )
 PROMO_GROUPING_CHOICES = (
-    ("auto", _("Nach Gruppen"), _("Aktionen in Abschnitten je Gruppe."), ""),
-    ("ohne", _("Ohne Abschnitte"), _("Alle Aktionen in einer Liste."), ""),
+    ("auto", gettext_lazy("Nach Gruppen"), gettext_lazy("Aktionen in Abschnitten je Gruppe."), ""),
+    ("ohne", gettext_lazy("Ohne Abschnitte"), gettext_lazy("Alle Aktionen in einer Liste."), ""),
 )
 
 
@@ -1889,15 +2064,15 @@ def _part_view_panel(config: dict, host: str, item: dict, main: bool) -> dict:
 
 
 TOURS_GROUPING_CHOICES = (
-    ("auto", _("Nach Ländern"), _("Reisen in Abschnitten je Land."), ""),
-    ("ohne", _("Ohne Abschnitte"), _("Alle Reisen in einer Liste."), ""),
+    ("auto", gettext_lazy("Nach Ländern"), gettext_lazy("Reisen in Abschnitten je Land."), ""),
+    ("ohne", gettext_lazy("Ohne Abschnitte"), gettext_lazy("Alle Reisen in einer Liste."), ""),
 )
 #: FB-31 P4: подпись строки навигации листинга (что в ней — подборки, темы, разделы)
 LISTING_GROUPS_LABEL = {
-    "services": _("Kollektionen"),
-    "stays": _("Kollektionen"),
-    "events": _("Themen"),
-    "combos": _("Bereiche"),
+    "services": gettext_lazy("Kollektionen"),
+    "stays": gettext_lazy("Kollektionen"),
+    "events": gettext_lazy("Themen"),
+    "combos": gettext_lazy("Bereiche"),
 }
 
 
