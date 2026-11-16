@@ -210,7 +210,9 @@ def output_payload(post, field: str) -> dict:
     if mode not in (None, "", "grid", "auto", "raster", "slider"):
         raise PageSettingError(f"unknown output mode {mode!r}")
     raw_max = (post.get(f"{field}_max") or "").strip()
-    if raw_max and raw_max not in ("4", "8", "12"):
+    from apps.tenants import siteconfig
+
+    if raw_max and raw_max not in {str(n) for n in siteconfig.RELATED_MAX}:
         raise PageSettingError(f"unknown max {raw_max!r}")
     if mode == "slider":
         payload["scroll"] = True

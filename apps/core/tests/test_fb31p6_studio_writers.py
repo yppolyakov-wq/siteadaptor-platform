@@ -97,3 +97,12 @@ def test_assistant_does_not_change_a_template_replaced_by_rows(monkeypatch):
     monkeypatch.setitem(site_schema.REPLACED_BY_BLOCKS, "catalog", frozenset({"catalog_layout"}))
     items = assistant_pages.build(tenant, _user(), "Zeige die Produkte als Preisliste")
     assert items and "Seitenaufbau" in str(items[0]["blocked"])
+
+
+def test_review_assistant_apply_refuses_a_replaced_setting_built_before_p6(monkeypatch):
+    from apps.core import assistant_actions, assistant_pages
+
+    monkeypatch.setattr(assistant_pages, "replaced_codes", lambda: frozenset({"catalog_layout"}))
+    row = {"spec": None, "item": {"target": {"pk": "catalog_layout"}}, "index": 0}
+    with pytest.raises(assistant_actions.ApplyError):
+        assistant_actions._change_page(row, TenantFactory.build())

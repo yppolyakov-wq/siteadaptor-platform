@@ -924,10 +924,13 @@ def _page_options(tenant, code: str):
 
 
 def _change_page(row: dict, tenant) -> dict:
-    from apps.core import page_settings
+    from apps.core import assistant_pages, page_settings
 
     spec, item = row["spec"], row["item"]
     code = _target_pk(item)
+    if code in assistant_pages.replaced_codes():
+        # FB-31 P6 (ревью безопасности): пункт, построенный до P6, тоже не применяется
+        raise ApplyError("invalid", {f"{row['index']}:value": assistant_pages.REPLACED_NOTE})
     before = str(item.get("before") or "")
     if _page_current(tenant, code) != before:
         raise ApplyError(
