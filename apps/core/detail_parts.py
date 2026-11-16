@@ -125,12 +125,12 @@ def edit_rows(config, host: str, rows) -> list[dict]:
     a = anchors(rows, host, full_order(config, module))
     by_id = {r["id"]: r for r in rows if r.get("id")}
     hidden = siteconfig.detail_section_hidden(config, module)
-    seq = []
     first = FIRST_SCREEN.get(host, ())
+    # блоки до первого раздела — первыми (так их рисует и страница: `fixed_parts`, ревью P5)
+    seq = [by_id[i] for i in a["lead"] if i in by_id]
     for key in first:  # первый экран — над блоками «до отзывов» (так рисует страница)
         seq.append({"key": key, "enabled": key not in hidden})
         seq += [by_id[i] for i in a["after"].get(key, []) if i in by_id]
-    seq += [by_id[i] for i in a["lead"] if i in by_id]
     for key in full_order(config, module):
         if key in first:
             continue
@@ -177,3 +177,14 @@ def fixed_parts(rows, host: str) -> dict:
         lead += a["after"].get(key, [])
     mid = a["after"].get(BODY_LAST.get(host, ""), [])
     return {"lead": ids_part(lead) if lead else "", "mid": ids_part(mid) if mid else ""}
+
+
+def page_ctx(cfg, host: str) -> dict:
+    """Контекст витрины постоянной детали (товар, номер): места своих блоков и `part` хвоста."""
+    from apps.tenants import siteconfig
+
+    rows = (siteconfig.normalize(cfg).get("page_blocks") or {}).get(host) or []
+    return {
+        "detail_block_parts": fixed_parts(rows, host),
+        "detail_tail_part": tail_part(rows, host, list(section_keys(host))),
+    }

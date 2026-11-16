@@ -46,3 +46,34 @@ def test_product_rows_toggle_but_do_not_move():
     cfg = siteconfig.normalize(tenant.site_config)
     assert cfg["product_detail"]["hidden"] == ["related"]
     assert "order" not in cfg["product_detail"]
+
+
+def test_review_editor_order_matches_the_page_and_hidden_reviews_are_reachable():
+    from apps.core import detail_parts
+
+    rows = [
+        LEAD,
+        {"key": "description"},
+        MID,
+        {"key": "info"},
+        {"key": "reviews"},
+        {"key": "related"},
+    ]
+    items = detail_parts.edit_rows({}, "product_detail", rows)
+    keys = [i.get("id") or i["key"] for i in items]
+    assert keys[:3] == ["p1", "description", "p2"], "блок «до описания» — первым, как на странице"
+    cfg = {"product_detail": {"hidden": ["reviews"]}}
+    items = detail_parts.edit_rows(cfg, "product_detail", [MID])
+    # из хвоста один шаг вверх — между скрытыми «reviews» и «related» (скрытые не перепрыгиваются)
+    site_schema.mutate(items, "product", "up", "p2")
+    keys = [i.get("id") or i["key"] for i in items]
+    assert keys.index("p2") == keys.index("reviews") + 1
+
+
+@pytest.mark.parametrize("kind,host", [("product", "product_detail"), ("stay", "stay_detail")])
+def test_review_tabs_layout_draws_blocks_under_the_tabs(kind, host):
+    rows = [{"key": "reviews"}, MID, {"key": "related" if kind == "product" else "similar"}]
+    cfg = {g.RENDER[kind][1]: {"layout": "tabs"}, "page_blocks": {host: [LEAD, *rows]}}
+    html = g.RENDER[kind][0](cfg).content.decode()
+    assert html.count("Vor-Bewertungen-Q") == 1 and html.count("Nach-Bewertungen-Q") == 1
+    assert html.index("Vor-Bewertungen-Q") > html.index("data-pd-tabs")

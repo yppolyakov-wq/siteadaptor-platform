@@ -2371,8 +2371,12 @@ def mutate(
         j = idx + step
         if main or item.get("enabled", True):
             # через скрытых соседей — до ближайшего видимого (см. blocks_for)
+            # FB-31 P5 (ревью): скрытый раздел детали — тоже место (блок встаёт рядом с ним)
+            sec = detail_parts.section_keys(rows_host)
             while 0 <= j < len(items) and not (
-                siteconfig.is_main_marker(items[j]) or items[j].get("enabled", True)
+                siteconfig.is_main_marker(items[j])
+                or items[j].get("enabled", True)
+                or (not items[j].get("id") and items[j].get("key") in sec)
             ):
                 j += step
         if 0 <= j < len(items):
