@@ -61,7 +61,9 @@ def test_tab_shows_exactly_the_schema(tenant):
         shown = {
             part.split('"')[0] for part in body.split('data-pt-setting="')[1:] if part.split('"')[0]
         }
-        assert shown == set(site_schema.setting_codes(tenant, typ)), typ
+        # FB-31 P5 R7 (осознанно): вид «Ähnliche» — на строке своего раздела, не «Seite»
+        on_rows = set(site_schema.SETTING_ROWS.get(typ, {}))
+        assert shown == set(site_schema.setting_codes(tenant, typ)) - on_rows, typ
     # FB-30.16 R5 (осознанно): шаблон категорий заменили блоки «Alle Kategorien»
     assert "category_page_style" not in site_schema.setting_codes(tenant, "catalog")
 

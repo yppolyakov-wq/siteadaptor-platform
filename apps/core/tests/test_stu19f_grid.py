@@ -131,10 +131,13 @@ def test_screen_shows_the_block_for_grids_and_page_size_only_when_paginated(tena
     assert 'name="out_mode"' in form and 'name="out_page_size"' in form
     sort_form = html.split('data-pt-setting="catalog_sort"', 1)[1].split("</form>", 1)[0]
     assert 'name="out_mode"' not in sort_form
-    detail = settings_screen(_req(tenant, data={"typ": "product"}))
-    related = detail.content.decode().split('data-pt-setting="product_related"', 1)[1]
-    related = related.split("</form>", 1)[0]
-    assert 'name="out_mode"' in related and 'name="out_page_size"' not in related
+    # FB-31 P5 R7 (осознанно): «Ähnliche» — на строке раздела, вид «Wie» и «Höchstens»
+    from apps.core.tests.test_fb27_r2_draft import Browser
+
+    html = Browser(tenant).get("?seite=product&block=related")
+    related = html.split('data-pt-setting="product_related"', 1)[1].split("</form>", 1)[0]
+    assert 'name="out_mode"' in related and 'name="out_max"' in related
+    assert 'name="out_page_size"' not in related
 
 
 # ───────────── 19f-2: the Studio no longer writes grids ─────────────
