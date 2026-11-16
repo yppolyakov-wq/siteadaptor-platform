@@ -1,0 +1,1099 @@
+{
+ "blog|kompakt|flat|nophoto": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "blog|kompakt|flat|photo": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "blog|kopfbild|flat|nophoto": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "blog|kopfbild|flat|photo": {
+  "comp_hero": {
+   "eyebrow": "Salon · Haan",
+   "photo": "/media/hero.jpg",
+   "text": ""
+  },
+  "comp_owns_entries": false,
+  "page_composition": "kopfbild"
+ },
+ "blog|navigator|flat|nophoto": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "blog|navigator|flat|photo": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "blog|quatsch|flat|nophoto": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "blog|quatsch|flat|photo": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "blog|regale|flat|nophoto": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "blog|regale|flat|photo": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "blog|standard|flat|nophoto": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "blog|standard|flat|photo": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "blog|tabs|flat|nophoto": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "blog|tabs|flat|photo": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "combos|kompakt|entries|nophoto": {
+  "comp_carry": "k",
+  "comp_entries": [
+   {
+    "active": false,
+    "count": 3,
+    "label": "Damen",
+    "url": "?k=damen"
+   }
+  ],
+  "comp_owns_entries": true,
+  "page_composition": "kompakt"
+ },
+ "combos|kompakt|entries|photo": {
+  "comp_carry": "k",
+  "comp_entries": [
+   {
+    "active": false,
+    "count": 3,
+    "label": "Damen",
+    "url": "?k=damen"
+   }
+  ],
+  "comp_owns_entries": true,
+  "page_composition": "kompakt"
+ },
+ "combos|kompakt|flat|nophoto": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "combos|kompakt|flat|photo": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "combos|kopfbild|entries|nophoto": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "combos|kopfbild|entries|photo": {
+  "comp_hero": {
+   "eyebrow": "Salon · Haan",
+   "photo": "/media/hero.jpg",
+   "text": ""
+  },
+  "comp_owns_entries": false,
+  "page_composition": "kopfbild"
+ },
+ "combos|kopfbild|flat|nophoto": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "combos|kopfbild|flat|photo": {
+  "comp_hero": {
+   "eyebrow": "Salon · Haan",
+   "photo": "/media/hero.jpg",
+   "text": ""
+  },
+  "comp_owns_entries": false,
+  "page_composition": "kopfbild"
+ },
+ "combos|navigator|entries|nophoto": {
+  "comp_carry": "k",
+  "comp_entries": [
+   {
+    "active": false,
+    "count": 3,
+    "label": "Damen",
+    "url": "?k=damen"
+   }
+  ],
+  "comp_owns_entries": true,
+  "page_composition": "navigator"
+ },
+ "combos|navigator|entries|photo": {
+  "comp_carry": "k",
+  "comp_entries": [
+   {
+    "active": false,
+    "count": 3,
+    "label": "Damen",
+    "url": "?k=damen"
+   }
+  ],
+  "comp_owns_entries": true,
+  "page_composition": "navigator"
+ },
+ "combos|navigator|flat|nophoto": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "combos|navigator|flat|photo": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "combos|quatsch|entries|nophoto": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "combos|quatsch|entries|photo": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "combos|quatsch|flat|nophoto": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "combos|quatsch|flat|photo": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "combos|regale|entries|nophoto": {
+  "comp_item_template": "storefront/composition/_item_sellable.html",
+  "comp_kind": "service",
+  "comp_owns_entries": false,
+  "comp_shelves": [
+   {
+    "items": [],
+    "label": "Damen",
+    "slug": "damen",
+    "total": 3,
+    "url": "?k=damen"
+   }
+  ],
+  "page_composition": "regale"
+ },
+ "combos|regale|entries|photo": {
+  "comp_item_template": "storefront/composition/_item_sellable.html",
+  "comp_kind": "service",
+  "comp_owns_entries": false,
+  "comp_shelves": [
+   {
+    "items": [],
+    "label": "Damen",
+    "slug": "damen",
+    "total": 3,
+    "url": "?k=damen"
+   }
+  ],
+  "page_composition": "regale"
+ },
+ "combos|regale|flat|nophoto": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "combos|regale|flat|photo": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "combos|standard|entries|nophoto": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "combos|standard|entries|photo": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "combos|standard|flat|nophoto": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "combos|standard|flat|photo": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "combos|tabs|entries|nophoto": {
+  "comp_carry": "k",
+  "comp_entries": [
+   {
+    "active": false,
+    "count": 3,
+    "label": "Damen",
+    "url": "?k=damen"
+   }
+  ],
+  "comp_owns_entries": true,
+  "page_composition": "tabs"
+ },
+ "combos|tabs|entries|photo": {
+  "comp_carry": "k",
+  "comp_entries": [
+   {
+    "active": false,
+    "count": 3,
+    "label": "Damen",
+    "url": "?k=damen"
+   }
+  ],
+  "comp_owns_entries": true,
+  "page_composition": "tabs"
+ },
+ "combos|tabs|flat|nophoto": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "combos|tabs|flat|photo": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "events|kompakt|entries|nophoto": {
+  "comp_carry": "k",
+  "comp_entries": [
+   {
+    "active": false,
+    "count": 3,
+    "label": "Damen",
+    "url": "?k=damen"
+   }
+  ],
+  "comp_owns_entries": true,
+  "page_composition": "kompakt"
+ },
+ "events|kompakt|entries|photo": {
+  "comp_carry": "k",
+  "comp_entries": [
+   {
+    "active": false,
+    "count": 3,
+    "label": "Damen",
+    "url": "?k=damen"
+   }
+  ],
+  "comp_owns_entries": true,
+  "page_composition": "kompakt"
+ },
+ "events|kompakt|flat|nophoto": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "events|kompakt|flat|photo": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "events|kopfbild|entries|nophoto": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "events|kopfbild|entries|photo": {
+  "comp_hero": {
+   "eyebrow": "Salon · Haan",
+   "photo": "/media/hero.jpg",
+   "text": ""
+  },
+  "comp_owns_entries": false,
+  "page_composition": "kopfbild"
+ },
+ "events|kopfbild|flat|nophoto": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "events|kopfbild|flat|photo": {
+  "comp_hero": {
+   "eyebrow": "Salon · Haan",
+   "photo": "/media/hero.jpg",
+   "text": ""
+  },
+  "comp_owns_entries": false,
+  "page_composition": "kopfbild"
+ },
+ "events|navigator|entries|nophoto": {
+  "comp_carry": "k",
+  "comp_entries": [
+   {
+    "active": false,
+    "count": 3,
+    "label": "Damen",
+    "url": "?k=damen"
+   }
+  ],
+  "comp_owns_entries": true,
+  "page_composition": "navigator"
+ },
+ "events|navigator|entries|photo": {
+  "comp_carry": "k",
+  "comp_entries": [
+   {
+    "active": false,
+    "count": 3,
+    "label": "Damen",
+    "url": "?k=damen"
+   }
+  ],
+  "comp_owns_entries": true,
+  "page_composition": "navigator"
+ },
+ "events|navigator|flat|nophoto": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "events|navigator|flat|photo": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "events|quatsch|entries|nophoto": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "events|quatsch|entries|photo": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "events|quatsch|flat|nophoto": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "events|quatsch|flat|photo": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "events|regale|entries|nophoto": {
+  "comp_item_template": "storefront/composition/_item_sellable.html",
+  "comp_kind": "service",
+  "comp_owns_entries": false,
+  "comp_shelves": [
+   {
+    "items": [],
+    "label": "Damen",
+    "slug": "damen",
+    "total": 3,
+    "url": "?k=damen"
+   }
+  ],
+  "page_composition": "regale"
+ },
+ "events|regale|entries|photo": {
+  "comp_item_template": "storefront/composition/_item_sellable.html",
+  "comp_kind": "service",
+  "comp_owns_entries": false,
+  "comp_shelves": [
+   {
+    "items": [],
+    "label": "Damen",
+    "slug": "damen",
+    "total": 3,
+    "url": "?k=damen"
+   }
+  ],
+  "page_composition": "regale"
+ },
+ "events|regale|flat|nophoto": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "events|regale|flat|photo": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "events|standard|entries|nophoto": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "events|standard|entries|photo": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "events|standard|flat|nophoto": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "events|standard|flat|photo": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "events|tabs|entries|nophoto": {
+  "comp_carry": "k",
+  "comp_entries": [
+   {
+    "active": false,
+    "count": 3,
+    "label": "Damen",
+    "url": "?k=damen"
+   }
+  ],
+  "comp_owns_entries": true,
+  "page_composition": "tabs"
+ },
+ "events|tabs|entries|photo": {
+  "comp_carry": "k",
+  "comp_entries": [
+   {
+    "active": false,
+    "count": 3,
+    "label": "Damen",
+    "url": "?k=damen"
+   }
+  ],
+  "comp_owns_entries": true,
+  "page_composition": "tabs"
+ },
+ "events|tabs|flat|nophoto": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "events|tabs|flat|photo": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "lookbook|kompakt|flat|nophoto": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "lookbook|kompakt|flat|photo": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "lookbook|kopfbild|flat|nophoto": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "lookbook|kopfbild|flat|photo": {
+  "comp_hero": {
+   "eyebrow": "Salon · Haan",
+   "photo": "/media/hero.jpg",
+   "text": ""
+  },
+  "comp_owns_entries": false,
+  "page_composition": "kopfbild"
+ },
+ "lookbook|navigator|flat|nophoto": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "lookbook|navigator|flat|photo": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "lookbook|quatsch|flat|nophoto": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "lookbook|quatsch|flat|photo": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "lookbook|regale|flat|nophoto": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "lookbook|regale|flat|photo": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "lookbook|standard|flat|nophoto": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "lookbook|standard|flat|photo": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "lookbook|tabs|flat|nophoto": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "lookbook|tabs|flat|photo": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "reviews|kompakt|flat|nophoto": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "reviews|kompakt|flat|photo": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "reviews|kopfbild|flat|nophoto": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "reviews|kopfbild|flat|photo": {
+  "comp_hero": {
+   "eyebrow": "Salon · Haan",
+   "photo": "/media/hero.jpg",
+   "text": ""
+  },
+  "comp_owns_entries": false,
+  "page_composition": "kopfbild"
+ },
+ "reviews|navigator|flat|nophoto": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "reviews|navigator|flat|photo": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "reviews|quatsch|flat|nophoto": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "reviews|quatsch|flat|photo": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "reviews|regale|flat|nophoto": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "reviews|regale|flat|photo": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "reviews|standard|flat|nophoto": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "reviews|standard|flat|photo": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "reviews|tabs|flat|nophoto": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "reviews|tabs|flat|photo": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "services|kompakt|entries|nophoto": {
+  "comp_carry": "k",
+  "comp_entries": [
+   {
+    "active": false,
+    "count": 3,
+    "label": "Damen",
+    "url": "?k=damen"
+   }
+  ],
+  "comp_owns_entries": true,
+  "page_composition": "kompakt"
+ },
+ "services|kompakt|entries|photo": {
+  "comp_carry": "k",
+  "comp_entries": [
+   {
+    "active": false,
+    "count": 3,
+    "label": "Damen",
+    "url": "?k=damen"
+   }
+  ],
+  "comp_owns_entries": true,
+  "page_composition": "kompakt"
+ },
+ "services|kompakt|flat|nophoto": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "services|kompakt|flat|photo": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "services|kopfbild|entries|nophoto": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "services|kopfbild|entries|photo": {
+  "comp_hero": {
+   "eyebrow": "Salon · Haan",
+   "photo": "/media/hero.jpg",
+   "text": ""
+  },
+  "comp_owns_entries": false,
+  "page_composition": "kopfbild"
+ },
+ "services|kopfbild|flat|nophoto": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "services|kopfbild|flat|photo": {
+  "comp_hero": {
+   "eyebrow": "Salon · Haan",
+   "photo": "/media/hero.jpg",
+   "text": ""
+  },
+  "comp_owns_entries": false,
+  "page_composition": "kopfbild"
+ },
+ "services|navigator|entries|nophoto": {
+  "comp_carry": "k",
+  "comp_entries": [
+   {
+    "active": false,
+    "count": 3,
+    "label": "Damen",
+    "url": "?k=damen"
+   }
+  ],
+  "comp_owns_entries": true,
+  "page_composition": "navigator"
+ },
+ "services|navigator|entries|photo": {
+  "comp_carry": "k",
+  "comp_entries": [
+   {
+    "active": false,
+    "count": 3,
+    "label": "Damen",
+    "url": "?k=damen"
+   }
+  ],
+  "comp_owns_entries": true,
+  "page_composition": "navigator"
+ },
+ "services|navigator|flat|nophoto": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "services|navigator|flat|photo": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "services|quatsch|entries|nophoto": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "services|quatsch|entries|photo": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "services|quatsch|flat|nophoto": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "services|quatsch|flat|photo": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "services|regale|entries|nophoto": {
+  "comp_item_template": "storefront/composition/_item_sellable.html",
+  "comp_kind": "service",
+  "comp_owns_entries": false,
+  "comp_shelves": [
+   {
+    "items": [],
+    "label": "Damen",
+    "slug": "damen",
+    "total": 3,
+    "url": "?k=damen"
+   }
+  ],
+  "page_composition": "regale"
+ },
+ "services|regale|entries|photo": {
+  "comp_item_template": "storefront/composition/_item_sellable.html",
+  "comp_kind": "service",
+  "comp_owns_entries": false,
+  "comp_shelves": [
+   {
+    "items": [],
+    "label": "Damen",
+    "slug": "damen",
+    "total": 3,
+    "url": "?k=damen"
+   }
+  ],
+  "page_composition": "regale"
+ },
+ "services|regale|flat|nophoto": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "services|regale|flat|photo": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "services|standard|entries|nophoto": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "services|standard|entries|photo": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "services|standard|flat|nophoto": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "services|standard|flat|photo": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "services|tabs|entries|nophoto": {
+  "comp_carry": "k",
+  "comp_entries": [
+   {
+    "active": false,
+    "count": 3,
+    "label": "Damen",
+    "url": "?k=damen"
+   }
+  ],
+  "comp_owns_entries": true,
+  "page_composition": "tabs"
+ },
+ "services|tabs|entries|photo": {
+  "comp_carry": "k",
+  "comp_entries": [
+   {
+    "active": false,
+    "count": 3,
+    "label": "Damen",
+    "url": "?k=damen"
+   }
+  ],
+  "comp_owns_entries": true,
+  "page_composition": "tabs"
+ },
+ "services|tabs|flat|nophoto": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "services|tabs|flat|photo": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "stays|kompakt|entries|nophoto": {
+  "comp_carry": "k",
+  "comp_entries": [
+   {
+    "active": false,
+    "count": 3,
+    "label": "Damen",
+    "url": "?k=damen"
+   }
+  ],
+  "comp_owns_entries": true,
+  "page_composition": "kompakt"
+ },
+ "stays|kompakt|entries|photo": {
+  "comp_carry": "k",
+  "comp_entries": [
+   {
+    "active": false,
+    "count": 3,
+    "label": "Damen",
+    "url": "?k=damen"
+   }
+  ],
+  "comp_owns_entries": true,
+  "page_composition": "kompakt"
+ },
+ "stays|kompakt|flat|nophoto": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "stays|kompakt|flat|photo": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "stays|kopfbild|entries|nophoto": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "stays|kopfbild|entries|photo": {
+  "comp_hero": {
+   "eyebrow": "Salon · Haan",
+   "photo": "/media/hero.jpg",
+   "text": ""
+  },
+  "comp_owns_entries": false,
+  "page_composition": "kopfbild"
+ },
+ "stays|kopfbild|flat|nophoto": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "stays|kopfbild|flat|photo": {
+  "comp_hero": {
+   "eyebrow": "Salon · Haan",
+   "photo": "/media/hero.jpg",
+   "text": ""
+  },
+  "comp_owns_entries": false,
+  "page_composition": "kopfbild"
+ },
+ "stays|navigator|entries|nophoto": {
+  "comp_carry": "k",
+  "comp_entries": [
+   {
+    "active": false,
+    "count": 3,
+    "label": "Damen",
+    "url": "?k=damen"
+   }
+  ],
+  "comp_owns_entries": true,
+  "page_composition": "navigator"
+ },
+ "stays|navigator|entries|photo": {
+  "comp_carry": "k",
+  "comp_entries": [
+   {
+    "active": false,
+    "count": 3,
+    "label": "Damen",
+    "url": "?k=damen"
+   }
+  ],
+  "comp_owns_entries": true,
+  "page_composition": "navigator"
+ },
+ "stays|navigator|flat|nophoto": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "stays|navigator|flat|photo": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "stays|quatsch|entries|nophoto": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "stays|quatsch|entries|photo": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "stays|quatsch|flat|nophoto": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "stays|quatsch|flat|photo": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "stays|regale|entries|nophoto": {
+  "comp_item_template": "storefront/composition/_item_sellable.html",
+  "comp_kind": "service",
+  "comp_owns_entries": false,
+  "comp_shelves": [
+   {
+    "items": [],
+    "label": "Damen",
+    "slug": "damen",
+    "total": 3,
+    "url": "?k=damen"
+   }
+  ],
+  "page_composition": "regale"
+ },
+ "stays|regale|entries|photo": {
+  "comp_item_template": "storefront/composition/_item_sellable.html",
+  "comp_kind": "service",
+  "comp_owns_entries": false,
+  "comp_shelves": [
+   {
+    "items": [],
+    "label": "Damen",
+    "slug": "damen",
+    "total": 3,
+    "url": "?k=damen"
+   }
+  ],
+  "page_composition": "regale"
+ },
+ "stays|regale|flat|nophoto": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "stays|regale|flat|photo": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "stays|standard|entries|nophoto": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "stays|standard|entries|photo": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "stays|standard|flat|nophoto": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "stays|standard|flat|photo": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "stays|tabs|entries|nophoto": {
+  "comp_carry": "k",
+  "comp_entries": [
+   {
+    "active": false,
+    "count": 3,
+    "label": "Damen",
+    "url": "?k=damen"
+   }
+  ],
+  "comp_owns_entries": true,
+  "page_composition": "tabs"
+ },
+ "stays|tabs|entries|photo": {
+  "comp_carry": "k",
+  "comp_entries": [
+   {
+    "active": false,
+    "count": 3,
+    "label": "Damen",
+    "url": "?k=damen"
+   }
+  ],
+  "comp_owns_entries": true,
+  "page_composition": "tabs"
+ },
+ "stays|tabs|flat|nophoto": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "stays|tabs|flat|photo": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "tours|kompakt|flat|nophoto": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "tours|kompakt|flat|photo": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "tours|kopfbild|flat|nophoto": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "tours|kopfbild|flat|photo": {
+  "comp_hero": {
+   "eyebrow": "Salon · Haan",
+   "photo": "/media/hero.jpg",
+   "text": ""
+  },
+  "comp_owns_entries": false,
+  "page_composition": "kopfbild"
+ },
+ "tours|navigator|flat|nophoto": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "tours|navigator|flat|photo": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "tours|quatsch|flat|nophoto": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "tours|quatsch|flat|photo": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "tours|regale|flat|nophoto": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "tours|regale|flat|photo": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "tours|standard|flat|nophoto": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "tours|standard|flat|photo": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "tours|tabs|flat|nophoto": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "tours|tabs|flat|photo": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "wishlist|kompakt|flat|nophoto": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "wishlist|kompakt|flat|photo": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "wishlist|kopfbild|flat|nophoto": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "wishlist|kopfbild|flat|photo": {
+  "comp_hero": {
+   "eyebrow": "Salon · Haan",
+   "photo": "/media/hero.jpg",
+   "text": ""
+  },
+  "comp_owns_entries": false,
+  "page_composition": "kopfbild"
+ },
+ "wishlist|navigator|flat|nophoto": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "wishlist|navigator|flat|photo": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "wishlist|quatsch|flat|nophoto": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "wishlist|quatsch|flat|photo": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "wishlist|regale|flat|nophoto": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "wishlist|regale|flat|photo": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "wishlist|standard|flat|nophoto": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "wishlist|standard|flat|photo": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "wishlist|tabs|flat|nophoto": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ },
+ "wishlist|tabs|flat|photo": {
+  "comp_owns_entries": false,
+  "page_composition": ""
+ }
+}
