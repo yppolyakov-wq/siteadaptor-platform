@@ -68,3 +68,12 @@ Bewertung. 5. Туры: «Nach Ländern / Ohne Abschnitte». 6. Подписи �
 Скиллы до кода: `django-patterns`, `django-tdd`, `python-testing`; R5/R8 — `accessibility`.
 `django-reviewer` — каждый срез; `silent-failure-hunter` — R2–R4, R6; `security-reviewer` — R4, R6;
 `database-reviewer` — R6; `a11y-architect` + Playwright 1440/390 — R5, R8; `doc-updater` — R9.
+
+## 7. Ход работ (2026-11-16)
+- R0–R8 сделаны. Отличия от плана: эталон R0 — ответ `listing_composition.context()` (одна точка
+  сборки оформления всех девяти, каркас читает только его) вместо 80 HTML-снимков; у Team/Galerie
+  — HTML-эталоны (5 видов × блоки). Обёртка `data-pb-main` у Team/Galerie — осознанная правка
+  разметки (цель перетаскивания на холсте, как у листингов).
+- Отложено в P6: сводки «Vorlage» листингов в Студии (показывают код), ассистент `PAGE_SETTING`,
+  перевод `catalog_parts` на ядро; локале-независимая сортировка туров по названию (умляуты).
+

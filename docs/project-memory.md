@@ -127,7 +127,7 @@ LLM-режим Finder, SSE для чата.
 
 ### apps/core
 
-- `apps/core/page_parts.py` — ядро «шаблон страницы → оси блоков» (FB-31 P3, 2026-11-16): поверхность (строки схемы → оси, таблица кодов), `from_code`/`legacy_code`/`effective`; вывод при чтении, старый код шаблона — запасное значение. Поверхности акций — `apps/promotions/promo_parts.py` (`detail_parts`, `group_parts` — одно правило для витрины и панели); каталог — пока свой `apps/catalog/catalog_parts.py`. Хосты и закреплённые строки — `siteconfig.part_surface`/`part_styles`/`drop_page_views`.
+- `apps/core/page_parts.py` — ядро «шаблон страницы → оси блоков» (FB-31 P3, 2026-11-16): поверхность (строки схемы → оси, таблица кодов), `from_code`/`legacy_code`/`effective`; вывод при чтении, старый код шаблона — запасное значение. Поверхности акций — `apps/promotions/promo_parts.py` (`detail_parts`, `group_parts` — одно правило для витрины и панели); листинги, Team, Galerie — `apps/core/listing_parts.py` (P4: `effective`, `HOST_OF`, номера → `stay_rooms`); каталог — пока свой `apps/catalog/catalog_parts.py`. Хосты и закреплённые строки — `siteconfig.part_surface`/`part_styles`/`drop_page_views`.
 - `apps/core/object_structure.py` — своя структура страницы объекта (товар, услуга): отличия показа разделов и шаблона (`page_override`), вкладка «Seitenaufbau» объекта, свои блоки (`product:<hex>` в `page_blocks`), сброс и уборка (FB-29.4b, 2026-11-14).
 - `legacy_role_gates.py` — (нет по пути `apps/core/`; pitfalls называет его замороженным эталоном — расположение не проверял).
 - `apps/core/archetypes.py` — `primary_item`/`purchase_mode`/`purchase_label` архетипа.
