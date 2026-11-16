@@ -1308,8 +1308,9 @@ def promo_group_host(key) -> str:
     """Хост своих блоков группы акций по её ключу ("" — пустой ключ)."""
     import hashlib
 
-    key = key.strip() if isinstance(key, str) else ""
-    if not key:
+    # ключ — как хранит акция и как приходит в `?gruppe=` (без обрезки: иначе «Sale» и
+    # «Sale » делили бы один хост при разных выборках, ревью R6)
+    if not isinstance(key, str) or not key.strip():
         return ""
     return PROMO_GROUP_HOST_PREFIX + hashlib.md5(key.encode(), usedforsecurity=False).hexdigest()
 
@@ -1690,7 +1691,7 @@ def normalize_page_blocks(raw) -> dict:
         # FB-30.16 R5 (ревью): «Alle Kategorien» хранится и пустой — сам ключ значит
         # «сохранена», иначе «удалил все блоки» молча вернуло бы блоки каталога
         # (R6: так же «Alle Angebotsgruppen»)
-        if blocks or key in ("category", "promo_group"):
+        if blocks or key in ("category", "promo_group") or is_promo_group_host(key):
             out[key] = blocks
     return out
 

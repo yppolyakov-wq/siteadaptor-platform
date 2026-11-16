@@ -474,20 +474,24 @@ PROMO_GROUP_ROWS_MAX = 40
 
 
 def live_promo_groups() -> list[tuple[str, str]]:
-    """(ключ, подпись) групп, у которых есть действующие акции: свои рубрики и встроенные
-    типы (правило STU-9 — не обещать пустую страницу). Один-два запроса, до 40 строк."""
+    """(ключ, подпись) групп акций для своей схемы: свои рубрики ЛЮБОЙ акции (ревью R6:
+    группа без действующих акций — сезонная, на паузе — не теряет свою схему и остаётся
+    правимой) и встроенные типы с действующими акциями. До 40 своих + встроенные."""
     from apps.promotions import promo_types
     from apps.promotions.models import Promotion
 
     try:
-        base = Promotion.objects.filter(status="active")
-        own = sorted({g for g in base.values_list("group", flat=True) if g})
-        builtin = promo_types.live_builtin_keys(base)
+        own = list(
+            Promotion.objects.exclude(group="")
+            .order_by("group")
+            .values_list("group", flat=True)
+            .distinct()[:PROMO_GROUP_ROWS_MAX]
+        )
+        builtin = promo_types.live_builtin_keys(Promotion.objects.filter(status="active"))
     except DatabaseError:
         logger.warning("site_schema: promo groups lookup failed", exc_info=True)
         return []
-    rows = [(g, g) for g in own] + [(k, str(promo_types.builtin_label(k))) for k in builtin]
-    return rows[:PROMO_GROUP_ROWS_MAX]
+    return [(g, g) for g in own] + [(k, str(promo_types.builtin_label(k))) for k in builtin]
 
 
 def promo_group_pages(config: dict) -> list[SubPage]:
@@ -1621,11 +1625,12 @@ def mark_view_availability(config: dict, host: str, view: dict) -> None:
     """Плитки вида выбранного блока: вид без подкатегорий или наборов виден, но недоступен
     с причиной (то же правило, что было у плиток шаблона; гейт — `composition_gate`)."""
     from apps.core import page_settings
+    from apps.tenants import siteconfig
 
     surface = "category" if host == "category" or host.startswith("catalog:") else "catalog"
-    if host in ("promos", "promo_detail", "promo_group") or host.startswith("promo"):
-        surface = {"promos": "promos", "promo_detail": "promo"}.get(host, "")  # FB-31 P3
-        surface = surface or ("promo" if host.startswith("promo:") else "promo_group")
+    part = siteconfig.part_surface(host)  # FB-31 P3: акции — имя поверхности = гейт
+    if part is not None:
+        surface = part.name
     off = page_settings.composition_gate(config).get(surface, set())
     reason = str(
         _("Nur mit Angebotsgruppen verfügbar.")  # FB-31 P3: у акций нет подкатегорий

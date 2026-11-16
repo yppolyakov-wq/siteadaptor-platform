@@ -205,3 +205,15 @@ def test_own_group_page_opens_and_saves_its_own_view():
     b.post(seite=f"promo_group@{host}", op="catview", ref="page_head", value="prospekt")
     b.post(seite=f"promo_group@{host}", op="save")
     assert {"key": "page_head", "enabled": True, "style": "prospekt"} in _saved(tenant, host)
+
+
+def test_review_paused_group_keeps_its_own_schema_reachable():
+    _groups()
+    Promotion.objects.filter(group="Räumung").update(status="paused")
+    host = siteconfig.promo_group_host("Räumung")
+    assert site_schema.host_for(f"promo_group@{host}") == host, "сезонная группа не пропадает"
+
+
+def test_review_own_group_emptied_stays_saved():
+    host = siteconfig.promo_group_host("X")
+    assert siteconfig.normalize_page_blocks({host: []}) == {host: []}
