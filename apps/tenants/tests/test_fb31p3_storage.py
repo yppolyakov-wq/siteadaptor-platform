@@ -35,7 +35,10 @@ def test_detail_and_object_hosts_keep_the_offer_row():
     for host in ("promo_detail", f"promo:{HEX}"):
         got = _norm(host, [{"key": "offer", "style": "plakat"}, {"key": "offer", "style": "x"}])
         assert got == [{"key": "offer", "enabled": True, "style": "plakat"}], host
-    assert siteconfig.page_builtin_keys(f"product:{HEX}") == frozenset()
+    # FB-31 P5 R8 (осознанно): у хоста одного товара — строки-якоря его разделов (своя
+    # схема объекта), строки «Angebot» по-прежнему только у акций
+    keys = siteconfig.page_builtin_keys(f"product:{HEX}")
+    assert "offer" not in keys and keys == {"description", "info", "reviews", "related"}
 
 
 def test_drop_page_views_removes_promo_views_only():
