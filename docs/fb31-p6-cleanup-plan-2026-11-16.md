@@ -50,3 +50,8 @@ A3, A4, B1; `security-reviewer` — A1/A3 (POST Студии → конфиг), 
 A5, A6, B1; `a11y-architect` + Playwright 1440/390 de/ru — A1, A5, A6; `doc-updater` — A7.
 Гейт батча: `ruff format --check .`, `test_template_comments.py`, `i18n_quickcheck`,
 `npm run build:css`, гейт с `apps/tenants`.
+
+## Решения владельца (2026-11-16)
+Вопросы 1–5 — по рекомендации: разделы деталей — только в «Seitenaufbau» (в Студии ссылка);
+плитки «Vorlage» уходят из Студии, ассистент отвечает ссылкой; перенос данных и снос старых
+ключей — отдельно FB-31.7; пустые вкладки Tabs скрывать.
