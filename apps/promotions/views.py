@@ -506,6 +506,9 @@ def promotion_page_mode(request):
     # DL-21.2: шаблон обзорной страницы — presence по полю (плитки шлют hidden всегда).
     if "page_style" in request.POST:
         _ps = siteconfig.normalize_promo_page_style(request.POST.get("page_style", ""))
+        if _ps != (cfg.get("promo_page_style") or ""):
+            # FB-31 P3: шаблон — последнее решение владельца: виды блоков снимаются
+            cfg = siteconfig.drop_page_views(cfg, "promos")
         if _ps:
             cfg["promo_page_style"] = _ps
         else:

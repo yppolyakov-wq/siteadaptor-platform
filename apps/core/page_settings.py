@@ -579,6 +579,11 @@ def apply_override(cfg: dict, code: str, value, output: dict | None = None) -> d
         out = siteconfig.drop_catalog_views(out)  # шаблон — последнее решение владельца
     if code == "category_page_style":
         out = siteconfig.drop_catalog_views(out, "category")
+    # FB-31 P3: то же у страниц акций (строки группы — со своими хостами, R6)
+    if code == "promo_page_style":
+        out = siteconfig.drop_page_views(out, "promos")
+    if code == "promo_detail_style":
+        out = siteconfig.drop_page_views(out, "promo_detail")
     kind = kind_of(setting)
     if kind == KIND_LAYOUT:
         key = _LAYOUT_KEYS[code]

@@ -2961,9 +2961,11 @@ def home_builder_view(request):
         # STU-19f-4: listing sorts and offer grouping — cabinet only.
         # DL-21.2: шаблон обзорной страницы акций ("" = Standard → ключа нет).
         if "promo_page_style" in request.POST:
-            config["promo_page_style"] = siteconfig.normalize_promo_page_style(
-                request.POST.get("promo_page_style")
-            )
+            _pps = siteconfig.normalize_promo_page_style(request.POST.get("promo_page_style"))
+            if _pps != (config.get("promo_page_style") or ""):
+                # FB-31 P3: смена шаблона снимает виды блоков `/aktionen/` (как у каталога)
+                config.update(siteconfig.drop_page_views(config, "promos"))
+            config["promo_page_style"] = _pps
         # S4: стартовая страница витрины (общая главная или один архетип).
         # STU-12g: presence-guard — поле живёт в панели главной, и POST со страницы
         # без него (панель другого типа) сбрасывал бы витрину на «home» молча.
