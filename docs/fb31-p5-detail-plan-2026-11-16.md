@@ -183,3 +183,20 @@ doc-updater.
 - Ревью R7 (`django-reviewer`): «Raster» без выбранного «Letzte Reihe» рисует все карточки
   (`tail="show"` на витрине, не в хранении) — осознанно; поля «Letzte Reihe/Reihen/Tempo» в
   панели строки не показываются, сохранённые значения идут скрытыми полями.
+
+### 12.1 Ход R8 (2026-11-16)
+- ✅ R8a эталоны объектов (30 снимков `obj-*`), ✅ R8b–d витрина: якоря у хоста объекта
+  (`detail_parts.section_keys` знает `<kind>:<hex>`; `module_of` — только общие хосты, `lift`
+  объект не трогает), `flow(own=)`, `fixed_parts(own=)`, тег `object_blocks` при якорях рисует
+  только свой хвост; `page_override.order` (событие, тур, услуга), вкладка его не стирает.
+  `blocks_first` без якорей работает как раньше (эталоны не изменились).
+- R8e (дизайн): `detail_parts.edit_rows` обобщить параметрами (порядок, скрытые) →
+  `object_edit_rows(config, host, obj, rows)` (порядок/видимость — `effective_*` объекта);
+  `object_lift(config, host, items) -> (rows, state)`: видимость → hidden/shown относительно
+  общей, порядок — только у orderable и если отличается от общего; rows без своих блоков →
+  хост не пишется (нормализация уплотняет якоря). Превью черновика: `overlay` кладёт состояние
+  в служебный ключ `_object_override[host]`, который читают `effective_*` (в `commit` не
+  попадает — там сохранённый конфиг). `commit`: та же транзакция, после `Tenant`
+  `select_for_update` объекта, `page_override` через `clean`, `update_fields`. Отпечаток
+  `_saved_state` объекта включает `clean(page_override)`. Общие блоки — строки только для
+  чтения в `blocks_for` (`ref` вида `shared:<id>`; `mutate` их не находит → ошибка).
