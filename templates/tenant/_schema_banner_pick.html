@@ -90,7 +90,10 @@
     <input type="hidden" name="schema_seite" value="{{ code }}">
     <input type="hidden" name="schema_ref" value="{{ ref }}">
     <input type="hidden" name="b_is_active" value="1">
-    <label class="block text-sm"><span class="block font-semibold text-gray-700 mb-1">{% trans "Foto" %}</span><input type="file" name="b_image" accept="image/*" class="block w-full text-sm"></label>
+    <div class="text-sm"><span class="block font-semibold text-gray-700 mb-1">{% trans "Foto" %}</span>
+      {% comment %}Общая плитка «＋ Foto» кабинета (замок test_photo_tile).{% endcomment %}
+      {% include "catalog/_photo_add_tile.html" with target="b_image" small=True %}
+      <input type="file" name="b_image" accept="image/*" class="hidden"></div>
     <label class="block text-sm"><span class="block font-semibold text-gray-700 mb-1">{% trans "Überschrift" %}</span><input type="text" name="b_title" maxlength="200" class="ui-input w-full"></label>
     <label class="block text-sm"><span class="block font-semibold text-gray-700 mb-1">{% trans "Text" %}</span><textarea name="b_text" rows="2" class="ui-input w-full"></textarea></label>
     <div class="grid grid-cols-2 gap-2">
