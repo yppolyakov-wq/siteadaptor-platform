@@ -45,10 +45,22 @@ def languages(request):
 
 
 def platform_legal(request):
-    """T-8.8: Impressum/Datenschutz платформы в подвале портального хоста (DDG §5) —
-    страницы живут на основном домене, портал на своём хосте их не имеет."""
+    """T-8.8 → T-8.35: «Rechtliches» в подвале и формах портального хоста — страницы самого
+    портала (его оператор, `legal_views`), не B2B-тексты платформы."""
     if getattr(request, "portal", None) is None:
         return {}
-    from .platform_links import legal_links
+    from django.urls import NoReverseMatch, reverse
 
-    return {"platform_legal": legal_links()}
+    try:
+        return {
+            "platform_legal": {
+                "hub": reverse("portal-legal"),
+                "impressum": reverse("portal-impressum"),
+                "datenschutz": reverse("portal-datenschutz"),
+                "nutzung": reverse("portal-nutzung"),
+            }
+        }
+    except NoReverseMatch:  # не urlconf портала (тесты с чужим ROOT_URLCONF)
+        from .platform_links import legal_links
+
+        return {"platform_legal": legal_links()}

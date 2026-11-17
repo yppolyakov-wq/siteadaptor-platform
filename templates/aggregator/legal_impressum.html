@@ -1,0 +1,39 @@
+{% extends "aggregator/portal_base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Impressum" %} — {{ portal.title_text }}{% endblock %}
+{% block content %}
+<div class="max-w-3xl" data-legal-page="impressum">
+  {% include "aggregator/_legal_frame.html" %}
+  <h1 class="mt-4 text-2xl font-bold">Impressum</h1>
+  <div class="mt-6 space-y-5 text-sm leading-relaxed text-gray-700">
+    <section>
+      <h2 class="font-semibold text-gray-900">Angaben gemäß § 5 DDG</h2>
+      <div class="mt-1">{% include "aggregator/_legal_operator.html" %}</div>
+      {% if o.representative %}<p class="mt-1">Vertreten durch: {{ o.representative }}</p>{% endif %}
+    </section>
+    <section>
+      <h2 class="font-semibold text-gray-900">Kontakt</h2>
+      {% if o.phone %}<p class="mt-1">Telefon: {{ o.phone }}</p>{% endif %}
+      {% if o.email %}<p class="mt-1">E-Mail: <a class="underline" href="mailto:{{ o.email }}">{{ o.email }}</a></p>{% endif %}
+    </section>
+    {% if o.register %}<section><h2 class="font-semibold text-gray-900">Registereintrag</h2><p class="mt-1">{{ o.register }}</p></section>{% endif %}
+    {% if o.vat_id %}<section><h2 class="font-semibold text-gray-900">Umsatzsteuer-ID</h2><p class="mt-1">Umsatzsteuer-Identifikationsnummer gemäß § 27a UStG: {{ o.vat_id }}</p></section>{% endif %}
+    {% if o %}<section>
+      <h2 class="font-semibold text-gray-900">Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV</h2>
+      <p class="mt-1 whitespace-pre-line">{{ op.responsible_mstv }}</p>
+    </section>{% endif %}
+    <section>
+      <h2 class="font-semibold text-gray-900">Inhalte der Geschäfte</h2>
+      <p class="mt-1">Angebote, Preise, Öffnungszeiten und Beschreibungen stammen von den eingetragenen Geschäften. Für deren Richtigkeit sind die Geschäfte verantwortlich; wir prüfen sie nicht vorab. Hinweise auf rechtswidrige Inhalte nehmen wir über „Melden“ oder die <a class="underline" href="{% url 'portal-legal' %}#lh-dsa">Kontaktstelle</a> entgegen und entfernen sie bei Kenntnis unverzüglich.</p>
+    </section>
+    <section>
+      <h2 class="font-semibold text-gray-900">Verbraucherstreitbeilegung</h2>
+      <p class="mt-1">Wir sind nicht bereit und nicht verpflichtet, an Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle teilzunehmen (§ 36 VSBG).</p>
+    </section>
+    <section>
+      <h2 class="font-semibold text-gray-900">Technik</h2>
+      <p class="mt-1">Das Portal läuft auf der Plattform siteadaptor.</p>
+    </section>
+  </div>
+</div>
+{% endblock %}

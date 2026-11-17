@@ -1,0 +1,5 @@
+{% comment %}T-8.35: адрес оператора портала (§ 5 DDG). Пустые поля — «[fehlt]» не печатаем: о пробелах говорит плашка «Entwurf».{% endcomment %}
+<address class="not-italic" data-legal-operator>
+  {% if o %}<strong>{{ o.name }}</strong>{% if o.legal_form %} ({{ o.legal_form }}){% endif %}<br>
+  {% if o.street %}{{ o.street }}<br>{% endif %}{% if o.zip_city %}{{ o.zip_city }}<br>{% endif %}{% if o.country %}{{ o.country }}{% endif %}{% else %}<span class="text-gray-500">Betreiber noch nicht hinterlegt.</span>{% endif %}
+</address>

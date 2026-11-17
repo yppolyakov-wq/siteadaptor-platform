@@ -38890,3 +38890,19 @@ msgstr "підписку ще не оформлено. Перевірте виб
 #: templates/aggregator/follow_center.html
 msgid "noch nicht gespeichert. Prüfen Sie die Auswahl und klicken Sie auf „Speichern“."
 msgstr "ще не збережено. Перевірте вибір і натисніть «Зберегти»."
+
+#: templates/aggregator/_legal_frame.html
+msgid "Nutzungsbedingungen"
+msgstr "Умови користування"
+
+#: templates/aggregator/_legal_frame.html
+msgid "Rechtlich verbindlich ist die deutsche Fassung dieser Seite."
+msgstr "Юридично обов’язковою є німецька версія цієї сторінки."
+
+#: templates/aggregator/_portal_footer.html
+msgid "AGB für Unternehmen"
+msgstr "Умови для підприємств"
+
+#: templates/aggregator/_portal_footer.html
+msgid "Kontakt und Meldungen"
+msgstr "Контакти та скарги"

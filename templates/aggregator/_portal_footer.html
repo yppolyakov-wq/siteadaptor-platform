@@ -34,17 +34,19 @@ portal_footer, кэш 5 минут). Здесь же единственные с
       <ul class="space-y-2 text-sm [overflow-wrap:anywhere]">
         {% if foot.start_url %}<li><a href="{{ foot.start_url }}" class="hover:text-white hover:underline">{% trans "Jetzt Geschäft eintragen" %}</a></li>{% endif %}
         <li><a href="{% url 'portal-for-business' %}" class="hover:text-white hover:underline">{% trans "So funktioniert’s" %}</a></li>
+        {% if foot.agb_url %}<li><a href="{{ foot.agb_url }}" class="hover:text-white hover:underline">{% trans "AGB für Unternehmen" %}</a></li>{% endif %}
       </ul>
           </details>
     </nav>
-    {# T-8.8: Impressum/Datenschutz платформы (DDG §5) — страницы живут на основном домене. #}
+    {# T-8.35: «Rechtliches» портала (его оператор) — legal_views. #}
     <nav aria-labelledby="foot-legal" class="min-w-0 max-sm:border-t max-sm:border-white/10">
       <details data-fold open class="group/fold max-md:pb-3">
       <summary class="list-none flex items-center justify-between max-md:min-h-[3rem] cursor-pointer md:cursor-default md:pointer-events-none [&::-webkit-details-marker]:hidden"><h2 id="foot-legal" class="text-white text-sm font-bold md:mb-3">{% trans "Rechtliches" %}</h2><span aria-hidden="true" class="md:hidden text-gray-400 transition-transform group-open/fold:rotate-180">▾</span></summary>
       <ul class="space-y-2 text-sm [overflow-wrap:anywhere]">
         {% if platform_legal.impressum %}<li><a href="{{ platform_legal.impressum }}" class="hover:text-white hover:underline">{% trans "Impressum" %}</a></li>{% endif %}
         {% if platform_legal.datenschutz %}<li><a href="{{ platform_legal.datenschutz }}" class="hover:text-white hover:underline">{% trans "Datenschutz" %}</a></li>{% endif %}
-        {% if foot.agb_url %}<li><a href="{{ foot.agb_url }}" class="hover:text-white hover:underline">{% trans "AGB" %}</a></li>{% endif %}
+        {% if platform_legal.nutzung %}<li><a href="{{ platform_legal.nutzung }}" class="hover:text-white hover:underline">{% trans "Nutzungsbedingungen" %}</a></li>{% endif %}
+        {% if platform_legal.hub %}<li><a href="{{ platform_legal.hub }}" class="hover:text-white hover:underline">{% trans "Kontakt und Meldungen" %}</a></li>{% endif %}
       </ul>
           </details>
     </nav>

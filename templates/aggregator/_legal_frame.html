@@ -1,0 +1,17 @@
+{% load i18n %}{% comment %}T-8.35: шапка страниц «Rechtliches» портала — навигация, «Entwurf», обязывающая версия.{% endcomment %}
+<a href="{% url 'portal-home' %}" class="text-sm text-gray-500 hover:underline">← {{ portal.title_text }}</a>
+<nav aria-label="{% trans "Rechtliches" %}" class="mt-3">
+  <ul class="flex flex-wrap gap-2 text-sm">
+    <li><a href="{% url 'portal-legal' %}" class="inline-flex min-h-[44px] items-center rounded-full border px-3 {% if page == 'hub' %}border-gray-900 font-semibold{% else %}border-gray-300{% endif %}"{% if page == 'hub' %} aria-current="page"{% endif %}>{% trans "Rechtliches" %}</a></li>
+    <li><a href="{% url 'portal-impressum' %}" class="inline-flex min-h-[44px] items-center rounded-full border px-3 {% if page == 'impressum' %}border-gray-900 font-semibold{% else %}border-gray-300{% endif %}"{% if page == 'impressum' %} aria-current="page"{% endif %}>{% trans "Impressum" %}</a></li>
+    <li><a href="{% url 'portal-datenschutz' %}" class="inline-flex min-h-[44px] items-center rounded-full border px-3 {% if page == 'datenschutz' %}border-gray-900 font-semibold{% else %}border-gray-300{% endif %}"{% if page == 'datenschutz' %} aria-current="page"{% endif %}>{% trans "Datenschutz" %}</a></li>
+    <li><a href="{% url 'portal-nutzung' %}" class="inline-flex min-h-[44px] items-center rounded-full border px-3 {% if page == 'nutzung' %}border-gray-900 font-semibold{% else %}border-gray-300{% endif %}"{% if page == 'nutzung' %} aria-current="page"{% endif %}>{% trans "Nutzungsbedingungen" %}</a></li>
+  </ul>
+</nav>
+{% if not op.is_final %}
+<div class="mt-4 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900" role="note" data-legal-draft>
+  <p class="font-semibold">Entwurf — nicht rechtsverbindlich</p>
+  {% if op.missing %}<p class="mt-1">Es fehlen noch Angaben des Betreibers: {{ op.missing|join:", " }}.</p>{% else %}<p class="mt-1">Die Texte werden noch rechtlich geprüft.</p>{% endif %}
+</div>
+{% endif %}
+{% if not is_german %}<p class="mt-3 text-sm text-gray-600" data-legal-german>{% trans "Rechtlich verbindlich ist die deutsche Fassung dieser Seite." %}</p>{% endif %}

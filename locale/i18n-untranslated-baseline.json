@@ -1,6 +1,25 @@
 {
  "apps/aggregator/admin.py": [
-  "From @BotFather. Leave blank to keep current. Save, then run «Connect»."
+  "Erst setzen, wenn ein Rechtsanwalt die Texte geprüft hat. Bis dahin zeigen die Seiten den Hinweis „Entwurf — nicht rechtsverbindlich“.",
+  "From @BotFather. Leave blank to keep current. Save, then run «Connect».",
+  "Impressum, Datenschutz und Nutzungsbedingungen des Portals.",
+  "Verantwortung und Kontakte"
+ ],
+ "apps/aggregator/models.py": [
+  "Datenschutz-Aufsichtsbehörde",
+  "Name und Anschrift; leer = wie Betreiber",
+  "PLZ und Ort",
+  "Rechtstexte geprüft am",
+  "bei GmbH/UG/AG/e. V.",
+  "erst nach Prüfung durch Rechtsanwalt setzen — sonst „Entwurf“",
+  "leer = E-Mail des Betreibers",
+  "z. B. Amtsgericht Wuppertal, HRB 12345",
+  "z. B. Einzelunternehmen, GmbH, UG",
+  "zuständig nach Sitz des Betreibers, z. B. LDI NRW"
+ ],
+ "apps/aggregator/portal_operator.py": [
+  "Name / Firma",
+  "PLZ und Ort"
  ],
  "apps/ai/disclosure.py": [
   "Antwortvorschläge auf Kundennachrichten: Nachrichten und Angaben zur Bestellung",
@@ -106,9 +125,7 @@
  ],
  "apps/imports/cscart.py": [
   "Kundendienst",
-  "Versand & Zahlung",
   "Wunschzettel",
-  "Zahlungsarten",
   "\\b\\d{5}\\s+([A-ZÄÖÜ][\\wäöüß .-]+)$",
   "^(\\s*)Geschäftsführer(?:in)?\\s*:",
   "^DE-(?:ÖKO|OEKO)-\\d{3}$",
@@ -254,10 +271,8 @@
   "Gäste bewirtet",
   "Jahre Erfahrung",
   "Jetzt reduziert",
-  "Neu bei uns",
   "Neuigkeiten und Angebote — kein Spam, jederzeit abbestellbar.",
   "Nur noch heute",
-  "Schauen Sie vorbei — wir freuen uns auf Sie.",
   "Unsere Empfehlungen",
   "Unsere Zimmer",
   "für Sie da",
@@ -279,6 +294,55 @@
   "Sichern Sie sich jetzt Ihre Tickets für die nächsten Termine.",
   "Unsere Karte und aktuelle Angebote — frisch für Sie.",
   "Willkommen bei uns"
+ ],
+ "templates/aggregator/_legal_frame.html": [
+  "Die Texte werden noch rechtlich geprüft.",
+  "Entwurf — nicht rechtsverbindlich"
+ ],
+ "templates/aggregator/_legal_operator.html": [
+  "Betreiber noch nicht hinterlegt."
+ ],
+ "templates/aggregator/legal_datenschutz.html": [
+  ", Auskunft mit",
+  "10. Telegram-Bot des Portals",
+  "11. Empfänger",
+  "12. Ihre Rechte",
+  "2. Hosting und Server-Logdaten",
+  "4. Suche und Statistik",
+  "6. Konto für Bewohnerinnen und Bewohner",
+  "Daten von Bewohnerinnen und Bewohnern geben wir nicht an die Geschäfte weiter, außer dem öffentlichen Inhalt Ihrer Bewertung.",
+  "Telegram — nur bei Nutzung des Bots, siehe Nr. 10.",
+  "Wir treffen keine Entscheidungen, die ausschließlich auf automatisierter Verarbeitung beruhen und Ihnen gegenüber rechtliche Wirkung entfalten (Art. 22 DSGVO).",
+  "„In der Nähe“: Ihr Standort wird nur nach Ihrer Freigabe im Browser ermittelt, als Koordinaten in der Adresszeile übergeben und nicht gespeichert."
+ ],
+ "templates/aggregator/legal_hub.html": [
+  "AGB der Plattform siteadaptor",
+  "Für Geschäfte, die sich eintragen:",
+  "Kontaktstelle nach dem Digital Services Act",
+  "Rechtswidrige Inhalte (Einträge, Bewertungen) melden Sie direkt am Eintrag über „Melden“ — siehe",
+  "Sie können selbst umsortieren: „Neueste“, „Endet bald“ (zuerst, was bald endet, dann die höhere Ersparnis), „Jetzt geöffnet“ und „In der Nähe“.",
+  "Vollständige Angaben:"
+ ],
+ "templates/aggregator/legal_impressum.html": [
+  "Angaben gemäß § 5 DDG",
+  "Das Portal läuft auf der Plattform siteadaptor.",
+  "Inhalte der Geschäfte",
+  "Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV",
+  "Wir sind nicht bereit und nicht verpflichtet, an Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle teilzunehmen (§ 36 VSBG).",
+  "entgegen und entfernen sie bei Kenntnis unverzüglich."
+ ],
+ "templates/aggregator/legal_nutzung.html": [
+  "1. Geltung und Anbieter",
+  "2. Was das Portal ist",
+  "3. Inhalte der Geschäfte",
+  "4. Konto und Benachrichtigungen",
+  "7. Reihenfolge der Ergebnisse",
+  "9. Änderungen und Recht",
+  "AGB der Plattform siteadaptor",
+  "Bewerten Sie nur Geschäfte, deren Angebot Sie selbst genutzt haben, wahrheitsgemäß und sachlich.",
+  "Neue Bewertungen prüfen wir vor der Veröffentlichung. Das bewertete Geschäft kann Einwände vorbringen; die Entscheidung trifft der Betreiber.",
+  "Wie wir Ergebnisse sortieren, erklären wir unter",
+  "Über „Melden“ an jedem Eintrag oder an die"
  ],
  "templates/tenant/_cb_row.html": [
   "12 | Jahre Erfahrung&#10;500+ | zufriedene Kunden&#10;4,9 ★ | Bewertung"

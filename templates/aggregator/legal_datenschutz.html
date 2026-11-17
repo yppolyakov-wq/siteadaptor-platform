@@ -1,0 +1,74 @@
+{% extends "aggregator/portal_base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Datenschutz" %} — {{ portal.title_text }}{% endblock %}
+{% block content %}
+{% comment %}T-8.35: Datenschutzerklärung портала по фактам кода (см. план, таблица процессов). Сроки — из настроек. Замок test_t835_portal_legal: у каждого процесса ПД — свой раздел.{% endcomment %}
+<div class="max-w-3xl" data-legal-page="datenschutz">
+  {% include "aggregator/_legal_frame.html" %}
+  <h1 class="mt-4 text-2xl font-bold">Datenschutzerklärung</h1>
+  <div class="mt-6 space-y-6 text-sm leading-relaxed text-gray-700">
+    <section id="ds-verantwortlich">
+      <h2 class="font-semibold text-gray-900">1. Verantwortlicher</h2>
+      <div class="mt-1">{% include "aggregator/_legal_operator.html" %}</div>
+      {% if op.contact_email %}<p class="mt-1">E-Mail: <a class="underline" href="mailto:{{ op.contact_email }}">{{ op.contact_email }}</a></p>{% endif %}
+      <p class="mt-1">Diese Erklärung gilt für {{ portal.title_text }}. Für die eigenen Websites der Geschäfte und für Bestellungen oder Buchungen dort ist das jeweilige Geschäft verantwortlich.</p>
+    </section>
+    <section id="ds-hosting">
+      <h2 class="font-semibold text-gray-900">2. Hosting und Server-Logdaten</h2>
+      <p class="mt-1">Das Portal läuft bei der Hetzner Online GmbH (Industriestr. 25, 91710 Gunzenhausen) auf Servern in Deutschland, auf Grundlage eines Auftragsverarbeitungsvertrags (Art. 28 DSGVO). Beim Aufruf verarbeiten wir technisch notwendige Daten (IP-Adresse, Zeitpunkt, aufgerufene Seite, Browser-Kennung), um das Portal sicher bereitzustellen und Missbrauch abzuwehren (Art. 6 Abs. 1 lit. f DSGVO).</p>
+    </section>
+    <section id="ds-cookies">
+      <h2 class="font-semibold text-gray-900">3. Cookies</h2>
+      <p class="mt-1">Wir setzen nur technisch notwendige Cookies: ein Sitzungs-Cookie (Anmeldung, Schutz von Formularen) und eines für die gewählte Sprache (§ 25 Abs. 2 Nr. 2 TDDDG). Wir nutzen keine Analyse-, Tracking- oder Werbe-Cookies und keine Dienste, die Ihr Verhalten über Websites hinweg verfolgen.</p>
+    </section>
+    <section id="ds-suche">
+      <h2 class="font-semibold text-gray-900">4. Suche und Statistik</h2>
+      <p class="mt-1">Suchanfragen zählen wir ohne Personenbezug (Tag, Suchbegriff, Stadt), um das Angebot zu verbessern; Einzelanfragen löschen wir nach {{ facts.search_log_days_single }} Tagen, Tagessummen nach {{ facts.search_log_days }} Tagen. Seitenaufrufe pro Eintrag zählen wir als Summen ohne IP-Adresse und löschen sie nach {{ facts.stats_days }} Tagen (Art. 6 Abs. 1 lit. f DSGVO).</p>
+      <p class="mt-1">„In der Nähe“: Ihr Standort wird nur nach Ihrer Freigabe im Browser ermittelt, als Koordinaten in der Adresszeile übergeben und nicht gespeichert.</p>
+    </section>
+    {% if facts.map_tiles %}<section id="ds-karte">
+      <h2 class="font-semibold text-gray-900">5. Karte</h2>
+      <p class="mt-1">Die Kartenansicht lädt Kartenkacheln direkt von {{ facts.map_tiles }} (openfreemap.org). Dabei erhält der Anbieter Ihre IP-Adresse und die angefragten Kartenausschnitte. Das geschieht nur, wenn eine Karte angezeigt wird — in der Suche erst nach Klick auf „Karte“, auf Eintragsseiten mit Standort beim Aufruf (Art. 6 Abs. 1 lit. f DSGVO — Darstellung des Standorts der Geschäfte).</p>
+    </section>{% endif %}
+    <section id="ds-konto">
+      <h2 class="font-semibold text-gray-900">6. Konto für Bewohnerinnen und Bewohner</h2>
+      <p class="mt-1">Für ein Konto genügt Ihre E-Mail-Adresse; Sie melden sich über einen Link per E-Mail an (ohne Passwort). Wir speichern E-Mail, Sprache, Zeitpunkt der letzten Anmeldung, gemerkte Einträge und Ihre Benachrichtigungen (Art. 6 Abs. 1 lit. b DSGVO). Die Daten bleiben bis zur Löschung des Kontos; schreiben Sie uns dazu formlos.</p>
+    </section>
+    <section id="ds-folgen">
+      <h2 class="font-semibold text-gray-900">7. Benachrichtigungen („Folgen“)</h2>
+      <p class="mt-1">Wenn Sie Geschäften, Bereichen, Stadtteilen oder Suchen folgen, senden wir Ihnen neue Angebote per E-Mail — erst nach Bestätigung über einen Link (Double-Opt-In). Rechtsgrundlage ist Ihre Einwilligung (Art. 6 Abs. 1 lit. a, Art. 7 DSGVO); als Nachweis speichern wir Zeitpunkt und Portal der Bestätigung. Sie können jederzeit mit einem Klick in jeder E-Mail abbestellen; das Widerrufen berührt die Rechtmäßigkeit der bisherigen Verarbeitung nicht (Art. 7 Abs. 3 DSGVO).</p>
+    </section>
+    <section id="ds-bewertungen">
+      <h2 class="font-semibold text-gray-900">8. Bewertungen</h2>
+      <p class="mt-1">Bewertungen sind mit Ihrem Konto verbunden. Veröffentlicht werden Sterne, Text und Datum — weder Ihr Name noch Ihre E-Mail-Adresse. Hat das Geschäft Sie unter derselben E-Mail-Adresse als Gast erfasst (z. B. Buchung), erscheint der Hinweis „Verifizierter Gast“; dazu gleichen wir nur die E-Mail-Adresse ab. Das bewertete Geschäft kann öffentlich antworten. Rechtsgrundlage: Art. 6 Abs. 1 lit. b DSGVO (Nutzungsbedingungen). Sie können Ihre Bewertung jederzeit löschen lassen.</p>
+    </section>
+    <section id="ds-meldungen">
+      <h2 class="font-semibold text-gray-900">9. Meldungen („Melden“)</h2>
+      <p class="mt-1">Bei einer Meldung speichern wir Grund, Ihren Text und einen nicht umkehrbaren Hash Ihrer Netzadresse (gegen Mehrfachmeldungen), um rechtswidrige Inhalte zu prüfen (Art. 6 Abs. 1 lit. c und f DSGVO, Art. 16 DSA).</p>
+    </section>
+    <section id="ds-telegram">
+      <h2 class="font-semibold text-gray-900">10. Telegram-Bot des Portals</h2>
+      <p class="mt-1">Im Telegram-Bot können Sie suchen und folgen. Suchen speichern wir nicht mit Ihrer Person; für Abos speichern wir Ihre numerische Telegram-Chat-ID und Ihre Auswahl. Telegram verarbeitet Daten auch außerhalb der EU in eigener Verantwortung. Löschen jederzeit mit <code>/daten_loeschen</code>, Auskunft mit <code>/meine_daten</code>.</p>
+    </section>
+    <section id="ds-empfaenger">
+      <h2 class="font-semibold text-gray-900">11. Empfänger</h2>
+      <ul class="mt-1 list-disc pl-5 space-y-1">
+        <li>Hetzner Online GmbH, Deutschland — Hosting (Auftragsverarbeitung).</li>
+        <li>Resend, Inc., USA — Versand von E-Mails (Auftragsverarbeitung; Übermittlung in die USA auf Grundlage der Standardvertragsklauseln bzw. des EU-US Data Privacy Framework).</li>
+        {% if facts.map_tiles %}<li>OpenFreeMap (openfreemap.org) — Kartenkacheln, siehe Nr. 5.</li>{% endif %}
+        <li>Telegram — nur bei Nutzung des Bots, siehe Nr. 10.</li>
+      </ul>
+      <p class="mt-1">Daten von Bewohnerinnen und Bewohnern geben wir nicht an die Geschäfte weiter, außer dem öffentlichen Inhalt Ihrer Bewertung.</p>
+    </section>
+    <section id="ds-rechte">
+      <h2 class="font-semibold text-gray-900">12. Ihre Rechte</h2>
+      <p class="mt-1">Sie haben das Recht auf Auskunft (Art. 15), Berichtigung (Art. 16), Löschung (Art. 17), Einschränkung (Art. 18), Datenübertragbarkeit (Art. 20) und Widerspruch gegen Verarbeitungen auf Grundlage berechtigter Interessen (Art. 21 DSGVO). Eine Einwilligung können Sie jederzeit widerrufen. Schreiben Sie uns{% if op.contact_email %} an <a class="underline" href="mailto:{{ op.contact_email }}">{{ op.contact_email }}</a>{% endif %}.</p>
+      <p class="mt-1">Sie können sich bei einer Datenschutz-Aufsichtsbehörde beschweren (Art. 77 DSGVO){% if o.supervisory_authority %}, für uns zuständig: <span class="whitespace-pre-line">{{ o.supervisory_authority }}</span>{% endif %}.</p>
+    </section>
+    <section id="ds-automatisiert">
+      <h2 class="font-semibold text-gray-900">13. Keine automatisierte Entscheidung</h2>
+      <p class="mt-1">Wir treffen keine Entscheidungen, die ausschließlich auf automatisierter Verarbeitung beruhen und Ihnen gegenüber rechtliche Wirkung entfalten (Art. 22 DSGVO).</p>
+    </section>
+  </div>
+</div>
+{% endblock %}

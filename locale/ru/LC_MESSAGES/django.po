@@ -38903,3 +38903,19 @@ msgstr "подписка ещё не оформлена. Проверьте вы
 #: templates/aggregator/follow_center.html
 msgid "noch nicht gespeichert. Prüfen Sie die Auswahl und klicken Sie auf „Speichern“."
 msgstr "ещё не сохранено. Проверьте выбор и нажмите «Сохранить»."
+
+#: templates/aggregator/_legal_frame.html
+msgid "Nutzungsbedingungen"
+msgstr "Условия использования"
+
+#: templates/aggregator/_legal_frame.html
+msgid "Rechtlich verbindlich ist die deutsche Fassung dieser Seite."
+msgstr "Юридически обязывающей является немецкая версия этой страницы."
+
+#: templates/aggregator/_portal_footer.html
+msgid "AGB für Unternehmen"
+msgstr "Условия для предприятий"
+
+#: templates/aggregator/_portal_footer.html
+msgid "Kontakt und Meldungen"
+msgstr "Контакты и жалобы"

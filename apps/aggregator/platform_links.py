@@ -31,3 +31,19 @@ def legal_links() -> dict[str, str]:
         "impressum": platform_url("platform-impressum"),
         "datenschutz": platform_url("platform-datenschutz"),
     }
+
+
+def portal_legal_links(request) -> dict[str, str]:
+    """T-8.35: «Rechtliches» ПОРТАЛА (его оператор) — абсолютные ссылки на хосте портала.
+    Вне портала — ссылки платформы."""
+    if getattr(request, "portal", None) is None:
+        return legal_links()
+    from django.urls import reverse
+
+    abs_ = request.build_absolute_uri
+    return {
+        "hub": abs_(reverse("portal-legal")),
+        "impressum": abs_(reverse("portal-impressum")),
+        "datenschutz": abs_(reverse("portal-datenschutz")),
+        "nutzung": abs_(reverse("portal-nutzung")),
+    }

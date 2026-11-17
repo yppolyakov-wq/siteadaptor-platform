@@ -1,0 +1,53 @@
+{% extends "aggregator/portal_base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Nutzungsbedingungen" %} — {{ portal.title_text }}{% endblock %}
+{% block content %}
+<div class="max-w-3xl" data-legal-page="nutzung">
+  {% include "aggregator/_legal_frame.html" %}
+  <h1 class="mt-4 text-2xl font-bold">Nutzungsbedingungen</h1>
+  <div class="mt-6 space-y-6 text-sm leading-relaxed text-gray-700">
+    <section id="nb-geltung">
+      <h2 class="font-semibold text-gray-900">1. Geltung und Anbieter</h2>
+      <p class="mt-1">Diese Bedingungen gelten für die Nutzung von {{ portal.title_text }} durch Bewohnerinnen, Bewohner und Gäste. Anbieter ist der im <a class="underline" href="{% url 'portal-impressum' %}">Impressum</a> genannte Betreiber. Für Geschäfte, die sich eintragen, gelten {% if business_agb_url %}die <a class="underline" href="{{ business_agb_url }}">AGB der Plattform siteadaptor</a>{% else %}die AGB der Plattform siteadaptor{% endif %}.</p>
+    </section>
+    <section id="nb-leistung">
+      <h2 class="font-semibold text-gray-900">2. Was das Portal ist</h2>
+      <p class="mt-1">Das Portal zeigt Angebote, Aktionen, Termine und Geschäfte der Stadt. Die Nutzung ist kostenlos. Verträge über Waren oder Leistungen schließen Sie ausschließlich mit dem jeweiligen Geschäft; wir sind dabei nicht Vertragspartner. Ein Anspruch auf eine bestimmte Verfügbarkeit des Portals besteht nicht.</p>
+    </section>
+    <section id="nb-inhalte">
+      <h2 class="font-semibold text-gray-900">3. Inhalte der Geschäfte</h2>
+      <p class="mt-1">Angaben zu Angeboten, Preisen und Öffnungszeiten stammen von den Geschäften. Wir prüfen sie nicht vorab und übernehmen für ihre Richtigkeit keine Gewähr. Für eigene Inhalte haften wir nach den allgemeinen Gesetzen; für fremde Inhalte erst ab Kenntnis einer Rechtsverletzung (Art. 6 DSA).</p>
+    </section>
+    <section id="nb-konto">
+      <h2 class="font-semibold text-gray-900">4. Konto und Benachrichtigungen</h2>
+      <p class="mt-1">Ein Konto ist freiwillig. Sie können es jederzeit löschen lassen und Benachrichtigungen mit einem Klick abbestellen. Wir dürfen ein Konto sperren, wenn es missbräuchlich genutzt wird (z. B. Spam, gefälschte Bewertungen).</p>
+    </section>
+    <section id="bewertungen">
+      <h2 class="font-semibold text-gray-900">5. Bewertungen</h2>
+      <ul class="mt-1 list-disc pl-5 space-y-1">
+        <li>Bewerten Sie nur Geschäfte, deren Angebot Sie selbst genutzt haben, wahrheitsgemäß und sachlich.</li>
+        <li>Nicht erlaubt: Beleidigungen, falsche Tatsachenbehauptungen, personenbezogene Daten Dritter, Werbung, bezahlte oder für Gegenleistungen abgegebene Bewertungen, Bewertungen des eigenen Geschäfts oder von Mitbewerbern.</li>
+        <li>Neue Bewertungen prüfen wir vor der Veröffentlichung. Das bewertete Geschäft kann Einwände vorbringen; die Entscheidung trifft der Betreiber.</li>
+        <li>Wir veröffentlichen alle Bewertungen, die diese Regeln einhalten — positive wie negative. Ob eine Bewertung von einer Person stammt, die das Angebot tatsächlich genutzt hat, können wir nicht überprüfen (§ 5b Abs. 3 UWG).</li>
+      </ul>
+    </section>
+    <section id="meldungen">
+      <h2 class="font-semibold text-gray-900">6. Meldung rechtswidriger Inhalte</h2>
+      <p class="mt-1">Über „Melden“ an jedem Eintrag oder an die <a class="underline" href="{% url 'portal-legal' %}#lh-dsa">Kontaktstelle</a> können Sie Inhalte melden, die Sie für rechtswidrig oder regelwidrig halten (Art. 16 DSA). Bitte begründen Sie die Meldung möglichst genau. Wir prüfen jede Meldung zeitnah und sorgfältig. Melden mehrere unabhängige Personen ({{ facts.report_auto_hide }} oder mehr) denselben Eintrag, blenden wir ihn bis zur Prüfung aus.</p>
+      <p class="mt-1">Entfernen oder beschränken wir einen Inhalt, informieren wir die betroffene Person mit Begründung (Art. 17 DSA), soweit uns eine Kontaktmöglichkeit vorliegt. Gegen die Entscheidung können Sie sich innerhalb von sechs Monaten an die Kontaktstelle wenden; wir prüfen sie dann erneut durch eine Person.</p>
+    </section>
+    <section id="nb-ranking">
+      <h2 class="font-semibold text-gray-900">7. Reihenfolge der Ergebnisse</h2>
+      <p class="mt-1">Wie wir Ergebnisse sortieren, erklären wir unter <a class="underline" href="{% url 'portal-legal' %}#lh-ranking">„Wie wir sortieren“</a>.</p>
+    </section>
+    <section id="nb-haftung">
+      <h2 class="font-semibold text-gray-900">8. Haftung</h2>
+      <p class="mt-1">Wir haften unbeschränkt bei Vorsatz, grober Fahrlässigkeit sowie bei Verletzung von Leben, Körper oder Gesundheit. Bei leichter Fahrlässigkeit haften wir nur für die Verletzung wesentlicher Pflichten und begrenzt auf den vorhersehbaren, typischen Schaden. Die Haftung nach dem Produkthaftungsgesetz bleibt unberührt.</p>
+    </section>
+    <section id="nb-schluss">
+      <h2 class="font-semibold text-gray-900">9. Änderungen und Recht</h2>
+      <p class="mt-1">Wir können diese Bedingungen ändern, wenn sich das Portal oder die Rechtslage ändert; Änderungen gelten ab Veröffentlichung für die weitere Nutzung. Es gilt deutsches Recht; zwingende Verbraucherschutzvorschriften Ihres Wohnsitzstaates bleiben unberührt.</p>
+    </section>
+  </div>
+</div>
+{% endblock %}

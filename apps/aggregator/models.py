@@ -540,6 +540,61 @@ class PortalStat(models.Model):
         return f"{self.day} {self.tenant_schema} {self.action} ×{self.count}"
 
 
+class PortalOperator(models.Model):
+    """T-8.35: оператор городского портала — для Impressum (§ 5 DDG), Datenschutz (ответственный,
+    Art. 13 DSGVO) и контакта DSA (Art. 11/12). Реквизиты вписывает владелец в админке — в git
+    их нет. Один оператор может вести несколько порталов (задел T-8.12)."""
+
+    name = models.CharField("Name / Firma", max_length=200)
+    legal_form = models.CharField(
+        "Rechtsform", max_length=60, blank=True, help_text="z. B. Einzelunternehmen, GmbH, UG"
+    )
+    representative = models.CharField(
+        "Vertretungsberechtigt", max_length=200, blank=True, help_text="bei GmbH/UG/AG/e. V."
+    )
+    street = models.CharField("Straße und Hausnummer", max_length=200, blank=True)
+    zip_city = models.CharField("PLZ und Ort", max_length=120, blank=True)
+    country = models.CharField("Land", max_length=60, blank=True, default="Deutschland")
+    email = models.EmailField("E-Mail", blank=True)
+    phone = models.CharField("Telefon", max_length=40, blank=True)
+    register = models.CharField(
+        "Registereintrag",
+        max_length=200,
+        blank=True,
+        help_text="z. B. Amtsgericht Wuppertal, HRB 12345",
+    )
+    vat_id = models.CharField("USt-IdNr.", max_length=20, blank=True)
+    responsible_mstv = models.TextField(
+        "Verantwortlich i. S. d. § 18 Abs. 2 MStV",
+        blank=True,
+        help_text="Name und Anschrift; leer = wie Betreiber",
+    )
+    dsa_email = models.EmailField(
+        "Kontaktstelle DSA (Art. 11/12)", blank=True, help_text="leer = E-Mail des Betreibers"
+    )
+    supervisory_authority = models.TextField(
+        "Datenschutz-Aufsichtsbehörde",
+        blank=True,
+        help_text="zuständig nach Sitz des Betreibers, z. B. LDI NRW",
+    )
+    reviewed_at = models.DateField(
+        "Rechtstexte geprüft am",
+        null=True,
+        blank=True,
+        help_text="erst nach Prüfung durch Rechtsanwalt setzen — sonst „Entwurf“",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["name"]
+        verbose_name = "Portal operator"
+        verbose_name_plural = "Portal operators"
+
+    def __str__(self):
+        return self.name
+
+
 class AggregatorPortal(I18nMixin, models.Model):
     """Брендированный мульти-доменный портал над пулом AggregatorListing (P2.1).
 
@@ -581,6 +636,10 @@ class AggregatorPortal(I18nMixin, models.Model):
     # T-8.15: показывать листинги демо-бизнесов (превью для партнёров до запуска).
     # Новый портал по умолчанию честный — только настоящие бизнесы.
     show_demo = models.BooleanField(default=False)
+    # T-8.35: кто отвечает за портал (Rechtliches). Пусто — страницы «Entwurf».
+    operator = models.ForeignKey(
+        PortalOperator, null=True, blank=True, on_delete=models.SET_NULL, related_name="portals"
+    )
 
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)

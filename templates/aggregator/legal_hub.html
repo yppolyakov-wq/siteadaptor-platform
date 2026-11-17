@@ -1,0 +1,37 @@
+{% extends "aggregator/portal_base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Rechtliches" %} — {{ portal.title_text }}{% endblock %}
+{% block content %}
+<div class="max-w-3xl" data-legal-page="hub">
+  {% include "aggregator/_legal_frame.html" %}
+  <h1 class="mt-4 text-2xl font-bold">Rechtliches</h1>
+  <div class="mt-6 space-y-6 text-sm leading-relaxed text-gray-700">
+    <section aria-labelledby="lh-betreiber">
+      <h2 id="lh-betreiber" class="text-base font-semibold text-gray-900">Wer betreibt {{ portal.title_text }}?</h2>
+      <div class="mt-1">{% include "aggregator/_legal_operator.html" %}</div>
+      {% if op.contact_email %}<p class="mt-1">E-Mail: <a class="underline" href="mailto:{{ op.contact_email }}">{{ op.contact_email }}</a></p>{% endif %}
+      <p class="mt-1">Vollständige Angaben: <a class="underline" href="{% url 'portal-impressum' %}">Impressum</a>.</p>
+    </section>
+    <section aria-labelledby="lh-dsa" data-legal-dsa>
+      <h2 id="lh-dsa" class="text-base font-semibold text-gray-900">Kontaktstelle nach dem Digital Services Act</h2>
+      <p class="mt-1">Für Behörden, die EU-Kommission und für Nutzerinnen und Nutzer (Art. 11 und 12 DSA){% if op.dsa_email %}: <a class="underline" href="mailto:{{ op.dsa_email }}">{{ op.dsa_email }}</a>{% endif %}. Sprachen: Deutsch, Englisch.</p>
+      <p class="mt-1">Rechtswidrige Inhalte (Einträge, Bewertungen) melden Sie direkt am Eintrag über „Melden“ — siehe <a class="underline" href="{% url 'portal-nutzung' %}#meldungen">Nutzungsbedingungen</a>.</p>
+    </section>
+    <section aria-labelledby="lh-ranking" data-legal-ranking>
+      <h2 id="lh-ranking" class="text-base font-semibold text-gray-900">Wie wir sortieren</h2>
+      <p class="mt-1">Mit Suchbegriff ordnen wir nach Übereinstimmung mit Ihrer Suche (wie viele Suchwörter in Titel, Kategorie, Merkmalen und Beschreibung vorkommen, wie ähnlich sie sind), danach nach Aktualität. Ohne Suchbegriff stehen die neuesten Einträge oben.</p>
+      <p class="mt-1">Sie können selbst umsortieren: „Neueste“, „Endet bald“ (zuerst, was bald endet, dann die höhere Ersparnis), „Jetzt geöffnet“ und „In der Nähe“.</p>
+      <p class="mt-1">Bewertungen und Zahlungen beeinflussen diese Reihenfolge nicht. Bezahlte Platzierungen zeigen wir getrennt und mit „Anzeige“ gekennzeichnet (§ 5a Abs. 4, § 5b Abs. 2 UWG).</p>
+    </section>
+    <section aria-labelledby="lh-docs">
+      <h2 id="lh-docs" class="text-base font-semibold text-gray-900">Dokumente</h2>
+      <ul class="mt-1 list-disc pl-5 space-y-1">
+        <li><a class="underline" href="{% url 'portal-impressum' %}">Impressum</a></li>
+        <li><a class="underline" href="{% url 'portal-datenschutz' %}">Datenschutzerklärung</a></li>
+        <li><a class="underline" href="{% url 'portal-nutzung' %}">Nutzungsbedingungen</a></li>
+        {% if business_agb_url %}<li>Für Geschäfte, die sich eintragen: <a class="underline" href="{{ business_agb_url }}">AGB der Plattform siteadaptor</a></li>{% endif %}
+      </ul>
+    </section>
+  </div>
+</div>
+{% endblock %}

@@ -38651,3 +38651,19 @@ msgstr "noch nicht abonniert. Prüfen Sie die Auswahl und geben Sie unten Ihre E
 #: templates/aggregator/follow_center.html
 msgid "noch nicht gespeichert. Prüfen Sie die Auswahl und klicken Sie auf „Speichern“."
 msgstr "noch nicht gespeichert. Prüfen Sie die Auswahl und klicken Sie auf „Speichern“."
+
+#: templates/aggregator/_legal_frame.html
+msgid "Nutzungsbedingungen"
+msgstr "Nutzungsbedingungen"
+
+#: templates/aggregator/_legal_frame.html
+msgid "Rechtlich verbindlich ist die deutsche Fassung dieser Seite."
+msgstr "Rechtlich verbindlich ist die deutsche Fassung dieser Seite."
+
+#: templates/aggregator/_portal_footer.html
+msgid "AGB für Unternehmen"
+msgstr "AGB für Unternehmen"
+
+#: templates/aggregator/_portal_footer.html
+msgid "Kontakt und Meldungen"
+msgstr "Kontakt und Meldungen"

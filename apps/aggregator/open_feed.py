@@ -215,12 +215,14 @@ def feed_item(listing, *, request, preview: bool) -> dict:
     return item
 
 
-def _feed_meta(*, city: str, preview: bool) -> dict:
-    legal = legal_links()
+def _feed_meta(*, city: str, preview: bool, request=None) -> dict:
+    from .platform_links import portal_legal_links
+
+    legal = portal_legal_links(request) if request is not None else legal_links()
     meta = {
         "city": city or None,
         "license": LICENSE,
-        "terms_url": legal["datenschutz"],
+        "terms_url": legal.get("nutzung") or legal["datenschutz"],
         "impressum": legal["impressum"],
         "datenschutz": legal["datenschutz"],
         "discover": platform_url("aggregator-index"),
@@ -242,7 +244,7 @@ def json_feed(request, *, title: str, home_url: str, city: str, page, preview: b
             "Aktuelle Angebote lokaler Anbieter — offener Feed für Verzeichnisse und Assistenten."
         ),
         "items": items,
-        "_siteadaptor": _feed_meta(city=city, preview=preview),
+        "_siteadaptor": _feed_meta(city=city, preview=preview, request=request),
     }
     if page.next_cursor:
         params = {k: v for k, v in request.GET.lists()}

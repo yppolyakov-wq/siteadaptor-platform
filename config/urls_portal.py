@@ -9,7 +9,7 @@
 from django.conf import settings
 from django.urls import path
 
-from apps.aggregator import account_views, follow_views, portal_views, reviews_views
+from apps.aggregator import account_views, follow_views, legal_views, portal_views, reviews_views
 from apps.aggregator import reports as aggregator_reports
 from apps.aggregator import telegram_bot as portal_telegram
 from apps.aggregator import views as aggregator_views
@@ -100,6 +100,18 @@ urlpatterns = [
     path("sprache/", set_public_language, name="portal-set-language"),
     # Блок А3: «Für Unternehmen» — до catch-all <facet>.
     path("fuer-unternehmen/", portal_views.for_business, name="portal-for-business"),
+    # T-8.35: «Rechtliches» портала (оператор портала, не платформы)
+    path("rechtliches/", legal_views.legal_page, {"page": "hub"}, name="portal-legal"),
+    path("impressum/", legal_views.legal_page, {"page": "impressum"}, name="portal-impressum"),
+    path(
+        "datenschutz/", legal_views.legal_page, {"page": "datenschutz"}, name="portal-datenschutz"
+    ),
+    path(
+        "nutzungsbedingungen/",
+        legal_views.legal_page,
+        {"page": "nutzung"},
+        name="portal-nutzung",
+    ),
     path("ki-vorschlag/", portal_views.portal_ki_suggest, name="portal-ki-suggest"),
     path("<str:facet>/", portal_views.portal_home, name="portal-facet"),
 ]

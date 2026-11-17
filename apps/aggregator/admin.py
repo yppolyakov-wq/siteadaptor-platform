@@ -24,6 +24,7 @@ from .models import (
     FollowSubscription,
     ListingReport,
     PortalBot,
+    PortalOperator,
     PortalStat,
     PortalUser,
     SearchQueryLog,
@@ -413,6 +414,13 @@ class AggregatorPortalAdmin(ModelAdmin):
         (None, {"fields": ("host", "kind", "is_active")}),
         ("Filters", {"fields": ("city", "business_type", "show_demo")}),
         (
+            "Betreiber (T-8.35)",
+            {
+                "fields": ("operator",),
+                "description": "Impressum, Datenschutz und Nutzungsbedingungen des Portals.",
+            },
+        ),
+        (
             "Theme (T-8.14)",
             {
                 "fields": ("theme_tags", "theme_categories"),
@@ -568,3 +576,46 @@ class PortalStatAdmin(ModelAdmin):
         return _csv_response(
             "stadtportal-besuche.csv", list(fields), queryset.values_list(*fields).order_by("-day")
         )
+
+
+@admin.register(PortalOperator)
+class PortalOperatorAdmin(ModelAdmin):
+    """T-8.35: Betreiber eines Portals — Angaben für «Rechtliches» (nicht in git)."""
+
+    list_display = ("name", "legal_form", "zip_city", "email", "reviewed_at", "updated_at")
+    search_fields = ("name", "email")
+    readonly_fields = ("created_at", "updated_at")
+    fieldsets = (
+        (
+            "Anbieter (§ 5 DDG)",
+            {
+                "fields": (
+                    "name",
+                    "legal_form",
+                    "representative",
+                    "street",
+                    "zip_city",
+                    "country",
+                    "email",
+                    "phone",
+                    "register",
+                    "vat_id",
+                )
+            },
+        ),
+        (
+            "Verantwortung und Kontakte",
+            {"fields": ("responsible_mstv", "dsa_email", "supervisory_authority")},
+        ),
+        (
+            "Prüfung",
+            {
+                "fields": ("reviewed_at",),
+                "description": (
+                    "Erst setzen, wenn ein Rechtsanwalt die Texte geprüft hat. Bis dahin zeigen "
+                    "die Seiten den Hinweis „Entwurf — nicht rechtsverbindlich“."
+                ),
+            },
+        ),
+        ("Zeitstempel", {"fields": ("created_at", "updated_at")}),
+    )

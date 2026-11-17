@@ -77,8 +77,10 @@ def _data_block(
     return lines
 
 
-def _legal_block() -> list[str]:
-    legal = legal_links()
+def _legal_block(request=None) -> list[str]:
+    from .platform_links import portal_legal_links
+
+    legal = portal_legal_links(request) if request is not None else legal_links()
     return [
         "## " + _("Rechtliches"),
         f"- Impressum: {legal['impressum']}",
@@ -143,7 +145,7 @@ def build_portal(request, portal) -> str:
                 )
             )
         lines.append("")
-    lines += _legal_block()
+    lines += _legal_block(request)
     return "\n".join(lines) + "\n"
 
 

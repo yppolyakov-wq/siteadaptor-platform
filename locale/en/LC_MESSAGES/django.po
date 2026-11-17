@@ -38564,3 +38564,19 @@ msgstr "not subscribed yet. Check the selection and enter your e-mail below."
 #: templates/aggregator/follow_center.html
 msgid "noch nicht gespeichert. Prüfen Sie die Auswahl und klicken Sie auf „Speichern“."
 msgstr "not saved yet. Check the selection and click “Save”."
+
+#: templates/aggregator/_legal_frame.html
+msgid "Nutzungsbedingungen"
+msgstr "Terms of use"
+
+#: templates/aggregator/_legal_frame.html
+msgid "Rechtlich verbindlich ist die deutsche Fassung dieser Seite."
+msgstr "The German version of this page is legally binding."
+
+#: templates/aggregator/_portal_footer.html
+msgid "AGB für Unternehmen"
+msgstr "Terms for businesses"
+
+#: templates/aggregator/_portal_footer.html
+msgid "Kontakt und Meldungen"
+msgstr "Contact and reports"

@@ -38710,3 +38710,19 @@ msgstr "henüz abone olunmadı. Seçimi kontrol edin ve aşağıya e-posta adres
 #: templates/aggregator/follow_center.html
 msgid "noch nicht gespeichert. Prüfen Sie die Auswahl und klicken Sie auf „Speichern“."
 msgstr "henüz kaydedilmedi. Seçimi kontrol edin ve „Kaydet“e tıklayın."
+
+#: templates/aggregator/_legal_frame.html
+msgid "Nutzungsbedingungen"
+msgstr "Kullanım koşulları"
+
+#: templates/aggregator/_legal_frame.html
+msgid "Rechtlich verbindlich ist die deutsche Fassung dieser Seite."
+msgstr "Bu sayfanın hukuken bağlayıcı olan sürümü Almanca sürümüdür."
+
+#: templates/aggregator/_portal_footer.html
+msgid "AGB für Unternehmen"
+msgstr "İşletmeler için şartlar"
+
+#: templates/aggregator/_portal_footer.html
+msgid "Kontakt und Meldungen"
+msgstr "İletişim ve bildirimler"
