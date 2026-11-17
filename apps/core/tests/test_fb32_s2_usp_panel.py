@@ -83,3 +83,35 @@ def test_view_and_junk():
     assert (
         next(s for s in _cfg(b.tenant)["sections"] if s["key"] == "usp_bar")["style"] == "pillars"
     )
+
+
+def test_review_move_or_remove_without_rows_keeps_the_points():
+    b = _with_usp()
+    b.post(seite="home", op="update", ref="usp_bar", panel_present="1", f_usp_remove="0")
+    b.post(seite="home", op="update", ref="usp_bar", panel_present="1", f_usp_move="0:down")
+    b.post(seite="home", op="save")
+    assert _cfg(b.tenant)["usp_bar"] == USP
+
+
+def test_review_item_buttons_work_and_enter_means_apply():
+    b = _with_usp()
+    html = b.get("?seite=home&block=usp_bar")
+    form = html[html.index("data-schema-usp") :]
+    first_button = form[form.index("<button") : form.index("</button>")]
+    assert 'value="update"' in first_button, "Enter в поле — «Übernehmen»"
+    assert '<input type="hidden" name="op" value="update">' in form
+    form_data = _form(f_usp_move="0:down")
+    form_data.pop("op")
+    b.post(op="update", **{k: v for k, v in form_data.items()})
+    b.post(seite="home", op="save")
+    assert [u["label"] for u in _cfg(b.tenant)["usp_bar"]] == ["Regional", "Bio"]
+
+
+def test_review_stale_studio_tab_keeps_points_saved_in_the_schema():
+    from apps.core import site_schema
+
+    b = _with_usp()
+    old_hash = site_schema.structure_hash(b.tenant.site_config)
+    b.post(**_form(f_usp_0_label="Neu"))
+    b.post(seite="home", op="save")
+    assert site_schema.structure_hash(_cfg(b.tenant)) != old_hash, "правка пунктов видна отпечатку"
