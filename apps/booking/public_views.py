@@ -1995,8 +1995,9 @@ def _payment_kwargs(request, kind):
 
 
 def _manage_response(response):
-    # Токен в адресе не уходит наружу через Referer и не индексируется.
-    response["Referrer-Policy"] = "no-referrer"
+    # Токен в адресе не уходит наружу через Referer и не индексируется; «same-origin», а не
+    # «no-referrer» — иначе формы страницы шлют `Origin: null` и CSRF их отклоняет
+    response["Referrer-Policy"] = "same-origin"
     response["X-Robots-Tag"] = "noindex, nofollow"
     response["Cache-Control"] = "no-store"
     return response

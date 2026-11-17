@@ -206,7 +206,7 @@ def test_confirm_get_is_side_effect_free_post_creates_and_is_idempotent():
     )
     assert resp.status_code == 200
     assert b"data-follow-confirm" in resp.content
-    assert resp["Referrer-Policy"] == "no-referrer"
+    assert resp["Referrer-Policy"] == "same-origin"  # токен не наружу, Origin — свой
     assert "no-store" in resp["Cache-Control"]
     assert PortalUser.objects.filter(email=email).count() == 0
 
@@ -663,7 +663,7 @@ def test_manage_page_lists_only_own_follows_and_unknown_token_404():
     )
     html = resp.content.decode()
     assert sub.token in html and other_sub.token not in html
-    assert resp["Referrer-Policy"] == "no-referrer"
+    assert resp["Referrer-Policy"] == "same-origin"  # токен не наружу, Origin — свой
     from django.http import Http404
 
     with pytest.raises(Http404):

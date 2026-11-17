@@ -103,7 +103,7 @@ def test_get_shows_question_and_creates_nothing(tenant):
     assert resp.status_code == 200
     assert 'data-state="ask"' in body and 'method="post"' in body
     assert "a***@example.com" in body and "anna@example.com" not in body
-    assert resp["Referrer-Policy"] == "no-referrer"
+    assert resp["Referrer-Policy"] == "same-origin"  # токен не наружу, Origin — свой
     assert "no-cache" in resp["Cache-Control"]
     _nothing_created()
 

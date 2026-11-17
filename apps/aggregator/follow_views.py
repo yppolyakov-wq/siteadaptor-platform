@@ -85,7 +85,10 @@ def _base_template(portal) -> str:
 
 
 def _token_response(response):
-    response["Referrer-Policy"] = "no-referrer"
+    # «same-origin», а не «no-referrer»: адрес с токеном всё так же не уходит на чужие сайты,
+    # но формы этих страниц шлют настоящий Origin — при «no-referrer» браузер шлёт
+    # `Origin: null`, и CSRF-проверка Django отклоняет подписку (фидбэк владельца 2026-11-17)
+    response["Referrer-Policy"] = "same-origin"
     add_never_cache_headers(response)
     return response
 

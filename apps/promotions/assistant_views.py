@@ -29,7 +29,9 @@ RATE_LIMIT = 30
 
 
 def _headers(response):
-    response["Referrer-Policy"] = "no-referrer"
+    # «same-origin»: токен не уходит наружу, а формы шлют настоящий Origin (с «no-referrer»
+    # браузер шлёт `Origin: null` — CSRF отклоняет подтверждение)
+    response["Referrer-Policy"] = "same-origin"
     response["X-Robots-Tag"] = "noindex, nofollow"
     return response
 

@@ -66,7 +66,7 @@ def test_get_has_no_side_effects_and_safe_headers():
     token = cancel_policy.manage_token(b)
     resp = public_views.termin_manage(_req(path=_path(token)), token)
     assert resp.status_code == 200
-    assert resp["Referrer-Policy"] == "no-referrer"
+    assert resp["Referrer-Policy"] == "same-origin"  # токен не наружу, Origin — свой
     assert "noindex" in resp["X-Robots-Tag"]
     assert resp["Cache-Control"] == "no-store"
     body = resp.content.decode()
