@@ -311,6 +311,7 @@ RULES: dict[str, Rule] = {
     "reviews:reply": _r(M, ME),
     "reviews:toggle": _r(M, ME),
     "reviews:business-reply": _r(M, ME),
+    "reviews:business-objection": _r(M, ME),  # T-8.35 R5: Einwand gegen eine Bewertung
     "booking:no-show-rule": _r(CFG, CFGE),
     "booking:booking-rules": _r(CFG, CFGE),  # UX-D D2.1
     "booking:table-rules": _r(CFG, CFGE),

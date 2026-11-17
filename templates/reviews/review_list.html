@@ -47,7 +47,7 @@
         <summary class="cursor-pointer text-gray-600">{% if r.objection_text %}{% trans "Your objection" %}{% else %}{% trans "Object to this review" %}{% endif %}</summary>
         <form method="post" action="{% url 'reviews:business-objection' r.pk %}" class="mt-2 space-y-2">{% csrf_token %}
           <label class="block text-xs ui-muted" for="obj-{{ r.pk }}">{% trans "Why does the review break the rules (e.g. no customer, insult, false facts)?" %}</label>
-          <textarea id="obj-{{ r.pk }}" name="objection_text" rows="2" maxlength="2000" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">{{ r.objection_text }}</textarea>
+          <textarea id="obj-{{ r.pk }}" name="objection_text" rows="2" maxlength="2000" class="ui-input w-full text-sm">{{ r.objection_text }}</textarea>
           <button class="text-xs border border-gray-300 rounded-lg px-2.5 py-1.5 hover:border-indigo-400">{% trans "Send to portal operator" %}</button>
         </form>
       </details>
