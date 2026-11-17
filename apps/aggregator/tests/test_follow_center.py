@@ -295,8 +295,10 @@ def test_preselect_junk_is_dropped_and_not_reflected():
     assert "evil.example" not in back, "чужой next не становится ссылкой «Zurück»"
 
 
-@override_settings(ROOT_URLCONF="config.urls_portal")
 def test_preselect_over_limit_warns_without_saving(settings):
+    # только фикстура settings: вместе с декоратором override_settings откат ROOT_URLCONF
+    # оставлял urlconf портала следующим тестам (test_offer_page)
+    settings.ROOT_URLCONF = "config.urls_portal"
     settings.AGGREGATOR_FOLLOW = {**settings.AGGREGATOR_FOLLOW, "max_follows": 1}
     portal = _portal()
     user = _user()
