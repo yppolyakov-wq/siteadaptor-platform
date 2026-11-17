@@ -12,7 +12,7 @@
 
 import os
 import re
-from datetime import timedelta
+from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 from pathlib import Path
 
@@ -45,8 +45,13 @@ _PK = re.compile(r"(/aktionen/|/p/|pk=|data-promo-id=\")\d+")
 
 
 @pytest.fixture(autouse=True)
-def _urlconf(settings):
+def _urlconf(settings, monkeypatch):
     settings.ROOT_URLCONF = "config.urls_tenant"
+    # «сегодня» эталонов: сводка «по времени» зависит от даты (урок CI 2026-11-17); часы
+    # идут (порядок по времени создания сохраняется), старт — момент съёмки снимков
+    from apps.core.tests.test_fb31p5_detail_golden import ticking_clock
+
+    monkeypatch.setattr(timezone, "now", ticking_clock(datetime(2026, 11, 16, 5, 50, tzinfo=UTC)))
 
 
 def _normalize(html: str) -> str:

@@ -8,7 +8,7 @@
 
 import os
 import uuid
-from datetime import timedelta
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import pytest
@@ -37,8 +37,26 @@ TEXT = {
 }
 
 
+#: «сегодня» эталонов: календарь номера и сводки «по времени» зависят от даты (урок CI
+#: 2026-11-17 — снимки сняты 16-го, на следующий день прошедший день стал серым)
+FROZEN_NOW = datetime(2026, 11, 16, 10, 0, tzinfo=UTC)
+
+
+def ticking_clock(start):
+    """«Сейчас» от `start`, но идущее (порядок по времени создания сохраняется)."""
+    real = timezone.now
+    began = real()
+    return lambda: start + (real() - began)
+
+
+@pytest.fixture
+def frozen_now(monkeypatch):
+    monkeypatch.setattr(timezone, "now", ticking_clock(FROZEN_NOW))
+    return FROZEN_NOW
+
+
 @pytest.fixture(autouse=True)
-def _urlconf(settings):
+def _urlconf(settings, frozen_now):
     settings.ROOT_URLCONF = "config.urls_tenant"
 
 

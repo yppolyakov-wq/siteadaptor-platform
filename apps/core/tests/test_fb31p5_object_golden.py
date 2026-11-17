@@ -22,7 +22,8 @@ OWN = {"key": "text", "id": "t-own", "data": {"title": "Nur hier", "body": "Eige
 
 
 @pytest.fixture(autouse=True)
-def _urlconf(settings):
+def _urlconf(settings, monkeypatch):
+    monkeypatch.setattr(timezone, "now", g.ticking_clock(g.FROZEN_NOW))  # «сегодня» эталонов
     settings.ROOT_URLCONF = "config.urls_tenant"
 
 
