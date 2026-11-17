@@ -1,0 +1,59 @@
+"""FB-31.7: перенос прежних кодов шаблонов страниц в строки-оси «Seitenaufbau».
+
+Шаг `deploy.sh` (решение владельца). По всем сайтам (или --schema): для каждой поверхности
+вид после переноса сверяется с прежним; не совпал — поверхность не трогается и попадает в
+отчёт (SKIP/MISMATCH). Перед записью — снимок настроек в базе (`SiteConfigSnapshot`);
+`--undo` возвращает снимок, если настройки с тех пор не меняли. Повтор — 0 изменений.
+Сбой одного сайта не останавливает остальные; команда завершается ошибкой со списком.
+"""
+
+from django.core.management.base import BaseCommand, CommandError
+
+from apps.core import page_axes_migration as pam
+from apps.tenants.models import Tenant
+
+
+class Command(BaseCommand):
+    help = "FB-31.7: перенести старые коды шаблонов страниц в строки схемы"
+
+    def add_arguments(self, parser):
+        parser.add_argument("--schema", default="", help="один сайт (иначе все)")
+        parser.add_argument("--dry-run", action="store_true", help="только отчёт, без записи")
+        parser.add_argument("--undo", action="store_true", help="откат последнего переноса")
+
+    def handle(self, *args, **options):
+        tenants = Tenant.objects.exclude(schema_name="public").order_by("schema_name")
+        if options["schema"]:
+            tenants = tenants.filter(schema_name=options["schema"])
+            if not tenants.exists():
+                raise CommandError(f"нет такого сайта: {options['schema']}")
+        done = skipped = 0
+        failed = []
+        for tenant in tenants.only("pk", "schema_name"):
+            try:
+                if options["undo"]:
+                    result = pam.undo_tenant(tenant)
+                    if result != "none":
+                        self.stdout.write(f"{tenant.schema_name}: {result}")
+                    done += result == "undone"
+                    skipped += result == "changed"
+                    continue
+                report = pam.apply_tenant(tenant, dry_run=options["dry_run"])
+                if report.surfaces:
+                    parts = ", ".join(f"{k}={v}" for k, v in sorted(report.surfaces.items()))
+                    self.stdout.write(f"{tenant.schema_name}: {parts}")
+                done += report.changed
+                if report.mismatches:
+                    skipped += 1
+                    self.stderr.write(
+                        f"{tenant.schema_name}: ПРОПУЩЕНО {', '.join(report.mismatches)} "
+                        "(вид изменился бы — оставлено как есть)"
+                    )
+            except Exception as exc:  # noqa: BLE001 — один сайт не останавливает остальные
+                failed.append(tenant.schema_name)
+                self.stderr.write(f"{tenant.schema_name}: ОШИБКА {type(exc).__name__}: {exc}")
+        label = "Откат" if options["undo"] else ("Проверка" if options["dry_run"] else "Перенос")
+        self.stdout.write(f"{label}: сайтов изменено {done}, пропущено {skipped}")
+        if failed:
+            raise CommandError(f"не обработаны сайты: {', '.join(failed)}")
+        self.stdout.write(self.style.SUCCESS("Готово"))

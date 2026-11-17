@@ -72,3 +72,17 @@ Category/Promotion, `setup_assistant.py` (440, 494), демо-киты (≈12 м
 3. Поле «Vorlage der Seite» в формах категории и акции — убрать, вместо него ссылка
    «Im Seitenaufbau bearbeiten».
 4. Данные старых ключей — удалить через релиз после B3, отдельным шагом с бэкапом.
+
+## Ход работ
+- B1a (2026-11-17): ядро `page_parts.materialize_rows` (строки, дающие без кода тот же вид;
+  скрытая строка, которую заменяет код, — None), модуль `apps/core/page_axes_migration.py`
+  (поверхности переносятся по одной, вид сверяется после нормализации, расхождение — SKIP/
+  MISMATCH, старые ключи остаются), команда `materialize_page_axes` (`--schema`, `--dry-run`,
+  `--undo`), снимки — таблица `SiteConfigSnapshot` (миграция `tenants/0043`, public): откат,
+  если настройки не менялись; откаченный сайт следующий деплой не трогает. Шаг `deploy.sh`
+  после `import_banners` (сбой — WARN). Поверхности: девять листингов (`page_styles`) —
+  писатель в интерфейсе уже недоступен (P6), поэтому B2 для них не нужен.
+- Дальше: B1b каталог (`catalog_page_style`, `site_defaults.category_page_style`) и обзор
+  акций (`promo_page_style`) — с переводом их писателей (демо-киты, `promotions/views`);
+  затем объектные коды (`Category/Promotion.page_style`, группы) — с учётом лимита 120 хостов.
+

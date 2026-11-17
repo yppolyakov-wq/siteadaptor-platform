@@ -144,6 +144,13 @@ if ! $COMPOSE exec -T web python manage.py import_banners; then
 	echo "!!! WARN: import_banners FAILED for some schemas (see lines above)."
 	echo "!!! The site keeps the old slides there. Re-run: python manage.py import_banners"
 fi
+# FB-31.7 (решение владельца): старые коды шаблонов страниц -> строки схемы «Seitenaufbau».
+# Для каждого сайта вид «до/после» сверяется; расхождение — сайт не трогается (строки
+# «ПРОПУЩЕНО»). Снимок настроек — в базе; откат: python manage.py materialize_page_axes --undo
+if ! $COMPOSE exec -T web python manage.py materialize_page_axes; then
+	echo "!!! WARN: materialize_page_axes FAILED for some sites (see lines above)."
+	echo "!!! Those sites keep the old template codes. Re-run: python manage.py materialize_page_axes"
+fi
 sleep 5
 if curl -fsS "$HEALTH_URL" >/dev/null; then
 	echo "OK: readiness passed"

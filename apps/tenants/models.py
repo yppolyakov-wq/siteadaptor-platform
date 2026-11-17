@@ -850,3 +850,26 @@ class CustomDomain(models.Model):
     @property
     def is_active(self) -> bool:
         return self.status == self.ACTIVE
+
+
+class SiteConfigSnapshot(models.Model):
+    """FB-31.7: снимок `Tenant.site_config` до автоматической правки настроек сайта
+    (перенос старых кодов шаблонов в строки схемы — шаг `deploy.sh`). Откат — тем же
+    снимком, если настройки с тех пор не менялись (`after_hash`). В базе, а не файлом: на
+    сервере между деплоями живёт только веб-раздаваемый том медиа (SHARED/public)."""
+
+    tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE, related_name="config_snapshots")
+    #: что сделало правку (команда), чтобы откат брал только свои снимки
+    reason = models.CharField(max_length=60)
+    before = models.JSONField()
+    #: хэш настроек сразу после правки — откат только если с тех пор их никто не менял
+    after_hash = models.CharField(max_length=64)
+    created_at = models.DateTimeField(auto_now_add=True)
+    undone_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [models.Index(fields=["reason", "created_at"])]
+
+    def __str__(self):
+        return f"{self.tenant_id} · {self.reason} · {self.created_at:%Y-%m-%d %H:%M}"

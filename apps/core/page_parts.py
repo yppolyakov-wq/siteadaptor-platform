@@ -182,3 +182,47 @@ def effective_rows(s: Surface, rows, *, code: str = "") -> Parts:
     base = from_code(s, code).as_dict()
     base.update(_stored(s, _rows(rows)))
     return s.parts(**base)
+
+
+# ───────── FB-31.7: перенос прежнего кода в строки ─────────
+
+
+def materialize_rows(s: Surface, rows, code) -> list[dict] | None:
+    """Строки, которые без кода дают тот же вид, что `rows` с кодом `code`:
+    `effective_rows(s, new) == effective_rows(s, rows, code=code)`. Свои блоки, порядок и id
+    не трогаются; недостающая строка оси встаёт перед ★ (★ без маркера — в начало: все блоки
+    остаются под списком, как было). None — перенос невозможен без смены вида (скрытая
+    строка, которую сейчас заменяет код) — решение владельца FB-31.7: такой сайт пропустить."""
+    import copy
+
+    target = effective_rows(s, rows, code=code if isinstance(code, str) else "")
+    new = copy.deepcopy(_rows(rows))
+    if effective_rows(s, new) == target:
+        return new
+    lead = 0  # куда вставлять строки осей, если ★-маркера нет: в начало, по порядку осей
+    for a in s.axes:
+        want = target.get(a.name)
+        if from_rows(s, new).get(a.name) == want:
+            continue
+        row = next((r for r in new if r.get("key") == a.key and not r.get("id")), None)
+        if row is not None and a.key != MAIN_KEY and row.get("enabled") is False:
+            return None
+        if row is None:
+            row = {"key": a.key}
+            marker = next(
+                (i for i, r in enumerate(new) if r.get("key") == MAIN_KEY and not r.get("id")),
+                None,
+            )
+            # ★ без маркера: блоки и так «под списком» — маркер перед ними это сохраняет
+            at = marker if marker is not None and a.key != MAIN_KEY else lead
+            new.insert(at, row)
+            if marker is None:
+                lead += 1
+        value = want or a.off
+        if value:
+            row[a.field] = value
+        else:
+            row.pop(a.field, None)
+    if effective_rows(s, new) != target:
+        return None
+    return new
