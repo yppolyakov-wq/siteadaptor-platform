@@ -7,10 +7,14 @@
 Сбой одного сайта не останавливает остальные; команда завершается ошибкой со списком.
 """
 
+import logging
+
 from django.core.management.base import BaseCommand, CommandError
 
 from apps.core import page_axes_migration as pam
 from apps.tenants.models import Tenant
+
+logger = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):
@@ -27,33 +31,55 @@ class Command(BaseCommand):
             tenants = tenants.filter(schema_name=options["schema"])
             if not tenants.exists():
                 raise CommandError(f"нет такого сайта: {options['schema']}")
-        done = skipped = 0
+        done = skipped = would = 0
+        skipped_sites: list[str] = []
         failed = []
         for tenant in tenants.only("pk", "schema_name"):
             try:
                 if options["undo"]:
                     result = pam.undo_tenant(tenant)
-                    if result != "none":
-                        self.stdout.write(f"{tenant.schema_name}: {result}")
+                    if result == "undone":
+                        self.stdout.write(f"{tenant.schema_name}: undone")
+                    elif result == "changed":
+                        self.stderr.write(
+                            f"{tenant.schema_name}: changed — настройки меняли после переноса, "
+                            "откат не выполнен"
+                        )
                     done += result == "undone"
                     skipped += result == "changed"
                     continue
                 report = pam.apply_tenant(tenant, dry_run=options["dry_run"])
-                if report.surfaces:
-                    parts = ", ".join(f"{k}={v}" for k, v in sorted(report.surfaces.items()))
+                if report.surfaces and "*" not in report.surfaces:
+                    word = {"done": "would-move"} if options["dry_run"] else {}
+                    parts = ", ".join(
+                        f"{k}={word.get(v, v)}" for k, v in sorted(report.surfaces.items())
+                    )
                     self.stdout.write(f"{tenant.schema_name}: {parts}")
-                done += report.changed
+                done += report.changed and not options["dry_run"]
+                would += report.changed and options["dry_run"]
+                if report.busy:
+                    self.stderr.write(f"{tenant.schema_name}: занят — повтор на следующем деплое")
                 if report.mismatches:
+                    skipped_sites.append(tenant.schema_name)
                     skipped += 1
                     self.stderr.write(
                         f"{tenant.schema_name}: ПРОПУЩЕНО {', '.join(report.mismatches)} "
                         "(вид изменился бы — оставлено как есть)"
                     )
             except Exception as exc:  # noqa: BLE001 — один сайт не останавливает остальные
+                # (в т.ч. lock_timeout: строка занята — повтор на следующем деплое)
+                logger.exception("materialize_page_axes: %s failed", tenant.schema_name)
                 failed.append(tenant.schema_name)
                 self.stderr.write(f"{tenant.schema_name}: ОШИБКА {type(exc).__name__}: {exc}")
         label = "Откат" if options["undo"] else ("Проверка" if options["dry_run"] else "Перенос")
-        self.stdout.write(f"{label}: сайтов изменено {done}, пропущено {skipped}")
+        if options["dry_run"]:
+            self.stdout.write(f"{label}: изменилось бы сайтов {would}, пропущено {skipped}")
+        else:
+            self.stdout.write(f"{label}: сайтов изменено {done}, пропущено {skipped}")
+        if skipped_sites:
+            self.stderr.write(
+                "ПРОПУЩЕНЫ (вид изменился бы, сайт не тронут): " + ", ".join(skipped_sites)
+            )
         if failed:
             raise CommandError(f"не обработаны сайты: {', '.join(failed)}")
         self.stdout.write(self.style.SUCCESS("Готово"))

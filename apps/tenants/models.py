@@ -853,7 +853,7 @@ class CustomDomain(models.Model):
 
 
 class SiteConfigSnapshot(models.Model):
-    """FB-31.7: снимок `Tenant.site_config` до автоматической правки настроек сайта
+    """FB-31.7: снимок изменённой части `Tenant.site_config` до автоматической правки
     (перенос старых кодов шаблонов в строки схемы — шаг `deploy.sh`). Откат — тем же
     снимком, если настройки с тех пор не менялись (`after_hash`). В базе, а не файлом: на
     сервере между деплоями живёт только веб-раздаваемый том медиа (SHARED/public)."""
@@ -868,8 +868,8 @@ class SiteConfigSnapshot(models.Model):
     undone_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
-        ordering = ["-created_at"]
-        indexes = [models.Index(fields=["reason", "created_at"])]
+        ordering = ["-created_at", "-id"]
+        indexes = [models.Index(fields=["tenant", "reason", "-created_at"])]
 
     def __str__(self):
         return f"{self.tenant_id} · {self.reason} · {self.created_at:%Y-%m-%d %H:%M}"

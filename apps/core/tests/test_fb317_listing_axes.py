@@ -87,3 +87,33 @@ def test_no_code_no_change():
     cfg = {"hero_title": "x"}
     new, report = page_axes_migration.migrate(cfg)
     assert new == cfg and report.surfaces == {}
+
+
+def test_review_translations_follow_their_blocks_after_rows_are_inserted():
+    from apps.tenants import siteconfig
+
+    text = {"key": "text", "id": "t1", "data": {"title": "Hallo", "body": "x"}}
+    cfg = {
+        "page_styles": {"services": "kopfbild"},
+        "page_blocks": {"services": [text]},
+        "i18n": {"en": {"page_blocks": {"services": [{"data": {"title": "Hello"}}]}}},
+    }
+    new, report = page_axes_migration.migrate(cfg)
+    assert report.surfaces == {"services": "done"}
+    rows = siteconfig.localize(siteconfig.normalize(new), "en")["page_blocks"]["services"]
+    own = next(r for r in rows if r.get("id") == "t1")
+    assert own["data"]["title"] == "Hello", "перевод остался у своего блока"
+
+
+def test_review_one_mismatch_leaves_the_whole_site_untouched(monkeypatch):
+    from apps.core import page_parts as pp
+
+    real = pp.materialize_rows
+
+    def fail_events(s, rows, code):
+        return None if s.name == "events" else real(s, rows, code)
+
+    monkeypatch.setattr(pp, "materialize_rows", fail_events)
+    cfg = {"page_styles": {"events": "tabs", "services": "kopfbild"}}
+    new, report = page_axes_migration.migrate(cfg)
+    assert report.surfaces["events"] == "skip" and new == cfg, "сайт не тронут целиком"

@@ -31,7 +31,7 @@ def test_moves_codes_keeps_a_snapshot_and_rerun_does_nothing():
     assert t.site_config["page_blocks"]["services"], "оси — строками"
     assert t.site_config["page_styles"] == {"services": "kopfbild"}, "старый ключ — до релиза"
     snap = SiteConfigSnapshot.objects.get(tenant=t)
-    assert snap.before == {"page_styles": {"services": "kopfbild"}}
+    assert snap.before == {"page_blocks": None, "i18n": None}, "только меняемые ключи"
     out, _ = _run("--schema", t.schema_name)
     assert SiteConfigSnapshot.objects.filter(tenant=t).count() == 1, "повтор — 0 изменений"
 
@@ -40,7 +40,7 @@ def test_dry_run_writes_nothing():
     t = _tenant({"page_styles": {"events": "tabs"}})
     out, _ = _run("--schema", t.schema_name, "--dry-run")
     t.refresh_from_db()
-    assert "events=done" in out and "page_blocks" not in t.site_config
+    assert "events=would-move" in out and "page_blocks" not in t.site_config
     assert not SiteConfigSnapshot.objects.filter(tenant=t).exists()
 
 
@@ -62,9 +62,9 @@ def test_undo_refuses_when_settings_changed_since():
     t.refresh_from_db()
     t.site_config = {**t.site_config, "hero_title": "neu"}
     t.save(update_fields=["site_config"])
-    out, _ = _run("--schema", t.schema_name, "--undo")
+    _out, err = _run("--schema", t.schema_name, "--undo")
     t.refresh_from_db()
-    assert "changed" in out and t.site_config["hero_title"] == "neu"
+    assert "changed" in err and t.site_config["hero_title"] == "neu"
 
 
 def test_one_failing_site_does_not_stop_the_others(monkeypatch):
@@ -89,3 +89,54 @@ def test_deploy_runs_the_step_and_does_not_stop_on_failure():
 
     src = pathlib.Path("scripts/deploy.sh").read_text()
     assert "if ! $COMPOSE exec -T web python manage.py materialize_page_axes; then" in src
+
+
+def test_review_undo_works_after_the_jsonb_roundtrip_with_floats_and_cyrillic():
+    cfg = {
+        "page_styles": {"services": "kopfbild"},
+        "hero_title": "Привет",
+        "detail_related_layout": {"preset": "cols4", "ratio": 1.5, "big": 100.0},
+    }
+    t = _tenant(cfg)
+    _run("--schema", t.schema_name)
+    out, _ = _run("--schema", t.schema_name, "--undo")
+    assert "undone" in out
+    t.refresh_from_db()
+    assert t.site_config["page_styles"] == {"services": "kopfbild"}
+    assert "services" not in (t.site_config.get("page_blocks") or {})
+
+
+def test_review_snapshot_keeps_only_the_changed_key():
+    t = _tenant({"page_styles": {"services": "kopfbild"}, "hero_title": "x"})
+    _run("--schema", t.schema_name)
+    assert SiteConfigSnapshot.objects.get(tenant=t).before == {"page_blocks": None, "i18n": None}
+
+
+def test_review_rolled_back_site_is_quiet_on_the_next_deploy():
+    t = _tenant({"page_styles": {"services": "kopfbild"}})
+    _run("--schema", t.schema_name)
+    _run("--schema", t.schema_name, "--undo")
+    _out, err = _run("--schema", t.schema_name)
+    assert "ПРОПУЩЕНО" not in err
+
+
+def test_review_concurrent_save_is_not_overwritten(monkeypatch):
+    from apps.tenants.models import Tenant
+
+    t = _tenant({"page_styles": {"services": "kopfbild"}})
+    real = pam.migrate
+    calls = []
+
+    def racing(raw):
+        if not calls:  # кабинет сохраняет между чтением и блокировкой
+            Tenant.objects.filter(pk=t.pk).update(
+                site_config={**raw, "hero_title": "aus dem Kabinett"}
+            )
+        calls.append(1)
+        return real(raw)
+
+    monkeypatch.setattr(pam, "migrate", racing)
+    _run("--schema", t.schema_name)
+    t.refresh_from_db()
+    assert t.site_config["hero_title"] == "aus dem Kabinett", "правка кабинета не затёрта"
+    assert t.site_config["page_blocks"]["services"], "перенос посчитан заново и записан"
