@@ -38726,3 +38726,71 @@ msgstr "İşletmeler için şartlar"
 #: templates/aggregator/_portal_footer.html
 msgid "Kontakt und Meldungen"
 msgstr "İletişim ve bildirimler"
+
+#: apps/aggregator/review_moderation.py
+msgid "Being checked by the portal"
+msgstr "Portal tarafından inceleniyor"
+
+#: apps/aggregator/review_moderation.py
+msgid "Ihre Bewertung ist veröffentlicht"
+msgstr "Değerlendirmeniz yayınlandı"
+
+#: apps/aggregator/review_moderation.py
+msgid "Ihre Bewertung wurde nicht veröffentlicht"
+msgstr "Değerlendirmeniz yayınlanmadı"
+
+#: apps/aggregator/review_moderation.py
+msgid "New reviews are checked before publication."
+msgstr "Yeni değerlendirmeler yayınlanmadan önce kontrol edilir."
+
+#: apps/aggregator/review_moderation.py
+msgid "Not published"
+msgstr "Yayınlanmadı"
+
+#: apps/aggregator/review_moderation.py
+msgid "Object to this review"
+msgstr "Bu değerlendirmeye itiraz et"
+
+#: apps/aggregator/review_moderation.py
+msgid "Objection sent to the portal operator."
+msgstr "İtiraz portal işletmecisine gönderildi."
+
+#: apps/aggregator/review_moderation.py
+msgid "Objection withdrawn."
+msgstr "İtiraz geri çekildi."
+
+#: apps/aggregator/review_moderation.py
+msgid "Pending review"
+msgstr "İncelemede"
+
+#: apps/aggregator/review_moderation.py
+msgid "Rejected"
+msgstr "Reddedildi"
+
+#: apps/aggregator/review_moderation.py
+msgid "Rules"
+msgstr "Kurallar"
+
+#: apps/aggregator/review_moderation.py
+msgid "Send to portal operator"
+msgstr "Portal işletmecisine gönder"
+
+#: apps/aggregator/review_moderation.py
+msgid "Thank you! Your review will appear after it has been checked."
+msgstr "Teşekkürler! Değerlendirmeniz kontrol edildikten sonra görünecek."
+
+#: apps/aggregator/review_moderation.py
+msgid "Why does the review break the rules (e.g. no customer, insult, false facts)?"
+msgstr "Değerlendirme neden kuralları ihlal ediyor (ör. müşteri değil, hakaret, yanlış bilgi)?"
+
+#: apps/aggregator/review_moderation.py
+msgid "Your objection"
+msgstr "İtirazınız"
+
+#: apps/aggregator/review_moderation.py
+msgid "Your review is being checked and will appear after approval."
+msgstr "Değerlendirmeniz kontrol ediliyor ve onaydan sonra görünecek."
+
+#: apps/aggregator/review_moderation.py
+msgid "Your review was not published."
+msgstr "Değerlendirmeniz yayınlanmadı."

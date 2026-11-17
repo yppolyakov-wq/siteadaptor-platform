@@ -23,33 +23,37 @@
     </section>
     <section id="ds-suche">
       <h2 class="font-semibold text-gray-900">4. Suche und Statistik</h2>
-      <p class="mt-1">Suchanfragen zählen wir ohne Personenbezug (Tag, Suchbegriff, Stadt), um das Angebot zu verbessern; Einzelanfragen löschen wir nach {{ facts.search_log_days_single }} Tagen, Tagessummen nach {{ facts.search_log_days }} Tagen. Seitenaufrufe pro Eintrag zählen wir als Summen ohne IP-Adresse und löschen sie nach {{ facts.stats_days }} Tagen (Art. 6 Abs. 1 lit. f DSGVO).</p>
+      <p class="mt-1">Suchanfragen zählen wir als Tagessummen (Tag, Suchbegriff, Stadt) ohne IP-Adresse, Konto oder Sitzung, um das Angebot zu verbessern. Erkennbare E-Mail-Adressen, Telefon- und Kontonummern entfernen wir; geben Sie selbst Namen oder Adressen in die Suche ein, können diese im Suchbegriff enthalten sein. Einmalige Suchbegriffe löschen wir nach {{ facts.search_log_days_single }} Tagen, die übrigen nach {{ facts.search_log_days }} Tagen. Seitenaufrufe pro Eintrag zählen wir als Summen ohne IP-Adresse und löschen sie nach {{ facts.stats_days }} Tagen (Art. 6 Abs. 1 lit. f DSGVO).</p>
       <p class="mt-1">„In der Nähe“: Ihr Standort wird nur nach Ihrer Freigabe im Browser ermittelt, als Koordinaten in der Adresszeile übergeben und nicht gespeichert.</p>
     </section>
     {% if facts.map_tiles %}<section id="ds-karte">
       <h2 class="font-semibold text-gray-900">5. Karte</h2>
-      <p class="mt-1">Die Kartenansicht lädt Kartenkacheln direkt von {{ facts.map_tiles }} (openfreemap.org). Dabei erhält der Anbieter Ihre IP-Adresse und die angefragten Kartenausschnitte. Das geschieht nur, wenn eine Karte angezeigt wird — in der Suche erst nach Klick auf „Karte“, auf Eintragsseiten mit Standort beim Aufruf (Art. 6 Abs. 1 lit. f DSGVO — Darstellung des Standorts der Geschäfte).</p>
+      <p class="mt-1">Die Kartenansicht lädt Kartenkacheln direkt von {{ facts.map_tiles }} (openfreemap.org). Dabei erhält der Anbieter Ihre IP-Adresse und die angefragten Kartenausschnitte. Das geschieht nur, wenn eine Karte angezeigt wird — in der Suche, sobald Sie die Kartenansicht wählen oder über einen Link mit Kartenansicht kommen, auf Eintragsseiten mit Standort beim Aufruf (Art. 6 Abs. 1 lit. f DSGVO — Darstellung des Standorts der Geschäfte).</p>
     </section>{% endif %}
     <section id="ds-konto">
       <h2 class="font-semibold text-gray-900">6. Konto für Bewohnerinnen und Bewohner</h2>
-      <p class="mt-1">Für ein Konto genügt Ihre E-Mail-Adresse; Sie melden sich über einen Link per E-Mail an (ohne Passwort). Wir speichern E-Mail, Sprache, Zeitpunkt der letzten Anmeldung, gemerkte Einträge und Ihre Benachrichtigungen (Art. 6 Abs. 1 lit. b DSGVO). Die Daten bleiben bis zur Löschung des Kontos; schreiben Sie uns dazu formlos.</p>
+      <p class="mt-1">Für ein Konto genügt Ihre E-Mail-Adresse; Sie melden sich über einen Link per E-Mail an (ohne Passwort). Wir speichern E-Mail, Sprache, Zeitpunkt der letzten Anmeldung, gemerkte Einträge und Ihre Benachrichtigungen (Art. 6 Abs. 1 lit. b DSGVO). Die Daten bleiben bis zur Löschung des Kontos. Zum Löschen schreiben Sie uns formlos (Kontakt oben); wir erledigen das innerhalb eines Monats (Art. 12 Abs. 3 DSGVO). Dabei werden auch Ihre Benachrichtigungen, gemerkten Einträge und Bewertungen gelöscht.</p>
     </section>
     <section id="ds-folgen">
       <h2 class="font-semibold text-gray-900">7. Benachrichtigungen („Folgen“)</h2>
-      <p class="mt-1">Wenn Sie Geschäften, Bereichen, Stadtteilen oder Suchen folgen, senden wir Ihnen neue Angebote per E-Mail — erst nach Bestätigung über einen Link (Double-Opt-In). Rechtsgrundlage ist Ihre Einwilligung (Art. 6 Abs. 1 lit. a, Art. 7 DSGVO); als Nachweis speichern wir Zeitpunkt und Portal der Bestätigung. Sie können jederzeit mit einem Klick in jeder E-Mail abbestellen; das Widerrufen berührt die Rechtmäßigkeit der bisherigen Verarbeitung nicht (Art. 7 Abs. 3 DSGVO).</p>
+      <p class="mt-1">Wenn Sie Geschäften, Bereichen, Stadtteilen oder Suchen folgen, senden wir Ihnen neue Angebote per E-Mail — erst nach Bestätigung über einen Link (Double-Opt-In). Rechtsgrundlage ist Ihre Einwilligung (Art. 6 Abs. 1 lit. a, Art. 7 DSGVO); als Nachweis speichern wir Zeitpunkt und Portal der Bestätigung. Versandte Sammel-E-Mails protokollieren wir {{ facts.digest_days }} Tage (gegen doppelten Versand). Sie können jederzeit mit einem Klick in jeder E-Mail abbestellen; das Widerrufen berührt die Rechtmäßigkeit der bisherigen Verarbeitung nicht (Art. 7 Abs. 3 DSGVO).</p>
     </section>
     <section id="ds-bewertungen">
       <h2 class="font-semibold text-gray-900">8. Bewertungen</h2>
-      <p class="mt-1">Bewertungen sind mit Ihrem Konto verbunden. Veröffentlicht werden Sterne, Text und Datum — weder Ihr Name noch Ihre E-Mail-Adresse. Hat das Geschäft Sie unter derselben E-Mail-Adresse als Gast erfasst (z. B. Buchung), erscheint der Hinweis „Verifizierter Gast“; dazu gleichen wir nur die E-Mail-Adresse ab. Das bewertete Geschäft kann öffentlich antworten. Rechtsgrundlage: Art. 6 Abs. 1 lit. b DSGVO (Nutzungsbedingungen). Sie können Ihre Bewertung jederzeit löschen lassen.</p>
+      <p class="mt-1">Bewertungen sind mit Ihrem Konto verbunden. Veröffentlicht werden Sterne, Text und Datum — weder Ihr Name noch Ihre E-Mail-Adresse. Hat das Geschäft Sie unter derselben E-Mail-Adresse als Gast erfasst (z. B. Buchung), erscheint der Hinweis „Verifizierter Gast“; dazu gleichen wir nur die E-Mail-Adresse ab. Das bewertete Geschäft kann öffentlich antworten. Rechtsgrundlage: Art. 6 Abs. 1 lit. b DSGVO (Nutzungsbedingungen). Neue Bewertungen prüfen wir vor der Veröffentlichung; über die Entscheidung informieren wir Sie per E-Mail. Zum Löschen Ihrer Bewertung schreiben Sie uns formlos.</p>
     </section>
     <section id="ds-meldungen">
       <h2 class="font-semibold text-gray-900">9. Meldungen („Melden“)</h2>
-      <p class="mt-1">Bei einer Meldung speichern wir Grund, Ihren Text und einen nicht umkehrbaren Hash Ihrer Netzadresse (gegen Mehrfachmeldungen), um rechtswidrige Inhalte zu prüfen (Art. 6 Abs. 1 lit. c und f DSGVO, Art. 16 DSA).</p>
+      <p class="mt-1">Bei einer Meldung speichern wir Grund, Ihren Text und einen nicht umkehrbaren Hash Ihres Netzbereichs (nicht der vollständigen IP-Adresse; gegen Mehrfachmeldungen), um rechtswidrige Inhalte zu prüfen (Art. 6 Abs. 1 lit. c und f DSGVO, Art. 16 DSA).</p>
     </section>
     <section id="ds-telegram">
       <h2 class="font-semibold text-gray-900">10. Telegram-Bot des Portals</h2>
-      <p class="mt-1">Im Telegram-Bot können Sie suchen und folgen. Suchen speichern wir nicht mit Ihrer Person; für Abos speichern wir Ihre numerische Telegram-Chat-ID und Ihre Auswahl. Telegram verarbeitet Daten auch außerhalb der EU in eigener Verantwortung. Löschen jederzeit mit <code>/daten_loeschen</code>, Auskunft mit <code>/meine_daten</code>.</p>
+      <p class="mt-1">Im Telegram-Bot können Sie suchen und folgen. Suchen speichern wir nicht mit Ihrer Person; für Abos speichern wir Ihre numerische Telegram-Chat-ID und Ihre Auswahl. Telegram verarbeitet Daten auch außerhalb der EU in eigener Verantwortung. Löschen jederzeit mit <code>/daten_loeschen</code>, Auskunft mit <code>/meine_daten</code>. Haben Sie den Bot gesperrt, löschen wir die Daten nach {{ facts.bot_blocked_days }} Tagen, ohne Abo und Aktivität nach {{ facts.bot_idle_days }} Tagen.</p>
     </section>
+    {% if facts.ai %}<section id="ds-ki">
+      <h2 class="font-semibold text-gray-900">10a. KI-Hilfe bei der Suche</h2>
+      <p class="mt-1">Findet die Suche zu Ihrer Anfrage nichts oder wenig, kann ein KI-Dienst passende Filter oder deutsche Suchbegriffe vorschlagen; angewendet wird ein Vorschlag erst, wenn Sie ihn anklicken. Dazu übermitteln wir nur die Suchphrase, Stadt und Sprache — ohne IP-Adresse oder Konto; erkennbare E-Mail-Adressen, Telefon- und Kontonummern entfernen wir vorher (Art. 6 Abs. 1 lit. f DSGVO). {% if facts.ai.who %}Empfänger: {{ facts.ai.who }}. {{ facts.ai.transfer }}{% endif %}{% if facts.ai.days %} Wir protokollieren nur Aufgabe, Umfang und Dauer der Anfrage ({{ facts.ai.days }} Tage).{% endif %}</p>
+    </section>{% endif %}
     <section id="ds-empfaenger">
       <h2 class="font-semibold text-gray-900">11. Empfänger</h2>
       <ul class="mt-1 list-disc pl-5 space-y-1">
@@ -57,6 +61,7 @@
         <li>Resend, Inc., USA — Versand von E-Mails (Auftragsverarbeitung; Übermittlung in die USA auf Grundlage der Standardvertragsklauseln bzw. des EU-US Data Privacy Framework).</li>
         {% if facts.map_tiles %}<li>OpenFreeMap (openfreemap.org) — Kartenkacheln, siehe Nr. 5.</li>{% endif %}
         <li>Telegram — nur bei Nutzung des Bots, siehe Nr. 10.</li>
+        {% if facts.ai.who %}<li>{{ facts.ai.who }} — KI-Hilfe bei der Suche, siehe Nr. 10a.</li>{% endif %}
       </ul>
       <p class="mt-1">Daten von Bewohnerinnen und Bewohnern geben wir nicht an die Geschäfte weiter, außer dem öffentlichen Inhalt Ihrer Bewertung.</p>
     </section>

@@ -638,7 +638,7 @@ class AggregatorPortal(I18nMixin, models.Model):
     show_demo = models.BooleanField(default=False)
     # T-8.35: кто отвечает за портал (Rechtliches). Пусто — страницы «Entwurf».
     operator = models.ForeignKey(
-        PortalOperator, null=True, blank=True, on_delete=models.SET_NULL, related_name="portals"
+        PortalOperator, null=True, blank=True, on_delete=models.PROTECT, related_name="portals"
     )
 
     is_active = models.BooleanField(default=True)
@@ -938,13 +938,23 @@ class BusinessReview(models.Model):
     """Отзыв клиента портала о бизнесе (G8, SHARED/public).
 
     Привязан к бизнесу (tenant_schema), а не к отдельной акции — один автор
-    (PortalUser) оставляет один отзыв на бизнес. Авто-публикация; супер-админ
-    может скрыть (status=hidden, модерация). Агрегат — BusinessRating.
+    (PortalUser) оставляет один отзыв на бизнес. T-8.35 R5: премодерация (pending →
+    published/rejected решением оператора, `review_moderation`); супер-админ может скрыть
+    (hidden). Агрегат — BusinessRating (только published).
     """
 
     STATUS_PUBLISHED = "published"
     STATUS_HIDDEN = "hidden"
-    STATUSES = [(STATUS_PUBLISHED, _("Published")), (STATUS_HIDDEN, _("Hidden"))]
+    # T-8.35 R5 (решение владельца 2026-11-17): премодерация — новый/изменённый отзыв ждёт
+    # решения оператора; бизнес видит очередь и может возразить (Einwand).
+    STATUS_PENDING = "pending"
+    STATUS_REJECTED = "rejected"
+    STATUSES = [
+        (STATUS_PUBLISHED, _("Published")),
+        (STATUS_HIDDEN, _("Hidden")),
+        (STATUS_PENDING, _("Pending review")),
+        (STATUS_REJECTED, _("Rejected")),
+    ]
 
     tenant_schema = models.CharField(max_length=63)
     tenant_slug = models.SlugField(max_length=100)
@@ -959,6 +969,11 @@ class BusinessReview(models.Model):
     reply_text = models.TextField(blank=True, default="")
     replied_at = models.DateTimeField(null=True, blank=True)
     status = models.CharField(max_length=10, choices=STATUSES, default=STATUS_PUBLISHED)
+    # T-8.35 R5: решение модерации с обоснованием (DSA Art. 17) и возражение бизнеса.
+    decision_reason = models.TextField("Begründung der Entscheidung", blank=True, default="")
+    decided_at = models.DateTimeField(null=True, blank=True)
+    objection_text = models.TextField("Einwand des Geschäfts", blank=True, default="")
+    objection_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

@@ -39,8 +39,19 @@
   {% for r in business_reviews %}
     <div class="border-b border-gray-100 last:border-0 py-3 {% if r.status == 'hidden' %}opacity-60{% endif %}">
       <p class="text-sm"><span class="text-amber-500">{{ r.stars }}</span>
-        <span class="text-xs text-gray-400">· {{ r.created_at|date:"d.m.Y" }}{% if r.status == 'hidden' %} · {% trans "Hidden" %}{% endif %}</span></p>
+        <span class="text-xs text-gray-400">· {{ r.created_at|date:"d.m.Y" }}{% if r.status == 'hidden' %} · {% trans "Hidden" %}{% elif r.status == 'pending' %} · <span class="text-amber-800" data-biz-review-pending>{% trans "Being checked by the portal" %}</span>{% elif r.status == 'rejected' %} · {% trans "Not published" %}{% endif %}</span></p>
       {% if r.comment %}<p class="text-sm mt-1 whitespace-pre-line">{{ r.comment }}</p>{% endif %}
+      {% if r.status == 'pending' or r.status == 'published' %}
+      {% comment %}T-8.35 R5: Einwand бизнеса — решает оператор портала.{% endcomment %}
+      <details class="mt-2 text-sm"{% if r.objection_text %} open{% endif %}>
+        <summary class="cursor-pointer text-gray-600">{% if r.objection_text %}{% trans "Your objection" %}{% else %}{% trans "Object to this review" %}{% endif %}</summary>
+        <form method="post" action="{% url 'reviews:business-objection' r.pk %}" class="mt-2 space-y-2">{% csrf_token %}
+          <label class="block text-xs ui-muted" for="obj-{{ r.pk }}">{% trans "Why does the review break the rules (e.g. no customer, insult, false facts)?" %}</label>
+          <textarea id="obj-{{ r.pk }}" name="objection_text" rows="2" maxlength="2000" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">{{ r.objection_text }}</textarea>
+          <button class="text-xs border border-gray-300 rounded-lg px-2.5 py-1.5 hover:border-indigo-400">{% trans "Send to portal operator" %}</button>
+        </form>
+      </details>
+      {% endif %}
       {# 1а: публичный ответ владельца — паттерн CM-6.2 #}
       {% url 'reviews:business-reply' r.pk as reply_url %}{% include "reviews/_reply_form.html" with action=reply_url kind_key="b" %}
     </div>

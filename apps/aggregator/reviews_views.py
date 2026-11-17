@@ -190,10 +190,9 @@ def submit_review(request, slug):
     user = auth.current_portal_user(request)
     if user is None:
         return redirect("portal-login")
-    # MEDIUM-11: отзыв публикуется сразу и двигает агрегатный рейтинг бизнеса (SEO
-    # JSON-LD). Отзыв на бизнес можно оставить по slug на ЛЮБОГО (не только там, где
-    # была покупка), поэтому дросселируем массовую накрутку/бомбинг по IP. Полная
-    # защита (верификация визита/модерация) — отдельным продуктовым решением владельца.
+    # MEDIUM-11: отзыв на бизнес можно оставить по slug на ЛЮБОГО (не только там, где
+    # была покупка), поэтому дросселируем массовую накрутку/бомбинг по IP; публикация —
+    # после премодерации (T-8.35 R5).
     if ratelimit.hit("biz_review", ratelimit.client_ip(request), limit=10, window=3600):
         return HttpResponse(status=429)
     business = _business_or_404(request, slug)
@@ -204,17 +203,20 @@ def submit_review(request, slug):
     if not 1 <= rating <= 5:
         messages.error(request, _("Please choose a rating from 1 to 5 stars."))
         return redirect("portal-business", slug=slug)
-    BusinessReview.objects.update_or_create(
-        author=user,
-        tenant_schema=business.schema_name,
-        defaults={
-            "tenant_slug": slug,
-            "business_name": business.name,
-            "rating": rating,
-            "comment": request.POST.get("comment", "").strip()[:2000],
-            "status": BusinessReview.STATUS_PUBLISHED,
-        },
+    # T-8.35 R5: премодерация — новый или изменённый отзыв виден после проверки
+    from . import review_moderation
+
+    review = review_moderation.submit(
+        user=user,
+        business=business,
+        slug=slug,
+        rating=rating,
+        comment=request.POST.get("comment", ""),
     )
-    reviews.recompute_rating(business.schema_name)
-    messages.success(request, _("Thank you for your review!"))
+    if review.status == BusinessReview.STATUS_PENDING:
+        messages.success(
+            request, _("Thank you! Your review will appear after it has been checked.")
+        )
+    else:
+        messages.success(request, _("Thank you for your review!"))
     return redirect("portal-business", slug=slug)

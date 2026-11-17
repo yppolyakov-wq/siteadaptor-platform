@@ -69,7 +69,7 @@ def info(portal) -> Info:
     operator = getattr(portal, "operator", None) if portal is not None else None
     gaps = missing(operator)
     if gaps and portal is not None:
-        logger.warning(
+        logger.info(
             "portal legal pages are a draft: operator data missing",
             extra={"portal": getattr(portal, "host", ""), "missing": list(gaps)},
         )

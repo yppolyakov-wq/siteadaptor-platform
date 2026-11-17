@@ -107,6 +107,30 @@ def business_review_reply(request, pk):
 
 @login_required
 @require_POST
+def business_review_objection(request, pk):
+    """T-8.35 R5: Einwand бизнеса против портального отзыва о нём — решает оператор
+    портала (очередь админки). Чужой pk = 404 (SHARED-модель, фильтр по своей схеме)."""
+    from django.db import connection
+    from django.http import Http404
+
+    from apps.aggregator import review_moderation
+    from apps.aggregator.models import BusinessReview
+
+    review = BusinessReview.objects.filter(pk=pk, tenant_schema=connection.schema_name).first()
+    if review is None:
+        raise Http404("not this tenant's review")
+    review_moderation.object_to(review, request.POST.get("objection_text", ""))
+    messages.success(
+        request,
+        _("Objection sent to the portal operator.")
+        if review.objection_text
+        else _("Objection withdrawn."),
+    )
+    return redirect(f"{reverse('reviews:list')}?typ=betrieb")
+
+
+@login_required
+@require_POST
 def review_reply(request, pk):
     """CM-6.2: ответ владельца (пустой текст = убрать ответ)."""
     from django.utils import timezone

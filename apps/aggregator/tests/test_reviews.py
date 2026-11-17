@@ -24,7 +24,8 @@ pytestmark = pytest.mark.django_db
 
 
 @pytest.fixture(autouse=True)
-def _portal_urlconf(settings):
+def _portal_urlconf(settings, isolated_ratelimit):
+    # T-8.35 R5: свой счётчик лимита отзывов на тест — иначе 10/час с одного IP копятся
     settings.ROOT_URLCONF = "config.urls_portal"
 
 
@@ -54,6 +55,14 @@ def _req(method="get", path="/", data=None, user=None):
     return request
 
 
+def _approve_all():
+    """T-8.35 R5: отзывы проходят премодерацию — одобрить всё, что ждёт решения."""
+    from apps.aggregator import review_moderation
+
+    for r in BusinessReview.objects.filter(status=BusinessReview.STATUS_PENDING):
+        review_moderation.decide(r, BusinessReview.STATUS_PUBLISHED)
+
+
 # --- отправка отзыва --------------------------------------------------------------
 
 
@@ -65,6 +74,9 @@ def test_submit_review_creates_and_aggregates():
     assert resp.status_code == 302
     review = BusinessReview.objects.get(tenant_schema=business.schema_name)
     assert review.rating == 5 and review.author == user
+    assert review.status == BusinessReview.STATUS_PENDING, "премодерация (T-8.35 R5)"
+    assert not BusinessRating.objects.filter(tenant_schema=business.schema_name).exists()
+    _approve_all()
     rating = BusinessRating.objects.get(tenant_schema=business.schema_name)
     assert rating.avg_rating == Decimal("5.00") and rating.review_count == 1
 
@@ -76,6 +88,7 @@ def test_one_review_per_business_updates():
         _req("post", data={"rating": "5", "comment": "besser"}, user=user), slug=business.slug
     )
     assert BusinessReview.objects.filter(tenant_schema=business.schema_name).count() == 1
+    _approve_all()
     assert BusinessRating.objects.get(tenant_schema=business.schema_name).avg_rating == Decimal(
         "5.00"
     )
@@ -115,6 +128,7 @@ def test_business_page_renders_with_reviews():
 def test_business_page_emits_aggregaterating_jsonld():
     business, user = _business(), _user()
     reviews_views.submit_review(_req("post", data={"rating": "4"}, user=user), slug=business.slug)
+    _approve_all()
     body = reviews_views.business_page(_req(user=user), slug=business.slug).content.decode()
     assert "AggregateRating" in body and '"reviewCount":1' in body
 
@@ -158,6 +172,7 @@ def test_ratings_for_batch_skips_unreviewed():
     b1, b2 = _business("a"), _business("b")
     user = _user()
     reviews_views.submit_review(_req("post", data={"rating": "5"}, user=user), slug=b1.slug)
+    _approve_all()
     result = reviews.ratings_for([b1.schema_name, b2.schema_name])
     assert b1.schema_name in result
     assert b2.schema_name not in result  # без отзывов — нет строки рейтинга
@@ -217,6 +232,7 @@ def test_business_page_renders_on_main_domain_without_portal(settings):
         _req("post", data={"rating": "5", "comment": "TopService"}, user=user),
         slug=business.slug,
     )
+    _approve_all()
     assert reverse("portal-business", kwargs={"slug": "haupt-domain"}).startswith(
         "/entdecken/unternehmen/"
     )
@@ -301,3 +317,62 @@ def test_business_page_scoped_to_portal_city_and_type():
     business.business_type = "hotel"
     business.save(update_fields=["business_type"])
     assert reviews_views.business_page(_req(), slug=business.slug).status_code == 200
+
+
+# --- T-8.35 R5: премодерация ---------------------------------------------------------
+
+
+def test_new_review_waits_for_approval_and_author_gets_the_decision(
+    django_capture_on_commit_callbacks,
+):
+    from unittest import mock
+
+    from apps.aggregator import review_moderation
+
+    business, user = _business(), _user()
+    reviews_views.submit_review(
+        _req("post", data={"rating": "1", "comment": "Schlimm"}, user=user), slug=business.slug
+    )
+    page = reviews_views.business_page(_req(user=user), slug=business.slug).content.decode()
+    assert "data-review-pending" in page
+    other = reviews_views.business_page(_req(), slug=business.slug).content.decode()
+    assert "Schlimm" not in other, "до решения отзыв не виден"
+    review = BusinessReview.objects.get(tenant_schema=business.schema_name)
+    with mock.patch("apps.aggregator.tasks.send_review_decision_email.delay") as send:
+        with django_capture_on_commit_callbacks(execute=True):
+            review_moderation.decide(review, BusinessReview.STATUS_REJECTED, reason="")
+    review.refresh_from_db()
+    assert review.status == "rejected" and "Nutzungsbedingungen" in review.decision_reason
+    assert send.call_count == 1 and send.call_args.kwargs["review_id"] == review.pk
+
+
+def test_unchanged_published_review_stays_published_and_edit_requeues(isolated_ratelimit):
+    business, user = _business(), _user()
+    reviews_views.submit_review(_req("post", data={"rating": "4"}, user=user), slug=business.slug)
+    _approve_all()
+    reviews_views.submit_review(_req("post", data={"rating": "4"}, user=user), slug=business.slug)
+    review = BusinessReview.objects.get(tenant_schema=business.schema_name)
+    assert review.status == BusinessReview.STATUS_PUBLISHED
+    reviews_views.submit_review(_req("post", data={"rating": "2"}, user=user), slug=business.slug)
+    review.refresh_from_db()
+    assert review.status == BusinessReview.STATUS_PENDING
+    assert BusinessRating.objects.get(tenant_schema=business.schema_name).review_count == 0
+
+
+def test_decision_email_text(mailoutbox):
+    from apps.aggregator import tasks
+
+    business, user = _business(), _user()
+    review = BusinessReview.objects.create(
+        author=user,
+        tenant_schema=business.schema_name,
+        tenant_slug=business.slug,
+        business_name="Werkstatt Müller",
+        rating=1,
+        status=BusinessReview.STATUS_REJECTED,
+        decision_reason="Beleidigung",
+    )
+    tasks.send_review_decision_email.run(review_id=review.pk) if hasattr(
+        tasks.send_review_decision_email, "run"
+    ) else tasks.send_review_decision_email(review_id=review.pk)
+    assert len(mailoutbox) == 1 and "Beleidigung" in mailoutbox[0].body

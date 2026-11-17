@@ -202,3 +202,37 @@ def test_reply_field_sits_behind_antworten_button():
         assert "<summary" in block and 'name="reply_text"' in block
     assert "Antworten" in body and "Antwort bearbeiten" in body
     assert "data-review-reply" in body and "Danke!" in body
+
+
+def test_business_objection_to_pending_review_and_cross_tenant_404():
+    """T-8.35 R5: бизнес видит отзыв «на проверке» и возражает (решает оператор портала)."""
+    import pytest as _pytest
+    from django.db import connection
+    from django.http import Http404
+
+    from apps.aggregator.models import BusinessReview, PortalUser
+
+    review = BusinessReview.objects.create(
+        tenant_schema=connection.schema_name,
+        tenant_slug="mein",
+        author=PortalUser.objects.create(email="einwand@portal.de"),
+        rating=1,
+        comment="Nie da gewesen",
+        status=BusinessReview.STATUS_PENDING,
+    )
+    body = views.review_list(_req(data={"typ": "betrieb"})).content.decode()
+    assert "data-biz-review-pending" in body and "objection_text" in body
+    views.business_review_objection(
+        _req("post", data={"objection_text": "Kein Kunde"}), pk=review.pk
+    )
+    review.refresh_from_db()
+    assert review.objection_text == "Kein Kunde" and review.objection_at is not None
+    assert review.status == BusinessReview.STATUS_PENDING, "решает оператор, не бизнес"
+    foreign = BusinessReview.objects.create(
+        tenant_schema="fremde_schema",
+        tenant_slug="fremd",
+        author=PortalUser.objects.create(email="f3@portal.de"),
+        rating=1,
+    )
+    with _pytest.raises(Http404):
+        views.business_review_objection(_req("post", data={"objection_text": "x"}), pk=foreign.pk)

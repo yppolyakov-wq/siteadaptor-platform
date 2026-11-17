@@ -38580,3 +38580,71 @@ msgstr "Terms for businesses"
 #: templates/aggregator/_portal_footer.html
 msgid "Kontakt und Meldungen"
 msgstr "Contact and reports"
+
+#: apps/aggregator/review_moderation.py
+msgid "Being checked by the portal"
+msgstr "Being checked by the portal"
+
+#: apps/aggregator/review_moderation.py
+msgid "Ihre Bewertung ist veröffentlicht"
+msgstr "Your review has been published"
+
+#: apps/aggregator/review_moderation.py
+msgid "Ihre Bewertung wurde nicht veröffentlicht"
+msgstr "Your review was not published"
+
+#: apps/aggregator/review_moderation.py
+msgid "New reviews are checked before publication."
+msgstr "New reviews are checked before publication."
+
+#: apps/aggregator/review_moderation.py
+msgid "Not published"
+msgstr "Not published"
+
+#: apps/aggregator/review_moderation.py
+msgid "Object to this review"
+msgstr "Object to this review"
+
+#: apps/aggregator/review_moderation.py
+msgid "Objection sent to the portal operator."
+msgstr "Objection sent to the portal operator."
+
+#: apps/aggregator/review_moderation.py
+msgid "Objection withdrawn."
+msgstr "Objection withdrawn."
+
+#: apps/aggregator/review_moderation.py
+msgid "Pending review"
+msgstr "Pending review"
+
+#: apps/aggregator/review_moderation.py
+msgid "Rejected"
+msgstr "Rejected"
+
+#: apps/aggregator/review_moderation.py
+msgid "Rules"
+msgstr "Rules"
+
+#: apps/aggregator/review_moderation.py
+msgid "Send to portal operator"
+msgstr "Send to portal operator"
+
+#: apps/aggregator/review_moderation.py
+msgid "Thank you! Your review will appear after it has been checked."
+msgstr "Thank you! Your review will appear after it has been checked."
+
+#: apps/aggregator/review_moderation.py
+msgid "Why does the review break the rules (e.g. no customer, insult, false facts)?"
+msgstr "Why does the review break the rules (e.g. no customer, insult, false facts)?"
+
+#: apps/aggregator/review_moderation.py
+msgid "Your objection"
+msgstr "Your objection"
+
+#: apps/aggregator/review_moderation.py
+msgid "Your review is being checked and will appear after approval."
+msgstr "Your review is being checked and will appear after approval."
+
+#: apps/aggregator/review_moderation.py
+msgid "Your review was not published."
+msgstr "Your review was not published."

@@ -88,3 +88,20 @@
   1440/390 — R2.
 - Финальный гейт: `ruff check`, `ruff format --check .`, `test_template_comments.py`,
   `scripts/i18n_quickcheck.py`, `npm run build:css` при новых классах.
+
+## Ход работ
+- **R1–R4 ✅** (2026-11-17): `PortalOperator` (+ FK `operator`, PROTECT), `portal_operator.info/missing`,
+  страницы `legal_views` (хаб, Impressum, Datenschutz, Nutzungsbedingungen), подвал/формы/llms/фид.
+  Ревью `django-reviewer`: тексты сверены с кодом — журнал поиска не «ohne Personenbezug»,
+  раздел «KI-Hilfe bei der Suche» (только когда ИИ поиска включён, получатель — из
+  `apps.ai.disclosure`), «Anzeige» сверху первой страницы (не отдельно), сроки бота и сводок
+  из констант, удаление аккаунта — письмом за месяц (самообслуживания нет), хэш сети, не IP.
+- **R5 ✅** (2026-11-17): премодерация — `review_moderation` (единственный писатель статуса
+  отзыва): `submit` → pending (неизменённый опубликованный остаётся), `decide` (админка:
+  действия «Freigeben»/«Ablehnen», обоснование, письмо автору `send_review_decision_email`),
+  `object_to` (Einwand бизнеса из кабинета «Über den Betrieb»). Старые отзывы не трогаются.
+  Миграция `aggregator/0042` (вместе с оператором).
+- Открыто: R6 языки (тексты пока только de + плашка «verbindlich ist die deutsche Fassung»);
+  версия текстов vs `reviewed_at` (после правки текстов дату проверки ставить заново — процесс
+  владельца); удаление аккаунта жителем самостоятельно — кандидат в бэклог.
+

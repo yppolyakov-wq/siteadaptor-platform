@@ -79,6 +79,9 @@
     <form method="post" action="{% url 'portal-business-review' slug=business.slug %}" class="bg-white rounded-2xl shadow-sm p-5 mb-6 max-w-xl space-y-3">
       {% csrf_token %}
       <p class="font-medium text-sm">{% if my_review %}{% trans "Update your review" %}{% else %}{% trans "Leave a review" %}{% endif %}</p>
+      {% if my_review.status == "pending" %}<p class="text-sm text-amber-800 bg-amber-50 rounded-lg px-3 py-2" role="status" data-review-pending>{% trans "Your review is being checked and will appear after approval." %}</p>
+      {% elif my_review.status == "rejected" %}<p class="text-sm text-gray-700 bg-gray-50 rounded-lg px-3 py-2" data-review-rejected>{% trans "Your review was not published." %}{% if my_review.decision_reason %} {{ my_review.decision_reason }}{% endif %}</p>{% endif %}
+      {% if portal %}<p class="text-xs text-gray-500">{% trans "New reviews are checked before publication." %} <a href="{% url 'portal-nutzung' %}#bewertungen" class="underline">{% trans "Rules" %}</a></p>{% endif %}
       <div>
         <label class="block text-sm text-gray-500 mb-1" for="id_rating">{% trans "Rating" %}</label>
         <select id="id_rating" name="rating" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">

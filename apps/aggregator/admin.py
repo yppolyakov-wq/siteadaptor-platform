@@ -309,24 +309,66 @@ class SearchQueryLogAdmin(ModelAdmin):
 
 @admin.register(BusinessReview)
 class BusinessReviewAdmin(ModelAdmin):
-    """Модерация отзывов (G8): супер-админ скрывает абьюз (status=hidden).
+    """Модерация отзывов (G8 → T-8.35 R5 премодерация): очередь «pending», решения
+    «Freigeben»/«Ablehnen» с обоснованием (письмо автору, DSA Art. 17), Einwand бизнеса.
 
-    После смены статуса агрегат пересчитывается (save_model)."""
+    Смена статуса — через `review_moderation.decide` (агрегат, письмо)."""
 
-    list_display = ("business_name", "rating", "status", "created_at")
+    list_display = ("business_name", "rating", "status", "has_objection", "created_at")
     search_fields = ("business_name", "tenant_slug", "comment")
     list_filter = ("status", "rating")
-    readonly_fields = ("tenant_schema", "tenant_slug", "business_name", "author", "created_at")
+    readonly_fields = (
+        "tenant_schema",
+        "tenant_slug",
+        "business_name",
+        "author",
+        "objection_text",
+        "objection_at",
+        "decided_at",
+        "created_at",
+    )
     ordering = ("-created_at",)
+    actions = ("approve_reviews", "reject_reviews")
 
     def has_add_permission(self, request):
         return False  # отзывы создают клиенты на порталах
 
+    @admin.display(boolean=True, description="Einwand")
+    def has_objection(self, obj):
+        return bool(obj.objection_text)
+
     def save_model(self, request, obj, form, change):
-        super().save_model(request, obj, form, change)
+        from . import review_moderation
         from .reviews import recompute_rating
 
+        if change and "status" in form.changed_data and obj.status in review_moderation.DECISIONS:
+            status, reason = obj.status, obj.decision_reason
+            obj.status = form.initial.get("status", obj.status)
+            super().save_model(request, obj, form, change)
+            review_moderation.decide(obj, status, reason=reason)
+            return
+        super().save_model(request, obj, form, change)
         recompute_rating(obj.tenant_schema)
+
+    @admin.action(description="Freigeben (veröffentlichen)")
+    def approve_reviews(self, request, queryset):
+        from . import review_moderation
+
+        n = sum(
+            review_moderation.decide(r, BusinessReview.STATUS_PUBLISHED, reason="")
+            for r in queryset
+        )
+        self.message_user(request, f"{n} Bewertung(en) veröffentlicht.")
+
+    @admin.action(description="Ablehnen (Begründung aus dem Feld oder Standardtext)")
+    def reject_reviews(self, request, queryset):
+        from . import review_moderation
+
+        n = sum(
+            review_moderation.decide(r, BusinessReview.STATUS_REJECTED, reason=r.decision_reason)
+            for r in queryset
+        )
+        self.message_user(request, f"{n} Bewertung(en) abgelehnt.")
 
 
 @admin.register(PortalUser)

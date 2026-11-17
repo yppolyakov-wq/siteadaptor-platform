@@ -1,12 +1,17 @@
 {
  "apps/aggregator/admin.py": [
+  "Ablehnen (Begründung aus dem Feld oder Standardtext)",
+  "Bewertung(en) veröffentlicht.",
   "Erst setzen, wenn ein Rechtsanwalt die Texte geprüft hat. Bis dahin zeigen die Seiten den Hinweis „Entwurf — nicht rechtsverbindlich“.",
+  "Freigeben (veröffentlichen)",
   "From @BotFather. Leave blank to keep current. Save, then run «Connect».",
   "Impressum, Datenschutz und Nutzungsbedingungen des Portals.",
   "Verantwortung und Kontakte"
  ],
  "apps/aggregator/models.py": [
+  "Begründung der Entscheidung",
   "Datenschutz-Aufsichtsbehörde",
+  "Einwand des Geschäfts",
   "Name und Anschrift; leer = wie Betreiber",
   "PLZ und Ort",
   "Rechtstexte geprüft am",
@@ -20,6 +25,9 @@
  "apps/aggregator/portal_operator.py": [
   "Name / Firma",
   "PLZ und Ort"
+ ],
+ "apps/aggregator/review_moderation.py": [
+  "Die Bewertung verstößt gegen unsere Nutzungsbedingungen (Abschnitt „Bewertungen“)."
  ],
  "apps/ai/disclosure.py": [
   "Antwortvorschläge auf Kundennachrichten: Nachrichten und Angaben zur Bestellung",
@@ -305,6 +313,7 @@
  "templates/aggregator/legal_datenschutz.html": [
   ", Auskunft mit",
   "10. Telegram-Bot des Portals",
+  "10a. KI-Hilfe bei der Suche",
   "11. Empfänger",
   "12. Ihre Rechte",
   "2. Hosting und Server-Logdaten",

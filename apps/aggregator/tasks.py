@@ -1836,6 +1836,46 @@ def send_follow_confirm_email(*, email, url, locale):
 
 
 @idempotent_task()
+def send_review_decision_email(*, review_id):
+    """T-8.35 R5: решение модерации автору отзыва (DSA Art. 17) — на языке жителя."""
+    from django.conf import settings
+    from django.core.mail import send_mail
+    from django.utils import translation
+    from django.utils.translation import gettext as _
+
+    from .models import BusinessReview
+
+    review = BusinessReview.objects.select_related("author").filter(pk=review_id).first()
+    if review is None or not review.author.email or not review.author.is_active:
+        return {"skipped": review_id}
+    with translation.override(review.author.locale or "de"):
+        if review.status == BusinessReview.STATUS_PUBLISHED:
+            subject = _("Ihre Bewertung ist veröffentlicht")
+            body = _(
+                "Guten Tag,\n\nIhre Bewertung von „%(name)s“ ist jetzt auf dem Stadtportal "
+                "sichtbar. Vielen Dank!"
+            ) % {"name": review.business_name}
+        elif review.status == BusinessReview.STATUS_REJECTED:
+            subject = _("Ihre Bewertung wurde nicht veröffentlicht")
+            body = _(
+                "Guten Tag,\n\nIhre Bewertung von „%(name)s“ haben wir nicht veröffentlicht.\n\n"
+                "Begründung: %(reason)s\n\n"
+                "Sie können die Bewertung auf der Seite des Geschäfts ändern und erneut senden "
+                "oder innerhalb von sechs Monaten über die Kontaktstelle des Portals "
+                "widersprechen (Rechtliches)."
+            ) % {"name": review.business_name, "reason": review.decision_reason}
+        else:
+            return {"skipped": review_id}
+    send_mail(
+        subject=subject,
+        message=body,
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=[review.author.email],
+    )
+    return {"sent": review_id}
+
+
+@idempotent_task()
 def purge_follow_digests():
     """Beat раз в сутки: отправленные сводки старше retention (DSGVO-минимизация)."""
     from . import follow_digest
