@@ -2615,7 +2615,10 @@ def normalize_detail_sections(raw, module: str) -> dict:
 def detail_section_hidden(config, module: str) -> set:
     """Множество СКРЫТЫХ секций детали module (для рендера/билдера)."""
     raw = (config or {}).get(detail_section_config_key(module))
-    return set(normalize_detail_sections(raw, module).get("hidden", []))
+    hidden = set(normalize_detail_sections(raw, module).get("hidden", []))
+    if module == "cart" and (config or {}).get("cart_show_upsell") is False:
+        hidden.add("upsell")  # FB-32 S4: видимость полосы — прежний ключ
+    return hidden
 
 
 def detail_section_order(config, module: str) -> list[str]:

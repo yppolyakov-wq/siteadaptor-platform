@@ -1090,7 +1090,7 @@ def blocks_for(
             out[-1].update(_part_view_panel(config, host, item, main))
     from apps.core import detail_parts as _dp
 
-    if _dp.module_of(host or ""):
+    if _dp.module_of(host or "") and host != "cart":  # FB-32 S4: у корзины покупки нет
         # FB-31 P5: «Buchung» закреплена после разделов (так её рисует страница); блоки
         # после неё — хвост страницы, как раньше
         keys = set(_dp.section_keys(host))
@@ -2931,8 +2931,12 @@ SETTINGS_FOLLOWERS: dict[str, tuple[str, ...]] = {}
 
 #: FB-31 P5 R7: настройки типа, которые правятся на строке своего раздела, а не на строке
 #: «Seite» (код страницы → {настройка: ref строки}); рядом — строки «Design» для этой строки.
-SETTING_ROWS = {"product": {"product_related": "related"}}
-SETTING_ROW_DESIGN = {"related": ("product_card_form",)}
+SETTING_ROWS = {
+    "product": {"product_related": "related"},
+    # FB-32 S4: «Passt gut dazu» корзины — настройки на её строке, не в «Seite»
+    "cart": {"cart_upsell": "upsell"},
+}
+SETTING_ROW_DESIGN = {"related": ("product_card_form",), "upsell": ("product_card_form",)}
 
 
 def row_settings(code: str, ref: str) -> tuple[str, ...]:

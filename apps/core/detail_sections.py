@@ -91,6 +91,9 @@ DETAIL_SECTIONS: dict[str, tuple[DetailSection, ...]] = {
     ),
     # UA4-1 slice C: секции детальной НОМЕРА (stays.StayUnit) — по факту stay_detail.html
     # (описание/оснащение/отзывы/похожие). Hide-only.
+    # FB-32 S4: страница корзины — «Passt gut dazu» строкой схемы (двигается, скрывается,
+    # свои блоки выше/ниже). Видимость — прежний ключ `cart_show_upsell`.
+    "cart": (DetailSection("upsell", _("Goes well with this")),),
     "stays": (
         DetailSection("description", _("Description")),
         DetailSection("amenities", _("Amenities")),

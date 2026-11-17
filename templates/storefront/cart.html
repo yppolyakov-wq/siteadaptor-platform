@@ -236,13 +236,11 @@
   </aside>
 </div>
 
-{% if upsell and cart_show_upsell %}
-  <section class="mt-10">
-    <h2 class="text-lg font-bold mb-4"><span data-edit="cart_upsell_title">{% if cart_upsell_title %}{{ cart_upsell_title }}{% else %}{% trans "Goes well with this" %}{% endif %}</span></h2>
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-      {% for p in upsell %}{% include "storefront/_product_card.html" %}{% endfor %}
-    </div>
-  </section>
+{% if cart_flow %}
+{% comment %}FB-32 S4: свои блоки выше и ниже «Passt gut dazu» — порядок из «Seitenaufbau».{% endcomment %}
+{% for it in cart_flow %}{% if it.section == "upsell" %}{% include "storefront/_cart_upsell.html" %}{% else %}{% page_blocks "cart" it.part %}{% endif %}{% endfor %}
+{% else %}
+{% include "storefront/_cart_upsell.html" %}
 {% endif %}
 
 {% else %}
@@ -254,5 +252,5 @@
   <a href="{% url 'storefront-products' %}" class="inline-block rounded-lg px-5 py-2.5 text-white font-medium" style="background: var(--accent);">{% if request.tenant|is_food_business %}{% trans "Browse the menu" %}{% else %}{% trans "Browse the range" %}{% endif %} →</a>
 </div>
 {% endif %}
-{% page_blocks "cart" %}
+{% if not cart_flow %}{% page_blocks "cart" %}{% elif not rows and not combo_rows %}{% page_blocks "cart" %}{% endif %}
 {% endblock %}

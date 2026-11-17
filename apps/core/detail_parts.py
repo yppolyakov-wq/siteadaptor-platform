@@ -23,6 +23,8 @@ SECTION_HOSTS = {
     # товар и номер: разделы в двух полосах страницы — порядок постоянный (решение владельца)
     "product_detail": "catalog",
     "stay_detail": "stays",
+    # FB-32 S4: корзина — один раздел «Passt gut dazu»
+    "cart": "cart",
 }
 #: разделы первого экрана (рядом с покупкой): скрыть можно, блоки рядом с ними — перед телом
 FIRST_SCREEN = {
@@ -298,6 +300,8 @@ def lift(config: dict, host: str, items: list[dict]) -> list[dict]:
         for r in items
         if r.get("key") in keys and not r.get("id") and r.get("enabled") is False
     )
+    if module == "cart":
+        return _lift_cart(config, items, keys, hidden)
     cfg_key = siteconfig.detail_section_config_key(module)
     detail = dict(config.get(cfg_key) or {}) if isinstance(config.get(cfg_key), dict) else {}
     if order and order != full_order(config, module):
@@ -306,6 +310,36 @@ def lift(config: dict, host: str, items: list[dict]) -> list[dict]:
         detail["hidden"] = hidden
         config[cfg_key] = detail
     return [{"key": r["key"]} if r.get("key") in keys and not r.get("id") else r for r in items]
+
+
+def _lift_cart(config: dict, items: list[dict], keys: set, hidden: list) -> list[dict]:
+    """FB-32 S4: видимость «Passt gut dazu» — в прежний `cart_show_upsell` (один ключ на
+    Студию и схему); якорь хранится, только когда свой блок стоит выше него — иначе
+    страница рисуется прежней разметкой байт-в-байт."""
+    if "upsell" in hidden:
+        config["cart_show_upsell"] = False
+    else:
+        config.pop("cart_show_upsell", None)
+    out = []
+    for r in items:
+        if r.get("key") in keys and not r.get("id"):
+            if any(o.get("id") for o in out):
+                out.append({"key": r["key"]})
+            continue
+        out.append(r)
+    return out
+
+
+def cart_flow(config) -> list[dict]:
+    """Поток страницы корзины: [{"section": "upsell"} | {"part": "ids:…"}]; пусто — прежняя
+    разметка (полоса, затем все блоки)."""
+    from apps.tenants import siteconfig
+
+    norm = siteconfig.normalize(config)
+    rows = siteconfig.page_rows(norm, "cart")
+    hidden = siteconfig.detail_section_hidden(norm, "cart")
+    order = [k for k in section_keys("cart") if k not in hidden]
+    return flow(rows, "cart", order, all_order=list(section_keys("cart")))
 
 
 def _fixed(a: dict, host: str) -> tuple[list, list]:
