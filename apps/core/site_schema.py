@@ -115,9 +115,9 @@ _STRUCT_FIELDS = ("key", "id", "enabled", "width", "pos", "newline")
 OWNED_DATA_KINDS = ("list", "textpage", "contact_card")
 #: То же у встроенного списка главной: что, сколько и как он показывает, правит панель
 #: «Seitenaufbau» — эти поля строки входят в отпечаток и переживают устаревшую вкладку.
-BUILTIN_OWNED_FIELDS = ("data", "limit", "layout", "source")
+BUILTIN_OWNED_FIELDS = ("data", "limit", "layout", "source", "style")
 #: FB-29.2: выбор места показа у блока «Banner» (баннеры и настройки слайдера).
-_BANNER_CHOICE_FIELDS = ("pick", "auto", "interval", "arrows", "from_page")
+_BANNER_CHOICE_FIELDS = ("pick", "auto", "interval", "arrows", "from_page", "single")
 
 
 def _is_builtin_list(item: dict) -> bool:
@@ -785,9 +785,12 @@ def _row_summary(config: dict, item: dict) -> str:
     parts: list[str] = []
     if kind == "hero" and not item.get("id"):
         # FB-29.2: баннеры выбраны из библиотеки — считаем их, иначе прежние слайды
-        picked = (config.get("hero_banners") or {}).get("pick") or []
+        choice = config.get("hero_banners") or {}
+        picked = choice.get("pick") or []
         slides = len(picked) or len(config.get("heroes") or [])
-        if slides > 1:
+        if slides > 1 and picked and choice.get("single"):
+            parts.append(str(_("Ein Banner")))  # FB-32 S3: первый из выбранных
+        elif slides > 1:
             parts += [_("%(n)s Folien") % {"n": slides}, str(_("Slider"))]
     elif kind == "list" or (kind in siteconfig.BUILTIN_LIST_SOURCES and not item.get("id")):
         if kind == "list":
@@ -812,6 +815,9 @@ def _row_summary(config: dict, item: dict) -> str:
             cols = layout.get("cols")
             if cols and not slider and str(cols) not in ("", "1"):
                 parts.append(_("%(n)s Spalten") % {"n": cols})
+        style = data.get("style") if kind == "list" else item.get("style")
+        if style:  # FB-32 S1: подпись строки показывает выбранный вид
+            parts.append(str(siteconfig.SECTION_STYLE_LABELS.get(style, style)))
         parts.append(str(_("Slider") if slider else _("Raster")))
     else:
         text = data.get("title") or data.get("label") or data.get("caption") or data.get("body")
@@ -855,7 +861,7 @@ def _textpage_summaries(rows: list[dict], items: list[dict]) -> None:
 # панели так же, как блок «Liste». Источник закреплён ключом секции; оси хранятся там же,
 # где их читает витрина: «что» — `data` строки (+ легаси `source` товаров), лимит — `limit`,
 # вид — `layout` (cols/rows/scroll). Второго хранилища нет.
-BUILTIN_VIEW_FIELDS = ("limit", "out", "cols", "rows")
+BUILTIN_VIEW_FIELDS = ("limit", "out", "cols", "rows", "style")
 
 
 def builtin_panel_data(item: dict) -> dict:
@@ -871,6 +877,8 @@ def builtin_panel_data(item: dict) -> dict:
         data["rows"] = layout["rows"]
     if item.get("limit"):
         data["limit"] = item["limit"]
+    if item.get("style"):
+        data["style"] = item["style"]  # FB-32 S1: вид секции — поле строки
     return data
 
 
@@ -886,6 +894,7 @@ def _builtin_state(item: dict) -> tuple:
         layout.get("cols"),
         layout.get("rows") or 0,
         bool(layout.get("scroll")),
+        item.get("style") or "",
     )
 
 
@@ -939,6 +948,12 @@ def _update_builtin(item: dict, fields: dict | None) -> bool:
         elif sent["rows"].strip() == "":
             layout.pop("rows", None)
     new["layout"] = layout
+    if "style" in sent:  # FB-32 S1: вид секции; чужой ключ не пишется
+        style = sent["style"].strip()
+        if style == "":
+            new.pop("style", None)
+        elif style in siteconfig.SECTION_STYLES.get(key, ()):
+            new["style"] = style
     if key in siteconfig.GRID_SECTION_LIMITS:
         limit = _digit(sent.get("limit", ""), 1, siteconfig._SECTION_LIMIT_MAX)
         if limit:
@@ -1044,6 +1059,8 @@ def blocks_for(
                 # встроенный список главной открывает ту же панель «Welche · Wie»
                 # FB-29.2: место показа баннеров — выбор из библиотеки и настройки слайдера
                 "banner_choice": _banner_choice(config, item) if banner_place(item) else None,
+                # FB-32 S2: пункты полосы доверия — в панели (иконка, заголовок, текст)
+                "usp": usp_panel(config, item) if _is_usp_row(item) else None,
                 "builtin_data": builtin_panel_data(item)
                 if not item.get("id")
                 and not main
@@ -1268,8 +1285,10 @@ _FULL_BLEED_SECTIONS = frozenset({"hero"})
 
 #: FB-29.2: настройки слайдера в панели (имена полей формы без префикса `f_`).
 SLIDER_FIELDS = ("auto", "interval", "arrows")
+#: FB-32 S3: показ — «Ein Banner» (первый из выбранных) или «Slider».
+SHOW_FIELDS = ("single",)
 #: FB-29.2 S6: источник блока «Banner» — выбранные баннеры или «баннеры этой страницы».
-PLACE_FIELDS = (*SLIDER_FIELDS, "from_page")
+PLACE_FIELDS = (*SLIDER_FIELDS, *SHOW_FIELDS, "from_page")
 
 
 def place_capable(host: str) -> bool:
@@ -1292,6 +1311,71 @@ def place_capable(host: str) -> bool:
 
 def _is_hero_row(item: dict) -> bool:
     return isinstance(item, dict) and item.get("key") == "hero" and not item.get("id")
+
+
+def _is_usp_row(item: dict) -> bool:
+    return isinstance(item, dict) and item.get("key") == "usp_bar" and not item.get("id")
+
+
+#: FB-32 S2: пунктов полосы доверия не больше, чем у витрины.
+def usp_panel(config: dict, item: dict) -> dict:
+    """Пункты полосы доверия для панели: сохранённые + одна пустая строка «＋ Punkt»."""
+    from apps.tenants import siteconfig
+
+    data = item.get("data") if isinstance(item.get("data"), dict) else {}
+    items = siteconfig.clean_usp(data["items"] if "items" in data else config.get("usp_bar"))
+    style = item.get("style") or ""
+    return {
+        "items": items,
+        "free": len(items) < siteconfig._MAX_USP,
+        "max": siteconfig._MAX_USP,
+        "icons": list(siteconfig.USP_ICONS.items()),
+        "style": style,
+        "styles": [("", str(_("Standard")))]
+        + [
+            (k, str(siteconfig.SECTION_STYLE_LABELS.get(k, k)))
+            for k in siteconfig.SECTION_STYLES["usp_bar"]
+        ],
+    }
+
+
+def _update_usp(item: dict, fields: dict) -> bool:
+    """Патч пунктов полосы доверия из панели: строки `usp_<i>_icon|label|text`, удаление
+    (`usp_remove=i`), перестановка (`usp_move=i:up|down`), вид (`style`). Пустой заголовок —
+    пункт убирается. True — изменилось."""
+    from apps.tenants import siteconfig
+
+    rows = []
+    for i in range(siteconfig._MAX_USP):
+        if f"usp_{i}_label" not in fields:
+            continue
+        rows.append(
+            {
+                "icon": str(fields.get(f"usp_{i}_icon", "")),
+                "label": str(fields.get(f"usp_{i}_label", "")).strip()[:120],
+                "text": str(fields.get(f"usp_{i}_text", "")).strip()[:200],
+            }
+        )
+    remove = str(fields.get("usp_remove", ""))
+    if remove.isdigit() and int(remove) < len(rows):
+        rows.pop(int(remove))
+    move = str(fields.get("usp_move", ""))
+    idx, _sep, way = move.partition(":")
+    if idx.isdigit():
+        i = int(idx)
+        j = i - 1 if way == "up" else i + 1 if way == "down" else -1
+        if 0 <= i < len(rows) and 0 <= j < len(rows):
+            rows[i], rows[j] = rows[j], rows[i]
+    before = (copy.deepcopy(item.get("data")), item.get("style"))
+    if rows or any(k.startswith("usp_") for k in fields):
+        item["data"] = {"items": siteconfig.clean_usp(rows)}
+    if "style" in fields:
+        style = str(fields["style"]).strip()
+        if style == "":
+            item.pop("style", None)
+        elif style in siteconfig.SECTION_STYLES.get("usp_bar", ()):
+            item["style"] = style
+    return (copy.deepcopy(item.get("data")), item.get("style")) != before
 
 
 def banner_place(item: dict) -> bool:
@@ -1601,6 +1685,14 @@ def lift_hero_choice(config: dict, items: list[dict]) -> None:
     from apps.tenants import siteconfig
 
     for item in items:
+        if _is_usp_row(item) and isinstance(item.get("data"), dict):
+            # FB-32 S2: пункты полосы доверия — обратно в `usp_bar` (одно место хранения)
+            usp = siteconfig.clean_usp(item.pop("data").get("items"))
+            if usp:
+                config["usp_bar"] = usp
+            else:
+                config.pop("usp_bar", None)
+            continue
         if _is_hero_row(item):
             if "data" not in item:
                 continue  # строка без метки выбора (старый черновик) — сохранённое не трогаем
@@ -2237,6 +2329,9 @@ def load_items(config: dict, home: bool, host: str) -> list[dict]:
         for item in items:
             if _is_hero_row(item):
                 item["data"] = choice or {}  # ключ есть всегда: «выбор прочитан»
+            elif _is_usp_row(item):
+                # FB-32 S2: пункты полосы доверия едут в черновике в своей строке
+                item["data"] = {"items": siteconfig.clean_usp(config.get("usp_bar"))}
         return items
     from apps.core import detail_parts
 
@@ -2542,9 +2637,9 @@ def mutate(
             # FB-29.2: настройки слайдера места показа — патч; без правок ничего
             data = dict(item.get("data") or {})
             before = siteconfig.clean_banner_choice(data)
-            names = SLIDER_FIELDS if _is_hero_row(item) else PLACE_FIELDS
+            names = (*SLIDER_FIELDS, *SHOW_FIELDS) if _is_hero_row(item) else PLACE_FIELDS
             patched = {**data, **{k: str(fields[k]) for k in names if k in fields}}
-            if "arrows" not in fields and set(fields) & set(SLIDER_FIELDS):
+            if "arrows" not in fields and set(fields) & {"auto", "interval"}:
                 patched.pop("arrows", None)  # снятая галочка не приходит вовсе
             after = siteconfig.clean_banner_choice(patched)
             if after == before:
@@ -2552,6 +2647,9 @@ def mutate(
             for key in PLACE_FIELDS:
                 data.pop(key, None)
             _store_banner_data(item, {**data, **{k: after[k] for k in after if k != "pick"}})
+            return ref
+        if not main and _is_usp_row(item) and fields:
+            _update_usp(item, fields)  # FB-32 S2
             return ref
         if not main and not item.get("id") and item.get("key") in siteconfig.BUILTIN_LIST_SOURCES:
             # встроенный список главной: патч строки секции; без правок — ничего

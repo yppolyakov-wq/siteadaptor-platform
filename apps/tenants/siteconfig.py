@@ -3496,6 +3496,10 @@ def clean_banner_choice(raw) -> dict:
     # «Wo zeigen» (место на странице задаёт структура, список страниц — сам баннер).
     if raw.get("from_page") and not _is_off(raw.get("from_page")):
         out["from_page"] = True
+    # FB-32 S3: «Ein Banner» — из нескольких выбранных показывается первый, без слайдера
+    # (остальные остаются в списке); без ключа — слайдер, как раньше.
+    if raw.get("single") and not _is_off(raw.get("single")):
+        out["single"] = True
     return out
 
 

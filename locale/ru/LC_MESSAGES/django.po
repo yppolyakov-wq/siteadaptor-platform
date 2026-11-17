@@ -38903,3 +38903,39 @@ msgstr "подписка ещё не оформлена. Проверьте вы
 #: templates/aggregator/follow_center.html
 msgid "noch nicht gespeichert. Prüfen Sie die Auswahl und klicken Sie auf „Speichern“."
 msgstr "ещё не сохранено. Проверьте выбор и нажмите «Сохранить»."
+
+#: templates/tenant/_schema_banner_pick.html
+msgid "Anlegen und hinzufügen"
+msgstr "Создать и добавить"
+
+#: templates/tenant/_schema_banner_pick.html
+msgid "Banner gespeichert und hier hinzugefügt."
+msgstr "Баннер сохранён и добавлен сюда."
+
+#: templates/tenant/_schema_banner_pick.html
+msgid "Banner gespeichert – hier ist er nicht hinzugefügt, bitte auswählen."
+msgstr "Баннер сохранён, но сюда не добавлен — выберите его."
+
+#: templates/tenant/_schema_banner_pick.html
+msgid "Ein Banner"
+msgstr "Один баннер"
+
+#: templates/tenant/_schema_banner_pick.html
+msgid "Gezeigt wird der erste Banner der Liste. Die anderen bleiben gewählt – mit „Slider“ laufen alle nacheinander."
+msgstr "Показывается первый баннер списка. Остальные остаются выбранными — в режиме «Слайдер» идут все по очереди."
+
+#: templates/tenant/_schema_banner_pick.html
+msgid "Weitere Einstellungen (Zeitraum, Text-Position, wo der Banner noch erscheint) später unter „Banner verwalten“."
+msgstr "Остальные настройки (срок, положение текста, где ещё показывать) — потом в «Управлять баннерами»."
+
+#: templates/tenant/_schema_usp.html
+msgid "Ohne Titel wird ein Punkt entfernt. Sichtbar auf der Website nach «Speichern»."
+msgstr "Пункт без заголовка удаляется. На сайте — после «Сохранить»."
+
+#: templates/tenant/_schema_usp.html
+msgid "Punkt %(n)s"
+msgstr "Пункт %(n)s"
+
+#: templates/tenant/_schema_usp.html
+msgid "Punkte"
+msgstr "Пункты"

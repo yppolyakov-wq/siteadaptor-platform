@@ -10,6 +10,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils.translation import gettext as _
 
 from apps.core import banners
@@ -131,10 +132,30 @@ def _preview_image(values: dict) -> str:
     return banners.safe_image_url(values.get("image"))
 
 
+def _schema_back(request):
+    """FB-32 S3: «+ Neuer Banner» из панели «Seitenaufbau» — куда вернуться и в какое
+    место показа добавить новый баннер ((seite, ref) или None)."""
+    seite = (request.POST.get("schema_seite") or "").strip()[:120]
+    ref = (request.POST.get("schema_ref") or "").strip()[:120]
+    return (seite, ref) if seite and ref else None
+
+
+def _back_to_schema(seite: str, ref: str):
+    from urllib.parse import urlencode
+
+    return redirect(
+        f"{reverse('site-schema')}?{urlencode({'seite': seite, 'block': ref})}#schema-panel"
+    )
+
+
 def _save(request, banner):
+    back = _schema_back(request) if banner is None else None
     try:
         raw = _raw(request, banner)
     except ValidationError as exc:
+        if back:
+            messages.error(request, "; ".join(exc.messages))
+            return _back_to_schema(*back)
         values = _typed({**{f: request.POST.get(n, "") for n, f in _FORM_FIELDS.items()}})
         return _form(request, banner, values, "; ".join(exc.messages))
     want_home = bool(request.POST.get("b_home_present") and request.POST.get("b_home"))
@@ -173,7 +194,24 @@ def _save(request, banner):
             if str(exc) == "date"
             else _("Ein Banner braucht ein Foto, eine Überschrift oder einen Text.")
         )
+        if back:
+            messages.error(request, error)
+            return _back_to_schema(*back)
         return _form(request, banner, _typed(raw), error)
+    if back:
+        # FB-32 S3: новый баннер сразу встаёт в выбор места — в черновик страницы
+        from apps.core import aufbau_draft, site_schema
+
+        try:
+            aufbau_draft.op(
+                request, request.tenant, back[0], "pick_add", ref=back[1], value=str(banner.pk)
+            )
+            messages.success(request, _("Banner gespeichert und hier hinzugefügt."))
+        except site_schema.SchemaError:
+            messages.warning(
+                request, _("Banner gespeichert – hier ist er nicht hinzugefügt, bitte auswählen.")
+            )
+        return _back_to_schema(*back)
     messages.success(request, _("Banner gespeichert."))
     return redirect("site-banners")
 

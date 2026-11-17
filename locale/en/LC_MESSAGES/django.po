@@ -38564,3 +38564,39 @@ msgstr "not subscribed yet. Check the selection and enter your e-mail below."
 #: templates/aggregator/follow_center.html
 msgid "noch nicht gespeichert. Prüfen Sie die Auswahl und klicken Sie auf „Speichern“."
 msgstr "not saved yet. Check the selection and click “Save”."
+
+#: templates/tenant/_schema_banner_pick.html
+msgid "Anlegen und hinzufügen"
+msgstr "Create and add"
+
+#: templates/tenant/_schema_banner_pick.html
+msgid "Banner gespeichert und hier hinzugefügt."
+msgstr "Banner saved and added here."
+
+#: templates/tenant/_schema_banner_pick.html
+msgid "Banner gespeichert – hier ist er nicht hinzugefügt, bitte auswählen."
+msgstr "Banner saved – it was not added here, please pick it."
+
+#: templates/tenant/_schema_banner_pick.html
+msgid "Ein Banner"
+msgstr "One banner"
+
+#: templates/tenant/_schema_banner_pick.html
+msgid "Gezeigt wird der erste Banner der Liste. Die anderen bleiben gewählt – mit „Slider“ laufen alle nacheinander."
+msgstr "The first banner of the list is shown. The others stay selected – with “Slider” they all run one after another."
+
+#: templates/tenant/_schema_banner_pick.html
+msgid "Weitere Einstellungen (Zeitraum, Text-Position, wo der Banner noch erscheint) später unter „Banner verwalten“."
+msgstr "More settings (period, text position, where else the banner appears) later under “Manage banners”."
+
+#: templates/tenant/_schema_usp.html
+msgid "Ohne Titel wird ein Punkt entfernt. Sichtbar auf der Website nach «Speichern»."
+msgstr "A point without a title is removed. Visible on the website after «Save»."
+
+#: templates/tenant/_schema_usp.html
+msgid "Punkt %(n)s"
+msgstr "Point %(n)s"
+
+#: templates/tenant/_schema_usp.html
+msgid "Punkte"
+msgstr "Points"
