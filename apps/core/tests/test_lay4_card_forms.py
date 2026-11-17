@@ -97,7 +97,8 @@ def test_no_page_type_promises_a_card_form_without_a_card():
         "combos": ["templates/storefront/_combo_grid.html"],
         "wishlist": ["templates/storefront/wishlist.html"],
         "finder": ["templates/storefront/finder.html"],
-        "cart": ["templates/storefront/cart.html"],
+        # FB-32 S4: полоса «Passt dazu» корзины — в своём партиале
+        "cart": ["templates/storefront/cart.html", "templates/storefront/_cart_upsell.html"],
     }
     CARD_MARKERS = (
         "_product_card.html",
