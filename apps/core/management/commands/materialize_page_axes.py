@@ -26,6 +26,8 @@ class Command(BaseCommand):
         parser.add_argument("--undo", action="store_true", help="откат последнего переноса")
 
     def handle(self, *args, **options):
+        if options["schema"] == "public":
+            raise CommandError("public — платформа, а не сайт бизнеса")
         tenants = Tenant.objects.exclude(schema_name="public").order_by("schema_name")
         if options["schema"]:
             tenants = tenants.filter(schema_name=options["schema"])

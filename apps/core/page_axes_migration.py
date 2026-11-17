@@ -14,7 +14,10 @@
 from __future__ import annotations
 
 import copy
+import logging
 from dataclasses import dataclass, field
+
+logger = logging.getLogger(__name__)
 
 #: итог одной поверхности
 DONE, SAME, SKIP, MISMATCH = "done", "same", "skip", "mismatch"
@@ -112,10 +115,23 @@ def migrate_listings(raw: dict) -> tuple[dict, Report]:
         # переводы блоков лежат по позициям — едут за своими блоками (как в «Seitenaufbau»)
         aligned = copy.deepcopy(norm)
         siteconfig.realign_block_overlays(aligned, new_page_blocks=blocks)
+        # в сырые настройки — только этот хост и его переводы (ревью: остальные хосты и
+        # языки остаются байт-в-байт как были, нормализация их не переписывает)
         candidate = copy.deepcopy(out)
-        candidate["page_blocks"] = blocks
-        if "i18n" in aligned:
-            candidate["i18n"] = aligned["i18n"]
+        raw_blocks = candidate.get("page_blocks")
+        raw_blocks = dict(raw_blocks) if isinstance(raw_blocks, dict) else {}
+        raw_blocks[host] = new_rows
+        candidate["page_blocks"] = raw_blocks
+        for loc, layer in (aligned.get("i18n") or {}).items():
+            moved = ((layer or {}).get("page_blocks") or {}).get(host)
+            if moved is None:
+                continue
+            raw_i18n = candidate.setdefault("i18n", {})
+            raw_layer = dict(raw_i18n.get(loc) or {})
+            raw_pb = dict(raw_layer.get("page_blocks") or {})
+            raw_pb[host] = moved
+            raw_layer["page_blocks"] = raw_pb
+            raw_i18n[loc] = raw_layer
         after = siteconfig.normalize(candidate)
         no_code = copy.deepcopy(after)
         styles = dict(no_code.get("page_styles") or {})
@@ -177,39 +193,65 @@ def _lock(model, pk):
 def apply_tenant(tenant, *, dry_run: bool = False) -> Report:
     """Перенести коды одного сайта. Перенос считается БЕЗ блокировки; под блокировкой —
     только сверка «настройки не менялись» (иначе — заново) и одна запись со снимком."""
-    from django.db import transaction
+    from django.db import OperationalError, transaction
 
-    from apps.core.pagecache import bump_storefront_cache
     from apps.tenants.models import SiteConfigSnapshot, Tenant
 
     if SiteConfigSnapshot.objects.filter(
         tenant_id=tenant.pk, reason=REASON, undone_at__isnull=False
     ).exists():
         return Report(surfaces={"*": ROLLED_BACK})  # владелец откатил — не повторяем
+
     for _attempt in range(_ATTEMPTS):
-        before = Tenant.objects.filter(pk=tenant.pk).values_list("site_config", flat=True).get()
-        before = before or {}
+        row = Tenant.objects.filter(pk=tenant.pk).values_list("site_config", flat=True).first()
+        if row is None and not Tenant.objects.filter(pk=tenant.pk).exists():
+            return Report()  # сайт удалили во время прогона
+        before = row or {}
         new, report = migrate(before)
         if not report.changed or dry_run:
             return report
-        with transaction.atomic():
-            locked = _lock(Tenant, tenant.pk)
-            if config_hash(locked.site_config or {}) != config_hash(before):
-                continue  # кабинет успел сохранить — считаем заново
-            locked.site_config = new
-            locked.save(update_fields=["site_config"])
-            # хэш — после записи и чтения из базы (JSONB): откат сравнивает то же самое
-            locked.refresh_from_db(fields=["site_config"])
-            SiteConfigSnapshot.objects.create(
-                tenant=locked,
-                reason=REASON,
-                # меняется только `page_blocks` — его и храним (снимок не раздувается)
-                before={k: before.get(k) for k in _TOUCHED},
-                after_hash=config_hash(locked.site_config or {}),
-            )
-            transaction.on_commit(lambda s=locked.schema_name: bump_storefront_cache(s))
+        try:
+            with transaction.atomic():
+                written = _write(tenant, before, new)
+        except OperationalError:  # строка занята дольше lock_timeout
+            return Report(surfaces={"*": BUSY})
+        if written is None:
+            continue  # кабинет успел сохранить — считаем заново
+        transaction.on_commit(lambda s=written: _bump(s))
         return report
     return Report(surfaces={"*": BUSY})
+
+
+def _bump(schema: str) -> None:
+    """Сброс кэша витрины после переноса; сбой — в лог, не сбой переноса (данные записаны)."""
+    from apps.core.pagecache import bump_storefront_cache
+
+    try:
+        bump_storefront_cache(schema)
+    except Exception:  # noqa: BLE001
+        logger.warning("materialize_page_axes: cache bump failed for %s", schema, exc_info=True)
+
+
+def _write(tenant, before: dict, new: dict) -> str | None:
+    """Под блокировкой (внутри транзакции): настройки не менялись — записать и снять снимок,
+    вернуть схему; менялись — None (перенос считается заново)."""
+    from apps.tenants.models import SiteConfigSnapshot, Tenant
+
+    locked = _lock(Tenant, tenant.pk)
+    if config_hash(locked.site_config or {}) != config_hash(before):
+        return None
+    locked.site_config = new
+    locked.save(update_fields=["site_config"])
+    # хэш — после записи и чтения из базы (JSONB): откат сравнивает то же самое
+    locked.refresh_from_db(fields=["site_config"])
+    SiteConfigSnapshot.objects.create(
+        tenant=locked,
+        reason=REASON,
+        # меняются только `page_blocks` и `i18n` — их и храним (снимок не раздувается)
+        before={k: before.get(k) for k in _TOUCHED},
+        after_hash=config_hash(locked.site_config or {}),
+    )
+    return locked.schema_name
 
 
 def undo_tenant(tenant) -> str:
@@ -218,7 +260,6 @@ def undo_tenant(tenant) -> str:
     from django.db import transaction
     from django.utils import timezone
 
-    from apps.core.pagecache import bump_storefront_cache
     from apps.tenants.models import SiteConfigSnapshot, Tenant
 
     with transaction.atomic():
@@ -244,6 +285,5 @@ def undo_tenant(tenant) -> str:
         locked.save(update_fields=["site_config"])
         snap.undone_at = timezone.now()
         snap.save(update_fields=["undone_at"])
-        schema = locked.schema_name
-        transaction.on_commit(lambda: bump_storefront_cache(schema))
+        transaction.on_commit(lambda s=locked.schema_name: _bump(s))
     return "undone"

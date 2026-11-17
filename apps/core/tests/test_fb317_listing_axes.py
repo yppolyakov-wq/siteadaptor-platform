@@ -117,3 +117,17 @@ def test_review_one_mismatch_leaves_the_whole_site_untouched(monkeypatch):
     cfg = {"page_styles": {"events": "tabs", "services": "kopfbild"}}
     new, report = page_axes_migration.migrate(cfg)
     assert report.surfaces["events"] == "skip" and new == cfg, "сайт не тронут целиком"
+
+
+def test_review_other_hosts_and_languages_stay_byte_for_byte():
+    junk_host = [{"key": "nope", "x": 1}, {"key": "text", "id": "a1", "data": {"title": "A"}}]
+    cfg = {
+        "page_styles": {"services": "kopfbild"},
+        "page_blocks": {"text": junk_host},
+        "i18n": {"en": {"page_blocks": {"text": [{"data": {"title": "B"}}]}, "hero_title": "Hi"}},
+    }
+    new, report = page_axes_migration.migrate(cfg)
+    assert report.surfaces == {"services": "done"}
+    assert new["page_blocks"]["text"] == junk_host, "чужой хост не переписан нормализацией"
+    assert new["i18n"]["en"]["page_blocks"]["text"] == [{"data": {"title": "B"}}]
+    assert new["i18n"]["en"]["hero_title"] == "Hi"

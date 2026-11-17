@@ -140,3 +140,23 @@ def test_review_concurrent_save_is_not_overwritten(monkeypatch):
     t.refresh_from_db()
     assert t.site_config["hero_title"] == "aus dem Kabinett", "правка кабинета не затёрта"
     assert t.site_config["page_blocks"]["services"], "перенос посчитан заново и записан"
+
+
+def test_review_public_is_refused_with_a_clear_message():
+    with pytest.raises(Exception, match="Plattform|платформа"):
+        _run("--schema", "public")
+
+
+def test_review_busy_row_is_retried_next_deploy_not_an_error(monkeypatch):
+    from django.db import OperationalError
+
+    t = _tenant({"page_styles": {"services": "kopfbild"}})
+
+    def locked(*a, **k):
+        raise OperationalError("lock timeout")
+
+    monkeypatch.setattr(pam, "_lock", locked)
+    _out, err = _run("--schema", t.schema_name)
+    assert "занят" in err
+    t.refresh_from_db()
+    assert "page_blocks" not in t.site_config
