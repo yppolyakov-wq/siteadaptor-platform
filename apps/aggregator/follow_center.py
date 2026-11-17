@@ -220,9 +220,9 @@ def visible_targets(portal) -> set[tuple[str, str]]:
     return out
 
 
-def _raw(data) -> Selection:
+def _raw(data, limit: int = 200) -> Selection:
     def values(name):
-        return [str(v)[:100] for v in data.getlist(name)][:200]
+        return [str(v)[:100] for v in data.getlist(name)[:limit]]
 
     return Selection(
         sections=set(values("bereich")),
@@ -241,8 +241,10 @@ def from_query(data, portal) -> Selection:
     """T-8.7b: предотметка из ссылки «Folgen» страницы раздела (`?bereich=<раздел|категория>`,
     `?stadtteil=`). `bereich` ссылки «Folgen» несёт и категорию — разводим по справочнику.
     Только ключи реестров (через `normalize`); ничего не пишет."""
-    raw = _raw(data)
+    raw = _raw(data, limit=50)  # ссылка несёт одну цель; GET анонимный и без кэша
     raw.categories |= {k for k in raw.sections if cc.section(k) is None}
+    # раздел = все его категории: тематический портал оставит свои, полный набор свернётся
+    raw.categories |= {c.key for c in cc.CATEGORIES if c.section in raw.sections}
     return normalize(raw, portal)
 
 

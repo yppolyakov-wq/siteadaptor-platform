@@ -418,6 +418,13 @@ def _center_frequency(user, city) -> str:
     return sub.frequency if sub else FollowSubscription.FREQ_DAILY
 
 
+def _link_target(request, portal) -> bool:
+    """Ссылка «Folgen» несёт настоящую цель (раздел/категория/район)?"""
+    if not any(request.GET.get(k) for k in ("bereich", "stadtteil")):
+        return False
+    return follow.parse_target(request.GET, portal=portal) is not None
+
+
 def follow_center_view(request):
     """«Benachrichtigungen auswählen»: дерево разделов/категорий, районы, признаки, марки.
 
@@ -487,6 +494,9 @@ def follow_center_view(request):
     # T-8.7b: «Folgen» страницы раздела — предотметка из ссылки ПОВЕРХ прежнего выбора
     # (сохранение `set` иначе сняло бы подписки вошедшего). GET ничего не пишет.
     preselected = follow_center.from_query(request.GET, portal)
+    if not len(preselected) and _link_target(request, portal):
+        # цель ссылки вне центра этого портала (тема) — прежняя форма подписки на цель
+        return redirect(f"{reverse('aggregator-follow')}?{request.GET.urlencode()}")
     selection = follow_center.merge(follow_center.state(user, city, channel), preselected, portal)
     ctx = _center_context(
         request,

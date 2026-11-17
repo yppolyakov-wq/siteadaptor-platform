@@ -342,3 +342,15 @@ def test_following_button_of_section_leads_to_center():
     biz = follow.Target("business", "x", CITY)
     html = render_to_string("aggregator/_follow_button.html", {"follow_target": biz})
     assert "/folgen/?" in html and "/folgen/auswahl/" not in html
+
+
+@override_settings(ROOT_URLCONF="config.urls_portal")
+def test_theme_portal_preselects_its_part_or_falls_back_to_the_follow_form():
+    portal = _portal(theme_categories=["brot-backwaren"])
+    html = _center_get(portal, {"bereich": FOOD}).content.decode()
+    assert 'value="brot-backwaren" data-ft-cat checked' in html, "своя часть раздела"
+    assert "data-follow-preselected" in html
+    resp = _center_get(portal, {"bereich": "obst-gemuese"})
+    assert resp.status_code == 302 and resp["Location"].startswith("/folgen/?bereich=obst-gemuese")
+    resp = _center_get(portal, {"bereich": "weg"})
+    assert resp.status_code == 200, "мусор — обычный центр, не редирект"

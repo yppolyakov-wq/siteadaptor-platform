@@ -23911,3 +23911,18 @@ security/silent-failure): тупик в двусторонних прятках,
 - Ревью: `django-reviewer` ×3, `security-reviewer`, правки внесены. Перенос старых кодов
   шаблонов в строки — FB-31.7 (решение владельца).
 
+### 2026-11-17 — T-8.7b «Folgen» → центр выбора; фикс подписки (CSRF «Origin null»)
+- Подписка с портала падала «Origin checking failed - null»: страницы с формами отдавались с
+  `Referrer-Policy: no-referrer`, браузер слал `Origin: null`. Теперь `same-origin` (центр и
+  форма подписки, «Termin verwalten», подтверждение ассистента); замок
+  `apps/core/tests/test_referrer_policy_forms.py`.
+- Кнопка «Folgen» на странице раздела, категории и района ведёт в центр
+  «Benachrichtigungen auswählen» (`/folgen/auswahl/?bereich=…&next=…#ft-s-…`): текущий раздел
+  отмечен со всеми категориями (категория — одна), блок подсвечен «★ Diese Seite», плашка
+  «Vorausgewählt … noch nicht gespeichert». Выбор = сохранённое ∪ предотметка, GET ничего не
+  пишет (`follow_center.from_query`/`merge`); «Zurück» и PRG держат безопасный `next`.
+  Тематический портал — своя часть раздела, цель вне темы — прежняя форма `/folgen/`.
+  Компания — прежняя форма; старые ссылки `/folgen/?bereich=` из писем работают.
+- Ревью: `django-reviewer`, `security-reviewer`; правки внесены (тема портала, лимит значений
+  в ссылке). Скриншоты 1440/390 — без горизонтальной прокрутки, якорь под шапкой.
+
