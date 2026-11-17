@@ -39018,3 +39018,27 @@ msgstr "Пункт %(n)s"
 #: templates/tenant/_schema_usp.html
 msgid "Punkte"
 msgstr "Пункти"
+
+#: apps/core/site_schema.py
+msgid "Haken"
+msgstr "Галочка"
+
+#: apps/core/site_schema.py
+msgid "Handwerk"
+msgstr "Ремесло"
+
+#: apps/core/site_schema.py
+msgid "Qualität"
+msgstr "Якість"
+
+#: apps/core/site_schema.py
+msgid "Regional"
+msgstr "Місцеве"
+
+#: apps/core/site_schema.py
+msgid "Sicherheit"
+msgstr "Безпека"
+
+#: apps/core/site_schema.py
+msgid "Zeit"
+msgstr "Час"

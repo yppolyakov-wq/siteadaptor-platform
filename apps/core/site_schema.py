@@ -154,6 +154,12 @@ def structure_hash(config) -> str:
 
     blocks = cfg.get("page_blocks") if isinstance(cfg.get("page_blocks"), dict) else {}
     payload = {
+        # FB-32 S2: пункты полосы доверия правит и «Seitenaufbau» — устаревшая вкладка
+        # Студии не должна молча вернуть прежние (ревью)
+        "usp_bar": cfg.get("usp_bar") or [],
+        "usp_style": next(
+            (s.get("style") for s in cfg.get("sections") or [] if _is_usp_row(s)), None
+        ),
         "sections": rows(cfg.get("sections")),
         "page_blocks": {host: rows(blocks[host]) for host in sorted(blocks)},
     }
@@ -218,6 +224,11 @@ def merge_structure(
                 else:
                     data.pop(field, None)
             merged["data"] = data
+        if keep_data and _is_usp_row(old):  # FB-32 S2: вид полосы доверия — из схемы
+            if "style" in old:
+                merged["style"] = old["style"]
+            else:
+                merged.pop("style", None)
         if keep_data and _is_builtin_list(old):
             for field in BUILTIN_OWNED_FIELDS:
                 if field in old:
@@ -900,7 +911,7 @@ def _builtin_state(item: dict) -> tuple:
 
 def _digit(value: str, low: int, high: int):
     value = (value or "").strip()
-    if not value.isdigit():
+    if not (value.isdecimal() and value.isascii()):
         return None
     return max(low, min(high, int(value)))
 
@@ -1317,7 +1328,22 @@ def _is_usp_row(item: dict) -> bool:
     return isinstance(item, dict) and item.get("key") == "usp_bar" and not item.get("id")
 
 
-#: FB-32 S2: пунктов полосы доверия не больше, чем у витрины.
+#: FB-32 S2: подписи значков полосы доверия для панели (a11y).
+USP_ICON_LABELS = {
+    "shipping": gettext_lazy("Versand"),
+    "returns": gettext_lazy("Rückgabe"),
+    "payment": gettext_lazy("Zahlung"),
+    "secure": gettext_lazy("Sicherheit"),
+    "local": gettext_lazy("Regional"),
+    "meister": gettext_lazy("Handwerk"),
+    "support": gettext_lazy("Service"),
+    "quality": gettext_lazy("Qualität"),
+    "bio": gettext_lazy("Bio"),
+    "clock": gettext_lazy("Zeit"),
+    "check": gettext_lazy("Haken"),
+}
+
+
 def usp_panel(config: dict, item: dict) -> dict:
     """Пункты полосы доверия для панели: сохранённые + одна пустая строка «＋ Punkt»."""
     from apps.tenants import siteconfig
@@ -1329,7 +1355,10 @@ def usp_panel(config: dict, item: dict) -> dict:
         "items": items,
         "free": len(items) < siteconfig._MAX_USP,
         "max": siteconfig._MAX_USP,
-        "icons": list(siteconfig.USP_ICONS.items()),
+        # a11y-ревью: скринридеру — понятное имя значка, не технический ключ
+        "icons": [
+            (k, sym, str(USP_ICON_LABELS.get(k, k))) for k, sym in siteconfig.USP_ICONS.items()
+        ],
         "style": style,
         "styles": [("", str(_("Standard")))]
         + [
@@ -1342,33 +1371,31 @@ def usp_panel(config: dict, item: dict) -> dict:
 def _update_usp(item: dict, fields: dict) -> bool:
     """Патч пунктов полосы доверия из панели: строки `usp_<i>_icon|label|text`, удаление
     (`usp_remove=i`), перестановка (`usp_move=i:up|down`), вид (`style`). Пустой заголовок —
-    пункт убирается. True — изменилось."""
+    пункт убирается; без строк пунктов (запрос в обход формы) пункты не трогаются (ревью).
+    True — изменилось."""
     from apps.tenants import siteconfig
 
-    rows = []
-    for i in range(siteconfig._MAX_USP):
-        if f"usp_{i}_label" not in fields:
-            continue
-        rows.append(
-            {
+    slots = {}
+    for i in range(siteconfig._MAX_USP + 1):  # + пустая строка «＋ Punkt»
+        if f"usp_{i}_label" in fields:
+            slots[i] = {
                 "icon": str(fields.get(f"usp_{i}_icon", "")),
                 "label": str(fields.get(f"usp_{i}_label", "")).strip()[:120],
                 "text": str(fields.get(f"usp_{i}_text", "")).strip()[:200],
             }
-        )
-    remove = str(fields.get("usp_remove", ""))
-    if remove.isdigit() and int(remove) < len(rows):
-        rows.pop(int(remove))
-    move = str(fields.get("usp_move", ""))
-    idx, _sep, way = move.partition(":")
-    if idx.isdigit():
-        i = int(idx)
-        j = i - 1 if way == "up" else i + 1 if way == "down" else -1
-        if 0 <= i < len(rows) and 0 <= j < len(rows):
-            rows[i], rows[j] = rows[j], rows[i]
     before = (copy.deepcopy(item.get("data")), item.get("style"))
-    if rows or any(k.startswith("usp_") for k in fields):
-        item["data"] = {"items": siteconfig.clean_usp(rows)}
+    if slots:
+        remove = str(fields.get("usp_remove", ""))
+        if remove.isdecimal() and remove.isascii():
+            slots.pop(int(remove), None)
+        order = sorted(slots)
+        idx, _sep, way = str(fields.get("usp_move", "")).partition(":")
+        if idx.isdecimal() and idx.isascii() and int(idx) in order:
+            pos = order.index(int(idx))
+            other = pos - 1 if way == "up" else pos + 1 if way == "down" else -1
+            if 0 <= other < len(order):
+                order[pos], order[other] = order[other], order[pos]
+        item["data"] = {"items": siteconfig.clean_usp([slots[i] for i in order])}
     if "style" in fields:
         style = str(fields["style"]).strip()
         if style == "":

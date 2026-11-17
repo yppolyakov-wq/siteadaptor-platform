@@ -38692,3 +38692,27 @@ msgstr "Point %(n)s"
 #: templates/tenant/_schema_usp.html
 msgid "Punkte"
 msgstr "Points"
+
+#: apps/core/site_schema.py
+msgid "Haken"
+msgstr "Check mark"
+
+#: apps/core/site_schema.py
+msgid "Handwerk"
+msgstr "Craft"
+
+#: apps/core/site_schema.py
+msgid "Qualität"
+msgstr "Quality"
+
+#: apps/core/site_schema.py
+msgid "Regional"
+msgstr "Regional"
+
+#: apps/core/site_schema.py
+msgid "Sicherheit"
+msgstr "Security"
+
+#: apps/core/site_schema.py
+msgid "Zeit"
+msgstr "Time"

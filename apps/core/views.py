@@ -2983,6 +2983,21 @@ def home_builder_view(request):
         from apps.core import page_settings
 
         config = page_settings.protect_owned(request.tenant, config)
+        if stale_tab:
+            # FB-32 S2: пункты полосы доверия правит и «Seitenaufbau»; устаревшая вкладка
+            # Студии их не перезаписывает (как и структуру)
+            from apps.tenants.models import Tenant
+
+            fresh = (
+                Tenant.objects.filter(pk=request.tenant.pk)
+                .values_list("site_config", flat=True)
+                .first()
+                or {}
+            )
+            if fresh.get("usp_bar"):
+                config["usp_bar"] = fresh["usp_bar"]
+            else:
+                config.pop("usp_bar", None)
         request.tenant.site_config = siteconfig.normalize(config)
         # FB-27 R0: сверка под блокировкой строки, в одной транзакции с записью — схему
         # могли сохранить в другом месте, пока шёл этот запрос (запись целого конфига

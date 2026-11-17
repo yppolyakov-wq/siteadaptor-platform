@@ -84,7 +84,7 @@
 {% if not pick.full %}
 {% comment %}FB-32 S3: новый баннер прямо из панели — сохраняется в библиотеку и сразу встаёт в выбор этого места (черновик страницы). Остальные настройки — в редакторе баннера.{% endcomment %}
 <details class="mt-3 rounded-xl border border-indigo-200 bg-slate-50" data-schema-banner-new{% if not pick.total %} open{% endif %}>
-  <summary class="flex items-center min-h-[44px] cursor-pointer px-3 text-sm font-semibold text-indigo-800">＋ {% trans "Neuer Banner" %}</summary>
+  <summary class="flex items-center min-h-[44px] cursor-pointer px-3 text-sm font-semibold text-indigo-800 rounded-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"><span aria-hidden="true">＋&nbsp;</span>{% trans "Neuer Banner" %}</summary>
   <form method="post" action="{% url 'site-banner-new' %}" enctype="multipart/form-data" class="space-y-2 border-t border-indigo-100 p-3">
     {% csrf_token %}
     <input type="hidden" name="schema_seite" value="{{ code }}">

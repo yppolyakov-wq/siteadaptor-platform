@@ -38838,3 +38838,27 @@ msgstr "Madde %(n)s"
 #: templates/tenant/_schema_usp.html
 msgid "Punkte"
 msgstr "Maddeler"
+
+#: apps/core/site_schema.py
+msgid "Haken"
+msgstr "Onay işareti"
+
+#: apps/core/site_schema.py
+msgid "Handwerk"
+msgstr "Zanaat"
+
+#: apps/core/site_schema.py
+msgid "Qualität"
+msgstr "Kalite"
+
+#: apps/core/site_schema.py
+msgid "Regional"
+msgstr "Bölgesel"
+
+#: apps/core/site_schema.py
+msgid "Sicherheit"
+msgstr "Güvenlik"
+
+#: apps/core/site_schema.py
+msgid "Zeit"
+msgstr "Zaman"
