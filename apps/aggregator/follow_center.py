@@ -220,18 +220,48 @@ def visible_targets(portal) -> set[tuple[str, str]]:
     return out
 
 
-def from_post(data, portal) -> Selection:
+def _raw(data) -> Selection:
     def values(name):
         return [str(v)[:100] for v in data.getlist(name)][:200]
 
-    raw = Selection(
+    return Selection(
         sections=set(values("bereich")),
         categories=set(values("kategorie")),
         districts=set(values("stadtteil")),
         tags=set(values("merkmal")),
         brands=set(values("marke")),
     )
+
+
+def from_post(data, portal) -> Selection:
+    return normalize(_raw(data), portal)
+
+
+def from_query(data, portal) -> Selection:
+    """T-8.7b: предотметка из ссылки «Folgen» страницы раздела (`?bereich=<раздел|категория>`,
+    `?stadtteil=`). `bereich` ссылки «Folgen» несёт и категорию — разводим по справочнику.
+    Только ключи реестров (через `normalize`); ничего не пишет."""
+    raw = _raw(data)
+    raw.categories |= {k for k in raw.sections if cc.section(k) is None}
     return normalize(raw, portal)
+
+
+def sections_of(selection: Selection) -> set[str]:
+    """Разделы, которых касается выбор (сам раздел или его категория) — подсветка в центре."""
+    out = set(selection.sections)
+    for key in selection.categories:
+        category = cc.category(key)
+        if category is not None:
+            out.add(category.section)
+    return out
+
+
+def merge(a: Selection, b: Selection, portal) -> Selection:
+    """Объединение выборов (прежние подписки вошедшего ∪ предотметка) — ничего не снимается."""
+    return normalize(
+        Selection(**{name: getattr(a, name) | getattr(b, name) for name in KIND_FIELD.values()}),
+        portal,
+    )
 
 
 # --- запись -------------------------------------------------------------------------------

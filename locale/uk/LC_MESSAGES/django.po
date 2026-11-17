@@ -38878,3 +38878,15 @@ msgstr "Розділи редагуються в «Seitenaufbau»."
 #: apps/core/assistant_pages.py
 msgid "Das stellen Sie jetzt unter «Website › Seitenaufbau» in der Zeile der Seite ein."
 msgstr "Тепер це налаштовується в «Website › Seitenaufbau», у рядку сторінки."
+
+#: templates/aggregator/follow_center.html
+msgid "Vorausgewählt:"
+msgstr "Уже позначено:"
+
+#: templates/aggregator/follow_center.html
+msgid "noch nicht abonniert. Prüfen Sie die Auswahl und geben Sie unten Ihre E-Mail ein."
+msgstr "підписку ще не оформлено. Перевірте вибір і вкажіть e-mail нижче."
+
+#: templates/aggregator/follow_center.html
+msgid "noch nicht gespeichert. Prüfen Sie die Auswahl und klicken Sie auf „Speichern“."
+msgstr "ще не збережено. Перевірте вибір і натисніть «Зберегти»."

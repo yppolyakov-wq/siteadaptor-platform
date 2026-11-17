@@ -305,13 +305,15 @@ def test_follow_button_is_link_not_form_on_cached_pages():
     resp = portal_views.portal_home(request, district="ohligs-aufderhoehe-merscheid")
     html = resp.content.decode()
     assert 'data-follow-button="off"' in html
-    assert "/folgen/?stadtteil=ohligs-aufderhoehe-merscheid" in html
+    # T-8.7b: раздел/район — в центр выбора с предотметкой
+    assert "/folgen/auswahl/?stadtteil=ohligs-aufderhoehe-merscheid" in html
     assert "csrfmiddlewaretoken" not in html  # кэш P0-1 цел
 
     request = _req("get", "/?kat=lebensmittel-getraenke", {"kat": "lebensmittel-getraenke"}, portal)
     resp = portal_views.portal_home(request)
     html = resp.content.decode()
-    assert "/folgen/?bereich=lebensmittel-getraenke" in html
+    assert "/folgen/auswahl/?bereich=lebensmittel-getraenke" in html
+    assert "#ft-s-lebensmittel-getraenke" in html
     assert "csrfmiddlewaretoken" not in html
 
 

@@ -12,6 +12,7 @@
 from __future__ import annotations
 
 import hashlib
+from urllib.parse import urlencode
 
 from django import forms
 from django.core.cache import cache
@@ -403,6 +404,7 @@ def _center_context(request, portal, user, selection, **extra):
             if k != FollowSubscription.FREQ_INSTANT
         ],
         "max_follows": follow.max_follows(),
+        "back_url": _safe_next(request, ""),
         **extra,
     }
 
@@ -445,7 +447,9 @@ def follow_center_view(request):
                     request, portal, user, selection, frequency=frequency, limit_reached=True
                 )
                 return _token_response(render(request, "aggregator/follow_center.html", ctx))
-            return _token_response(redirect(f"{request.path}?ok=1"))
+            back = _safe_next(request, "")
+            suffix = f"&{urlencode({'next': back})}" if back else ""
+            return _token_response(redirect(f"{request.path}?ok=1{suffix}"))
         form = FollowForm(request.POST)
         if not len(selection) or len(selection) > follow.max_follows():
             ctx = _center_context(
@@ -480,7 +484,10 @@ def follow_center_view(request):
         # ответ одинаков при любом исходе (анти-энумерация / тихий rate-limit)
         ctx = {"portal": portal, "base_template": _base_template(portal)}
         return _token_response(render(request, "aggregator/follow_check_inbox.html", ctx))
-    selection = follow_center.state(user, city, channel)
+    # T-8.7b: «Folgen» страницы раздела — предотметка из ссылки ПОВЕРХ прежнего выбора
+    # (сохранение `set` иначе сняло бы подписки вошедшего). GET ничего не пишет.
+    preselected = follow_center.from_query(request.GET, portal)
+    selection = follow_center.merge(follow_center.state(user, city, channel), preselected, portal)
     ctx = _center_context(
         request,
         portal,
@@ -489,6 +496,10 @@ def follow_center_view(request):
         frequency=_center_frequency(user, city) if user else "",
         saved=request.GET.get("ok") == "1",
         form=None if user else FollowForm(initial={"stamp": quickstart.form_stamp()}),
+        preselected=preselected,
+        preselected_labels=follow_center.labels(preselected, portal),
+        preselected_sections=follow_center.sections_of(preselected),
+        limit_reached=bool(user) and len(selection) > follow.max_follows(),
     )
     return _token_response(render(request, "aggregator/follow_center.html", ctx))
 

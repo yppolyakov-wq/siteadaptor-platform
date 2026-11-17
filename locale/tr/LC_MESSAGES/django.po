@@ -38698,3 +38698,15 @@ msgstr "Bölümler sayfa yapısında düzenlenir."
 #: apps/core/assistant_pages.py
 msgid "Das stellen Sie jetzt unter «Website › Seitenaufbau» in der Zeile der Seite ein."
 msgstr "Bu artık «Website › Sayfa yapısı» altında sayfanın satırında ayarlanır."
+
+#: templates/aggregator/follow_center.html
+msgid "Vorausgewählt:"
+msgstr "Önceden seçildi:"
+
+#: templates/aggregator/follow_center.html
+msgid "noch nicht abonniert. Prüfen Sie die Auswahl und geben Sie unten Ihre E-Mail ein."
+msgstr "henüz abone olunmadı. Seçimi kontrol edin ve aşağıya e-posta adresinizi girin."
+
+#: templates/aggregator/follow_center.html
+msgid "noch nicht gespeichert. Prüfen Sie die Auswahl und klicken Sie auf „Speichern“."
+msgstr "henüz kaydedilmedi. Seçimi kontrol edin ve „Kaydet“e tıklayın."

@@ -38552,3 +38552,15 @@ msgstr "Sections are edited in the page structure."
 #: apps/core/assistant_pages.py
 msgid "Das stellen Sie jetzt unter «Website › Seitenaufbau» in der Zeile der Seite ein."
 msgstr "This is now set under «Website › Page structure» in the row of the page."
+
+#: templates/aggregator/follow_center.html
+msgid "Vorausgewählt:"
+msgstr "Preselected:"
+
+#: templates/aggregator/follow_center.html
+msgid "noch nicht abonniert. Prüfen Sie die Auswahl und geben Sie unten Ihre E-Mail ein."
+msgstr "not subscribed yet. Check the selection and enter your e-mail below."
+
+#: templates/aggregator/follow_center.html
+msgid "noch nicht gespeichert. Prüfen Sie die Auswahl und klicken Sie auf „Speichern“."
+msgstr "not saved yet. Check the selection and click “Save”."

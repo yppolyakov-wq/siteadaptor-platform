@@ -96,6 +96,27 @@ class Target:
         return str(dict(FollowSubscription.TARGETS).get(self.kind, self.kind))
 
     @property
+    def in_center(self) -> bool:
+        """T-8.7b: раздел, категория, район — «Folgen» ведёт в центр выбора с предотметкой."""
+        return self.kind in (
+            FollowSubscription.TARGET_SECTION,
+            FollowSubscription.TARGET_CATEGORY,
+            FollowSubscription.TARGET_DISTRICT,
+        )
+
+    @property
+    def center_anchor(self) -> str:
+        """Якорь блока в центре: раздел (и раздел категории) или «Stadtteile»."""
+        if self.kind == FollowSubscription.TARGET_SECTION:
+            return f"ft-s-{self.key}"
+        if self.kind == FollowSubscription.TARGET_CATEGORY:
+            category = cc.category(self.key)
+            return f"ft-s-{category.section}" if category else ""
+        if self.kind == FollowSubscription.TARGET_DISTRICT:
+            return "ft-stadtteile"
+        return ""
+
+    @property
     def query_string(self) -> str:
         """Query-строка ссылки «Folgen» (все пары, корректно разделённые)."""
         from urllib.parse import urlencode

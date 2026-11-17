@@ -38639,3 +38639,15 @@ msgstr "Abschnitte werden im Seitenaufbau bearbeitet."
 #: apps/core/assistant_pages.py
 msgid "Das stellen Sie jetzt unter «Website › Seitenaufbau» in der Zeile der Seite ein."
 msgstr "Das stellen Sie jetzt unter «Website › Seitenaufbau» in der Zeile der Seite ein."
+
+#: templates/aggregator/follow_center.html
+msgid "Vorausgewählt:"
+msgstr "Vorausgewählt:"
+
+#: templates/aggregator/follow_center.html
+msgid "noch nicht abonniert. Prüfen Sie die Auswahl und geben Sie unten Ihre E-Mail ein."
+msgstr "noch nicht abonniert. Prüfen Sie die Auswahl und geben Sie unten Ihre E-Mail ein."
+
+#: templates/aggregator/follow_center.html
+msgid "noch nicht gespeichert. Prüfen Sie die Auswahl und klicken Sie auf „Speichern“."
+msgstr "noch nicht gespeichert. Prüfen Sie die Auswahl und klicken Sie auf „Speichern“."
