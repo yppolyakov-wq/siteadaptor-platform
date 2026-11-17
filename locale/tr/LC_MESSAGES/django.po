@@ -38802,3 +38802,39 @@ msgstr "Merhaba,\n\n„%(name)s“ hakkındaki değerlendirmeniz artık şehir p
 #: apps/aggregator/tasks.py
 msgid "Guten Tag,\n\nIhre Bewertung von „%(name)s“ haben wir nicht veröffentlicht.\n\nBegründung: %(reason)s\n\nSie können die Bewertung auf der Seite des Geschäfts ändern und erneut senden oder innerhalb von sechs Monaten über die Kontaktstelle des Portals widersprechen (Rechtliches)."
 msgstr "Merhaba,\n\n„%(name)s“ hakkındaki değerlendirmenizi yayınlamadık.\n\nGerekçe: %(reason)s\n\nDeğerlendirmeyi işletmenin sayfasında değiştirip yeniden gönderebilir veya altı ay içinde portalın iletişim noktası üzerinden itiraz edebilirsiniz (Yasal bilgiler)."
+
+#: templates/tenant/_schema_banner_pick.html
+msgid "Anlegen und hinzufügen"
+msgstr "Oluştur ve ekle"
+
+#: templates/tenant/_schema_banner_pick.html
+msgid "Banner gespeichert und hier hinzugefügt."
+msgstr "Banner kaydedildi ve buraya eklendi."
+
+#: templates/tenant/_schema_banner_pick.html
+msgid "Banner gespeichert – hier ist er nicht hinzugefügt, bitte auswählen."
+msgstr "Banner kaydedildi – buraya eklenmedi, lütfen seçin."
+
+#: templates/tenant/_schema_banner_pick.html
+msgid "Ein Banner"
+msgstr "Tek banner"
+
+#: templates/tenant/_schema_banner_pick.html
+msgid "Gezeigt wird der erste Banner der Liste. Die anderen bleiben gewählt – mit „Slider“ laufen alle nacheinander."
+msgstr "Listedeki ilk banner gösterilir. Diğerleri seçili kalır – „Slider“ ile hepsi sırayla gösterilir."
+
+#: templates/tenant/_schema_banner_pick.html
+msgid "Weitere Einstellungen (Zeitraum, Text-Position, wo der Banner noch erscheint) später unter „Banner verwalten“."
+msgstr "Diğer ayarlar (süre, metin konumu, banner'ın başka nerede görüneceği) daha sonra „Bannerları yönet“ altında."
+
+#: templates/tenant/_schema_usp.html
+msgid "Ohne Titel wird ein Punkt entfernt. Sichtbar auf der Website nach «Speichern»."
+msgstr "Başlığı olmayan madde kaldırılır. Web sitesinde «Kaydet»ten sonra görünür."
+
+#: templates/tenant/_schema_usp.html
+msgid "Punkt %(n)s"
+msgstr "Madde %(n)s"
+
+#: templates/tenant/_schema_usp.html
+msgid "Punkte"
+msgstr "Maddeler"

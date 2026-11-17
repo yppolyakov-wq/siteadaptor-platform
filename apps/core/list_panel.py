@@ -300,7 +300,7 @@ def builtin_groups(request, cfg: dict, key: str, data: dict, mode: str = "") -> 
         if g["key"] == "was":
             continue
         g = dict(g)
-        fields = [f for f in g["fields"] if f["name"] != "style"]
+        fields = list(g["fields"])  # FB-32 S1: вид секции снова здесь (был только в Студии)
         if g["key"] == "welche":
             g["modes"] = [m for m in g["modes"] if m["key"] != "einzeln"]
             g["overridden"] = False
@@ -391,14 +391,16 @@ def groups(request, cfg: dict, data: dict, mode: str = "") -> list[dict]:
     how = []
     styles = [(k, lab) for k, lab, src in hint["styles"] if src == source]
     if styles:
-        how.append(
-            _select(
-                "style",
-                _("Display style"),
-                data.get("style"),
-                [("", _("Standard (grid)")), *styles],
-            )
+        style = _select(
+            "style",
+            _("Display style"),
+            data.get("style"),
+            [("", _("Standard (grid)")), *styles],
         )
+        # FB-32 S1: вид — выпадающий список со схемами (как вид баннера), один на все страницы
+        style["thumbs"] = source
+        style["current"] = dict(style["options"]).get(style["value"], "")
+        how.append(style)
     inherit = f"{hint['layout_from']}: "
     how.append(
         _select(

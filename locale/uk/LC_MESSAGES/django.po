@@ -38982,3 +38982,39 @@ msgstr "Вітаємо!\n\nВаш відгук про «%(name)s» опублі�
 #: apps/aggregator/tasks.py
 msgid "Guten Tag,\n\nIhre Bewertung von „%(name)s“ haben wir nicht veröffentlicht.\n\nBegründung: %(reason)s\n\nSie können die Bewertung auf der Seite des Geschäfts ändern und erneut senden oder innerhalb von sechs Monaten über die Kontaktstelle des Portals widersprechen (Rechtliches)."
 msgstr "Вітаємо!\n\nМи не опублікували ваш відгук про «%(name)s».\n\nПричина: %(reason)s\n\nВи можете змінити відгук на сторінці підприємства й надіслати його знову або протягом шести місяців заперечити через контактний пункт порталу (Rechtliches)."
+
+#: templates/tenant/_schema_banner_pick.html
+msgid "Anlegen und hinzufügen"
+msgstr "Створити й додати"
+
+#: templates/tenant/_schema_banner_pick.html
+msgid "Banner gespeichert und hier hinzugefügt."
+msgstr "Банер збережено й додано сюди."
+
+#: templates/tenant/_schema_banner_pick.html
+msgid "Banner gespeichert – hier ist er nicht hinzugefügt, bitte auswählen."
+msgstr "Банер збережено, але сюди не додано — виберіть його."
+
+#: templates/tenant/_schema_banner_pick.html
+msgid "Ein Banner"
+msgstr "Один банер"
+
+#: templates/tenant/_schema_banner_pick.html
+msgid "Gezeigt wird der erste Banner der Liste. Die anderen bleiben gewählt – mit „Slider“ laufen alle nacheinander."
+msgstr "Показується перший банер списку. Інші лишаються вибраними — у режимі «Слайдер» ідуть усі по черзі."
+
+#: templates/tenant/_schema_banner_pick.html
+msgid "Weitere Einstellungen (Zeitraum, Text-Position, wo der Banner noch erscheint) später unter „Banner verwalten“."
+msgstr "Інші налаштування (термін, розташування тексту, де ще показувати) — потім у «Керувати банерами»."
+
+#: templates/tenant/_schema_usp.html
+msgid "Ohne Titel wird ein Punkt entfernt. Sichtbar auf der Website nach «Speichern»."
+msgstr "Пункт без заголовка видаляється. На сайті — після «Зберегти»."
+
+#: templates/tenant/_schema_usp.html
+msgid "Punkt %(n)s"
+msgstr "Пункт %(n)s"
+
+#: templates/tenant/_schema_usp.html
+msgid "Punkte"
+msgstr "Пункти"

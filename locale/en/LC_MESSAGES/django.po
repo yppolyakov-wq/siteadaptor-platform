@@ -38656,3 +38656,39 @@ msgstr "Hello,\n\nyour review of „%(name)s“ is now visible on the city porta
 #: apps/aggregator/tasks.py
 msgid "Guten Tag,\n\nIhre Bewertung von „%(name)s“ haben wir nicht veröffentlicht.\n\nBegründung: %(reason)s\n\nSie können die Bewertung auf der Seite des Geschäfts ändern und erneut senden oder innerhalb von sechs Monaten über die Kontaktstelle des Portals widersprechen (Rechtliches)."
 msgstr "Hello,\n\nwe have not published your review of „%(name)s“.\n\nReason: %(reason)s\n\nYou can change the review on the business page and send it again, or object within six months via the portal's contact point (Legal)."
+
+#: templates/tenant/_schema_banner_pick.html
+msgid "Anlegen und hinzufügen"
+msgstr "Create and add"
+
+#: templates/tenant/_schema_banner_pick.html
+msgid "Banner gespeichert und hier hinzugefügt."
+msgstr "Banner saved and added here."
+
+#: templates/tenant/_schema_banner_pick.html
+msgid "Banner gespeichert – hier ist er nicht hinzugefügt, bitte auswählen."
+msgstr "Banner saved – it was not added here, please pick it."
+
+#: templates/tenant/_schema_banner_pick.html
+msgid "Ein Banner"
+msgstr "One banner"
+
+#: templates/tenant/_schema_banner_pick.html
+msgid "Gezeigt wird der erste Banner der Liste. Die anderen bleiben gewählt – mit „Slider“ laufen alle nacheinander."
+msgstr "The first banner of the list is shown. The others stay selected – with “Slider” they all run one after another."
+
+#: templates/tenant/_schema_banner_pick.html
+msgid "Weitere Einstellungen (Zeitraum, Text-Position, wo der Banner noch erscheint) später unter „Banner verwalten“."
+msgstr "More settings (period, text position, where else the banner appears) later under “Manage banners”."
+
+#: templates/tenant/_schema_usp.html
+msgid "Ohne Titel wird ein Punkt entfernt. Sichtbar auf der Website nach «Speichern»."
+msgstr "A point without a title is removed. Visible on the website after «Save»."
+
+#: templates/tenant/_schema_usp.html
+msgid "Punkt %(n)s"
+msgstr "Point %(n)s"
+
+#: templates/tenant/_schema_usp.html
+msgid "Punkte"
+msgstr "Points"

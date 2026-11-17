@@ -644,6 +644,8 @@ def _pick_state(request, choice: dict, place_capable: bool) -> dict:
         "interval": str(choice.get("interval") or 6),
         "intervals": [str(n) for n in range(4, 13)],
         "arrows": bool(choice.get("arrows")),
+        # FB-32 S3: показ — «Ein Banner» (первый из выбранных) или «Slider»
+        "single": bool(choice.get("single")),
         # S6: блок-место — «баннеры этой страницы» (только там, где у страницы есть объект)
         "place_capable": place_capable,
         "from_page": place_capable and bool(choice.get("from_page")),

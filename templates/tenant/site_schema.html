@@ -316,7 +316,7 @@
         {% if g.mode_hint and not g.fields %}<p class="text-xs text-gray-600" data-schema-mode-hint>{{ g.mode_hint }}</p>{% endif %}
         {% for f in g.fields %}
         <div>
-          <label {% if f.name == "out" %}id="schema-l-out-label"{% elif f.name == "card" %}id="schema-l-card-label"{% elif f.buttons %}id="schema-l-{{ f.name }}-label"{% else %}for="schema-l-{{ f.name }}"{% endif %} class="block text-sm font-semibold text-gray-700 mb-1">{{ f.label }}</label>
+          <label {% if f.name == "out" %}id="schema-l-out-label"{% elif f.name == "card" %}id="schema-l-card-label"{% elif f.thumbs %}id="schema-l-{{ f.name }}-label"{% elif f.buttons %}id="schema-l-{{ f.name }}-label"{% else %}for="schema-l-{{ f.name }}"{% endif %} class="block text-sm font-semibold text-gray-700 mb-1">{{ f.label }}</label>
           {% if f.buttons and f.name != "out" %}
           {% comment %}FB-29.3 (макет A): короткий выбор — кнопками (радиогруппа, работает без скриптов).{% endcomment %}
           <div class="grid grid-flow-col auto-cols-fr gap-1" role="radiogroup" aria-labelledby="schema-l-{{ f.name }}-label" data-schema-buttons="{{ f.name }}">
@@ -332,6 +332,14 @@
           <div class="grid grid-cols-2 gap-1.5" role="radiogroup" aria-labelledby="schema-l-card-label" data-schema-cards>
             {% for value, label in f.options %}<label class="relative"><input type="radio" name="f_card" value="{{ value }}" class="peer sr-only"{% if value == f.value %} checked{% endif %}><span class="flex flex-col items-start gap-1 min-h-[44px] rounded-lg border border-gray-300 p-2 text-xs text-gray-800 cursor-pointer peer-checked:border-2 peer-checked:border-indigo-700 peer-checked:bg-indigo-50 peer-checked:text-indigo-900 peer-focus-visible:ring-2 peer-focus-visible:ring-indigo-600">{% include "tenant/_cardform_thumb.html" with key=value %}<span>{{ label }}</span></span></label>{% endfor %}
           </div>
+          {% elif f.thumbs %}
+          {% comment %}FB-32 S1: вид — выпадающий список со схемами (как вид баннера); радиогруппа, без скриптов.{% endcomment %}
+          <details class="rounded-xl border border-gray-500" data-schema-style-pick>
+            <summary class="flex items-center gap-3 px-2 py-1.5 min-h-[44px] cursor-pointer text-sm">{% include "tenant/_style_thumb.html" with key=f.value src=f.thumbs %}<span class="flex-1" data-schema-style-current>{{ f.current }}</span><span aria-hidden="true">▾</span></summary>
+            <div class="grid grid-cols-2 gap-1.5 border-t border-gray-200 p-2" role="radiogroup" aria-labelledby="schema-l-{{ f.name }}-label">
+              {% for value, label in f.options %}<label class="relative"><input type="radio" name="f_{{ f.name }}" value="{{ value }}" class="peer sr-only"{% if value == f.value %} checked{% endif %}><span class="flex flex-col items-start gap-1 min-h-[44px] rounded-lg border border-gray-300 p-2 text-xs text-gray-800 cursor-pointer peer-checked:border-2 peer-checked:border-indigo-700 peer-checked:bg-indigo-50 peer-checked:text-indigo-900 peer-focus-visible:ring-2 peer-focus-visible:ring-indigo-600">{% include "tenant/_style_thumb.html" with key=value src=f.thumbs %}<span>{{ label }}</span></span></label>{% endfor %}
+            </div>
+          </details>
           {% elif f.kind == "select" %}
           <select id="schema-l-{{ f.name }}" name="f_{{ f.name }}" class="ui-input w-full scroll-mb-28"{% if f.hint %} aria-describedby="schema-l-{{ f.name }}-hint"{% endif %}>
             {% for value, label in f.options %}<option value="{{ value }}"{% if value == f.value %} selected{% endif %}>{{ label }}</option>{% endfor %}
@@ -362,6 +370,7 @@
     </form>
     {% endif %}
     {% endif %}
+    {% if selected.usp %}{% include "tenant/_schema_usp.html" with usp=selected.usp ref=selected.ref %}{% endif %}
     {% if selected.banner_pick %}
     {% include "tenant/_schema_banner_pick.html" with pick=selected.banner_pick ref=selected.ref %}
     <form method="post" id="schema-pick-form">{% csrf_token %}

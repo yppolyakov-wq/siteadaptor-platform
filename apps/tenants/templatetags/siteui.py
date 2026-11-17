@@ -1319,6 +1319,8 @@ def hero_slides(context, heroes, choice=None):
         if not href:
             href = siteconfig._menu_href(h.get("button_url"))
         out.append({**h, "href": href})
+    if isinstance(choice, dict) and choice.get("single"):
+        return out[:1]  # FB-32 S3: «Ein Banner» — первый активный из выбранных
     return out
 
 
@@ -1327,8 +1329,8 @@ def banner_block_slides(context, block):
     """FB-29.2 S4: слайды блока «Banner», когда из библиотеки выбрано НЕСКОЛЬКО баннеров
     (слайдер). Один баннер или свой слайд блока рисует прежняя ветка (`banner_slide`)."""
     pick = _block_picks(context, block)
-    if len(pick) < 2:
-        return []
+    if len(pick) < 2 or (isinstance(block, dict) and block.get("single")):
+        return []  # FB-32 S3: «Ein Banner» — прежняя ветка одного баннера
     slides = hero_slides(context, [], {"pick": pick})
     return slides if len(slides) > 1 else []
 
