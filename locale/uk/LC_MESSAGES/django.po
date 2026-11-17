@@ -38974,3 +38974,11 @@ msgstr "Ваш відгук перевіряється і з’явиться п
 #: apps/aggregator/review_moderation.py
 msgid "Your review was not published."
 msgstr "Ваш відгук не опубліковано."
+
+#: apps/aggregator/tasks.py
+msgid "Guten Tag,\n\nIhre Bewertung von „%(name)s“ ist jetzt auf dem Stadtportal sichtbar. Vielen Dank!"
+msgstr "Вітаємо!\n\nВаш відгук про «%(name)s» опубліковано на міському порталі. Дякуємо!"
+
+#: apps/aggregator/tasks.py
+msgid "Guten Tag,\n\nIhre Bewertung von „%(name)s“ haben wir nicht veröffentlicht.\n\nBegründung: %(reason)s\n\nSie können die Bewertung auf der Seite des Geschäfts ändern und erneut senden oder innerhalb von sechs Monaten über die Kontaktstelle des Portals widersprechen (Rechtliches)."
+msgstr "Вітаємо!\n\nМи не опублікували ваш відгук про «%(name)s».\n\nПричина: %(reason)s\n\nВи можете змінити відгук на сторінці підприємства й надіслати його знову або протягом шести місяців заперечити через контактний пункт порталу (Rechtliches)."

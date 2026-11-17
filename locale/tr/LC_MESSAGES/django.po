@@ -38794,3 +38794,11 @@ msgstr "Değerlendirmeniz kontrol ediliyor ve onaydan sonra görünecek."
 #: apps/aggregator/review_moderation.py
 msgid "Your review was not published."
 msgstr "Değerlendirmeniz yayınlanmadı."
+
+#: apps/aggregator/tasks.py
+msgid "Guten Tag,\n\nIhre Bewertung von „%(name)s“ ist jetzt auf dem Stadtportal sichtbar. Vielen Dank!"
+msgstr "Merhaba,\n\n„%(name)s“ hakkındaki değerlendirmeniz artık şehir portalında görünüyor. Teşekkürler!"
+
+#: apps/aggregator/tasks.py
+msgid "Guten Tag,\n\nIhre Bewertung von „%(name)s“ haben wir nicht veröffentlicht.\n\nBegründung: %(reason)s\n\nSie können die Bewertung auf der Seite des Geschäfts ändern und erneut senden oder innerhalb von sechs Monaten über die Kontaktstelle des Portals widersprechen (Rechtliches)."
+msgstr "Merhaba,\n\n„%(name)s“ hakkındaki değerlendirmenizi yayınlamadık.\n\nGerekçe: %(reason)s\n\nDeğerlendirmeyi işletmenin sayfasında değiştirip yeniden gönderebilir veya altı ay içinde portalın iletişim noktası üzerinden itiraz edebilirsiniz (Yasal bilgiler)."

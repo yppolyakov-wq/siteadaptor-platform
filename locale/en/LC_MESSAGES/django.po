@@ -38648,3 +38648,11 @@ msgstr "Your review is being checked and will appear after approval."
 #: apps/aggregator/review_moderation.py
 msgid "Your review was not published."
 msgstr "Your review was not published."
+
+#: apps/aggregator/tasks.py
+msgid "Guten Tag,\n\nIhre Bewertung von „%(name)s“ ist jetzt auf dem Stadtportal sichtbar. Vielen Dank!"
+msgstr "Hello,\n\nyour review of „%(name)s“ is now visible on the city portal. Thank you!"
+
+#: apps/aggregator/tasks.py
+msgid "Guten Tag,\n\nIhre Bewertung von „%(name)s“ haben wir nicht veröffentlicht.\n\nBegründung: %(reason)s\n\nSie können die Bewertung auf der Seite des Geschäfts ändern und erneut senden oder innerhalb von sechs Monaten über die Kontaktstelle des Portals widersprechen (Rechtliches)."
+msgstr "Hello,\n\nwe have not published your review of „%(name)s“.\n\nReason: %(reason)s\n\nYou can change the review on the business page and send it again, or object within six months via the portal's contact point (Legal)."
