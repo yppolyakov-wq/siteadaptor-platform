@@ -39,6 +39,8 @@ KAUF_KEY = "kauf"
 KAUF_REF = "__kauf"  # строка схемы «Buchung» (не хранится)
 #: где страница рисует покупку: у услуги — в первом экране, над разделами; у события — после
 KAUF_FIRST = frozenset({"service_detail", "product_detail", "stay_detail"})
+#: FB-32 S4: страницы с разделами, но без покупки (строки «Buchung» в схеме нет)
+NO_KAUF = frozenset({"cart"})
 
 
 #: FB-31 P5 R8: вид объекта → общий хост его детали (у тура — страница событий)
@@ -330,12 +332,13 @@ def _lift_cart(config: dict, items: list[dict], keys: set, hidden: list) -> list
     return out
 
 
-def cart_flow(config) -> list[dict]:
+def cart_flow(config, *, normalized: bool = False) -> list[dict]:
     """Поток страницы корзины: [{"section": "upsell"} | {"part": "ids:…"}]; пусто — прежняя
-    разметка (полоса, затем все блоки)."""
+    разметка (полоса, затем все блоки). `normalized` — конфиг уже нормализован (горячий путь
+    корзины не нормализует его второй раз, ревью S4a)."""
     from apps.tenants import siteconfig
 
-    norm = siteconfig.normalize(config)
+    norm = config if normalized else siteconfig.normalize(config)
     rows = siteconfig.page_rows(norm, "cart")
     hidden = siteconfig.detail_section_hidden(norm, "cart")
     order = [k for k in section_keys("cart") if k not in hidden]

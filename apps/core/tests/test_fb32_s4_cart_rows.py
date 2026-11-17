@@ -84,3 +84,19 @@ def test_upsell_settings_live_on_its_row_not_on_the_page_row():
     assert 'data-schema-setting-box="cart_upsell"' in html
     page = b.get("?seite=cart&block=__page")
     assert 'data-schema-setting-box="cart_upsell"' not in page
+
+
+def test_review_hidden_strip_with_a_block_above_keeps_the_block_and_no_strip():
+    cfg = {"cart_show_upsell": False, "page_blocks": {"cart": [TEXT, {"key": "upsell"}]}}
+    flow = detail_parts.cart_flow(cfg)
+    assert {"section": "upsell"} not in flow and flow[0]["part"] == "ids:t-cart"
+    html = _cart_html(cfg)
+    assert "Ab 8 Uhr" in html and "Dazu" not in html
+
+
+def test_review_empty_cart_draws_own_blocks_once():
+    from apps.orders import public_views
+
+    cfg = {"page_blocks": {"cart": [TEXT, {"key": "upsell"}]}}
+    html = public_views.cart_view(_req("/warenkorb/", cfg)).content.decode()
+    assert html.count("Ab 8 Uhr") == 1

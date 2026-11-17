@@ -1090,7 +1090,7 @@ def blocks_for(
             out[-1].update(_part_view_panel(config, host, item, main))
     from apps.core import detail_parts as _dp
 
-    if _dp.module_of(host or "") and host != "cart":  # FB-32 S4: у корзины покупки нет
+    if _dp.module_of(host or "") and host not in _dp.NO_KAUF:  # FB-32 S4: без покупки
         # FB-31 P5: «Buchung» закреплена после разделов (так её рисует страница); блоки
         # после неё — хвост страницы, как раньше
         keys = set(_dp.section_keys(host))
