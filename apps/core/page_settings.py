@@ -166,6 +166,7 @@ _COMPOSITION_SURFACE = {
 _LAYOUT_KEYS = {
     "catalog_layout": "catalog_layout",
     "product_related": "detail_related_layout",
+    "cart_upsell_layout": "cart_upsell_layout",  # FB-32 S4b
     "service_layout": "service_index_layout",
     "stay_layout": "stay_index_layout",
     "events_layout": "events_index_layout",
@@ -650,7 +651,8 @@ def apply_override(cfg: dict, code: str, value, output: dict | None = None) -> d
                 layout.pop(field_, None)
             layout.update({k: v for k, v in output.items() if k in OUTPUT_KEYS})
         extra = siteconfig.PAGE_EXTRA_PRESETS.get(key, ())
-        if key == "detail_related_layout":  # FB-31 P5 R7: свои поля вида (raster, max)
+        # FB-31 P5 R7: свои поля вида (raster, max); FB-32 S4b — то же у «Passt dazu»
+        if key in ("detail_related_layout", "cart_upsell_layout"):
             out[key] = siteconfig.normalize_related_layout(layout)
             return out
         out[key] = siteconfig.normalize_layout(

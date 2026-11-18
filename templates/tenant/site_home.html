@@ -855,6 +855,7 @@
           <div class="page-block" data-page-key="cart" data-stu-setting="cart_upsell" data-stu-axis="content" data-stu-page="cart">
             <span class="text-sm font-medium block mb-2">{% trans "Cart page" %}</span>
             {% include "tenant/_stu19_summary.html" with s=stu19.cart_upsell %}
+            <div data-stu-setting="cart_upsell_layout" data-stu-axis="grid" data-stu-page="cart">{% include "tenant/_stu19_summary.html" with s=stu19.cart_upsell_layout %}</div>
           </div>
           {% endif %}
           {% comment %}ST-2: пресеты страницы (реестр page_presets: «Über uns», корзина).

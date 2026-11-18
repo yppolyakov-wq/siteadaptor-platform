@@ -2934,7 +2934,7 @@ SETTINGS_FOLLOWERS: dict[str, tuple[str, ...]] = {}
 SETTING_ROWS = {
     "product": {"product_related": "related"},
     # FB-32 S4: «Passt gut dazu» корзины — настройки на её строке, не в «Seite»
-    "cart": {"cart_upsell": "upsell"},
+    "cart": {"cart_upsell": "upsell", "cart_upsell_layout": "upsell"},
 }
 SETTING_ROW_DESIGN = {"related": ("product_card_form",), "upsell": ("product_card_form",)}
 
@@ -2950,13 +2950,14 @@ def row_settings(code: str, ref: str) -> tuple[str, ...]:
 _RELATED_COLS = frozenset(f"cols{n}" for n in range(2, 7))
 
 
-def related_view(config: dict) -> dict:
-    """FB-31 P5 R7: текущие «Wie» · «Spalten» · «Höchstens» строки «Ähnliche Produkte»."""
+def related_view(config: dict, key: str = "detail_related_layout") -> dict:
+    """FB-31 P5 R7: текущие «Wie» · «Spalten» · «Höchstens» строки «Ähnliche Produkte»;
+    FB-32 S4b — то же у «Passt dazu» корзины (`cart_upsell_layout`)."""
     from django.utils.translation import gettext_lazy as _
 
     from apps.tenants import siteconfig
 
-    lay = siteconfig.normalize_related_layout((config or {}).get("detail_related_layout"))
+    lay = siteconfig.normalize_related_layout((config or {}).get(key))
     return {
         "related_modes": (
             ("auto", _("Automatisch")),

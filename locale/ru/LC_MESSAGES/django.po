@@ -39055,3 +39055,7 @@ msgstr "Безопасность"
 #: apps/core/site_schema.py
 msgid "Zeit"
 msgstr "Время"
+
+#: apps/core/studio_pages.py
+msgid "Passt dazu: Darstellung"
+msgstr "«Подойдёт к этому»: вид"

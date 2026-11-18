@@ -336,7 +336,13 @@ def site_schema_view(request):
         settings = site_schema.settings_groups(tenant, code, config, row=selected["ref"])
         wanted = site_schema.SETTING_ROW_DESIGN.get(selected["ref"], ())
         design_rows = [d for d in site_schema.design_rows(tenant, code) if d["code"] in wanted]
-        row_view = site_schema.related_view(config) if selected["ref"] == "related" else {}
+        row_view = (
+            site_schema.related_view(config)
+            if selected["ref"] == "related"
+            else site_schema.related_view(config, "cart_upsell_layout")
+            if selected["ref"] == "upsell"
+            else {}
+        )
     else:
         row_view = {}
     # FB-29.5: с кем выбранный блок стоит в одном ряду (подсказка под кнопками ширины)

@@ -17,7 +17,7 @@
     <input type="hidden" name="ref" value="{{ settings_ref }}">
     <input type="hidden" name="op" value="setting">
     <input type="hidden" name="setting" value="{{ s.code }}">
-    {% if s.code == "product_related" %}{% include "tenant/_schema_related_view.html" %}{% else %}
+    {% if s.code == "product_related" or s.code == "cart_upsell_layout" %}{% include "tenant/_schema_related_view.html" %}{% else %}
     <fieldset>
       <legend class="sr-only">{{ s.label }}</legend>
           {% if s.kind == "bool" %}

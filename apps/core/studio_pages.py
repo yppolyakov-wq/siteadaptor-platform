@@ -366,6 +366,14 @@ SETTINGS: dict[str, Setting] = {
             ("cart_show_upsell",),
             axis=AXIS_CONTENT,
         ),
+        # FB-32 S4b: вид полосы «Passt dazu» — как «Ähnliche» (Wie · Spalten · Höchstens)
+        _s(
+            "cart_upsell_layout",
+            _("Passt dazu: Darstellung"),
+            "cart_upsell_preset",
+            ("cart_upsell_layout", "preset"),
+            axis=AXIS_GRID,
+        ),
         # ── STU-8: настройки, которые панель показывала, а реестр не знал. Реестр —
         # единственный источник ответа «что настраивается на этой странице», поэтому
         # список обязан быть полным: замок test_registry_and_panel_agree сверяет его
@@ -596,7 +604,7 @@ PAGE_TYPES: tuple[PageType, ...] = (
         ("storefront-cart",),
         # STU-17: `cart_upsell` — про НАЛИЧИЕ полосы «Passt dazu», форма карточки —
         # про её вид; полосу рисует `_product_card`, значит ось здесь действует.
-        ("cart_upsell", "product_card_form"),
+        ("cart_upsell", "cart_upsell_layout", "product_card_form"),
         block_host="cart",
     ),
     # M21.11 P3 (решение владельца): ОДИН тип «Seite» для всех текстовых страниц —

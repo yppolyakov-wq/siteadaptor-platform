@@ -1,8 +1,20 @@
-{% load i18n %}{% if upsell and cart_show_upsell %}
+{% load i18n siteui %}{% if upsell and cart_show_upsell %}
   <section class="mt-10">
     <h2 class="text-lg font-bold mb-4"><span data-edit="cart_upsell_title">{% if cart_upsell_title %}{{ cart_upsell_title }}{% else %}{% trans "Goes well with this" %}{% endif %}</span></h2>
+    {% if not upsell_layout %}
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
       {% for p in upsell %}{% include "storefront/_product_card.html" %}{% endfor %}
     </div>
+    {% elif upsell_strip %}
+    {% comment %}FB-32 S4b: как «Ähnliche» — «Automatisch»: больше ряда → лента.{% endcomment %}
+    <div class="flex gap-4 overflow-x-auto pb-2" data-upsell-strip data-sf-slider>
+      {% for p in upsell %}<div class="w-44 sm:w-56 shrink-0 flex [&>*]:w-full">{% include "storefront/_product_card.html" %}</div>{% endfor %}
+    </div>
+    {% else %}
+    <div class="{{ upsell_grid }}" {% sf_grid_attrs upsell_layout count=upsell|length %} data-upsell-grid>
+      {% for p in upsell %}{% include "storefront/_product_card.html" %}{% endfor %}
+      {% include "storefront/_grid_filler.html" %}
+    </div>
+    {% endif %}
   </section>
 {% endif %}

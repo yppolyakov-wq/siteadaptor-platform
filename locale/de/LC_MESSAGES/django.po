@@ -38803,3 +38803,7 @@ msgstr "Sicherheit"
 #: apps/core/site_schema.py
 msgid "Zeit"
 msgstr "Zeit"
+
+#: apps/core/studio_pages.py
+msgid "Passt dazu: Darstellung"
+msgstr "Passt dazu: Darstellung"

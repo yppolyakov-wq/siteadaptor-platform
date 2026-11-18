@@ -79,7 +79,7 @@ def test_upsell_settings_live_on_its_row_not_on_the_page_row():
     from apps.core import site_schema
 
     b = Browser(_tenant())
-    assert site_schema.row_settings("cart", "upsell") == ("cart_upsell",)
+    assert site_schema.row_settings("cart", "upsell") == ("cart_upsell", "cart_upsell_layout")
     html = b.get("?seite=cart&block=upsell")
     assert 'data-schema-setting-box="cart_upsell"' in html
     page = b.get("?seite=cart&block=__page")

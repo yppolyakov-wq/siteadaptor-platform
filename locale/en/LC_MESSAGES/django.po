@@ -38716,3 +38716,7 @@ msgstr "Security"
 #: apps/core/site_schema.py
 msgid "Zeit"
 msgstr "Time"
+
+#: apps/core/studio_pages.py
+msgid "Passt dazu: Darstellung"
+msgstr "Goes well with this: display"

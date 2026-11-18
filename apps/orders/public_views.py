@@ -899,6 +899,18 @@ def cart_view(request):
         # самовывоза (SHP-2); без сохранённых способов это прежние точки бизнеса.
         "pickup_points": [],
     }
+    # Заголовок/примечание корзины + кросс-селл — правятся на канве. При ?preview=1
+    # читаем черновик (тумблер кросс-селла виден в превью вживую).
+    from apps.tenants import siteconfig
+
+    _raw = page_settings.raw_config(request)
+    _cfg = siteconfig.normalize(_raw)
+    # FB-32 S4b: вид «Passt dazu» — как «Ähnliche» (без выбора — прежние 4 сеткой)
+    _up_lay = (
+        _cfg.get("cart_upsell_layout")
+        if isinstance((_raw or {}).get("cart_upsell_layout"), dict)
+        else None
+    )
     # T1 upsell «Passt dazu»: товары не из корзины, рекомендованные вперёд.
     if rows:
         from apps.catalog.models import Product
@@ -906,11 +918,21 @@ def cart_view(request):
         in_cart_ids = {r["product"].pk for r in rows}
         from apps.promotions.price_layer import attach_promos
 
+        limit = _up_lay.get("max", siteconfig.RELATED_MAX_DEFAULT) if _up_lay else 4
         ctx["upsell"] = attach_promos(
             Product.objects.filter(is_active=True)
             .exclude(pk__in=in_cart_ids)
-            .order_by("-is_featured", "-created_at")[:4]
+            .order_by("-is_featured", "-created_at")[:limit]
         )
+        if _up_lay:
+            mode = siteconfig.related_mode(_up_lay)
+            ctx["upsell_strip"] = mode == "auto" and len(ctx["upsell"]) > int(
+                _up_lay.get("cols") or 4
+            )
+            if mode == "raster" and not _up_lay.get("tail"):
+                _up_lay = {**_up_lay, "tail": "show"}  # «Höchstens N» — все N, как у «Ähnliche»
+            ctx["upsell_layout"] = _up_lay
+            ctx["upsell_grid"] = siteconfig.grid_class_string(_up_lay)
     # SHP-2: способы получения — общий партиал и тот же разбор, что на чекауте; вес и
     # размеры корзины скрывают способы, которые её не повезут.
     _parcel = shipping.parcel_for((p, v, q) for p, v, _o, q in items)
@@ -930,13 +952,7 @@ def cart_view(request):
         ctx["delivery_free_gap_cents"] = _gap
         ctx["delivery_free_gap_eur"] = f"{_gap / 100:.2f}" if _gap else ""
         ctx["delivery_free_progress"] = min(100, int((_grand * 100) / _free)) if _free else 0
-    # Заголовок/примечание корзины + кросс-селл — правятся на канве. При ?preview=1
-    # читаем черновик (тумблер кросс-селла виден в превью вживую).
-    from apps.tenants import siteconfig
-
     is_preview = request.GET.get("preview") == "1"
-    _raw = page_settings.raw_config(request)
-    _cfg = siteconfig.normalize(_raw)
     ctx["cart_title"] = _cfg.get("cart_title", "")
     ctx["cart_note"] = _cfg.get("cart_note", "")
     ctx["cart_upsell_title"] = _cfg.get("cart_upsell_title", "")
