@@ -177,3 +177,7 @@ S6a, S6f; a11y-architect — S6c; Playwright 1440/390 de/ru — S6a, S6c, S6f.
 Вьюха — `promo_slots` (lead/mid/tail), быстрый путь без нормализации, «Weitere» скрыт — без
 запроса. Замки: `FB31P3_GOLDEN` и новые снимки детали акции байт-в-байт, число запросов.
 Владельцу (по рекомендации): «Weitere Aktionen» скрывается — да; визитка внутри «Angebot» — да.
+- **Решение владельца (2026-11-18), S6g:** все шесть страниц без схемы (Kombi-Detail, /karten/,
+  Lehrer, Veranstaltungskalender, Tischreservierung — обзор и время) — строками, как остальные;
+  подтверждения, ссылки на Angebot и правовые — без блоков (замок).
+
