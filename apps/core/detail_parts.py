@@ -13,6 +13,8 @@
 
 from __future__ import annotations
 
+import re
+
 from apps.core import detail_sections
 
 #: хост блоков детали → модуль реестра разделов (R3a: события и туры — цикл разделов;
@@ -30,6 +32,9 @@ SECTION_HOSTS = {
 }
 #: FB-32 S6a: хосты своих страниц «Seite» (`seite:<slug>`) — модуль разделов «page»
 PAGE_PREFIX = "seite:"
+#: тот же вид хоста, что принимает нормализация (`siteconfig._CONTENT_PAGE_HOST_RE`) — иначе
+#: черновик со строками раздела у кривого хоста принимался бы, но не сохранялся (ревью S6a)
+_PAGE_HOST_RE = re.compile(r"^seite:[a-z0-9]+(?:-[a-z0-9]+)*$")
 #: FB-32 S6a: модули страниц без покупки и с постоянным порядком разделов
 NO_KAUF_MODULES = frozenset({"cart", "info", "page"})
 FIXED_ORDER_MODULES = frozenset({"info", "page"})
@@ -49,7 +54,6 @@ KAUF_REF = "__kauf"  # строка схемы «Buchung» (не хранитс�
 #: где страница рисует покупку: у услуги — в первом экране, над разделами; у события — после
 KAUF_FIRST = frozenset({"service_detail", "product_detail", "stay_detail"})
 #: FB-32 S4: страницы с разделами, но без покупки (строки «Buchung» в схеме нет)
-NO_KAUF = frozenset({"cart"})
 
 
 #: FB-31 P5 R8: вид объекта → общий хост его детали (у тура — страница событий)
@@ -64,7 +68,7 @@ OBJECT_SHARED = {
 
 def module_of(host: str) -> str:
     """Модуль разделов ОБЩЕГО хоста детали (писатель порядка/видимости — только у него)."""
-    if isinstance(host, str) and host.startswith(PAGE_PREFIX) and len(host) > len(PAGE_PREFIX):
+    if isinstance(host, str) and _PAGE_HOST_RE.match(host):
         return "page"
     return SECTION_HOSTS.get(host, "")
 

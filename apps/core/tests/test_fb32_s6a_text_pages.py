@@ -76,3 +76,53 @@ def test_lift_keeps_anchors_only_with_a_block_above_the_last_section():
     assert out == [{"key": "pagetext"}, TEXT, {"key": "contact"}] and cfg["about_contact"] is False
     # текст своей страницы не скрывается даже присланным `enabled: False`
     assert detail_parts.lift({}, "seite:x", [{"key": "pagetext", "enabled": False}, TEXT]) == [TEXT]
+
+
+def test_own_block_between_sections_moves_up_and_down():
+    """Ревью S6a: разделы сами не двигаются, но своим блокам они — места."""
+    from apps.tenants import siteconfig
+
+    t = _tenant()
+    t.site_config = {"page_blocks": {"info": [{"key": "pagetext"}, TEXT, {"key": "contact"}]}}
+    t.save(update_fields=["site_config"])
+    rows = {r["ref"]: r for r in site_schema.blocks_for(_cfg(t), "text")}
+    assert rows["t-s6"]["can_up"] and rows["t-s6"]["can_down"]
+    assert not rows["pagetext"]["can_up"] and not rows["contact"]["can_down"]
+    site_schema.apply(t, "text", "up", ref="t-s6")
+    keys = [
+        r.get("id") or r["key"] for r in siteconfig.normalize(t.site_config)["page_blocks"]["info"]
+    ]
+    assert keys == ["t-s6", "pagetext", "contact"]
+    assert _about(t.site_config).index("Bus 5") < _about(t.site_config).index("about_title")
+
+
+def test_every_hideable_section_of_a_fixed_page_has_a_visibility_key():
+    """Ревью S6a: видимость разделов таких страниц пишется только в прежние ключи."""
+    from apps.core import detail_sections
+
+    for module in detail_parts.FIXED_ORDER_MODULES:
+        for s in detail_sections.sections_for(module):
+            if s.hideable:
+                assert s.key in detail_parts.VISIBILITY_KEYS.get(module, {}), (module, s.key)
+
+
+def test_odd_seite_hosts_have_no_sections_and_text_is_never_hidden():
+    from apps.tenants import siteconfig
+
+    for host in ("seite:Foo", "seite:a:b", "seite:x/y"):
+        assert detail_parts.section_keys(host) == ()
+    assert (
+        siteconfig.detail_section_hidden({"page_detail": {"hidden": ["pagetext"]}}, "page") == set()
+    )
+
+
+def test_draft_started_before_section_rows_is_not_a_false_conflict():
+    from apps.core import aufbau_draft
+
+    saved = {"items": [TEXT]}
+    legacy = {"host": "info", "contact": False, "items": [TEXT]}
+    legacy["base"] = aufbau_draft._fingerprint({**saved, "contact": True})
+    assert aufbau_draft._base_fingerprint(saved, {}, legacy) == legacy["base"]
+    assert aufbau_draft.changes(saved, legacy) == 1, "переключатель старого черновика учтён"
+    fresh = {"host": "info", "items": [{"key": "pagetext"}, TEXT]}
+    assert aufbau_draft._base_fingerprint(saved, {}, fresh) == aufbau_draft._fingerprint(saved)

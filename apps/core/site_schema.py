@@ -1127,12 +1127,17 @@ def blocks_for(
         b.setdefault("narrow", False)
     # FB-27 R1: «выше/ниже» двигает блок среди ВИДИМЫХ — скрытый сосед не «съедает»
     # нажатие (раньше порядок на странице не менялся, а кнопка была активна).
-    movable = [b for b in out if not b["fixed"] and b["enabled"]]
+    # FB-32 S6a (ревью): разделы с постоянным порядком сами не двигаются, но для своих блоков
+    # они — места («над текстом», «между текстом и контактами»)
+    movable = [b for b in out if (not b["fixed"] or _fixed_section(host, b)) and b["enabled"]]
     for b in out:
         b["can_up"] = b["can_down"] = False
     for i, b in enumerate(movable):
         b["can_up"] = i > 0
         b["can_down"] = i < len(movable) - 1
+    for b in out:
+        if b["fixed"]:
+            b["can_up"] = b["can_down"] = False
     return out
 
 
