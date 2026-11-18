@@ -80,3 +80,53 @@ def test_without_the_checkbox_old_follows_stay(settings):
     req.GET = _combo()
     follow_views.follow_page(req)
     assert FollowSubscription.objects.filter(user=user, target_key=MITTE).exists()
+
+
+def test_replace_keeps_telegram_and_other_portal_follows(settings):
+    settings.ROOT_URLCONF = "config.urls_portal"
+    portal = _portal()
+    user = PortalUser.objects.create(email=_email())
+    mitte = follow.parse_target(_qd(stadtteil=MITTE), portal=portal)
+    follow.follow_now(user, mitte, frequency="daily", portal=portal)
+    follow.follow_now(user, mitte, frequency="daily", portal=portal, channel="telegram")
+    follow.follow_now(user, mitte, frequency="daily", portal=None)
+    data = {"frequency": "daily", "replace_singles": "1"}
+    req = _req("post", "/folgen/", data, portal=portal, user=user)
+    req.GET = _combo()
+    follow_views.follow_page(req)
+    left = FollowSubscription.objects.filter(user=user, target_key=MITTE)
+    assert set(left.values_list("channel", "portal_id")) == {
+        ("telegram", portal.pk),
+        ("email", None),
+    }
+
+
+def test_replace_frees_slots_under_the_follow_limit(settings):
+    settings.ROOT_URLCONF = "config.urls_portal"
+    settings.AGGREGATOR_FOLLOW = {**settings.AGGREGATOR_FOLLOW, "max_follows": 2}
+    portal = _portal()
+    user = PortalUser.objects.create(email=_email())
+    for params in ({"bereich": KAT}, {"stadtteil": MITTE}):
+        follow.follow_now(
+            user,
+            follow.parse_target(_qd(**params), portal=portal),
+            frequency="daily",
+            portal=portal,
+        )
+    data = {"frequency": "daily", "replace_singles": "1"}
+    req = _req("post", "/folgen/", data, portal=portal, user=user)
+    req.GET = _combo()
+    resp = follow_views.follow_page(req)
+    assert "data-follow-limit" not in resp.content.decode()
+    kinds = list(FollowSubscription.objects.filter(user=user).values_list("target_kind", flat=True))
+    assert kinds == [FollowSubscription.TARGET_QUERY]
+
+
+def test_add_forms_carry_only_known_params(settings):
+    settings.ROOT_URLCONF = "config.urls_portal"
+    params = _combo()
+    params.setlist("junk", ["x"] * 50)
+    html = follow_views.follow_page(
+        _req("get", "/folgen/", params, portal=_portal())
+    ).content.decode()
+    assert 'name="junk"' not in html

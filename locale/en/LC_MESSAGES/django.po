@@ -38750,6 +38750,10 @@ msgid "Einzel-Abos %(items)s durch diese Benachrichtigung ersetzen"
 msgstr "Replace the single follows %(items)s with this notification"
 
 #: templates/aggregator/follow.html
+msgid "Sie ist enger: Treffer außerhalb dieser Auswahl kommen dann nicht mehr."
+msgstr "It is narrower: matches outside this selection will no longer arrive."
+
+#: templates/aggregator/follow.html
 msgid "einer davon"
 msgstr "any of them"
 

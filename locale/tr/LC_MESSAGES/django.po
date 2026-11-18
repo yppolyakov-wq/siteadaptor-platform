@@ -38896,6 +38896,10 @@ msgid "Einzel-Abos %(items)s durch diese Benachrichtigung ersetzen"
 msgstr "Tekli abonelikleri %(items)s bu bildirimle değiştir"
 
 #: templates/aggregator/follow.html
+msgid "Sie ist enger: Treffer außerhalb dieser Auswahl kommen dann nicht mehr."
+msgstr "Daha dar: bu seçimin dışındaki sonuçlar artık gelmez."
+
+#: templates/aggregator/follow.html
 msgid "einer davon"
 msgstr "bunlardan biri"
 

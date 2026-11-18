@@ -16,6 +16,7 @@ from urllib.parse import urlencode
 
 from django import forms
 from django.core.cache import cache
+from django.db import transaction
 from django.http import Http404, HttpResponseNotAllowed
 from django.shortcuts import redirect, render
 from django.urls import reverse
@@ -105,7 +106,7 @@ def _home_url(portal) -> str:
     return reverse("portal-home") if portal else reverse("aggregator-index")
 
 
-def _covered_qs(user, target):
+def _covered_qs(user, target, portal):
     from django.db.models import Q
 
     pairs = follow_query.covered_singles(target.query)
@@ -114,21 +115,67 @@ def _covered_qs(user, target):
     cond = Q()
     for kind, key in pairs:
         cond |= Q(target_kind=kind, target_key=key)
-    return FollowSubscription.objects.filter(cond, user=user, city=target.city)
+    # только e-mail-подписки этого портала: Telegram-подписки бота (T-8.28) и подписки
+    # тематического портала того же города комбинация из письма не трогает
+    return FollowSubscription.objects.filter(
+        cond,
+        user=user,
+        city=target.city,
+        portal=portal,
+        channel=FollowSubscription.CHANNEL_EMAIL,
+    )
 
 
-def _replaceable(user, target) -> list[str]:
+# Параметры, которые формы «＋ hinzufügen» переносят дальше: только то, что понимает разбор
+# набора (follow_query), и с потолком — чужие ключи из адреса назад не отражаются.
+_CARRY_KEYS = frozenset(
+    {
+        "art",
+        "city",
+        "q",
+        "kind",
+        "kat",
+        "stadtteil",
+        "merkmal",
+        "unternehmen",
+        "marke",
+        "groesse",
+        "ort",
+        "preis_von",
+        "preis_bis",
+        "roh",
+        "verfuegbar",
+        "next",
+    }
+)
+_CARRY_MAX_VALUES = 30
+_CARRY_MAX_LEN = 300
+
+
+def _current_params(query) -> list[tuple[str, str]]:
+    out: list[tuple[str, str]] = []
+    for key, values in query.lists():
+        if key not in _CARRY_KEYS:
+            continue
+        for value in values:
+            if len(out) >= _CARRY_MAX_VALUES:
+                return out
+            out.append((key, value[:_CARRY_MAX_LEN]))
+    return out
+
+
+def _replaceable(user, target, portal) -> list[str]:
     """Подписи старых одиночных подписок жителя, которые новая комбинация сужает."""
-    qs = _covered_qs(user, target)
+    qs = _covered_qs(user, target, portal)
     if qs is None:
         return []
     return [follow.describe(sub) for sub in qs.order_by("pk")]
 
 
-def _replace_singles(user, target) -> None:
+def _replace_singles(user, target, portal) -> None:
     """T-8.10d.1 (владелец): житель сам отметил «заменить» — старые одиночные подписки,
     покрытые комбинацией, удаляются (только у самого жителя, только этого города)."""
-    qs = _covered_qs(user, target)
+    qs = _covered_qs(user, target, portal)
     if qs is not None:
         qs.delete()
 
@@ -164,21 +211,28 @@ def follow_page(request):
         "combo_groups": follow_query.combo_groups(target.query, request.GET, city=target.city)
         if target.kind == FollowSubscription.TARGET_QUERY
         else [],
-        "replaceable": _replaceable(user, target),
-        "current_params": [(k, v) for k, vs in request.GET.lists() for v in vs],
+        "replaceable": _replaceable(user, target, portal),
+        "current_params": _current_params(request.GET),
     }
     if request.method == "POST":
         form = FollowForm(request.POST)
         if user is not None:  # вошедший — без DOI
             frequency = request.POST.get("frequency", "")
             try:
-                follow.follow_now(
-                    user, target, frequency=frequency, portal=portal, source_host=request.get_host()
-                )
+                # замена — одним куском: сначала убрать покрытые одиночные (освобождает
+                # места под лимит), затем завести комбинацию; упор в лимит откатывает всё
+                with transaction.atomic():
+                    if request.POST.get("replace_singles") == "1":
+                        _replace_singles(user, target, portal)
+                    follow.follow_now(
+                        user,
+                        target,
+                        frequency=frequency,
+                        portal=portal,
+                        source_host=request.get_host(),
+                    )
             except follow.FollowLimitReached:
                 return render(request, "aggregator/follow.html", {**context, "limit_reached": True})
-            if request.POST.get("replace_singles") == "1":
-                _replace_singles(user, target)
             return render(request, "aggregator/follow_done.html", {**context, "following": True})
         email = _doi_guard(request, form)
         if email:

@@ -39089,6 +39089,10 @@ msgid "Einzel-Abos %(items)s durch diese Benachrichtigung ersetzen"
 msgstr "Заменить отдельные подписки %(items)s этой"
 
 #: templates/aggregator/follow.html
+msgid "Sie ist enger: Treffer außerhalb dieser Auswahl kommen dann nicht mehr."
+msgstr "Она уже прежних: совпадения вне этого выбора больше не придут."
+
+#: templates/aggregator/follow.html
 msgid "einer davon"
 msgstr "любой из них"
 

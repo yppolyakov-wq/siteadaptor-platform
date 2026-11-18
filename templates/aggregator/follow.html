@@ -63,7 +63,7 @@
     {% if replaceable %}
     <label class="flex items-start gap-2 rounded-xl bg-gray-50 p-3 text-sm text-gray-800" data-follow-replace>
       <input type="checkbox" name="replace_singles" value="1" class="mt-0.5 h-5 w-5">
-      <span>{% blocktrans with items=replaceable|join:", " %}Einzel-Abos {{ items }} durch diese Benachrichtigung ersetzen{% endblocktrans %}</span>
+      <span>{% blocktrans with items=replaceable|join:", " %}Einzel-Abos {{ items }} durch diese Benachrichtigung ersetzen{% endblocktrans %} <span class="block text-gray-600">{% trans "Sie ist enger: Treffer außerhalb dieser Auswahl kommen dann nicht mehr." %}</span></span>
     </label>
     {% endif %}
     <button type="submit" class="rounded-lg px-4 py-2 text-sm font-medium text-white" style="background: var(--portal-color, #4f46e5)">{% if user %}{% trans "Folgen" %}{% else %}{% trans "Bestätigungslink senden" %}{% endif %}</button>

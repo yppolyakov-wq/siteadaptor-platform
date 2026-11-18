@@ -38837,6 +38837,10 @@ msgid "Einzel-Abos %(items)s durch diese Benachrichtigung ersetzen"
 msgstr "Einzel-Abos %(items)s durch diese Benachrichtigung ersetzen"
 
 #: templates/aggregator/follow.html
+msgid "Sie ist enger: Treffer außerhalb dieser Auswahl kommen dann nicht mehr."
+msgstr "Sie ist enger: Treffer außerhalb dieser Auswahl kommen dann nicht mehr."
+
+#: templates/aggregator/follow.html
 msgid "einer davon"
 msgstr "einer davon"
 
