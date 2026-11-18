@@ -155,3 +155,9 @@ ECC: django-reviewer, database-reviewer (оконный запрос, замки
 (та же панель строк), кроме случая «визитка отдельной строкой» в S6c.
 ECC: django-reviewer — каждый срез; security-reviewer — S6c/S6d/S6f; silent-failure-hunter —
 S6a, S6f; a11y-architect — S6c; Playwright 1440/390 de/ru — S6a, S6c, S6f.
+- **S6a ✅** (2026-11-18): «Über uns» (`info`: `pagetext` + `contact`) и свои страницы
+  (`seite:<slug>`: `pagetext`) — строками схемы; общий `detail_parts._lift_flags`/`page_flow`/
+  `flow_ctx` (корзина — на нём же), `VISIBILITY_KEYS` (прежние ключи `cart_show_upsell`,
+  `about_contact`); особый случай `CONTACT_REF` снят; разделы этих страниц сами не двигаются, но
+  для своих блоков — места; текст не скрывается. 6 снимков без якорей — байт-в-байт.
+
