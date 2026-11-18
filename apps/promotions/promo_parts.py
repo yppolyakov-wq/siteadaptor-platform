@@ -97,7 +97,10 @@ def detail_parts(cfg, own_style: str, site_default: str, host: str = "") -> pp.P
     blocks = (cfg.get("page_blocks") or {}) if isinstance(cfg, dict) else {}
     if not isinstance(blocks, dict):  # сырой конфиг черновика может быть битым
         blocks = {}
-    own = group_styles.promotion_detail_style(own_style, "")
+    from apps.core.page_axes_migration import is_objects_blind
+
+    # FB-31.7 B1b-2: сверка переноса смотрит вид без своего кода акции (как после B3)
+    own = "" if is_objects_blind() else group_styles.promotion_detail_style(own_style, "")
     if own:
         parts = pp.from_code(PROMO_DETAIL, own)
     else:
@@ -123,7 +126,9 @@ def group_parts(cfg, key: str) -> pp.Parts:
     if not isinstance(blocks, dict):
         blocks = {}
     sd = cfg.get("site_defaults") or {}
-    own = group_styles.group_style(key, cfg.get("promo_groups"), "")
+    from apps.core.page_axes_migration import is_objects_blind
+
+    own = "" if is_objects_blind() else group_styles.group_style(key, cfg.get("promo_groups"), "")
     if own:
         parts = pp.from_code(PROMO_GROUP, own)
     else:

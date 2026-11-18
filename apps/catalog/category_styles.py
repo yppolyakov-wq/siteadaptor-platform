@@ -59,7 +59,10 @@ def page_style(category, site_default: str = "") -> str:
     До DL-20 второго слоя не было вовсе: владелец обязан был выставлять шаблон
     в каждой категории вручную.
     """
-    code = (getattr(category, "page_style", "") or "").strip()
+    from apps.core.page_axes_migration import is_objects_blind
+
+    # FB-31.7 B1b-2: сверка переноса смотрит вид без своего кода (как после B3)
+    code = "" if is_objects_blind() else (getattr(category, "page_style", "") or "").strip()
     if code in VALID_PAGE_STYLES and code:
         return code
     site_default = (site_default or "").strip()

@@ -71,10 +71,11 @@ def _site(tenant, host):
 
 
 def test_category_hosts_and_page_hosts_have_separate_caps():
-    raw = {f"catalog:c{i:03d}": [_text(i, "x")] for i in range(45)}
+    cap = siteconfig._MAX_CATEGORY_HOSTS  # FB-31.7 B1b-2: 40 → 120 (владелец)
+    raw = {f"catalog:c{i:03d}": [_text(i, "x")] for i in range(cap + 5)}
     raw.update({f"seite:s{i:03d}": [_text(i, "y")] for i in range(45)})
     out = siteconfig.normalize({"page_blocks": raw})["page_blocks"]
-    assert sum(k.startswith("catalog:") for k in out) == 40
+    assert sum(k.startswith("catalog:") for k in out) == cap
     assert sum(k.startswith("seite:") for k in out) == 40
 
 
@@ -229,13 +230,13 @@ def test_preview_after_reset_shows_the_catalog_blocks_like_the_saved_page():
 
 
 def test_forty_first_own_schema_is_refused_instead_of_vanishing():
-    full = {f"catalog:c{i:02d}": [_text(i, "x")] for i in range(40)}
+    full = {f"catalog:c{i:03d}": [_text(i, "x")] for i in range(siteconfig._MAX_CATEGORY_HOSTS)}
     tenant = _tenant({**full, "catalog": [_text(99, "Alle")]})
     _cat()
     browser = Browser(tenant)
     for data in ({"op": "adopt"}, {"op": "add", "type": "text"}):
         _resp, msgs = browser.post(seite="category@catalog:tee", **data)
         assert any("eigenem Aufbau" in m for m in msgs), msgs
-    Category.objects.create(slug="c00", name={"de": "Erste"})
-    _resp, msgs = browser.post(seite="category@catalog:c00", op="add", type="text")
+    Category.objects.create(slug="c000", name={"de": "Erste"})
+    _resp, msgs = browser.post(seite="category@catalog:c000", op="add", type="text")
     assert not msgs  # у категории со своей схемой правки идут как обычно

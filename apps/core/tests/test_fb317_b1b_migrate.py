@@ -10,6 +10,9 @@ from apps.tenants.tests.factories import TenantFactory
 
 pytestmark = pytest.mark.django_db
 
+#: шаблоны уровня сайта, которые переносятся сами (B1b-2: «Alle Kategorien» — со своими кодами)
+SITE_KEYS = sorted(set(siteconfig.PAGE_TEMPLATE_HOSTS) - siteconfig.OBJECT_BOUND_TEMPLATE_KEYS)
+
 
 def _with_code(key, code, rows=()):
     host, path = siteconfig.PAGE_TEMPLATE_HOSTS[key]
@@ -21,7 +24,7 @@ def _with_code(key, code, rows=()):
     return raw
 
 
-@pytest.mark.parametrize("key", sorted(siteconfig.PAGE_TEMPLATE_HOSTS))
+@pytest.mark.parametrize("key", SITE_KEYS)
 def test_every_code_moves_to_rows_keeps_the_old_key_and_repeats_as_noop(key):
     for code in _codes(key):
         for rows in ((), (OWN,)):
@@ -110,7 +113,7 @@ def _seed_all():
 
 
 @pytest.mark.usefixtures("_urlconf")
-@pytest.mark.parametrize("key", sorted(siteconfig.PAGE_TEMPLATE_HOSTS))
+@pytest.mark.parametrize("key", SITE_KEYS)
 def test_every_code_renders_the_same_page_after_the_move(key):
     _seed_all()
     tenant = _tenant({})
@@ -129,7 +132,7 @@ def test_every_code_renders_the_same_page_after_the_move(key):
 
 
 @pytest.mark.usefixtures("_urlconf")
-@pytest.mark.parametrize("key", sorted(siteconfig.PAGE_TEMPLATE_HOSTS))
+@pytest.mark.parametrize("key", SITE_KEYS)
 def test_the_renderer_is_deterministic(key):
     """Сверка имеет смысл, только если одна и та же страница дважды рисуется одинаково."""
     _seed_all()
@@ -147,6 +150,8 @@ def test_demo_kits_store_templates_as_rows_without_old_keys(kit):
     patch = spec.config_patch or {}
     expected = {}
     for key, (_host, path) in siteconfig.PAGE_TEMPLATE_HOSTS.items():
+        if key in siteconfig.OBJECT_BOUND_TEMPLATE_KEYS:
+            continue  # B1b-2: «Alle Kategorien» — единицей со своими кодами категорий
         node = patch
         for part in path:
             node = node.get(part) if isinstance(node, dict) else None

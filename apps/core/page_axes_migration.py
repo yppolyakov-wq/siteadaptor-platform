@@ -13,12 +13,34 @@
 
 from __future__ import annotations
 
+import contextlib
+import contextvars
 import copy
 import logging
 import re
 from dataclasses import dataclass, field
 
 logger = logging.getLogger(__name__)
+
+# FB-31.7 B1b-2: «вид после B3» — витрина не видит старых кодов шаблона у ОБЪЕКТОВ
+# (Category/Promotion.page_style, promo_groups[*].style). Только сверка переноса и тесты.
+_OBJECTS_BLIND: contextvars.ContextVar[bool] = contextvars.ContextVar(
+    "fb317_objects_blind", default=False
+)
+
+
+@contextlib.contextmanager
+def objects_blind():
+    token = _OBJECTS_BLIND.set(True)
+    try:
+        yield
+    finally:
+        _OBJECTS_BLIND.reset(token)
+
+
+def is_objects_blind() -> bool:
+    return _OBJECTS_BLIND.get()
+
 
 #: итог одной поверхности
 DONE, SAME, SKIP, MISMATCH = "done", "same", "skip", "mismatch"
@@ -201,12 +223,12 @@ def template_rows(norm: dict, key: str) -> list | None:
     host, _path = siteconfig.PAGE_TEMPLATE_HOSTS[key]
     code = _old_code(norm, key)
     rows = siteconfig.page_rows(norm, host)
-    if host == "catalog":
+    if host in ("catalog", "category"):
         target = catalog_parts.effective(norm, host, code=code)
         cat = next((r for r in rows if r.get("key") == "categories" and not r.get("id")), None)
         if cat is not None and cat.get("enabled") is False:
             return None  # скрытую строку сейчас заменяет код — перенос сменил бы вид
-        return catalog_parts.write_rows(rows, target, root=True)
+        return catalog_parts.write_rows(rows, target, root=host == "catalog")
     return pp.materialize_rows(siteconfig._pp_surface(host), rows, code)
 
 
@@ -221,6 +243,8 @@ def migrate_templates(raw: dict, render=None) -> tuple[dict, Report]:
     src = raw if isinstance(raw, dict) else {}
     out = copy.deepcopy(src)
     for key in sorted(siteconfig.PAGE_TEMPLATE_HOSTS):
+        if key in siteconfig.OBJECT_BOUND_TEMPLATE_KEYS:
+            continue  # B1b-2: переносится единицей вместе со своими кодами объектов
         norm = siteconfig.normalize(out)
         if not _old_code(norm, key):
             continue
@@ -285,6 +309,8 @@ def templates_to_rows(raw: dict) -> dict:
 
     out = copy.deepcopy(raw if isinstance(raw, dict) else {})
     for key in sorted(siteconfig.PAGE_TEMPLATE_HOSTS):
+        if key in siteconfig.OBJECT_BOUND_TEMPLATE_KEYS:
+            continue  # B1b-2: переносится единицей вместе со своими кодами объектов
         norm = siteconfig.normalize(out)
         if not _old_code(norm, key):
             continue

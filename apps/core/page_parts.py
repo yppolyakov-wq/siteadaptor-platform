@@ -193,12 +193,50 @@ def materialize_rows(s: Surface, rows, code) -> list[dict] | None:
     не трогаются; недостающая строка оси встаёт перед ★ (★ без маркера — в начало: все блоки
     остаются под списком, как было). None — перенос невозможен без смены вида (скрытая
     строка, которую сейчас заменяет код) — решение владельца FB-31.7: такой сайт пропустить."""
+    target = effective_rows(s, rows, code=code if isinstance(code, str) else "")
+    return rows_with(s, rows, target)
+
+
+def rows_with(s: Surface, rows, target: Parts, *, explicit: bool = False) -> list[dict] | None:
+    """Строки `rows`, дающие оси `target` без кода. `explicit` (FB-31.7 B1b-2) — КАЖДАЯ ось
+    записана строкой, даже совпадающая со «стандартом»: свой хост объекта лежит слоем поверх
+    общих строк, и незаписанная ось после B3 пришла бы из них. None — как у materialize_rows."""
     import copy
 
-    target = effective_rows(s, rows, code=code if isinstance(code, str) else "")
     new = copy.deepcopy(_rows(rows))
-    if effective_rows(s, new) == target:
+    if not explicit and effective_rows(s, new) == target:
         return new
+    lead = 0  # куда вставлять строки осей, если ★-маркера нет: в начало, по порядку осей
+    for a in s.axes:
+        want = target.get(a.name)
+        stored = _stored(s, new)
+        # ось уже такая: без `explicit` — по виду, с `explicit` — только если записана строкой
+        if (a.name in stored if explicit else True) and from_rows(s, new).get(a.name) == want:
+            continue
+        row = next((r for r in new if r.get("key") == a.key and not r.get("id")), None)
+        if row is not None and a.key != MAIN_KEY and row.get("enabled") is False:
+            return None
+        if row is None:
+            row = {"key": a.key}
+            marker = next(
+                (i for i, r in enumerate(new) if r.get("key") == MAIN_KEY and not r.get("id")),
+                None,
+            )
+            # ★ без маркера: блоки и так «под списком» — маркер перед ними это сохраняет
+            at = marker if marker is not None and a.key != MAIN_KEY else lead
+            new.insert(at, row)
+            if marker is None:
+                lead += 1
+        value = want or a.off
+        if value:
+            row[a.field] = value
+        else:
+            row.pop(a.field, None)
+    if effective_rows(s, new) != target:
+        return None
+    if explicit and any(a.off and a.name not in _stored(s, new) for a in s.axes):
+        return None
+    return new
     lead = 0  # куда вставлять строки осей, если ★-маркера нет: в начало, по порядку осей
     for a in s.axes:
         want = target.get(a.name)

@@ -184,6 +184,26 @@ def effective(cfg, host: str, *, code: str = "") -> Parts:
     return parts
 
 
+def category_host(cfg, category) -> str:
+    """Хост строк страницы категории (правило витрины R5): своя схема `catalog:<slug>`, если в
+    ней записаны оси, иначе «Alle Kategorien» (`category`)."""
+    from apps.tenants import siteconfig
+
+    own = siteconfig.category_host(category.slug)
+    rows = ((cfg or {}).get("page_blocks") or {}).get(own) or []
+    return own if has_parts(rows) else "category"
+
+
+def category_parts(cfg, category) -> Parts:
+    """FB-31.7 B1b-2: части страницы категории, как их видит посетитель — свой код категории
+    (или «Alle Kategorien» из `site_defaults`), поверх — строки её хоста. Единый читатель для
+    самой страницы и для табов родителя (раньше табы смотрели только код — ревью B1b-2)."""
+    from apps.catalog.category_styles import page_style
+
+    default = (((cfg or {}).get("site_defaults") or {}).get("category_page_style")) or ""
+    return effective(cfg, category_host(cfg, category), code=page_style(category, default))
+
+
 # ───────── FB-31.7 B1b: шаблон → строки (писатель на оси) ─────────
 
 

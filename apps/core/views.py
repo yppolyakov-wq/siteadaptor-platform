@@ -3617,7 +3617,7 @@ def home_builder_view(request):
             "catalog_sort": config.get("catalog_sort", "newest"),
             "catalog_subcats_first": config.get("catalog_subcats_first", True),
             # DL-21.1: шаблон корневой страницы каталога + реестр (без preisliste).
-            "catalog_page_style": config.get("catalog_page_style", ""),
+            "catalog_page_style": siteconfig.page_template_code(config, "catalog_page_style"),
             "catalog_root_styles": category_styles.root_styles(),
             "cart_show_upsell": config.get("cart_show_upsell", True),
             # STU-5: переехало со страницы «Pages» (см. save-блок выше).
@@ -3709,12 +3709,12 @@ def home_builder_view(request):
             # показывает, чем оформлен сайт, — иначе владелец правит страницу вслепую.
             "design_look_label": _design_look_label(config),
             # DL-20: шаблон страницы категории — префилл + реестр для плиток.
-            "category_page_style": config["site_defaults"].get("category_page_style", ""),
+            "category_page_style": siteconfig.page_template_code(config, "category_page_style"),
             "category_page_styles": category_styles.CATEGORY_PAGE_STYLES,
-            "promo_group_style": config["site_defaults"].get("promo_group_style", ""),
+            "promo_group_style": siteconfig.page_template_code(config, "promo_group_style"),
             "group_page_styles": group_styles.GROUP_PAGE_STYLES,
             # STU-15a: шаблон страницы одной акции — префилл + реестр для плиток.
-            "promo_detail_style": config["site_defaults"].get("promo_detail_style", ""),
+            "promo_detail_style": siteconfig.page_template_code(config, "promo_detail_style"),
             "promo_detail_styles": group_styles.PROMOTION_DETAIL_STYLES,
             "media_shape": config["site_defaults"].get("media_shape", ""),  # DL-10
             "card_slider": config["site_defaults"].get("card_slider", ""),
@@ -3723,7 +3723,7 @@ def home_builder_view(request):
             # ключ `promo_layout` остаётся только в хранении легаси-конфигов).
             "promo_grouping": config.get("promo_grouping", ""),
             # DL-21.2: шаблон обзорной страницы акций + реестр для плиток.
-            "promo_page_style": config.get("promo_page_style", ""),
+            "promo_page_style": siteconfig.page_template_code(config, "promo_page_style"),
             "promo_page_styles": group_styles.PROMO_PAGE_STYLES,
             # DL-2/DL-17.3: префилл контролов фона страницы и хрома карточек.
             "page_bg": config["site_defaults"].get("page_bg", ""),

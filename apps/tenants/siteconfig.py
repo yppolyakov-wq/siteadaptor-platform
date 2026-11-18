@@ -1256,7 +1256,7 @@ CBLOCK_LABELS = {
 # (в site_config попадает только то, что похоже на слаг категории), число таких
 # хостов ограничено, чтобы конфиг не рос без предела.
 CATEGORY_HOST_PREFIX = "catalog:"
-_MAX_CATEGORY_HOSTS = 40
+_MAX_CATEGORY_HOSTS = 120  # FB-31.7 B1b-2 (владелец): свои шаблоны категорий → свои хосты
 _MAX_CONTENT_PAGE_HOSTS = 40
 # Слаг — по семантике SlugField Django (буквы/цифры/дефис/подчёркивание,
 # регистр значим): у живого тенанта категория вполне может называться
@@ -1413,12 +1413,18 @@ CATALOG_PART_STYLES = {
 #: FB-31.7 B1b: код шаблона уровня сайта → хост его строк и путь старого ключа
 PAGE_TEMPLATE_HOSTS = {
     "catalog_page_style": ("catalog", ("catalog_page_style",)),
-    # «Alle Kategorien» — в B1b-2 вместе со своими шаблонами категорий (ревью B1b-1: строки
-    # общего шаблона перекрыли бы `Category.page_style`, а свой шаблон обязан побеждать)
+    # «Alle Kategorien» (B1b-2): переносится только ВМЕСТЕ со своими шаблонами категорий —
+    # строки общего шаблона перекрыли бы `Category.page_style`, а свой шаблон обязан
+    # побеждать (ревью B1b-1). Поэтому перенос уровня сайта его пропускает (OBJECT_BOUND).
+    "category_page_style": ("category", ("site_defaults", "category_page_style")),
     "promo_page_style": ("promos", ("promo_page_style",)),
     "promo_group_style": ("promo_group", ("site_defaults", "promo_group_style")),
     "promo_detail_style": ("promo_detail", ("site_defaults", "promo_detail_style")),
 }
+
+
+#: шаблоны, чей перенос связан с объектами (своими кодами) — не переносятся сами по себе
+OBJECT_BOUND_TEMPLATE_KEYS = frozenset({"category_page_style"})
 
 
 def _pp_surface(host: str):
@@ -1454,10 +1460,10 @@ def set_page_template(cfg: dict, code_key: str, code: str) -> dict:
         parent.pop(path[1], None)
         out[path[0]] = parent
     norm = normalize(out)
-    if host == "catalog":
+    if host in ("catalog", "category"):
         # шаблон — решение владельца целиком: вид «Kategorien» тоже (строка включается)
         rows = catalog_parts.write_rows(
-            page_rows(norm, host), catalog_parts.from_code(code), root=True
+            page_rows(norm, host), catalog_parts.from_code(code), root=host == "catalog"
         )
     else:
         s = _pp_surface(host)

@@ -1635,10 +1635,8 @@ def product_list(request, slug=None):
     from apps.catalog import catalog_parts as _catalog_parts
 
     if category is not None and path_mode:
-        # своя схема категории сильнее «Alle Kategorien» (R5)
-        _own = siteconfig.category_host(category.slug)
-        _own_rows = (cfg.get("page_blocks") or {}).get(_own) or []
-        _parts_host = _own if _catalog_parts.has_parts(_own_rows) else "category"
+        # своя схема категории сильнее «Alle Kategorien» (R5) — `catalog_parts.category_host`
+        _parts_host = _catalog_parts.category_host(cfg, category)
     else:
         _parts_host = "" if path_mode else "catalog"
     _cat_parts = (
@@ -1824,7 +1822,9 @@ def product_list(request, slug=None):
             tabs_source = category
         elif (
             category.parent_id
-            and _category_page_style(category.parent, _cat_style_default) == "tabs"
+            # FB-31.7 B1b-2: табы родителя — по его строкам поверх кода, как сама страница
+            and _catalog_parts.legacy_code(_catalog_parts.category_parts(cfg, category.parent))
+            == "tabs"
         ):
             tabs_source = category.parent
     category_tabs = []
