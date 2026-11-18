@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 
 #: итог одной поверхности
 DONE, SAME, SKIP, MISMATCH = "done", "same", "skip", "mismatch"
+RENDER_FAILED = "render-failed"
 
 
 @dataclass
@@ -34,7 +35,8 @@ class Report:
 
     @property
     def mismatches(self) -> list[str]:
-        return [k for k, v in self.surfaces.items() if v in (SKIP, MISMATCH)]
+        # ревью B1b-1: сбой рендера сверки — тоже «сайт не перенесён», а не тишина
+        return [k for k, v in self.surfaces.items() if v in (SKIP, MISMATCH, RENDER_FAILED)]
 
     @property
     def busy(self) -> bool:
@@ -199,12 +201,12 @@ def template_rows(norm: dict, key: str) -> list | None:
     host, _path = siteconfig.PAGE_TEMPLATE_HOSTS[key]
     code = _old_code(norm, key)
     rows = siteconfig.page_rows(norm, host)
-    if host in ("catalog", "category"):
+    if host == "catalog":
         target = catalog_parts.effective(norm, host, code=code)
         cat = next((r for r in rows if r.get("key") == "categories" and not r.get("id")), None)
         if cat is not None and cat.get("enabled") is False:
             return None  # скрытую строку сейчас заменяет код — перенос сменил бы вид
-        return catalog_parts.write_rows(rows, target, root=host == "catalog")
+        return catalog_parts.write_rows(rows, target, root=True)
     return pp.materialize_rows(siteconfig._pp_surface(host), rows, code)
 
 
@@ -223,7 +225,7 @@ def migrate_templates(raw: dict, render=None) -> tuple[dict, Report]:
         if not _old_code(norm, key):
             continue
         host, _path = siteconfig.PAGE_TEMPLATE_HOSTS[key]
-        want = siteconfig.page_template_code(norm, key)
+        want = siteconfig.page_template_parts(norm, key)
         rows = template_rows(norm, key)
         if rows is None:
             report.surfaces[key] = SKIP
@@ -235,17 +237,23 @@ def migrate_templates(raw: dict, render=None) -> tuple[dict, Report]:
             report.surfaces[key] = SAME  # строки уже задают этот вид
             continue
         bare = siteconfig.normalize(_without_key(candidate, key))
+        # ревью B1b-1: сверка по ОСЯМ (код — лишь ближайшее имя набора осей)
         same = (
-            siteconfig.page_template_code(after, key) == want
-            and siteconfig.page_template_code(bare, key) == want
+            siteconfig.page_template_parts(after, key) == want
+            and siteconfig.page_template_parts(bare, key) == want
         )
         if same and render is not None:
-            before_html = render(out, key)
-            if before_html is not None:
-                same = (
-                    render(candidate, key) == before_html
-                    and render(_without_key(candidate, key), key) == before_html
-                )
+            try:
+                before_html = render(out, key)
+                if before_html is not None:
+                    same = (
+                        render(candidate, key) == before_html
+                        and render(_without_key(candidate, key), key) == before_html
+                    )
+            except Exception:  # noqa: BLE001 — сайт не переносится, отчёт говорит почему
+                logger.exception("materialize_page_axes: render %s failed", key)
+                report.surfaces[key] = RENDER_FAILED
+                continue
         if not same:
             report.surfaces[key] = MISMATCH
             continue
@@ -321,15 +329,26 @@ def _page_path(cfg: dict, key: str) -> str:
     from apps.promotions.models import Promotion
 
     live = Promotion.objects.filter(Promotion.on_sale_q())
+    from apps.tenants import siteconfig
+
+    blocks = (cfg.get("page_blocks") or {}) if isinstance(cfg, dict) else {}
     if key == "promo_detail_style":
-        promo = live.filter(page_style="").order_by("pk").first()
-        return (
-            reverse("storefront-promotion", args=[promo.pk], urlconf="config.urls_tenant")
-            if promo is not None
-            else ""
-        )
+        # ревью B1b-1: образец без своего шаблона И без своих строк — его вид задаёт перенос
+        for promo in live.filter(page_style="").order_by("pk")[:20]:
+            if not blocks.get(f"promo:{promo.pk.hex}"):
+                return reverse(
+                    "storefront-promotion", args=[promo.pk], urlconf="config.urls_tenant"
+                )
+        return ""
     if key == "promo_group_style":
-        group = live.exclude(group="").order_by("group").values_list("group", flat=True).first()
+        own = siteconfig.normalize_promo_groups((cfg or {}).get("promo_groups"))
+        group = None
+        for name in live.exclude(group="").order_by("group").values_list("group", flat=True):
+            spec = own.get(name)
+            has_style = (spec.get("style") if isinstance(spec, dict) else spec) or ""
+            if not has_style and not blocks.get(siteconfig.promo_group_host(name)):
+                group = name
+                break
         if not group:
             return ""
         from urllib.parse import urlencode
@@ -368,7 +387,8 @@ def renderer(tenant):
             if hasattr(response, "render"):
                 response.render()
             if response.status_code != 200:
-                return f"status:{response.status_code}"
+                # ревью B1b-1: «404 до и 404 после» — не совпадение, а нечего сверять
+                return None
             html = response.content.decode()
             html = _CSRF.sub(r"\1X", html)
             html = _NONCE.sub(r"\1X", html)

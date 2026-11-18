@@ -624,7 +624,6 @@ def _clean(setting: studio_pages.Setting, value, gate: dict, current) -> object:
 #: FB-31.7 B1b: код настройки → ключ шаблона уровня сайта (`siteconfig.PAGE_TEMPLATE_HOSTS`)
 _TEMPLATE_KEYS = {
     "catalog_page_style": "catalog_page_style",
-    "category_page_style": "category_page_style",
     "promo_page_style": "promo_page_style",
     "promo_group_style": "promo_group_style",
     "promo_detail_style": "promo_detail_style",
@@ -662,9 +661,17 @@ def apply_override(cfg: dict, code: str, value, output: dict | None = None) -> d
     # шаблон ещё раз (повтор черновика, ассистент) ничего не меняет (ревью R1–R4)
     template_key = _TEMPLATE_KEYS.get(code)
     if template_key:
-        if str(value or "") == current_value(cfg or {}, setting)[0]:
+        norm = siteconfig.normalize(out)
+        # тот же шаблон по ОСЯМ (не по ближайшему коду): свои виды владельца не снимаются
+        if siteconfig.page_template_is(norm, template_key, str(value or "")):
             return out
-        return siteconfig.set_page_template(out, template_key, str(value or ""))
+        try:
+            return siteconfig.set_page_template(out, template_key, str(value or ""))
+        except siteconfig.TemplateNotExpressible as exc:
+            raise PageSettingError(f"template {value!r} not expressible as rows") from exc
+    if code == "category_page_style":
+        # FB-31.7: «Alle Kategorien» — ключом до B1b-2 (вместе со своими шаблонами категорий)
+        out = siteconfig.drop_catalog_views(out, "category")
     host = _listing_style_host(code)  # FB-31 P4: шаблоны девяти листингов
     if host and value != current_value(cfg or {}, setting)[0]:
         out = siteconfig.drop_page_views(out, host)

@@ -1700,9 +1700,8 @@ def test_dl20_clothing_category_pages_inherit_and_override():
 
     t = TenantFactory(slug="dl20c", name="DL20C", business_type="clothing")
     assert demo_kits.apply_kit(t, "clothing")
-    # FB-31.7 B2: общий шаблон категорий — строками «Alle Kategorien» (не ключом)
+    assert t.site_config["site_defaults"]["category_page_style"] == "navigator"
     norm = siteconfig.normalize(t.site_config)
-    assert siteconfig.page_template_code(norm, "category_page_style") == "navigator"
     styles = dict(Category.objects.filter(parent=None).values_list("slug", "page_style"))
     # MODE-3: три направления — «Regale» (полки подкатегорий), Accessoires без
     # своего значения наследует общий «Navigator» (инвариант наследования).

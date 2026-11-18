@@ -182,3 +182,14 @@ def test_apply_tenant_moves_site_templates_with_the_real_renderer():
     assert SiteConfigSnapshot.objects.filter(tenant_id=tenant.pk, reason=pam.REASON).exists()
     again = pam.apply_tenant(tenant)
     assert not again.changed, again.surfaces
+
+
+def test_render_failure_is_reported_and_the_site_left_untouched():
+    raw = _with_code("promo_page_style", "regale", [OWN])
+
+    def render(cfg, key):
+        raise RuntimeError("boom")
+
+    new, report = pam.migrate_templates(raw, render=render)
+    assert report.surfaces["promo_page_style"] == pam.RENDER_FAILED and new == raw
+    assert report.mismatches == ["promo_page_style"]

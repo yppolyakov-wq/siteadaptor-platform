@@ -1824,11 +1824,7 @@ def product_list(request, slug=None):
             tabs_source = category
         elif (
             category.parent_id
-            # FB-31.7 B1b: шаблон «Alle Kategorien» — по строкам схемы поверх старого ключа
-            and _category_page_style(
-                category.parent, siteconfig.page_template_code(cfg, "category_page_style")
-            )
-            == "tabs"
+            and _category_page_style(category.parent, _cat_style_default) == "tabs"
         ):
             tabs_source = category.parent
     category_tabs = []

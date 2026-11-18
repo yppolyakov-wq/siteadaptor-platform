@@ -68,6 +68,8 @@ def test_regale_unavailable_without_subcategories_then_available(tenant):
 @pytest.mark.parametrize(
     "code,value,path,stored",
     [
+        # FB-31.7: «Alle Kategorien» — ключом до B1b-2 (со своими шаблонами категорий)
+        ("category_page_style", "kopfbild", ("site_defaults", "category_page_style"), "kopfbild"),
         ("product_card_form", "lookbook", ("site_defaults", "card_style"), "lookbook"),
         ("catalog_sort", "price_asc", ("catalog_sort",), "price_asc"),
         ("product_detail_layout", "tabs", ("product_detail", "layout"), "tabs"),
@@ -86,9 +88,7 @@ def test_write_round_trip(tenant, code, value, path, stored):
     assert node == stored
 
 
-@pytest.mark.parametrize(
-    "code,value", [("catalog_page_style", "magazin"), ("category_page_style", "kopfbild")]
-)
+@pytest.mark.parametrize("code,value", [("catalog_page_style", "magazin")])
 def test_template_write_is_stored_as_rows(tenant, code, value):
     """FB-31.7 B1b: шаблон страницы — строками схемы; старый ключ не пишется."""
     from apps.tenants import siteconfig

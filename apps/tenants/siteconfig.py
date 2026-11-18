@@ -1413,7 +1413,8 @@ CATALOG_PART_STYLES = {
 #: FB-31.7 B1b: код шаблона уровня сайта → хост его строк и путь старого ключа
 PAGE_TEMPLATE_HOSTS = {
     "catalog_page_style": ("catalog", ("catalog_page_style",)),
-    "category_page_style": ("category", ("site_defaults", "category_page_style")),
+    # «Alle Kategorien» — в B1b-2 вместе со своими шаблонами категорий (ревью B1b-1: строки
+    # общего шаблона перекрыли бы `Category.page_style`, а свой шаблон обязан побеждать)
     "promo_page_style": ("promos", ("promo_page_style",)),
     "promo_group_style": ("promo_group", ("site_defaults", "promo_group_style")),
     "promo_detail_style": ("promo_detail", ("site_defaults", "promo_detail_style")),
@@ -1430,11 +1431,18 @@ def _pp_surface(host: str):
     }.get(host)
 
 
+class TemplateNotExpressible(ValueError):
+    """Шаблон нельзя записать строками без смены вида (скрытая строка оси, которую заменял
+    бы код) — выбор не принимается, настройки не меняются (ревью B1b-1: молча терялся)."""
+
+
 def set_page_template(cfg: dict, code_key: str, code: str) -> dict:
     """FB-31.7 B1b: владелец выбрал шаблон страницы — он пишется СТРОКАМИ схемы (оси), а
     старый ключ снимается (иначе пустой «Standard» снова отдал бы ось старому коду). Свои
-    блоки и их порядок не трогаются. Копия."""
+    блоки и их порядок не трогаются, их переводы едут за ними. Копия.
+    `TemplateNotExpressible` — шаблон строками не выразить (настройки не тронуты)."""
     from apps.catalog import catalog_parts
+    from apps.core import page_axes_migration
     from apps.core import page_parts as pp
 
     host, path = PAGE_TEMPLATE_HOSTS[code_key]
@@ -1445,22 +1453,63 @@ def set_page_template(cfg: dict, code_key: str, code: str) -> dict:
         parent = dict(out.get(path[0]) or {}) if isinstance(out.get(path[0]), dict) else {}
         parent.pop(path[1], None)
         out[path[0]] = parent
-    blocks = dict(out.get("page_blocks") or {}) if isinstance(out.get("page_blocks"), dict) else {}
-    if host in ("catalog", "category"):
-        rows = blocks.get(host)
-        if host == "category" and "category" not in blocks:
-            rows = page_rows(out, "category")  # «Alle Kategorien» ещё не сохранена — копия
-        blocks[host] = catalog_parts.write_rows(
-            rows, catalog_parts.from_code(code), root=host == "catalog"
+    norm = normalize(out)
+    if host == "catalog":
+        # шаблон — решение владельца целиком: вид «Kategorien» тоже (строка включается)
+        rows = catalog_parts.write_rows(
+            page_rows(norm, host), catalog_parts.from_code(code), root=True
         )
     else:
         s = _pp_surface(host)
-        dropped = drop_page_views({**out, "page_blocks": blocks}, host)
-        rows = (dropped.get("page_blocks") or {}).get(host) or []
-        new = pp.materialize_rows(s, rows, code) if code else rows
-        blocks[host] = new if new is not None else rows
-    out["page_blocks"] = blocks
-    return out
+        dropped = drop_page_views({**out, "page_blocks": norm.get("page_blocks") or {}}, host)
+        base = (dropped.get("page_blocks") or {}).get(host) or []
+        rows = pp.materialize_rows(s, base, code) if code else base
+        if rows is None:
+            raise TemplateNotExpressible(code_key)
+    return page_axes_migration._with_host_rows(out, norm, host, rows)
+
+
+def page_template_parts(cfg: dict, code_key: str):
+    """Оси страницы шаблона `code_key`, как их видит посетитель (строки поверх старого ключа)."""
+    from apps.catalog import catalog_parts
+    from apps.core import page_parts as pp
+
+    host, path = PAGE_TEMPLATE_HOSTS[code_key]
+    cfg = cfg if isinstance(cfg, dict) else {}
+    node = cfg
+    for part in path:
+        node = node.get(part) if isinstance(node, dict) else None
+    old = node if isinstance(node, str) else ""
+    if host in ("catalog", "category"):
+        parts = catalog_parts.effective(cfg, host, code=old)
+        if host == "catalog" and parts.head and catalog_parts.legacy_code(parts) == "sets":
+            # правило витрины корня: у «sets» шапка видна, только если её включили строкой
+            rows = page_rows(cfg, host)
+            if not any(
+                r.get("key") == catalog_parts.HEAD_KEY and not r.get("id") and r.get("style")
+                for r in rows
+            ):
+                from dataclasses import replace
+
+                parts = replace(parts, head="")
+        return parts
+    s = _pp_surface(host)
+    return pp.effective(s, cfg, host, code=old)
+
+
+def page_template_is(cfg: dict, code_key: str, code: str) -> bool:
+    """Видит ли посетитель ровно шаблон `code` (по осям, не по ближайшему коду — ревью B1b-1)."""
+    from apps.catalog import catalog_parts
+    from apps.core import page_parts as pp
+
+    host, _path = PAGE_TEMPLATE_HOSTS[code_key]
+    parts = page_template_parts(cfg, code_key)
+    if host in ("catalog", "category"):
+        want = catalog_parts.from_code(code)
+        if host == "catalog" and code == "sets":
+            want = catalog_parts.Parts(sets="above")  # у корня «sets» шапки не видно
+        return parts == want
+    return parts == pp.from_code(_pp_surface(host), code)
 
 
 def page_template_code(cfg: dict, code_key: str) -> str:

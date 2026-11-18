@@ -63,3 +63,40 @@ def test_standard_after_a_template_clears_both_rows_view_and_the_old_key(key):
         raw.setdefault(path[0], {})[path[1]] = code
     out = siteconfig.normalize(siteconfig.set_page_template(raw, key, ""))
     assert siteconfig.page_template_code(out, key) == ""
+
+
+def test_template_choice_keeps_own_block_translations_on_their_blocks():
+    """Ревью B1b-1: строки осей встают перед своими блоками — переводы едут за блоками."""
+    raw = {
+        "page_blocks": {"catalog": [OWN]},
+        "i18n": {"en": {"page_blocks": {"catalog": [{"data": {"title": "Note"}}]}}},
+    }
+    out = siteconfig.set_page_template(raw, "catalog_page_style", "magazin")
+    en = siteconfig.localize(siteconfig.normalize(out), "en")
+    own = next(r for r in en["page_blocks"]["catalog"] if r.get("id") == "own1")
+    assert own["data"]["title"] == "Note"
+
+
+def test_template_choice_replaces_hidden_axis_rows_like_before():
+    """Выбор шаблона — решение владельца целиком: прежние строки осей (и скрытые) снимаются,
+    как и до B1b (`drop_page_views`); невыразимого случая у писателя нет."""
+    from apps.core import page_settings
+
+    raw = {"page_blocks": {"promos": [{"key": "groups", "enabled": False}, {"key": "main"}]}}
+    code = next(
+        c
+        for c in _codes("promo_page_style")
+        if pp.from_code(siteconfig._pp_surface("promos"), c).get("groups")
+    )
+    out = page_settings.apply_override(raw, "promo_page_style", code)
+    assert siteconfig.page_template_is(siteconfig.normalize(out), "promo_page_style", code)
+
+
+def test_same_code_but_different_axes_is_not_a_no_op():
+    """Ревью B1b-1: «тот же шаблон» — по осям, а не по ближайшему коду."""
+    from apps.core import page_settings
+
+    raw = {"page_blocks": {"catalog": [{"key": "main", "style": "mosaik", "grid": "cols6"}]}}
+    out = page_settings.apply_override(raw, "catalog_page_style", "mosaik")
+    norm = siteconfig.normalize(out)
+    assert siteconfig.page_template_is(norm, "catalog_page_style", "mosaik")
