@@ -328,10 +328,15 @@ def page_flow(context, host):
     Пусто — прежняя разметка."""
     from apps.core import detail_parts, page_settings
 
+    empty = {"page_flow": [], "tail_part": "after"}
     request = context.get("request")
-    if request is None:
-        return {"page_flow": [], "tail_part": "after"}
-    return detail_parts.flow_ctx(page_settings.raw_config(request), host)
+    if getattr(request, "tenant", None) is None:
+        return empty
+    try:
+        return detail_parts.flow_ctx(page_settings.raw_config(request), host)
+    except Exception:  # noqa: BLE001 — сбой превью не роняет страницу формы (как page_blocks)
+        logger.warning("page_flow failed for %s", host, exc_info=True)
+        return empty
 
 
 @register.simple_tag(takes_context=True)
