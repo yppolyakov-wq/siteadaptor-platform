@@ -31,6 +31,7 @@
   {% endfor %}
 </div>
 {% else %}
+{% if not embed %}{% page_blocks "services" part="before" %}{% endif %}
 <p class="text-gray-500 mb-6">{% trans "Online booking is not set up yet — please call us." %}</p>
 {% if request.tenant.public_phone %}
   <a href="tel:{{ request.tenant.public_phone }}" class="inline-block text-white rounded-lg px-5 py-2.5 font-medium" style="background: var(--accent);">📞 {{ request.tenant.public_phone }}</a>

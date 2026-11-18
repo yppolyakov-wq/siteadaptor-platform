@@ -1528,7 +1528,14 @@ def tisch_slots(request):
     if not tables:
         raise Http404
     # Ревью GA-4: страница дорогая (месяц × столы) и без логина — свой лимит на GET.
-    if ratelimit.hit("tisch_slots", ratelimit.client_ip(request), limit=120, window=60):
+    # FB-32 S6g-2 (ревью): превью «Seitenaufbau» участника с правом на сайт лимит не тратит —
+    # иначе частые перезагрузки кадра (и офис за одним NAT) давали пустой 429.
+    from apps.core import page_settings
+
+    preview = request.GET.get("preview") == "1" and page_settings._may_preview(request)
+    if not preview and ratelimit.hit(
+        "tisch_slots", ratelimit.client_ip(request), limit=120, window=60
+    ):
         return HttpResponse(status=429)
     day = _parse_day(request.GET.get("tag"))
     # Пилюли «Gäste»: до самого большого онлайн-стола (и не дальше правила GA-1).
