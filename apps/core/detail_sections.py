@@ -108,6 +108,10 @@ DETAIL_SECTIONS: dict[str, tuple[DetailSection, ...]] = {
     # SP-9 не делится) одной строкой: свои блоки над ней или под ней. Не скрывается.
     "message": (DetailSection("form", _("Kontaktformular"), hideable=False),),
     "anfrage": (DetailSection("form", _("Anfrage-Formular"), hideable=False),),
+    # FB-32 S6d: «Gutschein» — форма покупки (деньги, кнопка «Zahlungspflichtig bestellen»,
+    # § 312j BGB) и «Treue» — программы; одной неподвижной строкой, свои блоки над ней и под ней
+    "gift": (DetailSection("form", _("Gift voucher"), hideable=False),),
+    "loyalty": (DetailSection("programs", _("Loyalty programme"), hideable=False),),
     "versand": (
         DetailSection("pagetext", _("Text"), hideable=False),
         DetailSection("costs", _("Versandkosten"), hideable=False),

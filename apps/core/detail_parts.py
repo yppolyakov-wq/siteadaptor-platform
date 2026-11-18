@@ -34,6 +34,9 @@ SECTION_HOSTS = {
     # FB-32 S6c
     "message": "message",
     "anfrage": "anfrage",
+    # FB-32 S6d
+    "gift": "gift",
+    "loyalty": "loyalty",
 }
 #: FB-32 S6a: хосты своих страниц «Seite» (`seite:<slug>`) — модуль разделов «page»
 PAGE_PREFIX = "seite:"
@@ -41,8 +44,10 @@ PAGE_PREFIX = "seite:"
 #: черновик со строками раздела у кривого хоста принимался бы, но не сохранялся (ревью S6a)
 _PAGE_HOST_RE = re.compile(r"^seite:[a-z0-9]+(?:-[a-z0-9]+)*$")
 #: FB-32 S6a: модули страниц без покупки и с постоянным порядком разделов
-NO_KAUF_MODULES = frozenset({"cart", "info", "page", "versand", "message", "anfrage"})
-FIXED_ORDER_MODULES = frozenset({"info", "page", "versand", "message", "anfrage"})
+#: страницы, где своя «Buchung»-строка не нужна (покупка ваучера — сама строка «form»)
+_FORM_PAGES = frozenset({"message", "anfrage", "gift", "loyalty"})
+NO_KAUF_MODULES = frozenset({"cart", "info", "page", "versand"}) | _FORM_PAGES
+FIXED_ORDER_MODULES = frozenset({"info", "page", "versand"}) | _FORM_PAGES
 #: FB-32 S6a: видимость раздела — прежний ключ конфига (False = скрыт), а не `<module>_detail`
 VISIBILITY_KEYS = {"cart": {"upsell": "cart_show_upsell"}, "info": {"contact": "about_contact"}}
 #: разделы первого экрана (рядом с покупкой): скрыть можно, блоки рядом с ними — перед телом

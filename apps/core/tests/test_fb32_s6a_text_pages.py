@@ -179,11 +179,19 @@ def test_versand_without_own_text_shows_the_list_even_with_the_box_unticked():
 # ── S6c: «Kontakt» и «Anfrage» ──────────────────────────────────────────────────
 
 
-@pytest.mark.parametrize("host,code", (("message", "contact"), ("anfrage", "anfrage")))
-def test_form_pages_have_one_fixed_form_row(host, code):
-    assert detail_parts.section_keys(host) == ("form",)
+@pytest.mark.parametrize(
+    "host,code,key",
+    (
+        ("message", "contact", "form"),
+        ("anfrage", "anfrage", "form"),
+        ("gift", "gift", "form"),
+        ("loyalty", "loyalty", "programs"),
+    ),
+)
+def test_form_pages_have_one_fixed_form_row(host, code, key):
+    assert detail_parts.section_keys(host) == (key,)
     rows = {r["ref"]: r for r in site_schema.blocks_for({}, code)}
-    assert rows["form"]["pinned"] and not detail_parts.has_kauf(host)
+    assert rows[key]["pinned"] and not detail_parts.has_kauf(host)
 
 
 def test_own_block_above_the_contact_form_and_never_inside_it():
@@ -196,3 +204,14 @@ def test_own_block_above_the_contact_form_and_never_inside_it():
         for form in html.split("<form")[1:]:
             assert "Bus 5" not in form.split("</form>")[0], "свой блок не внутри формы"
         assert html.count("Bus 5") == 1
+
+
+def test_own_block_above_gift_form_and_loyalty_programs():
+    from apps.core.tests.test_fb32_s6_pages_golden import _gift, _treue
+
+    html = _gift({"page_blocks": {"info": [TEXT, {"key": "form"}]}})
+    assert html.index("Bus 5") < html.index("<form")
+    form = html[html.index("<form") : html.index("</form>")]
+    assert "Bus 5" not in form, "свой блок не внутри формы оплаты"
+    html = _treue({"page_blocks": {"info": [TEXT, {"key": "programs"}]}})
+    assert html.index("Bus 5") < html.index("Kaffeekarte") and html.count("Bus 5") == 1

@@ -2,6 +2,7 @@
 {% load siteui %}
 {% load i18n %}
 {% block content %}
+{% page_flow "loyalty" as pf %}{% if pf.page_flow %}{% comment %}FB-32 S6d: свои блоки над страницей — строки «Seitenaufbau».{% endcomment %}{% for it in pf.page_flow %}{% if it.part %}{% page_blocks "loyalty" it.part %}{% endif %}{% endfor %}{% endif %}
 <section class="mb-10 max-w-2xl mx-auto">
   <h1 class="text-2xl md:text-3xl font-bold mb-2">{% trans "Loyalty programme" %}</h1>
   <p class="text-gray-600 mb-6">{% trans "Collect stamps with every visit and get rewarded." %}</p>
@@ -33,5 +34,5 @@
     <p class="mt-6 text-sm text-gray-500">{% trans "Ask for your stamp card on your next visit." %}</p>
   {% endif %}
 </section>
-  {% page_blocks "loyalty" %}
+  {% if pf.page_flow %}{% page_blocks "loyalty" pf.tail_part %}{% else %}{% page_blocks "loyalty" %}{% endif %}
 {% endblock %}

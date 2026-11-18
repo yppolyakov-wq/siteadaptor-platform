@@ -138,3 +138,34 @@ def _anfrage(cfg):
 def test_kontakt_and_anfrage_without_anchors_look_as_before(case):
     _check(f"kontakt-{case}", _kontakt(CASES[case]))
     _check(f"anfrage-{case}", _anfrage(CASES[case]))
+
+
+# ── S6d: «Gutschein» и «Treue» ──────────────────────────────────────────────────
+
+
+def _gift(cfg):
+    from unittest import mock
+
+    from apps.loyalty import public_views
+
+    cfg = {**cfg, "page_blocks": {"gift": (cfg.get("page_blocks") or {}).get("info", [])}}
+    with mock.patch.object(public_views, "gift_purchase_active", return_value=True):
+        return _main(public_views.gutschein_index(_req("/gutschein/", cfg)).content.decode())
+
+
+def _treue(cfg):
+    from apps.loyalty.models import LoyaltyProgram
+    from apps.promotions import public_views
+
+    if not LoyaltyProgram.objects.exists():
+        LoyaltyProgram.objects.create(
+            label="Kaffeekarte", stamps_required=10, reward_label="1 Kaffee"
+        )
+    cfg = {**cfg, "page_blocks": {"loyalty": (cfg.get("page_blocks") or {}).get("info", [])}}
+    return _main(public_views.loyalty_page(_req("/treue/", cfg)).content.decode())
+
+
+@pytest.mark.parametrize("case", ("plain", "tail"))
+def test_gift_and_loyalty_without_anchors_look_as_before(case):
+    _check(f"gift-{case}", _gift(CASES[case]))
+    _check(f"treue-{case}", _treue(CASES[case]))
