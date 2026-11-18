@@ -40,6 +40,8 @@ SECTION_HOSTS = {
     # FB-32 S6e
     "blog_post": "blog_post",
     "finder": "finder",
+    # FB-32 S6f
+    "promo_detail": "promo",
 }
 #: FB-32 S6a: хосты своих страниц «Seite» (`seite:<slug>`) — модуль разделов «page»
 PAGE_PREFIX = "seite:"
@@ -49,13 +51,18 @@ _PAGE_HOST_RE = re.compile(r"^seite:[a-z0-9]+(?:-[a-z0-9]+)*$")
 #: FB-32 S6a: модули страниц без покупки и с постоянным порядком разделов
 #: страницы, где своя «Buchung»-строка не нужна (покупка ваучера — сама строка «form»)
 _FORM_PAGES = frozenset({"message", "anfrage", "gift", "loyalty", "blog_post", "finder"})
-NO_KAUF_MODULES = frozenset({"cart", "info", "page", "versand"}) | _FORM_PAGES
-FIXED_ORDER_MODULES = frozenset({"info", "page", "versand"}) | _FORM_PAGES
+NO_KAUF_MODULES = frozenset({"cart", "info", "page", "versand", "promo"}) | _FORM_PAGES
+FIXED_ORDER_MODULES = frozenset({"info", "page", "versand", "promo"}) | _FORM_PAGES
+#: FB-32 S6f: разделы, которые одновременно строки осей (P3): хранят свой вид (`style`), а
+#: «поставлено» (`anchors.placed`) по ним не считается — старые `[offer(style), блоки]`
+#: рисуются прежней разметкой (все блоки в хвосте)
+AXIS_SECTIONS = {"promo_detail": frozenset({"offer"})}
 #: FB-32 S6a: видимость раздела — прежний ключ конфига (False = скрыт), а не `<module>_detail`
 VISIBILITY_KEYS = {
     "cart": {"upsell": "cart_show_upsell"},
     "info": {"contact": "about_contact"},
     "blog_post": {"more": "blog_show_more"},
+    "promo": {"related": "promo_show_related"},
 }
 #: разделы первого экрана (рядом с покупкой): скрыть можно, блоки рядом с ними — перед телом
 FIRST_SCREEN = {
@@ -126,12 +133,18 @@ def section_keys(host: str) -> tuple[str, ...]:
     return detail_sections.section_keys(module) if module else ()
 
 
+def anchor_keys(host: str) -> frozenset:
+    """Разделы, чьи голые строки — только якоря позиции (без строк осей, FB-32 S6f)."""
+    return frozenset(section_keys(host)) - AXIS_SECTIONS.get(shared_host(host or ""), frozenset())
+
+
 def anchors(rows, host: str, order: list[str] | None = None) -> dict:
     """{"placed": bool, "lead": [id], "after": {раздел: [id]}, "tail": [id]} — где стоят свои
     блоки относительно разделов. Скрытые/мусорные строки не мешают: якорь — порядок строк."""
     keys = set(section_keys(host))
+    pure = anchor_keys(host)
     rows = [r for r in (rows if isinstance(rows, list) else []) if isinstance(r, dict)]
-    placed = any(r.get("key") in keys and not r.get("id") for r in rows)
+    placed = any(r.get("key") in pure and not r.get("id") for r in rows)
     out = {"placed": placed, "lead": [], "after": {}, "tail": []}
     if not placed:
         out["tail"] = [r["id"] for r in rows if r.get("id")]
@@ -252,10 +265,16 @@ def edit_rows(config, host: str, rows, order=None, hidden=None) -> list[dict]:
     for key in first:  # первый экран — над блоками «до отзывов» (так рисует страница)
         seq.append({"key": key, "enabled": key not in hidden})
         seq += [by_id[i] for i in a["after"].get(key, []) if i in by_id]
+    axis = AXIS_SECTIONS.get(base, frozenset())
     for key in full:
         if key in first:
             continue
-        seq.append({"key": key, "enabled": key not in hidden})
+        if key in axis:
+            # FB-32 S6f: строка оси (вид «Angebot») — со своими полями, всегда видна
+            stored = next((r for r in rows if r.get("key") == key and not r.get("id")), {})
+            seq.append({**stored, "key": key, "enabled": True})
+        else:
+            seq.append({"key": key, "enabled": key not in hidden})
         seq += [by_id[i] for i in a["after"].get(key, []) if i in by_id]
     seq += [by_id[i] for i in a["tail"] if i in by_id]
     return seq
@@ -379,8 +398,18 @@ def _lift_flags(
             config[flag] = False
         else:
             config.pop(flag, None)
-    rows = [{"key": r["key"]} if r.get("key") in keys and not r.get("id") else r for r in items]
-    return siteconfig._compact_detail_anchors(rows, keys)
+    host = next((h for h, m in SECTION_HOSTS.items() if m == module), "")
+    axis = AXIS_SECTIONS.get(host, frozenset())
+    rows = []
+    for r in items:
+        if r.get("key") in axis and not r.get("id"):
+            # строка оси хранит свой вид; «enabled» у неё не хранится (не скрывается)
+            rows.append({k: v for k, v in r.items() if k != "enabled"})
+        elif r.get("key") in keys and not r.get("id"):
+            rows.append({"key": r["key"]})
+        else:
+            rows.append(r)
+    return siteconfig.compact_section_rows(rows, keys - axis, axis)
 
 
 def page_flow(config, host: str, *, normalized: bool = False) -> list[dict]:
@@ -411,6 +440,26 @@ def flow_ctx(config, host: str, *, normalized: bool = False) -> dict:
     hidden = siteconfig.detail_section_hidden(norm, module_of(host))
     items = flow(rows, host, [k for k in keys if k not in hidden], all_order=keys)
     return {"page_flow": items, "tail_part": tail_part(rows, host, keys)}
+
+
+def promo_slots(config) -> dict:
+    """FB-32 S6f: места своих блоков детали акции — {"lead": над «Angebot», "mid": между ним и
+    «Weitere Aktionen», "tail": хвост}; {} — прежняя разметка (все блоки на прежнем месте).
+    Без своих блоков — без нормализации (горячий путь детали)."""
+    from apps.tenants import siteconfig
+
+    host = "promo_detail"
+    if not isinstance(config, dict) or not (config.get("page_blocks") or {}).get(host):
+        return {}
+    rows = siteconfig.page_rows(siteconfig.normalize(config), host)
+    a = anchors(rows, host, list(section_keys(host)))
+    if not a["placed"]:
+        return {}
+    return {
+        "lead": ids_part(a["lead"]) if a["lead"] else "",
+        "mid": ids_part(a["after"].get("offer", [])) if a["after"].get("offer") else "",
+        "tail": ids_part(a["tail"]),
+    }
 
 
 def cart_flow(config, *, normalized: bool = False) -> list[dict]:

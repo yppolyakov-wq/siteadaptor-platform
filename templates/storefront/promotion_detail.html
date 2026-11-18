@@ -22,6 +22,7 @@
 {% comment %}STU-15a: ШАБЛОН СТРАНИЦЫ акции — свой у акции, иначе дефолт сайта.
 Разметка одна на все шаблоны (паритет-замки целы), вид задаёт CSS-каскад по
 `data-promo-detail` — тот же приём, что у страницы категории (data-cat-layout).{% endcomment %}
+{% if promo_slots.lead %}{% page_blocks "promo_detail" promo_slots.lead %}{% endif %}
 <div class="grid md:grid-cols-2 gap-6 md:gap-10"{% if promo_detail_style %} data-promo-detail="{{ promo_detail_style }}"{% endif %}{% if promotion.discount_style == 'mystery' %} data-mystery-root="{{ promotion.pk }}"{% endif %}>
   {# Фото #}
   <div class="relative" data-promo-col="media">
@@ -237,6 +238,7 @@
 {% comment %}SF-3: липкая панель цена+CTA на мобильном (<lg) — как у товара/номера/
 события; ведёт якорем к карточке цены. mystery без панели: цена — секрет.{% endcomment %}
 
+{% if promo_slots.mid %}{% comment %}FB-32 S6f: свои блоки между «Angebot» и «Weitere Aktionen».{% endcomment %}{% page_blocks "promo_detail" promo_slots.mid %}{% endif %}
 {% if related_promos %}
 {# DL-16.3 (AD3): другие акции той же группы (фолбэк — прочие активные) лентой-слайдером; раньше — только на 410-странице #}
 <section class="mt-10" data-promo-related>
@@ -312,6 +314,6 @@
 {% comment %}FB-29 R2: свои блоки страницы акции (в том числе место для баннеров).{% endcomment %}
 {% comment %}FB-29 R5: свои блоки этого объекта — над общими или под ними.{% endcomment %}
 {% object_blocks "promo" promotion "before" %}
-{% page_blocks "promo_detail" %}
+{% if promo_slots %}{% page_blocks "promo_detail" promo_slots.tail %}{% else %}{% page_blocks "promo_detail" %}{% endif %}
 {% object_blocks "promo" promotion %}
 {% endblock %}

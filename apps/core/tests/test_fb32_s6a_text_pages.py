@@ -249,3 +249,94 @@ def test_finder_own_block_above_the_wizard():
 
     html = _finder({"page_blocks": {"info": [TEXT, {"key": "wizard"}]}})
     assert html.index("Bus 5") < html.index("<h1") and html.count("Bus 5") == 1
+
+
+# ── S6f: деталь акции ───────────────────────────────────────────────────────────
+
+OFFER = {"key": "offer", "style": "plakat"}
+
+
+def test_promo_offer_is_a_pinned_axis_row_and_related_hides():
+    from apps.tenants import siteconfig
+
+    assert detail_parts.section_keys("promo_detail") == ("offer", "related")
+    assert detail_parts.anchor_keys("promo_detail") == frozenset({"related"})
+    cfg = siteconfig.normalize({"page_blocks": {"promo_detail": [OFFER, TEXT, {"key": "related"}]}})
+    rows = {r["ref"]: r for r in site_schema.blocks_for(cfg, "promo")}
+    assert rows["offer"]["pinned"] and not rows["related"]["pinned"]
+    assert detail_parts.KAUF_REF not in rows, "покупка — сама строка «Angebot»"
+
+
+def test_promo_rows_keep_the_offer_style_and_compact_without_anchors():
+    from apps.tenants import siteconfig
+
+    def norm(rows):
+        return siteconfig.normalize({"page_blocks": {"promo_detail": rows}})["page_blocks"].get(
+            "promo_detail", []
+        )
+
+    def bare(rows):  # строки без полей очистки блоков: ключ, id, вид
+        return [
+            {k: v for k, v in r.items() if k in ("key", "style")}
+            | ({"id": r["id"]} if r.get("id") else {})
+            for r in rows
+        ]
+
+    t_row = {"key": "text", "id": "t-s6"}
+
+    assert bare(norm([OFFER, TEXT, {"key": "related"}])) == [OFFER, t_row, {"key": "related"}]
+    assert norm([{"key": "offer"}, TEXT, {"key": "related"}])[0] == {"key": "offer"}
+    assert [
+        r.get("id") or r["key"] for r in norm([{"key": "offer"}, {"key": "related"}, TEXT])
+    ] == ["t-s6"], "блоки после последнего раздела — без якорей и без голой строки оси"
+    assert bare(norm([OFFER, {"key": "related"}, TEXT]))[0] == OFFER, "вид строки оси не теряется"
+    cfg: dict = {}
+    out = detail_parts.lift(
+        cfg,
+        "promo_detail",
+        [{**OFFER, "enabled": True}, TEXT, {"key": "related", "enabled": False}],
+    )
+    assert out == [OFFER, TEXT, {"key": "related"}] and cfg["promo_show_related"] is False
+
+
+def test_promo_own_blocks_above_the_offer_and_between_offer_and_related():
+    from apps.core.tests.test_fb32_s6_pages_golden import _promo_detail
+
+    html = _promo_detail({"page_blocks": {"info": [TEXT, {"key": "offer"}, {"key": "related"}]}})
+    assert html.index("Bus 5") < html.index("md:grid-cols-2"), "блок над «Angebot»"
+    html = _promo_detail({"page_blocks": {"info": [{"key": "offer"}, TEXT, {"key": "related"}]}})
+    assert html.index("md:grid-cols-2") < html.index("Bus 5") < html.index("data-promo-related")
+    assert html.count("Bus 5") == 1
+
+
+def test_promo_related_hidden_keeps_own_block_and_skips_the_strip():
+    from apps.core.tests.test_fb32_s6_pages_golden import _promo_detail
+
+    cfg = {
+        "promo_show_related": False,
+        "page_blocks": {"info": [{"key": "offer"}, TEXT, {"key": "related"}]},
+    }
+    html = _promo_detail(cfg)
+    assert "data-promo-related" not in html and "Bus 5" in html
+
+
+def test_promo_offer_style_changes_but_offer_never_hides_or_moves():
+    from apps.tenants.tests.factories import TenantFactory
+
+    t = TenantFactory(business_type="cafe", disabled_modules=[])
+    t.site_config = {"page_blocks": {"promo_detail": [OFFER, TEXT, {"key": "related"}]}}
+    t.save(update_fields=["site_config"])
+    for op in ("toggle", "up", "down"):
+        with pytest.raises(site_schema.SchemaError):
+            site_schema.apply(t, "promo", op, ref="offer")
+    site_schema.apply(t, "promo", "catview", ref="offer", value="kompakt")
+    rows = _cfg(t)["page_blocks"]["promo_detail"]
+    assert rows[0]["style"] == "kompakt" and rows[-1] == {"key": "related"}
+
+
+def test_template_choice_keeps_the_offer_place_when_anchored():
+    from apps.tenants import siteconfig
+
+    cfg = {"page_blocks": {"promo_detail": [OFFER, TEXT, {"key": "related"}]}}
+    rows = siteconfig.drop_page_views(cfg, "promo_detail")["page_blocks"]["promo_detail"]
+    assert rows == [{"key": "offer"}, TEXT, {"key": "related"}]

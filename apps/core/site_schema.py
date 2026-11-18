@@ -1081,7 +1081,7 @@ def blocks_for(
         if host in ("catalog", "category") and (main or key in siteconfig.CATALOG_PART_STYLES):
             out[-1].update(_catalog_view_panel(config, host, item, main))
         elif siteconfig.part_surface(host) is not None and (
-            main or (key in siteconfig.page_builtin_keys(host) and not item.get("id"))
+            main or (key in siteconfig.part_surface(host).keys() and not item.get("id"))
         ):
             # FB-31 P3: страницы акций — те же плитки вида у закреплённых строк и ★
             out[-1].update(_part_view_panel(config, host, item, main))
@@ -2537,7 +2537,8 @@ def mutate(
     from apps.core import detail_parts
 
     # FB-31 P5: раздел детали — двигается и скрывается, остальное ему нельзя
-    anchor = not item.get("id") and item.get("key") in detail_parts.section_keys(rows_host)
+    # FB-32 S6f: строка оси-раздела («Angebot») — не якорь, а закреплённая строка оси
+    anchor = not item.get("id") and item.get("key") in detail_parts.anchor_keys(rows_host)
     if anchor and op not in ("up", "down", "move", "toggle"):
         raise SchemaError("fixed")
     if anchor and detail_parts.fixed_order(rows_host) and op != "toggle":

@@ -142,13 +142,19 @@ def _detail_ctx(request, promo, form) -> dict:
                 "url": reverse("storefront-products"),
                 "image_url": "",
             }
+    # STU-15a / FB-32 S6f: конфиг тем же путём, что обзор акций (черновик в превью)
+    _cfg_raw = _promo_page_config(request) if getattr(request, "tenant", None) else {}
     # DL-16.3 (AD3): «Weitere Aktionen» — та же группа, иначе другие активные.
+    # FB-32 S6f: скрыт строкой «Seitenaufbau» — без запросов
+    show_related = (_cfg_raw or {}).get("promo_show_related") is not False
     others = (
         Promotion.objects.filter(Promotion.on_sale_q()).exclude(pk=promo.pk).order_by("-created_at")
     )
-    related = list(others.filter(group=promo.group)[:8]) if promo.group else []
-    if len(related) < 2:
-        related = list(others[:8])
+    related = []
+    if show_related:
+        related = list(others.filter(group=promo.group)[:8]) if promo.group else []
+        if len(related) < 2:
+            related = list(others[:8])
     from apps.orders import delivery_choice
 
     # STU-15a: ШАБЛОН страницы этой акции — своё поле акции побеждает дефолт сайта.
@@ -158,7 +164,6 @@ def _detail_ctx(request, promo, form) -> dict:
     # значение всё равно клампится реестром внутри резолвера.
     # `getattr` — как у соседних строк контекста: деталь акции рендерят и вьюхи,
     # собранные RequestFactory (замки), где тенанта на запросе нет.
-    _cfg_raw = _promo_page_config(request) if getattr(request, "tenant", None) else {}
     _sd = (_cfg_raw or {}).get("site_defaults")
     detail_style = _detail_style(
         _cfg_raw,
@@ -198,7 +203,9 @@ def _detail_ctx(request, promo, form) -> dict:
         "related_promos": _attach_lowest_30d(related),
         # Фидбэк 2026-09-03: ссылка «Alle anzeigen» у ленты — только когда на
         # /aktionen/ есть что-то сверх показанного (лента режется на 8).
-        "related_more": others.count() > len(related),
+        "related_more": show_related and others.count() > len(related),
+        # FB-32 S6f: свои блоки над «Angebot» и между ним и «Weitere Aktionen»
+        "promo_slots": detail_parts.promo_slots(_cfg_raw),
         # T-8.1b: «So finden Sie uns» — адрес/Route/часы/телефон/WhatsApp.
         "business_card": business_card.card_context(
             getattr(request, "tenant", None), subject=promo.title_text

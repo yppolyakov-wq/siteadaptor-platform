@@ -119,6 +119,13 @@ DETAIL_SECTIONS: dict[str, tuple[DetailSection, ...]] = {
         DetailSection("more", _("More posts")),
     ),
     "finder": (DetailSection("wizard", _("Finder"), hideable=False),),
+    # FB-32 S6f: деталь акции — «Angebot» (строка оси P3: цена, условия, купон, бронь —
+    # деньги и PAngV, не скрывается и не делится) и «Weitere Aktionen» (скрывается,
+    # `promo_show_related`). Порядок постоянный.
+    "promo": (
+        DetailSection("offer", _("Angebot"), hideable=False),
+        DetailSection("related", _("Weitere Aktionen")),
+    ),
     "versand": (
         DetailSection("pagetext", _("Text"), hideable=False),
         DetailSection("costs", _("Versandkosten"), hideable=False),

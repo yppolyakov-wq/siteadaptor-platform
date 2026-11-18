@@ -1428,7 +1428,35 @@ def drop_catalog_views(cfg: dict, host: str = "catalog") -> dict:
 def _detail_anchor_keys(host) -> frozenset:
     from apps.core import detail_parts
 
-    return frozenset(detail_parts.section_keys(host)) if isinstance(host, str) else frozenset()
+    return detail_parts.anchor_keys(host) if isinstance(host, str) else frozenset()
+
+
+def _axis_section_keys(host) -> frozenset:
+    from apps.core import detail_parts
+
+    return (
+        detail_parts.AXIS_SECTIONS.get(host, frozenset()) if isinstance(host, str) else frozenset()
+    )
+
+
+def compact_section_rows(blocks: list, anchor_keys, axis_keys=frozenset()) -> list:
+    """FB-32 S6f: `_compact_detail_anchors` + строки осей-разделов: голая строка оси (без
+    вида) хранится только как место — пока стоят якоря; без них она ничего не значит."""
+    blocks = _compact_detail_anchors(blocks, anchor_keys)
+    if axis_keys and not any(
+        b.get("key") in anchor_keys and not b.get("id") for b in blocks if isinstance(b, dict)
+    ):
+        blocks = [
+            b
+            for b in blocks
+            if not (
+                isinstance(b, dict)
+                and b.get("key") in axis_keys
+                and not b.get("id")
+                and not b.get("style")
+            )
+        ]
+    return blocks
 
 
 def _compact_detail_anchors(blocks: list, anchor_keys) -> list:
@@ -1453,7 +1481,10 @@ def page_builtin_keys(host) -> frozenset:
         return frozenset({"categories", CATALOG_HEAD_KEY, CATALOG_SETS_KEY})
     surface = part_surface(host)
     if surface is not None:
-        return frozenset(surface.keys())
+        # FB-32 S6f: и якоря разделов детали акции («Weitere Aktionen») — их рисует страница
+        from apps.core import detail_parts
+
+        return frozenset(surface.keys()) | detail_parts.anchor_keys(host)
     # FB-31 P5: строки-якоря разделов детали (порядок и видимость — в `<module>_detail`)
     from apps.core import detail_parts
 
@@ -1511,8 +1542,21 @@ def drop_page_views(cfg: dict, host: str) -> dict:
         return cfg
     keys = set(surface.keys())
     fields = {a.field for a in surface.axes if a.key == MAIN_LIST_KEY}
+    # FB-32 S6f: строка оси, которая ещё и место раздела (при якорях) — остаётся без вида,
+    # иначе выбор шаблона перенёс бы свои блоки над «Angebot»
+    places = (
+        _axis_section_keys(host)
+        if any(
+            isinstance(r, dict) and r.get("key") in _detail_anchor_keys(host) and not r.get("id")
+            for r in rows
+        )
+        else frozenset()
+    )
     kept = []
     for row in rows:
+        if isinstance(row, dict) and row.get("key") in places and not row.get("id"):
+            kept.append({"key": row["key"]})
+            continue
         if isinstance(row, dict) and row.get("key") in keys and not row.get("id"):
             continue
         if is_main_marker(row):
@@ -1684,6 +1728,11 @@ def normalize_page_blocks(raw) -> dict:
         builtin_ok = page_builtin_keys(key)
         builtin_seen = set()
         anchor_keys = _detail_anchor_keys(key)
+        axis_keys = _axis_section_keys(key)
+        # FB-32 S6f: голая строка оси хранится как место, если есть якоря разделов
+        keep_bare = axis_keys and any(
+            isinstance(i, dict) and i.get("key") in anchor_keys and not i.get("id") for i in items
+        )
         for item in items:
             # FB-31 P5: якорь раздела детали — только позиция (без полей), один на раздел
             bkey = item.get("key") if isinstance(item, dict) else None
@@ -1715,6 +1764,8 @@ def normalize_page_blocks(raw) -> dict:
                     # всегда показывает схема) — не пишем, конфиги не разрастаются
                     if entry.get("style"):
                         blocks.append(entry)
+                    elif keep_bare and bkey in axis_keys:
+                        blocks.append({"key": bkey})  # FB-32 S6f: только место раздела
                 continue
             if sum(1 for b in blocks if b.get("id")) >= _MAX_CBLOCKS:
                 continue  # кап, но маркер дальше по списку ещё ищем
@@ -1729,7 +1780,7 @@ def normalize_page_blocks(raw) -> dict:
         if main_at is not None and (main_at or len(marker) > 1):
             blocks.insert(main_at, marker)
         if anchor_keys:
-            blocks = _compact_detail_anchors(blocks, anchor_keys)
+            blocks = compact_section_rows(blocks, anchor_keys, axis_keys)
         # FB-30.16 R5 (ревью): «Alle Kategorien» хранится и пустой — сам ключ значит
         # «сохранена», иначе «удалил все блоки» молча вернуло бы блоки каталога
         # (R6: так же «Alle Angebotsgruppen»)
@@ -5537,6 +5588,9 @@ def _normalize_impl(config) -> dict:
     # presence-minimal)
     if config.get("blog_show_more") is False:
         normalized["blog_show_more"] = False
+    # FB-32 S6f: «Weitere Aktionen» под деталью акции скрывается строкой «Seitenaufbau»
+    if config.get("promo_show_related") is False:
+        normalized["promo_show_related"] = False
     # M20U-7 (per-page): раскладка сетки номеров /unterkunft/. Дефолт cols3 mobile1
     # воспроизводит прежнюю сетку (grid-cols-1 sm:2 lg:3).
     normalized["stay_index_layout"] = normalize_layout(
