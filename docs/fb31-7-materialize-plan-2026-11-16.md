@@ -234,3 +234,11 @@ postgres-patterns, django-security, accessibility, error-handling. Агенты:
 каждый подсрез; `database-reviewer` — 2b и `copy_blocks`; `silent-failure-hunter` — 2b и 2c;
 `security-reviewer` — 2c; `a11y-architect` — ссылка; `code-reviewer` — ветка перед мержем. Гейт:
 `ruff format --check .`, `test_template_comments`, `i18n_quickcheck`, `apps/tenants`, `test_fb31*_golden`.
+
+**B1b-2a сделан (2026-11-18, `ee450643` + ревью).** Единственное осознанное изменение витрины:
+табы родителя на странице подкатегории читают строки родителя поверх кода (как его собственная
+страница) — раньше смотрели только `Category.page_style`; замок
+`test_fb317_b1b2_core.py::test_own_rows_win_over_own_code_and_parent_tabs_follow_rows`. Ревью
+`django-reviewer`: мёртвая копия цикла в `rows_with` снята; `explicit=True` отказывает (None),
+если хоть одну ось нельзя записать строкой. К 2b: `site_schema._catalog_code` и
+`page_settings.current_value` читают «Alle Kategorien» только ключом — перевести на строки.
