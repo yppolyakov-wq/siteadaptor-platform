@@ -39066,3 +39066,7 @@ msgstr "Поки лише на головній."
 #: templates/tenant/_section_fields.html
 msgid "Die Punkte werden im Seitenaufbau bearbeitet."
 msgstr "Пункти редагуються у «Структурі сторінки»."
+
+#: templates/tenant/_schema_banner_pick.html
+msgid "Banner hinzufügen"
+msgstr "Додати банер"

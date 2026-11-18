@@ -74,8 +74,10 @@ def test_new_banner_from_the_panel_lands_in_the_library_and_in_the_draft_pick():
     from apps.core.models import Banner
 
     b = Browser(_tenant())
+    # владелец 2026-11-18: в панели баннер не создаётся — только выбор из библиотеки;
+    # путь «из редактора баннера обратно в схему» (`schema_seite`) остаётся
     html = b.get("?seite=home&block=hero")
-    assert "data-schema-banner-new" in html and 'name="schema_ref" value="hero"' in html
+    assert "data-schema-banner-new" not in html and 'action="/dashboard/site/banner' not in html
     req = b._request(
         "post",
         {
@@ -102,3 +104,12 @@ def test_empty_new_banner_goes_back_to_the_panel_with_an_error():
     resp = banner_views._save(req, None)
     assert resp.status_code == 302 and "block=hero" in resp["Location"]
     assert not Banner.objects.exists()
+
+
+def test_add_button_opens_the_library_list():
+    _banner("Herbst"), _banner("Winter")
+    b = Browser(_tenant())
+    html = b.get("?seite=home&block=hero")
+    add = html[html.index("data-schema-banner-add") :]
+    add = add[: add.index("</details>")]
+    assert "Banner hinzufügen" in add and add.count('name="pick_op" value="add:') == 2

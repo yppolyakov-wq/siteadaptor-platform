@@ -38740,3 +38740,7 @@ msgstr "For now only on the home page."
 #: templates/tenant/_section_fields.html
 msgid "Die Punkte werden im Seitenaufbau bearbeitet."
 msgstr "The points are edited in the page structure."
+
+#: templates/tenant/_schema_banner_pick.html
+msgid "Banner hinzufügen"
+msgstr "Add banner"

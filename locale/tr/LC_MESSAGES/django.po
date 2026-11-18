@@ -38886,3 +38886,7 @@ msgstr "Şimdilik yalnızca ana sayfada."
 #: templates/tenant/_section_fields.html
 msgid "Die Punkte werden im Seitenaufbau bearbeitet."
 msgstr "Maddeler sayfa yapısında düzenlenir."
+
+#: templates/tenant/_schema_banner_pick.html
+msgid "Banner hinzufügen"
+msgstr "Banner ekle"
