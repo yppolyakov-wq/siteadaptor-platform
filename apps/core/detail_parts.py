@@ -13,9 +13,12 @@
 
 from __future__ import annotations
 
+import logging
 import re
 
 from apps.core import detail_sections
+
+logger = logging.getLogger(__name__)
 
 #: хост блоков детали → модуль реестра разделов (R3a: события и туры — цикл разделов;
 #: услуга, товар, номер — следующими срезами)
@@ -362,8 +365,9 @@ def lift(config: dict, host: str, items: list[dict]) -> list[dict]:
     module = module_of(host)
     keys = set(section_keys(host))
     order = [r["key"] for r in items if r.get("key") in keys and not r.get("id")]
-    if not order:
-        # ревью P5: черновик без строк разделов (начат до P5) не трогает порядок и видимость
+    if not [k for k in order if k in anchor_keys(host)]:
+        # ревью P5: черновик без строк разделов (начат до P5) не трогает порядок и видимость;
+        # ревью S6f: строка оси («Angebot») — ещё не строка раздела
         return items
     hidden = sorted(
         r["key"]
@@ -374,7 +378,7 @@ def lift(config: dict, host: str, items: list[dict]) -> list[dict]:
         and hideable(host, r["key"])
     )
     if module in VISIBILITY_KEYS or module in FIXED_ORDER_MODULES:
-        return _lift_flags(config, module, items, keys, hidden)
+        return _lift_flags(config, host, module, items, keys, hidden)
     cfg_key = siteconfig.detail_section_config_key(module)
     detail = dict(config.get(cfg_key) or {}) if isinstance(config.get(cfg_key), dict) else {}
     if order and order != full_order(config, module):
@@ -386,20 +390,22 @@ def lift(config: dict, host: str, items: list[dict]) -> list[dict]:
 
 
 def _lift_flags(
-    config: dict, module: str, items: list[dict], keys: set, hidden: list
+    config: dict, host: str, module: str, items: list[dict], keys: set, hidden: list
 ) -> list[dict]:
     """FB-32 S4/S6a: видимость разделов — в прежние ключи (`cart_show_upsell`,
     `about_contact`: один ключ на Студию и схему). Якоря хранятся, только когда свой блок стоит
     выше последнего раздела, — иначе страница рисуется прежней разметкой байт-в-байт."""
     from apps.tenants import siteconfig
 
+    present = {r.get("key") for r in items if r.get("key") in keys and not r.get("id")}
     for key, flag in VISIBILITY_KEYS.get(module, {}).items():
+        if key not in present:
+            continue  # ревью S6f: строки раздела нет — его видимость не трогаем
         if key in hidden:
             config[flag] = False
         else:
             config.pop(flag, None)
-    host = next((h for h, m in SECTION_HOSTS.items() if m == module), "")
-    axis = AXIS_SECTIONS.get(host, frozenset())
+    axis = AXIS_SECTIONS.get(shared_host(host), frozenset())
     rows = []
     for r in items:
         if r.get("key") in axis and not r.get("id"):
@@ -449,9 +455,19 @@ def promo_slots(config) -> dict:
     from apps.tenants import siteconfig
 
     host = "promo_detail"
-    if not isinstance(config, dict) or not (config.get("page_blocks") or {}).get(host):
+    raw = (config.get("page_blocks") or {}).get(host) if isinstance(config, dict) else None
+    pure = anchor_keys(host)
+    # ревью S6f: без якорей разделов (частый случай P3 — только `[offer(style)]`) — без
+    # нормализации на каждый показ детали
+    if not isinstance(raw, list) or not any(
+        isinstance(r, dict) and r.get("key") in pure and not r.get("id") for r in raw
+    ):
         return {}
-    rows = siteconfig.page_rows(siteconfig.normalize(config), host)
+    try:
+        rows = siteconfig.page_rows(siteconfig.normalize(config), host)
+    except Exception:  # noqa: BLE001 — ревью S6f: страница акции (деньги) не падает из-за блоков
+        logger.warning("promo_slots: normalize failed", exc_info=True)
+        return {}
     a = anchors(rows, host, list(section_keys(host)))
     if not a["placed"]:
         return {}

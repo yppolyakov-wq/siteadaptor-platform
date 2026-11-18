@@ -340,3 +340,11 @@ def test_template_choice_keeps_the_offer_place_when_anchored():
     cfg = {"page_blocks": {"promo_detail": [OFFER, TEXT, {"key": "related"}]}}
     rows = siteconfig.drop_page_views(cfg, "promo_detail")["page_blocks"]["promo_detail"]
     assert rows == [{"key": "offer"}, TEXT, {"key": "related"}]
+
+
+def test_promo_writer_without_related_row_keeps_its_visibility():
+    """Ревью S6f: черновик до S6f или писатель без строки «Weitere Aktionen» не включает её молча."""
+    cfg = {"promo_show_related": False}
+    out = detail_parts.lift(cfg, "promo_detail", [{**OFFER, "enabled": True}, TEXT])
+    assert cfg["promo_show_related"] is False and out == [{**OFFER, "enabled": True}, TEXT]
+    assert detail_parts.promo_slots({"page_blocks": {"promo_detail": [OFFER, TEXT]}}) == {}
