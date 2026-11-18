@@ -127,3 +127,18 @@ Category/Promotion, `setup_assistant.py` (440, 494), демо-киты (≈12 м
   при якоре `related` и своих блоках без строки `offer` блоки «над Angebot» уехали бы в середину.
   Перенос: при якорях без строки `offer` — SKIP/MISMATCH, а не вставка.
 
+
+## B1b — разведка перед кодом (2026-11-18)
+- **Объём батча.** Чтобы каждая перенесённая поверхность сразу получила писателя на оси (иначе
+  строки перекроют правку владельца), батч делится: **B1b-1** — поверхности уровня сайта
+  (`catalog_page_style`, `site_defaults.category_page_style`, `promo_page_style`,
+  `site_defaults.promo_group_style`, `site_defaults.promo_detail_style`) + их писатели
+  (`apply_override`, демо-киты, `promotions/views.py` 498–505); **B1b-2** — коды объектов
+  (`Category/Promotion.page_style`, `promo_groups[key].style`) + формы/типы акций (ссылка).
+- **Сверка — по отрисованной странице, не только по осям.** Пример: у корня каталога код
+  `sets` шапку не показывает (`public_views.py:2235`: `cat_style != "sets" or _head_explicit`),
+  хотя `from_code("sets").head == "titelbild"`. Перенос «в лоб» (строка `page_head: titelbild`)
+  включил бы шапку. Верный перенос — `page_head: aus` + `combos: above` (`legacy_code` того же
+  набора — снова `sets`). Значит, `_view` каталога/акций = рендер страницы RequestFactory в схеме
+  тенанта (без своих блоков и с ними) «старый конфиг» против «новый конфиг» и против «новый
+  конфиг без старого ключа» (для B3); расхождение → SKIP/MISMATCH.
