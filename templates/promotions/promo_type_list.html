@@ -46,7 +46,10 @@
       {% if row.hint %}<p class="mb-3 text-xs ui-muted">{{ row.hint }}</p>{% endif %}
 
       <div class="grid gap-4 md:grid-cols-2">
-        {% include "tenant/_cardform_picker.html" with name="style:"|add:row.key value=row.style items=group_page_styles thumb="tenant/_pagelayout_thumb.html" title=_("Vorlage der Seite") span="one" %}
+        <div data-type-page-link>{% comment %}FB-31.7 B1b-2: шаблон страницы типа — строками его схемы.{% endcomment %}
+          <p class="text-sm font-medium" id="pt-tpl-{{ forloop.counter }}">{% trans "Vorlage der Seite" %}</p>
+          {% if row.schema_url %}<a href="{{ row.schema_url }}" aria-label="{% trans "Im Seitenaufbau bearbeiten" %}: {{ row.label }}" aria-describedby="pt-tpl-{{ forloop.counter }}" class="mt-1 inline-flex min-h-[44px] items-center font-semibold text-indigo-700 hover:underline">{% trans "Im Seitenaufbau bearbeiten" %} <span aria-hidden="true">→</span></a>{% endif %}
+        </div>
         {% include "tenant/_cardform_picker.html" with name="card:"|add:row.key value=row.card items=card_forms title=_("Kartenform") span="one" %}
       </div>
 

@@ -624,6 +624,9 @@ def _clean(setting: studio_pages.Setting, value, gate: dict, current) -> object:
 #: FB-31.7 B1b: код настройки → ключ шаблона уровня сайта (`siteconfig.PAGE_TEMPLATE_HOSTS`)
 _TEMPLATE_KEYS = {
     "catalog_page_style": "catalog_page_style",
+    # B1b-2: «Alle Kategorien» — строками хоста `category`; свои шаблоны категорий перед этим
+    # закрепляются строками своих хостов (`_pin_own_categories`), иначе общий их перекрыл бы
+    "category_page_style": "category_page_style",
     "promo_page_style": "promo_page_style",
     "promo_group_style": "promo_group_style",
     "promo_detail_style": "promo_detail_style",
@@ -643,6 +646,19 @@ def _listing_style_host(code: str) -> str:
     if not code.endswith("_page_style"):
         return ""
     return listing_parts.HOST_OF.get(code[: -len("_page_style")], "")
+
+
+def _pin_own_categories(cfg: dict) -> dict:
+    """FB-31.7 B1b-2: свои шаблоны категорий (и их частичные строки) — явными строками своих
+    хостов до записи «Alle Kategorien» (та же единица, что перенос `materialize_page_axes`).
+    Не вышло (скрытая строка, нет места под своими схемами) — отказ, а не тихая потеря."""
+    from apps.core import page_axes_migration as pam
+    from apps.core import page_axes_objects as pao
+
+    out, res = pao.migrate_categories(cfg, pao.build_index())
+    if res.status not in ("", pam.DONE, pam.SAME):
+        raise PageSettingError(f"own category templates cannot be kept ({res.status})")
+    return out
 
 
 def apply_override(cfg: dict, code: str, value, output: dict | None = None) -> dict:
@@ -665,13 +681,12 @@ def apply_override(cfg: dict, code: str, value, output: dict | None = None) -> d
         # тот же шаблон по ОСЯМ (не по ближайшему коду): свои виды владельца не снимаются
         if siteconfig.page_template_is(norm, template_key, str(value or "")):
             return out
+        if template_key in siteconfig.OBJECT_BOUND_TEMPLATE_KEYS:
+            out = _pin_own_categories(out)
         try:
             return siteconfig.set_page_template(out, template_key, str(value or ""))
         except siteconfig.TemplateNotExpressible as exc:
             raise PageSettingError(f"template {value!r} not expressible as rows") from exc
-    if code == "category_page_style":
-        # FB-31.7: «Alle Kategorien» — ключом до B1b-2 (вместе со своими шаблонами категорий)
-        out = siteconfig.drop_catalog_views(out, "category")
     host = _listing_style_host(code)  # FB-31 P4: шаблоны девяти листингов
     if host and value != current_value(cfg or {}, setting)[0]:
         out = siteconfig.drop_page_views(out, host)
@@ -814,7 +829,10 @@ def preview_config(tenant, raw_cfg: dict, tpl: str) -> dict | None:
         cleaned = validate(tenant, code.strip(), value)
     except PageSettingError:
         return None
-    return apply_override(raw_cfg or {}, code.strip(), cleaned)
+    try:
+        return apply_override(raw_cfg or {}, code.strip(), cleaned)
+    except PageSettingError:  # ревью B1b-2c: шаблон строками не выразить — без предпросмотра
+        return None
 
 
 def _may_preview(request) -> bool:

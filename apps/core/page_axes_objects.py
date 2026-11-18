@@ -47,6 +47,8 @@ class ObjectIndex:
     all_category_slugs: frozenset = frozenset()  # все (для чистки хостов удалённых)
     promos: list[PromoRef] = field(default_factory=list)  # со своим шаблоном
     groups: list[str] = field(default_factory=list)  # живые группы (ключ — как у акции)
+    #: неактивные категории со своим кодом — не закрепляются (заметка `unpinned`)
+    inactive_coded: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -79,7 +81,13 @@ def build_index() -> ObjectIndex:
     )
     return ObjectIndex(
         categories=[CategoryRef(s, p or "", ps or "") for s, p, ps in cats],
-        all_category_slugs=frozenset(Category.objects.values_list("slug", flat=True)),
+        # ревью 2b (H3): с корзиной — у удалённой мягко категории хост восстановим
+        all_category_slugs=frozenset(Category.all_objects.values_list("slug", flat=True)),
+        inactive_coded=sorted(
+            Category.objects.filter(is_active=False)
+            .exclude(page_style="")
+            .values_list("slug", flat=True)
+        ),
         promos=[PromoRef(pk.hex, st or "", pk in on_sale) for pk, st in promos],
         groups=groups,
     )
@@ -182,16 +190,23 @@ def migrate_categories(raw: dict, idx: ObjectIndex) -> tuple[dict, UnitResult]:
             if h[len(siteconfig.CATEGORY_HOST_PREFIX) :] not in idx.all_category_slugs
         }
         out = _drop_hosts(out, ghosts)
-        res.notes.append(f"purged:{len(ghosts)}")
+        purged = len(ghosts)
         if len(existing - ghosts) + len(new_hosts) > siteconfig._MAX_CATEGORY_HOSTS:
             res.status = pam.HOSTS_FULL
+            res.notes.append(
+                f"hosts_full:{len(existing - ghosts)}+{len(new_hosts)}"
+                f"/{siteconfig._MAX_CATEGORY_HOSTS}"
+            )
             return copy.deepcopy(src), res
+    else:
+        purged = 0
 
     for ref in pins:
         host = own_host(ref)
         rows0 = list(_blocks(norm).get(host) or [])
         if _hidden_categories_row(rows0):
             res.status = pam.SKIP
+            res.notes.append(f"skip:{host}")
             return copy.deepcopy(src), res
         rows = catalog_parts.write_rows(rows0, want[ref.slug], root=False)
         if rows0 == rows:
@@ -203,6 +218,7 @@ def migrate_categories(raw: dict, idx: ObjectIndex) -> tuple[dict, UnitResult]:
         rows = pam.template_rows(cur, "category_page_style")
         if rows is None:
             res.status = pam.SKIP
+            res.notes.append("skip:category")
             return copy.deepcopy(src), res
         if "category" not in _blocks(cur):
             res.notes.append("detached:category")
@@ -227,7 +243,10 @@ def migrate_categories(raw: dict, idx: ObjectIndex) -> tuple[dict, UnitResult]:
     plain = next((r.slug for r in idx.categories if r.slug not in pinned), None)
     if plain:
         sample.append(plain)
-    res.pages = list(dict.fromkeys(sample))[:MAX_RENDER_PAGES]
+    res.pages = list(dict.fromkeys(sample))
+    if purged:
+        res.notes.append(f"purged:{purged}")
+    res.notes += [f"unpinned:{slug}" for slug in idx.inactive_coded]
     res.status = pam.DONE
     return out, res
 
@@ -252,6 +271,7 @@ def migrate_promos(raw: dict, idx: ObjectIndex) -> tuple[dict, UnitResult]:
     objects = sum(1 for h in _blocks(src) if siteconfig.is_object_host(h))
     if objects + len(new_hosts) > siteconfig._MAX_OBJECT_HOSTS:
         res.status = pam.HOSTS_FULL
+        res.notes.append(f"hosts_full:{objects}+{len(new_hosts)}/{siteconfig._MAX_OBJECT_HOSTS}")
         return copy.deepcopy(src), res
     out = copy.deepcopy(src)
     want = {}
@@ -262,11 +282,11 @@ def migrate_promos(raw: dict, idx: ObjectIndex) -> tuple[dict, UnitResult]:
         rows = pp.rows_with(promo_parts.PROMO_DETAIL, rows0, want[r.hex], explicit=True)
         if rows is None:
             res.status = pam.SKIP
+            res.notes.append(f"skip:{host}")
             return copy.deepcopy(src), res
         if rows != rows0:
             out = _set_rows(out, host, rows)
-            if r.on_sale:
-                res.pages.append(r.hex)
+            res.pages.append(r.hex)  # ревью 2b (H2): страница акции живёт и после продажи
     if out == src or siteconfig.normalize(out) == norm:
         res.status = pam.SAME  # повтор: строки уже задают этот вид
         return copy.deepcopy(src), res
@@ -281,7 +301,6 @@ def migrate_promos(raw: dict, idx: ObjectIndex) -> tuple[dict, UnitResult]:
             res.status = pam.MISMATCH
             res.notes.append(f"axes:promo:{r.hex}")
             return copy.deepcopy(src), res
-    res.pages = res.pages[:MAX_RENDER_PAGES]
     res.status = pam.DONE
     return out, res
 
@@ -313,6 +332,8 @@ def migrate_groups(raw: dict, idx: ObjectIndex) -> tuple[dict, UnitResult]:
     have = sum(1 for h in _blocks(src) if siteconfig.is_promo_group_host(h))
     if have + len(new_hosts) > siteconfig._MAX_PROMO_GROUP_HOSTS:
         res.status = pam.HOSTS_FULL
+        cap = siteconfig._MAX_PROMO_GROUP_HOSTS
+        res.notes.append(f"hosts_full:{have}+{len(new_hosts)}/{cap}")
         return copy.deepcopy(src), res
     out = copy.deepcopy(src)
     want = {}
@@ -323,6 +344,7 @@ def migrate_groups(raw: dict, idx: ObjectIndex) -> tuple[dict, UnitResult]:
         rows = pp.rows_with(promo_parts.PROMO_GROUP, rows0, want[g], explicit=True)
         if rows is None:
             res.status = pam.SKIP
+            res.notes.append(f"skip:{host}")
             return copy.deepcopy(src), res
         if host not in _blocks(norm):
             res.notes.append(f"detached:{host}")
@@ -345,9 +367,27 @@ def migrate_groups(raw: dict, idx: ObjectIndex) -> tuple[dict, UnitResult]:
             res.status = pam.MISMATCH
             res.notes.append(f"axes:group:{g}")
             return copy.deepcopy(src), res
-    res.pages = res.pages[:MAX_RENDER_PAGES]
+        host = siteconfig.promo_group_host(g)
+        if _texts(after, host) != _texts(norm, host):
+            # ревью 2b (M5): рендер сверяет основной язык; переводы блоков копии — здесь,
+            # по личности блока, на каждом языке
+            res.status = pam.MISMATCH
+            res.notes.append(f"i18n:group:{g}")
+            return copy.deepcopy(src), res
     res.status = pam.DONE
     return out, res
+
+
+def _texts(cfg: dict, host: str) -> tuple:
+    """Тексты своих блоков, которые видит посетитель группы на каждом языке."""
+    from apps.tenants import siteconfig
+
+    out = []
+    i18n = cfg.get("i18n") if isinstance(cfg.get("i18n"), dict) else {}
+    for loc in sorted(i18n):
+        rows = siteconfig.page_rows(siteconfig.localize(cfg, loc), host)
+        out += [(loc, r.get("id"), repr(r.get("data"))) for r in rows if r.get("id")]
+    return tuple(out)
 
 
 def _copy_overlays(out: dict, norm: dict, host: str) -> dict:

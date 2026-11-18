@@ -68,18 +68,12 @@ def test_cabinet_mode_form_no_longer_writes_templates():
     assert any(r.get("key") == "groups" for r in _rows(tenant.site_config)), "виды целы"
 
 
-def test_review_own_template_change_drops_the_promo_own_offer_view():
-    from apps.promotions.models import Promotion
-    from apps.promotions.views import _drop_own_offer_view
+def test_b1b2_promo_form_has_no_own_template_field():
+    # FB-31.7 B1b-2: шаблон акции — только строками её схемы («Seitenaufbau»); форма его не
+    # пишет, поэтому и «снимать вид своих блоков при смене шаблона» больше нечем
+    from apps.promotions import views
+    from apps.promotions.forms import PromotionForm
 
-    promo = Promotion.objects.create(title={"de": "Brot"}, status="active", promo_type="discount")
-    host = f"promo:{promo.pk.hex}"
-    tenant = TenantFactory(
-        schema_name="public",
-        slug="fb31p3o",
-        name="O",
-        site_config={"page_blocks": {host: [{"key": "offer", "style": "plakat"}]}},
-    )
-    _drop_own_offer_view(tenant, promo)
-    tenant.refresh_from_db()
-    assert host not in (siteconfig.normalize(tenant.site_config).get("page_blocks") or {})
+    assert "page_style" not in PromotionForm.base_fields
+    assert "page_style" not in PromotionForm._meta.fields
+    assert not hasattr(views, "_drop_own_offer_view")

@@ -39103,3 +39103,7 @@ msgstr "«Одразу» — щонайбільше для %(n)s таких сп
 #: templates/aggregator/follow.html
 msgid "Benachrichtigung bearbeiten"
 msgstr "Змінити сповіщення"
+
+#: templates/catalog/category_form.html
+msgid "Nach dem Speichern im Seitenaufbau bearbeiten."
+msgstr "Після збереження — у «Seitenaufbau»."

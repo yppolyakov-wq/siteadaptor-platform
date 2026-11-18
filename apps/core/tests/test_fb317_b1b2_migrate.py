@@ -153,8 +153,9 @@ def test_apply_tenant_moves_objects_with_a_snapshot_and_undo():
 @pytest.mark.usefixtures("_urlconf")
 @pytest.mark.parametrize("kit", ["aktionsmarkt", "clothing", "outlet"])
 def test_demo_kits_with_own_templates_move_without_mismatch(kit):
-    """Киты со своими шаблонами категорий, «Alle Kategorien» и групп акций: перенос проходит
-    сверку по отрисованным страницам (до == после == без кодов) и повторяется вхолостую."""
+    """Киты со своими шаблонами категорий, «Alle Kategorien» и групп акций: кит сам пишет их
+    строками своих хостов (как перенос), и перенос на сервере их не трогает — без расхождений
+    по отрисованным страницам (повтор SAME, а не «ПРОПУЩЕНО»)."""
     from apps.tenants import demo_kits
 
     tenant = TenantFactory(
@@ -162,10 +163,93 @@ def test_demo_kits_with_own_templates_move_without_mismatch(kit):
     )
     assert demo_kits.apply_kit(tenant, kit) is True
     tenant.refresh_from_db()
+    blocks = tenant.site_config.get("page_blocks") or {}
+    want = {"aktionsmarkt": "promo_group:", "clothing": "category", "outlet": "promo_group:"}
+    assert any(h.startswith(want[kit]) for h in blocks), (kit, sorted(blocks))
     report = pam.apply_tenant(tenant)
     assert not report.mismatches, (kit, report.surfaces, report.notes)
-    want = {"aktionsmarkt": {"categories", "promo_groups"}, "clothing": {"categories"}}
-    want["outlet"] = {"categories", "promo_groups"}
-    done = {k for k, v in report.surfaces.items() if v == pam.DONE}
-    assert want[kit] <= done, (kit, report.surfaces, report.notes)
-    assert not pam.apply_tenant(tenant).changed
+    assert not report.changed, (kit, report.surfaces)
+
+
+@pytest.mark.usefixtures("_urlconf")
+def test_review_page_cache_does_not_hide_a_changed_page(settings):
+    """Ревью 2b (H1): в проде кэш витрины включён, ключ не зависит от `site_config` — сверка
+    обязана рендерить мимо него, иначе «после» отдало бы закэшированное «до»."""
+    settings.PUBLIC_PAGE_CACHE_TTL = 120
+    settings.CACHES = {"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}}
+    _seed_cats()
+    tenant = _tenant({})
+    path = pao.page_url("categories", "brot")
+    render = pam.renderer(tenant)
+    before = render.at({}, path)
+    other = {"page_blocks": {siteconfig.category_host("brot"): [OWN, {"key": "main"}]}}
+    assert render.at(other, path) != before, "сверка видит изменённую страницу"
+
+
+@pytest.mark.usefixtures("_urlconf")
+def test_review_category_changed_during_the_move_is_recounted(monkeypatch):
+    from apps.catalog import catalog_parts
+    from apps.catalog.models import Category
+
+    _seed_cats(root_style="tabs")
+    tenant = TenantFactory(schema_name="public", slug="b1b2race", name="B", site_config={})
+    real = pam._object_index
+    calls = []
+
+    def racing(t):
+        calls.append(1)
+        if len(calls) == 2:  # под блокировкой: владелец успел сменить шаблон категории
+            Category.objects.filter(slug="brot").update(page_style="kopfbild")
+        return real(t)
+
+    monkeypatch.setattr(pam, "_object_index", racing)
+    report = pam.apply_tenant(tenant)
+    assert report.surfaces.get("categories") == pam.DONE, report.surfaces
+    tenant.refresh_from_db()
+    norm = siteconfig.normalize(tenant.site_config)
+    brot = Category.objects.get(slug="brot")
+    assert catalog_parts.legacy_code(catalog_parts.category_parts(norm, brot)) == "kopfbild"
+
+
+def test_review_inactive_category_with_own_code_is_reported_not_pinned():
+    idx = pao.ObjectIndex(categories=[pao.CategoryRef("brot", "tabs")], inactive_coded=["alt"])
+    new, report = pam.migrate_objects({}, idx)
+    assert report.surfaces["categories"] == pam.DONE
+    assert "categories:unpinned:alt" in report.notes
+    assert siteconfig.category_host("alt") not in new["page_blocks"]
+
+
+def test_review_too_many_pages_to_render_skip_with_a_reason(monkeypatch):
+    monkeypatch.setattr(pao, "MAX_RENDER_PAGES", 2)
+    refs = [pao.CategoryRef(f"k{i:03d}", "tabs") for i in range(3)]
+    idx = pao.ObjectIndex(categories=refs, all_category_slugs=frozenset(r.slug for r in refs))
+    new, report = pam.migrate_objects({}, idx, render_at=lambda cfg, path: "x")
+    assert report.surfaces["categories"] == pam.SKIP and new == {}
+    assert any(n.startswith("categories:render_capped") for n in report.notes)
+
+
+def test_recurring_promo_heir_gets_the_promo_schema(monkeypatch):
+    """B1b-2c: наследник повторяющейся акции получает строки и переводы её схемы."""
+    from apps.core import object_structure
+    from apps.promotions.models import Promotion
+
+    promo = Promotion.objects.create(title={"de": "A"}, status="active", promo_type="discount")
+    heir = Promotion.objects.create(title={"de": "A"}, status="draft", promo_type="discount")
+    src, dst = f"promo:{promo.pk.hex}", f"promo:{heir.pk.hex}"
+    tenant = TenantFactory(
+        schema_name="public",
+        slug="b1b2heir",
+        name="H",
+        site_config={
+            "page_blocks": {src: [{"key": "offer", "style": "plakat"}]},
+            "i18n": {"en": {"page_blocks": {src: [{"data": {"title": "x"}}]}}},
+        },
+    )
+    from django.db import connections
+
+    monkeypatch.setattr(connections["default"], "tenant", tenant, raising=False)
+    assert object_structure.copy_blocks("promo", promo, heir) is True
+    tenant.refresh_from_db()
+    assert tenant.site_config["page_blocks"][dst] == [{"key": "offer", "style": "plakat"}]
+    assert tenant.site_config["i18n"]["en"]["page_blocks"][dst] == [{"data": {"title": "x"}}]
+    assert object_structure.copy_blocks("promo", promo, heir) is False, "повтор — без записи"

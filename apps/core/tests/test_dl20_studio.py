@@ -94,12 +94,13 @@ def test_cabinet_saves_the_site_wide_page_template():
 
     tenant = TenantFactory(schema_name="public", slug="dl20v", name="DL20V")
     page_settings.write(tenant, "category_page_style", "magazin")
-    assert siteconfig.normalize(tenant.site_config)["site_defaults"]["category_page_style"] == (
-        "magazin"
-    )
-    # снятие выбора убирает ключ (presence-minimal → golden целы)
+    # FB-31.7 B1b-2: «Alle Kategorien» — строками хоста `category`, старый ключ не пишется
+    norm = siteconfig.normalize(tenant.site_config)
+    assert siteconfig.page_template_code(norm, "category_page_style") == "magazin"
+    assert "category_page_style" not in norm["site_defaults"]
     page_settings.write(tenant, "category_page_style", "")
-    assert "category_page_style" not in siteconfig.normalize(tenant.site_config)["site_defaults"]
+    norm = siteconfig.normalize(tenant.site_config)
+    assert siteconfig.page_template_code(norm, "category_page_style") == ""
 
 
 def test_studio_save_and_draft_cannot_change_it():
@@ -108,7 +109,9 @@ def test_studio_save_and_draft_cannot_change_it():
     tenant = TenantFactory(schema_name="public", slug="dl20d", name="DL20D")
     page_settings.write(tenant, "category_page_style", "magazin")
     cfg = _save(tenant, {"home_form": "1", "sd_category_page_style": "kompakt"})
-    assert cfg["site_defaults"]["category_page_style"] == "magazin"
+    assert siteconfig.page_template_code(siteconfig.normalize(cfg), "category_page_style") == (
+        "magazin"
+    )
     assert "sdCatPage" not in _body(tenant)
 
 

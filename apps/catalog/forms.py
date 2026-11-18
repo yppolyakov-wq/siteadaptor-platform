@@ -34,8 +34,8 @@ class CategoryForm(OverlayI18nFormMixin, DynamicI18nFormMixin, forms.ModelForm):
         ("description", {"label": _("Beschreibung"), "textarea": True, "rich": True}),
     )
 
-    # KAT-1: шаблон страницы категории (реестр category_styles; "" = Standard).
-    page_style = forms.ChoiceField(label=_("Seitenvorlage"), required=False)
+    # FB-31.7 B1b-2: шаблон страницы категории — строками «Seitenaufbau» (ссылка в форме);
+    # поле `Category.page_style` остаётся в модели до B3 (старые коды читаются под строками).
     # STU-12j (F9): форма карточек ТОВАРОВ этой категории (реестр core.card_forms;
     # "" = как на сайте). Слой между товаром и сайтом.
     card_style = forms.ChoiceField(label=_("Kartenform"), required=False)
@@ -45,7 +45,6 @@ class CategoryForm(OverlayI18nFormMixin, DynamicI18nFormMixin, forms.ModelForm):
         fields = [
             "parent",
             "slug",
-            "page_style",
             "card_style",
             "city_category",
             "hide_in_city",
@@ -79,14 +78,6 @@ class CategoryForm(OverlayI18nFormMixin, DynamicI18nFormMixin, forms.ModelForm):
         self.fields["slug"].required = False
         self.fields["slug"].help_text = _("Leave blank to generate from the German name.")
         self.fields["parent"].required = False
-        from apps.catalog.category_styles import CATEGORY_PAGE_STYLES
-
-        self.fields["page_style"].choices = [
-            (code, f"{label} — {hint}") for code, label, hint in CATEGORY_PAGE_STYLES
-        ]
-        self.fields["page_style"].help_text = _(
-            "Wie die Seite /sortiment/<slug>/ dieser Kategorie aufgebaut ist."
-        )
         from apps.core import card_forms as _cf
 
         self.fields["card_style"].choices = [

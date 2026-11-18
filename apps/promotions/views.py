@@ -362,6 +362,13 @@ def _promo_type_rows(request):
         settings = promo_types.settings_for(saved, row["key"])
         layout = settings.get("layout") or {}
         row["style"] = settings.get("style", "")
+        # FB-31.7 B1b-2: шаблон типа — в «Seitenaufbau» (своя схема группы)
+        host = siteconfig.promo_group_host(row["key"])
+        row["schema_url"] = (
+            f"{reverse('site-schema')}?{urlencode({'seite': f'promo_group@{host}'})}"
+            if host
+            else ""
+        )
         row["card"] = settings.get("card", "")
         row["mode"] = "slider" if layout.get("scroll") else "grid"
         row["cols"] = layout.get("cols") or ""
@@ -390,7 +397,6 @@ def promo_type_list(request):
         {
             "nav": "promo-types",
             "rows": _promo_type_rows(request),
-            "group_page_styles": group_styles.GROUP_PAGE_STYLES,
             "card_forms": card_forms.forms_for(card_forms.PROMO),
         },
     )
@@ -432,8 +438,8 @@ def promo_type_save(request):
         # экрана шлёт все пять на каждую строку, но безусловная запись значила бы,
         # что частичный POST (чужая форма, будущий инлайн-контрол) молча стирает
         # оси, которых в нём нет, — класс дефектов, на котором проект уже горел.
-        if f"style:{key}" in request.POST:
-            entry["style"] = (request.POST.get(f"style:{key}") or "").strip()
+        # FB-31.7 B1b-2: шаблон страницы типа — строками его схемы в «Seitenaufbau»; поле
+        # `style:` экран больше не шлёт, а пришедшее (старая вкладка, чужая форма) не пишется
         if f"card:{key}" in request.POST:
             entry["card"] = (request.POST.get(f"card:{key}") or "").strip()
         layout_fields = [f"{name}:{key}" for name in ("mode", "cols", "rows")]
@@ -1100,42 +1106,9 @@ def _promo_structure(request, promo) -> dict:
     return object_structure.panel(config, "promo", promo)
 
 
-def _drop_own_offer_view(tenant, promo) -> None:
-    """FB-31 P3 (ревью): шаблон акции, выбранный в её форме, — последнее решение владельца:
-    вид строки «Angebot» из своих блоков акции («nur diese») снимается."""
-    from django.db import transaction
-
-    from apps.core import object_structure
-    from apps.core.pagecache import bump_storefront_cache
-    from apps.tenants import siteconfig
-    from apps.tenants.models import Tenant
-
-    host = object_structure.object_host("promo", promo)
-    if tenant is None or not host:
-        return
-    with transaction.atomic():
-        locked = Tenant.objects.select_for_update().get(pk=tenant.pk)
-        cfg = locked.site_config if isinstance(locked.site_config, dict) else {}
-        blocks = cfg.get("page_blocks")
-        if not isinstance(blocks, dict) or not blocks.get(host):
-            return
-        # ревью R5: нормализованно (пустой хост объекта не копится) и с updated_at, как
-        # прочие писатели конфига
-        from django.utils import timezone as _tz
-
-        locked.site_config = siteconfig.normalize(siteconfig.drop_page_views(cfg, host))
-        # запрос UPDATE, не save(): save() django-tenants пересоздаёт схему (как `write`)
-        Tenant.objects.filter(pk=locked.pk).update(
-            site_config=locked.site_config, updated_at=_tz.now()
-        )
-        transaction.on_commit(lambda: bump_storefront_cache(locked.schema_name))
-    tenant.site_config = locked.site_config
-
-
 @login_required
 def promotion_edit(request, pk):
     promo = get_object_or_404(Promotion, pk=pk)
-    style_before = promo.page_style
     form = PromotionForm(
         request.POST or None,
         request.FILES or None,
@@ -1145,8 +1118,6 @@ def promotion_edit(request, pk):
     if request.method == "POST":
         if form.is_valid():
             promo = form.save()
-            if promo.page_style != style_before:
-                _drop_own_offer_view(getattr(request, "tenant", None), promo)
             _handle_promo_uploads(request, promo)
             # FB-29 R5: своя структура страницы акции — по сентинелу (W0)
             from apps.core import object_structure

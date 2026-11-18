@@ -21,7 +21,7 @@ from apps.core.i18n_input import apply_i18n_overlay, extra_locales, i18n_inputs_
 from apps.core.richtext import clean_input
 from apps.inventory.services import log_catalog_change
 
-from . import category_styles, writers
+from . import writers
 from .forms import CategoryForm, ProductForm, move_category_blocks
 from .images import delete_stored_image, save_product_image
 from .models import (
@@ -910,14 +910,23 @@ def _is_uuid(value) -> bool:
     return True
 
 
+def _category_schema_url(category) -> str:
+    from urllib.parse import urlencode
+
+    from django.urls import reverse
+
+    from apps.core import site_schema
+
+    code = site_schema.category_code(category.slug)
+    return f"{reverse('site-schema')}?{urlencode({'seite': code})}" if code else ""
+
+
 @login_required
 def category_create(request):
     form = CategoryForm(
         request.POST or None,
         tenant=getattr(request, "tenant", None),
-        initial=_assistant_initial(
-            request, ("name_de", "description_de", "page_style"), "parent_name", "parent"
-        ),
+        initial=_assistant_initial(request, ("name_de", "description_de"), "parent_name", "parent"),
     )
     if request.method == "POST" and form.is_valid():
         category = form.save()
@@ -930,8 +939,6 @@ def category_create(request):
             "form": form,
             "is_create": True,
             "nav": "categories",
-            # DL-20: реестр шаблонов страницы — плитки вместо селекта.
-            "category_page_styles": category_styles.CATEGORY_PAGE_STYLES,
             # STU-12j (F9): формы карточки товаров ЭТОЙ категории (плитки, как у товара)
             "category_card_forms": card_forms.forms_for(card_forms.PRODUCT),
             **_i18n_ctx(form, request),
@@ -959,7 +966,8 @@ def category_edit(request, pk):
             "is_create": False,
             "category": category,
             "nav": "categories",
-            "category_page_styles": category_styles.CATEGORY_PAGE_STYLES,
+            # FB-31.7 B1b-2: вид страницы категории — в «Seitenaufbau» (своя схема)
+            "schema_url": _category_schema_url(category),
             # STU-12j (F9): формы карточки товаров ЭТОЙ категории (плитки, как у товара)
             "category_card_forms": card_forms.forms_for(card_forms.PRODUCT),
             **_i18n_ctx(form, request),

@@ -17,7 +17,6 @@ from apps.core.form_fields import MoneyField
 from apps.core.i18n_input import DynamicI18nFormMixin, OverlayI18nFormMixin, extra_locales
 from apps.loyalty.models import LoyaltyProgram
 
-from . import group_styles
 from .models import Promotion
 
 _DT_FMT = "%Y-%m-%dT%H:%M"
@@ -82,7 +81,6 @@ class PromotionForm(DynamicI18nFormMixin, forms.ModelForm):
             "discount_style",
             "card_style",
             "badge",  # FB-20
-            "page_style",
             "is_surprise",
             "recurrence",
             "group",
@@ -105,7 +103,6 @@ class PromotionForm(DynamicI18nFormMixin, forms.ModelForm):
             "show_countdown": _("Show countdown to end"),
             "discount_style": _("Discount display style"),
             "card_style": _("Card form"),
-            "page_style": _("Vorlage der Seite"),
             "is_surprise": _("Surprise bag (rescue leftovers, anti-waste)"),
             "recurrence": _("Repeat automatically"),
         }
@@ -190,18 +187,8 @@ class PromotionForm(DynamicI18nFormMixin, forms.ModelForm):
             ],
             help_text=_("Leer = wie in den Website-Einstellungen eingestellt."),
         )
-        # STU-15a: ШАБЛОН СТРАНИЦЫ этой акции. Тот же приём: реестр даёт варианты,
-        # поэтому список растёт без миграции (в модели choices не зашиты).
-        page_style_label = _("Vorlage der Seite")
-        self.fields["page_style"] = forms.ChoiceField(
-            label=page_style_label,
-            required=False,
-            choices=[
-                (key, f"{label} — {hint}" if hint else label)
-                for key, label, hint in group_styles.PROMOTION_DETAIL_STYLES
-            ],
-            help_text=_("Leer = wie in den Website-Einstellungen eingestellt."),
-        )
+        # FB-31.7 B1b-2: шаблон страницы акции — строками её схемы в «Seitenaufbau» (ссылка
+        # «Im Seitenaufbau bearbeiten» в блоке структуры объекта); `page_style` — до B3.
         # T-8.2: что делает кнопка акции на витрине (Promotion.metadata["response"],
         # без миграции). Пусто = автоматически: онлайн-заказ при модуле заказов,
         # иначе «Zurücklegen».

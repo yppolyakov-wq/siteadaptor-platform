@@ -25607,6 +25607,11 @@ def apply_kit(tenant, key: str) -> bool:
     from apps.core import page_axes_migration
 
     cfg = page_axes_migration.templates_to_rows(cfg)
+    # FB-31.7 B1b-2: свои шаблоны категорий, акций и групп кита (созданы выше) — строками
+    # своих хостов, как после переноса `materialize_page_axes` (сверка по осям)
+    from apps.core import page_axes_objects
+
+    cfg, _report = page_axes_migration.migrate_objects(cfg, page_axes_objects.build_index())
     _demo_locales = [loc for loc in (kit.enabled_locales or []) if loc != "de"]
     if _demo_locales:  # DL-2/DL-3: оверлей текстов на все включённые локали
         from . import demo_i18n

@@ -228,6 +228,10 @@ def _spawn_recurrence(promo, now):
     )
     heir.save()
     PromotionSM().apply(heir, "scheduled")
+    # FB-31.7 B1b-2: своя схема акции (строки шаблона и свои блоки) — у наследника тоже
+    from apps.core import object_structure
+
+    object_structure.copy_blocks("promo", promo, heir)
 
     promo.recurrence = Promotion.NO_RECUR
     promo.save(update_fields=["recurrence", "updated_at"])

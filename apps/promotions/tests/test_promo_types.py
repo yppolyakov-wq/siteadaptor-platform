@@ -240,7 +240,8 @@ def test_screen_saves_all_four_axes_and_keeps_other_config():
     t.refresh_from_db()
     cfg = siteconfig.normalize(t.site_config)
     entry = cfg["promo_groups"]["Räumung"]
-    assert entry["style"] == "countdown" and entry["card"] == "ring"
+    # FB-31.7 B1b-2: шаблон типа — строками «Seitenaufbau»; пришедшее `style:` не пишется
+    assert "style" not in entry and entry["card"] == "ring"
     assert entry["layout"]["scroll"] is True and entry["layout"]["cols"] == 4
     assert entry["layout"]["rows"] == 2
     # targeted-write: соседние ключи конфига целы (W9-3)
@@ -251,7 +252,7 @@ def test_clearing_all_axes_removes_the_record():
     """Presence-minimal: пустой тип не материализует ключ (golden целы)."""
     from apps.promotions import views
 
-    t = _tenant("pt10", promo_groups={"Räumung": {"style": "countdown", "card": "ring"}})
+    t = _tenant("pt10", promo_groups={"Räumung": {"card": "ring"}})
     _promo("W1", promo_type="discount", discount_percent=10, group="Räumung")
 
     views.promo_type_save(
@@ -427,6 +428,26 @@ def test_sp7_screen_types_collapsed_with_summary_and_pickers_side_by_side(settin
     summary = body.split('data-promo-type="A"')[1].split("data-type-summary>")[1][:200]
     assert "Countdown" in summary or "countdown" in summary.lower()
     pickers = body.split('data-promo-type="A"')[1].split("</details>")[0]
-    assert pickers.count('<div class="text-sm" data-cardform-picker>') == 2
+    # FB-31.7 B1b-2: шаблон типа — ссылкой в «Seitenaufbau», пикер остался один (форма)
+    assert pickers.count('<div class="text-sm" data-cardform-picker>') == 1
+    assert "data-type-page-link" in pickers and "seite=promo_group%40promo_group%3A" in pickers
     assert 'md:col-span-2" data-cardform-picker' not in pickers
-    assert 'name="style:A"' in body and 'name="rows:C"' in body  # W0: поля всех типов в DOM
+    assert 'name="style:A"' not in body and 'name="rows:C"' in body  # W0: поля всех типов в DOM
+
+
+def test_b1b2_posted_style_is_ignored_old_value_kept():
+    """FB-31.7 B1b-2: старая вкладка прислала `style:` — шаблон не меняется (только строками)."""
+    from apps.promotions import views
+
+    t = _tenant("pt-b1b2", promo_groups={"Räumung": {"style": "countdown"}})
+    _promo("W1", promo_type="discount", discount_percent=10, group="Räumung")
+    views.promo_type_save(
+        _cabinet_request(
+            "post", "/promotions/typen/speichern/", {"style:Räumung": "magazin"}, tenant=t
+        )
+    )
+    t.refresh_from_db()
+    from apps.promotions import promo_types
+
+    groups = siteconfig.normalize(t.site_config)["promo_groups"]
+    assert promo_types.settings_for(groups, "Räumung").get("style") == "countdown"

@@ -242,3 +242,11 @@ postgres-patterns, django-security, accessibility, error-handling. Агенты:
 `django-reviewer`: мёртвая копия цикла в `rows_with` снята; `explicit=True` отказывает (None),
 если хоть одну ось нельзя записать строкой. К 2b: `site_schema._catalog_code` и
 `page_settings.current_value` читают «Alle Kategorien» только ключом — перевести на строки.
+
+**B1b-2b/2c сделаны (2026-11-18).** Ревью `silent-failure-hunter`: кэш страниц витрины делал
+сверку рендером пустой (и в B1b-1) — рендер мимо кэша и с хостом сайта; страницы всех своих
+акций (не только в продаже); «не отрисовалась» — заметка, ни одной — `render-failed`; больше
+`MAX_RENDER_PAGES` — пропуск с причиной; хосты категорий из корзины не чистятся; данные объектов
+перепроверяются под блокировкой; переводы копии группы сверяются на каждом языке; причины
+`skip:`/`hosts_full:` в заметках. Остаток к B3: снять `Category.page_style`, `Promotion.page_style`,
+`promo_groups[*].style` и ключ «Alle Kategorien»; `studio_pages.py` (`object_field="page_style"`).

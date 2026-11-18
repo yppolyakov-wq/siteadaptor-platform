@@ -56,7 +56,8 @@ def test_category_and_product_from_one_phrase(tenant):
     assert _field(prod, "category").value == "Kuchen"
     assert "category_name=Kuchen" in prod.form_url
     assert cat.template is not None and cat.template.value == "kopfbild"
-    assert "page_style=kopfbild" in cat.form_url
+    # FB-31.7 B1b-2: шаблон категории в форме не выбирается (строки «Seitenaufbau»)
+    assert "page_style" not in cat.form_url
 
 
 def test_missing_required_fields_are_flagged(tenant):

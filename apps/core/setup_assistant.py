@@ -489,9 +489,9 @@ def _step(entity: str, name: str, price: str, parent_name: str, tenant, duration
     prefill = dict(values)
     template = None
     if entity == ENTITY_CATEGORY:
+        # FB-31.7 B1b-2: шаблон категории в форме больше не выбирается (строки «Seitenaufbau»);
+        # подсказка остаётся текстом карточки помощника
         template = _category_template(tenant)
-        if template is not None:
-            prefill["page_style"] = template.value
     fields = []
     for fname, label, required in spec["fields"]:
         value = values.get(fname, "")

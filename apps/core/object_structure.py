@@ -357,3 +357,44 @@ def purge_ghost_hosts(tenant) -> int:
 def blocks_first(obj, kind: str) -> bool:
     """R3: стоят ли свои блоки объекта над общими блоками страницы."""
     return bool(clean(_raw(obj), MODULES.get(kind, "")).get("blocks_first"))
+
+
+def copy_blocks(kind: str, old, new) -> bool:
+    """FB-31.7 B1b-2: своя схема объекта `old` (строки и переводы) — копией у `new` (наследник
+    повторяющейся акции). Под блокировкой строки сайта; места под своими схемами нет —
+    предупреждение в лог, наследник живёт с общей схемой (вид шаблона держит его код до B3)."""
+    import copy
+    import logging
+
+    from django.db import connection, transaction
+
+    from apps.tenants import siteconfig
+    from apps.tenants.models import Tenant
+
+    src, dst = object_host(kind, old), object_host(kind, new)
+    tenant = getattr(connection, "tenant", None)
+    if not src or not dst or tenant is None or not getattr(tenant, "pk", None):
+        return False
+    with transaction.atomic():
+        fresh = Tenant.objects.select_for_update().filter(pk=tenant.pk).first()
+        if fresh is None:
+            return False
+        config = copy.deepcopy(fresh.site_config or {})
+        blocks = config.get("page_blocks") if isinstance(config.get("page_blocks"), dict) else {}
+        if not blocks.get(src) or dst in blocks:
+            return False
+        if siteconfig.object_hosts_full(config, dst):
+            logging.getLogger(__name__).warning(
+                "copy_blocks: no room for %s in %s", dst, getattr(fresh, "schema_name", "")
+            )
+            return False
+        blocks[dst] = copy.deepcopy(blocks[src])
+        config["page_blocks"] = blocks
+        for layer in (config.get("i18n") or {}).values():
+            pb = layer.get("page_blocks") if isinstance(layer, dict) else None
+            if isinstance(pb, dict) and src in pb:
+                pb[dst] = copy.deepcopy(pb[src])
+        fresh.site_config = config
+        fresh.save(update_fields=["site_config"])
+        tenant.site_config = config
+    return True

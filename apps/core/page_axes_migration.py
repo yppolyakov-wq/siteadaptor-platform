@@ -338,17 +338,29 @@ def migrate_objects(raw: dict, objects, render_at=None) -> tuple[dict, Report]:
         if render_at is not None:
             bare = _without_key(candidate, "category_page_style")
             try:
+                if len(res.pages) > pao.MAX_RENDER_PAGES:
+                    # ревью 2b (H2): не сверять молча часть — сайт пропускается с причиной
+                    report.surfaces[name] = SKIP
+                    report.notes.append(f"{name}:render_capped:{len(res.pages)}")
+                    return copy.deepcopy(src), report
+                checked = 0
                 for page in res.pages:
                     path = pao.page_url(name, page)
                     before_html = render_at(out, path)
                     if before_html is None:
+                        report.notes.append(f"{name}:render_none:{path}")
                         continue
+                    checked += 1
                     with objects_blind():
                         blind_html = render_at(bare, path)
                     if render_at(candidate, path) != before_html or blind_html != before_html:
                         report.surfaces[name] = MISMATCH
                         report.notes.append(f"{name}:render:{path}")
                         return copy.deepcopy(src), report
+                if res.pages and not checked:
+                    # ни одной страницы для сверки — по одним осям перенос не годится
+                    report.surfaces[name] = RENDER_FAILED
+                    return copy.deepcopy(src), report
             except Exception:  # noqa: BLE001 — сайт не переносится, отчёт говорит почему
                 logger.exception("materialize_page_axes: render %s failed", name)
                 report.surfaces[name] = RENDER_FAILED
@@ -443,6 +455,17 @@ def _page_path(cfg: dict, key: str) -> str:
     return ""
 
 
+def _render_host(tenant) -> str:
+    """Хост запроса сверки — домен самого сайта (он в ALLOWED_HOSTS прода; `testserver`
+    там дал бы DisallowedHost на `build_absolute_uri`, ревью B1b-2)."""
+    try:
+        domain = tenant.get_primary_domain()
+    except Exception:  # noqa: BLE001 — нет домена: тестовый хост (локально и в тестах)
+        logger.warning("materialize_page_axes: primary domain of %s", tenant.schema_name)
+        domain = None
+    return getattr(domain, "domain", "") or "testserver"
+
+
 def renderer(tenant):
     """`render(cfg, key) -> html | None` для `migrate`: страница шаблона `key`, отрисованная
     витриной с настройками `cfg` (без записи в базу) в схеме тенанта."""
@@ -460,12 +483,17 @@ def renderer(tenant):
             path = _page_path(cfg, key)
         return at(cfg, path) if path else None
 
+    host = _render_host(tenant)
+
     def at(cfg, path):
         with schema_context(tenant.schema_name):
             fake = _copy.copy(tenant)
             fake.site_config = cfg
-            request = RequestFactory().get(path)
+            request = RequestFactory().get(path, HTTP_HOST=host)
             SessionMiddleware(lambda r: None).process_request(request)
+            # ревью B1b-2 (H1): непустая сессия — мимо кэша страниц витрины (ключ кэша не
+            # зависит от `site_config`: «после» отдал бы закэшированное «до» — сверка пустая)
+            request.session["fb317_render"] = 1
             MessageMiddleware(lambda r: None).process_request(request)
             request.user = AnonymousUser()
             request.tenant = fake
@@ -560,7 +588,7 @@ def apply_tenant(tenant, *, dry_run: bool = False) -> Report:
             return report
         try:
             with transaction.atomic():
-                written = _write(tenant, before, new)
+                written = _write(tenant, before, new, objects=objects)
         except OperationalError:  # строка занята дольше lock_timeout
             return Report(surfaces={"*": BUSY})
         if written is None:
@@ -580,13 +608,17 @@ def _bump(schema: str) -> None:
         logger.warning("materialize_page_axes: cache bump failed for %s", schema, exc_info=True)
 
 
-def _write(tenant, before: dict, new: dict) -> str | None:
+def _write(tenant, before: dict, new: dict, objects=None) -> str | None:
     """Под блокировкой (внутри транзакции): настройки не менялись — записать и снять снимок,
     вернуть схему; менялись — None (перенос считается заново)."""
     from apps.tenants.models import SiteConfigSnapshot, Tenant
 
     locked = _lock(Tenant, tenant.pk)
     if config_hash(locked.site_config or {}) != config_hash(before):
+        return None
+    # ревью 2b (M1): категории и акции (свои коды, удаления) не менялись с расчёта переноса —
+    # иначе строки записали бы устаревший вид, а повтор счёл бы их намеренными
+    if objects is not None and _object_index(tenant) != objects:
         return None
     locked.site_config = new
     locked.save(update_fields=["site_config"])

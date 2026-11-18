@@ -38921,3 +38921,7 @@ msgstr "„Hemen“ en fazla %(n)s bildirim için geçerlidir — diğerleri gü
 #: templates/aggregator/follow.html
 msgid "Benachrichtigung bearbeiten"
 msgstr "Bildirimi düzenle"
+
+#: templates/catalog/category_form.html
+msgid "Nach dem Speichern im Seitenaufbau bearbeiten."
+msgstr "Kaydettikten sonra Sayfa yapısında düzenleyin."

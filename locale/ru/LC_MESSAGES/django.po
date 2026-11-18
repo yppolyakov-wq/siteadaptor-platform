@@ -39116,3 +39116,7 @@ msgstr "«Сразу» — не больше чем для %(n)s таких ув
 #: templates/aggregator/follow.html
 msgid "Benachrichtigung bearbeiten"
 msgstr "Изменить уведомление"
+
+#: templates/catalog/category_form.html
+msgid "Nach dem Speichern im Seitenaufbau bearbeiten."
+msgstr "После сохранения — в «Seitenaufbau»."

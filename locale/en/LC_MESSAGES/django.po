@@ -38775,3 +38775,7 @@ msgstr "“Instantly” applies to at most %(n)s such alerts — further ones ar
 #: templates/aggregator/follow.html
 msgid "Benachrichtigung bearbeiten"
 msgstr "Edit alert"
+
+#: templates/catalog/category_form.html
+msgid "Nach dem Speichern im Seitenaufbau bearbeiten."
+msgstr "Edit in Page structure after saving."

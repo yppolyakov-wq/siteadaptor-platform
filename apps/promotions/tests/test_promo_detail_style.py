@@ -58,10 +58,8 @@ def test_unknown_style_falls_back_instead_of_crashing():
     assert "data-promo-detail" not in html
 
 
-def test_cabinet_form_offers_the_page_template():
-    """Выбор доступен и из кабинета (Studio — не единственный вход)."""
+def test_cabinet_form_has_no_page_template_field_b1b2():
+    """FB-31.7 B1b-2: шаблон акции — строками её схемы в «Seitenaufbau», не полем формы."""
     from apps.promotions.forms import PromotionForm
 
-    form = PromotionForm()
-    assert "page_style" in form.fields
-    assert any(code == "plakat" for code, _label in form.fields["page_style"].choices)
+    assert "page_style" not in PromotionForm().fields
