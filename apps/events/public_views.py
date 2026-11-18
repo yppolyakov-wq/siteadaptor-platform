@@ -977,7 +977,10 @@ def blog_detail(request, slug):
     from .models import BlogPost
 
     post = get_object_or_404(BlogPost, slug=slug, is_published=True)
-    recent = BlogPost.objects.filter(is_published=True).exclude(pk=post.pk)[:4]
+    recent = []
+    # FB-32 S6e: «More posts» скрыт строкой «Seitenaufbau» — без запроса
+    if page_settings.raw_config(request).get("blog_show_more") is not False:
+        recent = BlogPost.objects.filter(is_published=True).exclude(pk=post.pk)[:4]
     return render(request, "storefront/blog_detail.html", {"post": post, "recent": recent})
 
 

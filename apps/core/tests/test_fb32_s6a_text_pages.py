@@ -215,3 +215,37 @@ def test_own_block_above_gift_form_and_loyalty_programs():
     assert "Bus 5" not in form, "свой блок не внутри формы оплаты"
     html = _treue({"page_blocks": {"info": [TEXT, {"key": "programs"}]}})
     assert html.index("Bus 5") < html.index("Kaffeekarte") and html.count("Bus 5") == 1
+
+
+# ── S6e: «Blogbeitrag» и «Finder» ───────────────────────────────────────────────
+
+
+def test_blog_more_posts_hides_through_the_schema_even_without_own_blocks():
+    from apps.core.tests.test_fb32_s6_pages_golden import _blog
+    from apps.tenants.tests.factories import TenantFactory
+
+    b = Browser(TenantFactory(business_type="cafe", disabled_modules=[]))  # блог включён
+    b.post(seite="blog_post", op="toggle", ref="more")
+    b.post(seite="blog_post", op="save")
+    cfg = _cfg(b.tenant)
+    assert cfg["blog_show_more"] is False and not (cfg.get("page_blocks") or {}).get("blog_post")
+    assert "Post 1" in _blog({}) and "Post 1" not in _blog({"blog_show_more": False})
+
+
+def test_blog_own_block_between_article_and_more_posts():
+    from apps.core.tests.test_fb32_s6_pages_golden import _blog
+
+    html = _blog({"page_blocks": {"info": [{"key": "article"}, TEXT, {"key": "more"}]}})
+    assert html.index("<h1") < html.index("Bus 5") < html.index("Post 1")
+    from apps.tenants.tests.factories import TenantFactory
+
+    t = TenantFactory(business_type="cafe", disabled_modules=[])
+    with pytest.raises(site_schema.SchemaError, match="fixed"):
+        site_schema.apply(t, "blog_post", "toggle", ref="article")
+
+
+def test_finder_own_block_above_the_wizard():
+    from apps.core.tests.test_fb32_s6_pages_golden import _finder
+
+    html = _finder({"page_blocks": {"info": [TEXT, {"key": "wizard"}]}})
+    assert html.index("Bus 5") < html.index("<h1") and html.count("Bus 5") == 1

@@ -5533,6 +5533,10 @@ def _normalize_impl(config) -> dict:
     # «Seitenaufbau». Presence-minimal: ключ живёт только как False (по умолчанию видна).
     if config.get("about_contact") is False:
         normalized["about_contact"] = False
+    # FB-32 S6e: «More posts» под записью блога скрывается строкой «Seitenaufbau» (тоже
+    # presence-minimal)
+    if config.get("blog_show_more") is False:
+        normalized["blog_show_more"] = False
     # M20U-7 (per-page): раскладка сетки номеров /unterkunft/. Дефолт cols3 mobile1
     # воспроизводит прежнюю сетку (grid-cols-1 sm:2 lg:3).
     normalized["stay_index_layout"] = normalize_layout(

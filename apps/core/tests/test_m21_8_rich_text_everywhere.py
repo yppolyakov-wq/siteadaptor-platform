@@ -63,7 +63,7 @@ STOREFRONT = {
     "event_detail.html": "event.description_text",
     "tour_detail.html": "tour.description_text",
     "lehrer_detail.html": "teacher.bio_localized",
-    "blog_detail.html": "post.body_localized",
+    "_blog_article.html": "post.body_localized",  # FB-32 S6e: статья — партиал строки
     "promotion_detail.html": "promotion.description_text",
     "combo_detail.html": "combo.description_localized",
     "legal.html": "legal_body",

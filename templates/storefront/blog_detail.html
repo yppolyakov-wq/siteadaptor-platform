@@ -5,24 +5,11 @@
 {% block structured_data %}{% blogposting_jsonld post %}{% endblock %}
 
 {% block content %}
-<article class="{% text_width_class %}">
-  <a href="{% url 'storefront-blog' %}" class="text-sm text-gray-500 hover:underline">← {% trans "All posts" %}</a>
-  {% if post.cover_url %}<img src="{{ post.cover_url }}" alt="{{ post.title_localized }}" class="w-full aspect-[16/9] object-cover rounded-2xl mt-3 mb-4">{% endif %}
-  {% if post.published_at %}<p class="text-sm text-gray-400 mt-3">{{ post.published_at|date:"d.m.Y" }}</p>{% endif %}
-  <h1 class="text-2xl md:text-3xl font-bold mt-1 mb-4">{{ post.title_localized }}</h1>
-  {% if post.excerpt %}<p class="text-lg text-gray-600 mb-4">{{ post.excerpt }}</p>{% endif %}
-  {% rich_block post.body_localized css="prose prose-sm max-w-none text-gray-700" %}
-</article>
-
-{% if recent %}
-<div class="max-w-2xl mx-auto mt-12 border-t border-gray-100 pt-6">
-  <h2 class="text-lg font-semibold mb-3">{% trans "More posts" %}</h2>
-  <ul class="space-y-2">
-    {% for p in recent %}
-      <li><a href="{% url 'storefront-blog-post' p.slug %}" class="text-indigo-600 hover:underline">{{ p.title }}</a>{% if p.published_at %} <span class="text-xs text-gray-400">· {{ p.published_at|date:"d.m.Y" }}</span>{% endif %}</li>
-    {% endfor %}
-  </ul>
-</div>
+{% page_flow "blog_post" as pf %}{% if pf.page_flow %}{% comment %}FB-32 S6e: статья, «More posts» и свои блоки между ними — строки «Seitenaufbau».{% endcomment %}
+{% for it in pf.page_flow %}{% if it.section == "article" %}{% include "storefront/_blog_article.html" %}{% elif it.section == "more" %}{% include "storefront/_blog_more.html" %}{% else %}{% page_blocks "blog_post" it.part %}{% endif %}{% endfor %}
+  {% page_blocks "blog_post" pf.tail_part %}
+{% else %}
+{% include "storefront/_blog_article.html" %}
+{% include "storefront/_blog_more.html" %}  {% page_blocks "blog_post" %}
 {% endif %}
-  {% page_blocks "blog_post" %}
 {% endblock %}

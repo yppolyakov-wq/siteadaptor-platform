@@ -5,6 +5,7 @@
 ответы копятся в ?a=), выдача — 3 карточки контракта SellableEntity, лучшая В
 СЕРЕДИНЕ («Unser Vorschlag»). План — docs/fd1-finder-plan-2026-07-18.md.{% endcomment %}
 {% block content %}
+{% page_flow "finder" as pf %}{% if pf.page_flow %}{% comment %}FB-32 S6e: свои блоки над опросником — строки «Seitenaufbau».{% endcomment %}{% for it in pf.page_flow %}{% if it.part %}{% page_blocks "finder" it.part %}{% endif %}{% endfor %}{% endif %}
 <section class="max-w-2xl mx-auto mb-12">
   {% if question %}
     <p class="text-xs font-medium text-gray-400 mb-2">{% blocktrans with step=step total=total %}Frage {{ step }} von {{ total }}{% endblocktrans %}</p>
@@ -43,5 +44,5 @@
     </div>
   {% endif %}
 </section>
-  {% page_blocks "finder" %}
+  {% if pf.page_flow %}{% page_blocks "finder" pf.tail_part %}{% else %}{% page_blocks "finder" %}{% endif %}
 {% endblock %}

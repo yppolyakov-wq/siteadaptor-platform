@@ -169,3 +169,46 @@ def _treue(cfg):
 def test_gift_and_loyalty_without_anchors_look_as_before(case):
     _check(f"gift-{case}", _gift(CASES[case]))
     _check(f"treue-{case}", _treue(CASES[case]))
+
+
+# ── S6e: «Blogbeitrag» и «Finder» ───────────────────────────────────────────────
+
+
+def _blog(cfg):
+    from datetime import UTC, datetime
+
+    from apps.events import public_views
+    from apps.events.models import BlogPost
+
+    when = datetime(2026, 5, 1, 9, 0, tzinfo=UTC)
+    for i, slug in enumerate(("erster", "zweiter", "dritter")):
+        BlogPost.objects.get_or_create(
+            slug=slug,
+            defaults={
+                "title": f"Post {i}",
+                "body": "Text",
+                "is_published": True,
+                "published_at": when,
+            },
+        )
+    cfg = {**cfg, "page_blocks": {"blog_post": (cfg.get("page_blocks") or {}).get("info", [])}}
+    return _main(public_views.blog_detail(_req("/blog/erster/", cfg), "erster").content.decode())
+
+
+def _finder(cfg):
+    from apps.promotions import public_views
+
+    cfg = {
+        **cfg,
+        "finder": {"enabled": True},
+        "page_blocks": {"finder": (cfg.get("page_blocks") or {}).get("info", [])},
+    }
+    req = _req("/finder/", cfg)
+    req.tenant.business_type = "bakery"
+    return _main(public_views.finder_page(req).content.decode())
+
+
+@pytest.mark.parametrize("case", ("plain", "tail"))
+def test_blog_and_finder_without_anchors_look_as_before(case):
+    _check(f"blog-{case}", _blog(CASES[case]))
+    _check(f"finder-{case}", _finder(CASES[case]))

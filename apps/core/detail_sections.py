@@ -112,6 +112,13 @@ DETAIL_SECTIONS: dict[str, tuple[DetailSection, ...]] = {
     # § 312j BGB) и «Treue» — программы; одной неподвижной строкой, свои блоки над ней и под ней
     "gift": (DetailSection("form", _("Gift voucher"), hideable=False),),
     "loyalty": (DetailSection("programs", _("Loyalty programme"), hideable=False),),
+    # FB-32 S6e: запись блога — статья (не скрывается) и «More posts» (скрывается, прежний
+    # список из 4); Finder — опросник одной строкой
+    "blog_post": (
+        DetailSection("article", _("Text"), hideable=False),
+        DetailSection("more", _("More posts")),
+    ),
+    "finder": (DetailSection("wizard", _("Finder"), hideable=False),),
     "versand": (
         DetailSection("pagetext", _("Text"), hideable=False),
         DetailSection("costs", _("Versandkosten"), hideable=False),
