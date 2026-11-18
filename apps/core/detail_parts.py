@@ -51,6 +51,8 @@ SECTION_HOSTS = {
     "passes": "passes",
     # FB-32 S6g-2
     "booking_slots": "booking_slots",
+    # FB-32 S6g-3
+    "combo_detail": "combo",
 }
 #: FB-32 S6a: хосты своих страниц «Seite» (`seite:<slug>`) — модуль разделов «page»
 PAGE_PREFIX = "seite:"
@@ -73,8 +75,8 @@ _FORM_PAGES = frozenset(
         "booking_slots",
     }
 )
-NO_KAUF_MODULES = frozenset({"cart", "info", "page", "versand", "promo"}) | _FORM_PAGES
-FIXED_ORDER_MODULES = frozenset({"info", "page", "versand", "promo"}) | _FORM_PAGES
+NO_KAUF_MODULES = frozenset({"cart", "info", "page", "versand", "promo", "combo"}) | _FORM_PAGES
+FIXED_ORDER_MODULES = frozenset({"info", "page", "versand", "promo", "combo"}) | _FORM_PAGES
 #: FB-32 S6f: разделы, которые одновременно строки осей (P3): хранят свой вид (`style`), а
 #: «поставлено» (`anchors.placed`) по ним не считается — старые `[offer(style), блоки]`
 #: рисуются прежней разметкой (все блоки в хвосте)
@@ -85,6 +87,12 @@ VISIBILITY_KEYS = {
     "info": {"contact": "about_contact"},
     "blog_post": {"more": "blog_show_more"},
     "promo": {"related": "promo_show_related"},
+    "combo": {
+        "reviews": "combo_show_reviews",
+        "examples": "combo_show_examples",
+        "cta": "combo_show_cta",
+        "related": "combo_show_related",
+    },
 }
 #: разделы первого экрана (рядом с покупкой): скрыть можно, блоки рядом с ними — перед телом
 FIRST_SCREEN = {

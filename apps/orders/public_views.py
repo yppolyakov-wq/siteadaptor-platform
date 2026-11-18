@@ -395,9 +395,16 @@ def combo_detail_public(request, pk):
         raise Http404
     tenant = getattr(request, "tenant", None)
     orders_on = orders_active(tenant)
+    # FB-32 S6g-3: тот же путь, что у блоков (черновик «Seitenaufbau» в превью)
+    from apps.core import page_settings
     from apps.tenants import siteconfig
 
-    site_cfg = siteconfig.normalize(tenant.site_config) if tenant is not None else {}
+    site_cfg = siteconfig.normalize(page_settings.raw_config(request)) if tenant is not None else {}
+    hide = {
+        key
+        for key in ("reviews", "examples", "cta", "related")
+        if site_cfg.get(f"combo_show_{key}") is False
+    }
     # MEN-4: свободная сборка — пул блюд категории, сгруппирован по Gang'ам
     # (порядок реестра COURSES; без Gang'а — в конец).
     pool_courses = []
@@ -425,7 +432,7 @@ def combo_detail_public(request, pk):
     from apps.reviews import services as review_services
 
     related_combos = []
-    if combo.category_id:
+    if combo.category_id and "related" not in hide:
         from apps.catalog.models import Combo
 
         related_combos = list(
@@ -448,13 +455,21 @@ def combo_detail_public(request, pk):
             "combo_anfrage_active": (
                 not orders_on and tenant is not None and tenant.is_module_active("jobs")
             ),
-            "reviews": list(review_services.published_for("combo", combo.pk)),
-            "review_summary": review_services.summary("combo", combo.pk),
+            # FB-32 S6g-3: скрытые строкой «Seitenaufbau» блоки — без запросов
+            "combo_hide_reviews": "reviews" in hide,
+            "reviews": []
+            if "reviews" in hide
+            else list(review_services.published_for("combo", combo.pk)),
+            "review_summary": None
+            if "reviews" in hide
+            else review_services.summary("combo", combo.pk),
             "review_form_token": _uuid.uuid4().hex,
             "review_action": reverse("storefront-combo-review", args=[combo.pk]),
-            "gallery_examples": (site_cfg.get("gallery") or [])[:6],
+            "gallery_examples": [] if "examples" in hide else (site_cfg.get("gallery") or [])[:6],
             "related_combos": related_combos,
-            "event_cta_active": tenant is not None and tenant.is_module_active("jobs"),
+            "event_cta_active": "cta" not in hide
+            and tenant is not None
+            and tenant.is_module_active("jobs"),
         },
     )
 

@@ -274,6 +274,7 @@ def test_every_type_has_a_preview_strategy():
             "event",
             "blog_post",
             "lookbook",
+            "combo",  # FB-32 S6g-3: превью — первый активный набор (`site_schema._SAMPLES`)
         }, page.code
 
 

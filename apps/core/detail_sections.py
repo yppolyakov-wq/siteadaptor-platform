@@ -133,6 +133,15 @@ DETAIL_SECTIONS: dict[str, tuple[DetailSection, ...]] = {
     # FB-32 S6g-2: выбор времени (ресурс или «Tisch reservieren») — вся коробка календаря и
     # формы брони одной неподвижной строкой
     "booking_slots": (DetailSection("slots", _("Book a slot"), hideable=False),),
+    # FB-32 S6g-3: Kombi-Detail — конфигуратор (форма и цена, PAngV: не скрывается) и блоки
+    # под ним (MEN-21), каждый скрывается (`combo_show_*`, presence-minimal). Порядок постоянный.
+    "combo": (
+        DetailSection("config", _("Kombi"), hideable=False),
+        DetailSection("reviews", _("Customer reviews")),
+        DetailSection("examples", _("Beispiele unserer Arbeit")),
+        DetailSection("cta", _("Sie planen eine Veranstaltung?")),
+        DetailSection("related", _("Weitere Menüs aus dieser Kategorie")),
+    ),
     "versand": (
         DetailSection("pagetext", _("Text"), hideable=False),
         DetailSection("costs", _("Versandkosten"), hideable=False),

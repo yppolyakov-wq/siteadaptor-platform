@@ -36,6 +36,7 @@ _SAMPLES = {
     "promo": ("apps.promotions.models", "Promotion", {"status": "active"}),
     "service": ("apps.booking.models", "Service", {"is_active": True}),
     "stay": ("apps.stays.models", "StayUnit", {"is_active": True}),
+    "combo": ("apps.catalog.models", "Combo", {"is_active": True}),  # FB-32 S6g-3
 }
 
 
@@ -1199,7 +1200,17 @@ _TYPE_GROUPS = (
         "shop",
         gettext_lazy("Sortiment"),
         "catalog",
-        ("catalog", "category", "product", "cart", "wishlist", "combos", "lookbook", "finder"),
+        (
+            "catalog",
+            "category",
+            "product",
+            "cart",
+            "wishlist",
+            "combos",
+            "combo",
+            "lookbook",
+            "finder",
+        ),
     ),
     (
         "termine",

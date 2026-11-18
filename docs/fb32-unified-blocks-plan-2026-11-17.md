@@ -196,3 +196,11 @@ S6a, S6f; a11y-architect — S6c; Playwright 1440/390 de/ru — S6a, S6c, S6f.
 Каждый новый тип: `PAGE_BLOCK_HOSTS`, `studio_pages.PAGE_TYPES`, `page_settings.TYPE_MODULES`/
 `_storefront_shows`, `site_schema._TYPE_GROUPS`/`_SAMPLES`, подписи в 5 `.po`. Замки: снимки до правки,
 блоки не внутри `<form>`, транзакционные адреса вне `PAGE_TYPES`.
+- **S6f ✅ (код)** деталь акции: «Angebot» — строка оси и место (`AXIS_SECTIONS`), «Weitere Aktionen»
+  (`promo_show_related`); ревью — видимость меняется только при строке раздела.
+- **S6g ✅ (код)** (2026-11-18): S6g-1 «Lehrer», «Retreat-Kalender», «Mehrfachkarten» (типы `teachers`,
+  `event_calendar`, `passes`); S6g-2 «Termin» без услуг выводит хост `services`, выбор времени — тип
+  `booking_slots` (не в `?box=1`/`?embed=1`; превью Tisch не тратит лимит); S6g-3 «Kombi» (`combo`:
+  `config` закреплён, `reviews`/`examples`/`cta`/`related` скрываются — `combo_show_*`). Замок «ключ
+  раздела ≠ тип блока». Без блоков — байт-в-байт (`FB32S6_GOLDEN`).
+

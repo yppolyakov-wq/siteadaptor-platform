@@ -1,0 +1,8 @@
+{% load i18n attribution richtext l10n siteui %}{% if event_cta_active %}
+<section class="mt-12 rounded-2xl px-6 py-8 text-center text-white" style="background: var(--accent, #4f46e5);">
+  <h2 class="text-xl md:text-2xl font-bold">{% trans "Sie planen eine Veranstaltung?" %}</h2>
+  <p class="mt-2 text-sm opacity-90 max-w-xl mx-auto">{% trans "Erzählen Sie uns von Ihrem Anlass — wir stellen ein passendes Menü zusammen und melden uns mit einem unverbindlichen Angebot." %}</p>
+  <button type="button" data-quick-url="{% url 'storefront-anfrage-modal' %}?betreff={{ combo.name_localized|urlencode }}"
+          class="inline-block mt-4 rounded-lg bg-white px-6 py-2.5 font-medium hover:bg-gray-100" style="color: var(--accent, #4f46e5);">{% trans "Unverbindlich anfragen" %}</button>
+</section>
+{% endif %}

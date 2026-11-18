@@ -337,3 +337,32 @@ def _slots(cfg, **get):
 def test_termin_and_slots_without_blocks_look_as_before():
     _check("termin-plain", _termin({}))
     _check("slots-plain", _slots({}))
+
+
+# ── S6g-3: «Kombi-Detail» ───────────────────────────────────────────────────────
+
+
+def _combo(cfg):
+    from decimal import Decimal
+
+    from apps.catalog.models import Category, Combo
+    from apps.orders import public_views
+
+    cat, _n = Category.objects.get_or_create(slug="menues", defaults={"name": {"de": "Menüs"}})
+    main, _n = Combo.objects.get_or_create(
+        name="Menü A", defaults={"price": Decimal("19.90"), "category": cat, "is_active": True}
+    )
+    Combo.objects.get_or_create(
+        name="Menü B", defaults={"price": Decimal("24.90"), "category": cat, "is_active": True}
+    )
+    cfg = {
+        "gallery": [{"url": "/media/g/1.jpg", "alt": {"de": "Buffet"}}],
+        **_rows_for(cfg, "combo_detail"),
+    }
+    return _stable(
+        public_views.combo_detail_public(_req("/kombi/x/", cfg), main.pk).content.decode()
+    )
+
+
+def test_combo_detail_without_blocks_looks_as_before():
+    _check("combo-plain", _combo({}))

@@ -422,3 +422,53 @@ def test_slots_page_type_and_preview():
     assert site_schema._preview_url(pt).endswith(f"/{res.pk}/")
     rows = {r["ref"]: r for r in site_schema.blocks_for({}, "booking_slots")}
     assert rows["slots"]["pinned"]
+
+
+# ── S6g-3: «Kombi-Detail» ───────────────────────────────────────────────────────
+
+
+def test_combo_rows_config_fixed_others_hide():
+    assert detail_parts.section_keys("combo_detail") == (
+        "config",
+        "reviews",
+        "examples",
+        "cta",
+        "related",
+    )
+    rows = {r["ref"]: r for r in site_schema.blocks_for({}, "combo")}
+    assert rows["config"]["pinned"] and not rows["related"]["pinned"]
+    assert detail_parts.KAUF_REF not in rows
+
+
+def test_combo_own_block_between_configurator_and_reviews_never_in_the_form():
+    from apps.core.tests.test_fb32_s6_pages_golden import _combo
+
+    cfg = {"page_blocks": {"info": [{"key": "config"}, TEXT, {"key": "reviews"}]}}
+    html = _combo(cfg)
+    assert html.index("data-combo-form") < html.index("Bus 5") < html.index("Menü B")
+    form = html[html.index("<form") : html.index("</form>")]
+    assert "Bus 5" not in form and html.count("Bus 5") == 1
+
+
+def test_combo_hidden_sections_disappear_with_or_without_own_blocks():
+    from apps.core.tests.test_fb32_s6_pages_golden import _combo
+
+    hidden = {
+        "combo_show_examples": False,
+        "combo_show_cta": False,
+        "combo_show_related": False,
+    }
+    for cfg in (hidden, {**hidden, "page_blocks": {"info": [{"key": "config"}, TEXT]}}):
+        html = _combo(cfg)
+        assert "Beispiele unserer Arbeit" not in html and "Menü B" not in html
+        assert "Sie planen" not in html and "data-combo-form" in html
+
+
+def test_combo_hide_through_the_schema_writes_the_flag():
+    cfg: dict = {}
+    rows = [{"key": "config"}, {"key": "reviews", "enabled": False}, TEXT]
+    detail_parts.lift(cfg, "combo_detail", rows)
+    assert cfg["combo_show_reviews"] is False
+    from apps.tenants import siteconfig
+
+    assert siteconfig.normalize(cfg)["combo_show_reviews"] is False

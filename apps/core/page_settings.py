@@ -68,6 +68,7 @@ TYPE_MODULES: dict[str, str | None] = {
     "event_calendar": "events",
     "passes": "booking",
     "booking_slots": "booking",
+    "combo": "catalog",
     "text": None,
     "team": None,
     "gallery": None,
@@ -476,7 +477,9 @@ def _thumb(setting: studio_pages.Setting) -> str:
 
 #: Types the storefront hides under the light "Nur Aktionen" profile (urls_tenant
 #: wraps their views in `redirect_if_aktionen`).
-_CATALOG_PAGES = frozenset({"catalog", "category", "product", "cart", "combos", "lookbook"})
+_CATALOG_PAGES = frozenset(
+    {"catalog", "category", "product", "cart", "combos", "lookbook", "combo"}
+)
 
 
 def _storefront_shows(tenant, type_code: str) -> bool:
@@ -504,6 +507,10 @@ def _storefront_shows(tenant, type_code: str) -> bool:
         from apps.booking.models import PassPlan
 
         return PassPlan.objects.filter(is_active=True).exists()
+    if type_code == "combo":
+        from apps.catalog.models import Combo
+
+        return Combo.objects.filter(is_active=True).exists()
     if type_code == "booking_slots":
         from apps.booking.models import Resource
 

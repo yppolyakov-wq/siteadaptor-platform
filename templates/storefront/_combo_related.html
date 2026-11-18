@@ -1,0 +1,19 @@
+{% load i18n attribution richtext l10n siteui %}{% if related_combos %}
+<section class="mt-12">
+  <h2 class="text-xl font-bold mb-4">{% trans "Weitere Menüs aus dieser Kategorie" %}</h2>
+  <div class="flex gap-4 overflow-x-auto pb-2" data-sf-slider>
+    {% for c in related_combos %}
+      <a href="{% url 'storefront-combo' c.pk %}" class="group block w-56 shrink-0 bg-white sf-card rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition">
+        {% if c.primary_image_url %}<span class="block aspect-[4/3] bg-gray-100"><img src="{{ c.primary_image_url }}" alt="{{ c.name_localized }}" loading="lazy" decoding="async" class="w-full h-full object-cover"></span>{% endif %}
+        <span class="block p-4">
+          <span class="block font-semibold group-hover:underline line-clamp-2">{{ c.name_localized }}</span>
+          {% comment %}Стенд MEN-21: у свободной сборки цена складывается из блюд —
+          «ab 0,00 €» врал бы (семантика детали: Grundpreis только если задан).{% endcomment %}
+          {% if c.free_pool %}<span class="block mt-1 text-[11px] font-medium text-gray-500">{% trans "Free choice from category" %}</span>
+          {% elif show_prices %}<span class="block mt-1 text-sm font-bold">{{ c.price }} {{ c.currency|cursym }}{% if c.price_per_person %} <span class="font-medium text-gray-500">/ {% trans "Person" %}</span>{% endif %}</span>{% endif %}
+        </span>
+      </a>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}

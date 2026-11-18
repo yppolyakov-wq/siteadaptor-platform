@@ -721,6 +721,14 @@ PAGE_TYPES: tuple[PageType, ...] = (
         (),
         block_host="booking_slots",
     ),
+    # FB-32 S6g-3: Kombi-Detail (превью — первый активный набор, `site_schema._SAMPLES`)
+    PageType(
+        "combo",
+        _("Kombi"),
+        ("storefront-combo",),
+        (),
+        block_host="combo_detail",
+    ),
     PageType(
         "lookbook",
         _("Lookbook"),

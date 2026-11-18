@@ -1201,6 +1201,7 @@ PAGE_BLOCK_HOSTS = (
     "event_calendar",  # /veranstaltung/kalender/
     "passes",  # /karten/
     "booking_slots",  # /termin/<ресурс>/ и /tisch/ — выбор времени
+    "combo_detail",  # /kombi/<pk>/ — FB-32 S6g-3
     # FB-31 P3 R6: «Alle Angebotsgruppen» — общие блоки страниц групп акций (пока не
     # сохранены, группы показывают блоки обзора `/aktionen/`, как и раньше)
     "promo_group",
@@ -5596,6 +5597,15 @@ def _normalize_impl(config) -> dict:
     # FB-32 S6f: «Weitere Aktionen» под деталью акции скрывается строкой «Seitenaufbau»
     if config.get("promo_show_related") is False:
         normalized["promo_show_related"] = False
+    # FB-32 S6g-3: блоки под Kombi-Detail скрываются строками «Seitenaufbau»
+    for flag in (
+        "combo_show_reviews",
+        "combo_show_examples",
+        "combo_show_cta",
+        "combo_show_related",
+    ):
+        if config.get(flag) is False:
+            normalized[flag] = False
     # M20U-7 (per-page): раскладка сетки номеров /unterkunft/. Дефолт cols3 mobile1
     # воспроизводит прежнюю сетку (grid-cols-1 sm:2 lg:3).
     normalized["stay_index_layout"] = normalize_layout(

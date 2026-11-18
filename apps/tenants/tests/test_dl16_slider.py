@@ -70,7 +70,8 @@ def test_home_scroll_section_renders_slider_marker():
 def test_strip_gallery_and_combo_related_are_sliders():
     gal = (ROOT / "templates/storefront/sections/_gallery.html").read_text(encoding="utf-8")
     assert 'overflow-x-auto pb-2" data-sf-slider>' in gal
-    combo = (ROOT / "templates/storefront/combo_detail.html").read_text(encoding="utf-8")
+    # FB-32 S6g-3: «Weitere Menüs» — партиал строки схемы
+    combo = (ROOT / "templates/storefront/_combo_related.html").read_text(encoding="utf-8")
     assert 'overflow-x-auto pb-2" data-sf-slider>' in combo
 
 

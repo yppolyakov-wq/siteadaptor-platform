@@ -1,0 +1,129 @@
+<main class="flex-1 w-full max-w-none mx-auto px-4 py-6 md:py-10">
+<a href="/kombi/" class="text-sm text-gray-500">&larr; Kombi-Angebote</a>
+<div class="mt-3 grid gap-8 max-w-3xl">
+  <div>
+    <h1 class="text-2xl md:text-3xl font-bold">Menü A</h1>
+    <p class="mt-3 text-xl font-bold">
+      19,90 €
+    </p>
+    <p class="mt-0.5 text-xs text-gray-400">inkl. MwSt.</p>
+    <form method="post" action="/kombi/add/" data-combo-form data-base="19.90" data-cur="€">
+      <input type="hidden" name="csrfmiddlewaretoken" value="X">
+      <input type="hidden" name="combo" value="UUID">
+      <p class="mt-5 text-sm text-gray-600">Gesamt: <b data-combo-total>19,90 €</b></p>
+      <div class="mt-2 flex items-center gap-3">
+        <label class="flex items-center gap-2 text-sm text-gray-600">Anzahl
+          <input type="number" name="qty" value="1" min="1" max="50" class="w-24 rounded-lg border border-gray-300 px-3 py-2.5">
+        </label>
+        <button type="submit" class="flex-1 text-white rounded-lg px-4 py-3 font-medium" style="background: var(--accent);">Zur Bestellung hinzufügen</button>
+      </div>
+    </form>
+  </div>
+</div>
+<section id="bewertungen" class="mt-12 scroll-mt-24" data-sf-section="reviews">
+  <h2 class="text-xl font-bold mb-4">Kundenbewertungen</h2>
+    <p class="text-gray-400 text-sm mb-5">Noch keine Bewertungen – Schreiben Sie die erste Bewertung.</p>
+  <details class="mt-6 rounded-xl border border-gray-200 bg-gray-50 p-4">
+    <summary class="cursor-pointer font-medium text-gray-800">Eine Bewertung schreiben</summary>
+    <p class="text-xs text-gray-500 mt-2">Nur verifizierte Kunden können eine Bewertung abgeben. Verwenden Sie dazu die E-Mail-Adresse aus Ihrer Buchung.</p>
+    <form method="post" action="/kombi/UUID/bewerten/" class="mt-3 space-y-3">
+      <input type="hidden" name="csrfmiddlewaretoken" value="X">
+      <input type="hidden" name="form_token" value="HEX">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <input name="author_name" type="text" required maxlength="120" placeholder="Ihr Name" class="rounded-lg border border-gray-300 px-3 py-2">
+        <input autocomplete="email" name="email" type="email" required placeholder="E-Mail zu Ihrer Buchung" class="rounded-lg border border-gray-300 px-3 py-2">
+      </div>
+      <div>
+        <label class="block text-sm mb-1" for="id_review_rating">Bewertung</label>
+        <select id="id_review_rating" name="rating" required class="rounded-lg border border-gray-300 px-3 py-2">
+          <option value="5">★★★★★ (5)</option>
+          <option value="4">★★★★ (4)</option>
+          <option value="3">★★★ (3)</option>
+          <option value="2">★★ (2)</option>
+          <option value="1">★ (1)</option>
+        </select>
+      </div>
+      <textarea name="comment" rows="3" placeholder="Ihre Bewertung (optional)" class="w-full rounded-lg border border-gray-300 px-3 py-2"></textarea>
+      <button type="submit" class="rounded-lg bg-gray-900 text-white px-4 py-2 text-sm font-medium hover:bg-gray-700">Bewertung abgeben</button>
+<p class="basis-full sm:col-span-full mt-2 text-xs text-gray-500" data-privacy-note>Wir verwenden Ihre Angaben nur, um Ihr Anliegen zu bearbeiten. <a href="/datenschutz/" class="underline" target="_top">Datenschutzerklärung</a></p>
+    </form>
+  </details>
+</section>
+<section class="mt-12">
+  <div class="flex items-center justify-between gap-3 mb-4">
+    <h2 class="text-xl font-bold">Beispiele unserer Arbeit</h2>
+    <a href="/galerie/" class="text-sm text-indigo-600 hover:underline shrink-0">Alle Fotos →</a>
+  </div>
+  <div class="flex gap-3 overflow-x-auto pb-2">
+      <button type="button" data-lightbox="/media/g/1.jpg"
+              class="h-40 w-56 shrink-0 rounded-xl overflow-hidden bg-gray-100 block cursor-zoom-in group">
+        <img src="/media/g/1.jpg" alt="Buffet" loading="lazy" decoding="async"
+             class="w-full h-full object-cover group-hover:scale-[1.03] transition">
+      </button>
+  </div>
+</section>
+<section class="mt-12 rounded-2xl px-6 py-8 text-center text-white" style="background: var(--accent, #4f46e5);">
+  <h2 class="text-xl md:text-2xl font-bold">Sie planen eine Veranstaltung?</h2>
+  <p class="mt-2 text-sm opacity-90 max-w-xl mx-auto">Erzählen Sie uns von Ihrem Anlass — wir stellen ein passendes Menü zusammen und melden uns mit einem unverbindlichen Angebot.</p>
+  <button type="button" data-quick-url="/anfrage/formular/?betreff=Men%C3%BC%20A"
+          class="inline-block mt-4 rounded-lg bg-white px-6 py-2.5 font-medium hover:bg-gray-100" style="color: var(--accent, #4f46e5);">Unverbindlich anfragen</button>
+</section>
+<section class="mt-12">
+  <h2 class="text-xl font-bold mb-4">Weitere Menüs aus dieser Kategorie</h2>
+  <div class="flex gap-4 overflow-x-auto pb-2" data-sf-slider>
+      <a href="/kombi/UUID/" class="group block w-56 shrink-0 bg-white sf-card rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition">
+        <span class="block p-4">
+          <span class="block font-semibold group-hover:underline line-clamp-2">Menü B</span>
+          <span class="block mt-1 text-sm font-bold">24,90 €</span>
+        </span>
+      </a>
+  </div>
+</section>
+<script>
+(function () {
+  // MEN-1/MEN-7: живой итог для ПОКАЗА (истина цены серверная — combo_price в
+  // combo_add/cart/checkout, клиент цен не шлёт) + у browse-only витрины состав
+  // и число персон дописываются в ссылку заявки (?betreff=, приёмник AF-1).
+  var box = document.querySelector('[data-combo-form]');
+  if (!box || box.dataset.init) return;
+  box.dataset.init = '1';
+  var out = box.querySelector('[data-combo-total]');
+  var cta = box.querySelector('[data-anfrage-cta]');
+  var ctaBase = cta ? (cta.dataset.quickUrl || '').split('?')[0] : '';
+  function qtyValue() {
+    var input = box.querySelector('input[name="qty"]');
+    var n = input ? parseInt(input.value, 10) : 1;
+    return n > 0 ? n : 1;
+  }
+  function recalc() {
+    var total = parseFloat(box.dataset.base || '0') || 0;
+    var picked = [];
+    box.querySelectorAll('input[data-delta]:checked').forEach(function (i) {
+      total += parseFloat(i.dataset.delta || '0') || 0;
+      var label = i.closest('label');
+      if (label) picked.push(label.textContent.trim().replace(/\s+/g, ' '));
+    });
+    total *= qtyValue();
+    if (out) {
+      out.textContent = total.toLocaleString(document.documentElement.lang || 'de',
+        { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ' + (box.dataset.cur || '€');
+    }
+    if (cta) {
+      // DF-2 (фидбэк владельца DAY «в кейтеринге пусто в описании
+      // заказа»): состав набора раньше целиком уезжал в ТЕМУ заявки — она
+      // обрезается 200 символами, а описание оставалось пустым. Тема теперь
+      // короткая («Набор — N Personen»), выбранные блюда едут отдельным
+      // параметром в описание запроса.
+      var subject = box.dataset.setName || '';
+      subject += ' — ' + qtyValue() + ' ' + (box.dataset.personsLabel || 'Personen');
+      var url = ctaBase + '?betreff=' + encodeURIComponent(subject);
+      if (picked.length) url += '&details=' + encodeURIComponent(picked.join('\n'));
+      cta.dataset.quickUrl = url;
+    }
+  }
+  box.addEventListener('change', recalc);
+  box.addEventListener('input', recalc);
+  recalc();
+})();
+</script>
+  </main>

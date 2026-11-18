@@ -1,0 +1,17 @@
+{% load i18n attribution richtext l10n siteui %}{% if gallery_examples %}
+<section class="mt-12">
+  <div class="flex items-center justify-between gap-3 mb-4">
+    <h2 class="text-xl font-bold">{% trans "Beispiele unserer Arbeit" %}</h2>
+    <a href="{% url 'storefront-gallery' %}" class="text-sm text-indigo-600 hover:underline shrink-0">{% trans "Alle Fotos" %} →</a>
+  </div>
+  <div class="flex gap-3 overflow-x-auto pb-2">
+    {% for img in gallery_examples %}
+      <button type="button" data-lightbox="{{ img.url }}"
+              class="h-40 w-56 shrink-0 rounded-xl overflow-hidden bg-gray-100 block cursor-zoom-in group">
+        <img src="{{ img.url }}" alt="{{ img.alt.de|default:'' }}" loading="lazy" decoding="async"
+             class="w-full h-full object-cover group-hover:scale-[1.03] transition">
+      </button>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
