@@ -35,3 +35,12 @@ UWG §7/DSGVO — DOI на каждую новую комбинацию; пра�
 django-patterns/tdd/security, accessibility; django-reviewer — каждый срез; security-reviewer — P1,
 P2; silent-failure-hunter — сводка/«Sofort»; database-reviewer — P4; a11y-architect — после
 макетов; Playwright 1440/390 — P2/P3.
+
+## Решения владельца (2026-11-18, второй круг)
+- Признаки внутри подписки — **И** (как фильтр страницы; письмо ⊆ «Alle anzeigen»).
+- Частота — **выбирает житель**: «Sofort», «Täglich» или «Wöchentlich» и у комбинаций (P4 входит:
+  миграция ограничения `follow_instant_business_only` + лимит мгновенных подписок на жителя).
+- На выдаче **одна кнопка «Folgen»**: при фильтрах открывает панель с чипами всех фильтров; ссылка
+  «Benachrichtigen, wenn es so etwas gibt» уходит.
+- Старые одиночные подписки, которые покрывает новая комбинация, — **предложить заменить галочкой**
+  (по умолчанию выключена).
