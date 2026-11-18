@@ -4368,8 +4368,8 @@ SECTION_STYLES = {
 LIST_STYLES = {
     "products": SECTION_STYLES["products"],
     "promotions": SECTION_STYLES["promotions"],
-    # FB-32 S5b: блок «Liste» — прежние формы плиток (виды каталога у него — отдельным шагом)
-    "categories": ("square", "tall", "wide", "compact"),
+    # FB-32: блок «Liste» — те же виды, что у секции (и виды каталога — один построитель)
+    "categories": SECTION_STYLES["categories"],
 }
 
 

@@ -309,7 +309,7 @@ def builtin_groups(request, cfg: dict, key: str, data: dict, mode: str = "") -> 
             # FB-32 S5a: один список видов с каталогом — недоступные видны с причиной
             from apps.core import block_views
 
-            # FB-32 S5b: у секции — и виды каталога (у блока «Liste» — прежние формы плиток)
+            # FB-32 S5b: у секции — и виды каталога (у блока «Liste» — те же)
             styles = [
                 (k, str(siteconfig.SECTION_STYLE_LABELS.get(k, k)))
                 for k in siteconfig.SECTION_STYLES["categories"]
@@ -430,6 +430,8 @@ def groups(request, cfg: dict, data: dict, mode: str = "") -> list[dict]:
         style["current"] = dict(style["options"]).get(style["value"], "")
         how.append(style)
     inherit = f"{hint['layout_from']}: "
+    # FB-32: у видов каталога своя раскладка — «Ausgabe», «Spalten», «Reihen» не действуют
+    own_layout = source == "categories" and data.get("style") in CATALOG_VIEW_STYLES
     how.append(
         _select(
             "out",
@@ -454,6 +456,8 @@ def groups(request, cfg: dict, data: dict, mode: str = "") -> list[dict]:
             [("", _("automatisch")), *[(n, n) for n in range(1, 7)]],
         )
     )
+    if own_layout:
+        how = [f for f in how if f["name"] not in ("out", "cols", "rows")]
     cards = [(k, lab) for k, lab, srcs in hint["cards"] if source in srcs.split()]
     if siteconfig.LIST_SOURCES[source]["card"] and cards:
         how.append(

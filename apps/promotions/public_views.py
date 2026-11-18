@@ -231,25 +231,14 @@ def _attach_lowest_30d(promos) -> list:
 
 
 def _home_category_view(categories, style, row=None) -> dict:
-    """FB-32 S5b: данные вида «Regale» / «Index» / «Wegweiser» секции «Kategorien» главной;
-    {} — прежняя сетка (вид не выбран или данных для него нет)."""
-    if not categories or style not in ("regale", "index", "wegweiser"):
-        return {}
-    roots = [c for c in categories if getattr(c, "pk", None)]
-    if not roots:
-        return {}
-    if style == "regale":
-        # секция с выбранной родительской категорией показывает её подкатегории — их полки
-        # из своих товаров, как на странице категории (ревью S5b)
-        from apps.core import list_blocks
+    """FB-32 S5b: данные вида «Regale» / «Index» / «Wegweiser» секции «Kategorien» главной
+    (общий построитель с каталогом и блоком «Liste»); {} — прежняя сетка."""
+    from apps.core import list_blocks
 
-        sub = bool(list_blocks.section_data(row or {}).get("category"))
-        shelves = _cat_views.shelves(roots, path_mode=sub, limit=_cat_views.HOME_SHELVES)
-        return {"shelves": shelves} if shelves else {}
-    if style == "index":
-        return {"entries": _cat_views.entries(roots)}
-    deps = _cat_views.departments(roots)
-    return deps if deps["departments"] else {}
+    if not categories or style not in _cat_views.STYLES:
+        return {}  # прежняя сетка: строку не разбираем (у неё может не быть ключа)
+    sub = bool(list_blocks.section_data(row or {"key": "categories"}).get("category"))
+    return _cat_views.for_style(categories, style, path_mode=sub)
 
 
 # Same-origin framing разрешён: кабинет владельца (тот же субдомен-origin)

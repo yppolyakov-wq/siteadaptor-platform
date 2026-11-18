@@ -45,6 +45,13 @@ LB-3: `id="lb-<id блока>"` — цель чипа Sprungleiste страни�
     {% include "storefront/lists/_price_list_box.html" with pl_style=lb.style plv_key="lb-"|add:block_id plv_cols=lb.layout.cols plv_mobile=lb.layout.mobile all_url=lb.url %}
     {% elif lb.source == "promotions" and lb.style %}
     {% include "storefront/lists/_promo_composition.html" with promotions=lb.items promo_ending_soon=lb.ending_soon pstyle=lb.style pgrid=lb.grid playout=lb.layout ptail="spread" pmore=False pgrid_id="" pgrid_key="list" row_promo_card=lb.card %}
+    {% elif lb.source == "categories" and lb.cat_view.shelves %}
+    {% comment %}FB-32: виды каталога у блока «Liste» — те же партиалы и построитель, что у секции «Kategorien».{% endcomment %}
+    <div data-cat-style="regale">{% include "storefront/composition/_shelves.html" with shelves=lb.cat_view.shelves item_template="storefront/_product_card.html" %}</div>
+    {% elif lb.source == "categories" and lb.cat_view.entries %}
+    <div data-cat-style="index">{% include "storefront/composition/_index.html" with entries=lb.cat_view.entries carry="" %}</div>
+    {% elif lb.source == "categories" and lb.cat_view.departments %}
+    <div data-cat-style="wegweiser">{% include "storefront/composition/_wegweiser_departments.html" with departments=lb.cat_view.departments cols=lb.cat_view.cols summary=None heading_id="ww-lb-"|add:block_id|add:"-h" %}</div>
     {% elif lb.source == "categories" and lb.style == "compact" %}
     {% categories_with_min_price lb.items as cat_rows %}
     <div data-grid="list" class="{{ lb.grid }}" {% sf_grid_attrs lb.layout count=cat_rows|length %}>

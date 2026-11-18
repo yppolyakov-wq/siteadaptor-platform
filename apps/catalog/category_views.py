@@ -75,3 +75,25 @@ def departments(categories) -> dict:
 
     deps = wegweiser.departments(categories)
     return {"departments": deps, "cols": wegweiser.columns(len(deps)) if deps else 5}
+
+
+#: виды каталога, которые рисуют главная и блок «Liste» (FB-32 S5b)
+STYLES = frozenset({"regale", "index", "wegweiser"})
+
+
+def for_style(categories, style, *, path_mode: bool = False) -> dict:
+    """Данные вида `style` для набора категорий секции или блока; {} — прежняя сетка (вид не
+    выбран или данных для него нет). `path_mode` — выбрана родительская категория: полки
+    подкатегорий из своих товаров, как на странице категории."""
+    if not categories or style not in STYLES:
+        return {}
+    roots = [c for c in categories if getattr(c, "pk", None)]
+    if not roots:
+        return {}
+    if style == "regale":
+        found = shelves(roots, path_mode=path_mode, limit=HOME_SHELVES)
+        return {"shelves": found} if found else {}
+    if style == "index":
+        return {"entries": entries(roots)}
+    deps = departments(roots)
+    return deps if deps["departments"] else {}

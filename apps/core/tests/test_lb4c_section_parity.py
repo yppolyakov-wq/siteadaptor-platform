@@ -139,7 +139,7 @@ CASES = {
         f"categories_{style}": ({"key": "categories", "style": style}, _catalog)
         # FB-32 S5b: снимки до LB-4c есть только у форм плиток; виды каталога у секции —
         # свой замок (`apps/tenants/tests/test_fb32_home_categories_golden.py`)
-        for style in siteconfig.LIST_STYLES["categories"]
+        for style in ("square", "tall", "wide", "compact")
     },
     "categories_tile_info": (
         {"key": "categories", "tile_info": ["price", "count"], "img_h": 160},

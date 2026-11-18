@@ -898,7 +898,14 @@ def resolve(cfg: dict, data: dict, tenant=None) -> dict:
         # Не `.get(style) or …`: у реестра есть ключ "" (дефолт 4:3), и пустой вид
         # блока перебивал бы форму, выбранную владельцем у секции.
         aspect = (siteconfig.CATEGORY_TILE_ASPECTS.get(style) if style else "") or _tile_aspect(cfg)
+    cat_view = {}
+    if source == "categories" and style:
+        # FB-32: виды каталога у блока «Liste» — тот же построитель, что у секции и каталога
+        from apps.catalog import category_views
+
+        cat_view = category_views.for_style(items, style, path_mode=bool(data.get("category")))
     return {
+        "cat_view": cat_view,
         "source": source,
         "items": items,
         "total": total,

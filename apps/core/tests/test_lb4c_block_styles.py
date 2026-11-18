@@ -64,11 +64,9 @@ def test_block_styles_are_the_styles_of_the_sources_section():
     assert siteconfig.LIST_STYLES == {
         "products": siteconfig.SECTION_STYLES["products"],
         "promotions": siteconfig.SECTION_STYLES["promotions"],
-        # FB-32 S5b: у секции «Kategorien» есть и виды каталога (Regale, Index, Wegweiser);
-        # блок «Liste» — пока прежние формы плиток (его виды каталога — отдельным шагом)
-        "categories": ("square", "tall", "wide", "compact"),
+        # FB-32: и виды каталога (Regale, Index, Wegweiser) — у блока те же, что у секции
+        "categories": siteconfig.SECTION_STYLES["categories"],
     }
-    assert set(siteconfig.LIST_STYLES["categories"]) < set(siteconfig.SECTION_STYLES["categories"])
 
 
 def test_block_keeps_a_style_only_of_its_own_source():

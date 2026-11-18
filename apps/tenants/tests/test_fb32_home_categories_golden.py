@@ -115,6 +115,55 @@ def test_section_style_registry_and_list_block_keep_their_scope():
     from apps.tenants import siteconfig
 
     assert {"regale", "index", "wegweiser"} <= set(siteconfig.SECTION_STYLES["categories"])
-    assert siteconfig.LIST_STYLES["categories"] == ("square", "tall", "wide", "compact")
+    assert siteconfig.LIST_STYLES["categories"] == siteconfig.SECTION_STYLES["categories"]
     off = {u["key"] for u in block_views.unavailable(block_views.HOME)}
     assert off == {"tabs", "side"}, "на главной недоступны только «Reiter» и «Seitenspalte»"
+
+
+# ── FB-32: виды каталога у блока «Liste» (источник «Kategorien») ─────────────────
+
+
+def test_list_block_draws_catalog_views_with_the_shared_builder():
+    from django.template.loader import render_to_string
+
+    from apps.core import list_blocks
+
+    _data()
+    request = RequestFactory().get("/")
+    request.tenant = TenantFactory.build(business_type="bakery", site_config={})
+    for style, marker in (
+        ("regale", 'data-shelf="brot"'),
+        ("index", "/sortiment/kuchen/"),
+        ("wegweiser", 'id="ww-lb-b7-h"'),
+    ):
+        block = {"source": "categories", "style": style}
+        assert list_blocks.resolve({}, block)["cat_view"], style
+        html = render_to_string(
+            "storefront/sections/_block_list.html",
+            {"block": block, "block_id": "b7", "request": request},
+        )
+        assert f'data-cat-style="{style}"' in html and marker in html, style
+
+
+def test_list_block_tile_forms_have_no_catalog_view_and_skip_db_work():
+    from apps.core import list_blocks
+
+    _data()
+    for style in ("", "square", "compact"):
+        lb = list_blocks.resolve({}, {"source": "categories", "style": style})
+        assert lb["cat_view"] == {}, style
+
+
+def test_list_block_panel_hides_layout_fields_for_catalog_views(rf):
+    from apps.core import list_panel
+
+    request = rf.get("/")
+    request.tenant = TenantFactory.build(business_type="bakery", site_config={})
+
+    def names(style):
+        groups = list_panel.groups(request, {}, {"source": "categories", "style": style})
+        return {f["name"] for g in groups for f in g["fields"]}
+
+    assert {"out", "cols", "rows"} <= names("square")
+    assert not {"out", "cols", "rows"} & names("wegweiser")
+    assert "style" in names("wegweiser")

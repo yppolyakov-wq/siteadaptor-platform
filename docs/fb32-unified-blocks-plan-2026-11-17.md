@@ -118,4 +118,10 @@ ECC: django-reviewer, database-reviewer (оконный запрос, замки
   «Index», «Wegweiser» теми же партиалами (`heading_id` — без дубля id); пусто — прежняя
   сетка; 5 снимков главной байт-в-байт. Остаток: скрыть в панели «Spalten»/вывод у этих видов;
   виды каталога у блока «Liste» — отдельным шагом.
+- **Виды каталога у блока «Liste» ✅** (2026-11-18): `LIST_STYLES["categories"]` снова равен
+  `SECTION_STYLES["categories"]` (замок LB-4c); `category_views.for_style` — один построитель
+  данных «Regale»/«Index»/«Wegweiser» для секции, блока и (через партиалы) каталога; блок рисует
+  те же партиалы (`heading_id="ww-lb-<id>-h"`), в панели блока у этих видов нет «Ausgabe»/
+  «Spalten»/«Reihen». Студия больше не пишет `usp_bar` без поля `usp_text` (один писатель —
+  панель, ссылка «im Seitenaufbau bearbeiten»).
 
