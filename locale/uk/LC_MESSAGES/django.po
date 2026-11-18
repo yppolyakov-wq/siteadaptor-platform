@@ -39094,3 +39094,12 @@ msgstr[0] "Стежити · %(n)s фільтр"
 msgstr[1] "Стежити · %(n)s фільтри"
 msgstr[2] "Стежити · %(n)s фільтрів"
 msgstr[3] "Стежити · %(n)s фільтра"
+
+#: templates/aggregator/follow.html
+#, python-format
+msgid "„Sofort“ gilt für höchstens %(n)s solche Benachrichtigungen — weitere kommen als tägliche Übersicht."
+msgstr "«Одразу» — щонайбільше для %(n)s таких сповіщень, решта надходитиме щоденним зведенням."
+
+#: templates/aggregator/follow.html
+msgid "Benachrichtigung bearbeiten"
+msgstr "Змінити сповіщення"

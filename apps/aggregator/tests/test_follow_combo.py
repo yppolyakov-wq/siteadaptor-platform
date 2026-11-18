@@ -168,3 +168,81 @@ def test_section_follow_still_never_instant():
     portal = _portal()
     target = follow.parse_target(_qd(stadtteil=MITTE), portal=portal)
     assert FollowSubscription.FREQ_INSTANT not in dict(follow.frequency_choices(None, target))
+
+
+# --- P3: «Bearbeiten» в «Ich folge» -----------------------------------------------------------
+
+
+def _edit_post(user, portal, sub, params, frequency="weekly"):
+    qd = _qd(art="suche", **params)
+    qd["bearbeiten"] = str(sub.pk)
+    req = _req("post", "/folgen/", {"frequency": frequency}, portal=portal, user=user)
+    req.GET = qd
+    return follow_views.follow_page(req)
+
+
+def test_edit_link_opens_same_panel_with_chips_and_current_frequency(settings):
+    settings.ROOT_URLCONF = "config.urls_portal"
+    portal = _portal()
+    user = PortalUser.objects.create(email=_email())
+    sub = follow.follow_now(user, _combo_target(portal), frequency="weekly", portal=portal)
+    url = follow.edit_url(sub, portal=portal, next_url="/konto/")
+    assert f"bearbeiten={sub.pk}" in url and "kat=" + KAT in url
+    query = url.split("?", 1)[1]
+    from django.http import QueryDict
+
+    html = follow_views.follow_page(
+        _req("get", "/folgen/", QueryDict(query), portal=portal, user=user)
+    ).content.decode()
+    assert "data-follow-editing" in html and "data-follow-chip" in html
+    assert 'value="weekly" checked' in html
+    assert "Sie folgen bereits" not in html
+
+
+def test_saving_edit_replaces_the_combination_in_place(settings):
+    settings.ROOT_URLCONF = "config.urls_portal"
+    portal = _portal()
+    user = PortalUser.objects.create(email=_email())
+    sub = follow.follow_now(user, _combo_target(portal), frequency="daily", portal=portal)
+    _edit_post(user, portal, sub, {"kat": KAT, "stadtteil": [MITTE, BURG]})
+    left = list(FollowSubscription.objects.filter(user=user))
+    assert len(left) == 1 and left[0].pk != sub.pk and left[0].frequency == "weekly"
+    assert ["stadtteil", BURG] in left[0].query["p"]
+
+
+def test_edit_matching_existing_combination_merges(settings):
+    settings.ROOT_URLCONF = "config.urls_portal"
+    portal = _portal()
+    user = PortalUser.objects.create(email=_email())
+    other = follow.follow_now(
+        user, _combo_target(portal, kat="restaurants"), frequency="daily", portal=portal
+    )
+    sub = follow.follow_now(user, _combo_target(portal), frequency="daily", portal=portal)
+    _edit_post(user, portal, sub, {"kat": "restaurants", "stadtteil": MITTE})
+    left = list(FollowSubscription.objects.filter(user=user))
+    assert [s.pk for s in left] == [other.pk] and left[0].frequency == "weekly"
+
+
+def test_cannot_edit_someone_elses_follow(settings):
+    settings.ROOT_URLCONF = "config.urls_portal"
+    portal = _portal()
+    owner = PortalUser.objects.create(email=_email())
+    intruder = PortalUser.objects.create(email=_email())
+    sub = follow.follow_now(owner, _combo_target(portal), frequency="daily", portal=portal)
+    _edit_post(intruder, portal, sub, {"kat": "restaurants", "stadtteil": MITTE})
+    assert FollowSubscription.objects.filter(pk=sub.pk).exists()
+
+
+def test_account_row_shows_edit_only_for_combinations(settings):
+    settings.ROOT_URLCONF = "config.urls_portal"
+    portal = _portal()
+    user = PortalUser.objects.create(email=_email())
+    combo = follow.follow_now(user, _combo_target(portal), frequency="daily", portal=portal)
+    single = follow.follow_now(
+        user,
+        follow.parse_target(_qd(stadtteil=MITTE), portal=portal),
+        frequency="daily",
+        portal=portal,
+    )
+    assert follow.edit_url(combo, portal=portal)
+    assert follow.edit_url(single, portal=portal) == ""

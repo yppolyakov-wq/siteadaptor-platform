@@ -180,6 +180,20 @@ def _replace_singles(user, target, portal) -> None:
         qs.delete()
 
 
+def _editing(request, user):
+    """T-8.10d.1 P3: «Bearbeiten» в «Ich folge» — своя комбинация жителя (`?bearbeiten=<pk>`,
+    только вошедшему и только его подписка; чужой pk — как без правки)."""
+    raw = (request.GET.get("bearbeiten") or "").strip()
+    if user is None or not raw.isdigit():
+        return None
+    return FollowSubscription.objects.filter(
+        pk=int(raw),
+        user=user,
+        target_kind=FollowSubscription.TARGET_QUERY,
+        channel=FollowSubscription.CHANNEL_EMAIL,
+    ).first()
+
+
 def follow_page(request):
     """GET: форма подписки на цель из `?unternehmen=|bereich=|stadtteil=`; POST: DOI."""
     portal = getattr(request, "portal", None)
@@ -187,14 +201,21 @@ def follow_page(request):
     if target is None:
         raise Http404
     user = auth.current_portal_user(request) if portal else None
-    frequencies = follow.frequency_choices(user, target)
+    editing = _editing(request, user) if target.kind == FollowSubscription.TARGET_QUERY else None
+    # у правки её место «Sofort» освобождается — она сама будет заменена
+    frequencies = follow.frequency_choices(user, target, sub=editing)
     context = {
         "portal": portal,
         "base_template": _base_template(portal),
         "target": target,
         "frequencies": frequencies,
         "user": user,
-        "following": follow.is_following(user, target),
+        "following": follow.is_following(user, target) and editing is None,
+        "editing": editing,
+        "selected_frequency": editing.frequency if editing else FollowSubscription.FREQ_DAILY,
+        "max_instant": follow.max_instant_queries()
+        if target.kind == FollowSubscription.TARGET_QUERY
+        else 0,
         "back_url": _safe_next(request, _home_url(portal)),
         # NT-A1 (Р-NT1): у категории — переход «весь раздел» (и обратно) той же страницей.
         "scope_switch": follow.scope_switch(request.GET, target),
@@ -218,6 +239,13 @@ def follow_page(request):
                 # замена — одним куском: сначала убрать покрытые одиночные (освобождает
                 # места под лимит), затем завести комбинацию; упор в лимит откатывает всё
                 with transaction.atomic():
+                    # P3: правка — прежняя комбинация уступает место новой; совпала с уже
+                    # имеющейся — слияние (частота у той обновится через upsert)
+                    if editing is not None and (editing.target_key, editing.city) != (
+                        target.key,
+                        target.city,
+                    ):
+                        editing.delete()
                     if request.POST.get("replace_singles") == "1":
                         _replace_singles(user, target, portal)
                     follow.follow_now(
@@ -346,11 +374,14 @@ def follow_manage(request, token):
                 render(request, "aggregator/follow_unsubscribed.html", {**context, "all": True})
             )
         return _token_response(redirect(request.path))
+    instant_pks = follow.instant_query_pks(user)
     rows = [
         {
             "sub": sub,
             "label": follow.describe(sub),
-            "frequencies": follow.frequency_choices(user, follow.target_from_follow(sub), sub=sub),
+            "frequencies": follow.frequency_choices(
+                user, follow.target_from_follow(sub), sub=sub, instant_pks=instant_pks
+            ),
         }
         for sub in follow.user_follows(user)
     ]

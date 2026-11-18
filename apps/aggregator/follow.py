@@ -344,13 +344,35 @@ def max_instant_queries() -> int:
     return int(_cfg("max_instant_query_follows", 3))
 
 
-def instant_allowed(user, target: Target, *, sub: FollowSubscription | None = None) -> bool:
+def instant_query_pks(user) -> set[int] | None:
+    """pk мгновенных комбинаций жителя — один запрос на страницу списка (без N+1)."""
+    if user is None:
+        return None
+    return set(
+        FollowSubscription.objects.filter(
+            user=user,
+            target_kind=FollowSubscription.TARGET_QUERY,
+            frequency=FollowSubscription.FREQ_INSTANT,
+        ).values_list("pk", flat=True)
+    )
+
+
+def instant_allowed(
+    user,
+    target: Target,
+    *,
+    sub: FollowSubscription | None = None,
+    channel: str = FollowSubscription.CHANNEL_EMAIL,
+    instant_pks: set[int] | None = None,
+) -> bool:
     """Можно ли «Sofort» этой цели у этого жителя: вид цели + потолок мгновенных комбинаций.
     Повтор той же комбинации (или смена частоты у самой `sub`) места не занимает."""
     if not target.allows_instant:
         return False
     if target.kind != FollowSubscription.TARGET_QUERY or user is None:
         return True
+    if instant_pks is not None and sub is not None and sub.pk:
+        return len(instant_pks - {sub.pk}) < max_instant_queries()
     others = FollowSubscription.objects.filter(
         user=user,
         target_kind=FollowSubscription.TARGET_QUERY,
@@ -359,14 +381,17 @@ def instant_allowed(user, target: Target, *, sub: FollowSubscription | None = No
     if sub is not None and sub.pk:
         others = others.exclude(pk=sub.pk)
     else:
-        others = others.exclude(target_key=target.key, city=target.city)
+        others = others.exclude(target_key=target.key, city=target.city, channel=channel)
     return others.count() < max_instant_queries()
 
 
-def frequency_choices(user, target: Target, *, sub: FollowSubscription | None = None) -> list:
+def frequency_choices(
+    user, target: Target, *, sub: FollowSubscription | None = None, instant_pks=None
+) -> list:
     """Варианты «Wie oft?» — единый список для страницы подписки, центра и «Ich folge»:
-    «Sofort» показывается, только если его примут (без молчаливой подмены после выбора)."""
-    instant = instant_allowed(user, target, sub=sub)
+    «Sofort» показывается, только если его примут (без молчаливой подмены после выбора).
+    Списки передают `instant_pks` (см. instant_query_pks) — один запрос на страницу."""
+    instant = instant_allowed(user, target, sub=sub, instant_pks=instant_pks)
     return [
         (k, label)
         for k, label in FollowSubscription.FREQUENCIES
@@ -470,7 +495,7 @@ def _upsert(
         # P4: сверх потолка мгновенных комбинаций — сводкой (страницы «Sofort» тогда не
         # предлагают; сюда доходит только подделанный POST или устаревшая ссылка DOI)
         if defaults["frequency"] == FollowSubscription.FREQ_INSTANT and not instant_allowed(
-            user, target
+            user, target, channel=channel
         ):
             defaults["frequency"] = FollowSubscription.FREQ_DAILY
         sub, created = FollowSubscription.objects.get_or_create(
@@ -564,14 +589,48 @@ def user_follows(user) -> list[FollowSubscription]:
     )
 
 
+def edit_url(sub: FollowSubscription, *, portal, next_url: str = "") -> str:
+    """T-8.10d.1 P3: «Bearbeiten» у комбинации — та же страница подписки с её фильтрами
+    чипами (`?bearbeiten=<pk>`); только e-mail-комбинация этого же портала, иначе ""."""
+    from urllib.parse import urlencode
+
+    from django.urls import reverse
+
+    from . import follow_query
+
+    if (
+        portal is None
+        or sub.target_kind != FollowSubscription.TARGET_QUERY
+        or sub.channel != FollowSubscription.CHANNEL_EMAIL
+        or sub.portal_id != portal.pk
+    ):
+        return ""
+    params = [("art", "suche"), *follow_query.from_stored(sub.query), ("bearbeiten", sub.pk)]
+    if next_url:
+        params.append(("next", next_url))
+    return f"{reverse('aggregator-follow')}?{urlencode(params)}"
+
+
 def set_frequency(sub: FollowSubscription, frequency: str) -> bool:
     """Сменить частоту; «Sofort» у раздела/района и сверх потолка комбинаций — False."""
     if frequency not in FREQUENCIES:
         return False
-    if frequency == FollowSubscription.FREQ_INSTANT and not instant_allowed(
-        sub.user, target_from_follow(sub), sub=sub
-    ):
-        return False
+    if frequency == FollowSubscription.FREQ_INSTANT:
+        target = target_from_follow(sub)
+        if not target.allows_instant:
+            return False
+        if target.kind == FollowSubscription.TARGET_QUERY:
+            # потолок мгновенных комбинаций — под той же блокировкой жителя, что _upsert
+            # (две вкладки не проведут четвёртую «Sofort»)
+            with transaction.atomic():
+                PortalUser.objects.select_for_update().filter(pk=sub.user_id).first()
+                if not instant_allowed(sub.user, target, sub=sub):
+                    return False
+                return _save_frequency(sub, frequency)
+    return _save_frequency(sub, frequency)
+
+
+def _save_frequency(sub: FollowSubscription, frequency: str) -> bool:
     if sub.frequency != frequency:
         sub.frequency = frequency
         sub.save(update_fields=["frequency", "updated_at"])

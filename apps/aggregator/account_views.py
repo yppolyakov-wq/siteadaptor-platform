@@ -84,11 +84,15 @@ def account(request):
     from . import follow
     from .account_services import reservations_for_email
 
+    instant_pks = follow.instant_query_pks(user)
     follow_rows = [
         {
             "sub": sub,
             "label": follow.describe(sub),
-            "frequencies": follow.frequency_choices(user, follow.target_from_follow(sub), sub=sub),
+            "frequencies": follow.frequency_choices(
+                user, follow.target_from_follow(sub), sub=sub, instant_pks=instant_pks
+            ),
+            "edit_url": follow.edit_url(sub, portal=portal, next_url=request.path),
         }
         for sub in follow.user_follows(user)
     ]

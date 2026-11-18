@@ -38853,3 +38853,12 @@ msgid "Folgen · %(n)s Filter"
 msgid_plural "Folgen · %(n)s Filter"
 msgstr[0] "Folgen · %(n)s Filter"
 msgstr[1] "Folgen · %(n)s Filter"
+
+#: templates/aggregator/follow.html
+#, python-format
+msgid "„Sofort“ gilt für höchstens %(n)s solche Benachrichtigungen — weitere kommen als tägliche Übersicht."
+msgstr "„Sofort“ gilt für höchstens %(n)s solche Benachrichtigungen — weitere kommen als tägliche Übersicht."
+
+#: templates/aggregator/follow.html
+msgid "Benachrichtigung bearbeiten"
+msgstr "Benachrichtigung bearbeiten"

@@ -4,6 +4,7 @@
   {% for r in rows %}
   <li class="flex flex-wrap items-center gap-3 px-4 py-3" data-follow-row="{{ r.sub.target_kind }}:{{ r.sub.target_key }}">
     <span class="flex-1 text-sm font-medium min-w-[10rem]">{{ r.label }}</span>
+    {% if r.edit_url %}<a href="{{ r.edit_url }}" rel="nofollow" class="inline-flex min-h-[40px] items-center rounded-lg border border-orange-700 px-3 text-sm font-semibold text-orange-800" data-follow-edit>{% trans "Bearbeiten" %}</a>{% endif %}
     <form method="post" action="{{ action_url }}" class="flex items-center gap-2">
       {% csrf_token %}
       <input type="hidden" name="action" value="frequency">
