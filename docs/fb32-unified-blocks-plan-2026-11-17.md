@@ -95,3 +95,21 @@ Katalogseiten»). Перенос значений — шагом `deploy.sh` п�
 FB-31.7, реестр и панель — сразу (да); «Passt dazu» — до 12 и вид как у «Ähnliche» (да);
 тайл «Passt dazu» из Студии убрать (да).
 
+## S5b — «Regale», «Index», «Wegweiser» на главной (planner, 2026-11-18)
+Данные этих видов считает корень каталога (`apps/promotions/public_views.py`: полки ~1785,
+Wegweiser ~1713/2216, `side_entries` ~2229; `apps/catalog/wegweiser.py`). Порядок:
+1. **Замки до кода:** golden секции «Kategorien» главной (`""`, square, tall, wide, compact) и
+   число запросов главной при виде `""`; новые виды не трогают БД, пока не выбраны.
+2. **Общий построитель** `apps/catalog/category_views.py` (`entries`, `departments`, `shelves`
+   без N+1: дети одним prefetch, товары одним оконным запросом ≤ 8 на полку, `total` одним
+   агрегатом, `attach_promos` разом); каталог переходит на него с паритетом
+   (`test_composition_parity`) и замком числа запросов.
+3. **Реестры:** `SECTION_STYLES["categories"]` + regale/index/wegweiser; `LIST_STYLES` —
+   прежние 4 явным кортежем (блок «Liste» — отдельным шагом); `block_views` — `home` у трёх.
+4. **Секция:** ветки в `sections/_categories.html` по `style`; данные — только при выбранном
+   виде; пусто → прежняя сетка; `heading_id` у `_wegweiser_departments.html` (дубль id);
+   «Im Fokus»/guides на главную не переносим; полок на главной не больше 6.
+5. **Панель:** для трёх видов скрыть «Spalten»/вывод, «Höchstens» — число направлений.
+ECC: django-reviewer, database-reviewer (оконный запрос, замки запросов), silent-failure-hunter
+(fail-safe), a11y-architect (id, фокус), Playwright 1440/390 de/ru (слайдер полок).
+
