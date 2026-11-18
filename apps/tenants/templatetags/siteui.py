@@ -322,6 +322,19 @@ def _is_promo_list(block) -> bool:
 
 
 @register.simple_tag(takes_context=True)
+def page_flow(context, host):
+    """FB-32 S6c: поток строк страницы с постоянными разделами ({"page_flow", "tail_part"}) —
+    тегом, а не во вьюхе: страницу «Kontakt» рендерят два пути (форма с ошибкой и GET).
+    Пусто — прежняя разметка."""
+    from apps.core import detail_parts, page_settings
+
+    request = context.get("request")
+    if request is None:
+        return {"page_flow": [], "tail_part": "after"}
+    return detail_parts.flow_ctx(page_settings.raw_config(request), host)
+
+
+@register.simple_tag(takes_context=True)
 def page_blocks(context, page_key, part="after"):
     """UC6-7: C-блоки страницы (хост site_config.page_blocks[page_key]) —
     рендер как на главной (ряды узких блоков + _section_block: клик→лента,

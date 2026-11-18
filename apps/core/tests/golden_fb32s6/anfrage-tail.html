@@ -1,0 +1,97 @@
+<main class="flex-1 w-full max-w-none mx-auto px-4 py-6 md:py-10">
+<div class="max-w-5xl mx-auto lg:grid lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-8 lg:items-start" data-anfrage-layout>
+<div class="min-w-0">
+<h1 class="max-w-2xl mx-auto text-2xl md:text-3xl font-bold mb-1">Angebot anfordern</h1>
+<p class="max-w-2xl mx-auto text-gray-500 mb-6">Teilen Sie uns Ihre Wünsche mit – wir senden Ihnen dann ein Angebot zu.</p>
+<form method="post" action="/anfrage/" enctype="multipart/form-data" class="bg-white rounded-2xl shadow-sm p-6 space-y-4 max-w-2xl mx-auto">
+  <input type="hidden" >
+  <input type="text" name="website" tabindex="-1" autocomplete="off" class="hidden" aria-hidden="true">
+  <div>
+    <label class="block text-sm font-medium mb-1" for="id_title">Was brauchen Sie? *</label>
+    <input id="id_title" name="title" type="text" required value="" placeholder="z. B. zwei Zimmer streichen" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+  </div>
+  <div>
+    <label class="block text-sm font-medium mb-1" for="id_desc">Details (optional)</label>
+    <textarea id="id_desc" name="description" rows="3" class="w-full rounded-lg border border-gray-300 px-3 py-2"></textarea>
+  </div>
+  <div class="flex gap-3">
+    <div class="flex-1">
+      <label class="block text-sm font-medium mb-1" for="id_addr">Arbeitsort (optional)</label>
+      <input id="id_addr" name="site_address" type="text" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+  </div>
+  <div class="grid sm:grid-cols-3 gap-4">
+    <div>
+      <label class="block text-sm font-medium mb-1" for="id_name">Name *</label>
+      <input id="id_name" name="name" type="text" required class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1" for="id_email">E-Mail</label>
+      <input autocomplete="email" id="id_email" name="email" type="email" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1" for="id_phone">Telefon</label>
+      <input autocomplete="tel" id="id_phone" name="phone" type="tel" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+  </div>
+  <div>
+    <label class="block text-sm font-medium mb-1" for="id_photos">Fotos (optional, bis zu 5)</label>
+    <input id="id_photos" name="photos" type="file" accept="image/*" multiple class="w-full text-sm text-gray-600">
+    <p class="text-xs text-gray-400 mt-1">Ein Foto des Auftrags hilft uns, schneller ein Angebot zu erstellen.</p>
+  </div>
+  <button type="submit" class="w-full text-white rounded-lg px-4 py-3 font-medium hover:opacity-90" style="background: var(--accent, #4f46e5);">Anfrage senden</button>
+<p class="basis-full sm:col-span-full mt-2 text-xs text-gray-500" data-privacy-note>Wir verwenden Ihre Angaben nur, um Ihr Anliegen zu bearbeiten. Fotos nutzen wir nur für Ihr Angebot. <a href="/datenschutz/" class="underline" target="_top">Datenschutzerklärung</a></p>
+</form>
+</div>
+<aside class="mt-4 space-y-4 lg:mt-0 lg:sticky lg:top-24" data-anfrage-aside>
+<section class="sf-card bg-white rounded-2xl border border-gray-200 p-5" data-business-card>
+  <div class="flex items-center gap-3 flex-wrap mb-3">
+    <h2 class="font-semibold">So finden Sie uns</h2>
+  </div>
+  <div class="grid gap-4 text-sm text-gray-600">
+    <div>
+      <p class="font-medium text-gray-800">Laden X</p>
+      <p class="whitespace-pre-line">Hauptstr. 1, 42651 Solingen</p>
+    </div>
+    <div class="flex flex-col gap-2">
+      <a href="https://www.google.com/maps/dir/?api=1&amp;destination=Hauptstr.%201%2C%2042651%20Solingen" target="_blank" rel="noopener" data-route class="inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 font-semibold text-white hover:opacity-90" style="background: var(--accent, #4f46e5);">📍 Route planen</a>
+    </div>
+  </div>
+</section>
+<div class="bg-white rounded-2xl shadow-sm p-6 max-w-2xl mx-auto lg:max-w-none" data-callback>
+  <h2 class="font-semibold">Möchten Sie lieber zurückgerufen werden?</h2>
+  <p class="text-sm text-gray-500 mb-3">Hinterlassen Sie Ihre Telefonnummer – wir rufen Sie zurück.</p>
+  <form method="post" action="/rueckruf/" class="grid sm:grid-cols-3 lg:grid-cols-1 gap-3 items-end">
+    <input type="hidden" >
+    <input type="text" name="website" tabindex="-1" autocomplete="off" class="hidden" aria-hidden="true">
+    <div>
+      <label class="block text-sm font-medium mb-1" for="id_rc_name">Name *</label>
+      <input id="id_rc_name" name="name" type="text" required class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1" for="id_rc_phone">Telefon *</label>
+      <input autocomplete="tel" id="id_rc_phone" name="phone" type="tel" required class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1" for="id_rc_time">Beste Zeit (optional)</label>
+      <input id="id_rc_time" name="best_time" type="text" placeholder="z. B. nach 17:00 Uhr" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+    <button type="submit" class="sm:col-span-3 lg:col-span-1 w-full bg-gray-900 text-white rounded-lg px-4 py-2.5 font-medium hover:bg-gray-700">Rückruf anfordern</button>
+<p class="basis-full sm:col-span-full mt-2 text-xs text-gray-500" data-privacy-note>Wir verwenden Ihre Angaben nur, um Ihr Anliegen zu bearbeiten. <a href="/datenschutz/" class="underline" target="_top">Datenschutzerklärung</a></p>
+  </form>
+</div>
+</aside>
+</div>
+  <div class="mt-8" data-pb-host="anfrage">
+<div data-sf-section="t-s6"
+     class="contents"
+     style="">
+<section class="my-8">
+  <div class="cb-box max-w-3xl mx-auto px-4">
+    <h2 class="text-xl md:text-2xl font-bold mb-2">Anfahrt</h2>
+    <p class="text-gray-700 leading-relaxed whitespace-pre-line">Bus 5</p>
+  </div>
+</section>
+</div>
+  </div>
+  

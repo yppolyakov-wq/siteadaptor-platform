@@ -174,3 +174,25 @@ def test_versand_without_own_text_shows_the_list_even_with_the_box_unticked():
     cfg = {"page_blocks": {"info": [TEXT, {"key": "pagetext"}, {"key": "costs"}]}}
     html = _versand(cfg)
     assert "data-shipping-row=" in html, "§ 6 PAngV: без своего текста список виден всегда"
+
+
+# ── S6c: «Kontakt» и «Anfrage» ──────────────────────────────────────────────────
+
+
+@pytest.mark.parametrize("host,code", (("message", "contact"), ("anfrage", "anfrage")))
+def test_form_pages_have_one_fixed_form_row(host, code):
+    assert detail_parts.section_keys(host) == ("form",)
+    rows = {r["ref"]: r for r in site_schema.blocks_for({}, code)}
+    assert rows["form"]["pinned"] and not detail_parts.has_kauf(host)
+
+
+def test_own_block_above_the_contact_form_and_never_inside_it():
+    from apps.core.tests.test_fb32_s6_pages_golden import _anfrage, _kontakt
+
+    cfg = {"page_blocks": {"info": [TEXT, {"key": "form"}]}}
+    for render, marker in ((_kontakt, "data-contact-layout"), (_anfrage, "data-anfrage-layout")):
+        html = render(cfg)
+        assert html.index("Bus 5") < html.index(marker), marker
+        for form in html.split("<form")[1:]:
+            assert "Bus 5" not in form.split("</form>")[0], "свой блок не внутри формы"
+        assert html.count("Bus 5") == 1
