@@ -152,7 +152,8 @@ def test_every_overview_layout_survives_an_empty_page(style):
     assert f'data-promo-page="{style}"' in body
 
 
-def test_cabinet_panel_saves_the_overview_template():
+def test_cabinet_panel_no_longer_saves_the_overview_template():
+    """FB-31.7 B1b: шаблон обзора пишется строками «Seitenaufbau», не этой формой."""
     from django.contrib.auth import get_user_model
     from django.contrib.messages.middleware import MessageMiddleware
     from django.contrib.sessions.middleware import SessionMiddleware
@@ -160,18 +161,11 @@ def test_cabinet_panel_saves_the_overview_template():
     from apps.promotions import views
 
     tenant = TenantFactory(schema_name="public", slug="dl21c", name="DL21C")
-
-    def _req(method, data=None):
-        r = getattr(RequestFactory(), method)("/promotions/", data or {})
-        SessionMiddleware(lambda x: None).process_request(r)
-        MessageMiddleware(lambda x: None).process_request(r)
-        r.user = get_user_model()(is_active=True)
-        r.tenant = tenant
-        return r
-
-    assert views.promotion_page_mode(_req("post", {"page_style": "regale"})).status_code == 302
+    r = RequestFactory().post("/promotions/", {"page_style": "regale"})
+    SessionMiddleware(lambda x: None).process_request(r)
+    MessageMiddleware(lambda x: None).process_request(r)
+    r.user = get_user_model()(is_active=True)
+    r.tenant = tenant
+    assert views.promotion_page_mode(r).status_code == 302
     tenant.refresh_from_db()
-    assert siteconfig.normalize(tenant.site_config)["promo_page_style"] == "regale"
-    views.promotion_page_mode(_req("post", {"page_style": ""}))
-    tenant.refresh_from_db()
-    assert "promo_page_style" not in siteconfig.normalize(tenant.site_config)
+    assert "promo_page_style" not in (tenant.site_config or {})

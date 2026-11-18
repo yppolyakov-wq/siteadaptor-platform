@@ -493,40 +493,10 @@ def promotion_page_mode(request):
     # «сетка или лента» задаёт общая ось вывода). Ключ не трогаем вовсе: форма
     # шлёт только `mode`, и «пусто → pop» снесло бы выбор владельца при смене
     # группировки (класс W0).
-    # DL-21.2: шаблон обзорной страницы — presence по полю (плитки шлют hidden всегда).
-    if "page_style" in request.POST:
-        _ps = siteconfig.normalize_promo_page_style(request.POST.get("page_style", ""))
-        if _ps != (cfg.get("promo_page_style") or ""):
-            # FB-31 P3: шаблон — последнее решение владельца: виды блоков снимаются
-            cfg = siteconfig.drop_page_views(cfg, "promos")
-        if _ps:
-            cfg["promo_page_style"] = _ps
-        else:
-            cfg.pop("promo_page_style", None)
-    # DL-20: шаблон страницы каждой группы. Поля приходят как `group_style:<имя>`;
-    # пустое значение = «как на всём сайте» (записи в словаре нет → presence-minimal).
-    from . import promo_types
-
-    groups = dict(siteconfig.normalize_promo_groups(cfg.get("promo_groups")))
-    for key, value in request.POST.items():
-        if not key.startswith("group_style:"):
-            continue
-        name = key[len("group_style:") :].strip()
-        if not name:
-            continue
-        before = promo_types.settings_for(groups, name).get("style") or ""
-        if (value or "").strip():
-            groups[name] = value.strip()
-        else:
-            groups.pop(name, None)
-        if (value or "").strip() != before:
-            # FB-31 P3 R6: шаблон группы — последнее решение: виды её своих блоков снимаются
-            cfg = siteconfig.drop_page_views(cfg, siteconfig.promo_group_host(name))
-    groups = siteconfig.normalize_promo_groups(groups)
-    if groups:
-        cfg["promo_groups"] = groups
-    else:
-        cfg.pop("promo_groups", None)
+    # FB-31.7 B1b: шаблон обзора и шаблоны групп эта форма больше не пишет — они живут
+    # строками «Seitenaufbau» (`siteconfig.set_page_template`). Прежние ветки `page_style` /
+    # `group_style:<имя>` были скрытыми писателями (форма шлёт только `mode`), а вторая ещё
+    # и заменяла словарь настроек группы строкой (карточка и раскладка пропадали молча).
     tenant.site_config = cfg
     tenant.save(update_fields=["site_config", "updated_at"])
     messages.success(request, _("Ansicht der Aktionsseite gespeichert."))

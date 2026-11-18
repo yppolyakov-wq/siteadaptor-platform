@@ -174,8 +174,9 @@ def test_every_layout_survives_a_single_offer_without_a_deadline(style):
 # ─────────────────────────── кабинет и Studio ───────────────────────────
 
 
-def test_cabinet_lists_live_groups_and_saves_their_templates():
-    """Строки берутся по живым акциям: осиротевшая запись словаря группой не станет."""
+def test_cabinet_lists_live_groups_and_no_longer_writes_their_templates():
+    """Строки берутся по живым акциям. FB-31.7 B1b: шаблон группы этой формой больше не
+    пишется (скрытый писатель заменял словарь настроек группы строкой)."""
     from django.contrib.auth import get_user_model
     from django.contrib.messages.middleware import MessageMiddleware
     from django.contrib.sessions.middleware import SessionMiddleware
@@ -183,7 +184,7 @@ def test_cabinet_lists_live_groups_and_saves_their_templates():
     from apps.promotions import views
 
     tenant = TenantFactory(schema_name="public", slug="dl20g", name="DL20G")
-    tenant.site_config = {"promo_groups": {"Umbenannt": "prospekt"}}
+    tenant.site_config = {"promo_groups": {"Wochenangebote": {"card": "kompakt"}}}
     tenant.save(update_fields=["site_config"])
     _promo("Bio-Milch", group="Wochenangebote")
 
@@ -195,18 +196,9 @@ def test_cabinet_lists_live_groups_and_saves_their_templates():
         r.tenant = tenant
         return r
 
-    rows = views._promo_group_rows(_req("get"))
-    assert rows == [{"name": "Wochenangebote", "style": ""}]
-
+    assert [r["name"] for r in views._promo_group_rows(_req("get"))] == ["Wochenangebote"]
+    before = dict(tenant.site_config)
     resp = views.promotion_page_mode(_req("post", {"group_style:Wochenangebote": "magazin"}))
     assert resp.status_code == 302
     tenant.refresh_from_db()
-    cfg = siteconfig.normalize(tenant.site_config)
-    assert cfg["promo_groups"]["Wochenangebote"] == "magazin"
-    # прежние ключи страницы не пострадали (targeted-write)
-    assert cfg["promo_groups"]["Umbenannt"] == "prospekt"
-
-    views.promotion_page_mode(_req("post", {"group_style:Wochenangebote": ""}))
-    tenant.refresh_from_db()
-    cfg = siteconfig.normalize(tenant.site_config)
-    assert "Wochenangebote" not in cfg.get("promo_groups", {})
+    assert tenant.site_config["promo_groups"] == before["promo_groups"], "настройки группы целы"

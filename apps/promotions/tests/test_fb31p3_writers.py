@@ -46,29 +46,26 @@ def test_detail_style_write_drops_the_offer_view():
     assert out["page_blocks"]["promo_detail"] == [{"key": "offer", "style": "kompakt"}]
 
 
-def test_cabinet_template_change_drops_the_views_but_same_template_keeps_them():
+def test_cabinet_mode_form_no_longer_writes_templates():
+    """FB-31.7 B1b: шаблон обзора — строками «Seitenaufbau»; форма вида акций (шлёт `mode`)
+    больше не пишет `promo_page_style` и не снимает виды (скрытый писатель снят)."""
     from apps.promotions import views
 
     tenant = TenantFactory(
         schema_name="public",
         slug="fb31p3w",
         name="W",
-        site_config={"promo_page_style": "tabs", "page_blocks": {"promos": ROWS}},
+        site_config={"page_blocks": {"promos": ROWS}},
     )
-
-    def _post(data):
-        r = RequestFactory().post("/promotions/", data)
-        SessionMiddleware(lambda x: None).process_request(r)
-        MessageMiddleware(lambda x: None).process_request(r)
-        r.user = get_user_model()(is_active=True)
-        r.tenant = tenant
-        assert views.promotion_page_mode(r).status_code == 302
-        tenant.refresh_from_db()
-
-    _post({"page_style": "tabs"})
-    assert any(r.get("key") == "groups" for r in _rows(tenant.site_config)), "тот же шаблон"
-    _post({"page_style": "regale"})
-    assert not any(r.get("key") == "groups" for r in _rows(tenant.site_config))
+    r = RequestFactory().post("/promotions/", {"page_style": "regale"})
+    SessionMiddleware(lambda x: None).process_request(r)
+    MessageMiddleware(lambda x: None).process_request(r)
+    r.user = get_user_model()(is_active=True)
+    r.tenant = tenant
+    assert views.promotion_page_mode(r).status_code == 302
+    tenant.refresh_from_db()
+    assert "promo_page_style" not in tenant.site_config
+    assert any(r.get("key") == "groups" for r in _rows(tenant.site_config)), "виды целы"
 
 
 def test_review_own_template_change_drops_the_promo_own_offer_view():
