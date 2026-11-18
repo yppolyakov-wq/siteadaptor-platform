@@ -167,3 +167,30 @@ def test_list_block_panel_hides_layout_fields_for_catalog_views(rf):
     assert {"out", "cols", "rows"} <= names("square")
     assert not {"out", "cols", "rows"} & names("wegweiser")
     assert "style" in names("wegweiser")
+
+
+def test_list_block_catalog_view_heading_id_is_never_empty():
+    from django.template.loader import render_to_string
+
+    _data()
+    request = RequestFactory().get("/")
+    request.tenant = TenantFactory.build(business_type="bakery", site_config={})
+    block = {"source": "categories", "style": "wegweiser"}
+    html = render_to_string(
+        "storefront/sections/_block_list.html", {"block": block, "request": request}
+    )
+    assert 'id="ww-lb--h"' not in html and 'id="ww-lb-categories-h"' in html
+
+
+def test_picked_categories_keep_subcategory_products_on_their_shelves():
+    from apps.catalog.models import Category
+    from apps.core import list_blocks
+
+    _data()
+    root = Category.objects.get(slug="brot")
+    child = CategoryFactory(slug="brot-hell", name={"de": "Hell"}, parent=root)
+    ProductFactory(name={"de": "Helles Brot"}, category=child, base_price=2)
+    block = {"source": "categories", "style": "regale", "category": "brot", "pick": [root.pk]}
+    shelves = list_blocks.resolve({}, block)["cat_view"]["shelves"]
+    names = [str(p.name) for s in shelves for p in s["items"]]
+    assert any("Helles" in n for n in names), names

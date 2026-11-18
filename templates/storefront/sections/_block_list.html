@@ -51,7 +51,7 @@ LB-3: `id="lb-<id блока>"` — цель чипа Sprungleiste страни�
     {% elif lb.source == "categories" and lb.cat_view.entries %}
     <div data-cat-style="index">{% include "storefront/composition/_index.html" with entries=lb.cat_view.entries carry="" %}</div>
     {% elif lb.source == "categories" and lb.cat_view.departments %}
-    <div data-cat-style="wegweiser">{% include "storefront/composition/_wegweiser_departments.html" with departments=lb.cat_view.departments cols=lb.cat_view.cols summary=None heading_id="ww-lb-"|add:block_id|add:"-h" %}</div>
+    <div data-cat-style="wegweiser">{% with bid=block_id|default:lb.source|stringformat:"s" %}{% include "storefront/composition/_wegweiser_departments.html" with departments=lb.cat_view.departments cols=lb.cat_view.cols summary=None heading_id="ww-lb-"|add:bid|add:"-h" %}{% endwith %}</div>
     {% elif lb.source == "categories" and lb.style == "compact" %}
     {% categories_with_min_price lb.items as cat_rows %}
     <div data-grid="list" class="{{ lb.grid }}" {% sf_grid_attrs lb.layout count=cat_rows|length %}>

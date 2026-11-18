@@ -122,6 +122,6 @@ ECC: django-reviewer, database-reviewer (оконный запрос, замки
   `SECTION_STYLES["categories"]` (замок LB-4c); `category_views.for_style` — один построитель
   данных «Regale»/«Index»/«Wegweiser» для секции, блока и (через партиалы) каталога; блок рисует
   те же партиалы (`heading_id="ww-lb-<id>-h"`), в панели блока у этих видов нет «Ausgabe»/
-  «Spalten»/«Reihen». Студия больше не пишет `usp_bar` без поля `usp_text` (один писатель —
+  «Spalten»/«Reihen»; «Höchstens» блока ограничивает и число направлений этих видов. Студия больше не пишет `usp_bar` без поля `usp_text` (один писатель —
   панель, ссылка «im Seitenaufbau bearbeiten»).
 

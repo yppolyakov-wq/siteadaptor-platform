@@ -903,7 +903,11 @@ def resolve(cfg: dict, data: dict, tenant=None) -> dict:
         # FB-32: виды каталога у блока «Liste» — тот же построитель, что у секции и каталога
         from apps.catalog import category_views
 
-        cat_view = category_views.for_style(items, style, path_mode=bool(data.get("category")))
+        # при ручном составе слаг категории не действует (выбраны свои категории, и
+        # их полки — из товаров подкатегорий тоже, как без выбора)
+        cat_view = category_views.for_style(
+            items, style, path_mode=bool(data.get("category")) and not pick
+        )
     return {
         "cat_view": cat_view,
         "source": source,
