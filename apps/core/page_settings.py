@@ -381,6 +381,10 @@ def current_value(raw_cfg: dict, setting: studio_pages.Setting, normalized: dict
     _stored, is_set = _walk(raw_cfg or {}, setting.site_key)
     if normalized is None:
         normalized = siteconfig.normalize(raw_cfg or {})
+    if setting.code in _TEMPLATE_KEYS:
+        # FB-31.7 B1b: шаблон — по строкам схемы поверх старого ключа (как видит витрина)
+        code = siteconfig.page_template_code(normalized, _TEMPLATE_KEYS[setting.code])
+        return code, bool(code) or is_set
     value, _found = _walk(normalized, setting.site_key)
     kind = kind_of(setting)
     if kind == KIND_BOOL:
@@ -617,6 +621,15 @@ def _clean(setting: studio_pages.Setting, value, gate: dict, current) -> object:
     return text
 
 
+#: FB-31.7 B1b: код настройки → ключ шаблона уровня сайта (`siteconfig.PAGE_TEMPLATE_HOSTS`)
+_TEMPLATE_KEYS = {
+    "catalog_page_style": "catalog_page_style",
+    "category_page_style": "category_page_style",
+    "promo_page_style": "promo_page_style",
+    "promo_group_style": "promo_group_style",
+    "promo_detail_style": "promo_detail_style",
+}
+
 #: FB-31 P3: шаблоны страниц акций и хосты, чьи виды блоков они снимают
 _PROMO_STYLE_HOSTS = {
     "promo_page_style": "promos",
@@ -645,14 +658,13 @@ def apply_override(cfg: dict, code: str, value, output: dict | None = None) -> d
     if setting is None or is_studio_only(setting):
         raise PageSettingError(f"unknown page setting {code!r}")
     out = dict(cfg or {})
-    if code == "catalog_page_style":
-        out = siteconfig.drop_catalog_views(out)  # шаблон — последнее решение владельца
-    if code == "category_page_style":
-        out = siteconfig.drop_catalog_views(out, "category")
-    # FB-31 P3: то же у страниц акций (строки группы — со своими хостами, R6)
-    # тот же шаблон ещё раз (повтор черновика, ассистент) виды не снимает (ревью R1–R4)
-    if code in _PROMO_STYLE_HOSTS and value != current_value(cfg or {}, setting)[0]:
-        out = siteconfig.drop_page_views(out, _PROMO_STYLE_HOSTS[code])
+    # FB-31.7 B1b: шаблон уровня сайта — строками схемы (оси), старый ключ снимается; тот же
+    # шаблон ещё раз (повтор черновика, ассистент) ничего не меняет (ревью R1–R4)
+    template_key = _TEMPLATE_KEYS.get(code)
+    if template_key:
+        if str(value or "") == current_value(cfg or {}, setting)[0]:
+            return out
+        return siteconfig.set_page_template(out, template_key, str(value or ""))
     host = _listing_style_host(code)  # FB-31 P4: шаблоны девяти листингов
     if host and value != current_value(cfg or {}, setting)[0]:
         out = siteconfig.drop_page_views(out, host)

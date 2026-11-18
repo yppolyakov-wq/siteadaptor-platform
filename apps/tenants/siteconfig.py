@@ -1410,6 +1410,81 @@ CATALOG_PART_STYLES = {
 }
 
 
+#: FB-31.7 B1b: код шаблона уровня сайта → хост его строк и путь старого ключа
+PAGE_TEMPLATE_HOSTS = {
+    "catalog_page_style": ("catalog", ("catalog_page_style",)),
+    "category_page_style": ("category", ("site_defaults", "category_page_style")),
+    "promo_page_style": ("promos", ("promo_page_style",)),
+    "promo_group_style": ("promo_group", ("site_defaults", "promo_group_style")),
+    "promo_detail_style": ("promo_detail", ("site_defaults", "promo_detail_style")),
+}
+
+
+def _pp_surface(host: str):
+    from apps.promotions import promo_parts
+
+    return {
+        "promos": promo_parts.PROMOS,
+        "promo_group": promo_parts.PROMO_GROUP,
+        "promo_detail": promo_parts.PROMO_DETAIL,
+    }.get(host)
+
+
+def set_page_template(cfg: dict, code_key: str, code: str) -> dict:
+    """FB-31.7 B1b: владелец выбрал шаблон страницы — он пишется СТРОКАМИ схемы (оси), а
+    старый ключ снимается (иначе пустой «Standard» снова отдал бы ось старому коду). Свои
+    блоки и их порядок не трогаются. Копия."""
+    from apps.catalog import catalog_parts
+    from apps.core import page_parts as pp
+
+    host, path = PAGE_TEMPLATE_HOSTS[code_key]
+    out = dict(cfg or {})
+    if len(path) == 1:
+        out.pop(path[0], None)
+    else:
+        parent = dict(out.get(path[0]) or {}) if isinstance(out.get(path[0]), dict) else {}
+        parent.pop(path[1], None)
+        out[path[0]] = parent
+    blocks = dict(out.get("page_blocks") or {}) if isinstance(out.get("page_blocks"), dict) else {}
+    if host in ("catalog", "category"):
+        rows = blocks.get(host)
+        if host == "category" and "category" not in blocks:
+            rows = page_rows(out, "category")  # «Alle Kategorien» ещё не сохранена — копия
+        blocks[host] = catalog_parts.write_rows(
+            rows, catalog_parts.from_code(code), root=host == "catalog"
+        )
+    else:
+        s = _pp_surface(host)
+        dropped = drop_page_views({**out, "page_blocks": blocks}, host)
+        rows = (dropped.get("page_blocks") or {}).get(host) or []
+        new = pp.materialize_rows(s, rows, code) if code else rows
+        blocks[host] = new if new is not None else rows
+    out["page_blocks"] = blocks
+    return out
+
+
+def page_template_code(cfg: dict, code_key: str) -> str:
+    """FB-31.7 B1b: шаблон, который сейчас видит посетитель, — по строкам поверх старого
+    ключа (тем же правилом, что витрина)."""
+    from apps.catalog import catalog_parts
+    from apps.core import page_parts as pp
+
+    host, path = PAGE_TEMPLATE_HOSTS[code_key]
+    cfg = cfg if isinstance(cfg, dict) else {}
+    node = cfg
+    for part in path:
+        node = node.get(part) if isinstance(node, dict) else None
+    old = node if isinstance(node, str) else ""
+    if host in ("catalog", "category"):
+        parts = catalog_parts.effective(cfg, host, code=old)
+        code = catalog_parts.legacy_code(parts)
+        if host == "catalog" and parts.sets == "above" and not parts.head:
+            code = "sets"
+        return code
+    s = _pp_surface(host)
+    return pp.legacy_code(s, pp.effective(s, cfg, host, code=old))
+
+
 def drop_catalog_views(cfg: dict, host: str = "catalog") -> dict:
     """FB-30.16 (ревью R4): владелец выбрал шаблон каталога в Студии/«Seitenvorlage» — это
     его последнее решение: виды блоков каталога, выбранные раньше в «Seitenaufbau»

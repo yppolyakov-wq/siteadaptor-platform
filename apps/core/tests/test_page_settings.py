@@ -68,8 +68,6 @@ def test_regale_unavailable_without_subcategories_then_available(tenant):
 @pytest.mark.parametrize(
     "code,value,path,stored",
     [
-        ("catalog_page_style", "magazin", ("catalog_page_style",), "magazin"),
-        ("category_page_style", "kopfbild", ("site_defaults", "category_page_style"), "kopfbild"),
         ("product_card_form", "lookbook", ("site_defaults", "card_style"), "lookbook"),
         ("catalog_sort", "price_asc", ("catalog_sort",), "price_asc"),
         ("product_detail_layout", "tabs", ("product_detail", "layout"), "tabs"),
@@ -86,6 +84,21 @@ def test_write_round_trip(tenant, code, value, path, stored):
     for part in path:
         node = node[part]
     assert node == stored
+
+
+@pytest.mark.parametrize(
+    "code,value", [("catalog_page_style", "magazin"), ("category_page_style", "kopfbild")]
+)
+def test_template_write_is_stored_as_rows(tenant, code, value):
+    """FB-31.7 B1b: шаблон страницы — строками схемы; старый ключ не пишется."""
+    from apps.tenants import siteconfig
+
+    page_settings.write(tenant, code, value)
+    tenant.refresh_from_db()
+    cfg = siteconfig.normalize(tenant.site_config)
+    assert siteconfig.page_template_code(cfg, code) == value
+    assert code not in tenant.site_config
+    assert code not in (tenant.site_config.get("site_defaults") or {})
 
 
 def test_write_keeps_every_other_key(tenant):
@@ -166,7 +179,11 @@ def test_preview_config_is_in_memory_only(tenant):
     tenant.site_config = {"catalog_page_style": "kompakt"}
     tenant.save(update_fields=["site_config"])
     cfg = page_settings.preview_config(tenant, tenant.site_config, "catalog_page_style:magazin")
-    assert cfg["catalog_page_style"] == "magazin"
+    from apps.tenants import siteconfig
+
+    assert (
+        siteconfig.page_template_code(siteconfig.normalize(cfg), "catalog_page_style") == "magazin"
+    )
     tenant.refresh_from_db()
     assert tenant.site_config == {"catalog_page_style": "kompakt"}
 

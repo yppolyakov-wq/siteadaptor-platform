@@ -94,12 +94,12 @@ def test_cabinet_saves_the_site_wide_page_template():
 
     tenant = TenantFactory(schema_name="public", slug="dl20v", name="DL20V")
     page_settings.write(tenant, "category_page_style", "magazin")
-    assert siteconfig.normalize(tenant.site_config)["site_defaults"]["category_page_style"] == (
-        "magazin"
-    )
-    # снятие выбора убирает ключ (presence-minimal → golden целы)
+    code = siteconfig.page_template_code  # FB-31.7 B1b: шаблон — строками схемы
+    assert code(siteconfig.normalize(tenant.site_config), "category_page_style") == "magazin"
     page_settings.write(tenant, "category_page_style", "")
-    assert "category_page_style" not in siteconfig.normalize(tenant.site_config)["site_defaults"]
+    cfg = siteconfig.normalize(tenant.site_config)
+    assert "category_page_style" not in cfg["site_defaults"]
+    assert code(cfg, "category_page_style") == ""
 
 
 def test_studio_save_and_draft_cannot_change_it():
@@ -108,7 +108,8 @@ def test_studio_save_and_draft_cannot_change_it():
     tenant = TenantFactory(schema_name="public", slug="dl20d", name="DL20D")
     page_settings.write(tenant, "category_page_style", "magazin")
     cfg = _save(tenant, {"home_form": "1", "sd_category_page_style": "kompakt"})
-    assert cfg["site_defaults"]["category_page_style"] == "magazin"
+    code = siteconfig.page_template_code(siteconfig.normalize(cfg), "category_page_style")
+    assert code == "magazin"
     assert "sdCatPage" not in _body(tenant)
 
 
@@ -131,8 +132,7 @@ def test_cabinet_shows_and_saves_the_group_page_default():
         c for c, _l, _h in group_styles.GROUP_PAGE_STYLES
     )
     page_settings.write(tenant, "promo_group_style", "prospekt")
-    assert siteconfig.normalize(tenant.site_config)["site_defaults"]["promo_group_style"] == (
-        "prospekt"
-    )
+    code = siteconfig.page_template_code  # FB-31.7 B1b: шаблон — строками схемы
+    assert code(siteconfig.normalize(tenant.site_config), "promo_group_style") == "prospekt"
     cfg = _save(tenant, {"home_form": "1", "sd_promo_group_style": ""})
-    assert cfg["site_defaults"]["promo_group_style"] == "prospekt"  # Studio cannot unset it
+    assert code(siteconfig.normalize(cfg), "promo_group_style") == "prospekt"  # Studio не снимает

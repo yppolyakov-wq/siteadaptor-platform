@@ -87,4 +87,6 @@ def test_group_view_precedence():
 def test_group_template_writes_drop_the_views():
     cfg = {"page_blocks": {"promo_group": [{"key": "page_head", "style": "prospekt"}]}}
     out = page_settings.apply_override(cfg, "promo_group_style", "magazin")
-    assert out["page_blocks"]["promo_group"] == []
+    # FB-31.7 B1b: прежний вид (шапка «Prospekt») снят, новый шаблон — строками осей
+    code = siteconfig.page_template_code(siteconfig.normalize(out), "promo_group_style")
+    assert code == "magazin" and "promo_group_style" not in (out.get("site_defaults") or {})

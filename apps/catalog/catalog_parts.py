@@ -182,3 +182,59 @@ def effective(cfg, host: str, *, code: str = "") -> Parts:
         if "focus" in marker:
             parts = replace(parts, focus=stored.focus)
     return parts
+
+
+# ───────── FB-31.7 B1b: шаблон → строки (писатель на оси) ─────────
+
+
+def write_rows(rows, parts: Parts, *, root: bool = False) -> list[dict]:
+    """Строки хоста каталога, которые БЕЗ кода дают `parts`: каждая ось записана явно (шапка,
+    «Kategorien», сеты, поля ★), свои блоки и их порядок не трогаются. Недостающая строка
+    встаёт на место витрины: шапка — первой, «Kategorien» и сеты «над» — перед ★, сеты «под»
+    — сразу после ★; ★ без маркера — перед первым своим блоком (все блоки остаются под
+    списком, как было).
+
+    `root` — корень каталога: у кода `sets` там шапки не было (`public_views`: «у корня
+    „Sets“ шапки нет»), поэтому шапка пишется выключенной — вид тот же."""
+    from apps.tenants.siteconfig import is_main_marker
+
+    out = [dict(r) for r in (rows if isinstance(rows, list) else []) if isinstance(r, dict)]
+    head = parts.head
+    if root and parts.sets == "above" and parts.head:
+        head = ""
+
+    def find(key):
+        return next((i for i, r in enumerate(out) if r.get("key") == key and not r.get("id")), None)
+
+    def marker_at():
+        return next((i for i, r in enumerate(out) if is_main_marker(r)), None)
+
+    if marker_at() is None:
+        first_own = next((i for i, r in enumerate(out) if r.get("id")), len(out))
+        out.insert(first_own, {"key": "main"})
+    m = out[marker_at()]
+    for field in ("style", "grid", "focus"):
+        m.pop(field, None)
+    if parts.products:
+        m["style"] = parts.products
+    if parts.grid:
+        m["grid"] = parts.grid
+    if parts.focus:
+        m["focus"] = True
+    i = find(HEAD_KEY)
+    if i is None:
+        out.insert(0, {"key": HEAD_KEY})
+        i = 0
+    out[i] = {**out[i], "style": head or HEAD_OFF}
+    out[i].pop("enabled", None)
+    i = find("categories")
+    if i is None:
+        out.insert(marker_at(), {"key": "categories"})
+        i = find("categories")
+    out[i] = {**out[i], "style": parts.categories or CATEGORY_AUTO, "enabled": True}
+    i = find(SETS_KEY)
+    if i is not None:
+        out.pop(i)
+    at = marker_at()
+    out.insert(at if parts.sets == "above" else at + 1, {"key": SETS_KEY, "style": parts.sets})
+    return out

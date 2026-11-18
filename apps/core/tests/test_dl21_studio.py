@@ -74,9 +74,13 @@ def test_root_template_saves_and_unsets():
 
     tenant = TenantFactory(schema_name="public", slug="dl21v", name="DL21V")
     page_settings.write(tenant, "catalog_page_style", "magazin")
-    assert siteconfig.normalize(tenant.site_config)["catalog_page_style"] == "magazin"
+    # FB-31.7 B1b: шаблон — строками схемы (старый ключ не пишется)
+    cfg = siteconfig.normalize(tenant.site_config)
+    assert siteconfig.page_template_code(cfg, "catalog_page_style") == "magazin"
     page_settings.write(tenant, "catalog_page_style", "")
-    assert "catalog_page_style" not in siteconfig.normalize(tenant.site_config)
+    cfg = siteconfig.normalize(tenant.site_config)
+    assert "catalog_page_style" not in cfg
+    assert siteconfig.page_template_code(cfg, "catalog_page_style") == ""
     # мусор не сохраняется (реестр — единственный источник)
     with pytest.raises(page_settings.PageSettingError):
         page_settings.write(tenant, "catalog_page_style", "erfunden")
@@ -110,6 +114,7 @@ def test_overview_template_tiles_save_in_the_cabinet():
         c for c, _l, _h in group_styles.PROMO_PAGE_STYLES
     )
     page_settings.write(tenant, "promo_page_style", "magazin")
-    assert siteconfig.normalize(tenant.site_config)["promo_page_style"] == "magazin"
+    code = siteconfig.page_template_code  # FB-31.7 B1b: шаблон — строками схемы
+    assert code(siteconfig.normalize(tenant.site_config), "promo_page_style") == "magazin"
     cfg = _save(tenant, {"home_form": "1", "promo_page_style": ""})
-    assert cfg["promo_page_style"] == "magazin"  # Studio Save cannot unset it
+    assert code(siteconfig.normalize(cfg), "promo_page_style") == "magazin"  # Studio не снимает

@@ -34,13 +34,16 @@ def test_page_setting_write_drops_the_overview_views():
     )
     rows = out["page_blocks"]["promos"]
     assert [r.get("id") for r in rows if r.get("id")] == ["t1"], "свои блоки остаются"
-    assert {"key": "main"} in rows and not any(r.get("key") == "groups" for r in rows)
+    # FB-31.7 B1b: прежние виды сняты, выбранный шаблон записан строками осей
+    assert siteconfig.page_template_code(siteconfig.normalize(out), "promo_page_style") == "regale"
+    assert "promo_page_style" not in out
 
 
 def test_detail_style_write_drops_the_offer_view():
     cfg = {"page_blocks": {"promo_detail": [{"key": "offer", "style": "plakat"}]}}
     out = page_settings.apply_override(cfg, "promo_detail_style", "kompakt")
-    assert out["page_blocks"]["promo_detail"] == []
+    # FB-31.7 B1b: прежний вид снят, новый — строкой оси (не ключом)
+    assert out["page_blocks"]["promo_detail"] == [{"key": "offer", "style": "kompakt"}]
 
 
 def test_cabinet_template_change_drops_the_views_but_same_template_keeps_them():
