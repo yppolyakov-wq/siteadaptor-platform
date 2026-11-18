@@ -94,6 +94,9 @@ def test_regale_index_wegweiser_render_the_catalog_partials_on_home():
     html = _home("wegweiser")
     assert 'data-cat-style="wegweiser"' in html and 'id="ww-home-deps-h"' in html
     assert 'id="ww-deps-h"' not in html, "свой id заголовка — без дубля с каталогом"
+    section = html[html.find('data-edit="section_titles.categories"') :]
+    section = section[: section.find("</section>")]
+    assert "data-grid-view" not in section, "у видов каталога переключателя сетки нет"
 
 
 def test_home_regale_queries_do_not_grow_with_departments(django_assert_max_num_queries):

@@ -288,6 +288,10 @@ def which_mode(source: str, data: dict, wanted: str = "") -> tuple[str, list[dic
     return mode, [{"key": k, "label": str(lab), "active": k == mode} for k, lab in modes]
 
 
+#: FB-32 S5b: виды каталога у секции «Kategorien» — колонки и вывод у них свои
+CATALOG_VIEW_STYLES = frozenset({"regale", "index", "wegweiser"})
+
+
 def builtin_groups(request, cfg: dict, key: str, data: dict, mode: str = "") -> list[dict]:
     """Панель встроенного списка главной: те же «Welche · Wie», что у блока «Liste», без
     того, чего у секции нет — источник закреплён ключом, заголовок правится на странице,
@@ -310,6 +314,10 @@ def builtin_groups(request, cfg: dict, key: str, data: dict, mode: str = "") -> 
                 (k, str(siteconfig.SECTION_STYLE_LABELS.get(k, k)))
                 for k in siteconfig.SECTION_STYLES["categories"]
             ]
+            if data.get("style") in CATALOG_VIEW_STYLES:
+                # FB-32 S5b: у видов каталога своя раскладка — колонки, ряды и вывод не
+                # действуют (значения не стираются: поле просто не присылается)
+                fields = [f for f in fields if f["name"] not in ("cols", "rows", "out")]
             fields = [
                 {
                     **f,

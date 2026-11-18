@@ -53,3 +53,27 @@ def test_disabled_view_cannot_be_posted_on_catalog():
         assert msgs, "отказ с сообщением"
     req = b._request("get")
     assert not aufbau_draft.get(req, "catalog"), "черновик не появился"
+
+
+def test_catalog_views_on_home_hide_columns_and_output_but_keep_them():
+    from apps.core.tests.test_fb27_builtin_panel import _row
+
+    b = Browser(_tenant())
+    b.post(
+        seite="home", op="update", ref="categories", panel_present="1", f_cols="2", f_out="slider"
+    )
+    b.post(seite="home", op="update", ref="categories", panel_present="1", f_style="regale")
+    html = b.get("?seite=home&block=categories")
+    assert 'name="f_cols"' not in html and 'name="f_out"' not in html
+    assert 'name="f_style"' in html
+    b.post(
+        seite="home",
+        op="update",
+        ref="categories",
+        panel_present="1",
+        f_style="regale",
+        f_limit="5",
+    )
+    b.post(seite="home", op="save")
+    row = _row(b.tenant, "categories")
+    assert row["style"] == "regale" and row["layout"]["cols"] == 2, "скрытые значения не стёрты"
