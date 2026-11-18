@@ -230,7 +230,7 @@ def _attach_lowest_30d(promos) -> list:
     return promos
 
 
-def _home_category_view(categories, style) -> dict:
+def _home_category_view(categories, style, row=None) -> dict:
     """FB-32 S5b: данные вида «Regale» / «Index» / «Wegweiser» секции «Kategorien» главной;
     {} — прежняя сетка (вид не выбран или данных для него нет)."""
     if not categories or style not in ("regale", "index", "wegweiser"):
@@ -239,7 +239,12 @@ def _home_category_view(categories, style) -> dict:
     if not roots:
         return {}
     if style == "regale":
-        shelves = _cat_views.shelves(roots, limit=_cat_views.HOME_SHELVES)
+        # секция с выбранной родительской категорией показывает её подкатегории — их полки
+        # из своих товаров, как на странице категории (ревью S5b)
+        from apps.core import list_blocks
+
+        sub = bool(list_blocks.section_data(row or {}).get("category"))
+        shelves = _cat_views.shelves(roots, path_mode=sub, limit=_cat_views.HOME_SHELVES)
         return {"shelves": shelves} if shelves else {}
     if style == "index":
         return {"entries": _cat_views.entries(roots)}
@@ -372,7 +377,8 @@ def storefront_home(request):
     categories = _items("categories")
     # FB-32 S5b: виды каталога у секции «Kategorien» — тот же построитель, что у каталога;
     # данные только при выбранном виде, пусто — прежняя сетка
-    home_cat_view = _home_category_view(categories, (builtin.get("categories") or {}).get("style"))
+    _cat_row = builtin.get("categories") or {}
+    home_cat_view = _home_category_view(categories, _cat_row.get("style"), _cat_row)
     # S2: сетка тизеров активных архетипов («Наши разделы»).
     archetype_teasers = []
     if "archetypes" in sections:

@@ -39,7 +39,8 @@ def shelves(sources, *, path_mode: bool = False, limit: int | None = None) -> li
                 to_attr="_shelf_children",
             ),
         )
-    all_products = Product.objects.filter(is_active=True)
+    # карточка читает `p.category` (ссылка, SEO-URL) — без запроса на карточку (ревью S5b)
+    all_products = Product.objects.filter(is_active=True).select_related("category")
     out = []
     for sub in sources:
         if path_mode:
