@@ -45,6 +45,10 @@ SECTION_HOSTS = {
     "finder": "finder",
     # FB-32 S6f
     "promo_detail": "promo",
+    # FB-32 S6g-1
+    "teachers": "teachers",
+    "event_calendar": "event_calendar",
+    "passes": "passes",
 }
 #: FB-32 S6a: хосты своих страниц «Seite» (`seite:<slug>`) — модуль разделов «page»
 PAGE_PREFIX = "seite:"
@@ -53,7 +57,19 @@ PAGE_PREFIX = "seite:"
 _PAGE_HOST_RE = re.compile(r"^seite:[a-z0-9]+(?:-[a-z0-9]+)*$")
 #: FB-32 S6a: модули страниц без покупки и с постоянным порядком разделов
 #: страницы, где своя «Buchung»-строка не нужна (покупка ваучера — сама строка «form»)
-_FORM_PAGES = frozenset({"message", "anfrage", "gift", "loyalty", "blog_post", "finder"})
+_FORM_PAGES = frozenset(
+    {
+        "message",
+        "anfrage",
+        "gift",
+        "loyalty",
+        "blog_post",
+        "finder",
+        "teachers",
+        "event_calendar",
+        "passes",
+    }
+)
 NO_KAUF_MODULES = frozenset({"cart", "info", "page", "versand", "promo"}) | _FORM_PAGES
 FIXED_ORDER_MODULES = frozenset({"info", "page", "versand", "promo"}) | _FORM_PAGES
 #: FB-32 S6f: разделы, которые одновременно строки осей (P3): хранят свой вид (`style`), а

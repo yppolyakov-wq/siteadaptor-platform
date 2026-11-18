@@ -1196,6 +1196,10 @@ PAGE_BLOCK_HOSTS = (
     "finder",  # /finder/
     "lookbook",  # /lookbook/<slug>/
     "promo_detail",  # FB-29 R2: страница акции — свои блоки (и место для баннеров)
+    # FB-32 S6g-1: страницы без блоков — теперь со своей схемой
+    "teachers",  # /lehrer/
+    "event_calendar",  # /veranstaltung/kalender/
+    "passes",  # /karten/
     # FB-31 P3 R6: «Alle Angebotsgruppen» — общие блоки страниц групп акций (пока не
     # сохранены, группы показывают блоки обзора `/aktionen/`, как и раньше)
     "promo_group",

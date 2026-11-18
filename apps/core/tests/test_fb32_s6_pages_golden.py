@@ -246,3 +246,51 @@ PROMO = {
 def test_promo_detail_without_anchors_looks_as_before(case):
     cfg, others, kw = PROMO[case]
     _check(f"promo-{case}", _promo_detail(cfg, others=others, **kw))
+
+
+# ── S6g-1: «Lehrer», «Kalender», «Karten» ──────────────────────────────────────
+
+
+def _stable(html):
+    from apps.promotions.tests import test_fb31p3_promo_golden as p3
+
+    return p3._normalize(html)  # pk/даты — как у снимков P3
+
+
+def _rows_for(cfg, host):
+    return {**cfg, "page_blocks": {host: (cfg.get("page_blocks") or {}).get("info", [])}}
+
+
+def _lehrer(cfg):
+    from apps.events import public_views
+    from apps.events.models import Teacher
+
+    Teacher.objects.get_or_create(
+        name="Anna", defaults={"title": "Yogalehrerin", "is_active": True}
+    )
+    req = _req("/lehrer/", _rows_for(cfg, "teachers"))
+    return _stable(public_views.lehrer_index(req).content.decode())
+
+
+def _kalender(cfg):
+    from apps.events import public_views
+
+    req = _req("/veranstaltung/kalender/", _rows_for(cfg, "event_calendar"))
+    return _stable(public_views.veranstaltung_calendar(req).content.decode())
+
+
+def _karten(cfg):
+    from apps.booking import public_views
+    from apps.booking.models import PassPlan
+
+    PassPlan.objects.get_or_create(
+        label="10er-Karte", defaults={"credits": 10, "price_cents": 9000}
+    )
+    req = _req("/karten/", _rows_for(cfg, "passes"))
+    return _stable(public_views.karten(req).content.decode())
+
+
+def test_lehrer_kalender_karten_without_blocks_look_as_before():
+    _check("lehrer-plain", _lehrer({}))
+    _check("kalender-plain", _kalender({}))
+    _check("karten-plain", _karten({}))

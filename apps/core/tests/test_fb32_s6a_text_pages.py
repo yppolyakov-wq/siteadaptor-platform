@@ -348,3 +348,42 @@ def test_promo_writer_without_related_row_keeps_its_visibility():
     out = detail_parts.lift(cfg, "promo_detail", [{**OFFER, "enabled": True}, TEXT])
     assert cfg["promo_show_related"] is False and out == [{**OFFER, "enabled": True}, TEXT]
     assert detail_parts.promo_slots({"page_blocks": {"promo_detail": [OFFER, TEXT]}}) == {}
+
+
+# ── S6g-1: «Lehrer», «Kalender», «Karten» ──────────────────────────────────────
+
+
+@pytest.mark.parametrize(
+    "host,key", (("teachers", "teacherlist"), ("event_calendar", "calendar"), ("passes", "plans"))
+)
+def test_new_page_types_have_one_fixed_row(host, key):
+    from apps.core import studio_pages
+
+    assert detail_parts.section_keys(host) == (key,)
+    pt = next(p for p in studio_pages.PAGE_TYPES if p.block_host == host)
+    rows = {r["ref"]: r for r in site_schema.blocks_for({}, pt.code)}
+    assert rows[key]["pinned"] and not detail_parts.has_kauf(host)
+
+
+def test_own_blocks_above_teachers_calendar_and_passes_not_inside_forms():
+    from apps.core.tests.test_fb32_s6_pages_golden import _kalender, _karten, _lehrer
+
+    for render, key in ((_lehrer, "teacherlist"), (_kalender, "calendar"), (_karten, "plans")):
+        html = render({"page_blocks": {"info": [TEXT, {"key": key}]}})
+        assert html.index("Bus 5") < html.index("<h1"), key
+        for form in html.split("<form")[1:]:
+            assert "Bus 5" not in form.split("</form>")[0]
+        tail = render({"page_blocks": {"info": [TEXT]}})
+        assert tail.index("<h1") < tail.index("Bus 5"), "без якоря — блоки под страницей"
+
+
+def test_section_keys_never_collide_with_block_types():
+    """S6g-1: раздел `list` у «Lehrer» совпал с блоком «Liste» — нормализация молча выбросила
+    блоки страницы. Ключ раздела не должен быть типом блока."""
+    from apps.core import detail_sections
+    from apps.tenants import siteconfig
+
+    for module, secs in detail_sections.DETAIL_SECTIONS.items():
+        for s in secs:
+            assert not siteconfig.cblock_type(s.key), (module, s.key)
+            assert s.key not in siteconfig.PAGE_REF_BLOCKS, (module, s.key)

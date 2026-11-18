@@ -1187,9 +1187,14 @@ _TYPE_GROUPS = (
         "catalog",
         ("catalog", "category", "product", "cart", "wishlist", "combos", "lookbook", "finder"),
     ),
-    ("termine", gettext_lazy("Termine"), "booking", ("services", "service")),
+    ("termine", gettext_lazy("Termine"), "booking", ("services", "service", "passes")),
     ("unterkunft", gettext_lazy("Unterkunft"), "stays", ("stays", "stay")),
-    ("events", gettext_lazy("Veranstaltungen"), "events", ("events", "event", "tours")),
+    (
+        "events",
+        gettext_lazy("Veranstaltungen"),
+        "events",
+        ("events", "event", "tours", "event_calendar", "teachers"),
+    ),
     ("anfragen", gettext_lazy("Anfragen"), "jobs", ("anfrage",)),
     # FB-31 P3 R6: страницы акций своей группой — обзор, «Alle Angebotsgruppen», акция
     ("aktionen", gettext_lazy("Aktionen"), "promotions", ("promos", PROMO_GROUP, "promo")),

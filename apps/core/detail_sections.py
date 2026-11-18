@@ -126,6 +126,10 @@ DETAIL_SECTIONS: dict[str, tuple[DetailSection, ...]] = {
         DetailSection("offer", _("Angebot"), hideable=False),
         DetailSection("related", _("Weitere Aktionen")),
     ),
+    # FB-32 S6g-1: страницы, у которых блоков не было, — содержимое одной неподвижной строкой
+    "teachers": (DetailSection("teacherlist", _("Teachers"), hideable=False),),
+    "event_calendar": (DetailSection("calendar", _("Retreat calendar"), hideable=False),),
+    "passes": (DetailSection("plans", _("Multi-visit cards"), hideable=False),),
     "versand": (
         DetailSection("pagetext", _("Text"), hideable=False),
         DetailSection("costs", _("Versandkosten"), hideable=False),

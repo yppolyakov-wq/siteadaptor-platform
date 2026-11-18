@@ -696,6 +696,22 @@ PAGE_TYPES: tuple[PageType, ...] = (
         ("product_card_form", "text_width"),
         block_host="finder",
     ),
+    # FB-32 S6g-1: страницы без схемы — свои блоки над содержимым и под ним
+    PageType("teachers", _("Teachers"), ("storefront-teachers",), (), block_host="teachers"),
+    PageType(
+        "event_calendar",
+        _("Retreat calendar"),
+        ("storefront-events-calendar",),
+        (),
+        block_host="event_calendar",
+    ),
+    PageType(
+        "passes",
+        _("Multi-visit cards"),
+        ("storefront-karten",),
+        (),
+        block_host="passes",
+    ),
     PageType(
         "lookbook",
         _("Lookbook"),

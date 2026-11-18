@@ -63,6 +63,10 @@ TYPE_MODULES: dict[str, str | None] = {
     "loyalty": "loyalty",
     "gift": "gift",
     "anfrage": "jobs",
+    # FB-32 S6g-1
+    "teachers": "events",
+    "event_calendar": "events",
+    "passes": "booking",
     "text": None,
     "team": None,
     "gallery": None,
@@ -494,6 +498,15 @@ def _storefront_shows(tenant, type_code: str) -> bool:
         from apps.loyalty.public_views import gift_purchase_active
 
         return bool(gift_purchase_active(tenant))
+    # FB-32 S6g-1: без тарифов / преподавателей страница пуста — тип не предлагается
+    if type_code == "passes":
+        from apps.booking.models import PassPlan
+
+        return PassPlan.objects.filter(is_active=True).exists()
+    if type_code == "teachers":
+        from apps.events.models import Teacher
+
+        return Teacher.objects.filter(is_active=True).exists()
     return True
 
 
