@@ -15,6 +15,9 @@
 ссылке «Benachrichtigen, wenn es so etwas gibt» (`_search_follow.html`).
 
 ## Срезы
+
+**Статус (2026-11-18):** P0–P4 сделаны (ветки `claude/t8-follow-combo-p1`, `claude/t8-follow-combo-p4`). Остаток: «Bearbeiten» на странице управления по ссылке из письма (без входа) — пока только вошедшему.
+
 - **P0 макеты** (правило владельца): одна кнопка на выдаче; панель подтверждения с чипами по типам
   (Kategorie · Stadtteil · Merkmal · Art), частота, честная подсказка о непереносимых фильтрах;
   строка «Ich folge» с подписью «Friseur · Mitte, Burg/Höhscheid · familienfreundlich» и правкой.
