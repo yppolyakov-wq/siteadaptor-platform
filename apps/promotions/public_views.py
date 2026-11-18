@@ -24,6 +24,7 @@ from django.utils.translation import gettext as _
 from django.views.decorators.clickjacking import xframe_options_sameorigin
 from django.views.decorators.csrf import csrf_exempt
 
+from apps.catalog import category_views as _cat_views
 from apps.catalog.combos import combo_labels
 from apps.catalog.views import FOOD_BUSINESS_TYPES as _FOOD_TYPES
 from apps.core import (
@@ -229,6 +230,23 @@ def _attach_lowest_30d(promos) -> list:
     return promos
 
 
+def _home_category_view(categories, style) -> dict:
+    """FB-32 S5b: данные вида «Regale» / «Index» / «Wegweiser» секции «Kategorien» главной;
+    {} — прежняя сетка (вид не выбран или данных для него нет)."""
+    if not categories or style not in ("regale", "index", "wegweiser"):
+        return {}
+    roots = [c for c in categories if getattr(c, "pk", None)]
+    if not roots:
+        return {}
+    if style == "regale":
+        shelves = _cat_views.shelves(roots, limit=_cat_views.HOME_SHELVES)
+        return {"shelves": shelves} if shelves else {}
+    if style == "index":
+        return {"entries": _cat_views.entries(roots)}
+    deps = _cat_views.departments(roots)
+    return deps if deps["departments"] else {}
+
+
 # Same-origin framing разрешён: кабинет владельца (тот же субдомен-origin)
 # показывает витрину в iframe (live-preview конструктора + страница Preview).
 # Прод ставит X-Frame-Options: DENY глобально — это бы блокировало iframe.
@@ -352,6 +370,9 @@ def storefront_home(request):
         products_preview = design_samples.for_empty_shop(request)
         products_are_samples = bool(products_preview)
     categories = _items("categories")
+    # FB-32 S5b: виды каталога у секции «Kategorien» — тот же построитель, что у каталога;
+    # данные только при выбранном виде, пусто — прежняя сетка
+    home_cat_view = _home_category_view(categories, (builtin.get("categories") or {}).get("style"))
     # S2: сетка тизеров активных архетипов («Наши разделы»).
     archetype_teasers = []
     if "archetypes" in sections:
@@ -412,6 +433,7 @@ def storefront_home(request):
             "promo_ending_soon": promo_ending_soon,  # DL-3: чипы spotlight-стиля
             "products_preview": products_preview,
             "categories": categories,
+            "home_cat_view": home_cat_view,
             "category_tile_aspect": siteconfig.CATEGORY_TILE_ASPECTS.get(
                 siteconfig.section_style(site, "categories"), "aspect-[4/3]"
             ),
@@ -1787,38 +1809,10 @@ def product_list(request, slug=None):
     _all_products = Product.objects.filter(is_active=True)
     _shelf_sources = subcategories if path_mode else categories  # DL-21.1: корень — направления
     if shelf_mode and _shelf_sources:
-        from .price_layer import attach_promos as _attach_promos_shelf
+        # FB-32 S5b: тот же построитель, что у секции «Kategorien» главной
+        from apps.catalog import category_views
 
-        for sub in _shelf_sources:
-            if path_mode:
-                sub_qs = _all_products.filter(category=sub)
-            else:
-                # корневое направление держит товары в детях (KAT-1: контейнер включает
-                # прямых детей) — полка собирает поддерево на один уровень
-                _ids = [sub.pk, *sub.children.filter(is_active=True).values_list("pk", flat=True)]
-                sub_qs = _all_products.filter(category_id__in=_ids)
-            items = list(sub_qs.order_by("-is_featured", "-created_at")[:8])
-            if items:
-                _attach_promos_shelf(items)
-                _total = sub_qs.count()
-                # Фидбэк 2026-09-03: «Alle anzeigen» — только когда полка ОБРЕЗАНА
-                # (за ссылкой реально больше, чем показано); 3 товара из 3 — ссылка
-                # никуда не ведёт и мешает.
-                shelves.append(
-                    {
-                        # STU-18d (d-pre): контракт под-сущности — метка, слаг и ССЫЛКА.
-                        # Партиал полок больше не строит url каталога сам: на других
-                        # листингах под-сущность своя (подборка, страна, категория
-                        # события), а её адрес знает только вьюха поверхности.
-                        "label": sub,
-                        "slug": sub.slug,
-                        "url": reverse("storefront-category", args=[sub.slug]),
-                        "category": sub,  # прежний ключ — на него смотрит остальной код
-                        "items": items,
-                        "total": _total,
-                        "more": _total > len(items),
-                    }
-                )
+        shelves = category_views.shelves(_shelf_sources, path_mode=path_mode)
     # DL-16.5 (K3 «Tabs»): подкатегории табами; на странице подкатегории — табы родителя.
     tabs_source = None
     if path_mode and category is not None:
@@ -2226,10 +2220,7 @@ def product_list(request, slug=None):
             # «Navigator» — метка и ССЫЛКА. Адрес знает только вьюха поверхности
             # (у каталога категория, у туров страна, у услуг подборка), поэтому
             # партиалы его больше не собирают.
-            "side_entries": [
-                {"label": c, "url": reverse("storefront-category", args=[c.slug])}
-                for c in (subcategories if path_mode else categories)
-            ],
+            "side_entries": _cat_views.entries(subcategories if path_mode else categories),
             # хвост адреса, который переход между под-сущностями обязан сохранить
             "comp_carry": f"?ansicht={ansicht}" if ansicht else "",
             "show_root_header": bool(

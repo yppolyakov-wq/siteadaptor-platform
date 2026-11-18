@@ -11,8 +11,8 @@
   {% blocktrans count counter=summary.departments %}in {{ counter }} Bereich{% plural %}in {{ counter }} Bereichen{% endblocktrans %}{% if summary.sale %} <span aria-hidden="true">·</span> {% blocktrans with n=summary.sale %}{{ n }} reduziert{% endblocktrans %}{% endif %}{% if summary.new %} <span aria-hidden="true">·</span> {% blocktrans count counter=summary.new %}{{ counter }} neu{% plural %}{{ counter }} neu{% endblocktrans %}{% endif %}
 </p>
 {% endif %}
-<section class="mb-8" aria-labelledby="ww-deps-h" data-wegweiser-departments>
-  <h2 id="ww-deps-h" class="sr-only">{% trans "Bereiche" %}</h2>
+<section class="mb-8" aria-labelledby="{{ heading_id|default:'ww-deps-h' }}" data-wegweiser-departments>
+  <h2 id="{{ heading_id|default:'ww-deps-h' }}" class="sr-only">{% trans "Bereiche" %}</h2>
   {% comment %}Ряды без «сироты» (DL-11): колонки десктопа считает wegweiser.columns,
   планшет — 3 или 2, телефон — 2, при нечётном числе последняя плитка во всю строку.{% endcomment %}
   {% with n=departments|length %}

@@ -28,8 +28,11 @@ def test_registry_covers_both_pages_view_values():
 
 def test_home_shows_catalog_views_disabled_with_reason():
     html = Browser(_tenant()).get("?seite=home&block=categories")
-    for key in ("regale", "index", "wegweiser", "tabs", "side"):
+    for key in ("tabs", "side"):
         assert f'data-schema-style-off="{key}"' in html
+    # FB-32 S5b: «Regale», «Index», «Wegweiser» на главной теперь выбираются
+    for key in ("regale", "index", "wegweiser"):
+        assert f'name="f_style" value="{key}"' in html
     assert "Nur auf Katalogseiten" in html
     assert 'name="f_style" value="tabs"' not in html
 

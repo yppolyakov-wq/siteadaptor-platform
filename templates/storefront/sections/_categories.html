@@ -12,7 +12,14 @@
   {% if si or is_preview %}<p class="mb-4 text-gray-600 whitespace-pre-line max-w-2xl" data-edit="section_intros.categories">{{ si }}</p>{% endif %}
   {% comment %}Плитка вынесена в общий партиал (2026-08-07): та же форма на
   главной и на /sortiment/, размер — из стиля секции.{% endcomment %}
-  {% if section_row.style == "compact" %}
+  {% if home_cat_view.shelves %}
+  {% comment %}FB-32 S5b: виды каталога на главной — тот же построитель и те же партиалы, что на /sortiment/.{% endcomment %}
+  <div data-cat-style="regale">{% include "storefront/composition/_shelves.html" with shelves=home_cat_view.shelves item_template="storefront/_product_card.html" %}</div>
+  {% elif home_cat_view.entries %}
+  <div data-cat-style="index">{% include "storefront/composition/_index.html" with entries=home_cat_view.entries carry="" %}</div>
+  {% elif home_cat_view.departments %}
+  <div data-cat-style="wegweiser">{% include "storefront/composition/_wegweiser_departments.html" with departments=home_cat_view.departments cols=home_cat_view.cols summary=None heading_id="ww-home-deps-h" %}</div>
+  {% elif section_row.style == "compact" %}
   {% comment %}DS-4b (Fokus): направления строками-плитками — фото 46px, имя,
   «ab X €» из самого дешёвого товара категории, стрелка (концепт-макет).{% endcomment %}
   {% categories_with_min_price categories as cat_rows %}

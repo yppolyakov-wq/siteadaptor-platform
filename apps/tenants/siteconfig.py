@@ -4328,7 +4328,9 @@ SECTION_STYLES = {
     # Фидбэк 2026-08-07 («категории картинками + размер из Studio»): форма плитки
     # категории. Ширину даёт раскладка секции (колонки), высоту — этот стиль.
     # "" = 4:3, как рисовала секция главной до правки.
-    "categories": ("square", "tall", "wide", "compact"),
+    # FB-32 S5b: + виды каталога «Regale», «Index», «Wegweiser» (один построитель
+    # `apps/catalog/category_views.py`; «Reiter»/«Seitenspalte» — только в каталоге)
+    "categories": ("square", "tall", "wide", "compact", "regale", "index", "wegweiser"),
     # DS-3a (Fokus): вид вывода товаров — «прайс-лист» (группы по категориям,
     # строка с отточием и ценой; "" = сетка карточек, как было). DS-4b: у
     # категорий compact = строка-плитка «фото 46px + имя + ab-цена + стрелка».
@@ -4361,7 +4363,8 @@ SECTION_STYLES = {
 LIST_STYLES = {
     "products": SECTION_STYLES["products"],
     "promotions": SECTION_STYLES["promotions"],
-    "categories": SECTION_STYLES["categories"],
+    # FB-32 S5b: блок «Liste» — прежние формы плиток (виды каталога у него — отдельным шагом)
+    "categories": ("square", "tall", "wide", "compact"),
 }
 
 
@@ -4406,6 +4409,10 @@ SECTION_STYLE_LABELS = {
     "square": _("Quadratisch"),
     "tall": _("Hochformat"),
     "wide": _("Breitbild"),
+    # FB-32 S5b: виды каталога у секции «Kategorien» главной
+    "regale": _("Regale"),
+    "index": _("Index"),
+    "wegweiser": _("Wegweiser"),
     "preisliste": _("Preisliste"),  # DS-3a: товары строками с ценой
     "preisliste_foto": _("Preisliste mit Fotos"),  # DS-5b: + мини-фото 40px
     "preisliste_kompakt": _("Preisliste kompakt"),  # DS-5c: без описаний, плотно

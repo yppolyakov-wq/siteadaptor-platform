@@ -15,6 +15,12 @@
   <span class="flex w-20 h-12 shrink-0 flex-col justify-end rounded ring-1 ring-gray-200 bg-gray-400 p-1.5" aria-hidden="true" data-style-thumb="banner"><span class="h-1.5 w-8 rounded bg-white"></span></span>
 {% elif key == "square" or key == "tall" or key == "wide" %}
   <span class="flex w-20 h-12 shrink-0 items-center justify-center gap-1 rounded ring-1 ring-gray-200 bg-white p-1" aria-hidden="true" data-style-thumb="{{ key }}">{% for _ in "123" %}<span class="rounded-sm bg-gray-400 {% if key == 'square' %}h-5 w-5{% elif key == 'tall' %}h-8 w-4{% else %}h-3 w-6{% endif %}"></span>{% endfor %}</span>
+{% elif key == "regale" %}
+  <span class="flex w-20 h-12 shrink-0 flex-col justify-center gap-1 rounded ring-1 ring-gray-200 bg-white p-1" aria-hidden="true" data-style-thumb="regale">{% for _ in "12" %}<span class="flex gap-0.5">{% for _ in "1234" %}<span class="h-3 flex-1 rounded-sm bg-gray-400"></span>{% endfor %}</span>{% endfor %}</span>
+{% elif key == "index" %}
+  <span class="grid w-20 h-12 shrink-0 grid-cols-3 content-center gap-x-1 gap-y-1 rounded ring-1 ring-gray-200 bg-white p-1.5" aria-hidden="true" data-style-thumb="index">{% for _ in "123456" %}<span class="h-1 rounded bg-gray-500"></span>{% endfor %}</span>
+{% elif key == "wegweiser" %}
+  <span class="grid w-20 h-12 shrink-0 grid-cols-3 gap-0.5 rounded ring-1 ring-gray-200 bg-white p-1" aria-hidden="true" data-style-thumb="wegweiser">{% for _ in "123456" %}<span class="rounded-sm bg-emerald-200"></span>{% endfor %}</span>
 {% elif key == "plain" %}
   <span class="flex w-20 h-12 shrink-0 items-center justify-around rounded ring-1 ring-gray-200 bg-white px-1" aria-hidden="true" data-style-thumb="plain">{% for _ in "123" %}<span class="h-1 w-4 rounded bg-gray-400"></span>{% endfor %}</span>
 {% elif key == "pillars" %}

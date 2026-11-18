@@ -69,3 +69,49 @@ def test_home_categories_section_looks_as_before(style):
         path.write_text(got)
         return
     assert got == path.read_text(), f"секция «Kategorien» изменилась: {path.name}"
+
+
+# ── S5b: виды каталога на главной ────────────────────────────────────────────────
+
+
+def _home(style):
+    row = {"key": "categories", "enabled": True, "style": style}
+    request = RequestFactory().get("/")
+    request.session = import_module(dj_settings.SESSION_ENGINE).SessionStore()
+    request.tenant = TenantFactory.build(
+        name="Laden X", business_type="bakery", site_config={"sections": [row]}
+    )
+    return public_views.storefront_home(request).content.decode()
+
+
+def test_regale_index_wegweiser_render_the_catalog_partials_on_home():
+    _data()
+    html = _home("regale")
+    assert 'data-cat-style="regale"' in html and 'data-shelf="brot"' in html
+    assert "Brot 1" in html, "полка показывает товары"
+    html = _home("index")
+    assert 'data-cat-style="index"' in html and "/sortiment/kuchen/" in html
+    html = _home("wegweiser")
+    assert 'data-cat-style="wegweiser"' in html and 'id="ww-home-deps-h"' in html
+    assert 'id="ww-deps-h"' not in html, "свой id заголовка — без дубля с каталогом"
+
+
+def test_home_regale_queries_do_not_grow_with_departments(django_assert_max_num_queries):
+    from apps.catalog import category_views
+    from apps.catalog.models import Category
+
+    _data()
+    roots = list(Category.objects.filter(parent__isnull=True))
+    with django_assert_max_num_queries(4 + len(roots)):
+        shelves = category_views.shelves(roots)
+    assert len(shelves) == 4
+
+
+def test_section_style_registry_and_list_block_keep_their_scope():
+    from apps.core import block_views
+    from apps.tenants import siteconfig
+
+    assert {"regale", "index", "wegweiser"} <= set(siteconfig.SECTION_STYLES["categories"])
+    assert siteconfig.LIST_STYLES["categories"] == ("square", "tall", "wide", "compact")
+    off = {u["key"] for u in block_views.unavailable(block_views.HOME)}
+    assert off == {"tabs", "side"}, "на главной недоступны только «Reiter» и «Seitenspalte»"

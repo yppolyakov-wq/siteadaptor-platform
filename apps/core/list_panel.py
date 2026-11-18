@@ -305,8 +305,18 @@ def builtin_groups(request, cfg: dict, key: str, data: dict, mode: str = "") -> 
             # FB-32 S5a: один список видов с каталогом — недоступные видны с причиной
             from apps.core import block_views
 
+            # FB-32 S5b: у секции — и виды каталога (у блока «Liste» — прежние формы плиток)
+            styles = [
+                (k, str(siteconfig.SECTION_STYLE_LABELS.get(k, k)))
+                for k in siteconfig.SECTION_STYLES["categories"]
+            ]
             fields = [
-                {**f, "unavailable": block_views.unavailable(block_views.HOME)}
+                {
+                    **f,
+                    "options": [f["options"][0], *styles],
+                    "current": dict([f["options"][0], *styles]).get(f["value"], ""),
+                    "unavailable": block_views.unavailable(block_views.HOME),
+                }
                 if f["name"] == "style"
                 else f
                 for f in fields

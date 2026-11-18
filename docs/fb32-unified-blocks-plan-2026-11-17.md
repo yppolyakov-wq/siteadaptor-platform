@@ -112,4 +112,10 @@ Wegweiser ~1713/2216, `side_entries` ~2229; `apps/catalog/wegweiser.py`). Пор
 5. **Панель:** для трёх видов скрыть «Spalten»/вывод, «Höchstens» — число направлений.
 ECC: django-reviewer, database-reviewer (оконный запрос, замки запросов), silent-failure-hunter
 (fail-safe), a11y-architect (id, фокус), Playwright 1440/390 de/ru (слайдер полок).
+- **S5b ✅ (код)** (2026-11-18): построитель `apps/catalog/category_views.py` (полки — дети одним
+  prefetch, промо-цены одним проходом; `entries`; `departments`), каталог перешёл на него
+  (89 снимков каталога байт-в-байт); секция «Kategorien» главной рисует «Regale» (≤ 6 полок),
+  «Index», «Wegweiser» теми же партиалами (`heading_id` — без дубля id); пусто — прежняя
+  сетка; 5 снимков главной байт-в-байт. Остаток: скрыть в панели «Spalten»/вывод у этих видов;
+  виды каталога у блока «Liste» — отдельным шагом.
 

@@ -36,9 +36,17 @@ CATEGORY_VIEWS: tuple[View, ...] = (
     View("tall", _("Hochformat"), "tall", None, thumb_style="tall"),
     View("wide", _("Breitbild"), "wide", None, thumb_style="wide"),
     View("compact", _("Kompakt"), "compact", None, thumb_style="compact"),
-    View("regale", _("Regale"), None, "regale", thumb_page="regale"),
-    View("index", _("Index"), None, "index", thumb_page="kompakt"),
-    View("wegweiser", _("Wegweiser"), None, "wegweiser", thumb_page="wegweiser"),
+    # FB-32 S5b: и на главной — тот же построитель (`apps/catalog/category_views.py`)
+    View("regale", _("Regale"), "regale", "regale", thumb_style="regale", thumb_page="regale"),
+    View("index", _("Index"), "index", "index", thumb_style="index", thumb_page="kompakt"),
+    View(
+        "wegweiser",
+        _("Wegweiser"),
+        "wegweiser",
+        "wegweiser",
+        thumb_style="wegweiser",
+        thumb_page="wegweiser",
+    ),
     View("tabs", _("Reiter"), None, "tabs", thumb_page="tabs", home_only_catalog=True),
     View("side", _("Seitenspalte"), None, "side", thumb_page="navigator", home_only_catalog=True),
 )
