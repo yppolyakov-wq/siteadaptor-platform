@@ -38779,3 +38779,8 @@ msgstr "Edit alert"
 #: templates/catalog/category_form.html
 msgid "Nach dem Speichern im Seitenaufbau bearbeiten."
 msgstr "Edit in Page structure after saving."
+
+#: templates/aggregator/follow.html
+#, python-format
+msgid "Höchstens %(n)s „Sofort“-E-Mails am Tag — der Rest kommt am nächsten Tag."
+msgstr "At most %(n)s “Instantly” e-mails a day — the rest arrives the next day."

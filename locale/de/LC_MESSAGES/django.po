@@ -38866,3 +38866,8 @@ msgstr "Benachrichtigung bearbeiten"
 #: templates/catalog/category_form.html
 msgid "Nach dem Speichern im Seitenaufbau bearbeiten."
 msgstr "Nach dem Speichern im Seitenaufbau bearbeiten."
+
+#: templates/aggregator/follow.html
+#, python-format
+msgid "Höchstens %(n)s „Sofort“-E-Mails am Tag — der Rest kommt am nächsten Tag."
+msgstr "Höchstens %(n)s „Sofort“-E-Mails am Tag — der Rest kommt am nächsten Tag."

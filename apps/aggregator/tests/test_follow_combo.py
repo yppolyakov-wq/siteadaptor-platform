@@ -246,3 +246,39 @@ def test_account_row_shows_edit_only_for_combinations(settings):
     )
     assert follow.edit_url(combo, portal=portal)
     assert follow.edit_url(single, portal=portal) == ""
+
+
+# --- дневной потолок писем «Sofort» (владелец, 2026-11-18: 10) ----------------------------------
+
+
+def test_instant_combinations_wait_after_the_daily_mail_cap(monkeypatch, settings):
+    from django.utils import timezone
+
+    from apps.aggregator import follow_digest
+    from apps.aggregator.models import FollowDigest
+
+    settings.AGGREGATOR_FOLLOW = {**settings.AGGREGATOR_FOLLOW, "max_instant_mails_per_day": 2}
+    monkeypatch.setattr(follow_digest, "in_quiet_hours", lambda now: False)
+    portal = _portal()
+    user = PortalUser.objects.create(email=_email())
+    follow.follow_now(user, _combo_target(portal), frequency="instant", portal=portal)
+    seen = []
+    monkeypatch.setattr(
+        follow_digest, "build_digest", lambda u, subs, now=None: seen.append(subs) or None
+    )
+    now = timezone.now()
+    follow_digest.instant_for_user(user, now=now)
+    assert seen and seen[-1], "до потолка комбинация идёт в мгновенное письмо"
+    day = timezone.localtime(now).date().isoformat()
+    for i in range(2):
+        FollowDigest.objects.create(user=user, period_key=f"i:{day}T0{i}:00")
+    seen.clear()
+    assert follow_digest.instant_for_user(user, now=now) is False
+    assert not seen, "сверх потолка комбинации ждут до завтра (письма нет)"
+    assert follow_digest.instant_mails_today(user, now) == 2
+
+
+def test_follow_page_tells_the_daily_instant_cap(settings):
+    settings.ROOT_URLCONF = "config.urls_portal"
+    html = follow_views.follow_page(_req("get", "/folgen/", _combo(), portal=_portal()))
+    assert "10 „Sofort“-E-Mails am Tag" in html.content.decode()

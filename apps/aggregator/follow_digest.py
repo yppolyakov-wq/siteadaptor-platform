@@ -449,12 +449,28 @@ def run_daily(now=None) -> int:
     return queued
 
 
+def max_instant_mails_per_day() -> int:
+    """Потолок мгновенных писем жителю в день, после которого комбинации ждут (T-8.10d.1)."""
+    return int(_cfg("max_instant_mails_per_day", 10))
+
+
+def instant_mails_today(user: PortalUser, now=None) -> int:
+    """Сколько мгновенных писем житель уже получил сегодня (местные сутки)."""
+    day = _local(now).date().isoformat()
+    return FollowDigest.objects.filter(user=user, period_key__startswith=f"i:{day}T").count()
+
+
 def instant_for_user(user: PortalUser, *, now=None) -> bool:
     """Мгновенные подписки на бизнес: новинки с последнего письма одним письмом."""
     now = now or timezone.now()
     if in_quiet_hours(now) or not user.is_active:
         return False
     subs = _email_subs(user, (FollowSubscription.FREQ_INSTANT,))
+    if subs and instant_mails_today(user, now) >= max_instant_mails_per_day():
+        # T-8.10d.1 (владелец, 2026-11-18): широкая комбинация «Sofort» не шлёт письмо каждые
+        # 15 минут — сверх дневного потолка комбинации ждут до завтра (окно «нового» — с
+        # последнего письма, так что ничего не теряется); «Sofort» у компании — как прежде
+        subs = [s for s in subs if s.target_kind != FollowSubscription.TARGET_QUERY]
     if not subs:
         return False
     digest = build_digest(user, subs, now=now)

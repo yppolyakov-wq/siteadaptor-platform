@@ -39107,3 +39107,8 @@ msgstr "Змінити сповіщення"
 #: templates/catalog/category_form.html
 msgid "Nach dem Speichern im Seitenaufbau bearbeiten."
 msgstr "Після збереження — у «Seitenaufbau»."
+
+#: templates/aggregator/follow.html
+#, python-format
+msgid "Höchstens %(n)s „Sofort“-E-Mails am Tag — der Rest kommt am nächsten Tag."
+msgstr "Щонайбільше %(n)s листів «Одразу» на день — решта надійде наступного дня."

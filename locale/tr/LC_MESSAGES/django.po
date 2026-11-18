@@ -38925,3 +38925,8 @@ msgstr "Bildirimi düzenle"
 #: templates/catalog/category_form.html
 msgid "Nach dem Speichern im Seitenaufbau bearbeiten."
 msgstr "Kaydettikten sonra Sayfa yapısında düzenleyin."
+
+#: templates/aggregator/follow.html
+#, python-format
+msgid "Höchstens %(n)s „Sofort“-E-Mails am Tag — der Rest kommt am nächsten Tag."
+msgstr "Günde en fazla %(n)s „Hemen“ e-postası — gerisi ertesi gün gelir."

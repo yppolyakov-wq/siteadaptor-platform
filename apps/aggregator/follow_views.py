@@ -29,7 +29,7 @@ from django.views.decorators.http import require_POST
 from apps.core import ratelimit
 from apps.tenants import quickstart
 
-from . import auth, follow, follow_center, follow_query
+from . import auth, follow, follow_center, follow_digest, follow_query
 from .models import FollowSubscription, PortalUser
 
 IP_RL = (10, 600)
@@ -216,6 +216,7 @@ def follow_page(request):
         "max_instant": follow.max_instant_queries()
         if target.kind == FollowSubscription.TARGET_QUERY
         else 0,
+        "max_instant_mails": follow_digest.max_instant_mails_per_day(),
         "back_url": _safe_next(request, _home_url(portal)),
         # NT-A1 (Р-NT1): у категории — переход «весь раздел» (и обратно) той же страницей.
         "scope_switch": follow.scope_switch(request.GET, target),

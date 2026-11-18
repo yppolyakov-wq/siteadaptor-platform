@@ -291,6 +291,7 @@ AGGREGATOR_FOLLOW = {
     "daily_hour": 8,  # местное время (TIME_ZONE); beat раз в час, письмо — в первый прогон после
     "items_per_follow": 5,
     "max_instant_query_follows": 3,  # T-8.10d.1 P4: «Sofort» у комбинаций фильтров — не больше
+    "max_instant_mails_per_day": 10,  # T-8.10d.1: потом комбинации «Sofort» ждут до завтра
     "quiet_hours": (21, 7),  # мгновенные письма копятся ночью
     "doi_ttl_days": 7,
     "digest_retention_days": 90,
