@@ -33,8 +33,6 @@ class DraftConflict(Exception):
 
 def _saved_state(config: dict, home: bool, host: str) -> dict:
     state = {"items": site_schema.load_items(config, home, host)}
-    if host == "info":
-        state["contact"] = config.get("about_contact") is not False
     from apps.core import detail_parts
 
     if detail_parts.object_kind(host):
@@ -43,6 +41,16 @@ def _saved_state(config: dict, home: bool, host: str) -> dict:
         obj = detail_parts.object_for_host(host)
         state["override"] = getattr(obj, "page_override", None) or {}
     return state
+
+
+def _has_section_rows(draft: dict) -> bool:
+    from apps.core import detail_parts
+
+    keys = set(detail_parts.section_keys(str(draft.get("host") or "")))
+    return any(
+        isinstance(r, dict) and r.get("key") in keys and not r.get("id")
+        for r in draft.get("items") or []
+    )
 
 
 def _fingerprint(state: dict) -> str:
@@ -144,7 +152,8 @@ def overlay(config: dict, draft: dict) -> dict:
         page_blocks = dict(out.get("page_blocks") or {})
         page_blocks[host] = items
         out["page_blocks"] = page_blocks
-    if host == "info" and "contact" in draft:
+    if host == "info" and "contact" in draft and not _has_section_rows(draft):
+        # FB-32 S6a: черновик, начатый до строк разделов, — карточка контактов как раньше
         if draft["contact"]:
             out.pop("about_contact", None)
         else:
@@ -233,11 +242,7 @@ def op(
     draft = get(request, code)
     if not draft:
         draft = {**copy.deepcopy(saved), "base": _fingerprint(saved), "home": home, "host": host}
-    if host == "info" and ref == site_schema.CONTACT_REF:
-        if op_name != "toggle":
-            raise site_schema.SchemaError("fixed")
-        draft["contact"] = not draft.get("contact", True)
-    elif (
+    if (
         op_name in ("add", "add_row", "adopt")
         and host.startswith(siteconfig.CATEGORY_HOST_PREFIX)
         and siteconfig.category_hosts_full(config, host)
@@ -379,7 +384,8 @@ def commit(request, tenant, code: str, *, force: bool = False) -> bool:
         raise DraftConflict(code)
     site_schema.store_items(config, home, host, copy.deepcopy(draft["items"]))
     _commit_object(config, host, draft["items"], getattr(request, "user", None))
-    if host == "info" and "contact" in draft:
+    if host == "info" and "contact" in draft and not _has_section_rows(draft):
+        # FB-32 S6a: черновик, начатый до строк разделов, — карточка контактов как раньше
         if draft["contact"]:
             config.pop("about_contact", None)
         else:

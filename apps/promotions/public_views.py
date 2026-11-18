@@ -1200,6 +1200,8 @@ def about_page(request):
             "section_row": _section_row(site, "contact"),
             # M21.6: своя страница slug=ueber-uns — текст с картинками вместо about_text.
             "page_body": content_pages.system_body("ueber-uns"),
+            # FB-32 S6a: свои блоки между текстом и контактами; пусто — прежняя разметка
+            **detail_parts.flow_ctx(site, "info", normalized=True),
         },
     )
 

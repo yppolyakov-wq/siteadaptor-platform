@@ -630,7 +630,12 @@ def _attach_blocks(rows: list, tenant) -> None:
         except Exception:  # noqa: BLE001 — колонка пуста, но ошибку видно в журнале
             log.warning("pages list: blocks column failed for %s", code, exc_info=True)
             continue
-        labels = [str(b["label"]) for b in blocks if b["enabled"] and not b["main"]]
+        # FB-32 S6a: строка самого текста страницы — не «блок на странице»
+        labels = [
+            str(b["label"])
+            for b in blocks
+            if b["enabled"] and not b["main"] and not (b["key"] == "pagetext" and not b["cblock"])
+        ]
         if labels:
             row.blocks = labels[0] + (f" + {len(labels) - 1}" if len(labels) > 1 else "")
 

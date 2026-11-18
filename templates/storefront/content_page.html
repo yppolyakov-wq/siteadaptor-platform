@@ -6,7 +6,8 @@
 
 {% block content %}
 {% comment %}M21.6: своя страница сайта. Ширина — настройка «Textbreite» (text_width).{% endcomment %}
-<article class="sf-card bg-white rounded-2xl shadow-sm p-6 md:p-8 {% text_width_class %}" data-content-page="{{ page.slug }}">
+{% if page_flow %}{% for it in page_flow %}{% if it.part %}<div class="{% text_width_class %}">{% page_blocks pb_host it.part %}</div>
+{% endif %}{% endfor %}{% endif %}<article class="sf-card bg-white rounded-2xl shadow-sm p-6 md:p-8 {% text_width_class %}" data-content-page="{{ page.slug }}">
   {% if is_draft %}
     <p class="mb-4 rounded-lg bg-amber-50 text-amber-900 text-sm px-3 py-2" role="status">{% trans "Entwurf — nur für Ihr Team sichtbar." %}</p>
   {% endif %}
@@ -14,5 +15,5 @@
   {% include "storefront/_page_body.html" with body=page_body %}
 </article>
 {% comment %}M21.11 P3: свои блоки этой страницы (хост seite:<slug>).{% endcomment %}
-<div class="{% text_width_class %}">{% page_blocks pb_host %}</div>
+<div class="{% text_width_class %}">{% if page_flow %}{% page_blocks pb_host tail_part %}{% else %}{% page_blocks pb_host %}{% endif %}</div>
 {% endblock %}
