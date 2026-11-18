@@ -181,3 +181,18 @@ S6a, S6f; a11y-architect — S6c; Playwright 1440/390 de/ru — S6a, S6c, S6f.
   Lehrer, Veranstaltungskalender, Tischreservierung — обзор и время) — строками, как остальные;
   подтверждения, ссылки на Angebot и правовые — без блоков (замок).
 
+
+## S6g — шесть страниц без схемы (planner, 2026-11-18)
+Ни у одной нет блоков; типа в `PAGE_TYPES` нет (кроме обзора Tisch: адрес `storefront-termin` занят
+типом `services`, хост `services` шаблон `booking_index.html` не выводит — «Seitenaufbau» уже сейчас
+предлагает там блоки, которых нет на странице).
+- **S6g-1** Lehrer (`teachers`: `list`), Kalender (`event_calendar`: `calendar`), Karten (`passes`:
+  `plans`, формы POST внутри строки) — по одной неподвижной строке, тег `page_flow`.
+- **S6g-2** Tisch: обзор — вывести хост `services` в `booking_index.html` (без нового типа); время —
+  тип `booking_slots` (url `storefront-termin-slots` и `storefront-tisch`), строка `slots` (вся коробка
+  `_booking_slots_box.html`); блоки не в `?box=1` и не в `?embed=1`; превью Tisch — особая ветка.
+- **S6g-3** Kombi-Detail (`combo`: `config` fixed — форма и цена; `reviews`, `examples`, `cta`,
+  `related` скрываемые, presence-minimal `combo_show_*`).
+Каждый новый тип: `PAGE_BLOCK_HOSTS`, `studio_pages.PAGE_TYPES`, `page_settings.TYPE_MODULES`/
+`_storefront_shows`, `site_schema._TYPE_GROUPS`/`_SAMPLES`, подписи в 5 `.po`. Замки: снимки до правки,
+блоки не внутри `<form>`, транзакционные адреса вне `PAGE_TYPES`.
