@@ -270,8 +270,14 @@ def test_instant_combinations_wait_after_the_daily_mail_cap(monkeypatch, setting
     follow_digest.instant_for_user(user, now=now)
     assert seen and seen[-1], "до потолка комбинация идёт в мгновенное письмо"
     day = timezone.localtime(now).date().isoformat()
+    FollowDigest.objects.create(user=user, period_key=f"i:{day}T05:00", item_keys=["x|y|z"])
+    seen.clear()
+    follow_digest.instant_for_user(user, now=now)
+    assert seen and seen[-1], "письма только по компаниям потолок не тратят"
     for i in range(2):
-        FollowDigest.objects.create(user=user, period_key=f"i:{day}T0{i}:00")
+        FollowDigest.objects.create(
+            user=user, period_key=f"i:{day}T0{i}:00", item_keys=[follow_digest.QUERY_MARK]
+        )
     seen.clear()
     assert follow_digest.instant_for_user(user, now=now) is False
     assert not seen, "сверх потолка комбинации ждут до завтра (письма нет)"
@@ -282,3 +288,43 @@ def test_follow_page_tells_the_daily_instant_cap(settings):
     settings.ROOT_URLCONF = "config.urls_portal"
     html = follow_views.follow_page(_req("get", "/folgen/", _combo(), portal=_portal()))
     assert "10 „Sofort“-E-Mails am Tag" in html.content.decode()
+
+
+def test_waiting_combination_keeps_its_window_while_business_still_goes(monkeypatch, settings):
+    """Ревью: сверх потолка письмо по компании уходит, а `last_sent_at` ждущей комбинации не
+    сдвигается — её новинки придут на следующий день (ничего не теряется)."""
+    from django.utils import timezone
+
+    from apps.aggregator import follow_digest
+    from apps.aggregator.models import FollowDigest
+
+    settings.AGGREGATOR_FOLLOW = {**settings.AGGREGATOR_FOLLOW, "max_instant_mails_per_day": 1}
+    monkeypatch.setattr(follow_digest, "in_quiet_hours", lambda now: False)
+    portal = _portal()
+    user = PortalUser.objects.create(email=_email())
+    combo = follow.follow_now(user, _combo_target(portal), frequency="instant", portal=portal)
+    now = timezone.now()
+    day = timezone.localtime(now).date().isoformat()
+    FollowDigest.objects.create(
+        user=user, period_key=f"i:{day}T00:00", item_keys=[follow_digest.QUERY_MARK]
+    )
+    seen = []
+    monkeypatch.setattr(
+        follow_digest, "build_digest", lambda u, subs, now=None: seen.append(subs) or None
+    )
+    follow_digest.instant_for_user(user, now=now)
+    assert not seen, "комбинация ждёт"
+    combo.refresh_from_db()
+    assert combo.last_sent_at is None, "окно «нового» не сдвинуто"
+    tomorrow = now + timezone.timedelta(days=1)
+    follow_digest.instant_for_user(user, now=tomorrow)
+    assert seen and combo in seen[-1], "на следующий день комбинация снова в письме"
+
+
+def test_bad_daily_cap_setting_falls_back_to_default(settings):
+    from apps.aggregator import follow_digest
+
+    settings.AGGREGATOR_FOLLOW = {**settings.AGGREGATOR_FOLLOW, "max_instant_mails_per_day": "x"}
+    assert follow_digest.max_instant_mails_per_day() == follow_digest.MAX_INSTANT_MAILS_PER_DAY
+    settings.AGGREGATOR_FOLLOW = {**settings.AGGREGATOR_FOLLOW, "max_instant_mails_per_day": 0}
+    assert follow_digest.max_instant_mails_per_day() == 1

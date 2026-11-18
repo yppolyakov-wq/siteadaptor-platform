@@ -131,6 +131,13 @@ class Digest:
     @property
     def item_keys(self) -> list[str]:
         keys: list[str] = []
+        # T-8.10d.1: метка «в письме были комбинации» — по ней считается дневной потолок
+        # «Sofort» (письма только по компаниям его не тратят); с ключом элемента не совпадёт
+        if any(
+            getattr(s.sub, "target_kind", "") == FollowSubscription.TARGET_QUERY
+            for s in self.sections
+        ):
+            keys.append(QUERY_MARK)
         for section in self.sections:
             keys.extend(follow.item_key(item) for item in section.items)
         return keys[:MAX_ITEM_KEYS]
@@ -449,15 +456,30 @@ def run_daily(now=None) -> int:
     return queued
 
 
+#: метка в `FollowDigest.item_keys`: письмо несло комбинации фильтров (T-8.10d.1)
+QUERY_MARK = "~query"
+MAX_INSTANT_MAILS_PER_DAY = 10
+
+
 def max_instant_mails_per_day() -> int:
-    """Потолок мгновенных писем жителю в день, после которого комбинации ждут (T-8.10d.1)."""
-    return int(_cfg("max_instant_mails_per_day", 10))
+    """Потолок мгновенных писем с комбинациями жителю в день (T-8.10d.1, владелец: 10).
+    Мусор в настройке — значение по умолчанию (ревью: иначе падала бы рассылка и страница)."""
+    raw = _cfg("max_instant_mails_per_day", MAX_INSTANT_MAILS_PER_DAY)
+    try:
+        value = int(raw)
+    except (TypeError, ValueError):
+        log.warning("follow: bad max_instant_mails_per_day %r", raw)
+        return MAX_INSTANT_MAILS_PER_DAY
+    return max(1, value)
 
 
 def instant_mails_today(user: PortalUser, now=None) -> int:
-    """Сколько мгновенных писем житель уже получил сегодня (местные сутки)."""
+    """Сколько мгновенных писем С КОМБИНАЦИЯМИ житель получил сегодня (местные сутки):
+    письма только по компаниям потолок не тратят (ревью: иначе комбинации ждали бы вечно)."""
     day = _local(now).date().isoformat()
-    return FollowDigest.objects.filter(user=user, period_key__startswith=f"i:{day}T").count()
+    return FollowDigest.objects.filter(
+        user=user, period_key__startswith=f"i:{day}T", item_keys__contains=[QUERY_MARK]
+    ).count()
 
 
 def instant_for_user(user: PortalUser, *, now=None) -> bool:
