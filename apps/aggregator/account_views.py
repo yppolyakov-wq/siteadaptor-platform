@@ -88,11 +88,7 @@ def account(request):
         {
             "sub": sub,
             "label": follow.describe(sub),
-            "frequencies": [
-                (k, label)
-                for k, label in sub.FREQUENCIES
-                if k != sub.FREQ_INSTANT or follow.target_from_follow(sub).allows_instant
-            ],
+            "frequencies": follow.frequency_choices(user, follow.target_from_follow(sub), sub=sub),
         }
         for sub in follow.user_follows(user)
     ]

@@ -890,10 +890,12 @@ class FollowSubscription(models.Model):
                 fields=["user", "target_kind", "target_key", "city", "channel"],
                 name="follow_uniq",
             ),
-            # «Sofort» — только у бизнеса (Р-3): раздел/район — всегда сводкой.
+            # «Sofort» — у бизнеса и у комбинации фильтров (Р-3, T-8.10d.1 P4): раздел/район/
+            # категория — всегда сводкой.
             models.CheckConstraint(
-                condition=~models.Q(frequency="instant") | models.Q(target_kind="business"),
-                name="follow_instant_business_only",
+                condition=~models.Q(frequency="instant")
+                | models.Q(target_kind__in=("business", "query")),
+                name="follow_instant_business_or_query",
             ),
             # T-8.10d: у подписки на поиск набор обязателен (иначе это «всё подряд»).
             models.CheckConstraint(

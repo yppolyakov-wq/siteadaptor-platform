@@ -187,11 +187,7 @@ def follow_page(request):
     if target is None:
         raise Http404
     user = auth.current_portal_user(request) if portal else None
-    frequencies = [
-        (k, label)
-        for k, label in FollowSubscription.FREQUENCIES
-        if k != FollowSubscription.FREQ_INSTANT or target.allows_instant
-    ]
+    frequencies = follow.frequency_choices(user, target)
     context = {
         "portal": portal,
         "base_template": _base_template(portal),
@@ -354,12 +350,7 @@ def follow_manage(request, token):
         {
             "sub": sub,
             "label": follow.describe(sub),
-            "frequencies": [
-                (k, label)
-                for k, label in FollowSubscription.FREQUENCIES
-                if k != FollowSubscription.FREQ_INSTANT
-                or follow.target_from_follow(sub).allows_instant
-            ],
+            "frequencies": follow.frequency_choices(user, follow.target_from_follow(sub), sub=sub),
         }
         for sub in follow.user_follows(user)
     ]

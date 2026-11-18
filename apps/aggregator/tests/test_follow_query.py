@@ -223,13 +223,14 @@ def test_doi_token_reconfirms_whitelist():
     assert resp.status_code == 400
 
 
-def test_no_instant_for_query():
+def test_instant_for_query_allowed_t8_10d1_p4():
+    # владелец (T-8.10d.1): частоту комбинации выбирает житель, «Sofort» — тоже
     portal = _portal()
     user = PortalUser.objects.create(email=_email())
     sub = _query_sub(user, portal, {"q": "Brot", "stadtteil": OHLIGS})
-    assert follow.set_frequency(sub, "instant") is False
+    assert follow.set_frequency(sub, "instant") is True
     target = follow.target_from_follow(sub)
-    assert follow.normalize_frequency("instant", target) == "daily"
+    assert follow.normalize_frequency("instant", target) == "instant"
 
 
 def test_subscription_cap_enforced(settings):
@@ -376,3 +377,16 @@ def test_describe_is_human_readable():
     )
     text = follow_query.describe(pairs, city=CITY)
     assert "„Tomaten“" in text and "Sonnenhof" in text and " · " in text
+
+
+def test_instant_query_follow_is_delivered_by_instant_run(monkeypatch, isolated_ratelimit):
+    # T-8.10d.1 P4: мгновенная комбинация идёт тем же путём, что «Sofort» у бизнеса
+    from django.core import mail
+
+    monkeypatch.setattr(follow_digest, "in_quiet_hours", lambda now: False)
+    portal, tenant, user = _setup()
+    _listing(tenant, title={"de": "Tomaten sofort"})
+    sub = _query_sub(user, portal, {"q": "Tomaten"})
+    assert follow.set_frequency(sub, "instant") is True
+    assert follow_digest.instant_for_user(user) is True
+    assert "Tomaten sofort" in mail.outbox[-1].body

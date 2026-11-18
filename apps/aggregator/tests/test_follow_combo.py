@@ -130,3 +130,41 @@ def test_add_forms_carry_only_known_params(settings):
         _req("get", "/folgen/", params, portal=_portal())
     ).content.decode()
     assert 'name="junk"' not in html
+
+
+# --- P4: «Sofort» у комбинаций ------------------------------------------------------------
+
+
+def _combo_target(portal, kat=KAT):
+    return follow.parse_target(_qd(art="suche", kat=kat, stadtteil=MITTE), portal=portal)
+
+
+def test_combination_can_be_instant_and_is_offered_sofort():
+    portal = _portal()
+    user = PortalUser.objects.create(email=_email())
+    sub = follow.follow_now(user, _combo_target(portal), frequency="instant", portal=portal)
+    assert sub.frequency == FollowSubscription.FREQ_INSTANT
+    keys = [k for k, _l in follow.frequency_choices(user, _combo_target(portal), sub=sub)]
+    assert FollowSubscription.FREQ_INSTANT in keys
+
+
+def test_instant_combinations_are_capped_and_sofort_is_hidden_over_the_cap(settings):
+    settings.AGGREGATOR_FOLLOW = {**settings.AGGREGATOR_FOLLOW, "max_instant_query_follows": 1}
+    portal = _portal()
+    user = PortalUser.objects.create(email=_email())
+    first = follow.follow_now(user, _combo_target(portal), frequency="instant", portal=portal)
+    other = _combo_target(portal, kat="restaurants")
+    second = follow.follow_now(user, other, frequency="instant", portal=portal)
+    assert second.frequency == FollowSubscription.FREQ_DAILY, "сверх потолка — сводкой"
+    assert FollowSubscription.FREQ_INSTANT not in dict(follow.frequency_choices(user, other))
+    assert follow.set_frequency(second, "instant") is False
+    # сама мгновенная может остаться «Sofort», повтор той же — не новое место
+    assert follow.set_frequency(first, "instant") is True
+    again = follow.follow_now(user, _combo_target(portal), frequency="instant", portal=portal)
+    assert again.frequency == FollowSubscription.FREQ_INSTANT
+
+
+def test_section_follow_still_never_instant():
+    portal = _portal()
+    target = follow.parse_target(_qd(stadtteil=MITTE), portal=portal)
+    assert FollowSubscription.FREQ_INSTANT not in dict(follow.frequency_choices(None, target))
