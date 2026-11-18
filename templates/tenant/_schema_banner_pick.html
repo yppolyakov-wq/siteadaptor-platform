@@ -79,7 +79,7 @@
         <span class="flex items-center gap-1 px-2 py-1.5 text-xs font-semibold"><span aria-hidden="true">＋</span><span class="break-words">{{ o.label|default:"—" }}</span></span>
       </button></li>
       {% empty %}
-      <li class="col-span-2 text-xs text-gray-600">{% if pick.lookup %}{% trans "Nichts gefunden." %}{% else %}{% trans "Alle Banner der Bibliothek sind schon gewählt." %}{% endif %}</li>
+      <li class="col-span-2 text-xs text-gray-600">{% if pick.lookup %}{% trans "Nichts gefunden." %}{% else %}{% trans "Alle Banner der Bibliothek sind schon gewählt." %} <a href="{% url 'site-banners' %}" class="inline-flex items-center min-h-[44px] font-semibold text-indigo-700 hover:underline">{% trans "Banner verwalten" %} <span aria-hidden="true">→</span></a>{% endif %}</li>
       {% endfor %}
     </ul>
     </div>
