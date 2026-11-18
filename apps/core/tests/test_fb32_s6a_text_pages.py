@@ -132,8 +132,6 @@ def test_draft_started_before_section_rows_is_not_a_false_conflict():
 
 
 def test_versand_rows_are_fixed_and_cannot_be_hidden():
-    from apps.core.tests.test_fb32_s6_pages_golden import _versand  # noqa: F401
-
     assert detail_parts.section_keys("versand") == ("pagetext", "costs")
     rows = {r["ref"]: r for r in site_schema.blocks_for({}, "text@versand")}
     assert rows["pagetext"]["pinned"] and rows["costs"]["pinned"], "§ 6 PAngV: не скрываются"
@@ -164,3 +162,15 @@ def test_versand_list_switched_off_stays_off_with_rows():
     ContentPage.objects.filter(slug="versand").delete()
     ShippingMethod.objects.update(active=False)
     assert "data-shipping-row=" in _versand(cfg)
+
+
+def test_versand_without_own_text_shows_the_list_even_with_the_box_unticked():
+    from apps.core.models import ContentPage
+    from apps.core.tests.test_fb32_s6_pages_golden import _versand
+
+    ContentPage.objects.create(
+        slug="versand", title="Versand", body="", show_shipping_methods=False
+    )
+    cfg = {"page_blocks": {"info": [TEXT, {"key": "pagetext"}, {"key": "costs"}]}}
+    html = _versand(cfg)
+    assert "data-shipping-row=" in html, "§ 6 PAngV: без своего текста список виден всегда"

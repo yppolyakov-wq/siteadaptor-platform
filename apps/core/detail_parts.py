@@ -387,10 +387,15 @@ def flow_ctx(config, host: str, *, normalized: bool = False) -> dict:
     разметка) и `tail_part` (блоки после последнего раздела)."""
     from apps.tenants import siteconfig
 
+    if not normalized and not ((config or {}).get("page_blocks") or {}).get(host):
+        # ревью S6b: своих блоков нет — прежняя разметка без второй нормализации на запрос
+        return {"page_flow": [], "tail_part": "after"}
     norm = config if normalized else siteconfig.normalize(config)
-    items = page_flow(norm, host, normalized=True)
     rows = siteconfig.page_rows(norm, host)
-    return {"page_flow": items, "tail_part": tail_part(rows, host, list(section_keys(host)))}
+    keys = list(section_keys(host))
+    hidden = siteconfig.detail_section_hidden(norm, module_of(host))
+    items = flow(rows, host, [k for k in keys if k not in hidden], all_order=keys)
+    return {"page_flow": items, "tail_part": tail_part(rows, host, keys)}
 
 
 def cart_flow(config, *, normalized: bool = False) -> list[dict]:
