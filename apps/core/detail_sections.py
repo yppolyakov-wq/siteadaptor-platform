@@ -130,6 +130,9 @@ DETAIL_SECTIONS: dict[str, tuple[DetailSection, ...]] = {
     "teachers": (DetailSection("teacherlist", _("Teachers"), hideable=False),),
     "event_calendar": (DetailSection("calendar", _("Retreat calendar"), hideable=False),),
     "passes": (DetailSection("plans", _("Multi-visit cards"), hideable=False),),
+    # FB-32 S6g-2: выбор времени (ресурс или «Tisch reservieren») — вся коробка календаря и
+    # формы брони одной неподвижной строкой
+    "booking_slots": (DetailSection("slots", _("Book a slot"), hideable=False),),
     "versand": (
         DetailSection("pagetext", _("Text"), hideable=False),
         DetailSection("costs", _("Versandkosten"), hideable=False),

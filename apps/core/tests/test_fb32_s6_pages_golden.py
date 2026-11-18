@@ -294,3 +294,46 @@ def test_lehrer_kalender_karten_without_blocks_look_as_before():
     _check("lehrer-plain", _lehrer({}))
     _check("kalender-plain", _kalender({}))
     _check("karten-plain", _karten({}))
+
+
+# ── S6g-2: «Termin» (ресурсы) и выбор времени ──────────────────────────────────
+
+
+def _resource():
+    from apps.booking.models import Resource
+
+    obj, _new = Resource.objects.get_or_create(
+        name="Raum A",
+        defaults={"type": Resource.TYPE_ROOM, "is_active": True, "bookable_online": True},
+    )
+    return obj
+
+
+def _termin(cfg, **get):
+    from apps.booking import public_views
+
+    _resource()
+    Resource = type(_resource())
+    Resource.objects.get_or_create(
+        name="Raum B",
+        defaults={"type": Resource.TYPE_ROOM, "is_active": True, "bookable_online": True},
+    )
+    req = _req("/termin/", _rows_for(cfg, "services"))
+    req.GET = req.GET.copy()
+    req.GET.update(get)
+    return _stable(public_views.termin_index(req).content.decode())
+
+
+def _slots(cfg, **get):
+    from apps.booking import public_views
+
+    res = _resource()
+    req = _req(f"/termin/{res.pk}/", _rows_for(cfg, "booking_slots"))
+    req.GET = req.GET.copy()
+    req.GET.update(get)
+    return _stable(public_views.termin_slots(req, res.pk).content.decode())
+
+
+def test_termin_and_slots_without_blocks_look_as_before():
+    _check("termin-plain", _termin({}))
+    _check("slots-plain", _slots({}))

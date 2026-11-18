@@ -387,3 +387,38 @@ def test_section_keys_never_collide_with_block_types():
         for s in secs:
             assert not siteconfig.cblock_type(s.key), (module, s.key)
             assert s.key not in siteconfig.PAGE_REF_BLOCKS, (module, s.key)
+
+
+# ── S6g-2: «Termin» (ресурсы) и выбор времени ──────────────────────────────────
+
+
+def test_termin_resources_page_shows_its_services_blocks_but_not_in_the_widget():
+    from apps.core.tests.test_fb32_s6_pages_golden import _termin
+
+    html = _termin({"page_blocks": {"info": [TEXT]}})
+    assert "Bus 5" in html, "хост `services` теперь выводится и у бизнеса без услуг"
+    assert "Bus 5" not in _termin({"page_blocks": {"info": [TEXT]}}, embed="1")
+
+
+def test_slots_own_block_above_the_box_never_inside_it_nor_in_box_or_widget():
+    from apps.core.tests.test_fb32_s6_pages_golden import _slots
+
+    cfg = {"page_blocks": {"info": [TEXT, {"key": "slots"}]}}
+    html = _slots(cfg)
+    assert html.index("Bus 5") < html.index('id="svc-box"')
+    box = html[html.index('id="svc-box"') :]
+    assert "Bus 5" not in box[: box.index("_svc_box") if "_svc_box" in box else len(box)]
+    assert "Bus 5" not in _slots(cfg, embed="1")
+    assert "Bus 5" not in _slots(cfg, box="1"), "подмена коробки (?box=1) — без блоков"
+
+
+def test_slots_page_type_and_preview():
+    from apps.core import studio_pages
+    from apps.core.tests.test_fb32_s6_pages_golden import _resource
+
+    pt = next(p for p in studio_pages.PAGE_TYPES if p.code == "booking_slots")
+    assert site_schema._preview_url(pt) == ""
+    res = _resource()
+    assert site_schema._preview_url(pt).endswith(f"/{res.pk}/")
+    rows = {r["ref"]: r for r in site_schema.blocks_for({}, "booking_slots")}
+    assert rows["slots"]["pinned"]

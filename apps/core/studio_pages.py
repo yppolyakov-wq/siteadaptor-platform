@@ -712,6 +712,15 @@ PAGE_TYPES: tuple[PageType, ...] = (
         (),
         block_host="passes",
     ),
+    # FB-32 S6g-2: выбор времени — «Tisch reservieren» или страница ресурса (превью —
+    # `site_schema._preview_url`: столы онлайн → /tisch/, иначе первый ресурс)
+    PageType(
+        "booking_slots",
+        _("Book a slot"),
+        ("storefront-tisch", "storefront-termin-slots"),
+        (),
+        block_host="booking_slots",
+    ),
     PageType(
         "lookbook",
         _("Lookbook"),

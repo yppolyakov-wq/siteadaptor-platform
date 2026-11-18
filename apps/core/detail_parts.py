@@ -49,6 +49,8 @@ SECTION_HOSTS = {
     "teachers": "teachers",
     "event_calendar": "event_calendar",
     "passes": "passes",
+    # FB-32 S6g-2
+    "booking_slots": "booking_slots",
 }
 #: FB-32 S6a: хосты своих страниц «Seite» (`seite:<slug>`) — модуль разделов «page»
 PAGE_PREFIX = "seite:"
@@ -68,6 +70,7 @@ _FORM_PAGES = frozenset(
         "teachers",
         "event_calendar",
         "passes",
+        "booking_slots",
     }
 )
 NO_KAUF_MODULES = frozenset({"cart", "info", "page", "versand", "promo"}) | _FORM_PAGES

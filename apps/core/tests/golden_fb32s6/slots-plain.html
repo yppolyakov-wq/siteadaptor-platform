@@ -1,0 +1,117 @@
+<main class="flex-1 w-full max-w-none mx-auto px-4 py-6 md:py-10">
+<section class="relative left-1/2 -translate-x-1/2 w-screen -mt-6 md:-mt-10 mb-6 text-white bg-cover bg-center"
+         style="background: var(--accent);">
+  <div class="bg-black/15">
+    <div class="max-w-none mx-auto px-4 py-8 md:py-12">
+      <a href="/termin/" class="text-sm text-white/80 hover:text-white">← Zurück</a>
+      <h1 class="text-3xl md:text-4xl font-bold mt-1 drop-shadow">🍽 Raum A</h1>
+      <p class="mt-1 text-white/90">Reservieren Sie Ihren Platz online – wählen Sie einen Tag und eine Uhrzeit aus.</p>
+    </div>
+  </div>
+</section>
+<div id="svc-box">
+<div class="lg:grid lg:grid-cols-[22rem_minmax(0,1fr)] lg:gap-10 lg:items-start max-w-6xl mx-auto" data-slots-layout>
+<div class="lg:sticky lg:top-24" data-slots-calendar>
+<div class="bg-white rounded-2xl shadow-sm p-4 mb-4 max-w-sm mx-auto">
+  <div class="flex items-center justify-between mb-2">
+    <span class="px-2"></span>
+    <span class="font-semibold text-sm">November 2026</span>
+    <a href="?cal=2026-12&amp;tag=DAY" class="px-2 py-1 rounded-lg hover:bg-gray-100 text-gray-500" aria-label="Nächsten Monat">›</a>
+  </div>
+  <div class="grid grid-cols-7 gap-1 text-center text-[11px] text-gray-500 mb-1">
+    <span>Mo</span><span>Di</span><span>Mi</span>
+    <span>Do</span><span>Fr</span><span>Sa</span><span>So</span>
+  </div>
+  <div class="grid grid-cols-7 gap-1 text-center text-sm">
+    <span></span><span></span><span></span><span></span><span></span><span></span>
+        <span class="aspect-square flex items-center justify-center rounded-lg text-gray-300">1</span>
+        <span class="aspect-square flex items-center justify-center rounded-lg text-gray-300">2</span>
+        <span class="aspect-square flex items-center justify-center rounded-lg text-gray-300">3</span>
+        <span class="aspect-square flex items-center justify-center rounded-lg text-gray-300">4</span>
+        <span class="aspect-square flex items-center justify-center rounded-lg text-gray-300">5</span>
+        <span class="aspect-square flex items-center justify-center rounded-lg text-gray-300">6</span>
+        <span class="aspect-square flex items-center justify-center rounded-lg text-gray-300">7</span>
+        <span class="aspect-square flex items-center justify-center rounded-lg text-gray-300">8</span>
+        <span class="aspect-square flex items-center justify-center rounded-lg text-gray-300">9</span>
+        <span class="aspect-square flex items-center justify-center rounded-lg text-gray-300">10</span>
+        <span class="aspect-square flex items-center justify-center rounded-lg text-gray-300">11</span>
+        <span class="aspect-square flex items-center justify-center rounded-lg text-gray-300">12</span>
+        <span class="aspect-square flex items-center justify-center rounded-lg text-gray-300">13</span>
+        <span class="aspect-square flex items-center justify-center rounded-lg text-gray-300">14</span>
+        <span class="aspect-square flex items-center justify-center rounded-lg text-gray-300">15</span>
+        <span class="aspect-square flex items-center justify-center rounded-lg text-gray-300">16</span>
+        <span class="aspect-square flex items-center justify-center rounded-lg text-gray-300">17</span>
+        <span class="aspect-square flex items-center justify-center rounded-lg text-gray-400">18</span>
+        <span class="aspect-square flex items-center justify-center rounded-lg text-gray-400">19</span>
+        <span class="aspect-square flex items-center justify-center rounded-lg text-gray-400">20</span>
+        <span class="aspect-square flex items-center justify-center rounded-lg text-gray-400">21</span>
+        <span class="aspect-square flex items-center justify-center rounded-lg text-gray-400">22</span>
+        <span class="aspect-square flex items-center justify-center rounded-lg text-gray-400">23</span>
+        <span class="aspect-square flex items-center justify-center rounded-lg text-gray-400">24</span>
+        <span class="aspect-square flex items-center justify-center rounded-lg text-gray-400">25</span>
+        <span class="aspect-square flex items-center justify-center rounded-lg text-gray-400">26</span>
+        <span class="aspect-square flex items-center justify-center rounded-lg text-gray-400">27</span>
+        <span class="aspect-square flex items-center justify-center rounded-lg text-gray-400">28</span>
+        <span class="aspect-square flex items-center justify-center rounded-lg text-gray-400">29</span>
+        <span class="aspect-square flex items-center justify-center rounded-lg text-gray-400">30</span>
+  </div>
+  <p class="mt-2 text-[11px] text-gray-500"><span class="inline-block w-2.5 h-2.5 rounded bg-emerald-100 align-middle"></span> verfügbar</p>
+</div>
+</div>
+<div class="min-w-0" data-slots-day>
+<div class="flex items-center justify-between mb-4 max-w-md mx-auto lg:max-w-none lg:mx-0">
+  <span></span>
+  <span class="font-semibold" data-day-label>Mittwoch, DATE</span>
+    <a href="?tag=DAY" class="hover:underline text-sm" style="color: var(--accent);">Do DATE →</a>
+</div>
+<p class="text-gray-500 mb-6">An diesem Tag sind keine Termine frei – versuchen Sie es mit einem anderen Datum.</p>
+</div>
+</div>
+</div>
+<div id="svc-box-live" class="sr-only" role="status" aria-live="polite"></div>
+<script>
+(function () {
+  if (window.__svcBoxBound) return;
+  window.__svcBoxBound = true;
+  document.addEventListener("click", function (e) {
+    var a = e.target.closest && e.target.closest('#svc-box a[href^="?"]');
+    if (!a || !window.fetch) return;
+    e.preventDefault();
+    var url = location.pathname + a.getAttribute("href");
+    fetch(url + "&box=1", { headers: { "X-Requested-With": "fetch" } })
+      .then(function (r) { if (!r.ok) throw 0; return r.text(); })
+      .then(function (html) {
+        var box = document.getElementById("svc-box");
+        if (!box) throw 0;
+        var href = a.getAttribute("href");
+        box.innerHTML = html;
+        history.replaceState(null, "", url);
+        // SP-1 a11y (WCAG DATE3/DATE3): нажатая ссылка исчезла вместе со старым
+        // фрагментом — фокус возвращаем на её двойника, а выбранный день озвучиваем.
+        var twin = null;
+        box.querySelectorAll('a[href^="?"]').forEach(function (el) {
+          if (!twin && el.getAttribute("href") === href) twin = el;
+        });
+        if (twin) {
+          twin.focus({ preventScroll: true });
+        } else {
+          // Листание месяца меняет адрес ссылки — двойника нет; фокус остаётся в блоке.
+          box.setAttribute("tabindex", "-1");
+          box.focus({ preventScroll: true });
+        }
+        var live = document.getElementById("svc-box-live");
+        var day = box.querySelector("[data-day-label]");
+        if (live && day) live.textContent = day.textContent;
+        var smooth = !(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+        if (url.indexOf("slot=") !== -1) {
+          // Ревью DAY: форма переехала в скрытый диалог — докрутка к ней
+          // стала no-op. Ведём глаз к кнопке, которая этот диалог открывает.
+          var f = box.querySelector("[data-modal-open]") || box.querySelector('form[method="post"]');
+          if (f) f.scrollIntoView({ behavior: smooth ? "smooth" : "auto", block: "center" });
+        }
+      })
+      .catch(function () { location.href = url; });
+  });
+})();
+</script>
+  </main>

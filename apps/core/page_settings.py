@@ -67,6 +67,7 @@ TYPE_MODULES: dict[str, str | None] = {
     "teachers": "events",
     "event_calendar": "events",
     "passes": "booking",
+    "booking_slots": "booking",
     "text": None,
     "team": None,
     "gallery": None,
@@ -503,6 +504,10 @@ def _storefront_shows(tenant, type_code: str) -> bool:
         from apps.booking.models import PassPlan
 
         return PassPlan.objects.filter(is_active=True).exists()
+    if type_code == "booking_slots":
+        from apps.booking.models import Resource
+
+        return Resource.objects.filter(is_active=True, bookable_online=True).exists()
     if type_code == "teachers":
         from apps.events.models import Teacher
 

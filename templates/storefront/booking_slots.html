@@ -1,5 +1,5 @@
 {% extends base_template|default:"storefront/_base.html" %}
-{% load i18n %}
+{% load i18n siteui %}
 {% block title %}{% if table_mode %}{% trans "Tisch reservieren" %}{% else %}{{ resource.name }}{% endif %} — {% trans "Book a slot" %}{% endblock %}
 
 {% block content %}
@@ -14,6 +14,7 @@
     </div>
   </div>
 </section>
+{% if not embed %}{% page_flow "booking_slots" as pf %}{% if pf.page_flow %}{% comment %}FB-32 S6g-2: свои блоки над выбором времени (вне #svc-box: его подменяет ?box=1); в виджете — без блоков.{% endcomment %}{% for it in pf.page_flow %}{% if it.part %}{% page_blocks "booking_slots" it.part %}{% endif %}{% endfor %}{% endif %}{% endif %}
 
 {% if messages %}
   {% for m in messages %}
@@ -30,4 +31,5 @@
 </div>
 
 {% include "storefront/_svc_box_script.html" %}
+{% if not embed %}{% if pf.page_flow %}{% page_blocks "booking_slots" pf.tail_part %}{% else %}{% page_blocks "booking_slots" %}{% endif %}{% endif %}
 {% endblock %}

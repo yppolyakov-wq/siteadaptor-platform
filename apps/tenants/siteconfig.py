@@ -1200,6 +1200,7 @@ PAGE_BLOCK_HOSTS = (
     "teachers",  # /lehrer/
     "event_calendar",  # /veranstaltung/kalender/
     "passes",  # /karten/
+    "booking_slots",  # /termin/<ресурс>/ и /tisch/ — выбор времени
     # FB-31 P3 R6: «Alle Angebotsgruppen» — общие блоки страниц групп акций (пока не
     # сохранены, группы показывают блоки обзора `/aktionen/`, как и раньше)
     "promo_group",

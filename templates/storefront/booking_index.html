@@ -10,7 +10,9 @@
 <h1 class="text-2xl md:text-3xl font-bold mb-1">{% trans "Book a slot" %}</h1>
 {% if resources or table_booking %}
 <p class="text-gray-500 mb-6">{% trans "Pick a free time — we will confirm by email." %}</p>
-<div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+{% comment %}FB-32 S6g-2: свои блоки страницы «Termine» (хост `services`) — и у бизнеса без прайс-листа услуг (раньше «Seitenaufbau» их предлагал, а страница не выводила): «над списком» — здесь, остальные — под ним; в виджете (?embed=1) — без блоков. Метка основного списка — только в превью (цель перетаскивания), витрина прежняя.{% endcomment %}
+{% if not embed %}{% page_blocks "services" part="before" %}{% endif %}
+<div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4"{% if is_preview %} data-pb-main{% endif %}>
   {% if table_booking %}
     <a href="{% url 'storefront-tisch' %}{% if embed %}?embed=1{% endif %}" data-table-booking
        class="sf-card bg-white rounded-2xl shadow-sm p-5 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
@@ -38,5 +40,6 @@
 {% comment %}FB-29 T4: примеры в предпросмотре дизайна, пока своих записей нет.{% endcomment %}
 {% if sample_sections %}{% include "storefront/sections/_services.html" %}{% endif %}
 {% if has_pass_plans %}<p class="mt-6"><a href="{% url 'storefront-karten' %}"{% if embed %} target="_top" rel="noopener"{% endif %} class="text-indigo-600 hover:underline">{% trans "Buy a multi-visit card" %} →</a></p>{% endif %}
+{% if not embed %}{% page_blocks "services" %}{% endif %}
 {% booking_info %}
 {% endblock %}

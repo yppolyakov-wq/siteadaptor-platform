@@ -77,6 +77,8 @@ def _sections_label(key: str) -> str:
 
 
 def _preview_url(pt) -> str:
+    if pt.code == "booking_slots":
+        return _slots_preview_url()
     for name in pt.url_names:
         try:
             return reverse(name)
@@ -101,6 +103,18 @@ def _preview_url(pt) -> str:
                 except NoReverseMatch:
                     continue
     return ""
+
+
+def _slots_preview_url() -> str:
+    """FB-32 S6g-2: «Tisch reservieren», если столы онлайн есть (иначе /tisch/ — 404), либо
+    страница времени первого ресурса."""
+    from apps.booking import table_rules
+    from apps.booking.models import Resource
+
+    if table_rules.online_tables().exists():
+        return reverse("storefront-tisch")
+    res = Resource.objects.filter(is_active=True, bookable_online=True).order_by("pk").first()
+    return reverse("storefront-termin-slots", args=[res.pk]) if res is not None else ""
 
 
 #: FB-27 R4: страницы, у которых блоки есть, а `block_host` в реестре типов не объявлен
@@ -1187,7 +1201,12 @@ _TYPE_GROUPS = (
         "catalog",
         ("catalog", "category", "product", "cart", "wishlist", "combos", "lookbook", "finder"),
     ),
-    ("termine", gettext_lazy("Termine"), "booking", ("services", "service", "passes")),
+    (
+        "termine",
+        gettext_lazy("Termine"),
+        "booking",
+        ("services", "service", "booking_slots", "passes"),
+    ),
     ("unterkunft", gettext_lazy("Unterkunft"), "stays", ("stays", "stay")),
     (
         "events",
