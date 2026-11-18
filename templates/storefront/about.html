@@ -10,16 +10,13 @@
    штатный способ её собрать) стояли снаружи: «Volle Breite» двигала заголовок и абзац,
    а тело оставалось прежним.{% endcomment %}
 <div class="{% text_width_class %}">
-  <section class="mb-10">
-    <h1 class="text-2xl md:text-3xl font-bold mb-4" data-edit="about_title">{{ site.about_title|default:_("About us") }}</h1>
-    {% if page_body %}
-      {% include "storefront/_page_body.html" with body=page_body %}
-    {% elif site.about_text or is_preview %}
-      <p class="text-gray-600 leading-relaxed whitespace-pre-line" data-edit="about_text">{{ site.about_text }}</p>
-    {% endif %}
-  </section>
-  {% comment %}M21.11: карточку контактов можно выключить в «Seitenaufbau».{% endcomment %}
+  {% if page_flow %}{% comment %}FB-32 S6a: текст, контакты и свои блоки между ними — строки «Seitenaufbau».{% endcomment %}
+{% for it in page_flow %}{% if it.section == "pagetext" %}{% include "storefront/_about_text.html" %}{% elif it.section == "contact" %}{% if not site|has_page_block:"info:contact_card" %}{% include "storefront/sections/_contact.html" %}{% endif %}{% else %}{% page_blocks "info" it.part %}{% endif %}{% endfor %}
+  {% page_blocks "info" tail_part %}
+  {% else %}
+{% include "storefront/_about_text.html" %}  {% comment %}M21.11: карточку контактов можно выключить в «Seitenaufbau».{% endcomment %}
   {% if site.about_contact is not False and not site|has_page_block:"info:contact_card" %}{% include "storefront/sections/_contact.html" %}{% endif %}
   {% page_blocks "info" %}
+  {% endif %}
 </div>
 {% endblock %}

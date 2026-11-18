@@ -94,6 +94,13 @@ DETAIL_SECTIONS: dict[str, tuple[DetailSection, ...]] = {
     # FB-32 S4: страница корзины — «Passt gut dazu» строкой схемы (двигается, скрывается,
     # свои блоки выше/ниже). Видимость — прежний ключ `cart_show_upsell`.
     "cart": (DetailSection("upsell", _("Goes well with this")),),
+    # FB-32 S6a: «Über uns» — текст (всегда на странице) и карточка контактов (видимость —
+    # прежний ключ `about_contact`); своя страница «Seite» — только текст. Порядок постоянный.
+    "info": (
+        DetailSection("pagetext", _("Text"), hideable=False),
+        DetailSection("contact", _("Kontakt & Öffnungszeiten")),
+    ),
+    "page": (DetailSection("pagetext", _("Text"), hideable=False),),
     "stays": (
         DetailSection("description", _("Description")),
         DetailSection("amenities", _("Amenities")),

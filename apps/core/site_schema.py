@@ -22,6 +22,7 @@ from django.urls import NoReverseMatch, reverse
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy
 
+from apps.core import detail_parts as _sec_parts
 from apps.core import studio_pages
 
 logger = logging.getLogger(__name__)
@@ -55,6 +56,15 @@ def _detail_label(host: str, item: dict) -> str:
     if not module or item.get("id"):
         return ""
     return str(detail_sections.section_labels(module).get(item.get("key"), ""))
+
+
+def _fixed_section(host, item: dict) -> bool:
+    """FB-32 S6a: строка раздела страницы с постоянным порядком («Über uns», «Seite»)."""
+    return (
+        not item.get("id")
+        and _sec_parts.module_of(host or "") in _sec_parts.FIXED_ORDER_MODULES
+        and item.get("key") in _sec_parts.section_keys(host or "")
+    )
 
 
 def _sections_label(key: str) -> str:
@@ -324,7 +334,6 @@ def _page_type(code: str):
 #: «Über uns» (хост info), «Versand» (versand) и каждая своя страница (seite:<slug>).
 #: Код строки схемы: «text» = Über uns, «text@<хост>» = остальные.
 TEXT = "text"
-CONTACT_REF = "__contact"
 
 
 @dataclass
@@ -1008,21 +1017,6 @@ def blocks_for(
         else:
             items = siteconfig.main_list_sequence(host, siteconfig.page_rows(config, host))
     out = []
-    if host == "info":
-        # M21.11: карточка «Kontakt & Öffnungszeiten» стоит на «Über uns» над блоками —
-        # строкой схемы, которую можно выключить (порядок фиксирован, удалить нельзя).
-        out.append(
-            {
-                "ref": CONTACT_REF,
-                "key": "contact",
-                "label": str(_("Kontakt & Öffnungszeiten")),
-                "enabled": config.get("about_contact") is not False,
-                "main": False,
-                "cblock": False,
-                "fixed": True,
-                "summary": "",
-            }
-        )
     main_label = _("Hauptliste")  # не внутри f-строки: xgettext её не извлекает
     names = width_names()
     for item in items:
@@ -1043,7 +1037,10 @@ def blocks_for(
                 "summary": "" if main else _row_summary(config, item),
                 "thumb": "cards" if main else _row_thumb(key),
                 "shape": _thumb_shape(config, item),
-                "fixed": False,
+                # FB-32 S6a: разделы текстовых страниц стоят на месте (только скрыть), текст
+                # своей страницы не скрывается вовсе
+                "fixed": _fixed_section(host, item),
+                "pinned": _fixed_section(host, item) and not _sec_parts.hideable(host or "", key),
                 "width": item.get("width") or "",
                 "newline": bool(item.get("newline")),
                 "width_label": WIDTH_LABELS.get(item.get("width") or "", ""),
@@ -1090,7 +1087,7 @@ def blocks_for(
             out[-1].update(_part_view_panel(config, host, item, main))
     from apps.core import detail_parts as _dp
 
-    if _dp.module_of(host or "") and host not in _dp.NO_KAUF:  # FB-32 S4: без покупки
+    if _dp.has_kauf(host or ""):  # FB-32 S4/S6a: у корзины и текстовых страниц покупки нет
         # FB-31 P5: «Buchung» закреплена после разделов (так её рисует страница); блоки
         # после неё — хвост страницы, как раньше
         keys = set(_dp.section_keys(host))
@@ -2538,12 +2535,10 @@ def mutate(
     anchor = not item.get("id") and item.get("key") in detail_parts.section_keys(rows_host)
     if anchor and op not in ("up", "down", "move", "toggle"):
         raise SchemaError("fixed")
-    if (
-        anchor
-        and detail_parts.shared_host(rows_host) in detail_parts.FIXED_ORDER
-        and op != "toggle"
-    ):
+    if anchor and detail_parts.fixed_order(rows_host) and op != "toggle":
         raise SchemaError("fixed")  # товар/номер: порядок разделов постоянный — только скрыть
+    if anchor and op == "toggle" and not detail_parts.hideable(rows_host, item.get("key")):
+        raise SchemaError("fixed")  # FB-32 S6a: текст своей страницы не скрывается
     pinned = (
         not item.get("id")
         and not main
@@ -3198,17 +3193,9 @@ def apply(
     _pt, host, home = resolve(tenant, code)
     locked = Tenant.objects.select_for_update().get(pk=tenant.pk)
     config = siteconfig.normalize(locked.site_config)
-    if host == "info" and ref == CONTACT_REF:
-        if op != "toggle":
-            raise SchemaError("fixed")
-        if config.get("about_contact") is False:
-            config.pop("about_contact", None)
-        else:
-            config["about_contact"] = False
-    else:
-        items = load_items(config, home, host)
-        ref = mutate(items, code, op, ref, block_type, value, fields, config.get("block_templates"))
-        store_items(config, home, host, items)
+    items = load_items(config, home, host)
+    ref = mutate(items, code, op, ref, block_type, value, fields, config.get("block_templates"))
+    store_items(config, home, host, items)
     locked.site_config = siteconfig.normalize(config)
     locked.save(update_fields=["site_config", "updated_at"])
     tenant.site_config = locked.site_config

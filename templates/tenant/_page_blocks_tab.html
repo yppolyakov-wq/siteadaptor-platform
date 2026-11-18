@@ -40,7 +40,7 @@
           <button name="op" value="up" class="ui-btn ui-btn-secondary min-w-[44px] min-h-[44px] px-0 justify-center"{% if not b.can_up %} disabled{% endif %} aria-label="{% blocktrans with t=b.label %}„{{ t }}“ nach oben{% endblocktrans %}"><span aria-hidden="true">↑</span></button>
           <button name="op" value="down" class="ui-btn ui-btn-secondary min-w-[44px] min-h-[44px] px-0 justify-center"{% if not b.can_down %} disabled{% endif %} aria-label="{% blocktrans with t=b.label %}„{{ t }}“ nach unten{% endblocktrans %}"><span aria-hidden="true">↓</span></button>
           {% endif %}
-          <button name="op" value="toggle" class="ui-btn ui-btn-secondary min-h-[44px]">{% if b.enabled %}{% trans "Ausblenden" %}{% else %}{% trans "Einblenden" %}{% endif %}<span class="sr-only">: {{ b.label }}</span></button>
+          {% if not b.pinned %}<button name="op" value="toggle" class="ui-btn ui-btn-secondary min-h-[44px]">{% if b.enabled %}{% trans "Ausblenden" %}{% else %}{% trans "Einblenden" %}{% endif %}<span class="sr-only">: {{ b.label }}</span></button>{% endif %}
         </form>
         {% endif %}
       </li>

@@ -69,8 +69,8 @@ def test_action_goes_to_draft_not_to_the_site():
     assert _saved_refs(b.tenant) == []  # на сайте ничего
     html = b.get("?seite=text")
     assert "data-schema-draft" in html and 'value="save"' in html and 'value="discard"' in html
-    # строка настроек страницы (R4) + карточка контактов + новый блок
-    assert html.count("data-schema-block=") == 3
+    # строка настроек страницы (R4) + текст и карточка контактов (FB-32 S6a) + новый блок
+    assert html.count("data-schema-block=") == 4
 
 
 def test_save_publishes_and_clears_the_draft():
@@ -110,7 +110,7 @@ def test_change_counter():
     first, second = _saved_refs(b.tenant)
     b.post(seite="text", op="toggle", ref=first)  # 1: скрыт
     b.post(seite="text", op="add", type="text")  # 2: добавлен
-    b.post(seite="text", op="toggle", ref=site_schema.CONTACT_REF)  # 3: карточка контактов
+    b.post(seite="text", op="toggle", ref="contact")  # 3: карточка контактов
     b.tenant.refresh_from_db()
     cfg = siteconfig.normalize(b.tenant.site_config)
     req = b._request("get")

@@ -31,6 +31,12 @@ def _can_preview(request) -> bool:
     return view_perms.allowed(user, "content-pages", "GET")
 
 
+def _page_flow(request, host: str) -> dict:
+    from apps.core import detail_parts, page_settings
+
+    return detail_parts.flow_ctx(page_settings.raw_config(request), host)
+
+
 def storefront_page(request, slug):
     page = ContentPage.objects.filter(slug=slug).first()
     if page is None or (not page.is_published and not _can_preview(request)):
@@ -47,6 +53,8 @@ def storefront_page(request, slug):
             "page_body": sanitize_page(page.body_localized()),
             "is_draft": not page.is_published,
             "pb_host": f"seite:{page.slug}",
+            # FB-32 S6a: свои блоки над текстом; пусто — прежняя разметка
+            **_page_flow(request, f"seite:{page.slug}"),
         },
     )
     if not page.is_published:

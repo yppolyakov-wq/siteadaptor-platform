@@ -2616,8 +2616,11 @@ def detail_section_hidden(config, module: str) -> set:
     """Множество СКРЫТЫХ секций детали module (для рендера/билдера)."""
     raw = (config or {}).get(detail_section_config_key(module))
     hidden = set(normalize_detail_sections(raw, module).get("hidden", []))
-    if module == "cart" and (config or {}).get("cart_show_upsell") is False:
-        hidden.add("upsell")  # FB-32 S4: видимость полосы — прежний ключ
+    from apps.core import detail_parts
+
+    for key, flag in detail_parts.VISIBILITY_KEYS.get(module, {}).items():
+        if (config or {}).get(flag) is False:
+            hidden.add(key)  # FB-32 S4/S6a: видимость раздела — прежний ключ
     return hidden
 
 

@@ -25,7 +25,16 @@ SECTION_HOSTS = {
     "stay_detail": "stays",
     # FB-32 S4: корзина — один раздел «Passt gut dazu»
     "cart": "cart",
+    # FB-32 S6a: «Über uns» (своя страница «Seite» — по префиксу хоста, `PAGE_PREFIX`)
+    "info": "info",
 }
+#: FB-32 S6a: хосты своих страниц «Seite» (`seite:<slug>`) — модуль разделов «page»
+PAGE_PREFIX = "seite:"
+#: FB-32 S6a: модули страниц без покупки и с постоянным порядком разделов
+NO_KAUF_MODULES = frozenset({"cart", "info", "page"})
+FIXED_ORDER_MODULES = frozenset({"info", "page"})
+#: FB-32 S6a: видимость раздела — прежний ключ конфига (False = скрыт), а не `<module>_detail`
+VISIBILITY_KEYS = {"cart": {"upsell": "cart_show_upsell"}, "info": {"contact": "about_contact"}}
 #: разделы первого экрана (рядом с покупкой): скрыть можно, блоки рядом с ними — перед телом
 FIRST_SCREEN = {
     "product_detail": ("description", "info"),
@@ -55,7 +64,26 @@ OBJECT_SHARED = {
 
 def module_of(host: str) -> str:
     """Модуль разделов ОБЩЕГО хоста детали (писатель порядка/видимости — только у него)."""
+    if isinstance(host, str) and host.startswith(PAGE_PREFIX) and len(host) > len(PAGE_PREFIX):
+        return "page"
     return SECTION_HOSTS.get(host, "")
+
+
+def has_kauf(host: str) -> bool:
+    """Есть ли у страницы с разделами строка покупки «Buchung»/«Kaufen»."""
+    module = module_of(shared_host(host or ""))
+    return bool(module) and module not in NO_KAUF_MODULES
+
+
+def fixed_order(host: str) -> bool:
+    """Порядок разделов постоянный — строки разделов только скрываются (не двигаются)."""
+    return shared_host(host) in FIXED_ORDER or module_of(host) in FIXED_ORDER_MODULES
+
+
+def hideable(host: str, key: str) -> bool:
+    """Можно ли скрыть раздел (у текста своей страницы — нельзя)."""
+    module = module_of(shared_host(host or ""))
+    return next((s.hideable for s in detail_sections.sections_for(module) if s.key == key), True)
 
 
 def object_kind(host) -> str:
@@ -300,10 +328,13 @@ def lift(config: dict, host: str, items: list[dict]) -> list[dict]:
     hidden = sorted(
         r["key"]
         for r in items
-        if r.get("key") in keys and not r.get("id") and r.get("enabled") is False
+        if r.get("key") in keys
+        and not r.get("id")
+        and r.get("enabled") is False
+        and hideable(host, r["key"])
     )
-    if module == "cart":
-        return _lift_cart(config, items, keys, hidden)
+    if module in VISIBILITY_KEYS or module in FIXED_ORDER_MODULES:
+        return _lift_flags(config, module, items, keys, hidden)
     cfg_key = siteconfig.detail_section_config_key(module)
     detail = dict(config.get(cfg_key) or {}) if isinstance(config.get(cfg_key), dict) else {}
     if order and order != full_order(config, module):
@@ -314,35 +345,51 @@ def lift(config: dict, host: str, items: list[dict]) -> list[dict]:
     return [{"key": r["key"]} if r.get("key") in keys and not r.get("id") else r for r in items]
 
 
-def _lift_cart(config: dict, items: list[dict], keys: set, hidden: list) -> list[dict]:
-    """FB-32 S4: видимость «Passt gut dazu» — в прежний `cart_show_upsell` (один ключ на
-    Студию и схему); якорь хранится, только когда свой блок стоит выше него — иначе
-    страница рисуется прежней разметкой байт-в-байт."""
-    if "upsell" in hidden:
-        config["cart_show_upsell"] = False
-    else:
-        config.pop("cart_show_upsell", None)
-    out = []
-    for r in items:
-        if r.get("key") in keys and not r.get("id"):
-            if any(o.get("id") for o in out):
-                out.append({"key": r["key"]})
-            continue
-        out.append(r)
-    return out
+def _lift_flags(
+    config: dict, module: str, items: list[dict], keys: set, hidden: list
+) -> list[dict]:
+    """FB-32 S4/S6a: видимость разделов — в прежние ключи (`cart_show_upsell`,
+    `about_contact`: один ключ на Студию и схему). Якоря хранятся, только когда свой блок стоит
+    выше последнего раздела, — иначе страница рисуется прежней разметкой байт-в-байт."""
+    from apps.tenants import siteconfig
+
+    for key, flag in VISIBILITY_KEYS.get(module, {}).items():
+        if key in hidden:
+            config[flag] = False
+        else:
+            config.pop(flag, None)
+    rows = [{"key": r["key"]} if r.get("key") in keys and not r.get("id") else r for r in items]
+    return siteconfig._compact_detail_anchors(rows, keys)
 
 
-def cart_flow(config, *, normalized: bool = False) -> list[dict]:
-    """Поток страницы корзины: [{"section": "upsell"} | {"part": "ids:…"}]; пусто — прежняя
-    разметка (полоса, затем все блоки). `normalized` — конфиг уже нормализован (горячий путь
-    корзины не нормализует его второй раз, ревью S4a)."""
+def page_flow(config, host: str, *, normalized: bool = False) -> list[dict]:
+    """Поток страницы с постоянными разделами (корзина, «Über uns», своя страница):
+    [{"section": k} | {"part": "ids:…"}]; пусто — прежняя разметка (разделы, затем все блоки).
+    `normalized` — конфиг уже нормализован (горячий путь не нормализует его второй раз)."""
     from apps.tenants import siteconfig
 
     norm = config if normalized else siteconfig.normalize(config)
-    rows = siteconfig.page_rows(norm, "cart")
-    hidden = siteconfig.detail_section_hidden(norm, "cart")
-    order = [k for k in section_keys("cart") if k not in hidden]
-    return flow(rows, "cart", order, all_order=list(section_keys("cart")))
+    rows = siteconfig.page_rows(norm, host)
+    keys = list(section_keys(host))
+    hidden = siteconfig.detail_section_hidden(norm, module_of(host))
+    order = [k for k in keys if k not in hidden]
+    return flow(rows, host, order, all_order=keys)
+
+
+def flow_ctx(config, host: str, *, normalized: bool = False) -> dict:
+    """FB-32 S6a: контекст витрины текстовой страницы — `page_flow` (пусто — прежняя
+    разметка) и `tail_part` (блоки после последнего раздела)."""
+    from apps.tenants import siteconfig
+
+    norm = config if normalized else siteconfig.normalize(config)
+    items = page_flow(norm, host, normalized=True)
+    rows = siteconfig.page_rows(norm, host)
+    return {"page_flow": items, "tail_part": tail_part(rows, host, list(section_keys(host)))}
+
+
+def cart_flow(config, *, normalized: bool = False) -> list[dict]:
+    """Поток страницы корзины (FB-32 S4) — `page_flow` хоста `cart`."""
+    return page_flow(config, "cart", normalized=normalized)
 
 
 def _fixed(a: dict, host: str) -> tuple[list, list]:
