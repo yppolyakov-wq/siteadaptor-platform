@@ -301,6 +301,13 @@ def builtin_groups(request, cfg: dict, key: str, data: dict, mode: str = "") -> 
             continue
         g = dict(g)
         fields = list(g["fields"])  # FB-32 S1: вид секции снова здесь (был только в Студии)
+        if key == "categories":
+            # FB-32 S5a: один список видов с каталогом — недоступные видны с причиной
+            from apps.core import block_views
+
+            for f in fields:
+                if f["name"] == "style":
+                    f["unavailable"] = block_views.unavailable(block_views.HOME)
         if g["key"] == "welche":
             g["modes"] = [m for m in g["modes"] if m["key"] != "einzeln"]
             g["overridden"] = False

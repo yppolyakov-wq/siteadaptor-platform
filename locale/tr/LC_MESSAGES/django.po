@@ -38870,3 +38870,15 @@ msgstr "Bununla iyi gider: görünüm"
 #: templates/tenant/_schema_related_view.html
 msgid "Wie bisher (4 Karten)"
 msgstr "Önceki gibi (4 kart)"
+
+#: apps/core/block_views.py
+msgid "Nur auf Katalogseiten – steuert dort die Produktliste."
+msgstr "Yalnızca katalog sayfalarında – oradaki ürün listesini yönetir."
+
+#: apps/core/block_views.py
+msgid "Vorerst nur auf Katalogseiten."
+msgstr "Şimdilik yalnızca katalog sayfalarında."
+
+#: apps/core/block_views.py
+msgid "Vorerst nur auf der Startseite."
+msgstr "Şimdilik yalnızca ana sayfada."

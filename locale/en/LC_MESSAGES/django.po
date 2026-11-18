@@ -38724,3 +38724,15 @@ msgstr "Goes well with this: display"
 #: templates/tenant/_schema_related_view.html
 msgid "Wie bisher (4 Karten)"
 msgstr "As before (4 cards)"
+
+#: apps/core/block_views.py
+msgid "Nur auf Katalogseiten – steuert dort die Produktliste."
+msgstr "Only on catalogue pages – it controls the product list there."
+
+#: apps/core/block_views.py
+msgid "Vorerst nur auf Katalogseiten."
+msgstr "For now only on catalogue pages."
+
+#: apps/core/block_views.py
+msgid "Vorerst nur auf der Startseite."
+msgstr "For now only on the home page."

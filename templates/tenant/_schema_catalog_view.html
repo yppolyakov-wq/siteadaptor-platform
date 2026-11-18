@@ -11,7 +11,7 @@
       {% for t in view.tiles %}
         <label class="flex flex-col gap-1 rounded-xl border p-2 min-h-[44px] text-xs {% if t.available %}cursor-pointer border-gray-200 has-[:checked]:border-2 has-[:checked]:border-indigo-700 has-[:checked]:bg-indigo-50 has-[:focus-visible]:outline has-[:focus-visible]:outline-[3px] has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-indigo-600{% else %}border-dashed border-gray-300 bg-gray-50 text-gray-600{% endif %}">
           <input type="radio" name="value" value="{{ t.value }}" class="sr-only" aria-describedby="vh-{{ op }}-{{ forloop.counter }}"{% if t.value == view.value %} checked{% endif %}{% if not t.available %} disabled{% endif %}>
-          {% include "tenant/_pagelayout_thumb.html" with key=t.thumb %}
+          {% if t.thumb_style %}{% include "tenant/_style_thumb.html" with key=t.thumb_style %}{% else %}{% include "tenant/_pagelayout_thumb.html" with key=t.thumb %}{% endif %}
           <span class="font-semibold {% if t.available %}text-gray-900{% endif %}">{{ t.label }}</span>
           <span id="vh-{{ op }}-{{ forloop.counter }}" class="text-gray-600">{% if t.reason %}{{ t.reason }}{% else %}{{ t.hint }}{% endif %}</span>
         </label>

@@ -1,0 +1,47 @@
+"""FB-32 S5a: один список видов «Kategorien» на главной и в каталоге — виды, которых на
+этой странице (пока) нет, видны с причиной и не выбираются (решение владельца: «Reiter» и
+«Seitenspalte» на главной — недоступны)."""
+
+import pytest
+
+from apps.core import block_views
+from apps.core.tests.test_fb27_builtin_panel import _tenant
+from apps.core.tests.test_fb27_r2_draft import Browser
+from apps.tenants import siteconfig
+
+pytestmark = pytest.mark.django_db
+
+
+@pytest.fixture(autouse=True)
+def _urlconf(settings):
+    settings.ROOT_URLCONF = "config.urls_tenant"
+
+
+def test_registry_covers_both_pages_view_values():
+    from apps.core.site_schema import CATEGORY_VIEW_CHOICES
+
+    home = {v.home for v in block_views.CATEGORY_VIEWS if v.home is not None}
+    catalog = {v.catalog for v in block_views.CATEGORY_VIEWS if v.catalog is not None}
+    assert home == {"", *siteconfig.SECTION_STYLES["categories"]}
+    assert catalog == {v for v, *_rest in CATEGORY_VIEW_CHOICES}
+
+
+def test_home_shows_catalog_views_disabled_with_reason():
+    html = Browser(_tenant()).get("?seite=home&block=categories")
+    for key in ("regale", "index", "wegweiser", "tabs", "side"):
+        assert f'data-schema-style-off="{key}"' in html
+    assert "Nur auf Katalogseiten" in html
+    assert 'name="f_style" value="tabs"' not in html
+
+
+def test_catalog_shows_home_tile_forms_disabled_with_reason():
+    html = Browser(_tenant()).get("?seite=catalog&block=categories")
+    assert "Vorerst nur auf der Startseite." in html
+    for key in ("square", "tall", "wide", "compact"):
+        assert f'data-style-thumb="{key}"' in html
+
+
+def test_disabled_view_cannot_be_posted_on_catalog():
+    b = Browser(_tenant())
+    resp, msgs = b.post(seite="catalog", op="catview", ref="categories", value="")
+    assert any("nicht möglich" in m or "nicht" in m for m in msgs) or resp.status_code == 302

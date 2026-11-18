@@ -1891,6 +1891,22 @@ def mark_view_availability(config: dict, host: str, view: dict) -> None:
         }
         for value, label, hint, thumb in view["choices"]
     ]
+    if view.get("choices") is CATEGORY_VIEW_CHOICES:
+        # FB-32 S5a: один список видов с главной — её формы плиток видны с причиной
+        from apps.core import block_views
+
+        view["tiles"] += [
+            {
+                "value": "",
+                "label": u["label"],
+                "hint": "",
+                "thumb": "",
+                "thumb_style": u["thumb_style"],
+                "available": False,
+                "reason": u["reason"],
+            }
+            for u in block_views.unavailable(block_views.CATALOG)
+        ]
 
 
 def check_view_available(config: dict, host: str, ref: str, value: str, op: str = "") -> None:

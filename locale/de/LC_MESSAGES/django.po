@@ -38811,3 +38811,15 @@ msgstr "Passt dazu: Darstellung"
 #: templates/tenant/_schema_related_view.html
 msgid "Wie bisher (4 Karten)"
 msgstr "Wie bisher (4 Karten)"
+
+#: apps/core/block_views.py
+msgid "Nur auf Katalogseiten – steuert dort die Produktliste."
+msgstr "Nur auf Katalogseiten – steuert dort die Produktliste."
+
+#: apps/core/block_views.py
+msgid "Vorerst nur auf Katalogseiten."
+msgstr "Vorerst nur auf Katalogseiten."
+
+#: apps/core/block_views.py
+msgid "Vorerst nur auf der Startseite."
+msgstr "Vorerst nur auf der Startseite."

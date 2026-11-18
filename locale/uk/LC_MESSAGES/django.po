@@ -39050,3 +39050,15 @@ msgstr "«Пасує до цього»: вигляд"
 #: templates/tenant/_schema_related_view.html
 msgid "Wie bisher (4 Karten)"
 msgstr "Як раніше (4 картки)"
+
+#: apps/core/block_views.py
+msgid "Nur auf Katalogseiten – steuert dort die Produktliste."
+msgstr "Лише на сторінках каталогу — керує там списком товарів."
+
+#: apps/core/block_views.py
+msgid "Vorerst nur auf Katalogseiten."
+msgstr "Поки лише на сторінках каталогу."
+
+#: apps/core/block_views.py
+msgid "Vorerst nur auf der Startseite."
+msgstr "Поки лише на головній."
