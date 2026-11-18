@@ -20545,7 +20545,7 @@ msgid "Angebot-Anfrage direkt auf dieser Seite (Modul Aufträge)"
 msgstr ""
 
 msgid "Kontaktformular"
-msgstr ""
+msgstr "Kontaktformular"
 
 msgid "Frage-stellen-Formular direkt auf dieser Seite (Modul Nachrichten)"
 msgstr ""

@@ -8,6 +8,7 @@
 1248 — на lg справа липкая колонка «So finden Sie uns» (адрес, часы, звонок, WhatsApp).
 Без адреса и телефона — прежняя центрированная колонка.{% endcomment %}
 {% business_card_data as bc %}
+{% page_flow "message" as pf %}{% if pf.page_flow %}{% comment %}FB-32 S6c: свои блоки над формой — строки «Seitenaufbau».{% endcomment %}{% for it in pf.page_flow %}{% if it.part %}{% page_blocks "message" it.part %}{% endif %}{% endfor %}{% endif %}
 <div class="{% if bc %}max-w-5xl mx-auto lg:grid lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-8 lg:items-start{% endif %}" data-contact-layout>
 <div class="max-w-xl mx-auto{% if bc %} lg:max-w-none lg:mx-0{% endif %}">
   <h1 class="text-2xl md:text-3xl font-bold mb-1">{% trans "Ask a question" %}</h1>
@@ -52,5 +53,5 @@
 </div>
 {% if bc %}<aside class="mt-6 lg:mt-0 lg:sticky lg:top-24" data-contact-aside>{% include "storefront/_business_card.html" with aside=1 %}</aside>{% endif %}
 </div>
-  {% page_blocks "message" %}
+  {% if pf.page_flow %}{% page_blocks "message" pf.tail_part %}{% else %}{% page_blocks "message" %}{% endif %}
 {% endblock %}

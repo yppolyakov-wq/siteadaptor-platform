@@ -111,3 +111,30 @@ VERSAND = {
 def test_versand_page_without_anchors_looks_as_before(case):
     cfg, body, show = VERSAND[case]
     _check(f"versand-{case}", _versand(cfg, body=body, show=show))
+
+
+# ── S6c: «Kontakt» и «Anfrage» ──────────────────────────────────────────────────
+
+
+def _kontakt(cfg):
+    from apps.inbox import public_views
+
+    cfg = {**cfg, "page_blocks": {"message": (cfg.get("page_blocks") or {}).get("info", [])}}
+    req = _req("/nachricht/", cfg)
+    req.tenant.address = "Hauptstr. 1, 42651 Solingen"
+    return _main(public_views.contact(req).content.decode())
+
+
+def _anfrage(cfg):
+    from apps.jobs import public_views
+
+    cfg = {**cfg, "page_blocks": {"anfrage": (cfg.get("page_blocks") or {}).get("info", [])}}
+    req = _req("/anfrage/", cfg)
+    req.tenant.address = "Hauptstr. 1, 42651 Solingen"
+    return _main(public_views.anfrage(req).content.decode())
+
+
+@pytest.mark.parametrize("case", ("plain", "tail"))
+def test_kontakt_and_anfrage_without_anchors_look_as_before(case):
+    _check(f"kontakt-{case}", _kontakt(CASES[case]))
+    _check(f"anfrage-{case}", _anfrage(CASES[case]))
