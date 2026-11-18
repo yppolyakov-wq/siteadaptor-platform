@@ -195,12 +195,17 @@ def write_rows(rows, parts: Parts, *, root: bool = False) -> list[dict]:
     списком, как было).
 
     `root` — корень каталога: у кода `sets` там шапки не было (`public_views`: «у корня
-    „Sets“ шапки нет»), поэтому шапка пишется выключенной — вид тот же."""
+    „Sets“ шапки нет», если шапку не включили строкой), поэтому шапка, пришедшая из кода,
+    пишется выключенной — вид тот же. Вид товаров пишется явно и «обычный» (`raster`), чтобы
+    строки перекрывали старый ключ, пока он не снят."""
     from apps.tenants.siteconfig import is_main_marker
 
     out = [dict(r) for r in (rows if isinstance(rows, list) else []) if isinstance(r, dict)]
     head = parts.head
-    if root and parts.sets == "above" and parts.head:
+    head_row = next(
+        (r for r in out if r.get("key") == HEAD_KEY and not r.get("id") and r.get("style")), None
+    )
+    if root and parts.sets == "above" and parts.head and head_row is None:
         head = ""
 
     def find(key):
@@ -215,8 +220,7 @@ def write_rows(rows, parts: Parts, *, root: bool = False) -> list[dict]:
     m = out[marker_at()]
     for field in ("style", "grid", "focus"):
         m.pop(field, None)
-    if parts.products:
-        m["style"] = parts.products
+    m["style"] = parts.products or "raster"
     if parts.grid:
         m["grid"] = parts.grid
     if parts.focus:

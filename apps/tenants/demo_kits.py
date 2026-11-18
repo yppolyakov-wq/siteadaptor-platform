@@ -25602,6 +25602,11 @@ def apply_kit(tenant, key: str) -> bool:
                 for i, (_key, _data) in enumerate(_specs, start=1)
             ]
         cfg["page_blocks"] = _pb
+    # FB-31.7 B1b: шаблоны страниц китов (`catalog_page_style`, `promo_page_style`,
+    # `site_defaults.*_style`) — строками схемы, как их пишет кабинет; старых ключей нет
+    from apps.core import page_axes_migration
+
+    cfg = page_axes_migration.templates_to_rows(cfg)
     _demo_locales = [loc for loc in (kit.enabled_locales or []) if loc != "de"]
     if _demo_locales:  # DL-2/DL-3: оверлей текстов на все включённые локали
         from . import demo_i18n

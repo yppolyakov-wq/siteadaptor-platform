@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import copy
 import logging
+import re
 from dataclasses import dataclass, field
 
 logger = logging.getLogger(__name__)
@@ -84,6 +85,37 @@ def _view(norm: dict, surface: str, host: str) -> tuple:
     return own, repr(comps), tuple(langs)
 
 
+def _with_host_rows(raw: dict, norm: dict, host: str, new_rows: list) -> dict:
+    """Сырые настройки с новыми строками хоста `host` и переводами его блоков, выровненными по
+    позициям (как в «Seitenaufbau»); остальные хосты и языки — байт-в-байт как были."""
+    from apps.tenants import siteconfig
+
+    out = raw
+    blocks = copy.deepcopy(norm.get("page_blocks") or {})
+    blocks[host] = new_rows
+    # переводы блоков лежат по позициям — едут за своими блоками (как в «Seitenaufbau»)
+    aligned = copy.deepcopy(norm)
+    siteconfig.realign_block_overlays(aligned, new_page_blocks=blocks)
+    # в сырые настройки — только этот хост и его переводы (ревью: остальные хосты и
+    # языки остаются байт-в-байт как были, нормализация их не переписывает)
+    candidate = copy.deepcopy(out)
+    raw_blocks = candidate.get("page_blocks")
+    raw_blocks = dict(raw_blocks) if isinstance(raw_blocks, dict) else {}
+    raw_blocks[host] = new_rows
+    candidate["page_blocks"] = raw_blocks
+    for loc, layer in (aligned.get("i18n") or {}).items():
+        moved = ((layer or {}).get("page_blocks") or {}).get(host)
+        if moved is None:
+            continue
+        raw_i18n = candidate.setdefault("i18n", {})
+        raw_layer = dict(raw_i18n.get(loc) or {})
+        raw_pb = dict(raw_layer.get("page_blocks") or {})
+        raw_pb[host] = moved
+        raw_layer["page_blocks"] = raw_pb
+        raw_i18n[loc] = raw_layer
+    return candidate
+
+
 def migrate_listings(raw: dict) -> tuple[dict, Report]:
     """Коды девяти листингов (`page_styles[surface]`) → строки хоста листинга. Сайт
     переносится целиком или не трогается (решение владельца: при любом расхождении)."""
@@ -110,28 +142,7 @@ def migrate_listings(raw: dict) -> tuple[dict, Report]:
         if new_rows is None:
             report.surfaces[surface] = SKIP
             continue
-        blocks = copy.deepcopy(norm.get("page_blocks") or {})
-        blocks[host] = new_rows
-        # переводы блоков лежат по позициям — едут за своими блоками (как в «Seitenaufbau»)
-        aligned = copy.deepcopy(norm)
-        siteconfig.realign_block_overlays(aligned, new_page_blocks=blocks)
-        # в сырые настройки — только этот хост и его переводы (ревью: остальные хосты и
-        # языки остаются байт-в-байт как были, нормализация их не переписывает)
-        candidate = copy.deepcopy(out)
-        raw_blocks = candidate.get("page_blocks")
-        raw_blocks = dict(raw_blocks) if isinstance(raw_blocks, dict) else {}
-        raw_blocks[host] = new_rows
-        candidate["page_blocks"] = raw_blocks
-        for loc, layer in (aligned.get("i18n") or {}).items():
-            moved = ((layer or {}).get("page_blocks") or {}).get(host)
-            if moved is None:
-                continue
-            raw_i18n = candidate.setdefault("i18n", {})
-            raw_layer = dict(raw_i18n.get(loc) or {})
-            raw_pb = dict(raw_layer.get("page_blocks") or {})
-            raw_pb[host] = moved
-            raw_layer["page_blocks"] = raw_pb
-            raw_i18n[loc] = raw_layer
+        candidate = _with_host_rows(out, norm, host, new_rows)
         after = siteconfig.normalize(candidate)
         no_code = copy.deepcopy(after)
         styles = dict(no_code.get("page_styles") or {})
@@ -152,9 +163,218 @@ def migrate_listings(raw: dict) -> tuple[dict, Report]:
     return out, report
 
 
-def migrate(raw: dict) -> tuple[dict, Report]:
-    """Все перенесённые поверхности (B1a — листинги)."""
-    return migrate_listings(raw)
+# ───────── B1b-1: шаблоны страниц уровня сайта ─────────
+
+
+def _old_code(cfg: dict, key: str) -> str:
+    from apps.tenants import siteconfig
+
+    _host, path = siteconfig.PAGE_TEMPLATE_HOSTS[key]
+    node = cfg
+    for part in path:
+        node = node.get(part) if isinstance(node, dict) else None
+    return node if isinstance(node, str) else ""
+
+
+def _without_key(cfg: dict, key: str) -> dict:
+    """Копия настроек без старого ключа шаблона (так их увидит витрина после B3)."""
+    from apps.tenants import siteconfig
+
+    _host, path = siteconfig.PAGE_TEMPLATE_HOSTS[key]
+    out = copy.deepcopy(cfg)
+    if len(path) == 1:
+        out.pop(path[0], None)
+    elif isinstance(out.get(path[0]), dict):
+        out[path[0]].pop(path[1], None)
+    return out
+
+
+def template_rows(norm: dict, key: str) -> list | None:
+    """Строки хоста шаблона `key`, которые без кода дают тот же вид, что код + строки; None —
+    перенос невозможен без смены вида (скрытая строка «Kategorien», которую заменяет код)."""
+    from apps.catalog import catalog_parts
+    from apps.core import page_parts as pp
+    from apps.tenants import siteconfig
+
+    host, _path = siteconfig.PAGE_TEMPLATE_HOSTS[key]
+    code = _old_code(norm, key)
+    rows = siteconfig.page_rows(norm, host)
+    if host in ("catalog", "category"):
+        target = catalog_parts.effective(norm, host, code=code)
+        cat = next((r for r in rows if r.get("key") == "categories" and not r.get("id")), None)
+        if cat is not None and cat.get("enabled") is False:
+            return None  # скрытую строку сейчас заменяет код — перенос сменил бы вид
+        return catalog_parts.write_rows(rows, target, root=host == "catalog")
+    return pp.materialize_rows(siteconfig._pp_surface(host), rows, code)
+
+
+def migrate_templates(raw: dict, render=None) -> tuple[dict, Report]:
+    """Шаблоны уровня сайта (`siteconfig.PAGE_TEMPLATE_HOSTS`) → строки их хостов. Старый ключ
+    остаётся (решение владельца 4). Проверка: шаблон по строкам (со старым ключом и без него)
+    тот же; `render(cfg, key) -> html | None` — та же отрисованная страница (None — страницы
+    для сверки нет). Сайт переносится целиком или не трогается."""
+    from apps.tenants import siteconfig
+
+    report = Report()
+    src = raw if isinstance(raw, dict) else {}
+    out = copy.deepcopy(src)
+    for key in sorted(siteconfig.PAGE_TEMPLATE_HOSTS):
+        norm = siteconfig.normalize(out)
+        if not _old_code(norm, key):
+            continue
+        host, _path = siteconfig.PAGE_TEMPLATE_HOSTS[key]
+        want = siteconfig.page_template_code(norm, key)
+        rows = template_rows(norm, key)
+        if rows is None:
+            report.surfaces[key] = SKIP
+            continue
+        candidate = _with_host_rows(out, norm, host, rows)
+        after = siteconfig.normalize(candidate)
+        stored = norm.get("page_blocks") or {}
+        if host in stored and (after.get("page_blocks") or {}).get(host) == stored[host]:
+            report.surfaces[key] = SAME  # строки уже задают этот вид
+            continue
+        bare = siteconfig.normalize(_without_key(candidate, key))
+        same = (
+            siteconfig.page_template_code(after, key) == want
+            and siteconfig.page_template_code(bare, key) == want
+        )
+        if same and render is not None:
+            before_html = render(out, key)
+            if before_html is not None:
+                same = (
+                    render(candidate, key) == before_html
+                    and render(_without_key(candidate, key), key) == before_html
+                )
+        if not same:
+            report.surfaces[key] = MISMATCH
+            continue
+        out = candidate
+        report.surfaces[key] = DONE
+    if report.mismatches:
+        return copy.deepcopy(src), report
+    return out, report
+
+
+def migrate(raw: dict, render=None) -> tuple[dict, Report]:
+    """Все перенесённые поверхности: листинги (B1a) и шаблоны уровня сайта (B1b-1). Сайт
+    переносится целиком или не трогается."""
+    out, report = migrate_listings(raw)
+    if report.mismatches:
+        return out, report
+    out2, report2 = migrate_templates(out, render)
+    report.surfaces.update(report2.surfaces)
+    if report2.mismatches:
+        return copy.deepcopy(raw if isinstance(raw, dict) else {}), report
+    return out2, report
+
+
+def templates_to_rows(raw: dict) -> dict:
+    """FB-31.7 B1b (демо-киты и прочие сборщики конфига): старые ключи шаблонов уровня сайта
+    → строки их хостов, ключ снимается. Вид тот же (строки = код + прежние строки); шаблон,
+    который строками не выразить (скрытая строка «Kategorien»), остаётся ключом."""
+    from apps.tenants import siteconfig
+
+    out = copy.deepcopy(raw if isinstance(raw, dict) else {})
+    for key in sorted(siteconfig.PAGE_TEMPLATE_HOSTS):
+        norm = siteconfig.normalize(out)
+        if not _old_code(norm, key):
+            continue
+        host, _path = siteconfig.PAGE_TEMPLATE_HOSTS[key]
+        rows = template_rows(norm, key)
+        if rows is None:
+            continue
+        out = _without_key(_with_host_rows(out, norm, host, rows), key)
+    return out
+
+
+# ───────── сверка по отрисованной странице (B1b-1) ─────────
+
+_CSRF = re.compile(r'(name="csrfmiddlewaretoken" value=")[^"]+')
+_NONCE = re.compile(r'(nonce=")[^"]+')
+#: одноразовые токены форм (`form_token`, `review_form_token`) — uuid4().hex на каждый показ
+_TOKEN = re.compile(r"\b[0-9a-f]{32}\b")
+
+
+def _page_path(cfg: dict, key: str) -> str:
+    """Адрес страницы, по которой сверяется шаблон `key` (в схеме тенанта); "" — сверять
+    нечего (нет записей). Берётся запись БЕЗ своего шаблона — её вид задаёт перенос."""
+    from django.urls import reverse
+
+    if key == "catalog_page_style":
+        return reverse("storefront-products", urlconf="config.urls_tenant")
+    if key == "promo_page_style":
+        return reverse("storefront-aktionen", urlconf="config.urls_tenant")
+    if key == "category_page_style":
+        from apps.catalog.models import Category
+        from apps.tenants import siteconfig
+
+        own = {
+            h
+            for h in ((cfg.get("page_blocks") or {}) if isinstance(cfg, dict) else {})
+            if str(h).startswith(siteconfig.CATEGORY_HOST_PREFIX)
+        }
+        for cat in Category.objects.filter(is_active=True, page_style="").order_by("pk")[:20]:
+            if siteconfig.category_host(cat.slug) not in own:
+                return reverse("storefront-category", args=[cat.slug], urlconf="config.urls_tenant")
+        return ""
+    from apps.promotions.models import Promotion
+
+    live = Promotion.objects.filter(Promotion.on_sale_q())
+    if key == "promo_detail_style":
+        promo = live.filter(page_style="").order_by("pk").first()
+        return (
+            reverse("storefront-promotion", args=[promo.pk], urlconf="config.urls_tenant")
+            if promo is not None
+            else ""
+        )
+    if key == "promo_group_style":
+        group = live.exclude(group="").order_by("group").values_list("group", flat=True).first()
+        if not group:
+            return ""
+        from urllib.parse import urlencode
+
+        base = reverse("storefront-aktionen", urlconf="config.urls_tenant")
+        return f"{base}?{urlencode({'gruppe': group})}"
+    return ""
+
+
+def renderer(tenant):
+    """`render(cfg, key) -> html | None` для `migrate`: страница шаблона `key`, отрисованная
+    витриной с настройками `cfg` (без записи в базу) в схеме тенанта."""
+    import copy as _copy
+
+    from django.contrib.auth.models import AnonymousUser
+    from django.contrib.messages.middleware import MessageMiddleware
+    from django.contrib.sessions.middleware import SessionMiddleware
+    from django.test import RequestFactory
+    from django.urls import resolve
+    from django_tenants.utils import schema_context
+
+    def render(cfg, key):
+        with schema_context(tenant.schema_name):
+            path = _page_path(cfg, key)
+            if not path:
+                return None
+            fake = _copy.copy(tenant)
+            fake.site_config = cfg
+            request = RequestFactory().get(path)
+            SessionMiddleware(lambda r: None).process_request(request)
+            MessageMiddleware(lambda r: None).process_request(request)
+            request.user = AnonymousUser()
+            request.tenant = fake
+            match = resolve(path.split("?")[0], urlconf="config.urls_tenant")
+            response = match.func(request, *match.args, **match.kwargs)
+            if hasattr(response, "render"):
+                response.render()
+            if response.status_code != 200:
+                return f"status:{response.status_code}"
+            html = response.content.decode()
+            html = _CSRF.sub(r"\1X", html)
+            html = _NONCE.sub(r"\1X", html)
+            return _TOKEN.sub("TOKEN", html)
+
+    return render
 
 
 # ───────── запись в базу (команда `materialize_page_axes`) ─────────
@@ -207,7 +427,12 @@ def apply_tenant(tenant, *, dry_run: bool = False) -> Report:
         if row is None and not Tenant.objects.filter(pk=tenant.pk).exists():
             return Report()  # сайт удалили во время прогона
         before = row or {}
-        new, report = migrate(before)
+        try:
+            render = renderer(tenant)
+        except Exception:  # noqa: BLE001 — без рендера сверка только по осям не годится
+            logger.exception("materialize_page_axes: renderer for %s", tenant.schema_name)
+            return Report(surfaces={"*": "render-failed"})
+        new, report = migrate(before, render=render)
         if not report.changed or dry_run:
             return report
         try:

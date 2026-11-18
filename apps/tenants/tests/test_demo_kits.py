@@ -12,7 +12,7 @@ from apps.catalog.models import (
     ProductVariant,
 )
 from apps.promotions.models import Promotion
-from apps.tenants import demo_kits
+from apps.tenants import demo_kits, siteconfig
 from apps.tenants.tests.factories import TenantFactory
 
 pytestmark = pytest.mark.django_db
@@ -1671,7 +1671,11 @@ def test_dl20_aktionsmarkt_group_pages_inherit_and_override():
     t = TenantFactory(slug="dl20a", name="DL20A", business_type="grocery")
     assert demo_kits.apply_kit(t, "aktionsmarkt")
     cfg = t.site_config
-    assert cfg["site_defaults"]["promo_group_style"] == "prospekt"
+    # FB-31.7 B2: общий шаблон групп — строками схемы «Alle Angebotsgruppen» (не ключом)
+    assert siteconfig.page_template_code(siteconfig.normalize(cfg), "promo_group_style") == (
+        "prospekt"
+    )
+    assert "promo_group_style" not in cfg["site_defaults"]
     groups = cfg["promo_groups"]
     assert groups["Räumung"]["style"] == "countdown"
     assert groups["Anti-Food-Waste"]["style"] == "schaufenster"
@@ -1683,7 +1687,10 @@ def test_dl20_aktionsmarkt_group_pages_inherit_and_override():
     # прежние оси site_defaults не затёрты мерджем config_patch (один уровень вглубь)
     assert cfg["site_defaults"]["card_style"] == "regal"
     assert Category.objects.get(slug="ueberraschungstueten").page_style == "schaufenster"
-    assert cfg["promo_page_style"] == "kopfbild"  # DL-21.2: обзорная /aktionen/
+    # DL-21.2: обзорная /aktionen/ — «Kopfbild» (FB-31.7 B2: строками схемы)
+    assert siteconfig.page_template_code(siteconfig.normalize(cfg), "promo_page_style") == (
+        "kopfbild"
+    )
 
 
 def test_dl20_clothing_category_pages_inherit_and_override():
@@ -1693,7 +1700,9 @@ def test_dl20_clothing_category_pages_inherit_and_override():
 
     t = TenantFactory(slug="dl20c", name="DL20C", business_type="clothing")
     assert demo_kits.apply_kit(t, "clothing")
-    assert t.site_config["site_defaults"]["category_page_style"] == "navigator"
+    # FB-31.7 B2: общий шаблон категорий — строками «Alle Kategorien» (не ключом)
+    norm = siteconfig.normalize(t.site_config)
+    assert siteconfig.page_template_code(norm, "category_page_style") == "navigator"
     styles = dict(Category.objects.filter(parent=None).values_list("slug", "page_style"))
     # MODE-3: три направления — «Regale» (полки подкатегорий), Accessoires без
     # своего значения наследует общий «Navigator» (инвариант наследования).
@@ -1703,7 +1712,8 @@ def test_dl20_clothing_category_pages_inherit_and_override():
         "kinder": "regale",
         "accessoires": "",
     }
-    assert t.site_config["catalog_page_style"] == "regale"  # DL-21.1: корень — свой ключ
+    # DL-21.1: корень — свой шаблон (FB-31.7 B2: строками схемы «Katalog»)
+    assert siteconfig.page_template_code(norm, "catalog_page_style") == "regale"
 
 
 def test_retreat_kit_front_desk_seeds_without_max_guests(caplog):
