@@ -101,6 +101,13 @@ DETAIL_SECTIONS: dict[str, tuple[DetailSection, ...]] = {
         DetailSection("contact", _("Kontakt & Öffnungszeiten")),
     ),
     "page": (DetailSection("pagetext", _("Text"), hideable=False),),
+    # FB-32 S6b: «Versand» — свой текст и список Versandkosten (§ 6 PAngV: сюда ведёт
+    # «zzgl. Versandkosten»). Список снимается только галочкой у страницы «Versand» (один
+    # писатель; без своего текста список виден всегда) — в схеме строка не скрывается.
+    "versand": (
+        DetailSection("pagetext", _("Text"), hideable=False),
+        DetailSection("costs", _("Versandkosten"), hideable=False),
+    ),
     "stays": (
         DetailSection("description", _("Description")),
         DetailSection("amenities", _("Amenities")),

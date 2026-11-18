@@ -126,3 +126,41 @@ def test_draft_started_before_section_rows_is_not_a_false_conflict():
     assert aufbau_draft.changes(saved, legacy) == 1, "переключатель старого черновика учтён"
     fresh = {"host": "info", "items": [{"key": "pagetext"}, TEXT]}
     assert aufbau_draft._base_fingerprint(saved, {}, fresh) == aufbau_draft._fingerprint(saved)
+
+
+# ── S6b: «Versand» ──────────────────────────────────────────────────────────────
+
+
+def test_versand_rows_are_fixed_and_cannot_be_hidden():
+    from apps.core.tests.test_fb32_s6_pages_golden import _versand  # noqa: F401
+
+    assert detail_parts.section_keys("versand") == ("pagetext", "costs")
+    rows = {r["ref"]: r for r in site_schema.blocks_for({}, "text@versand")}
+    assert rows["pagetext"]["pinned"] and rows["costs"]["pinned"], "§ 6 PAngV: не скрываются"
+    t = _tenant()
+    with pytest.raises(site_schema.SchemaError):
+        site_schema.apply(t, "text@versand", "toggle", ref="costs")
+
+
+def test_versand_own_block_between_text_and_costs():
+    from apps.core.tests.test_fb32_s6_pages_golden import _versand
+
+    cfg = {"page_blocks": {"info": [{"key": "pagetext"}, TEXT, {"key": "costs"}]}}
+    html = _versand(cfg, body="<p>Wir liefern montags.</p>")
+    assert html.index("Wir liefern") < html.index("Bus 5") < html.index("data-shipping-costs")
+    assert html.count("data-shipping-row=") == 2
+
+
+def test_versand_list_switched_off_stays_off_with_rows():
+    from apps.core.tests.test_fb32_s6_pages_golden import _versand
+
+    cfg = {"page_blocks": {"info": [TEXT, {"key": "pagetext"}, {"key": "costs"}]}}
+    html = _versand(cfg, body="<p>Wir liefern montags.</p>", show=False)
+    assert "data-shipping-row=" not in html and html.index("Bus 5") < html.index("Wir liefern")
+    # без своего текста список виден всегда (как раньше)
+    from apps.core.models import ContentPage
+    from apps.orders.models import ShippingMethod
+
+    ContentPage.objects.filter(slug="versand").delete()
+    ShippingMethod.objects.update(active=False)
+    assert "data-shipping-row=" in _versand(cfg)

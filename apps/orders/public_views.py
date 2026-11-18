@@ -1536,6 +1536,12 @@ def _offer_stripe_redirect(request, offer, order, tenant):
         return redirect("storefront-offer", token=offer.token)
 
 
+def _versand_flow(request) -> dict:
+    from apps.core import detail_parts, page_settings
+
+    return detail_parts.flow_ctx(page_settings.raw_config(request), "versand")
+
+
 def shipping_info(request):
     """SHP-5: «Versand & Lieferung» — все включённые способы получения с ценами, сроками,
     порогом «kostenlos ab» и минимумом (§ 6 PAngV: приписка «zzgl. Versandkosten» ведёт
@@ -1595,5 +1601,7 @@ def shipping_info(request):
             "page_body": content_pages.system_body("versand"),
             "page_title": content_pages.system_title("versand"),
             "show_methods": content_pages.system_shows_shipping_methods("versand"),
+            # FB-32 S6b: свои блоки между текстом и Versandkosten; пусто — прежняя разметка
+            **_versand_flow(request),
         },
     )
