@@ -61,50 +61,32 @@
   {% if pick.full %}
   <p class="text-xs text-gray-600">{% trans "Mehr Banner passen nicht in einen Slider." %}</p>
   {% elif pick.total %}
-  {% if pick.total > 6 or pick.lookup %}
-  <div class="flex gap-2">
-    <label class="flex-1 min-w-0"><span class="sr-only">{% trans "Banner suchen" %}</span>
-      <input type="search" form="schema-lookup-form" name="lookup" value="{{ pick.lookup }}" placeholder="{% trans 'Banner suchen' %}" class="ui-input w-full"></label>
-    <button type="submit" form="schema-lookup-form" class="ui-btn ui-btn-secondary min-h-[44px]">{% trans "Suchen" %}</button>
-  </div>
-  {% endif %}
-  <ul class="grid grid-cols-2 gap-2" data-schema-banner-offers>
-    {% for o in pick.offers %}
-    <li><button type="submit" form="schema-pick-form" name="pick_op" value="add:{{ o.pk }}" class="flex w-full flex-col overflow-hidden rounded-lg border border-gray-500 text-left hover:border-indigo-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600" aria-label="{% trans 'Hinzufügen' %}: {{ o.label }}">
-      <span class="block aspect-[16/7] w-full bg-gray-100" aria-hidden="true">{% if o.image %}<img src="{{ o.image }}" alt="" class="h-full w-full object-cover" loading="lazy">{% endif %}</span>
-      <span class="flex items-center gap-1 px-2 py-1.5 text-xs font-semibold"><span aria-hidden="true">＋</span><span class="break-words">{{ o.label|default:"—" }}</span></span>
-    </button></li>
-    {% empty %}
-    <li class="col-span-2 text-xs text-gray-600">{% if pick.lookup %}{% trans "Nichts gefunden." %}{% else %}{% trans "Alle Banner der Bibliothek sind schon gewählt." %}{% endif %}</li>
-    {% endfor %}
-  </ul>
-  {% else %}
-  <p class="text-sm text-gray-700">{% trans "In der Bibliothek ist noch kein Banner." %}</p>
-  {% endif %}
-{% if not pick.full %}
-{% comment %}FB-32 S3: новый баннер прямо из панели — сохраняется в библиотеку и сразу встаёт в выбор этого места (черновик страницы). Остальные настройки — в редакторе баннера.{% endcomment %}
-<details class="mt-3 rounded-xl border border-indigo-200 bg-slate-50" data-schema-banner-new{% if not pick.total %} open{% endif %}>
-  <summary class="flex items-center min-h-[44px] cursor-pointer px-3 text-sm font-semibold text-indigo-800 rounded-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"><span aria-hidden="true">＋&nbsp;</span>{% trans "Neuer Banner" %}</summary>
-  <form method="post" action="{% url 'site-banner-new' %}" enctype="multipart/form-data" class="space-y-2 border-t border-indigo-100 p-3">
-    {% csrf_token %}
-    <input type="hidden" name="schema_seite" value="{{ code }}">
-    <input type="hidden" name="schema_ref" value="{{ ref }}">
-    <input type="hidden" name="b_is_active" value="1">
-    <div class="text-sm"><span class="block font-semibold text-gray-700 mb-1">{% trans "Foto" %}</span>
-      {% comment %}Общая плитка «＋ Foto» кабинета (замок test_photo_tile).{% endcomment %}
-      {% include "catalog/_photo_add_tile.html" with target="b_image" small=True %}
-      <input type="file" name="b_image" accept="image/*" class="hidden"></div>
-    <label class="block text-sm"><span class="block font-semibold text-gray-700 mb-1">{% trans "Überschrift" %}</span><input type="text" name="b_title" maxlength="200" class="ui-input w-full"></label>
-    <label class="block text-sm"><span class="block font-semibold text-gray-700 mb-1">{% trans "Text" %}</span><textarea name="b_text" rows="2" class="ui-input w-full"></textarea></label>
-    <div class="grid grid-cols-2 gap-2">
-      <label class="block text-sm"><span class="block font-semibold text-gray-700 mb-1">{% trans "Text der Schaltfläche" %}</span><input type="text" name="b_btn_label" maxlength="60" class="ui-input w-full"></label>
-      <label class="block text-sm"><span class="block font-semibold text-gray-700 mb-1">{% trans "Link" %}</span><input type="text" name="b_btn_url" maxlength="300" placeholder="/kontakt/" class="ui-input w-full"></label>
+  {% comment %}FB-32 (владелец 2026-11-18): «＋ Banner hinzufügen» — выбор из библиотеки (новые баннеры создаются в «Banner verwalten»). Без выбранных — список открыт сразу.{% endcomment %}
+  <details class="rounded-xl border border-indigo-200 bg-slate-50" data-schema-banner-add{% if not pick.entries or pick.lookup %} open{% endif %}>
+    <summary class="flex items-center min-h-[44px] cursor-pointer px-3 text-sm font-semibold text-indigo-800 rounded-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"><span aria-hidden="true">＋&nbsp;</span>{% trans "Banner hinzufügen" %}</summary>
+    <div class="space-y-2 border-t border-indigo-100 p-3">
+    {% if pick.total > 6 or pick.lookup %}
+    <div class="flex gap-2">
+      <label class="flex-1 min-w-0"><span class="sr-only">{% trans "Banner suchen" %}</span>
+        <input type="search" form="schema-lookup-form" name="lookup" value="{{ pick.lookup }}" placeholder="{% trans 'Banner suchen' %}" class="ui-input w-full"></label>
+      <button type="submit" form="schema-lookup-form" class="ui-btn ui-btn-secondary min-h-[44px]">{% trans "Suchen" %}</button>
     </div>
-    <p class="text-xs text-gray-600">{% trans "Weitere Einstellungen (Zeitraum, Text-Position, wo der Banner noch erscheint) später unter „Banner verwalten“." %}</p>
-    <button class="ui-btn ui-btn-primary w-full">{% trans "Anlegen und hinzufügen" %}</button>
-  </form>
-</details>
-{% endif %}
+    {% endif %}
+    <ul class="grid grid-cols-2 gap-2" data-schema-banner-offers>
+      {% for o in pick.offers %}
+      <li><button type="submit" form="schema-pick-form" name="pick_op" value="add:{{ o.pk }}" class="flex w-full flex-col overflow-hidden rounded-lg border border-gray-500 bg-white text-left hover:border-indigo-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600" aria-label="{% trans 'Hinzufügen' %}: {{ o.label }}">
+        <span class="block aspect-[16/7] w-full bg-gray-100" aria-hidden="true">{% if o.image %}<img src="{{ o.image }}" alt="" class="h-full w-full object-cover" loading="lazy">{% endif %}</span>
+        <span class="flex items-center gap-1 px-2 py-1.5 text-xs font-semibold"><span aria-hidden="true">＋</span><span class="break-words">{{ o.label|default:"—" }}</span></span>
+      </button></li>
+      {% empty %}
+      <li class="col-span-2 text-xs text-gray-600">{% if pick.lookup %}{% trans "Nichts gefunden." %}{% else %}{% trans "Alle Banner der Bibliothek sind schon gewählt." %}{% endif %}</li>
+      {% endfor %}
+    </ul>
+    </div>
+  </details>
+  {% else %}
+  <p class="text-sm text-gray-700">{% trans "In der Bibliothek ist noch kein Banner." %} <a href="{% url 'site-banners' %}" class="inline-flex items-center min-h-[44px] font-semibold text-indigo-700 hover:underline">{% trans "Banner verwalten" %} <span aria-hidden="true">→</span></a></p>
+  {% endif %}
 </div>
 {% endif %}
 {% if pick.entries|length > 1 and not pick.single or pick.from_page %}

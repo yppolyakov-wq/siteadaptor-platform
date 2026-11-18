@@ -38827,3 +38827,7 @@ msgstr "Vorerst nur auf der Startseite."
 #: templates/tenant/_section_fields.html
 msgid "Die Punkte werden im Seitenaufbau bearbeitet."
 msgstr "Die Punkte werden im Seitenaufbau bearbeitet."
+
+#: templates/tenant/_schema_banner_pick.html
+msgid "Banner hinzufügen"
+msgstr "Banner hinzufügen"

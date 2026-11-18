@@ -39079,3 +39079,7 @@ msgstr "Пока только на главной."
 #: templates/tenant/_section_fields.html
 msgid "Die Punkte werden im Seitenaufbau bearbeitet."
 msgstr "Пункты правятся в «Структуре страницы»."
+
+#: templates/tenant/_schema_banner_pick.html
+msgid "Banner hinzufügen"
+msgstr "Добавить баннер"
