@@ -162,3 +162,75 @@ Category/Promotion, `setup_assistant.py` (440, 494), демо-киты (≈12 м
   через `page_template_code`; маскировать обратные отсчёты в сверке, если на сервере будут
   ложные MISMATCH (безопасная сторона — сайт пропускается).
 
+
+## B1b-2 план (planner, 2026-11-18)
+Одна ветка, три коммита-подсреза, в `main` одним батчем (перенос и писатели вместе). Миграций
+Django нет: шаг `materialize_page_axes` в `deploy.sh` уже есть, снимок — `SiteConfigSnapshot`.
+
+**Решение владельца D1 (2026-11-18): «Да, копировать».** Новые хосты `category` и
+`promo_group:<md5>` стартуют копией общих блоков и переводов (`siteconfig.page_rows`), как B1b-1
+для `promo_group`: вид тот же, будущие правки общих блоков туда не доходят. В отчёт команды —
+строка `detached: …`.
+
+**Находки разведки:**
+- Категория: витрина (`promotions/public_views.py:1637–1649`) берёт хост `catalog:<slug>`, только
+  если в нём есть оси (`catalog_parts.has_parts`), иначе — `category` поверх своего кода. Цель —
+  тот же вид явными строками своего хоста по всем осям (`write_rows`, `root=False`). Свои хосты и
+  «Alle Kategorien» считаются от ИСХОДНОГО `norm` (иначе вид накладывается дважды).
+- Хост категории только с осями (без блоков с `id`) не забирает блоки (`has_own_schema`,
+  `siteconfig.py:1794`; `category_blocks`/`place_banners` в `siteui.py:458, 526`).
+- Группа: `promo_blocks` (`siteui.py:494`) берёт свой хост при наличии ключа → новый
+  `promo_group:<md5>` начинается с `page_rows`. У `group_parts` (`promo_parts.py:113`) две оси —
+  свой код писать по всем осям явно (`page_parts.rows_with(..., explicit=True)`, `materialize_rows`
+  — обёртка), иначе после B3 `head` придёт из общих строк.
+- Акция: свой код сильнее строк `promo_detail`, хост `promo:<hex>` — слой поверх; блоки добавляются,
+  копировать нечего. `offer` — ещё и место раздела: якоря без строки `offer` → SKIP.
+- Читатель старого ключа: табы родителя (`public_views.py:1827`) — общий помощник
+  `catalog_parts.category_parts(cfg, category)` для 1637–1649 и 1827.
+- Студия `core/views.py:3620, 3712–3726` → `page_template_code` или удалить по grep с замком.
+- Потолок: `normalize` молча режет хосты по алфавиту (`siteconfig.py:1834–1837`) — перед записью
+  явная проверка «существующие + новые ≤ потолка».
+- Скрытые писатели: `promo_type_save` ветка `style:` (`promotions/views.py:435`),
+  `_drop_own_offer_view` (1138–1149), `setup_assistant.py:494`, сид категорий `demo_kits.py:25131`.
+- Писатель «Alle Kategorien» (`page_settings.py:672`) после перехода на строки перекрыл бы свой
+  шаблон категории без своих осей → перед записью закреплять свои коды категорий.
+
+**B1b-2a — ядро и читатели (вид не меняется):** `_MAX_CATEGORY_HOSTS = 120`;
+`PAGE_TEMPLATE_HOSTS["category_page_style"] = ("category", ("site_defaults","category_page_style"))`
++ ветка `category` в `page_template_parts/is/code` и `set_page_template`; `rows_with(explicit=)`;
+`category_parts`; переключатель `page_axes_migration.objects_blind()` (contextvar, только команда и
+тесты: витрина не видит своих кодов объектов — рендер вида после B3); Студия.
+
+**B1b-2b — перенос объектов:** `ObjectIndex` в `apply_tenant` (категории, акции с `page_style`,
+живые группы, id для чистки призраков; `migrate` чистый). Поверхность `categories` одной единицей
+(свои коды → `catalog:<slug>`, затем `category_page_style` → `category`; SKIP — целиком);
+`promo:<hex>`; `promo_group:<md5>` по живым группам (`orphan` не блокирует). Потолки: сначала
+чистка хостов удалённых объектов, нет места — SKIP `hosts_full`. Сверка: оси
+(`want == after == bare`, `bare` — без ключа и с `objects_blind`) + рендер три раза (старый / новый /
+новый без ключа + `objects_blind`) по страницам `pages(cfg, unit)`. Повтор → SAME; `ROLLED_BACK`
+не трогается; `--undo`.
+
+**B1b-2c — писатели, формы, ссылка:** поле «Vorlage der Seite» → ссылка «Im Seitenaufbau
+bearbeiten» (категория: `catalog/forms.py`, `category_form.html`, на создании — подсказка; акция:
+`promotions/forms.py`, `promotion_form.html`; тип акции: `promo_type_save` игнорирует `style:`,
+`promo_type_list.html` → ссылка на схему группы); `page_settings` — `category_page_style` строками с
+закреплением своих кодов (`PageSettingError`, без тихой потери); демо-киты без `page_style`,
+прогон тех же единиц; `promotions/tasks.py:163` — `object_structure.copy_blocks("promo", old, heir)`
+под блокировкой, потолок → чистка, нет места — `logger.warning`, наследник создаётся;
+`studio_pages.py:178, 266` — до B3 в исключениях.
+
+**Замки до кода:** `test_fb317_b1b2_migrate.py` (свой код + строки `category`; скрытая «Kategorien»
+→ SKIP; 118+5 хостов → чистка → `hosts_full`; группа со своим `view` при общей `head` → `head` явно;
+копия блоков группы; акция без `offer` → SKIP; `orphan`; повтор → SAME; `--undo`; хост с одними
+осями не забирает блоки); рендер-замок демо-китов «до = после»; текстовый замок писателей
+`page_style=`/`["style"]`; наследник акции; ссылка (имя, `<a>`, `?seite=`).
+
+**Риски:** D1; время рендера (≤120 категорий × 3) — замер на крупнейшем ките; ложные MISMATCH от
+дат/отсчётов (безопасная сторона — SKIP); открытые черновики — прогон в тихие часы; ключ группы с
+пробелами (`siteconfig.py:5076` против `1319`) — хост по точному `Promotion.group`.
+
+**ECC-прогоны:** скиллы до кода — django-patterns, django-tdd, python-testing, database-migrations,
+postgres-patterns, django-security, accessibility, error-handling. Агенты: `django-reviewer` — план и
+каждый подсрез; `database-reviewer` — 2b и `copy_blocks`; `silent-failure-hunter` — 2b и 2c;
+`security-reviewer` — 2c; `a11y-architect` — ссылка; `code-reviewer` — ветка перед мержем. Гейт:
+`ruff format --check .`, `test_template_comments`, `i18n_quickcheck`, `apps/tenants`, `test_fb31*_golden`.
