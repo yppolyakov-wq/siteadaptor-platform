@@ -305,9 +305,12 @@ def builtin_groups(request, cfg: dict, key: str, data: dict, mode: str = "") -> 
             # FB-32 S5a: один список видов с каталогом — недоступные видны с причиной
             from apps.core import block_views
 
-            for f in fields:
-                if f["name"] == "style":
-                    f["unavailable"] = block_views.unavailable(block_views.HOME)
+            fields = [
+                {**f, "unavailable": block_views.unavailable(block_views.HOME)}
+                if f["name"] == "style"
+                else f
+                for f in fields
+            ]
         if g["key"] == "welche":
             g["modes"] = [m for m in g["modes"] if m["key"] != "einzeln"]
             g["overridden"] = False

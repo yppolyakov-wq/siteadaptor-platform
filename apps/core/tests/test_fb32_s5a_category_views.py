@@ -42,6 +42,11 @@ def test_catalog_shows_home_tile_forms_disabled_with_reason():
 
 
 def test_disabled_view_cannot_be_posted_on_catalog():
+    from apps.core import aufbau_draft
+
     b = Browser(_tenant())
-    resp, msgs = b.post(seite="catalog", op="catview", ref="categories", value="")
-    assert any("nicht möglich" in m or "nicht" in m for m in msgs) or resp.status_code == 302
+    for value in ("home:square", ""):
+        _resp, msgs = b.post(seite="catalog", op="catview", ref="categories", value=value)
+        assert msgs, "отказ с сообщением"
+    req = b._request("get")
+    assert not aufbau_draft.get(req, "catalog"), "черновик не появился"

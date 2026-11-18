@@ -26,7 +26,7 @@ class View:
     catalog: str | None  # значение в каталоге (вид строки категорий) или None
     thumb_style: str = ""  # схема главной (`_style_thumb.html`)
     thumb_page: str = ""  # схема каталога (`_pagelayout_thumb.html`)
-    #: почему на главной недоступен (пусто — доступен или «скоро»)
+    #: вид бывает ТОЛЬКО в каталоге (управляет там списком товаров), не «пока»
     home_only_catalog: bool = False
 
 

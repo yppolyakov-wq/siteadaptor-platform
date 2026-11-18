@@ -1891,18 +1891,19 @@ def mark_view_availability(config: dict, host: str, view: dict) -> None:
         }
         for value, label, hint, thumb in view["choices"]
     ]
-    if view.get("choices") is CATEGORY_VIEW_CHOICES:
+    if tuple(view.get("choices") or ()) == CATEGORY_VIEW_CHOICES:
         # FB-32 S5a: один список видов с главной — её формы плиток видны с причиной
         from apps.core import block_views
 
         view["tiles"] += [
             {
-                "value": "",
+                "value": f"home:{u['key']}",  # своё значение — не совпадёт с видом каталога
                 "label": u["label"],
                 "hint": "",
                 "thumb": "",
                 "thumb_style": u["thumb_style"],
                 "available": False,
+                "synthetic": True,
                 "reason": u["reason"],
             }
             for u in block_views.unavailable(block_views.CATALOG)
@@ -1920,7 +1921,7 @@ def check_view_available(config: dict, host: str, ref: str, value: str, op: str 
         return  # не прикреплённая строка — решит mutate
     mark_view_availability(config, host, view)
     tile = next((t for t in view["tiles"] if t["value"] == value), None)
-    if tile is not None and not tile["available"]:
+    if tile is not None and (not tile["available"] or tile.get("synthetic")):
         raise SchemaError("value")
 
 
