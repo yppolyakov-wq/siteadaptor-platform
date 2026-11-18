@@ -459,7 +459,10 @@ def groups(request, cfg: dict, data: dict, mode: str = "") -> list[dict]:
     if own_layout:
         how = [f for f in how if f["name"] not in ("out", "cols", "rows")]
     cards = [(k, lab) for k, lab, srcs in hint["cards"] if source in srcs.split()]
-    if siteconfig.LIST_SOURCES[source]["card"] and cards:
+    # FB-32: прайс-лист и меню рисуют строки, а не карточки — «Kartenform» у них не действует
+    # (значение не стирается: поле просто не присылается)
+    price_list = source == "products" and str(data.get("style") or "").startswith("preisliste")
+    if siteconfig.LIST_SOURCES[source]["card"] and cards and not price_list:
         how.append(
             _select(
                 "card",
