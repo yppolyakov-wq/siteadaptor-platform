@@ -125,3 +125,33 @@ ECC: django-reviewer, database-reviewer (оконный запрос, замки
   «Spalten»/«Reihen»; «Höchstens» блока ограничивает и число направлений этих видов. Студия больше не пишет `usp_bar` без поля `usp_text` (один писатель —
   панель, ссылка «im Seitenaufbau bearbeiten»).
 
+
+## S6 — остальные страницы строками (planner, 2026-11-18)
+Опись: строками уже — главная, каталог/категория, 9 листингов, Team, Galerie, обзор и группы
+акций, детали (события, туры, услуга, товар, номер), корзина. Частично — «Über uns»
+(`CONTACT_REF`, блоки только ниже), деталь акции (ось `offer`, блоки в хвосте). Одним куском —
+`seite:<slug>`, Versand, Kontakt, Anfrage, Gutschein, Treue, Blogbeitrag, Finder. Правовые
+страницы — без блоков (решение M21.11); подтверждения/angebot/auftrag и прочие транзакционные —
+вне «Seitenaufbau» (замок).
+
+Срезы (каждый — CI → FF main):
+- **S6a** ядро + «Über uns» и `seite:*`: флаг `fixed` у раздела (не скрывается, без «⋯
+  ausblenden»); таблица «раздел → ключ видимости» вместо очередного `_lift_*`; `CONTACT_REF`
+  уходит в общий путь; `about.html`/`content_page.html` — поток `detail_parts.flow`.
+- **S6b** Versand: `text` (fixed), `costs` (скрыть можно только при своём тексте — § 6 PAngV,
+  прежний `show_methods`).
+- **S6c** Kontakt и Anfrage: `form` (fixed, визитка внутри — раскладка SP-9 не меняется),
+  `threads`, `area`, `callback` (скрываемый).
+- **S6d** Gutschein (`form` fixed — деньги, § 312j BGB) и Treue (`programs`, `join`).
+- **S6e** Blogbeitrag (`article` fixed, `more` с числом ≤ 12) и Finder (одна строка).
+- **S6f** деталь акции: `kauf` fixed (как `KAUF_REF`), `related`; объединение «оси + разделы»
+  у хоста с поверхностью — отдельный план до кода.
+- **S6g** вопрос владельцу: `combo_detail`, `/karten/`, `lehrer`, календарь событий, бронь
+  столика (`booking_index`/`slots`) — нужны ли им строки.
+
+Замки до кода: golden `FB32S6_GOLDEN` (без блоков, блоки в хвосте, якорь после первой строки,
+превью, de/ru; «без якоря — байт-в-байт»); normalize presence-minimal; `fixed` не выключается;
+свои блоки не попадают внутрь `<form>`; Студия/ассистент разделы не пишут. Макеты не нужны
+(та же панель строк), кроме случая «визитка отдельной строкой» в S6c.
+ECC: django-reviewer — каждый срез; security-reviewer — S6c/S6d/S6f; silent-failure-hunter —
+S6a, S6f; a11y-architect — S6c; Playwright 1440/390 de/ru — S6a, S6c, S6f.
