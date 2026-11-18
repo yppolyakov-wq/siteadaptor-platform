@@ -38736,3 +38736,7 @@ msgstr "For now only on catalogue pages."
 #: apps/core/block_views.py
 msgid "Vorerst nur auf der Startseite."
 msgstr "For now only on the home page."
+
+#: templates/tenant/_section_fields.html
+msgid "Die Punkte werden im Seitenaufbau bearbeitet."
+msgstr "The points are edited in the page structure."

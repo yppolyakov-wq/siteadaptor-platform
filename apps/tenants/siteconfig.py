@@ -3765,7 +3765,7 @@ def parse_content_sections(get) -> dict:
     def g(name):
         return get(name, "") or ""
 
-    return {
+    out = {
         "cta": {
             "title": g("cta_title"),
             "text": g("cta_text"),
@@ -3783,8 +3783,13 @@ def parse_content_sections(get) -> dict:
             "since": g("trust_since").strip(),
             "marks": [m.strip() for m in g("trust_marks").splitlines() if m.strip()],
         },
-        "usp_bar": text_to_usp(g("usp_text")),
     }
+    # FB-32 S2: пункты полосы доверия правит «Seitenaufbau»; форма Студии их больше не
+    # шлёт — пишем, только если поле прислано (демо-киты, старый черновик), иначе Save
+    # Студии стёр бы пункты
+    if get("usp_text", None) is not None:
+        out["usp_bar"] = text_to_usp(g("usp_text"))
+    return out
 
 
 def default_nav() -> dict:

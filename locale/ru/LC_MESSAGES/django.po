@@ -39075,3 +39075,7 @@ msgstr "Пока только на страницах каталога."
 #: apps/core/block_views.py
 msgid "Vorerst nur auf der Startseite."
 msgstr "Пока только на главной."
+
+#: templates/tenant/_section_fields.html
+msgid "Die Punkte werden im Seitenaufbau bearbeitet."
+msgstr "Пункты правятся в «Структуре страницы»."

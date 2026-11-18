@@ -38882,3 +38882,7 @@ msgstr "Şimdilik yalnızca katalog sayfalarında."
 #: apps/core/block_views.py
 msgid "Vorerst nur auf der Startseite."
 msgstr "Şimdilik yalnızca ana sayfada."
+
+#: templates/tenant/_section_fields.html
+msgid "Die Punkte werden im Seitenaufbau bearbeitet."
+msgstr "Maddeler sayfa yapısında düzenlenir."

@@ -34,7 +34,8 @@ SECTION_FIELDS = {
     "process": ("process_text",),
     "team": ("team_text",),
     "trust": ("trust_since", "trust_marks"),
-    "usp_bar": ("usp_text",),
+    # FB-32 S2: пункты полосы доверия — в «Seitenaufbau»; в строке Студии — ссылка туда
+    "usp_bar": (),
     # LAY-1b (осознанная переписка): FAQ правится ПАРАМИ полей — владелец просил
     # «заголовок и описание отдельными полями и кнопочку добавить» вместо одной
     # простыни «Вопрос | Ответ». Сентинел `faq_present` отличает новую форму от
@@ -85,7 +86,8 @@ def test_section_texts_live_in_their_own_row():
         for name in fields:
             assert f'name="{name}"' in row, f"{name} обязан быть в строке секции {key}"
     # общий ящик «Content sections» больше не нужен — иначе поля были бы в двух местах
-    for name in ("faq_q_0", "cta_title", "usp_text", "hero_title"):
+    assert "data-stu-usp-link" in _row(body, "usp_bar")
+    for name in ("faq_q_0", "cta_title", "hero_title"):
         assert body.count(f'name="{name}"') == 1, f"{name} не должен дублироваться"
 
 

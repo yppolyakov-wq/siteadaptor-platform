@@ -119,3 +119,8 @@ def test_usp_other_styles_ignore_text():
         {"site": {"usp_bar": [{"icon": "bio", "label": "Bio", "text": "Vom Hof."}]}},
     )
     assert "Vom Hof." not in html
+
+
+def test_fb32_studio_save_without_usp_field_keeps_the_points():
+    frag = siteconfig.parse_content_sections({"cta_title": "X"}.get)
+    assert "usp_bar" not in frag, "без поля Студия пункты не трогает (их правит «Seitenaufbau»)"
