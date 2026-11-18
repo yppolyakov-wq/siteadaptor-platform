@@ -286,7 +286,10 @@ def _optional_layout(key: str) -> bool:
     page draws its old classes again (LAY-3a-2)."""
     from apps.tenants import siteconfig
 
-    return key == "service_index_layout" or key in siteconfig.OPTIONAL_PAGE_LAYOUTS
+    return (
+        key in ("service_index_layout", "cart_upsell_layout")  # FB-32 S4b: «wie bisher»
+        or key in siteconfig.OPTIONAL_PAGE_LAYOUTS
+    )
 
 
 def _layout_presets(code: str) -> tuple[tuple[str, object], ...]:

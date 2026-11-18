@@ -170,6 +170,8 @@ def test_every_site_key_resolves_in_normalized_config():
             "promo_detail_style": "plakat",  # STU-15a: шаблон страницы акции
         },
         "product_detail": {"layout": "tabs"},
+        # FB-32 S4b: вид «Passt dazu» — presence-minimal, в фикстуре со значением
+        "cart_upsell_layout": {"preset": "cols3"},
         # STU-15b/c: раскладка деталей и дефолт сортировки листингов — тоже
         # presence-minimal, поэтому в фикстуру они входят со значением.
         "service_detail": {"layout": "tabs"},

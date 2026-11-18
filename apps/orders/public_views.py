@@ -906,11 +906,7 @@ def cart_view(request):
     _raw = page_settings.raw_config(request)
     _cfg = siteconfig.normalize(_raw)
     # FB-32 S4b: вид «Passt dazu» — как «Ähnliche» (без выбора — прежние 4 сеткой)
-    _up_lay = (
-        _cfg.get("cart_upsell_layout")
-        if isinstance((_raw or {}).get("cart_upsell_layout"), dict)
-        else None
-    )
+    _up_lay = _cfg.get("cart_upsell_layout")  # нет ключа — прежние 4 карточки сеткой
     # T1 upsell «Passt dazu»: товары не из корзины, рекомендованные вперёд.
     if rows:
         from apps.catalog.models import Product

@@ -38807,3 +38807,7 @@ msgstr "Zeit"
 #: apps/core/studio_pages.py
 msgid "Passt dazu: Darstellung"
 msgstr "Passt dazu: Darstellung"
+
+#: templates/tenant/_schema_related_view.html
+msgid "Wie bisher (4 Karten)"
+msgstr "Wie bisher (4 Karten)"

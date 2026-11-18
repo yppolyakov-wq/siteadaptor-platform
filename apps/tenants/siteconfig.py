@@ -5560,10 +5560,11 @@ def _normalize_impl(config) -> dict:
     normalized["detail_related_layout"] = normalize_related_layout(
         config.get("detail_related_layout")
     )
-    # FB-32 S4b: вид «Passt dazu» корзины — как у «Ähnliche». Ключ есть всегда (замки
-    # реестра); пока владелец не выбрал вид (ключа нет в сыром конфиге), корзина рисует
-    # прежние 4 карточки сеткой — golden байт-в-байт (`orders.public_views.cart_view`)
-    normalized["cart_upsell_layout"] = normalize_related_layout(config.get("cart_upsell_layout"))
+    # FB-32 S4b: вид «Passt dazu» корзины — как у «Ähnliche»; presence-minimal (ревью):
+    # без выбора владельца ключа нет — корзина рисует прежние 4 карточки сеткой, и любое
+    # сохранение нормализованного конфига вид молча не включит
+    if isinstance(config.get("cart_upsell_layout"), dict):
+        normalized["cart_upsell_layout"] = normalize_related_layout(config["cart_upsell_layout"])
     # M20U-7: кастомные заголовки секций главной (только известные ключи, обрезка).
     titles = config.get("section_titles")
     clean_titles = {}

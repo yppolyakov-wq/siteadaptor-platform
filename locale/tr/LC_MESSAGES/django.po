@@ -38866,3 +38866,7 @@ msgstr "Zaman"
 #: apps/core/studio_pages.py
 msgid "Passt dazu: Darstellung"
 msgstr "Bununla iyi gider: görünüm"
+
+#: templates/tenant/_schema_related_view.html
+msgid "Wie bisher (4 Karten)"
+msgstr "Önceki gibi (4 kart)"

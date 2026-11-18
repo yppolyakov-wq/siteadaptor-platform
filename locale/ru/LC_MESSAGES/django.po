@@ -39059,3 +39059,7 @@ msgstr "Время"
 #: apps/core/studio_pages.py
 msgid "Passt dazu: Darstellung"
 msgstr "«Подойдёт к этому»: вид"
+
+#: templates/tenant/_schema_related_view.html
+msgid "Wie bisher (4 Karten)"
+msgstr "Как раньше (4 карточки)"

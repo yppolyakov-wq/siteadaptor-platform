@@ -26,7 +26,7 @@ def _more(n):
 
 
 def test_without_a_choice_the_old_four_cards_grid():
-    assert siteconfig.normalize({})["cart_upsell_layout"]["preset"] == "cols4"
+    assert "cart_upsell_layout" not in siteconfig.normalize({})
     html = _cart_html({})
     assert "data-upsell-grid" not in html and "data-upsell-strip" not in html
     assert 'class="grid grid-cols-2 lg:grid-cols-4 gap-4"' in html
@@ -53,3 +53,25 @@ def test_setting_lives_on_the_upsell_row_and_saves():
     b.post(seite="cart", op="save")
     lay = _cfg(b.tenant)["cart_upsell_layout"]
     assert lay["cols"] == 3 and lay["raster"] is True and lay["max"] == 12
+
+
+def test_review_any_schema_save_does_not_switch_the_cart_view():
+    b = Browser(_tenant())
+    b.post(seite="cart", op="add", type="text")
+    b.post(seite="cart", op="save")
+    assert "cart_upsell_layout" not in (b.tenant.__class__.objects.get(pk=b.tenant.pk).site_config)
+
+
+def test_review_owner_can_go_back_to_the_old_four_cards():
+    b = Browser(_tenant())
+    b.post(
+        seite="cart", ref="upsell", op="setting", setting="cart_upsell_layout",
+        value="cols3", out_mode="raster", out_max="12",
+    )  # fmt: skip
+    b.post(seite="cart", op="save")
+    assert "cart_upsell_layout" in _cfg(b.tenant)
+    html = b.get("?seite=cart&block=upsell")
+    assert "data-schema-related-standard" in html
+    b.post(seite="cart", ref="upsell", op="setting", setting="cart_upsell_layout", value="")
+    b.post(seite="cart", op="save")
+    assert "cart_upsell_layout" not in _cfg(b.tenant)

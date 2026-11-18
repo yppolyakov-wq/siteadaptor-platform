@@ -36,5 +36,9 @@
       {% endfor %}
     </div>
   </fieldset>
+  {% if s.code == "cart_upsell_layout" %}
+  {% comment %}FB-32 S4b (ревью): назад к прежнему виду — 4 карточки сеткой (ключ снимается).{% endcomment %}
+  <button name="value" value="" class="ui-btn ui-btn-secondary w-full" data-schema-related-standard>{% trans "Wie bisher (4 Karten)" %}</button>
+  {% endif %}
   {% if s.layout.tail %}<input type="hidden" name="out_tail" value="{{ s.layout.tail }}">{% endif %}{% if s.layout.rows %}<input type="hidden" name="out_rows" value="{{ s.layout.rows }}">{% endif %}{% if s.layout.speed %}<input type="hidden" name="out_speed" value="{{ s.layout.speed }}">{% endif %}{% if s.layout.page_size %}<input type="hidden" name="out_page_size" value="{{ s.layout.page_size }}">{% endif %}
 </div>
