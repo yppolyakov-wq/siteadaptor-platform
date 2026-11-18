@@ -79,3 +79,35 @@ def test_about_page_without_anchors_looks_as_before(case):
 @pytest.mark.parametrize("case", ("plain", "tail"))
 def test_content_page_without_anchors_looks_as_before(case):
     _check(f"page-{case}", _page(CASES[case]))
+
+
+# ── S6b: «Versand» ──────────────────────────────────────────────────────────────
+
+
+def _versand(cfg, *, body="", show=True):
+    from apps.core.models import ContentPage
+    from apps.orders import public_views
+    from apps.orders.models import ShippingMethod
+
+    ShippingMethod.objects.create(kind="pickup")
+    ShippingMethod.objects.create(kind="carrier", carrier="dhl", fee_cents=499)
+    if body:
+        ContentPage.objects.create(
+            slug="versand", title="Versand", body=body, show_shipping_methods=show
+        )
+    cfg = {**cfg, "page_blocks": {"versand": (cfg.get("page_blocks") or {}).get("info", [])}}
+    return _main(public_views.shipping_info(_req("/versand/", cfg)).content.decode())
+
+
+VERSAND = {
+    "plain": ({}, "", True),
+    "tail": (CASES["tail"], "", True),
+    "body": (CASES["tail"], "<p>Wir liefern montags.</p>", True),
+    "body-nolist": (CASES["tail"], "<p>Wir liefern montags.</p>", False),
+}
+
+
+@pytest.mark.parametrize("case", sorted(VERSAND))
+def test_versand_page_without_anchors_looks_as_before(case):
+    cfg, body, show = VERSAND[case]
+    _check(f"versand-{case}", _versand(cfg, body=body, show=show))
