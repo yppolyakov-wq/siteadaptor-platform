@@ -2621,6 +2621,8 @@ def detail_section_hidden(config, module: str) -> set:
     for key, flag in detail_parts.VISIBILITY_KEYS.get(module, {}).items():
         if (config or {}).get(flag) is False:
             hidden.add(key)  # FB-32 S4/S6a: видимость раздела — прежний ключ
+    # ревью S6a: раздел, который скрыть нельзя (текст страницы), не скрыт и устаревшим значением
+    hidden -= {s.key for s in detail_sections.sections_for(module) if not s.hideable}
     return hidden
 
 

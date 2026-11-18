@@ -53,6 +53,15 @@ def _has_section_rows(draft: dict) -> bool:
     )
 
 
+def _base_fingerprint(saved: dict, config: dict, draft: dict) -> str:
+    """Отпечаток сохранённого состояния в форме черновика: черновик «Über uns», начатый до
+    строк разделов (FB-32 S6a), считал отпечаток с карточкой контактов отдельным ключом — иначе
+    чистый черновик выглядел бы конфликтом."""
+    if draft.get("host") == "info" and "contact" in draft and not _has_section_rows(draft):
+        saved = {**saved, "contact": config.get("about_contact") is not False}
+    return _fingerprint(saved)
+
+
 def _fingerprint(state: dict) -> str:
     raw = json.dumps(state, sort_keys=True, default=str).encode()
     return hashlib.sha1(raw, usedforsecurity=False).hexdigest()[:16]
@@ -197,7 +206,11 @@ def changes(saved: dict, draft: dict) -> int:
     )
     if [k for k in old if k in new] != common:
         count += 1
-    if "contact" in draft and bool(draft["contact"]) != bool(saved.get("contact", True)):
+    if (
+        "contact" in draft
+        and not _has_section_rows(draft)
+        and bool(draft["contact"]) != bool(saved.get("contact", True))
+    ):
         count += 1
     # FB-27 R4: настройки типа страницы — по одному изменению на настройку.
     count += len(_settings(draft))
@@ -212,7 +225,8 @@ def info(request, config: dict, code: str) -> dict:
     saved = _saved_state(config, bool(draft.get("home")), str(draft.get("host") or ""))
     return {
         "count": changes(saved, draft),
-        "conflict": _fingerprint(saved) != draft.get("base") or _keys_conflict(config, draft),
+        "conflict": _base_fingerprint(saved, config, draft) != draft.get("base")
+        or _keys_conflict(config, draft),
     }
 
 
@@ -378,7 +392,7 @@ def commit(request, tenant, code: str, *, force: bool = False) -> bool:
     locked = Tenant.objects.select_for_update().get(pk=tenant.pk)
     config = siteconfig.normalize(locked.site_config)
     if not force and (
-        _fingerprint(_saved_state(config, home, host)) != draft.get("base")
+        _base_fingerprint(_saved_state(config, home, host), config, draft) != draft.get("base")
         or _keys_conflict(config, draft)
     ):
         raise DraftConflict(code)

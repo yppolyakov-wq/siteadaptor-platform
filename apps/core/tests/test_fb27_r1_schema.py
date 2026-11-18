@@ -205,7 +205,8 @@ def test_move_skips_hidden_neighbours():
     ]
     assert visible == [refs[2], refs[0]]
     first = next(b for b in site_schema.blocks_for(cfg, "text") if b["ref"] == refs[2])
-    assert first["can_up"] is False and first["can_down"] is True
+    # FB-32 S6a: выше — ещё место над карточкой контактов (разделы «Über uns» — строки)
+    assert first["can_up"] is True and first["can_down"] is True
 
 
 def test_new_block_is_selected_after_adding():
