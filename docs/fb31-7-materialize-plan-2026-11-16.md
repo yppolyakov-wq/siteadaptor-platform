@@ -96,3 +96,27 @@ Category/Promotion, `setup_assistant.py` (440, 494), демо-киты (≈12 м
   конфиги с кодами — публикация черновика Студии / откат версии после сноса вернут код без
   строк. Перед B3: перенести и их (или очистить), замок.
 
+
+## План B1b + B2 (planner, 2026-11-18) — одна ветка, в `main` одним батчем
+- **Замки до кода:** писатели не пишут старые ключи (демо-конфиг, сырой `site_config`,
+  `Category/Promotion.page_style`); текстовый замок по `apps/` (закрытый список исключений:
+  читатели, `page_axes_migration`, `promotions/tasks.py:163` до B3); «до = после» на всех
+  демо-китах для catalog/category/catalog:<slug>/promos/promo_group/групп/promo_detail/promo:<hex>
+  (скрытая строка, мусорный код `demo_kits.py:3909`, потолок хостов, повтор, `--undo`).
+- **B1b:** `page_parts.rows_with(s, rows, target, explicit=…)` (`materialize_rows` — обёртка;
+  `explicit` — свой код объекта перекрывает общий вид целиком); такой же у `catalog_parts`;
+  чистые правила вида `catalog_parts.page_parts` и `promo_parts.overview_parts` (из
+  `public_views`/`site_schema`); новый хост начинается с `siteconfig.page_rows` (иначе
+  `category_blocks`/`promo_blocks` молча теряют блоки каталога/обзора); объекты читаются в
+  `schema_context`; потолки хостов (`_MAX_OBJECT_HOSTS = 120`, категорий 40, групп 40) —
+  сначала чистка хостов удалённых объектов, иначе SKIP `hosts_full`.
+- **B2:** один помощник `siteconfig.set_page_template(cfg, host, code)`; `apply_override`
+  (закрывает ассистента, `page_settings.write`, превью `?tpl=`, старые черновики); формы
+  категории и акции — поле убрать, ссылка «Im Seitenaufbau bearbeiten»; `promotions/views.py`
+  скрытые ветки `page_style`/`group_style:` снять (**HIGH**: `views.py:519` заменяет словарь
+  группы строкой — тихая потеря карточки/раскладки); плитка вида у типа акции → ссылка на
+  схему группы; демо-киты — `kit_page_template(host, code)`, `seed --changed` байт-в-байт;
+  `tasks.py:163` (повтор акции) копирует и строку `offer` хоста `promo:<old>`.
+- **До B3:** откат версии и `_draft` Студии возвращают коды без строк — перед B3 переносить и их.
+- **Вопросы владельцу:** каталоги с > 40 категориями со своим видом — поднять потолок или
+  SKIP; плитка вида у типа акции → ссылка (как решение 3).
