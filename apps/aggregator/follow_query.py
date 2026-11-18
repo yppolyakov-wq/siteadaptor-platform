@@ -257,12 +257,31 @@ def valid_business(pairs) -> bool:
 # --- показ ------------------------------------------------------------------------------
 
 
-def describe(pairs, *, city: str = "") -> str:
-    """Человеческая подпись набора: «„Tomaten“ · Obst & Gemüse · Ohligs · Marke Bosch»."""
+def _value_label(name: str, value: str, city: str) -> str:
+    return describe(((name, value),), city=city, _grouped=False)
+
+
+# Порядок видов в подписи (как на макете F3): что → где → какое → у кого.
+_DESCRIBE_ORDER = ("q", "kind", "kat", "stadtteil", "merkmal", "unternehmen", "marke", "groesse")
+
+
+def describe(pairs, *, city: str = "", _grouped: bool = True) -> str:
+    """Человеческая подпись набора: «„Tomaten“ · Obst & Gemüse · Ohligs · Marke Bosch».
+    T-8.10d.1: значения одного вида — через запятую («Friseur · Mitte, Burg/Höhscheid ·
+    familienfreundlich»), виды — через «·»."""
     from django.utils.translation import gettext as _
 
     from . import portal_home_blocks as home
 
+    if _grouped:
+        groups: dict[str, list[str]] = {}
+        for name, value in pairs:
+            label = _value_label(name, value, city)
+            if label:
+                groups.setdefault(name, []).append(label)
+        rank = {name: i for i, name in enumerate(_DESCRIBE_ORDER)}
+        ordered = sorted(groups.items(), key=lambda kv: rank.get(kv[0], len(rank)))
+        return " · ".join(", ".join(labels) for _name, labels in ordered)
     parts: list[str] = []
     for name, value in pairs:
         if name == "q":
@@ -358,3 +377,79 @@ def queryset(sub, pairs=None):
     return search.execute(
         pool, q_eff, eff, surface="entdecken", track=False, city=city, fuzzy=False
     ).qs
+
+
+# --- T-8.10d.1: подписка комбинацией — чипы панели подтверждения ------------------
+
+#: виды, которые житель правит чипами (✕ убрать, ＋ добавить); прочие — только убрать
+EDITABLE = ("kat", "stadtteil", "merkmal")
+_LIMITS = {"kat": MAX_KATS, "stadtteil": MAX_DISTRICTS_FOLLOW, "merkmal": MAX_TAGS}
+
+
+def combo_groups(pairs, params, *, city: str) -> list[dict]:
+    """Группы чипов набора для страницы подписки: [{"name", "label", "hint", "chips": [{"label",
+    "remove"}], "add": [(value, label)] | None}]. `remove`/`add` — query-строки той же страницы
+    (GET, без JS): убрать значение или добавить новое к текущим параметрам."""
+    from django.utils.translation import gettext as _
+
+    qd = _params(params)
+    titles = {
+        "kat": (_("Kategorie"), ""),
+        "stadtteil": (_("Stadtteil"), _("einer davon")),
+        "merkmal": (_("Merkmal"), _("alle")),
+    }
+    out: list[dict] = []
+    seen: dict[str, dict] = {}
+    for name, value in pairs:
+        group = seen.get(name)
+        if group is None:
+            title, hint = titles.get(name, (describe(((name, value),), city=city), ""))
+            group = {"name": name, "label": title, "hint": hint, "chips": [], "add": None}
+            seen[name] = group
+            out.append(group)
+        rest = qd.copy()
+        rest.setlist(name, [v for v in qd.getlist(name) if v != value])
+        group["chips"].append(
+            {"label": _value_label(name, value, city), "remove": rest.urlencode()}
+        )
+    for name in EDITABLE:
+        group = seen.get(name)
+        current = set(qd.getlist(name))
+        if len(current) >= _LIMITS[name]:
+            continue
+        if name == "stadtteil":
+            options = districts.choices_for(city)
+        elif name == "merkmal":
+            options = cc.tag_choices()
+        else:
+            options = [(c.key, str(c.label)) for c in cc.CATEGORIES]
+        options = [(v, str(lab)) for v, lab in options if v not in current]
+        if not options:
+            continue
+        if group is None:
+            title, hint = titles[name]
+            group = {"name": name, "label": title, "hint": hint, "chips": [], "add": None}
+            out.append(group)
+        group["add"] = options
+    return out
+
+
+def covered_singles(pairs) -> list[tuple[str, str]]:
+    """Старые одиночные цели (kind, key), которые набор сужает: «Kategorie: Friseur» и
+    «Stadtteil: Mitte» у «Friseur · Mitte» — житель может заменить их этой подпиской."""
+    from .models import FollowSubscription
+
+    out = []
+    for name, value in pairs:
+        if name == "kat":
+            kind = (
+                FollowSubscription.TARGET_SECTION
+                if cc.section(value)
+                else FollowSubscription.TARGET_CATEGORY
+            )
+            out.append((kind, value))
+        elif name == "stadtteil":
+            out.append((FollowSubscription.TARGET_DISTRICT, value))
+        elif name == "merkmal":
+            out.append((FollowSubscription.TARGET_TAG, value))
+    return out

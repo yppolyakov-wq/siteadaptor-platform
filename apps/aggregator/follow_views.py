@@ -105,6 +105,34 @@ def _home_url(portal) -> str:
     return reverse("portal-home") if portal else reverse("aggregator-index")
 
 
+def _covered_qs(user, target):
+    from django.db.models import Q
+
+    pairs = follow_query.covered_singles(target.query)
+    if user is None or target.kind != FollowSubscription.TARGET_QUERY or not pairs:
+        return None
+    cond = Q()
+    for kind, key in pairs:
+        cond |= Q(target_kind=kind, target_key=key)
+    return FollowSubscription.objects.filter(cond, user=user, city=target.city)
+
+
+def _replaceable(user, target) -> list[str]:
+    """Подписи старых одиночных подписок жителя, которые новая комбинация сужает."""
+    qs = _covered_qs(user, target)
+    if qs is None:
+        return []
+    return [follow.describe(sub) for sub in qs.order_by("pk")]
+
+
+def _replace_singles(user, target) -> None:
+    """T-8.10d.1 (владелец): житель сам отметил «заменить» — старые одиночные подписки,
+    покрытые комбинацией, удаляются (только у самого жителя, только этого города)."""
+    qs = _covered_qs(user, target)
+    if qs is not None:
+        qs.delete()
+
+
 def follow_page(request):
     """GET: форма подписки на цель из `?unternehmen=|bereich=|stadtteil=`; POST: DOI."""
     portal = getattr(request, "portal", None)
@@ -131,6 +159,13 @@ def follow_page(request):
         "dropped_filters": follow_query.dropped(request.GET)
         if target.kind == FollowSubscription.TARGET_QUERY
         else [],
+        # T-8.10d.1: чипы комбинации (✕ убрать / ＋ добавить) и старые одиночные подписки,
+        # которые она сужает (заменить — галочкой, только вошедшему)
+        "combo_groups": follow_query.combo_groups(target.query, request.GET, city=target.city)
+        if target.kind == FollowSubscription.TARGET_QUERY
+        else [],
+        "replaceable": _replaceable(user, target),
+        "current_params": [(k, v) for k, vs in request.GET.lists() for v in vs],
     }
     if request.method == "POST":
         form = FollowForm(request.POST)
@@ -142,6 +177,8 @@ def follow_page(request):
                 )
             except follow.FollowLimitReached:
                 return render(request, "aggregator/follow.html", {**context, "limit_reached": True})
+            if request.POST.get("replace_singles") == "1":
+                _replace_singles(user, target)
             return render(request, "aggregator/follow_done.html", {**context, "following": True})
         email = _doi_guard(request, form)
         if email:

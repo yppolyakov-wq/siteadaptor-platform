@@ -38744,3 +38744,21 @@ msgstr "The points are edited in the page structure."
 #: templates/tenant/_schema_banner_pick.html
 msgid "Banner hinzufügen"
 msgstr "Add banner"
+
+#: templates/aggregator/follow.html
+msgid "Einzel-Abos %(items)s durch diese Benachrichtigung ersetzen"
+msgstr "Replace the single follows %(items)s with this notification"
+
+#: templates/aggregator/follow.html
+msgid "einer davon"
+msgstr "any of them"
+
+#: templates/aggregator/follow.html
+msgid "hinzufügen"
+msgstr "add"
+
+#: templates/aggregator/_search_follow.html
+msgid "Folgen · %(n)s Filter"
+msgid_plural "Folgen · %(n)s Filter"
+msgstr[0] "Follow · %(n)s filter"
+msgstr[1] "Follow · %(n)s filters"

@@ -25,9 +25,8 @@
       {% if heading %}{{ heading }}{% elif searching and search_q %}<span class="md:hidden">{% blocktrans with q=search_q %}„{{ q }}“{% endblocktrans %}</span><span class="max-md:hidden">{% blocktrans with q=search_q %}Suchergebnisse für „{{ q }}“{% endblocktrans %}</span>{% else %}{{ portal.title_text }}{% endif %}
     </h1>
     {% if flt %}<span class="text-sm md:text-base font-semibold text-gray-600" data-hit-count>{% if flt.hits_capped %}{% blocktrans with n=flt.hits %}{{ n }}+ Treffer{% endblocktrans %}{% else %}{% blocktrans count n=flt.hits %}{{ n }} Treffer{% plural %}{{ n }} Treffer{% endblocktrans %}{% endif %}</span>{% endif %}
-    {% include "aggregator/_follow_button.html" with next_url=request.get_full_path %}
-    {% comment %}PH-14: подписка на выдачу — колокольчиком у заголовка (была отдельной строкой).{% endcomment %}
-    {% if flt and searching %}{% include "aggregator/_search_follow.html" with compact=True %}{% endif %}
+    {% comment %}T-8.10d.1 (владелец): одна кнопка «Folgen» — с фильтрами подписывает на их сочетание, без них — как раньше.{% endcomment %}
+    {% if search_follow %}{% include "aggregator/_search_follow.html" with compact=True %}{% else %}{% include "aggregator/_follow_button.html" with next_url=request.get_full_path %}{% endif %}
   </div>
   {% if district_label %}<p class="mt-1 text-gray-500">{% blocktrans with name=district_label city=portal.city %}Angebote in {{ name }}, {{ city }}{% endblocktrans %}</p>{% endif %}
   {% if district_tail %}<p class="mt-1 text-sm text-gray-500" data-district-sparse>{% blocktrans with name=tail_district_label %}Noch wenige Geschäfte in {{ name }} — Angebote aus der Nähe finden Sie weiter unten.{% endblocktrans %}</p>{% endif %}

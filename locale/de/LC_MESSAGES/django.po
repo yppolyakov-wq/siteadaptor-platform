@@ -38831,3 +38831,21 @@ msgstr "Die Punkte werden im Seitenaufbau bearbeitet."
 #: templates/tenant/_schema_banner_pick.html
 msgid "Banner hinzufügen"
 msgstr "Banner hinzufügen"
+
+#: templates/aggregator/follow.html
+msgid "Einzel-Abos %(items)s durch diese Benachrichtigung ersetzen"
+msgstr "Einzel-Abos %(items)s durch diese Benachrichtigung ersetzen"
+
+#: templates/aggregator/follow.html
+msgid "einer davon"
+msgstr "einer davon"
+
+#: templates/aggregator/follow.html
+msgid "hinzufügen"
+msgstr "hinzufügen"
+
+#: templates/aggregator/_search_follow.html
+msgid "Folgen · %(n)s Filter"
+msgid_plural "Folgen · %(n)s Filter"
+msgstr[0] "Folgen · %(n)s Filter"
+msgstr[1] "Folgen · %(n)s Filter"

@@ -59,7 +59,8 @@ def test_hit_count_and_bell_sit_in_the_title_line():
     title = html.split("<h1", 1)[1].split("</div>", 1)[0]
     assert "data-hit-count" in title and "3 Treffer" in title
     bell = re.search(r"<a [^>]*data-search-follow[^>]*>.*?</a>", title, re.S).group(0)
-    assert "h-11 w-11" in bell and 'class="sr-only"' in bell
+    # T-8.10d.1: значок стал кнопкой «Folgen · N Filter» (макет F1), цель — 44px в высоту
+    assert "min-h-11" in bell and "Folgen · 1 Filter" in bell and 'class="sr-only"' in bell
 
 
 def test_applied_filters_are_chips_below_the_row_with_clear_all():

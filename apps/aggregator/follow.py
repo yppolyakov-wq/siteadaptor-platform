@@ -748,7 +748,8 @@ def confirm_url(portal, token: str) -> str:
 def describe(sub: FollowSubscription) -> str:
     """Подпись подписки для писем/кабинета: «Bäckerei X» / «Bereich: Essen» / «Stadtteil: Ohligs»."""
     target = target_from_follow(sub)
-    if sub.target_kind == FollowSubscription.TARGET_BUSINESS:
+    # T-8.10d.1: комбинация — своей подписью «Friseur · Mitte, Burg/Höhscheid · …», без «Suche:»
+    if sub.target_kind in (FollowSubscription.TARGET_BUSINESS, FollowSubscription.TARGET_QUERY):
         return target.label
     return _("%(kind)s: %(name)s") % {"kind": target.kind_label, "name": target.label}
 

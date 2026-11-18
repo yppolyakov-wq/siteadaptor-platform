@@ -38890,3 +38890,21 @@ msgstr "Maddeler sayfa yapısında düzenlenir."
 #: templates/tenant/_schema_banner_pick.html
 msgid "Banner hinzufügen"
 msgstr "Banner ekle"
+
+#: templates/aggregator/follow.html
+msgid "Einzel-Abos %(items)s durch diese Benachrichtigung ersetzen"
+msgstr "Tekli abonelikleri %(items)s bu bildirimle değiştir"
+
+#: templates/aggregator/follow.html
+msgid "einer davon"
+msgstr "bunlardan biri"
+
+#: templates/aggregator/follow.html
+msgid "hinzufügen"
+msgstr "ekle"
+
+#: templates/aggregator/_search_follow.html
+msgid "Folgen · %(n)s Filter"
+msgid_plural "Folgen · %(n)s Filter"
+msgstr[0] "Takip et · %(n)s filtre"
+msgstr[1] "Takip et · %(n)s filtre"

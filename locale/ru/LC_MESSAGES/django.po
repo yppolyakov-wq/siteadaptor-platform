@@ -39083,3 +39083,23 @@ msgstr "Пункты правятся в «Структуре страницы»
 #: templates/tenant/_schema_banner_pick.html
 msgid "Banner hinzufügen"
 msgstr "Добавить баннер"
+
+#: templates/aggregator/follow.html
+msgid "Einzel-Abos %(items)s durch diese Benachrichtigung ersetzen"
+msgstr "Заменить отдельные подписки %(items)s этой"
+
+#: templates/aggregator/follow.html
+msgid "einer davon"
+msgstr "любой из них"
+
+#: templates/aggregator/follow.html
+msgid "hinzufügen"
+msgstr "добавить"
+
+#: templates/aggregator/_search_follow.html
+msgid "Folgen · %(n)s Filter"
+msgid_plural "Folgen · %(n)s Filter"
+msgstr[0] "Следить · %(n)s фильтр"
+msgstr[1] "Следить · %(n)s фильтра"
+msgstr[2] "Следить · %(n)s фильтров"
+msgstr[3] "Следить · %(n)s фильтра"

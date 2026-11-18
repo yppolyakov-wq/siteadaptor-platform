@@ -39070,3 +39070,23 @@ msgstr "Пункти редагуються у «Структурі сторін
 #: templates/tenant/_schema_banner_pick.html
 msgid "Banner hinzufügen"
 msgstr "Додати банер"
+
+#: templates/aggregator/follow.html
+msgid "Einzel-Abos %(items)s durch diese Benachrichtigung ersetzen"
+msgstr "Замінити окремі підписки %(items)s цією"
+
+#: templates/aggregator/follow.html
+msgid "einer davon"
+msgstr "будь-який з них"
+
+#: templates/aggregator/follow.html
+msgid "hinzufügen"
+msgstr "додати"
+
+#: templates/aggregator/_search_follow.html
+msgid "Folgen · %(n)s Filter"
+msgid_plural "Folgen · %(n)s Filter"
+msgstr[0] "Стежити · %(n)s фільтр"
+msgstr[1] "Стежити · %(n)s фільтри"
+msgstr[2] "Стежити · %(n)s фільтрів"
+msgstr[3] "Стежити · %(n)s фільтра"
