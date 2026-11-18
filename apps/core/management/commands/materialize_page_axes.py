@@ -57,6 +57,9 @@ class Command(BaseCommand):
                         f"{k}={word.get(v, v)}" for k, v in sorted(report.surfaces.items())
                     )
                     self.stdout.write(f"{tenant.schema_name}: {parts}")
+                if report.notes:
+                    # B1b-2: отвязанные копии (D1), группы без акций, чистка хостов удалённых
+                    self.stdout.write(f"{tenant.schema_name}: {'; '.join(report.notes)}")
                 done += report.changed and not options["dry_run"]
                 would += report.changed and options["dry_run"]
                 if report.busy:

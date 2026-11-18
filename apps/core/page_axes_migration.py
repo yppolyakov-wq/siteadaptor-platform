@@ -45,11 +45,15 @@ def is_objects_blind() -> bool:
 #: итог одной поверхности
 DONE, SAME, SKIP, MISMATCH = "done", "same", "skip", "mismatch"
 RENDER_FAILED = "render-failed"
+#: B1b-2: своим схемам не хватает места под потолком хостов — сайт не переносится
+HOSTS_FULL = "hosts_full"
 
 
 @dataclass
 class Report:
     surfaces: dict[str, str] = field(default_factory=dict)
+    #: B1b-2: заметки отчёта (`detached:<хост>`, `orphan:<группа>`, `purged:<n>`)
+    notes: list[str] = field(default_factory=list)
 
     @property
     def changed(self) -> bool:
@@ -58,7 +62,9 @@ class Report:
     @property
     def mismatches(self) -> list[str]:
         # ревью B1b-1: сбой рендера сверки — тоже «сайт не перенесён», а не тишина
-        return [k for k, v in self.surfaces.items() if v in (SKIP, MISMATCH, RENDER_FAILED)]
+        return [
+            k for k, v in self.surfaces.items() if v in (SKIP, MISMATCH, RENDER_FAILED, HOSTS_FULL)
+        ]
 
     @property
     def busy(self) -> bool:
@@ -288,17 +294,67 @@ def migrate_templates(raw: dict, render=None) -> tuple[dict, Report]:
     return out, report
 
 
-def migrate(raw: dict, render=None) -> tuple[dict, Report]:
-    """Все перенесённые поверхности: листинги (B1a) и шаблоны уровня сайта (B1b-1). Сайт
+def migrate(raw: dict, render=None, objects=None) -> tuple[dict, Report]:
+    """Все перенесённые поверхности: листинги (B1a), шаблоны уровня сайта (B1b-1) и свои
+    шаблоны объектов (B1b-2, если передан `objects` — `page_axes_objects.ObjectIndex`). Сайт
     переносится целиком или не трогается."""
+    src = copy.deepcopy(raw if isinstance(raw, dict) else {})
     out, report = migrate_listings(raw)
     if report.mismatches:
         return out, report
     out2, report2 = migrate_templates(out, render)
     report.surfaces.update(report2.surfaces)
     if report2.mismatches:
-        return copy.deepcopy(raw if isinstance(raw, dict) else {}), report
+        return src, report
+    if objects is not None:
+        out3, report3 = migrate_objects(out2, objects, getattr(render, "at", None))
+        report.surfaces.update(report3.surfaces)
+        report.notes += report3.notes
+        if report3.mismatches:
+            return src, report
+        return out3, report
     return out2, report
+
+
+def migrate_objects(raw: dict, objects, render_at=None) -> tuple[dict, Report]:
+    """B1b-2: единицы `page_axes_objects.UNITS` по очереди; каждая сверяется по осям (внутри
+    единицы) и по отрисованным страницам: до == после == после без кодов объектов и без ключа
+    «Alle Kategorien» (`objects_blind`). `render_at(cfg, path) -> html | None`."""
+    from apps.core import page_axes_objects as pao
+
+    report = Report()
+    src = raw if isinstance(raw, dict) else {}
+    out = copy.deepcopy(src)
+    for name, unit in pao.UNITS:
+        candidate, res = unit(out, objects)
+        report.notes += [f"{name}:{n}" for n in res.notes]
+        if not res.status:
+            continue
+        report.surfaces[name] = res.status
+        if res.status != DONE:
+            if res.status == SAME:
+                continue
+            return copy.deepcopy(src), report
+        if render_at is not None:
+            bare = _without_key(candidate, "category_page_style")
+            try:
+                for page in res.pages:
+                    path = pao.page_url(name, page)
+                    before_html = render_at(out, path)
+                    if before_html is None:
+                        continue
+                    with objects_blind():
+                        blind_html = render_at(bare, path)
+                    if render_at(candidate, path) != before_html or blind_html != before_html:
+                        report.surfaces[name] = MISMATCH
+                        report.notes.append(f"{name}:render:{path}")
+                        return copy.deepcopy(src), report
+            except Exception:  # noqa: BLE001 — сайт не переносится, отчёт говорит почему
+                logger.exception("materialize_page_axes: render %s failed", name)
+                report.surfaces[name] = RENDER_FAILED
+                return copy.deepcopy(src), report
+        out = candidate
+    return out, report
 
 
 def templates_to_rows(raw: dict) -> dict:
@@ -328,6 +384,9 @@ _CSRF = re.compile(r'(name="csrfmiddlewaretoken" value=")[^"]+')
 _NONCE = re.compile(r'(nonce=")[^"]+')
 #: одноразовые токены форм (`form_token`, `review_form_token`) — uuid4().hex на каждый показ
 _TOKEN = re.compile(r"\b[0-9a-f]{32}\b")
+#: B1b-2: метка редактора «чей хост держит блоки» — у отвязанной копии (D1) другая, посетитель
+#: её не видит (только предпросмотр «Seitenaufbau»)
+_PB_HOST = re.compile(r'(data-pb-host=")[^"]*')
 
 
 def _page_path(cfg: dict, key: str) -> str:
@@ -399,8 +458,10 @@ def renderer(tenant):
     def render(cfg, key):
         with schema_context(tenant.schema_name):
             path = _page_path(cfg, key)
-            if not path:
-                return None
+        return at(cfg, path) if path else None
+
+    def at(cfg, path):
+        with schema_context(tenant.schema_name):
             fake = _copy.copy(tenant)
             fake.site_config = cfg
             request = RequestFactory().get(path)
@@ -418,8 +479,10 @@ def renderer(tenant):
             html = response.content.decode()
             html = _CSRF.sub(r"\1X", html)
             html = _NONCE.sub(r"\1X", html)
+            html = _PB_HOST.sub(r"\1X", html)
             return _TOKEN.sub("TOKEN", html)
 
+    render.at = at  # B1b-2: сверка страниц объектов по адресу
     return render
 
 
@@ -456,6 +519,15 @@ def _lock(model, pk):
     return model.objects.select_for_update().get(pk=pk)
 
 
+def _object_index(tenant):
+    from django_tenants.utils import schema_context
+
+    from apps.core import page_axes_objects
+
+    with schema_context(tenant.schema_name):
+        return page_axes_objects.build_index()
+
+
 def apply_tenant(tenant, *, dry_run: bool = False) -> Report:
     """Перенести коды одного сайта. Перенос считается БЕЗ блокировки; под блокировкой —
     только сверка «настройки не менялись» (иначе — заново) и одна запись со снимком."""
@@ -478,7 +550,12 @@ def apply_tenant(tenant, *, dry_run: bool = False) -> Report:
         except Exception:  # noqa: BLE001 — без рендера сверка только по осям не годится
             logger.exception("materialize_page_axes: renderer for %s", tenant.schema_name)
             return Report(surfaces={"*": "render-failed"})
-        new, report = migrate(before, render=render)
+        try:
+            objects = _object_index(tenant)
+        except Exception:  # noqa: BLE001 — без данных объектов перенос объектов не годится
+            logger.exception("materialize_page_axes: objects for %s", tenant.schema_name)
+            return Report(surfaces={"*": "render-failed"})
+        new, report = migrate(before, render=render, objects=objects)
         if not report.changed or dry_run:
             return report
         try:

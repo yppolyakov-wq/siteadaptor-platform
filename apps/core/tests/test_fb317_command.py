@@ -127,13 +127,13 @@ def test_review_concurrent_save_is_not_overwritten(monkeypatch):
     real = pam.migrate
     calls = []
 
-    def racing(raw, render=None):
+    def racing(raw, render=None, objects=None):
         if not calls:  # кабинет сохраняет между чтением и блокировкой
             Tenant.objects.filter(pk=t.pk).update(
                 site_config={**raw, "hero_title": "aus dem Kabinett"}
             )
         calls.append(1)
-        return real(raw, render=render)
+        return real(raw, render=render, objects=objects)
 
     monkeypatch.setattr(pam, "migrate", racing)
     _run("--schema", t.schema_name)
