@@ -3710,12 +3710,9 @@ def home_builder_view(request):
             "design_look_label": _design_look_label(config),
             # DL-20: шаблон страницы категории — префилл + реестр для плиток.
             "category_page_style": siteconfig.page_template_code(config, "category_page_style"),
-            "category_page_styles": category_styles.CATEGORY_PAGE_STYLES,
             "promo_group_style": siteconfig.page_template_code(config, "promo_group_style"),
-            "group_page_styles": group_styles.GROUP_PAGE_STYLES,
             # STU-15a: шаблон страницы одной акции — префилл + реестр для плиток.
             "promo_detail_style": siteconfig.page_template_code(config, "promo_detail_style"),
-            "promo_detail_styles": group_styles.PROMOTION_DETAIL_STYLES,
             "media_shape": config["site_defaults"].get("media_shape", ""),  # DL-10
             "card_slider": config["site_defaults"].get("card_slider", ""),
             # DL-17.3: страница акций — режим группировки (LAY-7c: «сетка или

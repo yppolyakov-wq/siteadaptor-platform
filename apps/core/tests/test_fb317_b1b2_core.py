@@ -76,3 +76,28 @@ def test_objects_blind_hides_own_promo_and_group_codes():
     with pam.objects_blind():
         assert promo_parts.group_parts(cfg, "Sale") != seen
         assert promo_parts.detail_parts(cfg, "plakat", "") == promo_parts.detail_parts(cfg, "", "")
+
+
+def test_alle_kategorien_write_refuses_cleanly_when_own_templates_cannot_be_kept(monkeypatch, db):
+    """Ревью ветки B1b-2: закрепить свои шаблоны категорий не вышло (нет места под своими
+    схемами) — `PageSettingError`, настройки не тронуты (не тихая потеря своего шаблона)."""
+    import pytest
+
+    from apps.core import page_axes_objects as pao
+    from apps.core import page_settings
+    from apps.tenants.tests.factories import TenantFactory
+
+    cap = siteconfig._MAX_CATEGORY_HOSTS
+    full = {siteconfig.category_host(f"c{i:03d}"): [{"key": "main"}] for i in range(cap)}
+    tenant = TenantFactory(
+        schema_name="public", slug="b1b2pin", name="P", site_config={"page_blocks": full}
+    )
+    idx = pao.ObjectIndex(
+        categories=[pao.CategoryRef("neu", "tabs")],
+        all_category_slugs=frozenset({"neu", *(f"c{i:03d}" for i in range(cap))}),
+    )
+    monkeypatch.setattr(pao, "build_index", lambda: idx)
+    with pytest.raises(page_settings.PageSettingError):
+        page_settings.write(tenant, "category_page_style", "magazin")
+    tenant.refresh_from_db()
+    assert tenant.site_config == {"page_blocks": full}

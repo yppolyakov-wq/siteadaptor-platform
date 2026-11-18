@@ -32,7 +32,7 @@ from apps.core.permissions import has_perm
 from apps.loyalty.models import LoyaltyCard, LoyaltyProgram, Voucher
 from apps.promotions import channels as promo_channels
 
-from . import group_styles, limits, reference_price, services
+from . import limits, reference_price, services
 from .forms import LoyaltyProgramForm, PromotionForm, VoucherCreateForm
 from .models import Customer, Promotion, Reservation
 from .poster import build_shop_poster_pdf
@@ -250,7 +250,6 @@ def promotion_list(request):
             "promo_layout": _promo_layout(request),  # DL-16.2 A3
             # DL-20: шаблон страницы КАЖДОЙ группы (модели группы нет — ключ словаря
             # site_config["promo_groups"] совпадает с ключом фасета `?gruppe=`).
-            "group_page_styles": group_styles.GROUP_PAGE_STYLES,
             "promo_group_rows": _promo_group_rows(request),
             # DL-21.2: шаблон обзорной страницы /aktionen/.
             # T-8.23c: лёгкий кабинет — карточки вместо таблицы, без настроек витрины.
