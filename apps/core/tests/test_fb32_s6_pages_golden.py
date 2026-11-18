@@ -212,3 +212,37 @@ def _finder(cfg):
 def test_blog_and_finder_without_anchors_look_as_before(case):
     _check(f"blog-{case}", _blog(CASES[case]))
     _check(f"finder-{case}", _finder(CASES[case]))
+
+
+# ── S6f: деталь акции ───────────────────────────────────────────────────────────
+
+
+def _promo_detail(cfg, *, others=True, **kw):
+    from apps.promotions.tests import test_fb31p3_promo_golden as p3
+
+    promo = p3._promo("Brot der Woche", **kw)
+    if others:
+        p3._promo("Kuchen der Woche", days=5)
+        p3._promo("Kaffee der Woche", days=6)
+    rows = (cfg.get("page_blocks") or {}).get("info", [])
+    cfg = {**cfg, "page_blocks": {"promo_detail": rows}}
+    return p3._normalize(p3._detail(promo, cfg))  # pk/даты/время — как у снимков P3
+
+
+PROMO = {
+    "plain": ({}, True, {}),
+    "alone": ({}, False, {}),
+    "tail": (CASES["tail"], True, {}),
+    "offer-style": (
+        {"page_blocks": {"info": [{"key": "offer", "style": "plakat"}, TEXT]}},
+        True,
+        {},
+    ),
+    "own-style": (CASES["tail"], True, {"page_style": "kompakt"}),
+}
+
+
+@pytest.mark.parametrize("case", sorted(PROMO))
+def test_promo_detail_without_anchors_looks_as_before(case):
+    cfg, others, kw = PROMO[case]
+    _check(f"promo-{case}", _promo_detail(cfg, others=others, **kw))
