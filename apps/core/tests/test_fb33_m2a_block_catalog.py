@@ -5,6 +5,7 @@
 пунктов — как были (характеризация ниже).
 """
 
+import ast
 import inspect
 import pathlib
 
@@ -57,12 +58,17 @@ def test_view_switch_never_crosses_section_and_block():
 
 
 def test_catalog_does_not_import_siteconfig_at_module_level():
-    head = inspect.getsource(block_catalog).split("def family_of")[0]
-    assert "siteconfig" not in head.split('"""', 2)[-1]
+    """Импорт верхнего уровня (AST): siteconfig сам импортирует apps.core — был бы цикл."""
+    tree = ast.parse(inspect.getsource(block_catalog))
+    top = [n for n in tree.body if isinstance(n, (ast.Import, ast.ImportFrom))]
+    names = {a.name for n in top for a in n.names} | {
+        n.module for n in top if isinstance(n, ast.ImportFrom)
+    }
+    assert not any("siteconfig" in (name or "") or name == "apps.tenants" for name in names)
 
 
 def test_no_block_list_literals_left():
-    views = pathlib.Path("apps/core/views.py").read_text(encoding="utf-8")
+    views = pathlib.Path(__file__).parents[1].joinpath("views.py").read_text(encoding="utf-8")
     assert '"value": "faq_ref"' not in views
     assert "_ADD_GROUPS" not in inspect.getsource(site_schema)
 
@@ -93,15 +99,12 @@ STUDIO_BEFORE = [
 
 
 def test_studio_library_is_unchanged():
-    translation.deactivate_all()  # msgid как есть — без перевода
-    try:
+    with translation.override(None):  # msgid как есть — без перевода
         got = [
             (c["value"], c["icon"], str(c["hint"]), c.get("page_only", False))
             for c in block_catalog.studio_block_types()
         ]
         labels = {c["value"]: c["label"] for c in block_catalog.studio_block_types()}
-    finally:
-        translation.activate("de")
     assert got == STUDIO_BEFORE
     assert all(labels[k] is siteconfig.CBLOCK_LABELS[k] for k in labels)  # подписи — из реестра
 
@@ -145,3 +148,26 @@ def test_add_menu_groups_are_unchanged(code, expected):
 
 def test_contact_styles_are_one_tuple():
     assert siteconfig.SECTION_STYLES["contact"] is siteconfig.CONTACT_STYLES
+
+
+def test_library_invariants():
+    assert {e.key for e in block_catalog.LIBRARY} <= set(siteconfig.CBLOCK_LABELS)
+    assert {e.key for e in block_catalog.LIBRARY if not e.studio} == {"textpage", "contact_card"}
+    assert all(str(e.hint) for e in block_catalog.LIBRARY if e.studio)
+
+
+def test_unknown_block_type_lands_in_the_first_group(monkeypatch):
+    """Тип вне каталога не пропадает из меню «+ Block» — он в первой группе."""
+    real = site_schema.add_options
+    monkeypatch.setattr(site_schema, "add_options", lambda code: [*real(code), ("neu", "Neu")])
+    groups = site_schema.add_groups("home")
+    assert groups[0]["key"] == "inhalt" and ("neu", "Neu") in groups[0]["options"]
+
+
+def test_add_menu_titles_and_saved_templates():
+    with translation.override("de"):
+        titles = [g["title"] for g in site_schema.add_groups("services")]
+    assert titles == ["Inhalt", "Listen & Aktionen", "Von anderen Stellen", "Formulare"]
+    cfg = {"block_templates": {"t1": {"key": "text", "label": "Mein Text"}, "t2": {"key": "zzz"}}}
+    saved = site_schema.add_groups("home", cfg)[-1]
+    assert saved["key"] == "vorlagen" and saved["options"] == [("tpl:t1", "Mein Text")]

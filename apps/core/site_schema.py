@@ -22,8 +22,8 @@ from django.urls import NoReverseMatch, reverse
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy
 
+from apps.core import block_catalog, studio_pages
 from apps.core import detail_parts as _sec_parts
-from apps.core import studio_pages
 from apps.core.page_axes_migration import read_old
 
 logger = logging.getLogger(__name__)
@@ -1639,20 +1639,17 @@ def add_options(code: str) -> list[tuple[str, str]]:
     return [(k, str(siteconfig.CBLOCK_LABELS.get(k, k))) for k in keys]
 
 
-#: FB-27 R6: меню «+ Block» — группы (решение владельца). FB-33 M2a: группа каждого типа — в
-#: каталоге блоков (`apps.core.block_catalog.LIBRARY`); тип вне каталога попадает в первую
-#: группу: новый блок не должен пропасть из меню молча.
-
-
 #: FB-27 R8d: пункт «+ Block» для сохранённого шаблона блока — `tpl:<id шаблона>`.
 TEMPLATE_PREFIX = "tpl:"
 
 
 def add_groups(code: str, config: dict | None = None) -> list[dict]:
     """Пункты «+ Block» группами: [{key, title, options: [(тип, подпись)]}]. С `config` —
-    ещё группа сохранённых шаблонов блоков (только типов, которые можно ставить сюда)."""
-    from apps.core import block_catalog
+    ещё группа сохранённых шаблонов блоков (только типов, которые можно ставить сюда).
 
+    FB-27 R6: группы — решение владельца; FB-33 M2a: группа каждого типа — в каталоге блоков
+    (`block_catalog.LIBRARY`). Тип вне каталога попадает в первую группу: новый блок не
+    должен пропасть из меню молча."""
     options = add_options(code)
     first = block_catalog.ADD_GROUPS[0][0]
     group_of = {k: block_catalog.library_entry(k) for k, _lab in options}
