@@ -13,7 +13,7 @@
   </summary>
   <form method="post" class="border-t border-gray-200 p-3" data-schema-setting="{{ s.code }}" data-pt-setting="{{ s.code }}"{% if s.kind == "layout" %} data-schema-manual{% endif %}>
     {% csrf_token %}
-    <input type="hidden" name="seite" value="{{ code }}">
+    {% include "tenant/_schema_keep.html" %}
     <input type="hidden" name="ref" value="{{ settings_ref }}">
     <input type="hidden" name="op" value="setting">
     <input type="hidden" name="setting" value="{{ s.code }}">

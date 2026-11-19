@@ -7,6 +7,10 @@
   if (location.hash === "#schema-panel") {
     var panel = document.getElementById("schema-panel");
     if (panel) panel.focus();
+  } else if (location.hash.indexOf("#schema-tab-") === 0) {
+    // FB-33 M3-1: переход по вкладке окна блока — фокус во вкладку (скринридер читает её имя)
+    var tab = document.getElementById(location.hash.slice(1));
+    if (tab && !tab.hidden) tab.focus();
   }
 })();
 

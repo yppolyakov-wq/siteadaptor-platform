@@ -39034,3 +39034,8 @@ msgstr "Felder"
 #. FB-33 M3-1
 msgid "Bereiche des Blocks"
 msgstr "Bereiche des Blocks"
+
+#. FB-33 M3-1: вид блока в окне (не вид схемы Computer/Telefon)
+msgctxt "block view"
+msgid "Ansicht"
+msgstr "Ansicht"

@@ -17,7 +17,7 @@
     {% if g.modes|length > 1 %}
     {% comment %}FB-27 V2 (макет Main): способ отбора — три кнопки; обычные ссылки, без скриптов.{% endcomment %}
     <div class="grid grid-flow-col auto-cols-fr gap-1" role="group" aria-label="{{ g.title }}" data-schema-which>
-      {% for m in g.modes %}<a href="?seite={{ code|urlencode }}&amp;block={{ selected.ref|urlencode }}&amp;welche={{ m.key }}{{ keep_q }}#schema-panel" class="inline-flex items-center justify-center min-h-[44px] rounded-lg border text-sm font-semibold {% if m.active %}border-2 border-indigo-700 bg-indigo-50 text-indigo-900{% else %}border-gray-500 text-gray-800 hover:bg-gray-50{% endif %}"{% if m.active %} aria-current="true"{% endif %} data-schema-which-mode="{{ m.key }}">{{ m.label }}</a>{% endfor %}
+      {% for m in g.modes %}<a href="?seite={{ code|urlencode }}&amp;block={{ selected.ref|urlencode }}&amp;welche={{ m.key }}{% if window_tab %}&amp;tab={{ window_tab }}{% endif %}{{ keep_q }}#schema-panel" class="inline-flex items-center justify-center min-h-[44px] rounded-lg border text-sm font-semibold {% if m.active %}border-2 border-indigo-700 bg-indigo-50 text-indigo-900{% else %}border-gray-500 text-gray-800 hover:bg-gray-50{% endif %}"{% if m.active %} aria-current="true"{% endif %} data-schema-which-mode="{{ m.key }}">{{ m.label }}</a>{% endfor %}
     </div>
     {% if g.overridden %}<p class="text-xs text-amber-900 bg-amber-50 rounded-lg px-2 py-1.5">{% trans "Solange unter „Von Hand“ Einträge gewählt sind, zeigt der Block genau diese." %}</p>{% endif %}
     {% endif %}

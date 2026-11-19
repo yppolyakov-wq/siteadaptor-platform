@@ -4,7 +4,7 @@
   {% csrf_token %}
   {% include "tenant/_schema_keep.html" %}
   <input type="hidden" name="ref" value="{{ selected.ref }}">
-  <label class="text-sm flex-1 min-w-[10rem]"><span class="block text-xs text-gray-600 mb-1">{% trans "Ansicht" %}</span>
+  <label class="text-sm flex-1 min-w-[10rem]"><span class="block text-xs text-gray-600 mb-1">{% trans "Ansicht" context "block view" %}</span>
     <select name="value" class="ui-input w-full">
       {% for value, label in selected.view_options %}<option value="{{ value }}"{% if value == selected.key %} selected{% endif %}>{{ label }}</option>{% endfor %}
     </select></label>
