@@ -1,0 +1,243 @@
+<main class="flex-1 w-full max-w-none mx-auto px-4 py-6 md:py-10">
+<div class="flex items-center justify-between mb-4">
+  <h1 class="text-2xl md:text-3xl font-bold"><span data-edit="cart_title">Ihre Bestellung</span></h1>
+  <a href="/sortiment/" class="text-sm font-medium" style="color: var(--accent);">+ Mehr hinzufügen</a>
+</div>
+<nav class="mb-6 overflow-x-auto" aria-label="Fortschritt">
+  <ol class="flex items-center gap-1.5 text-sm min-w-max">
+    <li class="flex items-center gap-2">
+      <span class="flex items-center justify-center w-6 h-6 rounded-full text-xs font-semibold shrink-0
+        text-white ring-2 ring-offset-2"
+        style="background: var(--accent, #4f46e5);"
+        aria-current="step">
+        1
+      </span>
+      <span class="font-medium whitespace-nowrap">Warenkorb</span>
+    </li>
+    <span class="w-5 sm:w-9 h-px bg-gray-200 shrink-0" aria-hidden="true"></span>
+    <li class="flex items-center gap-2">
+      <span class="flex items-center justify-center w-6 h-6 rounded-full text-xs font-semibold shrink-0
+        bg-gray-200 text-gray-500"
+        aria-current="false">
+        2
+      </span>
+      <span class="text-gray-400 whitespace-nowrap">Versand</span>
+    </li>
+    <span class="w-5 sm:w-9 h-px bg-gray-200 shrink-0" aria-hidden="true"></span>
+    <li class="flex items-center gap-2">
+      <span class="flex items-center justify-center w-6 h-6 rounded-full text-xs font-semibold shrink-0
+        bg-gray-200 text-gray-500"
+        aria-current="false">
+        3
+      </span>
+      <span class="text-gray-400 whitespace-nowrap">Bestätigt</span>
+    </li>
+  </ol>
+</nav>
+<div class="lg:grid lg:grid-cols-3 lg:gap-6 lg:items-start">
+  <div class="lg:col-span-2 space-y-4">
+    <div class="sf-card bg-white rounded-2xl shadow-sm divide-y divide-gray-100">
+        <div class="flex items-center justify-between gap-3 px-4 py-2.5">
+          <div class="min-w-0">
+            <p class="font-medium truncate">Bauernbrot</p>
+            <p class="text-xs text-gray-400">1× 9,90 €</p>
+          </div>
+          <div class="flex items-center gap-3 shrink-0">
+            <span class="text-sm font-semibold">9,90 €</span>
+            <form method="post" action="/warenkorb/remove/">
+              <input type="hidden" name="csrfmiddlewaretoken" value="X"><input type="hidden" name="item" value="UUID:">
+              <button type="submit" class="text-gray-300 hover:text-red-500" aria-label="Entfernen">✕</button>
+            </form>
+          </div>
+        </div>
+    </div>
+    <form id="checkout-form" method="post" action="/warenkorb/bestellen/" class="sf-card bg-white rounded-2xl shadow-sm p-5 space-y-4">
+      <input type="hidden" name="csrfmiddlewaretoken" value="X">
+      <input type="text" name="website" tabindex="-1" autocomplete="off" class="hidden" aria-hidden="true">
+    <input type="hidden" name="fulfillment" value="pickup" data-ship-option data-kind="pickup" data-fee-cents="0" data-free-cents="0" data-address="" data-point="" data-pays="">
+    <p class="flex flex-wrap items-center gap-x-2 text-sm font-medium text-gray-700 rounded-lg bg-gray-50 border border-gray-200 px-3 py-2">
+      <span aria-hidden="true">🛍</span> Abholung im Geschäft
+    </p>
+        <div class="grid sm:grid-cols-2 gap-3 ">
+          <div class="sm:col-span-2">
+            <label class="block text-sm font-medium mb-1" for="id_name">Name *</label>
+            <input id="id_name" name="name" type="text" required value="" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1" for="id_email">E-Mail</label>
+            <input autocomplete="email" id="id_email" name="email" type="email" value="" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1" for="id_phone">Telefon</label>
+            <input autocomplete="tel" id="id_phone" name="phone" type="tel" value="" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+          </div>
+          <div class="sm:col-span-2">
+            <label class="block text-sm font-medium mb-1" for="id_note">Anmerkung (optional)</label>
+            <textarea id="id_note" name="note" rows="2" class="w-full rounded-lg border border-gray-300 px-3 py-2"></textarea>
+          </div>
+        </div>
+<p class="basis-full sm:col-span-full mt-2 text-xs text-gray-500" data-privacy-note>Wir verwenden Ihre Angaben nur, um Ihr Anliegen zu bearbeiten. <a href="/datenschutz/" class="underline" target="_top">Datenschutzerklärung</a></p>
+    </form>
+  </div>
+  <aside class="mt-4 lg:mt-0 lg:sticky lg:top-24">
+    <div class="sf-card bg-white rounded-2xl shadow-sm p-5 space-y-4">
+        <form method="post" action="/warenkorb/code/" class="flex items-center gap-2">
+          <input type="hidden" name="csrfmiddlewaretoken" value="X">
+          <input name="code" placeholder="Gutscheincode" class="flex-1 min-w-0 rounded-lg border border-gray-300 px-3 py-2 text-sm uppercase">
+          <button class="shrink-0 rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium hover:bg-gray-50">Anwenden</button>
+        </form>
+      <div id="order-summary" class="space-y-1.5 border-t border-gray-100 pt-4 text-sm"
+           data-grand-cents="990" data-fee-cents="0"
+           data-free-cents="0" data-sym="€">
+        <div class="flex items-center justify-between text-gray-600"><span>Zwischensumme</span><span>9,90 €</span></div>
+        <div id="summary-delivery" class="hidden items-center justify-between text-gray-600"><span>🚚 Lieferung</span><span data-delivery-fee></span></div>
+        <div class="flex items-center justify-between font-bold text-base pt-1"><span>Gesamt</span><span data-grand-total>9,90 €</span></div>
+        <p class="text-[11px] text-gray-500">inkl. MwSt.</p>
+      </div>
+      <button type="submit" form="checkout-form" class="w-full text-white rounded-lg px-4 py-3 font-semibold shadow-sm" style="background: var(--accent);">Unverbindlich anfragen</button>
+      <p class="text-xs text-gray-400 text-center">Unverbindlich — keine Zahlungspflicht. Wir melden uns mit einem Angebot.</p>
+    </div>
+  </aside>
+</div>
+  <section class="mt-10">
+    <h2 class="text-lg font-bold mb-4"><span data-edit="cart_upsell_title">Passt gut dazu</span></h2>
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+<div class="sf-card relative group flex flex-col bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition motion-safe:hover:-translate-y-1">
+  <a href="/catalog/products/UUID/edit/" target="_blank" rel="noopener"
+     class="sf-edit-link hidden absolute top-2 right-2 z-10 w-7 h-7 rounded-full bg-white/95 shadow ring-1 ring-gray-200 flex items-center justify-center text-sm text-gray-600 hover:text-indigo-600"
+     title="Produkt bearbeiten" aria-label="Produkt bearbeiten">✎</a>
+  <button type="button" data-photo-edit data-edit-pk="UUID"
+     class="sf-photo-edit hidden absolute top-2 right-11 z-10 w-7 h-7 rounded-full bg-white/95 shadow ring-1 ring-gray-200 flex items-center justify-center text-sm hover:text-indigo-600"
+     title="Foto ersetzen" aria-label="Foto ersetzen">📷</button>
+  <a href="/sortiment/p/dazu-3/" class="block focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500">
+    <div class="relative aspect-square bg-gray-100" data-sf-media-box data-sf-place="product">
+          <div class="w-full h-full flex items-center justify-center text-gray-300" aria-hidden="true">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>
+          </div>
+    </div>
+    <div class="px-3 pt-3 md:px-4">
+      <h3 class="font-semibold leading-tight truncate" data-edit-model="product" data-edit-pk="UUID" data-edit-field="name">Dazu 3</h3>
+    </div>
+  </a>
+  <div class="px-3 md:px-4 pb-3 pt-1.5 mt-auto flex items-center justify-between gap-2">
+    <div class="min-w-0">
+      <div class="font-bold leading-tight"><span data-price-edit data-edit-pk="UUID" data-price="9,90">9,90</span> €
+</div>
+    </div>
+        <form method="post" action="/warenkorb/add/" class="js-add-form shrink-0">
+          <input type="hidden" name="csrfmiddlewaretoken" value="X">
+          <input type="hidden" name="product" value="UUID">
+          <input type="hidden" name="qty" value="1">
+          <button type="submit"
+                  class="js-add-btn w-10 h-10 rounded-full text-white shadow active:scale-90 transition flex items-center justify-center"
+                  style="background: var(--accent);" aria-label="In den Warenkorb legen" title="In den Warenkorb legen">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2 3h2l2.4 12.5a1.6 1.6 0 0 0 1.6 1.3h8.6a1.6 1.6 0 0 0 1.6-1.3L21 7H6"/></svg>
+          </button>
+        </form>
+  </div>
+</div>
+<div class="sf-card relative group flex flex-col bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition motion-safe:hover:-translate-y-1">
+  <a href="/catalog/products/UUID/edit/" target="_blank" rel="noopener"
+     class="sf-edit-link hidden absolute top-2 right-2 z-10 w-7 h-7 rounded-full bg-white/95 shadow ring-1 ring-gray-200 flex items-center justify-center text-sm text-gray-600 hover:text-indigo-600"
+     title="Produkt bearbeiten" aria-label="Produkt bearbeiten">✎</a>
+  <button type="button" data-photo-edit data-edit-pk="UUID"
+     class="sf-photo-edit hidden absolute top-2 right-11 z-10 w-7 h-7 rounded-full bg-white/95 shadow ring-1 ring-gray-200 flex items-center justify-center text-sm hover:text-indigo-600"
+     title="Foto ersetzen" aria-label="Foto ersetzen">📷</button>
+  <a href="/sortiment/p/dazu-2/" class="block focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500">
+    <div class="relative aspect-square bg-gray-100" data-sf-media-box data-sf-place="product">
+          <div class="w-full h-full flex items-center justify-center text-gray-300" aria-hidden="true">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>
+          </div>
+    </div>
+    <div class="px-3 pt-3 md:px-4">
+      <h3 class="font-semibold leading-tight truncate" data-edit-model="product" data-edit-pk="UUID" data-edit-field="name">Dazu 2</h3>
+    </div>
+  </a>
+  <div class="px-3 md:px-4 pb-3 pt-1.5 mt-auto flex items-center justify-between gap-2">
+    <div class="min-w-0">
+      <div class="font-bold leading-tight"><span data-price-edit data-edit-pk="UUID" data-price="9,90">9,90</span> €
+</div>
+    </div>
+        <form method="post" action="/warenkorb/add/" class="js-add-form shrink-0">
+          <input type="hidden" name="csrfmiddlewaretoken" value="X">
+          <input type="hidden" name="product" value="UUID">
+          <input type="hidden" name="qty" value="1">
+          <button type="submit"
+                  class="js-add-btn w-10 h-10 rounded-full text-white shadow active:scale-90 transition flex items-center justify-center"
+                  style="background: var(--accent);" aria-label="In den Warenkorb legen" title="In den Warenkorb legen">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2 3h2l2.4 12.5a1.6 1.6 0 0 0 1.6 1.3h8.6a1.6 1.6 0 0 0 1.6-1.3L21 7H6"/></svg>
+          </button>
+        </form>
+  </div>
+</div>
+<div class="sf-card relative group flex flex-col bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition motion-safe:hover:-translate-y-1">
+  <a href="/catalog/products/UUID/edit/" target="_blank" rel="noopener"
+     class="sf-edit-link hidden absolute top-2 right-2 z-10 w-7 h-7 rounded-full bg-white/95 shadow ring-1 ring-gray-200 flex items-center justify-center text-sm text-gray-600 hover:text-indigo-600"
+     title="Produkt bearbeiten" aria-label="Produkt bearbeiten">✎</a>
+  <button type="button" data-photo-edit data-edit-pk="UUID"
+     class="sf-photo-edit hidden absolute top-2 right-11 z-10 w-7 h-7 rounded-full bg-white/95 shadow ring-1 ring-gray-200 flex items-center justify-center text-sm hover:text-indigo-600"
+     title="Foto ersetzen" aria-label="Foto ersetzen">📷</button>
+  <a href="/sortiment/p/dazu-1/" class="block focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500">
+    <div class="relative aspect-square bg-gray-100" data-sf-media-box data-sf-place="product">
+          <div class="w-full h-full flex items-center justify-center text-gray-300" aria-hidden="true">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>
+          </div>
+    </div>
+    <div class="px-3 pt-3 md:px-4">
+      <h3 class="font-semibold leading-tight truncate" data-edit-model="product" data-edit-pk="UUID" data-edit-field="name">Dazu 1</h3>
+    </div>
+  </a>
+  <div class="px-3 md:px-4 pb-3 pt-1.5 mt-auto flex items-center justify-between gap-2">
+    <div class="min-w-0">
+      <div class="font-bold leading-tight"><span data-price-edit data-edit-pk="UUID" data-price="9,90">9,90</span> €
+</div>
+    </div>
+        <form method="post" action="/warenkorb/add/" class="js-add-form shrink-0">
+          <input type="hidden" name="csrfmiddlewaretoken" value="X">
+          <input type="hidden" name="product" value="UUID">
+          <input type="hidden" name="qty" value="1">
+          <button type="submit"
+                  class="js-add-btn w-10 h-10 rounded-full text-white shadow active:scale-90 transition flex items-center justify-center"
+                  style="background: var(--accent);" aria-label="In den Warenkorb legen" title="In den Warenkorb legen">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2 3h2l2.4 12.5a1.6 1.6 0 0 0 1.6 1.3h8.6a1.6 1.6 0 0 0 1.6-1.3L21 7H6"/></svg>
+          </button>
+        </form>
+  </div>
+</div>
+<div class="sf-card relative group flex flex-col bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition motion-safe:hover:-translate-y-1">
+  <a href="/catalog/products/UUID/edit/" target="_blank" rel="noopener"
+     class="sf-edit-link hidden absolute top-2 right-2 z-10 w-7 h-7 rounded-full bg-white/95 shadow ring-1 ring-gray-200 flex items-center justify-center text-sm text-gray-600 hover:text-indigo-600"
+     title="Produkt bearbeiten" aria-label="Produkt bearbeiten">✎</a>
+  <button type="button" data-photo-edit data-edit-pk="UUID"
+     class="sf-photo-edit hidden absolute top-2 right-11 z-10 w-7 h-7 rounded-full bg-white/95 shadow ring-1 ring-gray-200 flex items-center justify-center text-sm hover:text-indigo-600"
+     title="Foto ersetzen" aria-label="Foto ersetzen">📷</button>
+  <a href="/sortiment/p/dazu-0/" class="block focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500">
+    <div class="relative aspect-square bg-gray-100" data-sf-media-box data-sf-place="product">
+          <div class="w-full h-full flex items-center justify-center text-gray-300" aria-hidden="true">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>
+          </div>
+    </div>
+    <div class="px-3 pt-3 md:px-4">
+      <h3 class="font-semibold leading-tight truncate" data-edit-model="product" data-edit-pk="UUID" data-edit-field="name">Dazu 0</h3>
+    </div>
+  </a>
+  <div class="px-3 md:px-4 pb-3 pt-1.5 mt-auto flex items-center justify-between gap-2">
+    <div class="min-w-0">
+      <div class="font-bold leading-tight"><span data-price-edit data-edit-pk="UUID" data-price="9,90">9,90</span> €
+</div>
+    </div>
+        <form method="post" action="/warenkorb/add/" class="js-add-form shrink-0">
+          <input type="hidden" name="csrfmiddlewaretoken" value="X">
+          <input type="hidden" name="product" value="UUID">
+          <input type="hidden" name="qty" value="1">
+          <button type="submit"
+                  class="js-add-btn w-10 h-10 rounded-full text-white shadow active:scale-90 transition flex items-center justify-center"
+                  style="background: var(--accent);" aria-label="In den Warenkorb legen" title="In den Warenkorb legen">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2 3h2l2.4 12.5a1.6 1.6 0 0 0 1.6 1.3h8.6a1.6 1.6 0 0 0 1.6-1.3L21 7H6"/></svg>
+          </button>
+        </form>
+  </div>
+</div>
+    </div>
+  </section>
+  </main>
