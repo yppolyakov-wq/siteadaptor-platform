@@ -143,10 +143,17 @@ def _catering_tenant():
 
 def test_pranasy_seeds_the_full_catering_menu():
     """49 Gerichte der PDF-Karte in sechs Gängen unter EINEM Bereich «Catering»."""
-    _catering_tenant()
+    tenant = _catering_tenant()
     catering = Category.objects.get(slug="catering")
     assert catering.parent_id is None
-    assert catering.page_style == "sets"  # Menü-Pakete über dem Raster
+    from apps.catalog import catalog_parts
+    from apps.tenants import siteconfig
+
+    tenant.refresh_from_db()
+    cfg = siteconfig.normalize(tenant.site_config)
+    # Menü-Pakete über dem Raster — FB-31.7 B3a: строками своей схемы (поле не пишется)
+    assert catering.page_style == ""
+    assert catalog_parts.legacy_code(catalog_parts.category_parts(cfg, catering)) == "sets"
 
     subs = {c.slug: c for c in Category.objects.filter(parent=catering)}
     assert set(subs) == {"suppen", "beilagen", "ragouts", "saucen", "vorspeisen", "salate"}

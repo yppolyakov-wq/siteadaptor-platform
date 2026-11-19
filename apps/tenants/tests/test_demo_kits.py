@@ -1686,7 +1686,12 @@ def test_dl20_aktionsmarkt_group_pages_inherit_and_override():
     assert groups["sys:mystery"]["card"] == "deal"  # встроенный тип — та же ось
     # прежние оси site_defaults не затёрты мерджем config_patch (один уровень вглубь)
     assert cfg["site_defaults"]["card_style"] == "regal"
-    assert Category.objects.get(slug="ueberraschungstueten").page_style == "schaufenster"
+    from apps.catalog import catalog_parts
+
+    tuete = Category.objects.get(slug="ueberraschungstueten")
+    assert tuete.page_style == "", "B3a: поле не пишется, вид — строками"
+    view = catalog_parts.category_parts(siteconfig.normalize(cfg), tuete)
+    assert catalog_parts.legacy_code(view) == "schaufenster"
     # DL-21.2: обзорная /aktionen/ — «Kopfbild» (FB-31.7 B2: строками схемы)
     assert siteconfig.page_template_code(siteconfig.normalize(cfg), "promo_page_style") == (
         "kopfbild"
@@ -1702,14 +1707,20 @@ def test_dl20_clothing_category_pages_inherit_and_override():
     assert demo_kits.apply_kit(t, "clothing")
     assert t.site_config["site_defaults"]["category_page_style"] == "navigator"
     norm = siteconfig.normalize(t.site_config)
-    styles = dict(Category.objects.filter(parent=None).values_list("slug", "page_style"))
+    from apps.catalog import catalog_parts
+
+    # FB-31.7 B3a: свой шаблон кита — строками своей схемы категории (поле не пишется)
+    styles = {
+        c.slug: catalog_parts.legacy_code(catalog_parts.category_parts(norm, c))
+        for c in Category.objects.filter(parent=None)
+    }
     # MODE-3: три направления — «Regale» (полки подкатегорий), Accessoires без
     # своего значения наследует общий «Navigator» (инвариант наследования).
     assert styles == {
         "damen": "regale",
         "herren": "regale",
         "kinder": "regale",
-        "accessoires": "",
+        "accessoires": "navigator",  # наследует общий «Navigator»
     }
     # DL-21.1: корень — свой шаблон (FB-31.7 B2: строками схемы «Katalog»)
     assert siteconfig.page_template_code(norm, "catalog_page_style") == "regale"

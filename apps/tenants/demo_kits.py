@@ -25098,6 +25098,8 @@ def apply_kit(tenant, key: str) -> bool:
         refs["products"].append(str(product.pk))
         return product
 
+    kit_cat_codes: dict[str, str] = {}
+
     def _make_category(entry, sort, parent=None):
         # entry: (name, slug, items) ИЛИ (name, slug, items, children) ИЛИ
         # (name, slug, items, "photo,kw") — DS-2: 4-й элемент-СТРОКА задаёт ключ
@@ -25123,12 +25125,14 @@ def apply_kit(tenant, key: str) -> bool:
         from apps.catalog.slugs import unique_slug as _unique_slug
 
         actual_slug = _unique_slug(Category, slug)
+        if len(entry) > 5 and entry[5]:
+            kit_cat_codes[actual_slug] = entry[5]
         category = Category.objects.create(
             name=_i18n_text(name),
             description={"de": landing_desc} if landing_desc else {},
             slug=actual_slug,
-            # KAT-1: шаблон страницы категории из спеки кита (6-й элемент).
-            page_style=(entry[5] if len(entry) > 5 else ""),
+            # FB-31.7 B3a: шаблон страницы категории из спеки кита (6-й элемент) — не полем
+            # (его больше никто не пишет), а строками своей схемы ниже (`kit_cat_codes`)
             sort_order=sort,
             is_active=True,
             parent=parent,
@@ -25611,7 +25615,13 @@ def apply_kit(tenant, key: str) -> bool:
     # своих хостов, как после переноса `materialize_page_axes` (сверка по осям)
     from apps.core import page_axes_objects
 
-    cfg, _report = page_axes_migration.migrate_objects(cfg, page_axes_objects.build_index())
+    _idx = page_axes_objects.build_index()
+    # B3a: свои шаблоны категорий кита — из спеки (поле `Category.page_style` не пишется)
+    _idx.categories = [
+        page_axes_objects.CategoryRef(r.slug, kit_cat_codes.get(r.slug, ""), r.parent_slug)
+        for r in _idx.categories
+    ]
+    cfg, _report = page_axes_migration.migrate_objects(cfg, _idx)
     _demo_locales = [loc for loc in (kit.enabled_locales or []) if loc != "de"]
     if _demo_locales:  # DL-2/DL-3: оверлей текстов на все включённые локали
         from . import demo_i18n

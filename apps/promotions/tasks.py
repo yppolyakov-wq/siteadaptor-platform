@@ -160,7 +160,7 @@ _RECUR_CLONE_FIELDS = (
     "target_rules",
     "discount_style",
     "card_style",
-    "page_style",
+    # FB-31.7 B3a: шаблон страницы — строками схемы акции (`object_structure.copy_blocks`)
     "group",
     "group_i18n",
     "city_category",
