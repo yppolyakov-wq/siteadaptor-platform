@@ -36,14 +36,16 @@ def _saved(tenant, host):
 def test_listing_rows_are_pinned_and_read_the_template():
     cfg = siteconfig.normalize({"page_styles": {"services": "tabs"}})
     rows = site_schema.blocks_for(cfg, "services")
-    assert [r["key"] for r in rows[:3]] == ["page_head", "groups", "main"]
+    # FB-33 M2d: «Seitentitel» — под фото-шапкой, над группами
+    assert [r["key"] for r in rows[:4]] == ["page_head", "page_title", "groups", "main"]
+    rows = [r for r in rows if r["key"] != "page_title"]
     assert rows[1]["catview"]["value"] == "tabs" and str(rows[1]["label"]) == "Kollektionen"
     assert rows[0]["catview"]["value"] == "aus"
 
 
 def test_listing_without_subsections_has_only_the_banner_row():
     rows = site_schema.blocks_for(siteconfig.normalize({}), "blog")
-    assert [r["key"] for r in rows[:2]] == ["page_head", "main"]
+    assert [r["key"] for r in rows[:3]] == ["page_head", "page_title", "main"]
 
 
 def test_stays_rows_live_on_stay_rooms():

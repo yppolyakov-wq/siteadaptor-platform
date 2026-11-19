@@ -1138,7 +1138,11 @@ def blocks_for(
         # FB-33 M2d: «Seitentitel» там, где страница рисует H1: первым, либо (свои блоки
         # «сверху» стоят над H1 — снимки M2d-0) перед основным списком/разделом
         anchors = set(_dp.section_keys(host)) if _dp.module_of(host) else set()
-        at = 0
+        # фото-шапка страницы («page_head») стоит над заголовком — строка идёт после неё
+        at = next(
+            (i + 1 for i, b in enumerate(out) if b["key"] == "page_head" and not b.get("cblock")),
+            0,
+        )
         if host not in _pt_mod.H1_FIRST:
             at = next(
                 (

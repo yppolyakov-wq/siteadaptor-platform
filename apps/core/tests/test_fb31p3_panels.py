@@ -53,7 +53,8 @@ def _saved(tenant, host="promos"):
 
 def test_overview_rows_are_pinned_in_storefront_order():
     cfg = siteconfig.normalize({"promo_page_style": "tabs"})
-    rows = site_schema.blocks_for(cfg, "promos")
+    # FB-33 M2d: строка «Seitentitel» — сразу под фото-шапкой (заголовок страницы)
+    rows = [r for r in site_schema.blocks_for(cfg, "promos") if r["key"] != "page_title"]
     keys = [r["key"] for r in rows]
     assert keys[:3] == ["page_head", "groups", "main"], "шапка первой, группы над ★"
     head, groups, main = rows[:3]

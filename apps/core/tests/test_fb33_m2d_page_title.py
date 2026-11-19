@@ -78,7 +78,8 @@ def test_schema_shows_the_title_row_where_the_page_draws_h1(host):
     assert refs.count(page_title.TITLE_REF) == 1
     at = refs.index(page_title.TITLE_REF)
     if host in page_title.H1_FIRST:
-        assert at == 0
+        # первая строка (или сразу под фото-шапкой страницы, если она есть)
+        assert refs[:at] in ([], ["page_head"])
     else:
         assert refs[at - 1] == "t1"  # свой блок «сверху» стоит над заголовком
 

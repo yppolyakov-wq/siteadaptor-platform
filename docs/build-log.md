@@ -24017,3 +24017,15 @@ security/silent-failure): тупик в двусторонних прятках,
   превью сборки = применение. Стенд `scripts/fb33_m2c_quick_links_stand.py` (1440/390).
 - Ops владельцу: после деплоя строка `quick_links residue: N`; при 0 — M2c-4 (снять чтение
   `hero_widget`). Затем `seed_demo_tenants --group all --changed --jobs 3`.
+
+### 2026-11-19 — FB-33 M2d «Seitentitel» (свой заголовок страницы)
+- `apps/core/page_title.py` (`HEAD_HOSTS` — 18 страниц-списков и форм + `/aktionen/`, `FORMS`,
+  `clean_one/normalize/get`); `site_config["page_titles"][host] = {title, intro, align}`, переводится
+  (оверлей `i18n`); контекст витрины `storefront_page_titles`, тег `siteui.page_title`.
+- Шаблоны: свой текст только если задан, иначе прежняя разметка (снимки M2d-0: 54 шапки, один H1);
+  правка на превью — `data-edit="page_titles.<host>.title|intro"` (только при `is_preview`).
+- «Seitenaufbau»: вычисляемая неподвижная строка `__title` (не в `page_blocks`), поля «Überschrift»,
+  «Einleitung», «Ausrichtung»; правка через черновик (`aufbau_draft`: отпечаток, overlay, commit).
+  Место строки: у списков — первой (под фото-шапкой), у форм — под своими блоками сверху.
+- Решения владельца: формы как сейчас, `/aktionen/` сразу, `/termin/` один заголовок, обложка
+  раздела отдельно. Ревью: старые черновики не конфликтуют; клик без правки не пишет текст.
