@@ -99,17 +99,17 @@ def test_stay_tail_is_unchanged():
 
 
 def test_shared_hidden_reader_respects_lmiv(monkeypatch):
-    from django.db import connection
+    from django.db import connections
 
     from apps.tenants.tests.factories import TenantFactory
 
+    conn = connections["default"]  # само соединение, не прокси (замок connection_patch_guard)
+
     cfg = {"product_detail": {"hidden": ["info", "reviews"]}}
-    monkeypatch.setattr(
-        connection, "tenant", TenantFactory.build(business_type="bakery"), raising=False
-    )
+    monkeypatch.setattr(conn, "tenant", TenantFactory.build(business_type="bakery"), raising=False)
     assert siteconfig.detail_section_hidden(cfg, "catalog") == {"reviews"}
     monkeypatch.setattr(
-        connection, "tenant", TenantFactory.build(business_type="clothing"), raising=False
+        conn, "tenant", TenantFactory.build(business_type="clothing"), raising=False
     )
     assert siteconfig.detail_section_hidden(cfg, "catalog") == {"info", "reviews"}
 
