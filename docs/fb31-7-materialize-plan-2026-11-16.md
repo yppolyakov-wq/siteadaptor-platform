@@ -250,3 +250,10 @@ postgres-patterns, django-security, accessibility, error-handling. Агенты:
 перепроверяются под блокировкой; переводы копии группы сверяются на каждом языке; причины
 `skip:`/`hosts_full:` в заметках. Остаток к B3: снять `Category.page_style`, `Promotion.page_style`,
 `promo_groups[*].style` и ключ «Alle Kategorien»; `studio_pages.py` (`object_field="page_style"`).
+
+**Прогон на сервере (владелец, 2026-11-19, деплой `1e88b336`):** схем 133, миграции применены;
+`materialize_page_axes` — сайтов изменено 6, пропущено 0: aktionsmarkt (categories, promo_group_style,
+promo_groups, promo_page_style), catering (categories), mode (catalog_page_style, categories,
+promo_page_style), onlineshop (catalog_page_style), outlet (catalog_page_style, categories,
+promo_group_style, promo_groups), pranasy (categories). Отвязанные копии (D1): `category` у mode и
+outlet, по две группы акций у aktionsmarkt и outlet. Следующий шаг — B3 (снять старые коды).

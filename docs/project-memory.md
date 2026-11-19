@@ -132,6 +132,7 @@ LLM-режим Finder, SSE для чата.
   `page_axes_migration.objects_blind()` — «вид после B3» (только сверка и тесты).
   Решение владельца D1 (2026-11-18): новые хосты `category`/`promo_group:<md5>` — копия общих
   блоков; будущие правки общих туда не доходят (заметка `detached` в отчёте команды).
+  Прогон на сервере 2026-11-19: 6 сайтов перенесено, 0 пропущено (план FB-31.7, конец).
 
 - `apps/core/detail_parts.py` — разделы детальных страниц строками «Seitenaufbau» (FB-31 P5/P6, 2026-11-16): якоря `{"key": раздел}` в `page_blocks[<host>]` (общий хост `<kind>_detail` и хост одного объекта `<kind>:<hex>`), `flow`/`fixed_parts`/`own_anchors`/`object_lift`. Порядок, видимость и раскладку разделов пишет ТОЛЬКО «Seitenaufbau» (Студия — нет, решение владельца P6); у объекта — `object_structure.clean` (`page_override`, свой порядок у события, тура, услуги). Вид «Ähnliche» — `siteconfig.normalize_related_layout` (`raster`/`max`).
 - `apps/core/page_parts.py` — ядро «шаблон страницы → оси блоков» (FB-31 P3, 2026-11-16): поверхность (строки схемы → оси, таблица кодов), `from_code`/`legacy_code`/`effective`; вывод при чтении, старый код шаблона — запасное значение. Поверхности акций — `apps/promotions/promo_parts.py` (`detail_parts`, `group_parts` — одно правило для витрины и панели); листинги, Team, Galerie — `apps/core/listing_parts.py` (P4: `effective`, `HOST_OF`, номера → `stay_rooms`); каталог — пока свой `apps/catalog/catalog_parts.py`. Хосты и закреплённые строки — `siteconfig.part_surface`/`part_styles`/`drop_page_views`.
