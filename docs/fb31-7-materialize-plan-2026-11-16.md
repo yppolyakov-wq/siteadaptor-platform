@@ -257,3 +257,57 @@ promo_groups, promo_page_style), catering (categories), mode (catalog_page_style
 promo_page_style), onlineshop (catalog_page_style), outlet (catalog_page_style, categories,
 promo_group_style, promo_groups), pranasy (categories). Отвязанные копии (D1): `category` у mode и
 outlet, по две группы акций у aktionsmarkt и outlet. Следующий шаг — B3 (снять старые коды).
+
+## B3 план (planner, 2026-11-19)
+**Цель:** строки «Seitenaufbau» — единственный источник вида; старые коды никто не читает. Данные
+(ключи `site_config`, `Category/Promotion.page_style`, `promo_groups[*].style`) живут ещё релиз —
+снимает B4 с бэкапом (решение владельца 4). `legacy_code`/`from_code` остаются (оси ↔ код рендера).
+
+**Два деплоя.** `deploy.sh` гоняет `materialize_page_axes` уже на новом коде, а после снятия чтения
+вид «до» не посчитать. Поэтому: B3a (вид не меняется, сверка остатков) → отчёт владельца
+`residue: 0` → B3b (чтение выключено).
+
+**Инвентарь (grep 2026-11-19).** Читатели: `listing_parts.py:74-79`, `listing_composition.py:42-44,
+75-77` (мёртвая ветка); `catalog_parts.effective(code=)`, `category_parts`; `category_styles.page_style/
+root_page_style`; `promotions/public_views.py:1622-1646` (инлайн-копия правила → `category_parts`),
+`:167-172, 463-472` (`promo.page_style`), `:757-762`; `site_schema._catalog_code` (1770-1789, 1999),
+`_promo_code` (2230-2247, 2379-2388); `promo_parts.detail_parts/group_parts`; `siteconfig.page_template_*`
+(→ `page_settings.current_value/apply_override`, Студия `core/views.py`); `studio_pages.py:178, 266`.
+Писатели: `demo_kits.py:25131` (`Category.page_style`), `promotions/tasks.py:163`, общая ветка
+листингов `page_settings.apply_override:690-740` (`page_styles`). Хранилища старых конфигов:
+`history[*].config` (`restore_version`), `_draft` (предпросмотр/share), `SiteConfigSnapshot`
+(`--undo`), сайты `ROLLED_BACK`.
+
+**B3a — деплой №1, вид не меняется:** (1) `apps/core/page_axes_legacy.py` — единственный читатель
+старых ключей (`site_code`, `listing_code`, `category_code`, `promo_code`, `group_code`) и
+переключатель `legacy_view()` (по умолчанию «читать», `objects_blind` = выключить); все читатели —
+через него; (2) листинги — через `set_page_template` (девять `*_page_style` в `PAGE_TEMPLATE_HOSTS`),
+ветку записи `page_styles` снять; (3) кит не заполняет `Category.page_style` (строки сразу), повтор
+акции не копирует `page_style`, `studio_pages` без `object_field`; (4) `materialize_page_axes
+--residue` — оси и рендер всех поверхностей при чтении кодов и без, мимо кэша; счётчики `history`/
+`_draft` со старыми ключами и `ROLLED_BACK`; итог `residue: N` в `deploy.sh`; (5) `--history` —
+перевод `history[*].config` и `_draft` чистыми функциями, снимок со своим `reason`, невыразимое —
+`history_skip`; (6) `restore_version` переводит цель перед записью, невыразимое — предупреждение.
+**Шаг владельца:** `--residue` на проде = 0 (и `rolled_back`, `history_skip` = 0).
+
+**B3b — деплой №2:** чтение кодов по умолчанию выключено (включается только командой и тестами);
+`code=` → `base: Parts`; `detail_parts(cfg, host)`, `group_parts(cfg, key)` без своих кодов; снять
+`_catalog_code`/`_promo_code`, `category_styles.page_style`; `page_template_*` по строкам;
+`OBJECT_BOUND` и `_pin_own_categories` не нужны; `drop_*_views` — только внутри
+`set_page_template`; `--undo` отказывает с подсказкой (git revert до B3a + `--undo`); фикстуры тестов
+со старыми ключами — через помощник `as_rows` (перенос), тесты «код + строки» удаляются с причиной.
+
+**Замки до кода:** текстовый (обращения к старым ключам — только закрытый список модулей); золото
+«до == после» на всех демо-китах при чтении и без; откат версии и публикация черновика со старыми
+ключами — вид тот же; писатели не пишут старые ключи; `--residue`/`--history`/отказ `--undo`.
+
+**Риски:** окно между стартом кода B3b и командой — закрыто `residue: 0`; откат B3b = git revert
+(данные целы, строки сильнее кода); `ROLLED_BACK` — блокирует `--residue`; объём фикстур — коммиты
+по приложениям. **B4:** бэкап и проверка восстановления → `drop_legacy_page_keys --dry-run/--apply`
+(снимок, `--undo`) → `RemoveField page_style` (catalog, promotions) → снять `page_axes_legacy`.
+
+**ECC-прогоны:** скиллы — django-patterns, django-tdd, python-testing, error-handling
+(database-migrations/postgres-patterns — B4). Агенты: `django-reviewer` (план, B3a, B3b),
+`silent-failure-hunter` (B3a `--history`/`restore_version`/`--residue`; B3b), `database-reviewer`
+(снимки B3a, B4), `code-reviewer` перед мержем каждой ветки, `doc-updater` после B3b. Гейт:
+`ruff format --check .`, `test_template_comments`, `i18n_quickcheck`, `apps/tenants`, `test_fb31*`.
