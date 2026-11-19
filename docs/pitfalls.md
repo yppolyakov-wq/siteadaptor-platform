@@ -111,6 +111,12 @@
 
 ## 2. База и модели
 
+- **Откаты переносов настроек — в обратном порядке (FB-33 M2c, 2026-11-19).** `detach_quick_links`
+  идёт после `materialize_page_axes`; оба пишут `site_config` и снимают снимок с хэшем ВСЕГО
+  конфига. Откат FB-31.7 после M2c вернёт «changed» у всех перенесённых сайтов: сначала
+  `detach_quick_links --undo`, потом `materialize_page_axes --undo`. Снимок M2c хранит
+  `site_defaults` целиком — безопасно только пока хэш считается по всему конфигу.
+
 - **`tenant.save()` на тенанте без схемы СОЗДАЁТ схему** (django-tenants: при update и
   `auto_create_schema=True` — все миграции, минуты). Свежий `Tenant.objects.get()` несёт класс-дефолт
   True. Точечная запись конфига — `Tenant.objects.filter(pk=…).update(...)` + сброс кэша витрины

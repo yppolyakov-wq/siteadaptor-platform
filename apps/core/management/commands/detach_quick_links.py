@@ -44,7 +44,7 @@ class Command(BaseCommand):
                 self.stderr.write(f"{name}: ОСТАТОК hero_widget")
             self.stdout.write(f"quick_links residue: {len(left)}")
             return
-        done = skipped = busy = 0
+        done = skipped = busy = nothing = 0
         failed = []
         for tenant in tenants.only("pk", "schema_name"):
             try:
@@ -53,6 +53,8 @@ class Command(BaseCommand):
                     if result == "undone":
                         done += 1
                         self.stdout.write(f"{tenant.schema_name}: undone")
+                    elif result == "none":
+                        nothing += 1
                     elif result == "changed":
                         skipped += 1
                         self.stderr.write(
@@ -81,6 +83,7 @@ class Command(BaseCommand):
         self.stdout.write(
             f"{label}: сайтов {'изменилось бы' if options['dry_run'] else 'изменено'} {done}, "
             f"пропущено {skipped}, занято {busy}"
+            + (f", нечего откатывать {nothing}" if options["undo"] else "")
         )
         if failed:
             raise CommandError(f"не обработаны сайты: {', '.join(failed)}")

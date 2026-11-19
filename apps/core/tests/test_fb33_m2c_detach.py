@@ -134,8 +134,13 @@ def test_busy_row_is_retried_next_deploy(monkeypatch):
 
     tenant = _tenant("shop")
 
+    class _Lock(Exception):
+        pgcode = "55P03"
+
     def boom(*a, **kw):
-        raise OperationalError("lock timeout")
+        err = OperationalError("lock timeout")
+        err.__cause__ = _Lock()
+        raise err
 
     monkeypatch.setattr(cm, "lock", boom)
     assert qlm.apply_tenant(tenant).action == qlm.BUSY
@@ -148,3 +153,79 @@ def test_deploy_runs_it_after_the_page_axes_step():
     sh = pathlib.Path("scripts/deploy.sh").read_text()
     assert sh.index("detach_quick_links") > sh.index("materialize_page_axes --residue")
     assert "detach_quick_links --residue" in sh
+
+
+def test_other_db_errors_are_not_reported_as_busy(monkeypatch):
+    from django.db import OperationalError
+
+    from apps.core import config_migration as cm
+
+    tenant = _tenant("shop")
+
+    def boom(*a, **kw):
+        raise OperationalError("connection lost")
+
+    monkeypatch.setattr(cm, "lock", boom)
+    with pytest.raises(OperationalError):
+        qlm.apply_tenant(tenant)
+
+
+@pytest.mark.parametrize("bad", (["shop"], {"x": 1}, "nonsense"))
+def test_garbage_widget_is_skipped_not_erased(bad):
+    cfg = {"site_defaults": {"hero_widget": bad}}
+    new, res = qlm.detach(cfg)
+    assert new is cfg and not res.changed and res.action == "skip:bad-widget"
+
+
+def test_command_reports_a_skip_and_keeps_the_site(capsys):
+    tenant = _tenant("shop")
+    t = Tenant.objects.get(pk=tenant.pk)
+    t.site_config = {"site_defaults": {"hero_widget": "nonsense"}}
+    t.save(update_fields=["site_config"])
+    call_command("detach_quick_links", "--schema", tenant.schema_name)
+    assert "ПРОПУЩЕНО (bad-widget)" in capsys.readouterr().err
+    assert (
+        Tenant.objects.get(pk=tenant.pk).site_config["site_defaults"]["hero_widget"] == "nonsense"
+    )
+
+
+@pytest.mark.parametrize(
+    ("widget", "extra"),
+    (("shop", {}), ("stays", {}), ("services", {}), ("shop", {"hero_style": "bento"})),
+)
+def test_verify_passes_for_every_action(widget, extra):
+    before = _cfg(widget, **extra)
+    new, res = qlm.detach(before)
+    assert qlm.verify(before, new, res.action) == ""
+
+
+def test_verify_catches_a_block_that_normalize_drops(monkeypatch):
+    before = _cfg("shop")
+    new, res = qlm.detach(before)
+    real = siteconfig.normalize
+    monkeypatch.setattr(
+        siteconfig,
+        "normalize",
+        lambda raw: {
+            **real(raw),
+            "sections": [r for r in real(raw)["sections"] if r["key"] != "quick_links"],
+        },
+    )
+    assert qlm.verify(before, new, res.action) == "block-missing"
+
+
+def test_undo_of_a_site_without_saved_sections_drops_them_again():
+    tenant = _tenant("shop")
+    assert "sections" not in Tenant.objects.get(pk=tenant.pk).site_config
+    call_command("detach_quick_links", "--schema", tenant.schema_name)
+    assert "sections" in Tenant.objects.get(pk=tenant.pk).site_config
+    assert qlm.undo_tenant(Tenant.objects.get(pk=tenant.pk)) == "undone"
+    assert "sections" not in Tenant.objects.get(pk=tenant.pk).site_config
+
+
+def test_race_with_the_cabinet_retries_then_reports_busy(monkeypatch):
+    from apps.core import config_migration as cm
+
+    tenant = _tenant("shop")
+    monkeypatch.setattr(cm, "write_with_snapshot", lambda *a, **kw: None)  # всегда «менялись»
+    assert qlm.apply_tenant(tenant).action == qlm.BUSY
