@@ -24084,3 +24084,18 @@ security/silent-failure): тупик в двусторонних прятках,
   passiert jetzt», включение «Empfehlungen», свои блоки) с превью на синтетической сделке. До
   него ключи `confirmation_next`, `confirm_show_recommend` и `page_blocks.confirmation` пишутся
   только конфигом (владелец сам их не правит). Миграций нет.
+
+### 2026-11-19 — FB-33 M2h-5 «Bestätigung» в «Seitenaufbau»
+- Тип страницы `confirmation` «Bestätigung» (группа «Nach dem Kauf»; предлагается, если включён хоть
+  один модуль сделок — orders, booking, stays, events, promotions). Строки: «Bestätigung» (карточка,
+  неподвижна), «Was passiert jetzt» (неподвижна; поле текста в панели → черновик `next`, как
+  «Seitentitel»; пусто — ключа `confirmation_next` нет), «Empfehlungen» (глаз строки = включение,
+  хранится только `confirm_show_recommend: True`). Свои блоки — над карточкой, под ней, после
+  «Was passiert jetzt», хвост. Владелец теперь правит подтверждение сам (раньше — только конфигом).
+- «+ Block» этого типа без блоков с формами (`confirmation_page.FORM_BLOCKS`); `mutate` их не добавит.
+- Превью `/bestaetigung/vorschau/` (`apps/core/confirmation_views.py`): только члену команды с правом
+  сайта (иначе 404), пример сделки без БД (замок: ни одной строки заказов, позиций, записей,
+  номеров, билетов, резервов), `noindex`, `no-store`; черновик виден как у прочих страниц.
+- «Passt dazu» и «Empfehlungen» (`apps/catalog/upsell.py`): только то, что можно положить в
+  корзину — без «nur auf Anfrage» (у корзины-сметы — с ними) и без распроданного.
+- Грабля: golden на ru/en/tr/uk — только со свежими `.mo` (урок CI M2h). Миграций нет.
