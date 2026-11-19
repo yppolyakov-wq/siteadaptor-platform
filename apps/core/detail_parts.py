@@ -686,10 +686,13 @@ def cart_parts(config, *, normalized: bool = False) -> dict:
     rest = a["after"].get("upsell", []) + a["tail"]
     if rest:
         flow_items.append({"part": ids_part(rest)})
+    # пустая корзина (ревью M2h): блоки над корзиной — над «Ihre Bestellung ist leer», прочие — под
+    below = a["after"].get("items", []) + a["after"].get("summary", []) + rest
     return {
         "top": ids_part(a["lead"]) if a["lead"] else "",
         "hint": ids_part(a["after"]["items"]) if a["after"].get("items") else "",
         "flow": flow_items,
+        "below": ids_part(below) if below else "",
     }
 
 

@@ -246,6 +246,7 @@
 {% endif %}
 
 {% else %}
+{% if cart_parts.top %}{% page_blocks "cart" cart_parts.top %}{% endif %}
 <div class="text-center py-16">
   <div class="text-5xl mb-3">🛒</div>
   <p class="text-gray-500 mb-4">{% trans "Your order is empty." %}</p>
@@ -254,5 +255,5 @@
   <a href="{% url 'storefront-products' %}" class="inline-block rounded-lg px-5 py-2.5 text-white font-medium" style="background: var(--accent);">{% if request.tenant|is_food_business %}{% trans "Browse the menu" %}{% else %}{% trans "Browse the range" %}{% endif %} →</a>
 </div>
 {% endif %}
-{% if not cart_parts %}{% page_blocks "cart" %}{% elif not rows and not combo_rows %}{% page_blocks "cart" %}{% endif %}
+{% if not cart_parts %}{% page_blocks "cart" %}{% elif not rows and not combo_rows and cart_parts.below %}{% page_blocks "cart" cart_parts.below %}{% endif %}
 {% endblock %}

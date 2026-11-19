@@ -1467,6 +1467,7 @@ def _confirmation_site(request):
     try:
         raw = page_settings.raw_config(request)
     except Exception:  # noqa: BLE001 — превью не должно ронять подтверждение
+        logger.warning("confirmation: draft config unreadable", exc_info=True)
         raw = getattr(getattr(request, "tenant", None), "site_config", None)
     raw = raw if isinstance(raw, dict) else {}
     blocks = raw.get("page_blocks") if isinstance(raw.get("page_blocks"), dict) else {}

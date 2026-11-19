@@ -107,3 +107,10 @@ def test_schema_shows_the_rows_and_saves_the_hint_place():
     b.post(seite="cart", op="add", block_type="text")
     rows = (_cfg(b.tenant).get("page_blocks") or {}).get("cart") or []
     assert rows == [] or all(r.get("key") != "items" or not r.get("id") for r in rows)
+
+
+def test_empty_cart_draws_blocks_in_schema_order():
+    html = cart_html({"page_blocks": {"cart": ROWS}}, empty=True)
+    empty = html.index("🛒")
+    assert html.index("BLOCK-TOP") < empty < html.index("BLOCK-HINT")
+    assert empty < html.index("BLOCK-MID") < html.index("BLOCK-TAIL")

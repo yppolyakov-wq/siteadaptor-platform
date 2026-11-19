@@ -25,6 +25,9 @@ RECOMMEND_FLAG = "confirm_show_recommend"
 RECOMMEND_MAX = 4
 #: блоки с полями ввода — на подтверждении не рисуются (данные сделки рядом, ПДн)
 FORM_BLOCKS = frozenset({"newsletter", "anfrage_ref", "message_ref"})
+#: блоки с POST-формой БЕЗ полей данных клиента — карточки «В корзину» (замок
+#: `test_every_block_with_a_post_form_is_kept_off_the_confirmation`)
+SAFE_POST_BLOCKS = frozenset({"list"})
 
 
 def clean_next(value) -> str:
@@ -61,15 +64,9 @@ def recommend_products(exclude_ids) -> list:
     """Товары «Empfehlungen» — как «Passt dazu» корзины (рекомендованные вперёд), без позиций
     сделки. Сбой — пустой список (подтверждение не падает из-за рекомендаций)."""
     try:
-        from apps.catalog.models import Product
-        from apps.promotions.price_layer import attach_promos
+        from apps.catalog.upsell import upsell_products
 
-        qs = (
-            Product.objects.filter(is_active=True)
-            .exclude(pk__in=[i for i in exclude_ids if i])
-            .order_by("-is_featured", "-created_at")[:RECOMMEND_MAX]
-        )
-        return list(attach_promos(qs))
+        return upsell_products(exclude_ids, RECOMMEND_MAX)
     except Exception:  # noqa: BLE001 — рекомендации не роняют подтверждение
         logger.warning("confirmation recommend failed", exc_info=True)
         return []

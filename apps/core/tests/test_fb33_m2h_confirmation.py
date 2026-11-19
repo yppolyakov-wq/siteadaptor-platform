@@ -140,3 +140,57 @@ def test_quote_order_has_no_recommendations():
     order.source_channel = "quote"
     order.save(update_fields=["source_channel"])
     assert "data-confirm-recommend" not in _html({"confirm_show_recommend": True}, order)
+
+
+def test_recommendation_cards_show_price_and_currency_without_n_plus_one():
+    from django.db import connection
+    from django.test.utils import CaptureQueriesContext
+
+    for i in range(4):
+        ProductFactory(name={"de": f"Empfohlen {i}"}, base_price=Decimal("3.20"))
+    order = _order()
+    with CaptureQueriesContext(connection) as few:
+        confirmation_page.recommend_products([])
+    html = _html({"confirm_show_recommend": True}, order)
+    section = html.split("data-confirm-recommend")[1]
+    assert "3.20" in section or "3,20" in section
+    assert "€" in section
+    assert len(few) <= 6, [q["sql"][:80] for q in few]
+
+
+def test_every_block_with_a_post_form_is_kept_off_the_confirmation():
+    """Замок ПДн: блок, чей шаблон отправляет форму, на подтверждении не рисуется."""
+    import re as _re
+
+    from django.template.loader import get_template
+
+    from apps.tenants.templatetags import siteui
+
+    post = _re.compile(r"<form[^>]*method=\"post\"", _re.I)
+    keys = {**siteui.CBLOCK_TEMPLATES}
+    keys.update({k: siteui.BLOCK_TEMPLATES[k[: -len("_ref")]] for k in siteconfig.PAGE_REF_BLOCKS})
+    with_form = {
+        key
+        for key, name in keys.items()
+        if post.search(get_template(name).template.source)
+        or "{% include" in get_template(name).template.source
+        and post.search(_expanded(get_template(name).template.source))
+    }
+    allowed = confirmation_page.FORM_BLOCKS | confirmation_page.SAFE_POST_BLOCKS
+    assert with_form <= allowed, sorted(with_form - allowed)
+    assert not confirmation_page.FORM_BLOCKS & confirmation_page.SAFE_POST_BLOCKS
+
+
+def _expanded(source: str) -> str:
+    """Шаблон с подключёнными партиалами (один уровень) — форма может жить в include."""
+    import re as _re
+
+    from django.template.loader import get_template
+
+    out = [source]
+    for name in _re.findall(r"{% include \"([^\"]+)\"", source):
+        try:
+            out.append(get_template(name).template.source)
+        except Exception:  # noqa: BLE001
+            continue
+    return "\n".join(out)

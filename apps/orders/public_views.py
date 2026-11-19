@@ -924,17 +924,11 @@ def cart_view(request):
     _up_lay = _cfg.get("cart_upsell_layout")  # нет ключа — прежние 4 карточки сеткой
     # T1 upsell «Passt dazu»: товары не из корзины, рекомендованные вперёд.
     if rows:
-        from apps.catalog.models import Product
+        from apps.catalog.upsell import upsell_products
 
         in_cart_ids = {r["product"].pk for r in rows}
-        from apps.promotions.price_layer import attach_promos
-
         limit = _up_lay.get("max", siteconfig.RELATED_MAX_DEFAULT) if _up_lay else 4
-        ctx["upsell"] = attach_promos(
-            Product.objects.filter(is_active=True)
-            .exclude(pk__in=in_cart_ids)
-            .order_by("-is_featured", "-created_at")[:limit]
-        )
+        ctx["upsell"] = upsell_products(in_cart_ids, limit)  # FB-33 M2h: одна точка истины
         if _up_lay:
             mode = siteconfig.related_mode(_up_lay)
             ctx["upsell_strip"] = mode == "auto" and len(ctx["upsell"]) > int(
