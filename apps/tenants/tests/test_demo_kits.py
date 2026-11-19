@@ -524,10 +524,12 @@ def test_apply_hotel_kit_builds_stays_site():
     assert {r.prepayment_percent for r in prepay_rates} == {30, 100}
     # G4a/H4a: 2 промокода (процентный SOMMER10 + фикс-сумма WILLKOMMEN20)
     assert Voucher.objects.get(code="WILLKOMMEN20").discount_cents == 2000
-    # H2/E4: поиск дат ВНУТРИ hero (первый экран) — site_defaults.hero_widget=
-    # "stays"; отдельная секция stay_search погашена (жила бы дублем к hero).
-    assert cfg["site_defaults"]["hero_widget"] == "stays"
-    assert "stay_search" not in {s["key"] for s in cfg["sections"] if s["enabled"]}
+    # H2/E4 → FB-33 M2c-3: поиск дат на первом экране — секция «Suche» сразу после
+    # баннера (раньше — внутри баннера ключом hero_widget="stays")
+    assert not cfg["site_defaults"].get("hero_widget")
+    keys = [s["key"] for s in cfg["sections"]]
+    assert keys[keys.index("hero") + 1] == "stay_search"
+    assert next(s for s in cfg["sections"] if s["key"] == "stay_search")["enabled"]
     # брони в кабинете (подтверждённые) с H5 adults и H9 Kurtaxe в итоге
     confirmed = StayBooking.objects.filter(status=StayBooking.STATUS_CONFIRMED)
     assert confirmed.count() >= 1
@@ -617,7 +619,11 @@ def test_apply_aktionsmarkt_kit_covers_all_promo_types():
     # DL-4: плитки первого экрана переживают сборку (config_patch мерджится
     # ПОСЛЕ _FOKUS_BASE.hero_widget="none" — латентный баг сидинга закрыт),
     # акции на главной — витриной «Deal der Woche».
-    assert tenant.site_config["site_defaults"]["hero_widget"] == "aktionsmarkt"
+    # FB-33 M2c-3: плитки — блок «Schnellzugriff» сразу после баннера
+    rows = tenant.site_config["sections"]
+    keys = [s["key"] for s in rows]
+    assert rows[keys.index("hero") + 1]["key"] == "quick_links"
+    assert rows[keys.index("hero") + 1]["data"] == {"set": "aktionsmarkt"}
     promo_row = next(s for s in tenant.site_config["sections"] if s["key"] == "promotions")
     assert promo_row["style"] == "spotlight" and promo_row["enabled"] is True
 

@@ -226,5 +226,8 @@ def test_bundle_applies_sections_off_and_hero_widget():
     rows = {s["key"]: s for s in cfg["sections"]}
     assert rows["archetypes"]["enabled"] is False  # шумная секция выключена
     assert rows["stay_rooms"]["enabled"] is True
-    assert rows["stay_search"]["enabled"] is False  # дубль поиска в баннере
-    assert cfg["site_defaults"]["hero_widget"] == "stays"
+    # FB-33 M2c-3: поиск дат больше не внутри баннера — секция «Suche» сразу после него
+    assert rows["stay_search"]["enabled"] is True
+    keys = [s["key"] for s in cfg["sections"]]
+    assert keys[keys.index("hero") + 1] == "stay_search"
+    assert not cfg["site_defaults"].get("hero_widget")

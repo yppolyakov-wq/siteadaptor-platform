@@ -17,7 +17,6 @@
 from __future__ import annotations
 
 import copy
-import uuid
 from dataclasses import dataclass
 
 REASON = "fb33.m2c-quick-links"
@@ -35,8 +34,10 @@ class Result:
     changed: bool = False
 
 
-def _new_id() -> str:
-    return uuid.uuid4().hex[:12]
+#: постоянные id автоблоков: повторное применение шаблона/кита даёт тот же конфиг
+#: (идемпотентность — замок `test_template_sweep`); блоки владельца — со своими id
+QUICK_LINKS_ID = "quicklinks"
+SERVICES_LIST_ID = "services3"
 
 
 def _after_hero(rows: list) -> int:
@@ -55,8 +56,23 @@ def _move_after_hero(rows: list, key: str, *, enable: bool) -> None:
     rows.insert(_after_hero(rows), row)
 
 
-def detach(config: dict) -> tuple[dict, Result]:
-    """Новые настройки и что сделано. Чистая функция: `config` не меняется."""
+def drop_after_hero(config: dict) -> None:
+    """Сборка «без плиток» (`hero_widget: "none"`) снимает блок, стоящий СРАЗУ после
+    баннера (его ставит сборка/перенос); блок, который владелец поставил сам ниже, не трогает.
+    Меняет `config` на месте."""
+    rows = config.get("sections")
+    if not isinstance(rows, list):
+        return
+    at = _after_hero(rows)
+    if at < len(rows) and isinstance(rows[at], dict) and rows[at].get("key") == "quick_links":
+        rows.pop(at)
+
+
+def detach(config: dict, *, replace: bool = False) -> tuple[dict, Result]:
+    """Новые настройки и что сделано. Чистая функция: `config` не меняется.
+
+    `replace` — для писателей (сборки, шаблоны, киты): блок сразу после баннера получает
+    набор новой сборки. Перенос (`replace=False`) блок владельца не трогает."""
     from apps.core.hero_tiles import QUICK_LINK_SETS
 
     defaults = config.get("site_defaults") if isinstance(config.get("site_defaults"), dict) else {}
@@ -77,12 +93,17 @@ def detach(config: dict) -> tuple[dict, Result]:
     bento = new.get("hero_style") == "bento"  # у bento плиток не было — вид не меняем
     if widget in QUICK_LINK_SETS:
         has_block = any(isinstance(r, dict) and r.get("key") == "quick_links" for r in rows)
-        if has_block:
+        nxt = rows[_after_hero(rows)] if _after_hero(rows) < len(rows) else {}
+        if replace and isinstance(nxt, dict) and nxt.get("key") == "quick_links":
+            nxt["data"] = {"set": widget}
+            nxt["enabled"] = not bento
+            action = "block-updated"
+        elif has_block:
             action = "block-exists"
         else:
             block = {
                 "key": "quick_links",
-                "id": _new_id(),
+                "id": QUICK_LINKS_ID,
                 "enabled": not bento,
                 "data": {"set": widget},
             }
@@ -101,7 +122,7 @@ def detach(config: dict) -> tuple[dict, Result]:
         else:
             block = {
                 "key": "list",
-                "id": _new_id(),
+                "id": SERVICES_LIST_ID,
                 "enabled": not bento,
                 "data": dict(SERVICES_LIST),
             }

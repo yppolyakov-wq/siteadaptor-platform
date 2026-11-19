@@ -64,6 +64,15 @@ def test_s6_archetype_template_recommended_and_keeps_primary(
     assert primary_section in tpl["sections"]
 
 
+def _after_hero(tenant):
+    """FB-33 M2c-3: что стоит сразу после баннера главной (виджет первого экрана)."""
+    from apps.tenants import siteconfig
+
+    rows = siteconfig.normalize(tenant.site_config)["sections"]
+    keys = [r["key"] for r in rows]
+    return rows[keys.index("hero") + 1]
+
+
 def test_gastgeber_hero_carries_stay_search_widget():
     # E4 «задача-первым»: у отеля поиск дат ВНУТРИ hero (первый экран). Шаблон
     # несёт site_defaults.hero_widget="stays"; apply_template доносит его до
@@ -76,12 +85,13 @@ def test_gastgeber_hero_carries_stay_search_widget():
     assert sitetemplates.apply_template(tenant, "gastgeber") is True
     tenant.refresh_from_db()
     cfg = siteconfig.normalize(tenant.site_config)
-    assert cfg["site_defaults"]["hero_widget"] == "stays"
-    # E4: смена Look'а не сбрасывает интерактивный hero (hero_widget сохраняется,
-    # т.к. это выбор раскладки, а не визуальная тема семейства).
+    # FB-33 M2c-3: поиск дат — секция «Suche» сразу после баннера, ключа больше нет
+    assert not cfg["site_defaults"].get("hero_widget")
+    assert _after_hero(tenant)["key"] == "stay_search" and _after_hero(tenant)["enabled"]
+    # E4: смена Look'а не сбрасывает интерактивный hero (раскладка, а не тема)
     assert sitetemplates.apply_look(tenant, "nacht") is True
     tenant.refresh_from_db()
-    assert tenant.site_config["site_defaults"]["hero_widget"] == "stays"
+    assert _after_hero(tenant)["key"] == "stay_search"
 
 
 def test_termine_hero_carries_services_widget():
@@ -96,10 +106,12 @@ def test_termine_hero_carries_services_widget():
     assert sitetemplates.apply_template(tenant, "termine") is True
     tenant.refresh_from_db()
     cfg = siteconfig.normalize(tenant.site_config)
-    assert cfg["site_defaults"]["hero_widget"] == "services"
+    # FB-33 M2c-3: топ услуг — секция «Leistungen» или список из трёх сразу после баннера
+    assert not cfg["site_defaults"].get("hero_widget")
+    assert _after_hero(tenant)["key"] in ("services", "list")
     assert sitetemplates.apply_look(tenant, "warm") is True
     tenant.refresh_from_db()
-    assert tenant.site_config["site_defaults"]["hero_widget"] == "services"
+    assert _after_hero(tenant)["key"] in ("services", "list")
 
 
 def test_hero_widget_partial_renders_services_gated_by_module(settings):
@@ -136,10 +148,13 @@ def test_gastro_hero_carries_tiles_widget():
     assert sitetemplates.apply_template(tenant, "gastro") is True
     tenant.refresh_from_db()
     cfg = siteconfig.normalize(tenant.site_config)
-    assert cfg["site_defaults"]["hero_widget"] == "gastro"
+    # FB-33 M2c-3: плитки — блок «Schnellzugriff» сразу после баннера
+    assert not cfg["site_defaults"].get("hero_widget")
+    assert _after_hero(tenant)["key"] == "quick_links"
+    assert _after_hero(tenant)["data"] == {"set": "gastro"}
     assert sitetemplates.apply_look(tenant, "warm") is True
     tenant.refresh_from_db()
-    assert tenant.site_config["site_defaults"]["hero_widget"] == "gastro"
+    assert _after_hero(tenant)["data"] == {"set": "gastro"}
 
 
 def test_hero_widget_gastro_renders_tiles(settings):
@@ -256,7 +271,8 @@ def test_builder_apply_template(rf, settings):
     )
     assert resp.status_code in (301, 302)
     tenant.refresh_from_db()
-    assert _enabled(tenant) == ["hero", "products", "promotions", "contact"]
+    # FB-33 M2c-3: плитки шаблона gastro — блок сразу после баннера
+    assert _enabled(tenant) == ["hero", "quick_links", "products", "promotions", "contact"]
 
 
 def test_builder_template_gallery_renders(rf, settings):

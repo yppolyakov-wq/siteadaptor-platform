@@ -1082,6 +1082,7 @@ def _apply(
     if family is None and tpl_sd:
         config["site_defaults"] = {**(config.get("site_defaults") or {}), **tpl_sd}
 
+    config = _detach_tiles(config)
     tenant.site_config = siteconfig.normalize(config)
     update_fields = ["site_config", "updated_at"]
     # Акцентный цвет → Tenant.primary_color (его читает витрина для hero).
@@ -1089,6 +1090,15 @@ def _apply(
         tenant.primary_color = accent
         update_fields.insert(1, "primary_color")
     tenant.save(update_fields=update_fields)
+
+
+def _detach_tiles(config: dict) -> dict:
+    """FB-33 M2c-3: плитки первого экрана шаблона/сборки — блоком «Schnellzugriff» сразу
+    после баннера, а не ключом `hero_widget` (тот же перенос, что шаг деплоя)."""
+    from apps.core.quick_links_migration import detach
+
+    new, _result = detach(config, replace=True)
+    return new
 
 
 def apply_template(tenant, key) -> bool:
@@ -2091,6 +2101,7 @@ def apply_bundle(tenant, key, *, rebuild_home: bool = True) -> bool:
     _apply_bundle_axes(config, over)
     # DL-8a: запомнить выбранную сборку (бейдж «Aktiv» страницы Design).
     config["design"] = {"look": bundle["look"], "bundle": key}
+    config = _detach_tiles(config)
     tenant.site_config = siteconfig.normalize(config)
     tenant.save(update_fields=["site_config", "updated_at"])
     return True
@@ -2133,6 +2144,11 @@ def _apply_bundle_axes(config: dict, over: dict) -> None:
         sd = dict(config.get("site_defaults") or {})
         sd["hero_widget"] = "" if over["hero_widget"] == "none" else over["hero_widget"]
         config["site_defaults"] = sd
+        if over["hero_widget"] == "none":
+            # FB-33 M2c: плитки — свой блок; «без плиток» снимает блок сразу после баннера
+            from apps.core.quick_links_migration import drop_after_hero
+
+            drop_after_hero(config)
     # DS-9: шапка одной строкой — и легаси-ключ nav, и дерево меню S7 (шапку
     # рисует menus.top.style; без него Fokus оставался бы двухэтажным).
     if over.get("nav_style"):

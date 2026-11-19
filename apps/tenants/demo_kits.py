@@ -25632,6 +25632,11 @@ def apply_kit(tenant, key: str) -> bool:
             _report.mismatches,
             _report.notes,
         )
+    # FB-33 M2c-3: плитки первого экрана кита — блоком «Schnellzugriff» сразу после баннера
+    # (форма дат — секция «Suche», топ услуг — список), а не ключом `hero_widget`
+    from apps.core.quick_links_migration import detach as _detach_tiles
+
+    cfg, _tiles = _detach_tiles(cfg, replace=True)
     _demo_locales = [loc for loc in (kit.enabled_locales or []) if loc != "de"]
     if _demo_locales:  # DL-2/DL-3: оверлей текстов на все включённые локали
         from . import demo_i18n
