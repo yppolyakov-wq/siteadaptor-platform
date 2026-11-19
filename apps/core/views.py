@@ -2542,6 +2542,13 @@ def home_builder_view(request):
                 idx = -1
             if 0 <= idx < len(history):
                 target = dict(history[idx]["config"])
+                # FB-31.7 B3a: версия до переноса держит вид старыми кодами — перед откатом её
+                # шаблоны переносятся в строки (вид тот же; после B3b коды не читаются)
+                from apps.core import page_axes_migration, page_axes_objects
+
+                target, _report = page_axes_migration.migrate(
+                    target, objects=page_axes_objects.build_index()
+                )
                 current_snap = {k: v for k, v in cfg.items() if k != "history"}
                 target["history"] = [
                     {"ts": timezone.now().isoformat(), "config": current_snap}

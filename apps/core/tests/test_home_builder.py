@@ -1469,6 +1469,28 @@ def test_home_builder_restore_version_swaps_config():
     assert cfg["history"][0]["config"]["hero_title"] == "Current"  # текущий — undoable
 
 
+def test_b3a_restore_of_a_pre_migration_version_keeps_its_template_as_rows():
+    """FB-31.7 B3a: версия до переноса (шаблон старым кодом, строк нет) при откате переносится
+    в строки — после снятия чтения кодов (B3b) вид откаченной версии тот же."""
+    from apps.core import page_axes_residue
+
+    tenant = TenantFactory(
+        schema_name="public",
+        slug="hbrestb3",
+        name="HBRESTB3",
+        site_config={
+            "history": [{"ts": "2026-01-01T00:00", "config": {"catalog_page_style": "regale"}}]
+        },
+    )
+    views.home_builder_view(
+        _request("post", "/dashboard/site/home/", {"action": "restore_version:0"}, tenant)
+    )
+    cfg = siteconfig.normalize(tenant.site_config)
+    assert siteconfig.page_template_code(cfg, "catalog_page_style") == "regale"
+    bare = siteconfig.normalize(page_axes_residue.strip_site_codes(tenant.site_config))
+    assert siteconfig.page_template_code(bare, "catalog_page_style") == "regale", "держат строки"
+
+
 def test_home_builder_restore_invalid_index_noop():
     """SE-5b: невалидный индекс отката — без изменений."""
     tenant = TenantFactory(

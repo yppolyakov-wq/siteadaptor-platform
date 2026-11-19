@@ -151,6 +151,10 @@ if ! $COMPOSE exec -T web python manage.py materialize_page_axes; then
 	echo "!!! WARN: materialize_page_axes FAILED for some sites (see lines above)."
 	echo "!!! Those sites keep the old template codes. Re-run: python manage.py materialize_page_axes"
 fi
+# FB-31.7 B3a: остаток перед снятием чтения старых кодов (B3b ждёт «residue: 0»)
+if ! $COMPOSE exec -T web python manage.py materialize_page_axes --residue; then
+	echo "!!! WARN: materialize_page_axes --residue could not check some sites (see lines above)."
+fi
 sleep 5
 if curl -fsS "$HEALTH_URL" >/dev/null; then
 	echo "OK: readiness passed"

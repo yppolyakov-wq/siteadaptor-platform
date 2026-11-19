@@ -74,7 +74,11 @@ def test_template_settings_are_replaced_and_writers_drop_views():
     assert "services_page_style" not in site_schema.setting_codes(_salon(), "services")
     cfg = {"page_blocks": {"stay_rooms": [{"key": "groups", "style": "side"}]}}
     out = page_settings.apply_override(cfg, "stays_page_style", "regale")
-    assert out["page_blocks"]["stay_rooms"] == []
+    # B3a: прежний вид строки снят, шаблон записан строками хоста (старый ключ не пишется)
+    from apps.core import listing_parts
+
+    assert "page_styles" not in out
+    assert listing_parts.code_for(siteconfig.normalize(out), "stays") == "regale"
     same = page_settings.apply_override(
         {**cfg, "page_styles": {"stays": "regale"}}, "stays_page_style", "regale"
     )

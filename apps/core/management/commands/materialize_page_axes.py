@@ -24,6 +24,11 @@ class Command(BaseCommand):
         parser.add_argument("--schema", default="", help="один сайт (иначе все)")
         parser.add_argument("--dry-run", action="store_true", help="только отчёт, без записи")
         parser.add_argument("--undo", action="store_true", help="откат последнего переноса")
+        parser.add_argument(
+            "--residue",
+            action="store_true",
+            help="B3a: что сменит вид, если старые коды перестать читать (ничего не пишет)",
+        )
 
     def handle(self, *args, **options):
         if options["schema"] == "public":
@@ -33,6 +38,8 @@ class Command(BaseCommand):
             tenants = tenants.filter(schema_name=options["schema"])
             if not tenants.exists():
                 raise CommandError(f"нет такого сайта: {options['schema']}")
+        if options["residue"]:
+            return self._residue(tenants)
         done = skipped = would = 0
         skipped_sites: list[str] = []
         failed = []
@@ -88,3 +95,24 @@ class Command(BaseCommand):
         if failed:
             raise CommandError(f"не обработаны сайты: {', '.join(failed)}")
         self.stdout.write(self.style.SUCCESS("Готово"))
+
+    def _residue(self, tenants):
+        """B3a: остаток по каждому сайту; итог — строкой `residue: N` (N сайтов с остатком)."""
+        from apps.core import page_axes_residue
+
+        dirty = 0
+        failed = []
+        for tenant in tenants.only("pk", "schema_name", "site_config"):
+            try:
+                reasons = page_axes_residue.tenant_residue(tenant)
+            except Exception as exc:  # noqa: BLE001 — один сайт не останавливает остальные
+                logger.exception("materialize_page_axes --residue: %s", tenant.schema_name)
+                failed.append(tenant.schema_name)
+                self.stderr.write(f"{tenant.schema_name}: ОШИБКА {type(exc).__name__}: {exc}")
+                continue
+            if reasons:
+                dirty += 1
+                self.stderr.write(f"{tenant.schema_name}: ОСТАТОК {', '.join(reasons)}")
+        self.stdout.write(f"residue: {dirty + len(failed)}")
+        if failed:
+            raise CommandError(f"не проверены сайты: {', '.join(failed)}")

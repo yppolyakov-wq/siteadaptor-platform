@@ -325,9 +325,18 @@ def choices(setting: studio_pages.Setting, gate: dict | None = None) -> tuple[Ch
     if code in _COMPOSITION_SURFACE:
         surface = _COMPOSITION_SURFACE[code]
         off = (gate or {}).get(surface, set())
+        styles = compositions.styles_for(surface)
+        listing = _listing_surface(code)
+        if listing:
+            # FB-31.7 B3a: шаблон листинга — строками его хоста; код, который листинг не
+            # выражает (у блога, отзывов… нет полок/вкладок), на витрине не действовал никогда
+            from apps.core import listing_parts
+
+            known = listing_parts.LISTINGS[listing].codes
+            styles = [st for st in styles if st[0] in known]
         return tuple(
             Choice(c, label, hint, c not in off, UNAVAILABLE_REASON if c in off else "")
-            for c, label, hint in compositions.styles_for(surface)
+            for c, label, hint in styles
         )
     if code == "product_card_form":
         return tuple(Choice(k, label, hint) for k, label, hint in card_forms.forms_for())
@@ -384,6 +393,13 @@ def current_value(raw_cfg: dict, setting: studio_pages.Setting, normalized: dict
     if setting.code in _TEMPLATE_KEYS:
         # FB-31.7 B1b: шаблон — по строкам схемы поверх старого ключа (как видит витрина)
         code = siteconfig.page_template_code(normalized, _TEMPLATE_KEYS[setting.code])
+        return code, bool(code) or is_set
+    surface = _listing_surface(setting.code)
+    if surface:
+        # FB-31.7 B3a: шаблон листинга — по строкам его хоста (как витрина), не по ключу
+        from apps.core import listing_parts
+
+        code = listing_parts.code_for(normalized, surface)
         return code, bool(code) or is_set
     value, _found = _walk(normalized, setting.site_key)
     kind = kind_of(setting)
@@ -640,12 +656,42 @@ _PROMO_STYLE_HOSTS = {
 }
 
 
-def _listing_style_host(code: str) -> str:
+def _listing_surface(code: str) -> str:
+    """Поверхность листинга по коду настройки `<surface>_page_style` ("" — не листинг)."""
     from apps.core import listing_parts
 
     if not code.endswith("_page_style"):
         return ""
-    return listing_parts.HOST_OF.get(code[: -len("_page_style")], "")
+    surface = code[: -len("_page_style")]
+    return surface if surface in listing_parts.LISTINGS else ""
+
+
+def _write_listing_template(cfg: dict, surface: str, value: str) -> dict:
+    """FB-31.7 B3a: шаблон листинга — строками его хоста (оси), старый ключ
+    `page_styles[surface]` снимается (как `set_page_template` у шаблонов уровня сайта)."""
+    from apps.core import listing_parts, page_axes_migration
+    from apps.core import page_parts as pp
+    from apps.tenants import siteconfig
+
+    s = listing_parts.LISTINGS[surface]
+    host = listing_parts.HOST_OF[surface]
+    if value not in s.codes:
+        raise PageSettingError(f"template {value!r} not available for {surface}")
+    out = dict(cfg or {})
+    if listing_parts.effective(siteconfig.normalize(out), surface) == pp.from_code(s, value):
+        return out  # тот же вид по осям — свои строки владельца не трогаются
+    styles = dict(out.get("page_styles") or {}) if isinstance(out.get("page_styles"), dict) else {}
+    styles.pop(surface, None)
+    if styles:
+        out["page_styles"] = styles
+    else:
+        out.pop("page_styles", None)  # presence-minimal
+    out = siteconfig.drop_page_views(out, host)
+    norm = siteconfig.normalize(out)
+    rows = pp.materialize_rows(s, (norm.get("page_blocks") or {}).get(host) or [], value)
+    if rows is None:
+        raise PageSettingError(f"template {value!r} not expressible as rows")
+    return page_axes_migration._with_host_rows(out, norm, host, rows)
 
 
 def _pin_own_categories(cfg: dict) -> dict:
@@ -687,9 +733,9 @@ def apply_override(cfg: dict, code: str, value, output: dict | None = None) -> d
             return siteconfig.set_page_template(out, template_key, str(value or ""))
         except siteconfig.TemplateNotExpressible as exc:
             raise PageSettingError(f"template {value!r} not expressible as rows") from exc
-    host = _listing_style_host(code)  # FB-31 P4: шаблоны девяти листингов
-    if host and value != current_value(cfg or {}, setting)[0]:
-        out = siteconfig.drop_page_views(out, host)
+    surface = _listing_surface(code)  # FB-31 P4 / B3a: шаблоны девяти листингов — строками
+    if surface:
+        return _write_listing_template(out, surface, str(value or ""))
     kind = kind_of(setting)
     if kind == KIND_LAYOUT:
         key = _LAYOUT_KEYS[code]

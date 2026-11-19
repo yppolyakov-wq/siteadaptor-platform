@@ -356,9 +356,20 @@ def test_types_the_storefront_hides_are_not_offered(all_modules):
 def test_listing_template_is_presence_minimal(all_modules, monkeypatch):
     monkeypatch.setattr(page_settings, "composition_gate", lambda cfg=None: {"services": set()})
     page_settings.write(all_modules, "services_page_style", "kompakt")
-    assert all_modules.site_config["page_styles"] == {"services": "kompakt"}
+    # FB-31.7 B3a: шаблон листинга — строками его хоста, старый ключ не пишется
+    assert "page_styles" not in all_modules.site_config
+    cfg = all_modules.site_config
+    assert page_settings.current_value(cfg, studio_pages.SETTINGS["services_page_style"])[0] == (
+        "kompakt"
+    )
     page_settings.write(all_modules, "services_page_style", "")
     assert "page_styles" not in all_modules.site_config
+    assert (
+        page_settings.current_value(
+            all_modules.site_config, studio_pages.SETTINGS["services_page_style"]
+        )[0]
+        == ""
+    )
 
 
 def test_detail_layout_and_upsell_are_targeted(all_modules):
