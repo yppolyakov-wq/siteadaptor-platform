@@ -285,7 +285,7 @@
         {% endif %}
       </div>
       {% endfor %}
-      {% if multi_lang and not selected.source_url %}<p class="text-xs text-gray-600">{% trans "Hier steht der Text der Hauptsprache. Übersetzungen ändern Sie direkt auf der Seite." %}</p>{% endif %}
+      {% if multi_lang and not selected.source_url and not selected.style_only %}<p class="text-xs text-gray-600">{% trans "Hier steht der Text der Hauptsprache. Übersetzungen ändern Sie direkt auf der Seite." %}</p>{% endif %}
       <button name="op" value="update" class="ui-btn ui-btn-primary w-full">{% trans "Übernehmen" %}</button>
       {% if selected.source_url %}<p class="text-sm"><a href="{{ selected.source_url }}" class="inline-flex items-center min-h-[44px] font-semibold text-indigo-700 hover:underline" data-schema-source>{{ selected.source_label }} →</a></p>{% endif %}
     </form>

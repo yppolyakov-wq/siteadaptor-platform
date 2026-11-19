@@ -550,7 +550,11 @@ def _clean_cblock_data(key: str, raw) -> dict:
     # UC2-3(b): ссылочные секции-справочники — без собственных данных (контент
     # глобальный site.<key>; оси width/pos/visual — общие оси C-блока).
     if key in PAGE_REF_BLOCKS:
-        return {}
+        # FB-33 M2b: свой вид блока — из видов его базовой секции (пусто — стандартный,
+        # как было); контента у блока нет по-прежнему
+        style = d.get("style")
+        base = key[: -len("_ref")]
+        return {"style": style} if style and style in SECTION_STYLES.get(base, ()) else {}
     if key == "text":
         return {"title": _s(d.get("title")), "body": _s(d.get("body")), **_text_style(d)}
     # UC6-4: скругление фото блока — "" (стандарт rounded-2xl) | none | 3xl;

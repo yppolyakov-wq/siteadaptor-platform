@@ -94,8 +94,8 @@ FAMILIES: tuple[Family, ...] = (
 VIEW_SWITCHES: frozenset[frozenset[str]] = frozenset(
     {
         frozenset({"text", "image_text"}),
-        frozenset({"text", "textpage"}),
-        frozenset({"image_text", "textpage"}),
+        # «Со страницы» (textpage) хранит адрес страницы и режим, а не свой текст — смена
+        # вида на него теряла бы введённое; это добавление другого блока, не смена вида
     }
 )
 

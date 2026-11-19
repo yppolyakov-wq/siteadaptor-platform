@@ -632,11 +632,12 @@ def render_block(context, block):
         tpl = BLOCK_TEMPLATES.get(base)
         if not tpl:
             return ""
-        html = render_to_string(
-            tpl,
-            {**context.flatten(), "section_row": {"key": base}},
-            request=request,
-        )
+        # FB-33 M2b: свой вид блока (FAQ, команда, галерея, отзывы) — как у секции главной
+        data = block.get("data") if isinstance(block, dict) else None
+        row = {"key": base}
+        if isinstance(data, dict) and data.get("style"):
+            row["style"] = data["style"]
+        html = render_to_string(tpl, {**context.flatten(), "section_row": row}, request=request)
         return mark_safe(html)
     # D.2: C-блок — рендерим партиал с данными самого блока.
     if key in CBLOCK_TEMPLATES:

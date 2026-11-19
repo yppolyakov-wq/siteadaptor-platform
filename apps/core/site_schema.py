@@ -239,6 +239,9 @@ def merge_structure(
         merged = {**new, "key": old.get("key")}
         if keep_data and kind(old) in OWNED_DATA_KINDS:
             merged["data"] = old.get("data") or {}
+        if kind(old) in siteconfig.PAGE_REF_BLOCKS:
+            # FB-33 M2b: вид блока-ссылки задаёт «Seitenaufbau»; форма Студии его не несёт
+            merged["data"] = old.get("data") or {}
         if kind(old) == "banner":
             # FB-29.2: выбор баннеров и настройки слайдера задаёт «Seitenaufbau»; форма
             # Студии их не несёт вовсе — её «Speichern» выбор не трогает.
@@ -1074,7 +1077,7 @@ def blocks_for(
                 if cblock or (home_section(item) and not _detail_label(host, item))
                 else [],
                 "width_value": item.get("width") or "contained",
-                "fields": panel_fields(item) if cblock else [],
+                "fields": panel_fields(item) if cblock else section_style_fields(item),
                 # FB-27 R3b-2: данные блока «Liste» — вид строит панель (`list_panel`)
                 "list_data": dict(data)
                 if cblock and (siteconfig.cblock_type(key) or key) == "list"
@@ -1279,6 +1282,11 @@ PANEL_FIELDS = {
         ("mode", gettext_lazy("Wie viel Text"), "select"),
     ),
     "contact_card": (("style", gettext_lazy("Darstellung"), "select"),),
+    # FB-33 M2b: блоки-ссылки на секции главной — свой вид (виды базовой секции)
+    "faq_ref": (("style", gettext_lazy("Darstellung"), "select"),),
+    "team_ref": (("style", gettext_lazy("Darstellung"), "select"),),
+    "gallery_ref": (("style", gettext_lazy("Darstellung"), "select"),),
+    "testimonials_ref": (("style", gettext_lazy("Darstellung"), "select"),),
 }
 
 
@@ -1294,11 +1302,54 @@ def panel_fields(item: dict) -> list[dict]:
     ]
 
 
+#: FB-33 M2b: секции главной, вид которых выбирается в панели (раньше — только в Студии).
+#: Списки (свои плитки вида) и полоса доверия (своя панель) — отдельно.
+STYLE_SECTIONS = (
+    "about",
+    "process",
+    "team",
+    "cta",
+    "testimonials",
+    "trust",
+    "reviews",
+    "faq",
+    "gallery",
+    "contact",
+)
+
+
+def section_style_fields(item: dict) -> list[dict]:
+    """Поле «Darstellung» встроенной секции главной из `STYLE_SECTIONS` (иначе — пусто)."""
+    if not home_section(item) or item.get("key") not in STYLE_SECTIONS:
+        return []
+    return [
+        {
+            "name": "style",
+            "label": str(gettext_lazy("Darstellung")),
+            "kind": "select",
+            "value": item.get("style") or "",
+        }
+    ]
+
+
+def _style_options(base: str) -> list[tuple[str, str]]:
+    from apps.tenants import siteconfig
+
+    return [
+        ("", _("Standard")),
+        *(
+            (k, str(siteconfig.SECTION_STYLE_LABELS.get(k, k)))
+            for k in siteconfig.SECTION_STYLES.get(base, ())
+        ),
+    ]
+
+
 def fill_options(block: dict, host: str) -> None:
     """FB-27 R6: пункты селектов панели открытого блока (на месте). Сохранённое значение,
     которого среди пунктов нет (страницу удалили), остаётся выбранным пунктом (W0)."""
     from apps.core import content_pages
     from apps.core.list_panel import _select
+    from apps.tenants import siteconfig
 
     key = block.get("key")
     options = {}
@@ -1316,6 +1367,12 @@ def fill_options(block: dict, host: str) -> None:
                 ("compact", _("Eine Zeile, ohne Karte")),
             ]
         }
+    elif key in siteconfig.PAGE_REF_BLOCKS:
+        options = {"style": _style_options(key[: -len("_ref")])}
+        block["style_only"] = True  # в панели только вид — подсказка про тексты не нужна
+    elif key in STYLE_SECTIONS and not block.get("cblock"):
+        options = {"style": _style_options(key)}
+        block["style_only"] = True
     for f in block.get("fields") or []:
         if f["name"] in options:
             f["options"] = _select(f["name"], f["label"], f["value"], options[f["name"]])["options"]
@@ -2728,6 +2785,16 @@ def mutate(
         if not main and not item.get("id") and item.get("key") in siteconfig.BUILTIN_LIST_SOURCES:
             # встроенный список главной: патч строки секции; без правок — ничего
             _update_builtin(item, fields)
+            return ref
+        if not main and section_style_fields(item) and fields is not None and "style" in fields:
+            # FB-33 M2b: вид встроенной секции главной — та же ось `style`, что пишет Студия
+            style = str(fields["style"]).strip()
+            if style == "":
+                item.pop("style", None)
+            elif style in siteconfig.SECTION_STYLES.get(item["key"], ()):
+                item["style"] = style
+            else:
+                raise SchemaError("fields")
             return ref
         key = siteconfig.cblock_type(item.get("key")) or item.get("key") or ""
         if key == "list":

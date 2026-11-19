@@ -55,6 +55,7 @@ def test_view_switch_never_crosses_section_and_block():
         assert block_catalog.SECTION not in {kinds[a], kinds[b]}
     assert not block_catalog.can_switch("about", "text")
     assert block_catalog.can_switch("text", "image_text")
+    assert not block_catalog.can_switch("text", "textpage")  # другие поля — текст потерялся бы
 
 
 def test_catalog_does_not_import_siteconfig_at_module_level():
