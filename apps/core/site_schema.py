@@ -1639,18 +1639,9 @@ def add_options(code: str) -> list[tuple[str, str]]:
     return [(k, str(siteconfig.CBLOCK_LABELS.get(k, k))) for k in keys]
 
 
-#: FB-27 R6: меню «+ Block» — три группы (решение владельца). Тип вне списков попадает
-#: в первую группу: новый блок не должен пропасть из меню молча.
-_ADD_GROUPS = (
-    ("inhalt", gettext_lazy("Inhalt"), ()),
-    ("listen", gettext_lazy("Listen & Aktionen"), ("list", "promo", "newsletter")),
-    (
-        "quellen",
-        gettext_lazy("Von anderen Stellen"),
-        ("textpage", "contact_card", *("faq_ref", "team_ref", "gallery_ref", "testimonials_ref")),
-    ),
-    ("formulare", gettext_lazy("Formulare"), ("anfrage_ref", "message_ref")),
-)
+#: FB-27 R6: меню «+ Block» — группы (решение владельца). FB-33 M2a: группа каждого типа — в
+#: каталоге блоков (`apps.core.block_catalog.LIBRARY`); тип вне каталога попадает в первую
+#: группу: новый блок не должен пропасть из меню молча.
 
 
 #: FB-27 R8d: пункт «+ Block» для сохранённого шаблона блока — `tpl:<id шаблона>`.
@@ -1660,11 +1651,16 @@ TEMPLATE_PREFIX = "tpl:"
 def add_groups(code: str, config: dict | None = None) -> list[dict]:
     """Пункты «+ Block» группами: [{key, title, options: [(тип, подпись)]}]. С `config` —
     ещё группа сохранённых шаблонов блоков (только типов, которые можно ставить сюда)."""
+    from apps.core import block_catalog
+
     options = add_options(code)
-    placed = {k for _key, _title, keys in _ADD_GROUPS for k in keys}
+    first = block_catalog.ADD_GROUPS[0][0]
+    group_of = {k: block_catalog.library_entry(k) for k, _lab in options}
     out = []
-    for key, title, keys in _ADD_GROUPS:
-        mine = [(k, lab) for k, lab in options if (k in keys if keys else k not in placed)]
+    for key, title in block_catalog.ADD_GROUPS:
+        mine = [
+            (k, lab) for k, lab in options if (group_of[k].group if group_of[k] else first) == key
+        ]
         if mine:
             out.append({"key": key, "title": str(title), "options": mine})
     allowed = dict(options)

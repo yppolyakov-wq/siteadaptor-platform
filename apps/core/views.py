@@ -20,6 +20,7 @@ from django.views.decorators.http import require_GET, require_POST
 from apps.catalog import category_styles
 from apps.catalog.option_styles import VARIANT_STYLES
 from apps.core import (
+    block_catalog,
     compositions,
     list_blocks,
     permissions,
@@ -3435,116 +3436,9 @@ def home_builder_view(request):
             "lb_type_views": list_blocks.type_views(
                 config, [key for key, _label in _row_lists["promo_types_for_blocks"]]
             ),
-            # UC6-5: карточки библиотеки блоков — иконка + подсказка (вставка
-            # даёт демо-данные из siteconfig.CBLOCK_DEMO_DATA).
-            "block_types": [
-                {
-                    "value": "text",
-                    "label": siteconfig.CBLOCK_LABELS["text"],
-                    "icon": "📝",
-                    "hint": _("Heading + paragraph"),
-                },
-                {
-                    "value": "image",
-                    "label": siteconfig.CBLOCK_LABELS["image"],
-                    "icon": "🖼️",
-                    "hint": _("Photo with caption"),
-                },
-                {
-                    "value": "image_text",
-                    "label": siteconfig.CBLOCK_LABELS["image_text"],
-                    "icon": "🏞️",
-                    "hint": _("Photo beside text"),
-                },
-                {
-                    "value": "button",
-                    "label": siteconfig.CBLOCK_LABELS["button"],
-                    "icon": "🔘",
-                    "hint": _("Link button"),
-                },
-                {
-                    "value": "spacer",
-                    "label": siteconfig.CBLOCK_LABELS["spacer"],
-                    "icon": "↕️",
-                    "hint": _("Vertical spacing"),
-                },
-                {
-                    "value": "promo",
-                    "label": siteconfig.CBLOCK_LABELS["promo"],
-                    "icon": "🏷️",
-                    "hint": _("Live promotion"),
-                },  # UE1
-                {
-                    "value": "list",
-                    "label": siteconfig.CBLOCK_LABELS["list"],
-                    "icon": "🗂️",
-                    "hint": _("Aktionen oder Produkte — Auswahl und Ansicht wählen Sie selbst"),
-                },  # LB-1 (вырос из PT-6 «Aktionen eines Typs»)
-                {
-                    "value": "stats",
-                    "label": siteconfig.CBLOCK_LABELS["stats"],
-                    "icon": "🔢",
-                    "hint": _("2–4 key figures with captions"),
-                },  # GK-4
-                {
-                    "value": "banner",
-                    "label": siteconfig.CBLOCK_LABELS["banner"],
-                    "icon": "🏞️",
-                    "hint": _("Bild mit Text und Link — auf jeder Seite, mit Zeitraum"),
-                },  # FB-22b
-                {
-                    "value": "newsletter",
-                    "label": siteconfig.CBLOCK_LABELS["newsletter"],
-                    "icon": "📧",
-                    "hint": _("Signup form with double opt-in"),
-                },  # GK-8
-                # UC2-3(b): ссылочные секции-справочники — ТОЛЬКО на страницах
-                # (page_only → JS прячет на главной; контент общий с главной).
-                {
-                    "value": "faq_ref",
-                    "label": siteconfig.CBLOCK_LABELS["faq_ref"],
-                    "icon": "❓",
-                    "hint": _("Der FAQ-Block der Startseite — auch auf dieser Seite"),
-                    "page_only": True,
-                },
-                {
-                    "value": "team_ref",
-                    "label": siteconfig.CBLOCK_LABELS["team_ref"],
-                    "icon": "👥",
-                    "hint": _("Der Team-Block der Startseite — auch auf dieser Seite"),
-                    "page_only": True,
-                },
-                {
-                    "value": "gallery_ref",
-                    "label": siteconfig.CBLOCK_LABELS["gallery_ref"],
-                    "icon": "🖼️",
-                    "hint": _("Die Galerie der Startseite — auch auf dieser Seite"),
-                    "page_only": True,
-                },
-                {
-                    "value": "testimonials_ref",
-                    "label": siteconfig.CBLOCK_LABELS["testimonials_ref"],
-                    "icon": "💬",
-                    "hint": _("Kundenstimmen der Startseite — auch auf dieser Seite"),
-                    "page_only": True,
-                },
-                # AF-2b: встраиваемые формы (заявка/контакт) — на страницах;
-                # рендер гейтится модулем (jobs/inbox выключен → блок пуст).
-                {
-                    "value": "anfrage_ref",
-                    "label": siteconfig.CBLOCK_LABELS["anfrage_ref"],
-                    "icon": "📝",
-                    "hint": _("Angebot-Anfrage direkt auf dieser Seite (Modul Aufträge)"),
-                    "page_only": True,
-                },
-                {
-                    "value": "message_ref",
-                    "label": siteconfig.CBLOCK_LABELS["message_ref"],
-                    "icon": "✉️",
-                    "hint": _("Frage-stellen-Formular direkt auf dieser Seite (Modul Nachrichten)"),
-                    "page_only": True,
-                },
-            ],
+            # UC6-5: карточки библиотеки блоков — иконка + подсказка (вставка даёт
+            # демо-данные из siteconfig.CBLOCK_DEMO_DATA). FB-33 M2a: каталог блоков.
+            "block_types": block_catalog.studio_block_types(),
             "preset_options": preset_options,
             "catalog_preset_options": catalog_preset_options,  # DS-5c: канва-селект каталога
             "service_preset_options": service_preset_options,  # MEN-18: прайс-виды услуг

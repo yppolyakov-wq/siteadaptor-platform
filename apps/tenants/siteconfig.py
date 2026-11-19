@@ -4530,7 +4530,7 @@ SECTION_STYLES = {
     "trust": ("left", "badges", "plain", "cards", "compact"),  # "" = карточка по центру;
     # DS-3b compact: рейтинг + 2 цитаты + marks одной полосой (вместо 4 секций)
     # ST-2: контакт-секция — 4 вида ("" = карточка 2 колонки + карта снизу).
-    "contact": ("split", "map_first", "compact"),
+    "contact": CONTACT_STYLES,  # FB-33 M2a: один кортеж с карточкой контактов (C-блок)
     # ST-7b: стили простых секций — ключи-лейблы реюзятся из реестра выше.
     "cta": ("cards", "minimal", "left"),  # "" = акцент-band по центру
     "about": ("plain", "accent", "single"),  # "" = белая карточка
