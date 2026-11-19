@@ -174,3 +174,25 @@ seo-specialist; M6 database-reviewer + silent-failure-hunter; M7 code-reviewer +
   и письме владельцу. ECC: security-reviewer + silent-failure-hunter (ввод, деньги), database-reviewer
   (поле), a11y-architect (вкладка), django-reviewer.
 - Дальше: M1 (реестр вид→формы карточек).
+
+## План M1 «реестр вид→формы карточки» (planner, 2026-11-19)
+Точки: `card_forms.py:27` CARD_FORMS (+ shape), `:79` card_form(+view); `list_blocks.py` base_view/
+effective_view (:109–182), resolve_section (:1014), view_hint (:1206), card_options (:1272),
+apply_type_scope (:1381); `list_panel.py:461–473` (заплатка price_list → forms_for_view);
+`siteconfig.normalize_list_data:468`; `_cb_row.html:407`; `siteui.row_card:883`; акции —
+`promotions/public_views.py:534`, `promo_types.py:179`, `promotions/views.py:354–453`; настройки
+страниц `product_card_form`/`promo_card_form`. Форма сейчас без эффекта: promo `rows`, первые карточки
+spotlight/banner, `preisliste*`, категории `regale/index/wegweiser`.
+Реестр в `card_forms`: CardForm(key,label,hint,kinds,shape); compact/deal — row, остальное tile;
+SHAPE_DEFAULT; VIEW_SHAPES (ключи строками, без импорта siteconfig — замок); view_has_card,
+forms_for_view, normalize_for_view; ключ вида — `list_blocks.view_key(data)`.
+Срезы: **M1a** реестр + характеризация (замки реестра и отпечатки рендера матрицы до правок);
+**M1b** потребители читают реестр, рендер тот же, поле «Kartenform» по виду (нет у rows/preisliste/
+категорий); **M1c** сохранение — вид побеждает (normalize выбрасывает несовместимую форму; аудит
+демо-китов); **M1d** настройки страниц по виду; **M1e** сужение slider/spotlight/banner до плиток —
+только по решению владельца после `card_view_audit`.
+Риски: паритет рендера (отпечатки), своя форма объекта решается резолвером, стабы секций (гейт с
+`apps/tenants`), киты `--changed`, i18n, без новых Tailwind-классов, без миграций.
+ECC: django-patterns, django-tdd, python-testing (до кода), error-handling (M1c); django-reviewer
+каждый срез; silent-failure-hunter M1c; a11y-architect M1b/c; e2e при клиентском JS; code-reviewer
+перед FF; doc-updater в конце. Каталог блоков группы 1 (доска K1 холста) — на согласование до M1a.
