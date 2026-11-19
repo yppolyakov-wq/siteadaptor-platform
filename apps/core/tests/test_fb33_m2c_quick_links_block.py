@@ -67,7 +67,8 @@ def test_with_the_block_on_home_the_banner_stops_drawing_tiles(style, monkeypatc
 
     def with_block(raw):
         cfg = real(raw)
-        cfg["sections"] = [*cfg["sections"], {"key": "quick_links", "id": "q", "enabled": True}]
+        block = {"key": "quick_links", "id": "q", "enabled": True, "data": {"set": "shop"}}
+        cfg["sections"] = [*cfg["sections"], block]
         return cfg
 
     monkeypatch.setattr(siteconfig, "normalize", with_block)
@@ -77,11 +78,48 @@ def test_with_the_block_on_home_the_banner_stops_drawing_tiles(style, monkeypatc
         assert "data-hero-cta" in html_after  # кнопка баннера возвращается
 
 
-def test_hidden_block_keeps_the_old_banner_tiles():
-    site = {"sections": [{"key": "quick_links", "id": "q", "enabled": False}]}
-    assert not siteui.has_home_block(site, "quick_links")
-    site["sections"][0]["enabled"] = True
-    assert siteui.has_home_block(site, "quick_links")
+def _site(widget, block=None):
+    return {"site_defaults": {"hero_widget": widget}, "sections": [block] if block else []}
+
+
+def test_banner_hands_tiles_to_the_block_only_when_it_draws_them():
+    """Ревью M2c-1 H1: пустой (только что добавленный) или скрытый блок плитки не прячет."""
+    on = {"key": "quick_links", "id": "q", "enabled": True, "data": {"set": "shop"}}
+    assert siteui.banner_tiles(_site("shop")) == "shop"
+    assert siteui.banner_tiles(_site("shop", on)) == ""
+    assert siteui.banner_tiles(_site("shop", {**on, "enabled": False})) == "shop"
+    assert siteui.banner_tiles(_site("shop", {**on, "data": {}})) == "shop"
+    assert siteui.banner_tiles(_site("")) == ""
+
+
+@pytest.mark.parametrize("widget", ("stays", "services"))
+def test_date_search_and_services_never_leave_the_banner(widget):
+    """Форму дат и топ услуг блок не рисует — баннер их не прячет (до переноса M2c-2)."""
+    on = {"key": "quick_links", "id": "q", "enabled": True, "data": {"set": "shop"}}
+    assert siteui.banner_tiles(_site(widget, on)) == widget
+
+
+def test_slider_uses_the_same_rule():
+    import pathlib
+
+    src = pathlib.Path("templates/storefront/sections/_hero_slider.html").read_text()
+    assert "{% if site|banner_tiles %}" in src
+    assert "{% if site.site_defaults.hero_widget" not in src
+
+
+def test_block_with_no_tiles_left_draws_no_empty_region(monkeypatch):
+    """Ревью M2c-1 M3: все плитки набора скрыты (модули выключены) — без пустого landmark."""
+    monkeypatch.setattr(siteui, "render_to_string", lambda *a, **kw: "  \n ")
+    html = _block_html({"set": "retreat"})
+    assert "data-block-quick-links" not in html
+
+
+def test_block_works_on_other_pages_too():
+    """Блок можно поставить на любую страницу (M5 — на 404); плитки баннера главной
+    он не прячет — их прячет только блок на самой главной."""
+    keys = [k for g in site_schema.add_groups("text") for k, _lab in g["options"]]
+    assert "quick_links" in keys
+    assert siteui.banner_tiles({"site_defaults": {"hero_widget": "shop"}, "sections": []}) == "shop"
 
 
 def test_panel_offers_the_link_sets():

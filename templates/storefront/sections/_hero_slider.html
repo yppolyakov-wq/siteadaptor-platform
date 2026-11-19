@@ -21,7 +21,7 @@
     {% endfor %}
   </div>
 </section>
-{% if site.site_defaults.hero_widget and not site|has_home_block:"quick_links" %}
+{% if site|banner_tiles %}
 {% comment %}Фидбэк 2026-07-30: primary-виджет (плитки направлений/поиск) раньше
 ТЕРЯЛСЯ при слайдере (включался только в single-hero ветках) — теперь рендерится
 сразу под слайдером. Гейт: ключ hero_widget задан (presence-minimal).{% endcomment %}

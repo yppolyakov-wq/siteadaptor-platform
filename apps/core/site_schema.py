@@ -240,7 +240,8 @@ def merge_structure(
         if keep_data and kind(old) in OWNED_DATA_KINDS:
             merged["data"] = old.get("data") or {}
         if kind(old) in siteconfig.PAGE_REF_BLOCKS or kind(old) == "quick_links":
-            # FB-33 M2b: вид блока-ссылки задаёт «Seitenaufbau»; форма Студии его не несёт.
+            # FB-33 M2b/M2c: вид блока-ссылки и набор «Schnellzugriff» задаёт
+            # «Seitenaufbau»; форма Студии их не несёт.
             # ⚠️ Если Студия когда-нибудь начнёт присылать вид ref-блока — эта строка его
             # проглотит (Студия по правилу P6 структуру и вид блоков-ссылок не пишет).
             merged["data"] = old.get("data") or {}
