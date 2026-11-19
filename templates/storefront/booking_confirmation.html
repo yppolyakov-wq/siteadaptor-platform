@@ -4,7 +4,7 @@
 
 {% block content %}
 <div class="max-w-xl mx-auto">
-  {% funnel_steps "service" 3 %}
+  {% funnel_steps "service" 3 %}{% confirmation_lead %}
   <div class="sf-card bg-white rounded-2xl shadow-sm p-6 md:p-8">
     <h1 class="text-2xl font-bold mb-2">{% trans "Thank you! Your booking is in." %} 🎉</h1>
     {% comment %}Цена: у группы — итог по ВСЕМ периодам (иначе страница называла N
@@ -48,7 +48,7 @@
     {% endif %}
     {% if request.tenant.address %}<p class="text-sm text-gray-500 mt-4">{{ request.tenant.address }}</p>{% endif %}
   </div>
-  {% include "storefront/_telegram_cta.html" %}
+  {% confirmation_after %}{% include "storefront/_telegram_cta.html" %}
   {% include "storefront/_problem_cta.html" with pc_kind="booking" pc_id=booking.reference_code %}
 </div>
 {% endblock %}

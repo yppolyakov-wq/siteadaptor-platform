@@ -38958,3 +38958,6 @@ msgstr "Bestellung, Termin, Zimmer, Ticket"
 
 msgid "Was passiert jetzt"
 msgstr "Was passiert jetzt"
+
+msgid "Bestätigung"
+msgstr "Bestätigung"

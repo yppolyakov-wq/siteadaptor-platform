@@ -39017,3 +39017,6 @@ msgstr "Sipariş, randevu, oda, bilet"
 
 msgid "Was passiert jetzt"
 msgstr "Şimdi ne olacak"
+
+msgid "Bestätigung"
+msgstr "Onay"

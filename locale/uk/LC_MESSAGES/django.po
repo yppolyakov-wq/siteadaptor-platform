@@ -39199,3 +39199,6 @@ msgstr "Замовлення, запис, номер, квиток"
 
 msgid "Was passiert jetzt"
 msgstr "Що далі"
+
+msgid "Bestätigung"
+msgstr "Підтвердження"

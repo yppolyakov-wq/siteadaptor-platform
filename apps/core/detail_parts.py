@@ -30,6 +30,8 @@ SECTION_HOSTS = {
     "stay_detail": "stays",
     # FB-32 S4: корзина — один раздел «Passt gut dazu»
     "cart": "cart",
+    # FB-33 M2h: один хост на все подтверждения
+    "confirmation": "confirmation",
     # FB-32 S6a: «Über uns» (своя страница «Seite» — по префиксу хоста, `PAGE_PREFIX`)
     "info": "info",
     # FB-32 S6b
@@ -75,8 +77,12 @@ _FORM_PAGES = frozenset(
         "booking_slots",
     }
 )
-NO_KAUF_MODULES = frozenset({"cart", "info", "page", "versand", "promo", "combo"}) | _FORM_PAGES
-FIXED_ORDER_MODULES = frozenset({"info", "page", "versand", "promo", "combo"}) | _FORM_PAGES
+NO_KAUF_MODULES = (
+    frozenset({"cart", "info", "page", "versand", "promo", "combo", "confirmation"}) | _FORM_PAGES
+)
+FIXED_ORDER_MODULES = (
+    frozenset({"info", "page", "versand", "promo", "combo", "confirmation"}) | _FORM_PAGES
+)
 #: FB-32 S6f: разделы, которые одновременно строки осей (P3): хранят свой вид (`style`), а
 #: «поставлено» (`anchors.placed`) по ним не считается — старые `[offer(style), блоки]`
 #: рисуются прежней разметкой (все блоки в хвосте)
@@ -99,6 +105,9 @@ VISIBILITY_KEYS = {
         "related": "combo_show_related",
     },
 }
+#: FB-33 M2h: видимость раздела, который по умолчанию ВЫКЛЮЧЕН — ключ хранится только как True
+#: («Empfehlungen» на подтверждении, решение владельца K3)
+VISIBILITY_ON = {"confirmation": {"recommend": "confirm_show_recommend"}}
 #: разделы первого экрана (рядом с покупкой): скрыть можно, блоки рядом с ними — перед телом
 FIRST_SCREEN = {
     "product_detail": (
@@ -573,6 +582,13 @@ def _lift_flags(
             config[flag] = False
         else:
             config.pop(flag, None)
+    for key, flag in VISIBILITY_ON.get(module, {}).items():
+        if key not in present:
+            continue
+        if key in hidden:
+            config.pop(flag, None)
+        else:
+            config[flag] = True  # FB-33 M2h: включён явно (по умолчанию выключен)
     axis = AXIS_SECTIONS.get(shared_host(host), frozenset())
     rows = []
     for r in items:

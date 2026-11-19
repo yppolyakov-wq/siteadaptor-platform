@@ -39212,3 +39212,6 @@ msgstr "Заказ, запись, номер, билет"
 
 msgid "Was passiert jetzt"
 msgstr "Что дальше"
+
+msgid "Bestätigung"
+msgstr "Подтверждение"

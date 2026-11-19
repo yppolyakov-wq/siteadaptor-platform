@@ -1,8 +1,8 @@
 {% extends "storefront/_base.html" %}
-{% load i18n %}
+{% load i18n siteui %}
 {% block title %}{% trans "Reservation confirmed" %}{% endblock %}
 
-{% block content %}
+{% block content %}{% confirmation_lead %}
 <div class="sf-card bg-white rounded-2xl shadow-sm p-8 text-center">
   <div class="text-4xl mb-3">✅</div>
   <h1 class="text-2xl font-bold mb-2">{% trans "Reservation received" %}</h1>
@@ -34,5 +34,5 @@
 
   <a href="{% url 'storefront-home' %}" class="inline-block mt-6 text-indigo-600 hover:underline">{% trans "Back to offers" %}</a>
 </div>
-{% include "storefront/_problem_cta.html" with pc_kind="reservation" pc_id=reservation.reference_code %}
+{% confirmation_after %}{% include "storefront/_problem_cta.html" with pc_kind="reservation" pc_id=reservation.reference_code %}
 {% endblock %}

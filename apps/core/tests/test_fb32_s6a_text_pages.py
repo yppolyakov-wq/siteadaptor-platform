@@ -103,7 +103,12 @@ def test_every_hideable_section_of_a_fixed_page_has_a_visibility_key():
     for module in detail_parts.FIXED_ORDER_MODULES:
         for s in detail_sections.sections_for(module):
             if s.hideable:
-                assert s.key in detail_parts.VISIBILITY_KEYS.get(module, {}), (module, s.key)
+                # FB-33 M2h: или ключ раздела, выключенного по умолчанию (VISIBILITY_ON)
+                keys = {
+                    **detail_parts.VISIBILITY_KEYS.get(module, {}),
+                    **detail_parts.VISIBILITY_ON.get(module, {}),
+                }
+                assert s.key in keys, (module, s.key)
 
 
 def test_odd_seite_hosts_have_no_sections_and_text_is_never_hidden():

@@ -4,7 +4,7 @@
 
 {% block content %}
 <div class="max-w-xl mx-auto">
-  {% funnel_steps "order" 3 %}
+  {% funnel_steps "order" 3 %}{% confirmation_lead %}
   <div class="sf-card bg-white rounded-2xl shadow-sm p-6 md:p-8">
     {% if order.is_quote %}
     {% comment %}MEN-9: заказ-ЗАПРОС (кейтеринг) — благодарим за анфрагу, а не за покупку: платёжной обязанности нет, дальше владелец присылает предложение.{% endcomment %}
@@ -80,7 +80,7 @@
     {% if request.tenant.address %}<p class="text-sm text-gray-500 mt-2">{{ request.tenant.address }}</p>{% endif %}
   </div>
 
-  {% include "storefront/_telegram_cta.html" %}
+  {% confirmation_after %}{% include "storefront/_telegram_cta.html" %}
   {% include "storefront/_problem_cta.html" with pc_kind="order" pc_id=order.reference_code %}
 </div>
 {% endblock %}

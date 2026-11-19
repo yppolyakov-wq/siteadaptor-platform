@@ -1,0 +1,19 @@
+{% load i18n siteui %}
+{% comment %}FB-33 M2h: под карточкой подтверждения — свои блоки, «Was passiert jetzt» (только свой текст), «Empfehlungen» (включает владелец), хвост. Блоки — с чистым контекстом (без сделки).{% endcomment %}
+{% if cp_parts.after_summary %}{% page_blocks "confirmation" cp_parts.after_summary %}{% endif %}
+{% if cp_next %}
+<section class="sf-card mt-4 rounded-2xl bg-white p-6 shadow-sm" data-confirm-next aria-labelledby="confirm-next-h">
+  <h2 id="confirm-next-h" class="font-semibold mb-2">{% trans "Was passiert jetzt?" %}</h2>
+  <p class="text-gray-700 whitespace-pre-line">{{ cp_next }}</p>
+</section>
+{% endif %}
+{% if cp_parts.after_next %}{% page_blocks "confirmation" cp_parts.after_next %}{% endif %}
+{% if cp_recommend %}
+<section class="mt-6" data-confirm-recommend aria-labelledby="confirm-rec-h">
+  <h2 id="confirm-rec-h" class="text-lg font-semibold mb-3">{% trans "Das könnte Ihnen auch gefallen" %}</h2>
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+    {% for p in cp_recommend %}{% include "storefront/_product_card.html" %}{% endfor %}
+  </div>
+</section>
+{% endif %}
+{% if cp_parts.tail %}{% page_blocks "confirmation" cp_parts.tail %}{% endif %}

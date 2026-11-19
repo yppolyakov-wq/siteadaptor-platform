@@ -1231,6 +1231,8 @@ PAGE_BLOCK_HOSTS = (
     "passes",  # /karten/
     "booking_slots",  # /termin/<ресурс>/ и /tisch/ — выбор времени
     "combo_detail",  # /kombi/<pk>/ — FB-32 S6g-3
+    # FB-33 M2h: подтверждения (заказ, запись, номер, билет, стол) — один набор блоков
+    "confirmation",
     # FB-31 P3 R6: «Alle Angebotsgruppen» — общие блоки страниц групп акций (пока не
     # сохранены, группы показывают блоки обзора `/aktionen/`, как и раньше)
     "promo_group",
@@ -2842,6 +2844,9 @@ def detail_section_hidden(config, module: str) -> set:
     for key, flag in detail_parts.VISIBILITY_KEYS.get(module, {}).items():
         if (config or {}).get(flag) is False:
             hidden.add(key)  # FB-32 S4/S6a: видимость раздела — прежний ключ
+    for key, flag in detail_parts.VISIBILITY_ON.get(module, {}).items():
+        if (config or {}).get(flag) is not True:
+            hidden.add(key)  # FB-33 M2h: по умолчанию выключен
     # ревью S6a: раздел, который скрыть нельзя (текст страницы), не скрыт и устаревшим значением
     hidden -= {s.key for s in detail_sections.sections_for(module) if not s.hideable}
     # FB-33 M2f (LMIV): у еды «Zutaten/Allergene» не скрыт ничем (тип — текущего сайта)
@@ -4172,6 +4177,7 @@ TRANSLATABLE_KEYS = (
     "anfrage",
     "before_after",
     "page_titles",  # FB-33 M2d
+    "confirmation_next",  # FB-33 M2h
 )
 
 # Строковые поля, которые переводу НЕ подлежат: адреса, файлы, служебные коды и
@@ -5773,6 +5779,15 @@ def _normalize_impl(config) -> dict:
     for flag in ("promo_show_related", "promo_show_share", "promo_show_card"):
         if config.get(flag) is False:
             normalized[flag] = False
+    # FB-33 M2h: «Was passiert jetzt» на подтверждении — один свой текст на сайт (presence-minimal)
+    from apps.core import confirmation_page as _cp
+
+    _next = _cp.clean_next(config.get(_cp.NEXT_KEY))
+    if _next:
+        normalized[_cp.NEXT_KEY] = _next
+    # FB-33 M2h: «Empfehlungen» на подтверждении — по умолчанию выключены (хранится только True)
+    if config.get("confirm_show_recommend") is True:
+        normalized["confirm_show_recommend"] = True
     # FB-32 S6g-3: блоки под Kombi-Detail скрываются строками «Seitenaufbau»
     for flag in (
         "combo_show_reviews",

@@ -38871,3 +38871,6 @@ msgstr "Order, appointment, room, ticket"
 
 msgid "Was passiert jetzt"
 msgstr "What happens next"
+
+msgid "Bestätigung"
+msgstr "Confirmation"

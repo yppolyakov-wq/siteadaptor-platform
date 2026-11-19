@@ -116,6 +116,13 @@ DETAIL_SECTIONS: dict[str, tuple[DetailSection, ...]] = {
     # FB-33 M2h: оформление — строки корзины: позиции, форма и итог с кнопкой неподвижны и не
     # скрываются (§ 312j BGB: кнопка сразу после итога); свои блоки — над корзиной, «Hinweise»
     # над формой (после позиций), под сеткой и в хвосте
+    # FB-33 M2h: подтверждение (заказ, запись, номер, билет, стол) — карточка сделки неподвижна;
+    # «Was passiert jetzt» — только при своём тексте; «Empfehlungen» включает владелец (K3)
+    "confirmation": (
+        DetailSection("summary", _("Bestätigung"), hideable=False),
+        DetailSection("next", _("Was passiert jetzt"), hideable=False),
+        DetailSection("recommend", _("Empfehlungen")),
+    ),
     "cart": (
         DetailSection("items", _("Positionen"), hideable=False),
         DetailSection("form", _("Bestellformular"), hideable=False),

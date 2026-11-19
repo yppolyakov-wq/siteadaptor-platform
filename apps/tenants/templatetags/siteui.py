@@ -403,6 +403,17 @@ def page_blocks(context, page_key, part="after"):
     is_preview = bool(context.get("is_preview"))
     if not blocks and (before or not is_preview):
         return ""
+    if page_key == "confirmation":
+        # FB-33 M2h (ПДн): на подтверждении блоки с полями ввода не рисуются, а остальные — с
+        # ЧИСТЫМ контекстом: сделка и данные клиента вьюхи в блоки не попадают
+        from apps.core import confirmation_page
+
+        blocks = [b for b in blocks if b.get("key") not in confirmation_page.FORM_BLOCKS]
+        if not blocks and not is_preview:
+            return ""
+        clean = {"pb_rows": siteconfig.group_block_rows(blocks), "pb_page_key": page_key}
+        clean.update({"site": site, "is_preview": is_preview})
+        return mark_safe(render_to_string("storefront/_page_blocks.html", clean, request=request))
     rows = siteconfig.group_block_rows(blocks)
     ctx = {**context.flatten(), "pb_rows": rows, "pb_page_key": page_key}
     # UC2-3(b): ссылочным секциям (faq_ref/…) нужен глобальный `site` — на
@@ -1443,3 +1454,71 @@ def banner_slide(context, block):
         return {**first, "url": first.get("image", ""), "height": block.get("height", "")}
     slides = hero_slides(context, [{**block, "image": block.get("url", "")}])
     return slides[0] if slides else None
+
+
+def _confirmation_site(request):
+    """Локализованный конфиг подтверждения либо None — у сайта ничего своего на этой странице
+    (без нормализации: горячий путь, страница прежняя). Один разбор на запрос."""
+    from apps.core import confirmation_page, page_settings
+
+    cached = getattr(request, "_confirmation_site", False)
+    if cached is not False:
+        return cached
+    try:
+        raw = page_settings.raw_config(request)
+    except Exception:  # noqa: BLE001 — превью не должно ронять подтверждение
+        raw = getattr(getattr(request, "tenant", None), "site_config", None)
+    raw = raw if isinstance(raw, dict) else {}
+    blocks = raw.get("page_blocks") if isinstance(raw.get("page_blocks"), dict) else {}
+    own = (
+        bool(blocks.get(confirmation_page.HOST))
+        or bool(raw.get(confirmation_page.NEXT_KEY))
+        or raw.get(confirmation_page.RECOMMEND_FLAG) is True
+    )
+    site = siteconfig.localize(siteconfig.normalize(raw), get_language()) if own else None
+    try:
+        request._confirmation_site = site
+    except AttributeError:
+        pass
+    return site
+
+
+@register.simple_tag(takes_context=True)
+def confirmation_lead(context):
+    """FB-33 M2h: свои блоки над карточкой подтверждения (хост `confirmation`)."""
+    from apps.core import confirmation_page
+
+    request = context.get("request")
+    if request is None or getattr(request, "tenant", None) is None:
+        return ""
+    site = _confirmation_site(request)
+    part = confirmation_page.parts(site)["lead"] if site else ""
+    return page_blocks(context, "confirmation", part) if part else ""
+
+
+@register.simple_tag(takes_context=True)
+def confirmation_after(context):
+    """FB-33 M2h: под карточкой подтверждения — свои блоки, «Was passiert jetzt» (только свой
+    текст), «Empfehlungen» (только включённые владельцем), хвост. Пусто — ничего (страница
+    прежняя)."""
+    from apps.core import confirmation_page
+
+    request = context.get("request")
+    if request is None or getattr(request, "tenant", None) is None:
+        return ""
+    site = _confirmation_site(request)
+    if not site:
+        return ""
+    parts = confirmation_page.parts(site)
+    nxt = confirmation_page.clean_next(site.get(confirmation_page.NEXT_KEY))
+    rec = []
+    order = context.get("order")
+    if confirmation_page.recommend_on(site) and not getattr(order, "is_quote", False):
+        # запрос на просчёт — не покупка: рекомендаций покупки на нём нет
+        rec = confirmation_page.recommend_products(confirmation_page.deal_product_ids(context))
+    if not (nxt or rec or any(parts[k] for k in ("after_summary", "after_next", "tail"))):
+        return ""
+    # чистый контекст: только места блоков, свой текст и товары (без сделки и клиента)
+    ctx = {"cp_parts": parts, "cp_next": nxt, "cp_recommend": rec, "site": site}
+    ctx["is_preview"] = bool(context.get("is_preview"))
+    return mark_safe(render_to_string("storefront/_confirmation_after.html", ctx, request=request))
