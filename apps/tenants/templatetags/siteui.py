@@ -83,6 +83,7 @@ CBLOCK_TEMPLATES = {
     "newsletter": "storefront/sections/_block_newsletter.html",  # GK-8: подписка (DOI)
     "textpage": "storefront/sections/_block_textpage.html",  # FB-27 R6
     "contact_card": "storefront/sections/_block_contact.html",  # FB-27 R6
+    "quick_links": "storefront/sections/_block_quick_links.html",  # FB-33 M2c
 }
 
 
@@ -588,6 +589,16 @@ def has_page_block(site, spec) -> bool:
     blocks = (site.get("page_blocks") or {}).get(host, []) if isinstance(site, dict) else []
     return any(
         isinstance(b, dict) and b.get("key") == key and b.get("enabled", True) for b in blocks
+    )
+
+
+@register.filter
+def has_home_block(site, key) -> bool:
+    """FB-33 M2c: стоит ли на главной включённый блок типа `key`. Баннер рисует плитки
+    «Schnellzugriff» по-старому, только пока их не вынесли в свой блок."""
+    rows = site.get("sections") if isinstance(site, dict) else None
+    return any(
+        isinstance(r, dict) and r.get("key") == key and r.get("enabled", True) for r in rows or []
     )
 
 

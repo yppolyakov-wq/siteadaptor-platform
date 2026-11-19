@@ -239,7 +239,7 @@ def merge_structure(
         merged = {**new, "key": old.get("key")}
         if keep_data and kind(old) in OWNED_DATA_KINDS:
             merged["data"] = old.get("data") or {}
-        if kind(old) in siteconfig.PAGE_REF_BLOCKS:
+        if kind(old) in siteconfig.PAGE_REF_BLOCKS or kind(old) == "quick_links":
             # FB-33 M2b: вид блока-ссылки задаёт «Seitenaufbau»; форма Студии его не несёт.
             # ⚠️ Если Студия когда-нибудь начнёт присылать вид ref-блока — эта строка его
             # проглотит (Студия по правилу P6 структуру и вид блоков-ссылок не пишет).
@@ -1286,6 +1286,7 @@ PANEL_FIELDS = {
         ("mode", gettext_lazy("Wie viel Text"), "select"),
     ),
     "contact_card": (("style", gettext_lazy("Darstellung"), "select"),),
+    "quick_links": (("set", gettext_lazy("Welche Kacheln"), "select"),),  # FB-33 M2c
     # FB-33 M2b: блоки-ссылки на секции главной — свой вид (виды базовой секции)
     "faq_ref": (("style", gettext_lazy("Darstellung"), "select"),),
     "team_ref": (("style", gettext_lazy("Darstellung"), "select"),),
@@ -1371,6 +1372,16 @@ def fill_options(block: dict, host: str) -> None:
                 ("compact", _("Eine Zeile, ohne Karte")),
             ]
         }
+    elif key == "quick_links":
+        from apps.core.hero_tiles import QUICK_LINK_LABELS, QUICK_LINK_SETS
+
+        options = {
+            "set": [
+                ("", _("Bitte wählen")),
+                *((k, str(QUICK_LINK_LABELS[k])) for k in QUICK_LINK_SETS),
+            ]
+        }
+        block["style_only"] = True
     elif key in siteconfig.PAGE_REF_BLOCKS:
         options = {"style": _style_options(key[: -len("_ref")])}
         block["style_only"] = True  # в панели только вид — подсказка про тексты не нужна

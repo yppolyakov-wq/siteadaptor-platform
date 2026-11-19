@@ -1,0 +1,2 @@
+{% load i18n %}{# FB-33 M2c: «Schnellzugriff» — плитки-входы отдельным блоком (разметка плиток — общая с баннером) #}
+{% if block.set %}<section aria-label="{% trans 'Schnellzugriff' %}" data-block-quick-links>{% include "storefront/sections/_hero_widget.html" with hero_widget=block.set %}</section>{% endif %}

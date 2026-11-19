@@ -38788,3 +38788,15 @@ msgstr "At most %(n)s “Instantly” e-mails a day — the rest arrives the nex
 #: apps/core/views.py
 msgid "Version restored, but the page templates of this version could not be taken over — please check the page structure."
 msgstr "Version restored, but the page templates of this version could not be taken over — please check the page structure."
+
+#. FB-33 M2c
+msgid "Schnellzugriff"
+msgstr "Quick links"
+
+#. FB-33 M2c
+msgid "Kacheln mit den wichtigsten Wegen — Termin, Anruf, Anfahrt"
+msgstr "Tiles with the main ways in — appointment, call, directions"
+
+#. FB-33 M2c
+msgid "Welche Kacheln"
+msgstr "Which tiles"

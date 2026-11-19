@@ -179,6 +179,9 @@ REPEATABLE_BLOCKS = (
     # так называется фикс-секция главной).
     "textpage",
     "contact_card",
+    # FB-33 M2c: «Schnellzugriff» — плитки-входы (запись, звонок, маршрут…) отдельным
+    # блоком, а не внутри баннера (решение владельца 2026-11-19)
+    "quick_links",
 )
 #: FB-27 R6: варианты карточки контактов (пусто — карточка в две колонки).
 CONTACT_STYLES = ("split", "map_first", "compact")
@@ -555,6 +558,10 @@ def _clean_cblock_data(key: str, raw) -> dict:
         style = d.get("style")
         base = key[: -len("_ref")]
         return {"style": style} if style and style in SECTION_STYLES.get(base, ()) else {}
+    if key == "quick_links":
+        from apps.core.hero_tiles import QUICK_LINK_SETS
+
+        return {"set": d["set"]} if d.get("set") in QUICK_LINK_SETS else {}
     if key == "text":
         return {"title": _s(d.get("title")), "body": _s(d.get("body")), **_text_style(d)}
     # UC6-4: скругление фото блока — "" (стандарт rounded-2xl) | none | 3xl;
@@ -1254,6 +1261,7 @@ CBLOCK_LABELS = {
     "banner": _("Banner"),
     "textpage": _("Textseite"),
     "contact_card": _("Kontakt & Öffnungszeiten"),
+    "quick_links": _("Schnellzugriff"),
     "faq_ref": _("FAQ anzeigen"),
     "team_ref": _("Team anzeigen"),
     "gallery_ref": _("Galerie anzeigen"),

@@ -38934,3 +38934,15 @@ msgstr "Günde en fazla %(n)s „Hemen“ e-postası — gerisi ertesi gün geli
 #: apps/core/views.py
 msgid "Version restored, but the page templates of this version could not be taken over — please check the page structure."
 msgstr "Sürüm geri yüklendi, ancak bu sürümün sayfa şablonları aktarılamadı — lütfen sayfa yapısını kontrol edin."
+
+#. FB-33 M2c
+msgid "Schnellzugriff"
+msgstr "Hızlı erişim"
+
+#. FB-33 M2c
+msgid "Kacheln mit den wichtigsten Wegen — Termin, Anruf, Anfahrt"
+msgstr "En önemli yollar için kutucuklar — randevu, arama, yol tarifi"
+
+#. FB-33 M2c
+msgid "Welche Kacheln"
+msgstr "Hangi kutucuklar"

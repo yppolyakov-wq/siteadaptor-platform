@@ -39,6 +39,7 @@ class Family(NamedTuple):
 
 FAMILIES: tuple[Family, ...] = (
     Family("banner", _("Banner"), (("hero", SECTION), ("banner", CBLOCK))),
+    Family("quick_links", _("Schnellzugriff"), (("quick_links", CBLOCK),)),
     Family("trust_bar", _("Trust bar"), (("usp_bar", SECTION),)),
     Family("finder", _("Finder"), (("finder", SECTION),)),
     Family("stay_search", _("Booking search (stays)"), (("stay_search", SECTION),)),
@@ -184,6 +185,14 @@ LIBRARY: tuple[LibraryEntry, ...] = (
     # FB-27 R6: только в «+ Block» Seitenaufbau (Студия правит лишь содержимое)
     LibraryEntry("textpage", "📄", "", "quellen", studio=False),
     LibraryEntry("contact_card", "📍", "", "quellen", studio=False),
+    # FB-33 M2c: ставится в «Seitenaufbau» (Студия правит только содержимое)
+    LibraryEntry(
+        "quick_links",
+        "🧭",
+        _("Kacheln mit den wichtigsten Wegen — Termin, Anruf, Anfahrt"),
+        "inhalt",
+        studio=False,
+    ),
 )
 
 _BY_KEY = {entry.key: entry for entry in LIBRARY}

@@ -116,7 +116,19 @@ def test_studio_library_is_unchanged():
         (
             "home",
             [
-                ("inhalt", ["text", "image", "image_text", "button", "spacer", "stats", "banner"]),
+                (
+                    "inhalt",
+                    [
+                        "text",
+                        "image",
+                        "image_text",
+                        "button",
+                        "spacer",
+                        "stats",
+                        "banner",
+                        "quick_links",
+                    ],
+                ),
                 ("listen", ["promo", "list", "newsletter"]),
                 ("quellen", ["textpage", "contact_card"]),
             ],
@@ -124,7 +136,19 @@ def test_studio_library_is_unchanged():
         (
             "services",
             [
-                ("inhalt", ["text", "image", "image_text", "button", "spacer", "stats", "banner"]),
+                (
+                    "inhalt",
+                    [
+                        "text",
+                        "image",
+                        "image_text",
+                        "button",
+                        "spacer",
+                        "stats",
+                        "banner",
+                        "quick_links",
+                    ],
+                ),
                 ("listen", ["promo", "list", "newsletter"]),
                 (
                     "quellen",
@@ -153,7 +177,11 @@ def test_contact_styles_are_one_tuple():
 
 def test_library_invariants():
     assert {e.key for e in block_catalog.LIBRARY} <= set(siteconfig.CBLOCK_LABELS)
-    assert {e.key for e in block_catalog.LIBRARY if not e.studio} == {"textpage", "contact_card"}
+    assert {e.key for e in block_catalog.LIBRARY if not e.studio} == {
+        "textpage",
+        "contact_card",
+        "quick_links",
+    }
     assert all(str(e.hint) for e in block_catalog.LIBRARY if e.studio)
 
 

@@ -359,3 +359,27 @@ def tiles_for(widget: str, tenant, deal=None) -> list[dict]:
             }
         )
     return out
+
+
+# ─────────── FB-33 M2c: «Быстрые ссылки» — отдельный блок `quick_links` ───────────
+#: Наборы-ССЫЛКИ, которые может показать блок: кастомные ветки `_hero_widget.html` и
+#: генерик-наборы реестра. `stays` (форма дат) и `services` (топ услуг) — не ссылки: при
+#: переносе они становятся секцией «Suche» и списком услуг (решение владельца, план M2c).
+QUICK_LINK_SETS = ("gastro", "bakery", "butcher", "mode", *HERO_TILE_WIDGETS)
+
+#: Подпись набора в окне блока — тип бизнеса, для которого он собран (переведённые
+#: подписи `Tenant.BUSINESS_TYPES`, новых строк перевода нет).
+QUICK_LINK_LABELS = {
+    "gastro": _("Restaurant"),
+    "bakery": _("Bakery / Bäckerei"),
+    "butcher": _("Butcher / Metzgerei"),
+    "mode": _("Clothing / Bekleidung"),
+    "friseur": _("Friseur / Salon"),
+    "werkstatt": _("Werkstatt / KFZ"),
+    "handwerker": _("Handwerker"),
+    "catering": _("Catering / Partyservice"),
+    "shop": _("Online-Shop"),
+    "aktionsmarkt": _("Aktionen"),
+    "touren": _("Tours"),
+    "retreat": _("Veranstalter / Events"),
+}
