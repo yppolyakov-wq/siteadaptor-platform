@@ -322,3 +322,24 @@ M2d-2 security-reviewer, seo-specialist, a11y, silent-failure-hunter, e2e; code-
 якоря в строках (блоки после «Ähnliche» не пропадают); `recent` скрыт — нет ни блока, ни скрипта
 localStorage. LMIV: `info` не скрывается у ВСЕХ типов еды из `FOOD_BUSINESS_TYPES` (**решение
 владельца: и продуктовые магазины, grocery**); аудит командой `lmiv_info_audit` (запускает владелец).
+
+## План M2g «события, тур, акция — разделы на месте» (planner, 2026-11-19)
+Куски, которые были зашиты в страницы, становятся строками схемы, которые **скрываются на месте**
+(не двигаются; свои блоки между ними не ставятся — блок после такой строки рисуется там же, где
+блок после соседнего раздела). Реестр `detail_sections` — поле `place` у раздела; порядок, поток,
+вкладки и якоря блоков (`detail_parts.flow_keys`) их не видят — HTML по умолчанию байт-в-байт
+прежний (замок `test_fb33_m2g_before`, снимки `golden_fb33m2g`).
+- **События** (хост `event_detail`, после «Buchung»): `groups` «Groups & companies» (только при
+  модуле заявок), `more_dates` «Weitere Termine» (серия). Свой блок после них — хвост страницы.
+- **Тур** (тот же хост): `private_tour` — «Eigene Gruppe? / Privattour anfragen» внутри
+  «Termine & Preise». Список выездов — бронь, не скрывается. Скрыт — нет и кнопки «Eigene Termine
+  anfragen» в шапке; выездов нет — шапка ведёт на «Termine anfragen» (путь к бизнесу остаётся).
+- **Акция** (`promo_detail`, внутри колонки «Angebot»): `share` (WhatsApp, ссылка, QR) и `card`
+  (визитка «So finden Sie uns»). Цена и условия (PAngV) — в цельной строке `offer`. Видимость —
+  флаги `promo_show_share`/`promo_show_card` (presence-minimal, только False).
+**Решения владельца (2026-11-19):** 1) share и card — скрываются на месте, без блоков между ними;
+2) при отклике «Nur zeigen» визитка видна всегда (единственный путь к бизнесу), в остальных
+откликах скрытие действует; 3) у тура — аналог сейчас (`private_tour`); в общей схеме
+«Veranstaltungsseite» строки помечены «nur Veranstaltungen» / «nur Touren», в своей схеме события
+нет `private_tour`, у тура — нет `groups`/`more_dates`.
+ECC: django-reviewer по диффу; tdd (замки до кода); seo — `og:url`/`ld_offer` не зависят от share.
