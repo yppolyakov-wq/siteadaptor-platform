@@ -1,6 +1,6 @@
 {% extends "storefront/_base.html" %}
 {% load i18n siteui %}
-{% block title %}{% trans "Multi-visit cards" %} · {{ request.tenant.name }}{% endblock %}
+{% block title %}{% page_title "passes" as pt %}{% if pt.title %}{{ pt.seo_title }} — {{ request.tenant.name }}{% else %}{% trans "Multi-visit cards" %} · {{ request.tenant.name }}{% endif %}{% endblock %}{% block meta_description %}{% page_title "passes" as pt %}{% if pt.intro %}{{ pt.seo_desc }}{% else %}{{ block.super }}{% endif %}{% endblock %}
 
 {% block content %}
 {% page_flow "passes" as pf %}{% if pf.page_flow %}{% comment %}FB-32 S6g-1: свои блоки над содержимым — строки «Seitenaufbau».{% endcomment %}{% for it in pf.page_flow %}{% if it.part %}{% page_blocks "passes" it.part %}{% endif %}{% endfor %}{% endif %}

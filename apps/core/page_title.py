@@ -13,6 +13,8 @@
 
 from __future__ import annotations
 
+import re
+
 TITLE_REF = "__title"
 
 #: страницы со своим заголовком: списки, формы и страница акций (M2d-3)
@@ -48,7 +50,8 @@ INTRO_MAX = 400
 
 
 def _s(value, limit: int) -> str:
-    return value.strip()[:limit] if isinstance(value, str) else ""
+    """Строка без лишних пробелов и переносов (они попали бы в H1 и в <title>)."""
+    return re.sub(r"\s+", " ", value).strip()[:limit] if isinstance(value, str) else ""
 
 
 def clean_one(raw) -> dict:
@@ -81,9 +84,15 @@ def get(site, host: str) -> dict:
     """То, что рисует страница: {title, intro, center, custom} (пусто — прежний текст)."""
     titles = site.get("page_titles") if isinstance(site, dict) else None
     entry = clean_one((titles or {}).get(host))
+    from apps.core.seo_meta import DESC_MAX, TITLE_MAX, clamp
+
     return {
         "title": entry.get("title", ""),
         "intro": entry.get("intro", ""),
         "center": entry.get("align") == "center",
         "custom": bool(entry),
+        # SEO-ревью M2d: свой заголовок — и в <title>, вступление — в meta description
+        # (длины, которые показывает поисковик)
+        "seo_title": clamp(entry.get("title", ""), TITLE_MAX),
+        "seo_desc": clamp(entry.get("intro", ""), DESC_MAX),
     }

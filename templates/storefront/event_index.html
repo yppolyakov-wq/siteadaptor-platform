@@ -1,6 +1,6 @@
 {% extends "storefront/listing.html" %}
 {% load i18n siteui sellable_ui %}
-{% block title %}{% trans "Events" %} — {{ request.tenant.name }}{% endblock %}
+{% block title %}{% page_title "events" as pt %}{% if pt.title %}{{ pt.seo_title }} — {{ request.tenant.name }}{% else %}{% trans "Events" %} — {{ request.tenant.name }}{% endif %}{% endblock %}{% block meta_description %}{% page_title "events" as pt %}{% if pt.intro %}{{ pt.seo_desc }}{% else %}{{ block.super }}{% endif %}{% endblock %}
 
 {% comment %}UB1-3: листинг событий на каркасе listing.html. Разметка карточек/фасетов
 перенесена без изменений (замки — apps/events/tests/test_index_parity.py).{% endcomment %}

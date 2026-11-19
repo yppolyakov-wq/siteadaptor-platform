@@ -1,7 +1,7 @@
 {% extends "storefront/_base.html" %}
 {% load siteui %}
 {% load i18n %}
-{% block title %}{% trans "Gift voucher" %} — {{ request.tenant.name }}{% endblock %}
+{% block title %}{% page_title "gift" as pt %}{% if pt.title %}{{ pt.seo_title }} — {{ request.tenant.name }}{% else %}{% trans "Gift voucher" %} — {{ request.tenant.name }}{% endif %}{% endblock %}{% block meta_description %}{% page_title "gift" as pt %}{% if pt.intro %}{{ pt.seo_desc }}{% else %}{{ block.super }}{% endif %}{% endblock %}
 
 {% block content %}
 {% page_flow "gift" as pf %}{% if pf.page_flow %}{% comment %}FB-32 S6d: свои блоки над страницей — строки «Seitenaufbau».{% endcomment %}{% for it in pf.page_flow %}{% if it.part %}{% page_blocks "gift" it.part %}{% endif %}{% endfor %}{% endif %}

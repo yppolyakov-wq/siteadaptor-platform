@@ -4,7 +4,7 @@
 {% comment %}MT-1: листинг тур-продуктов на едином каркасе (UB1-1).
 MT-D2: при нескольких странах — секции по странам с якорь-чипами.{% endcomment %}
 
-{% block title %}{% trans "Tours" %} — {{ request.tenant.name }}{% endblock %}
+{% block title %}{% page_title "tours" as pt %}{% if pt.title %}{{ pt.seo_title }} — {{ request.tenant.name }}{% else %}{% trans "Tours" %} — {{ request.tenant.name }}{% endif %}{% endblock %}{% block meta_description %}{% page_title "tours" as pt %}{% if pt.intro %}{{ pt.seo_desc }}{% else %}{{ block.super }}{% endif %}{% endblock %}
 {% block listing_width %}max-w-5xl mx-auto{% endblock %}
 
 {% block listing_header %}

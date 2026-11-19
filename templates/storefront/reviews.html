@@ -1,5 +1,6 @@
 {% extends "storefront/listing.html" %}
-{% load i18n siteui %}
+{% load siteui %}
+{% block title %}{% page_title "reviews" as pt %}{% if pt.title %}{{ pt.seo_title }} — {{ request.tenant.name }}{% else %}{{ block.super }}{% endif %}{% endblock %}{% block meta_description %}{% page_title "reviews" as pt %}{% if pt.intro %}{{ pt.seo_desc }}{% else %}{{ block.super }}{% endif %}{% endblock %}{% load i18n siteui %}
 {% comment %}ST-8: отдельная страница отзывов — полный список (на главной остаётся
 тизер). Данные — те же отзывы о бизнесе с портала.
 STU-18d (d3): страница переведена на каркас `listing.html` (см. combos.html) —

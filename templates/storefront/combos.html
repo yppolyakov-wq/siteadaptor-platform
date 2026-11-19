@@ -5,7 +5,7 @@
 (его рисует каркас) до неё не доходил, и композицию нельзя было даже объявить.
 Разметка перенесена байт-в-байт; строка инструментов подавлена — фильтров у
 страницы нет, а пустая полоса добавила бы отступ, которого не было.{% endcomment %}
-{% block title %}{{ combos_title }} · {{ request.tenant.name }}{% endblock %}
+{% block title %}{% page_title "combos" as pt %}{% if pt.title %}{{ pt.seo_title }} — {{ request.tenant.name }}{% else %}{{ combos_title }} · {{ request.tenant.name }}{% endif %}{% endblock %}{% block meta_description %}{% page_title "combos" as pt %}{% if pt.intro %}{{ pt.seo_desc }}{% else %}{{ block.super }}{% endif %}{% endblock %}
 
 {% block listing_header %}
 {% page_title "combos" as pt %}<h1 class="text-2xl md:text-3xl font-bold mb-6{% if pt.center %} text-center{% endif %}"{% if is_preview %} data-edit="page_titles.combos.title"{% endif %}>{% if pt.title %}{{ pt.title }}{% else %}{{ combos_title }}{% endif %}</h1>{% if pt.intro %}<p class="text-gray-500 mb-6{% if pt.center %} text-center{% endif %}"{% if is_preview %} data-edit="page_titles.combos.intro"{% endif %}>{{ pt.intro }}</p>{% endif %}

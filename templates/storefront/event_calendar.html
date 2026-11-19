@@ -1,6 +1,6 @@
 {% extends "storefront/_base.html" %}
 {% load i18n siteui %}
-{% block title %}{% trans "Retreat calendar" %} — {{ request.tenant.name }}{% endblock %}
+{% block title %}{% page_title "event_calendar" as pt %}{% if pt.title %}{{ pt.seo_title }} — {{ request.tenant.name }}{% else %}{% trans "Retreat calendar" %} — {{ request.tenant.name }}{% endif %}{% endblock %}{% block meta_description %}{% page_title "event_calendar" as pt %}{% if pt.intro %}{{ pt.seo_desc }}{% else %}{{ block.super }}{% endif %}{% endblock %}
 
 {% block content %}
 {% page_flow "event_calendar" as pf %}{% if pf.page_flow %}{% comment %}FB-32 S6g-1: свои блоки над содержимым — строки «Seitenaufbau».{% endcomment %}{% for it in pf.page_flow %}{% if it.part %}{% page_blocks "event_calendar" it.part %}{% endif %}{% endfor %}{% endif %}

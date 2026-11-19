@@ -1,6 +1,6 @@
 {% extends "storefront/listing.html" %}
 {% load i18n sellable_ui siteui %}
-{% block title %}{% trans "Book a service" %} — {{ request.tenant.name }}{% endblock %}
+{% block title %}{% page_title "services" as pt %}{% if pt.title %}{{ pt.seo_title }} — {{ request.tenant.name }}{% else %}{% trans "Book a service" %} — {{ request.tenant.name }}{% endif %}{% endblock %}{% block meta_description %}{% page_title "services" as pt %}{% if pt.intro %}{{ pt.seo_desc }}{% else %}{{ block.super }}{% endif %}{% endblock %}
 
 {% block listing_header %}
 {% funnel_steps "service" 1 %}

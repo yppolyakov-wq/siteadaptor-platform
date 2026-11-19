@@ -224,3 +224,28 @@ def test_question_page_with_a_reference_has_no_intro_edit_hook():
 
     src = pathlib.Path("templates/storefront/message_contact.html").read_text(encoding="utf-8")
     assert '{% if is_preview and not ref_label %} data-edit="page_titles.message.intro"' in src
+
+
+def _title_and_desc(html):
+    import re
+
+    title = re.search(r"<title>(.*?)</title>", html, re.S).group(1).strip()
+    desc = re.search(r'<meta name="description" content="([^"]*)"', html).group(1)
+    return title, desc
+
+
+@pytest.mark.parametrize("host", sorted(PAGES))
+def test_own_title_and_intro_reach_title_tag_and_meta_description(host, monkeypatch):
+    """SEO-ревью M2d: свой заголовок — в <title> (≤60), вступление — в description (≤155)."""
+    with translation.override("de"):
+        before = _title_and_desc(_render(host, monkeypatch=monkeypatch))
+        cfg = {"page_titles": {host: {"title": "Torten nach Maß", "intro": "Wir backen " * 30}}}
+        title, desc = _title_and_desc(_render(host, cfg, monkeypatch=monkeypatch))
+    assert title.startswith("Torten nach Maß")
+    assert desc.startswith("Wir backen") and len(desc) <= 160
+    assert before[0] != title  # без своих текстов <title> прежний (иначе тест бы не отличил)
+
+
+def test_whitespace_in_own_texts_is_collapsed():
+    out = page_title.clean_one({"title": "  Torten\n\n nach   Maß ", "intro": "a\tb"})
+    assert out == {"title": "Torten nach Maß", "intro": "a b"}

@@ -1,7 +1,7 @@
 {% extends "storefront/listing.html" %}
 {% load i18n siteui %}
 {% comment %}STU-18d (d3): страница на каркасе `listing.html` (см. combos.html).{% endcomment %}
-{% block title %}{% trans "Blog" %} — {{ request.tenant.name }}{% endblock %}
+{% block title %}{% page_title "blog" as pt %}{% if pt.title %}{{ pt.seo_title }} — {{ request.tenant.name }}{% else %}{% trans "Blog" %} — {{ request.tenant.name }}{% endif %}{% endblock %}{% block meta_description %}{% page_title "blog" as pt %}{% if pt.intro %}{{ pt.seo_desc }}{% else %}{{ block.super }}{% endif %}{% endblock %}
 
 {% block listing_width %}{% text_width_class default="none" %}{% endblock %}
 

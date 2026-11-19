@@ -1,6 +1,6 @@
 {% extends base_template|default:"storefront/_base.html" %}
 {% load i18n siteui %}
-{% block title %}{% trans "Book a slot" %} — {{ request.tenant.name }}{% endblock %}
+{% block title %}{% page_title "services" as pt %}{% if pt.title %}{{ pt.seo_title }} — {{ request.tenant.name }}{% else %}{% trans "Book a slot" %} — {{ request.tenant.name }}{% endif %}{% endblock %}{% block meta_description %}{% page_title "services" as pt %}{% if pt.intro %}{{ pt.seo_desc }}{% else %}{{ block.super }}{% endif %}{% endblock %}
 
 {% block content %}
 {% comment %}Фидбэк 2026-07-28: ветка «ресурсы» (бизнес без прайс-листа услуг) была

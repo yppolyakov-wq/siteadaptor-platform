@@ -1,5 +1,6 @@
 {% extends "storefront/_base.html" %}
-{% load i18n siteui %}
+{% load siteui %}
+{% block title %}{% page_title "team" as pt %}{% if pt.title %}{{ pt.seo_title }} — {{ request.tenant.name }}{% else %}{{ block.super }}{% endif %}{% endblock %}{% block meta_description %}{% page_title "team" as pt %}{% if pt.intro %}{{ pt.seo_desc }}{% else %}{{ block.super }}{% endif %}{% endblock %}{% load i18n siteui %}
 {% comment %}ST-8: отдельная страница команды/мастеров.{% endcomment %}
 {% block content %}
 <div class="{% text_width_class default="none" %}">

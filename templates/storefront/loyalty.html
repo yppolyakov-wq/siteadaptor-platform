@@ -1,5 +1,6 @@
 {% extends "storefront/_base.html" %}
 {% load siteui %}
+{% block title %}{% page_title "loyalty" as pt %}{% if pt.title %}{{ pt.seo_title }} — {{ request.tenant.name }}{% else %}{{ block.super }}{% endif %}{% endblock %}{% block meta_description %}{% page_title "loyalty" as pt %}{% if pt.intro %}{{ pt.seo_desc }}{% else %}{{ block.super }}{% endif %}{% endblock %}{% load siteui %}
 {% load i18n %}
 {% block content %}
 {% page_flow "loyalty" as pf %}{% if pf.page_flow %}{% comment %}FB-32 S6d: свои блоки над страницей — строки «Seitenaufbau».{% endcomment %}{% for it in pf.page_flow %}{% if it.part %}{% page_blocks "loyalty" it.part %}{% endif %}{% endfor %}{% endif %}

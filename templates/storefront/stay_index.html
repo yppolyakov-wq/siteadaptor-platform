@@ -1,6 +1,6 @@
 {% extends "storefront/listing.html" %}
 {% load i18n sellable_ui siteui %}
-{% block title %}{% trans "Stay with us" %} — {{ request.tenant.name }}{% endblock %}
+{% block title %}{% page_title "stay_rooms" as pt %}{% if pt.title %}{{ pt.seo_title }} — {{ request.tenant.name }}{% else %}{% trans "Stay with us" %} — {{ request.tenant.name }}{% endif %}{% endblock %}{% block meta_description %}{% page_title "stay_rooms" as pt %}{% if pt.intro %}{{ pt.seo_desc }}{% else %}{{ block.super }}{% endif %}{% endblock %}
 
 {% comment %}UB1-3: листинг номеров на каркасе listing.html. Date-search — фасет этого
 листинга (listing_facets); карточки — единый партиал (UB1-2), недоступный результат

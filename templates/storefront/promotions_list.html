@@ -5,7 +5,7 @@
 ВНУТРИ блока намеренно: объявление блока Django собирает даже из-под условия,
 и обзор получил бы заголовок с пустым первым сегментом. Разделитель — то же
 « · », что у движка мета (SEO-1), иначе группа выбивалась бы из ряда.{% endcomment %}
-{% block title %}{% if group_label %}{{ group_label }} · {{ request.tenant.name }}{% else %}{{ block.super }}{% endif %}{% endblock %}
+{% block title %}{% if group_label %}{{ group_label }} · {{ request.tenant.name }}{% else %}{% page_title "promos" as pt %}{% if pt.title %}{{ pt.seo_title }} — {{ request.tenant.name }}{% else %}{{ block.super }}{% endif %}{% endif %}{% endblock %}{% block meta_description %}{% page_title "promos" as pt %}{% if pt.intro %}{{ pt.seo_desc }}{% else %}{{ block.super }}{% endif %}{% endblock %}
 {% comment %}SF-2: /aktionen/ на каркасе listing.html (U-B). Секции-групп
 (Prospekt-логика, фидбэк 2026-07-29) сохранены байт-в-байт — замки
 test_promotions_parity; системные чипы/сорт/поиск — PromoFacets.{% endcomment %}
