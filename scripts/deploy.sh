@@ -155,6 +155,17 @@ fi
 if ! $COMPOSE exec -T web python manage.py materialize_page_axes --residue; then
 	echo "!!! WARN: materialize_page_axes --residue could not check some sites (see lines above)."
 fi
+# FB-33 M2c (решение владельца): плитки «Schnellzugriff» из баннера главной -> отдельный блок
+# сразу после баннера (у «Bento» — скрытым), форма дат -> секция «Suche», топ услуг -> список.
+# ПОСЛЕ materialize_page_axes (оба пишут настройки главной); откат: detach_quick_links --undo
+# (раньше отката FB-31.7 — откаты идут в обратном порядке).
+if ! $COMPOSE exec -T web python manage.py detach_quick_links; then
+	echo "!!! WARN: detach_quick_links FAILED for some sites (see lines above)."
+	echo "!!! Those sites keep the tiles in the banner. Re-run: python manage.py detach_quick_links"
+fi
+if ! $COMPOSE exec -T web python manage.py detach_quick_links --residue; then
+	echo "!!! WARN: detach_quick_links --residue could not check some sites (see lines above)."
+fi
 sleep 5
 if curl -fsS "$HEALTH_URL" >/dev/null; then
 	echo "OK: readiness passed"

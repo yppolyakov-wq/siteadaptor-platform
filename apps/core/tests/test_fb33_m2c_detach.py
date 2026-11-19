@@ -1,0 +1,150 @@
+"""FB-33 M2c-2: перенос «Быстрых ссылок» из баннера в блок (`detach_quick_links`)."""
+
+import pytest
+from django.core.management import call_command
+
+from apps.core import quick_links_migration as qlm
+from apps.tenants import siteconfig
+from apps.tenants.models import SiteConfigSnapshot, Tenant
+from apps.tenants.templatetags.siteui import banner_tiles
+from apps.tenants.tests.factories import TenantFactory
+
+pytestmark = pytest.mark.django_db
+
+
+def _cfg(widget, **extra):
+    return {"site_defaults": {"hero_widget": widget, "radius": 8}, **extra}
+
+
+def _keys(cfg):
+    return [r.get("key") for r in siteconfig.normalize(cfg)["sections"]]
+
+
+def _norm(cfg):
+    return siteconfig.normalize(cfg)
+
+
+def test_link_set_becomes_a_block_right_after_the_banner():
+    new, res = qlm.detach(_cfg("friseur"))
+    assert res.changed and res.action == "block"
+    keys = _keys(new)
+    assert keys[keys.index("hero") + 1] == "quick_links"
+    block = next(r for r in _norm(new)["sections"] if r["key"] == "quick_links")
+    assert block["data"] == {"set": "friseur"} and block["enabled"]
+    assert "hero_widget" not in new["site_defaults"] and new["site_defaults"]["radius"] == 8
+    assert banner_tiles(_norm(new)) == ""
+
+
+def test_bento_gets_a_hidden_block_so_the_site_looks_the_same():
+    new, res = qlm.detach(_cfg("shop", hero_style="bento"))
+    block = next(r for r in _norm(new)["sections"] if r["key"] == "quick_links")
+    assert res.action == "block-hidden" and not block["enabled"]
+
+
+def test_date_search_becomes_the_search_section_after_the_banner():
+    new, res = qlm.detach(_cfg("stays"))
+    rows = _norm(new)["sections"]
+    keys = [r["key"] for r in rows]
+    assert res.action == "stay_search" and keys[keys.index("hero") + 1] == "stay_search"
+    assert next(r for r in rows if r["key"] == "stay_search")["enabled"]
+
+
+def test_services_section_moves_up_when_it_is_on():
+    raw = _cfg(
+        "services",
+        sections=[{"key": "hero", "enabled": True}, {"key": "services", "enabled": True}],
+    )
+    new, res = qlm.detach(_norm(raw) | {"site_defaults": raw["site_defaults"]})
+    keys = _keys(new)
+    assert res.action == "services" and keys[keys.index("hero") + 1] == "services"
+
+
+def test_services_off_becomes_a_list_of_three():
+    new, res = qlm.detach(_cfg("services"))
+    keys = _keys(new)
+    assert res.action == "services-list" and keys[keys.index("hero") + 1] == "list"
+    block = next(r for r in _norm(new)["sections"] if r["key"] == "list")
+    assert block["data"]["source"] == "services" and block["data"]["limit"] == 3
+
+
+def test_existing_block_is_not_doubled():
+    raw = _cfg("shop", sections=[{"key": "quick_links", "id": "q1", "data": {"set": "mode"}}])
+    new, res = qlm.detach(raw)
+    assert res.action == "block-exists"
+    assert [r for r in _norm(new)["sections"] if r["key"] == "quick_links"][0]["data"] == {
+        "set": "mode"
+    }
+
+
+def test_no_widget_no_change():
+    cfg = {"site_defaults": {"radius": 4}}
+    new, res = qlm.detach(cfg)
+    assert new is cfg and not res.changed
+
+
+def test_detach_is_pure():
+    cfg = _cfg("shop")
+    qlm.detach(cfg)
+    assert cfg == _cfg("shop")
+
+
+def _tenant(widget, **extra):
+    return TenantFactory(site_config=_cfg(widget, **extra))
+
+
+def test_command_moves_once_dry_run_writes_nothing_and_undo_restores():
+    tenant = _tenant("handwerker")
+    before = Tenant.objects.get(pk=tenant.pk).site_config
+    call_command("detach_quick_links", "--dry-run", "--schema", tenant.schema_name)
+    assert Tenant.objects.get(pk=tenant.pk).site_config == before
+    call_command("detach_quick_links", "--schema", tenant.schema_name)
+    after = Tenant.objects.get(pk=tenant.pk).site_config
+    assert "hero_widget" not in after["site_defaults"]
+    assert SiteConfigSnapshot.objects.filter(tenant=tenant, reason=qlm.REASON).count() == 1
+    call_command("detach_quick_links", "--schema", tenant.schema_name)  # повтор — 0 изменений
+    assert SiteConfigSnapshot.objects.filter(tenant=tenant, reason=qlm.REASON).count() == 1
+    call_command("detach_quick_links", "--undo", "--schema", tenant.schema_name)
+    assert Tenant.objects.get(pk=tenant.pk).site_config == before
+    call_command("detach_quick_links", "--schema", tenant.schema_name)  # откатил — не повторяем
+    assert Tenant.objects.get(pk=tenant.pk).site_config == before
+
+
+def test_undo_refuses_when_the_owner_changed_things():
+    tenant = _tenant("shop")
+    call_command("detach_quick_links", "--schema", tenant.schema_name)
+    t = Tenant.objects.get(pk=tenant.pk)
+    t.site_config = {**t.site_config, "hero_title": "Neu"}
+    t.save(update_fields=["site_config"])
+    assert qlm.undo_tenant(t) == "changed"
+
+
+def test_residue_counts_sites_with_the_old_key(capsys):
+    _tenant("shop")
+    call_command("detach_quick_links", "--residue")
+    assert "quick_links residue: 1" in capsys.readouterr().out
+    call_command("detach_quick_links")
+    call_command("detach_quick_links", "--residue")
+    assert "quick_links residue: 0" in capsys.readouterr().out
+
+
+def test_busy_row_is_retried_next_deploy(monkeypatch):
+    from django.db import OperationalError
+
+    from apps.core import config_migration as cm
+
+    tenant = _tenant("shop")
+
+    def boom(*a, **kw):
+        raise OperationalError("lock timeout")
+
+    monkeypatch.setattr(cm, "lock", boom)
+    assert qlm.apply_tenant(tenant).action == qlm.BUSY
+    assert "hero_widget" in Tenant.objects.get(pk=tenant.pk).site_config["site_defaults"]
+
+
+def test_deploy_runs_it_after_the_page_axes_step():
+    import pathlib
+
+    sh = pathlib.Path("scripts/deploy.sh").read_text()
+    assert sh.index("detach_quick_links") > sh.index("materialize_page_axes --residue")
+    assert "detach_quick_links --residue" in sh

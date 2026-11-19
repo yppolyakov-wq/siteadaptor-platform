@@ -20,6 +20,8 @@ import logging
 import re
 from dataclasses import dataclass, field
 
+from apps.core import config_migration as _cm
+
 logger = logging.getLogger(__name__)
 
 # FB-31.7 B3b: старые коды шаблонов (ключи `site_config` и поля объектов) больше НЕ читаются —
@@ -572,12 +574,8 @@ REASON = "fb31.7-page-axes"
 _TOUCHED = ("page_blocks", "i18n")
 
 
-def config_hash(cfg) -> str:
-    import hashlib
-    import json
-
-    raw = json.dumps(cfg or {}, sort_keys=True, default=str).encode()
-    return hashlib.sha256(raw).hexdigest()
+#: FB-33 M2c: механика записи — общая (`apps.core.config_migration`); здесь прежние имена
+config_hash = _cm.config_hash
 
 
 #: откаченный владельцем сайт — тихо, без «ПРОПУЩЕНО» на каждом деплое
@@ -585,17 +583,13 @@ ROLLED_BACK = "rolled_back"
 #: строка сайта занята дольше `LOCK_TIMEOUT` или менялась во время переноса — повтор на
 #: следующем деплое
 BUSY = "busy"
-LOCK_TIMEOUT = "2s"
+LOCK_TIMEOUT = _cm.LOCK_TIMEOUT
 _ATTEMPTS = 3
 
 
 def _lock(model, pk):
-    """Строка под блокировкой, но не дольше `LOCK_TIMEOUT` (деплой не висит на занятом сайте)."""
-    from django.db import connection
-
-    with connection.cursor() as cur:
-        cur.execute(f"SET LOCAL lock_timeout = '{LOCK_TIMEOUT}'")
-    return model.objects.select_for_update().get(pk=pk)
+    """Строка под блокировкой — `config_migration.lock` (имя здесь: тесты подменяют его)."""
+    return _cm.lock(model, pk)
 
 
 def _object_index(tenant):
@@ -612,11 +606,9 @@ def apply_tenant(tenant, *, dry_run: bool = False) -> Report:
     только сверка «настройки не менялись» (иначе — заново) и одна запись со снимком."""
     from django.db import OperationalError, transaction
 
-    from apps.tenants.models import SiteConfigSnapshot, Tenant
+    from apps.tenants.models import Tenant
 
-    if SiteConfigSnapshot.objects.filter(
-        tenant_id=tenant.pk, reason=REASON, undone_at__isnull=False
-    ).exists():
+    if _cm.rolled_back(tenant.pk, REASON):
         return Report(surfaces={"*": ROLLED_BACK})  # владелец откатил — не повторяем
 
     for _attempt in range(_ATTEMPTS):
@@ -651,70 +643,36 @@ def apply_tenant(tenant, *, dry_run: bool = False) -> Report:
 
 def _bump(schema: str) -> None:
     """Сброс кэша витрины после переноса; сбой — в лог, не сбой переноса (данные записаны)."""
-    from apps.core.pagecache import bump_storefront_cache
-
-    try:
-        bump_storefront_cache(schema)
-    except Exception:  # noqa: BLE001
-        logger.warning("materialize_page_axes: cache bump failed for %s", schema, exc_info=True)
+    _cm.bump(schema, label="materialize_page_axes")
 
 
 def _write(tenant, before: dict, new: dict, objects=None) -> str | None:
     """Под блокировкой (внутри транзакции): настройки не менялись — записать и снять снимок,
-    вернуть схему; менялись — None (перенос считается заново)."""
-    from apps.tenants.models import SiteConfigSnapshot, Tenant
+    вернуть схему; менялись — None (перенос считается заново).
 
-    locked = _lock(Tenant, tenant.pk)
-    if config_hash(locked.site_config or {}) != config_hash(before):
-        return None
-    # ревью 2b (M1): категории и акции (свои коды, удаления) не менялись с расчёта переноса —
-    # иначе строки записали бы устаревший вид, а повтор счёл бы их намеренными
-    if objects is not None and _object_index(tenant) != objects:
-        return None
-    locked.site_config = new
-    locked.save(update_fields=["site_config"])
-    # хэш — после записи и чтения из базы (JSONB): откат сравнивает то же самое
-    locked.refresh_from_db(fields=["site_config"])
-    SiteConfigSnapshot.objects.create(
-        tenant=locked,
+    Ревью 2b (M1): категории и акции (свои коды, удаления) не менялись с расчёта переноса —
+    иначе строки записали бы устаревший вид, а повтор счёл бы их намеренными. `_lock` и
+    `_object_index` — через позднее связывание (тесты подменяют их в этом модуле)."""
+    guard = (lambda: _object_index(tenant) == objects) if objects is not None else None
+    return _cm.write_with_snapshot(
+        tenant.pk,
+        before,
+        new,
         reason=REASON,
         # меняются только `page_blocks` и `i18n` — их и храним (снимок не раздувается)
-        before={k: before.get(k) for k in _TOUCHED},
-        after_hash=config_hash(locked.site_config or {}),
+        touched=_TOUCHED,
+        lock_row=lambda model, pk: _lock(model, pk),
+        guard=guard,
     )
-    return locked.schema_name
 
 
 def undo_tenant(tenant) -> str:
     """Откат последнего переноса: "undone" | "none" (нечего) | "changed" (настройки с тех пор
     меняли — не трогаем, решает владелец)."""
-    from django.db import transaction
-    from django.utils import timezone
-
-    from apps.tenants.models import SiteConfigSnapshot, Tenant
-
-    with transaction.atomic():
-        locked = _lock(Tenant, tenant.pk)
-        snap = (
-            SiteConfigSnapshot.objects.select_for_update()
-            .filter(tenant=locked, reason=REASON, undone_at__isnull=True)
-            .order_by("-created_at", "-id")
-            .first()
-        )
-        if snap is None:
-            return "none"
-        if config_hash(locked.site_config or {}) != snap.after_hash:
-            return "changed"
-        restored = dict(locked.site_config or {})
-        for key in _TOUCHED:
-            old = (snap.before or {}).get(key)
-            if old is None:
-                restored.pop(key, None)
-            else:
-                restored[key] = old
-        locked.site_config = restored
-        locked.save(update_fields=["site_config"])
-        snap.undone_at = timezone.now()
-        snap.save(update_fields=["undone_at"])
-        transaction.on_commit(lambda s=locked.schema_name: _bump(s))
-    return "undone"
+    return _cm.undo(
+        tenant.pk,
+        reason=REASON,
+        touched=_TOUCHED,
+        label="materialize_page_axes",
+        lock_row=lambda model, pk: _lock(model, pk),
+    )
