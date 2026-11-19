@@ -382,3 +382,51 @@ a11y — M2h-1/3; e2e 1440/390 — M2h-1/5.
 - «Passt dazu» и «Empfehlungen» (`apps/catalog/upsell.py`): только товары, которые можно положить
   в корзину — активные (как витринные листинги), без «nur auf Anfrage» (как наборы и быстрое
   «в корзину»; у корзины-сметы — с ними) и без распроданных.
+
+## План M3 «окно блока» (planner + architect, 2026-11-19) + решения владельца
+**Решения владельца (2026-11-19):** 1) «Fertig» закрывает окно; «Abbrechen» возвращает блок к
+состоянию на момент открытия (снимок в черновике); «Speichern/Verwerfen» страницы остаются.
+2) Окно по центру 760 px на компьютере, на весь экран на 390; ширина и ряд — секция «Platz» внизу
+«Wie anordnen»; Vorschau в окне — последним срезом (M3-7). 3) «Von einer Seite ↔ Eigener Text» —
+разрешить, оба источника помнятся (как фото M2e), рендер — только активный. 4) Макеты M0-7…M0-12
+утверждены (канвас, v27): баннер «Was» + «Wo zeigen»; «Platz»; виды Team/Galerie картинками;
+закреплённый блок 🔒 (только Texte/Felder; подпись «Zahlungspflichtig bestellen» не правится —
+§ 312j); вкладка «Seite» у ★-строки; FAQ на детальной с выбором «Fragen nur für <объект> /
+Allgemeine FAQ». 5) Свои вопросы FAQ — у всех четырёх: услуга и событие на готовых полях
+(`Service.faq`/`faq_i18n`, `details["faq"]`), товар и номер — аддитивные миграции `faq`/`faq_i18n`
+по образцу `normalize_service_faq` (срез M2b-2b, database-reviewer).
+
+**Модель (architect).** `apps/core/block_window.py` — только раскладка: вкладки Was · Wie anordnen ·
+Karte · Texte · Seite · Felder получают готовые ЧАСТИ контекста панели (`blocks_for`, вьюха
+`site_schema_view`), имён полей и второго списка полей в реестре нет (истина полей — прежняя:
+`PANEL_FIELDS`, `row_settings`, `_catalog_view_panel`/`_part_view_panel`, `width_choices`,
+`usp_panel`, `_banner_choice`, `block_catalog.switch_options`). Форма — неделимая часть: она
+целиком в одной вкладке (иначе `panel_present` стёр бы поля скрытой вкладки). 🔒 — флаг строки.
+- Abbrechen (M3-1b): `draft["window"] = {ref: прообраз}` (≤3, по ref; пишется на первой
+  операции после открытия; Fertig/Speichern/Verwerfen снимают); прообраз — строка, индекс,
+  `settings` строки, `title`/`next`, FAQ; операция `revert` в `aufbau_draft.op` тем же писателем
+  (`mutate`/`title_op`/`setting_op` → `_settle`); `window` вне `_saved_state`; `_settle` не
+  удаляет черновик, пока есть `window`; замок «открыть → править → Abbrechen = черновик
+  байт-в-байт, включая его отсутствие».
+- `<dialog>` (M3-2): `id="schema-panel"`, `data-schema-panel`, `aria-labelledby` — на внутренней
+  обёртке (подмена `replaceWith` в `aufbau.js` закрыла бы модальное окно); без JS — тот же блок
+  с вкладками-ссылками `?tab=`; шторку кабинета закрыть перед `showModal`; все вкладки в DOM,
+  неактивные `hidden`.
+- FAQ (M3-5b): один модуль `apps/core/faq_content.py` (clean/put по индексу) — пишут Студия и
+  commit черновика; `faq` в `_saved_state`; в окне «gilt für alle Seiten». Выбор источника —
+  `data.source` строки `faq_ref`; запись вопросов объекта — `_commit_object` под блокировкой и
+  `view_perms`.
+- «Von einer Seite ↔ Eigener Text» — `switch` внутри семьи; `_clean_cblock_data` хранит
+  неактивные поля; `merge_structure` помнит `page`/`mode` (грабля M2e); витрина, SEO,
+  `text_facts`, поиск — только активный источник.
+
+**Срезы:** M3-0 замки (матрица «блок × хост → части панели и операции»; каждая непустая часть —
+ровно в одной вкладке, обход ключей контекста; открыть/закрыть без правки — черновик тот же;
+формы панели байт-в-байт) → M3-1 реестр + разбор панели на `_block_window.html` (без JS вкладки
+`?tab=`) → M3-1b Fertig/Abbrechen/снимок → M3-2 `<dialog>` (aria-modal, Esc/×, фокус назад, APG
+tabs, 390 на весь экран, 44 px) → M2b-2a (общие FAQ на детальной, рендер) → M3-3 Wie anordnen →
+M3-4 Karte → M3-5a Texte → M3-5b FAQ-вопросы и плашки Schnellzugriff → M2b-2b свои вопросы FAQ
+объекта → M3-6 Seite / Wo zeigen / Platz → M3-7 Vorschau → M3-9 стенд; M3-8 (схема M0-0) — в M5.
+**ECC-прогоны:** a11y-architect (M3-2/3/5), e2e-runner 1440/390 (M3-2…M3-9), tdd-guide и
+django-reviewer — каждый срез, silent-failure-hunter (M3-1b, M2b-2b), database-reviewer (миграции
+FAQ товара и номера), code-reviewer перед FF, doc-updater в конце.
