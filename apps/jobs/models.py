@@ -18,6 +18,7 @@ from django.utils.translation import gettext_lazy as _
 from apps.core import payment_methods
 from apps.core.models import I18nMixin, TimestampedModel
 from apps.promotions.models import Customer
+from apps.secrets.fields import EncryptedJSONField
 
 
 class Job(I18nMixin, TimestampedModel):
@@ -83,6 +84,9 @@ class Job(I18nMixin, TimestampedModel):
         (FULFILLMENT_DELIVERY, _("Delivery")),
     ]
     fulfillment = models.CharField(max_length=10, choices=FULFILLMENTS, blank=True)
+    # FB-33 M2i-2: ответы на свои вопросы формы — снимок {id: {label, value}} (подпись на
+    # момент ответа); ПДн клиента — зашифровано, стирается по DSGVO вместе со сделкой
+    custom_answers = EncryptedJSONField(default=dict, blank=True)
     status = models.CharField(max_length=20, choices=STATUSES, default=STATUS_NEW)
     source_channel = models.CharField(max_length=50, blank=True)
     # Публичная Angebot-страница: клиент принимает/отклоняет смету онлайн (F3).

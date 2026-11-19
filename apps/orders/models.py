@@ -18,6 +18,7 @@ from django.utils.translation import gettext_lazy as _
 from apps.core import payment_methods
 from apps.core.models import I18nMixin, TimestampedModel
 from apps.promotions.models import Customer
+from apps.secrets.fields import EncryptedJSONField
 
 
 class Order(TimestampedModel):
@@ -72,6 +73,9 @@ class Order(TimestampedModel):
     # Желаемое время самовывоза (свободный выбор клиента); слоты/календарь — D3.
     pickup_slot = models.DateTimeField(null=True, blank=True)
     note = models.TextField(blank=True)
+    # FB-33 M2i-2: ответы на свои вопросы оформления (M2i-4) — снимок {id: {label, value}};
+    # ПДн клиента — зашифровано, стирается по DSGVO
+    custom_answers = EncryptedJSONField(default=dict, blank=True)
     # T2a: номер стола для QR-заказа со стола (Dine-in). Пусто = самовывоз/доставка.
     table_number = models.CharField(max_length=20, blank=True)
     # Точка самовывоза (снимок, если у бизнеса их несколько). Пусто = единственный пункт.
