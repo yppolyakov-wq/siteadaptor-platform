@@ -27,6 +27,10 @@ CBLOCK = "cblock"  # повторяемый блок любой страницы
 REF = "ref"  # ссылочный блок страниц (контент общий с главной)
 
 
+# Подписи семей, `family_of`, `can_switch` и `VIEW_SWITCHES` — для библиотеки и окна блока
+# (M2e/M3); в M2a их держат замки.
+
+
 class Family(NamedTuple):
     key: str
     label: object
@@ -218,11 +222,3 @@ def studio_block_types() -> list[dict]:
             card["page_only"] = True
         out.append(card)
     return out
-
-
-def add_group_keys() -> dict[str, tuple[str, ...]]:
-    """Группа меню «+ Block» → её ключи в порядке библиотеки."""
-    return {
-        group: tuple(entry.key for entry in LIBRARY if entry.group == group)
-        for group, _label in ADD_GROUPS
-    }
