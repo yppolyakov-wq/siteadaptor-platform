@@ -364,3 +364,21 @@ ECC: django-reviewer по диффу; tdd (замки до кода); seo — `o
 «Passt dazu» корзины.
 ECC: django-reviewer и tdd каждый срез; security (ПДн, превью) — M2h-2/5; silent-failure — M2h-2/4;
 a11y — M2h-1/3; e2e 1440/390 — M2h-1/5.
+
+## План M2h-5 «Bestätigung» в Seitenaufbau (2026-11-19)
+- Тип страницы `confirmation` «Bestätigung» (`studio_pages.PAGE_TYPES`, хост `confirmation`), своя
+  группа «Nach dem Kauf» в выборе страниц; предлагается, если включён хоть один модуль сделок
+  (orders, booking, stays, events, promotions).
+- Превью — `/bestaetigung/vorschau/` (`storefront-bestaetigung-vorschau`): только члену команды с
+  правом сайта (`page_settings._may_preview`), остальным 404; карточка — синтетический пример
+  без БД (ни одного запроса к заказам, записям, номерам, билетам, резервам — замок), `noindex`.
+  Черновик «Seitenaufbau» видно как у прочих страниц (`?preview=1&aufbau=confirmation`).
+- Строки: «Bestätigung» (`summary`, неподвижна), «Was passiert jetzt» (`next`, неподвижна; поле
+  текста в панели — черновик `next`, как «Seitentitel»; пусто — ключа нет), «Empfehlungen»
+  (`recommend`, глаз строки = включение; хранится только `True`). Свои блоки — над карточкой,
+  под ней, после «Was passiert jetzt», в хвосте.
+- «+ Block» этого типа без блоков с формами (`confirmation_page.FORM_BLOCKS`); добавить их нельзя
+  и прямым запросом (`mutate` сверяет с `add_options`).
+- «Passt dazu» и «Empfehlungen» (`apps/catalog/upsell.py`): только товары, которые можно положить
+  в корзину — активные (как витринные листинги), без «nur auf Anfrage» (как наборы и быстрое
+  «в корзину»; у корзины-сметы — с ними) и без распроданных.

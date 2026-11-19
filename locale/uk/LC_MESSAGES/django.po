@@ -39202,3 +39202,21 @@ msgstr "Що далі"
 
 msgid "Bestätigung"
 msgstr "Підтвердження"
+
+msgid "Leer lassen — der Abschnitt erscheint nicht."
+msgstr "Залиште порожнім — розділ не з'явиться."
+
+msgid "Nach dem Kauf"
+msgstr "Після покупки"
+
+msgid "Nur sichtbar mit eigenem Text"
+msgstr "Видно лише з власним текстом"
+
+msgid "Beispielbestellung"
+msgstr "Приклад замовлення"
+
+msgid "Beispielartikel"
+msgstr "Приклад товару"
+
+msgid "Beispiel — so sieht die Bestätigung aus"
+msgstr "Приклад — так виглядає підтвердження"

@@ -74,7 +74,11 @@ TYPE_MODULES: dict[str, str | None] = {
     "gallery": None,
     "contact": None,
     "legal": None,
+    "confirmation": None,  # FB-33 M2h-5: модули сделок — `_storefront_shows`
 }
+
+#: FB-33 M2h-5: модули, у которых есть страница подтверждения сделки
+DEAL_MODULES = ("orders", "booking", "stays", "events", "promotions")
 
 #: Every page type of the registry (19d). The lock
 #: `test_every_supported_setting_has_a_spec` keeps the specs complete for them.
@@ -510,6 +514,8 @@ def _storefront_shows(tenant, type_code: str) -> bool:
 
         if storefront_profile.is_aktionen(tenant):
             return False
+    if type_code == "confirmation":
+        return any(tenant.is_module_active(m) for m in DEAL_MODULES)
     if type_code == "finder":
         from apps.core import finder
 

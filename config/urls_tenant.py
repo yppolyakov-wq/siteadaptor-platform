@@ -17,6 +17,7 @@ from apps.community import views as community_views
 from apps.core import (
     assistant_views,
     banner_views,
+    confirmation_views,
     content_page_views,
     extras_pages,
     health,
@@ -977,6 +978,12 @@ urlpatterns = [
     path("coupon/<str:code>/qr.svg", public_views.coupon_qr, name="storefront-coupon-qr"),
     path("p/<uuid:pk>/qr.svg", public_views.promotion_qr, name="storefront-promotion-qr"),
     path("r/<str:code>/", public_views.reservation_confirmation, name="storefront-confirmation"),
+    # FB-33 M2h-5: превью подтверждения для «Seitenaufbau» (пример без сделки, только команде)
+    path(
+        "bestaetigung/vorschau/",
+        confirmation_views.confirmation_preview,
+        name="storefront-bestaetigung-vorschau",
+    ),
     path("r/<str:code>/qr.svg", public_views.reservation_qr, name="storefront-reservation-qr"),
     path("v/<str:code>/qr.svg", public_views.voucher_qr, name="storefront-voucher-qr"),
     path("c/<uuid:token>/qr.svg", public_views.loyalty_card_qr, name="storefront-loyalty-qr"),

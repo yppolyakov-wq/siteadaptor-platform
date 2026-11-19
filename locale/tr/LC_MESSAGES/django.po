@@ -39020,3 +39020,21 @@ msgstr "Şimdi ne olacak"
 
 msgid "Bestätigung"
 msgstr "Onay"
+
+msgid "Leer lassen — der Abschnitt erscheint nicht."
+msgstr "Boş bırakın — bölüm görünmez."
+
+msgid "Nach dem Kauf"
+msgstr "Satın almadan sonra"
+
+msgid "Nur sichtbar mit eigenem Text"
+msgstr "Yalnızca kendi metninizle görünür"
+
+msgid "Beispielbestellung"
+msgstr "Örnek sipariş"
+
+msgid "Beispielartikel"
+msgstr "Örnek ürün"
+
+msgid "Beispiel — so sieht die Bestätigung aus"
+msgstr "Örnek — onay sayfası böyle görünür"

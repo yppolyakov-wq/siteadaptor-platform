@@ -928,7 +928,10 @@ def cart_view(request):
 
         in_cart_ids = {r["product"].pk for r in rows}
         limit = _up_lay.get("max", siteconfig.RELATED_MAX_DEFAULT) if _up_lay else 4
-        ctx["upsell"] = upsell_products(in_cart_ids, limit)  # FB-33 M2h: одна точка истины
+        # FB-33 M2h: одна точка истины; у корзины-сметы и «nur auf Anfrage» уместен (MEN-9)
+        ctx["upsell"] = upsell_products(
+            in_cart_ids, limit, with_requests=_quote_cart(request.tenant)
+        )
         if _up_lay:
             mode = siteconfig.related_mode(_up_lay)
             ctx["upsell_strip"] = mode == "auto" and len(ctx["upsell"]) > int(

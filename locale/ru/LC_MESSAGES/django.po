@@ -39215,3 +39215,21 @@ msgstr "Что дальше"
 
 msgid "Bestätigung"
 msgstr "Подтверждение"
+
+msgid "Leer lassen — der Abschnitt erscheint nicht."
+msgstr "Оставьте пустым — раздел не появится."
+
+msgid "Nach dem Kauf"
+msgstr "После покупки"
+
+msgid "Nur sichtbar mit eigenem Text"
+msgstr "Видно только со своим текстом"
+
+msgid "Beispielbestellung"
+msgstr "Пример заказа"
+
+msgid "Beispielartikel"
+msgstr "Пример товара"
+
+msgid "Beispiel — so sieht die Bestätigung aus"
+msgstr "Пример — так выглядит подтверждение"

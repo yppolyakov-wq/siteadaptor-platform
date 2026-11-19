@@ -1178,6 +1178,8 @@ def blocks_for(
                 len(out),
             )
         out.insert(at, title_row(config, host))
+    if host == _CONFIRM_HOST:
+        _confirm_next_row(config, out)
     if _dp.object_kind(host or ""):
         out = _with_shared_rows(config, host, out)
     if summaries and host in ("catalog", "category") and not _has_combos():
@@ -1284,6 +1286,8 @@ _TYPE_GROUPS = (
     ("anfragen", gettext_lazy("Anfragen"), "jobs", ("anfrage",)),
     # FB-31 P3 R6: страницы акций своей группой — обзор, «Alle Angebotsgruppen», акция
     ("aktionen", gettext_lazy("Aktionen"), "promotions", ("promos", PROMO_GROUP, "promo")),
+    # FB-33 M2h-5: подтверждение всех сделок — одной страницей
+    ("nachkauf", gettext_lazy("Nach dem Kauf"), None, ("confirmation",)),
 )
 _CONTENT_GROUP = gettext_lazy("Inhalte")
 #: FB-30.16 R5: общая страница категорий в выборе страниц
@@ -1384,6 +1388,45 @@ def title_row(config: dict, host: str) -> dict:
              "value": entry.get("align", "")},
         ],
     }  # fmt: skip
+
+
+#: FB-33 M2h-5: «Was passiert jetzt» подтверждения — свой текст правится на строке раздела
+_CONFIRM_HOST = "confirmation"
+NEXT_REF = "next"
+
+
+def _confirm_next_row(config: dict, out: list[dict]) -> None:
+    """Поле текста у строки «Was passiert jetzt» (без своего текста раздела на странице нет)."""
+    from apps.core import confirmation_page
+
+    text = confirmation_page.clean_next(config.get(confirmation_page.NEXT_KEY))
+    for b in out:
+        if b["key"] == NEXT_REF and not b["cblock"]:
+            b["summary"] = text[:80] if text else str(_("Nur sichtbar mit eigenem Text"))
+            b["fields"] = [
+                {"name": "text", "label": str(_("Was passiert jetzt")), "kind": "area",
+                 "value": text,
+                 "hint": str(_("Leer lassen — der Abschnitt erscheint nicht."))},
+            ]  # fmt: skip
+
+
+def next_op(host: str, draft: dict, op: str, fields: dict | None) -> str:
+    """Правка «Was passiert jetzt» в черновике: только текст (`update`); двигать и скрывать —
+    нет (строка неподвижна). Пустой текст — раздела нет (ключ не хранится)."""
+    from apps.core import confirmation_page
+
+    if host != _CONFIRM_HOST:
+        raise SchemaError("block")
+    if op != "update" or fields is None:
+        raise SchemaError("fixed")
+    if "text" in fields:
+        draft["next"] = confirmation_page.clean_next(str(fields["text"]))
+    return NEXT_REF
+
+
+def is_next_edit(host: str, ref: str, op: str) -> bool:
+    """Правка текста «Was passiert jetzt», а не строки схемы."""
+    return host == _CONFIRM_HOST and ref == NEXT_REF and op == "update"
 
 
 def _family_label(key: str) -> str:
@@ -1822,6 +1865,11 @@ def add_options(code: str) -> list[tuple[str, str]]:
     keys = list(siteconfig.REPEATABLE_BLOCKS)
     if code != "home":
         keys += list(siteconfig.PAGE_REF_BLOCKS)
+    if code == "confirmation":
+        # FB-33 M2h-5: на подтверждении блоков с формами нет (данные сделки рядом)
+        from apps.core.confirmation_page import FORM_BLOCKS
+
+        keys = [k for k in keys if k not in FORM_BLOCKS]
     # FB-33 M2e: подпись с семьёй («Text · Foto + Text»)
     return [(k, block_catalog.menu_label(k)) for k in keys]
 
@@ -3522,6 +3570,16 @@ def apply(
         draft = {"title": (config.get("page_titles") or {}).get(host) or {}}
         title_op(host, draft, op, fields)
         aufbau_draft._put_title(config, host, draft["title"])
+        locked.site_config = siteconfig.normalize(config)
+        locked.save(update_fields=["site_config", "updated_at"])
+        tenant.site_config = locked.site_config
+        return ref
+    if is_next_edit(host, ref, op):
+        from apps.core import aufbau_draft, confirmation_page
+
+        draft = {"next": confirmation_page.clean_next(config.get(confirmation_page.NEXT_KEY))}
+        next_op(host, draft, op, fields)
+        aufbau_draft._put_next(config, draft["next"])
         locked.site_config = siteconfig.normalize(config)
         locked.save(update_fields=["site_config", "updated_at"])
         tenant.site_config = locked.site_config

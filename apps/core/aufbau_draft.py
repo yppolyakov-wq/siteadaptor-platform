@@ -39,8 +39,11 @@ def _saved_state(config: dict, home: bool, host: str) -> dict:
         # FB-33 M2d: «Seitentitel» — часть страницы в черновике (правка в другом месте —
         # конфликт, возврат к сохранённому — черновика нет)
         state["title"] = page_title.clean_one((config.get("page_titles") or {}).get(host))
-    from apps.core import detail_parts
+    from apps.core import confirmation_page, detail_parts
 
+    if host == confirmation_page.HOST:
+        # FB-33 M2h-5: «Was passiert jetzt» — часть страницы в черновике (как «Seitentitel»)
+        state["next"] = confirmation_page.clean_next(config.get(confirmation_page.NEXT_KEY))
     if detail_parts.object_kind(host):
         # R8: разделы объекта живут в нём самом — их правка в другом месте (вкладка
         # карточки, другая вкладка браузера) тоже конфликт черновика
@@ -68,6 +71,8 @@ def _base_fingerprint(saved: dict, config: dict, draft: dict) -> str:
     if "title" not in draft:
         # FB-33 M2d (ревью): черновик, начатый до «Seitentitel», — отпечаток без него
         saved = {k: v for k, v in saved.items() if k != "title"}
+    if "next" not in draft:  # FB-33 M2h-5: то же у «Was passiert jetzt»
+        saved = {k: v for k, v in saved.items() if k != "next"}
     return _fingerprint(saved)
 
 
@@ -178,6 +183,8 @@ def overlay(config: dict, draft: dict) -> dict:
             out["about_contact"] = False
     if "title" in draft:
         _put_title(out, host, draft["title"])
+    if "next" in draft:
+        _put_next(out, draft["next"])
     return _apply_settings(out, draft)
 
 
@@ -195,6 +202,17 @@ def _put_title(config: dict, host: str, title) -> None:
         config["page_titles"] = titles
     else:
         config.pop("page_titles", None)
+
+
+def _put_next(config: dict, text) -> None:
+    """FB-33 M2h-5: «Was passiert jetzt» подтверждения (пусто — ключа нет)."""
+    from apps.core import confirmation_page
+
+    value = confirmation_page.clean_next(text)
+    if value:
+        config[confirmation_page.NEXT_KEY] = value
+    else:
+        config.pop(confirmation_page.NEXT_KEY, None)
 
 
 #: поля вида строки/★, каждое изменение которых — правка черновика
@@ -248,6 +266,8 @@ def changes(saved: dict, draft: dict) -> int:
     # FB-33 M2d: «Seitentitel» — одно изменение
     if "title" in draft and draft["title"] != saved.get("title", {}):
         count += 1
+    if "next" in draft and draft["next"] != saved.get("next", ""):
+        count += 1  # FB-33 M2h-5
     # FB-27 R4: настройки типа страницы — по одному изменению на настройку.
     count += len(_settings(draft))
     return count
@@ -312,6 +332,9 @@ def op(
     elif ref == site_schema.TITLE_REF:
         # FB-33 M2d: «Seitentitel» — не строка `page_blocks`: тексты и вид — в черновике
         ref = site_schema.title_op(host, draft, op_name, fields)
+    elif site_schema.is_next_edit(host, ref, op_name):
+        # FB-33 M2h-5: текст «Was passiert jetzt» — в черновике, строка остаётся на месте
+        ref = site_schema.next_op(host, draft, op_name, fields)
     else:
         ref = site_schema.mutate(
             draft["items"],
@@ -329,6 +352,8 @@ def op(
 def _settle(request, code: str, draft: dict, saved: dict, ref: str = "") -> str:
     if "title" not in draft:  # черновик до «Seitentitel» (ревью M2d) — сравнение без него
         saved = {k: v for k, v in saved.items() if k != "title"}
+    if "next" not in draft:
+        saved = {k: v for k, v in saved.items() if k != "next"}
     current = {k: draft.get(k) for k in saved}
     # Вернулись к сохранённому (скрыл и снова показал) — черновика нет.
     clean = _fingerprint(current) == _fingerprint(saved) == draft.get("base") and not _settings(
@@ -441,6 +466,8 @@ def commit(request, tenant, code: str, *, force: bool = False) -> bool:
     _commit_object(config, host, draft["items"], getattr(request, "user", None))
     if "title" in draft:
         _put_title(config, host, draft["title"])
+    if "next" in draft:
+        _put_next(config, draft["next"])
     if host == "info" and "contact" in draft and not _has_section_rows(draft):
         # FB-32 S6a: черновик, начатый до строк разделов, — карточка контактов как раньше
         if draft["contact"]:

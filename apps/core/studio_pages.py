@@ -729,6 +729,15 @@ PAGE_TYPES: tuple[PageType, ...] = (
         (),
         block_host="combo_detail",
     ),
+    # FB-33 M2h-5: подтверждение заказа, записи, номера, билета и стола — один тип (решение
+    # владельца); превью — синтетический пример без сделки (`storefront-bestaetigung-vorschau`)
+    PageType(
+        "confirmation",
+        _("Bestätigung"),
+        ("storefront-bestaetigung-vorschau",),
+        (),
+        block_host="confirmation",
+    ),
     PageType(
         "lookbook",
         _("Lookbook"),

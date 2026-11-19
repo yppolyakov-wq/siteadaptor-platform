@@ -38961,3 +38961,21 @@ msgstr "Was passiert jetzt"
 
 msgid "Bestätigung"
 msgstr "Bestätigung"
+
+msgid "Leer lassen — der Abschnitt erscheint nicht."
+msgstr "Leer lassen — der Abschnitt erscheint nicht."
+
+msgid "Nach dem Kauf"
+msgstr "Nach dem Kauf"
+
+msgid "Nur sichtbar mit eigenem Text"
+msgstr "Nur sichtbar mit eigenem Text"
+
+msgid "Beispielbestellung"
+msgstr "Beispielbestellung"
+
+msgid "Beispielartikel"
+msgstr "Beispielartikel"
+
+msgid "Beispiel — so sieht die Bestätigung aus"
+msgstr "Beispiel — so sieht die Bestätigung aus"

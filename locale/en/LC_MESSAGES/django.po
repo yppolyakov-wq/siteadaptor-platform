@@ -38874,3 +38874,21 @@ msgstr "What happens next"
 
 msgid "Bestätigung"
 msgstr "Confirmation"
+
+msgid "Leer lassen — der Abschnitt erscheint nicht."
+msgstr "Leave empty — the section will not appear."
+
+msgid "Nach dem Kauf"
+msgstr "After the purchase"
+
+msgid "Nur sichtbar mit eigenem Text"
+msgstr "Only shown with your own text"
+
+msgid "Beispielbestellung"
+msgstr "Sample order"
+
+msgid "Beispielartikel"
+msgstr "Sample item"
+
+msgid "Beispiel — so sieht die Bestätigung aus"
+msgstr "Example — this is how the confirmation looks"
