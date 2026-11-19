@@ -10,6 +10,9 @@ import pytest
 from apps.core import compositions, page_axes_migration
 from apps.core.tests import test_fb31p4_listing_golden as g4
 
+# FB-31.7 B3b: модуль проверяет отрисовку по старым кодам шаблонов (до B4) — см. conftest
+LEGACY_CODES = True
+
 CODES = g4.CODES
 
 

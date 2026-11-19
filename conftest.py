@@ -51,3 +51,17 @@ def _no_hidden_schema_creation():
     finally:
         Tenant.create_schema = original
         factories.SCHEMALESS.clear()
+
+
+@pytest.fixture(autouse=True)
+def _legacy_template_codes(request):
+    """FB-31.7 B3b: витрина не читает старые коды шаблонов. Модули, которые проверяют отрисовку
+    ПО СТАРЫМ КОДАМ (характеризация шаблонов до B4), объявляют `LEGACY_CODES = True` и видят их
+    так же, как при откате `PAGE_LEGACY_READ=1`. B4 удаляет коды и переписывает эти модули."""
+    if not getattr(request.module, "LEGACY_CODES", False):
+        yield
+        return
+    from apps.core.page_axes_migration import legacy_view
+
+    with legacy_view(True):
+        yield

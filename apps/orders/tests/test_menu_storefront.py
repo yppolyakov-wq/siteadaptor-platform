@@ -20,6 +20,9 @@ from apps.orders.models import Order
 from apps.reviews.links import grant
 from apps.tenants.tests.factories import TenantFactory
 
+# FB-31.7 B3b: модуль проверяет отрисовку по старым кодам шаблонов (до B4) — см. conftest
+LEGACY_CODES = True
+
 pytestmark = pytest.mark.django_db
 
 

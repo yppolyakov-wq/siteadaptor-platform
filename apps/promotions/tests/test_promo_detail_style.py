@@ -17,6 +17,9 @@ from django.test import RequestFactory
 from apps.promotions import public_views
 from apps.promotions.tests.factories import PromotionFactory
 
+# FB-31.7 B3b: модуль проверяет отрисовку по старым кодам шаблонов (до B4) — см. conftest
+LEGACY_CODES = True
+
 pytestmark = pytest.mark.django_db
 
 

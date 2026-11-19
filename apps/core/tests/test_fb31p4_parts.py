@@ -5,6 +5,9 @@ import pytest
 from apps.core import compositions, listing_parts
 from apps.core import page_parts as pp
 
+# FB-31.7 B3b: модуль проверяет отрисовку по старым кодам шаблонов (до B4) — см. conftest
+LEGACY_CODES = True
+
 
 @pytest.mark.parametrize("surface", sorted(compositions.LISTING_SURFACES))
 def test_every_code_reads_back_or_falls_to_standard_like_today(surface):

@@ -311,3 +311,16 @@ root_page_style`; `promotions/public_views.py:1622-1646` (инлайн-копи�
 `silent-failure-hunter` (B3a `--history`/`restore_version`/`--residue`; B3b), `database-reviewer`
 (снимки B3a, B4), `code-reviewer` перед мержем каждой ветки, `doc-updater` после B3b. Гейт:
 `ruff format --check .`, `test_template_comments`, `i18n_quickcheck`, `apps/tenants`, `test_fb31*`.
+
+**B3b сделан (2026-11-19).** Старые коды шаблонов (ключи `page_styles`, `catalog_page_style`,
+`promo_page_style`, `site_defaults.*_style`, `promo_groups[*].style`, поля `Category/Promotion.page_style`)
+витрина и кабинет больше не читают — вид держат строки «Seitenaufbau». Единый переключатель
+`page_axes_migration.legacy_reads()` (настройка `PAGE_LEGACY_READ`, по умолчанию выкл.); все читатели —
+через `read_old()` / `is_objects_blind()`. Перенос, сверка и `--residue` видят коды всегда
+(`with_legacy`). `--undo` после B3b отказывает с подсказкой. Закрепление своих шаблонов категорий
+при записи «Alle Kategorien» — только при откате на коды. **Откат без деплоя:** `PAGE_LEGACY_READ=1` в
+`.env.prod` и перезапуск web/worker. Тесты-характеризации шаблонов по кодам (30 модулей) объявляют
+`LEGACY_CODES = True` (conftest) — B4 переписывает их на строки при удалении кодов. Замок B3b —
+`test_fb317_b3b_no_legacy.py` (коды не читаются; откат настройкой; 4 демо-кита отрисовываются
+одинаково с кодами и без).
+

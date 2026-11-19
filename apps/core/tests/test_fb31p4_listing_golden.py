@@ -16,6 +16,9 @@ import pytest
 
 from apps.core import compositions, listing_composition
 
+# FB-31.7 B3b: модуль проверяет отрисовку по старым кодам шаблонов (до B4) — см. conftest
+LEGACY_CODES = True
+
 GOLDEN = Path(__file__).parent / "golden_fb31p4" / "contexts.json"
 UPDATE = os.environ.get("FB31P4_GOLDEN") == "update"
 

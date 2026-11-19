@@ -8,6 +8,9 @@ from apps.catalog.category_styles import page_style
 from apps.core import page_axes_migration as pam
 from apps.tenants import siteconfig
 
+# FB-31.7 B3b: модуль проверяет отрисовку по старым кодам шаблонов (до B4) — см. conftest
+LEGACY_CODES = True
+
 
 def _cat(slug="tee", style=""):
     return SimpleNamespace(slug=slug, page_style=style)
@@ -33,7 +36,8 @@ def test_own_rows_win_over_own_code_and_parent_tabs_follow_rows():
 def test_objects_blind_hides_own_codes_only_inside_the_block():
     cat = _cat(style="tabs")
     with pam.objects_blind():
-        assert page_style(cat, "kopfbild") == "kopfbild"
+        # B3b: «вид без кодов» не читает ни своего кода, ни дефолта сайта — только строки
+        assert page_style(cat, "kopfbild") == ""
     assert page_style(cat, "kopfbild") == "tabs"
 
 

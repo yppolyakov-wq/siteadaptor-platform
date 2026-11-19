@@ -8,6 +8,9 @@ from apps.promotions import promo_parts
 from apps.promotions.tests.test_fb31p3_promo_golden import _check, _overview, _seed
 from apps.tenants import siteconfig
 
+# FB-31.7 B3b: модуль проверяет отрисовку по старым кодам шаблонов (до B4) — см. conftest
+LEGACY_CODES = True
+
 pytestmark = pytest.mark.django_db
 TEXT = {"key": "text", "id": "t-grp", "data": {"title": "Nur Gruppen", "body": "x"}}
 OVERVIEW = {"key": "text", "id": "t-promo", "data": {"title": "Hinweis", "body": "Gilt solange"}}

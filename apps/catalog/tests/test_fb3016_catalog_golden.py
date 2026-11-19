@@ -24,6 +24,9 @@ from apps.core import compositions
 from apps.promotions import public_views
 from apps.tenants.tests.factories import TenantFactory
 
+# FB-31.7 B3b: модуль проверяет отрисовку по старым кодам шаблонов (до B4) — см. conftest
+LEGACY_CODES = True
+
 pytestmark = pytest.mark.django_db
 GOLDEN = Path(__file__).parent / "golden_fb3016"
 UPDATE = os.environ.get("FB3016_GOLDEN") == "update"

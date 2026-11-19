@@ -18,6 +18,9 @@ from apps.core import compositions
 from apps.core import studio_pages as sp
 from apps.tenants import siteconfig
 
+# FB-31.7 B3b: модуль проверяет отрисовку по старым кодам шаблонов (до B4) — см. conftest
+LEGACY_CODES = True
+
 pytestmark = pytest.mark.django_db
 
 

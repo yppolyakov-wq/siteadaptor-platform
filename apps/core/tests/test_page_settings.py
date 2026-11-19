@@ -15,6 +15,9 @@ from apps.catalog.models import Category
 from apps.core import page_settings, studio_pages
 from apps.tenants.tests.factories import TenantFactory
 
+# FB-31.7 B3b: модуль проверяет отрисовку по старым кодам шаблонов (до B4) — см. conftest
+LEGACY_CODES = True
+
 pytestmark = pytest.mark.django_db
 
 
