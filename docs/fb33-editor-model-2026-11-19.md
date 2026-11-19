@@ -276,3 +276,12 @@ M2f; security M2h–i; silent-failure M2f, M2h–i; database M2i; code-reviewer 
   database-reviewer + silent-failure-hunter M2c-2, silent-failure M2c-3, e2e-runner, code-reviewer.
 - Отложено: M2b-2 — вид FAQ внутри страниц услуги и события (другая структура вопросов и ось
   разделов `AXIS_SECTIONS`) — отдельным срезом после M2c.
+**architect по config_migration (2026-11-19):** выносить в `apps/core/config_migration.py` только
+механику записи: `config_hash` (алиас в `pam`), `lock`, `bump(schema, label)`,
+`write_with_snapshot(..., guard=)`, `undo`, `rolled_back`, `apply_with_lock(tenant, compute, ...)` →
+статус. `Report`, `REASON`, `_TOUCHED`, `legacy_reads` — остаются в `page_axes_migration`;
+`apply_tenant`/`undo_tenant` — тонкие обёртки с прежними сигнатурами, передают `lock=lambda: _lock(...)`
+и `guard=` через позднее связывание (тесты FB-31.7 подменяют `pam._lock`/`_object_index` — байт-в-байт).
+Снимок — `tenants.SiteConfigSnapshot` (поле `reason`, индекс есть), миграции нет. В `deploy.sh`
+`detach_quick_links` — ПОСЛЕ `materialize_page_axes`; откаты LIFO (FB-31.7 `--undo` после detach →
+`changed`) — прописать в подсказке `--undo`. M2c-0 (характеризация) сделан.
