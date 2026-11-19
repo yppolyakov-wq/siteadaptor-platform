@@ -77,3 +77,44 @@ def test_block_between_related_and_recent_has_its_own_place():
     assert parts["wide"] == "ids:w1"
     a = detail_parts.anchors(rows, "product_detail", list(keys))
     assert a["tail"] == ["t1"]
+
+
+def test_own_blocks_of_one_product_after_related_have_a_place():
+    """Ревью M2f HIGH: свои блоки товара со своей схемой после «Ähnliche» не пропадают."""
+    keys = siteconfig.PRODUCT_DETAIL_SECTION_KEYS
+    own = {"host": "product:x", "lead": [], "after": {"related": ["o1"]}, "tail": []}
+    parts = detail_parts.fixed_parts([], "product_detail", own)
+    assert parts["wide_own"] == "ids:o1"
+    assert "related" in keys
+
+
+def test_stay_tail_is_unchanged():
+    """Ревью M2f: смена хвоста — только у товара; у номера хвост — после последнего раздела реестра."""
+    from apps.core import detail_sections
+
+    keys = list(detail_sections.section_keys("stays"))
+    rows = [{"key": k} for k in keys[:-1]] + [{"key": "text", "id": "s1"}]
+    a = detail_parts.anchors(rows, "stay_detail", keys)
+    assert a["tail"] == []  # блок после предпоследнего раздела — не хвост (как было)
+
+
+def test_shared_hidden_reader_respects_lmiv(monkeypatch):
+    from django.db import connection
+
+    from apps.tenants.tests.factories import TenantFactory
+
+    cfg = {"product_detail": {"hidden": ["info", "reviews"]}}
+    monkeypatch.setattr(
+        connection, "tenant", TenantFactory.build(business_type="bakery"), raising=False
+    )
+    assert siteconfig.detail_section_hidden(cfg, "catalog") == {"reviews"}
+    monkeypatch.setattr(
+        connection, "tenant", TenantFactory.build(business_type="clothing"), raising=False
+    )
+    assert siteconfig.detail_section_hidden(cfg, "catalog") == {"info", "reviews"}
+
+
+def test_audit_sees_the_saved_hiding_even_inside_the_food_schema():
+    from apps.catalog.management.commands import lmiv_info_audit
+
+    assert lmiv_info_audit.site_hides_info({"product_detail": {"hidden": ["info"]}})

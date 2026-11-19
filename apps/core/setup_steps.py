@@ -888,7 +888,12 @@ def _post_detail(request):
         cfg["site_defaults"] = {**(cfg.get("site_defaults") or {}), **preset["defaults"]}
     key = siteconfig.detail_section_config_key(module)
     nd = siteconfig.normalize_detail_sections(cfg.get(key), module)
-    hideable = [s.key for s in detail_sections.sections_for(module) if s.hideable]
+    from apps.core import detail_parts
+
+    locked = detail_parts.food_locked(module, tenant.business_type)  # FB-33 M2f: LMIV
+    hideable = [
+        s.key for s in detail_sections.sections_for(module) if s.hideable and s.key not in locked
+    ]
     nd["hidden"] = sorted(k for k in hideable if not request.POST.get(f"ds_{k}"))
     cfg[key] = nd
     tenant.site_config = siteconfig.normalize(cfg)
@@ -896,7 +901,7 @@ def _post_detail(request):
 
 
 def _ctx_detail(request):
-    from apps.core import detail_sections
+    from apps.core import detail_parts, detail_sections
     from apps.tenants import siteconfig
 
     tenant = request.tenant
@@ -919,7 +924,7 @@ def _ctx_detail(request):
         "detail_sections": [
             {"key": s.key, "label": s.label, "on": s.key not in hidden}
             for s in (detail_sections.sections_for(module) if module else ())
-            if s.hideable
+            if s.hideable and s.key not in detail_parts.food_locked(module, tenant.business_type)
         ],
         "preview_url": _detail_preview_url(tenant),
     }

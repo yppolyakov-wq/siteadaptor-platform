@@ -2844,6 +2844,8 @@ def detail_section_hidden(config, module: str) -> set:
             hidden.add(key)  # FB-32 S4/S6a: видимость раздела — прежний ключ
     # ревью S6a: раздел, который скрыть нельзя (текст страницы), не скрыт и устаревшим значением
     hidden -= {s.key for s in detail_sections.sections_for(module) if not s.hideable}
+    # FB-33 M2f (LMIV): у еды «Zutaten/Allergene» не скрыт ничем (тип — текущего сайта)
+    hidden -= detail_parts.food_locked(module, None)
     return hidden
 
 

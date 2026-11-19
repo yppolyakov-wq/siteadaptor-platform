@@ -227,7 +227,7 @@
 (не в сессии: cache-сессия на КАЖДЫЙ анонимный просмотр — Redis-ключ на каждого бота — и
 лишняя кука на витрине против UX-принципа владельца); JS дотягивает карточки фрагментом
 /sortiment/zuletzt/ и раскрывает блок только при непустом ответе.{% endcomment %}
-{% if detail_block_parts.wide %}{% page_blocks "product_detail" part=detail_block_parts.wide %}{% endif %}{% if 'recent' not in product_detail_hidden %}<div class="mt-12" data-recent-strip data-current="{{ product.pk }}" data-url="{% url 'storefront-products-recent' %}" hidden>
+{% if detail_block_parts.wide %}{% page_blocks "product_detail" part=detail_block_parts.wide %}{% endif %}{% if detail_block_parts.wide_own %}{% page_blocks detail_block_parts.own_host part=detail_block_parts.wide_own %}{% endif %}{% if 'recent' not in product_detail_hidden %}<div class="mt-12" data-recent-strip data-current="{{ product.pk }}" data-url="{% url 'storefront-products-recent' %}" hidden>
   <h2 class="text-xl font-bold mb-4">{% trans "Zuletzt angesehen" %}</h2>
   <div class="flex gap-4 overflow-x-auto pb-2" data-recent-items data-sf-slider></div>
 </div>

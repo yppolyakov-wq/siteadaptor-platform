@@ -224,7 +224,7 @@ def anchors(rows, host: str, order: list[str] | None = None) -> dict:
     # FB-33 M2f: у постоянного порядка — после последнего раздела, который ЕСТЬ в строках
     # (строки, сохранённые до нового раздела в конце, держат хвост там же)
     tail_key = (
-        last if shared_host(host or "") in FIXED_ORDER and last else (order[-1] if order else last)
+        last if shared_host(host or "") in WIDE_LAST and last else (order[-1] if order else last)
     )
     out["tail"] = out["after"].pop(tail_key, []) if tail_key else []
     return out
@@ -575,6 +575,8 @@ def fixed_parts(rows, host: str, own: dict | None = None) -> dict:
         lead, mid = _fixed(own, host)
         out["lead_own"] = ids_part(lead) if lead else ""
         out["mid_own"] = ids_part(mid) if mid else ""
+        wide = _wide(own, host)  # FB-33 M2f (ревью): свои блоки объекта после «Ähnliche»
+        out["wide_own"] = ids_part(wide) if wide else ""
         out["own_host"] = own["host"]
     return out
 

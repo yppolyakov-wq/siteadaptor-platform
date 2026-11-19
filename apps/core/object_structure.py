@@ -117,11 +117,13 @@ def clean(raw, module: str) -> dict:
 
 def effective_hidden(config, module: str, obj) -> set:
     """Скрытые разделы страницы объекта: общие, минус показанные у него, плюс его скрытые."""
+    from apps.core import detail_parts
     from apps.tenants import siteconfig
 
     own = clean(_state(config, obj), module)
     shared = siteconfig.detail_section_hidden(config, module)
-    return (shared - set(own.get("shown", []))) | set(own.get("hidden", []))
+    hidden = (shared - set(own.get("shown", []))) | set(own.get("hidden", []))
+    return hidden - detail_parts.food_locked(module, None)  # FB-33 M2f: LMIV у еды
 
 
 def effective_layout(config, kind: str, obj) -> str:

@@ -21,19 +21,23 @@ logger = logging.getLogger(__name__)
 
 
 def site_hides_info(config) -> bool:
+    """СОХРАНЁННОЕ скрытие (без замка LMIV — аудит ищет именно то, что замок отменит)."""
     from apps.tenants import siteconfig
 
-    return "info" in siteconfig.detail_section_hidden(config or {}, "catalog")
+    key = siteconfig.detail_section_config_key("catalog")
+    raw = siteconfig.normalize_detail_sections((config or {}).get(key), "catalog")
+    return "info" in raw.get("hidden", [])
 
 
 def products_hiding_info(config) -> int:
-    """Товары, у которых своя структура скрывает `info` (при общем показе)."""
+    """Товары, у которых своя структура скрывает `info` (сохранённое, без замка LMIV)."""
     from apps.catalog.models import Product
     from apps.core import object_structure
 
     count = 0
     for product in Product.objects.exclude(page_override={}).only("pk", "page_override"):
-        if "info" in object_structure.effective_hidden(config or {}, "catalog", product):
+        own = object_structure.clean(object_structure._state(config or {}, product), "catalog")
+        if "info" in own.get("hidden", []):
             count += 1
     return count
 
@@ -57,8 +61,10 @@ class Command(BaseCommand):
         for tenant in tenants.order_by("schema_name").only("schema_name", "site_config"):
             try:
                 site = site_hides_info(tenant.site_config)
-                with schema_context(tenant.schema_name):
-                    own = products_hiding_info(tenant.site_config)
+                own = 0
+                if not site:  # весь сайт скрыл — товары сверх него не считаем (без двойного счёта)
+                    with schema_context(tenant.schema_name):
+                        own = products_hiding_info(tenant.site_config)
             except Exception as exc:  # noqa: BLE001 — один сайт не останавливает аудит
                 logger.exception("lmiv_info_audit: %s", tenant.schema_name)
                 failed.append(tenant.schema_name)
