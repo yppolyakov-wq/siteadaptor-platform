@@ -56,23 +56,23 @@ def _move_after_hero(rows: list, key: str, *, enable: bool) -> None:
     rows.insert(_after_hero(rows), row)
 
 
-def drop_after_hero(config: dict) -> None:
-    """Сборка «без плиток» (`hero_widget: "none"`) снимает блок, стоящий СРАЗУ после
-    баннера (его ставит сборка/перенос); блок, который владелец поставил сам ниже, не трогает.
-    Меняет `config` на месте."""
+def drop_auto_blocks(config: dict) -> None:
+    """Сборка «без плиток» или сборка без оси плиток снимает АВТОблоки (постоянные id
+    `QUICK_LINKS_ID`/`SERVICES_LIST_ID` ставят только перенос и писатели); блоки, которые
+    владелец поставил сам (свои id), не трогаются. Меняет `config` на месте."""
     rows = config.get("sections")
     if not isinstance(rows, list):
         return
-    at = _after_hero(rows)
-    if at < len(rows) and isinstance(rows[at], dict) and rows[at].get("key") == "quick_links":
-        rows.pop(at)
+    auto = {QUICK_LINKS_ID, SERVICES_LIST_ID}
+    rows[:] = [r for r in rows if not (isinstance(r, dict) and r.get("id") in auto)]
 
 
 def detach(config: dict, *, replace: bool = False) -> tuple[dict, Result]:
     """Новые настройки и что сделано. Чистая функция: `config` не меняется.
 
-    `replace` — для писателей (сборки, шаблоны, киты): блок сразу после баннера получает
-    набор новой сборки. Перенос (`replace=False`) блок владельца не трогает."""
+    `replace` — для писателей (сборки, шаблоны, киты): уже стоящий блок получает набор
+    новой сборки (место и видимость не трогаются). Перенос (`replace=False`) блок
+    владельца не трогает вовсе."""
     from apps.core.hero_tiles import QUICK_LINK_SETS
 
     defaults = config.get("site_defaults") if isinstance(config.get("site_defaults"), dict) else {}
@@ -92,13 +92,16 @@ def detach(config: dict, *, replace: bool = False) -> tuple[dict, Result]:
     new["sections"] = rows
     bento = new.get("hero_style") == "bento"  # у bento плиток не было — вид не меняем
     if widget in QUICK_LINK_SETS:
-        has_block = any(isinstance(r, dict) and r.get("key") == "quick_links" for r in rows)
-        nxt = rows[_after_hero(rows)] if _after_hero(rows) < len(rows) else {}
-        if replace and isinstance(nxt, dict) and nxt.get("key") == "quick_links":
-            nxt["data"] = {"set": widget}
-            nxt["enabled"] = not bento
+        existing = next(
+            (r for r in rows if isinstance(r, dict) and r.get("key") == "quick_links"), None
+        )
+        if existing is not None and replace:
+            # писатель (сборка, шаблон, кит) задаёт набор: меняется только НАБОР уже
+            # стоящего блока — место и «показан/скрыт» остаются владельцу (ревью M2c-3)
+            data = existing.get("data") if isinstance(existing.get("data"), dict) else {}
+            existing["data"] = {**data, "set": widget}
             action = "block-updated"
-        elif has_block:
+        elif existing is not None:
             action = "block-exists"
         else:
             block = {
@@ -119,6 +122,8 @@ def detach(config: dict, *, replace: bool = False) -> tuple[dict, Result]:
         if services is not None and services.get("enabled"):
             _move_after_hero(rows, "services", enable=True)
             action = "services"
+        elif any(isinstance(r, dict) and r.get("id") == SERVICES_LIST_ID for r in rows):
+            action = "services-list-exists"  # уже поставлен прежним применением — без дубля
         else:
             block = {
                 "key": "list",

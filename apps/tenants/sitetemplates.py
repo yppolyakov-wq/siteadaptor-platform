@@ -1082,7 +1082,8 @@ def _apply(
     if family is None and tpl_sd:
         config["site_defaults"] = {**(config.get("site_defaults") or {}), **tpl_sd}
 
-    config = _detach_tiles(config)
+    if not skin_only:  # кожа (Look) раскладку не трогает — плитки переносит шаг деплоя
+        config = _detach_tiles(config)
     tenant.site_config = siteconfig.normalize(config)
     update_fields = ["site_config", "updated_at"]
     # Акцентный цвет → Tenant.primary_color (его читает витрина для hero).
@@ -1094,10 +1095,15 @@ def _apply(
 
 def _detach_tiles(config: dict) -> dict:
     """FB-33 M2c-3: плитки первого экрана шаблона/сборки — блоком «Schnellzugriff» сразу
-    после баннера, а не ключом `hero_widget` (тот же перенос, что шаг деплоя)."""
+    после баннера, а не ключом `hero_widget` (тот же перенос, что шаг деплоя). Только для
+    композиции (шаблон, сборка с перестройкой главной); кожа раскладку не трогает."""
+    import logging
+
     from apps.core.quick_links_migration import detach
 
-    new, _result = detach(config, replace=True)
+    new, result = detach(config, replace=True)
+    if result.action.startswith("skip:"):
+        logging.getLogger(__name__).warning("sitetemplates: tiles not moved (%s)", result.action)
     return new
 
 
@@ -1984,7 +1990,8 @@ def apply_preview_bundle(cfg, key):
     cfg = dict(cfg)
     cfg["sections"] = [dict(r) for r in cfg["sections"]]
     _apply_bundle_axes(cfg, bundle["config"])
-    return cfg
+    # FB-33 M2c-3: превью = применение — плитки сборки блоком под баннером
+    return siteconfig.normalize(_detach_tiles(cfg))
 
 
 #: Sections that sell something, and the module that fills them. A bundle whose
@@ -2101,7 +2108,14 @@ def apply_bundle(tenant, key, *, rebuild_home: bool = True) -> bool:
     _apply_bundle_axes(config, over)
     # DL-8a: запомнить выбранную сборку (бейдж «Aktiv» страницы Design).
     config["design"] = {"look": bundle["look"], "bundle": key}
-    config = _detach_tiles(config)
+    if rebuild_home and not bundle["config"].get("hero_widget"):
+        # сборка = композиция целиком: без оси плиток автоблоки прежней сборки снимаются
+        # (раньше это делал сброс ключа `hero_widget`)
+        from apps.core.quick_links_migration import drop_auto_blocks
+
+        drop_auto_blocks(config)
+    if rebuild_home:  # без перестройки главной — только вид; плитки переносит шаг деплоя
+        config = _detach_tiles(config)
     tenant.site_config = siteconfig.normalize(config)
     tenant.save(update_fields=["site_config", "updated_at"])
     return True
@@ -2145,10 +2159,10 @@ def _apply_bundle_axes(config: dict, over: dict) -> None:
         sd["hero_widget"] = "" if over["hero_widget"] == "none" else over["hero_widget"]
         config["site_defaults"] = sd
         if over["hero_widget"] == "none":
-            # FB-33 M2c: плитки — свой блок; «без плиток» снимает блок сразу после баннера
-            from apps.core.quick_links_migration import drop_after_hero
+            # FB-33 M2c: плитки — свой блок; «без плиток» снимает автоблоки (свои — нет)
+            from apps.core.quick_links_migration import drop_auto_blocks
 
-            drop_after_hero(config)
+            drop_auto_blocks(config)
     # DS-9: шапка одной строкой — и легаси-ключ nav, и дерево меню S7 (шапку
     # рисует menus.top.style; без него Fokus оставался бы двухэтажным).
     if over.get("nav_style"):

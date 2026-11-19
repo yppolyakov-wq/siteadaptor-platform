@@ -229,3 +229,56 @@ def test_race_with_the_cabinet_retries_then_reports_busy(monkeypatch):
     tenant = _tenant("shop")
     monkeypatch.setattr(cm, "write_with_snapshot", lambda *a, **kw: None)  # всегда «менялись»
     assert qlm.apply_tenant(tenant).action == qlm.BUSY
+
+
+# ───────── ревью M2c-3: писатели и блок владельца ─────────
+
+
+def test_writer_changes_only_the_set_of_the_owners_block():
+    """Блок владельца (свой id, скрыт, стоит ниже) — сборка меняет только набор."""
+    own = {"key": "quick_links", "id": "mine", "enabled": False, "data": {"set": "mode"}}
+    raw = _cfg("shop", sections=[{"key": "hero"}, {"key": "products"}, own])
+    new, res = qlm.detach(raw, replace=True)
+    rows = [r for r in new["sections"] if r.get("key") == "quick_links"]
+    assert res.action == "block-updated" and len(rows) == 1
+    assert rows[0]["id"] == "mine" and rows[0]["enabled"] is False
+    assert rows[0]["data"] == {"set": "shop"}
+
+
+def test_none_drops_only_auto_blocks():
+    own = {"key": "quick_links", "id": "mine", "data": {"set": "mode"}}
+    auto = {"key": "quick_links", "id": qlm.QUICK_LINKS_ID, "data": {"set": "shop"}}
+    svc = {"key": "list", "id": qlm.SERVICES_LIST_ID, "data": {"source": "services"}}
+    cfg = {"sections": [{"key": "hero"}, auto, svc, own]}
+    qlm.drop_auto_blocks(cfg)
+    assert [r.get("id") for r in cfg["sections"]] == [None, "mine"]
+
+
+def test_services_list_is_not_doubled_on_reapply():
+    once, _r = qlm.detach(_cfg("services"))
+    again, res = qlm.detach({**once, "site_defaults": {"hero_widget": "services"}}, replace=True)
+    ids = [r.get("id") for r in again["sections"] if r.get("id") == qlm.SERVICES_LIST_ID]
+    assert ids == [qlm.SERVICES_LIST_ID] and res.action == "services-list-exists"
+
+
+def test_bundle_without_tiles_drops_the_old_auto_block():
+    """Шаблон «gastro» ставит автоблок плиток; сборка «без плиток» его снимает."""
+    from apps.tenants import sitetemplates
+
+    tenant = TenantFactory(business_type="restaurant")
+    assert sitetemplates.apply_template(tenant, "gastro")
+    tenant.refresh_from_db()
+    assert any(r.get("id") == qlm.QUICK_LINKS_ID for r in tenant.site_config["sections"])
+    assert sitetemplates.get_bundle("fokus_gastro")["config"]["hero_widget"] == "none"
+    assert sitetemplates.apply_bundle(tenant, "fokus_gastro")
+    tenant.refresh_from_db()
+    assert not any(r.get("id") == qlm.QUICK_LINKS_ID for r in tenant.site_config["sections"])
+
+
+def test_preview_of_a_bundle_matches_applying_it():
+    from apps.tenants import sitetemplates
+
+    cfg = sitetemplates.apply_preview_bundle(siteconfig.normalize({}), "fokus_hotel")
+    assert not cfg["site_defaults"].get("hero_widget")
+    keys = [r["key"] for r in cfg["sections"]]
+    assert keys[keys.index("hero") + 1] == "stay_search"
