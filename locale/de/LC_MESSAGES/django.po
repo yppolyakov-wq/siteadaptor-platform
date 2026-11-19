@@ -38887,3 +38887,7 @@ msgstr "Kacheln mit den wichtigsten Wegen — Termin, Anruf, Anfahrt"
 #. FB-33 M2c
 msgid "Welche Kacheln"
 msgstr "Welche Kacheln"
+
+#. FB-33 M2d
+msgid "Seitentitel"
+msgstr "Seitentitel"

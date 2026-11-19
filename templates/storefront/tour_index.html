@@ -8,7 +8,7 @@ MT-D2: при нескольких странах — секции по стра
 {% block listing_width %}max-w-5xl mx-auto{% endblock %}
 
 {% block listing_header %}
-  <h1 class="text-2xl font-semibold mb-4">{% trans "Tours" %}</h1>
+  {% page_title "tours" as pt %}<h1 class="text-2xl font-semibold mb-4{% if pt.center %} text-center{% endif %}"{% if is_preview %} data-edit="page_titles.tours.title"{% endif %}>{% if pt.title %}{{ pt.title }}{% else %}{% trans "Tours" %}{% endif %}</h1>{% if pt.intro %}<p class="text-gray-500 mb-6{% if pt.center %} text-center{% endif %}"{% if is_preview %} data-edit="page_titles.tours.intro"{% endif %}>{{ pt.intro }}</p>{% endif %}
   {% if grouped %}
     <nav class="mb-6 flex flex-wrap gap-2" aria-label="{% trans "Countries" %}">
       {% for g in country_groups %}

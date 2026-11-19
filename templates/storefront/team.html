@@ -4,8 +4,8 @@
 {% block content %}
 <div class="{% text_width_class default="none" %}">
 <div class="mb-6">
-  <h1 class="text-2xl md:text-3xl font-bold">{% trans "Unser Team" %}</h1>
-  <p class="text-gray-500 mt-1">{% trans "Die Menschen, die Sie bei uns betreuen." %}</p>
+  {% page_title "team" as pt %}<h1 class="text-2xl md:text-3xl font-bold{% if pt.center %} text-center{% endif %}"{% if is_preview %} data-edit="page_titles.team.title"{% endif %}>{% if pt.title %}{{ pt.title }}{% else %}{% trans "Unser Team" %}{% endif %}</h1>
+  <p class="text-gray-500 mt-1{% if pt.center %} text-center{% endif %}"{% if is_preview %} data-edit="page_titles.team.intro"{% endif %}>{% if pt.intro %}{{ pt.intro }}{% else %}{% trans "Die Menschen, die Sie bei uns betreuen." %}{% endif %}</p>
 </div>
 {% page_blocks "team" part="before" %}
 {% comment %}FB-31 P4 R8: ★ страницы — цель перетаскивания блока на канве (как у листингов).{% endcomment %}

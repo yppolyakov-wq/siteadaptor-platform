@@ -38946,3 +38946,7 @@ msgstr "En önemli yollar için kutucuklar — randevu, arama, yol tarifi"
 #. FB-33 M2c
 msgid "Welche Kacheln"
 msgstr "Hangi kutucuklar"
+
+#. FB-33 M2d
+msgid "Seitentitel"
+msgstr "Sayfa başlığı"

@@ -38800,3 +38800,7 @@ msgstr "Tiles with the main ways in — appointment, call, directions"
 #. FB-33 M2c
 msgid "Welche Kacheln"
 msgstr "Which tiles"
+
+#. FB-33 M2d
+msgid "Seitentitel"
+msgstr "Page title"

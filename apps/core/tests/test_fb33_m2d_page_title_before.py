@@ -4,9 +4,8 @@
 абзаца после H1 — и ровно один <h1>. Пока своих текстов нет, страница обязана остаться
 байт-в-байт прежней (сверка с этими снимками в M2d-1/M2d-2).
 
-Найдено снимками: свои блоки «над формой/списком» стоят ВЫШЕ H1 не только у форм, но и у
-blog, combos, services, tours, reviews, promos; у events, stay_rooms, team, gallery, wishlist H1
-идёт первым (`H1_FIRST`). Строка «Seitentitel» в схеме обязана стоять там же (M2d-1).
+Свои блоки «сверху» стоят ВЫШЕ H1 только у форм (`FORMS_BLOCKS_ABOVE_H1`); у страниц-списков
+H1 — самое верхнее. Строка «Seitentitel» в схеме обязана стоять там же (M2d-1).
 
 Обновить (только осознанно): FB33M2D_GOLDEN=update uv run pytest <этот файл>
 """
@@ -147,12 +146,18 @@ def test_page_head_is_as_before_and_has_one_h1(host, case, monkeypatch):
     assert got == path.read_text(), f"шапка изменилась: {path.name}"
 
 
-#: страницы, где H1 — самое верхнее (свои блоки «над списком» рисуются под ним)
-H1_FIRST = frozenset({"events", "stay_rooms", "team", "gallery", "wishlist"})
+#: формы: свои блоки «сверху» рисуются над H1 (у списков H1 — самое верхнее)
+FORMS_BLOCKS_ABOVE_H1 = frozenset(
+    {"anfrage", "event_calendar", "gift", "loyalty", "message", "passes", "teachers"}
+)
 
 
 @pytest.mark.parametrize("host", sorted(PAGES))
 def test_where_own_blocks_above_stand_relative_to_h1(host, monkeypatch):
-    with __import__("django.utils.translation", fromlist=["override"]).override("de"):
+    from django.utils import translation
+
+    with translation.override("de"):
         html = _render(host, {"page_blocks": {host: [TEXT_ABOVE, _anchor(host)]}}, monkeypatch)
-    assert ("Hinweis" in _head(html)) is (host not in H1_FIRST)
+    block, h1 = html.find("Hinweis"), html.find("<h1")
+    assert block != -1
+    assert (block < h1) is (host in FORMS_BLOCKS_ABOVE_H1)

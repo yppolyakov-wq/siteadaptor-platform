@@ -4,7 +4,7 @@
 
 {% block content %}
 {% page_flow "passes" as pf %}{% if pf.page_flow %}{% comment %}FB-32 S6g-1: свои блоки над содержимым — строки «Seitenaufbau».{% endcomment %}{% for it in pf.page_flow %}{% if it.part %}{% page_blocks "passes" it.part %}{% endif %}{% endfor %}{% endif %}
-<h1 class="text-2xl font-bold mb-4">{% trans "Multi-visit cards" %}</h1>
+{% page_title "passes" as pt %}<h1 class="text-2xl font-bold mb-4{% if pt.center %} text-center{% endif %}"{% if is_preview %} data-edit="page_titles.passes.title"{% endif %}>{% if pt.title %}{{ pt.title }}{% else %}{% trans "Multi-visit cards" %}{% endif %}</h1>{% if pt.intro %}<p class="text-gray-500 mb-6{% if pt.center %} text-center{% endif %}"{% if is_preview %} data-edit="page_titles.passes.intro"{% endif %}>{{ pt.intro }}</p>{% endif %}
 
 {% if not plans %}
   <p class="text-gray-400">{% trans "No cards on offer yet." %}</p>

@@ -4169,6 +4169,16 @@ def site_inline_edit(request):
         if parts[2] == "q" and not value:
             return HttpResponseBadRequest()  # пустой вопрос удалил бы пару в normalize
         path = ("faq", idx, parts[2])
+    elif field and field.startswith("page_titles."):
+        # FB-33 M2d: заголовок и вступление страницы-списка или формы — на превью
+        from apps.core import page_title
+
+        parts = field.split(".")
+        if len(parts) != 3 or parts[1] not in page_title.HEAD_HOSTS:
+            return HttpResponseBadRequest()
+        if parts[2] not in ("title", "intro"):
+            return HttpResponseBadRequest()
+        path = ("page_titles", parts[1], parts[2])  # пусто → прежний текст страницы
     elif field and field.startswith("section_intros."):
         # H1: описания секций главной правятся инлайн на превью (как заголовки).
         key = field.split(".", 1)[1]

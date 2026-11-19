@@ -39141,3 +39141,7 @@ msgstr "Плитки с главными действиями — запись, 
 #. FB-33 M2c
 msgid "Welche Kacheln"
 msgstr "Какие плитки"
+
+#. FB-33 M2d
+msgid "Seitentitel"
+msgstr "Заголовок страницы"

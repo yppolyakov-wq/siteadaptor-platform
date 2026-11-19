@@ -39128,3 +39128,7 @@ msgstr "Плитки з головними діями — запис, дзвін
 #. FB-33 M2c
 msgid "Welche Kacheln"
 msgstr "Які плитки"
+
+#. FB-33 M2d
+msgid "Seitentitel"
+msgstr "Заголовок сторінки"

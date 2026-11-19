@@ -12,9 +12,9 @@
   {% funnel_steps "event" 1 %}
   <div class="flex items-center justify-between mb-4">
     {# Фидбэк 2026-11-04: «Ретриты и мероприятия» у ресторана — заголовок по архетипу. #}
-    <h1 class="text-2xl font-bold">{% if request.tenant.business_type == "retreat" %}{% trans "Retreats & events" %}{% else %}{% trans "Upcoming events" %}{% endif %}</h1>
+    {% page_title "events" as pt %}<h1 class="text-2xl font-bold{% if pt.center %} text-center{% endif %}"{% if is_preview %} data-edit="page_titles.events.title"{% endif %}>{% if pt.title %}{{ pt.title }}{% else %}{% if request.tenant.business_type == "retreat" %}{% trans "Retreats & events" %}{% else %}{% trans "Upcoming events" %}{% endif %}{% endif %}</h1>
     <a href="{% url 'storefront-events-calendar' %}" class="text-sm text-indigo-600 hover:underline whitespace-nowrap">📅 {% trans "Calendar" %}</a>
-  </div>
+  </div>{% if pt.intro %}<p class="text-gray-500 mb-6{% if pt.center %} text-center{% endif %}"{% if is_preview %} data-edit="page_titles.events.intro"{% endif %}>{{ pt.intro }}</p>{% endif %}
 {% endblock %}
 
 {% block listing_facets %}

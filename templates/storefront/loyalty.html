@@ -4,8 +4,8 @@
 {% block content %}
 {% page_flow "loyalty" as pf %}{% if pf.page_flow %}{% comment %}FB-32 S6d: свои блоки над страницей — строки «Seitenaufbau».{% endcomment %}{% for it in pf.page_flow %}{% if it.part %}{% page_blocks "loyalty" it.part %}{% endif %}{% endfor %}{% endif %}
 <section class="mb-10 max-w-2xl mx-auto">
-  <h1 class="text-2xl md:text-3xl font-bold mb-2">{% trans "Loyalty programme" %}</h1>
-  <p class="text-gray-600 mb-6">{% trans "Collect stamps with every visit and get rewarded." %}</p>
+  {% page_title "loyalty" as pt %}<h1 class="text-2xl md:text-3xl font-bold mb-2{% if pt.center %} text-center{% endif %}"{% if is_preview %} data-edit="page_titles.loyalty.title"{% endif %}>{% if pt.title %}{{ pt.title }}{% else %}{% trans "Loyalty programme" %}{% endif %}</h1>
+  <p class="text-gray-600 mb-6{% if pt.center %} text-center{% endif %}"{% if is_preview %} data-edit="page_titles.loyalty.intro"{% endif %}>{% if pt.intro %}{{ pt.intro }}{% else %}{% trans "Collect stamps with every visit and get rewarded." %}{% endif %}</p>
 
   {% if programs %}
     <div class="space-y-4">

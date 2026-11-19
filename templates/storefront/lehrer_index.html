@@ -6,7 +6,7 @@
 {% page_flow "teachers" as pf %}{% if pf.page_flow %}{% comment %}FB-32 S6g-1: свои блоки над содержимым — строки «Seitenaufbau».{% endcomment %}{% for it in pf.page_flow %}{% if it.part %}{% page_blocks "teachers" it.part %}{% endif %}{% endfor %}{% endif %}
 <div class="max-w-3xl mx-auto">
   {% comment %}MT-D4: бизнес с поездками называет их гидами.{% endcomment %}
-  <h1 class="text-2xl font-bold mb-6">{% if as_guides %}{% trans "Our guides" %}{% else %}{% trans "Our teachers" %}{% endif %}</h1>
+  {% page_title "teachers" as pt %}<h1 class="text-2xl font-bold mb-6{% if pt.center %} text-center{% endif %}"{% if is_preview %} data-edit="page_titles.teachers.title"{% endif %}>{% if pt.title %}{{ pt.title }}{% else %}{% if as_guides %}{% trans "Our guides" %}{% else %}{% trans "Our teachers" %}{% endif %}{% endif %}</h1>{% if pt.intro %}<p class="text-gray-500 mb-6{% if pt.center %} text-center{% endif %}"{% if is_preview %} data-edit="page_titles.teachers.intro"{% endif %}>{{ pt.intro }}</p>{% endif %}
   {% if teachers %}
     <div class="grid sm:grid-cols-2 gap-4">
       {% for t in teachers %}

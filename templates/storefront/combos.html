@@ -8,7 +8,7 @@
 {% block title %}{{ combos_title }} · {{ request.tenant.name }}{% endblock %}
 
 {% block listing_header %}
-<h1 class="text-2xl md:text-3xl font-bold mb-6">{{ combos_title }}</h1>
+{% page_title "combos" as pt %}<h1 class="text-2xl md:text-3xl font-bold mb-6{% if pt.center %} text-center{% endif %}"{% if is_preview %} data-edit="page_titles.combos.title"{% endif %}>{% if pt.title %}{{ pt.title }}{% else %}{{ combos_title }}{% endif %}</h1>{% if pt.intro %}<p class="text-gray-500 mb-6{% if pt.center %} text-center{% endif %}"{% if is_preview %} data-edit="page_titles.combos.intro"{% endif %}>{{ pt.intro }}</p>{% endif %}
 
 {% if current_category %}
 {% comment %}KAT-2: фильтр направления («Alle Sets» со страницы категории).{% endcomment %}

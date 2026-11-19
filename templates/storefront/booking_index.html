@@ -7,9 +7,9 @@
 голой — заголовок + одна строка. Теперь: интро, карточки ресурсов на всю ширину и
 общий инфо-блок «как проходит запись» + часы/адрес/контакт, как на /termin/ с
 услугами. Пустое состояние тоже ведёт к контакту, а не в тупик.{% endcomment %}
-<h1 class="text-2xl md:text-3xl font-bold mb-1">{% trans "Book a slot" %}</h1>
-{% if resources or table_booking %}
-<p class="text-gray-500 mb-6">{% trans "Pick a free time — we will confirm by email." %}</p>
+{% page_title "services" as pt %}<h1 class="text-2xl md:text-3xl font-bold mb-1{% if pt.center %} text-center{% endif %}"{% if is_preview %} data-edit="page_titles.services.title"{% endif %}>{% if pt.title %}{{ pt.title }}{% else %}{% trans "Book a slot" %}{% endif %}</h1>
+{% if not resources and not table_booking and pt.intro %}<p class="text-gray-500 mb-6{% if pt.center %} text-center{% endif %}">{{ pt.intro }}</p>{% endif %}{% if resources or table_booking %}
+<p class="text-gray-500 mb-6{% if pt.center %} text-center{% endif %}"{% if is_preview %} data-edit="page_titles.services.intro"{% endif %}>{% if pt.intro %}{{ pt.intro }}{% else %}{% trans "Pick a free time — we will confirm by email." %}{% endif %}</p>
 {% comment %}FB-32 S6g-2: свои блоки страницы «Termine» (хост `services`) — и у бизнеса без прайс-листа услуг (раньше «Seitenaufbau» их предлагал, а страница не выводила): «над списком» — здесь, остальные — под ним; в виджете (?embed=1) — без блоков. Метка основного списка — только в превью (цель перетаскивания), витрина прежняя.{% endcomment %}
 {% if not embed %}{% page_blocks "services" part="before" %}{% endif %}
 <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4"{% if is_preview %} data-pb-main{% endif %}>

@@ -4158,6 +4158,7 @@ TRANSLATABLE_KEYS = (
     "team",
     "anfrage",
     "before_after",
+    "page_titles",  # FB-33 M2d
 )
 
 # Строковые поля, которые переводу НЕ подлежат: адреса, файлы, служебные коды и
@@ -5831,6 +5832,13 @@ def _normalize_impl(config) -> dict:
             if key in SECTION_INTRO_KEYS and isinstance(value, str) and _s(value):
                 clean_intros[key] = _s(value)[:_SECTION_INTRO_MAX]
     normalized["section_intros"] = clean_intros
+    # FB-33 M2d: свой заголовок и вступление страниц-списков и форм — только непустые
+    # (без ключа страница рисует прежние тексты, golden целы)
+    from apps.core import page_title
+
+    page_titles = page_title.normalize(config.get("page_titles"))
+    if page_titles:
+        normalized["page_titles"] = page_titles
     # Состояние Onboarding-Wizard (D0c) живёт в том же JSON — сохранение
     # конструктора не должно его затирать.
     if isinstance(config.get("onboarding"), dict):

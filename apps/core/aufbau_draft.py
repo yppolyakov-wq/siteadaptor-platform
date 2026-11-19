@@ -33,6 +33,12 @@ class DraftConflict(Exception):
 
 def _saved_state(config: dict, home: bool, host: str) -> dict:
     state = {"items": site_schema.load_items(config, home, host)}
+    from apps.core import page_title
+
+    if host in page_title.HEAD_HOSTS:
+        # FB-33 M2d: «Seitentitel» — часть страницы в черновике (правка в другом месте —
+        # конфликт, возврат к сохранённому — черновика нет)
+        state["title"] = page_title.clean_one((config.get("page_titles") or {}).get(host))
     from apps.core import detail_parts
 
     if detail_parts.object_kind(host):
@@ -167,7 +173,25 @@ def overlay(config: dict, draft: dict) -> dict:
             out.pop("about_contact", None)
         else:
             out["about_contact"] = False
+    if "title" in draft:
+        _put_title(out, host, draft["title"])
     return _apply_settings(out, draft)
+
+
+def _put_title(config: dict, host: str, title) -> None:
+    """FB-33 M2d: «Seitentitel» страницы `host` — в `page_titles` (пусто — ключа нет)."""
+    from apps.core import page_title
+
+    titles = dict(config.get("page_titles") or {})
+    entry = page_title.clean_one(title)
+    if entry:
+        titles[host] = entry
+    else:
+        titles.pop(host, None)
+    if titles:
+        config["page_titles"] = titles
+    else:
+        config.pop("page_titles", None)
 
 
 #: поля вида строки/★, каждое изменение которых — правка черновика
@@ -211,6 +235,9 @@ def changes(saved: dict, draft: dict) -> int:
         and not _has_section_rows(draft)
         and bool(draft["contact"]) != bool(saved.get("contact", True))
     ):
+        count += 1
+    # FB-33 M2d: «Seitentitel» — одно изменение
+    if "title" in draft and draft["title"] != saved.get("title", {}):
         count += 1
     # FB-27 R4: настройки типа страницы — по одному изменению на настройку.
     count += len(_settings(draft))
@@ -273,6 +300,9 @@ def op(
         # FB-27 R7: своя схема категории — взять блоки каталога или вернуться к ним.
         draft["items"] = site_schema.category_items(config, host, draft["items"], op_name)
         ref = ""
+    elif ref == site_schema.TITLE_REF:
+        # FB-33 M2d: «Seitentitel» — не строка `page_blocks`: тексты и вид — в черновике
+        ref = site_schema.title_op(host, draft, op_name, fields)
     else:
         ref = site_schema.mutate(
             draft["items"],
@@ -398,6 +428,8 @@ def commit(request, tenant, code: str, *, force: bool = False) -> bool:
         raise DraftConflict(code)
     site_schema.store_items(config, home, host, copy.deepcopy(draft["items"]))
     _commit_object(config, host, draft["items"], getattr(request, "user", None))
+    if "title" in draft:
+        _put_title(config, host, draft["title"])
     if host == "info" and "contact" in draft and not _has_section_rows(draft):
         # FB-32 S6a: черновик, начатый до строк разделов, — карточка контактов как раньше
         if draft["contact"]:

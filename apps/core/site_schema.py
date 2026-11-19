@@ -25,6 +25,7 @@ from django.utils.translation import gettext_lazy
 from apps.core import block_catalog, studio_pages
 from apps.core import detail_parts as _sec_parts
 from apps.core.page_axes_migration import read_old
+from apps.core.page_title import TITLE_REF
 
 logger = logging.getLogger(__name__)
 
@@ -1131,6 +1132,23 @@ def blocks_for(
                 "summary": "",
             },
         )
+    from apps.core import page_title as _pt_mod
+
+    if host in _pt_mod.HEAD_HOSTS:
+        # FB-33 M2d: «Seitentitel» там, где страница рисует H1: первым, либо (свои блоки
+        # «сверху» стоят над H1 — снимки M2d-0) перед основным списком/разделом
+        anchors = set(_dp.section_keys(host)) if _dp.module_of(host) else set()
+        at = 0
+        if host not in _pt_mod.H1_FIRST:
+            at = next(
+                (
+                    i
+                    for i, b in enumerate(out)
+                    if b.get("main") or (not b.get("cblock") and b["key"] in anchors)
+                ),
+                len(out),
+            )
+        out.insert(at, title_row(config, host))
     if _dp.object_kind(host or ""):
         out = _with_shared_rows(config, host, out)
     if summaries and host in ("catalog", "category") and not _has_combos():
@@ -1308,6 +1326,56 @@ def panel_fields(item: dict) -> list[dict]:
     ]
 
 
+#: FB-33 M2d: строка «Seitentitel» — вычисляемая, в `page_blocks` не хранится
+TITLE_FIELDS = ("title", "intro", "align")
+
+
+def title_row(config: dict, host: str) -> dict:
+    """Строка схемы «Seitentitel»: неподвижная, не скрывается; поля — тексты и вид."""
+    from apps.core import page_title
+
+    entry = page_title.clean_one((config.get("page_titles") or {}).get(host))
+    return {
+        "ref": TITLE_REF,
+        "key": "page_title",
+        "label": str(_("Seitentitel")),
+        "enabled": True,
+        "main": False,
+        "cblock": False,
+        "fixed": True,
+        "pinned": True,
+        "style_only": False,
+        "summary": entry.get("title") or str(_("Standard")),
+        "fields": [
+            {"name": "title", "label": str(_("Überschrift")), "kind": "line",
+             "value": entry.get("title", "")},
+            {"name": "intro", "label": str(_("Einleitung")), "kind": "area",
+             "value": entry.get("intro", "")},
+            {"name": "align", "label": str(_("Ausrichtung")), "kind": "select",
+             "value": entry.get("align", "")},
+        ],
+    }  # fmt: skip
+
+
+def title_op(host: str, draft: dict, op: str, fields: dict | None) -> str:
+    """Правка «Seitentitel» в черновике: только `update` (двигать, скрывать, удалять — нет).
+    Присланные поля заменяют прежние, неприсланные остаются (ПАТЧ, как у блоков)."""
+    from apps.core import page_title
+
+    if host not in page_title.HEAD_HOSTS:
+        raise SchemaError("block")
+    if op != "update" or fields is None:
+        raise SchemaError("fixed")
+    current = dict(draft.get("title") or {})
+    for name in TITLE_FIELDS:
+        if name in fields:
+            current[name] = str(fields[name])
+    if current.get("align", "") not in page_title.ALIGNS:
+        raise SchemaError("fields")
+    draft["title"] = page_title.clean_one(current)
+    return TITLE_REF
+
+
 #: FB-33 M2b: секции главной, вид которых выбирается в панели (раньше — только в Студии).
 #: Списки (свои плитки вида) и полоса доверия (своя панель) — отдельно.
 STYLE_SECTIONS = (
@@ -1373,6 +1441,9 @@ def fill_options(block: dict, host: str) -> None:
                 ("compact", _("Eine Zeile, ohne Karte")),
             ]
         }
+    elif key == "page_title":
+        options = {"align": [("", _("Links")), ("center", _("Zentriert"))]}
+        block["page_title_hint"] = True
     elif key == "quick_links":
         from apps.core.hero_tiles import QUICK_LINK_LABELS, QUICK_LINK_SETS
 
@@ -3311,6 +3382,16 @@ def apply(
     _pt, host, home = resolve(tenant, code)
     locked = Tenant.objects.select_for_update().get(pk=tenant.pk)
     config = siteconfig.normalize(locked.site_config)
+    if ref == TITLE_REF:
+        from apps.core import aufbau_draft
+
+        draft = {"title": (config.get("page_titles") or {}).get(host) or {}}
+        title_op(host, draft, op, fields)
+        aufbau_draft._put_title(config, host, draft["title"])
+        locked.site_config = siteconfig.normalize(config)
+        locked.save(update_fields=["site_config", "updated_at"])
+        tenant.site_config = locked.site_config
+        return ref
     items = load_items(config, home, host)
     ref = mutate(items, code, op, ref, block_type, value, fields, config.get("block_templates"))
     store_items(config, home, host, items)

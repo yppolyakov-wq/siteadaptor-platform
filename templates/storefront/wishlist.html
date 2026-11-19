@@ -9,8 +9,8 @@ STU-18d (d3): страница на каркасе `listing.html` (см. combos.
 {% block title %}{% trans "Merkzettel" %} — {{ request.tenant.name }}{% endblock %}
 
 {% block listing_header %}
-<h1 class="text-2xl md:text-3xl font-bold mb-1">{% trans "Merkzettel" %}</h1>
-<p class="text-gray-500 mb-6">{% trans "Ihre gemerkten Teile — nur auf diesem Gerät gespeichert." %}</p>
+{% page_title "wishlist" as pt %}<h1 class="text-2xl md:text-3xl font-bold mb-1{% if pt.center %} text-center{% endif %}"{% if is_preview %} data-edit="page_titles.wishlist.title"{% endif %}>{% if pt.title %}{{ pt.title }}{% else %}{% trans "Merkzettel" %}{% endif %}</h1>
+<p class="text-gray-500 mb-6{% if pt.center %} text-center{% endif %}"{% if is_preview %} data-edit="page_titles.wishlist.intro"{% endif %}>{% if pt.intro %}{{ pt.intro }}{% else %}{% trans "Ihre gemerkten Teile — nur auf diesem Gerät gespeichert." %}{% endif %}</p>
 {% endblock %}
 
 {% block listing_toolbar %}{% endblock %}

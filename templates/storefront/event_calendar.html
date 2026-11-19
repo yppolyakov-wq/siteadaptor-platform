@@ -6,9 +6,9 @@
 {% page_flow "event_calendar" as pf %}{% if pf.page_flow %}{% comment %}FB-32 S6g-1: свои блоки над содержимым — строки «Seitenaufbau».{% endcomment %}{% for it in pf.page_flow %}{% if it.part %}{% page_blocks "event_calendar" it.part %}{% endif %}{% endfor %}{% endif %}
 <div class="max-w-2xl mx-auto">
   <div class="flex items-center justify-between mb-6">
-    <h1 class="text-2xl font-bold">{% trans "Retreat calendar" %}</h1>
+    {% page_title "event_calendar" as pt %}<h1 class="text-2xl font-bold{% if pt.center %} text-center{% endif %}"{% if is_preview %} data-edit="page_titles.event_calendar.title"{% endif %}>{% if pt.title %}{{ pt.title }}{% else %}{% trans "Retreat calendar" %}{% endif %}</h1>
     <a href="{% url 'storefront-events-ical-feed' %}" class="text-sm text-indigo-600 hover:underline">📅 {% trans "Subscribe (iCal)" %}</a>
-  </div>
+  </div>{% if pt.intro %}<p class="text-gray-500 mb-6{% if pt.center %} text-center{% endif %}"{% if is_preview %} data-edit="page_titles.event_calendar.intro"{% endif %}>{{ pt.intro }}</p>{% endif %}
 
   {% if groups %}
     <div class="space-y-7">

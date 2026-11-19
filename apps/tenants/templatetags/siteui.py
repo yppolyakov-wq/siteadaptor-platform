@@ -592,6 +592,17 @@ def has_page_block(site, spec) -> bool:
     )
 
 
+@register.simple_tag(takes_context=True)
+def page_title(context, host):
+    """FB-33 M2d: свой заголовок и вступление страницы ({title, intro, center, custom});
+    пусто — прежний текст шаблона. Читает контекст витрины (черновик в превью, язык
+    посетителя — `storefront_page_titles`)."""
+    from apps.core import page_title as _page_title
+
+    titles = context.get("storefront_page_titles") or {}
+    return _page_title.get({"page_titles": titles}, host)
+
+
 @register.filter
 def has_home_block(site, key) -> bool:
     """FB-33 M2c: стоит ли на главной включённый блок типа `key`."""

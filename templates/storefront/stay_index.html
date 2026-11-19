@@ -8,8 +8,8 @@
 
 {% block listing_header %}
 {% funnel_steps "stay" 1 %}
-<h1 class="text-2xl md:text-3xl font-bold mb-1">{% trans "Stay with us" %}</h1>
-<p class="text-gray-500 mb-6">{% trans "Pick your dates and we'll show what's available." %}</p>
+{% page_title "stay_rooms" as pt %}<h1 class="text-2xl md:text-3xl font-bold mb-1{% if pt.center %} text-center{% endif %}"{% if is_preview %} data-edit="page_titles.stay_rooms.title"{% endif %}>{% if pt.title %}{{ pt.title }}{% else %}{% trans "Stay with us" %}{% endif %}</h1>
+<p class="text-gray-500 mb-6{% if pt.center %} text-center{% endif %}"{% if is_preview %} data-edit="page_titles.stay_rooms.intro"{% endif %}>{% if pt.intro %}{{ pt.intro }}{% else %}{% trans "Pick your dates and we'll show what's available." %}{% endif %}</p>
 
 {% if gift_active %}<a href="{% url 'storefront-gutschein' %}" class="inline-block mb-6 text-sm bg-amber-50 text-amber-800 rounded-lg px-3 py-2 hover:bg-amber-100">🎁 {% trans "Give a stay as a gift — buy a voucher" %}</a>{% endif %}
 

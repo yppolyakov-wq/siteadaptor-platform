@@ -686,6 +686,9 @@ def modules_nav(request):
         "storefront_card_amenities": cfg.get("stay_card_amenities", []),
         # H1.2: тэглайн подвала (draft-aware) — правится инлайн (data-edit="footer_text").
         "storefront_footer_text": cfg.get("footer_text", ""),
+        # FB-33 M2d: свои заголовки и вступления страниц-списков и форм (черновик в превью,
+        # язык посетителя — как остальной cfg)
+        "storefront_page_titles": cfg.get("page_titles") or {},
         # STU-2: тип страницы витрины для Studio — редактор читает его с <body>
         # кадра и показывает настройки ИМЕННО этой страницы. Считаем по уже
         # разобранному resolver_match (Django разрешил путь до вьюхи) — второго
