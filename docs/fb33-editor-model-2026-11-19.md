@@ -255,3 +255,24 @@ M2f; security M2h–i; silent-failure M2f, M2h–i; database M2i; code-reviewer 
 с переделкой видов баннера; вид части сайтов меняется осознанно (кнопка баннера возвращается, плашки —
 блоком под ним). Срез M2c перепланировать: C-блок `quick_links` (истина — данные блока; перенос
 `hero_widget` → блок шагом deploy.sh с `--dry-run`; баннер больше не рисует плашки).
+
+## План M2c «Быстрые ссылки» — отдельный блок (planner, 2026-11-19)
+Решения владельца: топ-3 услуг → секция «Leistungen» под баннером, если включена, иначе блок «Liste»
+(services, 3, строками); у bento блок ставится СКРЫТЫМ (вид не меняется); отступ под full-bleed
+баннером — ровный (без `-mt-6`). Виджет `stays` → секция `stay_search` сразу после hero (`#buchen`).
+- Модель: C-блок `quick_links` в REPEATABLE_BLOCKS, данные `{"set": <набор>}`; реестр наборов —
+  `hero_tiles.QUICK_LINK_SETS` (7 из реестра + gastro/bakery/butcher/mode); семья в `block_catalog`
+  (studio=False). Окно — поле «Набор».
+- Перенос: чистая `apps/core/quick_links_migration.detach(config)`; писатель с блокировкой/снимком —
+  общий `apps/core/config_migration.py` (вынести из `page_axes_migration`, FB-31.7 тесты зелёные);
+  команда `detach_quick_links` (`--dry-run/--undo/--residue/--schema`), шаг `deploy.sh`; сверка —
+  состав ссылок до/после и CTA, мимо кэша; не совпало → пропуск.
+- Порядок: (A) код читает оба — баннер рисует плитки, только если `hero_widget` задан И нет
+  включённого `quick_links`; писатели (киты, сборки) ставят блок; (B) `residue: 0` у владельца;
+  (C) снять чтение `hero_widget` (M2c-4).
+- Срезы: M2c-0 характеризация (наборы × виды баннера, писатели), M2c-1 блок, M2c-2 перенос,
+  M2c-3 писатели (`SEEDER_VERSION`), M2c-4 снятие чтения. Playwright 1440/390 до/после.
+- ECC: architect (общий config_migration), tdd-guide, django-reviewer каждый срез, a11y M2c-1,
+  database-reviewer + silent-failure-hunter M2c-2, silent-failure M2c-3, e2e-runner, code-reviewer.
+- Отложено: M2b-2 — вид FAQ внутри страниц услуги и события (другая структура вопросов и ось
+  разделов `AXIS_SECTIONS`) — отдельным срезом после M2c.

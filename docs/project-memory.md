@@ -146,6 +146,7 @@ LLM-режим Finder, SSE для чата.
 - `apps/core/business_card.py` — карточка «So finden Sie uns» (T-8.1).
 - `apps/core/card_forms.py` — реестр форм карточки (товар/акция) и резолвер `card_form` «объект → категория → сайт → прежняя форма»; тег `{% card_form %}` в `apps/tenants/templatetags/siteui.py` (DL-19, STU-12j).
 - `apps/core/card_forms.VIEW_SHAPES` / `forms_for_view` / `normalize_for_view` — какие формы карточки допустимы у вида списка; вид побеждает (FB-33 M1). Новый вид у источника с карточкой — строка сюда (замок `test_fb33_m1_card_views`).
+- `apps/core/block_catalog.py` — семьи блоков и библиотека («+ Block» Seitenaufbau, карточки Студии): новый C-/ref-блок — запись сюда (замок `test_fb33_m2a_block_catalog`). Вид секций главной в панели — `site_schema.STYLE_SECTIONS` (FB-33 M2b).
 - `apps/core/card_forms.py` — общий резолвер формы карточки `card_form` (объект → категория → сайт) (LAY-4).
 - `apps/core/city_categories.py` — справочник 15 разделов каталога города + признаки.
 - `apps/core/closures.py` — Betriebsferien (витрина, слоты, «открыто сейчас», портал).
