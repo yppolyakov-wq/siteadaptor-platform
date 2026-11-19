@@ -76,7 +76,9 @@ def test_checkout_prepay_redirects_to_stripe(monkeypatch, settings):
     monkeypatch.setattr(
         public_views.order_payments, "order_checkout_url", lambda o, t, **kw: "https://stripe/order"
     )
-    request = _pub_req({"name": "Kunde"}, tenant=tenant, session={"cart": {str(product.pk): 2}})
+    request = _pub_req(
+        {"name": "Kunde", "email": "k@t.de"}, tenant=tenant, session={"cart": {str(product.pk): 2}}
+    )
     resp = public_views.checkout(request)
     assert resp.status_code == 302
     assert resp.url == "https://stripe/order"

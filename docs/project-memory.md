@@ -107,6 +107,7 @@ LLM-режим Finder, SSE для чата.
 `rebuild_search_index` → `seed_demo_tenants --group all --changed --jobs 3` (один раз до этого
 `--group all --stamp`). Отчёты с решением: `modules_report` → `--apply`, `shipping_report`,
 `onboarding_report --compare <дата>`, `package_report`, `pilot_report`, `search_log_report`.
+FB-33 M2i-3a (2026-11-19): онлайн-оплата (Stripe) в корзине теперь требует e-mail на сервере — без него заказ не оформляется (решение владельца); вид формы прежний. Сообщить бизнесам со Stripe, если покупатели жалуются на отказ.
 Один раз после деплоя с `core/0020` (FB-29.2, 2026-11-14): `import_banners` — прежние слайды
 главной переносятся в библиотеку «Banner» (повтор безопасен, `--undo` откатывает).
 

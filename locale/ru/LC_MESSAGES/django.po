@@ -39215,3 +39215,6 @@ msgstr "Что дальше"
 
 msgid "Bestätigung"
 msgstr "Подтверждение"
+
+msgid "Please enter your email for online payment — we send the confirmation there."
+msgstr "Для онлайн-оплаты укажите e-mail — туда придёт подтверждение."

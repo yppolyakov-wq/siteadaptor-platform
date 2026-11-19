@@ -39020,3 +39020,6 @@ msgstr "Şimdi ne olacak"
 
 msgid "Bestätigung"
 msgstr "Onay"
+
+msgid "Please enter your email for online payment — we send the confirmation there."
+msgstr "Çevrimiçi ödeme için lütfen e-posta adresinizi girin — onayı oraya göndeririz."

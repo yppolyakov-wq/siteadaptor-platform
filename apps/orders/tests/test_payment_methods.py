@@ -105,7 +105,9 @@ def test_checkout_prepay_sets_stripe(monkeypatch, settings):
         public_views.order_payments, "order_checkout_url", lambda o, t, **kw: "https://stripe/x"
     )
     request = _pub_req(
-        {"name": "Kunde"}, tenant=_prepay_tenant(), session={"cart": {str(product.pk): 1}}
+        {"name": "Kunde", "email": "k@t.de"},
+        tenant=_prepay_tenant(),
+        session={"cart": {str(product.pk): 1}},
     )
     resp = public_views.checkout(request)
     assert resp.url == "https://stripe/x"
@@ -123,13 +125,41 @@ def test_checkout_stripe_error_keeps_online_payment(monkeypatch, settings):
 
     monkeypatch.setattr(public_views.order_payments, "order_checkout_url", _boom)
     request = _pub_req(
-        {"name": "Kunde"}, tenant=_prepay_tenant(), session={"cart": {str(product.pk): 1}}
+        {"name": "Kunde", "email": "k@t.de"},
+        tenant=_prepay_tenant(),
+        session={"cart": {str(product.pk): 1}},
     )
     resp = public_views.checkout(request)
     order = Order.objects.get()
     assert resp.url.endswith(f"/bestellung/{order.reference_code}/")
     assert order.payment_method == Order.METHOD_STRIPE
     assert order.payment_state != "paid"
+
+
+def test_online_payment_needs_an_email(monkeypatch, settings):
+    """FB-33 M2i-3a (решение владельца): без e-mail онлайн-оплата не оформляется —
+    подтверждение и квитанция уходят на почту. Заказ не создаётся, гость — в корзину."""
+    _configure(settings)
+    product = ProductFactory(base_price=Decimal("10.00"))
+    monkeypatch.setattr(
+        public_views.order_payments, "order_checkout_url", lambda o, t, **kw: "https://stripe/x"
+    )
+    for email in ("", "kein-email"):
+        request = _pub_req(
+            {"name": "Kunde", "email": email},
+            tenant=_prepay_tenant(),
+            session={"cart": {str(product.pk): 1}},
+        )
+        resp = public_views.checkout(request)
+        assert resp.url.endswith("/warenkorb/")
+    assert not Order.objects.exists()
+
+
+def test_pay_on_site_still_works_without_email():
+    product = ProductFactory(base_price=Decimal("10.00"))
+    request = _pub_req({"name": "Kunde"}, session={"cart": {str(product.pk): 1}})
+    public_views.checkout(request)
+    assert Order.objects.get().payment_method == Order.METHOD_ON_SITE
 
 
 def _vorkasse_tenant(**over):

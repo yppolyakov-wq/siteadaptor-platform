@@ -38961,3 +38961,6 @@ msgstr "Was passiert jetzt"
 
 msgid "Bestätigung"
 msgstr "Bestätigung"
+
+msgid "Please enter your email for online payment — we send the confirmation there."
+msgstr "Bitte geben Sie für die Online-Zahlung Ihre E-Mail-Adresse an — dorthin senden wir die Bestätigung."

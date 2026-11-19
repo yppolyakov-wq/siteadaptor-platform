@@ -38874,3 +38874,6 @@ msgstr "What happens next"
 
 msgid "Bestätigung"
 msgstr "Confirmation"
+
+msgid "Please enter your email for online payment — we send the confirmation there."
+msgstr "Please enter your email for online payment — we send the confirmation there."
