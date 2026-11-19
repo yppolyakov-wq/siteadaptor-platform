@@ -308,3 +308,17 @@ M2d-2 security-reviewer, seo-specialist, a11y, silent-failure-hunter, e2e; code-
 `test_fb33_m2d_page_title_before.py`. Проверено по позиции в HTML: свои блоки «сверху» стоят ВЫШЕ H1
 только у форм (anfrage, event_calendar, gift, loyalty, message, passes, teachers); у списков H1 —
 первым. (Первая версия теста ошибочно считала абзац ПОД H1 частью шапки — исправлено.)
+
+## Планы M2e и M2f (planner, 2026-11-19) + решения владельца
+**M2e «семьи в библиотеке»:** подписи пунктов «+ Block» «<семья> · <вид>» (`block_catalog.menu_label`,
+поле `view` у `LibraryEntry`; состав/порядок меню прежние); в панели — «Gehört zu: <семья>»; поле
+«Ansicht» у text/image_text → `op=switch` (только пары `can_switch`, id/ширина/оформление/переводы
+сохраняются). **Решение владельца:** при «Фото + текст» → «Только текст» фото ПОМНИТСЯ (чистильщик
+`text` хранит `url/side/rounded`, рендер их не читает). Макеты не нужны (подписи и одно поле в
+существующей панели); скриншоты — на чекпоинте.
+**M2f «товар: 7 разделов»:** sizes, trust, anprobe, waitlist, instore, question, recent →
+`DETAIL_SECTIONS["catalog"]` (скрываемые, первые шесть — первый экран, recent — хвост); обёртки
+`{% if key not in product_detail_hidden %}` без смены разметки; хвост для FIXED_ORDER — после последнего
+якоря в строках (блоки после «Ähnliche» не пропадают); `recent` скрыт — нет ни блока, ни скрипта
+localStorage. LMIV: `info` не скрывается у ВСЕХ типов еды из `FOOD_BUSINESS_TYPES` (**решение
+владельца: и продуктовые магазины, grocery**); аудит командой `lmiv_info_audit` (запускает владелец).
