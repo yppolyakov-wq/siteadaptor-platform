@@ -240,6 +240,14 @@ def merge_structure(
         merged = {**new, "key": old.get("key")}
         if keep_data and kind(old) in OWNED_DATA_KINDS:
             merged["data"] = old.get("data") or {}
+        if kind(old) == "text" and isinstance(old.get("data"), dict):
+            # FB-33 M2e (ревью): запомненное фото «Nur Text» форма Студии не несёт —
+            # «Speichern» его не стирает
+            data = dict(merged.get("data") or {}) if isinstance(merged.get("data"), dict) else {}
+            for field in ("url", "side", "rounded"):
+                if field in old["data"]:
+                    data[field] = old["data"][field]
+            merged["data"] = data
         if kind(old) in siteconfig.PAGE_REF_BLOCKS or kind(old) == "quick_links":
             # FB-33 M2b/M2c: вид блока-ссылки и набор «Schnellzugriff» задаёт
             # «Seitenaufbau»; форма Студии их не несёт.
@@ -2807,7 +2815,9 @@ def mutate(
         # FB-33 M2e: сменить вид блока внутри семьи без потери данных (text ↔ image_text);
         # id, ширина, оформление и переводы остаются — меняется только ключ и чистка данных
         old = siteconfig.cblock_type(item.get("key")) or ""
-        if not item.get("id") or main or old == value or not block_catalog.can_switch(old, value):
+        if item.get("id") and not main and old == value:
+            return ref  # «сменить» на текущий вид — ничего не делать (не ошибка)
+        if not item.get("id") or main or not block_catalog.can_switch(old, value):
             raise SchemaError("op")
         item["key"] = value
         item["data"] = siteconfig._clean_cblock_data(value, dict(item.get("data") or {}))

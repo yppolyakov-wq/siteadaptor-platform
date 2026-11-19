@@ -222,8 +222,14 @@ def changes(saved: dict, draft: dict) -> int:
         if (old[k].get("width") or "contained", bool(old[k].get("newline")))
         != (new[k].get("width") or "contained", bool(new[k].get("newline")))
     )
-    # FB-27 R3b: содержимое блока (текст, подпись, ссылка) — одно изменение на блок.
-    count += sum(1 for k in common if (old[k].get("data") or {}) != (new[k].get("data") or {}))
+    # FB-27 R3b: содержимое блока (текст, подпись, ссылка) — одно изменение на блок;
+    # FB-33 M2e: смена вида (ключ блока при том же id) — тоже
+    count += sum(
+        1
+        for k in common
+        if (old[k].get("data") or {}) != (new[k].get("data") or {})
+        or old[k].get("key") != new[k].get("key")
+    )
     # FB-30.16 (ревью R4): вид блоков каталога (вид «Kategorien», вид/сетка ★)
     count += sum(
         1

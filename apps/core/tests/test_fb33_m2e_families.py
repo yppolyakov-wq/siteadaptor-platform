@@ -64,9 +64,9 @@ def test_switch_keeps_id_width_and_texts():
 @pytest.mark.parametrize("target", ("textpage", "button", "image_text_x", "image_text"))
 def test_switch_refuses_lossy_or_unknown_views(target):
     items = _items()
-    if target == "image_text":  # тот же вид — не смена
-        with pytest.raises(site_schema.SchemaError):
-            site_schema.mutate(items, "text", "switch", ref="b1", value=target)
+    if target == "image_text":  # тот же вид — ничего не меняется (без ошибки)
+        site_schema.mutate(items, "text", "switch", ref="b1", value=target)
+        assert items[0]["key"] == "image_text"
         return
     with pytest.raises(site_schema.SchemaError):
         site_schema.mutate(items, "text", "switch", ref="b1", value=target)
@@ -108,3 +108,31 @@ def test_panel_shows_family_and_view_switch(settings):
 
     rows = Tenant.objects.get(pk=tenant.pk).site_config["page_blocks"]["catalog"]
     assert next(r for r in rows if r["id"] == ref)["key"] == "text"
+
+
+def test_studio_save_keeps_the_remembered_photo():
+    saved = [
+        {
+            "key": "text",
+            "id": "b1",
+            "data": {"title": "T", "body": "B", "url": "/m/a.jpg", "side": "right"},
+        }
+    ]
+    posted = [{"key": "text", "id": "b1", "data": {"title": "Neu", "body": "B"}}]
+    merged = site_schema.merge_structure(saved, posted)[0]["data"]
+    assert merged == {"title": "Neu", "body": "B", "url": "/m/a.jpg", "side": "right"}
+
+
+def test_view_switch_counts_as_a_draft_change():
+    from apps.core import aufbau_draft
+
+    saved = {"items": _items()}
+    draft = {"items": _items()}
+    site_schema.mutate(draft["items"], "text", "switch", ref="b1", value="text")
+    assert aufbau_draft.changes(saved, draft) == 1
+
+
+def test_switch_to_the_current_view_is_a_no_op():
+    items = _items()
+    assert site_schema.mutate(items, "text", "switch", ref="b1", value="image_text") == "b1"
+    assert items[0]["key"] == "image_text"
