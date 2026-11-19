@@ -39166,3 +39166,19 @@ msgstr "Относится к: %(family)s"
 #. FB-33 M2e
 msgid "Ansicht wechseln"
 msgstr "Сменить вид"
+
+#. FB-33 M2f
+msgid "Im Geschäft erhältlich"
+msgstr "Есть в магазине"
+
+#. FB-33 M2f
+msgid "Vertrauensleiste"
+msgstr "Полоса доверия"
+
+#. FB-33 M2f
+msgid "Warteliste"
+msgstr "Лист ожидания"
+
+#. FB-33 M2f
+msgid "Frage stellen"
+msgstr "Задать вопрос"

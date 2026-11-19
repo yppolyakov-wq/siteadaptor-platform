@@ -96,13 +96,27 @@ VISIBILITY_KEYS = {
 }
 #: разделы первого экрана (рядом с покупкой): скрыть можно, блоки рядом с ними — перед телом
 FIRST_SCREEN = {
-    "product_detail": ("description", "info"),
+    "product_detail": (
+        "description",
+        "info",
+        # FB-33 M2f: колонка рядом с покупкой
+        "sizes",
+        "trust",
+        "anprobe",
+        "waitlist",
+        "instore",
+        "question",
+    ),
     "stay_detail": ("description", "amenities"),
 }
 #: хосты с постоянным порядком разделов: строки разделов только скрываются
 FIXED_ORDER = frozenset(FIRST_SCREEN)
 #: раздел тела, после которого стоят «средние» блоки (дальше — широкая полоса «Ähnliche»)
 BODY_LAST = {"product_detail": "reviews", "stay_detail": "reviews"}
+#: FB-33 M2f: блоки между «Ähnliche» и «Zuletzt angesehen» (широкая полоса)
+WIDE_LAST = {"product_detail": "related"}
+#: FB-33 M2f (LMIV, решение владельца): раздел, который у еды скрыть нельзя
+FOOD_LOCKED = {"catalog": frozenset({"info"})}
 KAUF_KEY = "kauf"
 KAUF_REF = "__kauf"  # строка схемы «Buchung» (не хранится)
 #: где страница рисует покупку: у услуги — в первом экране, над разделами; у события — после
@@ -138,10 +152,28 @@ def fixed_order(host: str) -> bool:
     return shared_host(host) in FIXED_ORDER or module_of(host) in FIXED_ORDER_MODULES
 
 
-def hideable(host: str, key: str) -> bool:
-    """Можно ли скрыть раздел (у текста своей страницы — нельзя)."""
+def hideable(host: str, key: str, business_type: str | None = None) -> bool:
+    """Можно ли скрыть раздел (у текста своей страницы — нельзя; у еды «Zutaten/Allergene» —
+    нельзя: LMIV, FB-33 M2f). `business_type` — по умолчанию тип текущего сайта."""
     module = module_of(shared_host(host or ""))
+    if key in FOOD_LOCKED.get(module, ()) and is_food(business_type):
+        return False
     return next((s.hideable for s in detail_sections.sections_for(module) if s.key == key), True)
+
+
+def is_food(business_type: str | None = None) -> bool:
+    from apps.core.archetypes import FOOD_BUSINESS_TYPES
+
+    if business_type is None:
+        from django.db import connection
+
+        business_type = getattr(getattr(connection, "tenant", None), "business_type", "")
+    return business_type in FOOD_BUSINESS_TYPES
+
+
+def food_locked(module: str, business_type: str | None) -> frozenset:
+    """Разделы, которые у этого сайта показываются всегда (LMIV у еды)."""
+    return FOOD_LOCKED.get(module, frozenset()) if is_food(business_type) else frozenset()
 
 
 def object_kind(host) -> str:
@@ -188,8 +220,12 @@ def anchors(rows, host: str, order: list[str] | None = None) -> dict:
                 out["lead"].append(r["id"])
             else:
                 out["after"].setdefault(current, []).append(r["id"])
-    # после последнего раздела (в ТЕКУЩЕМ порядке, ревью P5) — прежнее место, хвост страницы
-    tail_key = order[-1] if order else last
+    # после последнего раздела (в ТЕКУЩЕМ порядке, ревью P5) — прежнее место, хвост страницы.
+    # FB-33 M2f: у постоянного порядка — после последнего раздела, который ЕСТЬ в строках
+    # (строки, сохранённые до нового раздела в конце, держат хвост там же)
+    tail_key = (
+        last if shared_host(host or "") in FIXED_ORDER and last else (order[-1] if order else last)
+    )
     out["tail"] = out["after"].pop(tail_key, []) if tail_key else []
     return out
 
@@ -517,15 +553,24 @@ def _fixed(a: dict, host: str) -> tuple[list, list]:
     return lead, list(a["after"].get(BODY_LAST.get(host, ""), []))
 
 
+def _wide(a: dict, host: str) -> list:
+    return list(a["after"].get(WIDE_LAST.get(host, ""), []))
+
+
 def fixed_parts(rows, host: str, own: dict | None = None) -> dict:
     """FB-31 P5: свои блоки товара/номера по местам постоянной страницы — {"lead": part перед
     телом (до отзывов), "mid": part после отзывов (до «Ähnliche»)}; пусто — прежняя разметка.
     R8: `own` — якоря своих блоков объекта → "lead_own"/"mid_own" (после общих)."""
     a = anchors(rows, host, list(section_keys(host)))
-    out = {"lead": "", "mid": ""}
+    out = {"lead": "", "mid": "", "wide": ""}
     if a["placed"]:
         lead, mid = _fixed(a, host)
-        out = {"lead": ids_part(lead) if lead else "", "mid": ids_part(mid) if mid else ""}
+        wide = _wide(a, host)
+        out = {
+            "lead": ids_part(lead) if lead else "",
+            "mid": ids_part(mid) if mid else "",
+            "wide": ids_part(wide) if wide else "",
+        }
     if own:
         lead, mid = _fixed(own, host)
         out["lead_own"] = ids_part(lead) if lead else ""

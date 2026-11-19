@@ -39153,3 +39153,19 @@ msgstr "Належить до: %(family)s"
 #. FB-33 M2e
 msgid "Ansicht wechseln"
 msgstr "Змінити вигляд"
+
+#. FB-33 M2f
+msgid "Im Geschäft erhältlich"
+msgstr "Є в магазині"
+
+#. FB-33 M2f
+msgid "Vertrauensleiste"
+msgstr "Смуга довіри"
+
+#. FB-33 M2f
+msgid "Warteliste"
+msgstr "Лист очікування"
+
+#. FB-33 M2f
+msgid "Frage stellen"
+msgstr "Поставити запитання"

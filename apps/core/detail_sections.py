@@ -52,8 +52,17 @@ DETAIL_SECTIONS: dict[str, tuple[DetailSection, ...]] = {
     "catalog": (
         DetailSection("description", _("Description")),
         DetailSection("info", _("Product info (origin/ingredients/allergens)")),
+        # FB-33 M2f: разделы первого экрана, которые раньше были зашиты в страницу товара
+        DetailSection("sizes", _("Größentabelle")),
+        DetailSection("trust", _("Vertrauensleiste")),
+        DetailSection("anprobe", _("In der Anprobe zurücklegen")),
+        DetailSection("waitlist", _("Warteliste")),
+        DetailSection("instore", _("Im Geschäft erhältlich")),
+        DetailSection("question", _("Frage stellen")),
         DetailSection("reviews", _("Customer reviews")),
         DetailSection("related", _("Related products")),
+        # FB-33 M2f: «Zuletzt angesehen» — только в браузере посетителя (localStorage)
+        DetailSection("recent", _("Zuletzt angesehen")),
     ),
     "events": tuple(
         DetailSection(key, label, hideable=True, orderable=True)

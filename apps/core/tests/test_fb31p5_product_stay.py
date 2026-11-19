@@ -37,7 +37,21 @@ def test_blocks_render_before_and_after_reviews(kind, host):
 def test_product_rows_toggle_but_do_not_move():
     tenant = TenantFactory(site_config={})
     rows = site_schema.blocks_for(siteconfig.normalize({}), "product")
-    assert [r["key"] for r in rows][:5] == ["kauf", "description", "info", "reviews", "related"]
+    # FB-33 M2f: разделы первого экрана и «Zuletzt angesehen» — тоже строки схемы
+    assert [r["key"] for r in rows][:12] == [
+        "kauf",
+        "description",
+        "info",
+        "sizes",
+        "trust",
+        "anprobe",
+        "waitlist",
+        "instore",
+        "question",
+        "reviews",
+        "related",
+        "recent",
+    ]
     b = Browser(tenant)
     b.post(seite="product", op="down", ref="reviews")
     b.post(seite="product", op="toggle", ref="related")
@@ -64,10 +78,10 @@ def test_review_editor_order_matches_the_page_and_hidden_reviews_are_reachable()
     assert keys[:3] == ["p1", "description", "p2"], "блок «до описания» — первым, как на странице"
     cfg = {"product_detail": {"hidden": ["reviews"]}}
     items = detail_parts.edit_rows(cfg, "product_detail", [MID])
-    # из хвоста один шаг вверх — между скрытыми «reviews» и «related» (скрытые не перепрыгиваются)
+    # из хвоста один шаг вверх — над последним разделом (FB-33 M2f: «Zuletzt angesehen»)
     site_schema.mutate(items, "product", "up", "p2")
     keys = [i.get("id") or i["key"] for i in items]
-    assert keys.index("p2") == keys.index("reviews") + 1
+    assert keys.index("p2") == keys.index("related") + 1
 
 
 @pytest.mark.parametrize("kind,host", [("product", "product_detail"), ("stay", "stay_detail")])

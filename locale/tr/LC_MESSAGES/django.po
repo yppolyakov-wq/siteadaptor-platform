@@ -38971,3 +38971,19 @@ msgstr "Ait olduğu: %(family)s"
 #. FB-33 M2e
 msgid "Ansicht wechseln"
 msgstr "Görünümü değiştir"
+
+#. FB-33 M2f
+msgid "Im Geschäft erhältlich"
+msgstr "Mağazada mevcut"
+
+#. FB-33 M2f
+msgid "Vertrauensleiste"
+msgstr "Güven şeridi"
+
+#. FB-33 M2f
+msgid "Warteliste"
+msgstr "Bekleme listesi"
+
+#. FB-33 M2f
+msgid "Frage stellen"
+msgstr "Soru sor"

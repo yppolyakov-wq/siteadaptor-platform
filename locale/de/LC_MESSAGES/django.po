@@ -38912,3 +38912,19 @@ msgstr "Gehört zu: %(family)s"
 #. FB-33 M2e
 msgid "Ansicht wechseln"
 msgstr "Ansicht wechseln"
+
+#. FB-33 M2f
+msgid "Im Geschäft erhältlich"
+msgstr "Im Geschäft erhältlich"
+
+#. FB-33 M2f
+msgid "Vertrauensleiste"
+msgstr "Vertrauensleiste"
+
+#. FB-33 M2f
+msgid "Warteliste"
+msgstr "Warteliste"
+
+#. FB-33 M2f
+msgid "Frage stellen"
+msgstr "Frage stellen"

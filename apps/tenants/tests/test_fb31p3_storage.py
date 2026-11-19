@@ -38,7 +38,19 @@ def test_detail_and_object_hosts_keep_the_offer_row():
     # FB-31 P5 R8 (осознанно): у хоста одного товара — строки-якоря его разделов (своя
     # схема объекта), строки «Angebot» по-прежнему только у акций
     keys = siteconfig.page_builtin_keys(f"product:{HEX}")
-    assert "offer" not in keys and keys == {"description", "info", "reviews", "related"}
+    assert "offer" not in keys and keys == {
+        "description",
+        "info",
+        "sizes",
+        "trust",
+        "anprobe",
+        "waitlist",
+        "instore",
+        "question",
+        "reviews",
+        "related",
+        "recent",
+    }
 
 
 def test_drop_page_views_removes_promo_views_only():

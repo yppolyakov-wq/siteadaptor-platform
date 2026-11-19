@@ -2477,7 +2477,9 @@ def product_detail(request, pk=None, pslug=None, cslug=None):
             "review_summary": product_reviews.summary(product),
             "review_form_token": uuid.uuid4().hex,
             # Скрытые опц. секции детальной товара (билдер: group=catalog_detail).
-            "product_detail_hidden": object_structure.effective_hidden(_cfg, "catalog", product),
+            # FB-33 M2f (LMIV): у еды «Zutaten/Allergene» не скрывается ничем
+            "product_detail_hidden": object_structure.effective_hidden(_cfg, "catalog", product)
+            - detail_parts.food_locked("catalog", request.tenant.business_type),
             # DL-16.6 (D2): "" — описание/Kennzeichnung в правой колонке, отзывы телом;
             # "tabs" — все три панелями тела (аккордеон <md, табы md+).
             "product_detail_layout": object_structure.effective_layout(_cfg, "product", product),

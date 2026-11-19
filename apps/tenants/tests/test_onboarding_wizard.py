@@ -982,7 +982,13 @@ def test_detail_slide_saves_card_style_and_sections():
     core_views.setup_view(
         _req(
             "post",
-            {"card_style": "karte", "ds_description": "1", "ds_info": "1", "ds_related": "1"},
+            {
+                "card_style": "karte",
+                # FB-33 M2f: остальные разделы товара — тоже галочками слайда
+                **{
+                    f"ds_{k}": "1" for k in siteconfig.PRODUCT_DETAIL_SECTION_KEYS if k != "reviews"
+                },
+            },
             tenant,
         )
     )

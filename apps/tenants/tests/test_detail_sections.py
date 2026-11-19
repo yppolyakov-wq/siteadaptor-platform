@@ -27,7 +27,11 @@ def test_registry_keys_match_legacy_constants():
         "before_after",
         "certifications",
     )
-    assert siteconfig.PRODUCT_DETAIL_SECTION_KEYS == ("description", "info", "reviews", "related")
+    # FB-33 M2f: + разделы первого экрана и «Zuletzt angesehen»
+    assert siteconfig.PRODUCT_DETAIL_SECTION_KEYS == (
+        "description", "info", "sizes", "trust", "anprobe", "waitlist", "instore", "question",
+        "reviews", "related", "recent",
+    )  # fmt: skip
 
 
 def test_registry_flags():

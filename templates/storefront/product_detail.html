@@ -89,7 +89,7 @@
 
   {% if 'info' not in product_detail_hidden and product_detail_layout != 'tabs' and product_has_info %}{% include "storefront/_product_info.html" %}{% endif %}
 
-  {% if product.category.size_table %}
+  {% if 'sizes' not in product_detail_hidden %}{% if product.category.size_table %}
     {% comment %}M2 Boutique: Größentabelle категории — details-модалка без JS
     (строки «S | 86–90 | …», первая строка = заголовки).{% endcomment %}
     <details class="mt-4">
@@ -104,17 +104,17 @@
         </table>
       </div>
     </details>
-  {% endif %}
+  {% endif %}{% endif %}
 
   {# UA3-1 слайс 2: buy-box — единый партиал, mode=cart из контракта sellable. #}
   {% sold_badge sellable.kind sellable.pk %}
   {% include "storefront/_buybox.html" %}
   {# DL-16.6 (D3): полоса доверия под buy-box — Abholung/Lieferung/часы сегодня из данных #}
-  {% include "storefront/_trust_strip.html" %}
+  {% if 'trust' not in product_detail_hidden %}{% include "storefront/_trust_strip.html" %}{% endif %}
   {% comment %}M4-C: «отложить» на детали — под кнопкой покупки, статичной
   строкой (не абсолютным сердечком, как на карточке).{% endcomment %}
   {% include "storefront/_wish_heart.html" with p=product pos="mt-3 inline-flex" %}
-  {% if site_anprobe and storefront_orders_enabled and product.in_stock %}
+  {% if 'anprobe' not in product_detail_hidden and site_anprobe and storefront_orders_enabled and product.in_stock %}
     {% comment %}M3 Boutique (Click&Reserve): «In der Anprobe zurücklegen» — резерв
     48 ч БЕЗ оплаты (unverbindlich, kein Kaufvertrag); вторая форма с другим
     action — замки buybox целы (образец M2-Warteliste).{% endcomment %}
@@ -136,7 +136,7 @@
       </form>
     </details>
   {% endif %}
-  {% if waitlist_variants or not product.in_stock %}
+  {% if 'waitlist' not in product_detail_hidden %}{% if waitlist_variants or not product.in_stock %}
     {% comment %}M2 Boutique: Warteliste по размеру — распроданные размеры (или весь
     товар) → email-подписка; письмо уходит при приёмке склада.{% endcomment %}
     <details class="mt-3"{% if not product.in_stock %} open{% endif %}>
@@ -154,13 +154,13 @@
         {% include "storefront/_privacy_note.html" %}
       </form>
     </details>
-  {% endif %}
-  <p class="mt-6 text-sm text-gray-500">
+  {% endif %}{% endif %}
+  {% if 'instore' not in product_detail_hidden %}<p class="mt-6 text-sm text-gray-500">
     {% trans "Available in store." %}
     {% if request.tenant.opening_hours %}<br>{{ request.tenant.opening_hours|linebreaksbr }}{% endif %}
   </p>
-  {% if request.tenant.address %}<p class="mt-2 text-sm text-gray-500">{{ request.tenant.address }}</p>{% endif %}
-  {% if storefront_inbox_enabled %}
+  {% if request.tenant.address %}<p class="mt-2 text-sm text-gray-500">{{ request.tenant.address }}</p>{% endif %}{% endif %}
+  {% if 'question' not in product_detail_hidden and storefront_inbox_enabled %}
     <p class="mt-3"><a href="{% url 'storefront-message' %}?kind=product&id={{ product.pk }}&label={{ product|urlencode }}" class="text-sm text-indigo-600 hover:underline">💬 {% trans "Ask a question about this product" %}</a></p>
   {% endif %}
 </div>
@@ -227,7 +227,7 @@
 (не в сессии: cache-сессия на КАЖДЫЙ анонимный просмотр — Redis-ключ на каждого бота — и
 лишняя кука на витрине против UX-принципа владельца); JS дотягивает карточки фрагментом
 /sortiment/zuletzt/ и раскрывает блок только при непустом ответе.{% endcomment %}
-<div class="mt-12" data-recent-strip data-current="{{ product.pk }}" data-url="{% url 'storefront-products-recent' %}" hidden>
+{% if detail_block_parts.wide %}{% page_blocks "product_detail" part=detail_block_parts.wide %}{% endif %}{% if 'recent' not in product_detail_hidden %}<div class="mt-12" data-recent-strip data-current="{{ product.pk }}" data-url="{% url 'storefront-products-recent' %}" hidden>
   <h2 class="text-xl font-bold mb-4">{% trans "Zuletzt angesehen" %}</h2>
   <div class="flex gap-4 overflow-x-auto pb-2" data-recent-items data-sf-slider></div>
 </div>
@@ -255,7 +255,7 @@
       document.dispatchEvent(new Event('sf:navigated'));
     }).catch(function () {});
 })();
-</script>
+</script>{% endif %}
 {% endblock %}
 
 {% block detail_buybar %}
