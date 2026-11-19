@@ -75,9 +75,17 @@ def _views(cfg: dict, idx, promos) -> dict:
     default = (norm.get("site_defaults") or {}).get("promo_detail_style", "")
     for hexed, own in promos:
         out[f"promo:{hexed}"] = promo_parts.detail_parts(norm, own, default, f"promo:{hexed}")
-    for group in idx.groups:
+    # ревью B3a: и встроенные типы (`sys:*`), и группы со своим шаблоном без живых акций
+    styled = siteconfig.normalize_promo_groups(norm.get("promo_groups")) or {}
+    for group in sorted({*idx.groups, *styled, *_builtin_keys()}):
         out[f"group:{group}"] = promo_parts.group_parts(norm, group)
     return out
+
+
+def _builtin_keys() -> tuple[str, ...]:
+    from apps.promotions import promo_types
+
+    return tuple(promo_types.builtin_keys())
 
 
 def view_residue(cfg: dict, idx, promos) -> list[str]:
@@ -108,13 +116,9 @@ def tenant_residue(tenant) -> list[str]:
         promos = list(Promotion.objects.exclude(page_style="").values_list("pk", "page_style"))
         hidden_cats = (
             Category.all_objects.exclude(page_style="").filter(deleted_at__isnull=False).count()
-            if hasattr(Category, "all_objects")
-            else 0
         )
         hidden_promos = (
             Promotion.all_objects.exclude(page_style="").filter(deleted_at__isnull=False).count()
-            if hasattr(Promotion, "all_objects")
-            else 0
         )
     reasons += [f"view:{k}" for k in view_residue(cfg, idx, [(pk.hex, st) for pk, st in promos])]
     reasons += [f"inactive_category:{slug}" for slug in idx.inactive_coded]
@@ -138,8 +142,11 @@ def tenant_residue(tenant) -> list[str]:
     draft = cfg.get("_draft")
     if isinstance(draft, dict) and has_site_codes(draft) and view_residue(draft, idx, pairs):
         reasons.append("draft")
-    if SiteConfigSnapshot.objects.filter(
-        tenant_id=tenant.pk, reason=pam.REASON, undone_at__isnull=False
-    ).exists():
-        reasons.append("rolled_back")
+    last = (
+        SiteConfigSnapshot.objects.filter(tenant_id=tenant.pk, reason=pam.REASON)
+        .order_by("-created_at", "-id")
+        .first()
+    )
+    if last is not None and last.undone_at is not None:
+        reasons.append("rolled_back")  # последний перенос откачен (повтор — уже не остаток)
     return reasons

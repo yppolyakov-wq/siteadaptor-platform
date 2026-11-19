@@ -678,8 +678,22 @@ def _write_listing_template(cfg: dict, surface: str, value: str) -> dict:
     if value not in s.codes:
         raise PageSettingError(f"template {value!r} not available for {surface}")
     out = dict(cfg or {})
-    if listing_parts.effective(siteconfig.normalize(out), surface) == pp.from_code(s, value):
-        return out  # тот же вид по осям — свои строки владельца не трогаются
+    target = pp.from_code(s, value)
+    if listing_parts.effective(siteconfig.normalize(out), surface) == target:
+        # тот же вид: свои строки не трогаются; старый ключ снимается, если строки держат вид
+        # и без него (ревью B3a — иначе остаток не уходил бы никогда)
+        bare = dict(out)
+        rest = (
+            dict(out.get("page_styles") or {}) if isinstance(out.get("page_styles"), dict) else {}
+        )
+        if rest.pop(surface, None) is None:
+            return out
+        if rest:
+            bare["page_styles"] = rest
+        else:
+            bare.pop("page_styles", None)
+        if listing_parts.effective(siteconfig.normalize(bare), surface) == target:
+            return bare
     styles = dict(out.get("page_styles") or {}) if isinstance(out.get("page_styles"), dict) else {}
     styles.pop(surface, None)
     if styles:

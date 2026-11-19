@@ -1,6 +1,7 @@
 """Общие tenant-facing вьюхи (живут в схеме арендатора)."""
 
 import copy
+import logging
 import re
 from urllib.parse import quote
 
@@ -2546,9 +2547,19 @@ def home_builder_view(request):
                 # шаблоны переносятся в строки (вид тот же; после B3b коды не читаются)
                 from apps.core import page_axes_migration, page_axes_objects
 
-                target, _report = page_axes_migration.migrate(
+                migrated, report = page_axes_migration.migrate(
                     target, objects=page_axes_objects.build_index()
                 )
+                if report.mismatches:
+                    # не выразилось строками — версия откатывается как была (коды пока
+                    # читаются); `--residue` покажет её как остаток до B3b
+                    logging.getLogger(__name__).warning(
+                        "restore_version: templates of %s not moved to rows: %s",
+                        request.tenant.schema_name,
+                        report.mismatches,
+                    )
+                else:
+                    target = migrated
                 current_snap = {k: v for k, v in cfg.items() if k != "history"}
                 target["history"] = [
                     {"ts": timezone.now().isoformat(), "config": current_snap}
