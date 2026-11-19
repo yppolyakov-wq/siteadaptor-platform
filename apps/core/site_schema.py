@@ -240,7 +240,9 @@ def merge_structure(
         if keep_data and kind(old) in OWNED_DATA_KINDS:
             merged["data"] = old.get("data") or {}
         if kind(old) in siteconfig.PAGE_REF_BLOCKS:
-            # FB-33 M2b: вид блока-ссылки задаёт «Seitenaufbau»; форма Студии его не несёт
+            # FB-33 M2b: вид блока-ссылки задаёт «Seitenaufbau»; форма Студии его не несёт.
+            # ⚠️ Если Студия когда-нибудь начнёт присылать вид ref-блока — эта строка его
+            # проглотит (Студия по правилу P6 структуру и вид блоков-ссылок не пишет).
             merged["data"] = old.get("data") or {}
         if kind(old) == "banner":
             # FB-29.2: выбор баннеров и настройки слайдера задаёт «Seitenaufbau»; форма
@@ -253,7 +255,9 @@ def merge_structure(
                 else:
                     data.pop(field, None)
             merged["data"] = data
-        if keep_data and _is_usp_row(old):  # FB-32 S2: вид полосы доверия — из схемы
+        if keep_data and (
+            _is_usp_row(old) or (not old.get("id") and old.get("key") in STYLE_SECTIONS)
+        ):  # FB-32 S2 / FB-33 M2b: вид секции из панели — устаревшая вкладка его не откатит
             if "style" in old:
                 merged["style"] = old["style"]
             else:

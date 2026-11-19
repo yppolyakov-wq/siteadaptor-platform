@@ -116,3 +116,55 @@ def test_home_panel_writes_the_section_style(settings):
     assert "style" not in next(r for r in rows if r.get("key") == "team")
     with pytest.raises(site_schema.SchemaError):
         site_schema.apply(tenant, "home", "update", ref="team", fields={"style": "evil"})
+
+
+def test_stale_studio_tab_does_not_roll_back_the_panel_style():
+    """Ревью M2b HIGH: вкладка Студии открыта до правки в панели — Save не откатывает вид."""
+    saved = [{"key": "team", "style": "circles"}, {"key": "faq"}]
+    posted = [{"key": "team", "style": ""}, {"key": "faq", "style": "cards"}]
+    stale = site_schema.merge_structure(saved, posted, fixed=True, keep_data=True)
+    by = {r["key"]: r for r in stale}
+    assert by["team"].get("style") == "circles" and "style" not in by["faq"]
+    fresh = site_schema.merge_structure(saved, posted, fixed=True)  # свежая вкладка — одна ось
+    assert {r["key"]: r.get("style") for r in fresh}["faq"] == "cards"
+
+
+def test_studio_cannot_smuggle_a_ref_style():
+    saved = [{"key": "faq_ref", "id": "f1", "data": {}}]
+    posted = [{"key": "faq_ref", "id": "f1", "data": {"style": "cards"}}]
+    assert site_schema.merge_structure(saved, posted)[0]["data"] == {}
+
+
+@pytest.mark.parametrize("key", site_schema.STYLE_SECTIONS)
+def test_home_section_panel_lists_its_views(key):
+    block = {"key": key, "cblock": False, "fields": site_schema.section_style_fields({"key": key})}
+    site_schema.fill_options(block, "")
+    assert [v for v, _lab in block["fields"][0]["options"]] == ["", *siteconfig.SECTION_STYLES[key]]
+
+
+def test_style_sections_cover_every_styled_home_section_without_own_panel():
+    """Замок: новая секция с видами в SECTION_STYLES не останется без поля «Darstellung»."""
+    own_panels = {"products", "promotions", "categories", "usp_bar", "anfrage"}
+    home = {k for k, _l, _on in siteconfig.SECTIONS}
+    styled = {k for k in siteconfig.SECTION_STYLES if k in home} - own_panels
+    assert styled == set(site_schema.STYLE_SECTIONS)
+
+
+@pytest.mark.django_db
+def test_real_render_of_a_styled_faq_block_differs_and_empty_is_unchanged(rf):
+    from django.template import Context, Template
+
+    tpl = Template("{% load siteui %}{% render_block b %}")
+    req = rf.get("/")
+    site = {"faq": [{"q": "Wann?", "a": "Immer."}, {"q": "Wo?", "a": "Hier."}]}
+
+    def html(data):
+        return tpl.render(
+            Context(
+                {"request": req, "site": site, "b": {"key": "faq_ref", "id": "f", "data": data}}
+            )
+        )
+
+    plain = html({})
+    assert plain == html({"style": ""}) and "Wann?" in plain
+    assert html({"style": "numbered"}) != plain
