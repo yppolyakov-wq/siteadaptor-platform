@@ -1,0 +1,6 @@
+{% load i18n %}{% comment %}FB-33 M3-1: часть «Wie anordnen» — виды категорий, товаров и групп картинками.{% endcomment %}
+{% if selected.catview.title %}{% include "tenant/_schema_catalog_view.html" with view=selected.catview op="catview" ref=selected.ref title=selected.catview.title %}<p class="mt-2 text-xs text-gray-600">{% trans "Dieser Block hat einen festen Platz auf der Seite." %}</p>
+{% elif selected.catview %}{% trans "Wie Kategorien gezeigt werden" as cv_title %}{% include "tenant/_schema_catalog_view.html" with view=selected.catview op="catview" ref=selected.ref title=cv_title %}<p class="mt-2 text-xs text-gray-600">{% trans "Dieser Block steht immer direkt über den Produkten." %}</p>{% endif %}
+{% if selected.mainview.title %}{% include "tenant/_schema_catalog_view.html" with view=selected.mainview op="mainview" ref=selected.ref title=selected.mainview.title no_hint=selected.mainview.no_hint %}
+{% elif selected.mainview %}{% trans "Wie Produkte gezeigt werden" as mv_title %}{% include "tenant/_schema_catalog_view.html" with view=selected.mainview op="mainview" ref=selected.ref title=mv_title %}{% endif %}
+{% if selected.groupview %}{% include "tenant/_schema_catalog_view.html" with view=selected.groupview op="maingroup" ref=selected.ref title=selected.groupview.title no_hint=True %}{% endif %}

@@ -48,6 +48,14 @@ for slug, btype in {TENANTS!r}.items():
 """
 
 
+def open_tab(pg, key):
+    """FB-33 M3-1: окно блока — части панели по вкладкам; без скриптов вкладка — ссылка."""
+    link = pg.locator(f"[data-window-tab-link={key}]")
+    if link.count() and link.first.is_visible():
+        link.first.click()
+        pg.wait_for_load_state()
+
+
 def close_sheet(pg):
     """На телефоне панель блока — лист снизу; до кнопок шапки и схемы — «Fertig»."""
     done = pg.locator("[data-schema-done]")
@@ -138,6 +146,7 @@ def main():  # noqa: PLR0915 — один линейный сценарий ст
                         pg.click("form:has(select[name=type]) button")
                         pg.wait_for_load_state()
                         title = f"R9 {slug} {width}"
+                        open_tab(pg, "texte")
                         pg.fill("[data-schema-fields] input[name=f_title]", title)
                         pg.click("[data-schema-fields] button[value=update]")
                         pg.wait_for_load_state()

@@ -1,0 +1,12 @@
+{% load i18n %}{% comment %}FB-33 M3-1: часть «Was» — баннер из библиотеки и «Wo zeigen».{% endcomment %}
+{% if selected.banner_pick %}
+{% include "tenant/_schema_banner_pick.html" with pick=selected.banner_pick ref=selected.ref %}
+<form method="post" id="schema-pick-form">{% csrf_token %}
+  {% include "tenant/_schema_keep.html" %}
+  <input type="hidden" name="ref" value="{{ selected.ref }}">
+</form>
+<form method="get" id="schema-lookup-form" action="#schema-panel">
+  {% include "tenant/_schema_keep.html" %}
+  <input type="hidden" name="block" value="{{ selected.ref }}">
+</form>
+{% endif %}
