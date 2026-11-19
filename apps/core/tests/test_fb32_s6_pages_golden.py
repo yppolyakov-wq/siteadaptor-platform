@@ -331,7 +331,27 @@ def _slots(cfg, **get):
     req = _req(f"/termin/{res.pk}/", _rows_for(cfg, "booking_slots"))
     req.GET = req.GET.copy()
     req.GET.update(get)
-    return _stable(public_views.termin_slots(req, res.pk).content.decode())
+    return _calendar_days(_stable(public_views.termin_slots(req, res.pk).content.decode()))
+
+
+def _calendar_days(html):
+    """Календарь записи строится от СЕГОДНЯ (месяц, пустые клетки, прошедшие дни серее, день
+    недели в подписи) — эталон не должен зависеть от даты прогона (2026-11-19 упал на «18»).
+    Сетка дней и названия дней недели заменяются метками; разметка вокруг сверяется как была."""
+    import re
+
+    html = re.sub(
+        r'(<div class="grid grid-cols-7 gap-1 text-center text-sm">).*?(</div>)',
+        r"\1CALENDAR\2",
+        html,
+        flags=re.S,
+    )
+    html = re.sub(
+        r"\b(Montag|Dienstag|Mittwoch|Donnerstag|Freitag|Samstag|Sonntag), DATE",
+        "WEEKDAY, DATE",
+        html,
+    )
+    return re.sub(r"\b(Mo|Di|Mi|Do|Fr|Sa|So) DATE", "WD DATE", html)
 
 
 def test_termin_and_slots_without_blocks_look_as_before():
