@@ -259,7 +259,9 @@ OFFER = {"key": "offer", "style": "plakat"}
 def test_promo_offer_is_a_pinned_axis_row_and_related_hides():
     from apps.tenants import siteconfig
 
-    assert detail_parts.section_keys("promo_detail") == ("offer", "related")
+    assert detail_parts.section_keys("promo_detail") == ("offer", "share", "card", "related")
+    # FB-33 M2g: «Teilen» и визитка — «на месте», не двигаются и не якоря
+    assert detail_parts.flow_section_keys("promo_detail") == ("offer", "related")
     assert detail_parts.anchor_keys("promo_detail") == frozenset({"related"})
     cfg = siteconfig.normalize({"page_blocks": {"promo_detail": [OFFER, TEXT, {"key": "related"}]}})
     rows = {r["ref"]: r for r in site_schema.blocks_for(cfg, "promo")}

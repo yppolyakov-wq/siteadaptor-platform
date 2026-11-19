@@ -148,3 +148,33 @@ def test_hidden_private_tour_drops_the_box_and_the_head_button():
     assert "/anfrage/?betreff=" not in bare and "kind=tour" in bare, (
         "без выездов — «Termine anfragen»"
     )
+
+
+# ── ревью M2g: перенос блока рядом со строкой «на месте» — редактор = страница ──
+
+
+def _keys(items):
+    return [i.get("id") or i["key"] for i in items]
+
+
+def test_block_moved_up_jumps_over_in_place_rows_of_the_event():
+    items = detail_parts.edit_rows({}, "event_detail", [B1])
+    assert _keys(items)[-4:] == [*IN_PLACE, "b1"]
+    site_schema.mutate(items, "event", "up", "b1")
+    keys = _keys(items)
+    assert keys.index("b1") == keys.index("certifications") - 1, "сразу над последним разделом"
+    site_schema.mutate(items, "event", "down", "b1")
+    assert _keys(items)[-1] == "b1", "обратно — в хвост, мимо строк «на месте»"
+
+
+def test_block_dropped_on_an_in_place_row_lands_where_the_page_draws_it():
+    for value in ("before:groups", "after:more_dates"):
+        items = detail_parts.edit_rows({}, "event_detail", [B1])
+        site_schema.mutate(items, "event", "up", "b1")
+        site_schema.mutate(items, "event", "move", "b1", value=value)
+        keys = _keys(items)
+        assert keys.index("b1") == keys.index("private_tour") + 1, value
+        cfg: dict = {}
+        rows = detail_parts.lift(cfg, "event_detail", items)
+        keys_all = list(detail_parts.full_order({}, "events"))
+        assert detail_parts.anchors(rows, "event_detail", keys_all)["tail"] in (["b1"], [])

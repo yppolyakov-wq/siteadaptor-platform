@@ -68,3 +68,16 @@ def test_offer_cannot_be_hidden():
     items = detail_parts.edit_rows({}, "promo_detail", [])
     with pytest.raises(site_schema.SchemaError):
         site_schema.mutate(items, "promo", "toggle", "offer")
+
+
+def test_block_moved_near_share_and_card_stays_in_its_slot():
+    items = detail_parts.edit_rows({}, "promo_detail", [{"key": "offer"}, B1, {"key": "related"}])
+    keys = [i.get("id") or i["key"] for i in items]
+    assert keys == ["offer", "share", "card", "b1", "related"]
+    site_schema.mutate(items, "promo", "up", "b1")
+    keys = [i.get("id") or i["key"] for i in items]
+    assert keys[0] == "b1", "вверх — над «Angebot» (мимо «Teilen» и визитки)"
+    site_schema.mutate(items, "promo", "down", "b1")
+    assert [i.get("id") or i["key"] for i in items].index("b1") == 3, "вниз — снова после визитки"
+    site_schema.mutate(items, "promo", "move", "b1", value="before:share")
+    assert [i.get("id") or i["key"] for i in items].index("b1") == 3

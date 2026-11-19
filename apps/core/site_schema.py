@@ -2677,6 +2677,8 @@ def _with_shared_rows(config: dict, host: str, out: list[dict]) -> list[dict]:
             if i in by_id and by_id[i].get("enabled", True) is not False
         ]
 
+    # FB-33 M2g: и строки «на месте» — общий хвост встаёт после них (страница события рисует
+    # группы и серию до хвоста блоков)
     keys = set(detail_parts.section_keys(host))
     sections = [i for i, b in enumerate(out) if b["key"] in keys and not b["cblock"]]
     if not sections:
@@ -2691,6 +2693,27 @@ def _with_shared_rows(config: dict, host: str, out: list[dict]) -> list[dict]:
             merged += rows_for(a["tail"])
         merged += out[i + 1 : end]
     return merged
+
+
+def _is_in_place(item, rows_host: str) -> bool:
+    from apps.core import detail_parts
+
+    return (
+        isinstance(item, dict)
+        and not item.get("id")
+        and item.get("key") in detail_parts.in_place_keys(rows_host)
+    )
+
+
+def _past_in_place(items: list[dict], ref: str, rows_host: str) -> None:
+    """FB-33 M2g (ревью): блок перед строкой «на месте» страница рисует после всей группы таких
+    строк (они не якоря) — в схеме он встаёт туда же: редактор = страница."""
+    at = next((i for i, it in enumerate(items) if it.get("id") == ref), None)
+    if at is None:
+        return
+    while at + 1 < len(items) and _is_in_place(items[at + 1], rows_host):
+        items[at], items[at + 1] = items[at + 1], items[at]
+        at += 1
 
 
 def mutate(
@@ -2856,8 +2879,13 @@ def mutate(
                 or (not items[j].get("id") and items[j].get("key") in sec)
             ):
                 j += step
+        # FB-33 M2g (ревью): строки «на месте» — не места для блока (страница рисует блок у
+        # соседнего раздела): «выше» перешагивает их целиком
+        while step < 0 and 0 <= j < len(items) and _is_in_place(items[j], rows_host):
+            j += step
         if 0 <= j < len(items):
             items.insert(j, items.pop(idx))
+            _past_in_place(items, ref, rows_host)
     elif op == "move":
         # FB-29.5b: перетаскивание — блок встаёт перед другим или после него. Та же
         # перестановка, что кнопками; мусор и «на себя» ничего не меняют.
@@ -2890,6 +2918,7 @@ def mutate(
         moved = items.pop(idx)
         at = next(i for i, it in enumerate(items) if (it.get("id") or it.get("key")) == target)
         items.insert(at + (where == "after"), moved)
+        _past_in_place(items, ref, rows_host)  # FB-33 M2g: бросок на строку «на месте»
     elif op == "delete":
         if main or not item.get("id"):
             raise SchemaError("fixed")  # фикс-секции и основной список не удаляются
