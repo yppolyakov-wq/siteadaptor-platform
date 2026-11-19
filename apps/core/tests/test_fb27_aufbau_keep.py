@@ -79,7 +79,10 @@ def test_list_panel_links_to_the_source_screen():
 
 
 def test_apply_button_stays_for_no_script_and_script_only_enhances():
-    tpl = pathlib.Path("templates/tenant/site_schema.html").read_text()
+    # FB-33 M3-1: формы панели живут в частях окна блока (`_bw_*.html`)
+    tpl = pathlib.Path("templates/tenant/site_schema.html").read_text() + "".join(
+        p.read_text() for p in sorted(pathlib.Path("templates/tenant").glob("_bw_*.html"))
+    )
     assert tpl.count('value="update"') >= 2  # без скриптов кнопка остаётся
     js = pathlib.Path("static/js/aufbau.js").read_text()
     assert "data-schema-list" in js and "fetch(" in js

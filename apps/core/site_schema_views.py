@@ -9,7 +9,7 @@ from django.urls import reverse
 from django.utils.http import urlencode
 from django.utils.translation import gettext as _
 
-from apps.core import page_settings, site_schema
+from apps.core import block_window, page_settings, site_schema
 
 
 def _keep(source) -> dict:
@@ -22,6 +22,9 @@ def _keep(source) -> dict:
         keep["welche"] = source.get("welche")
     if source.get("ansicht") == "telefon":
         keep["ansicht"] = "telefon"
+    # FB-33 M3-1: открытая вкладка окна блока (только из белого списка)
+    if source.get("tab") in block_window.TAB_KEYS:
+        keep["tab"] = source.get("tab")
     return keep
 
 
@@ -30,7 +33,7 @@ def _url(code: str, block: str = "", keep: dict | None = None) -> str:
     if block:
         query["block"] = block
     for key, value in (keep or {}).items():
-        if key != "welche" or block:
+        if key not in ("welche", "tab") or block:
             query[key] = value
     # Якорь панели: после действия фокус возвращается к блоку, а не в начало страницы.
     return f"{reverse('site-schema')}?{urlencode(query)}" + ("#schema-panel" if block else "")
@@ -373,6 +376,11 @@ def site_schema_view(request):
         if c != code and c in labels
     ]
     layout = site_schema.schema_layout(blocks)
+    confirm_remove = bool(selected) and request.GET.get("entfernen") == "1"
+    # FB-33 M3-1: окно блока — части панели по вкладкам (`block_window`)
+    window = block_window.tabs(
+        selected, {"settings": settings, "design_rows": design_rows}, request.GET.get("tab", "")
+    )
     return render(
         request,
         "tenant/site_schema.html",
@@ -387,7 +395,10 @@ def site_schema_view(request):
             "layout": layout,
             **_row_ops(layout, selected),
             "selected": selected,
-            "confirm_remove": bool(selected) and request.GET.get("entfernen") == "1",
+            "confirm_remove": confirm_remove,
+            "window": window,
+            # вкладка, которую формы окна помнят после действия: только явно открытая
+            "window_tab": block_window.explicit_tab(window, request.GET.get("tab", "")),
             # FB-27 R7: строка категории — своя схема или блоки каталога
             "category_row": (
                 {"own": any(not b["main"] and not b["fixed"] for b in blocks)}

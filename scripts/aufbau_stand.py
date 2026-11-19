@@ -33,6 +33,14 @@ def settle(pg):
     assert not pg.locator("[data-schema-panel] button[value=update]:visible").count()
 
 
+def open_tab(pg, key):
+    """FB-33 M3-1: окно блока — части панели по вкладкам; без скриптов вкладка — ссылка."""
+    link = pg.locator(f"[data-window-tab-link={key}]")
+    if link.count() and link.first.is_visible():
+        link.first.click()
+        pg.wait_for_load_state()
+
+
 def close_sheet(pg):
     """На телефоне панель блока — лист снизу; до кнопок шапки и схемы — «Fertig»."""
     done = pg.locator("[data-schema-done]")
@@ -142,6 +150,7 @@ with sync_playwright() as p:
         close_sheet(pg)
         pair.locator("[data-schema-block]").first.click()
         pg.wait_for_load_state()
+        open_tab(pg, "texte")
         pg.fill("[data-schema-fields] input[name=f_title]", "Stand R3b Titel")
         settle(pg)
         pg.wait_for_load_state()
@@ -378,6 +387,7 @@ with sync_playwright() as p:
             pg.select_option("select[name=type]", "text")
             pg.click("form:has(select[name=type]) button")
             pg.wait_for_load_state()
+            open_tab(pg, "texte")
             pg.fill("[data-schema-fields] input[name=f_title]", "Stand Katalogblock")
             settle(pg)
             pg.wait_for_load_state()
@@ -399,6 +409,7 @@ with sync_playwright() as p:
             pg.select_option("select[name=type]", "text")
             pg.click("form:has(select[name=type]) button")
             pg.wait_for_load_state()
+            open_tab(pg, "texte")
             pg.fill("[data-schema-fields] input[name=f_title]", "Stand Kategorieblock")
             settle(pg)
             pg.wait_for_load_state()

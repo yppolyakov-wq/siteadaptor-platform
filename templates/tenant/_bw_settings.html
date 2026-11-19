@@ -1,0 +1,2 @@
+{% load i18n %}{% comment %}FB-33 M3-1: часть «Seite» — настройки типа страницы у ★-строки и носителей.{% endcomment %}
+{% if selected.carrier or selected.setting_row %}{% if settings or design_rows %}{% include "tenant/_schema_settings.html" %}{% endif %}{% endif %}

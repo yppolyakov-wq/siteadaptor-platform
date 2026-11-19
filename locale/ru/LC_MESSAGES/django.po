@@ -28814,7 +28814,6 @@ msgstr "Для ограниченных купонов: код приходит 
 msgid "Ihr Coupon ist unterwegs: wir haben ihn an %(email)s geschickt."
 msgstr "Купон уже в пути: мы отправили его на %(email)s."
 
-
 msgid "unbestätigt · läuft ab"
 msgstr "не подтверждено · истекает"
 
@@ -31637,7 +31636,6 @@ msgstr "Все страницы сайта в одном месте: главн�
 
 msgid "Noch nichts zu zeigen — legen Sie zuerst einen Eintrag an, den diese Seite zeigt."
 msgstr "Пока нечего показать — сначала создайте запись, которую показывает эта страница."
-
 
 msgid "Seitenvorlagen"
 msgstr "Шаблоны страниц"
@@ -35775,7 +35773,6 @@ msgstr "Билеты и туры"
 msgid "Zimmer & Übernachtung"
 msgstr "Номера и проживание"
 
-
 #: FB-26
 msgid "Waren im Laden & zum Abholen"
 msgstr "Товары в магазине и самовывоз"
@@ -39257,3 +39254,37 @@ msgstr "Пожалуйста, заполните: %(fields)s."
 
 msgid "Email or phone"
 msgstr "E-mail или телефон"
+
+#. FB-33 M3-1: вкладка окна блока
+msgctxt "block window tab"
+msgid "Was"
+msgstr "Что"
+
+#. FB-33 M3-1: вкладка окна блока
+msgctxt "block window tab"
+msgid "Wie anordnen"
+msgstr "Как расположить"
+
+#. FB-33 M3-1: вкладка окна блока
+msgctxt "block window tab"
+msgid "Karte"
+msgstr "Карточка"
+
+#. FB-33 M3-1: вкладка окна блока
+msgctxt "block window tab"
+msgid "Texte"
+msgstr "Тексты"
+
+#. FB-33 M3-1: вкладка окна блока
+msgctxt "block window tab"
+msgid "Seite"
+msgstr "Страница"
+
+#. FB-33 M3-1: вкладка окна блока
+msgctxt "block window tab"
+msgid "Felder"
+msgstr "Поля"
+
+#. FB-33 M3-1
+msgid "Bereiche des Blocks"
+msgstr "Разделы блока"
