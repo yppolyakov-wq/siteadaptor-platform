@@ -739,9 +739,16 @@ def apply_override(cfg: dict, code: str, value, output: dict | None = None) -> d
     if template_key:
         norm = siteconfig.normalize(out)
         # тот же шаблон по ОСЯМ (не по ближайшему коду): свои виды владельца не снимаются
-        if siteconfig.page_template_is(norm, template_key, str(value or "")):
-            return out
         from apps.core.page_axes_migration import legacy_reads
+
+        if siteconfig.page_template_is(norm, template_key, str(value or "")):
+            if legacy_reads():
+                return out
+            # ревью B3b: вид уже держат строки — старый ключ снимается, иначе при откате
+            # (`PAGE_LEGACY_READ=1`) он ожил бы поверх правок, сделанных после B3b
+            from apps.core import page_axes_migration
+
+            return page_axes_migration._without_key(out, template_key)
 
         # B3b: свои коды категорий не читаются — закреплять нечего (только при откате на коды)
         if template_key in siteconfig.OBJECT_BOUND_TEMPLATE_KEYS and legacy_reads():

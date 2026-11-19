@@ -356,6 +356,7 @@ def _promo_type_rows(request):
     from .group_styles import GROUP_PAGE_STYLES
 
     style_labels = {key: label for key, label, _hint in GROUP_PAGE_STYLES}
+    _norm = siteconfig.normalize(raw)
     card_labels = {key: label for key, label, _hint in card_forms.forms_for(card_forms.PROMO)}
     for row in rows:
         settings = promo_types.settings_for(saved, row["key"])
@@ -374,7 +375,16 @@ def _promo_type_rows(request):
         row["rows"] = layout.get("rows") or ""
         row["has_layout"] = bool(layout)
         # SP-7: подписи текущего выбора — для строки-сводки свёрнутого типа.
-        row["style_label"] = style_labels.get(row["style"], "")
+        # ревью B3b: подпись — по тому, что видит посетитель (строки схемы группы), а не по
+        # старому коду `promo_groups[*].style`, который витрина больше не читает
+        from apps.core import page_parts as _pp
+
+        from . import promo_parts as _promo_parts
+
+        _view = _pp.legacy_code(
+            _promo_parts.PROMO_GROUP, _promo_parts.group_parts(_norm, row["key"])
+        )
+        row["style_label"] = style_labels.get(_view, "")
         row["card_label"] = card_labels.get(row["card"], "")
     return rows
 

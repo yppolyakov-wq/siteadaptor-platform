@@ -38930,3 +38930,7 @@ msgstr "Kaydettikten sonra Sayfa yapısında düzenleyin."
 #, python-format
 msgid "Höchstens %(n)s „Sofort“-E-Mails am Tag — der Rest kommt am nächsten Tag."
 msgstr "Günde en fazla %(n)s „Hemen“ e-postası — gerisi ertesi gün gelir."
+
+#: apps/core/views.py
+msgid "Version restored, but the page templates of this version could not be taken over — please check the page structure."
+msgstr "Sürüm geri yüklendi, ancak bu sürümün sayfa şablonları aktarılamadı — lütfen sayfa yapısını kontrol edin."

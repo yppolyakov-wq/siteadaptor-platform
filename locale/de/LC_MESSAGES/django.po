@@ -38871,3 +38871,7 @@ msgstr "Nach dem Speichern im Seitenaufbau bearbeiten."
 #, python-format
 msgid "Höchstens %(n)s „Sofort“-E-Mails am Tag — der Rest kommt am nächsten Tag."
 msgstr "Höchstens %(n)s „Sofort“-E-Mails am Tag — der Rest kommt am nächsten Tag."
+
+#: apps/core/views.py
+msgid "Version restored, but the page templates of this version could not be taken over — please check the page structure."
+msgstr "Version wiederhergestellt, aber die Seitenvorlagen dieser Version ließen sich nicht übernehmen — bitte den Seitenaufbau prüfen."

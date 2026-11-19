@@ -39112,3 +39112,7 @@ msgstr "Після збереження — у «Seitenaufbau»."
 #, python-format
 msgid "Höchstens %(n)s „Sofort“-E-Mails am Tag — der Rest kommt am nächsten Tag."
 msgstr "Щонайбільше %(n)s листів «Одразу» на день — решта надійде наступного дня."
+
+#: apps/core/views.py
+msgid "Version restored, but the page templates of this version could not be taken over — please check the page structure."
+msgstr "Версію відновлено, але шаблони сторінок цієї версії перенести не вдалося — перевірте структуру сторінки."

@@ -83,3 +83,35 @@ def test_demo_kit_pages_render_the_same_with_and_without_old_codes(settings, kit
         with pam.legacy_view(False):
             after = render.at(cfg, path)
         assert after == before, (kit, path)
+
+
+def test_same_template_choice_drops_the_stale_old_key():
+    """Ревью B3b (M4): вид уже держат строки — повторный выбор того же шаблона снимает старый
+    ключ, чтобы откат `PAGE_LEGACY_READ=1` не оживил его поверх правок после B3b."""
+    from apps.core import page_settings
+
+    new, _report = pam.migrate({"catalog_page_style": "regale"})
+    assert new.get("catalog_page_style") == "regale", "перенос оставляет ключ (решение 4)"
+    out = page_settings.apply_override(new, "catalog_page_style", "regale")
+    assert "catalog_page_style" not in out
+    assert siteconfig.page_template_code(siteconfig.normalize(out), "catalog_page_style") == (
+        "regale"
+    )
+
+
+def test_own_category_code_without_rows_no_longer_changes_the_storefront(settings):
+    """M6: свой код категории без строк — витрина его не видит (B3b); с откатом — видит."""
+    from types import SimpleNamespace
+
+    cat = SimpleNamespace(slug="brot", page_style="tabs")
+    norm = siteconfig.normalize({})
+    assert catalog_parts.legacy_code(catalog_parts.category_parts(norm, cat)) == ""
+    settings.PAGE_LEGACY_READ = True
+    assert catalog_parts.legacy_code(catalog_parts.category_parts(norm, cat)) == "tabs"
+
+
+def test_own_promo_code_without_rows_is_ignored():
+    from apps.promotions import promo_parts
+
+    default = promo_parts.detail_parts({}, "", "", "")
+    assert promo_parts.detail_parts({}, "plakat", "", "") == default

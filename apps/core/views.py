@@ -2551,12 +2551,20 @@ def home_builder_view(request):
                     target, objects=page_axes_objects.build_index()
                 )
                 if report.mismatches:
-                    # не выразилось строками — версия откатывается как была (коды пока
-                    # читаются); `--residue` покажет её как остаток до B3b
+                    # ревью B3b: коды этой версии строками не выразились, а старые коды
+                    # витрина больше не читает — вид этих страниц будет «как обычно»; говорим
+                    # об этом владельцу, а не молчим
                     logging.getLogger(__name__).warning(
                         "restore_version: templates of %s not moved to rows: %s",
                         request.tenant.schema_name,
                         report.mismatches,
+                    )
+                    messages.warning(
+                        request,
+                        _(
+                            "Version restored, but the page templates of this version could "
+                            "not be taken over — please check the page structure."
+                        ),
                     )
                 else:
                     target = migrated

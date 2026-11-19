@@ -426,7 +426,9 @@ def test_sp7_screen_types_collapsed_with_summary_and_pickers_side_by_side(settin
     card = body.split('data-promo-type="A"')[1].split(">")[0]
     assert "open" not in card  # больше двух типов — свёрнуты
     summary = body.split('data-promo-type="A"')[1].split("data-type-summary>")[1][:200]
-    assert "Countdown" in summary or "countdown" in summary.lower()
+    # FB-31.7 B3b: подпись шаблона — по строкам схемы (как видит посетитель); старый код
+    # `promo_groups["A"] = "countdown"` без строк витрина не читает → «Standard»
+    assert "Standard" in summary and "countdown" not in summary.lower()
     pickers = body.split('data-promo-type="A"')[1].split("</details>")[0]
     # FB-31.7 B1b-2: шаблон типа — ссылкой в «Seitenaufbau», пикер остался один (форма)
     assert pickers.count('<div class="text-sm" data-cardform-picker>') == 1

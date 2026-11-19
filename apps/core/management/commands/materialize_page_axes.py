@@ -43,8 +43,10 @@ class Command(BaseCommand):
         if options["undo"] and not pam.legacy_reads():
             # B3b: строки — единственный источник вида; откат строк вернул бы вид по умолчанию
             raise CommandError(
-                "откат FB-31.7 после B3b: сначала PAGE_LEGACY_READ=1 в .env.prod и перезапуск "
-                "web/worker (старые коды снова читаются), затем --undo"
+                "откат FB-31.7 после B3b: сначала PAGE_LEGACY_READ=1 в .env.prod, перезапуск "
+                "web, worker и beat (старые коды снова читаются); эту команду запускать с тем же "
+                "окружением. --undo вернёт только сайты без правок после переноса (остальные — "
+                "«changed»: их вид держат строки, коды под ними снова читаются)"
             )
         done = skipped = would = 0
         skipped_sites: list[str] = []

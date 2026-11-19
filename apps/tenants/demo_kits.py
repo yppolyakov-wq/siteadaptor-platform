@@ -25622,6 +25622,16 @@ def apply_kit(tenant, key: str) -> bool:
         for r in _idx.categories
     ]
     cfg, _report = page_axes_migration.migrate_objects(cfg, _idx)
+    if _report.mismatches:
+        # ревью B3b: коды кита больше не читаются — не перенеслись, значит вид кита потерян
+        import logging
+
+        logging.getLogger(__name__).warning(
+            "apply_kit %s: own templates not moved to rows: %s %s",
+            key,
+            _report.mismatches,
+            _report.notes,
+        )
     _demo_locales = [loc for loc in (kit.enabled_locales or []) if loc != "de"]
     if _demo_locales:  # DL-2/DL-3: оверлей текстов на все включённые локали
         from . import demo_i18n

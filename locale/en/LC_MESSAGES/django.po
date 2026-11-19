@@ -38784,3 +38784,7 @@ msgstr "Edit in Page structure after saving."
 #, python-format
 msgid "Höchstens %(n)s „Sofort“-E-Mails am Tag — der Rest kommt am nächsten Tag."
 msgstr "At most %(n)s “Instantly” e-mails a day — the rest arrives the next day."
+
+#: apps/core/views.py
+msgid "Version restored, but the page templates of this version could not be taken over — please check the page structure."
+msgstr "Version restored, but the page templates of this version could not be taken over — please check the page structure."

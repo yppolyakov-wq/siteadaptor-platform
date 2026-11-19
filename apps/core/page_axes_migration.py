@@ -61,13 +61,25 @@ def with_legacy(func):
     return wrapper
 
 
+_OBJECTS_BLIND: contextvars.ContextVar[bool] = contextvars.ContextVar(
+    "fb317_objects_blind", default=False
+)
+
+
+@contextlib.contextmanager
 def objects_blind():
-    """Вид без старых кодов (как после B3b) — для сверки переноса и тестов."""
-    return legacy_view(False)
+    """Сверка переноса: не видеть кодов ОБЪЕКТОВ (категория, акция, группа) — ключи уровня сайта
+    при этом читаются как обычно (ревью B3b: иначе ложный отказ у сайта с пропущенным шаблоном)."""
+    token = _OBJECTS_BLIND.set(True)
+    try:
+        yield
+    finally:
+        _OBJECTS_BLIND.reset(token)
 
 
 def is_objects_blind() -> bool:
-    return not legacy_reads()
+    """Не читать коды объектов: B3b (коды не читаются вообще) или сверка переноса."""
+    return not legacy_reads() or _OBJECTS_BLIND.get()
 
 
 def read_old(value) -> str:

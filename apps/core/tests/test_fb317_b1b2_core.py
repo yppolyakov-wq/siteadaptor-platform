@@ -36,8 +36,8 @@ def test_own_rows_win_over_own_code_and_parent_tabs_follow_rows():
 def test_objects_blind_hides_own_codes_only_inside_the_block():
     cat = _cat(style="tabs")
     with pam.objects_blind():
-        # B3b: «вид без кодов» не читает ни своего кода, ни дефолта сайта — только строки
-        assert page_style(cat, "kopfbild") == ""
+        # сверка переноса: свой код объекта не виден, дефолт сайта — как обычно
+        assert page_style(cat, "kopfbild") == "kopfbild"
     assert page_style(cat, "kopfbild") == "tabs"
 
 
