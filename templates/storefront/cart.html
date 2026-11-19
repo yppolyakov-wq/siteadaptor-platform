@@ -23,6 +23,7 @@
 {% comment %}R4: прогресс-степпер C&C-воронки (Warenkorb → Versand → Bestätigt).
 Комбинированная страница корзина+оформление = шаг 1; подтверждение = шаг 3.{% endcomment %}
 {% funnel_steps "order" 1 %}
+{% if cart_parts.top %}{% page_blocks "cart" cart_parts.top %}{% endif %}
 <div class="lg:grid lg:grid-cols-3 lg:gap-6 lg:items-start">
   {# Левая колонка: позиции + форма оформления #}
   <div class="lg:col-span-2 space-y-4">
@@ -63,6 +64,7 @@
       {% endfor %}
     </div>
 
+    {% if cart_parts.hint %}{% page_blocks "cart" cart_parts.hint %}{% endif %}
     {% sell_closed "goods" as closed_sale %}
     {% if closed_sale and not quote_cart %}{% include "storefront/_sell_closed.html" %}{% endif %}
     <form id="checkout-form" method="post" action="{% url 'storefront-checkout' %}" class="sf-card bg-white rounded-2xl shadow-sm p-5 space-y-4">
@@ -236,9 +238,9 @@
   </aside>
 </div>
 
-{% if cart_flow %}
+{% if cart_parts %}
 {% comment %}FB-32 S4: свои блоки выше и ниже «Passt gut dazu» — порядок из «Seitenaufbau».{% endcomment %}
-{% for it in cart_flow %}{% if it.section == "upsell" %}{% include "storefront/_cart_upsell.html" %}{% else %}{% page_blocks "cart" it.part %}{% endif %}{% endfor %}
+{% for it in cart_parts.flow %}{% if it.section == "upsell" %}{% include "storefront/_cart_upsell.html" %}{% else %}{% page_blocks "cart" it.part %}{% endif %}{% endfor %}
 {% else %}
 {% include "storefront/_cart_upsell.html" %}
 {% endif %}
@@ -252,5 +254,5 @@
   <a href="{% url 'storefront-products' %}" class="inline-block rounded-lg px-5 py-2.5 text-white font-medium" style="background: var(--accent);">{% if request.tenant|is_food_business %}{% trans "Browse the menu" %}{% else %}{% trans "Browse the range" %}{% endif %} →</a>
 </div>
 {% endif %}
-{% if not cart_flow %}{% page_blocks "cart" %}{% elif not rows and not combo_rows %}{% page_blocks "cart" %}{% endif %}
+{% if not cart_parts %}{% page_blocks "cart" %}{% elif not rows and not combo_rows %}{% page_blocks "cart" %}{% endif %}
 {% endblock %}

@@ -39178,3 +39178,24 @@ msgstr "лише тури"
 
 msgid "Teilen und QR-Code"
 msgstr "Поділитися та QR-код"
+
+msgid "Bestellformular"
+msgstr "Форма замовлення"
+
+msgid "Summe und Bestellbutton"
+msgstr "Підсумок і кнопка замовлення"
+
+msgid "Was passiert jetzt?"
+msgstr "Що далі?"
+
+msgid "Das könnte Ihnen auch gefallen"
+msgstr "Вам може сподобатися"
+
+msgid "Bestätigungsseite"
+msgstr "Сторінка підтвердження"
+
+msgid "Bestellung, Termin, Zimmer, Ticket"
+msgstr "Замовлення, запис, номер, квиток"
+
+msgid "Was passiert jetzt"
+msgstr "Що далі"

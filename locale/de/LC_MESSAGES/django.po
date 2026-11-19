@@ -38937,3 +38937,24 @@ msgstr "nur Touren"
 
 msgid "Teilen und QR-Code"
 msgstr "Teilen und QR-Code"
+
+msgid "Bestellformular"
+msgstr "Bestellformular"
+
+msgid "Summe und Bestellbutton"
+msgstr "Summe und Bestellbutton"
+
+msgid "Was passiert jetzt?"
+msgstr "Was passiert jetzt?"
+
+msgid "Das könnte Ihnen auch gefallen"
+msgstr "Das könnte Ihnen auch gefallen"
+
+msgid "Bestätigungsseite"
+msgstr "Bestätigungsseite"
+
+msgid "Bestellung, Termin, Zimmer, Ticket"
+msgstr "Bestellung, Termin, Zimmer, Ticket"
+
+msgid "Was passiert jetzt"
+msgstr "Was passiert jetzt"

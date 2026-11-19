@@ -39191,3 +39191,24 @@ msgstr "только туры"
 
 msgid "Teilen und QR-Code"
 msgstr "Поделиться и QR-код"
+
+msgid "Bestellformular"
+msgstr "Форма заказа"
+
+msgid "Summe und Bestellbutton"
+msgstr "Итог и кнопка заказа"
+
+msgid "Was passiert jetzt?"
+msgstr "Что дальше?"
+
+msgid "Das könnte Ihnen auch gefallen"
+msgstr "Вам может понравиться"
+
+msgid "Bestätigungsseite"
+msgstr "Страница подтверждения"
+
+msgid "Bestellung, Termin, Zimmer, Ticket"
+msgstr "Заказ, запись, номер, билет"
+
+msgid "Was passiert jetzt"
+msgstr "Что дальше"

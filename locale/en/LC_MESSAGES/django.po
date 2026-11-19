@@ -38850,3 +38850,24 @@ msgstr "tours only"
 
 msgid "Teilen und QR-Code"
 msgstr "Share and QR code"
+
+msgid "Bestellformular"
+msgstr "Order form"
+
+msgid "Summe und Bestellbutton"
+msgstr "Total and order button"
+
+msgid "Was passiert jetzt?"
+msgstr "What happens next?"
+
+msgid "Das könnte Ihnen auch gefallen"
+msgstr "You might also like"
+
+msgid "Bestätigungsseite"
+msgstr "Confirmation page"
+
+msgid "Bestellung, Termin, Zimmer, Ticket"
+msgstr "Order, appointment, room, ticket"
+
+msgid "Was passiert jetzt"
+msgstr "What happens next"

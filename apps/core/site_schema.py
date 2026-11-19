@@ -75,6 +75,8 @@ def _fixed_section(host, item: dict) -> bool:
     M2g: и строка раздела «на месте» (группы и серия события, «Teilen» акции)."""
     if not item.get("id") and item.get("key") in _sec_parts.in_place_keys(host or ""):
         return True
+    if not item.get("id") and item.get("key") in _sec_parts.pinned_keys(host or ""):
+        return True  # FB-33 M2h: позиции, форма и итог корзины
     return (
         not item.get("id")
         and _sec_parts.module_of(host or "") in _sec_parts.FIXED_ORDER_MODULES
@@ -2716,6 +2718,41 @@ def _past_in_place(items: list[dict], ref: str, rows_host: str) -> None:
         at += 1
 
 
+def _pinned_slide(items: list[dict], ref: str, rows_host: str, *, up: bool) -> None:
+    """FB-33 M2h: между формой и итогом корзины блоков нет (§ 312j BGB) — блок, вставший
+    туда, идёт дальше по ходу: «выше» — над формой («Hinweise»), иначе — под итог."""
+    from apps.core import detail_parts
+
+    pair = detail_parts.SLIDE.get(detail_parts.module_of(detail_parts.shared_host(rows_host)))
+    if not pair:
+        return
+    at = next((i for i, it in enumerate(items) if it.get("id") == ref), None)
+    keys = [None if it.get("id") else it.get("key") for it in items]
+    if at is None or pair[0] not in keys or pair[1] not in keys:
+        return
+    first, second = keys.index(pair[0]), keys.index(pair[1])
+    if not first < at < second:
+        return
+    moved = items.pop(at)
+    items.insert(first if up else second, moved)  # после pop итог сдвинулся на одну строку
+
+
+def _pinned_order_ok(items: list[dict], rows_host: str) -> bool:
+    """FB-33 M2h: неподвижные строки — в порядке реестра, прочие разделы — после них."""
+    from apps.core import detail_parts
+
+    pinned = detail_parts.pinned_keys(rows_host)
+    if not pinned:
+        return True
+    sections = set(detail_parts.flow_section_keys(rows_host))
+    seq = [it.get("key") for it in items if not it.get("id") and it.get("key") in sections]
+    head = [k for k in seq if k in pinned]
+    if head != [k for k in pinned if k in head]:
+        return False
+    last = max((i for i, k in enumerate(seq) if k in pinned), default=-1)
+    return all(k in pinned for k in seq[: last + 1])
+
+
 def mutate(
     items: list[dict],
     code: str,
@@ -2786,6 +2823,9 @@ def mutate(
     in_place = not item.get("id") and item.get("key") in detail_parts.in_place_keys(rows_host)
     if in_place and op != "toggle":
         raise SchemaError("fixed")
+    if not item.get("id") and item.get("key") in detail_parts.pinned_keys(rows_host):
+        raise SchemaError("fixed")  # FB-33 M2h: позиции, форма, итог корзины — неподвижны
+    before_move = list(items) if anchor and op in ("up", "down", "move") else None
     pinned = (
         not item.get("id")
         and not main
@@ -2886,6 +2926,10 @@ def mutate(
         if 0 <= j < len(items):
             items.insert(j, items.pop(idx))
             _past_in_place(items, ref, rows_host)
+            _pinned_slide(items, ref, rows_host, up=step < 0)
+            if before_move is not None and not _pinned_order_ok(items, rows_host):
+                items[:] = before_move  # раздел не встаёт выше неподвижных строк корзины
+                raise SchemaError("fixed")
     elif op == "move":
         # FB-29.5b: перетаскивание — блок встаёт перед другим или после него. Та же
         # перестановка, что кнопками; мусор и «на себя» ничего не меняют.
@@ -2919,6 +2963,10 @@ def mutate(
         at = next(i for i, it in enumerate(items) if (it.get("id") or it.get("key")) == target)
         items.insert(at + (where == "after"), moved)
         _past_in_place(items, ref, rows_host)  # FB-33 M2g: бросок на строку «на месте»
+        _pinned_slide(items, ref, rows_host, up=False)
+        if before_move is not None and not _pinned_order_ok(items, rows_host):
+            items[:] = before_move  # раздел не встаёт выше неподвижных строк корзины
+            raise SchemaError("fixed")
     elif op == "delete":
         if main or not item.get("id"):
             raise SchemaError("fixed")  # фикс-секции и основной список не удаляются

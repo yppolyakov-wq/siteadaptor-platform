@@ -971,7 +971,8 @@ def cart_view(request):
     # FB-32 S4: свои блоки выше/ниже «Passt gut dazu» (пусто — прежняя разметка)
     from apps.core import detail_parts
 
-    ctx["cart_flow"] = detail_parts.cart_flow(_cfg, normalized=True)
+    # FB-33 M2h: и над корзиной, и «Hinweise» над формой (у итога и кнопки — нет, § 312j)
+    ctx["cart_parts"] = detail_parts.cart_parts(_cfg, normalized=True)
     ctx["is_preview"] = is_preview
     # E7-2: пикер способа оплаты — ТОЛЬКО при >1 доступного (один способ =
     # форма байт-в-байт прежняя, замок test_checkout_form_parity_single_method).

@@ -113,7 +113,15 @@ DETAIL_SECTIONS: dict[str, tuple[DetailSection, ...]] = {
     # (описание/оснащение/отзывы/похожие). Hide-only.
     # FB-32 S4: страница корзины — «Passt gut dazu» строкой схемы (двигается, скрывается,
     # свои блоки выше/ниже). Видимость — прежний ключ `cart_show_upsell`.
-    "cart": (DetailSection("upsell", _("Goes well with this")),),
+    # FB-33 M2h: оформление — строки корзины: позиции, форма и итог с кнопкой неподвижны и не
+    # скрываются (§ 312j BGB: кнопка сразу после итога); свои блоки — над корзиной, «Hinweise»
+    # над формой (после позиций), под сеткой и в хвосте
+    "cart": (
+        DetailSection("items", _("Positionen"), hideable=False),
+        DetailSection("form", _("Bestellformular"), hideable=False),
+        DetailSection("summary", _("Summe und Bestellbutton"), hideable=False),
+        DetailSection("upsell", _("Goes well with this")),
+    ),
     # FB-32 S6a: «Über uns» — текст (всегда на странице) и карточка контактов (видимость —
     # прежний ключ `about_contact`); своя страница «Seite» — только текст. Порядок постоянный.
     "info": (

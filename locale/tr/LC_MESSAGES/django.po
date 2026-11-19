@@ -38996,3 +38996,24 @@ msgstr "yalnızca turlar"
 
 msgid "Teilen und QR-Code"
 msgstr "Paylaş ve QR kodu"
+
+msgid "Bestellformular"
+msgstr "Sipariş formu"
+
+msgid "Summe und Bestellbutton"
+msgstr "Toplam ve sipariş butonu"
+
+msgid "Was passiert jetzt?"
+msgstr "Şimdi ne olacak?"
+
+msgid "Das könnte Ihnen auch gefallen"
+msgstr "Bunlar da hoşunuza gidebilir"
+
+msgid "Bestätigungsseite"
+msgstr "Onay sayfası"
+
+msgid "Bestellung, Termin, Zimmer, Ticket"
+msgstr "Sipariş, randevu, oda, bilet"
+
+msgid "Was passiert jetzt"
+msgstr "Şimdi ne olacak"

@@ -222,6 +222,43 @@ def in_place_keys(host: str) -> tuple[str, ...]:
     )
 
 
+#: FB-33 M2h: неподвижные строки страницы — всегда первыми и в порядке реестра (корзина:
+#: позиции, форма, итог с кнопкой); не двигаются и не скрываются. Старые строки без них —
+#: как будто они стоят первыми (страница прежняя).
+PINNED = {"cart": ("items", "form", "summary")}
+#: FB-33 M2h: между этими строками своих блоков нет — блок после первой рисуется после второй
+#: (у корзины: под формой итог с кнопкой — § 312j BGB, блок встаёт под сетку)
+SLIDE = {"cart": ("form", "summary")}
+
+
+def pinned_keys(host: str) -> tuple[str, ...]:
+    return PINNED.get(module_of(shared_host(host or "")), ())
+
+
+def _with_pinned(rows: list, host: str) -> list:
+    """FB-33 M2h: неподвижные строки — в порядке реестра (на местах, где они стоят), недостающие —
+    рядом с соседней неподвижной строкой, а если нет ни одной — в начало."""
+    keys = pinned_keys(host)
+    if not keys:
+        return rows
+    rows = list(rows)
+    at = [i for i, r in enumerate(rows) if not r.get("id") and r.get("key") in keys]
+    present = [k for k in keys if k in {rows[i]["key"] for i in at}]
+    for i, key in zip(at, present, strict=False):
+        rows[i] = {"key": key}
+    for i in at[len(present) :]:
+        rows[i] = None  # дубль неподвижной строки — лишний
+    rows = [r for r in rows if r is not None]
+    for n, key in enumerate(keys):
+        where = {r.get("key"): i for i, r in enumerate(rows) if not r.get("id")}
+        if key in where:
+            continue
+        prev = [where[k] for k in keys[:n] if k in where]
+        nxt = [where[k] for k in keys[n + 1 :] if k in where]
+        rows.insert(prev[-1] + 1 if prev else (nxt[0] if nxt else 0), {"key": key})
+    return rows
+
+
 #: FB-33 M2g: строки «на месте» в схеме — сразу после этого раздела (иначе — после всех)
 IN_PLACE_AFTER = {"promo_detail": "offer"}
 
@@ -252,6 +289,7 @@ def anchors(rows, host: str, order: list[str] | None = None) -> dict:
     if not placed:
         out["tail"] = [r["id"] for r in rows if r.get("id")]
         return out
+    rows = _with_pinned(rows, host)
     current, last = None, None
     for r in rows:
         if r.get("key") in keys and not r.get("id"):
@@ -268,6 +306,10 @@ def anchors(rows, host: str, order: list[str] | None = None) -> dict:
         last if shared_host(host or "") in WIDE_LAST and last else (order[-1] if order else last)
     )
     out["tail"] = out["after"].pop(tail_key, []) if tail_key else []
+    slide = SLIDE.get(module_of(shared_host(host or "")))
+    if slide and slide[0] in out["after"]:
+        first, second = slide
+        out["after"][second] = out["after"].pop(first) + out["after"].get(second, [])
     return out
 
 
@@ -604,9 +646,40 @@ def promo_slots(config) -> dict:
     }
 
 
+def cart_parts(config, *, normalized: bool = False) -> dict:
+    """FB-33 M2h: места своих блоков корзины — {"top": над корзиной, "hint": «Hinweise» над
+    формой, "flow": под сеткой [{"part"} | {"section": "upsell"}]}; {} — прежняя разметка
+    (полоса «Passt dazu», затем все блоки). Внутри итога и у кнопки мест нет (§ 312j BGB).
+    Блоки после «Passt dazu» рисуются после неё (FB-32 S4 их терял)."""
+    from apps.tenants import siteconfig
+
+    raw = (config.get("page_blocks") or {}).get("cart") if isinstance(config, dict) else None
+    if not raw:
+        return {}  # своих блоков нет — без нормализации (горячий путь корзины)
+    norm = config if normalized else siteconfig.normalize(config)
+    rows = siteconfig.page_rows(norm, "cart")
+    a = anchors(rows, "cart", list(flow_section_keys("cart")))
+    if not a["placed"]:
+        return {}
+    hidden = siteconfig.detail_section_hidden(norm, "cart")
+    flow_items: list[dict] = []
+    if a["after"].get("summary"):
+        flow_items.append({"part": ids_part(a["after"]["summary"])})
+    if "upsell" not in hidden:
+        flow_items.append({"section": "upsell"})
+    rest = a["after"].get("upsell", []) + a["tail"]
+    if rest:
+        flow_items.append({"part": ids_part(rest)})
+    return {
+        "top": ids_part(a["lead"]) if a["lead"] else "",
+        "hint": ids_part(a["after"]["items"]) if a["after"].get("items") else "",
+        "flow": flow_items,
+    }
+
+
 def cart_flow(config, *, normalized: bool = False) -> list[dict]:
-    """Поток страницы корзины (FB-32 S4) — `page_flow` хоста `cart`."""
-    return page_flow(config, "cart", normalized=normalized)
+    """Поток страницы корзины под сеткой (FB-32 S4) — `cart_parts()["flow"]`."""
+    return cart_parts(config, normalized=normalized).get("flow", [])
 
 
 def _fixed(a: dict, host: str) -> tuple[list, list]:
