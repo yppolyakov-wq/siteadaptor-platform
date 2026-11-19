@@ -345,6 +345,7 @@ def veranstaltung_detail(request, pk):
     # SE-2b-2: при ?preview=1 берём черновик из сессии (on-canvas правка порядка/
     # видимости тематических секций детальной), иначе — сохранённый site_config.
     _raw = page_settings.raw_config(request)
+    _hidden = object_structure.effective_hidden(_raw, "events", event)
 
     from apps.core import detail_sections
     from apps.core.sellable import sellable_for
@@ -362,6 +363,7 @@ def veranstaltung_detail(request, pk):
         # MX-6: «одинаковые, разные даты — группируем» (владелец). series_id
         # писался при клонировании (RT3) и не читался НИГДЕ — курс из 12 занятий
         # выглядел 12 несвязанными карточками. Деталь показывает остальные даты.
+        # FB-33 M2g: раздел «Weitere Termine» скрыт — без запроса
         "series_siblings": (
             list(
                 Event.objects.filter(
@@ -372,7 +374,7 @@ def veranstaltung_detail(request, pk):
                 .exclude(pk=event.pk)
                 .order_by("starts_at")[:12]
             )
-            if event.series_id
+            if event.series_id and "more_dates" not in _hidden
             else []
         ),
         "agenda": _parse_agenda(event.program_localized()),  # RV2: тайм-лайн программы (I18N-12)
@@ -386,6 +388,8 @@ def veranstaltung_detail(request, pk):
         # M20U-4: порядок/видимость тематических секций детальной.
         # FB-29 R5: порядок общий, видимость — общая с отличиями этого события.
         "event_detail_order": object_structure.effective_order(_raw, "events", event),
+        # FB-33 M2g: разделы «на месте» (группы, серия) — скрыты общей схемой или «nur hier»
+        "event_detail_hidden": _hidden,
         # FB-31 P5: свои блоки между разделами (пусто — прежняя разметка)
         **_detail_flow(
             _raw, object_structure.effective_order(_raw, "events", event), "event", event
@@ -938,7 +942,11 @@ def tour_detail(request, slug):
             "departures": list(tour.upcoming_departures()),
             # MT-D3: «не подходит ни одна дата» — заявка на приватный выезд с
             # темой этого тура (форма jobs); без модуля jobs ссылки нет.
-            "private_tour_url": _private_tour_url(request, tour.title_text),
+            # FB-33 M2g: раздел «Privattour» скрыт — нет ни блока, ни кнопки в шапке (без
+            # выездов шапка ведёт на «Termine anfragen»: путь к бизнесу остаётся)
+            "private_tour_url": ""
+            if "private_tour" in object_structure.effective_hidden(raw, "events", tour)
+            else _private_tour_url(request, tour.title_text),
             # Порядок/скрытие тематических блоков — общий с событиями (M20U-4).
             # T1: видимость — с отличиями самого тура (`object_structure`).
             "event_detail_order": order,

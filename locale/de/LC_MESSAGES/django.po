@@ -38928,3 +38928,12 @@ msgstr "Warteliste"
 #. FB-33 M2f
 msgid "Frage stellen"
 msgstr "Frage stellen"
+
+msgid "nur Veranstaltungen"
+msgstr "nur Veranstaltungen"
+
+msgid "nur Touren"
+msgstr "nur Touren"
+
+msgid "Teilen und QR-Code"
+msgstr "Teilen und QR-Code"

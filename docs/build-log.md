@@ -24041,3 +24041,18 @@ security/silent-failure): тупик в двусторонних прятках,
   ни блока, ни скрипта localStorage. LMIV: у еды (`FOOD_BUSINESS_TYPES`, вкл. grocery — решение
   владельца) «Zutaten/Allergene» не скрывается (`detail_parts.hideable/food_locked`, витрина вычитает).
   Аудит — `python manage.py lmiv_info_audit` (только чтение; итог `lmiv hidden: N sites, M products`).
+
+### 2026-11-19 — FB-33 M2g разделы «на месте»: события, тур, акция
+- Реестр `detail_sections`: поле `in_place` (раздел только скрывается — не двигается, не входит в
+  поток, вкладки и якоря блоков: `flow_keys`, `detail_parts.flow_section_keys/in_place_keys`) и
+  `only` (чей раздел на общем хосте событий и туров). Строки в схеме — неподвижные, с подписью
+  «· nur Veranstaltungen» / «· nur Touren»; в `page_blocks` не хранятся (`strip_in_place`).
+- События: `groups` (Groups & companies), `more_dates` (Weitere Termine; скрыт — без запроса серии)
+  после «Buchung». Тур: `private_tour` — скрыт: нет блока в «Termine & Preise» и кнопки «Eigenen
+  Termin anfragen»; без выездов шапка ведёт на «Termine anfragen». Своя схема события — без
+  `private_tour`, тура — без групп и серии.
+- Акция: `share` (WhatsApp, ссылка, QR) и `card` («So finden Sie uns») в колонке «Angebot» —
+  флаги `promo_show_share/card` (только False); при «Nur zeigen» визитка видна всегда (решение
+  владельца). Цена и условия — цельная строка `offer`. Замок до кода — `test_fb33_m2g_before`
+  (18 снимков `golden_fb33m2g`), прежние golden P5/S6 целы.
+

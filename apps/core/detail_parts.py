@@ -86,7 +86,12 @@ VISIBILITY_KEYS = {
     "cart": {"upsell": "cart_show_upsell"},
     "info": {"contact": "about_contact"},
     "blog_post": {"more": "blog_show_more"},
-    "promo": {"related": "promo_show_related"},
+    # FB-33 M2g: «Teilen» и визитка — внутри колонки «Angebot», скрываются на месте
+    "promo": {
+        "share": "promo_show_share",
+        "card": "promo_show_card",
+        "related": "promo_show_related",
+    },
     "combo": {
         "reviews": "combo_show_reviews",
         "examples": "combo_show_examples",
@@ -195,15 +200,51 @@ def section_keys(host: str) -> tuple[str, ...]:
     return detail_sections.section_keys(module) if module else ()
 
 
+def flow_section_keys(host: str) -> tuple[str, ...]:
+    """FB-33 M2g: разделы страницы, которые двигаются и служат якорями (без разделов «на
+    месте» — те только скрываются, страница рисует их там, где они были)."""
+    module = module_of(shared_host(host))
+    return detail_sections.flow_keys(module) if module else ()
+
+
+def in_place_keys(host: str) -> tuple[str, ...]:
+    """FB-33 M2g: разделы «на месте» страницы — в порядке реестра; у хоста объекта — только
+    разделы его вида (у события нет приватного выезда, у тура — групп и серии)."""
+    module = module_of(shared_host(host or ""))
+    if not module:
+        return ()
+    keys = detail_sections.in_place_keys(module)
+    kind = object_kind(host or "")
+    return tuple(
+        s.key
+        for s in detail_sections.sections_for(module)
+        if s.key in keys and (not kind or not s.only or s.only == kind)
+    )
+
+
+#: FB-33 M2g: строки «на месте» в схеме — сразу после этого раздела (иначе — после всех)
+IN_PLACE_AFTER = {"promo_detail": "offer"}
+
+
 def anchor_keys(host: str) -> frozenset:
-    """Разделы, чьи голые строки — только якоря позиции (без строк осей, FB-32 S6f)."""
-    return frozenset(section_keys(host)) - AXIS_SECTIONS.get(shared_host(host or ""), frozenset())
+    """Разделы, чьи голые строки — только якоря позиции (без строк осей, FB-32 S6f, и без
+    разделов «на месте», FB-33 M2g)."""
+    return frozenset(flow_section_keys(host)) - AXIS_SECTIONS.get(
+        shared_host(host or ""), frozenset()
+    )
+
+
+def strip_in_place(host: str, rows) -> list:
+    """FB-33 M2g: строки разделов «на месте» не хранятся в `page_blocks` (их место постоянно)."""
+    keys = set(detail_sections.in_place_keys(module_of(shared_host(host or ""))))
+    return [r for r in rows if not (r.get("key") in keys and not r.get("id"))]
 
 
 def anchors(rows, host: str, order: list[str] | None = None) -> dict:
     """{"placed": bool, "lead": [id], "after": {раздел: [id]}, "tail": [id]} — где стоят свои
-    блоки относительно разделов. Скрытые/мусорные строки не мешают: якорь — порядок строк."""
-    keys = set(section_keys(host))
+    блоки относительно разделов. Скрытые/мусорные строки не мешают: якорь — порядок строк.
+    FB-33 M2g: строки разделов «на месте» — не якоря (блок после них — у соседнего раздела)."""
+    keys = set(flow_section_keys(host))
     pure = anchor_keys(host)
     rows = [r for r in (rows if isinstance(rows, list) else []) if isinstance(r, dict)]
     placed = any(r.get("key") in pure and not r.get("id") for r in rows)
@@ -283,7 +324,7 @@ def object_order(config, kind: str, obj) -> list[str]:
 
     host = OBJECT_SHARED.get(kind, "")
     if host in FIXED_ORDER:
-        return list(section_keys(host))
+        return list(flow_section_keys(host))
     return object_structure.effective_full_order(config, module_of(host), obj)
 
 
@@ -298,12 +339,14 @@ def ids_part(ids) -> str:
 
 
 def full_order(config, module: str) -> list[str]:
-    """Полный порядок разделов (со скрытыми): сохранённый + остальные по реестру."""
+    """Полный порядок разделов (со скрытыми): сохранённый + остальные по реестру. FB-33 M2g:
+    без разделов «на месте» (они не двигаются)."""
     from apps.tenants import siteconfig
 
-    keys = detail_sections.section_keys(module)
+    keys = detail_sections.flow_keys(module)
     raw = (config or {}).get(siteconfig.detail_section_config_key(module))
     saved = siteconfig.normalize_detail_sections(raw, module).get("order", [])
+    saved = [k for k in saved if k in keys]
     return saved + [k for k in keys if k not in saved]
 
 
@@ -332,6 +375,9 @@ def edit_rows(config, host: str, rows, order=None, hidden=None) -> list[dict]:
         seq.append({"key": key, "enabled": key not in hidden})
         seq += [by_id[i] for i in a["after"].get(key, []) if i in by_id]
     axis = AXIS_SECTIONS.get(base, frozenset())
+    # FB-33 M2g: строки «на месте» — сразу после своего раздела или после всех разделов
+    places = [{"key": k, "enabled": k not in hidden} for k in in_place_keys(host)]
+    after = IN_PLACE_AFTER.get(base)
     for key in full:
         if key in first:
             continue
@@ -341,7 +387,11 @@ def edit_rows(config, host: str, rows, order=None, hidden=None) -> list[dict]:
             seq.append({**stored, "key": key, "enabled": True})
         else:
             seq.append({"key": key, "enabled": key not in hidden})
+        if key == after:
+            seq += places
+            places = []
         seq += [by_id[i] for i in a["after"].get(key, []) if i in by_id]
+    seq += places
     seq += [by_id[i] for i in a["tail"] if i in by_id]
     return seq
 
@@ -386,7 +436,8 @@ def object_lift(
     if obj is None:  # ревью R8: `commit` передаёт объект, заблокированный в транзакции
         obj = object_for_host(host)
     keys = set(section_keys(host))
-    order = [r["key"] for r in items if r.get("key") in keys and not r.get("id")]
+    flow_keys = set(flow_section_keys(host))
+    order = [r["key"] for r in items if r.get("key") in flow_keys and not r.get("id")]
     if obj is None or not order:
         return items, None  # старый черновик (до R8) — разделы объекта не трогаем
     module = module_of(OBJECT_SHARED[object_kind(host)])
@@ -399,7 +450,8 @@ def object_lift(
     shared_hidden = siteconfig.detail_section_hidden(config, module)
     was_hidden = (shared_hidden - set(prev.get("shown", []))) | set(prev.get("hidden", []))
     hidden, shown = [], []
-    for key in order:
+    present = order + [k for k in in_place_keys(host) if k in enabled]
+    for key in present:
         visible = enabled[key]
         if visible == (key not in was_hidden):
             # не трогали — прежний выбор объекта как был (явное «показать» не теряется)
@@ -415,6 +467,7 @@ def object_lift(
     if module in object_structure.ORDERABLE_MODULES and order != full_order(config, module):
         state["order"] = order
     rows = [{"key": r["key"]} if r.get("key") in keys and not r.get("id") else r for r in items]
+    rows = strip_in_place(host, rows)
     if not any(r.get("id") for r in rows):
         rows = []  # своих блоков нет — хост не пишется (лимит своих страниц не тратится)
     return rows, state
@@ -427,7 +480,8 @@ def lift(config: dict, host: str, items: list[dict]) -> list[dict]:
 
     module = module_of(host)
     keys = set(section_keys(host))
-    order = [r["key"] for r in items if r.get("key") in keys and not r.get("id")]
+    flow_keys = set(flow_section_keys(host))
+    order = [r["key"] for r in items if r.get("key") in flow_keys and not r.get("id")]
     if not [k for k in order if k in anchor_keys(host)]:
         # ревью P5: черновик без строк разделов (начат до P5) не трогает порядок и видимость;
         # ревью S6f: строка оси («Angebot») — ещё не строка раздела
@@ -440,8 +494,16 @@ def lift(config: dict, host: str, items: list[dict]) -> list[dict]:
         and r.get("enabled") is False
         and hideable(host, r["key"])
     )
+    # FB-33 M2g: раздел «на месте», которого нет в черновике (черновик начат до M2g), —
+    # прежняя видимость (а не «показан»)
+    present = {r.get("key") for r in items if not r.get("id")}
+    before = siteconfig.detail_section_hidden(config, module)
+    hidden = sorted(
+        set(hidden)
+        | {k for k in detail_sections.in_place_keys(module) if k not in present and k in before}
+    )
     if module in VISIBILITY_KEYS or module in FIXED_ORDER_MODULES:
-        return _lift_flags(config, host, module, items, keys, hidden)
+        return strip_in_place(host, _lift_flags(config, host, module, items, keys, hidden))
     cfg_key = siteconfig.detail_section_config_key(module)
     detail = dict(config.get(cfg_key) or {}) if isinstance(config.get(cfg_key), dict) else {}
     if order and order != full_order(config, module):
@@ -449,7 +511,8 @@ def lift(config: dict, host: str, items: list[dict]) -> list[dict]:
     if hidden or detail.get("hidden") or cfg_key in config or "order" in detail:
         detail["hidden"] = hidden
         config[cfg_key] = detail
-    return [{"key": r["key"]} if r.get("key") in keys and not r.get("id") else r for r in items]
+    rows = [{"key": r["key"]} if r.get("key") in keys and not r.get("id") else r for r in items]
+    return strip_in_place(host, rows)
 
 
 def _lift_flags(
@@ -478,7 +541,7 @@ def _lift_flags(
             rows.append({"key": r["key"]})
         else:
             rows.append(r)
-    return siteconfig.compact_section_rows(rows, keys - axis, axis)
+    return siteconfig.compact_section_rows(rows, set(flow_section_keys(host)) - axis, axis)
 
 
 def page_flow(config, host: str, *, normalized: bool = False) -> list[dict]:
@@ -489,7 +552,7 @@ def page_flow(config, host: str, *, normalized: bool = False) -> list[dict]:
 
     norm = config if normalized else siteconfig.normalize(config)
     rows = siteconfig.page_rows(norm, host)
-    keys = list(section_keys(host))
+    keys = list(flow_section_keys(host))
     hidden = siteconfig.detail_section_hidden(norm, module_of(host))
     order = [k for k in keys if k not in hidden]
     return flow(rows, host, order, all_order=keys)
@@ -505,7 +568,7 @@ def flow_ctx(config, host: str, *, normalized: bool = False) -> dict:
         return {"page_flow": [], "tail_part": "after"}
     norm = config if normalized else siteconfig.normalize(config)
     rows = siteconfig.page_rows(norm, host)
-    keys = list(section_keys(host))
+    keys = list(flow_section_keys(host))
     hidden = siteconfig.detail_section_hidden(norm, module_of(host))
     items = flow(rows, host, [k for k in keys if k not in hidden], all_order=keys)
     return {"page_flow": items, "tail_part": tail_part(rows, host, keys)}
@@ -531,7 +594,7 @@ def promo_slots(config) -> dict:
     except Exception:  # noqa: BLE001 — ревью S6f: страница акции (деньги) не падает из-за блоков
         logger.warning("promo_slots: normalize failed", exc_info=True)
         return {}
-    a = anchors(rows, host, list(section_keys(host)))
+    a = anchors(rows, host, list(flow_section_keys(host)))
     if not a["placed"]:
         return {}
     return {
@@ -561,7 +624,7 @@ def fixed_parts(rows, host: str, own: dict | None = None) -> dict:
     """FB-31 P5: свои блоки товара/номера по местам постоянной страницы — {"lead": part перед
     телом (до отзывов), "mid": part после отзывов (до «Ähnliche»)}; пусто — прежняя разметка.
     R8: `own` — якоря своих блоков объекта → "lead_own"/"mid_own" (после общих)."""
-    a = anchors(rows, host, list(section_keys(host)))
+    a = anchors(rows, host, list(flow_section_keys(host)))
     out = {"lead": "", "mid": "", "wide": ""}
     if a["placed"]:
         lead, mid = _fixed(a, host)
@@ -588,7 +651,7 @@ def page_ctx(cfg, host: str, kind: str = "", obj=None) -> dict:
 
     norm = siteconfig.normalize(cfg)
     rows = (norm.get("page_blocks") or {}).get(host) or []
-    order = list(section_keys(host))
+    order = list(flow_section_keys(host))
     own = own_anchors(norm, kind, obj, order) if obj is not None else None
     return {
         "detail_block_parts": fixed_parts(rows, host, own),

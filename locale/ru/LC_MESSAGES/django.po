@@ -39182,3 +39182,12 @@ msgstr "Лист ожидания"
 #. FB-33 M2f
 msgid "Frage stellen"
 msgstr "Задать вопрос"
+
+msgid "nur Veranstaltungen"
+msgstr "только мероприятия"
+
+msgid "nur Touren"
+msgstr "только туры"
+
+msgid "Teilen und QR-Code"
+msgstr "Поделиться и QR-код"

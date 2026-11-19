@@ -38841,3 +38841,12 @@ msgstr "Waiting list"
 #. FB-33 M2f
 msgid "Frage stellen"
 msgstr "Ask a question"
+
+msgid "nur Veranstaltungen"
+msgstr "events only"
+
+msgid "nur Touren"
+msgstr "tours only"
+
+msgid "Teilen und QR-Code"
+msgstr "Share and QR code"

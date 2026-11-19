@@ -36,6 +36,11 @@ class DetailSection:
     label: object
     hideable: bool = True
     orderable: bool = False
+    #: FB-33 M2g: раздел «на месте» — только скрывается: не двигается, в поток/вкладки и якоря
+    #: своих блоков не входит (страница рисует его там, где он был)
+    in_place: bool = False
+    #: FB-33 M2g: у общего хоста двух видов (события и туры) — чей это раздел ("event"/"tour")
+    only: str = ""
 
 
 # UC5-1: граница канвы — buy-box (выбор дат/слотов/количества, POST-движки
@@ -82,6 +87,12 @@ DETAIL_SECTIONS: dict[str, tuple[DetailSection, ...]] = {
             ("before_after", _("Before & after")),
             ("certifications", _("Certifications")),
         )
+    )
+    # FB-33 M2g: после «Buchung», скрываются на месте (у тура — свой раздел приватного выезда)
+    + (
+        DetailSection("groups", _("Groups & companies"), in_place=True, only="event"),
+        DetailSection("more_dates", _("Weitere Termine"), in_place=True, only="event"),
+        DetailSection("private_tour", _("Request a private tour"), in_place=True, only="tour"),
     ),
     # UA4-1 slice C: секции детальной УСЛУГИ (booking.Service) — ключи по факту
     # service_detail.html (описание/атрибуты/FAQ/команда/отзывы). Hide-only.
@@ -133,6 +144,9 @@ DETAIL_SECTIONS: dict[str, tuple[DetailSection, ...]] = {
     # `promo_show_related`). Порядок постоянный.
     "promo": (
         DetailSection("offer", _("Angebot"), hideable=False),
+        # FB-33 M2g: внутри колонки «Angebot» — скрываются на месте (цены в них нет)
+        DetailSection("share", _("Teilen und QR-Code"), in_place=True),
+        DetailSection("card", _("So finden Sie uns"), in_place=True),
         DetailSection("related", _("Weitere Aktionen")),
     ),
     # FB-32 S6g-1: страницы, у которых блоков не было, — содержимое одной неподвижной строкой
@@ -172,6 +186,21 @@ def sections_for(module: str) -> tuple[DetailSection, ...]:
 def section_keys(module: str) -> tuple[str, ...]:
     """Ключи секций модуля в дефолтном порядке рендера."""
     return tuple(s.key for s in sections_for(module))
+
+
+def flow_keys(module: str) -> tuple[str, ...]:
+    """FB-33 M2g: разделы, которые двигаются и служат якорями (без разделов «на месте»)."""
+    return tuple(s.key for s in sections_for(module) if not s.in_place)
+
+
+def in_place_keys(module: str) -> frozenset:
+    """FB-33 M2g: разделы «на месте» (только скрываются)."""
+    return frozenset(s.key for s in sections_for(module) if s.in_place)
+
+
+def only_of(module: str, key: str) -> str:
+    """FB-33 M2g: чей раздел на общем хосте ("event"/"tour"; "" — общий)."""
+    return next((s.only for s in sections_for(module) if s.key == key), "")
 
 
 def section_labels(module: str) -> dict:

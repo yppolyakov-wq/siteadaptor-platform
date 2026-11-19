@@ -79,7 +79,7 @@ def test_own_order_only_where_order_moves():
     ev.page_override = {"order": ["faq", "idea"]}
     full = object_structure.effective_full_order({}, "events", ev)
     assert full[:2] == ["faq", "idea"] and set(full) == set(
-        detail_parts.section_keys("event_detail")
+        detail_parts.flow_section_keys("event_detail")  # FB-33 M2g: без разделов «на месте»
     )
     assert object_structure.deviations(ev, "events") == 1
 

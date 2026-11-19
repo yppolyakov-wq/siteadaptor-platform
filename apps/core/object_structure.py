@@ -142,7 +142,8 @@ def effective_full_order(config, module: str, obj) -> list[str]:
     from apps.core import detail_parts
 
     shared = detail_parts.full_order(config, module)
-    own = clean(_state(config, obj), module).get("order", [])
+    # FB-33 M2g: разделы «на месте» в порядок не входят (и устаревшим своим порядком)
+    own = [k for k in clean(_state(config, obj), module).get("order", []) if k in shared]
     return own + [k for k in shared if k not in own]
 
 

@@ -2851,12 +2851,13 @@ def detail_section_hidden(config, module: str) -> set:
 
 def detail_section_order(config, module: str) -> list[str]:
     """Порядок ВИДИМЫХ секций детали module: сохранённый order (известные) + недостающие
-    в порядке реестра, минус hidden. Пустой/мусорный config → полный список реестра."""
-    keys = detail_sections.section_keys(module)
+    в порядке реестра, минус hidden. Пустой/мусорный config → полный список реестра.
+    FB-33 M2g: без разделов «на месте» (их рисует страница там, где они были)."""
+    keys = detail_sections.flow_keys(module)
     nd = normalize_detail_sections((config or {}).get(detail_section_config_key(module)), module)
     hidden = set(nd.get("hidden", []))
-    seen = set(nd.get("order", []))
-    order = nd.get("order", []) + [k for k in keys if k not in seen]
+    saved = [k for k in nd.get("order", []) if k in keys]
+    order = saved + [k for k in keys if k not in set(saved)]
     return [k for k in order if k not in hidden]
 
 
@@ -5766,8 +5767,10 @@ def _normalize_impl(config) -> dict:
     if config.get("blog_show_more") is False:
         normalized["blog_show_more"] = False
     # FB-32 S6f: «Weitere Aktionen» под деталью акции скрывается строкой «Seitenaufbau»
-    if config.get("promo_show_related") is False:
-        normalized["promo_show_related"] = False
+    # FB-33 M2g: и «Teilen»/визитка в колонке «Angebot» (presence-minimal)
+    for flag in ("promo_show_related", "promo_show_share", "promo_show_card"):
+        if config.get(flag) is False:
+            normalized[flag] = False
     # FB-32 S6g-3: блоки под Kombi-Detail скрываются строками «Seitenaufbau»
     for flag in (
         "combo_show_reviews",

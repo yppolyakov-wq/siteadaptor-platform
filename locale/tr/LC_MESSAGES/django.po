@@ -38987,3 +38987,12 @@ msgstr "Bekleme listesi"
 #. FB-33 M2f
 msgid "Frage stellen"
 msgstr "Soru sor"
+
+msgid "nur Veranstaltungen"
+msgstr "yalnızca etkinlikler"
+
+msgid "nur Touren"
+msgstr "yalnızca turlar"
+
+msgid "Teilen und QR-Code"
+msgstr "Paylaş ve QR kodu"

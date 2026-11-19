@@ -58,11 +58,23 @@ def _detail_label(host: str, item: dict) -> str:
     module = detail_parts.module_of(detail_parts.shared_host(host or ""))  # R8: и объект
     if not module or item.get("id"):
         return ""
-    return str(detail_sections.section_labels(module).get(item.get("key"), ""))
+    label = str(detail_sections.section_labels(module).get(item.get("key"), ""))
+    only = detail_sections.only_of(module, item.get("key"))
+    if label and only and not detail_parts.object_kind(host or ""):
+        # FB-33 M2g: общая страница событий и туров — чей это раздел
+        label = f"{label} · {_ONLY_LABELS[only]}"
+    return label
+
+
+#: FB-33 M2g: подписи «чей раздел» на общей странице событий и туров
+_ONLY_LABELS = {"event": gettext_lazy("nur Veranstaltungen"), "tour": gettext_lazy("nur Touren")}
 
 
 def _fixed_section(host, item: dict) -> bool:
-    """FB-32 S6a: строка раздела страницы с постоянным порядком («Über uns», «Seite»)."""
+    """FB-32 S6a: строка раздела страницы с постоянным порядком («Über uns», «Seite»); FB-33
+    M2g: и строка раздела «на месте» (группы и серия события, «Teilen» акции)."""
+    if not item.get("id") and item.get("key") in _sec_parts.in_place_keys(host or ""):
+        return True
     return (
         not item.get("id")
         and _sec_parts.module_of(host or "") in _sec_parts.FIXED_ORDER_MODULES
@@ -1126,7 +1138,7 @@ def blocks_for(
     if _dp.has_kauf(host or ""):  # FB-32 S4/S6a: у корзины и текстовых страниц покупки нет
         # FB-31 P5: «Buchung» закреплена после разделов (так её рисует страница); блоки
         # после неё — хвост страницы, как раньше
-        keys = set(_dp.section_keys(host))
+        keys = set(_dp.flow_section_keys(host))  # FB-33 M2g: разделы «на месте» — после неё
         last = max(
             (i for i, b in enumerate(out) if b["key"] in keys and not b["cblock"]), default=-1
         )
@@ -2747,10 +2759,15 @@ def mutate(
         raise SchemaError("fixed")  # товар/номер: порядок разделов постоянный — только скрыть
     if anchor and op == "toggle" and not detail_parts.hideable(rows_host, item.get("key")):
         raise SchemaError("fixed")  # FB-32 S6a: текст своей страницы не скрывается
+    # FB-33 M2g: раздел «на месте» только скрывается (не двигается, ширины и полей нет)
+    in_place = not item.get("id") and item.get("key") in detail_parts.in_place_keys(rows_host)
+    if in_place and op != "toggle":
+        raise SchemaError("fixed")
     pinned = (
         not item.get("id")
         and not main
         and not anchor
+        and not in_place
         and item.get("key") in siteconfig.page_builtin_keys(rows_host)
     )
     # FB-30.16 R4: блок «Kategorien» каталога прикреплён к ★ (стоит прямо над ним, как на
@@ -2855,7 +2872,7 @@ def mutate(
             last = [
                 it.get("key")
                 for it in items
-                if it.get("key") in detail_parts.section_keys(rows_host) and not it.get("id")
+                if it.get("key") in detail_parts.flow_section_keys(rows_host) and not it.get("id")
             ]
             if not last:
                 raise SchemaError("op")

@@ -89,7 +89,10 @@ def test_review_counts_widths_stale_drafts_and_booking_drop():
     site_schema.mutate(items, "event", "up", "b1")  # блок поднят между разделами
     site_schema.mutate(items, "event", "move", "b1", value=f"before:{detail_parts.KAUF_REF}")
     keys = [i.get("id") or i["key"] for i in items]
-    assert keys[-2:] == ["certifications", "b1"], "до «Buchung» = после последнего раздела"
+    # FB-33 M2g: дальше — разделы «на месте» (группы, серия, приватный выезд)
+    assert keys.index("b1") == keys.index("certifications") + 1, (
+        "до «Buchung» = после последнего раздела"
+    )
     site_schema.mutate(items, "event", "up", "b1")
     site_schema.mutate(items, "event", "move", "b1", value=f"after:{detail_parts.KAUF_REF}")
     assert [i.get("id") or i["key"] for i in items][-1] == "b1"

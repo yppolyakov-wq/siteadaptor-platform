@@ -268,7 +268,7 @@
   </section>
 
   {# R6: групповой / корпоративный запрос индивидуального предложения (движок Angebote) #}
-  {% if jobs_active %}
+  {% if jobs_active and 'groups' not in event_detail_hidden %}
   <section class="mt-6 bg-gray-50 rounded-2xl p-5 text-center">
     <h2 class="font-semibold mb-1">{% trans "Groups & companies" %}</h2>
     <p class="text-sm text-gray-600 mb-3">{% trans "Booking for a team or a private group? Request an individual offer." %}</p>

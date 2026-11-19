@@ -39169,3 +39169,12 @@ msgstr "Лист очікування"
 #. FB-33 M2f
 msgid "Frage stellen"
 msgstr "Поставити запитання"
+
+msgid "nur Veranstaltungen"
+msgstr "лише заходи"
+
+msgid "nur Touren"
+msgstr "лише тури"
+
+msgid "Teilen und QR-Code"
+msgstr "Поділитися та QR-код"
