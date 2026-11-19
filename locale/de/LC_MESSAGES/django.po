@@ -38979,3 +38979,6 @@ msgstr "Beispielartikel"
 
 msgid "Beispiel — so sieht die Bestätigung aus"
 msgstr "Beispiel — so sieht die Bestätigung aus"
+
+msgid "Please enter your email for online payment — we send the confirmation there."
+msgstr "Bitte geben Sie für die Online-Zahlung Ihre E-Mail-Adresse an — dorthin senden wir die Bestätigung."

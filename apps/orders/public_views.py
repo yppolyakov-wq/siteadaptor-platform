@@ -1182,6 +1182,14 @@ def checkout(request):
         chosen_method = methods[0] if methods else Order.METHOD_ON_SITE
     if quote_mode:
         chosen_method = Order.METHOD_ON_SITE
+    # FB-33 M2i-3a (решение владельца): онлайн-оплате нужен e-mail — туда уходят
+    # подтверждение и квитанция. Проверка на сервере: форма поле не помечает (вид прежний).
+    if chosen_method == Order.METHOD_STRIPE and "@" not in request.POST.get("email", ""):
+        messages.error(
+            request,
+            _("Please enter your email for online payment — we send the confirmation there."),
+        )
+        return redirect("storefront-cart")
 
     # _cart_items даёт (product, variant, options, qty); create_order ждёт
     # (product, variant, qty, options) — переставляем.

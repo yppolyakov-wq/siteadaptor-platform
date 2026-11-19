@@ -39220,3 +39220,6 @@ msgstr "Приклад товару"
 
 msgid "Beispiel — so sieht die Bestätigung aus"
 msgstr "Приклад — так виглядає підтвердження"
+
+msgid "Please enter your email for online payment — we send the confirmation there."
+msgstr "Для онлайн-оплати вкажіть e-mail — туди надійде підтвердження."
