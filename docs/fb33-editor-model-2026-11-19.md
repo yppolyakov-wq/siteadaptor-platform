@@ -364,3 +364,22 @@ ECC: django-reviewer по диффу; tdd (замки до кода); seo — `o
 «Passt dazu» корзины.
 ECC: django-reviewer и tdd каждый срез; security (ПДн, превью) — M2h-2/5; silent-failure — M2h-2/4;
 a11y — M2h-1/3; e2e 1440/390 — M2h-1/5.
+
+## План M2i «Поля форм» (planner + architect, 2026-11-19)
+
+Решения владельца:
+1. E-mail обязателен при онлайн-оплате (Stripe) в корзине — сразу, отдельным коммитом (M2i-3a, первым из корзины).
+2. Ответы своих вопросов: карточка сделки, письмо владельцу, PDF, CSV, DSGVO-выгрузка (и ЛК клиента account_data) — НЕ вебхуки.
+3. Band-форма: до 3 обязательных дорисовывает, больше — кнопка на /anfrage/.
+4. Срок хранения ответов — пока живёт сделка (удаление со сделкой и по DSGVO-запросу). Записать в project-memory.
+
+Архитектура (architect):
+- Ядро `apps/core/form_answers.py` (чистое): нормализация custom-вопросов, collect(spec, post, prefix), validate(spec, post), snapshot(). `apps/core/form_fields.py` — реестр системных полей anfrage/checkout + режимы off|opt|req, pinned (normalize игнорирует off у pinned + замок). registration.py в M2i НЕ трогать; перевод Event.questions на ядро — roadmap «Отложено».
+- Хранение site_config["form_fields"][form] = {mode, labels, order(anfrage), custom[]}; один нормализатор в siteconfig.normalize; старый anfrage.fields → opt без миграции данных; капы 10 вопросов × 20 вариантов × 120 симв.; id q<n> монотонно, не переиспользовать (счётчик); запись одним писателем под select_for_update (как sell_questions._mark); явный маркер «всё снято».
+- Миграции jobs/0027, orders/0031: custom_answers EncryptedJSONField(default=dict, blank=True); снимок {id:{label,value[,option_label]}}.
+- DSGVO: crm/dsgvo.py — Job и Order custom_answers в карте + замок «каждое EncryptedJSON сделки в карте»; поиск по ответам не делается (зафиксировать); CSV колонки из объединения снимков.
+- Валидация только во вьюхах форм (/anfrage/, band, модалка, checkout) через form_fields.validate; сервисы create_job/create_order получают custom_answers=None и не валидируют (rueckruf, кабинет, offers, anprobe, promotions purchase, demo_kits). orders/editing.py не затирает custom_answers.
+- Всегда обязательно: заявка — «Что нужно», имя, телефон или e-mail; корзина — имя (столик — номер), e-mail при Stripe, адрес при Lieferung, реквизиты при Firma.
+
+Срезы: M2i-0 замки «до» (HTML /anfrage/, band, модалка, /warenkorb/ варианты, письма job_new/order_owner, PDF jobs) + тесты обхода HTML → M2i-3a e-mail Stripe → M2i-1 реестр+валидация /anfrage/ → M2i-2 миграции+свои вопросы в заявке (карточка deal_card, письмо, PDF documents.py, CSV, DSGVO) → M2i-5 вкладка «Поля» в Seitenaufbau (старый адрес anfrage_form_settings — 302/alias, nav не трогать) → M2i-3 корзина режимы/подписи → M2i-4 свои вопросы в корзине (заказ, кухонная доска тем же снимком, письмо) → M2i-6 пресеты по типу бизнеса.
+ECC: django-reviewer все срезы; security M2i-1/3; database M2i-2; silent-failure M2i-3; a11y + e2e M2i-5; code-reviewer перед FF.
