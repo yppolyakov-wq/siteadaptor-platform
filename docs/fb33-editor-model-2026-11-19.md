@@ -301,3 +301,6 @@ M2f; security M2h–i; silent-failure M2f, M2h–i; database M2i; code-reviewer 
 3) `/termin/` один заголовок для услуг и ресурсов; 4) обложка раздела (`archetypes.intro`) — отдельно.
 ECC: architect по модели; M2d-0 tdd-guide+django-reviewer; M2d-1 a11y-architect, e2e-runner;
 M2d-2 security-reviewer, seo-specialist, a11y, silent-failure-hunter, e2e; code-reviewer, doc-updater.
+**Решения владельца по M2d (2026-11-19):** 1) формы — заголовок как сейчас (под своими блоками сверху);
+2) `/aktionen/` — делать сразу (M2d-3), центр только у вида Standard, страницы групп не трогаем;
+3) `/termin/` — один заголовок на оба вида; 4) обложка раздела (`archetypes.intro`) — отдельно.
