@@ -38891,3 +38891,24 @@ msgstr "Welche Kacheln"
 #. FB-33 M2d
 msgid "Seitentitel"
 msgstr "Seitentitel"
+
+#. FB-33 M2e
+msgid "Von einer Seite"
+msgstr "Von einer Seite"
+
+#. FB-33 M2e
+msgid "Nur Button"
+msgstr "Nur Button"
+
+#. FB-33 M2e
+msgid "Von der Startseite"
+msgstr "Von der Startseite"
+
+#. FB-33 M2e
+#, python-format
+msgid "Gehört zu: %(family)s"
+msgstr "Gehört zu: %(family)s"
+
+#. FB-33 M2e
+msgid "Ansicht wechseln"
+msgstr "Ansicht wechseln"

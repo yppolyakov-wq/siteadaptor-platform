@@ -39132,3 +39132,24 @@ msgstr "Які плитки"
 #. FB-33 M2d
 msgid "Seitentitel"
 msgstr "Заголовок сторінки"
+
+#. FB-33 M2e
+msgid "Von einer Seite"
+msgstr "Зі сторінки"
+
+#. FB-33 M2e
+msgid "Nur Button"
+msgstr "Лише кнопка"
+
+#. FB-33 M2e
+msgid "Von der Startseite"
+msgstr "З головної"
+
+#. FB-33 M2e
+#, python-format
+msgid "Gehört zu: %(family)s"
+msgstr "Належить до: %(family)s"
+
+#. FB-33 M2e
+msgid "Ansicht wechseln"
+msgstr "Змінити вигляд"

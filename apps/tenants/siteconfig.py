@@ -562,11 +562,19 @@ def _clean_cblock_data(key: str, raw) -> dict:
         from apps.core.hero_tiles import QUICK_LINK_SETS
 
         return {"set": d["set"]} if d.get("set") in QUICK_LINK_SETS else {}
-    if key == "text":
-        return {"title": _s(d.get("title")), "body": _s(d.get("body")), **_text_style(d)}
     # UC6-4: скругление фото блока — "" (стандарт rounded-2xl) | none | 3xl;
     # только валидные НЕ-дефолтные значения (старые конфиги байт-в-байт).
     rounded = {"rounded": d["rounded"]} if d.get("rounded") in ("none", "3xl") else {}
+    if key == "text":
+        out = {"title": _s(d.get("title")), "body": _s(d.get("body")), **_text_style(d)}
+        if _s(d.get("url")):
+            # FB-33 M2e (решение владельца): «Фото + текст» → «Только текст» — фото помнится
+            # (не показывается), обратно — на месте; без фото ключей нет (конфиги прежние)
+            out["url"] = _s(d.get("url"))
+            if d.get("side") in ("left", "right"):
+                out["side"] = d["side"]
+            out.update(rounded)
+        return out
     if key == "image":
         return {"url": _s(d.get("url")), "caption": _s(d.get("caption")), **rounded}
     if key == "image_text":

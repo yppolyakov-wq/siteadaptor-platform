@@ -108,6 +108,7 @@ class LibraryEntry(NamedTuple):
     group: str  # группа меню «+ Block» (`ADD_GROUPS`)
     studio: bool = True  # есть в библиотеке Студии
     page_only: bool = False  # только на страницах (ссылочные блоки — не на главной)
+    view: object = ""  # FB-33 M2e: подпись вида в семье («Foto + Text»); пусто — без вида
 
 
 #: Группы меню «+ Block» (FB-27 R6, решение владельца): ключ → подпись.
@@ -120,10 +121,10 @@ ADD_GROUPS: tuple[tuple[str, object], ...] = (
 
 #: Библиотека C- и ссылочных блоков — в порядке карточек Студии.
 LIBRARY: tuple[LibraryEntry, ...] = (
-    LibraryEntry("text", "📝", _("Heading + paragraph"), "inhalt"),
+    LibraryEntry("text", "📝", _("Heading + paragraph"), "inhalt", view=_("Nur Text")),
     LibraryEntry("image", "🖼️", _("Photo with caption"), "inhalt"),
-    LibraryEntry("image_text", "🏞️", _("Photo beside text"), "inhalt"),
-    LibraryEntry("button", "🔘", _("Link button"), "inhalt"),
+    LibraryEntry("image_text", "🏞️", _("Photo beside text"), "inhalt", view=_("Foto + Text")),
+    LibraryEntry("button", "🔘", _("Link button"), "inhalt", view=_("Nur Button")),
     LibraryEntry("spacer", "↕️", _("Vertical spacing"), "inhalt"),
     LibraryEntry("promo", "🏷️", _("Live promotion"), "listen"),  # UE1
     # LB-1 (вырос из PT-6 «Aktionen eines Typs»)
@@ -166,6 +167,7 @@ LIBRARY: tuple[LibraryEntry, ...] = (
         _("Kundenstimmen der Startseite — auch auf dieser Seite"),
         "quellen",
         page_only=True,
+        view=_("Von der Startseite"),
     ),
     # AF-2b: встраиваемые формы — на страницах; рендер гейтится модулем
     LibraryEntry(
@@ -183,8 +185,8 @@ LIBRARY: tuple[LibraryEntry, ...] = (
         page_only=True,
     ),
     # FB-27 R6: только в «+ Block» Seitenaufbau (Студия правит лишь содержимое)
-    LibraryEntry("textpage", "📄", "", "quellen", studio=False),
-    LibraryEntry("contact_card", "📍", "", "quellen", studio=False),
+    LibraryEntry("textpage", "📄", "", "quellen", studio=False, view=_("Von einer Seite")),
+    LibraryEntry("contact_card", "📍", "", "quellen", studio=False, view=_("Karte")),
     # FB-33 M2c: ставится в «Seitenaufbau» (Студия правит только содержимое)
     LibraryEntry(
         "quick_links",
@@ -231,3 +233,28 @@ def studio_block_types() -> list[dict]:
             card["page_only"] = True
         out.append(card)
     return out
+
+
+def menu_label(key: str) -> str:
+    """FB-33 M2e: подпись пункта «+ Block» — «<семья> · <вид>» у семьи из нескольких блоков
+    (видно, что «Foto + Text» и «Nur Text» — один блок «Text»), иначе подпись блока."""
+    from apps.tenants import siteconfig
+
+    entry = _BY_KEY.get(key)
+    fam = family_of(key)
+    if entry is not None and entry.view and fam is not None and len(fam.members) > 1:
+        return f"{fam.label} · {entry.view}"
+    return str(siteconfig.CBLOCK_LABELS.get(key, key))
+
+
+def switch_options(key: str) -> list[tuple[str, str]]:
+    """Виды, на которые блок можно сменить без потери данных (включая текущий)."""
+    fam = family_of(key)
+    if fam is None:
+        return []
+    out = [
+        (k, str(_BY_KEY[k].view or k))
+        for k, _where in fam.members
+        if k in _BY_KEY and can_switch(key, k)
+    ]
+    return out if len(out) > 1 else []

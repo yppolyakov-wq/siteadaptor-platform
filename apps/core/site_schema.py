@@ -1084,6 +1084,9 @@ def blocks_for(
                 else [],
                 "width_value": item.get("width") or "contained",
                 "fields": panel_fields(item) if cblock else section_style_fields(item),
+                # FB-33 M2e: к какой семье блок относится и на какие виды его можно сменить
+                "family_label": _family_label(key),
+                "view_options": block_catalog.switch_options(key) if cblock else [],
                 # FB-27 R3b-2: данные блока «Liste» — вид строит панель (`list_panel`)
                 "list_data": dict(data)
                 if cblock and (siteconfig.cblock_type(key) or key) == "list"
@@ -1359,6 +1362,20 @@ def title_row(config: dict, host: str) -> dict:
              "value": entry.get("align", "")},
         ],
     }  # fmt: skip
+
+
+def _family_label(key: str) -> str:
+    """«Gehört zu: Text» — у блоков семьи из нескольких видов (иначе пусто)."""
+    fam = block_catalog.family_of(siteconfig_key(key))
+    if fam is None or len(fam.members) < 2:
+        return ""
+    return str(_("Gehört zu: %(family)s") % {"family": fam.label})
+
+
+def siteconfig_key(key: str) -> str:
+    from apps.tenants import siteconfig
+
+    return siteconfig.cblock_type(key) or key
 
 
 def title_op(host: str, draft: dict, op: str, fields: dict | None) -> str:
@@ -1783,7 +1800,8 @@ def add_options(code: str) -> list[tuple[str, str]]:
     keys = list(siteconfig.REPEATABLE_BLOCKS)
     if code != "home":
         keys += list(siteconfig.PAGE_REF_BLOCKS)
-    return [(k, str(siteconfig.CBLOCK_LABELS.get(k, k))) for k in keys]
+    # FB-33 M2e: подпись с семьёй («Text · Foto + Text»)
+    return [(k, block_catalog.menu_label(k)) for k in keys]
 
 
 #: FB-27 R8d: пункт «+ Block» для сохранённого шаблона блока — `tpl:<id шаблона>`.
@@ -2784,6 +2802,15 @@ def mutate(
                 item["grid"] = grid
         else:
             item["style"] = "raster"  # явная сетка — поверх кода шаблона
+        return ref
+    if op == "switch":
+        # FB-33 M2e: сменить вид блока внутри семьи без потери данных (text ↔ image_text);
+        # id, ширина, оформление и переводы остаются — меняется только ключ и чистка данных
+        old = siteconfig.cblock_type(item.get("key")) or ""
+        if not item.get("id") or main or old == value or not block_catalog.can_switch(old, value):
+            raise SchemaError("op")
+        item["key"] = value
+        item["data"] = siteconfig._clean_cblock_data(value, dict(item.get("data") or {}))
         return ref
     if op == "toggle":
         if main:

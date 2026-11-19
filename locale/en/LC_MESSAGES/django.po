@@ -38804,3 +38804,24 @@ msgstr "Which tiles"
 #. FB-33 M2d
 msgid "Seitentitel"
 msgstr "Page title"
+
+#. FB-33 M2e
+msgid "Von einer Seite"
+msgstr "From a page"
+
+#. FB-33 M2e
+msgid "Nur Button"
+msgstr "Button only"
+
+#. FB-33 M2e
+msgid "Von der Startseite"
+msgstr "From the home page"
+
+#. FB-33 M2e
+#, python-format
+msgid "Gehört zu: %(family)s"
+msgstr "Belongs to: %(family)s"
+
+#. FB-33 M2e
+msgid "Ansicht wechseln"
+msgstr "Change view"

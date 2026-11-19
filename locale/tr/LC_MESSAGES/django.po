@@ -38950,3 +38950,24 @@ msgstr "Hangi kutucuklar"
 #. FB-33 M2d
 msgid "Seitentitel"
 msgstr "Sayfa başlığı"
+
+#. FB-33 M2e
+msgid "Von einer Seite"
+msgstr "Bir sayfadan"
+
+#. FB-33 M2e
+msgid "Nur Button"
+msgstr "Yalnızca düğme"
+
+#. FB-33 M2e
+msgid "Von der Startseite"
+msgstr "Ana sayfadan"
+
+#. FB-33 M2e
+#, python-format
+msgid "Gehört zu: %(family)s"
+msgstr "Ait olduğu: %(family)s"
+
+#. FB-33 M2e
+msgid "Ansicht wechseln"
+msgstr "Görünümü değiştir"
