@@ -1,0 +1,11 @@
+Neue Click-&-Collect-Bestellung!
+
+Kunde: Herr Meyer · 0171 · m@t.de
+2× Brot — 6.00 EUR
+Gesamt: 12.00 EUR
+Code: O-XYZ
+
+
+Notiz: Ohne Zwiebeln
+
+Bestellung im Dashboard bestätigen: /dashboard/orders/
