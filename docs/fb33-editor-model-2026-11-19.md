@@ -196,3 +196,5 @@ forms_for_view, normalize_for_view; ключ вида — `list_blocks.view_key(
 ECC: django-patterns, django-tdd, python-testing (до кода), error-handling (M1c); django-reviewer
 каждый срез; silent-failure-hunter M1c; a11y-architect M1b/c; e2e при клиентском JS; code-reviewer
 перед FF; doc-updater в конце. Каталог блоков группы 1 (доска K1 холста) — на согласование до M1a.
+**Решение владельца (2026-11-19):** каталог блоков группы 1 (доска K1, списки) утверждён; у ленты,
+Spotlight и баннера строки (Kompakt, Deal) **остаются** — срез M1e (сужение до плиток) не делаем.
