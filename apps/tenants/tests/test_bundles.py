@@ -219,7 +219,10 @@ def test_fokus_variants_carry_archetype_output_views():
 def test_bundle_applies_sections_off_and_hero_widget():
     tenant = TenantFactory(
         business_type="hotel",
-        site_config={"sections": [{"key": "archetypes", "enabled": True}]},
+        # баннер включён: поиск дат жил в нём; с выключенным баннером замена — скрытая
+        site_config={
+            "sections": [{"key": "hero", "enabled": True}, {"key": "archetypes", "enabled": True}]
+        },
     )
     assert sitetemplates.apply_bundle(tenant, "fokus_hotel") is True
     cfg = tenant.site_config

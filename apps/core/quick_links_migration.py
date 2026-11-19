@@ -40,6 +40,14 @@ QUICK_LINKS_ID = "quicklinks"
 SERVICES_LIST_ID = "services3"
 
 
+def _hero_shown(rows: list) -> bool:
+    hero = next(
+        (r for r in rows if isinstance(r, dict) and r.get("key") == "hero" and not r.get("id")),
+        None,
+    )
+    return bool(hero) and hero.get("enabled", True) is not False
+
+
 def _after_hero(rows: list) -> int:
     """Куда ставить: сразу после баннера; баннера нет — в начало."""
     for i, row in enumerate(rows):
@@ -90,7 +98,10 @@ def detach(config: dict, *, replace: bool = False) -> tuple[dict, Result]:
     # сайта без сохранённого порядка баннер появился бы только при нормализации
     rows = siteconfig.normalize_sections(new.get("sections"))
     new["sections"] = rows
-    bento = new.get("hero_style") == "bento"  # у bento плиток не было — вид не меняем
+    # плиток на сайте не было видно — у bento (не читал виджет) и при выключенном баннере
+    # (стенд M2c: виджет живёт внутри баннера): то, во что он превращается, ставится
+    # СКРЫТЫМ — вид сайта не меняется
+    bento = new.get("hero_style") == "bento" or not _hero_shown(rows)
     if widget in QUICK_LINK_SETS:
         existing = next(
             (r for r in rows if isinstance(r, dict) and r.get("key") == "quick_links"), None
@@ -156,7 +167,7 @@ def verify(before: dict, after: dict, action: str = "") -> str:
         return "banner-still-draws"
     rows = [r for r in norm.get("sections") or [] if isinstance(r, dict)]
     nxt = _after_hero_row(rows)
-    on = not (norm.get("hero_style") == "bento")
+    on = norm.get("hero_style") != "bento" and _hero_shown(rows)
     data = nxt.get("data") if isinstance(nxt.get("data"), dict) else {}
     if action in ("block", "block-hidden"):
         ok = nxt.get("key") == "quick_links" and data.get("set") == widget

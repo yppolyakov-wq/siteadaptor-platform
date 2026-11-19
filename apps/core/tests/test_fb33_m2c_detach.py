@@ -13,6 +13,9 @@ pytestmark = pytest.mark.django_db
 
 
 def _cfg(widget, **extra):
+    """Сайт с включённым баннером (по умолчанию баннер главной выключен — тогда плиток
+    не видно, и перенос ставит замену скрытой)."""
+    extra.setdefault("sections", [{"key": "hero", "enabled": True}])
     return {"site_defaults": {"hero_widget": widget, "radius": 8}, **extra}
 
 
@@ -215,7 +218,7 @@ def test_verify_catches_a_block_that_normalize_drops(monkeypatch):
 
 
 def test_undo_of_a_site_without_saved_sections_drops_them_again():
-    tenant = _tenant("shop")
+    tenant = TenantFactory(site_config={"site_defaults": {"hero_widget": "shop"}})
     assert "sections" not in Tenant.objects.get(pk=tenant.pk).site_config
     call_command("detach_quick_links", "--schema", tenant.schema_name)
     assert "sections" in Tenant.objects.get(pk=tenant.pk).site_config
@@ -282,3 +285,15 @@ def test_preview_of_a_bundle_matches_applying_it():
     assert not cfg["site_defaults"].get("hero_widget")
     keys = [r["key"] for r in cfg["sections"]]
     assert keys[keys.index("hero") + 1] == "stay_search"
+
+
+@pytest.mark.parametrize("widget", ("shop", "stays", "services"))
+def test_switched_off_banner_gets_hidden_replacements(widget):
+    """Стенд M2c: баннер выключен — его плиток не было видно; после переноса тоже не видно."""
+    raw = _cfg(widget, sections=[{"key": "hero", "enabled": False}])
+    new, res = qlm.detach(raw)
+    rows = _norm(new)["sections"]
+    keys = [r["key"] for r in rows]
+    nxt = rows[keys.index("hero") + 1]
+    assert nxt["enabled"] is False, (widget, nxt)
+    assert qlm.verify(raw, new, res.action) == ""
