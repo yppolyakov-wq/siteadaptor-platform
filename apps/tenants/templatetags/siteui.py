@@ -425,6 +425,18 @@ def page_blocks(context, page_key, part="after"):
 
 
 @register.simple_tag(takes_context=True)
+def form_field_modes(context, form):
+    """FB-33 M2i: какие поля формы `form` спрашивать, какие обязательны и их подписи
+    (`apps.core.form_spec.view`). Без настроек — прежний состав формы (замки M2i-0)."""
+    from apps.core import form_spec
+
+    request = context.get("request")
+    tenant = getattr(request, "tenant", None)
+    site = siteconfig.normalize(tenant.site_config) if tenant is not None else {}
+    return form_spec.view(site, form)
+
+
+@register.simple_tag(takes_context=True)
 def anfrage_event_choices(context):
     """AF-1 + аудит переводов 2026-08-13: пары (value, подпись) для «Art der
     Veranstaltung».

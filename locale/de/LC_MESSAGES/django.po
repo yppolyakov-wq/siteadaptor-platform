@@ -38964,3 +38964,21 @@ msgstr "Bestätigung"
 
 msgid "Please enter your email for online payment — we send the confirmation there."
 msgstr "Bitte geben Sie für die Online-Zahlung Ihre E-Mail-Adresse an — dorthin senden wir die Bestätigung."
+
+msgid "Event date"
+msgstr "Wunschdatum"
+
+msgid "Number of guests"
+msgstr "Anzahl Personen"
+
+msgid "Type of event"
+msgstr "Art der Veranstaltung"
+
+msgid "Job address"
+msgstr "Arbeitsort"
+
+msgid "Photos (up to 5)"
+msgstr "Fotos (bis zu 5)"
+
+msgid "Please fill in all required fields."
+msgstr "Bitte füllen Sie alle Pflichtfelder aus."

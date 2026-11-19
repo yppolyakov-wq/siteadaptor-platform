@@ -39218,3 +39218,21 @@ msgstr "Подтверждение"
 
 msgid "Please enter your email for online payment — we send the confirmation there."
 msgstr "Для онлайн-оплаты укажите e-mail — туда придёт подтверждение."
+
+msgid "Event date"
+msgstr "Дата мероприятия"
+
+msgid "Number of guests"
+msgstr "Количество гостей"
+
+msgid "Type of event"
+msgstr "Тип мероприятия"
+
+msgid "Job address"
+msgstr "Адрес места работы"
+
+msgid "Photos (up to 5)"
+msgstr "Фотографии (до 5)"
+
+msgid "Please fill in all required fields."
+msgstr "Пожалуйста, заполните все обязательные поля."

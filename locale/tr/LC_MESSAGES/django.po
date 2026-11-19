@@ -39023,3 +39023,21 @@ msgstr "Onay"
 
 msgid "Please enter your email for online payment — we send the confirmation there."
 msgstr "Çevrimiçi ödeme için lütfen e-posta adresinizi girin — onayı oraya göndeririz."
+
+msgid "Event date"
+msgstr "Etkinlik tarihi"
+
+msgid "Number of guests"
+msgstr "Kişi sayısı"
+
+msgid "Type of event"
+msgstr "Etkinlik türü"
+
+msgid "Job address"
+msgstr "İş yeri adresi"
+
+msgid "Photos (up to 5)"
+msgstr "Fotoğraflar (en fazla 5 adet)"
+
+msgid "Please fill in all required fields."
+msgstr "Lütfen tüm zorunlu alanları doldurun."

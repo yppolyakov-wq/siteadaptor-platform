@@ -67,6 +67,20 @@ def _parse_event_fields(post, cfg) -> dict:
     return out
 
 
+#: поле формы (FB-33 M2i) → ключ прежнего `anfrage.fields` (разбор AF-1 общий с кабинетом)
+_EVENT_KEYS = (("event_date", "date"), ("guest_count", "guests"), ("event_type", "event_type"))
+
+
+def _public_event_fields(post, shown, site) -> dict:
+    """FB-33 M2i: событийные поля публичной формы — по режимам «Поля форм» (без настроек —
+    прежний `anfrage.fields`); разбор и правила — прежние (`_parse_event_fields`)."""
+    cfg = {
+        "fields": [legacy for key, legacy in _EVENT_KEYS if shown[key].on],
+        "event_types": (site.get("anfrage") or {}).get("event_types") or [],
+    }
+    return _parse_event_fields(post, cfg)
+
+
 def _parse_fulfillment(post, tenant) -> str:
     """SH-24: «привезти или заберу сам» в заявке. Fail-closed: у бизнеса без
     доставки поле игнорируется целиком (форма его не показывала)."""
@@ -78,7 +92,11 @@ def _parse_fulfillment(post, tenant) -> str:
 
 def anfrage(request):
     _require_jobs_active(request)
-    anfrage_cfg = _anfrage_config(request.tenant)  # AF-1: событийные поля
+    from apps.core import form_spec
+    from apps.tenants import siteconfig
+
+    site = siteconfig.normalize(request.tenant.site_config)
+    anfrage_cfg = site.get("anfrage") or {}  # AF-1: событийные поля
     if request.method == "POST":
         if request.POST.get("website"):  # honeypot
             return redirect("storefront-anfrage")
@@ -89,6 +107,16 @@ def anfrage(request):
         if not (title and name):
             messages.error(request, _("Please tell us your name and what you need."))
             return redirect("storefront-anfrage")
+        # FB-33 M2i: обязательные поля владельца — проверка сервера (полоса и модалка постят
+        # сюда же); выключенные поля отбрасываются, даже если их прислали в обход формы
+        shown = form_spec.view(site, "anfrage")
+        if form_spec.missing(site, "anfrage", request.POST, request.FILES):
+            messages.error(request, _("Please fill in all required fields."))
+            return redirect("storefront-anfrage")
+
+        def field(key):
+            return request.POST.get(key, "").strip() if shown[key].on else ""
+
         site_plz = request.POST.get("site_plz", "").strip()
         from apps.aggregator import conversions
         from apps.core import attribution
@@ -97,10 +125,10 @@ def anfrage(request):
         job = services.create_job(
             title=title,
             name=name,
-            email=request.POST.get("email", "").strip(),
-            phone=request.POST.get("phone", "").strip(),
-            description=request.POST.get("description", "").strip(),
-            site_address=request.POST.get("site_address", "").strip(),
+            email=field("email"),
+            phone=field("phone"),
+            description=field("description"),
+            site_address=field("site_address"),
             site_plz=site_plz,  # A7: PLZ объекта (Einzugsgebiet)
             source_channel=found.channel[:50],  # В5 V5-5
             vehicle=request.POST.get("vehicle", "").strip(),
@@ -109,11 +137,12 @@ def anfrage(request):
             vehicle_hsn=request.POST.get("vehicle_hsn", "").strip(),
             vehicle_tsn=request.POST.get("vehicle_tsn", "").strip(),
             # AF-1: событийные поля (Wunschdatum/Personen/Art) — только из конфига.
-            **_parse_event_fields(request.POST, anfrage_cfg),
+            **_public_event_fields(request.POST, shown, site),
             # SH-24: «привезти» или «заберу сам» — только у бизнеса с доставкой.
             fulfillment=_parse_fulfillment(request.POST, request.tenant),
         )
-        services.add_job_photos(job, request.FILES.getlist("photos"))  # A7b
+        if shown["photos"].on:
+            services.add_job_photos(job, request.FILES.getlist("photos"))  # A7b
         conversions.count(request, "deal", "job", job, attribution=found)  # В5 V5-5: заявка
         enqueue_job_email(job, "new")  # владельцу — новый лид
         # A7: мягкий чек зоны — заявку принимаем всегда, но если PLZ вне списка зоны,
@@ -131,9 +160,7 @@ def anfrage(request):
         )
         return redirect("storefront-anfrage")
     # R6: префилл темы из ?betreff (групповой/корп-запрос со страницы ретрита).
-    from apps.tenants import siteconfig
-
-    jobs_vehicle = siteconfig.normalize(request.tenant.site_config).get("jobs_vehicle", False)
+    jobs_vehicle = site.get("jobs_vehicle", False)
     autorepair_ld = ""
     if jobs_vehicle:
         from apps.core.seo import localbusiness_ld
