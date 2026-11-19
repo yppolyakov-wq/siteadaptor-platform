@@ -285,3 +285,19 @@ M2f; security M2h–i; silent-failure M2f, M2h–i; database M2i; code-reviewer 
 Снимок — `tenants.SiteConfigSnapshot` (поле `reason`, индекс есть), миграции нет. В `deploy.sh`
 `detach_quick_links` — ПОСЛЕ `materialize_page_axes`; откаты LIFO (FB-31.7 `--undo` после detach →
 `changed`) — прописать в подсказке `--undo`. M2c-0 (характеризация) сделан.
+
+## План M2d «Заголовок страницы» (planner, 2026-11-19)
+`DetailSection("head")` НЕ годится (списки вне DETAIL_SECTIONS — `module_of` сломал бы ★; у форм строка
+попала бы в `anchors().placed`; блоки форм «сверху» рисуются ВЫШЕ H1). Модель: вычисляемая
+неподвижная строка схемы `__title` (как `KAUF_REF`), тексты — новый ключ
+`site_config["page_titles"][host] = {title, intro, align}` (не `page_head` — занят фото-шапкой).
+Хосты: списки services, stay_rooms, events, tours, blog, reviews, wishlist, combos, team, gallery
+(строка 0); формы message, anfrage, gift, loyalty, passes, teachers, event_calendar (перед разделом).
+Вне: booking_slots, catalog/category, promo_group, cart (M2h), info/page/versand, детали объектов.
+Срезы: M2d-0 характеризация (отпечатки шапки по хостам, один H1, title/meta), M2d-1 строка в схеме и
+окно (рендер тот же), M2d-2 свои тексты (i18n-оверлей, черновик, тег `page_title`, `{% if custom %}` —
+иначе прежняя разметка дословно; Студия — `data-edit` только в превью), M2d-3 `/aktionen/` (по решению).
+Развилки владельцу: 1) форма — заголовок под своими блоками (как сейчас) или первым; 2) M2d-3;
+3) `/termin/` один заголовок для услуг и ресурсов; 4) обложка раздела (`archetypes.intro`) — отдельно.
+ECC: architect по модели; M2d-0 tdd-guide+django-reviewer; M2d-1 a11y-architect, e2e-runner;
+M2d-2 security-reviewer, seo-specialist, a11y, silent-failure-hunter, e2e; code-reviewer, doc-updater.
