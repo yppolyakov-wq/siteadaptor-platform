@@ -217,7 +217,8 @@
       {% rich_block promotion.description_text css="mt-4 text-gray-600" %}
     {% endif %}
 
-    {# Поделиться + QR #}
+    {# Поделиться + QR (FB-33 M2g: скрывается строкой «Seitenaufbau») #}
+    {% if not promo_hide_share %}
     <div class="mt-5 flex flex-wrap items-center gap-2">
       <a href="https://wa.me/?text={{ promotion.title_text|urlencode }}%20{{ share_url|urlencode }}"
          target="_blank" rel="noopener" class="text-sm px-3 py-2 rounded-lg border border-gray-300 hover:bg-gray-50">{% trans "Share on WhatsApp" %}</a>
@@ -231,6 +232,7 @@
         </div>
       </details>
     </div>
+    {% endif %}
     {% include "storefront/_business_card.html" with bc=business_card %}
   </div>
 </div>

@@ -148,6 +148,12 @@ def _detail_ctx(request, promo, form) -> dict:
     # DL-16.3 (AD3): «Weitere Aktionen» — та же группа, иначе другие активные.
     # FB-32 S6f: скрыт строкой «Seitenaufbau» — без запросов
     show_related = (_cfg_raw or {}).get("promo_show_related") is not False
+    # FB-33 M2g: «Teilen» и визитка скрываются на месте (флаги `promo_show_*`)
+    promo_hidden = {
+        key
+        for key, flag in detail_parts.VISIBILITY_KEYS["promo"].items()
+        if (_cfg_raw or {}).get(flag) is False
+    }
     others = (
         Promotion.objects.filter(Promotion.on_sale_q()).exclude(pk=promo.pk).order_by("-created_at")
     )
@@ -208,9 +214,14 @@ def _detail_ctx(request, promo, form) -> dict:
         # FB-32 S6f: свои блоки над «Angebot» и между ним и «Weitere Aktionen»
         "promo_slots": detail_parts.promo_slots(_cfg_raw),
         # T-8.1b: «So finden Sie uns» — адрес/Route/часы/телефон/WhatsApp.
+        # FB-33 M2g: скрыта строкой «Seitenaufbau» — без карточки; при «Nur zeigen» видна
+        # всегда (единственный путь к бизнесу, решение владельца)
         "business_card": business_card.card_context(
             getattr(request, "tenant", None), subject=promo.title_text
-        ),
+        )
+        if "card" not in promo_hidden or resp == promo_response.SHOW
+        else None,
+        "promo_hide_share": "share" in promo_hidden,  # нет ключа — показан (прочие вьюхи)
     }
 
 
