@@ -22,24 +22,57 @@ from dataclasses import dataclass, field
 
 logger = logging.getLogger(__name__)
 
-# FB-31.7 B1b-2: «вид после B3» — витрина не видит старых кодов шаблона у ОБЪЕКТОВ
-# (Category/Promotion.page_style, promo_groups[*].style). Только сверка переноса и тесты.
-_OBJECTS_BLIND: contextvars.ContextVar[bool] = contextvars.ContextVar(
-    "fb317_objects_blind", default=False
+# FB-31.7 B3b: старые коды шаблонов (ключи `site_config` и поля объектов) больше НЕ читаются —
+# вид держат строки «Seitenaufbau». Читает их только перенос/сверка (`legacy_view(True)`) и
+# откат без деплоя: переменная окружения `PAGE_LEGACY_READ=1` (настройка `PAGE_LEGACY_READ`).
+_LEGACY: contextvars.ContextVar[bool | None] = contextvars.ContextVar(
+    "fb317_legacy_read", default=None
 )
 
 
+def legacy_reads() -> bool:
+    """Читать ли старые коды шаблонов (B3b: по умолчанию нет)."""
+    forced = _LEGACY.get()
+    if forced is not None:
+        return forced
+    from django.conf import settings
+
+    return bool(getattr(settings, "PAGE_LEGACY_READ", False))
+
+
 @contextlib.contextmanager
-def objects_blind():
-    token = _OBJECTS_BLIND.set(True)
+def legacy_view(on: bool = True):
+    token = _LEGACY.set(bool(on))
     try:
         yield
     finally:
-        _OBJECTS_BLIND.reset(token)
+        _LEGACY.reset(token)
+
+
+def with_legacy(func):
+    """Перенос и сверка видят старые коды (вид «до»), даже когда витрина их не читает."""
+    import functools
+
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        with legacy_view(True):
+            return func(*args, **kwargs)
+
+    return wrapper
+
+
+def objects_blind():
+    """Вид без старых кодов (как после B3b) — для сверки переноса и тестов."""
+    return legacy_view(False)
 
 
 def is_objects_blind() -> bool:
-    return _OBJECTS_BLIND.get()
+    return not legacy_reads()
+
+
+def read_old(value) -> str:
+    """Старый код шаблона, если его ещё читают; иначе "" (вид — только строки)."""
+    return value if isinstance(value, str) and legacy_reads() else ""
 
 
 #: итог одной поверхности
@@ -146,6 +179,7 @@ def _with_host_rows(raw: dict, norm: dict, host: str, new_rows: list) -> dict:
     return candidate
 
 
+@with_legacy
 def migrate_listings(raw: dict) -> tuple[dict, Report]:
     """Коды девяти листингов (`page_styles[surface]`) → строки хоста листинга. Сайт
     переносится целиком или не трогается (решение владельца: при любом расхождении)."""
@@ -219,6 +253,7 @@ def _without_key(cfg: dict, key: str) -> dict:
     return out
 
 
+@with_legacy
 def template_rows(norm: dict, key: str) -> list | None:
     """Строки хоста шаблона `key`, которые без кода дают тот же вид, что код + строки; None —
     перенос невозможен без смены вида (скрытая строка «Kategorien», которую заменяет код)."""
@@ -238,6 +273,7 @@ def template_rows(norm: dict, key: str) -> list | None:
     return pp.materialize_rows(siteconfig._pp_surface(host), rows, code)
 
 
+@with_legacy
 def migrate_templates(raw: dict, render=None) -> tuple[dict, Report]:
     """Шаблоны уровня сайта (`siteconfig.PAGE_TEMPLATE_HOSTS`) → строки их хостов. Старый ключ
     остаётся (решение владельца 4). Проверка: шаблон по строкам (со старым ключом и без него)
@@ -294,6 +330,7 @@ def migrate_templates(raw: dict, render=None) -> tuple[dict, Report]:
     return out, report
 
 
+@with_legacy
 def migrate(raw: dict, render=None, objects=None) -> tuple[dict, Report]:
     """Все перенесённые поверхности: листинги (B1a), шаблоны уровня сайта (B1b-1) и свои
     шаблоны объектов (B1b-2, если передан `objects` — `page_axes_objects.ObjectIndex`). Сайт
@@ -316,6 +353,7 @@ def migrate(raw: dict, render=None, objects=None) -> tuple[dict, Report]:
     return out2, report
 
 
+@with_legacy
 def migrate_objects(raw: dict, objects, render_at=None) -> tuple[dict, Report]:
     """B1b-2: единицы `page_axes_objects.UNITS` по очереди; каждая сверяется по осям (внутри
     единицы) и по отрисованным страницам: до == после == после без кодов объектов и без ключа
@@ -369,6 +407,7 @@ def migrate_objects(raw: dict, objects, render_at=None) -> tuple[dict, Report]:
     return out, report
 
 
+@with_legacy
 def templates_to_rows(raw: dict) -> dict:
     """FB-31.7 B1b (демо-киты и прочие сборщики конфига): старые ключи шаблонов уровня сайта
     → строки их хостов, ключ снимается. Вид тот же (строки = код + прежние строки); шаблон,

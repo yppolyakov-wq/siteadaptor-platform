@@ -337,6 +337,9 @@ AGGREGATOR_PORTAL_STATS = {
 # T-8.10f: MCP-сервер каталога города для ассистентов (Claude/ChatGPT) — POST /mcp/ на
 # хосте портала. Выключен по умолчанию; hosts пусто = все активные порталы.
 MCP_ENABLED = env.bool("MCP_ENABLED", default=False)
+# FB-31.7 B3b: старые коды шаблонов страниц не читаются (вид — строки «Seitenaufbau»); откат без
+# деплоя — PAGE_LEGACY_READ=1 в .env.prod и перезапуск web/worker (данные кодов целы до B4)
+PAGE_LEGACY_READ = env.bool("PAGE_LEGACY_READ", default=False)
 # KA-12 B2-8b: Anzahlungsrechnung. Включать вместе с B2-8c (вычет в итоговом
 # счёте) — иначе НДС предоплаты был бы указан в двух счетах (§ 14c UStG).
 ADVANCE_INVOICES_ENABLED = env.bool("ADVANCE_INVOICES_ENABLED", default=False)

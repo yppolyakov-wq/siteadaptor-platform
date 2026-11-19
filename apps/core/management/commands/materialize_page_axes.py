@@ -40,6 +40,12 @@ class Command(BaseCommand):
                 raise CommandError(f"нет такого сайта: {options['schema']}")
         if options["residue"]:
             return self._residue(tenants)
+        if options["undo"] and not pam.legacy_reads():
+            # B3b: строки — единственный источник вида; откат строк вернул бы вид по умолчанию
+            raise CommandError(
+                "откат FB-31.7 после B3b: сначала PAGE_LEGACY_READ=1 в .env.prod и перезапуск "
+                "web/worker (старые коды снова читаются), затем --undo"
+            )
         done = skipped = would = 0
         skipped_sites: list[str] = []
         failed = []

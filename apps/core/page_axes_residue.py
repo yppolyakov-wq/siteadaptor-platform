@@ -15,6 +15,8 @@ from __future__ import annotations
 import copy
 from types import SimpleNamespace
 
+from apps.core.page_axes_migration import with_legacy as pam_with_legacy
+
 #: старые ключи уровня сайта (для подсчёта в истории/черновике)
 SITE_KEYS = ("page_styles", "catalog_page_style", "promo_page_style")
 SITE_DEFAULT_KEYS = ("category_page_style", "promo_group_style", "promo_detail_style")
@@ -88,6 +90,7 @@ def _builtin_keys() -> tuple[str, ...]:
     return tuple(promo_types.builtin_keys())
 
 
+@pam_with_legacy
 def view_residue(cfg: dict, idx, promos) -> list[str]:
     """Поверхности, чей вид сменится без старых кодов."""
     from apps.core import page_axes_migration as pam
@@ -98,6 +101,7 @@ def view_residue(cfg: dict, idx, promos) -> list[str]:
     return sorted(k for k in before if before[k] != after.get(k))
 
 
+@pam_with_legacy
 def tenant_residue(tenant) -> list[str]:
     """Причины, по которым у сайта снятие чтения сменит вид (сейчас или позже)."""
     from django_tenants.utils import schema_context

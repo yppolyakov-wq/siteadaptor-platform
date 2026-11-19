@@ -741,7 +741,10 @@ def apply_override(cfg: dict, code: str, value, output: dict | None = None) -> d
         # тот же шаблон по ОСЯМ (не по ближайшему коду): свои виды владельца не снимаются
         if siteconfig.page_template_is(norm, template_key, str(value or "")):
             return out
-        if template_key in siteconfig.OBJECT_BOUND_TEMPLATE_KEYS:
+        from apps.core.page_axes_migration import legacy_reads
+
+        # B3b: свои коды категорий не читаются — закреплять нечего (только при откате на коды)
+        if template_key in siteconfig.OBJECT_BOUND_TEMPLATE_KEYS and legacy_reads():
             out = _pin_own_categories(out)
         try:
             return siteconfig.set_page_template(out, template_key, str(value or ""))

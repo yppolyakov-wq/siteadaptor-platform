@@ -97,14 +97,15 @@ def detail_parts(cfg, own_style: str, site_default: str, host: str = "") -> pp.P
     blocks = (cfg.get("page_blocks") or {}) if isinstance(cfg, dict) else {}
     if not isinstance(blocks, dict):  # сырой конфиг черновика может быть битым
         blocks = {}
-    from apps.core.page_axes_migration import is_objects_blind
+    from apps.core.page_axes_migration import is_objects_blind, read_old
 
     # FB-31.7 B1b-2: сверка переноса смотрит вид без своего кода акции (как после B3)
     own = "" if is_objects_blind() else group_styles.promotion_detail_style(own_style, "")
     if own:
         parts = pp.from_code(PROMO_DETAIL, own)
     else:
-        site_code = group_styles.promotion_detail_style("", site_default)
+        # FB-31.7 B3b: дефолт сайта (старый ключ) не читается — вид держит строка «Angebot»
+        site_code = group_styles.promotion_detail_style("", read_old(site_default))
         parts = pp.effective_rows(PROMO_DETAIL, blocks.get(OFFER_HOST), code=site_code)
     if host and blocks.get(host):
         parts = pp.effective_rows(
@@ -126,13 +127,13 @@ def group_parts(cfg, key: str) -> pp.Parts:
     if not isinstance(blocks, dict):
         blocks = {}
     sd = cfg.get("site_defaults") or {}
-    from apps.core.page_axes_migration import is_objects_blind
+    from apps.core.page_axes_migration import is_objects_blind, read_old
 
     own = "" if is_objects_blind() else group_styles.group_style(key, cfg.get("promo_groups"), "")
     if own:
         parts = pp.from_code(PROMO_GROUP, own)
     else:
-        site_code = group_styles.group_style("", None, sd.get("promo_group_style", ""))
+        site_code = group_styles.group_style("", None, read_old(sd.get("promo_group_style", "")))
         parts = pp.effective_rows(PROMO_GROUP, blocks.get("promo_group"), code=site_code)
     host = siteconfig.promo_group_host(key)
     if host and blocks.get(host):

@@ -42,6 +42,9 @@ def root_page_style(raw) -> str:
     Дефолт КАТЕГОРИЙ сюда не наследуется (Р-2 плана DL-21): «поставил категориям
     Navigator — корень стал Navigator» был бы сюрпризом. Мусор → Standard.
     """
+    from apps.core.page_axes_migration import read_old
+
+    raw = read_old(raw)  # FB-31.7 B3b: ключ не читается — вид корня держат строки «Katalog»
     code = (raw or "").strip() if isinstance(raw, str) else ""
     return code if code in VALID_ROOT_STYLES and code else ""
 
@@ -65,5 +68,7 @@ def page_style(category, site_default: str = "") -> str:
     code = "" if is_objects_blind() else (getattr(category, "page_style", "") or "").strip()
     if code in VALID_PAGE_STYLES and code:
         return code
-    site_default = (site_default or "").strip()
+    from apps.core.page_axes_migration import read_old
+
+    site_default = (read_old(site_default) or "").strip()  # B3b: «Alle Kategorien» — строками
     return site_default if site_default in VALID_PAGE_STYLES else ""

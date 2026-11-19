@@ -1485,7 +1485,9 @@ def page_template_parts(cfg: dict, code_key: str):
     node = cfg
     for part in path:
         node = node.get(part) if isinstance(node, dict) else None
-    old = node if isinstance(node, str) else ""
+    from apps.core.page_axes_migration import read_old
+
+    old = read_old(node) if isinstance(node, str) else ""  # FB-31.7 B3b: ключ не читается
     if host in ("catalog", "category"):
         parts = catalog_parts.effective(cfg, host, code=old)
         if host == "catalog" and parts.head and catalog_parts.legacy_code(parts) == "sets":
@@ -1529,7 +1531,9 @@ def page_template_code(cfg: dict, code_key: str) -> str:
     node = cfg
     for part in path:
         node = node.get(part) if isinstance(node, dict) else None
-    old = node if isinstance(node, str) else ""
+    from apps.core.page_axes_migration import read_old
+
+    old = read_old(node) if isinstance(node, str) else ""  # FB-31.7 B3b: ключ не читается
     if host in ("catalog", "category"):
         parts = catalog_parts.effective(cfg, host, code=old)
         code = catalog_parts.legacy_code(parts)

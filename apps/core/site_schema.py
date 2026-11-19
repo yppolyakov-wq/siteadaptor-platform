@@ -24,6 +24,7 @@ from django.utils.translation import gettext_lazy
 
 from apps.core import detail_parts as _sec_parts
 from apps.core import studio_pages
+from apps.core.page_axes_migration import read_old
 
 logger = logging.getLogger(__name__)
 
@@ -2381,11 +2382,11 @@ def _promo_code(config: dict, host: str) -> str:
     from apps.promotions import group_styles
 
     if host == "promos":
-        return group_styles.promo_page_style((config or {}).get("promo_page_style"))
+        return group_styles.promo_page_style(read_old((config or {}).get("promo_page_style")))
     sd = (config or {}).get("site_defaults") or {}
     if host == "promo_group":
-        return group_styles.group_style("", None, sd.get("promo_group_style", ""))
-    return group_styles.promotion_detail_style("", sd.get("promo_detail_style", ""))
+        return group_styles.group_style("", None, read_old(sd.get("promo_group_style", "")))
+    return group_styles.promotion_detail_style("", read_old(sd.get("promo_detail_style", "")))
 
 
 def _rows_host(code: str) -> str:

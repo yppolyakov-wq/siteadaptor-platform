@@ -38,6 +38,7 @@ from apps.core import (
     readiness,
 )
 from apps.core.models import resolve_overlay
+from apps.core.page_axes_migration import read_old
 from apps.core.pagecache import cache_storefront_page
 from apps.core.pagination import paginate
 from apps.core.seo import offer_ld
@@ -758,7 +759,7 @@ def promotion_list(request):
             _promo_parts.PROMOS,
             cfg,
             "promos",
-            code=group_styles.promo_page_style(cfg.get("promo_page_style")),
+            code=group_styles.promo_page_style(read_old(cfg.get("promo_page_style"))),
         )
     page_style = _pp.legacy_code(_promo_parts.PROMOS, pparts)
     flat_overview = pparts.grouping == _promo_parts.FLAT

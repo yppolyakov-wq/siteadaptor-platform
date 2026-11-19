@@ -74,8 +74,11 @@ BY_HOST = {
 def effective(cfg, surface: str) -> pp.Parts:
     """Оси листинга: прежний код (`page_styles[surface]`), поверх — строки его хоста."""
     s = LISTINGS[surface]
+    from apps.core.page_axes_migration import read_old
+
     styles = (cfg or {}).get("page_styles") if isinstance(cfg, dict) else None
-    code = styles.get(surface, "") if isinstance(styles, dict) else ""
+    # FB-31.7 B3b: старый ключ не читается (вид — строки хоста); `PAGE_LEGACY_READ` — откат
+    code = read_old(styles.get(surface, "")) if isinstance(styles, dict) else ""
     return pp.effective(s, cfg, HOST_OF[surface], code=code if isinstance(code, str) else "")
 
 

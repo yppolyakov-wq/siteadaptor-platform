@@ -23,6 +23,13 @@ from dataclasses import dataclass, field
 
 logger = logging.getLogger(__name__)
 
+
+def _legacy(func):
+    from apps.core.page_axes_migration import with_legacy
+
+    return with_legacy(func)
+
+
 #: сколько страниц одной единицы сверять рендером (каждая — три отрисовки)
 MAX_RENDER_PAGES = 150
 
@@ -151,6 +158,7 @@ def _cat_view(cfg, ref: CategoryRef):
     return catalog_parts.category_parts(cfg, _cat_obj(ref))
 
 
+@_legacy
 def migrate_categories(raw: dict, idx: ObjectIndex) -> tuple[dict, UnitResult]:
     from apps.catalog import catalog_parts
     from apps.catalog.category_styles import VALID_PAGE_STYLES
@@ -254,6 +262,7 @@ def migrate_categories(raw: dict, idx: ObjectIndex) -> tuple[dict, UnitResult]:
 # ───────── акции ─────────
 
 
+@_legacy
 def migrate_promos(raw: dict, idx: ObjectIndex) -> tuple[dict, UnitResult]:
     from apps.core import page_axes_migration as pam
     from apps.core import page_parts as pp
@@ -308,6 +317,7 @@ def migrate_promos(raw: dict, idx: ObjectIndex) -> tuple[dict, UnitResult]:
 # ───────── группы акций ─────────
 
 
+@_legacy
 def migrate_groups(raw: dict, idx: ObjectIndex) -> tuple[dict, UnitResult]:
     from apps.core import page_axes_migration as pam
     from apps.core import page_parts as pp
