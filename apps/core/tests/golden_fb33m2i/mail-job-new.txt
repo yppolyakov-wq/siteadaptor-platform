@@ -1,0 +1,12 @@
+Neue Anfrage!
+
+Zaun bauen
+Kunde: Herr Meyer · 0171 · m@t.de
+Adresse: Hauptstr. 1
+Anzahl Personen: 12
+Art der Veranstaltung: Hochzeit
+
+Bitte bis Mai.
+Code: J-ABC
+
+Angebot erstellen im Dashboard: /dashboard/auftraege/
