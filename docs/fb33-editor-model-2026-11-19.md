@@ -304,3 +304,7 @@ M2d-2 security-reviewer, seo-specialist, a11y, silent-failure-hunter, e2e; code-
 **Решения владельца по M2d (2026-11-19):** 1) формы — заголовок как сейчас (под своими блоками сверху);
 2) `/aktionen/` — делать сразу (M2d-3), центр только у вида Standard, страницы групп не трогаем;
 3) `/termin/` — один заголовок на оба вида; 4) обложка раздела (`archetypes.intro`) — отдельно.
+**M2d-0 (2026-11-19):** снимки шапки 18 страниц × (de, ru, со своим блоком сверху), один H1 —
+`test_fb33_m2d_page_title_before.py`. Найдено: свои блоки «сверху» стоят ВЫШЕ H1 и у списков blog,
+combos, services, tours, reviews, promos; H1 первым — только events, stay_rooms, team, gallery,
+wishlist (`H1_FIRST`). Позиция `__title` в схеме — по этой таблице, а не «0 у всех списков».
