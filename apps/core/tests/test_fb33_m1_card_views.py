@@ -137,3 +137,29 @@ def test_price_list_with_old_deal_form_keeps_its_columns():
         {"source": "products", "style": "preisliste_foto_3sp", "card": "deal", "cols": 3}
     )
     assert list_blocks.effective_view({}, data)["layout"]["cols"] == 3
+
+
+def test_site_default_deal_does_not_shrink_a_price_list():
+    """Ревью M1 H1: унаследованная с сайта «Deal» у прайс-листа больше не ужимает колонки."""
+    from apps.core import list_blocks
+
+    cfg = {"site_defaults": {"card_style": "deal"}}
+    price = {"source": "products", "style": "preisliste_foto_3sp", "cols": 3}
+    assert list_blocks.effective_view(cfg, price)["layout"]["cols"] == 3
+    assert list_blocks.effective_view(cfg, price)["card"] == ""
+    grid = {"source": "products", "cols": 4}
+    assert list_blocks.effective_view(cfg, grid)["card"] == "deal"  # у сетки — как было
+
+
+def test_builtin_price_list_section_drops_its_card_form():
+    """Ревью M1 H2: вид встроенной секции — поле строки; форма в её data решается им."""
+    rows = siteconfig.normalize_sections(
+        [
+            {"key": "products", "style": "preisliste", "data": {"card": "deal"}},
+            {"key": "promotions", "style": "spotlight", "data": {"card": "coupon"}},
+        ]
+    )
+    by_key = {r["key"]: r for r in rows}
+    assert "card" not in (by_key["products"].get("data") or {})
+    assert by_key["promotions"]["data"]["card"] == "coupon"
+    assert by_key["products"]["style"] == "preisliste"

@@ -463,7 +463,7 @@ def groups(request, cfg: dict, data: dict, mode: str = "") -> list[dict]:
     # FB-33 M1: формы — те, что допустимы у вида (реестр `card_forms.VIEW_SHAPES`); у
     # прайс-листов и строк акций карточки нет — «Kartenform» не действует, поля нет
     # (значение не стирается: поле просто не присылается)
-    style = str(data.get("style") or "")
+    style = data.get("style") if data.get("style") in siteconfig.list_styles(source) else ""
     kind = siteconfig.LIST_SOURCES[source]["card"]
     allowed = {form[0] for form in card_forms.forms_for_view(style, kind)} if kind else set()
     cards = [(k, lab) for k, lab, srcs in hint["cards"] if source in srcs.split() and k in allowed]

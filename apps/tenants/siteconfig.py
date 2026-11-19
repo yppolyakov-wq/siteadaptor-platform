@@ -4716,7 +4716,11 @@ def _section_entry(key, enabled, raw_item):
     # LB-4: оси «ЧТО» встроенного списка (фильтр/сортировка/форма карточки) —
     # presence-minimal: без выбора владельца ключа нет, golden байт-в-байт.
     if key in BUILTIN_LIST_SOURCES:
-        data = clean_builtin_list_data(key, raw_item.get("data"))
+        raw_data = raw_item.get("data")
+        if isinstance(raw_data, dict) and entry.get("style"):
+            # FB-33 M1c: вид строки решает, какая форма карточки у неё хранится
+            raw_data = {**raw_data, "style": entry["style"]}
+        data = clean_builtin_list_data(key, raw_data)
         if data:
             entry["data"] = data
     return entry

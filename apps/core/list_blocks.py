@@ -180,6 +180,11 @@ def effective_view(cfg: dict, data: dict) -> dict:
         if data.get(axis):
             layout[axis] = data[axis]
     card = data.get("card") or base["card"]
+    # FB-33 M1: у вида без карточки (прайс-лист, строки акций) формы нет — и
+    # унаследованная с сайта «Deal» не ужимает его колонки (вид побеждает)
+    style = data.get("style", "") if data.get("style") in siteconfig.list_styles(source) else ""
+    if not card_forms.view_has_card(style):
+        card = ""
     # «Deal» — строка «фото · текст · кнопка» (DL-19 N3): уже трёх колонок она
     # схлопывается до буквы (стенд LB-1). Колонки, которые блок УНАСЛЕДОВАЛ, для неё
     # ужимаются до двух, на телефоне — до одной; явный выбор владельца не трогаем.
