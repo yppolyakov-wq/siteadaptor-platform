@@ -64,6 +64,10 @@ CASES = (
     ("text", "tp1"),  # «Von einer Seite»
     ("text", "bn1"),  # баннер страницы: выбор из библиотеки
     ("text", "__page"),  # строка «Einstellungen der Seite»
+    # FB-33 M2h-5 (координатор): страница «Bestätigung» — итог, свой текст, рекомендации
+    ("confirmation", "summary"),
+    ("confirmation", "next"),
+    ("confirmation", "recommend"),
 )
 
 

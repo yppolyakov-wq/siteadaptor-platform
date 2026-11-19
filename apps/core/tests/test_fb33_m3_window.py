@@ -110,6 +110,9 @@ def test_one_tab_needs_no_tab_bar_and_banner_shows_choice_and_page():
     assert [t for t, _h in _tabs_of(b.get("?seite=text&block=bn1"))] == ["was", "wie"]
     assert [t for t, _h in _tabs_of(b.get("?seite=catalog&block=main"))] == ["wie", "seite"]
     assert [t for t, _h in _tabs_of(b.get("?seite=home&block=l1"))] == ["was", "wie"]
+    # FB-33 M2h-5: «Was passiert jetzt» — свой текст, одна вкладка «Texte»
+    assert _tabs_of(b.get("?seite=confirmation&block=next")) == [("texte", "")]
+    assert _tabs_of(b.get("?seite=confirmation&block=summary")) == []
 
 
 def test_pinned_and_confirm_have_no_tabs():

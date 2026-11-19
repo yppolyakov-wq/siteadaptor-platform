@@ -74,6 +74,63 @@
    "settings"
   ]
  },
+ "confirmation|next": {
+  "forms": [
+   "<form method=\"post\" class=\"mt-4 space-y-3\" data-schema-fields> <input type=\"hidden\" name=\"seite\" value=\"confirmation\"> <input type=\"hidden\" name=\"ref\" value=\"next\"> <input type=\"hidden\" name=\"panel_present\" value=\"1\"> <div> <label for=\"schema-f-text\" class=\"block text-sm font-semibold text-gray-700 mb-1\">Was passiert jetzt</label> <textarea id=\"schema-f-text\" name=\"f_text\" rows=\"5\" class=\"ui-input w-full\"></textarea> </div> <p class=\"text-xs text-gray-600\">Hier steht der Text der Hauptsprache. Übersetzungen ändern Sie direkt auf der Seite.</p> <button name=\"op\" value=\"update\" class=\"ui-btn ui-btn-primary w-full\">Übernehmen</button> </form>"
+  ],
+  "ops": [
+   "update"
+  ],
+  "selected": [
+   "enabled",
+   "fields",
+   "fixed",
+   "flex",
+   "key",
+   "label",
+   "pinned",
+   "ref",
+   "shape",
+   "summary",
+   "width_value"
+  ],
+  "view": []
+ },
+ "confirmation|recommend": {
+  "forms": [
+   "<form method=\"post\"> <input type=\"hidden\" name=\"seite\" value=\"confirmation\"> <input type=\"hidden\" name=\"ref\" value=\"recommend\"> </form>",
+   "<form method=\"post\"> <input type=\"hidden\" name=\"seite\" value=\"confirmation\"> <input type=\"hidden\" name=\"ref\" value=\"recommend\"> <button name=\"op\" value=\"toggle\" class=\"flex w-full items-center min-h-[44px] rounded-md px-3 text-left hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600\">Einblenden</button> </form>"
+  ],
+  "ops": [
+   "toggle"
+  ],
+  "selected": [
+   "fixed",
+   "flex",
+   "key",
+   "label",
+   "ref",
+   "shape",
+   "width_value"
+  ],
+  "view": []
+ },
+ "confirmation|summary": {
+  "forms": [],
+  "ops": [],
+  "selected": [
+   "enabled",
+   "fixed",
+   "flex",
+   "key",
+   "label",
+   "pinned",
+   "ref",
+   "shape",
+   "width_value"
+  ],
+  "view": []
+ },
  "home|bt1": {
   "forms": [
    "<form method=\"post\" class=\"mt-4 space-y-3\" data-schema-fields> <input type=\"hidden\" name=\"seite\" value=\"home\"> <input type=\"hidden\" name=\"ref\" value=\"bt1\"> <input type=\"hidden\" name=\"panel_present\" value=\"1\"> <div> <label for=\"schema-f-label\" class=\"block text-sm font-semibold text-gray-700 mb-1\">Beschriftung</label> <input type=\"text\" id=\"schema-f-label\" name=\"f_label\" value=\"Los\" class=\"ui-input w-full\"> </div> <div> <label for=\"schema-f-url\" class=\"block text-sm font-semibold text-gray-700 mb-1\">Link</label> <input type=\"text\" id=\"schema-f-url\" name=\"f_url\" value=\"/x\" class=\"ui-input w-full\"> </div> <p class=\"text-xs text-gray-600\">Hier steht der Text der Hauptsprache. Übersetzungen ändern Sie direkt auf der Seite.</p> <button name=\"op\" value=\"update\" class=\"ui-btn ui-btn-primary w-full\">Übernehmen</button> </form>",
