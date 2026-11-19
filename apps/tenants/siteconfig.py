@@ -5537,6 +5537,13 @@ def _normalize_impl(config) -> dict:
     anfrage = normalize_anfrage(config.get("anfrage"))
     if anfrage:
         normalized["anfrage"] = anfrage
+    # FB-33 M2i: «Поля форм» — режимы полей заявки и оформления; ключ ТОЛЬКО при отличиях
+    # от умолчания (умолчание событийных полей — прежний `anfrage.fields`).
+    from apps.core import form_spec
+
+    ff = form_spec.normalize_all(config.get("form_fields"), (anfrage or {}).get("fields") or ())
+    if ff:
+        normalized["form_fields"] = ff
     # HF-2: какие удобства показывать на карточке номера; ключ ТОЛЬКО при выборе
     # владельца (пусто = дефолт «первые несколько удобств номера») — golden-паритет.
     ca = normalize_card_amenities(config.get("stay_card_amenities"))

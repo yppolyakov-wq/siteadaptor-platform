@@ -39223,3 +39223,21 @@ msgstr "Приклад — так виглядає підтвердження"
 
 msgid "Please enter your email for online payment — we send the confirmation there."
 msgstr "Для онлайн-оплати вкажіть e-mail — туди надійде підтвердження."
+
+msgid "Event date"
+msgstr "Дата заходу"
+
+msgid "Number of guests"
+msgstr "Кількість гостей"
+
+msgid "Type of event"
+msgstr "Тип заходу"
+
+msgid "Job address"
+msgstr "Адреса місця роботи"
+
+msgid "Photos (up to 5)"
+msgstr "Фотографії (до 5)"
+
+msgid "Please fill in all required fields."
+msgstr "Будь ласка, заповніть усі обов’язкові поля."

@@ -4,7 +4,7 @@ PAGE_BLOCK_HOSTS-страниц. Гейт по модулю jobs: выключе
 референс рендерит ничего»). Состав событийных полей — глобальный site.anfrage
 (панель «⚙️ Anfrage-Formular» кабинета); POST идёт в /anfrage/ (action партиала).{% endcomment %}
 {% if storefront_jobs_enabled %}
-{% if section_row.style == "band" %}
+{% if section_row.style == "band" %}{% form_field_modes "anfrage" as ff %}
 {% comment %}DS-4b (Fokus): «банда» — слим-форма на акцент-полосе (концепт-макет):
 дата/гости/повод (только поля, включённые в site.anfrage) + имя/почта в одну
 строку; POST в штатный приёмник /anfrage/ (title обязателен — hidden). Полная
@@ -12,33 +12,35 @@ PAGE_BLOCK_HOSTS-страниц. Гейт по модулю jobs: выключе
 <section class="mb-10 rounded-2xl p-6 md:p-8 text-white" style="background: var(--accent, #4f46e5);" data-anfrage-band>
   <h2 class="text-xl md:text-2xl font-bold">{% trans "Planen Sie Ihr nächstes Event?" %}</h2>
   <p class="text-white/80 text-sm mb-4">{% trans "Tell us what you need — we'll send you a quote." %}</p>
-  <form method="post" action="{% url 'storefront-anfrage' %}" class="flex flex-wrap items-end gap-3">
+  {% if ff.band_full %}<a href="{% url 'storefront-anfrage' %}" class="inline-block rounded-lg bg-white px-5 py-2 font-semibold" style="color: var(--accent, #4f46e5);">{% trans "Request a quote" %}</a>{% else %}<form method="post" action="{% url 'storefront-anfrage' %}" class="flex flex-wrap items-end gap-3">
     {% csrf_token %}{% portal_attribution_fields %}
     <input type="hidden" name="title" value="{% trans 'Event-Anfrage' %}">
     <input type="text" name="website" tabindex="-1" autocomplete="off" class="hidden" aria-hidden="true">
-    {% if "date" in site.anfrage.fields %}
+    {% if ff.event_date.on %}
     <label class="block grow basis-32"><span class="block text-[10px] tracking-wider uppercase text-white/70 mb-1">{% trans "Wunschdatum" %}</span>
-      <input type="date" name="event_date" class="w-full rounded-lg border-0 px-3 py-2 text-gray-900"></label>
+      <input type="date" name="event_date"{% if ff.event_date.req %} required{% endif %} class="w-full rounded-lg border-0 px-3 py-2 text-gray-900"></label>
     {% endif %}
-    {% if "guests" in site.anfrage.fields %}
+    {% if ff.guest_count.on %}
     <label class="block grow basis-24"><span class="block text-[10px] tracking-wider uppercase text-white/70 mb-1">{% trans "Anzahl Personen" %}</span>
-      <input type="number" name="guest_count" min="1" class="w-full rounded-lg border-0 px-3 py-2 text-gray-900"></label>
+      <input type="number" name="guest_count" min="1"{% if ff.guest_count.req %} required{% endif %} class="w-full rounded-lg border-0 px-3 py-2 text-gray-900"></label>
     {% endif %}
-    {% if "event_type" in site.anfrage.fields and site.anfrage.event_types %}
+    {% if ff.event_type.on %}
     <label class="block grow basis-32"><span class="block text-[10px] tracking-wider uppercase text-white/70 mb-1">{% trans "Art der Veranstaltung" %}</span>
-      <select name="event_type" class="w-full rounded-lg border-0 px-3 py-2 text-gray-900">
+      <select name="event_type"{% if ff.event_type.req %} required{% endif %} class="w-full rounded-lg border-0 px-3 py-2 text-gray-900">
         <option value="">—</option>
         {% anfrage_event_choices as ev_choices %}{% for value, label in ev_choices %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
       </select></label>
     {% endif %}
     <label class="block grow basis-32"><span class="block text-[10px] tracking-wider uppercase text-white/70 mb-1">{% trans "Name" %}</span>
       <input type="text" name="name" required class="w-full rounded-lg border-0 px-3 py-2 text-gray-900"></label>
-    <label class="block grow basis-40"><span class="block text-[10px] tracking-wider uppercase text-white/70 mb-1">{% trans "Email" %}</span>
-      <input autocomplete="email" type="email" name="email" class="w-full rounded-lg border-0 px-3 py-2 text-gray-900"></label>
-    <button type="submit" class="rounded-lg bg-white px-5 py-2 font-semibold" style="color: var(--accent, #4f46e5);">{% trans "Request a quote" %}</button>
+    {% if ff.email.on %}<label class="block grow basis-40"><span class="block text-[10px] tracking-wider uppercase text-white/70 mb-1">{% trans "Email" %}</span>
+      <input autocomplete="email" type="email" name="email"{% if ff.email.req %} required{% endif %} class="w-full rounded-lg border-0 px-3 py-2 text-gray-900"></label>{% endif %}
+    {% for key, f in ff.band_extra %}<label class="block grow basis-32"><span class="block text-[10px] tracking-wider uppercase text-white/70 mb-1">{{ f.label }} *</span>
+      <input type="{% if key == 'phone' %}tel{% else %}text{% endif %}" name="{{ key }}" required class="w-full rounded-lg border-0 px-3 py-2 text-gray-900"></label>
+    {% endfor %}<button type="submit" class="rounded-lg bg-white px-5 py-2 font-semibold" style="color: var(--accent, #4f46e5);">{% trans "Request a quote" %}</button>
     <p class="basis-full text-[11px] text-white/70 m-0">{% trans "Unverbindlich — wir melden uns mit einem Angebot." %}</p>
     {% include "storefront/_privacy_note.html" with privacy_cls="text-white/70 m-0" %}
-  </form>
+  </form>{% endif %}
 </section>
 {% else %}
 <div class="max-w-2xl mx-auto">

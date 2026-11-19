@@ -38895,3 +38895,21 @@ msgstr "Example — this is how the confirmation looks"
 
 msgid "Please enter your email for online payment — we send the confirmation there."
 msgstr "Please enter your email for online payment — we send the confirmation there."
+
+msgid "Event date"
+msgstr "Event date"
+
+msgid "Number of guests"
+msgstr "Number of guests"
+
+msgid "Type of event"
+msgstr "Type of event"
+
+msgid "Job address"
+msgstr "Job address"
+
+msgid "Photos (up to 5)"
+msgstr "Photos (up to 5)"
+
+msgid "Please fill in all required fields."
+msgstr "Please fill in all required fields."

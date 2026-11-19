@@ -1,0 +1,122 @@
+"""FB-33 M2i: свои вопросы формы и ответы на них — чистое ядро (без моделей и site_config).
+
+План — `docs/fb33-editor-model-2026-11-19.md` §«План M2i» (вердикт architect): одно ядро
+«вопросы владельца → ответы клиента» для заявки и оформления заказа, чтобы не заводить третью
+копию рядом с `Event.questions` и `apps/events/registration.py` (их перевод сюда — отложено).
+
+* `normalize_questions` — вопросы владельца (капы, типы, монотонные id `q<n>`: номер удалённого
+  вопроса не достаётся новому, иначе старый ответ получил бы чужую подпись);
+* `collect` — ответы из POST только на заданные вопросы (лишнее отбрасывается);
+* `validate` — какие обязательные вопросы без ответа (проверка сервера, не только HTML);
+* `snapshot` — то, что хранит сделка: `{id: {"label", "value"}}` (у выбора значение — текст варианта) с подписью на
+  момент ответа (переименование вопроса не обесценивает старые сделки).
+"""
+
+from __future__ import annotations
+
+import re
+from datetime import date
+
+TYPES = ("text", "textarea", "choice", "bool", "number", "date")
+MODES = ("opt", "req")
+MAX_QUESTIONS = 10
+MAX_OPTIONS = 20
+LABEL_MAX = 120
+ANSWER_MAX = 500
+_ID = re.compile(r"^q([1-9][0-9]{0,3})$")
+
+
+def _s(value, limit: int) -> str:
+    return re.sub(r"\s+", " ", value).strip()[:limit] if isinstance(value, str) else ""
+
+
+def normalize_questions(raw, next_id=0) -> tuple[list[dict], int]:
+    """Вопросы владельца и следующий свободный номер. Мусор отбрасывается молча (это настройка,
+    не ввод клиента); вопрос без подписи или выбор без вариантов — не вопрос."""
+    try:
+        counter = max(int(next_id), 0)
+    except (TypeError, ValueError):
+        counter = 0
+    out, seen = [], set()
+    for item in raw if isinstance(raw, list) else []:
+        if not isinstance(item, dict) or len(out) >= MAX_QUESTIONS:
+            continue
+        match = _ID.match(str(item.get("id") or ""))
+        label = _s(item.get("label"), LABEL_MAX)
+        kind = item.get("type") if item.get("type") in TYPES else "text"
+        if not match or not label or item["id"] in seen:
+            continue
+        question = {"id": item["id"], "type": kind, "label": label}
+        if kind == "choice":
+            options = []
+            for opt in item.get("options") if isinstance(item.get("options"), list) else []:
+                text = _s(opt, LABEL_MAX)
+                if text and text not in options:
+                    options.append(text)
+                if len(options) >= MAX_OPTIONS:
+                    break
+            if not options:
+                continue
+            question["options"] = options
+        if item.get("mode") == "req":
+            question["mode"] = "req"
+        seen.add(item["id"])
+        counter = max(counter, int(match.group(1)))
+        out.append(question)
+    return out, counter
+
+
+def new_id(next_id: int) -> str:
+    """Номер следующего вопроса (писатель хранит `next_id` рядом со списком)."""
+    return f"q{int(next_id) + 1}"
+
+
+def _value(question: dict, raw: str):
+    """Значение ответа или None (пусто/битое). Разбор мягкий: битое = нет ответа."""
+    raw = (raw or "").strip()
+    kind = question["type"]
+    if kind == "bool":
+        return True if raw in ("1", "on", "true", "yes") else None
+    if not raw:
+        return None
+    if kind == "choice":
+        return raw if raw in question.get("options", []) else None
+    if kind == "number":
+        try:
+            number = float(raw.replace(",", "."))
+        except ValueError:
+            return None
+        if abs(number) > 1e9:
+            return None
+        return int(number) if number.is_integer() else number
+    if kind == "date":
+        try:
+            return date.fromisoformat(raw).isoformat()
+        except ValueError:
+            return None
+    limit = ANSWER_MAX if kind == "textarea" else LABEL_MAX * 2
+    return raw[:limit]
+
+
+def collect(questions: list[dict], post, prefix: str = "") -> dict:
+    """Ответы {id: значение} только на заданные вопросы; лишние поля POST игнорируются."""
+    out = {}
+    for question in questions:
+        value = _value(question, post.get(prefix + question["id"], ""))
+        if value is not None:
+            out[question["id"]] = value
+    return out
+
+
+def validate(questions: list[dict], answers: dict) -> list[str]:
+    """id обязательных вопросов без ответа (порядок вопросов)."""
+    return [q["id"] for q in questions if q.get("mode") == "req" and q["id"] not in answers]
+
+
+def snapshot(questions: list[dict], answers: dict) -> dict:
+    """Что хранит сделка: подпись вопроса на момент ответа и значение."""
+    out = {}
+    for question in questions:
+        if question["id"] in answers:
+            out[question["id"]] = {"label": question["label"], "value": answers[question["id"]]}
+    return out
