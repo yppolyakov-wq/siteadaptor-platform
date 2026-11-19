@@ -311,3 +311,6 @@ root_page_style`; `promotions/public_views.py:1622-1646` (инлайн-копи�
 `silent-failure-hunter` (B3a `--history`/`restore_version`/`--residue`; B3b), `database-reviewer`
 (снимки B3a, B4), `code-reviewer` перед мержем каждой ветки, `doc-updater` после B3b. Гейт:
 `ruff format --check .`, `test_template_comments`, `i18n_quickcheck`, `apps/tenants`, `test_fb31*`.
+
+**Деплой B3a у владельца (2026-11-19):** перенос — изменено 0 (всё «same»), `residue: 0`. Условие B3b
+выполнено.
