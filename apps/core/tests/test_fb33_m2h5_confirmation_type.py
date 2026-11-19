@@ -239,3 +239,143 @@ def test_seitenaufbau_offers_the_page_and_edits_next_through_the_panel():
     assert confirmation_page.NEXT_KEY not in (Tenant.objects.get(pk=b.tenant.pk).site_config or {})
     b.post(seite=CODE, op="save")
     assert Tenant.objects.get(pk=b.tenant.pk).site_config[confirmation_page.NEXT_KEY] == "Danke!"
+
+
+# ── ревью M2h-5 ─────────────────────────────────────────────────────────────────────
+
+
+def test_form_blocks_never_land_on_the_confirmation_by_any_writer():
+    """Импорт/шаблон блока/Студия/ассистент пишут через normalize — форм-блок там вычищается;
+    шаблон блока с формой «+ Block» подтверждения не вставит."""
+    raw = {
+        "page_blocks": {
+            "confirmation": [
+                {"key": "newsletter", "id": "n1", "enabled": True, "data": {}},
+                {"key": "message_ref", "id": "m1", "enabled": True, "data": {}},
+                {"key": "text", "id": "t1", "enabled": True, "data": {"body": "ok"}},
+            ],
+            "info": [{"key": "newsletter", "id": "n2", "enabled": True, "data": {}}],
+        }
+    }
+    pb = siteconfig.normalize(raw)["page_blocks"]
+    assert [b["id"] for b in pb["confirmation"]] == ["t1"]
+    assert [b["id"] for b in pb["info"]] == ["n2"]  # на прочих страницах — как было
+    cfg = siteconfig.normalize(
+        {"block_templates": {"tp": {"key": "newsletter", "label": "NL", "data": {}}}}
+    )
+    items = site_schema.load_items(cfg, False, confirmation_page.HOST)
+    with pytest.raises(site_schema.SchemaError):
+        site_schema.mutate(
+            items, CODE, "add", block_type="tpl:tp", templates=cfg["block_templates"]
+        )
+    assert not any(
+        o[0] == "tpl:tp" for g in site_schema.add_groups(CODE, cfg) for o in g["options"]
+    )
+
+
+def test_next_text_is_translated_like_other_site_texts():
+    from django.utils import translation
+
+    from apps.core.tests.test_fb33_m2h_confirmation import _html
+
+    cfg = {
+        confirmation_page.NEXT_KEY: "Wir rufen Sie an.",
+        "i18n": {"ru": {confirmation_page.NEXT_KEY: "Мы вам позвоним."}},
+    }
+    assert confirmation_page.NEXT_KEY in siteconfig.TRANSLATABLE_KEYS
+    with translation.override("de"):
+        assert "Wir rufen Sie an." in _html(cfg)
+    with translation.override("ru"):
+        html = _html(cfg)
+    assert "Мы вам позвоним." in html and "Wir rufen Sie an." not in html
+
+
+def _cart_body(site_config):
+    from apps.orders import public_views
+    from apps.orders.tests.test_orders import _req as order_req
+
+    tenant = TenantFactory.build(site_config=site_config)
+    in_cart = ProductFactory(base_price=Decimal("9.00"), name={"de": "Pizza"})
+    add = order_req(method="post", data={"product": str(in_cart.pk), "qty": "1"}, tenant=tenant)
+    public_views.cart_add(add)
+    req = order_req(method="get", session={"cart": add.session["cart"]}, tenant=tenant)
+    return public_views.cart_view(req).content.decode()
+
+
+def test_cart_upsell_offers_request_only_products_only_in_a_quote_cart():
+    ProductFactory(base_price=Decimal("0"), primary_action="request", name={"de": "Hochzeitstorte"})
+    ProductFactory(
+        base_price=Decimal("2"),
+        name={"de": "Ausverkauft"},
+        sold_out_until=timezone.localdate(),
+    )
+    ProductFactory(base_price=Decimal("2.50"), name={"de": "Cola"})
+    body = _cart_body({})
+    assert "Cola" in body and "Hochzeitstorte" not in body and "Ausverkauft" not in body
+    quote = _cart_body({"quote_cart": True})
+    assert "Hochzeitstorte" in quote and "Ausverkauft" not in quote
+
+
+def test_confirmation_recommendations_use_the_same_filter():
+    from apps.core.tests.test_fb33_m2h_confirmation import _html
+
+    ProductFactory(base_price=Decimal("0"), primary_action="request", name={"de": "Hochzeitstorte"})
+    ProductFactory(
+        base_price=Decimal("2"), name={"de": "Leer"}, sold_out_until=timezone.localdate()
+    )
+    ProductFactory(base_price=Decimal("2.50"), name={"de": "Brezel"})
+    html = _html({confirmation_page.RECOMMEND_FLAG: True})
+    section = html[html.index("data-confirm-recommend") :]
+    assert "Brezel" in section and "Hochzeitstorte" not in section and "Leer" not in section
+
+
+def test_preview_is_404_for_anonymous_and_members_without_website_rights(rf):
+    from django.contrib.auth import get_user_model
+    from django.contrib.auth.models import AnonymousUser
+    from django.http import Http404
+
+    tenant = _tenant()
+    stranger = get_user_model().objects.create_user("fremd", "f@x.de", "pw12345678")
+    for user in (AnonymousUser(), stranger):
+        req = rf.get("/bestaetigung/vorschau/?preview=1")
+        SessionMiddleware(lambda r: None).process_request(req)
+        req.user, req.tenant = user, tenant
+        with pytest.raises(Http404):
+            confirmation_views.confirmation_preview(req)
+
+
+@pytest.mark.parametrize("op", ["up", "down", "move", "toggle", "delete", "width"])
+def test_next_row_cannot_be_moved_hidden_or_removed(op):
+    items = site_schema.load_items(siteconfig.normalize({}), False, confirmation_page.HOST)
+    with pytest.raises(site_schema.SchemaError):
+        site_schema.mutate(items, CODE, op, ref="next", value="summary")
+
+
+def test_stale_panel_without_the_text_field_keeps_the_saved_text(rf):
+    tenant = _tenant(site_config={confirmation_page.NEXT_KEY: "Bleibt"})
+    req = _req(rf, tenant)
+    aufbau_draft.op(req, tenant, CODE, "update", ref="next", fields={})
+    assert aufbau_draft.get(req, CODE) is None  # ничего не изменилось — черновика нет
+    site_schema.apply(tenant, CODE, "update", ref="next", fields={})
+    cfg = Tenant.objects.get(pk=tenant.pk).site_config
+    assert cfg[confirmation_page.NEXT_KEY] == "Bleibt"
+    assert siteconfig.normalize(cfg)[confirmation_page.NEXT_KEY] == "Bleibt"
+    site_schema.apply(tenant, CODE, "update", ref="next", fields={"text": "  "})
+    assert confirmation_page.NEXT_KEY not in Tenant.objects.get(pk=tenant.pk).site_config
+
+
+def test_preview_marks_itself_as_preview_only_under_the_preview_flag(rf, monkeypatch):
+    tenant = _tenant(
+        site_config={"page_blocks": {"confirmation": [{"key": "summary"}, {"key": "next"}]}}
+    )
+    seen = []
+    real = confirmation_views.render
+
+    def spy(request, name, ctx):
+        seen.append(ctx["is_preview"])
+        return real(request, name, ctx)
+
+    monkeypatch.setattr(confirmation_views, "render", spy)
+    _preview(rf, tenant, monkeypatch, query="?preview=1")
+    _preview(rf, tenant, monkeypatch)
+    assert seen == [True, False]

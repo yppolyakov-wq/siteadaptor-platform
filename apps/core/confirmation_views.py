@@ -36,7 +36,8 @@ def confirmation_preview(request):
     response = render(
         request,
         "storefront/confirmation_preview.html",
-        {"sample": sample_deal()},
+        # как у прочих витринных страниц: `?preview=1` — пустые места блоков видны в превью
+        {"sample": sample_deal(), "is_preview": request.GET.get("preview") == "1"},
     )
     response["X-Robots-Tag"] = "noindex, nofollow"
     response["Cache-Control"] = "private, no-store"

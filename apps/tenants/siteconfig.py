@@ -1880,6 +1880,12 @@ def _page_block_hosts(raw: dict) -> list:
     )
 
 
+def _confirmation_form_blocks() -> frozenset:
+    from apps.core.confirmation_page import FORM_BLOCKS
+
+    return FORM_BLOCKS
+
+
 def normalize_page_blocks(raw) -> dict:
     """UC6-7: привести page_blocks к {host: [cblock,…]} — whitelist хостов,
     каждый блок через _clean_cblock, кап _MAX_CBLOCKS на страницу.
@@ -1901,6 +1907,9 @@ def normalize_page_blocks(raw) -> dict:
         builtin_seen = set()
         anchor_keys = _detail_anchor_keys(key)
         axis_keys = _axis_section_keys(key)
+        # FB-33 M2h-5 (ревью): на подтверждении блоков с формами нет — любой писатель
+        # (импорт шаблона, Студия, ассистент, старый конфиг) их здесь не сохранит
+        banned = _confirmation_form_blocks() if key == "confirmation" else frozenset()
         # FB-32 S6f: голая строка оси хранится как место, если есть якоря разделов
         keep_bare = axis_keys and any(
             isinstance(i, dict) and i.get("key") in anchor_keys and not i.get("id") for i in items
@@ -1947,6 +1956,8 @@ def normalize_page_blocks(raw) -> dict:
             if isinstance(item, dict) and (
                 cblock_type(item.get("key")) or item.get("key") in PAGE_REF_BLOCKS
             ):
+                if (cblock_type(item.get("key")) or item.get("key")) in banned:
+                    continue
                 blocks.append(_clean_cblock(item))
         # маркер первым без полей = «все блоки под списком» = вид, как раньше: не храним
         if main_at is not None and (main_at or len(marker) > 1):

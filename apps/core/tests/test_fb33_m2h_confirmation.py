@@ -159,38 +159,52 @@ def test_recommendation_cards_show_price_and_currency_without_n_plus_one():
 
 
 def test_every_block_with_a_post_form_is_kept_off_the_confirmation():
-    """Замок ПДн: блок, чей шаблон отправляет форму, на подтверждении не рисуется."""
-    import re as _re
-
+    """Замок ПДн: блок, чей шаблон (с подключёнными кусками) отправляет форму, на подтверждении
+    не рисуется. Обходит ВЕСЬ реестр блоков страниц: каждый повторяемый блок, каждый блок-ссылка
+    и каждый член семьи `block_catalog` вида «блок»/«ссылка» — у каждого есть шаблон (иначе
+    новый блок проскочил бы мимо проверки)."""
     from django.template.loader import get_template
 
+    from apps.core import block_catalog, site_schema
     from apps.tenants.templatetags import siteui
 
-    post = _re.compile(r"<form[^>]*method=\"post\"", _re.I)
-    keys = {**siteui.CBLOCK_TEMPLATES}
-    keys.update({k: siteui.BLOCK_TEMPLATES[k[: -len("_ref")]] for k in siteconfig.PAGE_REF_BLOCKS})
+    templates = {**siteui.CBLOCK_TEMPLATES}
+    templates.update(
+        {k: siteui.BLOCK_TEMPLATES[k[: -len("_ref")]] for k in siteconfig.PAGE_REF_BLOCKS}
+    )
+    registry = set(siteconfig.REPEATABLE_BLOCKS) | set(siteconfig.PAGE_REF_BLOCKS)
+    registry |= {
+        key
+        for fam in block_catalog.FAMILIES
+        for key, where in fam.members
+        if where in (block_catalog.CBLOCK, block_catalog.REF)
+    }
+    assert registry <= set(templates), sorted(registry - set(templates))
     with_form = {
         key
-        for key, name in keys.items()
-        if post.search(get_template(name).template.source)
-        or "{% include" in get_template(name).template.source
-        and post.search(_expanded(get_template(name).template.source))
+        for key in registry
+        if _POSTS.search(_expanded(get_template(templates[key]).template.source))
     }
     allowed = confirmation_page.FORM_BLOCKS | confirmation_page.SAFE_POST_BLOCKS
     assert with_form <= allowed, sorted(with_form - allowed)
     assert not confirmation_page.FORM_BLOCKS & confirmation_page.SAFE_POST_BLOCKS
+    # всё, что «+ Block» подтверждения предлагает, проверено замком выше
+    assert {k for k, _l in site_schema.add_options("confirmation")} <= registry
 
 
-def _expanded(source: str) -> str:
-    """Шаблон с подключёнными партиалами (один уровень) — форма может жить в include."""
-    import re as _re
+#: форма с отправкой данных: method=post в любых кавычках или htmx-POST
+_POSTS = re.compile(r"""<form[^>]*method=["']?post|hx-post=""", re.I)
 
+
+def _expanded(source: str, depth: int = 4) -> str:
+    """Шаблон с подключёнными партиалами (рекурсивно) — форма может жить во вложенном include."""
     from django.template.loader import get_template
 
     out = [source]
-    for name in _re.findall(r"{% include \"([^\"]+)\"", source):
-        try:
-            out.append(get_template(name).template.source)
-        except Exception:  # noqa: BLE001
-            continue
+    if depth:
+        for name in re.findall(r"""{% include ["']([^"']+)["']""", source):
+            try:
+                out.append(_expanded(get_template(name).template.source, depth - 1))
+            except Exception:  # noqa: BLE001 — шаблон по переменной/нет — не форма блока
+                continue
     return "\n".join(out)
