@@ -73,7 +73,10 @@
       el.style.outlineOffset = "2px";
       el.style.cursor = "text";
       el.title = "{% trans 'Click to edit' %}";
+      // FB-33 M2d (ревью): клик без правки не пишет текст по умолчанию как свой
+      el.addEventListener("focus", function () { el._sfBefore = el.innerText; });
       el.addEventListener("blur", function () {
+        if (el._sfBefore !== undefined && el.innerText === el._sfBefore) return;
         fetch(editUrl, {
           method: "POST",
           headers: { "Content-Type": "application/json", "X-CSRFToken": token, "X-Requested-With": "fetch" },

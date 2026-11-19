@@ -185,3 +185,41 @@ def test_seitenaufbau_panel_edits_the_title_through_the_draft(settings):
     panel = b.get(f"?seite={code}&block={page_title.TITLE_REF}")
     assert 'name="f_title"' in panel and 'name="f_intro"' in panel and 'value="center"' in panel
     assert "data-schema-confirm" not in panel  # удалять нечего
+
+
+def test_draft_started_before_the_title_row_is_not_a_conflict():
+    """Ревью M2d: черновик из сессии до деплоя (без ключа `title`) — не «изменено в другом месте»."""
+    cfg = siteconfig.normalize({})
+    saved = aufbau_draft._saved_state(cfg, False, "services")
+    old = {k: v for k, v in saved.items() if k != "title"}
+    draft = {**old, "base": aufbau_draft._fingerprint(old), "home": False, "host": "services"}
+    assert aufbau_draft._base_fingerprint(saved, cfg, draft) == draft["base"]
+
+
+def test_canvas_does_not_save_an_untouched_default_text():
+    """Ревью M2d: клик в заголовок без правки не записывает текст по умолчанию как свой."""
+    import pathlib
+
+    for tpl in ("templates/tenant/site_home.html", "templates/tenant/site_preview.html"):
+        src = pathlib.Path(tpl).read_text(encoding="utf-8")
+        assert "el._sfBefore = el.innerText" in src and "el.innerText === el._sfBefore" in src, tpl
+
+
+def test_promo_photo_head_shows_the_own_intro():
+    from django.template.loader import render_to_string
+    from django.test import RequestFactory
+
+    req = RequestFactory().get("/aktionen/")
+    html = render_to_string(
+        "storefront/promo_page/_head.html",
+        {"request": req, "storefront_page_titles": {"promos": {"title": "Deals", "intro": "Jede Woche neu"}},
+         "promo_total": 3},
+    )  # fmt: skip
+    assert "Deals" in html and "Jede Woche neu" in html
+
+
+def test_question_page_with_a_reference_has_no_intro_edit_hook():
+    import pathlib
+
+    src = pathlib.Path("templates/storefront/message_contact.html").read_text(encoding="utf-8")
+    assert '{% if is_preview and not ref_label %} data-edit="page_titles.message.intro"' in src

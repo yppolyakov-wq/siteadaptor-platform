@@ -1443,7 +1443,6 @@ def fill_options(block: dict, host: str) -> None:
         }
     elif key == "page_title":
         options = {"align": [("", _("Links")), ("center", _("Zentriert"))]}
-        block["page_title_hint"] = True
     elif key == "quick_links":
         from apps.core.hero_tiles import QUICK_LINK_LABELS, QUICK_LINK_SETS
 

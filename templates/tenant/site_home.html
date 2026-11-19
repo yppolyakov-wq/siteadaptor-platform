@@ -3868,7 +3868,10 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
       doc.querySelectorAll("[data-edit]").forEach(function (el) {
         if (!sfOnce(el, "edit")) return;
         styleEditable(el, editOn);
+        // FB-33 M2d (ревью): клик без правки не пишет текст по умолчанию как свой
+        el.addEventListener("focus", function () { el._sfBefore = el.innerText; });
         el.addEventListener("blur", function () {
+          if (el._sfBefore !== undefined && el.innerText === el._sfBefore) return;
           fetch(editUrl, {
             method: "POST",
             headers: { "Content-Type": "application/json", "X-CSRFToken": token, "X-Requested-With": "fetch" },

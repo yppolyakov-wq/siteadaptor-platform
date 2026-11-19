@@ -65,6 +65,9 @@ def _base_fingerprint(saved: dict, config: dict, draft: dict) -> str:
     чистый черновик выглядел бы конфликтом."""
     if draft.get("host") == "info" and "contact" in draft and not _has_section_rows(draft):
         saved = {**saved, "contact": config.get("about_contact") is not False}
+    if "title" not in draft:
+        # FB-33 M2d (ревью): черновик, начатый до «Seitentitel», — отпечаток без него
+        saved = {k: v for k, v in saved.items() if k != "title"}
     return _fingerprint(saved)
 
 
@@ -318,6 +321,8 @@ def op(
 
 
 def _settle(request, code: str, draft: dict, saved: dict, ref: str = "") -> str:
+    if "title" not in draft:  # черновик до «Seitentitel» (ревью M2d) — сравнение без него
+        saved = {k: v for k, v in saved.items() if k != "title"}
     current = {k: draft.get(k) for k in saved}
     # Вернулись к сохранённому (скрыл и снова показал) — черновика нет.
     clean = _fingerprint(current) == _fingerprint(saved) == draft.get("base") and not _settings(

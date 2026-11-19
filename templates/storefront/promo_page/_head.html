@@ -3,7 +3,7 @@
 <section class="mb-6 relative rounded-2xl overflow-hidden bg-gray-900 text-white min-h-[180px] md:min-h-[240px] flex items-end" data-promo-head>
   {% if promo_head_photo %}<img src="{{ promo_head_photo }}" alt="" class="absolute inset-0 w-full h-full object-cover opacity-60">{% endif %}
   <div class="relative p-5 md:p-8">
-    {% page_title "promos" as pt %}<h1 class="text-2xl md:text-4xl font-extrabold leading-tight"{% if is_preview %} data-edit="page_titles.promos.title"{% endif %}>{% if pt.title %}{{ pt.title }}{% else %}{% trans "Current offers" %}{% endif %}</h1>
+    {% page_title "promos" as pt %}<h1 class="text-2xl md:text-4xl font-extrabold leading-tight"{% if is_preview %} data-edit="page_titles.promos.title"{% endif %}>{% if pt.title %}{{ pt.title }}{% else %}{% trans "Current offers" %}{% endif %}</h1>{% if pt.intro %}<p class="mt-1 text-sm md:text-base text-white/85"{% if is_preview %} data-edit="page_titles.promos.intro"{% endif %}>{{ pt.intro }}</p>{% endif %}
     <p class="mt-1 text-sm md:text-base text-white/85">{% blocktrans count n=promo_total %}{{ n }} offer{% plural %}{{ n }} offers{% endblocktrans %}{% if promo_group_count %} · {% blocktrans count m=promo_group_count %}{{ m }} group{% plural %}{{ m }} groups{% endblocktrans %}{% endif %}</p>
   </div>
 </section>
