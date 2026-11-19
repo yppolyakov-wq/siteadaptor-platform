@@ -42,7 +42,8 @@ def test_static_page_types_fixed_order_config_ignored():
 
 def test_keys_match_underlying_registries():
     assert siteconfig.page_section_keys("home") == tuple(k for k, _l, _e in siteconfig.SECTIONS)
-    assert siteconfig.page_section_keys("event_detail") == siteconfig.EVENT_DETAIL_SECTION_KEYS
+    # FB-33 M2g: полный реестр (вместе с разделами «на месте»); EVENT_DETAIL_SECTION_KEYS — поток
+    assert siteconfig.page_section_keys("event_detail") == detail_sections.section_keys("events")
     assert siteconfig.page_section_keys("product_detail") == siteconfig.PRODUCT_DETAIL_SECTION_KEYS
     assert siteconfig.page_section_keys("service_detail") == detail_sections.section_keys("booking")
     assert siteconfig.page_section_keys("stay_detail") == detail_sections.section_keys("stays")
@@ -101,7 +102,7 @@ def test_page_inspector_hide_only_and_orderable():
     assert [r["key"] for r in ev[:3]] == ["program", "for_whom", "faq"]  # сохранённый порядок
     assert [r["order"] for r in ev] == list(range(1, len(ev) + 1))  # 1-based
     assert {r["key"]: r["visible"] for r in ev}["testimonials"] is False
-    assert len(ev) == len(siteconfig.EVENT_DETAIL_SECTION_KEYS)  # скрытые остаются в списке
+    assert len(ev) == len(detail_sections.section_keys("events"))  # скрытые остаются в списке
 
     assert siteconfig.page_inspector({}, "home") == []  # home — свой формат, не здесь
     assert siteconfig.page_inspector({}, "listing") == []  # fail-safe

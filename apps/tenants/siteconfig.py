@@ -2864,7 +2864,9 @@ def detail_section_order(config, module: str) -> list[str]:
 # Обратная совместимость: прежние per-архетипные имена/сигнатуры сохранены (много
 # импортов в views/шаблонах) — теперь тонкие обёртки над generic-нормализатором.
 # KEYS выводятся из реестра (единый источник, порядок = порядок рендера).
-EVENT_DETAIL_SECTION_KEYS = detail_sections.section_keys("events")
+# FB-33 M2g: тематические разделы события (цикл и вкладки) — без разделов «на месте»
+# (группы, серия, приватный выезд тура скрываются, но не двигаются)
+EVENT_DETAIL_SECTION_KEYS = detail_sections.flow_keys("events")
 PRODUCT_DETAIL_SECTION_KEYS = detail_sections.section_keys("catalog")
 
 

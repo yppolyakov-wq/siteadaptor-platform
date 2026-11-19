@@ -36,7 +36,11 @@ def test_registry_keys_match_legacy_constants():
 
 def test_registry_flags():
     # event — orderable+hideable; product — hide-only.
-    assert all(s.orderable for s in detail_sections.sections_for("events"))
+    # FB-33 M2g: разделы «на месте» (группы, серия, приватный выезд) скрываются, не двигаются
+    events = detail_sections.sections_for("events")
+    assert all(s.orderable for s in events if not s.in_place)
+    assert {s.key for s in events if s.in_place} == {"groups", "more_dates", "private_tour"}
+    assert not any(s.orderable for s in events if s.in_place)
     assert not any(s.orderable for s in detail_sections.sections_for("catalog"))
     assert all(s.hideable for s in detail_sections.sections_for("catalog"))
     assert detail_sections.sections_for("unknown") == ()
@@ -88,7 +92,8 @@ def test_normalize_adds_service_stay_detail():
 
 def test_section_labels_present_for_each_key():
     labels = detail_sections.section_labels("events")
-    assert set(labels) == set(siteconfig.EVENT_DETAIL_SECTION_KEYS)
+    assert set(labels) == set(detail_sections.section_keys("events"))
+    assert set(siteconfig.EVENT_DETAIL_SECTION_KEYS) == set(detail_sections.flow_keys("events"))
     assert str(labels["for_whom"])  # ленивая i18n-строка резолвится в непустую
 
 
