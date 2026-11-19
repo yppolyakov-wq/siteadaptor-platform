@@ -432,7 +432,13 @@ def form_field_modes(context, form):
 
     request = context.get("request")
     tenant = getattr(request, "tenant", None)
-    site = siteconfig.normalize(tenant.site_config) if tenant is not None else {}
+    if tenant is None:
+        return form_spec.view({}, form)
+    # одна нормализация на запрос (форма заявки бывает и в блоке, и в модалке, и на странице)
+    site = getattr(request, "_form_fields_site", None)
+    if site is None:
+        site = siteconfig.normalize(tenant.site_config)
+        request._form_fields_site = site
     return form_spec.view(site, form)
 
 

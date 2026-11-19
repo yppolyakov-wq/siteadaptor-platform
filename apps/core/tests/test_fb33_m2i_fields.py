@@ -123,7 +123,8 @@ def test_required_event_value_must_be_valid():
     from apps.jobs.models import Job
 
     cfg = {**EVENT_CFG, **_ff(event_date="req", event_type="req")}
-    bad = {"title": "Fest", "name": "A", "event_date": "2027-13-01", "event_type": "Hochzeit"}
+    bad = {"title": "Fest", "name": "A", "phone": "1", "event_date": "2027-13-01"}
+    bad["event_type"] = "Hochzeit"
     _post_anfrage(bad, cfg)
     _post_anfrage({**bad, "event_date": "2027-05-01", "event_type": "Party"}, cfg)
     assert not Job.objects.exists()
@@ -139,6 +140,7 @@ def test_switched_off_fields_are_dropped_even_if_posted():
     data = {
         "title": "Zaun",
         "name": "A",
+        "phone": "1",
         "description": "x",
         "site_address": "y",
         "email": "m@t.de",
@@ -152,8 +154,101 @@ def test_switched_off_fields_are_dropped_even_if_posted():
 def test_owner_enabled_event_field_is_parsed_without_old_settings():
     from apps.jobs.models import Job
 
-    _post_anfrage({"title": "Fest", "name": "A", "guest_count": "40"}, _ff(guest_count="opt"))
+    data = {"title": "Fest", "name": "A", "phone": "1", "guest_count": "40"}
+    _post_anfrage(data, _ff(guest_count="opt"))
     assert Job.objects.get().guest_count == 40
+
+
+# --- ревью M2i: края ввода, способ связи, один писатель ----------------------------------
+
+
+def test_odd_digits_in_guests_do_not_crash_the_check():
+    from apps.jobs.models import Job
+
+    cfg = {**EVENT_CFG, **_ff(guest_count="req")}
+    for value in ("²", "①", "٣", "1e3", "-4"):
+        resp = _post_anfrage({"title": "F", "name": "A", "phone": "1", "guest_count": value}, cfg)
+        assert resp.status_code == 302
+    assert not Job.objects.exists()
+
+
+def test_invisible_characters_are_not_an_answer():
+    assert form_answers.clean_text("​⁠ ﻿", 50) == ""
+    questions = [{"id": "q1", "type": "text", "label": "X", "mode": "req"}]
+    answers = form_answers.collect(questions, QueryDict("q1=%E2%80%8B"))
+    assert form_answers.validate(questions, answers) == ["q1"]
+    cfg = siteconfig.normalize({"form_fields": {"anfrage": {"labels": {"phone": "​"}}}})
+    assert "form_fields" not in cfg
+
+
+def test_broken_next_id_starts_from_zero_and_is_capped():
+    assert form_answers.normalize_questions([], float("inf"))[1] == 0
+    assert form_answers.normalize_questions([], "nan")[1] == 0
+    assert form_answers.normalize_questions([], 10**9)[1] == form_answers.ID_MAX
+
+
+def test_error_names_the_missing_fields():
+    from django.contrib.messages import get_messages
+
+    from apps.core.tests.test_fb33_m2i_before import _anfrage_request
+    from apps.jobs import public_views
+
+    with translation.override("de"):
+        req = _anfrage_request({"title": "Zaun", "name": "A"}, _ff(description="req"))
+        public_views.anfrage(req)
+        text = " ".join(str(m) for m in get_messages(req))
+    assert "Details" in text and "E-Mail oder Telefon" in text
+
+
+def test_old_panel_is_the_one_writer_of_event_fields():
+    """Панель «Anfrage-Formular» сняла «date» — «обязательно» из «Поля форм» не держит поле."""
+    cfg = {**EVENT_CFG, **_ff(event_date="req", guest_count="req")}
+    form_spec.sync_legacy_panel(cfg, ["guests", "event_type"])
+    site = siteconfig.normalize({**cfg, "anfrage": {"fields": ["guests", "event_type"]}})
+    assert form_spec.mode_of(site, "anfrage", "event_date") == "off"
+    assert form_spec.mode_of(site, "anfrage", "guest_count") == "req"
+    off = _ff(event_date="off")
+    form_spec.sync_legacy_panel(off, ["date"])  # отметили снова — явный «off» снят
+    assert "form_fields" not in off
+
+
+def test_old_panel_view_writes_both_settings():
+    from apps.jobs import views
+    from apps.jobs.tests.test_cabinet import _req as cabinet_req
+    from apps.tenants.tests.factories import TenantFactory
+
+    tenant = TenantFactory(disabled_modules=[], site_config={**EVENT_CFG, **_ff(event_date="req")})
+    data = {"af_guests": "on", "af_event_types": "Hochzeit"}
+    path = "/dashboard/auftraege/anfrage-formular/"
+    views.anfrage_form_settings(cabinet_req("post", path=path, data=data, tenant=tenant))
+    tenant.refresh_from_db()
+    assert tenant.site_config["anfrage"]["fields"] == ["guests"]
+    assert "form_fields" not in tenant.site_config
+
+
+def test_band_asks_for_email_when_it_is_the_only_contact():
+    with translation.override("de"):
+        html = band_html({})
+    assert 'name="email" required' in html
+    with translation.override("de"):
+        html = band_html(_ff(email="off"))
+    assert 'name="email"' not in html and 'name="phone" required' in html
+
+
+def test_form_tag_normalizes_once_per_request():
+    from unittest import mock
+
+    from django.template import Context, Template
+
+    from apps.core.tests.test_fb33_m2i_before import _req
+
+    req = _req("/", {})
+    tpl = Template(
+        '{% load siteui %}{% form_field_modes "anfrage" as a %}{% form_field_modes "anfrage" as b %}'
+    )
+    with mock.patch.object(siteconfig, "normalize", wraps=siteconfig.normalize) as spy:
+        tpl.render(Context({"request": req}))
+    assert spy.call_count == 1
 
 
 # --- рендер -------------------------------------------------------------------------

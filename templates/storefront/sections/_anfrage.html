@@ -34,7 +34,7 @@ PAGE_BLOCK_HOSTS-страниц. Гейт по модулю jobs: выключе
     <label class="block grow basis-32"><span class="block text-[10px] tracking-wider uppercase text-white/70 mb-1">{% trans "Name" %}</span>
       <input type="text" name="name" required class="w-full rounded-lg border-0 px-3 py-2 text-gray-900"></label>
     {% if ff.email.on %}<label class="block grow basis-40"><span class="block text-[10px] tracking-wider uppercase text-white/70 mb-1">{% trans "Email" %}</span>
-      <input autocomplete="email" type="email" name="email"{% if ff.email.req %} required{% endif %} class="w-full rounded-lg border-0 px-3 py-2 text-gray-900"></label>{% endif %}
+      <input autocomplete="email" type="email" name="email"{% if ff.band_email_req %} required{% endif %} class="w-full rounded-lg border-0 px-3 py-2 text-gray-900"></label>{% endif %}
     {% for key, f in ff.band_extra %}<label class="block grow basis-32"><span class="block text-[10px] tracking-wider uppercase text-white/70 mb-1">{{ f.label }} *</span>
       <input type="{% if key == 'phone' %}tel{% else %}text{% endif %}" name="{{ key }}" required class="w-full rounded-lg border-0 px-3 py-2 text-gray-900"></label>
     {% endfor %}<button type="submit" class="rounded-lg bg-white px-5 py-2 font-semibold" style="color: var(--accent, #4f46e5);">{% trans "Request a quote" %}</button>

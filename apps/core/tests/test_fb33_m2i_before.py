@@ -151,14 +151,13 @@ def test_owner_emails_before():
 # --- обход HTML-валидации: сервер на нынешнем поведении ---------------------------------
 
 
-def _post_anfrage(data, cfg=None):
+def _anfrage_request(data, cfg=None):
     import uuid
 
     from django.contrib.messages.middleware import MessageMiddleware
     from django.contrib.sessions.middleware import SessionMiddleware
     from django.test import RequestFactory
 
-    from apps.jobs import public_views
     from apps.tenants.tests.factories import TenantFactory
 
     req = RequestFactory().post("/anfrage/", data)
@@ -166,7 +165,13 @@ def _post_anfrage(data, cfg=None):
     SessionMiddleware(lambda r: None).process_request(req)
     MessageMiddleware(lambda r: None).process_request(req)
     req.tenant = TenantFactory.build(disabled_modules=[], site_config=cfg or {})
-    return public_views.anfrage(req)
+    return req
+
+
+def _post_anfrage(data, cfg=None):
+    from apps.jobs import public_views
+
+    return public_views.anfrage(_anfrage_request(data, cfg))
 
 
 def test_post_without_title_or_name_creates_nothing():
@@ -177,18 +182,23 @@ def test_post_without_title_or_name_creates_nothing():
     assert not Job.objects.exists()
 
 
-def test_post_with_only_title_and_name_is_accepted():
-    """Сейчас контакт не обязателен: имя + «что нужно» — уже заявка."""
+def test_post_without_any_contact_is_refused():
+    """До M2i контакт был не обязателен; ревью M2i (план это обещает): нужен телефон или e-mail —
+    иначе ответить на заявку нечем. Осознанная смена поведения (build-log, ops владельцу)."""
     from apps.jobs.models import Job
 
     _post_anfrage({"title": "Zaun", "name": "Meyer"})
+    _post_anfrage({"title": "Zaun", "name": "Meyer", "email": "​"})
+    assert not Job.objects.exists()
+    _post_anfrage({"title": "Zaun", "name": "Meyer", "phone": "0171"})
     assert Job.objects.filter(title="Zaun").exists()
 
 
 def test_post_fields_the_form_did_not_show_are_dropped():
     from apps.jobs.models import Job
 
-    data = {"title": "Fest", "name": "A", "event_date": "2027-05-01", "guest_count": "40"}
+    data = {"title": "Fest", "name": "A", "phone": "1", "event_date": "2027-05-01"}
+    data["guest_count"] = "40"
     _post_anfrage(data)  # событийные поля не настроены — форма их не показывала
     job = Job.objects.get(title="Fest")
     assert job.event_date is None and job.guest_count is None
@@ -197,5 +207,5 @@ def test_post_fields_the_form_did_not_show_are_dropped():
 def test_post_event_type_outside_the_owner_list_is_dropped():
     from apps.jobs.models import Job
 
-    _post_anfrage({"title": "Fest", "name": "A", "event_type": "<b>x</b>"}, EVENT_CFG)
+    _post_anfrage({"title": "Fest", "name": "A", "phone": "1", "event_type": "<b>x</b>"}, EVENT_CFG)
     assert Job.objects.get(title="Fest").event_type == ""

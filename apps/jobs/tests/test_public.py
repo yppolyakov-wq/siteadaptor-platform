@@ -29,7 +29,11 @@ def _tenant(**kwargs):
 def _req(method="get", path="/anfrage/", data=None, tenant=None):
     import uuid
 
-    request = getattr(RequestFactory(), method)(path, data or {})
+    data = dict(data or {})
+    if method == "post" and path == "/anfrage/" and "email" not in data:
+        # FB-33 M2i (ревью): заявке нужен способ связи — тесты без него шлют телефон
+        data.setdefault("phone", "0170 1234567")
+    request = getattr(RequestFactory(), method)(path, data)
     # Уникальный IP на запрос — иначе общий счётчик rate-limit «anfrage» (5/окно)
     # переполняется при нескольких POST-тестах в одном прогоне (кэш делится).
     request.META["REMOTE_ADDR"] = f"10.{uuid.uuid4().int % 250}.{uuid.uuid4().int % 250}.9"

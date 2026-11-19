@@ -38911,5 +38911,8 @@ msgstr "Job address"
 msgid "Photos (up to 5)"
 msgstr "Photos (up to 5)"
 
-msgid "Please fill in all required fields."
-msgstr "Please fill in all required fields."
+msgid "Please fill in: %(fields)s."
+msgstr "Please fill in: %(fields)s."
+
+msgid "Email or phone"
+msgstr "Email or phone"

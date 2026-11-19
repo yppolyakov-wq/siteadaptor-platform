@@ -8,8 +8,11 @@
   вопроса не достаётся новому, иначе старый ответ получил бы чужую подпись);
 * `collect` — ответы из POST только на заданные вопросы (лишнее отбрасывается);
 * `validate` — какие обязательные вопросы без ответа (проверка сервера, не только HTML);
-* `snapshot` — то, что хранит сделка: `{id: {"label", "value"}}` (у выбора значение — текст варианта) с подписью на
-  момент ответа (переименование вопроса не обесценивает старые сделки).
+* `snapshot` — то, что хранит сделка: `{id: {"label", "value"}}` (у выбора значение — текст
+  варианта) с подписью на момент ответа (переименование вопроса не обесценивает старые сделки).
+
+До M2i-2 (миграции `custom_answers`) потребитель `collect`/`validate`/`snapshot` — только тесты:
+это заготовка для вопросов заявки (M2i-2) и корзины (M2i-4), не мёртвый код.
 """
 
 from __future__ import annotations
@@ -24,18 +27,27 @@ MAX_OPTIONS = 20
 LABEL_MAX = 120
 ANSWER_MAX = 500
 _ID = re.compile(r"^q([1-9][0-9]{0,3})$")
+ID_MAX = 9999  # q1…q9999 (формат id)
+#: невидимые символы (нулевой ширины, BOM) — строка из них не «заполнена»
+_INVISIBLE = re.compile("[\u200b\u200c\u200d\u2060\ufeff]")
 
 
-def _s(value, limit: int) -> str:
-    return re.sub(r"\s+", " ", value).strip()[:limit] if isinstance(value, str) else ""
+def clean_text(value, limit: int) -> str:
+    """Строка без невидимых символов и лишних пробелов (общая для подписей и ответов)."""
+    if not isinstance(value, str):
+        return ""
+    return re.sub(r"\s+", " ", _INVISIBLE.sub("", value)).strip()[:limit]
+
+
+_s = clean_text
 
 
 def normalize_questions(raw, next_id=0) -> tuple[list[dict], int]:
     """Вопросы владельца и следующий свободный номер. Мусор отбрасывается молча (это настройка,
     не ввод клиента); вопрос без подписи или выбор без вариантов — не вопрос."""
     try:
-        counter = max(int(next_id), 0)
-    except (TypeError, ValueError):
+        counter = min(max(int(next_id), 0), ID_MAX)
+    except (TypeError, ValueError, OverflowError):  # inf/мусор в настройке — с нуля
         counter = 0
     out, seen = [], set()
     for item in raw if isinstance(raw, list) else []:
@@ -73,7 +85,11 @@ def new_id(next_id: int) -> str:
 
 def _value(question: dict, raw: str):
     """Значение ответа или None (пусто/битое). Разбор мягкий: битое = нет ответа."""
-    raw = (raw or "").strip()
+    raw = (
+        clean_text(raw, 10_000)
+        if question["type"] != "textarea"
+        else _INVISIBLE.sub("", raw or "").strip()
+    )
     kind = question["type"]
     if kind == "bool":
         return True if raw in ("1", "on", "true", "yes") else None

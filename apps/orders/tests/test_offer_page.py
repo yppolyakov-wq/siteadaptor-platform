@@ -135,3 +135,20 @@ def test_customer_thread_shows_offer_card():
     html = inbox_public.thread(request, token=conv.public_token).content.decode()
     assert "Persönliches Angebot" in html
     assert f"/o/{offer.token}/" in html
+
+
+def test_offer_online_payment_needs_an_email(settings):
+    """FB-33 M2i (ревью): тот же e-mail-гейт онлайн-оплаты, что у корзины — и при принятии
+    предложения. Без почты заказ не создаётся."""
+    settings.STRIPE_LIVE_MODE = False
+    settings.STRIPE_TEST_SECRET_KEY = "sk_test_x"
+    settings.STRIPE_CONNECT_CLIENT_ID = "ca_x"
+    tenant = TenantFactory.build(
+        name="Laden", orders_prepay=True, payments_enabled=True, stripe_connect_id="acct_1"
+    )
+    offer = _offer()
+    data = {"action": "accept", "name": "K", "email": " a@ ", "payment": "stripe"}
+    resp = public_views.offer_page(_req("post", data, tenant=tenant), token=offer.token)
+    assert resp.status_code == 302
+    offer.refresh_from_db()
+    assert offer.status != Offer.STATUS_ACCEPTED and offer.order is None

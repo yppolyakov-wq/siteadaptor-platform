@@ -283,3 +283,22 @@ def test_vorkasse_settings_do_not_clobber_prepay():
     tenant.refresh_from_db()
     assert tenant.orders_prepay is True  # соседняя форма не сброшена
     assert tenant.vorkasse_enabled is True
+
+
+def test_online_payment_error_keeps_what_the_guest_typed(settings):
+    """FB-33 M2i (ревью): ошибка «нужен e-mail» не стирает имя, телефон и заметку."""
+    _configure(settings)
+    product = ProductFactory(base_price=Decimal("10.00"))
+    data = {"name": "Kunde Kim", "email": "kim@", "phone": "0171 2", "note": "Ohne Nüsse"}
+    request = _pub_req(data, tenant=_prepay_tenant(), session={"cart": {str(product.pk): 1}})
+    public_views.checkout(request)
+    assert not Order.objects.exists()
+    kept = request.session[public_views.CHECKOUT_INPUT_KEY]
+    assert kept == data
+    cart = RequestFactory().get("/warenkorb/")
+    cart.session = request.session
+    MessageMiddleware(lambda r: None).process_request(cart)
+    cart.tenant = request.tenant
+    html = public_views.cart_view(cart).content.decode()
+    assert 'value="Kunde Kim"' in html and "Ohne Nüsse</textarea>" in html
+    assert public_views.CHECKOUT_INPUT_KEY not in cart.session  # один раз

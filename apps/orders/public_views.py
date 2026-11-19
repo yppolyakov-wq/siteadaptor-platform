@@ -15,6 +15,7 @@ from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy
 from django.views.decorators.http import require_POST
 
 from apps.catalog.combos import combo_labels
@@ -1000,6 +1001,10 @@ def cart_view(request):
     ctx["attr"] = attribution.context(request)  # В5 V5-5: канал корзины → поля чекаута
     # KA-W1: окна самовывоза (опция выключена или заказ за столиком → пусто).
     ctx.update(pickup_slots.context(tenant, table=bool(request.session.get("table"))))
+    # FB-33 M2i (ревью): введённое до ошибки оформления — один раз в поля формы
+    kept = request.session.pop(CHECKOUT_INPUT_KEY, None)
+    if isinstance(kept, dict):
+        ctx["checkout_input"] = kept
     return render(request, "storefront/cart.html", ctx)
 
 
@@ -1014,6 +1019,32 @@ def _payment_due(tenant, method):
 
     days = _pm.hold_days(tenant, method)
     return timezone.now() + timedelta(days=days) if days else None
+
+
+#: FB-33 M2i-3a (решение владельца): онлайн-оплате нужен e-mail — подтверждение и квитанция
+ONLINE_PAY_NEEDS_EMAIL = gettext_lazy(
+    "Please enter your email for online payment — we send the confirmation there."
+)
+CHECKOUT_INPUT_KEY = "checkout_input"
+
+
+def _valid_email(raw) -> bool:
+    from django.core.exceptions import ValidationError
+    from django.core.validators import validate_email
+
+    try:
+        validate_email((raw or "").strip())
+    except ValidationError:
+        return False
+    return True
+
+
+def _keep_checkout_input(request) -> None:
+    """Ошибка оформления не стирает введённое: имя, контакты и заметка ждут гостя в корзине
+    (один раз — `cart_view` забирает их из сессии)."""
+    request.session[CHECKOUT_INPUT_KEY] = {
+        k: (request.POST.get(k) or "").strip()[:500] for k in ("name", "email", "phone", "note")
+    }
 
 
 @require_POST
@@ -1184,11 +1215,9 @@ def checkout(request):
         chosen_method = Order.METHOD_ON_SITE
     # FB-33 M2i-3a (решение владельца): онлайн-оплате нужен e-mail — туда уходят
     # подтверждение и квитанция. Проверка на сервере: форма поле не помечает (вид прежний).
-    if chosen_method == Order.METHOD_STRIPE and "@" not in request.POST.get("email", ""):
-        messages.error(
-            request,
-            _("Please enter your email for online payment — we send the confirmation there."),
-        )
+    if chosen_method == Order.METHOD_STRIPE and not _valid_email(request.POST.get("email")):
+        messages.error(request, ONLINE_PAY_NEEDS_EMAIL)
+        _keep_checkout_input(request)
         return redirect("storefront-cart")
 
     # _cart_items даёт (product, variant, options, qty); create_order ждёт
@@ -1467,6 +1496,9 @@ def offer_page(request, token):
                 return redirect("storefront-offer", token=token)
             if chosen not in ship_methods:
                 chosen = ship_methods[0]
+            if chosen == Order.METHOD_STRIPE and not _valid_email(request.POST.get("email")):
+                messages.error(request, ONLINE_PAY_NEEDS_EMAIL)  # FB-33 M2i-3a
+                return redirect("storefront-offer", token=token)
             try:
                 order = offer_service.accept_offer(
                     offer,

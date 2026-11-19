@@ -169,11 +169,17 @@ def anfrage_form_settings(request):
         anfrage = siteconfig.normalize_anfrage(
             {"fields": fields, "event_types": [t for t in types if t]}
         )
-    cfg = dict(tenant.site_config) if isinstance(tenant.site_config, dict) else {}
+    import copy
+
+    from apps.core import form_spec
+
+    cfg = copy.deepcopy(tenant.site_config) if isinstance(tenant.site_config, dict) else {}
     if anfrage:
         cfg["anfrage"] = anfrage
     else:
         cfg.pop("anfrage", None)
+    # FB-33 M2i (ревью): один писатель событийных полей — режимы «Поля форм» следуют панели
+    form_spec.sync_legacy_panel(cfg, (anfrage or {}).get("fields") or ())
     tenant.site_config = cfg
     tenant.save(update_fields=["site_config", "updated_at"])
     messages.success(request, _("Gespeichert."))

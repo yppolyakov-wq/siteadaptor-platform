@@ -39057,5 +39057,8 @@ msgstr "İş yeri adresi"
 msgid "Photos (up to 5)"
 msgstr "Fotoğraflar (en fazla 5 adet)"
 
-msgid "Please fill in all required fields."
-msgstr "Lütfen tüm zorunlu alanları doldurun."
+msgid "Please fill in: %(fields)s."
+msgstr "Lütfen doldurun: %(fields)s."
+
+msgid "Email or phone"
+msgstr "E-posta veya telefon"

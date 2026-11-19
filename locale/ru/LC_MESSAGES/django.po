@@ -39252,5 +39252,8 @@ msgstr "Адрес места работы"
 msgid "Photos (up to 5)"
 msgstr "Фотографии (до 5)"
 
-msgid "Please fill in all required fields."
-msgstr "Пожалуйста, заполните все обязательные поля."
+msgid "Please fill in: %(fields)s."
+msgstr "Пожалуйста, заполните: %(fields)s."
+
+msgid "Email or phone"
+msgstr "E-mail или телефон"

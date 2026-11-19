@@ -110,8 +110,13 @@ def anfrage(request):
         # FB-33 M2i: обязательные поля владельца — проверка сервера (полоса и модалка постят
         # сюда же); выключенные поля отбрасываются, даже если их прислали в обход формы
         shown = form_spec.view(site, "anfrage")
-        if form_spec.missing(site, "anfrage", request.POST, request.FILES):
-            messages.error(request, _("Please fill in all required fields."))
+        gaps = form_spec.missing(site, "anfrage", request.POST, request.FILES)
+        if gaps:
+            messages.error(
+                request,
+                _("Please fill in: %(fields)s.")
+                % {"fields": form_spec.missing_labels(site, "anfrage", gaps)},
+            )
             return redirect("storefront-anfrage")
 
         def field(key):

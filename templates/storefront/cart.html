@@ -121,19 +121,19 @@
         <div class="grid sm:grid-cols-2 gap-3 {% if delivery_enabled %}border-t border-gray-100 pt-4{% endif %}">
           <div class="sm:col-span-2">
             <label class="block text-sm font-medium mb-1" for="id_name">{% trans "Name" %} *</label>
-            <input id="id_name" name="name" type="text" required value="{{ account_customer.name|default:'' }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+            <input id="id_name" name="name" type="text" required value="{% firstof checkout_input.name account_customer.name '' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
           </div>
           <div>
             <label class="block text-sm font-medium mb-1" for="id_email">{% trans "Email" %}</label>
-            <input autocomplete="email" id="id_email" name="email" type="email" value="{{ account_customer.email|default:'' }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+            <input autocomplete="email" id="id_email" name="email" type="email" value="{% firstof checkout_input.email account_customer.email '' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
           </div>
           <div>
             <label class="block text-sm font-medium mb-1" for="id_phone">{% trans "Phone" %}</label>
-            <input autocomplete="tel" id="id_phone" name="phone" type="tel" value="{{ account_customer.phone|default:'' }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+            <input autocomplete="tel" id="id_phone" name="phone" type="tel" value="{% firstof checkout_input.phone account_customer.phone '' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
           </div>
           <div class="sm:col-span-2">
             <label class="block text-sm font-medium mb-1" for="id_note">{% trans "Note (optional)" %}</label>
-            <textarea id="id_note" name="note" rows="2" class="w-full rounded-lg border border-gray-300 px-3 py-2"></textarea>
+            <textarea id="id_note" name="note" rows="2" class="w-full rounded-lg border border-gray-300 px-3 py-2">{{ checkout_input.note|default:'' }}</textarea>
           </div>
         </div>
       {% endif %}

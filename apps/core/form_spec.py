@@ -64,7 +64,8 @@ FORMS: dict[str, tuple[Field, ...]] = {
         Field("phone", _("Phone")),
         Field("photos", _("Photos (optional, up to 5)"), _("Photos (up to 5)")),
     ),
-    # корзина (M2i-3): имя закреплено (у столика его заменяет номер стола)
+    # корзина — заготовка M2i-3 (режимы полей оформления): пока без потребителя; имя
+    # закреплено (у столика его заменяет номер стола)
     "checkout": (
         Field("name", _("Name"), default=REQ, pinned=True),
         Field("email", _("Email")),
@@ -108,16 +109,14 @@ def normalize(raw, form: str, legacy_fields=()) -> dict:
         modes.get(k, _default(by_key[k], legacy_fields)) == OFF for k in CONTACT
     ):
         modes.pop("phone", None)  # способ связи нельзя снять целиком — телефон остаётся
-        if _default(by_key["phone"], legacy_fields) == OFF:
-            modes["phone"] = OPT
     if modes:
         out["mode"] = modes
     label_raw = raw.get("labels") if isinstance(raw.get("labels"), dict) else {}
     labels = {}
     for key in by_key:
-        text = label_raw.get(key)
-        if isinstance(text, str) and text.strip():
-            labels[key] = " ".join(text.split())[:LABEL_MAX]
+        text = form_answers.clean_text(label_raw.get(key), LABEL_MAX)
+        if text:
+            labels[key] = text
     if labels:
         out["labels"] = labels
     custom, next_id = form_answers.normalize_questions(raw.get("custom"), raw.get("next_id"))
@@ -181,15 +180,27 @@ def view(site, form: str) -> dict:
         out[field.key] = FieldView(mode, labels.get(field.key) or str(default))
     if form == "anfrage":
         extra = [k for k, f in out.items() if f.req and k not in BAND_NATIVE]
+        if not out["email"].on and "phone" not in extra:
+            extra.append("phone")  # единственный способ связи — полоса спрашивает его
+        # способ связи обязателен (сервер, M2i ревью): у полосы телефона нет — e-mail обязателен
+        out["band_email_req"] = out["email"].on and (out["email"].req or "phone" not in extra)
         out["band_full"] = "photos" in extra or len(extra) > BAND_EXTRA_MAX
         out["band_extra"] = [] if out["band_full"] else [(k, out[k]) for k in extra]
         out["any_event"] = any(out[k].on for k in ("event_date", "guest_count", "event_type"))
     return out
 
 
+CONTACT_MISSING = "contact"
+
+
+def _filled(post, key) -> str:
+    return form_answers.clean_text(post.get(key) or "", 10_000)
+
+
 def missing(site, form: str, post, files=None) -> list[str]:
     """Обязательные включённые поля без значения (проверка сервера — POST в обход формы).
-    Значение проверяется так же, как его разберёт вьюха (битая дата = нет значения)."""
+    Значение проверяется так же, как его разберёт вьюха (битая дата = нет значения). У заявки
+    ещё и способ связи: хотя бы один из включённых e-mail/телефон (`CONTACT_MISSING`)."""
     from datetime import date
 
     out = []
@@ -198,7 +209,7 @@ def missing(site, form: str, post, files=None) -> list[str]:
         f = shown[field.key]
         if not f.req or field.pinned:
             continue  # закреплённые проверяет сама вьюха (прежние тексты ошибок)
-        raw = (post.get(field.key) or "").strip()
+        raw = _filled(post, field.key)
         ok = bool(raw)
         if field.key == "photos":
             ok = bool(files and files.getlist("photos"))
@@ -208,9 +219,51 @@ def missing(site, form: str, post, files=None) -> list[str]:
             except ValueError:
                 ok = False
         elif field.key == "guest_count" and raw:
-            ok = raw.isdigit() and 1 <= int(raw) <= 100000
+            try:  # как `_parse_event_fields`: «²»/«①» — не число
+                ok = raw.isascii() and 1 <= int(raw) <= 100000
+            except ValueError:
+                ok = False
         elif field.key == "event_type" and raw:
             ok = raw in ((site.get("anfrage") or {}).get("event_types") or [])
         if not ok:
             out.append(field.key)
+    contacts = [k for k in CONTACT if form == "anfrage" and shown[k].on]
+    if contacts and not any(_filled(post, k) for k in contacts):
+        out.append(CONTACT_MISSING)
     return out
+
+
+def missing_labels(site, form: str, keys) -> str:
+    """Подписи незаполненных полей для сообщения («Phone, Details»)."""
+    from django.utils.translation import gettext
+
+    shown = view(site, form)
+    names = [
+        gettext("Email or phone") if k == CONTACT_MISSING else shown[k].label
+        for k in keys
+        if k == CONTACT_MISSING or k in shown
+    ]
+    return ", ".join(names)
+
+
+def sync_legacy_panel(config: dict, checked) -> None:
+    """Один писатель событийных полей заявки (ревью M2i): старая панель «Anfrage-Formular»
+    (`anfrage.fields`) пишет и режимы `form_fields` — снятое там поле теряет свой режим
+    (выключено), отмеченное — явный «off» (включено). Иначе две настройки спорили бы: панель
+    сняла «date», а `form_fields` держал бы «обязательно». Меняет `config` на месте."""
+    ff = config.get("form_fields")
+    anfrage = ff.get("anfrage") if isinstance(ff, dict) else None
+    modes = anfrage.get("mode") if isinstance(anfrage, dict) else None
+    if not isinstance(modes, dict):
+        return
+    for field in fields_of("anfrage"):
+        if not field.legacy:
+            continue
+        if field.legacy not in checked or modes.get(field.key) == OFF:
+            modes.pop(field.key, None)
+    if not modes:
+        anfrage.pop("mode", None)
+    if not anfrage:
+        ff.pop("anfrage", None)
+    if not ff:
+        config.pop("form_fields", None)
