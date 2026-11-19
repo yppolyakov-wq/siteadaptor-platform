@@ -2866,7 +2866,7 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
     document.addEventListener("change", function (e) {
       var t = e.target;
       var row = t && t.closest && t.closest("[data-lb-row]");
-      if (!row || !(t.matches("[data-lb-source]") || t.matches("[data-lb-out]"))) return;
+      if (!row || !(t.matches("[data-lb-source]") || t.matches("[data-lb-out]") || t.matches("[data-lb-style]"))) return;
       var srcSel = row.querySelector("[data-lb-source]");
       var src = srcSel ? srcSel.value : "promotions";
       // LB-3d: `data-lb-src` перечисляет ВСЕ источники поля (одно поле фильтра на
@@ -2895,6 +2895,12 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
           if (first < 0) first = i;
         }
         if (first >= 0) sel.selectedIndex = first;
+      });
+      // FB-33 M1: у вида без карточки (прайс-лист, строки акций) «Kartenform» не действует
+      var styleSel = row.querySelector("[data-lb-style]");
+      var style = styleSel ? styleSel.value : "";
+      row.querySelectorAll("[data-lb-cardless]").forEach(function (box) {
+        if (style && (" " + box.getAttribute("data-lb-cardless") + " ").indexOf(" " + style + " ") >= 0) box.hidden = true;
       });
       var outSel = row.querySelector("[data-lb-out]");
       var speed = row.querySelector("[data-lb-speed]");

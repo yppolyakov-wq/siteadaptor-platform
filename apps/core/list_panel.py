@@ -15,6 +15,8 @@ from __future__ import annotations
 
 from django.utils.translation import gettext as _
 
+from apps.core import card_forms
+
 #: Поля, которые панель вправе менять у блока «Liste» (остальное — `speed`, охват
 #: вида — остаётся как было: запись — патч).
 NAMES = (
@@ -458,11 +460,14 @@ def groups(request, cfg: dict, data: dict, mode: str = "") -> list[dict]:
     )
     if own_layout:
         how = [f for f in how if f["name"] not in ("out", "cols", "rows")]
-    cards = [(k, lab) for k, lab, srcs in hint["cards"] if source in srcs.split()]
-    # FB-32: прайс-лист и меню рисуют строки, а не карточки — «Kartenform» у них не действует
+    # FB-33 M1: формы — те, что допустимы у вида (реестр `card_forms.VIEW_SHAPES`); у
+    # прайс-листов и строк акций карточки нет — «Kartenform» не действует, поля нет
     # (значение не стирается: поле просто не присылается)
-    price_list = source == "products" and str(data.get("style") or "").startswith("preisliste")
-    if siteconfig.LIST_SOURCES[source]["card"] and cards and not price_list:
+    style = str(data.get("style") or "")
+    kind = siteconfig.LIST_SOURCES[source]["card"]
+    allowed = {form[0] for form in card_forms.forms_for_view(style, kind)} if kind else set()
+    cards = [(k, lab) for k, lab, srcs in hint["cards"] if source in srcs.split() and k in allowed]
+    if kind and cards and card_forms.view_has_card(style):
         how.append(
             _select(
                 "card",

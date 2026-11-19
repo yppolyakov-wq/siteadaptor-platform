@@ -465,13 +465,23 @@ def _clean_list_block(d: dict) -> dict:
     speed = _int_in(d.get("speed"), _MIN_SPEED, _MAX_SPEED)
     if speed:
         out["speed"] = speed
-    card = d.get("card")
-    if isinstance(card, str) and card in card_forms.keys_for(LIST_SOURCES[source]["card"]):
-        out["card"] = card
     # LB-4c: вид-композиция блока — из реестра видов секции его источника
     # (прайс-листы товаров, spotlight/banner/rows акций, формы плиток категорий).
     style = d.get("style")
-    if isinstance(style, str) and style in list_styles(source):
+    style = style if isinstance(style, str) and style in list_styles(source) else ""
+    # FB-33 M1c: вид побеждает — форма, которой у вида нет (у прайс-листа и строк акций
+    # карточки нет вовсе), не хранится. Раньше она молча ужимала колонки прайс-листа
+    # («deal» → не больше двух), хотя поле обещало только форму карточки.
+    card = d.get("card")
+    kind = LIST_SOURCES[source]["card"]
+    if (
+        isinstance(card, str)
+        and kind
+        and card
+        and card_forms.normalize_for_view(style, kind, card) == card
+    ):
+        out["card"] = card
+    if style:
         out["style"] = style
     return out
 

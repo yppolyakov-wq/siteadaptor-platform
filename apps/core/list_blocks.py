@@ -1224,6 +1224,8 @@ def view_hint(cfg: dict, data: dict) -> dict:
             s for s in siteconfig.LIST_SOURCES if siteconfig.list_sort_keys(s)
         ),
         "card_sources": " ".join(s for s, spec in siteconfig.LIST_SOURCES.items() if spec["card"]),
+        # FB-33 M1: виды без карточки — у них строка «Kartenform» скрыта
+        "cardless_styles": " ".join(k for k, v in card_forms.VIEW_SHAPES.items() if not v),
         # LB-4c: виды-композиции — по источнику (реестр видов секции главной)
         "styles": [
             (key, str(siteconfig.SECTION_STYLE_LABELS.get(key, key)), src)

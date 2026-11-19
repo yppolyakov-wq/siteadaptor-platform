@@ -95,3 +95,73 @@ def card_form(entity, site_default: str = "", kind: str = PRODUCT) -> str:
         return cat_style
     site_default = (site_default or "").strip()
     return site_default if site_default in allowed else ""
+
+
+# ─────────────── FB-33 M1: какие формы карточки допустимы у вида списка ───────────────
+#
+# План — `docs/fb33-editor-model-2026-11-19.md` §«План M1». Вид списка решает, какие
+# формы карточки у него есть: у сетки и ленты — плитки и строки, у прайс-листа и у
+# строк акций («процент первым») своей карточки нет вовсе (строку рисует сам вид), и
+# поле «Kartenform» там ничего бы не меняло. Решение владельца 2026-11-19: у ленты,
+# Spotlight и баннера строки (Kompakt, Deal) остаются разрешены.
+#
+# Ключ вида — значение `style` блока «Liste» / секции (пусто = сетка или лента).
+# Модуль не импортирует `siteconfig` (тот импортирует этот модуль); полноту
+# классификации видов держит замок `test_fb33_m1_card_views`.
+
+SHAPE_TILE = "tile"
+SHAPE_ROW = "row"
+_BOTH = frozenset({SHAPE_TILE, SHAPE_ROW})
+_NONE: frozenset[str] = frozenset()
+
+#: Формы-строки (широкая полоса «фото · текст · цена»); остальные — плитки.
+ROW_FORMS = frozenset({"compact", "deal"})
+
+#: Геометрии карточки по виду. Вид, которого здесь нет, — сетка/лента (обе).
+VIEW_SHAPES: dict[str, frozenset[str]] = {
+    "": _BOTH,
+    "spotlight": _BOTH,
+    "banner": _BOTH,
+    "rows": _NONE,
+    "preisliste": _NONE,
+    "preisliste_foto": _NONE,
+    "preisliste_kompakt": _NONE,
+    "preisliste_2sp": _NONE,
+    "preisliste_foto_2sp": _NONE,
+    "preisliste_foto_3sp": _NONE,
+    "preisliste_karte": _NONE,
+    "preisliste_buch": _NONE,
+}
+
+
+def shape_of(key: str) -> str:
+    """Геометрия формы: строка или плитка (пустой ключ — обычная плитка)."""
+    return SHAPE_ROW if key in ROW_FORMS else SHAPE_TILE
+
+
+def view_shapes(style: str | None) -> frozenset[str]:
+    return VIEW_SHAPES.get(style or "", _BOTH)
+
+
+def view_has_card(style: str | None) -> bool:
+    """Есть ли у вида карточка (а значит, поле «Kartenform»)."""
+    return bool(view_shapes(style))
+
+
+def forms_for_view(style: str | None, kind: str = PRODUCT) -> list[tuple[str, object, object]]:
+    """Формы сущности `kind`, допустимые у вида — подмножество `forms_for(kind)`."""
+    shapes = view_shapes(style)
+    return [form for form in forms_for(kind) if shape_of(form[0]) in shapes]
+
+
+def normalize_for_view(style: str | None, kind: str, card: str) -> str:
+    """Форма, которую вид примет: подходящая остаётся, иначе — обычная ("").
+
+    Вид побеждает: у вида без карточки формы нет, а форма чужой геометрии
+    сбрасывается на обычную (у всех видов с карточкой есть плитки).
+    """
+    card = (card or "").strip()
+    shapes = view_shapes(style)
+    if not shapes or card not in keys_for(kind) or shape_of(card) not in shapes:
+        return ""
+    return card
