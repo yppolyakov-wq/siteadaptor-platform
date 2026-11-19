@@ -95,6 +95,7 @@ def test_known_places_that_touch_hero_widget():
     )
     assert found == [
         "apps/core/hero_tiles.py",
+        "apps/core/management/commands/detach_quick_links.py",  # M2c-2: команда переноса
         "apps/core/quick_links_migration.py",  # M2c-2: перенос (снимает ключ)
         "apps/core/setup_steps.py",
         "apps/core/views.py",
