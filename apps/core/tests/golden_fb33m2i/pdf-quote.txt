@@ -1,0 +1,23 @@
+Malerei X
+Hauptstr. 1
+Solingen
+Herr Meyer
+Gartenweg 2
+Angebot CODE
+Datum: DATE
+Zaun streichen
+Beschreibung
+Anzahl
+Einzelpreis
+Betrag
+Arbeit
+4
+50,00 EUR
+200,00 EUR
+Netto:
+200,00 EUR
+MwSt. 19 %:
+38,00 EUR
+Gesamt:
+238,00 EUR
+Dies ist ein unverbindliches Angebot / Kostenvoranschlag.
