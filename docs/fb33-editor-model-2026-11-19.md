@@ -235,3 +235,19 @@ Spotlight и баннера строки (Kompakt, Deal) **остаются** �
 localStorage «недавно смотрели» → записать в `dsgvo-review.md` вопросом юристу, поведение пока прежнее.
 ECC: architect после плана; каждый срез django-reviewer + tdd-guide; a11y M2b–d, M2i; seo M2d; e2e M2c,
 M2f; security M2h–i; silent-failure M2f, M2h–i; database M2i; code-reviewer перед FF; doc-updater в конце.
+
+### architect по плану M2 (2026-11-19)
+- `block_catalog.py` — только реестр ЧЛЕНСТВА (семья → виды → ключ + «где живёт»: section/cblock/ref/
+  detail:<module>); подписи — `CBLOCK_LABELS`/`SECTIONS`/`DETAIL_SECTIONS`, виды — `SECTION_STYLES`
+  (заодно `CONTACT_STYLES` = `SECTION_STYLES["contact"]` → один кортеж), хосты вычисляются по реестру.
+  M2a ЗАМЕНЯЕТ два существующих списка библиотеки: литерал `block_types` (`core/views.py:3440–3547`,
+  Студия) и `site_schema._ADD_GROUPS` (`:1644`) — замок «литералов нет». Импорт siteconfig — лениво.
+  Матрица смены вида без потерь (text ↔ image_text ↔ textpage, button ↔ cta); фикс-секция ↔ C-блок —
+  запрещено замком.
+- M2c ключом в SECTIONS — НЕ делать (normalize дописывает в конец, две истины с `hero_widget`,
+  сборки гасят, плитки внутри hero заменяют CTA, не все виджеты — ссылки). Вместо: (а) на главной
+  «Быстрые ссылки» — вкладка окна баннера (пишет `hero_widget`), в схеме — вычисляемая неподвижная
+  строка «Быстрые ссылки (в баннере)»; (б) C-блок `quick_links` (REPEATABLE_BLOCKS, полная ширина) для
+  других страниц и 404 — вместе с M5; (в) «Отделить от баннера» — явное действие (ставит C-блок, чистит
+  `hero_widget`). → вопрос владельцу.
+- Порядок: M2a → M2e → M2b → M2c → M2d → M2f/M2g → M2h → M2i (поля заявки M2i можно параллельно).
