@@ -762,8 +762,20 @@ def _copy_builtin_list(request, key: str):
     return new_id
 
 
-def _read_cblock_data(post, bid: str, btype: str) -> dict:
-    """D.2b: собрать data C-блока из полей формы `cb_<id>_<field>` (normalize чистит)."""
+def _read_cblock_data(post, bid: str, btype: str, notes: list | None = None) -> dict:
+    """D.2b: собрать data C-блока из полей формы `cb_<id>_<field>` (normalize чистит).
+    FB-33 M3-3d (ревью): тексты «Text»/«Foto + Text» — под потолками ввода; обрезка —
+    сообщением в `notes`."""
+    from apps.tenants import siteconfig
+
+    btype = siteconfig.cblock_type(btype) or btype
+    data, capped = siteconfig.cap_block_texts(btype, _read_cblock_fields(post, bid, btype))
+    if capped and notes is not None:
+        notes.append(siteconfig.cap_note())
+    return data
+
+
+def _read_cblock_fields(post, bid: str, btype: str) -> dict:
     from apps.tenants import siteconfig
 
     # LB-1: легаси-ключ (вкладка Студии, открытая до деплоя) читается как новый тип.
@@ -847,7 +859,7 @@ def _read_cblock_data(post, bid: str, btype: str) -> dict:
     return {}
 
 
-def _cblock_entry_from_post(post, bid: str, btype: str) -> dict:
+def _cblock_entry_from_post(post, bid: str, btype: str, notes: list | None = None) -> dict:
     """UC6-7b: полный entry C-блока из POST-строки формы (data + width/pos/newline/
     visual) — общий для блоков главной (cb_id) и блоков страниц (pb_id); normalize
     валидирует. enabled/order читает вызывающий цикл (маркеры у списков разные)."""
@@ -857,7 +869,7 @@ def _cblock_entry_from_post(post, bid: str, btype: str) -> dict:
         "key": siteconfig.cblock_type(btype) or btype,
         "id": bid,
         "enabled": post.get(f"enabled_cb_{bid}") == "on",
-        "data": _read_cblock_data(post, bid, btype),
+        "data": _read_cblock_data(post, bid, btype, notes),
         # UC6-3: ширина/положение блока (normalize валидирует;
         # раньше width C-блока терялся при Save — жил только в черновике).
         "width": post.get(f"width_cb_{bid}", "contained"),
@@ -2404,6 +2416,18 @@ def home_builder_view(request):
                     "data": copy.deepcopy(tpl["data"]),
                     "id": inserted_id,
                 }
+                if tpl["key"] == "textpage":
+                    # FB-33 M3-3d (ревью): страница шаблона на этой странице может не
+                    # годиться (удалена, это она сама) — снимаем и говорим об этом
+                    notes: list = []
+                    host = request.POST.get("page_key", "")
+                    new_block["data"] = site_schema.drop_unembeddable_page(
+                        new_block["data"],
+                        host if siteconfig.is_page_block_host(host) else "",
+                        notes,
+                    )
+                    for note in notes:
+                        messages.warning(request, note)
                 # SE-4c: опц. insert_after (инсертер «+» на канвасе) → вставка в позицию;
                 # иначе в конец (back-compat с кнопкой «Insert» в библиотеке).
                 # UC6-7b: на НЕ-главной (page_key) шаблон вставляется в page_blocks[хост].
@@ -2610,6 +2634,7 @@ def home_builder_view(request):
         posted_hash = (request.POST.get("struct_hash") or "").strip()
         start_hash = site_schema_hash(request.tenant.site_config)
         stale_tab = bool(posted_hash) and posted_hash != start_hash
+        save_notes: list[str] = []  # FB-33 M3-3d: обрезанные тексты, снятая страница
 
         config = siteconfig.normalize(request.tenant.site_config)
         # LAY-6b: панель показывает тексты ВЫБРАННОЙ локали, поэтому Save приносит их
@@ -2762,7 +2787,7 @@ def home_builder_view(request):
                 order = int(request.POST.get(f"order_cb_{bid}", "999"))
             except (TypeError, ValueError):
                 order = 999
-            items.append((order, _cblock_entry_from_post(request.POST, bid, btype)))
+            items.append((order, _cblock_entry_from_post(request.POST, bid, btype, save_notes)))
         items.sort(key=lambda row: row[0])
         # FB-27 R8: структура главной (порядок, состав, видимость, ширина) — как
         # сохранено; из формы — содержимое и вид. Правит структуру «Seitenaufbau».
@@ -2821,7 +2846,7 @@ def home_builder_view(request):
                 except (TypeError, ValueError):
                     order = 999
                 pb_items.setdefault(host, []).append(
-                    (order, _cblock_entry_from_post(request.POST, bid, btype))
+                    (order, _cblock_entry_from_post(request.POST, bid, btype, save_notes))
                 )
             # FB-27 R8: хосты, состав и порядок блоков страниц — как сохранено.
             posted_pages = {
@@ -2831,6 +2856,9 @@ def home_builder_view(request):
             new_pages = site_schema.merge_pages(
                 config.get("page_blocks") or {}, posted_pages, keep_data=stale_tab
             )
+            # FB-33 M3-3d (ревью): страницу блока «Von einer Seite», сменённую формой
+            # Студии, проверяем так же, как в «Seitenaufbau» (есть и не она сама)
+            site_schema.check_changed_pages(config.get("page_blocks") or {}, new_pages, save_notes)
             structure_ignored = structure_ignored or any(
                 site_schema.structure_attempted(rows, new_pages.get(host, []))
                 for host, rows in posted_pages.items()
@@ -3034,6 +3062,8 @@ def home_builder_view(request):
                 return _redirect_builder(request)
             request.tenant.save(update_fields=update_fields)
         messages.success(request, _("Gespeichert."))
+        for note in dict.fromkeys(save_notes):
+            messages.warning(request, note)
         if stale_tab:
             messages.info(
                 request,

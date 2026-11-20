@@ -656,6 +656,7 @@ def op(
             value,
             fields,
             config.get("block_templates"),
+            notes,
         )
     if op_name == "delete":
         _drop_snapshot(draft, window_ref)  # блока больше нет — и снимка его

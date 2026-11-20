@@ -39444,3 +39444,9 @@ msgstr "„Ürünler“ bloğu"
 #. FB-33 стопка: якорь среза M3-3d — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
 msgid "fb33-stack-anchor-M3-3d"
 msgstr "fb33-stack-anchor-M3-3d"
+
+msgid "Die gemerkte Seite gibt es hier nicht (mehr) — Seite bitte neu wählen."
+msgstr "Hatırlanan sayfa burada (artık) yok — lütfen sayfayı yeniden seçin."
+
+msgid "Ein Text war zu lang und wurde gekürzt."
+msgstr "Bir metin çok uzundu ve kısaltıldı."

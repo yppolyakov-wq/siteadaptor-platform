@@ -215,6 +215,58 @@ def structure_hash(config) -> str:
 _OWNED_FIELDS = ("enabled", "width", "newline")
 
 
+def page_embeddable(page, host: str) -> bool:
+    """FB-27 R6 / FB-33 M3-3d: страница для блока «Von einer Seite» — существует и не та,
+    на которой стоит блок (`host` — хост его блоков)."""
+    from apps.core import content_pages
+    from apps.core.models import ContentPage
+    from apps.tenants import siteconfig
+
+    pk = (siteconfig.clean_pick([page]) or [""])[0]
+    if not pk:
+        return False
+    slug = ContentPage.objects.filter(pk=pk).values_list("slug", flat=True).first()
+    return slug is not None and not content_pages.embeds_itself(slug, host)
+
+
+def textpage_page_note():
+    return _("Die gemerkte Seite gibt es hier nicht (mehr) — Seite bitte neu wählen.")
+
+
+def drop_unembeddable_page(data: dict, host: str, notes: list | None = None) -> dict:
+    """FB-33 M3-3d (ревью): запомненная/перенесённая страница блока «Von einer Seite»,
+    которой нет или которая встала бы сама в себя, снимается — блок не пропадает с сайта
+    молча: владельцу сообщение «Seite bitte neu wählen». `data` — копия."""
+    data = dict(data or {})
+    if data.get("page") and not page_embeddable(data["page"], host):
+        data.pop("page", None)
+        if notes is not None:
+            notes.append(textpage_page_note())
+    return data
+
+
+def check_changed_pages(saved: dict, merged: dict, notes: list | None = None) -> None:
+    """FB-33 M3-3d (ревью): блоки «Von einer Seite» после «Speichern» Студии — страница,
+    которой не было в сохранённом блоке, проверяется (`drop_unembeddable_page`). На месте."""
+    from apps.tenants import siteconfig
+
+    for host, rows in (merged or {}).items():
+        before = {
+            b.get("id"): (b.get("data") or {}).get("page")
+            for b in (saved or {}).get(host) or []
+            if isinstance(b, dict) and b.get("id")
+        }
+        for block in rows or []:
+            if (
+                not isinstance(block, dict)
+                or siteconfig.cblock_type(block.get("key")) != "textpage"
+            ):
+                continue
+            data = block.get("data") if isinstance(block.get("data"), dict) else {}
+            if data.get("page") and data.get("page") != before.get(block.get("id")):
+                block["data"] = drop_unembeddable_page(data, host, notes)
+
+
 def merge_structure(
     saved: list, posted: list, fixed: bool = False, keep_data: bool = False
 ) -> list:
@@ -825,7 +877,7 @@ def _thumb_shape(config: dict, item: dict) -> dict:
 
     key = item.get("key") or ""
     kind = siteconfig.cblock_type(key) or key
-    data = item.get("data") if isinstance(item.get("data"), dict) else {}
+    data = block_catalog.active_data(kind, item.get("data"))  # M3-3d: только активный вид
     cols, rows, slider = 4, 1, False
     try:
         if kind == "list" and item.get("id"):
@@ -2910,12 +2962,14 @@ def mutate(
     value: str = "",
     fields: dict | None = None,
     templates: dict | None = None,
+    notes: list | None = None,
 ) -> str:
     """Одна правка списка блоков НА МЕСТЕ (без записи): общая для немедленной правки
     и черновика. Возвращает ref блока (у `add` — id нового).
 
     `templates` — сохранённые шаблоны блоков (`config["block_templates"]`): тип
-    `tpl:<id>` вставляет блок шаблона с его данными (FB-27 R8d)."""
+    `tpl:<id>` вставляет блок шаблона с его данными (FB-27 R8d). `notes` — сюда правка
+    кладёт сообщения владельцу (FB-33 M3-3d: страница снята, текст укорочен)."""
     from apps.tenants import siteconfig
 
     idx = next((i for i, it in enumerate(items) if (it.get("id") or it.get("key")) == ref), None)
@@ -2939,6 +2993,9 @@ def mutate(
             if template is not None
             else copy.deepcopy(siteconfig.CBLOCK_DEMO_DATA.get(block_type, {})),
         }
+        if template is not None and block_type == "textpage":
+            # M3-3d (ревью): шаблон с другой страницы — его страница здесь может не годиться
+            new["data"] = drop_unembeddable_page(new["data"], host_for(code), notes)
         items.append(new)
         return new["id"]
     if op == "add_row":
@@ -3048,7 +3105,11 @@ def mutate(
         if not item.get("id") or main or not block_catalog.can_switch(old, value):
             raise SchemaError("op")
         item["key"] = value
-        item["data"] = siteconfig._clean_cblock_data(value, dict(item.get("data") or {}))
+        data = siteconfig._clean_cblock_data(value, dict(item.get("data") or {}))
+        if value == "textpage":
+            # M3-3d (ревью): запомненную страницу удалили (или блок теперь на ней самой)
+            data = drop_unembeddable_page(data, host_for(code), notes)
+        item["data"] = data
         return ref
     if op == "toggle":
         if main:
@@ -3185,17 +3246,11 @@ def mutate(
                 raise SchemaError("url")
         if key == "textpage" and sent.get("page") and sent["page"] != data.get("page"):
             # FB-27 R6: только существующая страница и не та, на которой стоит блок.
-            from apps.core import content_pages
-            from apps.core.models import ContentPage
-
-            page_pk = (siteconfig.clean_pick([sent["page"]]) or [""])[0]
-            slug = (
-                ContentPage.objects.filter(pk=page_pk).values_list("slug", flat=True).first()
-                if page_pk
-                else None
-            )
-            if slug is None or content_pages.embeds_itself(slug, host_for(code)):
+            if not page_embeddable(sent["page"], host_for(code)):
                 raise SchemaError("page")
+        sent, capped = siteconfig.cap_block_texts(key, sent)
+        if capped and notes is not None:
+            notes.append(siteconfig.cap_note())
         patched = {**data, **sent}
         if key == "list" and "source" in sent and sent["source"] != (data.get("source") or ""):
             # FB-27 R5: ключи записей одного источника в другом ничего не значат

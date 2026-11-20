@@ -130,10 +130,11 @@ def test_image_text_to_textpage_and_back_is_byte_for_byte():
 
 
 def test_textpage_to_text_and_back_keeps_page_and_mode():
-    items = _items("textpage", {"page": PAGE, "mode": "teaser"})
+    pk = str(_page().pk)  # страница есть — смена вида её не снимает
+    items = _items("textpage", {"page": pk, "mode": "teaser"})
     before = _dump(items)
     _switch(items, "text")
-    assert items[0]["data"]["page"] == PAGE and items[0]["data"]["mode"] == "teaser"
+    assert items[0]["data"]["page"] == pk and items[0]["data"]["mode"] == "teaser"
     _switch(items, "textpage")
     assert _dump(items) == before
     # через «Foto + Text» (без фото: сторона по умолчанию не запоминается)
@@ -144,11 +145,12 @@ def test_textpage_to_text_and_back_keeps_page_and_mode():
 def test_own_text_typed_on_text_survives_a_trip_through_textpage():
     """Текст, набранный во вкладке «Texte» у «Eigener Text», не теряется на «Von einer
     Seite» и обратно, и выбранная страница — тоже."""
-    items = _items("textpage", {"page": PAGE})
+    pk = str(_page().pk)
+    items = _items("textpage", {"page": pk})
     _switch(items, "text")
     items[0]["data"].update(title="Neu", body="Mein Text")
     _switch(items, "textpage")
-    assert items[0]["data"]["page"] == PAGE
+    assert items[0]["data"]["page"] == pk
     _switch(items, "text")
     assert items[0]["data"]["title"] == "Neu" and items[0]["data"]["body"] == "Mein Text"
 
@@ -330,3 +332,169 @@ def test_cancel_after_switching_returns_key_and_data_byte_for_byte():
     assert item["key"] == "textpage" and item["data"]["title"] == "Hallo"
     b.post(seite="home", ref="t1", wopen="openT1", op="revert")
     assert _drafts(b) == {}
+
+
+# ───────────── ревью ECC (security-reviewer, silent-failure-hunter) ─────────────
+
+
+def _page(slug="geschichte", **kw):
+    return ContentPage.objects.create(slug=slug, title="Geschichte", body="<p>x</p>", **kw)
+
+
+def test_switch_to_textpage_drops_a_gone_page_with_a_note():
+    items = _items("text", {**TEXT, "page": PAGE})  # такой страницы нет
+    notes = []
+    site_schema.mutate(items, "text", "switch", ref="b1", value="textpage", notes=notes)
+    assert "page" not in items[0]["data"] and items[0]["data"]["title"] == TEXT["title"]
+    assert notes == [site_schema.textpage_page_note()]
+
+
+def test_switch_to_textpage_drops_the_page_it_stands_on():
+    page = _page()
+    items = _items("text", {**TEXT, "page": str(page.pk)})
+    notes = []
+    code = f"text@seite:{page.slug}"
+    site_schema.mutate(items, code, "switch", ref="b1", value="textpage", notes=notes)
+    assert "page" not in items[0]["data"] and notes
+
+
+def test_switch_keeps_an_existing_page_silently():
+    page = _page()
+    items = _items("text", {**TEXT, "page": str(page.pk)})
+    notes = []
+    site_schema.mutate(items, "catalog", "switch", ref="b1", value="textpage", notes=notes)
+    assert items[0]["data"]["page"] == str(page.pk) and notes == []
+
+
+def test_side_and_rounded_are_not_translatable():
+    assert not siteconfig._is_translatable_field("side")
+    assert not siteconfig._is_translatable_field("rounded")
+
+
+def test_paid_translation_paths_do_not_read_block_data():
+    """Платный машинный и ручной перевод блоки страниц не собирают — запомненный текст не
+    уходит в перевод. Начнут — только через `block_catalog.active_data`."""
+    root = Path(__file__).resolve().parents[2]
+    for name in ("i18n_translate.py", "translate_views.py", "text_draft.py", "i18n_cabinet.py"):
+        src = (root / "core" / name).read_text(encoding="utf-8")
+        if "page_blocks" in src or "_clean_cblock_data" in src:
+            assert "active_data" in src, name
+
+
+def test_demo_translation_also_covers_remembered_texts():
+    """Зафиксировано (ревью): словарный перевод демо (бесплатный, без ИИ) берёт текстовые
+    поля любого блока — и запомненные у «Von einer Seite»: вернув вид, владелец увидит
+    перевод. Демо-киты запомненных полей не сеют."""
+    from apps.tenants import demo_i18n
+
+    fields = set(demo_i18n._CBLOCK_TEXT_FIELDS)
+    assert {"title", "body"} <= fields and not fields & {"page", "mode", "side", "rounded"}
+
+
+def test_block_template_keeps_only_the_active_view():
+    tpls = siteconfig.normalize_block_templates(
+        {
+            "a": {"key": "textpage", "data": {**TEXT, "page": PAGE}},
+            "b": {"key": "text", "data": {**TEXT, "page": PAGE}},
+        }
+    )
+    assert tpls["a"]["data"] == {"page": PAGE}
+    assert "page" not in tpls["b"]["data"] and "url" not in tpls["b"]["data"]
+    assert tpls["b"]["data"]["title"] == TEXT["title"]
+
+
+def test_template_insert_checks_the_page():
+    tpls = siteconfig.normalize_block_templates({"a": {"key": "textpage", "data": {"page": PAGE}}})
+    items, notes = [], []
+    ref = site_schema.mutate(items, "text", "add", block_type="tpl:a", templates=tpls, notes=notes)
+    assert ref and "page" not in items[0]["data"] and notes
+
+
+def test_texts_are_capped_on_input_not_on_normalisation():
+    long_title = "T" * 300
+    # сохранённое раньше нормализация не режет (витрина прежняя, круг байт-в-байт)
+    assert _clean("text", {"title": long_title})["title"] == long_title
+    assert _clean("textpage", {"title": long_title})["title"] == long_title
+    items, notes = _items("text", {"title": "x"}), []
+    site_schema.mutate(
+        items, "catalog", "update", ref="b1", fields={"title": long_title}, notes=notes
+    )
+    cap = siteconfig.CBLOCK_TEXT_CAPS["title"]
+    assert items[0]["data"]["title"] == "T" * cap and notes == [siteconfig.cap_note()]
+
+
+def test_studio_form_caps_texts_with_a_note():
+    from django.http import QueryDict
+
+    from apps.core import views
+
+    post = QueryDict(mutable=True)
+    post.update({"cb_b1_title": "T" * 300, "cb_b1_body": "B" * 6000, "cb_b1_url": "/x"})
+    notes = []
+    data = views._read_cblock_data(post, "b1", "image_text", notes)
+    assert len(data["title"]) == 200 and len(data["body"]) == 5000 and notes
+
+
+def test_inactive_fields_match_what_the_cleaner_keeps():
+    """Один источник: ключи `INACTIVE_FIELDS[k]` — ровно то, что чистильщик `k` хранит
+    сверх своих полей (дрейф трёх мест ловит этот тест)."""
+    full = {**TEXT, "page": PAGE, "mode": "teaser"}
+    own = {
+        "text": {"title", "body", "align", "size", "color"},
+        "image_text": {"url", "title", "body", "side", "align", "size", "color", "rounded"},
+        "textpage": {"page", "mode"},
+    }
+    for key, names in block_catalog.INACTIVE_FIELDS.items():
+        assert set(_clean(key, full)) - own[key] == set(names), key
+
+
+def test_render_uses_the_canonical_key(monkeypatch):
+    seen = []
+    real = block_catalog.active_data
+    monkeypatch.setattr(block_catalog, "active_data", lambda k, d: seen.append(k) or real(k, d))
+    from apps.tenants.templatetags import siteui
+
+    # старые блоки нормализация переименовывает; партиал легаси-ключа — для проверки
+    monkeypatch.setitem(
+        siteui.CBLOCK_TEMPLATES, "promo_list", "storefront/sections/_block_text.html"
+    )
+    ctx = Context({"request": RequestFactory().get("/")})
+    siteui.render_block(ctx, {"key": "promo_list", "id": "x", "data": {}})
+    assert seen == ["list"]
+
+
+def test_image_text_without_photo_keeps_its_side_through_textpage():
+    items = _items("image_text", {"title": "T", "side": "right"})
+    before = _dump(items)
+    _switch(items, "textpage", "image_text")
+    assert _dump(items) == before
+
+
+def test_studio_changed_page_is_checked():
+    saved = {"info": [{"key": "textpage", "id": "b1", "data": {}}]}
+    merged = {"info": [{"key": "textpage", "id": "b1", "data": {"page": PAGE}}]}
+    notes = []
+    site_schema.check_changed_pages(saved, merged, notes)
+    assert merged["info"][0]["data"] == {} and notes
+    page = _page()
+    merged = {"info": [{"key": "textpage", "id": "b1", "data": {"page": str(page.pk)}}]}
+    site_schema.check_changed_pages(saved, merged, notes := [])
+    assert merged["info"][0]["data"]["page"] == str(page.pk) and notes == []
+
+
+def test_saving_the_draft_keeps_both_sources():
+    """«Speichern» черновика (aufbau_draft.commit) пишет блок с обоими источниками."""
+    from apps.tenants.models import Tenant
+
+    tenant = _shop()
+    b = Browser(tenant)
+    b.post(seite="home", ref="t1", op="switch", value="textpage")
+    b.post(seite="home", op="save")
+    rows = Tenant.objects.get(pk=tenant.pk).site_config["sections"]
+    row = next(r for r in rows if r.get("id") == "t1")
+    assert row["key"] == "textpage" and row["data"]["title"] == "Hallo"
+    b.post(seite="home", ref="t1", op="switch", value="text")
+    b.post(seite="home", op="save")
+    rows = Tenant.objects.get(pk=tenant.pk).site_config["sections"]
+    row = next(r for r in rows if r.get("id") == "t1")
+    assert row["key"] == "text" and row["data"] == {"title": "Hallo", "body": "Welt"}

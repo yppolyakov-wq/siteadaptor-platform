@@ -576,12 +576,43 @@ def _photo_rounded(d: dict) -> dict:
 
 def _own_text_remembered(d: dict) -> dict:
     """FB-33 M3-3d: что «Von einer Seite» помнит от «Eigener Text»/«Foto + Text» — те же
-    проверки, что у своих видов; пустые строки не храним (вид их восстановит сам), сторону
-    и скругление — только при фото (как у «Nur Text», M2e)."""
+    проверки, что у своих видов; пустые строки и значения по умолчанию не храним (вид их
+    восстановит сам): сторона `left` без фото — это просто умолчание «Foto + Text».
+
+    Длина: те же правила, что у своего вида — нормализация не режет (иначе круг
+    «Eigener Text → Von einer Seite → обратно» терял бы текст); потолки — на вводе
+    (`cap_block_texts`: панель «Seitenaufbau» и форма Студии)."""
     out = {k: _s(d.get(k)) for k in ("title", "body", "url") if _s(d.get(k))}
-    if "url" in out:
-        out.update(_photo_side(d), **_photo_rounded(d))
-    return {**out, **_text_style(d)}
+    side = _photo_side(d)
+    if side and ("url" in out or side["side"] != "left"):
+        out.update(side)
+    return {**out, **_text_style(d), **_photo_rounded(d)}
+
+
+#: FB-33 M3-3d (ревью): потолки длины текстов блоков «Text» / «Foto + Text» на ВВОДЕ —
+#: одни для активного и запомненного вида (запомненное — это прежний активный текст).
+CBLOCK_TEXT_CAPS = {"title": 200, "body": 5000, "url": 500}
+_CAPPED_BLOCKS = frozenset({"text", "image_text"})
+
+
+def cap_block_texts(key: str, data: dict) -> tuple[dict, bool]:
+    """Обрезать присланные тексты блока по `CBLOCK_TEXT_CAPS` (только ввод: сохранённое
+    раньше нормализация не режет — витрина не меняется). Возвращает (данные, обрезано ли)."""
+    if key not in _CAPPED_BLOCKS or not isinstance(data, dict):
+        return data, False
+    out, capped = dict(data), False
+    for field, cap in CBLOCK_TEXT_CAPS.items():
+        value = out.get(field)
+        if isinstance(value, str) and len(value.strip()) > cap:
+            out[field] = value.strip()[:cap]
+            capped = True
+    return out, capped
+
+
+def cap_note():
+    from django.utils.translation import gettext
+
+    return gettext("Ein Text war zu lang und wurde gekürzt.")
 
 
 #: Чистильщик запомненных полей другого вида пары (поля — `INACTIVE_FIELDS`).
@@ -2064,10 +2095,14 @@ def normalize_block_templates(raw) -> dict:
         key = cblock_type(tpl.get("key")) if isinstance(tpl, dict) else ""
         if not key:
             continue
+        # FB-33 M3-3d (ревью, решение): шаблон блока хранит ТОЛЬКО активный вид —
+        # запомненный другой вид (страница, свой текст) остаётся у самого блока
+        from apps.core import block_catalog
+
         out[_s(tid) or uuid.uuid4().hex[:12]] = {
             "key": key,
             "label": _s(tpl.get("label"))[:120],
-            "data": _clean_cblock_data(key, tpl.get("data")),
+            "data": block_catalog.active_data(key, _clean_cblock_data(key, tpl.get("data"))),
         }
     return out
 
@@ -4277,6 +4312,9 @@ NON_TRANSLATABLE_FIELDS = frozenset(
         # FB-27 R6: ключ страницы и режим блока «Textseite» — коды, не текст
         "page",
         "mode",
+        # FB-33 M3-3d (ревью): сторона и скругление фото блока — коды оформления
+        "side",
+        "rounded",
     }
 )
 

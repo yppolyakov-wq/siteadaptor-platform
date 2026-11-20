@@ -732,7 +732,10 @@ def render_block(context, block):
     if key in CBLOCK_TEMPLATES:
         # FB-33 M3-3d: партиал видит только поля активного вида — запомненный текст
         # «Eigener Text» у «Von einer Seite» (и страница у своего текста) не на сайте
-        data = block_catalog.active_data(key, block.get("data") if isinstance(block, dict) else {})
+        data = block_catalog.active_data(
+            siteconfig.cblock_type(key) or key,  # легаси-псевдоним → канонический вид
+            block.get("data") if isinstance(block, dict) else {},
+        )
         # UC6-4: id блока — для on-canvas фото-кнопки 📷 (data-edit-pk).
         block_id = block.get("id") if isinstance(block, dict) else ""
         html = render_to_string(

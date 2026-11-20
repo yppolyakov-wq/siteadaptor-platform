@@ -39385,3 +39385,9 @@ msgstr "Block „Produkte“"
 #. FB-33 стопка: якорь среза M3-3d — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
 msgid "fb33-stack-anchor-M3-3d"
 msgstr "fb33-stack-anchor-M3-3d"
+
+msgid "Die gemerkte Seite gibt es hier nicht (mehr) — Seite bitte neu wählen."
+msgstr "Die gemerkte Seite gibt es hier nicht (mehr) — Seite bitte neu wählen."
+
+msgid "Ein Text war zu lang und wurde gekürzt."
+msgstr "Ein Text war zu lang und wurde gekürzt."
