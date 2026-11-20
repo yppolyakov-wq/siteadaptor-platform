@@ -43,20 +43,7 @@ def _squash(html):
 # --- L1: нормализатор ключ не держит -----------------------------------------------------
 
 
-_C3 = pytest.mark.xfail(strict=True, reason="M2c-4 C3: нормализатор/баннер ещё читают hero_widget")
-
-
-@pytest.mark.parametrize(
-    "widget",
-    (
-        pytest.param("shop", marks=_C3),
-        pytest.param("stays", marks=_C3),
-        pytest.param("services", marks=_C3),
-        pytest.param("gastro", marks=_C3),
-        "nonsense",
-        7,
-    ),
-)
+@pytest.mark.parametrize("widget", ("shop", "stays", "services", "gastro", "nonsense", 7))
 def test_l1_normalize_drops_the_key(widget):
     cfg = siteconfig.normalize({"site_defaults": {"hero_widget": widget, "radius": 8}})
     assert "hero_widget" not in cfg["site_defaults"]
@@ -105,11 +92,7 @@ def _hero_ctx(cfg):
     return {"site": cfg, "request": request, "primary_item": primary, "modules": {}}
 
 
-@pytest.mark.parametrize(
-    "style",
-    # bento плиток не рисовал и до M2c-4 — замок держит его рядом с остальными
-    [pytest.param(s, marks=_C3) if s != "bento" else s for s in STYLES],
-)
+@pytest.mark.parametrize("style", STYLES)
 def test_l2_banner_draws_no_tiles_from_the_raw_key(style):
     ctx = _hero_ctx(_raw_hero_site(style))
     html = render_to_string("storefront/sections/_hero.html", ctx)
@@ -127,7 +110,6 @@ def test_l2_banner_draws_no_tiles_from_the_raw_key(style):
 # --- L3: чтения ключа в шаблонах и фильтра больше нет -------------------------------------
 
 
-@pytest.mark.xfail(strict=True, reason="M2c-4 C3: шаблоны ещё читают hero_widget")
 def test_l3_templates_do_not_read_the_key():
     found = sorted(
         str(p.relative_to(ROOT))
@@ -137,7 +119,6 @@ def test_l3_templates_do_not_read_the_key():
     assert found == []
 
 
-@pytest.mark.xfail(strict=True, reason="M2c-4 C3: фильтр banner_tiles ещё есть")
 def test_l3_no_banner_tiles_filter():
     from apps.tenants.templatetags import siteui
 

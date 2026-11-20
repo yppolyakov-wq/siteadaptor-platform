@@ -6,7 +6,6 @@ from django.core.management import call_command
 from apps.core import quick_links_migration as qlm
 from apps.tenants import siteconfig
 from apps.tenants.models import SiteConfigSnapshot, Tenant
-from apps.tenants.templatetags.siteui import banner_tiles
 from apps.tenants.tests.factories import TenantFactory
 
 pytestmark = pytest.mark.django_db
@@ -35,7 +34,7 @@ def test_link_set_becomes_a_block_right_after_the_banner():
     block = next(r for r in _norm(new)["sections"] if r["key"] == "quick_links")
     assert block["data"] == {"set": "friseur"} and block["enabled"]
     assert "hero_widget" not in new["site_defaults"] and new["site_defaults"]["radius"] == 8
-    assert banner_tiles(_norm(new)) == ""
+    assert "hero_widget" not in _norm(new)["site_defaults"]  # M2c-4: баннер ключ не читает
 
 
 def test_bento_gets_a_hidden_block_so_the_site_looks_the_same():

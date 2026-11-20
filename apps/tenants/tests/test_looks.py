@@ -461,7 +461,8 @@ def test_preview_bundle_overlay_is_stateless():
 
 def test_builder_save_preserves_lookonly_site_defaults():
     """DL-2 (класс W0/W6): Save билдера БЕЗ hidden-инпутов не стирает
-    page_bg/card_chrome/hero_widget; с инпутами — пишет присланное."""
+    page_bg/card_chrome/promo_group_style; с инпутами — пишет присланное.
+    FB-33 M2c-4: снятый ключ `hero_widget` первый же Save роняет (его не читает никто)."""
     import uuid as _uuid
 
     from django.contrib.auth import get_user_model
@@ -477,6 +478,7 @@ def test_builder_save_preserves_lookonly_site_defaults():
             "site_defaults": {
                 "page_bg": "#faf6ef",
                 "card_chrome": "hard",
+                "promo_group_style": "prospekt",
                 "hero_widget": "stays",
             }
         },
@@ -494,13 +496,15 @@ def test_builder_save_preserves_lookonly_site_defaults():
         return core_views.home_builder_view(request)
 
     # STU-12g: контролов page_bg/card_chrome в Студии больше нет — любой её Save
-    # обязан их сохранить (класс W6), включая ключи без контрола вообще (hero_widget).
+    # обязан их сохранить (класс W6), включая ключи без контрола вообще
+    # (promo_group_style — шаблон страницы группы акций).
     assert _post({"font": "system"}).status_code == 302
     tenant.refresh_from_db()
     sd = tenant.site_config["site_defaults"]
     assert sd["page_bg"] == "#faf6ef"
     assert sd["card_chrome"] == "hard"
-    assert sd["hero_widget"] == "stays"
+    assert sd["promo_group_style"] == "prospekt"
+    assert "hero_widget" not in sd  # M2c-4: снятый ключ выпал
     # Даже если чужая форма пришлёт эти поля — Студия их не пишет.
     assert (
         _post({"font": "system", "sd_page_bg": "#f4f6f9", "sd_card_chrome": "line"}).status_code
@@ -510,7 +514,7 @@ def test_builder_save_preserves_lookonly_site_defaults():
     sd = tenant.site_config["site_defaults"]
     assert sd["page_bg"] == "#faf6ef"
     assert sd["card_chrome"] == "hard"
-    assert sd["hero_widget"] == "stays"  # E4-выбор переживает любой Save
+    assert sd["promo_group_style"] == "prospekt"  # выбор владельца переживает любой Save
 
 
 def test_media_shape_presence_minimal_and_rendered():

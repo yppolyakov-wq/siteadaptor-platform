@@ -95,13 +95,16 @@ def test_generic_branch_renders_via_hero_widget_partial(settings):
 
 
 def test_all_registry_widgets_survive_normalize():
-    """normalize не должен выбрасывать hero_widget новых архетипов (иначе демо
-    теряет первый экран при первом же сохранении билдера)."""
+    """normalize не должен выбрасывать набор новых архетипов (иначе демо теряет первый
+    экран при первом же сохранении билдера). FB-33 M2c-4: набор живёт данными блока
+    «Schnellzugriff», а не ключом site_defaults.hero_widget."""
     from apps.tenants import siteconfig
 
     for widget in hero_tiles.HERO_TILE_WIDGETS:
-        cfg = siteconfig.normalize({"site_defaults": {"hero_widget": widget}})
-        assert cfg["site_defaults"]["hero_widget"] == widget
+        block = {"key": "quick_links", "id": "q", "enabled": True, "data": {"set": widget}}
+        cfg = siteconfig.normalize({"sections": [{"key": "hero"}, block]})
+        kept = [r for r in cfg["sections"] if r.get("key") == "quick_links"]
+        assert kept and kept[0]["data"] == {"set": widget}
 
 
 def test_kits_have_first_screen():

@@ -23,24 +23,11 @@ from apps.catalog.category_styles import VALID_PAGE_STYLES as _CATEGORY_PAGE_STY
 from apps.catalog.category_styles import VALID_ROOT_STYLES as _ROOT_PAGE_STYLES
 from apps.catalog.option_styles import VARIANT_STYLE_KEYS as _CATALOG_VARIANT_STYLE_KEYS
 from apps.core import card_forms, detail_sections
-from apps.core.hero_tiles import HERO_TILE_WIDGETS
 from apps.promotions.group_styles import VALID_GROUP_STYLES as _GROUP_PAGE_STYLES
 from apps.promotions.group_styles import VALID_PROMO_PAGE_STYLES as _PROMO_PAGE_STYLES
 from apps.promotions.group_styles import (
     VALID_PROMOTION_DETAIL_STYLES as _PROMO_DETAIL_STYLES,
 )
-
-# E4/2026-07-30: допустимые значения site_defaults.hero_widget — кастомные ветки
-# `sections/_hero_widget.html` + архетипы из реестра плиток `core.hero_tiles`
-# (иначе normalize выбросил бы ключ и первый экран потерял бы направления).
-HERO_WIDGETS = (
-    "stays",
-    "services",
-    "gastro",
-    "bakery",
-    "butcher",
-    "mode",
-) + HERO_TILE_WIDGETS
 
 # O-2: допустимые значения дефолтного вида выбора вариантов. Берём ИЗ реестра
 # каталога (option_styles тянет только gettext — моделей не грузит), чтобы
@@ -2728,12 +2715,8 @@ def normalize_site_defaults(raw) -> dict:
     # (`Promotion.page_style`) его побеждает — резолвер `promotion_detail_style`.
     if sd.get("promo_detail_style") in _PROMO_DETAIL_STYLE_KEYS:
         out["promo_detail_style"] = sd["promo_detail_style"]
-    # E4 «задача-первым»: интерактивный hero — primary-виджет ВНУТРИ баннера
-    # (первый экран = начало пути). "stays" — поиск дат; "services" — топ-услуги
-    # с «Buchen». Ключ ТОЛЬКО при валидном значении ("" = обычный баннер →
-    # golden целы; существующие сайты не затрагиваются).
-    if sd.get("hero_widget") in HERO_WIDGETS:
-        out["hero_widget"] = sd["hero_widget"]
+    # FB-33 M2c-4: ключ плиток баннера снят — быстрые ссылки блоком
+    # «Schnellzugriff», форма дат и топ услуг — секциями; старый ключ выпадает.
     # DS-1: фон СТРАНИЦЫ (тёплая подложка Look-семейств: крем/песок). Ключ ТОЛЬКО
     # при валидном hex ("" = bg-gray-50 как раньше → golden целы); в тёмной теме
     # не применяется (правило в _base.html скоуплено html:not(.dark)).

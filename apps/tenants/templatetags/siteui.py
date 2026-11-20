@@ -632,41 +632,6 @@ def page_title(context, host):
     return _page_title.get({"page_titles": titles}, host)
 
 
-@register.filter
-def has_home_block(site, key) -> bool:
-    """FB-33 M2c: стоит ли на главной включённый блок типа `key`."""
-    rows = site.get("sections") if isinstance(site, dict) else None
-    return any(
-        isinstance(r, dict) and r.get("key") == key and r.get("enabled", True) for r in rows or []
-    )
-
-
-#: Виджеты баннера, которые не ссылки — блок «Schnellzugriff» их не рисует, баннер их не
-#: прячет никогда (форма дат, топ услуг; при переносе M2c-2 они станут своими секциями).
-_NOT_LINK_WIDGETS = frozenset({"stays", "services"})
-
-
-@register.filter
-def banner_tiles(site) -> str:
-    """FB-33 M2c: какой виджет рисует баннер главной ("" — никакой). Наборы-ссылки баннер
-    отдаёт блоку «Schnellzugriff», только если тот включён на главной И у него выбран
-    набор: только что добавленный пустой блок не прячет плитки."""
-    defaults = site.get("site_defaults") if isinstance(site, dict) else None
-    widget = (defaults or {}).get("hero_widget") or ""
-    if not widget or widget in _NOT_LINK_WIDGETS:
-        return widget
-    rows = site.get("sections") or []
-    taken = any(
-        isinstance(r, dict)
-        and r.get("key") == "quick_links"
-        and r.get("enabled", True)
-        and isinstance(r.get("data"), dict)
-        and r["data"].get("set")
-        for r in rows
-    )
-    return "" if taken else widget
-
-
 @register.simple_tag(takes_context=True)
 def quick_links_html(context, link_set):
     """FB-33 M2c: плитки набора (та же разметка, что в баннере); пусто — когда у набора нет
