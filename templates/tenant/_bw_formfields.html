@@ -7,7 +7,7 @@
   <input type="hidden" name="panel_present" value="1">
   <input type="hidden" name="op" value="update">
   {% comment %}Enter в поле — отправка без действия (первая кнопка формы — «по умолчанию»), а не «Nach oben» первого вопроса.{% endcomment %}
-  <button type="submit" class="sr-only" tabindex="-1" aria-hidden="true"></button>
+  <button type="submit" class="sr-only" tabindex="-1" aria-hidden="true" aria-label="{% trans "Übernehmen" %}"></button>
   <p class="text-sm text-gray-700">{% trans "Was die Anfrage-Form fragt. Änderungen erscheinen auf der Seite nach „Speichern“." %}</p>
   {% for f in fs.fields %}
   {% if f.pinned %}
