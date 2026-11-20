@@ -118,6 +118,12 @@ def site_schema_view(request):
             # FB-27 R5: кнопка ручного состава несёт действие и запись одним значением
             action, pick_value = request.POST["pick_op"].split(":", 1)
             op = f"pick_{action}"
+        # FB-33 M3-5a: кнопка вкладки окна (без скриптов) применяет форму открытой вкладки —
+        # операция формы (`op_default`, белый список), затем открывается выбранная вкладка
+        goto = block_window.goto_tab(request.POST)
+        if goto and not op:
+            op = block_window.default_op(request.POST)
+        applied, notes = False, []
         # FB-27 R2: правки копятся в черновике, на сайт попадают по «Speichern».
         token = request.POST.get("wopen", "")  # FB-33 M3-1b: токен открытия окна
         try:
@@ -289,15 +295,25 @@ def site_schema_view(request):
                     "Ihr Entwurf wurde nicht gespeichert."
                 ),
             )
+        else:
+            applied = True  # FB-33 M3-5a: ни одна ветка отказа не сработала
         # Блок остаётся выбранным (новый — тоже), удалённый — нет.
         # FB-33 M3-1b: «Fertig» и «Abbrechen» закрывают окно блока
         closed = op in ("delete", "revert") or op in aufbau_draft.WINDOW_OPS
-        target = _url(code, "" if closed else ref, _keep(request.POST))
+        keep = _keep(request.POST)
+        # FB-33 M3-5a: на выбранную вкладку — только если правка прошла без отказа и без
+        # сообщений (иначе владелец остаётся там, где видит, что не так)
+        moved = bool(goto and applied and not notes and not closed and ref)
+        if moved:
+            keep["tab"] = goto
+        target = _url(code, "" if closed else ref, keep)
         lang = request.POST.get("f_sprache", "")
         if "#" in target and lang and _keep({"f_sprache": lang}).get("sprache") == lang:
             # FB-33 M2i-5b (ревью a11y): после кнопки языка фокус — на ней (`#schema-tab-…`
             # ставит фокус по id и окно, и страница без окна; без JS — прокрутка к ней)
             target = f"{target.split('#', 1)[0]}#schema-tab-lang-{lang}"
+        if moved:
+            target = f"{target.split('#', 1)[0]}#schema-tab-{goto}"
         if op == "setting" and "#" in target:
             # Настройка, которую только что меняли, остаётся раскрытой.
             base, anchor = target.split("#", 1)

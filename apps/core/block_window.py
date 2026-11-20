@@ -239,3 +239,48 @@ def field_meta(selected: dict | None, field: dict) -> dict:
         "hint": hint,
         "described": " ".join(ids),
     }
+
+
+#: части-формы окна, которые без скриптов применяет кнопка вкладки (решение M3-2 п.3): у
+#: открытой вкладки с ровно одной такой ЧАСТЬЮ прочие вкладки — кнопки её формы
+#: (`form="bw-form-<часть>"`, `name="zu_tab"`): набранное уходит в черновик, затем
+#: открывается выбранная вкладка. Считаются части, не `<form>`: у «Karte» вторая форма —
+#: «zurücksetzen».
+APPLY_FORM_PARTS = ("fields", "usp", "formfields", "card_pick", "faq")
+#: вкладки, переход с которых применяет форму («Wie anordnen» — две формы, там ссылки)
+APPLY_TABS = ("texte", "felder", "karte")
+#: Enter в поле — та же кнопка, что первая кнопка самой формы (кнопка «по умолчанию» перед
+#: вкладками: иначе ею стала бы кнопка вкладки, и Enter переключал бы вкладку)
+_DEFAULT_SUBMIT = {"formfields": ("f_commit_new", "1"), "faq": ("op", "faq_update")}
+#: операция формы без своей кнопки, когда её шлёт кнопка вкладки (`op_default`)
+OP_DEFAULTS = ("update", "faq_update")
+
+
+def form_id(part: str) -> str:
+    return f"bw-form-{part}"
+
+
+def apply_form(window: list[dict]) -> dict | None:
+    """Форма, которую применяют кнопки вкладок: {part, form, name, value} (name/value —
+    кнопки «по умолчанию»), либо None — вкладки остаются ссылками байт-в-байт."""
+    active = next((t for t in window or () if t["active"]), None)
+    if active is None or len(window) < 2 or active["key"] not in APPLY_TABS:
+        return None
+    mine = [p for p in active["parts"] if p in APPLY_FORM_PARTS]
+    if len(mine) != 1:
+        return None
+    name, value = _DEFAULT_SUBMIT.get(mine[0], ("op", "update"))
+    return {"part": mine[0], "form": form_id(mine[0]), "name": name, "value": value}
+
+
+def goto_tab(post) -> str:
+    """Вкладка, на которую ушла кнопка вкладки (`zu_tab`); не из белого списка — нет."""
+    wanted = post.get("zu_tab", "")
+    return wanted if wanted in TAB_KEYS else ""
+
+
+def default_op(post) -> str:
+    """Операция формы, отправленной кнопкой вкладки без `op`: `op_default` из белого
+    списка, иначе правка полей (`update`)."""
+    op = post.get("op_default", "")
+    return op if op in OP_DEFAULTS else "update"

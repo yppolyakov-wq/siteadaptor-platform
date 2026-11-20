@@ -1,6 +1,6 @@
 {% load i18n %}{% comment %}FB-33 M2i-5: вкладка «Felder» — поля формы заявки (form_spec.panel). Одна неделимая форма: правки идут в черновик (op=update ref=form), кнопки «+ Frage», вверх/вниз/удалить и «Branchen-Vorlage» — поле do; без скриптов — «Übernehmen». Подписи и варианты — только автоэкранированием.{% endcomment %}
 {% with fs=selected.form_spec %}
-<form method="post" class="mt-4 space-y-4" data-schema-fields data-form-felder>
+<form method="post" id="bw-form-formfields" class="mt-4 space-y-4" data-schema-fields data-form-felder>
   {% csrf_token %}
   {% include "tenant/_schema_keep.html" %}
   <input type="hidden" name="ref" value="{{ selected.ref }}">

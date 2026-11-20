@@ -12,3 +12,9 @@ register = template.Library()
 def bw_field(field, selected):
     """{max, max_hint, example, hint, described} поля формы «fields»."""
     return block_window.field_meta(selected, field)
+
+
+@register.filter
+def bw_apply_form(window):
+    """{part, form, name, value} — кнопки вкладок применяют эту форму; None — ссылки."""
+    return block_window.apply_form(window)

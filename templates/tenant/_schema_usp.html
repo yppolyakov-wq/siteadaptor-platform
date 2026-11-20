@@ -1,5 +1,5 @@
 {% load i18n %}{% comment %}FB-32 S2 (макет S2): пункты полосы доверия в панели — иконка кнопками, заголовок, текст; удалить, выше/ниже, «＋ Punkt»; вид — выпадающим списком со схемами. Одна форма, всё в черновик страницы; без скриптов.{% endcomment %}
-<form method="post" class="mt-4 space-y-3" data-schema-fields data-schema-usp>
+<form method="post" id="bw-form-usp" class="mt-4 space-y-3" data-schema-fields data-schema-usp>
   {% csrf_token %}
   {% include "tenant/_schema_keep.html" %}
   <input type="hidden" name="ref" value="{{ ref }}">
