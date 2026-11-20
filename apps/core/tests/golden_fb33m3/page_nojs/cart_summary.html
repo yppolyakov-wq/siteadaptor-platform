@@ -95,12 +95,12 @@
       
       <li><ul class="flex flex-col md:flex-row gap-2" data-schema-row>
         
-        <li class="min-w-0" style="flex: 12 1 0%">
+        <li class="min-w-0" style="flex: 12 1 0%" data-schema-pinned="items">
         
         <a href="?seite=cart&amp;block=items&amp;wopen=W#schema-panel"
            class="block rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 bg-white hover:bg-gray-50"
            data-schema-block="items">
-          
+          <span class="float-right ml-2 select-none" aria-hidden="true" data-schema-lock>🔒</span><span class="sr-only">feste Position, </span>
           
           <span class="block font-semibold">Positionen</span>
           
@@ -113,12 +113,12 @@
       
       <li><ul class="flex flex-col md:flex-row gap-2" data-schema-row>
         
-        <li class="min-w-0" style="flex: 12 1 0%">
+        <li class="min-w-0" style="flex: 12 1 0%" data-schema-pinned="form">
         
         <a href="?seite=cart&amp;block=form&amp;wopen=W#schema-panel"
            class="block rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 bg-white hover:bg-gray-50"
            data-schema-block="form">
-          
+          <span class="float-right ml-2 select-none" aria-hidden="true" data-schema-lock>🔒</span><span class="sr-only">feste Position, </span>
           
           <span class="block font-semibold">Bestellformular</span>
           
@@ -131,12 +131,12 @@
       
       <li><ul class="flex flex-col md:flex-row gap-2" data-schema-row>
         
-        <li class="min-w-0" style="flex: 12 1 0%">
+        <li class="min-w-0" style="flex: 12 1 0%" data-schema-pinned="summary">
         
         <a href="?seite=cart&amp;block=summary&amp;wopen=W#schema-panel"
            class="block rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-2 border-indigo-700 bg-white"
            data-schema-block="summary" aria-current="true">
-          
+          <span class="float-right ml-2 select-none" aria-hidden="true" data-schema-lock>🔒</span><span class="sr-only">feste Position, </span>
           
           <span class="block font-semibold">Summe und Bestellbutton</span>
           
@@ -209,13 +209,15 @@
   
   <aside class="ui-card p-4 scroll-mb-28 scroll-mt-20 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 max-md:fixed max-md:inset-x-0 max-md:bottom-0 max-md:z-[70] max-md:max-h-[60dvh] max-md:overflow-y-auto max-md:pb-[max(1rem,env(safe-area-inset-bottom))] max-md:rounded-b-none max-md:shadow-[0_-10px_30px_rgba(22,24,29,0.25)]" id="schema-panel" tabindex="-1" aria-labelledby="schema-panel-title" data-schema-panel>
     
-    <p class="md:hidden -mt-1 mb-1 text-right"><a href="?seite=cart" class="inline-flex items-center min-h-[44px] px-2 font-semibold text-indigo-700" data-schema-done>Fertig<span class="sr-only"> – Einstellungen des Blocks schließen</span></a></p>
+    <form method="post" class="md:hidden -mt-1 mb-1 text-right"><input type="hidden" name="csrfmiddlewaretoken" value="X"><input type="hidden" name="seite" value="cart"><input type="hidden" name="wopen" value="W">
+<input type="hidden" name="ref" value="summary"><button name="op" value="window_done" class="inline-flex items-center min-h-[44px] px-2 font-semibold text-indigo-700" data-schema-done>Fertig<span class="sr-only"> – Einstellungen des Blocks schließen</span></button></form>
+    
     
     
     
     <div class="flex items-start justify-between gap-2">
       <div class="min-w-0">
-        <h2 id="schema-panel-title" class="font-semibold text-lg break-words">Summe und Bestellbutton</h2>
+        <h2 id="schema-panel-title" class="font-semibold text-lg break-words">Summe und Bestellbutton <span aria-hidden="true" data-schema-lock>🔒</span><span class="sr-only"> (fest)</span></h2>
         
       </div>
       
@@ -224,7 +226,53 @@
     
     
 
+<nav class="mt-3" aria-label="Bereiche des Blocks" data-window-tabs>
+  <ul class="flex flex-wrap gap-1">
+    <li><a href="?seite=cart&amp;block=summary&amp;tab=texte&amp;wopen=W#schema-tab-texte" class="inline-flex items-center justify-center min-h-[44px] rounded-lg border px-3 text-sm font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 border-2 border-indigo-700 bg-indigo-50 text-indigo-900" aria-current="page" data-window-tab-link="texte">Texte</a></li><li><a href="?seite=cart&amp;block=summary&amp;tab=felder&amp;wopen=W#schema-tab-felder" class="inline-flex items-center justify-center min-h-[44px] rounded-lg border px-3 text-sm font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 border-gray-500 text-gray-800 hover:bg-gray-50" data-window-tab-link="felder">Felder</a></li>
+  </ul>
+</nav>
 
+
+<section id="schema-tab-texte" class="scroll-mt-20 focus:outline-none" data-window-tab="texte" tabindex="-1">
+  <h3 class="sr-only">Texte</h3>
+  <div data-window-part="pinned">
+
+<div class="mt-4 rounded-xl border border-amber-300 bg-amber-50 px-3 py-2.5 text-sm text-amber-950" data-schema-legal>
+  <p class="font-semibold"><span aria-hidden="true">🔒 </span>Dieser Block ist fest.</p>
+  <p class="mt-1">Bestellübersicht, Gesamtpreis und der Button „Zahlungspflichtig bestellen“ müssen direkt untereinander stehen — so verlangt es § 312j BGB (Button-Lösung). Deshalb lässt er sich nicht verschieben, ausblenden oder in der Breite ändern. Texte und Felder können Sie anpassen.</p>
+</div>
+
+<div class="mt-4" data-schema-legal-label>
+  <label for="schema-legal-label" class="block text-sm font-semibold text-gray-700 mb-1">Beschriftung des Bestell-Buttons</label>
+  <div class="relative">
+    
+    <textarea id="schema-legal-label" rows="2" readonly aria-readonly="true" aria-describedby="schema-legal-label-note" class="ui-input w-full cursor-not-allowed bg-gray-100 pr-10 text-gray-800">Zahlungspflichtig bestellen</textarea>
+    <span class="pointer-events-none absolute top-3 right-3" aria-hidden="true">🔒</span>
+  </div>
+  <p id="schema-legal-label-note" class="mt-1 text-xs text-gray-700">Gesetzlich vorgegeben, nicht änderbar.</p>
+</div>
+
+
+</div>
+</section>
+
+<section id="schema-tab-felder" class="scroll-mt-20 focus:outline-none" data-window-tab="felder" hidden>
+  <h3 class="sr-only">Felder</h3>
+  <div data-window-part="noinput">
+<p class="mt-4 text-sm text-gray-700" data-schema-noinput>Hier werden keine Angaben abgefragt</p>
+</div>
+</section>
+
+
+
+<form method="post" class="mt-4 flex flex-wrap justify-end gap-2 border-t border-gray-200 pt-3" data-window-actions data-wait-error="Die letzte Änderung ist noch unterwegs. Bitte noch einmal versuchen.">
+  <input type="hidden" name="csrfmiddlewaretoken" value="X">
+  <input type="hidden" name="seite" value="cart"><input type="hidden" name="wopen" value="W">
+
+  <input type="hidden" name="ref" value="summary">
+  <button name="op" value="revert" class="ui-btn ui-btn-secondary min-h-[44px]">Abbrechen</button>
+  <button name="op" value="window_done" class="ui-btn ui-btn-primary min-h-[44px]">Fertig</button>
+</form>
 
 
     
