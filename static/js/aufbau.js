@@ -189,6 +189,13 @@
     // Enter в поле панели: правка уже в пути (change), вторая отправка не нужна.
     if (form.matches(FORMS) && (!submitter || submitter.value === "update")) return;
     chain.then(function () {
+      if (!form.isConnected && form.hasAttribute("data-window-actions")) {
+        // FB-33 M3-1b: «Abbrechen/Fertig» окна — панель уже подменили; та же кнопка в новой
+        var again = document.querySelector("[data-window-actions]");
+        var op = submitter && submitter.value;
+        var btn = again && op && again.querySelector('button[name="op"][value="' + op + '"]');
+        if (btn) { again.requestSubmit(btn); return; }
+      }
       if (!form.isConnected) { location.reload(); return; }
       form.requestSubmit(submitter && submitter.isConnected ? submitter : undefined);
     });

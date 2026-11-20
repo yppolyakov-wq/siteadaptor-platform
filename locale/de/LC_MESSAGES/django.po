@@ -39039,3 +39039,7 @@ msgstr "Bereiche des Blocks"
 msgctxt "block view"
 msgid "Ansicht"
 msgstr "Ansicht"
+
+#. FB-33 M3-1b: «Abbrechen» окна блока
+msgid "Änderungen an diesem Block zurückgenommen."
+msgstr "Änderungen an diesem Block zurückgenommen."

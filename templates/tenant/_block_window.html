@@ -12,3 +12,13 @@
   {% for part in t.parts %}<div data-window-part="{{ part }}">{% with "tenant/_bw_"|add:part|add:".html" as part_tpl %}{% include part_tpl %}{% endwith %}</div>{% endfor %}
 </section>
 {% endfor %}
+{% if window %}
+{% comment %}FB-33 M3-1b: «Abbrechen» — блок как на момент открытия окна (снимок в черновике), «Fertig» — закрыть; обычные формы, без скриптов.{% endcomment %}
+<form method="post" class="mt-4 flex flex-wrap justify-end gap-2 border-t border-gray-200 pt-3" data-window-actions>
+  {% csrf_token %}
+  {% include "tenant/_schema_keep.html" %}
+  <input type="hidden" name="ref" value="{{ selected.ref }}">
+  <button name="op" value="revert" class="ui-btn ui-btn-secondary min-h-[44px]">{% trans "Abbrechen" %}</button>
+  <button name="op" value="window_done" class="ui-btn ui-btn-primary min-h-[44px]">{% trans "Fertig" %}</button>
+</form>
+{% endif %}

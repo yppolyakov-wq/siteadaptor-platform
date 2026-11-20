@@ -105,6 +105,12 @@ def _panel(html: str) -> str:
     return html[start : html.index("</aside>", at)]
 
 
+def _old_panel(panel: str) -> str:
+    """Панель без кнопок окна (FB-33 M3-1b «Fertig/Abbrechen» — новая форма; замок M3-0
+    держит прежние формы)."""
+    return re.sub(r"<form[^>]*data-window-actions.*?</form>", "", panel, flags=re.S)
+
+
 def _forms(panel: str) -> list[str]:
     out = []
     for form in re.findall(r"<form\b.*?</form>", panel, flags=re.S):
@@ -132,7 +138,7 @@ def snapshot() -> dict:
         code, ref, extra = (*case, "")[:3]
         b = Browser(tenant)
         html, view, selected = _capture(b, f"?seite={code}&block={ref}{extra}")
-        panel = _panel(html)
+        panel = _old_panel(_panel(html))
         out["|".join(case)] = {
             "selected": _nonempty(selected),
             "view": sorted(k for k, v in view.items() if v not in (None, "", [], {}, False)),
