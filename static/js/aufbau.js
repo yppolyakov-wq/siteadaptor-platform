@@ -172,6 +172,7 @@ function aufbauSubmitCopy(form, submitter) {
         var refused = !!doc.querySelector('[data-schema-messages] [role="alert"]');
         // ревью M3-2 (H3): отказ сервера «Fertig» по Esc не сжигает перезагрузкой
         lastRefused = refused;
+        refusedShown = false;
         if (!refused) clearErrors();
         relay();
         if (refused) whole = true;
@@ -262,6 +263,8 @@ function aufbauSubmitCopy(form, submitter) {
   var radioFire = null;
   // последний ответ на правку — отказ сервера (его alert виден в окне)
   var lastRefused = false;
+  // ревью M3-2 (code-reviewer): отказ уже показан в окне — второй Esc/× подряд закрывает окно
+  var refusedShown = false;
   document.addEventListener("change", function (e) {
     var target = e.target;
     var form = panelForm(target);
@@ -297,6 +300,7 @@ function aufbauSubmitCopy(form, submitter) {
     if (form.matches(FORMS) && (!submitter || submitter.value === "update")) return;
     if (form.hasAttribute("data-window-actions")) {
       afterPending(form, submitter).then(function (how) {
+        if (how === "refused") refusedShown = true;
         if (how === "late" || how === "refused") reopen();
       });
       return;
@@ -587,6 +591,7 @@ function aufbauSubmitCopy(form, submitter) {
       aufbauError();
       return;
     }
+    if (lastRefused && refusedShown) { lastRefused = false; refusedShown = false; }
     closing = true;
     // правка поля уходит по change при уходе из него; отложенный переключатель — сейчас
     var at = document.activeElement;
@@ -595,13 +600,14 @@ function aufbauSubmitCopy(form, submitter) {
     if (navigating) { intend(); guard(); return; }
     if (pending) {
       afterPending(form, btn).then(function (how) {
+        if (how === "refused") refusedShown = true;
         if (how === "late" || how === "refused") reopen();
         else if (how === "sent") guard();
       });
       return;
     }
     // ревью M3-2 (H3): последний ответ — отказ; он виден в окне, перезагрузка его стёрла бы
-    if (lastRefused) { reopen(); return; }
+    if (lastRefused) { refusedShown = true; reopen(); return; }
     form.requestSubmit(btn);
   }
 
