@@ -44,6 +44,19 @@
 - **M21** прогон переезда haanerteeladen на сервере — владелец, runbook §7
   `m21-cscart-migration-plan-2026-10-31.md`.
 
+Решено (FB-33, стопка 2 M3-4 / M3-5a / M3-5b, владелец 2026-11-20):
+- «Karte»: у сетки и ленты — **обе группы, плитки и строки** (как в M1); пустое = как в Design (плитка
+  «Standard»/«Wie im Design (X)»); «zurücksetzen» — отдельной формой; плашка своих форм — среди показанных
+  карточек, «anzeigen» — `<details>`; смена вида сетка→прайс-лист — как M1c (форма выбрасывается).
+  **Подписи форм по макету M0-2 — отдельным срезом** на всех экранах (сейчас подписи реестра).
+- «Texte»: без JS кнопки вкладок **применяют** форму вкладки (решение M3-2 п.3); переводы текстов блока
+  в окне — отдельный M3-5c; лимиты кнопка 200/500, фото 200.
+- FAQ: **переводы — по индексу источника** (src), без id и миграции; правка немецкого снимает перевод
+  этого поля у всех писателей; подпись «Gilt für alle Seiten — dieselben Fragen zeigt jeder FAQ-Block.»
+  («eigene Fragen» — с M2b-2b); переводы FAQ и подписей плашек в окне — отдельным срезом.
+- Плашки «Schnellzugriff»: **во «Was» одной формой с выбором набора**, смена набора сбрасывает скрытие
+  и подписи; рукописные наборы тоже со скрытием и подписями; пункты «Vorlage» — `QUICK_LINK_LABELS`.
+
 Решено (FB-33, стопка M2b-2a / M2i-5b / M3-3, владелец 2026-11-20):
 - FAQ: одно имя вида на всех страницах (Akkordeon/Liste/Zwei Spalten/Karten/Nummeriert; «Liste» — только
   у FAQ); главная и прочие — пять видов, детальные — три. **FAQPage — только на главной**; общий FAQ на
@@ -211,6 +224,29 @@ FB-33 M2i-3a (2026-11-19): онлайн-оплата (Stripe) в корзине 
   `form_spec.event_type_choices`; писатель — `form_spec.put` (+ `absorb_legacy_event_i18n`,
   `set_event_translations` для демо). `localize()` не накладывает `i18n.<яз>.anfrage` — значения
   вариантов всегда на основном языке. Позиционное чтение `form_spec.legacy_event_i18n` — временное.
+- `apps/core/block_card.py` (FB-33 M3-4) — вкладка «Karte» окна блока: `decorate(selected, config)`
+  после `block_views.decorate`, до `block_window.tabs` — перекладывает поле «Kartenform» из группы «wie»
+  (`list_panel.groups`) в `selected["card_pick"]`; второго списка форм нет (пункты поля →
+  `card_forms.shape_of`). `CARD_RESET_FIELDS = ("card",)`. Плашка своих форм — `list_panel.own_forms`
+  (`OWN_FORM_SCREENS` — куда ведёт «anzeigen»), своя форма объекта — `card_forms.own_form` без запросов.
+- `card_forms.card_applies(kind, style)` (FB-33 M3-4) — ЕДИНСТВЕННЫЙ предикат «форма карточки у списка
+  действует»: запись, поле панели, вкладка. Аргумент — `kind` источника, не `source` (card_forms не
+  импортирует siteconfig — замок).
+- Кнопки вкладок окна без JS (FB-33 M3-5a): `block_window.APPLY_FORM_PARTS` / `apply_form` / `goto_tab` /
+  `default_op`; новая часть-форма окна — `id="bw-form-<часть>"` в своём шаблоне + имя в
+  `APPLY_FORM_PARTS` (+ `_DEFAULT_SUBMIT`, если первая кнопка формы не `op=update`, — у FAQ `faq_add`;
+  операция без своей кнопки — `op_default` из `OP_DEFAULTS`); замок «у каждой живой применяющей части —
+  форма с её form_id». Части с «Übernehmen» на вкладках-ссылках — `_TYPED_PARTS` (подсказка). Контракт
+  поля «Texte» — `block_window.field_meta`; потолки ввода C-блоков — `siteconfig.CBLOCK_INPUT_CAPS`.
+- `apps/core/faq_content.py` (FB-33 M3-5b) — ЕДИНСТВЕННЫЙ писатель `site_config["faq"]` и `i18n[*].faq`
+  (`put(config, items, src, base_fp)`, `set_text`, `apply_ops`, `panel`); исключения — демо-киты (замок
+  `test_fb33_m35b_faq_writers.py::test_one_writer_of_site_faq`). Черновик: `draft["faq"]={items, src}` +
+  `faq_base` (вне `_saved_state`, конфликт — `aufbau_draft.faq_conflict`).
+- `apps/core/window_parts.py` (FB-33 M3-5b) — части окна FAQ и «Schnellzugriff» (`decorate`), якорь
+  вопроса FAQ после кнопок — `faq_anchor` (`#schema-tab-faq-<i>`, стопка 2).
+- `apps/core/hero_tiles.QUICK_LINK_TILES` (FB-33 M3-5b) — плашки каждого набора (ключ, подпись,
+  подсказка), включая рукописные gastro/bakery/butcher/mode; данные блока `{set, hidden, labels}` —
+  `clean_data` / `update_data` / `panel` / `prune_label_overlays`; `hidden` — в `NON_TRANSLATABLE_FIELDS`.
 - Вкладка «Felder» (FB-33 M2i-5, 2026-11-20): **`form_spec.put` — единственный писатель
   `site_config["form_fields"]` из кабинета** (и событийных полей `anfrage` — тем же `normalize_anfrage`);
   замок-grep `test_fb33_m2i5_before::test_form_fields_has_one_writer` (кроме `form_spec` — только

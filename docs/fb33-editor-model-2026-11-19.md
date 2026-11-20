@@ -597,3 +597,47 @@ aria-labelledby="schema-panel-title">` создаёт `aufbau.js` в `<body>` и
 worktree, собраны поверх main; стыки (плитки FAQ из `faq_views.views(host)`, плитка «Von einer Seite» и
 плашка M0-9), снятие якорей `.po`, `app.css`, эталоны окна — на верхушке. Отложенное —
 `docs/roadmap-next-sprints.md` §«Отложено» (блок «стопка 2026-11-20»); дальше — M3-4.
+
+## План M3-4 «вкладка Karte» по M0-2 (planner, 2026-11-20)
+- Поле card из группы «wie» (`list_panel.groups`/`builtin_groups`, форма «Wie … aussehen») — в свою часть
+  `card_pick` (`apps/core/block_card.decorate` после `block_views.decorate`): плитки и строки по
+  `card_forms.shape_of`, наследование «Wie im Design: X · ändern», своя форма + «zurücksetzen» отдельной
+  формой, `not_offered`, плашка `own_forms {n, items}` из тех же items (у Promotion не звать `card_form()` —
+  FK category, N+1). Нет вкладки при виде без карточки/источнике без форм/Chips/Regale.
+- Замки C0: без JS байт-в-байт кроме home_l1, home_l1_welche-regeltab-wie, home_products, wie_nojs; только
+  подходящие виду (источник × вид); card в одной форме; сброс — только card; одно число запросов при 0/3
+  своих формах; Abbrechen; смена вида; витрина байт-в-байт. Коммиты C0 → C1 → C2 → C3 → C4 → C5 стенд.
+
+## План M3-5a «Texte — простые поля» (planner, 2026-11-20)
+- Пробелы: лимиты только у text/image_text; «Seitentitel» режет молча; нет подсказок aria-describedby; без
+  JS вкладки — GET-ссылки, набранное теряется (решение M3-2 п.3).
+- Механизм: у вкладки с ровно одной применяющей частью прочие вкладки — `<button form="bw-form-X"
+  name="zu_tab" formnovalidate>`; sr-only кнопка «по умолчанию» перед nav; вьюха: нет op и zu_tab → op формы;
+  переход только при успехе и без сообщений. С JS `aufbau.js tabs()` — обычные вкладки APG.
+- Поля: button 200/500, image 200 — на вводе; maxlength + hint + aria-describedby. Отложенное: фокус
+  «Felder», role=status сброшенного перевода. Замки L1–L8.
+
+## План M3-5b «FAQ-вопросы и плашки Schnellzugriff в окне» (planner, 2026-11-20)
+- Один писатель `apps/core/faq_content.py` (clean_input, from_form, apply_ops, put — база и i18n[*].faq по
+  src, set_text, panel); Студия/превью/канва/черновик зовут только его; faq вне `realign_list_overlays`;
+  лимиты 12/200/2000 на вводе. Черновик `draft["faq"]={items,src}` + `faq_base` (не в `_saved_state`).
+- Плашки: данные `{"set","hidden":[ключ],"labels":{ключ:текст}}` без миграций; реестр `QUICK_LINK_TILES`
+  (и рукописные наборы), `tiles_for(hidden, labels)`; часть `tiles` во «Was» одной формой с набором.
+- Замки C0 L1–L8: витрина FAQ и плашек байт-в-байт; перестановка/удаление/вставка не сдвигают переводы;
+  Студия = окно; Abbrechen; один писатель (grep); XSS/лимиты.
+
+**Решения владельца по стопке 2 M3-4 / M3-5a / M3-5b (2026-11-20):**
+- M3-4: у сетки и ленты — обе группы (плитки и строки); подписи форм — прежние из `card_forms`, по макету
+  M0-2 — отдельным срезом; пустое = как в Design; плашка — среди показанных карточек, «anzeigen» —
+  `<details>`; смена вида — как M1c; «zurücksetzen» — отдельной формой.
+- M3-5a: кнопки вкладок без JS применяют; охват Texte + Felder + USP (+ Karte и FAQ на верхушке); переводы
+  текстов блока в окне — M3-5c; «Überschrift» списка — во «Was»; лимиты 200/500/200.
+- M3-5b: переводы FAQ — по индексу источника; правка немецкого снимает перевод поля; переводы FAQ и подписей
+  плашек в окне — отдельным срезом; «Gilt für alle Seiten…»; плашки во «Was» одной формой с набором, смена
+  набора сбрасывает скрытие и подписи; рукописные наборы тоже.
+
+**Сделано (2026-11-20, стопка `claude/fb33-stack2`):** три среза параллельно в своих worktree, собраны поверх
+main; стыки на верхушке — «Karte» и FAQ применяют кнопками вкладок без JS (Enter у FAQ — `faq_add`),
+подсказка у плашек во «Was», якорь вопроса FAQ `#schema-tab-faq-<i>`, «anzeigen/ausblenden»; снятие якорей
+`.po`, `app.css`, эталоны окна. Отложенное — `docs/roadmap-next-sprints.md` §«Отложено» (блок «стопка 2»);
+дальше — подписи форм карточек по M0-2, M2b-2b, M2i-5c, M3-5c, M3-6, M3-7.

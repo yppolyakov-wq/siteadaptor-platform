@@ -24389,3 +24389,67 @@ security/silent-failure): тупик в двусторонних прятках,
 - Якоря сняты, `static/css/app.css` пересобран, эталоны окна пересняты на верхушке: `page_nojs` — 14
   случаев (строки с «Platz», видами, сменой вида), `panel.json`, `wie_nojs/home_t2_tab-wie` (стык);
   остальные 15 случаев `page_nojs` и эталоны срезов — без изменений.
+
+### 2026-11-20 — FB-33 M3-4: вкладка «Karte» окна блока (макет M0-2)
+- Поле «Kartenform» списка (блок «Liste» и встроенные списки главной) переехало из «Wie … aussehen» в
+  свою часть `card_pick` (`apps/core/block_card.py`, шаблоны `_bw_card_pick.html` → `_bw_karte.html`,
+  форма `id="bw-form-card_pick"`): только формы, подходящие виду, двумя группами по геометрии «Wie eine
+  Kachel aussieht» / «Wie eine Zeile aussieht» (одна радиогруппа, один fieldset с sr-only легендой).
+- Пустое = как в Design: первая плитка «Standard» или «Wie im Design (X)» с картинкой X, строка
+  наследования «Wie im Design: X · ändern» перед группами (у акции с типом — «Wie bei diesem
+  Aktionstyp»); своя форма — «zurücksetzen» отдельной формой (`block_card.CARD_RESET_FIELDS`, только card;
+  сбросы «Wie» карточку не трогают).
+- Плашка «N der hier gezeigten Produkte/Aktionen/Leistungen hat|haben eine eigene Kartenform — sie gilt dort
+  statt dieser · anzeigen» (`<details>` со ссылками на правку объекта или категории) — из той же выборки,
+  0 лишних запросов (`card_forms.own_form`, `list_panel.own_forms`); сбой — `logger.warning`.
+- Один предикат `card_forms.card_applies(kind, style)` — запись (`siteconfig._clean_list_block`), поле
+  панели (`list_panel.groups`) и вкладка. Сбой выборки панели — `logger.warning` (раньше молчаливый None).
+- Замки `test_fb33_m3_4_karte.py`; стенд `scripts/fb33_m3_4_karte_stand.py` (1440/390, de/ru, JS/без JS).
+
+### 2026-11-20 — FB-33 M3-5a: вкладка «Texte» — простые поля; без JS вкладки не теряют набранное
+- Решение владельца M3-2 п.3: у открытой вкладки texte/felder/karte с ровно одной применяющей ЧАСТЬЮ
+  (`block_window.APPLY_FORM_PARTS` = fields/usp/formfields/card_pick/faq) прочие вкладки без JS —
+  `<button form="bw-form-<часть>" name="zu_tab" formnovalidate>`; перед вкладками sr-only кнопка «по
+  умолчанию» той же формы (Enter применяет, не переключает). Вьюха: без op при zu_tab — `op_default` из
+  `OP_DEFAULTS`; переход только при успехе и без сообщений, вкладка — из `bw_tabs` окна; якорь
+  `#schema-tab-<вкладка>`. Со скриптами `aufbau.js tabs()` делает из кнопок обычные вкладки. Вкладки-ссылки
+  при форме с «Übernehmen» — подсказка «Erst „Übernehmen“, dann den Bereich wechseln…».
+- Потолки ввода `siteconfig.CBLOCK_INPUT_CAPS` (кнопка 200/500, фото 200), режется только изменённое
+  (`cap_block_texts(..., stored=)`, Студия — `views._stored_cblock_data`); maxlength, «Höchstens N
+  Zeichen.», пример ссылки и подсказка поля с aria-describedby (`block_window.field_meta`, фильтр
+  `bw_field`); «Seitentitel» 120/400, «Was passiert jetzt» 1200. Переводы текстов блока — подсказка и
+  ссылка «Übersetzungen auf der Seite bearbeiten» (сами переводы в окне — M3-5c).
+- Отложенное M2i-5 (a11y): фокус «Felder» после ↑/↓/Entfernen/«+ Frage» — `block_window.felder_anchor`
+  (`#schema-tab-q-<id>`), `role=status` сброшенного перевода в блоке языков.
+- Замки `test_fb33_m3_5a_texte.py`, стенд `scripts/fb33_m3_5a_texte_stand.py` (1440/390, de/ru, JS/без JS).
+
+### 2026-11-20 — FB-33 M3-5b: вопросы FAQ и плашки «Schnellzugriff» в окне блока
+- Вопросы FAQ во вкладке «Texte» (Frage N/Antwort, ↑↓, Entfernen, «＋ Frage hinzufügen», «Gilt für alle
+  Seiten — dieselben Fragen zeigt jeder FAQ-Block.») у секции FAQ главной и блока «FAQ» страниц — форма
+  `bw-form-faq`; черновик «Seitenaufbau» держит `draft["faq"]={items, src}` + `faq_base` (конфликт —
+  только у черновика с вопросами, `aufbau_draft.faq_conflict`).
+- Один писатель `apps/core/faq_content.py` (Студия, превью, канва, черновик): переводы едут по индексу
+  источника, правка немецкого снимает перевод своего поля, устаревший источник — по тексту с warning.
+  Найдено и исправлено: живой черновик Студии стирал FAQ (превью без `faq_present`).
+- Плашки «Schnellzugriff»: ключи у плиток, реестр `hero_tiles.QUICK_LINK_TILES` (и рукописные наборы
+  gastro/bakery/butcher/mode), данные блока `{set, hidden, labels}` без миграций; в окне («Was») — одна
+  форма `bw-form-tiles` с «Vorlage für die Kacheln» (смена набора сбрасывает скрытие и подписи,
+  отпечаток `f_tiles_rev`); все скрыты — блока нет; витрина по умолчанию байт-в-байт.
+- Замки `test_fb33_m35b_*`, эталоны `golden_fb33m35b/`; стенд `scripts/fb33_m35b_stand.py` (Café
+  Morgenrot, наборы bakery/aktionsmarkt/friseur, детальная услуги; 1440/390, de/ru, без JS).
+
+### 2026-11-20 — FB-33: сборка стопки 2 M3-4 → M3-5a → M3-5b
+- Три среза параллельно в своих worktree от main + якоря `.po`, собраны cherry-pick'ом без конфликтов в
+  `claude/fb33-stack2`, один прогон CI на верхушке.
+- Стыки (замки `test_fb33_stack2_joints.py`): «Karte» и FAQ — применяющие части (кнопки вкладок без JS;
+  «zurücksetzen» — не часть); Enter у FAQ — «Übernehmen» формы (`faq_add`, а не `op=faq_update`),
+  кнопка вкладки принимает и набранный новый вопрос; у плашек во «Was» — подсказка «Erst „Übernehmen“»
+  (`tiles` в `_TYPED_PARTS`); фокус на вопросе FAQ после ↑/↓/Entfernen/нового — якорь
+  `#schema-tab-faq-<i>` у `<summary>` (`window_parts.faq_anchor`), список — `#schema-tab-faq-list`;
+  «anzeigen»/«ausblenden» у плашки своих форм карточки.
+- Якоря сняты, дубль msgid «Frage hinzufügen» (M3-5a и M3-5b) — одна запись; `app.css` пересобран;
+  эталоны окна пересняты на верхушке — `page_nojs` 15 случаев, `panel.json` 11, `wie_nojs/home_l1_tab-wie`
+  (ровно объединённый ожидаемый список срезов); эталоны срезов — без изменений.
+- Стенды на стопке: «Karte» 106 ✓, «Texte» 62 ✓, M3-5b 70 ✓ (+фокус FAQ), M3-3 72 ✓, M3-3d 44 ✓, окно
+  блока `fb33_m3_window_stand.py` 131 ✓ (починен шаг «f_out → Esc» — нужен `&tab=wie`, падал и на main;
+  шаг «панель без Fertig» ждёт ответ правки). Полный прогон: 18 865 passed, 113 skipped; 3 падения при `-n 4` (`test_admin_dashboard`, `test_migration_state`, `secrets/test_rotation` — тенант без схемы от соседнего воркера) отдельно зелёные.
