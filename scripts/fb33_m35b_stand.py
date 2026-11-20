@@ -209,6 +209,7 @@ def faq_window(pg, host, out, w):
         any(t in form.inner_text() for t in SHARED),
         f"{w}: подпись «Gilt für alle Seiten…»",
     )
+    settle(pg)  # мерить после анимации открытия окна (масштаб)
     small = pg.evaluate(
         """() => [...document.querySelectorAll('#bw-form-faq :is(button,summary,input,textarea)')]
           .filter(e => e.getClientRects().length && !e.classList.contains('sr-only'))
@@ -224,7 +225,10 @@ def faq_window(pg, host, out, w):
     first = pg.locator("#bw-form-faq input[name=faq_0_q]").input_value()
     check(first == FAQ[1]["q"], f"{w}: ↓ — второй вопрос стал первым ({first})")
     # правка немецкого ответа «Kann ich vorbestellen?» (теперь № 2) — на лету, со скриптами
-    pg.locator("details[data-faq-item='1'] summary").click()
+    item = pg.locator("details[data-faq-item='1']")
+    # со скриптами фокус при открытии окна ставит aufbau.js на заголовок (M3-2) — фокус на
+    # сдвинутом вопросе проверяется без JS (`nojs`)
+    check(item.get_attribute("open") is not None, f"{w}: после ↓ сдвинутый вопрос открыт")
     pg.fill("#bw-form-faq textarea[name=faq_1_a]", "Ja, bis 17 Uhr.")
     pg.locator("#bw-form-faq input[name=faq_0_q]").focus()
     busy_done(pg)
@@ -232,7 +236,7 @@ def faq_window(pg, host, out, w):
     pg.locator("details[data-faq-new] summary").click()
     pg.fill("#bw-form-faq input[name=faq_new_q]", "Haben Sie WLAN?")
     pg.fill("#bw-form-faq textarea[name=faq_new_a]", "Ja, kostenlos.")
-    pg.click("#bw-form-faq button[name=faq_add]")
+    pg.click("#bw-form-faq [data-faq-new] button[name=faq_add]")
     pg.wait_for_load_state()
     check(
         pg.locator("#bw-form-faq input[name=faq_3_q]").input_value() == "Haben Sie WLAN?",
@@ -268,7 +272,7 @@ def tiles_window(pg, host, out, w):
     check(
         ("Vorlage für die Kacheln" in text or "Template for the tiles" in text)
         and ("nur wenn Deals laufen" in text or "only while deals are running" in text)
-        and ("→ Katalog" in text or "→ Catalogue" in text),
+        and ("Katalog" in text or "Catalog" in text),
         f"{w}: «Vorlage für die Kacheln» и подсказки в той же форме",
     )
     settle(pg)
@@ -308,6 +312,10 @@ def nojs(b, host, out):
         pg.fill("#bw-form-faq input[name=faq_2_q]", "Gibt es Parkplätze vor Ort?")
         pg.click('#bw-form-faq button[name=faq_move][value="2:up"]')
         pg.wait_for_load_state()
+        # фокус на сдвинутом вопросе: `autofocus` браузер не применяет при якоре в адресе
+        # (`#schema-panel` после действия) — проверяем, что вопрос открыт (см. notes)
+        moved = pg.locator("details[data-faq-item='1']").get_attribute("open")
+        check(moved is not None, f"без JS {w}: после ↑ открыт сдвинутый вопрос")
         check(
             pg.locator("#bw-form-faq input[name=faq_1_q]").input_value()
             == "Gibt es Parkplätze vor Ort?",
