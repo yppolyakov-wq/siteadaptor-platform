@@ -10,7 +10,10 @@
   иначе блок «Liste» из трёх услуг строками;
 * ключ `hero_widget` снимается. Повтор — 0 изменений (ключа уже нет).
 
-`detach` — чистая функция (без базы); запись — общий писатель `config_migration`
+M2c-4 (2026-11-20): витрина и нормализатор ключ не читают; писатели (шаблоны, сборки,
+демо-киты) ставят блок сами через `place` — ключ больше не переносчик между ними.
+
+`place`/`detach` — чистые функции (без базы); запись — общий писатель `config_migration`
 (блокировка, сверка, снимок, откат), команда — `detach_quick_links`.
 """
 
@@ -75,24 +78,41 @@ def drop_auto_blocks(config: dict) -> None:
     rows[:] = [r for r in rows if not (isinstance(r, dict) and r.get("id") in auto)]
 
 
-def detach(config: dict, *, replace: bool = False) -> tuple[dict, Result]:
-    """Новые настройки и что сделано. Чистая функция: `config` не меняется.
-
-    `replace` — для писателей (сборки, шаблоны, киты): уже стоящий блок получает набор
-    новой сборки (место и видимость не трогаются). Перенос (`replace=False`) блок
-    владельца не трогает вовсе."""
+#: значения прежнего ключа `site_defaults.hero_widget`, которые понимает перенос: наборы-
+#: ссылки блока + форма дат и топ услуг (они становятся секциями). После M2c-4 ключ читает
+#: только перенос (`detach`, копии баз со старым ключом) — витрина и нормализатор его не знают.
+def _legacy_widgets() -> tuple:
     from apps.core.hero_tiles import QUICK_LINK_SETS
 
-    defaults = config.get("site_defaults") if isinstance(config.get("site_defaults"), dict) else {}
-    widget = defaults.get("hero_widget") or ""
+    return (*QUICK_LINK_SETS, "stays", "services")
+
+
+LEGACY_WIDGETS = _legacy_widgets()
+
+
+def place(config: dict, widget: str, *, replace: bool = False) -> tuple[dict, Result]:
+    """Поставить набор первого экрана `widget` на главную. Чистая функция: `config` не
+    меняется. Единая точка для переноса и писателей (шаблоны, сборки, демо-киты, M2c-4):
+
+    * набор-ссылки → блок `quick_links` сразу после баннера;
+    * `stays` → секция «Suche» включена и стоит сразу после баннера;
+    * `services` → секция «Leistungen» (если включена) сразу после баннера, иначе список
+      из трёх услуг;
+    * у «Bento» и при выключенном баннере (плиток не было видно) — СКРЫТЫМ.
+
+    `replace` — для писателей: уже стоящий блок получает новый набор (место и видимость не
+    трогаются). Перенос (`replace=False`) блок владельца не трогает вовсе. Пустой `widget` —
+    без изменений; неизвестный — пропуск с причиной (`skip:bad-widget`)."""
+    from apps.core.hero_tiles import QUICK_LINK_SETS
+
     if not widget:
         return config, Result()
-    from apps.tenants import siteconfig
-
-    if not isinstance(widget, str) or widget not in siteconfig.HERO_WIDGETS:
+    if not isinstance(widget, str) or widget not in LEGACY_WIDGETS:
         # мусор (не строка, неизвестный набор) — не переносим и не стираем молча: сайт
         # пропускается с причиной, данные остаются как были (ревью M2c-2)
         return config, Result(action="skip:bad-widget")
+    from apps.tenants import siteconfig
+
     new = copy.deepcopy(config)
     # полный список секций (как его видит витрина): без него «после баннера» некуда — у
     # сайта без сохранённого порядка баннер появился бы только при нормализации
@@ -126,7 +146,7 @@ def detach(config: dict, *, replace: bool = False) -> tuple[dict, Result]:
     elif widget == "stays":
         _move_after_hero(rows, "stay_search", enable=not bento)
         action = "stay_search"
-    elif widget == "services":
+    else:  # services
         services = next(
             (r for r in rows if isinstance(r, dict) and r.get("key") == "services"), None
         )
@@ -144,9 +164,22 @@ def detach(config: dict, *, replace: bool = False) -> tuple[dict, Result]:
             }
             rows.insert(_after_hero(rows), block)
             action = "services-list"
-    new_defaults = {k: v for k, v in defaults.items() if k != "hero_widget"}
-    new["site_defaults"] = new_defaults
     return new, Result(action=action, changed=True)
+
+
+def detach(config: dict, *, replace: bool = False) -> tuple[dict, Result]:
+    """Перенос старого ключа: прочитать `site_defaults.hero_widget` → `place` → снять ключ.
+    Чистая функция: `config` не меняется. Нет ключа — без изменений; мусор — пропуск с
+    причиной, ключ остаётся (данные не стираются молча)."""
+    defaults = config.get("site_defaults") if isinstance(config.get("site_defaults"), dict) else {}
+    widget = defaults.get("hero_widget") or ""
+    if not widget:
+        return config, Result()
+    new, result = place(config, widget, replace=replace)
+    if not result.changed:
+        return config, result
+    new["site_defaults"] = {k: v for k, v in defaults.items() if k != "hero_widget"}
+    return new, result
 
 
 def _after_hero_row(rows: list):
@@ -156,15 +189,14 @@ def _after_hero_row(rows: list):
 
 def verify(before: dict, after: dict, action: str = "") -> str:
     """Сверка ПОСЛЕ нормализации (как увидит витрина): то, во что превратился виджет, стоит
-    сразу после баннера и (кроме bento) включено; баннер виджет больше не рисует.
+    сразу после баннера и (кроме bento) включено; ключа в новых настройках нет.
     "" — сошлось; иначе причина — сайт не трогается (ревью M2c-2: проверка по действию)."""
     from apps.tenants import siteconfig
-    from apps.tenants.templatetags.siteui import banner_tiles
 
     widget = (before.get("site_defaults") or {}).get("hero_widget") or ""
+    if "hero_widget" in (after.get("site_defaults") or {}):
+        return "key-left"
     norm = siteconfig.normalize(after)
-    if banner_tiles(norm):
-        return "banner-still-draws"
     rows = [r for r in norm.get("sections") or [] if isinstance(r, dict)]
     nxt = _after_hero_row(rows)
     on = norm.get("hero_style") != "bento" and _hero_shown(rows)
@@ -236,6 +268,7 @@ def undo_tenant(tenant) -> str:
 
 
 def residue(tenant) -> bool:
-    """Остался ли у сайта `hero_widget` (M2c-4 снимет чтение, когда остатка нет нигде)."""
+    """Остался ли у сайта старый ключ `hero_widget` (с M2c-4 витрина его не читает: остаток
+    — копия базы до переноса, её доводит шаг деплоя `detach_quick_links`)."""
     cfg = tenant.site_config or {}
     return bool((cfg.get("site_defaults") or {}).get("hero_widget"))

@@ -106,7 +106,7 @@ def test_command_moves_once_dry_run_writes_nothing_and_undo_restores():
     assert SiteConfigSnapshot.objects.filter(tenant=tenant, reason=qlm.REASON).count() == 1
     call_command("detach_quick_links", "--schema", tenant.schema_name)  # повтор — 0 изменений
     assert SiteConfigSnapshot.objects.filter(tenant=tenant, reason=qlm.REASON).count() == 1
-    call_command("detach_quick_links", "--undo", "--schema", tenant.schema_name)
+    call_command("detach_quick_links", "--undo", "--force", "--schema", tenant.schema_name)
     assert Tenant.objects.get(pk=tenant.pk).site_config == before
     call_command("detach_quick_links", "--schema", tenant.schema_name)  # откатил — не повторяем
     assert Tenant.objects.get(pk=tenant.pk).site_config == before
@@ -297,3 +297,56 @@ def test_switched_off_banner_gets_hidden_replacements(widget):
     nxt = rows[keys.index("hero") + 1]
     assert nxt["enabled"] is False, (widget, nxt)
     assert qlm.verify(raw, new, res.action) == ""
+
+
+# --- M2c-4: `place` — единая точка для писателей (ключ не читает) ---------------------
+
+
+def test_place_puts_the_set_without_reading_or_writing_the_key():
+    cfg = {"sections": [{"key": "hero", "enabled": True}], "site_defaults": {"radius": 8}}
+    new, res = qlm.place(cfg, "shop")
+    assert res.action == "block" and res.changed
+    assert _keys(new)[:2] == ["hero", "quick_links"]
+    assert new["site_defaults"] == {"radius": 8}
+    assert cfg == {"sections": [{"key": "hero", "enabled": True}], "site_defaults": {"radius": 8}}
+
+
+def test_place_ignores_a_raw_key_it_is_not_asked_about():
+    cfg = _cfg("friseur")
+    new, res = qlm.place(cfg, "")
+    assert new is cfg and not res.changed
+    new, _res = qlm.place(cfg, "shop")
+    assert new["site_defaults"]["hero_widget"] == "friseur"  # ключ — дело `detach`
+
+
+@pytest.mark.parametrize("bad", ("evil", 3, ["shop"]))
+def test_place_skips_garbage(bad):
+    new, res = qlm.place({}, bad)
+    assert new == {} and res.action == "skip:bad-widget"
+
+
+def test_legacy_widgets_are_link_sets_plus_search_and_services():
+    from apps.core import hero_tiles
+
+    assert qlm.LEGACY_WIDGETS == (*hero_tiles.QUICK_LINK_SETS, "stays", "services")
+
+
+def test_verify_catches_a_key_left_behind():
+    before = _cfg("shop")
+    new, res = qlm.detach(before)
+    assert qlm.verify(before, new, res.action) == ""
+    left = {**new, "site_defaults": {**new["site_defaults"], "hero_widget": "shop"}}
+    assert qlm.verify(before, left, res.action) == "key-left"
+
+
+def test_undo_without_force_warns_and_changes_nothing(capsys):
+    """M2c-4: витрина ключ не читает — откат без `--force` вернул бы сайт без плиток."""
+    from django.core.management.base import CommandError
+
+    tenant = _tenant("shop")
+    call_command("detach_quick_links", "--schema", tenant.schema_name)
+    moved = Tenant.objects.get(pk=tenant.pk).site_config
+    with pytest.raises(CommandError, match="--force"):
+        call_command("detach_quick_links", "--undo", "--schema", tenant.schema_name)
+    assert "плитки пропадут" in capsys.readouterr().err
+    assert Tenant.objects.get(pk=tenant.pk).site_config == moved
