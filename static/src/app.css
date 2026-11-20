@@ -1773,6 +1773,9 @@ input[type="datetime-local"] {
   .ui-bwin-msgs:not(:has(:not(:empty))) { padding: 0; }
   .ui-bwin-alert { border-radius: 0.5rem; background: #FEF2F2; color: #991B1B; padding: 0.5rem 0.75rem; }
   .ui-bwin-alert:empty { padding: 0; background: none; }
+  .ui-bwin-note { border-radius: 0.5rem; background: #F0FDF4; color: #166534; padding: 0.5rem 0.75rem; }
+  /* «Übernommen.» — только для читателя экрана (как sr-only; живая область остаётся в дереве) */
+  .ui-bwin-status { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border-width: 0; }
   /* цели касания в окне — не ниже 44 px (ссылки внутри строки текста — исключение WCAG 2.5.8) */
   .ui-bwin :is(button, summary, select, [role="tab"]) { min-height: 2.75rem; }
   .ui-bwin [role="tablist"] { display: flex; flex-wrap: wrap; gap: 0.25rem; }
@@ -1878,7 +1881,9 @@ input[type="datetime-local"] {
 /* UX-D D1: фон под открытой шторкой не прокручивается. */
 html:has(dialog.ui-drawer[open]) { overflow: hidden; }
 /* FB-33 M3-2: фон под окном блока не прокручивается и не сдвигается (класс — для Firefox < 121 без :has). */
-html:has(dialog.ui-bwin[open]), html.ui-bwin-lock { overflow: hidden; scrollbar-gutter: stable; }
+html:has(dialog.ui-bwin[open]), html.ui-bwin-lock { overflow: hidden; }
+/* полоса прокрутки остаётся местом (страница не прыгает); на телефоне окно во весь экран — без поля */
+@media (min-width: 768px) { html:has(dialog.ui-bwin[open]), html.ui-bwin-lock { scrollbar-gutter: stable; } }
 /* UX-D D1: плашка брони целиком — цель ссылки (>= 24px), фокус не обрезается truncate */
 [data-bar-pk] { position: relative; }
 [data-bar-pk] > a[data-drawer]::after { content: ""; position: absolute; inset: 0; }
