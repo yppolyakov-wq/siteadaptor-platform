@@ -3922,7 +3922,7 @@ def site_preview_draft(request):
     # клампит). Применяется через context-процессор на любой странице под ?preview=1.
     if isinstance(data.get("site_defaults"), dict):
         # DL-17.3: МЕРДЖ, а не замена: форма присылает только свои оси, а в
-        # site_defaults живут и ключи без контрола (hero_widget) — замена гасила
+        # site_defaults живут и ключи без контрола в этой форме — замена гасила
         # их в превью, хотя Save сохранял (класс W0: «превью врёт о результате»).
         _sd = cfg.get("site_defaults")
         cfg["site_defaults"] = {**(_sd if isinstance(_sd, dict) else {}), **data["site_defaults"]}

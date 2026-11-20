@@ -357,7 +357,7 @@ def test_hero_widget_bakery_renders_direction_tiles(settings):
 
 def test_bakery_kit_slider_plus_widget_and_no_archetypes_section():
     """Кит BAKERY: 3 слайда баннера, секция архетипов выключена; механизм
-    hero_widget цел (normalize держит ключ).
+    набор «bakery» цел как данные блока «Schnellzugriff» (M2c-4: не ключ site_defaults).
 
     DS-8: сам кит переведён на Fokus — плитки задач в баннере СНЯТЫ
     (hero_widget=""), их работу несут CTA шапки + компакт-плитки направлений;
@@ -369,8 +369,10 @@ def test_bakery_kit_slider_plus_widget_and_no_archetypes_section():
     assert kit.hero_widget == ""
     assert len(kit.heroes) == 3
     assert kit.enable_archetypes_section is False
-    cfg = siteconfig.normalize({"site_defaults": {"hero_widget": "bakery"}, "heroes": kit.heroes})
-    assert cfg["site_defaults"]["hero_widget"] == "bakery"
+    # FB-33 M2c-4: набор — данные блока «Schnellzugriff» (их держит normalize), не ключ
+    assert siteconfig._clean_cblock_data("quick_links", {"set": "bakery"}) == {"set": "bakery"}
+    cfg = siteconfig.normalize({"heroes": kit.heroes})
+    assert len(cfg["heroes"]) == 3
 
 
 def test_hero_widget_butcher_same_tiles_meat_flavor(settings):
@@ -402,8 +404,7 @@ def test_butcher_kit_slider_plus_widget():
     assert kit.hero_widget == "butcher"
     assert len(kit.heroes) == 3
     assert kit.enable_archetypes_section is False
-    cfg = siteconfig.normalize({"site_defaults": {"hero_widget": "butcher"}})
-    assert cfg["site_defaults"]["hero_widget"] == "butcher"
+    assert siteconfig._clean_cblock_data("quick_links", {"set": "butcher"}) == {"set": "butcher"}
 
 
 def test_hero_widget_mode_renders_boutique_tiles(settings):
@@ -446,5 +447,4 @@ def test_clothing_kit_slider_widget_honest_texts():
     assert {"damen-kleider", "herren-hemden", "kinder-baby", "accessoires-guertel"} <= set(
         kit.size_tables
     )
-    cfg = siteconfig.normalize({"site_defaults": {"hero_widget": "mode"}})
-    assert cfg["site_defaults"]["hero_widget"] == "mode"
+    assert siteconfig._clean_cblock_data("quick_links", {"set": "mode"}) == {"set": "mode"}

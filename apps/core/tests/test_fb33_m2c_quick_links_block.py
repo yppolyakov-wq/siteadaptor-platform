@@ -1,7 +1,7 @@
 """FB-33 M2c-1: блок «Schnellzugriff» (`quick_links`) — плитки-входы отдельным блоком.
 
-Пока у сайта блока нет, баннер рисует плитки как раньше (M2c-0). Блок стоит на главной —
-баннер плиток не рисует, а у видов, где плитки заменяли кнопку, кнопка возвращается.
+С M2c-4 баннер плиток не рисует вовсе (ключ `site_defaults.hero_widget` снят — замки в
+`test_fb33_m2c4_no_hero_widget.py`); плитки — только этот блок.
 """
 
 import re
@@ -11,6 +11,7 @@ from django.template import Context, Template
 from django.test import RequestFactory
 
 from apps.core import block_catalog, hero_tiles, site_schema
+from apps.core import quick_links_migration as qlm
 from apps.core.tests.test_fb33_m2c_quick_links_before import _render, _squash, _tiles_html
 from apps.tenants import siteconfig
 from apps.tenants.templatetags import siteui
@@ -32,7 +33,7 @@ def test_block_keeps_only_a_known_link_set():
 
 def test_every_link_set_has_a_label_and_the_block_a_family():
     assert set(hero_tiles.QUICK_LINK_LABELS) == set(hero_tiles.QUICK_LINK_SETS)
-    assert set(hero_tiles.QUICK_LINK_SETS) == set(siteconfig.HERO_WIDGETS) - {"stays", "services"}
+    assert set(hero_tiles.QUICK_LINK_SETS) == set(qlm.LEGACY_WIDGETS) - {"stays", "services"}
     assert block_catalog.family_of("quick_links").key == "quick_links"
     assert not block_catalog.library_entry("quick_links").studio  # ставится в «Seitenaufbau»
 
@@ -58,55 +59,6 @@ def test_empty_block_draws_nothing():
     assert "data-block-quick-links" not in _block_html({})
 
 
-@pytest.mark.parametrize("style", ("plain", "accent", "split", "fullscreen"))
-def test_with_the_block_on_home_the_banner_stops_drawing_tiles(style, monkeypatch):
-    html_before, ctx = _render(style, "shop")
-    tiles = _tiles_html("shop", ctx)
-    assert tiles in _squash(html_before)
-    real = siteconfig.normalize
-
-    def with_block(raw):
-        cfg = real(raw)
-        block = {"key": "quick_links", "id": "q", "enabled": True, "data": {"set": "shop"}}
-        cfg["sections"] = [*cfg["sections"], block]
-        return cfg
-
-    monkeypatch.setattr(siteconfig, "normalize", with_block)
-    html_after, _ctx = _render(style, "shop")
-    assert tiles not in _squash(html_after)
-    if style in ("accent", "split", "fullscreen"):
-        assert "data-hero-cta" in html_after  # кнопка баннера возвращается
-
-
-def _site(widget, block=None):
-    return {"site_defaults": {"hero_widget": widget}, "sections": [block] if block else []}
-
-
-def test_banner_hands_tiles_to_the_block_only_when_it_draws_them():
-    """Ревью M2c-1 H1: пустой (только что добавленный) или скрытый блок плитки не прячет."""
-    on = {"key": "quick_links", "id": "q", "enabled": True, "data": {"set": "shop"}}
-    assert siteui.banner_tiles(_site("shop")) == "shop"
-    assert siteui.banner_tiles(_site("shop", on)) == ""
-    assert siteui.banner_tiles(_site("shop", {**on, "enabled": False})) == "shop"
-    assert siteui.banner_tiles(_site("shop", {**on, "data": {}})) == "shop"
-    assert siteui.banner_tiles(_site("")) == ""
-
-
-@pytest.mark.parametrize("widget", ("stays", "services"))
-def test_date_search_and_services_never_leave_the_banner(widget):
-    """Форму дат и топ услуг блок не рисует — баннер их не прячет (до переноса M2c-2)."""
-    on = {"key": "quick_links", "id": "q", "enabled": True, "data": {"set": "shop"}}
-    assert siteui.banner_tiles(_site(widget, on)) == widget
-
-
-def test_slider_uses_the_same_rule():
-    import pathlib
-
-    src = pathlib.Path("templates/storefront/sections/_hero_slider.html").read_text()
-    assert "{% if site|banner_tiles %}" in src
-    assert "{% if site.site_defaults.hero_widget" not in src
-
-
 def test_block_with_no_tiles_left_draws_no_empty_region(monkeypatch):
     """Ревью M2c-1 M3: все плитки набора скрыты (модули выключены) — без пустого landmark."""
     monkeypatch.setattr(siteui, "render_to_string", lambda *a, **kw: "  \n ")
@@ -115,11 +67,9 @@ def test_block_with_no_tiles_left_draws_no_empty_region(monkeypatch):
 
 
 def test_block_works_on_other_pages_too():
-    """Блок можно поставить на любую страницу (M5 — на 404); плитки баннера главной
-    он не прячет — их прячет только блок на самой главной."""
+    """Блок можно поставить на любую страницу (M5 — на 404)."""
     keys = [k for g in site_schema.add_groups("text") for k, _lab in g["options"]]
     assert "quick_links" in keys
-    assert siteui.banner_tiles({"site_defaults": {"hero_widget": "shop"}, "sections": []}) == "shop"
 
 
 def test_panel_offers_the_link_sets():
