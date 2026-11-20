@@ -42,7 +42,7 @@ def test_form_draws_every_question_type():
     with translation.override("de"):
         html = anfrage_html(_cfg())
     assert '<select id="id_q1" name="q1"' in html and '<option value="Hochzeit">' in html
-    assert 'name="q2" type="number" required' in html and "Budget *" in html
+    assert 'name="q2" type="number" step="any" required' in html and "Budget *" in html
     assert '<input type="checkbox" name="q3" value="1">' in html
     assert 'name="q4" type="date"' in html
     assert '<textarea id="id_q5" name="q5"' in html
@@ -57,11 +57,11 @@ def test_answers_are_stored_as_a_snapshot_with_the_label():
     _post_anfrage(data, _cfg())
     job = Job.objects.get()
     assert job.custom_answers == {
-        "q1": {"label": "Anlass", "value": "Hochzeit"},
-        "q2": {"label": "Budget", "value": 1500},
-        "q3": {"label": "Vegetarisch", "value": True},
-        "q4": {"label": "Probetermin", "value": "2027-03-01"},
-        "q5": {"label": "Wünsche", "value": "Bitte\nscharf"},
+        "q1": {"label": "Anlass", "value": "Hochzeit", "type": "choice"},
+        "q2": {"label": "Budget", "value": 1500, "type": "number"},
+        "q3": {"label": "Vegetarisch", "value": True, "type": "bool"},
+        "q4": {"label": "Probetermin", "value": "2027-03-01", "type": "date"},
+        "q5": {"label": "Wünsche", "value": "Bitte\nscharf", "type": "textarea"},
     }
 
 
@@ -104,7 +104,7 @@ def test_card_email_and_pdf_show_the_answers():
         custom_answers={
             "q1": {"label": "Anlass", "value": "Hochzeit"},
             "q3": {"label": "Vegetarisch", "value": True},
-            "q4": {"label": "Probetermin", "value": "2027-03-01"},
+            "q4": {"label": "Probetermin", "value": "2027-03-01", "type": "date"},
         }
     )
     with translation.override("de"):
@@ -151,7 +151,9 @@ def test_erasure_clears_the_answers_of_jobs_and_orders():
         custom_answers={"q1": {"label": "Allergie", "value": "Nüsse"}},
     )
     exported = dsgvo.export_json(customer)
-    assert "Hochzeit" in exported and "Nüsse" in exported  # выгрузка субъекта — с ответами
+    # выгрузка субъекта (Art. 15/20) — ответы читаемо, подпись и значение, не маской
+    assert '"label": "Anlass"' in exported and '"value": "Hochzeit"' in exported
+    assert '"value": "Nüsse"' in exported and '"custom_answers": "***"' not in exported
     dsgvo.erase_customer(customer)
     job.refresh_from_db()
     order.refresh_from_db()
@@ -183,6 +185,7 @@ def test_answers_never_leave_through_webhooks_or_search():
     """Решение владельца: ответы — карточка, письмо, PDF, выгрузка DSGVO; не вебхуки и не поиск."""
     root = Path(__file__).resolve().parents[3] / "apps"
     allowed = {
+        "account/account_data.py",
         "core/form_answers.py",
         "core/form_spec.py",
         "core/deal_card.py",
@@ -203,6 +206,13 @@ def test_answers_never_leave_through_webhooks_or_search():
             readers.add(rel)
     assert readers <= allowed, sorted(readers - allowed)
     assert not any(r.startswith(("integrations/", "aggregator/")) for r in readers)
+    # обобщённая сериализация (model_to_dict/serialize) сделок вынесла бы ответы мимо замка
+    generic = re.compile(r"\bmodel_to_dict\(|serializers\.serialize\(")
+    for path in root.rglob("*.py"):
+        rel = path.relative_to(root).as_posix()
+        if rel.startswith(("jobs/", "orders/", "integrations/", "aggregator/", "api/")):
+            if "/tests/" not in f"/{rel}" and generic.search(path.read_text(encoding="utf-8")):
+                raise AssertionError(f"обобщённая сериализация сделки: {rel}")
 
 
 def test_order_editing_keeps_the_answers():
@@ -221,3 +231,96 @@ def test_order_editing_keeps_the_answers():
     editing.recalc_total(order)
     order.refresh_from_db()
     assert order.custom_answers == {"q1": {"label": "Allergie", "value": "Nüsse"}}
+
+
+# --- ревью M2i-2 ----------------------------------------------------------------------
+
+
+def test_the_customer_sees_own_answers_in_the_account():
+    from django.template.loader import render_to_string
+
+    from apps.account import account_data
+    from apps.jobs.models import Job
+    from apps.promotions.models import Customer
+
+    customer = Customer.objects.create(name="Erika", email="erika@example.com")
+    job = quote_job(custom_answers={"q1": {"label": "Anlass", "value": "Hochzeit & Taufe"}})
+    Job.objects.filter(pk=job.pk).update(customer=customer)
+    section = account_data._jobs(customer)
+    assert section["items"][0]["answers"] == [("Anlass", "Hochzeit & Taufe")]
+    html = render_to_string("konto/home.html", {"customer": customer, "sections": [section]})
+    assert "data-custom-answers" in html and "Hochzeit &amp; Taufe" in html
+
+
+def test_numbers_must_be_finite():
+    questions = [{"id": "q1", "type": "number", "label": "N", "mode": "req"}]
+    for raw in ("nan", "inf", "-Infinity", "1e400"):
+        answers = form_answers.collect(questions, {"q1": raw})
+        assert answers == {} and form_answers.validate(questions, answers) == ["q1"]
+
+
+def test_owner_mail_is_plain_text_without_html_escaping():
+    job = quote_job(custom_answers={"q1": {"label": "Firma", "value": "Müller & Söhne <GmbH>"}})
+    ctx = {"job": job, "customer": job.customer, "custom_answers": deal_card._custom_answers(job)}
+    mail = render_to_string("emails/job_new.txt", ctx)
+    assert "Firma: Müller & Söhne <GmbH>" in mail and "&amp;" not in mail
+
+
+def test_long_answers_wrap_in_the_pdf_and_move_to_the_next_page():
+    from io import BytesIO
+
+    from pypdf import PdfReader
+
+    from apps.jobs.pdf import build_quote_pdf
+    from apps.tenants.tests.factories import TenantFactory
+
+    long_text = " ".join(f"Wort{i}" for i in range(60)) + " ENDE"
+    job = quote_job(custom_answers={"q1": {"label": "Wünsche", "value": long_text}})
+    with translation.override("de"):
+        text = _quote_text(job)
+    assert "ENDE" in text  # перенесено, не обрезано
+    huge = " ".join(f"W{i}" for i in range(400))
+    many = {f"q{i}": {"label": f"Frage {i}", "value": huge} for i in range(1, 11)}
+    job = quote_job(custom_answers=many)
+    with translation.override("de"):
+        pdf = build_quote_pdf(job, TenantFactory.build(name="X"))
+        reader = PdfReader(BytesIO(pdf))
+    assert len(reader.pages) >= 2  # ответы не налезают на таблицу — новая страница
+    full = "\n".join(p.extract_text() or "" for p in reader.pages)
+    assert "…" in full and "Gesamt" in full
+
+
+def test_many_answers_and_many_lines_keep_totals_on_the_page():
+    """Ревью M2i-2: 10 ответов + 20 позиций — итоги и Hinweise не уходят за низ листа."""
+    from io import BytesIO
+
+    from pypdf import PdfReader
+
+    from apps.jobs import services
+    from apps.jobs.pdf import build_quote_pdf
+    from apps.tenants.tests.factories import TenantFactory
+
+    many = {f"q{i}": {"label": f"Frage {i}", "value": "kurz"} for i in range(1, 11)}
+    job = quote_job(custom_answers=many)
+    lines = [{"text": f"Position {i}", "qty": 1, "unit_price": "10.00"} for i in range(20)]
+    services.set_lines(job, lines)
+    with translation.override("de"):
+        reader = PdfReader(BytesIO(build_quote_pdf(job, TenantFactory.build(name="X"))))
+    last = reader.pages[-1].extract_text() or ""
+    full = "\n".join(p.extract_text() or "" for p in reader.pages)
+    assert "Position 19" in full and "Gesamt" in last
+    assert "unverbindliches Angebot" in last
+
+
+def test_old_snapshots_without_type_show_as_text_and_yes_has_context():
+    old = {"q1": {"label": "Datum", "value": "2027-03-01"}, "q2": {"label": "J", "value": True}}
+    with translation.override("ru"):
+        assert form_answers.rows(old) == [("Datum", "2027-03-01"), ("J", "Да")]
+
+
+def test_number_inputs_accept_decimals():
+    q = [{"id": "q1", "type": "number", "label": "Budget", "mode": "req"}]
+    with translation.override("de"):
+        full, band = anfrage_html(_cfg(q)), band_html(_cfg(q))
+    assert 'type="number" step="any" required' in full
+    assert 'type="number" step="any" name="q1" required' in band

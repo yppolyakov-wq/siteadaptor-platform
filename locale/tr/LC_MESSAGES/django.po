@@ -39098,3 +39098,7 @@ msgstr "Blok bölümleri"
 msgctxt "block view"
 msgid "Ansicht"
 msgstr "Görünüm"
+
+msgctxt "answer yes"
+msgid "Ja"
+msgstr "Evet"

@@ -24,7 +24,7 @@
             <div class="flex items-center justify-between gap-3 py-2.5">
               <div class="min-w-0">
                 <p class="font-medium truncate">{% if it.url %}<a href="{{ it.url }}" class="hover:underline">{{ it.title }}</a>{% else %}{{ it.title }}{% endif %}</p>
-                {% if it.sub %}<p class="text-xs text-gray-500 truncate">{{ it.sub }}</p>{% endif %}
+                {% if it.sub %}<p class="text-xs text-gray-500 truncate">{{ it.sub }}</p>{% endif %}{% if it.answers %}<dl class="mt-1 text-xs text-gray-600" data-custom-answers>{% for label, value in it.answers %}<div><dt class="inline">{{ label }}:</dt> <dd class="inline whitespace-pre-line">{{ value }}</dd></div>{% endfor %}</dl>{% endif %}
               </div>
               <div class="shrink-0 flex items-center gap-2">
                 {% if it.reorder %}

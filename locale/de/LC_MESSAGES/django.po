@@ -39039,3 +39039,7 @@ msgstr "Bereiche des Blocks"
 msgctxt "block view"
 msgid "Ansicht"
 msgstr "Ansicht"
+
+msgctxt "answer yes"
+msgid "Ja"
+msgstr "Ja"

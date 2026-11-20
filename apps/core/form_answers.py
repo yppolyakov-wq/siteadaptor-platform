@@ -17,6 +17,7 @@
 
 from __future__ import annotations
 
+import math
 import re
 from datetime import date
 
@@ -102,8 +103,8 @@ def _value(question: dict, raw: str):
             number = float(raw.replace(",", "."))
         except ValueError:
             return None
-        if abs(number) > 1e9:
-            return None
+        if not math.isfinite(number) or abs(number) > 1e9:
+            return None  # nan/inf и гигантские — не ответ (обязательный — не заполнен)
         return int(number) if number.is_integer() else number
     if kind == "date":
         try:
@@ -134,7 +135,11 @@ def snapshot(questions: list[dict], answers: dict) -> dict:
     out = {}
     for question in questions:
         if question["id"] in answers:
-            out[question["id"]] = {"label": question["label"], "value": answers[question["id"]]}
+            out[question["id"]] = {
+                "label": question["label"],
+                "value": answers[question["id"]],
+                "type": question["type"],  # показ (дата, «да») — по типу вопроса
+            }
     return out
 
 
@@ -145,16 +150,17 @@ def rows(stored) -> list[tuple[str, str]]:
     from datetime import date as _date
 
     from django.utils.formats import date_format
-    from django.utils.translation import gettext
+    from django.utils.translation import pgettext
 
     out = []
     for item in (stored or {}).values() if isinstance(stored, dict) else ():
         if not isinstance(item, dict) or not item.get("label"):
             continue
         value = item.get("value")
+        kind = item.get("type") or "text"  # старые снимки без типа — как текст
         if value is True:
-            shown = gettext("Ja")
-        elif isinstance(value, str) and re.fullmatch(r"\d{4}-\d{2}-\d{2}", value):
+            shown = pgettext("answer yes", "Ja")
+        elif kind == "date" and isinstance(value, str):
             try:
                 shown = date_format(_date.fromisoformat(value), "d.m.Y")
             except ValueError:

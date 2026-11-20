@@ -38952,3 +38952,7 @@ msgstr "Block sections"
 msgctxt "block view"
 msgid "Ansicht"
 msgstr "View"
+
+msgctxt "answer yes"
+msgid "Ja"
+msgstr "Yes"

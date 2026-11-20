@@ -19,6 +19,10 @@ from apps.core.documents import doc_date, doc_datetime, fonts, money, qty
 
 _INK = (0.10, 0.10, 0.12)
 _MUTED = (0.42, 0.42, 0.48)
+_ANSWER_LINES = 6  # FB-33 M2i-2: строк на один ответ клиента в PDF
+_BOTTOM = 40 * mm  # ниже — новая страница (таблица позиций не налезает)
+_MARGIN = 15 * mm  # нижнее поле листа
+_TOTALS_ROOM = 60 * mm  # итоги (Netto, ставки, Gesamt) и Hinweise
 
 
 def build_quote_pdf(job, tenant) -> bytes:
@@ -80,11 +84,25 @@ def build_quote_pdf(job, tenant) -> bytes:
 
     answers = form_answers.rows(getattr(job, "custom_answers", None))
     if answers:
+        from reportlab.lib.utils import simpleSplit
+
         c.setFont(font, 9)
         c.setFillColorRGB(*_MUTED)
         for label, value in answers[: form_answers.MAX_QUESTIONS]:
-            y -= 5 * mm
-            c.drawString(x, y, f"{label}: {' '.join(value.split())}"[:110])
+            # длинный ответ переносится по ширине (не обрезается молча); больше
+            # _ANSWER_LINES строк — с «…»; у нижнего поля — новая страница
+            lines = simpleSplit(f"{label}: {' '.join(value.split())}", font, 9, page_w - 2 * x)
+            if len(lines) > _ANSWER_LINES:
+                lines = lines[:_ANSWER_LINES]
+                lines[-1] = lines[-1].rstrip()[:-1] + "…"
+            for text in lines:
+                y -= 4.5 * mm
+                if y < _BOTTOM:
+                    c.showPage()
+                    y = page_h - 25 * mm
+                    c.setFont(font, 9)
+                    c.setFillColorRGB(*_MUTED)
+                c.drawString(x, y, text)
         c.setFillColorRGB(*_INK)
 
     # Таблица позиций.
@@ -99,6 +117,11 @@ def build_quote_pdf(job, tenant) -> bytes:
     c.setFont(font, 9)
     for line in job.lines.all():
         y -= 6 * mm
+        if y < _BOTTOM:  # FB-33 M2i-2 (ревью): длинная смета — позиции на следующей странице
+            c.showPage()
+            y = page_h - 25 * mm
+            c.setFont(font, 9)
+            c.setFillColorRGB(*_INK)
         text = str(line.text)
         if line.sku:  # SH-20: Art.-Nr. рядом с позицией
             text = f"{text} · {_('Art.-Nr.')} {line.sku}"
@@ -108,6 +131,11 @@ def build_quote_pdf(job, tenant) -> bytes:
         c.drawRightString(page_w - x, y, money(line.line_total))
 
     # Итоги.
+    if y - _TOTALS_ROOM < _MARGIN:  # итоги и Hinweise целиком на одной странице
+        c.showPage()
+        y = page_h - 25 * mm
+        c.setFont(font, 9)
+        c.setFillColorRGB(*_INK)
     y -= 4 * mm
     c.line(page_w / 2, y, page_w - x, y)
     y -= 6 * mm

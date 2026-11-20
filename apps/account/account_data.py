@@ -203,6 +203,7 @@ def _travel_groups(customer):
 
 
 def _jobs(customer):
+    from apps.core import form_answers
     from apps.jobs.models import Job
 
     items = []
@@ -215,6 +216,8 @@ def _jobs(customer):
                 "status": tx.status_label,
                 # публичная ссылка jobs — по public_token (адаптер знает это)
                 "url": tx.detail_url_customer,
+                # FB-33 M2i-2 (решение владельца): свои ответы клиент видит и в ЛК
+                "answers": form_answers.rows(j.custom_answers),
             }
         )
     return {"key": "jobs", "title": _("Angebote & Aufträge"), "icon": "🧾", "items": items}

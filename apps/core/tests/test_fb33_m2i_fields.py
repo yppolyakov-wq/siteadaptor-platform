@@ -52,7 +52,7 @@ def test_answers_are_collected_validated_and_snapshotted():
     assert answers == {"q2": 12.5, "q4": True}  # выбор не из списка и битая дата — нет ответа
     assert form_answers.validate(questions, answers) == ["q1", "q3"]
     snap = form_answers.snapshot(questions, {"q1": "Hochzeit"})
-    assert snap == {"q1": {"label": "Anlass", "value": "Hochzeit"}}
+    assert snap == {"q1": {"label": "Anlass", "value": "Hochzeit", "type": "choice"}}
 
 
 # --- нормализация -------------------------------------------------------------------

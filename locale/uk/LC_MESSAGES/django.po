@@ -39280,3 +39280,7 @@ msgstr "Розділи блоку"
 msgctxt "block view"
 msgid "Ansicht"
 msgstr "Вигляд"
+
+msgctxt "answer yes"
+msgid "Ja"
+msgstr "Так"

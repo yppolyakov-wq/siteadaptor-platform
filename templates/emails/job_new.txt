@@ -1,4 +1,4 @@
-{% load i18n %}{% trans "Neue Anfrage!" %}
+{% load i18n %}{% autoescape off %}{% trans "Neue Anfrage!" %}
 
 {{ job.title }}
 {% trans "Kunde" %}: {{ customer.name }}{% if customer.phone %} · {{ customer.phone }}{% endif %}{% if customer.email %} · {{ customer.email }}{% endif %}
@@ -11,4 +11,4 @@
 {{ job.description }}
 {% endif %}{% trans "Code" %}: {{ job.reference_code }}
 
-{% trans "Angebot erstellen im Dashboard" %}: /dashboard/auftraege/
+{% trans "Angebot erstellen im Dashboard" %}: /dashboard/auftraege/{% endautoescape %}

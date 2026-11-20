@@ -39293,3 +39293,7 @@ msgstr "Разделы блока"
 msgctxt "block view"
 msgid "Ansicht"
 msgstr "Вид"
+
+msgctxt "answer yes"
+msgid "Ja"
+msgstr "Да"
