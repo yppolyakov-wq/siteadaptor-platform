@@ -39050,3 +39050,7 @@ msgstr "Please enter the text of the new question first."
 #. FB-33 M2i-5: вкладка «Felder»
 msgid "Branchen-Vorlage übernommen – mit „Speichern“ erscheint sie auf der Seite."
 msgstr "Industry template applied – it appears on the page after “Save”."
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgid "Keine weitere Frage möglich: Die Nummern für eigene Fragen sind aufgebraucht."
+msgstr "No further question possible: the numbers for custom questions are used up."

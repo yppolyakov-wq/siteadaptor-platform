@@ -1180,6 +1180,8 @@ def blocks_for(
         out.insert(at, title_row(config, host))
     if host == _CONFIRM_HOST:
         _confirm_next_row(config, out)
+    if host == FORM_HOST:
+        _anfrage_form_row(config, out)
     if _dp.object_kind(host or ""):
         out = _with_shared_rows(config, host, out)
     if summaries and host in ("catalog", "category") and not _has_combos():
@@ -1427,6 +1429,55 @@ def next_op(host: str, draft: dict, op: str, fields: dict | None) -> str:
 def is_next_edit(host: str, ref: str, op: str) -> bool:
     """Правка текста «Was passiert jetzt», а не строки схемы."""
     return host == _CONFIRM_HOST and ref == NEXT_REF and op == "update"
+
+
+#: FB-33 M2i-5: вкладка «Felder» у закреплённой строки формы страницы «Anfrage» — режимы
+#: полей, свои вопросы и варианты «Art der Veranstaltung» правятся в черновике (`draft["form"]`)
+FORM_HOST = "anfrage"
+FORM_REF = "form"
+
+
+def _anfrage_form_row(config: dict, out: list[dict]) -> None:
+    """Модель вкладки «Felder» у строки формы (`form_spec.panel`; черновик — из превью)."""
+    from apps.core import form_spec
+
+    state = config.get(form_spec.EDIT_KEY)
+    for b in out:
+        if b["key"] == FORM_REF and not b["cblock"]:
+            b[form_spec.PANEL_KEY] = form_spec.panel(
+                config, "anfrage", state if isinstance(state, dict) else None
+            )
+
+
+def is_form_edit(host: str, ref: str, op: str) -> bool:
+    """Правка вкладки «Felder» (поля формы заявки), а не строки схемы."""
+    return host == FORM_HOST and ref == FORM_REF and op == "update"
+
+
+def form_op(tenant, config: dict, draft: dict, fields: dict | None, notes=None) -> str:
+    """Правка вкладки «Felder» в черновике: разбор `form_spec.parse_post` от состояния
+    черновика (до среза его в черновике нет — от сохранённого). Строка неподвижна; её
+    двигать/скрывать нельзя. Сообщения владельцу (`notes`) — в список вызывающего."""
+    from apps.core import form_spec
+
+    if fields is None:
+        raise SchemaError("fixed")
+    current = draft.get("form")
+    if not isinstance(current, dict):
+        current = form_spec.edit_state(config, "anfrage")
+    preset = None
+    if fields.get("do") == "preset":
+        from apps.jobs.anfrage_presets import preset_for
+
+        preset = preset_for(getattr(tenant, "business_type", ""))
+    try:
+        state, said = form_spec.parse_post(fields, current, "anfrage", preset)
+    except form_spec.FormSpecError as exc:
+        raise SchemaError("ids") from exc
+    draft["form"] = state
+    if notes is not None:
+        notes.extend(said)
+    return FORM_REF
 
 
 def _family_label(key: str) -> str:

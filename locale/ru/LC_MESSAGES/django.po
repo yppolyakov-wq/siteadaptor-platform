@@ -39391,3 +39391,7 @@ msgstr "Сначала введите текст нового вопроса."
 #. FB-33 M2i-5: вкладка «Felder»
 msgid "Branchen-Vorlage übernommen – mit „Speichern“ erscheint sie auf der Seite."
 msgstr "Шаблон отрасли применён — на странице он появится после «Сохранить»."
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgid "Keine weitere Frage möglich: Die Nummern für eigene Fragen sind aufgebraucht."
+msgstr "Больше вопросов добавить нельзя: номера для своих вопросов закончились."

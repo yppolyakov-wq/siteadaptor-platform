@@ -50,6 +50,11 @@ def _saved_state(config: dict, home: bool, host: str) -> dict:
     if host == confirmation_page.HOST:
         # FB-33 M2h-5: «Was passiert jetzt» — часть страницы в черновике (как «Seitentitel»)
         state["next"] = confirmation_page.clean_next(config.get(confirmation_page.NEXT_KEY))
+    if host == site_schema.FORM_HOST:
+        # FB-33 M2i-5: поля формы заявки (вкладка «Felder») — часть страницы в черновике
+        from apps.core import form_spec
+
+        state["form"] = form_spec.edit_state(config, "anfrage")
     if detail_parts.object_kind(host):
         # R8: разделы объекта живут в нём самом — их правка в другом месте (вкладка
         # карточки, другая вкладка браузера) тоже конфликт черновика
@@ -79,6 +84,8 @@ def _base_fingerprint(saved: dict, config: dict, draft: dict) -> str:
         saved = {k: v for k, v in saved.items() if k != "title"}
     if "next" not in draft:  # FB-33 M2h-5: то же у «Was passiert jetzt»
         saved = {k: v for k, v in saved.items() if k != "next"}
+    if "form" not in draft:  # FB-33 M2i-5: черновик «Anfrage», начатый до вкладки «Felder»
+        saved = {k: v for k, v in saved.items() if k != "form"}
     return _fingerprint(saved)
 
 
@@ -215,7 +222,23 @@ def overlay(config: dict, draft: dict) -> dict:
         _put_title(out, host, draft["title"])
     if "next" in draft:
         _put_next(out, draft["next"])
+    if "form" in draft:
+        _put_form(out, draft["form"])
+        from apps.core import form_spec
+
+        out[form_spec.EDIT_KEY] = copy.deepcopy(draft["form"])  # панель — с временными id
     return _apply_settings(out, draft)
+
+
+def _put_form(config: dict, state) -> None:
+    """FB-33 M2i-5: поля формы заявки черновика — для показа и превью (тем же писателем
+    `form_spec.put`, что и «Speichern»). Номера кончились — превью без правки, в лог."""
+    from apps.core import form_spec
+
+    try:
+        form_spec.put(config, "anfrage", state)
+    except form_spec.FormSpecError:
+        logger.warning("aufbau draft: form fields of the draft exceed question ids")
 
 
 def _put_title(config: dict, host: str, title) -> None:
@@ -298,6 +321,8 @@ def changes(saved: dict, draft: dict) -> int:
         count += 1
     if "next" in draft and draft["next"] != saved.get("next", ""):
         count += 1  # FB-33 M2h-5
+    if "form" in draft and "form" in saved and draft["form"] != saved["form"]:
+        count += 1  # FB-33 M2i-5: вкладка «Felder» — одно изменение
     # FB-27 R4: настройки типа страницы — по одному изменению на настройку.
     count += len(_settings(draft))
     return count
@@ -415,6 +440,8 @@ def _snapshot(tenant, code, host, draft, ref, token="", codes=(), source=None) -
         proto["title"] = ["title" in source, copy.deepcopy(source.get("title"))]
     if host == confirmation_page.HOST and ref == site_schema.NEXT_REF:
         proto["next"] = ["next" in source, source.get("next")]
+    if host == site_schema.FORM_HOST and ref == site_schema.FORM_REF:
+        proto["form"] = ["form" in source, copy.deepcopy(source.get("form"))]
     _record_codes(source, proto, [*_window_setting_codes(tenant, code, ref), *codes])
     window.pop(ref, None)
     idents = {_ident(it) for it in draft.get("items") or []}
@@ -467,7 +494,7 @@ def _revert(draft: dict, ref: str, proto: dict) -> None:
     if proto.get("item") is not None:
         items.insert(_place(items, proto), proto["item"])
     draft["items"] = items
-    for key in ("title", "next"):
+    for key in ("title", "next", "form"):
         if key in proto:
             _restore_key(draft, key, proto[key])
     codes = proto.get("codes") or []
@@ -551,9 +578,11 @@ def op(
     value: str = "",
     fields: dict | None = None,
     token: str = "",
+    notes: list | None = None,
 ) -> str:
     """Одна правка схемы — в черновик (база не меняется). SchemaError на недопустимом.
-    `token` — токен открытия окна блока (`wopen`, FB-33 M3-1b)."""
+    `token` — токен открытия окна блока (`wopen`, FB-33 M3-1b); `notes` — сюда правка
+    вкладки «Felder» кладёт сообщения владельцу (FB-33 M2i-5)."""
     from apps.tenants import siteconfig
 
     _pt, host, home = site_schema.resolve(tenant, code)
@@ -594,6 +623,9 @@ def op(
     elif site_schema.is_next_edit(host, ref, op_name):
         # FB-33 M2h-5: текст «Was passiert jetzt» — в черновике, строка остаётся на месте
         ref = site_schema.next_op(host, draft, op_name, fields)
+    elif site_schema.is_form_edit(host, ref, op_name):
+        # FB-33 M2i-5: вкладка «Felder» — поля формы заявки в черновике, строка на месте
+        ref = site_schema.form_op(tenant, config, draft, fields, notes)
     else:
         ref = site_schema.mutate(
             draft["items"],
@@ -617,6 +649,8 @@ def _settle(request, code: str, draft: dict, saved: dict, ref: str = "") -> str:
         saved = {k: v for k, v in saved.items() if k != "title"}
     if "next" not in draft:
         saved = {k: v for k, v in saved.items() if k != "next"}
+    if "form" not in draft:  # FB-33 M2i-5
+        saved = {k: v for k, v in saved.items() if k != "form"}
     current = {k: draft.get(k) for k in saved}
     # Вернулись к сохранённому (скрыл и снова показал) — черновика нет.
     clean = _fingerprint(current) == _fingerprint(saved) == draft.get("base") and not _settings(
@@ -744,6 +778,15 @@ def commit(request, tenant, code: str, *, force: bool = False) -> bool:
         _put_title(config, host, draft["title"])
     if "next" in draft:
         _put_next(config, draft["next"])
+    if "form" in draft and host == site_schema.FORM_HOST:
+        # FB-33 M2i-5: поля формы заявки — под блокировкой строки бизнеса: номера новых
+        # вопросов — от СОХРАНЁННОГО `next_id` (`form_spec.put`, единственный писатель)
+        from apps.core import form_spec
+
+        try:
+            form_spec.put(config, "anfrage", draft["form"])
+        except form_spec.FormSpecError as exc:
+            raise site_schema.SchemaError("ids") from exc
     if host == "info" and "contact" in draft and not _has_section_rows(draft):
         # FB-32 S6a: черновик, начатый до строк разделов, — карточка контактов как раньше
         if draft["contact"]:

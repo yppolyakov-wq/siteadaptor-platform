@@ -185,6 +185,7 @@ def site_schema_view(request):
                         request.POST.get("value", ""),
                         op,
                     )
+                notes: list[str] = []  # FB-33 M2i-5: сообщения вкладки «Felder»
                 ref = aufbau_draft.op(
                     request,
                     tenant,
@@ -197,7 +198,10 @@ def site_schema_view(request):
                     # той же страницы не должны стирать текст блока).
                     fields=_panel_fields(request.POST),
                     token=token,
+                    notes=notes,
                 )
+                for note in notes:
+                    messages.warning(request, note)
                 # S8: у действий выбора баннера — сообщение (после «убрать» кнопка, на
                 # которой стоял фокус, исчезает; читатель экрана слышит, что произошло).
                 said = _PICK_SAID.get(op)
@@ -225,6 +229,14 @@ def site_schema_view(request):
                     _(
                         "So viele Kategorien mit eigenem Aufbau sind nicht möglich. "
                         "Bitte zuerst bei einer anderen Kategorie die eigenen Blöcke entfernen."
+                    ),
+                )
+            elif exc.args and exc.args[0] == "ids":
+                messages.error(
+                    request,
+                    _(
+                        "Keine weitere Frage möglich: Die Nummern für eigene Fragen sind "
+                        "aufgebraucht."
                     ),
                 )
             elif exc.args and exc.args[0] == "rights":
@@ -335,6 +347,11 @@ def site_schema_view(request):
             site_schema.mark_view_availability(config, current.host, selected[view_key])
     if selected and selected.get("fields"):
         site_schema.fill_options(selected, current.host if current else "")
+    if selected and selected.get("form_spec"):
+        # FB-33 M2i-5: «Branchen-Vorlage» — только у типа бизнеса с пресетом формы
+        from apps.jobs.anfrage_presets import preset_for
+
+        selected["form_spec"]["preset"] = bool(preset_for(tenant.business_type))
     # FB-27 R4: настройки типа страницы — в панели «★ Hauptliste», а у страниц без
     # основного списка — на строке «Einstellungen der Seite».
     page_row, settings, design_rows = None, [], []

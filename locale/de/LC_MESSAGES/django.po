@@ -39137,3 +39137,7 @@ msgstr "Bitte zuerst den Text der neuen Frage eingeben."
 #. FB-33 M2i-5: вкладка «Felder»
 msgid "Branchen-Vorlage übernommen – mit „Speichern“ erscheint sie auf der Seite."
 msgstr "Branchen-Vorlage übernommen – mit „Speichern“ erscheint sie auf der Seite."
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgid "Keine weitere Frage möglich: Die Nummern für eigene Fragen sind aufgebraucht."
+msgstr "Keine weitere Frage möglich: Die Nummern für eigene Fragen sind aufgebraucht."
