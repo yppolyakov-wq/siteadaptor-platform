@@ -594,17 +594,31 @@ def _own_text_remembered(d: dict) -> dict:
 #: Тело — 20 000 знаков: длинный текст панель не режет (замок FB-27 R3 `test_long_text_is_not_cut_off`
 #: — 12 000 знаков); потолок лишь от мусора, и с сообщением, не молча.
 CBLOCK_TEXT_CAPS = {"title": 200, "body": 20_000, "url": 500}
-_CAPPED_BLOCKS = frozenset({"text", "image_text"})
+#: FB-33 M3-5a: потолки ввода по типу блока — один источник для записи (панель, Студия) и для
+#: `maxlength` полей (вкладка «Texte», форма Студии). Кнопка: подпись 200, ссылка 500; фото —
+#: подпись 200.
+CBLOCK_INPUT_CAPS: dict[str, dict[str, int]] = {
+    "text": CBLOCK_TEXT_CAPS,
+    "image_text": CBLOCK_TEXT_CAPS,
+    "button": {"label": 200, "url": 500},
+    "image": {"caption": 200},
+}
 
 
-def cap_block_texts(key: str, data: dict) -> tuple[dict, bool]:
-    """Обрезать присланные тексты блока по `CBLOCK_TEXT_CAPS` (только ввод: сохранённое
-    раньше нормализация не режет — витрина не меняется). Возвращает (данные, обрезано ли)."""
-    if key not in _CAPPED_BLOCKS or not isinstance(data, dict):
+def cap_block_texts(key: str, data: dict, stored: dict | None = None) -> tuple[dict, bool]:
+    """Обрезать присланные тексты блока по `CBLOCK_INPUT_CAPS` (только ввод: сохранённое
+    раньше нормализация не режет — витрина не меняется). `stored` — данные блока до правки:
+    присланное без изменений (длинный текст из прошлого) не режется. Возвращает (данные,
+    обрезано ли)."""
+    caps = CBLOCK_INPUT_CAPS.get(key)
+    if not caps or not isinstance(data, dict):
         return data, False
     out, capped = dict(data), False
-    for field, cap in CBLOCK_TEXT_CAPS.items():
+    for field, cap in caps.items():
         value = out.get(field)
+        if stored is not None and isinstance(value, str):
+            if value.strip() == str(stored.get(field) or "").strip():
+                continue
         if isinstance(value, str) and len(value.strip()) > cap:
             out[field] = value.strip()[:cap]
             capped = True

@@ -39706,6 +39706,18 @@ msgstr[3] "%(n)s из показанных здесь услуг имеют св
 msgid "fb33-stack-anchor-M3-5a"
 msgstr "fb33-stack-anchor-M3-5a"
 
+#. FB-33 M3-5a: вкладка «Texte»
+msgid "Ihre Eingaben werden beim Wechsel übernommen."
+msgstr "При переходе введённое сохраняется в черновик."
+
+#. FB-33 M3-5a: вкладка «Texte»
+msgid "Übersetzungen auf der Seite bearbeiten"
+msgstr "Править переводы на странице"
+
+#. FB-33 M3-5a: вкладка «Texte»
+msgid "z. B. /kontakt oder https://…"
+msgstr "например, /kontakt или https://…"
+
 #. FB-33 стопка: якорь среза M3-5b — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
 msgid "fb33-stack-anchor-M3-5b"
 msgstr "fb33-stack-anchor-M3-5b"

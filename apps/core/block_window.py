@@ -177,3 +177,65 @@ def explicit_tab(window: list[dict], wanted: str) -> str:
     """Вкладка, которую надо помнить после действия: только явно запрошенная и
     существующая у блока (без запроса формы остаются прежними байт-в-байт)."""
     return wanted if wanted in TAB_KEYS and any(t["key"] == wanted for t in window) else ""
+
+
+# --- FB-33 M3-5a: вкладка «Texte» — простые поля; без скриптов вкладки не теряют набранное ---
+
+#: подсказка «Höchstens N Zeichen» — у коротких полей (у длинного текста лишь `maxlength`)
+_HINT_UP_TO = 2000
+
+
+def field_caps(selected: dict | None) -> dict[str, int]:
+    """Потолки ввода полей формы «fields» выбранной строки (тот же источник, что у записи:
+    `siteconfig.CBLOCK_INPUT_CAPS`, «Seitentitel» — `page_title`, «Was passiert jetzt» —
+    `confirmation_page`)."""
+    from apps.tenants import siteconfig
+
+    if not selected:
+        return {}
+    key = selected.get("key") or ""
+    if key == "page_title" and not selected.get("cblock"):
+        from apps.core import page_title
+
+        return {"title": page_title.TITLE_MAX, "intro": page_title.INTRO_MAX}
+    if key == "next" and not selected.get("cblock"):
+        from apps.core import confirmation_page
+
+        return {"text": confirmation_page.NEXT_MAX}
+    if not selected.get("cblock"):
+        return {}
+    return dict(siteconfig.CBLOCK_INPUT_CAPS.get(siteconfig.cblock_type(key) or key, {}))
+
+
+def field_meta(selected: dict | None, field: dict) -> dict:
+    """Контракт поля вкладки «Texte» (и закреплённых блоков M3-6): {max, max_hint, example,
+    hint, described} — `described` — id подсказок для `aria-describedby`."""
+    from django.utils.translation import gettext
+
+    from apps.tenants import siteconfig
+
+    name = field.get("name", "")
+    cap = field_caps(selected).get(name)
+    key = (selected or {}).get("key") or ""
+    btype = siteconfig.cblock_type(key) or key
+    example = (
+        gettext("z. B. /kontakt oder https://…")
+        if btype == "button" and name == "url" and (selected or {}).get("cblock")
+        else ""
+    )
+    max_hint = (
+        gettext("Höchstens %(n)s Zeichen.") % {"n": cap} if cap and cap <= _HINT_UP_TO else ""
+    )
+    hint = str(field.get("hint") or "")
+    ids = []
+    if hint:
+        ids.append(f"schema-f-{name}-hint")
+    if example or max_hint:
+        ids.append(f"schema-f-{name}-max")
+    return {
+        "max": cap or "",
+        "max_hint": max_hint,
+        "example": example,
+        "hint": hint,
+        "described": " ".join(ids),
+    }

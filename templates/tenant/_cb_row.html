@@ -42,8 +42,8 @@ collect()/save работают без переименований. data-cb-id 
     <input type="text" name="cb_{{ b.id }}_title" value="{{ b.data.title }}" aria-label="{% trans 'Title' %}" placeholder="{% trans 'Title' %}" class="w-full rounded border border-gray-300 px-3 py-2 text-sm">
   {% endif %}
   {% if b.type == "button" %}
-    <input type="text" name="cb_{{ b.id }}_label" value="{{ b.data.label }}" aria-label="{% trans 'Button label' %}" placeholder="{% trans 'Button label' %}" class="w-full rounded border border-gray-300 px-3 py-2 text-sm">
-    <input type="text" name="cb_{{ b.id }}_url" value="{{ b.data.url }}" aria-label="/termin/ {% trans 'or' %} https://…" placeholder="/termin/ {% trans 'or' %} https://…" class="w-full rounded border border-gray-300 px-3 py-2 text-sm">
+    <input type="text" name="cb_{{ b.id }}_label" value="{{ b.data.label }}" maxlength="200" aria-label="{% trans 'Button label' %}" placeholder="{% trans 'Button label' %}" class="w-full rounded border border-gray-300 px-3 py-2 text-sm">
+    <input type="text" name="cb_{{ b.id }}_url" value="{{ b.data.url }}" maxlength="500" aria-label="/termin/ {% trans 'or' %} https://…" placeholder="/termin/ {% trans 'or' %} https://…" class="w-full rounded border border-gray-300 px-3 py-2 text-sm">
   {% endif %}
   {% if b.type == "text" or b.type == "image_text" %}
     <textarea name="cb_{{ b.id }}_body" rows="2" aria-label="{% trans 'Text' %}" placeholder="{% trans 'Text' %}" class="w-full rounded border border-gray-300 px-3 py-2 text-sm">{{ b.data.body }}</textarea>
@@ -79,7 +79,7 @@ collect()/save работают без переименований. data-cb-id 
     <input type="text" name="cb_{{ b.id }}_url" value="{{ b.data.url }}" aria-label="{% trans 'Image URL' %}" placeholder="{% trans 'Image URL' %}" class="w-full rounded border border-gray-300 px-3 py-2 text-sm">
   {% endif %}
   {% if b.type == "image" %}
-    <input type="text" name="cb_{{ b.id }}_caption" value="{{ b.data.caption }}" aria-label="{% trans 'Caption' %}" placeholder="{% trans 'Caption' %}" class="w-full rounded border border-gray-300 px-3 py-2 text-sm">
+    <input type="text" name="cb_{{ b.id }}_caption" value="{{ b.data.caption }}" maxlength="200" aria-label="{% trans 'Caption' %}" placeholder="{% trans 'Caption' %}" class="w-full rounded border border-gray-300 px-3 py-2 text-sm">
   {% endif %}
   {% if b.type == "image" or b.type == "image_text" %}
     {% comment %}UC6-4: скругление фото ("" = стандарт rounded-2xl).{% endcomment %}

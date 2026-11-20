@@ -39505,6 +39505,18 @@ msgstr[1] "Burada gösterilen hizmetlerden %(n)s tanesinin kendi kart biçimi va
 msgid "fb33-stack-anchor-M3-5a"
 msgstr "fb33-stack-anchor-M3-5a"
 
+#. FB-33 M3-5a: вкладка «Texte»
+msgid "Ihre Eingaben werden beim Wechsel übernommen."
+msgstr "Geçiş yaptığınızda girdikleriniz uygulanır."
+
+#. FB-33 M3-5a: вкладка «Texte»
+msgid "Übersetzungen auf der Seite bearbeiten"
+msgstr "Çevirileri sayfada düzenle"
+
+#. FB-33 M3-5a: вкладка «Texte»
+msgid "z. B. /kontakt oder https://…"
+msgstr "ör. /kontakt veya https://…"
+
 #. FB-33 стопка: якорь среза M3-5b — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
 msgid "fb33-stack-anchor-M3-5b"
 msgstr "fb33-stack-anchor-M3-5b"

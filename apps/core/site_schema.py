@@ -3248,7 +3248,7 @@ def mutate(
             # FB-27 R6: только существующая страница и не та, на которой стоит блок.
             if not page_embeddable(sent["page"], host_for(code)):
                 raise SchemaError("page")
-        sent, capped = siteconfig.cap_block_texts(key, sent)
+        sent, capped = siteconfig.cap_block_texts(key, sent, stored=data)
         if capped and notes is not None:
             notes.append(siteconfig.cap_note())
         patched = {**data, **sent}

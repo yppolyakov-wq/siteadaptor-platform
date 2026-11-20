@@ -39359,6 +39359,18 @@ msgstr[1] "%(n)s of the services shown here have their own card shape — it app
 msgid "fb33-stack-anchor-M3-5a"
 msgstr "fb33-stack-anchor-M3-5a"
 
+#. FB-33 M3-5a: вкладка «Texte»
+msgid "Ihre Eingaben werden beim Wechsel übernommen."
+msgstr "Your entries are applied when you switch."
+
+#. FB-33 M3-5a: вкладка «Texte»
+msgid "Übersetzungen auf der Seite bearbeiten"
+msgstr "Edit translations on the page"
+
+#. FB-33 M3-5a: вкладка «Texte»
+msgid "z. B. /kontakt oder https://…"
+msgstr "e.g. /kontakt or https://…"
+
 #. FB-33 стопка: якорь среза M3-5b — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
 msgid "fb33-stack-anchor-M3-5b"
 msgstr "fb33-stack-anchor-M3-5b"
