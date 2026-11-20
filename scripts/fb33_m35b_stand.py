@@ -226,9 +226,14 @@ def faq_window(pg, host, out, w):
     check(first == FAQ[1]["q"], f"{w}: ↓ — второй вопрос стал первым ({first})")
     # правка немецкого ответа «Kann ich vorbestellen?» (теперь № 2) — на лету, со скриптами
     item = pg.locator("details[data-faq-item='1']")
-    # со скриптами фокус при открытии окна ставит aufbau.js на заголовок (M3-2) — фокус на
-    # сдвинутом вопросе проверяется без JS (`nojs`)
     check(item.get_attribute("open") is not None, f"{w}: после ↓ сдвинутый вопрос открыт")
+    # стопка 2: адрес возврата ведёт на вопрос (#schema-tab-faq-<i>) — фокус ставит aufbau.js
+    pg.wait_for_timeout(300)
+    got = pg.evaluate("() => [location.hash, document.activeElement && document.activeElement.id]")
+    check(
+        got == ["#schema-tab-faq-1", "schema-tab-faq-1"],
+        f"{w}: после ↓ фокус на сдвинутом вопросе ({got})",
+    )
     pg.fill("#bw-form-faq textarea[name=faq_1_a]", "Ja, bis 17 Uhr.")
     pg.locator("#bw-form-faq input[name=faq_0_q]").focus()
     busy_done(pg)
@@ -312,10 +317,14 @@ def nojs(b, host, out):
         pg.fill("#bw-form-faq input[name=faq_2_q]", "Gibt es Parkplätze vor Ort?")
         pg.click('#bw-form-faq button[name=faq_move][value="2:up"]')
         pg.wait_for_load_state()
-        # фокус на сдвинутом вопросе: `autofocus` браузер не применяет при якоре в адресе
-        # (`#schema-panel` после действия) — проверяем, что вопрос открыт (см. notes)
+        # стопка 2: без JS адрес возврата ведёт на сдвинутый вопрос (:target — его заголовок)
         moved = pg.locator("details[data-faq-item='1']").get_attribute("open")
         check(moved is not None, f"без JS {w}: после ↑ открыт сдвинутый вопрос")
+        target = pg.evaluate("() => [location.hash, !!document.querySelector('summary:target')]")
+        check(
+            target == ["#schema-tab-faq-1", True],
+            f"без JS {w}: после ↑ адрес ведёт на сдвинутый вопрос ({target})",
+        )
         check(
             pg.locator("#bw-form-faq input[name=faq_1_q]").input_value()
             == "Gibt es Parkplätze vor Ort?",
