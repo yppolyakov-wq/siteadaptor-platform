@@ -2996,6 +2996,10 @@ def mutate(
         if template is not None and block_type == "textpage":
             # M3-3d (ревью): шаблон с другой страницы — его страница здесь может не годиться
             new["data"] = drop_unembeddable_page(new["data"], host_for(code), notes)
+        if block_type == "faq_ref" and template is None:
+            from apps.core import object_faq  # FB-33 M2b-2b: на детальной — свои вопросы
+
+            object_faq.add_default(new, host_for(code))
         items.append(new)
         return new["id"]
     if op == "add_row":

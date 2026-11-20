@@ -1,0 +1,8 @@
+{% load i18n %}{% comment %}FB-33 M2b-2b: общий хост детали — свои вопросы правятся у каждого объекта (в его окне «Seitenaufbau» или в его форме), здесь — ссылки на формы.{% endcomment %}
+  {% if faq.links %}
+  <ul class="space-y-1 text-sm" data-faq-links>
+    {% for link in faq.links %}
+    <li><a href="{{ link.url }}" class="inline-flex min-h-[44px] items-center gap-2 text-indigo-700 underline">{{ link.label }} <span class="text-xs text-gray-600">({% blocktrans with n=link.count %}Fragen: {{ n }}{% endblocktrans %})</span></a></li>
+    {% endfor %}
+  </ul>
+  {% endif %}

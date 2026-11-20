@@ -219,6 +219,9 @@ def overlay(config: dict, draft: dict) -> dict:
         out = _put_form(out, draft)
     if "faq" in draft:
         _put_faq_shown(out, draft)
+
+    if "ofaq" in draft:  # FB-33 M2b-2b: свои вопросы объекта — в служебный ключ превью
+        _object_faq().put_shown(out, draft)
     return _apply_settings(out, draft)
 
 
@@ -243,6 +246,10 @@ def _is_faq_row(draft: dict, item) -> bool:
     key = item.get("key") or ""
     if key == "faq" and not item.get("id"):
         return bool(draft.get("home"))
+    # FB-33 M2b-2b: блок со своими вопросами объекта (`data.source == "object"`) — не общий FAQ
+    data = item.get("data")
+    if isinstance(data, dict) and data.get("source") == "object":
+        return False
     return bool(item.get("id")) and (siteconfig.cblock_type(key) or key) == "faq_ref"
 
 
@@ -352,6 +359,7 @@ FORM_KEYS = ("form", "form_base")
 SIDE_PARTS = (
     ("form", FORM_KEYS),  # FB-33 M2i-5 «Felder»
     ("faq", FAQ_KEYS),  # FB-33 M3-5b вопросы FAQ
+    ("ofaq", ("ofaq", "ofaq_base")),  # FB-33 M2b-2b свои вопросы объекта (`object_faq`)
 )
 
 
@@ -466,6 +474,9 @@ def changes(saved: dict, draft: dict) -> int:
     if "form" in draft:
         count += 1
     if "faq" in draft:  # FB-33 M3-5b: вопросы FAQ — одно изменение
+        count += 1
+
+    if "ofaq" in draft:  # FB-33 M2b-2b: свои вопросы объекта — одно изменение
         count += 1
     # FB-27 R4: настройки типа страницы — по одному изменению на настройку.
     count += len(_settings(draft))
@@ -589,6 +600,8 @@ def _snapshot(tenant, code, host, draft, ref, token="", codes=(), source=None) -
         proto["form"] = {k: copy.deepcopy(source[k]) for k in FORM_KEYS if k in source}
     if at is not None and _is_faq_row(source, items[at]):  # FB-33 M3-5b: вопросы FAQ
         proto["faq"] = {k: copy.deepcopy(source[k]) for k in FAQ_KEYS if k in source}
+
+    _object_faq().snapshot(proto, source, items[at] if at is not None else None)  # M2b-2b
     _record_codes(source, proto, [*_window_setting_codes(tenant, code, ref), *codes])
     window.pop(ref, None)
     idents = {_ident(it) for it in draft.get("items") or []}
@@ -784,6 +797,10 @@ def op(
     elif _is_tiles_edit(draft, ref, op_name, fields):
         # FB-33 M3-5b: плашки Schnellzugriff и набор — одной формой окна
         _tiles_op(draft, ref, fields, notes)
+
+    elif _object_faq().is_window_edit(request, draft, ref, op_name):
+        # FB-33 M2b-2b: FAQ на детальной — свои вопросы, выбор источника (общие — `_faq_op`)
+        ref = _object_faq().window_op(request, config, draft, ref, notes)
     elif is_faq_edit(request, draft, ref, op_name):
         # FB-33 M3-5b: вопросы FAQ в окне блока — в черновике, строка на месте
         ref = _faq_op(config, draft, ref, request.POST, notes, request)
@@ -948,7 +965,9 @@ def commit(request, tenant, code: str, *, force: bool = False, notes: list | Non
     site_schema.store_items(config, home, host, copy.deepcopy(draft["items"]))
     # FB-33 M3-5b: переводы своих подписей плашек — только у неизменённых немецких подписей
     hero_tiles.prune_label_overlays(config, home, host, old_blocks)
-    _commit_object(config, host, draft["items"], getattr(request, "user", None))
+    _commit_object(
+        config, host, draft["items"], getattr(request, "user", None), draft, notes, force
+    )
     if "title" in draft:
         _put_title(config, host, draft["title"])
     if "next" in draft:
@@ -1008,36 +1027,73 @@ OBJECT_EDIT_VIEWS = {
 }
 
 
-def _commit_object(config: dict, host: str, items: list[dict], user=None) -> None:
-    """R8: разделы схемы объекта — в его `page_override` (в транзакции `commit`, после
-    блокировки строки бизнеса — тот же порядок блокировок везде). Состояние считается по
-    объекту, заблокированному здесь же (ревью: вкладка карточки могла успеть записать)."""
-    from apps.core import detail_parts, object_structure, view_perms
+def _object_faq():
+    """FB-33 M2b-2b: свои вопросы FAQ объекта (`apps.core.object_faq`, ленивый импорт)."""
+    from apps.core import object_faq
+
+    return object_faq
+
+
+def _commit_object(
+    config: dict,
+    host: str,
+    items: list[dict],
+    user=None,
+    draft: dict | None = None,
+    notes: list | None = None,
+    force: bool = False,
+) -> None:
+    """R8: разделы схемы объекта — в его `page_override`, FB-33 M2b-2b: свои вопросы FAQ
+    черновика — в сам объект (в транзакции `commit`, после блокировки строки бизнеса — тот же
+    порядок блокировок везде). Одна блокировка объекта, у каждой части своя проверка права и
+    свои поля записи."""
+    from apps.core import detail_parts
 
     kind = detail_parts.object_kind(host)
     if not kind:
         return
+    locked = _lock_object(host)
+    if locked is None:
+        # объект удалили, пока шла правка — блоки сохранены, разделов и вопросов больше нет
+        if draft and "ofaq" in draft and notes is not None:
+            notes.append(_object_faq().gone_note())
+        return
+    fields = _commit_sections(config, host, items, user, locked, kind)
+    fields += _object_faq().commit(locked, kind, draft, user, notes, force)
+    if not fields:
+        return
+    if any(f.name == "updated_at" for f in locked._meta.concrete_fields):
+        fields.append("updated_at")  # как у формы объекта (sitemap, портал)
+    locked.save(update_fields=list(dict.fromkeys(fields)))
+
+
+def _lock_object(host: str):
+    """Объект хоста своих блоков под `select_for_update` (None — его нет)."""
+    from apps.core import detail_parts
+
     obj = detail_parts.object_for_host(host)
     if obj is None:
-        return  # объект удалили, пока шла правка — блоки сохранены, разделов больше нет
-    locked = type(obj).objects.select_for_update().filter(pk=obj.pk).first()
-    if locked is None:
-        return
+        return None
+    return type(obj).objects.select_for_update().filter(pk=obj.pk).first()
+
+
+def _commit_sections(config: dict, host: str, items: list[dict], user, locked, kind: str) -> list:
+    """R8: разделы схемы объекта → `page_override` (состояние — по объекту, заблокированному
+    в `_lock_object`: вкладка карточки могла успеть записать). Возвращает поля записи."""
+    from apps.core import detail_parts, object_structure, view_perms
+
     _rows, state = detail_parts.object_lift(config, host, copy.deepcopy(items), obj=locked)
     if state is None:
-        return
+        return []
     module = detail_parts.module_of(detail_parts.shared_host(host))
     value = object_structure.schema_value(locked, module, state)
     if value == object_structure._raw(locked):
-        return
+        return []
     if user is not None and not view_perms.allowed(user, OBJECT_EDIT_VIEWS[kind], "POST"):
         # сотрудник с правом на сайт, но без права на этот объект: разделы не меняет
         raise site_schema.SchemaError("rights")
     locked.page_override = value
-    fields = ["page_override"]
-    if any(f.name == "updated_at" for f in locked._meta.concrete_fields):
-        fields.append("updated_at")  # как у формы объекта (sitemap, портал)
-    locked.save(update_fields=fields)
+    return ["page_override"]
 
 
 def _room_after_purge(tenant, host) -> bool:

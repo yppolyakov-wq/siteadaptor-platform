@@ -1,0 +1,10 @@
+{% load i18n %}{% comment %}FB-33 M2b-2b (макет M0-12): источник вопросов блока FAQ на детальной — свои вопросы объекта или общие FAQ; выбор применяется кнопкой формы (со скриптами — сразу).{% endcomment %}
+  <fieldset class="space-y-2" data-faq-source>
+    <legend class="text-sm font-bold text-gray-900">{% trans "Welche Fragen" %}</legend>
+    {% for opt in faq.sources %}
+    <label class="flex min-h-[44px] cursor-pointer items-start gap-3 rounded-xl border p-3 text-sm{% if opt.checked %} border-indigo-600 bg-indigo-50{% else %} border-gray-400{% endif %}">
+      <input type="radio" name="faq_source" value="{{ opt.value }}" class="mt-1"{% if opt.checked %} checked{% endif %}>
+      <span><span class="block font-semibold text-gray-900">{{ opt.label }}</span><span class="block text-xs text-gray-600">{{ opt.hint }}</span></span>
+    </label>
+    {% endfor %}
+  </fieldset>

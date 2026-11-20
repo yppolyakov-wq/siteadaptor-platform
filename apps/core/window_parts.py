@@ -28,6 +28,16 @@ def _item(config: dict, home: bool, host: str, ref: str) -> dict | None:
     return next((it for it in items if isinstance(it, dict) and it.get("id") == ref), None)
 
 
+def _items(config: dict, home: bool, host: str) -> list:
+    from apps.core import site_schema
+
+    try:
+        return site_schema.load_items(config, home, host)
+    except Exception:  # noqa: BLE001 — как `_item`: окно без подсказки лучше упавшего экрана
+        logger.exception("window_parts: rows unavailable (%s)", host or "home")
+        return []
+
+
 def decorate(
     selected: dict | None,
     saved: dict,
@@ -41,14 +51,28 @@ def decorate(
     черновика и их источники — из `draft`), `config` — показанный (с черновиком)."""
     if not selected:
         return
-    from apps.core import aufbau_draft, faq_content, hero_tiles
+    from apps.core import aufbau_draft, faq_content, hero_tiles, object_faq
     from apps.tenants import siteconfig
 
     row = {"key": selected.get("key"), "id": selected.get("ref") if selected.get("cblock") else ""}
+    key = selected.get("key") or ""
+    if row["id"] and (siteconfig.cblock_type(key) or key) == "faq_ref" and not home:
+        # FB-33 M2b-2b: источник вопросов — в данных строки (`data.source`)
+        item = _item(config, home, host, selected["ref"])
+        row["data"] = (item or {}).get("data") or {}
+    own = None
+    if not home and (siteconfig.cblock_type(key) or key) in ("faq", "faq_ref"):
+        page = {"home": home, "host": host, "items": (draft or {}).get("items")}
+        if page["items"] is None:
+            page["items"] = _items(config, home, host)
+        own = object_faq.panel(page, host, row, opened, saved)
     if aufbau_draft._is_faq_row({"home": home}, row):
         items, src = faq_content.state(saved, draft)
         selected["faq_items"] = faq_content.panel(items, src, saved, opened)
-    key = selected.get("key") or ""
+        if own:  # детальная: общие вопросы и выбор источника
+            selected["faq_items"].update(own)
+    elif own:
+        selected["faq_items"] = own  # FB-33 M2b-2b: свои вопросы объекта (или подсказка)
     if selected.get("cblock") and (siteconfig.cblock_type(key) or key) == "quick_links":
         # плашки и выбор набора — одна форма (смена набора сбрасывает скрытие и подписи)
         item = _item(config, home, host, selected["ref"])
@@ -75,6 +99,14 @@ def faq_anchor(post, count: int, opened=None) -> str:
     последний. `count` — вопросов после правки. Пусто — прежний якорь."""
     if post.get("faq_present") != "1":
         return ""
+    if post.get("faq_scope") == "object":
+        # FB-33 M2b-2b: свои вопросы объекта — номер после кнопки помнит сама правка (`opened`,
+        # `object_faq._remember_focus`): `count` вызывающего — число ОБЩИХ вопросов
+        if not isinstance(opened, int) or not any(
+            post.get(k) is not None for k in ("faq_move", "faq_remove", "faq_add")
+        ):
+            return ""
+        return faq_anchor_id(opened) if opened >= 0 else FAQ_LIST_ANCHOR
     if post.get("faq_move") is not None:
         return faq_anchor_id(opened) if isinstance(opened, int) and 0 <= opened < count else ""
     removed = str(post.get("faq_remove") or "")

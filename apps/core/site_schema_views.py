@@ -277,6 +277,10 @@ def site_schema_view(request):
                         "selbst bearbeiten darf."
                     ),
                 )
+            elif exc.args and exc.args[0] in ("ofaq_rights", "ofaq_conflict"):
+                from apps.core import object_faq  # FB-33 M2b-2b: свои вопросы объекта
+
+                messages.error(request, object_faq.error_note(exc.args[0]))
             elif exc.args and exc.args[0] == "objects":
                 messages.error(
                     request,
