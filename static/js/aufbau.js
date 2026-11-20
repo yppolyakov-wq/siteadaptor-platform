@@ -329,8 +329,95 @@ function aufbauSubmitCopy(form, submitter) {
   function dress() {
     var h = win && win.querySelector("#schema-panel-title");
     if (h) h.setAttribute("tabindex", "-1");
+    tabs();
     document.dispatchEvent(new CustomEvent("aufbau:panel"));
   }
+
+  /* Вкладки окна по APG (только со скриптами; без них — ссылки `?tab=`): tablist/tab/
+     tabpanel, выбранная вкладка в порядке Tab, остальные — стрелками, Home/End; выбор —
+     сразу (автоактивация). Адрес помнит вкладку (F5 — та же), формы панели несут её
+     скрытым полем `tab` (после правки сервер открывает ту же). */
+  function tabLinks() {
+    return win ? Array.prototype.slice.call(win.querySelectorAll("[data-window-tabs] [data-window-tab-link]")) : [];
+  }
+
+  function tabs() {
+    var nav = win && win.querySelector("[data-window-tabs]");
+    var list = nav && nav.querySelector("ul");
+    if (!list) return;
+    list.setAttribute("role", "tablist");
+    if (nav.getAttribute("aria-label")) {
+      list.setAttribute("aria-label", nav.getAttribute("aria-label"));
+      nav.removeAttribute("aria-label");
+    }
+    nav.setAttribute("role", "none");
+    var active = "";
+    tabLinks().forEach(function (a) {
+      var key = a.getAttribute("data-window-tab-link");
+      var panel = document.getElementById("schema-tab-" + key);
+      a.parentNode.setAttribute("role", "presentation");
+      a.setAttribute("role", "tab");
+      a.id = "schema-tabbtn-" + key;
+      a.removeAttribute("aria-current");
+      if (panel) {
+        a.setAttribute("aria-controls", panel.id);
+        panel.setAttribute("role", "tabpanel");
+        panel.setAttribute("aria-labelledby", a.id);
+        panel.setAttribute("tabindex", "0");
+        if (!panel.hidden && !active) active = key;
+      }
+    });
+    if (active) choose(active, false);
+  }
+
+  function choose(key, remember) {
+    tabLinks().forEach(function (a) {
+      var on = a.getAttribute("data-window-tab-link") === key;
+      a.setAttribute("aria-selected", on ? "true" : "false");
+      a.setAttribute("tabindex", on ? "0" : "-1");
+      var panel = document.getElementById(a.getAttribute("aria-controls") || "");
+      if (panel) panel.hidden = !on;
+    });
+    win.querySelectorAll("[data-schema-panel] form").forEach(function (form) {
+      var field = form.querySelector('input[type="hidden"][name="tab"]');
+      if (!field) {
+        field = document.createElement("input");
+        field.type = "hidden";
+        field.name = "tab";
+        form.appendChild(field);
+      }
+      field.value = key;
+    });
+    if (remember && window.history && history.replaceState) {
+      var u = new URL(location.href);
+      u.searchParams.set("tab", key);  // welche, wopen, ansicht остаются в адресе
+      u.hash = "schema-tab-" + key;
+      history.replaceState(history.state, "", u.pathname + u.search + u.hash);
+    }
+  }
+
+  document.addEventListener("click", function (e) {
+    var a = e.target.closest ? e.target.closest('dialog.ui-bwin [role="tab"]') : null;
+    if (!a || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    e.preventDefault();
+    choose(a.getAttribute("data-window-tab-link"), true);
+    a.focus();
+  });
+  document.addEventListener("keydown", function (e) {
+    var a = e.target.closest ? e.target.closest('dialog.ui-bwin [role="tab"]') : null;
+    if (!a) return;
+    var all = tabLinks();
+    var i = all.indexOf(a);
+    var next = null;
+    if (e.key === "ArrowRight") next = all[(i + 1) % all.length];
+    else if (e.key === "ArrowLeft") next = all[(i - 1 + all.length) % all.length];
+    else if (e.key === "Home") next = all[0];
+    else if (e.key === "End") next = all[all.length - 1];
+    if (!next) return;
+    e.preventDefault();
+    choose(next.getAttribute("data-window-tab-link"), true);
+    next.focus();
+  });
 
   // Куда вернуть фокус после перезагрузки, которой окно закрывается.
   function remember(form, submitter) {
