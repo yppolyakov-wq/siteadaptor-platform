@@ -449,11 +449,10 @@ def test_anfrage_form_settings_unchecking_all_drops_key():
     assert "anfrage" not in tenant.site_config  # presence-minimal: выкл = ключа нет
 
 
-def test_ablaeufe_renders_anfrage_form_panel_with_current_state():
-    """X2c (осознанная переписка): панель «Anfrage-Formular» переехала со
-    страницы заявок (она схлопывается в единую поверхность продаж) на
-    «Abläufe» — там живут настройки процессов продаж. Разметка та же
-    (общий партиал), приёмник POST прежний."""
+def test_ablaeufe_links_to_the_felder_tab_instead_of_the_panel():
+    """FB-33 M2i-5 (решение владельца 2026-11-20, осознанная переписка X2c): панель
+    «Anfrage-Formular» на «Abläufe» заменена ссылкой на вкладку «Felder» окна формы в
+    «Seitenaufbau» (там же «Branchen-Vorlage»); прежний POST-приёмник остаётся рабочим."""
     from apps.core import views as core_views
 
     tenant = TenantFactory.build(
@@ -461,8 +460,12 @@ def test_ablaeufe_renders_anfrage_form_panel_with_current_state():
         site_config={"anfrage": {"fields": ["guests"], "event_types": ["Grillfest"]}},
     )
     body = core_views.ablaeufe_view(_req(tenant=tenant)).content.decode()
-    assert 'name="af_guests" checked' in body
-    assert "Grillfest" in body
+    assert "data-anfrage-form-link" in body
+    assert (
+        'href="/dashboard/site/aufbau/?seite=anfrage&amp;block=form&amp;tab=felder#schema-panel"'
+        in body
+    )
+    assert 'name="af_guests"' not in body and "anfrage-formular/" not in body
 
 
 # --- QF-батч (фидбэк владельца 2026-08-20 по странице сметы) ---------------------

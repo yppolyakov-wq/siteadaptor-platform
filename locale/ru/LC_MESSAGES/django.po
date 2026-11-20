@@ -39428,3 +39428,19 @@ msgstr "Что спрашивает форма заявки. Изменения 
 #. FB-33 M2i-5: вкладка «Felder»
 msgid "immer Pflicht"
 msgstr "всегда обязательно"
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgid "Felder bearbeiten"
+msgstr "Изменить поля"
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgid "In Seitenaufbau bearbeiten"
+msgstr "Изменить в «Структуре страницы»"
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgid "Welche Felder die Anfrage fragt, gilt für alle Stellen mit dem Formular."
+msgstr "Какие поля спрашивает заявка — одинаково для всех мест с этой формой."
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgid "Welche Felder die öffentliche Anfrage-Seite fragt, legen Sie im Seitenaufbau fest – im Block „Anfrage-Formular“, Bereich „Felder“."
+msgstr "Какие поля спрашивает страница заявки, задаётся в «Структуре страницы» — в блоке «Форма заявки», раздел «Поля»."

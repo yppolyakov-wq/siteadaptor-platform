@@ -1,0 +1,3 @@
+{% load i18n %}{% comment %}FB-33 M2i-5: полоса заявки главной и блок «Anfrage» рисуют ту же форму — её поля правятся в окне формы страницы «Anfrage» (вкладка «Felder»), здесь только ссылка.{% endcomment %}
+<p class="mt-4 text-sm text-gray-700">{% trans "Welche Felder die Anfrage fragt, gilt für alle Stellen mit dem Formular." %}</p>
+<p class="mt-2"><a href="{{ selected.form_link }}" class="inline-flex min-h-[44px] items-center font-semibold text-indigo-700 hover:underline" data-form-link>{% trans "Felder bearbeiten" %} →</a></p>

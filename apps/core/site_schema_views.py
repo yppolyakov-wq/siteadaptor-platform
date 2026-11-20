@@ -83,6 +83,15 @@ def _row_ops(layout: dict, selected) -> dict:
     return {"beside_target": above, "selected_in_row": len(lines[at]["blocks"]) > 1}
 
 
+def _is_anfrage_ref(row: dict) -> bool:
+    from apps.tenants import siteconfig
+
+    return (
+        bool(row.get("cblock"))
+        and (siteconfig.cblock_type(row["key"]) or row["key"]) == "anfrage_ref"
+    )
+
+
 @login_required
 def site_schema_view(request):
     from apps.core import aufbau_draft
@@ -352,6 +361,14 @@ def site_schema_view(request):
         from apps.jobs.anfrage_presets import preset_for
 
         selected["form_spec"]["preset"] = bool(preset_for(tenant.business_type))
+    if (
+        selected
+        and (selected["key"] == "anfrage" and not selected["cblock"] or _is_anfrage_ref(selected))
+        and tenant.is_module_active("jobs")
+    ):
+        # FB-33 M2i-5: полоса заявки главной и блок «Anfrage» — поля правятся в окне формы
+        # страницы «Anfrage» (одна настройка на все места формы, без дубля)
+        selected["form_link"] = site_schema.form_window_url()
     # FB-27 R4: настройки типа страницы — в панели «★ Hauptliste», а у страниц без
     # основного списка — на строке «Einstellungen der Seite».
     page_row, settings, design_rows = None, [], []

@@ -67,7 +67,7 @@ def test_switching_to_catering_adds_preset_but_never_overwrites_owner_choice():
     assert "anfrage" not in tenant3.site_config
 
 
-def test_load_preset_button_overwrites_and_is_shown_only_for_typed_tenant():
+def test_load_preset_post_overwrites_and_button_moved_to_felder():
     from apps.core import views as core_views
 
     tenant = TenantFactory(
@@ -78,10 +78,10 @@ def test_load_preset_button_overwrites_and_is_shown_only_for_typed_tenant():
     views.anfrage_form_settings(_req("post", data={"load_preset": "1"}, tenant=tenant))
     tenant.refresh_from_db()
     assert tenant.site_config["anfrage"] == anfrage_presets.preset_for("catering")
-    assert 'name="load_preset"' in core_views.ablaeufe_view(_req(tenant=tenant)).content.decode()
-
-    other = TenantFactory.build(business_type="handwerker", disabled_modules=[])
-    assert 'name="load_preset"' not in core_views.ablaeufe_view(_req(tenant=other)).content.decode()
+    # FB-33 M2i-5: кнопка переехала во вкладку «Felder» окна формы (через черновик, только у
+    # типа с пресетом — замки test_fb33_m2i5_window_ui); на «Abläufe» — ссылка туда
+    body = core_views.ablaeufe_view(_req(tenant=tenant)).content.decode()
+    assert 'name="load_preset"' not in body and "data-anfrage-form-link" in body
 
 
 def _job(guests):

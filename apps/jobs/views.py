@@ -16,7 +16,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_http_methods, require_POST
 
 from apps.catalog.picker import (  # SH-B: пикер позиций общий с заказом
     _catalog_parts,
@@ -145,15 +145,23 @@ def job_list(request):
 
 
 @login_required
-@require_POST
+@require_http_methods(["GET", "POST"])
 def anfrage_form_settings(request):
     """AF-1: сохранить состав событийных полей формы /anfrage/ + список
     «Art der Veranstaltung» (site_config["anfrage"], presence-minimal).
-    Targeted-write — прочие ключи site_config целы (паттерн board_settings)."""
+    Targeted-write — прочие ключи site_config целы (паттерн board_settings).
+
+    FB-33 M2i-5 (решение владельца 2026-11-20): поля формы правятся во вкладке «Felder»
+    окна блока формы в «Seitenaufbau» (через черновик, право `website.edit`). Этот POST —
+    осознанный второй путь для старых форм и закладок (право `ablaeufe.edit`, пишет сразу);
+    GET (закладка, старая ссылка) — 302 на окно (фиксированный адрес, без `next`)."""
+    from apps.core import site_schema
     from apps.tenants import siteconfig
 
     from .anfrage_presets import preset_for
 
+    if request.method != "POST":
+        return redirect(site_schema.form_window_url())
     tenant = request.tenant
     if request.POST.get("load_preset"):
         # KA-12 A-3: «Branchen-Vorlage laden» — явное действие владельца, поэтому

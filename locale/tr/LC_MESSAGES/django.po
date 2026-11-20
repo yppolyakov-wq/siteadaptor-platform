@@ -39233,3 +39233,19 @@ msgstr "Talep formunun sordukları. Değişiklikler “Kaydet”ten sonra sayfad
 #. FB-33 M2i-5: вкладка «Felder»
 msgid "immer Pflicht"
 msgstr "her zaman zorunlu"
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgid "Felder bearbeiten"
+msgstr "Alanları düzenle"
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgid "In Seitenaufbau bearbeiten"
+msgstr "Sayfa yapısında düzenle"
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgid "Welche Felder die Anfrage fragt, gilt für alle Stellen mit dem Formular."
+msgstr "Talebin hangi alanları sorduğu, formun bulunduğu tüm yerler için geçerlidir."
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgid "Welche Felder die öffentliche Anfrage-Seite fragt, legen Sie im Seitenaufbau fest – im Block „Anfrage-Formular“, Bereich „Felder“."
+msgstr "Herkese açık talep sayfasının hangi alanları sorduğunu sayfa yapısında belirlersiniz – “Talep formu” bloğunda, “Alanlar” bölümünde."

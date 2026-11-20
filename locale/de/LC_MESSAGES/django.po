@@ -39174,3 +39174,19 @@ msgstr "Was die Anfrage-Form fragt. Änderungen erscheinen auf der Seite nach �
 #. FB-33 M2i-5: вкладка «Felder»
 msgid "immer Pflicht"
 msgstr "immer Pflicht"
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgid "Felder bearbeiten"
+msgstr "Felder bearbeiten"
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgid "In Seitenaufbau bearbeiten"
+msgstr "In Seitenaufbau bearbeiten"
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgid "Welche Felder die Anfrage fragt, gilt für alle Stellen mit dem Formular."
+msgstr "Welche Felder die Anfrage fragt, gilt für alle Stellen mit dem Formular."
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgid "Welche Felder die öffentliche Anfrage-Seite fragt, legen Sie im Seitenaufbau fest – im Block „Anfrage-Formular“, Bereich „Felder“."
+msgstr "Welche Felder die öffentliche Anfrage-Seite fragt, legen Sie im Seitenaufbau fest – im Block „Anfrage-Formular“, Bereich „Felder“."

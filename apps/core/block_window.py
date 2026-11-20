@@ -36,6 +36,7 @@ PART_TAB: dict[str, str] = {
     "usp": "texte",  # пункты полосы доверия
     "settings": "seite",  # настройки типа страницы у ★-строки и строк-носителей
     "formfields": "felder",  # FB-33 M2i-5: поля формы заявки (режимы, свои вопросы)
+    "formlink": "felder",  # FB-33 M2i-5: у полосы/блока заявки — ссылка на окно формы
 }
 PART_ORDER = (
     "list",
@@ -44,6 +45,7 @@ PART_ORDER = (
     "switch",
     "fields",
     "formfields",
+    "formlink",
     "platz",
     "usp",
     "settings",
@@ -74,6 +76,7 @@ PANEL_KEYS: dict[str, str] = {
     "carrier": "settings",
     "setting_row": "settings",
     "form_spec": "formfields",  # FB-33 M2i-5 (`fields` занято формой блока)
+    "form_link": "formlink",
 }
 #: ключи строки, которые панель не рисует частью (метки строки, шапка окна, сырые данные)
 ROW_KEYS = frozenset(
@@ -128,6 +131,7 @@ def parts(selected: dict | None, ctx: dict) -> list[str]:
         "platz": bool(selected.get("widths")),
         "usp": bool(selected.get("usp")),
         "formfields": bool(selected.get("form_spec")),
+        "formlink": bool(selected.get("form_link")),
         "settings": bool(selected.get("carrier") or selected.get("setting_row"))
         and bool(ctx.get("settings") or ctx.get("design_rows")),
     }

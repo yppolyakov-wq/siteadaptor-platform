@@ -1449,6 +1449,15 @@ def _anfrage_form_row(config: dict, out: list[dict]) -> None:
             )
 
 
+def form_window_url() -> str:
+    """Адрес окна строки формы «Anfrage» на вкладке «Felder» (ссылки с «Abläufe», с полосы
+    заявки главной и 302 старого адреса панели — фиксированный путь, без `next`)."""
+    from urllib.parse import urlencode
+
+    query = {"seite": FORM_HOST, "block": FORM_REF, "tab": "felder"}
+    return f"{reverse('site-schema')}?{urlencode(query)}#schema-panel"
+
+
 def is_form_edit(host: str, ref: str, op: str) -> bool:
     """Правка вкладки «Felder» (поля формы заявки), а не строки схемы."""
     return host == FORM_HOST and ref == FORM_REF and op == "update"

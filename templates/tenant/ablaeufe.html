@@ -101,10 +101,13 @@ max-w-3xl умерла — карта процесса на всю ширину,
       </div>
     </section>
     {% endif %}
-    {% comment %}VF-14: панель Anfrage-формы — в правую колонку (жила ПОСЛЕ
-    обёртки страницы и рвала раскладку).{% endcomment %}
-    {% if anfrage_enabled %}
-      {% include "jobs/_anfrage_form_panel.html" %}
+    {% comment %}FB-33 M2i-5 (решение владельца 2026-11-20): поля формы заявки правятся во вкладке «Felder» окна формы в «Seitenaufbau» (там же «Branchen-Vorlage»); прежний POST-адрес панели остаётся рабочим для старых форм и закладок.{% endcomment %}
+    {% if anfrage_enabled and 'site-schema'|can_open:request and 'site-schema'|pkg_allowed:request.tenant %}
+    <section class="ui-card p-4 mb-4" data-anfrage-form-link>
+      <h2 class="ui-h2 mb-1">📝 {% trans "Anfrage-Formular" %}</h2>
+      <p class="text-xs ui-muted mb-3">{% trans "Welche Felder die öffentliche Anfrage-Seite fragt, legen Sie im Seitenaufbau fest – im Block „Anfrage-Formular“, Bereich „Felder“." %}</p>
+      <a href="{{ anfrage_form_url }}" class="ui-btn ui-btn-secondary ui-btn-sm">{% trans "In Seitenaufbau bearbeiten" %} →</a>
+    </section>
     {% endif %}
     </div>
     </div>
