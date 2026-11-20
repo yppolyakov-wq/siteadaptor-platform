@@ -466,8 +466,8 @@ def _clean_list_block(d: dict) -> dict:
     kind = LIST_SOURCES[source]["card"]
     if (
         isinstance(card, str)
-        and kind
         and card
+        and card_forms.card_applies(kind, style)  # FB-33 M3-4: один предикат с окном
         and card_forms.normalize_for_view(style, kind, card) == card
     ):
         out["card"] = card

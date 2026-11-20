@@ -385,9 +385,10 @@ def site_schema_view(request):
     if selected and selected.get("fields"):
         site_schema.fill_options(selected, current.host if current else "")
     # FB-33 M3-3a: виды картинками — из уже заполненных пунктов (вкладка «Wie anordnen»)
-    from apps.core import block_views
+    from apps.core import block_card, block_views
 
     block_views.decorate(selected, blocks, config, current.host if current else "")
+    block_card.decorate(selected, config)  # FB-33 M3-4: «Kartenform» — во вкладку «Karte»
     if selected and selected.get("form_spec"):
         # FB-33 M2i-5: «Branchen-Vorlage» — только у типа бизнеса с пресетом формы
         from apps.jobs.anfrage_presets import preset_for

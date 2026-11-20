@@ -1,0 +1,31 @@
+{% load i18n %}{% comment %}FB-33 M3-4 (макет M0-2): вкладка «Karte» — форма карточки списка, только подходящие виду (block_card.decorate). Плитки и строки — две группы одного поля f_card (одна форма, запись — патч: «Wie anordnen» карточку не присылает). Строка наследования говорит, что действует при пустом значении, и ведёт туда, где это меняется; «zurücksetzen» — своей формой после формы вкладки (кнопка без value=update, грабля M3-3).{% endcomment %}
+{% with cp=selected.card_pick %}
+<form method="post" id="bw-form-card_pick" class="mt-4 space-y-4" data-schema-list data-schema-karte>
+  {% csrf_token %}
+  {% include "tenant/_schema_keep.html" %}
+  <input type="hidden" name="ref" value="{{ selected.ref }}">
+  <input type="hidden" name="panel_present" value="1">
+  {% for g in cp.groups %}<div data-schema-card-shape="{{ g.shape }}">{% include "tenant/_view_tiles.html" with tiles=g.tiles legend=g.legend src="card" name="card" %}</div>
+  {% endfor %}
+  {% for text in cp.not_offered %}<p class="rounded-lg bg-gray-50 px-2 py-1.5 text-xs text-gray-700" data-schema-card-off>{{ text }}</p>{% endfor %}
+  <button name="op" value="update" class="ui-btn ui-btn-primary w-full scroll-mb-28">{% trans "Übernehmen" %}</button>
+</form>
+{% with inh=cp.inherit %}
+<div class="mt-2 rounded-lg bg-gray-50 px-2 py-1.5 text-xs text-gray-700" data-schema-card-inherit-row>
+  <p data-schema-card-inherit>{{ inh.source }}: {{ inh.label }}{% if cp.own %}<br>{% trans "Eigene Einstellung für diesen Block" %}: {{ cp.own_label }}{% endif %}</p>
+  <div class="flex flex-wrap items-center gap-3">
+    {% if inh.link %}<a href="{{ inh.link }}" class="inline-flex items-center min-h-[44px] font-semibold text-indigo-700 underline underline-offset-2" data-schema-card-inherit-link>{% trans "ändern" %}<span class="sr-only"> – {{ inh.source }}</span></a>{% endif %}
+    {% if inh.link and cp.own %}<span aria-hidden="true">·</span>{% endif %}
+    {% if cp.own %}<form method="post" data-schema-card-reset-form>
+      {% csrf_token %}
+      {% include "tenant/_schema_keep.html" %}
+      <input type="hidden" name="ref" value="{{ selected.ref }}">
+      <input type="hidden" name="panel_present" value="1">
+      <input type="hidden" name="op" value="update">
+      {% for name in cp.reset %}<input type="hidden" name="f_{{ name }}" value="">{% endfor %}
+      <button type="submit" class="inline-flex items-center min-h-[44px] font-semibold text-indigo-700 underline underline-offset-2" data-schema-card-reset>{% trans "zurücksetzen" %}<span class="sr-only"> – {% trans "Kartenform dieses Blocks" %}</span></button>
+    </form>{% endif %}
+  </div>
+</div>
+{% endwith %}
+{% endwith %}

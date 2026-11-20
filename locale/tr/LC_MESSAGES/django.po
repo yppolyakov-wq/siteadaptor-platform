@@ -39447,6 +39447,56 @@ msgstr "Her iki sürüm de kayıtlı kalır — geçiş yapınca hiçbir şey ka
 msgid "fb33-stack-anchor-M3-4"
 msgstr "fb33-stack-anchor-M3-4"
 
+#. FB-33 M3-4: вкладка «Karte» окна блока (макет M0-2)
+msgid "Wie eine Kachel aussieht"
+msgstr "Bir kutucuk nasıl görünür"
+
+#. FB-33 M3-4: вкладка «Karte» окна блока (макет M0-2)
+msgid "Wie eine Zeile aussieht"
+msgstr "Bir satır nasıl görünür"
+
+#. FB-33 M3-4: вкладка «Karte» окна блока (макет M0-2)
+msgid "Kacheln (%(examples)s …) passen nicht zu „%(view)s“ und werden hier nicht angeboten."
+msgstr "Kutucuklar (%(examples)s …) „%(view)s“ görünümüne uymaz ve burada sunulmaz."
+
+#. FB-33 M3-4: вкладка «Karte» окна блока (макет M0-2)
+msgid "Zeilen (%(examples)s …) passen nicht zu „%(view)s“ und werden hier nicht angeboten."
+msgstr "Satırlar (%(examples)s …) „%(view)s“ görünümüne uymaz ve burada sunulmaz."
+
+#. FB-33 M3-4: вкладка «Karte» окна блока (макет M0-2)
+msgid "Wie im Design"
+msgstr "Tasarımdaki gibi"
+
+#. FB-33 M3-4: вкладка «Karte» окна блока (макет M0-2)
+msgid "Kartenform dieses Blocks"
+msgstr "bu bloğun kart biçimi"
+
+#. FB-33 M3-4: вкладка «Karte» окна блока (макет M0-2)
+msgid "anzeigen"
+msgstr "göster"
+
+#. FB-33 M3-4: вкладка «Karte» окна блока (макет M0-2)
+msgid "Kartenform der Kategorie „%(name)s“"
+msgstr "„%(name)s“ kategorisinin kart biçimi"
+
+#. FB-33 M3-4: вкладка «Karte» окна блока (макет M0-2)
+msgid "%(n)s Produkt hat eine eigene Kartenform — sie gilt dort statt dieser"
+msgid_plural "%(n)s Produkte haben eine eigene Kartenform — sie gilt dort statt dieser"
+msgstr[0] "%(n)s ürünün kendi kart biçimi var — orada bunun yerine o geçerli"
+msgstr[1] "%(n)s ürünün kendi kart biçimi var — orada bunun yerine o geçerli"
+
+#. FB-33 M3-4: вкладка «Karte» окна блока (макет M0-2)
+msgid "%(n)s Aktion hat eine eigene Kartenform — sie gilt dort statt dieser"
+msgid_plural "%(n)s Aktionen haben eine eigene Kartenform — sie gilt dort statt dieser"
+msgstr[0] "%(n)s kampanyanın kendi kart biçimi var — orada bunun yerine o geçerli"
+msgstr[1] "%(n)s kampanyanın kendi kart biçimi var — orada bunun yerine o geçerli"
+
+#. FB-33 M3-4: вкладка «Karte» окна блока (макет M0-2)
+msgid "%(n)s Leistung hat eine eigene Kartenform — sie gilt dort statt dieser"
+msgid_plural "%(n)s Leistungen haben eine eigene Kartenform — sie gilt dort statt dieser"
+msgstr[0] "%(n)s hizmetin kendi kart biçimi var — orada bunun yerine o geçerli"
+msgstr[1] "%(n)s hizmetin kendi kart biçimi var — orada bunun yerine o geçerli"
+
 #. FB-33 стопка: якорь среза M3-5a — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
 msgid "fb33-stack-anchor-M3-5a"
 msgstr "fb33-stack-anchor-M3-5a"

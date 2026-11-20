@@ -33,6 +33,7 @@ PART_TAB: dict[str, str] = {
     "views": "wie",  # виды картинками: категорий, товаров, групп
     "switch": "wie",  # смена вида внутри семьи (M2e)
     "listview": "wie",  # FB-33 M3-3c: как выглядит список (группа «Wie … aussehen» своей формой)
+    "card_pick": "karte",  # FB-33 M3-4 (M0-2): форма карточки — только подходящие виду
     "platz": "wie",  # ширина и ряд — секция «Platz» (решение владельца)
     "usp": "texte",  # пункты полосы доверия
     "settings": "seite",  # настройки типа страницы у ★-строки и строк-носителей
@@ -45,6 +46,7 @@ PART_ORDER = (
     "views",
     "switch",
     "listview",
+    "card_pick",
     "fields",
     "formfields",
     "formlink",
@@ -67,6 +69,7 @@ PANEL_KEYS: dict[str, str] = {
     "view_tiles": "switch",  # FB-33 M3-3a: те же виды семьи плитками
     "view_keeps_both": "switch",  # стопка: плашка M0-9 «оба источника текста помнятся» (M3-3d)
     "list_view": "listview",  # FB-33 M3-3c: строка наследования вида списка
+    "card_pick": "card_pick",  # FB-33 M3-4: вкладка «Karte» (`block_card.decorate`)
     "regale_link": "views",  # FB-33 M3-3a (M0-3): у «Regale» — где меняется вид товаров
     "fields": "fields",
     "source_url": "fields",
@@ -137,6 +140,7 @@ def parts(selected: dict | None, ctx: dict) -> list[str]:
         "listview": any(
             g.get("key") == "wie" and g.get("fields") for g in selected.get("groups") or ()
         ),
+        "card_pick": bool(selected.get("card_pick")),
         "fields": bool(selected.get("fields")),
         "platz": bool(selected.get("widths")),
         "usp": bool(selected.get("usp")),

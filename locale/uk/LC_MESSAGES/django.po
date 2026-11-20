@@ -39629,6 +39629,62 @@ msgstr "Обидва варіанти залишаються збережени�
 msgid "fb33-stack-anchor-M3-4"
 msgstr "fb33-stack-anchor-M3-4"
 
+#. FB-33 M3-4: вкладка «Karte» окна блока (макет M0-2)
+msgid "Wie eine Kachel aussieht"
+msgstr "Як виглядає плитка"
+
+#. FB-33 M3-4: вкладка «Karte» окна блока (макет M0-2)
+msgid "Wie eine Zeile aussieht"
+msgstr "Як виглядає рядок"
+
+#. FB-33 M3-4: вкладка «Karte» окна блока (макет M0-2)
+msgid "Kacheln (%(examples)s …) passen nicht zu „%(view)s“ und werden hier nicht angeboten."
+msgstr "Плитки (%(examples)s …) не пасують до вигляду «%(view)s» і тут не пропонуються."
+
+#. FB-33 M3-4: вкладка «Karte» окна блока (макет M0-2)
+msgid "Zeilen (%(examples)s …) passen nicht zu „%(view)s“ und werden hier nicht angeboten."
+msgstr "Рядки (%(examples)s …) не пасують до вигляду «%(view)s» і тут не пропонуються."
+
+#. FB-33 M3-4: вкладка «Karte» окна блока (макет M0-2)
+msgid "Wie im Design"
+msgstr "Як у дизайні"
+
+#. FB-33 M3-4: вкладка «Karte» окна блока (макет M0-2)
+msgid "Kartenform dieses Blocks"
+msgstr "форма картки цього блоку"
+
+#. FB-33 M3-4: вкладка «Karte» окна блока (макет M0-2)
+msgid "anzeigen"
+msgstr "показати"
+
+#. FB-33 M3-4: вкладка «Karte» окна блока (макет M0-2)
+msgid "Kartenform der Kategorie „%(name)s“"
+msgstr "форма картки категорії «%(name)s»"
+
+#. FB-33 M3-4: вкладка «Karte» окна блока (макет M0-2)
+msgid "%(n)s Produkt hat eine eigene Kartenform — sie gilt dort statt dieser"
+msgid_plural "%(n)s Produkte haben eine eigene Kartenform — sie gilt dort statt dieser"
+msgstr[0] "%(n)s товар має власну форму картки — там діє вона, а не ця"
+msgstr[1] "%(n)s товари мають власну форму картки — там діє вона, а не ця"
+msgstr[2] "%(n)s товарів мають власну форму картки — там діє вона, а не ця"
+msgstr[3] "%(n)s товарів мають власну форму картки — там діє вона, а не ця"
+
+#. FB-33 M3-4: вкладка «Karte» окна блока (макет M0-2)
+msgid "%(n)s Aktion hat eine eigene Kartenform — sie gilt dort statt dieser"
+msgid_plural "%(n)s Aktionen haben eine eigene Kartenform — sie gilt dort statt dieser"
+msgstr[0] "%(n)s акція має власну форму картки — там діє вона, а не ця"
+msgstr[1] "%(n)s акції мають власну форму картки — там діє вона, а не ця"
+msgstr[2] "%(n)s акцій мають власну форму картки — там діє вона, а не ця"
+msgstr[3] "%(n)s акцій мають власну форму картки — там діє вона, а не ця"
+
+#. FB-33 M3-4: вкладка «Karte» окна блока (макет M0-2)
+msgid "%(n)s Leistung hat eine eigene Kartenform — sie gilt dort statt dieser"
+msgid_plural "%(n)s Leistungen haben eine eigene Kartenform — sie gilt dort statt dieser"
+msgstr[0] "%(n)s послуга має власну форму картки — там діє вона, а не ця"
+msgstr[1] "%(n)s послуги мають власну форму картки — там діє вона, а не ця"
+msgstr[2] "%(n)s послуг мають власну форму картки — там діє вона, а не ця"
+msgstr[3] "%(n)s послуг мають власну форму картки — там діє вона, а не ця"
+
 #. FB-33 стопка: якорь среза M3-5a — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
 msgid "fb33-stack-anchor-M3-5a"
 msgstr "fb33-stack-anchor-M3-5a"

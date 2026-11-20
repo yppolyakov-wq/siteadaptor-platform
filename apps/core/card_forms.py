@@ -165,3 +165,35 @@ def normalize_for_view(style: str | None, kind: str, card: str) -> str:
     if not shapes or card not in keys_for(kind) or shape_of(card) not in shapes:
         return ""
     return card
+
+
+# ─────────────── FB-33 M3-4: вкладка «Karte» окна блока (макет M0-2) ───────────────
+#
+# План — `docs/fb33-editor-model-2026-11-19.md` §«План M3», срез M3-4. Один предикат
+# «у этого списка форма карточки действует» — его зовут и запись (`siteconfig` выбрасывает
+# форму, которой вид не примет), и панель (поле «Kartenform»), и окно блока (вкладка
+# «Karte» есть только тогда). `kind` — вид карточки источника
+# (`siteconfig.LIST_SOURCES[source]["card"]`; у категорий, отзывов, блога — None).
+
+
+def card_applies(kind: str | None, style: str | None) -> bool:
+    """Действует ли форма карточки у списка источника вида `kind` в виде `style`."""
+    return bool(kind) and view_has_card(style)
+
+
+def own_form(entity, kind: str = PRODUCT, via_category: bool = False) -> str:
+    """Своя форма объекта, которая на сайте побеждает форму блока ("" — своей нет).
+
+    Читает только поля (сырой `card_style`), без запросов: слой категории — лишь при
+    `via_category` (товары; выборка блока уже тянет категорию `select_related`). У акции
+    категорию не трогаем — её форма своя или типа/сайта, а `category` — лишний запрос."""
+    allowed = keys_for(kind)
+    own = (getattr(entity, "card_style", "") or "").strip()
+    if own in allowed:
+        return own
+    if via_category:
+        cat = getattr(entity, "category", None)
+        cat_style = (getattr(cat, "card_style", "") or "").strip() if cat is not None else ""
+        if cat_style in allowed:
+            return cat_style
+    return ""

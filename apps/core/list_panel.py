@@ -467,7 +467,7 @@ def groups(request, cfg: dict, data: dict, mode: str = "") -> list[dict]:
     kind = siteconfig.LIST_SOURCES[source]["card"]
     allowed = {form[0] for form in card_forms.forms_for_view(style, kind)} if kind else set()
     cards = [(k, lab) for k, lab, srcs in hint["cards"] if source in srcs.split() and k in allowed]
-    if kind and cards and card_forms.view_has_card(style):
+    if cards and card_forms.card_applies(kind, style):
         how.append(
             _select(
                 "card",

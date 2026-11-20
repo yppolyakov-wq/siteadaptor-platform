@@ -35,6 +35,7 @@
 {% else %}
   <span class="flex flex-col justify-center gap-0.5 w-20 h-12 shrink-0 rounded ring-1 ring-gray-200 bg-white p-1" aria-hidden="true" data-style-thumb="faq-accordion">{% for _ in "123" %}<span class="flex items-center gap-1 rounded-sm border border-gray-300 px-1 py-0.5"><span class="h-1 flex-1 rounded bg-gray-400"></span><span class="h-1 w-1 rounded-full bg-gray-600"></span></span>{% endfor %}</span>
 {% endif %}
+{% elif src == "card" %}{% include "tenant/_cardform_thumb.html" with key=key|default:selected.card_pick.base %}
 {% elif src == "family" %}
 {% if key == "image_text" %}
   <span class="flex gap-1 w-20 h-12 shrink-0 rounded ring-1 ring-gray-200 bg-white p-1" aria-hidden="true" data-style-thumb="family-image_text"><span class="w-7 rounded-sm bg-gray-400"></span><span class="flex flex-1 flex-col justify-center gap-1"><span class="h-1 w-6 rounded bg-gray-600"></span><span class="h-1 rounded bg-gray-300"></span><span class="h-1 rounded bg-gray-300"></span></span></span>

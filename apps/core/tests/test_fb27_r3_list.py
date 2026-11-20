@@ -233,12 +233,13 @@ def test_untouched_panel_never_changes_the_block(data):
 
 
 def test_card_form_is_chosen_by_tiles_with_a_preview():
-    """FB-30.15: «Kartenform» — плитки с мини-макетом вместо выпадающего списка."""
+    """FB-30.15: «Kartenform» — плитки с мини-макетом вместо выпадающего списка (FB-33 M3-4:
+    во вкладке «Karte»)."""
     b = Browser(_tenant())
     ref = _list(b)
     site_schema.apply(b.tenant, "text", "update", ref=ref, fields={"source": "products"})
     html = b.get(f"?seite=text&block={ref}")
-    tiles = html.split("data-schema-cards", 1)[1].split("</div>", 1)[0]
+    tiles = html.split("data-schema-karte", 1)[1].split("</form>", 1)[0]
     assert 'name="f_card"' in tiles and 'aria-hidden="true"' in tiles
     assert '<select id="schema-l-card"' not in html
 
