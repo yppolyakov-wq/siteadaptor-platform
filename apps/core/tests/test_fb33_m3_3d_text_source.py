@@ -429,10 +429,10 @@ def test_studio_form_caps_texts_with_a_note():
     from apps.core import views
 
     post = QueryDict(mutable=True)
-    post.update({"cb_b1_title": "T" * 300, "cb_b1_body": "B" * 6000, "cb_b1_url": "/x"})
+    post.update({"cb_b1_title": "T" * 300, "cb_b1_body": "B" * 25_000, "cb_b1_url": "/x"})
     notes = []
     data = views._read_cblock_data(post, "b1", "image_text", notes)
-    assert len(data["title"]) == 200 and len(data["body"]) == 5000 and notes
+    assert len(data["title"]) == 200 and len(data["body"]) == 20_000 and notes
 
 
 def test_inactive_fields_match_what_the_cleaner_keeps():

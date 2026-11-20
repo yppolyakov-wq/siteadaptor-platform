@@ -55,7 +55,10 @@ def test_view_switch_never_crosses_section_and_block():
         assert block_catalog.SECTION not in {kinds[a], kinds[b]}
     assert not block_catalog.can_switch("about", "text")
     assert block_catalog.can_switch("text", "image_text")
-    assert not block_catalog.can_switch("text", "textpage")  # другие поля — текст потерялся бы
+    # FB-33 M3-3d (решение владельца): «Von einer Seite ↔ Eigener Text» — оба источника
+    # помнятся (`INACTIVE_FIELDS`), поэтому смена вида без потерь
+    assert block_catalog.can_switch("text", "textpage")
+    assert not block_catalog.can_switch("text", "button")
 
 
 def test_catalog_does_not_import_siteconfig_at_module_level():

@@ -591,7 +591,9 @@ def _own_text_remembered(d: dict) -> dict:
 
 #: FB-33 M3-3d (ревью): потолки длины текстов блоков «Text» / «Foto + Text» на ВВОДЕ —
 #: одни для активного и запомненного вида (запомненное — это прежний активный текст).
-CBLOCK_TEXT_CAPS = {"title": 200, "body": 5000, "url": 500}
+#: Тело — 20 000 знаков: длинный текст панель не режет (замок FB-27 R3 `test_long_text_is_not_cut_off`
+#: — 12 000 знаков); потолок лишь от мусора, и с сообщением, не молча.
+CBLOCK_TEXT_CAPS = {"title": 200, "body": 20_000, "url": 500}
 _CAPPED_BLOCKS = frozenset({"text", "image_text"})
 
 
