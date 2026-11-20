@@ -39841,3 +39841,49 @@ msgstr "Bei kostenlosen Angeboten: „%(label)s“."
 #. FB-33 M3-6
 msgid "Hier werden keine Angaben abgefragt"
 msgstr "Hier werden keine Angaben abgefragt"
+
+#. FB-33 M3-6
+#, python-format
+msgid "%(n)s Seite hinzugefügt."
+msgid_plural "%(n)s Seiten hinzugefügt."
+msgstr[0] "%(n)s Seite hinzugefügt."
+msgstr[1] "%(n)s Seiten hinzugefügt."
+
+#. FB-33 M3-6
+#, python-format
+msgid "%(name)s entfernen"
+msgstr "%(name)s entfernen"
+
+#. FB-33 M3-6
+msgid "„Nicht mehr verfügbar“ entfernen"
+msgstr "„Nicht mehr verfügbar“ entfernen"
+
+#. FB-33 M3-6
+#, python-format
+msgid "„%(name)s“ entfernt."
+msgstr "„%(name)s“ entfernt."
+
+#. FB-33 M3-6
+msgid "Ansicht aller Kategorie-Seiten"
+msgstr "Ansicht aller Kategorie-Seiten"
+
+#. FB-33 M3-6
+msgid "Bitte mindestens 3 Zeichen eingeben."
+msgstr "Bitte mindestens 3 Zeichen eingeben."
+
+#. FB-33 M3-6
+msgid "Die Banner-Bibliothek ist gerade nicht erreichbar. Bitte später noch einmal versuchen."
+msgstr "Die Banner-Bibliothek ist gerade nicht erreichbar. Bitte später noch einmal versuchen."
+
+#. FB-33 M3-6
+#, python-format
+msgid "Nicht alle Seiten passen zu diesem Banner – „Wo zeigen“ wurde auf die ersten %(n)s Seiten gekürzt."
+msgstr "Nicht alle Seiten passen zu diesem Banner – „Wo zeigen“ wurde auf die ersten %(n)s Seiten gekürzt."
+
+#. FB-33 M3-6
+msgid "feste Position"
+msgstr "feste Position"
+
+#. FB-33 M3-6
+msgid "„Wo zeigen“ wurde nicht übernommen: Dafür fehlt das Recht, Banner zu bearbeiten."
+msgstr "„Wo zeigen“ wurde nicht übernommen: Dafür fehlt das Recht, Banner zu bearbeiten."

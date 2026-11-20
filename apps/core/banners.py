@@ -776,8 +776,9 @@ def _targets(kind: str, values) -> list:
     return out
 
 
-def place_labels(values) -> dict:
-    """Ключ места → «Группа: название» для существующих страниц (по запросу на вид)."""
+def place_labels(values, strict: bool = False) -> dict:
+    """Ключ места → «Группа: название» для существующих страниц (по запросу на вид).
+    `strict` (FB-33 M3-6): ошибка базы — исключение, а не «такой страницы нет»."""
     from django.db import DatabaseError
 
     by_kind: dict = {}
@@ -795,6 +796,8 @@ def place_labels(values) -> dict:
                 out[f"{kind}:{getattr(obj, field)}"] = f"{group}: {_place_label(obj)}"
         except DatabaseError:
             logging.getLogger(__name__).exception("banner places: labels failed for %s", kind)
+            if strict:
+                raise
     return out
 
 

@@ -1221,6 +1221,8 @@ def blocks_for(
                 "fixed": True,
                 # FB-33 M3-6: закреплённая правовая строка (🔒, без ручки; § 312j BGB)
                 "pinned": True,
+                # бросок на «Kaufen» в первом экране ставит блок ПОСЛЕ неё — подсветка честная
+                "drop_after": host in _dp.KAUF_FIRST,
                 "summary": "",
             },
         )

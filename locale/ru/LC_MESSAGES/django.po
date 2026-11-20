@@ -40103,3 +40103,51 @@ msgstr "У бесплатных предложений: «%(label)s»."
 #. FB-33 M3-6
 msgid "Hier werden keine Angaben abgefragt"
 msgstr "Здесь ничего не спрашивается"
+
+#. FB-33 M3-6
+#, python-format
+msgid "%(n)s Seite hinzugefügt."
+msgid_plural "%(n)s Seiten hinzugefügt."
+msgstr[0] "Добавлена %(n)s страница."
+msgstr[1] "Добавлено %(n)s страницы."
+msgstr[2] "Добавлено %(n)s страниц."
+msgstr[3] "Добавлено %(n)s страницы."
+
+#. FB-33 M3-6
+#, python-format
+msgid "%(name)s entfernen"
+msgstr "Убрать %(name)s"
+
+#. FB-33 M3-6
+msgid "„Nicht mehr verfügbar“ entfernen"
+msgstr "Убрать «Больше недоступна»"
+
+#. FB-33 M3-6
+#, python-format
+msgid "„%(name)s“ entfernt."
+msgstr "«%(name)s» убрана."
+
+#. FB-33 M3-6
+msgid "Ansicht aller Kategorie-Seiten"
+msgstr "вид всех страниц категорий"
+
+#. FB-33 M3-6
+msgid "Bitte mindestens 3 Zeichen eingeben."
+msgstr "Введите не меньше 3 символов."
+
+#. FB-33 M3-6
+msgid "Die Banner-Bibliothek ist gerade nicht erreichbar. Bitte später noch einmal versuchen."
+msgstr "Библиотека баннеров сейчас недоступна. Попробуйте позже."
+
+#. FB-33 M3-6
+#, python-format
+msgid "Nicht alle Seiten passen zu diesem Banner – „Wo zeigen“ wurde auf die ersten %(n)s Seiten gekürzt."
+msgstr "Не все страницы помещаются — «Где показывать» сокращено до первых %(n)s страниц."
+
+#. FB-33 M3-6
+msgid "feste Position"
+msgstr "закреплённое место"
+
+#. FB-33 M3-6
+msgid "„Wo zeigen“ wurde nicht übernommen: Dafür fehlt das Recht, Banner zu bearbeiten."
+msgstr "«Где показывать» не применено: нет права править баннеры."

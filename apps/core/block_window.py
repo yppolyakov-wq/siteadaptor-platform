@@ -124,6 +124,7 @@ ROW_KEYS = frozenset(
         "shape",
         "fixed",
         "pinned",
+        "drop_after",  # FB-33 M3-6: закреплённая строка — цель броска только «после»
         "width",
         "newline",
         "width_label",

@@ -39900,3 +39900,49 @@ msgstr "Ücretsiz tekliflerde: „%(label)s“."
 #. FB-33 M3-6
 msgid "Hier werden keine Angaben abgefragt"
 msgstr "Burada bilgi istenmez"
+
+#. FB-33 M3-6
+#, python-format
+msgid "%(n)s Seite hinzugefügt."
+msgid_plural "%(n)s Seiten hinzugefügt."
+msgstr[0] "%(n)s sayfa eklendi."
+msgstr[1] "%(n)s sayfa eklendi."
+
+#. FB-33 M3-6
+#, python-format
+msgid "%(name)s entfernen"
+msgstr "%(name)s kaldır"
+
+#. FB-33 M3-6
+msgid "„Nicht mehr verfügbar“ entfernen"
+msgstr "„Artık mevcut değil“ kaldır"
+
+#. FB-33 M3-6
+#, python-format
+msgid "„%(name)s“ entfernt."
+msgstr "„%(name)s“ kaldırıldı."
+
+#. FB-33 M3-6
+msgid "Ansicht aller Kategorie-Seiten"
+msgstr "tüm kategori sayfalarının görünümü"
+
+#. FB-33 M3-6
+msgid "Bitte mindestens 3 Zeichen eingeben."
+msgstr "Lütfen en az 3 karakter girin."
+
+#. FB-33 M3-6
+msgid "Die Banner-Bibliothek ist gerade nicht erreichbar. Bitte später noch einmal versuchen."
+msgstr "Banner kütüphanesine şu anda ulaşılamıyor. Lütfen daha sonra tekrar deneyin."
+
+#. FB-33 M3-6
+#, python-format
+msgid "Nicht alle Seiten passen zu diesem Banner – „Wo zeigen“ wurde auf die ersten %(n)s Seiten gekürzt."
+msgstr "Tüm sayfalar bu banner'a sığmıyor – „Nerede gösterilsin“ ilk %(n)s sayfaya kısaltıldı."
+
+#. FB-33 M3-6
+msgid "feste Position"
+msgstr "sabit konum"
+
+#. FB-33 M3-6
+msgid "„Wo zeigen“ wurde nicht übernommen: Dafür fehlt das Recht, Banner zu bearbeiten."
+msgstr "„Nerede gösterilsin“ uygulanmadı: banner düzenleme yetkisi yok."

@@ -840,10 +840,12 @@ function aufbauSubmitCopy(form, submitter) {
 
   function side(li, e) {
     var box = li.getBoundingClientRect();
+    // FB-33 M3-6 (ревью): у закреплённой строки, перед которой блок встать не может, — только «после»
+    var only = li.getAttribute("data-schema-drop-only");
     // ряд бывает и вертикальным (вид «Telefon», узкий экран) — смотрим на действующую ось
     var inRow = li.parentElement && li.parentElement.children.length > 1 &&
       getComputedStyle(li.parentElement).flexDirection.indexOf("row") === 0;
-    var after = inRow ? e.clientX > box.left + box.width / 2 : e.clientY > box.top + box.height / 2;
+    var after = only ? only === "after" : inRow ? e.clientX > box.left + box.width / 2 : e.clientY > box.top + box.height / 2;
     return { after: after, inRow: inRow };
   }
 

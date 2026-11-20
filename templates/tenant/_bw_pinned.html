@@ -8,8 +8,9 @@
 <div class="mt-4" data-schema-legal-label>
   <label for="schema-legal-label" class="block text-sm font-semibold text-gray-700 mb-1">{{ lg.field_label }}</label>
   <div class="relative">
-    <input type="text" id="schema-legal-label" value="{{ lg.label }}" readonly aria-readonly="true" aria-describedby="schema-legal-label-note" class="ui-input w-full cursor-not-allowed bg-gray-100 pr-10 text-gray-800">
-    <span class="pointer-events-none absolute inset-y-0 right-3 flex items-center" aria-hidden="true">🔒</span>
+    {% comment %}a11y (ревью): textarea только для чтения — подпись видна целиком и на 390 (переносится), без name.{% endcomment %}
+    <textarea id="schema-legal-label" rows="2" readonly aria-readonly="true" aria-describedby="schema-legal-label-note" class="ui-input w-full cursor-not-allowed bg-gray-100 pr-10 text-gray-800">{{ lg.label }}</textarea>
+    <span class="pointer-events-none absolute top-3 right-3" aria-hidden="true">🔒</span>
   </div>
   <p id="schema-legal-label-note" class="mt-1 text-xs text-gray-700">{{ lg.fixed_note }}{% if lg.free %} {{ lg.free }}{% endif %}</p>
 </div>

@@ -622,6 +622,7 @@ def _snapshot(tenant, code, host, draft, ref, token="", codes=(), source=None) -
         proto["next"] = ["next" in source, source.get("next")]
     if ref == site_schema.PAGE_REF:  # FB-33 M3-6: SEO страницы — в окне «Einstellungen»
         proto["seo"] = ["seo" in source, copy.deepcopy(source.get("seo"))]
+        proto["seo_base"] = ["seo_base" in source, copy.deepcopy(source.get("seo_base"))]
     if at is not None and site_schema.banner_place(items[at]):  # M3-6: «Wo zeigen»
         keys = dict(SIDE_PARTS)["show_on"]
         proto["show_on"] = {k: copy.deepcopy(source[k]) for k in keys if k in source}
@@ -684,9 +685,13 @@ def _revert(draft: dict, ref: str, proto: dict) -> None:
     if proto.get("item") is not None:
         items.insert(_place(items, proto), proto["item"])
     draft["items"] = items
-    for key in ("title", "next", "seo"):  # FB-33 M3-6: SEO страницы
+    for key in ("title", "next", "seo", "seo_base"):  # FB-33 M3-6: SEO страницы
         if key in proto:
             _restore_key(draft, key, proto[key])
+    if isinstance(proto.get("seo"), list) and not proto["seo"][0]:
+        # M3-6 (ревью): черновик, начатый до SEO в окне, — правка пересчитала отпечаток с SEO;
+        # ключ снят — и отпечаток прежний
+        draft["base"] = proto.get("base")
     for part, keys in SIDE_PARTS:
         # FB-33 M2i-5 «Felder», M3-5b вопросы FAQ — как при открытии окна
         if isinstance(proto.get(part), dict):
@@ -758,7 +763,10 @@ def cancel(request, tenant, code: str, ref: str, token: str = "") -> str:
         _drop_snapshot(draft, ref)
         _settle(request, code, draft, saved, ref)
         return CANCEL_NOTHING
-    if proto.get("base") != _base_fingerprint(saved, config, draft):
+    probe = draft
+    if isinstance(proto.get("seo"), list) and not proto["seo"][0]:
+        probe = {k: v for k, v in draft.items() if k != "seo"}  # M3-6: черновик до SEO в окне
+    if proto.get("base") != _base_fingerprint(saved, config, probe):
         return CANCEL_CONFLICT
     _revert(draft, ref, proto)
     _check_normalized(config, draft, home, host)

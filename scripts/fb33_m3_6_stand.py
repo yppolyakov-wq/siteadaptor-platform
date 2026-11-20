@@ -236,6 +236,12 @@ def banner_window(pg, host, out, w, lang):
         pg.locator(f"{DLG} [data-schema-place='category:brot']").count() == 1,
         f"{w} {lang}: место добавлено чипом",
     )
+    said = pg.locator(f"{DLG} [data-schema-places-said]").text_content().strip()
+    focus = pg.evaluate("() => document.activeElement && document.activeElement.id")
+    check(
+        said and focus == "schema-tab-places",
+        f"{w} {lang}: итог объявлен, фокус на «Wo zeigen» ({said}, {focus})",
+    )
     small = small_targets(pg)
     check(not small, f"{w} {lang}: цели окна баннера не ниже 44 px ({small[:4]})")
     pg.locator(f"{DLG} [data-window-actions] button[value=revert]").click()
@@ -266,7 +272,8 @@ def pinned(pg, host, out, w, lang):
           const li = document.querySelector('[data-schema-pinned="summary"]');
           return {title: d.querySelector('#schema-panel-title').textContent,
             plaque: (d.querySelector('[data-schema-legal]') || {}).textContent || '',
-            field: f && {ro: f.readOnly, name: f.getAttribute('name'), form: !!f.form, value: f.value},
+            field: f && {ro: f.readOnly, name: f.getAttribute('name'), form: !!f.form, value: f.value,
+              whole: f.scrollHeight <= f.clientHeight + 1},
             tabs: [...d.querySelectorAll('[role=tab]')].map(t => t.textContent.trim()),
             lock: li && li.textContent.includes('🔒'), drag: li && li.getAttribute('draggable')} }""",
         DLG,
@@ -278,6 +285,7 @@ def pinned(pg, host, out, w, lang):
         f.get("ro") and f.get("name") is None and not f.get("form"),
         f"{w} {lang}: подпись кнопки — только чтение, без name и вне формы",
     )
+    check(f.get("whole"), f"{w} {lang}: подпись кнопки видна целиком (перенос)")
     check(len(info["tabs"]) == 2, f"{w} {lang}: две вкладки ({info['tabs']})")
     check(info["lock"] and info["drag"] is None, f"{w} {lang}: в списке 🔒, без перетаскивания")
     pg.screenshot(path=f"{out}/m36-pinned-{w}-{lang}.png")

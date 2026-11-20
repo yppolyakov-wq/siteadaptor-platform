@@ -67,6 +67,7 @@ def test_tile_captions_say_when_and_where():
     today = timezone.localdate()
     soon = today + datetime.timedelta(days=5)
     ends = today + datetime.timedelta(days=10)
+    _cat("brot")
     a = _banner("Herbst", ends=ends, show_on=["category:brot", "category:x"])
     _banner("Stollen", starts=soon)
     c = _banner("Frühstück")
@@ -76,7 +77,8 @@ def test_tile_captions_say_when_and_where():
     tenant.save()
     html = _panel(Browser(tenant).get("?seite=text&block=bn1"))
     caps = re.findall(r"data-schema-banner-caption>([^<]*)<", html)
-    assert f"bis {ends.day:02d}.{ends.month:02d}. · 3 Seiten" in caps  # 2 места + этот блок
+    # «Über uns» (выбор в блоке) + «brot»; несуществующая «x» не считается (ревью M3-6)
+    assert f"bis {ends.day:02d}.{ends.month:02d}. · 2 Seiten" in caps
     assert f"ab {soon.day:02d}.{soon.month:02d}. · geplant" in caps
     assert "immer · Startseite" in caps
     assert "ausgeblendet" in caps

@@ -22,7 +22,9 @@
 from __future__ import annotations
 
 import logging
+import uuid
 
+from django.db import DatabaseError, connection
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext as _
@@ -36,8 +38,16 @@ SHOW_ON_KEY = "show_on"
 BASE_KEY = "show_on_base"
 SHOW_ON_KEYS = (SHOW_ON_KEY, BASE_KEY)
 PLACES_OP = "places"
-#: поиск мест (`?wo=`): потолок длины запроса
+#: поиск мест (`?wo=`): потолок длины запроса и минимум (короче — без фильтра в базе
+#: `place_search` читал бы до 2000 записей каждого вида)
 QUERY_MAX = 80
+QUERY_MIN = 3
+#: сессия: что сделала последняя кнопка «Wo zeigen» (живая область окна, один раз)
+SAID_KEY = "aufbau_places_said"
+
+
+def _schema() -> str:
+    return getattr(connection, "schema_name", "") or ""
 
 
 def is_places_edit(op_name: str) -> bool:
@@ -70,8 +80,24 @@ def state(draft: dict | None, pk: str, saved) -> list[str]:
 # ───────────── подписи плиток: одна карта мест на окно ─────────────
 
 
+def _host_key(host: str) -> str:
+    """Хост блоков страницы → ключ места «Wo zeigen» (та же страница — один счёт)."""
+    from apps.core import banners, detail_parts
+    from apps.tenants import siteconfig
+
+    if host.startswith(siteconfig.CATEGORY_HOST_PREFIX):
+        return f"category:{host.removeprefix(siteconfig.CATEGORY_HOST_PREFIX)}"
+    kind = detail_parts.object_kind(host)
+    if kind in banners.SHOW_ON_TYPES:
+        try:
+            return f"{kind}:{uuid.UUID(host.split(':', 1)[1])}"
+        except ValueError:
+            return host
+    return host
+
+
 def _place_map(config: dict) -> tuple[set[str], dict[str, set[str]]]:
-    """(баннеры главной, баннер → хосты страниц, где он выбран в блоке) — один проход."""
+    """(баннеры главной, баннер → места страниц, где он выбран в блоке) — один проход."""
     from apps.core import banners
 
     home: set[str] = set()
@@ -81,7 +107,7 @@ def _place_map(config: dict) -> tuple[set[str], dict[str, set[str]]]:
             if place == "home":
                 home.add(pk)
             else:
-                hosts.setdefault(pk, set()).add(place)
+                hosts.setdefault(pk, set()).add(_host_key(place))
     return home, hosts
 
 
@@ -110,9 +136,8 @@ def caption(row: dict, home: bool, pages: int, today) -> str:
     return " · ".join(parts)
 
 
-def _library(pks) -> dict[str, dict]:
-    from django.db import DatabaseError
-
+def _library(pks) -> dict[str, dict] | None:
+    """Строки библиотеки по pk; None — библиотека недоступна (ошибка базы), а не «нет баннера»."""
     from apps.core.models import Banner
 
     if not pks:
@@ -123,8 +148,19 @@ def _library(pks) -> dict[str, dict]:
         )
         return {str(r["pk"]): r for r in rows}
     except DatabaseError:
-        logger.exception("banner window: library unavailable")
-        return {}
+        logger.exception("banner window: library unavailable (schema %s)", _schema())
+        return None
+
+
+def _labels(values) -> dict | None:
+    """Подписи существующих мест; None — проверить нельзя (ошибка базы)."""
+    from apps.core import banners
+
+    try:
+        return banners.place_labels(values, strict=True)
+    except DatabaseError:
+        logger.exception("banner window: place labels unavailable (schema %s)", _schema())
+        return None
 
 
 def _edit_url(request, pk: str) -> str:
@@ -141,14 +177,23 @@ def decorate(selected, config: dict, draft: dict | None, request) -> None:
     pick = selected["banner_pick"]
     rows = [*(pick.get("entries") or ()), *(pick.get("offers") or ())]
     library = _library({r["pk"] for r in rows})
+    entries = pick.get("entries") or []
+    if library is None:
+        # библиотека недоступна: не молчать — окно говорит, что места сейчас не показать
+        if len(entries) == 1 and not pick.get("from_page"):
+            selected["places"] = {"unavailable": True}
+        return
     home, hosts = _place_map(config)
+    # места «Wo zeigen» — только существующие (один запрос на вид на всё окно)
+    wanted = {v for r in library.values() for v in _clean(r.get("show_on"))}
+    known = _labels(sorted(wanted)) if wanted else {}
     today = timezone.localdate()
     for row in rows:
         found = library.get(row["pk"])
         if found is not None:
-            pages = len(hosts.get(row["pk"], ())) + len(_clean(found.get("show_on")))
-            row["caption"] = caption(found, row["pk"] in home, pages, today)
-    entries = pick.get("entries") or []
+            places = set(hosts.get(row["pk"], ()))
+            places |= {v for v in _clean(found.get("show_on")) if known is None or v in known}
+            row["caption"] = caption(found, row["pk"] in home, len(places), today)
     if pick.get("from_page") or pick.get("unavailable"):
         return
     if len(entries) > 1:
@@ -160,15 +205,21 @@ def decorate(selected, config: dict, draft: dict | None, request) -> None:
         selected["places"] = places_panel(
             request, draft, entries[0]["pk"], library[entries[0]["pk"]], entries[0]["pk"] in home
         )
+        session = getattr(request, "session", None)
+        if session is not None:
+            selected["places"]["said"] = session.pop(SAID_KEY, "")
 
 
 def places_panel(request, draft, pk: str, row: dict, on_home: bool) -> dict:
     from apps.core import banners
 
     current = state(draft, pk, row.get("show_on"))
-    labels = banners.place_labels(current)
+    labels = _labels(current) if current else {}
+    if labels is None:
+        return {"unavailable": True}
     query = (request.GET.get("wo") or "").strip()[:QUERY_MAX]
     allowed = bool(_edit_url(request, pk))
+    searchable = len(query) >= QUERY_MIN
     return {
         "pk": pk,
         "chips": [
@@ -176,7 +227,8 @@ def places_panel(request, draft, pk: str, row: dict, on_home: bool) -> dict:
         ],
         "home": on_home,
         "query": query,
-        "results": banners.place_search(query, exclude=current) if query and allowed else [],
+        "results": banners.place_search(query, exclude=current) if searchable and allowed else [],
+        "short": bool(query) and not searchable,
         "full": len(current) >= banners.SHOW_ON_MAX,
         "allowed": allowed,
     }
@@ -219,8 +271,10 @@ def places_op(request, config: dict, draft: dict, code: str, host: str, ref: str
     from apps.core import banners
     from apps.core.models import Banner
 
+    if not ref:
+        raise site_schema.SchemaError("op")  # ревью: без блока выбор баннера не определить
     pk = _chosen(config, draft, code, host, ref)
-    if not pk:
+    if not isinstance(pk, str) or not pk:
         raise site_schema.SchemaError("op")
     _rights(request, pk)
     banner = Banner.objects.filter(pk=pk).first()
@@ -235,17 +289,23 @@ def places_op(request, config: dict, draft: dict, code: str, host: str, ref: str
         if gone not in current:
             return ref  # уже убрано (вторая вкладка) — не ошибка
         current = [v for v in current if v != gone]
+        said = _("„%(name)s“ entfernt.") % {"name": _labels_quiet([gone]).get(gone, gone)}
     elif value == "add":
         wanted = [v for v in post.getlist("wo_add") if v not in current][: banners.SHOW_ON_MAX]
         if not wanted:
             return ref
-        known = banners.place_labels(wanted)
+        known = _labels(wanted)
+        if known is None:
+            raise site_schema.SchemaError("banner_unavailable")
         if any(v not in known for v in wanted):
             # IDOR-замок: черновая/выключенная/чужая/выдуманная страница — отказ целиком
             raise site_schema.SchemaError("banner_place")
         if len(current) + len(wanted) > banners.SHOW_ON_MAX:
             raise site_schema.SchemaError("banner_full")
         current = [*current, *wanted]
+        said = ngettext("%(n)s Seite hinzugefügt.", "%(n)s Seiten hinzugefügt.", len(wanted)) % {
+            "n": len(wanted)
+        }
     else:
         raise site_schema.SchemaError("op")
     pending = dict(draft.get(SHOW_ON_KEY) or {})
@@ -261,7 +321,14 @@ def places_op(request, config: dict, draft: dict, code: str, host: str, ref: str
             draft[key] = part
         else:
             draft.pop(key, None)
+    session = getattr(request, "session", None)
+    if session is not None:
+        session[SAID_KEY] = said  # a11y (ревью): итог кнопки — живой областью окна
     return ref
+
+
+def _labels_quiet(values) -> dict:
+    return _labels(values) or {}
 
 
 def conflict(draft: dict) -> bool:
@@ -270,6 +337,8 @@ def conflict(draft: dict) -> bool:
     if not isinstance(base, dict) or not base or SHOW_ON_KEY not in draft:
         return False
     library = _library(base)
+    if library is None:
+        return False  # библиотека недоступна — не «изменено в библиотеке»; запись проверит
     return any(_clean((library.get(pk) or {}).get("show_on")) != was for pk, was in base.items())
 
 
@@ -293,6 +362,23 @@ def conflict_note() -> str:
     )
 
 
+def cut_note() -> str:
+    return _(
+        "Nicht alle Seiten passen zu diesem Banner – „Wo zeigen“ wurde auf die ersten "
+        "%(n)s Seiten gekürzt."
+    )
+
+
+def rights_note() -> str:
+    return _("„Wo zeigen“ wurde nicht übernommen: Dafür fehlt das Recht, Banner zu bearbeiten.")
+
+
+def unavailable_note() -> str:
+    return _(
+        "Die Banner-Bibliothek ist gerade nicht erreichbar. Bitte später noch einmal versuchen."
+    )
+
+
 def gone_note() -> str:
     return _("Einige Seiten gibt es nicht mehr – sie wurden bei „Wo zeigen“ nicht übernommen.")
 
@@ -313,7 +399,11 @@ def commit(config: dict, draft: dict, code: str, host: str, *, force, notes, req
             if notes is not None:
                 notes.append(dropped_note())
             continue
-        _rights(request, pk)
+        if not _edit_url(request, pk):
+            # право на библиотеку отозвали: страница сохраняется, места — нет (с пометкой)
+            if notes is not None:
+                notes.append(rights_note())
+            continue
         locked = Banner.objects.select_for_update().filter(pk=pk).first()
         if locked is None:
             if notes is not None:
@@ -327,12 +417,17 @@ def commit(config: dict, draft: dict, code: str, host: str, *, force, notes, req
                 raise site_schema.SchemaError("show_on_conflict")
             result = merge(was, result, current)
         added = [v for v in result if v not in current]
-        known = banners.place_labels(added) if added else {}
+        known = _labels(added) if added else {}
+        if known is None:
+            raise site_schema.SchemaError("banner_unavailable")  # черновик остаётся
         if any(v not in known for v in added):
             result = [v for v in result if v in current or v in known]
             if notes is not None:
                 notes.append(gone_note())
-        result = result[: banners.SHOW_ON_MAX]
+        if len(result) > banners.SHOW_ON_MAX:
+            result = result[: banners.SHOW_ON_MAX]
+            if notes is not None:
+                notes.append(cut_note() % {"n": banners.SHOW_ON_MAX})
         if result != (locked.show_on or []):
             locked.show_on = result
             locked.save(update_fields=["show_on", "updated_at"])

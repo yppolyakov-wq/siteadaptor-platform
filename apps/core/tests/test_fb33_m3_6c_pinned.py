@@ -91,8 +91,8 @@ def test_lock_in_list_and_window_title_but_not_on_shared_rows():
 def test_cart_summary_window_shows_the_plaque_and_a_read_only_label():
     html = _panel(Browser(_shop()).get("?seite=cart&block=summary"))
     assert PLAQUE in html
-    field = re.search(r'<input[^>]*id="schema-legal-label"[^>]*>', html).group(0)
-    assert 'value="Zahlungspflichtig bestellen"' in field and "readonly" in field
+    field = re.search(r'<textarea[^>]*id="schema-legal-label"[^>]*>[^<]*</textarea>', html).group(0)
+    assert ">Zahlungspflichtig bestellen</textarea>" in field and "readonly" in field
     assert "name=" not in field, "поле подписи не отправляется ни одной формой"
     forms = re.findall(r"<form\b.*?</form>", html, re.S)
     assert all("schema-legal-label" not in f for f in forms)
@@ -102,7 +102,7 @@ def test_cart_summary_window_shows_the_plaque_and_a_read_only_label():
 
 def test_quote_cart_window_label_follows_the_storefront():
     html = _panel(Browser(_shop({**CFG, "quote_cart": True})).get("?seite=cart&block=summary"))
-    assert 'value="Unverbindlich anfragen"' in html and PLAQUE not in html
+    assert ">Unverbindlich anfragen</textarea>" in html and PLAQUE not in html
 
 
 def test_buchung_has_its_own_text_and_kaufen_no_button_field():

@@ -1,7 +1,12 @@
 {% load i18n %}{% comment %}FB-33 M3-6 (M0-7): «Wo zeigen» единственного баннера блока — на каких страницах он показывается ещё (Banner.show_on). Чипы × и «Hinzufügen» идут в черновик страницы (запись — по «Speichern», «Abbrechen» возвращает); поиск — обычная GET-форма (?wo=); «Startseite» — только чтение (её задаёт блок «Banner» главной).{% endcomment %}
 {% with pl=selected.places %}
-<section class="mt-5 space-y-2 border-t border-gray-200 pt-4" aria-labelledby="schema-places-title" data-schema-places>
-  <h3 id="schema-places-title" class="text-sm font-bold text-gray-900">{% trans "Wo zeigen" %}</h3>
+<section class="mt-5 space-y-2 border-t border-gray-200 pt-4" aria-labelledby="schema-tab-places" data-schema-places>
+  {% comment %}id «schema-tab-places» — после кнопки фокус приходит сюда (aufbau.js ставит фокус по якорю #schema-tab-…).{% endcomment %}
+  <h3 id="schema-tab-places" tabindex="-1" class="text-sm font-bold text-gray-900 scroll-mt-20 focus:outline-none">{% trans "Wo zeigen" %}</h3>
+  <p role="status" class="text-sm font-semibold text-green-800" data-schema-places-said>{{ pl.said }}</p>
+  {% if pl.unavailable %}
+  <p role="alert" class="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900" data-schema-places-unavailable>{% trans "Die Banner-Bibliothek ist gerade nicht erreichbar. Bitte später noch einmal versuchen." %}</p>
+  {% else %}
   <p class="text-xs text-gray-700">{% trans "Der Banner erscheint zusätzlich auf diesen Seiten – dort, wo die Seite Banner zeigt." %}</p>
   {% if pl.home or pl.chips %}
   <form method="post" data-schema-places-chips>
@@ -14,7 +19,7 @@
       {% for c in pl.chips %}
       <li class="inline-flex items-center gap-1 rounded-full border {% if c.missing %}border-amber-500 bg-amber-50{% else %}border-indigo-300 bg-indigo-50{% endif %} pl-3 text-sm text-gray-900" data-schema-place="{{ c.value }}">
         <span class="break-words">{% if c.missing %}{% trans "Nicht mehr verfügbar" %}{% else %}{{ c.label }}{% endif %}</span>
-        {% if pl.allowed %}<button type="submit" name="value" value="del:{{ c.value }}" class="inline-flex items-center justify-center min-h-[44px] min-w-[44px] rounded-full text-gray-700 hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600" aria-label="{% trans 'Entfernen' %}: {% if c.missing %}{% trans 'Nicht mehr verfügbar' %}{% else %}{{ c.label }}{% endif %}">×</button>{% endif %}
+        {% if pl.allowed %}<button type="submit" name="value" value="del:{{ c.value }}" class="inline-flex items-center justify-center min-h-[44px] min-w-[44px] rounded-full text-gray-700 hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600" aria-label="{% if c.missing %}{% blocktrans %}„Nicht mehr verfügbar“ entfernen{% endblocktrans %}{% else %}{% blocktrans with name=c.label %}{{ name }} entfernen{% endblocktrans %}{% endif %}">×</button>{% endif %}
       </li>
       {% endfor %}
     </ul>
@@ -23,14 +28,16 @@
   <p class="text-sm text-gray-700" data-schema-places-none>{% trans "Noch auf keiner weiteren Seite." %}</p>
   {% endif %}
   {% if pl.allowed and not pl.full %}
-  <form method="get" action="#schema-places-title" class="flex gap-2" role="search" data-schema-places-search>
+  <form method="get" action="#schema-tab-places" class="flex gap-2" role="search" data-schema-places-search>
     {% include "tenant/_schema_keep.html" %}
     <input type="hidden" name="block" value="{{ selected.ref }}">
     <label class="flex-1 min-w-0"><span class="sr-only">{% trans "Seiten suchen" %}</span>
       <input type="search" name="wo" value="{{ pl.query }}" maxlength="80" placeholder="{% trans 'Seite, Kategorie oder Produkt suchen' %}" class="ui-input w-full"></label>
     <button type="submit" class="ui-btn ui-btn-secondary min-h-[44px]">{% trans "Suchen" %}</button>
   </form>
-  {% if pl.query %}
+  {% if pl.short %}
+  <p class="text-sm text-gray-700" role="status">{% trans "Bitte mindestens 3 Zeichen eingeben." %}</p>
+  {% elif pl.query %}
   {% if pl.results %}
   <form method="post" class="space-y-2" data-schema-places-add>
     {% csrf_token %}
@@ -41,11 +48,11 @@
     <fieldset>
       <legend class="text-xs font-semibold text-gray-700">{{ g.label }}</legend>
       <ul class="mt-1 space-y-1">
-        {% for it in g.items %}<li><label class="flex items-center gap-2 min-h-[44px] rounded-lg border border-gray-300 px-3 text-sm cursor-pointer has-[:checked]:border-indigo-700 has-[:checked]:bg-indigo-50"><input type="checkbox" name="wo_add" value="{{ it.value }}" class="rounded border-gray-500"> <span class="flex-1 break-words">{{ it.label }}</span> <span class="text-xs text-gray-600">{{ g.label }}</span></label></li>{% endfor %}
+        {% for it in g.items %}<li><label class="flex items-center gap-2 min-h-[44px] rounded-lg border border-gray-300 px-3 text-sm cursor-pointer has-[:checked]:border-indigo-700 has-[:checked]:bg-indigo-50"><input type="checkbox" name="wo_add" value="{{ it.value }}" class="rounded border-gray-500"> <span class="flex-1 break-words">{{ it.label }}</span></label></li>{% endfor %}
       </ul>
     </fieldset>
     {% endfor %}
-    <button name="value" value="add" class="ui-btn ui-btn-primary w-full">{% trans "Hinzufügen" %}</button>
+    <button name="value" value="add" class="ui-btn ui-btn-primary w-full min-h-[44px]">{% trans "Hinzufügen" %}</button>
   </form>
   {% else %}
   <p class="text-sm text-gray-700" role="status">{% trans "Nichts gefunden." %}</p>
@@ -53,6 +60,7 @@
   {% endif %}
   {% elif pl.full %}
   <p class="text-xs text-gray-700">{% trans "Mehr Seiten sind für einen Banner nicht möglich." %}</p>
+  {% endif %}
   {% endif %}
 </section>
 {% endwith %}

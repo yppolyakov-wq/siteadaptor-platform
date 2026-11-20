@@ -28,6 +28,11 @@ from apps.core import site_schema
 
 #: черновик: свой заголовок/описание страницы для поисковиков (`clean_seo_page`)
 SEO_KEY = "seo"
+#: черновик: SEO страницы на момент первой правки в окне (ревью: «Trotzdem speichern» пишет
+#: только поля, изменённые в окне, — чужую правку на экране «Seiten» не перетирает)
+SEO_BASE_KEY = "seo_base"
+#: поля SEO, которые правит окно (`noindex` — только экран «Seiten»)
+SEO_EDITED = ("title", "description")
 #: поля формы SEO окна (`f_` — общий префикс полей панели)
 SEO_FIELDS = ("seo_title", "seo_description")
 #: операция «zurücksetzen» строки наследования вида товаров категории
@@ -97,6 +102,7 @@ def seo_op(config: dict, draft: dict, host: str, fields: dict, saved: dict) -> s
         draft[SEO_KEY] = copy.deepcopy(saved.get(SEO_KEY) or {})
         if clean:
             draft["base"] = aufbau_draft._base_fingerprint(saved, config, draft)
+    draft.setdefault(SEO_BASE_KEY, copy.deepcopy(draft.get(SEO_KEY) or {}))
     current = dict(draft.get(SEO_KEY) or {})
     for name in SEO_FIELDS:
         if name in fields:
@@ -116,8 +122,23 @@ def put_shown(config: dict, host: str, draft: dict) -> None:
 
 def commit(config: dict, host: str, draft: dict) -> None:
     """«Speichern»: SEO черновика — в `config` под блокировкой строки бизнеса (её держит
-    `aufbau_draft.commit`; `save_page_seo` здесь не звать — он сам блокирует и пишет)."""
-    put_shown(config, host, draft)
+    `aufbau_draft.commit`; `save_page_seo` здесь не звать — он сам блокирует и пишет).
+    Пишутся только поля, изменённые в окне (`seo_base`), поверх сохранённого СЕЙЧАС: без правки
+    в окне — ничего (при «Trotzdem speichern» чужой заголовок/«noindex» не перетираются)."""
+    from apps.core import content_pages
+    from apps.tenants import siteconfig
+
+    if SEO_KEY not in draft or SEO_BASE_KEY not in draft or not siteconfig.is_seo_page_host(host):
+        return
+    mine, base = draft.get(SEO_KEY) or {}, draft.get(SEO_BASE_KEY) or {}
+    entry = dict(saved_seo(config, host))
+    for name in SEO_EDITED:
+        if mine.get(name, "") != base.get(name, ""):
+            if mine.get(name):
+                entry[name] = mine[name]
+            else:
+                entry.pop(name, None)
+    content_pages.put_page_seo(config, host, entry)
 
 
 def changed(draft: dict, saved: dict) -> bool:

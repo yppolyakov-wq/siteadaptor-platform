@@ -90,6 +90,8 @@ def _m36_error(key) -> str:
         return _("„Wo zeigen“ darf nur ändern, wer auch die Banner bearbeiten darf.")
     if key == "show_on_conflict":
         return window_banner.conflict_note()
+    if key == "banner_unavailable":
+        return window_banner.unavailable_note()
     return ""
 
 
@@ -371,6 +373,9 @@ def site_schema_view(request):
                 target = f"{target.split('#', 1)[0]}#{anchor}"
         if moved:
             target = f"{target.split('#', 1)[0]}#schema-tab-{goto}"
+        if op == "places" and applied and "#" in target:
+            # FB-33 M3-6 (a11y ревью): после кнопки «Wo zeigen» фокус — на её заголовок
+            target = f"{target.split('#', 1)[0]}#schema-tab-places"
         if op == "setting" and "#" in target:
             # Настройка, которую только что меняли, остаётся раскрытой.
             base, anchor = target.split("#", 1)
