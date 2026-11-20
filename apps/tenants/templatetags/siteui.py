@@ -401,6 +401,8 @@ def page_blocks(context, page_key, part="after"):
         # Прочие блоки (текст, кнопка, товары) остаются, как раньше.
         blocks = [b for b in blocks if not _is_promo_list(b)]
     is_preview = bool(context.get("is_preview"))
+    if not is_preview:
+        blocks = _drop_empty_faq(blocks, page_key, context.get("site") or site)
     if not blocks and (before or not is_preview):
         return ""
     if page_key == "confirmation":
@@ -422,6 +424,19 @@ def page_blocks(context, page_key, part="after"):
     ctx.setdefault("site", site)
     html = render_to_string("storefront/_page_blocks.html", ctx, request=request)
     return mark_safe(html)
+
+
+def _drop_empty_faq(blocks: list, page_key, site) -> list:
+    """FB-33 M2b-2a: на детальной блок FAQ без общих вопросов не рисуется совсем — ни обёртки,
+    ни места в ряду узких блоков (фильтр ДО `group_block_rows`). В превью он остаётся."""
+    from apps.core import faq_views
+
+    if not faq_views.is_detail_host(page_key):
+        return blocks
+    faq = site.get("faq") if isinstance(site, dict) else getattr(site, "faq", None)
+    if faq:
+        return blocks
+    return [b for b in blocks if b.get("key") != "faq_ref"]
 
 
 @register.simple_tag(takes_context=True)
@@ -704,6 +719,16 @@ def render_block(context, block):
         row = {"key": base}
         if isinstance(data, dict) and data.get("style"):
             row["style"] = data["style"]
+        if base == "faq":
+            # FB-33 M2b-2a: на детальной общий FAQ без FAQPage (вопросы не об объекте) и с
+            # заглушкой в превью, когда вопросов нет
+            from apps.core import faq_views
+
+            host = context.get("pb_page_key") or ""
+            if not faq_views.emits_ld(host):
+                row["no_ld"] = True
+            if faq_views.is_detail_host(host):
+                row["detail"] = True
         html = render_to_string(tpl, {**context.flatten(), "section_row": row}, request=request)
         return mark_safe(html)
     # D.2: C-блок — рендерим партиал с данными самого блока.

@@ -5,7 +5,7 @@ LAY-1b (фидбэк владельца «нельзя отредактиров�
 несут `data-edit="faq.<i>.q|a"` — общий канал канвы (blur → site_inline_edit). Пустой ответ
 теперь рисуется пустым абзацем, иначе его нечем было бы начать править.{% endcomment %}
 {% if site.faq %}
-{% if "faq" not in sample_wrapped %}{% faqpage_jsonld site.faq %}{% endif %}{# SEO-3: FAQPage JSON-LD рядом с видимым FAQ #}
+{% if "faq" not in sample_wrapped and not section_row.no_ld %}{% faqpage_jsonld site.faq %}{% endif %}{# SEO-3: FAQPage JSON-LD рядом с видимым FAQ; FB-33 M2b-2a: на детальной — нет #}
 <section data-reveal class="mb-10 bg-white rounded-2xl shadow-sm p-6 md:p-8">
   <h2 class="text-xl md:text-2xl font-bold mb-4">{% trans "Frequently asked questions" %}</h2>
   {% if section_row.style == "list" %}
@@ -63,4 +63,6 @@ LAY-1b (фидбэк владельца «нельзя отредактиров�
     </div>
   {% endif %}
 </section>
+{% elif is_preview and section_row.detail %}{# FB-33 M2b-2a: пустой общий FAQ на детальной — заглушка только в превью #}
+<section class="mb-10 rounded-2xl border-2 border-dashed border-gray-200 p-6 text-center text-sm text-gray-400" data-faq-empty>{% trans "Noch keine Fragen. Ohne Fragen erscheint dieser Block auf der Website nicht." %}</section>
 {% endif %}
