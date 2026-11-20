@@ -21597,8 +21597,8 @@ msgstr "Text on photo"
 msgid "Name and price over the photo — for strong images."
 msgstr "Name and price over the photo — for strong images."
 
-msgid "Compact row"
-msgstr "Compact row"
+msgid "Compact with photo"
+msgstr "Compact with photo"
 
 msgid "Row with a small photo — for long menus."
 msgstr "Row with a small photo — for long menus."
@@ -21615,8 +21615,8 @@ msgstr "Price first"
 msgid "Price block above the photo — discounter style."
 msgstr "Price block above the photo — discounter style."
 
-msgid "Shelf label"
-msgstr "Shelf label"
+msgid "Shelf"
+msgstr "Shelf"
 
 msgid "Big price on a plate, small photo — reads like a shelf tag."
 msgstr "Big price on a plate, small photo — reads like a shelf tag."
@@ -21627,8 +21627,8 @@ msgstr "Lookbook"
 msgid "Tall photo 3:4 and a quiet caption — fashion and interior."
 msgstr "Tall photo 3:4 and a quiet caption — fashion and interior."
 
-msgid "Deal tile"
-msgstr "Deal tile"
+msgid "Deal row"
+msgstr "Deal row"
 
 msgid "Wide row: price, saving, condition and button at a glance."
 msgstr "Wide row: price, saving, condition and button at a glance."

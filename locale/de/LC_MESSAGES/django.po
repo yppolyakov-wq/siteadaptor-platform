@@ -21642,14 +21642,14 @@ msgstr "Text auf Foto"
 msgid "Name and price over the photo — for strong images."
 msgstr "Name und Preis über dem Foto — für starke Bilder."
 
-msgid "Compact row"
-msgstr "Kompakte Zeile"
+msgid "Compact with photo"
+msgstr "Kompakt mit Foto"
 
 msgid "Row with a small photo — for long menus."
 msgstr "Zeile mit kleinem Foto — für lange Karten."
 
 msgid "Price tag"
-msgstr "Preis-Etikett"
+msgstr "Preisschild"
 
 msgid "Price on a plate in the corner of the photo."
 msgstr "Preis auf einem Schild in der Ecke des Fotos."
@@ -21660,8 +21660,8 @@ msgstr "Preis zuerst"
 msgid "Price block above the photo — discounter style."
 msgstr "Preisblock über dem Foto — wie beim Discounter."
 
-msgid "Shelf label"
-msgstr "Regal-Preisschild"
+msgid "Shelf"
+msgstr "Regal"
 
 msgid "Big price on a plate, small photo — reads like a shelf tag."
 msgstr "Großer Preis auf dem Schild, kleines Foto — liest sich wie am Regal."
@@ -21672,8 +21672,8 @@ msgstr "Lookbook"
 msgid "Tall photo 3:4 and a quiet caption — fashion and interior."
 msgstr "Hohes Foto 3:4 und ruhige Bildunterschrift — Mode und Interior."
 
-msgid "Deal tile"
-msgstr "Deal-Kachel"
+msgid "Deal row"
+msgstr "Deal-Zeile"
 
 msgid "Wide row: price, saving, condition and button at a glance."
 msgstr "Breite Zeile: Preis, Ersparnis, Bedingung und Button auf einen Blick."

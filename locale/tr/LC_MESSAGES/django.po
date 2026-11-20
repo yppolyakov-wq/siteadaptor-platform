@@ -21724,8 +21724,8 @@ msgstr "Fotoğraf üzerinde yazı"
 msgid "Name and price over the photo — for strong images."
 msgstr "Ad ve fiyat fotoğrafın üzerinde — güçlü görseller için."
 
-msgid "Compact row"
-msgstr "Kompakt satır"
+msgid "Compact with photo"
+msgstr "Fotoğraflı kompakt"
 
 msgid "Row with a small photo — for long menus."
 msgstr "Küçük fotoğraflı satır — uzun menüler için."
@@ -21742,8 +21742,8 @@ msgstr "Önce fiyat"
 msgid "Price block above the photo — discounter style."
 msgstr "Fotoğrafın üstünde fiyat bloğu — indirim marketi tarzı."
 
-msgid "Shelf label"
-msgstr "Raf etiketi"
+msgid "Shelf"
+msgstr "Raf"
 
 msgid "Big price on a plate, small photo — reads like a shelf tag."
 msgstr "Levhada büyük fiyat, küçük fotoğraf — raf etiketi gibi okunur."
@@ -21754,8 +21754,8 @@ msgstr "Lookbook"
 msgid "Tall photo 3:4 and a quiet caption — fashion and interior."
 msgstr "3:4 dikey fotoğraf ve sakin bir başlık — moda ve iç mekân."
 
-msgid "Deal tile"
-msgstr "Fırsat karosu"
+msgid "Deal row"
+msgstr "Fırsat satırı"
 
 msgid "Wide row: price, saving, condition and button at a glance."
 msgstr "Geniş satır: fiyat, tasarruf, koşul ve düğme tek bakışta."

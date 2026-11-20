@@ -21818,8 +21818,8 @@ msgstr "Текст на фото"
 msgid "Name and price over the photo — for strong images."
 msgstr "Название и цена поверх фото — для сильных снимков."
 
-msgid "Compact row"
-msgstr "Компактная строка"
+msgid "Compact with photo"
+msgstr "Компактно с фото"
 
 msgid "Row with a small photo — for long menus."
 msgstr "Строка с маленьким фото — для длинных меню."
@@ -21836,8 +21836,8 @@ msgstr "Сначала цена"
 msgid "Price block above the photo — discounter style."
 msgstr "Блок цены над фото — как у дискаунтера."
 
-msgid "Shelf label"
-msgstr "Полочный ценник"
+msgid "Shelf"
+msgstr "Полка"
 
 msgid "Big price on a plate, small photo — reads like a shelf tag."
 msgstr ""
@@ -21849,8 +21849,8 @@ msgstr "Лукбук"
 msgid "Tall photo 3:4 and a quiet caption — fashion and interior."
 msgstr "Высокое фото 3:4 и спокойная подпись — мода и интерьер."
 
-msgid "Deal tile"
-msgstr "Плитка предложения"
+msgid "Deal row"
+msgstr "Строка-предложение"
 
 msgid "Wide row: price, saving, condition and button at a glance."
 msgstr "Широкая строка: цена, выгода, условие и кнопка сразу видны."

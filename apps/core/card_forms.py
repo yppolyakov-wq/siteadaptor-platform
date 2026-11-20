@@ -32,13 +32,13 @@ CARD_FORMS: list[tuple[str, object, object, tuple[str, ...]]] = [
         _("Name and price over the photo — for strong images."),
         (PRODUCT,),
     ),
-    ("compact", _("Compact row"), _("Row with a small photo — for long menus."), (PRODUCT,)),
+    ("compact", _("Compact with photo"), _("Row with a small photo — for long menus."), (PRODUCT,)),
     ("etikett", _("Price tag"), _("Price on a plate in the corner of the photo."), (PRODUCT,)),
     ("preis", _("Price first"), _("Price block above the photo — discounter style."), (PROMO,)),
     # DL-19 (макеты канваса «Kartenformen» 2026-09-02)
     (
         "regal",
-        _("Shelf label"),
+        _("Shelf"),
         _("Big price on a plate, small photo — reads like a shelf tag."),
         (PRODUCT, PROMO),
     ),
@@ -50,7 +50,7 @@ CARD_FORMS: list[tuple[str, object, object, tuple[str, ...]]] = [
     ),
     (
         "deal",
-        _("Deal tile"),
+        _("Deal row"),
         _("Wide row: price, saving, condition and button at a glance."),
         (PRODUCT, PROMO),
     ),
