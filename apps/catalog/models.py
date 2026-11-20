@@ -280,6 +280,10 @@ class Product(SoftDeleteMixin, I18nMixin):
     # (чистит и читает `apps.core.object_structure`). Пусто = как у всех товаров.
     # `db_default`: во время деплоя старые контейнеры ещё пишут строки без этого поля.
     page_override = models.JSONField(default=dict, db_default={}, blank=True)
+    # FB-33 M2b-2b: свои вопросы FAQ товара [{q, a}] и их переводы {locale: [{q?, a?}]} по
+    # позиции (пишет только `apps.core.object_faq`). `db_default` — как у `page_override`.
+    faq = models.JSONField(default=list, db_default=[], blank=True)
+    faq_i18n = models.JSONField(default=dict, db_default={}, blank=True)
     # T-8.11: владелец не хочет этот товар в каталоге города (сайт — как прежде).
     hide_in_city = models.BooleanField(default=False)
     # M23b.1: товар не уходит в фид Google Merchant Center.
