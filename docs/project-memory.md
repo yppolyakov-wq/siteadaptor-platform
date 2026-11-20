@@ -75,6 +75,10 @@ LLM-режим Finder, SSE для чата.
 
 ## 2. Ops владельцу (сводка; выполнено ли — не подтверждено, если не сказано иначе)
 
+- FB-33 M2c-4: после восстановления копии базы (бэкап, перенос сервера) — `python manage.py
+  detach_quick_links --residue` (0 — ок; иначе `detach_quick_links`): витрина старый ключ плиток
+  не читает, `normalize` его молча роняет. В `deploy.sh` шаг идёт ДО подъёма нового web (6c/8).
+
 `.env.prod`:
 - `STRIPE_WEBHOOK_SECRET` (без него вебхук отвечает 503), `STRIPE_CONNECT_WEBHOOK_SECRET`;
   в Stripe Dashboard — события `checkout.session.async_payment_succeeded` / `…_failed`.

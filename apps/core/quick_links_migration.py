@@ -22,6 +22,8 @@ from __future__ import annotations
 import copy
 from dataclasses import dataclass
 
+from apps.core.hero_tiles import QUICK_LINK_SETS
+
 REASON = "fb33.m2c-quick-links"
 #: ключи настроек, которые меняет перенос (их и хранит снимок). ⚠️ Снимок возвращает
 #: `site_defaults` ЦЕЛИКОМ — это безопасно, только пока откат сверяет хэш ВСЕГО конфига
@@ -81,13 +83,7 @@ def drop_auto_blocks(config: dict) -> None:
 #: значения прежнего ключа `site_defaults.hero_widget`, которые понимает перенос: наборы-
 #: ссылки блока + форма дат и топ услуг (они становятся секциями). После M2c-4 ключ читает
 #: только перенос (`detach`, копии баз со старым ключом) — витрина и нормализатор его не знают.
-def _legacy_widgets() -> tuple:
-    from apps.core.hero_tiles import QUICK_LINK_SETS
-
-    return (*QUICK_LINK_SETS, "stays", "services")
-
-
-LEGACY_WIDGETS = _legacy_widgets()
+LEGACY_WIDGETS = (*QUICK_LINK_SETS, "stays", "services")
 
 
 def place(config: dict, widget: str, *, replace: bool = False) -> tuple[dict, Result]:
@@ -103,8 +99,6 @@ def place(config: dict, widget: str, *, replace: bool = False) -> tuple[dict, Re
     `replace` — для писателей: уже стоящий блок получает новый набор (место и видимость не
     трогаются). Перенос (`replace=False`) блок владельца не трогает вовсе. Пустой `widget` —
     без изменений; неизвестный — пропуск с причиной (`skip:bad-widget`)."""
-    from apps.core.hero_tiles import QUICK_LINK_SETS
-
     if not widget:
         return config, Result()
     if not isinstance(widget, str) or widget not in LEGACY_WIDGETS:

@@ -24214,3 +24214,9 @@ security/silent-failure): тупик в двусторонних прятках,
 - Чтение: `_hero.html`/`_hero_slider.html` без плиток, `siteui.banner_tiles`/`has_home_block` и
   нормализатор ключа сняты; ветки stays/services партиала `_hero_widget.html` снесены (C4, решение
   владельца). `detach_quick_links` — шаг деплоя (no-op на чистых данных), `--undo` только с `--force`.
+- Ревью (django-reviewer — одобрено; silent-failure-hunter — 3 HIGH): `detach_quick_links` в `deploy.sh`
+  перенесён ДО `up -d` (шаг 6c/8, `run --rm`; пока он идёт, работает старый web, читающий и ключ, и
+  блок) — порядок теперь «перенос плиток → materialize_page_axes», откаты в обратном порядке;
+  `--residue` с остатком/сбоем чтения → код ≠ 0; пропуск сайта — лог со схемой и код ≠ 0; `--undo`
+  предупреждает и с `--force`, `--force` без `--undo` и `--undo --dry-run` — отказ; набор кита вне
+  реестра — предупреждение; замок «сборка меняет набор блока владельца».

@@ -121,8 +121,11 @@ def test_undo_refuses_when_the_owner_changed_things():
 
 
 def test_residue_counts_sites_with_the_old_key(capsys):
+    from django.core.management.base import CommandError
+
     _tenant("shop")
-    call_command("detach_quick_links", "--residue")
+    with pytest.raises(CommandError, match="остаток 1"):  # ревью M2c-4: WARN в deploy.sh
+        call_command("detach_quick_links", "--residue")
     assert "quick_links residue: 1" in capsys.readouterr().out
     call_command("detach_quick_links")
     call_command("detach_quick_links", "--residue")
@@ -149,12 +152,18 @@ def test_busy_row_is_retried_next_deploy(monkeypatch):
     assert "hero_widget" in Tenant.objects.get(pk=tenant.pk).site_config["site_defaults"]
 
 
-def test_deploy_runs_it_after_the_page_axes_step():
+def test_deploy_runs_it_before_the_new_web_starts():
+    """Ревью M2c-4: новый код ключ не читает — Save неперенесённого сайта уронил бы его.
+    Перенос идёт после миграций тенантов и ДО `up -d` (пока работает старый web)."""
     import pathlib
 
     sh = pathlib.Path("scripts/deploy.sh").read_text()
-    assert sh.index("detach_quick_links") > sh.index("materialize_page_axes --residue")
-    assert "detach_quick_links --residue" in sh
+    step = sh.index("$COMPOSE run --rm web python manage.py detach_quick_links; then")
+    assert sh.index("migrate_schemas --tenant;") < step < sh.index('step "[7/8] Restart services"')
+    assert "$COMPOSE run --rm web python manage.py detach_quick_links --residue" in sh
+    assert "exec -T web python manage.py detach_quick_links" not in sh
+    assert "tiles are NOT shown until detach_quick_links runs" in sh
+    assert "keep the tiles in the banner" not in sh
 
 
 def test_other_db_errors_are_not_reported_as_busy(monkeypatch):
@@ -184,7 +193,10 @@ def test_command_reports_a_skip_and_keeps_the_site(capsys):
     t = Tenant.objects.get(pk=tenant.pk)
     t.site_config = {"site_defaults": {"hero_widget": "nonsense"}}
     t.save(update_fields=["site_config"])
-    call_command("detach_quick_links", "--schema", tenant.schema_name)
+    from django.core.management.base import CommandError
+
+    with pytest.raises(CommandError, match="пропущено сайтов: 1"):  # ревью M2c-4: код ≠ 0
+        call_command("detach_quick_links", "--schema", tenant.schema_name)
     assert "ПРОПУЩЕНО (bad-widget)" in capsys.readouterr().err
     assert (
         Tenant.objects.get(pk=tenant.pk).site_config["site_defaults"]["hero_widget"] == "nonsense"
@@ -349,3 +361,88 @@ def test_undo_without_force_warns_and_changes_nothing(capsys):
         call_command("detach_quick_links", "--undo", "--schema", tenant.schema_name)
     assert "плитки пропадут" in capsys.readouterr().err
     assert Tenant.objects.get(pk=tenant.pk).site_config == moved
+
+
+def test_undo_with_force_still_warns(capsys):
+    tenant = _tenant("shop")
+    call_command("detach_quick_links", "--schema", tenant.schema_name)
+    call_command("detach_quick_links", "--undo", "--force", "--schema", tenant.schema_name)
+    assert "плитки пропадут" in capsys.readouterr().err
+
+
+@pytest.mark.parametrize(
+    ("args", "msg"),
+    ((("--force",), "только вместе с --undo"), (("--undo", "--dry-run"), "dry-run")),
+)
+def test_meaningless_flag_combinations_are_refused(args, msg):
+    from django.core.management.base import CommandError
+
+    tenant = _tenant("shop")
+    before = Tenant.objects.get(pk=tenant.pk).site_config
+    with pytest.raises(CommandError, match=msg):
+        call_command("detach_quick_links", *args, "--schema", tenant.schema_name)
+    assert Tenant.objects.get(pk=tenant.pk).site_config == before
+
+
+def test_skip_is_logged_with_the_schema(caplog):
+    from django.core.management.base import CommandError
+
+    tenant = _tenant("shop")
+    Tenant.objects.filter(pk=tenant.pk).update(
+        site_config={"site_defaults": {"hero_widget": "nonsense"}}
+    )
+    with caplog.at_level("WARNING"), pytest.raises(CommandError):
+        call_command("detach_quick_links", "--schema", tenant.schema_name)
+    assert any(
+        tenant.schema_name in r.getMessage() and "skip:bad-widget" in r.getMessage()
+        for r in caplog.records
+    )
+
+
+def test_rolled_back_site_is_not_an_error(capsys):
+    tenant = _tenant("shop")
+    call_command("detach_quick_links", "--schema", tenant.schema_name)
+    call_command("detach_quick_links", "--undo", "--force", "--schema", tenant.schema_name)
+    call_command("detach_quick_links", "--schema", tenant.schema_name)  # откатил — без ошибки
+    assert "Готово" in capsys.readouterr().out
+
+
+def test_residue_survives_a_broken_site_and_reports_it(monkeypatch, capsys):
+    from django.core.management.base import CommandError
+
+    a, b = _tenant("shop"), TenantFactory(site_config={})
+
+    def boom(t):
+        if t.pk == a.pk:
+            raise ValueError("bad")
+        return False
+
+    monkeypatch.setattr(qlm, "residue", boom)
+    with pytest.raises(CommandError, match="не проверено 1"):
+        call_command("detach_quick_links", "--residue")
+    out = capsys.readouterr()
+    assert "quick_links residue: 0" in out.out and f"{a.schema_name}: ОШИБКА" in out.err
+    assert b.schema_name not in out.err
+
+
+def test_bundle_rebuild_gives_the_owners_block_the_bundles_set(monkeypatch):
+    """Решение M2c-3 (замок ревью M2c-4): сборка с перестройкой главной меняет НАБОР уже
+    стоящего блока владельца — место, id и видимость остаются его; «none» блок владельца
+    не снимает (снимаются только автоблоки)."""
+    from apps.tenants import sitetemplates
+
+    owner = {"key": "quick_links", "id": "own", "enabled": False, "data": {"set": "shop"}}
+    base = {"sections": [{"key": "hero", "enabled": True}, {"key": "about"}, owner]}
+    bundle = dict(sitetemplates.get_bundle("fokus_gastro"))
+    bundle["config"] = {**bundle["config"], "hero_widget": "gastro"}
+    monkeypatch.setitem(sitetemplates._BUNDLE_BY_KEY, "fokus_gastro", bundle)
+    tenant = TenantFactory(business_type="restaurant", site_config=base)
+    assert sitetemplates.apply_bundle(tenant, "fokus_gastro", rebuild_home=True)
+    blocks = [r for r in tenant.site_config["sections"] if r.get("key") == "quick_links"]
+    assert len(blocks) == 1
+    assert blocks[0]["id"] == "own" and blocks[0]["enabled"] is False
+    assert blocks[0]["data"] == {"set": "gastro"}
+    monkeypatch.undo()
+    assert sitetemplates.apply_bundle(tenant, "fokus_gastro", rebuild_home=True)  # «none»
+    blocks = [r for r in tenant.site_config["sections"] if r.get("key") == "quick_links"]
+    assert [b["id"] for b in blocks] == ["own"]

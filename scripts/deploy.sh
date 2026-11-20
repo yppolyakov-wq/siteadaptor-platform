@@ -125,6 +125,25 @@ fi
 # collectstatic` писал во временный контейнер и только тратил время (T-10).
 # L4/T1-b: .mo компилируются при СБОРКЕ ОБРАЗА (Dockerfile, msgfmt).
 
+# FB-33 M2c (решение владельца): плитки «Schnellzugriff» из баннера главной -> отдельный блок
+# сразу после баннера (у «Bento» — скрытым), форма дат -> секция «Suche», топ услуг -> список.
+# M2c-4 (ревью): ДО подъёма нового web — новый код ключ `hero_widget` не читает, и любое
+# сохранение настроек неперенесённого сайта молча уронило бы ключ (плитки пропали бы без
+# снимка). Пока идёт шаг, работает старый web — он читает и ключ, и блок. На чистых данных
+# шаг no-op. Порядок теперь «перенос плиток → (после подъёма) materialize_page_axes»;
+# откаты — в обратном порядке: сначала materialize_page_axes --undo, затем
+# detach_quick_links --undo --force (только вместе с откатом кода M2c-4).
+step "[6c/8] Quick links: banner tiles -> block (before the new web starts)"
+if ! $COMPOSE run --rm web python manage.py detach_quick_links; then
+	echo "!!! WARN: detach_quick_links FAILED or skipped some sites (see lines above)."
+	echo "!!! On those sites tiles are NOT shown until detach_quick_links runs; do not save settings on these sites."
+	echo "!!! Re-run: python manage.py detach_quick_links"
+fi
+if ! $COMPOSE run --rm web python manage.py detach_quick_links --residue; then
+	echo "!!! WARN: detach_quick_links --residue: sites with the old key left or unchecked (see above)."
+	echo "!!! On those sites tiles are NOT shown until detach_quick_links runs; do not save settings on these sites."
+fi
+
 step "[7/8] Restart services"
 $COMPOSE up -d
 # SEC-G11b: старые контейнеры (на первом деплое — ещё под root) работали всё время
@@ -154,18 +173,6 @@ fi
 # FB-31.7 B3a: остаток перед снятием чтения старых кодов (B3b ждёт «residue: 0»)
 if ! $COMPOSE exec -T web python manage.py materialize_page_axes --residue; then
 	echo "!!! WARN: materialize_page_axes --residue could not check some sites (see lines above)."
-fi
-# FB-33 M2c (решение владельца): плитки «Schnellzugriff» из баннера главной -> отдельный блок
-# сразу после баннера (у «Bento» — скрытым), форма дат -> секция «Suche», топ услуг -> список.
-# ПОСЛЕ materialize_page_axes (оба пишут настройки главной); откат: detach_quick_links --undo
-# --force (раньше отката FB-31.7 — откаты идут в обратном порядке). M2c-4: витрина ключ не
-# читает — на чистых данных шаг no-op; откат — только вместе с откатом кода.
-if ! $COMPOSE exec -T web python manage.py detach_quick_links; then
-	echo "!!! WARN: detach_quick_links FAILED for some sites (see lines above)."
-	echo "!!! Those sites keep the tiles in the banner. Re-run: python manage.py detach_quick_links"
-fi
-if ! $COMPOSE exec -T web python manage.py detach_quick_links --residue; then
-	echo "!!! WARN: detach_quick_links --residue could not check some sites (see lines above)."
 fi
 sleep 5
 if curl -fsS "$HEALTH_URL" >/dev/null; then
