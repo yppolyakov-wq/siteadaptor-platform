@@ -58,9 +58,11 @@ def fingerprint(items) -> str:
 
 
 def revision(items, src) -> str:
-    """Отпечаток СОСТОЯНИЯ правки (тексты и источники) — кнопки окна (↑↓, Entfernen) несут
-    его, чтобы вторая вкладка браузера не нажала их по устаревшему номеру."""
-    raw = json.dumps([fingerprint(items), list(src or ())]).encode()
+    """Отпечаток СОСТАВА правки (сколько вопросов и откуда каждый) — кнопки окна (↑↓,
+    Entfernen) и поля по номеру несут его, чтобы вторая вкладка браузера не нажала их по
+    устаревшему номеру. Тексты в него не входят: правка текста (со скриптами — на лету, без
+    перерисовки окна) номера не сдвигает."""
+    raw = json.dumps([len(items or ()), list(src or ())]).encode()
     return hashlib.sha1(raw, usedforsecurity=False).hexdigest()[:12]
 
 
@@ -233,7 +235,8 @@ def _index(value, size: int):
 
 def apply_ops(items: list[dict], src: list, post, notes: list | None = None):
     """Форма окна → новое (items, src). Тексты `faq_<i>_q|a` (пустой вопрос — удалить),
-    кнопки `faq_remove=<i>`, `faq_move=<i>:up|down`, новый вопрос `faq_new_q|a`. Сначала
+    кнопки `faq_remove=<i>`, `faq_move=<i>:up|down`, новый вопрос `faq_new_q|a` (кнопкой
+    `faq_add`). Сначала
     тексты, затем кнопка — набранное не теряется."""
     rows = []
     for i, item in enumerate(items):
@@ -257,7 +260,9 @@ def apply_ops(items: list[dict], src: list, post, notes: list | None = None):
         if 0 <= to < len(rows):
             rows[at], rows[to] = rows[to], rows[at]
     new_q = _s(post.get("faq_new_q"))
-    if new_q:
+    if new_q and post.get("faq_add"):
+        # только кнопкой «Frage hinzufügen»: со скриптами поле применяется на лету без
+        # перерисовки окна — иначе каждое применение добавляло бы вопрос заново
         rows.append({"q": new_q, "a": post.get("faq_new_a", ""), "src": None})
     return clean_input(rows, notes)
 

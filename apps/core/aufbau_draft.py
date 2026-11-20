@@ -217,7 +217,88 @@ def overlay(config: dict, draft: dict) -> dict:
         _put_next(out, draft["next"])
     if "form" in draft:
         out = _put_form(out, draft)
+    if "faq" in draft:
+        _put_faq_shown(out, draft)
     return _apply_settings(out, draft)
+
+
+# ───────────── FB-33 M3-5b: вопросы FAQ в окне блока (вкладка «Texte») ─────────────
+# Вопросы — общие для всех страниц (`site_config["faq"]`), пишет их `faq_content`. Черновик
+# держит состояние правки (`faq` = {items, src}, src — индекс вопроса в сохранённом списке)
+# и отпечаток сохранённого на первой правке (`faq_base`) — вне `_saved_state`: черновик другой
+# страницы с нетронутым FAQ не конфликтует, когда вопросы правят в Студии. Состояние, равное
+# сохранённому, черновик не держит (как `form`).
+FAQ_KEYS = ("faq", "faq_base")
+
+
+def _is_faq_row(draft: dict, item) -> bool:
+    """Строка, в окне которой правятся общие вопросы: секция главной и блок «FAQ» страниц
+    (у детальных секция «faq» — свои вопросы объекта, не эти)."""
+    from apps.tenants import siteconfig
+
+    if not isinstance(item, dict):
+        return False
+    key = item.get("key") or ""
+    if key == "faq" and not item.get("id"):
+        return bool(draft.get("home"))
+    return bool(item.get("id")) and (siteconfig.cblock_type(key) or key) == "faq_ref"
+
+
+def _row(draft: dict, ref: str):
+    return next((it for it in draft.get("items") or [] if _ident(it) == ref), None)
+
+
+def is_faq_edit(request, draft: dict, ref: str, op_name: str) -> bool:
+    """Форма вопросов окна (сентинел `faq_present`, без `panel_present`) — правка FAQ."""
+    post = getattr(request, "POST", None) or {}
+    return (
+        op_name in ("update", "faq_update")
+        and post.get("faq_present") == "1"
+        and _is_faq_row(draft, _row(draft, ref))
+    )
+
+
+def faq_conflict(config: dict, draft: dict) -> bool:
+    """Вопросы, которые держит черновик, успели изменить в другом месте (Студия, канва)."""
+    from apps.core import faq_content
+
+    if "faq" not in draft:
+        return False
+    return draft.get("faq_base") != faq_content.fingerprint(faq_content.base_items(config))
+
+
+def _faq_op(config: dict, draft: dict, ref: str, post, notes: list | None) -> str:
+    """Правка вопросов в черновике. Кнопки ↑↓/Entfernen несут отпечаток состояния (`faq_rev`):
+    вторая вкладка браузера со старым номером — отказ с сообщением, ничего не меняется."""
+    from apps.core import faq_content
+
+    items, src = faq_content.state(config, draft)
+    saved = faq_content.base_items(config)
+    stale = post.get("faq_rev") != faq_content.revision(items, src)
+    if "faq" not in draft and post.get("faq_base") not in (None, faq_content.fingerprint(saved)):
+        stale = True
+    if stale:
+        if notes is not None:
+            notes.append(faq_content.stale_note())
+        return ref
+    new_items, new_src = faq_content.apply_ops(items, src, post, notes)
+    if new_items == saved and new_src == list(range(len(saved))):
+        for key in FAQ_KEYS:  # вернули как сохранено — правки нет
+            draft.pop(key, None)
+    else:
+        draft["faq"] = {"items": new_items, "src": new_src}
+        draft.setdefault("faq_base", faq_content.fingerprint(saved))
+    return ref
+
+
+def _put_faq_shown(config: dict, draft: dict) -> None:
+    """Вопросы черновика — для показа и превью (переводы тем же писателем; сохранённое успели
+    изменить — по тексту, без записи в лог на каждый показ)."""
+    from apps.core import faq_content
+
+    pending = draft.get("faq") or {}
+    src = pending.get("src") if not faq_conflict(config, draft) else None
+    faq_content.put(config, pending.get("items") or [], src)
 
 
 # ───────────── FB-33 M2i-5: поля формы заявки (вкладка «Felder») ─────────────
@@ -337,6 +418,8 @@ def changes(saved: dict, draft: dict) -> int:
     # (`site_schema.form_op` снимает ключи), поэтому сравнение с сохранённым не нужно
     if "form" in draft:
         count += 1
+    if "faq" in draft:  # FB-33 M3-5b: вопросы FAQ — одно изменение
+        count += 1
     # FB-27 R4: настройки типа страницы — по одному изменению на настройку.
     count += len(_settings(draft))
     return count
@@ -351,7 +434,8 @@ def info(request, config: dict, code: str) -> dict:
     return {
         "count": changes(saved, draft),
         "conflict": _base_fingerprint(saved, config, draft) != draft.get("base")
-        or _keys_conflict(config, draft),
+        or _keys_conflict(config, draft)
+        or faq_conflict(config, draft),
     }
 
 
@@ -456,6 +540,8 @@ def _snapshot(tenant, code, host, draft, ref, token="", codes=(), source=None) -
         proto["next"] = ["next" in source, source.get("next")]
     if host == site_schema.FORM_HOST and ref == site_schema.FORM_REF:
         proto["form"] = {k: copy.deepcopy(source[k]) for k in FORM_KEYS if k in source}
+    if at is not None and _is_faq_row(source, items[at]):  # FB-33 M3-5b: вопросы FAQ
+        proto["faq"] = {k: copy.deepcopy(source[k]) for k in FAQ_KEYS if k in source}
     _record_codes(source, proto, [*_window_setting_codes(tenant, code, ref), *codes])
     window.pop(ref, None)
     idents = {_ident(it) for it in draft.get("items") or []}
@@ -511,12 +597,14 @@ def _revert(draft: dict, ref: str, proto: dict) -> None:
     for key in ("title", "next"):
         if key in proto:
             _restore_key(draft, key, proto[key])
-    if isinstance(proto.get("form"), dict):  # FB-33 M2i-5: вкладка «Felder» — как при открытии
-        for key in FORM_KEYS:
-            if key in proto["form"]:
-                draft[key] = copy.deepcopy(proto["form"][key])
-            else:
-                draft.pop(key, None)
+    for part, keys in (("form", FORM_KEYS), ("faq", FAQ_KEYS)):
+        # FB-33 M2i-5 «Felder», M3-5b вопросы FAQ — как при открытии окна
+        if isinstance(proto.get(part), dict):
+            for key in keys:
+                if key in proto[part]:
+                    draft[key] = copy.deepcopy(proto[part][key])
+                else:
+                    draft.pop(key, None)
     codes = proto.get("codes") or []
     if codes:
         pending = {k: v for k, v in _settings(draft).items() if k not in codes}
@@ -646,6 +734,9 @@ def op(
     elif site_schema.is_form_edit(host, ref, op_name):
         # FB-33 M2i-5: вкладка «Felder» — поля формы заявки в черновике, строка на месте
         ref = site_schema.form_op(tenant, config, draft, fields, notes)
+    elif is_faq_edit(request, draft, ref, op_name):
+        # FB-33 M3-5b: вопросы FAQ в окне блока — в черновике, строка на месте
+        ref = _faq_op(config, draft, ref, request.POST, notes)
     else:
         ref = site_schema.mutate(
             draft["items"],
@@ -676,6 +767,7 @@ def _settle(request, code: str, draft: dict, saved: dict, ref: str = "") -> str:
         _fingerprint(current) == _fingerprint(saved) == draft.get("base")
         and not _settings(draft)
         and "form" not in draft  # FB-33 M2i-5
+        and "faq" not in draft  # FB-33 M3-5b
     )
     if clean and draft.get(WINDOW_KEY):
         # FB-33 M3-1b: окно блока открыто — снимок для «Abbrechen» держится, но черновика
@@ -791,6 +883,7 @@ def commit(request, tenant, code: str, *, force: bool = False, notes: list | Non
     if not force and (
         _base_fingerprint(_saved_state(config, home, host), config, draft) != draft.get("base")
         or _keys_conflict(config, draft)
+        or faq_conflict(config, draft)  # FB-33 M3-5b: только при вопросах в черновике
     ):
         raise DraftConflict(code)
     site_schema.store_items(config, home, host, copy.deepcopy(draft["items"]))
@@ -799,6 +892,15 @@ def commit(request, tenant, code: str, *, force: bool = False, notes: list | Non
         _put_title(config, host, draft["title"])
     if "next" in draft:
         _put_next(config, draft["next"])
+    if "faq" in draft:
+        # FB-33 M3-5b: вопросы — под блокировкой строки, единственным писателем; запись
+        # поверх (force) при изменённом сохранённом — по тексту и в лог (`faq_content.put`)
+        from apps.core import faq_content
+
+        pending = draft["faq"]
+        faq_content.put(
+            config, pending.get("items") or [], pending.get("src"), draft.get("faq_base")
+        )
     if "form" in draft and host == site_schema.FORM_HOST:
         # FB-33 M2i-5: поля формы заявки — под блокировкой строки бизнеса: дельта черновика
         # поверх заблокированного сохранённого (ревью H2), номера новых вопросов — от

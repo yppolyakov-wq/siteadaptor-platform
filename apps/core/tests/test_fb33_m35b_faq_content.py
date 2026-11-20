@@ -169,7 +169,13 @@ def test_from_form_reads_studio_pairs_with_their_index():
 
 def test_apply_ops_texts_then_button():
     items, src = [copy.deepcopy(b) for b in BASE], [0, 1, 2]
-    post = {"faq_0_q": "Wann?", "faq_move": "0:down", "faq_new_q": "Neu?", "faq_new_a": "N"}
+    post = {
+        "faq_0_q": "Wann?",
+        "faq_move": "0:down",
+        "faq_new_q": "Neu?",
+        "faq_new_a": "N",
+        "faq_add": "1",
+    }
     new, new_src = fc.apply_ops(items, src, post)
     assert [i["q"] for i in new] == ["Vorbestellen?", "Wann?", "Liefern?", "Neu?"]
     assert new_src == [1, 0, 2, None]
@@ -181,6 +187,6 @@ def test_apply_ops_texts_then_button():
 
 @pytest.mark.parametrize("value", ["<script>alert(1)</script>", "\x00", "a" * 5000])
 def test_apply_ops_is_plain_text(value):
-    new, _src = fc.apply_ops([], [], {"faq_new_q": value, "faq_new_a": value})
+    new, _src = fc.apply_ops([], [], {"faq_new_q": value, "faq_new_a": value, "faq_add": "1"})
     assert all(isinstance(i["q"], str) for i in new)
     assert len(new[0]["a"]) <= fc.MAX_A if new else True
