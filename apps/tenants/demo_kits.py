@@ -447,8 +447,10 @@ def _p(
     brand="",
     uvp="",
     weekdays=None,
+    faq=None,
 ):
     return {
+        "faq": faq or [],  # FB-33 M2b-2b: свои вопросы товара [{q, a}]
         "name": name,
         "price": price,
         "desc": desc,
@@ -3193,6 +3195,8 @@ HOTEL_MENUS = {
 HOTEL = DemoKit(
     key="hotel",
     page_presets=[("stay_rooms", "angebote")],  # LB-4d-3: пресет листинга архетипа
+    # FB-33 M2b-2b: блок «FAQ» со своими вопросами номера на страницах номеров
+    page_blocks={"stay_detail": [("faq_ref", {"source": "object"})]},
     # DL-11: колонки под число элементов — ряды плиток полные (scripts/demo_rows_audit.py)
     section_layouts={"gallery": {"preset": "cols3"}, "stay_rooms": {"preset": "cols2"}},
     label="Pension Seeblick",
@@ -3659,6 +3663,17 @@ HOTEL = DemoKit(
             "bed": "Queensize-Bett",
             "amenities": ["wifi", "tv", "bath", "shower", "balcony", "coffee", "nonsmoking"],
             "rooms": ["101", "102", "103", "104"],  # PMS-R: физические номера
+            # FB-33 M2b-2b: свои вопросы номера — блок «FAQ» на его странице
+            "faq": [
+                {
+                    "q": "Sieht man den See von jedem Zimmer?",
+                    "a": "Ja, alle vier Doppelzimmer liegen zur Seeseite.",
+                },
+                {
+                    "q": "Gibt es ein Zustellbett?",
+                    "a": "Ja, für Kinder bis 12 Jahre gegen 15 € pro Nacht.",
+                },
+            ],
             "season": [  # A5a: Hochsaison-Tarif
                 {
                     "label": "Hochsaison (Sommer)",
@@ -4668,6 +4683,8 @@ BAKERY = DemoKit(
     # DL-11: колонки под число элементов — ряды плиток полные (scripts/demo_rows_audit.py)
     section_layouts={"gallery": {"preset": "cols3"}, "categories": {"preset": "cols2"}},
     page_presets=[("info", "team")],  # ST-2: шаблон «Über uns»
+    # FB-33 M2b-2b: блок «FAQ» со своими вопросами товара на страницах товаров
+    page_blocks={"product_detail": [("faq_ref", {"source": "object"})]},
     # LB-3d-3: блок «Liste» — проверенные отзывы о товарах (ab 4 ★, nur mit Text).
     home_blocks=[
         {
@@ -4941,6 +4958,21 @@ BAKERY = DemoKit(
                     unit="kg",
                     content=1,
                     badge="beliebt",
+                    # FB-33 M2b-2b: свои вопросы товара — блок «FAQ» на его странице
+                    faq=[
+                        {
+                            "q": "Wie lange bleibt das Bauernbrot frisch?",
+                            "a": "In Leinen oder im Brottopf vier bis fünf Tage.",
+                        },
+                        {
+                            "q": "Kann ich es einfrieren?",
+                            "a": "Ja, am besten in Scheiben – so nehmen Sie nur, was Sie brauchen.",
+                        },
+                        {
+                            "q": "Gibt es das Brot auch halb?",
+                            "a": "Ja, auf Wunsch schneiden wir es an der Theke.",
+                        },
+                    ],
                 ),
                 _p(
                     "Dinkelvollkornbrot 500 g",
@@ -25016,6 +25048,7 @@ def apply_kit(tenant, key: str) -> bool:
             allergens=item["allergens"],
             diets=item.get("diets", []),  # A4 диет-теги
             available_weekdays=item.get("weekdays", []),  # KA-12 GA-9: Tageskarte
+            faq=item.get("faq", []),  # FB-33 M2b-2b: свои вопросы FAQ товара
             badge=item.get("badge", ""),
             unit=item.get("unit", ""),  # R2 Grundpreis
             content_amount=Decimal(str(content)) if content is not None else None,
@@ -26243,6 +26276,7 @@ def _seed_kit_modules(tenant, kit: DemoKit, refs: dict) -> None:
                     bed_type=spec.get("bed", ""),  # H3
                     amenities=spec.get("amenities", []),  # H3
                     images=imgs,
+                    faq=spec.get("faq", []),  # FB-33 M2b-2b: свои вопросы FAQ номера
                     is_active=True,
                 )
                 for s in spec.get("season", []):  # A5a сезонные тарифы
