@@ -4536,7 +4536,11 @@ def localize(config: dict, locale: str | None) -> dict:
     overlay = base.pop("i18n", None) or {}
     ov = overlay.get(locale) if locale else None
     if isinstance(ov, dict):
-        _deep_overlay(base, ov)
+        # FB-33 M2i-5b: варианты формы заявки (`anfrage`) — значения, которые проверяет
+        # `/anfrage/` и хранит заявка: всегда на основном языке. Их перевод показа —
+        # `form_spec.event_type_choices` (ключом по тексту; старый позиционный оверлей
+        # `i18n.<язык>.anfrage` читается только там, до переноса `form_i18n_realign`)
+        _deep_overlay(base, {k: v for k, v in ov.items() if k != "anfrage"})
     return base
 
 

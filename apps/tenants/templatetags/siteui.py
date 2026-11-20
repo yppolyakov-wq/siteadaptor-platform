@@ -477,20 +477,17 @@ def anfrage_event_choices(context):
     value ОСТАЁТСЯ немецким (базовый список): вьюха `/anfrage/` валидирует
     присланное значение по `site_config["anfrage"]["event_types"]` fail-closed и
     кладёт его в `Job.event_type` — запись бизнеса, как и снимок заказа в I18N-10,
-    живёт на базовом языке. Переводится ТОЛЬКО показ (оверлей i18n, позиционно).
+    живёт на базовом языке. Переводится ТОЛЬКО показ — FB-33 M2i-5b: по тексту варианта
+    (`form_spec.event_type_choices`), старый позиционный оверлей — запасной путь.
     """
     request = context.get("request")
     tenant = getattr(request, "tenant", None)
     if tenant is None:
         return []
+    from apps.core import form_spec
+
     cfg = _form_site(request, tenant)  # FB-33 M2i-5: превью черновика — как и поля формы
-    base = (cfg.get("anfrage") or {}).get("event_types") or []
-    shown = (siteconfig.localize(cfg, get_language()).get("anfrage") or {}).get("event_types") or []
-    out = []
-    for i, value in enumerate(base):
-        label = shown[i] if i < len(shown) and isinstance(shown[i], str) and shown[i] else value
-        out.append((value, label))
-    return out
+    return form_spec.event_type_choices(cfg, get_language())
 
 
 @register.simple_tag(takes_context=True)
