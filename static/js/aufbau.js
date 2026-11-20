@@ -261,6 +261,7 @@ function aufbauSubmitCopy(form, submitter) {
 
   var radioTimer = null;
   var radioFire = null;
+  var radioForm = null;  // FB-33 M3-5a: форма отложенного переключателя
   // последний ответ на правку — отказ сервера (его alert виден в окне)
   var lastRefused = false;
   // ревью M3-2 (code-reviewer): отказ уже показан в окне — второй Esc/× подряд закрывает окно
@@ -274,9 +275,11 @@ function aufbauSubmitCopy(form, submitter) {
       // FB-29 R4: стрелки в группе переключателей шлют change на каждый шаг — отправляем
       // один раз, когда выбор остановился.
       clearTimeout(radioTimer);
+      radioForm = form;
       radioFire = function () {
         radioTimer = null;
         radioFire = null;
+        radioForm = null;
         // ревью M3-2 (L15): панель за 350 мс подменили — та же кнопка в новой форме
         var now = target.isConnected ? target : refocus(target);
         var into = now ? panelForm(now) : null;
@@ -292,12 +295,22 @@ function aufbauSubmitCopy(form, submitter) {
   // Пока правка в пути, «Speichern» и другие действия ждут её — иначе запись могла бы
   // обогнать правку, и та осталась бы в черновике.
   document.addEventListener("submit", function (e) {
-    if (!pending || e.defaultPrevented || navigating) return;
+    if (e.defaultPrevented || navigating) return;
     var form = e.target;
     var submitter = e.submitter;
-    e.preventDefault();
     // Enter в поле панели: правка уже в пути (change), вторая отправка не нужна.
-    if (form.matches(FORMS) && (!submitter || submitter.value === "update")) return;
+    var swallow = pending && form.matches(FORMS) && (!submitter || submitter.value === "update");
+    // FB-33 M3-5a: форма уходит целиком (кнопка вкладки без окна) — отложенный переключатель
+    // этой формы едет в ней же; своя отправка через 350 мс дала бы второй POST
+    if (!swallow && radioTimer && radioForm === form) {
+      clearTimeout(radioTimer);
+      radioTimer = null;
+      radioFire = null;
+      radioForm = null;
+    }
+    if (!pending) return;
+    e.preventDefault();
+    if (swallow) return;
     if (form.hasAttribute("data-window-actions")) {
       afterPending(form, submitter).then(function (how) {
         if (how === "refused") refusedShown = true;
@@ -469,6 +482,16 @@ function aufbauSubmitCopy(form, submitter) {
       var key = a.getAttribute("data-window-tab-link");
       var panel = document.getElementById("schema-tab-" + key);
       a.parentNode.setAttribute("role", "presentation");
+      if (a.tagName === "BUTTON") {
+        // FB-33 M3-5a: без скриптов кнопка вкладки отправляет форму вкладки (zu_tab); в окне
+        // вкладки переключаются на месте — кнопка ничего не отправляет (type явно, иначе
+        // submit по умолчанию), форма и имя — в data-, их вернёт closeWindow
+        if (a.hasAttribute("form")) a.setAttribute("data-bw-form", a.getAttribute("form"));
+        a.type = "button";
+        a.removeAttribute("form");
+        a.removeAttribute("name");
+        a.removeAttribute("formnovalidate");
+      }
       a.setAttribute("role", "tab");
       a.id = "schema-tabbtn-" + key;
       a.removeAttribute("aria-current");
@@ -481,6 +504,17 @@ function aufbauSubmitCopy(form, submitter) {
       }
     });
     if (active) choose(active, false);
+  }
+
+  // FB-33 M3-5a: панель вернулась из окна в сетку — кнопки вкладок снова отправляют форму
+  function untab(panel) {
+    panel.querySelectorAll("[data-window-tabs] button[data-bw-form]").forEach(function (b) {
+      b.type = "submit";
+      b.setAttribute("form", b.getAttribute("data-bw-form"));
+      b.name = "zu_tab";
+      b.setAttribute("formnovalidate", "");
+      ["role", "aria-selected", "aria-controls", "tabindex", "id"].forEach(function (k) { b.removeAttribute(k); });
+    });
   }
 
   function choose(key, remember) {
@@ -723,6 +757,7 @@ function aufbauSubmitCopy(form, submitter) {
         panel.removeAttribute("data-bwin-lb");
       }
     }
+    if (panel) untab(panel);
     if (panel && mark && mark.parentNode) mark.parentNode.insertBefore(panel, mark);
     if (mark && mark.parentNode) mark.parentNode.removeChild(mark);
     win.remove();
