@@ -122,7 +122,7 @@ def apply(obj, kind: str, cleaned_data: dict) -> None:
     new = collect(cleaned_data)
     old = obj.details if isinstance(obj.details, dict) else {}
     faq = new.get("faq") or []
-    new["faq"] = old.get("faq") or []  # прежние вопросы — их меняет только `put`
+    new.update(faq=old.get("faq") or [])  # прежние вопросы — их меняет только `put`
     obj.details = new
     rows, _src = object_faq.clean_input(faq, kind)
     object_faq.put(obj, kind, rows)

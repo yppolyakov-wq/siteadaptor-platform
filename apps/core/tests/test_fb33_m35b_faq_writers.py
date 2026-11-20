@@ -167,6 +167,8 @@ WRITER_ALLOWED = {
     "apps/tenants/demo_kits.py",  # демо-киты собирают конфиг целиком (~25508)
     "apps/tenants/demo_i18n.py",  # переводы демо (overlay_config)
     "apps/core/aufbau_draft.py",  # `draft["faq"]` — состояние черновика (запись — `put`)
+    # FB-33 M2b-2b: свои вопросы ОБЪЕКТА (`details["faq"]` события/тура), не `site_config["faq"]`
+    "apps/core/object_faq.py",
 }
 _WRITE = re.compile(
     r"""\[\s*["']faq["']\s*\]\s*=(?!=)|\(\s*["']faq["']\s*,\s*\w+\s*,\s*(?:parts\[|field|["'][qa]["'])"""
