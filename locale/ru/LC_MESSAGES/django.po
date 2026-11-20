@@ -39509,6 +39509,11 @@ msgstr "Общие вопросы"
 msgid "fb33-stack-anchor-M2i-5b"
 msgstr "fb33-stack-anchor-M2i-5b"
 
+#. FB-33 M2i-5b
+#, python-format
+msgid "Übersetzungen entfernt, weil die Option geändert oder gelöscht wurde: %(names)s"
+msgstr "Переводы удалены, потому что вариант изменён или удалён: %(names)s"
+
 #. FB-33 стопка: якорь среза M3-3abc — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
 msgid "fb33-stack-anchor-M3-3abc"
 msgstr "fb33-stack-anchor-M3-3abc"

@@ -33,6 +33,9 @@ logger = logging.getLogger(__name__)
 OFF, OPT, REQ = "off", "opt", "req"
 MODES = (OFF, OPT, REQ)
 LABEL_MAX = 120
+#: FB-33 M2i-5b: переводы подписей полей и вариантов события — по ключу/тексту, не по позиции
+LABELS_I18N = "labels_i18n"
+EVENTS_I18N = "event_types_i18n"
 
 
 class Field(NamedTuple):
@@ -98,8 +101,14 @@ def _default(field: Field, legacy_fields) -> str:
     return field.default
 
 
-def normalize(raw, form: str, legacy_fields=()) -> dict:
-    """Настройки одной формы: только отличия от умолчания. Мусор — молча прочь."""
+def normalize(raw, form: str, legacy_fields=(), event_types=()) -> dict:
+    """Настройки одной формы: только отличия от умолчания. Мусор — молча прочь.
+
+    FB-33 M2i-5b: переводы по ключу, не по позиции — `labels_i18n` {поле: {язык: текст}},
+    у своего вопроса `label_i18n`/`options_i18n` (`form_answers.normalize_questions`), у заявки
+    `event_types_i18n` {вариант на основном языке: {язык: текст}} для вариантов `event_types`
+    (`anfrage.event_types`). Только языки платформы, существующие ключи и варианты; пустой и
+    равный своей немецкой подписи перевод не хранится."""
     raw = raw if isinstance(raw, dict) else {}
     by_key = _BY_FORM.get(form, {})
     out: dict = {}
@@ -124,21 +133,49 @@ def normalize(raw, form: str, legacy_fields=()) -> dict:
             labels[key] = text
     if labels:
         out["labels"] = labels
+    tr_raw = raw.get(LABELS_I18N) if isinstance(raw.get(LABELS_I18N), dict) else {}
+    labels_tr = {}
+    for key in by_key:
+        tr = form_answers.translations(tr_raw.get(key), labels.get(key, ""), LABEL_MAX)
+        if tr:
+            labels_tr[key] = tr
+    if labels_tr:
+        out[LABELS_I18N] = labels_tr
     custom, next_id = form_answers.normalize_questions(raw.get("custom"), raw.get("next_id"))
     if custom:
         out["custom"] = custom
     if next_id:
         out["next_id"] = next_id  # номер помнится и после удаления всех вопросов
+    if form == "anfrage":
+        events_tr = _event_translations(raw.get(EVENTS_I18N), event_types)
+        if events_tr:
+            out[EVENTS_I18N] = events_tr
     return out
 
 
-def normalize_all(raw, legacy_fields=()) -> dict:
-    """`site_config["form_fields"]` целиком: известные формы с непустыми настройками."""
+def _event_translations(raw, event_types) -> dict:
+    """Переводы вариантов «Art der Veranstaltung» {вариант: {язык: текст}} — только для
+    вариантов из списка (порядок списка), лимит и чистка как у варианта."""
+    from apps.tenants import siteconfig
+
+    raw = raw if isinstance(raw, dict) else {}
+    out = {}
+    for value in event_types or ():
+        tr = form_answers.translations(raw.get(value), value, siteconfig._EVENT_TYPE_MAX)
+        if tr:
+            out[value] = tr
+    return out
+
+
+def normalize_all(raw, legacy_fields=(), event_types=()) -> dict:
+    """`site_config["form_fields"]` целиком: известные формы с непустыми настройками.
+    `event_types` — нормализованные варианты `anfrage.event_types` (ключи их переводов)."""
     raw = raw if isinstance(raw, dict) else {}
     out = {}
     for form in FORMS:
         legacy = legacy_fields if form == "anfrage" else ()
-        entry = normalize(raw.get(form), form, legacy)
+        events = event_types if form == "anfrage" else ()
+        entry = normalize(raw.get(form), form, legacy, events)
         if entry:
             out[form] = entry
     return out
@@ -182,18 +219,48 @@ def questions(site, form: str) -> list[dict]:
 BAND_QUESTION_TYPES = frozenset({"text", "textarea", "number", "date"})
 
 
-def view(site, form: str) -> dict:
+def shown_locale(locale=None) -> str:
+    """Язык перевода для показа: `locale` (по умолчанию — активный язык запроса), если это
+    язык перевода платформы; на основном языке — "" (переводы не читаются: байт-в-байт)."""
+    from django.utils.translation import get_language
+
+    loc = locale if locale is not None else (get_language() or "")
+    return loc if loc in form_answers.overlay_locales() else ""
+
+
+def _shown_question(q: dict, loc: str) -> dict:
+    """Свой вопрос для показа на языке `loc`: подпись и пары вариантов `choices` (value —
+    всегда вариант на основном языке: его проверяет `collect` и хранит снимок сделки)."""
+    out = {key: v for key, v in q.items() if key not in ("label_i18n", "options_i18n")}
+    out["req"] = q.get("mode") == "req"
+    if loc:
+        out["label"] = (q.get("label_i18n") or {}).get(loc) or q["label"]
+    tr = q.get("options_i18n") or {}
+    out["choices"] = [
+        (o, ((tr.get(o) or {}).get(loc) if loc else None) or o) for o in q.get("options") or []
+    ]
+    return out
+
+
+def view(site, form: str, locale=None) -> dict:
     """Что рисует форма: {ключ: FieldView} + свои вопросы (`custom`) + сводка для полосы
-    заявки (`band_extra`, `band_custom`, `band_full`) и `any_event`."""
-    labels = ((site.get("form_fields") or {}).get(form) or {}).get("labels") or {}
+    заявки (`band_extra`, `band_custom`, `band_full`) и `any_event`.
+
+    FB-33 M2i-5b: подписи — на языке показа (`shown_locale`): перевод → своя немецкая подпись
+    → подпись по умолчанию (gettext). На основном языке переводы не читаются."""
+    loc = shown_locale(locale)
+    entry = (site.get("form_fields") or {}).get(form) or {}
+    labels = entry.get("labels") or {}
+    labels_tr = (entry.get(LABELS_I18N) or {}) if loc else {}
     out: dict = {}
     for field in fields_of(form):
         mode = mode_of(site, form, field.key)
         if field.key == "event_type" and not (site.get("anfrage") or {}).get("event_types"):
             mode = OFF  # выбор без вариантов владельца не рисуется и не обязателен
         default = field.req_label if mode == REQ and field.req_label is not None else field.label
-        out[field.key] = FieldView(mode, labels.get(field.key) or str(default))
-    out["custom"] = [{**q, "req": q.get("mode") == "req"} for q in questions(site, form)]
+        label = (labels_tr.get(field.key) or {}).get(loc) or labels.get(field.key) or str(default)
+        out[field.key] = FieldView(mode, label)
+    out["custom"] = [_shown_question(q, loc) for q in questions(site, form)]
     if form == "anfrage":
         extra = [
             k for k, f in out.items() if isinstance(f, FieldView) and f.req and k not in BAND_NATIVE
@@ -347,14 +414,17 @@ def edit_state(site, form: str = "anfrage") -> dict:
         next_id = int(stored.get("next_id") or 0)
     except (TypeError, ValueError):
         next_id = 0
+    events = list((site.get("anfrage") or {}).get("event_types") or []) if form == "anfrage" else []
     return {
         "mode": {f.key: mode_of(site, form, f.key) for f in fields_of(form) if not f.pinned},
         "labels": dict(stored.get("labels") or {}),
+        LABELS_I18N: copy.deepcopy(stored.get(LABELS_I18N) or {}),
         "custom": copy.deepcopy(stored.get("custom") or []),
         "next_id": next_id,
-        "event_types": list((site.get("anfrage") or {}).get("event_types") or [])
-        if form == "anfrage"
-        else [],
+        "event_types": events,
+        # FB-33 M2i-5b: переводы вариантов — по тексту; старый позиционный перевод
+        # (`i18n.<язык>.anfrage.event_types`) виден здесь же, запись переносит его (`put`)
+        EVENTS_I18N: event_translations(site) if form == "anfrage" else {},
     }
 
 
@@ -374,7 +444,18 @@ def canonical(state, form: str = "anfrage") -> dict:
     fields = fields_of(form)
     raw_mode = state.get("mode") if isinstance(state.get("mode"), dict) else {}
     legacy = [f.legacy for f in fields if f.legacy and raw_mode.get(f.key) in (OPT, REQ)]
-    spec = normalize({"mode": raw_mode, "labels": state.get("labels")}, form, legacy)
+    events = _event_types(state.get("event_types")) if form == "anfrage" else []
+    spec = normalize(
+        {
+            "mode": raw_mode,
+            "labels": state.get("labels"),
+            LABELS_I18N: state.get(LABELS_I18N),
+            EVENTS_I18N: state.get(EVENTS_I18N),
+        },
+        form,
+        legacy,
+        events,
+    )
     by_key = {f.key: f for f in fields}
     mode = {
         f.key: (spec.get("mode") or {}).get(f.key) or _default(by_key[f.key], legacy)
@@ -389,9 +470,11 @@ def canonical(state, form: str = "anfrage") -> dict:
     return {
         "mode": mode,
         "labels": spec.get("labels") or {},
+        LABELS_I18N: spec.get(LABELS_I18N) or {},
         "custom": custom,
         "next_id": next_id,
-        "event_types": _event_types(state.get("event_types")) if form == "anfrage" else [],
+        "event_types": events,
+        EVENTS_I18N: spec.get(EVENTS_I18N) or {},
     }
 
 
@@ -610,6 +693,10 @@ def put(config: dict, form: str, state) -> dict:
     current = edit_state(config, form)
     if state == current:
         return config
+    if form == "anfrage":
+        # FB-33 M2i-5b: старый позиционный перевод вариантов — прочь (он уже в состоянии
+        # вкладки ключом по тексту: `edit_state` его показал, черновик начат с него)
+        _drop_legacy_event_i18n(config)
     fields = fields_of(form)
     legacy = list(_legacy(config)) if form == "anfrage" else []
     for field in fields:
@@ -642,9 +729,17 @@ def put(config: dict, form: str, state) -> dict:
             q = {**q, "id": f"q{counter}"}
         custom.append(q)
     entry = normalize(
-        {"mode": state["mode"], "labels": state["labels"], "custom": custom, "next_id": counter},
+        {
+            "mode": state["mode"],
+            "labels": state["labels"],
+            LABELS_I18N: state[LABELS_I18N],
+            "custom": custom,
+            "next_id": counter,
+            EVENTS_I18N: state[EVENTS_I18N],
+        },
         form,
         legacy,
+        (config.get("anfrage") or {}).get("event_types") or [] if form == "anfrage" else (),
     )
     ff = dict(config.get("form_fields") or {})
     if entry:
@@ -704,6 +799,34 @@ def panel(site, form: str = "anfrage", state=None, preset: bool = False) -> dict
     }
 
 
+def _merge_translations(base: dict, mine: dict, out: dict) -> None:
+    """Слить переводы {ключ: {язык: текст}} по (ключ, язык): что владелец изменил во вкладке
+    (`mine` против `base`) — его, остальное — как в `out` (сохранённое сейчас). На месте."""
+    for key in set(mine) | set(base):
+        old, new = base.get(key) or {}, mine.get(key) or {}
+        for loc in set(old) | set(new):
+            if old.get(loc) == new.get(loc):
+                continue
+            node = dict(out.get(key) or {})
+            if loc in new:
+                node[loc] = new[loc]
+            else:
+                node.pop(loc, None)
+            if node:
+                out[key] = node
+            else:
+                out.pop(key, None)
+
+
+def dropped_note(values) -> str:
+    """Сообщение: перевод варианта выпал — вариант переименован или удалён."""
+    from django.utils.translation import gettext
+
+    return gettext(
+        "Übersetzungen entfernt, weil die Option geändert oder gelöscht wurde: %(names)s"
+    ) % {"names": ", ".join(f"„{v}“" for v in values)}
+
+
 def merge(base, mine, theirs, form: str = "anfrage", notes: list | None = None) -> dict:
     """Трёхстороннее слияние состояния вкладки (ревью M2i-5, H2): `base` — сохранённое на
     момент первой правки черновика, `mine` — черновик, `theirs` — сохранённое сейчас (старая
@@ -727,8 +850,151 @@ def merge(base, mine, theirs, form: str = "anfrage", notes: list | None = None) 
     for key in ("custom", "event_types"):
         if mine[key] != base[key]:
             out[key] = mine[key]
+    # FB-33 M2i-5b: переводы подписей и вариантов события — по (ключ, язык)
+    for name in (LABELS_I18N, EVENTS_I18N):
+        _merge_translations(base[name], mine[name], out[name])
+    dropped = [
+        value
+        for value in mine[EVENTS_I18N]
+        if mine[EVENTS_I18N][value] != base[EVENTS_I18N].get(value)
+        and value not in out["event_types"]
+    ]
+    if dropped and notes is not None:
+        notes.append(dropped_note(dropped))
     if contact_dropped(out, form):
         out["mode"]["phone"] = OPT
         if notes is not None:
             notes.append(contact_note())
     return canonical(out, form)
+
+
+# ───────────── FB-33 M2i-5b: переводы вариантов «Art der Veranstaltung» по тексту ─────────────
+# До среза варианты переводились ПОЗИЦИОННО оверлеем `i18n[язык].anfrage.event_types` (пишет
+# демо-сидер `demo_i18n`): переставили/удалили вариант во вкладке — перевод садился на чужой.
+# Теперь — `form_fields.anfrage.event_types_i18n` {вариант: {язык: текст}}. Старый оверлей —
+# ВРЕМЕННЫЙ запасной путь чтения (до прогона `form_i18n_realign` на сервере, срок — roadmap):
+# его впитывают запись вкладки (`put`), старый POST панели и команда переноса.
+
+
+def legacy_event_i18n(site) -> dict:
+    """Старые позиционные переводы вариантов {вариант: {язык: текст}} (i-й перевод — i-му
+    нормализованному варианту, как накладывал `localize`)."""
+    from apps.tenants import siteconfig
+
+    site = site if isinstance(site, dict) else {}
+    events = siteconfig.normalize_anfrage(site.get("anfrage")).get("event_types") or []
+    i18n = site.get("i18n") if isinstance(site.get("i18n"), dict) else {}
+    out: dict = {}
+    for loc in form_answers.overlay_locales():
+        node = i18n.get(loc) if isinstance(i18n.get(loc), dict) else {}
+        anfrage = node.get("anfrage") if isinstance(node.get("anfrage"), dict) else {}
+        shown = anfrage.get("event_types") if isinstance(anfrage.get("event_types"), list) else []
+        for value, text in zip(events, shown, strict=False):
+            if isinstance(text, str):
+                out.setdefault(value, {})[loc] = text
+    return _event_translations(out, events)
+
+
+def event_translations(site) -> dict:
+    """Переводы вариантов события: ключом по тексту, недостающие (вариант, язык) — из
+    старого позиционного оверлея (запасной путь до переноса)."""
+    from apps.tenants import siteconfig
+
+    site = site if isinstance(site, dict) else {}
+    events = siteconfig.normalize_anfrage(site.get("anfrage")).get("event_types") or []
+    stored = ((site.get("form_fields") or {}).get("anfrage") or {}).get(EVENTS_I18N)
+    out = _event_translations(stored, events)
+    for value, tr in legacy_event_i18n(site).items():
+        for loc, text in tr.items():
+            out.setdefault(value, {}).setdefault(loc, text)
+    return {value: out[value] for value in events if value in out}
+
+
+def event_type_choices(site, locale=None) -> list[tuple[str, str]]:
+    """Пары (value, подпись) выбора «Art der Veranstaltung»: value — ВСЕГДА вариант на
+    основном языке (его проверяет `/anfrage/` и хранит `Job.event_type`), подпись — перевод
+    языка показа (ключом → старый позиционный → основной)."""
+    site = site if isinstance(site, dict) else {}
+    events = (site.get("anfrage") or {}).get("event_types") or []
+    loc = shown_locale(locale)
+    tr = event_translations(site) if loc else {}
+    return [(value, (tr.get(value) or {}).get(loc) or value) for value in events]
+
+
+def _drop_legacy_event_i18n(config: dict) -> bool:
+    """Убрать старый позиционный оверлей `i18n.*.anfrage` (на месте; пустые узлы — тоже)."""
+    i18n = config.get("i18n")
+    if not isinstance(i18n, dict):
+        return False
+    changed = False
+    for loc in list(i18n):
+        node = i18n[loc]
+        if isinstance(node, dict) and "anfrage" in node:
+            node = {k: v for k, v in node.items() if k != "anfrage"}
+            changed = True
+            if node:
+                i18n[loc] = node
+            else:
+                i18n.pop(loc)
+    if not i18n:
+        config.pop("i18n", None)
+    return changed
+
+
+def absorb_legacy_event_i18n(config: dict) -> bool:
+    """Перенести старые позиционные переводы вариантов в `event_types_i18n` (ключом по
+    тексту; уже записанный ключевой перевод главнее) и убрать `i18n.*.anfrage`. Меняет
+    `config` на месте (сырой или нормализованный); True — было что переносить/чистить.
+    Вызывать под блокировкой строки бизнеса (старый POST панели, `form_i18n_realign`)."""
+    if not isinstance(config, dict):
+        return False
+    from apps.tenants import siteconfig
+
+    events = siteconfig.normalize_anfrage(config.get("anfrage")).get("event_types") or []
+    merged = event_translations(config)
+    if not _drop_legacy_event_i18n(config):
+        return False
+    ff = (
+        dict(config.get("form_fields") or {}) if isinstance(config.get("form_fields"), dict) else {}
+    )
+    entry = dict(ff.get("anfrage") or {}) if isinstance(ff.get("anfrage"), dict) else {}
+    merged = _event_translations(merged, events)
+    if merged:
+        entry[EVENTS_I18N] = merged
+    else:
+        entry.pop(EVENTS_I18N, None)
+    if entry:
+        ff["anfrage"] = entry
+    else:
+        ff.pop("anfrage", None)
+    if ff:
+        config["form_fields"] = ff
+    else:
+        config.pop("form_fields", None)
+    return True
+
+
+def set_event_translations(config: dict, translations: dict, overwrite: bool = False) -> None:
+    """Дописать переводы вариантов события {вариант: {язык: текст}} (демо-сидер `demo_i18n`):
+    существующий перевод (ручной) главнее, если не `overwrite`. Меняет `config` на месте."""
+    from apps.tenants import siteconfig
+
+    events = siteconfig.normalize_anfrage(config.get("anfrage")).get("event_types") or []
+    ff = (
+        dict(config.get("form_fields") or {}) if isinstance(config.get("form_fields"), dict) else {}
+    )
+    entry = dict(ff.get("anfrage") or {}) if isinstance(ff.get("anfrage"), dict) else {}
+    out = _event_translations(entry.get(EVENTS_I18N), events)
+    for value, tr in (translations or {}).items():
+        for loc, text in (tr or {}).items():
+            node = out.setdefault(value, {})
+            if overwrite or loc not in node:
+                node[loc] = text
+    out = _event_translations(out, events)
+    if out:
+        entry[EVENTS_I18N] = out
+    else:
+        entry.pop(EVENTS_I18N, None)
+    if entry:
+        ff["anfrage"] = entry
+        config["form_fields"] = ff

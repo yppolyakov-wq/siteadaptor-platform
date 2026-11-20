@@ -46,6 +46,27 @@ def clean_text(value, limit: int) -> str:
 _s = clean_text
 
 
+def overlay_locales() -> list[str]:
+    """FB-33 M2i-5b: языки переводов (реестр `settings.LANGUAGES` без основного), по порядку —
+    тот же набор, что `siteconfig.overlay_locales` (модуль без импорта `siteconfig`)."""
+    from django.conf import settings
+
+    return sorted({code for code, _label in settings.LANGUAGES} - {settings.LANGUAGE_CODE})
+
+
+def translations(raw, base: str, limit: int) -> dict:
+    """FB-33 M2i-5b: переводы одного текста `{язык: текст}` — только языки платформы, текст
+    чистится как основной, пустой и равный основному не хранится (показ возьмёт основной)."""
+    if not isinstance(raw, dict):
+        return {}
+    out = {}
+    for loc in overlay_locales():
+        text = clean_text(raw.get(loc), limit)
+        if text and text != base:
+            out[loc] = text
+    return out
+
+
 def normalize_questions(raw, next_id=0, temp: bool = False) -> tuple[list[dict], int]:
     """Вопросы владельца и следующий свободный номер. Мусор отбрасывается молча (это настройка,
     не ввод клиента); вопрос без подписи или выбор без вариантов — не вопрос. `temp` — черновик
@@ -69,13 +90,29 @@ def normalize_questions(raw, next_id=0, temp: bool = False) -> tuple[list[dict],
             options = []
             for opt in item.get("options") if isinstance(item.get("options"), list) else []:
                 text = _s(opt, LABEL_MAX)
-                if text and text not in options:
+                if text and text not in options:  # дубли вариантов схлопываются (порядок — первый)
                     options.append(text)
                 if len(options) >= MAX_OPTIONS:
                     break
             if not options:
                 continue
             question["options"] = options
+        # FB-33 M2i-5b: переводы подписи и вариантов — по тексту варианта на основном языке
+        # (не по позиции: перестановка не уводит перевод к чужому варианту)
+        label_tr = translations(item.get("label_i18n"), label, LABEL_MAX)
+        if label_tr:
+            question["label_i18n"] = label_tr
+        if kind == "choice":
+            raw_opts = (
+                item.get("options_i18n") if isinstance(item.get("options_i18n"), dict) else {}
+            )
+            opts_tr = {}
+            for opt in question["options"]:
+                tr = translations(raw_opts.get(opt), opt, LABEL_MAX)
+                if tr:
+                    opts_tr[opt] = tr
+            if opts_tr:
+                question["options_i18n"] = opts_tr
         if item.get("mode") == "req":
             question["mode"] = "req"
         seen.add(item["id"])

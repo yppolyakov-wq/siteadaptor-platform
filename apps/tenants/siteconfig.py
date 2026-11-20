@@ -5232,8 +5232,11 @@ def normalize_anfrage(raw) -> dict:
     out = {"fields": fields} if fields else {}
     types = []
     for item in raw.get("event_types") if isinstance(raw.get("event_types"), list) else []:
-        if isinstance(item, str) and item.strip():
-            types.append(item.strip()[:_EVENT_TYPE_MAX])
+        text = item.strip()[:_EVENT_TYPE_MAX] if isinstance(item, str) else ""
+        # FB-33 M2i-5b (architect): дубли схлопываются с сохранением порядка — вариант и его
+        # перевод (`form_fields.anfrage.event_types_i18n`) узнаются по тексту
+        if text and text not in types:
+            types.append(text)
         if len(types) >= _MAX_EVENT_TYPES:
             break
     if types:
@@ -5527,7 +5530,11 @@ def _normalize_impl(config) -> dict:
     # от умолчания (умолчание событийных полей — прежний `anfrage.fields`).
     from apps.core import form_spec
 
-    ff = form_spec.normalize_all(config.get("form_fields"), (anfrage or {}).get("fields") or ())
+    ff = form_spec.normalize_all(
+        config.get("form_fields"),
+        (anfrage or {}).get("fields") or (),
+        (anfrage or {}).get("event_types") or (),
+    )
     if ff:
         normalized["form_fields"] = ff
     # HF-2: какие удобства показывать на карточке номера; ключ ТОЛЬКО при выборе
