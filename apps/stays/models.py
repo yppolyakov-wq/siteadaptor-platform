@@ -135,6 +135,19 @@ class StayUnit(I18nMixin, TimestampedModel):
     def __str__(self):
         return self.name
 
+    @property
+    def faq_list(self) -> list:
+        """FB-33 M2b-2b: свои вопросы FAQ [{q, a}] (мусор → [], без краша)."""
+        from apps.core import object_faq
+
+        return object_faq.items(self, "stay")
+
+    def faq_localized(self, locale: str | None = None) -> list:
+        """FB-33 M2b-2b: свои вопросы на языке витрины (перевод поэлементно, иначе база)."""
+        from apps.core import object_faq
+
+        return object_faq.localized(self, "stay", locale)
+
     def name_localized(self, locale: str | None = None) -> str:
         """L3: имя юнита на локали (перевод из name_i18n, иначе базовое name)."""
         return self.get_overlay("name", "name_i18n", locale)

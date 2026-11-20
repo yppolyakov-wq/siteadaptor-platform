@@ -39825,6 +39825,109 @@ msgstr "fb33-stack-anchor-M3-4b"
 msgid "fb33-stack-anchor-M2b-2b"
 msgstr "fb33-stack-anchor-M2b-2b"
 
+#. FB-33 M2b-2b: свои вопросы FAQ объекта
+msgid "Noch keine eigenen Fragen. Ohne Fragen erscheint dieser Block auf der Website nicht."
+msgstr "Власних запитань ще немає. Без запитань цей блок на сайті не з’явиться."
+
+#. FB-33 M2b-2b: свои вопросы FAQ объекта
+#, python-format
+msgid "Gilt nur für „%(name)s“ — andere Seiten zeigen ihre eigenen Fragen."
+msgstr "Лише для «%(name)s» — інші сторінки показують власні запитання."
+
+#. FB-33 M2b-2b: свои вопросы FAQ объекта
+msgid "Diese Fragen stehen auf der Seite auch im Abschnitt „Häufige Fragen“ – einen der beiden ausblenden, sonst erscheinen sie doppelt."
+msgstr "Ці запитання є на сторінці й у розділі «Часті запитання» — сховайте один із двох, інакше вони з’являться двічі."
+
+#. FB-33 M2b-2b: свои вопросы FAQ объекта
+msgid "Hier steht der Text der Hauptsprache. Übersetzungen ändern Sie im Formular des Angebots."
+msgstr "Тут — текст основної мови. Переклади змінюються у формі пропозиції."
+
+#. FB-33 M2b-2b: свои вопросы FAQ объекта
+msgid "Welche Fragen"
+msgstr "Які запитання"
+
+#. FB-33 M2b-2b: свои вопросы FAQ объекта
+#, python-format
+msgid "Fragen: %(n)s"
+msgstr "Запитань: %(n)s"
+
+#. FB-33 M2b-2b: свои вопросы FAQ объекта
+#, python-format
+msgid "Fragen nur für %(name)s"
+msgstr "Запитання лише для %(name)s"
+
+#. FB-33 M2b-2b: свои вопросы FAQ объекта
+msgid "Eigene Fragen jeder Seite"
+msgstr "Власні запитання кожної сторінки"
+
+#. FB-33 M2b-2b: свои вопросы FAQ объекта
+msgid "Allgemeine FAQ"
+msgstr "Загальні FAQ"
+
+#. FB-33 M2b-2b: свои вопросы FAQ объекта
+msgid "dieselben Fragen wie auf „FAQ“"
+msgstr "ті самі запитання, що й на «FAQ»"
+
+#. FB-33 M2b-2b: свои вопросы FAQ объекта
+msgid "Dieses Angebot gibt es nicht mehr – die Fragen wurden nicht übernommen."
+msgstr "Цієї пропозиції більше немає — запитання не збережено."
+
+#. FB-33 M2b-2b: свои вопросы FAQ объекта
+msgid "Die Änderungen an den eigenen Fragen wurden nicht gespeichert, weil der FAQ-Block entfernt wurde."
+msgstr "Зміни власних запитань не збережено: блок FAQ видалено."
+
+#. FB-33 M2b-2b: свои вопросы FAQ объекта
+msgid "Die eigenen Fragen wurden inzwischen geändert – Ihre Fassung ist gespeichert, Übersetzungen wurden nach dem Fragetext zugeordnet."
+msgstr "Власні запитання тим часом змінили — вашу версію збережено, переклади зіставлено за текстом запитання."
+
+#. FB-33 M2b-2b: свои вопросы FAQ объекта
+msgid "Die eigenen Fragen darf nur ändern, wer auch das Angebot selbst bearbeiten darf."
+msgstr "Власні запитання може змінювати лише той, кому дозволено редагувати саму пропозицію."
+
+#. FB-33 M2b-2b: свои вопросы FAQ объекта
+msgid "Die eigenen Fragen dieses Angebots wurden inzwischen an anderer Stelle geändert."
+msgstr "Власні запитання цієї пропозиції тим часом змінили в іншому місці."
+
+#. FB-33 M2b-2b: свои вопросы FAQ объекта
+msgid "eigene Liste dieser Leistung"
+msgstr "власний список цієї послуги"
+
+#. FB-33 M2b-2b: свои вопросы FAQ объекта
+msgid "eigene Liste dieses Produkts"
+msgstr "власний список цього товару"
+
+#. FB-33 M2b-2b: свои вопросы FAQ объекта
+msgid "eigene Liste dieser Unterkunft"
+msgstr "власний список цього житла"
+
+#. FB-33 M2b-2b: свои вопросы FAQ объекта
+msgid "eigene Liste dieser Veranstaltung"
+msgstr "власний список цієї події"
+
+#. FB-33 M2b-2b: свои вопросы FAQ объекта
+msgid "eigene Liste dieser Tour"
+msgstr "власний список цього туру"
+
+#. FB-33 M2b-2b: свои вопросы FAQ объекта
+msgid "Jede Leistung zeigt ihre eigenen Fragen."
+msgstr "Кожна послуга показує власні запитання."
+
+#. FB-33 M2b-2b: свои вопросы FAQ объекта
+msgid "Jedes Produkt zeigt seine eigenen Fragen."
+msgstr "Кожен товар показує власні запитання."
+
+#. FB-33 M2b-2b: свои вопросы FAQ объекта
+msgid "Jede Unterkunft zeigt ihre eigenen Fragen."
+msgstr "Кожне житло показує власні запитання."
+
+#. FB-33 M2b-2b: свои вопросы FAQ объекта
+msgid "Jede Veranstaltung zeigt ihre eigenen Fragen."
+msgstr "Кожна подія показує власні запитання."
+
+#. FB-33 M2b-2b: свои вопросы FAQ объекта
+msgid "Jede Tour zeigt ihre eigenen Fragen."
+msgstr "Кожен тур показує власні запитання."
+
 #. FB-33 стопка: якорь среза M3-6 — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
 msgid "fb33-stack-anchor-M3-6"
 msgstr "fb33-stack-anchor-M3-6"

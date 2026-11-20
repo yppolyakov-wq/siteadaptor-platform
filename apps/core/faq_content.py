@@ -182,20 +182,35 @@ def put(config: dict, items, src=None, base_fp: str | None = None) -> None:
         node = overlay[loc]
         if not isinstance(node, dict) or "faq" not in node:
             continue
-        tr = node["faq"] if isinstance(node["faq"], list) else []
-        moved = []
-        for j, s in enumerate(mapping):
-            entry = _ov_entry(tr[s]) if s is not None and s < len(tr) else {}
-            for field in FIELDS:
-                if s is not None and old[s][field] != new[j][field]:
-                    entry.pop(field, None)  # немецкий текст изменился — перевод устарел
-            moved.append(entry)
-        while moved and not moved[-1]:
-            moved.pop()  # хвост без переводов не храним
+        moved = remap_overlay(old, new, mapping, node["faq"])
         if moved:
             node["faq"] = moved
         else:
             node.pop("faq")
+
+
+def mapping(old: list[dict], new: list[dict], src=None, by_text: bool = False) -> list:
+    """FB-33 M2b-2b: сопоставление «новый вопрос → индекс старого» (`src` либо по тексту) —
+    тот же разбор, что у `put` (свои вопросы объекта — `object_faq.put`)."""
+    return _mapping(old, new, src, by_text)
+
+
+def remap_overlay(old: list[dict], new: list[dict], mapping: list, tr_list) -> list:
+    """Переводы ОДНОГО языка за вопросами: `mapping[j]` — индекс старого вопроса для нового
+    вопроса j (None — новый). Перевод поля, чей немецкий текст изменился, снимается; хвост
+    без переводов не хранится. Общий для общего FAQ (`put`) и своих вопросов объекта
+    (`object_faq.put`, FB-33 M2b-2b)."""
+    tr = tr_list if isinstance(tr_list, list) else []
+    moved = []
+    for j, s in enumerate(mapping):
+        entry = _ov_entry(tr[s]) if s is not None and s < len(tr) else {}
+        for field in FIELDS:
+            if s is not None and old[s][field] != new[j][field]:
+                entry.pop(field, None)  # немецкий текст изменился — перевод устарел
+        moved.append(entry)
+    while moved and not moved[-1]:
+        moved.pop()  # хвост без переводов не храним
+    return moved
 
 
 def set_text(config: dict, index: int, field: str, value: str, locale: str = "") -> bool:
@@ -241,13 +256,14 @@ def _index(value, size: int):
     return i if 0 <= i < size else None
 
 
-def apply_ops(items: list[dict], src: list, post, notes: list | None = None, info=None):
+def apply_ops(items: list[dict], src: list, post, notes: list | None = None, info=None, clean=None):
     """Форма окна → новое (items, src). Тексты `faq_<i>_q|a` (пустой вопрос — удалить),
     кнопки `faq_remove=<i>`, `faq_move=<i>:up|down`, новый вопрос `faq_new_q|a`. Сначала
     тексты, затем кнопка — набранное не теряется. Новый вопрос принимается любой кнопкой
     формы («Übernehmen»/Enter — `faq_add`, ↑↓, Entfernen); со скриптами поля применяются на
     лету без кнопки — тогда нет (иначе каждое применение добавляло бы его заново). Ответ без
-    вопроса — сообщение, не молча. `info["opened"]` — куда встал сдвинутый вопрос."""
+    вопроса — сообщение, не молча. `info["opened"]` — куда встал сдвинутый вопрос. `clean` —
+    разбор ввода с лимитами (FB-33 M2b-2b: свои вопросы объекта — лимиты вида)."""
     # стопка 2: кнопка вкладки без скриптов (`zu_tab`) — тоже кнопка формы: набранный новый
     # вопрос не теряется при переходе (со скриптами кнопок вкладок у формы нет)
     pressed = any(post.get(k) is not None for k in ("faq_add", "faq_move", "faq_remove", "zu_tab"))
@@ -281,7 +297,7 @@ def apply_ops(items: list[dict], src: list, post, notes: list | None = None, inf
         orphan = True
     if orphan and notes is not None:
         notes.append(orphan_note())
-    return clean_input(rows, notes)
+    return (clean or clean_input)(rows, notes)
 
 
 def orphan_note() -> str:

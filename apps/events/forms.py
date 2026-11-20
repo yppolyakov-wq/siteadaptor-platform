@@ -227,7 +227,7 @@ class EventForm(OverlayI18nFormMixin, forms.ModelForm):
             for p in (self.cleaned_data.get("program_text") or "").splitlines()
             if p.strip()
         ]
-        event.details = landing.collect(self.cleaned_data)
+        landing.apply(event, "event", self.cleaned_data)  # FB-33 M2b-2b: FAQ — `object_faq.put`
         event.tiers = details_mod.normalize_tiers(
             (self.cleaned_data.get("tiers_text") or "").splitlines()
         )
@@ -326,7 +326,7 @@ class TourForm(OverlayI18nFormMixin, forms.ModelForm):
 
     def save(self, commit=True):
         tour = super().save(commit=False)
-        tour.details = landing.collect(self.cleaned_data)
+        landing.apply(tour, "tour", self.cleaned_data)
         if not tour.slug:
             tour.slug = unique_tour_slug(tour.title)
         if commit:

@@ -388,6 +388,19 @@ class Product(SoftDeleteMixin, I18nMixin):
         return self.get_i18n("name") or self.sku or str(self.pk)
 
     @property
+    def faq_list(self) -> list:
+        """FB-33 M2b-2b: свои вопросы FAQ [{q, a}] (мусор → [], без краша)."""
+        from apps.core import object_faq
+
+        return object_faq.items(self, "product")
+
+    def faq_localized(self, locale: str | None = None) -> list:
+        """FB-33 M2b-2b: свои вопросы на языке витрины (перевод поэлементно, иначе база)."""
+        from apps.core import object_faq
+
+        return object_faq.localized(self, "product", locale)
+
+    @property
     def badge_label(self) -> str:
         """Человекочитаемый бейдж («Tagesgericht») или '' если не задан. Ф3:
         переводимая метка (BADGE_LABELS, lazy) — на витрине в языке клиента."""

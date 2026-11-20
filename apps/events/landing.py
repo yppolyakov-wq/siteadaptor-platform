@@ -111,3 +111,18 @@ def collect(cleaned_data: dict) -> dict:
     for fname, (key, _rec) in LIST_FIELDS.items():
         raw[key] = (cleaned_data.get(fname) or "").splitlines()
     return details_mod.normalize(raw)
+
+
+def apply(obj, kind: str, cleaned_data: dict) -> None:
+    """Блоки формы — в `obj.details` (без `save`). Свои вопросы FAQ пишет единственный
+    писатель `object_faq.put` (FB-33 M2b-2b): переводы `details_i18n` едут за вопросом по
+    тексту, правка немецкого снимает перевод своего поля; лимиты вида — на вводе."""
+    from apps.core import object_faq
+
+    new = collect(cleaned_data)
+    old = obj.details if isinstance(obj.details, dict) else {}
+    faq = new.get("faq") or []
+    new["faq"] = old.get("faq") or []  # прежние вопросы — их меняет только `put`
+    obj.details = new
+    rows, _src = object_faq.clean_input(faq, kind)
+    object_faq.put(obj, kind, rows)

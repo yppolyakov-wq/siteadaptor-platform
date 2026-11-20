@@ -31,8 +31,9 @@ def _lines(value) -> list[str]:
     return out
 
 
-def _records(value, keys) -> list[dict]:
-    """Список dict'ов по ключам keys из list[dict] или строк «A | B | C»."""
+def _records(value, keys, maxsplit: int = -1) -> list[dict]:
+    """Список dict'ов по ключам keys из list[dict] или строк «A | B | C». `maxsplit` —
+    сколько «|» делят строку (FB-33 M2b-2b: у FAQ — только первый, «|» в ответе остаётся)."""
     out = []
     for item in value or []:
         if isinstance(item, dict):
@@ -40,7 +41,7 @@ def _records(value, keys) -> list[dict]:
         elif isinstance(item, (list, tuple)):
             parts = list(item)
         else:
-            parts = str(item).split(_SEP)
+            parts = str(item).split(_SEP, maxsplit)
         rec = {k: _s(parts[i]) if i < len(parts) else "" for i, k in enumerate(keys)}
         if any(rec.values()):
             out.append(rec)
@@ -69,6 +70,8 @@ _SCHEMA = {
     "before_after": ("before", "after", "text"),
     "certifications": ("name", "issuer", "icon"),
 }
+#: FB-33 M2b-2b (решение владельца): строка «Frage | Antwort» делится по ПЕРВОМУ «|»
+_MAXSPLIT = {"faq": 1}
 
 
 def normalize(raw) -> dict:
@@ -82,7 +85,7 @@ def normalize(raw) -> dict:
         elif kind == "list":
             out[key] = _lines(value)
         else:
-            out[key] = _records(value, kind)
+            out[key] = _records(value, kind, _MAXSPLIT.get(key, -1))
     return out
 
 
@@ -209,7 +212,7 @@ def list_to_text(value) -> str:
 
 
 def records_to_text(value, keys) -> str:
-    rows = _records(value, keys)
+    rows = _records(value, keys, 1 if tuple(keys) == ("q", "a") else -1)
     return "\n".join(f" {_SEP} ".join(r[k] for k in keys) for r in rows)
 
 

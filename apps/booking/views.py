@@ -973,36 +973,6 @@ def _rich_lines_aligned(base_raw, tr_raw) -> list[str]:
     return out
 
 
-def _rich_faq(post, locales) -> tuple[list[dict], dict]:
-    """Пары `faq_q_<i>`/`faq_a_<i>` (+ `_<loc>` для переводов) → база и оверлеи.
-
-    База и переводы разбираются ОДНИМ проходом: пара без вопроса отбрасывается
-    (очистка вопроса = удаление пункта), и вместе с ней должен исчезнуть её
-    перевод — иначе после удаления пункта из середины оставшиеся переводы
-    съехали бы на соседние вопросы. Переводы пустых ключей не пишем: `overlay_seq`
-    возьмёт на их месте базу.
-    """
-    base, per_locale = [], {loc: [] for loc in locales}
-    i = 0
-    while True:
-        q = post.get(f"faq_q_{i}")
-        a = post.get(f"faq_a_{i}")
-        if q is None and a is None:
-            break
-        q, a = (q or "").strip(), (a or "").strip()
-        if q:
-            base.append({"q": q, "a": a})
-            for loc in locales:
-                tq = (post.get(f"faq_q_{i}_{loc}") or "").strip()
-                ta = (post.get(f"faq_a_{i}_{loc}") or "").strip()
-                per_locale[loc].append({k: v for k, v in (("q", tq), ("a", ta)) if v})
-        i += 1
-    for loc in locales:  # хвост пустых переводов не несёт информации
-        while per_locale[loc] and not per_locale[loc][-1]:
-            per_locale[loc].pop()
-    return base, per_locale
-
-
 def _rich_seq_lines(overlay, locale: str, length: int) -> list[str]:
     """Перевод списка строк на локаль, дополненный до длины базового списка.
 
@@ -1012,39 +982,6 @@ def _rich_seq_lines(overlay, locale: str, length: int) -> list[str]:
     items = list(items) if isinstance(items, (list, tuple)) else []
     items = [i if isinstance(i, str) else "" for i in items[:length]]
     return items + [""] * (length - len(items))
-
-
-def _faq_rows(service, locales) -> list[dict]:
-    """Строки редактора FAQ: существующие пары + одна пустая (слоты дорастают
-    после Save — тот же приём, что в редакторе Finder, без JS)."""
-    base = service.faq_list
-    overlay = service.faq_i18n if isinstance(service.faq_i18n, dict) else {}
-    rows = []
-    for i, item in enumerate(base + [{"q": "", "a": ""}]):
-        tr = []
-        for loc in locales:
-            items = overlay.get(loc)
-            src = items[i] if isinstance(items, (list, tuple)) and i < len(items) else {}
-            src = src if isinstance(src, dict) else {}
-            tr.append(
-                {
-                    "locale": loc,
-                    "q_name": f"faq_q_{i}_{loc}",
-                    "a_name": f"faq_a_{i}_{loc}",
-                    "q": src.get("q", ""),
-                    "a": src.get("a", ""),
-                }
-            )
-        rows.append(
-            {
-                "q_name": f"faq_q_{i}",
-                "a_name": f"faq_a_{i}",
-                "q": item.get("q", ""),
-                "a": item.get("a", ""),
-                "i18n": tr,
-            }
-        )
-    return rows
 
 
 def _clamp_int(raw, low, high) -> int:
@@ -1374,11 +1311,14 @@ def services_view(request, pk=None):
             }
             if apply_seq_overlay(service, "attributes_i18n", per_locale, tenant):
                 changed.append("attributes_i18n")
-        if request.POST.get("faq_present"):
-            service.faq, per_locale = _rich_faq(request.POST, extra_locales(tenant))
-            changed.append("faq")
-            if apply_seq_overlay(service, "faq_i18n", per_locale, tenant):
-                changed.append("faq_i18n")
+        # FB-33 M2b-2b: свои вопросы услуги — единственным писателем `object_faq.put`
+        from apps.core import object_faq
+
+        parsed = object_faq.from_form(request.POST, extra_locales(tenant), "service")
+        if parsed is not None:
+            base, per_locale = parsed
+            fields = object_faq.put(service, "service", base, per_locale=per_locale, tenant=tenant)
+            changed += ["faq", *(f for f in fields if f != "faq")]
         return changed
 
     def _int(raw, default, lo, hi):
@@ -1612,6 +1552,8 @@ def services_view(request, pk=None):
     service_page.selected_resource_ids = {r.pk for r in service_page.resources.all()}
     services = [service_page]
     locales = extra_locales(getattr(request, "tenant", None))
+    from apps.core import object_faq
+
     for svc in services:  # L3d: данные per-locale инпутов готовим в Python
         svc.i18n_inputs = i18n_inputs_for(svc, getattr(request, "tenant", None))
         svc.seasons = list(svc.season_rates.all())  # HF-5: цены на диапазоны дат
@@ -1634,7 +1576,7 @@ def services_view(request, pk=None):
         ]
         # FAQ — пары полей: разделитель внутри свободного текста ломался бы на
         # первом же ответе с переносом строки. Одна пустая пара — чтобы добавить.
-        svc.faq_rows = _faq_rows(svc, locales)
+        svc.faq_rows = object_faq.form_rows(svc, "service", locales)
     tab = request.GET.get("tab")
     return render(
         request,
