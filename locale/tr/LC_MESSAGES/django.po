@@ -39443,10 +39443,6 @@ msgstr "Bir sayfanın metnini kullan"
 msgid "Beide Fassungen bleiben gespeichert — umschalten verliert nichts."
 msgstr "Her iki sürüm de kayıtlı kalır — geçiş yapınca hiçbir şey kaybolmaz."
 
-#. FB-33 стопка: якорь среза M3-4 — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
-msgid "fb33-stack-anchor-M3-4"
-msgstr "fb33-stack-anchor-M3-4"
-
 #. FB-33 M3-4: вкладка «Karte» окна блока (макет M0-2)
 msgid "eine Auswahl für beide Gruppen"
 msgstr "iki grup için tek seçim"
@@ -39501,10 +39497,6 @@ msgid_plural "%(n)s der hier gezeigten Leistungen haben eine eigene Kartenform �
 msgstr[0] "Burada gösterilen hizmetlerden %(n)s tanesinin kendi kart biçimi var — orada bunun yerine o geçerli"
 msgstr[1] "Burada gösterilen hizmetlerden %(n)s tanesinin kendi kart biçimi var — orada bunun yerine o geçerli"
 
-#. FB-33 стопка: якорь среза M3-5a — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
-msgid "fb33-stack-anchor-M3-5a"
-msgstr "fb33-stack-anchor-M3-5a"
-
 #. FB-33 M3-5a: вкладка «Texte»
 msgid "Ihre Eingaben werden beim Wechsel übernommen."
 msgstr "Geçiş yaptığınızda girdikleriniz uygulanır."
@@ -39528,10 +39520,6 @@ msgstr "Soru kaldırıldı."
 #. FB-33 M3-5a: вкладка «Texte» (ревью)
 msgid "Frage hinzufügen"
 msgstr "Soru ekle"
-
-#. FB-33 стопка: якорь среза M3-5b — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
-msgid "fb33-stack-anchor-M3-5b"
-msgstr "fb33-stack-anchor-M3-5b"
 
 #. FB-33 M3-5b
 #, python-format
@@ -39561,10 +39549,6 @@ msgstr "Soru %(n)s aşağı"
 #, python-format
 msgid "Frage %(n)s entfernen"
 msgstr "Soru %(n)s kaldır"
-
-#. FB-33 M3-5b
-msgid "Frage hinzufügen"
-msgstr "Soru ekle"
 
 #. FB-33 M3-5b
 msgid "Gilt für alle Seiten — dieselben Fragen zeigt jeder FAQ-Block."

@@ -39625,10 +39625,6 @@ msgstr "Взяти текст сторінки"
 msgid "Beide Fassungen bleiben gespeichert — umschalten verliert nichts."
 msgstr "Обидва варіанти залишаються збереженими — під час перемикання нічого не втрачається."
 
-#. FB-33 стопка: якорь среза M3-4 — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
-msgid "fb33-stack-anchor-M3-4"
-msgstr "fb33-stack-anchor-M3-4"
-
 #. FB-33 M3-4: вкладка «Karte» окна блока (макет M0-2)
 msgid "eine Auswahl für beide Gruppen"
 msgstr "один вибір для обох груп"
@@ -39689,10 +39685,6 @@ msgstr[1] "%(n)s з показаних тут послуг мають власн
 msgstr[2] "%(n)s з показаних тут послуг мають власну форму картки — там діє вона, а не ця"
 msgstr[3] "%(n)s з показаних тут послуг мають власну форму картки — там діє вона, а не ця"
 
-#. FB-33 стопка: якорь среза M3-5a — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
-msgid "fb33-stack-anchor-M3-5a"
-msgstr "fb33-stack-anchor-M3-5a"
-
 #. FB-33 M3-5a: вкладка «Texte»
 msgid "Ihre Eingaben werden beim Wechsel übernommen."
 msgstr "Під час переходу введене зберігається в чернетку."
@@ -39716,10 +39708,6 @@ msgstr "Питання видалено."
 #. FB-33 M3-5a: вкладка «Texte» (ревью)
 msgid "Frage hinzufügen"
 msgstr "Додати питання"
-
-#. FB-33 стопка: якорь среза M3-5b — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
-msgid "fb33-stack-anchor-M3-5b"
-msgstr "fb33-stack-anchor-M3-5b"
 
 #. FB-33 M3-5b
 #, python-format
@@ -39749,10 +39737,6 @@ msgstr "Питання %(n)s нижче"
 #, python-format
 msgid "Frage %(n)s entfernen"
 msgstr "Видалити питання %(n)s"
-
-#. FB-33 M3-5b
-msgid "Frage hinzufügen"
-msgstr "Додати питання"
 
 #. FB-33 M3-5b
 msgid "Gilt für alle Seiten — dieselben Fragen zeigt jeder FAQ-Block."
