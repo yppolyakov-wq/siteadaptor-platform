@@ -404,7 +404,7 @@ def page_blocks(context, page_key, part="after"):
         blocks = [b for b in blocks if not _is_promo_list(b)]
     is_preview = bool(context.get("is_preview"))
     if not is_preview:
-        blocks = _drop_empty_faq(blocks, page_key, context.get("site") or site)
+        blocks = _drop_empty_faq(blocks, page_key, context.get("site") or site, context, raw)
     if not blocks and (before or not is_preview):
         return ""
     if page_key == "confirmation":
@@ -424,21 +424,28 @@ def page_blocks(context, page_key, part="after"):
     # страницах его нет в контексте (в отличие от главной); отдаём тот же
     # локализованный конфиг, НЕ переопределяя, если вьюха уже положила свой.
     ctx.setdefault("site", site)
+    ctx.setdefault("pb_raw", raw)  # FB-33 M2b-2b: черновик своих вопросов в превью
     html = render_to_string("storefront/_page_blocks.html", ctx, request=request)
     return mark_safe(html)
 
 
-def _drop_empty_faq(blocks: list, page_key, site) -> list:
+def _drop_empty_faq(blocks: list, page_key, site, context=None, raw=None) -> list:
     """FB-33 M2b-2a: на детальной блок FAQ без общих вопросов не рисуется совсем — ни обёртки,
-    ни места в ряду узких блоков (фильтр ДО `group_block_rows`). В превью он остаётся."""
-    from apps.core import faq_views
+    ни места в ряду узких блоков (фильтр ДО `group_block_rows`). В превью он остаётся.
+    FB-33 M2b-2b: по каждому блоку и его источнику — блок своих вопросов объекта без вопросов
+    (`object_faq.drop_empty`) тоже не рисуется."""
+    from apps.core import faq_views, object_faq
 
+    if context is not None:
+        blocks = object_faq.drop_empty(blocks, context, page_key, raw)
     if not faq_views.is_detail_host(page_key):
         return blocks
     faq = site.get("faq") if isinstance(site, dict) else getattr(site, "faq", None)
     if any(isinstance(f, dict) and (f.get("q") or f.get("a")) for f in faq or ()):
         return blocks  # записи с пустыми вопросом и ответом — всё равно пустой FAQ
-    return [b for b in blocks if b.get("key") != "faq_ref"]
+    return [
+        b for b in blocks if b.get("key") != "faq_ref" or object_faq.is_object_source(b.get("data"))
+    ]
 
 
 @register.simple_tag(takes_context=True)
@@ -737,6 +744,12 @@ def render_block(context, block):
         row = {"key": base}
         if isinstance(data, dict) and data.get("style"):
             row["style"] = data["style"]
+        if base == "faq" and isinstance(data, dict) and data.get("source"):
+            # FB-33 M2b-2b: свои вопросы объекта страницы — свой партиал (без data-edit канвы)
+            from apps.core import object_faq
+
+            if object_faq.is_object_source(data):
+                return mark_safe(object_faq.render_block(context, row, request))
         if base == "faq":
             # FB-33 M2b-2a: на детальной общий FAQ без FAQPage (вопросы не об объекте) и с
             # заглушкой в превью, когда вопросов нет

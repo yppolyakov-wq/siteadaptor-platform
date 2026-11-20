@@ -648,7 +648,10 @@ def _clean_cblock_own(key: str, d: dict) -> dict:
         # как было); контента у блока нет по-прежнему
         style = d.get("style")
         base = key[: -len("_ref")]
-        return {"style": style} if style and style in SECTION_STYLES.get(base, ()) else {}
+        out = {"style": style} if style and style in SECTION_STYLES.get(base, ()) else {}
+        if key == "faq_ref" and d.get("source") == "object":
+            out["source"] = "object"  # FB-33 M2b-2b: свои вопросы объекта (нет ключа — общие)
+        return out
     if key == "quick_links":
         # FB-33 M3-5b: набор + скрытые плашки и свои подписи (только ключи набора)
         from apps.core.hero_tiles import clean_data

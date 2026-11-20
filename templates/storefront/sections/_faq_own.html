@@ -1,0 +1,62 @@
+{% load i18n seo %}
+{% comment %}FB-33 M2b-2b: блок FAQ со своими вопросами объекта страницы (data.source = object) — те же виды, что у общего FAQ (_faq.html), но без data-edit: канва пишет только общие вопросы, свои правятся в окне блока и в форме объекта. FAQPage — одна на страницу (own_ld).{% endcomment %}
+{% if own_faq %}
+{% if own_ld %}{% faqpage_jsonld own_faq %}{% endif %}
+<section data-reveal class="mb-10 bg-white rounded-2xl shadow-sm p-6 md:p-8" data-faq-own>
+  <h2 class="text-xl md:text-2xl font-bold mb-4">{% trans "Frequently asked questions" %}</h2>
+  {% if section_row.style == "list" %}
+    <div class="space-y-5">
+      {% for f in own_faq %}
+        <div>
+          <p class="font-medium text-gray-800">{{ f.q }}</p>
+          <p class="mt-1 text-gray-600 whitespace-pre-line">{{ f.a }}</p>
+        </div>
+      {% endfor %}
+    </div>
+  {% elif section_row.style == "twocol" %}
+    <div class="grid md:grid-cols-2 gap-x-8 gap-y-5">
+      {% for f in own_faq %}
+        <div>
+          <p class="font-medium text-gray-800">{{ f.q }}</p>
+          <p class="mt-1 text-gray-600 whitespace-pre-line">{{ f.a }}</p>
+        </div>
+      {% endfor %}
+    </div>
+  {% elif section_row.style == "cards" %}
+    <div class="grid md:grid-cols-2 gap-4">
+      {% for f in own_faq %}
+        <div class="bg-gray-50 rounded-xl p-4">
+          <p class="font-medium text-gray-800">{{ f.q }}</p>
+          <p class="mt-1 text-gray-600 whitespace-pre-line">{{ f.a }}</p>
+        </div>
+      {% endfor %}
+    </div>
+  {% elif section_row.style == "numbered" %}
+    <ol class="space-y-5 list-none">
+      {% for f in own_faq %}
+        <li class="flex gap-3">
+          <span class="shrink-0 w-7 h-7 rounded-full text-white text-sm font-bold flex items-center justify-center" style="background:var(--accent);">{{ forloop.counter }}</span>
+          <div>
+            <p class="font-medium text-gray-800">{{ f.q }}</p>
+            <p class="mt-1 text-gray-600 whitespace-pre-line">{{ f.a }}</p>
+          </div>
+        </li>
+      {% endfor %}
+    </ol>
+  {% else %}
+    <div class="divide-y divide-gray-100{% if own_faq|length >= 4 %} md:columns-2 md:gap-10{% endif %}" data-faq-list>
+      {% for f in own_faq %}
+        <details class="py-3 group break-inside-avoid">
+          <summary class="cursor-pointer font-medium text-gray-800 flex items-center justify-between">
+            <span>{{ f.q }}</span>
+            <span class="text-gray-400 group-open:rotate-180 transition" aria-hidden="true">⌄</span>
+          </summary>
+          <p class="mt-2 text-gray-600 whitespace-pre-line">{{ f.a }}</p>
+        </details>
+      {% endfor %}
+    </div>
+  {% endif %}
+</section>
+{% elif is_preview %}
+<section class="mb-10 rounded-2xl border-2 border-dashed border-gray-200 p-6 text-center text-sm text-gray-400" data-faq-empty>{% trans "Noch keine eigenen Fragen. Ohne Fragen erscheint dieser Block auf der Website nicht." %}</section>
+{% endif %}
