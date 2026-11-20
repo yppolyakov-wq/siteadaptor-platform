@@ -65,7 +65,8 @@ def test_listings_filter_by_month():
     soon = _event(title="Bald", starts_at=start, category="yoga")
     _event(title="Spaeter", starts_at=start + timedelta(days=90), category="yoga")
     tasks.reconcile_schema("public")
-    pool = listings_for(month=soon.starts_at.strftime("%Y-%m"))
+    # месяц — по местному времени, как фильтр starts_at__month (USE_TZ)
+    pool = listings_for(month=timezone.localtime(soon.starts_at).strftime("%Y-%m"))
     titles = {listing.title_text for listing in pool}
     assert "Bald" in titles and "Spaeter" not in titles
 
