@@ -115,9 +115,10 @@ def test_termine_hero_carries_services_widget():
     assert _after_hero(tenant)["key"] in ("services", "list")
 
 
-def test_hero_widget_partial_renders_services_gated_by_module(settings):
-    # R2: партиал hero-виджета рендерит топ-услуги при hero_widget="services" +
-    # непустом services_preview; при пустом — ничего (без регрессии).
+def test_hero_widget_partial_has_no_date_search_or_services_branch(settings):
+    # FB-33 M2c-4 C4: форма дат и топ услуг в партиале снесены — их рисовал только баннер
+    # по ключу hero_widget; теперь это секции «Suche» и «Leistungen». Партиал рисует блок
+    # «Schnellzugriff» (наборы-ссылки), «stays»/«services» в нём пусты.
     settings.ROOT_URLCONF = "config.urls_tenant"
     import uuid
     from types import SimpleNamespace
@@ -125,16 +126,12 @@ def test_hero_widget_partial_renders_services_gated_by_module(settings):
     from django.template.loader import render_to_string
 
     svc = SimpleNamespace(pk=uuid.uuid4(), name_localized=lambda *a: "Haarschnitt")
-    on = render_to_string(
-        "storefront/sections/_hero_widget.html",
-        {"hero_widget": "services", "services_preview": [svc]},
-    )
-    assert "Haarschnitt" in on
-    off = render_to_string(
-        "storefront/sections/_hero_widget.html",
-        {"hero_widget": "services", "services_preview": []},
-    )
-    assert off.strip() == ""
+    ctx = {"services_preview": [svc], "storefront_stays_enabled": True}
+    for widget in ("stays", "services"):
+        html = render_to_string(
+            "storefront/sections/_hero_widget.html", {**ctx, "hero_widget": widget}
+        )
+        assert html.strip() == ""
 
 
 def test_gastro_hero_carries_tiles_widget():
@@ -206,24 +203,6 @@ def test_deal_of_day_prefers_daily_recurrence():
     assert deal_of_day().pk == daily.pk
     daily.delete()
     assert deal_of_day().pk == other.pk
-
-
-def test_hero_widget_partial_renders_date_search_gated_by_module(settings):
-    # E4: партиал hero-виджета рендерит поиск дат при hero_widget="stays" +
-    # активном модуле stays; при неактивном — пусто (без регрессии).
-    settings.ROOT_URLCONF = "config.urls_tenant"
-    from django.template.loader import render_to_string
-
-    on = render_to_string(
-        "storefront/sections/_hero_widget.html",
-        {"hero_widget": "stays", "storefront_stays_enabled": True},
-    )
-    assert "Verfügbarkeit prüfen" in on and 'name="von"' in on
-    off = render_to_string(
-        "storefront/sections/_hero_widget.html",
-        {"hero_widget": "stays", "storefront_stays_enabled": False},
-    )
-    assert off.strip() == ""
 
 
 def test_apply_template_sets_layout_and_keeps_texts_and_onboarding():
