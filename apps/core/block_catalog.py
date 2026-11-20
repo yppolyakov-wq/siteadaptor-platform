@@ -95,10 +95,30 @@ FAMILIES: tuple[Family, ...] = (
 VIEW_SWITCHES: frozenset[frozenset[str]] = frozenset(
     {
         frozenset({"text", "image_text"}),
-        # «Со страницы» (textpage) хранит адрес страницы и режим, а не свой текст — смена
-        # вида на него теряла бы введённое; это добавление другого блока, не смена вида
+        # FB-33 M3-3d (решение владельца, п. 3 плана M3): «Von einer Seite ↔ Eigener Text» —
+        # оба источника помнятся (`INACTIVE_FIELDS`), на сайте — только активный
+        frozenset({"text", "textpage"}),
+        frozenset({"image_text", "textpage"}),
     }
 )
+
+#: Пары, где смена вида меняет ИСТОЧНИК текста (свой ↔ со страницы): окно показывает
+#: плашку «Beide Fassungen bleiben gespeichert» (M0-9).
+_SOURCE_SWITCHES: frozenset[frozenset[str]] = frozenset(
+    {frozenset({"text", "textpage"}), frozenset({"image_text", "textpage"})}
+)
+
+#: FB-33 M3-3d: ОДИН список — поля другого вида пары, которые блок хранит неактивными
+#: (как фото «Nur Text», M2e). Чистильщик (`siteconfig._clean_cblock_data` — значения
+#: проверяет тот же код, что у своего вида), «Speichern» Студии (`merge_structure`) и
+#: читатели (`active_data`: рендер, сводка строки) берут его отсюда.
+INACTIVE_FIELDS: dict[str, tuple[str, ...]] = {
+    # фото «Foto + Text» (M2e) и выбранная страница «Von einer Seite»
+    "text": ("url", "side", "rounded", "page", "mode"),
+    "image_text": ("page", "mode"),
+    # свой текст «Eigener Text» / «Foto + Text»: тексты, стиль текста, фото
+    "textpage": ("title", "body", "align", "size", "color", "url", "side", "rounded"),
+}
 
 
 class LibraryEntry(NamedTuple):
@@ -213,6 +233,28 @@ def library_entry(key: str) -> LibraryEntry | None:
 def can_switch(old: str, new: str) -> bool:
     """Можно ли сменить вид блока `old` на `new` без потери данных."""
     return old == new or frozenset({old, new}) in VIEW_SWITCHES
+
+
+def switch_keeps_both(from_key: str, to_key: str) -> bool:
+    """FB-33 M3-3d: смена вида меняет источник текста, а прежний помнится — для плашки
+    «Beide Fassungen bleiben gespeichert — umschalten verliert nichts.» (M0-9)."""
+    return frozenset({from_key, to_key}) in _SOURCE_SWITCHES
+
+
+def inactive_fields(key: str) -> tuple[str, ...]:
+    """Поля, которые блок `key` хранит за другой вид своей пары (`INACTIVE_FIELDS`)."""
+    return INACTIVE_FIELDS.get(key, ())
+
+
+def active_data(key: str, data) -> dict:
+    """Данные блока без запомненных полей другого вида: что видят сайт, сводка строки и
+    любой будущий читатель текста (поиск, SEO, факты ИИ)."""
+    if not isinstance(data, dict):
+        return {}
+    hidden = INACTIVE_FIELDS.get(key)
+    if not hidden:
+        return data
+    return {k: v for k, v in data.items() if k not in hidden}
 
 
 def studio_block_types() -> list[dict]:

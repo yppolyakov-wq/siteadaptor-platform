@@ -61,7 +61,7 @@ def test_switch_keeps_id_width_and_texts():
     assert items[0]["key"] == "image_text" and items[0]["data"]["url"] == "/m/a.jpg"
 
 
-@pytest.mark.parametrize("target", ("textpage", "button", "image_text_x", "image_text"))
+@pytest.mark.parametrize("target", ("button", "image_text_x", "image_text", "contact_card"))
 def test_switch_refuses_lossy_or_unknown_views(target):
     items = _items()
     if target == "image_text":  # тот же вид — ничего не меняется (без ошибки)
@@ -74,9 +74,18 @@ def test_switch_refuses_lossy_or_unknown_views(target):
 
 
 def test_switch_options_only_for_lossless_pairs():
-    assert {k for k, _ in block_catalog.switch_options("text")} == {"text", "image_text"}
+    # FB-33 M3-3d: «Von einer Seite» — тоже вид текста (оба источника помнятся)
+    assert {k for k, _ in block_catalog.switch_options("text")} == {
+        "text",
+        "image_text",
+        "textpage",
+    }
     assert block_catalog.switch_options("button") == []
-    assert block_catalog.switch_options("textpage") == []
+    assert {k for k, _ in block_catalog.switch_options("textpage")} == {
+        "text",
+        "image_text",
+        "textpage",
+    }
 
 
 def test_translations_survive_a_switch():

@@ -1329,6 +1329,16 @@ def _untouched(page) -> bool:
     return (page.updated_at - page.created_at).total_seconds() < 60
 
 
+def _is_legacy_text_block(block, legacy_text: str) -> bool:
+    """Блок «Text» со старым текстом «Über uns» (его перенесли на свою страницу). Только
+    свой вид «Nur Text»: у «Von einer Seite» запомненный текст не на сайте (FB-33 M3-3d)."""
+    return (
+        isinstance(block, dict)
+        and block.get("key") == "text"
+        and (block.get("data") or {}).get("body") == legacy_text
+    )
+
+
 def apply_pages(site: ScrapedSite, config: dict, *, fetch_image=None, refresh=False) -> list:
     """Создать свои страницы из страниц старого магазина (только если их ещё нет) и
     снять прежние текстовые блоки этих страниц с «Über uns». ``config`` правится на
@@ -1373,15 +1383,7 @@ def apply_pages(site: ScrapedSite, config: dict, *, fetch_image=None, refresh=Fa
                     "(SVG, failed download or --no-images) — add them in Website › Seiten"
                 )
         before = len(info)
-        info = [
-            b
-            for b in info
-            if not (
-                isinstance(b, dict)
-                and b.get("key") == "text"
-                and (b.get("data") or {}).get("body") == legacy_text
-            )
-        ]
+        info = [b for b in info if not _is_legacy_text_block(b, legacy_text)]
         if len(info) < before:
             changed = True
             notes.append(f"about page: text block «{title}» moved to its own page")

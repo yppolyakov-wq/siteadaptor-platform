@@ -535,8 +535,65 @@ def _text_style(d: dict) -> dict:
 
 
 def _clean_cblock_data(key: str, raw) -> dict:
-    """Санитизация данных C-блока по типу (строки; неизвестные ключи отброшены)."""
+    """Санитизация данных C-блока по типу (строки; неизвестные ключи отброшены).
+
+    FB-33 M3-3d: поля другого вида пары («Von einer Seite ↔ Eigener Text») блок хранит
+    неактивными — список `block_catalog.INACTIVE_FIELDS`, значения проверяет тот же код,
+    что у своего вида; рендер их не видит (`block_catalog.active_data`)."""
+    from apps.core import block_catalog
+
     d = raw if isinstance(raw, dict) else {}
+    out = _clean_cblock_own(key, d)
+    kept = block_catalog.inactive_fields(key)
+    donor = _INACTIVE_DONORS.get(key)
+    if kept and donor is not None:
+        remembered = donor(d)
+        for field in kept:
+            if field not in out and field in remembered:
+                out[field] = remembered[field]
+    return out
+
+
+def _clean_textpage(d: dict) -> dict:
+    """FB-27 R6: страница — по UUID (смена адреса блок не ломает), без запроса в БД:
+    удалённая или снятая с публикации страница на сайте просто не выводится."""
+    page = clean_pick([d.get("page")])
+    return {
+        **({"page": page[0]} if page else {}),
+        **({"mode": "teaser"} if d.get("mode") == "teaser" else {}),
+    }
+
+
+def _photo_side(d: dict) -> dict:
+    return {"side": d["side"]} if d.get("side") in ("left", "right") else {}
+
+
+def _photo_rounded(d: dict) -> dict:
+    # UC6-4: скругление фото блока — "" (стандарт rounded-2xl) | none | 3xl;
+    # только валидные НЕ-дефолтные значения (старые конфиги байт-в-байт).
+    return {"rounded": d["rounded"]} if d.get("rounded") in ("none", "3xl") else {}
+
+
+def _own_text_remembered(d: dict) -> dict:
+    """FB-33 M3-3d: что «Von einer Seite» помнит от «Eigener Text»/«Foto + Text» — те же
+    проверки, что у своих видов; пустые строки не храним (вид их восстановит сам), сторону
+    и скругление — только при фото (как у «Nur Text», M2e)."""
+    out = {k: _s(d.get(k)) for k in ("title", "body", "url") if _s(d.get(k))}
+    if "url" in out:
+        out.update(_photo_side(d), **_photo_rounded(d))
+    return {**out, **_text_style(d)}
+
+
+#: Чистильщик запомненных полей другого вида пары (поля — `INACTIVE_FIELDS`).
+_INACTIVE_DONORS = {
+    "text": _clean_textpage,
+    "image_text": _clean_textpage,
+    "textpage": _own_text_remembered,
+}
+
+
+def _clean_cblock_own(key: str, d: dict) -> dict:
+    """Поля своего вида C-блока (без запомненных полей другого вида)."""
     # UC2-3(b): ссылочные секции-справочники — без собственных данных (контент
     # глобальный site.<key>; оси width/pos/visual — общие оси C-блока).
     if key in PAGE_REF_BLOCKS:
@@ -549,9 +606,7 @@ def _clean_cblock_data(key: str, raw) -> dict:
         from apps.core.hero_tiles import QUICK_LINK_SETS
 
         return {"set": d["set"]} if d.get("set") in QUICK_LINK_SETS else {}
-    # UC6-4: скругление фото блока — "" (стандарт rounded-2xl) | none | 3xl;
-    # только валидные НЕ-дефолтные значения (старые конфиги байт-в-байт).
-    rounded = {"rounded": d["rounded"]} if d.get("rounded") in ("none", "3xl") else {}
+    rounded = _photo_rounded(d)
     if key == "text":
         out = {"title": _s(d.get("title")), "body": _s(d.get("body")), **_text_style(d)}
         if _s(d.get("url")):
@@ -596,13 +651,7 @@ def _clean_cblock_data(key: str, raw) -> dict:
     if key == "list":
         return _clean_list_block(d)
     if key == "textpage":
-        # FB-27 R6: страница — по UUID (смена адреса блок не ломает), без запроса в БД:
-        # удалённая или снятая с публикации страница на сайте просто не выводится.
-        page = clean_pick([d.get("page")])
-        return {
-            **({"page": page[0]} if page else {}),
-            **({"mode": "teaser"} if d.get("mode") == "teaser" else {}),
-        }
+        return _clean_textpage(d)
     if key == "contact_card":
         return {"style": d["style"]} if d.get("style") in CONTACT_STYLES else {}
     if key == "spacer":

@@ -254,13 +254,17 @@ def merge_structure(
         merged = {**new, "key": old.get("key")}
         if keep_data and kind(old) in OWNED_DATA_KINDS:
             merged["data"] = old.get("data") or {}
-        if kind(old) == "text" and isinstance(old.get("data"), dict):
-            # FB-33 M2e (ревью): запомненное фото «Nur Text» форма Студии не несёт —
-            # «Speichern» его не стирает
+        remembered = block_catalog.inactive_fields(kind(old))
+        if remembered and isinstance(old.get("data"), dict):
+            # FB-33 M2e/M3-3d: поля другого вида пары (фото «Nur Text», страница «Von einer
+            # Seite», свой текст у неё) форма Студии не несёт — «Speichern» их не стирает и
+            # не подсовывает: пишет их только смена вида
             data = dict(merged.get("data") or {}) if isinstance(merged.get("data"), dict) else {}
-            for field in ("url", "side", "rounded"):
+            for field in remembered:
                 if field in old["data"]:
                     data[field] = old["data"][field]
+                else:
+                    data.pop(field, None)
             merged["data"] = data
         if kind(old) in siteconfig.PAGE_REF_BLOCKS or kind(old) == "quick_links":
             # FB-33 M2b/M2c: вид блока-ссылки и набор «Schnellzugriff» задаёт
@@ -848,7 +852,9 @@ def _row_summary(config: dict, item: dict) -> str:
 
     key = item.get("key") or ""
     kind = siteconfig.cblock_type(key) or key
-    data = item.get("data") if isinstance(item.get("data"), dict) else {}
+    # FB-33 M3-3d: запомненный текст другого вида (у «Von einer Seite» — свой заголовок)
+    # не на сайте — и в сводке его нет
+    data = block_catalog.active_data(kind, item.get("data"))
     parts: list[str] = []
     if kind == "hero" and not item.get("id"):
         # FB-29.2: баннеры выбраны из библиотеки — считаем их, иначе прежние слайды

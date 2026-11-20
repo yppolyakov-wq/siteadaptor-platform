@@ -8,7 +8,7 @@ from django.utils.safestring import mark_safe
 from django.utils.translation import get_language
 from django.utils.translation import gettext as _
 
-from apps.core import card_forms
+from apps.core import block_catalog, card_forms
 from apps.tenants import siteconfig, video
 
 logger = logging.getLogger(__name__)
@@ -730,7 +730,9 @@ def render_block(context, block):
         return mark_safe(html)
     # D.2: C-блок — рендерим партиал с данными самого блока.
     if key in CBLOCK_TEMPLATES:
-        data = block.get("data") if isinstance(block, dict) else {}
+        # FB-33 M3-3d: партиал видит только поля активного вида — запомненный текст
+        # «Eigener Text» у «Von einer Seite» (и страница у своего текста) не на сайте
+        data = block_catalog.active_data(key, block.get("data") if isinstance(block, dict) else {})
         # UC6-4: id блока — для on-canvas фото-кнопки 📷 (data-edit-pk).
         block_id = block.get("id") if isinstance(block, dict) else ""
         html = render_to_string(

@@ -24,8 +24,6 @@ from apps.core.tests.test_fb33_m3_window import _shop
 from apps.tenants import siteconfig
 
 pytestmark = pytest.mark.django_db
-#: замки C0: до кода M3-3d падают (снимается в коммите кода)
-C0 = pytest.mark.xfail(strict=True, reason="FB-33 M3-3d: до кода")
 
 PAGE = str(uuid.uuid4())
 TEXT = {
@@ -63,7 +61,6 @@ def _switch(items, *keys):
 # ───────────── один список и функция данных плашки ─────────────
 
 
-@C0
 def test_switch_keeps_both_only_for_the_text_source_pairs():
     assert block_catalog.switch_keeps_both("text", "textpage")
     assert block_catalog.switch_keeps_both("textpage", "image_text")
@@ -72,7 +69,6 @@ def test_switch_keeps_both_only_for_the_text_source_pairs():
     assert not block_catalog.switch_keeps_both("button", "textpage")
 
 
-@C0
 def test_text_views_switch_to_von_einer_seite_and_back():
     assert {k for k, _ in block_catalog.switch_options("text")} == {
         "text",
@@ -87,7 +83,6 @@ def test_text_views_switch_to_von_einer_seite_and_back():
     assert block_catalog.can_switch("textpage", "text")
 
 
-@C0
 def test_one_list_of_inactive_fields():
     fields = block_catalog.INACTIVE_FIELDS
     assert set(fields["text"]) >= {"page", "mode"}
@@ -118,7 +113,6 @@ def test_one_list_of_inactive_fields():
 # ───────────── туда-обратно ─────────────
 
 
-@C0
 def test_text_to_textpage_and_back_is_byte_for_byte():
     items = _items("text", TEXT)
     before = _dump(items)
@@ -128,7 +122,6 @@ def test_text_to_textpage_and_back_is_byte_for_byte():
     assert _dump(items) == before
 
 
-@C0
 def test_image_text_to_textpage_and_back_is_byte_for_byte():
     items = _items("image_text", {**TEXT, "side": "left", "body": ""})
     before = _dump(items)
@@ -136,17 +129,18 @@ def test_image_text_to_textpage_and_back_is_byte_for_byte():
     assert _dump(items) == before
 
 
-@C0
 def test_textpage_to_text_and_back_keeps_page_and_mode():
     items = _items("textpage", {"page": PAGE, "mode": "teaser"})
     before = _dump(items)
     _switch(items, "text")
     assert items[0]["data"]["page"] == PAGE and items[0]["data"]["mode"] == "teaser"
-    _switch(items, "image_text", "textpage")
+    _switch(items, "textpage")
+    assert _dump(items) == before
+    # через «Foto + Text» (без фото: сторона по умолчанию не запоминается)
+    _switch(items, "image_text", "text", "textpage")
     assert _dump(items) == before
 
 
-@C0
 def test_own_text_typed_on_text_survives_a_trip_through_textpage():
     """Текст, набранный во вкладке «Texte» у «Eigener Text», не теряется на «Von einer
     Seite» и обратно, и выбранная страница — тоже."""
@@ -189,7 +183,6 @@ def test_foreign_values_are_dropped():
 # ───────────── переводы ─────────────
 
 
-@C0
 def test_translation_overlay_survives_text_textpage_text():
     cfg = siteconfig.normalize({"page_blocks": {"catalog": _items("text", TEXT)}})
     siteconfig.set_overlay_value(cfg, "ru", ("page_blocks", "catalog", 0, "data", "title"), "О нас")
@@ -236,7 +229,6 @@ def test_site_renders_only_the_active_source(settings):
     assert "EIGENER-TITEL" in html and "SEITENTEXT" not in html
 
 
-@C0
 def test_template_context_gets_only_active_fields():
     data = _clean("textpage", {**TEXT, "page": PAGE})
     assert block_catalog.active_data("textpage", data) == {"page": PAGE}
@@ -266,7 +258,6 @@ def test_search_seo_and_text_facts_do_not_read_block_data():
             assert "active_data" in src, path
 
 
-@C0
 def test_cscart_cleanup_compares_only_own_text_blocks():
     from apps.imports import cscart
 
@@ -289,7 +280,6 @@ def test_demo_translation_of_block_data_ignores_page_and_mode():
 # ───────────── писатели data целиком ─────────────
 
 
-@C0
 def test_studio_save_keeps_the_remembered_fields():
     saved = [{"key": "textpage", "id": "b1", "data": _clean("textpage", {**TEXT, "page": PAGE})}]
     posted = [{"key": "textpage", "id": "b1", "data": {"page": PAGE, "mode": ""}}]
@@ -302,7 +292,6 @@ def test_studio_save_keeps_the_remembered_fields():
     assert merged["title"] == "Neu" and merged["page"] == PAGE and merged["url"] == "/m/a.jpg"
 
 
-@C0
 def test_studio_form_cannot_plant_inactive_fields():
     """Форма Студии неактивных полей не несёт — присланные отбрасываются (их пишет только
     смена вида)."""
@@ -320,7 +309,6 @@ def test_stale_studio_form_of_the_other_view_does_not_roll_back():
         assert site_schema.merge_structure(saved, posted, keep_data=keep) == saved
 
 
-@C0
 def test_panel_edit_of_the_active_view_keeps_the_other():
     items = _items("text", {**TEXT, "page": PAGE})
     site_schema.mutate(items, "catalog", "update", ref="b1", fields={"title": "Neu", "body": "B"})
@@ -334,7 +322,6 @@ def _drafts(b):
     return copy.deepcopy((b.session or {}).get(aufbau_draft.SESSION_KEY) or {})
 
 
-@C0
 def test_cancel_after_switching_returns_key_and_data_byte_for_byte():
     b = Browser(_shop())
     b.get("?seite=home&block=t1")
