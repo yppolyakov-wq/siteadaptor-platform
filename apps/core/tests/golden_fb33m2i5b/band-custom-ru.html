@@ -1,0 +1,26 @@
+<section class="mb-10 rounded-2xl p-6 md:p-8 text-white" style="background: var(--accent, #4f46e5);" data-anfrage-band>
+  <h2 class="text-xl md:text-2xl font-bold">Планируете мероприятие?</h2>
+  <p class="text-white/80 text-sm mb-4">Сообщите нам, что вам нужно — мы вышлем вам коммерческое предложение.</p>
+  <form method="post" action="/anfrage/" class="flex flex-wrap items-end gap-3">
+    <input type="hidden" name="title" value="Заявка на мероприятие">
+    <input type="text" name="website" tabindex="-1" autocomplete="off" class="hidden" aria-hidden="true">
+    <label class="block grow basis-32"><span class="block text-[10px] tracking-wider uppercase text-white/70 mb-1">Желаемая дата</span>
+      <input type="date" name="event_date" class="w-full rounded-lg border-0 px-3 py-2 text-gray-900"></label>
+    <label class="block grow basis-24"><span class="block text-[10px] tracking-wider uppercase text-white/70 mb-1">Количество гостей</span>
+      <input type="number" name="guest_count" min="1" required class="w-full rounded-lg border-0 px-3 py-2 text-gray-900"></label>
+    <label class="block grow basis-32"><span class="block text-[10px] tracking-wider uppercase text-white/70 mb-1">Тип мероприятия</span>
+      <select name="event_type" class="w-full rounded-lg border-0 px-3 py-2 text-gray-900">
+        <option value="">—</option>
+        <option value="Hochzeit">Hochzeit</option><option value="Firmenfeier">Firmenfeier</option>
+      </select></label>
+    <label class="block grow basis-32"><span class="block text-[10px] tracking-wider uppercase text-white/70 mb-1">Имя</span>
+      <input type="text" name="name" required class="w-full rounded-lg border-0 px-3 py-2 text-gray-900"></label>
+    <label class="block grow basis-40"><span class="block text-[10px] tracking-wider uppercase text-white/70 mb-1">Электронная почта</span>
+      <input autocomplete="email" type="email" name="email" class="w-full rounded-lg border-0 px-3 py-2 text-gray-900"></label>
+    <label class="block grow basis-32"><span class="block text-[10px] tracking-wider uppercase text-white/70 mb-1">Handy *</span>
+      <input type="tel" name="phone" required class="w-full rounded-lg border-0 px-3 py-2 text-gray-900"></label>
+    <button type="submit" class="rounded-lg bg-white px-5 py-2 font-semibold" style="color: var(--accent, #4f46e5);">Запросить расценки</button>
+    <p class="basis-full text-[11px] text-white/70 m-0">Ни к чему не обязывает — мы свяжемся с вами с предложением.</p>
+<p class="basis-full sm:col-span-full mt-2 text-xs text-white/70 m-0" data-privacy-note>Мы используем ваши данные только для обработки вашего обращения. <a href="/datenschutz/" class="underline" target="_top">Политика конфиденциальности</a></p>
+  </form>
+</section>

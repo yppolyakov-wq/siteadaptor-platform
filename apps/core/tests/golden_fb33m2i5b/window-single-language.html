@@ -1,0 +1,152 @@
+data-form-felder>
+  <input type="hidden" name="csrfmiddlewaretoken" value="X">
+  <input type="hidden" name="seite" value="anfrage"><input type="hidden" name="tab" value="felder"><input type="hidden" name="wopen" value="X">
+  <input type="hidden" name="ref" value="form">
+  <input type="hidden" name="panel_present" value="1">
+  <input type="hidden" name="op" value="update">
+  <button type="submit" name="f_commit_new" value="1" class="sr-only" tabindex="-1">Übernehmen</button>
+  <p class="text-sm text-gray-700">Was die Anfrage-Form fragt. Änderungen erscheinen auf der Seite nach „Speichern“.</p>
+  <div class="rounded-lg border border-gray-200 p-3" data-form-field="title">
+    <p class="text-sm font-semibold text-gray-800">Was brauchen Sie?</p>
+    <p class="mt-1 text-xs text-gray-700"><span aria-hidden="true">🔒</span> immer Pflicht</p>
+  </div>
+  <fieldset class="rounded-lg border border-gray-200 p-3" data-form-field="description">
+    <legend class="px-1 text-sm font-semibold text-gray-800">Details</legend>
+    <div class="flex flex-wrap gap-x-4">
+      <label class="inline-flex min-h-[44px] items-center gap-2 text-sm"><input type="radio" name="f_mode_description" value="off" checked> Nicht fragen</label><label class="inline-flex min-h-[44px] items-center gap-2 text-sm"><input type="radio" name="f_mode_description" value="opt"> Optional</label><label class="inline-flex min-h-[44px] items-center gap-2 text-sm"><input type="radio" name="f_mode_description" value="req"> Pflicht</label>
+    </div>
+    <label for="ff-label-description" class="mt-1 block text-xs text-gray-700">Eigene Beschriftung</label>
+    <input type="text" id="ff-label-description" name="f_label_description" value="" placeholder="Details (optional)" maxlength="120" class="ui-input w-full">
+  </fieldset>
+  <fieldset class="rounded-lg border border-gray-200 p-3" data-form-field="event_date">
+    <legend class="px-1 text-sm font-semibold text-gray-800">Wunschdatum</legend>
+    <div class="flex flex-wrap gap-x-4">
+      <label class="inline-flex min-h-[44px] items-center gap-2 text-sm"><input type="radio" name="f_mode_event_date" value="off"> Nicht fragen</label><label class="inline-flex min-h-[44px] items-center gap-2 text-sm"><input type="radio" name="f_mode_event_date" value="opt" checked> Optional</label><label class="inline-flex min-h-[44px] items-center gap-2 text-sm"><input type="radio" name="f_mode_event_date" value="req"> Pflicht</label>
+    </div>
+    <label for="ff-label-event_date" class="mt-1 block text-xs text-gray-700">Eigene Beschriftung</label>
+    <input type="text" id="ff-label-event_date" name="f_label_event_date" value="Wann?" placeholder="Wunschdatum (optional)" maxlength="120" class="ui-input w-full">
+  </fieldset>
+  <fieldset class="rounded-lg border border-gray-200 p-3" data-form-field="guest_count">
+    <legend class="px-1 text-sm font-semibold text-gray-800">Anzahl Personen</legend>
+    <div class="flex flex-wrap gap-x-4">
+      <label class="inline-flex min-h-[44px] items-center gap-2 text-sm"><input type="radio" name="f_mode_guest_count" value="off"> Nicht fragen</label><label class="inline-flex min-h-[44px] items-center gap-2 text-sm"><input type="radio" name="f_mode_guest_count" value="opt"> Optional</label><label class="inline-flex min-h-[44px] items-center gap-2 text-sm"><input type="radio" name="f_mode_guest_count" value="req" checked> Pflicht</label>
+    </div>
+    <label for="ff-label-guest_count" class="mt-1 block text-xs text-gray-700">Eigene Beschriftung</label>
+    <input type="text" id="ff-label-guest_count" name="f_label_guest_count" value="" placeholder="Anzahl Personen" maxlength="120" class="ui-input w-full">
+  </fieldset>
+  <fieldset class="rounded-lg border border-gray-200 p-3" data-form-field="event_type">
+    <legend class="px-1 text-sm font-semibold text-gray-800">Art der Veranstaltung</legend>
+    <div class="flex flex-wrap gap-x-4">
+      <label class="inline-flex min-h-[44px] items-center gap-2 text-sm"><input type="radio" name="f_mode_event_type" value="off"> Nicht fragen</label><label class="inline-flex min-h-[44px] items-center gap-2 text-sm"><input type="radio" name="f_mode_event_type" value="opt" checked> Optional</label><label class="inline-flex min-h-[44px] items-center gap-2 text-sm"><input type="radio" name="f_mode_event_type" value="req"> Pflicht</label>
+    </div>
+    <label for="ff-label-event_type" class="mt-1 block text-xs text-gray-700">Eigene Beschriftung</label>
+    <input type="text" id="ff-label-event_type" name="f_label_event_type" value="" placeholder="Art der Veranstaltung (optional)" maxlength="120" class="ui-input w-full">
+    <label for="ff-event-types" class="mt-2 block text-xs text-gray-700">Auswahlliste (eine Option pro Zeile)</label>
+    <textarea id="ff-event-types" name="f_event_types" rows="4" class="ui-input w-full" aria-describedby="ff-event-types-hint">Hochzeit
+Firmenfeier</textarea>
+    <p id="ff-event-types-hint" class="mt-1 text-xs text-gray-700">Die Auswahl erscheint nur, wenn „Art der Veranstaltung“ gefragt wird; die Liste bleibt auch sonst gespeichert.</p>
+  </fieldset>
+  <fieldset class="rounded-lg border border-gray-200 p-3" data-form-field="site_address">
+    <legend class="px-1 text-sm font-semibold text-gray-800">Arbeitsort</legend>
+    <div class="flex flex-wrap gap-x-4">
+      <label class="inline-flex min-h-[44px] items-center gap-2 text-sm"><input type="radio" name="f_mode_site_address" value="off"> Nicht fragen</label><label class="inline-flex min-h-[44px] items-center gap-2 text-sm"><input type="radio" name="f_mode_site_address" value="opt" checked> Optional</label><label class="inline-flex min-h-[44px] items-center gap-2 text-sm"><input type="radio" name="f_mode_site_address" value="req"> Pflicht</label>
+    </div>
+    <label for="ff-label-site_address" class="mt-1 block text-xs text-gray-700">Eigene Beschriftung</label>
+    <input type="text" id="ff-label-site_address" name="f_label_site_address" value="" placeholder="Arbeitsort (optional)" maxlength="120" class="ui-input w-full">
+  </fieldset>
+  <div class="rounded-lg border border-gray-200 p-3" data-form-field="name">
+    <p class="text-sm font-semibold text-gray-800">Name</p>
+    <p class="mt-1 text-xs text-gray-700"><span aria-hidden="true">🔒</span> immer Pflicht</p>
+  </div>
+  <fieldset class="rounded-lg border border-gray-200 p-3" data-form-field="email">
+    <legend class="px-1 text-sm font-semibold text-gray-800">E-Mail</legend>
+    <div class="flex flex-wrap gap-x-4">
+      <label class="inline-flex min-h-[44px] items-center gap-2 text-sm"><input type="radio" name="f_mode_email" value="off"> Nicht fragen</label><label class="inline-flex min-h-[44px] items-center gap-2 text-sm"><input type="radio" name="f_mode_email" value="opt" checked> Optional</label><label class="inline-flex min-h-[44px] items-center gap-2 text-sm"><input type="radio" name="f_mode_email" value="req"> Pflicht</label>
+    </div>
+    <label for="ff-label-email" class="mt-1 block text-xs text-gray-700">Eigene Beschriftung</label>
+    <input type="text" id="ff-label-email" name="f_label_email" value="" placeholder="E-Mail" maxlength="120" class="ui-input w-full">
+  </fieldset>
+  <fieldset class="rounded-lg border border-gray-200 p-3" data-form-field="phone">
+    <legend class="px-1 text-sm font-semibold text-gray-800">Telefon</legend>
+    <div class="flex flex-wrap gap-x-4">
+      <label class="inline-flex min-h-[44px] items-center gap-2 text-sm"><input type="radio" name="f_mode_phone" value="off"> Nicht fragen</label><label class="inline-flex min-h-[44px] items-center gap-2 text-sm"><input type="radio" name="f_mode_phone" value="opt"> Optional</label><label class="inline-flex min-h-[44px] items-center gap-2 text-sm"><input type="radio" name="f_mode_phone" value="req" checked> Pflicht</label>
+    </div>
+    <label for="ff-label-phone" class="mt-1 block text-xs text-gray-700">Eigene Beschriftung</label>
+    <input type="text" id="ff-label-phone" name="f_label_phone" value="Handy" placeholder="Telefon" maxlength="120" class="ui-input w-full">
+  </fieldset>
+  <fieldset class="rounded-lg border border-gray-200 p-3" data-form-field="photos">
+    <legend class="px-1 text-sm font-semibold text-gray-800">Fotos (bis zu 5)</legend>
+    <div class="flex flex-wrap gap-x-4">
+      <label class="inline-flex min-h-[44px] items-center gap-2 text-sm"><input type="radio" name="f_mode_photos" value="off"> Nicht fragen</label><label class="inline-flex min-h-[44px] items-center gap-2 text-sm"><input type="radio" name="f_mode_photos" value="opt" checked> Optional</label><label class="inline-flex min-h-[44px] items-center gap-2 text-sm"><input type="radio" name="f_mode_photos" value="req"> Pflicht</label>
+    </div>
+    <label for="ff-label-photos" class="mt-1 block text-xs text-gray-700">Eigene Beschriftung</label>
+    <input type="text" id="ff-label-photos" name="f_label_photos" value="" placeholder="Fotos (optional, bis zu 5)" maxlength="120" class="ui-input w-full">
+  </fieldset>
+  <fieldset class="rounded-lg border border-gray-200 p-3 space-y-3" data-form-questions>
+    <legend class="px-1 text-sm font-semibold text-gray-800">Eigene Fragen</legend>
+    <div class="space-y-2 rounded-lg bg-gray-50 p-3" data-form-question="q1">
+      <label for="ff-q-q1-label" class="block text-xs font-semibold text-gray-700">Frage 1</label>
+      <input type="text" id="ff-q-q1-label" name="f_q_q1_label" value="Budget" maxlength="120" class="ui-input w-full">
+      <label for="ff-q-q1-type" class="block text-xs text-gray-700">Art der Antwort</label>
+      <select id="ff-q-q1-type" name="f_q_q1_type" class="ui-input w-full">
+        <option value="text" selected>Kurzer Text</option><option value="textarea">Langer Text</option><option value="choice">Auswahl</option><option value="bool">Ja/Nein</option><option value="number">Zahl</option><option value="date">Datum</option>
+      </select>
+      <label for="ff-q-q1-options" class="block text-xs text-gray-700">Optionen für „Auswahl“ (eine pro Zeile)</label>
+      <textarea id="ff-q-q1-options" name="f_q_q1_options" rows="3" class="ui-input w-full" aria-describedby="ff-q-q1-options-hint"></textarea>
+      <p id="ff-q-q1-options-hint" class="text-xs text-gray-700">Nur bei Art „Auswahl“, eine Option pro Zeile.</p>
+      <label class="inline-flex min-h-[44px] items-center gap-2 text-sm"><input type="checkbox" name="f_q_q1_req" value="1"> Pflicht</label>
+      <div class="flex flex-wrap gap-2">
+        <button name="f_do" value="down:q1" class="ui-btn ui-btn-secondary min-h-[44px] min-w-[44px]"><span aria-hidden="true">↓</span><span class="sr-only">„Budget“ nach unten</span></button>
+        <button name="f_do" value="del:q1" class="ui-btn ui-btn-secondary min-h-[44px]">Entfernen<span class="sr-only"> – Budget</span></button>
+      </div>
+    </div>
+    <div class="space-y-2 rounded-lg bg-gray-50 p-3" data-form-question="q2">
+      <label for="ff-q-q2-label" class="block text-xs font-semibold text-gray-700">Frage 2</label>
+      <input type="text" id="ff-q-q2-label" name="f_q_q2_label" value="Raum" maxlength="120" class="ui-input w-full">
+      <label for="ff-q-q2-type" class="block text-xs text-gray-700">Art der Antwort</label>
+      <select id="ff-q-q2-type" name="f_q_q2_type" class="ui-input w-full">
+        <option value="text">Kurzer Text</option><option value="textarea">Langer Text</option><option value="choice" selected>Auswahl</option><option value="bool">Ja/Nein</option><option value="number">Zahl</option><option value="date">Datum</option>
+      </select>
+      <label for="ff-q-q2-options" class="block text-xs text-gray-700">Optionen für „Auswahl“ (eine pro Zeile)</label>
+      <textarea id="ff-q-q2-options" name="f_q_q2_options" rows="3" class="ui-input w-full" aria-describedby="ff-q-q2-options-hint">Saal
+Garten</textarea>
+      <p id="ff-q-q2-options-hint" class="text-xs text-gray-700">Nur bei Art „Auswahl“, eine Option pro Zeile.</p>
+      <label class="inline-flex min-h-[44px] items-center gap-2 text-sm"><input type="checkbox" name="f_q_q2_req" value="1" checked> Pflicht</label>
+      <div class="flex flex-wrap gap-2">
+        <button name="f_do" value="up:q2" class="ui-btn ui-btn-secondary min-h-[44px] min-w-[44px]"><span aria-hidden="true">↑</span><span class="sr-only">„Raum“ nach oben</span></button>
+        <button name="f_do" value="down:q2" class="ui-btn ui-btn-secondary min-h-[44px] min-w-[44px]"><span aria-hidden="true">↓</span><span class="sr-only">„Raum“ nach unten</span></button>
+        <button name="f_do" value="del:q2" class="ui-btn ui-btn-secondary min-h-[44px]">Entfernen<span class="sr-only"> – Raum</span></button>
+      </div>
+    </div>
+    <div class="space-y-2 rounded-lg bg-gray-50 p-3" data-form-question="q4">
+      <label for="ff-q-q4-label" class="block text-xs font-semibold text-gray-700">Frage 3</label>
+      <input type="text" id="ff-q-q4-label" name="f_q_q4_label" value="Vegan?" maxlength="120" class="ui-input w-full">
+      <label for="ff-q-q4-type" class="block text-xs text-gray-700">Art der Antwort</label>
+      <select id="ff-q-q4-type" name="f_q_q4_type" class="ui-input w-full">
+        <option value="text">Kurzer Text</option><option value="textarea">Langer Text</option><option value="choice">Auswahl</option><option value="bool" selected>Ja/Nein</option><option value="number">Zahl</option><option value="date">Datum</option>
+      </select>
+      <label for="ff-q-q4-options" class="block text-xs text-gray-700">Optionen für „Auswahl“ (eine pro Zeile)</label>
+      <textarea id="ff-q-q4-options" name="f_q_q4_options" rows="3" class="ui-input w-full" aria-describedby="ff-q-q4-options-hint"></textarea>
+      <p id="ff-q-q4-options-hint" class="text-xs text-gray-700">Nur bei Art „Auswahl“, eine Option pro Zeile.</p>
+      <label class="inline-flex min-h-[44px] items-center gap-2 text-sm"><input type="checkbox" name="f_q_q4_req" value="1"> Pflicht</label>
+      <div class="flex flex-wrap gap-2">
+        <button name="f_do" value="up:q4" class="ui-btn ui-btn-secondary min-h-[44px] min-w-[44px]"><span aria-hidden="true">↑</span><span class="sr-only">„Vegan?“ nach oben</span></button>
+        <button name="f_do" value="del:q4" class="ui-btn ui-btn-secondary min-h-[44px]">Entfernen<span class="sr-only"> – Vegan?</span></button>
+      </div>
+    </div>
+    <div class="space-y-2 rounded-lg border border-dashed border-gray-400 p-3" data-form-new>
+      <label for="ff-new-label" class="block text-xs font-semibold text-gray-700">Neue Frage</label>
+      <input type="text" id="ff-new-label" name="f_new_label" maxlength="120" class="ui-input w-full">
+      <label for="ff-new-type" class="block text-xs text-gray-700">Art der Antwort</label>
+      <select id="ff-new-type" name="f_new_type" class="ui-input w-full">
+        <option value="text">Kurzer Text</option><option value="textarea">Langer Text</option><option value="choice">Auswahl</option><option value="bool">Ja/Nein</option><option value="number">Zahl</option><option value="date">Datum</option>
+      </select>
+      <label for="ff-new-options" class="block text-xs text-gray-700">Optionen für „Auswahl“ (eine pro Zeile)</label>
+      <textarea id="ff-new-options" name="f_new_options" rows="3" class="ui-input w-full" aria-describedby="ff-new-options-hint"></textarea>
+      <p id="ff-new-options-hint" class="text-xs text-gray-700">Nur bei Art „Auswahl“, eine Option pro Zeile.</p>
+      <label class="inline-flex min-h-[44px] items-center gap-2 text-sm"><input type="checkbox" name="f_new_req" value="1"> Pflicht</label>
+      <div><button name="f_do" value="add" class="ui-btn ui-btn-secondary min-h-[44px]" data-form-add>+ Frage</button></div>
+    </div>
+  </fieldset>
+  <p><button name="f_do" value="preset" onclick="return confirm('Aktuelle Felder durch die Branchen\u002DVorlage ersetzen?')" class="inline-flex min-h-[44px] items-center text-sm font-semibold text-indigo-700 hover:underline" data-form-preset>Branchen-Vorlage laden</button></p>
+  <button name="f_commit_new" value="1" class="ui-btn ui-btn-primary w-full" data-schema-apply>Übernehmen</button>
