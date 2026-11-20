@@ -38,6 +38,8 @@ PART_TAB: dict[str, str] = {
     "platz": "wie",  # ширина и ряд — секция «Platz» (решение владельца)
     "usp": "texte",  # пункты полосы доверия
     "faq": "texte",  # FB-33 M3-5b: вопросы FAQ (общие для всех страниц)
+    "seo": "texte",  # FB-33 M3-6: SEO страницы у «Einstellungen der Seite» (текстовые)
+    "seolink": "texte",  # FB-33 M3-6: у категории — ссылка на форму категории
     "settings": "seite",  # настройки типа страницы у ★-строки и строк-носителей
     "formfields": "felder",  # FB-33 M2i-5: поля формы заявки (режимы, свои вопросы)
     "formlink": "felder",  # FB-33 M2i-5: у полосы/блока заявки — ссылка на окно формы
@@ -56,6 +58,8 @@ PART_ORDER = (
     "platz",
     "usp",
     "faq",
+    "seo",
+    "seolink",
     "settings",
 )
 
@@ -87,6 +91,9 @@ PANEL_KEYS: dict[str, str] = {
     "faq_items": "faq",  # FB-33 M3-5b
     "tiles": "tiles",  # FB-33 M3-5b
     "banner_pick": "banner",
+    "seo": "seo",  # FB-33 M3-6
+    "seo_link": "seolink",
+    "page_inherit": "settings",  # строка наследования вида у категории (в части «Seite»)
     "widths": "platz",
     "width_tiles": "platz",  # FB-33 M3-3b: те же ширины плитками (M0-8)
     "carrier": "settings",
@@ -152,6 +159,8 @@ def parts(selected: dict | None, ctx: dict) -> list[str]:
         "platz": bool(selected.get("widths")),
         "usp": bool(selected.get("usp")),
         "faq": bool(selected.get("faq_items")),
+        "seo": bool(selected.get("seo")),
+        "seolink": bool(selected.get("seo_link")),
         "formfields": bool(selected.get("form_spec")),
         "formlink": bool(selected.get("form_link")),
         "settings": bool(selected.get("carrier") or selected.get("setting_row"))
@@ -176,6 +185,8 @@ def tabs(selected: dict | None, ctx: dict, wanted: str = "") -> list[dict]:
         if mine:
             out.append({"key": key, "label": label, "parts": mine, "active": False})
     if out:
+        if not wanted and (selected or {}).get("ref") == "__page":
+            wanted = "seite"  # FB-33 M3-6 (M0-11): «Einstellungen der Seite» — с «Seite»
         active = next((t for t in out if t["key"] == wanted), out[0])
         active["active"] = True
     return out
@@ -257,7 +268,7 @@ def field_meta(selected: dict | None, field: dict) -> dict:
 #: «zurücksetzen». `card_pick` (вкладка `karte`, M3-4) и `faq` (во «Texte», M3-5b) — формы
 #: `bw-form-card_pick`/`bw-form-faq`.
 #: Замок: у каждой живой применяющей части окна есть форма с её `form_id`.
-APPLY_FORM_PARTS = ("fields", "usp", "formfields", "card_pick", "faq")
+APPLY_FORM_PARTS = ("fields", "usp", "formfields", "card_pick", "faq", "seo")  # seo — M3-6
 #: вкладки, переход с которых применяет форму («Wie anordnen» — две формы, там ссылки)
 APPLY_TABS = ("texte", "felder", "karte")
 #: Enter в поле — та же кнопка, что первая кнопка самой формы (кнопка «по умолчанию» перед

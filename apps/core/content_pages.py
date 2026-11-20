@@ -191,6 +191,30 @@ def page_seo(tenant, host: str) -> dict:
     return siteconfig.clean_seo_page(entry)
 
 
+def put_page_seo(config: dict, host: str, values) -> dict:
+    """FB-33 M3-6: запись SEO одной страницы в `config` (на месте, без базы) — один писатель
+    для вкладки «Suchmaschinen» (`save_page_seo`) и «Speichern» черновика «Seitenaufbau»
+    (тот держит блокировку строки сам). Пустая запись — ключа нет."""
+    from apps.tenants import siteconfig
+
+    entry = siteconfig.clean_seo_page(values)
+    seo = dict(config.get("seo") or {}) if isinstance(config.get("seo"), dict) else {}
+    pages = dict(seo.get("pages") or {}) if isinstance(seo.get("pages"), dict) else {}
+    if entry:
+        pages[host] = entry
+    else:
+        pages.pop(host, None)
+    if pages:
+        seo["pages"] = pages
+    else:
+        seo.pop("pages", None)
+    if seo:
+        config["seo"] = seo
+    else:
+        config.pop("seo", None)
+    return entry
+
+
 def save_page_seo(tenant, host: str, values: dict) -> dict:
     """Точечная запись SEO одной страницы под блокировкой строки: остальной `site_config`
     не трогается (экран открыт долго — целиком конфиг писать нельзя)."""
@@ -203,20 +227,7 @@ def save_page_seo(tenant, host: str, values: dict) -> dict:
     with transaction.atomic():
         fresh = Tenant.objects.select_for_update().get(pk=tenant.pk)
         config = copy.deepcopy(fresh.site_config or {})
-        seo = dict(config.get("seo") or {}) if isinstance(config.get("seo"), dict) else {}
-        pages = dict(seo.get("pages") or {}) if isinstance(seo.get("pages"), dict) else {}
-        if entry:
-            pages[host] = entry
-        else:
-            pages.pop(host, None)
-        if pages:
-            seo["pages"] = pages
-        else:
-            seo.pop("pages", None)
-        if seo:
-            config["seo"] = seo
-        else:
-            config.pop("seo", None)
+        put_page_seo(config, host, entry)
         fresh.site_config = config
         fresh.save(update_fields=["site_config"])
         tenant.site_config = config

@@ -1,0 +1,2 @@
+{% load i18n %}{% comment %}FB-33 M3-6: у страницы категории заголовок и описание для поисковиков — в форме категории (одна запись на категорию).{% endcomment %}
+<p class="mt-4 text-sm text-gray-700" data-schema-seo-link>{% trans "Titel und Beschreibung für Suchmaschinen gehören zur Kategorie." %} <a href="{{ selected.seo_link.url }}" class="inline-flex items-center min-h-[44px] font-semibold text-indigo-700 underline underline-offset-2">{% trans "In der Kategorie bearbeiten →" %}</a></p>

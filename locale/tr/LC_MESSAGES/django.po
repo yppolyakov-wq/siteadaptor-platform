@@ -39755,3 +39755,40 @@ msgstr "Her tur kendi sorularını gösterir."
 #. FB-33 стопка: якорь среза M3-6 — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
 msgid "fb33-stack-anchor-M3-6"
 msgstr "fb33-stack-anchor-M3-6"
+
+#. FB-33 M3-6
+msgid "Titel und Beschreibung für Suchmaschinen gehören zur Kategorie."
+msgstr "Arama motorları için başlık ve açıklama kategoriye aittir."
+
+#. FB-33 M3-6
+msgid "In der Kategorie bearbeiten →"
+msgstr "Kategoride düzenle →"
+
+#. FB-33 M3-6
+#, python-format
+msgid "Höchstens %(n)s Zeichen. Leer = automatisch."
+msgstr "En fazla %(n)s karakter. Boş = otomatik."
+
+#. FB-33 M3-6
+#, python-format
+msgid "Höchstens %(n)s Zeichen. Leer = Anfang des Seitentextes."
+msgstr "En fazla %(n)s karakter. Boş = sayfa metninin başı."
+
+#. FB-33 M3-6
+#, python-format
+msgid "Wie bei allen Kategorie-Seiten: %(v)s"
+msgstr "Tüm kategori sayfalarındaki gibi: %(v)s"
+
+#. FB-33 M3-6
+#, python-format
+msgid "hier geändert gilt nur für „%(name)s“"
+msgstr "burada değiştirildi, yalnızca „%(name)s“ için geçerli"
+
+#. FB-33 M3-6
+msgid "für alle ändern"
+msgstr "tümü için değiştir"
+
+#. FB-33 M3-6
+#, python-format
+msgid "Ansicht der Produkte in „%(name)s“"
+msgstr "„%(name)s“ içindeki ürün görünümü"

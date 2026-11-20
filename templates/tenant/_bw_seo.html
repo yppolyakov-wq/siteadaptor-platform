@@ -1,0 +1,22 @@
+{% load i18n %}{% comment %}FB-33 M3-6 (M0-11): «Texte» у «Einstellungen der Seite» — свой заголовок и описание страницы для поисковиков; правка идёт в черновик страницы (запись — по «Speichern»). «Nicht in Suchmaschinen anzeigen» — на экране «Seiten».{% endcomment %}
+{% with seo=selected.seo %}
+<form method="post" id="bw-form-seo" class="mt-4 space-y-3" data-schema-fields data-schema-seo>
+  {% csrf_token %}
+  {% include "tenant/_schema_keep.html" %}
+  <input type="hidden" name="ref" value="{{ selected.ref }}">
+  <input type="hidden" name="panel_present" value="1">
+  <input type="hidden" name="op_default" value="update">
+  <h3 class="text-sm font-bold text-gray-900">{% trans "Suchmaschinen" %}</h3>
+  <div>
+    <label for="schema-f-seo_title" class="block text-sm font-semibold text-gray-700 mb-1">{% trans "Titel in der Suche" %}</label>
+    <input type="text" id="schema-f-seo_title" name="f_seo_title" value="{{ seo.title }}" maxlength="{{ seo.title_max }}" aria-describedby="schema-f-seo_title-max" class="ui-input w-full">
+    <p id="schema-f-seo_title-max" class="mt-1 text-xs text-gray-700">{% blocktrans with n=seo.title_max %}Höchstens {{ n }} Zeichen. Leer = automatisch.{% endblocktrans %}</p>
+  </div>
+  <div>
+    <label for="schema-f-seo_description" class="block text-sm font-semibold text-gray-700 mb-1">{% trans "Beschreibung in der Suche" %}</label>
+    <textarea id="schema-f-seo_description" name="f_seo_description" rows="3" maxlength="{{ seo.description_max }}" aria-describedby="schema-f-seo_description-max" class="ui-input w-full">{{ seo.description }}</textarea>
+    <p id="schema-f-seo_description-max" class="mt-1 text-xs text-gray-700">{% blocktrans with n=seo.description_max %}Höchstens {{ n }} Zeichen. Leer = Anfang des Seitentextes.{% endblocktrans %}</p>
+  </div>
+  <button name="op" value="update" class="ui-btn ui-btn-primary w-full">{% trans "Übernehmen" %}</button>
+</form>
+{% endwith %}

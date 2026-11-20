@@ -393,6 +393,10 @@ def site_schema_view(request):
     draft_info = aufbau_draft.info(request, saved, code)
     blocks = site_schema.blocks_for(config, code, host=current.host if current else None)
     selected = next((b for b in blocks if b["ref"] == request.GET.get("block")), None)
+    from apps.core import page_window
+
+    # FB-33 M3-6: «Einstellungen der Seite» — тем же окном блока (вкладка «Seite»)
+    selected = selected or page_window.pseudo_row(request.GET.get("block", ""), blocks)
     if selected and selected.get("list_data") is not None:
         from apps.core import list_panel
 
@@ -431,6 +435,9 @@ def site_schema_view(request):
             place_capable=bool(selected.get("cblock"))
             and site_schema.place_capable(current.host if current else ""),
         )
+
+    # FB-33 M3-6: SEO и наследование у «Seite»
+    page_window.decorate(selected, config, current.host if current else "", code)
     for view_key in ("catview", "mainview", "groupview"):
         if selected and selected.get(view_key):
             site_schema.mark_view_availability(config, current.host, selected[view_key])
@@ -502,6 +509,8 @@ def site_schema_view(request):
         if (selected and selected.get("carrier")) or (page_row and page_row["active"]):
             settings = site_schema.settings_groups(tenant, code, config)
             design_rows = site_schema.design_rows(tenant, code)
+    if page_window.is_page_row(selected) and page_row is None:
+        selected = None  # FB-33 M3-6: настроек у страницы нет — и строки «Seite» нет
     # FB-31 P5 R7: строка раздела со своими настройками («Ähnliche › Wie»)
     if selected and site_schema.row_settings(code, selected["ref"]):
         selected["setting_row"] = True

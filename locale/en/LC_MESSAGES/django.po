@@ -39609,3 +39609,40 @@ msgstr "Each tour shows its own questions."
 #. FB-33 стопка: якорь среза M3-6 — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
 msgid "fb33-stack-anchor-M3-6"
 msgstr "fb33-stack-anchor-M3-6"
+
+#. FB-33 M3-6
+msgid "Titel und Beschreibung für Suchmaschinen gehören zur Kategorie."
+msgstr "The title and description for search engines belong to the category."
+
+#. FB-33 M3-6
+msgid "In der Kategorie bearbeiten →"
+msgstr "Edit in the category →"
+
+#. FB-33 M3-6
+#, python-format
+msgid "Höchstens %(n)s Zeichen. Leer = automatisch."
+msgstr "At most %(n)s characters. Empty = automatic."
+
+#. FB-33 M3-6
+#, python-format
+msgid "Höchstens %(n)s Zeichen. Leer = Anfang des Seitentextes."
+msgstr "At most %(n)s characters. Empty = beginning of the page text."
+
+#. FB-33 M3-6
+#, python-format
+msgid "Wie bei allen Kategorie-Seiten: %(v)s"
+msgstr "As on all category pages: %(v)s"
+
+#. FB-33 M3-6
+#, python-format
+msgid "hier geändert gilt nur für „%(name)s“"
+msgstr "changed here, applies only to “%(name)s”"
+
+#. FB-33 M3-6
+msgid "für alle ändern"
+msgstr "change for all"
+
+#. FB-33 M3-6
+#, python-format
+msgid "Ansicht der Produkte in „%(name)s“"
+msgstr "Product view in “%(name)s”"

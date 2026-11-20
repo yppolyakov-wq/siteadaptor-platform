@@ -23,8 +23,6 @@ from apps.core.tests.test_fb33_m3_window_before import (
 from apps.tenants import siteconfig
 
 pytestmark = pytest.mark.django_db
-#: C0 — замки до кода; снимаются в коммите своей части
-TODO = pytest.mark.xfail(strict=True, reason="M3-6 C1–C2 «Seite»: замок до кода")
 
 
 def _shop(config=None):
@@ -54,7 +52,6 @@ def _token(html):
 # ───────────── C1: «Einstellungen der Seite» окном ─────────────
 
 
-@TODO
 def test_page_row_opens_the_block_window_on_the_seite_tab():
     b = Browser(_shop())
     html = b.get("?seite=text&block=__page")
@@ -76,7 +73,6 @@ def test_settings_forms_are_the_old_column_forms_byte_for_byte():
         assert form in got
 
 
-@TODO
 def test_page_row_has_no_schema_ops_and_no_remove_confirm():
     tenant = _shop()
     b = Browser(tenant)
@@ -114,7 +110,6 @@ def _layout(panel):
     return setting, other
 
 
-@TODO
 def test_fertig_closes_and_abbrechen_restores_the_setting_byte_for_byte():
     tenant = _shop()
     b = Browser(tenant)
@@ -133,7 +128,6 @@ def test_fertig_closes_and_abbrechen_restores_the_setting_byte_for_byte():
     assert aufbau_draft.get(_Req(b.session), "product") is None, "черновик — как до открытия"
 
 
-@TODO
 def test_abbrechen_restores_the_earlier_draft_value_of_the_setting():
     """Снимок помнит прежнее значение настройки в черновике (до первой правки окна)."""
     tenant = _shop()
@@ -153,7 +147,6 @@ def test_abbrechen_restores_the_earlier_draft_value_of_the_setting():
     assert "__page" not in (_raw(b, "product").get("window") or {})
 
 
-@TODO
 def test_window_done_on_page_row_drops_the_snapshot():
     tenant = _shop()
     b = Browser(tenant)
@@ -168,7 +161,6 @@ def test_window_done_on_page_row_drops_the_snapshot():
 # ───────────── C2: SEO страницы во «Texte» ─────────────
 
 
-@TODO
 def test_seo_part_only_on_text_hosts():
     tenant = _shop()
     b = Browser(tenant)
@@ -181,7 +173,6 @@ def test_seo_part_only_on_text_hosts():
     assert "f_seo_title" not in product
 
 
-@TODO
 def test_seo_edit_goes_to_the_draft_and_save_writes_it_keeping_noindex():
     tenant = _shop({**CFG, "seo": {"pages": {"info": {"title": "Alt", "noindex": True}}}})
     b = Browser(tenant)
@@ -210,7 +201,6 @@ def test_seo_edit_goes_to_the_draft_and_save_writes_it_keeping_noindex():
     }
 
 
-@TODO
 def test_seo_back_to_saved_means_no_draft_and_abbrechen_restores():
     tenant = _shop({**CFG, "seo": {"pages": {"info": {"title": "Alt"}}}})
     b = Browser(tenant)
@@ -226,7 +216,6 @@ def test_seo_back_to_saved_means_no_draft_and_abbrechen_restores():
     assert aufbau_draft.get(_Req(b.session), "text") is None
 
 
-@TODO
 def test_seo_changed_on_the_pages_screen_is_a_conflict():
     tenant = _shop()
     b = Browser(tenant)
@@ -241,7 +230,6 @@ def test_seo_changed_on_the_pages_screen_is_a_conflict():
     assert tenant.site_config["seo"]["pages"]["info"] == {"title": "Anders"}
 
 
-@TODO
 def test_a_draft_started_before_the_slice_is_not_a_conflict():
     """Живые черновики после деплоя: без ключа `seo` отпечаток считается без него."""
     tenant = _shop({**CFG, "seo": {"pages": {"info": {"title": "Alt"}}}})
@@ -261,7 +249,6 @@ def test_a_draft_started_before_the_slice_is_not_a_conflict():
     assert msgs == ["Gespeichert."]
 
 
-@TODO
 def test_save_page_seo_and_commit_use_one_writer():
     src = open("apps/core/content_pages.py").read()
     body = src[src.index("def save_page_seo") :]
@@ -271,7 +258,6 @@ def test_save_page_seo_and_commit_use_one_writer():
     assert "save_page_seo" not in draft_src.replace("`save_page_seo`", "")
 
 
-@TODO
 def test_category_star_links_to_the_category_form_for_seo():
     from apps.catalog.models import Category
 
@@ -287,7 +273,6 @@ def test_category_star_links_to_the_category_form_for_seo():
 # ───────────── C2: строка наследования вида у категории ─────────────
 
 
-@TODO
 def test_category_inherit_row_names_the_shared_view_and_resets_the_own_one():
     from apps.catalog.models import Category
 
@@ -316,7 +301,6 @@ def test_category_inherit_row_names_the_shared_view_and_resets_the_own_one():
     assert "hier geändert gilt nur" not in _panel(html)
 
 
-@TODO
 def test_category_without_own_view_has_no_reset():
     from apps.catalog.models import Category
 

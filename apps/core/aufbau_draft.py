@@ -55,6 +55,14 @@ def _saved_state(config: dict, home: bool, host: str) -> dict:
         # карточки, другая вкладка браузера) тоже конфликт черновика
         obj = detail_parts.object_for_host(host)
         state["override"] = getattr(obj, "page_override", None) or {}
+    from apps.tenants import siteconfig
+
+    if siteconfig.is_seo_page_host(host):
+        # FB-33 M3-6: свой заголовок/описание для поисковиков — часть страницы в черновике
+        # (правка на экране «Seiten» — конфликт; возврат к сохранённому — черновика нет)
+        from apps.core import page_window
+
+        state["seo"] = page_window.saved_seo(config, host)
     return state
 
 
@@ -79,6 +87,8 @@ def _base_fingerprint(saved: dict, config: dict, draft: dict) -> str:
         saved = {k: v for k, v in saved.items() if k != "title"}
     if "next" not in draft:  # FB-33 M2h-5: то же у «Was passiert jetzt»
         saved = {k: v for k, v in saved.items() if k != "next"}
+    if "seo" not in draft:  # FB-33 M3-6: черновик, начатый до SEO в окне, — без него
+        saved = {k: v for k, v in saved.items() if k != "seo"}
     return _fingerprint(saved)
 
 
@@ -215,6 +225,10 @@ def overlay(config: dict, draft: dict) -> dict:
         _put_title(out, host, draft["title"])
     if "next" in draft:
         _put_next(out, draft["next"])
+    if "seo" in draft:  # FB-33 M3-6: SEO страницы из окна «Einstellungen der Seite»
+        from apps.core import page_window
+
+        page_window.put_shown(out, host, draft)
     if "form" in draft:
         out = _put_form(out, draft)
     if "faq" in draft:
@@ -464,6 +478,10 @@ def changes(saved: dict, draft: dict) -> int:
         and bool(draft["contact"]) != bool(saved.get("contact", True))
     ):
         count += 1
+    from apps.core import page_window
+
+    count += page_window.changed(draft, saved)  # FB-33 M3-6
+
     # FB-33 M2d: «Seitentitel» — одно изменение
     if "title" in draft and draft["title"] != saved.get("title", {}):
         count += 1
@@ -545,7 +563,8 @@ def _window_setting_codes(tenant, code: str, ref: str) -> list[str]:
     own = site_schema.row_settings(code, ref)
     if own:
         return list(own)
-    if ref in (siteconfig.MAIN_LIST_KEY, site_schema.settings_carrier(code)):
+    # FB-33 M3-6: и у строки «Einstellungen der Seite» (окно со вкладкой «Seite»)
+    if ref in (siteconfig.MAIN_LIST_KEY, site_schema.settings_carrier(code), site_schema.PAGE_REF):
         try:
             return list(site_schema.setting_codes(tenant, code))
         except site_schema.SchemaError:
@@ -573,7 +592,7 @@ def _snapshot(tenant, code, host, draft, ref, token="", codes=(), source=None) -
     записывают после успешной операции (ревью 2)."""
     from apps.core import confirmation_page
 
-    if not token or not ref or ref == site_schema.PAGE_REF:
+    if not token or not ref:
         return
     source = draft if source is None else source
     window = dict(draft.get(WINDOW_KEY) or {}) if isinstance(draft.get(WINDOW_KEY), dict) else {}
@@ -596,6 +615,9 @@ def _snapshot(tenant, code, host, draft, ref, token="", codes=(), source=None) -
         proto["title"] = ["title" in source, copy.deepcopy(source.get("title"))]
     if host == confirmation_page.HOST and ref == site_schema.NEXT_REF:
         proto["next"] = ["next" in source, source.get("next")]
+    if ref == site_schema.PAGE_REF:  # FB-33 M3-6: SEO страницы — в окне «Einstellungen»
+        proto["seo"] = ["seo" in source, copy.deepcopy(source.get("seo"))]
+
     if host == site_schema.FORM_HOST and ref == site_schema.FORM_REF:
         proto["form"] = {k: copy.deepcopy(source[k]) for k in FORM_KEYS if k in source}
     if at is not None and _is_faq_row(source, items[at]):  # FB-33 M3-5b: вопросы FAQ
@@ -654,7 +676,7 @@ def _revert(draft: dict, ref: str, proto: dict) -> None:
     if proto.get("item") is not None:
         items.insert(_place(items, proto), proto["item"])
     draft["items"] = items
-    for key in ("title", "next"):
+    for key in ("title", "next", "seo"):  # FB-33 M3-6: SEO страницы
         if key in proto:
             _restore_key(draft, key, proto[key])
     for part, keys in SIDE_PARTS:
@@ -785,6 +807,9 @@ def op(
         draft["items"] = site_schema.category_items(config, host, draft["items"], op_name)
         draft.pop(WINDOW_KEY, None)  # строки заменены целиком — их снимки больше не годятся
         ref = ""
+    elif _m36_edit(host, ref, op_name, fields):
+        # FB-33 M3-6: SEO страницы, вид категории, «Wo zeigen», закреплённые правовые строки
+        ref = _m36_op(request, config, draft, code, host, saved, op_name, ref, fields, notes)
     elif ref == site_schema.TITLE_REF:
         # FB-33 M2d: «Seitentitel» — не строка `page_blocks`: тексты и вид — в черновике
         ref = site_schema.title_op(host, draft, op_name, fields)
@@ -823,11 +848,30 @@ def op(
     return _settle(request, code, draft, saved, ref)
 
 
+def _m36_edit(host: str, ref: str, op_name: str, fields) -> bool:
+    """FB-33 M3-6: правка окна, которую ведут `page_window`, `window_banner`, `legal_buttons`."""
+    from apps.core import page_window
+
+    return page_window.is_seo_edit(host, ref, op_name, fields) or page_window.is_view_reset(
+        host, ref, op_name
+    )
+
+
+def _m36_op(request, config, draft, code, host, saved, op_name, ref, fields, notes) -> str:
+    from apps.core import page_window
+
+    if page_window.is_seo_edit(host, ref, op_name, fields):
+        return page_window.seo_op(config, draft, host, fields, saved)
+    return page_window.view_reset(draft, ref)
+
+
 def _settle(request, code: str, draft: dict, saved: dict, ref: str = "") -> str:
     if "title" not in draft:  # черновик до «Seitentitel» (ревью M2d) — сравнение без него
         saved = {k: v for k, v in saved.items() if k != "title"}
     if "next" not in draft:
         saved = {k: v for k, v in saved.items() if k != "next"}
+    if "seo" not in draft:  # FB-33 M3-6: черновик до SEO в окне — сравнение без него
+        saved = {k: v for k, v in saved.items() if k != "seo"}
     current = {k: draft.get(k) for k in saved}
     # Вернулись к сохранённому (скрыл и снова показал) — черновика нет.
     clean = (
@@ -955,6 +999,11 @@ def commit(request, tenant, code: str, *, force: bool = False, notes: list | Non
     if faq_moved and not force:
         # своё сообщение: страницу никто не трогал — изменились общие вопросы (Студия, канва)
         raise site_schema.SchemaError("faq_conflict")
+    from apps.core import page_window
+
+    # FB-33 M3-6: SEO страницы
+    page_window.commit(config, host, draft)
+
     from apps.core import hero_tiles
 
     old_blocks = {
