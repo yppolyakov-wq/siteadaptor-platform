@@ -24853,8 +24853,9 @@ def _kit_sections(kit: DemoKit) -> list[dict]:
         {"key": "categories", "enabled": kit.enable_categories_section},
         # A.3 (T-B): полоса доверия сразу под hero (если заданы пункты).
         {"key": "usp_bar", "enabled": bool(kit.usp)},
-        # H2/E4: поиск размещения по датам. При hero_widget="stays" поиск живёт
-        # ВНУТРИ hero (первый экран) → секцию гасим, чтобы не было дубля.
+        # H2/E4: поиск размещения по датам. При hero_widget="stays" секцию здесь не
+        # включаем: FB-33 M2c-4 — `quick_links_migration.place` сам включает «Suche» и
+        # ставит её сразу после баннера (`_place_kit_tiles`); итог тот же (замок L4).
         {"key": "stay_search", "enabled": bool(kit.stay_units) and kit.hero_widget != "stays"},
         # Карточки номеров прямо на главной — для отелей/пансионов.
         {"key": "stay_rooms", "enabled": bool(kit.stay_units)},
@@ -24945,7 +24946,15 @@ def _kit_quick_links(kit: DemoKit) -> str:
     axis = (bundle or {}).get("config", {}).get("hero_widget") or ""
     if axis:
         return "" if axis == "none" else axis
-    return kit.hero_widget if kit.hero_widget in LEGACY_WIDGETS else ""
+    if kit.hero_widget in LEGACY_WIDGETS:
+        return kit.hero_widget
+    if kit.hero_widget and kit.hero_widget != "none":
+        import logging
+
+        logging.getLogger(__name__).warning(
+            "demo kit %s: unknown hero_widget %r — no tiles", kit.key, kit.hero_widget
+        )
+    return ""
 
 
 def _place_kit_tiles(cfg: dict, kit: DemoKit, key: str) -> dict:
@@ -24961,7 +24970,9 @@ def _place_kit_tiles(cfg: dict, kit: DemoKit, key: str) -> dict:
     if result.action.startswith("skip:"):
         import logging
 
-        logging.getLogger(__name__).warning("apply_kit %s: tiles not placed (%s)", key, result)
+        logging.getLogger(__name__).warning(
+            "apply_kit %s: tiles not placed (%s)", key, result.action
+        )
     return new
 
 

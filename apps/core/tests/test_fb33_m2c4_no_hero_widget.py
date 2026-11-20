@@ -297,3 +297,20 @@ def test_l4_kits_carry_no_key_in_their_patch():
         if "hero_widget" in ((kit.config_patch or {}).get("site_defaults") or {})
     ]
     assert bad == []
+
+
+def test_l4_unknown_kit_set_is_logged_not_silent(caplog):
+    """Ревью M2c-4: опечатка в наборе кита — предупреждение в логе, а не тихая потеря плиток."""
+    import dataclasses
+
+    from apps.tenants import demo_kits
+
+    kit = dataclasses.replace(demo_kits.KITS["butcher"], bundle="", hero_widget="butchr")
+    with caplog.at_level("WARNING"):
+        assert demo_kits._kit_quick_links(kit) == ""
+    assert any("butchr" in r.getMessage() for r in caplog.records)
+    caplog.clear()
+    none = dataclasses.replace(kit, hero_widget="none")
+    with caplog.at_level("WARNING"):
+        assert demo_kits._kit_quick_links(none) == ""
+    assert not caplog.records

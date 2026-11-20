@@ -46,21 +46,21 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         if options["schema"] == "public":
             raise CommandError("public — платформа, а не сайт бизнеса")
-        if options["undo"] and not options["force"]:
-            self.stderr.write(UNDO_WARNING)
-            raise CommandError("--undo без --force не выполняется (см. предупреждение выше)")
+        if options["force"] and not options["undo"]:
+            raise CommandError("--force — только вместе с --undo")
+        if options["undo"] and options["dry_run"]:
+            raise CommandError("--undo не поддерживает --dry-run")
+        if options["undo"]:
+            self.stderr.write(UNDO_WARNING)  # и с --force: откат без отката кода теряет плитки
+            if not options["force"]:
+                raise CommandError("--undo без --force не выполняется (см. предупреждение выше)")
         tenants = Tenant.objects.exclude(schema_name="public").order_by("schema_name")
         if options["schema"]:
             tenants = tenants.filter(schema_name=options["schema"])
             if not tenants.exists():
                 raise CommandError(f"нет такого сайта: {options['schema']}")
         if options["residue"]:
-            left = [
-                t.schema_name for t in tenants.only("schema_name", "site_config") if qlm.residue(t)
-            ]
-            for name in left:
-                self.stderr.write(f"{name}: ОСТАТОК hero_widget")
-            self.stdout.write(f"quick_links residue: {len(left)}")
+            self._residue(tenants)
             return
         done = skipped = busy = nothing = 0
         failed = []
@@ -83,6 +83,9 @@ class Command(BaseCommand):
                 result = qlm.apply_tenant(tenant, dry_run=options["dry_run"])
                 if result.action.startswith("skip:"):
                     skipped += 1
+                    logger.warning(
+                        "detach_quick_links: %s skipped (%s)", tenant.schema_name, result.action
+                    )
                     self.stderr.write(
                         f"{tenant.schema_name}: ПРОПУЩЕНО ({result.action[5:]}) — оставлено как есть"
                     )
@@ -105,4 +108,29 @@ class Command(BaseCommand):
         )
         if failed:
             raise CommandError(f"не обработаны сайты: {', '.join(failed)}")
+        if skipped and not options["undo"]:
+            # пропущенный сайт остался со старым ключом, а витрина его не читает (M2c-4) —
+            # плиток там нет; код ≠ 0, чтобы шаг деплоя показал WARN
+            raise CommandError(f"пропущено сайтов: {skipped} — плитки на них не показаны")
         self.stdout.write(self.style.SUCCESS("Готово"))
+
+    def _residue(self, tenants):
+        """Сколько сайтов ещё со старым ключом. Остаток или сбой чтения → код ≠ 0 (шаг
+        деплоя печатает WARN): витрина ключ не читает, плиток у таких сайтов нет."""
+        left, broken = [], []
+        for tenant in tenants.only("schema_name", "site_config"):
+            try:
+                if qlm.residue(tenant):
+                    left.append(tenant.schema_name)
+            except Exception:  # noqa: BLE001 — один сайт не роняет проверку остальных
+                logger.exception("detach_quick_links --residue: %s failed", tenant.schema_name)
+                broken.append(tenant.schema_name)
+        for name in left:
+            self.stderr.write(f"{name}: ОСТАТОК hero_widget")
+        for name in broken:
+            self.stderr.write(f"{name}: ОШИБКА чтения настроек")
+        self.stdout.write(f"quick_links residue: {len(left)}")
+        if left or broken:
+            raise CommandError(
+                f"остаток {len(left)}, не проверено {len(broken)} — запустите detach_quick_links"
+            )
