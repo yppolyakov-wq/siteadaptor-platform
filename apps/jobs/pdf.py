@@ -75,6 +75,17 @@ def build_quote_pdf(job, tenant) -> bytes:
     c.setFillColorRGB(*_INK)
     c.setFont(font_bold, 11)
     c.drawString(x, y, job.title[:80])
+    # FB-33 M2i-2: ответы клиента на свои вопросы формы — под темой (пусто — как раньше)
+    from apps.core import form_answers
+
+    answers = form_answers.rows(getattr(job, "custom_answers", None))
+    if answers:
+        c.setFont(font, 9)
+        c.setFillColorRGB(*_MUTED)
+        for label, value in answers[: form_answers.MAX_QUESTIONS]:
+            y -= 5 * mm
+            c.drawString(x, y, f"{label}: {' '.join(value.split())}"[:110])
+        c.setFillColorRGB(*_INK)
 
     # Таблица позиций.
     y -= 10 * mm

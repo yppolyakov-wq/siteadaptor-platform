@@ -92,7 +92,7 @@ def _parse_fulfillment(post, tenant) -> str:
 
 def anfrage(request):
     _require_jobs_active(request)
-    from apps.core import form_spec
+    from apps.core import form_answers, form_spec
     from apps.tenants import siteconfig
 
     site = siteconfig.normalize(request.tenant.site_config)
@@ -110,6 +110,7 @@ def anfrage(request):
         # FB-33 M2i: обязательные поля владельца — проверка сервера (полоса и модалка постят
         # сюда же); выключенные поля отбрасываются, даже если их прислали в обход формы
         shown = form_spec.view(site, "anfrage")
+        questions = form_spec.questions(site, "anfrage")
         gaps = form_spec.missing(site, "anfrage", request.POST, request.FILES)
         if gaps:
             messages.error(
@@ -145,6 +146,10 @@ def anfrage(request):
             **_public_event_fields(request.POST, shown, site),
             # SH-24: «привезти» или «заберу сам» — только у бизнеса с доставкой.
             fulfillment=_parse_fulfillment(request.POST, request.tenant),
+            # FB-33 M2i-2: ответы на свои вопросы — снимок с подписью на момент ответа
+            custom_answers=form_answers.snapshot(
+                questions, form_answers.collect(questions, request.POST)
+            ),
         )
         if shown["photos"].on:
             services.add_job_photos(job, request.FILES.getlist("photos"))  # A7b

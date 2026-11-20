@@ -167,9 +167,19 @@ class FieldView(NamedTuple):
         return self.mode == REQ
 
 
+def questions(site, form: str) -> list[dict]:
+    """Свои вопросы владельца формы (нормализованы `form_answers.normalize_questions`)."""
+    return ((site.get("form_fields") or {}).get(form) or {}).get("custom") or []
+
+
+#: свои вопросы, которые полоса заявки может нарисовать одной строкой (выбор и «да/нет» —
+#: только на полной форме)
+BAND_QUESTION_TYPES = frozenset({"text", "textarea", "number", "date"})
+
+
 def view(site, form: str) -> dict:
-    """Что рисует форма: {ключ: FieldView} + сводка для полосы заявки (`band_extra`,
-    `band_full`) и `any_event` (есть ли включённое событийное поле)."""
+    """Что рисует форма: {ключ: FieldView} + свои вопросы (`custom`) + сводка для полосы
+    заявки (`band_extra`, `band_custom`, `band_full`) и `any_event`."""
     labels = ((site.get("form_fields") or {}).get(form) or {}).get("labels") or {}
     out: dict = {}
     for field in fields_of(form):
@@ -178,14 +188,23 @@ def view(site, form: str) -> dict:
             mode = OFF  # выбор без вариантов владельца не рисуется и не обязателен
         default = field.req_label if mode == REQ and field.req_label is not None else field.label
         out[field.key] = FieldView(mode, labels.get(field.key) or str(default))
+    out["custom"] = [{**q, "req": q.get("mode") == "req"} for q in questions(site, form)]
     if form == "anfrage":
-        extra = [k for k, f in out.items() if f.req and k not in BAND_NATIVE]
+        extra = [
+            k for k, f in out.items() if isinstance(f, FieldView) and f.req and k not in BAND_NATIVE
+        ]
         if not out["email"].on and "phone" not in extra:
             extra.append("phone")  # единственный способ связи — полоса спрашивает его
         # способ связи обязателен (сервер, M2i ревью): у полосы телефона нет — e-mail обязателен
         out["band_email_req"] = out["email"].on and (out["email"].req or "phone" not in extra)
-        out["band_full"] = "photos" in extra or len(extra) > BAND_EXTRA_MAX
+        custom_req = [q for q in out["custom"] if q["req"]]
+        out["band_full"] = (
+            "photos" in extra
+            or any(q["type"] not in BAND_QUESTION_TYPES for q in custom_req)
+            or len(extra) + len(custom_req) > BAND_EXTRA_MAX
+        )
         out["band_extra"] = [] if out["band_full"] else [(k, out[k]) for k in extra]
+        out["band_custom"] = [] if out["band_full"] else custom_req
         out["any_event"] = any(out[k].on for k in ("event_date", "guest_count", "event_type"))
     return out
 
@@ -227,6 +246,8 @@ def missing(site, form: str, post, files=None) -> list[str]:
             ok = raw in ((site.get("anfrage") or {}).get("event_types") or [])
         if not ok:
             out.append(field.key)
+    qs = questions(site, form)
+    out += form_answers.validate(qs, form_answers.collect(qs, post))
     contacts = [k for k in CONTACT if form == "anfrage" and shown[k].on]
     if contacts and not any(_filled(post, k) for k in contacts):
         out.append(CONTACT_MISSING)
@@ -238,11 +259,15 @@ def missing_labels(site, form: str, keys) -> str:
     from django.utils.translation import gettext
 
     shown = view(site, form)
-    names = [
-        gettext("Email or phone") if k == CONTACT_MISSING else shown[k].label
-        for k in keys
-        if k == CONTACT_MISSING or k in shown
-    ]
+    custom = {q["id"]: q["label"] for q in shown["custom"]}
+    names = []
+    for k in keys:
+        if k == CONTACT_MISSING:
+            names.append(gettext("Email or phone"))
+        elif k in custom:
+            names.append(custom[k])
+        elif isinstance(shown.get(k), FieldView):
+            names.append(shown[k].label)
     return ", ".join(names)
 
 

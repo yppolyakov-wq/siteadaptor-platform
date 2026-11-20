@@ -58,8 +58,12 @@ def create_job(
     guest_count=None,
     event_type="",
     fulfillment="",
+    custom_answers=None,
 ) -> Job:
-    """Создать заявку (Anfrage). Customer переиспускается по email."""
+    """Создать заявку (Anfrage). Customer переиспускается по email.
+
+    `custom_answers` — готовый снимок ответов на свои вопросы формы (FB-33 M2i-2,
+    `form_answers.snapshot`); обязательность проверяет вьюха формы, сервис хранит как есть."""
     customer = _get_or_create_customer(name=name, email=email, phone=phone)
     job = Job.objects.create(
         customer=customer,
@@ -81,6 +85,7 @@ def create_job(
         event_type=(event_type or "").strip()[:100],
         # SH-24: способ получения (пусто = вопрос не задавался).
         fulfillment=fulfillment if fulfillment in ("pickup", "delivery") else "",
+        custom_answers=custom_answers if isinstance(custom_answers, dict) else {},
     )
     if job.vehicle_plate:
         from .vehicles import ensure_vehicle

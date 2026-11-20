@@ -34,6 +34,12 @@ line_*_i / data-qt-*), оплата с Angebot-ссылкой, детали об
     <p class="mt-3 text-sm text-gray-400">{% trans "Der Kunde hat keinen weiteren Text hinterlassen." %}</p>
   {% endif %}
   {% if job.site_address %}<p class="mt-2 text-sm text-gray-500">📍 {{ job.site_address }}</p>{% endif %}
+  {% if deal_custom_answers %}
+    {% comment %}FB-33 M2i-2: ответы на свои вопросы формы — снимок с подписью на момент заявки.{% endcomment %}
+    <dl class="mt-3 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-sm" data-custom-answers>
+      {% for label, value in deal_custom_answers %}<dt class="text-gray-500">{{ label }}</dt><dd class="text-gray-900 whitespace-pre-line">{{ value }}</dd>{% endfor %}
+    </dl>
+  {% endif %}
   {% for group in photo_groups %}
     <div class="mt-3" data-photo-group="{{ group.kind }}">
       {% if photo_groups|length > 1 or group.kind != "customer" %}<p class="text-xs font-medium text-gray-500">{{ group.label }}</p>{% endif %}

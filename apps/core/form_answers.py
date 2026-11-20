@@ -136,3 +136,32 @@ def snapshot(questions: list[dict], answers: dict) -> dict:
         if question["id"] in answers:
             out[question["id"]] = {"label": question["label"], "value": answers[question["id"]]}
     return out
+
+
+def rows(stored) -> list[tuple[str, str]]:
+    """Что показывают карточка сделки, письмо владельцу и PDF: [(подпись, значение)] из
+    сохранённого снимка (порядок вопросов на момент ответа). Пусто/мусор — [] (старые сделки
+    ничего не рисуют). Поиска по ответам нет: поле зашифровано (решение M2i)."""
+    from datetime import date as _date
+
+    from django.utils.formats import date_format
+    from django.utils.translation import gettext
+
+    out = []
+    for item in (stored or {}).values() if isinstance(stored, dict) else ():
+        if not isinstance(item, dict) or not item.get("label"):
+            continue
+        value = item.get("value")
+        if value is True:
+            shown = gettext("Ja")
+        elif isinstance(value, str) and re.fullmatch(r"\d{4}-\d{2}-\d{2}", value):
+            try:
+                shown = date_format(_date.fromisoformat(value), "d.m.Y")
+            except ValueError:
+                shown = value
+        elif value is None or value == "":
+            continue
+        else:
+            shown = str(value)
+        out.append((str(item["label"]), shown))
+    return out

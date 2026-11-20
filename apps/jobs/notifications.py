@@ -47,6 +47,12 @@ def _review_url(schema) -> str:
         return ""
 
 
+def _owner_answers(job) -> list:
+    from apps.core import form_answers
+
+    return form_answers.rows(getattr(job, "custom_answers", None))
+
+
 def enqueue_job_email(
     job,
     event,
@@ -72,6 +78,8 @@ def enqueue_job_email(
         "status_url": status_url,
         "review_url": _review_url(schema) if event in ("done", "ready") else "",
         "protocol": protocol,  # KA-12 A-5: protocol_confirmed → владельцу
+        # FB-33 M2i-2: ответы на свои вопросы — только в письме владельцу о новой заявке
+        "custom_answers": _owner_answers(job) if event == "new" else [],
     }
     ctx.update(extra_ctx or {})
     if event == "contract" and tenant is not None:

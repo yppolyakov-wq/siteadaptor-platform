@@ -50,6 +50,8 @@ ERASURE_POLICY = {
             # SHP-2: пункт выдачи — номер Packstation и DHL-PostNummer клиента
             "pickup_point_ref",
             "pickup_point_postnummer",
+            # FB-33 M2i-2: ответы на свои вопросы оформления
+            "custom_answers",
         ),
     ),
     "orders.Offer": ("clear", ("customer_name", "customer_email", "note")),
@@ -59,7 +61,11 @@ ERASURE_POLICY = {
     "finance.Invoice": ("keep", "invoice"),
     "stays.StayBooking": ("clear", ("note", "billing_address")),
     # SEC-G15: описание заявки — текст клиента (адрес, телефон, детали) — тоже стираем.
-    "jobs.Job": ("clear", ("site_address", "vehicle_plate", "description", "description_i18n")),
+    # FB-33 M2i-2: ответы на свои вопросы формы заявки — тоже текст клиента.
+    "jobs.Job": (
+        "clear",
+        ("site_address", "vehicle_plate", "description", "description_i18n", "custom_answers"),
+    ),
     # KA-12 A-6: номер и FIN — ПДн; заявки остаются (vehicle_ref → NULL коллектором).
     # Марка/HSN/TSN на заявке не идентифицируют человека без номера — остаются.
     "jobs.Vehicle": ("delete", ()),

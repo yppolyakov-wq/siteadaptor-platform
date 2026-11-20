@@ -365,7 +365,16 @@ def card_context(request, kind: str, obj, *, sections=(), links=None, hide_targe
         "inbox_active": _module_active(tenant, "inbox"),
         # T-8.10g (G-3): «✨ Antwort vorschlagen» у существующего треда сделки.
         "ai_reply_enabled": thread is not None and _ai_enabled(),
+        # FB-33 M2i-2: ответы клиента на свои вопросы формы (снимок с подписями); у старых
+        # сделок и без вопросов — пусто, блок не рисуется
+        "deal_custom_answers": _custom_answers(obj),
     }
+
+
+def _custom_answers(obj) -> list:
+    from apps.core import form_answers
+
+    return form_answers.rows(getattr(obj, "custom_answers", None))
 
 
 def _advance(kind, obj, tenant, user=None):
