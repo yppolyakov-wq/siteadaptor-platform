@@ -22,6 +22,7 @@ HERO_TILE_SETS = {
     # сертификат — вторичные корзины выручки.
     "friseur": [
         {
+            "key": "termin",
             "icon": "🗓",
             "label": _("Termin buchen"),
             "sub": _("Freie Zeiten sofort sehen"),
@@ -29,6 +30,7 @@ HERO_TILE_SETS = {
             "gate": "booking",
         },
         {
+            "key": "deals",
             "icon": "🔥",
             "label": _("Aktionen & Angebote"),
             "url": "storefront-aktionen",
@@ -37,6 +39,7 @@ HERO_TILE_SETS = {
             "highlight": True,
         },
         {
+            "key": "products",
             "icon": "🧴",
             "label": _("Pflegeprodukte"),
             "sub": _("Salonqualität für zu Hause"),
@@ -44,6 +47,7 @@ HERO_TILE_SETS = {
             "gate": "orders",
         },
         {
+            "key": "gift",
             "icon": "🎁",
             "label": _("Geschenkgutschein"),
             "sub": _("Freude schenken"),
@@ -54,6 +58,7 @@ HERO_TILE_SETS = {
     # A9 Kfz-Werkstatt: термин и смета — две разные задачи клиента.
     "werkstatt": [
         {
+            "key": "termin",
             "icon": "🔧",
             "label": _("Termin vereinbaren"),
             "sub": _("Inspektion, Reifen, Service"),
@@ -61,6 +66,7 @@ HERO_TILE_SETS = {
             "gate": "booking",
         },
         {
+            "key": "anfrage",
             "icon": "📋",
             "label": _("Kostenvoranschlag"),
             "sub": _("Schaden beschreiben — Festpreis erhalten"),
@@ -68,12 +74,14 @@ HERO_TILE_SETS = {
             "gate": "jobs",
         },
         {
+            "key": "products",
             "icon": "🛞",
             "label": _("Teile & Zubehör"),
             "url": "storefront-products",
             "gate": "orders",
         },
         {
+            "key": "deals",
             "icon": "🔥",
             "label": _("Aktionen & Angebote"),
             "url": "storefront-aktionen",
@@ -85,6 +93,7 @@ HERO_TILE_SETS = {
     # A7 Handwerker: заявка первым; Rückruf — вход для тех, кто не пишет формы.
     "handwerker": [
         {
+            "key": "anfrage",
             "icon": "📋",
             "label": _("Angebot anfordern"),
             "sub": _("Kostenlos & unverbindlich"),
@@ -92,6 +101,7 @@ HERO_TILE_SETS = {
             "gate": "jobs",
         },
         {
+            "key": "termin",
             "icon": "🗓",
             "label": _("Termin vereinbaren"),
             "sub": _("Beratung vor Ort"),
@@ -99,6 +109,7 @@ HERO_TILE_SETS = {
             "gate": "booking",
         },
         {
+            "key": "rueckruf",
             "icon": "☎",
             "label": _("Rückruf anfordern"),
             "sub": _("Wir melden uns zurück"),
@@ -109,6 +120,7 @@ HERO_TILE_SETS = {
             "gate": "jobs",
         },
         {
+            "key": "deals",
             "icon": "🔥",
             "label": _("Aktionen & Angebote"),
             "url": "storefront-aktionen",
@@ -121,6 +133,7 @@ HERO_TILE_SETS = {
     # AF-1: дата/гости/тип), Speisekarte browse-only (catalog core, без гейта).
     "catering": [
         {
+            "key": "anfrage",
             "icon": "📋",
             "label": _("Angebot anfordern"),
             "sub": _("Datum, Gäste & Wünsche — unverbindlich"),
@@ -128,6 +141,7 @@ HERO_TILE_SETS = {
             "gate": "jobs",
         },
         {
+            "key": "menu",
             "icon": "🍽",
             "label": _("Menüs & Pakete"),
             "sub": _("Unsere Speisekarte"),
@@ -135,6 +149,7 @@ HERO_TILE_SETS = {
             "gate": "",
         },
         {
+            "key": "rueckruf",
             "icon": "☎",
             "label": _("Rückruf anfordern"),
             "sub": _("Wir melden uns zurück"),
@@ -142,6 +157,7 @@ HERO_TILE_SETS = {
             "gate": "jobs",
         },
         {
+            "key": "deals",
             "icon": "🔥",
             "label": _("Aktionen & Angebote"),
             "url": "storefront-aktionen",
@@ -153,6 +169,7 @@ HERO_TILE_SETS = {
     # A1 Hofladen/Retail: акция ловит первым, дальше каталог и предзаказ.
     "shop": [
         {
+            "key": "deals",
             "icon": "🔥",
             "label": _("Aktionen & Angebote"),
             "url": "storefront-aktionen",
@@ -161,12 +178,14 @@ HERO_TILE_SETS = {
             "highlight": True,
         },
         {
+            "key": "sortiment",
             "icon": "🛍",
             "label": _("Sortiment ansehen"),
             "url": "storefront-products",
             "gate": "",
         },
         {
+            "key": "preorder",
             "icon": "⏰",
             "label": _("Zur Wunschzeit vorbestellen"),
             "sub": _("Jetzt bestellen, ohne Warten abholen"),
@@ -174,6 +193,7 @@ HERO_TILE_SETS = {
             "gate": "orders",
         },
         {
+            "key": "loyalty",
             "icon": "⭐",
             "label": _("Treuepunkte"),
             "sub": _("Bei jedem Einkauf sammeln"),
@@ -185,6 +205,7 @@ HERO_TILE_SETS = {
     # подтягивается из живой акции, если она есть).
     "aktionsmarkt": [
         {
+            "key": "deals",
             "icon": "🔥",
             "label": _("Aktuelle Deals"),
             "url": "storefront-aktionen",
@@ -194,12 +215,14 @@ HERO_TILE_SETS = {
             "highlight": True,
         },
         {
+            "key": "sortiment",
             "icon": "🛍",
             "label": _("Sortiment ansehen"),
             "url": "storefront-products",
             "gate": "",
         },
         {
+            "key": "loyalty",
             "icon": "⭐",
             "label": _("Treuepunkte"),
             "sub": _("Bei jedem Einkauf sammeln"),
@@ -207,6 +230,7 @@ HERO_TILE_SETS = {
             "gate": "loyalty",
         },
         {
+            "key": "newsletter",
             "icon": "🔔",
             "label": _("Deals per E-Mail"),
             "sub": _("Kein Angebot verpassen"),
@@ -217,6 +241,7 @@ HERO_TILE_SETS = {
     # A6 Touren: билет на публичную дату vs приватная группа — разные воронки.
     "touren": [
         {
+            "key": "events",
             "icon": "🎟",
             "label": _("Touren & Termine"),
             "sub": _("Termine ansehen und Plätze sichern"),
@@ -224,6 +249,7 @@ HERO_TILE_SETS = {
             "gate": "events",
         },
         {
+            "key": "private",
             "icon": "👥",
             "label": _("Private Führung"),
             "sub": _("Wunschtermin für Ihre Gruppe"),
@@ -231,6 +257,7 @@ HERO_TILE_SETS = {
             "gate": "booking",
         },
         {
+            "key": "gift",
             "icon": "🎁",
             "label": _("Geschenkgutschein"),
             "sub": _("Freude schenken"),
@@ -238,6 +265,7 @@ HERO_TILE_SETS = {
             "gate": "gift",
         },
         {
+            "key": "deals",
             "icon": "🔥",
             "label": _("Aktionen & Angebote"),
             "url": "storefront-aktionen",
@@ -249,6 +277,7 @@ HERO_TILE_SETS = {
     # A6/A5 Retreat: курс, ночёвка, отдельный сеанс и свободная заявка.
     "retreat": [
         {
+            "key": "events",
             "icon": "🧘",
             "label": _("Retreats & Kurse"),
             "sub": _("Termine und freie Plätze"),
@@ -256,6 +285,7 @@ HERO_TILE_SETS = {
             "gate": "events",
         },
         {
+            "key": "stays",
             "icon": "🛏",
             "label": _("Übernachtung"),
             "sub": _("Verfügbarkeit prüfen"),
@@ -263,6 +293,7 @@ HERO_TILE_SETS = {
             "gate": "stays",
         },
         {
+            "key": "termin",
             "icon": "🗓",
             "label": _("Einzeltermin"),
             "sub": _("Massage, Beratung, Coaching"),
@@ -270,6 +301,7 @@ HERO_TILE_SETS = {
             "gate": "booking",
         },
         {
+            "key": "anfrage",
             "icon": "✉",
             "label": _("Anfrage stellen"),
             "sub": _("Gruppen und Wunschtermine"),
@@ -317,17 +349,21 @@ def _gift_reachable(tenant) -> bool:
 _EXTRA_GATES = {"gift": _gift_reachable}
 
 
-def tiles_for(widget: str, tenant, deal=None) -> list[dict]:
+def tiles_for(widget: str, tenant, deal=None, hidden=(), labels=None) -> list[dict]:
     """Плитки первого экрана для архетипа. Неизвестный widget → [] (шаблон
-    ничего не рендерит). `deal` — живая акция (`siteui.deal_of_day`)."""
+    ничего не рендерит). `deal` — живая акция (`siteui.deal_of_day`). FB-33 M3-5b:
+    `hidden` — ключи скрытых плиток, `labels` — свои подписи {ключ: текст}."""
     spec = HERO_TILE_SETS.get(widget or "")
     if not spec:
         return []
     from apps.core import modules, storefront_profile
 
     aktionen = storefront_profile.is_aktionen(tenant)
+    labels = labels if isinstance(labels, dict) else {}
     out = []
     for tile in spec:
+        if tile.get("key") in (hidden or ()):
+            continue
         # T-8.1: «Nur Aktionen» — плитки в каталог/корзину не показываем.
         if aktionen and tile.get("url") in storefront_profile.CATALOG_URL_NAMES:
             continue
@@ -351,7 +387,7 @@ def tiles_for(widget: str, tenant, deal=None) -> list[dict]:
         out.append(
             {
                 "icon": tile["icon"],
-                "label": tile["label"],
+                "label": labels.get(tile.get("key")) or tile["label"],
                 "sub": sub,
                 "href": href,
                 "highlight": bool(tile.get("highlight")),
@@ -383,3 +419,151 @@ QUICK_LINK_LABELS = {
     "touren": _("Tours"),
     "retreat": _("Veranstalter / Events"),
 }
+
+
+# ─────────── FB-33 M3-5b: плашки в окне блока — скрыть и переименовать ───────────
+#: подсказка у плашки в окне: когда она видна (гейт) или куда ведёт
+_GATE_HINTS = {
+    "deal": _("nur wenn Deals laufen"),
+    "promotions": _("nur wenn Deals laufen"),
+    "booking": _("nur mit Terminbuchung"),
+    "orders": _("nur mit Bestellungen"),
+    "jobs": _("nur mit Anfragen"),
+    "gift": _("nur mit Gutscheinen"),
+    "loyalty": _("nur mit Bonusprogramm"),
+    "events": _("nur mit Veranstaltungen"),
+    "stays": _("nur mit Übernachtungen"),
+}
+_URL_HINTS = {
+    "storefront-products": _("→ Katalog"),
+    "storefront-newsletter": _("→ Newsletter"),
+}
+
+
+def _hint(gate: str, url: str = ""):
+    return _GATE_HINTS.get(gate) or _URL_HINTS.get(url, "")
+
+
+#: Плашки каждого набора в порядке показа: (ключ, стандартная подпись, подсказка). Рукописные
+#: наборы (`_hero_widget.html`) — здесь же, ключи совпадают с `ql_hidden`/`ql_labels` шаблона.
+QUICK_LINK_TILES: dict[str, tuple] = {
+    "gastro": (
+        ("reserve", _("Tisch reservieren"), _hint("booking")),
+        ("menu", _("Speisekarte"), _hint("", "storefront-products")),
+        ("deal", _("Angebot des Tages"), _hint("deal")),
+    ),
+    "bakery": (
+        ("deal", _("Aktionen & Angebote"), _hint("deal")),
+        ("sortiment", _("Sortiment ansehen"), _hint("", "storefront-products")),
+        ("preorder", _("Zur Wunschzeit vorbestellen"), _hint("orders")),
+        ("party", _("Partyservice anfragen"), _hint("jobs")),
+    ),
+    "mode": (
+        ("deal", _("Sale"), _hint("deal")),
+        ("sortiment", _("Sortiment ansehen"), _hint("", "storefront-products")),
+        ("new", _("Neuheiten"), _hint("", "storefront-products")),
+        ("gift", _("Geschenkgutschein"), _hint("gift")),
+    ),
+    **{
+        name: tuple(
+            (t["key"], t["label"], _hint(t.get("gate", ""), t.get("url", ""))) for t in tiles
+        )
+        for name, tiles in HERO_TILE_SETS.items()
+    },
+}
+QUICK_LINK_TILES["butcher"] = QUICK_LINK_TILES["bakery"]
+
+#: потолок своей подписи плашки (на вводе — `maxlength`, в данных — обрезка)
+LABEL_MAX = 40
+
+
+def tile_keys(link_set: str) -> tuple[str, ...]:
+    return tuple(key for key, _label, _hint in QUICK_LINK_TILES.get(link_set or "", ()))
+
+
+def _standard(label) -> str:
+    """Стандартная подпись на основном языке (своя, равная ей, не хранится)."""
+    from django.conf import settings
+    from django.utils import translation
+
+    with translation.override(settings.LANGUAGE_CODE):
+        return str(label)
+
+
+def clean_data(d: dict) -> dict:
+    """Данные блока «Schnellzugriff»: {"set"} + скрытые плашки и свои подписи — только ключи
+    своего набора; пустая или стандартная подпись не хранится (конфиги прежние байт-в-байт)."""
+    link_set = d.get("set") if isinstance(d, dict) else None
+    if link_set not in QUICK_LINK_SETS:
+        return {}
+    out: dict = {"set": link_set}
+    keys = tile_keys(link_set)
+    raw_hidden = d.get("hidden")
+    hidden = set(raw_hidden) if isinstance(raw_hidden, (list, tuple)) else set()
+    hidden = [k for k in keys if k in hidden]
+    if hidden:
+        out["hidden"] = hidden
+    raw_labels = d.get("labels") if isinstance(d.get("labels"), dict) else {}
+    standard = {key: _standard(label) for key, label, _hint in QUICK_LINK_TILES[link_set]}
+    labels = {}
+    for key in keys:
+        text = raw_labels.get(key)
+        text = " ".join(text.split())[:LABEL_MAX] if isinstance(text, str) else ""
+        if text and text != standard[key]:
+            labels[key] = text
+    if labels:
+        out["labels"] = labels
+    return out
+
+
+def shown_labels(link_set: str, labels) -> dict:
+    """Свои подписи для показа — только ключи текущего набора (перевод прежнего набора,
+    оставшийся в оверлее после смены, не показывается)."""
+    if not isinstance(labels, dict):
+        return {}
+    keys = tile_keys(link_set)
+    return {k: v for k, v in labels.items() if k in keys and isinstance(v, str) and v.strip()}
+
+
+def update_data(data: dict, fields: dict) -> dict:
+    """Форма плашек окна (`tiles_present`): набор `set`, показ `show_<ключ>`, подпись
+    `label_<ключ>`. Сменили набор — скрытие и подписи прежнего сбрасываются (присланные
+    поля плашек относятся к прежнему набору). Возвращает очищенные данные."""
+    old = clean_data(data or {})
+    link_set = str(fields.get("set", old.get("set", "")) or "")
+    if link_set != old.get("set"):
+        return clean_data({"set": link_set})
+    keys = tile_keys(link_set)
+    hidden = [k for k in keys if fields.get(f"show_{k}") != "1"]
+    labels = {k: fields.get(f"label_{k}", "") for k in keys}
+    return clean_data({"set": link_set, "hidden": hidden, "labels": labels})
+
+
+def panel(data: dict) -> dict:
+    """Модель формы плашек окна: набор и строки плашек текущего набора."""
+    from django.utils.translation import gettext as gt
+
+    d = clean_data(data or {})
+    link_set = d.get("set", "")
+    hidden, labels = set(d.get("hidden") or ()), d.get("labels") or {}
+    rows = []
+    for key, label, hint in QUICK_LINK_TILES.get(link_set, ()):
+        rows.append(
+            {
+                "key": key,
+                "label": str(label),
+                "value": labels.get(key) or str(label),
+                "shown": key not in hidden,
+                "hint": str(hint),
+                "show_label": gt("%(label)s zeigen") % {"label": label},
+            }
+        )
+    return {
+        "set": link_set,
+        "options": [
+            ("", gt("Bitte wählen")),
+            *((k, str(QUICK_LINK_LABELS[k])) for k in QUICK_LINK_SETS),
+        ],
+        "rows": rows,
+        "max": LABEL_MAX,
+    }

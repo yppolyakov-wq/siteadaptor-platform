@@ -39569,3 +39569,48 @@ msgstr "Soru ekle"
 #. FB-33 M3-5b
 msgid "Gilt für alle Seiten — dieselben Fragen zeigt jeder FAQ-Block."
 msgstr "Tüm sayfalar için geçerlidir — her SSS bloğu aynı soruları gösterir."
+
+#. FB-33 M3-5b
+msgid "nur wenn Deals laufen"
+msgstr "yalnızca fırsatlar varken"
+
+#. FB-33 M3-5b
+msgid "nur mit Terminbuchung"
+msgstr "yalnızca randevu ile"
+
+#. FB-33 M3-5b
+msgid "nur mit Bestellungen"
+msgstr "yalnızca siparişlerle"
+
+#. FB-33 M3-5b
+msgid "nur mit Anfragen"
+msgstr "yalnızca taleplerle"
+
+#. FB-33 M3-5b
+msgid "nur mit Gutscheinen"
+msgstr "yalnızca hediye çekleriyle"
+
+#. FB-33 M3-5b
+msgid "nur mit Bonusprogramm"
+msgstr "yalnızca sadakat programıyla"
+
+#. FB-33 M3-5b
+msgid "nur mit Veranstaltungen"
+msgstr "yalnızca etkinliklerle"
+
+#. FB-33 M3-5b
+msgid "nur mit Übernachtungen"
+msgstr "yalnızca konaklamayla"
+
+#. FB-33 M3-5b
+msgid "→ Katalog"
+msgstr "→ Katalog"
+
+#. FB-33 M3-5b
+msgid "→ Newsletter"
+msgstr "→ Bülten"
+
+#. FB-33 M3-5b
+#, python-format
+msgid "%(label)s zeigen"
+msgstr "%(label)s göster"

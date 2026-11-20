@@ -650,9 +650,10 @@ def _clean_cblock_own(key: str, d: dict) -> dict:
         base = key[: -len("_ref")]
         return {"style": style} if style and style in SECTION_STYLES.get(base, ()) else {}
     if key == "quick_links":
-        from apps.core.hero_tiles import QUICK_LINK_SETS
+        # FB-33 M3-5b: набор + скрытые плашки и свои подписи (только ключи набора)
+        from apps.core.hero_tiles import clean_data
 
-        return {"set": d["set"]} if d.get("set") in QUICK_LINK_SETS else {}
+        return clean_data(d)
     rounded = _photo_rounded(d)
     if key == "text":
         out = {"title": _s(d.get("title")), "body": _s(d.get("body")), **_text_style(d)}
@@ -4306,6 +4307,7 @@ NON_TRANSLATABLE_FIELDS = frozenset(
         "date",
         "enabled",
         "visible",
+        "hidden",  # FB-33 M3-5b: скрытые плашки Schnellzugriff — ключи, не текст
         # LB-1: кодовые поля блока «Liste» — смена источника/фильтра/вида в
         # редакторе на ru иначе уехала бы в русский оверлей, а немецкая витрина
         # продолжила бы показывать прежнюю выборку.

@@ -1,2 +1,2 @@
 {% load i18n siteui %}{# FB-33 M2c: «Schnellzugriff» — плитки-входы отдельным блоком (разметка плиток — общая с баннером) #}
-{% quick_links_html block.set as ql %}{% if ql %}<section class="my-8" aria-label="{% trans 'Schnellzugriff' %}" data-block-quick-links>{{ ql }}</section>{% endif %}
+{% quick_links_html block.set block.hidden block.labels as ql %}{% if ql %}<section class="my-8" aria-label="{% trans 'Schnellzugriff' %}" data-block-quick-links>{{ ql }}</section>{% endif %}

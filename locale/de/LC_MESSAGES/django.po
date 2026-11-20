@@ -39510,3 +39510,48 @@ msgstr "Frage hinzufügen"
 #. FB-33 M3-5b
 msgid "Gilt für alle Seiten — dieselben Fragen zeigt jeder FAQ-Block."
 msgstr "Gilt für alle Seiten — dieselben Fragen zeigt jeder FAQ-Block."
+
+#. FB-33 M3-5b
+msgid "nur wenn Deals laufen"
+msgstr "nur wenn Deals laufen"
+
+#. FB-33 M3-5b
+msgid "nur mit Terminbuchung"
+msgstr "nur mit Terminbuchung"
+
+#. FB-33 M3-5b
+msgid "nur mit Bestellungen"
+msgstr "nur mit Bestellungen"
+
+#. FB-33 M3-5b
+msgid "nur mit Anfragen"
+msgstr "nur mit Anfragen"
+
+#. FB-33 M3-5b
+msgid "nur mit Gutscheinen"
+msgstr "nur mit Gutscheinen"
+
+#. FB-33 M3-5b
+msgid "nur mit Bonusprogramm"
+msgstr "nur mit Bonusprogramm"
+
+#. FB-33 M3-5b
+msgid "nur mit Veranstaltungen"
+msgstr "nur mit Veranstaltungen"
+
+#. FB-33 M3-5b
+msgid "nur mit Übernachtungen"
+msgstr "nur mit Übernachtungen"
+
+#. FB-33 M3-5b
+msgid "→ Katalog"
+msgstr "→ Katalog"
+
+#. FB-33 M3-5b
+msgid "→ Newsletter"
+msgstr "→ Newsletter"
+
+#. FB-33 M3-5b
+#, python-format
+msgid "%(label)s zeigen"
+msgstr "%(label)s zeigen"

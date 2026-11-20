@@ -161,7 +161,9 @@ def hero_tiles(context, widget):
     if tenant is None:
         return {"tiles": []}
     deal = deal_of_day() if registry.needs_deal(widget) else None
-    return {"tiles": registry.tiles_for(widget, tenant, deal=deal)}
+    # FB-33 M3-5b: скрытые плашки и свои подписи блока «Schnellzugriff» (`quick_links_html`)
+    hidden, labels = context.get("ql_hidden") or (), context.get("ql_labels") or {}
+    return {"tiles": registry.tiles_for(widget, tenant, deal=deal, hidden=hidden, labels=labels)}
 
 
 @register.inclusion_tag("storefront/sections/_hero_deal_card.html", takes_context=True)
@@ -657,17 +659,26 @@ def page_title(context, host):
 
 
 @register.simple_tag(takes_context=True)
-def quick_links_html(context, link_set):
+def quick_links_html(context, link_set, hidden=None, labels=None):
     """FB-33 M2c: плитки набора (та же разметка, что в баннере); пусто — когда у набора нет
-    ни одной плитки (модули выключены) — блок тогда не рисует пустую область."""
+    ни одной плитки (модули выключены или все скрыты, M3-5b) — блок тогда не рисует пустую
+    область. `hidden`/`labels` — скрытые плашки и свои подписи блока (ключи набора)."""
+    from apps.core import hero_tiles as registry
+
     if not link_set:
         return ""
+    keys = registry.tile_keys(link_set)
     html = render_to_string(
         "storefront/sections/_hero_widget.html",
-        {**context.flatten(), "hero_widget": link_set},
+        {
+            **context.flatten(),
+            "hero_widget": link_set,
+            "ql_hidden": [k for k in hidden or () if k in keys] if isinstance(hidden, list) else [],
+            "ql_labels": registry.shown_labels(link_set, labels),
+        },
         request=context.get("request"),
     )
-    return mark_safe(html) if html.strip() else ""
+    return mark_safe(html) if html.strip() and "<a " in html else ""
 
 
 @register.simple_tag(takes_context=True)

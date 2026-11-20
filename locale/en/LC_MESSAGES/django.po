@@ -39423,3 +39423,48 @@ msgstr "Add question"
 #. FB-33 M3-5b
 msgid "Gilt für alle Seiten — dieselben Fragen zeigt jeder FAQ-Block."
 msgstr "Applies to all pages — every FAQ block shows the same questions."
+
+#. FB-33 M3-5b
+msgid "nur wenn Deals laufen"
+msgstr "only while deals are running"
+
+#. FB-33 M3-5b
+msgid "nur mit Terminbuchung"
+msgstr "only with appointment booking"
+
+#. FB-33 M3-5b
+msgid "nur mit Bestellungen"
+msgstr "only with orders"
+
+#. FB-33 M3-5b
+msgid "nur mit Anfragen"
+msgstr "only with enquiries"
+
+#. FB-33 M3-5b
+msgid "nur mit Gutscheinen"
+msgstr "only with gift vouchers"
+
+#. FB-33 M3-5b
+msgid "nur mit Bonusprogramm"
+msgstr "only with a loyalty programme"
+
+#. FB-33 M3-5b
+msgid "nur mit Veranstaltungen"
+msgstr "only with events"
+
+#. FB-33 M3-5b
+msgid "nur mit Übernachtungen"
+msgstr "only with overnight stays"
+
+#. FB-33 M3-5b
+msgid "→ Katalog"
+msgstr "→ Catalogue"
+
+#. FB-33 M3-5b
+msgid "→ Newsletter"
+msgstr "→ Newsletter"
+
+#. FB-33 M3-5b
+#, python-format
+msgid "%(label)s zeigen"
+msgstr "Show %(label)s"
