@@ -12,18 +12,18 @@ Reservieren (гейт модуля booking) / Speisekarte (каталог = core
 Tages (живая акция: recurrence=daily первой, остаток «Nur noch N» — тег
 deal_of_day; нет акции → плитки две, fail-safe).{% endcomment %}
 {% deal_of_day as hw_deal %}{% ql_visible hw_deal as ql_n %}
-{% if ql_n %}<div class="mt-6 grid gap-3 max-w-3xl mx-auto text-left {% if storefront_booking_enabled and "reserve" not in ql_hidden and hw_deal and "deal" not in ql_hidden and "menu" not in ql_hidden %}sm:grid-cols-3{% elif storefront_booking_enabled and "reserve" not in ql_hidden and hw_deal and "deal" not in ql_hidden or storefront_booking_enabled and "reserve" not in ql_hidden and "menu" not in ql_hidden or hw_deal and "deal" not in ql_hidden and "menu" not in ql_hidden %}sm:grid-cols-2{% else %}sm:max-w-sm{% endif %}">
-  {% if storefront_booking_enabled and "reserve" not in ql_hidden %}
+{% if ql_n %}<div class="mt-6 grid gap-3 max-w-3xl mx-auto text-left {% if storefront_booking_enabled and "reserve" not in ql_hidden|default:"" and hw_deal and "deal" not in ql_hidden|default:"" and "menu" not in ql_hidden|default:"" %}sm:grid-cols-3{% elif storefront_booking_enabled and "reserve" not in ql_hidden|default:"" and hw_deal and "deal" not in ql_hidden|default:"" or storefront_booking_enabled and "reserve" not in ql_hidden|default:"" and "menu" not in ql_hidden|default:"" or hw_deal and "deal" not in ql_hidden|default:"" and "menu" not in ql_hidden|default:"" %}sm:grid-cols-2{% else %}sm:max-w-sm{% endif %}">
+  {% if storefront_booking_enabled and "reserve" not in ql_hidden|default:"" %}
   <a href="{% url 'storefront-termin' %}" class="bg-white text-gray-900 rounded-2xl shadow-lg p-4 md:p-5 flex items-center gap-3 hover:shadow-xl hover:-translate-y-0.5 transition min-w-0">
     <span class="text-3xl shrink-0" aria-hidden="true">🍽</span>
     <span class="font-semibold">{% if ql_labels.reserve %}{{ ql_labels.reserve }}{% else %}{% trans "Tisch reservieren" %}{% endif %}</span>
   </a>
   {% endif %}
-  {% if "menu" not in ql_hidden %}<a href="{% url 'storefront-products' %}" class="bg-white text-gray-900 rounded-2xl shadow-lg p-4 md:p-5 flex items-center gap-3 hover:shadow-xl hover:-translate-y-0.5 transition min-w-0">
+  {% if "menu" not in ql_hidden|default:"" %}<a href="{% url 'storefront-products' %}" class="bg-white text-gray-900 rounded-2xl shadow-lg p-4 md:p-5 flex items-center gap-3 hover:shadow-xl hover:-translate-y-0.5 transition min-w-0">
     <span class="text-3xl shrink-0" aria-hidden="true">📖</span>
     <span class="font-semibold">{% if ql_labels.menu %}{{ ql_labels.menu }}{% else %}{% trans "Speisekarte" %}{% endif %}</span>
   </a>{% endif %}
-  {% if hw_deal and "deal" not in ql_hidden %}
+  {% if hw_deal and "deal" not in ql_hidden|default:"" %}
   <a href="{% url 'storefront-promotion' hw_deal.pk %}" class="bg-white text-gray-900 rounded-2xl shadow-lg p-4 md:p-5 flex items-center gap-3 hover:shadow-xl hover:-translate-y-0.5 transition min-w-0 ring-2 ring-amber-400">
     <span class="text-3xl shrink-0" aria-hidden="true">🔥</span>
     <span class="min-w-0">
@@ -42,7 +42,7 @@ Partyservice (гейт jobs). Порядок владельца: акции → 
 "butcher" (та же ветка, 2026-07-30) — иконка 🥩 и мясной сабтекст Partyservice.{% endcomment %}
 {% deal_of_day as hw_deal %}{% ql_visible hw_deal as ql_n %}
 {% if ql_n %}<div class="mt-6 grid gap-3 max-w-3xl mx-auto text-left {% if ql_hidden and ql_n == 1 %}sm:max-w-sm{% else %}sm:grid-cols-2{% endif %}">
-  {% if hw_deal and "deal" not in ql_hidden %}
+  {% if hw_deal and "deal" not in ql_hidden|default:"" %}
   <a href="{% url 'storefront-aktionen' %}" class="bg-white text-gray-900 rounded-2xl shadow-lg p-4 md:p-5 flex items-center gap-3 hover:shadow-xl hover:-translate-y-0.5 transition min-w-0 ring-2 ring-amber-400">
     <span class="text-3xl shrink-0" aria-hidden="true">🔥</span>
     <span class="min-w-0">
@@ -51,11 +51,11 @@ Partyservice (гейт jobs). Порядок владельца: акции → 
     </span>
   </a>
   {% endif %}
-  {% if "sortiment" not in ql_hidden %}<a href="{% url 'storefront-products' %}" class="bg-white text-gray-900 rounded-2xl shadow-lg p-4 md:p-5 flex items-center gap-3 hover:shadow-xl hover:-translate-y-0.5 transition min-w-0">
+  {% if "sortiment" not in ql_hidden|default:"" %}<a href="{% url 'storefront-products' %}" class="bg-white text-gray-900 rounded-2xl shadow-lg p-4 md:p-5 flex items-center gap-3 hover:shadow-xl hover:-translate-y-0.5 transition min-w-0">
     <span class="text-3xl shrink-0" aria-hidden="true">{% if hero_widget == "butcher" %}🥩{% else %}🥨{% endif %}</span>
     <span class="font-semibold">{% if ql_labels.sortiment %}{{ ql_labels.sortiment }}{% else %}{% trans "Sortiment ansehen" %}{% endif %}</span>
   </a>{% endif %}
-  {% if storefront_orders_enabled and "preorder" not in ql_hidden %}
+  {% if storefront_orders_enabled and "preorder" not in ql_hidden|default:"" %}
   <a href="{% url 'storefront-products' %}" class="bg-white text-gray-900 rounded-2xl shadow-lg p-4 md:p-5 flex items-center gap-3 hover:shadow-xl hover:-translate-y-0.5 transition min-w-0">
     <span class="text-3xl shrink-0" aria-hidden="true">⏰</span>
     <span class="min-w-0">
@@ -64,7 +64,7 @@ Partyservice (гейт jobs). Порядок владельца: акции → 
     </span>
   </a>
   {% endif %}
-  {% if storefront_jobs_enabled and "party" not in ql_hidden %}
+  {% if storefront_jobs_enabled and "party" not in ql_hidden|default:"" %}
   <a href="{% url 'storefront-anfrage' %}" class="bg-white text-gray-900 rounded-2xl shadow-lg p-4 md:p-5 flex items-center gap-3 hover:shadow-xl hover:-translate-y-0.5 transition min-w-0">
     <span class="text-3xl shrink-0" aria-hidden="true">🎉</span>
     <span class="min-w-0">
@@ -80,7 +80,7 @@ Sale (гейт: живая акция, deal_of_day) / Sortiment / Neuheiten (?so
 Geschenkgutschein (гейт модуля gift). Reserve&Anprobe — волна M3.{% endcomment %}
 {% deal_of_day as hw_deal %}{% ql_visible hw_deal as ql_n %}
 {% if ql_n %}<div class="mt-6 grid gap-3 max-w-3xl mx-auto text-left {% if ql_hidden and ql_n == 1 %}sm:max-w-sm{% else %}sm:grid-cols-2{% endif %}">
-  {% if hw_deal and "deal" not in ql_hidden %}
+  {% if hw_deal and "deal" not in ql_hidden|default:"" %}
   <a href="{% url 'storefront-aktionen' %}" class="bg-white text-gray-900 rounded-2xl shadow-lg p-4 md:p-5 flex items-center gap-3 hover:shadow-xl hover:-translate-y-0.5 transition min-w-0 ring-2 ring-amber-400">
     <span class="text-3xl shrink-0" aria-hidden="true">🔥</span>
     <span class="min-w-0">
@@ -89,18 +89,18 @@ Geschenkgutschein (гейт модуля gift). Reserve&Anprobe — волна M
     </span>
   </a>
   {% endif %}
-  {% if "sortiment" not in ql_hidden %}<a href="{% url 'storefront-products' %}" class="bg-white text-gray-900 rounded-2xl shadow-lg p-4 md:p-5 flex items-center gap-3 hover:shadow-xl hover:-translate-y-0.5 transition min-w-0">
+  {% if "sortiment" not in ql_hidden|default:"" %}<a href="{% url 'storefront-products' %}" class="bg-white text-gray-900 rounded-2xl shadow-lg p-4 md:p-5 flex items-center gap-3 hover:shadow-xl hover:-translate-y-0.5 transition min-w-0">
     <span class="text-3xl shrink-0" aria-hidden="true">👗</span>
     <span class="font-semibold">{% if ql_labels.sortiment %}{{ ql_labels.sortiment }}{% else %}{% trans "Sortiment ansehen" %}{% endif %}</span>
   </a>{% endif %}
-  {% if "new" not in ql_hidden %}<a href="{% url 'storefront-products' %}?sort=newest" class="bg-white text-gray-900 rounded-2xl shadow-lg p-4 md:p-5 flex items-center gap-3 hover:shadow-xl hover:-translate-y-0.5 transition min-w-0">
+  {% if "new" not in ql_hidden|default:"" %}<a href="{% url 'storefront-products' %}?sort=newest" class="bg-white text-gray-900 rounded-2xl shadow-lg p-4 md:p-5 flex items-center gap-3 hover:shadow-xl hover:-translate-y-0.5 transition min-w-0">
     <span class="text-3xl shrink-0" aria-hidden="true">🆕</span>
     <span class="min-w-0">
       <span class="block font-semibold">{% if ql_labels.new %}{{ ql_labels.new }}{% else %}{% trans "Neuheiten" %}{% endif %}</span>
       <span class="block text-xs text-gray-500">{% trans "Neu eingetroffen" %}</span>
     </span>
   </a>{% endif %}
-  {% if storefront_gift_enabled and "gift" not in ql_hidden %}
+  {% if storefront_gift_enabled and "gift" not in ql_hidden|default:"" %}
   <a href="{% url 'storefront-gutschein' %}" class="bg-white text-gray-900 rounded-2xl shadow-lg p-4 md:p-5 flex items-center gap-3 hover:shadow-xl hover:-translate-y-0.5 transition min-w-0">
     <span class="text-3xl shrink-0" aria-hidden="true">🎁</span>
     <span class="min-w-0">

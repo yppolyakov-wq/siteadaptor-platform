@@ -539,9 +539,9 @@ def shown_labels(link_set: str, labels) -> dict:
 
 
 def stale_note() -> str:
-    from django.utils.translation import gettext as gt
+    from django.utils.translation import gettext
 
-    return gt(
+    return gettext(
         "Die Kacheln wurden inzwischen an anderer Stelle geändert – nichts übernommen. "
         "Bitte noch einmal versuchen."
     )
@@ -619,7 +619,7 @@ def prune_label_overlays(config: dict, home: bool, host: str, old_by_id: dict) -
 
 def panel(data: dict) -> dict:
     """Модель формы плашек окна: набор, строки плашек текущего набора, отпечаток данных."""
-    from django.utils.translation import gettext as gt
+    from django.utils.translation import gettext
 
     d = clean_data(data or {})
     link_set = d.get("set", "")
@@ -635,13 +635,13 @@ def panel(data: dict) -> dict:
                 "hint": str(hint),
                 # «→» — куда ведёт (стрелка скрыта от чтения), иначе — условие показа
                 "goes_to": any(str(hint) == str(_URL_HINTS[u]) for u in _GOES_TO),
-                "show_label": gt("%(label)s zeigen") % {"label": label},
+                "show_label": gettext("%(label)s zeigen") % {"label": label},
             }
         )
     return {
         "set": link_set,
         "options": [
-            ("", gt("Bitte wählen")),
+            ("", gettext("Bitte wählen")),
             *((k, str(QUICK_LINK_LABELS[k])) for k in QUICK_LINK_SETS),
         ],
         "rows": rows,
