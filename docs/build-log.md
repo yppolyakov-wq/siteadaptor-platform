@@ -24194,3 +24194,23 @@ security/silent-failure): тупик в двусторонних прятках,
   против нормализованного). `aufbau.js`: ни одной молчаливой перезагрузки — сбой правки и
   перетаскивания виден (сообщение экрана, запасной вывод в панели или окне браузера),
   подменённая форма уходит своей копией.
+
+### 2026-11-20 — FB-33 M2c-4: снято чтение `site_defaults.hero_widget`
+- Основание: деплой 2026-11-20, `detach_quick_links --residue` = 0. Миграций нет. План —
+  `docs/fb33-editor-model-2026-11-19.md` §«План M2c-4».
+- Замки (`apps/core/tests/test_fb33_m2c4_no_hero_widget.py`): L1 normalize ключ роняет; L2 баннер всех
+  видов (plain, accent, split, fullscreen с фото и без, bento, своё фото, слайдер) с сырым ключом —
+  плиток нет, кнопка на месте; L3 в шаблонах нет `site_defaults.hero_widget`/`banner_tiles`; L4 таблица
+  «кит → набор» (снята полным `apply_kit` всех 115 китов ДО правки: aktionsmarkt, pranasy — блок;
+  friseur, werkstatt — «Leistungen»; hotel — «Suche») + реальный `apply_kit` 7 китов; L5 выход
+  шаблонов, сборок (с перестройкой и без), превью и Look — ключа нет, блок/секция после баннера;
+  L6 каждый набор рисуется блоком.
+- `quick_links_migration.place` — единая точка «поставить набор» (ключ не читает); `detach` = ключ →
+  `place` → снять ключ; `LEGACY_WIDGETS` вместо `siteconfig.HERO_WIDGETS`; `verify` без `banner_tiles`.
+- Писатели: шаблоны — поле `quick_links`; сборки — `_bundle_tiles` (ось в конфиг не пишется; без
+  `prev_hw`, `kept_widget`, `_detach_tiles`, ось вне `_BUNDLE_SD_AXES`); кит — `_kit_quick_links`
+  (`hero_widget_override` > ось сборки > `kit.hero_widget`), блок сразу после слияния `config_patch`.
+  Итоговый `site_config` китов до/после совпал, кроме пустого ключа плиток у 11 китов → `SEEDER_VERSION` 22.
+- Чтение: `_hero.html`/`_hero_slider.html` без плиток, `siteui.banner_tiles`/`has_home_block` и
+  нормализатор ключа сняты; ветки stays/services партиала `_hero_widget.html` снесены (C4, решение
+  владельца). `detach_quick_links` — шаг деплоя (no-op на чистых данных), `--undo` только с `--force`.
