@@ -32,6 +32,7 @@ PART_TAB: dict[str, str] = {
     "banner": "was",  # выбор баннера из библиотеки и «Wo zeigen»
     "views": "wie",  # виды картинками: категорий, товаров, групп
     "switch": "wie",  # смена вида внутри семьи (M2e)
+    "listview": "wie",  # FB-33 M3-3c: как выглядит список (группа «Wie … aussehen» своей формой)
     "platz": "wie",  # ширина и ряд — секция «Platz» (решение владельца)
     "usp": "texte",  # пункты полосы доверия
     "settings": "seite",  # настройки типа страницы у ★-строки и строк-носителей
@@ -43,6 +44,7 @@ PART_ORDER = (
     "banner",
     "views",
     "switch",
+    "listview",
     "fields",
     "formfields",
     "formlink",
@@ -62,7 +64,8 @@ PANEL_KEYS: dict[str, str] = {
     "mainview": "views",
     "groupview": "views",
     "view_options": "switch",
-    "view_tiles": "switch",  # FB-33 M3-3a: те же виды семьи плитками
+    "view_tiles": "switch",
+    "list_view": "listview",  # FB-33 M3-3c: строка наследования вида списка  # FB-33 M3-3a: те же виды семьи плитками
     "regale_link": "views",  # FB-33 M3-3a (M0-3): у «Regale» — где меняется вид товаров
     "fields": "fields",
     "source_url": "fields",
@@ -130,6 +133,9 @@ def parts(selected: dict | None, ctx: dict) -> list[str]:
             selected.get("catview") or selected.get("mainview") or selected.get("groupview")
         ),
         "switch": bool(selected.get("view_options")),
+        "listview": any(
+            g.get("key") == "wie" and g.get("fields") for g in selected.get("groups") or ()
+        ),
         "fields": bool(selected.get("fields")),
         "platz": bool(selected.get("widths")),
         "usp": bool(selected.get("usp")),

@@ -39412,6 +39412,27 @@ msgstr "yanına sığarsa"
 msgid "Auf dem Telefon stehen alle Blöcke untereinander, immer volle Breite."
 msgstr "Telefonda tüm bloklar alt alta, her zaman tam genişlikte durur."
 
+#. FB-33 M3-3c: как выглядит список, наследование и сброс (макет M0-1)
+#, python-format
+msgid "Wie auf der Seite „%(page)s“"
+msgstr "„%(page)s“ sayfasındaki gibi"
+
+#. FB-33 M3-3c: как выглядит список, наследование и сброс (макет M0-1)
+msgid "Wie bei diesem Aktionstyp"
+msgstr "Bu kampanya türündeki gibi"
+
+#. FB-33 M3-3c: как выглядит список, наследование и сброс (макет M0-1)
+msgid "hier geändert gilt nur für diesen Block"
+msgstr "burada değiştirilirse yalnızca bu blok için geçerlidir"
+
+#. FB-33 M3-3c: как выглядит список, наследование и сброс (макет M0-1)
+msgid "Eigene Einstellung für diesen Block"
+msgstr "Bu blok için özel ayar"
+
+#. FB-33 M3-3c: как выглядит список, наследование и сброс (макет M0-1)
+msgid "zurücksetzen"
+msgstr "sıfırla"
+
 #. FB-33 стопка: якорь среза M3-3d — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
 msgid "fb33-stack-anchor-M3-3d"
 msgstr "fb33-stack-anchor-M3-3d"

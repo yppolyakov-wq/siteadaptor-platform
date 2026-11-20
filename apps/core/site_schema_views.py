@@ -387,7 +387,7 @@ def site_schema_view(request):
     # FB-33 M3-3a: виды картинками — из уже заполненных пунктов (вкладка «Wie anordnen»)
     from apps.core import block_views
 
-    block_views.decorate(selected, blocks)
+    block_views.decorate(selected, blocks, config)
     if selected and selected.get("form_spec"):
         # FB-33 M2i-5: «Branchen-Vorlage» — только у типа бизнеса с пресетом формы
         from apps.jobs.anfrage_presets import preset_for

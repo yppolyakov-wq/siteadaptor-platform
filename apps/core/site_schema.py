@@ -999,7 +999,7 @@ def _update_builtin(item: dict, fields: dict | None) -> bool:
     layout = dict(new.get("layout") or {})
     if sent.get("out") == "slider":
         layout["scroll"] = True
-    elif sent.get("out") == "grid":
+    elif sent.get("out") in ("grid", ""):  # FB-33 M3-3c: "" — «zurücksetzen»
         layout.pop("scroll", None)
     cols = _digit(sent.get("cols", ""), 1, 6)
     if cols:
@@ -1008,6 +1008,12 @@ def _update_builtin(item: dict, fields: dict | None) -> bool:
         preset = siteconfig.preset_for_cols(layout.get("preset"), cols)
         if preset:
             layout["preset"] = preset
+    elif "cols" in sent and sent["cols"].strip() == "":
+        # FB-33 M3-3c: «zurücksetzen» — колонки секции по умолчанию (раньше "" молча не
+        # действовало: колонки оставались прежними)
+        default = siteconfig.normalize_layout(None, siteconfig.GRID_SECTION_DEFAULTS.get(key))
+        layout["cols"] = default["cols"]
+        layout["preset"] = default["preset"]
     if "rows" in sent:
         rows = _digit(sent["rows"], 1, 6)
         if rows:

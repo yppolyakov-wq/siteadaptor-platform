@@ -92,6 +92,14 @@ def source_active(tenant, data) -> bool:
     return bool(tenant.is_module_active(SOURCE_MODULES[_source(data)]))
 
 
+def page_layout_key(source: str) -> str:
+    """FB-33 M3-3c: ключ раскладки страницы-листинга, которую наследует блок источника
+    (как в `base_view`); пусто — страницы нет."""
+    return {"products": "catalog_layout", "promotions": "promo_index_layout"}.get(
+        source, _PAGE_LAYOUT_KEYS.get(source, "")
+    )
+
+
 def source_label(source: str, tenant=None) -> str:
     """Подпись источника. У наборов — по типу бизнеса: «Menü-Pakete» у гастро и
     «Sets & Pakete» прочим (`combo_labels` — одна подпись на все поверхности)."""

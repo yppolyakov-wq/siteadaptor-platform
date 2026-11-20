@@ -18,7 +18,8 @@ def _urlconf(settings):
 
 def test_categories_panel_has_the_view_dropdown_with_pictures():
     html = Browser(_tenant()).get("?seite=home&block=categories")
-    assert "data-schema-style-pick" in html and 'name="f_style"' in html
+    # FB-33 M3-3c: во вкладке «Wie anordnen» виды — открытыми плитками (было: выпадающий список)
+    assert 'data-schema-view-tiles="style"' in html and 'name="f_style"' in html
     for key in ("square", "tall", "wide", "compact"):
         assert f'data-style-thumb="{key}"' in html
 

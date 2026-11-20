@@ -158,11 +158,15 @@ def regale_link(blocks: list[dict], selected: dict) -> str | None:
     return next((b["ref"] for b in blocks if b["key"] == "products" and not b["cblock"]), "")
 
 
-def decorate(selected: dict | None, blocks: list[dict]) -> None:
+def decorate(selected: dict | None, blocks: list[dict], config: dict | None = None) -> None:
     """Плитки вкладки «Wie anordnen» открытого блока (на месте, после `fill_options`)."""
     if not selected:
         return
     section_tiles(selected)
+    list_style_tiles(selected)  # FB-33 M3-3c
+    line = list_view(config or {}, selected)
+    if line is not None:
+        selected["list_view"] = line
     if selected.get("view_options"):
         selected["view_tiles"] = family_tiles(selected["view_options"], selected.get("key", ""))
     if selected.get("widths"):  # FB-33 M3-3b
@@ -196,3 +200,120 @@ def width_tiles(widths, current: str) -> dict:
         else:
             small.append({**tile, "label": label})
     return {"big": big, "small": small}
+
+
+# ─────────────── FB-33 M3-3c: как выглядит список + наследование и сброс (макет M0-1) ───────────────
+
+#: что сбрасывает «zurücksetzen» — ровно то, что названо в строке наследования: вид и
+#: раскладка списка (решение владельца; «Kartenform» — вкладка «Karte», M3-4)
+VIEW_RESET_FIELDS = ("style", "out", "cols", "rows")
+
+#: виды товаров каталога, которых на главной (пока) нет — видны с причиной (решение по M0-1)
+CATALOG_ONLY_PRODUCT_VIEWS = ("schaufenster", "magazin")
+
+
+def _layout_page(layout_key: str):
+    """Тип страницы-листинга, чья раскладка `layout_key` (каталог, акции, услуги…)."""
+    from apps.core import studio_pages
+
+    if not layout_key:
+        return None
+    codes = {c for c, s in studio_pages.SETTINGS.items() if tuple(s.site_key)[:1] == (layout_key,)}
+    return next(
+        (pt for pt in studio_pages.PAGE_TYPES if not pt.object_args and codes & set(pt.settings)),
+        None,
+    )
+
+
+def _summary(layout: dict) -> str:
+    from apps.tenants import siteconfig
+
+    if siteconfig.output_mode(layout) == "slider":
+        return str(_("Slider"))
+    return " · ".join((str(_("Raster")), _("%(n)s Spalten") % {"n": layout.get("cols") or 1}))
+
+
+def list_view(config: dict, selected: dict) -> dict | None:
+    """Строка наследования вида списка (M0-1): откуда вид, какой он, свой ли у блока.
+    {source, summary, link, own, inherits}; None — у строки списка нет."""
+    from apps.core import list_blocks
+    from apps.tenants import siteconfig
+
+    data = selected.get("list_data")
+    if data is not None:  # блок «Liste»: вид страницы-листинга, типа акции или стандарт
+        base = list_blocks.base_view(config, data)
+        own = any(data.get(k) not in (None, "") for k in VIEW_RESET_FIELDS)
+        frm = base["layout_from"]
+        source, link = str(_("Standard")), ""
+        if frm == "page":
+            source_key = data.get("source") or siteconfig.LIST_SOURCE_DEFAULT
+            page = _layout_page(list_blocks.page_layout_key(source_key))
+            if page is not None:
+                from django.urls import reverse
+                from django.utils.http import urlencode
+
+                source = str(_("Wie auf der Seite „%(page)s“") % {"page": page.label})
+                query = urlencode({"seite": page.code, "block": "main", "tab": "seite"})
+                link = f"{reverse('site-schema')}?{query}#schema-panel"
+        elif frm == "type":
+            source = str(_("Wie bei diesem Aktionstyp"))
+        return {
+            "source": source,
+            "summary": _summary(base["layout"]),
+            "link": link,
+            "own": own,
+            "inherits": frm in ("page", "type"),
+        }
+    data = selected.get("builtin_data")
+    if data is None:
+        return None
+    # встроенный список главной: своего «как у страницы» нет — стандарт секции
+    default = siteconfig.normalize_layout(
+        None, siteconfig.GRID_SECTION_DEFAULTS.get(selected.get("key"))
+    )
+    try:
+        cols = int(data.get("cols") or default["cols"])
+    except (TypeError, ValueError):
+        cols = default["cols"]
+    own = (
+        bool(data.get("style"))
+        or data.get("out") == "slider"
+        or bool(data.get("rows"))
+        or cols != default["cols"]
+    )
+    return {
+        "source": str(_("Standard")),
+        "summary": _summary(default),
+        "link": "",
+        "own": own,
+        "inherits": False,
+    }
+
+
+def list_style_tiles(selected: dict) -> None:
+    """Вид списка во вкладке «Wie anordnen» — плитками из пунктов поля (на месте); у товаров
+    вне каталога — «Schaufenster»/«Magazin» недоступны с причиной (решение владельца M0-1)."""
+    from apps.core import site_schema
+
+    for g in selected.get("groups") or ():
+        if g.get("key") != "wie":
+            continue
+        for f in g.get("fields") or ():
+            if f.get("name") != "style" or not f.get("thumbs"):
+                continue
+            f["thumb_src"] = f["thumbs"]
+            f["tiles"] = [
+                {"value": str(v), "label": str(lab), "hint": "", "checked": str(v) == f["value"]}
+                for v, lab in f["options"]
+            ]
+            if f["thumbs"] == "products" and not f.get("unavailable"):
+                labels = {k: lab for k, lab, _hint, _thumb in site_schema.MAIN_VIEW_LABELS}
+                f["unavailable"] = [
+                    {
+                        "key": k,
+                        "label": str(labels[k]),
+                        "reason": str(_("Vorerst nur auf Katalogseiten.")),
+                        "thumb_page": k,
+                    }
+                    for k in CATALOG_ONLY_PRODUCT_VIEWS
+                ]
