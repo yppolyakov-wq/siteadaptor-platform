@@ -1,5 +1,7 @@
 """FB-27 R3a: ширина блока в «Seitenaufbau» — узкие соседи встают в один ряд."""
 
+import re
+
 import pytest
 
 from apps.core import site_schema
@@ -153,7 +155,12 @@ def test_widths_are_named_in_words_for_screen_readers():
     html = b.get(f"?seite=text&block={ref}")
     # FB-29.5 (ревью доступности): имя начинается с видимого знака — «½ – die Hälfte»
     # (WCAG 2.5.3: голосовое управление находит кнопку по тому, что написано на ней)
-    assert 'aria-label="⅙ – ein Sechstel"' in html and 'aria-label="½ – die Hälfte"' in html
+    assert 'aria-label="⅙ – ein Sechstel"' in html
+    # FB-33 M3-3b (M0-8): у крупных плиток имя — видимый текст «1/2 halbe Breite», без aria-label
+    tile = re.search(r'<button name="value" value="w12"[^>]*>.*?</button>', html, flags=re.S).group(
+        0
+    )
+    assert "aria-label" not in tile and "1/2" in tile and "halbe Breite" in tile
 
 
 # --- R3b: короткое содержимое простого блока в панели -------------------------

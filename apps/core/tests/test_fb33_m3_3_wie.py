@@ -169,3 +169,84 @@ def test_regale_on_the_home_page_points_to_the_products_block():
     html = _panel(_get(b, "?seite=home&block=categories"))
     assert "data-schema-regale-hint" in html and "block=products&amp;tab=wie" in html
     assert _drafts(b)["home"]
+
+
+# ─────────────────────────────── M3-3b: секция «Platz» ───────────────────────────────
+
+
+def _platz(html):
+    return html[
+        html.index("data-schema-platz") : html.index(
+            "schema-width-hint", html.index("data-schema-platz") + 20
+        )
+    ]
+
+
+@pytest.mark.parametrize(
+    "query, ref", [("?seite=home&block=t1", "t1"), ("?seite=home&block=products", "products")]
+)
+def test_width_tiles_are_exactly_the_width_choices(query, ref):
+    from apps.core import site_schema
+
+    b = _browser()
+    html = _panel(_get(b, query))
+    box = html[
+        html.index("data-schema-width") : html.index("</form>", html.index("data-schema-width"))
+    ]
+    sent = re.findall(r'<button name="value" value="([^"]+)"', box)
+    item = next(
+        i for i in siteconfig.normalize(CFG)["sections"] if (i.get("id") or i["key"]) == ref
+    )
+    allowed = [v for v, _lab in site_schema.width_choices(item)]
+    big = [v for v in allowed if v in block_views.BIG_WIDTHS]
+    assert sent == big + [v for v in allowed if v not in block_views.BIG_WIDTHS]
+    assert big == ["contained", "w23", "w12", "w13"]  # четыре крупные (решение владельца)
+    with translation.override("de"):
+        for text in ("Breite auf dem Computer", "ganze Breite", "zwei Drittel", "halbe Breite"):
+            assert text in box
+    assert box.count("data-schema-width-bar") == len(sent)
+    assert re.search(r'value="contained"[^>]*aria-pressed="true"', box)
+
+
+def test_row_choice_only_for_a_narrow_block_and_is_the_newline_operation():
+    b = _browser()
+    assert "data-schema-reihe" not in _panel(_get(b, "?seite=home&block=t1"))
+    b.get("?seite=home&block=t1")
+    _post(b, seite="home", ref="t1", op="width", value="w13")
+    html = _panel(_get(b, "?seite=home&block=t1"))
+    form = re.search(r"<form[^>]*data-schema-reihe.*?</form>", html, flags=re.S).group(0)
+    assert (
+        "<legend" in form and "Neben dem vorigen Block" in form and "In einer neuen Reihe" in form
+    )
+    # выбранный способ — нажатая кнопка без действия; второй — операция newline
+    assert re.findall(r'name="op" value="([^"]+)"', form) == ["newline"]
+    assert re.search(
+        r'<button type="button" aria-pressed="true"[^>]*data-schema-reihe-op="beside"', form
+    )
+    _post(b, seite="home", ref="t1", op="newline")
+    assert _home_item(b, "t1")["newline"] is True
+    html = _panel(_get(b, "?seite=home&block=t1"))
+    form = re.search(r"<form[^>]*data-schema-reihe.*?</form>", html, flags=re.S).group(0)
+    pressed = re.search(
+        r'<button type="button" aria-pressed="true"[^>]*data-schema-reihe-op="([a-z]+)"', form
+    )
+    assert pressed.group(1) == "newline"
+    _post(b, seite="home", ref="t1", op="newline")  # «Neben dem vorigen Block» — снова рядом
+    assert not _home_item(b, "t1").get("newline")
+
+
+def test_row_choice_names_the_neighbours():
+    b = _browser()
+    b.get("?seite=home&block=t1")
+    _post(b, seite="home", ref="l1", op="width", value="w12")
+    _post(b, seite="home", ref="t1", op="width", value="w12")
+    with translation.override("de"):
+        html = _panel(b.get("?seite=home&block=l1"))
+    assert "zusammen eine Reihe" in html
+
+
+def test_platz_says_the_phone_stacks_everything():
+    with translation.override("de"):
+        html = _panel(_browser().get("?seite=home&block=t1"))
+    assert "Auf dem Telefon stehen alle Blöcke untereinander, immer volle Breite." in html
+    assert "<h4" in _platz(html)

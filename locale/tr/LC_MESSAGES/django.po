@@ -39366,6 +39366,52 @@ msgstr "Raflar görünümünün kendi kartları yoktur. Raflardaki ürünler „
 msgid "dort ändern"
 msgstr "orada değiştir"
 
+#. FB-33 M3-3b: секция «Platz» (макет M0-8)
+msgid "Platz"
+msgstr "Yerleşim"
+
+#. FB-33 M3-3b: секция «Platz» (макет M0-8)
+msgid "Breite auf dem Computer"
+msgstr "Bilgisayarda genişlik"
+
+#. FB-33 M3-3b: секция «Platz» (макет M0-8)
+msgctxt "block width"
+msgid "Voll"
+msgstr "Tam"
+
+#. FB-33 M3-3b: секция «Platz» (макет M0-8)
+msgid "halbe Breite"
+msgstr "yarım genişlik"
+
+#. FB-33 M3-3b: секция «Platz» (макет M0-8)
+msgid "Reihe"
+msgstr "Sıra"
+
+#. FB-33 M3-3b: секция «Platz» (макет M0-8)
+msgid "Neben dem vorigen Block"
+msgstr "Önceki bloğun yanında"
+
+#. FB-33 M3-3b: секция «Platz» (макет M0-8)
+msgid "In einer neuen Reihe"
+msgstr "Yeni bir sırada"
+
+#. FB-33 M3-3b: секция «Platz» (макет M0-8)
+msgid "beginnt unter dem vorigen Block"
+msgstr "önceki bloğun altında başlar"
+
+#. FB-33 M3-3b: секция «Platz» (макет M0-8)
+#, python-format
+msgid "neben „%(names)s“ — zusammen eine Reihe"
+msgstr "„%(names)s“ yanında — birlikte tek sıra"
+
+#. FB-33 M3-3b: секция «Platz» (макет M0-8)
+msgid "wenn es daneben passt"
+msgstr "yanına sığarsa"
+
+#. FB-33 M3-3b: секция «Platz» (макет M0-8)
+msgid "Auf dem Telefon stehen alle Blöcke untereinander, immer volle Breite."
+msgstr "Telefonda tüm bloklar alt alta, her zaman tam genişlikte durur."
+
 #. FB-33 стопка: якорь среза M3-3d — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
 msgid "fb33-stack-anchor-M3-3d"
 msgstr "fb33-stack-anchor-M3-3d"

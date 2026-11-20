@@ -39220,6 +39220,52 @@ msgstr "Shelves have no cards of their own. The products on the shelves look lik
 msgid "dort ändern"
 msgstr "change there"
 
+#. FB-33 M3-3b: секция «Platz» (макет M0-8)
+msgid "Platz"
+msgstr "Placement"
+
+#. FB-33 M3-3b: секция «Platz» (макет M0-8)
+msgid "Breite auf dem Computer"
+msgstr "Width on a computer"
+
+#. FB-33 M3-3b: секция «Platz» (макет M0-8)
+msgctxt "block width"
+msgid "Voll"
+msgstr "Full"
+
+#. FB-33 M3-3b: секция «Platz» (макет M0-8)
+msgid "halbe Breite"
+msgstr "half width"
+
+#. FB-33 M3-3b: секция «Platz» (макет M0-8)
+msgid "Reihe"
+msgstr "Row"
+
+#. FB-33 M3-3b: секция «Platz» (макет M0-8)
+msgid "Neben dem vorigen Block"
+msgstr "Next to the previous block"
+
+#. FB-33 M3-3b: секция «Platz» (макет M0-8)
+msgid "In einer neuen Reihe"
+msgstr "In a new row"
+
+#. FB-33 M3-3b: секция «Platz» (макет M0-8)
+msgid "beginnt unter dem vorigen Block"
+msgstr "starts below the previous block"
+
+#. FB-33 M3-3b: секция «Platz» (макет M0-8)
+#, python-format
+msgid "neben „%(names)s“ — zusammen eine Reihe"
+msgstr "next to “%(names)s” — one row together"
+
+#. FB-33 M3-3b: секция «Platz» (макет M0-8)
+msgid "wenn es daneben passt"
+msgstr "if it fits alongside"
+
+#. FB-33 M3-3b: секция «Platz» (макет M0-8)
+msgid "Auf dem Telefon stehen alle Blöcke untereinander, immer volle Breite."
+msgstr "On a phone all blocks are stacked, always full width."
+
 #. FB-33 стопка: якорь среза M3-3d — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
 msgid "fb33-stack-anchor-M3-3d"
 msgstr "fb33-stack-anchor-M3-3d"

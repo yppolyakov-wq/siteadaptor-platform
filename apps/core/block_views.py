@@ -13,6 +13,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from django.utils.translation import gettext_lazy as _
+from django.utils.translation import pgettext_lazy
 
 HOME = "home"
 CATALOG = "catalog"
@@ -164,6 +165,34 @@ def decorate(selected: dict | None, blocks: list[dict]) -> None:
     section_tiles(selected)
     if selected.get("view_options"):
         selected["view_tiles"] = family_tiles(selected["view_options"], selected.get("key", ""))
+    if selected.get("widths"):  # FB-33 M3-3b
+        selected["width_tiles"] = width_tiles(selected["widths"], selected.get("width_value", ""))
     link = regale_link(blocks, selected)
     if link is not None:
         selected["regale_link"] = link
+
+
+# ───────────────────────── FB-33 M3-3b: секция «Platz» (макет M0-8) ─────────────────────────
+
+#: крупные плитки ширины (решение владельца): подпись и пояснение словами; остальные ширины
+#: `width_choices` — мелкими плитками в той же группе
+BIG_WIDTHS: dict[str, tuple[object, object]] = {
+    "contained": (pgettext_lazy("block width", "Voll"), _("ganze Breite")),
+    "w23": ("2/3", _("zwei Drittel")),
+    "w12": ("1/2", _("halbe Breite")),
+    "w13": ("1/3", _("ein Drittel")),
+}
+
+
+def width_tiles(widths, current: str) -> dict:
+    """Плитки «Breite auf dem Computer» из `blocks_for(...)["widths"]` — ровно те ширины,
+    что можно выбрать блоку (`width_choices`), в их порядке: {big, small}."""
+    big, small = [], []
+    for value, label, name, percent in widths or ():
+        tile = {"value": value, "name": name, "percent": percent, "current": value == current}
+        if value in BIG_WIDTHS:
+            text, hint = BIG_WIDTHS[value]
+            big.append({**tile, "label": str(text), "hint": str(hint)})
+        else:
+            small.append({**tile, "label": label})
+    return {"big": big, "small": small}

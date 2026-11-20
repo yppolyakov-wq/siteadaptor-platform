@@ -75,6 +75,7 @@ PANEL_KEYS: dict[str, str] = {
     "usp": "usp",
     "banner_pick": "banner",
     "widths": "platz",
+    "width_tiles": "platz",  # FB-33 M3-3b: те же ширины плитками (M0-8)
     "carrier": "settings",
     "setting_row": "settings",
     "form_spec": "formfields",  # FB-33 M2i-5 (`fields` занято формой блока)
