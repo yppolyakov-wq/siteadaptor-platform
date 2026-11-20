@@ -1779,6 +1779,10 @@ input[type="datetime-local"] {
   /* цели касания в окне — не ниже 44 px (ссылки внутри строки текста — исключение WCAG 2.5.8) */
   .ui-bwin :is(button, summary, select, [role="tab"]) { min-height: 2.75rem; }
   .ui-bwin [role="tablist"] { display: flex; flex-wrap: wrap; gap: 0.25rem; }
+  /* вкладки окна (роли ставит aufbau.js): выбранная — как активная ссылка без скриптов */
+  .ui-bwin [role="tab"][aria-selected="true"] { border-width: 2px; border-color: #4338CA; background: #EEF2FF; color: #312E81; }
+  .ui-bwin [role="tab"][aria-selected="false"] { border-width: 1px; border-color: #6B7280; background: transparent; color: #1F2937; }
+  .ui-bwin [role="tab"][aria-selected="false"]:hover { background: #F9FAFB; }
   @media (max-width: 767.98px) {
     .ui-bwin { width: 100dvw; max-width: 100dvw; height: 100dvh; max-height: 100dvh; margin: 0; border-radius: 0; box-shadow: none; padding: env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left); }
     .ui-bwin [data-schema-panel] { padding: 1rem 1rem max(1rem, env(safe-area-inset-bottom)); }
