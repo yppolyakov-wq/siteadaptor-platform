@@ -1759,6 +1759,33 @@ input[type="datetime-local"] {
     .ui-drawer[open] { animation: ui-drawer-in 160ms ease-out; }
   }
   @keyframes ui-drawer-in { from { transform: translateX(1.5rem); opacity: 0.6; } to { transform: none; opacity: 1; } }
+  /* FB-33 M3-2: модальное окно блока «Seitenaufbau» (static/js/aufbau.js переносит в него панель
+     [data-schema-panel]). 760 px по центру, прокрутка внутри панели; на телефоне — весь экран. */
+  .ui-bwin { width: min(760px, calc(100vw - 2rem)); max-width: min(760px, calc(100vw - 2rem)); max-height: calc(100dvh - 4rem); margin: auto; padding: 0; border: 0; border-radius: var(--ui-r-card); background: var(--ui-surface); color: inherit; box-shadow: 0 20px 50px rgba(17, 24, 39, 0.25); display: none; flex-direction: column; overflow: hidden; }
+  .ui-bwin[open] { display: flex; }
+  .ui-bwin::backdrop { background: rgba(17, 24, 39, 0.35); }
+  .ui-bwin [data-schema-panel] { position: static; inset: auto; z-index: auto; flex: 1 1 auto; min-height: 0; max-height: none; overflow-y: auto; overscroll-behavior: contain; padding: 1rem 4rem 1.25rem 1.25rem; border-radius: 0; box-shadow: none; }
+  .ui-bwin-close { position: absolute; top: 0.5rem; right: 0.5rem; z-index: 1; width: 2.75rem; height: 2.75rem; display: inline-flex; align-items: center; justify-content: center; border: 0; border-radius: 0.75rem; background: #F3F4F6; color: #374151; cursor: pointer; }
+  .ui-bwin-close:hover { background: #E5E7EB; }
+  .ui-bwin-close:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: 2px; }
+  /* сообщения при открытом окне — внутри него (фон под inert) */
+  .ui-bwin-msgs { flex: none; padding: 0.75rem 4rem 0 1.25rem; display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.875rem; }
+  .ui-bwin-msgs:not(:has(:not(:empty))) { padding: 0; }
+  .ui-bwin-alert { border-radius: 0.5rem; background: #FEF2F2; color: #991B1B; padding: 0.5rem 0.75rem; }
+  .ui-bwin-alert:empty { padding: 0; background: none; }
+  /* цели касания в окне — не ниже 44 px (ссылки внутри строки текста — исключение WCAG 2.5.8) */
+  .ui-bwin :is(button, summary, select, [role="tab"]) { min-height: 2.75rem; }
+  .ui-bwin [role="tablist"] { display: flex; flex-wrap: wrap; gap: 0.25rem; }
+  @media (max-width: 767.98px) {
+    .ui-bwin { width: 100dvw; max-width: 100dvw; height: 100dvh; max-height: 100dvh; margin: 0; border-radius: 0; box-shadow: none; padding: env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left); }
+    .ui-bwin [data-schema-panel] { padding: 1rem 1rem max(1rem, env(safe-area-inset-bottom)); }
+    .ui-bwin-msgs { padding: 0.75rem 1rem 0; }
+    .ui-bwin-close { display: none; }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .ui-bwin[open] { animation: ui-bwin-in 160ms ease-out; }
+  }
+  @keyframes ui-bwin-in { from { opacity: 0; transform: translateY(0.5rem); } to { opacity: 1; } }
   /* SP-10: <legend> карточки-fieldset браузер рисует НА верхней кромке (заголовок «висел»
      над карточкой). float — штатный способ вернуть его в поток; следующий блок — с новой строки. */
   fieldset.ui-card > legend:not(.sr-only) { float: left; width: 100%; padding: 0; margin-top: 0 !important; }
@@ -1850,6 +1877,8 @@ input[type="datetime-local"] {
 
 /* UX-D D1: фон под открытой шторкой не прокручивается. */
 html:has(dialog.ui-drawer[open]) { overflow: hidden; }
+/* FB-33 M3-2: фон под окном блока не прокручивается и не сдвигается (класс — для Firefox < 121 без :has). */
+html:has(dialog.ui-bwin[open]), html.ui-bwin-lock { overflow: hidden; scrollbar-gutter: stable; }
 /* UX-D D1: плашка брони целиком — цель ссылки (>= 24px), фокус не обрезается truncate */
 [data-bar-pk] { position: relative; }
 [data-bar-pk] > a[data-drawer]::after { content: ""; position: absolute; inset: 0; }
