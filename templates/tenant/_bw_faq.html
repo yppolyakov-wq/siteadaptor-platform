@@ -11,7 +11,7 @@
   <input type="hidden" name="faq_base" value="{{ faq.base }}">
   {% comment %}Enter в поле — «Übernehmen», а не первая кнопка вопроса (↑/↓/Entfernen).{% endcomment %}
   <button name="op" value="update" class="sr-only" tabindex="-1" aria-hidden="true">{% trans "Übernehmen" %}</button>
-  <h3 class="text-sm font-bold text-gray-900">{% trans "Fragen" %} <span class="font-normal text-gray-600">({{ faq.items|length }}/{{ faq.max }})</span></h3>
+  <h3 class="text-sm font-bold text-gray-900">{% trans "Fragen" context "faq window" %} <span class="font-normal text-gray-600">({{ faq.items|length }}/{{ faq.max }})</span></h3>
   {% for it in faq.items %}
   <details class="rounded-xl border border-gray-400" data-faq-item="{{ it.i }}"{% if forloop.first %} open{% endif %}>
     <summary class="flex items-center gap-1 min-h-[44px] cursor-pointer px-3 text-sm font-semibold rounded-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"><span class="shrink-0">{% blocktrans with n=it.n %}Frage {{ n }}{% endblocktrans %} ·</span> <span class="min-w-0 truncate font-normal">{{ it.q }}</span></summary>

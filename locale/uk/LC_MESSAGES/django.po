@@ -39806,3 +39806,8 @@ msgstr "Показувати «%(label)s»"
 #. FB-33 M3-5b
 msgid "Vorlage für die Kacheln"
 msgstr "Шаблон плашок"
+
+#. FB-33 M3-5b
+msgctxt "faq window"
+msgid "Fragen"
+msgstr "Питання"

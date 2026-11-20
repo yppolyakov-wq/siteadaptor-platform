@@ -39559,3 +39559,8 @@ msgstr "%(label)s zeigen"
 #. FB-33 M3-5b
 msgid "Vorlage für die Kacheln"
 msgstr "Vorlage für die Kacheln"
+
+#. FB-33 M3-5b
+msgctxt "faq window"
+msgid "Fragen"
+msgstr "Fragen"

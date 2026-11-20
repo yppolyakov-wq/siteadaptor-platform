@@ -148,3 +148,13 @@ def test_studio_save_keeps_hidden_and_labels():
         "set": "shop",
         "hidden": ["deals"],
     }
+
+
+def test_standard_label_in_cabinet_language_is_not_custom():
+    """Окно показывает стандартную подпись на языке кабинета (en): её отправка — не своя
+    подпись (стенд: «Current deals» записалось бы своей)."""
+    from django.utils import translation
+
+    fields = {"set": "aktionsmarkt", "show_deals": "1", "label_deals": "Current deals"}
+    with translation.override("en"):
+        assert hero_tiles.update_data({"set": "aktionsmarkt"}, fields).get("labels") is None

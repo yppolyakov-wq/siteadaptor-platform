@@ -490,6 +490,17 @@ def _standard(label) -> str:
         return str(label)
 
 
+def _all_languages(label) -> set[str]:
+    from django.conf import settings
+    from django.utils import translation
+
+    out = set()
+    for code, _name in settings.LANGUAGES:
+        with translation.override(code):
+            out.add(str(label))
+    return out
+
+
 def clean_data(d: dict) -> dict:
     """Данные блока «Schnellzugriff»: {"set"} + скрытые плашки и свои подписи — только ключи
     своего набора; пустая или стандартная подпись не хранится (конфиги прежние байт-в-байт)."""
@@ -535,7 +546,14 @@ def update_data(data: dict, fields: dict) -> dict:
         return clean_data({"set": link_set})
     keys = tile_keys(link_set)
     hidden = [k for k in keys if fields.get(f"show_{k}") != "1"]
-    labels = {k: fields.get(f"label_{k}", "") for k in keys}
+    # окно показывает стандартную подпись на языке кабинета — она тоже «своей» не считается
+    # (на любом языке платформы: язык кабинета у разных запросов окна может отличаться)
+    shown = {key: _all_languages(label) for key, label, _hint in QUICK_LINK_TILES[link_set]}
+    labels = {}
+    for k in keys:
+        text = fields.get(f"label_{k}", "")
+        text = " ".join(text.split()) if isinstance(text, str) else ""
+        labels[k] = "" if text in shown[k] else text
     return clean_data({"set": link_set, "hidden": hidden, "labels": labels})
 
 

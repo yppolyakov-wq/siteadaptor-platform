@@ -39618,3 +39618,8 @@ msgstr "%(label)s göster"
 #. FB-33 M3-5b
 msgid "Vorlage für die Kacheln"
 msgstr "Kutucuklar için şablon"
+
+#. FB-33 M3-5b
+msgctxt "faq window"
+msgid "Fragen"
+msgstr "Sorular"
