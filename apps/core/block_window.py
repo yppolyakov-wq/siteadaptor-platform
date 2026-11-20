@@ -65,6 +65,7 @@ PANEL_KEYS: dict[str, str] = {
     "groupview": "views",
     "view_options": "switch",
     "view_tiles": "switch",  # FB-33 M3-3a: те же виды семьи плитками
+    "view_keeps_both": "switch",  # стопка: плашка M0-9 «оба источника текста помнятся» (M3-3d)
     "list_view": "listview",  # FB-33 M3-3c: строка наследования вида списка
     "regale_link": "views",  # FB-33 M3-3a (M0-3): у «Regale» — где меняется вид товаров
     "fields": "fields",
