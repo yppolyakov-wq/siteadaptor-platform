@@ -201,21 +201,24 @@
   <div data-window-part="fields">
 
 
-<form method="post" class="mt-4 space-y-3" data-schema-fields>
+<form method="post" id="bw-form-fields" class="mt-4 space-y-3" data-schema-fields>
   <input type="hidden" name="csrfmiddlewaretoken" value="X">
   <input type="hidden" name="seite" value="confirmation"><input type="hidden" name="wopen" value="W">
 
   <input type="hidden" name="ref" value="next">
   <input type="hidden" name="panel_present" value="1">
+  <input type="hidden" name="op_default" value="update">
   
   <div>
     <label for="schema-f-text" class="block text-sm font-semibold text-gray-700 mb-1">Was passiert jetzt</label>
     
-    <textarea id="schema-f-text" name="f_text" rows="5" class="ui-input w-full"></textarea>
+    <textarea id="schema-f-text" name="f_text" rows="5" maxlength="1200" aria-describedby="schema-f-text-hint schema-f-text-max" class="ui-input w-full"></textarea>
     
+    <p id="schema-f-text-hint" class="mt-1 text-xs text-gray-700">Leer lassen — der Abschnitt erscheint nicht.</p>
+    <p id="schema-f-text-max" class="mt-1 text-xs text-gray-700">Höchstens 1200 Zeichen.</p>
   </div>
   
-  <p class="text-xs text-gray-600">Hier steht der Text der Hauptsprache. Übersetzungen ändern Sie direkt auf der Seite.</p>
+  <p class="text-xs text-gray-600">Hier steht der Text der Hauptsprache. Übersetzungen ändern Sie direkt auf der Seite.</p><p class="text-sm"><a href="/dashboard/site/home/?page=%2Fbestaetigung%2Fvorschau%2F" class="inline-flex items-center min-h-[44px] font-semibold text-indigo-700 hover:underline" data-schema-translate>Übersetzungen auf der Seite bearbeiten →</a></p>
   <button name="op" value="update" class="ui-btn ui-btn-primary w-full">Übernehmen</button>
   
 </form>
