@@ -6,5 +6,6 @@
   <input type="hidden" name="ref" value="{{ selected.ref }}">
   <input type="hidden" name="op" value="switch">
   {% trans "Ansicht" context "block view" as switch_legend %}{% include "tenant/_view_tiles.html" with tiles=selected.view_tiles legend=switch_legend src="family" name="switch" buttons=True uid="switch" %}
+  {% if selected.view_keeps_both %}<p class="mt-2 text-xs text-gray-600" data-schema-keeps-both>{% trans "Beide Fassungen bleiben gespeichert — umschalten verliert nichts." %}</p>{% endif %}
 </form>
 {% endif %}

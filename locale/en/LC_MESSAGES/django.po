@@ -39304,3 +39304,11 @@ msgstr "The remembered page is not available here (any more) — please choose a
 
 msgid "Ein Text war zu lang und wurde gekürzt."
 msgstr "A text was too long and has been shortened."
+
+#. FB-33 стопка: плитка «Von einer Seite» и плашка M0-9
+msgid "Text einer Seite übernehmen"
+msgstr "Use the text of a page"
+
+#. FB-33 стопка: плитка «Von einer Seite» и плашка M0-9
+msgid "Beide Fassungen bleiben gespeichert — umschalten verliert nichts."
+msgstr "Both versions stay saved — switching loses nothing."

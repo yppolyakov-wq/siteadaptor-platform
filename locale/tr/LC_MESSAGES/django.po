@@ -39450,3 +39450,11 @@ msgstr "Hatırlanan sayfa burada (artık) yok — lütfen sayfayı yeniden seçi
 
 msgid "Ein Text war zu lang und wurde gekürzt."
 msgstr "Bir metin çok uzundu ve kısaltıldı."
+
+#. FB-33 стопка: плитка «Von einer Seite» и плашка M0-9
+msgid "Text einer Seite übernehmen"
+msgstr "Bir sayfanın metnini kullan"
+
+#. FB-33 стопка: плитка «Von einer Seite» и плашка M0-9
+msgid "Beide Fassungen bleiben gespeichert — umschalten verliert nichts."
+msgstr "Her iki sürüm de kayıtlı kalır — geçiş yapınca hiçbir şey kaybolmaz."

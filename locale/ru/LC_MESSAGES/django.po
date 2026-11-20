@@ -39645,3 +39645,11 @@ msgstr "Запомненной страницы здесь нет (больше 
 
 msgid "Ein Text war zu lang und wurde gekürzt."
 msgstr "Текст был слишком длинным и сокращён."
+
+#. FB-33 стопка: плитка «Von einer Seite» и плашка M0-9
+msgid "Text einer Seite übernehmen"
+msgstr "Взять текст страницы"
+
+#. FB-33 стопка: плитка «Von einer Seite» и плашка M0-9
+msgid "Beide Fassungen bleiben gespeichert — umschalten verliert nichts."
+msgstr "Оба варианта остаются сохранёнными — при переключении ничего не теряется."

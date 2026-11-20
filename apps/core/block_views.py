@@ -95,6 +95,7 @@ TILE_SECTIONS = frozenset({"team", "gallery", "faq"})
 FAMILY_TILES: dict[str, tuple[object, object]] = {
     "text": (_("Text"), _("Überschrift + Absätze")),
     "image_text": (_("Foto + Text"), _("Foto links oder rechts")),
+    "textpage": (_("Von einer Seite"), _("Text einer Seite übernehmen")),  # M3-3d
 }
 
 
@@ -112,24 +113,43 @@ def tile_section(block: dict) -> str:
     return base if base in TILE_SECTIONS else ""
 
 
-def section_tiles(block: dict) -> None:
+def _faq_texts(host: str) -> dict[str, tuple[str, str]]:
+    """Подпись и пояснение плитки вида FAQ — из реестра видов страницы (`faq_views.views`,
+    M2b-2a), не второй список. Вида, которого у страницы нет, здесь нет: «чужой» сохранённый
+    вид остаётся с подписью пункта (`fill_options`: имя и пометка)."""
+    from apps.core import faq_views
+
+    return {v.key: (str(v.label), str(v.hint)) for v in faq_views.views(host)}
+
+
+def section_tiles(block: dict, host: str = "") -> None:
     """Поле «Darstellung» секции или ссылочного блока — плитками (на месте): `tiles` и
     `thumb_src`. Пункты — те, что уже положил `fill_options` (сохранённое значение, которого
-    среди видов нет, остаётся выбранной плиткой — W0)."""
+    среди видов нет, остаётся выбранной плиткой — W0); у FAQ они зависят от страницы `host`
+    (детальная — три вида, M2b-2a)."""
     src = tile_section(block)
     if not src:
         return
+    texts = _faq_texts(host) if src == "faq" else {}
     for f in block.get("fields") or ():
         if f.get("name") == "style" and f.get("options"):
             f["thumb_src"] = src
             f["tiles"] = [
-                {"value": str(v), "label": str(lab), "hint": "", "checked": str(v) == f["value"]}
+                {
+                    "value": str(v),
+                    "label": texts.get(str(v), (str(lab), ""))[0],
+                    "hint": texts.get(str(v), ("", ""))[1],
+                    "checked": str(v) == f["value"],
+                }
                 for v, lab in f["options"]
             ]
 
 
 def family_tiles(view_options, current: str) -> list[dict]:
-    """Плитки смены вида внутри семьи — из `block_catalog.switch_options` (их порядок)."""
+    """Плитки смены вида внутри семьи — из `block_catalog.switch_options` (их порядок).
+    `keeps_both` — смена на этот вид меняет источник текста, а прежний помнится (M3-3d)."""
+    from apps.core import block_catalog
+
     out = []
     for value, label in view_options or ():
         own = FAMILY_TILES.get(value)
@@ -139,6 +159,7 @@ def family_tiles(view_options, current: str) -> list[dict]:
                 "label": str(own[0]) if own else str(label),
                 "hint": str(own[1]) if own else "",
                 "checked": value == current,
+                "keeps_both": block_catalog.switch_keeps_both(current, value),
             }
         )
     return out
@@ -158,17 +179,21 @@ def regale_link(blocks: list[dict], selected: dict) -> str | None:
     return next((b["ref"] for b in blocks if b["key"] == "products" and not b["cblock"]), "")
 
 
-def decorate(selected: dict | None, blocks: list[dict], config: dict | None = None) -> None:
+def decorate(
+    selected: dict | None, blocks: list[dict], config: dict | None = None, host: str = ""
+) -> None:
     """Плитки вкладки «Wie anordnen» открытого блока (на месте, после `fill_options`)."""
     if not selected:
         return
-    section_tiles(selected)
+    section_tiles(selected, host)
     list_style_tiles(selected)  # FB-33 M3-3c
     line = list_view(config or {}, selected)
     if line is not None:
         selected["list_view"] = line
     if selected.get("view_options"):
         selected["view_tiles"] = family_tiles(selected["view_options"], selected.get("key", ""))
+        # M3-3d: плашка M0-9 — среди плиток есть смена источника текста (оба помнятся)
+        selected["view_keeps_both"] = any(t["keeps_both"] for t in selected["view_tiles"])
     if selected.get("widths"):  # FB-33 M3-3b
         selected["width_tiles"] = width_tiles(selected["widths"], selected.get("width_value", ""))
     link = regale_link(blocks, selected)
