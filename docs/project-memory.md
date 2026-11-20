@@ -44,6 +44,22 @@
 - **M21** прогон переезда haanerteeladen на сервере — владелец, runbook §7
   `m21-cscart-migration-plan-2026-10-31.md`.
 
+Решено (FB-33, стопка 3 M3-4b / M2b-2b / M3-6, владелец 2026-11-20):
+- Подписи форм карточки — **по макету M0-2**: Preisschild · Regal · Kompakt mit Foto · Deal-Zeile (у товара и
+  акции одинаково; msgid реестра английские). «Nur Text» — новой формой, позже.
+- Свои вопросы FAQ у объекта (услуга, товар, номер, событие, тур): **FAQPage — одна на страницу, только из
+  блока `faq_ref` с `source=object`**; общий FAQ на детальных и старые разделы «faq» — без неё. Окно
+  раздела «faq» услуги/события — **тот же редактор** своих вопросов (одно место правки); правка из окна — на
+  хосте объекта, на общем хосте — подсказка и ссылки на формы; двойной показ — подсказка без автоскрытия;
+  подпись общего источника «Allgemeine FAQ»; лимиты 12/200/1000 и 30/200/2000 (событие, тур); «|» в ответе
+  события — по первому.
+- ★-модель: **три строки как есть** («Seitentitel», «★ Hauptliste», «Einstellungen der Seite» — окном);
+  слияние — в M5. «Breite der Seite» на страницу — нет (roadmap); Seitenvorlage не возвращать;
+  **«+ Neuer Banner» в окне не возвращать** (решение 2026-11-18 в силе). «Wo zeigen» — через черновик,
+  только при одном баннере, Startseite только чтение.
+- 🔒: **«Kaufen» товара — плашка своим текстом без поля подписи** (кнопка заказа — в корзине); плашка
+  § 312j M0-10 дословно — у итога корзины и формы ваучера; тексты итога — M2i-3.
+
 Решено (FB-33, стопка 2 M3-4 / M3-5a / M3-5b, владелец 2026-11-20):
 - «Karte»: у сетки и ленты — **обе группы, плитки и строки** (как в M1); пустое = как в Design (плитка
   «Standard»/«Wie im Design (X)»); «zurücksetzen» — отдельной формой; плашка своих форм — среди показанных
@@ -113,6 +129,9 @@ LLM-режим Finder, SSE для чата.
 
 ## 2. Ops владельцу (сводка; выполнено ли — не подтверждено, если не сказано иначе)
 
+- FB-33 стопка 3 (2026-11-20): миграции `catalog/0046_fb33_product_faq`, `stays/0049_fb33_unit_faq`
+  (аддитивные, `db_default`) — обычный `deploy.sh single`; после — `seed_demo_tenants --group all --changed
+  --jobs 3` (`SEEDER_VERSION` 24).
 - FB-33 M2i-5b (стопка 2026-11-20): шаг `form_i18n_realign` идёт в `deploy.sh` сам, ПОСЛЕ подъёма web;
   `--dry-run` — посмотреть заранее, `--undo` — только вместе с откатом кода. У сайтов, где варианты
   «Art der Veranstaltung» переставляли во вкладке «Felder», после переноса проверить выбор события на
@@ -247,6 +266,30 @@ FB-33 M2i-3a (2026-11-19): онлайн-оплата (Stripe) в корзине 
 - `apps/core/hero_tiles.QUICK_LINK_TILES` (FB-33 M3-5b) — плашки каждого набора (ключ, подпись,
   подсказка), включая рукописные gastro/bakery/butcher/mode; данные блока `{set, hidden, labels}` —
   `clean_data` / `update_data` / `panel` / `prune_label_overlays`; `hidden` — в `NON_TRANSLATABLE_FIELDS`.
+- `apps/core/object_faq.py` (FB-33 M2b-2b) — ЕДИНСТВЕННЫЙ писатель своих вопросов FAQ объекта
+  (`Service.faq`/`faq_i18n`, `Product.faq`/`faq_i18n`, `StayUnit.faq`/`faq_i18n`, `Event/Tour.details["faq"]` и
+  `details_i18n[*]["faq"]`): `put(obj, kind, items, src, base_fp, per_locale)`, реестр видов `KINDS` (лимиты,
+  подписи, формы), формы — `from_form`/`form_rows`/`save_from_form` (блокировка + сверка `faq_base`;
+  полная запись формы — после `lock_fresh`), витрина — `localized`, окно — `panel`/`window_op`/`commit`/
+  `snapshot`/`put_shown`. Исключения — демо-киты; замок `test_fb33_m2b2b_object_faq::test_one_writer_of_object_faq`.
+  Блок `faq_ref`: `data.source == "object"` — свои вопросы объекта страницы, нет ключа — общий FAQ.
+  Черновик: `draft["ofaq"]={items, src, obj}` + `ofaq_base` (строка `SIDE_PARTS`), превью —
+  `config[object_faq.DRAFT_KEY]`.
+- `faq_content.remap_overlay(old, new, mapping, tr_list)` / `mapping(...)` (FB-33 M2b-2b) — общий разбор
+  переводов списка вопросов (общий FAQ и свои вопросы объекта).
+- `apps/core/window_banner.py` (FB-33 M3-6) — подписи плиток баннера одной картой мест, «Wo zeigen» в окне
+  (`draft["show_on"]` + `show_on_base` — строка `SIDE_PARTS`), запись мест при «Speichern» под блокировкой
+  баннера (сверка базы, трёхстороннее слияние при force); белый список мест — `banners.place_labels`.
+- `apps/core/page_window.py` (FB-33 M3-6) — псевдо-строка `__page` окна, SEO страницы в черновике
+  (`draft["seo"]` в `_saved_state`, фильтры «без seo» в `_base_fingerprint`/`_settle`), строка наследования
+  вида у категории (op `view_reset`).
+- `content_pages.put_page_seo(config, host, entry)` (FB-33 M3-6) — единственный писатель SEO страницы в
+  config (`save_page_seo` — блокировка + он; commit черновика — он под своей блокировкой).
+- `apps/core/legal_buttons.py` (FB-33 M3-6) — реестр закреплённых правовых строк и подписей их кнопок (те
+  же msgid, что в шаблонах витрины; подпись нигде не хранится); замок `test_fb33_m3_6c_pinned.py`.
+  `data-schema-pinned` — цель броска у закреплённых строк (`data-schema-drop` занят пометкой стороны).
+- `aufbau_draft.SIDE_PARTS` (FB-33 стопка 3) — части черновика вне `_saved_state` (form, faq, ofaq, show_on):
+  одна таблица для `_settle` и `_revert`; новый срез дописывает свою строку.
 - Вкладка «Felder» (FB-33 M2i-5, 2026-11-20): **`form_spec.put` — единственный писатель
   `site_config["form_fields"]` из кабинета** (и событийных полей `anfrage` — тем же `normalize_anfrage`);
   замок-grep `test_fb33_m2i5_before::test_form_fields_has_one_writer` (кроме `form_spec` — только

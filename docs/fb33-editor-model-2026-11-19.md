@@ -641,3 +641,39 @@ main; стыки на верхушке — «Karte» и FAQ применяют �
 подсказка у плашек во «Was», якорь вопроса FAQ `#schema-tab-faq-<i>`, «anzeigen/ausblenden»; снятие якорей
 `.po`, `app.css`, эталоны окна. Отложенное — `docs/roadmap-next-sprints.md` §«Отложено» (блок «стопка 2»);
 дальше — подписи форм карточек по M0-2, M2b-2b, M2i-5c, M3-5c, M3-6, M3-7.
+
+## План M3-4b «подписи форм карточки по M0-2» (planner, 2026-11-20)
+- Реестр `card_forms.CARD_FORMS`: msgid английские, немецкий — msgstr de; сменить 3 msgid («Shelf label»→
+  «Shelf», «Compact row»→«Compact with photo», «Deal tile»→«Deal row») и msgstr de у «Price tag» →
+  «Preisschild»; миграций нет (у полей нет choices); «Nur Text» — новой формы нет (roadmap). Все экраны уже
+  берут подпись из реестра — замок держит. Эталоны: panel.json (2), page_nojs home_l1/…/home_products, wie_nojs.
+
+## План M2b-2b «свои вопросы FAQ у объекта» (planner, 2026-11-20)
+- Модель: товар и номер — `faq`/`faq_i18n` (AddField с db_default, catalog/0046, stays/0049); услуга —
+  `Service.faq`; событие/тур — `details["faq"]`. Модуль `apps/core/object_faq.py` (реестр `KINDS`, `put` —
+  единственный писатель), `faq_content.remap_overlay` вынесен из `put`.
+- Витрина: `faq_ref` `data.source="object"` (нет ключа — общий, байт-в-байт), без data-edit, FAQPage одна на
+  страницу; окно: выбор источника во «Texte» формой `bw-form-faq`, черновик `ofaq`/`ofaq_base` вне
+  `_saved_state`, запись в `_commit_object` под блокировкой, view_perms, `ofaq_conflict`. Формы товара/номера —
+  общий редактор услуги. Коммиты C0 замки → C1 миграции → C2 модуль → C3 витрина → C4 окно → C5 формы → C6 демо+стенд.
+
+## План M3-6 «Seite у ★, Wo zeigen у баннера, закреплённый 🔒» (planner, 2026-11-20)
+- a: псевдо-строка `__page` → вкладка «Seite» общим окном, снимок/«Abbrechen»; SEO страницы во «Texte» через
+  `draft["seo"]` на `is_seo_page_host` (у категории — ссылка), строка наследования вида у category@.
+- b: подписи плиток баннера одной картой мест; часть `places` во «Was» (`_bw_places.html`, op=places, белый
+  список `place_labels`, `draft["show_on"]`, запись под блокировкой при commit) — `apps/core/window_banner.py`.
+- c: «Kaufen» pinned; реестр `apps/core/legal_buttons.py`; часть `pinned` во «Texte» без `<form>`/name (плашка
+  § 312j, подпись кнопки только для чтения), часть `noinput` в «Felder» итога; 🔒 у строки и в h2 окна.
+
+**Решения владельца по стопке 3 M3-4b / M2b-2b / M3-6 (2026-11-20):** подписи форм — по макету M0-2
+(Preisschild · Regal · Kompakt mit Foto · Deal-Zeile, у акции те же); свои FAQ — FAQPage одна на страницу из
+блока source=object, окно раздела «faq» — тот же редактор, правка на хосте объекта, «Allgemeine FAQ», тур
+включён, лимиты 12/1000 и 30/2000, демо — 2 кита; ★ — три строки как есть, слияние в M5; «Breite der Seite»
+на страницу — roadmap; Seitenvorlage и «+ Neuer Banner» не возвращать; «Wo zeigen» через черновик, только при
+одном баннере; «Kaufen» товара — плашка без поля подписи; тексты итога — M2i-3.
+
+**Сделано (2026-11-20, стопка `claude/fb33-stack3`):** три среза параллельно в своих worktree, собраны поверх
+main cherry-pick'ом (конфликт в `SIDE_PARTS` сведён руками); стыки M2b-2b ↔ M3-6 проверены замками
+`test_fb33_stack3_joints.py` (правок кода не понадобилось); снятие якорей `.po`, эталоны окна на верхушке.
+Отложенное — `docs/roadmap-next-sprints.md` §«Отложено» (блок «стопка 3»); дальше — M2i-5c, M3-5c, M3-7, M4, M5,
+M2i-3/4/6.

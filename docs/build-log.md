@@ -24453,3 +24453,56 @@ security/silent-failure): тупик в двусторонних прятках,
 - Стенды на стопке: «Karte» 106 ✓, «Texte» 62 ✓, M3-5b 70 ✓ (+фокус FAQ), M3-3 72 ✓, M3-3d 44 ✓, окно
   блока `fb33_m3_window_stand.py` 131 ✓ (починен шаг «f_out → Esc» — нужен `&tab=wie`, падал и на main;
   шаг «панель без Fertig» ждёт ответ правки). Полный прогон: 18 865 passed, 113 skipped; 3 падения при `-n 4` (`test_admin_dashboard`, `test_migration_state`, `secrets/test_rotation` — тенант без схемы от соседнего воркера) отдельно зелёные.
+
+### 2026-11-20 — FB-33 M3-4b: подписи форм карточки по макету M0-2
+- Реестр `apps/core/card_forms.py`: msgid «Shelf label»→«Shelf», «Compact row»→«Compact with photo»,
+  «Deal tile»→«Deal row»; msgstr de у «Price tag» → «Preisschild». de: Preisschild · Regal · Kompakt mit Foto ·
+  Deal-Zeile (у товара и акции одинаково), переводы en/ru/uk/tr; записи `.po` заменены на месте во всех 5.
+- Экраны (Design/page_settings, design_page, товар и категория, услуга, акция, панель list_blocks, окно
+  block_card) берут подпись из реестра — замок `test_fb33_m3_4b_card_labels.py` (карта ключ→подпись,
+  уникальность на 5 языках, нет старых имён, новые msgid во всех `.po`).
+
+### 2026-11-20 — FB-33 M2b-2b: свои вопросы FAQ у объекта (услуга, товар, номер, событие, тур)
+- Блок «FAQ» (`faq_ref`) на детальной выбирает источник в окне (макет M0-12): «Fragen nur für <объект>» /
+  «Allgemeine FAQ»; новый блок на детальной — свои вопросы (`data.source="object"`).
+- Единственный писатель `apps/core/object_faq.py` (`put`; формы — `save_from_form` под блокировкой и со
+  сверкой отпечатка `faq_base`): формы услуги, товара, номера, события/тура (пары полей общего редактора
+  `tenant/_object_faq_fields.html`) и окно «Seitenaufbau» (черновик `ofaq`/`ofaq_base` вне `_saved_state`,
+  запись в `_commit_object` под блокировкой объекта, своё право, `ofaq_conflict`). Переводы — общим
+  разбором `faq_content.remap_overlay` (вынесен из `put`, общий FAQ байт-в-байт).
+- Витрина: свои вопросы без `data-edit`, FAQPage — одна на страницу и только из блока source=object;
+  пустой — ничего; лимиты по виду 12/200/1000 (услуга, товар, номер) и 30/200/2000 (событие, тур).
+- Миграции `catalog/0046_fb33_product_faq`, `stays/0049_fb33_unit_faq` (AddField с db_default, без
+  RunPython). Демо: bakery (Bauernbrot), hotel (Doppelzimmer Seeblick), `SEEDER_VERSION` 24. Стенд
+  `scripts/fb33_m2b2b_faq_stand.py`.
+
+### 2026-11-20 — FB-33 M3-6: «Seite» окном, «Wo zeigen» у баннера, закреплённые 🔒
+- «Einstellungen der Seite» (`__page`) открывается окном блока на вкладке «Seite» (псевдо-строка
+  `page_window.pseudo_row`, снимок/«Abbrechen» — и для настроек, и для SEO); «Texte» у `__page` — свой
+  заголовок/описание для поисковиков через черновик, только на `is_seo_page_host` (писатель
+  `content_pages.put_page_seo`, им же — `save_page_seo`); у категории — ссылка на форму категории и строка
+  наследования вида товаров «Wie bei allen Kategorie-Seiten … zurücksetzen».
+- Окно баннера: подписи плиток («bis 30.11. · 2 Seiten» …) одной картой мест и «Wo zeigen» через черновик
+  (`apps/core/window_banner.py`, только при одном баннере; IDOR через `place_labels` при правке и записи;
+  select_for_update + сверка базы + трёхстороннее слияние при «Trotzdem speichern»).
+- Закреплённые строки 🔒: «Kaufen»/«Buchung» теперь pinned (цель броска `data-schema-pinned`); правовые
+  строки (`apps/core/legal_buttons.py`) — плашка § 312j (M0-10 дословно у итога корзины и ваучера),
+  подпись кнопки только для чтения (поле без name вне формы; POST на строку — отказ), «Felder» итога —
+  «Hier werden keine Angaben abgefragt». Стенд `scripts/fb33_m3_6_stand.py` (1440/390, de/ru, JS/без JS).
+
+### 2026-11-20 — FB-33: сборка стопки 3 M3-4b → M2b-2b → M3-6
+- Три среза параллельно в своих worktree от main + якоря `.po` + таблица `aufbau_draft.SIDE_PARTS`
+  (части черновика вне `_saved_state` — строка на срез), собраны cherry-pick'ом в `claude/fb33-stack3`;
+  один тривиальный конфликт в `SIDE_PARTS` (строки `ofaq` и `show_on`) сведён руками.
+- Стыки (замки `test_fb33_stack3_joints.py`): черновик детальной со своими вопросами и местами баннера —
+  «Speichern» пишет обе части, «Abbrechen» окна откатывает только своё; текстовая страница — общие
+  вопросы + SEO + места вместе; одна применяющая часть на вкладку (FAQ и SEO — разные строки); строка
+  своих вопросов без 🔒. Правок кода стык не потребовал.
+- Якоря сняты (дублей нет), `app.css` без изменений, эталоны окна пересняты на верхушке: `page_nojs` 19
+  случаев, `panel.json` 5, `wie_nojs/home_l1_tab-wie` — ровно объединённый ожидаемый список срезов;
+  эталоны срезов — без изменений.
+- Полный прогон по частям (`-n 4`): `apps/core` 7436 passed; `apps/tenants` 3181 passed, 112 skipped;
+  остальное 8457 passed, 3 skipped + 2 падения `aggregator/test_unified_search` («heute»/«Offen»: прогон
+  пришёлся на полночь по Берлину) — отдельно 75 passed, стопка aggregator не трогает. Стенды на стопке:
+  M3-6 66 ✓, M2b-2b 32 ✓, «Karte» 106 ✓, окно блока `fb33_m3_window_stand.py` 131 ✓ (стенд-БД
+  мигрированы миграциями стопки).
