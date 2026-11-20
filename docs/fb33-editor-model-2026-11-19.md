@@ -464,3 +464,52 @@ M3-4 Karte → M3-5a Texte → M3-5b FAQ-вопросы и плашки Schnellz
 **ECC-прогоны:** a11y-architect (M3-2/3/5), e2e-runner 1440/390 (M3-2…M3-9), tdd-guide и
 django-reviewer — каждый срез, silent-failure-hunter (M3-1b, M2b-2b), database-reviewer (миграции
 FAQ товара и номера), code-reviewer перед FF, doc-updater в конце.
+
+## План M3-2 «модальное окно блока» (planner + architect, 2026-11-20)
+**Модель.** Сервер и разметка без JS не меняются ни на байт. `<dialog class="ui-bwin" aria-modal="true"
+aria-labelledby="schema-panel-title">` создаёт `aufbau.js` в `<body>` и ПЕРЕНОСИТ туда существующий
+`<aside id="schema-panel" data-schema-panel>` (id/data-атрибут — на внутренней обёртке, подмена `swap()`
+окна не закрывает); на старом месте сетки — узел-закладка, закрытие возвращает aside перед ней. Окно
+открывается после загрузки, только если в панели есть `button[value=window_done]` (выбран блок с окном,
+включая подтверждение удаления). Код: `openWindow(panel)` / `closeWindow()` — M4 (⚙ Студии) встанет без
+переписывания. Новых msgid нет (тексты из DOM: sr-only «Einstellungen des Blocks schließen», `data-done`,
+`data-schema-error`).
+- **Закрытие:** `cancel` (Esc) и × → один `done()`: снять фокус с поля (`blur`, чтобы ушёл `change`), сразу
+  отправить отложенный переключатель (`radioTimer` 350 мс) и список, ждать правку в пути (`afterPending`,
+  `WAIT` 12 с, `data-wait-error`), затем `requestSubmit` кнопки `window_done` из `[data-window-actions]`; в
+  подтверждении удаления — переход по его «Abbrechen». Защита от двойного вызова. `close` не от нас
+  (CloseWatcher Chrome, «назад» Android) → снова `showModal()` и `done()`. Открыт `details[data-schema-more]`
+  — Esc закрывает только его.
+- **Фокус:** `showModal()` → h2 (`tabindex=-1`) или вкладка из `#schema-tab-x`; старая ветка hash-фокуса при
+  открытом окне пропускается. Возврат после перезагрузки — `sessionStorage` `{seite, ref, ts}` (≤30 с,
+  стирается при чтении) → `[data-schema-block=ref]`, нет строки — `#schema-title`.
+- **Сообщения:** при открытом окне `aufbauError`, путь `refused` и «Übernommen.» пишут в `role=alert`/
+  `role=status` внутри окна (фон под `inert`).
+- **Шторка:** `sfDrawer.close` только при открытой шторке; при `?drawer=` окно не открывать (или после
+  `sf:drawer-closed`).
+- **Вкладки APG (только JS):** ul→tablist (aria-label из nav), li→presentation, a→tab (`id=schema-tabbtn-<key>`,
+  aria-selected, aria-controls, roving tabindex), section→tabpanel (aria-labelledby, tabindex 0);
+  ←/→/Home/End с автоактивацией; клик — `hidden` + `history.replaceState` с `tab=` (сохраняя welche/wopen/
+  ansicht); скрытое `tab` во всех формах панели; заново после каждой подмены.
+- **CSS `.ui-bwin`:** 760 px по центру, `max-height:calc(100dvh-4rem)`, прокрутка внутри; <768 — 100dvw×100dvh,
+  safe-area, без скругления; `.ui-bwin [data-schema-panel]` сбрасывает лист (position, inset, z, max-h,
+  overflow, pb, rounded, shadow); блок прокрутки `html:has(dialog.ui-bwin[open])` + класс `html.ui-bwin-lock`
+  (Firefox <121), `scrollbar-gutter:stable`; анимация только при `prefers-reduced-motion: no-preference`, без
+  `transform` в конечном кадре; × и цели 44 px. В JS только классы `ui-*` (safelist), пересборка app.css.
+- **Замки до кода:** golden-рендер `site_schema` без JS байт-в-байт (CASES M3-0 + без блока, `page_row.active`,
+  `tab=texte`, `ansicht=telefon`, `entfernen=1`, `welche=`, `?drawer=`; нормализация csrf/wopen/wopen_link),
+  `<dialog` в серверном рендере столько же, `aside#schema-panel` один и в `[data-site-schema]`; роли tab только
+  из JS. Стенд `fb33_m3_window_stand.py` (Chromium; Firefox/Safari — ручная проверка): открытие, aria,
+  фокус, inert, геометрия 1440/390, 44 px, без прокрутки body, вкладки клавишами + F5, набрал→Esc→текст в
+  черновике, переключатель→Esc <350 мс, двойной Esc, офлайн→Fertig (окно остаётся, alert внутри), Esc при
+  «⋯», Esc в удалении, фокус на строку после закрытия, без JS — прежний вид.
+- **Коммиты:** C1 замки + стенд → C2 стили + app.css → C3 окно (открытие/закрытие/фокус/сообщения) → C4
+  вкладки APG → C5 стенд, pitfalls, build-log/task-catalog.
+- **ECC:** a11y-architect (план — сделан architect'ом по чек-листу; живой стенд после C4), tdd-guide (C1),
+  silent-failure-hunter (aufbau.js после C3–C4), e2e стенд 1440/390, django-reviewer + code-reviewer перед FF,
+  doc-updater в конце.
+**Решения владельца по M3-2 (2026-11-20):** 1) Esc и × = «Fertig» (POST `window_done`, откат — только
+кнопкой «Abbrechen»). 2) «Einstellungen der Seite» в M3-2 остаются колонкой, окном — в M3-6 вместе с
+вкладкой «Seite». 3) Без JS потеря набранного при переходе по вкладке-ссылке принята, решается в M3-5a
+(запись в roadmap). Также (planner + architect): на 390 × не дублирует верхнюю «Fertig» (× — с md);
+открытие окна без перезагрузки — не в M3-2 (`openWindow`/`closeWindow` готовы для M4).
