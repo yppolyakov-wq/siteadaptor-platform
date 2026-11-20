@@ -30,9 +30,6 @@ CFG = {
     ],
 }
 
-#: C1: плашка «своя форма у N карточек» и журнал выборки — коммитом C2
-_C2 = pytest.mark.xfail(reason="FB-33 M3-4 C2: плашка своих форм", strict=True)
-
 CARD_SOURCES = [s for s, spec in siteconfig.LIST_SOURCES.items() if spec["card"]]
 
 
@@ -336,7 +333,6 @@ def test_own_forms_cost_no_extra_queries():
     assert counts[0] == counts[1] == counts[2], counts
 
 
-@_C2
 def test_own_forms_note_lists_the_cards_with_edit_links():
     b = _browser()
     cat = _products(n_own=3)
@@ -349,7 +345,6 @@ def test_own_forms_note_lists_the_cards_with_edit_links():
     assert str(cat.pk) not in note
 
 
-@_C2
 def test_own_form_from_the_category_links_to_the_category():
     b = _browser()
     cat = _products(via_category=True, total=1)
@@ -365,7 +360,6 @@ def test_no_note_without_own_forms():
     assert "data-schema-card-own" not in _tab(_get(b, "?seite=home&block=l1&tab=karte"))
 
 
-@_C2
 @pytest.mark.parametrize(
     "lang, n, want",
     [
@@ -384,14 +378,12 @@ def test_own_forms_text_has_the_plural_forms_of_the_language(lang, n, want):
         assert block_card._own_text("products", n).startswith(want)
 
 
-@_C2
 def test_own_forms_text_is_named_by_the_source():
     with translation.override("de"):
         assert block_card._own_text("promotions", 2).startswith("2 Aktionen haben")
         assert block_card._own_text("services", 1).startswith("1 Leistung hat")
 
 
-@_C2
 def test_promotion_own_form_reads_the_raw_field_only():
     class Promo:
         card_style = "coupon"
@@ -406,7 +398,6 @@ def test_promotion_own_form_reads_the_raw_field_only():
     assert list_panel.own_forms("promotions", [Promo()]) == []
 
 
-@_C2
 def test_failed_selection_is_logged_not_swallowed(monkeypatch, caplog):
     from apps.core import list_blocks
 

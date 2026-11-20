@@ -15,6 +15,7 @@
 from __future__ import annotations
 
 from django.utils.translation import gettext as _
+from django.utils.translation import ngettext
 
 from apps.core import card_forms
 
@@ -41,6 +42,29 @@ def _not_offered(shape: str, examples: list[str], view: str) -> str:
             "Kacheln (%(examples)s …) passen nicht zu „%(view)s“ und werden hier nicht angeboten."
         )
     return text % {"examples": sample, "view": view}
+
+
+def _own_text(source: str, n: int) -> str:
+    """«N … haben eine eigene Kartenform» — по источнику (ru/uk — три формы)."""
+    if source == "promotions":
+        text = ngettext(
+            "%(n)s Aktion hat eine eigene Kartenform — sie gilt dort statt dieser",
+            "%(n)s Aktionen haben eine eigene Kartenform — sie gilt dort statt dieser",
+            n,
+        )
+    elif source == "services":
+        text = ngettext(
+            "%(n)s Leistung hat eine eigene Kartenform — sie gilt dort statt dieser",
+            "%(n)s Leistungen haben eine eigene Kartenform — sie gilt dort statt dieser",
+            n,
+        )
+    else:
+        text = ngettext(
+            "%(n)s Produkt hat eine eigene Kartenform — sie gilt dort statt dieser",
+            "%(n)s Produkte haben eine eigene Kartenform — sie gilt dort statt dieser",
+            n,
+        )
+    return text % {"n": n}
 
 
 def _take_card_field(selected: dict) -> dict | None:
@@ -142,6 +166,8 @@ def pick(config: dict, selected: dict, field: dict, data: dict, source: str, sty
         for s in missing
     ]
     own_label = next((t["label"] for g in groups for t in g["tiles"] if t["checked"]), "")
+    result = selected.get("result") or {}
+    mine = list(result.get("own") or ())
     return {
         "groups": groups,
         "value": value,
@@ -151,6 +177,9 @@ def pick(config: dict, selected: dict, field: dict, data: dict, source: str, sty
         "own_label": own_label if value else "",
         "reset": CARD_RESET_FIELDS,
         "not_offered": not_offered,
+        "own_forms": {"n": len(mine), "text": _own_text(source, len(mine)), "items": mine}
+        if mine
+        else None,
     }
 
 

@@ -1,4 +1,4 @@
-{% load i18n %}{% comment %}FB-33 M3-4 (макет M0-2): вкладка «Karte» — форма карточки списка, только подходящие виду (block_card.decorate). Плитки и строки — две группы одного поля f_card (одна форма, запись — патч: «Wie anordnen» карточку не присылает). Строка наследования говорит, что действует при пустом значении, и ведёт туда, где это меняется; «zurücksetzen» — своей формой после формы вкладки (кнопка без value=update, грабля M3-3).{% endcomment %}
+{% load i18n %}{% comment %}FB-33 M3-4 (макет M0-2): вкладка «Karte» — форма карточки списка, только подходящие виду (block_card.decorate). Плитки и строки — две группы одного поля f_card (одна форма, запись — патч: «Wie anordnen» карточку не присылает). Строка наследования говорит, что действует при пустом значении, и ведёт туда, где это меняется; «zurücksetzen» — своей формой после формы вкладки (кнопка без value=update, грабля M3-3). Плашка — карточки блока со своей формой, она на сайте главнее.{% endcomment %}
 {% with cp=selected.card_pick %}
 <form method="post" id="bw-form-card_pick" class="mt-4 space-y-4" data-schema-list data-schema-karte>
   {% csrf_token %}
@@ -28,4 +28,14 @@
   </div>
 </div>
 {% endwith %}
+{% if cp.own_forms %}
+<div role="note" class="mt-2 rounded-lg bg-amber-50 px-2 py-1.5 text-xs text-amber-900" data-schema-card-own>
+  <details>
+    <summary class="flex flex-wrap items-center gap-x-1 min-h-[44px] cursor-pointer rounded focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"><span>{{ cp.own_forms.text }}</span><span aria-hidden="true">·</span><span class="font-semibold underline underline-offset-2">{% trans "anzeigen" %}</span></summary>
+    <ul class="mt-1 space-y-1" data-schema-card-own-list>
+      {% for o in cp.own_forms.items %}<li>{% if o.url %}<a href="{{ o.url }}" class="inline-flex items-center min-h-[44px] font-semibold text-indigo-800 underline underline-offset-2">{{ o.label }}</a>{% else %}{{ o.label }}{% endif %}{% if o.category %} — {% blocktrans with name=o.category %}Kartenform der Kategorie „{{ name }}“{% endblocktrans %}{% endif %}</li>{% endfor %}
+    </ul>
+  </details>
+</div>
+{% endif %}
 {% endwith %}

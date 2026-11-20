@@ -13,9 +13,13 @@
 
 from __future__ import annotations
 
+import logging
+
 from django.utils.translation import gettext as _
 
 from apps.core import card_forms
+
+logger = logging.getLogger(__name__)
 
 #: Поля, которые панель вправе менять у блока «Liste» (остальное — `speed`, охват
 #: вида — остаётся как было: запись — патч).
@@ -498,16 +502,63 @@ def groups(request, cfg: dict, data: dict, mode: str = "") -> list[dict]:
     ]
 
 
+#: FB-33 M3-4: где правится своя форма карточки объекта (вкладка «Karte», «anzeigen»)
+OWN_FORM_SCREENS = {
+    "products": "catalog:product-edit",
+    "services": "booking:service-edit",
+    "promotions": "promotions:promotion-edit",
+}
+
+
+def own_forms(source: str, items) -> list[dict]:
+    """FB-33 M3-4 (M0-2): карточки блока, у которых своя форма — она на сайте побеждает
+    форму блока. Из той же выборки, без запросов (у товара категория уже подтянута):
+    [{label, url, category}] — `category` — имя категории, если форма от неё."""
+    from django.urls import NoReverseMatch, reverse
+
+    from apps.tenants import siteconfig
+
+    kind = (siteconfig.LIST_SOURCES.get(source) or {}).get("card")
+    screen = OWN_FORM_SCREENS.get(source)
+    if not kind or not screen:
+        return []
+    out = []
+    for obj in items:
+        if not card_forms.own_form(obj, kind, via_category=False):
+            via = source == "products" and card_forms.own_form(obj, kind, via_category=True)
+            if not via:
+                continue
+            cat = obj.category
+            name, args = str(cat), [cat.pk]
+            url_name = "catalog:category-edit"
+        else:
+            name, args, url_name = "", [obj.pk], screen
+        try:
+            url = reverse(url_name, args=args)
+        except NoReverseMatch:
+            url = ""
+        out.append({"label": str(obj), "url": url, "category": name})
+    return out
+
+
 def result(request, cfg: dict, data: dict) -> dict | None:
-    """Что блок покажет СЕЙЧАС: {"shown", "total"}. Пустой блок на сайте не выводится
-    вовсе — без этой строки владелец сохранил бы его и не нашёл на странице.
-    Fail-safe: ошибка выборки = «не знаем» (None), строка в панели не рисуется."""
+    """Что блок покажет СЕЙЧАС: {"shown", "total", "own"}. Пустой блок на сайте не
+    выводится вовсе — без этой строки владелец сохранил бы его и не нашёл на странице.
+    `own` — карточки со своей формой (FB-33 M3-4, плашка вкладки «Karte»).
+    Fail-safe: ошибка выборки = «не знаем» (None), строка в панели не рисуется — но
+    в журнал (молча пропавшая строка иначе выглядела бы «всё в порядке»)."""
     from apps.core import list_blocks
 
+    data = data if isinstance(data, dict) else {}
     try:
-        res = list_blocks.resolve_for(request, cfg, data if isinstance(data, dict) else {})
-        return {"shown": len(res["items"]), "total": int(res["total"])}
-    except Exception:  # noqa: BLE001
+        res = list_blocks.resolve_for(request, cfg, data)
+        return {
+            "shown": len(res["items"]),
+            "total": int(res["total"]),
+            "own": own_forms(res["source"], res["items"]),
+        }
+    except Exception:  # noqa: BLE001 — панель не падает из-за выборки
+        logger.warning("list panel: block selection failed", exc_info=True)
         return None
 
 
