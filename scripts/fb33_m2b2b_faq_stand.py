@@ -102,8 +102,9 @@ with tenant_context(tenant):
     from apps.events.models import Event
     from apps.stays.models import StayUnit
     s = Service.objects.get(name="Balayage")
+    from apps.events.models import Tour
     print("URLS", s.pk, s.pk.hex, Product.objects.get().pk, StayUnit.objects.get().pk,
-          Event.objects.get(title="Haarpflege-Abend").pk)
+          Event.objects.get(title="Haarpflege-Abend").pk, Tour.objects.get().pk)
 """
 
 FAQ_OF = f"""
@@ -129,7 +130,7 @@ def run(out: str, port: str) -> int:
 
     os.makedirs(out, exist_ok=True)
     line = next(x for x in shell(URLS_CODE).splitlines() if x.startswith("URLS"))
-    _tag, spk, shex, ppk, upk, epk = line.split()
+    _tag, spk, shex, ppk, upk, epk, tour_pk = line.split()
     pages = {
         "service": f"/leistung/{spk}/",
         "product": f"/sortiment/{ppk}/",
@@ -217,6 +218,22 @@ def run(out: str, port: str) -> int:
                 and 'name="faq_0_q"' not in html,
             )
             if w == 1440:
+                # ревью: формы объектов — пары полей общего редактора с отпечатком (без JS)
+                for name, path in (
+                    ("form-event", f"/dashboard/events/{epk}/edit/"),
+                    ("form-tour", "/dashboard/events/touren/" + tour_pk + "/"),
+                    ("form-product", f"/catalog/products/{ppk}/edit/"),
+                    ("form-stay", f"/dashboard/stays/units/{upk}/"),
+                    ("form-service", f"/dashboard/booking/leistungen/{spk}/"),
+                ):
+                    pg.goto(host + path, wait_until="load")
+                    html = pg.content()
+                    pg.screenshot(path=f"{out}/{name}.png", full_page=True)
+                    check(
+                        name,
+                        'name="faq_q_0"' in html and 'name="faq_base"' in html
+                        and 'name="faq_text"' not in html,
+                    )  # fmt: skip
                 # правка → «Speichern»: второй вопрос наверх, на сайте — у услуги
                 pg.goto(f"{host}/dashboard/site/aufbau/?seite={code}&block=own-balayage&tab=texte")
                 pg.locator('#bw-form-faq button[name="faq_move"][value="0:down"]').click()
