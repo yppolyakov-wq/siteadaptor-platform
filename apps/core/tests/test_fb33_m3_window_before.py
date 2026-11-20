@@ -108,7 +108,14 @@ def _panel(html: str) -> str:
 def _old_panel(panel: str) -> str:
     """Панель без кнопок окна (FB-33 M3-1b «Fertig/Abbrechen» — новая форма; замок M3-0
     держит прежние формы)."""
-    return re.sub(r"<form[^>]*data-window-actions.*?</form>", "", panel, flags=re.S)
+    panel = re.sub(r"<form[^>]*data-window-actions.*?</form>", "", panel, flags=re.S)
+    # мобильная «Fertig» окна — теперь та же форма «window_done» (ревью 2 M3-1b)
+    return re.sub(
+        r'<form method="post" class="md:hidden[^"]*">(?:(?!</form>).)*?data-schema-done.*?</form>',
+        "",
+        panel,
+        flags=re.S,
+    )
 
 
 def _forms(panel: str) -> list[str]:

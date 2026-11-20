@@ -137,15 +137,18 @@ def _schema_back(request):
     место показа добавить новый баннер ((seite, ref) или None)."""
     seite = (request.POST.get("schema_seite") or "").strip()[:120]
     ref = (request.POST.get("schema_ref") or "").strip()[:120]
-    return (seite, ref) if seite and ref else None
+    from apps.core import aufbau_draft
+
+    # FB-33 M3-1b: тот же токен открытия окна — «Abbrechen» помнит момент открытия
+    wopen = aufbau_draft.clean_token(request.POST.get("schema_wopen") or request.POST.get("wopen"))
+    return (seite, ref, wopen) if seite and ref else None
 
 
-def _back_to_schema(seite: str, ref: str):
+def _back_to_schema(seite: str, ref: str, wopen: str = ""):
     from urllib.parse import urlencode
 
-    return redirect(
-        f"{reverse('site-schema')}?{urlencode({'seite': seite, 'block': ref})}#schema-panel"
-    )
+    query = {"seite": seite, "block": ref, **({"wopen": wopen} if wopen else {})}
+    return redirect(f"{reverse('site-schema')}?{urlencode(query)}#schema-panel")
 
 
 def _save(request, banner):

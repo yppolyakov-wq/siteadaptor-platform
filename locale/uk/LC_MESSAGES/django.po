@@ -39300,3 +39300,7 @@ msgstr "Сторінку тим часом збережено в іншому м
 #. FB-33 M3-1b: окно блока
 msgid "Die letzte Änderung ist noch unterwegs. Bitte noch einmal versuchen."
 msgstr "Остання зміна ще надсилається. Спробуйте ще раз."
+
+#. FB-33 M3-1b: сбой правки в «Seitenaufbau»
+msgid "Die Änderung wurde nicht gespeichert. Bitte die Seite neu laden und noch einmal versuchen."
+msgstr "Зміну не збережено. Оновіть сторінку та спробуйте ще раз."

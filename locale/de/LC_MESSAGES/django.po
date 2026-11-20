@@ -39059,3 +39059,7 @@ msgstr "Die Seite wurde inzwischen an anderer Stelle gespeichert – Abbrechen i
 #. FB-33 M3-1b: окно блока
 msgid "Die letzte Änderung ist noch unterwegs. Bitte noch einmal versuchen."
 msgstr "Die letzte Änderung ist noch unterwegs. Bitte noch einmal versuchen."
+
+#. FB-33 M3-1b: сбой правки в «Seitenaufbau»
+msgid "Die Änderung wurde nicht gespeichert. Bitte die Seite neu laden und noch einmal versuchen."
+msgstr "Die Änderung wurde nicht gespeichert. Bitte die Seite neu laden und noch einmal versuchen."

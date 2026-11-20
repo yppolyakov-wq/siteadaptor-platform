@@ -169,6 +169,7 @@ def _put(request, code: str, draft: dict | None) -> None:
         request.session[SESSION_KEY] = drafts
     else:
         request.session.pop(SESSION_KEY, None)
+    request.session.modified = True  # вложенный словарь: сессия видит правку явно
 
 
 def dirty_codes(request) -> list[str]:
@@ -384,36 +385,39 @@ def _record_codes(draft: dict, proto: dict, codes) -> None:
                 proto.setdefault("settings", {})[c] = copy.deepcopy(pending[c])
 
 
-def _snapshot(tenant, code, host, draft, ref, token="", codes=()) -> None:
-    """Прообраз блока `ref` — на первой правке после открытия окна. Другое открытие
-    (другой токен `wopen`) — снимок заново, с текущего состояния."""
+def _snapshot(tenant, code, host, draft, ref, token="", codes=(), source=None) -> None:
+    """Прообраз блока `ref` в `draft` — на первой правке после открытия окна. Без токена
+    открытия (`wopen`: правка не из окна — список «Blöcke», меню строки) снимка нет; другое
+    открытие (другой токен) — снимок заново. `source` — состояние ДО правки: снимок
+    записывают после успешной операции (ревью 2)."""
     from apps.core import confirmation_page
 
-    window = dict(draft.get(WINDOW_KEY) or {}) if isinstance(draft.get(WINDOW_KEY), dict) else {}
-    if not ref or ref == site_schema.PAGE_REF:
+    if not token or not ref or ref == site_schema.PAGE_REF:
         return
+    source = draft if source is None else source
+    window = dict(draft.get(WINDOW_KEY) or {}) if isinstance(draft.get(WINDOW_KEY), dict) else {}
     old = window.get(ref)
-    if isinstance(old, dict) and (not token or old.get("wopen") == token):
-        _record_codes(draft, old, codes)
+    if isinstance(old, dict) and old.get("wopen") == token:
+        _record_codes(source, old, codes)
         draft[WINDOW_KEY] = window
         return
-    items = draft.get("items") or []
+    items = source.get("items") or []
     at = next((i for i, it in enumerate(items) if _ident(it) == ref), None)
     proto = {
         "item": copy.deepcopy(items[at]) if at is not None else None,
         "at": at,
         # место — по соседу сверху (индекс сдвигается, когда в другой вкладке правят выше)
         "after": _ident(items[at - 1]) if at else None,
-        "base": draft.get("base"),
+        "base": source.get("base"),
         "wopen": token,
     }
     if ref == site_schema.TITLE_REF:
-        proto["title"] = ["title" in draft, copy.deepcopy(draft.get("title"))]
+        proto["title"] = ["title" in source, copy.deepcopy(source.get("title"))]
     if host == confirmation_page.HOST and ref == site_schema.NEXT_REF:
-        proto["next"] = ["next" in draft, draft.get("next")]
-    _record_codes(draft, proto, [*_window_setting_codes(tenant, code, ref), *codes])
+        proto["next"] = ["next" in source, source.get("next")]
+    _record_codes(source, proto, [*_window_setting_codes(tenant, code, ref), *codes])
     window.pop(ref, None)
-    idents = {_ident(it) for it in items}
+    idents = {_ident(it) for it in draft.get("items") or []}
     # снимки блоков, которых больше нет, места не занимают
     window = {
         r: p
@@ -478,19 +482,21 @@ def _revert(draft: dict, ref: str, proto: dict) -> None:
 
 
 def _check_normalized(config: dict, draft: dict, home: bool, host: str) -> None:
-    """После отката черновик проходит ту же нормализацию, что и витрина (ревью M3-1b):
-    расхождение — в лог, черновик не правится молча."""
+    """После отката черновик проходит ту же нормализацию, что и витрина (ревью M3-1b): строки
+    после нормализации нормализуются в то же самое (идемпотентно) — иначе в лог; черновик
+    молча не правится."""
     from apps.tenants import siteconfig
 
-    if not home:
-        return  # у страниц разделов строки черновика — в форме «Seitenaufbau», не витрины
     try:
-        shown = siteconfig.normalize(overlay(config, draft))
+        once = site_schema.load_items(siteconfig.normalize(overlay(config, draft)), home, host)
+        again = site_schema.load_items(
+            siteconfig.normalize(overlay(config, {**draft, "items": once})), home, host
+        )
     except Exception:  # noqa: BLE001
         logger.warning("aufbau window: draft after revert does not normalize", exc_info=True)
         return
-    if site_schema.load_items(shown, home, host) != draft.get("items"):
-        logger.warning("aufbau window: draft after revert differs after normalize")
+    if once != again:
+        logger.warning("aufbau window: draft after revert differs after normalize (%s)", host)
 
 
 def _working_draft(request, code: str, saved: dict, home: bool, host: str) -> tuple[dict, bool]:
@@ -522,7 +528,7 @@ def cancel(request, tenant, code: str, ref: str, token: str = "") -> str:
     if not isinstance(proto, dict):
         return CANCEL_NOTHING
     token = clean_token(token)
-    if token and proto.get("wopen") and proto["wopen"] != token:
+    if not token or proto.get("wopen") != token:
         # снимок прежнего открытия: в этом окне правок не было — откатывать нечего
         _drop_snapshot(draft, ref)
         _settle(request, code, draft, saved, ref)
@@ -560,10 +566,10 @@ def op(
             return ref
         _drop_snapshot(draft, ref)
         return _settle(request, code, draft, saved, ref)
-    if op_name not in _NO_SNAPSHOT_OPS:
-        _snapshot(tenant, code, host, draft, ref, clean_token(token))
-    if op_name == "delete":
-        _drop_snapshot(draft, ref)  # блока больше нет — и снимка его
+    token = clean_token(token)
+    window_ref = ref
+    # снимок — ПОСЛЕ успешной правки, с состояния до неё (отказ SchemaError его не пишет)
+    before = copy.deepcopy(draft) if token and op_name not in _NO_SNAPSHOT_OPS else None
     if (
         op_name in ("add", "add_row", "adopt")
         and host.startswith(siteconfig.CATEGORY_HOST_PREFIX)
@@ -580,6 +586,7 @@ def op(
     elif op_name in ("adopt", "reset"):
         # FB-27 R7: своя схема категории — взять блоки каталога или вернуться к ним.
         draft["items"] = site_schema.category_items(config, host, draft["items"], op_name)
+        draft.pop(WINDOW_KEY, None)  # строки заменены целиком — их снимки больше не годятся
         ref = ""
     elif ref == site_schema.TITLE_REF:
         # FB-33 M2d: «Seitentitel» — не строка `page_blocks`: тексты и вид — в черновике
@@ -598,6 +605,10 @@ def op(
             fields,
             config.get("block_templates"),
         )
+    if op_name == "delete":
+        _drop_snapshot(draft, window_ref)  # блока больше нет — и снимка его
+    elif before is not None:
+        _snapshot(tenant, code, host, draft, window_ref, token, source=before)
     return _settle(request, code, draft, saved, ref)
 
 
@@ -656,9 +667,7 @@ def setting_op(
             if other != setting
             and page_settings.type_active(tenant, page_settings.APPLY_ALL_TYPES[other])
         ]
-    # FB-33 M3-1b: снимок окна ★/носителя — со всеми настройками, которые правка заденет
-    # (и «на все списки»)
-    _snapshot(tenant, code, host, draft, ref, clean_token(token), targets)
+    before = copy.deepcopy(draft)
     pending = dict(_settings(draft))
     gate = page_settings.composition_gate(config)
     skipped = []
@@ -687,6 +696,9 @@ def setting_op(
     else:
         for key in ("settings", "kbase", "kcodes"):
             draft.pop(key, None)
+    # FB-33 M3-1b: снимок окна ★/носителя — со всеми настройками, которые правка задела
+    # (и «на все списки»), с состояния до неё; отказ PageSettingError его не пишет
+    _snapshot(tenant, code, host, draft, ref, clean_token(token), targets, source=before)
     _settle(request, code, draft, saved)
     return skipped
 

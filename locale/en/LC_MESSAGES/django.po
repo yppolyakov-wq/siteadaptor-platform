@@ -38972,3 +38972,7 @@ msgstr "The page has meanwhile been saved elsewhere – cancelling is no longer 
 #. FB-33 M3-1b: окно блока
 msgid "Die letzte Änderung ist noch unterwegs. Bitte noch einmal versuchen."
 msgstr "The last change is still on its way. Please try again."
+
+#. FB-33 M3-1b: сбой правки в «Seitenaufbau»
+msgid "Die Änderung wurde nicht gespeichert. Bitte die Seite neu laden und noch einmal versuchen."
+msgstr "The change was not saved. Please reload the page and try again."

@@ -1,3 +1,33 @@
+/* FB-33 M3-1b (ревью 2): сбой правки виден всегда — сообщение в блоке сообщений экрана,
+   без него — в панели блока, без неё — обычным окном браузера; молчаливой перезагрузки нет.
+   Отключённая (подменённая) форма уходит своей копией обычной отправкой — с теми же полями
+   (ref нажатого блока, токен открытия окна). */
+function aufbauError(text) {
+  var box = document.querySelector("[data-schema-messages]");
+  text = text || (box && box.getAttribute("data-schema-error")) || "";
+  if (!text) return;
+  var host = box || document.querySelector("[data-schema-panel]");
+  if (!host) { window.alert(text); return; }
+  var p = document.createElement("p");
+  p.setAttribute("role", "alert");
+  p.className = "rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800";
+  p.textContent = text;
+  host.appendChild(p);
+  host.scrollIntoView({ block: "start" });
+}
+
+function aufbauSubmitCopy(form, submitter) {
+  var copy = form.cloneNode(true);
+  copy.hidden = true;
+  if (submitter && submitter.name) {
+    var op = document.createElement("input");
+    op.type = "hidden"; op.name = submitter.name; op.value = submitter.value;
+    copy.appendChild(op);
+  }
+  document.body.appendChild(copy);
+  HTMLFormElement.prototype.submit.call(copy);
+}
+
 /* FB-27 R1: «Seitenaufbau». Экран работает без JS; здесь только фокус.
    Тип страницы меняется кнопкой «Öffnen», не по change: стрелки в списке на Windows
    сразу шлют change, и страница перезагружалась бы при просмотре списка (WCAG 3.2.2). */
@@ -61,7 +91,7 @@
 
   function fallback(form) {
     var btn = form.isConnected && form.querySelector(APPLY);
-    if (!btn) { location.reload(); return; }
+    if (!btn) { aufbauError(); return; }  // ревью 2: не перезагружаем молча
     btn.style.display = "";
     form.requestSubmit(btn);
   }
@@ -195,7 +225,7 @@
     if (form.matches(FORMS) && (!submitter || submitter.value === "update")) return;
     if (form.hasAttribute("data-window-actions")) { afterPending(form, submitter); return; }
     chain.then(function () {
-      if (!form.isConnected) { location.reload(); return; }
+      if (!form.isConnected) { aufbauSubmitCopy(form, submitter); return; }  // ревью 2
       form.requestSubmit(submitter && submitter.isConnected ? submitter : undefined);
     });
   });
@@ -209,29 +239,10 @@
     var late = new Promise(function (resolve) { timer = setTimeout(function () { resolve("late"); }, WAIT); });
     Promise.race([chain.then(function () { return "ok"; }), late]).then(function (how) {
       clearTimeout(timer);
-      if (how === "late") { showError(form.getAttribute("data-wait-error")); return; }
+      if (how === "late") { aufbauError(form.getAttribute("data-wait-error")); return; }
       if (form.isConnected) { form.requestSubmit(submitter && submitter.isConnected ? submitter : undefined); return; }
-      var copy = form.cloneNode(true);
-      copy.hidden = true;
-      if (submitter && submitter.name) {
-        var op = document.createElement("input");
-        op.type = "hidden"; op.name = submitter.name; op.value = submitter.value;
-        copy.appendChild(op);
-      }
-      document.body.appendChild(copy);
-      HTMLFormElement.prototype.submit.call(copy);
+      aufbauSubmitCopy(form, submitter);
     });
-  }
-
-  function showError(text) {
-    var box = document.querySelector("[data-schema-messages]");
-    if (!box || !text) return;
-    var p = document.createElement("p");
-    p.setAttribute("role", "alert");
-    p.className = "rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800";
-    p.textContent = text;
-    box.appendChild(p);
-    box.scrollIntoView({ block: "start" });
   }
 
   hideApply();
@@ -374,7 +385,7 @@
         var live = document.querySelector("[data-schema-live]");
         if (live) { live.textContent = ""; setTimeout(function () { live.textContent = live.getAttribute("data-done") || ""; }, 100); }
       })
-      .catch(function () { location.reload(); })
+      .catch(function () { aufbauError(); })  // ревью 2: перетаскивание не удалось — видно
       .then(function () { document.documentElement.setAttribute("data-schema-busy", "0"); });
   }
   // после правки из панели схема перерисовывается — перевооружаем строки

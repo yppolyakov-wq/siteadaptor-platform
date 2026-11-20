@@ -432,6 +432,8 @@ def site_schema_view(request):
             )
             if selected
             else "",
+            # токен НОВОГО открытия — в ссылках на блоки (F5 остаётся тем же открытием)
+            "wopen_link": aufbau_draft.new_token(),
             # вкладка, которую формы окна помнят после действия: только явно открытая
             "window_tab": block_window.explicit_tab(window, request.GET.get("tab", "")),
             # FB-27 R7: строка категории — своя схема или блоки каталога

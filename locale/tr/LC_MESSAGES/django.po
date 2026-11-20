@@ -39118,3 +39118,7 @@ msgstr "Sayfa bu arada başka bir yerde kaydedildi – iptal artık mümkün de�
 #. FB-33 M3-1b: окно блока
 msgid "Die letzte Änderung ist noch unterwegs. Bitte noch einmal versuchen."
 msgstr "Son değişiklik hâlâ gönderiliyor. Lütfen tekrar deneyin."
+
+#. FB-33 M3-1b: сбой правки в «Seitenaufbau»
+msgid "Die Änderung wurde nicht gespeichert. Bitte die Seite neu laden und noch einmal versuchen."
+msgstr "Değişiklik kaydedilmedi. Lütfen sayfayı yenileyip tekrar deneyin."
