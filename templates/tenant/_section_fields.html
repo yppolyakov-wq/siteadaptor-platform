@@ -47,6 +47,7 @@ trust_marks_text, usp_text, faq_text.{% endcomment %}
    пустой после каждого Save; «＋» добавляет слот на месте, без перезагрузки.{% endcomment %}
 <div class="space-y-2 w-full" data-faq-editor>
   <input type="hidden" name="faq_present" value="1">
+  <input type="hidden" name="faq_base" value="{{ faq_base }}">
   {% for row in faq_rows %}
     <div class="faq-row space-y-1 border border-gray-100 rounded-lg p-2" data-faq-row>
       <input type="text" name="faq_q_{{ row.i }}" value="{{ row.q }}" placeholder="{% trans 'Question' %}"

@@ -22,6 +22,7 @@ from apps.catalog.option_styles import VARIANT_STYLES
 from apps.core import (
     block_catalog,
     compositions,
+    faq_content,
     list_blocks,
     permissions,
     presence,
@@ -3047,7 +3048,16 @@ def home_builder_view(request):
             # нечего, а сравнение русских строк с немецкой базой снесло бы переводы;
             # там элементы сопоставляет `split_translation` (по переводу и по id).
             if not translating:
+                # FB-33 M3-5b: вопросы FAQ пишет один писатель (`faq_content`): переводы —
+                # по номеру поля (индекс источника), если форма несёт отпечаток списка,
+                # с которого открыта; без него (старая форма) — по тексту вопроса
+                faq_in = faq_content.from_form(request.POST.get, save_notes)
+                faq_fp = (request.POST.get("faq_base") or "").strip()
+                if faq_in is None:
+                    faq_in = (_sections["faq"], None)
+                _sections.pop("faq", None)
                 siteconfig.realign_list_overlays(config, _sections)
+                faq_content.put(config, faq_in[0], faq_in[1] if faq_fp else None, faq_fp or None)
             config.update(_sections)
         # STU-12g: акцент (Tenant.primary_color) — поле экрана «Design des Shops».
         update_fields = ["site_config", "updated_at"]
@@ -3716,6 +3726,9 @@ def home_builder_view(request):
                 {"i": i, "q": f.get("q", ""), "a": f.get("a", "")}
                 for i, f in enumerate(list(config["faq"]) + [{}])
             ],
+            # FB-33 M3-5b: отпечаток списка, с которого открыта форма (номера полей — его
+            # индексы; Save из устаревшей вкладки сопоставит переводы по тексту)
+            "faq_base": faq_content.fingerprint(config["faq"]),
             "testimonials_text": siteconfig.testimonials_to_text(config["testimonials"]),
             "process_text": siteconfig.pairs_to_text(config["process"], "title", "text"),
             "team_text": "\n".join(
@@ -4044,7 +4057,13 @@ def site_preview_draft(request):
         cfg["wishlist"] = data["wishlist"]
     # M20d: контент-секции — отражаем в превью, только если присланы (иначе не трём).
     if any(k in data for k in siteconfig.CONTENT_FIELDS):
-        cfg.update(siteconfig.parse_content_sections(data.get))
+        _parsed = siteconfig.parse_content_sections(data.get)
+        if "faq_present" not in data and "faq_text" not in data:
+            # FB-33 M3-5b: вопросов FAQ в присланном нет (пары полей превью не шлёт) —
+            # черновик их не стирает (иначе восстановленный `_draft` открыл бы Студию с
+            # пустым FAQ, и Save стёр бы вопросы)
+            _parsed.pop("faq", None)
+        cfg.update(_parsed)
     # LB-1b: «Den ganzen Typ» — та же функция, что у Save билдера (превью = результат).
     list_blocks.apply_type_scope(cfg)
     # STU-19a: the draft must show cabinet-owned settings as stored (no-op until 19e).
@@ -4220,12 +4239,16 @@ def site_inline_edit(request):
         parts = field.split(".")
         if len(parts) != 3 or parts[2] not in ("q", "a") or not parts[1].isdigit():
             return HttpResponseBadRequest()
-        idx = int(parts[1])
-        if idx >= len(cfg.get("faq") or []):
+        # FB-33 M3-5b: запись — `faq_content.set_text` (правка немецкого снимает перевод
+        # именно этого поля, как у Студии и окна блока); пустой вопрос удалил бы пару
+        locale = (data.get("locale") or "").strip()
+        if not siteconfig.is_translation_locale(request.tenant, locale):
+            locale = ""
+        if not faq_content.set_text(cfg, int(parts[1]), parts[2], value, locale):
             return HttpResponseBadRequest()
-        if parts[2] == "q" and not value:
-            return HttpResponseBadRequest()  # пустой вопрос удалил бы пару в normalize
-        path = ("faq", idx, parts[2])
+        request.tenant.site_config = siteconfig.normalize(cfg)
+        request.tenant.save(update_fields=["site_config", "updated_at"])
+        return HttpResponse(status=204)
     elif field and field.startswith("page_titles."):
         # FB-33 M2d: заголовок и вступление страницы-списка или формы — на превью
         from apps.core import page_title
