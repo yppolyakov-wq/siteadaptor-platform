@@ -39570,14 +39570,6 @@ msgstr "Höchstens %(n)s Fragen."
 msgid "Leer oder unverändert — es gilt die Standardbeschriftung."
 msgstr "Leer oder unverändert — es gilt die Standardbeschriftung."
 
-#. FB-33 стопка: якорь среза M3-4b — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
-msgid "fb33-stack-anchor-M3-4b"
-msgstr "fb33-stack-anchor-M3-4b"
-
-#. FB-33 стопка: якорь среза M2b-2b — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
-msgid "fb33-stack-anchor-M2b-2b"
-msgstr "fb33-stack-anchor-M2b-2b"
-
 #. FB-33 M2b-2b: свои вопросы FAQ объекта
 msgid "Die Fragen wurden inzwischen woanders geändert – Ihre Änderungen an den Fragen wurden nicht gespeichert. Bitte die Seite neu laden und noch einmal eintragen."
 msgstr "Die Fragen wurden inzwischen woanders geändert – Ihre Änderungen an den Fragen wurden nicht gespeichert. Bitte die Seite neu laden und noch einmal eintragen."
@@ -39692,10 +39684,6 @@ msgstr "Jede Veranstaltung zeigt ihre eigenen Fragen."
 #. FB-33 M2b-2b: свои вопросы FAQ объекта
 msgid "Jede Tour zeigt ihre eigenen Fragen."
 msgstr "Jede Tour zeigt ihre eigenen Fragen."
-
-#. FB-33 стопка: якорь среза M3-6 — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
-msgid "fb33-stack-anchor-M3-6"
-msgstr "fb33-stack-anchor-M3-6"
 
 #. FB-33 M3-6
 msgid "Titel und Beschreibung für Suchmaschinen gehören zur Kategorie."
