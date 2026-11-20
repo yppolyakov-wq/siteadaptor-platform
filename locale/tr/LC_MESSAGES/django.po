@@ -39269,3 +39269,19 @@ msgstr "Yalnızca “Seçim” türü için, satır başına bir seçenek."
 #. FB-33 M2i-5: вкладка «Felder»
 msgid "Zu lange Texte oder zu viele Einträge wurden gekürzt."
 msgstr "Çok uzun metinler veya fazla girişler kısaltıldı."
+
+#. FB-33 стопка: якорь среза M2b-2a — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
+msgid "fb33-stack-anchor-M2b-2a"
+msgstr "fb33-stack-anchor-M2b-2a"
+
+#. FB-33 стопка: якорь среза M2i-5b — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
+msgid "fb33-stack-anchor-M2i-5b"
+msgstr "fb33-stack-anchor-M2i-5b"
+
+#. FB-33 стопка: якорь среза M3-3abc — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
+msgid "fb33-stack-anchor-M3-3abc"
+msgstr "fb33-stack-anchor-M3-3abc"
+
+#. FB-33 стопка: якорь среза M3-3d — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
+msgid "fb33-stack-anchor-M3-3d"
+msgstr "fb33-stack-anchor-M3-3d"
