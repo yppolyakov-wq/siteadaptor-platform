@@ -42,7 +42,12 @@ def test_form_draws_every_question_type():
     with translation.override("de"):
         html = anfrage_html(_cfg())
     assert '<select id="id_q1" name="q1"' in html and '<option value="Hochzeit">' in html
-    assert 'name="q2" type="number" step="any" required' in html and "Budget *" in html
+    assert 'name="q2" type="number" step="any" required' in html
+    # ревью a11y M2i-5: «*» скрыт от скринридера, вслух — «(Pflichtfeld)»
+    assert (
+        'Budget<span aria-hidden="true"> *</span><span class="sr-only"> (Pflichtfeld)</span>'
+        in html
+    )
     assert '<input type="checkbox" name="q3" value="1">' in html
     assert 'name="q4" type="date"' in html
     assert '<textarea id="id_q5" name="q5"' in html

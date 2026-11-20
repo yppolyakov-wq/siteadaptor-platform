@@ -13,7 +13,7 @@
   <input type="hidden" name="csrfmiddlewaretoken" value="X">
   <input type="text" name="website" tabindex="-1" autocomplete="off" class="hidden" aria-hidden="true">
   <div>
-    <label class="block text-sm font-medium mb-1" for="id_title">Was brauchen Sie? *</label>
+    <label class="block text-sm font-medium mb-1" for="id_title">Was brauchen Sie?<span aria-hidden="true"> *</span><span class="sr-only"> (Pflichtfeld)</span></label>
     <input id="id_title" name="title" type="text" required value="" placeholder="z. B. zwei Zimmer streichen" class="w-full rounded-lg border border-gray-300 px-3 py-2">
   </div>
   <div>
@@ -45,7 +45,7 @@
   </div>
   <div class="grid sm:grid-cols-3 gap-4">
     <div>
-      <label class="block text-sm font-medium mb-1" for="id_name">Name *</label>
+      <label class="block text-sm font-medium mb-1" for="id_name">Name<span aria-hidden="true"> *</span><span class="sr-only"> (Pflichtfeld)</span></label>
       <input id="id_name" name="name" type="text" required class="w-full rounded-lg border border-gray-300 px-3 py-2">
     </div>
     <div>
@@ -60,7 +60,7 @@
   <div>
     <label class="block text-sm font-medium mb-1" for="id_photos">Fotos (optional, bis zu 5)</label>
     <input id="id_photos" name="photos" type="file" accept="image/*" multiple class="w-full text-sm text-gray-600">
-    <p class="text-xs text-gray-400 mt-1">Ein Foto des Auftrags hilft uns, schneller ein Angebot zu erstellen.</p>
+    <p class="text-xs text-gray-600 mt-1">Ein Foto des Auftrags hilft uns, schneller ein Angebot zu erstellen.</p>
   </div>
   <button type="submit" class="w-full text-white rounded-lg px-4 py-3 font-medium hover:opacity-90" style="background: var(--accent, #4f46e5);">Anfrage senden</button>
 <p class="basis-full sm:col-span-full mt-2 text-xs text-gray-500" data-privacy-note>Wir verwenden Ihre Angaben nur, um Ihr Anliegen zu bearbeiten. Fotos nutzen wir nur für Ihr Angebot. <a href="/datenschutz/" class="underline" target="_top">Datenschutzerklärung</a></p>

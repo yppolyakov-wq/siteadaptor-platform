@@ -7,7 +7,7 @@
   <input type="hidden" name="csrfmiddlewaretoken" value="X">
   <input type="text" name="website" tabindex="-1" autocomplete="off" class="hidden" aria-hidden="true">
   <div>
-    <label class="block text-sm font-medium mb-1" for="id_title">Что вам нужно? *</label>
+    <label class="block text-sm font-medium mb-1" for="id_title">Что вам нужно?<span aria-hidden="true"> *</span><span class="sr-only"> (Обязательное поле)</span></label>
     <input id="id_title" name="title" type="text" required value="" placeholder="например, покрасить две комнаты" class="w-full rounded-lg border border-gray-300 px-3 py-2">
   </div>
   <div>
@@ -39,7 +39,7 @@
   </div>
   <div class="grid sm:grid-cols-3 gap-4">
     <div>
-      <label class="block text-sm font-medium mb-1" for="id_name">Имя *</label>
+      <label class="block text-sm font-medium mb-1" for="id_name">Имя<span aria-hidden="true"> *</span><span class="sr-only"> (Обязательное поле)</span></label>
       <input id="id_name" name="name" type="text" required class="w-full rounded-lg border border-gray-300 px-3 py-2">
     </div>
     <div>
@@ -54,7 +54,7 @@
   <div>
     <label class="block text-sm font-medium mb-1" for="id_photos">Фотографии (необязательно, до 5)</label>
     <input id="id_photos" name="photos" type="file" accept="image/*" multiple class="w-full text-sm text-gray-600">
-    <p class="text-xs text-gray-400 mt-1">Фотография объекта поможет нам быстрее составить смету.</p>
+    <p class="text-xs text-gray-600 mt-1">Фотография объекта поможет нам быстрее составить смету.</p>
   </div>
   <button type="submit" class="w-full text-white rounded-lg px-4 py-3 font-medium hover:opacity-90" style="background: var(--accent, #4f46e5);">Отправить запрос</button>
 <p class="basis-full sm:col-span-full mt-2 text-xs text-gray-500" data-privacy-note>Мы используем ваши данные только для обработки вашего обращения. Фотографии мы используем только для вашего предложения. <a href="/datenschutz/" class="underline" target="_top">Политика конфиденциальности</a></p>

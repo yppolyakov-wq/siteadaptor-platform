@@ -7,11 +7,11 @@ anfrage_cfg (site_config["anfrage"]), jobs_vehicle, has_service_area; POST
   {% csrf_token %}{% portal_attribution_fields %}
   <input type="text" name="website" tabindex="-1" autocomplete="off" class="hidden" aria-hidden="true">
   <div>
-    <label class="block text-sm font-medium mb-1" for="id_title">{% trans "What do you need?" %} *</label>
+    <label class="block text-sm font-medium mb-1" for="id_title">{% trans "What do you need?" %}<span aria-hidden="true"> *</span><span class="sr-only"> ({% trans "Pflichtfeld" %})</span></label>
     <input id="id_title" name="title" type="text" required value="{{ betreff|default:'' }}" placeholder="{% trans 'e.g. paint two rooms' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
   </div>
   {% if ff.description.on %}<div>
-    <label class="block text-sm font-medium mb-1" for="id_desc">{{ ff.description.label }}{% if ff.description.req %} *{% endif %}</label>
+    <label class="block text-sm font-medium mb-1" for="id_desc">{{ ff.description.label }}{% if ff.description.req %}<span aria-hidden="true"> *</span><span class="sr-only"> ({% trans "Pflichtfeld" %})</span>{% endif %}</label>
     <textarea id="id_desc" name="description" rows="3"{% if ff.description.req %} required{% endif %} class="w-full rounded-lg border border-gray-300 px-3 py-2">{{ details|default:'' }}</textarea>
   </div>{% endif %}
   {% if anfrage_cfg.fields or ff.any_event %}
@@ -21,19 +21,19 @@ anfrage_cfg (site_config["anfrage"]), jobs_vehicle, has_service_area; POST
   <div class="grid sm:grid-cols-3 gap-3">
     {% if ff.event_date.on %}
     <div>
-      <label class="block text-sm font-medium mb-1" for="id_event_date">{{ ff.event_date.label }}{% if ff.event_date.req %} *{% endif %}</label>
+      <label class="block text-sm font-medium mb-1" for="id_event_date">{{ ff.event_date.label }}{% if ff.event_date.req %}<span aria-hidden="true"> *</span><span class="sr-only"> ({% trans "Pflichtfeld" %})</span>{% endif %}</label>
       <input id="id_event_date" name="event_date" type="date"{% if ff.event_date.req %} required{% endif %} class="w-full rounded-lg border border-gray-300 px-3 py-2">
     </div>
     {% endif %}
     {% if ff.guest_count.on %}
     <div>
-      <label class="block text-sm font-medium mb-1" for="id_guest_count">{{ ff.guest_count.label }}{% if ff.guest_count.req %} *{% endif %}</label>
+      <label class="block text-sm font-medium mb-1" for="id_guest_count">{{ ff.guest_count.label }}{% if ff.guest_count.req %}<span aria-hidden="true"> *</span><span class="sr-only"> ({% trans "Pflichtfeld" %})</span>{% endif %}</label>
       <input id="id_guest_count" name="guest_count" type="number" min="1" max="100000" inputmode="numeric"{% if ff.guest_count.req %} required{% endif %} class="w-full rounded-lg border border-gray-300 px-3 py-2">
     </div>
     {% endif %}
     {% if ff.event_type.on %}
     <div>
-      <label class="block text-sm font-medium mb-1" for="id_event_type">{{ ff.event_type.label }}{% if ff.event_type.req %} *{% endif %}</label>
+      <label class="block text-sm font-medium mb-1" for="id_event_type">{{ ff.event_type.label }}{% if ff.event_type.req %}<span aria-hidden="true"> *</span><span class="sr-only"> ({% trans "Pflichtfeld" %})</span>{% endif %}</label>
       <select id="id_event_type" name="event_type"{% if ff.event_type.req %} required{% endif %} class="w-full rounded-lg border border-gray-300 px-3 py-2 bg-white">
         <option value="">—</option>
         {% anfrage_event_choices as ev_choices %}{% for value, label in ev_choices %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
@@ -56,7 +56,7 @@ anfrage_cfg (site_config["anfrage"]), jobs_vehicle, has_service_area; POST
   {% endif %}
   <div class="flex gap-3">
     {% if ff.site_address.on %}<div class="flex-1">
-      <label class="block text-sm font-medium mb-1" for="id_addr">{{ ff.site_address.label }}{% if ff.site_address.req %} *{% endif %}</label>
+      <label class="block text-sm font-medium mb-1" for="id_addr">{{ ff.site_address.label }}{% if ff.site_address.req %}<span aria-hidden="true"> *</span><span class="sr-only"> ({% trans "Pflichtfeld" %})</span>{% endif %}</label>
       <input id="id_addr" name="site_address" type="text"{% if ff.site_address.req %} required{% endif %} class="w-full rounded-lg border border-gray-300 px-3 py-2">
     </div>{% endif %}
     {% comment %}A7: PLZ объекта — для Einzugsgebiet-чека (показываем поле, когда зона задана).{% endcomment %}
@@ -102,27 +102,27 @@ anfrage_cfg (site_config["anfrage"]), jobs_vehicle, has_service_area; POST
   </div>
   {% endif %}
   {% for q in ff.custom %}<div>
-    {% if q.type == "bool" %}<label class="flex items-center gap-2 text-sm font-medium"><input type="checkbox" name="{{ q.id }}" value="1"{% if q.req %} required{% endif %}> {{ q.label }}{% if q.req %} *{% endif %}</label>{% else %}<label class="block text-sm font-medium mb-1" for="id_{{ q.id }}">{{ q.label }}{% if q.req %} *{% endif %}</label>
-    {% if q.type == "textarea" %}<textarea id="id_{{ q.id }}" name="{{ q.id }}" rows="3"{% if q.req %} required{% endif %} class="w-full rounded-lg border border-gray-300 px-3 py-2"></textarea>{% elif q.type == "choice" %}<select id="id_{{ q.id }}" name="{{ q.id }}"{% if q.req %} required{% endif %} class="w-full rounded-lg border border-gray-300 px-3 py-2 bg-white"><option value="">—</option>{% for o in q.options %}<option value="{{ o }}">{{ o }}</option>{% endfor %}</select>{% else %}<input id="id_{{ q.id }}" name="{{ q.id }}" type="{% if q.type == 'number' %}number{% elif q.type == 'date' %}date{% else %}text{% endif %}"{% if q.type == 'number' %} step="any"{% endif %}{% if q.req %} required{% endif %} class="w-full rounded-lg border border-gray-300 px-3 py-2">{% endif %}{% endif %}
+    {% if q.type == "bool" %}<label class="flex items-center gap-2 text-sm font-medium"><input type="checkbox" name="{{ q.id }}" value="1"{% if q.req %} required{% endif %}> {{ q.label }}{% if q.req %}<span aria-hidden="true"> *</span><span class="sr-only"> ({% trans "Pflichtfeld" %})</span>{% endif %}</label>{% else %}<label class="block text-sm font-medium mb-1" for="id_{{ q.id }}">{{ q.label }}{% if q.req %}<span aria-hidden="true"> *</span><span class="sr-only"> ({% trans "Pflichtfeld" %})</span>{% endif %}</label>
+    {% if q.type == "textarea" %}<textarea id="id_{{ q.id }}" name="{{ q.id }}" rows="3"{% if q.req %} required{% endif %} class="w-full rounded-lg border border-gray-300 px-3 py-2"></textarea>{% elif q.type == "choice" %}<select id="id_{{ q.id }}" name="{{ q.id }}"{% if q.req %} required{% endif %} class="w-full rounded-lg border border-gray-300 px-3 py-2 bg-white"><option value="">{% trans "Bitte wählen" %}</option>{% for o in q.options %}<option value="{{ o }}">{{ o }}</option>{% endfor %}</select>{% else %}<input id="id_{{ q.id }}" name="{{ q.id }}" type="{% if q.type == 'number' %}number{% elif q.type == 'date' %}date{% else %}text{% endif %}"{% if q.type == 'number' %} step="any"{% endif %}{% if q.req %} required{% endif %} class="w-full rounded-lg border border-gray-300 px-3 py-2">{% endif %}{% endif %}
   </div>
   {% endfor %}<div class="grid sm:grid-cols-3 gap-4">
     <div>
-      <label class="block text-sm font-medium mb-1" for="id_name">{% trans "Name" %} *</label>
+      <label class="block text-sm font-medium mb-1" for="id_name">{% trans "Name" %}<span aria-hidden="true"> *</span><span class="sr-only"> ({% trans "Pflichtfeld" %})</span></label>
       <input id="id_name" name="name" type="text" required class="w-full rounded-lg border border-gray-300 px-3 py-2">
     </div>
     {% if ff.email.on %}<div>
-      <label class="block text-sm font-medium mb-1" for="id_email">{{ ff.email.label }}{% if ff.email.req %} *{% endif %}</label>
+      <label class="block text-sm font-medium mb-1" for="id_email">{{ ff.email.label }}{% if ff.email.req %}<span aria-hidden="true"> *</span><span class="sr-only"> ({% trans "Pflichtfeld" %})</span>{% endif %}</label>
       <input autocomplete="email" id="id_email" name="email" type="email"{% if ff.email.req %} required{% endif %} class="w-full rounded-lg border border-gray-300 px-3 py-2">
     </div>{% endif %}
     {% if ff.phone.on %}<div>
-      <label class="block text-sm font-medium mb-1" for="id_phone">{{ ff.phone.label }}{% if ff.phone.req %} *{% endif %}</label>
+      <label class="block text-sm font-medium mb-1" for="id_phone">{{ ff.phone.label }}{% if ff.phone.req %}<span aria-hidden="true"> *</span><span class="sr-only"> ({% trans "Pflichtfeld" %})</span>{% endif %}</label>
       <input autocomplete="tel" id="id_phone" name="phone" type="tel"{% if ff.phone.req %} required{% endif %} class="w-full rounded-lg border border-gray-300 px-3 py-2">
     </div>{% endif %}
   </div>
   {% if ff.photos.on %}<div>
-    <label class="block text-sm font-medium mb-1" for="id_photos">{{ ff.photos.label }}{% if ff.photos.req %} *{% endif %}</label>
+    <label class="block text-sm font-medium mb-1" for="id_photos">{{ ff.photos.label }}{% if ff.photos.req %}<span aria-hidden="true"> *</span><span class="sr-only"> ({% trans "Pflichtfeld" %})</span>{% endif %}</label>
     <input id="id_photos" name="photos" type="file" accept="image/*" multiple{% if ff.photos.req %} required{% endif %} class="w-full text-sm text-gray-600">
-    <p class="text-xs text-gray-400 mt-1">{% trans "A photo of the job helps us quote faster." %}</p>
+    <p class="text-xs text-gray-600 mt-1">{% trans "A photo of the job helps us quote faster." %}</p>
   </div>{% endif %}
   {# DS-4: кнопка в акценте тенанта (была фикс-индиго — выбивалась из любого Look'а). #}
   <button type="submit" class="w-full text-white rounded-lg px-4 py-3 font-medium hover:opacity-90" style="background: var(--accent, #4f46e5);">{% trans "Send request" %}</button>

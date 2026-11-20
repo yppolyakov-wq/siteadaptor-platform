@@ -262,7 +262,7 @@ def test_full_form_marks_required_and_hides_switched_off():
     assert 'name="description"' not in html
     assert 'name="phone" type="tel" required' in html
     assert 'name="photos" type="file" accept="image/*" multiple required' in html
-    assert "Fotos (bis zu 5) *" in html
+    assert 'Fotos (bis zu 5)<span aria-hidden="true"> *</span>' in html
 
 
 def test_band_draws_up_to_three_required_fields():
