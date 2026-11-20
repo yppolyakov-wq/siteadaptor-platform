@@ -1219,6 +1219,8 @@ def blocks_for(
                 "main": False,
                 "cblock": False,
                 "fixed": True,
+                # FB-33 M3-6: закреплённая правовая строка (🔒, без ручки; § 312j BGB)
+                "pinned": True,
                 "summary": "",
             },
         )

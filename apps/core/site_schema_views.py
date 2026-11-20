@@ -457,11 +457,12 @@ def site_schema_view(request):
             and site_schema.place_capable(current.host if current else ""),
         )
 
-    # FB-33 M3-6: подписи плиток и «Wo zeigen»; SEO и наследование у «Seite»
-    from apps.core import window_banner
+    # FB-33 M3-6: подписи плиток и «Wo zeigen»; SEO и наследование у «Seite»; закреплённые 🔒
+    from apps.core import legal_buttons, window_banner
 
     window_banner.decorate(selected, config, draft, request)
     page_window.decorate(selected, config, current.host if current else "", code)
+    legal_buttons.decorate(selected, current.host if current else "", config)
     for view_key in ("catview", "mainview", "groupview"):
         if selected and selected.get(view_key):
             site_schema.mark_view_availability(config, current.host, selected[view_key])

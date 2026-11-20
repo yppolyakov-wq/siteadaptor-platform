@@ -17,19 +17,12 @@ from django.template.loader import render_to_string
 from django.test import RequestFactory
 from django.utils import translation
 
-from apps.core import detail_parts, site_schema
+from apps.core import detail_parts, legal_buttons, site_schema
 from apps.core.tests.test_fb27_r2_draft import Browser, _tenant
 from apps.core.tests.test_fb33_m3_window_before import CFG, _panel
 from apps.tenants import siteconfig
 
-try:  # C0: замки до кода — модуля среза ещё нет (тесты ниже — strict-xfail)
-    from apps.core import legal_buttons
-except ImportError:  # pragma: no cover
-    legal_buttons = None
-
 pytestmark = pytest.mark.django_db
-#: C0 — замки до кода; снимаются в коммите своей части
-TODO = pytest.mark.xfail(strict=True, reason="M3-6 C5–C6 🔒/§ 312j: замок до кода")
 
 TEMPLATES = Path(__file__).resolve().parents[3] / "templates"
 
@@ -55,7 +48,6 @@ def _li(html, ref):
 # ───────────── C5: «Kaufen» закреплена, бросок на неё ─────────────
 
 
-@TODO
 def test_kauf_row_is_pinned_without_grip_but_is_a_drop_target():
     cfg = siteconfig.normalize({})
     kauf = next(r for r in site_schema.blocks_for(cfg, "product") if r["ref"] == "__kauf")
@@ -70,7 +62,6 @@ def test_kauf_is_not_a_cart_pinned_section():
     assert all("kauf" not in keys for keys in detail_parts.PINNED.values())
 
 
-@TODO
 def test_drop_before_and_after_kauf_still_moves_the_block():
     js = (Path(__file__).resolve().parents[3] / "static/js/aufbau.js").read_text()
     assert "[data-schema-drag],[data-schema-slot],[data-schema-pinned]" in js
@@ -79,7 +70,6 @@ def test_drop_before_and_after_kauf_still_moves_the_block():
     assert 'if (!li || !li.hasAttribute("data-schema-drag")) return;' in js
 
 
-@TODO
 def test_lock_in_list_and_window_title_but_not_on_shared_rows():
     b = Browser(_shop())
     html = b.get("?seite=cart&block=summary")
@@ -98,7 +88,6 @@ def test_lock_in_list_and_window_title_but_not_on_shared_rows():
 # ───────────── C5: подпись кнопки — только чтение, витрина = окно ─────────────
 
 
-@TODO
 def test_cart_summary_window_shows_the_plaque_and_a_read_only_label():
     html = _panel(Browser(_shop()).get("?seite=cart&block=summary"))
     assert PLAQUE in html
@@ -111,13 +100,11 @@ def test_cart_summary_window_shows_the_plaque_and_a_read_only_label():
     assert "Hier werden keine Angaben abgefragt" in html  # «Felder» итога
 
 
-@TODO
 def test_quote_cart_window_label_follows_the_storefront():
     html = _panel(Browser(_shop({**CFG, "quote_cart": True})).get("?seite=cart&block=summary"))
     assert 'value="Unverbindlich anfragen"' in html and PLAQUE not in html
 
 
-@TODO
 def test_buchung_has_its_own_text_and_kaufen_no_button_field():
     product = _panel(Browser(_shop()).get("?seite=product&block=__kauf"))
     assert "§ 312j BGB" in product and 'id="schema-legal-label"' not in product
@@ -129,7 +116,6 @@ def test_buchung_has_its_own_text_and_kaufen_no_button_field():
     assert legal_buttons.panel("gift", "form")["text"] == PLAQUE
 
 
-@TODO
 def test_only_legal_rows_have_the_plaque():
     assert legal_buttons.is_legal("cart", "summary")
     assert legal_buttons.is_legal("gift", "form")
@@ -177,7 +163,6 @@ def _cart_body(tenant, settings):
     ).content.decode()
 
 
-@TODO
 @pytest.mark.parametrize("quote", [False, True])
 def test_window_label_equals_the_storefront_cart_button(quote, settings):
     from apps.tenants.tests.factories import TenantFactory
@@ -190,7 +175,6 @@ def test_window_label_equals_the_storefront_cart_button(quote, settings):
     assert buttons == [label]
 
 
-@TODO
 def test_window_label_equals_the_booking_and_gift_buttons(settings):
     import uuid
     from datetime import datetime, timedelta
@@ -213,7 +197,6 @@ def test_window_label_equals_the_booking_and_gift_buttons(settings):
         assert button.group(1) == legal_buttons.label("gift", "form")
 
 
-@TODO
 def test_legal_texts_are_translated_and_nothing_stores_a_label():
     src = (Path(__file__).resolve().parents[3] / "apps/core/legal_buttons.py").read_text()
     assert "gettext as _" in src and "site_config" not in src.split('"""', 2)[2]

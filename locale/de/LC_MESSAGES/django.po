@@ -39796,3 +39796,48 @@ msgstr "Seiten suchen"
 #. FB-33 M3-6
 msgid "Seite, Kategorie oder Produkt suchen"
 msgstr "Seite, Kategorie oder Produkt suchen"
+
+#. FB-33 M3-6
+msgid "fest"
+msgstr "fest"
+
+#. FB-33 M3-6
+msgid "Dieser Block ist fest."
+msgstr "Dieser Block ist fest."
+
+#. FB-33 M3-6
+msgid "Hier wird unverbindlich angefragt – ohne Zahlungspflicht. Deshalb heißt der Button „Unverbindlich anfragen“. Der Block lässt sich nicht verschieben, ausblenden oder in der Breite ändern."
+msgstr "Hier wird unverbindlich angefragt – ohne Zahlungspflicht. Deshalb heißt der Button „Unverbindlich anfragen“. Der Block lässt sich nicht verschieben, ausblenden oder in der Breite ändern."
+
+#. FB-33 M3-6
+msgid "Bestellübersicht, Gesamtpreis und der Button „Zahlungspflichtig bestellen“ müssen direkt untereinander stehen — so verlangt es § 312j BGB (Button-Lösung). Deshalb lässt er sich nicht verschieben, ausblenden oder in der Breite ändern. Texte und Felder können Sie anpassen."
+msgstr "Bestellübersicht, Gesamtpreis und der Button „Zahlungspflichtig bestellen“ müssen direkt untereinander stehen — so verlangt es § 312j BGB (Button-Lösung). Deshalb lässt er sich nicht verschieben, ausblenden oder in der Breite ändern. Texte und Felder können Sie anpassen."
+
+#. FB-33 M3-6
+msgid "Bei kostenpflichtigen Buchungen muss der Button „Zahlungspflichtig buchen“ heißen — so verlangt es § 312j BGB (Button-Lösung). Deshalb lässt sich dieser Block nicht verschieben, ausblenden oder in der Breite ändern."
+msgstr "Bei kostenpflichtigen Buchungen muss der Button „Zahlungspflichtig buchen“ heißen — so verlangt es § 312j BGB (Button-Lösung). Deshalb lässt sich dieser Block nicht verschieben, ausblenden oder in der Breite ändern."
+
+#. FB-33 M3-6
+msgid "Der Kauf wird im Warenkorb mit dem Button „Zahlungspflichtig bestellen“ abgeschlossen — so verlangt es § 312j BGB (Button-Lösung). Dieser Block hat deshalb einen festen Platz: Er lässt sich nicht verschieben, ausblenden oder in der Breite ändern."
+msgstr "Der Kauf wird im Warenkorb mit dem Button „Zahlungspflichtig bestellen“ abgeschlossen — so verlangt es § 312j BGB (Button-Lösung). Dieser Block hat deshalb einen festen Platz: Er lässt sich nicht verschieben, ausblenden oder in der Breite ändern."
+
+#. FB-33 M3-6
+msgid "Beschriftung des Buchungs-Buttons"
+msgstr "Beschriftung des Buchungs-Buttons"
+
+#. FB-33 M3-6
+msgid "Beschriftung des Bestell-Buttons"
+msgstr "Beschriftung des Bestell-Buttons"
+
+#. FB-33 M3-6
+msgid "Gesetzlich vorgegeben, nicht änderbar."
+msgstr "Gesetzlich vorgegeben, nicht änderbar."
+
+#. FB-33 M3-6
+#, python-format
+msgid "Bei kostenlosen Angeboten: „%(label)s“."
+msgstr "Bei kostenlosen Angeboten: „%(label)s“."
+
+#. FB-33 M3-6
+msgid "Hier werden keine Angaben abgefragt"
+msgstr "Hier werden keine Angaben abgefragt"

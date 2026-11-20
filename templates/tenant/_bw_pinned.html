@@ -1,0 +1,17 @@
+{% load i18n %}{% comment %}FB-33 M3-6 (M0-10): закреплённая правовая строка — плашка «почему» (§ 312j BGB) и подпись кнопки заказа только для чтения: поле без name и вне формы (подпись нигде не хранится, витрина рисует её литералом; apps/core/legal_buttons.py).{% endcomment %}
+{% with lg=selected.legal %}
+<div class="mt-4 rounded-xl border border-amber-300 bg-amber-50 px-3 py-2.5 text-sm text-amber-950" data-schema-legal>
+  <p class="font-semibold"><span aria-hidden="true">🔒 </span>{{ lg.title }}</p>
+  <p class="mt-1">{{ lg.text }}</p>
+</div>
+{% if lg.label %}
+<div class="mt-4" data-schema-legal-label>
+  <label for="schema-legal-label" class="block text-sm font-semibold text-gray-700 mb-1">{{ lg.field_label }}</label>
+  <div class="relative">
+    <input type="text" id="schema-legal-label" value="{{ lg.label }}" readonly aria-readonly="true" aria-describedby="schema-legal-label-note" class="ui-input w-full cursor-not-allowed bg-gray-100 pr-10 text-gray-800">
+    <span class="pointer-events-none absolute inset-y-0 right-3 flex items-center" aria-hidden="true">🔒</span>
+  </div>
+  <p id="schema-legal-label-note" class="mt-1 text-xs text-gray-700">{{ lg.fixed_note }}{% if lg.free %} {{ lg.free }}{% endif %}</p>
+</div>
+{% endif %}
+{% endwith %}

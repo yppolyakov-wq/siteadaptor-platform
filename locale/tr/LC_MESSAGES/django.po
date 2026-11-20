@@ -39855,3 +39855,48 @@ msgstr "Sayfa ara"
 #. FB-33 M3-6
 msgid "Seite, Kategorie oder Produkt suchen"
 msgstr "Sayfa, kategori veya ürün ara"
+
+#. FB-33 M3-6
+msgid "fest"
+msgstr "sabit"
+
+#. FB-33 M3-6
+msgid "Dieser Block ist fest."
+msgstr "Bu blok sabittir."
+
+#. FB-33 M3-6
+msgid "Hier wird unverbindlich angefragt – ohne Zahlungspflicht. Deshalb heißt der Button „Unverbindlich anfragen“. Der Block lässt sich nicht verschieben, ausblenden oder in der Breite ändern."
+msgstr "Burada bağlayıcı olmayan bir talep yapılır – ödeme yükümlülüğü yoktur. Bu yüzden düğmenin adı „Unverbindlich anfragen“dir. Blok taşınamaz, gizlenemez ve genişliği değiştirilemez."
+
+#. FB-33 M3-6
+msgid "Bestellübersicht, Gesamtpreis und der Button „Zahlungspflichtig bestellen“ müssen direkt untereinander stehen — so verlangt es § 312j BGB (Button-Lösung). Deshalb lässt er sich nicht verschieben, ausblenden oder in der Breite ändern. Texte und Felder können Sie anpassen."
+msgstr "Sipariş özeti, toplam fiyat ve „Zahlungspflichtig bestellen“ düğmesi doğrudan alt alta durmalıdır — § 312j BGB (düğme çözümü) bunu şart koşar. Bu yüzden taşınamaz, gizlenemez ve genişliği değiştirilemez. Metinleri ve alanları uyarlayabilirsiniz."
+
+#. FB-33 M3-6
+msgid "Bei kostenpflichtigen Buchungen muss der Button „Zahlungspflichtig buchen“ heißen — so verlangt es § 312j BGB (Button-Lösung). Deshalb lässt sich dieser Block nicht verschieben, ausblenden oder in der Breite ändern."
+msgstr "Ücretli rezervasyonlarda düğmenin adı „Zahlungspflichtig buchen“ olmalıdır — § 312j BGB (düğme çözümü) bunu şart koşar. Bu yüzden bu blok taşınamaz, gizlenemez ve genişliği değiştirilemez."
+
+#. FB-33 M3-6
+msgid "Der Kauf wird im Warenkorb mit dem Button „Zahlungspflichtig bestellen“ abgeschlossen — so verlangt es § 312j BGB (Button-Lösung). Dieser Block hat deshalb einen festen Platz: Er lässt sich nicht verschieben, ausblenden oder in der Breite ändern."
+msgstr "Satın alma sepette „Zahlungspflichtig bestellen“ düğmesiyle tamamlanır — § 312j BGB (düğme çözümü) bunu şart koşar. Bu yüzden bu bloğun sabit bir yeri vardır: taşınamaz, gizlenemez ve genişliği değiştirilemez."
+
+#. FB-33 M3-6
+msgid "Beschriftung des Buchungs-Buttons"
+msgstr "Rezervasyon düğmesinin yazısı"
+
+#. FB-33 M3-6
+msgid "Beschriftung des Bestell-Buttons"
+msgstr "Sipariş düğmesinin yazısı"
+
+#. FB-33 M3-6
+msgid "Gesetzlich vorgegeben, nicht änderbar."
+msgstr "Yasayla belirlenmiştir, değiştirilemez."
+
+#. FB-33 M3-6
+#, python-format
+msgid "Bei kostenlosen Angeboten: „%(label)s“."
+msgstr "Ücretsiz tekliflerde: „%(label)s“."
+
+#. FB-33 M3-6
+msgid "Hier werden keine Angaben abgefragt"
+msgstr "Burada bilgi istenmez"

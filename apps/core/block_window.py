@@ -41,8 +41,10 @@ PART_TAB: dict[str, str] = {
     "faq": "texte",  # FB-33 M3-5b: вопросы FAQ (общие для всех страниц)
     "seo": "texte",  # FB-33 M3-6: SEO страницы у «Einstellungen der Seite» (текстовые)
     "seolink": "texte",  # FB-33 M3-6: у категории — ссылка на форму категории
+    "pinned": "texte",  # FB-33 M3-6 (M0-10): плашка § 312j и подпись кнопки (только чтение)
     "settings": "seite",  # настройки типа страницы у ★-строки и строк-носителей
     "formfields": "felder",  # FB-33 M2i-5: поля формы заявки (режимы, свои вопросы)
+    "noinput": "felder",  # FB-33 M3-6: «Hier werden keine Angaben abgefragt»
     "formlink": "felder",  # FB-33 M2i-5: у полосы/блока заявки — ссылка на окно формы
 }
 PART_ORDER = (
@@ -62,6 +64,8 @@ PART_ORDER = (
     "faq",
     "seo",
     "seolink",
+    "pinned",
+    "noinput",
     "settings",
 )
 
@@ -97,6 +101,8 @@ PANEL_KEYS: dict[str, str] = {
     "seo": "seo",
     "seo_link": "seolink",
     "page_inherit": "settings",  # строка наследования вида у категории (в части «Seite»)
+    "legal": "pinned",
+    "noinput": "noinput",
     "widths": "platz",
     "width_tiles": "platz",  # FB-33 M3-3b: те же ширины плитками (M0-8)
     "carrier": "settings",
@@ -165,6 +171,8 @@ def parts(selected: dict | None, ctx: dict) -> list[str]:
         "faq": bool(selected.get("faq_items")),
         "seo": bool(selected.get("seo")),
         "seolink": bool(selected.get("seo_link")),
+        "pinned": bool(selected.get("legal")),
+        "noinput": bool(selected.get("noinput")),
         "formfields": bool(selected.get("form_spec")),
         "formlink": bool(selected.get("form_link")),
         "settings": bool(selected.get("carrier") or selected.get("setting_row"))

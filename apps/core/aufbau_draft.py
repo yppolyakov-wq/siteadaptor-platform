@@ -858,18 +858,22 @@ def op(
 
 def _m36_edit(host: str, ref: str, op_name: str, fields) -> bool:
     """FB-33 M3-6: правка окна, которую ведут `page_window`, `window_banner`, `legal_buttons`."""
-    from apps.core import page_window, window_banner
+    from apps.core import legal_buttons, page_window, window_banner
 
     return (
-        page_window.is_seo_edit(host, ref, op_name, fields)
+        legal_buttons.is_legal(host, ref)
+        or page_window.is_seo_edit(host, ref, op_name, fields)
         or page_window.is_view_reset(host, ref, op_name)
         or window_banner.is_places_edit(op_name)
     )
 
 
 def _m36_op(request, config, draft, code, host, saved, op_name, ref, fields, notes) -> str:
-    from apps.core import page_window, window_banner
+    from apps.core import legal_buttons, page_window, window_banner
 
+    if legal_buttons.is_legal(host, ref):
+        # подпись кнопки заказа задаёт закон (§ 312j BGB): строку не правит ни одна операция
+        raise site_schema.SchemaError("fixed")
     if page_window.is_seo_edit(host, ref, op_name, fields):
         return page_window.seo_op(config, draft, host, fields, saved)
     if page_window.is_view_reset(host, ref, op_name):

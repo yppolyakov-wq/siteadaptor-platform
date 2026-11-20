@@ -173,7 +173,8 @@ def test_drag_onto_the_slot_sends_beside():
     import pathlib
 
     js = pathlib.Path("static/js/aufbau.js").read_text()
-    assert '"[data-schema-drag],[data-schema-slot]"' in js
+    # FB-33 M3-6: и закреплённая строка 🔒 — цель броска
+    assert '"[data-schema-drag],[data-schema-slot],[data-schema-pinned]"' in js
     assert 'data.set("op", slot ? "beside" : "move")' in js
 
 

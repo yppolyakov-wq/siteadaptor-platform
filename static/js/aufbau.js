@@ -817,8 +817,9 @@ function aufbauSubmitCopy(form, submitter) {
   var dragged = null;
 
   function item(target) {
-    // FB-30.8: свободное место ряда — тоже цель броска
-    return target && target.closest ? target.closest("[data-schema-drag],[data-schema-slot]") : null;
+    // FB-30.8: свободное место ряда — тоже цель броска; FB-33 M3-6: закреплённая строка (🔒,
+    // без ручки) — цель броска «до/после» неё, но сама не перетаскивается
+    return target && target.closest ? target.closest("[data-schema-drag],[data-schema-slot],[data-schema-pinned]") : null;
   }
 
   function arm() {
@@ -925,7 +926,7 @@ function aufbauSubmitCopy(form, submitter) {
     data.set("seite", new URLSearchParams(location.search).get("seite") || "home");
     data.set("op", slot ? "beside" : "move");
     data.set("ref", ref);
-    data.set("value", slot ? slot : where + ":" + li.getAttribute("data-schema-drag"));
+    data.set("value", slot ? slot : where + ":" + (li.getAttribute("data-schema-drag") || li.getAttribute("data-schema-pinned")));
     if (new URLSearchParams(location.search).get("ansicht") === "telefon") data.set("ansicht", "telefon");
     fetch(location.pathname, { method: "POST", body: data, credentials: "same-origin" })
       .then(function (resp) { if (!resp.ok) throw new Error("status"); return resp.text(); })

@@ -39709,3 +39709,48 @@ msgstr "Search pages"
 #. FB-33 M3-6
 msgid "Seite, Kategorie oder Produkt suchen"
 msgstr "Search page, category or product"
+
+#. FB-33 M3-6
+msgid "fest"
+msgstr "fixed"
+
+#. FB-33 M3-6
+msgid "Dieser Block ist fest."
+msgstr "This block is fixed."
+
+#. FB-33 M3-6
+msgid "Hier wird unverbindlich angefragt – ohne Zahlungspflicht. Deshalb heißt der Button „Unverbindlich anfragen“. Der Block lässt sich nicht verschieben, ausblenden oder in der Breite ändern."
+msgstr "This is a non-binding request – with no obligation to pay. That is why the button says “Unverbindlich anfragen”. The block cannot be moved, hidden or resized."
+
+#. FB-33 M3-6
+msgid "Bestellübersicht, Gesamtpreis und der Button „Zahlungspflichtig bestellen“ müssen direkt untereinander stehen — so verlangt es § 312j BGB (Button-Lösung). Deshalb lässt er sich nicht verschieben, ausblenden oder in der Breite ändern. Texte und Felder können Sie anpassen."
+msgstr "The order summary, the total price and the “Zahlungspflichtig bestellen” button must stand directly one below the other — § 312j BGB (button solution) requires this. That is why it cannot be moved, hidden or resized. You can adjust texts and fields."
+
+#. FB-33 M3-6
+msgid "Bei kostenpflichtigen Buchungen muss der Button „Zahlungspflichtig buchen“ heißen — so verlangt es § 312j BGB (Button-Lösung). Deshalb lässt sich dieser Block nicht verschieben, ausblenden oder in der Breite ändern."
+msgstr "For paid bookings the button must say “Zahlungspflichtig buchen” — § 312j BGB (button solution) requires this. That is why this block cannot be moved, hidden or resized."
+
+#. FB-33 M3-6
+msgid "Der Kauf wird im Warenkorb mit dem Button „Zahlungspflichtig bestellen“ abgeschlossen — so verlangt es § 312j BGB (Button-Lösung). Dieser Block hat deshalb einen festen Platz: Er lässt sich nicht verschieben, ausblenden oder in der Breite ändern."
+msgstr "The purchase is completed in the cart with the “Zahlungspflichtig bestellen” button — § 312j BGB (button solution) requires this. That is why this block has a fixed place: it cannot be moved, hidden or resized."
+
+#. FB-33 M3-6
+msgid "Beschriftung des Buchungs-Buttons"
+msgstr "Label of the booking button"
+
+#. FB-33 M3-6
+msgid "Beschriftung des Bestell-Buttons"
+msgstr "Label of the order button"
+
+#. FB-33 M3-6
+msgid "Gesetzlich vorgegeben, nicht änderbar."
+msgstr "Required by law, cannot be changed."
+
+#. FB-33 M3-6
+#, python-format
+msgid "Bei kostenlosen Angeboten: „%(label)s“."
+msgstr "For free offers: “%(label)s”."
+
+#. FB-33 M3-6
+msgid "Hier werden keine Angaben abgefragt"
+msgstr "No details are asked for here"

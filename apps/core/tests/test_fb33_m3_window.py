@@ -120,7 +120,8 @@ def test_one_tab_needs_no_tab_bar_and_banner_shows_choice_and_page():
 
 def test_pinned_and_confirm_have_no_tabs():
     b = Browser(_shop())
-    assert _tabs_of(b.get("?seite=cart&block=summary")) == []
+    # FB-33 M3-6 (M0-10): итог корзины — только «Texte» (плашка § 312j) и «Felder»
+    assert _tabs_of(b.get("?seite=cart&block=summary")) == [("texte", ""), ("felder", " hidden")]
     confirm = b.get("?seite=home&block=t1&entfernen=1")
     assert _tabs_of(confirm) == [] and "data-schema-confirm" in confirm
 
