@@ -190,11 +190,11 @@ def anfrage_form_settings(request):
 
 
 def _safe_next(request) -> str:
-    """Локальный `next` формы или «Abläufe» (чужой хост и `//` не принимаем)."""
-    nxt = request.POST.get("next", "")
-    if not nxt.startswith("/") or nxt.startswith("//"):
-        nxt = reverse("ablaeufe")
-    return nxt
+    """Локальный `next` формы или «Abläufe». Проверка — единая на проект
+    (`owner_login.safe_next`: чужой хост, `//`, `/\\host`, управляющие символы — отказ)."""
+    from apps.core.owner_login import safe_next
+
+    return safe_next(request, request.POST.get("next", ""), reverse("ablaeufe"))
 
 
 def _parse_deposit_cents(raw) -> int:

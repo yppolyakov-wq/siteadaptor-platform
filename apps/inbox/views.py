@@ -109,8 +109,9 @@ def inbox_list(request):
 def _safe_next(request) -> str:
     """DF-3: куда вернуть после отправки. Только относительный путь этого сайта —
     «//host» отбиваем (класс, найденный ревью «Кабинет-X»)."""
-    nxt = (request.POST.get("next") or "").strip()
-    return nxt if nxt.startswith("/") and not nxt.startswith("//") else ""
+    from apps.core.owner_login import local_next
+
+    return local_next(request)  # FB-33 M2i-5: единая проверка (`/\\host` тоже отказ)
 
 
 @login_required
