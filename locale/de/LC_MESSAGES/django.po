@@ -39569,3 +39569,15 @@ msgstr "Höchstens %(n)s Fragen."
 #. FB-33 M3-5b
 msgid "Leer oder unverändert — es gilt die Standardbeschriftung."
 msgstr "Leer oder unverändert — es gilt die Standardbeschriftung."
+
+#. FB-33 стопка: якорь среза M3-4b — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
+msgid "fb33-stack-anchor-M3-4b"
+msgstr "fb33-stack-anchor-M3-4b"
+
+#. FB-33 стопка: якорь среза M2b-2b — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
+msgid "fb33-stack-anchor-M2b-2b"
+msgstr "fb33-stack-anchor-M2b-2b"
+
+#. FB-33 стопка: якорь среза M3-6 — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
+msgid "fb33-stack-anchor-M3-6"
+msgstr "fb33-stack-anchor-M3-6"

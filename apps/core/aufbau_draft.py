@@ -345,6 +345,15 @@ def _put_faq_shown(config: dict, draft: dict) -> None:
 # ними не конфликт, запись сливает трёхсторонне (`form_spec.merge`, ревью H2).
 FORM_KEYS = ("form", "form_base")
 
+# FB-33 стопка 3: части черновика ВНЕ `_saved_state`/отпечатка — одна таблица для `_settle`
+# (черновик только с такой частью не «чистый») и `_revert` («Abbrechen» окна). Новый срез
+# дописывает СВОЮ строку (между строками разных срезов — зазор, чтобы стопка собиралась
+# без ручного слияния); снимок (`_snapshot`) у каждой части свой — там условие по строке.
+SIDE_PARTS = (
+    ("form", FORM_KEYS),  # FB-33 M2i-5 «Felder»
+    ("faq", FAQ_KEYS),  # FB-33 M3-5b вопросы FAQ
+)
+
 
 def form_state(config: dict, draft: dict, notes: list | None = None) -> dict:
     """Состояние вкладки черновика поверх СЕЙЧАС сохранённого `config` (трёхстороннее)."""
@@ -635,7 +644,7 @@ def _revert(draft: dict, ref: str, proto: dict) -> None:
     for key in ("title", "next"):
         if key in proto:
             _restore_key(draft, key, proto[key])
-    for part, keys in (("form", FORM_KEYS), ("faq", FAQ_KEYS)):
+    for part, keys in SIDE_PARTS:
         # FB-33 M2i-5 «Felder», M3-5b вопросы FAQ — как при открытии окна
         if isinstance(proto.get(part), dict):
             for key in keys:
@@ -807,8 +816,7 @@ def _settle(request, code: str, draft: dict, saved: dict, ref: str = "") -> str:
     clean = (
         _fingerprint(current) == _fingerprint(saved) == draft.get("base")
         and not _settings(draft)
-        and "form" not in draft  # FB-33 M2i-5
-        and "faq" not in draft  # FB-33 M3-5b
+        and not any(part in draft for part, _keys in SIDE_PARTS)  # M2i-5, M3-5b, …
     )
     if clean and draft.get(WINDOW_KEY):
         # FB-33 M3-1b: окно блока открыто — снимок для «Abbrechen» держится, но черновика
