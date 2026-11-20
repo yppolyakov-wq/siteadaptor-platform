@@ -34,6 +34,8 @@ OFF, OPT, REQ = "off", "opt", "req"
 MODES = (OFF, OPT, REQ)
 LABEL_MAX = 120
 #: FB-33 M2i-5b: переводы подписей полей и вариантов события — по ключу/тексту, не по позиции
+#: id подсказки над полями переводов вкладки «Felder» (`_bw_formfields.html`)
+LANG_HINT_ID = "ff-lang-hint"
 LABELS_I18N = "labels_i18n"
 EVENTS_I18N = "event_types_i18n"
 
@@ -1201,6 +1203,8 @@ def with_locales(fs: dict, locales, wanted: str = "") -> dict:
                     "shown": loc == lang,
                     "empty": text,
                     "empty_lang": text_lang,
+                    # подсказка «Leeres Feld…» над полями (id в `_bw_formfields.html`)
+                    "hint": LANG_HINT_ID,
                 }
             )
         return out
