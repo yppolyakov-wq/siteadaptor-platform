@@ -88,6 +88,6 @@ def test_forms_call_the_one_writer():
 
     root = Path(__file__).resolve().parents[3]
     for rel in ("apps/catalog/views.py", "apps/stays/views.py"):
-        assert "object_faq.put(" in (root / rel).read_text(), rel
+        assert "object_faq.save_from_form(" in (root / rel).read_text(), rel
     for tpl in ("booking/service_page.html", "catalog/product_form.html", "stays/unit_page.html"):
         assert "tenant/_object_faq_fields.html" in (root / "templates" / tpl).read_text(), tpl

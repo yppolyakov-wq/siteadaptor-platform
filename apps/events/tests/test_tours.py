@@ -426,7 +426,10 @@ class TestCabinet:
         tour = _tour()
         data = {
             "title": tour.title,
-            "faq_text": "Führerschein? | Klasse A erforderlich.",
+            # FB-33 M2b-2b (ревью): свои вопросы — пары полей общего редактора, не textarea
+            "faq_present": "1",
+            "faq_q_0": "Führerschein?",
+            "faq_a_0": "Klasse A erforderlich.",
             "bring_text": "Helm\nHandschuhe",
         }
         views.tour_edit(_cab(method="post", data=data), pk=tour.pk)

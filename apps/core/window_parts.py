@@ -46,6 +46,7 @@ def decorate(
     config: dict,
     host: str,
     opened: int | None = None,
+    user=None,
 ) -> None:
     """Дополнить выбранную строку частями среза. `saved` — сохранённый конфиг (вопросы
     черновика и их источники — из `draft`), `config` — показанный (с черновиком)."""
@@ -65,7 +66,7 @@ def decorate(
         page = {"home": home, "host": host, "items": (draft or {}).get("items")}
         if page["items"] is None:
             page["items"] = _items(config, home, host)
-        own = object_faq.panel(page, host, row, opened, saved)
+        own = object_faq.panel(page, host, row, opened, saved, user)
     if aufbau_draft._is_faq_row({"home": home}, row):
         items, src = faq_content.state(saved, draft)
         selected["faq_items"] = faq_content.panel(items, src, saved, opened)

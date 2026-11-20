@@ -465,6 +465,7 @@ def site_schema_view(request):
         config,
         current.host if current else "",
         request.session.pop(aufbau_draft.FAQ_OPENED, None) if selected else None,
+        user=getattr(request, "user", None),  # FB-33 M2b-2b (ревью): своё право на вопросы
     )
     if (
         selected

@@ -39,6 +39,8 @@ MT-1: правка тура. Маршрут — таблица строк (бе�
     {% endwith %}
   {% endfor %}
 
+  {% comment %}FB-33 M2b-2b (ревью): свои вопросы FAQ тура — пары полей, как у услуги, товара и номера.{% endcomment %}
+  {% include "tenant/_object_faq_fields.html" with rows=faq_rows base=faq_base sentinel=True %}
   <div>
     <span class="block text-sm font-medium mb-1">{% trans "Photos" %}</span>
     {% include "catalog/_photo_add_tile.html" with target="photos" %}

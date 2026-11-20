@@ -1,5 +1,5 @@
-{% load i18n %}{% comment %}FB-33 M2b-2b: свои вопросы FAQ объекта в его форме кабинета — общий редактор услуги, товара и номера (пары полей faq_q_<i>/faq_a_<i> и переводы по языкам; сентинел faq_present ставит форма или sentinel=True). Пишет object_faq.put.{% endcomment %}
-{% if sentinel %}<input type="hidden" name="faq_present" value="1">{% endif %}
+{% load i18n %}{% comment %}FB-33 M2b-2b: свои вопросы FAQ объекта в его форме кабинета — общий редактор услуги, товара и номера (пары полей faq_q_<i>/faq_a_<i> и переводы по языкам; сентинел faq_present ставит форма или sentinel=True). Пишет object_faq.save_from_form: под блокировкой и со сверкой отпечатка faq_base (ревью).{% endcomment %}
+{% if sentinel %}<input type="hidden" name="faq_present" value="1">{% endif %}{% if base %}<input type="hidden" name="faq_base" value="{{ base }}">{% endif %}
     <fieldset>
       <legend class="text-sm font-medium mb-1">{% trans "Frequently asked questions" %}</legend>
       {% for row in rows %}

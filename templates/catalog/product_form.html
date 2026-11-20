@@ -166,7 +166,7 @@ main-колонка + правая колонка «Preis & Bestand»/«Kategori
       {% include "tenant/_object_structure.html" with ps=page_structure shared_url=page_structure_url card_style_set=product.card_style %}
       {% for field in form %}{% if field.name == 'card_style' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}
       {% comment %}FB-33 M2b-2b: свои вопросы FAQ товара — их показывает блок «FAQ» на его странице.{% endcomment %}
-      {% i18n_base_locale as base_loc %}<div data-product-faq>{% include "tenant/_object_faq_fields.html" with rows=faq_rows sentinel=True %}</div>
+      {% i18n_base_locale as base_loc %}<div data-product-faq>{% include "tenant/_object_faq_fields.html" with rows=faq_rows base=faq_base sentinel=True %}</div>
     </div>
     {% endif %}
 

@@ -123,7 +123,7 @@ def test_object_remap_is_the_shared_remap():
 @pytest.mark.parametrize(
     ("kind", "limits"),
     [("service", (12, 200, 1000)), ("product", (12, 200, 1000)), ("stay", (12, 200, 1000)),
-     ("event", (30, 200, 2000)), ("tour", (30, 200, 2000))],
+     ("event", (30, 2000, 2000)), ("tour", (30, 2000, 2000))],
 )  # fmt: skip
 def test_limits_by_kind(kind, limits):
     n, q, a = limits
@@ -145,15 +145,38 @@ def test_event_line_splits_at_the_first_bar():
     assert other == [{"title": "Yoga", "text": "sanft"}]  # прочие записи — как раньше
 
 
-def test_event_form_writes_faq_through_put_and_keeps_translations():
-    """Форма события: перестановка строк textarea — переводы за вопросом (по тексту)."""
+def test_event_form_keeps_faq_and_only_the_writer_changes_it():
+    """Ревью M2b-2b: блоки формы события не трогают свои вопросы и их переводы — их пишет
+    только `object_faq.save_from_form` (пары полей)."""
     from apps.events import landing
 
     obj = make("event")
-    landing.apply(obj, "event", {"faq_text": "Karte? | Online.\nParkplatz? | Ja.", "idea": "Neu"})
-    assert object_faq.items(obj, "event") == [BASE[2], BASE[0]]
-    assert obj.details["idea"] == "Neu"
-    assert obj.details_i18n["ru"] == {"idea": "Музыка.", "faq": [RU[2], RU[0]]}
+    landing.apply(obj, "event", {"idea": "Neu"})
+    assert object_faq.items(obj, "event") == BASE and obj.details["idea"] == "Neu"
+    assert obj.details_i18n["ru"]["faq"] == RU
+    assert "faq_text" not in landing.form_fields()
+
+
+def test_event_pairs_keep_newlines_and_bars_and_translations():
+    """Ревью M2b-2b (2Б): перенос строки в ответе и «|» в вопросе переживают пересохранение;
+    явные переводы формы — в `details_i18n[язык]["faq"]`, прочие ключи перевода — как были."""
+    from apps.tenants.tests.factories import TenantFactory
+
+    tenant = TenantFactory.build(enabled_locales=["de", "ru"])
+    obj = make("event")
+    post = {
+        "faq_present": "1",
+        "faq_base": object_faq.fingerprint(obj, "event"),
+        "faq_q_0": "A | B?",
+        "faq_a_0": "Zeile 1\nZeile 2 | x",
+        "faq_q_0_ru": "А | Б?",
+    }
+    object_faq.save_from_form(obj, "event", post, tenant, [])
+    obj.refresh_from_db()
+    assert object_faq.items(obj, "event") == [{"q": "A | B?", "a": "Zeile 1\nZeile 2 | x"}]
+    assert obj.details_i18n["ru"] == {"idea": "Музыка.", "faq": [{"q": "А | Б?"}]}
+    rows = object_faq.form_rows(obj, "event", ["ru"])
+    assert rows[0]["a"] == "Zeile 1\nZeile 2 | x"
 
 
 def test_service_form_explicit_translations():
@@ -217,6 +240,6 @@ def test_one_writer_of_object_faq():
 
 
 def test_object_forms_call_the_writer():
-    for rel in ("apps/booking/views.py", "apps/events/landing.py"):
-        assert "object_faq.put(" in (ROOT / rel).read_text(), rel
+    for rel in ("apps/booking/views.py", "apps/events/views.py"):
+        assert "object_faq.save_from_form(" in (ROOT / rel).read_text(), rel
     assert "def _rich_faq" not in (ROOT / "apps/booking/views.py").read_text()

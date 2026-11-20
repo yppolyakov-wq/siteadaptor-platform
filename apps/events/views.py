@@ -89,6 +89,7 @@ def event_create(request):
     form = EventForm(request.POST or None, initial=initial or None)
     if request.method == "POST" and form.is_valid():
         event = form.save()
+        _save_faq(request, event, "event")  # FB-33 M2b-2b: свои вопросы FAQ (пары полей)
         _add_event_photos(event, request.FILES.getlist("photos"))
         if event.status == Event.STATUS_PUBLISHED:
             # CM-3: создано сразу опубликованным → авто-черновик поста в каналы.
@@ -102,8 +103,43 @@ def event_create(request):
     return render(
         request,
         "events/event_form.html",
-        {"form": form, "nav": "events", "category_presets": taxonomy.CATEGORIES},
+        {
+            "form": form,
+            "nav": "events",
+            "category_presets": taxonomy.CATEGORIES,
+            **_faq_ctx(request, None, "event"),
+        },
     )
+
+
+def _faq_ctx(request, obj, kind: str) -> dict:
+    """FB-33 M2b-2b: общий редактор своих вопросов FAQ (пары полей, переводы, отпечаток)."""
+    from apps.core import object_faq
+
+    return object_faq.form_ctx(obj, kind, getattr(request, "tenant", None))
+
+
+def _save_faq(request, obj, kind: str) -> None:
+    """FB-33 M2b-2b (ревью): свои вопросы — под блокировкой и со сверкой отпечатка формы."""
+    from apps.core import object_faq
+
+    notes: list = []
+    object_faq.save_from_form(obj, kind, request.POST, getattr(request, "tenant", None), notes)
+    for note in notes:
+        messages.warning(request, note)
+
+
+def _save_form_fresh(form, kind: str):
+    """Запись формы события/тура: свои вопросы FAQ в экземпляре — свежие, под блокировкой
+    строки (ревью M2b-2b: `save` пишет все столбцы — форма, открытая до чужой правки
+    вопросов, вернула бы старые)."""
+    from django.db import transaction
+
+    from apps.core import object_faq
+
+    with transaction.atomic():
+        object_faq.lock_fresh(form.instance, kind)
+        return form.save()
 
 
 @login_required
@@ -112,7 +148,8 @@ def event_edit(request, pk):
     was_published = event.status == Event.STATUS_PUBLISHED
     form = EventForm(request.POST or None, instance=event)
     if request.method == "POST" and form.is_valid():
-        form.save()
+        _save_form_fresh(form, "event")
+        _save_faq(request, event, "event")  # FB-33 M2b-2b: свои вопросы FAQ (пары полей)
         # FB-29 R5: своя структура страницы события — по сентинелу (W0)
         from apps.core import object_structure
 
@@ -141,6 +178,7 @@ def event_edit(request, pk):
             "category_presets": taxonomy.CATEGORIES,
             "page_structure": object_structure_panel(request, event),
             "page_structure_url": reverse("site-schema") + "?seite=event",
+            **_faq_ctx(request, event, "event"),
         },
     )
 
@@ -540,7 +578,8 @@ def tour_edit(request, pk):
         return redirect("events:tour-list")
     form = TourForm(request.POST or None, instance=tour)
     if request.method == "POST" and form.is_valid():
-        form.save()
+        _save_form_fresh(form, "tour")
+        _save_faq(request, tour, "tour")  # FB-33 M2b-2b: свои вопросы FAQ (пары полей)
         if request.POST.get("it_present"):
             tour.itinerary = itinerary.from_post(request.POST)
             tour.save(update_fields=["itinerary"])
@@ -566,6 +605,7 @@ def tour_edit(request, pk):
             "visibility_choices": itinerary.visibility_choices(),
             "departures": tour.departures.order_by("starts_at"),
             "page_structure": object_structure_panel(request, tour, "tour"),
+            **_faq_ctx(request, tour, "tour"),
             "page_structure_url": reverse("site-schema") + "?seite=event",
         },
     )

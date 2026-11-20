@@ -1282,14 +1282,14 @@ def units(request, pk=None):
             # FB-33 M2b-2b: свои вопросы FAQ номера — по сентинелу, писателем `object_faq.put`
             from apps.core import object_faq
 
-            _tenant = getattr(request, "tenant", None)
-            parsed = object_faq.from_form(request.POST, extra_locales(_tenant), "stay")
-            if parsed is not None:
-                _faq_fields = object_faq.put(
-                    unit, "stay", parsed[0], per_locale=parsed[1], tenant=_tenant
-                )
-                _uf += [f for f in _faq_fields if f not in _uf]
             unit.save(update_fields=_uf)
+            # (ревью): под блокировкой и со сверкой отпечатка формы — пишет сам
+            _faq_notes: list = []
+            object_faq.save_from_form(
+                unit, "stay", request.POST, getattr(request, "tenant", None), _faq_notes
+            )
+            for _note in _faq_notes:
+                messages.warning(request, _note)
             _add_unit_photos(unit, request.FILES.getlist("photos"), request)
             capacity_error = None
             # Z-5 Р-5 (DF-Z3, О-8): ёмкость — отдельно и под локом категории; отказ
@@ -1523,7 +1523,7 @@ def _render_room_page(request, unit):
             "season_n": len(unit.season_rates.all()),
             "extra_locales": extra_locales(tenant),
             # FB-33 M2b-2b: свои вопросы FAQ номера (общий редактор форм объекта)
-            "faq_rows": object_faq.form_rows(unit, "stay", extra_locales(tenant)),
+            **object_faq.form_ctx(unit, "stay", tenant),
             "can_edit_prices": has_perm(request.user, "preise.edit"),  # Z-4 Р-7
             "amenities": AMENITIES,  # H3 чек-лист удобств
         },

@@ -240,10 +240,10 @@ def _page_structure_ctx(request, product) -> dict:
     }
 
 
-def _faq_rows(request, product) -> list[dict]:
+def _faq_ctx(request, product) -> dict:
     from apps.core import object_faq
 
-    return object_faq.form_rows(product, "product", extra_locales(getattr(request, "tenant", None)))
+    return object_faq.form_ctx(product, "product", getattr(request, "tenant", None))
 
 
 @login_required
@@ -255,7 +255,14 @@ def product_edit(request, pk):
     )
     if request.method == "POST" and form.is_valid():
         freshness.stamp(form.instance)  # Г3: Save владельца = «позиция актуальна»
-        product = form.save()
+        from django.db import transaction
+
+        from apps.core import object_faq
+
+        with transaction.atomic():
+            # FB-33 M2b-2b (ревью): `save` пишет все столбцы — свои вопросы свежие, под замком
+            object_faq.lock_fresh(form.instance, "product")
+            product = form.save()
         _save_product_overlays(product, request)  # Ф2: переводы origin/ingredients
         # T1: правка остатка в каталоге пишет движение (не трогая счётчик) →
         # счётчик и леджер сходятся, реконсиляция не «расходится сама».
@@ -270,17 +277,15 @@ def product_edit(request, pk):
         from apps.core import object_structure
 
         changed = object_structure.apply_post(product, "product", request.POST)
-        # FB-33 M2b-2b: свои вопросы FAQ товара — по сентинелу, писателем `object_faq.put`
-        from apps.core import object_faq
-
-        tenant = getattr(request, "tenant", None)
-        parsed = object_faq.from_form(request.POST, extra_locales(tenant), "product")
-        if parsed is not None:
-            changed += object_faq.put(
-                product, "product", parsed[0], per_locale=parsed[1], tenant=tenant
-            )
         if changed:
             product.save(update_fields=[*changed, "updated_at"])
+        # FB-33 M2b-2b: свои вопросы FAQ — по сентинелу, под блокировкой и со сверкой отпечатка
+        faq_notes: list = []
+        object_faq.save_from_form(
+            product, "product", request.POST, getattr(request, "tenant", None), faq_notes
+        )
+        for note in faq_notes:
+            messages.warning(request, note)
         return redirect("catalog:product-edit", pk=product.pk)
     return render(
         request,
@@ -291,7 +296,7 @@ def product_edit(request, pk):
             "product": product,
             **_page_structure_ctx(request, product),
             # FB-33 M2b-2b: свои вопросы FAQ товара (общий редактор форм объекта)
-            "faq_rows": _faq_rows(request, product),
+            **_faq_ctx(request, product),
             "variants": product.variants.all(),
             # KA-12 WR-5: цвета вариантов — для «Foto für eine Farbe» (без дублей).
             "variant_colors": sorted(

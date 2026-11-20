@@ -170,7 +170,7 @@ Varianten» — свои мини-формы, вне #svc-form. Скрытое `
       </div>
       {% endfor %}
     </div>
-    {% include "tenant/_object_faq_fields.html" with rows=s.faq_rows %}
+    {% include "tenant/_object_faq_fields.html" with rows=s.faq_rows base=s.faq_base %}
   </div>
 
   {% if page_structure %}

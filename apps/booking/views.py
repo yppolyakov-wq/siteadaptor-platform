@@ -1314,11 +1314,11 @@ def services_view(request, pk=None):
         # FB-33 M2b-2b: свои вопросы услуги — единственным писателем `object_faq.put`
         from apps.core import object_faq
 
-        parsed = object_faq.from_form(request.POST, extra_locales(tenant), "service")
-        if parsed is not None:
-            base, per_locale = parsed
-            fields = object_faq.put(service, "service", base, per_locale=per_locale, tenant=tenant)
-            changed += ["faq", *(f for f in fields if f != "faq")]
+        # (ревью): под блокировкой и со сверкой отпечатка формы — пишет сам, поля не в `changed`
+        notes: list = []
+        object_faq.save_from_form(service, "service", request.POST, tenant, notes)
+        for note in notes:
+            messages.warning(request, note)
         return changed
 
     def _int(raw, default, lo, hi):
@@ -1577,6 +1577,7 @@ def services_view(request, pk=None):
         # FAQ — пары полей: разделитель внутри свободного текста ломался бы на
         # первом же ответе с переносом строки. Одна пустая пара — чтобы добавить.
         svc.faq_rows = object_faq.form_rows(svc, "service", locales)
+        svc.faq_base = object_faq.fingerprint(svc, "service")
     tab = request.GET.get("tab")
     return render(
         request,

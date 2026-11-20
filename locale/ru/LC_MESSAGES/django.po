@@ -39839,6 +39839,18 @@ msgid "fb33-stack-anchor-M2b-2b"
 msgstr "fb33-stack-anchor-M2b-2b"
 
 #. FB-33 M2b-2b: свои вопросы FAQ объекта
+msgid "Die Fragen wurden inzwischen woanders geändert – Ihre Änderungen an den Fragen wurden nicht gespeichert. Bitte die Seite neu laden und noch einmal eintragen."
+msgstr "Вопросы тем временем изменили в другом месте — ваши изменения вопросов не сохранены. Перезагрузите страницу и внесите их снова."
+
+#. FB-33 M2b-2b: свои вопросы FAQ объекта
+msgid "Der Block zeigt jetzt die allgemeinen FAQ – die Änderungen an den eigenen Fragen wurden verworfen."
+msgstr "Блок теперь показывает общие FAQ — изменения своих вопросов отброшены."
+
+#. FB-33 M2b-2b: свои вопросы FAQ объекта
+msgid "Der Abschnitt ist ausgeblendet – die Fragen erscheinen erst, wenn er wieder sichtbar ist."
+msgstr "Раздел скрыт — вопросы появятся, только когда он снова станет видимым."
+
+#. FB-33 M2b-2b: свои вопросы FAQ объекта
 msgid "Noch keine eigenen Fragen. Ohne Fragen erscheint dieser Block auf der Website nicht."
 msgstr "Своих вопросов пока нет. Без вопросов этот блок на сайте не появится."
 

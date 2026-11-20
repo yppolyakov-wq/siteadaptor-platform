@@ -23,7 +23,6 @@ LIST_FIELDS = {
     "bring_text": ("bring", None),
     "includes_text": ("includes", ("title", "text")),
     "hosts_text": ("hosts", ("name", "role", "photo")),
-    "faq_text": ("faq", ("q", "a")),
     "testimonials_text": ("testimonials", ("name", "city", "text", "photo", "rating")),
     "before_after_text": ("before_after", ("before", "after", "text")),
     "certifications_text": ("certifications", ("name", "issuer", "icon")),
@@ -70,11 +69,6 @@ def form_fields() -> dict:
         "bring_text": forms.CharField(
             required=False, widget=_ta(4), label=_("Mitbringen (eine Zeile pro Punkt)")
         ),
-        "faq_text": forms.CharField(
-            required=False,
-            widget=_ta(5, _("Für Anfänger geeignet? | Ja, alle Level willkommen.")),
-            label=_("FAQ (Frage | Antwort)"),
-        ),
         "testimonials_text": forms.CharField(
             required=False,
             widget=_ta(4, "Johanna | Köln | Hat mich geerdet. | https://…/foto.jpg | 5"),
@@ -114,15 +108,11 @@ def collect(cleaned_data: dict) -> dict:
 
 
 def apply(obj, kind: str, cleaned_data: dict) -> None:
-    """Блоки формы — в `obj.details` (без `save`). Свои вопросы FAQ пишет единственный
-    писатель `object_faq.put` (FB-33 M2b-2b): переводы `details_i18n` едут за вопросом по
-    тексту, правка немецкого снимает перевод своего поля; лимиты вида — на вводе."""
-    from apps.core import object_faq
-
+    """Блоки формы — в `obj.details` (без `save`). Свои вопросы FAQ форма здесь не пишет
+    (FB-33 M2b-2b, ревью): они остаются, как у объекта (свежие — `object_faq.lock_fresh`
+    до записи формы), а правка пар полей идёт отдельно `object_faq.save_from_form` — под
+    блокировкой и со сверкой отпечатка."""
     new = collect(cleaned_data)
     old = obj.details if isinstance(obj.details, dict) else {}
-    faq = new.get("faq") or []
-    new.update(faq=old.get("faq") or [])  # прежние вопросы — их меняет только `put`
+    new.update(faq=old.get("faq") or [])  # прежние вопросы — их меняет только `object_faq`
     obj.details = new
-    rows, _src = object_faq.clean_input(faq, kind)
-    object_faq.put(obj, kind, rows)

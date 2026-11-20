@@ -92,7 +92,7 @@ KINDS: dict[str, Kind] = {
         "events.Event",
         True,
         30,
-        200,
+        2000,  # ревью M2b-2b: как хранилось раньше (вопрос события до 2000 знаков)
         2000,
         "event",
         "event_detail",
@@ -105,7 +105,7 @@ KINDS: dict[str, Kind] = {
         "events.Tour",
         True,
         30,
-        200,
+        2000,  # ревью M2b-2b: как хранилось раньше (вопрос события до 2000 знаков)
         2000,
         "tour",
         "event_detail",
@@ -142,11 +142,9 @@ def _s(value) -> str:
     return value.strip() if isinstance(value, str) else ""
 
 
-def clean_items(raw) -> list[dict]:
-    """Сохранённые вопросы → [{q, a}] (пустой вопрос — вопроса нет; строка «Frage | Antwort»
-    старых данных события — по ПЕРВОМУ «|»). Сохранённое не режется."""
-    out = []
-    for item in raw if isinstance(raw, (list, tuple)) else ():
+def _clean_with_positions(raw) -> tuple[list[dict], list[int]]:
+    out, positions = [], []
+    for pos, item in enumerate(raw if isinstance(raw, (list, tuple)) else ()):
         if isinstance(item, dict):
             q, a = _s(item.get("q")), _s(item.get("a"))
         elif isinstance(item, str):
@@ -156,29 +154,48 @@ def clean_items(raw) -> list[dict]:
             continue
         if q:
             out.append({"q": q, "a": a})
-    return out
+            positions.append(pos)
+    return out, positions
+
+
+def clean_items(raw) -> list[dict]:
+    """Сохранённые вопросы → [{q, a}] (пустой вопрос — вопроса нет; строка «Frage | Antwort»
+    старых данных события — по ПЕРВОМУ «|»). Сохранённое не режется."""
+    return _clean_with_positions(raw)[0]
+
+
+def _raw(obj, kind: str):
+    if KINDS[kind].details:
+        details = getattr(obj, "details", None)
+        return (details if isinstance(details, dict) else {}).get("faq")
+    return getattr(obj, "faq", None)
 
 
 def items(obj, kind: str) -> list[dict]:
     """Сохранённые свои вопросы объекта [{q, a}]."""
-    if KINDS[kind].details:
-        details = getattr(obj, "details", None)
-        return clean_items((details if isinstance(details, dict) else {}).get("faq"))
-    return clean_items(getattr(obj, "faq", None))
+    return clean_items(_raw(obj, kind))
 
 
 def overlays(obj, kind: str) -> dict:
-    """Переводы своих вопросов {язык: [{q?, a?}]} (как хранятся, по позиции)."""
+    """Переводы своих вопросов {язык: [{q?, a?}]} по позициям `items` (ревью M2b-2b: сырые
+    записи без вопроса `items` отбрасывает — переводы выравниваются по сырым позициям, иначе
+    съехали бы на соседний вопрос)."""
     if KINDS[kind].details:
         raw = getattr(obj, "details_i18n", None)
         raw = raw if isinstance(raw, dict) else {}
-        return {
+        stored = {
             loc: node["faq"]
             for loc, node in raw.items()
             if isinstance(node, dict) and isinstance(node.get("faq"), list)
         }
-    raw = getattr(obj, "faq_i18n", None)
-    return {k: v for k, v in raw.items() if isinstance(v, list)} if isinstance(raw, dict) else {}
+    else:
+        raw = getattr(obj, "faq_i18n", None)
+        raw = raw if isinstance(raw, dict) else {}
+        stored = {k: v for k, v in raw.items() if isinstance(v, list)}
+    _rows, positions = _clean_with_positions(_raw(obj, kind))
+    if positions == list(range(len(positions))):
+        return stored  # сырые записи без пропусков — позиции совпадают
+    return {loc: [tr[p] if p < len(tr) else {} for p in positions] for loc, tr in stored.items()}
 
 
 def fingerprint(obj_or_items, kind: str = "") -> str:
@@ -273,9 +290,12 @@ def put(
             len(new),
         )
     changed: list[str] = []
+    if per_locale is not None and k.details:
+        _put_base(obj, kind, new, changed)
+        if _put_details_overlays(obj, per_locale, tenant):
+            changed.append("details_i18n")
+        return changed
     if per_locale is not None:
-        if k.details:
-            raise ValueError("explicit translations are written by the form of the object")
         _put_base(obj, kind, new, changed)
         from apps.core.i18n_input import apply_seq_overlay
 
@@ -308,6 +328,32 @@ def put(
         obj.faq_i18n = after
         changed.append("faq_i18n")
     return changed
+
+
+def _put_details_overlays(obj, per_locale: dict, tenant) -> bool:
+    """Явные переводы формы события/тура → `details_i18n[язык]["faq"]` (языки вне формы — как
+    были; пустой список снимает ключ). Прочие ключи перевода `details` — как были."""
+    from apps.core.i18n_input import extra_locales
+
+    raw = getattr(obj, "details_i18n", None)
+    before = raw if isinstance(raw, dict) else {}
+    after = copy.deepcopy(before)
+    for loc in extra_locales(tenant):
+        if loc not in per_locale:
+            continue
+        node = dict(after.get(loc)) if isinstance(after.get(loc), dict) else {}
+        if per_locale[loc]:
+            node["faq"] = per_locale[loc]
+        else:
+            node.pop("faq", None)
+        if node:
+            after[loc] = node
+        else:
+            after.pop(loc, None)
+    if after == before:
+        return False
+    obj.details_i18n = after
+    return True
 
 
 def _put_base(obj, kind: str, new: list[dict], changed: list[str]) -> None:
@@ -359,24 +405,32 @@ def form_rows(obj, kind: str, locales) -> list[dict]:
     return rows
 
 
-def from_form(post, locales, kind: str) -> tuple[list[dict], dict] | None:
+def from_form(
+    post, locales, kind: str, notes: list | None = None, keep: int = 0
+) -> tuple[list[dict], dict] | None:
     """Пары `faq_q_<i>`/`faq_a_<i>` (+ `_<язык>`) формы объекта → (база, {язык: список}).
     Без сентинела `faq_present` — None (компактная строка списка не стирает вопросы, W0).
 
     База и переводы разбираются ОДНИМ проходом: пара без вопроса отбрасывается (очистка
     вопроса = удаление), и вместе с ней — её перевод (иначе переводы ниже съехали бы).
-    Лимиты вида — на вводе."""
+    Лимиты вида — на вводе, с сообщением в `notes` (ревью M2b-2b); `keep` — сколько вопросов
+    уже сохранено: сохранённые сверх лимита (данные до среза) без явного удаления не теряются."""
     if not _s(post.get("faq_present", "")):
         return None
     k = KINDS[kind]
+    cap = max(k.max_items, keep)
     base, per_locale = [], {loc: [] for loc in locales}
+    cut = over = False
     i = 0
     while True:
         q, a = post.get(f"faq_q_{i}"), post.get(f"faq_a_{i}")
         if q is None and a is None:
             break
         q, a = _s(q), _s(a)
-        if q and len(base) < k.max_items:
+        if q and len(base) >= cap:
+            over = True
+        elif q:
+            cut = cut or len(q) > k.max_q or len(a) > k.max_a
             base.append({"q": q[: k.max_q], "a": a[: k.max_a]})
             for loc in locales:
                 tq = _s(post.get(f"faq_q_{i}_{loc}"))[: k.max_q]
@@ -386,7 +440,87 @@ def from_form(post, locales, kind: str) -> tuple[list[dict], dict] | None:
     for loc in locales:  # хвост пустых переводов не несёт информации
         while per_locale[loc] and not per_locale[loc][-1]:
             per_locale[loc].pop()
+    if notes is not None:
+        if cut:
+            notes.append(limit_note(kind))
+        if over:
+            notes.append(full_note(kind))
     return base, per_locale
+
+
+def lock_fresh(obj, kind: str) -> None:
+    """Перед полной записью объекта формой (`ModelForm.save` пишет все столбцы) — свежие свои
+    вопросы под блокировкой строки (ревью M2b-2b: иначе форма, открытая до чужой правки,
+    вернула бы старые вопросы). Звать внутри `transaction.atomic`; нового объекта — нет."""
+    if getattr(getattr(obj, "_state", None), "adding", True) or obj.pk is None:
+        return
+    locked = type(obj).objects.select_for_update().filter(pk=obj.pk).first()
+    if locked is not None:
+        _sync(obj, locked, kind)
+
+
+def _sync(obj, fresh, kind: str) -> None:
+    """Свои вопросы (база и переводы) объекта `obj` — как у `fresh` (прочее не трогается)."""
+    if KINDS[kind].details:
+        details = dict(obj.details) if isinstance(obj.details, dict) else {}
+        fresh_details = fresh.details if isinstance(fresh.details, dict) else {}
+        if "faq" in fresh_details:
+            details["faq"] = fresh_details["faq"]
+        else:
+            details.pop("faq", None)
+        obj.details = details
+        obj.details_i18n = copy.deepcopy(fresh.details_i18n)
+        return
+    obj.faq = copy.deepcopy(fresh.faq)
+    obj.faq_i18n = copy.deepcopy(fresh.faq_i18n)
+
+
+def save_from_form(obj, kind: str, post, tenant=None, notes: list | None = None) -> list[str]:
+    """Форма объекта в кабинете → свои вопросы (по сентинелу `faq_present`, W0): под
+    блокировкой строки и со сверкой отпечатка `faq_base` формы (ревью M2b-2b: форма и окно,
+    два сотрудника). Не совпал — вопросы не пишутся, сообщение в `notes`; прочие поля формы —
+    дело вызывающего. Записывает сам (`update_fields`); `obj` получает записанное."""
+    from django.db import transaction
+
+    from apps.core.i18n_input import extra_locales
+
+    if not _s(post.get("faq_present", "")) or obj.pk is None:
+        return []
+    with transaction.atomic():
+        locked = type(obj).objects.select_for_update().filter(pk=obj.pk).first()
+        if locked is None:
+            return []
+        base = post.get("faq_base")
+        if base is not None and base != fingerprint(locked, kind):
+            if notes is not None:
+                notes.append(form_changed_note())
+            _sync(obj, locked, kind)
+            return []
+        parsed = from_form(post, extra_locales(tenant), kind, notes, keep=len(items(locked, kind)))
+        fields = put(locked, kind, parsed[0], per_locale=parsed[1], tenant=tenant)
+        if fields:
+            if any(f.name == "updated_at" for f in locked._meta.concrete_fields):
+                fields.append("updated_at")
+            locked.save(update_fields=fields)
+        _sync(obj, locked, kind)
+    return fields
+
+
+def form_ctx(obj, kind: str, tenant) -> dict:
+    """Контекст общего редактора формы объекта (`tenant/_object_faq_fields.html`)."""
+    from apps.core.i18n_input import extra_locales
+
+    return {
+        "faq_rows": form_rows(obj, kind, extra_locales(tenant)),
+        "faq_base": fingerprint(obj, kind) if obj is not None else "",
+    }
+
+
+def form_changed_note() -> str:
+    return _(
+        "Die Fragen wurden inzwischen woanders geändert – Ihre Änderungen an den Fragen wurden "
+        "nicht gespeichert. Bitte die Seite neu laden und noch einmal eintragen."
+    )
 
 
 # ───────────── витрина ─────────────
@@ -397,10 +531,11 @@ def localized(obj, kind: str, locale: str | None = None, config=None) -> list[di
     черновика «Seitenaufbau» — его вопросы (`DRAFT_KEY` в конфиге превью)."""
     from apps.core.i18n_seq import overlay_seq
 
+    cap = KINDS[kind].max_items  # ревью M2b-2b: на витрине и в FAQPage — не больше лимита вида
     entry = _draft_entry(config, obj)
     if entry is not None:
-        return overlay_seq(entry["items"], entry["i18n"], locale, keys=FIELDS)
-    return overlay_seq(items(obj, kind), overlays(obj, kind), locale, keys=FIELDS)
+        return overlay_seq(entry["items"], entry["i18n"], locale, keys=FIELDS)[:cap]
+    return overlay_seq(items(obj, kind), overlays(obj, kind), locale, keys=FIELDS)[:cap]
 
 
 def _draft_entry(config, obj):
@@ -597,6 +732,17 @@ def window_op(request, config: dict, draft: dict, ref: str, notes: list | None) 
         else:
             data.pop("source", None)
         row["data"] = data
+        if (
+            wanted == "shared"
+            and "ofaq" in draft
+            and not any(is_row(draft, it) for it in draft.get("items") or ())
+        ):
+            # ревью M2b-2b: свои вопросы больше нигде на странице не показаны — их правка
+            # снимается сразу и честным текстом (а не «блок удалён» при «Speichern»)
+            for key in DRAFT_KEYS:
+                draft.pop(key, None)
+            if notes is not None:
+                notes.append(switched_note())
     if ref and row is None:
         raise site_schema.SchemaError("block")
     return ref
@@ -718,6 +864,13 @@ def add_default(new: dict, host: str) -> None:
         new["data"] = {**(new.get("data") or {}), "source": SOURCE_OBJECT}
 
 
+def switched_note() -> str:
+    return _(
+        "Der Block zeigt jetzt die allgemeinen FAQ – die Änderungen an den eigenen Fragen "
+        "wurden verworfen."
+    )
+
+
 def gone_note() -> str:
     return _("Dieses Angebot gibt es nicht mehr – die Fragen wurden nicht übernommen.")
 
@@ -754,13 +907,15 @@ def display_name(obj) -> str:
     return str(obj)
 
 
-def _links(host: str) -> list[dict]:
-    """На общем хосте детали — ссылки на формы объектов (свои вопросы правятся там)."""
+def _links(host: str, user=None) -> list[dict]:
+    """На общем хосте детали — ссылки на формы объектов (свои вопросы правятся там). Виды,
+    чьи формы пользователю закрыты, ссылок не дают (ревью M2b-2b, security LOW)."""
+    from django.db import DatabaseError
     from django.urls import NoReverseMatch, reverse
 
     out = []
     for kind, k in KINDS.items():
-        if k.shared_host != host:
+        if k.shared_host != host or not _allowed(user, kind):
             continue
         try:
             qs = model(kind).objects.all()
@@ -772,7 +927,8 @@ def _links(host: str) -> list[dict]:
                         "count": len(items(obj, kind)),
                     }
                 )
-        except (LookupError, NoReverseMatch):
+        except (LookupError, NoReverseMatch, DatabaseError):
+            # ревью M2b-2b: окно без ссылок лучше упавшего экрана — видно в логе
             logger.warning("object_faq: links of %s unavailable", kind, exc_info=True)
     return out[:LINKS_MAX]
 
@@ -783,10 +939,11 @@ def _order(kind: str) -> tuple[str, ...]:
     )
 
 
-def panel(draft: dict, host: str, item, opened=None, saved_config=None) -> dict | None:
+def panel(draft: dict, host: str, item, opened=None, saved_config=None, user=None) -> dict | None:
     """Модель части «Fragen» окна на детальной (None — не наша строка). `scope`:
     object — свои вопросы правятся здесь; each — общий хост: подсказка и ссылки; shared —
-    общие вопросы (их модель дополняет `faq_content.panel` у вызывающего)."""
+    общие вопросы (их модель дополняет `faq_content.panel` у вызывающего); noaccess —
+    сотрудник без права на объект видит только «нет доступа» (ревью M2b-2b)."""
     own = is_row(draft, item)
     ref = is_ref_row(draft, item)
     if not own and not ref:
@@ -794,7 +951,9 @@ def panel(draft: dict, host: str, item, opened=None, saved_config=None) -> dict 
     kind, obj = _object(host)
     hk = _host_kind(host)
     out: dict = {"scope": "shared", "kind": hk}
-    if own and obj is not None:
+    if own and obj is not None and not _allowed(user, kind):
+        out.update({"scope": "noaccess", "hint": error_note("ofaq_rights")})
+    elif own and obj is not None:
         cur, src = state(obj, kind, draft)
         k = KINDS[kind]
         out.update(faq_content.panel(cur, src, saved_config or {}, opened))
@@ -811,7 +970,11 @@ def panel(draft: dict, host: str, item, opened=None, saved_config=None) -> dict 
         )
     elif own:
         out.update(
-            {"scope": "each", "hint": KINDS[hk].each_hint if hk else "", "links": _links(host)}
+            {
+                "scope": "each",
+                "hint": KINDS[hk].each_hint if hk else "",
+                "links": _links(host, user),
+            }
         )
     if ref and hk:
         out["sources"] = [
@@ -834,7 +997,17 @@ def panel(draft: dict, host: str, item, opened=None, saved_config=None) -> dict 
         ]
     if own and has_section(host):
         out["double"] = _shown_twice(draft)
+    if own and isinstance(item, dict) and item.get("key") == "faq" and not item.get("id"):
+        # ревью M2b-2b: раздел «faq» скрыт — правка видна только после показа раздела
+        out["hidden_section"] = _section_hidden(draft)
     return out
+
+
+def _section_hidden(draft: dict) -> bool:
+    return any(
+        it.get("key") == "faq" and not it.get("id") and it.get("enabled", True) is False
+        for it in draft.get("items") or ()
+    )
 
 
 def _shown_twice(draft: dict) -> bool:
