@@ -39469,6 +39469,30 @@ msgstr "Слишком длинные тексты или лишние стро�
 msgid "fb33-stack-anchor-M2b-2a"
 msgstr "fb33-stack-anchor-M2b-2a"
 
+#. FB-33 M2b-2a: виды FAQ на детальных
+msgid "Akkordeon"
+msgstr "Аккордеон"
+
+#. FB-33 M2b-2a: виды FAQ на детальных
+msgid "Antwort beim Antippen"
+msgstr "Ответ по нажатию"
+
+#. FB-33 M2b-2a: виды FAQ на детальных
+msgid "alles offen"
+msgstr "всё открыто"
+
+#. FB-33 M2b-2a: виды FAQ на детальных
+msgid "Fragen nebeneinander"
+msgstr "Вопросы рядом"
+
+#. FB-33 M2b-2a: виды FAQ на детальных
+msgid "Fragen als Kacheln"
+msgstr "Вопросы плитками"
+
+#. FB-33 M2b-2a: виды FAQ на детальных
+msgid "Fragen mit Nummern"
+msgstr "Вопросы с номерами"
+
 #. FB-33 стопка: якорь среза M2i-5b — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
 msgid "fb33-stack-anchor-M2i-5b"
 msgstr "fb33-stack-anchor-M2i-5b"

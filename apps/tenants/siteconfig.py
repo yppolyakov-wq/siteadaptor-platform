@@ -22,7 +22,7 @@ from django.utils.translation import gettext_lazy as _
 from apps.catalog.category_styles import VALID_PAGE_STYLES as _CATEGORY_PAGE_STYLES
 from apps.catalog.category_styles import VALID_ROOT_STYLES as _ROOT_PAGE_STYLES
 from apps.catalog.option_styles import VARIANT_STYLE_KEYS as _CATALOG_VARIANT_STYLE_KEYS
-from apps.core import card_forms, detail_sections
+from apps.core import card_forms, detail_sections, faq_views
 from apps.promotions.group_styles import VALID_GROUP_STYLES as _GROUP_PAGE_STYLES
 from apps.promotions.group_styles import VALID_PROMO_PAGE_STYLES as _PROMO_PAGE_STYLES
 from apps.promotions.group_styles import (
@@ -4545,7 +4545,8 @@ def localize(config: dict, locale: str | None) -> dict:
 # Расширяемый реестр: новые секции со стилями добавлять сюда + ветвление в
 # шаблоне секции по section_row.style.
 SECTION_STYLES = {
-    "faq": ("list", "twocol", "cards", "numbered"),  # "" = аккордеон (текущий)
+    # "" = аккордеон (текущий); FB-33 M2b-2a: один список видов FAQ — `apps/core/faq_views.py`
+    "faq": faq_views.STYLE_KEYS,
     # UC6-6d2: «подобные FAQ» — отзывы и шаги (по 5 видов с дефолтом).
     "testimonials": ("quotes", "list", "accent", "single"),  # "" = карточки-сетка
     "process": ("timeline", "row", "minimal", "twocol"),  # "" = карточки с кружками
