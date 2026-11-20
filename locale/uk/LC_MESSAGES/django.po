@@ -39452,10 +39452,6 @@ msgstr "Лише для типу «Вибір зі списку», по одно
 msgid "Zu lange Texte oder zu viele Einträge wurden gekürzt."
 msgstr "Задовгі тексти або зайві рядки обрізано."
 
-#. FB-33 стопка: якорь среза M2b-2a — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
-msgid "fb33-stack-anchor-M2b-2a"
-msgstr "fb33-stack-anchor-M2b-2a"
-
 #. FB-33 M2b-2a: виды FAQ на детальных
 msgid "Akkordeon"
 msgstr "Акордеон"
@@ -39492,10 +39488,6 @@ msgstr "Питань поки немає. Без питань цей блок н
 msgid "Allgemeine Fragen"
 msgstr "Загальні питання"
 
-#. FB-33 стопка: якорь среза M2i-5b — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
-msgid "fb33-stack-anchor-M2i-5b"
-msgstr "fb33-stack-anchor-M2i-5b"
-
 #. FB-33 M2i-5b
 msgid "Ohne Übersetzung:"
 msgstr "Без перекладу:"
@@ -39527,10 +39519,6 @@ msgstr "«%(what)s» — переклад (%(lang)s)"
 #, python-format
 msgid "Übersetzungen entfernt, weil die Option geändert oder gelöscht wurde: %(names)s"
 msgstr "Переклади видалено, бо варіант змінено або видалено: %(names)s"
-
-#. FB-33 стопка: якорь среза M3-3abc — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
-msgid "fb33-stack-anchor-M3-3abc"
-msgstr "fb33-stack-anchor-M3-3abc"
 
 #. FB-33 M3-3a: виды картинками во вкладке «Wie anordnen»
 msgid "Überschrift + Absätze"
@@ -39622,10 +39610,6 @@ msgstr "вигляд цього блоку"
 #. FB-33 M3-3: ревью — контекст ссылок для читалок
 msgid "Block „Produkte“"
 msgstr "блок «Товари»"
-
-#. FB-33 стопка: якорь среза M3-3d — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
-msgid "fb33-stack-anchor-M3-3d"
-msgstr "fb33-stack-anchor-M3-3d"
 
 msgid "Die gemerkte Seite gibt es hier nicht (mehr) — Seite bitte neu wählen."
 msgstr "Запам'ятованої сторінки тут немає (більше немає) — виберіть сторінку знову."

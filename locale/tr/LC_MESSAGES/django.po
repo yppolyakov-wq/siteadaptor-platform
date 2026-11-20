@@ -39270,10 +39270,6 @@ msgstr "Yalnızca “Seçim” türü için, satır başına bir seçenek."
 msgid "Zu lange Texte oder zu viele Einträge wurden gekürzt."
 msgstr "Çok uzun metinler veya fazla girişler kısaltıldı."
 
-#. FB-33 стопка: якорь среза M2b-2a — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
-msgid "fb33-stack-anchor-M2b-2a"
-msgstr "fb33-stack-anchor-M2b-2a"
-
 #. FB-33 M2b-2a: виды FAQ на детальных
 msgid "Akkordeon"
 msgstr "Akordeon"
@@ -39310,10 +39306,6 @@ msgstr "Henüz soru yok. Soru olmadan bu blok web sitesinde görünmez."
 msgid "Allgemeine Fragen"
 msgstr "Genel sorular"
 
-#. FB-33 стопка: якорь среза M2i-5b — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
-msgid "fb33-stack-anchor-M2i-5b"
-msgstr "fb33-stack-anchor-M2i-5b"
-
 #. FB-33 M2i-5b
 msgid "Ohne Übersetzung:"
 msgstr "Çeviri olmadan:"
@@ -39345,10 +39337,6 @@ msgstr "“%(what)s” – çeviri (%(lang)s)"
 #, python-format
 msgid "Übersetzungen entfernt, weil die Option geändert oder gelöscht wurde: %(names)s"
 msgstr "Seçenek değiştirildiği veya silindiği için çeviriler kaldırıldı: %(names)s"
-
-#. FB-33 стопка: якорь среза M3-3abc — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
-msgid "fb33-stack-anchor-M3-3abc"
-msgstr "fb33-stack-anchor-M3-3abc"
 
 #. FB-33 M3-3a: виды картинками во вкладке «Wie anordnen»
 msgid "Überschrift + Absätze"
@@ -39440,10 +39428,6 @@ msgstr "bu bloğun görünümü"
 #. FB-33 M3-3: ревью — контекст ссылок для читалок
 msgid "Block „Produkte“"
 msgstr "„Ürünler“ bloğu"
-
-#. FB-33 стопка: якорь среза M3-3d — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
-msgid "fb33-stack-anchor-M3-3d"
-msgstr "fb33-stack-anchor-M3-3d"
 
 msgid "Die gemerkte Seite gibt es hier nicht (mehr) — Seite bitte neu wählen."
 msgstr "Hatırlanan sayfa burada (artık) yok — lütfen sayfayı yeniden seçin."
