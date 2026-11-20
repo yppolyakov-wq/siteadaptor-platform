@@ -491,6 +491,7 @@ function aufbauSubmitCopy(form, submitter) {
         a.removeAttribute("form");
         a.removeAttribute("name");
         a.removeAttribute("formnovalidate");
+        a.removeAttribute("aria-describedby");
       }
       a.setAttribute("role", "tab");
       a.id = "schema-tabbtn-" + key;
@@ -513,6 +514,7 @@ function aufbauSubmitCopy(form, submitter) {
       b.setAttribute("form", b.getAttribute("data-bw-form"));
       b.name = "zu_tab";
       b.setAttribute("formnovalidate", "");
+      b.setAttribute("aria-describedby", "bw-nav-apply");
       ["role", "aria-selected", "aria-controls", "tabindex", "id"].forEach(function (k) { b.removeAttribute(k); });
     });
   }
