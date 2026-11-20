@@ -1279,6 +1279,16 @@ def units(request, pk=None):
             _uf += [
                 f for f in object_structure.apply_post(unit, "stay", request.POST) if f not in _uf
             ]
+            # FB-33 M2b-2b: свои вопросы FAQ номера — по сентинелу, писателем `object_faq.put`
+            from apps.core import object_faq
+
+            _tenant = getattr(request, "tenant", None)
+            parsed = object_faq.from_form(request.POST, extra_locales(_tenant), "stay")
+            if parsed is not None:
+                _faq_fields = object_faq.put(
+                    unit, "stay", parsed[0], per_locale=parsed[1], tenant=_tenant
+                )
+                _uf += [f for f in _faq_fields if f not in _uf]
             unit.save(update_fields=_uf)
             _add_unit_photos(unit, request.FILES.getlist("photos"), request)
             capacity_error = None
@@ -1496,6 +1506,8 @@ def _render_room_page(request, unit):
     unit.ical_export_url = request.build_absolute_uri(
         reverse("storefront-stay-ical", args=[ical_token(unit)])
     )
+    from apps.core import object_faq
+
     unit.i18n_inputs = i18n_inputs_for(unit, tenant)  # L3d
     unit.season_overlaps = _overlapping_season_ids(unit.season_rates.all())  # Z-4
     tab = request.GET.get("tab")
@@ -1510,6 +1522,8 @@ def _render_room_page(request, unit):
             "rooms_n": len(unit.rooms.all()),
             "season_n": len(unit.season_rates.all()),
             "extra_locales": extra_locales(tenant),
+            # FB-33 M2b-2b: свои вопросы FAQ номера (общий редактор форм объекта)
+            "faq_rows": object_faq.form_rows(unit, "stay", extra_locales(tenant)),
             "can_edit_prices": has_perm(request.user, "preise.edit"),  # Z-4 Р-7
             "amenities": AMENITIES,  # H3 чек-лист удобств
         },

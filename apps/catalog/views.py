@@ -240,6 +240,12 @@ def _page_structure_ctx(request, product) -> dict:
     }
 
 
+def _faq_rows(request, product) -> list[dict]:
+    from apps.core import object_faq
+
+    return object_faq.form_rows(product, "product", extra_locales(getattr(request, "tenant", None)))
+
+
 @login_required
 def product_edit(request, pk):
     product = get_object_or_404(Product, pk=pk)
@@ -264,6 +270,15 @@ def product_edit(request, pk):
         from apps.core import object_structure
 
         changed = object_structure.apply_post(product, "product", request.POST)
+        # FB-33 M2b-2b: свои вопросы FAQ товара — по сентинелу, писателем `object_faq.put`
+        from apps.core import object_faq
+
+        tenant = getattr(request, "tenant", None)
+        parsed = object_faq.from_form(request.POST, extra_locales(tenant), "product")
+        if parsed is not None:
+            changed += object_faq.put(
+                product, "product", parsed[0], per_locale=parsed[1], tenant=tenant
+            )
         if changed:
             product.save(update_fields=[*changed, "updated_at"])
         return redirect("catalog:product-edit", pk=product.pk)
@@ -275,6 +290,8 @@ def product_edit(request, pk):
             "is_create": False,
             "product": product,
             **_page_structure_ctx(request, product),
+            # FB-33 M2b-2b: свои вопросы FAQ товара (общий редактор форм объекта)
+            "faq_rows": _faq_rows(request, product),
             "variants": product.variants.all(),
             # KA-12 WR-5: цвета вариантов — для «Foto für eine Farbe» (без дублей).
             "variant_colors": sorted(

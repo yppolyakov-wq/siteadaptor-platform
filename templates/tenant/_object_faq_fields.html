@@ -1,0 +1,20 @@
+{% load i18n %}{% comment %}FB-33 M2b-2b: свои вопросы FAQ объекта в его форме кабинета — общий редактор услуги, товара и номера (пары полей faq_q_<i>/faq_a_<i> и переводы по языкам; сентинел faq_present ставит форма или sentinel=True). Пишет object_faq.put.{% endcomment %}
+{% if sentinel %}<input type="hidden" name="faq_present" value="1">{% endif %}
+    <fieldset>
+      <legend class="text-sm font-medium mb-1">{% trans "Frequently asked questions" %}</legend>
+      {% for row in rows %}
+        <div class="border-t border-gray-100 pt-2 mt-2 space-y-1">
+          <div data-i18n-loc="{{ base_loc }}" class="space-y-1">
+            <input name="{{ row.q_name }}" type="text" value="{{ row.q }}" aria-label="{% trans 'Question' %} {{ forloop.counter }}" placeholder="{% trans 'Question' %}" class="ui-input">
+            <textarea name="{{ row.a_name }}" rows="2" aria-label="{% trans 'Answer' %} {{ forloop.counter }}" placeholder="{% trans 'Answer' %}" class="ui-input">{{ row.a }}</textarea>
+          </div>
+          {% for tr in row.i18n %}
+          <div data-i18n-loc="{{ tr.locale }}" class="hidden space-y-1">
+            <input name="{{ tr.q_name }}" type="text" value="{{ tr.q }}" lang="{{ tr.locale }}" aria-label="{% trans 'Question' %} ({{ tr.locale|upper }})" placeholder="{% trans 'Question' %} ({{ tr.locale|upper }})" class="ui-input">
+            <textarea name="{{ tr.a_name }}" rows="2" lang="{{ tr.locale }}" aria-label="{% trans 'Answer' %} ({{ tr.locale|upper }})" placeholder="{% trans 'Answer' %} ({{ tr.locale|upper }})" class="ui-input">{{ tr.a }}</textarea>
+          </div>
+          {% endfor %}
+        </div>
+      {% endfor %}
+      <p class="text-xs ui-muted mt-1">{% trans "Clearing a question removes it. A new empty pair appears after saving." %}</p>
+    </fieldset>
