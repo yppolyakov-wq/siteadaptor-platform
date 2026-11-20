@@ -1103,7 +1103,8 @@ def with_locales(fs: dict, locales, wanted: str = "") -> dict:
         {"code": loc, "label": names.get(loc, loc), "shown": loc == lang} for loc in locs
     ]
 
-    def inputs(tr: dict, name: str, ident: str) -> list[dict]:
+    def inputs(tr: dict, name: str, ident: str, empty=None) -> list[dict]:
+        """`empty(loc)` — что покажет сайт без перевода (подсказка в поле)."""
         return [
             {
                 "loc": loc,
@@ -1112,13 +1113,34 @@ def with_locales(fs: dict, locales, wanted: str = "") -> dict:
                 "id": f"ff-{ident}-{loc}",
                 "value": tr.get(loc, ""),
                 "shown": loc == lang,
+                "empty": empty(loc) if empty else "",
             }
             for loc in locs
         ]
 
+    def default_label(row):
+        """Без перевода сайт покажет свою немецкую подпись, а без неё — подпись по
+        умолчанию НА ЭТОМ языке (gettext), не немецкую."""
+        from django.utils import translation
+
+        field = _BY_FORM[fs["form"]][row["key"]]
+        plain = (
+            field.req_label if row["mode"] == REQ and field.req_label is not None else field.label
+        )
+
+        def empty(loc):
+            if row["custom_label"]:
+                return row["custom_label"]
+            with translation.override(loc):
+                return str(plain)
+
+        return empty
+
     for row in fs["fields"]:
         if not row["pinned"]:
-            row["translations"] = inputs(row["_tr"], f"label_{row['key']}", f"label-{row['key']}")
+            row["translations"] = inputs(
+                row["_tr"], f"label_{row['key']}", f"label-{row['key']}", default_label(row)
+            )
     for q in fs["custom"]:
         if _is_temp(q.get("id")):
             continue  # новый вопрос: переводы — после «Übernehmen»

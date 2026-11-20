@@ -142,3 +142,15 @@ def test_translations_are_escaped_in_window():
     cfg["form_fields"]["anfrage"]["custom"][1]["options_i18n"] = {"Garten": {"ru": XSS}}
     _html, part = _part(_browser(cfg))
     _clean(part)
+
+
+def test_placeholder_is_what_the_page_shows_without_translation():
+    """Без перевода сайт покажет свою немецкую подпись, а без неё — подпись по умолчанию на
+    языке перевода (gettext), не немецкую."""
+    _html, part = _part(_browser())
+    phone = re.search(r'<input[^>]*name="f_label_phone_ru"[^>]*>', part).group(0)
+    assert 'placeholder="Handy"' in phone  # своя немецкая подпись (CUSTOM)
+    email = re.search(r'<input[^>]*name="f_label_email_ru"[^>]*>', part).group(0)
+    with translation.override("ru"):
+        assert f'placeholder="{translation.gettext("Email")}"' in email
+    assert 'placeholder="Email"' not in email

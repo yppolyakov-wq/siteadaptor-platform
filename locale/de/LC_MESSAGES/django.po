@@ -39260,8 +39260,8 @@ msgid "Übersetzung bearbeiten"
 msgstr "Übersetzung bearbeiten"
 
 #. FB-33 M2i-5b
-msgid "Ohne Übersetzung zeigt die Seite den deutschen Text."
-msgstr "Ohne Übersetzung zeigt die Seite den deutschen Text."
+msgid "Leeres Feld: Die Seite zeigt den Text aus dem Platzhalter."
+msgstr "Leeres Feld: Die Seite zeigt den Text aus dem Platzhalter."
 
 #. FB-33 M2i-5b
 #, python-format

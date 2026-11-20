@@ -39319,8 +39319,8 @@ msgid "Übersetzung bearbeiten"
 msgstr "Çeviriyi düzenle"
 
 #. FB-33 M2i-5b
-msgid "Ohne Übersetzung zeigt die Seite den deutschen Text."
-msgstr "Çeviri yoksa sayfa Almanca metni gösterir."
+msgid "Leeres Feld: Die Seite zeigt den Text aus dem Platzhalter."
+msgstr "Boş alan: sayfa, yer tutucudaki metni gösterir."
 
 #. FB-33 M2i-5b
 #, python-format
