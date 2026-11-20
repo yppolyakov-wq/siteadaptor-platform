@@ -118,17 +118,36 @@ def tab_flow(pg, tag, js=True):
     )
     pg.fill(f"{scope} input[name=f_label_phone_ru]", "Мобильный")
     et.fill("Свадьба")
+    details = pg.locator(f"{scope} details[data-form-qo-tr]")
+    check(
+        details.count() == 1 and details.get_attribute("open") is None,
+        f"{tag}: переводы вариантов вопроса свёрнуты (<details>), пока пусто",
+    )
+    details.locator("summary").click()
     pg.fill(f"{scope} input[name^=f_q_q1_o][name$=_ru] >> nth=1", "Сад")
+    src = pg.locator(f"{scope} #ff-label-phone-ru-src").inner_text()
+    check("Ohne" in src or "Без" in src, f"{tag}: основной текст виден под полем ({src!r})")
+    named = pg.eval_on_selector_all(
+        f"{scope} [name]", "es => es.filter(e => /_en$/.test(e.name)).length"
+    )
+    check(named == 0, f"{tag}: у полей невыбранного языка нет name ({named})")
     with pg.expect_navigation():
         pg.click(f"{scope} button[name=f_sprache][value=en]")
     settle(pg, js)
     check("sprache=en" in pg.url, f"{tag}: кнопка языка — en в адресе")
+    if js:
+        pg.wait_for_function("document.activeElement && document.activeElement.id", timeout=5000)
+    focus = pg.evaluate("document.activeElement && document.activeElement.id")
+    check(
+        focus == "schema-tab-lang-en" if js else pg.url.endswith("#schema-tab-lang-en"),
+        f"{tag}: после смены языка фокус/якорь — на кнопке языка ({focus!r}, {pg.url[-24:]})",
+    )
     check(
         visible(pg, scope, "f_label_phone_en") and not visible(pg, scope, "f_label_phone_ru"),
         f"{tag}: после смены видны поля en",
     )
     check(
-        pg.locator(f"{scope} input[name=f_label_phone_ru]").input_value() == "Мобильный",
+        pg.locator(f"{scope} #ff-label-phone-ru").input_value() == "Мобильный",
         f"{tag}: введённый ru-перевод не потерялся при смене языка",
     )
     pg.fill(f"{scope} input[name=f_label_phone_en]", "Mobile")
