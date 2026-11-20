@@ -39480,6 +39480,10 @@ msgstr "Питання плитками"
 msgid "Fragen mit Nummern"
 msgstr "Питання з номерами"
 
+#. FB-33 M2b-2a: виды FAQ на детальных
+msgid "nicht unter den Ansichten dieser Seite"
+msgstr "немає серед видів цієї сторінки"
+
 #. FB-33 стопка: якорь среза M2i-5b — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
 msgid "fb33-stack-anchor-M2i-5b"
 msgstr "fb33-stack-anchor-M2i-5b"

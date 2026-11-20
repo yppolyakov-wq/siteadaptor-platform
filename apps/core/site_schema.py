@@ -1557,9 +1557,15 @@ def section_style_fields(item: dict) -> list[dict]:
     ]
 
 
-def _style_options(base: str) -> list[tuple[str, str]]:
+def _style_options(base: str, host: str = "") -> list[tuple[str, str]]:
+    """Пункты «Darstellung» секции `base` на странице `host`. FAQ — из реестра его видов
+    (`faq_views`: одно имя на всех страницах, на детальной — три вида)."""
     from apps.tenants import siteconfig
 
+    if base == "faq":
+        from apps.core import faq_views
+
+        return faq_views.choices(host)
     return [
         ("", _("Standard")),
         *(
@@ -1605,11 +1611,13 @@ def fill_options(block: dict, host: str) -> None:
         }
         block["style_only"] = True
     elif key in siteconfig.PAGE_REF_BLOCKS:
-        options = {"style": _style_options(key[: -len("_ref")])}
+        options = {"style": _style_options(key[: -len("_ref")], host)}
         block["style_only"] = True  # в панели только вид — подсказка про тексты не нужна
     elif key in STYLE_SECTIONS and not block.get("cblock"):
-        options = {"style": _style_options(key)}
+        options = {"style": _style_options(key, host)}
         block["style_only"] = True
+    if key in ("faq", "faq_ref") and "style" in options:
+        _keep_foreign_faq_view(block, options["style"])
     for f in block.get("fields") or []:
         if f["name"] in options:
             f["options"] = _select(f["name"], f["label"], f["value"], options[f["name"]])["options"]
@@ -1620,6 +1628,20 @@ def fill_options(block: dict, host: str) -> None:
     elif key == "textpage":
         block["source_url"] = reverse("content-pages")
         block["source_label"] = _("Texte der Seiten ändern")
+
+
+def _keep_foreign_faq_view(block: dict, options: list) -> None:
+    """FB-33 M2b-2a (W0): сохранённый вид FAQ, которого нет среди видов этой страницы
+    (на детальной «Karten»), остаётся выбранным пунктом со своим именем и пометкой — страница
+    рисует его как раньше, а «Übernehmen» без выбора его не сменит."""
+    from apps.core import faq_views
+
+    value = next(
+        (str(f["value"] or "") for f in block.get("fields") or [] if f["name"] == "style"), ""
+    )
+    if value in faq_views.STYLE_KEYS and value not in {k for k, _lab in options}:
+        note = _("nicht unter den Ansichten dieser Seite")
+        options.append((value, f"{faq_views.label(value)} ({note})"))
 
 
 #: Встроенные секции, которые сами рисуются во всю ширину экрана: доли ширины им не даём.

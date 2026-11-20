@@ -76,3 +76,62 @@ def test_one_name_per_view_on_every_page():
     assert all(v.hint for v in faq_views.VIEWS)
     assert faq_views.label("") == "Akkordeon" and faq_views.label("evil") == "evil"
     assert str(siteconfig.SECTION_STYLE_LABELS["list"]) == "Offene Liste"  # у прочих секций
+
+
+# ── C2: панель блока FAQ — виды страницы ──
+
+
+def _faq_panel(host, value="", key="faq_ref"):
+    from apps.core import site_schema
+
+    if key == "faq_ref":
+        fields = site_schema.panel_fields({"key": key, "data": {"style": value} if value else {}})
+        block = {"key": key, "fields": fields}
+    else:
+        block = {"key": key, "cblock": False, "fields": site_schema.section_style_fields({"key": key, "style": value})}  # fmt: skip
+    site_schema.fill_options(block, host)
+    return block["fields"][0]["options"]
+
+
+@pytest.mark.parametrize("host", ["service_detail", "event_detail", f"service:{'c' * 32}"])
+def test_detail_panel_offers_three_views(host):
+    assert _faq_panel(host) == [("", "Akkordeon"), ("list", "Liste"), ("twocol", "Zwei Spalten")]
+
+
+@pytest.mark.parametrize(("host", "key"), [("catalog", "faq_ref"), ("promo_detail", "faq_ref"), ("", "faq")])  # fmt: skip
+def test_other_pages_and_the_home_section_offer_five_views(host, key):
+    assert [lab for _k, lab in _faq_panel(host, key=key)] == [
+        "Akkordeon",
+        "Liste",
+        "Zwei Spalten",
+        "Karten",
+        "Nummeriert",
+    ]
+
+
+def test_saved_view_outside_the_detail_views_stays_selected_with_a_note():
+    """W0: «Karten» на детальной сохранён раньше — пункт остаётся и назван, а не «Standard»."""
+    options = _faq_panel("service_detail", "cards")
+    assert options[-1] == ("cards", "Karten (nicht unter den Ansichten dieser Seite)")
+    assert len(options) == 4
+    assert _faq_panel("service_detail", "evil")[-1] == ("evil", "evil (nicht verfügbar)")
+
+
+@pytest.mark.django_db
+def test_seitenaufbau_of_the_service_page_shows_three_faq_views(settings):
+    from apps.core import site_schema
+    from apps.core.modules import default_disabled_for
+    from apps.core.tests.test_fb27_r2_draft import Browser
+    from apps.tenants.tests.factories import TenantFactory
+
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    bt = "friseur"
+    tenant = TenantFactory(business_type=bt, disabled_modules=list(default_disabled_for(bt)))
+    ref = site_schema.apply(tenant, "service", "add", block_type="faq_ref")
+    html = Browser(tenant).get(f"?seite=service&block={ref}")
+    assert 'name="f_style"' in html and 'value="twocol"' in html
+    assert 'value="cards"' not in html and 'value="numbered"' not in html
+    assert ">Akkordeon<" in html
+    site_schema.apply(tenant, "service", "update", ref=ref, fields={"style": "cards"})
+    html = Browser(tenant).get(f"?seite=service&block={ref}")
+    assert "Karten (nicht unter den Ansichten dieser Seite)" in html
