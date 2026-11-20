@@ -39284,3 +39284,7 @@ msgstr "Вигляд"
 msgctxt "answer yes"
 msgid "Ja"
 msgstr "Так"
+
+#. FB-33 M3-1b: «Abbrechen» окна блока
+msgid "Änderungen an diesem Block zurückgenommen."
+msgstr "Зміни цього блоку скасовано."

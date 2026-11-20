@@ -130,6 +130,7 @@ def site_schema_view(request):
                     request.POST.get("value", ""),
                     output=output,
                     apply_all=request.POST.get("apply_all") == "1",
+                    ref=ref,  # FB-33 M3-1b: снимок окна ★/строки-носителя
                 )
                 if skipped:
                     from apps.core import studio_pages
@@ -176,6 +177,9 @@ def site_schema_view(request):
                 said = _PICK_SAID.get(op)
                 if said and request.POST.get("pick_op"):
                     messages.success(request, said)
+                if op == "revert":
+                    # FB-33 M3-1b: окно закрылось, фокус ушёл — читатель экрана слышит итог
+                    messages.success(request, _("Änderungen an diesem Block zurückgenommen."))
         except page_settings.PageSettingError:
             if op == "save":
                 # Черновик остаётся: владелец видит, что именно не записалось, и может
@@ -228,7 +232,9 @@ def site_schema_view(request):
                 ),
             )
         # Блок остаётся выбранным (новый — тоже), удалённый — нет.
-        target = _url(code, "" if op == "delete" else ref, _keep(request.POST))
+        # FB-33 M3-1b: «Fertig» и «Abbrechen» закрывают окно блока
+        closed = op == "delete" or op in aufbau_draft.WINDOW_OPS
+        target = _url(code, "" if closed else ref, _keep(request.POST))
         if op == "setting" and "#" in target:
             # Настройка, которую только что меняли, остаётся раскрытой.
             base, anchor = target.split("#", 1)

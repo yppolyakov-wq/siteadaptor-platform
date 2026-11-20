@@ -122,9 +122,17 @@ def _all(request) -> dict:
     return drafts if isinstance(drafts, dict) else {}
 
 
-def get(request, code: str) -> dict | None:
+def _raw(request, code: str) -> dict | None:
     draft = _all(request).get(code)
     return draft if isinstance(draft, dict) and isinstance(draft.get("items"), list) else None
+
+
+def get(request, code: str) -> dict | None:
+    """Черновик страницы. «Пустой» (правки вернули руками, а окно блока ещё открыто —
+    в нём живёт только снимок для «Abbrechen», FB-33 M3-1b) — как его нет: экран, превью
+    и список черновиков показывают сохранённое."""
+    draft = _raw(request, code)
+    return None if draft is None or draft.get(IDLE_KEY) else draft
 
 
 def _put(request, code: str, draft: dict | None) -> None:
@@ -293,6 +301,115 @@ def _keys_conflict(config: dict, draft: dict) -> bool:
     return _keys_fingerprint(config, draft.get("kcodes")) != draft["kbase"]
 
 
+# ───────────── FB-33 M3-1b: окно блока — «Fertig» и «Abbrechen» ─────────────
+#: снимки блоков на момент открытия окна: {ref: прообраз}; вне `_saved_state` (отпечаток,
+#: счётчик и конфликт их не видят)
+WINDOW_KEY = "window"
+#: черновик без правок, который держится только ради снимка (см. `get`)
+IDLE_KEY = "idle"
+#: снимков не больше трёх (по блоку; две вкладки браузера — два снимка)
+WINDOW_MAX = 3
+WINDOW_OPS = ("revert", "window_done")
+#: операции не из окна блока (перетаскивание в списке, добавление) — снимка не пишут
+_NO_SNAPSHOT_OPS = frozenset({"add", "add_row", "adopt", "reset", "move", *WINDOW_OPS})
+
+
+def _ident(item) -> str:
+    return (item.get("id") or item.get("key") or "") if isinstance(item, dict) else ""
+
+
+def _window_setting_codes(tenant, code: str, ref: str) -> list[str]:
+    """Настройки, которые правятся в окне строки `ref`: свои у строки раздела, все
+    настройки типа — у ★ и у строки-носителя (как их показывает окно)."""
+    from apps.tenants import siteconfig
+
+    own = site_schema.row_settings(code, ref)
+    if own:
+        return list(own)
+    if ref in (siteconfig.MAIN_LIST_KEY, site_schema.settings_carrier(code)):
+        try:
+            return list(site_schema.setting_codes(tenant, code))
+        except site_schema.SchemaError:
+            return []
+    return []
+
+
+def _snapshot(tenant, code: str, host: str, draft: dict, ref: str) -> None:
+    """Прообраз блока `ref` — на первой правке после открытия окна (повтор не пишет)."""
+    from apps.core import confirmation_page
+
+    window = draft.get(WINDOW_KEY) if isinstance(draft.get(WINDOW_KEY), dict) else {}
+    if not ref or ref == site_schema.PAGE_REF or ref in window:
+        return
+    items = draft.get("items") or []
+    at = next((i for i, it in enumerate(items) if _ident(it) == ref), None)
+    proto = {"item": copy.deepcopy(items[at]) if at is not None else None, "at": at}
+    if ref == site_schema.TITLE_REF:
+        proto["title"] = ["title" in draft, copy.deepcopy(draft.get("title"))]
+    if host == confirmation_page.HOST and ref == site_schema.NEXT_REF:
+        proto["next"] = ["next" in draft, draft.get("next")]
+    codes = _window_setting_codes(tenant, code, ref)
+    if codes:
+        pending = _settings(draft)
+        proto["codes"] = codes
+        proto["settings"] = {c: copy.deepcopy(pending[c]) for c in codes if c in pending}
+    window = {**window, ref: proto}
+    while len(window) > WINDOW_MAX:
+        window.pop(next(iter(window)))
+    draft[WINDOW_KEY] = window
+
+
+def _restore_key(draft: dict, key: str, entry) -> None:
+    present, value = entry
+    if present:
+        draft[key] = value
+    else:
+        draft.pop(key, None)
+
+
+def _revert(draft: dict, ref: str) -> None:
+    """«Abbrechen»: блок `ref` — как в снимке (строка на своём месте, тексты, настройки
+    окна); прочие правки черновика (другие блоки, другие вкладки) не трогаются."""
+    window = dict(draft.get(WINDOW_KEY) or {})
+    proto = window.pop(ref, None)
+    if window:
+        draft[WINDOW_KEY] = window
+    else:
+        draft.pop(WINDOW_KEY, None)
+    if not isinstance(proto, dict):
+        return
+    items = [it for it in draft.get("items") or [] if _ident(it) != ref]
+    if proto.get("item") is not None:
+        at = proto.get("at")
+        items.insert(
+            min(max(at if isinstance(at, int) else len(items), 0), len(items)), proto["item"]
+        )
+    draft["items"] = items
+    for key in ("title", "next"):
+        if key in proto:
+            _restore_key(draft, key, proto[key])
+    if "codes" in proto:
+        pending = {k: v for k, v in _settings(draft).items() if k not in proto["codes"]}
+        pending.update(proto.get("settings") or {})
+        if pending:
+            draft["settings"] = pending
+        else:
+            for key in ("settings", "kbase", "kcodes"):
+                draft.pop(key, None)
+
+
+def _working_draft(request, code: str, saved: dict, home: bool, host: str) -> tuple[dict, bool]:
+    """Черновик для правки и был ли он. «Пустой» (только снимок) начинается заново с
+    сохранённого — снимки окна остаются."""
+    raw = _raw(request, code)
+    if raw and not raw.get(IDLE_KEY):
+        return raw, True
+    draft = {**copy.deepcopy(saved), "base": _fingerprint(saved), "home": home, "host": host}
+    if raw and raw.get(WINDOW_KEY):
+        draft[WINDOW_KEY] = raw[WINDOW_KEY]
+    return draft, raw is not None
+
+
 def op(
     request,
     tenant,
@@ -309,9 +426,23 @@ def op(
     _pt, host, home = site_schema.resolve(tenant, code)
     config = siteconfig.normalize(tenant.site_config)
     saved = _saved_state(config, home, host)
-    draft = get(request, code)
-    if not draft:
-        draft = {**copy.deepcopy(saved), "base": _fingerprint(saved), "home": home, "host": host}
+    draft, existed = _working_draft(request, code, saved, home, host)
+    if op_name in WINDOW_OPS:
+        # FB-33 M3-1b: «Abbrechen» — блок как на момент открытия окна; «Fertig» — снимок
+        # больше не нужен. Без черновика — писать нечего.
+        if not existed:
+            return ref
+        if op_name == "revert":
+            _revert(draft, ref)
+        else:
+            window = {k: v for k, v in (draft.get(WINDOW_KEY) or {}).items() if k != ref}
+            if window:
+                draft[WINDOW_KEY] = window
+            else:
+                draft.pop(WINDOW_KEY, None)
+        return _settle(request, code, draft, saved, ref)
+    if op_name not in _NO_SNAPSHOT_OPS:
+        _snapshot(tenant, code, host, draft, ref)
     if (
         op_name in ("add", "add_row", "adopt")
         and host.startswith(siteconfig.CATEGORY_HOST_PREFIX)
@@ -359,7 +490,14 @@ def _settle(request, code: str, draft: dict, saved: dict, ref: str = "") -> str:
     clean = _fingerprint(current) == _fingerprint(saved) == draft.get("base") and not _settings(
         draft
     )
-    _put(request, code, None if clean else draft)
+    if clean and draft.get(WINDOW_KEY):
+        # FB-33 M3-1b: окно блока открыто — снимок для «Abbrechen» держится, но черновика
+        # для экрана нет (`get`)
+        draft[IDLE_KEY] = True
+        _put(request, code, draft)
+    else:
+        draft.pop(IDLE_KEY, None)
+        _put(request, code, None if clean else draft)
     return ref
 
 
@@ -371,6 +509,7 @@ def setting_op(
     value,
     output: dict | None = None,
     apply_all: bool = False,
+    ref: str = "",
 ) -> list[str]:
     """FB-27 R4: настройка типа страницы — в черновик. Возвращает коды «на все списки»,
     которым значение не подошло (их пропустили). SchemaError / PageSettingError — если
@@ -384,9 +523,8 @@ def setting_op(
         raise site_schema.SchemaError("setting")
     config = siteconfig.normalize(tenant.site_config)
     saved = _saved_state(config, home, host)
-    draft = get(request, code)
-    if not draft:
-        draft = {**copy.deepcopy(saved), "base": _fingerprint(saved), "home": home, "host": host}
+    draft, _existed = _working_draft(request, code, saved, home, host)
+    _snapshot(tenant, code, host, draft, ref)  # FB-33 M3-1b: настройки окна ★/носителя
     targets = [setting]
     if apply_all and setting in page_settings.APPLY_ALL_LAYOUTS:
         targets += [

@@ -39102,3 +39102,7 @@ msgstr "Görünüm"
 msgctxt "answer yes"
 msgid "Ja"
 msgstr "Evet"
+
+#. FB-33 M3-1b: «Abbrechen» окна блока
+msgid "Änderungen an diesem Block zurückgenommen."
+msgstr "Bu bloktaki değişiklikler geri alındı."
