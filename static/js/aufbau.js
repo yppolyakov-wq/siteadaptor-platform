@@ -6,14 +6,27 @@ function aufbauError(text) {
   var box = document.querySelector("[data-schema-messages]");
   text = text || (box && box.getAttribute("data-schema-error")) || "";
   if (!text) return;
-  var host = box || document.querySelector("[data-schema-panel]");
+  // FB-33 M3-2: при открытом окне блока фон под inert — сообщение пишется в само окно
+  var inWindow = document.querySelector("dialog.ui-bwin[open] [data-bwin-msgs]");
+  var host = inWindow || box || document.querySelector("[data-schema-panel]");
   if (!host) { window.alert(text); return; }
   var p = document.createElement("p");
   p.setAttribute("role", "alert");
-  p.className = "rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800";
+  p.className = inWindow ? "ui-bwin-alert" : "rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800";
   p.textContent = text;
   host.appendChild(p);
   host.scrollIntoView({ block: "start" });
+}
+
+/* FB-33 M3-2: окно блока открывается со скриптами, если в панели есть «Fertig» окна
+   (`window_done`: выбран блок с окном, и в подтверждении удаления). Не открывается, пока
+   в адресе шторка кабинета (`?drawer=`). Без скриптов — прежняя панель колонкой. */
+function aufbauWindowWanted() {
+  var panel = document.querySelector("[data-schema-panel]");
+  if (!panel || !panel.querySelector('button[value="window_done"]')) return false;
+  if (typeof HTMLDialogElement !== "function" || !HTMLDialogElement.prototype.showModal) return false;
+  if (!window.fetch || !window.DOMParser || !window.FormData || !HTMLFormElement.prototype.requestSubmit) return false;
+  return !new URLSearchParams(location.search).has("drawer");
 }
 
 function aufbauSubmitCopy(form, submitter) {
@@ -33,6 +46,25 @@ function aufbauSubmitCopy(form, submitter) {
    сразу шлют change, и страница перезагружалась бы при просмотре списка (WCAG 3.2.2). */
 (function () {
   "use strict";
+  // FB-33 M3-2: окно закрыли («Fertig», «Abbrechen», ×, Esc) — фокус на строку того же
+  // блока (запись на 30 с, стирается при чтении); строки больше нет — на заголовок схемы.
+  var back = null;
+  try {
+    back = JSON.parse(sessionStorage.getItem("aufbauWindowBack") || "null");
+    sessionStorage.removeItem("aufbauWindowBack");
+  } catch (err) { back = null; }
+  if (aufbauWindowWanted()) return;  // фокус ставит само окно
+  var seite = new URLSearchParams(location.search).get("seite") || "home";
+  if (back && back.seite === seite && Date.now() - back.ts < 30000) {
+    var row = Array.prototype.find.call(document.querySelectorAll("[data-schema-block]"), function (a) {
+      return a.getAttribute("data-schema-block") === back.ref;
+    });
+    if (!row) {
+      row = document.getElementById("schema-title");
+      if (row) row.setAttribute("tabindex", "-1");
+    }
+    if (row) { row.focus(); return; }
+  }
   // После выбора блока или действия фокус — в панель (на телефоне она под схемой).
   if (location.hash === "#schema-panel") {
     var panel = document.getElementById("schema-panel");
@@ -58,6 +90,8 @@ function aufbauSubmitCopy(form, submitter) {
   var APPLY = 'button[value="update"],button[data-schema-apply]';
   var chain = Promise.resolve();
   var pending = 0;
+  // обычная отправка (запасной путь правки) уже ушла — ничего больше не отправляем
+  var navigating = false;
 
   // Для сценариев и стилей: сколько правок ещё в пути.
   function busy() { document.documentElement.setAttribute("data-schema-busy", String(pending)); }
@@ -93,7 +127,11 @@ function aufbauSubmitCopy(form, submitter) {
     var btn = form.isConnected && form.querySelector(APPLY);
     if (!btn) { aufbauError(); return; }  // ревью 2: не перезагружаем молча
     btn.style.display = "";
+    // FB-33 M3-2: правка ещё считается «в пути» — без флага её же обработчик отправки
+    // ниже проглотил бы эту отправку (Enter в поле), и правка пропала бы молча
+    navigating = true;
     form.requestSubmit(btn);
+    guard();
   }
 
   function apply(form, target) {
@@ -124,6 +162,7 @@ function aufbauSubmitCopy(form, submitter) {
         // Сообщения сервера (отказ, конфликт) — на своём месте; при отказе панель
         // показывает то, что действительно записано.
         swap(doc, "[data-schema-messages]");
+        relay();
         var refused = !!doc.querySelector('[data-schema-messages] [role="alert"]');
         if (refused) whole = true;
         swap(doc, "[data-schema-status]");
@@ -138,6 +177,7 @@ function aufbauSubmitCopy(form, submitter) {
           var typed = at && (at.tagName === "TEXTAREA" || at.type === "text") ? at.value : null;
           swap(doc, "[data-schema-panel]");
           hideApply();
+          dress();
           var el = at ? refocus(at) : null;
           if (at && !el) {
             // У ссылок и кнопок панели нет ни id, ни имени — возвращаемся по месту в панели.
@@ -154,11 +194,11 @@ function aufbauSubmitCopy(form, submitter) {
         } else {
           swap(doc, "#schema-result");
         }
-        var live = document.querySelector("[data-schema-live]");
+        var live = liveRegion();
         if (refused) {
           // Отказ читает сам role="alert"; на телефоне лист не должен его закрывать.
           if (live) live.textContent = "";
-          var box = document.querySelector("[data-schema-messages]");
+          var box = (win && win.querySelector("[data-bwin-msgs]")) || document.querySelector("[data-schema-messages]");
           if (box) box.scrollIntoView({ block: "start" });
         } else if (live) {
           // Тот же текст подряд диктор не повторяет — сначала очищаем.
@@ -199,6 +239,7 @@ function aufbauSubmitCopy(form, submitter) {
   document.addEventListener("focusout", function (e) { if (e.target) flush(e.target); });
 
   var radioTimer = null;
+  var radioFire = null;
   document.addEventListener("change", function (e) {
     var target = e.target;
     var form = panelForm(target);
@@ -208,7 +249,8 @@ function aufbauSubmitCopy(form, submitter) {
       // FB-29 R4: стрелки в группе переключателей шлют change на каждый шаг — отправляем
       // один раз, когда выбор остановился.
       clearTimeout(radioTimer);
-      radioTimer = setTimeout(function () { apply(form, target); }, 350);
+      radioFire = function () { radioTimer = null; radioFire = null; apply(form, target); };
+      radioTimer = setTimeout(radioFire, 350);
       return;
     }
     apply(form, target);
@@ -217,7 +259,7 @@ function aufbauSubmitCopy(form, submitter) {
   // Пока правка в пути, «Speichern» и другие действия ждут её — иначе запись могла бы
   // обогнать правку, и та осталась бы в черновике.
   document.addEventListener("submit", function (e) {
-    if (!pending || e.defaultPrevented) return;
+    if (!pending || e.defaultPrevented || navigating) return;
     var form = e.target;
     var submitter = e.submitter;
     e.preventDefault();
@@ -237,15 +279,215 @@ function aufbauSubmitCopy(form, submitter) {
   function afterPending(form, submitter) {
     var timer = null;
     var late = new Promise(function (resolve) { timer = setTimeout(function () { resolve("late"); }, WAIT); });
-    Promise.race([chain.then(function () { return "ok"; }), late]).then(function (how) {
+    return Promise.race([chain.then(function () { return "ok"; }), late]).then(function (how) {
       clearTimeout(timer);
-      if (how === "late") { aufbauError(form.getAttribute("data-wait-error")); return; }
-      if (form.isConnected) { form.requestSubmit(submitter && submitter.isConnected ? submitter : undefined); return; }
+      if (how === "late") { aufbauError(form.getAttribute("data-wait-error")); return "late"; }
+      // FB-33 M3-2: правка ушла обычной отправкой (запасной путь) — вторая отправка оборвала бы её
+      if (navigating) return "skip";
+      if (form.isConnected) { form.requestSubmit(submitter && submitter.isConnected ? submitter : undefined); return "sent"; }
+      remember(form, submitter);
       aufbauSubmitCopy(form, submitter);
+      return "sent";
     });
   }
 
+  /* FB-33 M3-2: модальное окно блока. `<dialog>` создаётся здесь, существующая панель
+     [data-schema-panel] переносится в него целиком (подмена панели — `swap()` — окна не
+     закрывает), на её месте в сетке — закладка для возврата. Esc и × — то же, что «Fertig»
+     (решение владельца): отложенная правка уходит сразу, окно ждёт правку в пути и
+     отправляет `window_done`; в подтверждении удаления — его «Abbrechen». Сервер и
+     разметка без скриптов прежние. */
+  var win = null;
+  var mark = null;
+  var closing = false;
+  var ours = false;
+  var NAV_WAIT = 10000;
+  var BACK = "aufbauWindowBack";
+
+  function liveRegion() {
+    return (win && win.open && win.querySelector("[data-bwin-status]")) || document.querySelector("[data-schema-live]");
+  }
+
+  // Сообщения сервера (отказ, «Nichts zurückzunehmen») при открытом окне — копией внутри окна.
+  function relay() {
+    var box = win && win.querySelector("[data-bwin-msgs]");
+    var src = document.querySelector("[data-schema-messages]");
+    if (!box || !src) return;
+    box.querySelectorAll("[data-bwin-relayed]").forEach(function (n) { n.remove(); });
+    Array.prototype.forEach.call(src.children, function (m) {
+      var p = document.createElement("p");
+      var alert = m.getAttribute("role") === "alert";
+      p.setAttribute("role", alert ? "alert" : "status");
+      p.setAttribute("data-bwin-relayed", "");
+      p.className = alert ? "ui-bwin-alert" : "ui-bwin-note";
+      p.textContent = m.textContent.trim();
+      box.appendChild(p);
+    });
+  }
+
+  // Новая панель (после подмены) — заголовок принимает фокус программно.
+  function dress() {
+    var h = win && win.querySelector("#schema-panel-title");
+    if (h) h.setAttribute("tabindex", "-1");
+    document.dispatchEvent(new CustomEvent("aufbau:panel"));
+  }
+
+  // Куда вернуть фокус после перезагрузки, которой окно закрывается.
+  function remember(form, submitter) {
+    var op = submitter && submitter.value;
+    if (op !== "window_done" && op !== "revert") return;
+    var ref = form.querySelector('input[name="ref"]');
+    if (!ref) return;
+    try {
+      sessionStorage.setItem(BACK, JSON.stringify({
+        seite: new URLSearchParams(location.search).get("seite") || "home", ref: ref.value, ts: Date.now(),
+      }));
+    } catch (err) { /* без хранилища фокус останется у заголовка страницы */ }
+  }
+  document.addEventListener("submit", function (e) { remember(e.target, e.submitter); }, true);
+
+  // Отправка ушла, а страница всё ещё здесь (сеть оборвала переход) — сказать об этом в
+  // окне и снова разрешить закрытие.
+  var guardTimer = null;
+  function guard() {
+    clearTimeout(guardTimer);
+    guardTimer = setTimeout(function () {
+      navigating = false;
+      closing = false;
+      aufbauError();
+    }, NAV_WAIT);
+  }
+  window.addEventListener("pageshow", function (e) {
+    if (e.persisted) { clearTimeout(guardTimer); navigating = false; closing = false; }
+  });
+
+  function done() {
+    if (!win || closing) return;
+    var panel = win.querySelector("[data-schema-panel]");
+    var confirmBox = panel && panel.querySelector("[data-schema-confirm]");
+    if (confirmBox) {
+      // подтверждение удаления: Esc — его «Abbrechen», назад в окно блока
+      var cancel = confirmBox.querySelector("a[href]");
+      if (cancel) { closing = true; guard(); location.assign(cancel.href); }
+      return;
+    }
+    var form = panel && panel.querySelector("[data-window-actions]");
+    var btn = form && form.querySelector('button[value="window_done"]');
+    if (!btn) {
+      // окна без кнопок (мобильная «Fertig» — та же операция)
+      btn = panel && panel.querySelector('button[value="window_done"]');
+      form = btn && btn.form;
+    }
+    if (!btn || !form) return;
+    if (navigator.onLine === false) { aufbauError(); return; }
+    closing = true;
+    // правка поля уходит по change при уходе из него; отложенный переключатель — сейчас
+    var at = document.activeElement;
+    if (at && panel.contains(at) && typeof at.blur === "function") at.blur();
+    if (radioTimer) { clearTimeout(radioTimer); if (radioFire) radioFire(); }
+    if (navigating) { guard(); return; }
+    if (pending) {
+      afterPending(form, btn).then(function (how) {
+        if (how === "late") closing = false;
+        else guard();
+      });
+      return;
+    }
+    form.requestSubmit(btn);
+    guard();
+  }
+
+  function focusIn() {
+    var hash = location.hash;
+    var tab = null;
+    if (hash.indexOf("#schema-tab-") === 0) {
+      tab = document.getElementById("schema-tabbtn-" + hash.slice(12)) || document.getElementById(hash.slice(1));
+    }
+    if (tab && !tab.hidden && win.contains(tab)) { tab.focus(); return; }
+    var h = win.querySelector("#schema-panel-title");
+    if (h) h.focus();
+  }
+
+  function openWindow(panel) {
+    if (win || !panel || !panel.parentNode) return false;
+    var drawer = document.getElementById("sf-drawer");
+    if (drawer && drawer.open && window.sfDrawer) window.sfDrawer.close(true);
+    win = document.createElement("dialog");
+    win.className = "ui-bwin";
+    win.setAttribute("aria-modal", "true");
+    win.setAttribute("aria-labelledby", "schema-panel-title");
+    // × — подпись из разметки панели (sr-only у «Fertig»), новых текстов нет
+    var x = document.createElement("button");
+    x.type = "button";
+    x.className = "ui-bwin-close";
+    x.setAttribute("data-bwin-close", "");
+    var said = panel.querySelector("[data-schema-done] .sr-only");
+    var label = said ? said.textContent.replace(/^[\s\u2013-]+/, "") : "";
+    var doneBtn = panel.querySelector('button[value="window_done"]');
+    x.setAttribute("aria-label", label || (doneBtn ? doneBtn.textContent.trim() : ""));
+    x.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>';
+    x.addEventListener("click", done);
+    var msgs = document.createElement("div");
+    msgs.className = "ui-bwin-msgs";
+    msgs.setAttribute("data-bwin-msgs", "");
+    var status = document.createElement("p");
+    status.setAttribute("role", "status");
+    status.className = "ui-bwin-status";
+    status.setAttribute("data-bwin-status", "");
+    var headLive = document.querySelector("[data-schema-live]");
+    status.setAttribute("data-done", headLive ? headLive.getAttribute("data-done") || "" : "");
+    msgs.appendChild(status);
+    mark = document.createComment("schema-panel");
+    panel.parentNode.insertBefore(mark, panel);
+    win.appendChild(x);
+    win.appendChild(msgs);
+    win.appendChild(panel);
+    document.body.appendChild(win);
+    win.addEventListener("cancel", function (e) {
+      e.preventDefault();
+      // открытое меню «⋯» Esc закрывает само, окно остаётся
+      var more = win.querySelector("details[data-schema-more][open]");
+      if (more) {
+        more.open = false;
+        var s = more.querySelector("summary");
+        if (s) s.focus();
+        return;
+      }
+      done();
+    });
+    win.addEventListener("close", function () {
+      // закрыл не скрипт (CloseWatcher, «назад» на Android) — окно остаётся, как Esc
+      if (ours || !win) return;
+      win.showModal();
+      done();
+    });
+    document.documentElement.classList.add("ui-bwin-lock");
+    win.showModal();
+    dress();
+    relay();
+    focusIn();
+    return true;
+  }
+
+  function closeWindow() {
+    if (!win) return;
+    var panel = win.querySelector("[data-schema-panel]");
+    ours = true;
+    if (win.open) win.close();
+    ours = false;
+    if (panel && mark && mark.parentNode) mark.parentNode.insertBefore(panel, mark);
+    if (mark && mark.parentNode) mark.parentNode.removeChild(mark);
+    win.remove();
+    win = null;
+    mark = null;
+    closing = false;
+    document.documentElement.classList.remove("ui-bwin-lock");
+  }
+
+  window.aufbauWindow = { open: openWindow, close: closeWindow };
+
   hideApply();
+  if (aufbauWindowWanted()) openWindow(document.querySelector("[data-schema-panel]"));
 })();
 
 /* FB-29.5b (макет A): строку схемы можно перетащить мышью — она встаёт перед строкой, на
