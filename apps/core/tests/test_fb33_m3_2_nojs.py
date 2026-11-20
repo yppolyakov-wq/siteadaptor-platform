@@ -76,7 +76,15 @@ def test_page_without_js_is_byte_for_byte_the_same(case):
     if os.environ.get("FB33_M32_REGEN") == "1":
         GOLDEN.mkdir(parents=True, exist_ok=True)
         path.write_text(got)
+        pytest.fail("регенерация эталонов — перезапусти без FB33_M32_REGEN")
     assert got == path.read_text(), path.name
+
+
+def test_window_token_is_rendered_before_normalization():
+    """Нормализация `wopen` не прячет пропажу токена: у окна блока он непустой."""
+    html = _render(("home", "t1"))
+    assert re.search(r'name="wopen" value="[A-Za-z0-9_-]{4,}"', html)
+    assert re.search(r"&amp;wopen=[A-Za-z0-9_-]{4,}", html)
 
 
 def test_golden_covers_every_case_and_nothing_else():
