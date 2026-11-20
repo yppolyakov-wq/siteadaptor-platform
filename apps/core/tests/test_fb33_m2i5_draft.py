@@ -121,16 +121,119 @@ def test_save_writes_through_put_with_ids_from_saved_counter():
     assert _drafts(b) == {}
 
 
-def test_save_conflicts_when_old_panel_wrote_meanwhile():
+def _old_panel_post(tenant, data):
+    from types import SimpleNamespace
+
+    from django.contrib.messages.middleware import MessageMiddleware
+    from django.contrib.sessions.middleware import SessionMiddleware
+    from django.test import RequestFactory
+
+    from apps.jobs import views
+
+    req = RequestFactory().post("/dashboard/auftraege/anfrage-formular/", data)
+    SessionMiddleware(lambda r: None).process_request(req)
+    MessageMiddleware(lambda r: None).process_request(req)
+    req.user = SimpleNamespace(is_authenticated=True)
+    tenant.refresh_from_db()
+    req.tenant = tenant
+    return views.anfrage_form_settings(req)
+
+
+@pytest.mark.parametrize("force", ["", "1"])
+def test_old_panel_meanwhile_merges_three_way(settings, force):
+    """Ревью H2: черновик меняет поле A (описание), старая панель — поле B (варианты, дата);
+    «Speichern» (и «Trotzdem speichern») — A из черновика, B со старой панели, без конфликта."""
+    settings.ROOT_URLCONF = "config.urls_tenant"
     tenant = _tenant()
     b = Browser(tenant)
     _edit(b, mode_description="req")
-    cfg = copy.deepcopy(_saved(tenant))
-    cfg["anfrage"]["event_types"] = ["Anders"]
-    Tenant.objects.filter(pk=tenant.pk).update(site_config=cfg)
+    _old_panel_post(tenant, {"af_guests": "on", "af_event_types": "Anders\nNeu"})
+    resp, msgs = b.post(seite="anfrage", op="save", force=force)
+    assert not any("anderer Stelle" in m for m in msgs), msgs
+    site = siteconfig.normalize(_saved(tenant))
+    assert form_spec.mode_of(site, "anfrage", "description") == "req"  # A — черновик
+    assert site["anfrage"]["event_types"] == ["Anders", "Neu"]  # B — старая панель
+    assert site["anfrage"]["fields"] == ["guests"]
+    assert form_spec.mode_of(site, "anfrage", "event_date") == "off"
+    assert [q["id"] for q in site["form_fields"]["anfrage"]["custom"]] == ["q1", "q2", "q4"]
+
+
+def test_window_shows_old_panel_change_under_the_draft(settings):
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    tenant = _tenant()
+    b = Browser(tenant)
+    _edit(b, mode_description="req")
+    _old_panel_post(tenant, {"af_guests": "on", "af_event_types": "Anders"})
+    html = b.get("?seite=anfrage&block=form&tab=felder")
+    assert "Anders" in html
+    assert 'name="f_mode_description" value="req" checked' in html
+
+
+def test_event_types_survive_all_event_fields_off():
+    """Ревью H1: выключил все событийные поля → сохранил → включил «Art» — варианты на месте."""
+    tenant = _tenant()
+    b = Browser(tenant)
+    _edit(b, mode_event_date="off", mode_guest_count="off", mode_event_type="off")
+    b.post(seite="anfrage", op="save")
+    stored = siteconfig.normalize(_saved(tenant))
+    assert stored["anfrage"] == {"event_types": ["Hochzeit", "Firmenfeier"]}
+    assert not form_spec.view(stored, "anfrage")["any_event"]  # витрина без событийных полей
+    _edit(b, mode_event_type="opt")
+    b.post(seite="anfrage", op="save")
+    stored = siteconfig.normalize(_saved(tenant))
+    assert stored["anfrage"]["event_types"] == ["Hochzeit", "Firmenfeier"]
+    assert form_spec.view(stored, "anfrage")["event_type"].on
+
+
+def test_commit_tells_when_contact_rule_applies():
+    tenant = _tenant({})
+    b = Browser(tenant)
+    _edit(b, mode_description="req")
+    drafts = b.session[aufbau_draft.SESSION_KEY]
+    drafts["anfrage"]["form"]["mode"].update({"email": "off", "phone": "off"})  # устаревший
+    b.session.modified = True
     _resp, msgs = b.post(seite="anfrage", op="save")
-    assert any("anderer Stelle" in m for m in msgs)
-    assert _saved(tenant)["anfrage"]["event_types"] == ["Anders"]
+    assert any("Telefon" in m for m in msgs), msgs
+    assert form_spec.mode_of(siteconfig.normalize(_saved(tenant)), "anfrage", "phone") == "opt"
+
+
+def test_overlay_output_is_never_stored():
+    tenant = _tenant()
+    b = Browser(tenant)
+    _edit(b, do="add", new_label="Neu")
+    b.get("?seite=anfrage&block=form&tab=felder")
+    b.post(seite="anfrage", op="save")
+    raw = json.dumps(_saved(tenant))
+    assert form_spec.EDIT_KEY not in raw and form_spec.FORM_ERROR_KEY not in raw
+    assert "n1" not in raw
+
+
+def test_draft_beyond_ids_shows_saved_with_a_note(caplog):
+    cfg = copy.deepcopy(CUSTOM)
+    cfg["form_fields"]["anfrage"]["next_id"] = 9999
+    tenant = _tenant(cfg)
+    b = Browser(tenant)
+    drafts_state = form_spec.edit_state(siteconfig.normalize(cfg))
+    new = copy.deepcopy(drafts_state)
+    new["custom"].append({"id": "n1", "type": "text", "label": "Zu viel"})
+    b.get("?seite=anfrage")
+    b.session[aufbau_draft.SESSION_KEY] = {
+        "anfrage": {
+            **aufbau_draft._saved_state(siteconfig.normalize(cfg), False, "anfrage"),
+            "base": aufbau_draft._fingerprint(
+                aufbau_draft._saved_state(siteconfig.normalize(cfg), False, "anfrage")
+            ),
+            "home": False,
+            "host": "anfrage",
+            "form": new,
+            "form_base": drafts_state,
+        }
+    }
+    b.session.modified = True
+    caplog.set_level("WARNING")
+    html = b.get("?seite=anfrage&block=form&tab=felder")
+    assert "Nummern für eigene Fragen" in html
+    assert "form tab draft not shown" in caplog.text
 
 
 def test_notes_are_shown_contact_and_pinned():

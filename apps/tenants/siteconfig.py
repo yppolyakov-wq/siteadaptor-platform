@@ -5213,30 +5213,32 @@ def normalize_booking(raw) -> dict:
 
 _ANFRAGE_FIELDS = ("date", "guests", "event_type")  # канонический порядок
 _MAX_EVENT_TYPES = 12
+_EVENT_TYPE_MAX = 60  # символов в варианте «Art der Veranstaltung»
 
 
 def normalize_anfrage(raw) -> dict:
     """AF-1: событийные поля формы заявки /anfrage/ (Catering/Partyservice).
 
     {"fields": ["date","guests","event_type"], "event_types": ["Hochzeit", …]}.
-    Ключ `anfrage` материализуется ТОЛЬКО при непустом fields (presence-minimal,
-    golden-паритет; отсутствие = форма прежняя). fields — подмножество
+    Ключ `anfrage` материализуется при непустом fields или списке вариантов
+    (presence-minimal; без fields форма прежняя — FB-33 M2i-5). fields — подмножество
     _ANFRAGE_FIELDS в каноническом порядке; event_types — строки владельца
     (кап 12 × 60), сохраняются и без поля event_type (черновик наполнения)."""
     raw = raw if isinstance(raw, dict) else {}
     chosen = raw.get("fields")
     chosen = {f for f in (chosen if isinstance(chosen, list) else []) if isinstance(f, str)}
     fields = [f for f in _ANFRAGE_FIELDS if f in chosen]
-    if not fields:
-        return {}
-    out = {"fields": fields}
+    out = {"fields": fields} if fields else {}
     types = []
     for item in raw.get("event_types") if isinstance(raw.get("event_types"), list) else []:
         if isinstance(item, str) and item.strip():
-            types.append(item.strip()[:60])
+            types.append(item.strip()[:_EVENT_TYPE_MAX])
         if len(types) >= _MAX_EVENT_TYPES:
             break
     if types:
+        # FB-33 M2i-5 (ревью): варианты хранятся и без событийных полей — выключил все поля,
+        # включил «Art der Veranstaltung» снова — список на месте. Форму меняет только `fields`
+        # (витрина рисует выбор при включённом поле)
         out["event_types"] = types
     return out
 

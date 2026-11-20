@@ -212,3 +212,71 @@ def test_temp_ids_only_in_draft_normalization():
     assert [q["id"] for q in form_answers.normalize_questions(raw)[0]] == ["q2"]
     got, counter = form_answers.normalize_questions(raw, temp=True)
     assert [q["id"] for q in got] == ["n1", "q2"] and counter == 2
+
+
+# --- ревью M2i-5 (silent-failure-hunter) ---------------------------------------------------
+
+
+def test_typed_new_question_is_added_on_apply_and_told_otherwise():
+    state, notes = _parse({}, {"new_label": "Allergien", "commit_new": "1"})
+    assert [q["label"] for q in state["custom"]] == ["Allergien"] and notes == []
+    state, notes = _parse({}, {"new_label": "Allergien"})  # правка поля (без «Übernehmen»)
+    assert state["custom"] == [] and any("+ Frage" in n for n in notes)
+
+
+def test_cuts_are_told():
+    _s, notes = _parse({}, {"label_phone": "x" * 200})
+    assert any("gekürzt" in n for n in notes)
+    _s, notes = _parse({}, {"event_types": "\n".join(f"T{i}" for i in range(13))})
+    assert len(_s["event_types"]) == 12 and any("gekürzt" in n for n in notes)
+    _s, notes = _parse({}, {"event_types": "y" * 61})
+    assert any("gekürzt" in n for n in notes)
+    _s, notes = _parse(
+        CUSTOM,
+        {
+            "q_q2_label": "Raum",
+            "q_q2_type": "choice",
+            "q_q2_options": "\n".join(f"O{i}" for i in range(21)),
+        },
+    )
+    assert any("gekürzt" in n for n in notes)
+    _s, notes = _parse(CUSTOM, {"label_phone": "Handy"})
+    assert notes == []
+
+
+def test_choice_to_text_tells_options_are_dropped():
+    state, notes = _parse(CUSTOM, {"q_q2_label": "Raum", "q_q2_type": "text"})
+    q2 = next(q for q in state["custom"] if q["id"] == "q2")
+    assert q2["type"] == "text" and "options" not in q2 and notes
+
+
+def test_garbage_type_and_mode_are_logged_without_values(caplog):
+    import logging
+
+    caplog.set_level(logging.INFO, logger="apps.core.form_spec")
+    _parse(CUSTOM, {"q_q1_label": "Budget", "q_q1_type": "GEHEIM", "mode_phone": "GEHEIM2"})
+    assert "ignored type for question q1" in caplog.text
+    assert "ignored mode for field phone" in caplog.text
+    assert "GEHEIM" not in caplog.text
+
+
+def test_merge_keeps_untouched_from_saved():
+    base = form_spec.edit_state(_site(CUSTOM))
+    mine = copy.deepcopy(base)
+    mine["mode"]["description"] = "req"
+    theirs = copy.deepcopy(base)
+    theirs["event_types"] = ["Neu"]
+    theirs["mode"]["guest_count"] = "off"
+    got = form_spec.merge(base, mine, theirs)
+    assert got["mode"]["description"] == "req" and got["mode"]["guest_count"] == "off"
+    assert got["event_types"] == ["Neu"]
+    mine["event_types"] = ["Meins"]
+    assert form_spec.merge(base, mine, theirs)["event_types"] == ["Meins"]
+
+
+def test_event_types_without_fields_are_kept_but_form_unchanged():
+    out = siteconfig.normalize_anfrage({"fields": [], "event_types": ["Hochzeit"]})
+    assert out == {"event_types": ["Hochzeit"]}
+    site = _site({"anfrage": out})
+    view = form_spec.view(site, "anfrage")
+    assert not view["any_event"] and not view["event_type"].on

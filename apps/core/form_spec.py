@@ -19,6 +19,7 @@
 
 from __future__ import annotations
 
+import logging
 import re
 from typing import NamedTuple
 
@@ -26,6 +27,8 @@ from django.utils.translation import gettext_lazy as _
 from django.utils.translation import pgettext_lazy
 
 from apps.core import form_answers
+
+logger = logging.getLogger(__name__)
 
 OFF, OPT, REQ = "off", "opt", "req"
 MODES = (OFF, OPT, REQ)
@@ -305,6 +308,8 @@ def sync_legacy_panel(config: dict, checked) -> None:
 #: служебный ключ превью «Seitenaufbau»: состояние вкладки черновика (с временными id) для
 #: панели; нормализатор сайта его роняет — на сайт он не попадает
 EDIT_KEY = "_form_edit"
+#: служебный ключ превью: черновик вкладки нельзя показать (номера вопросов кончились)
+FORM_ERROR_KEY = "_form_error"
 #: ключ строки схемы, которую наполняет вкладка (часть окна `formfields`)
 PANEL_KEY = "form_spec"
 #: вариантов «Art der Veranstaltung» и строк ввода — режем ДО циклов
@@ -358,9 +363,8 @@ def _event_types(raw) -> list[str]:
     from apps.tenants import siteconfig
 
     items = raw if isinstance(raw, list) else []
-    return siteconfig.normalize_anfrage({"fields": ["event_type"], "event_types": items[:50]}).get(
-        "event_types", []
-    )
+    cap = siteconfig._MAX_EVENT_TYPES * 2  # пустые/дубли выпадут в нормализаторе
+    return siteconfig.normalize_anfrage({"event_types": items[:cap]}).get("event_types", [])
 
 
 def canonical(state, form: str = "anfrage") -> dict:
@@ -391,15 +395,29 @@ def canonical(state, form: str = "anfrage") -> dict:
     }
 
 
-def _lines(raw, limit: int) -> list[str]:
-    """Строки textarea (вариант на строку): длина и число строк режутся до разбора."""
+def _lines(raw, limit: int, width: int = 0, cuts: list | None = None) -> list[str]:
+    """Строки textarea (вариант на строку): длина и число строк режутся до разбора. `cuts` —
+    отметка «обрезано» (больше `limit` строк или строка длиннее `width`) для сообщения."""
     if not isinstance(raw, str):
         return []
-    return [line.strip() for line in raw[:_TEXT_CAP].splitlines()[:limit] if line.strip()]
+    lines = [line.strip() for line in raw[:_TEXT_CAP].splitlines()[: limit * 2 + 1]]
+    lines = [line for line in lines if line]
+    if cuts is not None and (
+        len(raw) > _TEXT_CAP
+        or len(dict.fromkeys(lines)) > limit
+        or (width and any(len(form_answers.clean_text(x, _TEXT_CAP)) > width for x in lines))
+    ):
+        cuts.append(True)
+    return lines[: limit * 2]
 
 
-def _text(raw, limit: int) -> str:
-    return form_answers.clean_text(raw[:_TEXT_CAP] if isinstance(raw, str) else raw, limit)
+def _text(raw, limit: int, cuts: list | None = None) -> str:
+    if not isinstance(raw, str):
+        return ""
+    text = form_answers.clean_text(raw[:_TEXT_CAP], _TEXT_CAP)
+    if cuts is not None and len(text) > limit:
+        cuts.append(True)
+    return text[:limit]
 
 
 def _temp_id(custom: list[dict]) -> str:
@@ -414,23 +432,30 @@ def parse_post(post, current, form: str = "anfrage", preset: dict | None = None)
     """Правка вкладки «Felder» → (новое состояние, сообщения владельцу).
 
     `post` — поля формы окна (без префикса `f_`), `current` — состояние черновика. Режимы и
-    типы — из белых списков, лимиты (10 вопросов × 20 вариантов × 120 символов) — до циклов;
-    правятся только вопросы из `current` (id из запроса не создаёт и не берёт чужой вопрос).
-    Закреплённые поля (что нужно, имя) не меняются; оба способа связи «нет» — телефон остаётся.
+    типы — из белых списков, лимиты (10 вопросов × 20 вариантов × 120 символов, 12 вариантов
+    события × 60) — до циклов, обрезка — с сообщением; правятся только вопросы из `current`
+    (id из запроса не создаёт и не берёт чужой вопрос). Закреплённые поля (что нужно, имя)
+    не меняются; оба способа связи «нет» — телефон остаётся. Набранный новый вопрос по
+    «Übernehmen»/Enter (`commit_new`) добавляется так же, как по «+ Frage».
     `FormSpecError("ids")` — номера вопросов кончились (`ID_MAX`)."""
     from django.utils.translation import gettext
+
+    from apps.tenants import siteconfig
 
     state = canonical(current, form)
     get = post.get if hasattr(post, "get") else {}.get
     notes: list[str] = []
+    cuts: list = []
     for field in fields_of(form):
         if field.pinned:
             continue
         value = get(f"mode_{field.key}")
         if value in MODES:
             state["mode"][field.key] = value
+        elif value is not None:
+            logger.info("form tab: ignored mode for field %s", field.key)
         if f"label_{field.key}" in post:
-            text = _text(get(f"label_{field.key}"), LABEL_MAX)
+            text = _text(get(f"label_{field.key}"), LABEL_MAX, cuts)
             if text:
                 state["labels"][field.key] = text
             else:
@@ -439,14 +464,16 @@ def parse_post(post, current, form: str = "anfrage", preset: dict | None = None)
         prefix = f"q_{q['id']}_"
         if prefix + "label" not in post:
             continue  # вопроса не было в форме — остаётся как есть
-        label = _text(get(prefix + "label"), form_answers.LABEL_MAX)
+        label = _text(get(prefix + "label"), form_answers.LABEL_MAX, cuts)
         if label:
             q["label"] = label
         else:
             notes.append(gettext("Eine Frage ohne Text bleibt wie bisher."))
         kind = get(prefix + "type")
+        if kind is not None and kind not in form_answers.TYPES:
+            logger.info("form tab: ignored type for question %s", q["id"])
         options = (
-            _lines(get(prefix + "options"), form_answers.MAX_OPTIONS * 2)
+            _lines(get(prefix + "options"), form_answers.MAX_OPTIONS, form_answers.LABEL_MAX, cuts)
             if prefix + "options" in post
             else list(q.get("options") or [])
         )
@@ -454,6 +481,10 @@ def parse_post(post, current, form: str = "anfrage", preset: dict | None = None)
             if kind == "choice" and not options:
                 notes.append(gettext("Für eine Auswahl bitte mindestens eine Option eintragen."))
             else:
+                if q["type"] == "choice" and kind != "choice" and q.get("options"):
+                    notes.append(
+                        gettext("Die Optionen gelten nur für „Auswahl“ und wurden entfernt.")
+                    )
                 q["type"] = kind
         if q["type"] == "choice" and options:
             q["options"] = options
@@ -464,14 +495,16 @@ def parse_post(post, current, form: str = "anfrage", preset: dict | None = None)
         else:
             q.pop("mode", None)
     if form == "anfrage" and "event_types" in post:
-        state["event_types"] = _lines(get("event_types"), 24)
-    _action(state, get, form, preset, notes)
-    if form == "anfrage" and all(state["mode"].get(k) == OFF for k in CONTACT):
-        state["mode"]["phone"] = OPT  # способ связи нельзя снять целиком (как `normalize`)
-        notes.append(
-            gettext("E-Mail oder Telefon muss gefragt werden – das Telefon bleibt in der Form.")
+        state["event_types"] = _lines(
+            get("event_types"), siteconfig._MAX_EVENT_TYPES, siteconfig._EVENT_TYPE_MAX, cuts
         )
+    _action(state, get, form, preset, notes, cuts)
+    if contact_dropped(state, form):
+        state["mode"]["phone"] = OPT  # способ связи нельзя снять целиком (как `normalize`)
+        notes.append(contact_note())
     state = canonical(state, form)
+    if cuts:
+        notes.append(gettext("Zu lange Texte oder zu viele Einträge wurden gekürzt."))
     if form == "anfrage":
         if state["mode"].get("event_type", OFF) != OFF and not state["event_types"]:
             notes.append(
@@ -483,16 +516,36 @@ def parse_post(post, current, form: str = "anfrage", preset: dict | None = None)
     return state, notes
 
 
-def _action(state: dict, get, form: str, preset, notes: list) -> None:
+def contact_note() -> str:
+    """Одна фраза «способ связи остаётся» — для вкладки и записи черновика."""
+    from django.utils.translation import gettext
+
+    return gettext("E-Mail oder Telefon muss gefragt werden – das Telefon bleibt in der Form.")
+
+
+def contact_dropped(state, form: str = "anfrage") -> bool:
+    """Оба способа связи выключены (запись оставит телефон — `normalize`)."""
+    modes = (state or {}).get("mode") or {}
+    return form == "anfrage" and all(modes.get(k) == OFF for k in CONTACT)
+
+
+def _action(state: dict, get, form: str, preset, notes: list, cuts: list | None = None) -> None:
     """Кнопка вкладки: «+ Frage», вверх/вниз/удалить, «Branchen-Vorlage»."""
     from django.utils.translation import gettext
 
     do = get("do") or ""
     custom = state["custom"]
+    if not do and _text(get("new_label"), form_answers.LABEL_MAX):
+        if get("commit_new") == "1":
+            do = "add"  # «Übernehmen»/Enter с набранным новым вопросом — не терять его
+        else:
+            notes.append(
+                gettext("Die neue Frage ist noch nicht hinzugefügt – bitte „+ Frage“ wählen.")
+            )
     if do == "add":
-        label = _text(get("new_label"), form_answers.LABEL_MAX)
+        label = _text(get("new_label"), form_answers.LABEL_MAX, cuts)
         kind = get("new_type") if get("new_type") in form_answers.TYPES else "text"
-        options = _lines(get("new_options"), form_answers.MAX_OPTIONS * 2)
+        options = _lines(get("new_options"), form_answers.MAX_OPTIONS, form_answers.LABEL_MAX, cuts)
         if len(custom) >= form_answers.MAX_QUESTIONS:
             notes.append(
                 gettext("Höchstens %(n)s eigene Fragen.") % {"n": form_answers.MAX_QUESTIONS}
@@ -649,3 +702,33 @@ def panel(site, form: str = "anfrage", state=None, preset: bool = False) -> dict
         "event_hint": form == "anfrage" and event_on and not state["event_types"],
         "preset": preset,
     }
+
+
+def merge(base, mine, theirs, form: str = "anfrage", notes: list | None = None) -> dict:
+    """Трёхстороннее слияние состояния вкладки (ревью M2i-5, H2): `base` — сохранённое на
+    момент первой правки черновика, `mine` — черновик, `theirs` — сохранённое сейчас (старая
+    панель «Anfrage-Formular» могла записать между ними). Что владелец во вкладке не трогал
+    (`mine == base`) — как в `theirs`; поля и подписи — по ключу, свои вопросы и варианты
+    события — списком целиком. Номер `next_id` — сохранённый (номера даёт `put`). Если
+    слияние выключило оба способа связи, телефон остаётся — и сообщение в `notes`."""
+    raw_modes = (mine or {}).get("mode") if isinstance((mine or {}).get("mode"), dict) else {}
+    base, mine, theirs = (canonical(x, form) for x in (base, mine, theirs))
+    out = canonical(theirs, form)
+    for key in out["mode"]:
+        value = raw_modes.get(key, mine["mode"].get(key))
+        if value in MODES and value != base["mode"].get(key):
+            out["mode"][key] = value
+    for key in set(mine["labels"]) | set(base["labels"]):
+        if mine["labels"].get(key) != base["labels"].get(key):
+            if key in mine["labels"]:
+                out["labels"][key] = mine["labels"][key]
+            else:
+                out["labels"].pop(key, None)
+    for key in ("custom", "event_types"):
+        if mine[key] != base[key]:
+            out[key] = mine[key]
+    if contact_dropped(out, form):
+        out["mode"]["phone"] = OPT
+        if notes is not None:
+            notes.append(contact_note())
+    return canonical(out, form)

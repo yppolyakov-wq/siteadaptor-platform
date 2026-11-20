@@ -39103,3 +39103,23 @@ msgstr "Which fields the request asks applies to every place with the form."
 #. FB-33 M2i-5: вкладка «Felder»
 msgid "Welche Felder die öffentliche Anfrage-Seite fragt, legen Sie im Seitenaufbau fest – im Block „Anfrage-Formular“, Bereich „Felder“."
 msgstr "Which fields the public request page asks is set in the page structure – in the “Request form” block, “Fields” section."
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgid "Die Auswahl erscheint nur, wenn „Art der Veranstaltung“ gefragt wird; die Liste bleibt auch sonst gespeichert."
+msgstr "The choice only appears when “Type of event” is asked; the list is kept either way."
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgid "Die Optionen gelten nur für „Auswahl“ und wurden entfernt."
+msgstr "Options only apply to “Choice” and were removed."
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgid "Die neue Frage ist noch nicht hinzugefügt – bitte „+ Frage“ wählen."
+msgstr "The new question has not been added yet – please choose “+ Question”."
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgid "Nur bei Art „Auswahl“, eine Option pro Zeile."
+msgstr "Only for type “Choice”, one option per line."
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgid "Zu lange Texte oder zu viele Einträge wurden gekürzt."
+msgstr "Texts that were too long or too many entries were shortened."

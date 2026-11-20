@@ -179,17 +179,26 @@ def anfrage_form_settings(request):
         )
     import copy
 
-    from apps.core import form_spec
+    from django.db import transaction
 
-    cfg = copy.deepcopy(tenant.site_config) if isinstance(tenant.site_config, dict) else {}
-    if anfrage:
-        cfg["anfrage"] = anfrage
-    else:
-        cfg.pop("anfrage", None)
-    # FB-33 M2i (ревью): один писатель событийных полей — режимы «Поля форм» следуют панели
-    form_spec.sync_legacy_panel(cfg, (anfrage or {}).get("fields") or ())
+    from apps.core import form_spec
+    from apps.tenants.models import Tenant
+
+    with transaction.atomic():
+        # FB-33 M2i-5 (ревью): строка бизнеса под блокировкой и свежий конфиг — запись
+        # черновика «Seitenaufbau» (`aufbau_draft.commit`) не перетирается и не перетирает
+        locked = Tenant.objects.select_for_update().get(pk=tenant.pk)
+        raw = locked.site_config
+        cfg = copy.deepcopy(raw) if isinstance(raw, dict) else {}
+        if anfrage:
+            cfg["anfrage"] = anfrage
+        else:
+            cfg.pop("anfrage", None)
+        # FB-33 M2i (ревью): один писатель событийных полей — режимы «Поля форм» следуют панели
+        form_spec.sync_legacy_panel(cfg, (anfrage or {}).get("fields") or ())
+        locked.site_config = cfg
+        locked.save(update_fields=["site_config", "updated_at"])
     tenant.site_config = cfg
-    tenant.save(update_fields=["site_config", "updated_at"])
     messages.success(request, _("Gespeichert."))
     # X2c: панель живёт на «Abläufe». Ревью 2026-08-19: возвращаемся ТУДА ЖЕ,
     # откуда сохраняли (kind + ?from=board) — как соседние панели экрана;

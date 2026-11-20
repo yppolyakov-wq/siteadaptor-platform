@@ -1467,13 +1467,13 @@ def form_op(tenant, config: dict, draft: dict, fields: dict | None, notes=None) 
     """Правка вкладки «Felder» в черновике: разбор `form_spec.parse_post` от состояния
     черновика (до среза его в черновике нет — от сохранённого). Строка неподвижна; её
     двигать/скрывать нельзя. Сообщения владельцу (`notes`) — в список вызывающего."""
-    from apps.core import form_spec
+    from apps.core import aufbau_draft, form_spec
 
     if fields is None:
         raise SchemaError("fixed")
-    current = draft.get("form")
-    if not isinstance(current, dict):
-        current = form_spec.edit_state(config, "anfrage")
+    # ревью H2: правка — от черновика поверх СЕЙЧАС сохранённого (старая панель могла записать)
+    saved = form_spec.edit_state(config, "anfrage")
+    current = aufbau_draft.form_state(config, draft)
     preset = None
     if fields.get("do") == "preset":
         from apps.jobs.anfrage_presets import preset_for
@@ -1483,7 +1483,12 @@ def form_op(tenant, config: dict, draft: dict, fields: dict | None, notes=None) 
         state, said = form_spec.parse_post(fields, current, "anfrage", preset)
     except form_spec.FormSpecError as exc:
         raise SchemaError("ids") from exc
-    draft["form"] = state
+    if state == saved:
+        for key in aufbau_draft.FORM_KEYS:  # вернули как сохранено — правки нет
+            draft.pop(key, None)
+    else:
+        draft["form"] = state
+        draft["form_base"] = saved
     if notes is not None:
         notes.extend(said)
     return FORM_REF

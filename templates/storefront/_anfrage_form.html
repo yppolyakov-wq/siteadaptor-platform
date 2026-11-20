@@ -14,7 +14,7 @@ anfrage_cfg (site_config["anfrage"]), jobs_vehicle, has_service_area; POST
     <label class="block text-sm font-medium mb-1" for="id_desc">{{ ff.description.label }}{% if ff.description.req %} *{% endif %}</label>
     <textarea id="id_desc" name="description" rows="3"{% if ff.description.req %} required{% endif %} class="w-full rounded-lg border border-gray-300 px-3 py-2">{{ details|default:'' }}</textarea>
   </div>{% endif %}
-  {% if anfrage_cfg or ff.any_event %}
+  {% if anfrage_cfg.fields or ff.any_event %}
   {% comment %}AF-1: событийные поля (Catering/Partyservice) — состав из
   site_config["anfrage"] (панель «⚙️ Anfrage-Formular» кабинета); все опциональны,
   Art der Veranstaltung — только из списка владельца.{% endcomment %}

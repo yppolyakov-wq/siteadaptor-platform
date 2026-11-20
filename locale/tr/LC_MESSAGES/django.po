@@ -39249,3 +39249,23 @@ msgstr "Talebin hangi alanları sorduğu, formun bulunduğu tüm yerler için ge
 #. FB-33 M2i-5: вкладка «Felder»
 msgid "Welche Felder die öffentliche Anfrage-Seite fragt, legen Sie im Seitenaufbau fest – im Block „Anfrage-Formular“, Bereich „Felder“."
 msgstr "Herkese açık talep sayfasının hangi alanları sorduğunu sayfa yapısında belirlersiniz – “Talep formu” bloğunda, “Alanlar” bölümünde."
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgid "Die Auswahl erscheint nur, wenn „Art der Veranstaltung“ gefragt wird; die Liste bleibt auch sonst gespeichert."
+msgstr "Seçim yalnızca “Etkinlik türü” sorulduğunda görünür; liste her durumda kaydedilir."
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgid "Die Optionen gelten nur für „Auswahl“ und wurden entfernt."
+msgstr "Seçenekler yalnızca “Seçim” için geçerlidir ve kaldırıldı."
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgid "Die neue Frage ist noch nicht hinzugefügt – bitte „+ Frage“ wählen."
+msgstr "Yeni soru henüz eklenmedi – lütfen “+ Soru”yu seçin."
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgid "Nur bei Art „Auswahl“, eine Option pro Zeile."
+msgstr "Yalnızca “Seçim” türü için, satır başına bir seçenek."
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgid "Zu lange Texte oder zu viele Einträge wurden gekürzt."
+msgstr "Çok uzun metinler veya fazla girişler kısaltıldı."

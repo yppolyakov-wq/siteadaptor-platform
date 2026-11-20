@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import logging
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
@@ -10,6 +12,8 @@ from django.utils.http import urlencode
 from django.utils.translation import gettext as _
 
 from apps.core import block_window, page_settings, site_schema
+
+logger = logging.getLogger(__name__)
 
 
 def _keep(source) -> dict:
@@ -130,8 +134,11 @@ def site_schema_view(request):
                     )
             elif op == "save":
                 force = request.POST.get("force") == "1"
-                if aufbau_draft.commit(request, tenant, code, force=force):
+                said: list[str] = []  # FB-33 M2i-5: что запись поправила (способ связи)
+                if aufbau_draft.commit(request, tenant, code, force=force, notes=said):
                     messages.success(request, _("Gespeichert."))
+                    for note in said:
+                        messages.warning(request, note)
                 else:
                     messages.error(
                         request,
@@ -310,6 +317,15 @@ def site_schema_view(request):
         return redirect(site_schema.settings_url(code, request.GET["offen"]))
     draft = aufbau_draft.get(request, code)
     config = aufbau_draft.overlay(saved, draft) if draft else saved
+    from apps.core import form_spec
+
+    if config.get(form_spec.FORM_ERROR_KEY):
+        # FB-33 M2i-5 (ревью): черновик вкладки «Felder» не показать — видно, а не молча
+        logger.warning("aufbau draft: form tab draft not shown (%s, %s)", tenant.schema_name, code)
+        messages.warning(
+            request,
+            _("Keine weitere Frage möglich: Die Nummern für eigene Fragen sind aufgebraucht."),
+        )
     draft_info = aufbau_draft.info(request, saved, code)
     blocks = site_schema.blocks_for(config, code, host=current.host if current else None)
     selected = next((b for b in blocks if b["ref"] == request.GET.get("block")), None)

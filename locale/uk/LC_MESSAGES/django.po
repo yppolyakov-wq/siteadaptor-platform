@@ -39431,3 +39431,23 @@ msgstr "Які поля питає заявка — однаково для вс
 #. FB-33 M2i-5: вкладка «Felder»
 msgid "Welche Felder die öffentliche Anfrage-Seite fragt, legen Sie im Seitenaufbau fest – im Block „Anfrage-Formular“, Bereich „Felder“."
 msgstr "Які поля питає сторінка заявки, задається у «Структурі сторінки» — у блоці «Форма заявки», розділ «Поля»."
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgid "Die Auswahl erscheint nur, wenn „Art der Veranstaltung“ gefragt wird; die Liste bleibt auch sonst gespeichert."
+msgstr "Вибір з'являється, лише якщо питають «Вид заходу»; список зберігається в будь-якому разі."
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgid "Die Optionen gelten nur für „Auswahl“ und wurden entfernt."
+msgstr "Варіанти потрібні лише для «Вибір зі списку» і видалені."
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgid "Die neue Frage ist noch nicht hinzugefügt – bitte „+ Frage“ wählen."
+msgstr "Нове питання ще не додано — натисніть «+ Питання»."
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgid "Nur bei Art „Auswahl“, eine Option pro Zeile."
+msgstr "Лише для типу «Вибір зі списку», по одному варіанту в рядку."
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgid "Zu lange Texte oder zu viele Einträge wurden gekürzt."
+msgstr "Задовгі тексти або зайві рядки обрізано."

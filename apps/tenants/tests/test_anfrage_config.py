@@ -13,7 +13,11 @@ def test_anfrage_absent_on_empty_config():
 def test_anfrage_junk_dropped():
     assert "anfrage" not in siteconfig.normalize({"anfrage": "kaputt"})
     assert "anfrage" not in siteconfig.normalize({"anfrage": {"fields": ["bogus"]}})
-    assert "anfrage" not in siteconfig.normalize({"anfrage": {"event_types": ["Hochzeit"]}})
+    # FB-33 M2i-5 (ревью H1, осознанно): варианты без событийных полей больше не теряются —
+    # хранятся, форма без `fields` прежняя (замки test_fb33_m2i5_form_spec)
+    assert siteconfig.normalize({"anfrage": {"event_types": ["Hochzeit"]}})["anfrage"] == {
+        "event_types": ["Hochzeit"]
+    }
 
 
 def test_anfrage_fields_canonical_order_and_whitelist():

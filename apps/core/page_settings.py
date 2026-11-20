@@ -27,6 +27,7 @@ are not offered here (plan §2.1).
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass, field, replace
 
 from django.db import transaction
@@ -37,6 +38,8 @@ from apps.core import card_forms, compositions, studio_pages
 
 #: Module a page type belongs to: the cabinet only offers types whose module is on
 #: (a hotel has no "Termine" page). None = always there (text pages, home).
+logger = logging.getLogger(__name__)
+
 TYPE_MODULES: dict[str, str | None] = {
     "home": None,
     "catalog": "catalog",
@@ -963,6 +966,11 @@ def preview_raw(request) -> tuple[dict, bool]:
             draft = aufbau_draft.get(request, aufbau[:120])
             cached = aufbau_draft.overlay(saved, draft) if draft else saved
             request._aufbau_cfg = cached
+            if cached.get("_form_error"):  # FB-33 M2i-5: один раз на запрос (кеш выше)
+                logger.warning(
+                    "aufbau preview: form tab draft not shown (%s)",
+                    getattr(tenant, "schema_name", ""),
+                )
         return cached, False
     session = getattr(request, "session", None)
     draft = session.get("site_preview_draft") if session is not None else None

@@ -250,7 +250,7 @@ def _upcoming_event(t, f):
 
 
 def _anfrage_form(t, f) -> bool:
-    return bool(_cfg(t).get("anfrage"))
+    return bool((_cfg(t).get("anfrage") or {}).get("fields"))  # варианты без полей — не форма
 
 
 def _selling_goods(t) -> bool:

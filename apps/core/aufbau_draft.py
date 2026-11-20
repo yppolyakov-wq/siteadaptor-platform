@@ -50,11 +50,6 @@ def _saved_state(config: dict, home: bool, host: str) -> dict:
     if host == confirmation_page.HOST:
         # FB-33 M2h-5: «Was passiert jetzt» — часть страницы в черновике (как «Seitentitel»)
         state["next"] = confirmation_page.clean_next(config.get(confirmation_page.NEXT_KEY))
-    if host == site_schema.FORM_HOST:
-        # FB-33 M2i-5: поля формы заявки (вкладка «Felder») — часть страницы в черновике
-        from apps.core import form_spec
-
-        state["form"] = form_spec.edit_state(config, "anfrage")
     if detail_parts.object_kind(host):
         # R8: разделы объекта живут в нём самом — их правка в другом месте (вкладка
         # карточки, другая вкладка браузера) тоже конфликт черновика
@@ -84,8 +79,6 @@ def _base_fingerprint(saved: dict, config: dict, draft: dict) -> str:
         saved = {k: v for k, v in saved.items() if k != "title"}
     if "next" not in draft:  # FB-33 M2h-5: то же у «Was passiert jetzt»
         saved = {k: v for k, v in saved.items() if k != "next"}
-    if "form" not in draft:  # FB-33 M2i-5: черновик «Anfrage», начатый до вкладки «Felder»
-        saved = {k: v for k, v in saved.items() if k != "form"}
     return _fingerprint(saved)
 
 
@@ -223,22 +216,41 @@ def overlay(config: dict, draft: dict) -> dict:
     if "next" in draft:
         _put_next(out, draft["next"])
     if "form" in draft:
-        _put_form(out, draft["form"])
-        from apps.core import form_spec
-
-        out[form_spec.EDIT_KEY] = copy.deepcopy(draft["form"])  # панель — с временными id
+        out = _put_form(out, draft)
     return _apply_settings(out, draft)
 
 
-def _put_form(config: dict, state) -> None:
-    """FB-33 M2i-5: поля формы заявки черновика — для показа и превью (тем же писателем
-    `form_spec.put`, что и «Speichern»). Номера кончились — превью без правки, в лог."""
+# ───────────── FB-33 M2i-5: поля формы заявки (вкладка «Felder») ─────────────
+# Черновик хранит состояние вкладки (`form`) и сохранённое на момент первой правки
+# (`form_base`) — вне `_saved_state`/отпечатка: правка старой панели «Anfrage-Formular» между
+# ними не конфликт, запись сливает трёхсторонне (`form_spec.merge`, ревью H2).
+FORM_KEYS = ("form", "form_base")
+
+
+def form_state(config: dict, draft: dict, notes: list | None = None) -> dict:
+    """Состояние вкладки черновика поверх СЕЙЧАС сохранённого `config` (трёхстороннее)."""
     from apps.core import form_spec
 
+    saved = form_spec.edit_state(config, "anfrage")
+    if "form" not in draft:
+        return saved
+    return form_spec.merge(draft.get("form_base", saved), draft["form"], saved, notes=notes)
+
+
+def _put_form(config: dict, draft: dict) -> dict:
+    """Поля формы черновика — для показа и превью тем же писателем `form_spec.put`, что и
+    «Speichern» (на копии: при отказе — сохранённое, отметка `FORM_ERROR_KEY` для экрана)."""
+    from apps.core import form_spec
+
+    state = form_state(config, draft)
+    out = copy.deepcopy(config)
     try:
-        form_spec.put(config, "anfrage", state)
+        form_spec.put(out, "anfrage", state)
     except form_spec.FormSpecError:
-        logger.warning("aufbau draft: form fields of the draft exceed question ids")
+        config[form_spec.FORM_ERROR_KEY] = True
+        out = config
+    out[form_spec.EDIT_KEY] = state  # панель — с временными id
+    return out
 
 
 def _put_title(config: dict, host: str, title) -> None:
@@ -321,8 +333,10 @@ def changes(saved: dict, draft: dict) -> int:
         count += 1
     if "next" in draft and draft["next"] != saved.get("next", ""):
         count += 1  # FB-33 M2h-5
-    if "form" in draft and "form" in saved and draft["form"] != saved["form"]:
-        count += 1  # FB-33 M2i-5: вкладка «Felder» — одно изменение
+    # FB-33 M2i-5: вкладка «Felder» — одно изменение; «равно сохранённому» черновик не держит
+    # (`site_schema.form_op` снимает ключи), поэтому сравнение с сохранённым не нужно
+    if "form" in draft:
+        count += 1
     # FB-27 R4: настройки типа страницы — по одному изменению на настройку.
     count += len(_settings(draft))
     return count
@@ -441,7 +455,7 @@ def _snapshot(tenant, code, host, draft, ref, token="", codes=(), source=None) -
     if host == confirmation_page.HOST and ref == site_schema.NEXT_REF:
         proto["next"] = ["next" in source, source.get("next")]
     if host == site_schema.FORM_HOST and ref == site_schema.FORM_REF:
-        proto["form"] = ["form" in source, copy.deepcopy(source.get("form"))]
+        proto["form"] = {k: copy.deepcopy(source[k]) for k in FORM_KEYS if k in source}
     _record_codes(source, proto, [*_window_setting_codes(tenant, code, ref), *codes])
     window.pop(ref, None)
     idents = {_ident(it) for it in draft.get("items") or []}
@@ -494,9 +508,15 @@ def _revert(draft: dict, ref: str, proto: dict) -> None:
     if proto.get("item") is not None:
         items.insert(_place(items, proto), proto["item"])
     draft["items"] = items
-    for key in ("title", "next", "form"):
+    for key in ("title", "next"):
         if key in proto:
             _restore_key(draft, key, proto[key])
+    if isinstance(proto.get("form"), dict):  # FB-33 M2i-5: вкладка «Felder» — как при открытии
+        for key in FORM_KEYS:
+            if key in proto["form"]:
+                draft[key] = copy.deepcopy(proto["form"][key])
+            else:
+                draft.pop(key, None)
     codes = proto.get("codes") or []
     if codes:
         pending = {k: v for k, v in _settings(draft).items() if k not in codes}
@@ -649,12 +669,12 @@ def _settle(request, code: str, draft: dict, saved: dict, ref: str = "") -> str:
         saved = {k: v for k, v in saved.items() if k != "title"}
     if "next" not in draft:
         saved = {k: v for k, v in saved.items() if k != "next"}
-    if "form" not in draft:  # FB-33 M2i-5
-        saved = {k: v for k, v in saved.items() if k != "form"}
     current = {k: draft.get(k) for k in saved}
     # Вернулись к сохранённому (скрыл и снова показал) — черновика нет.
-    clean = _fingerprint(current) == _fingerprint(saved) == draft.get("base") and not _settings(
-        draft
+    clean = (
+        _fingerprint(current) == _fingerprint(saved) == draft.get("base")
+        and not _settings(draft)
+        and "form" not in draft  # FB-33 M2i-5
     )
     if clean and draft.get(WINDOW_KEY):
         # FB-33 M3-1b: окно блока открыто — снимок для «Abbrechen» держится, но черновика
@@ -742,7 +762,7 @@ def discard(request, code: str) -> None:
 
 
 @transaction.atomic
-def commit(request, tenant, code: str, *, force: bool = False) -> bool:
+def commit(request, tenant, code: str, *, force: bool = False, notes: list | None = None) -> bool:
     """Записать черновик страницы на сайт. `DraftConflict`, если сохранённое успели
     изменить в другом месте (и не задан `force`). False — черновика нет (двойная
     отправка, сессия истекла): вызывающий не должен сообщать об успехе."""
@@ -779,12 +799,14 @@ def commit(request, tenant, code: str, *, force: bool = False) -> bool:
     if "next" in draft:
         _put_next(config, draft["next"])
     if "form" in draft and host == site_schema.FORM_HOST:
-        # FB-33 M2i-5: поля формы заявки — под блокировкой строки бизнеса: номера новых
-        # вопросов — от СОХРАНЁННОГО `next_id` (`form_spec.put`, единственный писатель)
+        # FB-33 M2i-5: поля формы заявки — под блокировкой строки бизнеса: дельта черновика
+        # поверх заблокированного сохранённого (ревью H2), номера новых вопросов — от
+        # СОХРАНЁННОГО `next_id` (`form_spec.put`, единственный писатель)
         from apps.core import form_spec
 
+        state = form_state(config, draft, notes)
         try:
-            form_spec.put(config, "anfrage", draft["form"])
+            form_spec.put(config, "anfrage", state)
         except form_spec.FormSpecError as exc:
             raise site_schema.SchemaError("ids") from exc
     if host == "info" and "contact" in draft and not _has_section_rows(draft):

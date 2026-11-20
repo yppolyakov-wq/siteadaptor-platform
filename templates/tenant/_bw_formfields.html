@@ -6,8 +6,8 @@
   <input type="hidden" name="ref" value="{{ selected.ref }}">
   <input type="hidden" name="panel_present" value="1">
   <input type="hidden" name="op" value="update">
-  {% comment %}Enter в поле — отправка без действия (первая кнопка формы — «по умолчанию»), а не «Nach oben» первого вопроса.{% endcomment %}
-  <button type="submit" class="sr-only" tabindex="-1" aria-hidden="true" aria-label="{% trans "Übernehmen" %}"></button>
+  {% comment %}Enter в поле — то же, что «Übernehmen» (первая кнопка формы — «по умолчанию»), а не «Nach oben» первого вопроса; вне Tab и невидима.{% endcomment %}
+  <button type="submit" name="f_commit_new" value="1" class="sr-only" tabindex="-1">{% trans "Übernehmen" %}</button>
   <p class="text-sm text-gray-700">{% trans "Was die Anfrage-Form fragt. Änderungen erscheinen auf der Seite nach „Speichern“." %}</p>
   {% for f in fs.fields %}
   {% if f.pinned %}
@@ -25,9 +25,9 @@
     <input type="text" id="ff-label-{{ f.key }}" name="f_label_{{ f.key }}" value="{{ f.custom_label }}" placeholder="{{ f.default_label }}" maxlength="120" class="ui-input w-full">
     {% if f.event_type %}
     <label for="ff-event-types" class="mt-2 block text-xs text-gray-700">{% trans "Auswahlliste (eine Option pro Zeile)" %}</label>
-    <textarea id="ff-event-types" name="f_event_types" rows="4" class="ui-input w-full" aria-describedby="ff-event-types-hint">{{ fs.event_types_text }}</textarea>
-    <p id="ff-event-types-hint" class="mt-1 text-xs text-gray-700">{% trans "Die Liste bleibt gespeichert, solange Datum, Personen oder Art der Veranstaltung gefragt werden." %}</p>
-    {% if fs.event_hint %}<p class="mt-1 text-xs font-semibold text-amber-900" data-form-event-hint><span aria-hidden="true">⚠</span> {% trans "„Art der Veranstaltung“ erscheint erst mit einer Auswahlliste – bitte Optionen eintragen." %}</p>{% endif %}
+    <textarea id="ff-event-types" name="f_event_types" rows="4" class="ui-input w-full" aria-describedby="ff-event-types-hint{% if fs.event_hint %} ff-event-types-warn{% endif %}">{{ fs.event_types_text }}</textarea>
+    <p id="ff-event-types-hint" class="mt-1 text-xs text-gray-700">{% trans "Die Auswahl erscheint nur, wenn „Art der Veranstaltung“ gefragt wird; die Liste bleibt auch sonst gespeichert." %}</p>
+    {% if fs.event_hint %}<p id="ff-event-types-warn" class="mt-1 text-xs font-semibold text-amber-900" data-form-event-hint><span aria-hidden="true">⚠</span> {% trans "„Art der Veranstaltung“ erscheint erst mit einer Auswahlliste – bitte Optionen eintragen." %}</p>{% endif %}
     {% endif %}
   </fieldset>
   {% endif %}
@@ -43,7 +43,8 @@
         {% for t, tlabel in fs.types %}<option value="{{ t }}"{% if t == q.type %} selected{% endif %}>{{ tlabel }}</option>{% endfor %}
       </select>
       <label for="ff-q-{{ q.id }}-options" class="block text-xs text-gray-700">{% trans "Optionen für „Auswahl“ (eine pro Zeile)" %}</label>
-      <textarea id="ff-q-{{ q.id }}-options" name="f_q_{{ q.id }}_options" rows="3" class="ui-input w-full">{{ q.options_text }}</textarea>
+      <textarea id="ff-q-{{ q.id }}-options" name="f_q_{{ q.id }}_options" rows="3" class="ui-input w-full" aria-describedby="ff-q-{{ q.id }}-options-hint">{{ q.options_text }}</textarea>
+      <p id="ff-q-{{ q.id }}-options-hint" class="text-xs text-gray-700">{% trans "Nur bei Art „Auswahl“, eine Option pro Zeile." %}</p>
       <label class="inline-flex min-h-[44px] items-center gap-2 text-sm"><input type="checkbox" name="f_q_{{ q.id }}_req" value="1"{% if q.req %} checked{% endif %}> {% trans "Pflicht" context "form field mode" %}</label>
       <div class="flex flex-wrap gap-2">
         {% if not q.first %}<button name="f_do" value="up:{{ q.id }}" class="ui-btn ui-btn-secondary min-h-[44px] min-w-[44px]"><span aria-hidden="true">↑</span><span class="sr-only">{% blocktrans with t=q.label %}„{{ t }}“ nach oben{% endblocktrans %}</span></button>{% endif %}
@@ -63,7 +64,8 @@
         {% for t, tlabel in fs.types %}<option value="{{ t }}">{{ tlabel }}</option>{% endfor %}
       </select>
       <label for="ff-new-options" class="block text-xs text-gray-700">{% trans "Optionen für „Auswahl“ (eine pro Zeile)" %}</label>
-      <textarea id="ff-new-options" name="f_new_options" rows="3" class="ui-input w-full"></textarea>
+      <textarea id="ff-new-options" name="f_new_options" rows="3" class="ui-input w-full" aria-describedby="ff-new-options-hint"></textarea>
+      <p id="ff-new-options-hint" class="text-xs text-gray-700">{% trans "Nur bei Art „Auswahl“, eine Option pro Zeile." %}</p>
       <label class="inline-flex min-h-[44px] items-center gap-2 text-sm"><input type="checkbox" name="f_new_req" value="1"> {% trans "Pflicht" context "form field mode" %}</label>
       <div><button name="f_do" value="add" class="ui-btn ui-btn-secondary min-h-[44px]" data-form-add>+ {% trans "Frage" %}</button></div>
     </div>
@@ -74,6 +76,6 @@
   {% if fs.preset %}
   <p><button name="f_do" value="preset" onclick="return confirm('{% trans "Aktuelle Felder durch die Branchen-Vorlage ersetzen?" as q %}{{ q|escapejs }}')" class="inline-flex min-h-[44px] items-center text-sm font-semibold text-indigo-700 hover:underline" data-form-preset>{% trans "Branchen-Vorlage laden" %}</button></p>
   {% endif %}
-  <button name="op" value="update" class="ui-btn ui-btn-primary w-full">{% trans "Übernehmen" %}</button>
+  <button name="f_commit_new" value="1" class="ui-btn ui-btn-primary w-full" data-schema-apply>{% trans "Übernehmen" %}</button>
 </form>
 {% endwith %}

@@ -94,9 +94,11 @@ def test_questions_have_screen_reader_labels_and_actions():
     assert "„Raum“ nach oben" in part and "„Raum“ nach unten" in part
     assert 'for="ff-q-q2-label"' in part and 'id="ff-q-q2-label"' in part
     assert "data-form-add" in part and "data-form-preset" in part  # кейтеринг — пресет есть
-    # Enter в поле — первая кнопка формы без действия
-    first = re.search(r"<button[^>]*>", part).group(0)
-    assert 'name="f_do"' not in first and 'aria-hidden="true"' in first
+    # Enter в поле — первая кнопка формы = «Übernehmen» (не «Nach oben»), вне Tab, с именем
+    first = re.search(r"<button[^>]*>[^<]*</button>", part).group(0)
+    assert 'name="f_do"' not in first and 'name="f_commit_new"' in first
+    assert 'tabindex="-1"' in first and "aria-hidden" not in first and "Übernehmen" in first
+    assert 'aria-describedby="ff-q-q2-options-hint"' in part
 
 
 def test_no_preset_button_without_industry_template():
@@ -115,7 +117,10 @@ def test_add_is_hidden_at_ten_questions():
 
 def test_event_hint_when_type_without_options():
     _b, html = _window({"anfrage": {"fields": ["event_type"]}})
-    assert "data-form-event-hint" in _part(html)
+    part = _part(html)
+    assert "data-form-event-hint" in part
+    assert 'aria-describedby="ff-event-types-hint ff-event-types-warn"' in part
+    assert "die Liste bleibt auch sonst gespeichert" in part  # подсказка = поведение (H1)
     _b, html = _window()
     assert "data-form-event-hint" not in _part(html)
 
