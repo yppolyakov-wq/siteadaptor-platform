@@ -39643,6 +39643,10 @@ msgid "fb33-stack-anchor-M3-4"
 msgstr "fb33-stack-anchor-M3-4"
 
 #. FB-33 M3-4: вкладка «Karte» окна блока (макет M0-2)
+msgid "eine Auswahl für beide Gruppen"
+msgstr "один выбор на обе группы"
+
+#. FB-33 M3-4: вкладка «Karte» окна блока (макет M0-2)
 msgid "Wie eine Kachel aussieht"
 msgstr "Как выглядит плитка"
 
@@ -39675,28 +39679,28 @@ msgid "Kartenform der Kategorie „%(name)s“"
 msgstr "форма карточки категории «%(name)s»"
 
 #. FB-33 M3-4: вкладка «Karte» окна блока (макет M0-2)
-msgid "%(n)s Produkt hat eine eigene Kartenform — sie gilt dort statt dieser"
-msgid_plural "%(n)s Produkte haben eine eigene Kartenform — sie gilt dort statt dieser"
-msgstr[0] "%(n)s товар имеет свою форму карточки — там действует она, а не эта"
-msgstr[1] "%(n)s товара имеют свою форму карточки — там действует она, а не эта"
-msgstr[2] "%(n)s товаров имеют свою форму карточки — там действует она, а не эта"
-msgstr[3] "%(n)s товаров имеют свою форму карточки — там действует она, а не эта"
+msgid "%(n)s der hier gezeigten Produkte hat eine eigene Kartenform — sie gilt dort statt dieser"
+msgid_plural "%(n)s der hier gezeigten Produkte haben eine eigene Kartenform — sie gilt dort statt dieser"
+msgstr[0] "%(n)s из показанных здесь товаров имеет свою форму карточки — там действует она, а не эта"
+msgstr[1] "%(n)s из показанных здесь товаров имеют свою форму карточки — там действует она, а не эта"
+msgstr[2] "%(n)s из показанных здесь товаров имеют свою форму карточки — там действует она, а не эта"
+msgstr[3] "%(n)s из показанных здесь товаров имеют свою форму карточки — там действует она, а не эта"
 
 #. FB-33 M3-4: вкладка «Karte» окна блока (макет M0-2)
-msgid "%(n)s Aktion hat eine eigene Kartenform — sie gilt dort statt dieser"
-msgid_plural "%(n)s Aktionen haben eine eigene Kartenform — sie gilt dort statt dieser"
-msgstr[0] "%(n)s акция имеет свою форму карточки — там действует она, а не эта"
-msgstr[1] "%(n)s акции имеют свою форму карточки — там действует она, а не эта"
-msgstr[2] "%(n)s акций имеют свою форму карточки — там действует она, а не эта"
-msgstr[3] "%(n)s акций имеют свою форму карточки — там действует она, а не эта"
+msgid "%(n)s der hier gezeigten Aktionen hat eine eigene Kartenform — sie gilt dort statt dieser"
+msgid_plural "%(n)s der hier gezeigten Aktionen haben eine eigene Kartenform — sie gilt dort statt dieser"
+msgstr[0] "%(n)s из показанных здесь акций имеет свою форму карточки — там действует она, а не эта"
+msgstr[1] "%(n)s из показанных здесь акций имеют свою форму карточки — там действует она, а не эта"
+msgstr[2] "%(n)s из показанных здесь акций имеют свою форму карточки — там действует она, а не эта"
+msgstr[3] "%(n)s из показанных здесь акций имеют свою форму карточки — там действует она, а не эта"
 
 #. FB-33 M3-4: вкладка «Karte» окна блока (макет M0-2)
-msgid "%(n)s Leistung hat eine eigene Kartenform — sie gilt dort statt dieser"
-msgid_plural "%(n)s Leistungen haben eine eigene Kartenform — sie gilt dort statt dieser"
-msgstr[0] "%(n)s услуга имеет свою форму карточки — там действует она, а не эта"
-msgstr[1] "%(n)s услуги имеют свою форму карточки — там действует она, а не эта"
-msgstr[2] "%(n)s услуг имеют свою форму карточки — там действует она, а не эта"
-msgstr[3] "%(n)s услуг имеют свою форму карточки — там действует она, а не эта"
+msgid "%(n)s der hier gezeigten Leistungen hat eine eigene Kartenform — sie gilt dort statt dieser"
+msgid_plural "%(n)s der hier gezeigten Leistungen haben eine eigene Kartenform — sie gilt dort statt dieser"
+msgstr[0] "%(n)s из показанных здесь услуг имеет свою форму карточки — там действует она, а не эта"
+msgstr[1] "%(n)s из показанных здесь услуг имеют свою форму карточки — там действует она, а не эта"
+msgstr[2] "%(n)s из показанных здесь услуг имеют свою форму карточки — там действует она, а не эта"
+msgstr[3] "%(n)s из показанных здесь услуг имеют свою форму карточки — там действует она, а не эта"
 
 #. FB-33 стопка: якорь среза M3-5a — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
 msgid "fb33-stack-anchor-M3-5a"

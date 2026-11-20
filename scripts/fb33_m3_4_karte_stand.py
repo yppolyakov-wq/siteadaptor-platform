@@ -90,8 +90,8 @@ TEXT = {
         "row": "Wie eine Zeile aussieht",
         "first": "Standard",
         "inherit": "Wie im Design: Standard",
-        "own3": "3 Produkte haben eine eigene Kartenform",
-        "own1": "1 Aktion hat eine eigene Kartenform",
+        "own3": "3 der hier gezeigten Produkte haben eine eigene Kartenform",
+        "own1": "1 der hier gezeigten Aktionen hat eine eigene Kartenform",
         "show": "anzeigen",
     },
     "ru": {
@@ -99,8 +99,8 @@ TEXT = {
         "row": "Как выглядит строка",
         "first": "Стандартный",
         "inherit": "Как в дизайне: ",
-        "own3": "3 товара имеют свою форму карточки",
-        "own1": "1 акция имеет свою форму карточки",
+        "own3": "3 из показанных здесь товаров имеют свою форму карточки",
+        "own1": "1 из показанных здесь акций имеет свою форму карточки",
         "show": "показать",
     },
 }
@@ -187,7 +187,7 @@ def products_grid(pg, w, lang):
     t = TEXT[lang]
     open_karte(pg, "m34g")
     check(pg.locator(KARTE).is_visible(), f"{w}/{lang}: вкладка «Karte» открыта")
-    legends = pg.locator(f"{FORM} legend").all_inner_texts()
+    legends = pg.locator(f"{FORM} [data-schema-card-shape] legend").all_inner_texts()
     check(legends == [t["tile"], t["row"]], f"{w}/{lang}: две группы ({legends})")
     tiles, rows = radios(pg, "tile"), radios(pg, "row")
     check(
@@ -237,11 +237,32 @@ def products_grid(pg, w, lang):
     # «Abbrechen» возвращает форму на момент открытия
     open_karte(pg, "m34g")
     pg.click(f"{FORM} label:has(input[value=overlay])")
+    pg.wait_for_selector(f"{DLG} [data-schema-card-reset]", timeout=15000)  # правка записана
     busy_done(pg)
     with pg.expect_navigation():
         pg.click(f"{DLG} [data-window-actions] button[value=revert]")
     open_karte(pg, "m34g")
     check(checked(pg) == "", f"{w}/{lang}: «Abbrechen» вернул форму ({checked(pg)!r})")
+    # ревью a11y: обе группы — одна радиогруппа: стрелка с первой плитки ведёт к последней строке
+    pg.focus(f"{FORM} input[name=f_card]:checked")
+    pg.keyboard.press("ArrowUp")
+    focus = pg.evaluate(
+        "(() => { const e = document.activeElement; return e && e.name === 'f_card' && "
+        "!!e.closest('[data-schema-card-shape=row]') ? e.value : null })()"
+    )
+    check(focus == "deal", f"{w}/{lang}: стрелки ходят по обеим группам ({focus})")
+    pg.wait_for_selector(f"{DLG} [data-schema-card-reset]", timeout=15000)
+    busy_done(pg)
+    with pg.expect_navigation():
+        pg.click(f"{DLG} [data-window-actions] button[value=revert]")
+    pg.goto(U + "/dashboard/site/aufbau/?seite=home&block=m34g&tab=karte")
+    settle(pg)
+    pg.click(f"{DLG} [data-schema-card-own] summary")
+    turned = pg.locator(f"{DLG} [data-schema-card-own] summary [aria-hidden]").evaluate(
+        "e => getComputedStyle(e).transform !== 'none'"
+    )
+    check(turned, f"{w}/{lang}: открыто — стрелка повёрнута")
+    pg.click(f"{DLG} [data-schema-card-own] summary")
 
 
 def others(pg, w, lang):

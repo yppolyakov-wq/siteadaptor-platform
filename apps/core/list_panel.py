@@ -536,6 +536,7 @@ def own_forms(source: str, items) -> list[dict]:
         try:
             url = reverse(url_name, args=args)
         except NoReverseMatch:
+            logger.warning("list panel: no edit url for %s", url_name)
             url = ""
         out.append({"label": str(obj), "url": url, "category": name})
     return out
@@ -548,18 +549,24 @@ def result(request, cfg: dict, data: dict) -> dict | None:
     Fail-safe: ошибка выборки = «не знаем» (None), строка в панели не рисуется — но
     в журнал (молча пропавшая строка иначе выглядела бы «всё в порядке»)."""
     from apps.core import list_blocks
+    from apps.tenants import siteconfig
 
     data = data if isinstance(data, dict) else {}
     try:
         res = list_blocks.resolve_for(request, cfg, data)
-        return {
-            "shown": len(res["items"]),
-            "total": int(res["total"]),
-            "own": own_forms(res["source"], res["items"]),
-        }
+        out = {"shown": len(res["items"]), "total": int(res["total"]), "own": []}
     except Exception:  # noqa: BLE001 — панель не падает из-за выборки
         logger.warning("list panel: block selection failed", exc_info=True)
         return None
+    # ревью M3-4: плашка «своя форма» — только где форма действует, и её сбой не стирает
+    # строку «блок покажет N»
+    try:
+        kind = siteconfig.LIST_SOURCES[res["source"]]["card"]
+        if card_forms.card_applies(kind, res.get("style") or ""):
+            out["own"] = own_forms(res["source"], res["items"])
+    except Exception:  # noqa: BLE001
+        logger.warning("list panel: own card forms failed", exc_info=True)
+    return out
 
 
 def pick_state(request, data: dict) -> dict | None:

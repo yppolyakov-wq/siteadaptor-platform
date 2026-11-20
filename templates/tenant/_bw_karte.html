@@ -1,18 +1,8 @@
-{% load i18n %}{% comment %}FB-33 M3-4 (макет M0-2): вкладка «Karte» — форма карточки списка, только подходящие виду (block_card.decorate). Плитки и строки — две группы одного поля f_card (одна форма, запись — патч: «Wie anordnen» карточку не присылает). Строка наследования говорит, что действует при пустом значении, и ведёт туда, где это меняется; «zurücksetzen» — своей формой после формы вкладки (кнопка без value=update, грабля M3-3). Плашка — карточки блока со своей формой, она на сайте главнее.{% endcomment %}
+{% load i18n %}{% comment %}FB-33 M3-4 (макет M0-2): вкладка «Karte» — форма карточки списка, только подходящие виду (block_card.decorate). Плитки и строки — две группы одного поля f_card (одна форма, запись — патч: «Wie anordnen» карточку не присылает). Строка наследования — перед группами (описание группы), говорит, что действует при пустом значении, и ведёт туда, где это меняется; «zurücksetzen» — своей формой вне формы вкладки (кнопка без value=update, грабля M3-3). Плашка — карточки блока со своей формой, она на сайте главнее.{% endcomment %}
 {% with cp=selected.card_pick %}
-<form method="post" id="bw-form-card_pick" class="mt-4 space-y-4" data-schema-list data-schema-karte>
-  {% csrf_token %}
-  {% include "tenant/_schema_keep.html" %}
-  <input type="hidden" name="ref" value="{{ selected.ref }}">
-  <input type="hidden" name="panel_present" value="1">
-  {% for g in cp.groups %}<div data-schema-card-shape="{{ g.shape }}">{% include "tenant/_view_tiles.html" with tiles=g.tiles legend=g.legend src="card" name="card" %}</div>
-  {% endfor %}
-  {% for text in cp.not_offered %}<p class="rounded-lg bg-gray-50 px-2 py-1.5 text-xs text-gray-700" data-schema-card-off>{{ text }}</p>{% endfor %}
-  <button name="op" value="update" class="ui-btn ui-btn-primary w-full scroll-mb-28">{% trans "Übernehmen" %}</button>
-</form>
 {% with inh=cp.inherit %}
-<div class="mt-2 rounded-lg bg-gray-50 px-2 py-1.5 text-xs text-gray-700" data-schema-card-inherit-row>
-  <p data-schema-card-inherit>{{ inh.source }}: {{ inh.label }}{% if cp.own %}<br>{% trans "Eigene Einstellung für diesen Block" %}: {{ cp.own_label }}{% endif %}</p>
+<div class="mt-4 rounded-lg bg-gray-50 px-2 py-1.5 text-xs text-gray-700" data-schema-card-inherit-row>
+  <p id="bw-card-inherit" data-schema-card-inherit>{{ inh.source }}: {{ inh.label }}{% if cp.own %}<br>{% trans "Eigene Einstellung für diesen Block" %}: {{ cp.own_label }}{% endif %}</p>
   <div class="flex flex-wrap items-center gap-3">
     {% if inh.link %}<a href="{{ inh.link }}" class="inline-flex items-center min-h-[44px] font-semibold text-indigo-700 underline underline-offset-2" data-schema-card-inherit-link>{% trans "ändern" %}<span class="sr-only"> – {{ inh.source }}</span></a>{% endif %}
     {% if inh.link and cp.own %}<span aria-hidden="true">·</span>{% endif %}
@@ -28,10 +18,23 @@
   </div>
 </div>
 {% endwith %}
+<form method="post" id="bw-form-card_pick" class="mt-3 space-y-4" data-schema-list data-schema-karte>
+  {% csrf_token %}
+  {% include "tenant/_schema_keep.html" %}
+  <input type="hidden" name="ref" value="{{ selected.ref }}">
+  <input type="hidden" name="panel_present" value="1">
+  <fieldset class="space-y-4" aria-describedby="bw-card-inherit" data-schema-card-pick>
+    <legend class="sr-only">{% trans "Kartenform" %} – {% trans "eine Auswahl für beide Gruppen" %}</legend>
+    {% for g in cp.groups %}<div data-schema-card-shape="{{ g.shape }}">{% include "tenant/_view_tiles.html" with tiles=g.tiles legend=g.legend src="card" name="card" %}</div>
+    {% endfor %}
+  </fieldset>
+  {% for text in cp.not_offered %}<p class="rounded-lg bg-gray-50 px-2 py-1.5 text-xs text-gray-700" data-schema-card-off>{{ text }}</p>{% endfor %}
+  <button name="op" value="update" class="ui-btn ui-btn-primary w-full scroll-mb-28">{% trans "Übernehmen" %}</button>
+</form>
 {% if cp.own_forms %}
 <div role="note" class="mt-2 rounded-lg bg-amber-50 px-2 py-1.5 text-xs text-amber-900" data-schema-card-own>
-  <details>
-    <summary class="flex flex-wrap items-center gap-x-1 min-h-[44px] cursor-pointer rounded focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"><span>{{ cp.own_forms.text }}</span><span aria-hidden="true">·</span><span class="font-semibold underline underline-offset-2">{% trans "anzeigen" %}</span></summary>
+  <details class="group">
+    <summary class="flex flex-wrap items-center gap-x-2 min-h-[44px] cursor-pointer rounded focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"><span>{{ cp.own_forms.text }}</span><span class="font-semibold underline underline-offset-2">{% trans "anzeigen" %}</span><span aria-hidden="true" class="inline-block group-open:rotate-180">▾</span></summary>
     <ul class="mt-1 space-y-1" data-schema-card-own-list>
       {% for o in cp.own_forms.items %}<li>{% if o.url %}<a href="{{ o.url }}" class="inline-flex items-center min-h-[44px] font-semibold text-indigo-800 underline underline-offset-2">{{ o.label }}</a>{% else %}{{ o.label }}{% endif %}{% if o.category %} — {% blocktrans with name=o.category %}Kartenform der Kategorie „{{ name }}“{% endblocktrans %}{% endif %}</li>{% endfor %}
     </ul>

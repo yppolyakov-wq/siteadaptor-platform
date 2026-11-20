@@ -45,23 +45,24 @@ def _not_offered(shape: str, examples: list[str], view: str) -> str:
 
 
 def _own_text(source: str, n: int) -> str:
-    """«N … haben eine eigene Kartenform» — по источнику (ru/uk — три формы)."""
+    """«N der hier gezeigten … haben eine eigene Kartenform» — честно про показанные карточки
+    (ревью M3-4), по источнику; ru/uk — плюральные формы."""
     if source == "promotions":
         text = ngettext(
-            "%(n)s Aktion hat eine eigene Kartenform — sie gilt dort statt dieser",
-            "%(n)s Aktionen haben eine eigene Kartenform — sie gilt dort statt dieser",
+            "%(n)s der hier gezeigten Aktionen hat eine eigene Kartenform — sie gilt dort statt dieser",
+            "%(n)s der hier gezeigten Aktionen haben eine eigene Kartenform — sie gilt dort statt dieser",
             n,
         )
     elif source == "services":
         text = ngettext(
-            "%(n)s Leistung hat eine eigene Kartenform — sie gilt dort statt dieser",
-            "%(n)s Leistungen haben eine eigene Kartenform — sie gilt dort statt dieser",
+            "%(n)s der hier gezeigten Leistungen hat eine eigene Kartenform — sie gilt dort statt dieser",
+            "%(n)s der hier gezeigten Leistungen haben eine eigene Kartenform — sie gilt dort statt dieser",
             n,
         )
     else:
         text = ngettext(
-            "%(n)s Produkt hat eine eigene Kartenform — sie gilt dort statt dieser",
-            "%(n)s Produkte haben eine eigene Kartenform — sie gilt dort statt dieser",
+            "%(n)s der hier gezeigten Produkte hat eine eigene Kartenform — sie gilt dort statt dieser",
+            "%(n)s der hier gezeigten Produkte haben eine eigene Kartenform — sie gilt dort statt dieser",
             n,
         )
     return text % {"n": n}
@@ -174,7 +175,8 @@ def pick(config: dict, selected: dict, field: dict, data: dict, source: str, sty
         "base": inherit["key"],
         "inherit": inherit,
         "own": bool(value),
-        "own_label": own_label if value else "",
+        # устаревшее значение вне пунктов — сырым ключом, а не пустотой
+        "own_label": (own_label or value) if value else "",
         "reset": CARD_RESET_FIELDS,
         "not_offered": not_offered,
         "own_forms": {"n": len(mine), "text": _own_text(source, len(mine)), "items": mine}

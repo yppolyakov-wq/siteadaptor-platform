@@ -338,8 +338,11 @@ def test_own_forms_note_lists_the_cards_with_edit_links():
     cat = _products(n_own=3)
     karte = _tab(_get(b, "?seite=home&block=l1&tab=karte"))
     note = re.search(r'<div role="note"[^>]*data-schema-card-own>.*?</div>', karte, re.S)[0]
-    assert "3 Produkte haben eine eigene Kartenform — sie gilt dort statt dieser" in note
-    assert "<details>" in note and "anzeigen" in note
+    assert (
+        "3 der hier gezeigten Produkte haben eine eigene Kartenform — sie gilt dort statt dieser"
+        in note
+    )
+    assert "<details" in note and "anzeigen" in note
     links = re.findall(r'<a href="(/[^"]+/edit/)"', note)
     assert len(links) == 3 and all(link.startswith("/catalog/products/") for link in links)
     assert str(cat.pk) not in note
@@ -349,7 +352,7 @@ def test_own_form_from_the_category_links_to_the_category():
     b = _browser()
     cat = _products(via_category=True, total=1)
     note = _tab(_get(b, "?seite=home&block=l1&tab=karte"))
-    assert "1 Produkt hat eine eigene Kartenform" in note
+    assert "1 der hier gezeigten Produkte hat eine eigene Kartenform" in note
     assert f"/catalog/categories/{cat.pk}/edit/" in note
     assert "Kartenform der Kategorie" in note
 
@@ -363,14 +366,14 @@ def test_no_note_without_own_forms():
 @pytest.mark.parametrize(
     "lang, n, want",
     [
-        ("ru", 1, "1 товар"),
-        ("ru", 3, "3 товара"),
-        ("ru", 5, "5 товаров"),
-        ("uk", 1, "1 товар"),
-        ("uk", 3, "3 товари"),
-        ("uk", 5, "5 товарів"),
-        ("en", 1, "1 product has"),
-        ("en", 2, "2 products have"),
+        ("ru", 1, "1 из показанных здесь товаров имеет"),
+        ("ru", 3, "3 из показанных здесь товаров имеют"),
+        ("ru", 21, "21 из показанных здесь товаров имеет"),
+        ("uk", 1, "1 з показаних тут товарів має"),
+        ("uk", 3, "3 з показаних тут товарів мають"),
+        ("uk", 5, "5 з показаних тут товарів мають"),
+        ("en", 1, "1 of the products shown here has"),
+        ("en", 2, "2 of the products shown here have"),
     ],
 )
 def test_own_forms_text_has_the_plural_forms_of_the_language(lang, n, want):
@@ -380,8 +383,10 @@ def test_own_forms_text_has_the_plural_forms_of_the_language(lang, n, want):
 
 def test_own_forms_text_is_named_by_the_source():
     with translation.override("de"):
-        assert block_card._own_text("promotions", 2).startswith("2 Aktionen haben")
-        assert block_card._own_text("services", 1).startswith("1 Leistung hat")
+        assert block_card._own_text("promotions", 2).startswith(
+            "2 der hier gezeigten Aktionen haben"
+        )
+        assert block_card._own_text("services", 1).startswith("1 der hier gezeigten Leistungen hat")
 
 
 def test_promotion_own_form_reads_the_raw_field_only():
@@ -416,3 +421,83 @@ def test_window_lands_karte_after_wie_and_selected_keys_are_known():
     assert [t["key"] for t in block_window.tabs(selected, view)] == ["was", "wie", "karte"]
     known = set(block_window.PANEL_KEYS) | block_window.ROW_KEYS
     assert {k for k, v in selected.items() if v} <= known
+
+
+# ─────────────────────────────── ревью M3-4 ───────────────────────────────
+
+
+def test_apply_without_changes_keeps_the_card_inherited():
+    """Ревью 1: у блока без своей формы отмечена плитка с ПУСТЫМ значением («Standard» /
+    «Wie im Design (X)»), реальная форма не отмечена — «Übernehmen» без правок карточку не
+    пишет и наследование не ломает."""
+    for cfg in (CFG, {**CFG, "site_defaults": {"card_style": "overlay"}}):
+        b = _browser(cfg)
+        html = _get(b, "?seite=home&block=l1&tab=karte")
+        form = _karte_form(html)
+        on = re.findall(r'name="f_card" value="([^"]*)" class="sr-only" checked', form)
+        assert on == [""], on
+        sent = dict(re.findall(r'name="(f_[a-z]+)" value="([^"]*)"[^>]*checked', form))
+        _post(b, seite="home", ref="l1", op="update", panel_present="1", **sent)
+        assert "card" not in ((_home_item(b, "l1") or {}).get("data") or {})
+
+
+def test_own_forms_failure_keeps_the_shown_count(monkeypatch, caplog):
+    """Ревью 2: сбой плашки не стирает «блок покажет N» — own=[] и запись в журнал."""
+
+    def boom(*a, **kw):
+        raise RuntimeError("x")
+
+    monkeypatch.setattr(list_panel, "own_forms", boom)
+    _products(n_own=2)
+    with caplog.at_level("WARNING", logger="apps.core.list_panel"):
+        res = list_panel.result(None, {}, {"source": "products"})
+    assert res["shown"] == 4 and res["own"] == []
+    assert any("own card forms failed" in r.getMessage() for r in caplog.records)
+
+
+def test_own_forms_only_where_the_card_applies():
+    """Ревью 3: у прайс-листа формы карточки нет — и плашку не считаем."""
+    _products(n_own=2)
+    grid = list_panel.result(None, {}, {"source": "products"})
+    price = list_panel.result(None, {}, {"source": "products", "style": "preisliste"})
+    assert len(grid["own"]) == 2 and price["own"] == []
+
+
+def test_missing_edit_url_is_logged(monkeypatch, caplog):
+    from django.urls import NoReverseMatch
+
+    _products(n_own=1, total=1)
+    from apps.catalog.models import Product
+
+    def no_url(*a, **kw):
+        raise NoReverseMatch("x")
+
+    monkeypatch.setattr("django.urls.reverse", no_url)
+    with caplog.at_level("WARNING", logger="apps.core.list_panel"):
+        own = list_panel.own_forms("products", list(Product.objects.select_related("category")))
+    assert own[0]["url"] == "" and any("no edit url" in r.getMessage() for r in caplog.records)
+
+
+def test_stale_own_value_is_named_not_blank():
+    field = {"name": "card", "value": "ghost", "options": [("", "x"), ("deal", "Deal")]}
+    selected = {"ref": "x1", "list_data": {"source": "products", "card": "ghost"}}
+    cp = block_card.pick({}, selected, field, selected["list_data"], "products", "")
+    assert cp["own"] and cp["own_label"] == "ghost"
+
+
+def test_two_groups_are_one_choice_described_by_the_inheritance_line():
+    """Ревью a11y 5/6: обе группы — один общий fieldset (одна радиогруппа для браузера, легенда
+    говорит об этом); строка «Wie im Design» — перед группами и описывает их; «anzeigen» при
+    открытии — «ausblenden», без «·»."""
+    b = _browser()
+    _products(n_own=1, total=1)
+    html = _tab(_get(b, "?seite=home&block=l1&tab=karte"))
+    form = _karte_form(html)
+    outer = re.search(r"<fieldset[^>]*data-schema-card-pick>\s*<legend[^>]*>([^<]+)<", form)
+    assert outer and "eine Auswahl für beide Gruppen" in outer.group(1)
+    assert 'aria-describedby="bw-card-inherit"' in form
+    assert html.index('id="bw-card-inherit"') < html.index('id="bw-form-card_pick"')
+    summary = re.search(r"<summary.*?</summary>", html, flags=re.S).group(0)
+    # «ausblenden» при открытии требует новых классов Tailwind (стопка app.css не коммитит) —
+    # пока стрелка поворачивается; закрытие — тот же summary (aria-expanded у <details>)
+    assert "group-open:rotate-180" in summary and "anzeigen" in summary and "·" not in summary
