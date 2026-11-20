@@ -247,7 +247,7 @@ def test_resets_touch_only_their_own_fields():
     reset = re.search(r"<form[^>]*data-schema-card-reset-form.*?</form>", html, flags=re.S)[0]
     sent = dict(re.findall(r'name="(f_[a-z]+)" value="([^"]*)"', reset))
     assert sent == {"f_card": ""}
-    assert "Eigene Einstellung für diesen Block: Deal-Kachel" in _tab(html)
+    assert "Eigene Einstellung für diesen Block: Deal-Zeile" in _tab(html)
     assert not re.search(r'<button[^>]*value="update"', reset)  # грабля M3-3: не прячется
     _post(b, seite="home", ref="l1", op="update", panel_present="1", **sent)
     data = _home_item(b, "l1")["data"]
