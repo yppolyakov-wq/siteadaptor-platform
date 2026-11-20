@@ -275,6 +275,27 @@ def overlay_config(cfg: dict, locales) -> None:
             i18n[loc] = merged
     if i18n:
         cfg["i18n"] = i18n
+    _overlay_event_types(cfg, locales)
+
+
+def _overlay_event_types(cfg: dict, locales) -> None:
+    """FB-33 M2i-5b: варианты «Art der Veranstaltung» — переводом по тексту варианта
+    (`form_fields.anfrage.event_types_i18n`, писатель `form_spec`), не позиционным оверлеем
+    `i18n.<язык>.anfrage`; старый оверлей (ручной) впитывается и главнее сгенерированного."""
+    from apps.core import form_spec
+
+    from . import siteconfig
+
+    form_spec.absorb_legacy_event_i18n(cfg)
+    events = siteconfig.normalize_anfrage(cfg.get("anfrage")).get("event_types") or []
+    generated: dict = {}
+    for value in events:
+        for loc in locales:
+            text = t(value, loc)
+            if text:
+                generated.setdefault(value, {})[loc] = text
+    if generated:
+        form_spec.set_event_translations(cfg, generated)
 
 
 # --- модельный контент -----------------------------------------------------

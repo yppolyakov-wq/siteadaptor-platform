@@ -109,10 +109,35 @@ def test_page_blocks_overlay_is_generated_per_host(fake_map):
 def test_anfrage_event_types_are_translated_in_overlay(fake_map):
     cfg = {"anfrage": {"fields": ["event_type"], "event_types": ["Hochzeit", "Firmenfeier"]}}
     demo_i18n.overlay_config(cfg, ["ru"])
-    localized = siteconfig.localize(siteconfig.normalize(cfg), "ru")
-    assert localized["anfrage"]["event_types"] == ["Свадьба", "Корпоратив"]
+    # FB-33 M2i-5b: перевод — по тексту варианта, не позиционным оверлеем `i18n.ru.anfrage`
+    norm = siteconfig.normalize(cfg)
+    assert norm["form_fields"]["anfrage"]["event_types_i18n"] == {
+        "Hochzeit": {"ru": "Свадьба"},
+        "Firmenfeier": {"ru": "Корпоратив"},
+    }
+    assert "anfrage" not in (norm.get("i18n") or {}).get("ru", {})
+    from apps.core import form_spec
+
+    assert form_spec.event_type_choices(norm, "ru") == [
+        ("Hochzeit", "Свадьба"),
+        ("Firmenfeier", "Корпоратив"),
+    ]
     # База (DE) не тронута — по ней вьюха валидирует присланное значение.
-    assert siteconfig.normalize(cfg)["anfrage"]["event_types"] == ["Hochzeit", "Firmenfeier"]
+    assert norm["anfrage"]["event_types"] == ["Hochzeit", "Firmenfeier"]
+    assert siteconfig.localize(norm, "ru")["anfrage"] == norm["anfrage"]
+
+
+def test_manual_positional_overlay_is_absorbed_and_wins(fake_map):
+    cfg = {
+        "anfrage": {"fields": ["event_type"], "event_types": ["Hochzeit", "Firmenfeier"]},
+        "i18n": {"ru": {"anfrage": {"event_types": ["Венчание"]}}},
+    }
+    demo_i18n.overlay_config(cfg, ["ru"])
+    entry = siteconfig.normalize(cfg)["form_fields"]["anfrage"]
+    assert entry["event_types_i18n"] == {
+        "Hochzeit": {"ru": "Венчание"},
+        "Firmenfeier": {"ru": "Корпоратив"},
+    }
 
 
 def test_anfrage_choices_keep_german_value_and_localized_label(fake_map, rf):

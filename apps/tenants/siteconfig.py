@@ -4168,7 +4168,8 @@ TRANSLATABLE_KEYS = (
     "archetypes",
     "usp_bar",
     "team",
-    "anfrage",
+    # FB-33 M2i-5b: `anfrage` (варианты формы заявки) — не оверлей: значения на основном
+    # языке, их перевод — `form_fields.anfrage.event_types_i18n` по тексту (`form_spec`)
     "before_after",
     "page_titles",  # FB-33 M2d
     "confirmation_next",  # FB-33 M2h

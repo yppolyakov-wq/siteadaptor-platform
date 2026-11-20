@@ -144,6 +144,17 @@ if ! $COMPOSE run --rm web python manage.py detach_quick_links --residue; then
 	echo "!!! On those sites tiles are NOT shown until detach_quick_links runs; do not save settings on these sites."
 fi
 
+# FB-33 M2i-5b: переводы вариантов «Art der Veranstaltung» — из позиционного оверлея
+# `i18n.*.anfrage` ключом по тексту (`form_fields.anfrage.event_types_i18n`), оверлей — прочь.
+# ДО подъёма нового web: новый код читает старый оверлей лишь ВРЕМЕННЫМ запасным путём. Пока
+# идёт шаг, работает старый web. Повтор — no-op; откат — form_i18n_realign --undo.
+step "[6d/8] Form translations: positional event types -> by text (before the new web starts)"
+if ! $COMPOSE run --rm web python manage.py form_i18n_realign; then
+	echo "!!! WARN: form_i18n_realign FAILED or skipped busy sites (see lines above)."
+	echo "!!! Those sites still show old positional translations of event types; re-run:"
+	echo "!!! python manage.py form_i18n_realign"
+fi
+
 step "[7/8] Restart services"
 $COMPOSE up -d
 # SEC-G11b: старые контейнеры (на первом деплое — ещё под root) работали всё время

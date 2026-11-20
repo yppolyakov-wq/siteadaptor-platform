@@ -190,6 +190,9 @@ def anfrage_form_settings(request):
         locked = Tenant.objects.select_for_update().get(pk=tenant.pk)
         raw = locked.site_config
         cfg = copy.deepcopy(raw) if isinstance(raw, dict) else {}
+        # FB-33 M2i-5b: старые позиционные переводы вариантов — ключом по тексту (по прежним
+        # позициям, ДО записи нового списка); перевод удалённого варианта выпадет при чтении
+        form_spec.absorb_legacy_event_i18n(cfg)
         if anfrage:
             cfg["anfrage"] = anfrage
         else:
