@@ -62,7 +62,9 @@ TEMPLATES = [
         # Батч A «гастро-сплит» (концепт 2026-07-27): 2-3 плитки-входа В баннере
         # (Reservieren / Speisekarte / Angebot des Tages) — первый экран сразу
         # ведёт гостя к его задаче (как date-search у отеля, услуги у friseur).
-        "site_defaults": {"hero_widget": "gastro"},
+        # FB-33 M2c-4: `quick_links` — набор первого экрана (блок «Schnellzugriff» сразу
+        # после баннера, `quick_links_migration.place`), а не ключ site_defaults.
+        "quick_links": "gastro",
     },
     {
         "key": "dienstleister",
@@ -91,12 +93,12 @@ TEMPLATES = [
             "Verfügbarkeit, Zimmer, Lage und Kontakt — für Pension, Ferienwohnung oder kleines Hotel."
         ),
         "recommended_for": ("hotel",),
-        # «Задача-первым» (E4): поиск дат ВНУТРИ hero (site_defaults.hero_widget=
-        # "stays") — первый экран сразу ведёт гостя к его задаче «свободно ли на
-        # мои даты». Секция stay_search убрана (жила бы дублем к hero-виджету);
-        # карточки номеров идут сразу под баннером. Гейт — модуль stays.
+        # «Задача-первым» (E4): поиск дат на первом экране — первый экран сразу ведёт
+        # гостя к его задаче «свободно ли на мои даты». FB-33 M2c-4: набор "stays" ставит
+        # секцию stay_search сразу после баннера (`quick_links_migration.place`);
+        # карточки номеров идут под ней. Гейт — модуль stays.
         "sections": ["hero", "stay_rooms", "about", "contact"],
-        "site_defaults": {"hero_widget": "stays"},
+        "quick_links": "stays",
         "texts": {
             "hero_title": "Willkommen bei uns",
             "hero_text": "Ihre Unterkunft für eine schöne Zeit — jetzt Verfügbarkeit prüfen.",
@@ -123,10 +125,9 @@ TEMPLATES = [
         },
         "accent": "#0f766e",  # teal
         "hero_style": "accent",
-        # R2 «первый экран»: топ-услуги + «Termin buchen» ВНУТРИ баннера (услуги-
-        # primary; services-секция и services_preview есть). Как hero_widget=stays
-        # у отеля. Существующие сайты не трогаем (применяется дефолт-шаблоном).
-        "site_defaults": {"hero_widget": "services"},
+        # R2 «первый экран»: топ-услуги сразу под баннером (услуги-primary). FB-33
+        # M2c-4: набор "services" поднимает секцию «Leistungen» сразу после баннера.
+        "quick_links": "services",
     },
     {
         # S6: Handwerker — Anfrage/Angebot; Referenzen (before_after) + Ablauf (process).
@@ -166,7 +167,7 @@ TEMPLATES = [
         },
         "accent": "#15803d",  # frisch/bio-грин
         "hero_style": "accent",
-        "site_defaults": {"hero_widget": "catering"},
+        "quick_links": "catering",  # FB-33 M2c-4: блок «Schnellzugriff» после баннера
     },
     {
         # S6: Veranstalter/Events — Tickets/Termine (events) im Fokus.
@@ -981,7 +982,9 @@ def look_family_sd_keys() -> frozenset:
 # STU-10: ключи `site_defaults`, которые пишет `_apply_bundle_axes` (ось сборки).
 # Замок `test_bundle_sd_axes_match_the_writer` держит список равным фактическим
 # записям в `sd[...]`, чтобы новая ось не разъехалась с этим перечнем.
-_BUNDLE_SD_AXES = ("media_shape", "card_style", "promo_card", "hero_widget")
+# FB-33 M2c-4: ось сборки `hero_widget` (набор первого экрана) в site_defaults не пишется —
+# её ставит блоком `_bundle_tiles`.
+_BUNDLE_SD_AXES = ("media_shape", "card_style", "promo_card")
 
 
 def _bundle_sd_keys() -> frozenset:
@@ -1034,14 +1037,10 @@ def _apply(
         # ST-1: пачка ключей Look'а (все ключи уже существуют в normalize-схеме).
         config["font"] = family["font"]
         config["typography"] = dict(family["typography"])
-        # Look = ВИЗУАЛЬНАЯ тема (card-стиль семейства). hero_widget — не визуал,
-        # а выбор раскладки первого экрана (E4): сохраняем существующий выбор
-        # тенанта, чтобы смена Look'а не сбрасывала date-search-в-hero.
+        # Look = ВИЗУАЛЬНАЯ тема (card-стиль семейства). Набор первого экрана — блок в
+        # раскладке (FB-33 M2c-4), кожа его не трогает.
         fam_sd = dict(family["site_defaults"])
         prev_sd = current.get("site_defaults") or {}
-        prev_hw = prev_sd.get("hero_widget")
-        if prev_hw in ("stays", "services", "gastro"):
-            fam_sd["hero_widget"] = prev_hw
         # STU-9 (ревью, класс W6): Look ЗАМЕНЯЛ site_defaults целиком, поэтому смена
         # кожи молча стирала настройки владельца, к визуалу семейства не относящиеся
         # (ширина текстовой колонки, шаблон страницы категории/группы, форма карточки,
@@ -1075,15 +1074,14 @@ def _apply(
             config.pop("theme", None)  # светлый Look снимает тёмный дефолт
 
     # E4 «задача-первым»: ПРИ ВЫБОРЕ ШАБЛОНА (не Look'а) переносим его витринные
-    # дефолты (напр. интерактивный hero отеля hero_widget="stays"). В пути Look'а
-    # НЕ трогаем (там site_defaults = card-стиль семейства + сохранённый hero_widget
-    # выше) — иначе смена Look ломала бы контракт «site_defaults == семейство».
+    # дефолты. В пути Look'а НЕ трогаем (там site_defaults = card-стиль семейства) —
+    # иначе смена Look ломала бы контракт «site_defaults == семейство».
     tpl_sd = template.get("site_defaults")
     if family is None and tpl_sd:
         config["site_defaults"] = {**(config.get("site_defaults") or {}), **tpl_sd}
 
-    if not skin_only:  # кожа (Look) раскладку не трогает — плитки переносит шаг деплоя
-        config = _detach_tiles(config)
+    if not skin_only and template.get("quick_links"):  # кожа (Look) раскладку не трогает
+        config = _place_tiles(config, template["quick_links"])
     tenant.site_config = siteconfig.normalize(config)
     update_fields = ["site_config", "updated_at"]
     # Акцентный цвет → Tenant.primary_color (его читает витрина для hero).
@@ -1093,18 +1091,32 @@ def _apply(
     tenant.save(update_fields=update_fields)
 
 
-def _detach_tiles(config: dict) -> dict:
-    """FB-33 M2c-3: плитки первого экрана шаблона/сборки — блоком «Schnellzugriff» сразу
-    после баннера, а не ключом `hero_widget` (тот же перенос, что шаг деплоя). Только для
-    композиции (шаблон, сборка с перестройкой главной); кожа раскладку не трогает."""
+def _place_tiles(config: dict, widget: str) -> dict:
+    """FB-33 M2c-4: набор первого экрана шаблона/сборки — блоком «Schnellzugriff» (форма
+    дат — секцией «Suche», топ услуг — «Leistungen») сразу после баннера. Писатель ставит
+    блок сам, ключ `hero_widget` не пишется (его не читает ни витрина, ни normalize).
+    Только для композиции (шаблон, сборка с перестройкой главной); кожа раскладку не
+    трогает."""
     import logging
 
-    from apps.core.quick_links_migration import detach
+    from apps.core.quick_links_migration import place
 
-    new, result = detach(config, replace=True)
+    new, result = place(config, widget, replace=True)
     if result.action.startswith("skip:"):
-        logging.getLogger(__name__).warning("sitetemplates: tiles not moved (%s)", result.action)
+        logging.getLogger(__name__).warning("sitetemplates: tiles not placed (%s)", result.action)
     return new
+
+
+def _bundle_tiles(config: dict, over: dict) -> dict:
+    """Ось сборки `hero_widget` (набор первого экрана) — блоком после баннера; «none» или
+    нет оси — автоблоки прежней сборки снимаются (блоки владельца со своими id — нет)."""
+    widget = over.get("hero_widget") or ""
+    if widget and widget != "none":
+        return _place_tiles(config, widget)
+    from apps.core.quick_links_migration import drop_auto_blocks
+
+    drop_auto_blocks(config)
+    return config
 
 
 def apply_template(tenant, key) -> bool:
@@ -1990,8 +2002,8 @@ def apply_preview_bundle(cfg, key):
     cfg = dict(cfg)
     cfg["sections"] = [dict(r) for r in cfg["sections"]]
     _apply_bundle_axes(cfg, bundle["config"])
-    # FB-33 M2c-3: превью = применение — плитки сборки блоком под баннером
-    return siteconfig.normalize(_detach_tiles(cfg))
+    # FB-33 M2c-3/M2c-4: превью = применение — плитки сборки блоком под баннером
+    return siteconfig.normalize(_bundle_tiles(cfg, bundle["config"]))
 
 
 #: Sections that sell something, and the module that fills them. A bundle whose
@@ -2075,21 +2087,14 @@ def apply_bundle(tenant, key, *, rebuild_home: bool = True) -> bool:
     # Сборка = композиция целиком: оси, которых она не объявляет, обязаны
     # сброситься к семейству (иначе переключение сборок «накапливало» бы прежние).
     was = siteconfig.normalize(tenant.site_config)
-    kept_widget = (was.get("site_defaults") or {}).get("hero_widget")
     kept_nav = (was.get("nav") or {}).get("style")
     kept_top = ((was.get("menus") or {}).get("top") or {}).get("style")
     apply_look(tenant, bundle["look"], keep_owner_sd=False)
     config = siteconfig.normalize(tenant.site_config)
     over = bundle["config"]
     if not rebuild_home:
+        # набор первого экрана — блок раскладки (FB-33 M2c-4): кожа его не трогает
         over = {k: v for k, v in over.items() if k in _BUNDLE_SKIN_AXES}
-        # виджет первого экрана — раскладка, а не вид: остаётся как был
-        sd = dict(config.get("site_defaults") or {})
-        if kept_widget:
-            sd["hero_widget"] = kept_widget
-        else:
-            sd.pop("hero_widget", None)
-        config["site_defaults"] = sd
         # шапка — тоже раскладка («Menü und Fußzeile bleiben»): кожа её не переставляет
         nav = dict(config.get("nav") or {})
         if kept_nav:
@@ -2108,14 +2113,10 @@ def apply_bundle(tenant, key, *, rebuild_home: bool = True) -> bool:
     _apply_bundle_axes(config, over)
     # DL-8a: запомнить выбранную сборку (бейдж «Aktiv» страницы Design).
     config["design"] = {"look": bundle["look"], "bundle": key}
-    if rebuild_home and not bundle["config"].get("hero_widget"):
-        # сборка = композиция целиком: без оси плиток автоблоки прежней сборки снимаются
-        # (раньше это делал сброс ключа `hero_widget`)
-        from apps.core.quick_links_migration import drop_auto_blocks
-
-        drop_auto_blocks(config)
-    if rebuild_home:  # без перестройки главной — только вид; плитки переносит шаг деплоя
-        config = _detach_tiles(config)
+    if rebuild_home:  # без перестройки главной — только вид, блоки раскладки на месте
+        # сборка = композиция целиком: её набор плиток — блоком после баннера; «none» или
+        # без оси — автоблоки прежней сборки снимаются
+        config = _bundle_tiles(config, bundle["config"])
     tenant.site_config = siteconfig.normalize(config)
     tenant.save(update_fields=["site_config", "updated_at"])
     return True
@@ -2153,16 +2154,9 @@ def _apply_bundle_axes(config: dict, over: dict) -> None:
         sd = dict(config.get("site_defaults") or {})
         sd["promo_card"] = over["promo_card"]
         config["site_defaults"] = sd
-    # DS-8/9: виджет первого экрана — часть композиции ("none" = снять плитки).
-    if over.get("hero_widget"):
-        sd = dict(config.get("site_defaults") or {})
-        sd["hero_widget"] = "" if over["hero_widget"] == "none" else over["hero_widget"]
-        config["site_defaults"] = sd
-        if over["hero_widget"] == "none":
-            # FB-33 M2c: плитки — свой блок; «без плиток» снимает автоблоки (свои — нет)
-            from apps.core.quick_links_migration import drop_auto_blocks
-
-            drop_auto_blocks(config)
+    # DS-8/9: виджет первого экрана — часть композиции. FB-33 M2c-4: в конфиг ось не
+    # пишется — блок ставит `_bundle_tiles` (сборка, превью), у демо-кита —
+    # `demo_kits._kit_quick_links` (старшинство патча кита над осью сборки).
     # DS-9: шапка одной строкой — и легаси-ключ nav, и дерево меню S7 (шапку
     # рисует menus.top.style; без него Fokus оставался бы двухэтажным).
     if over.get("nav_style"):

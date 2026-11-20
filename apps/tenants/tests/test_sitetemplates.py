@@ -74,13 +74,13 @@ def _after_hero(tenant):
 
 
 def test_gastgeber_hero_carries_stay_search_widget():
-    # E4 «задача-первым»: у отеля поиск дат ВНУТРИ hero (первый экран). Шаблон
-    # несёт site_defaults.hero_widget="stays"; apply_template доносит его до
-    # конфига (normalize оставляет валидное значение).
+    # E4 «задача-первым»: у отеля поиск дат на первом экране. Шаблон несёт набор
+    # "stays" (поле `quick_links`); apply_template ставит секцию «Suche» после баннера.
     from apps.tenants import siteconfig
 
     tpl = sitetemplates.get_template("gastgeber")
-    assert tpl["site_defaults"]["hero_widget"] == "stays"
+    assert tpl["quick_links"] == "stays"  # M2c-4: набор полем шаблона, не ключом
+    assert "hero_widget" not in (tpl.get("site_defaults") or {})
     tenant = TenantFactory(schema_name="t_hw", business_type="hotel")
     assert sitetemplates.apply_template(tenant, "gastgeber") is True
     tenant.refresh_from_db()
@@ -96,12 +96,13 @@ def test_gastgeber_hero_carries_stay_search_widget():
 
 def test_termine_hero_carries_services_widget():
     # R2 «первый экран»: у friseur/werkstatt топ-услуги + «Termin buchen» ВНУТРИ
-    # hero. Шаблон termine несёт site_defaults.hero_widget="services"; apply_template
-    # доносит; смена Look'а сохраняет (как у отеля).
+    # hero. Шаблон termine несёт набор "services" (поле `quick_links`); apply_template
+    # ставит «Leistungen» после баннера; смена Look'а сохраняет (как у отеля).
     from apps.tenants import siteconfig
 
     tpl = sitetemplates.get_template("termine")
-    assert tpl["site_defaults"]["hero_widget"] == "services"
+    assert tpl["quick_links"] == "services"  # M2c-4: набор полем шаблона, не ключом
+    assert "hero_widget" not in (tpl.get("site_defaults") or {})
     tenant = TenantFactory(schema_name="t_sw", business_type="friseur")
     assert sitetemplates.apply_template(tenant, "termine") is True
     tenant.refresh_from_db()
@@ -138,12 +139,13 @@ def test_hero_widget_partial_renders_services_gated_by_module(settings):
 
 def test_gastro_hero_carries_tiles_widget():
     # Батч A «гастро-сплит»: у кафе/ресторана плитки-входы ВНУТРИ hero. Шаблон
-    # gastro несёт site_defaults.hero_widget="gastro"; apply_template доносит;
+    # gastro несёт набор "gastro" (поле `quick_links`); apply_template ставит блок;
     # смена Look'а сохраняет (как stays/services).
     from apps.tenants import siteconfig
 
     tpl = sitetemplates.get_template("gastro")
-    assert tpl["site_defaults"]["hero_widget"] == "gastro"
+    assert tpl["quick_links"] == "gastro"  # M2c-4: набор полем шаблона, не ключом
+    assert "hero_widget" not in (tpl.get("site_defaults") or {})
     tenant = TenantFactory(schema_name="t_gw", business_type="restaurant")
     assert sitetemplates.apply_template(tenant, "gastro") is True
     tenant.refresh_from_db()
