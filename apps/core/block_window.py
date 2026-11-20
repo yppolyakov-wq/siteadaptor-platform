@@ -284,3 +284,26 @@ def default_op(post) -> str:
     списка, иначе правка полей (`update`)."""
     op = post.get("op_default", "")
     return op if op in OP_DEFAULTS else "update"
+
+
+#: FB-33 M2i-5 (a11y, отложено до M3-5a): фокус после кнопок вкладки «Felder» — на вопрос
+_FELDER_ID = r"(q[1-9][0-9]{0,3}|n[0-9]{1,3})"
+
+
+def felder_anchor(post, form_state: dict | None) -> str:
+    """Якорь после кнопки вопроса во «Felder»: ↑/↓ — тот же вопрос, «Entfernen» — список
+    своих вопросов, «+ Frage» — новый (последний) вопрос. Пусто — прежний якорь."""
+    import re
+
+    do = post.get("f_do", "")
+    match = re.fullmatch(rf"(up|down|del):{_FELDER_ID}", do)
+    if match:
+        action, qid = match.groups()
+        return "schema-tab-questions" if action == "del" else f"schema-tab-q-{qid}"
+    if do == "add":
+        custom = (form_state or {}).get("custom") or []
+        last = custom[-1].get("id") if custom and isinstance(custom[-1], dict) else ""
+        if last and re.fullmatch(_FELDER_ID, str(last)):
+            return f"schema-tab-q-{last}"
+        return "schema-tab-questions"
+    return ""

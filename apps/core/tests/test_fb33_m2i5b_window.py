@@ -173,7 +173,7 @@ def test_main_text_is_visible_and_described():
 def test_question_is_a_group_and_translation_labels_name_the_text():
     """Ревью a11y п.7: вопрос — fieldset с legend «Frage N», подпись перевода называет текст."""
     _html, part = _part(_browser())
-    box = part[part.index('data-form-question="q2"') - 80 :]
+    box = part[part.index('data-form-question="q2"') - 120 :]
     assert re.match(r'.*<fieldset[^>]*data-form-question="q2"', box, re.S)
     assert '<legend class="sr-only">Frage 2</legend>' in box
     assert "„Raum“ – Übersetzung (Русский)" in box

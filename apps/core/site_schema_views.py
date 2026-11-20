@@ -312,6 +312,13 @@ def site_schema_view(request):
             # FB-33 M2i-5b (ревью a11y): после кнопки языка фокус — на ней (`#schema-tab-…`
             # ставит фокус по id и окно, и страница без окна; без JS — прокрутка к ней)
             target = f"{target.split('#', 1)[0]}#schema-tab-lang-{lang}"
+        felder = applied and not notes and "#" in target and request.POST.get("f_do")
+        if felder:
+            # FB-33 M3-5a (a11y M2i-5): после ↑/↓/Entfernen/«+ Frage» — фокус на вопрос
+            form_state = (aufbau_draft.get(request, code) or {}).get("form")
+            anchor = block_window.felder_anchor(request.POST, form_state)
+            if anchor:
+                target = f"{target.split('#', 1)[0]}#{anchor}"
         if moved:
             target = f"{target.split('#', 1)[0]}#schema-tab-{goto}"
         if op == "setting" and "#" in target:

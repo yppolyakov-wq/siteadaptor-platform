@@ -82,9 +82,9 @@ Firmenfeier</textarea>
     <label for="ff-label-photos" class="mt-1 block text-xs text-gray-700">Eigene Beschriftung</label>
     <input type="text" id="ff-label-photos" name="f_label_photos" value="" placeholder="Fotos (optional, bis zu 5)" maxlength="120" class="ui-input w-full">
   </fieldset>
-  <fieldset class="rounded-lg border border-gray-200 p-3 space-y-3" data-form-questions>
+  <fieldset id="schema-tab-questions" tabindex="-1" class="rounded-lg border border-gray-200 p-3 space-y-3" data-form-questions>
     <legend class="px-1 text-sm font-semibold text-gray-800">Eigene Fragen</legend>
-    <div class="space-y-2 rounded-lg bg-gray-50 p-3" data-form-question="q1">
+    <div role="group" aria-label="Frage 1" id="schema-tab-q-q1" tabindex="-1" class="space-y-2 rounded-lg bg-gray-50 p-3" data-form-question="q1">
       <label for="ff-q-q1-label" class="block text-xs font-semibold text-gray-700">Frage 1</label>
       <input type="text" id="ff-q-q1-label" name="f_q_q1_label" value="Budget" maxlength="120" class="ui-input w-full">
       <label for="ff-q-q1-type" class="block text-xs text-gray-700">Art der Antwort</label>
@@ -100,7 +100,7 @@ Firmenfeier</textarea>
         <button name="f_do" value="del:q1" class="ui-btn ui-btn-secondary min-h-[44px]">Entfernen<span class="sr-only"> – Budget</span></button>
       </div>
     </div>
-    <div class="space-y-2 rounded-lg bg-gray-50 p-3" data-form-question="q2">
+    <div role="group" aria-label="Frage 2" id="schema-tab-q-q2" tabindex="-1" class="space-y-2 rounded-lg bg-gray-50 p-3" data-form-question="q2">
       <label for="ff-q-q2-label" class="block text-xs font-semibold text-gray-700">Frage 2</label>
       <input type="text" id="ff-q-q2-label" name="f_q_q2_label" value="Raum" maxlength="120" class="ui-input w-full">
       <label for="ff-q-q2-type" class="block text-xs text-gray-700">Art der Antwort</label>
@@ -118,7 +118,7 @@ Garten</textarea>
         <button name="f_do" value="del:q2" class="ui-btn ui-btn-secondary min-h-[44px]">Entfernen<span class="sr-only"> – Raum</span></button>
       </div>
     </div>
-    <div class="space-y-2 rounded-lg bg-gray-50 p-3" data-form-question="q4">
+    <div role="group" aria-label="Frage 3" id="schema-tab-q-q4" tabindex="-1" class="space-y-2 rounded-lg bg-gray-50 p-3" data-form-question="q4">
       <label for="ff-q-q4-label" class="block text-xs font-semibold text-gray-700">Frage 3</label>
       <input type="text" id="ff-q-q4-label" name="f_q_q4_label" value="Vegan?" maxlength="120" class="ui-input w-full">
       <label for="ff-q-q4-type" class="block text-xs text-gray-700">Art der Antwort</label>

@@ -210,6 +210,7 @@ function aufbauSubmitCopy(form, submitter) {
         } else {
           swap(doc, "#schema-result");
         }
+        langNote();
         var live = liveRegion();
         if (refused) {
           // Отказ читает сам role="alert"; на телефоне лист не должен его закрывать.
@@ -424,7 +425,7 @@ function aufbauSubmitCopy(form, submitter) {
       var alert = m.getAttribute("role") === "alert";
       // role=alert — только ошибки; прочее читает одна живая область окна
       if (alert) p.setAttribute("role", "alert");
-      else said.push(m.textContent.trim());
+      else if (!langOwn(m.textContent)) said.push(m.textContent.trim());
       p.setAttribute("data-bwin-relayed", "");
       p.className = alert ? "ui-bwin-alert" : "ui-bwin-note";
       p.textContent = m.textContent.trim();
@@ -517,6 +518,31 @@ function aufbauSubmitCopy(form, submitter) {
       b.setAttribute("aria-describedby", "bw-nav-apply");
       ["role", "aria-selected", "aria-controls", "tabindex", "id"].forEach(function (k) { b.removeAttribute(k); });
     });
+  }
+
+  /* FB-33 M3-5a (a11y M2i-5b): сообщение о сброшенном переводе — ещё и живой областью в блоке
+     языков вкладки «Felder» (узнаётся по началу текста, который шаблон кладёт в data-prefix);
+     в окне общая живая область его не повторяет. */
+  function langPrefix() {
+    var box = document.querySelector("[data-schema-panel] [data-form-langs-status]");
+    var prefix = box ? (box.getAttribute("data-prefix") || "").trim() : "";
+    return { box: box, prefix: prefix };
+  }
+
+  function langOwn(text) {
+    var lp = langPrefix();
+    return !!(lp.box && lp.prefix && String(text || "").trim().indexOf(lp.prefix) === 0);
+  }
+
+  function langNote() {
+    var lp = langPrefix();
+    if (!lp.box || !lp.prefix) return;
+    var said = [];
+    document.querySelectorAll("[data-schema-messages] > *").forEach(function (m) {
+      if (langOwn(m.textContent)) said.push(m.textContent.trim());
+    });
+    lp.box.textContent = "";
+    if (said.length) setTimeout(function () { lp.box.textContent = said.join(" "); }, 100);
   }
 
   function choose(key, remember) {
@@ -733,6 +759,7 @@ function aufbauSubmitCopy(form, submitter) {
     }
     dress();
     if (!win) return false;
+    langNote();
     relay();
     focusIn();
     // ревью M3-2 (M7): перед перезагрузкой окно закрывали — закрываем его теперь (если без ошибки)
@@ -774,6 +801,7 @@ function aufbauSubmitCopy(form, submitter) {
 
   hideApply();
   if (aufbauWindowWanted()) openWindow(document.querySelector("[data-schema-panel]"));
+  if (!win) langNote();  // окно зовёт её само (openWindow)
 })();
 
 /* FB-29.5b (макет A): строку схемы можно перетащить мышью — она встаёт перед строкой, на
