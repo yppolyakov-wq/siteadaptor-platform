@@ -115,6 +115,9 @@ def _forms(panel: str) -> list[str]:
     out = []
     for form in re.findall(r"<form\b.*?</form>", panel, flags=re.S):
         form = re.sub(r'<input type="hidden" name="csrfmiddlewaretoken"[^>]*>', "", form)
+        # FB-33 M3-1b: токен открытия окна — случайный, как и токен CSRF
+        form = re.sub(r'<input type="hidden" name="wopen"[^>]*>', "", form)
+        form = re.sub(r"&amp;wopen=[A-Za-z0-9_-]+", "", form)
         out.append(re.sub(r"\s+", " ", form).strip())
     return sorted(out)
 

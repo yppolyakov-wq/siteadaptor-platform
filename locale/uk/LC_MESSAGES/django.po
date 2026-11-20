@@ -39288,3 +39288,15 @@ msgstr "Так"
 #. FB-33 M3-1b: «Abbrechen» окна блока
 msgid "Änderungen an diesem Block zurückgenommen."
 msgstr "Зміни цього блоку скасовано."
+
+#. FB-33 M3-1b: окно блока
+msgid "Nichts zurückzunehmen – der Block ist so wie beim Öffnen."
+msgstr "Скасовувати нічого — блок такий, як під час відкриття."
+
+#. FB-33 M3-1b: окно блока
+msgid "Die Seite wurde inzwischen an anderer Stelle gespeichert – Abbrechen ist nicht mehr möglich. Bitte den Block prüfen."
+msgstr "Сторінку тим часом збережено в іншому місці — скасувати вже не можна. Перевірте блок."
+
+#. FB-33 M3-1b: окно блока
+msgid "Die letzte Änderung ist noch unterwegs. Bitte noch einmal versuchen."
+msgstr "Остання зміна ще надсилається. Спробуйте ще раз."

@@ -77,7 +77,12 @@
     busy();
     chain = chain
       .then(function () {
-        return fetch(location.href, { method: "POST", body: data, credentials: "same-origin" });
+        // FB-33 M3-1b: правка не висит вечно — через 10 с запрос снимается (обычная отправка)
+        var ctl = window.AbortController ? new AbortController() : null;
+        if (ctl) setTimeout(function () { ctl.abort(); }, 10000);
+        return fetch(location.href, {
+          method: "POST", body: data, credentials: "same-origin", signal: ctl ? ctl.signal : undefined,
+        });
       })
       .then(function (resp) {
         if (!resp.ok) throw new Error("status " + resp.status);
@@ -188,18 +193,46 @@
     e.preventDefault();
     // Enter в поле панели: правка уже в пути (change), вторая отправка не нужна.
     if (form.matches(FORMS) && (!submitter || submitter.value === "update")) return;
+    if (form.hasAttribute("data-window-actions")) { afterPending(form, submitter); return; }
     chain.then(function () {
-      if (!form.isConnected && form.hasAttribute("data-window-actions")) {
-        // FB-33 M3-1b: «Abbrechen/Fertig» окна — панель уже подменили; та же кнопка в новой
-        var again = document.querySelector("[data-window-actions]");
-        var op = submitter && submitter.value;
-        var btn = again && op && again.querySelector('button[name="op"][value="' + op + '"]');
-        if (btn) { again.requestSubmit(btn); return; }
-      }
       if (!form.isConnected) { location.reload(); return; }
       form.requestSubmit(submitter && submitter.isConnected ? submitter : undefined);
     });
   });
+
+  // FB-33 M3-1b: «Abbrechen/Fertig» окна ждут правку в пути, но не дольше WAIT мс (иначе —
+  // видимая ошибка). Панель могли подменить: уходит исходная форма — с ref того блока, на
+  // котором нажали, — обычной отправкой (без молчаливой перезагрузки).
+  var WAIT = 12000;
+  function afterPending(form, submitter) {
+    var timer = null;
+    var late = new Promise(function (resolve) { timer = setTimeout(function () { resolve("late"); }, WAIT); });
+    Promise.race([chain.then(function () { return "ok"; }), late]).then(function (how) {
+      clearTimeout(timer);
+      if (how === "late") { showError(form.getAttribute("data-wait-error")); return; }
+      if (form.isConnected) { form.requestSubmit(submitter && submitter.isConnected ? submitter : undefined); return; }
+      var copy = form.cloneNode(true);
+      copy.hidden = true;
+      if (submitter && submitter.name) {
+        var op = document.createElement("input");
+        op.type = "hidden"; op.name = submitter.name; op.value = submitter.value;
+        copy.appendChild(op);
+      }
+      document.body.appendChild(copy);
+      HTMLFormElement.prototype.submit.call(copy);
+    });
+  }
+
+  function showError(text) {
+    var box = document.querySelector("[data-schema-messages]");
+    if (!box || !text) return;
+    var p = document.createElement("p");
+    p.setAttribute("role", "alert");
+    p.className = "rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800";
+    p.textContent = text;
+    box.appendChild(p);
+    box.scrollIntoView({ block: "start" });
+  }
 
   hideApply();
 })();

@@ -17,10 +17,16 @@ from __future__ import annotations
 import copy
 import hashlib
 import json
+import logging
+import re
+import secrets
+import time
 
 from django.db import transaction
 
 from apps.core import site_schema
+
+logger = logging.getLogger(__name__)
 
 SESSION_KEY = "aufbau_draft"
 #: Потолок числа черновиков в сессии (страниц с несохранёнными правками).
@@ -122,9 +128,19 @@ def _all(request) -> dict:
     return drafts if isinstance(drafts, dict) else {}
 
 
+def _expired(draft: dict) -> bool:
+    """«Пустой» черновик (только снимок окна, FB-33 M3-1b) старше суток — как его нет."""
+    if not draft.get(IDLE_KEY):
+        return False
+    at = draft.get(IDLE_AT)
+    return not isinstance(at, (int, float)) or time.time() - at > IDLE_TTL
+
+
 def _raw(request, code: str) -> dict | None:
     draft = _all(request).get(code)
-    return draft if isinstance(draft, dict) and isinstance(draft.get("items"), list) else None
+    if not isinstance(draft, dict) or not isinstance(draft.get("items"), list):
+        return None
+    return None if _expired(draft) else draft
 
 
 def get(request, code: str) -> dict | None:
@@ -142,8 +158,13 @@ def _put(request, code: str, draft: dict | None) -> None:
     else:
         drafts.pop(code, None)  # свежий — в конец: при переполнении уходит самый старый
         drafts[code] = draft
-        while len(drafts) > MAX_DRAFTS:
-            drafts.pop(next(iter(drafts)))
+        # FB-33 M3-1b: «пустые» (только снимок окна) — отдельный лимит и срок, места
+        # настоящих черновиков они не занимают
+        drafts = {c: d for c, d in drafts.items() if not (isinstance(d, dict) and _expired(d))}
+        for idle, limit in ((False, MAX_DRAFTS), (True, MAX_IDLE)):
+            mine = [c for c, d in drafts.items() if bool((d or {}).get(IDLE_KEY)) is idle]
+            for c in mine[: max(len(mine) - limit, 0)]:
+                drafts.pop(c)
     if drafts:
         request.session[SESSION_KEY] = drafts
     else:
@@ -307,11 +328,27 @@ def _keys_conflict(config: dict, draft: dict) -> bool:
 WINDOW_KEY = "window"
 #: черновик без правок, который держится только ради снимка (см. `get`)
 IDLE_KEY = "idle"
+IDLE_AT = "idle_at"
+#: «пустой» черновик живёт сутки и не занимает места настоящих (`MAX_DRAFTS`)
+IDLE_TTL = 24 * 3600
+MAX_IDLE = 10
 #: снимков не больше трёх (по блоку; две вкладки браузера — два снимка)
 WINDOW_MAX = 3
-WINDOW_OPS = ("revert", "window_done")
+WINDOW_OPS = ("window_done",)
 #: операции не из окна блока (перетаскивание в списке, добавление) — снимка не пишут
-_NO_SNAPSHOT_OPS = frozenset({"add", "add_row", "adopt", "reset", "move", *WINDOW_OPS})
+_NO_SNAPSHOT_OPS = frozenset({"add", "add_row", "adopt", "reset", "move", "delete", "revert"})
+#: токен открытия окна (`wopen`): новый при каждом открытии, переживает действия окна
+_TOKEN_RE = re.compile(r"^[A-Za-z0-9_-]{4,32}$")
+#: итог «Abbrechen»
+CANCEL_DONE, CANCEL_NOTHING, CANCEL_CONFLICT = "done", "nothing", "conflict"
+
+
+def new_token() -> str:
+    return secrets.token_urlsafe(6)
+
+
+def clean_token(value) -> str:
+    return value if isinstance(value, str) and _TOKEN_RE.match(value) else ""
 
 
 def _ident(item) -> str:
@@ -330,33 +367,71 @@ def _window_setting_codes(tenant, code: str, ref: str) -> list[str]:
         try:
             return list(site_schema.setting_codes(tenant, code))
         except site_schema.SchemaError:
+            # снимок без настроек: «Abbrechen» их не вернёт — видно в логе, не молча
+            logger.warning("aufbau window: setting codes of %s/%s unavailable", code, ref)
             return []
     return []
 
 
-def _snapshot(tenant, code: str, host: str, draft: dict, ref: str) -> None:
-    """Прообраз блока `ref` — на первой правке после открытия окна (повтор не пишет)."""
+def _record_codes(draft: dict, proto: dict, codes) -> None:
+    """Прежнее значение настроек — до первой их правки в этом окне (и «на все списки»)."""
+    pending = _settings(draft)
+    have = proto.setdefault("codes", [])
+    for c in codes or ():
+        if c not in have:
+            have.append(c)
+            if c in pending:
+                proto.setdefault("settings", {})[c] = copy.deepcopy(pending[c])
+
+
+def _snapshot(tenant, code, host, draft, ref, token="", codes=()) -> None:
+    """Прообраз блока `ref` — на первой правке после открытия окна. Другое открытие
+    (другой токен `wopen`) — снимок заново, с текущего состояния."""
     from apps.core import confirmation_page
 
-    window = draft.get(WINDOW_KEY) if isinstance(draft.get(WINDOW_KEY), dict) else {}
-    if not ref or ref == site_schema.PAGE_REF or ref in window:
+    window = dict(draft.get(WINDOW_KEY) or {}) if isinstance(draft.get(WINDOW_KEY), dict) else {}
+    if not ref or ref == site_schema.PAGE_REF:
+        return
+    old = window.get(ref)
+    if isinstance(old, dict) and (not token or old.get("wopen") == token):
+        _record_codes(draft, old, codes)
+        draft[WINDOW_KEY] = window
         return
     items = draft.get("items") or []
     at = next((i for i, it in enumerate(items) if _ident(it) == ref), None)
-    proto = {"item": copy.deepcopy(items[at]) if at is not None else None, "at": at}
+    proto = {
+        "item": copy.deepcopy(items[at]) if at is not None else None,
+        "at": at,
+        # место — по соседу сверху (индекс сдвигается, когда в другой вкладке правят выше)
+        "after": _ident(items[at - 1]) if at else None,
+        "base": draft.get("base"),
+        "wopen": token,
+    }
     if ref == site_schema.TITLE_REF:
         proto["title"] = ["title" in draft, copy.deepcopy(draft.get("title"))]
     if host == confirmation_page.HOST and ref == site_schema.NEXT_REF:
         proto["next"] = ["next" in draft, draft.get("next")]
-    codes = _window_setting_codes(tenant, code, ref)
-    if codes:
-        pending = _settings(draft)
-        proto["codes"] = codes
-        proto["settings"] = {c: copy.deepcopy(pending[c]) for c in codes if c in pending}
-    window = {**window, ref: proto}
+    _record_codes(draft, proto, [*_window_setting_codes(tenant, code, ref), *codes])
+    window.pop(ref, None)
+    idents = {_ident(it) for it in items}
+    # снимки блоков, которых больше нет, места не занимают
+    window = {
+        r: p
+        for r, p in window.items()
+        if isinstance(p, dict) and (p.get("item") is None or r in idents)
+    }
+    window[ref] = proto
     while len(window) > WINDOW_MAX:
         window.pop(next(iter(window)))
     draft[WINDOW_KEY] = window
+
+
+def _drop_snapshot(draft: dict, ref: str) -> None:
+    window = {k: v for k, v in (draft.get(WINDOW_KEY) or {}).items() if k != ref}
+    if window:
+        draft[WINDOW_KEY] = window
+    else:
+        draft.pop(WINDOW_KEY, None)
 
 
 def _restore_key(draft: dict, key: str, entry) -> None:
@@ -367,35 +442,55 @@ def _restore_key(draft: dict, key: str, entry) -> None:
         draft.pop(key, None)
 
 
-def _revert(draft: dict, ref: str) -> None:
+def _place(items: list, proto: dict) -> int:
+    """Куда вернуть строку: сразу после прежнего соседа сверху; его нет — прежний индекс."""
+    after = proto.get("after")
+    if "after" in proto and after is None:
+        return 0
+    if after:
+        at = next((i for i, it in enumerate(items) if _ident(it) == after), None)
+        if at is not None:
+            return at + 1
+    at = proto.get("at")
+    return min(max(at if isinstance(at, int) else len(items), 0), len(items))
+
+
+def _revert(draft: dict, ref: str, proto: dict) -> None:
     """«Abbrechen»: блок `ref` — как в снимке (строка на своём месте, тексты, настройки
     окна); прочие правки черновика (другие блоки, другие вкладки) не трогаются."""
-    window = dict(draft.get(WINDOW_KEY) or {})
-    proto = window.pop(ref, None)
-    if window:
-        draft[WINDOW_KEY] = window
-    else:
-        draft.pop(WINDOW_KEY, None)
-    if not isinstance(proto, dict):
-        return
+    _drop_snapshot(draft, ref)
     items = [it for it in draft.get("items") or [] if _ident(it) != ref]
     if proto.get("item") is not None:
-        at = proto.get("at")
-        items.insert(
-            min(max(at if isinstance(at, int) else len(items), 0), len(items)), proto["item"]
-        )
+        items.insert(_place(items, proto), proto["item"])
     draft["items"] = items
     for key in ("title", "next"):
         if key in proto:
             _restore_key(draft, key, proto[key])
-    if "codes" in proto:
-        pending = {k: v for k, v in _settings(draft).items() if k not in proto["codes"]}
+    codes = proto.get("codes") or []
+    if codes:
+        pending = {k: v for k, v in _settings(draft).items() if k not in codes}
         pending.update(proto.get("settings") or {})
         if pending:
             draft["settings"] = pending
         else:
             for key in ("settings", "kbase", "kcodes"):
                 draft.pop(key, None)
+
+
+def _check_normalized(config: dict, draft: dict, home: bool, host: str) -> None:
+    """После отката черновик проходит ту же нормализацию, что и витрина (ревью M3-1b):
+    расхождение — в лог, черновик не правится молча."""
+    from apps.tenants import siteconfig
+
+    if not home:
+        return  # у страниц разделов строки черновика — в форме «Seitenaufbau», не витрины
+    try:
+        shown = siteconfig.normalize(overlay(config, draft))
+    except Exception:  # noqa: BLE001
+        logger.warning("aufbau window: draft after revert does not normalize", exc_info=True)
+        return
+    if site_schema.load_items(shown, home, host) != draft.get("items"):
+        logger.warning("aufbau window: draft after revert differs after normalize")
 
 
 def _working_draft(request, code: str, saved: dict, home: bool, host: str) -> tuple[dict, bool]:
@@ -410,6 +505,36 @@ def _working_draft(request, code: str, saved: dict, home: bool, host: str) -> tu
     return draft, raw is not None
 
 
+def cancel(request, tenant, code: str, ref: str, token: str = "") -> str:
+    """«Abbrechen» окна блока: `CANCEL_DONE` — блок как на момент открытия;
+    `CANCEL_NOTHING` — откатывать нечего (снимка нет: окно без правок, другое открытие,
+    «Speichern»/«Verwerfen» в другой вкладке, сессия истекла); `CANCEL_CONFLICT` — страницу
+    тем временем сохранили в другом месте, черновик не трогаем."""
+    from apps.tenants import siteconfig
+
+    _pt, host, home = site_schema.resolve(tenant, code)
+    if _raw(request, code) is None:
+        return CANCEL_NOTHING
+    config = siteconfig.normalize(tenant.site_config)
+    saved = _saved_state(config, home, host)
+    draft, _existed = _working_draft(request, code, saved, home, host)
+    proto = (draft.get(WINDOW_KEY) or {}).get(ref)
+    if not isinstance(proto, dict):
+        return CANCEL_NOTHING
+    token = clean_token(token)
+    if token and proto.get("wopen") and proto["wopen"] != token:
+        # снимок прежнего открытия: в этом окне правок не было — откатывать нечего
+        _drop_snapshot(draft, ref)
+        _settle(request, code, draft, saved, ref)
+        return CANCEL_NOTHING
+    if proto.get("base") != _base_fingerprint(saved, config, draft):
+        return CANCEL_CONFLICT
+    _revert(draft, ref, proto)
+    _check_normalized(config, draft, home, host)
+    _settle(request, code, draft, saved, ref)
+    return CANCEL_DONE
+
+
 def op(
     request,
     tenant,
@@ -419,8 +544,10 @@ def op(
     block_type: str = "",
     value: str = "",
     fields: dict | None = None,
+    token: str = "",
 ) -> str:
-    """Одна правка схемы — в черновик (база не меняется). SchemaError на недопустимом."""
+    """Одна правка схемы — в черновик (база не меняется). SchemaError на недопустимом.
+    `token` — токен открытия окна блока (`wopen`, FB-33 M3-1b)."""
     from apps.tenants import siteconfig
 
     _pt, host, home = site_schema.resolve(tenant, code)
@@ -428,21 +555,15 @@ def op(
     saved = _saved_state(config, home, host)
     draft, existed = _working_draft(request, code, saved, home, host)
     if op_name in WINDOW_OPS:
-        # FB-33 M3-1b: «Abbrechen» — блок как на момент открытия окна; «Fertig» — снимок
-        # больше не нужен. Без черновика — писать нечего.
+        # FB-33 M3-1b: «Fertig» — снимок больше не нужен. Без черновика — писать нечего.
         if not existed:
             return ref
-        if op_name == "revert":
-            _revert(draft, ref)
-        else:
-            window = {k: v for k, v in (draft.get(WINDOW_KEY) or {}).items() if k != ref}
-            if window:
-                draft[WINDOW_KEY] = window
-            else:
-                draft.pop(WINDOW_KEY, None)
+        _drop_snapshot(draft, ref)
         return _settle(request, code, draft, saved, ref)
     if op_name not in _NO_SNAPSHOT_OPS:
-        _snapshot(tenant, code, host, draft, ref)
+        _snapshot(tenant, code, host, draft, ref, clean_token(token))
+    if op_name == "delete":
+        _drop_snapshot(draft, ref)  # блока больше нет — и снимка его
     if (
         op_name in ("add", "add_row", "adopt")
         and host.startswith(siteconfig.CATEGORY_HOST_PREFIX)
@@ -492,11 +613,13 @@ def _settle(request, code: str, draft: dict, saved: dict, ref: str = "") -> str:
     )
     if clean and draft.get(WINDOW_KEY):
         # FB-33 M3-1b: окно блока открыто — снимок для «Abbrechen» держится, но черновика
-        # для экрана нет (`get`)
+        # для экрана нет (`get`); у «пустого» черновика — срок
         draft[IDLE_KEY] = True
+        draft[IDLE_AT] = int(time.time())
         _put(request, code, draft)
     else:
         draft.pop(IDLE_KEY, None)
+        draft.pop(IDLE_AT, None)
         _put(request, code, None if clean else draft)
     return ref
 
@@ -510,6 +633,7 @@ def setting_op(
     output: dict | None = None,
     apply_all: bool = False,
     ref: str = "",
+    token: str = "",
 ) -> list[str]:
     """FB-27 R4: настройка типа страницы — в черновик. Возвращает коды «на все списки»,
     которым значение не подошло (их пропустили). SchemaError / PageSettingError — если
@@ -524,7 +648,6 @@ def setting_op(
     config = siteconfig.normalize(tenant.site_config)
     saved = _saved_state(config, home, host)
     draft, _existed = _working_draft(request, code, saved, home, host)
-    _snapshot(tenant, code, host, draft, ref)  # FB-33 M3-1b: настройки окна ★/носителя
     targets = [setting]
     if apply_all and setting in page_settings.APPLY_ALL_LAYOUTS:
         targets += [
@@ -533,6 +656,9 @@ def setting_op(
             if other != setting
             and page_settings.type_active(tenant, page_settings.APPLY_ALL_TYPES[other])
         ]
+    # FB-33 M3-1b: снимок окна ★/носителя — со всеми настройками, которые правка заденет
+    # (и «на все списки»)
+    _snapshot(tenant, code, host, draft, ref, clean_token(token), targets)
     pending = dict(_settings(draft))
     gate = page_settings.composition_gate(config)
     skipped = []

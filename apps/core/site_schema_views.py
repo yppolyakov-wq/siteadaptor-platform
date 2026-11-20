@@ -25,6 +25,11 @@ def _keep(source) -> dict:
     # FB-33 M3-1: открытая вкладка окна блока (только из белого списка)
     if source.get("tab") in block_window.TAB_KEYS:
         keep["tab"] = source.get("tab")
+    # FB-33 M3-1b: токен открытия окна блока — действие окна не начинает «новое открытие»
+    from apps.core import aufbau_draft
+
+    if aufbau_draft.clean_token(source.get("wopen")):
+        keep["wopen"] = source.get("wopen")
     return keep
 
 
@@ -33,7 +38,7 @@ def _url(code: str, block: str = "", keep: dict | None = None) -> str:
     if block:
         query["block"] = block
     for key, value in (keep or {}).items():
-        if key not in ("welche", "tab") or block:
+        if key not in ("welche", "tab", "wopen") or block:
             query[key] = value
     # Якорь панели: после действия фокус возвращается к блоку, а не в начало страницы.
     return f"{reverse('site-schema')}?{urlencode(query)}" + ("#schema-panel" if block else "")
@@ -94,8 +99,27 @@ def site_schema_view(request):
             action, pick_value = request.POST["pick_op"].split(":", 1)
             op = f"pick_{action}"
         # FB-27 R2: правки копятся в черновике, на сайт попадают по «Speichern».
+        token = request.POST.get("wopen", "")  # FB-33 M3-1b: токен открытия окна
         try:
-            if op == "save":
+            if op == "revert":
+                # FB-33 M3-1b: «Abbrechen» — блок как на момент открытия окна; итог честный
+                done = aufbau_draft.cancel(request, tenant, code, ref, token)
+                if done == aufbau_draft.CANCEL_DONE:
+                    messages.success(request, _("Änderungen an diesem Block zurückgenommen."))
+                elif done == aufbau_draft.CANCEL_CONFLICT:
+                    messages.error(
+                        request,
+                        _(
+                            "Die Seite wurde inzwischen an anderer Stelle gespeichert – "
+                            "Abbrechen ist nicht mehr möglich. Bitte den Block prüfen."
+                        ),
+                    )
+                else:
+                    messages.warning(
+                        request,
+                        _("Nichts zurückzunehmen – der Block ist so wie beim Öffnen."),
+                    )
+            elif op == "save":
                 force = request.POST.get("force") == "1"
                 if aufbau_draft.commit(request, tenant, code, force=force):
                     messages.success(request, _("Gespeichert."))
@@ -131,6 +155,7 @@ def site_schema_view(request):
                     output=output,
                     apply_all=request.POST.get("apply_all") == "1",
                     ref=ref,  # FB-33 M3-1b: снимок окна ★/строки-носителя
+                    token=token,
                 )
                 if skipped:
                     from apps.core import studio_pages
@@ -171,15 +196,13 @@ def site_schema_view(request):
                     # Сентинел панели: без него поля не читаются (кнопки «выше/ниже»
                     # той же страницы не должны стирать текст блока).
                     fields=_panel_fields(request.POST),
+                    token=token,
                 )
                 # S8: у действий выбора баннера — сообщение (после «убрать» кнопка, на
                 # которой стоял фокус, исчезает; читатель экрана слышит, что произошло).
                 said = _PICK_SAID.get(op)
                 if said and request.POST.get("pick_op"):
                     messages.success(request, said)
-                if op == "revert":
-                    # FB-33 M3-1b: окно закрылось, фокус ушёл — читатель экрана слышит итог
-                    messages.success(request, _("Änderungen an diesem Block zurückgenommen."))
         except page_settings.PageSettingError:
             if op == "save":
                 # Черновик остаётся: владелец видит, что именно не записалось, и может
@@ -233,7 +256,7 @@ def site_schema_view(request):
             )
         # Блок остаётся выбранным (новый — тоже), удалённый — нет.
         # FB-33 M3-1b: «Fertig» и «Abbrechen» закрывают окно блока
-        closed = op == "delete" or op in aufbau_draft.WINDOW_OPS
+        closed = op in ("delete", "revert") or op in aufbau_draft.WINDOW_OPS
         target = _url(code, "" if closed else ref, _keep(request.POST))
         if op == "setting" and "#" in target:
             # Настройка, которую только что меняли, остаётся раскрытой.
@@ -403,6 +426,12 @@ def site_schema_view(request):
             "selected": selected,
             "confirm_remove": confirm_remove,
             "window": window,
+            # FB-33 M3-1b: токен открытия окна — тот же, пока владелец в этом окне
+            "wopen": (
+                aufbau_draft.clean_token(request.GET.get("wopen")) or aufbau_draft.new_token()
+            )
+            if selected
+            else "",
             # вкладка, которую формы окна помнят после действия: только явно открытая
             "window_tab": block_window.explicit_tab(window, request.GET.get("tab", "")),
             # FB-27 R7: строка категории — своя схема или блоки каталога

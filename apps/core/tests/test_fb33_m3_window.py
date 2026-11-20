@@ -76,7 +76,7 @@ def test_text_block_opens_with_view_and_place_and_texts_on_their_own_tab():
     nav = panel[panel.index("data-window-tabs") : panel.index("</nav>")]
     assert 'data-window-tab-link="wie"' in nav and 'aria-current="page"' in nav
     # без скриптов — обычная ссылка на якорь своей вкладки (фокус и скринридер — во вкладку)
-    assert "&amp;tab=texte#schema-tab-texte" in nav
+    assert re.search(r"&amp;tab=texte(&amp;wopen=[A-Za-z0-9_-]+)?#schema-tab-texte", nav)
     assert nav.count("focus-visible:outline-2") == 2  # явный фокус у каждой вкладки
     # смена вида и ширина — в «Wie anordnen», тексты — в «Texte»
     wie = panel[panel.index('data-window-tab="wie"') : panel.index('data-window-tab="texte"')]
@@ -220,7 +220,8 @@ def test_which_mode_and_tab_travel_together():
     """Ревью M3-1: ссылки вкладок несут открытый способ «Welche», ссылки «Welche» — вкладку."""
     b = Browser(_shop())
     html = _panel(b.get("?seite=home&block=l1&welche=regel&tab=wie"))
-    assert "&amp;tab=was&amp;welche=" in html  # ссылка вкладки «Was» помнит способ
+    # ссылка вкладки «Was» помнит способ (и токен открытия окна, FB-33 M3-1b)
+    assert re.search(r"&amp;tab=was(&amp;wopen=[A-Za-z0-9_-]+)?&amp;welche=", html)
     regel = re.search(r'<a href="([^"]*welche=[a-z]+[^"]*)"[^>]*data-schema-which-mode', html)
     assert regel and "&amp;tab=wie" in regel.group(1)
 
