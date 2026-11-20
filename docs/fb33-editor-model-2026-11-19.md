@@ -283,7 +283,7 @@ M2f; security M2h–i; silent-failure M2f, M2h–i; database M2i; code-reviewer 
 `apply_tenant`/`undo_tenant` — тонкие обёртки с прежними сигнатурами, передают `lock=lambda: _lock(...)`
 и `guard=` через позднее связывание (тесты FB-31.7 подменяют `pam._lock`/`_object_index` — байт-в-байт).
 Снимок — `tenants.SiteConfigSnapshot` (поле `reason`, индекс есть), миграции нет. В `deploy.sh`
-`detach_quick_links` — ПОСЛЕ `materialize_page_axes`; откаты LIFO (FB-31.7 `--undo` после detach →
+`detach_quick_links` — ПОСЛЕ `materialize_page_axes` (⚠️ заменено M2c-4: перенос ДО `up -d` и до materialize, откаты — сначала materialize); откаты LIFO (FB-31.7 `--undo` после detach →
 `changed`) — прописать в подсказке `--undo`. M2c-0 (характеризация) сделан.
 
 ## План M2d «Заголовок страницы» (planner, 2026-11-19)
