@@ -39980,3 +39980,68 @@ msgstr "змінити для всіх"
 #, python-format
 msgid "Ansicht der Produkte in „%(name)s“"
 msgstr "вигляд товарів у «%(name)s»"
+
+#. FB-33 M3-6
+msgid "Alle Banner liegen in der Bibliothek (Website › Banner). Hier wird nur gewählt, welcher in diesem Block steht."
+msgstr "Усі банери лежать у бібліотеці (Website › Banner). Тут обирається лише, який стоїть у цьому блоці."
+
+#. FB-33 M3-6
+msgid "Wo zeigen bearbeiten →"
+msgstr "Змінити, де показувати →"
+
+#. FB-33 M3-6
+#, python-format
+msgid "%(n)s Seite"
+msgid_plural "%(n)s Seiten"
+msgstr[0] "%(n)s сторінка"
+msgstr[1] "%(n)s сторінки"
+msgstr[2] "%(n)s сторінок"
+msgstr[3] "%(n)s сторінки"
+
+#. FB-33 M3-6
+msgid "„Wo zeigen“ wurde nicht übernommen: Der Banner steht nicht mehr in diesem Block."
+msgstr "«Де показувати» не застосовано: банера більше немає в цьому блоці."
+
+#. FB-33 M3-6
+msgid "Die Seiten dieses Banners wurden inzwischen in der Bibliothek geändert. Ihr Entwurf wurde nicht gespeichert – Sie können ihn verwerfen oder trotzdem speichern."
+msgstr "Сторінки цього банера тим часом змінили в бібліотеці. Чернетку не збережено — її можна відкинути або все одно зберегти."
+
+#. FB-33 M3-6
+msgid "Einige Seiten gibt es nicht mehr – sie wurden bei „Wo zeigen“ nicht übernommen."
+msgstr "Деяких сторінок більше немає — до «Де показувати» їх не додано."
+
+#. FB-33 M3-6
+msgid "Diese Seite gibt es nicht (mehr) oder sie ist nicht öffentlich – sie kann hier nicht gewählt werden."
+msgstr "Такої сторінки немає (вже немає) або вона не опублікована — обрати її тут не можна."
+
+#. FB-33 M3-6
+msgid "Mehr Seiten sind für einen Banner nicht möglich."
+msgstr "Більше сторінок для одного банера не можна."
+
+#. FB-33 M3-6
+msgid "„Wo zeigen“ darf nur ändern, wer auch die Banner bearbeiten darf."
+msgstr "«Де показувати» може змінювати лише той, кому можна редагувати банери."
+
+#. FB-33 M3-6
+msgid "Der Banner erscheint zusätzlich auf diesen Seiten – dort, wo die Seite Banner zeigt."
+msgstr "Банер з’являється ще й на цих сторінках — там, де сторінка показує банери."
+
+#. FB-33 M3-6
+msgid "wird im Banner-Block der Startseite gewählt"
+msgstr "обирається в блоці «Banner» головної"
+
+#. FB-33 M3-6
+msgid "Nicht mehr verfügbar"
+msgstr "Більше недоступна"
+
+#. FB-33 M3-6
+msgid "Noch auf keiner weiteren Seite."
+msgstr "Поки на жодній іншій сторінці."
+
+#. FB-33 M3-6
+msgid "Seiten suchen"
+msgstr "Шукати сторінки"
+
+#. FB-33 M3-6
+msgid "Seite, Kategorie oder Produkt suchen"
+msgstr "Шукати сторінку, категорію або товар"

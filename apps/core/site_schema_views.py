@@ -75,6 +75,24 @@ _PICK_SAID = {
 }
 
 
+def _m36_error(key) -> str:
+    """FB-33 M3-6: сообщение отказа окна блока («Wo zeigen» баннера); "" — не наш отказ."""
+    from apps.core import window_banner
+
+    if key == "banner_place":
+        return _(
+            "Diese Seite gibt es nicht (mehr) oder sie ist nicht öffentlich – sie kann hier "
+            "nicht gewählt werden."
+        )
+    if key == "banner_full":
+        return _("Mehr Seiten sind für einen Banner nicht möglich.")
+    if key == "banner_rights":
+        return _("„Wo zeigen“ darf nur ändern, wer auch die Banner bearbeiten darf.")
+    if key == "show_on_conflict":
+        return window_banner.conflict_note()
+    return ""
+
+
 def _row_ops(layout: dict, selected) -> dict:
     """FB-30.8: кнопки без мыши у выбранного блока — «в ряд выше» (если там есть место и
     блок не из этого ряда) и «свой ряд» (если блок стоит в ряду с соседями)."""
@@ -295,6 +313,9 @@ def site_schema_view(request):
                 from apps.core import faq_content
 
                 messages.error(request, faq_content.faq_changed_note())
+            elif exc.args and _m36_error(exc.args[0]):
+                # FB-33 M3-6: «Wo zeigen» баннера в окне блока
+                messages.error(request, _m36_error(exc.args[0]))
             else:
                 messages.error(request, _("Diese Änderung ist hier nicht möglich."))
         except aufbau_draft.DraftConflict:
@@ -436,7 +457,10 @@ def site_schema_view(request):
             and site_schema.place_capable(current.host if current else ""),
         )
 
-    # FB-33 M3-6: SEO и наследование у «Seite»
+    # FB-33 M3-6: подписи плиток и «Wo zeigen»; SEO и наследование у «Seite»
+    from apps.core import window_banner
+
+    window_banner.decorate(selected, config, draft, request)
     page_window.decorate(selected, config, current.host if current else "", code)
     for view_key in ("catview", "mainview", "groupview"):
         if selected and selected.get(view_key):

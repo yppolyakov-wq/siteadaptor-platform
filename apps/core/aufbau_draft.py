@@ -374,6 +374,7 @@ SIDE_PARTS = (
     ("form", FORM_KEYS),  # FB-33 M2i-5 «Felder»
     ("faq", FAQ_KEYS),  # FB-33 M3-5b вопросы FAQ
     ("ofaq", ("ofaq", "ofaq_base")),  # FB-33 M2b-2b свои вопросы объекта (`object_faq`)
+    ("show_on", ("show_on", "show_on_base")),  # FB-33 M3-6 «Wo zeigen» баннера (`window_banner`)
 )
 
 
@@ -478,9 +479,9 @@ def changes(saved: dict, draft: dict) -> int:
         and bool(draft["contact"]) != bool(saved.get("contact", True))
     ):
         count += 1
-    from apps.core import page_window
+    from apps.core import page_window, window_banner
 
-    count += page_window.changed(draft, saved)  # FB-33 M3-6
+    count += page_window.changed(draft, saved) + window_banner.count(draft)  # FB-33 M3-6
 
     # FB-33 M2d: «Seitentitel» — одно изменение
     if "title" in draft and draft["title"] != saved.get("title", {}):
@@ -507,9 +508,13 @@ def info(request, config: dict, code: str) -> dict:
     if not draft:
         return {"count": 0, "conflict": False}
     saved = _saved_state(config, bool(draft.get("home")), str(draft.get("host") or ""))
+    from apps.core import window_banner
+
+    banner_moved = window_banner.conflict(draft)  # FB-33 M3-6: «Wo zeigen» правили в библиотеке
     return {
         "count": changes(saved, draft),
-        "conflict": _base_fingerprint(saved, config, draft) != draft.get("base")
+        "conflict": banner_moved
+        or _base_fingerprint(saved, config, draft) != draft.get("base")
         or _keys_conflict(config, draft)
         or faq_conflict(config, draft),
     }
@@ -617,6 +622,9 @@ def _snapshot(tenant, code, host, draft, ref, token="", codes=(), source=None) -
         proto["next"] = ["next" in source, source.get("next")]
     if ref == site_schema.PAGE_REF:  # FB-33 M3-6: SEO страницы — в окне «Einstellungen»
         proto["seo"] = ["seo" in source, copy.deepcopy(source.get("seo"))]
+    if at is not None and site_schema.banner_place(items[at]):  # M3-6: «Wo zeigen»
+        keys = dict(SIDE_PARTS)["show_on"]
+        proto["show_on"] = {k: copy.deepcopy(source[k]) for k in keys if k in source}
 
     if host == site_schema.FORM_HOST and ref == site_schema.FORM_REF:
         proto["form"] = {k: copy.deepcopy(source[k]) for k in FORM_KEYS if k in source}
@@ -850,19 +858,23 @@ def op(
 
 def _m36_edit(host: str, ref: str, op_name: str, fields) -> bool:
     """FB-33 M3-6: правка окна, которую ведут `page_window`, `window_banner`, `legal_buttons`."""
-    from apps.core import page_window
+    from apps.core import page_window, window_banner
 
-    return page_window.is_seo_edit(host, ref, op_name, fields) or page_window.is_view_reset(
-        host, ref, op_name
+    return (
+        page_window.is_seo_edit(host, ref, op_name, fields)
+        or page_window.is_view_reset(host, ref, op_name)
+        or window_banner.is_places_edit(op_name)
     )
 
 
 def _m36_op(request, config, draft, code, host, saved, op_name, ref, fields, notes) -> str:
-    from apps.core import page_window
+    from apps.core import page_window, window_banner
 
     if page_window.is_seo_edit(host, ref, op_name, fields):
         return page_window.seo_op(config, draft, host, fields, saved)
-    return page_window.view_reset(draft, ref)
+    if page_window.is_view_reset(host, ref, op_name):
+        return page_window.view_reset(draft, ref)
+    return window_banner.places_op(request, config, draft, code, host, ref, notes)
 
 
 def _settle(request, code: str, draft: dict, saved: dict, ref: str = "") -> str:
@@ -999,9 +1011,10 @@ def commit(request, tenant, code: str, *, force: bool = False, notes: list | Non
     if faq_moved and not force:
         # своё сообщение: страницу никто не трогал — изменились общие вопросы (Студия, канва)
         raise site_schema.SchemaError("faq_conflict")
-    from apps.core import page_window
+    from apps.core import page_window, window_banner
 
-    # FB-33 M3-6: SEO страницы
+    # FB-33 M3-6: «Wo zeigen» баннеров (под блокировкой баннера) и SEO страницы
+    window_banner.commit(config, draft, code, host, force=force, notes=notes, request=request)
     page_window.commit(config, host, draft)
 
     from apps.core import hero_tiles

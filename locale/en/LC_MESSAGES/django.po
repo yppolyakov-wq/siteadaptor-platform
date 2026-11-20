@@ -39646,3 +39646,66 @@ msgstr "change for all"
 #, python-format
 msgid "Ansicht der Produkte in „%(name)s“"
 msgstr "Product view in “%(name)s”"
+
+#. FB-33 M3-6
+msgid "Alle Banner liegen in der Bibliothek (Website › Banner). Hier wird nur gewählt, welcher in diesem Block steht."
+msgstr "All banners live in the library (Website › Banner). Here you only choose which one is in this block."
+
+#. FB-33 M3-6
+msgid "Wo zeigen bearbeiten →"
+msgstr "Edit where to show →"
+
+#. FB-33 M3-6
+#, python-format
+msgid "%(n)s Seite"
+msgid_plural "%(n)s Seiten"
+msgstr[0] "%(n)s page"
+msgstr[1] "%(n)s pages"
+
+#. FB-33 M3-6
+msgid "„Wo zeigen“ wurde nicht übernommen: Der Banner steht nicht mehr in diesem Block."
+msgstr "“Where to show” was not applied: the banner is no longer in this block."
+
+#. FB-33 M3-6
+msgid "Die Seiten dieses Banners wurden inzwischen in der Bibliothek geändert. Ihr Entwurf wurde nicht gespeichert – Sie können ihn verwerfen oder trotzdem speichern."
+msgstr "The pages of this banner were changed in the library in the meantime. Your draft was not saved – you can discard it or save it anyway."
+
+#. FB-33 M3-6
+msgid "Einige Seiten gibt es nicht mehr – sie wurden bei „Wo zeigen“ nicht übernommen."
+msgstr "Some pages no longer exist – they were not applied to “Where to show”."
+
+#. FB-33 M3-6
+msgid "Diese Seite gibt es nicht (mehr) oder sie ist nicht öffentlich – sie kann hier nicht gewählt werden."
+msgstr "This page does not exist (any more) or is not public – it cannot be chosen here."
+
+#. FB-33 M3-6
+msgid "Mehr Seiten sind für einen Banner nicht möglich."
+msgstr "No more pages are possible for one banner."
+
+#. FB-33 M3-6
+msgid "„Wo zeigen“ darf nur ändern, wer auch die Banner bearbeiten darf."
+msgstr "Only someone who may edit banners can change “Where to show”."
+
+#. FB-33 M3-6
+msgid "Der Banner erscheint zusätzlich auf diesen Seiten – dort, wo die Seite Banner zeigt."
+msgstr "The banner also appears on these pages – where the page shows banners."
+
+#. FB-33 M3-6
+msgid "wird im Banner-Block der Startseite gewählt"
+msgstr "chosen in the banner block of the home page"
+
+#. FB-33 M3-6
+msgid "Nicht mehr verfügbar"
+msgstr "No longer available"
+
+#. FB-33 M3-6
+msgid "Noch auf keiner weiteren Seite."
+msgstr "Not on any other page yet."
+
+#. FB-33 M3-6
+msgid "Seiten suchen"
+msgstr "Search pages"
+
+#. FB-33 M3-6
+msgid "Seite, Kategorie oder Produkt suchen"
+msgstr "Search page, category or product"

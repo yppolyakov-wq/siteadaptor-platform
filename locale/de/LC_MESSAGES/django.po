@@ -39733,3 +39733,66 @@ msgstr "für alle ändern"
 #, python-format
 msgid "Ansicht der Produkte in „%(name)s“"
 msgstr "Ansicht der Produkte in „%(name)s“"
+
+#. FB-33 M3-6
+msgid "Alle Banner liegen in der Bibliothek (Website › Banner). Hier wird nur gewählt, welcher in diesem Block steht."
+msgstr "Alle Banner liegen in der Bibliothek (Website › Banner). Hier wird nur gewählt, welcher in diesem Block steht."
+
+#. FB-33 M3-6
+msgid "Wo zeigen bearbeiten →"
+msgstr "Wo zeigen bearbeiten →"
+
+#. FB-33 M3-6
+#, python-format
+msgid "%(n)s Seite"
+msgid_plural "%(n)s Seiten"
+msgstr[0] "%(n)s Seite"
+msgstr[1] "%(n)s Seiten"
+
+#. FB-33 M3-6
+msgid "„Wo zeigen“ wurde nicht übernommen: Der Banner steht nicht mehr in diesem Block."
+msgstr "„Wo zeigen“ wurde nicht übernommen: Der Banner steht nicht mehr in diesem Block."
+
+#. FB-33 M3-6
+msgid "Die Seiten dieses Banners wurden inzwischen in der Bibliothek geändert. Ihr Entwurf wurde nicht gespeichert – Sie können ihn verwerfen oder trotzdem speichern."
+msgstr "Die Seiten dieses Banners wurden inzwischen in der Bibliothek geändert. Ihr Entwurf wurde nicht gespeichert – Sie können ihn verwerfen oder trotzdem speichern."
+
+#. FB-33 M3-6
+msgid "Einige Seiten gibt es nicht mehr – sie wurden bei „Wo zeigen“ nicht übernommen."
+msgstr "Einige Seiten gibt es nicht mehr – sie wurden bei „Wo zeigen“ nicht übernommen."
+
+#. FB-33 M3-6
+msgid "Diese Seite gibt es nicht (mehr) oder sie ist nicht öffentlich – sie kann hier nicht gewählt werden."
+msgstr "Diese Seite gibt es nicht (mehr) oder sie ist nicht öffentlich – sie kann hier nicht gewählt werden."
+
+#. FB-33 M3-6
+msgid "Mehr Seiten sind für einen Banner nicht möglich."
+msgstr "Mehr Seiten sind für einen Banner nicht möglich."
+
+#. FB-33 M3-6
+msgid "„Wo zeigen“ darf nur ändern, wer auch die Banner bearbeiten darf."
+msgstr "„Wo zeigen“ darf nur ändern, wer auch die Banner bearbeiten darf."
+
+#. FB-33 M3-6
+msgid "Der Banner erscheint zusätzlich auf diesen Seiten – dort, wo die Seite Banner zeigt."
+msgstr "Der Banner erscheint zusätzlich auf diesen Seiten – dort, wo die Seite Banner zeigt."
+
+#. FB-33 M3-6
+msgid "wird im Banner-Block der Startseite gewählt"
+msgstr "wird im Banner-Block der Startseite gewählt"
+
+#. FB-33 M3-6
+msgid "Nicht mehr verfügbar"
+msgstr "Nicht mehr verfügbar"
+
+#. FB-33 M3-6
+msgid "Noch auf keiner weiteren Seite."
+msgstr "Noch auf keiner weiteren Seite."
+
+#. FB-33 M3-6
+msgid "Seiten suchen"
+msgstr "Seiten suchen"
+
+#. FB-33 M3-6
+msgid "Seite, Kategorie oder Produkt suchen"
+msgstr "Seite, Kategorie oder Produkt suchen"

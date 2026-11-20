@@ -15,19 +15,12 @@ from django.db import connection
 from django.test.utils import CaptureQueriesContext
 from django.utils import timezone
 
-from apps.core import aufbau_draft
+from apps.core import aufbau_draft, window_banner
 from apps.core.models import Banner
 from apps.core.tests.test_fb27_r2_draft import Browser, _tenant
 from apps.core.tests.test_fb33_m3_window_before import _panel
 
-try:  # C0: замки до кода — модуля среза ещё нет (тесты ниже — strict-xfail)
-    from apps.core import window_banner
-except ImportError:  # pragma: no cover
-    window_banner = None
-
 pytestmark = pytest.mark.django_db
-#: C0 — замки до кода; снимаются в коммите своей части
-TODO = pytest.mark.xfail(strict=True, reason="M3-6 C3–C4 баннер: замок до кода")
 
 
 def _cfg(pick, bn2=None):
@@ -70,7 +63,6 @@ class _Req:
 # ───────────── C3: подписи плиток ─────────────
 
 
-@TODO
 def test_tile_captions_say_when_and_where():
     today = timezone.localdate()
     soon = today + datetime.timedelta(days=5)
@@ -91,7 +83,6 @@ def test_tile_captions_say_when_and_where():
     assert d.pk  # выключенный — тоже в библиотеке
 
 
-@TODO
 def test_library_note_and_no_new_banner_button():
     a = _banner()
     html = _panel(Browser(_shop([a.pk])).get("?seite=text&block=bn1"))
@@ -119,7 +110,6 @@ def test_captions_cost_the_same_queries_for_one_and_many_banners():
 # ───────────── C4: «Wo zeigen» ─────────────
 
 
-@TODO
 def test_places_only_with_one_banner_slider_links_to_library():
     a, b2 = _banner("A"), _banner("B")
     one = _panel(Browser(_shop([a.pk])).get("?seite=text&block=bn1"))
@@ -130,7 +120,6 @@ def test_places_only_with_one_banner_slider_links_to_library():
     assert f"/dashboard/site/banner/{a.pk}/" in two
 
 
-@TODO
 def test_add_and_remove_places_go_to_the_draft_and_save_writes_them():
     a = _banner("A", show_on=["category:alt"])
     _cat("alt")
@@ -154,7 +143,6 @@ def test_add_and_remove_places_go_to_the_draft_and_save_writes_them():
     assert a.show_on == ["category:brot"] and brot.pk
 
 
-@TODO
 def test_places_refuse_unknown_inactive_or_garbage_pages():
     """IDOR-замок: в обход формы нельзя поставить выключенную, выдуманную или чужую страницу."""
     from apps.promotions.models import Promotion
@@ -173,7 +161,6 @@ def test_places_refuse_unknown_inactive_or_garbage_pages():
     assert _raw(b) is None
 
 
-@TODO
 def test_places_refused_without_banner_rights(monkeypatch):
     a = _banner("A")
     _cat("brot")
@@ -195,7 +182,6 @@ def test_places_only_for_the_banner_of_this_block():
     assert _raw(b) is None
 
 
-@TODO
 def test_abbrechen_restores_places_byte_for_byte():
     a = _banner("A")
     _cat("brot")
@@ -207,7 +193,6 @@ def test_abbrechen_restores_places_byte_for_byte():
     assert aufbau_draft.get(_Req(b.session), "text") is None
 
 
-@TODO
 def test_library_change_is_a_conflict_and_force_merges_three_way():
     a = _banner("A", show_on=["category:alt"])
     for slug in ("alt", "brot", "neu"):
@@ -228,7 +213,6 @@ def test_library_change_is_a_conflict_and_force_merges_three_way():
     assert a.show_on == ["category:neu", "category:brot"], "своё удаление и добавление + чужое"
 
 
-@TODO
 def test_banner_removed_from_the_block_drops_the_places_edit():
     a, other = _banner("A"), _banner("B")
     _cat("brot")
@@ -242,7 +226,6 @@ def test_banner_removed_from_the_block_drops_the_places_edit():
     assert a.show_on == []
 
 
-@TODO
 def test_place_gone_before_save_is_not_written():
     a = _banner("A")
     brot = _cat("brot")
@@ -256,7 +239,6 @@ def test_place_gone_before_save_is_not_written():
     assert a.show_on == []
 
 
-@TODO
 def test_home_is_a_read_only_chip_and_search_is_capped():
     a = _banner("A")
     tenant = _shop([a.pk])
@@ -269,7 +251,6 @@ def test_home_is_a_read_only_chip_and_search_is_capped():
     assert 'value="' + "x" * 80 + '"' in html and "x" * 81 not in html
 
 
-@TODO
 def test_places_part_lives_on_the_was_tab():
     from apps.core import block_window
 

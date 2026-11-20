@@ -39792,3 +39792,66 @@ msgstr "tümü için değiştir"
 #, python-format
 msgid "Ansicht der Produkte in „%(name)s“"
 msgstr "„%(name)s“ içindeki ürün görünümü"
+
+#. FB-33 M3-6
+msgid "Alle Banner liegen in der Bibliothek (Website › Banner). Hier wird nur gewählt, welcher in diesem Block steht."
+msgstr "Tüm banner'lar kütüphanededir (Website › Banner). Burada yalnızca bu blokta hangisinin duracağı seçilir."
+
+#. FB-33 M3-6
+msgid "Wo zeigen bearbeiten →"
+msgstr "Nerede gösterileceğini düzenle →"
+
+#. FB-33 M3-6
+#, python-format
+msgid "%(n)s Seite"
+msgid_plural "%(n)s Seiten"
+msgstr[0] "%(n)s sayfa"
+msgstr[1] "%(n)s sayfa"
+
+#. FB-33 M3-6
+msgid "„Wo zeigen“ wurde nicht übernommen: Der Banner steht nicht mehr in diesem Block."
+msgstr "„Nerede gösterilsin“ uygulanmadı: banner artık bu blokta değil."
+
+#. FB-33 M3-6
+msgid "Die Seiten dieses Banners wurden inzwischen in der Bibliothek geändert. Ihr Entwurf wurde nicht gespeichert – Sie können ihn verwerfen oder trotzdem speichern."
+msgstr "Bu banner'ın sayfaları bu arada kütüphanede değiştirildi. Taslağınız kaydedilmedi – onu atabilir veya yine de kaydedebilirsiniz."
+
+#. FB-33 M3-6
+msgid "Einige Seiten gibt es nicht mehr – sie wurden bei „Wo zeigen“ nicht übernommen."
+msgstr "Bazı sayfalar artık yok – „Nerede gösterilsin“e eklenmediler."
+
+#. FB-33 M3-6
+msgid "Diese Seite gibt es nicht (mehr) oder sie ist nicht öffentlich – sie kann hier nicht gewählt werden."
+msgstr "Bu sayfa (artık) yok veya herkese açık değil – burada seçilemez."
+
+#. FB-33 M3-6
+msgid "Mehr Seiten sind für einen Banner nicht möglich."
+msgstr "Bir banner için daha fazla sayfa mümkün değil."
+
+#. FB-33 M3-6
+msgid "„Wo zeigen“ darf nur ändern, wer auch die Banner bearbeiten darf."
+msgstr "„Nerede gösterilsin“i yalnızca banner'ları düzenleyebilen kişi değiştirebilir."
+
+#. FB-33 M3-6
+msgid "Der Banner erscheint zusätzlich auf diesen Seiten – dort, wo die Seite Banner zeigt."
+msgstr "Banner ayrıca bu sayfalarda görünür – sayfanın banner gösterdiği yerde."
+
+#. FB-33 M3-6
+msgid "wird im Banner-Block der Startseite gewählt"
+msgstr "ana sayfanın banner bloğunda seçilir"
+
+#. FB-33 M3-6
+msgid "Nicht mehr verfügbar"
+msgstr "Artık mevcut değil"
+
+#. FB-33 M3-6
+msgid "Noch auf keiner weiteren Seite."
+msgstr "Henüz başka bir sayfada değil."
+
+#. FB-33 M3-6
+msgid "Seiten suchen"
+msgstr "Sayfa ara"
+
+#. FB-33 M3-6
+msgid "Seite, Kategorie oder Produkt suchen"
+msgstr "Sayfa, kategori veya ürün ara"

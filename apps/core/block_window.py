@@ -30,6 +30,7 @@ TAB_KEYS = tuple(key for key, _label in TABS)
 PART_TAB: dict[str, str] = {
     "list": "was",  # блок «Liste» и встроенные списки: что показать (форма «Welche · Wie»)
     "banner": "was",  # выбор баннера из библиотеки и «Wo zeigen»
+    "places": "was",  # FB-33 M3-6 (M0-7): «Wo zeigen» одного баннера — в черновик
     "tiles": "was",  # FB-33 M3-5b: плашки Schnellzugriff и «Vorlage für die Kacheln» — одна форма
     "views": "wie",  # виды картинками: категорий, товаров, групп
     "switch": "wie",  # смена вида внутри семьи (M2e)
@@ -47,6 +48,7 @@ PART_TAB: dict[str, str] = {
 PART_ORDER = (
     "list",
     "banner",
+    "places",
     "tiles",
     "views",
     "switch",
@@ -91,7 +93,8 @@ PANEL_KEYS: dict[str, str] = {
     "faq_items": "faq",  # FB-33 M3-5b
     "tiles": "tiles",  # FB-33 M3-5b
     "banner_pick": "banner",
-    "seo": "seo",  # FB-33 M3-6
+    "places": "places",  # FB-33 M3-6
+    "seo": "seo",
     "seo_link": "seolink",
     "page_inherit": "settings",  # строка наследования вида у категории (в части «Seite»)
     "widths": "platz",
@@ -146,6 +149,7 @@ def parts(selected: dict | None, ctx: dict) -> list[str]:
     have = {
         "list": bool(selected.get("groups")),
         "banner": bool(selected.get("banner_pick")),
+        "places": bool(selected.get("places")),
         "tiles": bool(selected.get("tiles")),
         "views": bool(
             selected.get("catview") or selected.get("mainview") or selected.get("groupview")
@@ -298,7 +302,8 @@ def apply_form(window: list[dict]) -> dict | None:
 
 #: части с кнопкой «Übernehmen»: без скриптов набранное в них при переходе по вкладке-ссылке
 #: не применяется — у таких вкладок подсказка «erst übernehmen»
-_TYPED_PARTS = (*APPLY_FORM_PARTS, "list", "listview", "tiles")  # tiles — стопка 2 (M3-5b)
+#: tiles — стопка 2 (M3-5b), places — M3-6 («Hinzufügen» у мест баннера)
+_TYPED_PARTS = (*APPLY_FORM_PARTS, "list", "listview", "tiles", "places")
 
 
 def link_hint(window: list[dict]) -> bool:

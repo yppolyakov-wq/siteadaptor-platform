@@ -25,6 +25,7 @@
     <h3 class="text-sm font-bold text-gray-900">{% trans "Banner aus der Bibliothek" %}</h3>
     <a href="{% url 'site-banners' %}" class="inline-flex items-center min-h-[44px] text-sm font-semibold text-indigo-700 hover:underline">{% trans "Banner verwalten" %} <span aria-hidden="true">→</span></a>
   </div>
+  <p class="text-xs text-gray-700" data-schema-banner-library>{% trans "Alle Banner liegen in der Bibliothek (Website › Banner). Hier wird nur gewählt, welcher in diesem Block steht." %}</p>
   {% if pick.entries|length > 1 %}
   {% comment %}FB-32 S3: показ — «Ein Banner» (первый из списка) или «Slider» (все по порядку); радиогруппа, без скриптов.{% endcomment %}
   <form method="post" class="space-y-2" data-schema-fields data-schema-banner-show>
@@ -48,7 +49,7 @@
     {% for e in pick.entries %}
     <li class="flex items-center gap-2 rounded-lg border px-2 py-1.5 {% if e.live %}border-gray-500{% else %}border-amber-500 bg-amber-50{% endif %}" data-schema-banner-item="{{ e.pk }}">
       <span class="block h-10 w-16 shrink-0 overflow-hidden rounded bg-gray-100" aria-hidden="true">{% if e.image %}<img src="{{ e.image }}" alt="" class="h-full w-full object-cover" loading="lazy">{% endif %}</span>
-      <span class="flex-1 min-w-0 text-sm break-words">{{ forloop.counter }}. {{ e.label|default:"—" }}{% if not e.live %}<span class="block text-xs text-amber-900">{% trans "ausgeschaltet oder außerhalb des Zeitraums – erscheint derzeit nicht" %}</span>{% endif %}</span>
+      <span class="flex-1 min-w-0 text-sm break-words">{{ forloop.counter }}. {{ e.label|default:"—" }}{% if not e.live %}<span class="block text-xs text-amber-900">{% trans "ausgeschaltet oder außerhalb des Zeitraums – erscheint derzeit nicht" %}</span>{% endif %}{% if e.caption %}<span class="block text-xs text-gray-600" data-schema-banner-caption>{{ e.caption }}</span>{% endif %}{% if e.places_url %}<a href="{{ e.places_url }}" class="inline-flex items-center min-h-[44px] text-xs font-semibold text-indigo-700 underline underline-offset-2" data-schema-banner-places-link>{% trans "Wo zeigen bearbeiten →" %}<span class="sr-only"> – {{ e.label }}</span></a>{% endif %}</span>
       {% if not forloop.first %}<button type="submit" form="schema-pick-form" name="pick_op" value="up:{{ e.pk }}" class="min-h-[44px] min-w-[44px] rounded border border-gray-500 text-sm" aria-label="{% trans 'Nach oben' %}: {{ e.label }}">↑</button>{% endif %}
       {% if not forloop.last %}<button type="submit" form="schema-pick-form" name="pick_op" value="down:{{ e.pk }}" class="min-h-[44px] min-w-[44px] rounded border border-gray-500 text-sm" aria-label="{% trans 'Nach unten' %}: {{ e.label }}">↓</button>{% endif %}
       <button type="submit" form="schema-pick-form" name="pick_op" value="remove:{{ e.pk }}" class="min-h-[44px] min-w-[44px] rounded border border-gray-500 text-sm" aria-label="{% trans 'Entfernen' %}: {{ e.label }}">✕</button>
@@ -76,7 +77,7 @@
       {% for o in pick.offers %}
       <li><button type="submit" form="schema-pick-form" name="pick_op" value="add:{{ o.pk }}" class="flex w-full flex-col overflow-hidden rounded-lg border border-gray-500 bg-white text-left hover:border-indigo-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600" aria-label="{% trans 'Hinzufügen' %}: {{ o.label }}">
         <span class="block aspect-[16/7] w-full bg-gray-100" aria-hidden="true">{% if o.image %}<img src="{{ o.image }}" alt="" class="h-full w-full object-cover" loading="lazy">{% endif %}</span>
-        <span class="flex items-center gap-1 px-2 py-1.5 text-xs font-semibold"><span aria-hidden="true">＋</span><span class="break-words">{{ o.label|default:"—" }}</span></span>
+        <span class="flex items-center gap-1 px-2 py-1.5 text-xs font-semibold"><span aria-hidden="true">＋</span><span class="break-words">{{ o.label|default:"—" }}</span></span>{% if o.caption %}<span class="block px-2 pb-1.5 text-xs text-gray-600" data-schema-banner-caption>{{ o.caption }}</span>{% endif %}
       </button></li>
       {% empty %}
       <li class="col-span-2 text-xs text-gray-600">{% if pick.lookup %}{% trans "Nichts gefunden." %}{% else %}{% trans "Alle Banner der Bibliothek sind schon gewählt." %} <a href="{% url 'site-banners' %}" class="inline-flex items-center min-h-[44px] font-semibold text-indigo-700 hover:underline">{% trans "Banner verwalten" %} <span aria-hidden="true">→</span></a>{% endif %}</li>
