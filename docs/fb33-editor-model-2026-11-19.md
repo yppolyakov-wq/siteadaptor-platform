@@ -464,3 +464,30 @@ M3-4 Karte → M3-5a Texte → M3-5b FAQ-вопросы и плашки Schnellz
 **ECC-прогоны:** a11y-architect (M3-2/3/5), e2e-runner 1440/390 (M3-2…M3-9), tdd-guide и
 django-reviewer — каждый срез, silent-failure-hunter (M3-1b, M2b-2b), database-reviewer (миграции
 FAQ товара и номера), code-reviewer перед FF, doc-updater в конце.
+
+## План M2c-4 «снять чтение `hero_widget`» (planner, 2026-11-20)
+Основание: деплой 2026-11-20, `detach_quick_links --residue` = 0. Миграций нет.
+- **Что остаётся:** партиал `_hero_widget.html` — его рисует блок `quick_links` (`siteui.quick_links_html`,
+  переменная include `hero_widget` = набор блока, не ключ конфига). Недостижимые после среза ветки
+  `stays`/`services` партиала (их рисовал только баннер) — снос отдельным коммитом C4.
+- **Ловушка:** писатели (кит → `sd["hero_widget"]` → `config_patch` → `detach`; шаблоны `tpl_sd` →
+  `_detach_tiles`) возят ключ как переносчик, а между записью и `detach` стоит `normalize`
+  (`page_axes_migration.templates_to_rows`/`migrate_objects`). Поэтому писатели переделать ДО снятия
+  нормализатора: блок ставит `quick_links_migration.place(config, set, replace=)` сразу после слияния патча.
+- **Замки до кода** (`test_fb33_m2c4_no_hero_widget.py`): L1 normalize роняет ключ; L2 баннер всех видов
+  с сырым ключом — плиток нет, CTA на месте; L3 grep — в шаблонах нет `site_defaults.hero_widget`/
+  `banner_tiles`, список мест с ключом сужен; L4 таблица «кит → набор» замороженная (до/после равна);
+  L5 выход писателей (шаблоны, сборки rebuild True/False, look) — ключа нет, блок/секция после hero;
+  L6 каждый набор `QUICK_LINK_SETS` рисуется блоком.
+- **Коммиты:** C0 замки (L1–L3 strict-xfail) → C1 `quick_links_migration.place` + `LEGACY_WIDGETS`,
+  `verify()` без `banner_tiles` → C2 писатели (шаблоны полем `quick_links`, сборки `_bundle_tiles`, кит
+  `_kit_quick_links` + `hero_widget_override`; удалить `prev_hw`, `kept_widget`, `_detach_tiles`, ось из
+  `_BUNDLE_SD_AXES`) → C3 чтение (`_hero.html`, `_hero_slider.html`, `siteui.banner_tiles`/
+  `has_home_block`, `siteconfig.HERO_WIDGETS` и нормализатор) → C4 ветки stays/services → C5 доки.
+- `SEEDER_VERSION` — поднять, только если L4/L5 покажут разницу `site_config`.
+- `detach_quick_links` остаётся рабочим шагом deploy.sh (на чистых данных — no-op; ловит копии баз с
+  ключом). `--undo` после M2c-4 вернул бы ключ, который витрина не читает (плитки пропадут) —
+  предупреждение и `--force`.
+- **ECC:** tdd-guide (замки C0), django-reviewer (после C2 и C3), silent-failure-hunter (цепочка
+  писателей, `--undo`, молчаливый сброс ключа), code-reviewer перед FF, e2e стенд 1440/390 до/после
+  (отель, Café Morgenrot, ресторан, пекарня, Friseur, дискаунтер, шаблон «termine», bento), doc-updater.
