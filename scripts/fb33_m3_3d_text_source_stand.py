@@ -77,8 +77,8 @@ def run(out_dir):  # noqa: PLR0915 — линейный сценарий сте�
     def switch(pg, js, view):
         open_tab(pg, "wie")
         form = pg.locator("form[data-schema-switch]")
-        form.locator("select[name=value]").select_option(view)
-        form.locator("button[value=switch]").click()
+        # стопка FB-33: смена вида — плитки-кнопки (M3-3a), не выпадающий список
+        form.locator(f"button[name=value][value={view}]").click()
         pg.wait_for_load_state()
         if js:
             pg.wait_for_function(
@@ -87,7 +87,8 @@ def run(out_dir):  # noqa: PLR0915 — линейный сценарий сте�
 
     def current_view(pg):
         open_tab(pg, "wie")
-        return pg.locator("form[data-schema-switch] select[name=value]").input_value()
+        on = pg.locator("form[data-schema-switch] button[name=value][aria-pressed=true]")
+        return on.first.get_attribute("value") if on.count() else ""
 
     def field(pg, name):
         for tab in ("texte", "was", "wie"):
@@ -118,8 +119,8 @@ def run(out_dir):  # noqa: PLR0915 — линейный сценарий сте�
                 pg.wait_for_load_state()
                 opts = pg.goto(f"{U}/dashboard/site/aufbau/?seite=home&block={REF}&tab=wie")
                 check(opts.ok, f"{tag}: окно блока открыто")
-                values = pg.locator("form[data-schema-switch] select[name=value] option")
-                got = sorted(values.evaluate_all("os => os.map(o => o.value)"))
+                values = pg.locator("form[data-schema-switch] button[name=value]")
+                got = sorted(values.evaluate_all("bs => bs.map(b => b.value)"))
                 check(got == ["image_text", "text", "textpage"], f"{tag}: три вида ({got})")
                 switch(pg, js, "textpage")
                 check(f"block={REF}" in pg.url, f"{tag}: окно осталось открытым после смены")

@@ -170,11 +170,15 @@ def switch_and_platz(pg, w):
     settle(pg)
     sw = f"{DLG} [data-schema-switch]"
     names = pg.locator(f"{sw} button").evaluate_all("l => l.map(b => b.value)")
-    check(names == ["text", "image_text"], f"{w}: смена вида — плитки ({names})")
+    # стопка FB-33: третья плитка «Von einer Seite» (M3-3d) и плашка «Beide Fassungen…»
+    check(names == ["text", "image_text", "textpage"], f"{w}: смена вида — плитки ({names})")
+    both = pg.locator(f"{DLG} [data-schema-keeps-both]")
+    check(both.count() == 1 and both.first.is_visible(), f"{w}: плашка «Beide Fassungen…»")
     labels = pg.locator(f"{sw} button .font-semibold").all_inner_texts()
     check(
-        labels in (["Text", "Foto + Text"], ["Text", "Photo + text"]),
-        f"{w}: подписи «Text» и «Foto + Text» ({labels})",
+        labels
+        in (["Text", "Foto + Text", "Von einer Seite"], ["Text", "Photo + text", "From a page"]),
+        f"{w}: подписи «Text», «Foto + Text», «Von einer Seite» ({labels})",
     )
     big = pg.locator(f"{DLG} [data-schema-width] fieldset > div").first.locator("button")
     check(big.count() == 4, f"{w}: четыре крупные плитки ширины ({big.count()})")
