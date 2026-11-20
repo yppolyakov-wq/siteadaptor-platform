@@ -60,6 +60,7 @@ def _texte_post(b, ref="t1", **fields):
         "panel_present": "1",
         "op_default": "update",
         "tab": "texte",
+        "bw_tabs": "wie texte",  # вкладки окна — их рисует сервер рядом с кнопками
         "wopen": TOKEN,
     }
     data.update({f"f_{k}": v for k, v in fields.items()})
@@ -91,7 +92,10 @@ def test_text_tab_turns_other_tabs_into_buttons_of_its_form():
     panel = _panel(b.get("?seite=home&block=t1&tab=texte"))
     nav = _nav(panel)
     # открытая — ссылка с aria-current, прочие — кнопки формы вкладки
-    assert re.search(r'<a href="[^"]*tab=texte[^"]*"[^>]*aria-current="page"', nav)
+    # (ревью a11y) прочие — кнопки, поэтому у открытой aria-current="true", а не "page"
+    assert re.search(r'<a href="[^"]*tab=texte[^"]*"[^>]*aria-current="true"', nav)
+    assert '<p id="bw-nav-apply" hidden>' in nav
+    assert '<input type="hidden" form="bw-form-fields" name="bw_tabs" value="wie texte">' in nav
     wie = re.search(
         r'<button type="submit" form="bw-form-fields" name="zu_tab" value="wie"[^>]*>', nav
     )
@@ -218,7 +222,8 @@ def test_panel_inputs_carry_the_input_caps_and_hints():
     assert 'id="schema-f-label-max"' in bt and "Höchstens 200 Zeichen." in bt
     assert 'maxlength="200" aria-describedby="schema-f-title-max"' in t1
     # длинный текст — только потолок, без подсказки
-    assert 'rows="5" maxlength="20000" class="ui-input w-full">' in t1
+    # длинный текст — без maxlength (браузер молча обрезал бы вставку), потолок — на сервере
+    assert 'rows="5" class="ui-input w-full">' in t1
     assert f'maxlength="{page_title.TITLE_MAX}"' in title
     assert f'maxlength="{page_title.INTRO_MAX}"' in title
     # подсказка самого поля (контракт закреплённых блоков M3-6) — связана с полем
@@ -292,7 +297,7 @@ def test_unknown_tab_and_operation_are_ignored():
     assert _row(b, "t1")["data"]["title"] == "Zwei" and resp["Location"].endswith("#schema-tab-wie")
     assert block_window.default_op(QueryDict("op_default=faq_update")) == "faq_update"
     assert block_window.default_op(QueryDict("op_default=save")) == "update"
-    assert block_window.goto_tab(QueryDict("zu_tab=felder")) == "felder"
+    assert block_window.goto_tab(QueryDict("zu_tab=felder&bw_tabs=texte+felder")) == "felder"
     assert block_window.goto_tab(QueryDict("zu_tab=x")) == ""
 
 
@@ -323,6 +328,10 @@ def _felder(locales=None):
     return Browser(tenant)
 
 
+#: подписи вопросов в порядке формы (как шлёт браузер) — соседа после «Entfernen» ищем по ним
+LABELS = {"q_q1_label": "Budget", "q_q2_label": "Raum", "q_q4_label": "Vegan?"}
+
+
 def _felder_post(b, **fields):
     data = {"seite": "anfrage", "ref": "form", "op": "update", "panel_present": "1"}
     data.update({"wopen": TOKEN, "tab": "felder"})
@@ -339,8 +348,9 @@ def test_felder_question_buttons_bring_focus_back(_tenant_urls):
     b = _felder()
     resp, _m = _felder_post(b, do="down:q1")
     assert resp["Location"].endswith("#schema-tab-q-q1")
-    resp, _m = _felder_post(b, do="del:q2")
-    assert resp["Location"].endswith("#schema-tab-questions")
+    resp, msgs = _felder_post(b, do="del:q2", **LABELS)
+    # (ревью a11y) фокус — на соседний вопрос, результат — сообщением
+    assert resp["Location"].endswith("#schema-tab-q-q4") and msgs == ["Frage entfernt."]
     resp, _m = _felder_post(b, do="add", new_label="Neu", new_type="text")
     assert re.search(r"#schema-tab-q-n[0-9]+$", resp["Location"])
     # без текста новой вопроса — сообщение, якорь прежний
@@ -356,14 +366,143 @@ def test_felder_question_buttons_bring_focus_back(_tenant_urls):
     assert 'id="schema-tab-questions" tabindex="-1"' in html
 
 
-def test_dropped_translation_has_a_live_region_in_the_language_block(_tenant_urls):
-    b = _felder(("de", "ru"))
+def test_felder_live_region_also_without_languages(_tenant_urls):
+    """Ревью a11y п.8: живая область — вне блока языков (и у одноязычного), с точными текстами
+    результатов кнопок вопроса и началом сообщения о сброшенном переводе."""
+    for locales in (("de", "ru"), ("de",)):
+        b = _felder(locales)
+        with translation.override("de"):
+            html = b.get("?seite=anfrage&block=form&tab=felder")
+        status = re.search(
+            r'<p role="status"[^>]*data-form-status data-said="([^"]*)" data-prefix="([^"]*)"></p>',
+            html,
+        )
+        assert status, locales
+        said = status.group(1).split("|")
+        assert "Frage entfernt." in said and "Nach oben verschoben." in said
+        assert status.group(2).startswith(
+            "Übersetzungen entfernt, weil die Option geändert oder gelöscht wurde:"
+        )
+        assert html.index("data-form-status") < html.index('data-form-question="q1"')
+
+
+def test_felder_neighbour_after_remove_and_messages(_tenant_urls):
+    b = _felder()
+    resp, _m = _felder_post(b, do="del:q4", **LABELS)  # последний — предыдущий
+    assert resp["Location"].endswith("#schema-tab-q-q2")
+    b = _felder()
+    resp, msgs = _felder_post(b, do="up:q2", **LABELS)
+    assert resp["Location"].endswith("#schema-tab-q-q2") and msgs == ["Nach oben verschoben."]
+    assert block_window.felder_anchor(QueryDict("f_do=del:q1"), {"custom": []}) == (
+        "schema-tab-questions"
+    )
+    # черновика вкладки нет (добавили и сразу убрали) — сосед по форме
+    post = QueryDict("f_q_q1_label=a&f_q_n1_label=b&f_q_q2_label=c&f_do=del:n1")
+    assert block_window.felder_anchor(post, None) == "schema-tab-q-q2"
+
+
+def test_felder_enter_default_and_add_label(_tenant_urls):
+    """Ревью a11y п.9: первая submit-кнопка формы «Felder» по дереву — sr-only «Übernehmen»
+    (Enter), aria-hidden; «+ Frage» — с именем «Frage hinzufügen»."""
+    b = _felder(("de",))
     with translation.override("de"):
         html = b.get("?seite=anfrage&block=form&tab=felder")
-    langs = html[html.index("data-form-langs") : html.index("</div>", html.index("ff-lang-hint"))]
-    status = re.search(
-        r'<p role="status"[^>]*data-form-langs-status data-prefix="([^"]*)"></p>', langs
+    form = html[
+        html.index('id="bw-form-formfields"') : html.index(
+            "</form>", html.index("data-form-felder")
+        )
+    ]
+    first = re.search(r"<button\b[^>]*>", form).group(0)
+    assert 'name="f_commit_new"' in first and 'class="sr-only"' in first
+    assert 'aria-hidden="true"' in first and 'tabindex="-1"' in first
+    assert re.search(r'<button name="f_do" value="add"[^>]*aria-label="Frage hinzufügen"', form)
+
+
+# --- Ревью ECC M3-5a ----------------------------------------------------------------------------
+
+
+def test_studio_keeps_unchanged_long_texts():
+    """П.1: Студия режет только изменённое — ссылка кнопки из прошлого (> 500) не ломается."""
+    from apps.core import views
+
+    long_url = "/" + "u" * 700
+    cfg = {
+        "sections": [{"key": "button", "id": "b1", "data": {"label": "L" * 300, "url": long_url}}],
+        "page_blocks": {"info": [{"key": "image", "id": "i1", "data": {"caption": "C" * 300}}]},
+    }
+    assert views._stored_cblock_data(cfg, "b1")["url"] == long_url
+    assert views._stored_cblock_data(cfg, "i1")["caption"] == "C" * 300
+    assert views._stored_cblock_data(cfg, "zz") == {}
+    post = QueryDict(mutable=True)
+    post.update({"cb_b1_label": "L" * 300, "cb_b1_url": long_url})
+    notes = []
+    data = views._read_cblock_data(
+        post, "b1", "button", notes, views._stored_cblock_data(cfg, "b1")
     )
-    assert status and status.group(1).startswith(
-        "Übersetzungen entfernt, weil die Option geändert oder gelöscht wurde:"
+    assert data["url"] == long_url and data["label"] == "L" * 300 and notes == []
+    post["cb_b1_label"] = "N" * 300  # изменённое — режется, с сообщением
+    data = views._read_cblock_data(
+        post, "b1", "button", notes, views._stored_cblock_data(cfg, "b1")
     )
+    assert data["label"] == "N" * 200 and data["url"] == long_url and notes
+
+
+def test_tab_missing_on_the_block_is_not_kept():
+    """П.4: zu_tab из белого списка, но вкладки у блока нет — без перехода и якоря."""
+    b = Browser(_shop())
+    resp, _msgs = b.post(**_texte_post(b, title="Neu"), zu_tab="karte")
+    loc = resp["Location"]
+    assert "tab=karte" not in loc and "schema-tab-karte" not in loc and "tab=texte" in loc
+    assert _row(b, "t1")["data"]["title"] == "Neu"  # правка при этом применена
+    assert block_window.goto_tab(QueryDict("zu_tab=wie&bw_tabs=wie+texte")) == "wie"
+    assert block_window.goto_tab(QueryDict("zu_tab=wie")) == ""
+
+
+def test_only_form_operations_move_to_the_tab():
+    """П.6: переход — только у правки формы (op из OP_DEFAULTS), не у прочих операций."""
+    b = Browser(_shop())
+    data = {**_texte_post(b), "op": "toggle"}
+    resp, _msgs = b.post(**data, zu_tab="wie")
+    assert "schema-tab-wie" not in resp["Location"] and "tab=wie" not in resp["Location"]
+
+
+def test_every_live_applying_part_has_its_form():
+    """П.5: у каждой живой применяющей части окна — форма с её `form_id` (записи card_pick/faq
+    ждут части M3-4/M3-5b; пока их нет в `parts()` — пропускаются)."""
+    b = Browser(_shop())
+    seen = set()
+    for case in CASES:
+        code, ref, extra = (*case, "")[:3]
+        html, view, selected = _capture(b, f"?seite={code}&block={ref}{extra}")
+        panel = _panel(html)
+        if view["confirm_remove"]:
+            continue  # подтверждение удаления — без частей окна
+        for part in block_window.parts(selected, view):
+            if part in block_window.APPLY_FORM_PARTS:
+                seen.add(part)
+                assert f'id="{block_window.form_id(part)}"' in panel, (case, part)
+    with translation.override("de"):
+        felder = _felder_page()
+    assert f'id="{block_window.form_id("formfields")}"' in felder
+    assert {"fields", "usp"} <= seen
+
+
+def _felder_page():
+    from django.test import override_settings
+
+    with override_settings(ROOT_URLCONF="config.urls_tenant"):
+        return _felder().get("?seite=anfrage&block=form&tab=felder")
+
+
+def test_link_tabs_with_a_form_warn_to_apply_first():
+    """П.3: вкладки-ссылки, а у открытой форма с «Übernehmen» — подсказка (без JS)."""
+    b = Browser(_shop())
+    with translation.override("de"):
+        listing = _panel(b.get("?seite=home&block=l1"))
+        texte = _panel(b.get("?seite=home&block=t1&tab=texte"))
+        wie = _panel(b.get("?seite=home&block=t1"))
+    hint = '<p class="mt-2 text-xs text-gray-700" data-window-hint>Erst „Übernehmen“'
+    assert hint in listing
+    assert "data-window-hint" not in texte  # кнопки вкладок применяют сами
+    assert "data-window-hint" not in wie  # «Wie» у текста — плитки и «Platz» без «Übernehmen»
+    assert 'aria-current="page"' in listing

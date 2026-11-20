@@ -181,7 +181,8 @@ def explicit_tab(window: list[dict], wanted: str) -> str:
 
 # --- FB-33 M3-5a: вкладка «Texte» — простые поля; без скриптов вкладки не теряют набранное ---
 
-#: подсказка «Höchstens N Zeichen» — у коротких полей (у длинного текста лишь `maxlength`)
+#: `maxlength` и подсказка «Höchstens N Zeichen» — у коротких полей; длинный текст (тело
+#: 20 000) без `maxlength`: браузер молча обрезал бы вставку, потолок — на сервере с сообщением
 _HINT_UP_TO = 2000
 
 
@@ -233,7 +234,7 @@ def field_meta(selected: dict | None, field: dict) -> dict:
     if example or max_hint:
         ids.append(f"schema-f-{name}-max")
     return {
-        "max": cap or "",
+        "max": cap if cap and cap <= _HINT_UP_TO else "",
         "max_hint": max_hint,
         "example": example,
         "hint": hint,
@@ -245,7 +246,9 @@ def field_meta(selected: dict | None, field: dict) -> dict:
 #: открытой вкладки с ровно одной такой ЧАСТЬЮ прочие вкладки — кнопки её формы
 #: (`form="bw-form-<часть>"`, `name="zu_tab"`): набранное уходит в черновик, затем
 #: открывается выбранная вкладка. Считаются части, не `<form>`: у «Karte» вторая форма —
-#: «zurücksetzen».
+#: «zurücksetzen». `card_pick`/`faq` и вкладка `karte` — места под части срезов M3-4/M3-5b
+#: (формы `bw-form-card_pick`/`bw-form-faq`); пока таких частей у блоков нет, записи спят.
+#: Замок: у каждой живой применяющей части окна есть форма с её `form_id`.
 APPLY_FORM_PARTS = ("fields", "usp", "formfields", "card_pick", "faq")
 #: вкладки, переход с которых применяет форму («Wie anordnen» — две формы, там ссылки)
 APPLY_TABS = ("texte", "felder", "karte")
@@ -273,10 +276,27 @@ def apply_form(window: list[dict]) -> dict | None:
     return {"part": mine[0], "form": form_id(mine[0]), "name": name, "value": value}
 
 
+#: части с кнопкой «Übernehmen»: без скриптов набранное в них при переходе по вкладке-ссылке
+#: не применяется — у таких вкладок подсказка «erst übernehmen»
+_TYPED_PARTS = (*APPLY_FORM_PARTS, "list", "listview")
+
+
+def link_hint(window: list[dict]) -> bool:
+    """Вкладки — ссылки, а у открытой есть форма с «Übernehmen»: подсказать применить до
+    перехода (без скриптов; со скриптами правки применяются сами — подсказку прячет JS)."""
+    active = next((t for t in window or () if t["active"]), None)
+    if active is None or len(window) < 2 or apply_form(window) is not None:
+        return False
+    return any(p in _TYPED_PARTS for p in active["parts"])
+
+
 def goto_tab(post) -> str:
-    """Вкладка, на которую ушла кнопка вкладки (`zu_tab`); не из белого списка — нет."""
+    """Вкладка, на которую ушла кнопка вкладки (`zu_tab`): из белого списка и среди вкладок
+    окна этого блока (`bw_tabs` — их рисует сервер рядом с кнопками; подделка влияет только
+    на свой адрес возврата). Иначе — нет."""
     wanted = post.get("zu_tab", "")
-    return wanted if wanted in TAB_KEYS else ""
+    offered = str(post.get("bw_tabs", "")).split()
+    return wanted if wanted in TAB_KEYS and wanted in offered else ""
 
 
 def default_op(post) -> str:
@@ -291,15 +311,33 @@ _FELDER_ID = r"(q[1-9][0-9]{0,3}|n[0-9]{1,3})"
 
 
 def felder_anchor(post, form_state: dict | None) -> str:
-    """Якорь после кнопки вопроса во «Felder»: ↑/↓ — тот же вопрос, «Entfernen» — список
-    своих вопросов, «+ Frage» — новый (последний) вопрос. Пусто — прежний якорь."""
+    """Якорь после кнопки вопроса во «Felder»: ↑/↓ — тот же вопрос, «Entfernen» — соседний
+    (следующий, иначе предыдущий; нет — список «Eigene Fragen»), «+ Frage» — новый
+    (последний) вопрос. Пусто — прежний якорь."""
     import re
 
     do = post.get("f_do", "")
     match = re.fullmatch(rf"(up|down|del):{_FELDER_ID}", do)
     if match:
         action, qid = match.groups()
-        return "schema-tab-questions" if action == "del" else f"schema-tab-q-{qid}"
+        if action != "del":
+            return f"schema-tab-q-{qid}"
+        # порядок вопросов — как в форме (поля подписей идут в порядке DOM)
+        order = [
+            m.group(1) for k in post for m in [re.fullmatch(rf"f_q_{_FELDER_ID}_label", k)] if m
+        ]
+        if form_state is None:
+            # черновика вкладки нет (правка вернула сохранённое) — прочие вопросы на месте
+            left = set(order) - {qid}
+        else:
+            custom = form_state.get("custom") or ()
+            left = {q.get("id") for q in custom if isinstance(q, dict)}
+        if qid in order:
+            at = order.index(qid)
+            for near in (*order[at + 1 :], *reversed(order[:at])):
+                if near in left:
+                    return f"schema-tab-q-{near}"
+        return "schema-tab-questions"
     if do == "add":
         custom = (form_state or {}).get("custom") or []
         last = custom[-1].get("id") if custom and isinstance(custom[-1], dict) else ""
@@ -307,3 +345,17 @@ def felder_anchor(post, form_state: dict | None) -> str:
             return f"schema-tab-q-{last}"
         return "schema-tab-questions"
     return ""
+
+
+def felder_said(post) -> str:
+    """Что сделала кнопка вопроса во «Felder» — для живой области (a11y ревью M3-5a)."""
+    from django.utils.translation import gettext
+
+    do = str(post.get("f_do", ""))
+    if do == "add":
+        return gettext("Hinzugefügt.")
+    return {
+        "up": gettext("Nach oben verschoben."),
+        "down": gettext("Nach unten verschoben."),
+        "del": gettext("Frage entfernt."),
+    }.get(do.split(":", 1)[0], "")

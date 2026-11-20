@@ -4,8 +4,9 @@ data-form-felder>
   <input type="hidden" name="ref" value="form">
   <input type="hidden" name="panel_present" value="1">
   <input type="hidden" name="op" value="update">
-  <button type="submit" name="f_commit_new" value="1" class="sr-only" tabindex="-1">Übernehmen</button>
+  <button type="submit" name="f_commit_new" value="1" class="sr-only" tabindex="-1" aria-hidden="true">Übernehmen</button>
   <p class="text-sm text-gray-700">Was die Anfrage-Form fragt. Änderungen erscheinen auf der Seite nach „Speichern“.</p>
+  <p role="status" class="text-xs font-semibold text-gray-800" data-form-status data-said="Hinzugefügt.|Nach oben verschoben.|Nach unten verschoben.|Frage entfernt." data-prefix="Übersetzungen entfernt, weil die Option geändert oder gelöscht wurde: "></p>
   <div class="rounded-lg border border-gray-200 p-3" data-form-field="title">
     <p class="text-sm font-semibold text-gray-800">Was brauchen Sie?</p>
     <p class="mt-1 text-xs text-gray-700"><span aria-hidden="true">🔒</span> immer Pflicht</p>
@@ -145,7 +146,7 @@ Garten</textarea>
       <textarea id="ff-new-options" name="f_new_options" rows="3" class="ui-input w-full" aria-describedby="ff-new-options-hint"></textarea>
       <p id="ff-new-options-hint" class="text-xs text-gray-700">Nur bei Art „Auswahl“, eine Option pro Zeile.</p>
       <label class="inline-flex min-h-[44px] items-center gap-2 text-sm"><input type="checkbox" name="f_new_req" value="1"> Pflicht</label>
-      <div><button name="f_do" value="add" class="ui-btn ui-btn-secondary min-h-[44px]" data-form-add>+ Frage</button></div>
+      <div><button name="f_do" value="add" class="ui-btn ui-btn-secondary min-h-[44px]" aria-label="Frage hinzufügen" data-form-add>+ Frage</button></div>
     </div>
   </fieldset>
   <p><button name="f_do" value="preset" onclick="return confirm('Aktuelle Felder durch die Branchen\u002DVorlage ersetzen?')" class="inline-flex min-h-[44px] items-center text-sm font-semibold text-indigo-700 hover:underline" data-form-preset>Branchen-Vorlage laden</button></p>

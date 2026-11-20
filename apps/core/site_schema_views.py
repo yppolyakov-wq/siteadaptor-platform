@@ -121,7 +121,8 @@ def site_schema_view(request):
         # FB-33 M3-5a: кнопка вкладки окна (без скриптов) применяет форму открытой вкладки —
         # операция формы (`op_default`, белый список), затем открывается выбранная вкладка
         goto = block_window.goto_tab(request.POST)
-        if goto and not op:
+        if not op and request.POST.get("zu_tab") in block_window.TAB_KEYS:
+            # кнопка вкладки — правка формы и тогда, когда вкладки у блока уже нет
             op = block_window.default_op(request.POST)
         applied, notes = False, []
         # FB-27 R2: правки копятся в черновике, на сайт попадают по «Speichern».
@@ -296,14 +297,19 @@ def site_schema_view(request):
                 ),
             )
         else:
-            applied = True  # FB-33 M3-5a: ни одна ветка отказа не сработала
+            # FB-33 M3-5a: ни одна ветка отказа не сработала. Отказ без исключения бывает только
+            # у «Abbrechen» (CANCEL_CONFLICT) — переход по вкладке его не касается: он идёт
+            # лишь с правкой формы (op из OP_DEFAULTS, см. `moved`)
+            applied = True
         # Блок остаётся выбранным (новый — тоже), удалённый — нет.
         # FB-33 M3-1b: «Fertig» и «Abbrechen» закрывают окно блока
         closed = op in ("delete", "revert") or op in aufbau_draft.WINDOW_OPS
         keep = _keep(request.POST)
         # FB-33 M3-5a: на выбранную вкладку — только если правка прошла без отказа и без
         # сообщений (иначе владелец остаётся там, где видит, что не так)
-        moved = bool(goto and applied and not notes and not closed and ref)
+        moved = bool(
+            goto and applied and op in block_window.OP_DEFAULTS and not notes and not closed and ref
+        )
         if moved:
             keep["tab"] = goto
         target = _url(code, "" if closed else ref, keep)
@@ -319,6 +325,10 @@ def site_schema_view(request):
             anchor = block_window.felder_anchor(request.POST, form_state)
             if anchor:
                 target = f"{target.split('#', 1)[0]}#{anchor}"
+                # a11y (ревью): что произошло — живой областью вкладки и окна
+                said = block_window.felder_said(request.POST)
+                if said:
+                    messages.success(request, said)
         if moved:
             target = f"{target.split('#', 1)[0]}#schema-tab-{goto}"
         if op == "setting" and "#" in target:

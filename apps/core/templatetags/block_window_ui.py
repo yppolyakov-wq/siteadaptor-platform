@@ -18,3 +18,9 @@ def bw_field(field, selected):
 def bw_apply_form(window):
     """{part, form, name, value} — кнопки вкладок применяют эту форму; None — ссылки."""
     return block_window.apply_form(window)
+
+
+@register.filter
+def bw_link_hint(window):
+    """Вкладки-ссылки, а у открытой — форма с «Übernehmen»: подсказка до перехода."""
+    return block_window.link_hint(window)

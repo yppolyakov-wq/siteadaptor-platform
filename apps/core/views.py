@@ -762,14 +762,19 @@ def _copy_builtin_list(request, key: str):
     return new_id
 
 
-def _read_cblock_data(post, bid: str, btype: str, notes: list | None = None) -> dict:
+def _read_cblock_data(
+    post, bid: str, btype: str, notes: list | None = None, stored: dict | None = None
+) -> dict:
     """D.2b: собрать data C-блока из полей формы `cb_<id>_<field>` (normalize чистит).
     FB-33 M3-3d (ревью): тексты «Text»/«Foto + Text» — под потолками ввода; обрезка —
-    сообщением в `notes`."""
+    сообщением в `notes`. M3-5a (ревью): `stored` — данные блока в конфиге сейчас:
+    неизменённый длинный текст из прошлого не режется (ссылка кнопки не ломается)."""
     from apps.tenants import siteconfig
 
     btype = siteconfig.cblock_type(btype) or btype
-    data, capped = siteconfig.cap_block_texts(btype, _read_cblock_fields(post, bid, btype))
+    data, capped = siteconfig.cap_block_texts(
+        btype, _read_cblock_fields(post, bid, btype), stored=stored
+    )
     if capped and notes is not None:
         notes.append(siteconfig.cap_note())
     return data
@@ -859,7 +864,20 @@ def _read_cblock_fields(post, bid: str, btype: str) -> dict:
     return {}
 
 
-def _cblock_entry_from_post(post, bid: str, btype: str, notes: list | None = None) -> dict:
+def _stored_cblock_data(config: dict, bid: str) -> dict:
+    """FB-33 M3-5a (ревью): сохранённые данные C-блока `bid` (главная или страницы) — для
+    потолков ввода: присланное без изменений не режется. Нет блока — {}."""
+    rows = list(config.get("sections") or [])
+    for blocks in (config.get("page_blocks") or {}).values():
+        rows.extend(blocks or [])
+    row = next((r for r in rows if isinstance(r, dict) and r.get("id") == bid), None)
+    data = (row or {}).get("data")
+    return data if isinstance(data, dict) else {}
+
+
+def _cblock_entry_from_post(
+    post, bid: str, btype: str, notes: list | None = None, stored: dict | None = None
+) -> dict:
     """UC6-7b: полный entry C-блока из POST-строки формы (data + width/pos/newline/
     visual) — общий для блоков главной (cb_id) и блоков страниц (pb_id); normalize
     валидирует. enabled/order читает вызывающий цикл (маркеры у списков разные)."""
@@ -869,7 +887,7 @@ def _cblock_entry_from_post(post, bid: str, btype: str, notes: list | None = Non
         "key": siteconfig.cblock_type(btype) or btype,
         "id": bid,
         "enabled": post.get(f"enabled_cb_{bid}") == "on",
-        "data": _read_cblock_data(post, bid, btype, notes),
+        "data": _read_cblock_data(post, bid, btype, notes, stored),
         # UC6-3: ширина/положение блока (normalize валидирует;
         # раньше width C-блока терялся при Save — жил только в черновике).
         "width": post.get(f"width_cb_{bid}", "contained"),
@@ -2399,12 +2417,17 @@ def home_builder_view(request):
                 btype = siteconfig.cblock_type(request.POST.get(f"cb_type_{ident}", ""))
                 if btype:
                     label = (request.POST.get(f"tpl_label_{ident}") or "").strip()
+                    cut: list[str] = []  # M3-5a (ревью): обрезка — сообщением, не молча
                     tpls[uuid.uuid4().hex[:12]] = {
                         "key": btype,
                         "label": label or btype,
-                        "data": _read_cblock_data(request.POST, ident, btype),
+                        "data": _read_cblock_data(
+                            request.POST, ident, btype, cut, _stored_cblock_data(cfg, ident)
+                        ),
                     }
                     messages.success(request, _("Block saved as template."))
+                    for note in dict.fromkeys(cut):
+                        messages.warning(request, note)
             elif verb == "use_block_template" and ident in tpls:
                 tpl = tpls[ident]
                 # STU-12e: id задаём здесь (а не оставляем normalize) — только так вставленный
@@ -2787,7 +2810,10 @@ def home_builder_view(request):
                 order = int(request.POST.get(f"order_cb_{bid}", "999"))
             except (TypeError, ValueError):
                 order = 999
-            items.append((order, _cblock_entry_from_post(request.POST, bid, btype, save_notes)))
+            stored = _stored_cblock_data(config, bid)  # M3-5a: неизменённое не режется
+            items.append(
+                (order, _cblock_entry_from_post(request.POST, bid, btype, save_notes, stored))
+            )
         items.sort(key=lambda row: row[0])
         # FB-27 R8: структура главной (порядок, состав, видимость, ширина) — как
         # сохранено; из формы — содержимое и вид. Правит структуру «Seitenaufbau».
@@ -2845,8 +2871,9 @@ def home_builder_view(request):
                     order = int(request.POST.get(f"order_cb_{bid}", "999"))
                 except (TypeError, ValueError):
                     order = 999
+                stored = _stored_cblock_data(config, bid)  # M3-5a: неизменённое не режется
                 pb_items.setdefault(host, []).append(
-                    (order, _cblock_entry_from_post(request.POST, bid, btype, save_notes))
+                    (order, _cblock_entry_from_post(request.POST, bid, btype, save_notes, stored))
                 )
             # FB-27 R8: хосты, состав и порядок блоков страниц — как сохранено.
             posted_pages = {

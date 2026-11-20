@@ -104,6 +104,8 @@ function aufbauSubmitCopy(form, submitter) {
       var btn = form.querySelector(APPLY);
       if (btn) btn.style.display = "none";
     });
+    // FB-33 M3-5a: со скриптами правки применяются сами — подсказка «erst übernehmen» не нужна
+    document.querySelectorAll("[data-window-hint]").forEach(function (p) { p.hidden = true; });
   }
 
   function swap(doc, selector) {
@@ -520,29 +522,31 @@ function aufbauSubmitCopy(form, submitter) {
     });
   }
 
-  /* FB-33 M3-5a (a11y M2i-5b): сообщение о сброшенном переводе — ещё и живой областью в блоке
-     языков вкладки «Felder» (узнаётся по началу текста, который шаблон кладёт в data-prefix);
-     в окне общая живая область его не повторяет. */
-  function langPrefix() {
-    var box = document.querySelector("[data-schema-panel] [data-form-langs-status]");
-    var prefix = box ? (box.getAttribute("data-prefix") || "").trim() : "";
-    return { box: box, prefix: prefix };
+  /* FB-33 M3-5a (a11y): живая область вкладки «Felder» — что сделала кнопка вопроса (точные
+     тексты из data-said) и сброшенный перевод (начало текста — data-prefix); в окне общая
+     живая область их не повторяет. */
+  function felderStatus() {
+    var box = document.querySelector("[data-schema-panel] [data-form-status]");
+    if (!box) return null;
+    var said = (box.getAttribute("data-said") || "").split("|").filter(Boolean);
+    return { box: box, said: said, prefix: (box.getAttribute("data-prefix") || "").trim() };
   }
 
   function langOwn(text) {
-    var lp = langPrefix();
-    return !!(lp.box && lp.prefix && String(text || "").trim().indexOf(lp.prefix) === 0);
+    var fs = felderStatus();
+    var t = String(text || "").trim();
+    return !!(fs && t && (fs.said.indexOf(t) >= 0 || (fs.prefix && t.indexOf(fs.prefix) === 0)));
   }
 
   function langNote() {
-    var lp = langPrefix();
-    if (!lp.box || !lp.prefix) return;
+    var fs = felderStatus();
+    if (!fs) return;
     var said = [];
     document.querySelectorAll("[data-schema-messages] > *").forEach(function (m) {
-      if (langOwn(m.textContent)) said.push(m.textContent.trim());
+      if (m.getAttribute("role") !== "alert" && langOwn(m.textContent)) said.push(m.textContent.trim());
     });
-    lp.box.textContent = "";
-    if (said.length) setTimeout(function () { lp.box.textContent = said.join(" "); }, 100);
+    fs.box.textContent = "";
+    if (said.length) setTimeout(function () { fs.box.textContent = said.join(" "); }, 100);
   }
 
   function choose(key, remember) {
@@ -932,6 +936,7 @@ function aufbauSubmitCopy(form, submitter) {
           if (now && next) now.replaceWith(document.importNode(next, true));
         });
         document.querySelectorAll('[data-schema-fields] button[value="update"],[data-schema-list] button[value="update"]').forEach(function (b) { b.style.display = "none"; });
+        document.querySelectorAll("[data-window-hint]").forEach(function (p) { p.hidden = true; });
         arm();
         // фокус — на перенесённую строку (после замены схемы он иначе уходил в начало страницы)
         var moved = document.querySelector("[data-schema-drag]")

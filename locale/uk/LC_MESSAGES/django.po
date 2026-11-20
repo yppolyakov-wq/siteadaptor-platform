@@ -39705,6 +39705,18 @@ msgstr "Редагувати переклади на сторінці"
 msgid "z. B. /kontakt oder https://…"
 msgstr "наприклад, /kontakt або https://…"
 
+#. FB-33 M3-5a: вкладка «Texte» (ревью)
+msgid "Erst „Übernehmen“, dann den Bereich wechseln – sonst gehen die Eingaben verloren."
+msgstr "Спершу «Застосувати», потім переходьте в інший розділ — інакше введене зникне."
+
+#. FB-33 M3-5a: вкладка «Texte» (ревью)
+msgid "Frage entfernt."
+msgstr "Питання видалено."
+
+#. FB-33 M3-5a: вкладка «Texte» (ревью)
+msgid "Frage hinzufügen"
+msgstr "Додати питання"
+
 #. FB-33 стопка: якорь среза M3-5b — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
 msgid "fb33-stack-anchor-M3-5b"
 msgstr "fb33-stack-anchor-M3-5b"

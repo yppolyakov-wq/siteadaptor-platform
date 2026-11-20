@@ -97,7 +97,8 @@ def test_questions_have_screen_reader_labels_and_actions():
     # Enter в поле — первая кнопка формы = «Übernehmen» (не «Nach oben»), вне Tab, с именем
     first = re.search(r"<button[^>]*>[^<]*</button>", part).group(0)
     assert 'name="f_do"' not in first and 'name="f_commit_new"' in first
-    assert 'tabindex="-1"' in first and "aria-hidden" not in first and "Übernehmen" in first
+    # FB-33 M3-5a (ревью a11y): как у прочих sr-only кнопок «по умолчанию» — aria-hidden
+    assert 'tabindex="-1"' in first and 'aria-hidden="true"' in first and "Übernehmen" in first
     assert 'aria-describedby="ff-q-q2-options-hint"' in part
 
 

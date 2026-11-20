@@ -238,15 +238,25 @@ def felder(pg, tag):
     settle(pg)
     focus = pg.evaluate("document.activeElement && document.activeElement.id")
     check(focus == added, f"{tag}: ↑ → фокус на том же вопросе ({focus})")
+    pg.wait_for_function(
+        "() => (document.querySelector('dialog.ui-bwin [data-form-status]') || {}).textContent",
+        timeout=5000,
+    )
+    said = pg.locator(f"{DLG} [data-form-status]").inner_text()
+    common = pg.locator(f"{DLG} [data-bwin-status]").inner_text()
+    check(said and said not in common, f"{tag}: ↑ — объявлено во вкладке ({said!r}), не дважды")
     box = pg.locator(f"{DLG} #{added}")
     with pg.expect_navigation():
         box.locator("button[value^='del:']").click()
     settle(pg)
     focus = pg.evaluate("document.activeElement && document.activeElement.id")
-    check(focus == "schema-tab-questions", f"{tag}: Entfernen → фокус на списке ({focus})")
+    check(
+        focus.startswith("schema-tab-q-") and focus != added,
+        f"{tag}: Entfernen → фокус на соседнем вопросе ({focus})",
+    )
     pg.screenshot(path=f"{OUT}/m35a_felder_{tag}.png")
-    status = f"{DLG} [data-form-langs-status]"
-    check(pg.locator(status).count() == 1, f"{tag}: живая область в блоке языков")
+    status = f"{DLG} [data-form-status]"
+    check(pg.locator(status).count() == 1, f"{tag}: живая область вкладки «Felder»")
     options = f"{DLG} #ff-q-q1-options"
     pg.fill(options, "Halle\nGarten")
     pg.locator(f"{DLG} #ff-q-q1-label").focus()  # change по уходу из поля
