@@ -39546,3 +39546,26 @@ msgstr "En fazla %(n)s soru — diğerleri eklenmedi."
 #. FB-33 M3-5b
 msgid "Die Fragen wurden inzwischen an anderer Stelle geändert – nichts übernommen. Bitte noch einmal versuchen."
 msgstr "Sorular bu arada başka bir yerde değiştirildi – hiçbir şey uygulanmadı. Lütfen tekrar deneyin."
+
+#. FB-33 M3-5b
+#, python-format
+msgid "Frage %(n)s nach oben"
+msgstr "Soru %(n)s yukarı"
+
+#. FB-33 M3-5b
+#, python-format
+msgid "Frage %(n)s nach unten"
+msgstr "Soru %(n)s aşağı"
+
+#. FB-33 M3-5b
+#, python-format
+msgid "Frage %(n)s entfernen"
+msgstr "Soru %(n)s kaldır"
+
+#. FB-33 M3-5b
+msgid "Frage hinzufügen"
+msgstr "Soru ekle"
+
+#. FB-33 M3-5b
+msgid "Gilt für alle Seiten — dieselben Fragen zeigt jeder FAQ-Block."
+msgstr "Tüm sayfalar için geçerlidir — her SSS bloğu aynı soruları gösterir."

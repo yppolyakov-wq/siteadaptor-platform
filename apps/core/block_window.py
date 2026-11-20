@@ -30,12 +30,14 @@ TAB_KEYS = tuple(key for key, _label in TABS)
 PART_TAB: dict[str, str] = {
     "list": "was",  # блок «Liste» и встроенные списки: что показать (форма «Welche · Wie»)
     "banner": "was",  # выбор баннера из библиотеки и «Wo zeigen»
+    "tiles": "was",  # FB-33 M3-5b: плашки Schnellzugriff и «Vorlage für die Kacheln» — одна форма
     "views": "wie",  # виды картинками: категорий, товаров, групп
     "switch": "wie",  # смена вида внутри семьи (M2e)
     "listview": "wie",  # FB-33 M3-3c: как выглядит список (группа «Wie … aussehen» своей формой)
     "card_pick": "karte",  # FB-33 M3-4 (M0-2): форма карточки — только подходящие виду
     "platz": "wie",  # ширина и ряд — секция «Platz» (решение владельца)
     "usp": "texte",  # пункты полосы доверия
+    "faq": "texte",  # FB-33 M3-5b: вопросы FAQ (общие для всех страниц)
     "settings": "seite",  # настройки типа страницы у ★-строки и строк-носителей
     "formfields": "felder",  # FB-33 M2i-5: поля формы заявки (режимы, свои вопросы)
     "formlink": "felder",  # FB-33 M2i-5: у полосы/блока заявки — ссылка на окно формы
@@ -43,6 +45,7 @@ PART_TAB: dict[str, str] = {
 PART_ORDER = (
     "list",
     "banner",
+    "tiles",
     "views",
     "switch",
     "listview",
@@ -52,6 +55,7 @@ PART_ORDER = (
     "formlink",
     "platz",
     "usp",
+    "faq",
     "settings",
 )
 
@@ -80,6 +84,8 @@ PANEL_KEYS: dict[str, str] = {
     "pick": "list",
     "which": "list",
     "usp": "usp",
+    "faq_items": "faq",  # FB-33 M3-5b
+    "tiles": "tiles",  # FB-33 M3-5b
     "banner_pick": "banner",
     "widths": "platz",
     "width_tiles": "platz",  # FB-33 M3-3b: те же ширины плитками (M0-8)
@@ -133,6 +139,7 @@ def parts(selected: dict | None, ctx: dict) -> list[str]:
     have = {
         "list": bool(selected.get("groups")),
         "banner": bool(selected.get("banner_pick")),
+        "tiles": bool(selected.get("tiles")),
         "views": bool(
             selected.get("catview") or selected.get("mainview") or selected.get("groupview")
         ),
@@ -144,6 +151,7 @@ def parts(selected: dict | None, ctx: dict) -> list[str]:
         "fields": bool(selected.get("fields")),
         "platz": bool(selected.get("widths")),
         "usp": bool(selected.get("usp")),
+        "faq": bool(selected.get("faq_items")),
         "formfields": bool(selected.get("form_spec")),
         "formlink": bool(selected.get("form_link")),
         "settings": bool(selected.get("carrier") or selected.get("setting_row"))

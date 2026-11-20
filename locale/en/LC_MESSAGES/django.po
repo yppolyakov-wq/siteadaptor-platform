@@ -39400,3 +39400,26 @@ msgstr "At most %(n)s questions — further ones were not added."
 #. FB-33 M3-5b
 msgid "Die Fragen wurden inzwischen an anderer Stelle geändert – nichts übernommen. Bitte noch einmal versuchen."
 msgstr "The questions were changed elsewhere in the meantime – nothing was applied. Please try again."
+
+#. FB-33 M3-5b
+#, python-format
+msgid "Frage %(n)s nach oben"
+msgstr "Move question %(n)s up"
+
+#. FB-33 M3-5b
+#, python-format
+msgid "Frage %(n)s nach unten"
+msgstr "Move question %(n)s down"
+
+#. FB-33 M3-5b
+#, python-format
+msgid "Frage %(n)s entfernen"
+msgstr "Remove question %(n)s"
+
+#. FB-33 M3-5b
+msgid "Frage hinzufügen"
+msgstr "Add question"
+
+#. FB-33 M3-5b
+msgid "Gilt für alle Seiten — dieselben Fragen zeigt jeder FAQ-Block."
+msgstr "Applies to all pages — every FAQ block shows the same questions."

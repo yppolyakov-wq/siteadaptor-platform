@@ -39487,3 +39487,26 @@ msgstr "Höchstens %(n)s Fragen — weitere wurden nicht übernommen."
 #. FB-33 M3-5b
 msgid "Die Fragen wurden inzwischen an anderer Stelle geändert – nichts übernommen. Bitte noch einmal versuchen."
 msgstr "Die Fragen wurden inzwischen an anderer Stelle geändert – nichts übernommen. Bitte noch einmal versuchen."
+
+#. FB-33 M3-5b
+#, python-format
+msgid "Frage %(n)s nach oben"
+msgstr "Frage %(n)s nach oben"
+
+#. FB-33 M3-5b
+#, python-format
+msgid "Frage %(n)s nach unten"
+msgstr "Frage %(n)s nach unten"
+
+#. FB-33 M3-5b
+#, python-format
+msgid "Frage %(n)s entfernen"
+msgstr "Frage %(n)s entfernen"
+
+#. FB-33 M3-5b
+msgid "Frage hinzufügen"
+msgstr "Frage hinzufügen"
+
+#. FB-33 M3-5b
+msgid "Gilt für alle Seiten — dieselben Fragen zeigt jeder FAQ-Block."
+msgstr "Gilt für alle Seiten — dieselben Fragen zeigt jeder FAQ-Block."

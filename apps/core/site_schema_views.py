@@ -435,6 +435,10 @@ def site_schema_view(request):
             i18n_input.extra_locales(tenant),
             request.GET.get("sprache", ""),
         )
+    # FB-33 M3-5b: вопросы FAQ («Texte») и плашки Schnellzugriff («Was») окна блока
+    from apps.core import window_parts
+
+    window_parts.decorate(selected, saved, draft, code == "home")
     if (
         selected
         and (selected["key"] == "anfrage" and not selected["cblock"] or _is_anfrage_ref(selected))
