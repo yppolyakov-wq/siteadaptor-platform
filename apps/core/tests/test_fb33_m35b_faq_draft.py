@@ -144,7 +144,7 @@ def test_studio_save_meanwhile_is_a_conflict_only_for_a_draft_with_questions():
     assert aufbau_draft.info(_req(b), saved, "home")["conflict"] is True
     assert aufbau_draft.info(_req(b), saved, "text")["conflict"] is False
     resp, msgs = b.post(seite="home", op="save")
-    assert any("an anderer Stelle" in m for m in msgs)
+    assert faq_content.faq_changed_note() in msgs  # ревью M3-5b: своё сообщение
     assert [f["q"] for f in _saved(b)["faq"]][-1] == "Studio?"  # не записано
 
 

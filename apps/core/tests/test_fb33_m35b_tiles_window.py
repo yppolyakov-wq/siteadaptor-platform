@@ -43,9 +43,23 @@ def _tab(html, key):
     return m.group(0) if m else ""
 
 
+def _current(b):
+    """Данные блока, с которых окно открыто сейчас: черновик, иначе сохранённое."""
+    from apps.tenants import siteconfig
+    from apps.tenants.models import Tenant
+
+    items = (_drafts(b).get("home") or {}).get("items")
+    if not items:
+        items = siteconfig.normalize(Tenant.objects.get(pk=b.tenant.pk).site_config)["sections"]
+    return next(i for i in items if i.get("id") == "quicklinks").get("data") or {}
+
+
 def _post(b, **f):
+    from apps.core import hero_tiles
+
     data = {"seite": "home", "ref": "quicklinks", "op": "update", "panel_present": "1"}
     data.update({"f_tiles_present": "1", "wopen": WOPEN})
+    data["f_tiles_rev"] = hero_tiles.revision(_current(b))
     data.update({f"f_{k}": v for k, v in f.items()})
     return b.post(**data)
 
@@ -67,7 +81,11 @@ def test_tiles_and_set_are_one_form_in_was():
     for key in ("deals", "sortiment", "loyalty", "newsletter"):
         assert f'name="f_show_{key}" value="1"' in form and f'name="f_label_{key}"' in form
     assert 'aria-label="Aktuelle Deals zeigen"' in form and "nur wenn Deals laufen" in form
-    assert "→ Katalog" in form and "nur mit Bonusprogramm" in form and "→ Newsletter" in form
+    assert (
+        '<span aria-hidden="true">→ </span>Katalog' in form
+        and "nur mit Bonusprogramm" in form
+        and "</span>Newsletter" in form
+    )
     assert 'value="Sortiment ansehen"' in form  # стандартная подпись в поле
     assert html.count('name="f_set"') == 1  # прежней формы набора нет
     first = re.search(r"<button[^>]*>", form).group(0)

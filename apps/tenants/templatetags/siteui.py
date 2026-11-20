@@ -682,6 +682,16 @@ def quick_links_html(context, link_set, hidden=None, labels=None):
 
 
 @register.simple_tag(takes_context=True)
+def ql_visible(context, deal):
+    """FB-33 M3-5b: сколько плашек рукописного набора видно (`hero_tiles.visible_count`) —
+    пустая сетка не рисуется, одна плашка из скрытых — узкой колонкой."""
+    from apps.core import hero_tiles as registry
+
+    hidden = context.get("ql_hidden") or ()
+    return registry.visible_count(context.get("hero_widget"), context, deal, hidden)
+
+
+@register.simple_tag(takes_context=True)
 def embedded_page(context, data):
     """FB-27 R6: текст своей страницы для блока «Textseite» ({title, body|teaser, url})
     либо None. Хост берём из контекста страницы — блок не выводит страницу на ней самой."""

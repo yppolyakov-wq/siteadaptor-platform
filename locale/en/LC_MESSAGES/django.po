@@ -39457,14 +39457,6 @@ msgid "nur mit Übernachtungen"
 msgstr "only with overnight stays"
 
 #. FB-33 M3-5b
-msgid "→ Katalog"
-msgstr "→ Catalogue"
-
-#. FB-33 M3-5b
-msgid "→ Newsletter"
-msgstr "→ Newsletter"
-
-#. FB-33 M3-5b
 #, python-format
 msgid "%(label)s zeigen"
 msgstr "Show %(label)s"
@@ -39477,3 +39469,32 @@ msgstr "Template for the tiles"
 msgctxt "faq window"
 msgid "Fragen"
 msgstr "Questions"
+
+#. FB-33 M3-5b
+msgid "Eine Antwort ohne Frage wurde nicht übernommen – bitte zuerst die Frage eintragen."
+msgstr "An answer without a question was not applied – please enter the question first."
+
+#. FB-33 M3-5b
+msgid "Die gemeinsamen FAQ-Fragen wurden inzwischen geändert."
+msgstr "The shared FAQ questions have been changed in the meantime."
+
+#. FB-33 M3-5b
+msgid "Die gemeinsamen FAQ-Fragen wurden inzwischen geändert – Ihre Fassung ist gespeichert, Übersetzungen wurden nach dem Fragetext zugeordnet."
+msgstr "The shared FAQ questions were changed in the meantime – your version is saved, translations were matched by question text."
+
+#. FB-33 M3-5b
+msgid "Die Änderungen an den FAQ-Fragen wurden nicht gespeichert, weil der FAQ-Block entfernt wurde."
+msgstr "The changes to the FAQ questions were not saved because the FAQ block was removed."
+
+#. FB-33 M3-5b
+msgid "Die Kacheln wurden inzwischen an anderer Stelle geändert – nichts übernommen. Bitte noch einmal versuchen."
+msgstr "The tiles were changed elsewhere in the meantime – nothing was applied. Please try again."
+
+#. FB-33 M3-5b
+#, python-format
+msgid "Höchstens %(n)s Fragen."
+msgstr "At most %(n)s questions."
+
+#. FB-33 M3-5b
+msgid "Leer oder unverändert — es gilt die Standardbeschriftung."
+msgstr "Empty or unchanged — the standard label applies."

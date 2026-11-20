@@ -1,4 +1,4 @@
-{% load i18n %}{% comment %}FB-33 M3-5b (макет M0-4): плашки Schnellzugriff — показать/скрыть и своя подпись — и «Vorlage für die Kacheln» одной формой (смена набора сбрасывает скрытие и подписи прежнего); всё в черновик страницы; без скриптов.{% endcomment %}
+{% load i18n %}{% comment %}FB-33 M3-5b (макет M0-4): плашки Schnellzugriff — показать/скрыть и своя подпись — и «Vorlage für die Kacheln» одной формой (смена набора сбрасывает скрытие и подписи прежнего; устаревшая вкладка — отказ по tiles_rev); всё в черновик страницы; без скриптов.{% endcomment %}
 {% with tl=selected.tiles %}
 <form method="post" id="bw-form-tiles" class="mt-4 space-y-3" data-schema-fields data-schema-tiles>
   {% csrf_token %}
@@ -6,16 +6,18 @@
   <input type="hidden" name="ref" value="{{ selected.ref }}">
   <input type="hidden" name="panel_present" value="1">
   <input type="hidden" name="f_tiles_present" value="1">
+  <input type="hidden" name="f_tiles_rev" value="{{ tl.rev }}">
   <input type="hidden" name="op" value="update">
   <button name="op" value="update" class="sr-only" tabindex="-1" aria-hidden="true">{% trans "Übernehmen" %}</button>
   {% if tl.rows %}
-  <fieldset class="space-y-2">
+  <fieldset class="space-y-2" aria-describedby="bw-tiles-std">
     <legend class="block text-sm font-semibold text-gray-700 mb-1">{% trans "Kacheln" %}</legend>
+    <p id="bw-tiles-std" class="text-xs text-gray-600">{% trans "Leer oder unverändert — es gilt die Standardbeschriftung." %}</p>
     {% for r in tl.rows %}
     <div class="flex flex-wrap items-center gap-2 rounded-xl border border-gray-400 p-2" data-tile-row="{{ r.key }}">
-      <label class="flex items-center justify-center min-h-[44px] min-w-[44px]"><input type="checkbox" name="f_show_{{ r.key }}" value="1" class="h-5 w-5"{% if r.shown %} checked{% endif %} aria-label="{{ r.show_label }}"></label>
-      <input type="text" name="f_label_{{ r.key }}" value="{{ r.value }}" maxlength="{{ tl.max }}" class="ui-input min-w-0 flex-1" aria-label="{% trans 'Beschriftung' %}" aria-describedby="bw-tile-hint-{{ r.key }}">
-      <span id="bw-tile-hint-{{ r.key }}" class="w-full text-xs text-gray-600 sm:w-auto">{{ r.hint }}</span>
+      <label class="flex items-center justify-center min-h-[44px] min-w-[44px]"><input type="checkbox" name="f_show_{{ r.key }}" value="1" class="h-5 w-5"{% if r.shown %} checked{% endif %} aria-label="{{ r.show_label }}" aria-describedby="bw-tile-hint-{{ r.key }}"></label>
+      <input type="text" name="f_label_{{ r.key }}" value="{{ r.value }}" maxlength="{{ tl.max }}" class="ui-input min-w-0 flex-1" aria-label="{% trans 'Beschriftung' %} – {{ r.label }}" aria-describedby="bw-tile-hint-{{ r.key }}">
+      <span id="bw-tile-hint-{{ r.key }}" class="w-full text-xs text-gray-600 sm:w-auto">{% if r.goes_to %}<span aria-hidden="true">→ </span>{% endif %}{{ r.hint }}</span>
     </div>
     {% endfor %}
   </fieldset>

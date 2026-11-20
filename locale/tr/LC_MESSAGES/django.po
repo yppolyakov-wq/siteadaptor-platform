@@ -39603,14 +39603,6 @@ msgid "nur mit Übernachtungen"
 msgstr "yalnızca konaklamayla"
 
 #. FB-33 M3-5b
-msgid "→ Katalog"
-msgstr "→ Katalog"
-
-#. FB-33 M3-5b
-msgid "→ Newsletter"
-msgstr "→ Bülten"
-
-#. FB-33 M3-5b
 #, python-format
 msgid "%(label)s zeigen"
 msgstr "%(label)s göster"
@@ -39623,3 +39615,32 @@ msgstr "Kutucuklar için şablon"
 msgctxt "faq window"
 msgid "Fragen"
 msgstr "Sorular"
+
+#. FB-33 M3-5b
+msgid "Eine Antwort ohne Frage wurde nicht übernommen – bitte zuerst die Frage eintragen."
+msgstr "Sorusu olmayan bir cevap uygulanmadı – lütfen önce soruyu girin."
+
+#. FB-33 M3-5b
+msgid "Die gemeinsamen FAQ-Fragen wurden inzwischen geändert."
+msgstr "Ortak SSS soruları bu arada değiştirildi."
+
+#. FB-33 M3-5b
+msgid "Die gemeinsamen FAQ-Fragen wurden inzwischen geändert – Ihre Fassung ist gespeichert, Übersetzungen wurden nach dem Fragetext zugeordnet."
+msgstr "Ortak SSS soruları bu arada değiştirildi – sizin sürümünüz kaydedildi, çeviriler soru metnine göre eşleştirildi."
+
+#. FB-33 M3-5b
+msgid "Die Änderungen an den FAQ-Fragen wurden nicht gespeichert, weil der FAQ-Block entfernt wurde."
+msgstr "SSS bloğu kaldırıldığı için SSS sorularındaki değişiklikler kaydedilmedi."
+
+#. FB-33 M3-5b
+msgid "Die Kacheln wurden inzwischen an anderer Stelle geändert – nichts übernommen. Bitte noch einmal versuchen."
+msgstr "Kutucuklar bu arada başka bir yerde değiştirildi – hiçbir şey uygulanmadı. Lütfen tekrar deneyin."
+
+#. FB-33 M3-5b
+#, python-format
+msgid "Höchstens %(n)s Fragen."
+msgstr "En fazla %(n)s soru."
+
+#. FB-33 M3-5b
+msgid "Leer oder unverändert — es gilt die Standardbeschriftung."
+msgstr "Boş veya değiştirilmemiş — standart etiket geçerlidir."

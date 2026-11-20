@@ -11,8 +11,8 @@ ql_hidden/ql_labels по ключам `hero_tiles.QUICK_LINK_TILES` (теги в
 Reservieren (гейт модуля booking) / Speisekarte (каталог = core) / Angebot des
 Tages (живая акция: recurrence=daily первой, остаток «Nur noch N» — тег
 deal_of_day; нет акции → плитки две, fail-safe).{% endcomment %}
-{% deal_of_day as hw_deal %}
-<div class="mt-6 grid gap-3 max-w-3xl mx-auto text-left {% if storefront_booking_enabled and "reserve" not in ql_hidden and hw_deal and "deal" not in ql_hidden and "menu" not in ql_hidden %}sm:grid-cols-3{% elif storefront_booking_enabled and "reserve" not in ql_hidden and hw_deal and "deal" not in ql_hidden or storefront_booking_enabled and "reserve" not in ql_hidden and "menu" not in ql_hidden or hw_deal and "deal" not in ql_hidden and "menu" not in ql_hidden %}sm:grid-cols-2{% else %}sm:max-w-sm{% endif %}">
+{% deal_of_day as hw_deal %}{% ql_visible hw_deal as ql_n %}
+{% if ql_n %}<div class="mt-6 grid gap-3 max-w-3xl mx-auto text-left {% if storefront_booking_enabled and "reserve" not in ql_hidden and hw_deal and "deal" not in ql_hidden and "menu" not in ql_hidden %}sm:grid-cols-3{% elif storefront_booking_enabled and "reserve" not in ql_hidden and hw_deal and "deal" not in ql_hidden or storefront_booking_enabled and "reserve" not in ql_hidden and "menu" not in ql_hidden or hw_deal and "deal" not in ql_hidden and "menu" not in ql_hidden %}sm:grid-cols-2{% else %}sm:max-w-sm{% endif %}">
   {% if storefront_booking_enabled and "reserve" not in ql_hidden %}
   <a href="{% url 'storefront-termin' %}" class="bg-white text-gray-900 rounded-2xl shadow-lg p-4 md:p-5 flex items-center gap-3 hover:shadow-xl hover:-translate-y-0.5 transition min-w-0">
     <span class="text-3xl shrink-0" aria-hidden="true">🍽</span>
@@ -33,15 +33,15 @@ deal_of_day; нет акции → плитки две, fail-safe).{% endcomment
     </span>
   </a>
   {% endif %}
-</div>
+</div>{% endif %}
 {% elif hero_widget == "bakery" or hero_widget == "butcher" %}
 {% comment %}Фидбэк 2026-07-30 («Our offerings не практичен»): направляющие плитки
 retail-food первым экраном — Aktionen (гейт: есть активная акция, тег deal_of_day) /
 Sortiment / Vorbestellen zur Wunschzeit (гейт orders, C&C с Abholzeit) /
 Partyservice (гейт jobs). Порядок владельца: акции → каталог → заявка.
 "butcher" (та же ветка, 2026-07-30) — иконка 🥩 и мясной сабтекст Partyservice.{% endcomment %}
-{% deal_of_day as hw_deal %}
-<div class="mt-6 grid gap-3 max-w-3xl mx-auto text-left sm:grid-cols-2">
+{% deal_of_day as hw_deal %}{% ql_visible hw_deal as ql_n %}
+{% if ql_n %}<div class="mt-6 grid gap-3 max-w-3xl mx-auto text-left {% if ql_hidden and ql_n == 1 %}sm:max-w-sm{% else %}sm:grid-cols-2{% endif %}">
   {% if hw_deal and "deal" not in ql_hidden %}
   <a href="{% url 'storefront-aktionen' %}" class="bg-white text-gray-900 rounded-2xl shadow-lg p-4 md:p-5 flex items-center gap-3 hover:shadow-xl hover:-translate-y-0.5 transition min-w-0 ring-2 ring-amber-400">
     <span class="text-3xl shrink-0" aria-hidden="true">🔥</span>
@@ -73,13 +73,13 @@ Partyservice (гейт jobs). Порядок владельца: акции → 
     </span>
   </a>
   {% endif %}
-</div>
+</div>{% endif %}
 {% elif hero_widget == "mode" %}
 {% comment %}M0 Boutique (план mode-boutique-plan-2026-07-30 §3): направления бутика —
 Sale (гейт: живая акция, deal_of_day) / Sortiment / Neuheiten (?sort=newest) /
 Geschenkgutschein (гейт модуля gift). Reserve&Anprobe — волна M3.{% endcomment %}
-{% deal_of_day as hw_deal %}
-<div class="mt-6 grid gap-3 max-w-3xl mx-auto text-left sm:grid-cols-2">
+{% deal_of_day as hw_deal %}{% ql_visible hw_deal as ql_n %}
+{% if ql_n %}<div class="mt-6 grid gap-3 max-w-3xl mx-auto text-left {% if ql_hidden and ql_n == 1 %}sm:max-w-sm{% else %}sm:grid-cols-2{% endif %}">
   {% if hw_deal and "deal" not in ql_hidden %}
   <a href="{% url 'storefront-aktionen' %}" class="bg-white text-gray-900 rounded-2xl shadow-lg p-4 md:p-5 flex items-center gap-3 hover:shadow-xl hover:-translate-y-0.5 transition min-w-0 ring-2 ring-amber-400">
     <span class="text-3xl shrink-0" aria-hidden="true">🔥</span>
@@ -109,7 +109,7 @@ Geschenkgutschein (гейт модуля gift). Reserve&Anprobe — волна M
     </span>
   </a>
   {% endif %}
-</div>
+</div>{% endif %}
 {% else %}
 {% comment %}Остальные архетипы (friseur/werkstatt/handwerker/shop/aktionsmarkt/
 touren/retreat) — плитки из реестра apps/core/hero_tiles.py. Ветка самогейтится:

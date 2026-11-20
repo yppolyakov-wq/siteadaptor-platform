@@ -229,6 +229,8 @@ def overlay(config: dict, draft: dict) -> dict:
 # страницы с нетронутым FAQ не конфликтует, когда вопросы правят в Студии. Состояние, равное
 # сохранённому, черновик не держит (как `form`).
 FAQ_KEYS = ("faq", "faq_base")
+#: сессия: номер вопроса, который только что двигали (окно откроет его, один раз)
+FAQ_OPENED = "aufbau_faq_opened"
 
 
 def _is_faq_row(draft: dict, item) -> bool:
@@ -272,13 +274,18 @@ def _is_tiles_edit(draft: dict, ref: str, op_name: str, fields) -> bool:
     )
 
 
-def _tiles_op(draft: dict, ref: str, fields: dict) -> None:
+def _tiles_op(draft: dict, ref: str, fields: dict, notes: list | None = None) -> None:
     """Форма плашек окна → данные блока (`hero_tiles.update_data`); без изменений — блок не
-    трогаем (канонизация не создаёт «правку»)."""
+    трогаем (канонизация не создаёт «правку»). Форма несёт отпечаток данных, с которых
+    открыта (`tiles_rev`): не совпал (другая вкладка успела сменить набор) — отказ."""
     from apps.core import hero_tiles
 
     item = _row(draft, ref)
     old = hero_tiles.clean_data(item.get("data") or {})
+    if fields.get("tiles_rev") != hero_tiles.revision(old):
+        if notes is not None:
+            notes.append(hero_tiles.stale_note())
+        return
     new = hero_tiles.update_data(old, fields)
     if new != old:
         item["data"] = new
@@ -293,7 +300,7 @@ def faq_conflict(config: dict, draft: dict) -> bool:
     return draft.get("faq_base") != faq_content.fingerprint(faq_content.base_items(config))
 
 
-def _faq_op(config: dict, draft: dict, ref: str, post, notes: list | None) -> str:
+def _faq_op(config: dict, draft: dict, ref: str, post, notes: list | None, request=None) -> str:
     """Правка вопросов в черновике. Кнопки ↑↓/Entfernen несут отпечаток состояния (`faq_rev`):
     вторая вкладка браузера со старым номером — отказ с сообщением, ничего не меняется."""
     from apps.core import faq_content
@@ -307,7 +314,12 @@ def _faq_op(config: dict, draft: dict, ref: str, post, notes: list | None) -> st
         if notes is not None:
             notes.append(faq_content.stale_note())
         return ref
-    new_items, new_src = faq_content.apply_ops(items, src, post, notes)
+    info: dict = {}
+    new_items, new_src = faq_content.apply_ops(items, src, post, notes, info)
+    session = getattr(request, "session", None)
+    if session is not None and "opened" in info:
+        # ревью a11y: после ↑↓ окно открывает сдвинутый вопрос и ставит на него фокус (раз)
+        session[FAQ_OPENED] = info["opened"]
     if new_items == saved and new_src == list(range(len(saved))):
         for key in FAQ_KEYS:  # вернули как сохранено — правки нет
             draft.pop(key, None)
@@ -762,10 +774,10 @@ def op(
         ref = site_schema.form_op(tenant, config, draft, fields, notes)
     elif _is_tiles_edit(draft, ref, op_name, fields):
         # FB-33 M3-5b: плашки Schnellzugriff и набор — одной формой окна
-        _tiles_op(draft, ref, fields)
+        _tiles_op(draft, ref, fields, notes)
     elif is_faq_edit(request, draft, ref, op_name):
         # FB-33 M3-5b: вопросы FAQ в окне блока — в черновике, строка на месте
-        ref = _faq_op(config, draft, ref, request.POST, notes)
+        ref = _faq_op(config, draft, ref, request.POST, notes, request)
     else:
         ref = site_schema.mutate(
             draft["items"],
@@ -912,10 +924,22 @@ def commit(request, tenant, code: str, *, force: bool = False, notes: list | Non
     if not force and (
         _base_fingerprint(_saved_state(config, home, host), config, draft) != draft.get("base")
         or _keys_conflict(config, draft)
-        or faq_conflict(config, draft)  # FB-33 M3-5b: только при вопросах в черновике
     ):
         raise DraftConflict(code)
+    faq_moved = faq_conflict(config, draft)  # FB-33 M3-5b: только при вопросах в черновике
+    if faq_moved and not force:
+        # своё сообщение: страницу никто не трогал — изменились общие вопросы (Студия, канва)
+        raise site_schema.SchemaError("faq_conflict")
+    from apps.core import hero_tiles
+
+    old_blocks = {
+        it.get("id"): it.get("data")
+        for it in site_schema.load_items(config, home, host)
+        if isinstance(it, dict) and it.get("id")
+    }
     site_schema.store_items(config, home, host, copy.deepcopy(draft["items"]))
+    # FB-33 M3-5b: переводы своих подписей плашек — только у неизменённых немецких подписей
+    hero_tiles.prune_label_overlays(config, home, host, old_blocks)
     _commit_object(config, host, draft["items"], getattr(request, "user", None))
     if "title" in draft:
         _put_title(config, host, draft["title"])
@@ -927,9 +951,16 @@ def commit(request, tenant, code: str, *, force: bool = False, notes: list | Non
         from apps.core import faq_content
 
         pending = draft["faq"]
-        faq_content.put(
-            config, pending.get("items") or [], pending.get("src"), draft.get("faq_base")
-        )
+        if not any(_is_faq_row(draft, it) for it in draft["items"]):
+            # блок FAQ из черновика убрали — правку вопросов «в тени» не публикуем
+            if notes is not None:
+                notes.append(faq_content.dropped_note())
+        else:
+            faq_content.put(
+                config, pending.get("items") or [], pending.get("src"), draft.get("faq_base")
+            )
+            if faq_moved and notes is not None:
+                notes.append(faq_content.faq_forced_note())
     if "form" in draft and host == site_schema.FORM_HOST:
         # FB-33 M2i-5: поля формы заявки — под блокировкой строки бизнеса: дельта черновика
         # поверх заблокированного сохранённого (ревью H2), номера новых вопросов — от

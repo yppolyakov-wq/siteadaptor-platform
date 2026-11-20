@@ -286,6 +286,11 @@ def site_schema_view(request):
                         "entfernen."
                     ),
                 )
+            elif exc.args and exc.args[0] == "faq_conflict":
+                # FB-33 M3-5b: общие вопросы FAQ изменили в Студии/на канве — черновик цел
+                from apps.core import faq_content
+
+                messages.error(request, faq_content.faq_changed_note())
             else:
                 messages.error(request, _("Diese Änderung ist hier nicht möglich."))
         except aufbau_draft.DraftConflict:
@@ -439,7 +444,13 @@ def site_schema_view(request):
     from apps.core import window_parts
 
     window_parts.decorate(
-        selected, saved, draft, code == "home", config, current.host if current else ""
+        selected,
+        saved,
+        draft,
+        code == "home",
+        config,
+        current.host if current else "",
+        request.session.pop(aufbau_draft.FAQ_OPENED, None) if selected else None,
     )
     if (
         selected

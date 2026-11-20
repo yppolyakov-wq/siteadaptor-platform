@@ -39544,14 +39544,6 @@ msgid "nur mit Übernachtungen"
 msgstr "nur mit Übernachtungen"
 
 #. FB-33 M3-5b
-msgid "→ Katalog"
-msgstr "→ Katalog"
-
-#. FB-33 M3-5b
-msgid "→ Newsletter"
-msgstr "→ Newsletter"
-
-#. FB-33 M3-5b
 #, python-format
 msgid "%(label)s zeigen"
 msgstr "%(label)s zeigen"
@@ -39564,3 +39556,32 @@ msgstr "Vorlage für die Kacheln"
 msgctxt "faq window"
 msgid "Fragen"
 msgstr "Fragen"
+
+#. FB-33 M3-5b
+msgid "Eine Antwort ohne Frage wurde nicht übernommen – bitte zuerst die Frage eintragen."
+msgstr "Eine Antwort ohne Frage wurde nicht übernommen – bitte zuerst die Frage eintragen."
+
+#. FB-33 M3-5b
+msgid "Die gemeinsamen FAQ-Fragen wurden inzwischen geändert."
+msgstr "Die gemeinsamen FAQ-Fragen wurden inzwischen geändert."
+
+#. FB-33 M3-5b
+msgid "Die gemeinsamen FAQ-Fragen wurden inzwischen geändert – Ihre Fassung ist gespeichert, Übersetzungen wurden nach dem Fragetext zugeordnet."
+msgstr "Die gemeinsamen FAQ-Fragen wurden inzwischen geändert – Ihre Fassung ist gespeichert, Übersetzungen wurden nach dem Fragetext zugeordnet."
+
+#. FB-33 M3-5b
+msgid "Die Änderungen an den FAQ-Fragen wurden nicht gespeichert, weil der FAQ-Block entfernt wurde."
+msgstr "Die Änderungen an den FAQ-Fragen wurden nicht gespeichert, weil der FAQ-Block entfernt wurde."
+
+#. FB-33 M3-5b
+msgid "Die Kacheln wurden inzwischen an anderer Stelle geändert – nichts übernommen. Bitte noch einmal versuchen."
+msgstr "Die Kacheln wurden inzwischen an anderer Stelle geändert – nichts übernommen. Bitte noch einmal versuchen."
+
+#. FB-33 M3-5b
+#, python-format
+msgid "Höchstens %(n)s Fragen."
+msgstr "Höchstens %(n)s Fragen."
+
+#. FB-33 M3-5b
+msgid "Leer oder unverändert — es gilt die Standardbeschriftung."
+msgstr "Leer oder unverändert — es gilt die Standardbeschriftung."

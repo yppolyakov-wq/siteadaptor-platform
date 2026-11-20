@@ -434,10 +434,12 @@ _GATE_HINTS = {
     "events": _("nur mit Veranstaltungen"),
     "stays": _("nur mit Übernachtungen"),
 }
+#: куда ведёт плашка без условия (в окне — со стрелкой «→», стрелка скрыта от чтения)
 _URL_HINTS = {
-    "storefront-products": _("→ Katalog"),
-    "storefront-newsletter": _("→ Newsletter"),
+    "storefront-products": _("Katalog"),
+    "storefront-newsletter": _("Newsletter"),
 }
+_GOES_TO = frozenset(str(v) for v in ("storefront-products", "storefront-newsletter"))
 
 
 def _hint(gate: str, url: str = ""):
@@ -536,10 +538,30 @@ def shown_labels(link_set: str, labels) -> dict:
     return {k: v for k, v in labels.items() if k in keys and isinstance(v, str) and v.strip()}
 
 
+def stale_note() -> str:
+    from django.utils.translation import gettext as gt
+
+    return gt(
+        "Die Kacheln wurden inzwischen an anderer Stelle geändert – nichts übernommen. "
+        "Bitte noch einmal versuchen."
+    )
+
+
+def revision(data) -> str:
+    """Отпечаток НАБОРА, с которым открыта форма плашек: устаревшая вкладка с прежним набором —
+    отказ (иначе её «смена набора» стёрла бы настройки сохранённого). Скрытие и подписи в него
+    не входят: со скриптами поля применяются на лету без перерисовки окна."""
+    import hashlib
+
+    raw = str(clean_data(data or {}).get("set", "")).encode()
+    return hashlib.sha1(b"tiles:" + raw, usedforsecurity=False).hexdigest()[:12]
+
+
 def update_data(data: dict, fields: dict) -> dict:
     """Форма плашек окна (`tiles_present`): набор `set`, показ `show_<ключ>`, подпись
     `label_<ключ>`. Сменили набор — скрытие и подписи прежнего сбрасываются (присланные
-    поля плашек относятся к прежнему набору). Возвращает очищенные данные."""
+    поля плашек относятся к прежнему набору). Пустой набор — только явным выбором (поля
+    `set` нет — набор прежний). Возвращает очищенные данные."""
     old = clean_data(data or {})
     link_set = str(fields.get("set", old.get("set", "")) or "")
     if link_set != old.get("set"):
@@ -557,8 +579,46 @@ def update_data(data: dict, fields: dict) -> dict:
     return clean_data({"set": link_set, "hidden": hidden, "labels": labels})
 
 
+def prune_label_overlays(config: dict, home: bool, host: str, old_by_id: dict) -> None:
+    """Переводы своих подписей плашек (`i18n[<язык>]…data.labels`) — только у ключей, чья
+    немецкая подпись есть и не менялась (как у FAQ: правка или сброс снимает перевод этого
+    ключа; смена набора — все переводы подписей блока, общие ключи не протекают). Зовётся
+    после записи блоков страницы (оверлей уже выровнен по ним). Мутирует `config`."""
+    from apps.tenants import siteconfig
+
+    rows = config.get("sections") if home else (config.get("page_blocks") or {}).get(host)
+    overlay = config.get("i18n")
+    if not isinstance(rows, list) or not isinstance(overlay, dict):
+        return
+    for node in overlay.values():
+        if not isinstance(node, dict):
+            continue
+        ov_rows = node.get("sections") if home else (node.get("page_blocks") or {}).get(host)
+        if not isinstance(ov_rows, list):
+            continue
+        for i, row in enumerate(rows):
+            if i >= len(ov_rows) or not isinstance(row, dict) or not isinstance(ov_rows[i], dict):
+                continue
+            key = row.get("key") or ""
+            if (siteconfig.cblock_type(key) or key) != "quick_links":
+                continue
+            data = ov_rows[i].get("data")
+            if not isinstance(data, dict) or "labels" not in data:
+                continue
+            new = clean_data(row.get("data") or {})
+            old = clean_data(old_by_id.get(row.get("id")) or {})
+            base_new = new.get("labels") or {}
+            base_old = (old.get("labels") or {}) if old.get("set") == new.get("set") else {}
+            tr = data.get("labels") if isinstance(data.get("labels"), dict) else {}
+            kept = {k: v for k, v in tr.items() if k in base_new and base_old.get(k) == base_new[k]}
+            if kept:
+                data["labels"] = kept
+            else:
+                data.pop("labels")
+
+
 def panel(data: dict) -> dict:
-    """Модель формы плашек окна: набор и строки плашек текущего набора."""
+    """Модель формы плашек окна: набор, строки плашек текущего набора, отпечаток данных."""
     from django.utils.translation import gettext as gt
 
     d = clean_data(data or {})
@@ -573,6 +633,8 @@ def panel(data: dict) -> dict:
                 "value": labels.get(key) or str(label),
                 "shown": key not in hidden,
                 "hint": str(hint),
+                # «→» — куда ведёт (стрелка скрыта от чтения), иначе — условие показа
+                "goes_to": any(str(hint) == str(_URL_HINTS[u]) for u in _GOES_TO),
                 "show_label": gt("%(label)s zeigen") % {"label": label},
             }
         )
@@ -584,4 +646,35 @@ def panel(data: dict) -> dict:
         ],
         "rows": rows,
         "max": LABEL_MAX,
+        "rev": revision(d),
     }
+
+
+#: FB-33 M3-5b (ревью): условия плашек рукописных наборов `_hero_widget.html` — для счёта
+#: видимых (пустая сетка не рисуется, одна плашка — узкой колонкой); "" — всегда
+HANDWRITTEN_GATES = {
+    "gastro": {"reserve": "storefront_booking_enabled", "menu": "", "deal": "deal"},
+    "bakery": {
+        "deal": "deal",
+        "sortiment": "",
+        "preorder": "storefront_orders_enabled",
+        "party": "storefront_jobs_enabled",
+    },
+    "mode": {"deal": "deal", "sortiment": "", "new": "", "gift": "storefront_gift_enabled"},
+}
+HANDWRITTEN_GATES["butcher"] = HANDWRITTEN_GATES["bakery"]
+
+
+def visible_count(link_set: str, context, deal, hidden) -> int:
+    """Сколько плашек рукописного набора будет видно (те же условия, что в шаблоне)."""
+    n = 0
+    for key, gate in HANDWRITTEN_GATES.get(link_set or "", {}).items():
+        if key in (hidden or ()):
+            continue
+        if gate == "deal":
+            n += deal is not None and deal != ""
+        elif gate:
+            n += bool(context.get(gate))
+        else:
+            n += 1
+    return n

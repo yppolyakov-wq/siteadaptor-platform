@@ -41,7 +41,8 @@ def test_home_faq_window_has_questions_in_texte_and_view_in_wie():
     assert 'name="op_default" value="update"' in form and 'name="faq_present"' in form
     assert "panel_present" not in form
     first = re.search(r"<button[^>]*>", form).group(0)
-    assert 'value="update"' in first  # Enter — «Übernehmen», а не «↓» вопроса 1
+    # Enter — «Übernehmen» (с новым вопросом), а не «↓» вопроса 1
+    assert 'name="faq_add"' in first and "data-schema-apply" in first
     assert f'name="faq_rev" value="{faq_content.revision(BASE, [0, 1, 2])}"' in form
     assert 'aria-label="Frage 1 nach unten"' in form and "Frage 1 nach oben" not in form
     assert "Frage hinzufügen" in form
@@ -85,6 +86,7 @@ def test_full_list_has_no_add():
     tenant.save()
     form = _form(Browser(tenant).get("?seite=home&block=faq"))
     assert "data-faq-new" not in form
+    assert "Höchstens 12 Fragen." in form  # лимит виден, а не молча пропавший «＋»
 
 
 def test_other_blocks_have_no_faq_part():

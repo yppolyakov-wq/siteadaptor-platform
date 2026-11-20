@@ -3053,6 +3053,10 @@ def home_builder_view(request):
                 # с которого открыта; без него (старая форма) — по тексту вопроса
                 faq_in = faq_content.from_form(request.POST.get, save_notes)
                 faq_fp = (request.POST.get("faq_base") or "").strip()
+                if faq_fp and faq_fp != faq_content.fingerprint(config["faq"]):
+                    # вопросы успели изменить (окно блока, канва): записываем эту форму,
+                    # переводы — по тексту (`put`), владелец видит сообщение
+                    save_notes.append(faq_content.faq_forced_note())
                 if faq_in is None:
                     faq_in = (_sections["faq"], None)
                 _sections.pop("faq", None)
@@ -4241,13 +4245,25 @@ def site_inline_edit(request):
             return HttpResponseBadRequest()
         # FB-33 M3-5b: запись — `faq_content.set_text` (правка немецкого снимает перевод
         # именно этого поля, как у Студии и окна блока); пустой вопрос удалил бы пару
+        # Ревью M3-5b: под блокировкой строки бизнеса и от СВЕЖЕГО конфига (Студия или окно
+        # блока могли записать вопросы тем временем); отпечаток списка, если канва его прислала
+        # (`faq_base`), не совпал — номер вопроса устарел, отказ 409.
+        from apps.tenants.models import Tenant
+
         locale = (data.get("locale") or "").strip()
         if not siteconfig.is_translation_locale(request.tenant, locale):
             locale = ""
-        if not faq_content.set_text(cfg, int(parts[1]), parts[2], value, locale):
-            return HttpResponseBadRequest()
-        request.tenant.site_config = siteconfig.normalize(cfg)
-        request.tenant.save(update_fields=["site_config", "updated_at"])
+        with transaction.atomic():
+            locked = Tenant.objects.select_for_update().get(pk=request.tenant.pk)
+            cfg = siteconfig.normalize(locked.site_config)
+            base = data.get("faq_base")
+            if isinstance(base, str) and base and base != faq_content.fingerprint(cfg["faq"]):
+                return HttpResponse(status=409)
+            if not faq_content.set_text(cfg, int(parts[1]), parts[2], value, locale):
+                return HttpResponseBadRequest()
+            locked.site_config = siteconfig.normalize(cfg)
+            locked.save(update_fields=["site_config", "updated_at"])
+        request.tenant.site_config = locked.site_config
         return HttpResponse(status=204)
     elif field and field.startswith("page_titles."):
         # FB-33 M2d: заголовок и вступление страницы-списка или формы — на превью

@@ -164,7 +164,15 @@ def put(config: dict, items, src=None, base_fp: str | None = None) -> None:
     new = [{"q": _s(i.get("q")), "a": _s(i.get("a"))} for i in items or () if _s(i.get("q"))]
     by_text = base_fp is not None and base_fp != fingerprint(old)
     if by_text:
-        logger.warning("faq_content: base changed meanwhile — translations matched by text")
+        from django.db import connection
+
+        logger.warning(
+            "faq_content: base changed meanwhile — translations matched by text "
+            "(%s, saved %s, written %s)",
+            getattr(connection, "schema_name", ""),
+            len(old),
+            len(new),
+        )
     mapping = _mapping(old, new, src, by_text)
     config["faq"] = new
     overlay = config.get("i18n")
@@ -233,22 +241,25 @@ def _index(value, size: int):
     return i if 0 <= i < size else None
 
 
-def apply_ops(items: list[dict], src: list, post, notes: list | None = None):
+def apply_ops(items: list[dict], src: list, post, notes: list | None = None, info=None):
     """Форма окна → новое (items, src). Тексты `faq_<i>_q|a` (пустой вопрос — удалить),
-    кнопки `faq_remove=<i>`, `faq_move=<i>:up|down`, новый вопрос `faq_new_q|a` (кнопкой
-    `faq_add`). Сначала
-    тексты, затем кнопка — набранное не теряется."""
-    rows = []
+    кнопки `faq_remove=<i>`, `faq_move=<i>:up|down`, новый вопрос `faq_new_q|a`. Сначала
+    тексты, затем кнопка — набранное не теряется. Новый вопрос принимается любой кнопкой
+    формы («Übernehmen»/Enter — `faq_add`, ↑↓, Entfernen); со скриптами поля применяются на
+    лету без кнопки — тогда нет (иначе каждое применение добавляло бы его заново). Ответ без
+    вопроса — сообщение, не молча. `info["opened"]` — куда встал сдвинутый вопрос."""
+    pressed = any(post.get(k) is not None for k in ("faq_add", "faq_move", "faq_remove"))
+    rows, orphan = [], False
     for i, item in enumerate(items):
         q = post.get(f"faq_{i}_q")
         a = post.get(f"faq_{i}_a")
-        rows.append(
-            {
-                "q": item["q"] if q is None else q,
-                "a": item["a"] if a is None else a,
-                "src": src[i] if i < len(src) else None,
-            }
-        )
+        row = {
+            "q": item["q"] if q is None else q,
+            "a": item["a"] if a is None else a,
+            "src": src[i] if i < len(src) else None,
+        }
+        orphan = orphan or (not _s(row["q"]) and bool(_s(row["a"])))
+        rows.append(row)
     remove = _index(post.get("faq_remove"), len(rows))
     if remove is not None:
         rows.pop(remove)
@@ -259,12 +270,40 @@ def apply_ops(items: list[dict], src: list, post, notes: list | None = None):
         to = at - 1 if way == "up" else at + 1
         if 0 <= to < len(rows):
             rows[at], rows[to] = rows[to], rows[at]
+            if info is not None:
+                info["opened"] = sum(1 for r in rows[:to] if _s(r["q"]))
     new_q = _s(post.get("faq_new_q"))
-    if new_q and post.get("faq_add"):
-        # только кнопкой «Frage hinzufügen»: со скриптами поле применяется на лету без
-        # перерисовки окна — иначе каждое применение добавляло бы вопрос заново
+    if pressed and new_q:
         rows.append({"q": new_q, "a": post.get("faq_new_a", ""), "src": None})
+    elif pressed and _s(post.get("faq_new_a")):
+        orphan = True
+    if orphan and notes is not None:
+        notes.append(orphan_note())
     return clean_input(rows, notes)
+
+
+def orphan_note() -> str:
+    return _("Eine Antwort ohne Frage wurde nicht übernommen – bitte zuerst die Frage eintragen.")
+
+
+def faq_changed_note() -> str:
+    """Конфликт «Speichern» с правкой вопросов в Студии/на канве (запись не сделана)."""
+    return _("Die gemeinsamen FAQ-Fragen wurden inzwischen geändert.")
+
+
+def faq_forced_note() -> str:
+    """Запись поверх конфликта: переводы сопоставлены по тексту вопроса."""
+    return _(
+        "Die gemeinsamen FAQ-Fragen wurden inzwischen geändert – Ihre Fassung ist gespeichert, "
+        "Übersetzungen wurden nach dem Fragetext zugeordnet."
+    )
+
+
+def dropped_note() -> str:
+    return _(
+        "Die Änderungen an den FAQ-Fragen wurden nicht gespeichert, weil der FAQ-Block "
+        "entfernt wurde."
+    )
 
 
 def stale_note() -> str:
@@ -274,10 +313,24 @@ def stale_note() -> str:
     )
 
 
-def panel(items: list[dict], src: list, config: dict) -> dict:
-    """Модель части «Fragen» окна блока."""
+def panel(items: list[dict], src: list, config: dict, opened: int | None = None) -> dict:
+    """Модель части «Fragen» окна блока. `opened` — вопрос, который только что двигали
+    (открыт и в фокусе); иначе открыт первый."""
+    moved = isinstance(opened, int) and 0 <= opened < len(items)
+    if not moved:
+        opened = 0
     return {
-        "items": [{"i": i, "n": i + 1, "q": it["q"], "a": it["a"]} for i, it in enumerate(items)],
+        "items": [
+            {
+                "i": i,
+                "n": i + 1,
+                "q": it["q"],
+                "a": it["a"],
+                "open": i == opened,
+                "focus": moved and i == opened,
+            }
+            for i, it in enumerate(items)
+        ],
         "free": len(items) < MAX_ITEMS,
         "max": MAX_ITEMS,
         "max_q": MAX_Q,

@@ -166,6 +166,7 @@ WRITER_ALLOWED = {
     "apps/tenants/siteconfig.py",  # normalize и пути set_value/set_overlay_value
     "apps/tenants/demo_kits.py",  # демо-киты собирают конфиг целиком (~25508)
     "apps/tenants/demo_i18n.py",  # переводы демо (overlay_config)
+    "apps/core/aufbau_draft.py",  # `draft["faq"]` — состояние черновика (запись — `put`)
 }
 _WRITE = re.compile(
     r"""\[\s*["']faq["']\s*\]\s*=(?!=)|\(\s*["']faq["']\s*,\s*\w+\s*,\s*(?:parts\[|field|["'][qa]["'])"""

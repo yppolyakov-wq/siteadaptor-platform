@@ -39804,14 +39804,6 @@ msgid "nur mit Übernachtungen"
 msgstr "только с проживанием"
 
 #. FB-33 M3-5b
-msgid "→ Katalog"
-msgstr "→ Каталог"
-
-#. FB-33 M3-5b
-msgid "→ Newsletter"
-msgstr "→ Рассылка"
-
-#. FB-33 M3-5b
 #, python-format
 msgid "%(label)s zeigen"
 msgstr "Показывать «%(label)s»"
@@ -39824,3 +39816,32 @@ msgstr "Шаблон плашек"
 msgctxt "faq window"
 msgid "Fragen"
 msgstr "Вопросы"
+
+#. FB-33 M3-5b
+msgid "Eine Antwort ohne Frage wurde nicht übernommen – bitte zuerst die Frage eintragen."
+msgstr "Ответ без вопроса не применён – сначала впишите вопрос."
+
+#. FB-33 M3-5b
+msgid "Die gemeinsamen FAQ-Fragen wurden inzwischen geändert."
+msgstr "Общие вопросы FAQ тем временем изменили."
+
+#. FB-33 M3-5b
+msgid "Die gemeinsamen FAQ-Fragen wurden inzwischen geändert – Ihre Fassung ist gespeichert, Übersetzungen wurden nach dem Fragetext zugeordnet."
+msgstr "Общие вопросы FAQ тем временем изменили – ваша версия сохранена, переводы сопоставлены по тексту вопроса."
+
+#. FB-33 M3-5b
+msgid "Die Änderungen an den FAQ-Fragen wurden nicht gespeichert, weil der FAQ-Block entfernt wurde."
+msgstr "Изменения вопросов FAQ не сохранены: блок FAQ удалён."
+
+#. FB-33 M3-5b
+msgid "Die Kacheln wurden inzwischen an anderer Stelle geändert – nichts übernommen. Bitte noch einmal versuchen."
+msgstr "Плашки тем временем изменили в другом месте – ничего не применено. Попробуйте ещё раз."
+
+#. FB-33 M3-5b
+#, python-format
+msgid "Höchstens %(n)s Fragen."
+msgstr "Не больше %(n)s вопросов."
+
+#. FB-33 M3-5b
+msgid "Leer oder unverändert — es gilt die Standardbeschriftung."
+msgstr "Пусто или без изменений — действует стандартная подпись."
