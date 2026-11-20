@@ -522,37 +522,38 @@
   <h3 class="sr-only">Wie anordnen</h3>
   <div data-window-part="platz">
 
-
-<form method="post" class="mt-4" data-schema-width>
+<div class="mt-5 border-t border-gray-200 pt-3" data-schema-platz>
+<h4 class="text-sm font-bold text-gray-900">Platz</h4>
+<form method="post" class="mt-2" data-schema-width>
   <input type="hidden" name="csrfmiddlewaretoken" value="X">
   <input type="hidden" name="seite" value="home"><input type="hidden" name="wopen" value="W">
 
   <input type="hidden" name="ref" value="quicklinks">
   <input type="hidden" name="op" value="width">
   <fieldset aria-describedby="schema-width-hint">
-    <legend class="text-sm font-semibold text-gray-700 mb-2">Breite</legend>
-    
-    <div class="grid grid-cols-4 gap-1.5">
+    <legend class="text-sm font-semibold text-gray-700 mb-2">Breite auf dem Computer</legend>
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
       
-      <button name="value" value="contained" aria-label="Ganz – ganze Breite" class="min-h-[52px] rounded-lg border px-1 text-xs flex flex-col items-center justify-center gap-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 border-2 border-indigo-700 bg-indigo-50 font-semibold text-indigo-900" aria-pressed="true">
+      <button name="value" value="contained" class="min-h-[52px] rounded-lg border px-1 py-1.5 text-xs flex flex-col items-center justify-center gap-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 border-2 border-indigo-700 bg-indigo-50 text-indigo-900" aria-pressed="true" data-schema-width-tile="contained">
         <span class="block h-2 w-9 rounded-sm bg-gray-200" aria-hidden="true" data-schema-width-bar><span class="block h-2 rounded-sm bg-indigo-700" style="width: 100%"></span></span>
-        Ganz</button>
+        <span class="font-semibold">Voll</span><span>ganze Breite</span></button>
       
-      <button name="value" value="w23" aria-label="⅔ – zwei Drittel" class="min-h-[52px] rounded-lg border px-1 text-xs flex flex-col items-center justify-center gap-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 border-gray-500 bg-white hover:bg-gray-50" aria-pressed="false">
+      <button name="value" value="w23" class="min-h-[52px] rounded-lg border px-1 py-1.5 text-xs flex flex-col items-center justify-center gap-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 border-gray-500 bg-white text-gray-800 hover:bg-gray-50" aria-pressed="false" data-schema-width-tile="w23">
         <span class="block h-2 w-9 rounded-sm bg-gray-200" aria-hidden="true" data-schema-width-bar><span class="block h-2 rounded-sm bg-gray-500" style="width: 66%"></span></span>
-        ⅔</button>
+        <span class="font-semibold">2/3</span><span>zwei Drittel</span></button>
       
-      <button name="value" value="w12" aria-label="½ – die Hälfte" class="min-h-[52px] rounded-lg border px-1 text-xs flex flex-col items-center justify-center gap-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 border-gray-500 bg-white hover:bg-gray-50" aria-pressed="false">
+      <button name="value" value="w12" class="min-h-[52px] rounded-lg border px-1 py-1.5 text-xs flex flex-col items-center justify-center gap-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 border-gray-500 bg-white text-gray-800 hover:bg-gray-50" aria-pressed="false" data-schema-width-tile="w12">
         <span class="block h-2 w-9 rounded-sm bg-gray-200" aria-hidden="true" data-schema-width-bar><span class="block h-2 rounded-sm bg-gray-500" style="width: 50%"></span></span>
-        ½</button>
+        <span class="font-semibold">1/2</span><span>halbe Breite</span></button>
       
     </div>
+    
   </fieldset>
-  <p id="schema-width-hint" class="mt-2 text-xs text-gray-600">Schmale Blöcke stehen am Computer nebeneinander, auf dem Telefon untereinander. Auf der Website sichtbar nach «Speichern».
-    <span data-schema-width-mates></span></p>
 </form>
 
 
+<p id="schema-width-hint" class="mt-2 text-xs text-gray-600">Auf dem Telefon stehen alle Blöcke untereinander, immer volle Breite. Auf der Website sichtbar nach «Speichern».</p>
+</div>
 
 </div>
 </section>

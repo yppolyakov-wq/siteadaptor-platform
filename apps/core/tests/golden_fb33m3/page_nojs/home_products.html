@@ -515,6 +515,7 @@
     
     
     
+    
     <div>
       <label for="schema-l-only" class="block text-sm font-semibold text-gray-700 mb-1">Auswahl</label>
       
@@ -524,6 +525,8 @@
       
       
     </div>
+
+    
     
     <div>
       <label for="schema-l-sort" class="block text-sm font-semibold text-gray-700 mb-1">Sortierung</label>
@@ -534,6 +537,8 @@
       
       
     </div>
+
+    
     
     <div>
       <label for="schema-l-limit" class="block text-sm font-semibold text-gray-700 mb-1">Höchstens</label>
@@ -542,68 +547,105 @@
       
       <p id="schema-l-limit-hint" class="text-xs text-gray-600 mt-1">Höchstens 30. Sind Reihen gewählt, zählt Spalten × Reihen.</p>
     </div>
+
     
     
   </fieldset>
   
-  <fieldset class="space-y-2" data-schema-group="wie">
+  <button name="op" value="update" class="ui-btn ui-btn-primary w-full scroll-mb-28">Übernehmen</button>
+</form>
+
+
+</div>
+</section>
+
+<section id="schema-tab-wie" class="scroll-mt-20 focus:outline-none" data-window-tab="wie" hidden>
+  <h3 class="sr-only">Wie anordnen</h3>
+  <div data-window-part="listview">
+
+<form method="post" class="mt-4 space-y-4" data-schema-list data-schema-listview>
+  <input type="hidden" name="csrfmiddlewaretoken" value="X">
+  <input type="hidden" name="seite" value="home"><input type="hidden" name="welche" value="regel"><input type="hidden" name="wopen" value="W">
+
+  <input type="hidden" name="ref" value="products">
+  <input type="hidden" name="panel_present" value="1">
+  <fieldset class="space-y-3" data-schema-group="wie">
     <legend class="text-sm font-bold text-gray-900">Wie Produkte aussehen</legend>
     
-    
-    
     <div>
-      <label id="schema-l-style-label" class="block text-sm font-semibold text-gray-700 mb-1">Darstellungsstil</label>
       
-      
-      <details class="rounded-xl border border-gray-500" data-schema-style-pick>
-        <summary aria-labelledby="schema-l-style-label schema-l-style-current" class="flex items-center gap-3 px-2 py-1.5 min-h-[44px] cursor-pointer text-sm rounded-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+<fieldset data-schema-view-tiles="style">
+  <legend class="text-sm font-semibold text-gray-700 mb-1">Darstellungsstil</legend>
+  <div class="grid grid-cols-2 gap-2">
+    
+    <label class="flex flex-col gap-1 rounded-xl border border-gray-500 p-2 min-h-[44px] text-xs text-gray-800 cursor-pointer has-[:checked]:border-2 has-[:checked]:border-indigo-700 has-[:checked]:bg-indigo-50 has-[:checked]:text-indigo-900 has-[:focus-visible]:outline has-[:focus-visible]:outline-[3px] has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-indigo-600" data-schema-view-tile=""><input type="radio" name="f_style" value="" class="sr-only" checked>
 
   <span class="grid w-20 h-12 shrink-0 grid-cols-3 gap-0.5 rounded ring-1 ring-gray-200 bg-white p-1" aria-hidden="true" data-style-thumb="grid"><span class="flex flex-col gap-0.5"><span class="flex-1 rounded-sm bg-gray-400"></span><span class="h-1 rounded bg-gray-300"></span></span><span class="flex flex-col gap-0.5"><span class="flex-1 rounded-sm bg-gray-400"></span><span class="h-1 rounded bg-gray-300"></span></span><span class="flex flex-col gap-0.5"><span class="flex-1 rounded-sm bg-gray-400"></span><span class="h-1 rounded bg-gray-300"></span></span></span>
 
-<span class="flex-1" id="schema-l-style-current" data-schema-style-current>Standard (Raster)</span><span aria-hidden="true">▾</span></summary>
-        <div class="grid grid-cols-2 gap-1.5 border-t border-gray-200 p-2" role="radiogroup" aria-labelledby="schema-l-style-label">
-          <label class="relative"><input type="radio" name="f_style" value="" class="peer sr-only" checked><span class="flex flex-col items-start gap-1 min-h-[44px] rounded-lg border border-gray-500 p-2 text-xs text-gray-800 cursor-pointer peer-checked:border-2 peer-checked:border-indigo-700 peer-checked:bg-indigo-50 peer-checked:text-indigo-900 peer-focus-visible:ring-2 peer-focus-visible:ring-indigo-600">
-
-  <span class="grid w-20 h-12 shrink-0 grid-cols-3 gap-0.5 rounded ring-1 ring-gray-200 bg-white p-1" aria-hidden="true" data-style-thumb="grid"><span class="flex flex-col gap-0.5"><span class="flex-1 rounded-sm bg-gray-400"></span><span class="h-1 rounded bg-gray-300"></span></span><span class="flex flex-col gap-0.5"><span class="flex-1 rounded-sm bg-gray-400"></span><span class="h-1 rounded bg-gray-300"></span></span><span class="flex flex-col gap-0.5"><span class="flex-1 rounded-sm bg-gray-400"></span><span class="h-1 rounded bg-gray-300"></span></span></span>
-
-<span>Standard (Raster)</span></span></label><label class="relative"><input type="radio" name="f_style" value="preisliste" class="peer sr-only"><span class="flex flex-col items-start gap-1 min-h-[44px] rounded-lg border border-gray-500 p-2 text-xs text-gray-800 cursor-pointer peer-checked:border-2 peer-checked:border-indigo-700 peer-checked:bg-indigo-50 peer-checked:text-indigo-900 peer-focus-visible:ring-2 peer-focus-visible:ring-indigo-600">
+<span class="font-semibold">Standard (Raster)</span></label>
+    
+    <label class="flex flex-col gap-1 rounded-xl border border-gray-500 p-2 min-h-[44px] text-xs text-gray-800 cursor-pointer has-[:checked]:border-2 has-[:checked]:border-indigo-700 has-[:checked]:bg-indigo-50 has-[:checked]:text-indigo-900 has-[:focus-visible]:outline has-[:focus-visible]:outline-[3px] has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-indigo-600" data-schema-view-tile="preisliste"><input type="radio" name="f_style" value="preisliste" class="sr-only">
 
   <span class="flex w-20 h-12 shrink-0 flex-col justify-center gap-1 rounded ring-1 ring-gray-200 bg-white p-1.5" aria-hidden="true" data-style-thumb="preisliste"><span class="flex items-center gap-1"><span class="h-1 flex-1 rounded bg-gray-400"></span><span class="h-1 w-3 rounded bg-gray-600"></span></span><span class="flex items-center gap-1"><span class="h-1 flex-1 rounded bg-gray-400"></span><span class="h-1 w-3 rounded bg-gray-600"></span></span><span class="flex items-center gap-1"><span class="h-1 flex-1 rounded bg-gray-400"></span><span class="h-1 w-3 rounded bg-gray-600"></span></span></span>
 
-<span>Preisliste</span></span></label><label class="relative"><input type="radio" name="f_style" value="preisliste_foto" class="peer sr-only"><span class="flex flex-col items-start gap-1 min-h-[44px] rounded-lg border border-gray-500 p-2 text-xs text-gray-800 cursor-pointer peer-checked:border-2 peer-checked:border-indigo-700 peer-checked:bg-indigo-50 peer-checked:text-indigo-900 peer-focus-visible:ring-2 peer-focus-visible:ring-indigo-600">
+<span class="font-semibold">Preisliste</span></label>
+    
+    <label class="flex flex-col gap-1 rounded-xl border border-gray-500 p-2 min-h-[44px] text-xs text-gray-800 cursor-pointer has-[:checked]:border-2 has-[:checked]:border-indigo-700 has-[:checked]:bg-indigo-50 has-[:checked]:text-indigo-900 has-[:focus-visible]:outline has-[:focus-visible]:outline-[3px] has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-indigo-600" data-schema-view-tile="preisliste_foto"><input type="radio" name="f_style" value="preisliste_foto" class="sr-only">
 
   <span class="flex w-20 h-12 shrink-0 flex-col justify-center gap-1 rounded ring-1 ring-gray-200 bg-white p-1.5" aria-hidden="true" data-style-thumb="preisliste_foto"><span class="flex items-center gap-1"><span class="h-3 w-3 rounded-sm bg-emerald-200"></span><span class="h-1 flex-1 rounded bg-gray-400"></span><span class="h-1 w-3 rounded bg-gray-600"></span></span><span class="flex items-center gap-1"><span class="h-3 w-3 rounded-sm bg-emerald-200"></span><span class="h-1 flex-1 rounded bg-gray-400"></span><span class="h-1 w-3 rounded bg-gray-600"></span></span></span>
 
-<span>Preisliste mit Fotos</span></span></label><label class="relative"><input type="radio" name="f_style" value="preisliste_kompakt" class="peer sr-only"><span class="flex flex-col items-start gap-1 min-h-[44px] rounded-lg border border-gray-500 p-2 text-xs text-gray-800 cursor-pointer peer-checked:border-2 peer-checked:border-indigo-700 peer-checked:bg-indigo-50 peer-checked:text-indigo-900 peer-focus-visible:ring-2 peer-focus-visible:ring-indigo-600">
+<span class="font-semibold">Preisliste mit Fotos</span></label>
+    
+    <label class="flex flex-col gap-1 rounded-xl border border-gray-500 p-2 min-h-[44px] text-xs text-gray-800 cursor-pointer has-[:checked]:border-2 has-[:checked]:border-indigo-700 has-[:checked]:bg-indigo-50 has-[:checked]:text-indigo-900 has-[:focus-visible]:outline has-[:focus-visible]:outline-[3px] has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-indigo-600" data-schema-view-tile="preisliste_kompakt"><input type="radio" name="f_style" value="preisliste_kompakt" class="sr-only">
 
   <span class="flex w-20 h-12 shrink-0 flex-col justify-center gap-1 rounded ring-1 ring-gray-200 bg-white p-1.5" aria-hidden="true" data-style-thumb="preisliste_kompakt"><span class="flex items-center gap-1"><span class="h-1 flex-1 rounded bg-gray-400"></span><span class="h-1 w-3 rounded bg-gray-600"></span></span><span class="flex items-center gap-1"><span class="h-1 flex-1 rounded bg-gray-400"></span><span class="h-1 w-3 rounded bg-gray-600"></span></span><span class="flex items-center gap-1"><span class="h-1 flex-1 rounded bg-gray-400"></span><span class="h-1 w-3 rounded bg-gray-600"></span></span></span>
 
-<span>Preisliste kompakt</span></span></label><label class="relative"><input type="radio" name="f_style" value="preisliste_2sp" class="peer sr-only"><span class="flex flex-col items-start gap-1 min-h-[44px] rounded-lg border border-gray-500 p-2 text-xs text-gray-800 cursor-pointer peer-checked:border-2 peer-checked:border-indigo-700 peer-checked:bg-indigo-50 peer-checked:text-indigo-900 peer-focus-visible:ring-2 peer-focus-visible:ring-indigo-600">
+<span class="font-semibold">Preisliste kompakt</span></label>
+    
+    <label class="flex flex-col gap-1 rounded-xl border border-gray-500 p-2 min-h-[44px] text-xs text-gray-800 cursor-pointer has-[:checked]:border-2 has-[:checked]:border-indigo-700 has-[:checked]:bg-indigo-50 has-[:checked]:text-indigo-900 has-[:focus-visible]:outline has-[:focus-visible]:outline-[3px] has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-indigo-600" data-schema-view-tile="preisliste_2sp"><input type="radio" name="f_style" value="preisliste_2sp" class="sr-only">
 
   <span class="grid w-20 h-12 shrink-0 grid-cols-2 content-center gap-x-1 gap-y-1 rounded ring-1 ring-gray-200 bg-white p-1.5" aria-hidden="true" data-style-thumb="preisliste_2sp"><span class="h-1 rounded bg-gray-400"></span><span class="h-1 rounded bg-gray-400"></span><span class="h-1 rounded bg-gray-400"></span><span class="h-1 rounded bg-gray-400"></span><span class="h-1 rounded bg-gray-400"></span><span class="h-1 rounded bg-gray-400"></span></span>
 
-<span>Preisliste zweispaltig</span></span></label><label class="relative"><input type="radio" name="f_style" value="preisliste_foto_2sp" class="peer sr-only"><span class="flex flex-col items-start gap-1 min-h-[44px] rounded-lg border border-gray-500 p-2 text-xs text-gray-800 cursor-pointer peer-checked:border-2 peer-checked:border-indigo-700 peer-checked:bg-indigo-50 peer-checked:text-indigo-900 peer-focus-visible:ring-2 peer-focus-visible:ring-indigo-600">
+<span class="font-semibold">Preisliste zweispaltig</span></label>
+    
+    <label class="flex flex-col gap-1 rounded-xl border border-gray-500 p-2 min-h-[44px] text-xs text-gray-800 cursor-pointer has-[:checked]:border-2 has-[:checked]:border-indigo-700 has-[:checked]:bg-indigo-50 has-[:checked]:text-indigo-900 has-[:focus-visible]:outline has-[:focus-visible]:outline-[3px] has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-indigo-600" data-schema-view-tile="preisliste_foto_2sp"><input type="radio" name="f_style" value="preisliste_foto_2sp" class="sr-only">
 
   <span class="grid w-20 h-12 shrink-0 grid-cols-2 content-center gap-x-1 gap-y-1 rounded ring-1 ring-gray-200 bg-white p-1.5" aria-hidden="true" data-style-thumb="preisliste_foto_2sp"><span class="h-1 rounded bg-gray-400"></span><span class="h-1 rounded bg-gray-400"></span><span class="h-1 rounded bg-gray-400"></span><span class="h-1 rounded bg-gray-400"></span><span class="h-1 rounded bg-gray-400"></span><span class="h-1 rounded bg-gray-400"></span></span>
 
-<span>Fotoliste zweispaltig</span></span></label><label class="relative"><input type="radio" name="f_style" value="preisliste_foto_3sp" class="peer sr-only"><span class="flex flex-col items-start gap-1 min-h-[44px] rounded-lg border border-gray-500 p-2 text-xs text-gray-800 cursor-pointer peer-checked:border-2 peer-checked:border-indigo-700 peer-checked:bg-indigo-50 peer-checked:text-indigo-900 peer-focus-visible:ring-2 peer-focus-visible:ring-indigo-600">
+<span class="font-semibold">Fotoliste zweispaltig</span></label>
+    
+    <label class="flex flex-col gap-1 rounded-xl border border-gray-500 p-2 min-h-[44px] text-xs text-gray-800 cursor-pointer has-[:checked]:border-2 has-[:checked]:border-indigo-700 has-[:checked]:bg-indigo-50 has-[:checked]:text-indigo-900 has-[:focus-visible]:outline has-[:focus-visible]:outline-[3px] has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-indigo-600" data-schema-view-tile="preisliste_foto_3sp"><input type="radio" name="f_style" value="preisliste_foto_3sp" class="sr-only">
 
   <span class="grid w-20 h-12 shrink-0 grid-cols-3 content-center gap-x-1 gap-y-1 rounded ring-1 ring-gray-200 bg-white p-1.5" aria-hidden="true" data-style-thumb="preisliste_foto_3sp"><span class="h-1 rounded bg-gray-400"></span><span class="h-1 rounded bg-gray-400"></span><span class="h-1 rounded bg-gray-400"></span><span class="h-1 rounded bg-gray-400"></span><span class="h-1 rounded bg-gray-400"></span><span class="h-1 rounded bg-gray-400"></span></span>
 
-<span>Fotoliste dreispaltig</span></span></label><label class="relative"><input type="radio" name="f_style" value="preisliste_karte" class="peer sr-only"><span class="flex flex-col items-start gap-1 min-h-[44px] rounded-lg border border-gray-500 p-2 text-xs text-gray-800 cursor-pointer peer-checked:border-2 peer-checked:border-indigo-700 peer-checked:bg-indigo-50 peer-checked:text-indigo-900 peer-focus-visible:ring-2 peer-focus-visible:ring-indigo-600">
+<span class="font-semibold">Fotoliste dreispaltig</span></label>
+    
+    <label class="flex flex-col gap-1 rounded-xl border border-gray-500 p-2 min-h-[44px] text-xs text-gray-800 cursor-pointer has-[:checked]:border-2 has-[:checked]:border-indigo-700 has-[:checked]:bg-indigo-50 has-[:checked]:text-indigo-900 has-[:focus-visible]:outline has-[:focus-visible]:outline-[3px] has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-indigo-600" data-schema-view-tile="preisliste_karte"><input type="radio" name="f_style" value="preisliste_karte" class="sr-only">
 
   <span class="flex w-20 h-12 shrink-0 flex-col items-center justify-center gap-1 rounded ring-1 ring-gray-200 bg-white p-1.5" aria-hidden="true" data-style-thumb="preisliste_karte"><span class="h-1 w-6 rounded bg-gray-600"></span><span class="h-1 w-12 rounded bg-gray-400"></span><span class="h-1 w-9 rounded bg-gray-300"></span></span>
 
-<span>Speisekarte klassisch</span></span></label><label class="relative"><input type="radio" name="f_style" value="preisliste_buch" class="peer sr-only"><span class="flex flex-col items-start gap-1 min-h-[44px] rounded-lg border border-gray-500 p-2 text-xs text-gray-800 cursor-pointer peer-checked:border-2 peer-checked:border-indigo-700 peer-checked:bg-indigo-50 peer-checked:text-indigo-900 peer-focus-visible:ring-2 peer-focus-visible:ring-indigo-600">
+<span class="font-semibold">Speisekarte klassisch</span></label>
+    
+    <label class="flex flex-col gap-1 rounded-xl border border-gray-500 p-2 min-h-[44px] text-xs text-gray-800 cursor-pointer has-[:checked]:border-2 has-[:checked]:border-indigo-700 has-[:checked]:bg-indigo-50 has-[:checked]:text-indigo-900 has-[:focus-visible]:outline has-[:focus-visible]:outline-[3px] has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-indigo-600" data-schema-view-tile="preisliste_buch"><input type="radio" name="f_style" value="preisliste_buch" class="sr-only">
 
   <span class="flex w-20 h-12 shrink-0 gap-0.5 rounded ring-1 ring-gray-200 bg-white p-1" aria-hidden="true" data-style-thumb="preisliste_buch"><span class="flex flex-1 flex-col justify-center gap-1 border-r border-gray-300 pr-0.5"><span class="h-1 rounded bg-gray-400"></span><span class="h-1 rounded bg-gray-400"></span></span><span class="flex flex-1 flex-col justify-center gap-1"><span class="h-1 rounded bg-gray-400"></span><span class="h-1 rounded bg-gray-400"></span></span></span>
 
-<span>Speisekarte zum Blättern</span></span></label>
-          
-          
-        </div>
-      </details>
-      
+<span class="font-semibold">Speisekarte zum Blättern</span></label>
+    
+  </div>
+</fieldset>
+
+      <div class="mt-2 grid grid-cols-2 gap-2" data-schema-view-off><div class="flex flex-col gap-1 rounded-xl border border-dashed border-gray-400 bg-gray-50 p-2 text-xs text-gray-700" data-schema-style-off="schaufenster">
+
+
+  <span class="block w-14 h-10 rounded ring-1 ring-gray-200 bg-white p-1" aria-hidden="true"><span class="flex gap-1 rounded-sm bg-gray-100 p-0.5"><span class="h-3 w-4 rounded-sm bg-gray-400"></span><span class="flex-1 pt-0.5"><span class="block h-1 w-5 rounded bg-gray-400"></span><span class="block mt-0.5 h-1 w-3 rounded bg-gray-600"></span></span></span><span class="mt-1 grid grid-cols-3 gap-0.5"><span class="h-2 rounded-sm bg-gray-200"></span><span class="h-2 rounded-sm bg-gray-200"></span><span class="h-2 rounded-sm bg-gray-200"></span></span></span>
+
+<span class="font-semibold"><span class="sr-only">Nicht verfügbar: </span>Schaufenster</span><span>Vorerst nur auf Katalogseiten.</span></div><div class="flex flex-col gap-1 rounded-xl border border-dashed border-gray-400 bg-gray-50 p-2 text-xs text-gray-700" data-schema-style-off="magazin">
+
+
+  <span class="block w-14 h-10 rounded ring-1 ring-gray-200 overflow-hidden bg-white" aria-hidden="true"><span class="block h-3 bg-gray-300"></span><span class="grid grid-cols-2 gap-0.5 p-1"><span class="h-4 rounded-sm bg-gray-200"></span><span class="h-4 rounded-sm bg-gray-200"></span></span></span>
+
+<span class="font-semibold"><span class="sr-only">Nicht verfügbar: </span>Magazin</span><span>Vorerst nur auf Katalogseiten.</span></div></div>
       
     </div>
     
@@ -617,7 +659,7 @@
       
       
     </div>
-    
+
     <div>
       <label id="schema-l-cols-label" class="block text-sm font-semibold text-gray-700 mb-1">Spalten</label>
       
@@ -628,7 +670,7 @@
       
       
     </div>
-    
+
     <div>
       <label for="schema-l-rows" class="block text-sm font-semibold text-gray-700 mb-1">Reihen</label>
       
@@ -638,7 +680,7 @@
       
       
     </div>
-    
+
     <div>
       <label id="schema-l-card-label" class="block text-sm font-semibold text-gray-700 mb-1">Kartenform</label>
       
@@ -684,60 +726,62 @@
       
       
     </div>
-    
-    
+
   </fieldset>
-  
   <button name="op" value="update" class="ui-btn ui-btn-primary w-full scroll-mb-28">Übernehmen</button>
 </form>
 
 
+<div class="mt-2 rounded-lg bg-gray-50 px-2 py-1.5 text-xs text-gray-700" data-schema-inherit-row>
+  <p data-schema-inherit>Standard: Raster · 4 Spalten</p>
+  
 </div>
-</section>
-
-<section id="schema-tab-wie" class="scroll-mt-20 focus:outline-none" data-window-tab="wie" hidden>
-  <h3 class="sr-only">Wie anordnen</h3>
-  <div data-window-part="platz">
 
 
-<form method="post" class="mt-4" data-schema-width>
+</div><div data-window-part="platz">
+
+<div class="mt-5 border-t border-gray-200 pt-3" data-schema-platz>
+<h4 class="text-sm font-bold text-gray-900">Platz</h4>
+<form method="post" class="mt-2" data-schema-width>
   <input type="hidden" name="csrfmiddlewaretoken" value="X">
   <input type="hidden" name="seite" value="home"><input type="hidden" name="welche" value="regel"><input type="hidden" name="wopen" value="W">
 
   <input type="hidden" name="ref" value="products">
   <input type="hidden" name="op" value="width">
   <fieldset aria-describedby="schema-width-hint">
-    <legend class="text-sm font-semibold text-gray-700 mb-2">Breite</legend>
-    
-    <div class="grid grid-cols-5 gap-1.5">
+    <legend class="text-sm font-semibold text-gray-700 mb-2">Breite auf dem Computer</legend>
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
       
-      <button name="value" value="contained" aria-label="Ganz – ganze Breite" class="min-h-[52px] rounded-lg border px-1 text-xs flex flex-col items-center justify-center gap-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 border-2 border-indigo-700 bg-indigo-50 font-semibold text-indigo-900" aria-pressed="true">
+      <button name="value" value="contained" class="min-h-[52px] rounded-lg border px-1 py-1.5 text-xs flex flex-col items-center justify-center gap-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 border-2 border-indigo-700 bg-indigo-50 text-indigo-900" aria-pressed="true" data-schema-width-tile="contained">
         <span class="block h-2 w-9 rounded-sm bg-gray-200" aria-hidden="true" data-schema-width-bar><span class="block h-2 rounded-sm bg-indigo-700" style="width: 100%"></span></span>
-        Ganz</button>
+        <span class="font-semibold">Voll</span><span>ganze Breite</span></button>
       
-      <button name="value" value="full" aria-label="Randlos – randlos, über die ganze Bildschirmbreite" class="min-h-[52px] rounded-lg border px-1 text-xs flex flex-col items-center justify-center gap-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 border-gray-500 bg-white hover:bg-gray-50" aria-pressed="false">
-        <span class="block h-2 w-9 rounded-sm bg-transparent ring-1 ring-inset ring-gray-500" aria-hidden="true" data-schema-width-bar><span class="block h-2 rounded-sm bg-gray-500" style="width: 100%"></span></span>
-        Randlos</button>
-      
-      <button name="value" value="w23" aria-label="⅔ – zwei Drittel" class="min-h-[52px] rounded-lg border px-1 text-xs flex flex-col items-center justify-center gap-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 border-gray-500 bg-white hover:bg-gray-50" aria-pressed="false">
+      <button name="value" value="w23" class="min-h-[52px] rounded-lg border px-1 py-1.5 text-xs flex flex-col items-center justify-center gap-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 border-gray-500 bg-white text-gray-800 hover:bg-gray-50" aria-pressed="false" data-schema-width-tile="w23">
         <span class="block h-2 w-9 rounded-sm bg-gray-200" aria-hidden="true" data-schema-width-bar><span class="block h-2 rounded-sm bg-gray-500" style="width: 66%"></span></span>
-        ⅔</button>
+        <span class="font-semibold">2/3</span><span>zwei Drittel</span></button>
       
-      <button name="value" value="w12" aria-label="½ – die Hälfte" class="min-h-[52px] rounded-lg border px-1 text-xs flex flex-col items-center justify-center gap-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 border-gray-500 bg-white hover:bg-gray-50" aria-pressed="false">
+      <button name="value" value="w12" class="min-h-[52px] rounded-lg border px-1 py-1.5 text-xs flex flex-col items-center justify-center gap-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 border-gray-500 bg-white text-gray-800 hover:bg-gray-50" aria-pressed="false" data-schema-width-tile="w12">
         <span class="block h-2 w-9 rounded-sm bg-gray-200" aria-hidden="true" data-schema-width-bar><span class="block h-2 rounded-sm bg-gray-500" style="width: 50%"></span></span>
-        ½</button>
+        <span class="font-semibold">1/2</span><span>halbe Breite</span></button>
       
-      <button name="value" value="w13" aria-label="⅓ – ein Drittel" class="min-h-[52px] rounded-lg border px-1 text-xs flex flex-col items-center justify-center gap-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 border-gray-500 bg-white hover:bg-gray-50" aria-pressed="false">
+      <button name="value" value="w13" class="min-h-[52px] rounded-lg border px-1 py-1.5 text-xs flex flex-col items-center justify-center gap-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 border-gray-500 bg-white text-gray-800 hover:bg-gray-50" aria-pressed="false" data-schema-width-tile="w13">
         <span class="block h-2 w-9 rounded-sm bg-gray-200" aria-hidden="true" data-schema-width-bar><span class="block h-2 rounded-sm bg-gray-500" style="width: 33%"></span></span>
-        ⅓</button>
+        <span class="font-semibold">1/3</span><span>ein Drittel</span></button>
+      
+    </div>
+    <div class="mt-1.5 grid grid-cols-4 gap-1.5">
+      
+      <button name="value" value="full" aria-label="Randlos – randlos, über die ganze Bildschirmbreite" class="min-h-[44px] rounded-lg border px-1 text-xs flex items-center justify-center gap-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 border-gray-500 bg-white hover:bg-gray-50" aria-pressed="false" data-schema-width-tile="full">
+        <span class="block h-2 w-5 rounded-sm bg-transparent ring-1 ring-inset ring-gray-500" aria-hidden="true" data-schema-width-bar><span class="block h-2 rounded-sm bg-gray-500" style="width: 100%"></span></span>
+        Randlos</button>
       
     </div>
   </fieldset>
-  <p id="schema-width-hint" class="mt-2 text-xs text-gray-600">Schmale Blöcke stehen am Computer nebeneinander, auf dem Telefon untereinander. Auf der Website sichtbar nach «Speichern».
-    <span data-schema-width-mates></span></p>
 </form>
 
 
+<p id="schema-width-hint" class="mt-2 text-xs text-gray-600">Auf dem Telefon stehen alle Blöcke untereinander, immer volle Breite. Auf der Website sichtbar nach «Speichern».</p>
+</div>
 
 </div>
 </section>
