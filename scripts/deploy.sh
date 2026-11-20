@@ -144,17 +144,6 @@ if ! $COMPOSE run --rm web python manage.py detach_quick_links --residue; then
 	echo "!!! On those sites tiles are NOT shown until detach_quick_links runs; do not save settings on these sites."
 fi
 
-# FB-33 M2i-5b: переводы вариантов «Art der Veranstaltung» — из позиционного оверлея
-# `i18n.*.anfrage` ключом по тексту (`form_fields.anfrage.event_types_i18n`), оверлей — прочь.
-# ДО подъёма нового web: новый код читает старый оверлей лишь ВРЕМЕННЫМ запасным путём. Пока
-# идёт шаг, работает старый web. Повтор — no-op; откат — form_i18n_realign --undo.
-step "[6d/8] Form translations: positional event types -> by text (before the new web starts)"
-if ! $COMPOSE run --rm web python manage.py form_i18n_realign; then
-	echo "!!! WARN: form_i18n_realign FAILED or skipped busy sites (see lines above)."
-	echo "!!! Those sites still show old positional translations of event types; re-run:"
-	echo "!!! python manage.py form_i18n_realign"
-fi
-
 step "[7/8] Restart services"
 $COMPOSE up -d
 # SEC-G11b: старые контейнеры (на первом деплое — ещё под root) работали всё время
@@ -184,6 +173,17 @@ fi
 # FB-31.7 B3a: остаток перед снятием чтения старых кодов (B3b ждёт «residue: 0»)
 if ! $COMPOSE exec -T web python manage.py materialize_page_axes --residue; then
 	echo "!!! WARN: materialize_page_axes --residue could not check some sites (see lines above)."
+fi
+# FB-33 M2i-5b: переводы вариантов «Art der Veranstaltung» — из позиционного оверлея
+# `i18n.*.anfrage` ключом по тексту (`form_fields.anfrage.event_types_i18n`), оверлей — прочь.
+# ПОСЛЕ подъёма нового web — наоборот, чем detach_quick_links: старый web ключа
+# `event_types_i18n` не знает, и любой Save на нём стёр бы перенесённое безвозвратно; новый
+# web до переноса показывает старый оверлей запасным позиционным чтением (окно покрыто).
+# Повтор — no-op; откат — form_i18n_realign --undo (вместе с откатом кода).
+if ! $COMPOSE exec -T web python manage.py form_i18n_realign; then
+	echo "!!! WARN: form_i18n_realign FAILED or skipped busy sites (see lines above)."
+	echo "!!! Those sites still show old positional translations of event types; re-run:"
+	echo "!!! python manage.py form_i18n_realign"
 fi
 sleep 5
 if curl -fsS "$HEALTH_URL" >/dev/null; then

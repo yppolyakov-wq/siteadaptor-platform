@@ -5535,8 +5535,22 @@ def _normalize_impl(config) -> dict:
     # от умолчания (умолчание событийных полей — прежний `anfrage.fields`).
     from apps.core import form_spec
 
+    src_ff, src_i18n = config.get("form_fields"), config.get("i18n")
+    if form_spec.has_legacy(config):
+        # FB-33 M2i-5b (ВРЕМЕННЫЙ запасной путь до `form_i18n_realign`): старый позиционный
+        # перевод вариантов `i18n.*.anfrage` — ключом по тексту по НЕдедуплицированному
+        # списку (`absorb_legacy_event_i18n` на копии); сохранение сайта его впитывает
+        import copy as _copy
+
+        tmp = {
+            "anfrage": config.get("anfrage"),
+            "form_fields": _copy.deepcopy(src_ff),
+            "i18n": _copy.deepcopy(src_i18n),
+        }
+        form_spec.absorb_legacy_event_i18n(tmp)
+        src_ff, src_i18n = tmp.get("form_fields"), tmp.get("i18n")
     ff = form_spec.normalize_all(
-        config.get("form_fields"),
+        src_ff,
         (anfrage or {}).get("fields") or (),
         (anfrage or {}).get("event_types") or (),
     )
@@ -5944,7 +5958,7 @@ def _normalize_impl(config) -> dict:
         normalized["primary_service_cta"] = config["primary_service_cta"]
     # i18n-оверлеи переводов (двуязычная витрина) — переживают нормализацию;
     # `localize()` накладывает их перед рендером. Базовый рендер (DE) не трогаем.
-    i18n = _clean_i18n(config.get("i18n"))
+    i18n = _clean_i18n(src_i18n)
     if i18n:
         normalized["i18n"] = i18n
     return normalized

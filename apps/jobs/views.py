@@ -193,6 +193,8 @@ def anfrage_form_settings(request):
         # FB-33 M2i-5b: старые позиционные переводы вариантов — ключом по тексту (по прежним
         # позициям, ДО записи нового списка); перевод удалённого варианта выпадет при чтении
         form_spec.absorb_legacy_event_i18n(cfg)
+        # ревью M2i-5b: перевод переименованного/удалённого варианта выпадает — сказать
+        lost = form_spec.lost_event_translations(cfg, (anfrage or {}).get("event_types") or [])
         if anfrage:
             cfg["anfrage"] = anfrage
         else:
@@ -203,6 +205,8 @@ def anfrage_form_settings(request):
         locked.save(update_fields=["site_config", "updated_at"])
     tenant.site_config = cfg
     messages.success(request, _("Gespeichert."))
+    if lost:
+        messages.warning(request, form_spec.dropped_note(lost))
     # X2c: панель живёт на «Abläufe». Ревью 2026-08-19: возвращаемся ТУДА ЖЕ,
     # откуда сохраняли (kind + ?from=board) — как соседние панели экрана;
     # чужой хост в `next` не принимаем (protocol-relative `//` тоже).

@@ -47,7 +47,10 @@ def _part(b, query=""):
 
 def test_language_buttons_and_groups_in_dom():
     _html, part = _part(_browser())
-    buttons = re.findall(r'<button name="f_sprache" value="(\w+)"[^>]*aria-pressed="(\w+)"', part)
+    buttons = re.findall(
+        r'<button id="schema-tab-lang-\w+" name="f_sprache" value="(\w+)"[^>]*aria-pressed="(\w+)"',
+        part,
+    )
     assert buttons == [("ru", "true"), ("en", "false")]
     assert 'role="group" aria-labelledby="ff-lang-title"' in part
     # все языки в DOM: выбранный виден, другой — hidden (значение уходит с формой)
@@ -55,7 +58,10 @@ def test_language_buttons_and_groups_in_dom():
     assert re.search(r'<div data-i18n-loc="en" hidden>\s*<label for="ff-label-phone-en"', part)
     assert 'name="f_label_phone_ru"' in part and 'lang="ru"' in part
     assert f'name="f_et_{H_HOCHZEIT}_ru"' in part and "„Hochzeit“ – Übersetzung (Русский)" in part
-    assert f'name="f_q_q2_o{H_GARTEN}_en"' in part and 'name="f_q_q2_label_ru"' in part
+    assert f'name="f_q_q2_o{H_GARTEN}_ru"' in part and 'name="f_q_q2_label_ru"' in part
+    # ревью п.4: имя — только у полей выбранного языка (en — без name, disabled)
+    assert '_en"' not in "".join(re.findall(r'name="[^"]*"', part))
+    assert re.search(r'id="ff-label-phone-en" disabled', part)
     assert 'name="f_label_title_ru"' not in part  # закреплённые поля подписи не правят
     # Enter в поле — по-прежнему «Übernehmen», а не кнопка языка
     first = re.search(r"<button[^>]*>[^<]*</button>", part).group(0)
@@ -144,13 +150,80 @@ def test_translations_are_escaped_in_window():
     _clean(part)
 
 
-def test_placeholder_is_what_the_page_shows_without_translation():
-    """Без перевода сайт покажет свою немецкую подпись, а без неё — подпись по умолчанию на
-    языке перевода (gettext), не немецкую."""
+def test_main_text_is_visible_and_described():
+    """Ревью a11y п.9: что покажет сайт без перевода — видимым текстом со своим `lang`
+    (своя немецкая подпись — de, подпись по умолчанию — на языке перевода), связан с полем
+    `aria-describedby` вместе с подсказкой; placeholder не нужен."""
     _html, part = _part(_browser())
     phone = re.search(r'<input[^>]*name="f_label_phone_ru"[^>]*>', part).group(0)
-    assert 'placeholder="Handy"' in phone  # своя немецкая подпись (CUSTOM)
-    email = re.search(r'<input[^>]*name="f_label_email_ru"[^>]*>', part).group(0)
+    assert 'aria-describedby="ff-label-phone-ru-src ff-lang-hint"' in phone
+    assert "placeholder" not in phone
+    assert re.search(
+        r'<p id="ff-label-phone-ru-src"[^>]*>Ohne Übersetzung: <span lang="de">Handy</span>', part
+    )
     with translation.override("ru"):
-        assert f'placeholder="{translation.gettext("Email")}"' in email
-    assert 'placeholder="Email"' not in email
+        email = translation.gettext("Email")
+    assert re.search(
+        rf'<p id="ff-label-email-ru-src"[^>]*>Ohne Übersetzung: <span lang="ru">{email}</span>',
+        part,
+    )
+    assert 'id="ff-lang-hint"' in part
+
+
+def test_question_is_a_group_and_translation_labels_name_the_text():
+    """Ревью a11y п.7: вопрос — fieldset с legend «Frage N», подпись перевода называет текст."""
+    _html, part = _part(_browser())
+    box = part[part.index('data-form-question="q2"') - 80 :]
+    assert re.match(r'.*<fieldset[^>]*data-form-question="q2"', box, re.S)
+    assert '<legend class="sr-only">Frage 2</legend>' in box
+    assert "„Raum“ – Übersetzung (Русский)" in box
+
+
+def test_option_translations_are_folded_open_when_filled():
+    """Ревью п.10: переводы вариантов — в <details>, открыт, если у выбранного языка что-то
+    заполнено."""
+    _html, part = _part(_browser())
+    assert re.search(
+        r"<details data-form-qo-tr>\s*<summary[^>]*>Optionen übersetzen \(Русский\) – 2", part
+    )
+    cfg = copy.deepcopy(CUSTOM)
+    cfg["form_fields"]["anfrage"]["custom"][1]["options_i18n"] = {"Garten": {"ru": "Сад"}}
+    _html, part = _part(_browser(cfg))
+    assert "<details open data-form-qo-tr>" in part
+    assert '<details class="mt-2" data-form-et-tr>' in part  # у события пусто — свёрнуто
+
+
+def test_language_button_keeps_unsaved_input_and_focus_anchor():
+    """Ревью п.8: кнопка языка сначала применяет набранное, затем меняет язык; адрес ведёт к
+    нажатой кнопке (`#schema-tab-lang-…`: фокус по id и в окне, и без JS)."""
+    b = _browser()
+    resp, _msgs = _edit(b, sprache="en", label_phone_ru="Мобильный")
+    assert resp["Location"].endswith("#schema-tab-lang-en")
+    assert _drafts(b)["anfrage"]["form"]["labels_i18n"]["phone"] == {"ru": "Мобильный"}
+    _html, part = _part(b, "&sprache=en")
+    assert 'id="schema-tab-lang-en" name="f_sprache" value="en"' in part
+
+
+def test_max_form_stays_under_field_limit():
+    """Ревью п.4: 10 вопросов × 20 вариантов, 12 вариантов события, 4 языка перевода —
+    полей в POST меньше `DATA_UPLOAD_MAX_NUMBER_FIELDS` (1000)."""
+    from django.conf import settings
+
+    cfg = copy.deepcopy(CUSTOM)
+    entry = cfg["form_fields"]["anfrage"]
+    entry["custom"] = [
+        {
+            "id": f"q{i}",
+            "type": "choice",
+            "label": f"F{i}",
+            "options": [f"o{i}-{k}" for k in range(20)],
+        }
+        for i in range(1, 11)
+    ]
+    entry["next_id"] = 10
+    cfg["anfrage"]["event_types"] = [f"E{k}" for k in range(12)]
+    _html, part = _part(_browser(cfg, locales=("de", "ru", "en", "tr", "uk")))
+    names = re.findall(r'<(?:input|textarea|select|button)[^>]*\sname="([^"]+)"', part)
+    limit = settings.DATA_UPLOAD_MAX_NUMBER_FIELDS or 1000
+    assert len(set(names)) + 20 < limit, len(names)
+    assert len(names) < 400

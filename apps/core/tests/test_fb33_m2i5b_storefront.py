@@ -43,7 +43,7 @@ def test_anfrage_page_in_ru_shows_translations_with_main_values():
     assert ">Мобильный<" in html and ">Сколько гостей<" in html
     assert ">Wann?<" in html  # своя немецкая подпись без перевода — немецкая
     assert ">Бюджет<" in html and ">Зал<" in html and "> Vegan?<" in html
-    assert '<option value="Saal">Saal</option><option value="Garten">Сад</option>' in html
+    assert '<option value="Saal" lang="de">Saal</option><option value="Garten">Сад</option>' in html
     assert '<option value="Hochzeit">Свадьба</option>' in html
     assert '<option value="Firmenfeier">Корпоратив</option>' in html
 

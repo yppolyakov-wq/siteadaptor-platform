@@ -286,16 +286,18 @@ def _overlay_event_types(cfg: dict, locales) -> None:
 
     from . import siteconfig
 
+    manual = form_spec.legacy_event_i18n(cfg)  # ручной оверлей (pranasy) главнее
     form_spec.absorb_legacy_event_i18n(cfg)
     events = siteconfig.normalize_anfrage(cfg.get("anfrage")).get("event_types") or []
     generated: dict = {}
     for value in events:
         for loc in locales:
             text = t(value, loc)
-            if text:
+            if text and loc not in manual.get(value, {}):
                 generated.setdefault(value, {})[loc] = text
     if generated:
-        form_spec.set_event_translations(cfg, generated)
+        # пересев демо: сгенерированный перевод обновляется (словарь поправили), ручной — нет
+        form_spec.set_event_translations(cfg, generated, overwrite=True)
 
 
 # --- модельный контент -----------------------------------------------------

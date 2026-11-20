@@ -237,7 +237,7 @@ def _shown_question(q: dict, loc: str) -> dict:
         out["label"] = (q.get("label_i18n") or {}).get(loc) or q["label"]
     tr = q.get("options_i18n") or {}
     out["choices"] = [
-        (o, ((tr.get(o) or {}).get(loc) if loc else None) or o) for o in q.get("options") or []
+        _choice(o, (tr.get(o) or {}).get(loc) if loc else None, loc) for o in q.get("options") or []
     ]
     return out
 
@@ -615,6 +615,21 @@ def text_hash(text: str) -> str:
     return hashlib.sha1(unicodedata.normalize("NFC", text).encode()).hexdigest()[:8]
 
 
+def hashed(texts) -> list[tuple[str, str]]:
+    """[(текст, h)] без коллизий: второй вариант с тем же `h` (sha1[:8]) пропускается — его
+    перевод не рисуется и не пишется (ревью; на практике не встречается)."""
+    seen: set[str] = set()
+    out = []
+    for text in texts or ():
+        h = text_hash(text)
+        if h in seen:
+            logger.warning("form tab: option hash collision, translation skipped")
+            continue
+        seen.add(h)
+        out.append((text, h))
+    return out
+
+
 def _set_tr(node: dict, loc: str, raw, limit: int, cuts: list) -> None:
     text = _text(raw, limit, cuts)
     if text:
@@ -647,8 +662,7 @@ def _parse_translations(state: dict, post, get, cuts: list) -> None:
                 _set_tr(node, loc, get(f"{prefix}label_{loc}"), form_answers.LABEL_MAX, cuts)
                 q["label_i18n"] = node
         opts = dict(q.get("options_i18n") or {})
-        for opt in q.get("options") or []:
-            h = text_hash(opt)
+        for opt, h in hashed(q.get("options") or []):
             for loc in locs:
                 if f"{prefix}o{h}_{loc}" in post:
                     node = dict(opts.get(opt) or {})
@@ -657,8 +671,7 @@ def _parse_translations(state: dict, post, get, cuts: list) -> None:
         if opts:
             q["options_i18n"] = opts
     events = state.setdefault(EVENTS_I18N, {})
-    for value in state.get("event_types") or []:
-        h = text_hash(value)
+    for value, h in hashed(state.get("event_types") or []):
         for loc in locs:
             if f"et_{h}_{loc}" in post:
                 node = dict(events.get(value) or {})
@@ -944,6 +957,12 @@ def merge(base, mine, theirs, form: str = "anfrage", notes: list | None = None) 
         if mine[EVENTS_I18N][value] != base[EVENTS_I18N].get(value)
         and value not in out["event_types"]
     ]
+    # ревью: варианты своих вопросов, чьи переводы из черновика не дошли до итога
+    final = canonical(out, form)
+    after, ids = set(_translated_options(final)), {q["id"] for q in final["custom"]}
+    dropped += [
+        k[-1] for k in _translated_options(mine) if k[0] == "q" and k[1] in ids and k not in after
+    ]
     if dropped and notes is not None:
         notes.append(dropped_note(dropped))
     if contact_dropped(out, form):
@@ -961,23 +980,67 @@ def merge(base, mine, theirs, form: str = "anfrage", notes: list | None = None) 
 # его впитывают запись вкладки (`put`), старый POST панели и команда переноса.
 
 
-def legacy_event_i18n(site) -> dict:
-    """Старые позиционные переводы вариантов {вариант: {язык: текст}} (i-й перевод — i-му
-    нормализованному варианту, как накладывал `localize`)."""
+def _legacy_event_list(site) -> list[str]:
+    """Варианты так, как их видел позиционный оверлей ДО среза: та же чистка, что у
+    `normalize_anfrage`, но БЕЗ дедупа (дубли занимали свои позиции), кап — 12 записей."""
     from apps.tenants import siteconfig
 
-    site = site if isinstance(site, dict) else {}
-    events = siteconfig.normalize_anfrage(site.get("anfrage")).get("event_types") or []
+    anfrage = site.get("anfrage") if isinstance(site.get("anfrage"), dict) else {}
+    raw = anfrage.get("event_types") if isinstance(anfrage.get("event_types"), list) else []
+    out = []
+    for item in raw:
+        text = item.strip()[: siteconfig._EVENT_TYPE_MAX] if isinstance(item, str) else ""
+        if text:
+            out.append(text)
+        if len(out) >= siteconfig._MAX_EVENT_TYPES:
+            break
+    return out
+
+
+def _legacy_lists(site) -> dict:
+    """{язык: позиционный список переводов} старого оверлея `i18n.<язык>.anfrage`."""
     i18n = site.get("i18n") if isinstance(site.get("i18n"), dict) else {}
-    out: dict = {}
+    out = {}
     for loc in form_answers.overlay_locales():
         node = i18n.get(loc) if isinstance(i18n.get(loc), dict) else {}
         anfrage = node.get("anfrage") if isinstance(node.get("anfrage"), dict) else {}
-        shown = anfrage.get("event_types") if isinstance(anfrage.get("event_types"), list) else []
+        shown = anfrage.get("event_types")
+        if isinstance(shown, list):
+            out[loc] = shown
+    return out
+
+
+def has_legacy(site) -> bool:
+    """Есть старый позиционный оверлей `i18n.<язык>.anfrage`."""
+    i18n = (site or {}).get("i18n") if isinstance(site, dict) else None
+    return isinstance(i18n, dict) and any(
+        isinstance(node, dict) and "anfrage" in node for node in i18n.values()
+    )
+
+
+def legacy_mismatch(site) -> bool:
+    """Позиционный перенос сомнителен: длина оверлея не равна списку вариантов или в списке
+    были дубли (ревью: такие сайты `form_i18n_realign --dry-run` печатает отдельно)."""
+    site = site if isinstance(site, dict) else {}
+    events = _legacy_event_list(site)
+    lists = _legacy_lists(site)
+    return bool(lists) and (
+        len(set(events)) != len(events) or any(len(v) != len(events) for v in lists.values())
+    )
+
+
+def legacy_event_i18n(site) -> dict:
+    """Старые позиционные переводы вариантов {вариант: {язык: текст}}: i-й перевод — i-му
+    варианту НЕдедуплицированного списка (как накладывал `localize` до среза); у дубля
+    варианта — перевод его первой позиции."""
+    site = site if isinstance(site, dict) else {}
+    events = _legacy_event_list(site)
+    out: dict = {}
+    for loc, shown in _legacy_lists(site).items():
         for value, text in zip(events, shown, strict=False):
-            if isinstance(text, str):
+            if isinstance(text, str) and loc not in out.get(value, {}):
                 out.setdefault(value, {})[loc] = text
-    return _event_translations(out, events)
+    return _event_translations(out, list(dict.fromkeys(events)))
 
 
 def event_translations(site) -> dict:
@@ -995,7 +1058,7 @@ def event_translations(site) -> dict:
     return {value: out[value] for value in events if value in out}
 
 
-def event_type_choices(site, locale=None) -> list[tuple[str, str]]:
+def event_type_choices(site, locale=None) -> list[tuple[str, str, str]]:
     """Пары (value, подпись) выбора «Art der Veranstaltung»: value — ВСЕГДА вариант на
     основном языке (его проверяет `/anfrage/` и хранит `Job.event_type`), подпись — перевод
     языка показа (ключом → старый позиционный → основной)."""
@@ -1003,7 +1066,17 @@ def event_type_choices(site, locale=None) -> list[tuple[str, str]]:
     events = (site.get("anfrage") or {}).get("event_types") or []
     loc = shown_locale(locale)
     tr = event_translations(site) if loc else {}
-    return [(value, (tr.get(value) or {}).get(loc) or value) for value in events]
+    return [_choice(value, (tr.get(value) or {}).get(loc), loc) for value in events]
+
+
+def _choice(value: str, label, loc: str) -> tuple[str, str, str]:
+    """(value, подпись, lang): непереведённый вариант на странице другого языка — с `lang`
+    основного языка (скринридер читает его по-немецки); на основном языке lang пуст."""
+    from django.conf import settings
+
+    if label:
+        return (value, label, "")
+    return (value, value, settings.LANGUAGE_CODE[:2] if loc else "")
 
 
 def _drop_legacy_event_i18n(config: dict) -> bool:
@@ -1059,6 +1132,12 @@ def absorb_legacy_event_i18n(config: dict) -> bool:
     return True
 
 
+def lost_event_translations(config: dict, new_events) -> list[str]:
+    """Варианты с переводом, которых нет в новом списке (старый POST панели переименовал или
+    удалил вариант — перевод выпадет): для сообщения владельцу."""
+    return [v for v, tr in event_translations(config).items() if tr and v not in new_events]
+
+
 def set_event_translations(config: dict, translations: dict, overwrite: bool = False) -> None:
     """Дописать переводы вариантов события {вариант: {язык: текст}} (демо-сидер `demo_i18n`):
     существующий перевод (ручной) главнее, если не `overwrite`. Меняет `config` на месте."""
@@ -1087,42 +1166,51 @@ def set_event_translations(config: dict, translations: dict, overwrite: bool = F
 
 def with_locales(fs: dict, locales, wanted: str = "") -> dict:
     """FB-33 M2i-5b: поля переводов вкладки «Felder» на языки бизнеса `locales` (без основного;
-    пусто — вкладка прежняя байт-в-байт). Все языки — в DOM (скрытые — атрибутом `hidden`,
-    значения уходят с формой), виден один: `wanted`, если он из `locales`, иначе первый.
-    Выбор — серверными кнопками `f_sprache` (без скриптов; язык помнится после действия)."""
+    пусто — вкладка прежняя байт-в-байт). Группы всех языков — в DOM, видна одна: `wanted`, если
+    он из `locales`, иначе первая; выбор — серверными кнопками `f_sprache` (без скриптов, язык
+    помнится). Имя (`name`) — только у полей ВЫБРАННОГО языка (ревью: предел числа полей формы
+    `DATA_UPLOAD_MAX_NUMBER_FIELDS`); не присланное не трогается (presence-guard разбора)."""
     from django.conf import settings
+    from django.utils import translation
 
     names = dict(settings.LANGUAGES)
+    base = settings.LANGUAGE_CODE[:2]
     allowed = set(form_answers.overlay_locales())
     locs = [loc for loc in locales or () if loc in allowed]
     if not locs:
         return fs
     lang = wanted if wanted in locs else locs[0]
     fs["lang"] = lang
+    fs["lang_label"] = names.get(lang, lang)
     fs["locales"] = [
         {"code": loc, "label": names.get(loc, loc), "shown": loc == lang} for loc in locs
     ]
 
-    def inputs(tr: dict, name: str, ident: str, empty=None) -> list[dict]:
-        """`empty(loc)` — что покажет сайт без перевода (подсказка в поле)."""
-        return [
-            {
-                "loc": loc,
-                "label": names.get(loc, loc),
-                "name": f"f_{name}_{loc}",
-                "id": f"ff-{ident}-{loc}",
-                "value": tr.get(loc, ""),
-                "shown": loc == lang,
-                "empty": empty(loc) if empty else "",
-            }
-            for loc in locs
-        ]
+    def inputs(tr: dict, name: str, ident: str, empty) -> list[dict]:
+        """`empty(loc)` — (текст, язык), что покажет сайт без перевода."""
+        out = []
+        for loc in locs:
+            text, text_lang = empty(loc)
+            out.append(
+                {
+                    "loc": loc,
+                    "label": names.get(loc, loc),
+                    "name": f"f_{name}_{loc}",
+                    "id": f"ff-{ident}-{loc}",
+                    "value": tr.get(loc, ""),
+                    "shown": loc == lang,
+                    "empty": text,
+                    "empty_lang": text_lang,
+                }
+            )
+        return out
+
+    def german(text):
+        return lambda _loc: (text, base)
 
     def default_label(row):
         """Без перевода сайт покажет свою немецкую подпись, а без неё — подпись по
         умолчанию НА ЭТОМ языке (gettext), не немецкую."""
-        from django.utils import translation
-
         field = _BY_FORM[fs["form"]][row["key"]]
         plain = (
             field.req_label if row["mode"] == REQ and field.req_label is not None else field.label
@@ -1130,11 +1218,19 @@ def with_locales(fs: dict, locales, wanted: str = "") -> dict:
 
         def empty(loc):
             if row["custom_label"]:
-                return row["custom_label"]
+                return row["custom_label"], base
             with translation.override(loc):
-                return str(plain)
+                return str(plain), loc
 
         return empty
+
+    def options(pairs, tr, name, ident):
+        items = [
+            {"text": text, "inputs": inputs(tr.get(text) or {}, name(h), ident(i), german(text))}
+            for i, (text, h) in enumerate(pairs)
+        ]
+        filled = any(t["value"] for o in items for t in o["inputs"] if t["shown"])
+        return items, filled
 
     for row in fs["fields"]:
         if not row["pinned"]:
@@ -1144,20 +1240,21 @@ def with_locales(fs: dict, locales, wanted: str = "") -> dict:
     for q in fs["custom"]:
         if _is_temp(q.get("id")):
             continue  # новый вопрос: переводы — после «Übernehmen»
-        q["translations"] = inputs(q.get("label_i18n") or {}, f"q_{q['id']}_label", f"q-{q['id']}")
-        opts = q.get("options_i18n") or {}
-        q["option_translations"] = [
-            {
-                "text": opt,
-                "inputs": inputs(
-                    opts.get(opt) or {}, f"q_{q['id']}_o{text_hash(opt)}", f"q-{q['id']}-o{i}"
-                ),
-            }
-            for i, opt in enumerate(q.get("options") or [])
-            if q.get("type") == "choice"
-        ]
-    fs["event_translations"] = [
-        {"text": value, "inputs": inputs(tr, f"et_{text_hash(value)}", f"et-{i}")}
-        for i, (value, tr) in enumerate(fs["_events"])
-    ]
+        qid = q["id"]
+        q["translations"] = inputs(
+            q.get("label_i18n") or {}, f"q_{qid}_label", f"q-{qid}", german(q["label"])
+        )
+        if q.get("type") == "choice":
+            q["option_translations"], q["options_open"] = options(
+                hashed(q.get("options") or []),
+                q.get("options_i18n") or {},
+                lambda h, qid=qid: f"q_{qid}_o{h}",
+                lambda i, qid=qid: f"q-{qid}-o{i}",
+            )
+    fs["event_translations"], fs["events_open"] = options(
+        hashed([v for v, _tr in fs["_events"]]),
+        dict(fs["_events"]),
+        lambda h: f"et_{h}",
+        lambda i: f"et-{i}",
+    )
     return fs

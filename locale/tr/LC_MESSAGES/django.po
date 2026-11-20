@@ -39315,12 +39315,21 @@ msgid "fb33-stack-anchor-M2i-5b"
 msgstr "fb33-stack-anchor-M2i-5b"
 
 #. FB-33 M2i-5b
+msgid "Ohne Übersetzung:"
+msgstr "Çeviri olmadan:"
+
+#. FB-33 M2i-5b
+#, python-format
+msgid "Optionen übersetzen (%(lang)s) – %(n)s"
+msgstr "Seçenekleri çevir (%(lang)s) – %(n)s"
+
+#. FB-33 M2i-5b
 msgid "Übersetzung bearbeiten"
 msgstr "Çeviriyi düzenle"
 
 #. FB-33 M2i-5b
-msgid "Leeres Feld: Die Seite zeigt den Text aus dem Platzhalter."
-msgstr "Boş alan: sayfa, yer tutucudaki metni gösterir."
+msgid "Leeres Feld: Die Seite zeigt den Text unter „Ohne Übersetzung“."
+msgstr "Boş alan: sayfa “Çeviri olmadan” altındaki metni gösterir."
 
 #. FB-33 M2i-5b
 #, python-format

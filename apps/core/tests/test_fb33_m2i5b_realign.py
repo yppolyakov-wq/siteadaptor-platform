@@ -82,11 +82,16 @@ def test_realign_undo_restores_snapshot():
     assert _cfg(legacy)["i18n"] == POSITIONAL["i18n"]
 
 
-def test_deploy_runs_realign_after_migrations_before_new_web():
+def test_deploy_runs_realign_after_the_new_web_is_up():
+    """Ревью п.1: ПОСЛЕ подъёма нового web (наоборот, чем detach_quick_links): старый web не
+    знает `event_types_i18n` и Save на нём стёр бы перенесённое; до переноса новый web читает
+    старый оверлей запасным путём."""
     sh = Path("scripts/deploy.sh").read_text()
-    step = sh.index("$COMPOSE run --rm web python manage.py form_i18n_realign; then")
-    assert sh.index("migrate_schemas --tenant;") < step < sh.index('step "[7/8] Restart services"')
-    assert sh.index("manage.py detach_quick_links --residue") < step
+    step = sh.index("$COMPOSE exec -T web python manage.py form_i18n_realign; then")
+    assert sh.index("\n$COMPOSE up -d\n") < step
+    assert sh.index("manage.py materialize_page_axes --residue") < step
+    assert "run --rm web python manage.py form_i18n_realign" not in sh
+    assert "наоборот, чем detach_quick_links" in sh
 
 
 def test_old_panel_post_absorbs_positional_translations():
@@ -107,3 +112,52 @@ def test_anfrage_is_not_a_translatable_overlay_key():
     base = {"anfrage": {"event_types": ["Hochzeit"]}}
     out = siteconfig.split_translation(copy.deepcopy(payload), base, "ru")
     assert "anfrage" not in (out.get("i18n") or {}).get("ru", {})
+
+
+def test_rolled_back_site_is_reported_and_errors_hide_text(capsys, monkeypatch):
+    """Ревью п.3: откаченный владельцем сайт — «rolled-back» в строке и итоге; ошибка — только
+    тип исключения, без текста."""
+    from apps.core.management.commands import form_i18n_realign as cmd
+
+    legacy, _clean = _sites()
+    call_command("form_i18n_realign")
+    call_command("form_i18n_realign", "--undo")
+    capsys.readouterr()
+    call_command("form_i18n_realign")
+    out = capsys.readouterr().out
+    assert f"{legacy.schema_name}: rolled-back" in out and "откачено владельцем 1" in out
+
+    def boom(*_a, **_kw):
+        raise ValueError("secret-detail")
+
+    monkeypatch.setattr(cmd, "apply_tenant", boom)
+    with pytest.raises(Exception, match="не обработаны"):
+        call_command("form_i18n_realign")
+    err = capsys.readouterr().err
+    assert "ValueError" in err and "secret-detail" not in err
+
+
+def test_dry_run_lists_doubtful_sites(capsys):
+    cfg = {
+        "anfrage": {"fields": ["event_type"], "event_types": ["A", "B", "A"]},
+        "i18n": {"ru": {"anfrage": {"event_types": ["а", "б"]}}},
+    }
+    site = TenantFactory(site_config=cfg)
+    call_command("form_i18n_realign", "--dry-run")
+    assert f"{site.schema_name}: длина перевода" in capsys.readouterr().err
+
+
+def test_old_panel_rename_reports_dropped_translation(monkeypatch):
+    """Ревью п.6: старый POST панели переименовал вариант — перевод выпал, владельцу —
+    сообщение с названием варианта."""
+    from django.contrib import messages
+
+    said = []
+    monkeypatch.setattr(messages, "warning", lambda _req, text, **_kw: said.append(str(text)))
+    data = {"af_event_type": "on", "af_event_types": "Trauung\nFirmenfeier"}
+    _resp, stored = _old_post(copy.deepcopy(POSITIONAL), data)
+    norm = siteconfig.normalize(stored)
+    assert norm["form_fields"]["anfrage"]["event_types_i18n"] == {
+        "Firmenfeier": {"ru": "Корпоратив"}
+    }
+    assert any("„Hochzeit“" in m for m in said)

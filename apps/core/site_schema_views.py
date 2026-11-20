@@ -293,6 +293,11 @@ def site_schema_view(request):
         # FB-33 M3-1b: «Fertig» и «Abbrechen» закрывают окно блока
         closed = op in ("delete", "revert") or op in aufbau_draft.WINDOW_OPS
         target = _url(code, "" if closed else ref, _keep(request.POST))
+        lang = request.POST.get("f_sprache", "")
+        if "#" in target and lang and _keep({"f_sprache": lang}).get("sprache") == lang:
+            # FB-33 M2i-5b (ревью a11y): после кнопки языка фокус — на ней (`#schema-tab-…`
+            # ставит фокус по id и окно, и страница без окна; без JS — прокрутка к ней)
+            target = f"{target.split('#', 1)[0]}#schema-tab-lang-{lang}"
         if op == "setting" and "#" in target:
             # Настройка, которую только что меняли, остаётся раскрытой.
             base, anchor = target.split("#", 1)

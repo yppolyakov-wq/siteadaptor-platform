@@ -119,8 +119,8 @@ def test_anfrage_event_types_are_translated_in_overlay(fake_map):
     from apps.core import form_spec
 
     assert form_spec.event_type_choices(norm, "ru") == [
-        ("Hochzeit", "Свадьба"),
-        ("Firmenfeier", "Корпоратив"),
+        ("Hochzeit", "Свадьба", ""),
+        ("Firmenfeier", "Корпоратив", ""),
     ]
     # База (DE) не тронута — по ней вьюха валидирует присланное значение.
     assert norm["anfrage"]["event_types"] == ["Hochzeit", "Firmenfeier"]

@@ -39510,12 +39510,21 @@ msgid "fb33-stack-anchor-M2i-5b"
 msgstr "fb33-stack-anchor-M2i-5b"
 
 #. FB-33 M2i-5b
+msgid "Ohne Übersetzung:"
+msgstr "Без перевода:"
+
+#. FB-33 M2i-5b
+#, python-format
+msgid "Optionen übersetzen (%(lang)s) – %(n)s"
+msgstr "Перевести варианты (%(lang)s) – %(n)s"
+
+#. FB-33 M2i-5b
 msgid "Übersetzung bearbeiten"
 msgstr "Редактировать перевод"
 
 #. FB-33 M2i-5b
-msgid "Leeres Feld: Die Seite zeigt den Text aus dem Platzhalter."
-msgstr "Пустое поле: на сайте будет текст из подсказки в поле."
+msgid "Leeres Feld: Die Seite zeigt den Text unter „Ohne Übersetzung“."
+msgstr "Пустое поле: на сайте будет текст из «Без перевода»."
 
 #. FB-33 M2i-5b
 #, python-format

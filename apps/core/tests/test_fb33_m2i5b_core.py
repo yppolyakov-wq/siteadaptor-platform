@@ -77,7 +77,7 @@ def test_view_on_main_language_ignores_translations():
         k: v for k, v in shown.items() if k != "custom"
     }
     assert [q["label"] for q in shown["custom"]] == ["Budget", "Raum", "Vegan?"]
-    assert shown["custom"][1]["choices"] == [("Saal", "Saal"), ("Garten", "Garten")]
+    assert shown["custom"][1]["choices"] == [("Saal", "Saal", ""), ("Garten", "Garten", "")]
 
 
 def test_view_translates_label_then_own_label_then_default():
@@ -88,7 +88,7 @@ def test_view_translates_label_then_own_label_then_default():
     assert shown["event_date"].label == "Wann?"  # своя немецкая без перевода — немецкая
     q2 = shown["custom"][1]
     assert q2["label"] == "Зал"
-    assert q2["choices"] == [("Saal", "Saal"), ("Garten", "Сад")]  # value — основной язык
+    assert q2["choices"] == [("Saal", "Saal", "de"), ("Garten", "Сад", "")]  # value — основной язык
     assert q2["options"] == ["Saal", "Garten"]
     assert "options_i18n" not in q2 and "label_i18n" not in q2
 
@@ -96,12 +96,12 @@ def test_view_translates_label_then_own_label_then_default():
 def test_event_type_choices_value_always_main_language():
     site = _site(TR)
     assert form_spec.event_type_choices(site, "ru") == [
-        ("Hochzeit", "Свадьба"),
-        ("Firmenfeier", "Firmenfeier"),
+        ("Hochzeit", "Свадьба", ""),
+        ("Firmenfeier", "Firmenfeier", "de"),  # непереведённый — lang основного
     ]
     assert form_spec.event_type_choices(site, "de") == [
-        ("Hochzeit", "Hochzeit"),
-        ("Firmenfeier", "Firmenfeier"),
+        ("Hochzeit", "Hochzeit", ""),
+        ("Firmenfeier", "Firmenfeier", ""),
     ]
 
 
@@ -109,8 +109,8 @@ def test_positional_overlay_is_fallback_keyed_wins():
     cfg = copy.deepcopy(TR)
     cfg["i18n"] = {"ru": {"anfrage": {"event_types": ["Старая свадьба", "Корпоратив"]}}}
     assert form_spec.event_type_choices(_site(cfg), "ru") == [
-        ("Hochzeit", "Свадьба"),
-        ("Firmenfeier", "Корпоратив"),
+        ("Hochzeit", "Свадьба", ""),
+        ("Firmenfeier", "Корпоратив", ""),
     ]
 
 
@@ -123,7 +123,8 @@ def test_edit_state_shows_and_put_moves_positional_translations():
     }
     same = copy.deepcopy(cfg)
     form_spec.put(same, "anfrage", state)
-    assert same == cfg  # без правки — ни байта (старый оверлей остаётся запасным чтением)
+    assert same == cfg  # без правки — ни байта (нормализация уже впитала старый оверлей)
+    assert "i18n" not in cfg  # ревью: впитан нормализацией (по НЕдедуплицированному списку)
     state["event_types"] = ["Firmenfeier", "Hochzeit"]  # переставили
     form_spec.put(cfg, "anfrage", state)
     out = siteconfig.normalize(cfg)
@@ -133,8 +134,8 @@ def test_edit_state_shows_and_put_moves_positional_translations():
         "Hochzeit": {"ru": "Свадьба"},
     }
     assert form_spec.event_type_choices(out, "ru") == [
-        ("Firmenfeier", "Корп"),
-        ("Hochzeit", "Свадьба"),
+        ("Firmenfeier", "Корп", ""),
+        ("Hochzeit", "Свадьба", ""),
     ]
 
 
@@ -204,3 +205,60 @@ def test_translated_label_is_not_a_valid_answer():
     qs = form_spec.questions(_site(TR), "anfrage")
     assert form_answers.collect(qs, {"q2": "Сад"}) == {}  # value варианта — основной язык
     assert form_answers.collect(qs, {"q2": "Garten"}) == {"q2": "Garten"}
+
+
+def test_positional_transfer_uses_undeduplicated_list():
+    """Ревью M2i-5b п.2: дубль варианта занимал свою позицию в старом оверлее — сопоставление
+    по НЕдедуплицированному списку (C получает свой перевод, а не перевод дубля A)."""
+    cfg = {
+        "anfrage": {"fields": ["event_type"], "event_types": ["A", "B", "A", "C"]},
+        "i18n": {"ru": {"anfrage": {"event_types": ["а", "б", "а2", "ц"]}}},
+    }
+    assert form_spec.legacy_event_i18n(cfg) == {
+        "A": {"ru": "а"},
+        "B": {"ru": "б"},
+        "C": {"ru": "ц"},
+    }
+    assert form_spec.legacy_mismatch(cfg)  # дубли — сомнительный перенос
+    assert form_spec.event_type_choices(siteconfig.normalize(cfg), "ru") == [
+        ("A", "а", ""),
+        ("B", "б", ""),
+        ("C", "ц", ""),
+    ]
+    short = {
+        "anfrage": {"event_types": ["A", "B"]},
+        "i18n": {"ru": {"anfrage": {"event_types": ["а"]}}},
+    }
+    assert form_spec.legacy_mismatch(short)
+    ok = {"anfrage": {"event_types": ["A"]}, "i18n": {"ru": {"anfrage": {"event_types": ["а"]}}}}
+    assert not form_spec.legacy_mismatch(ok)
+
+
+def test_hash_collision_skips_second_option(monkeypatch):
+    """Ревью п.5: два варианта с одним h — перевод второго не рисуется и не пишется."""
+    monkeypatch.setattr(form_spec, "text_hash", lambda text: "deadbeef")
+    assert form_spec.hashed(["Saal", "Garten"]) == [("Saal", "deadbeef")]
+    state = form_spec.edit_state(_site(CUSTOM))
+    out, _notes = form_spec.parse_post({"q_q2_label": "Raum", "q_q2_odeadbeef_ru": "Зал"}, state)
+    assert out["custom"][1]["options_i18n"] == {"Saal": {"ru": "Зал"}}  # не «Garten»
+
+
+def test_preset_keeps_label_translations_and_notes_dropped_variants():
+    cfg = copy.deepcopy(TR)
+    state = form_spec.edit_state(_site(cfg))
+    preset = {"fields": ["event_type"], "event_types": ["Geburtstag"]}
+    out, notes = form_spec.parse_post({"do": "preset"}, state, preset=preset)
+    assert out["labels_i18n"]["phone"] == {"en": "Mobile", "ru": "Мобильный"}
+    assert out["event_types_i18n"] == {}
+    assert any("„Hochzeit“" in n for n in notes)
+
+
+def test_merge_question_option_notes_only_for_kept_questions():
+    """Ревью п.6: сообщение о выпавших переводах вариантов своих вопросов — только у вопросов,
+    что остались (удалённый вопрос — не повод); свои вопросы сливаются списком целиком."""
+    base = form_spec.edit_state(_site(TR))
+    mine = copy.deepcopy(base)
+    mine["custom"].pop(1)  # вопрос с переводами вариантов удалён во вкладке
+    notes: list = []
+    out = form_spec.merge(base, mine, form_spec.edit_state(_site(TR)), notes=notes)
+    assert [q["id"] for q in out["custom"]] == ["q1", "q4"] and notes == []
