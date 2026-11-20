@@ -39063,3 +39063,77 @@ msgstr "Die letzte Änderung ist noch unterwegs. Bitte noch einmal versuchen."
 #. FB-33 M3-1b: сбой правки в «Seitenaufbau»
 msgid "Die Änderung wurde nicht gespeichert. Bitte die Seite neu laden und noch einmal versuchen."
 msgstr "Die Änderung wurde nicht gespeichert. Bitte die Seite neu laden und noch einmal versuchen."
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgctxt "form question type"
+msgid "Kurzer Text"
+msgstr "Kurzer Text"
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgctxt "form question type"
+msgid "Langer Text"
+msgstr "Langer Text"
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgctxt "form question type"
+msgid "Auswahl"
+msgstr "Auswahl"
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgctxt "form question type"
+msgid "Ja/Nein"
+msgstr "Ja/Nein"
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgctxt "form question type"
+msgid "Zahl"
+msgstr "Zahl"
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgctxt "form question type"
+msgid "Datum"
+msgstr "Datum"
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgctxt "form field mode"
+msgid "Nicht fragen"
+msgstr "Nicht fragen"
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgctxt "form field mode"
+msgid "Optional"
+msgstr "Optional"
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgctxt "form field mode"
+msgid "Pflicht"
+msgstr "Pflicht"
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgid "Eine Frage ohne Text bleibt wie bisher."
+msgstr "Eine Frage ohne Text bleibt wie bisher."
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgid "Für eine Auswahl bitte mindestens eine Option eintragen."
+msgstr "Für eine Auswahl bitte mindestens eine Option eintragen."
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgid "E-Mail oder Telefon muss gefragt werden – das Telefon bleibt in der Form."
+msgstr "E-Mail oder Telefon muss gefragt werden – das Telefon bleibt in der Form."
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgid "„Art der Veranstaltung“ erscheint erst mit einer Auswahlliste – bitte Optionen eintragen."
+msgstr "„Art der Veranstaltung“ erscheint erst mit einer Auswahlliste – bitte Optionen eintragen."
+
+#. FB-33 M2i-5: вкладка «Felder»
+#, python-format
+msgid "Höchstens %(n)s eigene Fragen."
+msgstr "Höchstens %(n)s eigene Fragen."
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgid "Bitte zuerst den Text der neuen Frage eingeben."
+msgstr "Bitte zuerst den Text der neuen Frage eingeben."
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgid "Branchen-Vorlage übernommen – mit „Speichern“ erscheint sie auf der Seite."
+msgstr "Branchen-Vorlage übernommen – mit „Speichern“ erscheint sie auf der Seite."

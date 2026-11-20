@@ -39122,3 +39122,77 @@ msgstr "Son değişiklik hâlâ gönderiliyor. Lütfen tekrar deneyin."
 #. FB-33 M3-1b: сбой правки в «Seitenaufbau»
 msgid "Die Änderung wurde nicht gespeichert. Bitte die Seite neu laden und noch einmal versuchen."
 msgstr "Değişiklik kaydedilmedi. Lütfen sayfayı yenileyip tekrar deneyin."
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgctxt "form question type"
+msgid "Kurzer Text"
+msgstr "Kısa metin"
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgctxt "form question type"
+msgid "Langer Text"
+msgstr "Uzun metin"
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgctxt "form question type"
+msgid "Auswahl"
+msgstr "Seçim"
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgctxt "form question type"
+msgid "Ja/Nein"
+msgstr "Evet/Hayır"
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgctxt "form question type"
+msgid "Zahl"
+msgstr "Sayı"
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgctxt "form question type"
+msgid "Datum"
+msgstr "Tarih"
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgctxt "form field mode"
+msgid "Nicht fragen"
+msgstr "Sorma"
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgctxt "form field mode"
+msgid "Optional"
+msgstr "İsteğe bağlı"
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgctxt "form field mode"
+msgid "Pflicht"
+msgstr "Zorunlu"
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgid "Eine Frage ohne Text bleibt wie bisher."
+msgstr "Metni olmayan bir soru önceki haliyle kalır."
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgid "Für eine Auswahl bitte mindestens eine Option eintragen."
+msgstr "Seçim için lütfen en az bir seçenek girin."
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgid "E-Mail oder Telefon muss gefragt werden – das Telefon bleibt in der Form."
+msgstr "E-posta veya telefon sorulmalıdır – telefon formda kalır."
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgid "„Art der Veranstaltung“ erscheint erst mit einer Auswahlliste – bitte Optionen eintragen."
+msgstr "“Etkinlik türü” yalnızca bir seçenek listesiyle görünür – lütfen seçenek girin."
+
+#. FB-33 M2i-5: вкладка «Felder»
+#, python-format
+msgid "Höchstens %(n)s eigene Fragen."
+msgstr "En fazla %(n)s özel soru."
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgid "Bitte zuerst den Text der neuen Frage eingeben."
+msgstr "Lütfen önce yeni sorunun metnini girin."
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgid "Branchen-Vorlage übernommen – mit „Speichern“ erscheint sie auf der Seite."
+msgstr "Sektör şablonu uygulandı – “Kaydet” ile sayfada görünür."

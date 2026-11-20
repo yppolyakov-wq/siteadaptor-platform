@@ -29,6 +29,9 @@ LABEL_MAX = 120
 ANSWER_MAX = 500
 _ID = re.compile(r"^q([1-9][0-9]{0,3})$")
 ID_MAX = 9999  # q1…q9999 (формат id)
+#: FB-33 M2i-5: временный id нового вопроса в черновике «Seitenaufbau» (настоящий `q<n>`
+#: назначает только запись черновика под блокировкой — `form_spec.put`)
+TEMP_ID = re.compile(r"^n[0-9]{1,3}$")
 #: невидимые символы (нулевой ширины, BOM) — строка из них не «заполнена»
 _INVISIBLE = re.compile("[\u200b\u200c\u200d\u2060\ufeff]")
 
@@ -43,9 +46,10 @@ def clean_text(value, limit: int) -> str:
 _s = clean_text
 
 
-def normalize_questions(raw, next_id=0) -> tuple[list[dict], int]:
+def normalize_questions(raw, next_id=0, temp: bool = False) -> tuple[list[dict], int]:
     """Вопросы владельца и следующий свободный номер. Мусор отбрасывается молча (это настройка,
-    не ввод клиента); вопрос без подписи или выбор без вариантов — не вопрос."""
+    не ввод клиента); вопрос без подписи или выбор без вариантов — не вопрос. `temp` — черновик
+    «Seitenaufbau» (FB-33 M2i-5): новые вопросы с временным id `n<k>` (номер не считают)."""
     try:
         counter = min(max(int(next_id), 0), ID_MAX)
     except (TypeError, ValueError, OverflowError):  # inf/мусор в настройке — с нуля
@@ -55,9 +59,10 @@ def normalize_questions(raw, next_id=0) -> tuple[list[dict], int]:
         if not isinstance(item, dict) or len(out) >= MAX_QUESTIONS:
             continue
         match = _ID.match(str(item.get("id") or ""))
+        draft_id = temp and not match and bool(TEMP_ID.match(str(item.get("id") or "")))
         label = _s(item.get("label"), LABEL_MAX)
         kind = item.get("type") if item.get("type") in TYPES else "text"
-        if not match or not label or item["id"] in seen:
+        if not (match or draft_id) or not label or item["id"] in seen:
             continue
         question = {"id": item["id"], "type": kind, "label": label}
         if kind == "choice":
@@ -74,7 +79,8 @@ def normalize_questions(raw, next_id=0) -> tuple[list[dict], int]:
         if item.get("mode") == "req":
             question["mode"] = "req"
         seen.add(item["id"])
-        counter = max(counter, int(match.group(1)))
+        if match:
+            counter = max(counter, int(match.group(1)))
         out.append(question)
     return out, counter
 
