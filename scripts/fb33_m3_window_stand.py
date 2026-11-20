@@ -348,7 +348,9 @@ def m32_review(pg, page, lref, open_url):
     pg.goto(f"{page}&block={lref}&tab=wie")
     pg.route(route, lambda r: _patched(pg, r, "nowindow"))
     pick = _pick_other(pg)
-    pg.click(f'{DLG} label:has(input[name=f_out][value="{pick}"])')
+    # стопка 2: правка уходит после паузы автоприменения — ждать сам ответ, не только «busy»
+    with pg.expect_response(lambda r: r.request.method == "POST", timeout=15000):
+        pg.click(f'{DLG} label:has(input[name=f_out][value="{pick}"])')
     busy_done(pg)
     pg.wait_for_timeout(500)
     state = pg.evaluate(
