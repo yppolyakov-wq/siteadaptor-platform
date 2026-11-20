@@ -34,7 +34,7 @@
 {% if cp.own_forms %}
 <div role="note" class="mt-2 rounded-lg bg-amber-50 px-2 py-1.5 text-xs text-amber-900" data-schema-card-own>
   <details class="group">
-    <summary class="flex flex-wrap items-center gap-x-2 min-h-[44px] cursor-pointer rounded focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"><span>{{ cp.own_forms.text }}</span><span class="font-semibold underline underline-offset-2">{% trans "anzeigen" %}</span><span aria-hidden="true" class="inline-block group-open:rotate-180">▾</span></summary>
+    <summary class="flex flex-wrap items-center gap-x-2 min-h-[44px] cursor-pointer rounded focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"><span>{{ cp.own_forms.text }}</span><span class="font-semibold underline underline-offset-2 group-open:hidden">{% trans "anzeigen" %}</span><span class="hidden font-semibold underline underline-offset-2 group-open:inline">{% trans "ausblenden" %}</span><span aria-hidden="true" class="inline-block group-open:rotate-180">▾</span></summary>
     <ul class="mt-1 space-y-1" data-schema-card-own-list>
       {% for o in cp.own_forms.items %}<li>{% if o.url %}<a href="{{ o.url }}" class="inline-flex items-center min-h-[44px] font-semibold text-indigo-800 underline underline-offset-2">{{ o.label }}</a>{% else %}{{ o.label }}{% endif %}{% if o.category %} — {% blocktrans with name=o.category %}Kartenform der Kategorie „{{ name }}“{% endblocktrans %}{% endif %}</li>{% endfor %}
     </ul>

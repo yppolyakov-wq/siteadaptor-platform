@@ -133,7 +133,7 @@ def test_apply_form_counts_parts_not_forms():
     felder = block_window.apply_form(win("felder", ("felder", ["formfields", "formlink"]), texte))
     assert (felder["name"], felder["value"]) == ("f_commit_new", "1")
     faq = block_window.apply_form(win("texte", ("wie", ["platz"]), ("texte", ["faq"])))
-    assert (faq["form"], faq["value"]) == ("bw-form-faq", "faq_update")
+    assert (faq["form"], faq["name"], faq["value"]) == ("bw-form-faq", "faq_add", "1")
     # одна вкладка — вкладок нет вовсе
     assert block_window.apply_form(win("texte", texte)) is None
 

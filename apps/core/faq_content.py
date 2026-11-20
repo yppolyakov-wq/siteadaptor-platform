@@ -248,7 +248,9 @@ def apply_ops(items: list[dict], src: list, post, notes: list | None = None, inf
     формы («Übernehmen»/Enter — `faq_add`, ↑↓, Entfernen); со скриптами поля применяются на
     лету без кнопки — тогда нет (иначе каждое применение добавляло бы его заново). Ответ без
     вопроса — сообщение, не молча. `info["opened"]` — куда встал сдвинутый вопрос."""
-    pressed = any(post.get(k) is not None for k in ("faq_add", "faq_move", "faq_remove"))
+    # стопка 2: кнопка вкладки без скриптов (`zu_tab`) — тоже кнопка формы: набранный новый
+    # вопрос не теряется при переходе (со скриптами кнопок вкладок у формы нет)
+    pressed = any(post.get(k) is not None for k in ("faq_add", "faq_move", "faq_remove", "zu_tab"))
     rows, orphan = [], False
     for i, item in enumerate(items):
         q = post.get(f"faq_{i}_q")

@@ -334,6 +334,16 @@ def site_schema_view(request):
                 said = block_window.felder_said(request.POST)
                 if said:
                     messages.success(request, said)
+        if applied and not notes and "#" in target and request.POST.get("faq_present") == "1":
+            # стопка 2 (a11y M3-5b): после ↑/↓/Entfernen/нового вопроса FAQ — фокус на вопрос
+            from apps.core import faq_content, window_parts
+
+            faq_draft = aufbau_draft.get(request, code) or {}
+            count = len(faq_content.state(siteconfig.normalize(tenant.site_config), faq_draft)[0])
+            opened = request.session.get(aufbau_draft.FAQ_OPENED)
+            anchor = window_parts.faq_anchor(request.POST, count, opened)
+            if anchor:
+                target = f"{target.split('#', 1)[0]}#{anchor}"
         if moved:
             target = f"{target.split('#', 1)[0]}#schema-tab-{goto}"
         if op == "setting" and "#" in target:

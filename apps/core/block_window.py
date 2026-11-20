@@ -254,15 +254,16 @@ def field_meta(selected: dict | None, field: dict) -> dict:
 #: открытой вкладки с ровно одной такой ЧАСТЬЮ прочие вкладки — кнопки её формы
 #: (`form="bw-form-<часть>"`, `name="zu_tab"`): набранное уходит в черновик, затем
 #: открывается выбранная вкладка. Считаются части, не `<form>`: у «Karte» вторая форма —
-#: «zurücksetzen». `card_pick`/`faq` и вкладка `karte` — места под части срезов M3-4/M3-5b
-#: (формы `bw-form-card_pick`/`bw-form-faq`); пока таких частей у блоков нет, записи спят.
+#: «zurücksetzen». `card_pick` (вкладка `karte`, M3-4) и `faq` (во «Texte», M3-5b) — формы
+#: `bw-form-card_pick`/`bw-form-faq`.
 #: Замок: у каждой живой применяющей части окна есть форма с её `form_id`.
 APPLY_FORM_PARTS = ("fields", "usp", "formfields", "card_pick", "faq")
 #: вкладки, переход с которых применяет форму («Wie anordnen» — две формы, там ссылки)
 APPLY_TABS = ("texte", "felder", "karte")
 #: Enter в поле — та же кнопка, что первая кнопка самой формы (кнопка «по умолчанию» перед
-#: вкладками: иначе ею стала бы кнопка вкладки, и Enter переключал бы вкладку)
-_DEFAULT_SUBMIT = {"formfields": ("f_commit_new", "1"), "faq": ("op", "faq_update")}
+#: вкладками: иначе ею стала бы кнопка вкладки, и Enter переключал бы вкладку). У FAQ первая
+#: кнопка формы — «Übernehmen» `faq_add` (принимает и новый вопрос; op=update — скрытое поле)
+_DEFAULT_SUBMIT = {"formfields": ("f_commit_new", "1"), "faq": ("faq_add", "1")}
 #: операция формы без своей кнопки, когда её шлёт кнопка вкладки (`op_default`)
 OP_DEFAULTS = ("update", "faq_update")
 
@@ -286,7 +287,7 @@ def apply_form(window: list[dict]) -> dict | None:
 
 #: части с кнопкой «Übernehmen»: без скриптов набранное в них при переходе по вкладке-ссылке
 #: не применяется — у таких вкладок подсказка «erst übernehmen»
-_TYPED_PARTS = (*APPLY_FORM_PARTS, "list", "listview")
+_TYPED_PARTS = (*APPLY_FORM_PARTS, "list", "listview", "tiles")  # tiles — стопка 2 (M3-5b)
 
 
 def link_hint(window: list[dict]) -> bool:

@@ -58,3 +58,28 @@ def decorate(
             return
         selected["tiles"] = hero_tiles.panel(item.get("data") or {})
         selected["fields"] = []
+
+
+#: стопка 2 (a11y M3-5b, как «Felder» M3-5a): список вопросов, когда их не осталось
+FAQ_LIST_ANCHOR = "schema-tab-faq-list"
+
+
+def faq_anchor_id(i: int) -> str:
+    """id вопроса FAQ в окне (заголовок <summary> его <details>)."""
+    return f"schema-tab-faq-{i}"
+
+
+def faq_anchor(post, count: int, opened=None) -> str:
+    """Якорь после кнопки вопроса FAQ: ↑/↓ — сдвинутый вопрос (`opened` — куда он встал),
+    «Entfernen» — тот, что встал на его место (иначе предыдущий; нет — список), новый вопрос —
+    последний. `count` — вопросов после правки. Пусто — прежний якорь."""
+    if post.get("faq_present") != "1":
+        return ""
+    if post.get("faq_move") is not None:
+        return faq_anchor_id(opened) if isinstance(opened, int) and 0 <= opened < count else ""
+    removed = str(post.get("faq_remove") or "")
+    if removed.isdigit():
+        return faq_anchor_id(min(int(removed), count - 1)) if count else FAQ_LIST_ANCHOR
+    if post.get("faq_add") is not None and str(post.get("faq_new_q") or "").strip() and count:
+        return faq_anchor_id(count - 1)
+    return ""
