@@ -24298,3 +24298,94 @@ security/silent-failure): тупик в двусторонних прятках,
   сообщениями (набранный новый вопрос, обрезки, choice→другой тип, отказ превью, способ связи при записи);
   a11y — защитная кнопка «Übernehmen» вне Tab, aria-describedby подсказок; публичная форма — «*» с
   «(Pflichtfeld)» для скринридера, «Bitte wählen», контраст подсказки фото (эталоны пересняты). Стенд 131 ✓.
+
+### 2026-11-20 — FB-33 M2b-2a: FAQ на детальных — общие вопросы, только рендер, вид
+- План — `docs/fb33-editor-model-2026-11-19.md` §«План M2b-2a». Реестр видов `apps/core/faq_views.py` —
+  единственный список видов FAQ: Akkordeon (пустой ключ), Liste, Zwei Spalten, Karten, Nummeriert;
+  детальные (товар, услуга, номер, событие и тур, свои хосты объекта R8) — три вида.
+  `siteconfig.SECTION_STYLES["faq"] is faq_views.STYLE_KEYS`; модуль без импорта siteconfig (ast-замок).
+- Панель блока: `site_schema._style_options(base, host)`; сохранённый вид вне видов страницы остаётся
+  выбранным пунктом «Karten (nicht unter den Ansichten dieser Seite)» (W0).
+- Рендер: `render_block faq_ref` → `no_ld`/`detail` из `pb_page_key`; пустой общий FAQ на детальной не
+  рисуется (фильтр в `page_blocks` до `group_block_rows`; в превью — заглушка; записи с пустыми q и a —
+  пустой FAQ); заголовок общего блока на детальной — «Allgemeine Fragen».
+- Находка разведки: `faq_ref` вне главной FAQPage и раньше не выводил (`sample_wrapped` кладёт только
+  главная) — совпало с решением владельца «FAQPage только на главной»; `no_ld` на детальных — страховка.
+- Замки: `test_fb33_m2b2a_before` (снимки главной 5×2/4, кейтеринга, детальных), `_faq_views`,
+  `_faq_render`. Стенд `scripts/fb33_m2b2a_faq_stand.py` — без JS 81 ✓. Ревью (django-reviewer,
+  seo-specialist): CRITICAL/HIGH нет; тесты FAQPage — реальным путём (`page_blocks`/страница).
+
+### 2026-11-20 — FB-33 M2i-5b: переводы подписей полей, своих вопросов и вариантов формы заявки по id
+- План — §«План M2i-5b». Переводы по ключу, а не по позиции: `form_fields[form].labels_i18n
+  {поле:{язык}}`, у своего вопроса `label_i18n`/`options_i18n {вариант_осн:{язык}}`,
+  `form_fields.anfrage.event_types_i18n {вариант:{язык}}` (нормализация: языки платформы, существующие
+  ключи/варианты, `clean_text`, лимиты 120/60, пустой и равный своей немецкой не хранятся).
+- Показ `form_spec.view(site, form, locale)`: перевод → своя немецкая → gettext; на основном языке переводы
+  не читаются (замки байт-в-байт). Выбор события и свои выборы — пары (value на основном языке, подпись);
+  снимок ответа заявки — на основном языке. `anfrage` снят из `TRANSLATABLE_KEYS`, `localize()` не
+  накладывает `i18n.*.anfrage`.
+- Вкладка «Felder»: поля переводов по языкам бизнеса в DOM (`data-i18n-loc`, `lang`), выбор языка —
+  серверными кнопками `f_sprache` (aria-pressed, без JS), язык помнится (`sprache` в `_keep`); имена
+  `f_label_<поле>_<яз>`, `f_q_<id>_label_<яз>`, `f_q_<id>_o<h>_<яз>`, `f_et_<h>_<яз>` (h = sha1(NFC)[:8]
+  от текста состояния, h→текст из черновика); в POST — только поля выбранного языка (предельная форма
+  < 400 полей); presence-guard; переименованный/удалённый вариант теряет перевод с сообщением; коллизия
+  h — второй вариант пропускается. merge — по (ключ, язык). Дедуп вариантов в `normalize_anfrage`.
+- Перенос позиционного оверлея: `form_spec.absorb_legacy_event_i18n` (запись вкладки, старый POST панели
+  под блокировкой, демо, `siteconfig.normalize` — любой Save на новом web впитывает), сопоставление по
+  недедуплицированному списку; команда `form_i18n_realign` (`--dry-run` / перенос / `--undo` по снимку
+  `config_migration`) — шаг `deploy.sh` в [8/8] ПОСЛЕ подъёма web (после `materialize_page_axes`;
+  наоборот, чем `detach_quick_links`), замок порядка. Демо: `demo_i18n` пишет `event_types_i18n`
+  (`form_spec.set_event_translations`), `SEEDER_VERSION` 22→23.
+- Ревью (security / silent-failure / a11y): вопрос — fieldset/legend «Frage N», видимый основной текст
+  «Ohne Übersetzung: …» + aria-describedby, варианты — `<details>`, фокус после кнопки языка —
+  `#schema-tab-lang-<яз>`, непереведённый вариант на странице другого языка — `lang="de"`; сообщения о
+  выпавших переводах в старом POST, пресете и merge. Эталоны ru пересняты осознанно (только `lang="de"`):
+  `golden_fb33m2i/anfrage-events-ru`, `golden_fb33m2i5/anfrage-custom-ru`, `golden_fb33m2i5b/*-ru`.
+- Стенд `scripts/fb33_m2i5b_i18n_stand.py` — 72 ✓ (1440/390, кабинет de/ru, витрина ru/de, без JS).
+
+### 2026-11-20 — FB-33 M3-3a–c: «Wie anordnen» окна блока (макеты M0-1, M0-3, M0-8, M0-9)
+- a — виды секции и ссылочного блока Team/Galerie/FAQ плитками со схемами (радиогруппа `f_style` из
+  пунктов `fill_options`, применяется сама; без скриптов — «Übernehmen»), смена вида в семье —
+  плитками-кнопками операции `switch`, подсказка «Regale» (M0-3) со ссылкой на блок товаров.
+- b — «Platz»: «Breite auf dem Computer» (4 крупные Voll/2/3/1/2/1/3 + мелкие из `width_choices`),
+  «Reihe» — пара кнопок `op=newline` (нажатая — `type="button"` без действия), сноска про телефон.
+- c — «Wie … aussehen» списка своей формой (часть `listview`), вид плитками; у товаров вне каталога
+  «Schaufenster/Magazin» недоступны с причиной; строка наследования (`layout_from`: «Wie auf der Seite
+  „Katalog“ · ändern» / «Standard») и «zurücksetzen» (у «Liste» — вид, вывод, колонки, ряды; у
+  встроенного списка — только раскладка; «Darstellung» и «Kartenform» не трогает) своей формой вне
+  формы-автоприменения; починка `_update_builtin` (cols ""/out "", «Übernehmen» без правок черновика
+  не создаёт).
+- Ядро — `apps/core/block_views.py` (`decorate` — одна точка после `fill_options`), схемы — только
+  `templates/tenant/_style_thumb.html`; `list_blocks.page_layout_key(source)`.
+- Замки `test_fb33_m3_3_wie.py`, эталоны без JS `golden_fb33m3/wie_nojs/` (`test_fb33_m3_3_nojs.py`,
+  пересъёмка `FB33_M33_REGEN=1`), стенд `scripts/fb33_m3_3_stand.py` (1440/390). Ревью (django-reviewer,
+  silent-failure, a11y-architect) закрыто: underline + sr-only контекст ссылок, «Nicht verfügbar:»,
+  фокус 3 px, крупные плитки ширины `grid-cols-2 sm:grid-cols-4`.
+
+### 2026-11-20 — FB-33 M3-3d «Von einer Seite ↔ Eigener Text»
+- Смена вида внутри семьи «Text»: `VIEW_SWITCHES` += {text, textpage}, {image_text, textpage}
+  (решение владельца: оба источника помнятся, на сайте — только активный).
+- Один список неактивных полей — `block_catalog.INACTIVE_FIELDS`; чистильщик
+  `siteconfig._clean_cblock_data` = свой вид + запомненные поля через чистильщика другого вида; пустые
+  строки не храним, сторону/скругление — только при фото. `merge_structure` (Студия) берёт неактивные
+  поля из сохранённого. Читатели (рендер C-блока, сводка строки) — через `block_catalog.active_data`;
+  cscart — `_is_legacy_text_block`. `block_catalog.switch_keeps_both(from, to)` — данные плашки M0-9.
+- Ревью: страница, которой нет или которая встала бы сама в себя, при смене вида и вставке шаблона
+  снимается с сообщением (`site_schema.page_embeddable`, `drop_unembeddable_page`, `mutate(..., notes=)`,
+  `check_changed_pages` в форме Студии); `side`/`rounded` — в `NON_TRANSLATABLE_FIELDS`; шаблон блока
+  (SE-4a) хранит только активный вид; потолки ввода `siteconfig.CBLOCK_TEXT_CAPS` (title 200, body
+  20 000, url 500) на вводе с сообщением, сохранённое нормализация не режет.
+- Замки `test_fb33_m3_3d_text_source.py`; стенд `scripts/fb33_m3_3d_text_source_stand.py` — 44 ✓
+  (1440/390, с JS и без).
+
+### 2026-11-20 — FB-33: сборка стопкой M2b-2a → M2i-5b → M3-3a–c → M3-3d
+- Четыре среза велись параллельно в своих worktree от одной базы (якоря срезов в `.po`), собраны
+  cherry-pick'ом без конфликтов в `claude/fb33-stack-m2b2a-m2i5b-m33`, один прогон CI на верхушке.
+- Стыки: плитки вида FAQ строятся из пунктов `fill_options` страницы (детальная — три + «чужой»
+  сохранённый с пометкой), подпись и пояснение — из `faq_views.views(host)`
+  (`block_views.decorate(..., host)`); плитка «Von einer Seite» в `FAMILY_TILES` со своей схемой и
+  плашка «Beide Fassungen bleiben gespeichert — umschalten verliert nichts.» по
+  `block_catalog.switch_keeps_both`.
+- Якоря сняты, `static/css/app.css` пересобран, эталоны окна пересняты на верхушке: `page_nojs` — 14
+  случаев (строки с «Platz», видами, сменой вида), `panel.json`, `wie_nojs/home_t2_tab-wie` (стык);
+  остальные 15 случаев `page_nojs` и эталоны срезов — без изменений.

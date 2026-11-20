@@ -44,6 +44,20 @@
 - **M21** прогон переезда haanerteeladen на сервере — владелец, runbook §7
   `m21-cscart-migration-plan-2026-10-31.md`.
 
+Решено (FB-33, стопка M2b-2a / M2i-5b / M3-3, владелец 2026-11-20):
+- FAQ: одно имя вида на всех страницах (Akkordeon/Liste/Zwei Spalten/Karten/Nummeriert; «Liste» — только
+  у FAQ); главная и прочие — пять видов, детальные — три. **FAQPage — только на главной**; общий FAQ на
+  детальной называется «Allgemeine Fragen», пустой — не рисуется.
+- «Wie anordnen»: Team/Galerie — **существующие виды** картинками (новые виды M0-9 — отдельный срез);
+  ссылочный блок без своего вида — честно «Standard»; «Schaufenster/Magazin» вне каталога — недоступны с
+  причиной; ширины — 4 крупные + мелкие; **«zurücksetzen» сбрасывает только названное** в строке
+  наследования (вид, вывод, колонки, ряды; «Darstellung» и форма карточки остаются); «Text» на плитке,
+  «Nur Text» в «+ Block»; «Von einer Seite ↔ Eigener Text» — оба источника помнятся; шаблон блока хранит
+  только активный вид.
+- Переводы формы заявки: ввод — **серверные кнопки языка** (без JS); без перевода при своей немецкой
+  подписи — немецкая; **снимок ответа — на основном языке**; перенос старых позиционных переводов —
+  автоматически при деплое (впитывание + команда `form_i18n_realign`); кнопка ИИ — отдельный M2i-5c.
+
 Решено (FB-33 M2i-5, владелец 2026-11-20): поля формы заявки правятся во вкладке «Felder» окна формы в
 «Seitenaufbau» (через черновик, «Abbrechen» откатывает) под правом **`website.edit`**; панель на «Abläufe»
 заменена ссылкой. Старый POST `jobs:anfrage-form-settings` остаётся рабочим под **`ablaeufe.edit`** как
@@ -86,6 +100,10 @@ LLM-режим Finder, SSE для чата.
 
 ## 2. Ops владельцу (сводка; выполнено ли — не подтверждено, если не сказано иначе)
 
+- FB-33 M2i-5b (стопка 2026-11-20): шаг `form_i18n_realign` идёт в `deploy.sh` сам, ПОСЛЕ подъёма web;
+  `--dry-run` — посмотреть заранее, `--undo` — только вместе с откатом кода. У сайтов, где варианты
+  «Art der Veranstaltung» переставляли во вкладке «Felder», после переноса проверить выбор события на
+  ru/en. `SEEDER_VERSION` 23 → `seed_demo_tenants --group all --changed` пересеет все демо.
 - FB-33 M2c-4: после восстановления копии базы (бэкап, перенос сервера) — `python manage.py
   detach_quick_links --residue` (0 — ок; иначе `detach_quick_links`): витрина старый ключ плиток
   не читает, `normalize` его молча роняет. В `deploy.sh` шаг идёт ДО подъёма нового web (6c/8).
@@ -170,6 +188,29 @@ FB-33 M2i-3a (2026-11-19): онлайн-оплата (Stripe) в корзине 
 - `apps/core/card_forms.VIEW_SHAPES` / `forms_for_view` / `normalize_for_view` — какие формы карточки допустимы у вида списка; вид побеждает (FB-33 M1). Новый вид у источника с карточкой — строка сюда (замок `test_fb33_m1_card_views`).
 - `apps/core/block_catalog.py` — семьи блоков и библиотека («+ Block» Seitenaufbau, карточки Студии): новый C-/ref-блок — запись сюда (замок `test_fb33_m2a_block_catalog`). Вид секций главной в панели — `site_schema.STYLE_SECTIONS` (FB-33 M2b).
 - «Поля форм» (FB-33 M2i): реестр полей заявки/оформления и режимы — `apps/core/form_spec.py`; свои вопросы и ответы — ядро `apps/core/form_answers.py` (не заводить третью копию рядом с `Event.questions`/`events/registration.py`). Обязательность проверяет только вьюха формы. Ответы клиента (`Job/Order.custom_answers`, зашифровано) хранятся, пока живёт сделка (решение владельца 2026-11-19), стираются по DSGVO, в вебхуки не идут, поиска по ним нет; показ — `form_answers.rows`.
+- `apps/core/faq_views.py` (FB-33 M2b-2a) — ЕДИНСТВЕННЫЙ список видов FAQ (key/label/hint/detail):
+  `views(host)`, `choices(host)`, `is_detail_host` (через `detail_parts.shared_host`; детальные —
+  product/service/stay/event_detail, тур → event_detail; акция, комбо, запись блога — не детальные),
+  `emits_ld(host)`. `siteconfig.SECTION_STYLES["faq"] is faq_views.STYLE_KEYS`; модуль не импортирует
+  siteconfig (ast-замок). Плитки окна берут подписи и пояснения отсюда.
+- `apps/core/block_views.py` (FB-33 M3-3) — плитки вкладки «Wie anordnen»: `decorate(selected, blocks,
+  config, host)` — одна точка после `fill_options`; `TILE_SECTIONS` (team, gallery, faq), `FAMILY_TILES`
+  (подписи видов семьи на плитке), `BIG_WIDTHS`/`width_tiles`, `list_view` (строка наследования),
+  `VIEW_RESET_FIELDS`/`BUILTIN_RESET_FIELDS` (что сбрасывает «zurücksetzen»), `CATALOG_ONLY_PRODUCT_VIEWS`.
+  Плитки строятся из УЖЕ заполненных пунктов (`fill_options`, `switch_options`, `width_choices`) —
+  второго списка видов нет. Схемы видов — только `templates/tenant/_style_thumb.html` (по `src`:
+  team/gallery/faq/family). `list_blocks.page_layout_key(source)` — ключ раскладки страницы-листинга,
+  которую наследует блок.
+- `block_catalog.INACTIVE_FIELDS` / `active_data` / `switch_keeps_both` (FB-33 M3-3d) — поля другого вида
+  пары «Von einer Seite ↔ Eigener Text», которые блок помнит; любой читатель текста блока (рендер,
+  сводка строки, поиск, SEO, факты ИИ) берёт `active_data`; чистильщик — `siteconfig._clean_cblock_data`;
+  страница блока проверяется `site_schema.page_embeddable` и при вводе, и при смене вида/вставке
+  шаблона; потолки ввода — `siteconfig.CBLOCK_TEXT_CAPS`.
+- Переводы полей формы заявки — по ключу (FB-33 M2i-5b): `form_spec` хранит `labels_i18n`,
+  `label_i18n`, `options_i18n`, `event_types_i18n`; показ — `form_spec.view(site, form, locale)` и
+  `form_spec.event_type_choices`; писатель — `form_spec.put` (+ `absorb_legacy_event_i18n`,
+  `set_event_translations` для демо). `localize()` не накладывает `i18n.<яз>.anfrage` — значения
+  вариантов всегда на основном языке. Позиционное чтение `form_spec.legacy_event_i18n` — временное.
 - Вкладка «Felder» (FB-33 M2i-5, 2026-11-20): **`form_spec.put` — единственный писатель
   `site_config["form_fields"]` из кабинета** (и событийных полей `anfrage` — тем же `normalize_anfrage`);
   замок-grep `test_fb33_m2i5_before::test_form_fields_has_one_writer` (кроме `form_spec` — только

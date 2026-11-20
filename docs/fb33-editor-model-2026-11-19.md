@@ -555,3 +555,45 @@ aria-labelledby="schema-panel-title">` создаёт `aufbau.js` в `<body>` и
 ссылка с полосы → C5 доки. event_types — во вкладке рядом с полем, писатель — `form_spec.put` через
 `normalize_anfrage` (ключ `anfrage` пишет он же: событийное поле включено ⇔ в `anfrage.fields`). Не сделано:
 предупреждение при смене типа вопроса с ответами (SHOULD, roadmap), переводы — M2i-5b.
+
+## План M2b-2a «FAQ на детальных: общие вопросы, только рендер, вид» (planner, 2026-11-20)
+- Есть: site_config["faq"]; SECTION_STYLES["faq"]=("list","twocol","cards","numbered"), "" = аккордеон (siteconfig.py:4548); блок faq_ref ставится на любую страницу кроме главной (site_schema.add_options 1926–1939), рисует site.faq с data.style (siteui 697–708); на детальных блоки между разделами {% page_blocks it.host %} (service_detail/event_detail, свои хосты service:<hex>/event:<hex>); _faq.html:8 всегда FAQPage; пустой FAQ оставляет пустую обёртку.
+- Модель: реестр apps/core/faq_views.py (FaqView key/label/hint/detail; "" Akkordeon «Antwort beim Antippen», list Liste «alles offen», twocol «Zwei Spalten» «Fragen nebeneinander» — detail; cards Karten, numbered Nummeriert — только не-детальные); views(host)/choices(host)/STYLE_KEYS/is_detail_host/emits_ld; M3-3 читает faq_views.views(host). siteconfig SECTION_STYLES["faq"] из реестра (байт-в-байт). _style_options(base, host): faq → choices(host); сохранённый вид вне пунктов остаётся (W0). На детальной: без FAQPage (emits_ld), пустой FAQ — без обёртки (вне превью).
+- Замки C0: детальные без FAQ байт-в-байт (test_fb31p5_detail_golden), главная FAQ 5 видов × 2/4 вопроса + FAQPage, catalog:catering с faq_ref; детальная с faq_ref «до» → после C3 пропадает только ld+json; 0 FAQPage на детальной, 1 на главной; пустой FAQ на детальной — ничего; панель детальной 3 пункта, прочие 5.
+- Коммиты C0 → C1 реестр → C2 панель → C3 рендер → C4 стенд scripts/fb33_m2b2a_faq_stand.py 1440/390.
+- ECC: seo-specialist + a11y-architect после плана; tdd-guide C0; django-reviewer; e2e; code-reviewer.
+- Развилки: 1 одно имя видов (Akkordeon/Liste только у FAQ), 5 на главной/3 на детальных; 2 FAQPage на детальной не выводить; 3 пустой FAQ на детальной — ничего; 4 аккордеон 2 колонки при ≥4 на md+ — оставить; 5 «Erste Frage geöffnet» и строка наследования — в M3-3; 6 правило на все детальные хосты (товар, номер).
+
+## План M2i-5b «переводы подписей полей, своих вопросов и вариантов формы заявки по id» (planner, 2026-11-20)
+- Сейчас: form_fields вне TRANSLATABLE_KEYS — подписи не переводятся; варианты event_types переводятся по ПОЗИЦИИ (i18n[loc].anfrage.event_types через _deep_overlay; пишет demo_i18n.overlay_config); normalize_questions собирает вопрос заново (новые ключи провести явно); ввод переводов в кабинете — i18n_input.extra_locales + _i18n_switch.html (ИИ «Übersetzen»).
+- Модель: form_fields[form].labels_i18n {key:{loc}}; q.label_i18n {loc}, q.options_i18n {вариант_осн:{loc}}; form_fields.anfrage.event_types_i18n {значение:{loc}} (в form_fields, не в anfrage). Нормализация: локали overlay_locales, только существующие ключи, clean_text, лимиты 120/60, равный основному/пустой не храним, цикл по основным элементам. Показ view(site, form, locale): перевод → своя подпись → gettext; на основном языке переводы не читаются (байт-в-байт). choices=[(value,label)].
+- C0 замки: de-витрина без переводов байт-в-байт (/anfrage/, полоса, модалка); окно «Felder» с одним языком; ru демо с позиционным оверлеем — те же подписи; ru со своей немецкой подписью без перевода — немецкая.
+- C1 ядро (normalize, normalize_all, edit_state, canonical, put, merge по (ключ, язык), normalize_questions, view, absorb_legacy_event_i18n) → C2 витрина (anfrage_event_choices: ключевой → позиционный старый → основной; form_field_modes get_language; option value/label) → C3 вкладка (translations у строк, имена f_label_<key>_<loc>, f_q_<id>_label_<loc>, f_q_<id>_o<h>_<loc>, f_et_<h>_<loc>, h = sha1[:8] основного текста; presence-guard; переименование варианта — перевод падает с сообщением; группы data-i18n-loc lang= в DOM, выбор языка серверными кнопками f_sprache aria-pressed) → C4 старые писатели и перенос (absorb в put и старом POST под блокировкой; demo_i18n пишет event_types_i18n; anfrage вне TRANSLATABLE_KEYS; команда form_i18n_realign --dry-run; deploy.sh) → C5 стенд 1440/390 de/ru.
+- Развилки: 1 ввод — серверные кнопки языка (рек.) / _i18n_switch с JS; 2 нет перевода своей подписи — немецкая (рек.); 3 снимок ответа — основной язык (рек.); 4 перенос — впитывание + запасное чтение + команда шагом deploy.sh (рек.); 5 кнопка ИИ — отдельный M2i-5c (рек.); 6 перевод без своей немецкой подписи — да.
+- ECC: security-reviewer (ввод) после C0 и C3; django-reviewer + silent-failure-hunter C1–C2; a11y-architect C3; e2e 1440/390 de/ru; code-reviewer.
+- Пересечения: site_schema.py 1440–1494 (M3-3), .po ×5 (все), app.css.
+
+## План M3-3 «Wie anordnen» по M0-1/M0-3/M0-8/M0-9 (planner, 2026-11-20)
+- Есть: block_window раскладывает views/switch/platz/FIELD_TAB во «wie»; виды картинками уже у ★-строк (_schema_catalog_view.html, _style_thumb.html/_pagelayout_thumb.html; реестр block_views.py); вид секции/ссылочного блока — select (_bw_fields 15–18, _style_options), смена вида — select (_bw_switch, switch_options); наследование list_blocks.base_view → layout_from, видно только префиксом пустого пункта; _update_builtin на cols="" не снимает; запись — патч; Platz _bw_platz (width_choices, newline, beside/own_row); «Von einer Seite» запрещён (VIEW_SWITCHES, _clean_cblock_data стирает поля, merge_structure помнит у text url/side/rounded). aufbau.js не трогаем (radio в формах data-schema-* применяются сами).
+- Подсрезы: a «Виды картинками» (block_views.section_views/family_views с подписями M0-9; партиал _view_tiles.html для _bw_fields и _bw_switch, миниатюры в _style_thumb; подсказка Regale M0-3; FAQ — реестр M2b-2a) → b «Platz» (M0-8: Breite auf dem Computer Voll/2/3/1/2/1/3, «Reihe»: Neben dem vorigen Block / In einer neuen Reihe = op=newline; сноска про телефон) → c «как выглядит список» + наследование (часть listview отдельной формой, строка «Wie auf der Seite „X“: <вид> · ändern — hier geändert gilt nur für diesen Block · zurücksetzen», починка _update_builtin) → d «Von einer Seite ↔ Eigener Text» (VIEW_SWITCHES {text,textpage},{image_text,textpage}; _clean_cblock_data хранит неактивные поля; merge_structure; читатели — только активный).
+- Замки C0 каждого подсреза (strict-xfail): a — ветка миниатюры для каждого вида, fieldset/legend, подписи, 44 px, имена полей прежние; b — плитки = width_choices, Reihe только при narrow; c — разрезанная форма не трогает чужие поля, сброс = base_view, строка называет layout_from; d — туда-обратно байт-в-байт, рендер/text_facts/поиск — только активный, revert.
+- Эталоны без JS: пересъёмка page_nojs/* и panel.json отдельным коммитом после rebase; ожидаемый перечень по подсрезам; новые случаи — golden_fb33m3/wie_nojs/.
+- Развилки: 1 Schaufenster/Magazin на главной — недоступны с причиной (рек.); «Preisliste» варианты; 2 Team/Galerie — существующие виды картинками (рек.), новые виды из M0-9 — отдельный срез; 3 наследование у ссылочного блока — честно «Standard» (рек.) / рендер «как на главной»; 4 ширины — 4 крупные + остальные мелкие (рек.); 5 beside/own_row ниже; 6 что сбрасывает zurücksetzen (Darstellung тоже?); 7 категории — хранимые значения не меняем; 8 «Text» на плитке, «Nur Text» в «+ Block».
+- ECC: a11y-architect (план a/b, стенд после a и b); tdd-guide C0; django-reviewer a–d; silent-failure-hunter c, d; security-reviewer d; e2e 1440/390; code-reviewer.
+
+**Решения владельца по стопке M2b-2a / M2i-5b / M3-3 (2026-11-20):**
+- M2b-2a: одно имя видов FAQ, пять на главной и прочих / три на детальных; **FAQPage только на главной**
+  (на детальной не выводить); пустой общий FAQ на детальной — ничего; общий блок на детальной —
+  «Allgemeine Fragen»; правило на все детальные хосты (товар, номер тоже).
+- M2i-5b: ввод — серверные кнопки языка; без перевода своей подписи — немецкая; снимок ответа — основной
+  язык; **перенос переводов — автоматически при деплое** (впитывание + запасное чтение + команда шагом
+  `deploy.sh`); кнопка ИИ — отдельный M2i-5c; перевод без своей немецкой подписи — да.
+- M3-3: делаем **все четыре подсреза** (a–d); «Schaufenster/Magazin» на главной — недоступны с причиной;
+  **Team/Galerie — существующие виды** картинками; ссылочный блок — «Standard»; ширины — 4 крупные +
+  мелкие; beside/own_row ниже; «zurücksetzen» — только вид/вывод/колонки/ряды; «Text» на плитке,
+  «Nur Text» в «+ Block»; «Von einer Seite ↔ Eigener Text» — оба источника помнятся.
+
+**Сделано (2026-11-20, стопка `claude/fb33-stack-m2b2a-m2i5b-m33`):** все четыре среза параллельно в своих
+worktree, собраны поверх main; стыки (плитки FAQ из `faq_views.views(host)`, плитка «Von einer Seite» и
+плашка M0-9), снятие якорей `.po`, `app.css`, эталоны окна — на верхушке. Отложенное —
+`docs/roadmap-next-sprints.md` §«Отложено» (блок «стопка 2026-11-20»); дальше — M3-4.
