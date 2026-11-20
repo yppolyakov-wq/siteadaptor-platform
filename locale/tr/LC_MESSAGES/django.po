@@ -39306,6 +39306,10 @@ msgstr "bu sayfanın görünümleri arasında yok"
 msgid "Noch keine Fragen. Ohne Fragen erscheint dieser Block auf der Website nicht."
 msgstr "Henüz soru yok. Soru olmadan bu blok web sitesinde görünmez."
 
+#. FB-33 M2b-2a: виды FAQ на детальных
+msgid "Allgemeine Fragen"
+msgstr "Genel sorular"
+
 #. FB-33 стопка: якорь среза M2i-5b — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
 msgid "fb33-stack-anchor-M2i-5b"
 msgstr "fb33-stack-anchor-M2i-5b"

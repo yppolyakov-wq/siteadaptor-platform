@@ -434,8 +434,8 @@ def _drop_empty_faq(blocks: list, page_key, site) -> list:
     if not faq_views.is_detail_host(page_key):
         return blocks
     faq = site.get("faq") if isinstance(site, dict) else getattr(site, "faq", None)
-    if faq:
-        return blocks
+    if any(isinstance(f, dict) and (f.get("q") or f.get("a")) for f in faq or ()):
+        return blocks  # записи с пустыми вопросом и ответом — всё равно пустой FAQ
     return [b for b in blocks if b.get("key") != "faq_ref"]
 
 

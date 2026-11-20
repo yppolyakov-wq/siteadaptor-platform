@@ -39160,6 +39160,10 @@ msgstr "not among the views of this page"
 msgid "Noch keine Fragen. Ohne Fragen erscheint dieser Block auf der Website nicht."
 msgstr "No questions yet. Without questions this block does not appear on the website."
 
+#. FB-33 M2b-2a: виды FAQ на детальных
+msgid "Allgemeine Fragen"
+msgstr "General questions"
+
 #. FB-33 стопка: якорь среза M2i-5b — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
 msgid "fb33-stack-anchor-M2i-5b"
 msgstr "fb33-stack-anchor-M2i-5b"
