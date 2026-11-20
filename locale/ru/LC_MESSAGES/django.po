@@ -39545,6 +39545,22 @@ msgstr "Переводы удалены, потому что вариант из
 msgid "fb33-stack-anchor-M3-3abc"
 msgstr "fb33-stack-anchor-M3-3abc"
 
+#. FB-33 M3-3a: виды картинками во вкладке «Wie anordnen»
+msgid "Überschrift + Absätze"
+msgstr "Заголовок + абзацы"
+
+#. FB-33 M3-3a: виды картинками во вкладке «Wie anordnen»
+msgid "Foto links oder rechts"
+msgstr "Фото слева или справа"
+
+#. FB-33 M3-3a: виды картинками во вкладке «Wie anordnen»
+msgid "Regale hat keine eigenen Karten. Die Produkte in den Regalen sehen aus wie im Block „Produkte“."
+msgstr "У вида «Полки» нет своих карточек. Товары на полках выглядят как в блоке «Товары»."
+
+#. FB-33 M3-3a: виды картинками во вкладке «Wie anordnen»
+msgid "dort ändern"
+msgstr "изменить там"
+
 #. FB-33 стопка: якорь среза M3-3d — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
 msgid "fb33-stack-anchor-M3-3d"
 msgstr "fb33-stack-anchor-M3-3d"

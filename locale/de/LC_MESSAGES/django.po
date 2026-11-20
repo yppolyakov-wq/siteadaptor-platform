@@ -39291,6 +39291,22 @@ msgstr "Übersetzungen entfernt, weil die Option geändert oder gelöscht wurde:
 msgid "fb33-stack-anchor-M3-3abc"
 msgstr "fb33-stack-anchor-M3-3abc"
 
+#. FB-33 M3-3a: виды картинками во вкладке «Wie anordnen»
+msgid "Überschrift + Absätze"
+msgstr "Überschrift + Absätze"
+
+#. FB-33 M3-3a: виды картинками во вкладке «Wie anordnen»
+msgid "Foto links oder rechts"
+msgstr "Foto links oder rechts"
+
+#. FB-33 M3-3a: виды картинками во вкладке «Wie anordnen»
+msgid "Regale hat keine eigenen Karten. Die Produkte in den Regalen sehen aus wie im Block „Produkte“."
+msgstr "Regale hat keine eigenen Karten. Die Produkte in den Regalen sehen aus wie im Block „Produkte“."
+
+#. FB-33 M3-3a: виды картинками во вкладке «Wie anordnen»
+msgid "dort ändern"
+msgstr "dort ändern"
+
 #. FB-33 стопка: якорь среза M3-3d — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
 msgid "fb33-stack-anchor-M3-3d"
 msgstr "fb33-stack-anchor-M3-3d"

@@ -62,6 +62,8 @@ PANEL_KEYS: dict[str, str] = {
     "mainview": "views",
     "groupview": "views",
     "view_options": "switch",
+    "view_tiles": "switch",  # FB-33 M3-3a: те же виды семьи плитками
+    "regale_link": "views",  # FB-33 M3-3a (M0-3): у «Regale» — где меняется вид товаров
     "fields": "fields",
     "source_url": "fields",
     "source_label": "fields",

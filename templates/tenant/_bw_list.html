@@ -49,7 +49,7 @@
           {% comment %}FB-32 S5a: виды каталога, которых на главной (пока) нет — видны с причиной, не выбираются.{% endcomment %}
           {% for u in f.unavailable %}<div role="radio" aria-disabled="true" aria-checked="false" aria-labelledby="so-{{ u.key }}" aria-describedby="sr-{{ u.key }}" class="flex flex-col items-start gap-1 min-h-[44px] rounded-lg border border-dashed border-gray-400 bg-gray-50 p-2 text-xs text-gray-700" data-schema-style-off="{{ u.key }}">{% include "tenant/_pagelayout_thumb.html" with key=u.thumb_page %}<span id="so-{{ u.key }}" class="font-semibold">{{ u.label }}</span><span id="sr-{{ u.key }}">{{ u.reason }}</span></div>{% endfor %}
         </div>
-      </details>
+      </details>{% if selected.regale_link is not None %}{% include "tenant/_schema_regale_hint.html" with link=selected.regale_link %}{% endif %}
       {% elif f.kind == "select" %}
       <select id="schema-l-{{ f.name }}" name="f_{{ f.name }}" class="ui-input w-full scroll-mb-28"{% if f.hint %} aria-describedby="schema-l-{{ f.name }}-hint"{% endif %}>
         {% for value, label in f.options %}<option value="{{ value }}"{% if value == f.value %} selected{% endif %}>{{ label }}</option>{% endfor %}

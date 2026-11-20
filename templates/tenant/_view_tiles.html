@@ -1,0 +1,11 @@
+{% comment %}FB-33 M3-3a: виды блока картинками (макеты M0-1, M0-9). Вход: tiles [{value, label, hint, checked}], legend, src (секция схем _style_thumb), name (поле формы), buttons (кнопки «value» формы смены вида вместо радиогруппы), uid. Радиогруппа в форме полей применяется сама; без скриптов — «Übernehmen».{% endcomment %}
+<fieldset data-schema-view-tiles="{{ name }}">
+  <legend class="text-sm font-semibold text-gray-700 mb-1">{{ legend }}</legend>
+  <div class="grid grid-cols-2 gap-2">
+    {% for t in tiles %}{% if buttons %}
+    <button name="value" value="{{ t.value }}" aria-pressed="{% if t.checked %}true{% else %}false{% endif %}"{% if t.hint %} aria-describedby="vt-{{ uid }}-{{ forloop.counter }}"{% endif %} class="flex flex-col items-start gap-1 rounded-xl border p-2 min-h-[44px] text-left text-xs focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 {% if t.checked %}border-2 border-indigo-700 bg-indigo-50 text-indigo-900{% else %}border-gray-500 bg-white text-gray-800 hover:bg-gray-50{% endif %}" data-schema-view-tile="{{ t.value }}">{% include "tenant/_style_thumb.html" with key=t.value src=src %}<span class="font-semibold">{{ t.label }}</span>{% if t.hint %}<span id="vt-{{ uid }}-{{ forloop.counter }}" class="text-gray-600">{{ t.hint }}</span>{% endif %}</button>
+    {% else %}
+    <label class="flex flex-col gap-1 rounded-xl border border-gray-500 p-2 min-h-[44px] text-xs text-gray-800 cursor-pointer has-[:checked]:border-2 has-[:checked]:border-indigo-700 has-[:checked]:bg-indigo-50 has-[:checked]:text-indigo-900 has-[:focus-visible]:outline has-[:focus-visible]:outline-[3px] has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-indigo-600" data-schema-view-tile="{{ t.value }}"><input type="radio" name="f_{{ name }}" value="{{ t.value }}" class="sr-only"{% if t.hint %} aria-describedby="vt-{{ uid }}-{{ forloop.counter }}"{% endif %}{% if t.checked %} checked{% endif %}>{% include "tenant/_style_thumb.html" with key=t.value src=src %}<span class="font-semibold">{{ t.label }}</span>{% if t.hint %}<span id="vt-{{ uid }}-{{ forloop.counter }}" class="text-gray-600">{{ t.hint }}</span>{% endif %}</label>
+    {% endif %}{% endfor %}
+  </div>
+</fieldset>
