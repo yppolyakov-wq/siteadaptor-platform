@@ -1,0 +1,367 @@
+{
+ "by-text": {
+  "faq": [
+   {
+    "a": "Online.",
+    "q": "Karte?"
+   },
+   {
+    "a": "Ab 30 €.",
+    "q": "Lieferung?"
+   },
+   {
+    "a": "Ja.",
+    "q": "Parkplatz?"
+   }
+  ],
+  "i18n": {
+   "en": {
+    "faq": [
+     {},
+     {
+      "q": "Delivery?"
+     }
+    ]
+   },
+   "ru": {
+    "faq": [
+     {
+      "a": "Онлайн.",
+      "q": "Меню?"
+     },
+     {
+      "a": "От 30 €.",
+      "q": "Доставка?"
+     },
+     {
+      "a": "Да.",
+      "q": "Парковка?"
+     }
+    ],
+    "hero_title": "Привет"
+   },
+   "tr": "garbage",
+   "uk": {
+    "hero_title": "x"
+   }
+  }
+ },
+ "delete-first": {
+  "faq": [
+   {
+    "a": "Ab 30 €.",
+    "q": "Lieferung?"
+   },
+   {
+    "a": "Online.",
+    "q": "Karte?"
+   }
+  ],
+  "i18n": {
+   "en": {
+    "faq": [
+     {
+      "q": "Delivery?"
+     }
+    ]
+   },
+   "ru": {
+    "faq": [
+     {
+      "a": "От 30 €.",
+      "q": "Доставка?"
+     },
+     {
+      "a": "Онлайн.",
+      "q": "Меню?"
+     }
+    ],
+    "hero_title": "Привет"
+   },
+   "tr": "garbage",
+   "uk": {
+    "hero_title": "x"
+   }
+  }
+ },
+ "drop-all": {
+  "faq": [],
+  "i18n": {
+   "en": {},
+   "ru": {
+    "hero_title": "Привет"
+   },
+   "tr": "garbage",
+   "uk": {
+    "hero_title": "x"
+   }
+  }
+ },
+ "duplicates": {
+  "faq": [
+   {
+    "a": "Ja.",
+    "q": "Parkplatz?"
+   },
+   {
+    "a": "Ja.",
+    "q": "Parkplatz?"
+   }
+  ],
+  "i18n": {
+   "en": {},
+   "ru": {
+    "faq": [
+     {
+      "a": "Да.",
+      "q": "Парковка?"
+     }
+    ],
+    "hero_title": "Привет"
+   },
+   "tr": "garbage",
+   "uk": {
+    "hero_title": "x"
+   }
+  }
+ },
+ "german-answer": {
+  "faq": [
+   {
+    "a": "Nein.",
+    "q": "Parkplatz?"
+   },
+   {
+    "a": "Ab 30 €.",
+    "q": "Lieferung?"
+   },
+   {
+    "a": "Online.",
+    "q": "Karte?"
+   }
+  ],
+  "i18n": {
+   "en": {
+    "faq": [
+     {},
+     {
+      "q": "Delivery?"
+     }
+    ]
+   },
+   "ru": {
+    "faq": [
+     {
+      "q": "Парковка?"
+     },
+     {
+      "a": "От 30 €.",
+      "q": "Доставка?"
+     },
+     {
+      "a": "Онлайн.",
+      "q": "Меню?"
+     }
+    ],
+    "hero_title": "Привет"
+   },
+   "tr": "garbage",
+   "uk": {
+    "hero_title": "x"
+   }
+  }
+ },
+ "german-question": {
+  "faq": [
+   {
+    "a": "Ja.",
+    "q": "Parken?"
+   },
+   {
+    "a": "Ab 30 €.",
+    "q": "Lieferung?"
+   },
+   {
+    "a": "Online.",
+    "q": "Karte?"
+   }
+  ],
+  "i18n": {
+   "en": {
+    "faq": [
+     {},
+     {
+      "q": "Delivery?"
+     }
+    ]
+   },
+   "ru": {
+    "faq": [
+     {
+      "a": "Да."
+     },
+     {
+      "a": "От 30 €.",
+      "q": "Доставка?"
+     },
+     {
+      "a": "Онлайн.",
+      "q": "Меню?"
+     }
+    ],
+    "hero_title": "Привет"
+   },
+   "tr": "garbage",
+   "uk": {
+    "hero_title": "x"
+   }
+  }
+ },
+ "insert-middle": {
+  "faq": [
+   {
+    "a": "Ja.",
+    "q": "Parkplatz?"
+   },
+   {
+    "a": "x",
+    "q": "Neu?"
+   },
+   {
+    "a": "Ab 30 €.",
+    "q": "Lieferung?"
+   },
+   {
+    "a": "Online.",
+    "q": "Karte?"
+   }
+  ],
+  "i18n": {
+   "en": {
+    "faq": [
+     {},
+     {},
+     {
+      "q": "Delivery?"
+     }
+    ]
+   },
+   "ru": {
+    "faq": [
+     {
+      "a": "Да.",
+      "q": "Парковка?"
+     },
+     {},
+     {
+      "a": "От 30 €.",
+      "q": "Доставка?"
+     },
+     {
+      "a": "Онлайн.",
+      "q": "Меню?"
+     }
+    ],
+    "hero_title": "Привет"
+   },
+   "tr": "garbage",
+   "uk": {
+    "hero_title": "x"
+   }
+  }
+ },
+ "reorder": {
+  "faq": [
+   {
+    "a": "Online.",
+    "q": "Karte?"
+   },
+   {
+    "a": "Ab 30 €.",
+    "q": "Lieferung?"
+   },
+   {
+    "a": "Ja.",
+    "q": "Parkplatz?"
+   }
+  ],
+  "i18n": {
+   "en": {
+    "faq": [
+     {},
+     {
+      "q": "Delivery?"
+     }
+    ]
+   },
+   "ru": {
+    "faq": [
+     {
+      "a": "Онлайн.",
+      "q": "Меню?"
+     },
+     {
+      "a": "От 30 €.",
+      "q": "Доставка?"
+     },
+     {
+      "a": "Да.",
+      "q": "Парковка?"
+     }
+    ],
+    "hero_title": "Привет"
+   },
+   "tr": "garbage",
+   "uk": {
+    "hero_title": "x"
+   }
+  }
+ },
+ "stale-base": {
+  "faq": [
+   {
+    "a": "Online.",
+    "q": "Karte?"
+   },
+   {
+    "a": "Ab 30 €.",
+    "q": "Lieferung?"
+   },
+   {
+    "a": "Ja.",
+    "q": "Parkplatz?"
+   }
+  ],
+  "i18n": {
+   "en": {
+    "faq": [
+     {},
+     {
+      "q": "Delivery?"
+     }
+    ]
+   },
+   "ru": {
+    "faq": [
+     {
+      "a": "Онлайн.",
+      "q": "Меню?"
+     },
+     {
+      "a": "От 30 €.",
+      "q": "Доставка?"
+     },
+     {
+      "a": "Да.",
+      "q": "Парковка?"
+     }
+    ],
+    "hero_title": "Привет"
+   },
+   "tr": "garbage",
+   "uk": {
+    "hero_title": "x"
+   }
+  }
+ }
+}
