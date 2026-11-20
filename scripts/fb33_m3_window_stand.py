@@ -331,10 +331,15 @@ def m32_review(pg, page, lref, open_url):
         and not any("op=window_done" in d for d in posts),
         "отказ сервера — Esc не закрывает, отказ виден в окне",
     )
-    pg.keyboard.press("Escape")  # окно снова отвечает (не «мёртвое»)
-    pg.wait_for_timeout(300)
-    check(pg.locator(DLG).count() == 1, "повторный Esc после отказа — окно остаётся с ошибкой")
     pg.unroute(route)
+    # ревью code-reviewer: отказ уже показан — второй Esc подряд закрывает окно («Fertig»)
+    with pg.expect_navigation():
+        pg.keyboard.press("Escape")
+    pg.wait_for_load_state()
+    check(
+        any("op=window_done" in d for d in posts) and pg.locator(DLG).count() == 0,
+        "второй Esc после показанного отказа — «Fertig», окно закрыто",
+    )
     # H1 (dress): ответ сервера — панель без окна → окно закрыто, панель снова в сетке
     pg.goto(f"{page}&block={lref}")
     pg.route(route, lambda r: _patched(pg, r, "nowindow"))
