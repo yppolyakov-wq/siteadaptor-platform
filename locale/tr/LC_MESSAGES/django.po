@@ -39532,3 +39532,17 @@ msgstr "Soru ekle"
 #. FB-33 стопка: якорь среза M3-5b — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
 msgid "fb33-stack-anchor-M3-5b"
 msgstr "fb33-stack-anchor-M3-5b"
+
+#. FB-33 M3-5b
+#, python-format
+msgid "Zu lange Fragen oder Antworten wurden gekürzt (höchstens %(q)s / %(a)s Zeichen)."
+msgstr "Çok uzun sorular veya cevaplar kısaltıldı (en fazla %(q)s / %(a)s karakter)."
+
+#. FB-33 M3-5b
+#, python-format
+msgid "Höchstens %(n)s Fragen — weitere wurden nicht übernommen."
+msgstr "En fazla %(n)s soru — diğerleri eklenmedi."
+
+#. FB-33 M3-5b
+msgid "Die Fragen wurden inzwischen an anderer Stelle geändert – nichts übernommen. Bitte noch einmal versuchen."
+msgstr "Sorular bu arada başka bir yerde değiştirildi – hiçbir şey uygulanmadı. Lütfen tekrar deneyin."

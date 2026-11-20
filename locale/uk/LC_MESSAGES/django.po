@@ -39720,3 +39720,17 @@ msgstr "Додати питання"
 #. FB-33 стопка: якорь среза M3-5b — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
 msgid "fb33-stack-anchor-M3-5b"
 msgstr "fb33-stack-anchor-M3-5b"
+
+#. FB-33 M3-5b
+#, python-format
+msgid "Zu lange Fragen oder Antworten wurden gekürzt (höchstens %(q)s / %(a)s Zeichen)."
+msgstr "Задовгі питання або відповіді скорочено (не більше %(q)s / %(a)s знаків)."
+
+#. FB-33 M3-5b
+#, python-format
+msgid "Höchstens %(n)s Fragen — weitere wurden nicht übernommen."
+msgstr "Не більше %(n)s питань — решту не додано."
+
+#. FB-33 M3-5b
+msgid "Die Fragen wurden inzwischen an anderer Stelle geändert – nichts übernommen. Bitte noch einmal versuchen."
+msgstr "Питання тим часом змінили в іншому місці – нічого не застосовано. Спробуйте ще раз."
