@@ -7,6 +7,8 @@ M3-2 — модальное окно (<dialog>, Esc/×, вкладки APG, ге
     uv run --no-project --with playwright python scripts/fb33_m3_window_stand.py <папка для скриншотов>
 Chromium — /opt/pw-browsers/chromium (playwright install не запускать). Итог: «N ✓, 0 ✗».
 Сервер на другом порту — `STAND_URL=http://ptx.siteadaptor.de:<порт>`. Firefox/Safari — вручную.
+FB-33 M2i-5: вкладка «Felder» формы заявки — нужен модуль заявок у ptx
+(`uv run python scripts/text_pages_stand.py --jobs`, один раз).
 """
 
 # ruff: noqa: B023 — вложенные помощники вызываются в той же итерации цикла (pg, ref текущего размера)
@@ -388,6 +390,93 @@ def m32_review(pg, page, lref, open_url):
     pg2.close()
 
 
+def add_question(pg, w):
+    pg.fill(f"{DLG} input[name=f_new_label]", f"Stand-Frage {w}")
+    pg.click(f"{DLG} [data-form-add]")
+    # отправка ждёт правку в пути (blur поля) и перезагружает страницу — ждём сам вопрос
+    pg.wait_for_selector(
+        f"{DLG} [data-form-question] input[value='Stand-Frage {w}']", timeout=15000
+    )
+    pg.wait_for_function("!document.getAnimations().length")
+
+
+def felder(pg, w):
+    """FB-33 M2i-5: вкладка «Felder» у формы «Anfrage» — режим поля, свой вопрос, Abbrechen
+    откатывает, Fertig + Speichern — витрина /anfrage/ спрашивает вопрос."""
+    page = U + "/dashboard/site/aufbau/?seite=anfrage"
+    open_url = f"{page}&block=form&tab=felder"
+    pg.goto(page)
+    if pg.locator("button[name=op][value=discard]").count():
+        pg.click("button[name=op][value=discard]")  # прежний черновик стенда
+        pg.wait_for_load_state()
+    pg.goto(open_url)
+    pg.wait_for_function("!document.getAnimations().length")
+    form = pg.locator(f"{DLG} [data-form-felder]")
+    check(form.count() == 1 and form.is_visible(), f"{w}: «Felder» в окне формы заявки")
+    groups = pg.locator(f"{DLG} [data-form-felder] fieldset[data-form-field] > legend")
+    check(groups.count() >= 6, f"{w}: группы режимов с legend ({groups.count()})")
+    check(
+        pg.locator(f"{DLG} [data-form-field=title] input[type=radio]").count() == 0
+        and "🔒" in pg.locator(f"{DLG} [data-form-field=title]").inner_text(),
+        f"{w}: «Was brauchen Sie?» закреплено (🔒): "
+        + pg.locator(f"{DLG} [data-form-field=title]").inner_text().replace("\n", " "),
+    )
+    small = pg.evaluate(
+        """(sel) => [...document.querySelectorAll(sel + ' [data-form-felder] label:has(input[type=radio]),'
+           + sel + ' [data-form-felder] button:not(.sr-only)')]
+           .filter(e => e.offsetParent).filter(e => e.getBoundingClientRect().height < 43.5).length""",
+        DLG,
+    )
+    check(small == 0, f"{w}: цели ≥ 44 px ({small} меньше)")
+    sw = pg.evaluate("[document.documentElement.scrollWidth, innerWidth]")
+    check(sw[0] <= sw[1], f"{w}: без горизонтальной прокрутки ({sw})")
+    radio = f"{DLG} [data-form-field=description] input[value=req]"
+    before = pg.locator(f"{DLG} [data-form-field=description] input:checked").get_attribute("value")
+    pg.locator(radio).check()
+    pg.wait_for_timeout(500)
+    busy_done(pg)
+    add_question(pg, w)
+    labels = pg.locator(f"{DLG} [data-form-question] input[name$=_label]")
+    added = [labels.nth(i).input_value() for i in range(labels.count())]
+    check(f"Stand-Frage {w}" in added, f"{w}: вопрос добавлен в черновик ({added})")
+    check(pg.locator(radio).is_checked(), f"{w}: режим «Pflicht» пережил добавление вопроса")
+    pg.screenshot(path=f"{OUT}/m2i5_felder_{w}.png", full_page=False)
+    pg.click(f"{DLG} [data-window-actions] button[value=revert]")
+    closed(pg)
+    pg.goto(open_url)
+    pg.wait_for_function("!document.getAnimations().length")
+    labels = pg.locator(f"{DLG} [data-form-question] input[name$=_label]")
+    back = [labels.nth(i).input_value() for i in range(labels.count())]
+    now = pg.locator(f"{DLG} [data-form-field=description] input:checked").get_attribute("value")
+    check(
+        f"Stand-Frage {w}" not in back and now == before,
+        f"{w}: Abbrechen откатил вопрос и режим ({now} == {before})",
+    )
+    add_question(pg, w)
+    pg.click(f"{DLG} [data-window-actions] button[value=window_done]")
+    closed(pg)
+    pg.click("button[name=op][value=save]")
+    pg.wait_for_load_state()
+    pg.goto(U + "/anfrage/")
+    check(f"Stand-Frage {w}" in pg.content(), f"{w}: Speichern → /anfrage/ спрашивает вопрос")
+    pg.screenshot(path=f"{OUT}/m2i5_anfrage_{w}.png", full_page=True)
+    # уборка стенда: вопрос снова убрать
+    pg.goto(open_url)
+    pg.wait_for_function("!document.getAnimations().length")
+    box = pg.locator(f"{DLG} [data-form-question]:has(input[value='Stand-Frage {w}'])")
+    box.locator("button[value^='del:']").click()
+    pg.wait_for_selector(
+        f"{DLG} [data-form-question] input[value='Stand-Frage {w}']", state="detached"
+    )
+    pg.wait_for_function("!document.getAnimations().length")
+    pg.click(f"{DLG} [data-window-actions] button[value=window_done]")
+    closed(pg)
+    pg.click("button[name=op][value=save]")
+    pg.wait_for_load_state()
+    pg.goto(U + "/anfrage/")
+    check(f"Stand-Frage {w}" not in pg.content(), f"{w}: уборка — вопрос снят")
+
+
 def nojs(b):
     """Без скриптов окна нет — прежняя панель колонкой."""
     for w, h in ((1440, 900), (390, 844)):
@@ -407,6 +496,13 @@ def nojs(b):
             f"{w}: без JS — окна и ролей вкладок нет, панель в сетке",
         )
         pg.screenshot(path=f"{OUT}/m32_nojs_{w}.png")
+        pg.goto(U + "/dashboard/site/aufbau/?seite=anfrage&block=form&tab=felder")
+        check(
+            pg.locator("[data-site-schema] [data-form-felder]").count() == 1
+            and pg.locator("[data-form-felder] button[value=update]").is_visible(),
+            f"{w}: без JS — «Felder» в панели, «Übernehmen» видна",
+        )
+        pg.screenshot(path=f"{OUT}/m2i5_nojs_{w}.png")
         ctx.close()
 
 
@@ -592,6 +688,7 @@ with sync_playwright() as p:
         back = pg.locator("[data-schema-fields] input[name=f_title]").input_value()
         check(back == before, f"правка → F5 → правка → Abbrechen: как при открытии ({back})")
         m32(pg, w, ref)
+        felder(pg, w)
         ctx.close()
     nojs(b)
     b.close()

@@ -7,6 +7,7 @@
 
     python manage.py runserver 0.0.0.0:8000 --settings=config.settings.stand
     uv run python scripts/text_pages_stand.py --setup     # один раз
+    uv run python scripts/text_pages_stand.py --jobs      # FB-33 M2i-5: модуль заявок (вкладка «Felder»)
     uv run python scripts/text_pages_stand.py
 
 Не входит в CI (там нет браузера).
@@ -47,6 +48,15 @@ Domain.objects.update_or_create(domain="{SLUG}.{BASE}", defaults={{"tenant": ten
 print("READY")
 """
 
+#: FB-33 M2i-5: стенд вкладки «Felder» (`fb33_m3_window_stand.py`) — заявки у тенанта стенда
+JOBS = f"""
+from apps.tenants.models import Tenant
+tenant = Tenant.objects.get(schema_name={SLUG!r})
+tenant.disabled_modules = [m for m in (tenant.disabled_modules or []) if m != "jobs"]
+tenant.save(update_fields=["disabled_modules"])
+print("JOBS", tenant.is_module_active("jobs"))
+"""
+
 
 class Run:
     def __init__(self):
@@ -83,9 +93,13 @@ def main():  # noqa: PLR0915 — один линейный сценарий ст
     ap = argparse.ArgumentParser()
     ap.add_argument("--setup", action="store_true")
     ap.add_argument("--port", type=int, default=8000)
+    ap.add_argument("--jobs", action="store_true")
     args = ap.parse_args()
     if args.setup:
         print(_shell(SETUP)[-300:])
+        return
+    if args.jobs:
+        print(_shell(JOBS)[-300:])
         return
     from playwright.sync_api import sync_playwright
 

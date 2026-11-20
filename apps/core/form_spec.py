@@ -612,13 +612,16 @@ def panel(site, form: str = "anfrage", state=None, preset: bool = False) -> dict
     custom = state["custom"]
     rows = []
     for field in fields_of(form):
+        mode = REQ if field.pinned else state["mode"][field.key]
+        plain = field.req_label if field.req_label is not None else field.label
         rows.append(
             {
                 "key": field.key,
-                "label": str(field.req_label if field.req_label is not None else field.label),
-                "default_label": str(field.label),
+                "label": str(plain),
+                # подсказка в поле своей подписи — как подпись на витрине при этом режиме
+                "default_label": str(plain if mode == REQ else field.label),
                 "pinned": field.pinned,
-                "mode": REQ if field.pinned else state["mode"][field.key],
+                "mode": mode,
                 "custom_label": state["labels"].get(field.key, ""),
                 "event_type": field.key == "event_type",
             }
