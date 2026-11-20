@@ -1,0 +1,62 @@
+<div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+  <div class="absolute inset-0 bg-black/50" data-quick-close></div>
+  <div class="relative w-full sm:max-w-2xl max-h-[92vh] overflow-y-auto rounded-t-2xl sm:rounded-2xl"
+       role="dialog" aria-modal="true" aria-label="Unverbindlich anfragen" data-anfrage-modal>
+    <button type="button" data-quick-close
+            class="absolute top-3 right-3 z-10 w-9 h-9 rounded-full bg-white/95 shadow text-gray-500 hover:text-gray-800 text-2xl leading-none"
+            aria-label="Schließen">&times;</button>
+    <div class="bg-white rounded-t-2xl sm:rounded-2xl px-5 pt-5">
+      <h2 class="text-xl font-bold pr-10">Unverbindlich anfragen</h2>
+      <p class="text-sm text-gray-500 mt-1">Wir melden uns mit einem Angebot — ohne Kosten und ohne Verpflichtung.</p>
+    </div>
+<form method="post" action="/anfrage/" enctype="multipart/form-data" class="bg-white rounded-2xl shadow-sm p-6 space-y-4 max-w-2xl mx-auto">
+  <input type="hidden" name="csrfmiddlewaretoken" value="X">
+  <input type="text" name="website" tabindex="-1" autocomplete="off" class="hidden" aria-hidden="true">
+  <div>
+    <label class="block text-sm font-medium mb-1" for="id_title">Was brauchen Sie? *</label>
+    <input id="id_title" name="title" type="text" required value="" placeholder="z. B. zwei Zimmer streichen" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+  </div>
+  <div>
+    <label class="block text-sm font-medium mb-1" for="id_desc">Details (optional)</label>
+    <textarea id="id_desc" name="description" rows="3" class="w-full rounded-lg border border-gray-300 px-3 py-2"></textarea>
+  </div>
+  <div class="grid sm:grid-cols-3 gap-3">
+    <div>
+      <label class="block text-sm font-medium mb-1" for="id_event_date">Wunschdatum (optional)</label>
+      <input id="id_event_date" name="event_date" type="date" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1" for="id_guest_count">Anzahl Personen (optional)</label>
+      <input id="id_guest_count" name="guest_count" type="number" min="1" max="100000" inputmode="numeric" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+  </div>
+  <div class="flex gap-3">
+    <div class="flex-1">
+      <label class="block text-sm font-medium mb-1" for="id_addr">Arbeitsort (optional)</label>
+      <input id="id_addr" name="site_address" type="text" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+  </div>
+  <div class="grid sm:grid-cols-3 gap-4">
+    <div>
+      <label class="block text-sm font-medium mb-1" for="id_name">Name *</label>
+      <input id="id_name" name="name" type="text" required class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1" for="id_email">E-Mail</label>
+      <input autocomplete="email" id="id_email" name="email" type="email" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1" for="id_phone">Telefon</label>
+      <input autocomplete="tel" id="id_phone" name="phone" type="tel" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+  </div>
+  <div>
+    <label class="block text-sm font-medium mb-1" for="id_photos">Fotos (optional, bis zu 5)</label>
+    <input id="id_photos" name="photos" type="file" accept="image/*" multiple class="w-full text-sm text-gray-600">
+    <p class="text-xs text-gray-400 mt-1">Ein Foto des Auftrags hilft uns, schneller ein Angebot zu erstellen.</p>
+  </div>
+  <button type="submit" class="w-full text-white rounded-lg px-4 py-3 font-medium hover:opacity-90" style="background: var(--accent, #4f46e5);">Anfrage senden</button>
+<p class="basis-full sm:col-span-full mt-2 text-xs text-gray-500" data-privacy-note>Wir verwenden Ihre Angaben nur, um Ihr Anliegen zu bearbeiten. Fotos nutzen wir nur für Ihr Angebot. <a href="/datenschutz/" class="underline" target="_top">Datenschutzerklärung</a></p>
+</form>
+  </div>
+</div>

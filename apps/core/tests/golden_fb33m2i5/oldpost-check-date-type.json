@@ -1,0 +1,47 @@
+{
+ "anfrage": {
+  "event_types": [
+   "A",
+   "B"
+  ],
+  "fields": [
+   "date",
+   "event_type"
+  ]
+ },
+ "form_fields": {
+  "anfrage": {
+   "custom": [
+    {
+     "id": "q1",
+     "label": "Budget",
+     "type": "text"
+    },
+    {
+     "id": "q2",
+     "label": "Raum",
+     "mode": "req",
+     "options": [
+      "Saal",
+      "Garten"
+     ],
+     "type": "choice"
+    },
+    {
+     "id": "q4",
+     "label": "Vegan?",
+     "type": "bool"
+    }
+   ],
+   "labels": {
+    "event_date": "Wann?",
+    "phone": "Handy"
+   },
+   "mode": {
+    "description": "off",
+    "phone": "req"
+   },
+   "next_id": 5
+  }
+ }
+}
