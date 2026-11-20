@@ -158,7 +158,8 @@ fi
 # FB-33 M2c (решение владельца): плитки «Schnellzugriff» из баннера главной -> отдельный блок
 # сразу после баннера (у «Bento» — скрытым), форма дат -> секция «Suche», топ услуг -> список.
 # ПОСЛЕ materialize_page_axes (оба пишут настройки главной); откат: detach_quick_links --undo
-# (раньше отката FB-31.7 — откаты идут в обратном порядке).
+# --force (раньше отката FB-31.7 — откаты идут в обратном порядке). M2c-4: витрина ключ не
+# читает — на чистых данных шаг no-op; откат — только вместе с откатом кода.
 if ! $COMPOSE exec -T web python manage.py detach_quick_links; then
 	echo "!!! WARN: detach_quick_links FAILED for some sites (see lines above)."
 	echo "!!! Those sites keep the tiles in the banner. Re-run: python manage.py detach_quick_links"

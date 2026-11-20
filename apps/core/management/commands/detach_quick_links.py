@@ -5,6 +5,10 @@
 Перед записью — снимок настроек в базе; `--undo` возвращает его, если настройки с тех пор не
 меняли. Повтор — 0 изменений. Сбой одного сайта не останавливает остальные.
 Порядок откатов: этот перенос идёт ПОСЛЕ `materialize_page_axes` — откатывать сначала его.
+
+M2c-4 (2026-11-20): витрина ключ `hero_widget` больше не читает. На чистых данных перенос —
+0 изменений (ловит копии баз со старым ключом). `--undo` вернул бы ключ, которого витрина не
+видит, — плитки пропали бы; поэтому откат только с `--force` и только вместе с откатом кода.
 """
 
 import logging
@@ -16,6 +20,12 @@ from apps.tenants.models import Tenant
 
 logger = logging.getLogger(__name__)
 
+UNDO_WARNING = (
+    "ВНИМАНИЕ: после M2c-4 витрина ключ hero_widget не читает — откат вернёт ключ, а блок "
+    "«Schnellzugriff» снимет: плитки пропадут. Откатывать только вместе с откатом кода "
+    "(--undo --force)."
+)
+
 
 class Command(BaseCommand):
     help = "FB-33 M2c: плитки баннера главной -> отдельный блок «Schnellzugriff»"
@@ -25,12 +35,20 @@ class Command(BaseCommand):
         parser.add_argument("--dry-run", action="store_true", help="только отчёт, без записи")
         parser.add_argument("--undo", action="store_true", help="откат последнего переноса")
         parser.add_argument(
+            "--force",
+            action="store_true",
+            help="с --undo: откатить, хотя витрина ключ уже не читает (вместе с откатом кода)",
+        )
+        parser.add_argument(
             "--residue", action="store_true", help="у скольких сайтов ещё остался hero_widget"
         )
 
     def handle(self, *args, **options):
         if options["schema"] == "public":
             raise CommandError("public — платформа, а не сайт бизнеса")
+        if options["undo"] and not options["force"]:
+            self.stderr.write(UNDO_WARNING)
+            raise CommandError("--undo без --force не выполняется (см. предупреждение выше)")
         tenants = Tenant.objects.exclude(schema_name="public").order_by("schema_name")
         if options["schema"]:
             tenants = tenants.filter(schema_name=options["schema"])
