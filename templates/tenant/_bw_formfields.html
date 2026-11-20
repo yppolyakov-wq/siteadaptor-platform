@@ -9,6 +9,13 @@
   {% comment %}Enter в поле — то же, что «Übernehmen» (первая кнопка формы — «по умолчанию»), а не «Nach oben» первого вопроса; вне Tab и невидима.{% endcomment %}
   <button type="submit" name="f_commit_new" value="1" class="sr-only" tabindex="-1">{% trans "Übernehmen" %}</button>
   <p class="text-sm text-gray-700">{% trans "Was die Anfrage-Form fragt. Änderungen erscheinen auf der Seite nach „Speichern“." %}</p>
+  {% if fs.locales %}{% comment %}FB-33 M2i-5b: язык переводов — серверные кнопки (без скриптов); поля всех языков в DOM, видны поля выбранного.{% endcomment %}<div class="space-y-2 rounded-lg bg-gray-50 p-3" data-form-langs>
+    <p id="ff-lang-title" class="text-sm font-semibold text-gray-800">{% trans "Übersetzung bearbeiten" %}</p>
+    <div class="flex flex-wrap gap-2" role="group" aria-labelledby="ff-lang-title">
+      {% for l in fs.locales %}<button name="f_sprache" value="{{ l.code }}" lang="{{ l.code }}" aria-pressed="{% if l.shown %}true{% else %}false{% endif %}" class="ui-btn {% if l.shown %}ui-btn-primary{% else %}ui-btn-secondary{% endif %} min-h-[44px]" data-form-lang="{{ l.code }}">{{ l.label }}</button>{% endfor %}
+    </div>
+    <p class="text-xs text-gray-700">{% trans "Ohne Übersetzung zeigt die Seite den deutschen Text." %}</p>
+  </div>{% endif %}
   {% for f in fs.fields %}
   {% if f.pinned %}
   <div class="rounded-lg border border-gray-200 p-3" data-form-field="{{ f.key }}">
@@ -23,10 +30,12 @@
     </div>
     <label for="ff-label-{{ f.key }}" class="mt-1 block text-xs text-gray-700">{% trans "Eigene Beschriftung" %}</label>
     <input type="text" id="ff-label-{{ f.key }}" name="f_label_{{ f.key }}" value="{{ f.custom_label }}" placeholder="{{ f.default_label }}" maxlength="120" class="ui-input w-full">
+    {% for t in f.translations %}{% include "tenant/_bw_formfields_tr.html" with t=t text=f.custom_label|default:f.default_label limit=120 %}{% endfor %}
     {% if f.event_type %}
     <label for="ff-event-types" class="mt-2 block text-xs text-gray-700">{% trans "Auswahlliste (eine Option pro Zeile)" %}</label>
     <textarea id="ff-event-types" name="f_event_types" rows="4" class="ui-input w-full" aria-describedby="ff-event-types-hint{% if fs.event_hint %} ff-event-types-warn{% endif %}">{{ fs.event_types_text }}</textarea>
     <p id="ff-event-types-hint" class="mt-1 text-xs text-gray-700">{% trans "Die Auswahl erscheint nur, wenn „Art der Veranstaltung“ gefragt wird; die Liste bleibt auch sonst gespeichert." %}</p>
+    {% for e in fs.event_translations %}{% for t in e.inputs %}{% include "tenant/_bw_formfields_tr.html" with t=t text=e.text what=e.text limit=60 %}{% endfor %}{% endfor %}
     {% if fs.event_hint %}<p id="ff-event-types-warn" class="mt-1 text-xs font-semibold text-amber-900" data-form-event-hint><span aria-hidden="true">⚠</span> {% trans "„Art der Veranstaltung“ erscheint erst mit einer Auswahlliste – bitte Optionen eintragen." %}</p>{% endif %}
     {% endif %}
   </fieldset>
@@ -38,6 +47,7 @@
     <div class="space-y-2 rounded-lg bg-gray-50 p-3" data-form-question="{{ q.id }}">
       <label for="ff-q-{{ q.id }}-label" class="block text-xs font-semibold text-gray-700">{% blocktrans with n=forloop.counter %}Frage {{ n }}{% endblocktrans %}</label>
       <input type="text" id="ff-q-{{ q.id }}-label" name="f_q_{{ q.id }}_label" value="{{ q.label }}" maxlength="120" class="ui-input w-full">
+      {% for t in q.translations %}{% include "tenant/_bw_formfields_tr.html" with t=t text=q.label limit=120 %}{% endfor %}
       <label for="ff-q-{{ q.id }}-type" class="block text-xs text-gray-700">{% trans "Art der Antwort" %}</label>
       <select id="ff-q-{{ q.id }}-type" name="f_q_{{ q.id }}_type" class="ui-input w-full">
         {% for t, tlabel in fs.types %}<option value="{{ t }}"{% if t == q.type %} selected{% endif %}>{{ tlabel }}</option>{% endfor %}
@@ -45,6 +55,7 @@
       <label for="ff-q-{{ q.id }}-options" class="block text-xs text-gray-700">{% trans "Optionen für „Auswahl“ (eine pro Zeile)" %}</label>
       <textarea id="ff-q-{{ q.id }}-options" name="f_q_{{ q.id }}_options" rows="3" class="ui-input w-full" aria-describedby="ff-q-{{ q.id }}-options-hint">{{ q.options_text }}</textarea>
       <p id="ff-q-{{ q.id }}-options-hint" class="text-xs text-gray-700">{% trans "Nur bei Art „Auswahl“, eine Option pro Zeile." %}</p>
+      {% for o in q.option_translations %}{% for t in o.inputs %}{% include "tenant/_bw_formfields_tr.html" with t=t text=o.text what=o.text limit=120 %}{% endfor %}{% endfor %}
       <label class="inline-flex min-h-[44px] items-center gap-2 text-sm"><input type="checkbox" name="f_q_{{ q.id }}_req" value="1"{% if q.req %} checked{% endif %}> {% trans "Pflicht" context "form field mode" %}</label>
       <div class="flex flex-wrap gap-2">
         {% if not q.first %}<button name="f_do" value="up:{{ q.id }}" class="ui-btn ui-btn-secondary min-h-[44px] min-w-[44px]"><span aria-hidden="true">↑</span><span class="sr-only">{% blocktrans with t=q.label %}„{{ t }}“ nach oben{% endblocktrans %}</span></button>{% endif %}

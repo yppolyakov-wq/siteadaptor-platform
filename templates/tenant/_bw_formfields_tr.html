@@ -1,0 +1,4 @@
+{% load i18n %}{% comment %}FB-33 M2i-5b: поле перевода одного текста вкладки «Felder» на язык t.loc (what — вариант выбора); невыбранный язык — hidden, значение уходит с формой. Пусто — на сайте основной текст.{% endcomment %}<div data-i18n-loc="{{ t.loc }}"{% if not t.shown %} hidden{% endif %}>
+      <label for="{{ t.id }}" class="mt-1 block text-xs text-gray-700">{% if what %}{% blocktrans with lang=t.label %}„{{ what }}“ – Übersetzung ({{ lang }}){% endblocktrans %}{% else %}{% blocktrans with lang=t.label %}Übersetzung ({{ lang }}){% endblocktrans %}{% endif %}</label>
+      <input type="text" id="{{ t.id }}" name="{{ t.name }}" value="{{ t.value }}" lang="{{ t.loc }}" placeholder="{{ text }}" maxlength="{{ limit }}" class="ui-input w-full">
+    </div>

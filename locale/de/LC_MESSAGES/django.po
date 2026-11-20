@@ -39256,6 +39256,24 @@ msgid "fb33-stack-anchor-M2i-5b"
 msgstr "fb33-stack-anchor-M2i-5b"
 
 #. FB-33 M2i-5b
+msgid "Übersetzung bearbeiten"
+msgstr "Übersetzung bearbeiten"
+
+#. FB-33 M2i-5b
+msgid "Ohne Übersetzung zeigt die Seite den deutschen Text."
+msgstr "Ohne Übersetzung zeigt die Seite den deutschen Text."
+
+#. FB-33 M2i-5b
+#, python-format
+msgid "Übersetzung (%(lang)s)"
+msgstr "Übersetzung (%(lang)s)"
+
+#. FB-33 M2i-5b
+#, python-format
+msgid "„%(what)s“ – Übersetzung (%(lang)s)"
+msgstr "„%(what)s“ – Übersetzung (%(lang)s)"
+
+#. FB-33 M2i-5b
 #, python-format
 msgid "Übersetzungen entfernt, weil die Option geändert oder gelöscht wurde: %(names)s"
 msgstr "Übersetzungen entfernt, weil die Option geändert oder gelöscht wurde: %(names)s"

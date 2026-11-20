@@ -117,7 +117,10 @@ def _window_part(cfg):
     from apps.core.tests.test_fb27_r2_draft import Browser
     from apps.core.tests.test_fb33_m2i5_draft import _tenant
 
-    b = Browser(_tenant(cfg))
+    tenant = _tenant(cfg)
+    tenant.enabled_locales = ["de"]  # бизнес с одним языком (у фабрики — de и en)
+    tenant.save(update_fields=["enabled_locales"])
+    b = Browser(tenant)
     with translation.override("de"):
         html = b.get("?seite=anfrage&block=form&tab=felder")
     start = html.index("data-form-felder")

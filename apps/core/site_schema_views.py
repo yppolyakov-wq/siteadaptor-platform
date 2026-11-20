@@ -34,6 +34,13 @@ def _keep(source) -> dict:
 
     if aufbau_draft.clean_token(source.get("wopen")):
         keep["wopen"] = source.get("wopen")
+    # FB-33 M2i-5b: выбранный язык переводов вкладки «Felder» (кнопка `f_sprache` или
+    # помнящееся скрытое поле `sprache`) — только язык платформы
+    from apps.core import form_answers
+
+    lang = source.get("f_sprache") or source.get("sprache")
+    if lang in form_answers.overlay_locales():
+        keep["sprache"] = lang
     return keep
 
 
@@ -42,7 +49,7 @@ def _url(code: str, block: str = "", keep: dict | None = None) -> str:
     if block:
         query["block"] = block
     for key, value in (keep or {}).items():
-        if key not in ("welche", "tab", "wopen") or block:
+        if key not in ("welche", "tab", "wopen", "sprache") or block:
             query[key] = value
     # Якорь панели: после действия фокус возвращается к блоку, а не в начало страницы.
     return f"{reverse('site-schema')}?{urlencode(query)}" + ("#schema-panel" if block else "")
@@ -377,6 +384,14 @@ def site_schema_view(request):
         from apps.jobs.anfrage_presets import preset_for
 
         selected["form_spec"]["preset"] = bool(preset_for(tenant.business_type))
+        # FB-33 M2i-5b: переводы подписей и вариантов — на языки бизнеса (один язык — нет)
+        from apps.core import i18n_input
+
+        form_spec.with_locales(
+            selected["form_spec"],
+            i18n_input.extra_locales(tenant),
+            request.GET.get("sprache", ""),
+        )
     if (
         selected
         and (selected["key"] == "anfrage" and not selected["cblock"] or _is_anfrage_ref(selected))
@@ -486,6 +501,8 @@ def site_schema_view(request):
             "wopen_link": aufbau_draft.new_token(),
             # вкладка, которую формы окна помнят после действия: только явно открытая
             "window_tab": block_window.explicit_tab(window, request.GET.get("tab", "")),
+            # FB-33 M2i-5b: язык переводов вкладки «Felder» — переживает действие окна
+            "form_lang": ((selected or {}).get("form_spec") or {}).get("lang", ""),
             # FB-27 R7: строка категории — своя схема или блоки каталога
             "category_row": (
                 {"own": any(not b["main"] and not b["fixed"] for b in blocks)}
