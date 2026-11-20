@@ -303,10 +303,15 @@ class DemoKit:
     card_slider: str = ""
     # O-2: дефолтный вид выбора вариантов магазина ("" = выпадающий список).
     variant_style: str = ""
-    # E4 «задача-первым»: primary-виджет ВНУТРИ hero ("" | stays | services |
-    # gastro) → site_defaults.hero_widget. При "stays" секция stay_search гасится
-    # (hero несёт); "gastro" = плитки Reservieren/Speisekarte/Angebot des Tages.
+    # E4 «задача-первым»: набор первого экрана ("" | stays | services | набор-ссылки
+    # `hero_tiles.QUICK_LINK_SETS`). FB-33 M2c-4: ставится блоком «Schnellzugriff» сразу
+    # после баннера (stays — секцией «Suche», services — «Leistungen»), см.
+    # `_kit_quick_links`; ключа site_defaults нет. "gastro" = плитки Reservieren/
+    # Speisekarte/Angebot des Tages.
     hero_widget: str = ""
+    # FB-33 M2c-4: набор, который побеждает ось сборки (DL-4: у Fokus «none» снимал бы
+    # плитки кита); None — нет своего решения, "" — без плиток.
+    hero_widget_override: str | None = None
     # LS-1/LS-2: WhatsApp-номер бизнеса (гейт видео-CTA и presence-пилюли) +
     # явный режим присутствия ("" = auto по часам; "on"/"off").
     whatsapp_number: str = ""
@@ -3875,15 +3880,16 @@ AKTIONSMARKT = DemoKit(
     # тот же товар (Bio-Gemüsekiste); один хороший кадр продаёт лучше трёх слабых.
     card_slider="on",
     # SF-4a: Merkzettel у магазина акций (grocery-дефолт опции — False).
-    # DL-4: site_defaults.hero_widget — config_patch мерджится ПОСЛЕ сборки
-    # (латентный баг сидинга: _FOKUS_BASE.hero_widget="none" затирал плитки
-    # kit.hero_widget, комментарий ниже врал с DS-9) → плитки восстановлены.
+    # DL-4: плитки кита побеждают ось сборки (латентный баг сидинга:
+    # _FOKUS_BASE.hero_widget="none" затирал плитки kit.hero_widget) — FB-33 M2c-4:
+    # полем `hero_widget_override`, а не ключом site_defaults в config_patch.
+    hero_widget_override="aktionsmarkt",
     config_patch={
         "hero_style": "split",
         "nav": {"cta": True},
         "wishlist": True,
         # DL-20: страница ГРУППЫ акций — «Prospekt» на весь сайт (дискаунтер) …
-        "site_defaults": {"hero_widget": "aktionsmarkt", "promo_group_style": "prospekt"},
+        "site_defaults": {"promo_group_style": "prospekt"},
         # DL-17.2: группы акций — лентами со стрелками (A3); без ключа страница
         # рисовала сетки, и «карусели из макета» в демо не было видно.
         "promo_layout": "slider",
@@ -5620,9 +5626,9 @@ CAFE = DemoKit(
         "catalog_layout": {"preset": "preisliste_foto"},
         "hero_style": "split",
         "nav": {"cta": True},
-        # DS-8: плитки задач приходят из шаблона «gastro» — Fokus их снимает.
-        "site_defaults": {"hero_widget": ""},
     },
+    # DS-8: плитки задач приходят из шаблона «gastro» — Fokus их снимает.
+    hero_widget_override="",
     sections_off=["archetypes", "usp_bar", "team", "gallery", "reviews", "testimonials"],
     label="Café Morgenrot",
     business_type="cafe",
@@ -24927,6 +24933,38 @@ def _kit_sections(kit: DemoKit) -> list[dict]:
     return rows
 
 
+def _kit_quick_links(kit: DemoKit) -> str:
+    """FB-33 M2c-4: набор первого экрана кита. Старшинство (как DL-4): своё решение кита
+    (`hero_widget_override`) > ось сборки (`none` = без плиток) > `kit.hero_widget`."""
+    from apps.core.quick_links_migration import LEGACY_WIDGETS
+    from apps.tenants import sitetemplates as _st
+
+    if kit.hero_widget_override is not None:
+        return kit.hero_widget_override
+    bundle = _st.get_bundle(kit.bundle) if kit.bundle else None
+    axis = (bundle or {}).get("config", {}).get("hero_widget") or ""
+    if axis:
+        return "" if axis == "none" else axis
+    return kit.hero_widget if kit.hero_widget in LEGACY_WIDGETS else ""
+
+
+def _place_kit_tiles(cfg: dict, kit: DemoKit, key: str) -> dict:
+    """Набор кита — блоком «Schnellzugriff» сразу после баннера (форма дат — секция
+    «Suche», топ услуг — «Leistungen» или список); без набора — автоблоков нет."""
+    from apps.core import quick_links_migration as qlm
+
+    widget = _kit_quick_links(kit)
+    if not widget:
+        qlm.drop_auto_blocks(cfg)
+        return cfg
+    new, result = qlm.place(cfg, widget, replace=True)
+    if result.action.startswith("skip:"):
+        import logging
+
+        logging.getLogger(__name__).warning("apply_kit %s: tiles not placed (%s)", key, result)
+    return new
+
+
 def apply_kit(tenant, key: str) -> bool:
     """Наполнить тенант полноценным демо-сайтом по киту. False — неизвестный кит.
 
@@ -25546,10 +25584,6 @@ def apply_kit(tenant, key: str) -> bool:
         sd = dict(cfg.get("site_defaults") or {})
         sd["variant_style"] = kit.variant_style
         cfg["site_defaults"] = sd
-    if kit.hero_widget in siteconfig.HERO_WIDGETS:  # 07-30: кастомные + реестр плиток
-        sd = dict(cfg.get("site_defaults") or {})
-        sd["hero_widget"] = kit.hero_widget
-        cfg["site_defaults"] = sd
     if kit.bundle:  # DS-9: композиция сборки Fokus (реестр BUNDLES)
         from apps.tenants import sitetemplates as _sitetemplates
 
@@ -25578,6 +25612,9 @@ def apply_kit(tenant, key: str) -> bool:
                 cfg[_k] = {**cfg[_k], **_v}
             else:
                 cfg[_k] = _v
+    # FB-33 M2c-4: набор первого экрана — блоком сразу после слияния патча (до первой
+    # нормализации цепочки ниже): ключ-переносчик `hero_widget` молча выпал бы в normalize
+    cfg = _place_kit_tiles(cfg, kit, key)
     if kit.profile:  # T-8.1: «Nur Aktionen» (normalize дропает неизвестное значение)
         cfg["profile"] = kit.profile
     if kit.presence_mode in ("on", "off"):  # LS-2: «Jetzt erreichbar»
@@ -25632,11 +25669,6 @@ def apply_kit(tenant, key: str) -> bool:
             _report.mismatches,
             _report.notes,
         )
-    # FB-33 M2c-3: плитки первого экрана кита — блоком «Schnellzugriff» сразу после баннера
-    # (форма дат — секция «Suche», топ услуг — список), а не ключом `hero_widget`
-    from apps.core.quick_links_migration import detach as _detach_tiles
-
-    cfg, _tiles = _detach_tiles(cfg, replace=True)
     _demo_locales = [loc for loc in (kit.enabled_locales or []) if loc != "de"]
     if _demo_locales:  # DL-2/DL-3: оверлей текстов на все включённые локали
         from . import demo_i18n

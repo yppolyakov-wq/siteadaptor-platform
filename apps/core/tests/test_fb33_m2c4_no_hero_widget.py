@@ -276,16 +276,11 @@ KIT_AFTER_HERO = {
 
 
 def _kit_widget(kit):
-    """Набор кита: патч кита > ось сборки > `kit.hero_widget` (до M2c-4 — тем же порядком
-    через ключ-переносчик)."""
-    patch = ((kit.config_patch or {}).get("site_defaults") or {}) if kit.config_patch else {}
-    if "hero_widget" in patch:
-        return patch["hero_widget"] or ""
-    bundle = sitetemplates.get_bundle(kit.bundle) if kit.bundle else None
-    if bundle is not None and bundle["config"].get("hero_widget"):
-        widget = bundle["config"]["hero_widget"]
-        return "" if widget == "none" else widget
-    return kit.hero_widget if kit.hero_widget in siteconfig.HERO_WIDGETS else ""
+    """Набор кита (с M2c-4 — `_kit_quick_links`: патч кита > ось сборки > `kit.hero_widget`;
+    до M2c-4 тот же порядок давал ключ-переносчик `site_defaults.hero_widget`)."""
+    from apps.tenants.demo_kits import _kit_quick_links
+
+    return _kit_quick_links(kit)
 
 
 def test_l4_every_kit_places_the_same_tiles():
@@ -309,3 +304,15 @@ def test_l4_applied_kit_has_the_frozen_row_after_the_banner(key):
     data = nxt.get("data") if nxt.get("key") in ("quick_links", "list") else None
     assert (nxt.get("key"), nxt.get("id"), nxt.get("enabled"), data) == KIT_AFTER_HERO[key]
     assert not (cfg.get("site_defaults") or {}).get("hero_widget")
+
+
+def test_l4_kits_carry_no_key_in_their_patch():
+    """Набор кита — полем (`hero_widget`/`hero_widget_override`), не ключом в config_patch."""
+    from apps.tenants.demo_kits import KITS
+
+    bad = [
+        k
+        for k, kit in KITS.items()
+        if "hero_widget" in ((kit.config_patch or {}).get("site_defaults") or {})
+    ]
+    assert bad == []
