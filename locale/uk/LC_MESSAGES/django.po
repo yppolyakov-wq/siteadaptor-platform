@@ -39624,3 +39624,15 @@ msgstr "Взяти текст сторінки"
 #. FB-33 стопка: плитка «Von einer Seite» и плашка M0-9
 msgid "Beide Fassungen bleiben gespeichert — umschalten verliert nichts."
 msgstr "Обидва варіанти залишаються збереженими — під час перемикання нічого не втрачається."
+
+#. FB-33 стопка: якорь среза M3-4 — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
+msgid "fb33-stack-anchor-M3-4"
+msgstr "fb33-stack-anchor-M3-4"
+
+#. FB-33 стопка: якорь среза M3-5a — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
+msgid "fb33-stack-anchor-M3-5a"
+msgstr "fb33-stack-anchor-M3-5a"
+
+#. FB-33 стопка: якорь среза M3-5b — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
+msgid "fb33-stack-anchor-M3-5b"
+msgstr "fb33-stack-anchor-M3-5b"
