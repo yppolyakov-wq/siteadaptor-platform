@@ -242,6 +242,8 @@ def m32(pg, w, ref):
     pg.click("form:has(select[name=type]) button")
     pg.wait_for_load_state()
     lref = parse_qs(urlparse(pg.url).query)["block"][0]
+    # стопка 2: «Ausgabe» (f_out) с M3-3c — во вкладке «Wie anordnen», новое окно открыто на «Was»
+    pg.goto(f"{page}&block={lref}&tab=wie")
     pick = pg.evaluate(
         """(sel) => [...document.querySelectorAll(sel + ' input[type=radio][name=f_out]')]
           .find(r => !r.checked).value""",
@@ -317,7 +319,7 @@ def m32_review(pg, page, lref, open_url):
     """Ревью M3-2 (silent-failure-hunter): окно не закрывается «мимо» и не умирает молча."""
     route = "**/dashboard/site/aufbau/**"
     # H3: отказ сервера на правку → Esc не отправляет «Fertig», отказ виден в окне
-    pg.goto(f"{page}&block={lref}")
+    pg.goto(f"{page}&block={lref}&tab=wie")  # f_out — во «Wie anordnen» (M3-3c)
     posts = []
     pg.on("request", lambda r: posts.append(r.post_data or "") if r.method == "POST" else None)
     pg.route(route, lambda r: _patched(pg, r, "refuse"))
@@ -343,7 +345,7 @@ def m32_review(pg, page, lref, open_url):
         "второй Esc после показанного отказа — «Fertig», окно закрыто",
     )
     # H1 (dress): ответ сервера — панель без окна → окно закрыто, панель снова в сетке
-    pg.goto(f"{page}&block={lref}")
+    pg.goto(f"{page}&block={lref}&tab=wie")
     pg.route(route, lambda r: _patched(pg, r, "nowindow"))
     pick = _pick_other(pg)
     pg.click(f'{DLG} label:has(input[name=f_out][value="{pick}"])')
