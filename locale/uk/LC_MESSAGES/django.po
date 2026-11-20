@@ -39802,3 +39802,7 @@ msgstr "→ Розсилка"
 #, python-format
 msgid "%(label)s zeigen"
 msgstr "Показувати «%(label)s»"
+
+#. FB-33 M3-5b
+msgid "Vorlage für die Kacheln"
+msgstr "Шаблон плашок"

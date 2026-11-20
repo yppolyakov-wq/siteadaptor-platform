@@ -39815,3 +39815,7 @@ msgstr "→ Рассылка"
 #, python-format
 msgid "%(label)s zeigen"
 msgstr "Показывать «%(label)s»"
+
+#. FB-33 M3-5b
+msgid "Vorlage für die Kacheln"
+msgstr "Шаблон плашек"

@@ -39555,3 +39555,7 @@ msgstr "→ Newsletter"
 #, python-format
 msgid "%(label)s zeigen"
 msgstr "%(label)s zeigen"
+
+#. FB-33 M3-5b
+msgid "Vorlage für die Kacheln"
+msgstr "Vorlage für die Kacheln"

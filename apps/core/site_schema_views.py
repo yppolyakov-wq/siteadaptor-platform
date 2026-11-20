@@ -438,7 +438,9 @@ def site_schema_view(request):
     # FB-33 M3-5b: вопросы FAQ («Texte») и плашки Schnellzugriff («Was») окна блока
     from apps.core import window_parts
 
-    window_parts.decorate(selected, saved, draft, code == "home")
+    window_parts.decorate(
+        selected, saved, draft, code == "home", config, current.host if current else ""
+    )
     if (
         selected
         and (selected["key"] == "anfrage" and not selected["cblock"] or _is_anfrage_ref(selected))

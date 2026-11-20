@@ -258,6 +258,32 @@ def is_faq_edit(request, draft: dict, ref: str, op_name: str) -> bool:
     )
 
 
+def _is_tiles_edit(draft: dict, ref: str, op_name: str, fields) -> bool:
+    from apps.tenants import siteconfig
+
+    item = _row(draft, ref)
+    key = (item or {}).get("key") or ""
+    return (
+        op_name == "update"
+        and isinstance(fields, dict)
+        and fields.get("tiles_present") == "1"
+        and bool((item or {}).get("id"))
+        and (siteconfig.cblock_type(key) or key) == "quick_links"
+    )
+
+
+def _tiles_op(draft: dict, ref: str, fields: dict) -> None:
+    """Форма плашек окна → данные блока (`hero_tiles.update_data`); без изменений — блок не
+    трогаем (канонизация не создаёт «правку»)."""
+    from apps.core import hero_tiles
+
+    item = _row(draft, ref)
+    old = hero_tiles.clean_data(item.get("data") or {})
+    new = hero_tiles.update_data(old, fields)
+    if new != old:
+        item["data"] = new
+
+
 def faq_conflict(config: dict, draft: dict) -> bool:
     """Вопросы, которые держит черновик, успели изменить в другом месте (Студия, канва)."""
     from apps.core import faq_content
@@ -734,6 +760,9 @@ def op(
     elif site_schema.is_form_edit(host, ref, op_name):
         # FB-33 M2i-5: вкладка «Felder» — поля формы заявки в черновике, строка на месте
         ref = site_schema.form_op(tenant, config, draft, fields, notes)
+    elif _is_tiles_edit(draft, ref, op_name, fields):
+        # FB-33 M3-5b: плашки Schnellzugriff и набор — одной формой окна
+        _tiles_op(draft, ref, fields)
     elif is_faq_edit(request, draft, ref, op_name):
         # FB-33 M3-5b: вопросы FAQ в окне блока — в черновике, строка на месте
         ref = _faq_op(config, draft, ref, request.POST, notes)
