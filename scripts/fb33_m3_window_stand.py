@@ -1,19 +1,23 @@
-"""FB-33 M3: стенд окна блока в «Seitenaufbau» (1440 и 390): вкладки, фокус, Texte, Fertig/Abbrechen.
+"""FB-33 M3: стенд окна блока в «Seitenaufbau» (1440 и 390): вкладки, фокус, Texte, Fertig/Abbrechen;
+M3-2 — модальное окно (<dialog>, Esc/×, вкладки APG, геометрия, 44 px, сбой сети, без JS).
 
 Запуск (как aufbau_stand.py):
     uv run python scripts/text_pages_stand.py --setup        # один раз (тенант ptx, owner@ptx.test)
     python manage.py runserver 0.0.0.0:8000 --settings=config.settings.stand
     uv run --no-project --with playwright python scripts/fb33_m3_window_stand.py <папка для скриншотов>
 Chromium — /opt/pw-browsers/chromium (playwright install не запускать). Итог: «N ✓, 0 ✗».
+Сервер на другом порту — `STAND_URL=http://ptx.siteadaptor.de:<порт>`. Firefox/Safari — вручную.
 """
 
 # ruff: noqa: B023 — вложенные помощники вызываются в той же итерации цикла (pg, ref текущего размера)
+import os
 import sys
+from urllib.parse import parse_qs, urlparse
 
 from playwright.sync_api import sync_playwright
 
 OUT = sys.argv[1]
-U = "http://ptx.siteadaptor.de:8000"
+U = os.environ.get("STAND_URL", "http://ptx.siteadaptor.de:8000")  # другой порт — STAND_URL
 ok, fail = 0, []
 
 
@@ -23,6 +27,249 @@ def check(c, label):
     print(("  ✓ " if c else "  ✗ ") + label)
     if not c:
         fail.append(label)
+
+
+DLG = "dialog.ui-bwin"
+
+
+def busy_done(pg):
+    pg.wait_for_function(
+        "!+document.documentElement.getAttribute('data-schema-busy')", timeout=15000
+    )
+
+
+def closed(pg):
+    pg.wait_for_url(lambda u: "block=" not in u, timeout=20000)
+    pg.wait_for_load_state()
+
+
+def m32(pg, w, ref):
+    """FB-33 M3-2: модальное окно блока."""
+    page = U + "/dashboard/site/aufbau/?seite=text"
+    open_url = f"{page}&block={ref}"
+    pg.goto(open_url)
+    # мерить после анимации открытия (160 мс) и шрифтов
+    pg.wait_for_function("document.fonts.status === 'loaded' && !document.getAnimations().length")
+    info = pg.evaluate(
+        """(sel) => { const d = document.querySelector(sel); if (!d) return null;
+        const r = d.getBoundingClientRect(), h = d.querySelector('#schema-panel-title');
+        return {open: d.open, modal: d.matches(':modal'), am: d.getAttribute('aria-modal'),
+          lb: d.getAttribute('aria-labelledby'), h2: !!h, panel: !!d.querySelector('#schema-panel[data-schema-panel]'),
+          active: document.activeElement && document.activeElement.id,
+          w: r.width, h: r.height, left: r.left, cw: document.documentElement.clientWidth,
+          iw: innerWidth, ih: innerHeight, vw: (() => { const f = document.createElement('div');
+            f.style.cssText = 'position:fixed;inset:0;visibility:hidden'; document.body.appendChild(f);
+            const v = f.getBoundingClientRect().width; f.remove(); return v; })(), sw: document.documentElement.scrollWidth,
+          inGrid: !!document.querySelector('[data-site-schema] [data-schema-panel]'),
+          dialogs: document.querySelectorAll('dialog.ui-bwin').length} }""",
+        DLG,
+    )
+    check(
+        info and info["open"] and info["modal"], f"окно открыто модально ({info and info['modal']})"
+    )
+    check(
+        info["am"] == "true" and info["lb"] == "schema-panel-title" and info["h2"],
+        "aria-modal, aria-labelledby → заголовок блока",
+    )
+    check(
+        info["panel"] and not info["inGrid"] and info["dialogs"] == 1,
+        "панель перенесена в окно, одна",
+    )
+    check(info["active"] == "schema-panel-title", f"фокус на заголовке окна ({info['active']})")
+    inert = pg.evaluate(
+        """() => { const a = document.querySelector('[data-schema-map] a[data-schema-block]');
+        a.focus(); return document.activeElement !== a; }"""
+    )
+    check(inert, "фон под окном недоступен (inert)")
+    if w > 500:
+        # по центру видимой области (поле полосы прокрутки страницы — не часть её)
+        mid = info["left"] + info["w"] / 2 - info["vw"] / 2
+        check(
+            abs(info["w"] - 760) <= 2 and abs(mid) <= 2,
+            f"1440: 760 px по центру ({info['w']}, {mid:+.1f})",
+        )
+        check(pg.locator(f"{DLG} [data-bwin-close]").is_visible(), "× видна")
+    else:
+        check(
+            info["w"] == info["iw"] and info["h"] == info["ih"] and info["sw"] <= info["iw"],
+            f"390: окно во весь экран ({info['w']}×{info['h']}, scrollWidth {info['sw']})",
+        )
+        check(
+            not pg.locator(f"{DLG} [data-bwin-close]").is_visible(),
+            "390: × скрыта, «Fertig» сверху",
+        )
+    small = pg.evaluate(
+        """(sel) => [...document.querySelectorAll(sel + ' :is(a,button,summary,select,input,textarea,[role=tab])')]
+          .filter(e => e.getClientRects().length && getComputedStyle(e).visibility !== 'hidden')
+          .filter(e => !(e.tagName === 'A' && getComputedStyle(e).display === 'inline'))
+          .map(e => (e.type === 'radio' || e.type === 'checkbox') ? (e.closest('label') || e) : e)
+          .filter(e => e.getBoundingClientRect().height < 44)
+          .map(e => e.tagName + ':' + (e.textContent || e.name || '').trim().slice(0, 12) + ':'
+            + e.getBoundingClientRect().height.toFixed(2))""",
+        DLG,
+    )
+    check(not small, f"цели в окне не ниже 44 px ({small[:4]})")
+    y = pg.evaluate("() => { window.scrollTo(0, 400); return window.scrollY; }")
+    check(y == 0, f"страница под окном не прокручивается ({y})")
+    pg.wait_for_timeout(300)
+    pg.screenshot(path=f"{OUT}/m32_open_{w}.png")
+    # вкладки по APG: роли, стрелки, Home/End, адрес и F5
+    roles = pg.evaluate(
+        """(sel) => { const t = [...document.querySelectorAll(sel + ' [role=tab]')];
+        return {n: t.length, list: !!document.querySelector(sel + ' [role=tablist][aria-label]'),
+          sel: t.filter(a => a.getAttribute('aria-selected') === 'true').length,
+          zero: t.filter(a => a.tabIndex === 0).length,
+          ctl: t.every(a => { const p = document.getElementById(a.getAttribute('aria-controls'));
+            return p && p.getAttribute('role') === 'tabpanel' && p.getAttribute('aria-labelledby') === a.id; })} }""",
+        DLG,
+    )
+    check(
+        roles["n"] == 2
+        and roles["list"]
+        and roles["sel"] == 1
+        and roles["zero"] == 1
+        and roles["ctl"],
+        f"роли tablist/tab/tabpanel, одна выбранная в порядке Tab ({roles})",
+    )
+    pg.focus(f"{DLG} [role=tab][aria-selected=true]")
+    first = pg.evaluate("document.activeElement.getAttribute('data-window-tab-link')")
+    pg.keyboard.press("End")
+    last = pg.evaluate("document.activeElement.getAttribute('data-window-tab-link')")
+    shown = pg.locator(f"{DLG} [data-window-tab={last}]").is_visible()
+    check(
+        last != first and shown and f"tab={last}" in pg.url,
+        f"End — последняя вкладка, адрес помнит ({last})",
+    )
+    pg.keyboard.press("Home")
+    check(
+        pg.evaluate("document.activeElement.getAttribute('aria-selected')") == "true"
+        and pg.locator(f"{DLG} [data-window-tab={first}]").is_visible(),
+        "Home — первая вкладка",
+    )
+    pg.keyboard.press("ArrowRight")
+    pg.reload()
+    pg.wait_for_load_state()
+    after = pg.evaluate(
+        "(sel) => document.querySelector(sel + ' [role=tab][aria-selected=true]')?.getAttribute('data-window-tab-link')",
+        DLG,
+    )
+    check(after == last, f"F5 — та же вкладка ({after})")
+    tabs_in_forms = pg.evaluate(
+        """([sel, key]) => [...document.querySelectorAll(sel + ' [data-schema-panel] form')]
+          .every(f => f.querySelector('input[name=tab]')?.value === key)""",
+        [DLG, last],
+    )
+    check(tabs_in_forms, "формы панели несут выбранную вкладку")
+    # набрал текст → Esc: текст в черновике, окно закрыто, фокус на строке блока
+    pg.goto(open_url + "&tab=texte")
+    posts = []
+    pg.on("request", lambda r: posts.append(r.post_data or "") if r.method == "POST" else None)
+    pg.fill(f"{DLG} [data-schema-fields] input[name=f_title]", f"Esc {w}")
+    pg.keyboard.press("Escape")
+    pg.keyboard.press("Escape")  # двойной Esc — один «window_done»
+    closed(pg)
+    check(
+        sum("op=window_done" in d for d in posts) == 1,
+        f"двойной Esc — один POST ({sum('op=window_done' in d for d in posts)})",
+    )
+    focus = pg.evaluate(
+        "document.activeElement && document.activeElement.getAttribute('data-schema-block')"
+    )
+    check(focus == ref, f"после закрытия фокус на строке блока ({focus})")
+    check(pg.locator(DLG).count() == 0, "окно закрыто")
+    pg.goto(open_url + "&tab=texte")
+    got = pg.locator(f"{DLG} [data-schema-fields] input[name=f_title]").input_value()
+    check(got == f"Esc {w}", f"набранное до Esc — в черновике ({got})")
+    # × — то же, что «Fertig» (только на компьютере)
+    if w > 500:
+        pg.click(f"{DLG} [data-bwin-close]")
+        closed(pg)
+        check("block=" not in pg.url, "× закрыл окно")
+    # Esc при открытом «⋯» — закрывает только меню
+    pg.goto(open_url)
+    pg.click(f"{DLG} details[data-schema-more] summary")
+    pg.keyboard.press("Escape")
+    still = pg.evaluate(
+        "(sel) => [document.querySelector(sel)?.open, document.querySelector(sel + ' details[data-schema-more]').open]",
+        DLG,
+    )
+    check(
+        still == [True, False] and "block=" in pg.url,
+        f"Esc при «⋯» — закрыл меню, окно осталось ({still})",
+    )
+    # Esc в подтверждении удаления — назад в окно блока
+    pg.goto(open_url + "&entfernen=1")
+    check(
+        pg.locator(f"{DLG} [data-schema-confirm]").is_visible(), "подтверждение удаления — в окне"
+    )
+    pg.keyboard.press("Escape")
+    pg.wait_for_url(lambda u: "entfernen" not in u, timeout=10000)
+    pg.wait_for_load_state()
+    check(
+        pg.locator(DLG).count() == 1 and pg.locator(f"{DLG} [data-schema-confirm]").count() == 0,
+        "Esc в подтверждении — снова окно блока",
+    )
+    # переключатель → Esc раньше 350 мс: выбор уходит до «Fertig»
+    pg.goto(page)
+    pg.click("[data-schema-add] summary")
+    pg.select_option("select[name=type]", "list")
+    pg.click("form:has(select[name=type]) button")
+    pg.wait_for_load_state()
+    lref = parse_qs(urlparse(pg.url).query)["block"][0]
+    pick = pg.evaluate(
+        """(sel) => [...document.querySelectorAll(sel + ' input[type=radio][name=f_out]')]
+          .find(r => !r.checked).value""",
+        DLG,
+    )
+    pg.click(f"{DLG} label:has(input[name=f_out][value={pick}])")
+    pg.keyboard.press("Escape")
+    closed(pg)
+    pg.goto(f"{page}&block={lref}")
+    now = pg.evaluate(
+        "(sel) => document.querySelector(sel + ' input[name=f_out]:checked')?.value", DLG
+    )
+    check(now == pick, f"переключатель → Esc: выбор сохранён ({now})")
+    # сбой сети: правка и закрытие не дошли — окно остаётся, ошибка в окне
+    pg.goto(open_url + "&tab=texte")
+    pg.route(
+        "**/dashboard/site/aufbau/**",
+        lambda r: r.abort("aborted") if r.request.method == "POST" else r.continue_(),
+    )
+    pg.fill(f"{DLG} [data-schema-fields] input[name=f_title]", f"Offline {w}")
+    pg.keyboard.press("Escape")
+    alert = pg.locator(f"{DLG} [role=alert]")
+    alert.first.wait_for(state="visible", timeout=25000)
+    check(
+        alert.first.is_visible() and pg.locator(DLG).evaluate("d => d.open"),
+        "сбой сети — окно открыто, ошибка внутри",
+    )
+    pg.unroute("**/dashboard/site/aufbau/**")
+    # уборка: блок «Liste» удаляем подтверждением
+    pg.goto(f"{page}&block={lref}&entfernen=1")
+    pg.click(f"{DLG} [data-schema-confirm] button[value=delete]")
+    pg.wait_for_load_state()
+
+
+def nojs(b):
+    """Без скриптов окна нет — прежняя панель колонкой."""
+    for w, h in ((1440, 900), (390, 844)):
+        ctx = b.new_context(viewport={"width": w, "height": h}, java_script_enabled=False)
+        pg = ctx.new_page()
+        pg.goto(U + "/accounts/login/")
+        pg.fill("input[name=login]", "owner@ptx.test")
+        pg.fill("input[name=password]", "Stand-Passwort-123")
+        pg.click("button[type=submit]")
+        pg.wait_for_load_state()
+        pg.goto(U + "/dashboard/site/aufbau/?seite=text&block=__page")
+        html = pg.content()
+        check(
+            '<dialog class="ui-bwin' not in html
+            and pg.locator("[data-site-schema] aside#schema-panel").count() == 1
+            and pg.locator("[role=tab]").count() == 0,
+            f"{w}: без JS — окна и ролей вкладок нет, панель в сетке",
+        )
+        pg.screenshot(path=f"{OUT}/m32_nojs_{w}.png")
+        ctx.close()
 
 
 with sync_playwright() as p:
@@ -65,14 +312,15 @@ with sync_playwright() as p:
         check(pg.locator("[data-window-tab=texte]").is_visible(), "клик открыл «Texte»")
         check("tab=texte" in pg.url, "адрес помнит вкладку")
         focused = pg.evaluate("document.activeElement && document.activeElement.id")
-        check(focused == "schema-tab-texte", f"фокус — во вкладке ({focused})")
-        pg.keyboard.press("Shift+Tab")  # из вкладки — назад на её ссылку
+        check(focused == "schema-tabbtn-texte", f"фокус — на вкладке ({focused})")
+        pg.keyboard.press("ArrowLeft")  # M3-2: вкладки по APG — стрелками, фокус с клавиатуры
+        pg.keyboard.press("ArrowRight")
         ring = pg.evaluate(
             "[document.activeElement.getAttribute('data-window-tab-link'),"
             " getComputedStyle(document.activeElement).outlineStyle,"
             " getComputedStyle(document.activeElement).outlineWidth].join(' ')"
         )
-        check(ring == "texte solid 2px", f"у ссылки вкладки виден фокус ({ring})")
+        check(ring == "texte solid 2px", f"у вкладки виден фокус ({ring})")
         pg.fill("[data-schema-fields] input[name=f_title]", f"M3 Fenster {w}")
         pg.evaluate("document.activeElement && document.activeElement.blur()")
         pg.wait_for_function(
@@ -90,13 +338,12 @@ with sync_playwright() as p:
         )
         over = pg.evaluate("document.documentElement.scrollWidth - window.innerWidth")
         check(over <= 0, f"без горизонтального вылета ({over})")
+        pg.wait_for_timeout(300)  # анимация открытия
         pg.screenshot(path=f"{OUT}/m3_window_{w}.png", full_page=False)
         pg.click("[data-window-tab-link=wie]")
         pg.wait_for_load_state()
         check(pg.locator("[data-schema-width]").is_visible(), "«Wie anordnen»: ширина на месте")
         # FB-33 M3-1b: «Fertig» закрывает (правка остаётся), «Abbrechen» — блок как при открытии
-        from urllib.parse import parse_qs, urlparse
-
         ref = parse_qs(urlparse(pg.url).query)["block"][0]
         pg.click("[data-window-actions] button[value=window_done]")
         pg.wait_for_load_state()
@@ -206,7 +453,9 @@ with sync_playwright() as p:
         pg.goto(open_url)
         back = pg.locator("[data-schema-fields] input[name=f_title]").input_value()
         check(back == before, f"правка → F5 → правка → Abbrechen: как при открытии ({back})")
+        m32(pg, w, ref)
         ctx.close()
+    nojs(b)
     b.close()
 print(f"{ok} ✓, {len(fail)} ✗")
 sys.exit(1 if fail else 0)
