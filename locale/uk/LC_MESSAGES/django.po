@@ -39382,3 +39382,36 @@ msgstr "Шаблон галузі застосовано — на сторінц
 #. FB-33 M2i-5: вкладка «Felder»
 msgid "Keine weitere Frage möglich: Die Nummern für eigene Fragen sind aufgebraucht."
 msgstr "Більше питань додати не можна: номери для власних питань закінчилися."
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgid "Art der Antwort"
+msgstr "Тип відповіді"
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgid "Die Liste bleibt gespeichert, solange Datum, Personen oder Art der Veranstaltung gefragt werden."
+msgstr "Список зберігається, доки питають дату, кількість гостей або вид заходу."
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgid "Eigene Beschriftung"
+msgstr "Власний підпис"
+
+#. FB-33 M2i-5: вкладка «Felder»
+#, python-format
+msgid "Frage %(n)s"
+msgstr "Питання %(n)s"
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgid "Noch keine eigenen Fragen."
+msgstr "Власних питань поки немає."
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgid "Optionen für „Auswahl“ (eine pro Zeile)"
+msgstr "Варіанти для «Вибір зі списку» (по одному в рядку)"
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgid "Was die Anfrage-Form fragt. Änderungen erscheinen auf der Seite nach „Speichern“."
+msgstr "Що питає форма заявки. Зміни з'являться на сторінці після «Зберегти»."
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgid "immer Pflicht"
+msgstr "завжди обов'язково"

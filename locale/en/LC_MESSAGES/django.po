@@ -39054,3 +39054,36 @@ msgstr "Industry template applied – it appears on the page after “Save”."
 #. FB-33 M2i-5: вкладка «Felder»
 msgid "Keine weitere Frage möglich: Die Nummern für eigene Fragen sind aufgebraucht."
 msgstr "No further question possible: the numbers for custom questions are used up."
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgid "Art der Antwort"
+msgstr "Answer type"
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgid "Die Liste bleibt gespeichert, solange Datum, Personen oder Art der Veranstaltung gefragt werden."
+msgstr "The list is kept as long as date, number of guests or type of event is asked."
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgid "Eigene Beschriftung"
+msgstr "Custom label"
+
+#. FB-33 M2i-5: вкладка «Felder»
+#, python-format
+msgid "Frage %(n)s"
+msgstr "Question %(n)s"
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgid "Noch keine eigenen Fragen."
+msgstr "No custom questions yet."
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgid "Optionen für „Auswahl“ (eine pro Zeile)"
+msgstr "Options for “Choice” (one per line)"
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgid "Was die Anfrage-Form fragt. Änderungen erscheinen auf der Seite nach „Speichern“."
+msgstr "What the request form asks. Changes appear on the page after “Save”."
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgid "immer Pflicht"
+msgstr "always required"

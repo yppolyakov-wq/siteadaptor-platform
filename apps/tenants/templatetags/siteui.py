@@ -434,12 +434,24 @@ def form_field_modes(context, form):
     tenant = getattr(request, "tenant", None)
     if tenant is None:
         return form_spec.view({}, form)
-    # одна нормализация на запрос (форма заявки бывает и в блоке, и в модалке, и на странице)
+    return form_spec.view(_form_site(request, tenant), form)
+
+
+def _form_site(request, tenant) -> dict:
+    """Нормализованный конфиг формы заявки — с учётом превью (FB-33 M2i-5: черновик вкладки
+    «Felder» `?preview=1&aufbau=anfrage` — через `page_settings.raw_config`, единый читатель
+    витрины). Одна нормализация на запрос: форма бывает и в блоке, и в модалке, и на странице."""
     site = getattr(request, "_form_fields_site", None)
     if site is None:
-        site = siteconfig.normalize(tenant.site_config)
-        request._form_fields_site = site
-    return form_spec.view(site, form)
+        from apps.core import page_settings
+
+        raw = page_settings.raw_config(request) if hasattr(request, "GET") else None
+        site = siteconfig.normalize(raw if raw is not None else tenant.site_config)
+        try:
+            request._form_fields_site = site
+        except AttributeError:  # неизменяемая заглушка запроса — без кеша
+            pass
+    return site
 
 
 @register.simple_tag(takes_context=True)
@@ -456,7 +468,7 @@ def anfrage_event_choices(context):
     tenant = getattr(request, "tenant", None)
     if tenant is None:
         return []
-    cfg = siteconfig.normalize(tenant.site_config)
+    cfg = _form_site(request, tenant)  # FB-33 M2i-5: превью черновика — как и поля формы
     base = (cfg.get("anfrage") or {}).get("event_types") or []
     shown = (siteconfig.localize(cfg, get_language()).get("anfrage") or {}).get("event_types") or []
     out = []

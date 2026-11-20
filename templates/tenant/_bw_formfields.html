@@ -1,1 +1,79 @@
-{% load i18n %}{% comment %}FB-33 M2i-5: вкладка «Felder» — поля формы заявки (заготовка, разметка — C3).{% endcomment %}
+{% load i18n %}{% comment %}FB-33 M2i-5: вкладка «Felder» — поля формы заявки (form_spec.panel). Одна неделимая форма: правки идут в черновик (op=update ref=form), кнопки «+ Frage», вверх/вниз/удалить и «Branchen-Vorlage» — поле do; без скриптов — «Übernehmen». Подписи и варианты — только автоэкранированием.{% endcomment %}
+{% with fs=selected.form_spec %}
+<form method="post" class="mt-4 space-y-4" data-schema-fields data-form-felder>
+  {% csrf_token %}
+  {% include "tenant/_schema_keep.html" %}
+  <input type="hidden" name="ref" value="{{ selected.ref }}">
+  <input type="hidden" name="panel_present" value="1">
+  <input type="hidden" name="op" value="update">
+  {% comment %}Enter в поле — отправка без действия (первая кнопка формы — «по умолчанию»), а не «Nach oben» первого вопроса.{% endcomment %}
+  <button type="submit" class="sr-only" tabindex="-1" aria-hidden="true"></button>
+  <p class="text-sm text-gray-700">{% trans "Was die Anfrage-Form fragt. Änderungen erscheinen auf der Seite nach „Speichern“." %}</p>
+  {% for f in fs.fields %}
+  {% if f.pinned %}
+  <div class="rounded-lg border border-gray-200 p-3" data-form-field="{{ f.key }}">
+    <p class="text-sm font-semibold text-gray-800">{{ f.label }}</p>
+    <p class="mt-1 text-xs text-gray-700"><span aria-hidden="true">🔒</span> {% trans "immer Pflicht" %}</p>
+  </div>
+  {% else %}
+  <fieldset class="rounded-lg border border-gray-200 p-3" data-form-field="{{ f.key }}">
+    <legend class="px-1 text-sm font-semibold text-gray-800">{{ f.label }}</legend>
+    <div class="flex flex-wrap gap-x-4">
+      {% for m, mlabel in fs.modes %}<label class="inline-flex min-h-[44px] items-center gap-2 text-sm"><input type="radio" name="f_mode_{{ f.key }}" value="{{ m }}"{% if m == f.mode %} checked{% endif %}> {{ mlabel }}</label>{% endfor %}
+    </div>
+    <label for="ff-label-{{ f.key }}" class="mt-1 block text-xs text-gray-700">{% trans "Eigene Beschriftung" %}</label>
+    <input type="text" id="ff-label-{{ f.key }}" name="f_label_{{ f.key }}" value="{{ f.custom_label }}" placeholder="{{ f.default_label }}" maxlength="120" class="ui-input w-full">
+    {% if f.event_type %}
+    <label for="ff-event-types" class="mt-2 block text-xs text-gray-700">{% trans "Auswahlliste (eine Option pro Zeile)" %}</label>
+    <textarea id="ff-event-types" name="f_event_types" rows="4" class="ui-input w-full" aria-describedby="ff-event-types-hint">{{ fs.event_types_text }}</textarea>
+    <p id="ff-event-types-hint" class="mt-1 text-xs text-gray-700">{% trans "Die Liste bleibt gespeichert, solange Datum, Personen oder Art der Veranstaltung gefragt werden." %}</p>
+    {% if fs.event_hint %}<p class="mt-1 text-xs font-semibold text-amber-900" data-form-event-hint><span aria-hidden="true">⚠</span> {% trans "„Art der Veranstaltung“ erscheint erst mit einer Auswahlliste – bitte Optionen eintragen." %}</p>{% endif %}
+    {% endif %}
+  </fieldset>
+  {% endif %}
+  {% endfor %}
+  <fieldset class="rounded-lg border border-gray-200 p-3 space-y-3" data-form-questions>
+    <legend class="px-1 text-sm font-semibold text-gray-800">{% trans "Eigene Fragen" %}</legend>
+    {% for q in fs.custom %}
+    <div class="space-y-2 rounded-lg bg-gray-50 p-3" data-form-question="{{ q.id }}">
+      <label for="ff-q-{{ q.id }}-label" class="block text-xs font-semibold text-gray-700">{% blocktrans with n=forloop.counter %}Frage {{ n }}{% endblocktrans %}</label>
+      <input type="text" id="ff-q-{{ q.id }}-label" name="f_q_{{ q.id }}_label" value="{{ q.label }}" maxlength="120" class="ui-input w-full">
+      <label for="ff-q-{{ q.id }}-type" class="block text-xs text-gray-700">{% trans "Art der Antwort" %}</label>
+      <select id="ff-q-{{ q.id }}-type" name="f_q_{{ q.id }}_type" class="ui-input w-full">
+        {% for t, tlabel in fs.types %}<option value="{{ t }}"{% if t == q.type %} selected{% endif %}>{{ tlabel }}</option>{% endfor %}
+      </select>
+      <label for="ff-q-{{ q.id }}-options" class="block text-xs text-gray-700">{% trans "Optionen für „Auswahl“ (eine pro Zeile)" %}</label>
+      <textarea id="ff-q-{{ q.id }}-options" name="f_q_{{ q.id }}_options" rows="3" class="ui-input w-full">{{ q.options_text }}</textarea>
+      <label class="inline-flex min-h-[44px] items-center gap-2 text-sm"><input type="checkbox" name="f_q_{{ q.id }}_req" value="1"{% if q.req %} checked{% endif %}> {% trans "Pflicht" context "form field mode" %}</label>
+      <div class="flex flex-wrap gap-2">
+        {% if not q.first %}<button name="f_do" value="up:{{ q.id }}" class="ui-btn ui-btn-secondary min-h-[44px] min-w-[44px]"><span aria-hidden="true">↑</span><span class="sr-only">{% blocktrans with t=q.label %}„{{ t }}“ nach oben{% endblocktrans %}</span></button>{% endif %}
+        {% if not q.last %}<button name="f_do" value="down:{{ q.id }}" class="ui-btn ui-btn-secondary min-h-[44px] min-w-[44px]"><span aria-hidden="true">↓</span><span class="sr-only">{% blocktrans with t=q.label %}„{{ t }}“ nach unten{% endblocktrans %}</span></button>{% endif %}
+        <button name="f_do" value="del:{{ q.id }}" class="ui-btn ui-btn-secondary min-h-[44px]">{% trans "Entfernen" %}<span class="sr-only"> – {{ q.label }}</span></button>
+      </div>
+    </div>
+    {% empty %}
+    <p class="text-sm text-gray-700">{% trans "Noch keine eigenen Fragen." %}</p>
+    {% endfor %}
+    {% if fs.can_add %}
+    <div class="space-y-2 rounded-lg border border-dashed border-gray-400 p-3" data-form-new>
+      <label for="ff-new-label" class="block text-xs font-semibold text-gray-700">{% trans "Neue Frage" %}</label>
+      <input type="text" id="ff-new-label" name="f_new_label" maxlength="120" class="ui-input w-full">
+      <label for="ff-new-type" class="block text-xs text-gray-700">{% trans "Art der Antwort" %}</label>
+      <select id="ff-new-type" name="f_new_type" class="ui-input w-full">
+        {% for t, tlabel in fs.types %}<option value="{{ t }}">{{ tlabel }}</option>{% endfor %}
+      </select>
+      <label for="ff-new-options" class="block text-xs text-gray-700">{% trans "Optionen für „Auswahl“ (eine pro Zeile)" %}</label>
+      <textarea id="ff-new-options" name="f_new_options" rows="3" class="ui-input w-full"></textarea>
+      <label class="inline-flex min-h-[44px] items-center gap-2 text-sm"><input type="checkbox" name="f_new_req" value="1"> {% trans "Pflicht" context "form field mode" %}</label>
+      <div><button name="f_do" value="add" class="ui-btn ui-btn-secondary min-h-[44px]" data-form-add>+ {% trans "Frage" %}</button></div>
+    </div>
+    {% else %}
+    <p class="text-sm text-gray-700" data-form-full>{% blocktrans with n=fs.max_questions %}Höchstens {{ n }} eigene Fragen.{% endblocktrans %}</p>
+    {% endif %}
+  </fieldset>
+  {% if fs.preset %}
+  <p><button name="f_do" value="preset" onclick="return confirm('{% trans "Aktuelle Felder durch die Branchen-Vorlage ersetzen?" as q %}{{ q|escapejs }}')" class="inline-flex min-h-[44px] items-center text-sm font-semibold text-indigo-700 hover:underline" data-form-preset>{% trans "Branchen-Vorlage laden" %}</button></p>
+  {% endif %}
+  <button name="op" value="update" class="ui-btn ui-btn-primary w-full">{% trans "Übernehmen" %}</button>
+</form>
+{% endwith %}

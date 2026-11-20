@@ -39141,3 +39141,36 @@ msgstr "Branchen-Vorlage übernommen – mit „Speichern“ erscheint sie auf d
 #. FB-33 M2i-5: вкладка «Felder»
 msgid "Keine weitere Frage möglich: Die Nummern für eigene Fragen sind aufgebraucht."
 msgstr "Keine weitere Frage möglich: Die Nummern für eigene Fragen sind aufgebraucht."
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgid "Art der Antwort"
+msgstr "Art der Antwort"
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgid "Die Liste bleibt gespeichert, solange Datum, Personen oder Art der Veranstaltung gefragt werden."
+msgstr "Die Liste bleibt gespeichert, solange Datum, Personen oder Art der Veranstaltung gefragt werden."
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgid "Eigene Beschriftung"
+msgstr "Eigene Beschriftung"
+
+#. FB-33 M2i-5: вкладка «Felder»
+#, python-format
+msgid "Frage %(n)s"
+msgstr "Frage %(n)s"
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgid "Noch keine eigenen Fragen."
+msgstr "Noch keine eigenen Fragen."
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgid "Optionen für „Auswahl“ (eine pro Zeile)"
+msgstr "Optionen für „Auswahl“ (eine pro Zeile)"
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgid "Was die Anfrage-Form fragt. Änderungen erscheinen auf der Seite nach „Speichern“."
+msgstr "Was die Anfrage-Form fragt. Änderungen erscheinen auf der Seite nach „Speichern“."
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgid "immer Pflicht"
+msgstr "immer Pflicht"

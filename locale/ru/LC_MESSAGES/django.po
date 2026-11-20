@@ -39395,3 +39395,36 @@ msgstr "Шаблон отрасли применён — на странице �
 #. FB-33 M2i-5: вкладка «Felder»
 msgid "Keine weitere Frage möglich: Die Nummern für eigene Fragen sind aufgebraucht."
 msgstr "Больше вопросов добавить нельзя: номера для своих вопросов закончились."
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgid "Art der Antwort"
+msgstr "Тип ответа"
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgid "Die Liste bleibt gespeichert, solange Datum, Personen oder Art der Veranstaltung gefragt werden."
+msgstr "Список сохраняется, пока спрашивается дата, число гостей или вид мероприятия."
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgid "Eigene Beschriftung"
+msgstr "Своя подпись"
+
+#. FB-33 M2i-5: вкладка «Felder»
+#, python-format
+msgid "Frage %(n)s"
+msgstr "Вопрос %(n)s"
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgid "Noch keine eigenen Fragen."
+msgstr "Своих вопросов пока нет."
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgid "Optionen für „Auswahl“ (eine pro Zeile)"
+msgstr "Варианты для «Выбор из списка» (по одному в строке)"
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgid "Was die Anfrage-Form fragt. Änderungen erscheinen auf der Seite nach „Speichern“."
+msgstr "Что спрашивает форма заявки. Изменения появятся на странице после «Сохранить»."
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgid "immer Pflicht"
+msgstr "всегда обязательно"

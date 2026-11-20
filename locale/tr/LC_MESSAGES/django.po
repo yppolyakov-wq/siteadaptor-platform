@@ -39200,3 +39200,36 @@ msgstr "Sektör şablonu uygulandı – “Kaydet” ile sayfada görünür."
 #. FB-33 M2i-5: вкладка «Felder»
 msgid "Keine weitere Frage möglich: Die Nummern für eigene Fragen sind aufgebraucht."
 msgstr "Başka soru eklenemez: özel soru numaraları tükendi."
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgid "Art der Antwort"
+msgstr "Yanıt türü"
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgid "Die Liste bleibt gespeichert, solange Datum, Personen oder Art der Veranstaltung gefragt werden."
+msgstr "Liste, tarih, kişi sayısı veya etkinlik türü sorulduğu sürece kaydedilir."
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgid "Eigene Beschriftung"
+msgstr "Özel etiket"
+
+#. FB-33 M2i-5: вкладка «Felder»
+#, python-format
+msgid "Frage %(n)s"
+msgstr "Soru %(n)s"
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgid "Noch keine eigenen Fragen."
+msgstr "Henüz özel soru yok."
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgid "Optionen für „Auswahl“ (eine pro Zeile)"
+msgstr "“Seçim” için seçenekler (satır başına bir)"
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgid "Was die Anfrage-Form fragt. Änderungen erscheinen auf der Seite nach „Speichern“."
+msgstr "Talep formunun sordukları. Değişiklikler “Kaydet”ten sonra sayfada görünür."
+
+#. FB-33 M2i-5: вкладка «Felder»
+msgid "immer Pflicht"
+msgstr "her zaman zorunlu"
