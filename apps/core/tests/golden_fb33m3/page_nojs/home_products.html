@@ -1,0 +1,761 @@
+<div class="flex flex-wrap items-center gap-3 mb-4" data-schema-head>
+  <h1 class="ui-h1">Seitenaufbau</h1>
+  <form method="get" class="flex items-center gap-2" data-schema-type aria-label="Seite wählen">
+    <label for="schema-seite" class="sr-only">Seitentyp</label>
+    <select name="seite" id="schema-seite" class="ui-input font-semibold">
+      
+      <optgroup label="Startseite">
+        <option value="home" selected>Startseite</option>
+      </optgroup>
+      
+      <optgroup label="Sortiment">
+        <option value="catalog">Katalog</option><option value="category">Alle Kategorien</option><option value="product">Produktseite</option><option value="cart">Warenkorb</option><option value="wishlist">Merkzettel</option><option value="combos">Kombis</option><option value="lookbook">Lookbook</option>
+      </optgroup>
+      
+      <optgroup label="Aktionen">
+        <option value="promos">Aktionen</option><option value="promo_group">Alle Angebotsgruppen</option><option value="promo">Aktionsseite</option>
+      </optgroup>
+      
+      <optgroup label="Nach dem Kauf">
+        <option value="confirmation">Bestätigung</option>
+      </optgroup>
+      
+      <optgroup label="Inhalte">
+        <option value="text">Über uns</option><option value="text@versand">Versand</option><option value="team">Team</option><option value="gallery">Galerie</option><option value="reviews">Bewertungen</option><option value="contact">Kontakt</option>
+      </optgroup>
+      
+    </select>
+    
+    <button class="ui-btn ui-btn-secondary" data-schema-open>Öffnen</button>
+  </form>
+  
+  <div class="hidden md:inline-flex rounded-full border border-gray-300 p-0.5 text-sm" role="group" aria-label="Ansicht" data-schema-view>
+    <a href="?seite=home" class="inline-flex items-center min-h-[44px] rounded-full px-3 font-semibold bg-indigo-700 text-white" aria-current="page">Computer</a>
+    <a href="?seite=home&amp;ansicht=telefon" class="inline-flex items-center min-h-[44px] rounded-full px-3 font-semibold text-gray-700 hover:bg-gray-100">Telefon</a>
+  </div>
+  <span class="flex-1"></span>
+  <div class="contents" data-schema-status>
+  
+  <a href="/dashboard/site/home/?page=%2F" class="inline-flex items-center min-h-[44px] text-sm font-semibold text-indigo-700 hover:underline">Auf der Seite bearbeiten</a>
+  <a href="/?preview=1&amp;stand=saved" target="_blank" rel="noopener" class="inline-flex items-center min-h-[44px] text-sm font-semibold text-indigo-700 hover:underline">Vorschau<span class="sr-only"> (öffnet in neuem Tab)</span></a>
+  
+  </div>
+  <p role="status" class="sr-only" data-schema-live data-done="Übernommen."></p>
+</div>
+<script>
+(function () {
+  "use strict";
+  // FB-27 V1: страница открывается по выбору; кнопка «Öffnen» нужна только без скриптов.
+  var form = document.querySelector("[data-schema-type]");
+  if (!form) return;
+  var btn = form.querySelector("[data-schema-open]");
+  if (btn) btn.style.display = "none";
+  // С клавиатуры стрелки меняют значение на каждом шаге (WCAG 3.2.2) — тогда страница
+  // открывается по Enter или при уходе из списка; мышью и пальцем — сразу по выбору.
+  var sel = form.querySelector("select"), opened = sel.value, byKeys = false;
+  function go() { if (sel.value !== opened) { opened = sel.value; form.requestSubmit ? form.requestSubmit() : form.submit(); } }
+  sel.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); go(); } else { byKeys = true; } });
+  sel.addEventListener("pointerdown", function () { byKeys = false; });
+  sel.addEventListener("change", function () { if (!byKeys) go(); });
+  sel.addEventListener("blur", go);
+  // Меню «⋯» и «+ Block» закрываются по Esc, фокус возвращается на кнопку.
+  document.addEventListener("keydown", function (e) {
+    if (e.key !== "Escape" || !e.target.closest) return;
+    var d = e.target.closest("details[data-schema-more], details[data-schema-add]");
+    if (d && d.open) { e.preventDefault(); d.open = false; d.querySelector("summary").focus(); }
+  });
+})();
+</script>
+
+<div data-schema-messages data-schema-error="Die Änderung wurde nicht gespeichert. Bitte die Seite neu laden und noch einmal versuchen.">
+
+</div>
+
+
+
+
+<div class="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_20rem] gap-4 items-start" data-site-schema>
+  <section class="ui-card p-4" aria-labelledby="schema-title" data-schema-map>
+    <h2 id="schema-title" class="font-semibold mb-3"><span class="sr-only">Aufbau: </span>Startseite</h2>
+    
+    
+    <ul class="space-y-2" data-schema-blocks>
+      <li class="flex items-center justify-between gap-2 rounded-xl border border-dashed border-gray-300 bg-gray-50 px-3 py-2.5 text-sm text-gray-600">
+        <span>Kopfzeile & Menü</span>
+        <a href="/dashboard/site/menu/" class="inline-flex items-center min-h-[24px] text-indigo-700 hover:underline">Menü bearbeiten</a>
+      </li>
+      
+      
+      <li><ul class="flex flex-col md:flex-row gap-2" data-schema-row>
+        
+        <li class="min-w-0" style="flex: 12 1 0%" data-schema-drag="usp_bar">
+        
+        <a href="?seite=home&amp;block=usp_bar&amp;wopen=W#schema-panel"
+           class="block rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 bg-white hover:bg-gray-50"
+           data-schema-block="usp_bar">
+          <span class="schema-grip hidden float-right ml-2 select-none text-gray-500" aria-hidden="true">⋮⋮</span>
+          
+          <span class="block font-semibold">Vertrauensleiste</span>
+          
+          
+          <span class="mt-2 block space-y-1" aria-hidden="true" data-schema-thumb="lines"><span class="block h-1.5 w-4/5 rounded bg-gray-200"></span><span class="block h-1.5 w-3/5 rounded bg-gray-200"></span></span>
+        </a></li>
+        
+        
+      </ul></li>
+      
+      <li><ul class="flex flex-col md:flex-row gap-2" data-schema-row>
+        
+        <li class="min-w-0" style="flex: 12 1 0%" data-schema-drag="faq">
+        
+        <a href="?seite=home&amp;block=faq&amp;wopen=W#schema-panel"
+           class="block rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 bg-white hover:bg-gray-50"
+           data-schema-block="faq">
+          <span class="schema-grip hidden float-right ml-2 select-none text-gray-500" aria-hidden="true">⋮⋮</span>
+          
+          <span class="block font-semibold">FAQ</span>
+          
+          
+          <span class="mt-2 block space-y-1" aria-hidden="true" data-schema-thumb="lines"><span class="block h-1.5 w-4/5 rounded bg-gray-200"></span><span class="block h-1.5 w-3/5 rounded bg-gray-200"></span></span>
+        </a></li>
+        
+        
+      </ul></li>
+      
+      <li><ul class="flex flex-col md:flex-row gap-2" data-schema-row>
+        
+        <li class="min-w-0" style="flex: 12 1 0%" data-schema-drag="t1">
+        
+        <a href="?seite=home&amp;block=t1&amp;wopen=W#schema-panel"
+           class="block rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 bg-white hover:bg-gray-50"
+           data-schema-block="t1">
+          <span class="schema-grip hidden float-right ml-2 select-none text-gray-500" aria-hidden="true">⋮⋮</span>
+          
+          <span class="block font-semibold">Text</span>
+          <span class="block text-xs text-gray-600 break-words">«Hallo»</span>
+          
+          <span class="mt-2 block space-y-1" aria-hidden="true" data-schema-thumb="lines"><span class="block h-1.5 w-4/5 rounded bg-gray-200"></span><span class="block h-1.5 w-3/5 rounded bg-gray-200"></span></span>
+        </a></li>
+        
+        
+      </ul></li>
+      
+      <li><ul class="flex flex-col md:flex-row gap-2" data-schema-row>
+        
+        <li class="min-w-0" style="flex: 12 1 0%" data-schema-drag="bt1">
+        
+        <a href="?seite=home&amp;block=bt1&amp;wopen=W#schema-panel"
+           class="block rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 bg-white hover:bg-gray-50"
+           data-schema-block="bt1">
+          <span class="schema-grip hidden float-right ml-2 select-none text-gray-500" aria-hidden="true">⋮⋮</span>
+          
+          <span class="block font-semibold">Schaltfläche</span>
+          <span class="block text-xs text-gray-600 break-words">«Los»</span>
+          
+          
+        </a></li>
+        
+        
+      </ul></li>
+      
+      <li><ul class="flex flex-col md:flex-row gap-2" data-schema-row>
+        
+        <li class="min-w-0" style="flex: 12 1 0%" data-schema-drag="l1">
+        
+        <a href="?seite=home&amp;block=l1&amp;wopen=W#schema-panel"
+           class="block rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 bg-white hover:bg-gray-50"
+           data-schema-block="l1">
+          <span class="schema-grip hidden float-right ml-2 select-none text-gray-500" aria-hidden="true">⋮⋮</span>
+          
+          <span class="block font-semibold">Liste</span>
+          <span class="block text-xs text-gray-600 break-words">Produkte · Raster</span>
+          
+          <span class="mt-2 grid gap-1.5" aria-hidden="true" data-schema-thumb="cards" data-thumb-cols="3" data-thumb-out="grid" style="grid-template-columns: repeat(3, minmax(0, 1fr))"><span class="h-5 rounded bg-gray-200"></span><span class="h-5 rounded bg-gray-200"></span><span class="h-5 rounded bg-gray-200"></span></span>
+
+          
+        </a></li>
+        
+        
+      </ul></li>
+      
+      <li><ul class="flex flex-col md:flex-row gap-2" data-schema-row>
+        
+        <li class="min-w-0" style="flex: 12 1 0%" data-schema-drag="quicklinks">
+        
+        <a href="?seite=home&amp;block=quicklinks&amp;wopen=W#schema-panel"
+           class="block rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 bg-white hover:bg-gray-50"
+           data-schema-block="quicklinks">
+          <span class="schema-grip hidden float-right ml-2 select-none text-gray-500" aria-hidden="true">⋮⋮</span>
+          
+          <span class="block font-semibold">Schnellzugriff</span>
+          
+          
+          
+        </a></li>
+        
+        
+      </ul></li>
+      
+      <li><ul class="flex flex-col md:flex-row gap-2" data-schema-row>
+        
+        <li class="min-w-0" style="flex: 12 1 0%" data-schema-drag="promotions">
+        
+        <a href="?seite=home&amp;block=promotions&amp;wopen=W#schema-panel"
+           class="block rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 bg-white hover:bg-gray-50"
+           data-schema-block="promotions">
+          <span class="schema-grip hidden float-right ml-2 select-none text-gray-500" aria-hidden="true">⋮⋮</span>
+          
+          <span class="block font-semibold">Aktuelle Angebote</span>
+          <span class="block text-xs text-gray-600 break-words">höchstens 9 · 3 Spalten · Raster</span>
+          
+          <span class="mt-2 grid gap-1.5" aria-hidden="true" data-schema-thumb="cards" data-thumb-cols="3" data-thumb-out="grid" style="grid-template-columns: repeat(3, minmax(0, 1fr))"><span class="h-5 rounded bg-gray-200"></span><span class="h-5 rounded bg-gray-200"></span><span class="h-5 rounded bg-gray-200"></span></span>
+
+          
+        </a></li>
+        
+        
+      </ul></li>
+      
+      <li><ul class="flex flex-col md:flex-row gap-2" data-schema-row>
+        
+        <li class="min-w-0" style="flex: 12 1 0%" data-schema-drag="products">
+        
+        <a href="?seite=home&amp;block=products&amp;wopen=W#schema-panel"
+           class="block rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-2 border-indigo-700 bg-white"
+           data-schema-block="products" aria-current="true">
+          <span class="schema-grip hidden float-right ml-2 select-none text-gray-500" aria-hidden="true">⋮⋮</span>
+          
+          <span class="block font-semibold">Produkte</span>
+          <span class="block text-xs text-gray-600 break-words">höchstens 8 · 4 Spalten · Raster</span>
+          
+          <span class="mt-2 grid gap-1.5" aria-hidden="true" data-schema-thumb="cards" data-thumb-cols="4" data-thumb-out="grid" style="grid-template-columns: repeat(4, minmax(0, 1fr))"><span class="h-5 rounded bg-gray-200"></span><span class="h-5 rounded bg-gray-200"></span><span class="h-5 rounded bg-gray-200"></span><span class="h-5 rounded bg-gray-200"></span></span>
+
+          
+        </a></li>
+        
+        
+      </ul></li>
+      
+      <li><ul class="flex flex-col md:flex-row gap-2" data-schema-row>
+        
+        <li class="min-w-0" style="flex: 12 1 0%" data-schema-drag="contact">
+        
+        <a href="?seite=home&amp;block=contact&amp;wopen=W#schema-panel"
+           class="block rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 bg-white hover:bg-gray-50"
+           data-schema-block="contact">
+          <span class="schema-grip hidden float-right ml-2 select-none text-gray-500" aria-hidden="true">⋮⋮</span>
+          
+          <span class="block font-semibold">Kontakt &amp; Öffnungszeiten</span>
+          
+          
+          
+        </a></li>
+        
+        
+      </ul></li>
+      
+      
+      <li><details class="rounded-xl border border-dashed border-gray-500" data-schema-add>
+      <summary class="flex items-center justify-center min-h-[44px] cursor-pointer list-none rounded-xl text-sm font-semibold text-gray-800 hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600 [&::-webkit-details-marker]:hidden"><span aria-hidden="true">＋&nbsp;</span>Block hinzufügen</summary>
+      <div class="space-y-3 border-t border-dashed border-gray-300 px-3 py-3">
+      <form method="post" class="flex flex-wrap items-end gap-2">
+        <input type="hidden" name="csrfmiddlewaretoken" value="X">
+        <input type="hidden" name="seite" value="home"><input type="hidden" name="welche" value="regel"><input type="hidden" name="wopen" value="W">
+
+        <input type="hidden" name="op" value="add">
+        <label class="text-sm flex-1 min-w-[10rem]"><span class="block text-xs text-gray-600 mb-1">Einzelner Block</span>
+          <select name="type" class="ui-input w-full">
+            <optgroup label="Inhalt">
+            <option value="text">Text · Nur Text</option><option value="image">Bild</option><option value="image_text">Text · Foto + Text</option><option value="button">Aufruf zum Handeln · Nur Button</option><option value="spacer">Abstand</option><option value="stats">Zahlen</option><option value="banner">Banner</option><option value="quick_links">Schnellzugriff</option>
+            </optgroup><optgroup label="Listen &amp; Aktionen">
+            <option value="promo">Aktion</option><option value="list">Liste</option><option value="newsletter">Newsletter</option>
+            </optgroup><optgroup label="Von anderen Stellen">
+            <option value="textpage">Text · Von einer Seite</option><option value="contact_card">Kontakt &amp; Öffnungszeiten · Karte</option>
+            </optgroup>
+          </select></label>
+        <button class="ui-btn ui-btn-primary">Hinzufügen</button>
+      </form>
+      <form method="post" class="flex flex-wrap items-end gap-2" data-schema-add-row>
+        <input type="hidden" name="csrfmiddlewaretoken" value="X">
+        <input type="hidden" name="seite" value="home"><input type="hidden" name="welche" value="regel"><input type="hidden" name="wopen" value="W">
+
+        <input type="hidden" name="op" value="add_row">
+        <label class="text-sm flex-1 min-w-[10rem]"><span class="block text-xs text-gray-600 mb-1">Fertige Zeile</span>
+          <select name="value" class="ui-input w-full">
+            <option value="text_image">Text + Foto</option><option value="image_text">Foto + Text</option><option value="three_cards">Drei Karten</option><option value="text_contact">Text + Kontakt</option>
+          </select></label>
+        <button class="ui-btn ui-btn-secondary">Zeile hinzufügen</button>
+      </form>
+      </div>
+      </details></li>
+      <li class="rounded-xl border border-dashed border-gray-300 bg-gray-50 px-3 py-2.5 text-sm text-gray-600">Fußzeile</li>
+    </ul>
+    
+    <details class="mt-4 border-t border-gray-200 pt-3" data-schema-hidden>
+      <summary class="flex items-center min-h-[44px] text-sm font-semibold text-gray-700 cursor-pointer">Ausgeblendet (20)</summary>
+      <ul class="mt-2 space-y-2">
+        
+        <li><a href="?seite=home&amp;block=hero&amp;wopen=W#schema-panel"
+               class="flex items-center justify-between gap-2 rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 hover:bg-gray-50 bg-white text-gray-700"
+               data-schema-block="hero">
+            <span><span class="font-medium">Begrüßungsbanner</span></span>
+            <span class="ui-badge">ausgeblendet</span>
+          </a></li>
+        
+        <li><a href="?seite=home&amp;block=finder&amp;wopen=W#schema-panel"
+               class="flex items-center justify-between gap-2 rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 hover:bg-gray-50 bg-white text-gray-700"
+               data-schema-block="finder">
+            <span><span class="font-medium">Finder</span></span>
+            <span class="ui-badge">ausgeblendet</span>
+          </a></li>
+        
+        <li><a href="?seite=home&amp;block=stay_search&amp;wopen=W#schema-panel"
+               class="flex items-center justify-between gap-2 rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 hover:bg-gray-50 bg-white text-gray-700"
+               data-schema-block="stay_search">
+            <span><span class="font-medium">Buchungssuche (Aufenthalte)</span></span>
+            <span class="ui-badge">ausgeblendet</span>
+          </a></li>
+        
+        <li><a href="?seite=home&amp;block=stay_rooms&amp;wopen=W#schema-panel"
+               class="flex items-center justify-between gap-2 rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 hover:bg-gray-50 bg-white text-gray-700"
+               data-schema-block="stay_rooms">
+            <span><span class="font-medium">Zimmer (Aufenthalte)</span> · 3 Spalten · Raster</span>
+            <span class="ui-badge">ausgeblendet</span>
+          </a></li>
+        
+        <li><a href="?seite=home&amp;block=services&amp;wopen=W#schema-panel"
+               class="flex items-center justify-between gap-2 rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 hover:bg-gray-50 bg-white text-gray-700"
+               data-schema-block="services">
+            <span><span class="font-medium">Leistungen &amp; Preise</span> · 2 Spalten · Raster</span>
+            <span class="ui-badge">ausgeblendet</span>
+          </a></li>
+        
+        <li><a href="?seite=home&amp;block=categories&amp;wopen=W#schema-panel"
+               class="flex items-center justify-between gap-2 rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 hover:bg-gray-50 bg-white text-gray-700"
+               data-schema-block="categories">
+            <span><span class="font-medium">Kategorien</span> · höchstens 30 · 4 Spalten · Raster</span>
+            <span class="ui-badge">ausgeblendet</span>
+          </a></li>
+        
+        <li><a href="?seite=home&amp;block=events&amp;wopen=W#schema-panel"
+               class="flex items-center justify-between gap-2 rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 hover:bg-gray-50 bg-white text-gray-700"
+               data-schema-block="events">
+            <span><span class="font-medium">Veranstaltungen</span> · höchstens 6 · 3 Spalten · Raster</span>
+            <span class="ui-badge">ausgeblendet</span>
+          </a></li>
+        
+        <li><a href="?seite=home&amp;block=tours&amp;wopen=W#schema-panel"
+               class="flex items-center justify-between gap-2 rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 hover:bg-gray-50 bg-white text-gray-700"
+               data-schema-block="tours">
+            <span><span class="font-medium">Reisen</span> · höchstens 6 · 2 Spalten · Raster</span>
+            <span class="ui-badge">ausgeblendet</span>
+          </a></li>
+        
+        <li><a href="?seite=home&amp;block=blog&amp;wopen=W#schema-panel"
+               class="flex items-center justify-between gap-2 rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 hover:bg-gray-50 bg-white text-gray-700"
+               data-schema-block="blog">
+            <span><span class="font-medium">Neuigkeiten</span> · höchstens 3 · 3 Spalten · Raster</span>
+            <span class="ui-badge">ausgeblendet</span>
+          </a></li>
+        
+        <li><a href="?seite=home&amp;block=archetypes&amp;wopen=W#schema-panel"
+               class="flex items-center justify-between gap-2 rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 hover:bg-gray-50 bg-white text-gray-700"
+               data-schema-block="archetypes">
+            <span><span class="font-medium">Unser Angebot</span></span>
+            <span class="ui-badge">ausgeblendet</span>
+          </a></li>
+        
+        <li><a href="?seite=home&amp;block=about&amp;wopen=W#schema-panel"
+               class="flex items-center justify-between gap-2 rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 hover:bg-gray-50 bg-white text-gray-700"
+               data-schema-block="about">
+            <span><span class="font-medium">Über uns</span></span>
+            <span class="ui-badge">ausgeblendet</span>
+          </a></li>
+        
+        <li><a href="?seite=home&amp;block=process&amp;wopen=W#schema-panel"
+               class="flex items-center justify-between gap-2 rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 hover:bg-gray-50 bg-white text-gray-700"
+               data-schema-block="process">
+            <span><span class="font-medium">So funktioniert es</span></span>
+            <span class="ui-badge">ausgeblendet</span>
+          </a></li>
+        
+        <li><a href="?seite=home&amp;block=team&amp;wopen=W#schema-panel"
+               class="flex items-center justify-between gap-2 rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 hover:bg-gray-50 bg-white text-gray-700"
+               data-schema-block="team">
+            <span><span class="font-medium">Team</span></span>
+            <span class="ui-badge">ausgeblendet</span>
+          </a></li>
+        
+        <li><a href="?seite=home&amp;block=cta&amp;wopen=W#schema-panel"
+               class="flex items-center justify-between gap-2 rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 hover:bg-gray-50 bg-white text-gray-700"
+               data-schema-block="cta">
+            <span><span class="font-medium">Aufruf zum Handeln</span></span>
+            <span class="ui-badge">ausgeblendet</span>
+          </a></li>
+        
+        <li><a href="?seite=home&amp;block=testimonials&amp;wopen=W#schema-panel"
+               class="flex items-center justify-between gap-2 rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 hover:bg-gray-50 bg-white text-gray-700"
+               data-schema-block="testimonials">
+            <span><span class="font-medium">Kundenstimmen</span></span>
+            <span class="ui-badge">ausgeblendet</span>
+          </a></li>
+        
+        <li><a href="?seite=home&amp;block=trust&amp;wopen=W#schema-panel"
+               class="flex items-center justify-between gap-2 rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 hover:bg-gray-50 bg-white text-gray-700"
+               data-schema-block="trust">
+            <span><span class="font-medium">Vertrauen und Referenzen</span></span>
+            <span class="ui-badge">ausgeblendet</span>
+          </a></li>
+        
+        <li><a href="?seite=home&amp;block=reviews&amp;wopen=W#schema-panel"
+               class="flex items-center justify-between gap-2 rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 hover:bg-gray-50 bg-white text-gray-700"
+               data-schema-block="reviews">
+            <span><span class="font-medium">Kundenbewertungen</span></span>
+            <span class="ui-badge">ausgeblendet</span>
+          </a></li>
+        
+        <li><a href="?seite=home&amp;block=gallery&amp;wopen=W#schema-panel"
+               class="flex items-center justify-between gap-2 rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 hover:bg-gray-50 bg-white text-gray-700"
+               data-schema-block="gallery">
+            <span><span class="font-medium">Fotogalerie</span></span>
+            <span class="ui-badge">ausgeblendet</span>
+          </a></li>
+        
+        <li><a href="?seite=home&amp;block=before_after&amp;wopen=W#schema-panel"
+               class="flex items-center justify-between gap-2 rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 hover:bg-gray-50 bg-white text-gray-700"
+               data-schema-block="before_after">
+            <span><span class="font-medium">Vorher &amp; nachher</span></span>
+            <span class="ui-badge">ausgeblendet</span>
+          </a></li>
+        
+        <li><a href="?seite=home&amp;block=anfrage&amp;wopen=W#schema-panel"
+               class="flex items-center justify-between gap-2 rounded-xl border px-3 py-2.5 text-sm min-h-[44px] border-gray-500 hover:bg-gray-50 bg-white text-gray-700"
+               data-schema-block="anfrage">
+            <span><span class="font-medium">Anfrage</span></span>
+            <span class="ui-badge">ausgeblendet</span>
+          </a></li>
+        
+      </ul>
+    </details>
+    
+  </section>
+
+  
+  <aside class="ui-card p-4 scroll-mb-28 scroll-mt-20 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 max-md:fixed max-md:inset-x-0 max-md:bottom-0 max-md:z-[70] max-md:max-h-[60dvh] max-md:overflow-y-auto max-md:pb-[max(1rem,env(safe-area-inset-bottom))] max-md:rounded-b-none max-md:shadow-[0_-10px_30px_rgba(22,24,29,0.25)]" id="schema-panel" tabindex="-1" aria-labelledby="schema-panel-title" data-schema-panel>
+    
+    <form method="post" class="md:hidden -mt-1 mb-1 text-right"><input type="hidden" name="csrfmiddlewaretoken" value="X"><input type="hidden" name="seite" value="home"><input type="hidden" name="welche" value="regel"><input type="hidden" name="wopen" value="W">
+<input type="hidden" name="ref" value="products"><button name="op" value="window_done" class="inline-flex items-center min-h-[44px] px-2 font-semibold text-indigo-700" data-schema-done>Fertig<span class="sr-only"> – Einstellungen des Blocks schließen</span></button></form>
+    
+    
+    
+    
+    <div class="flex items-start justify-between gap-2">
+      <div class="min-w-0">
+        <h2 id="schema-panel-title" class="font-semibold text-lg break-words">Produkte</h2>
+        
+      </div>
+      
+      <details class="relative shrink-0" data-schema-more>
+        <summary class="inline-flex items-center justify-center min-w-[44px] min-h-[44px] rounded-lg border border-gray-500 cursor-pointer list-none text-gray-700 hover:bg-gray-50 [&::-webkit-details-marker]:hidden" aria-label="Mehr zu „Produkte“"><span aria-hidden="true">⋯</span></summary>
+        <div class="absolute right-0 z-20 mt-1 w-56 ui-card p-1 shadow-lg text-sm">
+          <form method="post"><input type="hidden" name="csrfmiddlewaretoken" value="X">
+            <input type="hidden" name="seite" value="home"><input type="hidden" name="welche" value="regel"><input type="hidden" name="wopen" value="W">
+
+            <input type="hidden" name="ref" value="products">
+            <button name="op" value="toggle" class="flex w-full items-center min-h-[44px] rounded-md px-3 text-left hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600">Ausblenden</button>
+          </form>
+          
+          <form method="post"><input type="hidden" name="csrfmiddlewaretoken" value="X">
+            <input type="hidden" name="seite" value="home"><input type="hidden" name="welche" value="regel"><input type="hidden" name="wopen" value="W">
+
+            <input type="hidden" name="ref" value="products">
+            <button name="op" value="up" class="flex w-full items-center min-h-[44px] rounded-md px-3 text-left hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600">Nach oben</button>
+            <button name="op" value="down" class="flex w-full items-center min-h-[44px] rounded-md px-3 text-left hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600">Nach unten</button>
+          </form>
+          
+        </div>
+      </details>
+      
+    </div>
+    
+    <p class="mt-3 text-xs text-gray-600" data-schema-family>Gehört zu: Liste</p>
+    
+
+<nav class="mt-3" aria-label="Bereiche des Blocks" data-window-tabs>
+  <ul class="flex flex-wrap gap-1">
+    <li><a href="?seite=home&amp;block=products&amp;tab=was&amp;wopen=W&amp;welche=regel#schema-tab-was" class="inline-flex items-center justify-center min-h-[44px] rounded-lg border px-3 text-sm font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 border-2 border-indigo-700 bg-indigo-50 text-indigo-900" aria-current="page" data-window-tab-link="was">Was</a></li><li><a href="?seite=home&amp;block=products&amp;tab=wie&amp;wopen=W&amp;welche=regel#schema-tab-wie" class="inline-flex items-center justify-center min-h-[44px] rounded-lg border px-3 text-sm font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 border-gray-500 text-gray-800 hover:bg-gray-50" data-window-tab-link="wie">Wie anordnen</a></li>
+  </ul>
+</nav>
+
+
+<section id="schema-tab-was" class="scroll-mt-20 focus:outline-none" data-window-tab="was" tabindex="-1">
+  <h3 class="sr-only">Was</h3>
+  <div data-window-part="list">
+
+
+
+
+<p class="mt-4 rounded-lg px-3 py-2 text-sm bg-amber-50 text-amber-900" id="schema-result" data-schema-result>Zu dieser Auswahl gibt es derzeit nichts – der Block erscheint nicht auf der Website.</p>
+
+<form method="post" class="mt-4 space-y-4 pb-24 lg:pb-0" data-schema-list aria-describedby="schema-result">
+  <input type="hidden" name="csrfmiddlewaretoken" value="X">
+  <input type="hidden" name="seite" value="home"><input type="hidden" name="welche" value="regel"><input type="hidden" name="wopen" value="W">
+
+  <input type="hidden" name="ref" value="products">
+  <input type="hidden" name="panel_present" value="1">
+  
+  <fieldset class="space-y-2" data-schema-group="welche">
+    <legend class="text-sm font-bold text-gray-900">Welche Produkte gezeigt werden</legend>
+    
+    
+    <div class="grid grid-flow-col auto-cols-fr gap-1" role="group" aria-label="Welche Produkte gezeigt werden" data-schema-which>
+      <a href="?seite=home&amp;block=products&amp;welche=regel&amp;wopen=W#schema-panel" class="inline-flex items-center justify-center min-h-[44px] rounded-lg border text-sm font-semibold border-2 border-indigo-700 bg-indigo-50 text-indigo-900" aria-current="true" data-schema-which-mode="regel">Automatisch</a><a href="?seite=home&amp;block=products&amp;welche=kategorie&amp;wopen=W#schema-panel" class="inline-flex items-center justify-center min-h-[44px] rounded-lg border text-sm font-semibold border-gray-500 text-gray-800 hover:bg-gray-50" data-schema-which-mode="kategorie">Aus einer Kategorie</a>
+    </div>
+    
+    
+    
+    
+    <div>
+      <label for="schema-l-only" class="block text-sm font-semibold text-gray-700 mb-1">Auswahl</label>
+      
+      <select id="schema-l-only" name="f_only" class="ui-input w-full scroll-mb-28">
+        <option value="" selected>Alle</option><option value="featured">Nur Empfehlungen</option><option value="sale">Nur reduzierte</option><option value="available">Nur verfügbare</option>
+      </select>
+      
+      
+    </div>
+    
+    <div>
+      <label for="schema-l-sort" class="block text-sm font-semibold text-gray-700 mb-1">Sortierung</label>
+      
+      <select id="schema-l-sort" name="f_sort" class="ui-input w-full scroll-mb-28">
+        <option value="">Neueste</option><option value="featured" selected>Empfohlene zuerst</option><option value="price_asc">Preis: von niedrig nach hoch</option><option value="price_desc">Preis: von hoch nach niedrig</option>
+      </select>
+      
+      
+    </div>
+    
+    <div>
+      <label for="schema-l-limit" class="block text-sm font-semibold text-gray-700 mb-1">Höchstens</label>
+      
+      <input type="text" inputmode="numeric" autocomplete="off" id="schema-l-limit" name="f_limit" value="8" class="ui-input w-full scroll-mb-28" aria-describedby="schema-l-limit-hint">
+      
+      <p id="schema-l-limit-hint" class="text-xs text-gray-600 mt-1">Höchstens 30. Sind Reihen gewählt, zählt Spalten × Reihen.</p>
+    </div>
+    
+    
+  </fieldset>
+  
+  <fieldset class="space-y-2" data-schema-group="wie">
+    <legend class="text-sm font-bold text-gray-900">Wie Produkte aussehen</legend>
+    
+    
+    
+    <div>
+      <label id="schema-l-style-label" class="block text-sm font-semibold text-gray-700 mb-1">Darstellungsstil</label>
+      
+      
+      <details class="rounded-xl border border-gray-500" data-schema-style-pick>
+        <summary aria-labelledby="schema-l-style-label schema-l-style-current" class="flex items-center gap-3 px-2 py-1.5 min-h-[44px] cursor-pointer text-sm rounded-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+
+  <span class="grid w-20 h-12 shrink-0 grid-cols-3 gap-0.5 rounded ring-1 ring-gray-200 bg-white p-1" aria-hidden="true" data-style-thumb="grid"><span class="flex flex-col gap-0.5"><span class="flex-1 rounded-sm bg-gray-400"></span><span class="h-1 rounded bg-gray-300"></span></span><span class="flex flex-col gap-0.5"><span class="flex-1 rounded-sm bg-gray-400"></span><span class="h-1 rounded bg-gray-300"></span></span><span class="flex flex-col gap-0.5"><span class="flex-1 rounded-sm bg-gray-400"></span><span class="h-1 rounded bg-gray-300"></span></span></span>
+
+<span class="flex-1" id="schema-l-style-current" data-schema-style-current>Standard (Raster)</span><span aria-hidden="true">▾</span></summary>
+        <div class="grid grid-cols-2 gap-1.5 border-t border-gray-200 p-2" role="radiogroup" aria-labelledby="schema-l-style-label">
+          <label class="relative"><input type="radio" name="f_style" value="" class="peer sr-only" checked><span class="flex flex-col items-start gap-1 min-h-[44px] rounded-lg border border-gray-500 p-2 text-xs text-gray-800 cursor-pointer peer-checked:border-2 peer-checked:border-indigo-700 peer-checked:bg-indigo-50 peer-checked:text-indigo-900 peer-focus-visible:ring-2 peer-focus-visible:ring-indigo-600">
+
+  <span class="grid w-20 h-12 shrink-0 grid-cols-3 gap-0.5 rounded ring-1 ring-gray-200 bg-white p-1" aria-hidden="true" data-style-thumb="grid"><span class="flex flex-col gap-0.5"><span class="flex-1 rounded-sm bg-gray-400"></span><span class="h-1 rounded bg-gray-300"></span></span><span class="flex flex-col gap-0.5"><span class="flex-1 rounded-sm bg-gray-400"></span><span class="h-1 rounded bg-gray-300"></span></span><span class="flex flex-col gap-0.5"><span class="flex-1 rounded-sm bg-gray-400"></span><span class="h-1 rounded bg-gray-300"></span></span></span>
+
+<span>Standard (Raster)</span></span></label><label class="relative"><input type="radio" name="f_style" value="preisliste" class="peer sr-only"><span class="flex flex-col items-start gap-1 min-h-[44px] rounded-lg border border-gray-500 p-2 text-xs text-gray-800 cursor-pointer peer-checked:border-2 peer-checked:border-indigo-700 peer-checked:bg-indigo-50 peer-checked:text-indigo-900 peer-focus-visible:ring-2 peer-focus-visible:ring-indigo-600">
+
+  <span class="flex w-20 h-12 shrink-0 flex-col justify-center gap-1 rounded ring-1 ring-gray-200 bg-white p-1.5" aria-hidden="true" data-style-thumb="preisliste"><span class="flex items-center gap-1"><span class="h-1 flex-1 rounded bg-gray-400"></span><span class="h-1 w-3 rounded bg-gray-600"></span></span><span class="flex items-center gap-1"><span class="h-1 flex-1 rounded bg-gray-400"></span><span class="h-1 w-3 rounded bg-gray-600"></span></span><span class="flex items-center gap-1"><span class="h-1 flex-1 rounded bg-gray-400"></span><span class="h-1 w-3 rounded bg-gray-600"></span></span></span>
+
+<span>Preisliste</span></span></label><label class="relative"><input type="radio" name="f_style" value="preisliste_foto" class="peer sr-only"><span class="flex flex-col items-start gap-1 min-h-[44px] rounded-lg border border-gray-500 p-2 text-xs text-gray-800 cursor-pointer peer-checked:border-2 peer-checked:border-indigo-700 peer-checked:bg-indigo-50 peer-checked:text-indigo-900 peer-focus-visible:ring-2 peer-focus-visible:ring-indigo-600">
+
+  <span class="flex w-20 h-12 shrink-0 flex-col justify-center gap-1 rounded ring-1 ring-gray-200 bg-white p-1.5" aria-hidden="true" data-style-thumb="preisliste_foto"><span class="flex items-center gap-1"><span class="h-3 w-3 rounded-sm bg-emerald-200"></span><span class="h-1 flex-1 rounded bg-gray-400"></span><span class="h-1 w-3 rounded bg-gray-600"></span></span><span class="flex items-center gap-1"><span class="h-3 w-3 rounded-sm bg-emerald-200"></span><span class="h-1 flex-1 rounded bg-gray-400"></span><span class="h-1 w-3 rounded bg-gray-600"></span></span></span>
+
+<span>Preisliste mit Fotos</span></span></label><label class="relative"><input type="radio" name="f_style" value="preisliste_kompakt" class="peer sr-only"><span class="flex flex-col items-start gap-1 min-h-[44px] rounded-lg border border-gray-500 p-2 text-xs text-gray-800 cursor-pointer peer-checked:border-2 peer-checked:border-indigo-700 peer-checked:bg-indigo-50 peer-checked:text-indigo-900 peer-focus-visible:ring-2 peer-focus-visible:ring-indigo-600">
+
+  <span class="flex w-20 h-12 shrink-0 flex-col justify-center gap-1 rounded ring-1 ring-gray-200 bg-white p-1.5" aria-hidden="true" data-style-thumb="preisliste_kompakt"><span class="flex items-center gap-1"><span class="h-1 flex-1 rounded bg-gray-400"></span><span class="h-1 w-3 rounded bg-gray-600"></span></span><span class="flex items-center gap-1"><span class="h-1 flex-1 rounded bg-gray-400"></span><span class="h-1 w-3 rounded bg-gray-600"></span></span><span class="flex items-center gap-1"><span class="h-1 flex-1 rounded bg-gray-400"></span><span class="h-1 w-3 rounded bg-gray-600"></span></span></span>
+
+<span>Preisliste kompakt</span></span></label><label class="relative"><input type="radio" name="f_style" value="preisliste_2sp" class="peer sr-only"><span class="flex flex-col items-start gap-1 min-h-[44px] rounded-lg border border-gray-500 p-2 text-xs text-gray-800 cursor-pointer peer-checked:border-2 peer-checked:border-indigo-700 peer-checked:bg-indigo-50 peer-checked:text-indigo-900 peer-focus-visible:ring-2 peer-focus-visible:ring-indigo-600">
+
+  <span class="grid w-20 h-12 shrink-0 grid-cols-2 content-center gap-x-1 gap-y-1 rounded ring-1 ring-gray-200 bg-white p-1.5" aria-hidden="true" data-style-thumb="preisliste_2sp"><span class="h-1 rounded bg-gray-400"></span><span class="h-1 rounded bg-gray-400"></span><span class="h-1 rounded bg-gray-400"></span><span class="h-1 rounded bg-gray-400"></span><span class="h-1 rounded bg-gray-400"></span><span class="h-1 rounded bg-gray-400"></span></span>
+
+<span>Preisliste zweispaltig</span></span></label><label class="relative"><input type="radio" name="f_style" value="preisliste_foto_2sp" class="peer sr-only"><span class="flex flex-col items-start gap-1 min-h-[44px] rounded-lg border border-gray-500 p-2 text-xs text-gray-800 cursor-pointer peer-checked:border-2 peer-checked:border-indigo-700 peer-checked:bg-indigo-50 peer-checked:text-indigo-900 peer-focus-visible:ring-2 peer-focus-visible:ring-indigo-600">
+
+  <span class="grid w-20 h-12 shrink-0 grid-cols-2 content-center gap-x-1 gap-y-1 rounded ring-1 ring-gray-200 bg-white p-1.5" aria-hidden="true" data-style-thumb="preisliste_foto_2sp"><span class="h-1 rounded bg-gray-400"></span><span class="h-1 rounded bg-gray-400"></span><span class="h-1 rounded bg-gray-400"></span><span class="h-1 rounded bg-gray-400"></span><span class="h-1 rounded bg-gray-400"></span><span class="h-1 rounded bg-gray-400"></span></span>
+
+<span>Fotoliste zweispaltig</span></span></label><label class="relative"><input type="radio" name="f_style" value="preisliste_foto_3sp" class="peer sr-only"><span class="flex flex-col items-start gap-1 min-h-[44px] rounded-lg border border-gray-500 p-2 text-xs text-gray-800 cursor-pointer peer-checked:border-2 peer-checked:border-indigo-700 peer-checked:bg-indigo-50 peer-checked:text-indigo-900 peer-focus-visible:ring-2 peer-focus-visible:ring-indigo-600">
+
+  <span class="grid w-20 h-12 shrink-0 grid-cols-3 content-center gap-x-1 gap-y-1 rounded ring-1 ring-gray-200 bg-white p-1.5" aria-hidden="true" data-style-thumb="preisliste_foto_3sp"><span class="h-1 rounded bg-gray-400"></span><span class="h-1 rounded bg-gray-400"></span><span class="h-1 rounded bg-gray-400"></span><span class="h-1 rounded bg-gray-400"></span><span class="h-1 rounded bg-gray-400"></span><span class="h-1 rounded bg-gray-400"></span></span>
+
+<span>Fotoliste dreispaltig</span></span></label><label class="relative"><input type="radio" name="f_style" value="preisliste_karte" class="peer sr-only"><span class="flex flex-col items-start gap-1 min-h-[44px] rounded-lg border border-gray-500 p-2 text-xs text-gray-800 cursor-pointer peer-checked:border-2 peer-checked:border-indigo-700 peer-checked:bg-indigo-50 peer-checked:text-indigo-900 peer-focus-visible:ring-2 peer-focus-visible:ring-indigo-600">
+
+  <span class="flex w-20 h-12 shrink-0 flex-col items-center justify-center gap-1 rounded ring-1 ring-gray-200 bg-white p-1.5" aria-hidden="true" data-style-thumb="preisliste_karte"><span class="h-1 w-6 rounded bg-gray-600"></span><span class="h-1 w-12 rounded bg-gray-400"></span><span class="h-1 w-9 rounded bg-gray-300"></span></span>
+
+<span>Speisekarte klassisch</span></span></label><label class="relative"><input type="radio" name="f_style" value="preisliste_buch" class="peer sr-only"><span class="flex flex-col items-start gap-1 min-h-[44px] rounded-lg border border-gray-500 p-2 text-xs text-gray-800 cursor-pointer peer-checked:border-2 peer-checked:border-indigo-700 peer-checked:bg-indigo-50 peer-checked:text-indigo-900 peer-focus-visible:ring-2 peer-focus-visible:ring-indigo-600">
+
+  <span class="flex w-20 h-12 shrink-0 gap-0.5 rounded ring-1 ring-gray-200 bg-white p-1" aria-hidden="true" data-style-thumb="preisliste_buch"><span class="flex flex-1 flex-col justify-center gap-1 border-r border-gray-300 pr-0.5"><span class="h-1 rounded bg-gray-400"></span><span class="h-1 rounded bg-gray-400"></span></span><span class="flex flex-1 flex-col justify-center gap-1"><span class="h-1 rounded bg-gray-400"></span><span class="h-1 rounded bg-gray-400"></span></span></span>
+
+<span>Speisekarte zum Blättern</span></span></label>
+          
+          
+        </div>
+      </details>
+      
+      
+    </div>
+    
+    <div>
+      <label id="schema-l-out-label" class="block text-sm font-semibold text-gray-700 mb-1">Ausgabe</label>
+      
+      
+      <div class="grid grid-flow-col auto-cols-fr gap-1" role="radiogroup" aria-labelledby="schema-l-out-label" data-schema-out>
+        <label class="relative"><input type="radio" name="f_out" value="grid" class="peer sr-only" checked><span class="flex items-center justify-center min-h-[44px] rounded-lg border border-gray-500 px-1 text-center text-sm font-semibold text-gray-800 peer-checked:border-2 peer-checked:border-indigo-700 peer-checked:bg-indigo-50 peer-checked:text-indigo-900 peer-focus-visible:ring-2 peer-focus-visible:ring-indigo-600">Raster</span></label><label class="relative"><input type="radio" name="f_out" value="slider" class="peer sr-only"><span class="flex items-center justify-center min-h-[44px] rounded-lg border border-gray-500 px-1 text-center text-sm font-semibold text-gray-800 peer-checked:border-2 peer-checked:border-indigo-700 peer-checked:bg-indigo-50 peer-checked:text-indigo-900 peer-focus-visible:ring-2 peer-focus-visible:ring-indigo-600">Slider</span></label>
+      </div>
+      
+      
+    </div>
+    
+    <div>
+      <label id="schema-l-cols-label" class="block text-sm font-semibold text-gray-700 mb-1">Spalten</label>
+      
+      
+      <div class="grid grid-flow-col auto-cols-fr gap-1" role="radiogroup" aria-labelledby="schema-l-cols-label" data-schema-buttons="cols">
+        <label class="relative"><input type="radio" name="f_cols" value="1" class="peer sr-only"><span class="flex items-center justify-center min-h-[44px] rounded-lg border border-gray-500 text-sm font-semibold text-gray-800 peer-checked:border-2 peer-checked:border-indigo-700 peer-checked:bg-indigo-50 peer-checked:text-indigo-900 peer-focus-visible:ring-2 peer-focus-visible:ring-indigo-600">1</span></label><label class="relative"><input type="radio" name="f_cols" value="2" class="peer sr-only"><span class="flex items-center justify-center min-h-[44px] rounded-lg border border-gray-500 text-sm font-semibold text-gray-800 peer-checked:border-2 peer-checked:border-indigo-700 peer-checked:bg-indigo-50 peer-checked:text-indigo-900 peer-focus-visible:ring-2 peer-focus-visible:ring-indigo-600">2</span></label><label class="relative"><input type="radio" name="f_cols" value="3" class="peer sr-only"><span class="flex items-center justify-center min-h-[44px] rounded-lg border border-gray-500 text-sm font-semibold text-gray-800 peer-checked:border-2 peer-checked:border-indigo-700 peer-checked:bg-indigo-50 peer-checked:text-indigo-900 peer-focus-visible:ring-2 peer-focus-visible:ring-indigo-600">3</span></label><label class="relative"><input type="radio" name="f_cols" value="4" class="peer sr-only" checked><span class="flex items-center justify-center min-h-[44px] rounded-lg border border-gray-500 text-sm font-semibold text-gray-800 peer-checked:border-2 peer-checked:border-indigo-700 peer-checked:bg-indigo-50 peer-checked:text-indigo-900 peer-focus-visible:ring-2 peer-focus-visible:ring-indigo-600">4</span></label><label class="relative"><input type="radio" name="f_cols" value="5" class="peer sr-only"><span class="flex items-center justify-center min-h-[44px] rounded-lg border border-gray-500 text-sm font-semibold text-gray-800 peer-checked:border-2 peer-checked:border-indigo-700 peer-checked:bg-indigo-50 peer-checked:text-indigo-900 peer-focus-visible:ring-2 peer-focus-visible:ring-indigo-600">5</span></label><label class="relative"><input type="radio" name="f_cols" value="6" class="peer sr-only"><span class="flex items-center justify-center min-h-[44px] rounded-lg border border-gray-500 text-sm font-semibold text-gray-800 peer-checked:border-2 peer-checked:border-indigo-700 peer-checked:bg-indigo-50 peer-checked:text-indigo-900 peer-focus-visible:ring-2 peer-focus-visible:ring-indigo-600">6</span></label>
+      </div>
+      
+      
+    </div>
+    
+    <div>
+      <label for="schema-l-rows" class="block text-sm font-semibold text-gray-700 mb-1">Reihen</label>
+      
+      <select id="schema-l-rows" name="f_rows" class="ui-input w-full scroll-mb-28">
+        <option value="" selected>automatisch</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option>
+      </select>
+      
+      
+    </div>
+    
+    <div>
+      <label id="schema-l-card-label" class="block text-sm font-semibold text-gray-700 mb-1">Kartenform</label>
+      
+      
+      <div class="grid grid-cols-2 gap-1.5" role="radiogroup" aria-labelledby="schema-l-card-label" data-schema-cards>
+        <label class="relative"><input type="radio" name="f_card" value="" class="peer sr-only" checked><span class="flex flex-col items-start gap-1 min-h-[44px] rounded-lg border border-gray-300 p-2 text-xs text-gray-800 cursor-pointer peer-checked:border-2 peer-checked:border-indigo-700 peer-checked:bg-indigo-50 peer-checked:text-indigo-900 peer-focus-visible:ring-2 peer-focus-visible:ring-indigo-600">
+
+
+  <span class="block w-14 h-10 rounded ring-1 ring-gray-200 overflow-hidden bg-white" aria-hidden="true"><span class="block h-6 bg-gray-300"></span><span class="block ml-1 mt-1 h-1 w-8 rounded bg-gray-300"></span><span class="block ml-1 mt-0.5 h-1 w-5 rounded bg-gray-400"></span></span>
+
+<span>wie die Website: Standard</span></span></label><label class="relative"><input type="radio" name="f_card" value="overlay" class="peer sr-only"><span class="flex flex-col items-start gap-1 min-h-[44px] rounded-lg border border-gray-300 p-2 text-xs text-gray-800 cursor-pointer peer-checked:border-2 peer-checked:border-indigo-700 peer-checked:bg-indigo-50 peer-checked:text-indigo-900 peer-focus-visible:ring-2 peer-focus-visible:ring-indigo-600">
+
+
+  <span class="block w-14 h-10 rounded ring-1 ring-gray-200 overflow-hidden bg-gray-300 relative" aria-hidden="true"><span class="absolute inset-x-1 bottom-1 h-1.5 rounded bg-white/90"></span></span>
+
+<span>Text auf Foto</span></span></label><label class="relative"><input type="radio" name="f_card" value="compact" class="peer sr-only"><span class="flex flex-col items-start gap-1 min-h-[44px] rounded-lg border border-gray-300 p-2 text-xs text-gray-800 cursor-pointer peer-checked:border-2 peer-checked:border-indigo-700 peer-checked:bg-indigo-50 peer-checked:text-indigo-900 peer-focus-visible:ring-2 peer-focus-visible:ring-indigo-600">
+
+
+  <span class="flex w-14 h-10 items-center gap-1 rounded ring-1 ring-gray-200 bg-white p-1" aria-hidden="true"><span class="w-6 h-6 rounded bg-gray-300 shrink-0"></span><span class="flex-1"><span class="block h-1 w-6 rounded bg-gray-300"></span><span class="block mt-1 h-1 w-4 rounded bg-gray-400"></span></span></span>
+
+<span>Kompakte Zeile</span></span></label><label class="relative"><input type="radio" name="f_card" value="etikett" class="peer sr-only"><span class="flex flex-col items-start gap-1 min-h-[44px] rounded-lg border border-gray-300 p-2 text-xs text-gray-800 cursor-pointer peer-checked:border-2 peer-checked:border-indigo-700 peer-checked:bg-indigo-50 peer-checked:text-indigo-900 peer-focus-visible:ring-2 peer-focus-visible:ring-indigo-600">
+
+
+  <span class="block w-14 h-10 rounded ring-1 ring-gray-200 overflow-hidden bg-gray-300 relative" aria-hidden="true"><span class="absolute top-1 right-1 h-3 w-5 rounded-sm bg-white ring-1 ring-gray-400"></span></span>
+
+<span>Preis-Etikett</span></span></label><label class="relative"><input type="radio" name="f_card" value="regal" class="peer sr-only"><span class="flex flex-col items-start gap-1 min-h-[44px] rounded-lg border border-gray-300 p-2 text-xs text-gray-800 cursor-pointer peer-checked:border-2 peer-checked:border-indigo-700 peer-checked:bg-indigo-50 peer-checked:text-indigo-900 peer-focus-visible:ring-2 peer-focus-visible:ring-indigo-600">
+
+
+  <span class="flex w-14 h-10 rounded ring-1 ring-gray-200 overflow-hidden bg-white" aria-hidden="true"><span class="w-5 bg-gray-300 shrink-0"></span><span class="flex-1 p-1" style="background: color-mix(in srgb, var(--stu-accent, #4f46e5) 30%, #fff)"><span class="block h-2 w-6 rounded bg-gray-600"></span><span class="block mt-1 h-1 w-5 rounded bg-gray-400"></span></span></span>
+
+<span>Regal-Preisschild</span></span></label><label class="relative"><input type="radio" name="f_card" value="lookbook" class="peer sr-only"><span class="flex flex-col items-start gap-1 min-h-[44px] rounded-lg border border-gray-300 p-2 text-xs text-gray-800 cursor-pointer peer-checked:border-2 peer-checked:border-indigo-700 peer-checked:bg-indigo-50 peer-checked:text-indigo-900 peer-focus-visible:ring-2 peer-focus-visible:ring-indigo-600">
+
+
+  <span class="block w-14 h-10 rounded overflow-hidden bg-white" aria-hidden="true"><span class="block h-7 w-8 mx-auto bg-gray-300 rounded-sm"></span><span class="block mt-1 h-1 w-6 mx-auto rounded bg-gray-400"></span></span>
+
+<span>Lookbook</span></span></label><label class="relative"><input type="radio" name="f_card" value="deal" class="peer sr-only"><span class="flex flex-col items-start gap-1 min-h-[44px] rounded-lg border border-gray-300 p-2 text-xs text-gray-800 cursor-pointer peer-checked:border-2 peer-checked:border-indigo-700 peer-checked:bg-indigo-50 peer-checked:text-indigo-900 peer-focus-visible:ring-2 peer-focus-visible:ring-indigo-600">
+
+
+  <span class="flex w-14 h-10 items-center gap-1 rounded ring-1 ring-gray-200 bg-white p-1" aria-hidden="true"><span class="w-5 h-5 rounded bg-gray-300 shrink-0"></span><span class="flex-1"><span class="block h-1 w-5 rounded bg-gray-400"></span><span class="block mt-1 h-2 w-4 rounded bg-gray-600"></span></span><span class="w-3 h-3 rounded-full shrink-0" style="background: var(--stu-accent, #4f46e5)"></span></span>
+
+<span>Deal-Kachel</span></span></label>
+      </div>
+      
+      
+    </div>
+    
+    
+  </fieldset>
+  
+  <button name="op" value="update" class="ui-btn ui-btn-primary w-full scroll-mb-28">Übernehmen</button>
+</form>
+
+
+</div>
+</section>
+
+<section id="schema-tab-wie" class="scroll-mt-20 focus:outline-none" data-window-tab="wie" hidden>
+  <h3 class="sr-only">Wie anordnen</h3>
+  <div data-window-part="platz">
+
+
+<form method="post" class="mt-4" data-schema-width>
+  <input type="hidden" name="csrfmiddlewaretoken" value="X">
+  <input type="hidden" name="seite" value="home"><input type="hidden" name="welche" value="regel"><input type="hidden" name="wopen" value="W">
+
+  <input type="hidden" name="ref" value="products">
+  <input type="hidden" name="op" value="width">
+  <fieldset aria-describedby="schema-width-hint">
+    <legend class="text-sm font-semibold text-gray-700 mb-2">Breite</legend>
+    
+    <div class="grid grid-cols-5 gap-1.5">
+      
+      <button name="value" value="contained" aria-label="Ganz – ganze Breite" class="min-h-[52px] rounded-lg border px-1 text-xs flex flex-col items-center justify-center gap-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 border-2 border-indigo-700 bg-indigo-50 font-semibold text-indigo-900" aria-pressed="true">
+        <span class="block h-2 w-9 rounded-sm bg-gray-200" aria-hidden="true" data-schema-width-bar><span class="block h-2 rounded-sm bg-indigo-700" style="width: 100%"></span></span>
+        Ganz</button>
+      
+      <button name="value" value="full" aria-label="Randlos – randlos, über die ganze Bildschirmbreite" class="min-h-[52px] rounded-lg border px-1 text-xs flex flex-col items-center justify-center gap-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 border-gray-500 bg-white hover:bg-gray-50" aria-pressed="false">
+        <span class="block h-2 w-9 rounded-sm bg-transparent ring-1 ring-inset ring-gray-500" aria-hidden="true" data-schema-width-bar><span class="block h-2 rounded-sm bg-gray-500" style="width: 100%"></span></span>
+        Randlos</button>
+      
+      <button name="value" value="w23" aria-label="⅔ – zwei Drittel" class="min-h-[52px] rounded-lg border px-1 text-xs flex flex-col items-center justify-center gap-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 border-gray-500 bg-white hover:bg-gray-50" aria-pressed="false">
+        <span class="block h-2 w-9 rounded-sm bg-gray-200" aria-hidden="true" data-schema-width-bar><span class="block h-2 rounded-sm bg-gray-500" style="width: 66%"></span></span>
+        ⅔</button>
+      
+      <button name="value" value="w12" aria-label="½ – die Hälfte" class="min-h-[52px] rounded-lg border px-1 text-xs flex flex-col items-center justify-center gap-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 border-gray-500 bg-white hover:bg-gray-50" aria-pressed="false">
+        <span class="block h-2 w-9 rounded-sm bg-gray-200" aria-hidden="true" data-schema-width-bar><span class="block h-2 rounded-sm bg-gray-500" style="width: 50%"></span></span>
+        ½</button>
+      
+      <button name="value" value="w13" aria-label="⅓ – ein Drittel" class="min-h-[52px] rounded-lg border px-1 text-xs flex flex-col items-center justify-center gap-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 border-gray-500 bg-white hover:bg-gray-50" aria-pressed="false">
+        <span class="block h-2 w-9 rounded-sm bg-gray-200" aria-hidden="true" data-schema-width-bar><span class="block h-2 rounded-sm bg-gray-500" style="width: 33%"></span></span>
+        ⅓</button>
+      
+    </div>
+  </fieldset>
+  <p id="schema-width-hint" class="mt-2 text-xs text-gray-600">Schmale Blöcke stehen am Computer nebeneinander, auf dem Telefon untereinander. Auf der Website sichtbar nach «Speichern».
+    <span data-schema-width-mates></span></p>
+</form>
+
+
+
+</div>
+</section>
+
+
+
+<form method="post" class="mt-4 flex flex-wrap justify-end gap-2 border-t border-gray-200 pt-3" data-window-actions data-wait-error="Die letzte Änderung ist noch unterwegs. Bitte noch einmal versuchen.">
+  <input type="hidden" name="csrfmiddlewaretoken" value="X">
+  <input type="hidden" name="seite" value="home"><input type="hidden" name="welche" value="regel"><input type="hidden" name="wopen" value="W">
+
+  <input type="hidden" name="ref" value="products">
+  <button name="op" value="revert" class="ui-btn ui-btn-secondary min-h-[44px]">Abbrechen</button>
+  <button name="op" value="window_done" class="ui-btn ui-btn-primary min-h-[44px]">Fertig</button>
+</form>
+
+
+    
+    
+  </aside>
+</div>
+<script src="/static/js/aufbau.js" defer>
