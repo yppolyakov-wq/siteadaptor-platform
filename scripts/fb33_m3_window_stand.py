@@ -499,7 +499,7 @@ def nojs(b):
         pg.goto(U + "/dashboard/site/aufbau/?seite=anfrage&block=form&tab=felder")
         check(
             pg.locator("[data-site-schema] [data-form-felder]").count() == 1
-            and pg.locator("[data-form-felder] button[value=update]").is_visible(),
+            and pg.locator("[data-form-felder] button[data-schema-apply]").is_visible(),
             f"{w}: без JS — «Felder» в панели, «Übernehmen» видна",
         )
         pg.screenshot(path=f"{OUT}/m2i5_nojs_{w}.png")
