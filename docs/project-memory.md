@@ -44,6 +44,13 @@
 - **M21** прогон переезда haanerteeladen на сервере — владелец, runbook §7
   `m21-cscart-migration-plan-2026-10-31.md`.
 
+Решено (FB-33 M2i-5, владелец 2026-11-20): поля формы заявки правятся во вкладке «Felder» окна формы в
+«Seitenaufbau» (через черновик, «Abbrechen» откатывает) под правом **`website.edit`**; панель на «Abläufe»
+заменена ссылкой. Старый POST `jobs:anfrage-form-settings` остаётся рабочим под **`ablaeufe.edit`** как
+осознанный второй путь (старые формы, закладки; пишет сразу, мимо черновика — открытый черновик страницы
+«Anfrage» при «Speichern» покажет конфликт); его GET — 302 на окно. «Branchen-Vorlage» — во вкладке, через
+черновик. Переводы подписей — отдельный срез M2i-5b (по id).
+
 Ждёт решения владельца:
 - Pro-тариф D1 и тарифы T-8.32/33 (19/29 €, Profi-модули) — скрыты до объявления.
 - UC2-3 вариант B (свои ДАННЫЕ секций на каждой странице).
@@ -159,6 +166,13 @@ FB-33 M2i-3a (2026-11-19): онлайн-оплата (Stripe) в корзине 
 - `apps/core/card_forms.VIEW_SHAPES` / `forms_for_view` / `normalize_for_view` — какие формы карточки допустимы у вида списка; вид побеждает (FB-33 M1). Новый вид у источника с карточкой — строка сюда (замок `test_fb33_m1_card_views`).
 - `apps/core/block_catalog.py` — семьи блоков и библиотека («+ Block» Seitenaufbau, карточки Студии): новый C-/ref-блок — запись сюда (замок `test_fb33_m2a_block_catalog`). Вид секций главной в панели — `site_schema.STYLE_SECTIONS` (FB-33 M2b).
 - «Поля форм» (FB-33 M2i): реестр полей заявки/оформления и режимы — `apps/core/form_spec.py`; свои вопросы и ответы — ядро `apps/core/form_answers.py` (не заводить третью копию рядом с `Event.questions`/`events/registration.py`). Обязательность проверяет только вьюха формы. Ответы клиента (`Job/Order.custom_answers`, зашифровано) хранятся, пока живёт сделка (решение владельца 2026-11-19), стираются по DSGVO, в вебхуки не идут, поиска по ним нет; показ — `form_answers.rows`.
+- Вкладка «Felder» (FB-33 M2i-5, 2026-11-20): **`form_spec.put` — единственный писатель
+  `site_config["form_fields"]` из кабинета** (и событийных полей `anfrage` — тем же `normalize_anfrage`);
+  замок-grep `test_fb33_m2i5_before::test_form_fields_has_one_writer` (кроме `form_spec` — только
+  нормализатор `siteconfig`). Правка — через черновик «Seitenaufbau» (`draft["form"]`, разбор
+  `form_spec.parse_post`), номера `q<n>` новых вопросов — только в `aufbau_draft.commit` под блокировкой
+  от сохранённого `next_id` (в черновике временные `n<k>`). Модель вкладки — `form_spec.panel`, второго
+  списка полей нет. Адрес окна — `site_schema.form_window_url()`.
 - Подтверждения — один хост `confirmation` (`apps/core/confirmation_page.py`, FB-33 M2h); корзина-оформление — неподвижные строки `items`/`form`/`summary` (`detail_parts.PINNED`, `cart_parts`). Решения владельца: оформление — строки «Warenkorb»; один «Bestätigung» на все сделки; «Empfehlungen» по умолчанию выкл., как «Passt dazu». Тип «Bestätigung» в «Seitenaufbau» — превью `/bestaetigung/vorschau/` (пример без сделки, только команде, `confirmation_views.py`); «Passt dazu»/«Empfehlungen» — одна точка `apps/catalog/upsell.py` (только то, что можно положить в корзину).
 - Разделы «на месте» (`DetailSection.in_place`, FB-33 M2g): только скрываются; поток/порядок/якоря берут `detail_parts.flow_section_keys`, а не `section_keys` (иначе раздел попадёт в цикл тела или вкладки). Видимость акции — флаги `promo_show_*`.
 - `apps/core/page_title.py` — свой заголовок/вступление страниц-списков и форм (`page_titles`, строка схемы `__title`); `apps/core/quick_links_migration.py` + `config_migration.py` — перенос «Schnellzugriff» и общий писатель переносов настроек (FB-33 M2c/M2d); `quick_links_migration.place(config, set, replace=)` — ЕДИНАЯ точка «поставить набор первого экрана» (блок `quick_links` / секция «Suche» / «Leistungen» сразу после баннера) для шаблонов (`quick_links` поля), сборок (`_bundle_tiles`) и китов (`_kit_quick_links`); ключа `site_defaults.hero_widget` с M2c-4 нет (читает только `detach` для старых копий баз).

@@ -24259,3 +24259,36 @@ security/silent-failure): тупик в двусторонних прятках,
   фокус, inert, геометрия, 44 px, прокрутка, вкладки клавишами и F5, текст→Esc, переключатель→Esc,
   двойной Esc — один POST, сбой сети, «⋯», удаление, фокус на строку, без JS; ревью: отказ
   сервера, панель без окна, сбой showModal, кнопка+Esc). Firefox/Safari — вручную.
+
+### 2026-11-20 — FB-33 M2i-5: вкладка «Felder» в окне блока формы заявки
+- План — `docs/fb33-editor-model-2026-11-19.md` §«План M2i-5» и «Решения владельца (2026-11-20)»:
+  правки — через черновик «Seitenaufbau» (`draft["form"]`), «Abbrechen» откатывает; право — `website.edit`
+  (как окно); панель «Anfrage-Formular» на «Abläufe» сразу заменена ссылкой; переводы подписей — M2i-5b.
+- S0 (security): `jobs._safe_next` пропускал `/\evil.com` (открытый редирект) — теперь единая проверка
+  `owner_login.safe_next`; `inbox._safe_next` → `local_next`. Тесты `/\evil.com`, `//evil.com`, `/%5Cevil.com`,
+  `https://evil.com`, таб.
+- Ядро `form_spec`: `edit_state` (полное состояние вкладки: режимы, подписи, свои вопросы, номер, варианты
+  «Art der Veranstaltung»), `canonical`, `parse_post` (белые списки режимов/типов/действий, лимиты 10×20×120 и
+  12 вариантов — до циклов, закреплённые поля и способ связи на сервере с сообщением, правятся только вопросы
+  своего черновика), `put` — единственный писатель `form_fields` из кабинета и событийных полей `anfrage` (тем же
+  `normalize_anfrage`; событийное поле без правки сохраняет своё место в `anfrage.fields`), `panel`. Новые вопросы
+  в черновике — временный id `n<k>`; `q<n>` назначает `commit` под `select_for_update` от СОХРАНЁННОГО `next_id`
+  (удалённый номер не переиспользуется, чужой/неизвестный id — новый номер), `ID_MAX` — понятный отказ.
+- Черновик: `form` в `_saved_state`/отпечатке/`overlay` (превью — с временными id в служебном ключе
+  `_form_edit`, нормализатор его роняет)/счётчике/снимке окна/откате/`_settle`; замок «открыть → править →
+  Abbrechen = черновик байт-в-байт, включая отсутствие». Окно: часть `formfields` (шаблон `_bw_formfields.html`)
+  у закреплённой строки `form` страницы `anfrage`, вкладка «Felder»; fieldset/legend «Nicht fragen · Optional ·
+  Pflicht», 🔒 «immer Pflicht», своя подпись поля, варианты события с подсказкой без вариантов, свои вопросы (тип,
+  подпись, варианты построчно, Pflicht, ↑/↓/Entfernen с подписями для скринридера, «+ Frage» скрыта при 10),
+  «Branchen-Vorlage laden» — в черновик с подтверждением. Превью: `form_field_modes`/`anfrage_event_choices` читают
+  `page_settings.raw_config`.
+- «Abläufe»: ссылка «In Seitenaufbau bearbeiten →» (при праве и пакете); партиал панели удалён; POST
+  `jobs:anfrage-form-settings` — осознанный второй путь под `ablaeufe.edit` (замки байт-в-байт), GET → 302 на
+  `?seite=anfrage&block=form&tab=felder#schema-panel`. Полоса заявки главной и блок «Anfrage» — часть `formlink`
+  («Felder bearbeiten →»).
+- Замки: `test_fb33_m2i5_before` (форма /anfrage/ и модалка байт-в-байт для трёх конфигов, старый POST, один
+  писатель `form_fields` — grep), `test_fb33_m2i5_form_spec`, `_draft` (черновик, Abbrechen, Speichern, конфликт,
+  403 без `website.edit`), `_window_ui` (разметка, XSS в окне/форме/модалке/карточке/письме/PDF/ld+json, превью,
+  старые заявки по снимку, журнал без ответов), `_links`. Эталоны M3 (`golden_fb33m3`) — без изменений.
+- Стенд `scripts/fb33_m3_window_stand.py` + функция `felder` (тенанту стенда — `text_pages_stand.py --jobs`):
+  1440/390 — режим поля, свой вопрос, Abbrechen откатывает, Fertig + Speichern → /anfrage/, без JS — панель.
