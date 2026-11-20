@@ -39433,6 +39433,14 @@ msgstr "Bu blok için özel ayar"
 msgid "zurücksetzen"
 msgstr "sıfırla"
 
+#. FB-33 M3-3: ревью — контекст ссылок для читалок
+msgid "Ansicht dieses Blocks"
+msgstr "bu bloğun görünümü"
+
+#. FB-33 M3-3: ревью — контекст ссылок для читалок
+msgid "Block „Produkte“"
+msgstr "„Ürünler“ bloğu"
+
 #. FB-33 стопка: якорь среза M3-3d — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
 msgid "fb33-stack-anchor-M3-3d"
 msgstr "fb33-stack-anchor-M3-3d"

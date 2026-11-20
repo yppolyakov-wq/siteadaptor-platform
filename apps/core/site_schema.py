@@ -1012,8 +1012,9 @@ def _update_builtin(item: dict, fields: dict | None) -> bool:
         # FB-33 M3-3c: «zurücksetzen» — колонки секции по умолчанию (раньше "" молча не
         # действовало: колонки оставались прежними)
         default = siteconfig.normalize_layout(None, siteconfig.GRID_SECTION_DEFAULTS.get(key))
-        layout["cols"] = default["cols"]
-        layout["preset"] = default["preset"]
+        if layout.get("cols") not in (None, default["cols"]):  # своих колонок нет — не писать
+            layout["cols"] = default["cols"]
+            layout["preset"] = default["preset"]
     if "rows" in sent:
         rows = _digit(sent["rows"], 1, 6)
         if rows:

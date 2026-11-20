@@ -204,9 +204,12 @@ def width_tiles(widths, current: str) -> dict:
 
 # ─────────────── FB-33 M3-3c: как выглядит список + наследование и сброс (макет M0-1) ───────────────
 
-#: что сбрасывает «zurücksetzen» — ровно то, что названо в строке наследования: вид и
-#: раскладка списка (решение владельца; «Kartenform» — вкладка «Karte», M3-4)
+#: что сбрасывает «zurücksetzen» — ровно то, что названо в строке наследования (решение
+#: владельца): у блока «Liste» — вид списка, вывод, колонки, ряды; у встроенного списка — только
+#: раскладка («Darstellung» секции — её вид, не наследуется и не сбрасывается). «Kartenform» —
+#: вкладка «Karte» (M3-4)
 VIEW_RESET_FIELDS = ("style", "out", "cols", "rows")
+BUILTIN_RESET_FIELDS = ("out", "cols", "rows")
 
 #: виды товаров каталога, которых на главной (пока) нет — видны с причиной (решение по M0-1)
 CATALOG_ONLY_PRODUCT_VIEWS = ("schaufenster", "magazin")
@@ -233,16 +236,28 @@ def _summary(layout: dict) -> str:
     return " · ".join((str(_("Raster")), _("%(n)s Spalten") % {"n": layout.get("cols") or 1}))
 
 
+def _own_names(selected: dict, own: list[str]) -> list[str]:
+    """Подписи своих полей вида — те же, что у полей формы «Wie … aussehen»."""
+    labels = {
+        f["name"]: f["label"]
+        for g in selected.get("groups") or ()
+        if g.get("key") == "wie"
+        for f in g.get("fields") or ()
+    }
+    return [str(labels[name]) for name in own if name in labels]
+
+
 def list_view(config: dict, selected: dict) -> dict | None:
-    """Строка наследования вида списка (M0-1): откуда вид, какой он, свой ли у блока.
-    {source, summary, link, own, inherits}; None — у строки списка нет."""
+    """Строка наследования вида списка (M0-1): откуда вид, какой он, что у блока своё.
+    {source, summary, link, own (имена своих полей), reset (поля сброса), inherits};
+    None — у строки списка нет."""
     from apps.core import list_blocks
     from apps.tenants import siteconfig
 
     data = selected.get("list_data")
     if data is not None:  # блок «Liste»: вид страницы-листинга, типа акции или стандарт
         base = list_blocks.base_view(config, data)
-        own = any(data.get(k) not in (None, "") for k in VIEW_RESET_FIELDS)
+        own = [k for k in VIEW_RESET_FIELDS if data.get(k) not in (None, "")]
         frm = base["layout_from"]
         source, link = str(_("Standard")), ""
         if frm == "page":
@@ -261,7 +276,8 @@ def list_view(config: dict, selected: dict) -> dict | None:
             "source": source,
             "summary": _summary(base["layout"]),
             "link": link,
-            "own": own,
+            "own": _own_names(selected, own),
+            "reset": VIEW_RESET_FIELDS,
             "inherits": frm in ("page", "type"),
         }
     data = selected.get("builtin_data")
@@ -275,17 +291,21 @@ def list_view(config: dict, selected: dict) -> dict | None:
         cols = int(data.get("cols") or default["cols"])
     except (TypeError, ValueError):
         cols = default["cols"]
-    own = (
-        bool(data.get("style"))
-        or data.get("out") == "slider"
-        or bool(data.get("rows"))
-        or cols != default["cols"]
-    )
+    own = [
+        name
+        for name, mine in (
+            ("out", data.get("out") == "slider"),
+            ("cols", cols != default["cols"]),
+            ("rows", bool(data.get("rows"))),
+        )
+        if mine
+    ]
     return {
         "source": str(_("Standard")),
         "summary": _summary(default),
         "link": "",
-        "own": own,
+        "own": _own_names(selected, own),
+        "reset": BUILTIN_RESET_FIELDS,
         "inherits": False,
     }
 

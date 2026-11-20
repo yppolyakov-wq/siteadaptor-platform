@@ -299,82 +299,135 @@ def test_list_look_form_does_not_touch_the_what_fields_and_back():
     assert data["cols"] == 2 and data["out"] == "slider" and data["limit"] == 7
 
 
+def _reset_form(html):
+    form = re.search(r"<form[^>]*data-schema-reset-form.*?</form>", html, flags=re.S)
+    return form.group(0) if form else ""
+
+
+def _line(html):
+    return re.search(r"<p[^>]*data-schema-inherit>.*?</p>", html, flags=re.S).group(0)
+
+
+def test_reset_button_is_not_inside_a_script_applied_form():
+    """Ревью M3-3 (1): aufbau.js прячет первую `button[value=update]` формы `data-schema-list` —
+    кнопка сброса живёт в своей форме ПОСЛЕ формы вида и под этот селектор не попадает."""
+    b = _browser()
+    b.get("?seite=home&block=l1")
+    _post(b, seite="home", ref="l1", op="update", panel_present="1", f_cols="2")
+    html = _panel(_get(b, "?seite=home&block=l1"))
+    look = _listview(html)
+    assert "data-schema-view-reset" not in look and 'form="' not in look
+    reset = _reset_form(html)
+    assert "data-schema-view-reset" in reset and "data-schema-" + "list" not in reset[:120]
+    assert not re.search(r'<button[^>]*value="update"', reset)
+    assert html.index("data-schema-listview") < html.index("data-schema-reset-form")
+
+
 def test_reset_brings_the_list_back_to_its_base_view_and_keeps_the_card():
     from apps.core import list_blocks
 
     b = _browser()
     b.get("?seite=home&block=l1")
     _post(b, seite="home", ref="l1", op="update", panel_present="1",
-          f_cols="2", f_out="slider", f_rows="2", f_style="preisliste", f_limit="5")  # fmt: skip
-    _post(b, seite="home", ref="l1", op="update", panel_present="1", f_card="deal")
-    with translation.override("de"):
-        html = _panel(b.get("?seite=home&block=l1"))
-    assert "data-schema-view-reset" in html and "hier geändert gilt nur für diesen Block" in html
-    reset = re.search(r'<form method="post" id="schema-view-reset".*?</form>', html, flags=re.S)
-    sent = dict(re.findall(r'name="(f_[a-z]+)" value="([^"]*)"', reset.group(0)))
+          f_cols="2", f_out="slider", f_rows="2", f_limit="5", f_card="deal")  # fmt: skip
+    assert _home_item(b, "l1")["data"]["card"] == "deal"
+    html = _panel(_get(b, "?seite=home&block=l1"))
+    assert "hier geändert gilt nur für diesen Block" in _line(html)
+    sent = dict(re.findall(r'name="(f_[a-z]+)" value="([^"]*)"', _reset_form(html)))
     assert sent == {f"f_{k}": "" for k in block_views.VIEW_RESET_FIELDS}
     _post(b, seite="home", ref="l1", op="update", panel_present="1", **sent)
     data = _home_item(b, "l1")["data"]
     assert not {"cols", "out", "rows", "style"} & set(data)
     assert data["limit"] == 5  # «Welche» не тронуто
+    assert data["card"] == "deal"  # «Kartenform» — не сбрасывается (M3-4)
     cfg = siteconfig.normalize({**CFG})
-    eff = list_blocks.effective_view(cfg, data)
-    assert eff["layout"] == list_blocks.base_view(cfg, data)["layout"]
-    with translation.override("de"):
-        html = _panel(b.get("?seite=home&block=l1"))
-    assert "data-schema-view-reset" not in html
+    # «Deal» сама ужимает колонки (грабля FB-33 M1) — это ось «Karte», сравниваем без неё
+    view = {k: v for k, v in data.items() if k != "card"}
+    eff = list_blocks.effective_view(cfg, view)
+    assert eff["layout"] == list_blocks.base_view(cfg, view)["layout"]
+    assert not _reset_form(_panel(_get(b, "?seite=home&block=l1")))
 
 
 def test_inheritance_line_names_the_page_the_view_comes_from():
     cfg = {**CFG, "catalog_layout": {"preset": "cols3"}}
     b = _browser(cfg)
-    with translation.override("de"):
-        html = _panel(b.get("?seite=home&block=l1"))
-    line = re.search(r"<p[^>]*data-schema-inherit>.*?</p>", html, flags=re.S).group(0)
-    assert "Wie auf der Seite „Katalog“: Raster · 3 Spalten" in line
-    assert "seite=catalog&amp;block=main&amp;tab=seite" in line
-    assert "zurücksetzen" not in line  # своего вида у блока нет
+    html = _panel(_get(b, "?seite=home&block=l1"))
+    assert "Wie auf der Seite „Katalog“: Raster · 3 Spalten" in _line(html)
+    assert "seite=catalog&amp;block=main&amp;tab=seite" in html
+    assert not _reset_form(html)  # своего вида у блока нет
     b.get("?seite=home&block=l1")
     _post(b, seite="home", ref="l1", op="update", panel_present="1", f_cols="2")
-    with translation.override("de"):
-        html = _panel(b.get("?seite=home&block=l1"))
-    line = re.search(r"<p[^>]*data-schema-inherit>.*?</p>", html, flags=re.S).group(0)
-    assert "hier geändert gilt nur für diesen Block" in line and "zurücksetzen" in line
-    # без страницы-источника (плитки категорий) — честно «Standard»; своё — «Eigene Einstellung»
+    html = _panel(_get(b, "?seite=home&block=l1"))
+    line = _line(html)
+    # строка перечисляет ровно то, что у блока своё
+    assert "Eigene Einstellung für diesen Block: Spalten — hier geändert" in line
+    assert _reset_form(html)
+    # без страницы-источника (плитки категорий) — честно «Standard»
     own = {**CFG, "sections": [*CFG["sections"], {"key": "list", "id": "l2", "enabled": True,
            "data": {"source": "categories"}}]}  # fmt: skip
     b = _browser(own)
-    with translation.override("de"):
-        html = _panel(b.get("?seite=home&block=l2"))
+    html = _panel(_get(b, "?seite=home&block=l2"))
     assert re.search(r"data-schema-inherit>Standard: Raster · \d Spalten</p>", html)
     b.get("?seite=home&block=l2")
-    _post(b, seite="home", ref="l2", op="update", panel_present="1", f_cols="2")
-    with translation.override("de"):
-        html = _panel(b.get("?seite=home&block=l2"))
-    line = re.search(r"<p[^>]*data-schema-inherit>.*?</p>", html, flags=re.S).group(0)
-    assert "Eigene Einstellung für diesen Block · " in line and "(Standard: Raster ·" in line
+    _post(b, seite="home", ref="l2", op="update", panel_present="1", f_style="square")
+    line = _line(_panel(_get(b, "?seite=home&block=l2")))
+    assert "Eigene Einstellung für diesen Block: " in line and "Spalten," not in line
+    assert "hier geändert" not in line  # не наследует — «nur für diesen Block» не нужно
 
 
-def test_builtin_list_reset_returns_the_section_default():
+def test_link_actions_have_context_for_screen_readers():
+    cfg = {**CFG, "catalog_layout": {"preset": "cols3"}}
+    b = _browser(cfg)
+    b.get("?seite=home&block=l1")
+    _post(b, seite="home", ref="l1", op="update", panel_present="1", f_cols="2")
+    html = _panel(_get(b, "?seite=home&block=l1"))
+    link = re.search(r"<a[^>]*data-schema-inherit-link.*?</a>", html, flags=re.S).group(0)
+    assert "underline-offset-2" in link and "sr-only" in link and "Katalog" in link
+    reset = _reset_form(html)
+    assert "underline-offset-2" in reset and "Ansicht dieses Blocks" in reset
+
+
+def test_builtin_list_reset_keeps_the_section_look():
+    """«zurücksetzen» у встроенного списка — только раскладка; «Darstellung» секции остаётся
+    (решение владельца)."""
     b = _browser()
     b.get("?seite=home&block=products")
     _post(b, seite="home", ref="products", op="update", panel_present="1",
-          f_cols="2", f_out="slider", f_style="preisliste", f_limit="6")  # fmt: skip
-    item = _home_item(b, "products")
-    assert item["layout"]["cols"] == 2 and item["layout"]["scroll"] and item["style"]
-    with translation.override("de"):
-        html = _panel(b.get("?seite=home&block=products"))
-    assert "data-schema-view-reset" in html
+          f_style="preisliste", f_limit="6")  # fmt: skip
+    assert not _reset_form(_panel(_get(b, "?seite=home&block=products")))  # вид — не «своё»
     _post(b, seite="home", ref="products", op="update", panel_present="1",
-          f_style="", f_out="", f_cols="", f_rows="")  # fmt: skip
+          f_cols="2", f_out="slider")  # fmt: skip
+    item = _home_item(b, "products")
+    assert item["layout"]["cols"] == 2 and item["layout"]["scroll"]
+    html = _panel(_get(b, "?seite=home&block=products"))
+    sent = dict(re.findall(r'name="(f_[a-z]+)" value="([^"]*)"', _reset_form(html)))
+    assert sent == {f"f_{k}": "" for k in block_views.BUILTIN_RESET_FIELDS}
+    _post(b, seite="home", ref="products", op="update", panel_present="1", **sent)
     item = _home_item(b, "products")
     default = siteconfig.normalize_layout(None, siteconfig.GRID_SECTION_DEFAULTS["products"])
-    assert item["layout"]["cols"] == default["cols"]
-    assert "scroll" not in item["layout"] and "style" not in item
-    assert item["limit"] == 6
-    with translation.override("de"):
-        html = _panel(b.get("?seite=home&block=products"))
-    assert "data-schema-view-reset" not in html
+    assert item["layout"]["cols"] == default["cols"] and "scroll" not in item["layout"]
+    assert item["style"] == "preisliste" and item["limit"] == 6
+    assert not _reset_form(_panel(_get(b, "?seite=home&block=products")))
+
+
+def test_update_without_changes_does_not_invent_a_draft():
+    """Ревью M3-3 (4): «Übernehmen» без правок и пустые колонки у строки без своих колонок
+    ничего не пишут."""
+    from apps.core import site_schema
+
+    item = {"key": "products", "enabled": True}
+    assert site_schema._update_builtin(item, {"cols": "", "rows": "", "out": ""}) is False
+    assert item == {"key": "products", "enabled": True}
+    b = _browser()
+    html = _panel(_get(b, "?seite=home&block=products"))
+    sent = dict(re.findall(r'name="(f_[a-z]+)" value="([^"]*)"[^>]*checked', _listview(html)))
+    _post(b, seite="home", ref="products", op="update", panel_present="1", **sent)
+    from types import SimpleNamespace
+
+    from apps.core import aufbau_draft
+
+    assert "f_cols" in sent and "f_out" in sent  # прислано всё, что отмечено
+    assert aufbau_draft.get(SimpleNamespace(session=b.session), "home") is None
 
 
 def test_home_products_show_catalog_only_views_with_a_reason():
@@ -384,3 +437,21 @@ def test_home_products_show_catalog_only_views_with_a_reason():
             off = re.search(rf'data-schema-style-off="{key}">.*?</div>', html, flags=re.S)
             assert off and "Vorerst nur auf Katalogseiten." in off.group(0)
     assert 'value="schaufenster"' not in html  # не выбирается
+
+
+def test_tiles_a11y_after_review():
+    """Ревью a11y M3-3 (7): пояснение плитки — только внутри подписи, у недоступного вида —
+    «Nicht verfügbar:» для читалки, фокус кнопок-плиток 3 px, ссылка «dort ändern» подчёркнута
+    и с контекстом."""
+    b = _browser()
+    switch = _panel(_get(b, "?seite=home&block=t1"))
+    look = _listview(_panel(_get(b, "?seite=home&block=products")))
+    for html in (switch, look, _panel(_get(b, "?seite=home&block=team"))):
+        assert 'aria-describedby="vt-' not in html
+    assert "focus-visible:outline-[3px]" in switch.split("data-schema-switch")[1]
+    assert look.count('<span class="sr-only">Nicht verfügbar: </span>') == 2
+    with translation.override("de"):
+        hint = render_to_string(
+            "tenant/_schema_regale_hint.html", {"link": "main", "code": "catalog"}
+        )
+    assert "underline-offset-2" in hint and "sr-only" in hint and "Produkte" in hint

@@ -68,7 +68,7 @@ def test_catalog_views_on_home_hide_columns_and_output_but_keep_them():
     html = b.get("?seite=home&block=categories")
     # FB-33 M3-3c: форма «zurücksetzen» шлёт пустые вид/вывод/колонки/ряды осознанно —
     # замок о формах правки
-    html = re.sub(r'<form method="post" id="schema-view-reset".*?</form>', "", html, flags=re.S)
+    html = re.sub(r"<form[^>]*data-schema-reset-form.*?</form>", "", html, flags=re.S)
     assert 'name="f_cols"' not in html and 'name="f_out"' not in html
     assert 'name="f_style"' in html
     b.post(
