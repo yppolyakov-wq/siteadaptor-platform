@@ -10,8 +10,11 @@ function aufbauError(text) {
   var inWindow = document.querySelector("dialog.ui-bwin[open] [data-bwin-msgs]");
   var host = inWindow || box || document.querySelector("[data-schema-panel]");
   if (!host) { window.alert(text); return; }
+  // ревью M3-2 (L9): в окне — одна ошибка, прежняя снимается
+  if (inWindow) inWindow.querySelectorAll("[data-bwin-error]").forEach(function (n) { n.remove(); });
   var p = document.createElement("p");
   p.setAttribute("role", "alert");
+  if (inWindow) p.setAttribute("data-bwin-error", "");
   p.className = inWindow ? "ui-bwin-alert" : "rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800";
   p.textContent = text;
   host.appendChild(p);
@@ -125,11 +128,13 @@ function aufbauSubmitCopy(form, submitter) {
 
   function fallback(form) {
     var btn = form.isConnected && form.querySelector(APPLY);
-    if (!btn) { aufbauError(); return; }  // ревью 2: не перезагружаем молча
+    if (!btn) { lastRefused = true; aufbauError(); return; }  // ревью 2: не перезагружаем молча
     btn.style.display = "";
     // FB-33 M3-2: правка ещё считается «в пути» — без флага её же обработчик отправки
     // ниже проглотил бы эту отправку (Enter в поле), и правка пропала бы молча
     navigating = true;
+    // ревью M3-2 (M7): окно закрывали (Esc/×) — после перезагрузки закрыть его снова
+    if (closing) intend();
     form.requestSubmit(btn);
     guard();
   }
@@ -141,6 +146,7 @@ function aufbauSubmitCopy(form, submitter) {
     // Список и переключатель меняют состав полей панели — её перерисовываем целиком;
     // при правке текста панель не трогаем: владелец может уже печатать в соседнем поле.
     var whole = target.tagName === "SELECT" || target.type === "radio";
+    var swapped = false;
     pending += 1;
     busy();
     chain = chain
@@ -161,9 +167,13 @@ function aufbauSubmitCopy(form, submitter) {
         if (!doc.querySelector("[data-schema-map]")) throw new Error("no schema");
         // Сообщения сервера (отказ, конфликт) — на своём месте; при отказе панель
         // показывает то, что действительно записано.
+        swapped = true;  // дальше правка записана: сбой отрисовки — не «nicht gespeichert»
         swap(doc, "[data-schema-messages]");
-        relay();
         var refused = !!doc.querySelector('[data-schema-messages] [role="alert"]');
+        // ревью M3-2 (H3): отказ сервера «Fertig» по Esc не сжигает перезагрузкой
+        lastRefused = refused;
+        if (!refused) clearErrors();
+        relay();
         if (refused) whole = true;
         swap(doc, "[data-schema-status]");
         swap(doc, "[data-schema-map]");
@@ -187,6 +197,11 @@ function aufbauSubmitCopy(form, submitter) {
             else if (panel) panel.focus({ preventScroll: true });
           }
           if (!at && (!document.activeElement || document.activeElement === document.body)) refocus(target);
+          // ревью M3-2 (a11y M3): фокус не остаётся на body под открытым окном
+          if (win && !win.contains(document.activeElement)) {
+            var title = win.querySelector("#schema-panel-title");
+            if (title) title.focus({ preventScroll: true });
+          }
           if (el && typed !== null && el.value !== typed) {
             el.value = typed;
             el.dispatchEvent(new Event("change", { bubbles: true }));
@@ -206,7 +221,12 @@ function aufbauSubmitCopy(form, submitter) {
           setTimeout(function () { live.textContent = live.getAttribute("data-done") || ""; }, 100);
         }
       })
-      .catch(function () { fallback(form); })
+      .catch(function (err) {
+        // ревью M3-2 (M6): причина — в консоль; ответ уже показан — правка записана, без
+        // запасной отправки и без «nicht gespeichert»
+        if (window.console) console.error("aufbau: Änderung", err);
+        if (!swapped) fallback(form);
+      })
       .then(function () { pending -= 1; busy(); });
   }
 
@@ -240,6 +260,8 @@ function aufbauSubmitCopy(form, submitter) {
 
   var radioTimer = null;
   var radioFire = null;
+  // последний ответ на правку — отказ сервера (его alert виден в окне)
+  var lastRefused = false;
   document.addEventListener("change", function (e) {
     var target = e.target;
     var form = panelForm(target);
@@ -249,7 +271,15 @@ function aufbauSubmitCopy(form, submitter) {
       // FB-29 R4: стрелки в группе переключателей шлют change на каждый шаг — отправляем
       // один раз, когда выбор остановился.
       clearTimeout(radioTimer);
-      radioFire = function () { radioTimer = null; radioFire = null; apply(form, target); };
+      radioFire = function () {
+        radioTimer = null;
+        radioFire = null;
+        // ревью M3-2 (L15): панель за 350 мс подменили — та же кнопка в новой форме
+        var now = target.isConnected ? target : refocus(target);
+        var into = now ? panelForm(now) : null;
+        if (into) apply(into, now);
+        else aufbauError();
+      };
       radioTimer = setTimeout(radioFire, 350);
       return;
     }
@@ -265,7 +295,12 @@ function aufbauSubmitCopy(form, submitter) {
     e.preventDefault();
     // Enter в поле панели: правка уже в пути (change), вторая отправка не нужна.
     if (form.matches(FORMS) && (!submitter || submitter.value === "update")) return;
-    if (form.hasAttribute("data-window-actions")) { afterPending(form, submitter); return; }
+    if (form.hasAttribute("data-window-actions")) {
+      afterPending(form, submitter).then(function (how) {
+        if (how === "late" || how === "refused") reopen();
+      });
+      return;
+    }
     chain.then(function () {
       if (!form.isConnected) { aufbauSubmitCopy(form, submitter); return; }  // ревью 2
       form.requestSubmit(submitter && submitter.isConnected ? submitter : undefined);
@@ -284,6 +319,7 @@ function aufbauSubmitCopy(form, submitter) {
       if (how === "late") { aufbauError(form.getAttribute("data-wait-error")); return "late"; }
       // FB-33 M3-2: правка ушла обычной отправкой (запасной путь) — вторая отправка оборвала бы её
       if (navigating) return "skip";
+      if (lastRefused && submitter && submitter.value === "window_done") return "refused";
       if (form.isConnected) { form.requestSubmit(submitter && submitter.isConnected ? submitter : undefined); return "sent"; }
       remember(form, submitter);
       aufbauSubmitCopy(form, submitter);
@@ -303,6 +339,57 @@ function aufbauSubmitCopy(form, submitter) {
   var ours = false;
   var NAV_WAIT = 10000;
   var BACK = "aufbauWindowBack";
+  var INTENT = "aufbauWindowClose";
+
+  function here() { return new URLSearchParams(location.search).get("seite") || "home"; }
+
+  function stash(key, ref) {
+    try {
+      sessionStorage.setItem(key, JSON.stringify({ seite: here(), ref: ref, ts: Date.now() }));
+    } catch (err) { /* без хранилища — без этого удобства */ }
+  }
+
+  function unstash(key) {
+    var v = null;
+    try {
+      v = JSON.parse(sessionStorage.getItem(key) || "null");
+      sessionStorage.removeItem(key);
+    } catch (err) { v = null; }
+    return v && v.seite === here() && Date.now() - v.ts < 30000 ? v : null;
+  }
+
+  function panelRef() {
+    var ref = win && win.querySelector('[data-schema-panel] input[name="ref"]');
+    return ref ? ref.value : new URLSearchParams(location.search).get("block") || "";
+  }
+
+  // ревью M3-2 (M7): закрытие сорвалось на запасной отправке правки — закрыть после перезагрузки
+  function intend() { stash(INTENT, panelRef()); }
+
+  function clearErrors() {
+    if (win) win.querySelectorAll("[data-bwin-error]").forEach(function (n) { n.remove(); });
+  }
+
+  // ревью M3-2 (M4): пока «Fertig» уходит — окно занято (читатель экрана слышит «Fertig»)
+  function sending(on) {
+    if (!win) return;
+    if (on) {
+      win.setAttribute("aria-busy", "true");
+      win.classList.add("ui-bwin-busy");
+      var live = liveRegion();
+      var b = win.querySelector('[data-schema-panel] button[value="window_done"]');
+      if (live && b) { live.textContent = ""; live.textContent = b.textContent.trim(); }
+    } else {
+      win.removeAttribute("aria-busy");
+      win.classList.remove("ui-bwin-busy");
+    }
+  }
+
+  // закрытие не состоялось — окно снова отвечает на Esc и ×
+  function reopen() {
+    closing = false;
+    sending(false);
+  }
 
   function liveRegion() {
     return (win && win.open && win.querySelector("[data-bwin-status]")) || document.querySelector("[data-schema-live]");
@@ -314,20 +401,42 @@ function aufbauSubmitCopy(form, submitter) {
     var src = document.querySelector("[data-schema-messages]");
     if (!box || !src) return;
     box.querySelectorAll("[data-bwin-relayed]").forEach(function (n) { n.remove(); });
+    var said = [];
     Array.prototype.forEach.call(src.children, function (m) {
       var p = document.createElement("p");
       var alert = m.getAttribute("role") === "alert";
-      p.setAttribute("role", alert ? "alert" : "status");
+      // role=alert — только ошибки; прочее читает одна живая область окна
+      if (alert) p.setAttribute("role", "alert");
+      else said.push(m.textContent.trim());
       p.setAttribute("data-bwin-relayed", "");
       p.className = alert ? "ui-bwin-alert" : "ui-bwin-note";
       p.textContent = m.textContent.trim();
       box.appendChild(p);
     });
+    var live = said.length && win.querySelector("[data-bwin-status]");
+    if (live) {
+      live.textContent = "";
+      setTimeout(function () { live.textContent = said.join(" "); }, 100);
+    }
   }
 
   // Новая панель (после подмены) — заголовок принимает фокус программно.
   function dress() {
-    var h = win && win.querySelector("#schema-panel-title");
+    if (!win) return;
+    var panel = win.querySelector("[data-schema-panel]");
+    // ревью M3-2 (H1): новая панель без окна (ни «Fertig», ни подтверждения) — окно закрыть,
+    // панель вернуть в сетку
+    if (!panel || (!panel.querySelector('button[value="window_done"]') && !panel.querySelector("[data-schema-confirm]"))) {
+      closeWindow();
+      return;
+    }
+    // a11y M2: в окне панель — не второй landmark с тем же именем
+    if (panel.hasAttribute("aria-labelledby")) {
+      panel.setAttribute("data-bwin-lb", panel.getAttribute("aria-labelledby"));
+      panel.removeAttribute("aria-labelledby");
+    }
+    panel.setAttribute("role", "group");
+    var h = win.querySelector("#schema-panel-title");
     if (h) h.setAttribute("tabindex", "-1");
     tabs();
     document.dispatchEvent(new CustomEvent("aufbau:panel"));
@@ -392,7 +501,9 @@ function aufbauSubmitCopy(form, submitter) {
       var u = new URL(location.href);
       u.searchParams.set("tab", key);  // welche, wopen, ansicht остаются в адресе
       u.hash = "schema-tab-" + key;
-      history.replaceState(history.state, "", u.pathname + u.search + u.hash);
+      try {
+        history.replaceState(history.state, "", u.pathname + u.search + u.hash);
+      } catch (err) { /* адрес не обновился — вкладка всё равно выбрана */ }
     }
   }
 
@@ -405,7 +516,7 @@ function aufbauSubmitCopy(form, submitter) {
   });
   document.addEventListener("keydown", function (e) {
     var a = e.target.closest ? e.target.closest('dialog.ui-bwin [role="tab"]') : null;
-    if (!a) return;
+    if (!a || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
     var all = tabLinks();
     var i = all.indexOf(a);
     var next = null;
@@ -422,16 +533,19 @@ function aufbauSubmitCopy(form, submitter) {
   // Куда вернуть фокус после перезагрузки, которой окно закрывается.
   function remember(form, submitter) {
     var op = submitter && submitter.value;
-    if (op !== "window_done" && op !== "revert") return;
+    if (op !== "window_done" && op !== "revert") return false;
     var ref = form.querySelector('input[name="ref"]');
-    if (!ref) return;
-    try {
-      sessionStorage.setItem(BACK, JSON.stringify({
-        seite: new URLSearchParams(location.search).get("seite") || "home", ref: ref.value, ts: Date.now(),
-      }));
-    } catch (err) { /* без хранилища фокус останется у заголовка страницы */ }
+    if (ref) stash(BACK, ref.value);
+    return true;
   }
-  document.addEventListener("submit", function (e) { remember(e.target, e.submitter); }, true);
+  document.addEventListener("submit", function (e) {
+    // ревью M3-2 (M5): «Fertig»/«Abbrechen» нажаты в окне — Esc и × второго POST не шлют
+    if (remember(e.target, e.submitter) && win && win.contains(e.target)) {
+      closing = true;
+      sending(true);
+      if (!pending) guard();  // при правке в пути ждёт afterPending (свой срок)
+    }
+  }, true);
 
   // Отправка ушла, а страница всё ещё здесь (сеть оборвала переход) — сказать об этом в
   // окне и снова разрешить закрытие.
@@ -440,12 +554,12 @@ function aufbauSubmitCopy(form, submitter) {
     clearTimeout(guardTimer);
     guardTimer = setTimeout(function () {
       navigating = false;
-      closing = false;
+      reopen();
       aufbauError();
     }, NAV_WAIT);
   }
   window.addEventListener("pageshow", function (e) {
-    if (e.persisted) { clearTimeout(guardTimer); navigating = false; closing = false; }
+    if (e.persisted) { clearTimeout(guardTimer); navigating = false; reopen(); }
   });
 
   function done() {
@@ -465,23 +579,30 @@ function aufbauSubmitCopy(form, submitter) {
       btn = panel && panel.querySelector('button[value="window_done"]');
       form = btn && btn.form;
     }
-    if (!btn || !form) return;
-    if (navigator.onLine === false) { aufbauError(); return; }
+    if (!btn || !form) {
+      // ревью M3-2 (H1): закрывать нечем — ссылка «Fertig» или вернуть панель на место
+      var link = panel && panel.querySelector("a[data-schema-done][href]");
+      if (link) { closing = true; guard(); location.assign(link.href); return; }
+      closeWindow();
+      aufbauError();
+      return;
+    }
     closing = true;
     // правка поля уходит по change при уходе из него; отложенный переключатель — сейчас
     var at = document.activeElement;
     if (at && panel.contains(at) && typeof at.blur === "function") at.blur();
     if (radioTimer) { clearTimeout(radioTimer); if (radioFire) radioFire(); }
-    if (navigating) { guard(); return; }
+    if (navigating) { intend(); guard(); return; }
     if (pending) {
       afterPending(form, btn).then(function (how) {
-        if (how === "late") closing = false;
-        else guard();
+        if (how === "late" || how === "refused") reopen();
+        else if (how === "sent") guard();
       });
       return;
     }
+    // ревью M3-2 (H3): последний ответ — отказ; он виден в окне, перезагрузка его стёрла бы
+    if (lastRefused) { reopen(); return; }
     form.requestSubmit(btn);
-    guard();
   }
 
   function focusIn() {
@@ -498,7 +619,9 @@ function aufbauSubmitCopy(form, submitter) {
   function openWindow(panel) {
     if (win || !panel || !panel.parentNode) return false;
     var drawer = document.getElementById("sf-drawer");
-    if (drawer && drawer.open && window.sfDrawer) window.sfDrawer.close(true);
+    try {
+      if (drawer && drawer.open && window.sfDrawer) window.sfDrawer.close(true);
+    } catch (err) { if (window.console) console.error("aufbau: Schublade", err); }
     win = document.createElement("dialog");
     win.className = "ui-bwin";
     win.setAttribute("aria-modal", "true");
@@ -542,17 +665,38 @@ function aufbauSubmitCopy(form, submitter) {
       }
       done();
     });
-    win.addEventListener("close", function () {
+    var self = win;
+    var lastFocus = null;
+    self.addEventListener("focusin", function (e) { lastFocus = e.target; });
+    self.addEventListener("close", function (e) {
       // закрыл не скрипт (CloseWatcher, «назад» на Android) — окно остаётся, как Esc
-      if (ours || !win) return;
-      win.showModal();
+      if (e.target !== self || ours || win !== self) return;
+      try {
+        self.showModal();
+      } catch (err) {
+        closeWindow();
+        return;
+      }
+      if (lastFocus && self.contains(lastFocus)) lastFocus.focus();  // a11y L10
       done();
     });
     document.documentElement.classList.add("ui-bwin-lock");
-    win.showModal();
+    try {
+      win.showModal();
+    } catch (err) {
+      // ревью M3-2 (H2): окно не открылось — панель остаётся колонкой, как без скриптов
+      if (window.console) console.error("aufbau: Fenster", err);
+      closeWindow();
+      return false;
+    }
     dress();
+    if (!win) return false;
     relay();
     focusIn();
+    // ревью M3-2 (M7): перед перезагрузкой окно закрывали — закрываем его теперь (если без ошибки)
+    var intent = unstash(INTENT);
+    var refusedNow = document.querySelector('[data-schema-messages] [role="alert"]');
+    if (intent && intent.ref === panelRef() && !refusedNow) done();
     return true;
   }
 
@@ -560,14 +704,26 @@ function aufbauSubmitCopy(form, submitter) {
     if (!win) return;
     var panel = win.querySelector("[data-schema-panel]");
     ours = true;
-    if (win.open) win.close();
-    ours = false;
+    try {
+      if (win.open) win.close();
+    } finally {
+      ours = false;
+    }
+    if (panel) {
+      // a11y M2: в сетке — снова landmark панели
+      panel.removeAttribute("role");
+      if (panel.hasAttribute("data-bwin-lb")) {
+        panel.setAttribute("aria-labelledby", panel.getAttribute("data-bwin-lb"));
+        panel.removeAttribute("data-bwin-lb");
+      }
+    }
     if (panel && mark && mark.parentNode) mark.parentNode.insertBefore(panel, mark);
     if (mark && mark.parentNode) mark.parentNode.removeChild(mark);
     win.remove();
     win = null;
     mark = null;
     closing = false;
+    lastRefused = false;
     document.documentElement.classList.remove("ui-bwin-lock");
   }
 

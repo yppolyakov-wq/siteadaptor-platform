@@ -160,6 +160,30 @@ def m32(pg, w, ref):
         [DLG, last],
     )
     check(tabs_in_forms, "формы панели несут выбранную вкладку")
+    # ревью a11y: фокус на панели вкладки виден; панель в окне — не второй landmark
+    pg.focus(f"{DLG} [role=tab][aria-selected=true]")
+    pg.keyboard.press("Tab")
+    ring = pg.evaluate(
+        "[document.activeElement.getAttribute('role'), getComputedStyle(document.activeElement).outlineStyle].join(' ')"
+    )
+    check(ring == "tabpanel solid", f"Tab из вкладок — в панель, фокус виден ({ring})")
+    grp = pg.evaluate(
+        "(sel) => { const a = document.querySelector(sel + ' [data-schema-panel]');"
+        " return [a.getAttribute('role'), a.hasAttribute('aria-labelledby')]; }",
+        DLG,
+    )
+    check(grp == ["group", False], f"панель в окне — group без имени ({grp})")
+    # ревью M5: «Fertig» кнопкой, затем Esc — один POST
+    posts0 = []
+    pg.on("request", lambda r: posts0.append(r.post_data or "") if r.method == "POST" else None)
+    pg.evaluate(
+        "(sel) => { document.querySelector(sel + ' [data-window-actions] button[value=window_done]').click();"
+        " document.querySelector(sel).dispatchEvent(new Event('cancel', {cancelable: true})); }",
+        DLG,
+    )
+    closed(pg)
+    n = sum("op=window_done" in d for d in posts0)
+    check(n == 1, f"«Fertig» кнопкой + Esc — один POST ({n})")
     # набрал текст → Esc: текст в черновике, окно закрыто, фокус на строке блока
     pg.goto(open_url + "&tab=texte")
     posts = []
@@ -221,7 +245,7 @@ def m32(pg, w, ref):
           .find(r => !r.checked).value""",
         DLG,
     )
-    pg.click(f"{DLG} label:has(input[name=f_out][value={pick}])")
+    pg.click(f'{DLG} label:has(input[name=f_out][value="{pick}"])')
     pg.keyboard.press("Escape")
     closed(pg)
     pg.goto(f"{page}&block={lref}")
@@ -244,10 +268,119 @@ def m32(pg, w, ref):
         "сбой сети — окно открыто, ошибка внутри",
     )
     pg.unroute("**/dashboard/site/aufbau/**")
+    m32_review(pg, page, lref, open_url)
     # уборка: блок «Liste» удаляем подтверждением
     pg.goto(f"{page}&block={lref}&entfernen=1")
     pg.click(f"{DLG} [data-schema-confirm] button[value=delete]")
     pg.wait_for_load_state()
+
+
+def _patched(pg, route, how):
+    """Настоящий ответ сервера на правку, изменённый: отказ или панель без окна. POST правки
+    уходит на сервер, страница после его редиректа читается отдельно, браузеру — 200 с
+    изменённой страницей. Напрямую на 127.0.0.1 с тем же Host: у `route.fetch` и
+    `request` нет `--host-resolver-rules` браузера (редирект fetch маршрут не видит)."""
+    req = route.request
+    if req.method != "POST" or req.resource_type != "fetch":
+        route.continue_()
+        return
+    parts = urlparse(req.url)
+    local = f"http://127.0.0.1:{parts.port}"
+    headers = req.all_headers()
+    headers["host"] = parts.netloc
+    resp = route.fetch(url=local + parts.path + "?" + parts.query, headers=headers, max_redirects=0)
+    page = pg.context.request.get(
+        local + resp.headers["location"],
+        headers={"host": parts.netloc, "cookie": headers.get("cookie", "")},
+    )
+    html = page.text()
+    if how == "refuse":
+        at = html.index("data-schema-messages")
+        end = html.index(">", at) + 1
+        html = html[:end] + '<div role="alert">Stand: abgelehnt</div>' + html[end:]
+    else:
+        html = html.replace('value="window_done"', 'value="x_window_done"')
+    route.fulfill(status=200, content_type="text/html; charset=utf-8", body=html)
+
+
+def _pick_other(pg):
+    return pg.evaluate(
+        """(sel) => [...document.querySelectorAll(sel + ' input[type=radio][name=f_out]')]
+          .find(r => !r.checked).value""",
+        DLG,
+    )
+
+
+def m32_review(pg, page, lref, open_url):
+    """Ревью M3-2 (silent-failure-hunter): окно не закрывается «мимо» и не умирает молча."""
+    route = "**/dashboard/site/aufbau/**"
+    # H3: отказ сервера на правку → Esc не отправляет «Fertig», отказ виден в окне
+    pg.goto(f"{page}&block={lref}")
+    posts = []
+    pg.on("request", lambda r: posts.append(r.post_data or "") if r.method == "POST" else None)
+    pg.route(route, lambda r: _patched(pg, r, "refuse"))
+    pick = _pick_other(pg)
+    pg.click(f'{DLG} label:has(input[name=f_out][value="{pick}"])')
+    pg.keyboard.press("Escape")
+    busy_done(pg)
+    pg.wait_for_timeout(800)
+    alert = pg.locator(f"{DLG} [role=alert]", has_text="Stand: abgelehnt")
+    check(
+        pg.locator(DLG).count() == 1
+        and alert.count() == 1
+        and not any("op=window_done" in d for d in posts),
+        "отказ сервера — Esc не закрывает, отказ виден в окне",
+    )
+    pg.keyboard.press("Escape")  # окно снова отвечает (не «мёртвое»)
+    pg.wait_for_timeout(300)
+    check(pg.locator(DLG).count() == 1, "повторный Esc после отказа — окно остаётся с ошибкой")
+    pg.unroute(route)
+    # H1 (dress): ответ сервера — панель без окна → окно закрыто, панель снова в сетке
+    pg.goto(f"{page}&block={lref}")
+    pg.route(route, lambda r: _patched(pg, r, "nowindow"))
+    pick = _pick_other(pg)
+    pg.click(f'{DLG} label:has(input[name=f_out][value="{pick}"])')
+    busy_done(pg)
+    pg.wait_for_timeout(500)
+    state = pg.evaluate(
+        "() => [document.querySelectorAll('dialog.ui-bwin').length,"
+        " !!document.querySelector('[data-site-schema] [data-schema-panel]'),"
+        " document.documentElement.classList.contains('ui-bwin-lock')]"
+    )
+    check(
+        state == [0, True, False], f"панель без «Fertig» — окно закрыто, панель в сетке ({state})"
+    )
+    pg.unroute(route)
+    # H1 (done): закрывать нечем — Esc не молчит: окно закрыто, ошибка видна
+    pg.goto(f"{page}&block={lref}")
+    pg.evaluate(
+        "(sel) => document.querySelectorAll(sel + ' button[value=window_done]').forEach(b => b.remove())",
+        DLG,
+    )
+    pg.keyboard.press("Escape")
+    pg.wait_for_timeout(300)
+    check(
+        pg.locator(DLG).count() == 0
+        and pg.locator("[data-schema-messages] [role=alert]").count() >= 1,
+        "Esc без «Fertig» в панели — окно закрыто, ошибка на экране",
+    )
+    # H2: showModal бросил — панель остаётся колонкой, прокрутка не заперта
+    ctx = pg.context
+    pg2 = ctx.new_page()
+    pg2.add_init_script(
+        "HTMLDialogElement.prototype.showModal = function () { throw new Error('stand'); };"
+    )
+    pg2.goto(open_url)
+    state = pg2.evaluate(
+        "() => [document.querySelectorAll('dialog.ui-bwin').length,"
+        " !!document.querySelector('[data-site-schema] [data-schema-panel]'),"
+        " document.documentElement.classList.contains('ui-bwin-lock')]"
+    )
+    check(
+        state == [0, True, False],
+        f"showModal упал — панель колонкой, без замка прокрутки ({state})",
+    )
+    pg2.close()
 
 
 def nojs(b):
