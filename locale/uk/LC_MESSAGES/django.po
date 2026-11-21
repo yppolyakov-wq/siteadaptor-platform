@@ -40161,3 +40161,15 @@ msgstr "Стандартний текст сторінки"
 #: apps/core/window_links.py
 msgid "Diesen Block finden Sie im Seitenaufbau nicht."
 msgstr "Цей блок не знайдено в «Структурі сторінки»."
+
+#. FB-33 стопка: якорь среза M3-7 — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
+msgid "fb33-stack-anchor-M3-7"
+msgstr "fb33-stack-anchor-M3-7"
+
+#. FB-33 стопка: якорь среза M2i-34 — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
+msgid "fb33-stack-anchor-M2i-34"
+msgstr "fb33-stack-anchor-M2i-34"
+
+#. FB-33 стопка: якорь среза M4b — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
+msgid "fb33-stack-anchor-M4b"
+msgstr "fb33-stack-anchor-M4b"
