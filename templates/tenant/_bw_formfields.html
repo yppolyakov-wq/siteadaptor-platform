@@ -10,13 +10,7 @@
   <button type="submit" name="f_commit_new" value="1" class="sr-only" tabindex="-1" aria-hidden="true">{% trans "Übernehmen" %}</button>
   <p class="text-sm text-gray-700">{% trans "Was die Anfrage-Form fragt. Änderungen erscheinen auf der Seite nach „Speichern“." %}</p>
   {% comment %}FB-33 M3-5a (a11y): живая область вкладки — что сделала кнопка вопроса (↑/↓/Entfernen/«+ Frage») и сброшенный перевод; заполняет aufbau.js по тексту сообщения (data-said — точные тексты, data-prefix — начало). Есть и без языков.{% endcomment %}<p role="status" class="text-xs font-semibold text-gray-800" data-form-status data-said="{% trans 'Hinzugefügt.' %}|{% trans 'Nach oben verschoben.' %}|{% trans 'Nach unten verschoben.' %}|{% trans 'Frage entfernt.' %}" data-prefix="{% blocktrans with names="" %}Übersetzungen entfernt, weil die Option geändert oder gelöscht wurde: {{ names }}{% endblocktrans %}"></p>
-  {% if fs.locales %}{% comment %}FB-33 M2i-5b: язык переводов — серверные кнопки (без скриптов); поля всех языков в DOM, видны поля выбранного.{% endcomment %}<div class="space-y-2 rounded-lg bg-gray-50 p-3" data-form-langs>
-    <p id="ff-lang-title" class="text-sm font-semibold text-gray-800">{% trans "Übersetzung bearbeiten" %}</p>
-    <div class="flex flex-wrap gap-2" role="group" aria-labelledby="ff-lang-title">
-      {% for l in fs.locales %}<button id="schema-tab-lang-{{ l.code }}" name="f_sprache" value="{{ l.code }}" lang="{{ l.code }}" aria-pressed="{% if l.shown %}true{% else %}false{% endif %}" class="ui-btn {% if l.shown %}ui-btn-primary{% else %}ui-btn-secondary{% endif %} min-h-[44px]" data-form-lang="{{ l.code }}">{{ l.label }}</button>{% endfor %}
-    </div>
-    <p id="ff-lang-hint" class="text-xs text-gray-700">{% trans "Leeres Feld: Die Seite zeigt den Text unter „Ohne Übersetzung“." %}</p>
-  </div>{% endif %}
+  {% if fs.locales %}{% comment %}FB-33 M2i-5b: язык переводов — серверные кнопки (без скриптов); поля всех языков в DOM, видны поля выбранного.{% endcomment %}{% include "tenant/_bw_langs.html" with locales=fs.locales %}{% endif %}
   {% for f in fs.fields %}
   {% if f.pinned %}
   <div class="rounded-lg border border-gray-200 p-3" data-form-field="{{ f.key }}">

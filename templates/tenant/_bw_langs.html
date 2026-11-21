@@ -1,0 +1,7 @@
+{% load i18n %}{% comment %}FB-33 стопка 4 (P0): кнопки языка переводов окна блока — серверные (без скриптов), общие для «Felder» (M2i-5b) и «Texte» (M3-5c). Параметры: locales, title_id/hint_id (одна такая форма на окно), after_tpl — вставка в конец блока (кнопка ИИ M2i-5c).{% endcomment %}<div class="space-y-2 rounded-lg bg-gray-50 p-3" data-form-langs>
+    <p id="{{ title_id|default:'ff-lang-title' }}" class="text-sm font-semibold text-gray-800">{% trans "Übersetzung bearbeiten" %}</p>
+    <div class="flex flex-wrap gap-2" role="group" aria-labelledby="{{ title_id|default:'ff-lang-title' }}">
+      {% for l in locales %}<button id="schema-tab-lang-{{ l.code }}" name="f_sprache" value="{{ l.code }}" lang="{{ l.code }}" aria-pressed="{% if l.shown %}true{% else %}false{% endif %}" class="ui-btn {% if l.shown %}ui-btn-primary{% else %}ui-btn-secondary{% endif %} min-h-[44px]" data-form-lang="{{ l.code }}">{{ l.label }}</button>{% endfor %}
+    </div>
+    <p id="{{ hint_id|default:'ff-lang-hint' }}" class="text-xs text-gray-700">{% trans "Leeres Feld: Die Seite zeigt den Text unter „Ohne Übersetzung“." %}</p>{% if after_tpl %}{% include after_tpl %}{% endif %}
+  </div>

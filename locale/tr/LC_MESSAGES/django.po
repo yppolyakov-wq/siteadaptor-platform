@@ -39934,3 +39934,15 @@ msgstr "sabit konum"
 #. FB-33 M3-6
 msgid "„Wo zeigen“ wurde nicht übernommen: Dafür fehlt das Recht, Banner zu bearbeiten."
 msgstr "„Nerede gösterilsin“ uygulanmadı: banner düzenleme yetkisi yok."
+
+#. FB-33 стопка: якорь среза M3-5c — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
+msgid "fb33-stack-anchor-M3-5c"
+msgstr "fb33-stack-anchor-M3-5c"
+
+#. FB-33 стопка: якорь среза M2i-5c — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
+msgid "fb33-stack-anchor-M2i-5c"
+msgstr "fb33-stack-anchor-M2i-5c"
+
+#. FB-33 стопка: якорь среза M4 — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
+msgid "fb33-stack-anchor-M4"
+msgstr "fb33-stack-anchor-M4"
