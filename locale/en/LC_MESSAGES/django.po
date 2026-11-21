@@ -39793,6 +39793,28 @@ msgstr "“Where to show” was not applied: the right to edit banners is missin
 msgid "fb33-stack-anchor-M3-5c"
 msgstr "fb33-stack-anchor-M3-5c"
 
+#. FB-33 M3-5c
+msgid "Deutsch (Grundtext)"
+msgstr "German (base text)"
+
+#. FB-33 M3-5c
+#, python-format
+msgid "Ihre Seite zeigt zuerst %(lang)s."
+msgstr "Your site shows %(lang)s first."
+
+#. FB-33 M3-5c
+#, python-format
+msgid "Übersetzung entfernt, weil der deutsche Text geändert wurde: %(names)s"
+msgstr "Translation removed because the German text was changed: %(names)s"
+
+#. FB-33 M3-5c
+msgid "Die Übersetzungen dieses Blocks wurden inzwischen an anderer Stelle geändert."
+msgstr "The translations of this block have been changed elsewhere in the meantime."
+
+#. FB-33 M3-5c
+msgid "Standardtext der Seite"
+msgstr "Standard text of the page"
+
 #. FB-33 стопка: якорь среза M2i-5c — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
 msgid "fb33-stack-anchor-M2i-5c"
 msgstr "fb33-stack-anchor-M2i-5c"

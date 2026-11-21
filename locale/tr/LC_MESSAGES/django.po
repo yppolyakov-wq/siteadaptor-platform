@@ -39939,6 +39939,28 @@ msgstr "„Nerede gösterilsin“ uygulanmadı: banner düzenleme yetkisi yok."
 msgid "fb33-stack-anchor-M3-5c"
 msgstr "fb33-stack-anchor-M3-5c"
 
+#. FB-33 M3-5c
+msgid "Deutsch (Grundtext)"
+msgstr "Almanca (temel metin)"
+
+#. FB-33 M3-5c
+#, python-format
+msgid "Ihre Seite zeigt zuerst %(lang)s."
+msgstr "Siteniz önce %(lang)s gösterir."
+
+#. FB-33 M3-5c
+#, python-format
+msgid "Übersetzung entfernt, weil der deutsche Text geändert wurde: %(names)s"
+msgstr "Almanca metin değiştirildiği için çeviri kaldırıldı: %(names)s"
+
+#. FB-33 M3-5c
+msgid "Die Übersetzungen dieses Blocks wurden inzwischen an anderer Stelle geändert."
+msgstr "Bu bloğun çevirileri bu arada başka bir yerde değiştirildi."
+
+#. FB-33 M3-5c
+msgid "Standardtext der Seite"
+msgstr "Sayfanın standart metni"
+
 #. FB-33 стопка: якорь среза M2i-5c — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
 msgid "fb33-stack-anchor-M2i-5c"
 msgstr "fb33-stack-anchor-M2i-5c"

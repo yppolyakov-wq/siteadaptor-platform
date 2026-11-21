@@ -108,6 +108,7 @@ PANEL_KEYS: dict[str, str] = {
     "carrier": "settings",
     "setting_row": "settings",
     "form_spec": "formfields",  # FB-33 M2i-5 (`fields` занято формой блока)
+    "field_langs": "fields",  # FB-33 M3-5c: языки переводов окна (поля — у своей части)
     "form_link": "formlink",
 }
 #: ключи строки, которые панель не рисует частью (метки строки, шапка окна, сырые данные)

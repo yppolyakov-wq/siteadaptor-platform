@@ -20,7 +20,6 @@ from apps.core.tests.test_fb33_m3_window_before import _panel
 from apps.core.tests.test_fb33_m35c_draft import WOPEN, _post, _shop, _with_ru
 
 pytestmark = pytest.mark.django_db
-XF = pytest.mark.xfail(strict=True, reason="M3-5c C3: полей перевода в окне ещё нет")
 XSS = "<script>alert(1)</script>"
 
 
@@ -31,7 +30,6 @@ def _form(b, query="?seite=home&block=t1&tab=texte"):
     return html, (m.group(0) if m else "")
 
 
-@XF
 def test_language_buttons_and_fields_of_the_chosen_language():
     html, form = _form(Browser(_shop(_with_ru())))
     buttons = re.findall(
@@ -55,7 +53,6 @@ def test_language_buttons_and_fields_of_the_chosen_language():
     assert [i for i, n in ids.items() if n > 1] == []
 
 
-@XF
 def test_business_language_first_and_german_marked_as_base():
     _html, form = _form(Browser(_shop(locales=("de", "en", "ru"), default="ru")))
     assert re.findall(r'name="f_sprache" value="(\w+)"', form) == ["ru", "en"]
@@ -65,7 +62,6 @@ def test_business_language_first_and_german_marked_as_base():
     assert "Deutsch (Grundtext)" not in plain and "Ihre Seite zeigt zuerst" not in plain
 
 
-@XF
 def test_language_is_remembered_and_focus_goes_to_its_button():
     b = Browser(_shop())
     resp, _msgs = _post(b, title="Hallo", body="Welt", tr_title_ru="Привет", sprache="en")
@@ -77,7 +73,6 @@ def test_language_is_remembered_and_focus_goes_to_its_button():
     assert 'name="f_tr_title_en"' in form and 'name="f_tr_title_ru"' not in form
 
 
-@XF
 def test_texts_are_escaped():
     cfg = _with_ru(title=XSS)
     b = Browser(_shop(cfg))
@@ -85,7 +80,6 @@ def test_texts_are_escaped():
     assert XSS not in form and "&lt;script&gt;" in form
 
 
-@XF
 def test_page_title_window_has_translations():
     cfg = copy.deepcopy(_with_ru())
     cfg["page_titles"] = {"promos": {"title": "Aktionen"}}

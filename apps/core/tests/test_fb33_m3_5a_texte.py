@@ -301,18 +301,18 @@ def test_unknown_tab_and_operation_are_ignored():
     assert block_window.goto_tab(QueryDict("zu_tab=x")) == ""
 
 
-# --- Переводы текстов блока — в Студии (M3-5c), здесь подсказка и ссылка -------------------------
+# --- Переводы текстов блока: с M3-5c — в самом окне (кнопки языка), подсказки со ссылкой нет -----
 
 
-def test_multilang_hint_links_to_the_page_editor():
+def test_multilang_texts_are_translated_in_the_window():
     b = Browser(_shop(locales=("de", "ru")))
     with translation.override("de"):
         panel = _panel(b.get("?seite=home&block=t1&tab=texte"))
-    assert "Hier steht der Text der Hauptsprache." in panel
-    link = re.search(r'<a href="([^"]*)"[^>]*data-schema-translate>([^<]*)</a>', panel)
-    assert link and link.group(1).startswith("/") and "Übersetzungen auf der Seite" in link.group(2)
+    assert 'name="f_tr_title_ru"' in panel and 'name="f_sprache" value="ru"' in panel
+    assert "data-schema-translate" not in panel
+    assert "Hier steht der Text der Hauptsprache." not in panel
     one = _panel(Browser(_shop(locales=("de",))).get("?seite=home&block=t1&tab=texte"))
-    assert "data-schema-translate" not in one
+    assert "data-schema-translate" not in one and "f_sprache" not in one
 
 
 # --- Отложенное из M2i-5: фокус «Felder» и живая область сброшенного перевода ------------------

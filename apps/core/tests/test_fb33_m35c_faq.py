@@ -16,7 +16,6 @@ from apps.core.tests.test_fb27_r2_draft import Browser
 from apps.core.tests.test_fb33_m35b_faq_draft import BASE, RU, _drafts, _faq_post, _saved, _tenant
 
 pytestmark = pytest.mark.django_db
-XF = pytest.mark.xfail(strict=True, reason="M3-5c C3: переводов FAQ в окне ещё нет")
 
 
 def _ml(tenant, locales=("de", "ru")):
@@ -30,7 +29,6 @@ def _form(html, fid="bw-form-faq"):
     return m.group(0) if m else ""
 
 
-@XF
 def test_faq_window_has_translation_fields_by_question():
     b = Browser(_ml(_tenant()))
     form = _form(b.get("?seite=home&block=faq&tab=texte"))
@@ -41,7 +39,6 @@ def test_faq_window_has_translation_fields_by_question():
     assert 'name="faq_add"' in first  # Enter — по-прежнему «Übernehmen»
 
 
-@XF
 def test_faq_translation_follows_its_question_to_the_site():
     b = Browser(_ml(_tenant()))
     _faq_post(b, faq_1_q_ru="Б-новый?")
@@ -62,7 +59,6 @@ def test_new_question_has_no_translation_fields_until_saved():
     assert 'name="faq_3_q"' in form and 'name="faq_3_q_ru"' not in form
 
 
-@XF
 def test_german_faq_edit_drops_the_translation_unless_typed():
     b = Browser(_ml(_tenant()))
     items = copy.deepcopy(BASE)
@@ -74,7 +70,6 @@ def test_german_faq_edit_drops_the_translation_unless_typed():
     del items
 
 
-@XF
 def test_object_faq_translation_needs_rights(monkeypatch):
     from apps.core import object_faq, view_perms
     from apps.core.tests.test_fb33_m2b2b_window import _post, _setup, _svc, own_block
@@ -94,7 +89,6 @@ def test_object_faq_translation_needs_rights(monkeypatch):
     assert faq_content is not None
 
 
-@XF
 def test_tile_translation_only_with_own_label():
     from apps.core import hero_tiles
     from apps.core.tests.test_fb33_m35b_tiles_window import _tenant as tiles_tenant

@@ -7,10 +7,12 @@
   {% include "tenant/_schema_keep.html" %}
   <input type="hidden" name="ref" value="{{ selected.ref }}">
   <input type="hidden" name="panel_present" value="1">
-  <input type="hidden" name="op_default" value="update">
+  <input type="hidden" name="op_default" value="update">{% with fl=selected.field_langs %}{% if fl.part == "fields" %}
+  {% comment %}FB-33 M3-5c: переводы текстов блока — кнопки языка (общий партиал), поля всех языков в DOM, имя только у выбранного; кнопка языка применяет форму (op — скрытым полем), Enter — «Übernehmen» (первая кнопка формы).{% endcomment %}<input type="hidden" name="op" value="update"><button name="op" value="update" class="sr-only" tabindex="-1" aria-hidden="true">{% trans "Übernehmen" %}</button>
+  {% include "tenant/_bw_langs.html" with locales=fl.locales title_id=fl.title_id hint_id=fl.hint_id after_tpl="tenant/_bw_tr_note.html" %}{% endif %}{% endwith %}
   {% for f in selected.fields %}{% if f.tiles %}{% include "tenant/_view_tiles.html" with tiles=f.tiles legend=f.label src=f.thumb_src name=f.name uid=f.name %}{% else %}
   {% with m=f|bw_field:selected %}<div>
-    <label for="schema-f-{{ f.name }}" class="block text-sm font-semibold text-gray-700 mb-1">{{ f.label }}</label>
+    <label for="schema-f-{{ f.name }}" class="block text-sm font-semibold text-gray-700 mb-1">{{ f.label }}{% if f.translations and selected.field_langs.base_note %} <span class="font-normal text-gray-700">– {{ selected.field_langs.base_note }}</span>{% endif %}</label>
     {% if f.kind == "area" %}
     <textarea id="schema-f-{{ f.name }}" name="f_{{ f.name }}" rows="5"{% if m.max %} maxlength="{{ m.max }}"{% endif %}{% if m.described %} aria-describedby="{{ m.described }}"{% endif %} class="ui-input w-full">{{ f.value }}</textarea>
     {% elif f.kind == "select" %}
@@ -21,10 +23,11 @@
     <input type="text" id="schema-f-{{ f.name }}" name="f_{{ f.name }}" value="{{ f.value }}"{% if m.max %} maxlength="{{ m.max }}"{% endif %}{% if m.described %} aria-describedby="{{ m.described }}"{% endif %} class="ui-input w-full">
     {% endif %}
     {% if m.hint %}<p id="schema-f-{{ f.name }}-hint" class="mt-1 text-xs text-gray-700">{{ m.hint }}</p>{% endif %}
-    {% if m.example or m.max_hint %}<p id="schema-f-{{ f.name }}-max" class="mt-1 text-xs text-gray-700">{{ m.example }}{% if m.example and m.max_hint %} {% endif %}{{ m.max_hint }}</p>{% endif %}
+    {% if m.example or m.max_hint %}<p id="schema-f-{{ f.name }}-max" class="mt-1 text-xs text-gray-700">{{ m.example }}{% if m.example and m.max_hint %} {% endif %}{{ m.max_hint }}</p>{% endif %}{% for t in f.translations %}
+    {% include "tenant/_bw_tr.html" %}{% endfor %}
   </div>{% endwith %}
   {% endif %}{% endfor %}
-  {% if multi_lang and not selected.source_url and not selected.style_only %}<p class="text-xs text-gray-600">{% trans "Hier steht der Text der Hauptsprache. Übersetzungen ändern Sie direkt auf der Seite." %}</p>{% if studio_url %}<p class="text-sm"><a href="{{ studio_url }}" class="inline-flex items-center min-h-[44px] font-semibold text-indigo-700 hover:underline" data-schema-translate>{% trans "Übersetzungen auf der Seite bearbeiten" %} →</a></p>{% endif %}{% endif %}
+  {% if selected.field_langs.part == "fields" %}{% elif multi_lang and not selected.source_url and not selected.style_only %}<p class="text-xs text-gray-600">{% trans "Hier steht der Text der Hauptsprache. Übersetzungen ändern Sie direkt auf der Seite." %}</p>{% if studio_url %}<p class="text-sm"><a href="{{ studio_url }}" class="inline-flex items-center min-h-[44px] font-semibold text-indigo-700 hover:underline" data-schema-translate>{% trans "Übersetzungen auf der Seite bearbeiten" %} →</a></p>{% endif %}{% endif %}
   <button name="op" value="update" class="ui-btn ui-btn-primary w-full">{% trans "Übernehmen" %}</button>
   {% if selected.source_url %}<p class="text-sm"><a href="{{ selected.source_url }}" class="inline-flex items-center min-h-[44px] font-semibold text-indigo-700 hover:underline" data-schema-source>{{ selected.source_label }} →</a></p>{% endif %}
 </form>
