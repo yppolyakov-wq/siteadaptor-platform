@@ -66,12 +66,13 @@ def test_required_fields_and_questions_are_checked():
     assert form_spec.missing(site, "checkout", post) == []
 
 
-def test_stripe_keeps_email_at_least_optional():
+def test_email_mode_is_the_owners_even_with_online_payment():
+    """FB-33 M2i-7: онлайн-оплата режим e-mail не меняет (параметра `stripe` больше нет)."""
     site = _site({"email": "off"})
     assert not form_spec.view(site, "checkout")["email"].on
-    assert form_spec.view(site, "checkout", stripe=True)["email"].mode == "opt"
-    req = _site({"email": "req"})
-    assert form_spec.view(req, "checkout", stripe=True)["email"].req
+    assert form_spec.view(_site({"email": "req"}), "checkout")["email"].req
+    with pytest.raises(TypeError):
+        form_spec.view(site, "checkout", stripe=True)
 
 
 def test_table_order_does_not_ask_for_contacts():

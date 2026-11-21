@@ -137,11 +137,12 @@ def test_table_cart_asks_note_and_questions_only():
     assert 'name="note"' in form and 'name="q1"' in form
 
 
-def test_online_payment_shows_the_email_even_when_off(settings):
+def test_online_payment_does_not_force_a_switched_off_email(settings):
+    """FB-33 M2i-7: выключенный e-mail не рисуется и при онлайн-оплате — адрес из оплаты."""
     _configure(settings)
     tenant = _prepay_tenant()
     tenant.site_config = _ff({"email": "off"})
-    assert 'name="email"' in _checkout_form(_cart(tenant))
+    assert 'name="email"' not in _checkout_form(_cart(tenant))
 
 
 def test_cart_escapes_labels():
@@ -228,15 +229,18 @@ def test_table_order_needs_no_contacts():
     assert order.table_number == "7" and order.custom_answers["q1"]["value"] == "Nüsse"
 
 
-def test_online_payment_without_email_is_still_refused(settings, monkeypatch):
+def test_online_payment_without_email_goes_to_stripe(settings, monkeypatch):
+    """FB-33 M2i-7 (снято M2i-3a): e-mail выключен — заказ уходит в оплату без адреса."""
     _configure(settings)
     monkeypatch.setattr(
         public_views.order_payments, "order_checkout_url", lambda o, t, **kw: "https://stripe/x"
     )
     tenant = _prepay_tenant()
     tenant.site_config = _ff({"email": "off"}, {"note": "Wünsche"}, custom=[])
-    _request, resp, _p = _post({"name": "Kim"}, tenant)
-    assert resp.url.endswith("/warenkorb/") and not Order.objects.exists()
+    _request, resp, _p = _post({"name": "Kim", "email": "kim@example.com"}, tenant)
+    order = Order.objects.get()
+    assert resp.url == "https://stripe/x" and order.payment_method == Order.METHOD_STRIPE
+    assert order.customer.email == ""  # присланный в обход формы адрес отброшен
 
 
 def test_snapshot_keeps_the_main_language_label_on_a_translated_storefront():
@@ -356,8 +360,9 @@ def test_stock_refusal_keeps_what_the_guest_typed():
     assert kept["answers"] == {"q1": "Nüsse", "q3": "Ja"}
 
 
-def test_online_payment_at_the_table_keeps_the_email(settings, monkeypatch):
-    """Stripe-заказ без адреса остался бы без подтверждения и квитанции: e-mail из POST."""
+def test_online_payment_at_the_table_takes_the_email_from_the_payment(settings, monkeypatch):
+    """FB-33 M2i-7: у столика e-mail не спрашивается — и при онлайн-оплате присланный в обход
+    формы адрес отбрасывается; подтверждение уйдёт на адрес из оплаты (вебхук)."""
     _configure(settings)
     monkeypatch.setattr(
         public_views.order_payments, "order_checkout_url", lambda o, t, **kw: "https://stripe/x"
@@ -366,8 +371,8 @@ def test_online_payment_at_the_table_keeps_the_email(settings, monkeypatch):
     tenant.site_config = _ff(labels={"note": "Wünsche"}, custom=[])
     _request, resp, _p = _post({"email": "kim@example.com"}, tenant, table="7")
     order = Order.objects.get()
-    assert order.payment_method == Order.METHOD_STRIPE
-    assert order.customer.email == "kim@example.com"
+    assert resp.url == "https://stripe/x" and order.payment_method == Order.METHOD_STRIPE
+    assert order.customer.email == ""
 
 
 def test_question_inputs_are_capped_like_the_snapshot():

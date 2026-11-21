@@ -91,7 +91,6 @@ def _email_of(order):
 # ───────────── 1–2: витрина ─────────────
 
 
-@pytest.mark.xfail(strict=True, reason="M2i-7 C2: отказ M2i-3a ещё не снят")
 @pytest.mark.parametrize("cfg", [{}, {"form_fields": {"checkout": {"mode": {"email": "off"}}}}])
 def test_online_payment_without_email_goes_to_stripe(settings, monkeypatch, cfg):
     """1. Без e-mail (форма не спросила или поле пустое) заказ создаётся и уходит в Stripe."""
@@ -298,3 +297,30 @@ def test_confirmation_page_says_where_the_mail_goes_without_the_address():
     with_email = _order("k@example.com")
     with translation.override("de"):
         assert HINT not in _confirmation(with_email, "?paid=1")
+
+
+# ───────────── развилка d: страница предложения ─────────────
+
+
+@pytest.mark.parametrize("email, accepted", [("", True), (" a@ ", False)])
+def test_offer_online_payment_without_email_is_accepted(settings, monkeypatch, email, accepted):
+    """(d) Принятие предложения с онлайн-оплатой: без e-mail — заказ и Stripe; введённый
+    невалидный — отказ, заказ не создаётся."""
+    from apps.orders.models import Offer
+    from apps.orders.tests.test_offer_page import _offer, _req
+
+    _configure(settings)
+    monkeypatch.setattr(
+        public_views.order_payments, "order_checkout_url", lambda o, t, **kw: "https://stripe/o"
+    )
+    tenant = TenantFactory.build(
+        name="Laden", orders_prepay=True, payments_enabled=True, stripe_connect_id="acct_1"
+    )
+    offer = _offer()
+    data = {"action": "accept", "name": "K", "email": email, "payment": "stripe"}
+    resp = public_views.offer_page(_req("post", data, tenant=tenant), token=offer.token)
+    offer.refresh_from_db()
+    assert (offer.status == Offer.STATUS_ACCEPTED) is accepted
+    assert (resp.url == "https://stripe/o") is accepted
+    if accepted:
+        assert offer.order.payment_method == Order.METHOD_STRIPE
