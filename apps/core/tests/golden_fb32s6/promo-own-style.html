@@ -1,7 +1,7 @@
 <main class="flex-1 w-full max-w-none mx-auto px-4 py-6 md:py-10">
 <a href="/" class="inline-flex items-center gap-1 text-sm text-indigo-600 hover:underline mb-4">← Zurück</a>
 <div class="grid md:grid-cols-2 gap-6 md:gap-10" data-promo-detail="kompakt">
-  <div class="relative" data-promo-col="media">
+  <div class="relative min-w-0" data-promo-col="media">
     <button type="button" data-photo-edit data-edit-model="promotion" data-edit-pk="UUID"
        class="sf-photo-edit hidden absolute top-2 right-2 z-10 w-8 h-8 rounded-full bg-white/95 shadow ring-1 ring-gray-200 flex items-center justify-center hover:text-indigo-600"
        title="Foto ersetzen" aria-label="Foto ersetzen">📷</button>
@@ -11,7 +11,7 @@
           </div>
     </div>
   </div>
-  <div data-promo-col="info">
+  <div class="min-w-0" data-promo-col="info">
     <h1 class="text-2xl md:text-3xl font-bold">Brot der Woche</h1>
     <div id="angebot" data-promo-price class="mt-4 rounded-2xl bg-white ring-1 ring-gray-200 shadow-sm p-4 md:p-5">
         <p class="text-3xl md:text-4xl font-extrabold text-red-600 leading-none" data-price-edit data-edit-model="promotion" data-price-field="price_override" data-edit-pk="UUID" data-price="2,49">2,49 €</p>
