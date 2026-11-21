@@ -238,7 +238,6 @@ def test_removed_liste_fields_are_window_fields():
 # ───────────── L2: W0 — «Speichern» без снятых полей их не стирает ─────────────
 
 
-@pytest.mark.xfail(strict=True, reason="C1: merge_structure берёт снятое из сохранённого")
 def test_save_without_the_removed_fields_keeps_the_window_values():
     tenant = _tenant()
     cfg = _save(tenant, {"tail_products": "show", "mobile_products": "2", "cb_l1_title": "Neu"})
@@ -276,7 +275,6 @@ FORGED = {
 }
 
 
-@pytest.mark.xfail(strict=True, reason="C1: снятое Студия больше не пишет")
 def test_forged_studio_form_does_not_change_window_values():
     tenant = _tenant()
     cfg = _save(tenant, FORGED)
@@ -296,7 +294,6 @@ def test_forged_studio_form_does_not_change_window_values():
     assert "scope" not in data
 
 
-@pytest.mark.xfail(strict=True, reason="C1: черновик — тот же результат, что Save")
 def test_forged_live_draft_does_not_change_window_values():
     tenant = _tenant()
     payload = {
@@ -333,7 +330,6 @@ def test_forged_live_draft_does_not_change_window_values():
     assert _row(cfg, "faq")["style"] == "cards"
 
 
-@pytest.mark.xfail(strict=True, reason="C1")
 def test_merge_keeps_window_keys_and_takes_the_rest_of_the_layout():
     """Ядро C1 на уровне функции: остальная раскладка (хвост, 📱/▭) — из формы."""
     saved = [copy.deepcopy(PRODUCTS)]

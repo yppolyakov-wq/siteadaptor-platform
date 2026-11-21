@@ -734,10 +734,9 @@ def _copy_builtin_list(request, key: str):
     row = next((s for s in cfg["sections"] if s.get("key") == key and "id" not in s), None)
     if row is None:
         return None
-    current = dict(row)
-    if request.POST.get(f"sl_{key}_present") == "1":
-        current["data"] = _read_builtin_what(request.POST, key)
-    data = list_blocks.section_data(current)
+    # FB-33 M4b: выборку строки правит окно блока — копия берёт сохранённую (полей «ЧТО»
+    # в Студии больше нет; присланные устаревшей вкладкой не действуют)
+    data = list_blocks.section_data(dict(row))
     # LB-4c: копия выглядит как оригинал — вид секции (прайс-лист, spotlight…) уходит в блок
     if row.get("style") in siteconfig.list_styles(data["source"]):
         data["style"] = row["style"]

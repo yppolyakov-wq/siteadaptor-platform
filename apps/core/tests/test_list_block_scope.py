@@ -224,20 +224,20 @@ def test_builder_save_in_type_scope_updates_all_blocks_of_the_type():
     assert resp.status_code == 302
     t.refresh_from_db()
     cfg = siteconfig.normalize(t.site_config)
-    assert cfg["promo_groups"]["Räumung"]["card"] == "coupon"
-    assert cfg["promo_groups"]["Räumung"]["layout"]["scroll"] is True
-    assert cfg["promo_groups"]["Räumung"]["style"] == "countdown"
+    # FB-33 M4b (осознанная переписка): «Ansicht gilt für» снят из Студии вместе с видом
+    # блока «Liste» — вид правит окно блока. Присланный охват (устаревшая вкладка) не
+    # действует: настройки типа и вид блоков остаются как сохранено, заголовок — пишется.
+    before = siteconfig.normalize({"promo_groups": {"Räumung": "countdown"}})
+    assert cfg["promo_groups"] == before["promo_groups"]
     a1 = next(s for s in cfg["sections"] if s.get("id") == "a1")
+    a2 = next(s for s in cfg["sections"] if s.get("id") == "a2")
     assert "card" not in a1["data"] and "out" not in a1["data"]
-    # ВТОРОЙ блок того же типа тоже стал лентой купонов — он наследует тип
-    _promo("Rest", group="Räumung")
-    body = _home(t)
-    assert body.count("data-promo-strip") == 2
-    assert body.count('data-card-form="coupon"') == 2
+    assert a2["data"]["title"] == "Zweiter"
 
 
 def test_type_scope_reaches_the_live_draft():
-    """Превью обязано показать то же, что покажет Save: одна функция на оба пути."""
+    """Превью обязано показать то же, что покажет Save: одна функция на оба пути
+    (FB-33 M4b: на обоих путях охват Студии больше не действует)."""
     from apps.core import views
 
     t = _tenant(sections=[_block("d1", source="promotions", type="Räumung")])
@@ -266,9 +266,11 @@ def test_type_scope_reaches_the_live_draft():
     req.user = SimpleNamespace(is_authenticated=True)
     views.site_preview_draft(req)
     draft = req.session["site_preview_draft"]
-    assert draft["promo_groups"]["Räumung"]["card"] == "ring"
+    # FB-33 M4b (осознанная переписка): черновик = результат «Speichern» — охват и вид
+    # блока «Liste» Студия больше не пишет
+    assert "card" not in (draft.get("promo_groups") or {}).get("Räumung", {})
     block = next(s for s in draft["sections"] if s.get("id") == "d1")
-    assert "card" not in block["data"]
+    assert "card" not in block["data"] and "scope" not in block["data"]
 
 
 # ───────────────────────── редактор ─────────────────────────

@@ -125,8 +125,10 @@ def test_stale_studio_tab_does_not_roll_back_the_panel_style():
     stale = site_schema.merge_structure(saved, posted, fixed=True, keep_data=True)
     by = {r["key"]: r for r in stale}
     assert by["team"].get("style") == "circles" and "style" not in by["faq"]
-    fresh = site_schema.merge_structure(saved, posted, fixed=True)  # свежая вкладка — одна ось
-    assert {r["key"]: r.get("style") for r in fresh}["faq"] == "cards"
+    fresh = site_schema.merge_structure(saved, posted, fixed=True)
+    # FB-33 M4b (осознанная переписка): и свежая вкладка вид секции не пишет — его правит
+    # только окно блока (поле «Darstellung» снято из панели Студии)
+    assert {r["key"]: r.get("style") for r in fresh} == {"team": "circles", "faq": None}
 
 
 def test_studio_cannot_smuggle_a_ref_style():

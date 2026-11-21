@@ -159,6 +159,14 @@ OWNED_DATA_KINDS = ("list", "textpage", "contact_card")
 BUILTIN_OWNED_FIELDS = ("data", "limit", "layout", "source", "style")
 #: FB-29.2: выбор места показа у блока «Banner» (баннеры и настройки слайдера).
 _BANNER_CHOICE_FIELDS = ("pick", "auto", "interval", "arrows", "from_page", "single")
+#: FB-33 M4b: раскладка встроенного списка, которую правит окно блока («Wie anordnen»:
+#: колонки — с видом «N в строке», ряды, вывод сеткой/лентой). Остальное в `layout`
+#: (хвост ряда, симметрия, колонки 📱/▭) — «Feinschliff» Студии.
+WINDOW_LAYOUT_KEYS = ("preset", "cols", "rows", "scroll")
+#: FB-33 M4b: что из строки встроенного списка правит только окно (Was · Wie · Karte).
+_BUILTIN_WINDOW_FIELDS = ("data", "source", "limit", "style")
+#: FB-33 M4b: данные блока «Liste», которые по-прежнему пишет Студия; остальное — окно.
+LIST_STUDIO_FIELDS = ("title", "intro", "speed")
 
 
 def _is_builtin_list(item: dict) -> bool:
@@ -267,6 +275,56 @@ def check_changed_pages(saved: dict, merged: dict, notes: list | None = None) ->
                 block["data"] = drop_unembeddable_page(data, host, notes)
 
 
+def window_owned(item: dict) -> dict:
+    """FB-33 M4b: что строки главной правит только окно блока, а не Студия:
+    `list` — выбор, лимит, раскладка окна и вид встроенного списка; `style` — вид секции
+    (встроенный список, `STYLE_SECTIONS`, полоса доверия). Пусто — у Студии всё своё."""
+    if not isinstance(item, dict) or item.get("id"):
+        return {"list": False, "style": False}
+    builtin = _is_builtin_list(item)
+    return {
+        "list": builtin,
+        "style": builtin or _is_usp_row(item) or item.get("key") in STYLE_SECTIONS,
+    }
+
+
+def _keep(merged: dict, old: dict, fields) -> None:
+    """Поля `fields` строки — как сохранено (нет в сохранённом — нет и после)."""
+    for field in fields:
+        if field in old:
+            merged[field] = copy.deepcopy(old[field])
+        else:
+            merged.pop(field, None)
+
+
+def _studio_view_only(merged: dict, old: dict) -> None:
+    """FB-33 M4b: из формы Студии у строки остаётся только её — содержимое и «Feinschliff».
+    Снятое из панели Студии (Was · Wie anordnen · Karte) — как сохранено: «Speichern» без
+    этих полей их не стирает (W0), а устаревшая или подделанная форма их не меняет."""
+    from apps.tenants import siteconfig
+
+    owned = window_owned(old)
+    if owned["style"]:
+        _keep(merged, old, ("style",))
+    if owned["list"]:
+        _keep(merged, old, _BUILTIN_WINDOW_FIELDS)
+        was = old.get("layout") if isinstance(old.get("layout"), dict) else {}
+        now = merged.get("layout") if isinstance(merged.get("layout"), dict) else {}
+        layout = {k: v for k, v in now.items() if k not in WINDOW_LAYOUT_KEYS}
+        layout.update({k: copy.deepcopy(was[k]) for k in WINDOW_LAYOUT_KEYS if k in was})
+        if layout:
+            merged["layout"] = layout
+        else:
+            merged.pop("layout", None)
+    if siteconfig.cblock_type(old.get("key")) == "list" and old.get("id"):
+        was = old.get("data") if isinstance(old.get("data"), dict) else {}
+        now = merged.get("data") if isinstance(merged.get("data"), dict) else {}
+        data = copy.deepcopy(was)
+        # присланное поле Студии пишется (пустое — снимает), неприсланное остаётся (W0)
+        data.update({k: copy.deepcopy(now[k]) for k in LIST_STUDIO_FIELDS if k in now})
+        merged["data"] = data
+
+
 def merge_structure(
     saved: list, posted: list, fixed: bool = False, keep_data: bool = False
 ) -> list:
@@ -348,6 +406,9 @@ def merge_structure(
                     merged[field] = old[field]
                 else:
                     merged.pop(field, None)
+        if not keep_data:
+            # FB-33 M4b: и у свежей вкладки Was · Wie · Karte правит только окно
+            _studio_view_only(merged, old)
         # FB-29.5: ширина и «новая строка» — структура у ВСЕХ блоков, включая
         # встроенные секции главной (их задаёт «Seitenaufbau»).
         for field in _OWNED_FIELDS:
@@ -357,7 +418,13 @@ def merge_structure(
                 merged.pop(field, None)
         out.append(merged)
     if fixed:
-        out += [item for item in by.values() if not item.get("id")]
+        # FB-33 M4b: секции, которой ещё нет в сохранённом, Студия задаёт только своё —
+        # снятое из её панели остаётся по умолчанию (пустая строка с тем же ключом)
+        for item in by.values():
+            if not item.get("id"):
+                fresh = dict(item)
+                _studio_view_only(fresh, {"key": item.get("key")})
+                out.append(fresh)
     return out
 
 

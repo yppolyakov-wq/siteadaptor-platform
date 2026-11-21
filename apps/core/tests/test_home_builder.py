@@ -71,29 +71,46 @@ def test_home_builder_saves_blocks_and_preserves_design():
 
 
 def test_home_builder_saves_layout_preset():
-    """M20U-7: пресет раскладки секции-сетки сохраняется в layout секции."""
+    """M20U-7 → FB-33 M4b (осознанная переписка): раскладку встроенного списка («N in
+    einer Reihe», колонки) правит окно блока «Seitenaufbau» — присланный Студией пресет
+    не действует, сохранённый остаётся. Пресет у сеток без окна (команда) — по-прежнему."""
+    from apps.core import site_schema
+
     tenant = TenantFactory(schema_name="public", slug="hbl", name="HBL")
+    site_schema.apply(tenant, "home", "update", ref="products", fields={"cols": "4"})
     data = {
         "order_products": "1",
         "enabled_products": "on",
         "layout_preset_products": "cols3",
+        "order_team": "2",
+        "layout_preset_team": "cols2",
     }
     resp = views.home_builder_view(_request("post", "/dashboard/site/home/", data, tenant))
     assert resp.status_code == 302
     cfg = siteconfig.normalize(tenant.site_config)
     products = next(s for s in cfg["sections"] if s["key"] == "products")
-    assert products["layout"]["preset"] == "cols3"
-    assert products["layout"]["cols"] == 3  # пресет развёрнут normalize_layout
+    assert products["layout"]["preset"] == "cols4" and products["layout"]["cols"] == 4
+    team = next(s for s in cfg["sections"] if s["key"] == "team")
+    assert team["layout"]["preset"] == "cols2"
+    assert team["layout"]["cols"] == 2  # пресет развёрнут normalize_layout
 
 
 def test_home_builder_saves_limit():
-    """M20U-7: число элементов секции-превью сохраняется (клампится в normalize)."""
+    """M20U-7 → FB-33 M4b (осознанная переписка): «Höchstens» встроенного списка правит
+    окно блока; поле Студии не действует, «Speichern» без него лимит не стирает (W0)."""
+    from apps.core import site_schema
+
     tenant = TenantFactory(schema_name="public", slug="hbn", name="HBN")
+    site_schema.apply(tenant, "home", "update", ref="products", fields={"limit": "7"})
     data = {"order_products": "1", "enabled_products": "on", "limit_products": "4"}
     resp = views.home_builder_view(_request("post", "/dashboard/site/home/", data, tenant))
     assert resp.status_code == 302
     cfg = siteconfig.normalize(tenant.site_config)
-    assert siteconfig.section_limit(cfg, "products") == 4
+    assert siteconfig.section_limit(cfg, "products") == 7
+    views.home_builder_view(
+        _request("post", "/dashboard/site/home/", {"order_products": "1"}, tenant)
+    )
+    assert siteconfig.section_limit(siteconfig.normalize(tenant.site_config), "products") == 7
 
 
 def test_home_builder_saves_section_width():
@@ -132,9 +149,14 @@ def test_home_builder_get_renders_width_control():
 
 
 def test_home_builder_saves_product_source():
-    """M20U-7: источник товаров секции products сохраняется."""
+    """M20U-7 → FB-33 M4b (осознанная переписка): выбор товаров (легаси-поле `source`)
+    задаёт окно блока («Sortierung»/«Auswahl»); Студия его не пишет и не стирает."""
+    from apps.core import site_schema
+
     tenant = TenantFactory(schema_name="public", slug="hbs", name="HBS")
-    data = {"order_products": "1", "enabled_products": "on", "source_products": "newest"}
+    site_schema.apply(tenant, "home", "update", ref="products", fields={"sort": "newest"})
+    assert siteconfig.product_source(siteconfig.normalize(tenant.site_config)) == "newest"
+    data = {"order_products": "1", "enabled_products": "on", "source_products": "featured_only"}
     resp = views.home_builder_view(_request("post", "/dashboard/site/home/", data, tenant))
     assert resp.status_code == 302
     cfg = siteconfig.normalize(tenant.site_config)
@@ -1859,25 +1881,24 @@ def test_home_builder_links_to_sibling_site_screens():
 
 
 def test_studio_view_and_columns_stay_one_value():
-    """FB-30 (фидбэк владельца): вид «N в строке» и число колонок — одно значение. Сменили вид
-    — колонки идут за ним; сменили колонки — вид подстраивается."""
+    """FB-30 (фидбэк владельца): вид «N в строке» и число колонок — одно значение.
+    FB-33 M4b (осознанная переписка): колонки встроенного списка правит окно блока — там
+    вид идёт за колонками; присланные Студией вид и колонки не действуют."""
+    from apps.core import site_schema
+
     tenant = TenantFactory(
         schema_name="public", slug="hbone", name="HBONE",
         site_config={"sections": [{"key": "products", "enabled": True,
                                    "layout": {"preset": "cols4", "cols": 6}}]},
     )  # fmt: skip
     base = {"order_products": "1", "enabled_products": "on"}
+    site_schema.apply(tenant, "home", "update", ref="products", fields={"cols": "5"})
+    lay = siteconfig.section_layout(siteconfig.normalize(tenant.site_config), "products")
+    assert lay["cols"] == 5 and lay["preset"] == "cols5", "колонки сменили — вид за ними"
     views.home_builder_view(
         _request(
             "post", "/x/", {**base, "layout_preset_products": "cols3", "cols_products": "6"}, tenant
         )
     )
     lay = siteconfig.section_layout(siteconfig.normalize(tenant.site_config), "products")
-    assert lay["cols"] == 3 and lay["preset"] == "cols3", "вид сменили — колонки за ним"
-    views.home_builder_view(
-        _request(
-            "post", "/x/", {**base, "layout_preset_products": "cols3", "cols_products": "5"}, tenant
-        )
-    )
-    lay = siteconfig.section_layout(siteconfig.normalize(tenant.site_config), "products")
-    assert lay["cols"] == 5 and lay["preset"] == "cols5", "колонки сменили — вид за ними"
+    assert lay["cols"] == 5 and lay["preset"] == "cols5", "Студия раскладку окна не меняет"

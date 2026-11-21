@@ -341,9 +341,11 @@ def test_editor_offers_demnaechst_and_keeps_it_selected():
 
 
 def test_save_keeps_demnaechst():
+    """FB-33 M4b (осознанная переписка): срок блока «Liste» правит окно блока — «Speichern»
+    Студии без поля срока «Demnächst» не стирает, присланный срок не действует."""
     from apps.core import views
 
-    t = _tenant(page_blocks={"promos": [_lb("b1")]})
+    t = _tenant(page_blocks={"promos": [_lb("b1", phase="upcoming")]})
     post = {
         "pb_present": "1",
         "pb_id": ["b1"],
@@ -351,8 +353,7 @@ def test_save_keeps_demnaechst():
         "cb_type_b1": "list",
         "order_cb_b1": "1",
         "enabled_cb_b1": "on",
-        "cb_b1_source": "promotions",
-        "cb_b1_endet": "upcoming",
+        "cb_b1_endet": "heute",
     }
     resp = views.home_builder_view(_req(t, "/dashboard/site/home/", "post", post))
     assert resp.status_code == 302

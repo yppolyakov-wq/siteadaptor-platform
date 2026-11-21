@@ -106,30 +106,33 @@ def _row_of(cfg, key):
     return next(s for s in cfg["sections"] if s["key"] == key)
 
 
+SAVED_WHAT = {
+    "promotions": {"type": "Woche", "endet": "heute", "card": "coupon"},
+    "services": {"collection": "haar", "only": "video"},
+    "stay_rooms": {"collection": "meerblick"},
+    "events": {"event_category": "yoga", "only": "soon"},
+    "tours": {"country": "Nepal"},
+    "categories": {"category": "feinkost"},
+}
+
+
 def test_save_keeps_the_what_of_every_builtin_row():
+    """LB-4b → FB-33 M4b (осознанная переписка): «ЧТО» встроенных списков правит окно
+    блока «Seitenaufbau»; присланное Студией (устаревшая или подделанная форма с
+    сентинелом) не действует — данные строк остаются сохранёнными."""
+    tenant = _tenant(sections=[{"key": k, "data": dict(v)} for k, v in SAVED_WHAT.items()])
     cfg = _save(
-        _tenant(),
-        promotions_type="Woche",
-        promotions_endet="heute",
-        promotions_card="coupon",
-        services_collection="haar",
-        services_only="video",
-        stay_rooms_collection="meerblick",
-        events_event_category="yoga",
-        events_only="soon",
-        tours_country="Nepal",
-        categories_category="feinkost",
+        tenant,
+        promotions_type="Andere",
+        promotions_endet="woche",
+        services_only="",
+        events_event_category="tanz",
+        tours_country="Peru",
+        categories_category="brot",
+        blog_sort="newest",
     )
-    assert _row_of(cfg, "promotions")["data"] == {
-        "type": "Woche",
-        "endet": "heute",
-        "card": "coupon",
-    }
-    assert _row_of(cfg, "services")["data"] == {"collection": "haar", "only": "video"}
-    assert _row_of(cfg, "stay_rooms")["data"] == {"collection": "meerblick"}
-    assert _row_of(cfg, "events")["data"] == {"event_category": "yoga", "only": "soon"}
-    assert _row_of(cfg, "tours")["data"] == {"country": "Nepal"}
-    assert _row_of(cfg, "categories")["data"] == {"category": "feinkost"}
+    for key, data in SAVED_WHAT.items():
+        assert _row_of(cfg, key)["data"] == data, key
     assert "data" not in _row_of(cfg, "blog")
 
 
@@ -144,17 +147,34 @@ def test_save_keeps_the_what_of_every_builtin_row():
     ],
 )
 def test_products_choice_expressible_by_the_legacy_source_stays_there(sort, only, source, data):
-    cfg = _save(_tenant(), products_sort=sort, products_only=only)
-    row = _row_of(cfg, "products")
+    """FB-33 M4b (осознанная переписка): тот же расклад — теперь у писателя окна
+    (`site_schema._update_builtin`), Студия выбор товаров не пишет."""
+    from apps.core import site_schema
+
+    tenant = _tenant()
+    site_schema.apply(tenant, "home", "update", ref="products", fields={"sort": sort, "only": only})
+    row = _row_of(siteconfig.normalize(_fresh(tenant).site_config), "products")
     assert row["source"] == source
     assert row.get("data") == data
+    cfg = _save(_fresh(tenant), products_sort="price_desc", products_only="available")
+    assert _row_of(cfg, "products").get("data") == data  # Студия не перебивает окно
 
 
 def test_products_filter_and_card_survive_save_next_to_the_legacy_source():
-    cfg = _save(_tenant(), products_sort="newest", products_category="brot", products_card="regal")
+    from apps.core import site_schema
+
+    tenant = _tenant()
+    fields = {"sort": "newest", "category": "brot", "card": "regal"}
+    site_schema.apply(tenant, "home", "update", ref="products", fields=fields)
+    cfg = _post_builder(_fresh(tenant), {})  # «Speichern» Студии без полей «ЧТО» (W0)
     row = _row_of(cfg, "products")
     assert row["source"] == "newest"
     assert row["data"] == {"category": "brot", "card": "regal"}
+
+
+def _fresh(tenant):
+    tenant.refresh_from_db()
+    return tenant
 
 
 def test_save_without_the_sentinel_keeps_the_rows_data():
@@ -184,14 +204,18 @@ def test_live_draft_carries_every_what_field():
 
 
 def test_copy_builtin_row_puts_a_list_block_next_to_it():
-    tenant = _tenant()
+    """FB-33 M4b (осознанная переписка): копия берёт выборку строки как СОХРАНЕНО — полей
+    «ЧТО» в Студии больше нет, присланные (устаревшая вкладка) не действуют."""
+    tenant = _tenant(
+        sections=[{"key": "products", "data": {"category": "brot", "sort": "price_asc"}}]
+    )
     cfg = _post_builder(
         tenant,
         {
             "action": "copy_builtin:products",
             "sl_products_present": "1",
-            "sl_products_category": "brot",
-            "sl_products_sort": "price_asc",
+            "sl_products_category": "torten",
+            "sl_products_sort": "newest",
         },
     )
     keys = [s["key"] for s in cfg["sections"]]
@@ -204,8 +228,8 @@ def test_copy_builtin_row_puts_a_list_block_next_to_it():
 
 def test_draft_endpoint_keeps_the_what_of_builtin_rows():
     """Стенд LB-4b: клиент слал `data` строки товаров, а эндпоинт черновика пропускал у
-    фикс-секций только поля своего белого списка — фильтр без Save на канве не
-    действовал. Замок класса «клиент шлёт → сервер не роняет»."""
+    фикс-секций только поля своего белого списка. FB-33 M4b: «ЧТО» правит окно блока —
+    присланное черновиком не действует (превью = результат «Speichern»)."""
     import json
 
     from apps.core import views
@@ -226,6 +250,7 @@ def test_draft_endpoint_keeps_the_what_of_builtin_rows():
     assert resp.status_code == 204
     draft = siteconfig.normalize(req.session["site_preview_draft"])
     rows = {s["key"]: s for s in draft["sections"] if "id" not in s}
-    assert rows["products"]["data"] == {"category": "torten", "sort": "newest"}
-    assert rows["promotions"]["data"] == {"type": "Woche", "card": "coupon"}
+    # FB-33 M4b (осознанная переписка): «ЧТО» встроенных списков правит окно блока —
+    # черновик Студии показывает то же, что сохранит её «Speichern»: сохранённое.
+    assert "data" not in rows["products"] and "data" not in rows["promotions"]
     assert "data" not in rows["faq"]
