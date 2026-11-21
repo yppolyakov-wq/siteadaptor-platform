@@ -1464,7 +1464,16 @@ def order_pay(request, code):
         and order.total > 0
         and getattr(tenant, "payments_enabled", False)
     )
-    if payable:
+    if payable and order_payments.payment_processing(order):
+        # FB-33 M2i-7.1: оплата «в пути» (SEPA) — вторую сессию не открываем.
+        messages.info(request, _("Ihre Zahlung wird bereits verarbeitet."))
+    elif payable and order_payments.pay_window_closed(order):
+        # FB-33 M2i-7.1: до автоотмены брошенного заказа — минуты; платить уже поздно.
+        messages.info(
+            request,
+            _("Diese Bestellung kann nicht mehr online bezahlt werden. Bitte bestellen Sie neu."),
+        )
+    elif payable:
         order_url = request.build_absolute_uri(
             reverse("storefront-order", args=[order.reference_code])
         )
@@ -1609,6 +1618,9 @@ def offer_page(request, token):
                 and order.payment_state == Order.PAYMENT_UNPAID
                 and order.status == Order.STATUS_NEW
                 and order.total > 0
+                # FB-33 M2i-7.1: оплата «в пути» / минуты до автоотмены — без новой сессии
+                and not order_payments.payment_processing(order)
+                and not order_payments.pay_window_closed(order)
             )
             if payable:
                 return _offer_stripe_redirect(request, offer, order, tenant)

@@ -66,6 +66,7 @@ def send_due_payment_reminders(now=None) -> int:
         payment_method=Order.METHOD_STRIPE,
         payment_state=Order.PAYMENT_UNPAID,
         status=Order.STATUS_NEW,
+        stripe_payment_intent="",  # M2i-7.1: оплата «в пути» (SEPA) — не напоминаем
         payment_reminder_sent_at__isnull=True,
         created_at__gte=lower,
         created_at__lte=upper,
@@ -144,17 +145,18 @@ def expire_anprobe_reservations():
     return {"expired": total}
 
 
-#: Заказов за один проход схемы: остальные подберёт следующий (15 минут).
+#: Заказов в одной выборке и выборок за проход схемы; остаток подберёт следующий проход.
 ABANDONED_BATCH = 500
+ABANDONED_MAX_BATCHES = 10
 
 
-def _abandoned_pks(now) -> list:
+def _abandoned_pks(now, exclude=()) -> list:
     """Кандидаты автоотмены: онлайн-оплата не начата (нет платежа), заказ не подтверждён,
     писать клиенту некуда, срок вышел. Срок оплаты заказа (`payment_due_at`) ещё не
-    прошёл — ждём его."""
+    прошёл — ждём его. `exclude` — заказы, не отменившиеся в этом проходе."""
     from django.db.models import Q
 
-    from .payments import abandoned_hours
+    from .payments import abandoned_hours, no_contact_email_q
 
     cutoff = now - timezone.timedelta(hours=abandoned_hours())
     return list(
@@ -163,10 +165,11 @@ def _abandoned_pks(now) -> list:
             payment_state=Order.PAYMENT_UNPAID,
             status=Order.STATUS_NEW,
             stripe_payment_intent="",
-            customer__email="",
             created_at__lt=cutoff,
         )
+        .filter(no_contact_email_q())
         .filter(Q(payment_due_at__isnull=True) | Q(payment_due_at__lte=now))
+        .exclude(pk__in=list(exclude))
         .order_by("created_at")
         .values_list("pk", flat=True)[:ABANDONED_BATCH]
     )
@@ -194,39 +197,148 @@ def expire_abandoned_online(now=None) -> int:
     слать некуда, а заказ держит склад и лимит акции. Через `ORDERS_ABANDONED_HOURS`
     такой заказ отменяется штатным переходом FSM (склад, лимит акции, промокод
     возвращают эффекты перехода). Заказы с e-mail, Vorkasse/счёт, оплата на месте,
-    оплаченные, подтверждённые и с начатым платежом не трогаются.
+    оплаченные, подтверждённые и с начатым платежом (в т.ч. «в пути») не трогаются.
 
     Блокировка строки и повторная проверка под ней — как у `expire_due_anprobe`: вебхук
     оплаты (`payments.mark_order_paid`) берёт ту же блокировку. Идемпотентно: отменённый
-    заказ из выборки выпадает."""
-    from django.db import transaction
+    заказ из выборки выпадает. Заказ, который отменить не удалось, исключается до конца
+    прохода — очередь за ним идёт дальше; итог прохода — в логе (без PII)."""
+    from django.db import connection, transaction
 
     from apps.orders.state_machine import OrderSM
 
+    from .payments import ABANDONED_ACTOR
+
     now = now or timezone.now()
-    count = 0
-    for pk in _abandoned_pks(now):
-        try:
-            with transaction.atomic():
-                order = Order.objects.select_for_update().filter(pk=pk).first()
-                if order is None or not _still_abandoned(order, now):
-                    continue  # оплатили/подтвердили/появился адрес — не трогаем
-                OrderSM().apply(order, "cancelled", actor="system:abandoned-online")
-                count += 1
-        except Exception:  # noqa: BLE001 — один заказ не роняет проход; в лог без PII
-            logger.exception("abandoned-online: не удалось отменить заказ %s", pk)
+    schema = connection.schema_name
+    cancelled = 0
+    failed: list = []
+    full = True
+    for _batch in range(ABANDONED_MAX_BATCHES):
+        pks = _abandoned_pks(now, exclude=failed)
+        for pk in pks:
+            try:
+                with transaction.atomic():
+                    order = Order.objects.select_for_update().filter(pk=pk).first()
+                    if order is None or not _still_abandoned(order, now):
+                        continue  # оплатили/подтвердили/появился адрес — не трогаем
+                    OrderSM().apply(order, "cancelled", actor=ABANDONED_ACTOR)
+                    cancelled += 1
+            except Exception:  # noqa: BLE001 — один заказ не роняет проход; в лог без PII
+                failed.append(pk)
+                logger.exception("abandoned-online %s: заказ %s не отменён", schema, pk)
+        if len(pks) < ABANDONED_BATCH:
+            full = False
+            break
+    if cancelled or failed:
+        logger.info("abandoned-online %s: cancelled=%s failed=%s", schema, cancelled, len(failed))
+    if failed:
+        tenant_iter._tag_sentry(schema, "expire_abandoned_online_orders")
+        logger.error(
+            "abandoned-online %s: не отменены заказы (%s): %s",
+            schema,
+            len(failed),
+            ", ".join(str(pk) for pk in failed[:50]),
+        )
+    if full:
+        logger.warning("abandoned-online %s: batch full — остаток уйдёт в следующий проход", schema)
+    return cancelled
+
+
+#: Повторы возврата поздней оплаты: сколько раз и за какой срок после платежа.
+REFUND_RETRY_MAX = 4
+REFUND_RETRY_DAYS = 3
+_REFUND_RETRY_STEP = timezone.timedelta(minutes=15)
+
+
+def _refund_retry_due(schema: str, pk, now) -> bool:
+    """Пора ли повторить возврат: не больше `REFUND_RETRY_MAX` раз, с растущей паузой
+    (15 мин · 2ⁿ). Счётчик — в кэше; кэш недоступен — не повторяем (иначе повторы и
+    письма владельцу о сбое шли бы без предела)."""
+    from django.core.cache import cache
+
+    key = f"order-refund-retry:{schema}:{pk}"
+    try:
+        state = cache.get(key) or {"n": 0, "next": 0}
+        if state["n"] >= REFUND_RETRY_MAX or now.timestamp() < state["next"]:
+            return False
+        pause = _REFUND_RETRY_STEP * (2 ** state["n"])
+        cache.set(
+            key,
+            {"n": state["n"] + 1, "next": (now + pause).timestamp()},
+            (REFUND_RETRY_DAYS + 1) * 86400,
+        )
+    except Exception:  # noqa: BLE001
+        logger.warning("refund-retry %s: счётчик недоступен — заказ %s пропущен", schema, pk)
+        return False
+    return True
+
+
+def retry_late_refunds(now=None) -> int:
+    """FB-33 M2i-7.1 (ревью): повторить возврат оплаты отменённых заказов текущей схемы.
+
+    Оплата пришла к отменённому заказу, а возврат не прошёл (сбой Stripe) — заказ остался
+    «отменён · оплачен» (`payments.refund_open`). Отмена заказа всегда возвращает оплату,
+    поэтому такое сочетание — незавершённый возврат; повтор безопасен: Stripe узнаёт его
+    по ключу идемпотентности. Только свежие платежи (`REFUND_RETRY_DAYS`), ограниченное
+    число попыток — дальше владелец возвращает сам (письмо о сбое и пометка в карточке).
+    → сколько заказов стало «возвращено»."""
+    from django.db import connection
+    from django.db.models import F
+    from django_tenants.utils import get_tenant_model
+
+    from apps.core import refunds
+    from apps.core.models import DealPayment
+
+    now = now or timezone.now()
+    schema = connection.schema_name
+    fresh = (
+        DealPayment.objects.filter(
+            deal_kind="order",
+            created_at__gte=now - timezone.timedelta(days=REFUND_RETRY_DAYS),
+            refunded_cents__lt=F("amount_cents"),
+        )
+        .exclude(stripe_payment_intent="")
+        .values_list("deal_id", flat=True)
+    )
+    due = list(
+        Order.objects.filter(
+            pk__in=fresh,
+            status=Order.STATUS_CANCELLED,
+            payment_state=Order.PAYMENT_PAID,
+            payment_method=Order.METHOD_STRIPE,
+        )
+        .exclude(stripe_payment_intent="")
+        .order_by("created_at")[:ABANDONED_BATCH]
+    )
+    if not due:
+        return 0
+    tenant = get_tenant_model().objects.filter(schema_name=schema).first()
+    done = 0
+    for order in due:
+        if not _refund_retry_due(schema, order.pk, now):
             continue
-    if count:
-        logger.info("abandoned-online: отменено заказов — %s", count)
-    return count
+        try:
+            result = refunds.refund_payment("order", order, tenant)
+        except Exception:  # noqa: BLE001 — один заказ не роняет проход
+            logger.exception("refund-retry %s: заказ %s — сбой", schema, order.pk)
+            continue
+        logger.warning("refund-retry %s: заказ %s → %s", schema, order.pk, result)
+        if result in (refunds.RefundResult.REFUNDED, refunds.RefundResult.ALREADY):
+            done += 1
+    return done
 
 
 @shared_task
 def expire_abandoned_online_orders():
-    """Beat (15 мин): автоотмена брошенных онлайн-заказов без e-mail по всем схемам."""
+    """Beat (15 мин): автоотмена брошенных онлайн-заказов без e-mail по всем схемам и
+    повтор несостоявшихся возвратов поздней оплаты. Шаги изолированы друг от друга."""
     now = timezone.now()
     total = 0
+    refunded = 0
     for schema in _iter_tenant_schemas():
         with tenant_iter.isolated(schema, "expire_abandoned_online_orders"):
             total += expire_abandoned_online(now)
-    return {"expired": total}
+        with tenant_iter.isolated(schema, "retry_late_order_refunds"):
+            refunded += retry_late_refunds(now)
+    return {"expired": total, "refunds_retried": refunded}

@@ -33,8 +33,6 @@ from apps.tenants.tests.factories import TenantFactory
 
 pytestmark = pytest.mark.django_db
 
-xfail = pytest.mark.xfail(strict=True, reason="FB-33 M2i-7.1 (ревью): поведения ещё нет")
-
 
 @pytest.fixture(autouse=True)
 def _tenant_urlconf(settings):
@@ -89,7 +87,6 @@ def _pay_request(order, biz):
 # --- 1. два поздних платежа до возврата первого --------------------------------------
 
 
-@xfail
 def test_two_late_payments_before_the_first_refund_are_both_refunded(biz, refunds, monkeypatch):
     order = _order()
     tasks.expire_abandoned_online()
@@ -120,7 +117,6 @@ def test_two_late_payments_before_the_first_refund_are_both_refunded(biz, refund
 # --- 2. оплата «в пути» ---------------------------------------------------------------
 
 
-@xfail
 def test_processing_payment_keeps_the_order(biz):
     order = _order()
     _event(order, intent="pi_sepa", status="unpaid")  # Checkout завершён, деньги в пути
@@ -160,7 +156,6 @@ def test_failed_event_of_another_payment_does_not_touch_the_order(biz):
     assert order.stripe_payment_intent == "pi_mine"
 
 
-@xfail
 def test_processing_payment_closes_pay_link_and_reminder(biz, monkeypatch):
     def boom(*a, **k):
         raise AssertionError("no second Stripe session while the payment is processing")
@@ -202,7 +197,6 @@ def test_payment_holds_still_do_not_expire_orders():
 # --- 3. сбой возврата ----------------------------------------------------------------
 
 
-@xfail
 def test_crash_in_late_refund_does_not_fail_the_webhook(biz, monkeypatch, caplog):
     def boom(*a, **k):
         raise RuntimeError("kaputt")
@@ -217,7 +211,6 @@ def test_crash_in_late_refund_does_not_fail_the_webhook(biz, monkeypatch, caplog
     assert NAME not in caplog.text and PHONE not in caplog.text
 
 
-@xfail
 def test_open_refund_is_flagged_on_the_card(biz, monkeypatch):
     def boom(**kw):
         raise RuntimeError("stripe down")
@@ -242,7 +235,6 @@ def test_refunded_or_live_order_has_no_open_refund_flag(biz, refunds):
     assert "data-refund-open" not in _card(live).content.decode()
 
 
-@xfail
 def test_failed_late_refund_is_retried_by_the_task(biz, monkeypatch):
     state = {"fail": True}
     calls = []
@@ -269,7 +261,6 @@ def test_failed_late_refund_is_retried_by_the_task(biz, monkeypatch):
     assert len(calls) == 2
 
 
-@xfail
 def test_refund_retries_are_bounded(biz, monkeypatch):
     calls = []
 
@@ -289,7 +280,6 @@ def test_refund_retries_are_bounded(biz, monkeypatch):
     assert order.payment_state == Order.PAYMENT_PAID  # не ложное «возвращено»
 
 
-@xfail
 def test_retry_leaves_ordinary_orders_alone(biz, refunds):
     live = _order(hours_ago=1)
     _event(live, intent="pi_live")  # оплачен и подтверждён
@@ -302,7 +292,6 @@ def test_retry_leaves_ordinary_orders_alone(biz, refunds):
 # --- 4. «ядовитые» заказы и итог прохода ---------------------------------------------
 
 
-@xfail
 def test_poison_orders_do_not_block_the_queue(monkeypatch, caplog):
     monkeypatch.setattr(tasks, "ABANDONED_BATCH", 2)
     bad = [_order(hours_ago=50, phone=PHONE), _order(hours_ago=49)]  # самые старые
@@ -329,7 +318,6 @@ def test_poison_orders_do_not_block_the_queue(monkeypatch, caplog):
     assert NAME not in caplog.text and PHONE not in caplog.text
 
 
-@xfail
 def test_full_pass_is_reported(monkeypatch, caplog):
     monkeypatch.setattr(tasks, "ABANDONED_BATCH", 2)
     monkeypatch.setattr(tasks, "ABANDONED_MAX_BATCHES", 1)
@@ -344,7 +332,6 @@ def test_full_pass_is_reported(monkeypatch, caplog):
 # --- 5. за минуты до отмены ссылку оплаты не выдаём ----------------------------------
 
 
-@xfail
 def test_no_new_pay_link_shortly_before_the_cancel(biz, monkeypatch):
     def boom(*a, **k):
         raise AssertionError("no Stripe session minutes before the cancel")
@@ -371,7 +358,6 @@ def test_pay_link_is_still_given_in_time_and_to_orders_with_email(biz, monkeypat
 # --- 7. карточка: «Automatisch storniert» ---------------------------------------------
 
 
-@xfail
 def test_card_says_the_order_was_cancelled_automatically(biz):
     order = _order()
     tasks.expire_abandoned_online()

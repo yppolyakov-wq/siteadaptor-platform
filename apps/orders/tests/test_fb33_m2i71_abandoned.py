@@ -439,7 +439,7 @@ def test_one_failing_schema_does_not_stop_the_pass(monkeypatch, caplog):
     monkeypatch.setattr(tasks, "expire_abandoned_online", flaky)
     with caplog.at_level(logging.ERROR):
         result = tasks.expire_abandoned_online_orders()
-    assert result == {"expired": 1}
+    assert result["expired"] == 1
     assert len(calls) == 2
     assert "expire_abandoned_online_orders" in caplog.text
     order.refresh_from_db()

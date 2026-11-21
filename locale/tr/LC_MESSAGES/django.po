@@ -40040,3 +40040,15 @@ msgstr "fb33-stack-anchor-M3-9a"
 #. FB-33 стопка: якорь среза M2i-7.1 — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
 msgid "fb33-stack-anchor-M2i-7.1"
 msgstr "fb33-stack-anchor-M2i-7.1"
+
+msgid "Automatisch storniert: nicht bezahlt"
+msgstr "Otomatik iptal edildi: ödenmedi"
+
+msgid "Rückerstattung offen — bitte in Stripe prüfen"
+msgstr "İade bekliyor — lütfen Stripe'ta kontrol edin"
+
+msgid "Ihre Zahlung wird bereits verarbeitet."
+msgstr "Ödemeniz zaten işleniyor."
+
+msgid "Diese Bestellung kann nicht mehr online bezahlt werden. Bitte bestellen Sie neu."
+msgstr "Bu sipariş artık çevrimiçi ödenemez. Lütfen yeni bir sipariş verin."

@@ -254,6 +254,7 @@ def order_detail(request, pk):
     from apps.core import deal_card, transition_rules
 
     from . import editing as order_editing
+    from . import payments as order_payments
     from .totals import order_totals
 
     order = get_object_or_404(Order.objects.select_related("customer"), pk=pk)
@@ -271,6 +272,10 @@ def order_detail(request, pk):
         {
             "order": order,
             "items": order.items.select_related("product", "variant", "combo"),  # SH-21: фото строк
+            # FB-33 M2i-7.1: отменён автоматически (брошенная онлайн-оплата) / возврат
+            # поздней оплаты не прошёл — строки в блоке оплаты.
+            "auto_cancelled": order_payments.was_auto_cancelled(order),
+            "refund_open": order_payments.refund_open(order),
             "allowed_targets": allowed,
             "nav": "orders",
             # SH группа B: правка доступна, пока заказ не закрыт (решение владельца
