@@ -15,7 +15,8 @@
   соединения (параллельный исполнитель `migrate_schemas` делает `connections.close_all()`
   и порождает процессы; `seed_demo_tenants --jobs N` — подпроцессы), блокировка этого не
   замечает. Через пулер соединений в режиме transaction сессионные блокировки не работают —
-  соединение блокировки должно идти в Postgres напрямую (сейчас так и есть);
+  соединение блокировки должно идти в Postgres напрямую (сейчас так и есть); смена
+  сессии проверяется (`pg_backend_pid` до взятия, после и перед снятием) — `SessionChanged`;
 * `hold()` на время блокировки ставит переменную окружения `ENV_HELD`: порождённые процессы
   (подпроцессы пересева, команда под `run_locked`) её наследуют и свою блокировку не берут —
   иначе ждали бы родителя вечно;
@@ -52,8 +53,37 @@ EXIT_BUSY = 75
 _APP_PREFIX = "ops-lock: "
 
 
+#: Соединение блокировки часами молчит, пока идут миграции: без keepalive его срезал бы
+#: сетевой экран между приложением и базой — и блокировка пропала бы без единой ошибки.
+_KEEPALIVE = {
+    "keepalives": 1,
+    "keepalives_idle": 30,
+    "keepalives_interval": 10,
+    "keepalives_count": 3,
+}
+
+
 class Busy(Exception):
     """Блокировку держит другая операция и за срок ожидания она не освободилась."""
+
+
+class SessionChanged(RuntimeError):
+    """Запросы соединения блокировки попали в разные сессии Postgres (между приложением
+    и базой — пулер в режиме transaction): сессионная блокировка так не работает."""
+
+
+def _connect():
+    """Отдельное соединение под блокировку (не открыто). Настройки базы — копией: общий
+    словарь `settings_dict` рабочих соединений не трогаем."""
+    conn = connections.create_connection(DEFAULT_DB_ALIAS)
+    options = {**_KEEPALIVE, **(conn.settings_dict.get("OPTIONS") or {})}
+    conn.settings_dict = {**conn.settings_dict, "OPTIONS": options}
+    return conn
+
+
+def _backend_pid(cursor) -> int:
+    cursor.execute("SELECT pg_backend_pid()")
+    return cursor.fetchone()[0]
 
 
 def default_timeout() -> int:
@@ -88,7 +118,9 @@ def _busy_message(what: str, holder: str, timeout: float) -> str:
         f"Блокировка операций над схемами занята{f' ({holder})' if holder else ''}: "
         f"«{what or 'операция'}» не дождалась её за {int(timeout)} с. Одновременно деплой и "
         f"пересев демо не идут. Дождитесь конца идущей операции и запустите снова "
-        f"(срок ожидания — {ENV_TIMEOUT}, секунды)."
+        f"(срок ожидания — {ENV_TIMEOUT}, секунды). Кто держит: SELECT pid, application_name, "
+        f"backend_start FROM pg_stat_activity WHERE application_name LIKE '{_APP_PREFIX.strip()}%'; "
+        f"зависшего держателя снимает SELECT pg_terminate_backend(<pid>)."
     )
 
 
@@ -99,7 +131,7 @@ def session_lock(timeout: float | None = None, what: str = "", poll: float = 2.0
     `what` — подпись операции: её увидит тот, кто не дождётся. `log(текст)` — куда сказать
     «жду» (один раз). Переменную окружения не трогает — для этого `hold`."""
     timeout = default_timeout() if timeout is None else max(0.0, float(timeout))
-    conn = connections.create_connection(DEFAULT_DB_ALIAS)
+    conn = _connect()
     try:
         conn.ensure_connection()
         conn.set_autocommit(True)
@@ -110,6 +142,7 @@ def session_lock(timeout: float | None = None, what: str = "", poll: float = 2.0
                 "SELECT set_config('application_name', %s, false)",
                 [f"{_APP_PREFIX}{what or 'операция'}"[:63]],
             )
+            pid = _backend_pid(cursor)
             while True:
                 cursor.execute("SELECT pg_try_advisory_lock(%s)", [KEY])
                 if cursor.fetchone()[0]:
@@ -124,27 +157,38 @@ def session_lock(timeout: float | None = None, what: str = "", poll: float = 2.0
                     )
                     told = True
                 time.sleep(min(poll, max(0.0, deadline - time.monotonic())))
+            if _backend_pid(cursor) != pid:
+                # блокировка взята в чужой сессии и ничего не защищает; снимать её нечем —
+                # она уйдёт вместе с той сессией (закрываем соединение ниже)
+                raise SessionChanged(
+                    "Блокировка операций над схемами не работает: запросы одного соединения "
+                    "попадают в разные сессии Postgres (пулер соединений в режиме "
+                    "transaction?). Соединение блокировки должно идти в базу напрямую — "
+                    f"«{what or 'операция'}» не начата."
+                )
         try:
             yield
         finally:
-            _release(conn, what)
+            _release(conn, what, pid)
     finally:
         conn.close()
 
 
-def _release(conn, what: str) -> None:
-    """Снять блокировку; если соединение за время операции пропало — блокировки уже не
-    было, и об этом надо сказать громко (операция шла без защиты)."""
+def _release(conn, what: str, pid: int) -> None:
+    """Снять блокировку; если соединение за время операции пропало либо сессия сменилась —
+    блокировки уже не было, и об этом надо сказать громко (операция шла без защиты)."""
     try:
         with conn.cursor() as cursor:
+            same = _backend_pid(cursor) == pid
             cursor.execute("SELECT pg_advisory_unlock(%s)", [KEY])
-            held = cursor.fetchone()[0]
+            held = cursor.fetchone()[0] and same
     except Exception:  # noqa: BLE001 — обрыв соединения: блокировку Postgres снял сам
         held = False
     if not held:
         logger.error(
-            "ops lock: блокировка потеряна во время «%s» (соединение с базой оборвалось) — "
-            "операция шла без защиты от параллельной; проверьте migration_state",
+            "ops lock: блокировка потеряна во время «%s» (соединение с базой оборвалось "
+            "или сменилась сессия) — операция шла без защиты от параллельной; проверьте "
+            "migration_state",
             what or "операция",
         )
 
@@ -154,6 +198,12 @@ def hold(timeout: float | None = None, what: str = "", poll: float = 2.0, log=No
     """Блокировка на время операции. Если её уже держит родитель (`ENV_HELD`) — сразу
     внутрь; иначе берёт сама и помечает окружение для порождённых процессов."""
     if os.environ.get(ENV_HELD) == "1":
+        # видно в выводе: переменная, случайно попавшая в .env, выключила бы блокировку молча
+        logger.warning(
+            "ops lock: «%s» идёт без своей блокировки — %s=1 (её держит родительский процесс)",
+            what or "операция",
+            ENV_HELD,
+        )
         yield
         return
     with session_lock(timeout=timeout, what=what, poll=poll, log=log):
