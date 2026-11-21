@@ -39036,9 +39036,6 @@ msgstr "Örnek ürün"
 msgid "Beispiel — so sieht die Bestätigung aus"
 msgstr "Örnek — onay sayfası böyle görünür"
 
-msgid "Please enter your email for online payment — we send the confirmation there."
-msgstr "Çevrimiçi ödeme için lütfen e-posta adresinizi girin — onayı oraya göndeririz."
-
 msgid "Event date"
 msgstr "Etkinlik tarihi"
 
@@ -39988,3 +39985,24 @@ msgstr "Pencereyi aç"
 
 msgid "Feinschliff"
 msgstr "İnce ayar"
+
+#. FB-33 C5: вкладка «Felder» корзины
+msgid "Was der Warenkorb beim Bestellen fragt. Änderungen erscheinen auf der Seite nach „Speichern“."
+msgstr "Sepetin sipariş verirken sorduğu bilgiler. Değişiklikler “Kaydet”ten sonra sayfada görünür."
+
+#. FB-33 C5: вкладка «Felder» корзины
+msgid "Die Bestätigung kommt an die E-Mail aus der Zahlung, wenn hier keine angegeben ist."
+msgstr "Burada e-posta verilmezse onay, ödemedeki e-posta adresine gönderilir."
+
+#. FB-33 C5: вкладка «Felder» корзины
+msgid "Bei Bestellung am Tisch (QR-Code) fragen wir nur die Notiz und Ihre eigenen Fragen."
+msgstr "Masadan (QR kod) siparişte yalnızca notu ve kendi sorularınızı soruyoruz."
+
+#: templates/storefront/order_confirmation.html
+msgid "Die Bestätigung senden wir an die E-Mail-Adresse aus der Zahlung."
+msgstr "Onayı ödemede kullanılan e-posta adresine göndereceğiz."
+
+#: templates/orders/order_detail.html
+msgid "Bezahlt — keine E-Mail-Adresse, Bestätigung nicht gesendet"
+msgstr "Ödendi — e-posta adresi yok, onay gönderilmedi"
+

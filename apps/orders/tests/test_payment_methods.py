@@ -136,23 +136,24 @@ def test_checkout_stripe_error_keeps_online_payment(monkeypatch, settings):
     assert order.payment_state != "paid"
 
 
-def test_online_payment_needs_an_email(monkeypatch, settings):
-    """FB-33 M2i-3a (решение владельца): без e-mail онлайн-оплата не оформляется —
-    подтверждение и квитанция уходят на почту. Заказ не создаётся, гость — в корзину."""
+def test_online_payment_needs_a_valid_email_only_if_one_was_typed(monkeypatch, settings):
+    """FB-33 M2i-7 (решение владельца 2026-11-21, снято M2i-3a): без e-mail онлайн-оплата
+    оформляется — адрес придёт из оплаты (вебхук Stripe). Введённый, но невалидный адрес —
+    отказ: заказ не создаётся, гость — в корзину."""
     _configure(settings)
     product = ProductFactory(base_price=Decimal("10.00"))
     monkeypatch.setattr(
         public_views.order_payments, "order_checkout_url", lambda o, t, **kw: "https://stripe/x"
     )
-    for email in ("", "kein-email"):
+    for email, url in (("kein-email", "/warenkorb/"), ("", "https://stripe/x")):
         request = _pub_req(
             {"name": "Kunde", "email": email},
             tenant=_prepay_tenant(),
             session={"cart": {str(product.pk): 1}},
         )
         resp = public_views.checkout(request)
-        assert resp.url.endswith("/warenkorb/")
-    assert not Order.objects.exists()
+        assert resp.url.endswith(url), email
+    assert Order.objects.get().customer.email == ""
 
 
 def test_pay_on_site_still_works_without_email():
@@ -286,7 +287,7 @@ def test_vorkasse_settings_do_not_clobber_prepay():
 
 
 def test_online_payment_error_keeps_what_the_guest_typed(settings):
-    """FB-33 M2i (ревью): ошибка «нужен e-mail» не стирает имя, телефон и заметку."""
+    """FB-33 M2i (ревью): ошибка «невалидный e-mail» (M2i-7) не стирает имя, телефон и заметку."""
     _configure(settings)
     product = ProductFactory(base_price=Decimal("10.00"))
     data = {"name": "Kunde Kim", "email": "kim@", "phone": "0171 2", "note": "Ohne Nüsse"}

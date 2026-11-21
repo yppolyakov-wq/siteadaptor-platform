@@ -39231,9 +39231,6 @@ msgstr "Пример товара"
 msgid "Beispiel — so sieht die Bestätigung aus"
 msgstr "Пример — так выглядит подтверждение"
 
-msgid "Please enter your email for online payment — we send the confirmation there."
-msgstr "Для онлайн-оплаты укажите e-mail — туда придёт подтверждение."
-
 msgid "Event date"
 msgstr "Дата мероприятия"
 
@@ -40193,3 +40190,24 @@ msgstr "Открыть окно"
 
 msgid "Feinschliff"
 msgstr "Тонкая настройка"
+
+#. FB-33 C5: вкладка «Felder» корзины
+msgid "Was der Warenkorb beim Bestellen fragt. Änderungen erscheinen auf der Seite nach „Speichern“."
+msgstr "Что корзина спрашивает при заказе. Изменения появятся на странице после «Сохранить»."
+
+#. FB-33 C5: вкладка «Felder» корзины
+msgid "Die Bestätigung kommt an die E-Mail aus der Zahlung, wenn hier keine angegeben ist."
+msgstr "Подтверждение придёт на e-mail из оплаты, если здесь он не указан."
+
+#. FB-33 C5: вкладка «Felder» корзины
+msgid "Bei Bestellung am Tisch (QR-Code) fragen wir nur die Notiz und Ihre eigenen Fragen."
+msgstr "При заказе за столиком (QR-код) мы спрашиваем только заметку и ваши вопросы."
+
+#: templates/storefront/order_confirmation.html
+msgid "Die Bestätigung senden wir an die E-Mail-Adresse aus der Zahlung."
+msgstr "Подтверждение придёт на адрес электронной почты, указанный при оплате."
+
+#: templates/orders/order_detail.html
+msgid "Bezahlt — keine E-Mail-Adresse, Bestätigung nicht gesendet"
+msgstr "Оплачено — нет адреса электронной почты, подтверждение не отправлено"
+

@@ -504,7 +504,13 @@ def site_schema_view(request):
         # FB-33 M2i-5: «Branchen-Vorlage» — только у типа бизнеса с пресетом формы
         from apps.jobs.anfrage_presets import preset_for
 
-        selected["form_spec"]["preset"] = bool(preset_for(tenant.business_type))
+        selected["form_spec"]["preset"] = bool(
+            preset_for(tenant.business_type, form=selected["form_spec"]["form"])
+        )
+        # FB-33 C5: у корзины — подсказки по онлайн-оплате и заказу к столику
+        from apps.core import checkout_window
+
+        checkout_window.decorate(selected, tenant)
         # FB-33 M2i-5b: переводы подписей и вариантов — на языки бизнеса (один язык — нет)
         from apps.core import i18n_input
 

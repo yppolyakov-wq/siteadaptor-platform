@@ -15,7 +15,6 @@ from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.translation import gettext as _
-from django.utils.translation import gettext_lazy
 from django.views.decorators.http import require_POST
 
 from apps.catalog.combos import combo_labels
@@ -1006,16 +1005,11 @@ def cart_view(request):
     if isinstance(kept, dict):
         ctx["checkout_input"] = kept
     # FB-33 M2i-34: поля оформления по настройке «Felder» (без настройки — прежняя форма)
-    ctx["checkout_ff"] = _checkout_fields(
-        _cfg,
-        stripe=Order.METHOD_STRIPE in _methods,
-        table=bool(request.session.get("table")),
-        kept=kept,
-    )
+    ctx["checkout_ff"] = _checkout_fields(_cfg, table=bool(request.session.get("table")), kept=kept)
     return render(request, "storefront/cart.html", ctx)
 
 
-def _checkout_fields(site, *, stripe: bool, table: bool, kept=None):
+def _checkout_fields(site, *, table: bool, kept=None):
     """FB-33 M2i-34: что спрашивает форма оформления (`form_spec.view`) — только у бизнеса с
     настройкой `form_fields.checkout`; иначе None, и корзина рисует прежнюю форму байт-в-байт.
     Ответы, введённые до ошибки оформления, возвращаются в свои вопросы (`value`)."""
@@ -1023,7 +1017,7 @@ def _checkout_fields(site, *, stripe: bool, table: bool, kept=None):
 
     if "checkout" not in (site.get("form_fields") or {}):
         return None
-    shown = form_spec.view(site, "checkout", stripe=stripe, table=table)
+    shown = form_spec.view(site, "checkout", table=table)
     answers = (kept or {}).get("answers") if isinstance(kept, dict) else None
     answers = answers if isinstance(answers, dict) else {}
     shown["custom"] = [{**q, "value": answers.get(q["id"], "")} for q in shown["custom"]]
@@ -1043,10 +1037,6 @@ def _payment_due(tenant, method):
     return timezone.now() + timedelta(days=days) if days else None
 
 
-#: FB-33 M2i-3a (решение владельца): онлайн-оплате нужен e-mail — подтверждение и квитанция
-ONLINE_PAY_NEEDS_EMAIL = gettext_lazy(
-    "Please enter your email for online payment — we send the confirmation there."
-)
 CHECKOUT_INPUT_KEY = "checkout_input"
 
 
@@ -1273,26 +1263,21 @@ def checkout(request):
         chosen_method = methods[0] if methods else Order.METHOD_ON_SITE
     if quote_mode:
         chosen_method = Order.METHOD_ON_SITE
-    # FB-33 M2i-3a (решение владельца): онлайн-оплате нужен e-mail — туда уходят
-    # подтверждение и квитанция. Проверка на сервере: форма поле не помечает (вид прежний).
-    if chosen_method == Order.METHOD_STRIPE and not _valid_email(request.POST.get("email")):
-        messages.error(request, ONLINE_PAY_NEEDS_EMAIL)
-        _keep_checkout_input(request, form_questions)
-        return redirect("storefront-cart")
     # FB-33 M2i-34: выключенные поля отбрасываются, даже если их прислали в обход формы
     contact = {k: request.POST.get(k, "").strip() for k in ("email", "phone", "note")}
     if form_on:
-        shown = form_spec.view(
-            form_site,
-            "checkout",
-            stripe=Order.METHOD_STRIPE in methods,
-            table=bool(table),
-        )
+        shown = form_spec.view(form_site, "checkout", table=bool(table))
         contact = {k: (v if shown[k].on else "") for k, v in contact.items()}
-        if chosen_method == Order.METHOD_STRIPE:
-            # ревью: онлайн-оплате нужен адрес (проверен выше) — подтверждение и квитанция;
-            # у столика e-mail не спрашивается, но присланный не теряется
-            contact["email"] = request.POST.get("email", "").strip()
+    # FB-33 M2i-7 (решение владельца 2026-11-21, снято M2i-3a): онлайн-оплата и без e-mail —
+    # адрес придёт из оплаты (вебхук Stripe, `payments.mark_order_paid`). Введённый, но
+    # невалидный адрес — ошибка: письма на него не дошли бы, а адрес из оплаты его не заменит.
+    if (
+        chosen_method == Order.METHOD_STRIPE
+        and contact["email"]
+        and not _valid_email(contact["email"])
+    ):
+        messages.error(request, _("Bitte geben Sie eine gültige E-Mail-Adresse an."))
+        return _refused(request, form_questions)
 
     # _cart_items даёт (product, variant, options, qty); create_order ждёт
     # (product, variant, qty, options) — переставляем.
@@ -1575,8 +1560,10 @@ def offer_page(request, token):
                 return redirect("storefront-offer", token=token)
             if chosen not in ship_methods:
                 chosen = ship_methods[0]
-            if chosen == Order.METHOD_STRIPE and not _valid_email(request.POST.get("email")):
-                messages.error(request, ONLINE_PAY_NEEDS_EMAIL)  # FB-33 M2i-3a
+            # FB-33 M2i-7: без e-mail — адрес из оплаты; введённый невалидный — ошибка
+            offer_email = request.POST.get("email", "").strip()
+            if chosen == Order.METHOD_STRIPE and offer_email and not _valid_email(offer_email):
+                messages.error(request, _("Bitte geben Sie eine gültige E-Mail-Adresse an."))
                 return redirect("storefront-offer", token=token)
             try:
                 order = offer_service.accept_offer(

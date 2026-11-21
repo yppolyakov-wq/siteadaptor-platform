@@ -185,10 +185,14 @@ def handle_event(event_type: str, obj: dict, account: str = "") -> None:
     if event_type == "checkout.session.completed" and meta.get("kind") == "order_payment":
         from apps.orders.payments import mark_order_paid
 
+        # FB-33 M2i-7: адрес плательщика — для заказа, оформленного без e-mail в форме
+        # (сюда доходит только оплаченная сессия своего бизнеса; проверка адреса — там).
+        details = obj.get("customer_details")
         ok = mark_order_paid(
             tenant_schema=meta.get("tenant_schema", ""),
             order_id=meta.get("order_id", ""),
             payment_intent=obj.get("payment_intent", ""),
+            payer_email=details.get("email") if isinstance(details, dict) else None,
         )
         if not ok:
             logger.warning("stripe webhook order_payment: order not found %s", meta)

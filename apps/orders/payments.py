@@ -5,7 +5,14 @@ application_fee=0). Подтверждение оплаты ставит веб�
 (apps.billing.webhooks → mark_order_paid), кросс-схемно через schema_context.
 """
 
+import logging
+
 from apps.billing import connect
+
+logger = logging.getLogger(__name__)
+
+#: RFC 5321: адрес длиннее 254 знаков не доставляется (и не влезает в EmailField).
+PAYER_EMAIL_MAX = 254
 
 
 def available_methods(tenant, *, customer_type=None, shipping=None) -> list[str]:
@@ -49,9 +56,78 @@ def order_checkout_url(order, tenant, *, success_url: str, cancel_url: str) -> s
     )
 
 
-def mark_order_paid(*, tenant_schema: str, order_id: str, payment_intent: str = "") -> bool:
+def _clean_payer_email(raw) -> str:
+    """FB-33 M2i-7: адрес плательщика из Stripe — строка, без управляющих знаков, ≤ 254,
+    валидный по `validate_email`; иначе пусто. Адрес пишет отправитель — не верим."""
+    from django.core.exceptions import ValidationError
+    from django.core.validators import validate_email
+
+    if not isinstance(raw, str):
+        return ""
+    email = raw.strip()
+    if not email or len(email) > PAYER_EMAIL_MAX or any(ord(ch) < 32 for ch in email):
+        return ""
+    try:
+        validate_email(email)
+    except ValidationError:
+        return ""
+    return email
+
+
+#: Статусы, в которых письма заказа уже не догоняют (отменён / возвращён).
+_CLOSED = ("cancelled", "returned")
+
+
+def _adopt_payer_email(order, raw) -> str:
+    """FB-33 M2i-7 (решение владельца): заказ оформлен без e-mail — адрес плательщика из
+    оплаченной сессии Stripe пишется клиенту заказа, только если у того адреса нет. Клиента
+    не меняем и не ищем по адресу (заказ не перепривязывается), аккаунт не заводим.
+
+    Возвращает причину для лога: "adopted" — записан сейчас; "same" — у клиента уже этот
+    адрес (повтор вебхука после сбоя писем — письма догоняем снова, дедуп защищает);
+    "own" — у клиента свой адрес; "no_payer_email" / "rejected" — адреса нет / негоден.
+    Ревью (п.5): адрес отписан у другого клиента — отписка от адреса, переносим флаг."""
+    from django.db import transaction
+
+    from apps.promotions.models import Customer
+
+    email = _clean_payer_email(raw)
+    if not email:
+        return "rejected" if isinstance(raw, str) and raw.strip() else "no_payer_email"
+    if not order.customer_id:
+        return "no_customer"
+    with transaction.atomic():
+        customer = Customer.objects.select_for_update().filter(pk=order.customer_id).first()
+        if customer is None:
+            return "no_customer"
+        if customer.email:
+            order.customer = customer
+            return "same" if customer.email.lower() == email.lower() else "own"
+        customer.email = email
+        fields = ["email", "updated_at"]
+        if (
+            not customer.unsubscribed
+            and Customer.objects.filter(email__iexact=email, unsubscribed=True)
+            .exclude(pk=customer.pk)
+            .exists()
+        ):
+            customer.unsubscribed = True
+            fields.append("unsubscribed")
+        customer.save(update_fields=fields)
+    order.customer = customer
+    return "adopted"
+
+
+def mark_order_paid(
+    *, tenant_schema: str, order_id: str, payment_intent: str = "", payer_email=None
+) -> bool:
     """Вебхук: заказ оплачен → payment_state=paid + авто-confirm (new→confirmed).
-    Кросс-схемно, идемпотентно."""
+    Кросс-схемно, идемпотентно.
+
+    FB-33 M2i-7: `payer_email` — `customer_details.email` оплаченной сессии. Заказу без
+    адреса он становится адресом клиента, и письма «принят» и текущего статуса уходят на
+    него — ровно по разу (dedupe_key письма), у незакрытого заказа. Выключенный канал и
+    отписка уважаются внутри `enqueue_order_email`."""
     from django_tenants.utils import schema_context
 
     from apps.core.fsm import IllegalTransition
@@ -85,9 +161,30 @@ def mark_order_paid(*, tenant_schema: str, order_id: str, payment_intent: str = 
 
                 folio.record_online("order", order, intent=payment_intent)
             order.save(update_fields=fields)
+        # FB-33 M2i-7: письма, не ушедшие без адреса, — после записи адреса И на повторе
+        # вебхука (ревью п.1: сбой постановки после записи иначе терял их навсегда).
+        # «created» — до авто-confirm (порядок писем); затем письмо текущего статуса
+        # (ревью п.2). Дубли гасит dedupe_key `order:{id}:{event}:customer`.
+        adopt = _adopt_payer_email(order, payer_email)
+        catch_up = adopt in ("adopted", "same") and order.status not in _CLOSED
+        if catch_up:
+            from .notifications import enqueue_order_email
+
+            enqueue_order_email(order, "created")
         if order.status == Order.STATUS_NEW:
             try:
                 OrderSM().apply(order, Order.STATUS_CONFIRMED)
             except IllegalTransition:
                 pass
+        if catch_up and order.status != Order.STATUS_NEW:
+            from .notifications import enqueue_order_email
+
+            enqueue_order_email(order, order.status)
+        if order.payment_state == Order.PAYMENT_PAID and not getattr(order.customer, "email", ""):
+            # ревью п.3: деньги есть, писать некуда — владелец видит пометку в карточке
+            logger.warning(
+                "order %s: paid online without a contact email (%s) — confirmation not sent",
+                order.pk,
+                adopt,
+            )
     return True

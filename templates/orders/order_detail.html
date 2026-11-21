@@ -106,7 +106,7 @@ Netto. Теперь тот же общий партиал, что у остал�
   <p class="text-sm text-gray-600">{% trans "Status" %}:
     {% if order.payment_state == 'paid' %}{% trans "Paid" %}{% elif order.payment_state == 'refunded' %}{% trans "Refunded" %}{% else %}{% trans "Unpaid" %}{% endif %}
     {% if order.stripe_payment_intent %}<span class="text-gray-400">· {% trans "Online (Stripe)" %}</span>{% endif %}
-  </p>
+  </p>{% if order.payment_method == 'stripe' and order.payment_state == 'paid' and not order.customer.email %}<p class="text-sm text-amber-700 mt-1" data-paid-no-email>{% trans "Bezahlt — keine E-Mail-Adresse, Bestätigung nicht gesendet" %}</p>{% endif %}
   {% if order.payment_state != 'paid' %}
     <form method="post" action="{% url 'orders:order-action' order.pk %}" class="mt-2">
       {% csrf_token %}

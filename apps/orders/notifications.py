@@ -5,12 +5,16 @@
 коммита. Хелперы рендера/доменов переиспользуем из promotions.notifications.
 """
 
+import logging
+
 from django.db import connection
 from django.urls import reverse
 
 from apps.notifications.prefs import channel_enabled
 from apps.notifications.services import notify
 from apps.promotions.notifications import _base_url, _owner_email, _render, _tenant
+
+logger = logging.getLogger(__name__)
 
 # событие -> базовое имя шаблона письма клиенту
 _CUSTOMER_TEMPLATES = {
@@ -72,6 +76,16 @@ def enqueue_order_email(order, event, dedupe_suffix=""):
 
     template_base = _CUSTOMER_TEMPLATES.get(event)
     email_on = channel_enabled(tenant, "customer", "order", event, "email")
+    if template_base and not (customer.email and not customer.unsubscribed and email_on):
+        # FB-33 M2i-7 (ревью): письмо клиенту не ушло — причина в лог, без адреса (PII)
+        reason = (
+            "no_email"
+            if not customer.email
+            else "unsubscribed"
+            if customer.unsubscribed
+            else "channel_off"
+        )
+        logger.info("order %s: customer mail %s skipped (%s)", order.pk, event, reason)
     if template_base and customer.email and not customer.unsubscribed and email_on:
         base = _base_url(schema)
         # LS-6 «Прямая линия»: ссылка «Etwas stimmt nicht?» в подтверждении —

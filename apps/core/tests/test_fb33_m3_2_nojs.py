@@ -29,6 +29,7 @@ EXTRA = (
     ("home", "t1", "&ansicht=telefon"),  # вид «Telefon»
     ("home", "l1", "&welche=regel&tab=wie"),  # открытый способ «Welche»
     ("home", "t1", "&drawer=/dashboard/"),  # адрес со шторкой кабинета
+    ("cart", "form"),  # FB-33 C5: вкладка «Felder» формы корзины
 )
 
 

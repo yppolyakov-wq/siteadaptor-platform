@@ -1,4 +1,4 @@
-{% load i18n cabinet %}{% comment %}FB-33 M2i-5: вкладка «Felder» — поля формы заявки (form_spec.panel). Одна неделимая форма: правки идут в черновик (op=update ref=form), кнопки «+ Frage», вверх/вниз/удалить и «Branchen-Vorlage» — поле do; без скриптов — «Übernehmen». Подписи и варианты — только автоэкранированием.{% endcomment %}
+{% load i18n cabinet %}{% comment %}FB-33 M2i-5: вкладка «Felder» — поля формы заявки, с C5 и корзины (form_spec.panel, fs.form). Одна неделимая форма: правки идут в черновик (op=update ref=form), кнопки «+ Frage», вверх/вниз/удалить и «Branchen-Vorlage» — поле do; без скриптов — «Übernehmen». Подписи и варианты — только автоэкранированием.{% endcomment %}
 {% with fs=selected.form_spec %}
 <form method="post" id="bw-form-formfields" class="mt-4 space-y-4" data-schema-fields data-form-felder>
   {% csrf_token %}
@@ -8,7 +8,7 @@
   <input type="hidden" name="op" value="update">
   {% comment %}Enter в поле — то же, что «Übernehmen» (первая кнопка формы — «по умолчанию»), а не «Nach oben» первого вопроса; вне Tab и невидима.{% endcomment %}
   <button type="submit" name="f_commit_new" value="1" class="sr-only" tabindex="-1">{% trans "Übernehmen" %}</button>
-  <p class="text-sm text-gray-700">{% trans "Was die Anfrage-Form fragt. Änderungen erscheinen auf der Seite nach „Speichern“." %}</p>
+  <p class="text-sm text-gray-700">{% if fs.form == "checkout" %}{% trans "Was der Warenkorb beim Bestellen fragt. Änderungen erscheinen auf der Seite nach „Speichern“." %}{% else %}{% trans "Was die Anfrage-Form fragt. Änderungen erscheinen auf der Seite nach „Speichern“." %}{% endif %}</p>{% for h in fs.hints %}{% comment %}FB-33 C5: подсказки корзины (checkout_window.hints) — только текст, вкладку не меняют.{% endcomment %}<p class="text-xs text-gray-700" data-form-hint><span aria-hidden="true">ℹ</span> {{ h }}</p>{% endfor %}
   {% comment %}FB-33 M3-5a (a11y): живая область вкладки — что сделала кнопка вопроса (↑/↓/Entfernen/«+ Frage») и сброшенный перевод; заполняет aufbau.js по тексту сообщения (data-said — точные тексты, data-prefix — начало). Есть и без языков.{% endcomment %}<p role="status" class="text-xs font-semibold text-gray-800" data-form-status data-said="{% trans 'Hinzugefügt.' %}|{% trans 'Nach oben verschoben.' %}|{% trans 'Nach unten verschoben.' %}|{% trans 'Frage entfernt.' %}" data-prefix="{% blocktrans with names="" %}Übersetzungen entfernt, weil die Option geändert oder gelöscht wurde: {{ names }}{% endblocktrans %}"></p>
   {% if fs.locales %}{% comment %}FB-33 M2i-5b: язык переводов — серверные кнопки (без скриптов); поля всех языков в DOM, видны поля выбранного.{% endcomment %}{% i18n_translate_ctx as tr %}{% include "tenant/_bw_langs.html" with locales=fs.locales after_tpl="tenant/_bw_formfields_ai.html" %}{% endif %}
   {% for f in fs.fields %}
@@ -18,11 +18,11 @@
     <p class="mt-1 text-xs text-gray-700"><span aria-hidden="true">🔒</span> {% trans "immer Pflicht" %}</p>
   </div>
   {% else %}
-  <fieldset class="rounded-lg border border-gray-200 p-3" data-form-field="{{ f.key }}">
+  <fieldset class="rounded-lg border border-gray-200 p-3" data-form-field="{{ f.key }}"{% if f.hint %} aria-describedby="{{ f.hint_id }}"{% endif %}>
     <legend class="px-1 text-sm font-semibold text-gray-800">{{ f.label }}</legend>
     <div class="flex flex-wrap gap-x-4">
       {% for m, mlabel in fs.modes %}<label class="inline-flex min-h-[44px] items-center gap-2 text-sm"><input type="radio" name="f_mode_{{ f.key }}" value="{{ m }}"{% if m == f.mode %} checked{% endif %}> {{ mlabel }}</label>{% endfor %}
-    </div>
+    </div>{% if f.hint %}<p id="{{ f.hint_id }}" class="text-xs text-gray-700" data-form-hint><span aria-hidden="true">ℹ</span> {{ f.hint }}</p>{% endif %}
     <label for="ff-label-{{ f.key }}" class="mt-1 block text-xs text-gray-700">{% trans "Eigene Beschriftung" %}</label>
     <input type="text" id="ff-label-{{ f.key }}" name="f_label_{{ f.key }}" value="{{ f.custom_label }}" placeholder="{{ f.default_label }}" maxlength="120" class="ui-input w-full">
     {% for t in f.translations %}{% include "tenant/_bw_formfields_tr.html" with t=t limit=120 %}{% endfor %}

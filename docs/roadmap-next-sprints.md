@@ -509,6 +509,26 @@ c) история броней (email-связка с Customer) → d) наст�
     дать адрес окна по хосту блока (та же беда у «Seitenaufbau öffnen» баннера).
   - **M4b:** мёртвый JS «Liste» (`data-lb-source/out/style`, `data-lb-scope-btn`, `SL_DATA_FIELDS`, `_save_builtin_list_data`) — снять при ближайшей правке.
   - **M4b:** ссылки «Im Kabinett ändern» / «🖼 Manage slides» (`site_home.html`, баннер и медиа) — старые области Студии.
+- **FB-33 стопка 6 (C5 / M2i-7 / M3-9, 2026-11-21) — отложено (из заметок срезов и ревью):**
+  - **C5:** «Übernehmen» вкладки «Felder» без JS — 40 px (ниже контракта окна 44); прежняя кнопка, общая с заявкой (M2i-5).
+    Одним пересъёмом эталонов — общий `min-h-[44px]` для заявки и корзины (правка задела бы `golden_fb33m2i5b/window-single-language.html` и `page_nojs`). Стенд C5 исключает её из проверки ≥ 44.
+  - **C5:** строка cart/form не добавлена в матрицу M3-0 (`panel.json`) — эталон тянет `golden_fb33m35c`; решить, добавлять ли в CASES (сейчас проверка строки — `test_fb33_m2i34_c5_window.py::test_8`).
+  - **C5:** подсказка про Stripe во вкладке «Felder» стендом не проверена (у m35b нет Stripe) — покрыта тестами 1b/1d.
+  - **C5:** строка про столик — у любого бизнеса с модулем `orders` (решение ревью: витрина берёт стол из `?tisch=` у любого бизнеса, `core/context.py`); печатал ли владелец QR — неизвестно (вопрос владельцу).
+  - **M2i-7:** брошенный онлайн-заказ без контакта висит `new/unpaid` и держит склад, пока владелец не отменит: `payment_holds.HOLD_KINDS` = booking/stay/ticket (заказов нет), `orders.tasks.send_due_payment_reminders` шлёт только на e-mail, `expires_at` Checkout-сессии заказу не ставится. → стопка 7: авто-отмена неоплаченного онлайн-заказа через N часов (или в HOLD_KINDS).
+  - **M2i-7:** остальные онлайн-оплаты по-прежнему требуют e-mail ДО оплаты и не берут адрес из вебхука: `apps/booking/public_views.py:261` (запись), `apps/events/public_views.py:651` (билеты), `apps/loyalty/pass_payments.py:86` (Mehrfachkarte), `apps/loyalty/gift.py:32` (сертификат), `apps/core/balance_pay.py:255/294` (доплата остатка), stays (номера); вебхуки booking/stay/job_deposit `customer_details` не читают → M2i-7b. Перенос через `orders.payments._adopt_payer_email` (вынести в core при втором потребителе).
+  - **M2i-7:** принятый риск — письма на непроверенный адрес из Stripe и «старейший клиент» по e-mail (`_get_or_create_customer`, login): тот же риск, что у адреса из формы; предложена отдельная задача «адрес не подтверждён» (решение владельца).
+  - **M2i-7:** ratelimit писем; `mark_order_paid` → False = 200 без заказа; `folio.record_online` без общей atomic — старое, не трогали.
+  - **M3-9 №1 (стопка 7):** превью типа «Kategorie» — 404: `reverse("storefront-category", args=[obj.pk])` попадает в маршрут товара `sortiment/<uuid:pk>/`; нужен слаг (`args=[obj.slug]`). «Alle Kategorien»: «Vorschau» окна и Студия открывают 404.
+  - **M3-9 №2 (стопка 7):** «Team» предлагается без команды: `page_settings._storefront_shows` не гейтит `team`, `promotions.public_views.team_page` отдаёт 404 без `site.team`. Гейт как у `teachers`/`passes`.
+  - **M3-9 №3 (стопка 7):** «Versand» предлагается без заказов: `site_schema.text_pages` добавляет его всегда, `/versand/` — 404 при выключенном модуле заказов. Гейт по `orders`.
+  - **M3-9 №4:** без JS кнопки «Übernehmen» и «Wie bisher (4 Karten)» в панели блока — 40 px (AA ок; ~2000 попаданий). Общим пересъёмом вместе с C5 (см. выше).
+  - **M3-9 №5:** `/p/<uuid>/` (акция отеля) на 390 в ru — горизонтальный скролл 28 px: колонка детали шире экрана (вероятно grid без `min-w-0`); в de не воспроизводится.
+  - **M3-9 №6 (a11y витрины, WCAG 2.5.8 с исключением Spacing):** мелкие цели — ссылки подвала (16 px), точки слайдера и карточек 8×8, «So 22.11. →», «+ Mehr hinzufügen», «›», «Herunterladen», «📅 Kalender», «Alle anzeigen →», «💬 Eine Frage stellen».
+  - **M3-9 №7 (стопка 7):** в ru подсказки закреплённых блоков (§ 312j) — немецкое «Button-Lösung»; цитата «Zahlungspflichtig bestellen/buchen» — законный текст кнопки, в белом списке стенда.
+  - **M3-9 №8:** `site_schema.blocks_for(..., summaries=False)` оставляет строку «combos» без наборов: фильтр привязан к флагу `summaries`, а не к смыслу.
+  - **M3-9:** ~80 видов блоков окна без окна с JS (панель остаётся колонкой, без `<dialog>`) — закроют M5–M7. Правило строки `__page` — вынести из вьюхи в `site_schema.page_row_ref` (стенд дублирует, см. pitfalls §3).
+  - **Процесс / ops:** защита от одновременного деплоя и пересева (`seed_demo_tenants`); автоочистка старых образов Docker в `deploy.sh`; лишний лог и запрос на повтор вебхука.
 - **FB-33 стопка 3 (M3-4b / M2b-2b / M3-6, 2026-11-20) — отложено:**
   - **M3-4b:** путаница подписей «Kompakt mit Foto» (форма карточки) и вида списка «Kompakte Zeilen» —
     развести по макету; форма «Nur Text» (строка без фото) — новой формой (рендер-шаблон + LAY-4 замки),

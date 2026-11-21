@@ -245,26 +245,22 @@ def _shown_question(q: dict, loc: str) -> dict:
     return out
 
 
-def _checkout_mode(key: str, mode: str, *, stripe: bool, table: bool) -> str:
+def _checkout_mode(key: str, mode: str, *, table: bool) -> str:
     """FB-33 M2i-34: режим поля корзины по обстоятельствам заказа. У столика контакты не
-    спрашиваются (гостя находят по номеру стола); при доступной онлайн-оплате e-mail не
-    выключается — туда уходят подтверждение и квитанция (обязательность при выборе Stripe
-    проверяет вьюха, как в M2i-3a)."""
+    спрашиваются (гостя находят по номеру стола). FB-33 M2i-7: онлайн-оплата режим e-mail
+    больше не меняет — без адреса в форме он приходит из оплаты (вебхук Stripe)."""
     if key in CONTACT and table:
         return OFF
-    if key == "email" and stripe and mode == OFF:
-        return OPT
     return mode
 
 
-def view(site, form: str, locale=None, *, stripe: bool = False, table: bool = False) -> dict:
+def view(site, form: str, locale=None, *, table: bool = False) -> dict:
     """Что рисует форма: {ключ: FieldView} + свои вопросы (`custom`) + сводка для полосы
     заявки (`band_extra`, `band_custom`, `band_full`) и `any_event`.
 
     FB-33 M2i-5b: подписи — на языке показа (`shown_locale`): перевод → своя немецкая подпись
     → подпись по умолчанию (gettext). На основном языке переводы не читаются.
-    FB-33 M2i-34: у корзины (`checkout`) `stripe` — бизнес предлагает онлайн-оплату, `table` —
-    заказ за столиком (`_checkout_mode`)."""
+    FB-33 M2i-34: у корзины (`checkout`) `table` — заказ за столиком (`_checkout_mode`)."""
     loc = shown_locale(locale)
     entry = (site.get("form_fields") or {}).get(form) or {}
     labels = entry.get("labels") or {}
@@ -275,7 +271,7 @@ def view(site, form: str, locale=None, *, stripe: bool = False, table: bool = Fa
         if field.key == "event_type" and not (site.get("anfrage") or {}).get("event_types"):
             mode = OFF  # выбор без вариантов владельца не рисуется и не обязателен
         if form == "checkout":
-            mode = _checkout_mode(field.key, mode, stripe=stripe, table=table)
+            mode = _checkout_mode(field.key, mode, table=table)
         default = field.req_label if mode == REQ and field.req_label is not None else field.label
         label = (labels_tr.get(field.key) or {}).get(loc) or labels.get(field.key) or str(default)
         out[field.key] = FieldView(mode, label)

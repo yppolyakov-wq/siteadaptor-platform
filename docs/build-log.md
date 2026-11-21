@@ -24570,3 +24570,34 @@ security/silent-failure): тупик в двусторонних прятках,
 - Сервер: `seed_demo_tenants --group all --changed --jobs 3` писал `could not resize shared memory segment … No space left on device` в `clone_schema` и уходил на запасной путь миграциями (медленно, но демо создавались). Причина — Docker-дефолт `/dev/shm` = 64 МБ (сверено владельцем: 63,6 из 64 МБ занято; диск `/` — 85 %, не причина).
 - `docker-compose.prod.yml`: у сервиса `db` — `shm_size: 256mb` (ОЗУ, не диск). Действует после `./scripts/deploy.sh single` (`up -d` пересоздаёт контейнер db, том `pgdata` цел).
 - Замок `test_sec_g11b_containers.py::test_db_shared_memory_is_large_enough_for_schema_clones`.
+### 2026-11-21 — FB-33 C5: вкладка «Felder» у формы корзины в окне блока
+- Строка `form` корзины (cart/form) в окне «Seitenaufbau» получает вкладку «Felder» как у заявки: режимы e-mail / телефон / заметка «Nicht fragen · Optional · Pflicht», свои подписи и переводы, свои вопросы; имя 🔒, без событий и «Branchen-Vorlage», порядок системных полей фиксирован.
+- Черновик — `draft["form"]` на хосте `cart` (черновик заявки не трогается). «Speichern» — только `form_fields.checkout` через `form_spec.put` под блокировкой строки бизнеса; «Abbrechen» — снимок окна байт-в-байт; трёхстороннее слияние как у заявки.
+- Соответствие «строка → форма»: `site_schema.FORM_ROWS` / `form_of(host)` (`anfrage` → anfrage, `cart` → checkout); `is_form_edit`, `form_op`, `form_window_url(host=)`, `aufbau_draft` — все по нему. Новая форма с вкладкой — одна строка в `FORM_ROWS` и поля в `form_spec.FORMS`.
+- Подсказки вкладки — `apps/core/checkout_window.py` (`hints()`): e-mail из оплаты при Stripe (под полем, `aria-describedby`), столик (QR) — у бизнеса с модулем заказов.
+- Эталоны: `page_nojs` получил `cart_form.html` (случай в `EXTRA` test_fb33_m3_2_nojs.py). Строка cart/form в матрице M3-0 (`panel.json`) не добавлена — тянет эталон `golden_fb33m35c`, отложено; проверка строки — в `test_8` замка C5.
+- Миграций нет. Замки `apps/core/tests/test_fb33_m2i34_c5_window.py` (21); стенд `scripts/fb33_m2i34_c5_window_stand.py` (149 ✓: 1440/390 × de/ru × с JS и без JS, порт 8045).
+
+### 2026-11-21 — FB-33 M2i-7: онлайн-оплата без e-mail в форме — адрес плательщика из вебхука Stripe
+- Решение владельца 2026-11-21: снято решение M2i-3a (онлайн-оплата требовала e-mail). Оплата корзины и принятие предложения через Stripe работают без e-mail в форме.
+- C1, вебхук: `customer_details.email` оплаченной сессии (`checkout.session.completed` paid / `async_payment_succeeded`) → `mark_order_paid(payer_email=)` → `payments._adopt_payer_email`: strip, ≤254, без управляющих знаков, `validate_email`, atomic + `select_for_update`; пишется только в ПУСТОЙ `Customer.email`, клиента по адресу не ищем. Результат — причина (adopted / same / own / no_payer_email / rejected / no_customer).
+- C2: снят `ONLINE_PAY_NEEDS_EMAIL` (`public_views`); невалидный введённый e-mail при Stripe — отказ с возвратом ввода; `form_spec.view` без параметра `stripe` (e-mail OFF больше не становится OPT).
+- C3: на подтверждении — «Die Bestätigung senden wir an die E-Mail-Adresse aus der Zahlung.» без адреса; .po ×5; msgid «Please enter your email for online payment…» снят из .po ×5.
+- Письма: «created» (у нового заказа) и «confirmed» — по разу (dedupe_key `order:{id}:{event}:customer`); догоняются по состоянию («адрес есть и совпадает» + текущий статус), не по флагу «записал сейчас»; отменённые и возвращённые не догоняем. Отписка уважается: адрес, отписанный у другого клиента, — нашему клиенту `unsubscribed=True`, адрес записывается, писем нет.
+- Оплачено без адреса → `logger.warning` (pk + причина) и пометка в карточке заказа `data-paid-no-email` («Bezahlt — keine E-Mail-Adresse, Bestätigung nicht gesendet»); `enqueue_order_email` пишет `logger.info` с причиной пропуска (no_email / unsubscribed / channel_off). Адрес в лог не пишется.
+- Ревью (security + silent-failure) поправило п.1–5: письма после сбоя, статус, «оплачено без контакта», отписка.
+- Замки `apps/orders/tests/test_fb33_m2i7_payer_email.py` (сценарии плана 1–12 и ревью); переписаны `test_payment_methods.py`, `test_fb33_m2i34_checkout.py`, `test_fb33_m2i34_form_spec.py`; докстринг `test_offer_page.py` обновлён. Стенд: `scripts/fb33_m2i34_cart_stand.py --online`. Миграций нет.
+- Не сделано (отложено): брошенный онлайн-заказ без контакта висит `new/unpaid` и держит склад; остальные онлайн-оплаты (booking, events, Mehrfachkarte, Gutschein, доплата остатка, stays, вебхуки deposit) — M2i-7b.
+
+### 2026-11-21 — FB-33 M3-9: стенд владельца — обход 5 типов бизнеса
+- `scripts/fb33_m3_9_owner_stand.py` (порт 8039; код приложения не менялся): 5 демо-китов (shop/retail, restaurant, friseur, hotel, retreat/events) × 1440/390 × de/ru, проход без JS и с JS. Строки экрана — из `site_schema.type_groups` + `object_row` (первый объект каждого вида) + `blocks_for`; вкладки окна — по `?tab=` (без JS) и щелчком (с JS); витрина каждой строки — `PageRow.preview_url`.
+- Проверки: 5xx, горизонтальный скролл, цели ≥ 44 px в окне, `<dialog>` / подписи / tablist, немецкие строки в ru.
+- Полный прогон (база dde10d2, до C5 и M2i-7): 70669 ✓ / 3834 ✗; из ✗ 24 — ложные («Без перевода: …», исправлено в e7990e0). Ресторан без JS перепрогнан: 8133 ✓ / 766 ✗. С JS — ни одного ✗ окна; 5xx нет.
+- Ревью e2e-runner: замок `--selftest` (15 случаев: 15 ✓, 0 ✗) — сначала был красным, после правок зелёный. Быстрый режим `--only shop --langs ru --sizes 390 --sample 1`: без JS и с JS 1793 ✓ / 133 ✗ за 1 мин 37 с, ложных нет.
+- Дефекты стенда (код не правлен, список в roadmap «Отложено»): превью «Kategorie» 404; «Team» без команды; «Versand» без заказов; 40 px кнопки без JS; горизонтальный скролл 28 px у акции на 390 в ru; мелкие цели витрины; немецкое «Button-Lösung» в ru; `blocks_for(summaries=False)` оставляет строку «combos».
+- Миграций нет.
+
+### 2026-11-21 — FB-33: сборка стопки 6 C5 → M2i-7 → M3-9
+- Три среза от базы `main` 19a0ddf в ветке `claude/fb33-stack6`. Стык — `apps/orders/tests/test_fb33_stack6_joints.py`: e-mail «Nicht fragen» в окне блока → витрина без поля → Stripe → вебхук пишет адрес. Эталон `apps/core/tests/golden_fb33m3/page_nojs/cart_form.html` снят на верхушке C5 + M2i-7. Якоря срезов сняты из .po ×5, имя теста предложения переведено на правило `rejects_invalid_email`.
+- Тесты в этом коммите доков не запускались (полный прогон — отдельно в той же папке); финальный гейт — CI на верхушке.
+- Миграций в стопке нет. Деплой — обычный `git pull origin main && ./scripts/deploy.sh single`; не запускать параллельно с `seed_demo_tenants` (см. pitfalls, §6).

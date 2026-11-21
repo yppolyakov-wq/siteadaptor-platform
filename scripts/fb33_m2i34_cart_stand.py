@@ -12,6 +12,18 @@
       uv run --no-project --with playwright python scripts/fb33_m2i34_cart_stand.py <папка> [--before]
 
 `--before` — прогон без настройки (прежняя форма). Итог: «N ✓, 0 ✗».
+
+FB-33 M2i-7: `--setup --online` включает бизнесу онлайн-оплату (prepay + Connect) — e-mail
+«Nicht fragen» и при ней не спрашивается, заказ без адреса уходит на оплату. Сам Stripe не
+вызывается: сервер стенда запускать с фиктивными ключами и мёртвым прокси —
+
+    STRIPE_TEST_SECRET_KEY=sk_test_stand STRIPE_CONNECT_CLIENT_ID=ca_stand \
+      HTTPS_PROXY=http://127.0.0.1:9 https_proxy=http://127.0.0.1:9 DB_NAME=<стенд-БД> \
+      python manage.py runserver …
+
+— запрос к Stripe обрывается до сети (StripeError), заказ остаётся онлайн-оплатой с кнопкой
+«Jetzt bezahlen» (та же ветка, что «Stripe недоступен»); стенд сверяет заказ в БД (способ
+stripe, адреса нет) и строку «адрес из оплаты» на подтверждении. Прогон: `<папка> --online`.
 """
 
 # ruff: noqa: B023 — вложенные помощники вызываются в той же итерации цикла
@@ -42,6 +54,8 @@ ff.pop("checkout", None)
 cfg["form_fields"] = ff
 if not ff:
     cfg.pop("form_fields")
+t.orders_prepay = t.payments_enabled = ONLINE
+t.stripe_connect_id = "acct_stand_m2i7" if ONLINE else ""
 if MODE == "setup":
     state = form_spec.edit_state(cfg, "checkout")
     state["mode"].update({{"email": "off", "phone": "req"}})
@@ -54,17 +68,33 @@ if MODE == "setup":
     ]
     form_spec.put(cfg, "checkout", state)
 t.site_config = cfg
-t.save(update_fields=["site_config"])
+t.save(update_fields=["site_config", "orders_prepay", "payments_enabled", "stripe_connect_id"])
 print("READY", p.pk, (t.site_config.get("form_fields") or {{}}).get("checkout"))
 """
 
 
-def setup(mode: str) -> bool:
+ORDER_STATE = f"""
+from django_tenants.utils import tenant_context
+from apps.tenants.models import Tenant
+with tenant_context(Tenant.objects.get(schema_name={SLUG!r})):
+    from apps.orders.models import Order
+    o = Order.objects.get(reference_code=CODE)
+    print("STATE", o.payment_method, o.payment_state, o.status, repr(o.customer.email))
+"""
+
+ONLINE = "--online" in sys.argv
+
+
+def shell(code: str) -> str:
     cmd = ["uv", "run", "python", "manage.py", "shell", "--settings=config.settings.stand"]
-    code = f"MODE = {mode!r}\n" + SETUP
     out = subprocess.run([*cmd, "-c", code], capture_output=True, text=True, check=False)
-    print(out.stdout.strip() or out.stderr[-1500:])
-    return "READY" in out.stdout
+    return out.stdout.strip() or out.stderr[-1500:]
+
+
+def setup(mode: str) -> bool:
+    out = shell(f"MODE = {mode!r}\nONLINE = {ONLINE and mode == 'setup'!r}\n" + SETUP)
+    print(out)
+    return "READY" in out
 
 
 if sys.argv[1:2] in (["--setup"], ["--reset"]):
@@ -175,6 +205,50 @@ def order_flow(b):
     return m.group(1) if m else ""
 
 
+HINT = {
+    "de": "Die Bestätigung senden wir an die E-Mail-Adresse aus der Zahlung.",
+    "ru": "Подтверждение придёт на адрес электронной почты, указанный при оплате.",
+}
+
+
+def online_flow(b, lang, w, h):
+    """FB-33 M2i-7: онлайн-оплата без e-mail в форме — заказ уходит на оплату (Stripe на
+    стенде недоступен — см. докстринг), подтверждение говорит «адрес из оплаты» без адреса."""
+    ctx = b.new_context(viewport={"width": w, "height": h})
+    pg = ctx.new_page()
+    add_to_cart(ctx, pg)
+    pg.goto(U + f"/?hl={lang}")
+    pg.goto(U + "/warenkorb/")
+    tag = f"online {lang} {w}"
+    info = form_info(pg)
+    check("email" not in info["names"], f"{tag}: e-mail «Nicht fragen» и при онлайн-оплате")
+    radio = pg.locator("input[name=payment][value=stripe]")
+    if radio.count():
+        radio.check()
+    check(radio.count() or "payment" not in info["names"], f"{tag}: способ «online» выбран")
+    pg.fill("#id_name", "Stand Online")
+    pg.fill("#id_phone", "0171 7")
+    pg.fill("#id_q1", "keine")
+    pg.click("button[form=checkout-form]")
+    pg.wait_for_load_state()
+    m = re.search(r"/bestellung/([^/?]+)/", pg.url)
+    check(bool(m), f"{tag}: заказ создан, не отказ ({pg.url})")
+    if not m:
+        ctx.close()
+        return
+    state = shell(f"CODE = {m.group(1)!r}\n" + ORDER_STATE)
+    check("STATE stripe unpaid new ''" in state, f"{tag}: в БД онлайн-оплата без адреса ({state})")
+    pg.screenshot(path=f"{OUT}/online-confirm-{lang}-{w}.png", full_page=True)
+    html = pg.content()
+    check(HINT[lang] in html, f"{tag}: строка «адрес из оплаты»")
+    hint = pg.locator("[data-payer-email-hint]").inner_text()
+    check("@" not in hint, f"{tag}: в строке нет адреса")
+    check("storefront-order-pay" in html or "/bezahlen/" in html, f"{tag}: «Jetzt bezahlen»")
+    sw = pg.evaluate("document.documentElement.scrollWidth <= innerWidth")
+    check(sw, f"{tag}: без горизонтальной прокрутки")
+    ctx.close()
+
+
 def cabinet(b, code):
     for w, h in ((1440, 900), (390, 844)):
         ctx = b.new_context(viewport={"width": w, "height": h})
@@ -210,7 +284,10 @@ with sync_playwright() as p:
         for js in (True, False):
             for w, h in ((1440, 900), (390, 844)):
                 storefront(b, lang, js, w, h)
-    if not BEFORE:
+    if ONLINE:
+        online_flow(b, "de", 1440, 900)
+        online_flow(b, "ru", 390, 844)
+    elif not BEFORE:
         code = order_flow(b)
         if code:
             cabinet(b, code)
