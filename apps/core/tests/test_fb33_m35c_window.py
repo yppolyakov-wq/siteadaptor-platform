@@ -45,7 +45,9 @@ def test_language_buttons_and_fields_of_the_chosen_language():
     assert re.search(r'<textarea id="schema-f-body-ru" name="f_tr_body_ru"', form)
     assert "_en" not in "".join(re.findall(r'name="[^"]*"', form))  # имя — только у ru
     assert re.search(r'id="schema-f-title-en" disabled', form)
-    assert "Ohne Übersetzung:" in form and '<span lang="de">Hallo</span>' in form
+    assert (
+        "Ohne Übersetzung:" in form and '<span lang="de" class="break-words">Hallo</span>' in form
+    )
     first = re.search(r"<button[^>]*>", form).group(0)
     assert 'value="update"' in first and "sr-only" in first  # Enter — «Übernehmen»
     assert "data-schema-translate" not in form  # прежней ссылки на страницу нет
