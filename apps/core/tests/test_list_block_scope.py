@@ -193,12 +193,18 @@ def test_raster_over_a_lane_page_is_expressible_for_the_type():
 # ───────────────────────── Save и черновик ─────────────────────────
 
 
+@pytest.mark.xfail(
+    strict=True, reason="ревью M4b №3: «Ansicht gilt für» возвращается в «Feinschliff»"
+)
 def test_builder_save_in_type_scope_updates_all_blocks_of_the_type():
+    """FB-33 M4b (ревью №3): охват «Den ganzen Typ» снова задаётся формой Студии («Ansicht
+    gilt für» — в «Feinschliff» блока «Liste»); вид блока, который отдаётся типу, — тот,
+    что сохранён (его правит окно блока)."""
     from apps.core import views
 
     t = _tenant(
         sections=[
-            _block("a1", source="promotions", type="Räumung"),
+            _block("a1", source="promotions", type="Räumung", out="slider", card="coupon"),
             _block("a2", source="promotions", type="Räumung", title="Zweiter"),
         ],
         promo_groups={"Räumung": "countdown"},
@@ -211,48 +217,41 @@ def test_builder_save_in_type_scope_updates_all_blocks_of_the_type():
         "enabled_cb_a2": "on",
         "order_cb_a1": "1",
         "order_cb_a2": "2",
-        "cb_a1_source": "promotions",
-        "cb_a1_type": "Räumung",
         "cb_a1_scope": "type",
-        "cb_a1_out": "slider",
-        "cb_a1_card": "coupon",
-        "cb_a2_source": "promotions",
-        "cb_a2_type": "Räumung",
         "cb_a2_title": "Zweiter",
     }
     resp = views.home_builder_view(_req("post", "/dashboard/site/home/", t, post))
     assert resp.status_code == 302
     t.refresh_from_db()
     cfg = siteconfig.normalize(t.site_config)
-    # FB-33 M4b (осознанная переписка): «Ansicht gilt für» снят из Студии вместе с видом
-    # блока «Liste» — вид правит окно блока. Присланный охват (устаревшая вкладка) не
-    # действует: настройки типа и вид блоков остаются как сохранено, заголовок — пишется.
-    before = siteconfig.normalize({"promo_groups": {"Räumung": "countdown"}})
-    assert cfg["promo_groups"] == before["promo_groups"]
+    assert cfg["promo_groups"]["Räumung"]["card"] == "coupon"
+    assert cfg["promo_groups"]["Räumung"]["layout"]["scroll"] is True
+    assert cfg["promo_groups"]["Räumung"]["style"] == "countdown"
     a1 = next(s for s in cfg["sections"] if s.get("id") == "a1")
-    a2 = next(s for s in cfg["sections"] if s.get("id") == "a2")
-    assert "card" not in a1["data"] and "out" not in a1["data"]
-    assert a2["data"]["title"] == "Zweiter"
+    assert "card" not in a1["data"] and "out" not in a1["data"] and "scope" not in a1["data"]
+    # ВТОРОЙ блок того же типа тоже стал лентой купонов — он наследует тип
+    _promo("Rest", group="Räumung")
+    body = _home(t)
+    assert body.count("data-promo-strip") == 2
+    assert body.count('data-card-form="coupon"') == 2
 
 
+@pytest.mark.xfail(
+    strict=True, reason="ревью M4b №3: «Ansicht gilt für» возвращается в «Feinschliff»"
+)
 def test_type_scope_reaches_the_live_draft():
-    """Превью обязано показать то же, что покажет Save: одна функция на оба пути
-    (FB-33 M4b: на обоих путях охват Студии больше не действует)."""
+    """Превью обязано показать то же, что покажет Save: одна функция и одно слияние на оба
+    пути (FB-33 M4b: вид — сохранённый, охват — из черновика)."""
     from apps.core import views
 
-    t = _tenant(sections=[_block("d1", source="promotions", type="Räumung")])
+    t = _tenant(sections=[_block("d1", source="promotions", type="Räumung", card="ring")])
     payload = {
         "sections": [
             {
                 "key": "list",
                 "id": "d1",
                 "enabled": True,
-                "data": {
-                    "source": "promotions",
-                    "type": "Räumung",
-                    "scope": "type",
-                    "card": "ring",
-                },
+                "data": {"source": "promotions", "type": "Räumung", "scope": "type"},
             }
         ]
     }
@@ -266,9 +265,7 @@ def test_type_scope_reaches_the_live_draft():
     req.user = SimpleNamespace(is_authenticated=True)
     views.site_preview_draft(req)
     draft = req.session["site_preview_draft"]
-    # FB-33 M4b (осознанная переписка): черновик = результат «Speichern» — охват и вид
-    # блока «Liste» Студия больше не пишет
-    assert "card" not in (draft.get("promo_groups") or {}).get("Räumung", {})
+    assert draft["promo_groups"]["Räumung"]["card"] == "ring"
     block = next(s for s in draft["sections"] if s.get("id") == "d1")
     assert "card" not in block["data"] and "scope" not in block["data"]
 
@@ -276,15 +273,19 @@ def test_type_scope_reaches_the_live_draft():
 # ───────────────────────── редактор ─────────────────────────
 
 
+@pytest.mark.xfail(
+    strict=True, reason="ревью M4b №3: «Ansicht gilt für» возвращается в «Feinschliff»"
+)
 def test_editor_row_carries_the_scope_control():
-    """FB-33 M4b (осознанная переписка): «Ansicht gilt für» снят вместе с видом блока —
-    вид правит окно блока; присланный охват не действует (test_builder_save_in_type_…)."""
+    """FB-33 M4b (ревью №3): «Ansicht gilt für» — в «Feinschliff» строки «Liste» (выбор
+    охвата, не раскладка окна); работает и без JS (селект)."""
     t = _tenant(sections=[_block("e1", source="promotions", type="Räumung")])
     body = _builder(t)
-    assert 'name="cb_e1_scope"' not in body
-    assert not re.search(r"data-lb-scope-row(?!\])", body)  # строки нет (JS-селектор — не она)
-    # карта видов типов для подсказок черновика — один раз на страницу
-    assert body.count('id="lb-type-views"') == 1
+    assert re.search(r'<select[^>]*name="cb_e1_scope"', body)
+    assert 'value="type"' in body
+    # у блока без типа акции охват не предлагается
+    t2 = _tenant(sections=[_block("e2", source="products")])
+    assert 'name="cb_e2_scope"' not in _builder(t2)
 
 
 def test_type_views_map_carries_the_type_values_and_page_labels():

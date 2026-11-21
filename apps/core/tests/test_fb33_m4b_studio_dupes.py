@@ -421,3 +421,76 @@ def test_action_bar_enters_the_window_for_removed_controls():
     assert "&tab=" in href
     assert 'openWindowFor(abKey, "wie")' in tpl
     assert "data-quick-window" in tpl and "data-win-quick" in tpl
+
+
+# ───────────── ревью M4b: устаревшая вкладка, ключи раскладки, ссылки, a11y ─────────────
+
+
+@pytest.mark.xfail(strict=True, reason="ревью M4b №1: устаревшая вкладка пишет своё")
+def test_stale_tab_still_writes_texts_and_fine_tuning():
+    saved = [copy.deepcopy(PRODUCTS), copy.deepcopy(LISTE)]
+    posted = [
+        {"key": "products", "layout": {"preset": "list", "cols": 1, "tail": "show", "mobile": 2},
+         "limit": 2, "style": ""},
+        {"key": "list", "id": "l1", "data": {"title": "Neu", "intro": "Hi", "speed": 9,
+                                             "source": "products", "cols": 1}},
+    ]  # fmt: skip
+    merged = {
+        r.get("id") or r["key"]: r
+        for r in site_schema.merge_structure(saved, posted, fixed=True, keep_data=True)
+    }
+    lay = merged["products"]["layout"]
+    assert (lay["preset"], lay["cols"], lay["rows"], lay["scroll"]) == ("cols4", 4, 2, True)
+    assert lay["tail"] == "show" and lay["mobile"] == 2
+    assert merged["products"]["limit"] == 6 and merged["products"]["style"] == "preisliste"
+    data = merged["l1"]["data"]
+    assert (data["title"], data["intro"], data["speed"]) == ("Neu", "Hi", 9)
+    assert (data["source"], data["cols"]) == ("events", 2)
+
+
+@pytest.mark.xfail(strict=True, reason="ревью M4b №1: сценарий старой вкладки через Save")
+def test_stale_tab_save_keeps_window_and_writes_studio_fields():
+    tenant = _tenant()
+    cfg = _save(
+        tenant,
+        {**FORGED, "struct_hash": "0" * 16, "cb_l1_title": "Neu", "tail_products": "show"},
+    )
+    row = _row(cfg, "products")
+    assert row["layout"]["preset"] == "cols4" and row["layout"].get("tail") == "show"
+    assert row["limit"] == 6 and _row(cfg, "faq")["style"] == "cards"
+    data = _row(cfg, "l1", "id")["data"]
+    assert data["title"] == "Neu" and data["source"] == "events"
+
+
+@pytest.mark.xfail(strict=True, reason="ревью M4b №2: прочие ключи раскладки целы")
+def test_builtin_layout_keeps_its_other_keys():
+    saved = [{**PRODUCTS, "layout": {**PRODUCTS["layout"], "gap": "lg", "width": "full",
+                                    "page_size": 12, "speed": 6, "tail": "fill"}}]  # fmt: skip
+    posted = [{"key": "products", "layout": {"mobile": 2, "balance": True}}]
+    lay = site_schema.merge_structure(saved, posted, fixed=True)[0]["layout"]
+    assert (lay["gap"], lay["width"], lay["page_size"], lay["speed"]) == ("lg", "full", 12, 6)
+    assert lay["mobile"] == 2 and lay["balance"] is True
+    assert "tail" not in lay and "tablet" not in lay  # не прислано = снято (как форма)
+
+
+@pytest.mark.xfail(strict=True, reason="ревью M4b №7: кнопка-переход без «▾», с подписью")
+def test_quick_window_button_says_it_opens_the_window():
+    tpl = STUDIO_TPL.read_text()
+    sync = _segment(tpl, "function syncBar(", "\n  function ")
+    assert "QUICK_WIN_LABEL" in sync and "aria-label" in sync and "▾" in tpl
+    assert "öffnet das Blockfenster" in tpl
+
+
+@pytest.mark.xfail(strict=True, reason="ревью M4b №8: ссылка блока страницы — только в окно")
+def test_page_liste_has_no_link_to_the_bare_schema():
+    row = (ROOT / "templates" / "tenant" / "_cb_row.html").read_text()
+    start = row.index('{% if b.type == "list" %}')
+    liste = row[start : row.index("{% endif %}\n  {% if b.type", start)]
+    assert "{% url 'site-schema' %}" not in liste
+
+
+@pytest.mark.xfail(strict=True, reason="ревью M4b №5: мёртвый код снят")
+def test_dead_builtin_what_code_is_gone():
+    tpl = STUDIO_TPL.read_text()
+    assert "SL_DATA_FIELDS" not in tpl and 'sl_" + r.key' not in tpl
+    assert not hasattr(views, "_save_builtin_list_data")
