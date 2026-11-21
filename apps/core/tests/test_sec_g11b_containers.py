@@ -65,3 +65,15 @@ def test_no_floating_image_tags():
     for path in (("Dockerfile",), ("caddy", "Dockerfile")):
         for base in re.findall(r"^FROM\s+(\S+)", _read(*path), re.M):
             assert re.search(r":\d+\.\d+\.\d+", base), base
+
+
+def test_db_shared_memory_is_large_enough_for_schema_clones():
+    """SEC-G12c: у Docker по умолчанию /dev/shm = 64 МБ. Параллельный пересев демо
+    (`seed_demo_tenants --jobs 3`, clone_schema) упирался в «could not resize shared memory
+    segment … No space left on device» (сервер, 2026-11-21) и уходил на медленные миграции."""
+    compose = _read("docker-compose.prod.yml")
+    db = compose.split("\n  db:\n", 1)[1].split("\n  web:", 1)[0]
+    m = re.search(r"^\s*shm_size:\s*[\"']?(\d+)(mb|gb)[\"']?\s*$", db, re.M | re.I)
+    assert m, "у сервиса db должен быть shm_size"
+    mb = int(m.group(1)) * (1024 if m.group(2).lower() == "gb" else 1)
+    assert mb >= 256

@@ -24565,3 +24565,8 @@ security/silent-failure): тупик в двусторонних прятках,
 - Стыки: `aufbau.js` шлёт три события окна, `aufbau_preview.js` подписан на них; `app.css` (классы `.ui-bwin-pv*`) собран координатором на верхушке — срезы коммитились с `--no-verify` после ручного гейта.
 - Эталоны окна после C1 пересняты: плашка корзины без фразы (`page_nojs` cart/summary, `golden_fb33m35c`); замки `m2i5_window_ui` и `m3_5a_texte` переписаны под невидимую «Übernehmen» без aria-hidden.
 - Миграций в стопке нет. Деплой — обычный `git pull origin main && ./scripts/deploy.sh single`.
+
+### 2026-11-21 — SEC-G12c: /dev/shm Postgres 256 МБ (пересев демо падал на clone_schema)
+- Сервер: `seed_demo_tenants --group all --changed --jobs 3` писал `could not resize shared memory segment … No space left on device` в `clone_schema` и уходил на запасной путь миграциями (медленно, но демо создавались). Причина — Docker-дефолт `/dev/shm` = 64 МБ (сверено владельцем: 63,6 из 64 МБ занято; диск `/` — 85 %, не причина).
+- `docker-compose.prod.yml`: у сервиса `db` — `shm_size: 256mb` (ОЗУ, не диск). Действует после `./scripts/deploy.sh single` (`up -d` пересоздаёт контейнер db, том `pgdata` цел).
+- Замок `test_sec_g11b_containers.py::test_db_shared_memory_is_large_enough_for_schema_clones`.

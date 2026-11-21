@@ -196,6 +196,8 @@
 - `TENANT_BASE_SCHEMA` из django-tenants не использовать (делает `--fake`); схема бизнеса — копия `_template` со сверкой структуры, копирование меняет имена UNIQUE `…_uniq` → `…_key` (T-10 D-1, 2026-10-20).
 - Индексы в миграциях — обычный `CREATE INDEX`: `CONCURRENTLY` (не-atomic миграция) ломал создание схемы при регистрации тенанта (E10.4, строка «Миграции»)
 
+- **`/dev/shm` контейнера Postgres = 64 МБ по умолчанию (SEC-G12c, 2026-11-21).** «No space left on device» из `clone_schema`/параллельных запросов — это общая память, не диск: проверять `docker compose … exec -T db df -h /dev/shm`. Лечится `shm_size` у сервиса `db` (замок в `test_sec_g11b_containers.py`).
+
 ## 3. Вьюхи, формы, безопасность
 
 - **Decimal в `value=` шаблона локализуется** («19,00» в de/ru/tr/uk). Строгий белый список
