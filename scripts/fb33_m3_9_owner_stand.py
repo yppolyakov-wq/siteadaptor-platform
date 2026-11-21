@@ -92,7 +92,8 @@ GERMAN_WORDS = frozenset(
         "Bestellen Warenkorb Buchen Anfrage Senden Mehr erfahren Details Preis Preise ab"
     ).split()
 )
-_WORD = re.compile(r"[A-Za-zÄÖÜäöüß]{2,}(?:[-'][A-Za-zÄÖÜäöüß]+)*")
+#: слово латиницей (вкл. ç ş ğ ı é … — «Türkçe» одно слово, а не «Türk» с умлаутом)
+_WORD = re.compile(r"[A-Za-zÀ-ÖØ-öø-ɏ]{2,}(?:[-'][A-Za-zÀ-ÖØ-öø-ɏ]+)*")
 _UMLAUT = re.compile(r"[ÄÖÜäöüß]")
 #: цитата закреплённой подписи кнопки § 312j (M0-10: «Zahlungspflichtig bestellen» не
 #: переводится и не правится) — допустима в ru как цитата
@@ -164,7 +165,8 @@ for slug in SLUGS:
     pages = []
     for r in rows:
         blocks = site_schema.blocks_for(saved, r.code, host=r.host or None)  # как экран
-        refs = [b["ref"] for b in blocks]
+        # общий блок в схеме одного объекта (R8) — пунктиром, только чтение, окна нет
+        refs = [b["ref"] for b in blocks if not b.get("shared")]
         # строка «Einstellungen der Seite» — по правилу экрана (site_schema_views: настройки
         # или «Design» у типа есть, а ★-строки и строки-носителя нет)
         try:
@@ -354,10 +356,10 @@ class Content:
 
 def german(text: str, content: Content | None) -> list[str]:
     """Немецкие слова интерфейса в тексте ru (с контекстом строки)."""
+    text = _SOURCE_LIST.sub(" ", text)  # до данных: «Без» может оказаться словом содержимого
+    text = _LEGAL_QUOTE.sub(" ", text)
     if content is not None:
         text = content.strip(text)
-    text = _LEGAL_QUOTE.sub(" ", text)
-    text = _SOURCE_LIST.sub(" ", text)
     found = []
     for line in text.splitlines():
         for w in _WORD.findall(line):
