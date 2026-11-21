@@ -183,6 +183,8 @@ def test_page_carries_translate_client_once(monkeypatch):
     assert html.count(FLAG) == 1
     script = html[html.index(FLAG) - 400 : html.index("</script>", html.index(FLAG))]
     assert '"aufbau:panel"' in script and 'getAttribute("data-loc")' in script
+    # со скриптами «Übernehmen» скрыта: перевод уходит в черновик одним change (aufbau.js)
+    assert 'last.dispatchEvent(new Event("change"' in script
     assert "__i18nSwitchBound" not in html, "переключатель языка форм на страницу не тащим"
 
 
