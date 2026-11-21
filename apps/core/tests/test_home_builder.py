@@ -6,6 +6,7 @@
 как есть (регрессия: пустая форма не должна гасить блоки).
 """
 
+import re
 from types import SimpleNamespace
 
 import pytest
@@ -139,13 +140,13 @@ def test_home_builder_saves_section_width():
 
 
 def test_home_builder_get_renders_width_control():
-    """SE-3e: GET билдера отдаёт селект ширины секции."""
+    """SE-3e → FB-33 M4b (осознанная переписка): ширина секции — «Platz» окна блока
+    («Seitenaufbau»); скрытый селект Студии (сервер его не читал, FB-29.5) снят."""
     tenant = TenantFactory(schema_name="public", slug="hbwg", name="HBWG")
     body = views.home_builder_view(
         _request("get", "/dashboard/site/home/", tenant=tenant)
     ).content.decode()
-    assert 'name="width_products"' in body
-    assert 'value="full"' in body
+    assert not re.search(r'name="width_[a-z_]+"', body)
 
 
 def test_home_builder_saves_product_source():
@@ -203,7 +204,9 @@ def test_home_builder_get_renders_layout_select():
     tenant = TenantFactory(schema_name="public", slug="hbl2", name="HBL2")
     resp = views.home_builder_view(_request("get", "/dashboard/site/home/", tenant=tenant))
     body = resp.content.decode()
-    assert 'name="layout_preset_products"' in body
+    # FB-33 M4b (осознанная переписка): у встроенных списков раскладку правит окно блока
+    assert 'name="layout_preset_team"' in body
+    assert 'name="layout_preset_products"' not in body
     assert 'name="layout_preset_hero"' not in body  # hero — не сетка
 
 
@@ -1639,7 +1642,10 @@ def test_home_builder_se7b_layout_thumbnails():
     body = views.home_builder_view(
         _request("get", "/dashboard/site/home/", tenant=tenant)
     ).content.decode()
-    assert 'name="layout_preset_products"' in body and "data-thumb" in body
+    # FB-33 M4b (осознанная переписка): у встроенных списков раскладку правит окно блока —
+    # миниатюры остаются у сеток без окна (команда)
+    assert 'name="layout_preset_team"' in body and "data-thumb" in body
+    assert 'name="layout_preset_products"' not in body
     assert "function presetDiagram" in body  # построитель мини-диаграмм раскладки
     assert "select[data-thumb]" in body  # энхансер выпадашек → миниатюры
 

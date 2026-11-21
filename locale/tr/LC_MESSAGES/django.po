@@ -39988,3 +39988,12 @@ msgstr "Sipariş özeti, toplam fiyat ve „Zahlungspflichtig bestellen“ düğ
 #. FB-33 стопка: якорь среза M4b — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
 msgid "fb33-stack-anchor-M4b"
 msgstr "fb33-stack-anchor-M4b"
+
+msgid "Was gezeigt wird, Anordnung, Karte und Platz ändern Sie im Fenster des Blocks."
+msgstr "Ne gösterildiğini, düzeni, kartı ve konumu blok penceresinde değiştirirsiniz."
+
+msgid "Fenster öffnen"
+msgstr "Pencereyi aç"
+
+msgid "Feinschliff"
+msgstr "İnce ayar"

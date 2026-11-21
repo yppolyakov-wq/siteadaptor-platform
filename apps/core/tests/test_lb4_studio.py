@@ -77,22 +77,23 @@ def test_what_fields_are_derived_from_the_source_registry():
 
 
 def test_each_builtin_row_offers_exactly_the_what_of_its_source():
+    """FB-33 M4b (осознанная переписка): оси «ЧТО» всех восьми строк правит окно блока —
+    в строке Студии их (и сентинела) нет, остаётся «Als eigenen Block kopieren»."""
     body = _builder(_tenant())
     fields = _sl_fields(body)
-    for key, expected in WHAT.items():
-        assert fields[key] == expected, key
-        if expected:
-            assert f'name="sl_{key}_present"' in _row(body, key), key
+    for key in WHAT:
+        assert fields[key] == set(), key
+        assert f'name="sl_{key}_present"' not in body, key
+        assert f"copy_builtin:{key}" in _row(body, key), key
 
 
 def test_products_row_has_one_place_for_which_items():
+    """FB-33 M4b (осознанная переписка): выбор товаров — одно место, окно блока."""
     body = _builder(_tenant(sections=[{"key": "products", "source": "featured_only"}]))
     row = _row(body, "products")
     assert 'name="source_products"' not in row  # легаси-селект ушёл
-    assert _selected(_select(row, "sl_products_only")) == ["featured"]
-    assert _selected(_select(row, "sl_products_sort")) == ["newest"]
-    default = _row(_builder(_tenant()), "products")
-    assert _selected(_select(default, "sl_products_sort")) == ["featured"]
+    assert 'name="sl_products_only"' not in row and 'name="sl_products_sort"' not in row
+    assert "tab=wie" in row  # ссылка в окно блока
 
 
 def _save(tenant, **fields):
@@ -185,14 +186,19 @@ def test_save_without_the_sentinel_keeps_the_rows_data():
 
 
 def test_orphan_filter_value_stays_selected():
-    body = _builder(_tenant(sections=[{"key": "products", "data": {"category": "weg"}}]))
-    select = _select(_row(body, "products"), "sl_products_category")
-    assert _selected(select) == ["weg"]
+    """FB-33 M4b (осознанная переписка): сирота фильтра — W0 «Speichern» Студии: поля нет,
+    значение остаётся (выбранной её держит окно, `list_panel._select`)."""
+    tenant = _tenant(sections=[{"key": "products", "data": {"category": "weg"}}])
+    cfg = _post_builder(tenant, {"order_products": "1"})
+    assert _row_of(cfg, "products")["data"] == {"category": "weg"}
 
 
 def test_card_form_of_the_row_is_selected():
-    body = _builder(_tenant(sections=[{"key": "promotions", "data": {"card": "coupon"}}]))
-    assert _selected(_select(_row(body, "promotions"), "sl_promotions_card")) == ["coupon"]
+    """FB-33 M4b (осознанная переписка): форма карточки — вкладка «Karte» окна; «Speichern»
+    Студии её не стирает."""
+    tenant = _tenant(sections=[{"key": "promotions", "data": {"card": "coupon"}}])
+    cfg = _post_builder(tenant, {"order_promotions": "1"})
+    assert _row_of(cfg, "promotions")["data"] == {"card": "coupon"}
 
 
 def test_live_draft_carries_every_what_field():

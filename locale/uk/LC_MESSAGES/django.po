@@ -40180,3 +40180,12 @@ msgstr "Підсумок замовлення, загальна ціна й кн
 #. FB-33 стопка: якорь среза M4b — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
 msgid "fb33-stack-anchor-M4b"
 msgstr "fb33-stack-anchor-M4b"
+
+msgid "Was gezeigt wird, Anordnung, Karte und Platz ändern Sie im Fenster des Blocks."
+msgstr "Що показувати, розташування, картку й місце блока змінюють у вікні блока."
+
+msgid "Fenster öffnen"
+msgstr "Відкрити вікно"
+
+msgid "Feinschliff"
+msgstr "Тонке налаштування"

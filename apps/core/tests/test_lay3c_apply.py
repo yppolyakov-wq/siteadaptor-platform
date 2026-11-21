@@ -117,5 +117,8 @@ def test_home_section_row_offers_the_rows_control():
     req.user = SimpleNamespace(is_authenticated=True)
     req.tenant = tenant
     body = views.home_builder_view(req).content.decode()
-    assert 'name="grid_rows_products"' in body
+    # FB-33 M4b (осознанная переписка): ряды встроенного списка — «Reihen» окна блока;
+    # у сеток без окна (команда) контрол остаётся в Студии
+    assert 'name="grid_rows_team"' in body
+    assert 'name="grid_rows_products"' not in body
     assert 'name="rows_products"' in body, "кап прайс-вида не должен исчезнуть"

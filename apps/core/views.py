@@ -672,20 +672,24 @@ _LIST_BLOCK_FIELDS = (
 
 
 def _builtin_list_row(config, row) -> dict:
-    """LB-4b: что строке встроенного списка нужно в Студии — источник, действующие
-    данные блока (легаси-поле `source` товаров предзаполняет сортировку и «только…»),
-    сортировки и формы карточки ЕГО источника. Не встроенная строка — пусто."""
-    from apps.core import list_blocks
+    """LB-4b → FB-33 M4b: что строке секции нужно в Студии. `builtin_source` — источник
+    встроенного списка (кнопка «Als eigenen Block kopieren»); `win_list`/`win_style` —
+    что правит только окно блока (`site_schema.window_owned`): эти контролы строка не
+    рисует, а ведёт в окно; `win_quick` — кнопки плашки, ведущие в окно."""
+    from apps.core import site_schema
     from apps.tenants import siteconfig
 
-    source = siteconfig.BUILTIN_LIST_SOURCES.get(row.get("key"))
-    if not source:
-        return {"builtin_source": ""}
+    owned = site_schema.window_owned(row)
+    quick = []
+    if owned["list"] and row.get("key") in siteconfig.GRID_SECTION_DEFAULTS:
+        quick.append("layout")
+    if owned["style"] and siteconfig.SECTION_STYLES.get(row.get("key")):
+        quick.append("style")
     return {
-        "builtin_source": source,
-        "list_data": list_blocks.section_data(row),
-        "list_sorts": list_blocks.builtin_sort_options(config, source),
-        "list_cards": list_blocks.builtin_card_options(source),
+        "builtin_source": siteconfig.BUILTIN_LIST_SOURCES.get(row.get("key"), ""),
+        "win_list": owned["list"],
+        "win_style": owned["style"],
+        "win_quick": " ".join(quick),
     }
 
 

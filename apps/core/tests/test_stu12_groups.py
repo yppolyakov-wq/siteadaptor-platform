@@ -102,14 +102,16 @@ def test_archetype_cards_live_in_the_archetypes_row():
 
 
 def test_block_settings_are_grouped():
-    """Три группы в строке: данные · вид · продвинутое (F8A)."""
+    """F8A → FB-33 M4b (осознанная переписка): две группы — Inhalt (тексты, фото) и
+    Feinschliff (тонкие настройки вида, которых нет в окне блока; прежние «Darstellung» и
+    «Erweitert»). Что показать, раскладка, карточка и место — в окне блока."""
     body = _builder(TenantFactory(slug="stgr3", name="StGr3"))
     row = _row(body, "faq")
-    for grp in ("inhalt", "darstellung", "erweitert"):
+    for grp in ("inhalt", "feinschliff"):
         assert f'data-grp="{grp}"' in row, grp
-    # Erweitert — только для Эксперта (тот же механизм, что и остальные data-expert)
-    adv = _segment(row, 'data-grp="erweitert"', "</details>")
-    assert "data-expert" in adv
+    assert 'data-grp="darstellung"' not in row and 'data-grp="erweitert"' not in row
+    fine = _segment(row, 'data-grp="feinschliff"', "</details>")
+    assert 'name="font_faq"' in fine and 'name="hide_mobile_faq"' in fine
 
 
 def test_no_field_leaves_the_form_after_the_move():

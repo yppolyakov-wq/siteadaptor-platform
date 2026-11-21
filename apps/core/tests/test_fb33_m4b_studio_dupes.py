@@ -375,7 +375,6 @@ def _names(html: str) -> set[str]:
     return set(re.findall(r'name="([^"]+)"', html))
 
 
-@pytest.mark.xfail(strict=True, reason="C2/C3: шаблон теряет снятые поля")
 def test_studio_rows_have_no_removed_fields():
     names = _names(_studio(_tenant()))
     for name in REMOVED_PRODUCTS:
@@ -397,7 +396,6 @@ def test_studio_rows_keep_content_and_fine_tuning():
     assert "copy_builtin:products" in html  # «Als eigenen Block kopieren» — не в окне
 
 
-@pytest.mark.xfail(strict=True, reason="C2: ссылка в окно на вкладку «Wie anordnen»")
 def test_row_links_into_the_window_without_js():
     html = _studio(_tenant())
     for key in ("products", "faq", "usp_bar"):

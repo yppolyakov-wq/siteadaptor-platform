@@ -261,7 +261,7 @@
         <input type="hidden" name="content_sections_present" value="1">
         <div id="home-blocks" class="space-y-3">
           {% for s in sections %}
-            <div class="home-block border border-gray-100 rounded-xl px-3 py-3 bg-white">
+            <div class="home-block border border-gray-100 rounded-xl px-3 py-3 bg-white"{% if s.win_quick %} data-win-quick="{{ s.win_quick }}"{% endif %}>
               {% comment %}H1.3: «шапка-идентичность» — всегда в списке секций (перечень + чекбокс +
                  перемещение). Имя/⚙ открывают настройки блока в фокус-панели (#bld-block-popup);
                  сами настройки — в `.home-block-settings` ниже (CSS прячет их в списке).{% endcomment %}
@@ -281,8 +281,12 @@
                 <a href="{% url 'site-schema-open' %}?page=%2F&amp;block={{ s.key|urlencode:'' }}" data-stu-gear class="shrink-0 inline-flex items-center justify-center min-w-[24px] min-h-[24px] text-gray-400 hover:text-indigo-700 px-1" data-key="{{ s.key }}" title="{% trans 'Settings' %}" aria-label="{% trans 'Settings' %}">⚙</a>
               </div>
               <div class="home-block-settings flex flex-wrap items-center gap-2 mt-2">
-                {% comment %}STU-12e (F8A): настройки блока в трёх группах — Inhalt (данные),
-                   Darstellung (вид), Erweitert (продвинутое, только в режиме «Эксперт»).{% endcomment %}
+                {% comment %}FB-33 M4b: что показать, раскладку, карточку и место блока правит окно «Seitenaufbau»; здесь — содержимое и «Feinschliff».{% endcomment %}
+                {% if s.win_list or s.win_style %}
+                  <p class="w-full text-xs ui-muted" data-stu-window-hint>{% trans "Was gezeigt wird, Anordnung, Karte und Platz ändern Sie im Fenster des Blocks." %} <a href="{% url 'site-schema-open' %}?page=%2F&amp;block={{ s.key|urlencode:'' }}&amp;tab=wie" data-stu-window class="inline-flex items-center min-h-[24px] font-semibold text-indigo-700 underline">{% trans "Fenster öffnen" %}</a></p>
+                {% endif %}
+                {% comment %}STU-12e (F8A) → FB-33 M4b: настройки блока в двух группах — Inhalt (тексты,
+                   фото, карточки) и Feinschliff (тонкие настройки вида, которых нет в окне блока).{% endcomment %}
                 <details class="bld-grp w-full" data-grp="inhalt" open>
                   <summary class="bld-grp-sum">{% trans "Content" %}</summary>
                   <div class="bld-grp-body flex flex-wrap items-center gap-2">
@@ -348,7 +352,7 @@
                          placeholder="{{ s.label }}"
                          class="w-36 rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'Custom heading' %}" title="{% trans 'Custom heading' %}" data-expert="1">
                 {% endif %}
-                {% if s.has_limit %}
+                {% if s.has_limit and not s.win_list %}
                   {# M20U-7: число элементов секции-превью на главной #}
                   <input type="number" name="limit_{{ s.key }}" value="{{ s.limit }}" min="1" max="30" data-expert="1"
                          class="w-16 rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'How many to show' %}" title="{% trans 'How many to show' %}">
@@ -378,14 +382,16 @@
                 {% endif %}
                   </div>
                 </details>
-                <details class="bld-grp w-full" data-grp="darstellung" open>
-                  <summary class="bld-grp-sum">{% trans "Appearance" %}</summary>
+                <details class="bld-grp w-full" data-grp="feinschliff" open>
+                  <summary class="bld-grp-sum">{% trans "Feinschliff" %}</summary>
                   <div class="bld-grp-body flex flex-wrap items-center gap-2">
                 {% if s.is_grid %}
+                  {% if not s.win_list %}
                   {# M20U-7: пресет раскладки секции-сетки (анти-Битрикс: один клик) #}
                   <select name="layout_preset_{{ s.key }}" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'Layout' %}" data-thumb>
                     {% for pk, plabel in preset_options %}<option value="{{ pk }}" {% if s.layout_preset == pk %}selected{% endif %}>{{ plabel }}</option>{% endfor %}
                   </select>
+                  {% endif %}
                   {% comment %}DL-11: хвост неполного последнего ряда — обрезать (дефолт, ряды
                   всегда полные на любой ширине) или показать всё. Пусто = дефолт (ключ не
                   пишется, golden целы). Ausgleichen/Scrollen (DS-5) — своя механика.{% endcomment %}
@@ -402,17 +408,21 @@
                   в отличие от абсолютного числа, которое перестаёт быть ровным при смене
                   колонок. Пусто = как раньше (действует «Anzahl» ниже, если задано).
                   Имя поля grid_rows_*: rows_products занят капом прайс-вида (MEN-24c).{% endcomment %}
+                  {% if not s.win_list %}
                   <input type="number" name="grid_rows_{{ s.key }}" value="{{ s.layout_rows|default_if_none:'' }}" min="1" max="6" data-expert="1"
                          placeholder="{% trans 'Reihen' %}" class="w-16 rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600"
                          aria-label="{% trans 'Reihen' %}" title="{% trans 'Anzahl der Elemente = Spalten × Reihen. Leer = alle zeigen.' %}">
+                  {% endif %}
                   {% comment %}DS-5: симметрия неполного ряда / горизонтальная лента.
                   Scroll побеждает balance (grid_class_string).{% endcomment %}
                   <label class="flex items-center gap-1 text-xs text-gray-500 whitespace-nowrap" data-expert="1" title="{% trans 'Unvollständige Reihe zentrieren' %}">
                     <input type="checkbox" name="balance_{{ s.key }}" {% if s.layout_balance %}checked{% endif %} class="rounded border-gray-300"> {% trans "Ausgleichen" %}
                   </label>
+                  {% if not s.win_list %}
                   <label class="flex items-center gap-1 text-xs text-gray-500 whitespace-nowrap" data-expert="1" title="{% trans 'Kacheln in einer Reihe mit seitlichem Scrollen' %}">
                     <input type="checkbox" name="scroll_{{ s.key }}" {% if s.layout_scroll %}checked{% endif %} class="rounded border-gray-300"> {% trans "Scrollen" %}
                   </label>
+                  {% endif %}
                 {% endif %}
                 {% if s.key == "categories" %}
                   {% comment %}DS-5: высота фото плитки (пусто = аспект по стилю) и
@@ -426,7 +436,7 @@
                     <input type="checkbox" name="tile_count_categories" {% if "count" in s.tile_info %}checked{% endif %} class="rounded border-gray-300"> {% trans "Produktanzahl" %}
                   </label>
                 {% endif %}
-                {% if s.style_options %}
+                {% if s.style_options and not s.win_style %}
                   {% comment %}UC6-6d: вариант отображения секции (FAQ: аккордеон/список/
                      2 колонки/карты/нумерация) — реестр SECTION_STYLES.{% endcomment %}
                   <label class="flex items-center gap-1.5 text-xs text-gray-600">
@@ -441,15 +451,6 @@
                 {% endif %}
                 {# SE-3d: визуальные параметры блока #}
                 <div class="w-full mt-2 pt-2 border-t border-gray-100 flex items-center gap-3 flex-wrap">
-                  {% comment %}SE-3e: ширина контейнера секции (по контейнеру / во всю ширину).
-                     Basic — простая, частая настройка; общий размер контейнера задан в шаблоне.{% endcomment %}
-                  <label class="stu-struct flex items-center gap-1.5 text-xs text-gray-600" title="{% trans 'Section width on the page' %}">
-                    {% trans "Width" %}
-                    <select name="width_{{ s.key }}" class="rounded border-gray-300 px-1.5 py-1 text-xs text-gray-600 sf-width-select" data-key="{{ s.key }}">
-                      <option value="contained" {% if s.width != 'full' %}selected{% endif %}>{% trans "Contained" %}</option>
-                      <option value="full" {% if s.width == 'full' %}selected{% endif %}>{% trans "Full width" %}</option>
-                    </select>
-                  </label>
                   {% comment %}H1.5: шрифт текста секции (оверрайд глобального). «Standard» = наследовать.{% endcomment %}
                   <label class="flex items-center gap-1.5 text-xs text-gray-600" title="{% trans 'Font for this section text' %}">
                     {% trans "Font" %}
@@ -494,7 +495,7 @@
                 </div>
                 {% comment %} SE-3a: микрошаблоны «Quick styles» — один клик задаёт облик (layout+visual)
                    секции-сетки. Распаковка на фронте в обычные инпуты → live-preview/Save. {% endcomment %}
-                {% if s.is_grid %}
+                {% if s.is_grid and not s.win_list %}
                 <div class="w-full mt-2 flex items-center gap-1.5 flex-wrap">
                   <span class="text-xs text-gray-500">{% trans "Quick styles" %}:</span>
                   {% for mt in micro_templates %}
@@ -504,18 +505,13 @@
                   {% endfor %}
                 </div>
                 {% endif %}
-                  </div>
-                </details>
-                <details class="bld-grp w-full" data-grp="erweitert" data-expert="1">
-                  <summary class="bld-grp-sum">{% trans "Erweitert" %}</summary>
-                  <div class="bld-grp-body flex flex-wrap items-center gap-2">
                     {% if s.is_grid %}
                   {% comment %} SE-3c: пер-девайс число колонок (📱 телефон / ▭ планшет / 🖥 десктоп).
                      Пусто/0 = «как пресет/авто». Expert-режим. {% endcomment %}
                   <span class="flex items-center gap-1 text-xs text-gray-500" data-expert="1" data-device-ctl="1" title="{% trans 'Columns per device' %}">
                     📱<input type="number" name="mobile_{{ s.key }}" value="{{ s.layout_mobile }}" min="1" max="2" class="w-11 rounded border border-gray-300 px-1 py-1" aria-label="{% trans 'Columns on phone' %}">
                     ▭<input type="number" name="tablet_{{ s.key }}" value="{% if s.layout_tablet %}{{ s.layout_tablet }}{% endif %}" min="1" max="4" class="w-11 rounded border border-gray-300 px-1 py-1" aria-label="{% trans 'Columns on tablet' %}">
-                    🖥<input type="number" name="cols_{{ s.key }}" value="{{ s.layout_cols }}" min="1" max="6" class="w-11 rounded border border-gray-300 px-1 py-1" aria-label="{% trans 'Columns on desktop' %}">
+                    {% if not s.win_list %}🖥<input type="number" name="cols_{{ s.key }}" value="{{ s.layout_cols }}" min="1" max="6" class="w-11 rounded border border-gray-300 px-1 py-1" aria-label="{% trans 'Columns on desktop' %}">{% endif %}
                   </span>
                     {% endif %}
                 {# SE-3c-mid: скрыть секцию на устройстве (📱 телефон / ▭ планшет / 🖥 десктоп). #}
