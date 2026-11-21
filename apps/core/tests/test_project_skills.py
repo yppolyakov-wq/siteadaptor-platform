@@ -83,6 +83,9 @@ def test_feedback_journal_rows_are_classified():
     allowed = ("нет правила", "правило неверное", "было, не сработало")
     for row in rows:
         cells = [c.strip() for c in row.strip("|").split("|")]
-        assert len(cells) == 8, f"строка журнала не из 8 колонок: {row[:80]}"
-        assert cells[6] in allowed, f"«Скилл покрывал?» — одно из {allowed}: {row[:80]}"
-        assert cells[7], f"не записано, что сделано: {row[:80]}"
+        assert len(cells) == 9, f"строка журнала не из 9 колонок: {row[:80]}"
+        assert cells[2] in ("план", "дифф", "после мержа"), (
+            f"«Когда» — план/дифф/после мержа: {row[:80]}"
+        )
+        assert cells[7] in allowed, f"«Скилл покрывал?» — одно из {allowed}: {row[:80]}"
+        assert cells[8], f"не записано, что сделано: {row[:80]}"

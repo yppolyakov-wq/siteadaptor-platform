@@ -4,6 +4,8 @@
     uv run python scripts/dev_stats.py --since 2026-10-01
     uv run python scripts/dev_stats.py --write         # ещё и docs/dev-stats.md
     uv run python scripts/dev_stats.py --json <папка>  # наборы строк для страницы-панели
+    uv run python scripts/dev_stats.py --snapshot "FB-33 стопка 7" --range origin/main..HEAD --red-ci 1
+                                                       # строка в docs/dev-stats-history.md
 
 Считает только то, что есть в репозитории (токены и время сессий сюда не попадают):
 - коммиты по неделям и по шагам (префикс темы коммита) и долю «правок ревью» в них —
@@ -29,6 +31,19 @@ REVIEW = re.compile(r"ревью|находк", re.I)
 # «FB-33 M3-7: …» → шаг «FB-33 M3-7»; «T-13.1: …» → «T-13.1»; «FB-33 стопка 5: …» → стыки стопки.
 STEP = re.compile(r"^([A-Z][\w-]*(?:\.\w+)*(?: (?:стопка \d+|[A-Z0-9][\w-]*))?)(?=[:(\s—]|$)")
 ANSWERS = ("нет правила", "правило неверное", "было, не сработало")
+WHEN = ("план", "дифф", "после мержа")
+HISTORY = ROOT / "docs" / "dev-stats-history.md"
+HISTORY_HEAD = """# История снимков статистики разработки (T-13.8)
+
+Строка на стопку или крупный мерж: `uv run python scripts/dev_stats.py --snapshot "<имя>"
+--range origin/main..HEAD --red-ci N`. Судить по трём числам вместе (правила —
+`docs/skill-feedback.md`): доля правок ревью (база 30 %, цель < 20 %), находок `план` больше,
+чем `дифф`, `после мержа` не растёт.
+
+| Дата | Стопка | Коммитов | Ревью | Доля | Находки: план | дифф | после мержа | Красных CI |
+|---|---|---|---|---|---|---|---|---|
+| 2026-11-21 | FB-33 стопки 4–6 (база, до скиллов) | 73 | 22 | 30 % | — | — | — | — |
+"""
 
 
 def is_review(subject: str) -> bool:
@@ -71,13 +86,30 @@ def journal(text: str) -> dict:
     """Строки раздела «Находки» → счётчики по классу, по скиллу и по ответу."""
     rows = text.split("## Находки")[1].strip().splitlines()[2:] if "## Находки" in text else []
     cells = [[c.strip() for c in r.strip("|").split("|")] for r in rows if r.strip()]
-    cells = [c for c in cells if len(c) == 8]
+    cells = [c for c in cells if len(c) == 9]
     return {
         "total": len(cells),
-        "by_class": collections.Counter(c[3] for c in cells),
-        "by_skill": collections.Counter(c[5] for c in cells),
-        "by_answer": collections.Counter(c[6] for c in cells),
+        "by_when": collections.Counter(c[2] for c in cells),
+        "by_step": collections.Counter(c[1] for c in cells),
+        "by_class": collections.Counter(c[4] for c in cells),
+        "by_skill": collections.Counter(c[6] for c in cells),
+        "by_answer": collections.Counter(c[7] for c in cells),
+        "rows": cells,
     }
+
+
+def snapshot_row(label: str, commits, found: dict, red_ci: str, today: str) -> str:
+    """Строка истории: коммиты диапазона + находки журнала, у которых «Шаг» входит в `label`
+    или наоборот (стопка «FB-33 стопка 7» собирает находки шагов, названных в журнале так же)."""
+    total = len(commits)
+    review = sum(is_review(s) for _, s in commits)
+    steps = {step_of(s) for _, s in commits}
+    mine = [r for r in found.get("rows", []) if r[1] in steps or r[1] in label or label in r[1]]
+    when = collections.Counter(r[2] for r in mine)
+    share = f"{round(100 * review / total)} %" if total else "—"
+    cells = [today, label.replace("|", "/"), total, review, share]
+    cells += [when[w] for w in WHEN] + [red_ci]
+    return "| " + " | ".join(str(c) for c in cells) + " |"
 
 
 def sizes() -> list[tuple[str, int]]:
@@ -93,9 +125,10 @@ def sizes() -> list[tuple[str, int]]:
     ]
 
 
-def _commits(since: str) -> list[tuple[str, str]]:
+def _commits(since: str, rev_range: str = "") -> list[tuple[str, str]]:
+    scope = [rev_range] if rev_range else [f"--since={since}"]
     out = subprocess.run(
-        ["git", "log", f"--since={since}", "--no-merges", "--date=short", "--pretty=%ad\t%s"],
+        ["git", "log", *scope, "--no-merges", "--date=short", "--pretty=%ad\t%s"],
         cwd=ROOT,
         capture_output=True,
         text=True,
@@ -163,7 +196,9 @@ def report(since: str) -> str:
     j = journal((ROOT / "docs" / "skill-feedback.md").read_text(encoding="utf-8"))
     lines += ["", f"## Журнал находок — {j['total']} строк", ""]
     if j["total"]:
-        lines += ["| Скилл покрывал? | Находок |", "|---|---|"]
+        lines += ["| Когда найдено | Находок |", "|---|---|"]
+        lines += [f"| {w} | {j['by_when'][w]} |" for w in WHEN]
+        lines += ["", "| Скилл покрывал? | Находок |", "|---|---|"]
         lines += [f"| {a} | {j['by_answer'][a]} |" for a in ANSWERS]
         lines += ["", "| Класс | Находок |", "|---|---|"]
         lines += [f"| {k} | {n} |" for k, n in j["by_class"].most_common()]
@@ -211,6 +246,9 @@ def main() -> None:
     ap.add_argument("--since", default="2026-11-01")
     ap.add_argument("--write", action="store_true", help="записать docs/dev-stats.md")
     ap.add_argument("--json", metavar="DIR", help="наборы строк для страницы-панели")
+    ap.add_argument("--snapshot", metavar="ИМЯ", help="дописать строку в docs/dev-stats-history.md")
+    ap.add_argument("--range", default="", help="диапазон git для снимка, напр. origin/main..HEAD")
+    ap.add_argument("--red-ci", default="—", help="число красных прогонов CI за стопку")
     args = ap.parse_args()
     if args.json:
         out = pathlib.Path(args.json)
@@ -219,6 +257,19 @@ def main() -> None:
             (out / f"{name}.json").write_text(
                 json.dumps(rows, ensure_ascii=False, indent=1), encoding="utf-8"
             )
+    if args.snapshot:
+        found = journal((ROOT / "docs" / "skill-feedback.md").read_text(encoding="utf-8"))
+        row = snapshot_row(
+            args.snapshot,
+            _commits(args.since, args.range),
+            found,
+            args.red_ci,
+            datetime.date.today().isoformat(),
+        )
+        text = HISTORY.read_text(encoding="utf-8") if HISTORY.exists() else HISTORY_HEAD
+        HISTORY.write_text(text.rstrip("\n") + "\n" + row + "\n", encoding="utf-8")
+        print(row)
+        return
     text = report(args.since)
     print(text)
     if args.write:

@@ -56,16 +56,30 @@ def test_by_step_keeps_recent_first_and_hides_small_steps():
 
 def test_journal_counts_classes_skills_and_answers():
     text = (
-        "## Находки\n\n| Дата | Шаг | Кто | Класс | Что | Скилл | Скилл покрывал? | Что сделано |\n"
-        "|---|---|---|---|---|---|---|---|\n"
-        "| 2026-11-22 | M5 | django-reviewer | a11y | x | sa-block-editor | нет правила | строка |\n"
-        "| 2026-11-22 | M5 | CI | i18n | y | — | было, не сработало | замок test_x |\n"
+        "## Находки\n\n| Дата | Шаг | Когда | Кто | Класс | Что | Скилл | Скилл покрывал? | Что сделано |\n"
+        "|---|---|---|---|---|---|---|---|---|\n"
+        "| 2026-11-22 | FB-33 M5 | план | planner | a11y | x | sa-block-editor | нет правила | строка |\n"
+        "| 2026-11-22 | FB-33 M5 | дифф | CI | i18n | y | — | было, не сработало | замок test_x |\n"
     )
     j = _mod().journal(text)
     assert j["total"] == 2
     assert j["by_class"]["a11y"] == 1 and j["by_class"]["i18n"] == 1
     assert j["by_skill"]["—"] == 1
     assert j["by_answer"]["было, не сработало"] == 1
+    assert j["by_when"]["план"] == 1 and j["by_when"]["дифф"] == 1
+
+
+def test_snapshot_row_joins_commits_with_journal_findings_of_the_same_steps():
+    mod = _mod()
+    found = mod.journal(
+        "## Находки\n\n| h |\n|---|\n"
+        "| 2026-11-22 | FB-33 M3-7 | план | planner | a11y | x | sa-block-editor | нет правила | строка |\n"
+        "| 2026-11-22 | FB-33 M3-7 | дифф | CI | i18n | y | — | нет правила | строка |\n"
+        "| 2026-11-22 | FB-33 M3-7 | дифф | стенд | стенд | z | sa-stand | нет правила | строка |\n"
+        "| 2026-11-22 | T-99 | после мержа | владелец | другое | q | — | нет правила | строка |\n"
+    )
+    row = mod.snapshot_row("FB-33 стопка 5", COMMITS[:6], found, "2", "2026-11-22")
+    assert row == "| 2026-11-22 | FB-33 стопка 5 | 6 | 3 | 50 % | 1 | 2 | 0 | 2 |"
 
 
 def test_real_report_builds_and_names_the_indicator():
