@@ -179,9 +179,12 @@ def test_discount_sits_inside_the_items_block_before_the_subtotal():
             continue
         items = html.index('data-deal-block="items"')
         discount = html.index('data-deal-block="discount"')
-        # Скидка внутри секции состава: между ними нет закрытия секции…
+        # Скидка внутри секции состава: секция состава между ними не закрыта. Блок состава
+        # вправе держать свои вложенные секции (у брони они есть) — считаем баланс, а не
+        # наличие тега (T-13.5: прежняя проверка кончалась на `or True` и не проверяла ничего).
         assert discount > items, kind
-        assert "</section>" in html[items:discount] or True
+        between = html[items:discount]
+        assert between.count("</section>") <= between.count("<section"), kind
         # …и она стоит ДО блока сумм.
         if 'data-deal-block="totals"' in html:
             assert discount < html.index('data-deal-block="totals"'), kind
