@@ -234,7 +234,7 @@ def test_online_payment_without_email_is_still_refused(settings, monkeypatch):
         public_views.order_payments, "order_checkout_url", lambda o, t, **kw: "https://stripe/x"
     )
     tenant = _prepay_tenant()
-    tenant.site_config = _ff({"email": "off"}, custom=[])
+    tenant.site_config = _ff({"email": "off"}, custom=[])  # настройка непустая — режим
     _request, resp, _p = _post({"name": "Kim"}, tenant)
     assert resp.url.endswith("/warenkorb/") and not Order.objects.exists()
 
@@ -340,3 +340,67 @@ def test_the_customer_sees_own_order_answers_in_the_account():
     customer = Customer.objects.get(pk=order.customer_id)
     section = account_data._orders(customer)
     assert section["items"][0]["answers"] == form_answers.rows(SNAP)
+
+
+# ───────────── ревью (security + silent-failure) ─────────────
+
+TODO_REV = pytest.mark.xfail(strict=True, reason="FB-33 M2i-34 ревью")
+
+
+@TODO_REV
+def test_stock_refusal_keeps_what_the_guest_typed():
+    """Отказ после create_order (склад, слот, акция…) не стирает имя, контакты и ответы."""
+    tenant = _tenant(_ff())
+    data = {"name": "Kim", "phone": "0171", "note": "Klingeln", "q1": "Nüsse", "q3": "Ja"}
+    request, resp, product = _post(data, tenant, stock=1)  # в корзине 2 шт.
+    assert resp.url.endswith("/warenkorb/") and not Order.objects.exists()
+    kept = request.session[public_views.CHECKOUT_INPUT_KEY]
+    assert kept["name"] == "Kim" and kept["note"] == "Klingeln"
+    assert kept["answers"] == {"q1": "Nüsse", "q3": "Ja"}
+
+
+@TODO_REV
+def test_online_payment_at_the_table_keeps_the_email(settings, monkeypatch):
+    """Stripe-заказ без адреса остался бы без подтверждения и квитанции: e-mail из POST."""
+    _configure(settings)
+    monkeypatch.setattr(
+        public_views.order_payments, "order_checkout_url", lambda o, t, **kw: "https://stripe/x"
+    )
+    tenant = _prepay_tenant()
+    tenant.site_config = _ff(labels={"note": "Wünsche"}, custom=[])
+    _request, resp, _p = _post({"email": "kim@example.com"}, tenant, table="7")
+    order = Order.objects.get()
+    assert order.payment_method == Order.METHOD_STRIPE
+    assert order.customer.email == "kim@example.com"
+
+
+@TODO_REV
+def test_question_inputs_are_capped_like_the_snapshot():
+    custom = [
+        {"id": "q1", "type": "text", "label": "Kurz"},
+        {"id": "q2", "type": "textarea", "label": "Lang"},
+    ]
+    form = _checkout_form(_cart(_tenant(_ff(custom=custom))))
+    limit = form_answers.LABEL_MAX * 2
+    assert re.search(rf'<input[^>]*name="q1"[^>]*maxlength="{limit}"', form)
+    assert re.search(rf'<textarea[^>]*name="q2"[^>]*maxlength="{form_answers.ANSWER_MAX}"', form)
+
+
+@TODO_REV
+@pytest.mark.parametrize("tpl", ["order_owner", "order_anprobe_owner"])
+def test_owner_mails_list_answers_as_plain_text(tpl):
+    """Письма владельцу — только text/plain: «&» и «<» приходят как есть, не &amp;."""
+    from django.template.loader import render_to_string
+
+    order = _order_with_answers(note="Bitte & schnell")
+    ctx = {
+        "order": order,
+        "customer": order.customer,
+        "items": list(order.items.all()),
+        "custom_answers": [("Firma", "Müller & Söhne <GmbH>")],
+    }
+    with translation.override("de"):
+        mail = render_to_string(f"emails/{tpl}.txt", ctx)
+    assert "Firma: Müller & Söhne <GmbH>" in mail and "&amp;" not in mail
+    if tpl == "order_owner":
+        assert "Bitte & schnell" in mail
