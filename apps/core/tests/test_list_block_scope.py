@@ -126,20 +126,22 @@ def test_type_scope_moves_the_view_to_the_type_and_clears_the_block():
     assert siteconfig.normalize(cfg)["promo_groups"]["Andere"] == {"card": "ring"}
 
 
-def test_empty_values_in_type_scope_mean_the_type_inherits_again():
+def test_block_without_own_view_does_not_wipe_the_type():
+    """FB-33 M4c (ревью H1): блок без своих осей вида настройки типа не стирает (раньше пустые
+    значения в режиме типа возвращали тип к наследованию — после первого «Speichern» оси
+    у блока сняты, и повторный выбор охвата обнулял бы вид типа). Сброс вида типа — на
+    экране «Aktionstypen»."""
+    entry = {
+        "style": "countdown",
+        "card": "ring",
+        "layout": {"preset": "cols4", "cols": 4, "scroll": True},
+    }
     cfg = {
         "page_blocks": {"info": [_block("b2", source="promotions", type="Räumung", scope="type")]},
-        "promo_groups": {
-            "Räumung": {
-                "style": "countdown",
-                "card": "ring",
-                "layout": {"preset": "cols4", "cols": 4, "scroll": True},
-            }
-        },
+        "promo_groups": {"Räumung": dict(entry)},
     }
     list_blocks.apply_type_scope(cfg)
-    # тип снова наследует страницу: ни своей сетки, ни своей формы карточки
-    assert siteconfig.normalize(cfg)["promo_groups"]["Räumung"] == "countdown"
+    assert cfg["promo_groups"]["Räumung"] == entry
     assert "scope" not in cfg["page_blocks"]["info"][0]["data"]
 
 
