@@ -6,7 +6,7 @@
     uv run python scripts/preflight.py            # всё по изменённым путям
     uv run python scripts/preflight.py --fast     # без pytest (ruff, i18n, CSS)
     uv run python scripts/preflight.py --plan     # только показать, что будет запущено
-    uv run python scripts/preflight.py --jobs 4   # pytest в 4 процесса (xdist)
+    uv run python scripts/preflight.py --jobs 0   # pytest в один процесс (по умолчанию 4)
     uv run python scripts/preflight.py --base origin/claude/x
 
 Шаг, который нельзя выполнить (нет npm-пакетов и т.п.), считается НЕ пройденным: гейт не
@@ -205,7 +205,9 @@ def main() -> int:
     ap.add_argument("--base", default="origin/main")
     ap.add_argument("--fast", action="store_true", help="без pytest")
     ap.add_argument("--plan", action="store_true", help="только показать набор проверок")
-    ap.add_argument("--jobs", type=int, default=0, help="pytest -n N")
+    # Ядро с импортёрами в один процесс идёт больше 20 минут (замер 2026-11-21) — по умолчанию
+    # как в рабочей практике срезов: 4 процесса, у каждого своя тест-БД. `--jobs 0` — в один.
+    ap.add_argument("--jobs", type=int, default=4, help="pytest -n N (0 — в один процесс)")
     args = ap.parse_args()
 
     files = changed_files(args.base)
