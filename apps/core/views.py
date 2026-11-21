@@ -693,37 +693,6 @@ def _builtin_list_row(config, row) -> dict:
     }
 
 
-def _read_builtin_what(post, key: str) -> dict:
-    """Поля «ЧТО» строки `key` из формы (`sl_<ключ>_<поле>`); normalize их чистит."""
-    from apps.core import list_blocks
-
-    return {
-        field: post.get(f"sl_{key}_{field}", "")
-        for field in list_blocks.BUILTIN_WHAT_FIELDS
-        if post.get(f"sl_{key}_{field}", "") != ""
-    }
-
-
-def _save_builtin_list_data(post, key: str, entry: dict, existing_fixed: dict) -> None:
-    """LB-4b: «ЧТО» встроенной строки → `entry["data"]` (presence-guard по сентинелу).
-
-    Без сентинела форма полей не рисовала (вкладка до деплоя) — сохранённые данные
-    строки переносятся как есть. У товаров выразимое легаси-полем `source` уходит в
-    него (`fold_product_source`): данные строки не растут у тех, кто ничего не менял."""
-    from apps.core import list_blocks
-
-    if post.get(f"sl_{key}_present") != "1":
-        saved = existing_fixed.get(key, (None, {}))[1]
-        if saved.get("data"):
-            entry["data"] = dict(saved["data"])
-        return
-    entry["data"] = _read_builtin_what(post, key)
-    if key == "products":
-        list_blocks.fold_product_source(entry)
-    if not entry["data"]:
-        entry.pop("data")
-
-
 def _copy_builtin_list(request, key: str):
     """LB-4b: копия встроенного списка `key` блоком «Liste» сразу после него; id блока
     или None (не встроенная строка)."""
@@ -2401,8 +2370,9 @@ def home_builder_view(request):
         # копию в конец), delete_block_template:<tpl_id>.
         action = request.POST.get("action", "")
         # LB-4b: «Als eigenen Block kopieren» — второй список того же источника рядом
-        # со встроенным: блок «Liste» с той же выборкой (её «ЧТО» — из формы, чтобы
-        # несохранённые правки не потерялись), колонками/лентой и лимитом строки.
+        # со встроенным: блок «Liste» с той же выборкой, колонками/лентой и лимитом строки.
+        # FB-33 M4b: копируется СОХРАНЁННОЕ (выбор правит окно блока); несохранённые
+        # правки той же формы Студии в копию не попадают.
         if action.startswith("copy_builtin:"):
             new_id = _copy_builtin_list(request, action.partition(":")[2])
             if new_id:
@@ -2767,16 +2737,11 @@ def home_builder_view(request):
                         entry["tile_info"] = ti
                 if lay:
                     entry["layout"] = lay
-            if key in siteconfig.GRID_SECTION_LIMITS:
-                entry["limit"] = request.POST.get(f"limit_{key}", "")
+            # FB-33 M4b: «Höchstens», источник товаров и оси «ЧТО» встроенного списка
+            # правит окно блока — `site_schema.merge_structure` берёт их из сохранённого.
             if key == "products":
-                entry["source"] = request.POST.get("source_products", "")
                 # MEN-24c: кап строк прайс-вида (пусто → normalize ключ не пишет)
                 entry["rows"] = request.POST.get("rows_products", "")
-            # LB-4b: оси «ЧТО» встроенного списка (фильтр/сортировка/форма карточки) —
-            # под сентинелом: вкладка до деплоя их не шлёт, и данные строки целы (W0).
-            if key in siteconfig.BUILTIN_LIST_SOURCES:
-                _save_builtin_list_data(request.POST, key, entry, existing_fixed)
             if key in siteconfig.SECTION_VIEWALL_KEYS:
                 entry["show_all"] = request.POST.get(f"show_all_{key}") == "on"
             # SE-3d: визуальные параметры блока. Источник истины радиуса —

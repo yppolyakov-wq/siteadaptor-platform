@@ -426,7 +426,6 @@ def test_action_bar_enters_the_window_for_removed_controls():
 # ───────────── ревью M4b: устаревшая вкладка, ключи раскладки, ссылки, a11y ─────────────
 
 
-@pytest.mark.xfail(strict=True, reason="ревью M4b №1: устаревшая вкладка пишет своё")
 def test_stale_tab_still_writes_texts_and_fine_tuning():
     saved = [copy.deepcopy(PRODUCTS), copy.deepcopy(LISTE)]
     posted = [
@@ -448,7 +447,6 @@ def test_stale_tab_still_writes_texts_and_fine_tuning():
     assert (data["source"], data["cols"]) == ("events", 2)
 
 
-@pytest.mark.xfail(strict=True, reason="ревью M4b №1: сценарий старой вкладки через Save")
 def test_stale_tab_save_keeps_window_and_writes_studio_fields():
     tenant = _tenant()
     cfg = _save(
@@ -462,7 +460,6 @@ def test_stale_tab_save_keeps_window_and_writes_studio_fields():
     assert data["title"] == "Neu" and data["source"] == "events"
 
 
-@pytest.mark.xfail(strict=True, reason="ревью M4b №2: прочие ключи раскладки целы")
 def test_builtin_layout_keeps_its_other_keys():
     saved = [{**PRODUCTS, "layout": {**PRODUCTS["layout"], "gap": "lg", "width": "full",
                                     "page_size": 12, "speed": 6, "tail": "fill"}}]  # fmt: skip
@@ -473,7 +470,6 @@ def test_builtin_layout_keeps_its_other_keys():
     assert "tail" not in lay and "tablet" not in lay  # не прислано = снято (как форма)
 
 
-@pytest.mark.xfail(strict=True, reason="ревью M4b №7: кнопка-переход без «▾», с подписью")
 def test_quick_window_button_says_it_opens_the_window():
     tpl = STUDIO_TPL.read_text()
     sync = _segment(tpl, "function syncBar(", "\n  function ")
@@ -481,7 +477,6 @@ def test_quick_window_button_says_it_opens_the_window():
     assert "öffnet das Blockfenster" in tpl
 
 
-@pytest.mark.xfail(strict=True, reason="ревью M4b №8: ссылка блока страницы — только в окно")
 def test_page_liste_has_no_link_to_the_bare_schema():
     row = (ROOT / "templates" / "tenant" / "_cb_row.html").read_text()
     start = row.index('{% if b.type == "list" %}')
@@ -489,7 +484,6 @@ def test_page_liste_has_no_link_to_the_bare_schema():
     assert "{% url 'site-schema' %}" not in liste
 
 
-@pytest.mark.xfail(strict=True, reason="ревью M4b №5: мёртвый код снят")
 def test_dead_builtin_what_code_is_gone():
     tpl = STUDIO_TPL.read_text()
     assert "SL_DATA_FIELDS" not in tpl and 'sl_" + r.key' not in tpl

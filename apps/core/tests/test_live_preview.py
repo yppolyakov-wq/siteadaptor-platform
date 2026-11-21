@@ -105,10 +105,10 @@ def test_draft_endpoint_includes_layout_preset():
     req.tenant = tenant
     assert views.site_preview_draft(req).status_code == 204
     draft = req.session["site_preview_draft"]
-    products = next(s for s in draft["sections"] if s["key"] == "products")
     # FB-33 M4b (осознанная переписка): раскладку встроенного списка правит окно блока —
     # черновик Студии её не меняет (превью = результат «Speichern»)
-    assert products.get("layout", {}).get("preset") != "gallery"
+    saved = siteconfig.section_layout(siteconfig.normalize(tenant.site_config), "products")
+    assert siteconfig.section_layout(siteconfig.normalize(draft), "products") == saved
     hero = next(s for s in draft["sections"] if s["key"] == "hero")
     assert "layout" not in hero  # не секция-сетка
 
@@ -175,7 +175,8 @@ def test_draft_endpoint_includes_product_source():
     assert views.site_preview_draft(req).status_code == 204
     # FB-33 M4b (осознанная переписка): выбор товаров правит окно блока — черновик Студии
     # его не меняет
-    assert siteconfig.product_source(req.session["site_preview_draft"]) != "featured_only"
+    saved = siteconfig.product_source(siteconfig.normalize(tenant.site_config))
+    assert siteconfig.product_source(req.session["site_preview_draft"]) == saved
 
 
 def test_draft_endpoint_includes_show_all():

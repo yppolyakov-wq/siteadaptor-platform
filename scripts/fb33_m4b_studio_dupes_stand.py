@@ -171,6 +171,45 @@ def survives(b):
     ctx.close()
 
 
+def stale(b):
+    """Устаревшая вкладка: Студия открыта, в окне сменили колонки и сохранили схему, потом
+    в старой вкладке — правка текста и «Speichern»: текст записан, колонки окна целы."""
+    print("— старая вкладка")
+    ctx = b.new_context(viewport={"width": 1440, "height": 900}, locale="de-DE")
+    old = ctx.new_page()
+    login(old)
+    old.goto(U + "/dashboard/site/home/")
+    canvas(old)
+    pg = ctx.new_page()
+    before = window_cols(pg)
+    want = "2" if before != "2" else "4"
+    pg.wait_for_selector(f"{DLG}[open]", timeout=10000)
+    pg.locator(f"{DLG} label:has(input[name=f_cols][value='{want}'])").first.click()
+    pg.wait_for_timeout(800)
+    pg.wait_for_function(
+        "!+document.documentElement.getAttribute('data-schema-busy')", timeout=15000
+    )
+    pg.goto(U + "/dashboard/site/aufbau/?seite=home")
+    pg.locator("button[name=op][value=save]").first.click()
+    pg.wait_for_load_state()
+    check(window_cols(pg) == want, f"окно записало колонки {want}")
+    stamp = "Alt-Tab-Text"
+    old.evaluate(
+        """(t) => { const i = document.querySelector('#home-form input[name=hero_title]');
+        i.value = t; i.dispatchEvent(new Event('input', {bubbles: true})); }""",
+        stamp,
+    )
+    with old.expect_navigation():
+        old.click("button[type=submit][form=home-form]")
+    check(window_cols(pg) == want, f"старая вкладка колонки окна не откатила ({want})")
+    pg.goto(U + "/dashboard/site/home/")
+    check(
+        pg.input_value("#home-form input[name=hero_title]") == stamp,
+        "текст старой вкладки записан",
+    )
+    ctx.close()
+
+
 def nojs(b):
     for w, h in ((1440, 900), (390, 844)):
         ctx = b.new_context(viewport={"width": w, "height": h}, java_script_enabled=False)
@@ -200,6 +239,7 @@ with sync_playwright() as p:
         for language in ("de", "ru"):
             run(browser, width, height, language)
     survives(browser)
+    stale(browser)
     print("— без JS")
     nojs(browser)
     browser.close()

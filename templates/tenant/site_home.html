@@ -352,11 +352,6 @@
                          placeholder="{{ s.label }}"
                          class="w-36 rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'Custom heading' %}" title="{% trans 'Custom heading' %}" data-expert="1">
                 {% endif %}
-                {% if s.has_limit and not s.win_list %}
-                  {# M20U-7: число элементов секции-превью на главной #}
-                  <input type="number" name="limit_{{ s.key }}" value="{{ s.limit }}" min="1" max="30" data-expert="1"
-                         class="w-16 rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'How many to show' %}" title="{% trans 'How many to show' %}">
-                {% endif %}
                 {% if s.key == "products" %}
                   {# MEN-24c: кап строк прайс-вида («по 3 в категории» + Mehr anzeigen); пусто = все #}
                   <input type="number" name="rows_products" value="{{ s.rows }}" min="1" max="20" data-expert="1" placeholder="{% trans 'Zeilen' %}"
@@ -1964,6 +1959,8 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
   // переводит в адрес окна сервер (`site-schema-open`, только переход внутри кабинета).
   var WINDOW_OPEN_URL = "{% url 'site-schema-open' %}";
   var LEAVE_MSG = "{% trans 'Ungespeicherte Änderungen gehen verloren.' as leave_msg %}{{ leave_msg|escapejs }}";
+  // FB-33 M4b (ревью №7): кнопка плашки, ведущая в окно блока, — переход, не выпадашка
+  var QUICK_WIN_LABEL = "{% trans 'öffnet das Blockfenster' as quick_win %}{{ quick_win|escapejs }}";
   function windowHref(key, tab) {
     // FB-33 M4b: `tab` — вкладка окна (сервер берёт только из своего списка)
     return WINDOW_OPEN_URL + "?page=" + encodeURIComponent(previewPath || "/")
@@ -2372,9 +2369,6 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
     applyDevice(saved && DEV[saved] ? saved : "desktop");  // десктоп тоже инициализируем (масштаб)
   })();
 
-  // LB-4b: поля «ЧТО» встроенных списков главной (= list_blocks.BUILTIN_WHAT_FIELDS).
-  var SL_DATA_FIELDS = ["type", "endet", "rabatt", "ziel", "category", "collection", "only",
-    "event_category", "country", "sort", "card"];
   function collect() {
     // UC6-7b: entry C-блока по id — ОБЩИЙ для блоков главной (sections) и блоков
     // страниц (page_blocks); enabled/удаление читает сам, _ord — для сортировки
@@ -2478,21 +2472,8 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
         if (tc && tc.checked) ti.push("count");
         if (ti.length) sec.tile_info = ti;
       }
-      // M20U-7: число элементов секции-превью → в превью.
-      var lim = form.querySelector("input[name='limit_" + r.key + "']");
-      if (lim && lim.value) sec.limit = parseInt(lim.value, 10);
-      // M20U-7: источник товаров → в превью (легаси-вкладка; новая шлёт «ЧТО» ниже).
-      var srcSel = form.querySelector("select[name='source_" + r.key + "']");
-      if (srcSel && srcSel.value) sec.source = srcSel.value;
-      // LB-4b: оси «ЧТО» встроенного списка (sl_<ключ>_<поле>) → в превью.
-      if (form.querySelector("input[name='sl_" + r.key + "_present']")) {
-        var sd = {};
-        SL_DATA_FIELDS.forEach(function (f) {
-          var el = form.querySelector("[name='sl_" + r.key + "_" + f + "']");
-          if (el && el.value !== "") sd[f] = el.value;
-        });
-        if (Object.keys(sd).length) sec.data = sd;
-      }
+      // FB-33 M4b: «Höchstens», источник и оси «ЧТО» встроенного списка правит окно
+      // блока — черновик их не шлёт (сервер берёт сохранённое, превью = результат Save).
       // MEN-24c: кап строк прайс-вида → в превью.
       var rowsInp = form.querySelector("input[name='rows_" + r.key + "']");
       if (rowsInp && rowsInp.value) sec.rows = parseInt(rowsInp.value, 10);
@@ -4631,10 +4612,26 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
     var viaWin = ((home && home.getAttribute("data-win-quick")) || "").split(" ");
     actionBar.querySelectorAll("[data-quick]").forEach(function (b) {
       var kind = b.getAttribute("data-quick");
-      var win = !quickCtl(kind, abKey) && viaWin.indexOf(kind) >= 0;
-      if (win) b.setAttribute("data-quick-window", "");
-      else b.removeAttribute("data-quick-window");
-      b.hidden = !quickCtl(kind, abKey) && !win;
+      var ctl = quickCtl(kind, abKey);
+      var win = !ctl && viaWin.indexOf(kind) >= 0;
+      if (!b.hasAttribute("data-label")) {
+        b.setAttribute("data-label", b.textContent.replace(/\s*▾\s*$/, ""));
+        b.setAttribute("data-title", b.getAttribute("title") || "");
+      }
+      var label = b.getAttribute("data-label");
+      if (win) {
+        // переход в окно: без «▾» (он обещал бы выпадашку) и с подписью, куда ведёт
+        b.setAttribute("data-quick-window", "");
+        b.textContent = label;
+        b.setAttribute("aria-label", label + " — " + QUICK_WIN_LABEL);
+        b.setAttribute("title", label + " — " + QUICK_WIN_LABEL);
+      } else {
+        b.removeAttribute("data-quick-window");
+        b.textContent = label + " ▾";
+        b.removeAttribute("aria-label");
+        b.setAttribute("title", b.getAttribute("data-title"));
+      }
+      b.hidden = !ctl && !win;
     });
   }
   function ensureFrameHooks() {

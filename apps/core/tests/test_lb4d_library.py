@@ -352,8 +352,9 @@ def test_builtin_promotions_row_has_the_target_and_saves_it():
 
 
 def test_target_reaches_the_draft_and_the_builtin_draft():
+    """FB-33 M4b (осознанная переписка, ревью №5): «Gilt für» встроенного списка правит
+    окно блока — черновик Студии его не собирает (`SL_DATA_FIELDS` снят); окно его пишет."""
     tpl = TPL.read_text("utf-8")
     cb = set(re.findall(r'"(\w+)"', _segment(tpl, "var CB_DATA_FIELDS", "]")))
-    sl = set(re.findall(r'"(\w+)"', _segment(tpl, "var SL_DATA_FIELDS", "]")))
-    assert "ziel" in cb and "ziel" in sl
+    assert "ziel" in cb and "SL_DATA_FIELDS" not in tpl
     assert "ziel" in list_blocks.BUILTIN_WHAT_FIELDS

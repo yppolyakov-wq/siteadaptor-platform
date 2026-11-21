@@ -19,7 +19,6 @@ import re
 
 import pytest
 
-from apps.core import list_blocks
 from apps.core.tests.test_stu12_groups import TPL, _builder, _post_builder, _row, _segment
 from apps.tenants import siteconfig
 from apps.tenants.tests.factories import TenantFactory
@@ -202,11 +201,12 @@ def test_card_form_of_the_row_is_selected():
 
 
 def test_live_draft_carries_every_what_field():
-    draft = set(re.findall(r'"(\w+)"', _segment(TPL.read_text("utf-8"), "var SL_DATA_FIELDS", "]")))
-    missing = sorted(set().union(*WHAT.values()) - draft)
-    assert not missing, f"черновик не несёт поля встроенных списков: {missing}"
-    # один список полей на Save и черновик — без расхождения
-    assert draft == set(list_blocks.BUILTIN_WHAT_FIELDS)
+    """FB-33 M4b (осознанная переписка, ревью №5): «ЧТО» встроенных списков правит окно
+    блока — черновик Студии их не собирает (сервер берёт сохранённое: превью = Save)."""
+    tpl = TPL.read_text("utf-8")
+    assert "SL_DATA_FIELDS" not in tpl and "_present']" not in _segment(
+        tpl, "function collect(", "\n  }\n"
+    )
 
 
 def test_copy_builtin_row_puts_a_list_block_next_to_it():

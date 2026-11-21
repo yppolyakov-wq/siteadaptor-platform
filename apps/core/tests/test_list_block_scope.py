@@ -193,9 +193,6 @@ def test_raster_over_a_lane_page_is_expressible_for_the_type():
 # ───────────────────────── Save и черновик ─────────────────────────
 
 
-@pytest.mark.xfail(
-    strict=True, reason="ревью M4b №3: «Ansicht gilt für» возвращается в «Feinschliff»"
-)
 def test_builder_save_in_type_scope_updates_all_blocks_of_the_type():
     """FB-33 M4b (ревью №3): охват «Den ganzen Typ» снова задаётся формой Студии («Ansicht
     gilt für» — в «Feinschliff» блока «Liste»); вид блока, который отдаётся типу, — тот,
@@ -236,9 +233,6 @@ def test_builder_save_in_type_scope_updates_all_blocks_of_the_type():
     assert body.count('data-card-form="coupon"') == 2
 
 
-@pytest.mark.xfail(
-    strict=True, reason="ревью M4b №3: «Ansicht gilt für» возвращается в «Feinschliff»"
-)
 def test_type_scope_reaches_the_live_draft():
     """Превью обязано показать то же, что покажет Save: одна функция и одно слияние на оба
     пути (FB-33 M4b: вид — сохранённый, охват — из черновика)."""
@@ -273,9 +267,6 @@ def test_type_scope_reaches_the_live_draft():
 # ───────────────────────── редактор ─────────────────────────
 
 
-@pytest.mark.xfail(
-    strict=True, reason="ревью M4b №3: «Ansicht gilt für» возвращается в «Feinschliff»"
-)
 def test_editor_row_carries_the_scope_control():
     """FB-33 M4b (ревью №3): «Ansicht gilt für» — в «Feinschliff» строки «Liste» (выбор
     охвата, не раскладка окна); работает и без JS (селект)."""

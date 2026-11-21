@@ -39843,6 +39843,9 @@ msgstr "The order summary, the total price and the “Zahlungspflichtig bestelle
 msgid "fb33-stack-anchor-M4b"
 msgstr "fb33-stack-anchor-M4b"
 
+msgid "öffnet das Blockfenster"
+msgstr "opens the block window"
+
 msgid "Was gezeigt wird, Anordnung, Karte und Platz ändern Sie im Fenster des Blocks."
 msgstr "What is shown, arrangement, card and position are changed in the block window."
 
