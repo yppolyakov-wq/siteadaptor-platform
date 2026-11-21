@@ -80,6 +80,13 @@ def test_page_without_js_is_byte_for_byte_the_same(case):
     assert got == path.read_text(), path.name
 
 
+@pytest.mark.parametrize("case", ALL, ids=["|".join(c) for c in ALL])
+def test_no_preview_frame_without_js(case):
+    """FB-33 M3-7: «Vorschau» в окне — только из скрипта; в срезе без JS ни кадра, ни шаблона."""
+    got = _slice(_render(case))
+    assert "<iframe" not in got and "data-bw-preview" not in got
+
+
 def test_window_token_is_rendered_before_normalization():
     """Нормализация `wopen` не прячет пропажу токена: у окна блока он непустой."""
     html = _render(("home", "t1"))
