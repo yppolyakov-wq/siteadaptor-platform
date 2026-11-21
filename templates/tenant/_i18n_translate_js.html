@@ -121,7 +121,7 @@
       trSay(box, msg);
     }
     function apply(data) {
-      var got = data.items || {}, filled = 0;
+      var got = data.items || {}, filled = 0, last = null;
       // Применяем только туда, где за время ожидания ничего не изменилось: поле на месте
       // и пустое, язык тот же, базовый текст тот же, что был отправлен.
       // (кнопка со своим языком: панель не подменили — язык тот же)
@@ -132,7 +132,11 @@
         if (trBase(el, loc, base).trim() !== hit.text) return;
         trFill(el, got[id]);
         filled++;
+        last = el;
       });
+      // M2i-5c: окно блока со скриптами применяет правку по change (aufbau.js — та же
+      // запись, что «Übernehmen»: вся форма в черновик); одно событие — после всех полей.
+      if (fixed && last) last.dispatchEvent(new Event("change", { bubbles: true }));
       var skipped = items.length - filled;
       var msg = filled ? filled + " " + TR_MSG.done : TR_MSG.nothing;
       if (skipped) msg += " · " + skipped + " " + TR_MSG.skipped;
