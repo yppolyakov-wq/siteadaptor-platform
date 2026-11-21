@@ -40216,6 +40216,11 @@ msgstr "Оплачено — нет адреса электронной почт
 msgid "fb33-stack-anchor-M4c"
 msgstr "fb33-stack-anchor-M4c"
 
+#. FB-33 M4c
+#: apps/core/list_panel.py
+msgid "„Ansicht gilt für“ wurde nicht übernommen: Dafür fehlt das Recht, Aktionstypen zu bearbeiten."
+msgstr "«Вид применяется к» не применено: нет права править типы акций."
+
 #. FB-33 стопка: якорь среза M3-9a — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
 msgid "fb33-stack-anchor-M3-9a"
 msgstr "fb33-stack-anchor-M3-9a"

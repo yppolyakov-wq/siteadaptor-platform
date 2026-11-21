@@ -68,7 +68,6 @@ def _draft(browser):
 
 
 # 1 — поле есть только у «Liste» с типом акции
-@pytest.mark.xfail(strict=True, reason="FB-33 M4c: до кода")
 def test_field_only_for_a_liste_with_a_promo_type():
     b = Browser(
         _shop(
@@ -92,7 +91,6 @@ def test_field_only_for_a_liste_with_a_promo_type():
 
 
 # 2 — «Den ganzen Typ» → «Speichern»: вид у типа, оси у блока сняты, scope в конфиге нет
-@pytest.mark.xfail(strict=True, reason="FB-33 M4c: до кода")
 def test_save_moves_the_view_to_the_type():
     b = Browser(
         _shop(
@@ -119,7 +117,6 @@ def test_save_moves_the_view_to_the_type():
 
 
 # 3 — предпросмотр показывает вид типа; окно — выбранный охват и свои оси блока
-@pytest.mark.xfail(strict=True, reason="FB-33 M4c: до кода")
 def test_preview_shows_the_type_view_and_the_window_keeps_the_choice():
     b = Browser(_shop(_promo_block("a1", out="slider", card="coupon"), _promo_block("a2")))
     _scope(b, "a1")
@@ -139,7 +136,6 @@ def test_preview_shows_the_type_view_and_the_window_keeps_the_choice():
 
 
 # 4 — «Abbrechen» окна: байт-в-байт
-@pytest.mark.xfail(strict=True, reason="FB-33 M4c: до кода")
 def test_cancel_restores_everything():
     b = Browser(
         _shop(_promo_block("a1", out="slider", card="coupon"), promo_groups={TYPE: "countdown"})
@@ -155,7 +151,6 @@ def test_cancel_restores_everything():
 
 
 # 5 — настройки типа изменили в другом месте → конфликт; чужой тип — не конфликт
-@pytest.mark.xfail(strict=True, reason="FB-33 M4c: до кода")
 def test_type_changed_elsewhere_is_a_conflict():
     b = Browser(_shop(_promo_block("a1", card="coupon"), promo_groups={TYPE: "countdown"}))
     _scope(b, "a1")
@@ -179,7 +174,6 @@ def test_type_changed_elsewhere_is_a_conflict():
 
 
 # 6 — в Студии селекта нет, поддельное поле формы вид типу не отдаёт
-@pytest.mark.xfail(strict=True, reason="FB-33 M4c: до кода")
 def test_studio_has_no_scope_control():
     from pathlib import Path
 
@@ -209,7 +203,6 @@ def test_studio_has_no_scope_control():
 
 
 # 7 — без JS: одна форма вкладки шлёт вид и охват; смена типа блока снимает охват
-@pytest.mark.xfail(strict=True, reason="FB-33 M4c: до кода")
 def test_plain_form_post_and_stale_scope():
     b = Browser(_shop(_promo_block("a1"), promo_groups={TYPE: {"card": "ring"}}))
     _scope(b, "a1", f_out="slider", f_cols="3", f_rows="", f_style="")
@@ -230,7 +223,6 @@ def test_plain_form_post_and_stale_scope():
 
 
 # 8 — права: настройки типа пишет «Aktionstypen» (marketing.edit)
-@pytest.mark.xfail(strict=True, reason="FB-33 M4c: до кода")
 def test_scope_needs_the_right_to_edit_promo_types(monkeypatch):
     from apps.core import list_panel
 

@@ -665,9 +665,8 @@ _LIST_BLOCK_FIELDS = (
     # FB-27 R5: ручной состав («Einzeln») правится в «Seitenaufbau»; строка Студии несёт
     # его скрытым полем, иначе её Save стёр бы выбор владельца (W0).
     "pick",
-    # LB-1b: охват вида — «только этот блок» ("") или «весь тип» ("type"). Служебное
-    # поле формы: `list_blocks.apply_type_scope` разбирает его ДО normalize.
-    "scope",
+    # FB-33 M4c: охват вида («Ansicht gilt für») выбирают в окне блока — форма Студии его
+    # не читает (`aufbau_draft.SCOPE_KEY`).
 )
 
 
@@ -3471,10 +3470,6 @@ def home_builder_view(request):
             ],
             # Селекторы строк C-блоков (промо, тип акции, стиль скидки, категории LB-1).
             **_row_lists,
-            # LB-1b: вид каждого типа акции — контролы строки в режиме «Den ganzen Typ».
-            "lb_type_views": list_blocks.type_views(
-                config, [key for key, _label in _row_lists["promo_types_for_blocks"]]
-            ),
             # UC6-5: карточки библиотеки блоков — иконка + подсказка (вставка даёт
             # демо-данные из siteconfig.CBLOCK_DEMO_DATA). FB-33 M2a: каталог блоков.
             "block_types": block_catalog.studio_block_types(),

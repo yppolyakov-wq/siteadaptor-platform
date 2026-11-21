@@ -428,7 +428,9 @@ def site_schema_view(request):
     if moved and request.GET.get("block") == site_schema.PAGE_REF:
         return redirect(site_schema.settings_url(code, request.GET["offen"]))
     draft = aufbau_draft.get(request, code)
-    config = aufbau_draft.overlay(saved, draft) if draft else saved
+    # FB-33 M4c: окно показывает СВОИ оси блока и при охвате «Den ganzen Typ» (вид типа —
+    # в предпросмотре): иначе «Übernehmen» без правок стёрло бы вид типа
+    config = aufbau_draft.overlay(saved, draft, scope=False) if draft else saved
     from apps.core import form_spec
 
     if config.get(form_spec.FORM_ERROR_KEY):
@@ -449,7 +451,14 @@ def site_schema_view(request):
         from apps.core import list_panel
 
         selected["groups"] = list_panel.groups(
-            request, config, selected["list_data"], request.GET.get("welche", "")
+            request,
+            config,
+            selected["list_data"],
+            request.GET.get("welche", ""),
+            # FB-33 M4c: «Ansicht gilt für» — выбор из черновика; без права на типы поля нет
+            scope=aufbau_draft.scope_of(draft, selected["ref"])
+            if list_panel.scope_allowed(request)
+            else None,
         )
         selected["result"] = list_panel.result(request, config, selected["list_data"])
         selected["pick"] = list_panel.pick_state(request, selected["list_data"])
