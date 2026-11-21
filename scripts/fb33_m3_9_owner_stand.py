@@ -27,7 +27,7 @@ tablist/tab/tabpanel с подписями; в ru — нет немецких с
     DB_NAME=platform_m39_stand uv run python manage.py runserver 0.0.0.0:8039 \\
         --settings=config.settings.stand --noreload
     DB_NAME=platform_m39_stand uv run --with playwright==1.55.0 \\
-        python scripts/fb33_m3_9_owner_stand.py <папка-скриншотов> [--only shop,hotel] [--no-js-pass]
+        python scripts/fb33_m3_9_owner_stand.py <папка-скриншотов> [--only shop,hotel] [--no-js-pass|--js-only]
     uv run --with playwright==1.55.0 python scripts/fb33_m3_9_owner_stand.py --selftest
 
 `--selftest` — замок самого стенда: те же проверки на заведомо сломанных страницах (5xx,
@@ -72,7 +72,8 @@ ALLOW = frozenset(
         "USP DATEV GmbH UG e.K. AG KG OHG GbR Impressum AGB DSGVO UWG PAngV BGB UStG UStVA "
         "Click Collect Hero Online Shop Tailwind iCal Booking Airbnb Expedia Tripadvisor "
         "https http www com de net org png jpg webp svg ok IBAN BIC SEPA Visa Mastercard "
-        "Amex OpenStreetMap OSM Mo Di Mi Do Fr Sa So EUR CHF"
+        "Amex OpenStreetMap OSM Mo Di Mi Do Fr Sa So EUR CHF Deutsch English Türkçe "
+        "Button-Lösung"
     ).split()
 )
 #: частые немецкие слова интерфейса и служебные — признак немецкой строки без умлаута
@@ -93,6 +94,11 @@ GERMAN_WORDS = frozenset(
 )
 _WORD = re.compile(r"[A-Za-zÄÖÜäöüß]{2,}(?:[-'][A-Za-zÄÖÜäöüß]+)*")
 _UMLAUT = re.compile(r"[ÄÖÜäöüß]")
+#: цитата закреплённой подписи кнопки § 312j (M0-10: «Zahlungspflichtig bestellen» не
+#: переводится и не правится) — допустима в ru как цитата
+#: «Без перевода: …» — список немецких исходников без перевода (так задумано: что перевести)
+_SOURCE_LIST = re.compile(r"Без перевода:[^\n]*")
+_LEGAL_QUOTE = re.compile(r"«?(?:Zahlungspflichtig|Kostenpflichtig)\b[^»\n]*»?")
 
 
 # --- данные из Django (строки схемы, содержимое бизнеса) ---------------------------------
@@ -115,7 +121,7 @@ from django.apps import apps
 from django.conf import settings
 from django.db import connection
 from django.db.models import CharField, JSONField, TextField
-from apps.core import page_window, site_schema
+from apps.core import site_schema
 from apps.tenants import siteconfig
 from apps.tenants.models import Domain, Tenant
 
@@ -157,9 +163,16 @@ for slug in SLUGS:
             rows.append(row)
     pages = []
     for r in rows:
-        blocks = site_schema.blocks_for(saved, r.code, host=r.host or None, summaries=False)
+        blocks = site_schema.blocks_for(saved, r.code, host=r.host or None)  # как экран
         refs = [b["ref"] for b in blocks]
-        if page_window.pseudo_row(site_schema.PAGE_REF, blocks) is not None:
+        # строка «Einstellungen der Seite» — по правилу экрана (site_schema_views: настройки
+        # или «Design» у типа есть, а ★-строки и строки-носителя нет)
+        try:
+            has = bool(site_schema.setting_codes(t, r.code) or site_schema.design_codes(t, r.code))
+        except site_schema.SchemaError:
+            has = False
+        carrier = site_schema.settings_carrier(r.code)
+        if has and not any(b["main"] or b["ref"] == carrier for b in blocks):
             refs.append(site_schema.PAGE_REF)
         pages.append({"code": r.code, "label": str(r.label), "preview": r.preview_url,
                       "refs": refs})
@@ -221,48 +234,87 @@ def kit_slugs() -> list[str]:
 
 
 class Report:
+    """Счёт ✓/✗; повтор того же дефекта (подпись `sig`) печатается один раз, в конце — сводка."""
+
     def __init__(self):
         self.ok = 0
         self.fail: list[str] = []
+        self.sigs: dict[str, list] = {}  # подпись дефекта → [число, первый пример]
+        self.notes: dict[str, int] = {}
 
-    def check(self, cond, label, quiet=True):
+    def check(self, cond, label, quiet=True, sigs=None):
         if cond:
             self.ok += 1
             if not quiet:
                 print("  ✓ " + label)
-        else:
-            self.fail.append(label)
+            return True
+        self.fail.append(label)
+        new = False
+        for sig in sigs or [label]:
+            seen = self.sigs.setdefault(sig, [0, label])
+            seen[0] += 1
+            new = new or seen[0] == 1
+        if new or sigs is None:
             print("  ✗ " + label)
-        return bool(cond)
+        return False
+
+    def note(self, sig):
+        """Наблюдение (не ✗): печатается один раз, в сводке — с числом."""
+        self.notes[sig] = self.notes.get(sig, 0) + 1
+        if self.notes[sig] == 1:
+            print("  · " + sig)
+
+    def summary(self):
+        if self.notes:
+            print(f"\nнаблюдения ({len(self.notes)}):")
+            for sig, n in sorted(self.notes.items(), key=lambda kv: -kv[1]):
+                print(f"  ×{n:<4} {sig}")
+        print(f"\nсводка дефектов ({len(self.sigs)} разных):")
+        for sig, (n, first) in sorted(self.sigs.items(), key=lambda kv: -kv[1][0]):
+            print(f"  ×{n:<4} {sig}\n         напр.: {first[:220]}")
 
 
-_TARGETS_JS = """([scope, min, wide]) => {
+_TARGETS_JS = """([scope, min, spacing]) => {
   const root = scope ? document.querySelector(scope) : document.body;
   if (!root) return [];
   const sel = 'a[href],button,summary,select,input:not([type=hidden]),textarea,[role=tab]';
-  const seen = new Set(), bad = [];
+  const seen = new Set(), all = [];
   for (let e of root.querySelectorAll(sel)) {
     if (!e.getClientRects().length) continue;
     const cs = getComputedStyle(e);
     if (cs.visibility === 'hidden' || cs.display === 'contents') continue;
     if (e.closest('[hidden],[aria-hidden=true],.sr-only')) continue;
-    // ссылка внутри текста — исключение 2.5.8 (inline)
-    if (e.tagName === 'A' && cs.display === 'inline' && e.closest('p,li,td,dd,label,span,small'))
+    // ссылка внутри предложения — исключение 2.5.8 «Inline»
+    if (e.tagName === 'A' && cs.display === 'inline' && e.closest('p,td,dd,label,small'))
       continue;
     if (e.type === 'radio' || e.type === 'checkbox') e = e.closest('label') || e;
     if (seen.has(e)) continue; seen.add(e);
     const r = e.getBoundingClientRect();
-    if (r.height < min || r.width < (wide ? min : 24))
-      bad.push(e.tagName.toLowerCase() + '«' + (e.textContent || e.name || e.getAttribute('aria-label')
-        || '').trim().replace(/\\s+/g, ' ').slice(0, 24) + '» ' + r.width.toFixed(0) + '×'
-        + r.height.toFixed(0));
+    if (!r.width || !r.height) continue;
+    all.push({e, r, small: r.height < min || r.width < 24,
+      cx: r.left + r.width / 2, cy: r.top + r.height / 2});
+  }
+  // 2.5.8 «Spacing»: мелкая цель допустима, если круг Ø24 вокруг её центра не задевает
+  // другие цели и круги других мелких целей (только для порога 24, не для окна 44)
+  const dist = (x, y, r) => Math.hypot(Math.max(r.left - x, 0, x - r.right),
+                                       Math.max(r.top - y, 0, y - r.bottom));
+  const bad = [];
+  for (const t of all) {
+    if (!t.small) continue;
+    if (spacing && !all.some(o => o !== t && !o.e.contains(t.e) && !t.e.contains(o.e) &&
+        (dist(t.cx, t.cy, o.r) < 12 || (o.small && Math.hypot(o.cx - t.cx, o.cy - t.cy) < 24))))
+      continue;
+    const e = t.e;
+    bad.push(e.tagName.toLowerCase() + '«' + (e.textContent || e.name || e.getAttribute('aria-label')
+      || '').trim().replace(/\\s+/g, ' ').slice(0, 24) + '» ' + t.r.width.toFixed(0) + '×'
+      + t.r.height.toFixed(0));
   }
   return bad;
 }"""
 
 
-def targets(pg, scope: str, minimum: int, wide: bool) -> list[str]:
-    return pg.evaluate(_TARGETS_JS, [scope, minimum, wide])
+def targets(pg, scope: str, minimum: int) -> list[str]:
+    return pg.evaluate(_TARGETS_JS, [scope, minimum, minimum < WIN_MIN])
 
 
 def overflow(pg) -> int:
@@ -304,6 +356,8 @@ def german(text: str, content: Content | None) -> list[str]:
     """Немецкие слова интерфейса в тексте ru (с контекстом строки)."""
     if content is not None:
         text = content.strip(text)
+    text = _LEGAL_QUOTE.sub(" ", text)
+    text = _SOURCE_LIST.sub(" ", text)
     found = []
     for line in text.splitlines():
         for w in _WORD.findall(line):
@@ -367,6 +421,10 @@ def check_window_nojs(rep, pg, tag, want_tab=""):
     return info["keys"]
 
 
+#: страница просит окно (тот же признак, что `aufbauWindowWanted` в aufbau.js)
+_WANTS_WINDOW = "!!document.querySelector('[data-schema-panel] button[value=\"window_done\"]')"
+
+
 def check_window_js(rep, pg, tag):
     info = pg.evaluate(_DIALOG_JS)
     good = info["dialog"] and info["open"] and info["modal"] and info["title"]
@@ -383,17 +441,44 @@ def check_window_js(rep, pg, tag):
     return info.get("keys") or []
 
 
-def check_common(rep, pg, tag, status, errs, scope, minimum, wide, lang, content):
+def _num_free(item: str) -> str:
+    return re.sub(r"[0-9a-f]{8}-[0-9a-f-]{27}|[0-9a-f]{32}", "<id>", item)
+
+
+def check_common(rep, pg, tag, status, errs, scope, minimum, lang, content, kind=""):
+    """Общие проверки страницы; `kind` — где (окно/экран/витрина) для подписи дефекта."""
     rep.check(status is not None and status < 500, f"{tag}: ответ без 5xx ({status})")
+    rep.check(
+        status is not None and status < 400,
+        f"{tag}: ответ не 4xx ({status})",
+        sigs=[f"{kind} ответ {status} {_num_free(tag.split(' ', 4)[-1])}"],
+    )
     over = overflow(pg)
-    rep.check(over <= 0, f"{tag}: без горизонтального скролла ({over}px)")
-    small = targets(pg, scope, minimum, wide)
-    rep.check(not small, f"{tag}: цели ≥ {minimum}px ({len(small)}: {small[:3]})")
+    width = pg.evaluate("window.innerWidth")
+    rep.check(
+        over <= 0,
+        f"{tag}: без горизонтального скролла ({over}px)",
+        sigs=[f"{kind} {width}: гор. скролл {_num_free(tag.split(' ', 4)[-1])}"],
+    )
+    small = targets(pg, scope, minimum)
+    rep.check(
+        not small,
+        f"{tag}: цели ≥ {minimum}px ({len(small)}: {small[:3]})",
+        sigs=[f"{kind} цель < {minimum}: {_num_free(x)}" for x in small],
+    )
     if lang == "ru":
         de = german(visible_text(pg, scope), content)
-        rep.check(not de, f"{tag}: нет немецких строк в ru ({len(de)}: {de[:3]})")
+        rep.check(
+            not de,
+            f"{tag}: нет немецких строк в ru ({len(de)}: {de[:3]})",
+            sigs=[f"{kind} ru: «{x.split(' ‹')[0]}» ‹{x.split(' ‹', 1)[1][:50]}" for x in de],
+        )
     if errs is not None:
-        rep.check(not errs, f"{tag}: без ошибок JS ({errs[:2]})")
+        rep.check(
+            not errs,
+            f"{tag}: без ошибок JS ({errs[:2]})",
+            sigs=[f"{kind} JS: {e[:80]}" for e in errs],
+        )
         errs.clear()
 
 
@@ -409,14 +494,25 @@ def login(pg, url, slug):
 
 
 def settle(pg, js):
-    if js:
-        pg.wait_for_load_state("networkidle")
-        pg.wait_for_function("!document.getAnimations().length", timeout=5000)
+    """С JS: сеть затихла и закончились конечные анимации (открытие окна — 160 мс);
+    бесконечные (слайдер, бегущая строка витрины) не ждём. Таймаут — не сбой стенда."""
+    if not js:
+        return
+    try:
+        # не networkidle: кадр «Vorschau» окна (M3-7) грузит витрину и держит сеть
+        pg.wait_for_load_state("load", timeout=10000)
+        pg.wait_for_function(
+            "!document.getAnimations().filter(a => a.effect && "
+            "a.effect.getTiming().iterations !== Infinity && a.playState === 'running').length",
+            timeout=5000,
+        )
+    except Exception:  # noqa: BLE001 — замер всё равно идёт по текущему состоянию
+        pass
 
 
-def walk(rep, browser, slug, data, w, h, lang, js, out_dir, shots):
+def walk(rep, browser, slug, data, w, h, lang, js, out_dir):
     url = f"http://{data['host']}:{PORT}"
-    content = Content(data["content"] + [data["name"]])
+    content = Content([*data["content"], data["name"]])
     mode = "js" if js else "nojs"
     ctx = browser.new_context(
         viewport={"width": w, "height": h}, locale=f"{lang}-DE", java_script_enabled=js
@@ -425,18 +521,25 @@ def walk(rep, browser, slug, data, w, h, lang, js, out_dir, shots):
     pg = ctx.new_page()
     errs: list[str] | None = [] if js else None
     if js:
-        pg.on("pageerror", lambda e: errs.append(str(e)[:120]))
+        pg.on("pageerror", lambda e: errs.append(str(e)[:160]))
     login(pg, url, slug)
-    if "/accounts/login/" in pg.url:
-        rep.check(False, f"{slug}: вход владельца")
+    if not rep.check("/accounts/login/" not in pg.url, f"{slug}: вход владельца"):
         ctx.close()
         return
     pref = f"{data['btype']} {w} {lang} {mode}"
-    visited_sf = set()
-    for page in data["pages"]:
-        code = page["code"]
-        base = f"{url}{AUFBAU}?seite={quote(code, safe='')}"
-        resp = pg.goto(base)
+    shot = f"{out_dir}/m39_{slug}_{w}_{lang}_{mode}"
+    win_scope = "dialog.ui-bwin" if js else "[data-schema-panel]"
+
+    def guard(tag, fn, *args):
+        """Сбой стенда на одной странице — ✗ этой страницы, обход идёт дальше."""
+        try:
+            fn(*args)
+        except Exception as exc:  # noqa: BLE001
+            msg = str(exc).splitlines()[0][:160]
+            rep.check(False, f"{tag}: стенд не прошёл страницу ({msg})", sigs=[f"сбой: {msg}"])
+
+    def screen(code, n, refs):
+        resp = pg.goto(f"{url}{AUFBAU}?seite={quote(code, safe='')}")
         settle(pg, js)
         check_common(
             rep,
@@ -446,58 +549,79 @@ def walk(rep, browser, slug, data, w, h, lang, js, out_dir, shots):
             errs,
             "main",
             PAGE_MIN,
-            True,
             lang,
             content,
+            kind="экран",
         )
-        if shots and code == "home":
-            pg.screenshot(path=f"{out_dir}/m39_{slug}_{w}_{lang}_{mode}_aufbau.png")
-        for ref in page["refs"]:
-            wurl = f"{base}&block={quote(ref, safe='')}"
-            tag = f"{pref} «{code}» {ref}"
-            resp = pg.goto(wurl)
-            settle(pg, js)
-            if js:
-                keys = check_window_js(rep, pg, tag)
-                scope = "dialog.ui-bwin"
-            else:
-                keys = check_window_nojs(rep, pg, tag)
-                scope = "[data-schema-panel]"
-            check_common(
-                rep, pg, tag, resp and resp.status, errs, scope, WIN_MIN, False, lang, content
+        dom = pg.eval_on_selector_all(
+            "[data-schema-block]", "els => els.map(e => e.getAttribute('data-schema-block'))"
+        )
+        want = set(refs)
+        rep.check(
+            set(dom) == want,
+            f"{pref} «{code}»: строки экрана = строки site_schema "
+            f"(лишние {sorted(set(dom) - want)}, нет {sorted(want - set(dom))})",
+            sigs=[
+                f"экран: строки ≠ site_schema «{_num_free(code)}» "
+                f"+{sorted(set(dom) - want)} -{sorted(want - set(dom))}"
+            ],
+        )
+        if n == 0:
+            pg.screenshot(path=f"{shot}_aufbau.png")
+
+    def window(code, ref, first):
+        wurl = f"{url}{AUFBAU}?seite={quote(code, safe='')}&block={quote(ref, safe='')}"
+        tag = f"{pref} «{code}» {ref}"
+        resp = pg.goto(wurl)
+        settle(pg, js)
+        scope = win_scope
+        if js and not pg.locator("dialog.ui-bwin").count() and not pg.evaluate(_WANTS_WINDOW):
+            # у блока без вкладок окна нет (M3-2: `window_done` рисуется только при вкладках) —
+            # панель остаётся колонкой; проверяем её как без JS
+            rep.note(
+                f"окно js: блок без вкладок — панель колонкой, без <dialog> («{_num_free(code)}» {ref})"
             )
-            for key in keys[1:] if js else keys:
-                ttag = f"{tag} tab={key}"
-                if js:  # вкладка — щелчком (APG), панель видна, проверки — по видимому
-                    pg.click(f"dialog.ui-bwin [role=tab][data-window-tab-link={key}]")
-                    rep.check(
-                        pg.locator(f"dialog.ui-bwin [data-window-tab={key}]").is_visible(),
-                        f"{ttag}: панель вкладки видна",
-                    )
-                    check_common(rep, pg, ttag, 200, errs, scope, WIN_MIN, False, lang, content)
-                else:  # без JS — адрес `?tab=`
-                    resp = pg.goto(f"{wurl}&tab={key}")
-                    check_window_nojs(rep, pg, ttag, want_tab=key)
-                    check_common(
-                        rep,
-                        pg,
-                        ttag,
-                        resp and resp.status,
-                        None,
-                        scope,
-                        WIN_MIN,
-                        False,
-                        lang,
-                        content,
-                    )
-            if shots and page is data["pages"][0] and ref == page["refs"][0]:
-                pg.screenshot(path=f"{out_dir}/m39_{slug}_{w}_{lang}_{mode}_window.png")
-        sf = page["preview"]
-        if sf and sf not in visited_sf:
-            visited_sf.add(sf)
-            site = ctx.new_page()
-            if js:
-                site.on("pageerror", lambda e: errs.append(str(e)[:120]))
+            keys, scope = check_window_nojs(rep, pg, tag), "[data-schema-panel]"
+        else:
+            keys = check_window_js(rep, pg, tag) if js else check_window_nojs(rep, pg, tag)
+        check_common(
+            rep,
+            pg,
+            tag,
+            resp and resp.status,
+            errs,
+            scope,
+            WIN_MIN,
+            lang,
+            content,
+            kind="окно",
+        )
+        if first:
+            pg.screenshot(path=f"{shot}_window.png")
+        for key in keys[1:] if js else keys:
+            ttag = f"{tag} tab={key}"
+            if js:  # вкладка — щелчком (APG); проверки — по видимой панели
+                pg.click(f"dialog.ui-bwin [role=tab][data-window-tab-link={key}]", timeout=5000)
+                settle(pg, js)
+                rep.check(
+                    pg.locator(f"dialog.ui-bwin [data-window-tab={key}]").is_visible(),
+                    f"{ttag}: панель вкладки видна после щелчка",
+                    sigs=[f"окно js: вкладка {key} не открылась щелчком ({code})"],
+                )
+                status = 200
+            else:  # без JS — адрес `?tab=`
+                resp = pg.goto(f"{wurl}&tab={key}")
+                check_window_nojs(rep, pg, ttag, want_tab=key)
+                status = resp and resp.status
+            check_common(
+                rep, pg, ttag, status, errs, win_scope, WIN_MIN, lang, content, kind="окно"
+            )
+
+    def storefront(sf, first):
+        site = ctx.new_page()
+        if js:
+            site.on("pageerror", lambda e: errs.append(str(e)[:160]))
+        try:
             resp = site.goto(url + sf)
             settle(site, js)
             check_common(
@@ -508,25 +632,37 @@ def walk(rep, browser, slug, data, w, h, lang, js, out_dir, shots):
                 errs,
                 "body",
                 PAGE_MIN,
-                False,
                 lang,
                 content,
+                kind="витрина",
             )
-            if shots and len(visited_sf) == 1:
-                site.screenshot(path=f"{out_dir}/m39_{slug}_{w}_{lang}_{mode}_site.png")
+            if first:
+                site.screenshot(path=f"{shot}_site.png", full_page=True)
+        finally:
             site.close()
+
+    visited_sf = set()
+    for n, page in enumerate(data["pages"]):
+        code = page["code"]
+        guard(f"{pref} «{code}»", screen, code, n, page["refs"])
+        for i, ref in enumerate(page["refs"]):
+            guard(f"{pref} «{code}» {ref}", window, code, ref, n == 0 and i == 0)
+        sf = page["preview"]
+        if sf and sf not in visited_sf:
+            visited_sf.add(sf)
+            guard(f"{pref} витрина {sf}", storefront, sf, len(visited_sf) == 1)
     ctx.close()
 
 
 def main_walk(argv):
-    from playwright.sync_api import sync_playwright
-
     out_dir = argv[0]
     os.makedirs(out_dir, exist_ok=True)
     only = None
     if "--only" in argv:
         only = set(argv[argv.index("--only") + 1].split(","))
     passes = (False,) if "--no-js-pass" in argv else (False, True)
+    if "--js-only" in argv:  # отладка прохода с JS; приёмка — оба прохода
+        passes = (True,)
     slugs = kit_slugs()
     if only:
         slugs = [s for s, k in zip(slugs, KITS, strict=True) if s in only or k in only]
@@ -538,6 +674,24 @@ def main_walk(argv):
         n = sum(len(p["refs"]) for p in d["pages"])
         print(f"— {slug} ({d['btype']}): {len(d['pages'])} строк, {n} блоков, языки {d['locales']}")
         rep.check("ru" in d["locales"], f"{slug}: ru включён у бизнеса ({d['locales']})")
+    import signal
+
+    def stop(_sig, _frame):  # timeout/kill: сводка того, что успели пройти
+        raise KeyboardInterrupt
+
+    signal.signal(signal.SIGTERM, stop)
+    try:
+        _walk_all(rep, slugs, data, passes, out_dir)
+    except KeyboardInterrupt:
+        rep.check(False, "обход прерван (timeout/сигнал) — сводка неполная")
+    rep.summary()
+    print(f"\n{rep.ok} ✓, {len(rep.fail)} ✗")
+    sys.exit(1 if rep.fail else 0)
+
+
+def _walk_all(rep, slugs, data, passes, out_dir):
+    from playwright.sync_api import sync_playwright
+
     with sync_playwright() as p:
         browser = p.chromium.launch(
             executable_path=CHROME, args=[f"--host-resolver-rules=MAP *.{BASE} 127.0.0.1"]
@@ -548,11 +702,9 @@ def main_walk(argv):
                 for w, h in SIZES:
                     for lang in LANGS:
                         before = len(rep.fail)
-                        walk(rep, browser, slug, data[slug], w, h, lang, js, out_dir, True)
+                        walk(rep, browser, slug, data[slug], w, h, lang, js, out_dir)
                         print(f"  · {slug} {w} {lang}: ✗ {len(rep.fail) - before}")
         browser.close()
-    print(f"\n{rep.ok} ✓, {len(rep.fail)} ✗")
-    sys.exit(1 if rep.fail else 0)
 
 
 # --- замок стенда: сломанные страницы обязаны дать ✗ --------------------------------------
@@ -631,7 +783,7 @@ def selftest():
             rep = Report()
             resp = pg.goto("http://selftest.local" + path)
             check_window_nojs(rep, pg, path)
-            check_common(rep, pg, path, resp.status, None, scope, WIN_MIN, False, "ru", content)
+            check_common(rep, pg, path, resp.status, None, scope, WIN_MIN, "ru", content)
             return rep.fail
 
         print("— чистая страница (ожидается ✓)")
