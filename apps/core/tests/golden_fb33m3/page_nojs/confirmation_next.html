@@ -128,7 +128,7 @@
       <div class="space-y-3 border-t border-dashed border-gray-300 px-3 py-3">
       <form method="post" class="flex flex-wrap items-end gap-2">
         <input type="hidden" name="csrfmiddlewaretoken" value="X">
-        <input type="hidden" name="seite" value="confirmation"><input type="hidden" name="wopen" value="W">
+        <input type="hidden" name="seite" value="confirmation"><input type="hidden" name="wopen" value="W"><input type="hidden" name="sprache" value="en">
 
         <input type="hidden" name="op" value="add">
         <label class="text-sm flex-1 min-w-[10rem]"><span class="block text-xs text-gray-600 mb-1">Einzelner Block</span>
@@ -145,7 +145,7 @@
       </form>
       <form method="post" class="flex flex-wrap items-end gap-2" data-schema-add-row>
         <input type="hidden" name="csrfmiddlewaretoken" value="X">
-        <input type="hidden" name="seite" value="confirmation"><input type="hidden" name="wopen" value="W">
+        <input type="hidden" name="seite" value="confirmation"><input type="hidden" name="wopen" value="W"><input type="hidden" name="sprache" value="en">
 
         <input type="hidden" name="op" value="add_row">
         <label class="text-sm flex-1 min-w-[10rem]"><span class="block text-xs text-gray-600 mb-1">Fertige Zeile</span>
@@ -178,7 +178,7 @@
   
   <aside class="ui-card p-4 scroll-mb-28 scroll-mt-20 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 max-md:fixed max-md:inset-x-0 max-md:bottom-0 max-md:z-[70] max-md:max-h-[60dvh] max-md:overflow-y-auto max-md:pb-[max(1rem,env(safe-area-inset-bottom))] max-md:rounded-b-none max-md:shadow-[0_-10px_30px_rgba(22,24,29,0.25)]" id="schema-panel" tabindex="-1" aria-labelledby="schema-panel-title" data-schema-panel>
     
-    <form method="post" class="md:hidden -mt-1 mb-1 text-right"><input type="hidden" name="csrfmiddlewaretoken" value="X"><input type="hidden" name="seite" value="confirmation"><input type="hidden" name="wopen" value="W">
+    <form method="post" class="md:hidden -mt-1 mb-1 text-right"><input type="hidden" name="csrfmiddlewaretoken" value="X"><input type="hidden" name="seite" value="confirmation"><input type="hidden" name="wopen" value="W"><input type="hidden" name="sprache" value="en">
 <input type="hidden" name="ref" value="next"><button name="op" value="window_done" class="inline-flex items-center min-h-[44px] px-2 font-semibold text-indigo-700" data-schema-done>Fertig<span class="sr-only"> – Einstellungen des Blocks schließen</span></button></form>
     
     
@@ -203,11 +203,20 @@
 
 <form method="post" id="bw-form-fields" class="mt-4 space-y-3" data-schema-fields>
   <input type="hidden" name="csrfmiddlewaretoken" value="X">
-  <input type="hidden" name="seite" value="confirmation"><input type="hidden" name="wopen" value="W">
+  <input type="hidden" name="seite" value="confirmation"><input type="hidden" name="wopen" value="W"><input type="hidden" name="sprache" value="en">
 
   <input type="hidden" name="ref" value="next">
   <input type="hidden" name="panel_present" value="1">
   <input type="hidden" name="op_default" value="update">
+  <input type="hidden" name="op" value="update"><button name="op" value="update" class="sr-only" tabindex="-1">Übernehmen</button>
+  <div class="space-y-2 rounded-lg bg-gray-50 p-3" data-form-langs>
+    <p id="bwtr-lang-title" class="text-sm font-semibold text-gray-800">Übersetzung bearbeiten</p>
+    <div class="flex flex-wrap gap-2" role="group" aria-labelledby="bwtr-lang-title" aria-describedby="bwtr-lang-hint">
+      <button id="schema-tab-lang-en" name="f_sprache" value="en" lang="en" aria-pressed="true" class="ui-btn ui-btn-primary min-h-[44px]" data-form-lang="en"><span aria-hidden="true">✓ </span>English</button>
+    </div>
+    <p id="bwtr-lang-hint" class="text-xs text-gray-700">Leeres Feld: Die Seite zeigt den Text unter „Ohne Übersetzung“.</p><p role="status" aria-atomic="true" class="text-xs font-semibold text-gray-800" data-form-status data-said="" data-prefix="Übersetzung entfernt, weil der deutsche Text geändert wurde: "></p>
+
+  </div>
   
   <div>
     <label for="schema-f-text" class="block text-sm font-semibold text-gray-700 mb-1">Was passiert jetzt</label>
@@ -216,9 +225,15 @@
     
     <p id="schema-f-text-hint" class="mt-1 text-xs text-gray-700">Leer lassen — der Abschnitt erscheint nicht.</p>
     <p id="schema-f-text-max" class="mt-1 text-xs text-gray-700">Höchstens 1200 Zeichen.</p>
+    <div data-i18n-loc="en">
+      <label for="schema-f-text-en" class="mt-1 block text-xs text-gray-700"><span lang="de">„Was passiert jetzt“</span> – Übersetzung (English)</label>
+      <textarea id="schema-f-text-en" name="f_tr_text_en" rows="4" lang="en" maxlength="1200" aria-describedby="schema-f-text-en-src bwtr-lang-hint" class="ui-input w-full"></textarea>
+      <p id="schema-f-text-en-src" class="mt-1 text-xs text-gray-700">Ohne Übersetzung: <span lang="de" class="break-words">Standardtext der Seite</span></p>
+    </div>
+
   </div>
   
-  <p class="text-xs text-gray-600">Hier steht der Text der Hauptsprache. Übersetzungen ändern Sie direkt auf der Seite.</p><p class="text-sm"><a href="/dashboard/site/home/?page=%2Fbestaetigung%2Fvorschau%2F" class="inline-flex items-center min-h-[44px] font-semibold text-indigo-700 hover:underline" data-schema-translate>Übersetzungen auf der Seite bearbeiten →</a></p>
+  
   <button name="op" value="update" class="ui-btn ui-btn-primary w-full">Übernehmen</button>
   
 </form>
@@ -231,7 +246,7 @@
 
 <form method="post" class="mt-4 flex flex-wrap justify-end gap-2 border-t border-gray-200 pt-3" data-window-actions data-wait-error="Die letzte Änderung ist noch unterwegs. Bitte noch einmal versuchen.">
   <input type="hidden" name="csrfmiddlewaretoken" value="X">
-  <input type="hidden" name="seite" value="confirmation"><input type="hidden" name="wopen" value="W">
+  <input type="hidden" name="seite" value="confirmation"><input type="hidden" name="wopen" value="W"><input type="hidden" name="sprache" value="en">
 
   <input type="hidden" name="ref" value="next">
   <button name="op" value="revert" class="ui-btn ui-btn-secondary min-h-[44px]">Abbrechen</button>
