@@ -55,11 +55,14 @@
     var wrap = el.nextElementSibling;
     return wrap && wrap.querySelector ? wrap.querySelector(".rte-area") : null;
   }
-  function trFill(el, value) {
+  function trFill(el, value, note) {
     el.value = value;
-    el.setAttribute("data-ai-filled", "1");
+    // M2i-5c: id пометки «Automatisch übersetzt» — у кнопки (data-note), иначе прежний; в
+    // значении data-ai-filled — чтобы при правке владельца снять ту же ссылку
+    note = note || "i18n-ai-note";
+    el.setAttribute("data-ai-filled", note);
     var desc = (el.getAttribute("aria-describedby") || "").split(" ").filter(Boolean);
-    if (desc.indexOf("i18n-ai-note") === -1) desc.push("i18n-ai-note");
+    if (desc.indexOf(note) === -1) desc.push(note);
     el.setAttribute("aria-describedby", desc.join(" "));
     var area = trArea(el);
     // иначе submit перетрёт значение старым редактором. HTML — только у rich-базы (сервер
@@ -95,6 +98,7 @@
     var sel = fixed ? null : document.querySelector("[data-i18n-select]");
     var loc = fixed || (sel ? sel.value : ""), base = btn.getAttribute("data-base");
     if (!loc || loc === base) return;
+    if (fixed && !btn.form) return;  // кнопка со своим языком — только в своей форме
     var byId = {}, items = [], n = 0;
     trFields(loc, fixed ? btn.form : null).forEach(function (el) {
       if (!trEmpty(el)) return;
@@ -130,7 +134,7 @@
         var hit = byId[id], el = hit && hit.el;
         if (!same || !el || !el.isConnected || !trEmpty(el)) return;
         if (trBase(el, loc, base).trim() !== hit.text) return;
-        trFill(el, got[id]);
+        trFill(el, got[id], btn.getAttribute("data-note"));
         filled++;
         last = el;
         // M2i-5c: перевод варианта в свёрнутом списке «Optionen übersetzen» — список раскрыть
@@ -184,9 +188,11 @@
     }
     if (wrap) wrap.previousElementSibling.removeAttribute("data-ai-filled");
     if (e.isTrusted && e.target.hasAttribute && e.target.hasAttribute("data-ai-filled")) {
+      var note = e.target.getAttribute("data-ai-filled");
+      if (note === "1" || !note) note = "i18n-ai-note";
       e.target.removeAttribute("data-ai-filled");
       var rest = (e.target.getAttribute("aria-describedby") || "").split(" ").filter(function (x) {
-        return x && x !== "i18n-ai-note";
+        return x && x !== note;
       });
       if (rest.length) e.target.setAttribute("aria-describedby", rest.join(" "));
       else e.target.removeAttribute("aria-describedby");

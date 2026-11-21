@@ -109,7 +109,7 @@ def test_button_sits_in_language_block_hidden_without_js(monkeypatch):
     screen = re.search(r'data-screen="([^"]+)"', btn).group(1)
     assert it.screen_from(screen, connection.schema_name) == "site-schema"
     assert 'role="status"' in box and 'aria-live="polite"' in box
-    assert 'id="i18n-ai-note"' in box
+    assert 'id="i18n-ai-note"' in box and 'data-note="i18n-ai-note"' in btn
     assert part.count("data-i18n-translate ") == 1
     # язык — выбранный кнопкой языка (data-loc меняется вместе с панелью)
     _html, part_en = _part(_b(), "&sprache=en")
@@ -187,6 +187,10 @@ def test_page_carries_translate_client_once(monkeypatch):
     assert '"aufbau:panel"' in script and 'getAttribute("data-loc")' in script
     # со скриптами «Übernehmen» скрыта: перевод уходит в черновик одним change (aufbau.js)
     assert 'last.dispatchEvent(new Event("change"' in script
+    # ревью M2i-5c: кнопка со своим языком без формы не сканирует документ
+    assert "if (fixed && !btn.form) return;" in script
+    # id пометки ИИ — из атрибута кнопки (вторая такая кнопка в окне — свой id)
+    assert 'trFill(el, got[id], btn.getAttribute("data-note"))' in script
     assert "__i18nSwitchBound" not in html, "переключатель языка форм на страницу не тащим"
 
 
