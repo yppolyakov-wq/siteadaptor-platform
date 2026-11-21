@@ -22,6 +22,7 @@
         {% endfor %}
       </ul>
       {% if o.note %}<p class="text-sm bg-amber-50 text-amber-900 rounded-lg px-2 py-1 mb-3 whitespace-pre-line">📝 {{ o.note }}</p>{% endif %}
+      {% if o.kds_answers %}<dl class="text-sm bg-amber-50 text-amber-900 rounded-lg px-2 py-1 mb-3" data-kds-answers>{% for label, value in o.kds_answers %}<div><dt class="inline font-medium">{{ label }}:</dt> <dd class="inline whitespace-pre-line">{{ value }}</dd></div>{% endfor %}</dl>{% endif %}
       <form hx-post="{% url 'orders:kitchen-action' o.pk %}" hx-target="#kds-board" hx-swap="outerHTML">
         {% csrf_token %}
         {% if o.status == 'new' %}

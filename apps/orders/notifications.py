@@ -35,6 +35,13 @@ _CUSTOMER_TEMPLATES = {
 }
 
 
+def _owner_answers(order) -> list:
+    """FB-33 M2i-34: строки снимка ответов (`form_answers.rows`) — те же, что у карточки и KDS."""
+    from apps.core import form_answers
+
+    return form_answers.rows(getattr(order, "custom_answers", None))
+
+
 def enqueue_order_email(order, event, dedupe_suffix=""):
     """Создать Notification(ы) события заказа (БД-дедуп) и поставить доставку.
 
@@ -156,6 +163,8 @@ def enqueue_order_email(order, event, dedupe_suffix=""):
     if event in ("created", "anprobe_created"):
         owner = _owner_email(tenant)
         owner_tpl = "order_anprobe_owner" if event == "anprobe_created" else "order_owner"
+        # FB-33 M2i-34: ответы на свои вопросы оформления — только владельцу (клиенту — нет)
+        ctx = {**ctx, "custom_answers": _owner_answers(order)}
         if owner and channel_enabled(tenant, "owner", "order", "created", "email"):
             subject, body, html = _render(owner_tpl, {**ctx, "unsubscribe_url": ""})
             notify(

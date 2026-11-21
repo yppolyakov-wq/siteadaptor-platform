@@ -139,6 +139,17 @@ def _active_kitchen_orders():
     )
 
 
+def _kitchen_orders():
+    """FB-33 M2i-34: заказы доски со строками ответов на свои вопросы (`kds_answers`) — тот же
+    снимок и те же строки, что у карточки; ответы в строке заказа — без запросов на заказ."""
+    from apps.core import form_answers
+
+    orders = list(_active_kitchen_orders())
+    for order in orders:
+        order.kds_answers = form_answers.rows(order.custom_answers)
+    return orders
+
+
 @login_required
 def kitchen(request):
     """Küchen-Display (KDS, A4): экран очереди заказов с авто-обновлением.
@@ -149,7 +160,7 @@ def kitchen(request):
     return render(
         request,
         "orders/kitchen.html",
-        {"orders": _active_kitchen_orders(), "nav": "orders"},
+        {"orders": _kitchen_orders(), "nav": "orders"},
     )
 
 
@@ -217,7 +228,7 @@ def table_qr(request):
 @login_required
 def kitchen_board(request):
     """HTMX-партиал доски KDS (поллинг каждые несколько секунд)."""
-    return render(request, "orders/_kitchen_board.html", {"orders": _active_kitchen_orders()})
+    return render(request, "orders/_kitchen_board.html", {"orders": _kitchen_orders()})
 
 
 @login_required
@@ -234,7 +245,7 @@ def kitchen_action(request, pk):
             OrderSM().apply(order, action, actor=request.user)
         except IllegalTransition:
             pass  # статус уже сменился (другой экран) — просто перерисуем доску
-    return render(request, "orders/_kitchen_board.html", {"orders": _active_kitchen_orders()})
+    return render(request, "orders/_kitchen_board.html", {"orders": _kitchen_orders()})
 
 
 @login_required

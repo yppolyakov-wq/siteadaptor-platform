@@ -33,8 +33,6 @@ from apps.tenants.tests.factories import TenantFactory
 pytestmark = pytest.mark.django_db
 
 
-TODO_C4 = pytest.mark.xfail(strict=True, reason="FB-33 M2i-34 C4")
-
 QUESTIONS = [
     {"id": "q1", "type": "text", "label": "Allergien", "mode": "req"},
     {"id": "q2", "type": "number", "label": "Personen"},
@@ -276,7 +274,6 @@ def _order_with_answers(**kw):
     return order
 
 
-@TODO_C4
 def test_card_shows_the_snapshot_escaped():
     order = _order_with_answers()
     body = views.order_detail(_cab_req(path=f"/dashboard/orders/{order.pk}/"), pk=order.pk)
@@ -285,7 +282,6 @@ def test_card_shows_the_snapshot_escaped():
     assert "<script>a()" not in html and "&lt;script&gt;a()" in html and "Geschenk&lt;b&gt;" in html
 
 
-@TODO_C4
 def test_kitchen_board_shows_the_same_rows_as_the_card():
     order = _order_with_answers()
     html = views.kitchen_board(_cab_req()).content.decode()
@@ -298,7 +294,6 @@ def test_kitchen_board_shows_the_same_rows_as_the_card():
     assert "Geschenk&lt;b&gt;" in html
 
 
-@TODO_C4
 def test_renamed_question_keeps_the_old_label_everywhere():
     order = _order_with_answers()
     order.custom_answers = {"q1": {"label": "Allergien", "value": "Nüsse", "type": "text"}}
@@ -318,7 +313,6 @@ def test_status_change_through_the_fsm_keeps_the_snapshot():
     assert order.custom_answers == SNAP
 
 
-@TODO_C4
 def test_owner_mail_lists_the_answers_and_the_customer_mail_does_not(monkeypatch):
     from apps.orders import notifications
 
@@ -338,7 +332,6 @@ def test_owner_mail_lists_the_answers_and_the_customer_mail_does_not(monkeypatch
     assert customer and all("Allergien" not in (m["body"] + m["html"]) for m in customer)
 
 
-@TODO_C4
 def test_the_customer_sees_own_order_answers_in_the_account():
     from apps.account import account_data
     from apps.promotions.models import Customer

@@ -8,5 +8,6 @@
 {% endif %}{% if order.table_number %}{% trans "Tisch" %}: {{ order.table_number }}{% endif %}
 {% if order.pickup_location %}{% trans "Abholort" %}: {{ order.pickup_location }}{% endif %}
 {% if order.note %}{% trans "Notiz" %}: {{ order.note }}{% endif %}
-
+{% for label, value in custom_answers %}{{ label }}: {{ value }}
+{% endfor %}
 {% trans "Bestellung im Dashboard bestätigen" %}: /dashboard/orders/

@@ -84,6 +84,7 @@ def sections_for(request, customer):
 
 
 def _orders(customer):
+    from apps.core import form_answers
     from apps.orders.models import Order
 
     items = []
@@ -96,6 +97,8 @@ def _orders(customer):
                 "status": tx.status_label,
                 "url": tx.detail_url_customer,
                 "reorder": tx.reference_code,  # CA4: «Nochmal bestellen»
+                # FB-33 M2i-34: свои ответы на вопросы оформления — и в ЛК
+                "answers": form_answers.rows(o.custom_answers),
             }
         )
     return {"key": "orders", "title": "Bestellungen", "icon": "🛍️", "items": items}
