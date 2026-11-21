@@ -681,8 +681,10 @@ def code_for_path(tenant, path: str) -> str:
         return ""
     try:
         ctx = studio_pages.resolve_page(path)
-        host = getattr(ctx, "block_host", "") or ""
+        # FB-33 M4: у «Aktionen» и группы акций хост блоков — не в типе Студии (EXTRA_HOSTS)
+        host = getattr(ctx, "block_host", "") or EXTRA_HOSTS.get(ctx.code, "")
         pt_code = ctx.code
+        group = ctx.object_ref if pt_code == PROMO_GROUP else ""
     except Exception:  # noqa: BLE001 — ссылка не должна ронять Студию
         logger.warning("site schema: page of path not resolved", exc_info=True)
         return ""
@@ -701,8 +703,14 @@ def code_for_path(tenant, path: str) -> str:
         )
     if not code:
         return ""
+    # FB-33 M4: страница одной группы акций — её строка (живая группа; иначе общая)
+    own = (
+        f"{PROMO_GROUP}@{siteconfig.promo_group_host(group)}"
+        if group
+        else _own_code(tenant, code, _path_ref(path))
+    )
     # T2: у объекта со своими блоками открываем ЕГО строку — «Nur diese Seite»
-    for candidate in (_own_code(tenant, code, _path_ref(path)), code):
+    for candidate in (own, code):
         if not candidate:
             continue
         try:
