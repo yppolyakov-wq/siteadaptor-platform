@@ -177,6 +177,8 @@ function aufbauSubmitCopy(form, submitter) {
         refusedShown = false;
         if (!refused) clearErrors();
         relay();
+        // FB-33 M3-7: правка записана — «Vorschau» окна перерисует кадр
+        if (!refused) document.dispatchEvent(new CustomEvent("aufbau:saved"));
         if (refused) whole = true;
         swap(doc, "[data-schema-status]");
         swap(doc, "[data-schema-map]");
@@ -766,6 +768,7 @@ function aufbauSubmitCopy(form, submitter) {
     langNote();
     relay();
     focusIn();
+    document.dispatchEvent(new CustomEvent("aufbau:window-open"));  // FB-33 M3-7: «Vorschau»
     // ревью M3-2 (M7): перед перезагрузкой окно закрывали — закрываем его теперь (если без ошибки)
     var intent = unstash(INTENT);
     var refusedNow = document.querySelector('[data-schema-messages] [role="alert"]');
@@ -795,6 +798,7 @@ function aufbauSubmitCopy(form, submitter) {
     if (mark && mark.parentNode) mark.parentNode.removeChild(mark);
     win.remove();
     win = null;
+    document.dispatchEvent(new CustomEvent("aufbau:window-close"));  // FB-33 M3-7: кадр убрать
     mark = null;
     closing = false;
     lastRefused = false;

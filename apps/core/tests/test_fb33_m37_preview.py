@@ -243,7 +243,6 @@ def test_storefront_frames_only_same_origin_cabinet_never():
 # ───────────── L6/L7: кадр без скриптов, тексты, события ─────────────
 
 
-@pytest.mark.xfail(strict=True, reason="M3-7 C2: aufbau_preview.js ещё нет")
 def test_frame_sandbox_has_no_scripts_forms_or_top_navigation():
     src = (JS / "aufbau_preview.js").read_text()
     sandbox = re.findall(r'"sandbox",\s*"([^"]*)"', src)
@@ -254,7 +253,6 @@ def test_frame_sandbox_has_no_scripts_forms_or_top_navigation():
     assert 'referrerpolicy", "same-origin"' in src
 
 
-@pytest.mark.xfail(strict=True, reason="M3-7 C2: событий окна ещё нет")
 def test_aufbau_js_gets_exactly_three_new_events():
     src = (JS / "aufbau.js").read_text()
     names = set(re.findall(r'new CustomEvent\("([^"]+)"', src))
