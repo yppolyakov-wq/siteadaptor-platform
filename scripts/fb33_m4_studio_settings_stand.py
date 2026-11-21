@@ -104,6 +104,7 @@ def run(b, w, h):
     check(q.get("seite") == "home" and q.get("block") == key, f"⚙ → окно блока {key} ({pg.url})")
     pg.wait_for_selector(f"{DLG}[open]", timeout=10000)
     check(pg.locator(f"{DLG}[open]").count() == 1, "окно блока открыто (dialog)")
+    pg.wait_for_function("!document.getAnimations().length")  # окно открылось
     pg.screenshot(path=f"{OUT}/m4_home_window_{w}.png")
 
     # 2. «Fertig» → «Auf der Seite bearbeiten» → Студия на той же странице
@@ -146,6 +147,7 @@ def run(b, w, h):
         "block" in q or pg.locator("text=Diesen Block finden Sie im Seitenaufbau nicht.").count(),
         "открыт блок — или подсказка, что его тут нет",
     )
+    pg.wait_for_function("!document.getAnimations().length")  # окно открылось
     pg.screenshot(path=f"{OUT}/m4_catalog_{w}.png")
     studio = (
         pg.locator(
