@@ -71,7 +71,7 @@ def _draft(browser):
 def test_field_only_for_a_liste_with_a_promo_type():
     b = Browser(
         _shop(
-            _promo_block("a1"),
+            _promo_block("a1", out="slider"),
             _block("a2", source="promotions"),
             _block("a3", source="products"),
         )
@@ -241,3 +241,143 @@ def test_scope_needs_the_right_to_edit_promo_types(monkeypatch):
     # без права поддельный POST охват не ставит
     _scope(b, "a1")
     assert not (_draft(b) or {}).get("scope")
+
+
+# ───────────── ревью (django + a11y): H1, H2, M1, M2, L1, L3, A1–A4 ─────────────
+_XF = pytest.mark.xfail(strict=True, reason="FB-33 M4c ревью: до кода")
+
+
+# H1 — блок без своих осей вид типа не стирает: поля нет, вместо него — строка-подсказка
+@_XF
+def test_block_without_own_view_cannot_wipe_the_type():
+    from apps.core import list_blocks
+
+    entry = {"style": "countdown", "card": "ring", "layout": {"preset": "cols4", "cols": 4}}
+    b = Browser(_shop(_promo_block("a1"), promo_groups={TYPE: copy.deepcopy(entry)}))
+    html = _window(b, "a1")
+    assert 'name="f_scope"' not in html
+    note = re.search(r"<p[^>]*data-schema-scope-note[^>]*>(.*?)</p>", html, re.S).group(1)
+    assert TYPE in note and "Aktionstypen" in note
+    # поддельный POST охват не ставит; старый служебный ключ в данных — тоже не стирает
+    _scope(b, "a1")
+    assert not (_draft(b) or {}).get("scope")
+    cfg = {
+        "sections": [_promo_block("a1", scope="type")],
+        "promo_groups": {TYPE: copy.deepcopy(entry)},
+    }
+    list_blocks.apply_type_scope(cfg)
+    assert cfg["promo_groups"][TYPE] == entry and "scope" not in cfg["sections"][0]["data"]
+    # охват выбран, потом свои оси сбросили («zurücksetzen») — отдавать нечего, выбор снят
+    b2 = Browser(_shop(_promo_block("a1", out="slider"), promo_groups={TYPE: copy.deepcopy(entry)}))
+    _scope(b2, "a1")
+    assert _draft(b2)["scope"]
+    b2.post(seite="home", op="update", ref="a1", panel_present="1", f_out="", f_cols="", f_rows="")
+    assert "scope" not in _draft(b2)
+    b2.post(seite="home", op="save")
+    assert _saved(b2.tenant)["promo_groups"][TYPE] == entry
+
+
+# H2 — тип блока сменили при выбранном охвате: охват на новый тип не переезжает
+@_XF
+def test_changing_the_type_drops_the_scope():
+    b = Browser(_shop(_promo_block("a1", card="coupon")))
+    _scope(b, "a1")
+    assert _draft(b)["scope"] == {"a1": TYPE}
+    b.post(seite="home", op="update", ref="a1", panel_present="1", f_type="Other")
+    assert "scope" not in _draft(b)
+    b.post(seite="home", op="save")
+    cfg = _saved(b.tenant)
+    assert not cfg.get("promo_groups")
+    assert _row(cfg, "a1")["data"]["card"] == "coupon"
+
+
+# M1 — право отозвали: предпросмотр не обещает того, чего «Speichern» не сделает
+@_XF
+def test_preview_without_the_right_keeps_the_view_at_the_block(monkeypatch):
+    b = Browser(_shop(_promo_block("a1", card="coupon")))
+    _scope(b, "a1")
+    monkeypatch.setattr("apps.core.view_perms.url_allowed", lambda user, url, method="GET": False)
+    draft = aufbau_draft.get(b._request("get"), "home")
+    shown = siteconfig.normalize(aufbau_draft.overlay(_saved(b.tenant), draft))
+    assert TYPE not in (shown.get("promo_groups") or {})
+    assert _row(shown, "a1")["data"]["card"] == "coupon"
+    assert "scope_off" not in str(b.session.get(aufbau_draft.SESSION_KEY))  # пометка не хранится
+
+
+# M2 — один источник вида у типа: выбор охвата у блока снимает его у других блоков типа
+@_XF
+def test_one_block_per_type_gives_the_view():
+    b = Browser(_shop(_promo_block("a1", card="coupon"), _promo_block("a2", card="ring")))
+    _scope(b, "a1")
+    _scope(b, "a2")
+    assert _draft(b)["scope"] == {"a2": TYPE}
+    assert not re.search(r'<option value="type"[^>]*selected', _window(b, "a1"))
+    b.post(seite="home", op="save")
+    assert _saved(b.tenant)["promo_groups"][TYPE]["card"] == "ring"
+
+
+# L1 — вид отдают только блоки страницы черновика (чужой блок с тем же id не трогаем)
+@_XF
+def test_scope_is_limited_to_the_rows_of_the_page():
+    from apps.core import list_blocks
+
+    cfg = {
+        "sections": [_promo_block("a1", card="coupon")],
+        "page_blocks": {"info": [_promo_block("a1", card="ring")]},
+    }
+    list_blocks.apply_type_scope(cfg, ids={"a1": TYPE}, rows=cfg["sections"])
+    assert cfg["promo_groups"][TYPE]["card"] == "coupon"
+    assert cfg["page_blocks"]["info"][0]["data"]["card"] == "ring"
+    # тип блока не тот, что был при выборе охвата, — вид не уходит
+    cfg = {"sections": [_promo_block("a1", card="coupon")]}
+    list_blocks.apply_type_scope(cfg, ids={"a1": "Other"}, rows=cfg["sections"])
+    assert "promo_groups" not in cfg
+
+
+# L3 — тип правили в «Aktionstypen», пока окно открыто: «Abbrechen» — без ложного конфликта
+def test_cancel_after_the_type_changed_elsewhere():
+    b = Browser(_shop(_promo_block("a1", card="coupon"), promo_groups={TYPE: "countdown"}))
+    _scope(b, "a1", wopen="tok12345")
+    t = Tenant.objects.get(pk=b.tenant.pk)
+    t.site_config = {**t.site_config, "promo_groups": {TYPE: {"style": "countdown", "card": "ring"}}}
+    t.save(update_fields=["site_config"])
+    _resp, msgs = b.post(seite="home", op="revert", ref="a1", wopen="tok12345")
+    assert any("zurückgenommen" in m for m in msgs), msgs
+    assert _draft(b) is None
+    assert _saved(t)["promo_groups"][TYPE] == {"style": "countdown", "card": "ring"}
+
+
+# A1 — предупреждение экрана не красится «успехом»
+@_XF
+def test_warning_message_is_not_painted_as_success():
+    from django.contrib import messages
+
+    from apps.core.site_schema_views import site_schema_view
+
+    b = Browser(_shop(_promo_block("a1", card="coupon")))
+    req = b._request("get", query="?seite=home")
+    messages.warning(req, "Achtung-M4c")
+    messages.success(req, "Gut-M4c")
+    html = site_schema_view(req).content.decode()
+    warn = re.search(r"<div[^>]*>(?:(?!</div>).)*Achtung-M4c", html, re.S).group(0)
+    assert 'role="status"' in warn and "bg-amber-50" in warn and "text-amber-900" in warn
+    assert "bg-green-50" not in warn and 'aria-hidden="true">⚠' in warn
+    good = re.search(r"<div[^>]*>(?:(?!</div>).)*Gut-M4c", html, re.S).group(0)
+    assert "bg-green-50" in good and "⚠" not in good
+
+
+# A2–A4 — выбран «Den ganzen Typ»: видимое предупреждение, имя типа в варианте, без «nur diesen»
+@_XF
+def test_type_scope_says_what_saving_will_do():
+    b = Browser(_shop(_promo_block("a1", out="slider", card="coupon")))
+    html = _window(b, "a1")
+    assert f'<option value="type">Den ganzen Typ: {TYPE}</option>' in html
+    assert "schema-l-scope-warn" not in html
+    _scope(b, "a1")
+    html = _window(b, "a1")
+    select = re.search(r'<select[^>]*name="f_scope"[^>]*>', html).group(0)
+    assert 'aria-describedby="schema-l-scope-hint schema-l-scope-warn"' in select
+    warn = re.search(r'<p id="schema-l-scope-warn"([^>]*)>(.*?)</p>', html, re.S)
+    assert "Beim Speichern" in warn.group(2) and "bg-amber-50" in warn.group(1)
+    assert "text-xs" not in warn.group(1)
+    assert "gilt nur für diesen Block" not in html
