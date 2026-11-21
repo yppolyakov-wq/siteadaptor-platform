@@ -241,3 +241,101 @@ def test_deploy_cleanup_keeps_rollback_images_and_never_fails():
         "container prune",
     ):
         assert banned not in code, banned
+
+
+# --- ревью django-reviewer (2026-11-21) -------------------------------------------------
+
+_REVIEW = pytest.mark.xfail(strict=True, reason="FB-33 M3-9b: замок до кода (ревью)")
+
+
+@_REVIEW
+def test_lock_connection_has_keepalives_and_leaves_settings_alone(ops_lock):
+    """Соединение блокировки часами молчит (идут миграции) — без keepalive его срежет
+    сетевой экран, и блокировка тихо пропадёт."""
+    from django.db import connections
+
+    before = dict(connections["default"].settings_dict.get("OPTIONS") or {})
+    params = ops_lock._connect().get_connection_params()
+    assert (params["keepalives"], params["keepalives_idle"]) == (1, 30)
+    assert (params["keepalives_interval"], params["keepalives_count"]) == (10, 3)
+    assert dict(connections["default"].settings_dict.get("OPTIONS") or {}) == before
+
+
+@_REVIEW
+def test_busy_message_says_how_to_find_the_holder(ops_lock):
+    with ops_lock.session_lock(timeout=0):
+        with pytest.raises(ops_lock.Busy) as exc:
+            with ops_lock.session_lock(timeout=0):
+                pass
+    assert "ops-lock:%" in str(exc.value) and "pg_terminate_backend" in str(exc.value)
+
+
+@_REVIEW
+def test_pooler_that_swaps_sessions_is_a_loud_error_at_take(ops_lock, monkeypatch):
+    """Пулер в режиме transaction отдаёт каждому запросу свою сессию: блокировка взята
+    «где-то» и ничего не защищает — операция не начинается."""
+    pids = iter(range(100, 200))
+    monkeypatch.setattr(ops_lock, "_backend_pid", lambda cursor: next(pids))
+    with pytest.raises(ops_lock.SessionChanged, match="пулер"):
+        with ops_lock.session_lock(timeout=0):
+            pytest.fail("операция пошла без блокировки")
+    with ops_lock.session_lock(timeout=0):  # и взятая «где-то» блокировка не осталась висеть
+        pass
+
+
+@_REVIEW
+def test_session_changed_during_the_operation_is_logged_loudly(ops_lock, monkeypatch, caplog):
+    pids = iter([7, 7, 8])
+    monkeypatch.setattr(ops_lock, "_backend_pid", lambda cursor: next(pids))
+    with caplog.at_level("ERROR", logger="apps.core.ops_lock"):
+        with ops_lock.session_lock(timeout=0, what="migrate_schemas --tenant"):
+            pass
+    assert "migrate_schemas --tenant" in caplog.text and "без защиты" in caplog.text
+
+
+@_REVIEW
+def test_skipping_the_lock_by_environment_is_visible(ops_lock, monkeypatch, caplog):
+    """Переменная, случайно попавшая в .env, выключила бы блокировку молча."""
+    monkeypatch.setenv(ops_lock.ENV_HELD, "1")
+    with caplog.at_level("WARNING", logger="apps.core.ops_lock"):
+        with ops_lock.hold(timeout=0, what="seed_demo_tenants"):
+            pass
+    assert ops_lock.ENV_HELD in caplog.text and "seed_demo_tenants" in caplog.text
+
+
+@_REVIEW
+def test_deploy_body_is_read_whole_and_restarts_itself_after_pull():
+    """`git pull` меняет файл под работающим bash: тело — в функции (bash читает её целиком
+    до исполнения), а после pull скрипт один раз запускает себя заново — новой версией."""
+    text = _deploy()
+    code = _code(text)
+    assert re.search(r"^main\(\) \{$", code, re.M)
+    assert text.rstrip().endswith('main "$@"\nexit')
+    pull, reexec = code.index("git pull --ff-only"), code.index('exec "$SELF" "$@"')
+    assert pull < reexec < code.index("$COMPOSE build")
+    assert 'if [ "${DEPLOY_REEXEC:-0}" != "1" ]; then' in code  # один раз
+    assert "export DEPLOY_REEXEC=1" in code
+
+
+@_REVIEW
+def test_deploy_host_lock_lives_in_the_repo_and_is_not_retaken_after_restart():
+    code = _code(_deploy())
+    assert 'DEPLOY_LOCK_FILE="${DEPLOY_LOCK_FILE:-$REPO_DIR/.git/siteadaptor-deploy.lock}"' in code
+    assert "/tmp" not in code
+    # после перезапуска дескриптор 9 унаследован — второй flock на новый дескриптор отказал бы
+    guard = code.index('if [ "${DEPLOY_REEXEC:-0}" = "1" ]; then')
+    assert guard < code.index("flock -n 9")
+
+
+@_REVIEW
+def test_deploy_template_schema_goes_through_the_lock():
+    lines = [ln for ln in _code(_deploy()).splitlines() if "ensure_template_schema" in ln]
+    assert lines and all("manage.py run_locked ensure_template_schema" in ln for ln in lines)
+    assert _code(_deploy()).count('"$LOCK_BUSY"') >= 4  # занято — стоп, а не «шаблон не готов»
+
+
+@_REVIEW
+def test_deploy_cleanup_does_not_hide_a_failed_prune():
+    code = _code(_deploy())
+    line = next(ln for ln in code.splitlines() if "docker builder prune" in ln)
+    assert "|" not in line.replace("||", "")

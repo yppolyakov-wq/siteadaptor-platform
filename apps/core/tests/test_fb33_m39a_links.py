@@ -134,3 +134,48 @@ def test_promo_detail_columns_can_shrink(col):
     html = (ROOT / "templates" / "storefront" / "promotion_detail.html").read_text()
     tag = re.search(rf'<div class="([^"]*)" data-promo-col="{col}"', html)
     assert tag and "min-w-0" in tag.group(1).split()
+
+
+# --- ревью: строка, которой у бизнеса нет, не роняет экран (адрес из закладки, старая вкладка)
+
+
+def _screen(method, tenant, data=None, query=""):
+    from types import SimpleNamespace
+
+    from django.contrib.messages.middleware import MessageMiddleware
+    from django.contrib.sessions.middleware import SessionMiddleware
+    from django.test import RequestFactory
+
+    from apps.core.site_schema_views import site_schema_view
+
+    req = getattr(RequestFactory(), method)("/dashboard/site/aufbau/" + query, data or {})
+    SessionMiddleware(lambda r: None).process_request(req)
+    MessageMiddleware(lambda r: None).process_request(req)
+    req.user = SimpleNamespace(is_authenticated=True)
+    req.tenant = tenant
+    return site_schema_view(req)
+
+
+_GONE = [("text@versand", {"disabled_modules": ["orders"]}), ("team", {})]
+_POSTS = [
+    {"op": "add", "type": "text"},
+    {"op": "toggle", "ref": "pagetext"},
+    {"op": "save"},
+    {"op": "revert", "ref": "pagetext"},
+    {"op": "discard"},
+    {"op": "setting", "name": "text_width", "value": "wide"},
+    {"zu_tab": "wie", "ref": "pagetext"},
+]
+
+
+@pytest.mark.parametrize(("code", "kw"), _GONE, ids=[c for c, _ in _GONE])
+def test_screen_survives_a_row_the_business_does_not_have(code, kw):
+    tenant = _tenant(**kw)
+    before = dict(tenant.site_config or {})
+    for query in (f"?seite={code}", f"?seite={code}&block=pagetext", f"?seite={code}&block=__page"):
+        assert _screen("get", tenant, query=query).status_code in (200, 302), query
+    for data in _POSTS:
+        resp = _screen("post", tenant, {"seite": code, **data})
+        assert resp.status_code in (200, 302), data
+    tenant.refresh_from_db()
+    assert (tenant.site_config or {}) == before  # ничего не записано
