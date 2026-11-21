@@ -50,8 +50,10 @@ def test_action_bar_and_quick_popover_render_inside_the_form():
     bar = _segment(body, 'id="bld-action-bar"', 'id="bld-quick-pop"')
     for act in ("up", "down", "vis", "del", "settings"):
         assert f'data-ab="{act}"' in bar, act
-    for kind in ("style", "layout", "width"):
+    for kind in ("style", "layout"):
         assert f'data-quick="{kind}"' in bar, kind
+    # FB-33 M4b (осознанная переписка): «Breite ▾» снята — место блока задаёт окно блока
+    assert 'data-quick="width"' not in bar
     # W0: сама плашка и пустой поповер НИЧЕГО не сабмитят — иначе Save менял бы конфиг
     shell = _segment(body, 'id="bld-action-bar"', "</form>")
     assert 'name="' not in shell

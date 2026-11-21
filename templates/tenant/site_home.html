@@ -1162,7 +1162,6 @@
         <span class="bld-ab-sep"></span>
         <button type="button" data-ab="quick" data-quick="layout" title="{% trans 'Layout' %}">{% trans "Raster" %} ▾</button>
         <button type="button" data-ab="quick" data-quick="style" title="{% trans 'Display style' %}">{% trans "Stil" %} ▾</button>
-        <button type="button" data-ab="quick" data-quick="width" title="{% trans 'Width' %}">{% trans "Breite" %} ▾</button>
         {% comment %}STU-12f: «＋ Kategorie» прямо с плашки секции «Kategorien» — раньше
            вход был только кнопкой в строке блока, которую надо было сперва открыть.{% endcomment %}
         <button type="button" data-ab="addcat" title="{% trans 'Add category' %}">＋ {% trans "Kategorie" %}</button>
@@ -1965,19 +1964,21 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
   // переводит в адрес окна сервер (`site-schema-open`, только переход внутри кабинета).
   var WINDOW_OPEN_URL = "{% url 'site-schema-open' %}";
   var LEAVE_MSG = "{% trans 'Ungespeicherte Änderungen gehen verloren.' as leave_msg %}{{ leave_msg|escapejs }}";
-  function windowHref(key) {
+  function windowHref(key, tab) {
+    // FB-33 M4b: `tab` — вкладка окна (сервер берёт только из своего списка)
     return WINDOW_OPEN_URL + "?page=" + encodeURIComponent(previewPath || "/")
-      + (key ? "&block=" + encodeURIComponent(key) : "");
+      + (key ? "&block=" + encodeURIComponent(key) : "")
+      + (key && tab ? "&tab=" + encodeURIComponent(tab) : "");
   }
   // Несохранённые правки Студии (точка у «Speichern») — спросить, прежде чем уйти.
   function leaveOk() {
     var dot = document.getElementById("bld-save-dot");
     return !dot || dot.hidden || window.confirm(LEAVE_MSG);
   }
-  function openWindowFor(key) {
-    if (leaveOk()) window.location.href = windowHref(key);
+  function openWindowFor(key, tab) {
+    if (leaveOk()) window.location.href = windowHref(key, tab);
   }
-  document.querySelectorAll("[data-stu-gear], [data-stu-aufbau]").forEach(function (a) {
+  document.querySelectorAll("[data-stu-gear], [data-stu-aufbau], [data-stu-window]").forEach(function (a) {
     a.addEventListener("click", function (e) { if (!leaveOk()) e.preventDefault(); });
   });
   function previewUrl() {
@@ -4623,12 +4624,18 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
         || form.querySelector('[data-cb-title][data-key="' + abKey + '"]');
       nameEl.textContent = (lbl ? lbl.textContent : "").trim() || abKey;
     }
+    // FB-33 M4b: контрол, снятый из строки (его правит окно блока), — кнопка ведёт в окно
+    // на вкладку «Wie anordnen» (`data-win-quick` строки секции).
+    var head = form.querySelector('.blk-edit.flex-1[data-key="' + abKey + '"]');
+    var home = head && head.closest(".home-block");
+    var viaWin = ((home && home.getAttribute("data-win-quick")) || "").split(" ");
     actionBar.querySelectorAll("[data-quick]").forEach(function (b) {
-      b.hidden = !quickCtl(b.getAttribute("data-quick"), abKey);
+      var kind = b.getAttribute("data-quick");
+      var win = !quickCtl(kind, abKey) && viaWin.indexOf(kind) >= 0;
+      if (win) b.setAttribute("data-quick-window", "");
+      else b.removeAttribute("data-quick-window");
+      b.hidden = !quickCtl(kind, abKey) && !win;
     });
-    // FB-27 R8: ширина СВОЕГО блока — структура («Seitenaufbau»); у встроенной секции остаётся.
-    var wq = actionBar.querySelector('[data-quick="width"]');
-    if (wq && form.querySelector('[name="width_cb_' + abKey + '"]')) wq.hidden = true;
   }
   function ensureFrameHooks() {
     // Кадр подменяется (двойная буферизация) — слушатели вешаем на ТЕКУЩЕЕ окно,
@@ -4694,7 +4701,8 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
       var b = e.target.closest("[data-ab]");
       if (!b) return;
       e.preventDefault();
-      if (b.getAttribute("data-ab") === "quick") openQuickPop(b.getAttribute("data-quick"));
+      if (b.hasAttribute("data-quick-window")) { closeQuickPop(); openWindowFor(abKey, "wie"); }
+      else if (b.getAttribute("data-ab") === "quick") openQuickPop(b.getAttribute("data-quick"));
       else barAction(b.getAttribute("data-ab"));
     });
     // Выбор значения закрывает поповер (контрол уезжает назад в форму сам).

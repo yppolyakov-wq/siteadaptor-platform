@@ -412,7 +412,6 @@ def _segment(body, start, end):
     return body[i : body.index(end, i)]
 
 
-@pytest.mark.xfail(strict=True, reason="C4: «Raster ▾ / Stil ▾» ведут в окно, «Breite ▾» снята")
 def test_action_bar_enters_the_window_for_removed_controls():
     tpl = STUDIO_TPL.read_text()
     bar = _segment(tpl, 'id="bld-action-bar"', "</div>")
