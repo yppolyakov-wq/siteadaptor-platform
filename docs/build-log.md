@@ -24506,3 +24506,33 @@ security/silent-failure): тупик в двусторонних прятках,
   пришёлся на полночь по Берлину) — отдельно 75 passed, стопка aggregator не трогает. Стенды на стопке:
   M3-6 66 ✓, M2b-2b 32 ✓, «Karte» 106 ✓, окно блока `fb33_m3_window_stand.py` 131 ✓ (стенд-БД
   мигрированы миграциями стопки).
+
+### 2026-11-21 — FB-33 M3-5c: переводы текстов блока в окне «Seitenaufbau»
+- Вкладка «Texte» окна блока: переводы «Text», «Foto + Text», «Button», «Bild», «Seitentitel», «Was passiert jetzt», вопросы FAQ (общие и свои вопросы объекта) и своя подпись плашки «Schnellzugriff» (во «Was») правятся в самом окне. Кнопки языка — общий партиал `templates/tenant/_bw_langs.html`; поля всех языков в DOM, имя — только у выбранного. Подсказка со ссылкой «Übersetzungen auf der Seite bearbeiten» снята.
+- Один писатель — `apps/core/block_i18n.py` (`i18n[<язык>]["sections"|"page_blocks"][host][i]["data"]`, `page_titles[host]`, `confirmation_next`, подписи плашек `…data.labels`); вопросы — через `faq_content` / `object_faq` с `explicit=` (ключ — индекс источника).
+- Черновик: `draft["btr"]` и `draft["btr_base"]` (строка `aufbau_draft.SIDE_PARTS`); «Abbrechen» откатывает только свой блок; «Speichern» сначала проверяет конфликт (`btr_conflict`), потом пишет. Показ черновика выравнивает переводы блоков по id — перестановка в черновике больше не сдвигает переводы в превью.
+- Правка немецкого текста снимает перевод поля: сообщение со списком языков (role=status); перевод, введённый в той же форме, остаётся. При «Trotzdem speichern» переводы окна поверх изменённого списка вопросов не применяются — с заметкой.
+- Решения владельца (2026-11-21): правка немецкого снимает перевод; основной язык бизнеса не de — он первым и выбран, немецкое поле «… – Deutsch (Grundtext)»; новый вопрос FAQ — поля перевода появляются после «Speichern»; плашка — только при своей немецкой подписи.
+- Ревью a11y-architect: подписи полей перевода называют поле (`<span lang="de">„Überschrift“</span>`, «Frage N», «Antwort N»); невидимая «Übernehmen» формы плашек без aria-hidden; живая область aria-atomic; исходный текст с break-words.
+- Ревью django-reviewer: удалённый блок снимает свои переводы (`block_i18n.drop`); отпечаток окна учитывает немецкие списки вопросов; свои вопросы сверяются повторно под блокировкой объекта.
+- Миграций нет. Стенд `scripts/fb33_m35c_i18n_stand.py` (1440/390 × de/ru, с JS и без); замки `test_fb33_m35c_*`; эталоны `golden_fb33m35c/` (плашки).
+
+### 2026-11-21 — FB-33 M2i-5c: кнопка ИИ «🌐 Übersetzen» во вкладке «Felder»
+- Кнопка переводит основной текст поля формы заявки в ПУСТЫЕ поля выбранного языка (`data-loc`). Запись — штатно: без JS — «Übernehmen»; со скриптами — `change` → `aufbau.js` → черновик → `form_spec.put`. Серверная часть AIS-5 не менялась.
+- Клиент вынесен из `_i18n_switch.html` в `templates/tenant/_i18n_translate_js.html` — один на все формы кабинета и окно «Seitenaufbau» (свой флаг `__i18nTranslateBound`, раскрытие по `aufbau:panel`). Источник перевода: подпись и вопрос — `data-i18n-of`, варианты и события — `data-i18n-base` (`form_spec.with_locales`: ключи `of` / `src`).
+- Программное заполнение шлёт ОДИН `change` после всех полей; свёрнутый «Optionen übersetzen» раскрывается, чтобы перевод был виден.
+- Лимит AIS-5 (больше 60 текстов или 6000 знаков) — штатный отказ «Zu viel Text auf einmal». Перевод частями — отложено (решение владельца 2026-11-21).
+- Миграций нет. Замки `test_fb33_m2i5c_translate.py` (6), стенд `scripts/fb33_m2i5c_translate_stand.py`.
+
+### 2026-11-21 — FB-33 M4: ⚙ Студии открывает окно блока «Seitenaufbau»
+- ⚙ плашки над блоком канвы и ⚙ строки секции ведут через GET `site-schema-open` (`dashboard/site/aufbau/oeffnen/?page=<путь канвы>&block=<ключ>[&tab=]`): только 302 внутри экрана, ничего не пишет. Путь — живой путь канвы (`previewPath`); «Aufbau ändern» — тот же эндпоинт без блока, адрес обновляется при навигации кадра.
+- Несохранённые правки Студии — confirm «Ungespeicherte Änderungen gehen verloren.»; без JS ⚙ строки — ссылка (page=/), окно колонкой. Имя секции по-прежнему открывает старую панель (снятие дублей — отдельный срез M4b).
+- Адреса — `apps/core/window_links.py` (`block_window_url`, `page_url`, `studio_settings_url`); `site_schema.code_for_path` — «Aktionen» и группа акций дают свою строку; `apps/core/window_link_views.site_schema_open` — единственный переход «из Студии в окно».
+- Миграций нет. Замки `test_fb33_m4_window_links.py` (L1–L6), стенд `scripts/fb33_m4_studio_settings_stand.py`.
+
+### 2026-11-21 — FB-33: сборка стопки 4 M3-5c → M2i-5c → M4
+- Три среза от общей базы `8976aad` в ветке `claude/fb33-stack4` (якоря срезов в `.po` сняты на верхушке).
+- Стыки: `_bw_langs.html` — кнопки языка окна: выбранный язык не только цветом (✓), группа связана с подсказкой (`aria-describedby`); `lang` у кнопки оставлен — названия языков эндонимы. Партиал включён с `title_id=bwtr-lang-title`, `hint_id=bwtr-lang-hint`, `after_tpl=tenant/_bw_tr_note.html`. Контекст `form_lang` — язык «Felder» или язык переводов (одна строка в `site_schema_views`). `faq_content.apply_ops`: кнопка `f_sprache` «нажатая» — новый вопрос не теряется при смене языка.
+- Эталоны окна пересняты на верхушке: `page_nojs` ×9 случаев, `wie_nojs`, `panel.json` — по объединённому списку изменённых случаев срезов (у тестового бизнеса de+en в формах окна — поля переводов M3-5c; невидимая «Übernehmen» плашек без aria-hidden).
+- Изменены замки прежних срезов: `test_fb27_r3_width` (→ `…drops_the_stale_translation`); два теста FAQ-кнопки вкладки (`test_fb33_stack2_joints`) — правка немецкого даёт сообщение о снятом переводе; `test_fb33_m35b_faq_draft::test_text_edits_keep_the_number_valid`; `test_fb33_m3_5a_texte` — подсказка заменена на «переводы в окне».
+- Миграций в стопке нет. Деплой — обычный `git pull origin main && ./scripts/deploy.sh single`.

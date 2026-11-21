@@ -44,6 +44,21 @@
 - **M21** прогон переезда haanerteeladen на сервере — владелец, runbook §7
   `m21-cscart-migration-plan-2026-10-31.md`.
 
+Решено (FB-33, стопка 4 M3-5c / M2i-5c / M4, владелец 2026-11-21):
+- **Правка немецкого текста снимает перевод поля** (сообщение со списком языков, role=status; перевод, введённый
+  в той же форме, остаётся; до «Speichern» — «Abbrechen»/«Verwerfen»). При «Trotzdem speichern» переводы окна
+  поверх изменённого списка вопросов не применяются — с заметкой.
+- **Основной язык бизнеса не de — первым и выбран**; немецкое поле подписано «… – Deutsch (Grundtext)». Подпись
+  «Grundtext» может смениться на «Ausgangstext» — решение владельца открыто (roadmap, «Отложено»).
+- **ИИ-перевод во вкладке «Felder» заполняет только ПУСТЫЕ поля** выбранного языка; перевод формы заявки частями
+  (лимит AIS-5 60 текстов / 6000 знаков) — отложено.
+- **⚙ Студии при несохранённых правках — спрашивает** (confirm «Ungespeicherte Änderungen gehen verloren.»);
+  «Speichern und öffnen» — отложено. Снятие дублей старой панели Студии — отдельный срез M4b.
+- Новый вопрос FAQ — поля перевода появляются после «Speichern»; плашка «Schnellzugriff» — переводима только при
+  своей немецкой подписи.
+- Открыто за владельцем: подпись «Grundtext» (см. выше) и «Auf der Seite bearbeiten» на детальных страницах
+  (ведёт на образец типа, а не на объект — отложено).
+
 Решено (FB-33, стопка 3 M3-4b / M2b-2b / M3-6, владелец 2026-11-20):
 - Подписи форм карточки — **по макету M0-2**: Preisschild · Regal · Kompakt mit Foto · Deal-Zeile (у товара и
   акции одинаково; msgid реестра английские). «Nur Text» — новой формой, позже.
@@ -129,6 +144,7 @@ LLM-режим Finder, SSE для чата.
 
 ## 2. Ops владельцу (сводка; выполнено ли — не подтверждено, если не сказано иначе)
 
+- FB-33 стопка 4 (2026-11-21): миграций нет — обычный `deploy.sh single`.
 - FB-33 стопка 3 (2026-11-20): миграции `catalog/0046_fb33_product_faq`, `stays/0049_fb33_unit_faq`
   (аддитивные, `db_default`) — обычный `deploy.sh single`; после — `seed_demo_tenants --group all --changed
   --jobs 3` (`SEEDER_VERSION` 24).
@@ -403,6 +419,22 @@ FB-33 M2i-3a (2026-11-19): онлайн-оплата (Stripe) в корзине 
 - `apps/core/view_perms.py` — право каждого экрана кабинета; источник и для меню (`nav_registry.hidden_for`).
 - `apps/core/views.py::_safe_preview_page` / `_hits_deny_zone` — единственный санитайзер адреса канвы.
 
+- `apps/core/block_i18n.py` (FB-33 M3-5c) — ЕДИНСТВЕННЫЙ писатель переводов текстов блока в окне «Seitenaufbau»:
+  C-блоки `i18n[<язык>]["sections"|"page_blocks"][host][i]["data"]`, «Seitentitel» (`page_titles[host]`), «Was
+  passiert jetzt» (`confirmation_next`), подписи плашек (`…data.labels`). Функции: `kinds`, `german`, `saved_for`,
+  `take`, `apply`, `put_shown`, `check`, `decorate`, `explicit` (вопросы → `faq_content.put(explicit=)` /
+  `object_faq.put(explicit=)`), `drop` (удалённый блок). Черновик: `draft["btr"]` = {ref: {язык: {ключ: текст}}}
+  («» — снять), `draft["btr_base"]` = {ref: {all, faq, obj}}; снимок окна — `proto["btr_ref"]`. Студия/канва
+  пишут переводы своими путями (`split_translation`) — не переводить на этот модуль без решения владельца.
+- `faq_content.apply_explicit` (FB-33 M3-5c) — переводы окна поверх переставленных вопросов (общий FAQ и свои).
+- `apps/core/window_links.py` (FB-33 M4) — адреса окна блока из Студии: `block_window_url(code, ref, tab)`,
+  `page_url(code)`, `studio_settings_url(request, path, ref, tab)` (путь канвы + ключ секции → окно; раздел детали
+  `<страница>_<раздел>` → строка раздела; `pbhost:<хост>` → область своих блоков; иначе страница + messages.info).
+- `site_schema.code_for_path(tenant, path)` (FB-33 M4) — код строки схемы по пути витрины (вынесено из
+  `url_for_path`; «Aktionen» и группа акций — свои строки).
+- `apps/core/window_link_views.site_schema_open` (FB-33 M4) — единственный переход «из Студии в окно»
+  (GET `site-schema-open`, только 302, ничего не пишет).
+
 ### apps/tenants
 
 - `apps/tenants/archetype_pages.py` — контент Branchen-страниц.
@@ -596,6 +628,11 @@ FB-33 M2i-3a (2026-11-19): онлайн-оплата (Stripe) в корзине 
 - `templates/tenant/_cb_row.html` — общая строка C-блока редактора (главная и страницы).
 - Партиалы-единственные: templates/tenant/_i18n_switch.html (свитчер языка/вкладок + раскрытие invalid), templates/tenant/_status_manager_panel.html, templates/storefront/_combo_card.html, _category_tile.html, _anfrage_form.html, _message_form.html.
 - `templates/tenant/_icons.html` + тег `{% icon %}` — SVG-спрайт кабинета
+- `templates/tenant/_bw_langs.html` (FB-33 M3-5c) — кнопки языка окна блока (общий партиал: выбранный язык ✓,
+  группа связана с подсказкой через `aria-describedby`; параметры `title_id`, `hint_id`, `after_tpl`); поля всех
+  языков в DOM, имя — только у выбранного.
+- `templates/tenant/_i18n_translate_js.html` (FB-33 M2i-5c) — ЕДИНСТВЕННЫЙ клиент кнопки ИИ «🌐 Übersetzen» (кабинет
+  и окно «Seitenaufbau»); свой флаг `__i18nTranslateBound`; второй копии JS не заводить.
 
 ## 4. Сырые выписки по периодам: открытое и ops
 
