@@ -201,6 +201,9 @@ def test_answers_never_leave_through_webhooks_or_search():
         "jobs/notifications.py",
         "jobs/pdf.py",
         "orders/models.py",
+        # FB-33 M2i-34: снимок ответов корзины — вьюха оформления и сервис заказа
+        "orders/public_views.py",
+        "orders/services.py",
     }
     readers = set()
     for path in root.rglob("*.py"):

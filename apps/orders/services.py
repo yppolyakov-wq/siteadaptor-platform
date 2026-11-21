@@ -335,6 +335,7 @@ def create_order(
     with_gift=False,
     channel="",
     shipping_snapshot=None,
+    custom_answers=None,
 ):
     """Создать заказ из позиций со снимками цены/названия.
 
@@ -518,6 +519,9 @@ def create_order(
         # M3 Boutique: дедлайн Anprobe-резерва задаётся ДО письма `created` —
         # enqueue_order_email ремапит его на unverbindlich-текст.
         reserve_expires_at=reserve_expires_at,
+        # FB-33 M2i-34: готовый снимок ответов на свои вопросы оформления (вьюха корзины) —
+        # хранится как есть; на суммы не влияет
+        custom_answers=custom_answers if isinstance(custom_answers, dict) else {},
     )
     from apps.crm.companies import link_deal
 

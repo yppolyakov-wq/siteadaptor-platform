@@ -76,10 +76,16 @@
         {# Заказ в зале (QR-стол): свёрнутая корзина — без самовывоза/доставки/адреса. #}
         <input type="hidden" name="fulfillment" value="pickup">
         <p class="text-sm text-gray-600">🪑 {% blocktrans with n=storefront_table %}Order for table {{ n }} — we'll bring it to you.{% endblocktrans %}</p>
+        {% if checkout_ff %}{% comment %}FB-33 M2i-34: поля по настройке «Felder» (у столика — заметка и свои вопросы){% endcomment %}{% with f=checkout_ff.note %}{% if f.on %}<div>
+          <label class="block text-sm font-medium mb-1" for="id_note">{{ f.label }}{% if f.req %}<span aria-hidden="true"> *</span><span class="sr-only"> ({% trans "Pflichtfeld" %})</span>{% endif %}</label>
+          <textarea id="id_note" name="note" rows="2"{% if f.req %} required{% endif %} class="w-full rounded-lg border border-gray-300 px-3 py-2" placeholder="{% trans 'e.g. allergies, extra wishes' %}">{{ checkout_input.note|default:'' }}</textarea>
+        </div>{% endif %}{% endwith %}
+        {% else %}
         <div>
           <label class="block text-sm font-medium mb-1" for="id_note">{% trans "Note (optional)" %}</label>
           <textarea id="id_note" name="note" rows="2" class="w-full rounded-lg border border-gray-300 px-3 py-2" placeholder="{% trans 'e.g. allergies, extra wishes' %}"></textarea>
         </div>
+        {% endif %}
       {% else %}
         {% comment %}SHP-2: способы получения — общий партиал (корзина, акция, предложение):
         список способов бизнеса, адрес/пункт выдачи по выбранному способу.{% endcomment %}
@@ -123,6 +129,19 @@
             <label class="block text-sm font-medium mb-1" for="id_name">{% trans "Name" %} *</label>
             <input id="id_name" name="name" type="text" required value="{% firstof checkout_input.name account_customer.name '' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
           </div>
+          {% if checkout_ff %}{% with f=checkout_ff.email %}{% if f.on %}<div>
+            <label class="block text-sm font-medium mb-1" for="id_email">{{ f.label }}{% if f.req %}<span aria-hidden="true"> *</span><span class="sr-only"> ({% trans "Pflichtfeld" %})</span>{% endif %}</label>
+            <input autocomplete="email" id="id_email" name="email" type="email"{% if f.req %} required{% endif %} value="{% firstof checkout_input.email account_customer.email '' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+          </div>{% endif %}{% endwith %}
+          {% with f=checkout_ff.phone %}{% if f.on %}<div>
+            <label class="block text-sm font-medium mb-1" for="id_phone">{{ f.label }}{% if f.req %}<span aria-hidden="true"> *</span><span class="sr-only"> ({% trans "Pflichtfeld" %})</span>{% endif %}</label>
+            <input autocomplete="tel" id="id_phone" name="phone" type="tel"{% if f.req %} required{% endif %} value="{% firstof checkout_input.phone account_customer.phone '' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+          </div>{% endif %}{% endwith %}
+          {% with f=checkout_ff.note %}{% if f.on %}<div class="sm:col-span-2">
+            <label class="block text-sm font-medium mb-1" for="id_note">{{ f.label }}{% if f.req %}<span aria-hidden="true"> *</span><span class="sr-only"> ({% trans "Pflichtfeld" %})</span>{% endif %}</label>
+            <textarea id="id_note" name="note" rows="2"{% if f.req %} required{% endif %} class="w-full rounded-lg border border-gray-300 px-3 py-2">{{ checkout_input.note|default:'' }}</textarea>
+          </div>{% endif %}{% endwith %}
+          {% else %}
           <div>
             <label class="block text-sm font-medium mb-1" for="id_email">{% trans "Email" %}</label>
             <input autocomplete="email" id="id_email" name="email" type="email" value="{% firstof checkout_input.email account_customer.email '' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
@@ -135,8 +154,10 @@
             <label class="block text-sm font-medium mb-1" for="id_note">{% trans "Note (optional)" %}</label>
             <textarea id="id_note" name="note" rows="2" class="w-full rounded-lg border border-gray-300 px-3 py-2">{{ checkout_input.note|default:'' }}</textarea>
           </div>
+          {% endif %}
         </div>
       {% endif %}
+      {% if checkout_ff.custom %}{% include "storefront/_form_questions.html" with ff=checkout_ff %}{% endif %}
       {% include "storefront/_privacy_note.html" %}
     </form>
   </div>

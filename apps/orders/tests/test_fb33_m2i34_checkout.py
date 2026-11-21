@@ -32,7 +32,7 @@ from apps.tenants.tests.factories import TenantFactory
 
 pytestmark = pytest.mark.django_db
 
-TODO_C3 = pytest.mark.xfail(strict=True, reason="FB-33 M2i-34 C3")
+
 TODO_C4 = pytest.mark.xfail(strict=True, reason="FB-33 M2i-34 C4")
 
 QUESTIONS = [
@@ -120,7 +120,6 @@ def test_kitchen_board_queries_do_not_grow_with_orders():
 # ───────────── C3: витрина ─────────────
 
 
-@TODO_C3
 def test_cart_draws_the_configured_fields():
     cfg = _ff({"email": "off", "phone": "req"}, {"note": "Wünsche an die Küche"})
     form = _checkout_form(_cart(_tenant(cfg)))
@@ -133,7 +132,6 @@ def test_cart_draws_the_configured_fields():
     assert " required" in q1
 
 
-@TODO_C3
 def test_table_cart_asks_note_and_questions_only():
     cfg = _ff({"email": "req", "phone": "req"})
     form = _checkout_form(_cart(_tenant(cfg), {"table": "7"}))
@@ -148,7 +146,6 @@ def test_online_payment_shows_the_email_even_when_off(settings):
     assert 'name="email"' in _checkout_form(_cart(tenant))
 
 
-@TODO_C3
 def test_cart_escapes_labels():
     cfg = _ff(custom=[{"id": "q1", "type": "text", "label": "<script>x()</script>"}])
     form = _checkout_form(_cart(_tenant(cfg)))
@@ -158,7 +155,6 @@ def test_cart_escapes_labels():
 # ───────────── C3: сервер ─────────────
 
 
-@TODO_C3
 def test_missing_required_field_refuses_before_anything_is_written():
     tenant = _tenant(_ff({"phone": "req"}))
     request, resp, product = _post({"name": "Kim", "q1": "Nüsse", "q2": "3"}, tenant, stock=5)
@@ -172,13 +168,11 @@ def test_missing_required_field_refuses_before_anything_is_written():
     assert kept["name"] == "Kim" and kept["answers"] == {"q1": "Nüsse", "q2": "3"}
 
 
-@TODO_C3
 def test_missing_required_question_refuses():
     _request, resp, _p = _post({"name": "Kim", "phone": "1"}, _tenant(_ff()))
     assert resp.url.endswith("/warenkorb/") and not Order.objects.exists()
 
 
-@TODO_C3
 def test_kept_answers_come_back_once_into_the_form():
     tenant = _tenant(_ff({"phone": "req"}))
     data = {"name": "Kim", "q1": "Nüsse <b>", "q3": "Nein", "q4": "1", "q99": "fremd"}
@@ -192,7 +186,6 @@ def test_kept_answers_come_back_once_into_the_form():
     assert re.search(r'name="q4" value="1"[^>]*checked', form)
 
 
-@TODO_C3
 def test_answers_are_a_snapshot_and_switched_off_fields_are_dropped():
     tenant = _tenant(_ff({"email": "off"}))
     data = {
@@ -213,16 +206,16 @@ def test_answers_are_a_snapshot_and_switched_off_fields_are_dropped():
     }
 
 
-@TODO_C3
 def test_answers_do_not_change_the_money():
     without = _tenant()
     _post({"name": "Kim"}, without)
     with_answers = _tenant(_ff())
     _post({"name": "Kim", "q1": "Nüsse", "q2": "99"}, with_answers)
     a, b = Order.objects.order_by("created_at")
-    assert (a.total, a.subtotal_cents if hasattr(a, "subtotal_cents") else 0) == (
+    assert (a.total, a.shipping_cents, a.discount_cents) == (
         b.total,
-        b.subtotal_cents if hasattr(b, "subtotal_cents") else 0,
+        b.shipping_cents,
+        b.discount_cents,
     )
     assert [(i.qty, i.unit_price) for i in a.items.all()] == [
         (i.qty, i.unit_price) for i in b.items.all()
@@ -230,7 +223,6 @@ def test_answers_do_not_change_the_money():
     assert b.custom_answers["q2"]["value"] == 99
 
 
-@TODO_C3
 def test_table_order_needs_no_contacts():
     tenant = _tenant(_ff({"email": "req", "phone": "req"}))
     _request, resp, _p = _post({"q1": "Nüsse"}, tenant, table="7")
@@ -249,7 +241,6 @@ def test_online_payment_without_email_is_still_refused(settings, monkeypatch):
     assert resp.url.endswith("/warenkorb/") and not Order.objects.exists()
 
 
-@TODO_C3
 def test_snapshot_keeps_the_main_language_label_on_a_translated_storefront():
     custom = [
         {"id": "q1", "type": "text", "label": "Allergien", "label_i18n": {"ru": "Аллергии"}},

@@ -1005,7 +1005,29 @@ def cart_view(request):
     kept = request.session.pop(CHECKOUT_INPUT_KEY, None)
     if isinstance(kept, dict):
         ctx["checkout_input"] = kept
+    # FB-33 M2i-34: поля оформления по настройке «Felder» (без настройки — прежняя форма)
+    ctx["checkout_ff"] = _checkout_fields(
+        _cfg,
+        stripe=Order.METHOD_STRIPE in _methods,
+        table=bool(request.session.get("table")),
+        kept=kept,
+    )
     return render(request, "storefront/cart.html", ctx)
+
+
+def _checkout_fields(site, *, stripe: bool, table: bool, kept=None):
+    """FB-33 M2i-34: что спрашивает форма оформления (`form_spec.view`) — только у бизнеса с
+    настройкой `form_fields.checkout`; иначе None, и корзина рисует прежнюю форму байт-в-байт.
+    Ответы, введённые до ошибки оформления, возвращаются в свои вопросы (`value`)."""
+    from apps.core import form_spec
+
+    if "checkout" not in (site.get("form_fields") or {}):
+        return None
+    shown = form_spec.view(site, "checkout", stripe=stripe, table=table)
+    answers = (kept or {}).get("answers") if isinstance(kept, dict) else None
+    answers = answers if isinstance(answers, dict) else {}
+    shown["custom"] = [{**q, "value": answers.get(q["id"], "")} for q in shown["custom"]]
+    return shown
 
 
 def _payment_due(tenant, method):
@@ -1039,12 +1061,21 @@ def _valid_email(raw) -> bool:
     return True
 
 
-def _keep_checkout_input(request) -> None:
+def _keep_checkout_input(request, questions=()) -> None:
     """Ошибка оформления не стирает введённое: имя, контакты и заметка ждут гостя в корзине
-    (один раз — `cart_view` забирает их из сессии)."""
-    request.session[CHECKOUT_INPUT_KEY] = {
+    (один раз — `cart_view` забирает их из сессии). FB-33 M2i-34: и ответы на свои вопросы —
+    только на текущие вопросы формы, каждый не длиннее 500 знаков."""
+    kept = {
         k: (request.POST.get(k) or "").strip()[:500] for k in ("name", "email", "phone", "note")
     }
+    answers = {
+        q["id"]: (request.POST.get(q["id"]) or "").strip()[:500]
+        for q in questions
+        if (request.POST.get(q["id"]) or "").strip()
+    }
+    if answers:
+        kept["answers"] = answers
+    request.session[CHECKOUT_INPUT_KEY] = kept
 
 
 @require_POST
@@ -1066,6 +1097,28 @@ def checkout(request):
 
     # G4/A2a: способ получения. delivery только если бизнес включил доставку.
     tenant = getattr(request, "tenant", None)
+    # FB-33 M2i-34: обязательные поля и вопросы «Felder» — проверка сервера ДО любого расчёта,
+    # записи и брони склада (POST в обход формы); без настройки — прежние правила
+    from apps.core import form_answers, form_spec
+    from apps.tenants import siteconfig as _sc
+
+    form_site = _sc.normalize(getattr(tenant, "site_config", None) or {})
+    form_on = "checkout" in (form_site.get("form_fields") or {})
+    form_questions = form_spec.questions(form_site, "checkout") if form_on else []
+    if form_on:
+        gaps = form_spec.missing(form_site, "checkout", request.POST, table=bool(table))
+        if gaps:
+            messages.error(
+                request,
+                _("Please fill in: %(fields)s.")
+                % {
+                    "fields": form_spec.missing_labels(
+                        form_site, "checkout", gaps, table=bool(table)
+                    )
+                },
+            )
+            _keep_checkout_input(request, form_questions)
+            return redirect("storefront-cart")
     from decimal import Decimal
 
     items = _cart_items(request)
@@ -1217,8 +1270,18 @@ def checkout(request):
     # подтверждение и квитанция. Проверка на сервере: форма поле не помечает (вид прежний).
     if chosen_method == Order.METHOD_STRIPE and not _valid_email(request.POST.get("email")):
         messages.error(request, ONLINE_PAY_NEEDS_EMAIL)
-        _keep_checkout_input(request)
+        _keep_checkout_input(request, form_questions)
         return redirect("storefront-cart")
+    # FB-33 M2i-34: выключенные поля отбрасываются, даже если их прислали в обход формы
+    contact = {k: request.POST.get(k, "").strip() for k in ("email", "phone", "note")}
+    if form_on:
+        shown = form_spec.view(
+            form_site,
+            "checkout",
+            stripe=Order.METHOD_STRIPE in methods,
+            table=bool(table),
+        )
+        contact = {k: (v if shown[k].on else "") for k, v in contact.items()}
 
     # _cart_items даёт (product, variant, options, qty); create_order ждёт
     # (product, variant, qty, options) — переставляем.
@@ -1255,9 +1318,9 @@ def checkout(request):
             combos=order_combos,
             custom_lines=pool_lines,
             name=name,
-            email=request.POST.get("email", "").strip(),
-            phone=request.POST.get("phone", "").strip(),
-            note=request.POST.get("note", "").strip()[:2000],
+            email=contact["email"],
+            phone=contact["phone"],
+            note=contact["note"][:2000],
             table_number="" if delivery else request.session.get("table", ""),
             pickup_location=pickup_location,
             pickup_slot=pickup_slot,
@@ -1288,6 +1351,11 @@ def checkout(request):
             expected_promos=pmap,
             # AIS W4-5d: гейт готовности — только для продажи (корзина-смета — запрос).
             channel="" if quote_mode else "storefront",
+            # FB-33 M2i-34: ответы на свои вопросы — снимок с подписью на момент заказа
+            # (основной язык); суммы ответы не трогают
+            custom_answers=form_answers.snapshot(
+                form_questions, form_answers.collect(form_questions, request.POST)
+            ),
         )
     except readiness.SellBlocked:
         messages.error(request, readiness.NEUTRAL_MESSAGE)  # корзина остаётся в сессии
