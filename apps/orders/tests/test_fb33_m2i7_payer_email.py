@@ -258,15 +258,93 @@ def test_order_cancelled_before_payment_gets_the_email_without_created(biz):
     assert not _mails(order, "created").exists() and not _mails(order, "confirmed").exists()
 
 
-def test_owner_confirmed_before_payment_still_mails_confirmed_once(biz):
-    """4 (край). Владелец подтвердил заказ до оплаты (адреса ещё не было) — «confirmed»
-    уходит после записи адреса один раз; «принят» — нет (заказ уже не новый)."""
+@pytest.mark.xfail(strict=True, reason="M2i-7 ревью: ещё не сделано")
+@pytest.mark.parametrize("path", [["confirmed"], ["confirmed", "ready"]])
+def test_owner_moved_the_order_before_payment_mails_created_and_current_once(biz, path):
+    """Ревью M2i-7 (п.2): владелец подтвердил (или подготовил) заказ до оплаты, когда адреса
+    не было, — после записи адреса уходят «принят» и письмо ТЕКУЩЕГО статуса, по разу."""
     order = _order()
-    OrderSM().apply(order, Order.STATUS_CONFIRMED)
+    for status in path:
+        OrderSM().apply(order, status)
     _hook(order)
     _hook(order)
+    assert _email_of(order) == PAYER and order.status == path[-1]
+    assert _mails(order, "created").count() == 1 and _mails(order, path[-1]).count() == 1
+    if path[-1] == "ready":
+        assert not _mails(order, "confirmed").exists()
+
+
+@pytest.mark.xfail(strict=True, reason="M2i-7 ревью: ещё не сделано")
+def test_mail_failure_after_adopting_is_healed_by_the_webhook_retry(biz, monkeypatch):
+    """Ревью M2i-7 (п.1, HIGH): адрес записан, а постановка письма упала — повтор вебхука
+    (Stripe повторит: ключ дедупа события снимается при сбое) шлёт письма ровно по разу."""
+    from apps.orders import notifications
+
+    real = notifications.enqueue_order_email
+    calls = {"n": 0}
+
+    def flaky(order, event, *a, **kw):
+        calls["n"] += 1
+        if calls["n"] == 1:
+            raise RuntimeError("smtp-queue down")
+        return real(order, event, *a, **kw)
+
+    monkeypatch.setattr(notifications, "enqueue_order_email", flaky)
+    order = _order()
+    with pytest.raises(RuntimeError):
+        _hook(order)
+    assert _email_of(order) == PAYER and not _mails(order, "created").exists()
+    _hook(order)
+    _hook(order)
+    assert _mails(order, "created").count() == 1 and _mails(order, "confirmed").count() == 1
+
+
+@pytest.mark.xfail(strict=True, reason="M2i-7 ревью: ещё не сделано")
+@pytest.mark.parametrize(
+    "details, reason",
+    [(None, "no_payer_email"), ({"email": ""}, "no_payer_email"), ({"email": "x"}, "rejected")],
+)
+def test_paid_without_contact_is_logged_and_flagged_on_the_card(biz, caplog, details, reason):
+    """Ревью M2i-7 (п.3): оплачено онлайн, а адреса нет — предупреждение в лог (номер заказа и
+    причина, без адреса) и пометка владельцу в карточке заказа."""
+    from apps.orders import views
+    from apps.orders.tests.test_kitchen import _req as _cab_req
+
+    caplog.set_level(logging.WARNING)
+    order = _hook(_order(), details=details)
+    said = [r.getMessage() for r in caplog.records if str(order.pk) in r.getMessage()]
+    assert any(reason in m for m in said), said
+    resp = views.order_detail(_cab_req(path=f"/dashboard/orders/{order.pk}/"), pk=order.pk)
+    html = resp.content.decode()
+    assert "data-paid-no-email" in html
+    with_mail = _hook(_order("k@example.com"))
+    resp = views.order_detail(_cab_req(path=f"/dashboard/orders/{with_mail.pk}/"), pk=with_mail.pk)
+    assert "data-paid-no-email" not in resp.content.decode()
+
+
+@pytest.mark.xfail(strict=True, reason="M2i-7 ревью: ещё не сделано")
+def test_skipped_customer_mail_is_logged_with_a_reason(biz, caplog):
+    """Ревью M2i-7 (п.4): письмо клиенту не ушло — info-лог с причиной, без адреса."""
+    from apps.orders.notifications import enqueue_order_email
+
+    caplog.set_level(logging.INFO)
+    order = _order()
+    enqueue_order_email(order, "confirmed")
+    Customer.objects.filter(pk=order.customer_id).update(email=PAYER, unsubscribed=True)
+    order.customer.refresh_from_db()
+    enqueue_order_email(order, "confirmed")
+    text = caplog.text
+    assert "no_email" in text and "unsubscribed" in text and PAYER not in text
+
+
+@pytest.mark.xfail(strict=True, reason="M2i-7 ревью: ещё не сделано")
+def test_payer_address_unsubscribed_elsewhere_gets_no_mails(biz):
+    """Ревью M2i-7 (п.5, развилка b): адрес отписан у другого клиента — адрес записан, писем
+    нет (отписка — от адреса, не от записи клиента)."""
+    Customer.objects.create(name="Alt", email=PAYER.upper(), unsubscribed=True)
+    order = _hook(_order())
     assert _email_of(order) == PAYER
-    assert _mails(order, "confirmed").count() == 1 and not _mails(order, "created").exists()
+    assert not _mails(order, "created").exists() and not _mails(order, "confirmed").exists()
 
 
 # ───────────── 12: страница подтверждения ─────────────
