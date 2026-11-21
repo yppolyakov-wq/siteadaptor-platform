@@ -3,10 +3,19 @@
 from io import StringIO
 from unittest import mock
 
+import pytest
 from django.core.management import call_command
 
+from apps.core import ops_lock
 from apps.tenants import demo_kits
 from apps.tenants.management.commands import seed_demo_tenants as cmd
+
+
+@pytest.fixture(autouse=True)
+def _lock_held_by_parent(monkeypatch):
+    """FB-33 M3-9b: пересев берёт блокировку операций над схемами в базе; здесь базы нет —
+    разбор аргументов проверяется «под блокировкой родителя» (сама она — test_ops_lock)."""
+    monkeypatch.setenv(ops_lock.ENV_HELD, "1")
 
 
 def _run(*args):

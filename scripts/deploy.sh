@@ -183,7 +183,7 @@ else
 		echo "    параллельно не вышло — повтор по одной схеме"
 		rc=0
 		# shellcheck disable=SC2086
-		$COMPOSE run --rm $LOCK_ENV web python manage.py run_locked migrate_schemas --tenant || rc=$?
+		{ $COMPOSE run --rm $LOCK_ENV web python manage.py run_locked migrate_schemas --tenant; } || rc=$?
 		if [ "$rc" = "$LOCK_BUSY" ]; then lock_busy_stop; fi
 		if [ "$rc" != "0" ]; then exit "$rc"; fi
 	fi
