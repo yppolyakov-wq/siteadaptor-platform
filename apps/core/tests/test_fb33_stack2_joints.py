@@ -120,6 +120,24 @@ def test_faq_texte_tab_buttons_apply_the_questions():
     assert [it["q"] for it in items] == ["A neu?", "B?", "C?", "D?"]
 
 
+def test_faq_tab_button_moves_when_no_translation_is_dropped():
+    """FB-33 M3-5c (ревью M3): без сохранённого перевода правка вопроса — без сообщения, кнопка
+    вкладки переходит, как до среза."""
+    from apps.tenants.models import Tenant
+
+    tenant = faq_t._tenant()
+    cfg = dict(tenant.site_config)
+    cfg.pop("i18n", None)
+    Tenant.objects.filter(pk=tenant.pk).update(site_config=cfg)
+    b = Browser(Tenant.objects.get(pk=tenant.pk))
+    data = {"op_default": "update", "tab": "texte", "zu_tab": "wie", "bw_tabs": "wie texte"}
+    resp, msgs = faq_t._faq_post(b, **data, faq_0_q="A neu?", faq_new_q="D?", faq_new_a="4")
+    assert msgs == []
+    assert resp["Location"].endswith("#schema-tab-wie") and "tab=wie" in resp["Location"]
+    items = faq_t._drafts(b)["home"]["faq"]["items"]
+    assert [it["q"] for it in items] == ["A neu?", "B?", "C?", "D?"]
+
+
 def test_faq_tab_button_without_op_takes_the_form_default():
     """Форма без op (её op — скрытое поле; шлёт кнопка вкладки): `op_default=update`."""
     b = Browser(faq_t._tenant())
