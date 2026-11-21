@@ -224,7 +224,6 @@ def test_deploy_refuses_a_second_deploy_on_the_host():
     assert code.index("flock -n") < code.index("git fetch")  # до любого шага
 
 
-@pytest.mark.xfail(strict=True, reason="FB-33 M3-9b E2: замок до кода")
 def test_deploy_cleanup_keeps_rollback_images_and_never_fails():
     code = _code(_deploy())
     assert "IMAGE_KEEP=${IMAGE_KEEP:-5}" in code or 'IMAGE_KEEP="${IMAGE_KEEP:-5}"' in code

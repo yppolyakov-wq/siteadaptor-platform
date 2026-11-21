@@ -87,6 +87,28 @@ $COMPOSE build
 # и `$COMPOSE up -d` (latest перезаписывается каждой сборкой).
 docker tag siteadaptor-app:latest "siteadaptor-app:$(git rev-parse --short HEAD)" || true
 
+# FB-33 M3-9b: чистка диска. Каждый деплой оставлял образ `siteadaptor-app:<sha>` и кэш
+# сборки навсегда. Оставляем latest и IMAGE_KEEP последних образов по коммиту (откат),
+# остальным снимаем тег; кэш сборки старше 72 ч — прочь. Без силы (`rmi` без -f): образ
+# запущенного контейнера Docker удалить не даст. Контейнеры и тома не трогаем. Любая
+# ошибка чистки деплой не останавливает.
+IMAGE_KEEP="${IMAGE_KEEP:-5}"
+cleanup_images() {
+	local current tags old tag
+	current="$(git rev-parse --short HEAD)"
+	# теги-коммиты, новые первыми (по дате создания образа), без текущего коммита
+	tags="$(docker image ls siteadaptor-app --format '{{.CreatedAt}}|{{.Tag}}' \
+		| sort -r -s -t '|' -k1,1 | cut -d '|' -f2 \
+		| grep -E '^[0-9a-f]{7,40}$' | grep -vx "$current")" || tags=""
+	# текущий коммит оставляем всегда, к нему — IMAGE_KEEP-1 предыдущих
+	old="$(printf '%s\n' "$tags" | tail -n +"$IMAGE_KEEP")"
+	for tag in $old; do
+		docker rmi "siteadaptor-app:$tag" >/dev/null && echo "    образ siteadaptor-app:$tag снят"
+	done
+	docker builder prune -f --filter until=72h | tail -n 1
+}
+cleanup_images || echo "    чистка образов не удалась — деплой продолжается"
+
 step "[2b/8] Media volume owner (non-root app)"
 # SEC-G11b: приложение работает под uid 10001, а том media создавался, когда оно было
 # root, — без выравнивания загрузка фото упала бы «Permission denied». Меняем владельца
