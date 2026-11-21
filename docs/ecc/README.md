@@ -1,7 +1,7 @@
 # ECC (Everything Claude Code) — копия в репозитории
 
 Источник: https://github.com/affaan-m/ECC, коммит `b92f181b3b748d1abbc2afd94af6aa7d8c8fca29`
-(2026-10-11), лицензия MIT — `LICENSE` рядом.
+(2026-10-11), лицензия MIT — `LICENSE` рядом (относится к агентам и скиллам в `.claude/`).
 
 **Почему копия, а не плагин:** облачные сессии (claude.ai/code) плагины не загружают,
 даже включённые в `.claude/settings.json` репозитория. Подхватываются только файлы,
@@ -35,3 +35,26 @@ competitive-report-structure (цепочка конкурентного анал
 Хуки ECC не перенесены. Обновление: склонировать ECC и заново скопировать эти файлы.
 
 При конфликте с проектом действуют `.claude/rules/project-overrides.md` и `CLAUDE.md`.
+
+## Общие правила ECC сняты (T-13.0, 2026-11-21)
+
+Каталог `.claude/rules/ecc/` (common + python, 16 файлов, 24 КБ) удалён, этот README и LICENSE
+перенесены сюда: всё, что лежит в `.claude/rules/`, грузится каждой сессии и каждому субагенту,
+а большая часть правил была отменена в `project-overrides.md`. При обновлении копии ECC
+правила обратно НЕ копировать (замок `apps/core/tests/test_claude_rules_budget.py`).
+
+| Файл | Почему снят |
+|---|---|
+| `common/testing.md`, `python/testing.md` | порог 80 %, обязательные E2E, TS-примеры, `--cov=src` — не требования проекта |
+| `common/git-workflow.md` | conventional commits; у нас `<ID задачи>: …` |
+| `common/patterns.md`, `python/patterns.md` | Repository-паттерн, API-конверты — не переписываем под них |
+| `common/performance.md` | выбор модели и эффорта — не меняем без просьбы владельца |
+| `common/hooks.md`, `python/hooks.md` | TodoWrite, black/mypy-хуки — у нас ruff и свои хуки |
+| `common/development-workflow.md` | `gh search`, PRD-доки, conventional commits — цикл задаёт `CLAUDE.md` §5 |
+| `python/fastapi.md` | проект на Django |
+| `python/coding-style.md`, `python/security.md` | black/isort, dotenv, bandit — у нас ruff и django-environ |
+| `common/agents.md`, `code-review.md`, `security.md`, `coding-style.md` | полезное сжато в `.claude/rules/review-and-agents.md` |
+
+Сохранённое из снятых файлов: контракт завершения делегирования, уровни серьёзности ревью и
+условие мержа, триггеры `security-reviewer`, чеклист безопасности перед коммитом, «чинить
+реализацию, а не тест», запрет `dangerously-skip-permissions`.
