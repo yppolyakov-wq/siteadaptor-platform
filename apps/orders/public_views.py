@@ -1078,6 +1078,13 @@ def _keep_checkout_input(request, questions=()) -> None:
     request.session[CHECKOUT_INPUT_KEY] = kept
 
 
+def _refused(request, questions=()):
+    """FB-33 M2i-34 (ревью): отказ оформления уже после разбора формы (склад, слот, акция,
+    готовность…) — введённое и ответы ждут гостя в корзине, как и при отказе до расчёта."""
+    _keep_checkout_input(request, questions)
+    return redirect("storefront-cart")
+
+
 @require_POST
 def checkout(request):
     _require_orders_active(request)
@@ -1282,6 +1289,10 @@ def checkout(request):
             table=bool(table),
         )
         contact = {k: (v if shown[k].on else "") for k, v in contact.items()}
+        if chosen_method == Order.METHOD_STRIPE:
+            # ревью: онлайн-оплате нужен адрес (проверен выше) — подтверждение и квитанция;
+            # у столика e-mail не спрашивается, но присланный не теряется
+            contact["email"] = request.POST.get("email", "").strip()
 
     # _cart_items даёт (product, variant, options, qty); create_order ждёт
     # (product, variant, qty, options) — переставляем.
@@ -1359,21 +1370,21 @@ def checkout(request):
         )
     except readiness.SellBlocked:
         messages.error(request, readiness.NEUTRAL_MESSAGE)  # корзина остаётся в сессии
-        return redirect("storefront-cart")
+        return _refused(request, form_questions)
     except EmptyOrder:
         messages.error(request, _("Your order is empty."))
-        return redirect("storefront-cart")
+        return _refused(request, form_questions)
     except pickup_slots.SlotFull:
         messages.error(
             request,
             _("Dieses Zeitfenster ist gerade voll geworden. Bitte wählen Sie ein anderes."),
         )
-        return redirect("storefront-cart")
+        return _refused(request, form_questions)
     except PromoNotEligible:
         # KA-12 PR-5: правило клиента у акции — объяснить, а не «лимит исчерпан».
         # Нейтрально (ревью): разные тексты выдавали бы, есть ли у адреса заказы.
         messages.error(request, _(NOT_ELIGIBLE_MSG))
-        return redirect("storefront-cart")
+        return _refused(request, form_questions)
     except PromoLimitSoldOut:
         # SF-4b: лимит кампании исчерпан на чекауте (гонка двух корзин) —
         # честное сообщение вместо тихой продажи по полной цене.
@@ -1383,7 +1394,7 @@ def checkout(request):
                 "The promotion limit has been reached. Please adjust the quantity or remove the item."
             ),
         )
-        return redirect("storefront-cart")
+        return _refused(request, form_questions)
     except OutOfStock as exc:
         if getattr(exc, "on_request", False):  # W4-6b: протухшая корзина с «nur auf Anfrage»
             # Позицию убираем из корзины, иначе каждый повтор упирается в ту же ошибку.
@@ -1396,18 +1407,18 @@ def checkout(request):
                 _("„%(item)s“ ist nur auf Anfrage erhältlich — bitte fragen Sie bei uns an.")
                 % {"item": exc.title},
             )
-            return redirect("storefront-cart")
+            return _refused(request, form_questions)
         if getattr(exc, "days", ""):  # KA-12 GA-9: Tageskarte — блюдо не в день выдачи
             messages.error(
                 request,
                 _("„%(item)s“ gibt es nur %(days)s.") % {"item": exc.title, "days": exc.days},
             )
-            return redirect("storefront-cart")
+            return _refused(request, form_questions)
         messages.error(
             request,
             _("Sorry, “%(item)s” is no longer available in this quantity.") % {"item": exc.title},
         )
-        return redirect("storefront-cart")
+        return _refused(request, form_questions)
     request.session[CART_SESSION_KEY] = {}
     request.session[COMBO_SESSION_KEY] = {}
     request.session.pop(PROMO_SESSION_KEY, None)

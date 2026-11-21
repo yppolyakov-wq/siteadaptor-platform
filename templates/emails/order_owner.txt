@@ -7,7 +7,7 @@
 {% if order.pickup_slot and not order.is_delivery %}{% trans "Abholzeit" %}: {{ order.pickup_slot|date:"D d.m., H:i" }}
 {% endif %}{% if order.table_number %}{% trans "Tisch" %}: {{ order.table_number }}{% endif %}
 {% if order.pickup_location %}{% trans "Abholort" %}: {{ order.pickup_location }}{% endif %}
-{% if order.note %}{% trans "Notiz" %}: {{ order.note }}{% endif %}
+{# только text/plain; при html-паре вернуть экранирование #}{% autoescape off %}{% if order.note %}{% trans "Notiz" %}: {{ order.note }}{% endif %}
 {% for label, value in custom_answers %}{{ label }}: {{ value }}
-{% endfor %}
+{% endfor %}{% endautoescape %}
 {% trans "Bestellung im Dashboard bestätigen" %}: /dashboard/orders/

@@ -234,7 +234,7 @@ def test_online_payment_without_email_is_still_refused(settings, monkeypatch):
         public_views.order_payments, "order_checkout_url", lambda o, t, **kw: "https://stripe/x"
     )
     tenant = _prepay_tenant()
-    tenant.site_config = _ff({"email": "off"}, custom=[])  # настройка непустая — режим
+    tenant.site_config = _ff({"email": "off"}, {"note": "Wünsche"}, custom=[])
     _request, resp, _p = _post({"name": "Kim"}, tenant)
     assert resp.url.endswith("/warenkorb/") and not Order.objects.exists()
 
@@ -326,8 +326,8 @@ def test_owner_mail_lists_the_answers_and_the_customer_mail_does_not(monkeypatch
         notifications.enqueue_order_email(order, "created")
     by_type = {m["type"]: m for m in sent}
     owner = by_type["order_created_owner"]["body"]
-    assert "Allergien: Nüsse &lt;script&gt;a()&lt;/script&gt;" in owner
-    assert "Geschenk&lt;b&gt;: " in owner
+    assert "Allergien: Nüsse <script>a()</script>" in owner  # text/plain — как есть
+    assert "Geschenk<b>: " in owner
     customer = [m for m in sent if m["type"] != "order_created_owner"]
     assert customer and all("Allergien" not in (m["body"] + m["html"]) for m in customer)
 
@@ -344,10 +344,7 @@ def test_the_customer_sees_own_order_answers_in_the_account():
 
 # ───────────── ревью (security + silent-failure) ─────────────
 
-TODO_REV = pytest.mark.xfail(strict=True, reason="FB-33 M2i-34 ревью")
 
-
-@TODO_REV
 def test_stock_refusal_keeps_what_the_guest_typed():
     """Отказ после create_order (склад, слот, акция…) не стирает имя, контакты и ответы."""
     tenant = _tenant(_ff())
@@ -359,7 +356,6 @@ def test_stock_refusal_keeps_what_the_guest_typed():
     assert kept["answers"] == {"q1": "Nüsse", "q3": "Ja"}
 
 
-@TODO_REV
 def test_online_payment_at_the_table_keeps_the_email(settings, monkeypatch):
     """Stripe-заказ без адреса остался бы без подтверждения и квитанции: e-mail из POST."""
     _configure(settings)
@@ -374,7 +370,6 @@ def test_online_payment_at_the_table_keeps_the_email(settings, monkeypatch):
     assert order.customer.email == "kim@example.com"
 
 
-@TODO_REV
 def test_question_inputs_are_capped_like_the_snapshot():
     custom = [
         {"id": "q1", "type": "text", "label": "Kurz"},
@@ -386,7 +381,6 @@ def test_question_inputs_are_capped_like_the_snapshot():
     assert re.search(rf'<textarea[^>]*name="q2"[^>]*maxlength="{form_answers.ANSWER_MAX}"', form)
 
 
-@TODO_REV
 @pytest.mark.parametrize("tpl", ["order_owner", "order_anprobe_owner"])
 def test_owner_mails_list_answers_as_plain_text(tpl):
     """Письма владельцу — только text/plain: «&» и «<» приходят как есть, не &amp;."""
