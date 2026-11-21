@@ -33,12 +33,11 @@
   .i18n-pill { background:#fff; cursor:pointer; }
   .i18n-pill:hover { border-color:#a5b4fc; }
   .i18n-pill-on { background:#4f46e5; border-color:#4f46e5; color:#fff; }
-  [data-ai-filled] { outline: 2px dashed #4f46e5; outline-offset: 1px; }
-  [data-i18n-translate][aria-disabled=true] { opacity: .6; cursor: progress; }
   /* SR-2d: активный таб без правой колонки → грид формы в одну колонку
      (селектор бьёт lg:grid по специфичности; атрибут+класс > один класс). */
   [data-pf-grid].pf-rail-off { display:block; }
 </style>
+{% include "tenant/_i18n_translate_js.html" %}
 
 <script>
 (function () {
@@ -63,184 +62,15 @@
     document.querySelectorAll("[data-i18n-loc]").forEach(function (el) {
       el.classList.toggle("hidden", el.getAttribute("data-i18n-loc") !== loc);
     });
-    document.querySelectorAll("[data-i18n-translate]").forEach(function (b) {
+    // AIS-5: кнопка перевода выпадашки (у кнопки со своим data-loc язык свой — M2i-5c)
+    document.querySelectorAll("[data-i18n-translate]:not([data-loc])").forEach(function (b) {
       b.classList.toggle("hidden", loc === b.getAttribute("data-base"));
-      trSay(b.closest("[data-i18n-translate-box]"), "");
+      var box = b.closest("[data-i18n-translate-box]");
+      var st = box && box.querySelector("[data-i18n-translate-status]");
+      if (st) st.textContent = "";
     });
   }
 
-  // AIS-5: «🌐 Übersetzen». Поля выбранного языка, ПУСТЫЕ на момент клика и на момент
-  // ответа (владелец мог начать печатать), получают перевод базового текста той же формы.
-  var TR_MSG = {
-    done: "{{ _('Felder übersetzt — bitte prüfen und speichern')|escapejs }}",
-    skipped: "{{ _('übersprungen: Zahlen oder Links passten nicht')|escapejs }}",
-    none: "{{ _('Nichts zu übersetzen — alle Felder sind schon ausgefüllt')|escapejs }}",
-    error: "{{ _('Die Übersetzung ist gerade nicht verfügbar.')|escapejs }}",
-    quota: "{{ _('Zu viele Übersetzungen in kurzer Zeit — bitte später erneut versuchen.')|escapejs }}",
-    too_large: "{{ _('Zu viel Text auf einmal — bitte in Teilen übersetzen.')|escapejs }}",
-    busy: "{{ _('Die Übersetzung läuft schon.')|escapejs }}",
-    slow: "{{ _('Dauert zu lange — bitte erneut versuchen.')|escapejs }}",
-    work: "{{ _('Wird übersetzt …')|escapejs }}",
-    forbidden: "{{ _('Bitte laden Sie die Seite neu und versuchen Sie es erneut.')|escapejs }}",
-    nothing: "{{ _('Nichts übersetzt')|escapejs }}"
-  };
-  function trBase(el, loc, base) {
-    if (el.hasAttribute("data-i18n-base")) return el.getAttribute("data-i18n-base");
-    var form = el.form, name = el.getAttribute("name") || "";
-    var of = el.getAttribute("data-i18n-of");
-    if (form && of && form.elements[of]) return form.elements[of].value;
-    var suffix = "_" + loc;
-    if (!form || name.slice(-suffix.length) !== suffix) return "";
-    var stem = name.slice(0, -suffix.length);
-    var src = form.elements[stem + "_" + base] || form.elements[stem];
-    return src && typeof src.value === "string" ? src.value : "";
-  }
-  function trFields(loc) {
-    var out = [];
-    document.querySelectorAll('[data-i18n-loc="' + loc + '"]').forEach(function (g) {
-      var list = g.matches("input, textarea") ? [g] : g.querySelectorAll("input, textarea");
-      list.forEach(function (el) {
-        if (out.indexOf(el) !== -1 || el.closest("[data-i18n-notranslate]")) return;
-        var t = (el.getAttribute("type") || "text").toLowerCase();
-        if (el.tagName !== "TEXTAREA" && t !== "text") return;
-        out.push(el);
-      });
-    });
-    return out;
-  }
-  function trEmpty(el) {  // rich-редактор оставляет «<br>» в пустом поле
-    return !el.value.replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").trim();
-  }
-  function trArea(el) {
-    var wrap = el.nextElementSibling;
-    return wrap && wrap.querySelector ? wrap.querySelector(".rte-area") : null;
-  }
-  function trFill(el, value) {
-    el.value = value;
-    el.setAttribute("data-ai-filled", "1");
-    var desc = (el.getAttribute("aria-describedby") || "").split(" ").filter(Boolean);
-    if (desc.indexOf("i18n-ai-note") === -1) desc.push("i18n-ai-note");
-    el.setAttribute("aria-describedby", desc.join(" "));
-    var area = trArea(el);
-    // иначе submit перетрёт значение старым редактором. HTML — только у rich-базы (сервер
-    // прогнал его через sanitize); плоский текст — textContent, не innerHTML.
-    if (area) {
-      if (value.indexOf("<") !== -1) {
-        area.innerHTML = value;
-      } else {
-        area.textContent = "";
-        value.split("\n").forEach(function (line, i) {
-          if (i) area.appendChild(document.createElement("br"));
-          area.appendChild(document.createTextNode(line));
-        });
-      }
-    }
-    el.dispatchEvent(new Event("input", { bubbles: true }));
-  }
-  function trSay(box, text) {
-    var st = box && box.querySelector("[data-i18n-translate-status]");
-    if (!st) return;
-    st.textContent = "";  // повтор того же текста тоже озвучивается
-    if (text) setTimeout(function () { st.textContent = text; }, 50);
-  }
-  function trCsrf() {
-    var m = document.querySelector("input[name=csrfmiddlewaretoken]");
-    return m ? m.value : "";
-  }
-  function trRun(btn) {
-    var box = btn.closest("[data-i18n-translate-box]");
-    var sel = document.querySelector("[data-i18n-select]");
-    var loc = sel ? sel.value : "", base = btn.getAttribute("data-base");
-    if (!loc || loc === base) return;
-    var byId = {}, items = [], n = 0;
-    trFields(loc).forEach(function (el) {
-      if (!trEmpty(el)) return;
-      var text = trBase(el, loc, base).trim();
-      if (!text) return;
-      var id = "t" + (++n);
-      byId[id] = { el: el, text: text };
-      var max = parseInt(el.getAttribute("maxlength") || "0", 10) || 0;
-      items.push({ id: id, text: text, max: max });
-    });
-    if (!items.length) { trSay(box, TR_MSG.none); return; }
-    var body = new FormData();
-    body.append("csrfmiddlewaretoken", trCsrf());
-    body.append("screen", btn.getAttribute("data-screen"));
-    body.append("target", loc);
-    body.append("items", JSON.stringify(items));
-    // aria-disabled, а не disabled: фокус остаётся на кнопке (ревью a11y)
-    btn.setAttribute("aria-disabled", "true");
-    btn.setAttribute("aria-busy", "true");
-    trSay(box, TR_MSG.work);
-    function finish(msg) {
-      btn.removeAttribute("aria-disabled");
-      btn.removeAttribute("aria-busy");
-      trSay(box, msg);
-    }
-    function apply(data) {
-      var got = data.items || {}, filled = 0;
-      // Применяем только туда, где за время ожидания ничего не изменилось: поле на месте
-      // и пустое, язык тот же, базовый текст тот же, что был отправлен.
-      var same = (sel && sel.value) === loc;
-      Object.keys(got).forEach(function (id) {
-        var hit = byId[id], el = hit && hit.el;
-        if (!same || !el || !el.isConnected || !trEmpty(el)) return;
-        if (trBase(el, loc, base).trim() !== hit.text) return;
-        trFill(el, got[id]);
-        filled++;
-      });
-      var skipped = items.length - filled;
-      var msg = filled ? filled + " " + TR_MSG.done : TR_MSG.nothing;
-      if (skipped) msg += " · " + skipped + " " + TR_MSG.skipped;
-      finish(msg);
-    }
-    function handle(data, started) {
-      if (data.state === "done") return apply(data);
-      if (data.code) {
-        var key = data.code === "bad" ? "forbidden" : data.code;
-        return finish(TR_MSG[key] || TR_MSG.error);
-      }
-      if (!data.job && data.state !== "pending") return finish(TR_MSG.error);
-      var job = data.job || started;
-      if (Date.now() - t0 > 90000) return finish(TR_MSG.slow);
-      setTimeout(function () {
-        fetch(btn.getAttribute("data-result") + job + "/", { credentials: "same-origin" })
-          .then(function (r) { if (!r.ok || r.redirected) throw r; return r.json(); })
-          .then(function (d) { handle(d, job); })
-          .catch(function (err) { console.error("translate poll", err); finish(TR_MSG.error); });
-      }, 1500);
-    }
-    var t0 = Date.now();
-    fetch(btn.getAttribute("data-url"), { method: "POST", body: body, credentials: "same-origin" })
-      .then(function (r) {
-        if (r.redirected) { finish(TR_MSG.forbidden); return null; }  // сессия истекла
-        if (!r.ok) throw r;
-        return r.json();
-      })
-      .then(function (d) { if (d) handle(d, d.job); })
-      .catch(function (err) { console.error("translate", err); finish(TR_MSG.error); });
-  }
-  document.addEventListener("click", function (e) {
-    var btn = e.target.closest && e.target.closest("[data-i18n-translate]");
-    if (btn && btn.getAttribute("aria-disabled") !== "true") { e.preventDefault(); trRun(btn); }
-  });
-  document.addEventListener("input", function (e) {
-    // правка в rich-редакторе приходит на .rte-area, а пометка — на textarea перед ним
-    var area = e.isTrusted && e.target.closest && e.target.closest(".rte-area");
-    var wrap = area && area.parentElement;
-    while (wrap && !(wrap.previousElementSibling && wrap.previousElementSibling.hasAttribute("data-ai-filled"))) {
-      wrap = wrap.parentElement === document.body ? null : wrap.parentElement;
-    }
-    if (wrap) wrap.previousElementSibling.removeAttribute("data-ai-filled");
-    if (e.isTrusted && e.target.hasAttribute && e.target.hasAttribute("data-ai-filled")) {
-      e.target.removeAttribute("data-ai-filled");
-      var rest = (e.target.getAttribute("aria-describedby") || "").split(" ").filter(function (x) {
-        return x && x !== "i18n-ai-note";
-      });
-      if (rest.length) e.target.setAttribute("aria-describedby", rest.join(" "));
-      else e.target.removeAttribute("aria-describedby");
-    }
-  });
   // Табы содержимого: одна панель активна.
   function setTab(t) {
     // Ревью a11y: ключ без кнопки не трогаем (иначе все вкладки tabindex=-1 и

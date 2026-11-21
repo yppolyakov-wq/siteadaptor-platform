@@ -22,9 +22,11 @@ AIS-5 — штатный отказ «Zu viel Text auf einmal». Запись �
 
 import json
 import re
+import uuid
 from unittest import mock
 
 import pytest
+from django.core.cache.backends.locmem import LocMemCache
 from django.db import connection
 from django.template.loader import render_to_string
 from django.urls import resolve
@@ -73,7 +75,9 @@ def _part(b, query=""):
     with translation.override("de"):
         html = b.get("?seite=anfrage&block=form&tab=felder" + query)
     start = html.index("data-form-felder")
-    return html, html[start : html.index("</form>", start)]
+    part = html[start : html.index("</form>", start)]
+    # токен CSRF и ключ открытого окна — свои у каждого запроса
+    return html, re.sub(r'name="(csrfmiddlewaretoken|wopen)" value="[^"]*"', r'name="\1"', part)
 
 
 def _cfg_xss():
@@ -87,14 +91,14 @@ def _cfg_xss():
 # --- 1. кнопка ----------------------------------------------------------------------------
 
 
-@pytest.mark.xfail(strict=True, reason="M2i-5c: кнопки ещё нет")
 def test_button_sits_in_language_block_hidden_without_js(monkeypatch):
     _ai(monkeypatch)
     _html, part = _part(_b())
-    langs = part[part.index("data-form-langs") :]
-    langs = langs[: langs.index("</div>\n", langs.index("ff-lang-hint"))]
-    box = BOX.search(langs)
-    assert box, "кнопка — внутри блока языков (after_tpl)"
+    box = BOX.search(part)
+    assert box, "кнопка есть"
+    # внутри блока языков (after_tpl): после подсказки «Leeres Feld…», до первого поля
+    assert part.index("ff-lang-hint") < box.start() < part.index("data-form-field=")
+    assert part[box.end() :].startswith("\n  </div>"), "закрывает блок языков"
     box = box.group(0)
     assert re.search(r"<div[^>]* hidden[ >]", box), "без скриптов не видна"
     btn = re.search(r"<button[^>]*data-i18n-translate[ >][^>]*>", box).group(0)
@@ -113,7 +117,6 @@ def test_button_sits_in_language_block_hidden_without_js(monkeypatch):
 # --- 2. без ИИ / без права / один язык — прежняя вкладка ---------------------------------
 
 
-@pytest.mark.xfail(strict=True, reason="M2i-5c: кнопки ещё нет")
 def test_tab_unchanged_without_ai_perm_or_languages(monkeypatch):
     b = _b(_cfg_xss())
     _ai(monkeypatch, on=False)
@@ -142,7 +145,6 @@ def _input(part, name):
     )
 
 
-@pytest.mark.xfail(strict=True, reason="M2i-5c: пометок источника ещё нет")
 def test_source_of_each_translation(monkeypatch):
     from apps.core import form_spec
 
@@ -171,7 +173,6 @@ def test_source_of_each_translation(monkeypatch):
 # --- 4. клиент на странице «Seitenaufbau» -------------------------------------------------
 
 
-@pytest.mark.xfail(strict=True, reason="M2i-5c: клиента на странице ещё нет")
 def test_page_carries_translate_client_once(monkeypatch):
     b = _b()
     _ai(monkeypatch, on=False)
@@ -188,7 +189,6 @@ def test_page_carries_translate_client_once(monkeypatch):
 # --- 5. формы кабинета (AIS-5) --------------------------------------------------------------
 
 
-@pytest.mark.xfail(strict=True, reason="M2i-5c: клиент ещё внутри _i18n_switch.html")
 def test_switch_includes_the_same_client(monkeypatch):
     from apps.ai import api
     from apps.core.models import Membership
@@ -212,6 +212,8 @@ def test_endpoint_accepts_window_screen(monkeypatch):
 
     monkeypatch.setattr(ratelimit, "hit", lambda *a, **k: False)
     monkeypatch.setattr(ratelimit, "refund", lambda *a, **k: None)
+    # своё хранилище задач: «уже идёт» от прошлых прогонов не мешает
+    monkeypatch.setattr(it, "cache", LocMemCache(f"m2i5c-{uuid.uuid4().hex}", {}))
     _ai(monkeypatch)
     owner = ais5._member()
     screen = it.sign_screen(connection.schema_name, "site-schema")

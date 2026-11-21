@@ -1188,8 +1188,10 @@ def with_locales(fs: dict, locales, wanted: str = "") -> dict:
         {"code": loc, "label": names.get(loc, loc), "shown": loc == lang} for loc in locs
     ]
 
-    def inputs(tr: dict, name: str, ident: str, empty) -> list[dict]:
-        """`empty(loc)` — (текст, язык), что покажет сайт без перевода."""
+    def inputs(tr: dict, name: str, ident: str, empty, of: str = "", src: str = "") -> list[dict]:
+        """`empty(loc)` — (текст, язык), что покажет сайт без перевода. M2i-5c: источник для
+        кнопки ИИ — `of` (имя поля этой формы с основным текстом, живое значение) или `src`
+        (текст варианта: имя поля перевода — от его хеша)."""
         out = []
         for loc in locs:
             text, text_lang = empty(loc)
@@ -1205,6 +1207,8 @@ def with_locales(fs: dict, locales, wanted: str = "") -> dict:
                     "empty_lang": text_lang,
                     # подсказка «Leeres Feld…» над полями (id в `_bw_formfields.html`)
                     "hint": LANG_HINT_ID,
+                    "of": of,
+                    "src": src,
                 }
             )
         return out
@@ -1230,7 +1234,10 @@ def with_locales(fs: dict, locales, wanted: str = "") -> dict:
 
     def options(pairs, tr, name, ident):
         items = [
-            {"text": text, "inputs": inputs(tr.get(text) or {}, name(h), ident(i), german(text))}
+            {
+                "text": text,
+                "inputs": inputs(tr.get(text) or {}, name(h), ident(i), german(text), src=text),
+            }
             for i, (text, h) in enumerate(pairs)
         ]
         filled = any(t["value"] for o in items for t in o["inputs"] if t["shown"])
@@ -1239,14 +1246,22 @@ def with_locales(fs: dict, locales, wanted: str = "") -> dict:
     for row in fs["fields"]:
         if not row["pinned"]:
             row["translations"] = inputs(
-                row["_tr"], f"label_{row['key']}", f"label-{row['key']}", default_label(row)
+                row["_tr"],
+                f"label_{row['key']}",
+                f"label-{row['key']}",
+                default_label(row),
+                of=f"f_label_{row['key']}",
             )
     for q in fs["custom"]:
         if _is_temp(q.get("id")):
             continue  # новый вопрос: переводы — после «Übernehmen»
         qid = q["id"]
         q["translations"] = inputs(
-            q.get("label_i18n") or {}, f"q_{qid}_label", f"q-{qid}", german(q["label"])
+            q.get("label_i18n") or {},
+            f"q_{qid}_label",
+            f"q-{qid}",
+            german(q["label"]),
+            of=f"f_q_{qid}_label",
         )
         if q.get("type") == "choice":
             q["option_translations"], q["options_open"] = options(

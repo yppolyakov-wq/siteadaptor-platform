@@ -21,8 +21,15 @@ from apps.tenants.tests.factories import TenantFactory
 TEMPLATES = Path(settings.BASE_DIR) / "templates"
 
 #: Где переводы вводятся своим механизмом (Studio — язык канвы ?clang=;
-#: мастер — data-loc-pane со своей выпадашкой; витрина — не кабинет).
-_OWN_MECHANISM = ("storefront/", "tenant/setup", "tenant/site_home.html", "tenants/")
+#: мастер — data-loc-pane со своей выпадашкой; витрина — не кабинет; «Seitenaufbau» — серверные
+#: кнопки языка окна блока, FB-33 M2i-5b, а клиент перевода ИИ M2i-5c лишь упоминает группы).
+_OWN_MECHANISM = (
+    "storefront/",
+    "tenant/setup",
+    "tenant/site_home.html",
+    "tenant/site_schema.html",
+    "tenants/",
+)
 
 #: Признаки поля перевода в разметке.
 _LOCALE_INPUT = re.compile(

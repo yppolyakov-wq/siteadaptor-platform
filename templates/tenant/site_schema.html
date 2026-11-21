@@ -272,4 +272,5 @@
   </aside>
 </div>
 <script src="{% static 'js/aufbau.js' %}" defer></script>
+{% i18n_translate_ctx as page_tr %}{% if page_tr %}{% include "tenant/_i18n_translate_js.html" %}{% endif %}
 {% endblock %}
