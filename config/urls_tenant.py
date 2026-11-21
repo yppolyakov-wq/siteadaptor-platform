@@ -110,6 +110,7 @@ from apps.core.views import (
     verkauf_oeffnen,
     zusatzverkaeufe,
 )
+from apps.core.window_link_views import site_schema_open
 from apps.events import public_views as events_public
 from apps.events import views as events_views
 from apps.inbox import public_views as inbox_public
@@ -304,6 +305,8 @@ urlpatterns = [
     path("dashboard/design/", design_view, name="design"),
     # FB-25: схема блоков всех типов страниц + уменьшенная живая страница
     path("dashboard/site/aufbau/", site_schema_view, name="site-schema"),
+    # FB-33 M4: ⚙ Студии — путь канвы и ключ секции → окно блока (GET, только 302)
+    path("dashboard/site/aufbau/oeffnen/", site_schema_open, name="site-schema-open"),
     # STU-19b: page settings of a section in the cabinet (one writer: page_settings).
     path(
         "dashboard/seitenvorlagen/sortiment/",

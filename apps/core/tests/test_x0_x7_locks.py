@@ -71,6 +71,8 @@ EXPECTED_UNLISTED = frozenset(
         "page-templates-website",
         # [OK] SHP-3: «＋ Versandart» — вход из списка на вкладке «Lieferung & Abholung»
         "shipping-method-new",
+        # [302] FB-33 M4: ⚙ Студии → окно блока «Seitenaufbau» (только переход)
+        "site-schema-open",
         # [POST] приёмники и action-роуты
         "billing-checkout",
         "integrations-telegram-activate",  # T-8.29: POST с карточки «Integrationen»

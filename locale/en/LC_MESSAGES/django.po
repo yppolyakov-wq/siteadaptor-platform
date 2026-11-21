@@ -39800,3 +39800,7 @@ msgstr "fb33-stack-anchor-M2i-5c"
 #. FB-33 стопка: якорь среза M4 — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
 msgid "fb33-stack-anchor-M4"
 msgstr "fb33-stack-anchor-M4"
+
+#: apps/core/window_links.py
+msgid "Diesen Block finden Sie im Seitenaufbau nicht."
+msgstr "This block cannot be found in the page structure."

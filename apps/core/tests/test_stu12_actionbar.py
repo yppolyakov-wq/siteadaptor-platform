@@ -126,7 +126,8 @@ def test_bar_buttons_reuse_existing_handlers():
     tpl = TPL.read_text()
     fn = _segment(tpl, "function barAction(", "\n  function ")
     assert "moveByOrder(" in fn and "movePageBlock(" in fn, "порядок — существующие движки"
-    assert "openBlockPopup(" in fn, "⚙ открывает колонку блока"
+    # FB-33 M4 (осознанная переписка): ⚙ плашки открывает окно блока «Seitenaufbau»
+    assert "openWindowFor(abKey)" in fn and "openBlockPopup(" not in fn, "⚙ — окно блока"
     assert "delete_cb_" in fn and "enabled" in fn, "🗑/👁 — те же чекбоксы формы"
 
 

@@ -250,7 +250,7 @@
         </div>
         {% comment %}FB-27 R8: порядок, видимость и состав блоков правит «Seitenaufbau»; здесь —
            тексты, фото и вид. Контролы структуры скрыты (класс stu-struct), сервер их не читает.{% endcomment %}
-        <p class="text-xs ui-muted mb-4" data-stu-struct-hint>{% trans "Hier ändern Sie Texte, Fotos und das Aussehen der Blöcke. Reihenfolge, Sichtbarkeit und neue Blöcke:" %} <a href="{{ aufbau_url|default:'/dashboard/site/aufbau/' }}" class="inline-flex items-center min-h-[24px] font-semibold text-indigo-700 underline">{% trans "Aufbau ändern" %}</a></p>
+        <p class="text-xs ui-muted mb-4" data-stu-struct-hint>{% trans "Hier ändern Sie Texte, Fotos und das Aussehen der Blöcke. Reihenfolge, Sichtbarkeit und neue Blöcke:" %} <a href="{% url 'site-schema-open' %}?page={{ preview_start_path|default:'/'|urlencode:'' }}" data-stu-aufbau class="inline-flex items-center min-h-[24px] font-semibold text-indigo-700 underline">{% trans "Aufbau ändern" %}</a></p>
         {% comment %}SE-9g: в Простом режиме при выбранной версии 📱/▭ показываем настройки этой версии
            (колонки на устройстве, скрыть на устройстве) — крутить мобильную версию без Эксперта.{% endcomment %}
         <p class="bld-device-hint hidden text-xs text-indigo-700 bg-indigo-50 border border-indigo-100 rounded-lg px-3 py-2 mb-4">
@@ -277,7 +277,8 @@
                 <input type="checkbox" name="enabled_{{ s.key }}" {% if s.enabled %}checked{% endif %}
                        class="stu-struct rounded border-gray-300" aria-label="{{ s.label }}">
                 <button type="button" class="blk-edit flex-1 text-left text-sm font-medium text-gray-800 hover:text-indigo-700" data-key="{{ s.key }}">{{ s.label }}</button>
-                <button type="button" class="blk-edit shrink-0 text-gray-400 hover:text-indigo-700 px-1" data-key="{{ s.key }}" title="{% trans 'Settings' %}" aria-label="{% trans 'Settings' %}">⚙</button>
+                {% comment %}FB-33 M4: ⚙ — окно блока «Seitenaufbau» (ссылка: и без JS); имя — прежняя панель.{% endcomment %}
+                <a href="{% url 'site-schema-open' %}?page=%2F&amp;block={{ s.key|urlencode:'' }}" data-stu-gear class="shrink-0 inline-flex items-center justify-center min-w-[24px] min-h-[24px] text-gray-400 hover:text-indigo-700 px-1" data-key="{{ s.key }}" title="{% trans 'Settings' %}" aria-label="{% trans 'Settings' %}">⚙</a>
               </div>
               <div class="home-block-settings flex flex-wrap items-center gap-2 mt-2">
                 {% comment %}STU-12e (F8A): настройки блока в трёх группах — Inhalt (данные),
@@ -1964,6 +1965,25 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
   // руками (после вставки на главной страница перезагружается, идентичность блока
   // терялась). Ключ приходит в `?block=` от `_redirect_builder`.
   var BLD_OPEN_BLOCK = "{{ open_block|escapejs }}";
+  // FB-33 M4: ⚙ Студии открывает окно блока «Seitenaufbau» — путь канвы и ключ блока
+  // переводит в адрес окна сервер (`site-schema-open`, только переход внутри кабинета).
+  var WINDOW_OPEN_URL = "{% url 'site-schema-open' %}";
+  var LEAVE_MSG = "{% trans 'Ungespeicherte Änderungen gehen verloren.' as leave_msg %}{{ leave_msg|escapejs }}";
+  function windowHref(key) {
+    return WINDOW_OPEN_URL + "?page=" + encodeURIComponent(previewPath || "/")
+      + (key ? "&block=" + encodeURIComponent(key) : "");
+  }
+  // Несохранённые правки Студии (точка у «Speichern») — спросить, прежде чем уйти.
+  function leaveOk() {
+    var dot = document.getElementById("bld-save-dot");
+    return !dot || dot.hidden || window.confirm(LEAVE_MSG);
+  }
+  function openWindowFor(key) {
+    if (leaveOk()) window.location.href = windowHref(key);
+  }
+  document.querySelectorAll("[data-stu-gear], [data-stu-aufbau]").forEach(function (a) {
+    a.addEventListener("click", function (e) { if (!leaveOk()) e.preventDefault(); });
+  });
   function previewUrl() {
     return previewPath + (previewPath.indexOf("?") < 0 ? "?" : "&") + "preview=1";
   }
@@ -2031,6 +2051,9 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
       var dl = document.getElementById("st-design-link");
       if (dl) dl.href = dl.getAttribute("data-base") + "?next=" + encodeURIComponent(window.location.pathname + "?page=" + previewPath);
       if (window.__stuMarkPageMenu) window.__stuMarkPageMenu(previewPath);
+      // FB-33 M4: «Aufbau ändern» — схема ТОЙ страницы, что сейчас на канве
+      var aufbauLink = document.querySelector("[data-stu-aufbau]");
+      if (aufbauLink) aufbauLink.href = windowHref("");
       applyPageScope(PAGE_GROUPS[fPath] || (fPath === "/" ? "home" : ""));
     } catch (eSync) {}
   }
@@ -4577,7 +4600,7 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
       hideBar();
       return;
     }
-    if (act === "settings") { closeQuickPop(); openBlockPopup(abKey); }
+    if (act === "settings") { closeQuickPop(); openWindowFor(abKey); }  // FB-33 M4: окно блока
   }
   function syncBar() {
     if (!actionBar || !abKey) return;

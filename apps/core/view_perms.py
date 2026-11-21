@@ -378,6 +378,7 @@ RULES: dict[str, Rule] = {
     # --- Website ------------------------------------------------------------------
     "design": _r(W, WE),
     "site-schema": _r(W, WE),  # FB-25
+    "site-schema-open": _r(W, WE),  # FB-33 M4: ⚙ Студии → окно блока (GET 302)
     "page-templates-sortiment": _r(W, WE),  # STU-19b
     "page-templates-aktionen": _r(W, WE),  # STU-19d
     "page-templates-website": _r(W, WE),  # STU-19d

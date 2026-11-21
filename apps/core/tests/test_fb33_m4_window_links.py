@@ -41,9 +41,6 @@ OPEN = "/dashboard/site/aufbau/oeffnen/"
 #: CASES окна без доп. запроса (окно — по паре «страница, строка»)
 PAIRS = tuple(c for c in CASES if len(c) == 2)
 
-#: до кода M4 — поведения ещё нет (снимается в коммите кода)
-_todo = pytest.mark.xfail(strict=True, reason="FB-33 M4: до кода")
-
 
 def _shop():
     from apps.catalog.tests.factories import ProductFactory
@@ -80,7 +77,6 @@ def _messages(req) -> list[str]:
 # ───────────── L1: адреса окна ─────────────
 
 
-@_todo
 def test_block_window_url_is_the_window_address():
     from apps.core import window_links
 
@@ -100,7 +96,6 @@ def test_block_window_url_is_the_window_address():
     assert url == f"{SCHEMA}?seite=text%40seite%3Aa+b&block=x#schema-panel"
 
 
-@_todo
 @pytest.mark.parametrize("case", PAIRS, ids=["|".join(c) for c in PAIRS])
 def test_studio_gear_opens_the_window_of_that_block(case):
     """Путь канвы + ключ секции → окно того же блока, что открывает «Seitenaufbau»."""
@@ -114,7 +109,6 @@ def test_studio_gear_opens_the_window_of_that_block(case):
     assert _messages(req) == []
 
 
-@_todo
 def test_tab_is_carried_to_the_window():
     from apps.core import window_links
 
@@ -123,7 +117,6 @@ def test_tab_is_carried_to_the_window():
     assert got == window_links.block_window_url("home", "t1", "texte")
 
 
-@_todo
 def test_without_block_the_page_of_the_canvas_opens():
     """«Aufbau ändern»: без строки — схема страницы канвы (как `url_for_path`)."""
     from apps.core import window_links
@@ -136,7 +129,6 @@ def test_without_block_the_page_of_the_canvas_opens():
         assert _messages(req) == []
 
 
-@_todo
 def test_page_key_of_the_canvas_opens_the_page_settings():
     """Ключ самой страницы (обёртка списка/детали, хост блоков) — настройки типа страницы."""
     from apps.core import window_links
@@ -155,7 +147,6 @@ def test_page_key_of_the_canvas_opens_the_page_settings():
     )
 
 
-@_todo
 def test_detail_section_key_of_the_canvas_names_the_section():
     """Раздел детали на канве — `<страница>_<раздел>` (`service_faq`), строка схемы — `faq`."""
     from apps.core import window_links
@@ -167,7 +158,6 @@ def test_detail_section_key_of_the_canvas_names_the_section():
     )
 
 
-@_todo
 def test_unknown_block_opens_the_page_with_a_note():
     from apps.core import window_links
 
@@ -179,7 +169,6 @@ def test_unknown_block_opens_the_page_with_a_note():
         assert _messages(req) == [NOT_FOUND]
 
 
-@_todo
 def test_unknown_page_opens_the_screen():
     from apps.core import window_links
 
@@ -189,7 +178,6 @@ def test_unknown_page_opens_the_screen():
         assert window_links.studio_settings_url(req, path) == SCHEMA
 
 
-@_todo
 def test_draft_block_is_found():
     """Блок, добавленный в черновик «Seitenaufbau» (ещё не сохранён), — тоже открывается."""
     from apps.core import aufbau_draft, window_links
@@ -198,7 +186,7 @@ def test_draft_block_is_found():
     req = _req(tenant)
     saved = siteconfig.normalize(tenant.site_config)
     sections = [*saved["sections"], {"key": "text", "id": "neu1", "enabled": True, "data": {}}]
-    aufbau_draft._put(req, "home", {"sections": sections})
+    aufbau_draft._put(req, "home", {"home": True, "items": sections})
     assert window_links.studio_settings_url(req, "/", "neu1") == (
         window_links.block_window_url("home", "neu1")
     )
@@ -217,11 +205,17 @@ def test_url_for_path_is_built_from_code_for_path():
     assert site_schema.url_for_path(tenant, "/ueber-uns/") == f"{SCHEMA}?seite=text"
 
 
-@_todo
 def test_promos_page_of_the_canvas_has_its_schema():
     """Страница «Aktionen» (хост блоков — EXTRA_HOSTS) — своя схема, а не экран без выбора."""
     tenant = _shop()
     assert site_schema.code_for_path(tenant, "/aktionen/") == "promos"
+    # группы нет (или она не живая) — общая строка групп акций, а не хост-призрак
+    assert site_schema.code_for_path(tenant, "/aktionen/?gruppe=Nope") == "promo_group"
+    from apps.promotions.tests.factories import PromotionFactory
+
+    PromotionFactory(group="Sommer")
+    host = siteconfig.promo_group_host("Sommer")
+    assert site_schema.code_for_path(tenant, "/aktionen/?gruppe=Sommer") == f"promo_group@{host}"
 
 
 # ───────────── L3: эндпоинт ─────────────
@@ -234,7 +228,6 @@ def _open(tenant, **query):
     return site_schema_open(req), req
 
 
-@_todo
 def test_endpoint_redirects_to_the_window():
     tenant = _shop()
     resp, _req_ = _open(tenant, page="/", block="t1", tab="texte")
@@ -243,7 +236,6 @@ def test_endpoint_redirects_to_the_window():
     assert reverse("site-schema-open") == OPEN
 
 
-@_todo
 def test_endpoint_is_get_only():
     from apps.core.window_link_views import site_schema_open
 
@@ -252,7 +244,6 @@ def test_endpoint_is_get_only():
     assert resp.status_code == 405
 
 
-@_todo
 @pytest.mark.parametrize(
     "page",
     [
@@ -276,7 +267,6 @@ def test_endpoint_never_leaves_the_schema_screen(page):
     assert parts.path == SCHEMA, loc
 
 
-@_todo
 @pytest.mark.parametrize(
     "block",
     ['"><script>alert(1)</script>', "t1&seite=evil", "t1#x", "a" * 200, "t1\r\nX: y", "../t1"],
@@ -293,7 +283,6 @@ def test_endpoint_cleans_the_block(block):
     assert all(re.fullmatch(r"[A-Za-z0-9_:-]{1,40}", v) for v in query.get("block", [])), loc
 
 
-@_todo
 def test_endpoint_writes_nothing():
     from apps.core import aufbau_draft
 
@@ -306,17 +295,15 @@ def test_endpoint_writes_nothing():
     assert aufbau_draft.dirty_codes(req) == []
 
 
-@_todo
 def test_endpoint_rights_are_those_of_the_schema_screen():
     from apps.core import view_perms
 
     assert view_perms.RULES["site-schema-open"] == view_perms.RULES["site-schema"]
 
 
-@_todo
 def test_staff_without_website_key_gets_403(monkeypatch):
+    from apps.core.models import Membership
     from apps.core.tests.test_view_perms import _call, _user
-    from apps.tenants.models import Membership
 
     user = _user(Membership.ROLE_STAFF)
     monkeypatch.setattr("apps.core.permissions.effective", lambda u: frozenset())
@@ -326,7 +313,6 @@ def test_staff_without_website_key_gets_403(monkeypatch):
     assert _call(OPEN, user, view_name="site-schema-open") is None
 
 
-@_todo
 def test_endpoint_needs_login():
     from django.contrib.auth.models import AnonymousUser
 
@@ -341,7 +327,6 @@ def test_endpoint_needs_login():
     )
 
 
-@_todo
 def test_endpoint_unknown_block_note():
     tenant = _shop()
     with translation.override("de"):
@@ -353,19 +338,18 @@ def test_endpoint_unknown_block_note():
 # ───────────── L4: после 302 — тот же экран, что эталон окна ─────────────
 
 
-@_todo
 @pytest.mark.parametrize("case", PAIRS[:6], ids=["|".join(c) for c in PAIRS[:6]])
 def test_after_redirect_the_window_is_the_golden_one(case):
     from apps.core.tests.test_fb27_r2_draft import Browser
     from apps.core.tests.test_fb33_m3_2_nojs import GOLDEN, _name, _query, _slice
 
     code, ref = case
-    tenant = _shop()
+    tenant = _tenant()  # как у эталона: без товара (блок «Liste» показал бы его)
+    tenant.site_config = CFG
+    tenant.save()
     resp, _r = _open(tenant, page=_path(tenant, code), block=ref)
     location = resp["Location"]
     assert location == f"{SCHEMA}{_query(case)}#schema-panel"
-    tenant.site_config = CFG
-    tenant.save()
     with translation.override("de"):
         html = Browser(tenant).get(location[len(SCHEMA) :].split("#", 1)[0])
     assert _slice(html) == (GOLDEN / _name(case)).read_text()
@@ -381,7 +365,6 @@ def _studio(tenant):
         return _builder(tenant)
 
 
-@_todo
 def test_studio_row_gear_is_a_link_to_the_window():
     from apps.core.tests.test_stu12_groups import _row
 
@@ -395,7 +378,6 @@ def test_studio_row_gear_is_a_link_to_the_window():
     assert re.search(r'<button type="button" class="blk-edit flex-1[^"]*" data-key="faq"', row)
 
 
-@_todo
 def test_studio_aufbau_link_goes_through_the_endpoint():
     tenant = _shop()
     body = _studio(tenant)
@@ -404,7 +386,6 @@ def test_studio_aufbau_link_goes_through_the_endpoint():
     assert f'href="{OPEN}?page=%2F"' in link.group(0)
 
 
-@_todo
 def test_studio_bar_gear_does_not_open_the_old_panel():
     src = STUDIO_TPL.read_text()
     line = next(li for li in src.splitlines() if 'act === "settings"' in li)
@@ -417,7 +398,6 @@ def test_studio_bar_gear_does_not_open_the_old_panel():
 # ───────────── L6: вне навигации осознанно ─────────────
 
 
-@_todo
 def test_endpoint_is_consciously_unlisted():
     from apps.core.tests.test_x0_x7_locks import EXPECTED_UNLISTED
 
