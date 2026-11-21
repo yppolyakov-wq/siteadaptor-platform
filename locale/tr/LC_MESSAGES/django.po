@@ -39970,24 +39970,12 @@ msgstr "Sayfanın standart metni"
 msgid "Diesen Block finden Sie im Seitenaufbau nicht."
 msgstr "Bu blok sayfa yapısında bulunamıyor."
 
-#. FB-33 стопка: якорь среза M3-7 — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
-msgid "fb33-stack-anchor-M3-7"
-msgstr "fb33-stack-anchor-M3-7"
-
 msgid "Dieser Block ist hier nicht zu sehen – die Vorschau zeigt den Seitenanfang."
 msgstr "Bu blok burada görünmüyor – önizleme sayfanın başını gösteriyor."
-
-#. FB-33 стопка: якорь среза M2i-34 — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
-msgid "fb33-stack-anchor-M2i-34"
-msgstr "fb33-stack-anchor-M2i-34"
 
 #. FB-33 M2i-34: плашка § 312j у итога корзины — без обещания «Felder»
 msgid "Bestellübersicht, Gesamtpreis und der Button „Zahlungspflichtig bestellen“ müssen direkt untereinander stehen — so verlangt es § 312j BGB (Button-Lösung). Deshalb lässt er sich nicht verschieben, ausblenden oder in der Breite ändern."
 msgstr "Sipariş özeti, toplam fiyat ve „Zahlungspflichtig bestellen“ düğmesi doğrudan alt alta durmalıdır — § 312j BGB (düğme çözümü) bunu şart koşar. Bu yüzden taşınamaz, gizlenemez ve genişliği değiştirilemez."
-
-#. FB-33 стопка: якорь среза M4b — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
-msgid "fb33-stack-anchor-M4b"
-msgstr "fb33-stack-anchor-M4b"
 
 msgid "öffnet das Blockfenster"
 msgstr "blok penceresini açar"
