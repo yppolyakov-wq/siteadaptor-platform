@@ -39863,6 +39863,10 @@ msgstr "For orders at the table (QR code) we only ask for the note and your own 
 msgid "fb33-stack-anchor-M2i-7"
 msgstr "fb33-stack-anchor-M2i-7"
 
+#: templates/storefront/order_confirmation.html
+msgid "Die Bestätigung senden wir an die E-Mail-Adresse aus der Zahlung."
+msgstr "We will send the confirmation to the email address used for the payment."
+
 #. FB-33 стопка: якорь среза M3-9 — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
 msgid "fb33-stack-anchor-M3-9"
 msgstr "fb33-stack-anchor-M3-9"

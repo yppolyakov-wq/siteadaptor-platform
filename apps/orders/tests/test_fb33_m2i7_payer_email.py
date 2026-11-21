@@ -283,7 +283,6 @@ def _confirmation(order, query=""):
 HINT = "Die Bestätigung senden wir an die E-Mail-Adresse aus der Zahlung."
 
 
-@pytest.mark.xfail(strict=True, reason="M2i-7 C3: подсказки на подтверждении ещё нет")
 def test_confirmation_page_says_where_the_mail_goes_without_the_address():
     """12. Онлайн-заказ без адреса: подсказка «письмо — на адрес из оплаты», без самого адреса."""
     from django.utils import translation

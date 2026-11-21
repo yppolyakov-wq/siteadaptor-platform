@@ -40214,6 +40214,10 @@ msgstr "При заказе за столиком (QR-код) мы спраши�
 msgid "fb33-stack-anchor-M2i-7"
 msgstr "fb33-stack-anchor-M2i-7"
 
+#: templates/storefront/order_confirmation.html
+msgid "Die Bestätigung senden wir an die E-Mail-Adresse aus der Zahlung."
+msgstr "Подтверждение придёт на адрес электронной почты, указанный при оплате."
+
 #. FB-33 стопка: якорь среза M3-9 — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
 msgid "fb33-stack-anchor-M3-9"
 msgstr "fb33-stack-anchor-M3-9"
