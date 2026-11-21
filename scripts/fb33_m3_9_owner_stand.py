@@ -12,26 +12,35 @@
 
 Проверки на каждой странице: ответ без 5xx; без горизонтального скролла (на 390 — главное);
 цели касания — в окне блока ≥ 44 px по высоте (контракт окна M3-2, `min-h-[44px]`, WCAG 2.5.5
-AAA), на остальном экране и витрине ≥ 24×24 px (WCAG 2.2 2.5.8 AA; ссылки внутри текста —
-исключение критерия); окно: без JS — панель с заголовком, `nav[aria-label]` и подписанные
+AAA), на остальном экране и витрине ≥ 24×24 px (WCAG 2.2 2.5.8 AA с исключениями Inline —
+ссылка в строке текста — и Spacing); страница с ответом 4xx/5xx — только код ответа; окно: без JS — панель с заголовком, `nav[aria-label]` и подписанные
 вкладки; с JS — `<dialog>` модально, `aria-labelledby` на непустой заголовок, роли
 tablist/tab/tabpanel с подписями; в ru — нет немецких строк интерфейса (эвристика ниже);
 с JS — без ошибок страницы.
 
 Эвристика «немецкое в ru»: из видимого текста вырезаются данные бизнеса (все строки его
 `site_config`, полей моделей схемы и тенанта — это содержимое, не интерфейс), затем
-остаётся латиница; слово считается немецким, если в нём есть ä/ö/ü/ß или оно из словаря
-частых слов интерфейса/служебных (`GERMAN_WORDS`); бренды и сокращения — `ALLOW`.
+остаётся латиница; строка немецкая, если в слове есть ä/ö/ü/ß, или слово словаря
+(`GERMAN_WORDS`) длиннее 5 букв, или в строке ≥ 2 слов словаря; бренды, сокращения — `ALLOW`;
+цитата подписи кнопки § 312j («Zahlungspflichtig bestellen») — допустима.
 
     DB_NAME=platform_m39_stand uv run python scripts/fb33_m3_9_owner_stand.py --setup
     DB_NAME=platform_m39_stand uv run python manage.py runserver 0.0.0.0:8039 \\
         --settings=config.settings.stand --noreload
     DB_NAME=platform_m39_stand uv run --with playwright==1.55.0 \\
-        python scripts/fb33_m3_9_owner_stand.py <папка-скриншотов> [--only shop,hotel] [--no-js-pass|--js-only]
+        python scripts/fb33_m3_9_owner_stand.py <папка-скриншотов> [--only shop,hotel] \\
+        [--no-js-pass|--js-only] [--sizes 390,1440] [--langs ru] [--sample N]
     uv run --with playwright==1.55.0 python scripts/fb33_m3_9_owner_stand.py --selftest
 
-`--selftest` — замок самого стенда: те же проверки на заведомо сломанных страницах (5xx,
-вылет по ширине, мелкая кнопка, окно без подписи, немецкое в ru) обязаны дать ✗, чистая — ✓.
+Быстрый прогон (≲ 10 мин, оба прохода): `--only shop --langs ru --sizes 390 --sample 1` —
+не больше одной строки каждого типа (категории, группы акций, объекты), вкладка одного
+ключа блока — один раз. Полный (≈ 1,5 ч) — без этих флагов.
+`--setup` только для стенд-БД (`DB_NAME=…_stand`, иначе выход). Обход входит владельцем
+демо-бизнеса: вход пишет сессию и `last_login` в стенд-БД (больше обход ничего не пишет).
+
+`--selftest` — замок самого стенда: те же проверки на заведомо сломанных страницах (5xx, 404,
+вылет по ширине, цель 43 px и узкие вплотную, вкладки без подписи, немецкое в ru, окно с JS
+без подписи, вкладка не переключается, ошибка JS) дают ✗ ровно своими кодами, чистые — ✓.
 Итог — «N ✓, M ✗». Chromium — /opt/pw-browsers/chromium (playwright install не запускать).
 Порт — `STAND_PORT` (8039). Не входит в CI (там нет браузера).
 """
@@ -43,6 +52,7 @@ import os
 import re
 import subprocess
 import sys
+from collections import Counter
 from urllib.parse import quote
 
 CHROME = "/opt/pw-browsers/chromium"
@@ -61,6 +71,7 @@ SIZES = ((1440, 900), (390, 844))
 LANGS = ("de", "ru")
 AUFBAU = "/dashboard/site/aufbau/"
 WIN_MIN = 44  # окно блока: контракт M3-2
+PHRASES_MAX = 6000  # фраз данных бизнеса для вырезания (дольше — медленно на каждой странице)
 PAGE_MIN = 24  # экран и витрина: WCAG 2.2 2.5.8 AA
 
 #: бренды, сокращения, технические слова — латиница, допустимая в ru
@@ -73,7 +84,6 @@ ALLOW = frozenset(
         "Click Collect Hero Online Shop Tailwind iCal Booking Airbnb Expedia Tripadvisor "
         "https http www com de net org png jpg webp svg ok IBAN BIC SEPA Visa Mastercard "
         "Amex OpenStreetMap OSM Mo Di Mi Do Fr Sa So EUR CHF Deutsch English Türkçe "
-        "Button-Lösung"
     ).split()
 )
 #: частые немецкие слова интерфейса и служебные — признак немецкой строки без умлаута
@@ -83,13 +93,13 @@ GERMAN_WORDS = frozenset(
         "und oder nicht mit auf für der die das den dem des ein eine einen einer keine kein "
         "hier nur gilt wird werden sind ist ihre ihr sie wie was wo zu zum zur von vom bei "
         "alle alles eigene eigener eigenes neue neuer neues jetzt noch schon mehr weniger "
-        "Speichern Abbrechen Fertig Bearbeiten Entfernen Seite Seiten Block Blocks anordnen "
+        "Speichern Abbrechen Fertig Bearbeiten Entfernen Seite Seiten Blöcke anordnen "
         "Karte Texte Felder Vorschau Einstellungen Hauptliste Liste Ansicht zurücksetzen "
         "wählen anzeigen zeigen Breite Reihe Spalten Bild Bilder Kategorie Kategorien Vorlage "
-        "Kacheln Schnellzugriff Platz Inhalte Angebote Produkte Leistungen Termine Zimmer "
+        "Kacheln Schnellzugriff Inhalte Angebote Produkte Leistungen Termine Zimmer "
         "Veranstaltungen Kontakt Startseite Hinzufügen Weiter Zurück Schließen Öffnen "
         "Übernehmen Fenster Darstellung Spalte Höchstens Zeichen Beispiel Pflichtfeld optional "
-        "Bestellen Warenkorb Buchen Anfrage Senden Mehr erfahren Details Preis Preise ab"
+        "Bestellen Warenkorb Buchen Anfrage Senden Mehr erfahren Preis Preise ab"
     ).split()
 )
 #: слово латиницей (вкл. ç ş ğ ı é … — «Türkçe» одно слово, а не «Türk» с умлаутом)
@@ -167,6 +177,8 @@ for slug in SLUGS:
         blocks = site_schema.blocks_for(saved, r.code, host=r.host or None)  # как экран
         # общий блок в схеме одного объекта (R8) — пунктиром, только чтение, окна нет
         refs = [b["ref"] for b in blocks if not b.get("shared")]
+        keys = {b["ref"]: b["key"] for b in blocks}
+        # дубль правила вьюхи site_schema_views ~:556–579 (вынести в приложение — отложено)
         # строка «Einstellungen der Seite» — по правилу экрана (site_schema_views: настройки
         # или «Design» у типа есть, а ★-строки и строки-носителя нет)
         try:
@@ -177,7 +189,7 @@ for slug in SLUGS:
         if has and not any(b["main"] or b["ref"] == carrier for b in blocks):
             refs.append(site_schema.PAGE_REF)
         pages.append({"code": r.code, "label": str(r.label), "preview": r.preview_url,
-                      "refs": refs})
+                      "refs": refs, "keys": keys})
     content = set()
     leaves(t.site_config, content)
     for f in t._meta.get_fields():
@@ -288,14 +300,16 @@ _TARGETS_JS = """([scope, min, spacing]) => {
     const cs = getComputedStyle(e);
     if (cs.visibility === 'hidden' || cs.display === 'contents') continue;
     if (e.closest('[hidden],[aria-hidden=true],.sr-only')) continue;
-    // ссылка внутри предложения — исключение 2.5.8 «Inline»
-    if (e.tagName === 'A' && cs.display === 'inline' && e.closest('p,td,dd,label,small'))
+    // ссылка внутри строки текста — исключение 2.5.8 «Inline»: у родителя есть свой текст
+    if (e.tagName === 'A' && cs.display === 'inline' && e.parentElement &&
+        e.parentElement.textContent.trim().length > e.textContent.trim().length)
       continue;
     if (e.type === 'radio' || e.type === 'checkbox') e = e.closest('label') || e;
     if (seen.has(e)) continue; seen.add(e);
     const r = e.getBoundingClientRect();
     if (!r.width || !r.height) continue;
-    all.push({e, r, small: r.height < min || r.width < 24,
+    // окно (порог 44, M3-2) — только высота; экран и витрина (24, 2.5.8) — обе стороны
+    all.push({e, r, small: r.height < min || (spacing && r.width < min),
       cx: r.left + r.width / 2, cy: r.top + r.height / 2});
   }
   // 2.5.8 «Spacing»: мелкая цель допустима, если круг Ø24 вокруг её центра не задевает
@@ -336,7 +350,7 @@ def visible_text(pg, scope: str) -> str:
 class Content:
     """Данные бизнеса: вырезаются из текста до поиска немецкого (это не интерфейс)."""
 
-    def __init__(self, strings):
+    def __init__(self, strings, rep: Report | None = None):
         phrases, words = set(), set()
         for s in strings:
             for part in re.split(r"[\n\r]+", s):
@@ -346,7 +360,9 @@ class Content:
             for w in _WORD.findall(s):
                 if w.lower() not in GERMAN_WORDS:
                     words.add(w.lower())
-        self.phrases = sorted(phrases, key=len, reverse=True)[:6000]
+        self.phrases = sorted(phrases, key=len, reverse=True)[:PHRASES_MAX]
+        if len(phrases) > PHRASES_MAX and rep is not None:
+            rep.note(f"данные бизнеса усечены до {PHRASES_MAX} фраз из {len(phrases)} (немецкое)")
         self.words = words
 
     def strip(self, text: str) -> str:
@@ -364,13 +380,20 @@ def german(text: str, content: Content | None, rep: Report | None = None) -> lis
         text = content.strip(text)
     found = []
     for line in text.splitlines():
+        hits = []
         for w in _WORD.findall(line):
             low = w.lower()
             if low in ALLOW or (content is not None and low in content.words):
                 continue
-            if _UMLAUT.search(w) or low in GERMAN_WORDS:
-                found.append(f"{w} ‹{line.strip()[:60]}›")
+            # с умлаутом — сразу; без — слово словаря длиннее 5 букв или ≥ 2 слов словаря
+            # в строке (одно короткое «Was»/«ab» в русской строке — не повод)
+            if _UMLAUT.search(w) or (low in GERMAN_WORDS and len(w) > 5):
+                hits = [w]
                 break
+            if low in GERMAN_WORDS:
+                hits.append(w)
+        if _UMLAUT.search("".join(hits)) or len(hits) >= 2 or any(len(h) > 5 for h in hits):
+            found.append(f"{' '.join(hits[:3])} ‹{line.strip()[:60]}›")
     return found
 
 
@@ -473,15 +496,18 @@ def _num_free(item: str) -> str:
 def check_common(rep, pg, tag, status, errs, scope, minimum, lang, content, kind=""):
     """Общие проверки страницы; `kind` — где (окно/экран/витрина) для подписи дефекта."""
     where = _num_free(tag.split(" ", 4)[-1])
-    rep.check(
-        status is not None and status < 500, f"{tag}: ответ без 5xx ({status})", code="status5xx"
-    )
-    rep.check(
-        status is not None and status < 400,
-        f"{tag}: ответ не 4xx ({status})",
-        sigs=[f"{kind} ответ {status} {where}"],
-        code="status4xx",
-    )
+    if status is None or status >= 500:
+        rep.check(False, f"{tag}: ответ без 5xx ({status})", code="status5xx")
+        return  # страница ошибки: цели, скролл и язык на ней — не про проверяемый экран
+    if status >= 400:
+        rep.check(
+            False,
+            f"{tag}: ответ не 4xx ({status})",
+            sigs=[f"{kind} ответ {status} {where}"],
+            code="status4xx",
+        )
+        return
+    rep.ok += 1  # ответ 2xx/3xx
     over = overflow(pg)
     width = pg.evaluate("window.innerWidth")
     rep.check(
@@ -539,13 +565,16 @@ def settle(pg, js, rep: Report | None = None):
             "a.effect.getTiming().iterations !== Infinity && a.playState === 'running').length",
             timeout=5000,
         )
-    except Exception:  # noqa: BLE001 — замер всё равно идёт по текущему состоянию
-        pass
+    except Exception:  # noqa: BLE001 — замер идёт по текущему состоянию, но видно
+        if rep is not None:
+            rep.note("settle timeout: страница не успокоилась (load/анимации) — замер как есть")
 
 
-def walk(rep, browser, slug, data, w, h, lang, js, out_dir):
+def walk(rep, browser, slug, data, w, h, lang, js, out_dir, seen_keys=None):
+    """Один бизнес при одном размере/языке/режиме. `seen_keys` (быстрый режим): вкладку
+    одного ключа блока проверять один раз за обход."""
     url = f"http://{data['host']}:{PORT}"
-    content = Content([*data["content"], data["name"]])
+    content = Content([*data["content"], data["name"]], rep)
     mode = "js" if js else "nojs"
     ctx = browser.new_context(
         viewport={"width": w, "height": h}, locale=f"{lang}-DE", java_script_enabled=js
@@ -573,7 +602,7 @@ def walk(rep, browser, slug, data, w, h, lang, js, out_dir):
 
     def screen(code, n, refs):
         resp = pg.goto(f"{url}{AUFBAU}?seite={quote(code, safe='')}")
-        settle(pg, js)
+        settle(pg, js, rep)
         check_common(
             rep,
             pg,
@@ -589,15 +618,13 @@ def walk(rep, browser, slug, data, w, h, lang, js, out_dir):
         dom = pg.eval_on_selector_all(
             "[data-schema-block]", "els => els.map(e => e.getAttribute('data-schema-block'))"
         )
-        want = set(refs)
+        got, want = Counter(dom), Counter(refs)  # Counter: дубль data-schema-block — тоже ✗
+        extra, missing = sorted((got - want).elements()), sorted((want - got).elements())
         rep.check(
-            set(dom) == want,
-            f"{pref} «{code}»: строки экрана = строки site_schema "
-            f"(лишние {sorted(set(dom) - want)}, нет {sorted(want - set(dom))})",
-            sigs=[
-                f"экран: строки ≠ site_schema «{_num_free(code)}» "
-                f"+{sorted(set(dom) - want)} -{sorted(want - set(dom))}"
-            ],
+            got == want,
+            f"{pref} «{code}»: строки экрана = строки site_schema (лишние {extra}, нет {missing})",
+            sigs=[f"экран: строки ≠ site_schema «{_num_free(code)}» +{extra} -{missing}"],
+            code="rows",
         )
         if n == 0:
             pg.screenshot(path=f"{shot}_aufbau.png")
@@ -606,7 +633,7 @@ def walk(rep, browser, slug, data, w, h, lang, js, out_dir):
         wurl = f"{url}{AUFBAU}?seite={quote(code, safe='')}&block={quote(ref, safe='')}"
         tag = f"{pref} «{code}» {ref}"
         resp = pg.goto(wurl)
-        settle(pg, js)
+        settle(pg, js, rep)
         scope = win_scope
         if js and not pg.locator("dialog.ui-bwin").count() and not pg.evaluate(_WANTS_WINDOW):
             # у блока без вкладок окна нет (M3-2: `window_done` рисуется только при вкладках) —
@@ -631,10 +658,26 @@ def walk(rep, browser, slug, data, w, h, lang, js, out_dir):
         )
         if first:
             pg.screenshot(path=f"{shot}_window.png")
+        bkey = page_keys.get(ref, ref)
         for key in keys[1:] if js else keys:
             ttag = f"{tag} tab={key}"
-            if js:  # вкладка — щелчком (APG); проверки — по видимой панели
-                click_tab(rep, pg, key, ttag, code)
+            if seen_keys is not None:
+                if (bkey, key) in seen_keys:
+                    continue
+                seen_keys.add((bkey, key))
+            if js:  # вкладка — щелчком (APG); сбой одной вкладки — ✗ её, остальные идут
+                try:
+                    if not click_tab(rep, pg, key, ttag, code):
+                        continue
+                except Exception as exc:  # noqa: BLE001
+                    msg = str(exc).splitlines()[0][:120]
+                    rep.check(
+                        False,
+                        f"{ttag}: щелчок по вкладке ({msg})",
+                        code="tab_click",
+                        sigs=[f"окно js: вкладка {key} — сбой щелчка ({_num_free(code)})"],
+                    )
+                    continue
                 status = 200
             else:  # без JS — адрес `?tab=`
                 resp = pg.goto(f"{wurl}&tab={key}")
@@ -650,7 +693,7 @@ def walk(rep, browser, slug, data, w, h, lang, js, out_dir):
             site.on("pageerror", lambda e: errs.append(str(e)[:160]))
         try:
             resp = site.goto(url + sf)
-            settle(site, js)
+            settle(site, js, rep)
             check_common(
                 rep,
                 site,
@@ -669,8 +712,10 @@ def walk(rep, browser, slug, data, w, h, lang, js, out_dir):
             site.close()
 
     visited_sf = set()
+    page_keys: dict[str, str] = {}
     for n, page in enumerate(data["pages"]):
         code = page["code"]
+        page_keys = page.get("keys") or {}
         guard(f"{pref} «{code}»", screen, code, n, page["refs"])
         for i, ref in enumerate(page["refs"]):
             guard(f"{pref} «{code}» {ref}", window, code, ref, n == 0 and i == 0)
@@ -690,12 +735,30 @@ def main_walk(argv):
     passes = (False,) if "--no-js-pass" in argv else (False, True)
     if "--js-only" in argv:  # отладка прохода с JS; приёмка — оба прохода
         passes = (True,)
+    sizes = SIZES
+    if "--sizes" in argv:
+        want = {int(x) for x in argv[argv.index("--sizes") + 1].split(",")}
+        sizes = tuple(sz for sz in SIZES if sz[0] in want)
+    langs = LANGS
+    if "--langs" in argv:
+        langs = tuple(x for x in argv[argv.index("--langs") + 1].split(",") if x in LANGS)
+    sample = int(argv[argv.index("--sample") + 1]) if "--sample" in argv else 0
     slugs = kit_slugs()
     if only:
         slugs = [s for s, k in zip(slugs, KITS, strict=True) if s in only or k in only]
     raw = django_shell(DUMP, slugs).split("@@JSON@@", 1)[1]
     data = json.loads(raw)
     rep = Report()
+    if sample:  # быстрый режим: не больше N строк одного типа (категории, группы, объекты)
+        for d in data.values():
+            per: dict[str, int] = {}
+            kept = []
+            for pg_ in d["pages"]:
+                base = pg_["code"].split("@", 1)[0]
+                per[base] = per.get(base, 0) + 1
+                if per[base] <= sample:
+                    kept.append(pg_)
+            d["pages"] = kept
     for slug in slugs:
         d = data[slug]
         n = sum(len(p["refs"]) for p in d["pages"])
@@ -708,7 +771,7 @@ def main_walk(argv):
 
     signal.signal(signal.SIGTERM, stop)
     try:
-        _walk_all(rep, slugs, data, passes, out_dir)
+        _walk_all(rep, slugs, data, passes, out_dir, sizes, langs, bool(sample))
     except KeyboardInterrupt:
         rep.check(False, "обход прерван (timeout/сигнал) — сводка неполная")
     rep.summary()
@@ -716,7 +779,7 @@ def main_walk(argv):
     sys.exit(1 if rep.fail else 0)
 
 
-def _walk_all(rep, slugs, data, passes, out_dir):
+def _walk_all(rep, slugs, data, passes, out_dir, sizes=SIZES, langs=LANGS, dedupe=False):
     from playwright.sync_api import sync_playwright
 
     with sync_playwright() as p:
@@ -726,10 +789,11 @@ def _walk_all(rep, slugs, data, passes, out_dir):
         for js in passes:
             print(f"=== проход {'с JS' if js else 'без JS'}")
             for slug in slugs:
-                for w, h in SIZES:
-                    for lang in LANGS:
+                for w, h in sizes:
+                    for lang in langs:
                         before = len(rep.fail)
-                        walk(rep, browser, slug, data[slug], w, h, lang, js, out_dir)
+                        seen = set() if dedupe else None
+                        walk(rep, browser, slug, data[slug], w, h, lang, js, out_dir, seen)
                         print(f"  · {slug} {w} {lang}: ✗ {len(rep.fail) - before}")
         browser.close()
 
@@ -888,6 +952,8 @@ def main():
     if "--selftest" in argv:
         selftest()
     elif "--setup" in argv:
+        if not os.environ.get("DB_NAME", "").endswith("_stand"):
+            sys.exit("--setup пишет в БД: только стенд-БД (DB_NAME=…_stand)")
         print(django_shell(SETUP, kit_slugs())[-800:])
     elif argv:
         main_walk(argv)
