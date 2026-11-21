@@ -40006,3 +40006,15 @@ msgstr "Onayı ödemede kullanılan e-posta adresine göndereceğiz."
 msgid "Bezahlt — keine E-Mail-Adresse, Bestätigung nicht gesendet"
 msgstr "Ödendi — e-posta adresi yok, onay gönderilmedi"
 
+
+#. FB-33 стопка: якорь среза M4c — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
+msgid "fb33-stack-anchor-M4c"
+msgstr "fb33-stack-anchor-M4c"
+
+#. FB-33 стопка: якорь среза M3-9a — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
+msgid "fb33-stack-anchor-M3-9a"
+msgstr "fb33-stack-anchor-M3-9a"
+
+#. FB-33 стопка: якорь среза M2i-7.1 — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
+msgid "fb33-stack-anchor-M2i-7.1"
+msgstr "fb33-stack-anchor-M2i-7.1"
