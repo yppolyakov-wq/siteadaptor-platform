@@ -39940,6 +39940,15 @@ msgid "fb33-stack-anchor-M3-5c"
 msgstr "fb33-stack-anchor-M3-5c"
 
 #. FB-33 M3-5c
+#, python-format
+msgid "Antwort %(n)s"
+msgstr "Yanıt %(n)s"
+
+#. FB-33 M3-5c
+msgid "Übersetzungen aus dem Fenster wurden nicht übernommen."
+msgstr "Penceredeki çeviriler uygulanmadı."
+
+#. FB-33 M3-5c
 msgid "Deutsch (Grundtext)"
 msgstr "Almanca (temel metin)"
 

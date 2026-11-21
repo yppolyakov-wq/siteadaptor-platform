@@ -240,9 +240,43 @@ def _pending(draft: dict, ref: str) -> dict:
 def shown(saved: dict, draft: dict, ref: str, loc: str, key: str) -> str:
     """Перевод, который сейчас видит владелец: черновика, иначе сохранённый."""
     mine = _pending(draft, ref).get(loc)
-    if isinstance(mine, dict) and key in mine:
+    if isinstance(mine, dict) and isinstance(mine.get(key), str):
         return mine[key]
-    return (saved.get(loc) or {}).get(key, "")
+    value = (saved.get(loc) or {}).get(key, "")
+    return value if isinstance(value, str) else ""
+
+
+def _object_fp(obj, kind: str) -> str:
+    """Отпечаток своих вопросов объекта: немецкий список и переводы (ключ — индекс источника)."""
+    from apps.core import object_faq
+
+    if obj is None:
+        return ""
+    return fingerprint({"items": object_faq.items(obj, kind), "tr": object_faq.overlays(obj, kind)})
+
+
+def bases(config: dict, page: dict, ref: str, obj=None) -> dict:
+    """Отпечатки окна на первой правке (ревью H2): `all` — переводы и немецкие списки вопросов
+    (переводы вопросов ключуются индексом источника — изменённый в другом месте список сдвинул
+    бы их на чужой вопрос), `faq` — общий немецкий список, `obj` — свои вопросы объекта (`obj` —
+    заблокированный объект при «Speichern»)."""
+    from apps.core import faq_content
+    from apps.core import object_faq as _ofaq
+
+    found = set(kinds(page, ref))
+    if "ofaq" in found and _ofaq.is_ref_row(page, _row(page, ref)):
+        found.add("faq")
+    faq = faq_content.fingerprint(faq_content.base_items(config)) if "faq" in found else ""
+    ofp = ""
+    if "ofaq" in found:
+        okind, found_obj = _object(str(page.get("host") or ""))
+        ofp = _object_fp(obj if obj is not None else found_obj, okind)
+    tr = saved_for(config, page, ref)
+    return {"all": fingerprint({"tr": tr, "faq": faq, "obj": ofp}), "faq": faq, "obj": ofp}
+
+
+def _base_part(value, part: str) -> str:
+    return value.get(part, "") if isinstance(value, dict) else ""
 
 
 # ───────────── правка в черновике ─────────────
@@ -387,7 +421,7 @@ def _set(mine: dict, saved: dict, loc: str, key: str, text: str) -> None:
 def _store(draft: dict, btr: dict, config: dict, ref: str) -> None:
     base = dict(draft.get("btr_base") or {}) if isinstance(draft.get("btr_base"), dict) else {}
     if ref in btr and ref not in base:
-        base[ref] = fingerprint(saved_for(config, draft, ref))
+        base[ref] = bases(config, draft, ref)
     base = {r: v for r, v in base.items() if r in btr}
     if btr:
         draft["btr"] = btr
@@ -409,10 +443,45 @@ def conflict(config: dict, draft: dict) -> bool:
     if not isinstance(draft.get("btr"), dict) or not isinstance(base, dict):
         return False
     return any(
-        fingerprint(saved_for(config, draft, ref)) != value
+        bases(config, draft, ref)["all"] != _base_part(value, "all")
         for ref, value in base.items()
-        if ref in draft["btr"]
+        if ref in draft["btr"] and kinds(draft, ref)  # блока на странице нет — переводить нечего
     )
+
+
+def drop(draft: dict, ref: str) -> None:
+    """Блок удалили из черновика — его переводов (и отпечатка) больше нет (ревью H1)."""
+    btr = {r: v for r, v in (draft.get("btr") or {}).items() if r != ref}
+    base = {r: v for r, v in (draft.get("btr_base") or {}).items() if r != ref}
+    if btr:
+        draft["btr"], draft["btr_base"] = btr, base
+    else:
+        for key in DRAFT_KEYS:
+            draft.pop(key, None)
+
+
+def faq_moved(config: dict, draft: dict) -> bool:
+    """Общий немецкий список вопросов изменили с первой правки перевода (запись поверх — force)."""
+    from apps.core import faq_content
+
+    now = faq_content.fingerprint(faq_content.base_items(config))
+    return any(
+        _base_part(v, "faq") not in ("", now) for v in (draft.get("btr_base") or {}).values()
+    )
+
+
+def obj_moved(draft: dict, locked, kind: str) -> bool:
+    """Свои вопросы объекта (под блокировкой) изменили с первой правки перевода (ревью H2)."""
+    now = _object_fp(locked, kind)
+    return any(
+        _base_part(v, "obj") not in ("", now) for v in (draft.get("btr_base") or {}).values()
+    )
+
+
+def window_skipped_note() -> str:
+    from django.utils.translation import gettext
+
+    return gettext("Übersetzungen aus dem Fenster wurden nicht übernommen.")
 
 
 def conflict_note() -> str:
@@ -561,7 +630,7 @@ def put_shown(config: dict, draft: dict) -> None:
 
     apply(config, draft, bool(draft.get("home")), str(draft.get("host") or ""))
     tr = explicit(draft, "faq")
-    if tr and "faq" not in draft:
+    if tr and "faq" not in draft and not faq_moved(config, draft):
         items = faq_content.base_items(config)
         faq_content.put(config, items, list(range(len(items))), explicit=tr)
 
@@ -674,7 +743,12 @@ def decorate(
             part = "fields"
     faq = selected.get("faq_items") or {}
     scope = "ofaq" if faq.get("scope") == "object" else "faq"
-    if faq.get("items") and scope in found and faq.get("scope") in (None, "shared", "object"):
+    if (
+        not part  # ревью A5: кнопки языка — в одной форме окна
+        and faq.get("items")
+        and scope in found
+        and faq.get("scope") in (None, "shared", "object")
+    ):
         _items, src = _faq_state(saved_config, page, scope)
         for it in faq["items"]:
             i = it["i"]
@@ -689,7 +763,7 @@ def decorate(
                     area=field == "a",
                 )
                 part = "faq"
-    tiles = selected.get("tiles") or {}
+    tiles = (selected.get("tiles") or {}) if not part else {}  # ревью A5: одна форма окна
     for r in tiles.get("rows") or ():
         key = f"label.{r['key']}"
         if key in texts:  # только своя немецкая подпись (решение владельца 3)

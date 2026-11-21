@@ -253,12 +253,13 @@ def remapped(
     FB-33 M3-5c: `explicit` — переводы окна блока ({язык: {src: {q|a: текст}}}) поверх (при
     сопоставлении по тексту — нет: индексы источника ничего не значат)."""
     mapping = faq_content.mapping(old, new, src, by_text)
-    explicit = faq_content._explicit(explicit, by_text)
+    explicit = faq_content._explicit(explicit)
+    exp_map = faq_content.window_mapping(src, len(new))  # ревью M1: набранное — у своего пункта
     out = {}
     for loc in [*(old_overlays or {}), *[x for x in explicit if x not in (old_overlays or {})]]:
         tr = (old_overlays or {}).get(loc)
         moved = faq_content.remap_overlay(old, new, mapping, tr)
-        moved = faq_content.apply_explicit(moved, mapping, explicit.get(loc))
+        moved = faq_content.apply_explicit(moved, exp_map, explicit.get(loc))
         if moved:
             out[loc] = moved
     return out
@@ -869,6 +870,13 @@ def commit(locked, kind: str, draft: dict | None, user, notes: list | None, forc
     if not _allowed(user, kind):
         raise site_schema.SchemaError("ofaq_rights")
     if pending is None:  # только переводы: вопросы — сохранённые, по своим местам
+        if block_i18n.obj_moved(draft, locked, kind):
+            # ревью H2: вопросы объекта изменили между проверкой и блокировкой (или запись поверх)
+            if not force:
+                raise site_schema.SchemaError("btr_conflict")
+            if notes is not None:
+                notes.append(block_i18n.window_skipped_note())
+            return []
         saved = items(locked, kind)
         return put(locked, kind, saved, list(range(len(saved))), explicit=tr)
     moved = draft.get("ofaq_base") != fingerprint(locked, kind)

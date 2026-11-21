@@ -25,7 +25,6 @@ from apps.core.tests.test_fb33_m35c_draft import _live, _post, _shop, _with_ru
 from apps.tenants.models import Tenant
 
 pytestmark = pytest.mark.django_db
-XF = pytest.mark.xfail(strict=True, reason="M3-5c ревью: ещё не сделано")
 
 
 def _ml(tenant, locales=("de", "ru")):
@@ -45,7 +44,6 @@ def _rewrite(b, fn):
 # --- H1 ---------------------------------------------------------------------------------------
 
 
-@XF
 def test_deleted_block_leaves_no_translations_and_no_conflict():
     b = Browser(_shop())
     _post(b, ref="bt1", label="Los", url="/x", tr_label_ru="Вперёд")
@@ -57,7 +55,6 @@ def test_deleted_block_leaves_no_translations_and_no_conflict():
     assert "Gespeichert." in msgs
 
 
-@XF
 def test_conflict_ignores_a_block_that_is_gone():
     from apps.core import block_i18n
 
@@ -72,7 +69,6 @@ def test_conflict_ignores_a_block_that_is_gone():
 # --- H2 ---------------------------------------------------------------------------------------
 
 
-@XF
 def test_shared_questions_changed_elsewhere_are_a_conflict():
     from apps.core import block_i18n
 
@@ -94,7 +90,6 @@ def _object_setup():
     return _setup(blocks=[own_block()])
 
 
-@XF
 def test_object_questions_changed_elsewhere_are_a_conflict(monkeypatch):
     from apps.core import block_i18n, view_perms
     from apps.core.tests.test_fb33_m2b2b_window import _post as ofaq_post
@@ -109,7 +104,6 @@ def test_object_questions_changed_elsewhere_are_a_conflict(monkeypatch):
     assert block_i18n.conflict_note() in msgs
 
 
-@XF
 def test_object_commit_rechecks_under_the_lock(monkeypatch):
     from apps.core import object_faq, site_schema, view_perms
     from apps.core.tests.test_fb33_m2b2b_window import _post as ofaq_post
@@ -128,10 +122,10 @@ def test_object_commit_rechecks_under_the_lock(monkeypatch):
 # --- M1 ---------------------------------------------------------------------------------------
 
 
-@XF
 def test_forced_save_keeps_window_translation_on_its_draft_item():
     b = Browser(_ml(faq_tenant()))
-    _faq_post(b, faq_move="1:up", faq_0_q_ru="Б-окно?")  # «B?» первым, перевод набран у него
+    _faq_post(b, faq_move="1:up")  # «B?» первым
+    _faq_post(b, faq_0_q_ru="Б-окно?")  # перевод набран у него (позиция 0, источник 1)
     assert _drafts(b)["home"]["btr"]["faq"] == {"ru": {"faq.1.q": "Б-окно?"}}
 
     def studio(cfg):
@@ -144,7 +138,6 @@ def test_forced_save_keeps_window_translation_on_its_draft_item():
     assert cfg["i18n"]["ru"]["faq"][0]["q"] == "Б-окно?"
 
 
-@XF
 def test_forced_translation_only_over_changed_questions_is_not_applied_with_a_note():
     b = Browser(_ml(faq_tenant()))
     _faq_post(b, faq_1_q_ru="Б-новый?")
@@ -181,7 +174,6 @@ def _html(b, query):
         return b.get(query)
 
 
-@XF
 def test_translation_labels_name_the_field():
     html = _html(Browser(_shop(_with_ru())), "?seite=home&block=t1&tab=texte")
     assert '<span lang="de">„Überschrift“</span> – Übersetzung (Русский)' in html
@@ -190,7 +182,6 @@ def test_translation_labels_name_the_field():
     assert '<span lang="de">„Antwort 1“</span> – Übersetzung (Русский)' in faq
 
 
-@XF
 def test_invisible_apply_button_is_not_aria_hidden():
     html = _html(Browser(_shop(_with_ru())), "?seite=home&block=t1&tab=texte")
     form = re.search(r'<form[^>]*id="bw-form-fields".*?</form>', html, flags=re.S).group(0)
@@ -203,7 +194,6 @@ def test_invisible_apply_button_is_not_aria_hidden():
     assert msgs == [] and resp["Location"].endswith("#schema-tab-lang-en")
 
 
-@XF
 def test_dropped_note_starts_with_the_live_region_prefix():
     cfg = _with_ru()
     b = Browser(_shop(cfg))
@@ -229,7 +219,6 @@ def test_language_buttons_live_in_one_form_of_a_window():
         assert [i for i, n in ids.items() if n > 1] == [], case
 
 
-@XF
 def test_shown_reads_only_strings():
     from apps.core import block_i18n
 

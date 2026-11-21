@@ -40145,6 +40145,15 @@ msgid "fb33-stack-anchor-M3-5c"
 msgstr "fb33-stack-anchor-M3-5c"
 
 #. FB-33 M3-5c
+#, python-format
+msgid "Antwort %(n)s"
+msgstr "Ответ %(n)s"
+
+#. FB-33 M3-5c
+msgid "Übersetzungen aus dem Fenster wurden nicht übernommen."
+msgstr "Переводы из окна не применены."
+
+#. FB-33 M3-5c
 msgid "Deutsch (Grundtext)"
 msgstr "Немецкий (основной текст)"
 

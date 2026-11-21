@@ -239,7 +239,7 @@ def overlay(config: dict, draft: dict) -> dict:
     if "faq" in draft:
         _put_faq_shown(out, draft)
 
-    if "ofaq" in draft or "btr" in draft:  # FB-33 M2b-2b: свои вопросы — в ключ превью
+    if "ofaq" in draft or _block_i18n().explicit(draft, "ofaq"):  # свои вопросы — в превью
         _object_faq().put_shown(out, draft)
     if "btr" in draft:  # FB-33 M3-5c: переводы текстов блока из окна
         _block_i18n().put_shown(out, draft)
@@ -365,8 +365,10 @@ def _put_faq_shown(config: dict, draft: dict) -> None:
     pending = draft.get("faq") or {}
     src = pending.get("src") if not faq_conflict(config, draft) else None
     # FB-33 M3-5c: переводы вопросов из окна — тем же писателем (без конфликта)
-    tr = _block_i18n().explicit(draft, "faq") if src is not None else None
-    faq_content.put(config, pending.get("items") or [], src, explicit=tr)
+    tr = _block_i18n().explicit(draft, "faq")  # ревью M1: у своего пункта и при конфликте
+    faq_content.put(
+        config, pending.get("items") or [], src, explicit=tr, explicit_src=pending.get("src")
+    )
 
 
 # ───────────── FB-33 M2i-5: поля формы заявки (вкладка «Felder») ─────────────
@@ -882,6 +884,7 @@ def op(
         _block_i18n().take(request, config, draft, window_ref, tr_prior, fields, notes)
     if op_name == "delete":
         _drop_snapshot(draft, window_ref)  # блока больше нет — и снимка его
+        _block_i18n().drop(draft, window_ref)  # ревью H1: и его переводов
     elif before is not None:
         _snapshot(tenant, code, host, draft, window_ref, token, source=before)
     return _settle(request, code, draft, saved, ref)
@@ -1095,13 +1098,18 @@ def commit(request, tenant, code: str, *, force: bool = False, notes: list | Non
     elif _block_i18n().explicit(draft, "faq") and any(
         _is_faq_row(draft, it) for it in draft["items"]
     ):
-        # FB-33 M3-5c: только переводы общих вопросов — вопросы те же, по своим местам
+        # FB-33 M3-5c: только переводы общих вопросов — вопросы те же, по своим местам; список
+        # изменили в другом месте (запись поверх) — номера ничего не значат: не применяем (ревью)
         from apps.core import faq_content
 
-        kept = faq_content.base_items(config)
-        faq_content.put(
-            config, kept, list(range(len(kept))), explicit=_block_i18n().explicit(draft, "faq")
-        )
+        if _block_i18n().faq_moved(config, draft):
+            if notes is not None:
+                notes.append(_block_i18n().window_skipped_note())
+        else:
+            kept = faq_content.base_items(config)
+            faq_content.put(
+                config, kept, list(range(len(kept))), explicit=_block_i18n().explicit(draft, "faq")
+            )
     if "form" in draft and host == site_schema.FORM_HOST:
         # FB-33 M2i-5: поля формы заявки — под блокировкой строки бизнеса: дельта черновика
         # поверх заблокированного сохранённого (ревью H2), номера новых вопросов — от

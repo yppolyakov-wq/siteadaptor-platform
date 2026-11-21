@@ -154,7 +154,12 @@ def _mapping(old: list[dict], new: list[dict], src, by_text: bool) -> list:
 
 
 def put(
-    config: dict, items, src=None, base_fp: str | None = None, explicit: dict | None = None
+    config: dict,
+    items,
+    src=None,
+    base_fp: str | None = None,
+    explicit: dict | None = None,
+    explicit_src=None,
 ) -> None:
     """Записать вопросы `items` ([{q, a}]) в базу и переставить переводы по `src`.
 
@@ -162,8 +167,9 @@ def put(
     отпечаток списка, от которого считаны индексы: не совпал с сохранённым (или `src` нет) —
     сопоставление по тексту вопроса. Перевод поля, чей немецкий текст изменился, снимается.
     FB-33 M3-5c: `explicit` — переводы, введённые в окне блока ({язык: {src: {q|a: текст}}},
-    "" — снять), ложатся поверх (ключ — индекс источника; при сопоставлении по тексту индексы
-    ничего не значат — не применяются, в лог). Мутирует `config`."""
+    "" — снять), ложатся поверх у ТОГО пункта, где их набрали: ключ — индекс источника пункта
+    черновика (`explicit_src`, иначе `src`), и при сопоставлении прочих переводов по тексту
+    (ревью M1: «Trotzdem speichern» не теряет набранное). Мутирует `config`."""
     old = base_items(config)
     new = [{"q": _s(i.get("q")), "a": _s(i.get("a"))} for i in items or () if _s(i.get("q"))]
     by_text = base_fp is not None and base_fp != fingerprint(old)
@@ -179,7 +185,8 @@ def put(
         )
     mapping = _mapping(old, new, src, by_text)
     config["faq"] = new
-    explicit = _explicit(explicit, by_text)
+    explicit = _explicit(explicit)
+    exp_map = window_mapping(explicit_src if explicit_src is not None else src, len(new))
     overlay = config.get("i18n")
     if not isinstance(overlay, dict):
         if not explicit:
@@ -193,7 +200,7 @@ def put(
         if not isinstance(node, dict) or ("faq" not in node and loc not in explicit):
             continue
         moved = remap_overlay(old, new, mapping, node.get("faq"))
-        moved = apply_explicit(moved, mapping, explicit.get(loc))
+        moved = apply_explicit(moved, exp_map, explicit.get(loc))
         if moved:
             node["faq"] = moved
         else:
@@ -204,12 +211,15 @@ def put(
         config.pop("i18n", None)
 
 
-def _explicit(explicit, by_text: bool) -> dict:
-    """FB-33 M3-5c: переводы окна — только языков платформы (сопоставление по тексту — нет)."""
+def window_mapping(src, size: int) -> list:
+    """FB-33 M3-5c: пункт j → индекс источника, под которым в окне набран его перевод."""
+    src = list(src) if isinstance(src, (list, tuple)) else list(range(size))
+    return [src[j] if j < len(src) and isinstance(src[j], int) else None for j in range(size)]
+
+
+def _explicit(explicit, by_text: bool = False) -> dict:
+    """FB-33 M3-5c: переводы окна — только языков платформы."""
     if not isinstance(explicit, dict) or not explicit:
-        return {}
-    if by_text:
-        logger.warning("faq_content: window translations not applied (questions changed)")
         return {}
     from apps.tenants import siteconfig
 

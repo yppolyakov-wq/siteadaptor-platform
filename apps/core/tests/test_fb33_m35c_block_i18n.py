@@ -110,14 +110,15 @@ def test_faq_put_explicit_follows_the_question_and_survives_german_edit():
         explicit={"ru": {1: {"q": "Б2?"}, 0: {"a": "один"}}},
     )
     assert cfg["i18n"]["ru"]["faq"] == [{"q": "Б2?"}, {"a": "один"}]
-    # по тексту (сохранённое изменили) — номера источника ничего не значат
+    # по тексту (сохранённое изменили): прочие переводы — по тексту, набранный в окне — у пункта,
+    # где его набрали (ревью M1)
     cfg2 = {"faq": [{"q": "A?", "a": "1"}], "i18n": {"ru": {"faq": [{"q": "А?"}]}}}
     faq_content.put(
-        cfg2, [{"q": "A?", "a": "1"}], [0], base_fp="x", explicit={"ru": {0: {"q": "Z"}}}
+        cfg2, [{"q": "A?", "a": "1"}], [0], base_fp="x", explicit={"ru": {0: {"a": "Z"}}}
     )
-    assert cfg2["i18n"]["ru"]["faq"] == [{"q": "А?"}]
+    assert cfg2["i18n"]["ru"]["faq"] == [{"q": "А?", "a": "Z"}]
     # "" — снять перевод
-    faq_content.put(cfg2, [{"q": "A?", "a": "1"}], [0], explicit={"ru": {0: {"q": ""}}})
+    faq_content.put(cfg2, [{"q": "A?", "a": "1"}], [0], explicit={"ru": {0: {"q": "", "a": ""}}})
     assert "faq" not in ((cfg2.get("i18n") or {}).get("ru") or {})
 
 
