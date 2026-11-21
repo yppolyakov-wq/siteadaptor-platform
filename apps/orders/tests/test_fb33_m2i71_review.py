@@ -370,3 +370,73 @@ def test_manual_cancel_has_no_automatic_line(biz):
     order = _order()
     OrderSM().apply(order, Order.STATUS_CANCELLED)
     assert "data-auto-cancelled" not in _card(order).content.decode()
+
+
+# --- финальное ревью: один срок на выборку, окно оплаты и сессию; потолок «в пути» -----
+
+xfail = pytest.mark.xfail(strict=True, reason="FB-33 M2i-7.1 (финальное ревью): ещё нет")
+
+
+@xfail
+def test_order_with_a_later_payment_term_stays_payable(biz, monkeypatch):
+    """Срок оплаты заказа позже 24 ч: автоотмена ждёт его — значит, и оплатить можно."""
+    from apps.orders import payments
+
+    order = _order(hours_ago=30)
+    due = timezone.now() + timedelta(days=3)
+    Order.objects.filter(pk=order.pk).update(payment_due_at=due)
+    order.refresh_from_db()
+    assert tasks.expire_abandoned_online() == 0
+    assert payments.abandon_deadline(order) == due
+    assert payments.pay_window_closed(order) is False
+
+    seen = {}
+    monkeypatch.setattr(
+        "apps.billing.connect.connected_checkout_session",
+        lambda **kw: seen.update(kw) or "https://stripe.test/pay",
+    )
+    monkeypatch.setattr(public_views, "_require_orders_active", lambda r: None)
+    resp = public_views.order_pay(_pay_request(order, biz), order.reference_code)
+    assert resp.url == "https://stripe.test/pay"
+    top = timezone.now() + payment_holds.ONLINE_HOLD - payment_holds.SESSION_MARGIN
+    assert abs(seen["expires_at"] - int(top.timestamp())) <= 2  # максимум Stripe, не None
+
+
+@xfail
+def test_session_expires_before_a_later_payment_term(biz, monkeypatch):
+    from apps.orders import payments
+
+    order = _order(hours_ago=30)
+    due = timezone.now() + timedelta(hours=5)
+    Order.objects.filter(pk=order.pk).update(payment_due_at=due)
+    order.refresh_from_db()
+    assert payments._session_expires_at(order) == int(
+        (due - payment_holds.SESSION_MARGIN).timestamp()
+    )
+
+
+def test_processing_payment_keeps_the_order_for_13_days(biz):
+    order = _order(hours_ago=13 * 24)
+    _event(order, intent="pi_sepa", status="unpaid")
+    assert tasks.expire_abandoned_online() == 0
+    order.refresh_from_db()
+    assert order.status == Order.STATUS_NEW
+
+
+@xfail
+def test_processing_payment_without_outcome_expires_after_14_days(biz, refunds):
+    order = _order(hours_ago=15 * 24)
+    _event(order, intent="pi_sepa", status="unpaid")
+    with_mail = _order(hours_ago=15 * 24, email="kim@test.de")
+    _event(with_mail, intent="pi_mail", status="unpaid")
+
+    assert tasks.expire_abandoned_online() == 1
+    order.refresh_from_db()
+    with_mail.refresh_from_db()
+    assert order.status == Order.STATUS_CANCELLED
+    assert with_mail.status == Order.STATUS_NEW  # заказ с e-mail не трогаем
+
+    # деньги всё же пришли — возвращаются поздним возвратом
+    _event(order, "checkout.session.async_payment_succeeded", intent="pi_sepa")
+    assert order.payment_state == Order.PAYMENT_REFUNDED
+    assert [r["payment_intent"] for r in refunds] == ["pi_sepa"]
