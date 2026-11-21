@@ -19,8 +19,8 @@ def _mod():
     return mod
 
 
-def _plan(*files):
-    return _mod().plan(list(files))
+def _plan(*files, importers=lambda module: set(), tests_of=lambda script: set()):
+    return _mod().plan(list(files), importers=importers, tests_of=tests_of)
 
 
 def test_ruff_runs_always_and_on_whole_tree():
@@ -50,8 +50,12 @@ def test_core_change_also_tests_tenants():
 def test_template_change_runs_css_comments_and_i18n():
     p = _plan("templates/orders/cart.html")
     assert {"css", "i18n"} <= set(p.steps)
-    assert "apps/core/tests/test_template_comments.py" in p.pytest_targets
     assert "apps/orders" in p.pytest_targets
+    wide = _plan("templates/zzz/cart.html").pytest_targets  # ядро и главная целиком
+    assert {"apps/core", "apps/tenants"} <= set(wide)
+    for lock in ("test_template_comments", "test_template_tag_balance", "test_a11y_templates"):
+        assert f"apps/core/tests/{lock}.py" in p.pytest_targets, lock
+    assert "apps/tenants/tests/test_template_sweep.py" in p.pytest_targets
 
 
 def test_app_level_template_counts_as_template():
@@ -86,8 +90,37 @@ def test_claude_md_and_rules_and_skills_run_their_locks():
     )
 
 
-def test_preflight_change_runs_its_own_lock():
-    assert "apps/core/tests/test_preflight_plan.py" in _plan("scripts/preflight.py").pytest_targets
+def test_script_change_runs_the_tests_that_mention_it():
+    # Тесты скриптов лежат в приложениях — настоящий поиск по имени файла.
+    mod = _mod()
+    assert (
+        "apps/core/tests/test_preflight_plan.py"
+        in mod.plan(["scripts/preflight.py"]).pytest_targets
+    )
+    p = _plan("scripts/x.py", tests_of=lambda script: {"apps/booking/tests/test_x.py"})
+    assert "apps/booking/tests/test_x.py" in p.pytest_targets
+
+
+def test_core_module_change_tests_the_apps_that_import_it():
+    # Ревью плана: правка ядра роняла третью группу CI при зелёном местном прогоне.
+    p = _plan("apps/core/form_spec.py", importers=lambda module: {f"apps/uses_{module}"})
+    assert "apps/uses_form_spec" in p.pytest_targets
+    real = _mod().plan(["apps/core/form_spec.py"]).pytest_targets
+    assert "apps/orders" in real, real
+
+
+def test_core_test_or_template_change_does_not_fan_out():
+    p = _plan("apps/core/tests/test_x.py", importers=lambda module: {"apps/everything"})
+    assert "apps/everything" not in p.pytest_targets
+
+
+def test_dependency_files_check_the_lock():
+    assert "lock" in _plan("pyproject.toml").steps and "lock" in _plan("uv.lock").steps
+    assert "lock" not in _plan("apps/orders/views.py").steps
+
+
+def test_translation_catalog_change_runs_i18n():
+    assert "i18n" in _plan("locale/ru/LC_MESSAGES/django.po").steps
 
 
 def test_whole_app_target_swallows_single_files_of_that_app():

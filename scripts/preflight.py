@@ -34,6 +34,10 @@ LOCKS = {
     "rules": "apps/core/tests/test_claude_rules_budget.py",
     "skills": "apps/core/tests/test_project_skills.py",
     "template_comments": "apps/core/tests/test_template_comments.py",
+    "template_tags": "apps/core/tests/test_template_tag_balance.py",
+    "template_extends": "apps/core/tests/test_template_extends.py",
+    "template_a11y": "apps/core/tests/test_a11y_templates.py",
+    "template_sweep": "apps/tenants/tests/test_template_sweep.py",
     "preflight": "apps/core/tests/test_preflight_plan.py",
 }
 
@@ -49,11 +53,49 @@ class Plan:
     notes: list[str]
 
 
+TEMPLATE_LOCKS = tuple(k for k in LOCKS if k.startswith("template_"))
+
+
+def _tests_mentioning(needle: str) -> set[str]:
+    """Тестовые файлы приложений, где встречается `needle` (git grep; пусто — нет совпадений)."""
+    out = subprocess.run(
+        ["git", "grep", "-l", "-F", needle, "--", "apps/*/tests/*.py"],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+    ).stdout
+    return {line for line in out.splitlines() if line}
+
+
+def core_importers(module: str) -> set[str]:
+    """Приложения, чей код (не тесты) импортирует `apps.core.<module>`.
+
+    Ядро зовут все приложения: правка `apps/core/form_spec.py` роняет тесты `apps/orders`,
+    а они в третьей группе CI — местный прогон одного ядра этого не видит.
+    """
+    out = subprocess.run(
+        ["git", "grep", "-l", "-E", rf"core(\.| import .*\b){module}\b", "--", "apps/*.py"],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+    ).stdout
+    return {
+        "apps/" + line.split("/")[1]
+        for line in out.splitlines()
+        if "/tests/" not in line and line.split("/")[1] != "core"
+    }
+
+
+def script_tests(script: str) -> set[str]:
+    """Тесты скрипта лежат в приложениях (`test_backup_script.py` и т.п.) — ищем по имени."""
+    return _tests_mentioning(pathlib.PurePosixPath(script).name)
+
+
 def _apps() -> set[str]:
     return {p.name for p in (ROOT / "apps").iterdir() if (p / "__init__.py").exists()}
 
 
-def plan(files: list[str]) -> Plan:
+def plan(files: list[str], importers=core_importers, tests_of=script_tests) -> Plan:
     apps = _apps()
     steps = ["ruff_check", "ruff_format"]
     targets: set[str] = set()
@@ -70,17 +112,21 @@ def plan(files: list[str]) -> Plan:
         is_template = is_html and (parts[0] == "templates" or "/templates/" in f)
         in_code = parts[0] in ("apps", "templates", "config")
 
-        if in_code and (f.endswith(".py") or is_html):
+        if (in_code and (f.endswith(".py") or is_html)) or parts[0] == "locale":
             step("i18n")
+        if f in ("pyproject.toml", "uv.lock"):
+            step("lock")
         if is_template or f.startswith(CSS_SOURCES):
             step("css")
         if is_template:
-            targets.add(LOCKS["template_comments"])
+            targets.update(LOCKS[k] for k in TEMPLATE_LOCKS)
 
         if parts[0] == "apps" and len(parts) > 2 and parts[1] in apps:
             targets.add(f"apps/{parts[1]}")
             if "migrations" in parts:
                 create_db = True
+            if parts[1] == "core" and len(parts) == 3 and f.endswith(".py"):
+                targets.update(importers(parts[2][:-3]))
         elif parts[0] == "templates":
             if len(parts) > 2 and parts[1] in apps:
                 targets.add(f"apps/{parts[1]}")
@@ -96,8 +142,8 @@ def plan(files: list[str]) -> Plan:
             targets.add(LOCKS["rules"])
         elif f.startswith(".claude/skills/"):
             targets.add(LOCKS["skills"])
-        elif f == "scripts/preflight.py":
-            targets.add(LOCKS["preflight"])
+        elif parts[0] == "scripts" and f.endswith(".py"):
+            targets.update(tests_of(f))
 
     # Урок CI 1145: главная рендерит карточки через стабы контрактов ядра.
     if "apps/core" in targets:
@@ -145,11 +191,12 @@ def _css() -> tuple[bool, str]:
         return False, "npm ci не прошёл — свежесть app.css не проверена"
     if not _run(["npm", "run", "--silent", "build:css"]):
         return False, "npm run build:css упал"
+    # Сверяем с HEAD, как CI: пересобранный, но не закоммиченный app.css — тоже «устарел».
     fresh = subprocess.run(
-        ["git", "diff", "--quiet", "--", "static/css/app.css"], cwd=ROOT
+        ["git", "diff", "--quiet", "HEAD", "--", "static/css/app.css"], cwd=ROOT
     ).returncode
     if fresh != 0:
-        return False, "static/css/app.css пересобран и отличается — закоммитьте его"
+        return False, "static/css/app.css отличается от закоммиченного — закоммитьте его"
     return True, ""
 
 
@@ -180,6 +227,7 @@ def main() -> int:
             and _run(["uv", "run", "python", "scripts/i18n_untranslated.py", "--check"]),
             "",
         ),
+        "lock": lambda: (_run(["uv", "lock", "--check"]), ""),
         "css": _css,
         "pytest": lambda: (_run(pytest_command(p, args.jobs)), ""),
     }
