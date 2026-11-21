@@ -21,7 +21,6 @@ from apps.tenants.models import Tenant
 
 pytestmark = pytest.mark.django_db
 WOPEN = "openC5"
-XF = pytest.mark.xfail(strict=True, reason="M3-5c C2: переводов в черновике ещё нет")
 
 
 def _shop(cfg=None, locales=("de", "ru", "en"), default="de"):
@@ -65,7 +64,6 @@ def _with_ru(title="Привет", body=""):
     return cfg
 
 
-@XF
 def test_translation_goes_to_the_draft_then_to_the_site():
     b = Browser(_shop())
     _resp, msgs = _post(b, title="Hallo", body="Welt", tr_title_ru="Привет")
@@ -80,17 +78,21 @@ def test_translation_goes_to_the_draft_then_to_the_site():
     assert "home" not in _drafts(b)
 
 
-@XF
 def test_same_as_saved_leaves_no_draft():
     b = Browser(_shop(_with_ru()))
     _post(b, title="Hallo", body="Welt", tr_title_ru="Привет")
-    assert "home" not in _drafts(b)  # «Übernehmen» без правок — черновика нет
+    assert _live(b) is None  # «Übernehmen» без правок — черновика нет
     _post(b, title="Hallo", body="Welt", tr_title_ru="Иначе")
+    assert _live(b)["btr"] == {"t1": {"ru": {"title": "Иначе"}}}
     _post(b, title="Hallo", body="Welt", tr_title_ru="Привет")  # вернул как было
-    assert "home" not in _drafts(b)
+    assert _live(b) is None
 
 
-@XF
+def _live(b, code="home"):
+    """Черновик для экрана («пустой» — только снимок окна — как его нет)."""
+    return aufbau_draft.get(type("R", (), {"session": b.session})(), code)
+
+
 def test_german_edit_drops_the_translation_with_a_note():
     cfg = _with_ru()
     cfg["i18n"]["en"] = copy.deepcopy(cfg["i18n"]["ru"])
@@ -108,7 +110,6 @@ def test_german_edit_drops_the_translation_with_a_note():
     assert _drafts(b2)["home"]["btr"]["t1"] == {"ru": {"title": "Новое"}}
 
 
-@XF
 def test_cancel_returns_only_own_block_translations():
     b = Browser(_shop())
     _post(b, ref="bt1", label="Los", url="/x", tr_label_ru="Вперёд")
@@ -118,7 +119,6 @@ def test_cancel_returns_only_own_block_translations():
     assert _drafts(b)["home"]["btr"] == {"bt1": {"ru": {"label": "Вперёд"}}}
 
 
-@XF
 def test_save_puts_translation_on_the_block_after_reorder():
     b = Browser(_shop())
     _post(b, title="Hallo", body="Welt", tr_body_ru="Мир")
@@ -128,7 +128,6 @@ def test_save_puts_translation_on_the_block_after_reorder():
     assert _ru(cfg, "t1") == {"body": "Мир"}
 
 
-@XF
 def test_translation_changed_meanwhile_is_a_conflict():
     from apps.core import block_i18n
 
@@ -144,7 +143,6 @@ def test_translation_changed_meanwhile_is_a_conflict():
     assert "Gespeichert." in msgs and _ru(_saved(b), "t1") == {"title": "Моё"}
 
 
-@XF
 def test_preview_overlay_shows_the_draft_translation():
     b = Browser(_shop(_with_ru()))
     _post(b, title="Hallo", body="Welt", tr_title_ru="Черновик")
@@ -154,7 +152,6 @@ def test_preview_overlay_shows_the_draft_translation():
     assert row["data"]["title"] == "Черновик"
 
 
-@XF
 def test_page_title_and_confirmation_next():
     cfg = copy.deepcopy(CFG)
     cfg["confirmation_next"] = "Wir melden uns."

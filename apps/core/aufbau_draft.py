@@ -193,8 +193,12 @@ def overlay(config: dict, draft: dict) -> dict:
     out = copy.deepcopy(config)
     home, host = bool(draft.get("home")), str(draft.get("host") or "")
     items = copy.deepcopy(draft.get("items") or [])
+    from apps.tenants import siteconfig
+
     if home:
         site_schema.lift_hero_choice(out, items)  # FB-29.2: выбор баннеров главной
+        # FB-33 M3-5c: переводы блоков — за своим блоком и в показе черновика (как `store_items`)
+        siteconfig.realign_block_overlays(out, new_sections=items)
         out["sections"] = items
     elif host:
         from apps.core import detail_parts
@@ -214,6 +218,7 @@ def overlay(config: dict, draft: dict) -> dict:
                 out[object_structure.DRAFT_KEY] = drafts
         page_blocks = dict(out.get("page_blocks") or {})
         page_blocks[host] = items
+        siteconfig.realign_block_overlays(out, new_page_blocks=page_blocks)  # FB-33 M3-5c
         out["page_blocks"] = page_blocks
     if host == "info" and "contact" in draft and not _has_section_rows(draft):
         # FB-32 S6a: черновик, начатый до строк разделов, — карточка контактов как раньше
@@ -234,8 +239,10 @@ def overlay(config: dict, draft: dict) -> dict:
     if "faq" in draft:
         _put_faq_shown(out, draft)
 
-    if "ofaq" in draft:  # FB-33 M2b-2b: свои вопросы объекта — в служебный ключ превью
+    if "ofaq" in draft or "btr" in draft:  # FB-33 M2b-2b: свои вопросы — в ключ превью
         _object_faq().put_shown(out, draft)
+    if "btr" in draft:  # FB-33 M3-5c: переводы текстов блока из окна
+        _block_i18n().put_shown(out, draft)
     return _apply_settings(out, draft)
 
 
@@ -357,7 +364,9 @@ def _put_faq_shown(config: dict, draft: dict) -> None:
 
     pending = draft.get("faq") or {}
     src = pending.get("src") if not faq_conflict(config, draft) else None
-    faq_content.put(config, pending.get("items") or [], src)
+    # FB-33 M3-5c: переводы вопросов из окна — тем же писателем (без конфликта)
+    tr = _block_i18n().explicit(draft, "faq") if src is not None else None
+    faq_content.put(config, pending.get("items") or [], src, explicit=tr)
 
 
 # ───────────── FB-33 M2i-5: поля формы заявки (вкладка «Felder») ─────────────
@@ -375,6 +384,7 @@ SIDE_PARTS = (
     ("faq", FAQ_KEYS),  # FB-33 M3-5b вопросы FAQ
     ("ofaq", ("ofaq", "ofaq_base")),  # FB-33 M2b-2b свои вопросы объекта (`object_faq`)
     ("show_on", ("show_on", "show_on_base")),  # FB-33 M3-6 «Wo zeigen» баннера (`window_banner`)
+    ("btr", ("btr", "btr_base")),  # FB-33 M3-5c переводы текстов блока (`block_i18n`)
 )
 
 
@@ -497,6 +507,7 @@ def changes(saved: dict, draft: dict) -> int:
 
     if "ofaq" in draft:  # FB-33 M2b-2b: свои вопросы объекта — одно изменение
         count += 1
+    count += _block_i18n().count(draft)  # FB-33 M3-5c: переводы — одно на окно блока
     # FB-27 R4: настройки типа страницы — по одному изменению на настройку.
     count += len(_settings(draft))
     return count
@@ -516,7 +527,8 @@ def info(request, config: dict, code: str) -> dict:
         "conflict": banner_moved
         or _base_fingerprint(saved, config, draft) != draft.get("base")
         or _keys_conflict(config, draft)
-        or faq_conflict(config, draft),
+        or faq_conflict(config, draft)
+        or _block_i18n().conflict(config, draft),  # FB-33 M3-5c
     }
 
 
@@ -633,6 +645,7 @@ def _snapshot(tenant, code, host, draft, ref, token="", codes=(), source=None) -
         proto["faq"] = {k: copy.deepcopy(source[k]) for k in FAQ_KEYS if k in source}
 
     _object_faq().snapshot(proto, source, items[at] if at is not None else None)  # M2b-2b
+    _block_i18n().snapshot(proto, source, ref)  # FB-33 M3-5c: переводы только этого окна
     _record_codes(source, proto, [*_window_setting_codes(tenant, code, ref), *codes])
     window.pop(ref, None)
     idents = {_ident(it) for it in draft.get("items") or []}
@@ -700,6 +713,7 @@ def _revert(draft: dict, ref: str, proto: dict) -> None:
                     draft[key] = copy.deepcopy(proto[part][key])
                 else:
                     draft.pop(key, None)
+    _block_i18n().revert(draft, ref, proto)  # FB-33 M3-5c: proto["btr_ref"] — только своё
     codes = proto.get("codes") or []
     if codes:
         pending = {k: v for k, v in _settings(draft).items() if k not in codes}
@@ -803,6 +817,12 @@ def op(
         return _settle(request, code, draft, saved, ref)
     token = clean_token(token)
     window_ref = ref
+    # FB-33 M3-5c: переводы окна — немецкие тексты и номера вопросов ДО правки
+    tr_prior = (
+        _block_i18n().before(config, draft, ref)
+        if op_name in ("update", "faq_update") and _block_i18n().kinds(draft, ref)
+        else None
+    )
     # снимок — ПОСЛЕ успешной правки, с состояния до неё (отказ SchemaError его не пишет)
     before = copy.deepcopy(draft) if token and op_name not in _NO_SNAPSHOT_OPS else None
     if (
@@ -857,6 +877,9 @@ def op(
             config.get("block_templates"),
             notes,
         )
+    if tr_prior is not None:
+        # FB-33 M3-5c: переводы из окна и снятие перевода изменённого немецкого текста
+        _block_i18n().take(request, config, draft, window_ref, tr_prior, fields, notes)
     if op_name == "delete":
         _drop_snapshot(draft, window_ref)  # блока больше нет — и снимка его
     elif before is not None:
@@ -1023,6 +1046,9 @@ def commit(request, tenant, code: str, *, force: bool = False, notes: list | Non
     if faq_moved and not force:
         # своё сообщение: страницу никто не трогал — изменились общие вопросы (Студия, канва)
         raise site_schema.SchemaError("faq_conflict")
+    # FB-33 M3-5c: переводы окна изменили в другом месте — до записи (позже правка немецкого
+    # и перестановка уже сдвинули бы сохранённые переводы)
+    _block_i18n().check(config, draft, force)
     from apps.core import page_window, window_banner
 
     # FB-33 M3-6: «Wo zeigen» баннеров (под блокировкой баннера) и SEO страницы
@@ -1058,10 +1084,24 @@ def commit(request, tenant, code: str, *, force: bool = False, notes: list | Non
                 notes.append(faq_content.dropped_note())
         else:
             faq_content.put(
-                config, pending.get("items") or [], pending.get("src"), draft.get("faq_base")
+                config,
+                pending.get("items") or [],
+                pending.get("src"),
+                draft.get("faq_base"),
+                explicit=_block_i18n().explicit(draft, "faq"),  # FB-33 M3-5c
             )
             if faq_moved and notes is not None:
                 notes.append(faq_content.faq_forced_note())
+    elif _block_i18n().explicit(draft, "faq") and any(
+        _is_faq_row(draft, it) for it in draft["items"]
+    ):
+        # FB-33 M3-5c: только переводы общих вопросов — вопросы те же, по своим местам
+        from apps.core import faq_content
+
+        kept = faq_content.base_items(config)
+        faq_content.put(
+            config, kept, list(range(len(kept))), explicit=_block_i18n().explicit(draft, "faq")
+        )
     if "form" in draft and host == site_schema.FORM_HOST:
         # FB-33 M2i-5: поля формы заявки — под блокировкой строки бизнеса: дельта черновика
         # поверх заблокированного сохранённого (ревью H2), номера новых вопросов — от
@@ -1079,6 +1119,9 @@ def commit(request, tenant, code: str, *, force: bool = False, notes: list | Non
             config.pop("about_contact", None)
         else:
             config["about_contact"] = False
+    # FB-33 M3-5c: переводы текстов блоков, «Seitentitel», «Was passiert jetzt», плашек — после
+    # записи блоков и чистки подписей плашек (позиции — по записанным блокам)
+    _block_i18n().apply(config, draft, home, host)
     if _settings(draft):
         # FB-27 R4: настройки типа — в той же транзакции, что блоки; каждая проверяется
         # заново по заблокированной строке. Недопустимая → PageSettingError, ничего не
@@ -1106,6 +1149,13 @@ def _object_faq():
     from apps.core import object_faq
 
     return object_faq
+
+
+def _block_i18n():
+    """FB-33 M3-5c: переводы текстов блока в окне (`apps.core.block_i18n`, ленивый импорт)."""
+    from apps.core import block_i18n
+
+    return block_i18n
 
 
 def _commit_object(

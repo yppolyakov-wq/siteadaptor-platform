@@ -310,6 +310,11 @@ def site_schema_view(request):
                         "entfernen."
                     ),
                 )
+            elif exc.args and exc.args[0] == "btr_conflict":
+                # FB-33 M3-5c: переводы текстов блока изменили в Студии/на канве — черновик цел
+                from apps.core import block_i18n
+
+                messages.error(request, block_i18n.conflict_note())
             elif exc.args and exc.args[0] == "faq_conflict":
                 # FB-33 M3-5b: общие вопросы FAQ изменили в Студии/на канве — черновик цел
                 from apps.core import faq_content
@@ -504,6 +509,21 @@ def site_schema_view(request):
         request.session.pop(aufbau_draft.FAQ_OPENED, None) if selected else None,
         user=getattr(request, "user", None),  # FB-33 M2b-2b (ревью): своё право на вопросы
     )
+    # FB-33 M3-5c: переводы текстов блока, вопросов FAQ и подписей плашек — в окне (языки
+    # бизнеса кнопками; один язык — окно прежнее)
+    from apps.core import block_i18n, i18n_input
+
+    block_i18n.decorate(
+        selected,
+        saved,
+        draft,
+        config,
+        code == "home",
+        current.host if current else "",
+        i18n_input.extra_locales(tenant),
+        request.GET.get("sprache", ""),
+        getattr(tenant, "default_locale", ""),
+    )
     if (
         selected
         and (selected["key"] == "anfrage" and not selected["cblock"] or _is_anfrage_ref(selected))
@@ -616,7 +636,9 @@ def site_schema_view(request):
             # вкладка, которую формы окна помнят после действия: только явно открытая
             "window_tab": block_window.explicit_tab(window, request.GET.get("tab", "")),
             # FB-33 M2i-5b: язык переводов вкладки «Felder» — переживает действие окна
-            "form_lang": ((selected or {}).get("form_spec") or {}).get("lang", ""),
+            # FB-33 M3-5c: и язык переводов текстов блока (у строки — одна из двух вкладок)
+            "form_lang": ((selected or {}).get("form_spec") or {}).get("lang", "")
+            or ((selected or {}).get("field_langs") or {}).get("lang", ""),
             # FB-27 R7: строка категории — своя схема или блоки каталога
             "category_row": (
                 {"own": any(not b["main"] and not b["fixed"] for b in blocks)}
