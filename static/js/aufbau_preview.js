@@ -15,16 +15,13 @@
 (function () {
   "use strict";
 
-  var tpl = document.querySelector("template[data-bw-preview]");
-  if (!tpl) return;
-  var src = tpl.getAttribute("data-src") || "";
-  if (src.charAt(0) !== "/" || src.charAt(1) === "/" || src.indexOf("\\") !== -1) return;
-
   var STORE = "aufbau-preview-closed";
   var PAUSE = 600;
   var PAGE_WIDTH = 1280;
   var AREA_ID = "bw-preview-area";
   var phone = window.matchMedia ? window.matchMedia("(max-width: 767px)") : null;
+  // низкий экран (телефон боком): область по умолчанию свёрнута, как на телефоне
+  var short = window.matchMedia ? window.matchMedia("(max-height: 520px)") : null;
 
   var box = null;
   var btn = null;
@@ -38,6 +35,22 @@
 
   function onPhone() {
     return !!(phone && phone.matches);
+  }
+
+  function shortScreen() {
+    return !!(short && short.matches);
+  }
+
+  // шаблон экрана читается при каждом использовании (не кешируется при загрузке)
+  function data(name) {
+    var tpl = document.querySelector("template[data-bw-preview]");
+    return tpl ? tpl.getAttribute(name) : null;
+  }
+
+  function source() {
+    var src = data("data-src") || "";
+    if (src.charAt(0) !== "/" || src.charAt(1) === "/" || src.indexOf("\\") !== -1) return "";
+    return src;
   }
 
   function rememberedClosed() {
@@ -74,7 +87,7 @@
   }
 
   function target(doc) {
-    var anchor = tpl.getAttribute("data-anchor") || "";
+    var anchor = data("data-anchor") || "";
     if (!anchor || !window.CSS || !CSS.escape) return null;
     var found = doc.querySelectorAll('[data-sf-section="' + CSS.escape(anchor) + '"]');
     for (var i = 0; i < found.length; i += 1) {
@@ -103,25 +116,26 @@
       if (link) e.preventDefault();
     }, true);
     var el = target(doc);
-    var whole = tpl.hasAttribute("data-page") || !tpl.getAttribute("data-anchor");
+    var whole = data("data-page") !== null || !data("data-anchor");
     note.hidden = !!el || whole;
     var view = frame.contentWindow;
     if (!view) return;
-    if (!el) { view.scrollTo(0, 0); return; }
+    if (!el) { view.scrollTo({ top: 0, left: 0, behavior: "instant" }); return; }
     var top = el.getBoundingClientRect().top + view.pageYOffset;
     // липкая шапка витрины не закрывает начало блока
     var head = doc.querySelector('[data-sf-section="header"]');
     var pos = head ? view.getComputedStyle(head).position : "";
     var cover = pos === "sticky" || pos === "fixed" ? head.getBoundingClientRect().height : 0;
-    view.scrollTo(0, Math.max(0, top - cover - 16));
+    view.scrollTo({ top: Math.max(0, top - cover - 16), left: 0, behavior: "instant" });
   }
 
   function load() {
+    var src = source();
+    if (!src) return;
     stale = false;
     if (!frame) {
       frame = document.createElement("iframe");
       frame.className = "ui-bwin-pv-frame";
-      frame.setAttribute("title", tpl.getAttribute("data-title") || "");
       // только посмотреть: без скриптов, форм, всплывающих окон и ухода наверх
       frame.setAttribute("sandbox", "allow-same-origin");
       frame.setAttribute("referrerpolicy", "same-origin");
@@ -152,7 +166,7 @@
 
   function build() {
     var win = document.querySelector("dialog.ui-bwin[open]");
-    if (box || !win) return;
+    if (box || !win || !source()) return;
     box = document.createElement("section");
     box.className = "ui-bwin-pv";
     box.setAttribute("data-bwin-preview", "");
@@ -162,7 +176,7 @@
     btn.setAttribute("aria-controls", AREA_ID);
     btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>';
     var label = document.createElement("span");
-    label.textContent = tpl.getAttribute("data-label") || "";
+    label.textContent = data("data-label") || "";
     btn.appendChild(label);
     btn.addEventListener("click", toggle);
     area = document.createElement("div");
@@ -170,10 +184,12 @@
     area.className = "ui-bwin-pv-area";
     note = document.createElement("p");
     note.className = "ui-bwin-pv-missing";
-    note.textContent = tpl.getAttribute("data-missing") || "";
+    note.textContent = data("data-missing") || "";
     note.hidden = true;
     stage = document.createElement("div");
     stage.className = "ui-bwin-pv-stage";
+    // картинка для глаз: читатель экрана слышит саму панель, кадр ему не нужен (a11y-ревью)
+    stage.setAttribute("aria-hidden", "true");
     area.appendChild(note);
     area.appendChild(stage);
     box.appendChild(btn);
@@ -183,7 +199,7 @@
       resizer = new ResizeObserver(fit);
       resizer.observe(stage);
     }
-    setOpen(!onPhone() && !rememberedClosed());
+    setOpen(!onPhone() && !shortScreen() && !rememberedClosed());
   }
 
   function teardown() {
@@ -212,6 +228,13 @@
     if (phone.addEventListener) phone.addEventListener("change", follow);
     else if (phone.addListener) phone.addListener(follow);
   }
+  // клик в кадр уводит фокус в него (окно теряет фокус) — возвращаем на кнопку «Vorschau»:
+  // Esc и Tab снова работают в окне, колесо кадр крутит и без фокуса
+  window.addEventListener("blur", function () {
+    setTimeout(function () {
+      if (frame && btn && document.activeElement === frame) btn.focus({ preventScroll: true });
+    }, 0);
+  });
   // aufbau.js (defer, раньше этого скрипта) мог уже открыть окно
   build();
 })();

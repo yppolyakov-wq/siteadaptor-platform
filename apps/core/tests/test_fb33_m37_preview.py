@@ -263,10 +263,7 @@ def test_aufbau_js_gets_exactly_three_new_events():
 
 
 def test_preview_texts_are_translated():
-    want = (
-        "Vorschau der Seite „%(page)s“",
-        "Dieser Block ist hier nicht zu sehen – die Vorschau zeigt den Seitenanfang.",
-    )
+    want = ("Dieser Block ist hier nicht zu sehen – die Vorschau zeigt den Seitenanfang.",)
     for lang in ("de", "en", "ru", "tr", "uk"):
         po = (ROOT / "locale" / lang / "LC_MESSAGES" / "django.po").read_text()
         for msgid in want:
@@ -285,7 +282,6 @@ def test_foreign_or_inactive_aufbau_code_does_not_break_the_storefront(code):
     assert "<html" in shown
 
 
-@pytest.mark.xfail(strict=True, reason="ревью M3-7: whole_page по явному набору ключей")
 def test_whole_page_is_an_explicit_set_of_service_rows():
     from apps.core import page_title, site_schema
     from apps.tenants import siteconfig
@@ -300,7 +296,6 @@ def test_whole_page_is_an_explicit_set_of_service_rows():
     assert not window_links.whole_page("__neu") and not window_links.whole_page("t1")
 
 
-@pytest.mark.xfail(strict=True, reason="ревью M3-7: canvas_key берёт уже известный хост")
 def test_canvas_key_reuses_the_known_host(monkeypatch):
     from apps.core import site_schema
 
@@ -317,13 +312,13 @@ def test_canvas_key_reuses_the_known_host(monkeypatch):
     assert got == "product_related"
 
 
-@pytest.mark.xfail(strict=True, reason="ревью M3-7: кадр скрыт от дерева доступности")
 def test_frame_area_is_hidden_from_assistive_tech_and_returns_focus():
     src = (JS / "aufbau_preview.js").read_text()
     assert 'stage.setAttribute("aria-hidden", "true")' in src
     assert 'setAttribute("title"' not in src and "data-title" not in src
     # шаблон читается при каждом использовании, не кешируется при загрузке
-    assert "var tpl = document.querySelector" not in src
+    assert "\n  var tpl = " not in src  # не на верхнем уровне скрипта
+    assert src.count('querySelector("template[data-bw-preview]")') == 1
     # клик в кадр не оставляет фокус в нём: blur окна → фокус на кнопку
     assert 'window.addEventListener("blur"' in src and "document.activeElement === frame" in src
     assert src.count('behavior: "instant"') == 2
@@ -331,7 +326,6 @@ def test_frame_area_is_hidden_from_assistive_tech_and_returns_focus():
     assert "data-title=" not in tpl.split("data-bw-preview", 1)[1].split("</template>", 1)[0]
 
 
-@pytest.mark.xfail(strict=True, reason="ревью M3-7: движение и низкий экран")
 def test_preview_css_respects_reduced_motion_and_short_screens():
     css = (ROOT / "static" / "src" / "app.css").read_text()
     assert ".ui-bwin-pv-toggle svg { transition" not in css.replace(
