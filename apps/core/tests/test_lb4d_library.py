@@ -315,18 +315,23 @@ def test_overview_treats_the_target_as_a_narrowing_filter():
 
 
 def test_block_row_offers_the_target_select_by_module():
+    """FB-33 M4b (осознанная переписка): «Gilt für» — в окне блока."""
+    from apps.core.tests.test_list_block_sources import _panel, _values
+
     block = _block(source="promotions", ziel="stay")
     t = _tenant([block], disabled=["stays"])
-    row = _row(_builder_html(t), block["id"])
-    select = row[row.index(f'name="cb_{block["id"]}_ziel"') :]
-    select = select[: select.index("</select>")]
-    assert 'value="service"' in select and 'value="product"' in select
+    assert f'name="cb_{block["id"]}_ziel"' not in _row(_builder_html(t), block["id"])
+    field = _panel(t, block["data"])["ziel"]
+    assert "service" in _values(field) and "product" in _values(field)
     # модуль номеров выключен: пункта не предлагаем, но значение блока цело (W0)
-    assert re.search(r'value="stay"[^>]*selected', select)
-    assert select.count('value="stay"') == 1
+    assert field["value"] == "stay" and _values(field).count("stay") == 1
 
 
 def test_builtin_promotions_row_has_the_target_and_saves_it():
+    """FB-33 M4b (осознанная переписка): «Gilt für» встроенной строки акций пишет окно
+    блока; в строке Студии поля нет, её «Speichern» выбор не стирает."""
+    from apps.core import site_schema
+
     t = _tenant([])
     cfg = dict(t.site_config)
     for row in cfg["sections"]:
@@ -334,17 +339,14 @@ def test_builtin_promotions_row_has_the_target_and_saves_it():
             row["enabled"] = True
     t.site_config = cfg
     t.save(update_fields=["site_config"])
-    body = _builder_html(t)
-    assert 'name="sl_promotions_ziel"' in body
+    assert 'name="sl_promotions_ziel"' not in _builder_html(t)
+    site_schema.apply(t, "home", "update", ref="promotions", fields={"ziel": "stay"})
+    t.refresh_from_db()
     saved = _post_builder(
         t,
-        {
-            "order_promotions": "1",
-            "enabled_promotions": "on",
-            "sl_promotions_present": "1",
-            "sl_promotions_ziel": "stay",
-        },
-    )
+        {"order_promotions": "1", "enabled_promotions": "on", "sl_promotions_present": "1",
+         "sl_promotions_ziel": "product"},
+    )  # fmt: skip
     row = next(s for s in saved["sections"] if s["key"] == "promotions")
     assert row["data"] == {"ziel": "stay"}
 

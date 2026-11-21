@@ -8,7 +8,6 @@
 """
 
 import itertools
-import re
 import uuid
 from datetime import timedelta
 from decimal import Decimal
@@ -24,12 +23,12 @@ from apps.core import list_blocks
 from apps.core.tests.test_list_block_sources import (
     _all_link,
     _block,
-    _builder_html,
     _clean,
     _home,
-    _row,
+    _panel,
     _section,
     _tenant,
+    _values,
 )
 from apps.events.models import BlogPost
 from apps.reviews.models import Review
@@ -268,30 +267,20 @@ def test_blog_page_and_home_section_use_the_shared_card_in_the_visitors_language
 
 
 def test_editor_offers_review_kinds_of_active_modules():
+    """FB-33 M4b (осознанная переписка): вид отзывов и звёзды — в окне блока."""
     block = _block(source="reviews", entity="stay")  # модуль номеров выключен
-    t = _tenant([block], disabled=["stays"])
-    row = _row(_builder_html(t), block["id"])
-    i = row.index(f'name="cb_{block["id"]}_entity"')
-    select = row[i : row.index("</select>", i)]
-    assert 'value="product"' in select and 'value="service"' in select
-    assert re.search(r'value="stay"[^>]*selected', select)  # свой вид блока (W0)
-    assert select.count('value="stay"') == 1
-    i = row.index(f'name="cb_{block["id"]}_stars"')
-    assert 'value="4"' in row[i : row.index("</select>", i)]
+    fields = _panel(_tenant([block], disabled=["stays"]), block["data"])
+    entity = _values(fields["entity"])
+    assert "product" in entity and "service" in entity
+    assert fields["entity"]["value"] == "stay" and entity.count("stay") == 1  # свой вид (W0)
+    assert "4" in _values(fields["stars"])
 
 
 def test_editor_hides_rows_the_new_sources_do_not_have():
+    """FB-33 M4b (осознанная переписка): у блога в окне блока нет сортировки и карточки."""
     block = _block(source="blog")
-    row = _row(_builder_html(_tenant([block])), block["id"])
-    bid = block["id"]
-
-    def box_of(name):
-        i = row.index(f'name="cb_{bid}_{name}"')
-        start = row.rindex("data-lb-src=", 0, i)
-        return row[start : row.index(">", start)]
-
-    assert "blog" not in box_of("sort") and "reviews" in box_of("sort")
-    assert "blog" not in box_of("card") and "reviews" not in box_of("card")
+    fields = _panel(_tenant([block]), block["data"])
+    assert "sort" not in fields and "card" not in fields
     sorts: dict = {}
     for key, _label, srcs in list_blocks.sort_options():
         sorts.setdefault(key, set()).update(srcs.split())

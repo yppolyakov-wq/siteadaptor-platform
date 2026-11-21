@@ -9,7 +9,6 @@
 """
 
 import itertools
-import re
 from datetime import timedelta
 from decimal import Decimal
 
@@ -23,12 +22,12 @@ from apps.core import list_blocks
 from apps.core.tests.test_list_block_sources import (
     _all_link,
     _block,
-    _builder_html,
     _clean,
     _home,
-    _row,
+    _panel,
     _section,
     _tenant,
+    _values,
 )
 from apps.events.models import Event, Tour
 from apps.tenants import siteconfig
@@ -290,66 +289,49 @@ def test_directions_block_links_to_the_catalog():
 
 
 def test_source_select_offers_the_new_sources():
+    """FB-33 M4b (осознанная переписка): источники — в окне блока."""
     _tour("Manali", country="Indien")
     block = _block(source="tours")
-    row = _row(_builder_html(_tenant([block])), block["id"])
-    select = row[row.index(f'name="cb_{block["id"]}_source"') :]
-    select = select[: select.index("</select>")]
+    field = _panel(_tenant([block]), block["data"])["source"]
     for key in ("tours", "combos", "categories"):
-        assert f'value="{key}"' in select, key
-    assert re.search(r'value="tours"[^>]*selected', select)
+        assert key in _values(field), key
+    assert field["value"] == "tours"
     # без модуля событий туров не предлагаем
     other = _block(source="combos")
-    row2 = _row(_builder_html(_tenant([other], disabled=["events"])), other["id"])
-    assert 'value="tours"' not in row2[: row2.index("</select>")]
+    assert "tours" not in _values(
+        _panel(_tenant([other], disabled=["events"]), other["data"])["source"]
+    )
 
 
 def test_editor_offers_countries_of_published_tours():
+    """FB-33 M4b (осознанная переписка): страна — в окне блока («Kategorie»)."""
     _tour("Manali", country="Indien")
     _tour("Mustang", country="Nepal")
     _tour("Entwurf", country="Bhutan", published=False)
     block = _block(source="tours", country="Island")  # тура в Исландии больше нет
-    row = _row(_builder_html(_tenant([block])), block["id"])
-    select = row[row.index(f'name="cb_{block["id"]}_country"') :]
-    select = select[: select.index("</select>")]
-    assert 'value="Indien"' in select and 'value="Nepal"' in select
-    assert 'value="Bhutan"' not in select  # неопубликованный тур — не вариант
+    field = _panel(_tenant([block]), block["data"], "kategorie")["country"]
+    assert "Indien" in _values(field) and "Nepal" in _values(field)
+    assert "Bhutan" not in _values(field)  # неопубликованный тур — не вариант
     # значение блока остаётся выбранным (W0), с пометкой
-    assert re.search(r'value="Island"[^>]*selected', select)
+    assert field["value"] == "Island" and "Island" in _values(field)
 
 
 def test_category_select_serves_products_combos_and_categories():
-    """Одно поле «Kategorie» на три источника; пустой пункт у категорий — свой
-    («Hauptkategorien»: блок покажет направления, а не «все»)."""
+    """Пустой пункт у категорий — свой («Hauptkategorien»: блок покажет направления, а не
+    «все»). FB-33 M4b (осознанная переписка): поле — в окне блока, у каждого источника своё."""
     block = _block(source="categories")
-    row = _row(_builder_html(_tenant([block])), block["id"])
-    i = row.index(f'name="cb_{block["id"]}_category"')
-    box = row[row.rindex("data-lb-src=", 0, i) : i]
-    for src in ("products", "combos", "categories"):
-        assert src in box[: box.index(">")], src
-    select = row[i : row.index("</select>", i)]
-    empties = re.findall(r'<option value=""([^>]*)>([^<]*)<', select)
-    assert len(empties) == 2
-    own = [label for attrs, label in empties if "selected" in attrs]
-    assert own and "Hauptkategorien" in own[0]
+    t = _tenant([block])
+    field = _panel(t, block["data"], "kategorie")["category"]
+    assert field["options"][0] == ("", "Hauptkategorien") and field["value"] == ""
+    assert _panel(t, {"source": "products"}, "kategorie")["category"]["options"][0][0] == ""
 
 
 def test_rows_without_choices_are_hidden_for_the_source():
-    """Сортировки нет у туров/наборов/категорий, формы карточки — у категорий: строки
-    скрыты по реестру (STU-9 — не предлагать пустого), а поля остаются в DOM (W0)."""
+    """Сортировки нет у туров/наборов/категорий, формы карточки — у категорий (STU-9 — не
+    предлагать пустого). FB-33 M4b (осознанная переписка): окно блока их не рисует."""
     block = _block(source="categories")
-    row = _row(_builder_html(_tenant([block])), block["id"])
-    bid = block["id"]
-
-    def box_of(name):
-        i = row.index(f'name="cb_{bid}_{name}"')
-        start = row.rindex("data-lb-src=", 0, i)
-        return row[start : row.index(">", start)]
-
-    sort_box = box_of("sort")
-    assert "categories" not in sort_box and "products" in sort_box and "hidden" in sort_box
-    card_box = box_of("card")
-    assert "categories" not in card_box and "tours" in card_box and "hidden" in card_box
+    fields = _panel(_tenant([block]), block["data"])
+    assert "sort" not in fields and "card" not in fields
     hint = list_blocks.view_hint(siteconfig.normalize({}), {"source": "categories"})
     assert "categories" not in hint["card_sources"].split()
     assert "categories" not in hint["sort_sources"].split()

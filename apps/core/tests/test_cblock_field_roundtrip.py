@@ -107,21 +107,24 @@ def test_promo_list_type_survives_builder_save():
     )
     block = next(s for s in cfg["sections"] if s.get("id") == "pl1")
     assert block["key"] == "list"
-    assert block["data"] == {
-        "source": "promotions",
-        "type": "sys:mystery",
-        "title": "Nur heute",
-        "limit": 6,
-    }
+    # FB-33 M4b (осознанная переписка): тип и «Höchstens» правит окно блока — из формы
+    # Студии берётся заголовок (и вступление, темп)
+    assert block["data"] == {"source": "promotions", "title": "Nur heute"}
 
 
 def test_list_block_survives_builder_save():
     """LB-1: блок «Liste» товаров — фильтр, сортировка и вид переживают Save."""
+    # FB-33 M4b (осознанная переписка): выбор и вид пишет окно блока — Save Студии их
+    # не стирает и присланным не меняет; заголовок, вступление и темп — из формы.
+    window = {"source": "products", "category": "kaese", "only": "sale", "sort": "price_asc",
+              "limit": 8, "out": "slider", "cols": 4, "rows": 2, "card": "regal"}  # fmt: skip
     tenant = TenantFactory(
         slug="cbrt3",
         name="CbRt3",
         site_config={
-            "sections": [{"key": "list", "id": "lb1", "enabled": True, "order": 1, "data": {}}]
+            "sections": [
+                {"key": "list", "id": "lb1", "enabled": True, "order": 1, "data": dict(window)}
+            ]
         },
     )
     post = {
@@ -130,17 +133,17 @@ def test_list_block_survives_builder_save():
         "enabled_cb_lb1": "on",
         "order_cb_lb1": "1",
         "cb_lb1_source": "products",
-        "cb_lb1_category": "kaese",
-        "cb_lb1_only": "sale",
-        "cb_lb1_sort": "price_asc",
-        "cb_lb1_limit": "8",
+        "cb_lb1_category": "brot",
+        "cb_lb1_only": "",
+        "cb_lb1_sort": "newest",
+        "cb_lb1_limit": "3",
         "cb_lb1_title": "Käse im Angebot",
         "cb_lb1_intro": "Diese Woche günstiger.",
-        "cb_lb1_out": "slider",
-        "cb_lb1_cols": "4",
-        "cb_lb1_rows": "2",
+        "cb_lb1_out": "grid",
+        "cb_lb1_cols": "2",
+        "cb_lb1_rows": "1",
         "cb_lb1_speed": "5",
-        "cb_lb1_card": "regal",
+        "cb_lb1_card": "compact",
         # поля скрытого источника тоже приходят (W0) — normalize их не хранит
         "cb_lb1_type": "Räumung",
         "cb_lb1_endet": "heute",

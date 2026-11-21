@@ -8,7 +8,6 @@ presence-minimal и только у источника, у которого он
 """
 
 import itertools
-import re
 from datetime import timedelta
 from decimal import Decimal
 
@@ -16,8 +15,16 @@ import pytest
 from django.utils import timezone
 
 from apps.catalog.models import Category, Product
-from apps.core.tests.test_list_block_sources import _block, _builder_html, _home, _row, _tenant
-from apps.core.tests.test_stu12_groups import TPL, _post_builder, _segment
+from apps.core.tests.test_list_block_sources import (
+    _block,
+    _builder_html,
+    _home,
+    _panel,
+    _row,
+    _tenant,
+    _values,
+)
+from apps.core.tests.test_stu12_groups import _post_builder
 from apps.promotions.models import Promotion
 from apps.tenants import siteconfig
 
@@ -143,23 +150,21 @@ def test_categories_block_compact_rows_and_tile_shapes():
 
 
 def test_editor_offers_the_style_of_each_source():
+    """FB-33 M4b (осознанная переписка): вид блока «Liste» выбирают в окне блока."""
     block = _block(source="products", style="preisliste_karte")
-    row = _row(_builder_html(_tenant([block])), block["id"])
-    i = row.index(f'name="cb_{block["id"]}_style"')
-    select = row[i : row.index("</select>", i)]
-    assert re.search(r'value="preisliste_karte"[^>]*selected', select)
-    assert (
-        'value="spotlight"' in select and 'value="compact"' in select
-    )  # опции других источников — в DOM (W0)
-    assert 'data-lb-src="products promotions categories"' in row[:i]
+    t = _tenant([block])
+    assert f'name="cb_{block["id"]}_style"' not in _row(_builder_html(t), block["id"])
+    field = _panel(t, block["data"])["style"]
+    assert field["value"] == "preisliste_karte" and "preisliste_karte" in _values(field)
 
 
 def test_style_reaches_save_and_the_live_draft():
-    draft = set(re.findall(r'"(\w+)"', _segment(TPL.read_text("utf-8"), "var CB_DATA_FIELDS", "]")))
-    assert "style" in draft
+    """FB-33 M4b (осознанная переписка): вид пишет окно блока; «Speichern» Студии его не
+    стирает и присланным (устаревшая вкладка) не меняет."""
     tenant = _tenant(
-        [{"key": "list", "id": "st1", "enabled": True, "data": {"source": "products"}}]
-    )
+        [{"key": "list", "id": "st1", "enabled": True,
+          "data": {"source": "products", "style": "preisliste_karte"}}]
+    )  # fmt: skip
     cfg = _post_builder(
         tenant,
         {
@@ -167,12 +172,11 @@ def test_style_reaches_save_and_the_live_draft():
             "cb_type_st1": "list",
             "enabled_cb_st1": "on",
             "order_cb_st1": "1",
-            "cb_st1_source": "products",
             "cb_st1_style": "preisliste_kompakt",
         },
     )
     block = next(s for s in cfg["sections"] if s.get("id") == "st1")
-    assert block["data"]["style"] == "preisliste_kompakt"
+    assert block["data"]["style"] == "preisliste_karte"
 
 
 def test_copy_of_a_builtin_list_keeps_its_style():

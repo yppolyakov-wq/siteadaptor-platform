@@ -384,31 +384,52 @@ def _builder_html(tenant):
 
 
 def _row(body, bid):
-    i = body.index(f'name="cb_{bid}_source"')
+    # FB-33 M4b: в строке Студии «Liste» — заголовок, вступление, темп (выбор — в окне)
+    i = body.index(f'name="cb_{bid}_title"')
     return body[body.rindex("data-lb-row", 0, i) : body.index("</details>\n    </div>", i)]
 
 
+def _panel(tenant, data, mode=""):
+    """FB-33 M4b: поля блока «Liste» в окне блока «Seitenaufbau» (`list_panel.groups`) —
+    выбор источника и фильтров переехал туда из строки Студии."""
+    from django.test import RequestFactory
+
+    from apps.core import list_panel
+
+    req = RequestFactory().get("/")
+    req.tenant = tenant
+    cfg = siteconfig.normalize(tenant.site_config)
+    return {f["name"]: f for g in list_panel.groups(req, cfg, data, mode) for f in g["fields"]}
+
+
+def _values(field):
+    return [v for v, _label in field["options"]]
+
+
 def test_source_select_offers_active_modules_and_keeps_the_blocks_own():
+    """FB-33 M4b (осознанная переписка): источник выбирают в окне блока — там те же
+    правила: включённые модули и свой источник блока (W0); в строке Студии селекта нет."""
     block = _block(source="stays")
     t = _tenant([block], disabled=["stays", "events"])
-    row = _row(_builder_html(t), block["id"])
-    select = row[row.index(f'name="cb_{block["id"]}_source"') :]
-    select = select[: select.index("</select>")]
-    assert 'value="services"' in select  # модуль включён
-    assert 'value="events"' not in select  # модуль выключен — источника не предлагаем
+    assert f'name="cb_{block["id"]}_source"' not in _row(_builder_html(t), block["id"])
+    field = _panel(t, block["data"])["source"]
+    assert "services" in _values(field)  # модуль включён
+    assert "events" not in _values(field)  # модуль выключен — источника не предлагаем
     # источник самого блока остаётся выбранным, хотя модуль выключен (W0)
-    assert re.search(r'value="stays"[^>]*selected', select)
+    assert field["value"] == "stays" and "stays" in _values(field)
 
 
 def test_editor_offers_collections_and_event_categories():
+    """FB-33 M4b (осознанная переписка): подборки и темы — в окне блока («Kategorie»)."""
     _collection("damen")
     _event("Yoga", category="yoga")
     block = _block(source="services", collection="damen")
     t = _tenant([block])
-    row = _row(_builder_html(t), block["id"])
-    assert f'name="cb_{block["id"]}_collection"' in row
-    assert re.search(r'value="damen"[^>]*selected', row)
-    assert f'name="cb_{block["id"]}_event_category"' in row and 'value="yoga"' in row
+    assert f'name="cb_{block["id"]}_collection"' not in _row(_builder_html(t), block["id"])
+    field = _panel(t, block["data"], "kategorie")["collection"]
+    assert field["value"] == "damen" and "damen" in _values(field)
+    themes = _panel(t, {"source": "events"}, "kategorie")["event_category"]
+    assert "yoga" in _values(themes)
 
 
 def test_service_card_in_a_block_shows_its_price():
