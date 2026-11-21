@@ -277,11 +277,13 @@ def test_type_scope_reaches_the_live_draft():
 
 
 def test_editor_row_carries_the_scope_control():
+    """FB-33 M4b (осознанная переписка): «Ansicht gilt für» снят вместе с видом блока —
+    вид правит окно блока; присланный охват не действует (test_builder_save_in_type_…)."""
     t = _tenant(sections=[_block("e1", source="promotions", type="Räumung")])
     body = _builder(t)
-    assert 'name="cb_e1_scope"' in body
-    assert "data-lb-scope-row" in body
-    # карта видов типов для переключения режима — один раз на страницу
+    assert 'name="cb_e1_scope"' not in body
+    assert not re.search(r"data-lb-scope-row(?!\])", body)  # строки нет (JS-селектор — не она)
+    # карта видов типов для подсказок черновика — один раз на страницу
     assert body.count('id="lb-type-views"') == 1
 
 
@@ -306,13 +308,29 @@ def test_type_views_map_carries_the_type_values_and_page_labels():
 # ───────────────────── дефекты класса W0 (попутно) ─────────────────────
 
 
+def _studio_save_keeps(t, bid):
+    """FB-33 M4b: «Speichern» Студии строки «Liste» без полей выбора — данные целы (W0)."""
+    from apps.core import views
+
+    post = {"cb_id": bid, "cb_type_" + bid: "list", "enabled_cb_" + bid: "on",
+            "order_cb_" + bid: "1", f"cb_{bid}_title": ""}  # fmt: skip
+    assert (
+        views.home_builder_view(_req("post", "/dashboard/site/home/", t, post)).status_code == 302
+    )
+    t.refresh_from_db()
+    row = next(s for s in siteconfig.normalize(t.site_config)["sections"] if s.get("id") == bid)
+    return row["data"]
+
+
 def test_block_type_survives_save_when_the_type_has_no_live_promotions():
     """Селектор строился из ЖИВЫХ типов: у блока, чей тип сейчас без акций, браузер
-    отправлял «Alle Aktionen», и Save молча делал из него блок «все акции»."""
+    отправлял «Alle Aktionen», и Save молча делал из него блок «все акции».
+    FB-33 M4b (осознанная переписка): селектора в Студии нет — тип блока правит окно;
+    «Speichern» Студии тип не трогает."""
     t = _tenant(sections=[_block("o1", source="promotions", type="Räumung")])
     _promo("Sonst", group="Wochenangebote")  # живой тип есть, но не этот
-    body = _builder(t)
-    assert _selected(body, "cb_o1_type") == "Räumung"
+    assert 'name="cb_o1_type"' not in _builder(t)
+    assert _studio_save_keeps(t, "o1")["type"] == "Räumung"
 
 
 def test_block_category_survives_save_when_the_category_is_gone():
@@ -320,8 +338,8 @@ def test_block_category_survives_save_when_the_category_is_gone():
 
     Category.objects.create(name={"de": "Käse"}, slug="kaese")
     t = _tenant(sections=[_block("o2", source="products", category="alt-kategorie")])
-    body = _builder(t)
-    assert _selected(body, "cb_o2_category") == "alt-kategorie"
+    assert 'name="cb_o2_category"' not in _builder(t)  # FB-33 M4b: категория — в окне
+    assert _studio_save_keeps(t, "o2")["category"] == "alt-kategorie"
 
 
 def test_types_screen_keeps_the_lane_speed_set_from_a_block():

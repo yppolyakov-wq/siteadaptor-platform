@@ -334,10 +334,15 @@ def _builder(tenant):
 
 
 def test_editor_offers_demnaechst_and_keeps_it_selected():
+    """FB-33 M4b (осознанная переписка): срок блока «Liste» выбирают в окне блока — там
+    «Demnächst» выбран; в строке Студии селекта нет."""
+    from apps.core import list_panel
+
     t = _tenant(page_blocks={"promos": [_lb("b1", phase="upcoming")]})
-    body = _builder(t)
-    select = _segment(body, 'name="cb_b1_endet"', end="</select>")
-    assert re.search(r'value="upcoming"\s+selected', select)
+    assert 'name="cb_b1_endet"' not in _builder(t)
+    lists = {"promo_types_for_blocks": [], "promo_targets_for_blocks": []}
+    fields = list_panel._which_fields("promotions", {"phase": "upcoming"}, lists)
+    assert next(f for f in fields if f["name"] == "endet")["value"] == "upcoming"
 
 
 def test_save_keeps_demnaechst():

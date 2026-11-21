@@ -148,32 +148,13 @@ collect()/save работают без переименований. data-cb-id 
     <input type="hidden" name="cb_{{ b.id }}_style" value="{{ b.data.style }}">
   {% endif %}
   {% if b.type == "list" %}
-    {% comment %}LB-1 (план docs/lb-list-blocks-plan-2026-10-02.md §9.4): ЧТО выводим
-    (источник, фильтр, сортировка, «Höchstens») и КАК (сетка/лента, колонки, ряды,
-    форма карточки). Поля ОБОИХ источников в DOM (W0) — переключение источника не теряет
-    набранного, normalize хранит только поля выбранного; чужие скрыты. Пустой пункт вида
-    = «как у всех», и подпись говорит, ОТКУДА придёт значение: без неё «пусто» читалось
-    бы как «ничего», хотя блок показывает вид своего типа или страницы.{% endcomment %}
+    {% comment %}LB-1 → FB-33 M4b: что показать (источник, фильтр, сортировка, «Höchstens», ручной состав) и как (вид, вывод, колонки, ряды, форма карточки) правит окно блока «Seitenaufbau» — сервер берёт их из сохранённого (`site_schema.merge_structure`, W0). Здесь — заголовок, вступление и темп ленты (его в окне нет).{% endcomment %}
     {% list_block_hint b.data as lh %}
-    {% with src=b.data.source|default:"promotions" %}
     <div data-lb-row>
-    <input type="hidden" name="cb_{{ b.id }}_pick" value="{{ b.data.pick|join:',' }}">
+      <p class="text-xs ui-muted" data-stu-window-hint>{% trans "Was gezeigt wird, Anordnung, Karte und Platz ändern Sie im Fenster des Blocks." %} <a href="{% if pb_page %}{% url 'site-schema' %}{% else %}{% url 'site-schema-open' %}?page=%2F&amp;block={{ b.id|urlencode:'' }}&amp;tab=wie{% endif %}" data-stu-window class="inline-flex items-center min-h-[24px] font-semibold text-indigo-700 underline">{% trans "Fenster öffnen" %}</a></p>
       <details class="bld-grp w-full" data-grp="inhalt" open>
         <summary class="bld-grp-sum">{% trans "Content" %}</summary>
         <div class="bld-grp-body">
-          <div class="stu-row">
-            <span class="stu-lb">{% trans "Was wird gezeigt" %}</span>
-            {% comment %}LB-3d: источники — из реестра, только с включённым модулем; свой
-            источник блока остаётся выбранным и тогда, когда модуль выключен (W0).{% endcomment %}
-            <select aria-label="{% trans "Was wird gezeigt" %}" name="cb_{{ b.id }}_source" data-lb-source class="stu-ctrl">
-              {% for key, label in list_sources_for_blocks %}
-                <option value="{{ key }}" {% if key == src %}selected{% endif %}>{{ label }}</option>
-              {% empty %}
-                <option value="{{ src }}" selected>{{ lh.source_label }}</option>
-              {% endfor %}
-              {% if lh.orphan_source %}<option value="{{ lh.orphan_source.0 }}" selected>{{ lh.orphan_source.1 }}</option>{% endif %}
-            </select>
-          </div>
           <div class="stu-row">
             <span class="stu-lb">{% trans "Überschrift" %}</span>
             <input type="text" name="cb_{{ b.id }}_title" value="{{ b.data.title }}" maxlength="120" aria-label="{% trans 'leer = passend zur Auswahl' %}" placeholder="{% trans 'leer = passend zur Auswahl' %}" class="stu-ctrl">
@@ -182,241 +163,23 @@ collect()/save работают без переименований. data-cb-id 
             <span class="stu-lb">{% trans "Einleitung" %}</span>
             <textarea name="cb_{{ b.id }}_intro" rows="2" maxlength="300" aria-label="{% trans 'optional' %}" placeholder="{% trans 'optional' %}" class="w-full rounded border border-gray-300 px-2 py-1 text-sm">{{ b.data.intro }}</textarea>
           </div>
-          <div data-lb-src="promotions" {% if src != "promotions" %}hidden{% endif %}>
-            <div class="stu-row">
-              <span class="stu-lb">{% trans "Aktionstyp" %}</span>
-              <select aria-label="{% trans "Aktionstyp" %}" name="cb_{{ b.id }}_type" data-lb-type class="stu-ctrl">
-                <option value="">{% trans "Alle Aktionen" %}</option>
-                {% for key, label in promo_types_for_blocks %}
-                  <option value="{{ key }}" {% if b.data.type == key %}selected{% endif %}>{{ label }}</option>
-                {% endfor %}
-                {% if lh.orphan_type %}<option value="{{ lh.orphan_type.0 }}" selected>{{ lh.orphan_type.1 }}</option>{% endif %}
-              </select>
-            </div>
-            {% comment %}LB-4d: «Gilt für» — цель акции (товар/услуга/номер/набор); пункты —
-            цели с включённым модулем, значение выключенного остаётся выбранным (W0).{% endcomment %}
-            <div class="stu-row">
-              <span class="stu-lb">{% trans "Gilt für" %}</span>
-              <select aria-label="{% trans "Gilt für" %}" name="cb_{{ b.id }}_ziel" class="stu-ctrl">
-                <option value="">{% trans "Alle" %}</option>
-                {% for key, label in promo_targets_for_blocks %}
-                  <option value="{{ key }}" {% if b.data.ziel == key %}selected{% endif %}>{{ label }}</option>
-                {% endfor %}
-                {% if lh.orphan_target %}<option value="{{ lh.orphan_target.0 }}" selected>{{ lh.orphan_target.1 }}</option>{% endif %}
-              </select>
-            </div>
-            <div class="stu-row stu-two">
-              <label class="block">
-                <span class="stu-lb">{% trans "Zeitraum" %}</span>
-                {% comment %}LB-3: «Demnächst» — пункт того же селекта (одно поле `endet`,
-                приёмники Save/черновика прежние); normalize переводит его в ключ
-                `phase`. Будущие акции показываются превью, «−N %» и сортировка к ним
-                не применяются.{% endcomment %}
-                <select name="cb_{{ b.id }}_endet" class="stu-ctrl">
-                  <option value="">{% trans "Alle" %}</option>
-                  <option value="heute" {% if b.data.endet == "heute" %}selected{% endif %}>{% trans "Endet heute" %}</option>
-                  <option value="woche" {% if b.data.endet == "woche" %}selected{% endif %}>{% trans "Endet diese Woche" %}</option>
-                  <option value="upcoming" {% if b.data.phase == "upcoming" %}selected{% endif %}>{% trans "Demnächst" %}</option>
-                </select>
-              </label>
-              <label class="block">
-                <span class="stu-lb">{% trans "Mindestrabatt" %}</span>
-                <select name="cb_{{ b.id }}_rabatt" class="stu-ctrl">
-                  <option value="">{% trans "beliebig" %}</option>
-                  {% for n in lh.discounts %}
-                    <option value="{{ n }}" {% if b.data.rabatt == n %}selected{% endif %}>−{{ n }} %</option>
-                  {% endfor %}
-                </select>
-              </label>
-            </div>
-          </div>
-          {% comment %}LB-3d-2: «Kategorie» — одно поле товаров, наборов и категорий. У
-          категорий пустой пункт свой — «Hauptkategorien»: блок покажет направления, а
-          с выбранной категорией — её подкатегории.{% endcomment %}
-          <div data-lb-src="products combos categories" {% if src != "products" and src != "combos" and src != "categories" %}hidden{% endif %}>
-            <div class="stu-row">
-              <span class="stu-lb">{% trans "Kategorie" %}</span>
-              <select aria-label="{% trans "Kategorie" %}" name="cb_{{ b.id }}_category" class="stu-ctrl">
-                <option value="" data-lb-opt="products combos" {% if src == "categories" %}hidden{% elif not b.data.category %}selected{% endif %}>{% trans "Alle Kategorien" %}</option>
-                <option value="" data-lb-opt="categories" {% if src != "categories" %}hidden{% elif not b.data.category %}selected{% endif %}>{% trans "Hauptkategorien" %}</option>
-                {% for slug, label in list_categories_for_blocks %}
-                  <option value="{{ slug }}" {% if b.data.category == slug %}selected{% endif %}>{{ label }}</option>
-                {% endfor %}
-                {% if lh.orphan_category %}<option value="{{ lh.orphan_category.0 }}" selected>{{ lh.orphan_category.1 }}</option>{% endif %}
-              </select>
-              <p class="mt-1 text-[11px] text-gray-400" data-lb-src="categories" {% if src != "categories" %}hidden{% endif %}>{% trans "Zeigt die Unterkategorien der gewählten Kategorie." %}</p>
-            </div>
-          </div>
-          {% comment %}LB-3d: поля фильтра — по СМЫСЛУ, одно на все источники, которые его
-          используют (`data-lb-src` перечисляет их): два контрола с одним именем дали бы
-          два значения в POST. Пункты чужого источника скрыты, как у сортировок.{% endcomment %}
-          <div class="stu-row" data-lb-src="products services stays" {% if src != "products" and src != "services" and src != "stays" %}hidden{% endif %}>
-            <span class="stu-lb">{% trans "Sammlung" %}</span>
-            <select aria-label="{% trans "Sammlung" %}" name="cb_{{ b.id }}_collection" class="stu-ctrl">
-              <option value="">{% trans "All collections" %}</option>
-              {% for slug, label, srcs in list_collections_for_blocks %}
-                <option value="{{ slug }}" data-lb-opt="{{ srcs }}" {% if src not in srcs.split %}hidden{% endif %} {% if b.data.collection == slug %}selected{% endif %}>{{ label }}</option>
-              {% endfor %}
-              {% if lh.orphan_collection %}<option value="{{ lh.orphan_collection.0 }}" data-lb-opt="{{ lh.orphan_collection.2 }}" selected>{{ lh.orphan_collection.1 }}</option>{% endif %}
-            </select>
-          </div>
-          <div class="stu-row" data-lb-src="events" {% if src != "events" %}hidden{% endif %}>
-            <span class="stu-lb">{% trans "Thema" %}</span>
-            <select aria-label="{% trans "Thema" %}" name="cb_{{ b.id }}_event_category" class="stu-ctrl">
-              <option value="">{% trans "Alle Themen" %}</option>
-              {% for key, label in event_categories_for_blocks %}
-                <option value="{{ key }}" {% if b.data.event_category == key %}selected{% endif %}>{{ label }}</option>
-              {% endfor %}
-              {% if lh.orphan_theme %}<option value="{{ lh.orphan_theme.0 }}" selected>{{ lh.orphan_theme.1 }}</option>{% endif %}
-            </select>
-          </div>
-          {% comment %}LB-3d-2: страна — БАЗОВОЕ значение (ключ группы /touren/), пункты —
-          страны опубликованных туров; страна блока без туров остаётся выбранной (W0).{% endcomment %}
-          <div class="stu-row" data-lb-src="tours" {% if src != "tours" %}hidden{% endif %}>
-            <span class="stu-lb">{% trans "Land" %}</span>
-            <select aria-label="{% trans "Land" %}" name="cb_{{ b.id }}_country" class="stu-ctrl">
-              <option value="">{% trans "Alle Länder" %}</option>
-              {% for key, label in tour_countries_for_blocks %}
-                <option value="{{ key }}" {% if b.data.country == key %}selected{% endif %}>{{ label }}</option>
-              {% endfor %}
-              {% if lh.orphan_country %}<option value="{{ lh.orphan_country.0 }}" selected>{{ lh.orphan_country.1 }}</option>{% endif %}
-            </select>
-          </div>
-          {% comment %}LB-3d-3: отзывы — о каких сущностях (виды включённых модулей; свой вид
-          блока остаётся выбранным, W0) и «ab N ★». Обёртка без display-класса: `.stu-two`
-          (display:grid) перебил бы атрибут `hidden`.{% endcomment %}
-          <div data-lb-src="reviews" {% if src != "reviews" %}hidden{% endif %}>
-          <div class="stu-row stu-two">
-            <label class="block">
-              <span class="stu-lb">{% trans "Bewertungen zu" %}</span>
-              <select name="cb_{{ b.id }}_entity" class="stu-ctrl">
-                <option value="">{% trans "Alles" %}</option>
-                {% for key, label in review_kinds_for_blocks %}
-                  <option value="{{ key }}" {% if b.data.entity == key %}selected{% endif %}>{{ label }}</option>
-                {% endfor %}
-                {% if lh.orphan_entity %}<option value="{{ lh.orphan_entity.0 }}" selected>{{ lh.orphan_entity.1 }}</option>{% endif %}
-              </select>
-            </label>
-            <label class="block">
-              <span class="stu-lb">{% trans "Mindestbewertung" %}</span>
-              <select name="cb_{{ b.id }}_stars" class="stu-ctrl">
-                <option value="">{% trans "beliebig" %}</option>
-                <option value="3" {% if b.data.stars == 3 %}selected{% endif %}>★★★ +</option>
-                <option value="4" {% if b.data.stars == 4 %}selected{% endif %}>★★★★ +</option>
-                <option value="5" {% if b.data.stars == 5 %}selected{% endif %}>★★★★★</option>
-              </select>
-            </label>
-          </div>
-          </div>
-          <div class="stu-row" data-lb-src="products services events reviews" {% if src != "products" and src != "services" and src != "events" and src != "reviews" %}hidden{% endif %}>
-            <span class="stu-lb">{% trans "Auswahl" %}</span>
-            <select aria-label="{% trans "Auswahl" %}" name="cb_{{ b.id }}_only" class="stu-ctrl">
-              <option value="">{% trans "Alle" %}</option>
-              <option value="featured" data-lb-opt="products" {% if src != "products" %}hidden{% endif %} {% if b.data.only == "featured" %}selected{% endif %}>{% trans "Nur Empfehlungen" %}</option>
-              <option value="sale" data-lb-opt="products" {% if src != "products" %}hidden{% endif %} {% if b.data.only == "sale" %}selected{% endif %}>{% trans "Nur reduzierte" %}</option>
-              <option value="available" data-lb-opt="products" {% if src != "products" %}hidden{% endif %} {% if b.data.only == "available" %}selected{% endif %}>{% trans "Nur verfügbare" %}</option>
-              <option value="video" data-lb-opt="services" {% if src != "services" %}hidden{% endif %} {% if b.data.only == "video" %}selected{% endif %}>{% trans "Nur Video-Beratung" %}</option>
-              <option value="soon" data-lb-opt="events" {% if src != "events" %}hidden{% endif %} {% if b.data.only == "soon" %}selected{% endif %}>{% trans "In den nächsten 14 Tagen" %}</option>
-              <option value="text" data-lb-opt="reviews" {% if src != "reviews" %}hidden{% endif %} {% if b.data.only == "text" %}selected{% endif %}>{% trans "Nur mit Text" %}</option>
-            </select>
-          </div>
-          {% comment %}LB-3d-2: сортировки есть не у всех источников (туры, наборы и
-          категории идут в порядке владельца) — строка скрыта по реестру. Обёртка без
-          display-класса: `hidden` на `label.block` утилита Tailwind перебила бы.{% endcomment %}
-          <div class="stu-row stu-two">
-            <div data-lb-src="{{ lh.sort_sources }}" {% if src not in lh.sort_sources.split %}hidden{% endif %}>
-            <label class="block">
-              <span class="stu-lb">{% trans "Sortierung" %}</span>
-              <select name="cb_{{ b.id }}_sort" class="stu-ctrl">
-                {% comment %}LB-3d: у каждого источника свой пункт «пусто» (свой порядок по
-                умолчанию) — выбранным помечаем только пункт СВОЕГО источника.{% endcomment %}
-                {% for key, label, srcs in lh.sorts %}
-                  <option value="{{ key }}" data-lb-opt="{{ srcs }}" {% if src not in srcs.split %}hidden{% endif %} {% if src in srcs.split %}{% if b.data.sort == key or not key and not b.data.sort %}selected{% endif %}{% endif %}>{{ label }}</option>
-                {% endfor %}
-              </select>
-            </label>
-            </div>
-            <label class="block">
-              <span class="stu-lb">{% trans "Höchstens" %}</span>
-              <input type="number" name="cb_{{ b.id }}_limit" value="{{ b.data.limit|default_if_none:'' }}" min="1" max="24" placeholder="{{ lh.limit }}" class="stu-ctrl stu-num">
-            </label>
-          </div>
         </div>
       </details>
-      <details class="bld-grp w-full" data-grp="darstellung" open>
-        <summary class="bld-grp-sum">{% trans "Appearance" %}</summary>
+      {% comment %}Темп — только у ленты; у сетки поле скрытое: «Speichern» его не стирает (W0), пустой группы нет.{% endcomment %}
+      {% if b.data.out == "slider" or not b.data.out and lh.mode_key == "slider" %}
+      <details class="bld-grp w-full" data-grp="feinschliff" open>
+        <summary class="bld-grp-sum">{% trans "Feinschliff" %}</summary>
         <div class="bld-grp-body">
-          {% comment %}LB-1b (план §10): охват вида. «Den ganzen Typ» — те же контролы
-          пишут настройки ТИПА (все его блоки и его страница), значения в них — значения
-          типа (карта lb-type-views). Поле служебное: в конфиге не хранится.{% endcomment %}
-          {% comment %}LB-4c: вид-композиция — те же виды, что у секции главной источника
-          (прайс-листы товаров, spotlight/banner/rows акций, формы плиток категорий);
-          у остальных источников строки нет. Обёртка без display-класса (`hidden`).{% endcomment %}
-          <div data-lb-src="{{ lh.style_sources }}" {% if src not in lh.style_sources.split %}hidden{% endif %}>
-          <div class="stu-row">
-            <span class="stu-lb">{% trans "Display style" %}</span>
-            <select aria-label="{% trans "Display style" %}" name="cb_{{ b.id }}_style" data-lb-style class="stu-ctrl">
-              <option value="">{% trans "Standard (grid)" %}</option>
-              {% for key, label, srcs in lh.styles %}
-                <option value="{{ key }}" data-lb-opt="{{ srcs }}" {% if src not in srcs.split %}hidden{% endif %} {% if b.data.style == key %}selected{% endif %}>{{ label }}</option>
-              {% endfor %}
-            </select>
-          </div>
-          </div>
-          <div class="stu-row" data-lb-scope-row {% if src != "promotions" or not b.data.type %}hidden{% endif %}>
-            <span class="stu-lb">{% trans "Ansicht gilt für" %}</span>
-            <input type="hidden" name="cb_{{ b.id }}_scope" value="" data-lb-scope>
-            <div class="flex flex-wrap items-center gap-1 text-xs" role="group" aria-label="{% trans 'Ansicht gilt für' %}">
-              <button type="button" class="rounded-full border px-2 py-0.5 bg-indigo-50 border-indigo-300 text-indigo-700" data-lb-scope-btn="" aria-pressed="true">{% trans "Nur diesen Block" %}</button>
-              <button type="button" class="rounded-full border border-gray-300 px-2 py-0.5 text-gray-600" data-lb-scope-btn="type" aria-pressed="false">{% trans "Den ganzen Typ" %}</button>
-            </div>
-            <p class="mt-1 text-[11px] text-gray-400" data-lb-scope-note hidden>{% trans "Gilt für alle Blöcke dieses Typs und für seine Seite:" %} <b data-lb-scope-type>{{ lh.type_label }}</b></p>
-          </div>
-          <div class="stu-row">
-            <span class="stu-lb">{% trans "Ausgabe" %}</span>
-            <select aria-label="{% trans "Ausgabe" %}" name="cb_{{ b.id }}_out" data-lb-out data-lb-axis="out" data-inherit-mode="{{ lh.mode_key }}" class="stu-ctrl">
-              <option value="">{{ lh.layout_from }}: {{ lh.mode }}</option>
-              <option value="grid" {% if b.data.out == "grid" %}selected{% endif %}>{% trans "Raster" %}</option>
-              <option value="slider" {% if b.data.out == "slider" %}selected{% endif %}>{% trans "Slider" %}</option>
-            </select>
-          </div>
-          <div class="stu-row stu-two">
-            <label class="block">
-              <span class="stu-lb">{% trans "Spalten" %}</span>
-              <select name="cb_{{ b.id }}_cols" data-lb-axis="cols" class="stu-ctrl">
-                <option value="">{{ lh.layout_from }}: {{ lh.cols }}</option>
-                {% for n in "123456"|make_list %}
-                  <option value="{{ n }}" {% if b.data.cols|stringformat:"s" == n %}selected{% endif %}>{{ n }}</option>
-                {% endfor %}
-              </select>
-            </label>
-            <label class="block">
-              <span class="stu-lb">{% trans "Reihen" %}</span>
-              <select name="cb_{{ b.id }}_rows" data-lb-axis="rows" class="stu-ctrl" title="{% trans 'Raster: so viele Reihen zeigen. Slider: Reihen pro Folie.' %}">
-                <option value="">{% if lh.rows %}{{ lh.layout_from }}: {{ lh.rows }}{% else %}{% trans "automatisch" %}{% endif %}</option>
-                {% for n in "123456"|make_list %}
-                  <option value="{{ n }}" {% if b.data.rows|stringformat:"s" == n %}selected{% endif %}>{{ n }}</option>
-                {% endfor %}
-              </select>
-            </label>
-          </div>
-          <div class="stu-row" data-lb-speed {% if b.data.out != "slider" and b.data.out or not b.data.out and lh.mode_key != "slider" %}hidden{% endif %}>
+          <div class="stu-row" data-lb-speed>
             <span class="stu-lb">{% trans "Tempo (Sek.)" %}</span>
-            <input type="number" name="cb_{{ b.id }}_speed" data-lb-axis="speed" min="3" max="15" value="{{ b.data.speed|default_if_none:'' }}" placeholder="{% trans 'aus' %}" class="stu-ctrl stu-num" title="{% trans 'Sekunden zwischen den Folien. Leer = nicht automatisch drehen.' %}">
-          </div>
-          <div class="stu-row" data-lb-src="{{ lh.card_sources }}" data-lb-cardless="{{ lh.cardless_styles }}" {% if src not in lh.card_sources.split or b.data.style and b.data.style in lh.cardless_styles.split %}hidden{% endif %}>
-            <span class="stu-lb">{% trans "Kartenform" %}</span>
-            <select aria-label="{% trans "Kartenform" %}" name="cb_{{ b.id }}_card" data-lb-axis="card" class="stu-ctrl">
-              <option value="">{{ lh.card_from }}: {{ lh.card }}</option>
-              {% for key, label, srcs in lh.cards %}
-                <option value="{{ key }}" data-lb-opt="{{ srcs }}" {% if src not in srcs.split %}hidden{% endif %} {% if b.data.card == key %}selected{% endif %}>{{ label }}</option>
-              {% endfor %}
-            </select>
+            <input type="number" name="cb_{{ b.id }}_speed" data-lb-axis="speed" min="3" max="15" value="{{ b.data.speed|default_if_none:'' }}" placeholder="{% trans 'aus' %}" aria-label="{% trans 'Tempo (Sek.)' %}" class="stu-ctrl stu-num" title="{% trans 'Sekunden zwischen den Folien. Leer = nicht automatisch drehen.' %}">
           </div>
         </div>
       </details>
+      {% else %}
+      <input type="hidden" name="cb_{{ b.id }}_speed" value="{{ b.data.speed|default_if_none:'' }}">
+      {% endif %}
     </div>
-    {% endwith %}
   {% endif %}
   {% if b.type == "newsletter" %}
     {% comment %}GK-8: все поля опциональны — пусто = дефолтные подписи формы.{% endcomment %}

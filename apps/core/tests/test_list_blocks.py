@@ -538,6 +538,9 @@ def _builder_html(tenant):
 
 
 def test_builder_row_offers_both_sources_and_shows_where_the_view_comes_from():
+    """FB-33 M4b (осознанная переписка): источник, фильтры и вид блока «Liste» правит окно
+    блока; в Студии — заголовок, вступление и темп ленты, который виден, потому что
+    действующий вид (от ТИПА) — лента."""
     _cat("Käse", slug="kaese")
     block = _block(source="promotions", type="Räumung")
     t = _tenant(
@@ -546,18 +549,12 @@ def test_builder_row_offers_both_sources_and_shows_where_the_view_comes_from():
     )
     body = _builder_html(t)
     bid = block["id"]
-    i = body.index(f'name="cb_{bid}_source"')
+    i = body.index(f'name="cb_{bid}_title"')
     row = body[body.rindex("data-lb-row", 0, i) : body.index("</details>\n    </div>", i)]
-    # поля ОБОИХ источников в DOM (W0), чужие скрыты
-    assert f'name="cb_{bid}_type"' in row and f'name="cb_{bid}_category"' in row
-    # LB-3d-2 (осознанная переписка): «Kategorie» — одно поле товаров, наборов и
-    # категорий; у блока акций оно скрыто
-    assert 'data-lb-src="products combos categories" hidden' in row
-    assert 'value="kaese"' in row  # категории каталога в фильтре товаров
-    # пустой пункт вида знает, что придёт от ТИПА (у типа — лента)
-    assert 'data-inherit-mode="slider"' in row
-    # «Tempo» виден, потому что действующий вид — лента
-    assert "data-lb-speed hidden" not in row
+    for field in ("source", "type", "category", "out", "cols", "card"):
+        assert f'name="cb_{bid}_{field}"' not in row, field
+    assert "data-stu-window" in row and "tab=wie" in row  # ссылка в окно
+    assert "data-lb-speed" in row and f'name="cb_{bid}_speed" data-lb-axis' in row
 
 
 def test_inserted_row_gets_the_same_selectors_as_the_form():
@@ -587,7 +584,8 @@ def test_inserted_row_gets_the_same_selectors_as_the_form():
     payload = json.loads(core_views.home_builder_view(req).content)
     assert payload["ok"] is True
     row = payload["row_html"]
-    assert "data-lb-row" in row and 'value="kaese"' in row
+    # FB-33 M4b (осознанная переписка): фильтры блока «Liste» — в окне блока, не в строке
+    assert "data-lb-row" in row and "_title" in row and 'value="kaese"' not in row
     t.refresh_from_db()
     saved = siteconfig.normalize(t.site_config)["page_blocks"]["info"][0]
     # пресет «Neu im Sortiment» = товары, новые первыми (поверх демо-данных блока)

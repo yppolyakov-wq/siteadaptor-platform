@@ -104,10 +104,12 @@ def test_studio_row_hides_card_form_on_cardless_view():
     hint = list_blocks.view_hint({}, {"source": "products"})
     assert {"rows", "preisliste"} <= set(hint["cardless_styles"].split())
     assert "spotlight" not in hint["cardless_styles"].split()
-    row = pathlib.Path("templates/tenant/_cb_row.html").read_text(encoding="utf-8")
-    assert 'data-lb-cardless="{{ lh.cardless_styles }}"' in row and "data-lb-style" in row
-    js = pathlib.Path("templates/tenant/site_home.html").read_text(encoding="utf-8")
-    assert 't.matches("[data-lb-style]")' in js and "[data-lb-cardless]" in js
+    # FB-33 M4b (осознанная переписка): вид и форма карточки «Liste» правятся только в
+    # окне блока (вкладка «Karte» показывает формы, подходящие виду) — в Студии их нет
+    tpl = pathlib.Path("templates/tenant/_cb_row.html").read_text(encoding="utf-8")
+    start = tpl.index('{% if b.type == "list" %}')
+    row = tpl[start : tpl.index("{% endif %}\n  {% if b.type", start)]
+    assert 'name="cb_{{ b.id }}_card"' not in row and 'name="cb_{{ b.id }}_style"' not in row
 
 
 @pytest.mark.parametrize(
