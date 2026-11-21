@@ -137,7 +137,7 @@ def test_customer_thread_shows_offer_card():
     assert f"/o/{offer.token}/" in html
 
 
-def test_offer_online_payment_needs_an_email(settings):
+def test_offer_online_payment_rejects_invalid_email(settings):
     """FB-33 M2i-7: то же правило онлайн-оплаты, что у корзины, — и при принятии предложения.
     Без e-mail заказ уходит в оплату (адрес — из оплаты); введённый невалидный адрес — отказ,
     заказ не создаётся (этот случай)."""

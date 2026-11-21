@@ -40178,10 +40178,6 @@ msgstr "Відкрити вікно"
 msgid "Feinschliff"
 msgstr "Тонке налаштування"
 
-#. FB-33 стопка: якорь среза C5 — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
-msgid "fb33-stack-anchor-C5"
-msgstr "fb33-stack-anchor-C5"
-
 #. FB-33 C5: вкладка «Felder» корзины
 msgid "Was der Warenkorb beim Bestellen fragt. Änderungen erscheinen auf der Seite nach „Speichern“."
 msgstr "Що кошик запитує під час замовлення. Зміни з’являться на сторінці після «Зберегти»."
@@ -40194,10 +40190,6 @@ msgstr "Підтвердження надійде на e-mail з оплати, �
 msgid "Bei Bestellung am Tisch (QR-Code) fragen wir nur die Notiz und Ihre eigenen Fragen."
 msgstr "Під час замовлення за столиком (QR-код) ми запитуємо лише нотатку та ваші запитання."
 
-#. FB-33 стопка: якорь среза M2i-7 — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
-msgid "fb33-stack-anchor-M2i-7"
-msgstr "fb33-stack-anchor-M2i-7"
-
 #: templates/storefront/order_confirmation.html
 msgid "Die Bestätigung senden wir an die E-Mail-Adresse aus der Zahlung."
 msgstr "Підтвердження надішлемо на адресу електронної пошти, вказану під час оплати."
@@ -40206,6 +40198,3 @@ msgstr "Підтвердження надішлемо на адресу елек
 msgid "Bezahlt — keine E-Mail-Adresse, Bestätigung nicht gesendet"
 msgstr "Оплачено — немає адреси електронної пошти, підтвердження не надіслано"
 
-#. FB-33 стопка: якорь среза M3-9 — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
-msgid "fb33-stack-anchor-M3-9"
-msgstr "fb33-stack-anchor-M3-9"
