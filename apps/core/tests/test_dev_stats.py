@@ -72,3 +72,11 @@ def test_real_report_builds_and_names_the_indicator():
     text = _mod().report("2026-11-19")
     assert "Индикатор: доля «правок ревью»" in text
     assert "CLAUDE.md" in text and "sa-*" in text
+
+
+def test_datasets_rows_carry_share_and_match_the_report():
+    data = _mod().datasets("2026-11-19")
+    assert {"steps", "weeks", "context", "journal"} == set(data)
+    for row in data["steps"] + data["weeks"]:
+        assert row["share"] == round(100 * row["review"] / row["commits"])
+    assert all(row["kb"] > 0 for row in data["context"])

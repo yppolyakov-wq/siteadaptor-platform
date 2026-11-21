@@ -3,6 +3,7 @@
     uv run python scripts/dev_stats.py                 # отчёт в терминал, с 2026-11-01
     uv run python scripts/dev_stats.py --since 2026-10-01
     uv run python scripts/dev_stats.py --write         # ещё и docs/dev-stats.md
+    uv run python scripts/dev_stats.py --json <папка>  # наборы строк для страницы-панели
 
 Считает только то, что есть в репозитории (токены и время сессий сюда не попадают):
 - коммиты по неделям и по шагам (префикс темы коммита) и долю «правок ревью» в них —
@@ -18,6 +19,7 @@
 import argparse
 import collections
 import datetime
+import json
 import pathlib
 import re
 import subprocess
@@ -102,6 +104,25 @@ def _commits(since: str) -> list[tuple[str, str]]:
     return [tuple(line.split("\t", 1)) for line in out.splitlines() if "\t" in line]
 
 
+def shallow_note() -> str:
+    """Облачная сессия клонирует только хвост истории — отчёт без оговорки врал бы о тренде."""
+    out = subprocess.run(
+        ["git", "rev-parse", "--is-shallow-repository"], cwd=ROOT, capture_output=True, text=True
+    ).stdout.strip()
+    if out != "true":
+        return ""
+    oldest = subprocess.run(
+        ["git", "log", "--date=short", "--pretty=%ad", "--reverse"],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+    ).stdout.split("\n", 1)[0]
+    return (
+        f"⚠️ История обрезана (самый старый коммит — {oldest}). Для полного тренда: "
+        "`git fetch --shallow-since=2026-09-01 origin main`."
+    )
+
+
 def _bar(part: int, whole: int, width: int = 20) -> str:
     filled = round(width * part / whole) if whole else 0
     return "█" * filled + "░" * (width - filled)
@@ -116,6 +137,8 @@ def report(since: str) -> str:
     lines = [f"# Статистика разработки (с {since}, на {datetime.date.today().isoformat()})", ""]
     total = len(commits)
     review = sum(is_review(s) for _, s in commits)
+    if shallow_note():
+        lines += [shallow_note(), ""]
     lines += [
         f"**Индикатор: доля «правок ревью» — {_pct(review, total)}** ({review} из {total} коммитов).",
         "Ниже — лучше: меньше работы уходит на исправление найденного после кода.",
@@ -159,11 +182,43 @@ def report(since: str) -> str:
     return "\n".join(lines) + "\n"
 
 
+def datasets(since: str) -> dict[str, list[dict]]:
+    """Те же числа строками — для страницы-панели (каждый набор уходит в свой JSON-файл)."""
+    commits = _commits(since)
+
+    def rows(key: str, items) -> list[dict]:
+        return [
+            {key: name, "commits": n, "review": r, "share": round(100 * r / n) if n else 0}
+            for name, n, r in items
+        ]
+
+    j = journal((ROOT / "docs" / "skill-feedback.md").read_text(encoding="utf-8"))
+    found = [
+        {"group": "Скилл покрывал?", "name": a, "findings": j["by_answer"][a]} for a in ANSWERS
+    ]
+    found += [{"group": "Класс", "name": k, "findings": n} for k, n in j["by_class"].most_common()]
+    found += [{"group": "Скилл", "name": k, "findings": n} for k, n in j["by_skill"].most_common()]
+    return {
+        "steps": rows("step", by_step(commits)[:25]),
+        "weeks": rows("week", weekly(commits)),
+        "context": [{"what": name, "kb": round(size / 1000, 1)} for name, size in sizes()],
+        "journal": found if j["total"] else [],
+    }
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description="Статистика разработки (T-13.8)")
     ap.add_argument("--since", default="2026-11-01")
     ap.add_argument("--write", action="store_true", help="записать docs/dev-stats.md")
+    ap.add_argument("--json", metavar="DIR", help="наборы строк для страницы-панели")
     args = ap.parse_args()
+    if args.json:
+        out = pathlib.Path(args.json)
+        out.mkdir(parents=True, exist_ok=True)
+        for name, rows in datasets(args.since).items():
+            (out / f"{name}.json").write_text(
+                json.dumps(rows, ensure_ascii=False, indent=1), encoding="utf-8"
+            )
     text = report(args.since)
     print(text)
     if args.write:
