@@ -231,7 +231,7 @@ def test_section_style_has_its_field_in_the_window(key):
 
 
 def test_removed_liste_fields_are_window_fields():
-    removed = set(views._LIST_BLOCK_FIELDS) - {"title", "intro", "speed", "pick", "scope"}
+    removed = set(views._LIST_BLOCK_FIELDS) - {"title", "intro", "speed", "pick"}
     assert removed <= set(list_panel.NAMES), removed - set(list_panel.NAMES)
 
 

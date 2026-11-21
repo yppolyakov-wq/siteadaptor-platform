@@ -242,9 +242,9 @@ def test_window_type_scope_updates_all_blocks_of_the_type():
     assert body.count('data-card-form="coupon"') == 2
 
 
-def test_type_scope_reaches_the_live_draft():
-    """Превью обязано показать то же, что покажет Save: одна функция и одно слияние на оба
-    пути (FB-33 M4b: вид — сохранённый, охват — из черновика)."""
+def test_studio_live_draft_no_longer_takes_a_scope():
+    """FB-33 M4c: охват «Ansicht gilt für» правит только окно блока. Поддельный JSON живого
+    черновика Студии со `scope` вид типу не отдаёт — превью и Save по-прежнему одно слияние."""
     from apps.core import views
 
     t = _tenant(sections=[_block("d1", source="promotions", type="Räumung", card="ring")])
@@ -268,9 +268,9 @@ def test_type_scope_reaches_the_live_draft():
     req.user = SimpleNamespace(is_authenticated=True)
     views.site_preview_draft(req)
     draft = req.session["site_preview_draft"]
-    assert draft["promo_groups"]["Räumung"]["card"] == "ring"
+    assert "Räumung" not in draft.get("promo_groups", {})
     block = next(s for s in draft["sections"] if s.get("id") == "d1")
-    assert "card" not in block["data"] and "scope" not in block["data"]
+    assert block["data"]["card"] == "ring" and "scope" not in block["data"]
 
 
 # ───────────────────────── редактор ─────────────────────────

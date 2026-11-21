@@ -175,8 +175,8 @@ STUDIO_LAYOUT_KEYS = ("tail", "balance", "mobile", "tablet")
 #: FB-33 M4b: что из строки встроенного списка правит только окно (Was · Wie · Karte).
 _BUILTIN_WINDOW_FIELDS = ("data", "source", "limit", "style")
 #: FB-33 M4b: данные блока «Liste», которые по-прежнему пишет Студия; остальное — окно.
-#: `scope` — служебный охват «Ansicht gilt für» (`list_blocks.apply_type_scope`, ревью №3).
-LIST_STUDIO_FIELDS = ("title", "intro", "speed", "scope")
+#: Охват «Ansicht gilt für» с FB-33 M4c правит только окно блока (`aufbau_draft.SCOPE_KEY`).
+LIST_STUDIO_FIELDS = ("title", "intro", "speed")
 
 
 def _is_builtin_list(item: dict) -> bool:
