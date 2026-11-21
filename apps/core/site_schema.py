@@ -669,14 +669,23 @@ def url_for_path(tenant, path: str) -> str:
     from urllib.parse import urlencode
 
     base = reverse("site-schema")
+    code = code_for_path(tenant, path)
+    return f"{base}?{urlencode({'seite': code})}" if code else base
+
+
+def code_for_path(tenant, path: str) -> str:
+    """Код строки схемы для страницы витрины `path` ("" — путь не наш или у страницы нет
+    своей схемы). T2: у объекта со своими блоками — его строка «Nur diese Seite».
+    FB-33 M4: вынесено из `url_for_path` — им же пользуется ⚙ Студии (`window_links`)."""
     if not isinstance(path, str) or not path.startswith("/") or path.startswith("//"):
-        return base
+        return ""
     try:
         ctx = studio_pages.resolve_page(path)
         host = getattr(ctx, "block_host", "") or ""
         pt_code = ctx.code
     except Exception:  # noqa: BLE001 — ссылка не должна ронять Студию
-        return base
+        logger.warning("site schema: page of path not resolved", exc_info=True)
+        return ""
     from apps.tenants import siteconfig
 
     if host.startswith(siteconfig.CATEGORY_HOST_PREFIX):
@@ -691,7 +700,7 @@ def url_for_path(tenant, path: str) -> str:
             "home" if pt_code == "home" else "",
         )
     if not code:
-        return base
+        return ""
     # T2: у объекта со своими блоками открываем ЕГО строку — «Nur diese Seite»
     for candidate in (_own_code(tenant, code, _path_ref(path)), code):
         if not candidate:
@@ -700,8 +709,8 @@ def url_for_path(tenant, path: str) -> str:
             resolve(tenant, candidate)
         except SchemaError:
             continue  # объекта уже нет — общая строка типа
-        return f"{base}?{urlencode({'seite': candidate})}"
-    return base
+        return candidate
+    return ""
 
 
 def _path_ref(path: str) -> str:
