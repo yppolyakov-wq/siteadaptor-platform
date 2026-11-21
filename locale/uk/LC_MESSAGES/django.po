@@ -40185,6 +40185,18 @@ msgstr "Тонке налаштування"
 msgid "fb33-stack-anchor-C5"
 msgstr "fb33-stack-anchor-C5"
 
+#. FB-33 C5: вкладка «Felder» корзины
+msgid "Was der Warenkorb beim Bestellen fragt. Änderungen erscheinen auf der Seite nach „Speichern“."
+msgstr "Що кошик запитує під час замовлення. Зміни з’являться на сторінці після «Зберегти»."
+
+#. FB-33 C5: вкладка «Felder» корзины
+msgid "Die Bestätigung kommt an die E-Mail aus der Zahlung, wenn hier keine angegeben ist."
+msgstr "Підтвердження надійде на e-mail з оплати, якщо тут його не вказано."
+
+#. FB-33 C5: вкладка «Felder» корзины
+msgid "Am Tisch fragen wir nur die Notiz und Ihre eigenen Fragen."
+msgstr "За столиком ми запитуємо лише нотатку та ваші запитання."
+
 #. FB-33 стопка: якорь среза M2i-7 — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
 msgid "fb33-stack-anchor-M2i-7"
 msgstr "fb33-stack-anchor-M2i-7"

@@ -39993,6 +39993,18 @@ msgstr "İnce ayar"
 msgid "fb33-stack-anchor-C5"
 msgstr "fb33-stack-anchor-C5"
 
+#. FB-33 C5: вкладка «Felder» корзины
+msgid "Was der Warenkorb beim Bestellen fragt. Änderungen erscheinen auf der Seite nach „Speichern“."
+msgstr "Sepetin sipariş verirken sorduğu bilgiler. Değişiklikler “Kaydet”ten sonra sayfada görünür."
+
+#. FB-33 C5: вкладка «Felder» корзины
+msgid "Die Bestätigung kommt an die E-Mail aus der Zahlung, wenn hier keine angegeben ist."
+msgstr "Burada e-posta verilmezse onay, ödemedeki e-posta adresine gönderilir."
+
+#. FB-33 C5: вкладка «Felder» корзины
+msgid "Am Tisch fragen wir nur die Notiz und Ihre eigenen Fragen."
+msgstr "Masada yalnızca notu ve kendi sorularınızı soruyoruz."
+
 #. FB-33 стопка: якорь среза M2i-7 — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
 msgid "fb33-stack-anchor-M2i-7"
 msgstr "fb33-stack-anchor-M2i-7"

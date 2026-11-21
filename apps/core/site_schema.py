@@ -1327,8 +1327,8 @@ def blocks_for(
         out.insert(at, title_row(config, host))
     if host == _CONFIRM_HOST:
         _confirm_next_row(config, out)
-    if host == FORM_HOST:
-        _anfrage_form_row(config, out)
+    if form_of(host):
+        _form_row(config, out, host)
     if _dp.object_kind(host or ""):
         out = _with_shared_rows(config, host, out)
     if summaries and host in ("catalog", "category") and not _has_combos():
@@ -1582,9 +1582,17 @@ def is_next_edit(host: str, ref: str, op: str) -> bool:
 #: полей, свои вопросы и варианты «Art der Veranstaltung» правятся в черновике (`draft["form"]`)
 FORM_HOST = "anfrage"
 FORM_REF = "form"
+#: FB-33 C5: страница → форма `form_spec`, чью строку `form` наполняет вкладка «Felder»
+#: (корзина — поля оформления `form_fields.checkout`, тот же черновик на своём хосте)
+FORM_ROWS = {FORM_HOST: "anfrage", "cart": "checkout"}
 
 
-def _anfrage_form_row(config: dict, out: list[dict]) -> None:
+def form_of(host) -> str:
+    """Форма `form_spec` строки `form` страницы `host` (пусто — у страницы вкладки нет)."""
+    return FORM_ROWS.get(str(host or ""), "")
+
+
+def _form_row(config: dict, out: list[dict], host: str) -> None:
     """Модель вкладки «Felder» у строки формы (`form_spec.panel`; черновик — из превью)."""
     from apps.core import form_spec
 
@@ -1592,25 +1600,27 @@ def _anfrage_form_row(config: dict, out: list[dict]) -> None:
     for b in out:
         if b["key"] == FORM_REF and not b["cblock"]:
             b[form_spec.PANEL_KEY] = form_spec.panel(
-                config, "anfrage", state if isinstance(state, dict) else None
+                config, form_of(host), state if isinstance(state, dict) else None
             )
 
 
-def form_window_url() -> str:
-    """Адрес окна строки формы «Anfrage» на вкладке «Felder» (ссылки с «Abläufe», с полосы
-    заявки главной и 302 старого адреса панели — фиксированный путь, без `next`)."""
+def form_window_url(host: str = FORM_HOST) -> str:
+    """Адрес окна строки формы на вкладке «Felder» (у заявки — ссылки с «Abläufe», с полосы
+    заявки главной и 302 старого адреса панели; фиксированный путь, без `next`)."""
     from urllib.parse import urlencode
 
-    query = {"seite": FORM_HOST, "block": FORM_REF, "tab": "felder"}
+    query = {"seite": host, "block": FORM_REF, "tab": "felder"}
     return f"{reverse('site-schema')}?{urlencode(query)}#schema-panel"
 
 
 def is_form_edit(host: str, ref: str, op: str) -> bool:
-    """Правка вкладки «Felder» (поля формы заявки), а не строки схемы."""
-    return host == FORM_HOST and ref == FORM_REF and op == "update"
+    """Правка вкладки «Felder» (поля формы заявки или корзины), а не строки схемы."""
+    return bool(form_of(host)) and ref == FORM_REF and op == "update"
 
 
-def form_op(tenant, config: dict, draft: dict, fields: dict | None, notes=None) -> str:
+def form_op(
+    tenant, config: dict, draft: dict, fields: dict | None, notes=None, host: str = FORM_HOST
+) -> str:
     """Правка вкладки «Felder» в черновике: разбор `form_spec.parse_post` от состояния
     черновика (до среза его в черновике нет — от сохранённого). Строка неподвижна; её
     двигать/скрывать нельзя. Сообщения владельцу (`notes`) — в список вызывающего."""
@@ -1618,16 +1628,17 @@ def form_op(tenant, config: dict, draft: dict, fields: dict | None, notes=None) 
 
     if fields is None:
         raise SchemaError("fixed")
+    form = form_of(host)
     # ревью H2: правка — от черновика поверх СЕЙЧАС сохранённого (старая панель могла записать)
-    saved = form_spec.edit_state(config, "anfrage")
-    current = aufbau_draft.form_state(config, draft)
+    saved = form_spec.edit_state(config, form)
+    current = aufbau_draft.form_state(config, draft, form=form)
     preset = None
     if fields.get("do") == "preset":
         from apps.jobs.anfrage_presets import preset_for
 
-        preset = preset_for(getattr(tenant, "business_type", ""))
+        preset = preset_for(getattr(tenant, "business_type", ""), form=form)
     try:
-        state, said = form_spec.parse_post(fields, current, "anfrage", preset)
+        state, said = form_spec.parse_post(fields, current, form, preset)
     except form_spec.FormSpecError as exc:
         raise SchemaError("ids") from exc
     if state == saved:

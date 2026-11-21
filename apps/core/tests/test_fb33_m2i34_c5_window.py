@@ -72,7 +72,6 @@ def _part(html):
 # ───────────── 1: вкладка у строки формы корзины ─────────────
 
 
-@pytest.mark.xfail(strict=True, reason="C5: вкладки «Felder» у cart/form ещё нет")
 def test_1_cart_form_opens_on_tab_felder_with_checkout_fields():
     html = Browser(_shop()).get(WINDOW)
     assert 'data-window-part="formfields"' in html
@@ -93,7 +92,6 @@ def test_1_cart_form_opens_on_tab_felder_with_checkout_fields():
     assert STRIPE_HINT not in part and TABLE_HINT not in part
 
 
-@pytest.mark.xfail(strict=True, reason="C5: вкладки «Felder» у cart/form ещё нет")
 def test_1b_hints_by_online_payment_and_table(settings):
     from apps.orders.tests.test_payment_methods import _configure
 
@@ -105,7 +103,6 @@ def test_1b_hints_by_online_payment_and_table(settings):
     assert TABLE_HINT in part and STRIPE_HINT not in part
 
 
-@pytest.mark.xfail(strict=True, reason="C5: у пресетов ещё нет параметра form")
 def test_1c_presets_for_checkout_are_empty():
     from apps.jobs.anfrage_presets import preset_for
 
@@ -117,7 +114,6 @@ def test_1c_presets_for_checkout_are_empty():
 # ───────────── 2: черновик на хосте cart, заявка байт-в-байт ─────────────
 
 
-@pytest.mark.xfail(strict=True, reason="C5: правки корзины в черновик ещё нет")
 def test_2_edit_goes_to_cart_draft_and_anfrage_draft_stays():
     tenant = _tenant(ANFRAGE)
     before = json.dumps(_saved(tenant), sort_keys=True)
@@ -139,7 +135,6 @@ def test_2_edit_goes_to_cart_draft_and_anfrage_draft_stays():
 # ───────────── 3: Speichern / Abbrechen ─────────────
 
 
-@pytest.mark.xfail(strict=True, reason="C5: «Speichern» корзины ещё не пишет checkout")
 def test_3_save_writes_only_checkout_through_put_under_lock(monkeypatch):
     from django.db import connection
 
@@ -168,7 +163,6 @@ def test_3_save_writes_only_checkout_through_put_under_lock(monkeypatch):
     assert _drafts(b) == {}
 
 
-@pytest.mark.xfail(strict=True, reason="C5: «Abbrechen» корзины ещё не знает вкладку")
 def test_3b_cancel_returns_cart_draft_byte_for_byte():
     b = Browser(_shop())
     b.get(WINDOW)
@@ -187,7 +181,6 @@ def test_3b_cancel_returns_cart_draft_byte_for_byte():
 # ───────────── 4: трёхстороннее слияние ─────────────
 
 
-@pytest.mark.xfail(strict=True, reason="C5: слияния черновика корзины ещё нет")
 def test_4_change_saved_meanwhile_merges_three_way():
     tenant = _shop({"form_fields": {"checkout": {"custom": QUESTIONS, "next_id": 2}}})
     b = Browser(tenant)
@@ -208,7 +201,6 @@ def test_4_change_saved_meanwhile_merges_three_way():
 # ───────────── 5: оба контакта «Nicht fragen» у корзины можно ─────────────
 
 
-@pytest.mark.xfail(strict=True, reason="C5: правки корзины в черновик ещё нет")
 def test_5_both_contacts_off_is_fine_for_checkout():
     tenant = _shop()
     b = Browser(tenant)
@@ -223,7 +215,6 @@ def test_5_both_contacts_off_is_fine_for_checkout():
 # ───────────── 6: переводы подписей ─────────────
 
 
-@pytest.mark.xfail(strict=True, reason="C5: вкладки «Felder» у cart/form ещё нет")
 def test_6_label_translation_goes_to_checkout():
     tenant = _shop()
     tenant.enabled_locales = ["de", "en"]
@@ -271,7 +262,6 @@ def test_7_staff_without_website_edit_gets_403(settings):
 # ───────────── 8: матрица окна M3-0 у cart/form ─────────────
 
 
-@pytest.mark.xfail(strict=True, reason="C5: вкладки «Felder» у cart/form ещё нет")
 def test_8_window_matrix_for_cart_form():
     from apps.core.tests.test_fb33_m3_window import _nonempty, _sections
     from apps.core.tests.test_fb33_m3_window_before import _capture, _panel
@@ -304,7 +294,6 @@ def test_8b_anfrage_form_row_is_unchanged():
 # ───────────── 9: Vorschau — поля из черновика ─────────────
 
 
-@pytest.mark.xfail(strict=True, reason="C5: показ черновика корзины ещё не знает checkout")
 def test_9_preview_shows_draft_checkout_fields():
     tenant = _shop()
     b = Browser(tenant)
@@ -325,7 +314,6 @@ def test_9_preview_shows_draft_checkout_fields():
 # ───────────── 10: /warenkorb/ по настройке ─────────────
 
 
-@pytest.mark.xfail(strict=True, reason="C5: «Speichern» корзины ещё не пишет checkout")
 def test_10_cart_page_follows_the_saved_tab(settings):
     from apps.orders.tests.test_fb33_m2i34_checkout import _cart, _checkout_form
 
@@ -340,3 +328,17 @@ def test_10_cart_page_follows_the_saved_tab(settings):
     assert 'name="email"' not in form
     assert 'name="phone"' in form and 'name="note"' in form
     assert "Allergien" in form
+
+
+def test_1d_hints_and_intro_are_translated(settings):
+    """ru-кабинет: подсказки и вводная вкладки — без немецких строк."""
+    from apps.orders.tests.test_payment_methods import _configure
+
+    _configure(settings)
+    tenant = _tenant(orders_prepay=True, payments_enabled=True, stripe_connect_id="acct_1")
+    with translation.override("ru"):
+        part = _part(Browser(tenant).get(WINDOW))
+    assert "Подтверждение придёт на e-mail из оплаты" in part
+    assert "За столиком мы спрашиваем только заметку" in part
+    assert "Что корзина спрашивает при заказе" in part
+    assert STRIPE_HINT not in part and TABLE_HINT not in part

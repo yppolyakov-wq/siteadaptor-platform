@@ -39847,6 +39847,18 @@ msgstr "Fine-tuning"
 msgid "fb33-stack-anchor-C5"
 msgstr "fb33-stack-anchor-C5"
 
+#. FB-33 C5: вкладка «Felder» корзины
+msgid "Was der Warenkorb beim Bestellen fragt. Änderungen erscheinen auf der Seite nach „Speichern“."
+msgstr "What the cart asks when ordering. Changes appear on the page after “Save”."
+
+#. FB-33 C5: вкладка «Felder» корзины
+msgid "Die Bestätigung kommt an die E-Mail aus der Zahlung, wenn hier keine angegeben ist."
+msgstr "The confirmation goes to the email from the payment if none is given here."
+
+#. FB-33 C5: вкладка «Felder» корзины
+msgid "Am Tisch fragen wir nur die Notiz und Ihre eigenen Fragen."
+msgstr "At the table we only ask for the note and your own questions."
+
 #. FB-33 стопка: якорь среза M2i-7 — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
 msgid "fb33-stack-anchor-M2i-7"
 msgstr "fb33-stack-anchor-M2i-7"

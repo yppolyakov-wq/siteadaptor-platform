@@ -234,8 +234,8 @@ def overlay(config: dict, draft: dict) -> dict:
         from apps.core import page_window
 
         page_window.put_shown(out, host, draft)
-    if "form" in draft:
-        out = _put_form(out, draft)
+    if "form" in draft and site_schema.form_of(host):
+        out = _put_form(out, draft, site_schema.form_of(host))
     if "faq" in draft:
         _put_faq_shown(out, draft)
 
@@ -390,25 +390,26 @@ SIDE_PARTS = (
 )
 
 
-def form_state(config: dict, draft: dict, notes: list | None = None) -> dict:
-    """Состояние вкладки черновика поверх СЕЙЧАС сохранённого `config` (трёхстороннее)."""
+def form_state(config: dict, draft: dict, notes: list | None = None, form: str = "anfrage") -> dict:
+    """Состояние вкладки черновика поверх СЕЙЧАС сохранённого `config` (трёхстороннее).
+    FB-33 C5: `form` — форма страницы черновика (`site_schema.form_of`: заявка, корзина)."""
     from apps.core import form_spec
 
-    saved = form_spec.edit_state(config, "anfrage")
+    saved = form_spec.edit_state(config, form)
     if "form" not in draft:
         return saved
-    return form_spec.merge(draft.get("form_base", saved), draft["form"], saved, notes=notes)
+    return form_spec.merge(draft.get("form_base", saved), draft["form"], saved, form, notes)
 
 
-def _put_form(config: dict, draft: dict) -> dict:
+def _put_form(config: dict, draft: dict, form: str = "anfrage") -> dict:
     """Поля формы черновика — для показа и превью тем же писателем `form_spec.put`, что и
     «Speichern» (на копии: при отказе — сохранённое, отметка `FORM_ERROR_KEY` для экрана)."""
     from apps.core import form_spec
 
-    state = form_state(config, draft)
+    state = form_state(config, draft, form=form)
     out = copy.deepcopy(config)
     try:
-        form_spec.put(out, "anfrage", state)
+        form_spec.put(out, form, state)
     except form_spec.FormSpecError:
         config[form_spec.FORM_ERROR_KEY] = True
         out = config
@@ -641,7 +642,7 @@ def _snapshot(tenant, code, host, draft, ref, token="", codes=(), source=None) -
         keys = dict(SIDE_PARTS)["show_on"]
         proto["show_on"] = {k: copy.deepcopy(source[k]) for k in keys if k in source}
 
-    if host == site_schema.FORM_HOST and ref == site_schema.FORM_REF:
+    if site_schema.form_of(host) and ref == site_schema.FORM_REF:
         proto["form"] = {k: copy.deepcopy(source[k]) for k in FORM_KEYS if k in source}
     if at is not None and _is_faq_row(source, items[at]):  # FB-33 M3-5b: вопросы FAQ
         proto["faq"] = {k: copy.deepcopy(source[k]) for k in FAQ_KEYS if k in source}
@@ -856,7 +857,7 @@ def op(
         ref = site_schema.next_op(host, draft, op_name, fields)
     elif site_schema.is_form_edit(host, ref, op_name):
         # FB-33 M2i-5: вкладка «Felder» — поля формы заявки в черновике, строка на месте
-        ref = site_schema.form_op(tenant, config, draft, fields, notes)
+        ref = site_schema.form_op(tenant, config, draft, fields, notes, host)
     elif _is_tiles_edit(draft, ref, op_name, fields):
         # FB-33 M3-5b: плашки Schnellzugriff и набор — одной формой окна
         _tiles_op(draft, ref, fields, notes)
@@ -1110,15 +1111,17 @@ def commit(request, tenant, code: str, *, force: bool = False, notes: list | Non
             faq_content.put(
                 config, kept, list(range(len(kept))), explicit=_block_i18n().explicit(draft, "faq")
             )
-    if "form" in draft and host == site_schema.FORM_HOST:
+    if "form" in draft and site_schema.form_of(host):
         # FB-33 M2i-5: поля формы заявки — под блокировкой строки бизнеса: дельта черновика
         # поверх заблокированного сохранённого (ревью H2), номера новых вопросов — от
-        # СОХРАНЁННОГО `next_id` (`form_spec.put`, единственный писатель)
+        # СОХРАНЁННОГО `next_id` (`form_spec.put`, единственный писатель). FB-33 C5: у
+        # корзины — только `form_fields.checkout`
         from apps.core import form_spec
 
-        state = form_state(config, draft, notes)
+        form = site_schema.form_of(host)
+        state = form_state(config, draft, notes, form)
         try:
-            form_spec.put(config, "anfrage", state)
+            form_spec.put(config, form, state)
         except form_spec.FormSpecError as exc:
             raise site_schema.SchemaError("ids") from exc
     if host == "info" and "contact" in draft and not _has_section_rows(draft):

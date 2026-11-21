@@ -1,4 +1,4 @@
-{% load i18n cabinet %}{% comment %}FB-33 M2i-5: вкладка «Felder» — поля формы заявки (form_spec.panel). Одна неделимая форма: правки идут в черновик (op=update ref=form), кнопки «+ Frage», вверх/вниз/удалить и «Branchen-Vorlage» — поле do; без скриптов — «Übernehmen». Подписи и варианты — только автоэкранированием.{% endcomment %}
+{% load i18n cabinet %}{% comment %}FB-33 M2i-5: вкладка «Felder» — поля формы заявки, с C5 и корзины (form_spec.panel, fs.form). Одна неделимая форма: правки идут в черновик (op=update ref=form), кнопки «+ Frage», вверх/вниз/удалить и «Branchen-Vorlage» — поле do; без скриптов — «Übernehmen». Подписи и варианты — только автоэкранированием.{% endcomment %}
 {% with fs=selected.form_spec %}
 <form method="post" id="bw-form-formfields" class="mt-4 space-y-4" data-schema-fields data-form-felder>
   {% csrf_token %}
@@ -8,7 +8,7 @@
   <input type="hidden" name="op" value="update">
   {% comment %}Enter в поле — то же, что «Übernehmen» (первая кнопка формы — «по умолчанию»), а не «Nach oben» первого вопроса; вне Tab и невидима.{% endcomment %}
   <button type="submit" name="f_commit_new" value="1" class="sr-only" tabindex="-1">{% trans "Übernehmen" %}</button>
-  <p class="text-sm text-gray-700">{% trans "Was die Anfrage-Form fragt. Änderungen erscheinen auf der Seite nach „Speichern“." %}</p>
+  <p class="text-sm text-gray-700">{% if fs.form == "checkout" %}{% trans "Was der Warenkorb beim Bestellen fragt. Änderungen erscheinen auf der Seite nach „Speichern“." %}{% else %}{% trans "Was die Anfrage-Form fragt. Änderungen erscheinen auf der Seite nach „Speichern“." %}{% endif %}</p>{% for h in fs.hints %}{% comment %}FB-33 C5: подсказки корзины (checkout_window.hints) — только текст, вкладку не меняют.{% endcomment %}<p class="text-xs text-gray-700" data-form-hint><span aria-hidden="true">ℹ</span> {{ h }}</p>{% endfor %}
   {% comment %}FB-33 M3-5a (a11y): живая область вкладки — что сделала кнопка вопроса (↑/↓/Entfernen/«+ Frage») и сброшенный перевод; заполняет aufbau.js по тексту сообщения (data-said — точные тексты, data-prefix — начало). Есть и без языков.{% endcomment %}<p role="status" class="text-xs font-semibold text-gray-800" data-form-status data-said="{% trans 'Hinzugefügt.' %}|{% trans 'Nach oben verschoben.' %}|{% trans 'Nach unten verschoben.' %}|{% trans 'Frage entfernt.' %}" data-prefix="{% blocktrans with names="" %}Übersetzungen entfernt, weil die Option geändert oder gelöscht wurde: {{ names }}{% endblocktrans %}"></p>
   {% if fs.locales %}{% comment %}FB-33 M2i-5b: язык переводов — серверные кнопки (без скриптов); поля всех языков в DOM, видны поля выбранного.{% endcomment %}{% i18n_translate_ctx as tr %}{% include "tenant/_bw_langs.html" with locales=fs.locales after_tpl="tenant/_bw_formfields_ai.html" %}{% endif %}
   {% for f in fs.fields %}

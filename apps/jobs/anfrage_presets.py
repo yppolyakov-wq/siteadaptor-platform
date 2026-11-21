@@ -28,8 +28,11 @@ ANFRAGE_PRESETS = {
 }
 
 
-def preset_for(business_type) -> dict:
-    """Нормализованный пресет формы для типа бизнеса ({} — пресета нет)."""
+def preset_for(business_type, form: str = "anfrage") -> dict:
+    """Нормализованный пресет формы для типа бизнеса ({} — пресета нет). FB-33 C5: `form` —
+    форма вкладки «Felder»; у корзины (`checkout`) пресетов пока нет (место под M2i-6)."""
+    if form != "anfrage":
+        return {}
     raw = ANFRAGE_PRESETS.get(business_type or "")
     return siteconfig.normalize_anfrage(raw) if raw else {}
 
