@@ -39036,9 +39036,6 @@ msgstr "Örnek ürün"
 msgid "Beispiel — so sieht die Bestätigung aus"
 msgstr "Örnek — onay sayfası böyle görünür"
 
-msgid "Please enter your email for online payment — we send the confirmation there."
-msgstr "Çevrimiçi ödeme için lütfen e-posta adresinizi girin — onayı oraya göndeririz."
-
 msgid "Event date"
 msgstr "Etkinlik tarihi"
 

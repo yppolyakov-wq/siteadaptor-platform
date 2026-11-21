@@ -138,8 +138,9 @@ def test_customer_thread_shows_offer_card():
 
 
 def test_offer_online_payment_needs_an_email(settings):
-    """FB-33 M2i (ревью): тот же e-mail-гейт онлайн-оплаты, что у корзины — и при принятии
-    предложения. Без почты заказ не создаётся."""
+    """FB-33 M2i-7: то же правило онлайн-оплаты, что у корзины, — и при принятии предложения.
+    Без e-mail заказ уходит в оплату (адрес — из оплаты); введённый невалидный адрес — отказ,
+    заказ не создаётся (этот случай)."""
     settings.STRIPE_LIVE_MODE = False
     settings.STRIPE_TEST_SECRET_KEY = "sk_test_x"
     settings.STRIPE_CONNECT_CLIENT_ID = "ca_x"

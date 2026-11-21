@@ -39231,9 +39231,6 @@ msgstr "Пример товара"
 msgid "Beispiel — so sieht die Bestätigung aus"
 msgstr "Пример — так выглядит подтверждение"
 
-msgid "Please enter your email for online payment — we send the confirmation there."
-msgstr "Для онлайн-оплаты укажите e-mail — туда придёт подтверждение."
-
 msgid "Event date"
 msgstr "Дата мероприятия"
 
