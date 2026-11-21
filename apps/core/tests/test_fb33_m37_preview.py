@@ -15,7 +15,7 @@ import re
 import uuid
 from pathlib import Path
 from types import SimpleNamespace
-from urllib.parse import parse_qsl, urlsplit
+from urllib.parse import parse_qsl, urlencode, urlsplit
 
 import pytest
 from django.contrib.auth import get_user_model
@@ -27,7 +27,7 @@ from django.test.signals import template_rendered
 from django.test.utils import CaptureQueriesContext
 from django.utils import translation
 
-from apps.core import window_links
+from apps.core import detail_parts, window_links
 from apps.core.middleware import StorefrontFrameOptionsMiddleware
 from apps.core.tests.test_fb27_r2_draft import Browser, _tenant
 from apps.core.tests.test_fb33_m3_window_before import CASES, CFG
@@ -100,7 +100,9 @@ def test_canvas_key_maps_back_to_the_same_row(case):
     host = window_links._host(req.tenant, code)
     if window_links.whole_page(ref):
         # строка самой страницы (★, «Seitentitel», «Kaufen», «Einstellungen der Seite») —
-        # кадр показывает страницу целиком: якорь — обёртка страницы либо её начало
+        # кадр показывает страницу целиком: якорь — обёртка страницы, у главной — её начало
+        want = "" if code == "home" else detail_parts.shared_host(host)
+        assert key == want, (case, key)
         assert key == "" or window_links._is_page_key(code, host, key), (case, key)
     else:
         assert window_links._block_of(req, code, host, key) == ref, (case, key)
@@ -166,7 +168,7 @@ def test_preview_context_for_an_open_block_window(case):
     assert not src.startswith(StorefrontFrameOptionsMiddleware._BLOCK_PREFIXES)
     query = dict(parse_qsl(urlsplit(src).query))
     assert query["preview"] == "1" and query["aufbau"] == code
-    assert pv["title"] and "data-bw-preview" in html
+    assert "data-bw-preview" in html
 
 
 def test_preview_query_is_exactly_preview_and_aufbau():
@@ -191,7 +193,7 @@ def test_template_sits_after_the_aufbau_script_and_escapes_values():
     assert tag and tag.start() > at
     attrs = dict(re.findall(r'(data-[a-z-]+)="([^"]*)"', tag.group(0)))
     assert attrs["data-src"].startswith("/") and attrs["data-anchor"] == "t1"
-    assert attrs["data-title"] and attrs["data-label"] == "Vorschau" and attrs["data-missing"]
+    assert attrs["data-label"] == "Vorschau" and attrs["data-missing"]
     assert html.index("aufbau_preview.js") > tag.start()
 
 
@@ -249,7 +251,7 @@ def test_frame_sandbox_has_no_scripts_forms_or_top_navigation():
     assert sandbox == ["allow-same-origin"]
     for bad in ("allow-scripts", "allow-forms", "allow-top-navigation", "allow-popups"):
         assert bad not in src
-    assert 'setAttribute("title"' in src and "tabIndex = -1" in src
+    assert "tabIndex = -1" in src
     assert 'referrerpolicy", "same-origin"' in src
 
 
@@ -270,3 +272,74 @@ def test_preview_texts_are_translated():
         for msgid in want:
             entry = re.search(r'msgid "' + re.escape(msgid) + r'"\nmsgstr "([^"]*)"', po)
             assert entry and entry.group(1), (lang, msgid)
+
+
+# ───────────── ревью M3-7 (django + a11y) ─────────────
+
+
+@pytest.mark.parametrize("code", ["nichtda", "event", "x" * 200, "home@<b>"])
+def test_foreign_or_inactive_aufbau_code_does_not_break_the_storefront(code):
+    b = _owner_browser()
+    b.get("?seite=home")
+    shown = _home(_req(b, "/?" + urlencode({"preview": "1", "aufbau": code}), user=_member()))
+    assert "<html" in shown
+
+
+@pytest.mark.xfail(strict=True, reason="ревью M3-7: whole_page по явному набору ключей")
+def test_whole_page_is_an_explicit_set_of_service_rows():
+    from apps.core import page_title, site_schema
+    from apps.tenants import siteconfig
+
+    for ref in (
+        siteconfig.MAIN_LIST_KEY,
+        site_schema.PAGE_REF,
+        page_title.TITLE_REF,
+        detail_parts.KAUF_REF,
+    ):
+        assert window_links.whole_page(ref), ref
+    assert not window_links.whole_page("__neu") and not window_links.whole_page("t1")
+
+
+@pytest.mark.xfail(strict=True, reason="ревью M3-7: canvas_key берёт уже известный хост")
+def test_canvas_key_reuses_the_known_host(monkeypatch):
+    from apps.core import site_schema
+
+    b = _owner_browser()
+    b.get("?seite=catalog")
+    req = _req(b)
+
+    def boom(*a, **kw):
+        raise AssertionError("resolve повторно")
+
+    monkeypatch.setattr(site_schema, "resolve", boom)
+    assert window_links.canvas_key(req, "catalog", "main", host="catalog") == "catalog"
+    got = window_links.canvas_key(req, "product", "related", host="product_detail")
+    assert got == "product_related"
+
+
+@pytest.mark.xfail(strict=True, reason="ревью M3-7: кадр скрыт от дерева доступности")
+def test_frame_area_is_hidden_from_assistive_tech_and_returns_focus():
+    src = (JS / "aufbau_preview.js").read_text()
+    assert 'stage.setAttribute("aria-hidden", "true")' in src
+    assert 'setAttribute("title"' not in src and "data-title" not in src
+    # шаблон читается при каждом использовании, не кешируется при загрузке
+    assert "var tpl = document.querySelector" not in src
+    # клик в кадр не оставляет фокус в нём: blur окна → фокус на кнопку
+    assert 'window.addEventListener("blur"' in src and "document.activeElement === frame" in src
+    assert src.count('behavior: "instant"') == 2
+    tpl = (ROOT / "templates" / "tenant" / "site_schema.html").read_text()
+    assert "data-title=" not in tpl.split("data-bw-preview", 1)[1].split("</template>", 1)[0]
+
+
+@pytest.mark.xfail(strict=True, reason="ревью M3-7: движение и низкий экран")
+def test_preview_css_respects_reduced_motion_and_short_screens():
+    css = (ROOT / "static" / "src" / "app.css").read_text()
+    assert ".ui-bwin-pv-toggle svg { transition" not in css.replace(
+        "@media (prefers-reduced-motion: no-preference) { .ui-bwin-pv-toggle svg { transition", ""
+    )
+    assert (
+        "@media (prefers-reduced-motion: no-preference) { .ui-bwin-pv-toggle svg { transition"
+        in css
+    )
+    assert re.search(r"max-height: 520px\) \{[^}]*\.ui-bwin-pv-stage \{[^}]*30dvh", css)
+    assert "(max-height: 520px)" in (JS / "aufbau_preview.js").read_text()
