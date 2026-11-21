@@ -109,7 +109,11 @@
     if (!view) return;
     if (!el) { view.scrollTo(0, 0); return; }
     var top = el.getBoundingClientRect().top + view.pageYOffset;
-    view.scrollTo(0, Math.max(0, top - 16));
+    // липкая шапка витрины не закрывает начало блока
+    var head = doc.querySelector('[data-sf-section="header"]');
+    var pos = head ? view.getComputedStyle(head).position : "";
+    var cover = pos === "sticky" || pos === "fixed" ? head.getBoundingClientRect().height : 0;
+    view.scrollTo(0, Math.max(0, top - cover - 16));
   }
 
   function load() {
