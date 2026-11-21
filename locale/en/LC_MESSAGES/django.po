@@ -39842,3 +39842,15 @@ msgstr "Open window"
 
 msgid "Feinschliff"
 msgstr "Fine-tuning"
+
+#. FB-33 стопка: якорь среза C5 — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
+msgid "fb33-stack-anchor-C5"
+msgstr "fb33-stack-anchor-C5"
+
+#. FB-33 стопка: якорь среза M2i-7 — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
+msgid "fb33-stack-anchor-M2i-7"
+msgstr "fb33-stack-anchor-M2i-7"
+
+#. FB-33 стопка: якорь среза M3-9 — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
+msgid "fb33-stack-anchor-M3-9"
+msgstr "fb33-stack-anchor-M3-9"
