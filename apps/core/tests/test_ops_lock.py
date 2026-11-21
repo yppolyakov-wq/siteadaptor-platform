@@ -16,8 +16,6 @@ from django.core.management import CommandError, call_command
 pytestmark = pytest.mark.django_db
 
 ROOT = pathlib.Path(__file__).resolve().parents[3]
-#: замок до кода: поведения ещё нет
-_TODO = pytest.mark.xfail(strict=True, reason="FB-33 M3-9b: замок до кода")
 
 
 @pytest.fixture
@@ -31,7 +29,6 @@ def ops_lock(monkeypatch):
 # --- сама блокировка --------------------------------------------------------------------
 
 
-@_TODO
 def test_second_lock_is_not_taken(ops_lock):
     with ops_lock.session_lock(timeout=0):
         with pytest.raises(ops_lock.Busy):
@@ -41,23 +38,22 @@ def test_second_lock_is_not_taken(ops_lock):
         pass
 
 
-@_TODO
-def test_lock_survives_closing_django_connections(ops_lock):
-    """Соединение блокировки — своё: `connections.close_all()` (так делает параллельный
-    исполнитель миграций перед порождением процессов) её не отпускает."""
-    from django.db import connection, connections
+def test_lock_lives_on_its_own_connection(ops_lock):
+    """Соединение блокировки — своё, не рабочее соединение Django: команда под блокировкой
+    вправе закрывать и пересоздавать рабочие (`connections.close_all()` параллельного
+    исполнителя миграций, подпроцессы пересева) — блокировка от этого не отпускается."""
+    from django.db import connection
 
     with ops_lock.session_lock(timeout=0):
-        assert connection is connections["default"]
         with connection.cursor() as cur:
             cur.execute("SELECT pg_try_advisory_lock(%s)", [ops_lock.KEY])
             assert cur.fetchone()[0] is False  # рабочее соединение её не держит и не возьмёт
-        with pytest.raises(ops_lock.Busy):
-            with ops_lock.session_lock(timeout=0):
-                pass
+    with connection.cursor() as cur:  # отпущена вместе с соединением блокировки
+        cur.execute("SELECT pg_try_advisory_lock(%s)", [ops_lock.KEY])
+        assert cur.fetchone()[0] is True
+        cur.execute("SELECT pg_advisory_unlock(%s)", [ops_lock.KEY])
 
 
-@_TODO
 def test_lock_waits_for_release(ops_lock):
     taken, release = threading.Event(), threading.Event()
 
@@ -79,7 +75,6 @@ def test_lock_waits_for_release(ops_lock):
         thread.join(10)
 
 
-@_TODO
 def test_timeout_message_names_the_way_out(ops_lock):
     with ops_lock.session_lock(timeout=0, what="migrate_schemas --tenant"):
         with pytest.raises(ops_lock.Busy) as exc:
@@ -90,7 +85,6 @@ def test_timeout_message_names_the_way_out(ops_lock):
     assert "seed_demo_tenants" in text  # кто не дождался
 
 
-@_TODO
 def test_hold_marks_children_and_is_reentrant(ops_lock):
     with ops_lock.hold(timeout=0):
         assert os.environ[ops_lock.ENV_HELD] == "1"  # подпроцессы (--jobs) её не берут
@@ -122,7 +116,6 @@ class _FakeProc:
         return self.code
 
 
-@_TODO
 def test_run_locked_passes_arguments_and_exit_code(ops_lock, monkeypatch):
     seen = {}
 
@@ -140,7 +133,6 @@ def test_run_locked_passes_arguments_and_exit_code(ops_lock, monkeypatch):
         pass
 
 
-@_TODO
 def test_run_locked_busy_exits_with_own_code_and_runs_nothing(ops_lock, monkeypatch, capsys):
     monkeypatch.setattr(
         ops_lock.subprocess, "Popen", lambda *a, **k: pytest.fail("команда запущена")
@@ -155,7 +147,6 @@ def test_run_locked_busy_exits_with_own_code_and_runs_nothing(ops_lock, monkeypa
 # --- пересев демо -----------------------------------------------------------------------
 
 
-@_TODO
 def test_reseed_does_not_start_while_the_lock_is_held(ops_lock, monkeypatch):
     from apps.tenants.management.commands import seed_demo_tenants
 
@@ -170,7 +161,6 @@ def test_reseed_does_not_start_while_the_lock_is_held(ops_lock, monkeypatch):
             call_command("seed_demo_tenants", "--kit", "shop", "--lock-timeout", "0")
 
 
-@_TODO
 def test_reseed_takes_the_lock_while_seeding(ops_lock, monkeypatch):
     from apps.tenants.management.commands import seed_demo_tenants
 
@@ -191,7 +181,6 @@ def test_reseed_takes_the_lock_while_seeding(ops_lock, monkeypatch):
         pass
 
 
-@_TODO
 def test_reseed_list_needs_no_lock(ops_lock):
     with ops_lock.session_lock(timeout=0):
         call_command("seed_demo_tenants", "--list")
@@ -215,14 +204,12 @@ def test_deploy_script_is_valid_bash():
     assert proc.returncode == 0, proc.stderr
 
 
-@_TODO
 def test_deploy_migrations_go_through_the_lock():
     lines = [ln for ln in _code(_deploy()).splitlines() if "migrate_schemas" in ln]
     assert len(lines) == 3
     assert all("manage.py run_locked migrate_schemas" in ln for ln in lines), lines
 
 
-@_TODO
 def test_deploy_stops_on_busy_lock_instead_of_retrying(ops_lock):
     code = _code(_deploy())
     assert f"LOCK_BUSY={ops_lock.EXIT_BUSY}" in code
@@ -231,14 +218,13 @@ def test_deploy_stops_on_busy_lock_instead_of_retrying(ops_lock):
     assert "OPS_LOCK_TIMEOUT" in code  # срок ожидания виден и правится
 
 
-@_TODO
 def test_deploy_refuses_a_second_deploy_on_the_host():
     code = _code(_deploy())
     assert re.search(r"flock -n \d+", code)
     assert code.index("flock -n") < code.index("git fetch")  # до любого шага
 
 
-@_TODO
+@pytest.mark.xfail(strict=True, reason="FB-33 M3-9b E2: замок до кода")
 def test_deploy_cleanup_keeps_rollback_images_and_never_fails():
     code = _code(_deploy())
     assert "IMAGE_KEEP=${IMAGE_KEEP:-5}" in code or 'IMAGE_KEEP="${IMAGE_KEEP:-5}"' in code

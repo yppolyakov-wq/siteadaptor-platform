@@ -30,6 +30,37 @@ COMPOSE="docker compose --env-file .env.prod -f docker-compose.prod.yml $PROFILE
 
 cd "$REPO_DIR"
 
+# FB-33 M3-9b: два деплоя сразу на одном сервере — второй выходит, не начав (раньше оба
+# собирали образ и мигрировали вперемешку). Блокировка — файл на этом сервере; снимается
+# сама, когда скрипт завершается (в том числе аварийно).
+DEPLOY_LOCK_FILE="${DEPLOY_LOCK_FILE:-${TMPDIR:-/tmp}/siteadaptor-deploy.lock}"
+if command -v flock >/dev/null 2>&1; then
+	exec 9>"$DEPLOY_LOCK_FILE"
+	if ! flock -n 9; then
+		echo "!!! Другой деплой уже идёт на этом сервере ($DEPLOY_LOCK_FILE занят)." >&2
+		echo "!!! Дождитесь его конца и запустите снова." >&2
+		exit 1
+	fi
+else
+	echo "    WARN: flock не найден — защита от двух деплоев сразу выключена"
+fi
+
+# FB-33 M3-9b: миграции идут под общей блокировкой операций над схемами
+# (apps/core/ops_lock.py) — её же берёт пересев демо (seed_demo_tenants): пересев удалял
+# схему, которую мигрировал деплой (MigrationSchemaMissing). Занята — ждём OPS_LOCK_TIMEOUT
+# секунд (по умолчанию 900) и останавливаем деплой с понятным сообщением, а не висим.
+# LOCK_BUSY — код выхода run_locked «не дождались» (ops_lock.EXIT_BUSY).
+LOCK_BUSY=75
+LOCK_ENV="-e OPS_LOCK_TIMEOUT=${OPS_LOCK_TIMEOUT:-900}"
+lock_busy_stop() {
+	echo "!!! Блокировка операций над схемами занята дольше ${OPS_LOCK_TIMEOUT:-900} с:" >&2
+	echo "!!! идёт пересев демо (seed_demo_tenants) или миграции другого деплоя." >&2
+	echo "!!! Схемы этим шагом НЕ тронуты, сервисы работают на прежней версии." >&2
+	echo "!!! Дождитесь конца той операции и запустите деплой снова" >&2
+	echo "!!! (дольше ждать: OPS_LOCK_TIMEOUT=3600 ./scripts/deploy.sh ...)." >&2
+	exit 1
+}
+
 # T-10: длительность каждого шага — чтобы видеть, что именно тормозит деплой.
 DEPLOY_START=$SECONDS
 STEP_START=$SECONDS
@@ -98,7 +129,11 @@ step "[4/8] Preflight: deploy checks (fail-closed)"
 $COMPOSE run --rm web python manage.py check --deploy
 
 step "[5/8] Migrate shared (public) schema"
-$COMPOSE run --rm web python manage.py migrate_schemas --shared
+rc=0
+# shellcheck disable=SC2086
+$COMPOSE run --rm $LOCK_ENV web python manage.py run_locked migrate_schemas --shared || rc=$?
+if [ "$rc" = "$LOCK_BUSY" ]; then lock_busy_stop; fi
+if [ "$rc" != "0" ]; then exit "$rc"; fi
 
 step "[6a/8] Schema template (fast schema creation)"
 # T-10 D-1: шаблон, копией которого создаются новые схемы (регистрация, пересев демо).
@@ -117,9 +152,19 @@ if [ "${FORCE_MIGRATE:-0}" != "1" ] \
 else
 	# Сбой параллельного прогона (взаимная блокировка на public-таблицах и т. п.) —
 	# повтор по одной схеме: миграции атомарны, применённое не повторяется.
-	$COMPOSE run --rm web python manage.py migrate_schemas --tenant --executor=multiprocessing \
-		|| { echo "    параллельно не вышло — повтор по одной схеме"; \
-			$COMPOSE run --rm web python manage.py migrate_schemas --tenant; }
+	# Занятая блокировка (код LOCK_BUSY) — не сбой миграций: повтор ждал бы её ещё раз.
+	rc=0
+	# shellcheck disable=SC2086
+	$COMPOSE run --rm $LOCK_ENV web python manage.py run_locked migrate_schemas --tenant --executor=multiprocessing || rc=$?
+	if [ "$rc" = "$LOCK_BUSY" ]; then lock_busy_stop; fi
+	if [ "$rc" != "0" ]; then
+		echo "    параллельно не вышло — повтор по одной схеме"
+		rc=0
+		# shellcheck disable=SC2086
+		$COMPOSE run --rm $LOCK_ENV web python manage.py run_locked migrate_schemas --tenant || rc=$?
+		if [ "$rc" = "$LOCK_BUSY" ]; then lock_busy_stop; fi
+		if [ "$rc" != "0" ]; then exit "$rc"; fi
+	fi
 fi
 # collectstatic делает сам web при старте (compose). Отдельный шаг `run --rm
 # collectstatic` писал во временный контейнер и только тратил время (T-10).
