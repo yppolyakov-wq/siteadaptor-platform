@@ -107,12 +107,18 @@ def run(b, w, h):
     pg.screenshot(path=f"{OUT}/m4_home_window_{w}.png")
 
     # 2. «Fertig» → «Auf der Seite bearbeiten» → Студия на той же странице
-    done = pg.locator(f"{DLG} [data-schema-done]").first
+    done = pg.locator(f"{DLG} button[value=window_done]:visible").first
     done.click()
     pg.wait_for_url(lambda u: "block=" not in u, timeout=20000)
     pg.wait_for_load_state()
-    studio = pg.locator("a:has-text('Auf der Seite bearbeiten')").first.get_attribute("href") or ""
-    check(unquote(query(studio).get("page", "")) == "/", f"«Studio» — та же страница ({studio})")
+    studio = (
+        pg.locator(
+            "[data-schema-status] a:has-text('Auf der Seite bearbeiten')"
+        ).first.get_attribute("href")
+        or ""
+    )
+    # без `page` Студия стартует с главной (`_safe_preview_page`)
+    check(unquote(query(studio).get("page", "/")) == "/", f"«Studio» — та же страница ({studio})")
     pg.goto(U + studio if studio.startswith("/") else studio)
     canvas(pg, "/")
 
@@ -141,6 +147,16 @@ def run(b, w, h):
         "открыт блок — или подсказка, что его тут нет",
     )
     pg.screenshot(path=f"{OUT}/m4_catalog_{w}.png")
+    studio = (
+        pg.locator(
+            "[data-schema-status] a:has-text('Auf der Seite bearbeiten')"
+        ).first.get_attribute("href")
+        or ""
+    )
+    check(
+        unquote(query(studio).get("page", "")) == "/sortiment/",
+        f"«Studio» из каталога — снова «Sortiment» ({studio})",
+    )
 
     # 4. несохранённая правка → ⚙ спрашивает
     pg.goto(U + "/dashboard/site/home/")
