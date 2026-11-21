@@ -101,6 +101,8 @@ def test_button_sits_in_language_block_hidden_without_js(monkeypatch):
     assert part[box.end() :].startswith("\n  </div>"), "закрывает блок языков"
     box = box.group(0)
     assert re.search(r"<div[^>]* hidden[ >]", box), "без скриптов не видна"
+    # класс display (flex/block/grid…) перебил бы [hidden] (та же специфичность, позже в app.css)
+    assert box.startswith("<div data-i18n-translate-box hidden>"), box[:80]
     btn = re.search(r"<button[^>]*data-i18n-translate[ >][^>]*>", box).group(0)
     assert 'type="button"' in btn and 'data-loc="ru"' in btn and 'data-base="de"' in btn
     assert "name=" not in btn, "кнопка не отправляет форму"

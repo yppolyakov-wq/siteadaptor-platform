@@ -1,6 +1,6 @@
-{% load i18n ai_notice %}{% comment %}FB-33 M2i-5c: «🌐 Übersetzen» вкладки «Felder» (вставка after_tpl в _bw_langs.html; tr — i18n_translate_ctx из _bw_formfields.html). Переводит основной текст в ПУСТЫЕ поля языка fs.lang этой формы (клиент AIS-5 — _i18n_translate_js.html); записывает только «Übernehmen». Без скриптов блок скрыт — кнопке нечего делать.{% endcomment %}{% if tr %}<div class="flex flex-wrap items-center gap-2" data-i18n-translate-box hidden>
+{% load i18n ai_notice %}{% comment %}FB-33 M2i-5c: «🌐 Übersetzen» вкладки «Felder» (вставка after_tpl в _bw_langs.html; tr — i18n_translate_ctx из _bw_formfields.html). Переводит основной текст в ПУСТЫЕ поля языка fs.lang этой формы (клиент AIS-5 — _i18n_translate_js.html); записывает только «Übernehmen». Без скриптов блок скрыт — кнопке нечего делать (у блока нет класса display: он перебил бы [hidden]).{% endcomment %}{% if tr %}<div data-i18n-translate-box hidden>
       <button type="button" class="ui-btn ui-btn-secondary min-h-[44px]" data-i18n-translate data-loc="{{ fs.lang }}" data-url="{{ tr.url }}" data-result="{{ tr.result }}" data-screen="{{ tr.screen }}" data-base="{{ tr.base }}"><span aria-hidden="true">🌐</span> {% trans "Übersetzen" %}</button>
-      <span class="text-sm text-gray-700" role="status" aria-live="polite" data-i18n-translate-status></span>
+      <span class="ml-2 text-sm text-gray-700" role="status" aria-live="polite" data-i18n-translate-status></span>
       <span class="sr-only" id="i18n-ai-note">{% trans "Automatisch übersetzt – bitte prüfen" %}</span>
       {% ai_notice "i18n_translate" %}
     </div>{% endif %}

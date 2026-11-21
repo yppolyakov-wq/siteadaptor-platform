@@ -143,6 +143,7 @@ def window_flow(pg, tag, loc, w):
     check(h >= 43.5, f"{tag}: кнопка ≥ 44 px ({h})")
     check(pg.locator(f"{scope} [data-ai-notice]").count() <= 1, f"{tag}: плашка ИИ не дублируется")
     et = pg.locator(f"{scope} input[name^=f_et_][name$=_{loc}]")
+    pg.click(f"{scope} details[data-form-et-tr] summary")  # варианты события свёрнуты
     et.nth(0).fill("Мой текст" if loc == "ru" else "My text")  # заполнено владельцем
     SENT.clear()
     MODE["code"] = ""
@@ -167,6 +168,10 @@ def window_flow(pg, tag, loc, w):
         f"{tag}: текст владельца не перезаписан ({et.nth(0).input_value()!r})",
     )
     check(et.nth(1).input_value() == "", f"{tag}: отказ пост-проверки — поле пустое")
+    check(
+        pg.locator(f"{scope} details[data-form-qo-tr]").get_attribute("open") is not None,
+        f"{tag}: свёрнутый список вариантов с переводом раскрыт",
+    )
     texts = SENT[0][1] if SENT else []
     check(
         SENT and SENT[0][0] == loc and "Hochzeit" not in texts and "Handy" in texts,
@@ -214,7 +219,8 @@ def nojs_flow(pg, tag):
     pg.goto(WINDOW)
     pg.wait_for_load_state()
     btn = pg.locator("[data-form-felder] [data-i18n-translate]")
-    check(btn.count() == 1 and not btn.is_visible(), f"{tag}: без JS кнопка в DOM, но не видна")
+    n = btn.count()
+    check(n == 1 and not btn.is_visible(), f"{tag}: без JS кнопка в DOM, но не видна ({n})")
     check(
         pg.locator("[data-form-felder] button[data-schema-apply]").is_visible(),
         f"{tag}: без JS — «Übernehmen» на месте",
@@ -242,10 +248,14 @@ def product_flow(pg, tag):
         pg.locator("input[name=name_en][data-ai-filled]").count() == 1,
         f"{tag}: товар — пометка ИИ",
     )
+    pg.wait_for_function(
+        "document.querySelector('[data-i18n-translate-status]').textContent !== ''", timeout=5000
+    )
     st = pg.locator("[data-i18n-translate-status]").text_content() or ""
     check(bool(st), f"{tag}: товар — живая область ({st!r})")
     pg.select_option("[data-i18n-select]", "de")
-    check(not btn.is_visible() and st != "", f"{tag}: товар — на de кнопка снова скрыта")
+    st = pg.locator("[data-i18n-translate-status]").text_content() or ""
+    check(not btn.is_visible() and st == "", f"{tag}: товар — на de кнопка скрыта, статус сброшен")
 
 
 with sync_playwright() as p:

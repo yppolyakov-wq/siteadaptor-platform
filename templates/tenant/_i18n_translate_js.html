@@ -133,6 +133,9 @@
         trFill(el, got[id]);
         filled++;
         last = el;
+        // M2i-5c: перевод варианта в свёрнутом списке «Optionen übersetzen» — список раскрыть
+        var fold = fixed && el.closest("details");
+        if (fold) fold.open = true;
       });
       // M2i-5c: окно блока со скриптами применяет правку по change (aufbau.js — та же
       // запись, что «Übernehmen»: вся форма в черновик); одно событие — после всех полей.
