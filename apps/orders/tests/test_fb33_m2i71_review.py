@@ -374,10 +374,7 @@ def test_manual_cancel_has_no_automatic_line(biz):
 
 # --- финальное ревью: один срок на выборку, окно оплаты и сессию; потолок «в пути» -----
 
-xfail = pytest.mark.xfail(strict=True, reason="FB-33 M2i-7.1 (финальное ревью): ещё нет")
 
-
-@xfail
 def test_order_with_a_later_payment_term_stays_payable(biz, monkeypatch):
     """Срок оплаты заказа позже 24 ч: автоотмена ждёт его — значит, и оплатить можно."""
     from apps.orders import payments
@@ -402,7 +399,6 @@ def test_order_with_a_later_payment_term_stays_payable(biz, monkeypatch):
     assert abs(seen["expires_at"] - int(top.timestamp())) <= 2  # максимум Stripe, не None
 
 
-@xfail
 def test_session_expires_before_a_later_payment_term(biz, monkeypatch):
     from apps.orders import payments
 
@@ -423,7 +419,6 @@ def test_processing_payment_keeps_the_order_for_13_days(biz):
     assert order.status == Order.STATUS_NEW
 
 
-@xfail
 def test_processing_payment_without_outcome_expires_after_14_days(biz, refunds):
     order = _order(hours_ago=15 * 24)
     _event(order, intent="pi_sepa", status="unpaid")

@@ -151,22 +151,26 @@ ABANDONED_MAX_BATCHES = 10
 
 
 def _abandoned_pks(now, exclude=()) -> list:
-    """Кандидаты автоотмены: онлайн-оплата не начата (нет платежа), заказ не подтверждён,
-    писать клиенту некуда, срок вышел. Срок оплаты заказа (`payment_due_at`) ещё не
-    прошёл — ждём его. `exclude` — заказы, не отменившиеся в этом проходе."""
+    """Кандидаты автоотмены: заказ не подтверждён и не оплачен, писать клиенту некуда,
+    срок вышел (`payments.abandon_deadline`, здесь — то же условие в SQL): оплата не начата
+    — `ORDERS_ABANDONED_HOURS`; платёж «в пути» без исхода — `processing_hold()`; срок
+    оплаты заказа (`payment_due_at`) ещё не прошёл — ждём его. `exclude` — заказы, не
+    отменившиеся в этом проходе."""
     from django.db.models import Q
 
-    from .payments import abandoned_hours, no_contact_email_q
+    from .payments import abandoned_hours, no_contact_email_q, processing_hold
 
-    cutoff = now - timezone.timedelta(hours=abandoned_hours())
+    idle = Q(stripe_payment_intent="") & Q(
+        created_at__lte=now - timezone.timedelta(hours=abandoned_hours())
+    )
+    stuck = ~Q(stripe_payment_intent="") & Q(created_at__lte=now - processing_hold())
     return list(
         Order.objects.filter(
             payment_method=Order.METHOD_STRIPE,
             payment_state=Order.PAYMENT_UNPAID,
             status=Order.STATUS_NEW,
-            stripe_payment_intent="",
-            created_at__lt=cutoff,
         )
+        .filter(idle | stuck)
         .filter(no_contact_email_q())
         .filter(Q(payment_due_at__isnull=True) | Q(payment_due_at__lte=now))
         .exclude(pk__in=list(exclude))
@@ -177,15 +181,13 @@ def _abandoned_pks(now, exclude=()) -> list:
 
 def _still_abandoned(order, now) -> bool:
     """Повторная проверка под блокировкой строки — те же условия, что в выборке."""
-    from .payments import abandoned_hours, has_contact_email
+    from .payments import abandon_deadline, has_contact_email
 
     return (
         order.payment_method == Order.METHOD_STRIPE
         and order.payment_state == Order.PAYMENT_UNPAID
         and order.status == Order.STATUS_NEW
-        and not order.stripe_payment_intent
-        and order.created_at < now - timezone.timedelta(hours=abandoned_hours())
-        and (order.payment_due_at is None or order.payment_due_at <= now)
+        and abandon_deadline(order) <= now
         and not has_contact_email(order)
     )
 
@@ -197,7 +199,7 @@ def expire_abandoned_online(now=None) -> int:
     слать некуда, а заказ держит склад и лимит акции. Через `ORDERS_ABANDONED_HOURS`
     такой заказ отменяется штатным переходом FSM (склад, лимит акции, промокод
     возвращают эффекты перехода). Заказы с e-mail, Vorkasse/счёт, оплата на месте,
-    оплаченные, подтверждённые и с начатым платежом (в т.ч. «в пути») не трогаются.
+    оплаченные и подтверждённые не трогаются; платёж «в пути» ждём до `processing_hold()`.
 
     Блокировка строки и повторная проверка под ней — как у `expire_due_anprobe`: вебхук
     оплаты (`payments.mark_order_paid`) берёт ту же блокировку. Идемпотентно: отменённый

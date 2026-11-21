@@ -48,6 +48,23 @@ def abandoned_hours() -> int:
         return 24
 
 
+def processing_hold():
+    """Сколько заказ ждёт платёж «в пути» без исхода — как удержание брони (SEPA, 14 дней)."""
+    from apps.core import payment_holds
+
+    return payment_holds.PROCESSING_HOLD
+
+
+def abandon_deadline(order):
+    """FB-33 M2i-7.1: момент, с которого заказ без e-mail подлежит автоотмене, — один на
+    выборку задачи, окно оплаты и срок сессии Stripe. Не раньше срока оплаты заказа
+    (`payment_due_at`); при платеже «в пути» ждём его исхода до `processing_hold()`."""
+    from datetime import timedelta
+
+    wait = processing_hold() if order.stripe_payment_intent else timedelta(hours=abandoned_hours())
+    return max(order.created_at + wait, order.payment_due_at or order.created_at)
+
+
 def no_contact_email_q():
     """Условие «клиенту заказа некуда писать» — одно на выборку автоотмены и на проверки."""
     from django.db.models import Q
@@ -66,7 +83,6 @@ def pay_window_closed(order, *, now=None) -> bool:
     """FB-33 M2i-7.1 (ревью): до автоотмены заказа без e-mail осталось меньше, чем Stripe
     даёт сессии со сроком (30 мин + запас) — новую ссылку оплаты не выдаём, иначе гость
     платит за минуты до отмены и получает возврат."""
-    from datetime import timedelta
 
     from django.utils import timezone
 
@@ -75,8 +91,10 @@ def pay_window_closed(order, *, now=None) -> bool:
     if not order.created_at or has_contact_email(order):
         return False
     now = now or timezone.now()
-    deadline = order.created_at + timedelta(hours=abandoned_hours())
-    return deadline - now < payment_holds.STRIPE_MIN_SESSION + payment_holds.SESSION_MARGIN
+    return (
+        abandon_deadline(order) - now
+        < payment_holds.STRIPE_MIN_SESSION + payment_holds.SESSION_MARGIN
+    )
 
 
 def payment_processing(order) -> bool:
@@ -129,7 +147,6 @@ def _session_expires_at(order, *, now=None) -> int | None:
     (`tasks.expire_abandoned_online`), чтобы оплата «в последнюю минуту» не пришла к уже
     отменённому заказу. Заказ с адресом не отменяется — сессия без своего срока. До отмены
     меньше минимума Stripe — тоже без срока: поздняя оплата вернётся (`mark_order_paid`)."""
-    from datetime import timedelta
 
     from django.utils import timezone
 
@@ -138,8 +155,9 @@ def _session_expires_at(order, *, now=None) -> int | None:
     if has_contact_email(order) or not order.created_at:
         return None
     now = now or timezone.now()
-    deadline = order.created_at + timedelta(hours=abandoned_hours())
-    expires = min(deadline, now + payment_holds.ONLINE_HOLD) - payment_holds.SESSION_MARGIN
+    expires = (
+        min(abandon_deadline(order), now + payment_holds.ONLINE_HOLD) - payment_holds.SESSION_MARGIN
+    )
     if expires - now < payment_holds.STRIPE_MIN_SESSION:
         return None
     return int(expires.timestamp())
