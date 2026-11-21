@@ -659,6 +659,9 @@ FB-33 M2i-3a (2026-11-19) — СНЯТО 2026-11-21 (M2i-7, стопка 6): о�
 
 ### scripts
 
+- `scripts/preflight.py` (T-13.1) — ЕДИНСТВЕННЫЙ финальный гейт перед пушем: `plan(files)` — таблица «путь → проверки» (замок `test_preflight_plan.py`). Новое правило гейта — строка туда и в замок, не абзац в `CLAUDE.md`.
+- Проектные скиллы `.claude/skills/sa-*` (T-13.2) — выжимка единых точек и граблей по теме; учатся через `docs/skill-feedback.md` (T-13.7); замок `test_project_skills.py`. Новая единая точка темы — строка в скилл в том же коммите, что и здесь.
+- `.claude/rules/` (T-13.0) — только проектные правила, бюджет 9 КБ (`test_claude_rules_budget.py`); копию общих правил ECC не возвращать (`docs/ecc/README.md`).
 - `scripts/fb33_m3_9_owner_stand.py` (FB-33 M3-9) — стенд владельца: 5 типов бизнеса × 1440/390 × de/ru, с JS и без; строки экрана — из `site_schema` (не второй список); `--selftest` — замок самого стенда (15 случаев). Быстрый режим: `--only shop --langs ru --sizes 390 --sample 1`. Команда: `DB_NAME=platform_m39_stand flock <папка>/heavy.lock timeout 1500 uv run --with playwright==1.55.0 python scripts/fb33_m3_9_owner_stand.py <папка-отчёта> --only shop --langs ru --sizes 390 --sample 1` (сервер стенда на порту 8039 поднят заранее).
 - `scripts/fetch_cc0_photos.py`, `scripts/demo_photo_sheet.py`, `scripts/demo_photo_fetch.py`, `scripts/gen_demo_garments.py`, `static/demo/photos/SOURCES.md` — канал демо-фото и провенанс; `scripts/gen_demo_photos.py` — AI-канал, оставлен, но не используется.
 - `scripts/golden_paths.py` — стенд золотых путей.
