@@ -40,8 +40,6 @@ ACCOUNT = "acct_m2i71"
 PHONE = "+49 151 7654321"
 NAME = "Geheimkunde"
 
-xfail = pytest.mark.xfail(strict=True, reason="FB-33 M2i-7.1: поведения ещё нет")
-
 
 @pytest.fixture(autouse=True)
 def _tenant_urlconf(settings):
@@ -106,8 +104,7 @@ def _hook(order, **kw):
 # --- 1. отмена по сроку: склад, лимит акции, промокод ------------------------------
 
 
-@xfail
-def test_abandoned_order_is_cancelled_and_releases_stock_promo_and_voucher():
+def test_abandoned_order_is_cancelled_and_releases_stock_and_promo_limit():
     product = _product(stock=30, price="2.49")
     promo = Promotion.objects.create(
         title={"de": "Sommer-Deal"},
@@ -117,27 +114,34 @@ def test_abandoned_order_is_cancelled_and_releases_stock_promo_and_voucher():
         compare_at_price=product.base_price,
         available_quantity=10,
     )
-    voucher = Voucher.objects.create(code="MINUS10", label="−10 %", discount_percent=10, max_uses=1)
-    order = _order(hours_ago=24.02, product=product, voucher_code="MINUS10")  # 24 ч + 1 мин
+    order = _order(hours_ago=24.02, product=product)  # 24 ч + 1 мин
     product.refresh_from_db()
     promo.refresh_from_db()
-    voucher.refresh_from_db()
-    assert (product.stock_quantity, promo.available_quantity, voucher.used_count) == (29, 9, 1)
+    assert (product.stock_quantity, promo.available_quantity) == (29, 9)
 
     assert tasks.expire_abandoned_online() == 1
 
     order.refresh_from_db()
     product.refresh_from_db()
     promo.refresh_from_db()
-    voucher.refresh_from_db()
     assert order.status == Order.STATUS_CANCELLED
     assert order.payment_state == Order.PAYMENT_UNPAID  # денег не было — нечего возвращать
     assert product.stock_quantity == 30  # склад
     assert promo.available_quantity == 10  # лимит акции
+
+
+def test_abandoned_order_gives_the_voucher_back():
+    voucher = Voucher.objects.create(code="MINUS10", label="−10 %", discount_percent=10, max_uses=1)
+    order = _order(voucher_code="MINUS10")
+    voucher.refresh_from_db()
+    assert order.voucher_code == "MINUS10" and voucher.used_count == 1
+
+    assert tasks.expire_abandoned_online() == 1
+
+    voucher.refresh_from_db()
     assert voucher.used_count == 0  # промокод снова действует
 
 
-@xfail
 def test_phone_alone_does_not_keep_the_order():
     """Развилка владельца: напоминание уходит только по e-mail — телефон заказ не держит."""
     order = _order(phone=PHONE)
@@ -146,7 +150,6 @@ def test_phone_alone_does_not_keep_the_order():
     assert order.status == Order.STATUS_CANCELLED
 
 
-@xfail
 def test_deadline_comes_from_the_setting(settings):
     settings.ORDERS_ABANDONED_HOURS = 2
     order = _order(hours_ago=3)
@@ -155,7 +158,6 @@ def test_deadline_comes_from_the_setting(settings):
     assert order.status == Order.STATUS_CANCELLED
 
 
-@xfail
 def test_default_deadline_is_24_hours():
     assert dj_settings.ORDERS_ABANDONED_HOURS == 24
 
@@ -163,7 +165,6 @@ def test_default_deadline_is_24_hours():
 # --- 2. чужие заказы не трогаются ---------------------------------------------------
 
 
-@xfail
 @pytest.mark.parametrize(
     "kw",
     [
@@ -176,7 +177,6 @@ def test_default_deadline_is_24_hours():
     ],
     ids=["email", "vorkasse", "invoice", "on_site", "paid", "intent"],
 )
-@xfail
 def test_other_orders_are_left_alone(kw):
     order = _order(**kw)
     assert tasks.expire_abandoned_online() == 0
@@ -184,7 +184,6 @@ def test_other_orders_are_left_alone(kw):
     assert order.status == Order.STATUS_NEW
 
 
-@xfail
 def test_confirmed_order_is_left_alone():
     order = _order()
     OrderSM().apply(order, Order.STATUS_CONFIRMED)
@@ -193,7 +192,6 @@ def test_confirmed_order_is_left_alone():
     assert order.status == Order.STATUS_CONFIRMED
 
 
-@xfail
 def test_running_payment_hold_is_left_alone():
     """Срок оплаты заказа ещё не вышел (его ставит способ или «деньги в пути») — ждём."""
     order = _order()
@@ -206,7 +204,6 @@ def test_running_payment_hold_is_left_alone():
 # --- 3. до срока — нет ---------------------------------------------------------------
 
 
-@xfail
 def test_order_before_the_deadline_stays():
     order = _order(hours_ago=23.9)
     assert tasks.expire_abandoned_online() == 0
@@ -217,7 +214,6 @@ def test_order_before_the_deadline_stays():
 # --- 4. оплата между выборкой и блокировкой -----------------------------------------
 
 
-@xfail
 def test_payment_between_select_and_lock_wins(biz, monkeypatch):
     """Заказ попал в выборку, но до блокировки пришёл вебхук — повторная проверка под
     локом отмену не делает, склад не возвращается."""
@@ -237,7 +233,6 @@ def test_payment_between_select_and_lock_wins(biz, monkeypatch):
     assert product.stock_quantity == 4
 
 
-@xfail
 def test_cancel_and_webhook_lock_the_order_row(biz):
     """И отмена, и вебхук оплаты берут строку заказа под FOR UPDATE — иначе оплата
     «в последнюю минуту» затиралась бы отменой по устаревшему снимку."""
@@ -256,7 +251,6 @@ def test_cancel_and_webhook_lock_the_order_row(biz):
 # --- 5. повтор ----------------------------------------------------------------------
 
 
-@xfail
 def test_second_pass_does_nothing():
     product = _product(stock=5)
     _order(product=product)
@@ -269,7 +263,6 @@ def test_second_pass_does_nothing():
 # --- 6–7. оплата к уже отменённому заказу -------------------------------------------
 
 
-@xfail
 def test_payment_for_cancelled_order_is_refunded(biz, refunds, caplog):
     order = _order(phone=PHONE)
     assert tasks.expire_abandoned_online() == 1
@@ -291,7 +284,6 @@ def test_payment_for_cancelled_order_is_refunded(biz, refunds, caplog):
     assert NAME not in caplog.text and PHONE not in caplog.text
 
 
-@xfail
 def test_webhook_retry_does_not_refund_twice(biz, refunds):
     order = _order()
     tasks.expire_abandoned_online()
@@ -301,6 +293,39 @@ def test_webhook_retry_does_not_refund_twice(biz, refunds):
     assert len(refunds) == 1
     assert order.payment_state == Order.PAYMENT_REFUNDED
     assert DealPayment.objects.filter(deal_kind="order", deal_id=order.pk).count() == 1
+
+
+def test_second_payment_for_cancelled_order_is_refunded_too(biz, refunds):
+    """Две открытые сессии Stripe, оплачены обе: второй платёж (другой intent) к уже
+    отменённому и возвращённому заказу тоже уходит назад — и тоже один раз."""
+    order = _order()
+    tasks.expire_abandoned_online()
+    _hook(order, intent="pi_one")
+    _hook(order, intent="pi_two")
+    _hook(order, intent="pi_two")
+    _hook(order, intent="pi_one")
+    assert [r["payment_intent"] for r in refunds] == ["pi_one", "pi_two"]
+    assert order.status == Order.STATUS_CANCELLED
+    assert order.payment_state == Order.PAYMENT_REFUNDED
+    rows = DealPayment.objects.filter(deal_kind="order", deal_id=order.pk)
+    assert rows.count() == 2 and all(r.refunded_cents == r.amount_cents for r in rows)
+
+
+def test_failed_refund_is_not_hidden(biz, monkeypatch, caplog):
+    """Stripe отказал в возврате: заказ остаётся «оплачен» (не ложное «возвращено»),
+    в логе — предупреждение; владельцу пишет `refunds._rollback`."""
+
+    def boom(**kw):
+        raise RuntimeError("stripe down")
+
+    monkeypatch.setattr("apps.billing.connect.refund", boom)
+    order = _order()
+    tasks.expire_abandoned_online()
+    with caplog.at_level(logging.WARNING):
+        _hook(order, intent="pi_late")
+    assert order.status == Order.STATUS_CANCELLED
+    assert order.payment_state == Order.PAYMENT_PAID
+    assert "refund failed" in caplog.text
 
 
 def test_late_payment_for_live_order_is_kept(biz, refunds):
@@ -326,7 +351,6 @@ def _checkout_kwargs(order, biz, monkeypatch):
     return seen
 
 
-@xfail
 def test_checkout_session_of_order_without_email_expires_before_the_cancel(biz, monkeypatch):
     order = _order(hours_ago=2)
     seen = _checkout_kwargs(order, biz, monkeypatch)
@@ -334,7 +358,6 @@ def test_checkout_session_of_order_without_email_expires_before_the_cancel(biz, 
     assert seen["expires_at"] == int((deadline - payment_holds.SESSION_MARGIN).timestamp())
 
 
-@xfail
 def test_checkout_session_never_outlives_stripe_maximum(biz, monkeypatch, settings):
     """Срок длиннее суток: Stripe держит сессию не дольше 24 ч."""
     settings.ORDERS_ABANDONED_HOURS = 72
@@ -380,7 +403,6 @@ def test_order_pay_for_cancelled_order_goes_back_to_confirmation(biz, monkeypatc
 # --- 10. беда одного заказа / одной схемы -------------------------------------------
 
 
-@xfail
 def test_one_failing_order_does_not_stop_the_pass(monkeypatch, caplog):
     bad = _order(phone=PHONE)
     good = _order()
@@ -401,7 +423,6 @@ def test_one_failing_order_does_not_stop_the_pass(monkeypatch, caplog):
     assert NAME not in caplog.text and PHONE not in caplog.text  # и без PII
 
 
-@xfail
 def test_one_failing_schema_does_not_stop_the_pass(monkeypatch, caplog):
     order = _order()
     schema = connection.schema_name
@@ -428,7 +449,6 @@ def test_one_failing_schema_does_not_stop_the_pass(monkeypatch, caplog):
 # --- 11. beat ------------------------------------------------------------------------
 
 
-@xfail
 def test_beat_runs_the_task_every_15_minutes():
     entries = [
         e

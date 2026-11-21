@@ -37,6 +37,48 @@ def picker_rows(methods: list[str], tenant) -> list[dict]:
     return pm.picker_rows(tenant, methods)
 
 
+def abandoned_hours() -> int:
+    """FB-33 M2i-7.1: через сколько часов брошенный онлайн-заказ без e-mail отменяется
+    (`ORDERS_ABANDONED_HOURS`, по умолчанию 24; меньше часа не бывает)."""
+    from django.conf import settings
+
+    try:
+        return max(1, int(getattr(settings, "ORDERS_ABANDONED_HOURS", 24)))
+    except (TypeError, ValueError):
+        return 24
+
+
+def has_contact_email(order) -> bool:
+    """У клиента заказа есть e-mail (свежо из БД: адрес мог записать вебхук оплаты)."""
+    from apps.promotions.models import Customer
+
+    if not order.customer_id:
+        return False
+    email = Customer.objects.filter(pk=order.customer_id).values_list("email", flat=True).first()
+    return bool((email or "").strip())
+
+
+def _session_expires_at(order, *, now=None) -> int | None:
+    """FB-33 M2i-7.1: срок сессии Stripe у заказа без e-mail — раньше автоотмены
+    (`tasks.expire_abandoned_online`), чтобы оплата «в последнюю минуту» не пришла к уже
+    отменённому заказу. Заказ с адресом не отменяется — сессия без своего срока. До отмены
+    меньше минимума Stripe — тоже без срока: поздняя оплата вернётся (`mark_order_paid`)."""
+    from datetime import timedelta
+
+    from django.utils import timezone
+
+    from apps.core import payment_holds
+
+    if has_contact_email(order) or not order.created_at:
+        return None
+    now = now or timezone.now()
+    deadline = order.created_at + timedelta(hours=abandoned_hours())
+    expires = min(deadline, now + payment_holds.ONLINE_HOLD) - payment_holds.SESSION_MARGIN
+    if expires - now < payment_holds.STRIPE_MIN_SESSION:
+        return None
+    return int(expires.timestamp())
+
+
 def order_checkout_url(order, tenant, *, success_url: str, cancel_url: str) -> str:
     """URL Stripe-оплаты заказа (на connected account бизнеса)."""
     return connect.connected_checkout_session(
@@ -53,6 +95,7 @@ def order_checkout_url(order, tenant, *, success_url: str, cancel_url: str) -> s
         business_type=getattr(tenant, "business_type", ""),
         payment_method_types=getattr(tenant, "stripe_payment_methods", None),
         currency=(order.currency or "EUR").lower(),
+        expires_at=_session_expires_at(order),
     )
 
 
@@ -118,6 +161,27 @@ def _adopt_payer_email(order, raw) -> str:
     return "adopted"
 
 
+def _second_late_payment(order, payment_intent: str) -> bool:
+    """FB-33 M2i-7.1: к отменённому заказу, оплату которого уже вернули, пришёл ЕЩЁ один
+    платёж (вторая открытая сессия Stripe — другой intent, которого нет в книге сделки).
+    Это новые деньги, а не повтор вебхука: их тоже надо записать и вернуть. Повтор по
+    уже записанному intent сюда не попадает."""
+    from apps.core.models import DealPayment
+
+    from .models import Order
+
+    if (
+        not payment_intent
+        or order.status != Order.STATUS_CANCELLED
+        or order.payment_state != Order.PAYMENT_REFUNDED
+        or order.stripe_payment_intent == payment_intent
+    ):
+        return False
+    return not DealPayment.objects.filter(
+        deal_kind="order", deal_id=order.pk, stripe_payment_intent=payment_intent
+    ).exists()
+
+
 def mark_order_paid(
     *, tenant_schema: str, order_id: str, payment_intent: str = "", payer_email=None
 ) -> bool:
@@ -128,8 +192,10 @@ def mark_order_paid(
     адреса он становится адресом клиента, и письма «принят» и текущего статуса уходят на
     него — ровно по разу (dedupe_key письма), у незакрытого заказа. Выключенный канал и
     отписка уважаются внутри `enqueue_order_email`."""
+    from django.db import transaction
     from django_tenants.utils import schema_context
 
+    from apps.core import payment_holds
     from apps.core.fsm import IllegalTransition
 
     from .models import Order
@@ -138,29 +204,42 @@ def mark_order_paid(
     if not tenant_schema or not order_id:
         return False
     with schema_context(tenant_schema):
-        order = Order.objects.filter(id=order_id).first()
-        if order is None:
-            return False
-        fields = []
-        # Ревью B2-3: refunded не воскрешаем повтором вебхука (как у броней).
-        if order.payment_state not in (Order.PAYMENT_PAID, Order.PAYMENT_REFUNDED):
-            order.payment_state = Order.PAYMENT_PAID
-            fields.append("payment_state")
-        if payment_intent and order.stripe_payment_intent != payment_intent:
-            order.stripe_payment_intent = payment_intent
-            fields.append("stripe_payment_intent")
-        if fields:
-            fields.append("updated_at")
-            if (
-                "payment_state" in fields or "stripe_payment_intent" in fields
-            ) and order.payment_state != "refunded":
-                # KA-12 B2-3: платёж в фолио ДО записи состояния (opening легаси);
-                # новый intent пишется и у уже «оплаченной» сделки (поздний вебхук
-                # после кассы) — иначе онлайн-деньги выпали бы из книги.
-                from apps.core import folio
+        # FB-33 M2i-7.1: строка заказа — под блокировкой. Автоотмена брошенного заказа
+        # (`tasks.expire_abandoned_online`) берёт ту же блокировку и проверяет оплату
+        # повторно: либо оплата записана раньше и отмены нет, либо заказ уже отменён и
+        # эта оплата возвращается ниже. Вызов Stripe (возврат) — после блокировки.
+        with transaction.atomic():
+            order = Order.objects.select_for_update().filter(id=order_id).first()
+            if order is None:
+                return False
+            fields = []
+            # Ревью B2-3: refunded не воскрешаем повтором вебхука (как у броней).
+            if order.payment_state not in (
+                Order.PAYMENT_PAID,
+                Order.PAYMENT_REFUNDED,
+            ) or _second_late_payment(order, payment_intent):
+                order.payment_state = Order.PAYMENT_PAID
+                fields.append("payment_state")
+            if payment_intent and order.stripe_payment_intent != payment_intent:
+                order.stripe_payment_intent = payment_intent
+                fields.append("stripe_payment_intent")
+            if fields:
+                fields.append("updated_at")
+                if (
+                    "payment_state" in fields or "stripe_payment_intent" in fields
+                ) and order.payment_state != "refunded":
+                    # KA-12 B2-3: платёж в фолио ДО записи состояния (opening легаси);
+                    # новый intent пишется и у уже «оплаченной» сделки (поздний вебхук
+                    # после кассы) — иначе онлайн-деньги выпали бы из книги.
+                    from apps.core import folio
 
-                folio.record_online("order", order, intent=payment_intent)
-            order.save(update_fields=fields)
+                    folio.record_online("order", order, intent=payment_intent)
+                order.save(update_fields=fields)
+        # FB-33 M2i-7.1: оплата пришла к уже отменённому заказу (автоотмена брошенного,
+        # отмена владельцем) — деньги возвращаются сразу; повтор вебхука второй раз не
+        # возвращает (`newly_paid`). Книга сделки и состояние «refunded» — в карточке.
+        payment_holds.settle_late_payment("order", order, newly_paid="payment_state" in fields)
+        order.refresh_from_db(fields=["payment_state"])
         # FB-33 M2i-7: письма, не ушедшие без адреса, — после записи адреса И на повторе
         # вебхука (ревью п.1: сбой постановки после записи иначе терял их навсегда).
         # «created» — до авто-confirm (порядок писем); затем письмо текущего статуса
