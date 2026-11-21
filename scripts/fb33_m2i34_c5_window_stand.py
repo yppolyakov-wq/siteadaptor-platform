@@ -77,14 +77,17 @@ DLG = "dialog.ui-bwin"
 PAGE = U + "/dashboard/site/aufbau/?seite=cart"
 WINDOW = PAGE + "&block=form&tab=felder"
 TEXT = {
-    "de": {"table": "Am Tisch fragen wir nur", "intro": "Was der Warenkorb beim Bestellen fragt"},
+    "de": {
+        "table": "Bei Bestellung am Tisch (QR-Code)",
+        "intro": "Was der Warenkorb beim Bestellen fragt",
+    },
     "ru": {
-        "table": "За столиком мы спрашиваем только",
+        "table": "При заказе за столиком (QR-код)",
         "intro": "Что корзина спрашивает при заказе",
     },
 }
 #: немецкие строки вкладки, которых в ru-кабинете быть не должно
-GERMAN = ("Nicht fragen", "Eigene Fragen", "Am Tisch", "Was der Warenkorb", "immer Pflicht")
+GERMAN = ("Nicht fragen", "Eigene Fragen", "am Tisch", "Was der Warenkorb", "immer Pflicht")
 ok, fail = 0, []
 
 

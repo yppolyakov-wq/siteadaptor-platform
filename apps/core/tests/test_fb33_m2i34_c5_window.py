@@ -92,18 +92,12 @@ def test_1_cart_form_opens_on_tab_felder_with_checkout_fields():
     assert 'name="ref" value="form"' in part and 'name="seite" value="cart"' in part
 
 
-@pytest.mark.xfail(
-    strict=True, reason="C5 ревью: общая подсказка про столик у любого бизнеса с заказами"
-)
 def test_1_no_online_payment_no_email_hint_but_table_hint():
     part = _part(Browser(_shop()).get(WINDOW))
     assert STRIPE_HINT not in part and EMAIL_HINT_ID not in part
     assert TABLE_HINT in part  # столик (?tisch=) — у любого бизнеса с заказами
 
 
-@pytest.mark.xfail(
-    strict=True, reason="C5 ревью: подсказка e-mail — под полем e-mail, aria-describedby"
-)
 def test_1b_email_hint_sits_under_the_email_field(settings):
     from apps.orders.tests.test_payment_methods import _configure
 
@@ -120,9 +114,6 @@ def test_1b_email_hint_sits_under_the_email_field(settings):
     assert "aria-describedby" not in phone[: phone.index(">")]
 
 
-@pytest.mark.xfail(
-    strict=True, reason="C5 ревью: подсказки — пары (ключ, текст), столик по модулю orders"
-)
 def test_1e_hints_keys_and_table_by_orders_module():
     from apps.core import checkout_window
 
@@ -133,7 +124,6 @@ def test_1e_hints_keys_and_table_by_orders_module():
     assert checkout_window.hints(shop) == []
 
 
-@pytest.mark.xfail(strict=True, reason="C5 ревью: отказ расчёта способов оплаты — в лог")
 def test_1f_payment_methods_error_is_logged(monkeypatch, caplog):
     from apps.core import checkout_window
     from apps.orders import payments
@@ -415,7 +405,6 @@ def test_10_cart_page_follows_the_saved_tab(settings):
     assert "Allergien" in form
 
 
-@pytest.mark.xfail(strict=True, reason="C5 ревью: новый текст подсказки про столик")
 def test_1d_hints_and_intro_are_translated(settings):
     """ru-кабинет: подсказки и вводная вкладки — без немецких строк."""
     from apps.orders.tests.test_payment_methods import _configure

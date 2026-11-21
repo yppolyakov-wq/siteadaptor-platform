@@ -40207,8 +40207,8 @@ msgid "Die Bestätigung kommt an die E-Mail aus der Zahlung, wenn hier keine ang
 msgstr "Подтверждение придёт на e-mail из оплаты, если здесь он не указан."
 
 #. FB-33 C5: вкладка «Felder» корзины
-msgid "Am Tisch fragen wir nur die Notiz und Ihre eigenen Fragen."
-msgstr "За столиком мы спрашиваем только заметку и ваши вопросы."
+msgid "Bei Bestellung am Tisch (QR-Code) fragen wir nur die Notiz und Ihre eigenen Fragen."
+msgstr "При заказе за столиком (QR-код) мы спрашиваем только заметку и ваши вопросы."
 
 #. FB-33 стопка: якорь среза M2i-7 — новые строки среза ставить СРАЗУ ПОСЛЕ этой записи; якорь снимается на верхушке
 msgid "fb33-stack-anchor-M2i-7"
