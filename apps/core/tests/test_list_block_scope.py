@@ -193,11 +193,12 @@ def test_raster_over_a_lane_page_is_expressible_for_the_type():
 # ───────────────────────── Save и черновик ─────────────────────────
 
 
-def test_builder_save_in_type_scope_updates_all_blocks_of_the_type():
-    """FB-33 M4b (ревью №3): охват «Den ganzen Typ» снова задаётся формой Студии («Ansicht
-    gilt für» — в «Feinschliff» блока «Liste»); вид блока, который отдаётся типу, — тот,
-    что сохранён (его правит окно блока)."""
+def test_window_type_scope_updates_all_blocks_of_the_type():
+    """FB-33 M4c: охват «Den ganzen Typ» выбирают в окне блока («Wie anordnen») — вид блока
+    при «Speichern» уходит типу, и все блоки этого типа и его страница его наследуют.
+    Форма Студии охват больше не читает."""
     from apps.core import views
+    from apps.core.tests.test_fb27_r2_draft import Browser
 
     t = _tenant(
         sections=[
@@ -219,6 +220,12 @@ def test_builder_save_in_type_scope_updates_all_blocks_of_the_type():
     }
     resp = views.home_builder_view(_req("post", "/dashboard/site/home/", t, post))
     assert resp.status_code == 302
+    t.refresh_from_db()
+    cfg = siteconfig.normalize(t.site_config)
+    assert cfg["promo_groups"]["Räumung"] == "countdown"  # Студия вид не отдаёт
+    b = Browser(t)
+    b.post(seite="home", op="update", ref="a1", panel_present="1", f_scope="type")
+    b.post(seite="home", op="save")
     t.refresh_from_db()
     cfg = siteconfig.normalize(t.site_config)
     assert cfg["promo_groups"]["Räumung"]["card"] == "coupon"
@@ -267,34 +274,15 @@ def test_type_scope_reaches_the_live_draft():
 # ───────────────────────── редактор ─────────────────────────
 
 
-def test_editor_row_carries_the_scope_control():
-    """FB-33 M4b (ревью №3): «Ansicht gilt für» — в «Feinschliff» строки «Liste» (выбор
-    охвата, не раскладка окна); работает и без JS (селект)."""
-    t = _tenant(sections=[_block("e1", source="promotions", type="Räumung")])
+def test_editor_row_has_no_scope_control():
+    """FB-33 M4c: «Ansicht gilt für» переехало в окно блока — в строке Студии селекта, его
+    скрипта и карты видов типов больше нет."""
+    t = _tenant(sections=[_block("e1", source="promotions", type="Räumung", out="slider")])
     body = _builder(t)
-    assert re.search(r'<select[^>]*name="cb_e1_scope"', body)
-    assert 'value="type"' in body
-    # у блока без типа акции охват не предлагается
-    t2 = _tenant(sections=[_block("e2", source="products")])
-    assert 'name="cb_e2_scope"' not in _builder(t2)
-
-
-def test_type_views_map_carries_the_type_values_and_page_labels():
-    t = _tenant(
-        sections=[_block("v1", source="promotions", type="Räumung")],
-        promo_groups={
-            "Räumung": {"card": "coupon", "layout": {"preset": "cols4", "cols": 4, "scroll": True}}
-        },
-    )
-    body = _builder(t)
-    raw = re.search(
-        r'<script id="lb-type-views" type="application/json">(.*?)</script>', body, re.S
-    )
-    views_map = json.loads(raw.group(1))
-    own = views_map["types"]["Räumung"]
-    assert own == {"out": "slider", "cols": "4", "rows": "", "speed": "", "card": "coupon"}
-    # подписи пустых пунктов в режиме типа — откуда тип возьмёт значение (страница)
-    assert set(views_map["page"]) >= {"out", "cols", "rows", "card", "mode"}
+    assert "cb_e1_scope" not in body and "data-lb-scope" not in body
+    assert "lb-type-views" not in body
+    assert 'name="cb_e1_speed"' in body  # темп ленты — по-прежнему в «Feinschliff»
+    assert not hasattr(list_blocks, "type_views")
 
 
 # ───────────────────── дефекты класса W0 (попутно) ─────────────────────
