@@ -1065,27 +1065,6 @@ def fold_product_source(entry: dict) -> None:
     entry["source"] = siteconfig.PRODUCT_SOURCE_DEFAULT
 
 
-def builtin_sort_options(cfg: dict, source: str) -> list[tuple[str, str]]:
-    """Сортировки строки встроенного списка: [(значение, подпись)] ЕГО источника.
-
-    У товаров пустой пункт блока («порядок каталога») здесь назван явно (`newest`):
-    пустое значение у строки означало бы легаси-дефолт «избранные вперёд»."""
-    from apps.core.facets import provider_for
-
-    spec = siteconfig.LIST_SOURCES[source]
-    default = provider_for(spec["facets"]).default_sort if source == "products" else ""
-    out = []
-    for key, label, srcs in sort_options(cfg):
-        if source in srcs.split():
-            out.append((key or default, label))
-    return out
-
-
-def builtin_card_options(source: str) -> list[tuple[str, str]]:
-    """Формы карточки строки встроенного списка — только формы её источника."""
-    return [(key, label) for key, label, srcs in card_options() if source in srcs.split()]
-
-
 def section_all_url(row) -> str:
     """«View all» встроенной строки — туда, где виден весь список с тем же фильтром
     (категория → её страница, тип акции → страница типа, подборка → `?kollektion=`).
