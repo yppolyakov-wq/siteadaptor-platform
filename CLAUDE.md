@@ -177,10 +177,11 @@ django-storages (S3/Hetzner), Caddy 2 (on-demand TLS). Python 3.12, менедж
   скилла в `.claude/skills/` (плагины облачные сессии не загружают). Общие правила ECC сняты
   (T-13.0) — действуют `.claude/rules/` и этот файл; состав и причины — `docs/ecc/README.md`.
 - **Проектные скиллы `sa-*` (T-13.2)** — `.claude/skills/sa-*` (increment, block-editor,
-  storefront, cabinet-screen, i18n): выжимка «что звать, чего не делать, топ граблей». Грузить В
+  storefront, cabinet-screen, i18n, deals-money, stand): выжимка «что звать, чего не делать, топ граблей». Грузить В
   НАЧАЛЕ инкремента; ревьюеру в промпт — `docs/review-checklist.md`; находку ревью/CI — строкой
   в `docs/skill-feedback.md` и правкой скилла или замком в том же коммите. Статистика —
-  `uv run python scripts/dev_stats.py --write`.
+  `uv run python scripts/dev_stats.py --write`, снимок стопки — `--snapshot` (история —
+  `docs/dev-stats-history.md`). Новый стенд — только через `scripts/standlib.py`.
 - Локальные службы для фолбэка: `bash scripts/dev-services.sh` (Postgres + Redis +
   роль/БД). Автоматически — SessionStart-хук (`.claude/hooks/session-start.sh`).
 - **Память проекта (2026-11-13).** Что владелец уже решил, какой модуль за что отвечает,

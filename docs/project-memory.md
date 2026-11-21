@@ -264,7 +264,7 @@ FB-33 M2i-3a (2026-11-19) — СНЯТО 2026-11-21 (M2i-7, стопка 6): о�
 - `apps/core/detail_parts.py` — разделы детальных страниц строками «Seitenaufbau» (FB-31 P5/P6, 2026-11-16): якоря `{"key": раздел}` в `page_blocks[<host>]` (общий хост `<kind>_detail` и хост одного объекта `<kind>:<hex>`), `flow`/`fixed_parts`/`own_anchors`/`object_lift`. Порядок, видимость и раскладку разделов пишет ТОЛЬКО «Seitenaufbau» (Студия — нет, решение владельца P6); у объекта — `object_structure.clean` (`page_override`, свой порядок у события, тура, услуги). Вид «Ähnliche» — `siteconfig.normalize_related_layout` (`raster`/`max`).
 - `apps/core/page_parts.py` — ядро «шаблон страницы → оси блоков» (FB-31 P3, 2026-11-16): поверхность (строки схемы → оси, таблица кодов), `from_code`/`legacy_code`/`effective`; вывод при чтении, старый код шаблона — запасное значение. Поверхности акций — `apps/promotions/promo_parts.py` (`detail_parts`, `group_parts` — одно правило для витрины и панели); листинги, Team, Galerie — `apps/core/listing_parts.py` (P4: `effective`, `HOST_OF`, номера → `stay_rooms`); каталог — пока свой `apps/catalog/catalog_parts.py`. Хосты и закреплённые строки — `siteconfig.part_surface`/`part_styles`/`drop_page_views`.
 - `apps/core/object_structure.py` — своя структура страницы объекта (товар, услуга): отличия показа разделов и шаблона (`page_override`), вкладка «Seitenaufbau» объекта, свои блоки (`product:<hex>` в `page_blocks`), сброс и уборка (FB-29.4b, 2026-11-14).
-- `legacy_role_gates.py` — (нет по пути `apps/core/`; pitfalls называет его замороженным эталоном — расположение не проверял).
+- `apps/core/tests/legacy_role_gates.py` — замороженный эталон ролей до переноса прав (лежит в тестах ядра, не в `apps/core/`; сверено с кодом 2026-11-21, T-13).
 - `apps/core/archetypes.py` — `primary_item`/`purchase_mode`/`purchase_label` архетипа.
 - apps/core/assistant_actions.py — закрытый реестр действий ИИ-помощника «объект × действие» (A-4).
 - `apps/core/balance_pay.py` — онлайн-доплата остатка после Anzahlung.
@@ -413,7 +413,7 @@ FB-33 M2i-3a (2026-11-19) — СНЯТО 2026-11-21 (M2i-7, стопка 6): о�
 - apps/core/page_settings.py — список вариантов и писатель настроек страниц (кабинет «Seitenvorlage», помощник A-4c).
 - `apps/core/page_settings.py` — схема, проверка и запись одного ключа настроек страницы; `raw_config` для превью.
 - `apps/core/pagination.py` — `paginate` (курсор) и `paginate_list` (offset, `?seite=`) (STU-18f).
-- `apps/core/payment_methods.py` — реестр способов оплаты (on_site|stripe|vorkasse|invoice) + тип покупателя, правила для всех шести видов сделок (SH-23).
+- `apps/core/payment_methods.py` — реестр способов оплаты (on_site|stripe|vorkasse|invoice) + тип покупателя, правила для пяти видов сделок (`KINDS`: order, booking, stay, ticket, job — без reservation; сверено с кодом 2026-11-21) — сделок (SH-23).
 - apps/core/payments_page.py — слой чтения страницы «Zahlungen».
 - `apps/core/perm_grants.py` — единственный писатель прав участника.
 - `apps/core/perm_ui.py` — подписи и группы прав для экрана «Team & Zugriff».
@@ -623,7 +623,7 @@ FB-33 M2i-3a (2026-11-19) — СНЯТО 2026-11-21 (M2i-7, стопка 6): о�
 
 ### apps/billing
 
-- `apps/billing/connect.py` — `checkout_session`, шов `payment_method_types` для всех продажных вызовов.
+- `apps/billing/connect.py` — `connected_checkout_session` (рядом `installment_checkout_session`), шов `payment_method_types` для всех продажных вызовов.
 
 ### apps/community
 
@@ -659,6 +659,8 @@ FB-33 M2i-3a (2026-11-19) — СНЯТО 2026-11-21 (M2i-7, стопка 6): о�
 
 ### scripts
 
+- `scripts/standlib.py` (T-13.4) — ЕДИНСТВЕННЫЙ каркас новых Playwright-стендов (`Report`, `launch`, `open_page`, `login`, `settle`, `overflow`, `matrix`, `--selftest`); старые 38 стендов — список `LEGACY_STANDS` замка `test_standlib.py`, переносятся при следующей правке, список только сокращается.
+- `scripts/dev_stats.py` (T-13.8) — отчёт, наборы для страницы-панели (`--json`), снимок стопки (`--snapshot` → `docs/dev-stats-history.md`); чеклист ревью — `docs/review-checklist.md` (T-13.3).
 - `scripts/preflight.py` (T-13.1) — ЕДИНСТВЕННЫЙ финальный гейт перед пушем: `plan(files)` — таблица «путь → проверки» (замок `test_preflight_plan.py`). Новое правило гейта — строка туда и в замок, не абзац в `CLAUDE.md`.
 - Проектные скиллы `.claude/skills/sa-*` (T-13.2) — выжимка единых точек и граблей по теме; учатся через `docs/skill-feedback.md` (T-13.7); замок `test_project_skills.py`. Новая единая точка темы — строка в скилл в том же коммите, что и здесь.
 - `.claude/rules/` (T-13.0) — только проектные правила, бюджет 9 КБ (`test_claude_rules_budget.py`); копию общих правил ECC не возвращать (`docs/ecc/README.md`).
