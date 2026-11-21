@@ -223,7 +223,7 @@ def test_payment_between_select_and_lock_wins(biz, monkeypatch):
     assert stale == [order.pk]
     _hook(order)
     assert order.payment_state == Order.PAYMENT_PAID
-    monkeypatch.setattr(tasks, "_abandoned_pks", lambda now: stale)
+    monkeypatch.setattr(tasks, "_abandoned_pks", lambda now, **kw: stale)
 
     assert tasks.expire_abandoned_online() == 0
 
