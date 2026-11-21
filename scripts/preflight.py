@@ -179,6 +179,13 @@ def changed_files(base: str) -> list[str]:
     return sorted(set(files))
 
 
+def other_pytest() -> str:
+    """Чужой pytest на той же тест-БД (грабля 2026-11-20: два прогона на одной `--reuse-db`
+    дают ложные падения у обоих). Возвращает строку процесса или пусто."""
+    out = subprocess.run(["pgrep", "-fa", "bin/pytest"], capture_output=True, text=True).stdout
+    return out.splitlines()[0][:120] if out.strip() else ""
+
+
 def _run(cmd: list[str]) -> bool:
     print("    $ " + " ".join(cmd), flush=True)
     return subprocess.run(cmd, cwd=ROOT).returncode == 0
@@ -231,7 +238,11 @@ def main() -> int:
         ),
         "lock": lambda: (_run(["uv", "lock", "--check"]), ""),
         "css": _css,
-        "pytest": lambda: (_run(pytest_command(p, args.jobs)), ""),
+        "pytest": lambda: (
+            (False, f"уже идёт другой pytest ({other_pytest()}) — на общей тест-БД не запускаю")
+            if other_pytest()
+            else (_run(pytest_command(p, args.jobs)), "")
+        ),
     }
     results: list[tuple[str, str, str]] = []
     for name in p.steps:
