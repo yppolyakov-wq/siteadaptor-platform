@@ -24536,3 +24536,32 @@ security/silent-failure): тупик в двусторонних прятках,
 - Эталоны окна пересняты на верхушке: `page_nojs` ×9 случаев, `wie_nojs`, `panel.json` — по объединённому списку изменённых случаев срезов (у тестового бизнеса de+en в формах окна — поля переводов M3-5c; невидимая «Übernehmen» плашек без aria-hidden).
 - Изменены замки прежних срезов: `test_fb27_r3_width` (→ `…drops_the_stale_translation`); два теста FAQ-кнопки вкладки (`test_fb33_stack2_joints`) — правка немецкого даёт сообщение о снятом переводе; `test_fb33_m35b_faq_draft::test_text_edits_keep_the_number_valid`; `test_fb33_m3_5a_texte` — подсказка заменена на «переводы в окне».
 - Миграций в стопке нет. Деплой — обычный `git pull origin main && ./scripts/deploy.sh single`.
+
+### 2026-11-21 — FB-33 M3-7: «Vorschau» в окне блока
+- Внизу `<dialog class="ui-bwin">` — область «Vorschau» с кадром черновика страницы (`?preview=1&aufbau=<код>`, сохранённое + черновик, только у члена с правом сайта), прокрученным к блоку (`data-sf-section`). Строка схемы → ключ секции — `window_links.canvas_key(request, code, ref, host=)` (обратная к `_block_of`); строка самой страницы (★ `main`, `__*`) — `window_links.whole_page(ref)` по явному набору `whole_page_refs()` (MAIN_LIST_KEY, PAGE_REF, TITLE_REF, KAUF_REF): кадр показывает страницу целиком.
+- 1440 — область раскрыта, страница 1280 уменьшена до ширины окна (высота 360 px / 38dvh); свёрнутость помнится на вкладку (sessionStorage). 390 и низкий экран (max-height 520px) — свёрнуто, кадр ≤ 30dvh (на 390 — шириной окна). После каждой записанной правки кадр перерисовывается (пауза 600 мс, только раскрытый), тихо. Без JS — ничего нового (эталоны не менялись).
+- Клиент — `static/js/aufbau_preview.js`, единственный строитель кадра; слушает `aufbau:window-open`, `aufbau:window-close`, `aufbau:saved` из `aufbau.js`. Кадр `aria-hidden="true"` без title; клик в кадр → фокус на кнопку «Vorschau»; прокрутка только `contentWindow.scrollTo`.
+- Ревью (django + a11y): снята строка «Vorschau der Seite …» из .po ×5; шеврон без анимации при reduced-motion.
+- Миграций нет. Замки `apps/core/tests/test_fb33_m37_preview.py` (+ проверка в `test_fb33_m3_2_nojs.py`), стенд `scripts/fb33_m37_preview_stand.py` (порт 8037, 30 ✓ / 0 ✗).
+
+### 2026-11-21 — FB-33 M2i-34 (C0–C4): корзина по «Felder»
+- Витрина `/warenkorb/` рисует форму оформления по `site_config["form_fields"]["checkout"]`: e-mail / телефон / заметка «Nicht fragen · Optional · Pflicht», свои подписи, «*» + sr-only «(Pflichtfeld)», required, свои вопросы общим партиалом `storefront/_form_questions.html` (вынесен из формы заявки байт-в-байт). У столика — только заметка и вопросы; при доступной онлайн-оплате e-mail не выключается.
+- Сервер: `form_spec.missing(…, table=)` сразу после имени — ДО расчёта, записи и брони склада; отказ «Bitte ausfüllen: …» (`public_views._refused`) возвращает введённое и ответы; выключенные поля отбрасываются; ответы — снимок `Order.custom_answers` (подпись на основном языке).
+- Показ одним снимком через `form_answers.rows`: карточка заказа, письмо владельцу (клиенту — нет), кухонная доска KDS, ЛК «Bestellungen». Свои вопросы — maxlength 240/500.
+- C1: плашка § 312j у итога корзины без «Texte und Felder können Sie anpassen.» (решение владельца); невидимая «Übernehmen» вкладки «Felder» — без aria-hidden.
+- Ревью (security + silent-failure): ответы и заметка в письмах владельцу выводятся без экранирования — только text/plain; при Stripe e-mail берётся из POST и у столика.
+- Миграций нет. Замки `apps/orders/tests/test_fb33_m2i34_checkout.py` (21), `apps/core/tests/test_fb33_m2i34_form_spec.py` (16); стенд `scripts/fb33_m2i34_cart_stand.py` (порт 8034; без настройки 32 ✓, с настройкой 70 ✓, 0 ✗). Переснятые эталоны заявки — только `maxlength="240"`.
+- Не сделано: окно «Felder» корзины (C5, подсказка про e-mail при онлайн-оплате) и пресеты M2i-6 — стопка 6.
+
+### 2026-11-21 — FB-33 M4b: одна точка правки блока — окно «Seitenaufbau»
+- Что показать, раскладку, карточку и место блока (Was · Wie anordnen · Karte · Platz) правит только окно блока. Сервер ДО шаблона (W0): `site_schema.merge_structure` при «Speichern» Студии и в живом черновике берёт из сохранённого у встроенного списка `data/source/limit/style`, ключи раскладки окна (`WINDOW_LAYOUT_KEYS`), у `STYLE_SECTIONS` и полосы доверия — `style`, у «Liste» — всё кроме `LIST_STUDIO_FIELDS` (title, intro, speed, scope). Единый писатель — `site_schema.window_owned(row)`; второй список «что снято из Студии» не заводить.
+- Строка секции Студии — без осей «ЧТО» (`limit_`, пресет/ряды/лента/🖥 колонки, «Quick styles» встроенных списков, `style_` секций с окном, `width_`); группы «Darstellung» и «Erweitert» слиты в «Feinschliff». Сверху строки — пояснение и ссылка в окно (`site-schema-open … &tab=wie`, без JS — ссылка).
+- «Liste» в Студии — заголовок, вступление, темп ленты; «Ansicht gilt für» (охват) остаётся селектом в «Feinschliff» до стопки 6. Плашка: «Raster ▾ / Stil ▾» у строк без контрола ведут в окно на «Wie anordnen»; «Breite ▾» снята. Копия встроенного списка берёт сохранённую выборку.
+- Переписаны тесты сверх плана (найдены широким прогоном): test_live_preview, test_list_block_scope, test_lb3_overview_blocks, test_list_blocks, test_stu12_groups, test_stu12_actionbar, test_fb33_m1_card_views, test_fb27_r5_pick, test_lb4c_block_styles, test_lb4d_library, test_list_block_sources(_2,_3), test_cblock_field_roundtrip. Каждая переписка объяснена в сообщении коммита.
+- Миграций нет. Замки `apps/core/tests/test_fb33_m4b_studio_dupes.py` (CH, L1–L5), стенд `scripts/fb33_m4b_studio_dupes_stand.py` (порт 8044, 47 ✓ / 0 ✗).
+
+### 2026-11-21 — FB-33: сборка стопки 5 M3-7 → M2i-34 (C0–C4) → M4b
+- Три среза от общей базы `f1c2bbe` (main) в ветке `claude/fb33-stack5`. Тесты в доках не гонялись (тяжёлый прогон — отдельно); финальный гейт — CI на верхушке.
+- Стыки: `aufbau.js` шлёт три события окна, `aufbau_preview.js` подписан на них; `app.css` (классы `.ui-bwin-pv*`) собран координатором на верхушке — срезы коммитились с `--no-verify` после ручного гейта.
+- Эталоны окна после C1 пересняты: плашка корзины без фразы (`page_nojs` cart/summary, `golden_fb33m35c`); замки `m2i5_window_ui` и `m3_5a_texte` переписаны под невидимую «Übernehmen» без aria-hidden.
+- Миграций в стопке нет. Деплой — обычный `git pull origin main && ./scripts/deploy.sh single`.

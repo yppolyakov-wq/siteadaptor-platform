@@ -59,6 +59,23 @@
 - Открыто за владельцем: подпись «Grundtext» (см. выше) и «Auf der Seite bearbeiten» на детальных страницах
   (ведёт на образец типа, а не на объект — отложено).
 
+Решено (FB-33, стопка 5 M3-7 / M2i-34 / M4b, владелец 2026-11-21, по рекомендации где не сказано иное):
+- **Фраза «Texte und Felder können Sie anpassen.» снята** с плашки § 312j корзины.
+- **«Vorschau» в окне блока:** на 1440 раскрыт (страница 1280 уменьшена до ширины окна), на 390 свёрнут; кадр
+  обновляется после правки через 600 мс; без JS ничего нового. **Скрипты в кадре не включаем** (без allow-scripts).
+- **Итоги корзины не настраиваются** (Überschrift / Zeile für die Summe / Hinweis — не делаем: PAngV / § 312j).
+- **E-mail в корзине при Stripe — не «Nicht fragen»** (минимум «Optional»); кухонная доска показывает все ответы.
+- **M4b по рекомендации 1A / 2A / 3A:** имя секции открывает панель (содержимое и «Feinschliff», сверху ссылка в окно);
+  тонкие настройки вида без места в окне — группой «Feinschliff» до M5/M7; «Raster ▾ / Stil ▾» → окно «Wie anordnen», «Breite ▾» снята.
+  «Ansicht gilt für» возвращён в «Feinschliff» Студии; перенос в окно блока — стопка 6.
+- **Отложено:** ссылки «Im Kabinett ändern» / «Manage slides» (старые области Студии); M4 — «Auf der Seite bearbeiten» на
+  детальных ведёт на образец типа (отложено), «Seitenaufbau öffnen» у баннеров вне главной (голый экран); «Deutsch (Grundtext)»
+  оставлен, «Ausgangstext» — в отложенном (roadmap).
+- Открыто за владельцем (ждёт решения):
+  - **Заказ за столиком у бизнеса только с онлайн-оплатой невозможен:** у столика e-mail не спрашивается, а при Stripe e-mail
+    обязателен. Решить: спрашивать e-mail при выборе онлайн-оплаты у столика или не предлагать её у столика.
+  - **Якоря `data-sf-section` у разделов детали / корзины / подтверждения** для «Vorschau» — отложено (нужно решение о шаблонах витрины).
+
 Решено (FB-33, стопка 3 M3-4b / M2b-2b / M3-6, владелец 2026-11-20):
 - Подписи форм карточки — **по макету M0-2**: Preisschild · Regal · Kompakt mit Foto · Deal-Zeile (у товара и
   акции одинаково; msgid реестра английские). «Nur Text» — новой формой, позже.
@@ -434,6 +451,15 @@ FB-33 M2i-3a (2026-11-19): онлайн-оплата (Stripe) в корзине 
   `url_for_path`; «Aktionen» и группа акций — свои строки).
 - `apps/core/window_link_views.site_schema_open` (FB-33 M4) — единственный переход «из Студии в окно»
   (GET `site-schema-open`, только 302, ничего не пишет).
+- `window_links.canvas_key(request, code, ref, host=)` + `whole_page(ref)` / `whole_page_refs()` (FB-33 M3-7) — ключ секции
+  витрины для строки схемы (обратная к `_block_of`) и строки самой страницы (явный набор: MAIN_LIST_KEY, PAGE_REF,
+  TITLE_REF, KAUF_REF). Адрес и якорь кадра «Vorschau» — только через них (второго словаря не заводить).
+- `site_schema.window_owned(row)` (FB-33 M4b) — что строки главной правит только окно блока (`list`/`style`); по нему
+  `merge_structure` (`_studio_view_only`) и флаги строки Студии. `WINDOW_LAYOUT_KEYS`, `STUDIO_LAYOUT_KEYS` (tail, balance,
+  mobile, tablet), `LIST_STUDIO_FIELDS` (title, intro, speed, scope) — одинаково у свежей и устаревшей вкладки.
+- `form_spec.view(site, "checkout", stripe=, table=)` и `form_spec.missing(…, table=)` (FB-33 M2i-34) — режим полей
+  корзины и проверка сервера в `orders.public_views.checkout` ДО записи; `form_answers.rows(stored)` — показ снимка ответов
+  (карточка заказа, письмо владельцу, KDS, ЛК). Белый список «ответы не уходят наружу» (`test_fb33_m2i2_answers`) пополнен.
 
 ### apps/tenants
 
@@ -505,6 +531,7 @@ FB-33 M2i-3a (2026-11-19): онлайн-оплата (Stripe) в корзине 
 - `apps/orders/pickup_slots.py` — окна и ёмкость самовывоза.
 - apps/orders/shipping_admin.py — единственный писатель способов доставки (под advisory-блокировкой, SHP).
 - apps/orders/totals.py — итоги заказа (брутто → НДС, скидка, доставка, §19).
+- `apps/orders/public_views.py` `checkout` (FB-33 M2i-34) — `form_spec.missing` до расчёта и брони склада; `_refused` возвращает введённое и ответы; `_checkout_fields` — контекст формы (None без настройки).
 
 ### apps/booking
 
@@ -614,6 +641,7 @@ FB-33 M2i-3a (2026-11-19): онлайн-оплата (Stripe) в корзине 
 ### static
 
 - `static/demo/photos/SOURCES.md` — провенанс демо-фото.
+- `static/js/aufbau_preview.js` (FB-33 M3-7) — ЕДИНСТВЕННЫЙ строитель кадра «Vorschau» в окне блока; слушает `aufbau:window-open`, `aufbau:window-close`, `aufbau:saved` из `aufbau.js` (второго слушателя не заводить).
 
 ### templates
 
@@ -633,6 +661,7 @@ FB-33 M2i-3a (2026-11-19): онлайн-оплата (Stripe) в корзине 
   языков в DOM, имя — только у выбранного.
 - `templates/tenant/_i18n_translate_js.html` (FB-33 M2i-5c) — ЕДИНСТВЕННЫЙ клиент кнопки ИИ «🌐 Übersetzen» (кабинет
   и окно «Seitenaufbau»); свой флаг `__i18nTranslateBound`; второй копии JS не заводить.
+- `templates/storefront/_form_questions.html` (FB-33 M2i-34) — свои вопросы формы; общий для заявки и корзины (вынесен байт-в-байт из формы заявки).
 
 ## 4. Сырые выписки по периодам: открытое и ops
 
