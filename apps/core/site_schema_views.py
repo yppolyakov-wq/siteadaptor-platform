@@ -460,6 +460,8 @@ def site_schema_view(request):
             if list_panel.scope_allowed(request)
             else None,
         )
+        # a11y (ревью A3): при охвате «Den ganzen Typ» строка наследования не говорит «nur diesen»
+        selected["scope_type"] = bool(aufbau_draft.scope_of(draft, selected["ref"]))
         selected["result"] = list_panel.result(request, config, selected["list_data"])
         selected["pick"] = list_panel.pick_state(request, selected["list_data"])
         selected["which"] = next(

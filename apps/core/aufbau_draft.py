@@ -158,7 +158,16 @@ def get(request, code: str) -> dict | None:
     в нём живёт только снимок для «Abbrechen», FB-33 M3-1b) — как его нет: экран, превью
     и список черновиков показывают сохранённое."""
     draft = _raw(request, code)
-    return None if draft is None or draft.get(IDLE_KEY) else draft
+    if draft is None or draft.get(IDLE_KEY):
+        return None
+    if draft.get(SCOPE_KEY):
+        from apps.core import list_panel
+
+        if not list_panel.scope_allowed(request):
+            # FB-33 M4c (ревью M1): право на типы акций отозвали — показ (`overlay`) вид
+            # типу не отдаёт, как и «Speichern»; пометка — в копии, в сессию не пишется
+            return {**draft, SCOPE_OFF: True}
+    return draft
 
 
 def _put(request, code: str, draft: dict | None) -> None:
@@ -244,11 +253,11 @@ def overlay(config: dict, draft: dict, *, scope: bool = True) -> dict:
         _object_faq().put_shown(out, draft)
     if "btr" in draft:  # FB-33 M3-5c: переводы текстов блока из окна
         _block_i18n().put_shown(out, draft)
-    if scope and draft.get(SCOPE_KEY):
+    if scope and draft.get(SCOPE_KEY) and not draft.get(SCOPE_OFF):
         # FB-33 M4c: «Den ganzen Typ» — предпросмотр показывает то, что запишет «Speichern»
         from apps.core import list_blocks
 
-        list_blocks.apply_type_scope(out, ids=set(draft[SCOPE_KEY]))
+        list_blocks.apply_type_scope(out, draft[SCOPE_KEY], _scope_rows(out, home, host))
     return _apply_settings(out, draft)
 
 
@@ -398,18 +407,29 @@ SIDE_PARTS = (
 
 # ───────────── FB-33 M4c: «Ansicht gilt für» блока «Liste» в окне блока ─────────────
 # Охват «Den ganzen Typ» — не данные блока (`siteconfig._clean_list_block` его не хранит):
-# черновик держит выбор отдельно, {id блока: "type"}, и отпечатки сохранённых настроек
-# затронутых типов акций на момент выбора (`scope_base`, {тип: отпечаток}) — вне
-# `_saved_state`: правка «Aktionstypen» конфликтует только с черновиком, который сам отдаёт
-# вид этому типу. Вид типу отдаёт `list_blocks.apply_type_scope` — в показе и в «Speichern».
+# черновик держит выбор отдельно, {id блока: тип акции на момент выбора}, и отпечатки
+# сохранённых настроек затронутых типов на момент выбора (`scope_base`, {тип: отпечаток}) —
+# вне `_saved_state`: правка «Aktionstypen» конфликтует только с черновиком, который сам
+# отдаёт вид этому типу. Вид типу отдаёт `list_blocks.apply_type_scope` — в показе и в
+# «Speichern». У типа — один источник вида: выбор у блока снимает выбор у других блоков типа.
 SCOPE_KEY = "scope"
 SCOPE_BASE = "scope_base"
+#: пометка копии черновика из `get`: права на типы акций нет — показ вид типу не отдаёт
+SCOPE_OFF = "scope_off"
 
 
 def scope_of(draft: dict | None, ref: str) -> str:
     """Выбранный охват вида блока `ref`: "type" или ""."""
     pending = (draft or {}).get(SCOPE_KEY)
-    return "type" if isinstance(pending, dict) and pending.get(ref) == "type" else ""
+    return "type" if isinstance(pending, dict) and pending.get(ref) else ""
+
+
+def _scope_rows(config: dict, home: bool, host: str):
+    """Строки страницы черновика в `config` — только их блоки отдают вид типу (ревью L1)."""
+    if home:
+        return config.get("sections")
+    pages = config.get("page_blocks")
+    return pages.get(host) if isinstance(pages, dict) else None
 
 
 def _type_fingerprint(config: dict, kind: str) -> str:
@@ -420,38 +440,46 @@ def _type_fingerprint(config: dict, kind: str) -> str:
 
 
 def _take_scope(request, draft: dict, ref: str, wanted: str) -> None:
-    """Поле «Ansicht gilt für» формы окна — в черновик. Без права на типы акций поддельный
-    запрос охват не ставит (поля в окне нет)."""
-    from apps.core import list_panel
+    """Поле «Ansicht gilt für» формы окна — в черновик, с типом блока на момент выбора.
+    Без права на типы акций поддельный запрос охват не ставит (поля в окне нет); блок без
+    своих осей вида охват не получает. Выбор у блока снимает выбор у других блоков типа."""
+    from apps.core import list_blocks, list_panel
 
     pending = dict(draft.get(SCOPE_KEY) or {}) if isinstance(draft.get(SCOPE_KEY), dict) else {}
     if wanted != "type":
         pending.pop(ref, None)
-    elif list_panel.scope_allowed(request):
-        pending[ref] = "type"
+    elif ref not in pending and list_panel.scope_allowed(request):
+        item = next((it for it in draft.get("items") or [] if _ident(it) == ref), None)
+        kind = list_blocks.type_scope_kind(item)
+        if kind:
+            pending = {r: k for r, k in pending.items() if k != kind}
+            pending[ref] = kind
     draft[SCOPE_KEY] = pending
 
 
 def _sync_scope(config: dict, draft: dict) -> None:
-    """Охват держится только у блоков черновика, которые могут отдать вид типу («Liste»,
-    акции, тип задан): блок удалили, сменили источник или тип убрали — выбор снят. Отпечаток
-    типа — с первой правки, где тип появился среди затронутых."""
+    """Охват держится только у блоков черновика, которые могут отдать вид ТОМУ ЖЕ типу, что
+    при выборе («Liste», акции, свои оси вида): блок удалили, сменили источник или тип, оси
+    сбросили — выбор снят. Отпечаток типа — с первой правки, где тип появился среди
+    затронутых."""
     from apps.core import list_blocks
 
     pending = draft.get(SCOPE_KEY)
     pending = pending if isinstance(pending, dict) else {}
     kinds = {
-        it["id"]: list_blocks.type_scope_kind(it)
+        it["id"]: pending[it["id"]]
         for it in draft.get("items") or []
-        if isinstance(it, dict) and it.get("id") in pending
+        if isinstance(it, dict)
+        and it.get("id") in pending
+        and pending[it["id"]]
+        and list_blocks.type_scope_kind(it) == pending[it["id"]]
     }
-    kinds = {ref: kind for ref, kind in kinds.items() if kind}
     if not kinds:
         draft.pop(SCOPE_KEY, None)
         draft.pop(SCOPE_BASE, None)
         return
     base = draft.get(SCOPE_BASE) if isinstance(draft.get(SCOPE_BASE), dict) else {}
-    draft[SCOPE_KEY] = dict.fromkeys(kinds, "type")
+    draft[SCOPE_KEY] = kinds
     draft[SCOPE_BASE] = {
         kind: base.get(kind) or _type_fingerprint(config, kind)
         for kind in sorted(set(kinds.values()))
@@ -728,7 +756,9 @@ def _snapshot(tenant, code, host, draft, ref, token="", codes=(), source=None) -
         proto["faq"] = {k: copy.deepcopy(source[k]) for k in FAQ_KEYS if k in source}
 
     if at is not None and siteconfig.cblock_type(items[at].get("key")) == "list":
-        proto[SCOPE_KEY] = bool(scope_of(source, ref))  # FB-33 M4c: охват только этого блока
+        # FB-33 M4c: охват только этого блока (тип на момент выбора или "")
+        was = source.get(SCOPE_KEY)
+        proto[SCOPE_KEY] = str((was.get(ref) if isinstance(was, dict) else "") or "")
 
     _object_faq().snapshot(proto, source, items[at] if at is not None else None)  # M2b-2b
     _block_i18n().snapshot(proto, source, ref)  # FB-33 M3-5c: переводы только этого окна
@@ -799,12 +829,12 @@ def _revert(draft: dict, ref: str, proto: dict) -> None:
                     draft[key] = copy.deepcopy(proto[part][key])
                 else:
                     draft.pop(key, None)
-    if isinstance(proto.get(SCOPE_KEY), bool):
+    if isinstance(proto.get(SCOPE_KEY), str):
         # FB-33 M4c: охват вида этого блока — как при открытии окна (`cancel` затем сверяет
         # выбор с блоками, `_sync_scope`)
         pending = dict(draft.get(SCOPE_KEY) or {})
         if proto[SCOPE_KEY]:
-            pending[ref] = "type"
+            pending[ref] = proto[SCOPE_KEY]
         else:
             pending.pop(ref, None)
         draft[SCOPE_KEY] = pending
@@ -1178,7 +1208,7 @@ def commit(request, tenant, code: str, *, force: bool = False, notes: list | Non
         from apps.core import list_blocks, list_panel
 
         if list_panel.scope_allowed(request):
-            list_blocks.apply_type_scope(config, ids=set(draft[SCOPE_KEY]))
+            list_blocks.apply_type_scope(config, draft[SCOPE_KEY], _scope_rows(config, home, host))
         elif notes is not None:
             notes.append(list_panel.scope_rights_note())
     _commit_object(

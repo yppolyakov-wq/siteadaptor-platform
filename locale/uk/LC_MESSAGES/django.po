@@ -40205,6 +40205,23 @@ msgstr "fb33-stack-anchor-M4c"
 
 #. FB-33 M4c
 #: apps/core/list_panel.py
+#, python-format
+msgid "Dieser Block folgt der Ansicht des Typs „%(typ)s“. Sie wird unter „Aktionstypen“ geändert."
+msgstr "Блок наслідує вигляд типу «%(typ)s». Він змінюється в розділі «Типи акцій»."
+
+#. FB-33 M4c
+#: apps/core/list_panel.py
+#, python-format
+msgid "Den ganzen Typ: %(typ)s"
+msgstr "Усьому типу: %(typ)s"
+
+#. FB-33 M4c
+#: apps/core/list_panel.py
+msgid "Beim Speichern ändert sich die Ansicht aller Blöcke dieses Typs und seiner Seite; die eigenen Einstellungen dieses Blocks entfallen."
+msgstr "Під час збереження зміниться вигляд усіх блоків цього типу та його сторінки; власні налаштування цього блоку буде знято."
+
+#. FB-33 M4c
+#: apps/core/list_panel.py
 msgid "„Ansicht gilt für“ wurde nicht übernommen: Dafür fehlt das Recht, Aktionstypen zu bearbeiten."
 msgstr "«Вигляд застосовується до» не застосовано: немає права редагувати типи акцій."
 

@@ -375,24 +375,41 @@ def scope_rights_note() -> str:
     )
 
 
-def _scope_field(data: dict, scope: str) -> dict | None:
-    """FB-33 M4c: охват вида — только у «Liste» с акциями и заданным типом. Поле только
-    пишет: «Den ganzen Typ» при «Speichern» отдаёт вид блока типу акции
-    (`list_blocks.apply_type_scope`); выбор держит черновик страницы."""
+def _scope_field(data: dict, scope: str) -> tuple[dict | None, str]:
+    """FB-33 M4c: охват вида — только у «Liste» с акциями и заданным типом: (поле, строка).
+    Поле только пишет: «Den ganzen Typ» при «Speichern» отдаёт вид блока типу акции
+    (`list_blocks.apply_type_scope`); выбор держит черновик страницы. У блока без своих
+    осей вида поля нет (пустой вид стёр бы настройки типа) — вместо него строка: блок
+    следует виду типа."""
     from apps.core import list_blocks
     from apps.promotions import promo_types
 
-    kind = list_blocks.type_scope_kind({"key": "list", "data": data})
+    item = {"key": "list", "data": data}
+    kind = list_blocks.type_kind(item)
     if not kind:
-        return None
+        return None, ""
+    label = promo_types.label_for(kind)
+    if not list_blocks.type_scope_kind(item):
+        note = _(
+            "Dieser Block folgt der Ansicht des Typs „%(typ)s“. "
+            "Sie wird unter „Aktionstypen“ geändert."
+        )
+        return None, note % {"typ": label}
     hint = _("Gilt für alle Blöcke dieses Typs und für seine Seite:")
-    return _select(
+    field = _select(
         "scope",
         _("Ansicht gilt für"),
         "type" if scope == "type" else "",
-        [("", _("Nur diesen Block")), ("type", _("Den ganzen Typ"))],
-        hint=f"{hint} {promo_types.label_for(kind)}",
+        [("", _("Nur diesen Block")), ("type", _("Den ganzen Typ: %(typ)s") % {"typ": label})],
+        hint=f"{hint} {label}",
     )
+    if scope == "type":
+        # a11y (ревью A2): что сделает «Speichern» — видимым предупреждением у поля
+        field["warn"] = _(
+            "Beim Speichern ändert sich die Ansicht aller Blöcke dieses Typs und seiner Seite; "
+            "die eigenen Einstellungen dieses Blocks entfallen."
+        )
+    return field, ""
 
 
 def groups(request, cfg: dict, data: dict, mode: str = "", scope: str | None = None) -> list[dict]:
@@ -520,7 +537,9 @@ def groups(request, cfg: dict, data: dict, mode: str = "", scope: str | None = N
                 [("", f"{hint['card_from']}: {hint['card']}"), *cards],
             )
         )
-    scope_field = None if scope is None else _scope_field({**data, "source": source}, scope)
+    scope_field, scope_note = (
+        (None, "") if scope is None else _scope_field({**data, "source": source}, scope)
+    )
     if scope_field:
         how.append(scope_field)
     # FB-30.5: заголовки групп говорят, о чём выбор («Welche Kategorien gezeigt werden»),
@@ -541,7 +560,12 @@ def groups(request, cfg: dict, data: dict, mode: str = "", scope: str | None = N
             if mode == "regel"
             else "",
         },
-        {"key": "wie", "title": _("Wie %(what)s aussehen") % {"what": what_label}, "fields": how},
+        {
+            "key": "wie",
+            "title": _("Wie %(what)s aussehen") % {"what": what_label},
+            "fields": how,
+            "scope_note": scope_note,  # FB-33 M4c: блок без своих осей следует виду типа
+        },
     ]
 
 

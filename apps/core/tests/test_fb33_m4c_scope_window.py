@@ -207,12 +207,12 @@ def test_plain_form_post_and_stale_scope():
     b = Browser(_shop(_promo_block("a1"), promo_groups={TYPE: {"card": "ring"}}))
     _scope(b, "a1", f_out="slider", f_cols="3", f_rows="", f_style="")
     draft = _draft(b)
-    assert draft["scope"] == {"a1": "type"}
+    assert draft["scope"] == {"a1": TYPE}
     assert _row({"sections": draft["items"]}, "a1")["data"]["out"] == "slider"
     assert "scope" not in _row({"sections": draft["items"]}, "a1")["data"]
     # форма без поля охвата (вкладка «Was», «zurücksetzen») выбор не трогает
     b.post(seite="home", op="update", ref="a1", panel_present="1", f_title="Neu")
-    assert _draft(b)["scope"] == {"a1": "type"}
+    assert _draft(b)["scope"] == {"a1": TYPE}
     # тип у блока убрали — охват отдавать некому
     b.post(seite="home", op="update", ref="a1", panel_present="1", f_type="")
     assert "scope" not in _draft(b)
@@ -228,7 +228,7 @@ def test_scope_needs_the_right_to_edit_promo_types(monkeypatch):
 
     b = Browser(_shop(_promo_block("a1", card="coupon")))
     _scope(b, "a1")
-    assert _draft(b)["scope"] == {"a1": "type"}
+    assert _draft(b)["scope"] == {"a1": TYPE}
     monkeypatch.setattr("apps.core.view_perms.url_allowed", lambda user, url, method="GET": False)
     assert 'name="f_scope"' not in _window(b, "a1")
     # право отозвали до «Speichern»: страница сохраняется, вид типу не уходит — с пометкой
@@ -244,11 +244,9 @@ def test_scope_needs_the_right_to_edit_promo_types(monkeypatch):
 
 
 # ───────────── ревью (django + a11y): H1, H2, M1, M2, L1, L3, A1–A4 ─────────────
-_XF = pytest.mark.xfail(strict=True, reason="FB-33 M4c ревью: до кода")
 
 
 # H1 — блок без своих осей вид типа не стирает: поля нет, вместо него — строка-подсказка
-@_XF
 def test_block_without_own_view_cannot_wipe_the_type():
     from apps.core import list_blocks
 
@@ -269,16 +267,16 @@ def test_block_without_own_view_cannot_wipe_the_type():
     assert cfg["promo_groups"][TYPE] == entry and "scope" not in cfg["sections"][0]["data"]
     # охват выбран, потом свои оси сбросили («zurücksetzen») — отдавать нечего, выбор снят
     b2 = Browser(_shop(_promo_block("a1", out="slider"), promo_groups={TYPE: copy.deepcopy(entry)}))
+    kept = _saved(b2.tenant)["promo_groups"][TYPE]
     _scope(b2, "a1")
     assert _draft(b2)["scope"]
     b2.post(seite="home", op="update", ref="a1", panel_present="1", f_out="", f_cols="", f_rows="")
     assert "scope" not in _draft(b2)
     b2.post(seite="home", op="save")
-    assert _saved(b2.tenant)["promo_groups"][TYPE] == entry
+    assert _saved(b2.tenant)["promo_groups"][TYPE] == kept
 
 
 # H2 — тип блока сменили при выбранном охвате: охват на новый тип не переезжает
-@_XF
 def test_changing_the_type_drops_the_scope():
     b = Browser(_shop(_promo_block("a1", card="coupon")))
     _scope(b, "a1")
@@ -292,7 +290,6 @@ def test_changing_the_type_drops_the_scope():
 
 
 # M1 — право отозвали: предпросмотр не обещает того, чего «Speichern» не сделает
-@_XF
 def test_preview_without_the_right_keeps_the_view_at_the_block(monkeypatch):
     b = Browser(_shop(_promo_block("a1", card="coupon")))
     _scope(b, "a1")
@@ -305,7 +302,6 @@ def test_preview_without_the_right_keeps_the_view_at_the_block(monkeypatch):
 
 
 # M2 — один источник вида у типа: выбор охвата у блока снимает его у других блоков типа
-@_XF
 def test_one_block_per_type_gives_the_view():
     b = Browser(_shop(_promo_block("a1", card="coupon"), _promo_block("a2", card="ring")))
     _scope(b, "a1")
@@ -317,7 +313,6 @@ def test_one_block_per_type_gives_the_view():
 
 
 # L1 — вид отдают только блоки страницы черновика (чужой блок с тем же id не трогаем)
-@_XF
 def test_scope_is_limited_to_the_rows_of_the_page():
     from apps.core import list_blocks
 
@@ -339,7 +334,10 @@ def test_cancel_after_the_type_changed_elsewhere():
     b = Browser(_shop(_promo_block("a1", card="coupon"), promo_groups={TYPE: "countdown"}))
     _scope(b, "a1", wopen="tok12345")
     t = Tenant.objects.get(pk=b.tenant.pk)
-    t.site_config = {**t.site_config, "promo_groups": {TYPE: {"style": "countdown", "card": "ring"}}}
+    t.site_config = {
+        **t.site_config,
+        "promo_groups": {TYPE: {"style": "countdown", "card": "ring"}},
+    }
     t.save(update_fields=["site_config"])
     _resp, msgs = b.post(seite="home", op="revert", ref="a1", wopen="tok12345")
     assert any("zurückgenommen" in m for m in msgs), msgs
@@ -348,7 +346,6 @@ def test_cancel_after_the_type_changed_elsewhere():
 
 
 # A1 — предупреждение экрана не красится «успехом»
-@_XF
 def test_warning_message_is_not_painted_as_success():
     from django.contrib import messages
 
@@ -367,7 +364,6 @@ def test_warning_message_is_not_painted_as_success():
 
 
 # A2–A4 — выбран «Den ganzen Typ»: видимое предупреждение, имя типа в варианте, без «nur diesen»
-@_XF
 def test_type_scope_says_what_saving_will_do():
     b = Browser(_shop(_promo_block("a1", out="slider", card="coupon")))
     html = _window(b, "a1")

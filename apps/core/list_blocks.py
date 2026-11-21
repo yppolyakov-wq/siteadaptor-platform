@@ -1284,6 +1284,16 @@ _VIEW_AXES = ("out", "cols", "rows", "speed", "card")
 _LAYOUT_AXES = ("out", "cols", "rows", "speed")
 
 
+def _list_rows(rows) -> list[dict]:
+    return [
+        item
+        for item in rows or ()
+        if isinstance(item, dict)
+        and siteconfig.cblock_type(item.get("key")) == "list"
+        and isinstance(item.get("data"), dict)
+    ]
+
+
 def _list_blocks_of(cfg: dict) -> list[dict]:
     """Блоки «Liste» конфига в порядке обхода: главная, затем страницы."""
     found: list = []
@@ -1295,13 +1305,7 @@ def _list_blocks_of(cfg: dict) -> list[dict]:
         for rows in pages.values():
             if isinstance(rows, list):
                 found.extend(rows)
-    return [
-        item
-        for item in found
-        if isinstance(item, dict)
-        and siteconfig.cblock_type(item.get("key")) == "list"
-        and isinstance(item.get("data"), dict)
-    ]
+    return _list_rows(found)
 
 
 def _axis_int(raw, low: int, high: int) -> int:
@@ -1340,10 +1344,9 @@ def _type_layout(cfg: dict, data: dict) -> dict:
     return layout
 
 
-def type_scope_kind(item) -> str:
-    """FB-33 M4c: тип акции, которому блок «Liste» может отдать свой вид («Den ganzen
-    Typ»); пусто — охват не предлагается (не «Liste», не акции, тип не задан). Одно условие
-    для поля окна блока, черновика и `apply_type_scope`."""
+def type_kind(item) -> str:
+    """FB-33 M4c: тип акции блока «Liste» с источником «Aktionen»; пусто — не «Liste», не
+    акции или тип не задан."""
     data = item.get("data") if isinstance(item, dict) else None
     if not isinstance(data, dict) or siteconfig.cblock_type(item.get("key")) != "list":
         return ""
@@ -1352,32 +1355,41 @@ def type_scope_kind(item) -> str:
     return str(data.get("type") or "").strip()
 
 
-def apply_type_scope(cfg: dict, ids=()) -> None:
+def type_scope_kind(item) -> str:
+    """FB-33 M4c: тип акции, которому блок «Liste» может отдать свой вид («Den ganzen
+    Typ»); пусто — охват не предлагается: не «Liste» с типом акции (`type_kind`) или у блока
+    нет ни одной своей оси вида — отдавать нечего, а пустой вид стёр бы настройки типа.
+    Одно условие для поля окна блока, черновика и `apply_type_scope`."""
+    kind = type_kind(item)
+    return kind if kind and any(item["data"].get(axis) for axis in _VIEW_AXES) else ""
+
+
+def apply_type_scope(cfg: dict, ids=None, rows=None) -> None:
     """LB-1b: блоки в режиме «Den ganzen Typ» отдают свой вид ТИПУ акции.
 
-    Одна функция для Save билдера и для живого черновика — превью показывает ровно то,
-    что сохранится. Для блока `list` с `scope="type"`, источником «Aktionen» и типом:
-    оси вида уходят в `promo_groups[тип]` (пустые — тип снова наследует страницу), а у
-    блока очищаются — он следует за типом, как все блоки этого типа. Шаблон страницы
-    типа (`style`) и чужие типы не трогаются. `scope` — служебное поле формы и в
-    конфиге не остаётся ни у одного блока. Два блока одного типа в этом режиме —
-    побеждает последний по порядку обхода (главная, затем страницы).
+    Для блока `list` с источником «Aktionen», типом и хотя бы одной своей осью вида
+    (`type_scope_kind`): оси вида уходят в `promo_groups[тип]`, а у блока очищаются — он
+    следует за типом, как все блоки этого типа. Блок без своих осей вид типа не трогает
+    (ревью M4c: иначе повторный выбор охвата стирал бы настройки типа). Шаблон страницы
+    типа (`style`) и чужие типы не трогаются.
 
-    FB-33 M4c: `ids` — блоки, у которых охват выбран в окне блока (черновик страницы
-    держит выбор отдельно от данных блока, `aufbau_draft.SCOPE_KEY`).
+    FB-33 M4c: охват выбирают в окне блока, черновик страницы держит выбор отдельно от
+    данных блока (`aufbau_draft.SCOPE_KEY`): `ids` — {id блока: тип на момент выбора} (тип
+    у блока уже другой — вид не уходит), `rows` — строки страницы черновика (блоки других
+    страниц не обходятся). Без `rows` — весь конфиг: страховка, сметает служебный `scope`
+    из старых данных формы Студии (в конфиге он не остаётся ни у одного блока).
     """
     if not isinstance(cfg, dict):
         return
     from apps.promotions import promo_types
 
+    ids = ids if isinstance(ids, dict) else {}
     types = None
-    for item in _list_blocks_of(cfg):
+    for item in _list_blocks_of(cfg) if rows is None else _list_rows(rows):
         data = item["data"]
         scoped = data.pop("scope", None) == "type"
-        if not (scoped or (item.get("id") and item["id"] in ids)):
-            continue
         kind = type_scope_kind(item)
-        if not kind:
+        if not kind or not (scoped or ids.get(item.get("id")) == kind):
             continue
         if types is None:
             raw = cfg.get("promo_groups")

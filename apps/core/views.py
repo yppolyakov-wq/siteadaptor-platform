@@ -2862,9 +2862,7 @@ def home_builder_view(request):
                 config, new_page_blocks=new_pages, skip_locale=save_loc if translating else None
             )
             config["page_blocks"] = new_pages
-        # LB-1b: блоки «Liste» в режиме «Den ganzen Typ» отдают свой вид типу акции —
-        # та же функция, что у живого черновика (превью = результат Save). До снимка
-        # шаблона страницы и до разборки перевода: оси вида — структура, не текст.
+        # FB-33 M4c: страховка — сметает устаревший `scope` из старых данных (охват — в окне блока)
         list_blocks.apply_type_scope(config)
         # SE-4b: сохранить текущую компоновку как шаблон страницы. Снимок берём из только
         # что собранного config["sections"] → ловит несохранённые правки порядка/видимости
@@ -4031,7 +4029,7 @@ def site_preview_draft(request):
             # пустым FAQ, и Save стёр бы вопросы)
             _parsed.pop("faq", None)
         cfg.update(_parsed)
-    # LB-1b: «Den ganzen Typ» — та же функция, что у Save билдера (превью = результат).
+    # FB-33 M4c: страховка — сметает устаревший `scope` из старых данных (охват — в окне блока)
     list_blocks.apply_type_scope(cfg)
     # STU-19a: the draft must show cabinet-owned settings as stored (no-op until 19e).
     from apps.core import page_settings
