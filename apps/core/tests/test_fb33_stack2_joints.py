@@ -110,8 +110,12 @@ def test_faq_texte_tab_buttons_apply_the_questions():
         faq_new_q="D?",
         faq_new_a="4",
     )
-    assert msgs == []
-    assert resp["Location"].endswith("#schema-tab-wie") and "tab=wie" in resp["Location"]
+    # FB-33 M3-5c: правка немецкого снимает перевод вопроса — сообщение, владелец остаётся во
+    # вкладке (как у прочих сообщений окна); вопросы применены
+    from apps.core import block_i18n
+
+    assert msgs == [block_i18n.dropped_note(["ru"])]
+    assert not resp["Location"].endswith("#schema-tab-wie")
     items = faq_t._drafts(b)["home"]["faq"]["items"]
     assert [it["q"] for it in items] == ["A neu?", "B?", "C?", "D?"]
 
@@ -121,7 +125,9 @@ def test_faq_tab_button_without_op_takes_the_form_default():
     b = Browser(faq_t._tenant())
     data = {"op_default": "update", "zu_tab": "wie", "bw_tabs": "wie texte", "faq_0_q": "A2?"}
     resp, msgs = faq_t._faq_post(b, **data, op="")
-    assert msgs == [] and resp["Location"].endswith("#schema-tab-wie")
+    from apps.core import block_i18n  # FB-33 M3-5c: снятый перевод вопроса — сообщением
+
+    assert msgs == [block_i18n.dropped_note(["ru"])]
     assert faq_t._drafts(b)["home"]["faq"]["items"][0]["q"] == "A2?"
 
 

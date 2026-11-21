@@ -291,7 +291,7 @@ def test_unsafe_button_link_is_refused_on_write():
     assert _blocks(tenant)[0]["data"]["url"] == "/kontakt/"
 
 
-def test_panel_writes_the_base_language_and_keeps_translations():
+def test_panel_writes_the_base_language_and_drops_the_stale_translation():
     tenant = _tenant()
     cfg = siteconfig.normalize(
         {
@@ -308,4 +308,5 @@ def test_panel_writes_the_base_language_and_keeps_translations():
     stored = siteconfig.normalize(Tenant.objects.get(pk=tenant.pk).site_config)
     assert stored["page_blocks"]["info"][-1]["data"]["title"] == "Neu"
     ru = siteconfig.localize(stored, "ru")["page_blocks"]["info"][-1]["data"]["title"]
-    assert ru == "Один"  # перевод цел
+    # FB-33 M3-5c (решение владельца 2026-11-21): правка немецкого снимает перевод поля
+    assert ru == "Neu"

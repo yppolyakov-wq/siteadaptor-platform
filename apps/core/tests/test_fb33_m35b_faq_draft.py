@@ -124,7 +124,9 @@ def test_text_edits_keep_the_number_valid():
     _faq_post(b, items=items, src=src, faq_0_q="A neu?")
     resp, msgs = _faq_post(b, items=items, src=src, faq_0_q="A neu?", faq_2_a="3 neu")
     got = _drafts(b)["home"]["faq"]["items"]
-    assert got[0]["q"] == "A neu?" and got[2]["a"] == "3 neu" and not msgs
+    assert got[0]["q"] == "A neu?" and got[2]["a"] == "3 neu"
+    # FB-33 M3-5c: правка немецкого ответа снимает его перевод — сообщение, но не отказ
+    assert faq_content.stale_note() not in msgs and any("Übersetzung entfernt" in m for m in msgs)
 
 
 def _studio_changes_faq(b):
