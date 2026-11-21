@@ -25,7 +25,8 @@ pytestmark = pytest.mark.django_db
 WOPEN = "openC5"
 WINDOW = "?seite=cart&block=form&tab=felder"
 STRIPE_HINT = "Die Bestätigung kommt an die E-Mail aus der Zahlung"
-TABLE_HINT = "Am Tisch fragen wir nur"
+TABLE_HINT = "Bei Bestellung am Tisch (QR-Code) fragen wir nur"
+EMAIL_HINT_ID = "ff-email-pay-hint"
 
 QUESTIONS = [
     {"id": "q1", "type": "text", "label": "Allergien", "mode": "req"},
@@ -89,18 +90,61 @@ def test_1_cart_form_opens_on_tab_felder_with_checkout_fields():
     assert "f_event_types" not in part and "data-form-preset" not in part
     assert "Anfrage-Form" not in part
     assert 'name="ref" value="form"' in part and 'name="seite" value="cart"' in part
-    assert STRIPE_HINT not in part and TABLE_HINT not in part
 
 
-def test_1b_hints_by_online_payment_and_table(settings):
+@pytest.mark.xfail(
+    strict=True, reason="C5 ревью: общая подсказка про столик у любого бизнеса с заказами"
+)
+def test_1_no_online_payment_no_email_hint_but_table_hint():
+    part = _part(Browser(_shop()).get(WINDOW))
+    assert STRIPE_HINT not in part and EMAIL_HINT_ID not in part
+    assert TABLE_HINT in part  # столик (?tisch=) — у любого бизнеса с заказами
+
+
+@pytest.mark.xfail(
+    strict=True, reason="C5 ревью: подсказка e-mail — под полем e-mail, aria-describedby"
+)
+def test_1b_email_hint_sits_under_the_email_field(settings):
     from apps.orders.tests.test_payment_methods import _configure
 
     _configure(settings)
     stripe = _shop(orders_prepay=True, payments_enabled=True, stripe_connect_id="acct_1")
     part = _part(Browser(stripe).get(WINDOW))
-    assert STRIPE_HINT in part and TABLE_HINT not in part
-    part = _part(Browser(_tenant()).get(WINDOW))  # кафе: заказ к столику
-    assert TABLE_HINT in part and STRIPE_HINT not in part
+    start = part.index('data-form-field="email"')
+    fieldset = part[part.rindex("<fieldset", 0, start) : part.index("</fieldset>", start)]
+    assert f'aria-describedby="{EMAIL_HINT_ID}"' in fieldset
+    assert f'id="{EMAIL_HINT_ID}"' in fieldset and STRIPE_HINT in fieldset
+    assert part.count(f'id="{EMAIL_HINT_ID}"') == 1 and part.count(STRIPE_HINT) == 1
+    # прочие поля без неё
+    phone = part[part.index('data-form-field="phone"') :]
+    assert "aria-describedby" not in phone[: phone.index(">")]
+
+
+@pytest.mark.xfail(
+    strict=True, reason="C5 ревью: подсказки — пары (ключ, текст), столик по модулю orders"
+)
+def test_1e_hints_keys_and_table_by_orders_module():
+    from apps.core import checkout_window
+
+    shop = _shop()
+    assert [k for k, _t in checkout_window.hints(shop)] == ["table"]
+    shop.disabled_modules = ["orders"]
+    shop.save(update_fields=["disabled_modules"])
+    assert checkout_window.hints(shop) == []
+
+
+@pytest.mark.xfail(strict=True, reason="C5 ревью: отказ расчёта способов оплаты — в лог")
+def test_1f_payment_methods_error_is_logged(monkeypatch, caplog):
+    from apps.core import checkout_window
+    from apps.orders import payments
+
+    def boom(*a, **kw):
+        raise RuntimeError("x")
+
+    monkeypatch.setattr(payments, "available_methods", boom)
+    caplog.set_level("WARNING")
+    assert checkout_window.stripe_available(_shop()) is False
+    assert "checkout window" in caplog.text and "RuntimeError" in caplog.text
 
 
 def test_1c_presets_for_checkout_are_empty():
@@ -291,6 +335,47 @@ def test_8b_anfrage_form_row_is_unchanged():
     assert panel["form"] == "anfrage" and "hints" not in panel
 
 
+def test_8c_anfrage_window_has_no_cart_hints(settings):
+    from apps.orders.tests.test_payment_methods import _configure
+
+    _configure(settings)
+    tenant = _tenant(ANFRAGE, orders_prepay=True, payments_enabled=True, stripe_connect_id="a_1")
+    part = _part(Browser(tenant).get("?seite=anfrage&block=form&tab=felder"))
+    assert "data-form-hint" not in part and EMAIL_HINT_ID not in part
+    assert STRIPE_HINT not in part and TABLE_HINT not in part
+
+
+def test_5b_cart_and_anfrage_drafts_side_by_side():
+    tenant = _tenant(ANFRAGE)
+    saved = siteconfig.normalize(_saved(tenant))
+    b = Browser(tenant)
+    _edit(b, seite="anfrage", wopen="openA1", mode_description="req")
+    _edit(b, mode_email="off")
+    anfrage = _drafts(b)["anfrage"]
+    b.post(seite="cart", op="save")
+    after = siteconfig.normalize(_saved(tenant))
+    assert _drafts(b) == {"anfrage": anfrage}  # черновик заявки цел
+    assert after["form_fields"]["anfrage"] == saved["form_fields"]["anfrage"]
+    assert after.get("anfrage") == saved.get("anfrage")
+    assert form_spec.mode_of(after, "checkout", "email") == "off"
+    b.post(seite="anfrage", op="save")
+    final = siteconfig.normalize(_saved(tenant))
+    assert final["form_fields"]["checkout"] == after["form_fields"]["checkout"]
+    assert form_spec.mode_of(final, "anfrage", "description") == "req"
+
+
+def test_5c_preset_button_on_cart_changes_nothing():
+    tenant = _tenant()  # кафе — у заявки пресета нет, у корзины его нет вовсе
+    tenant.business_type = "catering"
+    tenant.save(update_fields=["business_type"])
+    before = json.dumps(_saved(tenant), sort_keys=True)
+    b = Browser(tenant)
+    resp, _msgs = _edit(b, do="preset")
+    assert resp.status_code == 302
+    assert aufbau_draft.get(b._request("get"), "cart") is None
+    assert json.dumps(_saved(tenant), sort_keys=True) == before
+
+
 # ───────────── 9: Vorschau — поля из черновика ─────────────
 
 
@@ -330,6 +415,7 @@ def test_10_cart_page_follows_the_saved_tab(settings):
     assert "Allergien" in form
 
 
+@pytest.mark.xfail(strict=True, reason="C5 ревью: новый текст подсказки про столик")
 def test_1d_hints_and_intro_are_translated(settings):
     """ru-кабинет: подсказки и вводная вкладки — без немецких строк."""
     from apps.orders.tests.test_payment_methods import _configure
@@ -339,6 +425,6 @@ def test_1d_hints_and_intro_are_translated(settings):
     with translation.override("ru"):
         part = _part(Browser(tenant).get(WINDOW))
     assert "Подтверждение придёт на e-mail из оплаты" in part
-    assert "За столиком мы спрашиваем только заметку" in part
+    assert "При заказе за столиком (QR-код) мы спрашиваем только" in part
     assert "Что корзина спрашивает при заказе" in part
     assert STRIPE_HINT not in part and TABLE_HINT not in part
