@@ -2055,7 +2055,7 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
       var aufbauLink = document.querySelector("[data-stu-aufbau]");
       if (aufbauLink) aufbauLink.href = windowHref("");
       applyPageScope(PAGE_GROUPS[fPath] || (fPath === "/" ? "home" : ""));
-    } catch (eSync) {}
+    } catch (eSync) { if (window.console) console.warn("studio: sync frame", eSync); }  // как aufbau.js — не молча
   }
 
   // SE-7 (Вариант 3): рейл областей + фокус-панель. Клик по иконке рейла открывает

@@ -402,3 +402,50 @@ def test_endpoint_is_consciously_unlisted():
     from apps.core.tests.test_x0_x7_locks import EXPECTED_UNLISTED
 
     assert "site-schema-open" in EXPECTED_UNLISTED
+
+
+# ───────────── ревью M4: порядок сопоставления и разделы тура ─────────────
+
+
+def test_exact_ref_wins_over_the_detail_prefix(monkeypatch):
+    """Строка с ref `service_x` открывается сама, даже если есть раздел `x` (точное — раньше)."""
+    from apps.core import window_links
+
+    monkeypatch.setattr(window_links, "_refs", lambda *a: {"service_x", "x"})
+    assert window_links._block_of(None, "service", "service_detail", "service_x") == "service_x"
+    monkeypatch.setattr(window_links, "_refs", lambda *a: {"x"})
+    assert window_links._block_of(None, "service", "service_detail", "service_x") == "x"
+
+
+def _tour_req(site_config):
+    import uuid
+
+    from apps.events.models import Tour
+    from apps.tenants.tests.factories import TenantFactory
+
+    tour = Tour.objects.create(
+        title="Rheinsteig", slug=f"t-{uuid.uuid4().hex[:8]}", is_published=True
+    )
+    tenant = TenantFactory.build(enabled_modules=["events"], site_config=site_config(tour))
+    return tour, _req(tenant)
+
+
+@pytest.mark.parametrize("section", ["program", "private_tour"])
+def test_tour_section_gear_opens_its_row(section, settings):
+    """Тур живёт на `event_detail`: ключ канвы `event_<раздел>` — строка раздела тура."""
+    from apps.core import window_links
+
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    tour, req = _tour_req(lambda t: {})
+    path = f"/tour/{tour.slug}/"
+    assert window_links.studio_settings_url(req, path, f"event_{section}") == (
+        window_links.block_window_url("event", section)
+    )
+    assert _messages(req) == []
+    # у тура со своими блоками — его строка «Nur diese Seite»
+    own = {"key": "text", "id": "b1", "enabled": True, "data": {"title": "Eigen"}}
+    tour2, req2 = _tour_req(lambda t: {"page_blocks": {f"tour:{t.pk.hex}": [own]}})
+    code = f"tour@tour:{tour2.pk.hex}"
+    assert window_links.studio_settings_url(req2, f"/tour/{tour2.slug}/", f"event_{section}") == (
+        window_links.block_window_url(code, section)
+    )

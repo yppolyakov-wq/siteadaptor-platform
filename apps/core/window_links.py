@@ -88,7 +88,7 @@ def _block_of(request, code: str, host: str, ref: str) -> str:
     from apps.core import detail_parts
 
     refs = _refs(request, code, host)
-    if ref in refs:
+    if ref in refs:  # точное совпадение раньше снятия префикса: строка `service_x` ≠ раздел `x`
         return ref
     base = detail_parts.shared_host(host or "")
     if base.endswith(DETAIL_SUFFIX):  # раздел детали: `service_faq` → `faq`
